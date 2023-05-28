@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ..}: 
+{ config, lib, pkgs, ... }: 
 let
   cfg = config.zfs-root.per-user.craole.templates.desktop;
   inherit (lib) mkDefault mkOption types mkIf;
