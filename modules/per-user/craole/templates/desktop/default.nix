@@ -21,7 +21,7 @@ in {
         immutable = true;
       };
       networking = {
-        timeZone = "Europe/Berlin";
+        timeZone = "America/Jamaica";
         networkmanager.wirelessNetworks = {
           "TP-Link_48C2" = "77017543";
           "1203-5G" = "hallo stranger";
@@ -42,8 +42,8 @@ in {
     users.users = {
       craole = {
         # "!" means login disabled
-        initialHashedPassword = "$6$UxT9KYGGV6ik$BhH3Q.2F8x1llZQLUS1Gm4AxU7bmgZUP7pNX6Qt3qrdXUy7ZYByl5RVyKKMp/DuHZgk.RiiEXK8YVH.b2nuOO/";
-        description = "Yuchen Guo";
+        initialHashedPassword = "$6$JpGyTjd922XkFGCs$QTOrGXyAPjmMqKH6FlisS/mWDSQkOWYDU1iWVaH5oeoHA0FwjTeMvIuXwzz5WwF6O2o8hVDLstHhmyJftaZJ60";
+        description = "Craig 'Craole' Cole";
         # a default group must be set
         extraGroups = [
           # use doas
@@ -69,16 +69,10 @@ in {
             zathura
             jmtpfs
             gpxsee
-            # pdf processor in Go
-            
+            vscode
             pdfcpu
             # image editor
             
-            nomacs
-            # CoMa programs
-            
-            python3
-            julia
             # pdf manipulation suite in C++
             
             # https://qpdf.readthedocs.io/en/stable/
