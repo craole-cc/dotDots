@@ -33,6 +33,7 @@ in {
         inherit (pkgs)
           vscode
           alejandra
+          mucommander
           #vscode-extensions.bbenoist.nix
           #vscode-extensions.kamadorueda.alejandra
           #vscode-extensions.pkief.material-icon-theme
