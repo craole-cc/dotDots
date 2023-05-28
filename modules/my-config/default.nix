@@ -32,11 +32,12 @@ in {
       packages = builtins.attrValues {
         inherit (pkgs)
           vscode
-          vscode-extensions.bbenoist.nix
-          vscode-extensions.kamadorueda.alejandra
-          vscode-extensions.pkief.material-icon-theme
-          vscode-extensions.pkief.material-product-icons
-          vscode-extensions.equinusocio.vsc-material-theme
+          alejandra
+          #vscode-extensions.bbenoist.nix
+          #vscode-extensions.kamadorueda.alejandra
+          #vscode-extensions.pkief.material-icon-theme
+          #vscode-extensions.pkief.material-product-icons
+          #vscode-extensions.equinusocio.vsc-material-theme
         ;
       };
       isNormalUser = true;
