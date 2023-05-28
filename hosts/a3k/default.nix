@@ -22,9 +22,9 @@
     };
     networking = {
       # read changeHostName.txt file.
-      hostName = "exampleHost";
-      timeZone = "Europe/Berlin";
-      hostId = "2c4a22f0";
+      hostName = "a3k";
+      timeZone = "America/Jamaica";
+      hostId = "18767976453";
     };
   };
 
