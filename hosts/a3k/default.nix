@@ -23,8 +23,8 @@
       hostId = "18767976453";
     };
     per-user.craole = {
-      templates.desktop.enable = false;
-      modules.keyboard.enable = false;
+      templates.desktop.enable = true;
+      modules.keyboard.enable = true;
     };
   };
 }
