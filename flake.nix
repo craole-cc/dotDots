@@ -35,17 +35,17 @@
       };
   in {
     nixosConfigurations = {
-     # exampleHost = let
-     #   system = "x86_64-linux";
-     #   pkgs = nixpkgs.legacyPackages.${system};
-     # in
-     #  mkHost (import ./hosts/exampleHost {inherit system pkgs;});
-
-      a3k = let
+      exampleHost = let
         system = "x86_64-linux";
         pkgs = nixpkgs.legacyPackages.${system};
       in
-        mkHost (import ./hosts/a3k {inherit system pkgs;});
+       mkHost (import ./hosts/exampleHost {inherit system pkgs;});
+
+     # a3k = let
+     #   system = "x86_64-linux";
+     #   pkgs = nixpkgs.legacyPackages.${system};
+     # in
+     #   mkHost (import ./hosts/a3k {inherit system pkgs;});
     };
   };
 }
