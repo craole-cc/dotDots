@@ -54,6 +54,7 @@
     inherit (pkgs)
       mg # emacs-like editor
       jq # other programs
+      helix
     ;
   };
 }

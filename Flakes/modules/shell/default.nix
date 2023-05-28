@@ -1,0 +1,6 @@
+[
+  ./fish
+  ./git
+  ./bash
+  ./nushell
+]
