@@ -24,7 +24,7 @@ in {
       # Generate hashed password with "mkpasswd -m sha-512" command,
       # "!" disables login.
       # "mkpasswd" without "-m sha-512" will not work
-      initialHashedPassword = "alice";
+      initialHashedPassword = "$6$71PqhIwevs3kV.YY$A1Emwzzc0MvoquonTi7XoPxij2C.bPHaA.n0n4I0Djcd6II.22RlnKoylq6B.gBfOJ.TaSmKrRFX1GTYQvuuT0";
       description = "Full Name";
       # Users in "wheel" group are allowed to use "doas" command
       # to obtain root permissions.
@@ -46,3 +46,4 @@ in {
     };
   };
 }
+
