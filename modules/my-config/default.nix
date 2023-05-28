@@ -37,13 +37,6 @@ in {
       };
       isNormalUser = true;
     };
-    i18n.defaultLocale = "en_US.UTF-8";
-    console = {
-    	earlySetup = true;
-    	font = "${pkgs.terminus_font}/share/console/ter-132.psf.gz";
-    	packages = with pkgs; [ terminus_font ];
-    	keyMap = "us";
-    };
   };
 }
 
