@@ -19,7 +19,7 @@
       hostId = "2c4a22f0";
     };
     per-user.craole = {
-#      templates.desktop.enable = true;
+      templates.desktop.enable = true;
     };   
   };
 }
