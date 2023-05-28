@@ -31,8 +31,12 @@ in {
       extraGroups = [ "wheel" ];
       packages = builtins.attrValues {
         inherit (pkgs)
-          mg # emacs-like editor
-          jq # other programs
+          vscode
+          vscode-extensions.bbenoist.nix
+          vscode-extensions.kamadorueda.alejandra
+          vscode-extensions.pkief.material-icon-theme
+          vscode-extensions.pkief.material-product-icons
+          vscode-extensions.equinusocio.vsc-material-theme
         ;
       };
       isNormalUser = true;

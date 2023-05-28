@@ -1,6 +1,6 @@
 # #
 ##
-##  per-host configuration for exampleHost
+##  per-host configuration for a3k
 ##
 ##
 
