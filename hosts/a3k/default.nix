@@ -19,8 +19,7 @@
     };
     networking = {
       hostName = "a3k";
-      timeZone = "America/Jamaica";
-      hostId = "18767976453";
+      hostId = "2c4a22f0";
     };
     per-user.craole = {
       templates.desktop.enable = true;
