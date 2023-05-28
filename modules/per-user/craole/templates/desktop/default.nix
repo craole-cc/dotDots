@@ -1,9 +1,5 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: let
+{ config, lib, pkgs, ..}: 
+let
   cfg = config.zfs-root.per-user.craole.templates.desktop;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
@@ -22,13 +18,9 @@ in {
       };
       networking = {
         timeZone = "America/Jamaica";
-        networkmanager.wirelessNetworks = {
-          "TP-Link_48C2" = "77017543";
-          "1203-5G" = "hallo stranger";
-        };
-      };
-
-      per-user.craole.enable = true;
+        useDHCP = true;
+        networkmanager.enable = true;      
+        #per-user.craole.enable = true;
     };
     users.mutableUsers = false;
     home-manager.users.craole = {
@@ -69,7 +61,6 @@ in {
             zathura
             jmtpfs
             gpxsee
-            vscode
             pdfcpu
             # image editor
             
@@ -78,6 +69,8 @@ in {
             # https://qpdf.readthedocs.io/en/stable/
             
             qpdf
+            vscode
+            alejandra
             ;
         };
         isNormalUser = true;
