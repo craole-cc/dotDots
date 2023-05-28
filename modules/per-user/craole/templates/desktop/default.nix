@@ -20,8 +20,9 @@ in {
         timeZone = "America/Jamaica";
         useDHCP = true;
         networkmanager.enable = true;      
-        #per-user.craole.enable = true;
-    };
+        #per-user.craole.enable = true;i
+      };
+    }; 
     users.mutableUsers = false;
     home-manager.users.craole = {
       home = {
@@ -33,18 +34,12 @@ in {
     };
     users.users = {
       craole = {
-        # "!" means login disabled
         initialHashedPassword = "$6$JpGyTjd922XkFGCs$QTOrGXyAPjmMqKH6FlisS/mWDSQkOWYDU1iWVaH5oeoHA0FwjTeMvIuXwzz5WwF6O2o8hVDLstHhmyJftaZJ60";
         description = "Craig 'Craole' Cole";
-        # a default group must be set
         extraGroups = [
-          # use doas
           "wheel"
-          # manage VMs
           "libvirtd"
-          # manage network
           "networkmanager"
-          # connect to /dev/ttyUSB0
           "dialout"
         ];
         openssh.authorizedKeys.keys = [
