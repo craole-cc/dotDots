@@ -42,7 +42,7 @@ in {
     	earlySetup = true;
 	font = "${pkgs.terminus_font}/share/console/ter-132.psf.gz";
 	packages = with pkgs; [ terminus_font ];
-	keymap = "us"
+	keymap = "us";
     };
   };
 }
