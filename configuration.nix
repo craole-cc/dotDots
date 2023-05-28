@@ -56,6 +56,7 @@
       helix
       bat
       lsd
+      terminus_font
     ;
   };
 }
