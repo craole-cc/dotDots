@@ -42,6 +42,7 @@
   boot.zfs.forceImportRoot = lib.mkDefault false;
 
   nix.settings.experimental-features = lib.mkDefault [ "nix-command" "flakes" ];
+  nixpkgs.config.allowUnfree = true;
 
   programs.git.enable = true;
 
