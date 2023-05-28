@@ -21,9 +21,9 @@
       hostName = "a3k";
       hostId = "2c4a22f0";
     };
-    per-user.craole = {
-      templates.desktop.enable = true;
-      modules.keyboard.enable = true;
-    };
+   # per-user.craole = {
+   #   templates.desktop.enable = true;
+   #   modules.keyboard.enable = true;
+   # };
   };
 }
