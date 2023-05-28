@@ -13,6 +13,7 @@
       mkHost = { my-config, zfs-root, pkgs, system, ... }:
         lib.nixosSystem {
           inherit system;
+          pkgs.config.allowUnfree = true;
           modules = [
             ./modules
             (import ./configuration.nix {
