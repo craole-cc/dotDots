@@ -1,5 +1,4 @@
 {
-  my-config,
   zfs-root,
   inputs,
   pkgs,
@@ -7,7 +6,7 @@
   ...
 }: {
   # load module config to top-level configuration
-  inherit my-config zfs-root;
+  inherit zfs-root;
 
   # Let 'nixos-version --json' know about the Git revision
   # of this flake.

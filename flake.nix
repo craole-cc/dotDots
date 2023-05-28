@@ -14,7 +14,6 @@
   } @ inputs: let
     lib = nixpkgs.lib;
     mkHost = {
-      # my-config,
       zfs-root,
       pkgs,
       system,
