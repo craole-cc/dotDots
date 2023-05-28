@@ -15,23 +15,18 @@
       removableEfi = true;
       kernelParams = [ ];
       sshUnlock = {
-        # read sshUnlock.txt file.
         enable = false;
         authorizedKeys = [ ];
       };
     };
     networking = {
-      # read changeHostName.txt file.
       hostName = "a3k";
       timeZone = "America/Jamaica";
       hostId = "18767976453";
     };
-  };
-
-  # To add more options to per-host configuration, you can create a
-  # custom configuration module, then add it here.
-  my-config = {
-    # Enable custom gnome desktop on exampleHost
-    template.desktop.gnome.enable = true;
+    per-user.craole = {
+      templates.desktop.enable = true;
+      modules.keyboard.enable = true;
+    };
   };
 }
