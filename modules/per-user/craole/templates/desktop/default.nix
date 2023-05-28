@@ -42,9 +42,9 @@ in {
           "networkmanager"
           "dialout"
         ];
-        openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEeuanloGpRSuYbfJV3eGnfgyX1djaGC7UjUSgJeraKM openpgp:0x5862BCF8"
-        ];
+#        openssh.authorizedKeys.keys = [
+#          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEeuanloGpRSuYbfJV3eGnfgyX1djaGC7UjUSgJeraKM openpgp:0x5862BCF8"
+#        ];
         packages = builtins.attrValues {
           inherit
             (pkgs)
