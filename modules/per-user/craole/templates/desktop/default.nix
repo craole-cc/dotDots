@@ -14,7 +14,7 @@ in {
     zfs-root = {
       boot = {
         devNodes = "/dev/disk/by-id/";
-        immutable = true;
+#        immutable = true;
       };
 #      networking = {
 #        timeZone = "America/Jamaica";
