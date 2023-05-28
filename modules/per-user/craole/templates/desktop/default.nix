@@ -16,12 +16,12 @@ in {
         devNodes = "/dev/disk/by-id/";
         immutable = true;
       };
-      networking = {
-        timeZone = "America/Jamaica";
-        useDHCP = true;
-        networkmanager.enable = true;      
-        #per-user.craole.enable = true;i
-      };
+#      networking = {
+#        timeZone = "America/Jamaica";
+#        useDHCP = true;
+#        networkmanager.enable = true;      
+#        #per-user.craole.enable = true;i
+#      };
     }; 
     users.mutableUsers = false;
     home-manager.users.craole = {
