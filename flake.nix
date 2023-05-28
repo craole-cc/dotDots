@@ -14,7 +14,7 @@
   } @ inputs: let
     lib = nixpkgs.lib;
     mkHost = {
-      my-config,
+      # my-config,
       zfs-root,
       pkgs,
       system,
@@ -25,7 +25,7 @@
         modules = [
           ./modules
           (import ./configuration.nix {
-            inherit my-config zfs-root inputs pkgs lib;
+            inherit zfs-root inputs pkgs lib;
           })
           home-manager.nixosModules.home-manager
           {
