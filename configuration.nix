@@ -40,10 +40,10 @@
     # "${inputs.nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
   ];
 
-  services.openssh = {
-    enable = lib.mkDefault true;
-    settings = {PasswordAuthentication = lib.mkDefault false;};
-  };
+#  services.openssh = {
+#    enable = lib.mkDefault true;
+#    settings = {PasswordAuthentication = lib.mkDefault false;};
+#  };
 
   boot.zfs.forceImportRoot = lib.mkDefault false;
 
