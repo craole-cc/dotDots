@@ -289,7 +289,7 @@ xkb_symbols "basic" {
     key <I162> {         [    XF86TaskPane ] };
     key <I163> {         [        XF86Mail ] };
     key <I164> {         [   XF86Favorites ] };
-    key <I165> {         [  XF86Mcraoleomputer ] };
+    key <I165> {         [  XF86MyComputer ] };
     key <I166> {         [        XF86Back ] };
     key <I167> {         [     XF86Forward ] };
     key <I169> {         [       XF86Eject ] };
@@ -364,7 +364,7 @@ xkb_symbols "basic" {
     key <I247> {         [         XF86UWB ] };
     key <I249> {         [  XF86Next_VMode ] };
     key <I250> {         [  XF86Prev_VMode ] };
-    key <I251> {         [ XF86MonBrightnessCcraolele ] };
+    key <I251> {         [ XF86MonBrightnessCycle ] };
     key <I252> {         [ XF86BrightnessAuto ] };
     key <I253> {         [  XF86DisplayOff ] };
     key <I254> {         [        XF86WWAN ] };

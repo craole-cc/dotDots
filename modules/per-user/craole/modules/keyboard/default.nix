@@ -13,13 +13,13 @@ in {
   config = mkIf cfg.enable {
     console.useXkbConfig = true;
     services.xserver = {
-      layout = "craole";
-      extraLayouts."craole" = {
+      layout = "us";
+      extraLayouts."us" = {
         description = "zfs-root layout";
         languages = ["eng"];
         symbolsFile = ./symbols.txt;
       };
     };
-    environment.variables = {XKB_DEFAULT_LAYOUT = "craole";};
+    environment.variables = {XKB_DEFAULT_LAYOUT = "us";};
   };
 }
