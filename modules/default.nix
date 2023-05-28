@@ -8,5 +8,6 @@
     ./boot
     ./fileSystems
     ./networking
+    ./per-user
   ];
 }
