@@ -1,22 +1,20 @@
-# #
-##
-##  per-host configuration for a3k
-##
-##
-
-{ system, pkgs, ... }: {
+{
+  system,
+  pkgs,
+  ...
+}: {
   inherit pkgs system;
   zfs-root = {
     boot = {
       devNodes = "/dev/disk/by-id/";
-      bootDevices = [  "nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46" ];
+      bootDevices = ["nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"];
       immutable = false;
-      availableKernelModules = [  "nvme" "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" ];
+      availableKernelModules = ["nvme" "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod"];
       removableEfi = true;
-      kernelParams = [ ];
+      kernelParams = [];
       sshUnlock = {
         enable = false;
-        authorizedKeys = [ ];
+        authorizedKeys = [];
       };
     };
     networking = {
@@ -25,8 +23,8 @@
       hostId = "18767976453";
     };
     per-user.craole = {
-      templates.desktop.enable = true;
-      modules.keyboard.enable = true;
+      templates.desktop.enable = false;
+      modules.keyboard.enable = false;
     };
   };
 }

@@ -21,7 +21,7 @@
   # Enable NetworkManager for wireless networking,
   # You can configure networking with "nmtui" command.
   networking.useDHCP = true;
-  networking.networkmanager.enable = true;
+  networking.networkmanager.enable = false;
 
   users.users = {
     root = {
@@ -64,8 +64,6 @@
       jq # other programs
       helix
       bat
-      lsd
-      terminus_font
       ;
   };
 }
