@@ -1,4 +1,8 @@
-{ system, pkgs, ...}: {
+{
+  system,
+  pkgs,
+  ...
+}: {
   inherit pkgs system;
   zfs-root = {
     boot = {
@@ -15,11 +19,11 @@
     };
     networking = {
       hostName = "a3k";
-      timeZone = "America/Jamaica";
       hostId = "2c4a22f0";
     };
-    
-    
-   
+   # per-user.craole = {
+   #   templates.desktop.enable = true;
+   #   modules.keyboard.enable = true;
+   # };
   };
 }
