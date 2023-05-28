@@ -1,1 +1,6 @@
-{ config, lib, pkgs, ... }: { imports = [ ./craole ]; }
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: {imports = [./craole];}
