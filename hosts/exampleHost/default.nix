@@ -32,6 +32,6 @@
   # custom configuration module, then add it here.
   my-config = {
     # Enable custom gnome desktop on exampleHost
-    template.desktop.gnome.enable = false;
+    template.desktop.gnome.enable = true;
   };
 }
