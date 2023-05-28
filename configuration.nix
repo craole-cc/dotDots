@@ -1,25 +1,32 @@
-{ my-config, zfs-root, inputs, pkgs, lib, ... }: {
+{
+  my-config,
+  zfs-root,
+  inputs,
+  pkgs,
+  lib,
+  ...
+}: {
   # load module config to top-level configuration
   inherit my-config zfs-root;
 
   # Let 'nixos-version --json' know about the Git revision
   # of this flake.
-  system.configurationRevision = if (inputs.self ? rev) then
-    inputs.self.rev
-  else
-    throw "refuse to build: git tree is dirty";
+  system.configurationRevision =
+    if (inputs.self ? rev)
+    then inputs.self.rev
+    else throw "refuse to build: git tree is dirty";
 
   system.stateVersion = "22.11";
 
   # Enable NetworkManager for wireless networking,
   # You can configure networking with "nmtui" command.
   networking.useDHCP = true;
-  networking.networkmanager.enable = false;
+  networking.networkmanager.enable = true;
 
   users.users = {
     root = {
       initialHashedPassword = "$6$lxDgmJGlokZLxfga$LB4h6Tkim0AE/5odtFqStnxAKWTYnGCfTz7zC0mVhGjsEx/pCg5F8q8TzTHMG.7gZe4P7qDq8Al6TnnMdSja80";
-      openssh.authorizedKeys.keys = [ "sshKey_placeholder" ];
+      openssh.authorizedKeys.keys = ["sshKey_placeholder"];
     };
   };
 
@@ -36,12 +43,12 @@
 
   services.openssh = {
     enable = lib.mkDefault true;
-    settings = { PasswordAuthentication = lib.mkDefault false; };
+    settings = {PasswordAuthentication = lib.mkDefault false;};
   };
 
   boot.zfs.forceImportRoot = lib.mkDefault false;
 
-  nix.settings.experimental-features = lib.mkDefault [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = lib.mkDefault ["nix-command" "flakes"];
   nixpkgs.config.allowUnfree = true;
 
   programs.git.enable = true;
@@ -52,12 +59,13 @@
   };
 
   environment.systemPackages = builtins.attrValues {
-    inherit (pkgs)
+    inherit
+      (pkgs)
       jq # other programs
       helix
       bat
       lsd
       terminus_font
-    ;
+      ;
   };
 }
