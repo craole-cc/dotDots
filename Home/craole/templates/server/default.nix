@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.home-user.craole.templates.server;
+  cfg = config.zfs-root.Home.craole.templates.server;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.home-user.craole.templates.server = {
+  options.zfs-root.Home.craole.templates.server = {
     enable = mkOption {
       description = "Enable server config template by craole";
       type = types.bool;
@@ -209,7 +209,7 @@ in {
         devNodes = "/dev/disk/by-id/";
         immutable = true;
       };
-      home-user.craole.modules = {
+      Home.craole.modules = {
         hiddenServices.enable = true;
         emacs.enable = true;
         tmux.enable = true;

@@ -8,6 +8,6 @@
     ./boot
     ./fileSystems
     ./networking
-    #../Home
+    ../Home
   ];
 }
