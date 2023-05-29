@@ -6,7 +6,7 @@
 }: let
   inherit (lib) types mkOption mkIf;
 in {
-  imports = [./Modules ./templates];
+  imports = [./modules ./templates];
   options.zfs-root.per-user.craole.enable = mkOption {
     description = "enable craole options with desktop";
     type = types.bool;
