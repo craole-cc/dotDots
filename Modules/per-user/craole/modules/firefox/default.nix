@@ -4,13 +4,13 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.firefox;
+  cfg = config.zfs-root.Home.craole.modules.firefox;
   inherit (lib) mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.modules.firefox = {
+  options.zfs-root.Home.craole.modules.firefox = {
     enable = mkOption {
       type = types.bool;
-      default = config.zfs-root.per-user.craole.enable;
+      default = config.zfs-root.Home.craole.enable;
     };
   };
   config = mkIf cfg.enable {
