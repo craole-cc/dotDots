@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.emacs;
+  cfg = config.zfs-root.Home.craole.modules.emacs;
   inherit (lib) mkDefault mkOption types mkIf;
   # buildEmacs is a function that takes a set of emacs packages as input
   buildEmacs = (pkgs.emacsPackagesFor pkgs.emacs).emacsWithPackages;
@@ -14,10 +14,10 @@
       inherit (epkgs.elpaPackages) use-package auctex pyim pyim-basedict;
     });
 in {
-  options.zfs-root.per-user.craole.modules.emacs = {
+  options.zfs-root.Home.craole.modules.emacs = {
     enable = mkOption {
       type = types.bool;
-      default = config.zfs-root.per-user.craole.enable;
+      default = config.zfs-root.Home.craole.enable;
     };
     extraPackages = mkOption {
       description = "normal software packages that emacs depends to run";

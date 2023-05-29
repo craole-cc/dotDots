@@ -4,13 +4,13 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.home-manager;
+  cfg = config.zfs-root.Home.craole.modules.home-manager;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.modules.home-manager = {
+  options.zfs-root.Home.craole.modules.home-manager = {
     enable = mkOption {
       type = types.bool;
-      default = config.zfs-root.per-user.craole.enable;
+      default = config.zfs-root.Home.craole.enable;
     };
   };
   config = mkIf cfg.enable {
@@ -703,7 +703,7 @@ in {
           };
           input = {
             "type:keyboard" =
-              if (config.zfs-root.per-user.craole.modules.keyboard.enable)
+              if (config.zfs-root.Home.craole.modules.keyboard.enable)
               then {
                 xkb_file = "$HOME/.config/sway/craole-sticky-keymap";
               }

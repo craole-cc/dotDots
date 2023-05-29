@@ -4,12 +4,12 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.virt;
+  cfg = config.zfs-root.Home.craole.modules.virt;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.modules.virt.enable = mkOption {
+  options.zfs-root.Home.craole.modules.virt.enable = mkOption {
     type = types.bool;
-    default = config.zfs-root.per-user.craole.enable;
+    default = config.zfs-root.Home.craole.enable;
   };
   config = mkIf cfg.enable {
     virtualisation.libvirtd = {

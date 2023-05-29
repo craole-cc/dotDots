@@ -1,9 +1,13 @@
-{ config, lib, pkgs, ... }: 
-let
-  cfg = config.zfs-root.per-user.craole.templates.desktop;
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.zfs-root.home-user.craole.templates.desktop;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.templates.desktop = {
+  options.zfs-root.home-user.craole.templates.desktop = {
     enable = mkOption {
       description = "Enable system config template by craole";
       type = types.bool;
@@ -14,15 +18,15 @@ in {
     zfs-root = {
       boot = {
         devNodes = "/dev/disk/by-id/";
-#        immutable = true;
+        #        immutable = true;
       };
-#      networking = {
-#        timeZone = "America/Jamaica";
-#        useDHCP = true;
-#        networkmanager.enable = true;      
-#        #per-user.craole.enable = true;i
-#      };
-    }; 
+      #      networking = {
+      #        timeZone = "America/Jamaica";
+      #        useDHCP = true;
+      #        networkmanager.enable = true;
+      #        #home-user.craole.enable = true;i
+      #      };
+    };
     users.mutableUsers = false;
     home-manager.users.craole = {
       home = {
@@ -32,7 +36,7 @@ in {
       };
       programs = {
         home-manager.enable = true;
-#        sway.enable = true;
+        #        sway.enable = true;
       };
     };
     users.users = {
@@ -45,9 +49,9 @@ in {
           "networkmanager"
           "dialout"
         ];
-#        openssh.authorizedKeys.keys = [
-#          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEeuanloGpRSuYbfJV3eGnfgyX1djaGC7UjUSgJeraKM openpgp:0x5862BCF8"
-#        ];
+        #        openssh.authorizedKeys.keys = [
+        #          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEeuanloGpRSuYbfJV3eGnfgyX1djaGC7UjUSgJeraKM openpgp:0x5862BCF8"
+        #        ];
         packages = builtins.attrValues {
           inherit
             (pkgs)

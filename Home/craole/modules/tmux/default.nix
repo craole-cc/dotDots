@@ -4,12 +4,12 @@
   lib,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.tmux;
+  cfg = config.zfs-root.Home.craole.modules.tmux;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.modules.tmux.enable = mkOption {
+  options.zfs-root.Home.craole.modules.tmux.enable = mkOption {
     type = types.bool;
-    default = config.zfs-root.per-user.craole.enable;
+    default = config.zfs-root.Home.craole.enable;
   };
   config = mkIf cfg.enable {
     programs.tmux = {

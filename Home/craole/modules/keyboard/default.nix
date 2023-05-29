@@ -3,10 +3,10 @@
   lib,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.keyboard;
+  cfg = config.zfs-root.Home.craole.modules.keyboard;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.modules.keyboard.enable = mkOption {
+  options.zfs-root.Home.craole.modules.keyboard.enable = mkOption {
     default = false;
     type = types.bool;
   };
