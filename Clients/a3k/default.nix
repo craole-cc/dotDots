@@ -24,7 +24,7 @@
     };
     Home.craole = {
       templates.desktop.enable = true;
-      modules.enable = true;
+      modules.firefox.enable = true;
     };
   };
 }
