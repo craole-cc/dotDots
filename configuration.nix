@@ -49,7 +49,7 @@
 
   nix.settings.experimental-features = lib.mkDefault ["nix-command" "flakes"];
 
-  pkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfree = true;
 
   programs.git.enable = true;
 
