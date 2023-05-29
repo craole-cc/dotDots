@@ -66,10 +66,8 @@
       zoxide
       bat
       vscode
-      # alejandra
-      
-      # mucommander
-      
+      alejandra
+      mucommander
       ;
   };
 }
