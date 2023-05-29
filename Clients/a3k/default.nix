@@ -24,10 +24,11 @@
     };
     Home.craole = {
       templates.desktop.enable = true;
-      modules = { 
+      modules = {
         firefox.enable = true;
-        home-manager.enable = true;
+        # home-manager.enable = true;
         keyboard.enable = true;
+        tex.enable = true;
       };
     };
   };
