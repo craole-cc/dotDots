@@ -32,7 +32,7 @@ in {
       };
       programs = {
         home-manager.enable = true;
-        sway.enable = lib.mkDefault true;
+        #sway.enable = lib.mkDefault true;
       };
     };
     users.users = {
@@ -90,7 +90,7 @@ in {
       xserver = {
         enable = true;
         desktopManager.gnome.enable = true;
-         displayManager.gdm.enable = true;
+        displayManager.gdm.enable = true;
       };
       blueman.enable = true;
       logind = {
