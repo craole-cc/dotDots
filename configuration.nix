@@ -65,8 +65,7 @@
       helix
       zoxide
       bat
-      # vscode
-      
+      vscode
       # alejandra
       
       # mucommander
