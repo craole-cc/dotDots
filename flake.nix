@@ -25,7 +25,7 @@
       lib.nixosSystem {
         inherit system;
         modules = [
-          ./modules
+          ./Modules
           (import ./configuration.nix {
             inherit zfs-root inputs pkgs lib;
           })
