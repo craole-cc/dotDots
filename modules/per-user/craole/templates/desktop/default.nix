@@ -32,7 +32,7 @@ in {
       };
       programs = {
         home-manager.enable = true;
-        sway.enable = true;
+#        sway.enable = true;
       };
     };
     users.users = {
