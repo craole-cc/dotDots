@@ -38,12 +38,6 @@
       };
   in {
     nixosConfigurations = {
-      # exampleHost = let
-      #   system = "x86_64-linux";
-      #   pkgs = nixpkgs.legacyPackages.${system};
-      # in
-      #  mkHost (import ./Clients/exampleHost {inherit system pkgs;});
-
       a3k = let
         system = "x86_64-linux";
         pkgs = nixpkgs.legacyPackages.${system};
