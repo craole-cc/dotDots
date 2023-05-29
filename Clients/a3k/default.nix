@@ -28,6 +28,7 @@
         firefox.enable = true;
         home-manager.enable = true;
         keyboard.enable = true;
+      };
     };
   };
 }
