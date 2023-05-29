@@ -30,7 +30,7 @@ in {
       enableSSHSupport = true;
     };
     services.tlp = {
-      enable = true;
+      enable = false;
       settings = {
         BAY_POWEROFF_ON_BAT = "1";
         STOP_CHARGE_THRESH_BAT0 = "85";
