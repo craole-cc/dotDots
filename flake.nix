@@ -29,7 +29,7 @@
 
         modules = [
           ./Global/Modules
-          (import ./configuration.nix {
+          (import ./Global/configuration.nix {
             inherit zfs-root inputs pkgs lib;
           })
           home-manager.nixosModules.home-manager
