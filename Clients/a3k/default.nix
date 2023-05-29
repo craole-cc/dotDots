@@ -27,8 +27,8 @@
       modules = {
         firefox.enable = true;
         # home-manager.enable = true;
-        keyboard.enable = true;
-        tex.enable = true;
+        #keyboard.enable = true;
+        #tex.enable = true;
       };
     };
   };
