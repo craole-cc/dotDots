@@ -65,6 +65,8 @@
       helix
       zoxide
       bat
+      direnv
+      bottom
       ;
   };
 }
