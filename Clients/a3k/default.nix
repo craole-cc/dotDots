@@ -24,8 +24,10 @@
     };
     Home.craole = {
       templates.desktop.enable = true;
-      modules.firefox.enable = true;
-      modules.home-manager.enable = true;
+      modules = { 
+        firefox.enable = true;
+        home-manager.enable = true;
+        keyboard.enable = true;
     };
   };
 }
