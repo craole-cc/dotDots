@@ -454,7 +454,7 @@ in {
           "3ldetowqifu5ox23snmoblv7xapkd26qyvex6fwrg6zpdwklcatq.b32.i2p" = {
             user = "craole";
             port = 65222;
-            proxcycommand = "${pkgs.libressl.nc}/bin/nc -x localhost:4447 %h %p";
+            proxycommand = "${pkgs.libressl.nc}/bin/nc -x localhost:4447 %h %p";
           };
           "ditgedyyvwsxspdmgpnzuzhj7p63snkiok54cphmvwcgnrjgw2lqgcad.onion" = {
             user = "craole";
