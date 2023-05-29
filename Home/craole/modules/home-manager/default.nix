@@ -81,9 +81,9 @@ in {
       #     "apvc.uk" = {
       #       aliases = [];
       #       address = "yuchen@apvc.uk";
-      #       passwordCommand = "pass show email/email-gcraoleAtapvc.uk | head -n1";
+      #       passwordCommand = "pass show email/email-gycAtapvc.uk | head -n1";
       #       primary = true;
-      #       userName = "gcraole@apvc.uk";
+      #       userName = "gyc@apvc.uk";
       #       realName = "Yuchen Guo";
       #       imap = {
       #         host = "mail.gandi.net";
@@ -645,38 +645,38 @@ in {
         systemdIntegration = true;
         extraConfig = ''
           mode "default" {
-           bindsym --no-warn Mod4+Backspace focus mode_toggle
-           bindsym --no-warn Mod4+Control+Shift+Space move left
-           bindsym --no-warn Mod4+Control+Space move right
-           bindsym --no-warn Mod4+Control+b move left
-           bindsym --no-warn Mod4+Control+e focus parent; focus right
-           bindsym --no-warn Mod4+Control+f move right
-           bindsym --no-warn Mod4+Control+n move down
-           bindsym --no-warn Mod4+Control+p move up
-           bindsym --no-warn Mod4+Shift+Backspace floating toggle
-           bindsym --no-warn Mod4+Shift+Space focus left
-           bindsym --no-warn Mod4+Space focus right
-           bindsym --no-warn Mod4+b focus left
-           bindsym --no-warn Mod4+e focus parent
-           bindsym --no-warn Mod4+f focus right
-           bindsym --no-warn Mod4+f11 fullscreen
-           bindsym --no-warn Mod4+k kill
-           bindsym --no-warn Mod4+n focus down
-           bindsym --no-warn Mod4+o workspace next
-           bindsym --no-warn Mod4+p focus up
-           bindsym --no-warn Mod4+w move scratchpad
-           bindsym --no-warn Mod4+x workspace back_and_forth
-           bindsym --no-warn Mod4+y scratchpad show
-           bindsym --no-warn Shift+Print exec ${pkgs.grim}/bin/grim
-           bindsym --no-warn Mod4+o exec ${pkgs.foot}/bin/foot ${pkgs.tmux}/bin/tmux attach-session
+            bindsym --no-warn Mod4+Backspace focus mode_toggle
+            bindsym --no-warn Mod4+Control+Shift+Space move left
+            bindsym --no-warn Mod4+Control+Space move right
+            bindsym --no-warn Mod4+Control+b move left
+            bindsym --no-warn Mod4+Control+e focus parent; focus right
+            bindsym --no-warn Mod4+Control+f move right
+            bindsym --no-warn Mod4+Control+n move down
+            bindsym --no-warn Mod4+Control+p move up
+            bindsym --no-warn Mod4+Shift+Backspace floating toggle
+            bindsym --no-warn Mod4+Shift+Space focus left
+            bindsym --no-warn Mod4+Space focus right
+            bindsym --no-warn Mod4+b focus left
+            bindsym --no-warn Mod4+e focus parent
+            bindsym --no-warn Mod4+f focus right
+            bindsym --no-warn Mod4+f11 fullscreen
+            bindsym --no-warn Mod4+k kill
+            bindsym --no-warn Mod4+n focus down
+            bindsym --no-warn Mod4+o workspace next
+            bindsym --no-warn Mod4+p focus up
+            bindsym --no-warn Mod4+w move scratchpad
+            bindsym --no-warn Mod4+x workspace back_and_forth
+            bindsym --no-warn Mod4+y scratchpad show
+            bindsym --no-warn Shift+Print exec ${pkgs.grim}/bin/grim
+            bindsym --no-warn Mod4+o exec ${pkgs.foot}/bin/foot ${pkgs.tmux}/bin/tmux attach-session
           }
 
           mode "resize" {
-           bindsym --no-warn b resize shrink width 10px
-           bindsym --no-warn f resize grow width 10px
-           bindsym --no-warn n resize grow height 10px
-           bindsym --no-warn p resize shrink height 10px
-           bindsym --no-warn Space mode default
+            bindsym --no-warn b resize shrink width 10px
+            bindsym --no-warn f resize grow width 10px
+            bindsym --no-warn n resize grow height 10px
+            bindsym --no-warn p resize shrink height 10px
+            bindsym --no-warn Space mode default
           }
           titlebar_padding 1
           titlebar_border_thickness 0
