@@ -74,6 +74,10 @@ in {
             qpdf
             vscode
             alejandra
+            macchina
+            btop
+            shortwave
+            freetube
             ;
         };
         isNormalUser = true;
