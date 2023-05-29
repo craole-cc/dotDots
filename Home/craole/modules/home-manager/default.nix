@@ -68,50 +68,50 @@ in {
       programs = {
         git = {
           enable = true;
-          userEmail = "yuchen@apvc.uk";
-          userName = "Maurice Zhou";
+          userEmail = "craole.cc@proton.me";
+          userName = "Craig 'Craole' Cole";
         };
         mbsync.enable = true;
         msmtp.enable = true;
         notmuch.enable = true;
       };
-      accounts.email = {
-        maildirBasePath = "Maildir"; # relative to user home
-        accounts = {
-          "apvc.uk" = {
-            aliases = [];
-            address = "yuchen@apvc.uk";
-            passwordCommand = "pass show email/email-gcraoleAtapvc.uk | head -n1";
-            primary = true;
-            userName = "gcraole@apvc.uk";
-            realName = "Yuchen Guo";
-            imap = {
-              host = "mail.gandi.net";
-              port = 993;
-            };
-            smtp = {
-              host = "mail.gandi.net";
-              port = 465;
-            };
-            mbsync = {
-              enable = true;
-              create = "both";
-              remove = "both";
-              expunge = "both";
-            };
-            msmtp = {
-              enable = true;
-              extraConfig = {auth = "plain";};
-            };
-            notmuch.enable = true;
-            gpg = {
-              key = "yuchen@apvc.uk";
-              encryptByDefault = false;
-              signByDefault = true;
-            };
-          };
-        };
-      };
+      # accounts.email = {
+      #   maildirBasePath = "Maildir"; # relative to user home
+      #   accounts = {
+      #     "apvc.uk" = {
+      #       aliases = [];
+      #       address = "yuchen@apvc.uk";
+      #       passwordCommand = "pass show email/email-gcraoleAtapvc.uk | head -n1";
+      #       primary = true;
+      #       userName = "gcraole@apvc.uk";
+      #       realName = "Yuchen Guo";
+      #       imap = {
+      #         host = "mail.gandi.net";
+      #         port = 993;
+      #       };
+      #       smtp = {
+      #         host = "mail.gandi.net";
+      #         port = 465;
+      #       };
+      #       mbsync = {
+      #         enable = true;
+      #         create = "both";
+      #         remove = "both";
+      #         expunge = "both";
+      #       };
+      #       msmtp = {
+      #         enable = true;
+      #         extraConfig = {auth = "plain";};
+      #       };
+      #       notmuch.enable = true;
+      #       gpg = {
+      #         key = "yuchen@apvc.uk";
+      #         encryptByDefault = false;
+      #         signByDefault = true;
+      #       };
+      #     };
+      #   };
+      # };
       programs.mpv = {
         enable = true;
         config = {
@@ -391,7 +391,7 @@ in {
               "webgl.enable-debug-renderer-info" = false;
               "javascript.options.wasm" = false;
               "camera.control.face_detection.enabled" = false;
-              "browser.search.countrcraoleode" = "US";
+              "browser.search.countrycode" = "US";
               "browser.search.region" = "US";
               "browser.search.geoip.url" = "";
               "intl.accept_languages" = "en-US = en";
@@ -426,43 +426,43 @@ in {
               "privacy.userContext.enabled" = true;
               "privacy.resistFingerprinting.block_mozAddonManager" = true;
               "extensions.webextensions.restrictedDomains" = "";
-              "network.IDN_show_puncraoleode" = true;
+              "network.IDN_show_punycode" = true;
               "browser.urlbar.autoFill" = false;
             };
           };
         };
       };
-      programs.ssh = {
-        enable = true;
-        hashKnownHosts = true;
-        matchBlocks = let
-          dotSshPath = "${config.home-manager.users.craole.home.homeDirectory}/.ssh/";
-        in {
-          "github.com" = {
-            # github.com:ne9z
-            user = "git";
-          };
-          "gitlab.com" = {
-            # gitlab.com:john8931
-            user = "git";
-            identityFile = dotSshPath + "tub_latex_repo_key";
-          };
-          "tl.craole" = {
-            user = "craole";
-            port = 65222;
-          };
-          "3ldetowqifu5ox23snmoblv7xapkd26qyvex6fwrg6zpdwklcatq.b32.i2p" = {
-            user = "craole";
-            port = 65222;
-            proxycommand = "${pkgs.libressl.nc}/bin/nc -x localhost:4447 %h %p";
-          };
-          "ditgedyyvwsxspdmgpnzuzhj7p63snkiok54cphmvwcgnrjgw2lqgcad.onion" = {
-            user = "craole";
-            port = 22;
-            proxycommand = "${pkgs.libressl.nc}/bin/nc -x localhost:9050 %h %p";
-          };
-        };
-      };
+      # programs.ssh = {
+      #   enable = true;
+      #   hashKnownHosts = true;
+      #   matchBlocks = let
+      #     dotSshPath = "${config.home-manager.users.craole.home.homeDirectory}/.ssh/";
+      #   in {
+      #     "github.com" = {
+      #       # github.com:ne9z
+      #       user = "git";
+      #     };
+      #     "gitlab.com" = {
+      #       # gitlab.com:john8931
+      #       user = "git";
+      #       identityFile = dotSshPath + "tub_latex_repo_key";
+      #     };
+      #     "tl.craole" = {
+      #       user = "craole";
+      #       port = 65222;
+      #     };
+      #     "3ldetowqifu5ox23snmoblv7xapkd26qyvex6fwrg6zpdwklcatq.b32.i2p" = {
+      #       user = "craole";
+      #       port = 65222;
+      #       proxycommand = "${pkgs.libressl.nc}/bin/nc -x localhost:4447 %h %p";
+      #     };
+      #     "ditgedyyvwsxspdmgpnzuzhj7p63snkiok54cphmvwcgnrjgw2lqgcad.onion" = {
+      #       user = "craole";
+      #       port = 22;
+      #       proxycommand = "${pkgs.libressl.nc}/bin/nc -x localhost:9050 %h %p";
+      #     };
+      #   };
+      # };
       programs.foot = {
         enable = true;
         server.enable = true;
