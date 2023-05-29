@@ -73,7 +73,7 @@ in {
         };
         mbsync.enable = true;
         msmtp.enable = true;
-        notmuch.enable = true;
+        notmuch.enable = false;
       };
       # accounts.email = {
       #   maildirBasePath = "Maildir"; # relative to user home
