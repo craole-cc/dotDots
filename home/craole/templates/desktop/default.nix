@@ -30,10 +30,7 @@ in {
         homeDirectory = mkDefault "/home/craole";
         stateVersion = mkDefault "22.11";
       };
-      programs = {
-        home-manager.enable = true;
-        sway.enable = lib.mkDefault true;
-      };
+      programs.home-manager.enable = true;
     };
     users.users = {
       craole = {
@@ -87,13 +84,6 @@ in {
       pulseaudio.enable = false;
     };
     services = {
-      xserver = {
-        enable = true;
-        desktopManager = {
-          gnome.enable = true;
-          gdm.enable = true;
-        };
-      };
       blueman.enable = true;
       logind = {
         extraConfig = ''
