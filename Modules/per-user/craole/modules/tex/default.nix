@@ -4,11 +4,11 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.tex;
+  cfg = config.zfs-root.Home.craole.modules.tex;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.per-user.craole.modules.tex.enable = mkOption {
-    default = config.zfs-root.per-user.craole.enable;
+  options.zfs-root.Home.craole.modules.tex.enable = mkOption {
+    default = config.zfs-root.Home.craole.enable;
     type = types.bool;
   };
   config = mkIf cfg.enable {

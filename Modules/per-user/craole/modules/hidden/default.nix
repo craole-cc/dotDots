@@ -3,17 +3,17 @@
   lib,
   ...
 }: let
-  cfg = config.zfs-root.per-user.craole.modules.hiddenServices;
+  cfg = config.zfs-root.Home.craole.modules.hiddenServices;
   inherit (lib) mkDefault mkOption types mkIf mkMerge;
 in {
-  options.zfs-root.per-user.craole.modules.hiddenServices = {
+  options.zfs-root.Home.craole.modules.hiddenServices = {
     enable = mkOption {
       type = types.bool;
-      default = config.zfs-root.per-user.craole.enable;
+      default = config.zfs-root.Home.craole.enable;
     };
     resolv = mkOption {
       type = types.bool;
-      default = config.zfs-root.per-user.craole.modules.hiddenServices.enable;
+      default = config.zfs-root.Home.craole.modules.hiddenServices.enable;
     };
   };
   config = mkIf (cfg.enable) (mkMerge [
