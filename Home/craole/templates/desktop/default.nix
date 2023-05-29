@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  cfg = config.zfs-root.home-user.craole.templates.desktop;
+  cfg = config.zfs-root.Home.craole.templates.desktop;
   inherit (lib) mkDefault mkOption types mkIf;
 in {
-  options.zfs-root.home-user.craole.templates.desktop = {
+  options.zfs-root.Home.craole.templates.desktop = {
     enable = mkOption {
       description = "Enable system config template by craole";
       type = types.bool;
@@ -24,7 +24,7 @@ in {
       #        timeZone = "America/Jamaica";
       #        useDHCP = true;
       #        networkmanager.enable = true;
-      #        #home-user.craole.enable = true;i
+      #        #Home.craole.enable = true;i
       #      };
     };
     users.mutableUsers = false;
