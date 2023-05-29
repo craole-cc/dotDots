@@ -67,6 +67,7 @@
       bat
       direnv
       bottom
+      alejandra
       ;
   };
 }
