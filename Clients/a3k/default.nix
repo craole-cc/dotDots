@@ -1,4 +1,8 @@
-{ system, pkgs, ...}: {
+{
+  system,
+  pkgs,
+  ...
+}: {
   inherit pkgs system;
   zfs-root = {
     boot = {
@@ -18,8 +22,8 @@
       timeZone = "America/Jamaica";
       hostId = "2c4a22f0";
     };
-    per-user.craole = {
+    Home.craole = {
       templates.desktop.enable = true;
-    };   
+    };
   };
 }
