@@ -24,6 +24,9 @@
     }:
       lib.nixosSystem {
         inherit system;
+
+        nixpkgs.config.allowUnfree = true;
+
         modules = [
           ./Modules
           (import ./configuration.nix {
