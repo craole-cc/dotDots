@@ -28,7 +28,7 @@
         # nixpkgs.config.allowUnfree = true;
 
         modules = [
-          ./Modules
+          ./Global/Modules
           (import ./configuration.nix {
             inherit zfs-root inputs pkgs lib;
           })
