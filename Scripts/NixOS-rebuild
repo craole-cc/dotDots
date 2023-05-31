@@ -5,9 +5,14 @@ NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
 if cd "${NixOS_FLAKE}" ;then
 
     printf "%s %s\n" "Rebuilding NixOS Flake at" "${NixOS_FLAKE}"
-    git add .
-    git commit -m "${@:-"General updates"}"
+
+    #/> Git Update 
+    git add . && git commit -m "${@:-"General updates"}"
+
+    #/> Flake Update 
     nix flake update
+
+    #/> Flake Rebuild
     nixos-rebuild switch
 
 else
