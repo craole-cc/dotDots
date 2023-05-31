@@ -2,6 +2,7 @@
 
 NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
 message="General updates"
+trace=0
 
 while [ "$#" -ge 1 ];do
     case $1 in 
