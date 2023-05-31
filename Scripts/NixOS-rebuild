@@ -7,7 +7,7 @@ echo "$1"
 
 while [ "$#" -ge 1 ];do
     case $1 in 
-        -t|--show-trace) trace=1 ;;
+        -t|--show-trace) echo this;trace=1 ;;
         *) message="$*";;
     esac
     shift
