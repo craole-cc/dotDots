@@ -8,6 +8,7 @@ if cd "${NixOS_FLAKE}" ;then
     git add .
     git commit -m "${@:-"General updates"}"
     nix flake update
+    nixos-rebuild switch
 
 else
     
