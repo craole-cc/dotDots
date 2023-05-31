@@ -15,3 +15,5 @@ PATH="$PATH:$NixOS_SCRIPTS"
 
 #| Initialize the variables and scripts
 export NixOS_FLAKE NixOS_SCRIPTS PATH
+alias nksR='doas NixOS-rebuild'
+printf "Welcome to NixOS\n"
