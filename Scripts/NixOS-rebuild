@@ -1,19 +1,35 @@
 #!/bin/sh
 
 NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
+message="General updates"
+trace=""
+
+while [ "$#" -ge 1 ];do
+    case $1 in 
+        --show-trace) trace=1 ;;
+        *) message="$*";;
+    esac
+    shift
+done
+
 
 if cd "${NixOS_FLAKE}" ;then
 
     printf "%s %s\n" "Rebuilding NixOS Flake at" "${NixOS_FLAKE}"
 
     #/> Git Update 
-    git add . && git commit -m "${@:-"General updates"}"
+    git add . && git commit -m "${message}"
 
     #/> Flake Update 
     nix flake update
 
     #/> Flake Rebuild
-    nixos-rebuild switch
+    if [ -n "$trace" ] ;then
+        echo rebuild
+    # nixos-rebuild switch
+    else
+        echo rebuildtrace
+    fi
 
 else
     
