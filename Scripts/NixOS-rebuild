@@ -23,13 +23,12 @@ if cd "${NixOS_FLAKE}" ;then
 
     #/> Flake Update 
     nix flake update
-echo "$trace"
+
     #/> Flake Rebuild
     if [ "$trace" -eq 1 ] ;then
-        echo rebuildtrace
-    # nixos-rebuild switch
+        nixos-rebuild switch
     else
-        echo rebuild
+        nixos-rebuild switch --show-trace
     fi
 
 else
