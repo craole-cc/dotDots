@@ -6,7 +6,7 @@ trace=""
 
 while [ "$#" -ge 1 ];do
     case $1 in 
-        --show-trace) trace=1 ;;
+        -t|--show-trace) trace=1 ;;
         *) message="$*";;
     esac
     shift
@@ -24,7 +24,7 @@ if cd "${NixOS_FLAKE}" ;then
     nix flake update
 
     #/> Flake Rebuild
-    if [ -n "$trace" ] ;then
+    if [ "$trace" -eq 1 ] ;then
         echo rebuild
     # nixos-rebuild switch
     else
