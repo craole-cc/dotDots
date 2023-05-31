@@ -17,6 +17,6 @@ PATH="$PATH:$NixOS_SCRIPTS"
 printf "Welcome to NixOS\n"
 export NixOS_FLAKE NixOS_SCRIPTS PATH
 alias nosR='doas NixOS-rebuild'
-alias nosR_trace='nosR --show-trace'
+alias nosR_trace='doas NixOS-rebuild --show-trace'
 alias nosC='doas NixOS-check'
 alias nosC_trace='nosC --show-trace'

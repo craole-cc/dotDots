@@ -2,7 +2,6 @@
 
 NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
 message="General updates"
-trace=
 
 while [ "$#" -ge 1 ];do
     case $1 in 
@@ -24,10 +23,10 @@ if cd "${NixOS_FLAKE}" ;then
     nix flake update
 
     #/> Flake Rebuild
-    if [ "$trace" ] ;then
-        echo "nixos-rebuild switch"
+    if [ "$trace" -eq 1 ] ;then
+        ixos-rebuild switch --show-trace
     else
-        echo "nixos-rebuild switch --show-trace"
+        ixos-rebuild switch
     fi
 
 else
