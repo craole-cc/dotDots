@@ -1,0 +1,17 @@
+#!/bin/sh
+
+NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
+
+if cd "${NixOS_FLAKE}" ;then
+
+    printf "%s %s\n" "Rebuilding NixOS Flake at" "${NixOS_FLAKE}"
+    git add .
+    git commit -m "${@:-"General updates"}"
+    nix flake update
+
+else
+    
+    printf "%s\n" "Failed to access" "${NixOS_FLAKE}"
+    exit 1
+
+fi
