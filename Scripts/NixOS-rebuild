@@ -26,9 +26,9 @@ if cd "${NixOS_FLAKE}" ;then
 
     #/> Flake Rebuild
     if [ "$trace" -eq 1 ] ;then
-        nixos-rebuild switch
+        echo "nixos-rebuild switch"
     else
-        nixos-rebuild switch --show-trace
+        echo "nixos-rebuild switch --show-trace"
     fi
 
 else
