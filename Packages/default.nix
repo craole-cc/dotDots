@@ -5,7 +5,7 @@
   shellcolord = pkgs.callPackage ./shellcolord { };
   trekscii = pkgs.callPackage ./trekscii { };
   speedtestpp = pkgs.callPackage ./speedtestpp { };
-  lando = pkgs.callPackage ./lando { };
+  # lando = pkgs.callPackage ./lando { };
   tidal-dl = pkgs.python3Packages.callPackage ./tidal-dl { };
   sitespeedio = pkgs.callPackage ./sitespeedio { };
 
