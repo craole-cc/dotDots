@@ -39,7 +39,7 @@
       };
     in
     {
-      nixosModules = import ./modules/nixos;
+      nixosModules = import ./Global/Modules/nixos;
       homeManagerModules = import ./modules/home-manager;
       templates = import ./templates;
 
