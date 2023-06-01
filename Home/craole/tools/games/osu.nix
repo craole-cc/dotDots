@@ -1,7 +1,11 @@
-{ pkgs, lib, ... }: {
-  home.packages = [ pkgs.osu-lazer ];
+{
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = [pkgs.osu-lazer];
 
   home.persistence = {
-    "/persist/home/misterio".directories = [ ".local/share/osu" ];
+    "/persist/home/craole".directories = [".local/share/osu"];
   };
 }

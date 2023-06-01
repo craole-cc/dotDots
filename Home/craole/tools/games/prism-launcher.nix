@@ -1,7 +1,11 @@
-{ pkgs, lib, ... }: {
-  home.packages = [ pkgs.prismlauncher ];
+{
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = [pkgs.prismlauncher];
 
   home.persistence = {
-    "/persist/home/misterio".directories = [ ".local/share/PrismLauncher" ];
+    "/persist/home/craole".directories = [".local/share/PrismLauncher"];
   };
 }

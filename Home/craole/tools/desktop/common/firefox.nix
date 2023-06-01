@@ -1,19 +1,21 @@
-{ pkgs, lib, inputs, ... }:
-
-let
-  addons = inputs.firefox-addons.packages.${pkgs.system};
-in
 {
+  pkgs,
+  lib,
+  inputs,
+  ...
+}: let
+  addons = inputs.firefox-addons.packages.${pkgs.system};
+in {
   programs.browserpass.enable = true;
   programs.firefox = {
     enable = true;
-    profiles.misterio = {
-      bookmarks = { };
+    profiles.craole = {
+      bookmarks = {};
       extensions = with addons; [
         ublock-origin
         browserpass
       ];
-      bookmarks = { };
+      bookmarks = {};
       settings = {
         "browser.disableResetPrompt" = true;
         "browser.download.panel.shown" = true;
@@ -34,14 +36,14 @@ in
   home = {
     sessionVariables.BROWSER = "firefox";
     persistence = {
-      "/persist/home/misterio".directories = [ ".mozilla/firefox" ];
+      "/persist/home/craole".directories = [".mozilla/firefox"];
     };
   };
 
   xdg.mimeApps.defaultApplications = {
-    "text/html" = [ "firefox.desktop" ];
-    "text/xml" = [ "firefox.desktop" ];
-    "x-scheme-handler/http" = [ "firefox.desktop" ];
-    "x-scheme-handler/https" = [ "firefox.desktop" ];
+    "text/html" = ["firefox.desktop"];
+    "text/xml" = ["firefox.desktop"];
+    "x-scheme-handler/http" = ["firefox.desktop"];
+    "x-scheme-handler/https" = ["firefox.desktop"];
   };
 }

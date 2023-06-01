@@ -1,13 +1,15 @@
-{ pkgs, lib, config, ... }:
-let
-  pass = "${config.programs.password-store.package}/bin/pass";
-in
 {
-  home.packages = with pkgs; [ vdirsyncer ];
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
+  pass = "${config.programs.password-store.package}/bin/pass";
+in {
+  home.packages = with pkgs; [vdirsyncer];
 
   home.persistence = {
-    "/persist/home/misterio".directories =
-      [ "Calendars" "Contacts" ".local/share/vdirsyncer" ];
+    "/persist/home/craole".directories = ["Calendars" "Contacts" ".local/share/vdirsyncer"];
   };
 
   xdg.configFile."vdirsyncer/config".text = ''
@@ -51,24 +53,23 @@ in
   '';
 
   systemd.user.services.vdirsyncer = {
-    Unit = { Description = "vdirsyncer synchronization"; };
-    Service =
-      let gpgCmds = import ../cli/gpg-commands.nix { inherit pkgs; };
-      in
-      {
-        Type = "oneshot";
-        ExecCondition = ''
-          /bin/sh -c "${gpgCmds.isUnlocked}"
-        '';
-        ExecStart = "${pkgs.vdirsyncer}/bin/vdirsyncer sync";
-      };
+    Unit = {Description = "vdirsyncer synchronization";};
+    Service = let
+      gpgCmds = import ../cli/gpg-commands.nix {inherit pkgs;};
+    in {
+      Type = "oneshot";
+      ExecCondition = ''
+        /bin/sh -c "${gpgCmds.isUnlocked}"
+      '';
+      ExecStart = "${pkgs.vdirsyncer}/bin/vdirsyncer sync";
+    };
   };
   systemd.user.timers.vdirsyncer = {
-    Unit = { Description = "Automatic vdirsyncer synchronization"; };
+    Unit = {Description = "Automatic vdirsyncer synchronization";};
     Timer = {
       OnBootSec = "30";
       OnUnitActiveSec = "5m";
     };
-    Install = { WantedBy = [ "timers.target" ]; };
+    Install = {WantedBy = ["timers.target"];};
   };
 }

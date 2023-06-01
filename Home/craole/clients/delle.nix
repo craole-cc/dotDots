@@ -1,10 +1,13 @@
-{ inputs, outputs, ... }:
 {
+  inputs,
+  outputs,
+  ...
+}: {
   imports = [
-    ./global
-    ./features/desktop/wireless
-    ./features/desktop/hyprland
-    ./features/pass
+    ../global
+    ../tools/desktop/wireless
+    ../tools/desktop/hyprland
+    ../tools/pass
   ];
 
   wallpaper = outputs.wallpapers.aenami-wait;

@@ -1,8 +1,12 @@
-{ pkgs, lib, ... }: {
-  home.packages = [ pkgs.lutris ];
+{
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = [pkgs.lutris];
 
   home.persistence = {
-    "/persist/home/misterio" = {
+    "/persist/home/craole" = {
       allowOther = true;
       directories = [
         {

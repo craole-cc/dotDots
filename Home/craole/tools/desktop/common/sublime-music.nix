@@ -1,6 +1,10 @@
-{ pkgs, lib, ... }: {
-  home.packages = [ pkgs.sublime-music ];
+{
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = [pkgs.sublime-music];
   home.persistence = {
-    "/persist/home/misterio".directories = [ ".config/sublime-music" ];
+    "/persist/home/craole".directories = [".config/sublime-music"];
   };
 }

@@ -1,10 +1,14 @@
-{ pkgs, lib, ... }: {
-  home.packages = [ pkgs.yuzu-mainline ];
+{
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = [pkgs.yuzu-mainline];
 
   home.persistence = {
-    "/persist/home/misterio" = {
+    "/persist/home/craole" = {
       allowOther = true;
-      directories = [ "Games/Yuzu" ".config/yuzu" ".local/share/yuzu" ];
+      directories = ["Games/Yuzu" ".config/yuzu" ".local/share/yuzu"];
     };
   };
 }

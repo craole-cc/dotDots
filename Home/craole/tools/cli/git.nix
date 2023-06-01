@@ -1,5 +1,9 @@
-{ pkgs, lib, config, ... }:
-let
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
   ssh = "${pkgs.openssh}/bin/ssh";
 
   git-m7 = pkgs.writeShellScriptBin "git-m7" ''
@@ -25,9 +29,8 @@ let
       ${ssh} -A git@m7.rs git -C "/srv/git/$repo" $@
     fi
   '';
-in
-{
-  home.packages = [ git-m7 ];
+in {
+  home.packages = [git-m7];
   programs.git = {
     enable = true;
     package = pkgs.gitAndTools.gitFull;
@@ -36,7 +39,7 @@ in
       graph = "log --decorate --oneline --graph";
       add-nowhitespace = "!git diff -U0 -w --no-color | git apply --cached --ignore-whitespace --unidiff-zero -";
     };
-    userName = "Gabriel Fontes";
+    userName = "Craig Cole";
     userEmail = "hi@m7.rs";
     extraConfig = {
       feature.manyFiles = true;
@@ -46,6 +49,6 @@ in
       gpg.program = "${config.programs.gpg.package}/bin/gpg2";
     };
     lfs.enable = true;
-    ignores = [ ".direnv" "result" ];
+    ignores = [".direnv" "result"];
   };
 }
