@@ -31,34 +31,96 @@ EOF
 }
 
 validate_envirnment() {
-  DISK=""
-  GIT_EMAIL=""
-  GIT_USER=""
+  # DISK=""
+  # GIT_EMAIL=""
+  # GIT_USER=""
   SWAPSIZE=4
   RESERVE=1
   ENCRYPT=false
   MNT=$(mktemp -d)
-
+  DISK_DIR="/dev/disk/by-id"
   while [ "$#" -gt 0 ]; do
     case "$1" in
+    #@ Set the DISK variable while handling missing info
     -d | --disk)
-      if [ "$2" ] && [ -f "$2" ]; then
-        DISK="$2"
-      else
-        pout "Disk ID"
-      fi
+      #@ Validate Disk ID
+      case "$2" in
+      [[:alnum:]]*)
+
+        #@ Ensure the string resolves to a valid symlink
+        if [ -L "${DISK_DIR}/${2}" ]; then
+
+          #@ Set the Disk ID variable
+          DISK="${2}"
+
+          #@ Skip to the next argument
+          shift 2
+        else
+          #@ Quit if invalid
+          pout --invalid "Disk ID" "${DISK_DIR}/${2}"
+        fi
+        ;;
+      *)
+        #@ Quit on missing info
+        pout --missing DISK
+        ;;
+      esac
       ;;
     -e | --email)
-      [ "$2" ] && case "$2" in *@*.*) GIT_EMAIL="$2" ;; esac
-      [ "${GIT_EMAIL}" ] || pout "email address"
+      case "$2" in
+      [[:alnum:]]*)
+        #@ Validate Email Address
+        case "$2" in
+        *@*.*)
+          local_part="${2%%@*}"
+          domain_part="${2#*@}"
+          domaain="${2%.*}"
 
+          if
+            [ -n "$local_part" ] &&
+              [ -n "$domain" ] &&
+              ! echo "$2" | grep -q '[[:space:]]'
+          then
+            #@ Set the Git Email variable
+            GIT_EMAIL="$2"
+
+            #@ Skip to the next argument
+            shift
+          else
+            pout --invalid Email "$2"
+          fi
+
+          ;;
+        # *) pout --invalid Email "${2}" ;;
+        esac
+
+        ;;
+
+      *)
+        #@ Quit on missing info
+        pout --missing Email
+        ;;
+      esac
+      shift
+      GIT_EMAIL="$1"
+      # shift
+      # [ "$2" ] && case "$2" in *@*.*) GIT_EMAIL="$2" ;; esac
+      # [ "${GIT_EMAIL}" ] || pout "email address"
       ;;
     -u | --user)
-      if [ "$2" ] && [ ${#2} -gt 1 ]; then
-        GIT_USER="$2"
+      shift
+      if [ -n "$1" ]; then
+        GIT_USER="$1"
       else
-        pout "username"
+        echo "username missing"
+        return 1
       fi
+
+      # if [ "$2" ] && [ ${#2} -gt 1 ]; then
+      #   GIT_USER="$2"
+      # # else
+      # #   pout "username"
+      # fi
       ;;
     -s | --swap)
       if [ "${2}" ] && [ "${2}" -ge 0 ]; then SWAPSIZE="${2}"; fi
@@ -71,10 +133,17 @@ validate_envirnment() {
       show_usage_guide
       exit 0
       ;;
-    *) pout --option "${1}" ;;
+    *) pout --invalid Option "${1}" ;;
     esac
-    shift
+    # shift
   done
+
+  printf "     DISK  |>  %s\n" "$DISK"
+  printf "GIT_EMAIL  |>  %s\n" "$GIT_EMAIL"
+  printf " GIT_USER  |>  %s\n" "$GIT_USER"
+  printf " SWAPSIZE  |>  %s\n" "$SWAPSIZE"
+  printf "  RESERVE  |>  %s\n" "$RESERVE"
+  printf "  ENCRYPT  |>  %s\n" "$ENCRYPT"
 }
 
 validate_erasure() {
@@ -290,9 +359,10 @@ prevent_reboot() {
 pout() {
   #@ Print appropriate error message
   case "${1}" in
-  --option)
-    shift
-    printf "Invalid option: %s\n" "${1}"
+  --*)
+    msg="$(echo ":::${1#--}:::" | tr '[:lower:]' '[:upper:]')"
+    var=${2}
+    arg=${3}
     ;;
   *)
     shift
@@ -300,22 +370,34 @@ pout() {
     ;;
   esac
 
+  if
+    [ -n "${msg}" ] && [ -n "${var}" ] && [ -z "${arg}" ]
+  then
+    printf "%s %s\n" "${msg}" "${var}"
+  elif
+    [ -n "${msg}" ] && [ -n "${var}" ] && [ -n "${arg}" ]
+  then
+    printf "%s %s -> %s\n" "${msg}" "${var}" "${arg}"
+  else
+    printf "%s\n" "${*}"
+  fi
+
   #@ Print usage and exit with an error code
-  show_usage_guide
+  # show_usage_guide
   exit 1
 }
 
 main() {
   validate_envirnment "$@"
-  validate_erasure
-  validate_dependencies
-  create_partitions
-  create_boot_containers
-  create_sys_container
-  create_datasets
-  init_boot_containers
-  init_flake
-  prep_flake
-  deploy_flake
-  prevent_reboot
+  # validate_erasure
+  # validate_dependencies
+  # create_partitions
+  # create_boot_containers
+  # create_sys_container
+  # create_datasets
+  # init_boot_containers
+  # init_flake
+  # prep_flake
+  # deploy_flake
+  # prevent_reboot
 } && main "$@"
