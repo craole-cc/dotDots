@@ -68,6 +68,7 @@
       direnv
       bottom
       alejandra
+      cowsay
       ;
   };
 }
