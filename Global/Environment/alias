@@ -1,6 +1,0 @@
-#!/bin/sh
-
-alias nosR='doas NixOS-rebuild'
-alias nosR_trace='doas NixOS-rebuild --show-trace'
-alias nosC='doas NixOS-check'
-alias nosC_trace='nosC --show-trace'

@@ -12,6 +12,9 @@
 			"name": "NixOS",
 			"path": "../.."
 		},
+		{
+			"path": "../../../Downloads/Dotfiles"
+		}
 	],
 	"extensions": {
 		"recommendations": [
@@ -158,7 +161,6 @@
 				"italic": false
 			}
 		],
-		"editor.fontSize": 18,
 		"files.autoSave": "afterDelay",
 		"editor.formatOnSave": true,
 		"workbench.colorTheme": "Nebula Oni (Pegasus)",

@@ -2,8 +2,8 @@
   description = "My NixOS configuration";
 
   nixConfig = {
-    extra-substituters = [ "https://cache.m7.rs" ];
-    extra-trusted-public-keys = [ "cache.m7.rs:kszZ/NSwE/TjhOcPPQ16IuUiuRSisdiIwhKZCxguaWg=" ];
+    extra-substituters = ["https://cache.m7.rs"];
+    extra-trusted-public-keys = ["cache.m7.rs:kszZ/NSwE/TjhOcPPQ16IuUiuRSisdiIwhKZCxguaWg="];
   };
 
   inputs = {
@@ -14,8 +14,9 @@
     };
     hardware.url = "github:nixos/nixos-hardware";
     impermanence.url = "github:nix-community/impermanence";
-    disko.url = "github:nix-community/disko";
+    nix-colors.url = "github:misterio77/nix-colors";
     sops-nix.url = "github:mic92/sops-nix";
+    disko.url = "github:nix-community/disko";
     hydra.url = "github:nixos/hydra";
     hyprland.url = "github:hyprwm/hyprland";
     hyprwm-contrib.url = "github:hyprwm/contrib";
@@ -23,70 +24,74 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs:
-    let
-      inherit (self) outputs;
-      forEachSystem = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
-      forEachPkgs = f: forEachSystem (sys: f nixpkgs.legacyPackages.${sys});
+  outputs = {
+    self,
+    nixpkgs,
+    home-manager,
+    ...
+  } @ inputs: let
+    inherit (self) outputs;
+    forEachSystem = nixpkgs.lib.genAttrs ["x86_64-linux" "aarch64-linux"];
+    forEachPkgs = f: forEachSystem (sys: f nixpkgs.legacyPackages.${sys});
 
-      mkNixos = modules: nixpkgs.lib.nixosSystem {
+    mkNixos = modules:
+      nixpkgs.lib.nixosSystem {
         inherit modules;
-        specialArgs = { inherit inputs outputs; };
+        specialArgs = {inherit inputs outputs;};
       };
-      mkHome = modules: pkgs: home-manager.lib.homeManagerConfiguration {
+    mkHome = modules: pkgs:
+      home-manager.lib.homeManagerConfiguration {
         inherit modules pkgs;
-        extraSpecialArgs = { inherit inputs outputs; };
+        extraSpecialArgs = {inherit inputs outputs;};
       };
-    in
-    {
-      nixosModules = import ./Global/Modules/nixos;
-      homeManagerModules = import ./modules/home-manager;
-      templates = import ./templates;
+  in {
+    nixosModules = import ./Modules/nixos;
+    homeManagerModules = import ./Modules/home-manager;
+    templates = import ./Templates;
+    overlays = import ./Middleware {inherit inputs outputs;};
+    hydraJobs = import ./Admin/Hydra {inherit inputs outputs;};
 
-      overlays = import ./overlays { inherit inputs outputs; };
-      hydraJobs = import ./hydra.nix { inherit inputs outputs; };
-
-      packages = forEachPkgs (pkgs: (import ./pkgs { inherit pkgs; }) // {
+    packages = forEachPkgs (pkgs:
+      (import ./Packages {inherit pkgs;})
+      // {
         neovim = let
-          homeCfg = mkHome [ ./home/misterio/generic.nix ] pkgs;
-        in pkgs.writeShellScriptBin "nvim" ''
-          ${homeCfg.config.programs.neovim.finalPackage}/bin/nvim \
-          -u ${homeCfg.config.xdg.configFile."nvim/init.lua".source} \
-          "$@"
-        '';
+          homeCfg = mkHome [./Home/craole/clients/generic.nix] pkgs;
+        in
+          pkgs.writeShellScriptBin "nvim" ''
+            ${homeCfg.config.programs.neovim.finalPackage}/bin/nvim \
+            -u ${homeCfg.config.xdg.configFile."nvim/init.lua".source} \
+            "$@"
+          '';
       });
-      devShells = forEachPkgs (pkgs: import ./shell.nix { inherit pkgs; });
-      formatter = forEachPkgs (pkgs: pkgs.nixpkgs-fmt);
+    devShells = forEachPkgs (pkgs: import ./Admin/Flake/shell.nix {inherit pkgs;});
+    formatter = forEachPkgs (pkgs: pkgs.nixpkgs-fmt);
+    wallpapers = import ./Home/craole/tools/desktop/wallpaper;
 
-      wallpapers = import ./home/misterio/wallpapers;
+    nixosConfigurations = {
+      #/> Desktop <\#
+      dellberto = mkNixos [./Clients/dellberto];
 
-      nixosConfigurations = {
-        # Desktops
-        atlas = mkNixos [ ./hosts/atlas ];
-        maia = mkNixos [ ./hosts/maia ];
-        # Laptops
-        pleione = mkNixos [ ./hosts/pleione ];
-        electra = mkNixos [ ./hosts/electra ];
-        # Servers
-        alcyone = mkNixos [ ./hosts/alcyone ]; # Vultr VM (critical stuff)
-        merope = mkNixos [ ./hosts/merope ]; # Raspberry Pi (media)
-        celaeno = mkNixos [ ./hosts/celaeno ]; # Free Oracle VM (builds)
-      };
+      #/> Laptop <\#
+      a3k = mkNixos [./Clients/a3k];
+      delle = mkNixos [./Clients/delle];
 
-      homeConfigurations = {
-        # Desktops
-        "misterio@atlas" = mkHome [ ./home/misterio/atlas.nix ] nixpkgs.legacyPackages."x86_64-linux";
-        "misterio@maia" = mkHome [ ./home/misterio/maia.nix ] nixpkgs.legacyPackages."x86_64-linux";
-        # Laptops
-        "misterio@pleione" = mkHome [ ./home/misterio/pleione.nix ] nixpkgs.legacyPackages."x86_64-linux";
-        "misterio@electra" = mkHome [ ./home/misterio/electra.nix ] nixpkgs.legacyPackages."x86_64-linux";
-        # Servers
-        "misterio@alcyone" = mkHome [ ./home/misterio/alcyone.nix ] nixpkgs.legacyPackages."x86_64-linux";
-        "misterio@merope" = mkHome [ ./home/misterio/merope.nix ] nixpkgs.legacyPackages."aarch64-linux";
-        "misterio@celaeno" = mkHome [ ./home/misterio/celaeno.nix ] nixpkgs.legacyPackages."aarch64-linux";
-
-        # Portable minimum configuration
-        "misterio@generic" = mkHome [ ./home/misterio/generic.nix ] nixpkgs.legacyPackages."x86_64-linux";
-      };
+      #/> Server <\#
+      raspi = mkNixos [./Clients/raspi]; # Raspberry Pi (media)
     };
+
+    homeConfigurations = {
+      #/> Base <\#
+      "craole@generic" = mkHome [./Home/craole/clients/generic.nix] nixpkgs.legacyPackages."x86_64-linux";
+
+      #/> Desktop <\#
+      "craole@dellberto" = mkHome [./Home/craole/clients/dellberto.nix] nixpkgs.legacyPackages."x86_64-linux";
+
+      #/> Laptop <\#
+      "craole@a3k" = mkHome [./Home/craole/clients/a3k.nix] nixpkgs.legacyPackages."x86_64-linux";
+      "craole@delle" = mkHome [./Home/craole/clients/delle.nix] nixpkgs.legacyPackages."x86_64-linux";
+
+      #/> Server <\#
+      "craole@raspi" = mkHome [./Home/craole/clients/raspi.nix] nixpkgs.legacyPackages."aarch64-linux";
+    };
+  };
 }
