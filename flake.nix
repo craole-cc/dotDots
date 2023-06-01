@@ -49,7 +49,7 @@
     homeManagerModules = import ./Modules/home-manager;
     templates = import ./Templates;
     overlays = import ./Middleware {inherit inputs outputs;};
-    hydraJobs = import ./Admin/Hydra {inherit inputs outputs;};
+    hydraJobs = import ./Admin/Hydra/default.nix {inherit inputs outputs;};
 
     packages = forEachPkgs (pkgs:
       (import ./Packages {inherit pkgs;})
