@@ -37,7 +37,7 @@ in {
     neededForUsers = true;
   };
 
-  home-manager.users.craole = import ../../../../Home/craole/${config.networking.hostName}.nix;
+  home-manager.users.craole = import ../../../../Home/craole/clients/${config.networking.hostName}.nix;
 
   services.geoclue2.enable = true;
   security.pam.services = {swaylock = {};};
