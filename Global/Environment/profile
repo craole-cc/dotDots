@@ -8,6 +8,7 @@ VERBOSE=true
 
     #@ Set flake root directory
     NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
+    NixOS_CONFIG="$NixOS_FLAKE/flake.nix"
 
     #@ Make the variable available
     export NixOS_FLAKE

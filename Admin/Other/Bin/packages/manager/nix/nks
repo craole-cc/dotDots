@@ -99,7 +99,7 @@ __init__() {
 
   #@ Load Environment Variables
   # shellcheck disable=SC1091
-  . "$DOTS_ENV_CTX/nixos"
+  # . "$DOTS_ENV_CTX/nixos"
 
   #@ Prioritize user config
   [ "$config" ] && NIXOS_CONFIG="$config"
@@ -111,7 +111,7 @@ __init__() {
   #@ Set Flake directory as config, if necessary
   # [ "$flake" ] &&
   # [ "$(basename "$NIXOS_CONFIG")" = "flake.nix" ] &&
-  #   [ "$NIXOS_FLAKE" ]
+  #   [ "$NixOS_FLAKE" ]
   #   NIXOS_CONFIG="$(dirname "$NIXOS_CONFIG")"
 
 }
@@ -140,7 +140,7 @@ __error__() {
 
 __test__() {
   case $1 in
-  --flake) echo "NIXOS_FLAKE: $NIXOS_FLAKE" ;;
+  --flake) echo "NixOS_FLAKE: $NixOS_FLAKE" ;;
   --config) echo "NIXOS_CONFIG: $NIXOS_CONFIG" ;;
   --rebuild) echo "REBUILD: $rebuild" ;;
   --clean) echo "GC: $clean" ;;
@@ -172,7 +172,7 @@ clean_garbage() {
 
 update_store() {
   if [ "$flake" ]; then
-    nix flake update --commit-lock-file "$NIXOS_FLAKE"
+    nix flake update --commit-lock-file "$NixOS_FLAKE"
   else
     sudo nix-channel --update
   fi
@@ -182,7 +182,7 @@ rebuild_system() {
   cmd="sudo nixos-rebuild switch"
 
   if [ "$flake" ]; then
-    opts="--flake $NIXOS_FLAKE"
+    opts="--flake $NixOS_FLAKE"
     [ "$trace" ] && opts="$opts --show-trace"
   fi
 
