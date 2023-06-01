@@ -22,7 +22,7 @@
   ];
 
   networking = {
-    hostName = "pleione";
+    hostName = "delle";
   };
 
   boot = {

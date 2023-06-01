@@ -11,7 +11,7 @@
 
   # Static IP address
   networking = {
-    hostName = "merope";
+    hostName = "raspi";
     useDHCP = true;
     interfaces.eth0 = {
       useDHCP = true;
