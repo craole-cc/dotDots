@@ -1,39 +1,41 @@
 #!/bin/sh
 
 NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
-message="General updates"
+message="General flake updates"
 trace=0
 
-while [ "$#" -ge 1 ];do
-    case $1 in 
-        -t|--show-trace) trace=1 ;;
-        *) message="$*";;
-    esac
-    shift
-done
+{ #/> Options
+    while [ "$#" -ge 1 ]; do
+        case $1 in
+        -t | --show-trace) trace=1 ;;
+        *) message="$*" ;;
+        esac
+        shift
+    done
+}
 
-
-if cd "${NixOS_FLAKE}" ;then
-
-    [ -n "${VERBOSE}" ] && 
-        printf "%s %s\n" "Rebuilding NixOS Flake at" "${NixOS_FLAKE}"
-
-    #/> Git Update 
-    git add . && git commit -m "${message}"
-
-    #/> Flake Update 
-    nix flake update
-
-    #/> Flake Rebuild
-    if [ "$trace" -eq 1 ] ;then
-        nixos-rebuild switch --show-trace
+{ #/> Access Flake Root
+    if cd "${NixOS_FLAKE}"; then
+        printf "%s %s\n" "Checking the NixOS Flake at" "${NixOS_FLAKE}"
     else
-        nixos-rebuild switch
+
+        printf "%s\n" "Failed to access" "${NixOS_FLAKE}"
+        exit 1
     fi
+}
 
-else
-    
-    printf "%s\n" "Failed to access" "${NixOS_FLAKE}"
-    exit 1
+{ #/> Git Update
+    git add . && git commit -m "${message}"
+}
 
-fi
+{ #/> Flake Update
+    nix flake update
+}
+
+{ #/> Flake Check
+    if [ "$trace" -eq 1 ]; then
+        nix flake check --show-trace
+    else
+        nix flake check
+    fi
+}

@@ -24,14 +24,6 @@ trace=0
     fi
 }
 
-{ #/> Git Update
-    git add . && git commit -m "${message}"
-}
-
-{ #/> Flake Update
-    nix flake update
-}
-
 { #/> Flake Check
     if [ "$trace" -eq 1 ]; then
         nix flake check --show-trace
