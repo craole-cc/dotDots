@@ -69,14 +69,14 @@
 
     nixosConfigurations = {
       #/> Desktop <\#
-      dellberto = mkNixos [./Clients/dellberto];
+      # dellberto = mkNixos [./Clients/dellberto];
 
       #/> Laptop <\#
       a3k = mkNixos [./Clients/a3k];
-      delle = mkNixos [./Clients/delle];
+      # delle = mkNixos [./Clients/delle];
 
       #/> Server <\#
-      raspi = mkNixos [./Clients/raspi]; # Raspberry Pi (media)
+      # raspi = mkNixos [./Clients/raspi]; # Raspberry Pi (media)
     };
 
     homeConfigurations = {
@@ -86,22 +86,22 @@
         nixpkgs.legacyPackages."x86_64-linux";
 
       #/> Desktop <\#
-      "craole@dellberto" =
-        mkHome [./Home/craole/clients/dellberto.nix]
-        nixpkgs.legacyPackages."x86_64-linux";
+      # "craole@dellberto" =
+      #   mkHome [./Home/craole/clients/dellberto.nix]
+      #   nixpkgs.legacyPackages."x86_64-linux";
 
       #/> Laptop <\#
       "craole@a3k" =
         mkHome [./Home/craole/clients/a3k.nix]
         nixpkgs.legacyPackages."x86_64-linux";
-      "craole@delle" =
-        mkHome [./Home/craole/clients/delle.nix]
-        nixpkgs.legacyPackages."x86_64-linux";
+      # "craole@delle" =
+      #   mkHome [./Home/craole/clients/delle.nix]
+      #   nixpkgs.legacyPackages."x86_64-linux";
 
       #/> Server <\#
-      "craole@raspi" =
-        mkHome [./Home/craole/clients/raspi.nix]
-        nixpkgs.legacyPackages."aarch64-linux";
+      # "craole@raspi" =
+      #   mkHome [./Home/craole/clients/raspi.nix]
+      #   nixpkgs.legacyPackages."aarch64-linux";
     };
   };
 }
