@@ -27,7 +27,7 @@ in {
         "deluge"
       ];
 
-    openssh.authorizedKeys.keys = [(builtins.readFile ../../../../home/craole/ssh.pub)];
+    openssh.authorizedKeys.keys = [(builtins.readFile ../../../../Home/craole/keys/ssh.pub)];
     passwordFile = config.sops.secrets.craole-password.path;
     packages = [pkgs.home-manager];
   };
@@ -37,7 +37,7 @@ in {
     neededForUsers = true;
   };
 
-  home-manager.users.craole = import ../../../../home/craole/${config.networking.hostName}.nix;
+  home-manager.users.craole = import ../../../../Home/craole/${config.networking.hostName}.nix;
 
   services.geoclue2.enable = true;
   security.pam.services = {swaylock = {};};
