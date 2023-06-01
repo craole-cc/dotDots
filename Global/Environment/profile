@@ -37,7 +37,8 @@ VERBOSE=true
 
     #@ Initialize Flake environment variables and aliases
     for env in "$NixOS_ENV"/*; do
-        if [ -f "$env" ] && [ "$(basename "$env")" != "profile" ]; then
+        if [ -f "$env" ] &&
+            [ "$(basename "$env")" != "profile" ]; then
             . "$env"
         fi
     done
