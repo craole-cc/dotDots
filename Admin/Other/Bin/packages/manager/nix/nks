@@ -162,24 +162,24 @@ check_roots() {
 
   find -H /nix/var/nix/gcroots/auto -type l -exec sh -c 'readlink "$0"; realpath "$0"; echo' {} \;
 
-  sudo nix-env -p /nix/var/nix/profiles/system --list-generations
+  doas nix-env -p /nix/var/nix/profiles/system --list-generations
 
 }
 
 clean_garbage() {
-  sudo nix-collect-garbage --delete-old
+  doas nix-collect-garbage --delete-old
 }
 
 update_store() {
   if [ "$flake" ]; then
     nix flake update --commit-lock-file "$NixOS_FLAKE"
   else
-    sudo nix-channel --update
+    doas nix-channel --update
   fi
 }
 
 rebuild_system() {
-  cmd="sudo nixos-rebuild switch"
+  cmd="doas nixos-rebuild switch"
 
   if [ "$flake" ]; then
     opts="--flake $NixOS_FLAKE"
