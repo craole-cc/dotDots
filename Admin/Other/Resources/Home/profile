@@ -3,5 +3,5 @@
 
 #@ Initialize NixOS Flake
 NixOS_FLAKE="$HOME/DOTS"
-[ -f "${NixOS_FLAKE}"/Global/Environment/profile ] &&
-  . "${NixOS_FLAKE}"/Global/Environment/profile
+[ -f "${NixOS_FLAKE}"/Environment/profile ] &&
+  . "${NixOS_FLAKE}"/Environment/profile
