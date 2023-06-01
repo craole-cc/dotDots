@@ -1,0 +1,11 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+#| Load Environment Variables
+weHave qtile || exit
+
+#| Load Environment Variables
+. "$DOTS_ENV_CTX/qtile"
+
+#| Deploy Link
+symLink --src "$DESKTOP_HOME" --lnk "$DESKTOP_LINK"

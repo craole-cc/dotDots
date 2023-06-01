@@ -1,0 +1,324 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+
+#> Documentation                                                               |
+: <<"DOCUMENTATION"
+#| References
+  https://invisible-island.net/ncurses/man/terminfo.5.html#h3-Highlighting_-Underlining_-and-Visible-Bells
+  https://www.gnu.org/software/termutils/manual/termutils-2.0/html_chapter/tput_1.html
+  https://linuxcommand.org/lc3_adv_tput.php
+  https://linux.die.net/man/1/tput
+  https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
+  https://htmlcolorcodes.com/color-names/
+  https://misc.flogisoft.com/bash/tip_colors_and_formatting
+  https://funprojects.blog/tag/tput/
+  https://martin-thoma.com/colorize-your-scripts-output
+
+#| Color
+  tput setab [1-7]  #> Set a background color using ANSI escape
+  tput setb [1-7]   #> Set a background color
+  tput setaf [1-7]  #> Set a foreground color using ANSI escape
+  tput setf [1-7]   #> Set a foreground color
+
+    Num  Colour      Define          R G B
+  |>--------------------------------------<|
+    0    black     COLOR_BLACK     0,0,0
+    1    red       COLOR_RED       1,0,0
+    2    green     COLOR_GREEN     0,1,0
+    3    yellow    COLOR_YELLOW    1,1,0
+    4    blue      COLOR_BLUE      0,0,1
+    5    magenta   COLOR_MAGENTA   1,0,1
+    6    cyan      COLOR_CYAN      0,1,1
+    7    white     COLOR_WHITE     1,1,1
+
+#| Attributes
+  tput bold   #> Bold
+  tput dim    #> Half-bright
+  tput smul   #> Underline
+  tput rmul   #> Exit underline
+  tput rev    #> Reverse
+  tput smso   #> Standout (bold on rxvt)
+  tput rmso   #> Exit standout
+  tput sgr0   #> Turn off all attributes
+
+DOCUMENTATION
+
+#> Availability                                                               |
+
+#| Confirm TPUT is available in terminal
+[ -t 2 ] && ! command -v tput >/dev/null 2>&1 && return
+
+#> Cursor                                                                     |
+
+sc="$(tput sc)"                      # Save cursor position
+rc="$(tput rc)"                      # Restore cursor position
+term_rows="$(tput lines || tput li)" # Count or rows in terminal
+term_cols="$(tput cols || tput co)"  # Count or rows in terminal
+mcXY="$(tput cup || tput cm)"        # Move cursor to <row> <col>
+mcX="$(tput hpa || tput ch)"         # Move cursor to <col>
+mcY="$(tput vpa || tput cv)"         # Move cursor to <row>
+mcLeft="$(tput cub || tput LE)"      # Move cursor left #1 spaces
+mcDown="$(tput cud || tput DO)"      # Move cursor down #1 lines
+mcRight="$(tput cuf || tput RI)"     # Move cursor right #1 spaces
+mcDown="$(tput cuu || tput UP)"      # Move cursor up #1 lines
+hide="$(tput civis || tput vi)"      # Make the cursor invisible
+show="$(tput cnorm || tput ve)"      # Set the cursor to its normal state
+# resize="$(tput wind || tput wi)"     # Set window to lines #1-#2, columns #3-#4
+
+center="$(
+  width="$(tput cols)"
+  str_len="${#1}"
+  [ "$str_len" -ge "$width" ] && echo "$1"
+
+  filler_len="$(((width - str_len) / 2))"
+
+  if [ $# -ge 2 ]; then
+    ch="$(printf '%s' "$2" | cut -c 1)"
+  else
+    ch=" "
+  fi
+
+  filler=""
+  i=0
+  while [ "$i" -lt "$filler_len" ]; do
+    filler="$filler$ch"
+    i=$((i + 1))
+  done
+
+  printf "%s%s%s" "$filler" "$1" "$filler"
+  [ $(((width - str_len) % 2)) -ne 0 ] && printf "%s" "$ch"
+  printf "\n"
+)"
+
+#> FORMAT                                                                     |
+
+reset="$(tput sgr0 || tput me)"     # Turn off all attributes
+bold="$(tput bold || tput md)"      # Bold
+dim="$(tput dim)"                   # Half-bright
+italic="$(tput sitm || tput ZH)"    # Italic
+eitalic="$(tput ritm || tput ZR)"   # End italic
+underline="$(tput smul || tput us)" # Underline
+eunder="$(tput rmul || tput ue)"    # End underline
+blink="$(tput blink || tput mb)"    # Blink
+invert="$(tput smso || tput so)"    # Stand-out
+revert="$(tput rmso || tput se)"    # End stand-out
+eed="$(tput ed || tput cd)"         # Erase to end of display
+eel="$(tput el || tput ce)"         # Erase to end of line
+ebl="$(tput el1 || tput cb)"        # Erase to beginning of line
+ewl=$eel$ebl                        # Erase whole line
+draw="$(
+  tput -S <<~
+enacs
+smacs
+acsc
+rmacs
+~
+)"
+
+#> Colors                                                                     |
+
+#| Declare colors for supported terminals
+case $TERM in
+*-m) return ;;
+*) ;;
+esac
+
+#| Foreground Colors
+black="$(tput setaf 232 || tput setaf 0 || tput AF 0)"
+red="$(tput setaf 196 || tput setaf 1 || tput AF 1)"
+darkred="$(tput setaf 196 || tput setaf 1 || tput AF 1)"
+maroon="$(tput setaf 124 || tput setaf 1 || tput AF 1)"
+saddlebrown="$(tput setaf 226 || tput setaf 3 || tput AF 3)"
+orangered="$(tput setaf 226 || tput setaf 3 || tput AF 3)"
+darkorange="$(tput setaf 226 || tput setaf 3 || tput AF 3)"
+orange="$(tput setaf 226 || tput setaf 3 || tput AF 3)"
+yellow="$(tput setaf 226 || tput setaf 3 || tput AF 3)"
+gold="$(tput setaf 226 || tput setaf 3 || tput AF 3)"
+green="$(tput setaf 28 || tput setaf 2 || tput AF 2)"
+lime="$(tput setaf 46 || tput setaf 2 || tput AF 2)"
+olive="$(tput setaf 28 || tput setaf 2 || tput AF 2)"
+darkolivegreen="$(tput setaf 28 || tput setaf 2 || tput AF 2)"
+cyan="$(tput setaf 123 || tput setaf 6 || tput AF 6)"
+turquoise="$(tput setaf 123 || tput setaf 6 || tput AF 6)"
+teal="$(tput setaf 36 || tput setaf 6 || tput AF 6)"
+slateblue="$(tput setaf 12 || tput setaf 4 || tput AF 4)"
+darkslateblue="$(tput setaf 12 || tput setaf 4 || tput AF 4)"
+blue="$(tput setaf 12 || tput setaf 4 || tput AF 4)"
+midnightblue="$(tput setaf 12 || tput setaf 4 || tput AF 4)"
+purple="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+indigo="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+magenta="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+fuchsia="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+violet="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+deeppink="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+hotpink="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+pink="$(tput setaf 129 || tput setaf 5 || tput AF 5)"
+silver="$(tput setaf 1 || tput setaf 1 || tput AF 1)"
+gray="$(tput setaf 1 || tput setaf 1 || tput AF 1)"
+dimgray="$(tput setaf 1 || tput setaf 1 || tput AF 1)"
+darkslategray="$(tput setaf 1 || tput setaf 1 || tput AF 1)"
+cornsilk="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
+tan="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
+snow="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
+ivory="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
+white="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
+
+#| Background Colors
+black_bg="$(tput setab 232 || tput setab 0 || tput AF 0)"
+red_bg="$(tput setab 196 || tput setab 1 || tput AF 1)"
+darkred_bg="$(tput setab 196 || tput setab 1 || tput AF 1)"
+maroon_bg="$(tput setab 124 || tput setab 1 || tput AF 1)"
+saddlebrown_bg="$(tput setab 226 || tput setab 3 || tput AF 3)"
+orangered_bg="$(tput setab 226 || tput setab 3 || tput AF 3)"
+darkorange_bg="$(tput setab 226 || tput setab 3 || tput AF 3)"
+orange_bg="$(tput setab 226 || tput setab 3 || tput AF 3)"
+yellow_bg="$(tput setab 226 || tput setab 3 || tput AF 3)"
+gold_bg="$(tput setab 226 || tput setab 3 || tput AF 3)"
+green_bg="$(tput setab 28 || tput setab 2 || tput AF 2)"
+lime_bg="$(tput setab 46 || tput setab 2 || tput AF 2)"
+olive_bg="$(tput setab 28 || tput setab 2 || tput AF 2)"
+darkolivegreen_bg="$(tput setab 28 || tput setab 2 || tput AF 2)"
+cyan_bg="$(tput setab 123 || tput setab 6 || tput AF 6)"
+turquoise_bg="$(tput setab 123 || tput setab 6 || tput AF 6)"
+teal_bg="$(tput setab 36 || tput setab 6 || tput AF 6)"
+slateblue_bg="$(tput setab 12 || tput setab 4 || tput AF 4)"
+darkslateblue_bg="$(tput setab 12 || tput setab 4 || tput AF 4)"
+blue_bg="$(tput setab 12 || tput setab 4 || tput AF 4)"
+midnightblue_bg="$(tput setab 12 || tput setab 4 || tput AF 4)"
+purple_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+indigo_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+magenta_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+fuchsia_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+violet_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+deeppink_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+hotpink_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+pink_bg="$(tput setab 129 || tput setab 5 || tput AF 5)"
+silver_bg="$(tput setab 1 || tput setab 1 || tput AF 1)"
+gray_bg="$(tput setab 1 || tput setab 1 || tput AF 1)"
+dimgray_bg="$(tput setab 1 || tput setab 1 || tput AF 1)"
+darkslategray_bg="$(tput setab 1 || tput setab 1 || tput AF 1)"
+cornsilk_bg="$(tput setab 255 || tput setab 7 || tput AF 7)"
+tan_bg="$(tput setab 255 || tput setab 7 || tput AF 7)"
+snow_bg="$(tput setab 255 || tput setab 7 || tput AF 7)"
+ivory_bg="$(tput setab 255 || tput setab 7 || tput AF 7)"
+white_bg="$(tput setab 255 || tput setab 7 || tput AF 7)"
+
+#> Presets                                                                    |
+
+success="${green_bg}${bold}"
+error="${red}${bold}"
+warning="${yellow}${bold}"
+info="${blue}${bold}"
+
+#> Test                                                                       |
+__test__() {
+echo "${info}::: Attributes :::${reset}
+${bold}bold${reset}
+${dim}dim${reset}
+${italic}italic${reset}
+${underline}underline${reset}
+${invert}invert${reset}
+${blink}blinking${reset}
+
+${reset}${info}::: Colors :::${reset}
+${black}black
+${red}red
+${darkred}darkred
+${maroon}maroon
+${saddlebrown}saddlebrown
+${orangered}orangered
+${darkorange}darkorange
+${orange}orange
+${yellow}yellow
+${gold}gold
+${green}green
+${lime}lime
+${olive}olive
+${darkolivegreen}darkolivegreen
+${cyan}cyan
+${turquoise}turquoise
+${teal}teal
+${slateblue}slateblue
+${darkslateblue}darkslateblue
+${blue}blue
+${midnightblue}midnightblue
+${cornsilk}${purple_bg}purple${reset}
+${lime}${indigo_bg} indigo ${reset}
+${magenta}magenta
+${fuchsia}fuchsia
+${violet}violet
+${deeppink}deeppink
+${hotpink}hotpink
+${pink}pink
+${silver}silver
+${gray}gray
+${dimgray}dimgray
+${darkslategray}darkslategray
+${cornsilk}cornsilk
+${tan}tan
+${snow}snow
+${ivory}ivory
+${white}white
+
+${reset}${info}::: Background Colors :::${reset}
+${black_bg}black${reset}
+${red_bg}red${reset}
+${darkred_bg}darkred${reset}
+${maroon_bg}maroon${reset}
+${saddlebrown_bg}saddlebrown${reset}
+${orangered_bg}orangered${reset}
+${darkorange_bg}darkorange${reset}
+${orange_bg}orange${reset}
+${yellow_bg}yellow${reset}
+${gold_bg}gold${reset}
+${green_bg}green${reset}
+${lime_bg}lime${reset}
+${olive_bg}olive${reset}
+${darkolivegreen_bg}darkolivegreen${reset}
+${cyan_bg}cyan${reset}
+${turquoise_bg}turquoise${reset}
+${teal_bg}teal${reset}
+${slateblue_bg}slateblue${reset}
+${darkslateblue_bg}darkslateblue${reset}
+${blue_bg}blue${reset}
+${midnightblue_bg}midnightblue${reset}
+${cornsilk_bg}${purple_bg}purple${reset}${reset}
+${lime_bg}${indigo_bg} indigo ${reset}${reset}
+${magenta_bg}magenta${reset}
+${fuchsia_bg}fuchsia${reset}
+${violet_bg}violet${reset}
+${deeppink_bg}deeppink${reset}
+${hotpink_bg}hotpink${reset}
+${pink_bg}pink${reset}
+${silver_bg}silver${reset}
+${gray_bg}gray${reset}
+${dimgray_bg}dimgray${reset}
+${darkslategray_bg}darkslategray${reset}
+${cornsilk_bg}cornsilk${reset}
+${tan_bg}tan${reset}
+${snow_bg}snow${reset}
+${ivory_bg}ivory${reset}
+${white_bg}white${reset}
+"
+
+  echo "${deeppink}deeppink"
+  printf "%s${deeppink}deeppink"
+
+  echo "${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though ${reset}"
+  echo "${invert}${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though ${reset}"
+  echo "${magenta}This is ${bold}${gold}how we ${reset}${italic}${cornsilk}do it. ${error} Y'all don't hear me though ${reset}"
+
+  printf "\033[48:2:255:165:0m%s\033[m\n" "Hello world"
+  printf "\033[48;2;255;165;0m%s\033[m\n" "Hello world"
+
+  # prints “hotpink” in #205 (HEX: #f69, RGB: 255, 102, 153)
+  printf "\033[38;5;205mhotpink\033[m\n"
+  printf "\033[38;3;205mhotpink\033[m\n"
+
+  # prints “giant goldfish” in 24-bit orange (HEX: #F38630, RGB: 243, 134, 48)
+  printf "\033[38;2;243;134;48mgiant goldfish\033[0m\n"
+
+}
+
+# __test__
+# echo "${reset}"

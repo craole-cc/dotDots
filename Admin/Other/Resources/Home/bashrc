@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Only execute this script for interactive shells
+case "$BASHOPTS" in
+*i*)
+  # Source the system-wide profile if SSH client is detected
+  [ -n "$SSH_CLIENT" ] && . /etc/profile
+
+  # Source user profiles
+  [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile"
+  [ -f "$HOME/.bash_login" ] && . "$HOME/.bash_login"
+  [ -f "$HOME/.profile" ] && . "$HOME/.profile"
+  ;;
+*)
+  # If this is a login shell, exit instead of returning
+  # to ensure that the shell is completely closed.
+  if shopt -q login_shell; then
+    exit
+  else
+    return
+  fi
+  ;;
+esac

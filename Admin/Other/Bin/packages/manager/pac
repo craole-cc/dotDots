@@ -1,0 +1,227 @@
+#!/bin/sh
+
+# ===================================================================
+#@		                           	INFO			                       @#
+# ===================================================================
+
+__info__() {
+  _cmd_PATH="$(PathOf "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Description"
+  _cmd_DEPENDENCIES="printf, echo, command, unalias"
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
+
+#>----------------------------------------------------<#
+                      USAGE: $_cmd_NAME
+#>----------------------------------------------------<#
+    $_cmd_DESCRIPTION
+#>----------------------------------------------------<#
+            command <[options]> <[arguments]>
+          $_cmd_NAME --flagb "arg to process"
+#>----------------------------------------------------<#
+      -h --help       |>     Usage guide
+      -v --version    |>     Version
+      -d --verbose    |>     Details
+      -f --flaga      |>     Flag A [default]
+      -b --flagb      |>     Flag B
+      -c --flagc      |>     Flag C
+      -n --count      |>     Interator
+#>----------------------------------------------------<#
+
+USAGE_GUIDE
+  )"
+}
+
+# ===================================================================
+#@		                        GLOBAL TOOLS                         @#
+# ===================================================================
+
+#@ Usage display
+__help__() {
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  exit 0
+}
+
+#@ Version display
+__version__() {
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
+}
+
+#@ Command validation
+__cmd_exists__() {
+  unalias "$@" >/dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
+}
+
+#@ Command validation
+__os__() {
+  case "$(INFor --info)" in
+  *Void*) OS="void" ;;
+  *Arch*) OS="arch" ;;
+  *Windows*) OS="windows" ;;
+  *) ;;
+  esac
+}
+
+__command__() {
+  weHave "$CMD" &&
+    if [ "$DOAS" ]; then
+      sudo eval "$CMD" "$OPTS" "$@"
+    else
+      sh -c 'eval "$CMD" "$OPTS" "$@"'
+      # "$CMD" "$OPTS" "$@"
+    fi
+}
+
+# ===================================================================
+#@		                          OPTIONS			                       @#
+# ===================================================================
+
+__opts__() {
+
+  case "$1" in
+  '-h' | '--help') __help__ ;;
+  '-v' | '--version') __version__ ;;
+  '-d' | '--verbose')
+    VERBOSE=true
+    shift
+    ;;
+  *) ;;
+  esac
+
+  #@ Declare user options (One flag per command)
+  COUNTER=0
+  while [ $# -gt 1 ]; do
+    case "$1" in
+    '-i' | '--install') OPTION="install" ;;
+    '-q' | '--query' | '-s' | '--search') OPTION="query" ;;
+    '-r' | '-u' | '--remove' | 'uninstall') OPTION="uninstall" ;;
+    *) ;;
+    esac
+
+    COUNTER=$((COUNTER + 1))
+    ARG="$2"
+    __process__ "$ARG"
+    shift 2
+
+  done
+
+}
+
+# ===================================================================
+#@		                          DEFAULT			                       @#
+# ===================================================================
+
+__defaults__() {
+  [ "$OPTION" ] || OPTION="Query"
+
+  case "$OS" in
+  void)
+    case "$OPTION" in
+    install)
+      CMD="xbps-install"
+      OPTS="--sync --update --verbose"
+      DOAS=true
+      ;;
+    uninstall)
+      CMD="xbps-remove"
+      OPTS="--recursive --remove-orphans --clean-cache --verbose"
+      DOAS=true
+      ;;
+    local)
+      CMD="xbps-query"
+      OPTS="--list-pkgs"
+      ;;
+    explicit)
+      CMD="xbps-query"
+      OPTS="--list-manual-pkgs"
+      ;;
+    query)
+      CMD="xbps-query"
+      OPTS="-R --search"
+      ;;
+    *) ;;
+    esac
+    ;;
+  arch)
+    case "$OPTION" in
+    install)
+      true
+      ;;
+    uninstall)
+      true
+      ;;
+    local)
+      true
+      ;;
+    query | *)
+      true
+      ;;
+    esac
+    ;;
+  *) ;;
+  esac
+}
+
+# ===================================================================
+#@		                           	ERROR			                       @#
+# ===================================================================
+
+__error__() {
+  case $* in
+  --arg)
+    msg="🟥 Command missing."
+    printf "\n%s\n" "$msg"
+    __help__
+    exit 1
+    ;;
+  *) ;;
+  esac
+}
+
+# ===================================================================
+#@		                          PROCESS			                       @#
+# ===================================================================
+
+__process__() {
+
+  #@ Establish defaults
+  __defaults__
+
+  #@ Display details
+  [ "$VERBOSE" ] &&
+    printf "%s <| %s_%s |> %s\n" "$COUNTER" "$OS" "$OPTION" "$ARG"
+
+  #@ Process
+  case "$OPTION" in
+  local | explicit) __command__ | rg "$@" ;;
+  *) __command__ "$@" ;;
+  esac
+
+}
+
+# ===================================================================
+#@		                          CLEANUP			                       @#
+# ===================================================================
+
+__cleanup__() {
+  unset VERBOSE COUNTER OPTION ARG
+}
+
+# ===================================================================
+#@		                            RUN	  		                       @#
+# ===================================================================
+
+#@ Load internal variables
+__info__
+__os__
+
+#@ Run
+__opts__ "$@"
+
+#@ Remove any leftover variables
+__cleanup__

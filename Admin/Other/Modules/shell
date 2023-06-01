@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if nu --help >/dev/null 2>&1; then
+  Nu
+fi

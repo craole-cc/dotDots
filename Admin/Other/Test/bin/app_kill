@@ -1,0 +1,14 @@
+#!/bin/sh
+
+__run__() {
+  if app_is_active "$@"; then
+    pkill -TERM "$@"
+    printf "💀 %s\n" "$@"
+  fi
+}
+
+for app_to_kill in "$@"; do
+  __run__ "$app_to_kill"
+done
+
+unset app_to_kill

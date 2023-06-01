@@ -1,0 +1,33 @@
+# == Color ==
+color:
+  when: auto
+  theme: cc
+
+# == Date ==
+date: relative
+
+# == Display ==
+# What items to display. Do not specify this for the default behavior.
+# Possible values: all, almost-all, directory-only
+display: almost-all
+
+# == Icons ==
+icons:
+  when: auto
+  theme: fancy
+  separator: " "
+
+# == Sorting ==
+sorting:
+  column: name
+  reverse: false
+  dir-grouping: first
+
+# == Hyperlink ==
+hyperlink: always
+
+# == Symlink arrow ==
+symlink-arrow: =>
+
+# == Header ==
+header: false

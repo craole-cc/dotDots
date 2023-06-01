@@ -1,0 +1,38 @@
+#!/bin/sh
+# shellcheck disable=SC1090,SC1091
+# DOC: This script is used to initialize the dotfiles via a list of selected modules.
+
+#@ Ensure the dotfiles exist
+[ -d "${DOTS}" ] || return 1
+
+#@ Establish the modules directory
+DOTS_MOD="${DOTS}/Modules"
+
+#@ Initialize the modules individually
+modules_to_activate="
+  profile
+  # display
+  # config
+  # fonts
+  # prompts
+  # keys
+  # autostart
+  # shell
+"
+
+#@ Initialize each module
+while IFS= read -r module; do
+
+    #@ Remove leading/trailing whitespace
+    module=$(printf "%s" "${module}" | tr -d '[:blank:]')
+
+    #@ Initialize selected modules by skipping commented modules
+    case ${module} in
+        *[![:alnum:]]*) ;;
+        *) [ -n "${module}" ] && . "${DOTS}/Modules/${module}" ;;
+    esac
+
+done <<< "${modules_to_activate}"
+
+#@ Print success message
+[ -n "${VERBOSE}" ] && printf "DOTS=[%s]\n" "${DOTS}"

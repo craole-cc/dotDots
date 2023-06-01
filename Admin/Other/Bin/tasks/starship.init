@@ -1,0 +1,19 @@
+#!/bin/sh
+
+: <<THEMES
+  bracketed-segments
+  craole
+  nerd-font-symbols
+  no-nerd-font
+  pastel-powerline
+  tokyo-night
+THEMES
+
+theme="craole"
+starship_theme="$DOTS_CLI/starship/themes/${theme}.toml"
+starship_toml="$DOTS_CLI/starship/config.toml"
+
+symLink \
+  --force \
+  --src "$starship_theme" \
+  --lnk "$starship_toml"

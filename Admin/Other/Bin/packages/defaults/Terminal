@@ -1,0 +1,168 @@
+#!/bin/sh
+_cmd_PATH="$(PathOf "$0")"
+_cmd_NAME="$(basename "$_cmd_PATH")"
+_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+_cmd_VERSION="1.0"
+_cmd_DESCRIPTION="Launch the default terminal emulator"
+_cmd_DEPENDENCIES="getoptions, coreutils"
+_DEFAULT="kitty"
+_OPTIONS="alacritty|foot|kitty|st|xterm"
+
+__opts__() {
+  setup REST plus:true help:usage abbr:true
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                               $_cmd_NAME"
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "            $_cmd_DESCRIPTION"
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                  command [options] [arguments...]"
+  msg -- "                     $_cmd_NAME --emulator alacritty"
+  msg -- "#>--------------------------------------------------------------<#"
+  disp :usage -h --help -- "Display usage information"
+  disp _cmd_VERSION -v --version -- "Display version information"
+  flag _VERBOSE -d --verbose counter:true init:=0 -- "Enable log information"
+  flag _TEST -D --dry-run -- "Run tests"
+  param _APP --app init:="$_DEFAULT" pattern:"$_OPTIONS" -- "Set the default $_cmd_NAME"
+  flag _CHECK -C --check -- "Check app validity"
+  msg -- "#>--------------------------------------------------------------<#"
+}
+
+__init__() {
+  #@ Enable verbose if test flag set
+  [ "$_TEST" ] && _VERBOSE=true
+
+  weHave() { #@ Check if the command exists
+    type "$1" >/dev/null 2>&1
+  }
+
+  #@ Check if app installed
+  if weHave "$_APP"; then
+    #@ Load config
+    __cfg__
+  else
+    #@ Throw an error
+    _ERR=true && __msg__ --missing
+  fi
+
+  # @ Exit if app not installed or checking
+  { [ "$_CHECK" ] || [ "$_ERR" ]; } &&
+    __cleanup__
+}
+
+__cfg__() {
+  #@ Try to load context variables if no config supplied
+  [ "$_CFG" ] || __env__
+
+  #@ Confirm config file existence
+  if [ -f "$_CFG" ]; then
+    __msg__ --cfg-found
+  else
+    unset _CFG
+    __msg__ --cfg-missing
+  fi
+}
+
+__env__() {
+  #@ Load Environment Variables
+  _CTX="$DOTS_ENV_CTX/${_APP}"
+  if [ -f "$_CTX" ]; then
+    . "$_CTX"
+    __msg__ --env-loaded
+  else
+    _ERR=true
+    __msg__ --env-missing
+  fi
+}
+
+__msg__() {
+  [ "$_VERBOSE" -gt 0 ] &&
+    case "$1" in
+    --missing) printf "Confirm that '%s' is installed and in \$PATH.\n" "$_APP" ;;
+    --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
+    --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
+    --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
+    --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
+    esac
+}
+
+__cleanup__() {
+  #@ Release variables
+  unset app _CFG check verbose
+
+  #@ Exit with error code, if necessary
+  if [ "$_exit" ]; then
+    unset _exit && exit 1
+  else
+    unset _exit && exit 0
+  fi
+}
+
+process_core() {
+  [ "$#" -eq 0 ] && {
+    $_CMD &
+    return 0
+  }
+
+  #@ Set class as the first argument (no config)
+  [ "$_APP" = "kitty" ] && $_CMD --name "$1" --detach "$@"
+  [ "$_APP" = "alacritty" ] && $_CMD --class "$1" --command "$@" &
+  [ "$_APP" = "foot" ] && $_CMD --class "$1" -command "$@"
+  [ "$_APP" = "st" ] && $_CMD -c "$@" -e "$@"
+  [ "$_APP" = "xterm" ] && $_CMD -class "$1" -e "$@"
+}
+
+__run__() {
+  if [ "$_CFG" ]; then
+
+    #@ Load config file and detach the terminal (no arguments)
+    [ "$#" -eq 0 ] && {
+      [ "$_APP" = "kitty" ] && $_APP --config "$_CFG" &
+      [ "$_APP" = "alacritty" ] && $_APP --config-file "$_CFG" &
+      #TODO# Complete logic to ensure an exhaustive list
+      return 0
+    }
+
+    #@ Set class as the first argument
+    # [ "$_APP" = "kitty" ] && $_APP \
+    #   --config "$_CFG" \
+    #   --class "$1" \
+    #   --detach "$@"
+    [ "$_APP" = "kitty" ] && $_CMD \
+      --class "$1" \
+      --detach "$@"
+    [ "$_APP" = "alacritty" ] && $_APP \
+      --config-file "$_CFG" \
+      --class "$1" \
+      --command "$@" &
+    #TODO# Complete logic to ensure an exhaustive list
+  else
+    #@ Launch terminal (no arguments or config)
+    [ "$#" -eq 0 ] && {
+      $_APP &
+      return 0
+    }
+
+    #@ Set class as the first argument (no config)
+    [ "$_APP" = "kitty" ] && $_APP --class "$1" --detach "$@"
+    [ "$_APP" = "alacritty" ] && $_APP --class "$1" --command "$@" &
+    [ "$_APP" = "foot" ] && $_APP --class "$1" -command "$@"
+    [ "$_APP" = "st" ] && $_APP -c "$@" -e "$@"
+    [ "$_APP" = "xterm" ] && $_APP -class "$1" -e "$@"
+  fi
+}
+
+__main__() {
+
+  #@ Accept user options
+  eval "$(getoptions __opts__) exit 1"
+
+  #@ Initialialize defaults
+  __init__
+
+  #@ Process
+  [ "$_TEST" ] || process_core "$@"
+
+  #@ Exit gracefully
+  __cleanup__
+
+} && __main__ "$@"

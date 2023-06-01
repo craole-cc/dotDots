@@ -1,0 +1,53 @@
+# Specifies the network interface to use for the LocalIP readout
+interface = "wlan0"
+
+# Lengthen uptime output
+long_uptime = true
+
+# Lengthen shell output
+long_shell = true
+
+# Lengthen kernel output
+long_kernel = true
+
+# Toggle between displaying the current shell or your user's default one.
+current_shell = false
+
+# Toggle between displaying the number of physical or logical cores of your
+# processor.
+physical_cores = true
+
+# Themes need to be placed in "$XDG_CONFIG_DIR/macchina/themes" beforehand.
+# e.g.:
+#  if theme path is /home/foo/.config/macchina/themes/Sodium.toml
+#  theme should be uncommented and set to "Sodium"
+#
+# theme = "Craole"
+# theme = "Craole_Lite"
+# theme = "Helium"
+# theme = "Lithium"
+# theme = "Beryllium"
+# theme = "Hydrogen"
+
+
+theme = "Craole"
+show = [
+  "Host",
+  "Machine",
+  # "Processor",
+  "Distribution",
+  "OperatingSystem",
+  "Kernel",
+  "Resolution",
+  # "DesktopEnvironment",
+  "WindowManager",
+  "Backlight",
+  "Packages",
+  "Terminal",
+  "Shell",
+  "LocalIP",
+  "Uptime",
+  "ProcessorLoad",
+  "Memory",
+  "Battery",
+]

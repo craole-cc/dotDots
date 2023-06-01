@@ -1,0 +1,167 @@
+{
+	"folders": [
+		{
+			"name": "HOME",
+			"path": "../../.."
+		},
+		{
+			"name": "DOTS",
+			"path": "../Other"
+		},
+		{
+			"name": "NixOS",
+			"path": "../.."
+		},
+	],
+	"extensions": {
+		"recommendations": [
+			"formulahendry.code-runner",
+			"tamasfe.even-better-toml",
+			"natqe.reload",
+			"esbenp.prettier-vscode",
+			"psudo-dev.nebula-oni-theme",
+			"naumovs.color-highlight",
+			"anseki.vscode-color",
+			"github.remotehub",
+			"foxundermoon.shell-format",
+			"mkhl.direnv",
+			"antfu.icons-carbon",
+			"lbragile.line-width-indicator",
+			"edwinhuish.better-comments-next",
+			"kamadorueda.alejandra",
+			"bbenoist.nix",
+			"jnoortheen.nix-ide",
+			"royaction.color-manager",
+			"gruntfuggly.todo-tree"
+		]
+	},
+	"settings": {
+		"git.ignoreLimitWarning": true,
+		"editor.fontFamily": "'monospace', monospace",
+		"workbench.iconTheme": "material-icon-theme",
+		"better-comments.tags": [
+			{
+				"tag": "/>",
+				"color": "hsla(50, 65%, 65%, 65%)",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "hsla(140, 55%, 35%, 80%)",
+				"bold": true,
+				"italic": true,
+			},
+			{
+				"tag": "@",
+				"color": "hsl(50, 75%, 75%, 45%)",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": true,
+				"italic": true
+			},
+			{
+				"tag": ">",
+				"color": "#11cbc9",
+				"strikethrough": false,
+				"underline": true,
+				"backgroundColor": "hsla(198, 10%, 70%, 30%)",
+				"bold": true,
+				"italic": true
+			},
+			{
+				"tag": "{",
+				"color": "#11cbc9",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "#252526",
+				"bold": true,
+				"italic": true
+			},
+			{
+				"tag": "|",
+				"color": "#B026FF",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": true
+			},
+			{
+				"tag": "?",
+				"color": "#fed200",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": true,
+				"italic": true
+			},
+			{
+				"tag": "!",
+				"color": "#ff0000",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": false
+			},
+			{
+				"tag": "shellcheck",
+				"color": "#d8482c",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": false
+			},
+			{
+				"tag": "DOC",
+				"color": "#3498DB",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": true,
+				"italic": false
+			},
+			{
+				"tag": "//",
+				"color": "#ffffff33",
+				"strikethrough": true,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": false
+			},
+			{
+				"tag": "todo",
+				"color": "#FF8C00",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": false
+			},
+			{
+				"tag": "=",
+				"color": "#FF8C00",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": false
+			},
+			{
+				"tag": "*",
+				"color": "#98C379",
+				"strikethrough": false,
+				"underline": false,
+				"backgroundColor": "transparent",
+				"bold": false,
+				"italic": false
+			}
+		],
+		"editor.fontSize": 18,
+		"files.autoSave": "afterDelay",
+		"editor.formatOnSave": true,
+		"workbench.colorTheme": "Nebula Oni (Pegasus)",
+		"workbench.productIconTheme": "icons-carbon",
+	}
+}

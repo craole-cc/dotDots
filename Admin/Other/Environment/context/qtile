@@ -1,0 +1,6 @@
+DESKTOP_HOME="$DOTS_TOOL/interface/qtile"
+DESKTOP_CONF="config.py"
+DESKTOP_TYPE="X11"
+DESKTOP_LINK="$CONFIG_HOME/$(basename "$DESKTOP_HOME")"
+
+src="$DESKTOP_HOME"

@@ -1,0 +1,73 @@
+#!/bin/sh
+
+#@ Rust
+
+installRust() {
+  printf "%s\n" "Installing Rust via Rustup"
+  case "${sys_INFO:-$(uname --all)}" in
+  *git*)
+    echo "Install Rust for Windows"
+    rustupHTTP="https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe"
+    rustupEXE="$DOTS_DOWN/tmp/rustup-init.exe"
+
+    #| Download EXE
+    curl "$rustupHTTP" \
+      --create-dirs \
+      --silent \
+      --output "$rustupEXE"
+
+    #| Insatall
+    "$rustupEXE"
+    rm "$rustupEXE"
+    unset rustupHTTP rustupEXE
+    ;;
+  *)
+    # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    curl https://sh.rustup.rs -sSf | sh -s -- \
+      --profile=default \
+      --default-toolchain nightly
+    ;;
+  esac
+}
+
+weHave rustc || installRust
+weHave cargo || installRust
+cargo-binstall -h >/dev/null 2>&1 || cargo install cargo-binstall
+cargo update -h >/dev/null 2>&1 || CargoInstall cargo-update
+weHave cargo-watch || CargoInstall cargo-watch
+weHave cargo-add || CargoInstall cargo-add
+
+#@ Emacs
+weHave emacs || Install emacs
+weHave doom ||
+  {
+    git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.emacs.d
+    ~/.emacs.d/bin/doom install
+  }
+
+weHave exa || Install exa
+weHave bat || Install bat
+weHave rg || Install ripgrep
+weHave fd || Install fd-find
+weHave nu || cargo install nu --features=extra
+weHave fuzzel || Install fuzzel
+weHave macchina || Install macchina
+weHave foot || Install foot
+weHave bpytop || Install bpytop
+weHave mpv || Install mpv
+weHave river || Install river
+weHave waybar || Install waybar
+weHave starship || CargoInstall starship
+weHave nvim || Install neovim
+weHave btm || CargoInstall bottom
+weHave feh || Install feh
+weHave gnome-keyring || Install gnome-keyring
+weHave numlockx || Install numlockx
+weHave udiskie || Install udiskie
+weHave flameshot || Install flameshot
+weHave dunst || Install dunst
+weHave picom || Install picom
+weHave htop || Install htop
+weHave ufetch || Install ufetch
+weHave blueman-manager || Install blueman
+weHave rustc || solana.init

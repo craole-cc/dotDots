@@ -1,0 +1,358 @@
+ 
+{
+	//@ General                                                      
+	"editor.formatOnSave": true,
+	"explorer.confirmDelete": false,
+	"explorer.confirmDragAndDrop": false,
+	"security.workspace.trust.enabled": false,
+	"code-runner.clearPreviousOutput": true,
+	"code-runner.saveFileBeforeRun": true,
+	"window.doubleClickIconToClose": true,
+	"window.menuBarVisibility": "toggle",
+	
+	//@ Workbench                                                    
+	"workbench.colorTheme": "Tomorrow Night Eighties Operator Mono",
+	"workbench.colorCustomizations": {
+		"[Tomorrow Night Eighties Operator Mono]": {
+			//> Base
+			"foreground": "#ffffff33",
+			"focusBorder": "#11cbc9",
+			"widget.shadow": "#252526",
+			"selection.background": "#11cbc9",
+			"descriptionForeground": "#ffffff33",
+			"errorForeground": "#1a0101",
+			"icon.foreground": "#11cbc9",
+			//> Status Bar
+			"statusBar.background": "#0C0E14",
+			"statusBar.foreground": "#ffffff33",
+			//> Tabs
+			"tab.activeBackground": "#0C0E14",
+			"tab.inactiveBackground": "#0C0E14",
+			"tab.activeBorderTop": "#11cbc9",
+			//> Mini Map
+			"minimap.selectionHighlight": "#484646",
+			"minimap.errorHighlight": "#ff0000a4",
+			"minimap.warningHighlight": "#fed200",
+			//> Editor
+			"editor.background": "#0C0E14",
+			// "editor.foreground": "#ffffff33",
+			"editorLineNumber.foreground": "#ffffff33",
+			"editorLineNumber.activeForeground": "#11cbc9",
+			"editorCursor.background": "#11cbc9",
+			"editorCursor.foreground": "#11cbc9",
+			//> Interface
+			"menu.background": "#f67896",
+			"settings.headerForeground": "#11cbc9",
+			"activityBar.background": "#0C0E14",
+			// "activityBar.foreground": "#ffffff33",
+			"titleBar.activeBackground": "#121113",
+			// "breadcrumb.background": "#393939",
+			"scrollbar.shadow": "#0C0E14",
+			"sideBar.background": "#0C0E14",
+			"sideBarSectionHeader.background": "#0C0E14",
+			"sideBarSectionHeader.foreground": "#11cbc9",
+			"button.background": "#11cbc9",
+			"button.foreground": "#0C0E14"
+		}
+	},
+	"workbench.commandPalette.preserveInput": true,
+	"workbench.editorAssociations": {
+		"*.ipynb": "jupyter-notebook"
+	},
+	"workbench.editor.highlightModifiedTabs": true,
+	"workbench.editor.revealIfOpen": true,
+	"workbench.editor.wrapTabs": true,
+	"workbench.editor.tabSizing": "fit",
+	"workbench.iconTheme": "material-icon-theme",
+	"workbench.panel.defaultLocation": "right",
+	"workbench.quickOpen.preserveInput": true,
+	"workbench.settings.openDefaultKeybindings": true,
+	"workbench.settings.openDefaultSettings": true,
+	"workbench.startupEditor": "none",
+	"workbench.tips.enabled": true,
+	
+	//@ Editor                                                       
+	"editor.cursorBlinking": "phase",
+	"editor.cursorStyle": "line",
+	"editor.cursorWidth": 3,
+	"editor.renderControlCharacters": true,
+	"editor.wordWrap": "on",
+	"editor.formatOnPaste": true,
+	"editor.formatOnType": true,
+	"editor.minimap.size": "fill",
+	"editor.fontFamily": "'Operator Mono Lig','CaskaydiaCove Nerd Font', 'FiraCode Nerd Font','firacode'",
+	"editor.fontLigatures": true,
+	"editor.fontSize": 14,
+	"editor.fontWeight": "500",
+	"editor.lineHeight": 24,
+	"editor.letterSpacing": 1.2,
+	"editor.tabSize": 4,
+	"editor.suggestSelection": "first",
+	"editor.tokenColorCustomizations": {
+		"textMateRules": [
+			{
+				"scope": [
+					//? The following will be in italic
+					"comment",
+					"emphasis",
+					"entity.name.method.js",
+					"entity.name.class.js",
+					"entity.name.tag.doctype",
+					"entity.other.attribute-name",
+					"entity.other.attribute-name.tag.jade",
+					"entity.other.attribute-name.tag.pug",
+					"keyword",
+					"keyword.control",
+					"keyword.operator.comparison",
+					"keyword.control.flow.js",
+					"keyword.control.flow.ts",
+					"keyword.control.flow.tsx",
+					"keyword.control.ruby",
+					"keyword.control.module.ruby",
+					"keyword.control.class.ruby",
+					"keyword.control.def.ruby",
+					"keyword.control.loop.js",
+					"keyword.control.loop.ts",
+					"keyword.control.import.js",
+					"keyword.control.import.ts",
+					"keyword.control.import.tsx",
+					"keyword.control.from.js",
+					"keyword.control.from.ts",
+					"keyword.control.from.tsx",
+					"keyword.operator.expression.delete",
+					"keyword.operator.new",
+					"keyword.operator.expression",
+					"keyword.operator.cast",
+					"keyword.operator.relational",
+					"keyword.operator.sizeof",
+					"keyword.operator.logical.python",
+					"italic",
+					"markup.italic",
+					"markup.quote",
+					"markup.changed",
+					"markup.italic.markdown",
+					"markup.quote.markdown",
+					"markup.deleted.diff",
+					"markup.inserted.diff",
+					"meta.delimiter.period",
+					"meta.diff.header.git",
+					"meta.diff.header.from-file",
+					"meta.diff.header.to-file",
+					"meta.tag.sgml.doctype",
+					"meta.var.expr",
+					"meta.class meta.method.declaration meta.var.expr storage.type.js",
+					"meta.decorator punctuation.decorator",
+					"meta.selector",
+					"punctuation.accessor",
+					"punctuation.definition.comment",
+					"punctuation.definition.template-expression.begin",
+					"punctuation.definition.template-expression.end",
+					"punctuation.section.embedded",
+					"quote",
+					"source.js constant.other.object.key.js string.unquoted.label.js",
+					"source.go keyword.package.go",
+					"source.go keyword.import.go",
+					"source.go keyword.function.go",
+					"source.go keyword.type.go",
+					"source.go keyword.struct.go",
+					"source.go keyword.interface.go",
+					"source.go keyword.const.go",
+					"source.go keyword.var.go",
+					"source.go keyword.map.go",
+					"source.go keyword.channel.go",
+					"source.go keyword.control.go",
+					"storage",
+					"storage.type",
+					"storage.modifier",
+					"storage.type.property.js",
+					"storage.type.property.ts",
+					"storage.type.property.tsx",
+					"tag.decorator.js entity.name.tag.js",
+					"tag.decorator.js",
+					"text.html.basic entity.other.attribute-name.html",
+					"text.html.basic entity.other.attribute-name",
+					"variable.language",
+					"variable.other.object.property"
+				],
+				"settings": {
+					"fontStyle": "italic"
+				}
+			}
+		]
+	},
+	
+	//@ Terminal                                                     
+	"terminal.integrated.cursorStyle": "underline",
+	"terminal.integrated.fontFamily": "'Operator Mono Lig','CaskaydiaCove Nerd Font', 'FiraCode Nerd Font','firacode'",
+	"terminal.integrated.fontSize": 13,
+	"terminal.integrated.fontWeight": "600",
+	"terminal.integrated.fontWeightBold": "bold",
+	"terminal.integrated.lineHeight": 1,
+	"terminal.integrated.letterSpacing": 1,
+	"terminal.integrated.rightClickBehavior": "copyPaste",
+
+	//@ ShellCheck                                                   
+	"shellcheck.run": "onSave",
+	"shellcheck.exclude": [
+		"1090",
+		"1091",
+		"3040",
+		"2154",
+		"2034" //? Unused Variable
+	],
+
+	//@ Python                                                       
+		"python.languageServer": "Pylance",
+		"python.analysis.diagnosticSeverityOverrides": {
+			"reportMissingImports": "none"
+		},
+		"python.showStartPage": false,
+		"terminal.external.linuxExec": "alacritty",
+		"terminal.explorerKind": "external",
+		"git.enableSmartCommit": true,
+		"cSpell.userWords": [
+			"alacritty",
+			"picom",
+			"qutebrowser"
+		],
+
+		
+	//@ Files                                                        
+	"files.autoSave": "afterDelay",
+	"files.associations": {
+		"**/i3/config": "i3",
+		"**/sway/config": "i3",
+		"**/.config/shell/dash/*": "shellscript",
+		"*dashrc*": "shellscript",
+		"**/.config/shell/bash/*": "shellscript",
+		"*bashrc*": "shellscript",
+		"**/.config/shell/zsh/*": "shellscript",
+		"*zshrc*": "shellscript",
+		"*shellrc*": "shellscript",
+		"**/.config/shell/common/*": "shellscript",
+		"**/.config/sxiv/exec/*": "shellscript",
+		"**/.config/dunst/*": "shellscript",
+		"**/.local/bin/*": "shellscript",
+		"**/CLI/config/*": "shellscript",
+		"**/CLI/bin/**": "shellscript",
+		"**/bin/*": "shellscript",
+		"*.fish*": "fish",
+		"jgmenurc": "shellscript",
+		"**/.config/git/config": "properties",
+		"gitignore": "ignore",
+		"*.py*": "python",
+		"config": "properties"
+	},
+
+	//@ Documentation                                                
+	"better-comments.tags": [
+		{
+			"tag": "@",
+			"color": "#11cbc9",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "#252526",
+			"bold": true,
+			"italic": true
+		},
+		{
+			"tag": ">",
+			"color": "#11cbc9",
+			"strikethrough": false,
+			"underline": true,
+			"backgroundColor": "transparent",
+			"bold": true,
+			"italic": true
+		},
+		{
+			"tag": "{",
+			"color": "#11cbc9",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "#252526",
+			"bold": true,
+			"italic": true
+		},
+		{
+			"tag": "|",
+			"color": "#c50ed2",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": true
+		},
+		{
+			"tag": "?",
+			"color": "#fed200",
+			"strikethrough": false,
+			"underline": true,
+			"backgroundColor": "transparent",
+			"bold": true,
+			"italic": true
+		},
+		{
+			"tag": "!",
+			"color": "#ff0000a4",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "?",
+			"color": "#3498DB",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "//",
+			"color": "#ffffff33",
+			"strikethrough": true,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "todo",
+			"color": "#FF8C00",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "=",
+			"color": "#FF8C00",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		// {
+		// 	"tag": "*",
+		// 	"color": "#98C379",
+		// 	"strikethrough": false,
+		// 	"underline": false,
+		// 	"backgroundColor": "transparent",
+		// 	"bold": false,
+		// 	"italic": false
+		// }
+	],
+	"git.autofetch": true,
+	"material-icon-theme.activeIconPack": "react_redux",
+	"workbench.productIconTheme": "material-product-icons",
+	"workbench.sideBar.location": "right",
+	"tabnine.experimentalAutoImports": true,
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"liveServer.settings.donotShowInfoMsg": true
+}

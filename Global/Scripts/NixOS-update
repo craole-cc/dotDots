@@ -1,0 +1,39 @@
+#!/bin/sh
+
+NixOS_FLAKE="${NixOS_FLAKE:-/etc/nixos}"
+message="General updates"
+trace=0
+
+while [ "$#" -ge 1 ];do
+    case $1 in 
+        -t|--show-trace) trace=1 ;;
+        *) message="$*";;
+    esac
+    shift
+done
+
+
+if cd "${NixOS_FLAKE}" ;then
+
+    [ -n "${VERBOSE}" ] && 
+        printf "%s %s\n" "Rebuilding NixOS Flake at" "${NixOS_FLAKE}"
+
+    #/> Git Update 
+    git add . && git commit -m "${message}"
+
+    #/> Flake Update 
+    nix flake update
+
+    #/> Flake Rebuild
+    if [ "$trace" -eq 1 ] ;then
+        nixos-rebuild switch --show-trace
+    else
+        nixos-rebuild switch
+    fi
+
+else
+    
+    printf "%s\n" "Failed to access" "${NixOS_FLAKE}"
+    exit 1
+
+fi

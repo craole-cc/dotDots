@@ -22,14 +22,14 @@
       timeZone = "America/Jamaica";
       hostId = "2c4a22f0";
     };
-    Home.craole = {
-      templates.desktop.enable = true;
-      modules = {
-        firefox.enable = true;
-        # home-manager.enable = true;
-        # keyboard.enable = true;
-        # tex.enable = true;
-      };
-    };
+    # Home.craole = {
+    #   # templates.desktop.enable = true;
+    #   modules = {
+    #     # firefox.enable = true;
+    #     # home-manager.enable = true;
+    #     # keyboard.enable = true;
+    #     # tex.enable = true;
+    #   };
+    # };
   };
 }

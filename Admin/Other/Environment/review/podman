@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Podman
+alias pdm='podman' docker='podman'
+alias pdmin='podman info'
+alias pdmS='podman search'
+alias pdmpl='podman pull'
+alias pdmrd='podman run --detach --tty'
+alias pdmri='podman run --interactive --tty'
+alias pdmrs='podman restart'
+alias pdmst='podman stop'
+
+# List
+alias pdmim='podman images'
+alias pdmls='podman container list --all'
+alias pods='podman pod list'
+alias podls='podman ps -a --pod'
+
+alias pdmnc='podman network create'
+alias pdmgen='podman generate'
+alias podc='podman pod create'
+alias pdmka='podman stop -a'
+
+# Remove
+alias pdmrm='podman rm'
+alias pdmrmca='podman rm --force --all'   # Remove all containers
+alias pdmrmia='podman rmi --all'   # Remove all images
+pdmrmx() {
+  podman system prune --all --force
+  podman pod kill --all && podman pod rm --all
+  podman stop --ignore --all && podman rm --ignore --all
+}
+
+# Podman Compose
+# pip3 install --user podman-compose
+alias pcu='podman-compose up --detach --remove-orphan'
+alias pcd='podman-compose down'
+alias pcr='podman-compose restart'
+pcuf() {
+  podman-compose --file "$1" \
+  up
+  # --detach \
+  # --remove-orphan \
+}
+
+# Podman Secrets
+alias pmsc='podman secret create'     # Create a new secret
+alias pmsi='podman secret inspect'    # Inspect a secret
+alias pmsl='podman secret ls'         # List secrets
+alias pmsr='podman secret rm'         # Remove one or more secrets
+
+pdmng() {
+  CWE="$HOME/projects/webServerA"
+  # CWE="/web"
+  NGX="/usr/share/nginx/html"
+  PORT="1551:80/tcp"
+  HOST="nginproxy"
+  NET="webs"
+  NAME="Central_Web_Engine"
+  [ -d "$CWE" ] || mkdir --parents "$CWE"
+  podman stop --ignore "$NAME"
+  podman rm --ignore "$NAME"
+  podman pull docker.io/library/nginx
+  podman run \
+    --detach \
+    --tty \
+    --network "$NET" \
+    --name "$NAME" \
+    --hostname "$HOST" \
+    --volume "$CWE":"$NGX" \
+    --publish "$PORT" \
+    nginx
+  podman ps --latest
+}
+
+# sudo firewall-cmd --add-port=1551/tcp
+    # --volume ~/projects:/usr/share/nginx/html \

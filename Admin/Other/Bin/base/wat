@@ -1,0 +1,147 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+
+__info__() {
+  _cmd_NAME="weHave"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Verifies that a command is installed/available."
+  _cmd_DEPENDENCIES="unalias, command, printf, getoptions"
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
+    ::----------------------------------------------------::
+                        USAGE: $_cmd_NAME
+        $_cmd_DESCRIPTION
+    ::----------------------------------------------------::
+                command <[options]> <[cmd]>
+                >>> $_cmd_NAME --verbose cmd <<<
+    ::----------------------------------------------------::
+        -h --help      |>   Usage guide
+        -v --version   |>   Version
+        -r --report    |>   Detailed app info
+        -c --check     |>   Verify installation [default]
+    ::----------------------------------------------------::
+USAGE_GUIDE
+  )"
+}
+
+__opts__() {
+  #@ Set defaults
+  verbose=true
+  tool=Editor
+  file="$1"
+
+  #@ Parse user options
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -V | --verbose) verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -t | --tool) tool=$2 ;;
+    -*) __cleanup__ ;;
+    *) file="$1" && __tool__;;
+    esac
+    shift
+  done
+
+
+}
+
+# ===================================================================
+#@		                        GLOBAL TOOLS                       @#
+# ===================================================================
+
+#@ Usage display
+__help__() {
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  # exit 0
+}
+
+#@ Version display
+__version__() {
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
+}
+
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+# ===================================================================
+#@                             PROCESS                             @#
+# ===================================================================
+__tool__() {
+
+  #@ Enable tool-specific options
+  case "$tool" in
+  bat)
+    BAT_THEME="${BAT_THEME:-TwoDark}"
+    BAT_STYLE="${BAT_STYLE:-'grid,numbers,changes'}"
+
+    tool_opts="\
+    --style=$BAT_STYLE \
+    --theme=$BAT_THEME \
+    --force-colorization \
+    "
+    ;;
+  *) ;;
+  esac
+
+  #@ Push the tool command
+  if weHave "$tool"; then
+    eval "$tool" "$tool_opts" "$file"
+  else
+    __mgs__ --tool-missing
+    __cleanup__ --error
+  fi
+
+}
+
+__rdr__() {
+  case "${file##*\.}" in
+  pdf) reader() { rdr__pdf; } ;;
+  *) reader() { rdr__txt; } ;;
+  esac
+
+  if [ "$verbose" ]; then
+    eko "
+    :notebook: $file"
+    reader
+  else
+    reader
+  fi
+}
+__process__() {
+  __read__() {
+    case "${file##*\.}" in
+    pdf) reader() { rdr__pdf; } ;;
+    *) reader() { rdr__txt; } ;;
+    esac
+
+    if [ "$verbose" ]; then
+      eko "
+    :notebook: $file"
+      reader
+    else
+      reader
+    fi
+  }
+
+}
+
+# for file in "$@"; do
+#   # __rdr__
+# done
+__cleanup__() {
+  exit
+}
+
+__main__() {
+  __info__
+  __opts__ "$@"
+# echo "$file"
+
+  # tool=bat
+  # verbose=true
+  # __tool__
+}
+
+__main__ "$@"

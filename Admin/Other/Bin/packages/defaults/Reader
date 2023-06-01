@@ -1,0 +1,126 @@
+#!/bin/sh
+_cmd_PATH="$(PathOf "$0")"
+_cmd_NAME="$(basename "$_cmd_PATH")"
+_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+_cmd_VERSION="1.0"
+_cmd_DESCRIPTION="Launch the default code editor"
+_cmd_DEPENDENCIES="getoptions, coreutils"
+_CMD="vscode"
+_CMDS="vscode|emacs|helix|neovim|vim|bat|zathura"
+_TYPE="tty"
+_TYPES="gui|visual|tty|terminal"
+_GUI="vscode"
+_TTY="bat"
+
+__opts__() {
+  setup REST plus:true help:usage abbr:true
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                               $_cmd_NAME"
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                   $_cmd_DESCRIPTION"
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                  command [options] [arguments...]"
+  msg -- "                     $_cmd_NAME --app $_DEFAULT"
+  msg -- "#>--------------------------------------------------------------<#"
+  disp :usage -h --help -- "Display usage information"
+  disp _cmd_VERSION -v --version -- "Display version information"
+  flag _VERBOSE -d --verbose counter:true init:=0 -- "Enable log information"
+  flag _TEST -D --dry-run -- "Run tests"
+  flag _CHECK -C --check -- "Check app validity"
+  param _CMD --cmd init:="$_CMD" pattern:"$_CMDS" -- "Set the default $_cmd_NAME"
+  param _TYPE --type init:="$_TYPE" pattern:"$_TYPES" -- "Set the default $_cmd_NAME"
+  msg -- "#>--------------------------------------------------------------<#"
+}
+
+__init__() {
+  #@ Enable verbose if test flag set
+  [ "$_TEST" ] && _VERBOSE=true
+
+  #@ Defaults
+  if [ "$_TYPE" = "tty" ] || [ "$_TYPE" = "terminal" ]; then
+    _TYPE="tty"
+    _CMD="$_TTY"
+  fi
+
+  #@ Load Context Variables
+  __env__
+
+  #@ Throw an error if app not found
+  # weHave "$_CMD" || _ERR=true && __msg__ --missing
+
+  # @ Exit if app not installed or checking
+  { [ "$_CHECK" ] || [ "$_ERR" ]; } && __cleanup__
+}
+
+__env__() {
+  #@ Load Environment Variables
+  _CTX="$DOTS_ENV_CTX/${_CMD}"
+  if [ -f "$_CTX" ]; then
+    . "$_CTX"
+    __msg__ --env-loaded
+  else
+    _ERR=true
+    __msg__ --env-missing
+  fi
+}
+
+__msg__() {
+  [ "$_VERBOSE" -gt 0 ] &&
+    case "$1" in
+    --missing) printf "Please confirm that '%s' is installed and in \$PATH.\n" "$_CMD" ;;
+    --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
+    --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
+    --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
+    --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
+    esac
+}
+
+__cleanup__() {
+  #@ Release variables
+  unset _CMD _CFG check verbose
+
+  #@ Exit with error code, if necessary
+  if [ "$_ERR" ]; then
+    unset _ERR && exit 1
+  else
+    unset _ERR && exit 0
+  fi
+}
+
+__run__() {
+  eval Terminal -- "$_CMD" "$*" &
+  # if [ "$_TYPE" = "gui" ]; then
+  #   $_CMD "$@" &
+  # else
+  #   if [ "$_CFG" ]; then
+  #     # _LAUNCH="$(Terminal "$(_CMD --config "$_CFG" ./"${*}")")"
+  #     # eval "$_LAUNCH"
+  #     CMD="$_CMD --config $_CFG"
+  #     # Terminal "$_CMD" --config "$_CFG" ./"${*}"
+  #     "$CMD"
+  #     Terminal -- "$_CMD" "$@" &
+  #   else
+  #     Terminal "$_CMD" "$@" &
+  #   fi
+  # fi
+}
+
+__main__() {
+
+  #@ Accept user options
+  eval "$(getoptions __opts__) exit 1"
+
+  #@ Initialialize defaults
+  __init__
+  echo "NAME: $_NAME"
+  echo "APP: $_CMD"
+  echo "TYPE: $_TYPE"
+  echo "CONF: $_CONF"
+
+  #@ Process
+  [ "$_TEST" ] || __run__ "$@"
+
+  #@ Exit gracefully
+  __cleanup__
+
+} && __main__ "$@"

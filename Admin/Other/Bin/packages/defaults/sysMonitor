@@ -1,0 +1,41 @@
+#!/bin/sh
+
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+get_app() {
+  if weHave btop; then
+    app=btop
+  elif weHave bpytop; then
+    app=bpytop
+      elif weHave btm; then
+    app=btm
+  elif weHave gotop; then
+    app=gotop
+  elif weHave ytop; then
+    app=ytop
+  elif weHave htop; then
+    app=htop
+  else
+    app=top
+  fi
+
+  printf "%s" "$app"
+}
+
+process_core() {
+  if
+    #@ Check if the application is already running
+    pgrep "$(get_app)" >/dev/null
+  then
+    #@ Activate the window (switch to its desktop and raise it)
+    wmctrl -a "$(get_app)"
+  else
+    #@ Launch the application if it's not already running
+    Terminal "$(get_app)" &
+  fi
+}
+
+process_core
+exit 0

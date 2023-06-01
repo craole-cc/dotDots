@@ -1,0 +1,7 @@
+#!/bin/sh
+# TODO: Handle this declaritivly via the flake
+
+#@ Initialize NixOS Flake
+NixOS_FLAKE="$HOME/DOTS"
+[ -f "${NixOS_FLAKE}"/Global/Environment/profile ] &&
+  . "${NixOS_FLAKE}"/Global/Environment/profile

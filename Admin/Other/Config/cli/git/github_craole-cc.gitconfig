@@ -1,0 +1,9 @@
+[user]
+  email = craole.cc@proton.me
+  name = craole-cc
+
+[github]
+  user = "craole-cc"
+
+[core]
+  sshCommand = "ssh -i ~/.ssh/github.com/craole-cc"

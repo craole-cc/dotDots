@@ -1,0 +1,6 @@
+X11="$DOTS_TOOL/utilities/X11"
+RC_xinit="$X11/xinitrc.sh"
+RC_xresources="$X11/xresources.cpp"
+RC_modmap="$X11/xmodmap.cpp"
+RC_xresources_sys="/etc/X11/xinit/.Xresources"
+RC_modmap_sys="/etc/X11/xinit/.Xmodmap"

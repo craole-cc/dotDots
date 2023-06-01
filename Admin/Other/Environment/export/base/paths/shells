@@ -1,0 +1,21 @@
+#! /bin/sh
+# shellcheck disable=SC2034,SC2154
+
+BDOTDIR="$DOTS_CLI/bash"
+ZDOTDIR="$DOTS_CLI/zsh"
+DDOTDIR="$DOTS_CLI/dash"
+FISHDIR="$DOTS_CLI/fish"
+NUSHDIR="$DOTS_CLI/nushell"
+GDOTDIR="$DOTS_CLI/git"
+
+# | Config Files
+RC_bash_home="$HOME/.bashrc"
+RC_bash="$BDOTDIR/.config"
+RC_dash="$DDOTDIR/.config"
+RC_zsh="$ZDOTDIR/.config"
+RC_fish="$FISHDIR/.config"
+RC_nush="$NUSHDIR/.config"
+RC_git="$GDOTDIR/config"
+RC_pwsh="$DOTS_CLI/pwsh/config/pshrc.ps1"
+RC_ssh="$HOME/.ssh/config"
+RC_init="$DOTS/.dotsrc"

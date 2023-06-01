@@ -1,0 +1,15 @@
+#!/bin/sh
+
+__nu__() {
+  nu \
+    --config "${NUSHDIR}/config.nu" \
+    --env-config "${NUSHDIR}/env.nu"
+}
+
+if nu --help >/dev/null 2>&1; then
+  __nu__
+else
+  Install openssl-devel
+  CargoInstall nu --features=extra
+  __nu__
+fi

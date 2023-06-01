@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# __lower__() { perl -pe '$_=lc'; }
+__lower__() { tr '[:upper:]' '[:lower:]'; }
+printf "%s" "$@" | __lower__

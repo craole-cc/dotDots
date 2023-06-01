@@ -1,0 +1,71 @@
+#!/bin/sh
+
+# shellcheck disable=SC3000-SC4000
+
+[ "${EUID:-$(id -u)}" -eq 0 ]
+
+has_sudo() {
+  [ "$(sudo -nv 2>&1)" -eq 0 ]
+}
+
+# is_root() {
+#   return "$(id -u)"
+# }
+
+has_sudo() {
+  prompt=$(sudo -nv 2>&1)
+  if [ "$prompt" -eq 0 ]; then
+    echo "has_sudo__pass_set"
+  elif echo "$prompt" | grep -q '^sudo:'; then
+    echo "has_sudo__needs_pass"
+  else
+    echo "no_sudo"
+  fi
+}
+
+elevate_cmd() {
+
+  HAS_SUDO=$(has_sudo)
+
+  case "$HAS_SUDO" in
+  has_sudo__pass_set)
+    sudo "$@"
+    ;;
+  has_sudo__needs_pass)
+    echo "Please supply sudo password for the following command: sudo $*"
+    sudo "$@"
+    ;;
+  *)
+    echo "Please supply root password for the following command: su -c \"$*\""
+    su -c "$@"
+    ;;
+  esac
+}
+
+if is_root; then
+  echo "Error: need to call this script as a normal user, not as root!"
+  exit 1
+fi
+
+# elevate_cmd which adduser
+
+# Verify if current user is root.
+local current_username=$(whoami)
+[[ "$current_username" == 'root' ]] && echo true && return 0
+
+# Verify if sudo is installed.
+if [[ $(validate_apt 'sudo') == 'false' ]]; then
+  echo false && return 0
+fi
+
+# Verify if the current user belongs to groups 'sudo' or 'root'.
+local current_user_groups=$(groups $current_username)
+if [[ $current_user_groups == *'root'* ]] ||
+  [[ $current_user_groups == *'sudo'* ]]; then
+  echo true && return 0
+fi
+
+# Verify if file /etc/sudoers.d/username exists.
+if [[ -f /etc/sudoers.d/$current_username ]]; then
+  echo true && return 0
+fi

@@ -1,0 +1,69 @@
+#!/bin/sh
+
+__opts__() {
+  case "$1" in
+  -l | --ls | --list) __list__ ;;
+  -i | --ignore) __ignore__ "$@" ;;
+  -e | --env) env=$2 ;;
+  *) __config__ ;;
+  esac
+}
+
+__declare__() {
+
+  if [ -f "$env" ]; then
+    . "$env"
+    [ "$Name" ] && gitNAME="$Name"
+    [ "$Email" ] && gitEMAIL="$Email"
+  fi
+
+}
+__validate__() {
+  [ "${gitNAME}" ] || {
+    printf "'%s' variable not set\n" "gitNAME"
+    return 1
+  }
+  [ "${gitEMAIL}" ] || {
+    printf "'%s' variable not set\n" "gitEMAIL"
+    return 1
+  }
+  [ "${EDITOR}" ] || {
+    printf "'%s' variable not set\n" "EDITOR"
+    return 1
+  }
+}
+__list__() { git config --list --show-origin; }
+__config__() {
+  # init
+  __validate__
+
+  # --> Allow Update
+  unset GIT_CONFIG
+
+  gitIGNORE="${GDOTDIR}/gitignore"
+  git config --global user.name "${gitNAME}"
+  git config --global user.email "${gitEMAIL}"
+  git config --local user.name "${gitNAME}"
+  git config --local user.email "${gitEMAIL}"
+  git config --local core.editor "${EDITOR}" --wait
+  git config --local init.defaultBranch main
+  git config --local status.showUntrackedFiles no
+  git config --local --unset core.autocrlf
+  git config --local core.autocrlf false
+  git config --local core.safecrlf true
+  git config --local push.autoSetupRemote
+  git config --local alias.empty "git commit --allow-empty"
+  # git config --local fetch.prune true
+}
+
+__ignore__() {
+  if [ -f "$2" ]; then
+    git config --local core.excludesfile "${2}"
+  else
+    git config --local core.excludesfile "${gitIGNORE}"
+  fi
+}
+
+__opts__ "$@"
+__declare__
+__config__

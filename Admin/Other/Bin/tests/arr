@@ -1,0 +1,92 @@
+#!/bin/sh
+
+set -euo pipefail
+
+usage() {
+  cat <<-USAGE
+  Usage: $(basename "$0") [OPTS] [arg1 arg2 ...]
+  Options:
+    -h, --help      Show this help message and exit
+    -d, --delim     Set the delimiter to use for processing
+    -e, --expand    Expand the input arguments using the delimiter
+    -s, --save      Save the input arguments using the delimiter
+USAGE
+}
+
+set_delimiter() {
+  #@ Accept user-defined delimiter
+  while [ $# -ge 1 ]; do
+    case $1 in
+    -d | --delim)
+      delimiter=$2
+      shift 2
+      ;;
+    *) break ;;
+    esac
+  done
+
+  #@ Set fallback delimiter
+  delimiter="${delimiter:-%}"
+}
+
+save_array() { #@ Place the delimiter after each argument
+  # delimiter="$1"
+  shift
+  for arg; do
+    printf "%s%s" "$arg" "$delimiter"
+  done
+  # printf "\n"
+}
+
+expand_array() { #@ Replace the delimiter with a new line
+  delimiter="$1"
+  shift
+  printf "%s" "$*" | tr "$delimiter" '\n'
+}
+
+count_arguments() { #@ Count the number of arguments
+  printf "%s" "$#"
+}
+
+last_argument() { #@ Get the last argument
+  printf "%s" "$@" | awk '{print $NF}'
+}
+
+main() {
+  #@ Handle the delimiter flag
+  set_delimiter "$@"
+
+  #@ Handle remaining flags and arguments
+  while [ $# -ge 1 ]; do
+    case $1 in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -e | --expand)
+      shift
+      expand_array "$delimiter" "$@"
+      ;;
+    -s | --save)
+      shift
+      save_array "$delimiter" "$@"
+      ;;
+    -c | --count)
+      shift
+      count_arguments "$@"
+      ;;
+    -l | --last)
+      shift
+      last_argument "$@"
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+    *) ;;
+    esac
+    shift
+  done
+}
+
+main "$@"

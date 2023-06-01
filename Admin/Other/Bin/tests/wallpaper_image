@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# Function to recursively search for HD images in a directory
+find_hd_image() {
+  # Set the search directory
+  search_dir="$1"
+
+  # Set the minimum width and height for an image to be considered HD
+  min_width=1280
+  min_height=720
+
+  # Check if the given file is an HD image
+  is_hd_image() {
+    dimensions=$(identify -format "%wx%h" "$1")
+    width=${dimensions%x*}
+    height=${dimensions#*x}
+    [ "$width" -ge "$min_width" ] && [ "$height" -ge "$min_height" ]
+  }
+
+  # Recursive function to search for HD images in a directory
+  search_dir_recursive() {
+    # Loop through all files in the directory
+    for file in "$1"/*; do
+      if [ -d "$file" ]; then
+        # If the file is a directory, recursively search it
+        if hd_file=$(search_dir_recursive "$file"); then
+          echo "$hd_file"
+          return 0
+        fi
+      else
+        # If the file is not a directory, check if it is an HD image
+        if file "$file" | grep -q "image" && is_hd_image "$file"; then
+          echo "$file"
+          return 0
+        fi
+      fi
+    done
+  }
+
+  # Call the recursive function to search for HD images
+  if hd_file=$(search_dir_recursive "$search_dir"); then
+    echo "$hd_file"
+  else
+    echo "Error: no HD images found in '$search_dir'" >&2
+    return 1
+  fi
+}
+
+# Usage example: find an HD image in a directory or throw an error
+find_hd_image "$WALLPAPERS"

@@ -1,0 +1,2 @@
+sway_home="${DOTS_TOOL}/interface/sway"
+sway_conf="${sway_home}/config"

@@ -1,0 +1,49 @@
+#!/bin/sh
+
+__check_err__() {
+	error_code="$?"
+	[ "$error_code" -ne 0 ] && printf "Error of %d\n\n" "$error_code"
+}
+
+echo "
+#>######################################<#
+#################| CHECK |################
+#>######################################<#
+
+$(
+	# weHave --verbose python git u cargo lol alacritty kitty zellij nothing getO
+	__check_err__
+)
+
+#>######################################<#
+################| REPORT |################
+#>######################################<#
+
+$(
+	# weHave --report --location python git u cargo lol alacritty kitty zellij nothing getO
+	printf "ErrorCode of %d" "$?"
+)
+
+#>######################################<#
+###############| LOCATION  |##############
+#>######################################<#
+
+$(
+	# weHave --location python git u cargo lol alacritty kitty zellij nothing getO
+	printf "ErrorCode of %d" "$?"
+)
+
+
+#>######################################<#
+############| Error Handling |############
+#>######################################<#
+
+#@ No Options or Parameters
+
+$(
+	weHave
+)
+
+"
+
+# weHave hostnamectl && weHave rg && weHave sd hostnamectl -d

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+alias rsr="rustc main.rs && ./main"

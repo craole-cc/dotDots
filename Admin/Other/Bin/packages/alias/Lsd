@@ -1,0 +1,10 @@
+#!/bin/sh
+
+lsd --help >/dev/null 2>&1 || exit 1
+
+lsd \
+  --almost-all \
+  --hyperlink auto \
+  --date relative \
+  --group-dirs first \
+  "$@"

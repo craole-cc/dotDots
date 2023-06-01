@@ -1,0 +1,284 @@
+#!/bin/sh
+# shellcheck disable=SC1083
+
+# ===================================================================
+#@		                           	INFO			                       @#
+# ===================================================================
+
+__info__() {
+  _cmd_PATH="$(PathOf "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_DIR="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Write output to the standard output stream"
+  _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
+  _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, __cmd_exists__"
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
+    #>----------------------------------------------------<#
+                                                $_cmd_NAME
+    #>----------------------------------------------------<#
+          $_cmd_DESCRIPTION
+    #>----------------------------------------------------<#
+          -h --help       |>     Usage guide
+          -v --version    |>     Version
+          -l --left       |>     Align left [default]
+          -c --center     |>     Align center
+          -r --right      |>     Align right
+          -n --newline    |>     Blank line
+    #>----------------------------------------------------<#
+                command <[options]> <[arguments]>
+            $_cmd_NAME -nnn --center "string to transform"
+    #>----------------------------------------------------<#
+USAGE_GUIDE
+  )"
+}
+
+__info__
+
+# ===================================================================
+#@		                        GLOBAL TOOLS                         @#
+# ===================================================================
+
+#@ Usage display
+__help__() {
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  # exit 0
+}
+
+#@ Version display
+__version__() {
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
+}
+
+#@ Command validation
+__cmd_exists__() {
+  unalias "$@" >/dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
+}
+
+# ===================================================================
+#@		                          OPTIONS			                       @#
+# ===================================================================
+
+#@ Declare user options (Allow multiple flags)
+parser_definition() {
+  setup REST
+  disp _cmd_USAGEGUIDE -h --help
+  disp _cmd_VERSION -v --version
+  flag _flag_FETCH -f --fetch -- "takes no arguments"
+  flag _flag_OS -o --os -- "takes no arguments"
+  flag _flag_TYPE -t --type -- "takes no arguments"
+  flag _flag_KERNEL -k --kernel -- "takes no arguments"
+  flag _flag_ARCH -a --arch -- "takes no arguments"
+  flag _flag_HOST -h --host -- "takes no arguments"
+  flag _flag_USER -u --user -- "takes no arguments"
+  flag _flag_SHELL -s --shell -- "takes no arguments"
+  flag _flag_WM -w --wm -- "takes no arguments"
+  flag _flag_WIDTH --width -- "takes no arguments"
+  flag _flag_POWER -b --power -- "takes no arguments"
+}
+
+#@ Load options
+eval "$(getoptions parser_definition) exit 1"
+
+# ===================================================================
+#@		                          DEFAULT			                       @#
+# ===================================================================
+
+__defaults__() {
+  {
+    [ "$_flag_OS" ] ||
+      [ "$_flag_TYPE" ] ||
+      [ "$_flag_KERNEL" ] ||
+      [ "$_flag_ARCH" ] ||
+      [ "$_flag_HOST" ] ||
+      [ "$_flag_USER" ] ||
+      [ "$_flag_SHELL" ] ||
+      [ "$_flag_WM" ] ||
+      [ "$_flag_POWER" ] ||
+      [ "$_flag_WIDTH" ]
+  } ||
+    _flag_FETCH=true
+}
+
+# ===================================================================
+#@		                          PROCESS			                       @#
+# ===================================================================
+
+#@ Run
+__os__() {
+  # hostnamectl | rg "Operating System" | sd "^.*:\s" ''
+  # hostnamectl | rg '.*'"Operating System: " --replace "" --trim
+  if __cmd_exists__ hostnamectl; then
+    filtrate "hostnamectl" --filter "Operating System" --delimiter ": "
+  elif __cmd_exists__ lsb_release; then
+    filtrate "$(lsb_release --description)" --delimiter ":"
+  elif [ -f /etc/os-release ]; then
+    . /etc/os-release && printf "%s" "$NAME"
+  elif [ -f /etc/debian_version ]; then
+    # printf "%s" "Info via /etc/debian_version"
+    . /etc/debian_version && printf "%s" "$DISTRIB_DESCRIPTION"
+  elif [ -f /etc/issue ]; then
+    # printf "%s" "Info via /etc/issue"
+    sd </etc/issue ' \\.*\n' ''
+  fi
+
+}
+__type__() {
+  # uname --kernel-name
+  get_type() {
+    if __cmd_exists__ uname; then
+      uname --kernel-name
+    elif __cmd_exists__ python; then
+      python -mplatform
+    fi
+  }
+
+  set_type() {
+    _TYPE="$(get_type)"
+    # _TYPE="$(eko --case lower "$_TYPE")"
+    _TYPE="$(printf "%s" "$_TYPE" | tr '[:upper:]' '[:lower:]')"
+    case "$_TYPE" in
+    *linux*) _TYPE="Linux" ;;
+    *bsd*) _TYPE="FreeBSD" ;;
+    *nt*) _TYPE="Windows" ;;
+    *windows*) _TYPE="WSL" ;;
+    *darwin*) _TYPE="Mac" ;;
+    *sunos*) _TYPE="Solaris" ;;
+    *aix* | *) ;;
+    esac
+
+    [ "$_TYPE" ] && printf "%s\n" "$_TYPE"
+    unset _TYPE
+  }
+
+  set_type
+}
+
+__kernel__() {
+  uname --kernel-release
+}
+__arch__() {
+  uname --machine
+}
+__host__() {
+  uname --nodename
+}
+__user__() {
+  [ -n "${USER+x}" ]
+  [ -n "${USERNAME+x}" ] && USER="$USERNAME"
+  [ -n "${user+x}" ] && USER="$user"
+
+  printf "%s" "$USER"
+}
+__shell__() {
+  case "$(__type__)" in
+  Windows)
+    case $SHELL in
+    *bash*) _SHELL="gitSH" ;;
+    *nu*) _SHELL="nuSHell" ;;
+    *) ;;
+    esac
+    ;;
+  Linux | *WSL)
+    case $SHELL in
+    *bash*) _SHELL="baSHell" ;;
+    *zsh*) _SHELL="zSHell" ;;
+    *dash*) _SHELL="daSHell" ;;
+    *fish*) _SHELL="fiSHell" ;;
+    *nu*) _SHELL="nuSHell" ;;
+    *) _SHELL="Undefined Linux Shell" ;;
+    esac
+    ;;
+  *) ;;
+  esac
+
+  printf "%s\n" "$_SHELL"
+}
+__wm__() {
+  wmctrl -m | rg "Name" | sd "^.*:\s" ''
+}
+
+__width__() {
+  printf "%s\n" "${COLUMNS:-$(tput cols)}"
+}
+
+__power__() {
+  acpi | awk '{  print $4 " & " $3; }' | sd ',' ''
+  # if __cmd_exists__ acpi; then
+  #   acpi | rg '.*'": " --replace "" --trim
+  #   # filtrate \
+  #   #   --info acpi \
+  #   #   --delimiter ": "
+  # elif __cmd_exists__ upower; then
+  #   filtrate \
+  #     --info "$(upower --dump)" \
+  #     --filter "percentage" \
+  #     --delimiter ": "
+  # fi
+}
+
+__ip__() {
+  ip route get 1.2.3.4 | awk '{print $7}'
+}
+
+__fetch__() {
+  printf "%s\n" "            Host |   | $(__user__)@$(__host__)"
+  printf "%s\n" "          Kernel |   | $(__kernel__)"
+  printf "%s\n" "    Distribution |   | $(__os__)"
+  printf "%s\n" "  Window Manager | 拓 | $(__wm__)"
+  printf "%s\n" "      IP Address |   | $(__ip__)"
+  printf "%s\n" "           Shell |   | $(__shell__)"
+  printf "%s\n" "         Battery |   | $(__power__)"
+}
+
+__process__() {
+  [ "$_flag_FETCH" ] && __fetch__
+  [ "$_flag_OS" ] && __os__
+  [ "$_flag_TYPE" ] && __type__
+  [ "$_flag_KERNEL" ] && __kernel__
+  [ "$_flag_ARCH" ] && __arch__
+  [ "$_flag_HOST" ] && __host__
+  [ "$_flag_USER" ] && __user__
+  [ "$_flag_SHELL" ] && __shell__
+  [ "$_flag_WM" ] && __wm__
+  [ "$_flag_WIDTH" ] && __width__
+  [ "$_flag_POWER" ] && __power__
+}
+
+# ===================================================================
+#@		                          CLEANUP			                       @#
+# ===================================================================
+
+__cleanup__() {
+  unset \
+    _flag_FETCH \
+    _flag_OS \
+    _flag_TYPE \
+    _flag_KERNEL \
+    _flag_ARCH \
+    _flag_HOST \
+    _flag_USER \
+    _flag_SHELL \
+    _flag_WM \
+    _flag_WIDTH \
+    _flag_POWER
+}
+
+# ===================================================================
+#@                               MAIN                              @#
+# ===================================================================
+
+#@ Load internal variables
+__info__
+
+#@ Establish defaults
+__defaults__
+
+#@ Process per defaults
+__process__
+
+#@ Remove any leftover variables
+__cleanup__

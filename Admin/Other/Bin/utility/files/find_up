@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+path="$1"
+shift 1
+while [ "$(PathOf "$path")" != / ]; do
+  find "$path" -maxdepth 1 -mindepth 1 "$@"
+  # Note: if you want to ignore symlinks, use "$(PathOf "$path"/..)"
+  # path="$(readlink -f "$path"/..)"
+  path="$(PathOf "$path"/..)"
+done

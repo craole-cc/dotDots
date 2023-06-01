@@ -1,0 +1,177 @@
+{
+  "folders": [
+    {
+      "name": "DOTS",
+      "path": "../../.."
+    },
+    {
+      "name": "Bin",
+      "path": "../../../Bin"
+    },
+    {
+      "name": "Config",
+      "path": "../.."
+    },
+    {
+      "name": "Qtile",
+      "path": "../../tools/interface/qtile"
+    },
+    {
+      "name": "NixOS",
+      "path": "../nixos"
+    },
+    {
+      "path": "../../../../Projects"
+    },
+    {
+      "path": "../../../.."
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      "ms-python.black-formatter",
+      "antfu.icons-carbon",
+      "formulahendry.code-runner",
+      "tamasfe.even-better-toml",
+      "ms-vsliveshare.vsliveshare",
+      "sldobri.daily",
+      "natqe.reload",
+      "esbenp.prettier-vscode",
+      "psudo-dev.nebula-oni-theme",
+      "lbragile.line-width-indicator",
+      "michelemelluso.code-beautifier",
+      "edwinkofler.vscode-assorted-languages",
+      "thenuprojectcontributors.vscode-nushell-lang",
+      "aaron-bond.better-comments",
+      // "vadimcn.vscode-lldb",
+      "naumovs.color-highlight",
+      "anseki.vscode-color",
+      "mkhl.direnv",
+      "mikestead.dotenv",
+      "github.remotehub",
+      "lkrms.inifmt",
+      "jnoortheen.nix-ide",
+      "ms-python.python",
+      "dlasagno.rasi",
+      // "rome.rome",
+      "foxundermoon.shell-format",
+      "vscode-icons-team.vscode-icons",
+      "codeium.codeium"
+    ]
+  },
+  "settings": {
+    "git.ignoreLimitWarning": true,
+    "editor.fontFamily": "'monospace', monospace",
+    "workbench.iconTheme": "material-icon-theme",
+    "better-comments.tags": [
+      {
+        "tag": "@",
+        "color": "#11cbc9",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "#252526",
+        "bold": true,
+        "italic": true
+      },
+      {
+        "tag": ">",
+        "color": "#11cbc9",
+        "strikethrough": false,
+        "underline": true,
+        "backgroundColor": "transparent",
+        "bold": true,
+        "italic": true
+      },
+      {
+        "tag": "{",
+        "color": "#11cbc9",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "#252526",
+        "bold": true,
+        "italic": true
+      },
+      {
+        "tag": "|",
+        "color": "#B026FF",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": true
+      },
+      {
+        "tag": "?",
+        "color": "#fed200",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": true,
+        "italic": true
+      },
+      {
+        "tag": "!",
+        "color": "#ff0000",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+      },
+      {
+        "tag": "shellcheck",
+        "color": "#d8482c",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+      },
+      {
+        "tag": "DOC",
+        "color": "#3498DB",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": true,
+        "italic": false
+      },
+      {
+        "tag": "//",
+        "color": "#ffffff33",
+        "strikethrough": true,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+      },
+      {
+        "tag": "todo",
+        "color": "#FF8C00",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+      },
+      {
+        "tag": "=",
+        "color": "#FF8C00",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+      },
+      {
+        "tag": "*",
+        "color": "#98C379",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+      }
+    ],
+  }
+}

@@ -1,0 +1,354 @@
+#!/bin/sh
+# shellcheck disable=SC1083
+
+# ===================================================================
+#@		                           	INFO			                       @#
+# ===================================================================
+
+__info__() {
+  _cmd_PATH="$(PathOf "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Write output to the standard output stream"
+  _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
+  _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, weHave"
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
+    #>----------------------------------------------------<#
+                                                $_cmd_NAME
+    #>----------------------------------------------------<#
+          $_cmd_DESCRIPTION
+    #>----------------------------------------------------<#
+          -h --help       |>     Usage guide
+          -v --version    |>     Version
+          -l --left       |>     Align left [default]
+          -c --center     |>     Align center
+          -r --right      |>     Align right
+          -n --newline    |>     Blank line
+    #>----------------------------------------------------<#
+                command <[options]> <[arguments]>
+            $_cmd_NAME -nnn --center "string to transform"
+    #>----------------------------------------------------<#
+USAGE_GUIDE
+  )"
+}
+
+__info__
+
+# ===================================================================
+#@		                        GLOBAL TOOLS                         @#
+# ===================================================================
+
+#@ Usage display
+__help__() {
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  # exit 0
+}
+
+#@ Version display
+__version__() {
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
+}
+
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+# ===================================================================
+#@		                          OPTIONS			                       @#
+# ===================================================================
+
+#@ Declare user options (Allow multiple flags)
+parser_definition() {
+  setup REST
+  disp _cmd_USAGEGUIDE -h --help
+  disp _cmd_VERSION -v --version
+  flag _opt_VERBOSE -d --verbose -- "takes no arguments"
+  flag _NOTIFY -N --notify -- "takes no arguments"
+  flag _flag_LEFT -l --left -- "takes no arguments"
+  flag _flag_RIGHT -r --right -- "takes no arguments"
+  flag _flag_CENTER -c --center -- "takes no arguments"
+  flag _opt_TRIM -t --trim -- "takes one argument"
+  param _DELIMITER -s --delim -- "takes one argument"
+  param _CASE -c --case pattern:"lower | upper | proper | sentence" -- "accepts --param value / --param=value"
+  param _ALIGNMENT -a --align pattern:"left | center | right" -- "accepts --param value / --param=value"
+  flag _flag_NEWLINE -n --newline counter:true init:=0 -- "e.g. -nnn will print 3 blank lines"
+}
+
+#@ Load options
+eval "$(getoptions parser_definition) exit 1"
+
+# ===================================================================
+#@		                          DEFAULT			                       @#
+# ===================================================================
+
+__defaults__() {
+
+  #@ Default to align left
+  [ "$_flag_CENTER" ] && _ALIGNMENT="center"
+  [ "$_flag_RIGHT" ] && _ALIGNMENT="right"
+  [ "$_flag_LEFT" ] && _ALIGNMENT="left"
+
+  [ ! "$_ALIGNMENT" = "center" ] &&
+    [ ! "$_ALIGNMENT" = "right" ] &&
+    _ALIGNMENT="left"
+
+  { #@ String manipulation tool
+    if weHave perl; then
+      __sentence__() { perl -pe 's/\p{L}.*?[.?!]/ucfirst lc $&/ge'; }
+      __proper__() { perl -pe 's/\b[\p{L}\p{Pd}]+/ucfirst lc $&/ge'; }
+      __upper__() { perl -pe '$_=uc'; }
+      __lower__() { perl -pe '$_=lc'; }
+      __spacer__() { perl -pe "s/\s+/$_DELIMITER/g"; }
+    elif weHave sd; then
+      __sentence__() { perl -pe 's/\p{L}.*?[.?!]/ucfirst lc $&/ge'; }
+      __proper__() { sed 's/\b\(.\)/\u\1/g'; }
+      __upper__() { sed 's/[a-z]/\U&/g'; }
+      __lower__() { sed 's/[A-Z]/\L&/g'; }
+      __spacer__() { sd '\s+' "$_DELIMITER"; }
+    elif weHave sed; then
+      __sentence__() { sed -e 's/\(^[a-z]\)\([a-zA-Z0-9]*\)/\u\1\2/g'; }
+      __proper__() { sed 's/.*/\L&/; s/[a-z]*/\u&/g'; }
+      # __proper__() { sed 's/\b\(.\)/\u\1/g'; }
+      # __proper__() {sed -E "s/[[:alnum:]_'-]+/\u&/g";}
+      __upper__() { sed 's/[a-z]/\U&/g'; }
+      __lower__() { sed 's/[A-Z]/\L&/g'; }
+      __spacer__() { sed "s/ \+/$_DELIMITER/g"; }
+      # __spacer__() { sed "s/ \{1,\}/$_DELIMITER/g";}
+      # __spacer__() { sed "s/  */$_DELIMITER/g";}
+      # __spacer__() { sed "s/ \{1,\}/$_DELIMITER/g";}
+      # __spacer__() { sed -E "s/\s+/$_DELIMITER/g";}
+    elif weHave tr; then
+      __sentence__() { sed -e 's/\(^[a-z]\)\([a-zA-Z0-9]*\)/\u\1\2/g'; }
+      __proper__() { sed 's/\b\(.\)/\u\1/g'; }
+      __upper__() { tr '[:lower:]' '[:upper:]'; }
+      __lower__() { tr '[:upper:]' '[:lower:]'; }
+      __spacer__() { tr -s '[:space:]' "$_DELIMITER"; }
+    fi
+  }
+}
+
+# ===================================================================
+#@                             NOTIFY                              @#
+# ===================================================================
+__notify__() {
+
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    launched) launched=true ;;
+    *) msg="$1" ;;
+    esac
+
+    [ "$launched" ] && msg="🚀 $1"
+
+    shift
+  done
+
+  # printf "%s\n" "$msg"
+  # notify-send "$msg"
+}
+# ===================================================================
+#@                              PRINT                              @#
+# ===================================================================
+
+__print__() {
+  if command -v emojify >/dev/null 2>&1; then
+    emojify "$*"
+  else
+    printf "%s" "$*" |
+      sed \
+        -e 's/:arrow_forward:/▶/g' \
+        -e 's/:arrow_backward:/◀/g' \
+        -e 's/:rocket:/🚀/g' \
+        -e 's/:white_check_mark:/✅/g' \
+        -e 's/:x:/🟥/g' \
+        -e 's/:x:/❎/g' \
+        -e 's/:x:/🚫/g' \
+        -e 's/:x:/❌/g' \
+        -e 's/:red_flag:/🚩/g' \
+        -e 's/:spiral_notepad:/🗒/g' \
+        -e 's/:rose:/🌹/g' \
+        -e 's/:scream:/😱/g' \
+        -e 's/:dizzy_face:/😵/g' \
+        -e 's/:[^:]*://g;s/  / /g'
+    # awk '{
+    #   all="";
+    #   for(i=0; i<=NF; i++) {
+    #     if(!($i~/:.*:/)) { all=all" "$i; }
+    #     };
+    #     print all;
+    #     }' |
+    #   awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'
+
+    # printf "%s$*" | sed -e "s%:[^:]*:%:%g"
+  fi
+
+  #| Add newline per user request
+  if weHave tr; then
+    printf '%*s' "$_flag_NEWLINE" "" | tr ' ' '\n'
+  elif weHave awk && weHave seq; then
+    seq "$_flag_NEWLINE" | awk '{printf "\n"}'
+  fi
+
+}
+
+# ===================================================================
+#@                               CASE                              @#
+# ===================================================================
+
+__case__() {
+  # TODO: fix tools, only perl works fully
+  if [ "$_CASE" = "sentence" ]; then
+    string="$(printf "%s" "$*" | __sentence__)"
+    [ "$_DELIMITER" ] || _DELIMITER=" "
+  elif [ "$_CASE" = "proper" ]; then
+    string="$(printf "%s" "$*" | __proper__)"
+  elif [ "$_CASE" = "upper" ]; then
+    string="$(printf "%s" "$*" | __upper__)"
+  elif [ "$_CASE" = "lower" ]; then
+    string="$(printf "%s" "$*" | __lower__)"
+  else
+    string="$*"
+  fi
+
+  { #@ Space
+    if [ "$_CASE" = "lower" ] || [ "$_DELIMITER" ]; then
+      string="$(printf "%s" "$string" | __spacer__)"
+    fi
+  }
+}
+
+# ===================================================================
+#@                            ALIGNMENT                            @#
+# ===================================================================
+
+__align__() {
+  # | Width of the display area
+  term_width="${COLUMNS:-$(tput cols)}"
+
+  # | Length of the text to display
+  [ "$string" ] || string="$*"
+  str_length="$(echo "$string" | awk '{print length}' | sort -nr | head -1)"
+
+  # | Calculate tab size
+  if [ "$term_width" -gt "$str_length" ]; then
+    _tab="$term_width - $str_length"
+    if weHave calk; then
+      tab_right=$(calk "$_tab")
+      tab_center=$(calk "($_tab) / 2")
+    else
+      tab_right=$((_tab))
+      tab_center=$(((_tab) / 2))
+    fi
+  fi
+
+  # | Place tab to the left of the text
+  [ "$_ALIGNMENT" = "left" ] && tab_size=""
+  [ "$_ALIGNMENT" = "center" ] && tab_size="$tab_center"
+  [ "$_ALIGNMENT" = "right" ] && tab_size="$tab_right"
+
+  # | Print text with calculated tab
+  printf "%${tab_size}s"
+  __print__ "$string"
+}
+
+# ===================================================================
+#@		                          PROCESS			                       @#
+# ===================================================================
+
+#@ Run
+__process__() {
+  # msg="$*"
+  [ "$_NOTIFY" ] && __notify__ "$@"
+  # [ "$_CASE" ] && __case__ "$msg"
+  # __align__ "$msg"
+  # echo "ALL: $*"
+  # echo "  1: $1"
+  # echo "  2: $2"
+
+}
+
+# ===================================================================
+#@		                          CLEANUP			                       @#
+# ===================================================================
+
+__cleanup__() {
+  unset \
+    _flag_LEFT \
+    _flag_CENTER \
+    _flag_RIGHT \
+    _ALIGNMENT \
+    _opt_VERBOSE \
+    term_width \
+    tab_right \
+    tab_center \
+    tab_size \
+    str_length
+}
+
+# ===================================================================
+#@		                           	 _opt_VERBOSE	                       @#
+# ===================================================================
+
+__verbose__() {
+
+  #@ Process all stings
+  term_width="$COLUMNS" || "$(tput cols)"
+  line="$(printf "%${term_width}s\n\n" | tr ' ' '*')"
+
+  while [ $# -gt 0 ]; do
+
+    printf "%s" "$line"
+
+    __process__ "$1"
+
+    [ "$_flag_NEWLINE" ] && printf "\n" || printf "\n\n"
+
+    printf "%s" "$line"
+    printf "String          |  %s\n" "$*"
+    printf "Alignment       |  %s\n" "$_ALIGNMENT"
+    printf "Case            |  %s\n" "$_CASE"
+    printf "Terminal Width  |  %s\n" "$term_width"
+    printf "String Length   |  %s\n" "$str_length"
+    printf "Tab Size        |  %s\n" "$tab_size"
+    printf "Newline         |  %s\n\n" "$_flag_NEWLINE"
+    shift
+  done
+
+}
+
+# ===================================================================
+#@		                           	 MAIN			                       @#
+# ===================================================================
+
+__main__() {
+
+  #@ Process all stings
+  while [ $# -gt 0 ]; do
+    __process__ "$1"
+    shift
+  done
+
+}
+
+# ===================================================================
+#@		                            RUN	  		                       @#
+# ===================================================================
+
+#@ Load internal variables
+__info__
+
+#@ Establish defaults
+__defaults__
+
+#@ Allow verbose option if requested
+if [ "$_opt_VERBOSE" ]; then
+  __verbose__ "$@"
+else
+  __main__ "$@"
+fi
+
+#@ Remove any leftover variables
+__cleanup__

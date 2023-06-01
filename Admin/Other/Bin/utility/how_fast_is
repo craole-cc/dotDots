@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if weHave hyperfine; then
+  hyperfine "$@" \
+    --ignore-failure \
+    --shell=none
+# hyperfine "$@" 2>/dev/null
+else
+  time sh -c "$@"
+fi

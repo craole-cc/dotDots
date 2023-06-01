@@ -1,0 +1,107 @@
+#!/bin/sh
+__help__() {
+  printf "usage\n"
+}
+
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+__error__() {
+  #| Display general usage instructions
+  __help__
+
+  #| Display specific error messaging
+  case $1 in
+  --ctx) printf "'%s' is missing\n" "$DOTS_ENV_CTX/$app" ;;
+  --src) printf "Ensure th 'src' variable is set for '%s'\n" "$app" ;;
+  --app) printf "Please ensure '%s' is install and in PATH\n" "$app" ;;
+  --arg) printf "What should we do?\n" ;;
+  esac
+  return 1
+}
+
+__gc__() { unset src lnk; }
+
+__ctx__() {
+  #| Load Environment Variables
+  if [ -f "$DOTS_ENV_CTX/$app" ]; then
+    . "$DOTS_ENV_CTX/$app"
+  else
+    __error__ --ctx
+  fi
+}
+
+__check__() {
+  if [ "$verbose" ]; then
+    weHave "$app" || __error__ --app
+  fi
+}
+
+__lnk__() {
+  #| Deploy Link
+  if [ "$src" ]; then
+
+    #| Set the destination to app name in XDG_CONFIG
+    lnk="$CONFIG_HOME/$(basename "$src")"
+
+    #| Show details when symlinking, if requested.
+    if [ "$verbose" ]; then
+      symLink --src "$src" --lnk "$lnk" --verbose
+    else
+      symLink --src "$src" --lnk "$lnk"
+    fi
+
+  else
+    __error__ --src
+  fi
+}
+
+__process__() {
+  #| Reset variables
+  __gc__
+
+  #| Ensure context is established
+  __ctx__ || return 1
+
+  #| Ensure app is installed
+  __check__ || return 1
+
+  #| Deploy link
+  __lnk__ || return 1
+}
+
+__test__() {
+  __gc__
+  __ctx__ && {
+    printf "%-12s | \t%20s \t | %40s\n" \
+      "$app" "$src" "$CONFIG_HOME/$(basename "$src")"
+  }
+}
+
+__opt__() {
+  [ "$#" -eq 0 ] && __error__ --arg
+
+  for arg in "$@"; do
+    case "$arg" in
+    #todo: allow input-file
+    -d | --verbose) verbose=true ;;
+    -f | --force) force=true ;;
+    -q | --quiet) unset verbose ;;
+    esac
+  done
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -*) ;;
+    *)
+      app="$1"
+      # __test__
+      __process__
+      ;;
+    esac
+    shift
+  done
+}
+
+__opt__ "$@"

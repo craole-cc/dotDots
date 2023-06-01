@@ -1,0 +1,349 @@
+#!/bin/sh
+# shellcheck disable=SC1091,SC2153
+
+wdme() {
+
+  # ===================================================================
+  #@		                           	INFO			                       @#
+  # ===================================================================
+
+  __info__() {
+    _cmd_PATH="$(PathOf "$0")"
+    _cmd_NAME="$(basename "$_cmd_PATH")"
+    _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+    _cmd_VERSION="1.0"
+    _cmd_DESCRIPTION="Initialize a Desktop Environmnt or Window Manager"
+    _cmd_DEPENDENCIES="weHave"
+    _cmd_USAGEGUIDE="$(
+      cat <<USAGE_GUIDE
+
+#>----------------------------------------------------<#
+                    	USAGE: $_cmd_NAME
+#>----------------------------------------------------<#
+    $_cmd_DESCRIPTION
+#>----------------------------------------------------<#
+            command <[options]> <[arguments]>
+		_cmd_NAME "desktop/window manager"
+#>----------------------------------------------------<#
+	-h --help      |>   Usage guide
+	-v --version   |>   Version
+	-d --verbose   |>   Details
+	-w --desktop   |>   WM/DE to load [default]
+	-b --backend   |>   Wayland or X11
+	-t --dry-run   |>   Test variables
+	-e --edit      |>   Edit config
+#>----------------------------------------------------<#
+
+USAGE_GUIDE
+    )"
+  }
+
+  # ===================================================================
+  #@		                        GLOBAL TOOLS                         @#
+  # ===================================================================
+
+  #@ Usage display
+  __help__() {
+    printf "%s\n" "$_cmd_USAGEGUIDE"
+    exit 0
+  }
+
+  #@ Version display
+  __version__() {
+    printf "%s\n" "$_cmd_VERSION"
+    exit 0
+  }
+
+  weHave() { #@ Check if the command exists
+    type "$1" >/dev/null 2>&1
+  }
+  
+  #@ Lowercase
+  __lower__() {
+    echo "$*" | tr '[:upper:]' '[:lower:]'
+  }
+
+  #@ Remove variables from environment
+  __cleanup__() {
+    unset \
+      DRYRUN \
+      EDITRC \
+      WMDE_DESKTOP \
+      WMDE_SERVER \
+      WMDE_BAR \
+      DESKTOP_HOME \
+      DESKTOP_NAME \
+      DESKTOP_CONF \
+      DESKTOP_TYPE \
+      DESKTOP_RUNTIMEDIR \
+      DESKTOP_LOG \
+      DESKTOP_FOOTSERVER \
+      BAR_HOME \
+      BAR_NAME \
+      BAR_CONF
+  }
+
+  # ===================================================================
+  #@		                  OPTIONS                          @#
+  # ===================================================================
+
+  __opts__() {
+    useGETOPTIONS() {
+      #@ Declare user options (Allow multiple flags)
+      parser_definition() {
+        setup REST
+        disp _cmd_USAGEGUIDE -h --help
+        disp _cmd_VERSION -v --version
+        flag VERBOSE -d --verbose -- "takes no arguments"
+        flag DRYRUN -t --test --dry-run -- "takes no arguments"
+        flag EDITRC -e --edit -- "takes no arguments"
+        param WMDE_DESKTOP -w --desktop -- "takes one argument"
+        param WMDE_SERVER -s --server -- "takes one argument"
+        param WMDE_BAR -b --bar --panel -- "takes one argument"
+      }
+
+      #@ Load options
+      eval "$(getoptions parser_definition) exit 1"
+    }
+
+    usePOSIX() {
+      [ "$#" -eq 0 ] && __help__ && return 1
+
+      while [ "$#" -gt 0 ]; do
+        case "$1" in
+        --dry-run | --test) DRYRUN=true ;;
+        --edit) EDITRC=true ;;
+        -b | --bar | --panel)
+          [ "$2" ] && WMDE_BAR="$2"
+          shift
+          ;;
+        -s | --server)
+          [ "$2" ] && WMDE_SERVER="$2"
+          shift
+          ;;
+        -w | -wm | --desktop)
+          [ "$2" ] && WMDE_DESKTOP="$2"
+          shift
+          ;;
+        *) WMDE_DESKTOP="$1" ;;
+        esac
+        shift
+      done
+    }
+
+    if weHave Pgetoptions; then
+      useGETOPTIONS "$@"
+    else
+      usePOSIX "$@"
+    fi
+  }
+
+  # ===================================================================
+  #@		                  DEFAULT                          @#
+  # ===================================================================
+
+  __env__() {
+    _desktop_() {
+      WMDE_DESKTOP="$(
+        __lower__ "${WMDE_DESKTOP:-"qtile"}"
+      )"
+
+      #? Serialize Name
+      [ -f "${DOTS_ENV_CTX}/${WMDE_DESKTOP}" ] &&
+        . "${DOTS_ENV_CTX}/${WMDE_DESKTOP}"
+
+      #?  Load Variables
+      [ -d "$DESKTOP_HOME" ] || {
+        printf "Missing ENV: %s\n" "$WMDE_DESKTOP"
+        return 1
+      }
+
+      #? Set Additional Variables
+      WMDE_NAME="$(basename "$DESKTOP_HOME")"
+      WMDE_CONF="${DESKTOP_HOME}/${DESKTOP_CONF}"
+      WMDE_LOG="${DOTS_LOG}/${WMDE_NAME}-${TIMESTAMP}.log"
+    }
+
+    _server_() {
+      #? Accept user input or use default
+      [ "$WMDE_SERVER" ] || {
+        [ "$DESKTOP_TYPE" ] &&
+          WMDE_SERVER="$DESKTOP_TYPE"
+      }
+
+      #? Serialize Name
+      WMDE_SERVER="$(__lower__ "$WMDE_SERVER")"
+
+      #?  Load Variables
+      [ "$WMDE_SERVER" ] &&
+        [ -f "${DOTS_ENV_CTX}/${WMDE_SERVER}" ] &&
+        . "${DOTS_ENV_CTX}/${WMDE_SERVER}"
+
+      #? Set Additional Variables
+      [ "$WMDE_SERVER" = "wayland" ] && {
+        WMDE_RUNTIMEDIR="${XDG_RUNTIME_DIR}/${WMDE_NAME}"
+        WMDE_FOOTSERVER="${WMDE_RUNTIMEDIR}/foot-serve"
+      }
+    }
+
+    _bar_() {
+      [ "$WMDE_BAR" ] || return
+
+      WMDE_BAR="$(__lower__ "$WMDE_BAR")"
+
+      [ -f "${DOTS_ENV_CTX}/${WMDE_BAR}" ] &&
+        . "${DOTS_ENV_CTX}/${WMDE_BAR}"
+
+      [ -d "$BAR_HOME" ] ||
+        {
+          printf "Missing ENV: %s\n" "$WMDE_BAR"
+          return 1
+        }
+      WMDE_BAR_NAME="$(basename "$BAR_HOME")"
+      WMDE_BAR_CONF="${BAR_HOME}/${BAR_CONF}"
+    }
+
+    _desktop_ && _server_ && _bar_
+  }
+
+  __link__() {
+    #? Validate arguments
+    source="$1"
+    link="${XDG_CONFIG_HOME}/$(basename "$source")"
+    { [ "$link" ]; } || return 1
+
+    #? Check if link already set
+    [ -L "$link" ] && return 0
+
+    #? Validate source
+    [ -d "$source" ] || return 1
+
+    #? Backup existing link
+    [ -e "$link" ] && mv --force "$link" "${link}.bac"
+
+    #? Establish Link
+    ln --symbolic "$source" "$link"
+  }
+
+  __deploy__() {
+    _xdg_() {
+      XDG_CURRENT_DESKTOP="${WMDE_NAME}"
+      XDG_SESSION_TYPE="${WMDE_SERVER}"
+    }
+
+    _runtime_() {
+      if [ "$WMDE_SERVER" = "wayland" ] && [ ! -d "$WMDE_RUNTIMEDIR" ]; then
+        sudo mkdir --parents "$WMDE_RUNTIMEDIR"
+        sudo chmod 700 "$WMDE_RUNTIMEDIR"
+        sudo chown "$USER:$USER" "$WMDE_RUNTIMEDIR"
+      fi
+    }
+
+    _link_() {
+      case "$sys_INFO" in
+      *Linux*)
+        __link__ "$WMDE_HOME" "$WMDE_LINK"
+        __link__ "$BAR_HOME" "$BAR_LINK"
+        ;;
+      *) ;;
+      esac
+    }
+
+    _launch_() {
+      # "$WMDE_DESKTOP" --config "$WMDE_CONF" --log-level debug >"$WMDE_LOG" 2>&1
+      "$WMDE_DESKTOP" --config "$WMDE_CONF"
+    }
+
+    _xdg_
+    _runtime_
+    # _link_
+    _launch_
+  }
+
+  __run__() {
+    # __deploy__
+    if [ -z "${WAYLAND_DISPLAY}" ] && [ -z "${DISPLAY}" ]; then
+      # if [ "${WAYLAND_DISPLAY}" ]; then
+      #     [ -f "${DOTS_ENV_CTX}/wayland" ] &&
+      #         . "${DOTS_ENV_CTX}/wayland"
+      # elif [ "${DISPLAY}" ]; then
+      #     [ -f "${DOTS_ENV_CTX}/x11" ] &&
+      #         . "${DOTS_ENV_CTX}/x11"
+      # fi
+      # [ "$(tty)" = "/dev/tty1" ]
+      __deploy__
+    else
+      printf "%s\n" "A desktop is already active"
+    fi
+  }
+
+  __test__() {
+    echo "-----------------------------------------------------"
+    [ "$DRYRUN" ] && [ "$EDITRC" ] && echo "TESTING & EDITING"
+    [ "$DRYRUN" ] && [ -z "$EDITRC" ] && echo "TESTING"
+    [ "$EDITRC" ] && [ -z "$DRYRUN" ] && echo "EDITING"
+    echo "-----------------------------------------------------"
+    [ "$WMDE_DESKTOP" ] && printf "WDME ENV: \n%s\n" "$(cat "$DOTS_ENV_CTX/$WMDE_DESKTOP")"
+    [ "$WMDE_SERVER" ] && printf "\nSERVER ENV: \n%s\n" "$(cat "$DOTS_ENV_CTX/$WMDE_SERVER")"
+    [ "$WMDE_BAR" ] && printf "\nBAR ENV: \n%s\n" "$(cat "$DOTS_ENV_CTX/$WMDE_BAR")"
+    echo "-----------------------------------------------------"
+    [ "$WMDE_CONF" ] && printf "WMDE Config: %s lines\n" "$(cat <"$WMDE_CONF" | wc -l)"
+    [ "$WMDE_BAR_CONF" ] && printf "BAR Config: %s lines\n" "$(cat <"$WMDE_BAR_CONF" | wc -l)"
+    echo "-----------------------------------------------------"
+    echo "RUNTIME_DIR: $WMDE_RUNTIMEDIR"
+    echo "FOOT_SERVER: $WMDE_FOOTSERVER"
+    echo "LOG: $WMDE_LOG"
+    echo "-----------------------------------------------------"
+    echo "XDG_DESKTOP: $XDG_CURRENT_DESKTOP"
+    echo "XDG_SESSION: $XDG_SESSION_TYPE"
+
+    _links_() {
+      if [ -L "${XDG_CONFIG_HOME}/${WMDE_NAME}" ]; then
+        printf "	Total files in config LINK: %s\n" \
+          "$(fd . "${XDG_CONFIG_HOME}/${WMDE_NAME}" | wc -l)"
+      else
+        printf "	Missing LINK: %s\n" "${XDG_CONFIG_HOME}/${WMDE_NAME}"
+      fi
+
+      if [ -L "${XDG_CONFIG_HOME}/${BAR_NAME}" ]; then
+        printf "	Total files in config LINK: %s\n" \
+          "$(fd . "${XDG_CONFIG_HOME}/${BAR_NAME}" | wc -l)"
+      else
+        printf "	Missing LINK: %s\n" "${XDG_CONFIG_HOME}/${BAR_NAME}"
+      fi
+    }
+  }
+
+  __edit__() {
+    nvim "$WMDE_CONF"
+  }
+
+  #| Main
+  __main__() {
+    #? Initialize script info
+    __info__
+
+    #? Reset all variables
+    __cleanup__
+
+    #? Parse user input
+    __opts__ "$@"
+
+    #? Load Environment Parameters
+    __env__
+
+    # #? Run Process
+    if [ "$DRYRUN" ]; then
+      __test__
+    elif [ "$EDITRC" ]; then
+      __edit__
+    else
+      __run__
+    fi
+  }
+
+  __main__ "$@"
+
+}
+
+wdme sway

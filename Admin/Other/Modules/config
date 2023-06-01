@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# apps="$(array --save alacritty kitty pop macchina)"
+# apps="alacritty kitty pop macchina"
+
+DeployConfig \
+  macchina \
+  qtile \
+  rofi \
+  helix \
+  git \
+  --quiet
+
+  # nushell \

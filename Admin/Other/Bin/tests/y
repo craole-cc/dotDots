@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# set "gcl='git clone'"
+# set "gcl=\"git clone\""
+# set "$(command -v gcl)"
+set "$(type rcEdit : type weHave gcl)"
+
+type rcEdit : type weHave gcl
+
+extract_command_from_alias() {
+  alias_string="$1"
+  delim="$2"
+  printf "%s" "${alias_string#*"$delim"}" |
+    awk '{print $1}'
+}
+
+case $1 in
+*=\'*) extract_command_from_alias "$1" "='" ;;
+*=\"*) extract_command_from_alias "$1" "=\"" ;;
+*) ;;
+esac

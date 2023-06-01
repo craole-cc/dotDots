@@ -1,0 +1,74 @@
+#! /bin/sh
+# shellcheck disable=SC2034,SC2154
+# > Default Locations
+# @ ./Environment/core/dirs.sh
+
+# @___________________________________________________________________ GENERAL<|
+# DOTS="$DATA_STORE/DOTS"
+# DLDS="$DATA_STORE/Downloads"
+# VIDS="$DATA_STORE/Videos"
+# MUSIC="$DATA_STORE/Music"
+# PICS="$DATA_STORE/Pictures"
+TIMESTAMP="$(date +%F_%H-%M)"
+
+if [ -d "$PICS/Wallpapers" ]; then
+  WALLPAPERS="$PICS/Wallpapers"
+elif [ -d "$HOME/Pictures/wallpapers" ]; then
+  WALLPAPERS="$HOME/Pictures/wallpapers"
+else
+  WALLPAPERS="$DOTS_RES/Images/wallpaper"
+fi
+
+#>_____________                                                         DOTFILES<|
+
+# | Dotfiles
+DOTS_DOC="$DOTS/Documentation"
+DOTS_DOWN="$DOTS/Downloads"
+DOTS_MOD="$DOTS/Modules"
+DOTS_RES="$DOTS/Resources"
+DOTS_LOG="$DOTS/Log"
+DOTS_TODO="$DOTS_DOC/Tasks"
+DOTS_TEST="$DOTS/Test"
+DOTS_RC="$DOTS/.dotrc"
+DOTS_loaded_apps="$DOTS_LOG/loaded_apps"
+
+# @__________________________________________________________________ DOTFILES<|
+# | BIN
+DOTS_BIN="$DOTS/Bin"
+DOTS_BIN_CORE="$DOTS_BIN/core"
+DOTS_BIN_UTIL="$DOTS_BIN/utility"
+DOTS_BIN_IMPORT="$DOTS_BIN/import"
+DOTS_BIN_PRJ="$DOTS_BIN/project"
+DOTS_BIN_MISC="$DOTS_BIN/misc"
+
+# | CFG
+DOTS_CFG="$DOTS/Config"
+DOTS_APP="$DOTS_CFG/apps"
+DOTS_TOOL="$DOTS_CFG/tools"
+DOTS_CLI="$DOTS_CFG/cli"
+
+# | ENV
+DOTS_ENV="$DOTS/Environment"
+DOTS_ENV_CTX="$DOTS_ENV/context"
+DOTS_ENV_EXP="$DOTS_ENV/export"
+DOTS_ENV_BASE="$DOTS_ENV_EXP/base"
+DOTS_ENV_CORE="$DOTS_ENV_EXP/core"
+DOTS_ENV_UTIL="$DOTS_ENV_EXP/utility"
+DOTS_ENV_IMPORT="$DOTS_ENV_EXP/import"
+DOTS_ENV_APP="$DOTS_ENV_EXP/package"
+DOTS_ENV_PRJ="$DOTS_ENV_EXP/project"
+
+# | KEYS
+DOTS_KEY="$DOTS/Keys"
+
+# | General
+codeDOTS="$DOTS_APP/vscode/Dotfiles.code-workspace"
+codeRUST="$DOTS_APP/vscode/Rust.code-workspace"
+codeNIX="$DOTS_APP/vscode/Nix.code-workspace"
+DOTS_FONT="$DOTS_RES/Fonts"
+KEYMAPS="$DOTS_TOOL/utilities/sxhkd"
+ASCII="$DOTS_RES/Images/ascii"
+
+# @_____________________________________________________________________ GUIX<|
+DOTS_GUIX="$DOTS_TOOL/utilities/guix"
+DOTS_NIX="$DOTS_APP/nixos"

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+if weHave firefox; then
+  firefox
+elif weHave icecat; then
+  icecat
+fi

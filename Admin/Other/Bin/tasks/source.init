@@ -1,0 +1,194 @@
+#!/bin/sh
+
+__args__() {
+  #| Core
+  case "$1" in
+  -h | --help)
+    __help__
+    exit
+    ;;
+  -v | --version)
+    printf "%s\n" "version"
+    exit 0
+    ;;
+  -d | --verbose)
+    verbose=1
+    shift
+    ;;
+  -q | --quiet)
+    verbose=
+    shift
+    ;;
+  --ignore-file)
+    ignore_file="$2"
+    shift 2
+    ;;
+  *) ;;
+  esac
+
+  #| Process
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --bin) #| Expects a file/directory
+      src_type="BIN"
+      shift
+      ;;
+    --exec) #| Expects a file/directory
+      src_type="BINX"
+      shift
+      ;;
+    --env) #| Expects a file/directory
+      src_type="ENV"
+      shift
+      ;;
+    --xdg) #| Expects a directory
+      src_type="XDG"
+      shift
+      ;;
+    --exclude) #| Expects a string
+      ignore_action="EXCLUDE"
+      shift
+      ;;
+    -I | --include) #| Expects a string
+      ignore_action="INCLUDE"
+      shift
+      ;;
+    -*)
+      echo "Invalid option: $1"
+      __help__
+      break
+      ;;
+    *) ;;
+    esac
+
+    # __sources__ "$1"
+    # __test__ "$1"
+    __process__ "$1"
+
+    shift
+  done
+}
+
+__help__() {
+  printf "USAGE\n"
+}
+
+__defaults__() {
+  # Verbose
+  verbose=
+
+  #| Establish IGNORE path to declare directories to skip
+  [ "$ignore_file" ] || ignore_file="$DOTS/.ignore"
+  [ -f "$ignore_file" ] || touch "$ignore_file"
+}
+
+__sources__() {
+
+  prep_ignore() { #? Update .ignore file
+    if [ "$ignore_action" = "EXCLUDE" ]; then
+      grep --line-regexp --quiet "$1" "$ignore_file" ||
+        printf "\n%s" "$1" >>"$ignore_file"
+    elif [ "$ignore_action" = "INCLUDE" ]; then
+      sed --in-place "/$1/d" "$ignore_file"
+    else
+      return 0
+    fi
+  }
+
+  src_exclude() {
+    #? Remove blank lines
+    sed -i '/^[[:space:]]*$/d' "$ignore_file"
+
+    #? Sort alphabetically
+    sort --human-numeric-sort --output "$ignore_file" "$ignore_file"
+
+    #? Prep for use with `grep`
+    # sed -e 's/^/\//g' -e 's/$/*/g' "$ignore_file" |
+    sed -e 's/^/\//g' "$ignore_file" |
+      tr '\n' '|' | sed '$s/|$/\n/'
+  }
+
+  src_include() {
+    if [ "$(src_exclude)" ]; then
+      grep \
+        --extended-regexp \
+        --invert-match \
+        --ignore-case \
+        "$(src_exclude)" |
+        sort
+    else
+      sort
+    fi
+  }
+
+  #? Identify valid sources
+  generate_sources() {
+    find "$1" | src_include
+  }
+
+  if [ ! -e "$1" ]; then
+    prep_ignore "$1"
+  else
+    generate_sources "$1"
+  fi
+}
+
+__process__() {
+
+  #| Enable global variable export
+  set -o allexport
+
+  #| Process sources recursively
+  for src_path in $(__sources__ "$1"); do
+    [ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
+      case ":${XDG_DATA_DIRS}:" in
+      *:"$src_path":*) ;;
+      *)
+        XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
+        [ "$verbose" ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
+        ;;
+      esac
+
+    #| Update PATH directories
+    [ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
+      case ":${PATH}:" in
+      *:"$src_path":*) ;;
+      *)
+        PATH="${PATH:+$PATH:}$src_path"
+        [ "$verbose" ] && printf "Appended to PATH: %s\n" "${src_path}"
+        ;;
+      esac
+
+    #| Activate Scripts and Variables
+    [ -f "$src_path" ] &&
+
+      #| Make scripts executable
+      if [ "$src_type" = "BIN" ]; then
+        if [ "$verbose" ]; then
+          chmod --changes +x "$src_path"
+        else
+          chmod +x "$src_path"
+        fi
+
+      #| Load environmental variables from files
+      elif [ "$src_type" = "ENV" ]; then
+        # shellcheck disable=SC1090
+        . "$src_path"
+        [ "$verbose" ] && printf "Initialized: %s\n" "$src_path"
+      fi
+
+  done
+
+  #| Disable global export
+  set +o allexport
+}
+
+__cleanup__() {
+  # rm "$ignore_file"
+  unset -v verbose BIN_ ENV_ ignore_file src_path src_type
+  unset -f __args__ __help__ __defaults__ __sources__ __process__ __test__
+}
+
+__defaults__
+__args__ "$@"
+__cleanup__

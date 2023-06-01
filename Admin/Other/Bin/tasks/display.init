@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# init_d() {
+
+#     if [ "${WAYLAND_DISPLAY}" ]; then
+#         [ -f "${DOTS_ENV_CTX}/wayland" ] &&
+#             . "${DOTS_ENV_CTX}/wayland"
+#     elif [ "${DISPLAY}" ]; then
+#         [ -f "${DOTS_ENV_CTX}/x11" ] &&
+#             . "${DOTS_ENV_CTX}/x11"
+#     fi
+# }
+# init_display
+# startplasma-x11
+# WMDE sway
+[ -d "${DOTS_ENV_CTX}" ] &&
+source.init --env "${DOTS_ENV_CTX}/x11"

@@ -1,0 +1,70 @@
+#!/bin/sh
+
+__fg__() {
+  x=1
+  while [ $x -le 255 ]; do
+    reset="$(tput sgr0)"
+    color="$(
+      tput -S <<@
+            bold
+            setaf $x
+            dim
+@
+    )"
+    echo "${color}tput setaf $x${reset}"
+    x=$((x + 1))
+  done
+}
+
+__bg__() {
+  for bg in $(seq 0 7); do
+    for fg in $(seq 0 7); do
+      for attr in "" bold; do
+        echo "$(
+          tput setab "$bg"
+          tput setaf "$fg"
+          [ -n "$attr" ] && tput $attr
+        ) $fg ON $bg $attr $(tput sgr0)"
+      done
+    done
+  done
+}
+
+__num__() {
+  inc=16
+  start=1
+  finish=$inc
+
+  clear
+  echo "tput setaf colors:"
+
+  while true; do
+    for i in $(seq $start $finish); do
+      printf "%s$(tput setaf "$i")$i,"
+    done
+
+    start=$((start = start + inc))
+    finish=$((finish = finish + inc))
+    echo $start $finish
+    # ((start = start + $inc))
+    # ((finish = finish + $inc))
+    if [ $finish -gt 256 ]; then
+      break
+    fi
+  done
+  echo ""
+}
+
+__main__() {
+  [ "$_FG" ] && __fg__
+  [ "$_BG" ] && __bg__
+  [ "$_NUM" ] && __num__
+}
+
+case $* in
+-t | --foreground) _FG=true ;;
+-b | --background) _BG=true ;;
+-n | --numbers | *) _NUM=true ;;
+esac
+
+__main__

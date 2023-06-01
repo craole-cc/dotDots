@@ -1,0 +1,76 @@
+#!/bin/sh
+
+APPS="
+$DOTS_DOWN/speedtest-linux/speedtest
+$DOTS_DOWN/speedtest-linux/fasttest
+$DOTS_DOWN/fast.com/fast_com.py
+"
+
+SOURCES() {
+    EXCLUDED="$(echo "review|archive|temp|templates")"
+    find "$@" |
+        grep -E -viw "$EXCLUDED"
+}
+
+tomcat="
+/logs/tc0001/tomcat/tomcat7.1/conf/catalina.properties:app.env.server.name = demo.example.com
+/logs/tc0001/tomcat/tomcat7.2/conf/catalina.properties:app.env.server.name = quest.example.com
+/logs/tc0001/tomcat/tomcat7.5/conf/catalina.properties:app.env.server.name = www.example.com
+"
+
+geekstut="
+ajay manager account 45000
+sunil clerk account 25000
+varun manager sales 50000
+amit manager account 47000
+tarun peon sales 15000
+deepak clerk sales 23000
+sunil peon sales 13000
+satvik director purchase 80000
+"
+
+IGNORE="
+   review
+archive
+
+temp
+
+templates flowers
+"
+
+: <<'SED'
+sed can be used with any delimiter, the most common is /, i think I will use / since I use windows and sont want to worry about pathname issues.
+/^$/d    => remove empty line
+s/^ *//  => left trim
+s/ *$//  => right trim
+SED
+
+printf "\n==>> sed <<===\n"
+echo "$geekstut" |
+    sed -e '/^$/d' \
+        -e 's/^ *//'
+# sed -e '/^$/d' -e 's/$/|/g' -e 's/'
+
+: <<'AWK'
+'/manager/ {print}'     => filter based on pattern
+'NF { $1=$1; print }'   => remove all whitespace
+
+AWK
+
+printf "\n==>> awk <<===\n"
+echo "$geekstut" |
+    # awk '{print}'
+    awk 'NF { $1=$1; print }'
+
+echo "$tomcat" |
+    awk -F'[/|=]' -vOFS='\t' '{print $3, $5, $NF}'
+# awk -F'[/=]' '{print $3 "\t" $5 "\t" $8}'
+# set -- $IGNORE
+# IFS="|"
+# # shellcheck disable=SC2066
+# for exclude in "$*"; do
+#     echo "$exclude"
+# done
+
+# echo "ssssd"
+# for s in $(x); do echo "$s"; done

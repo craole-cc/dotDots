@@ -1,0 +1,4 @@
+GIT_HOME="$DOTS_CLI/git"
+GIT_CONF="$GIT_HOME/config"
+
+src="$GIT_HOME"

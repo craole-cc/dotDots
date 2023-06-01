@@ -1,0 +1,11 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+# WMDE_bar
+WMDE_bar waybar
+# waybar -c /storage/DOTS/Config/tools/widgets/waybar/config -l error
+# ls "${BAR_HOME}/${BAR_CONF}"
+# waybar_home="$DOTS_TOOL/widgets/waybar"
+# waybar --config "$waybar_home/config" --log-level error
+# waybar -c "/storage/DOTS/Config/tools/widgets/waybar/config" -l info
+# --style "$waybar_home/config"
