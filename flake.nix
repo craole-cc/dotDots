@@ -81,17 +81,27 @@
 
     homeConfigurations = {
       #/> Base <\#
-      "craole@generic" = mkHome [./Home/craole/clients/generic.nix] nixpkgs.legacyPackages."x86_64-linux";
+      "craole@generic" =
+        mkHome [./Home/craole/clients/generic.nix]
+        nixpkgs.legacyPackages."x86_64-linux";
 
       #/> Desktop <\#
-      "craole@dellberto" = mkHome [./Home/craole/clients/dellberto.nix] nixpkgs.legacyPackages."x86_64-linux";
+      "craole@dellberto" =
+        mkHome [./Home/craole/clients/dellberto.nix]
+        nixpkgs.legacyPackages."x86_64-linux";
 
       #/> Laptop <\#
-      "craole@a3k" = mkHome [./Home/craole/clients/a3k.nix] nixpkgs.legacyPackages."x86_64-linux";
-      "craole@delle" = mkHome [./Home/craole/clients/delle.nix] nixpkgs.legacyPackages."x86_64-linux";
+      "craole@a3k" =
+        mkHome [./Home/craole/clients/a3k.nix]
+        nixpkgs.legacyPackages."x86_64-linux";
+      "craole@delle" =
+        mkHome [./Home/craole/clients/delle.nix]
+        nixpkgs.legacyPackages."x86_64-linux";
 
       #/> Server <\#
-      "craole@raspi" = mkHome [./Home/craole/clients/raspi.nix] nixpkgs.legacyPackages."aarch64-linux";
+      "craole@raspi" =
+        mkHome [./Home/craole/clients/raspi.nix]
+        nixpkgs.legacyPackages."aarch64-linux";
     };
   };
 }

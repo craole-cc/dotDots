@@ -1,10 +1,6 @@
 {
 	"folders": [
 		{
-			"name": "HOME",
-			"path": "../../.."
-		},
-		{
 			"name": "DOTS",
 			"path": "../Other"
 		},
