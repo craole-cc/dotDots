@@ -31,9 +31,10 @@ EOF
 }
 
 validate_envirnment() {
-  # DISK=""
-  # GIT_EMAIL=""
-  # GIT_USER=""
+  unset DISK GIT_EMAIL GIT_NAME
+  # DISK="nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
+  # GIT_EMAIL="iamcraole@gmail.com"
+  # GIT_USER="Craole"
   SWAPSIZE=4
   RESERVE=1
   ENCRYPT=false
@@ -72,55 +73,38 @@ validate_envirnment() {
         #@ Validate Email Address
         case "$2" in
         *@*.*)
-          local_part="${2%%@*}"
-          domain_part="${2#*@}"
-          domaain="${2%.*}"
+          #@ Set the Git Email variable
+          #TODO: Validate the email address properly (username, domain, etc.)
+          GIT_EMAIL="$2"
 
-          if
-            [ -n "$local_part" ] &&
-              [ -n "$domain" ] &&
-              ! echo "$2" | grep -q '[[:space:]]'
-          then
-            #@ Set the Git Email variable
-            GIT_EMAIL="$2"
-
-            #@ Skip to the next argument
-            shift
-          else
-            pout --invalid Email "$2"
-          fi
-
+          #@ Skip to the next argument
+          shift
           ;;
-        # *) pout --invalid Email "${2}" ;;
+        *) pout --invalid Email "${2}" ;;
         esac
-
         ;;
-
       *)
         #@ Quit on missing info
         pout --missing Email
         ;;
       esac
-      shift
-      GIT_EMAIL="$1"
-      # shift
-      # [ "$2" ] && case "$2" in *@*.*) GIT_EMAIL="$2" ;; esac
-      # [ "${GIT_EMAIL}" ] || pout "email address"
       ;;
     -u | --user)
-      shift
-      if [ -n "$1" ]; then
-        GIT_USER="$1"
-      else
-        echo "username missing"
-        return 1
-      fi
+      #@ Quit on missing info
+      [ -z "$2" ] && pout --missing Username
 
-      # if [ "$2" ] && [ ${#2} -gt 1 ]; then
-      #   GIT_USER="$2"
-      # # else
-      # #   pout "username"
-      # fi
+      #@ Validate Username
+      case "$2" in
+      [[:alnum:]])
+
+        #@ Set the Git Username variable
+        GIT_NAME="$2"
+
+        #@ Skip to the next argument
+        shift
+        ;;
+      *) pout --invalid Username "${2}" ;;
+      esac
       ;;
     -s | --swap)
       if [ "${2}" ] && [ "${2}" -ge 0 ]; then SWAPSIZE="${2}"; fi
