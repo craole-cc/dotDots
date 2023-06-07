@@ -32,9 +32,9 @@ EOF
 
 validate_envirnment() {
   unset DISK GIT_EMAIL GIT_NAME
-  # DISK="nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
-  # GIT_EMAIL="iamcraole@gmail.com"
-  # GIT_USER="Craole"
+  DISK="nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
+  GIT_EMAIL="iamcraole@gmail.com"
+  GIT_USER="Craole"
   SWAPSIZE=4
   RESERVE=1
   ENCRYPT=false
