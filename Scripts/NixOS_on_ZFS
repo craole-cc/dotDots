@@ -35,9 +35,9 @@ initialize_envirnment() {
   unset disk_array email user swap_size reserved_space enable_encryption
 
   #@ Set default variables
-  disk_array="nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46 asdasdasd"
-  git_email="iamcraole@gmail.com"
-  git_user="Craole"
+  # disk_array="nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
+  # git_email="iamcraole@gmail.com"
+  # git_user="Craole"
   swap_size=8
   reserved_space=1
   enable_encryption=true
