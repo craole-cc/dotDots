@@ -106,10 +106,10 @@ validate_envirnment() {
     )
 
     #@ Ensure that each string resolves to a valid symlink
-    for disk in $value; do
-      [ -L "${disk}" ] ||
-        pout --invalid "Disk" "${disk} [ Ex: /dev/disk/by-id/DISK_ID_HERE ]"
-    done
+    # for disk in $value; do
+    #   [ -L "${disk}" ] ||
+    #     pout --invalid "Disk" "${disk} [ Ex: /dev/disk/by-id/DISK_ID_HERE ]"
+    # done
 
     #@ Update Variable
     disk_array="$value"
