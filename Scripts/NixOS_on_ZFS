@@ -47,11 +47,26 @@ initialize_envirnment() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
     #@ Set the DISK variable while handling missing info
-    -d | --disk | --id) disk_array="$2" ;;
-    -e | --email) git_email="$2" ;;
-    -u | --user) git_user="$2" ;;
-    -s | --swap) swap_size="${2}" ;;
-    -r | --reserve) reserved_space="${2}" ;;
+    -d | --disk | --id)
+      disk_array="$2"
+      shift
+      ;;
+    -e | --email)
+      git_email="$2"
+      shift
+      ;;
+    -u | --user)
+      git_user="$2"
+      shift
+      ;;
+    -s | --swap)
+      swap_size="${2}"
+      shift
+      ;;
+    -r | --reserve)
+      reserved_space="${2}"
+      shift
+      ;;
     -n | --no-encrypt) enable_encryption=false ;;
     -h | --help)
       show_usage_guide
