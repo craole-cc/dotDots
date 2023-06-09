@@ -435,10 +435,10 @@ containers() {
 
     #@ Encrypt the system container if enabled
     if [ "$enable_encryption" ]; then
-      printf "\n%s...\n" "Creating encrypted root pool"
-      printf "%s\n%s\n" \
-        "WARNING: Please set a strong password and memorize it." \
-        "See zfs-change-key(8) for more info"
+      # printf "\n%s...\n" "Creating encrypted root pool"
+      # printf "%s\n%s\n" \
+      #   "WARNING: Please set a strong password and memorize it." \
+      #   "See zfs-change-key(8) for more info"
 
       #@ Creat and encrypt the root container
       zfs create \
