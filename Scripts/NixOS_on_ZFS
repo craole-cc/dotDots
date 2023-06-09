@@ -132,11 +132,6 @@ environment() {
       #@ Update Variable
       disk_count="$(printf "%s\n" "$value" | wc -w)"
       disk_array="$value"
-      # if [ "$disk_count" -gt 1 ]; then
-      #   disk_array="$value"
-      # else
-      #   disk="$value"
-      # fi
 
       #@ Display information
       if [ "$disk_count" -gt 1 ]; then
@@ -293,14 +288,6 @@ environment() {
   disclaimer() {
     #@ Present the disclamer and confirm acceptance before proceeding
     printf "\n%s\n" "${SCR_DISCLAIMER}"
-    # choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
-    # case "${choice}" in
-    # [Yy]*) ;;
-    # *)
-    #   printf "%s\n" "Exiting..."
-    #   exit 0
-    #   ;;
-    # esac
   }
 
   validate_elevation
@@ -336,7 +323,6 @@ partitions() {
   }
 
   init_swap() {
-    swapoff /dev/mapper/"${disk##*/}"-part4 >/dev/null 2>&1
     cryptsetup open --type plain --key-file /dev/random "${disk}"-part4 "${disk##*/}"-part4
     mkswap /dev/mapper/"${disk##*/}"-part4
     swapon /dev/mapper/"${disk##*/}"-part4
@@ -430,68 +416,15 @@ containers() {
     fi
   }
 
-  root_pool() {
-    # init_boot_container() {
-    #   mkfs.vfat -n EFI "${disk}"-part1
-    #   mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    #   mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    # }
-
-    single_disk() {
-      #@ Create root pool for EFI
-      zpool create \
-        -o ashift=12 \
-        -o autotrim=on \
-        -R "${temp_mnt}" \
-        -O acltype=posixacl \
-        -O canmount=off \
-        -O compression=zstd \
-        -O dnodesize=auto \
-        -O normalization=formD \
-        -O relatime=on \
-        -O xattr=sa \
-        -O mountpoint=/ \
-        rpool \
-        "$(printf '%s' "${disk}-part3")"
-    }
-
-    multi_disk() {
-      #@ Create root pool for EFI
-      zpool create \
-        -o ashift=12 \
-        -o autotrim=on \
-        -R "${temp_mnt}" \
-        -O acltype=posixacl \
-        -O canmount=off \
-        -O compression=zstd \
-        -O dnodesize=auto \
-        -O normalization=formD \
-        -O relatime=on \
-        -O xattr=sa \
-        -O mountpoint=/ \
-        rpool \
-        mirror \
-        "$(for disk in ${disk_array}; do
-          printf '%s' "${disk}-part3"
-        done)"
-    }
-
-    if [ "$disk_array" ]; then
-      multi_disk
-    else
-      single_disk
-    fi
-  }
-
   system_container() {
     printf "\n%s...\n" "Establishing the system container"
 
     #@ Encrypt the system container if enabled
     if [ "$enable_encryption" ]; then
-      # printf "\n%s...\n" "Creating encrypted root pool"
-      # printf "%s\n%s\n" \
-      #   "WARNING: Please set a strong password and memorize it." \
-      #   "See zfs-change-key(8) for more info"
+       printf "\n%s...\n" "Creating encrypted root pool"
+       printf "%s\n%s\n" \
+         "WARNING: Please set a strong password and memorize it." \
+         "See zfs-change-key(8) for more info"
 
       #@ Creat and encrypt the root container
       zfs create \
@@ -551,13 +484,9 @@ bootlaoder() {
     mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
   }
 
-  if [ "$disk_array" ]; then
-    for disk in ${disk_array}; do
-      init_boot || pout --error "Failed to initialize the boot partition"
-    done
-  else
+  for disk in ${disk_array}; do
     init_boot || pout --error "Failed to initialize the boot partition"
-  fi
+  done
 }
 
 flake() {
@@ -584,34 +513,18 @@ flake() {
 
   flake_prep() {
     config_disk_id() {
-      update_disk_id() {
-        sed -i \
-          "s|/dev/disk/by-id/|${disk%/*}/|" \
-          "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
-      }
-
-      if "${disk_array}"; then
         for disk in ${disk_array}; do
-          update_disk_id
+          sed -i \
+            "s|/dev/disk/by-id/|${disk%/*}/|" \
+            "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
           break
         done
-      else
-        update_disk_id
-      fi
     }
-
+    
     config_disk_name() {
-      update_disk_name() {
+      for disk in ${disk_array}; do
         diskNames="${diskNames} \"${disk##*/}\""
-      }
-
-      if "${disk_array}"; then
-        for disk in ${disk_array}; do
-          update_disk_name
-        done
-      else
-        update_disk_name
-      fi
+      done
 
       sed -i "s|\"bootDevices_placeholder\"|${diskNames}|g" \
         "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
@@ -767,9 +680,9 @@ main() {
   # establish partitions
   # establish containers
   # establish datasets
-  # establish bootloader
-  # establish flake
-  # establish cleanup
+  establish bootloader
+  establish flake
+  establish cleanup
 }
 
 main "$@"
