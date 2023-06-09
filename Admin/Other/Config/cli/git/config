@@ -24,7 +24,7 @@
 
 [commit]
 	; Show full diff when editing commit message
-	verbose = true
+	# verbose = true
 
 [push]
 	default = simple
@@ -77,8 +77,25 @@
 	# initial empty commit
 	empty = "!git commit -am\"[empty] Initial commit\" --allow-empty"
 
-	#/> Alias.PUSH                                                                 |
-	up = "!f() { msg=${*:-Updating}; git pull --quiet; git status --short; git add --all . ; git commit --all --quiet --message="$msg"; git push --progress;}; f"
+	up = "!f() { \
+			git_msg=${*:-Updating}; \
+			git pull --quiet; \
+			git status --short; \
+			git add --all . ; \
+			git commit --all --quiet --message=\"$git_msg\"; \
+			git push --progress; \
+	}; f"
+	upignore = "!f() { \
+		printf \"%s\" \"Updating ignored files...\"; \
+		git_msg=\"${*:-Updated ignored files}\"; \
+		git rm -r --cached . >/dev/null 2>&1; \
+		git add --all . >/dev/null 2>&1; \
+		git commit --quiet --message=\"$git_msg\" >/dev/null 2>&1; \
+		git push >/dev/null 2>&1; \
+		printf \" %s\\n\" \"complete\"; \
+	}; f"
+	ignored = "!git ls-files --others --ignored --exclude-standard"
+	iggy = "!git status --short --ignored"
 
 [rerere]
 	; Track and remember conflict resolutions
