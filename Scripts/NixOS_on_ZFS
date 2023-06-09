@@ -347,7 +347,7 @@ containers() {
         -O mountpoint=/boot \
         -R "${temp_mnt}" \
         bpool \
-        "$(printf '%s' "${disk}-part2")"
+        $(printf '%s ' "${disk}-part2")
 
       #@ Create root pool for EFI
       zpool create \
@@ -363,7 +363,7 @@ containers() {
         -O xattr=sa \
         -O mountpoint=/ \
         rpool \
-        $(printf '%s' "${disk}-part3")
+        $(printf '%s ' "${disk}-part3")
     }
 
     multi_disk() {
@@ -748,7 +748,7 @@ establish() {
 
 main() {
   environment "$@"
-  # establish partitions
+  establish partitions
   establish containers
   # establish datasets
   # establish bootloader
