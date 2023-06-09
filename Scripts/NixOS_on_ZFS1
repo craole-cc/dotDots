@@ -48,8 +48,8 @@ environment() {
     swap_size=8
     reserved_space=1
     enable_encryption=true
-    temp_mnt="/tmp/${SCR_NAME}"
-    # temp_mnt=$(mktemp -d)
+    # temp_mnt="/tmp/${SCR_NAME}"
+    temp_mnt=$(mktemp -d)
   }
 
   parse_arguments() {
@@ -131,19 +131,18 @@ environment() {
 
       #@ Update Variable
       disk_count="$(printf "%s\n" "$value" | wc -w)"
-      disk_array="$value"
-      # if [ "$disk_count" -gt 1 ]; then
-      #   disk_array="$value"
-      # else
-      #   disk="$value"
-      # fi
+      if [ "$disk_count" -gt 1 ]; then
+        disk_array="$value"
+      else
+        disk="$value"
+      fi
 
       #@ Display information
-      if [ "$disk_count" -gt 1 ]; then
+      if [ "$disk_array" ]; then
         printf "      %ss |>  %s\n" "$label" "$disk_array"
         printf "  No. of Disks |>  %s\n" "$disk_count"
       else
-        printf "       %s |>  %s\n" "$label" "$disk_array"
+        printf "       %s |>  %s\n" "$label" "$disk"
       fi
     }
 
@@ -316,11 +315,17 @@ partitions() {
     swapon /dev/mapper/"${disk##*/}"-part4
   }
 
-  for disk in ${disk_array}; do
+  if [ "$disk_array" ]; then
+    for disk in ${disk_array}; do
+      wipe_disk || pout --error "Failed to wipe disk"
+      partition_disk || pout --error "Failed to partition disk"
+      init_swap || pout --error "Failed to initialize swap partition"
+    done
+  else
     wipe_disk || pout --error "Failed to wipe disk"
     partition_disk || pout --error "Failed to partition disk"
     init_swap || pout --error "Failed to initialize swap partition"
-  done
+  fi
 }
 
 containers() {
@@ -742,8 +747,8 @@ establish() {
 
 main() {
   environment "$@"
-  # establish partitions
-  # establish containers
+  establish partitions
+  establish containers
   # establish datasets
   # establish bootloader
   # establish flake
