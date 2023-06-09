@@ -48,6 +48,7 @@ environment() {
     swap_size=8
     reserved_space=1
     enable_encryption=true
+    temp_mnt="/tmp/${SCR_NAME}"
     # temp_mnt=$(mktemp -d)
   }
 
@@ -259,9 +260,8 @@ environment() {
       git
   }
 
-  create_temp_mnt() {
-    mkdir --parents "/tmp/${SCR_NAME}"
-    temp_mnt="/tmp/${SCR_NAME}"
+  validate_temp_mnt() {
+    [ -d "${temp_mnt}" ] || mkdir --parents "${temp_mnt}"
   }
 
   disclaimer() {
@@ -282,8 +282,8 @@ environment() {
   parse_arguments "$@"
   printf "\n" && validate_vars
   printf "\n" && validate_deps
-  create_temp_mnt
-  disclaimer
+  printf "\n" && disclaimer
+  validate_temp_mnt
 }
 
 partitions() {
@@ -711,7 +711,7 @@ establish() {
 
 main() {
   environment "$@"
-  # establish partitions
+  establish partitions
   # establish containers
   # establish datasets
   # establish bootloader
