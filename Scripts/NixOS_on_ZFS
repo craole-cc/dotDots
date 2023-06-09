@@ -355,7 +355,7 @@ containers() {
         -O mountpoint=/boot \
         -R "${temp_mnt}" \
         bpool \
-        "$(printf '%s ' "${disk}-part2")"
+        "$(printf '%s' "${disk}-part2")"
 
       #@ Create root pool for EFI
       zpool create \
@@ -371,7 +371,7 @@ containers() {
         -O xattr=sa \
         -O mountpoint=/ \
         rpool \
-        "$(printf '%s ' "${disk}-part3")"
+        "$(printf '%s' "${disk}-part3")"
 
       #@ Format and initialize the boot partition
       init_boot_container
@@ -395,7 +395,7 @@ containers() {
         bpool \
         mirror \
         "$(for disk in ${disk_array}; do
-          printf '%s ' "${disk}-part2"
+          printf '%s' "${disk}-part2"
         done)"
 
       #@ Create root pool for EFI
@@ -414,7 +414,7 @@ containers() {
         rpool \
         mirror \
         "$(for disk in ${disk_array}; do
-          printf '%s ' "${disk}-part3"
+          printf '%s' "${disk}-part3"
         done)"
 
       #@ Format and initialize the boot partition
