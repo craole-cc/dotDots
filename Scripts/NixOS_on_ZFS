@@ -138,10 +138,10 @@ environment() {
 
       #@ Display information
       if [ "$disk_array" ]; then
-        printf "\n      %ss |>  %s\n" "$label" "$disk_array"
+        printf "      %ss |>  %s\n" "$label" "$disk_array"
         printf "  No. of Disks |>  %s\n" "$disk_count"
       else
-        printf "\n       %s |>  %s\n" "$label" "$disk"
+        printf "       %s |>  %s\n" "$label" "$disk"
       fi
     }
 
@@ -280,8 +280,8 @@ environment() {
   validate_elevation
   set_defaults
   parse_arguments "$@"
-  validate_vars
-  validate_deps
+  printf "\n" && validate_vars
+  printf "\n" && validate_deps
   create_temp_mnt
   disclaimer
 }
