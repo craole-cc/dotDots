@@ -259,17 +259,31 @@ environment() {
       git
   }
 
+  disclamer() {
+    #@ Present the disclamer and confirm acceptance before proceeding
+    printf "%s\n" "${SCR_DISCLAIMER}"
+    choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
+    case "${choice}" in
+    [Yy]*) ;;
+    *)
+      printf "%s\n" "Exiting..."
+      exit 0
+      ;;
+    esac
+  }
+
   validate_elevation
   set_defaults
   parse_arguments "$@"
   validate_vars
   validate_deps
+  disclaimer
 }
 
 partitions() {
   wipe_disk() {
     sfdisk --wipe always --delete "${disk}"
-    blkdiscard --force "${disk}"
+    blkdiscard --force "${disk}" >/dev/null 2>&1
     wipefs --all --force "${disk}"
   }
 
@@ -301,31 +315,19 @@ partitions() {
     mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
   }
 
-  #@ Present the disclamer and confirm acceptance before proceeding
-  printf "%s\n" "${SCR_DISCLAIMER}"
-  choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
-  case "${choice}" in
-  [Yy]*)
-    printf "%s\n" "Proceeding with prep"
-    if [ "$disk_array" ]; then
-      for disk in ${disk_array}; do
-        wipe_disk
-        partition_disk
-        init_swap
-        init_boot
-      done
-    else
-      wipe_disk
-      partition_disk
-      init_swap
-      init_boot
-    fi
-    ;;
-  *)
-    printf "%s\n" "Exiting..."
-    exit 0
-    ;;
-  esac
+  if [ "$disk_array" ]; then
+    for disk in ${disk_array}; do
+      wipe_disk || pout --error "Failed to wipe disk"
+      partition_disk || pout --error "Failed to partition disk"
+      init_swap || pout --error "Failed to initialize swap partition"
+      init_boot || pout --error "Failed to initialize the boot partition"
+    done
+  else
+    wipe_disk || pout --error "Failed to wipe disk"
+    partition_disk || pout --error "Failed to partition disk"
+    init_swap || pout --error "Failed to initialize swap partition"
+    init_boot || pout --error "Failed to initialize the boot partition"
+  fi
 }
 
 containers() {
@@ -694,7 +696,7 @@ establish() {
 
 main() {
   environment "$@"
-  establish partitions
+  extablish partitions
   establish containers
   establish datasets
   establish flake
