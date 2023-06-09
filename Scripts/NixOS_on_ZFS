@@ -331,7 +331,7 @@ partitions() {
 
 containers() {
   for_boot() {
-    printf "\n%s...\n" "Establishing the boot containers"
+    printf "%s\n" "Boot Containers"
 
     init_boot_container() {
       mkfs.vfat -n EFI "${disk}"-part1
@@ -355,7 +355,7 @@ containers() {
         -O mountpoint=/boot \
         -R "${temp_mnt}" \
         bpool \
-        $(printf '%s ' "${disk}-part2")
+        "$(printf '%s ' "${disk}-part2")"
 
       #@ Create root pool for EFI
       zpool create \
