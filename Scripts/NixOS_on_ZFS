@@ -99,7 +99,7 @@ environment() {
 
   validate_elevation() {
     if [ "$(id -u)" -ne 0 ]; then
-      pout --permission "Use \`sudo -1\` to run this script as root/superuser."
+      pout --permission "Use \`sudo -1\` to enter the root/superuser prompt then run the script."
     fi
   }
 
