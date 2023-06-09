@@ -140,10 +140,10 @@ environment() {
 
       #@ Display information
       if [ "$disk_count" -gt 1 ]; then
-        printf "\n      %ss |>  %s\n" "$label" "$disk_array"
+        printf "      %ss |>  %s\n" "$label" "$disk_array"
         printf "  No. of Disks |>  %s\n" "$disk_count"
       else
-        printf "\n       %s |>  %s\n" "$label" "$disk_array"
+        printf "       %s |>  %s\n" "$label" "$disk_array"
       fi
     }
 
