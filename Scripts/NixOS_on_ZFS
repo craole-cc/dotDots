@@ -252,21 +252,16 @@ environment() {
   }
 
   validate_deps() {
-#@ List packages to check and install
-packages="jq parted bat helix git hello cowsay"
+    #@ List packages to check and install
+    packages="jq parted bat helix git hello cowsay"
 
-#@ Loop through each package
-for package in $packages; do
-  #@ Check if the package is installed
-  if nix-env --query "$package"; then
-    printf "%s is already installed.\n" "$package"
-  else
-    #@ Install the package
-    printf "Installing %s...\n" "$package"
-    nix-env --install "$package"
-    printf "Installation of %s complete.\n" "$package"
-  fi
-done
+    #@ Loop through each package
+    for package in $packages; do
+      #@ Check if the package is installed
+      nix-env --query "$package" >/dev/null 2>&1 ||
+        #@ Install the package
+        nix-env --file '<nixpkgs>' --install --attr "$package"
+    done
 
     # nix-env --file '<nixpkgs>' --install --attr \
     #   jq \
