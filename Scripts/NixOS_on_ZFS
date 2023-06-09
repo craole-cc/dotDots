@@ -252,12 +252,33 @@ environment() {
   }
 
   validate_deps() {
-    nix-env --file '<nixpkgs>' --install --attr \
-      jq \
-      parted \
-      bat \
-      helix \
-      git
+    # List of packages to check and install
+    PACKAGES="tree wget curl"
+
+#!/bin/sh
+
+# List of packages to check and install
+PACKAGES="jq parted bat helix git"
+
+# Loop through each package
+for package in $PACKAGES; do
+  # Check if the package is installed
+  if nix-env --query "$package"; then
+    printf "%s is already installed.\n" "$package"
+  else
+    # Install the package
+    printf "Installing %s...\n" "$package"
+    nix-env --install "$package"
+    printf "Installation of %s complete.\n" "$package"
+  fi
+done
+
+    # nix-env --file '<nixpkgs>' --install --attr \
+    #   jq \
+    #   parted \
+    #   bat \
+    #   helix \
+    #   git
   }
 
   validate_temp_mnt() {
@@ -738,7 +759,7 @@ establish() {
 
 main() {
   environment "$@"
-  establish partitions
+  # establish partitions
   # establish containers
   # establish datasets
   # establish bootloader
