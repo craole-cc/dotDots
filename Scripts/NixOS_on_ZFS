@@ -48,8 +48,8 @@ environment() {
     swap_size=8
     reserved_space=1
     enable_encryption=true
-    temp_mnt="/tmp/${SCR_NAME}"
-    # temp_mnt=$(mktemp -d)
+    # temp_mnt="/tmp/${SCR_NAME}"
+    temp_mnt=$(mktemp -d)
   }
 
   parse_arguments() {
