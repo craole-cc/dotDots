@@ -259,7 +259,7 @@ environment() {
       git
   }
 
-  disclamer() {
+  disclaimer() {
     #@ Present the disclamer and confirm acceptance before proceeding
     printf "%s\n" "${SCR_DISCLAIMER}"
     choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
@@ -696,7 +696,7 @@ establish() {
 
 main() {
   environment "$@"
-  extablish partitions
+  establish partitions
   establish containers
   establish datasets
   establish flake
