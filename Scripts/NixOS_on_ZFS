@@ -325,42 +325,7 @@ partitions() {
 
 containers() {
   boot_containers() {
-    single_disk() {
-      #@ Create a fail-safe boot pool for grub2
-      zpool create \
-        -o compatibility=grub2 \
-        -o ashift=12 \
-        -o autotrim=on \
-        -O acltype=posixacl \
-        -O canmount=off \
-        -O compression=lz4 \
-        -O devices=off \
-        -O normalization=formD \
-        -O relatime=on \
-        -O xattr=sa \
-        -O mountpoint=/boot \
-        -R "${temp_mnt}" \
-        bpool \
-        $(printf '%s ' "${disk}-part2")
-
-      #@ Create root pool for EFI
-      zpool create \
-        -o ashift=12 \
-        -o autotrim=on \
-        -R "${temp_mnt}" \
-        -O acltype=posixacl \
-        -O canmount=off \
-        -O compression=zstd \
-        -O dnodesize=auto \
-        -O normalization=formD \
-        -O relatime=on \
-        -O xattr=sa \
-        -O mountpoint=/ \
-        rpool \
-        $(printf '%s ' "${disk}-part3")
-    }
-
-    multi_disk() {
+    if [ "$disk_count" -gt 1 ]; then
       #@ Create a fail-safe boot pool for grub2
       zpool create \
         -o compatibility=grub2 \
@@ -377,9 +342,9 @@ containers() {
         -R "${temp_mnt}" \
         bpool \
         mirror \
-        "$(for i in ${disk_array}; do
-          printf '%s' "${i}-part2"
-        done)"
+        $(for i in ${disk_array}; do
+          printf '%s ' "${i}-part2"
+        done)
 
       #@ Create root pool for EFI
       zpool create \
@@ -396,15 +361,46 @@ containers() {
         -O mountpoint=/ \
         rpool \
         mirror \
-        "$(for i in ${disk_array}; do
-          printf '%s' "${i}-part3"
-        done)"
-    }
-
-    if [ "$disk_array" ]; then
-      multi_disk
+        $(for i in ${disk_array}; do
+          printf '%s ' "${i}-part3"
+        done)
     else
-      single_disk
+      #@ Create a fail-safe boot pool for grub2
+      zpool create \
+        -o compatibility=grub2 \
+        -o ashift=12 \
+        -o autotrim=on \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=lz4 \
+        -O devices=off \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/boot \
+        -R "${temp_mnt}" \
+        bpool \
+        $(for i in ${disk_array}; do
+          printf '%s ' "${i}-part2"
+        done)
+
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        $(for i in ${disk_array}; do
+          printf '%s ' "${i}-part3"
+        done)
     fi
   }
 

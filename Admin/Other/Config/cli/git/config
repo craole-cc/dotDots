@@ -9,6 +9,7 @@
 	#@ Global gitignore (applied to all repositories)
 	excludesfile = "~/DOTS/Config/cli/git/gitignore"
 	# excludesfile = "$GDOTDIR/gitignore"
+	#DOC https://github.com/git/git/blob/ce81b1da230cf04e231ce337c2946c0671ffb303/Documentation/git.txt#L83-L104
 
 	#@ Ensure that Git doesn't change line endings automatically
 	autocrlf = input
@@ -24,7 +25,7 @@
 
 [commit]
 	; Show full diff when editing commit message
-	# verbose = true
+	verbose = true
 
 [push]
 	default = simple
