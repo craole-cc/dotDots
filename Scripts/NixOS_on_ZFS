@@ -311,7 +311,7 @@ partitions() {
   }
 
   init_boot() {
-    umount "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    umount "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
     mkfs.vfat -n EFI "${disk}"-part1
     mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
     mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
