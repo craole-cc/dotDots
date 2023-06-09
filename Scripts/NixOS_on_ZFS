@@ -330,7 +330,7 @@ partitions() {
 }
 
 containers() {
-  boot_pool() {
+  boot_containers() {
     single_disk() {
       #@ Create a fail-safe boot pool for grub2
       zpool create \
@@ -348,6 +348,22 @@ containers() {
         -R "${temp_mnt}" \
         bpool \
         "$(printf '%s' "${disk}-part2")"
+
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        "$(printf '%s' "${disk}-part3")"
     }
 
     multi_disk() {
@@ -367,10 +383,35 @@ containers() {
         -R "${temp_mnt}" \
         bpool \
         mirror \
-        "$(for disk in ${disk_array}; do
-          printf '%s' "${disk}-part2"
+        "$(for i in ${disk_array}; do
+          printf '%s' "${i}-part2"
+        done)"
+
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        mirror \
+        "$(for i in ${disk_array}; do
+          printf '%s' "${i}-part3"
         done)"
     }
+
+    if [ "$disk_array" ]; then
+      multi_disk
+    else
+      single_disk
+    fi
   }
 
   root_pool() {
@@ -431,10 +472,10 @@ containers() {
 
     #@ Encrypt the system container if enabled
     if [ "$enable_encryption" ]; then
-      printf "\n%s...\n" "Creating encrypted root pool"
-      printf "%s\n%s\n" \
-        "WARNING: Please set a strong password and memorize it." \
-        "See zfs-change-key(8) for more info"
+      # printf "\n%s...\n" "Creating encrypted root pool"
+      # printf "%s\n%s\n" \
+      #   "WARNING: Please set a strong password and memorize it." \
+      #   "See zfs-change-key(8) for more info"
 
       #@ Creat and encrypt the root container
       zfs create \
@@ -453,8 +494,7 @@ containers() {
     fi
   }
 
-  boot_pool
-  root_pool
+  boot_containers
   system_container
 }
 
