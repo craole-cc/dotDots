@@ -259,22 +259,14 @@ environment() {
     for package in $packages; do
       #@ Check if the package is installed
       nix-env --query "$package" >/dev/null 2>&1 || {
-
         #@ Install the package
         nix-env \
           --file '<nixpkgs>' \
           --install --attr "$package" \
           >/dev/null 2>&1
-        printf "Installed '%s'\n" "$package"
+        printf "Installed |>%s\n" "$package"
       }
     done
-
-    # nix-env --file '<nixpkgs>' --install --attr \
-    #   jq \
-    #   parted \
-    #   bat \
-    #   helix \
-    #   git
   }
 
   validate_temp_mnt() {
