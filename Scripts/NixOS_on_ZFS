@@ -245,9 +245,12 @@ environment() {
 
   validate_deps() {
     #@ Install programs needed for system installation
-    if ! command -v git; then execute nix-env -f '<nixpkgs>' -iA git; fi
-    if ! command -v jq; then execute nix-env -f '<nixpkgs>' -iA jq; fi
-    if ! command -v partprobe; then execute nix-env -f '<nixpkgs>' -iA parted; fi
+    execute nix-env -f '<nixpkgs>' -iA git
+    execute nix-env -f '<nixpkgs>' -iA jq
+    execute nix-env -f '<nixpkgs>' -iA parted
+    # if ! command -v git; then execute nix-env -f '<nixpkgs>' -iA git; fi
+    # if ! command -v jq; then execute nix-env -f '<nixpkgs>' -iA jq; fi
+    # if ! command -v partprobe; then execute nix-env -f '<nixpkgs>' -iA parted; fi
   }
 
   set_defaults
