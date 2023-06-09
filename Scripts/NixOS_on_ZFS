@@ -458,7 +458,7 @@ containers() {
   }
 
   for_boot
-  # for_system
+  for_system
 }
 
 datasets() {
