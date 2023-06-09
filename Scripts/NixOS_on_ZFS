@@ -288,6 +288,12 @@ partitions() {
     swapon /dev/mapper/"${disk##*/}"-part4
   }
 
+  init_boot() {
+    mkfs.vfat -n EFI "${disk}"-part1
+    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+  }
+
   #@ Present the disclamer and confirm acceptance before proceeding
   printf "%s\n" "${SCR_DISCLAIMER}"
   choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
@@ -299,11 +305,13 @@ partitions() {
         wipe_disk
         partition_disk
         init_swap
+        init_boot
       done
     else
       wipe_disk
       partition_disk
       init_swap
+      init_boot
     fi
     ;;
   *)
@@ -477,23 +485,7 @@ datasets() {
   zfs snapshot rpool/nixos/empty@start
 }
 
-EFI_system_partition() {
-  mount_esp() {
-    mkfs.vfat -n EFI "${disk}"-part1
-    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-  }
-
-  if "${disk_array}"; then
-    for disk in ${disk_array}; do
-      mount_esp
-    done
-  else
-    mount_esp
-  fi
-}
-
-configuration() {
+flake() {
   flake_init() {
     #@ Enable Nix Flakes functionality
     mkdir -p ~/.config/nix
@@ -696,13 +688,11 @@ establish() {
 }
 
 main() {
-
   environment "$@"
   establish partitions
   establish containers
   establish datasets
-  establish EFI_system_partition
-  establish configuration
+  establish flake
   establish cleanup
 }
 
