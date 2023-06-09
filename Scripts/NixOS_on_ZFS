@@ -140,10 +140,10 @@ environment() {
 
       #@ Display information
       if [ "$disk_count" -gt 1 ]; then
-        printf "      %ss |>  %s\n" "$label" "$disk_array"
+        printf "\n      %ss |>  %s\n" "$label" "$disk_array"
         printf "  No. of Disks |>  %s\n" "$disk_count"
       else
-        printf "       %s |>  %s\n" "$label" "$disk_array"
+        printf "\n       %s |>  %s\n" "$label" "$disk_array"
       fi
     }
 
@@ -251,51 +251,6 @@ environment() {
     validate_var_enable_encryption
   }
 
-  # validate_deps() {
-  #   #@ List packages to check and install
-  #   packages="jq parted bat helix git hello cowsay"
-
-  #   #@ Loop through each package
-  #   for package in $packages; do
-  #     #@ Check if the package is installed
-  #     nix-env --query "$package" >/dev/null 2>&1 || {
-  #       #@ Install the package
-  #       nix-env \
-  #         --file '<nixpkgs>' \
-  #         --install --attr "$package" \
-  #         >/dev/null 2>&1
-  #       printf "     Installed |>  %s\n" "$package"
-  #     }
-  #   done
-  # }
-  #   validate_deps() {
-  #   # List packages to check and install
-  #   packages="jq parted bat helix git hello cowsay"
-  #   installed_packages=""
-
-  #   # Loop through each package
-  #   for package in $packages; do
-  #     # Check if the package is installed
-  #     if ! nix-env --query "$package" >/dev/null 2>&1; then
-  #       # Install the package
-  #       nix-env \
-  #         --file '<nixpkgs>' \
-  #         --install --attr "$package" \
-  #         >/dev/null 2>&1
-  #       if [ -z "$installed_packages" ]; then
-  #         installed_packages="$package"
-  #       else
-  #         installed_packages="$installed_packages, $package"
-  #       fi
-  #     fi
-  #   done
-
-  #   # Print the installed packages if any
-  #   if [ -n "$installed_packages" ]; then
-  #     printf "Installed %s\n" "$installed_packages"
-  #   fi
-  # }
-
   validate_deps() {
     # List packages to check and install
     packages="jq parted bat helix git hello cowsay"
@@ -326,7 +281,7 @@ environment() {
         last_package=$(echo "$installed_packages" | awk -F', ' '{print $NF}')
         installed_packages=$(echo "$installed_packages" | sed "s/, $last_package$/, and $last_package/")
       fi
-      printf "Installed %s\n" "$installed_packages"
+      printf "     Installed |>  %s\n" "$installed_packages"
     fi
   }
 
@@ -336,7 +291,7 @@ environment() {
 
   disclaimer() {
     #@ Present the disclamer and confirm acceptance before proceeding
-    printf "%s\n" "${SCR_DISCLAIMER}"
+    printf "\n%s\n" "${SCR_DISCLAIMER}"
     # choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
     # case "${choice}" in
     # [Yy]*) ;;
@@ -350,9 +305,9 @@ environment() {
   validate_elevation
   set_defaults
   parse_arguments "$@"
-  printf "\n" && validate_vars
-  printf "\n" && validate_deps
-  printf "\n" && disclaimer
+  validate_vars
+  validate_deps
+  disclaimer
   validate_temp_mnt
 }
 
