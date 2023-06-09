@@ -330,15 +330,7 @@ partitions() {
 }
 
 containers() {
-  for_boot() {
-    printf "%s\n" "Boot Containers"
-
-    init_boot_container() {
-      mkfs.vfat -n EFI "${disk}"-part1
-      mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-      mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    }
-
+  boot_pool() {
     single_disk() {
       #@ Create a fail-safe boot pool for grub2
       zpool create \
@@ -356,25 +348,6 @@ containers() {
         -R "${temp_mnt}" \
         bpool \
         "$(printf '%s' "${disk}-part2")"
-
-      #@ Create root pool for EFI
-      zpool create \
-        -o ashift=12 \
-        -o autotrim=on \
-        -R "${temp_mnt}" \
-        -O acltype=posixacl \
-        -O canmount=off \
-        -O compression=zstd \
-        -O dnodesize=auto \
-        -O normalization=formD \
-        -O relatime=on \
-        -O xattr=sa \
-        -O mountpoint=/ \
-        rpool \
-        "$(printf '%s' "${disk}-part3")"
-
-      #@ Format and initialize the boot partition
-      init_boot_container
     }
 
     multi_disk() {
@@ -397,7 +370,35 @@ containers() {
         "$(for disk in ${disk_array}; do
           printf '%s' "${disk}-part2"
         done)"
+    }
+  }
 
+  root_pool() {
+    # init_boot_container() {
+    #   mkfs.vfat -n EFI "${disk}"-part1
+    #   mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    #   mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    # }
+
+    single_disk() {
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        "$(printf '%s' "${disk}-part3")"
+    }
+
+    multi_disk() {
       #@ Create root pool for EFI
       zpool create \
         -o ashift=12 \
@@ -416,11 +417,6 @@ containers() {
         "$(for disk in ${disk_array}; do
           printf '%s' "${disk}-part3"
         done)"
-
-      #@ Format and initialize the boot partition
-      for disk in ${disk_array}; do
-        init_boot_container
-      done
     }
 
     if [ "$disk_array" ]; then
@@ -430,15 +426,15 @@ containers() {
     fi
   }
 
-  for_system() {
+  system_container() {
     printf "\n%s...\n" "Establishing the system container"
 
     #@ Encrypt the system container if enabled
     if [ "$enable_encryption" ]; then
-      # printf "\n%s...\n" "Creating encrypted root pool"
-      # printf "%s\n%s\n" \
-      #   "WARNING: Please set a strong password and memorize it." \
-      #   "See zfs-change-key(8) for more info"
+      printf "\n%s...\n" "Creating encrypted root pool"
+      printf "%s\n%s\n" \
+        "WARNING: Please set a strong password and memorize it." \
+        "See zfs-change-key(8) for more info"
 
       #@ Creat and encrypt the root container
       zfs create \
@@ -457,8 +453,9 @@ containers() {
     fi
   }
 
-  for_boot
-  for_system
+  boot_pool
+  root_pool
+  system_container
 }
 
 datasets() {
