@@ -738,7 +738,7 @@ establish() {
 
 main() {
   environment "$@"
-  # establish partitions
+  establish partitions
   # establish containers
   # establish datasets
   # establish bootloader
