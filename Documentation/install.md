@@ -16,7 +16,7 @@ INTERFACE="wlp4s0"
 SSID="ARRIS-7D7B-5G"
 SSID_KEY="50A5DC337D7B"
 wpa_supplicant -B -i "$INTERFACE" -c <(wpa_passphrase "$SSID" "$SSID_KEY")
-ip -a
+ip -a | grep 192
 ```
 
 ## Script
