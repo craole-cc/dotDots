@@ -244,11 +244,13 @@ environment() {
   }
 
   validate_deps() {
-    #@ Install programs needed for system installation
-    execute nix-shell --packages git jq parted bat helix
-    # if ! command -v git; then execute nix-env -f '<nixpkgs>' -iA git; fi
-    # if ! command -v jq; then execute nix-env -f '<nixpkgs>' -iA jq; fi
-    # if ! command -v partprobe; then execute nix-env -f '<nixpkgs>' -iA parted; fi
+    nix-shell --packages \
+      jq \
+      parted \
+      bat \
+      helix \
+      macchina \
+      git
   }
 
   set_defaults
