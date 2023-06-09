@@ -244,12 +244,12 @@ environment() {
   }
 
   validate_deps() {
-    nix-shell --packages \
+    # nix-shell --packages \
+    nix-env --file '<nixpkgs>' --install --attr \
       jq \
       parted \
       bat \
       helix \
-      macchina \
       git
   }
 
