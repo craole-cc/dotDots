@@ -265,7 +265,7 @@ environment() {
           --file '<nixpkgs>' \
           --install --attr "$package" \
           >/dev/null 2>&1
-        printf "      %s |>  Installed\n" "$package"
+        printf "Installed \`%s\`\n" "$package"
       }
     done
 
