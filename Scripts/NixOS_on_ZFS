@@ -251,23 +251,52 @@ environment() {
     validate_var_enable_encryption
   }
 
-  validate_deps() {
-    #@ List packages to check and install
-    packages="jq parted bat helix git hello cowsay"
+  # validate_deps() {
+  #   #@ List packages to check and install
+  #   packages="jq parted bat helix git hello cowsay"
 
-    #@ Loop through each package
-    for package in $packages; do
-      #@ Check if the package is installed
-      nix-env --query "$package" >/dev/null 2>&1 || {
-        #@ Install the package
-        nix-env \
-          --file '<nixpkgs>' \
-          --install --attr "$package" \
-          >/dev/null 2>&1
-        printf "     Installed |>  %s\n" "$package"
-      }
-    done
-  }
+  #   #@ Loop through each package
+  #   for package in $packages; do
+  #     #@ Check if the package is installed
+  #     nix-env --query "$package" >/dev/null 2>&1 || {
+  #       #@ Install the package
+  #       nix-env \
+  #         --file '<nixpkgs>' \
+  #         --install --attr "$package" \
+  #         >/dev/null 2>&1
+  #       printf "     Installed |>  %s\n" "$package"
+  #     }
+  #   done
+  # }
+  validate_deps() {
+  # List packages to check and install
+  packages="jq parted bat helix git hello cowsay"
+  installed_packages=""
+
+  # Loop through each package
+  for package in $packages; do
+    # Check if the package is installed
+    if ! nix-env --query "$package" >/dev/null 2>&1; then
+      # Install the package
+      nix-env \
+        --file '<nixpkgs>' \
+        --install --attr "$package" \
+        >/dev/null 2>&1
+      if [ -z "$installed_packages" ]; then
+        installed_packages="$package"
+      else
+        installed_packages="$installed_packages, $package"
+      fi
+    fi
+  done
+
+  # Print the installed packages if any
+  if [ -n "$installed_packages" ]; then
+    printf "Installed %s\n" "$installed_packages"
+  fi
+}
+
+
 
   validate_temp_mnt() {
     [ -d "${temp_mnt}" ] || mkdir --parents "${temp_mnt}"
