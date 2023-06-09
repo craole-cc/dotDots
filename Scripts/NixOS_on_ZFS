@@ -257,13 +257,14 @@ environment() {
   parse_arguments "$@"
   validate_vars
   validate_deps
+  sudo -i
 }
 
 partitions() {
   wipe_disk() {
-    execute sfdisk --wipe always --delete "${disk}"
-    execute blkdiscard --force "${disk}"
-    execute wipefs --all --force "${disk}"
+    sfdisk --wipe always --delete "${disk}"
+    blkdiscard --force "${disk}"
+    wipefs --all --force "${disk}"
   }
 
   partition_disk() {
@@ -319,8 +320,6 @@ partitions() {
     exit 0
     ;;
   esac
-
-  # modprobe zfs
 }
 
 containers() {
@@ -682,7 +681,7 @@ establish() {
     ;;
   *)
     printf "Cancelled initialization of the %s\n" "$1"
-    return 1
+    exit
     ;;
   esac
 }
