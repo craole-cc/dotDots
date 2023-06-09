@@ -258,9 +258,15 @@ environment() {
     #@ Loop through each package
     for package in $packages; do
       #@ Check if the package is installed
-      nix-env --query "$package" >/dev/null 2>&1 ||
+      nix-env --query "$package" >/dev/null 2>&1 || {
+
         #@ Install the package
-        nix-env --file '<nixpkgs>' --install --attr "$package"
+        nix-env \
+          --file '<nixpkgs>' \
+          --install --attr "$package" \
+          >/dev/null 2>&1
+        printf "      %s |>  Installed\n" "$package"
+      }
     done
 
     # nix-env --file '<nixpkgs>' --install --attr \
