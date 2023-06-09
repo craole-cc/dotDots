@@ -48,7 +48,7 @@ environment() {
     swap_size=8
     reserved_space=1
     enable_encryption=true
-    temp_mnt=$(mktemp -d)
+    # temp_mnt=$(mktemp -d)
   }
 
   parse_arguments() {
@@ -259,17 +259,22 @@ environment() {
       git
   }
 
+  create_temp_mnt() {
+    mkdir --parents "/tmp/${SCR_NAME}"
+    temp_mnt="/tmp/${SCR_NAME}"
+  }
+
   disclaimer() {
     #@ Present the disclamer and confirm acceptance before proceeding
     printf "%s\n" "${SCR_DISCLAIMER}"
-    choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
-    case "${choice}" in
-    [Yy]*) ;;
-    *)
-      printf "%s\n" "Exiting..."
-      exit 0
-      ;;
-    esac
+    # choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
+    # case "${choice}" in
+    # [Yy]*) ;;
+    # *)
+    #   printf "%s\n" "Exiting..."
+    #   exit 0
+    #   ;;
+    # esac
   }
 
   validate_elevation
@@ -277,6 +282,7 @@ environment() {
   parse_arguments "$@"
   validate_vars
   validate_deps
+  create_temp_mnt
   disclaimer
 }
 
@@ -310,25 +316,16 @@ partitions() {
     swapon /dev/mapper/"${disk##*/}"-part4
   }
 
-  init_boot() {
-    umount "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    mkfs.vfat -n EFI "${disk}"-part1
-    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-  }
-
   if [ "$disk_array" ]; then
     for disk in ${disk_array}; do
       wipe_disk || pout --error "Failed to wipe disk"
       partition_disk || pout --error "Failed to partition disk"
       init_swap || pout --error "Failed to initialize swap partition"
-      init_boot || pout --error "Failed to initialize the boot partition"
     done
   else
     wipe_disk || pout --error "Failed to wipe disk"
     partition_disk || pout --error "Failed to partition disk"
     init_swap || pout --error "Failed to initialize swap partition"
-    init_boot || pout --error "Failed to initialize the boot partition"
   fi
 }
 
@@ -358,7 +355,7 @@ containers() {
         -O mountpoint=/boot \
         -R "${temp_mnt}" \
         bpool \
-        "$(printf '%s ' "${disk}-part2")"
+        $(printf '%s ' "${disk}-part2")
 
       #@ Create root pool for EFI
       zpool create \
@@ -492,6 +489,22 @@ datasets() {
   #| Empty
   zfs create -o mountpoint=legacy rpool/nixos/empty
   zfs snapshot rpool/nixos/empty@start
+}
+
+bootlaoder() {
+  init_boot() {
+    mkfs.vfat -n EFI "${disk}"-part1
+    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+  }
+
+  if [ "$disk_array" ]; then
+    for disk in ${disk_array}; do
+      init_boot || pout --error "Failed to initialize the boot partition"
+    done
+  else
+    init_boot || pout --error "Failed to initialize the boot partition"
+  fi
 }
 
 flake() {
@@ -698,11 +711,12 @@ establish() {
 
 main() {
   environment "$@"
-  establish partitions
-  establish containers
-  establish datasets
-  establish flake
-  establish cleanup
+  # establish partitions
+  # establish containers
+  # establish datasets
+  # establish bootloader
+  # establish flake
+  # establish cleanup
 }
 
 main "$@"
