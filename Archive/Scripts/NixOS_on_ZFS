@@ -1,0 +1,758 @@
+#!/bin/sh
+# shellcheck disable=SC2046,SC2154,SC3045
+#DOC https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS.html
+SCR_NAME="NixOS_on_ZFS"
+SCR_DESCRIPTION="Install NixOS on a single disk using the ZFS file system for improved performance and memory management."
+SCR_DISCLAIMER="DISCLAIMER: This script will delete all data from your disk. Refer to the documentation for more details."
+
+show_usage_guide() {
+  cat <<EOF
+Usage: $SCR_NAME [OPTIONS]
+
+Options:
+  -d, --disk          disk_array        Disk (e.g., /dev/disk/by-id/DISK_ID_HERE)
+  -e, --git-email     git_email         Git email address
+  -u, --git-user      git_user          Git username
+  -s, --swap-size     swap_size         Swap size in GB (min: 4 | max: 32 | default: 8)
+  -r, --reserve       reserved_size     Reserved space at the end of the disk in GB (default: 1)
+  -n, --no-encrypt                      Disable encryption (default: enabled)
+  -h, --help                            Display this help and exit
+
+Description:
+  $SCR_DESCRIPTION
+
+Example:
+  $SCR_NAME \\
+    --disk /dev/disk/by-id/ata-TOSHIBA_MQ01ACF050_76ULCLH7T \\
+    --git-email user@example.com \\
+    --git-user username \\
+    --swap-size 4 \\
+    --reserve 1 \\
+    --no-encrypt
+
+Disclaimer:
+  $SCR_DISCLAIMER
+
+EOF
+}
+
+environment() {
+  set_defaults() {
+    #@ Reeset variables
+    unset disk_array email user swap_size reserved_space enable_encryption diskNames
+
+    #@ Set default variables
+    disk_array="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
+    git_email="iamcraole@gmail.com"
+    git_user="Craole"
+    swap_size=8
+    reserved_space=1
+    enable_encryption=true
+    # temp_mnt="/tmp/${SCR_NAME}"
+    temp_mnt=$(mktemp -d)
+  }
+
+  parse_arguments() {
+    #@ Parse arguments
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      #@ Set the DISK variable while handling missing info
+      -d | --disk | --id)
+        [ "$2" ] && {
+          disk_array="$2"
+          shift
+        }
+        ;;
+      -e | --email)
+        [ "$2" ] && {
+          git_email="$2"
+          shift
+        }
+        ;;
+      -u | --user)
+        [ "$2" ] && {
+          git_user="$2"
+          shift
+        }
+        ;;
+      -s | --swap)
+        [ "$2" ] && {
+          swap_size="${2}"
+          shift
+        }
+        ;;
+      -r | --reserve)
+        [ "$2" ] && {
+          reserved_space="${2}"
+          shift
+        }
+        ;;
+      -n | --no-encrypt) enable_encryption=false ;;
+      -h | --help)
+        show_usage_guide
+        exit 0
+        ;;
+      *) pout --invalid Option "${1}" ;;
+      esac
+      shift
+    done
+  }
+
+  validate_elevation() {
+    if [ "$(id -u)" -ne 0 ]; then
+      pout --permission "Use \`sudo -1\` to enter the root/superuser prompt then run the script."
+    fi
+  }
+
+  validate_vars() {
+
+    validate_var_disk() {
+      label="Disk ID"
+      value="$disk_array"
+      unset disk_array disk
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      #@ Update the disk id variable to strip whitespace and delimiters
+      value=$(
+        printf '%s' "$value" |
+          #@ Remove leading and trailing whitespace
+          sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' |
+          #@ Replace delimiters with spaces
+          tr -s '[:space:],;' ' '
+      )
+
+      #@ Ensure that each string resolves to a valid symlink
+      for disk in $value; do
+        [ -L "${disk}" ] ||
+          pout --invalid "Disk" "${disk} [ Ex: /dev/disk/by-id/DISK_ID_HERE ]"
+      done
+
+      #@ Update Variable
+      disk_count="$(printf "%s\n" "$value" | wc -w)"
+      if [ "$disk_count" -gt 1 ]; then
+        disk_array="$value"
+      else
+        disk="$value"
+      fi
+
+      #@ Display information
+      if [ "$disk_array" ]; then
+        printf "      %ss |>  %s\n" "$label" "$disk_array"
+        printf "  No. of Disks |>  %s\n" "$disk_count"
+      else
+        printf "       %s |>  %s\n" "$label" "$disk"
+      fi
+    }
+
+    validate_var_git_email() {
+      label="Email"
+      value="$git_email"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      #@ Use a regular expression to validate the git email address
+      printf '%s' "$value" |
+        grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' ||
+        pout --invalid "$label" "${value}"
+
+      #@ Display information
+      printf "     Git Email |>  %s\n" "$value"
+
+      #@ Update/Return Variable
+      git_email="$value"
+    }
+
+    validate_var_git_user() {
+      label="Username"
+      value="$git_user"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      #@ Use a regular expression to validate
+      printf '%s' "$value" | grep -Eq '^[A-Za-z0-9._-]+$' ||
+        pout --invalid "$label" "${value}"
+
+      #@ Display information
+      printf "  Git Username |>  %s\n" "$value"
+
+      #@ Update/Return Variable
+      git_user="$value"
+    }
+
+    validate_var_swap_size() {
+      label="Swap Size"
+      value="$swap_size"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      #@ Check if swap_space is a positive integer between 4 and 32
+      { [ "$value" -ge 4 ] && [ "$value" -le 32 ]; } ||
+        pout --invalid "$label" "${value} [ Min: 4 | Max: 32 ]"
+
+      #@ Display information
+      printf "     %s |>  %s\n" "$label" "$value"
+
+      #@ Update/Return Variable
+      swap_size="$value"
+    }
+
+    validate_var_reserved_space() {
+      label="Reserved Space"
+      value="$reserved_space"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      #@ Check if reserved_space is a positive integer greater than or equal to 1
+      [ "$value" -ge 1 ] ||
+        pout --invalid "$label" "${value} [ Min: 1 ]"
+
+      #@ Display information
+      printf "%s |>  %s\n" "$label" "$value"
+
+      #@ Update/Return Variable
+      reserved_space="$value"
+    }
+
+    validate_var_enable_encryption() {
+      label="Encryption"
+      value="$enable_encryption"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      #@ Check if encryption is either "true", "false", 1, or 0
+      { [ "$value" = "true" ] || [ "$value" = "false" ] ||
+        [ "$value" = "1" ] || [ "$value" = "0" ]; } ||
+        pout --invalid "$label" "${value} [ true | false | 1 | 0 ]"
+
+      #@ Update/Return Variable
+      if [ "$value" = "false" ] || [ "$value" = "0" ]; then
+        printf "    %s |>  %s\n" "$label" "Disabled"
+        unset enable_encryption
+      else
+        printf "    %s |>  %s\n" "$label" "Enabled"
+        enable_encryption="$value"
+      fi
+    }
+
+    #@ Validate variables
+    validate_var_disk
+    validate_var_git_email
+    validate_var_git_user
+    validate_var_swap_size
+    validate_var_reserved_space
+    validate_var_enable_encryption
+  }
+
+  validate_deps() {
+    nix-env --file '<nixpkgs>' --install --attr \
+      jq \
+      parted \
+      bat \
+      helix \
+      git
+  }
+
+  validate_temp_mnt() {
+    [ -d "${temp_mnt}" ] || mkdir --parents "${temp_mnt}"
+  }
+
+  disclaimer() {
+    #@ Present the disclamer and confirm acceptance before proceeding
+    printf "%s\n" "${SCR_DISCLAIMER}"
+    # choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
+    # case "${choice}" in
+    # [Yy]*) ;;
+    # *)
+    #   printf "%s\n" "Exiting..."
+    #   exit 0
+    #   ;;
+    # esac
+  }
+
+  validate_elevation
+  set_defaults
+  parse_arguments "$@"
+  printf "\n" && validate_vars
+  printf "\n" && validate_deps
+  printf "\n" && disclaimer
+  validate_temp_mnt
+}
+
+partitions() {
+  wipe_disk() {
+    sfdisk --wipe always --delete "${disk}"
+    blkdiscard --force "${disk}" >/dev/null 2>&1
+    wipefs --all --force "${disk}"
+  }
+
+  partition_disk() {
+    parted --script --align=optimal "${disk}" -- \
+      mklabel gpt \
+      mkpart EFI 2MiB 1GiB \
+      mkpart bpool 1GiB 5GiB \
+      mkpart rpool 5GiB -$((swap_size + reserved_space))GiB \
+      mkpart swap -$((swap_size + reserved_space))GiB -"${reserved_space}"GiB \
+      mkpart BIOS 1MiB 2MiB \
+      set 1 esp on \
+      set 5 bios_grub on \
+      set 5 legacy_boot on
+
+    partprobe "${disk}"
+    udevadm settle
+  }
+
+  init_swap() {
+    swapoff /dev/mapper/"${disk##*/}"-part4 >/dev/null 2>&1
+    cryptsetup open --type plain --key-file /dev/random "${disk}"-part4 "${disk##*/}"-part4
+    mkswap /dev/mapper/"${disk##*/}"-part4
+    swapon /dev/mapper/"${disk##*/}"-part4
+  }
+
+  if [ "$disk_array" ]; then
+    for disk in ${disk_array}; do
+      wipe_disk || pout --error "Failed to wipe disk"
+      partition_disk || pout --error "Failed to partition disk"
+      init_swap || pout --error "Failed to initialize swap partition"
+    done
+  else
+    wipe_disk || pout --error "Failed to wipe disk"
+    partition_disk || pout --error "Failed to partition disk"
+    init_swap || pout --error "Failed to initialize swap partition"
+  fi
+}
+
+containers() {
+  boot_containers() {
+    single_disk() {
+      #@ Create a fail-safe boot pool for grub2
+      zpool create \
+        -o compatibility=grub2 \
+        -o ashift=12 \
+        -o autotrim=on \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=lz4 \
+        -O devices=off \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/boot \
+        -R "${temp_mnt}" \
+        bpool \
+        $(printf '%s ' "${disk}-part2")
+
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        $(printf '%s ' "${disk}-part3")
+    }
+
+    multi_disk() {
+      #@ Create a fail-safe boot pool for grub2
+      zpool create \
+        -o compatibility=grub2 \
+        -o ashift=12 \
+        -o autotrim=on \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=lz4 \
+        -O devices=off \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/boot \
+        -R "${temp_mnt}" \
+        bpool \
+        mirror \
+        "$(for i in ${disk_array}; do
+          printf '%s' "${i}-part2"
+        done)"
+
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        mirror \
+        "$(for i in ${disk_array}; do
+          printf '%s' "${i}-part3"
+        done)"
+    }
+
+    if [ "$disk_array" ]; then
+      multi_disk
+    else
+      single_disk
+    fi
+  }
+
+  root_pool() {
+    # init_boot_container() {
+    #   mkfs.vfat -n EFI "${disk}"-part1
+    #   mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    #   mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    # }
+
+    single_disk() {
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        "$(printf '%s' "${disk}-part3")"
+    }
+
+    multi_disk() {
+      #@ Create root pool for EFI
+      zpool create \
+        -o ashift=12 \
+        -o autotrim=on \
+        -R "${temp_mnt}" \
+        -O acltype=posixacl \
+        -O canmount=off \
+        -O compression=zstd \
+        -O dnodesize=auto \
+        -O normalization=formD \
+        -O relatime=on \
+        -O xattr=sa \
+        -O mountpoint=/ \
+        rpool \
+        mirror \
+        "$(for disk in ${disk_array}; do
+          printf '%s' "${disk}-part3"
+        done)"
+    }
+
+    if [ "$disk_array" ]; then
+      multi_disk
+    else
+      single_disk
+    fi
+  }
+
+  system_container() {
+    printf "\n%s...\n" "Establishing the system container"
+
+    #@ Encrypt the system container if enabled
+    if [ "$enable_encryption" ]; then
+      # printf "\n%s...\n" "Creating encrypted root pool"
+      # printf "%s\n%s\n" \
+      #   "WARNING: Please set a strong password and memorize it." \
+      #   "See zfs-change-key(8) for more info"
+
+      #@ Creat and encrypt the root container
+      zfs create \
+        -o canmount=off \
+        -o mountpoint=none \
+        -o encryption=on \
+        -o keylocation=prompt \
+        -o keyformat=passphrase \
+        rpool/nixos
+    else
+      #@ Creat the root container
+      zfs create \
+        -o canmount=off \
+        -o mountpoint=none \
+        rpool/nixos
+    fi
+  }
+
+  boot_containers
+  system_container
+}
+
+datasets() {
+  #| Boot
+  zfs create -o mountpoint=none bpool/nixos
+  zfs create -o mountpoint=legacy bpool/nixos/root
+  mkdir "${temp_mnt}"/boot
+  mount -t zfs bpool/nixos/root "${temp_mnt}"/boot
+
+  #| Root
+  zfs create -o mountpoint=legacy rpool/nixos/root
+  mount -t zfs rpool/nixos/root "${temp_mnt}"/
+
+  #| Home
+  zfs create -o mountpoint=legacy rpool/nixos/home
+  mkdir "${temp_mnt}"/home
+  mount -t zfs rpool/nixos/home "${temp_mnt}"/home
+
+  #| Var
+  zfs create -o mountpoint=legacy rpool/nixos/var
+  zfs create -o mountpoint=legacy rpool/nixos/var/lib
+  zfs create -o mountpoint=legacy rpool/nixos/var/log
+  mkdir -p "${temp_mnt}"/var/log
+  mkdir -p "${temp_mnt}"/var/lib
+  mount -t zfs rpool/nixos/var/lib "${temp_mnt}"/var/lib
+  mount -t zfs rpool/nixos/var/log "${temp_mnt}"/var/log
+
+  #| Empty
+  zfs create -o mountpoint=legacy rpool/nixos/empty
+  zfs snapshot rpool/nixos/empty@start
+}
+
+bootlaoder() {
+  init_boot() {
+    mkfs.vfat -n EFI "${disk}"-part1
+    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+  }
+
+  if [ "$disk_array" ]; then
+    for disk in ${disk_array}; do
+      init_boot || pout --error "Failed to initialize the boot partition"
+    done
+  else
+    init_boot || pout --error "Failed to initialize the boot partition"
+  fi
+}
+
+flake() {
+  flake_init() {
+    #@ Enable Nix Flakes functionality
+    mkdir -p ~/.config/nix
+    printf "%s\n" \
+      "experimental-features = nix-command flakes" >> \
+      ~/.config/nix/nix.conf
+
+    #@ Clone the template repository
+    mkdir -p "${temp_mnt}"/etc
+    git clone --depth 1 --branch openzfs-guide \
+      https://github.com/ne9z/dotfiles-flake.git "${temp_mnt}"/etc/nixos
+
+    #@ Update the flake with the user's git credentials
+    rm -rf "${temp_mnt}"/etc/nixos/.git
+    git -C "${temp_mnt}"/etc/nixos/ init -b main
+    git -C "${temp_mnt}"/etc/nixos/ add "${temp_mnt}"/etc/nixos/
+    git -C "${temp_mnt}"/etc/nixos config user.email "$git_email"
+    git -C "${temp_mnt}"/etc/nixos config user.name "$git_user"
+    git -C "${temp_mnt}"/etc/nixos commit -asm 'initial commit'
+  }
+
+  flake_prep() {
+    config_disk_id() {
+      update_disk_id() {
+        sed -i \
+          "s|/dev/disk/by-id/|${disk%/*}/|" \
+          "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+      }
+
+      if "${disk_array}"; then
+        for disk in ${disk_array}; do
+          update_disk_id
+          break
+        done
+      else
+        update_disk_id
+      fi
+    }
+
+    config_disk_name() {
+      update_disk_name() {
+        diskNames="${diskNames} \"${disk##*/}\""
+      }
+
+      if "${disk_array}"; then
+        for disk in ${disk_array}; do
+          update_disk_name
+        done
+      else
+        update_disk_name
+      fi
+
+      sed -i "s|\"bootDevices_placeholder\"|${diskNames}|g" \
+        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    }
+
+    config_host_id() {
+      sed -i "s|\"abcd1234\"|\"$(head -c4 /dev/urandom | od -A none -t x4 | sed 's| ||g' || true)\"|g" \
+        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    }
+
+    config_system() {
+      sed -i "s|\"x86_64-linux\"|\"$(uname -m || true)-linux\"|g" \
+        "${temp_mnt}"/etc/nixos/flake.nix
+    }
+
+    config_kernel() {
+      cp "$(command -v nixos-generate-config || true)" ./nixos-generate-config
+      chmod a+rw ./nixos-generate-config
+      printf "print STDOUT %s\n" "$initrdAvailableKernelModules" >>./nixos-generate-config
+
+      kernelModules="$(
+        ./nixos-generate-config --show-hardware-config --no-filesystems |
+          tail -n1 || true
+      )"
+
+      sed -i "s|\"kernelModules_placeholder\"|${kernelModules}|g" \
+        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    }
+
+    config_root_password() {
+      #@ Set root password
+      rootPwd=$(mkpasswd -m SHA-512)
+
+      #@ Declare password in configuration
+      sed -i \
+        "s|rootHash_placeholder|${rootPwd}|" \
+        "${temp_mnt}"/etc/nixos/configuration.nix
+    }
+
+    #@ Prepare configuration based on the system specifications
+    config_disk_id
+    config_disk_name
+    config_host_id
+    config_system
+    config_kernel
+    config_root_password
+
+    #@ Commit changes to local repo
+    git -C "${temp_mnt}"/etc/nixos commit -asm 'Prepped the flake for installation'
+  }
+
+  flake_install() {
+    #@ Update the flake lock file
+    nix flake update \
+      --commit-lock-file "git+file://${temp_mnt}/etc/nixos"
+
+    #@ Install the flake to the system
+    nixos-install \
+      --root "${temp_mnt}" \
+      --no-root-passwd \
+      --flake "git+file://${temp_mnt}/etc/nixos#exampleHost"
+
+    #@ Display information
+    printf "\n%s\n" "Installation completed successfully."
+  }
+
+  flake_init
+  flake_prep
+  flake_install
+}
+
+cleanup() {
+  #@ Unmount the install environment
+  umount -Rl "${temp_mnt}"
+  zpool export -a
+
+  #@ Allow the user some time to cancel the reboot
+  timer=10 &&
+    printf "Rebooting in %s seconds. Is that OK? [Y/n] \n" "$timer"
+  choice="" &&
+    IFS= read -r -t "$timer" choice
+
+  #@ Exit the script
+  case "$choice" in
+  [nN]*)
+    printf "%s\n" "Reboot canceled"
+    ;;
+  *)
+    printf "%s\n" "Rebooting..."
+    reboot
+    ;;
+  esac
+}
+
+pout() {
+  #@ Print appropriate error message
+  case "${1}" in
+  --*)
+    msg="$(printf "\n:::%s:::" "${1#--}" | tr '[:lower:]' '[:upper:]')"
+    var=${2}
+    shift 2
+    arg=${*}
+    ;;
+  *)
+    shift
+    printf "A valid %s is required \n" "${*}"
+    ;;
+  esac
+
+  if
+    [ -n "${msg}" ] && [ -n "${var}" ] && [ -z "${arg}" ]
+  then
+    printf "%s %s\n" "${msg}" "${var}"
+  elif
+    [ -n "${msg}" ] && [ -n "${var}" ] && [ -n "${arg}" ]
+  then
+    printf "%s %s -> %s\n" "${msg}" "${var}" "${arg}"
+  else
+    printf "%s\n" "${*}"
+  fi
+
+  #@ Print usage and exit with an error code
+  # show_usage_guide
+  exit 1
+}
+
+execute() {
+  if type "$1" >/dev/null 2>&1; then
+    eval sudo "$*"
+  else
+    pout --missing "$1"
+  fi
+}
+
+establish() {
+  printf "\n%s %s? [y/N] " "Are you ready to establish the" "$1"
+  read -r choice
+  case "$choice" in
+  [yY][eE][sS] | [yY])
+    printf "Establishing the %s...\n\n" "$1"
+    "$*"
+    printf "\n%s %s\n\n" "Successfully established the" "$1"
+    ;;
+  *)
+    printf "Cancelled initialization of the %s\n" "$1"
+    exit
+    ;;
+  esac
+}
+
+main() {
+  environment "$@"
+  establish partitions
+  establish containers
+  # establish datasets
+  # establish bootloader
+  # establish flake
+  # establish cleanup
+}
+
+main "$@"
