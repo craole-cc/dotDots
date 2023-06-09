@@ -477,7 +477,7 @@ datasets() {
   zfs snapshot rpool/nixos/empty@start
 }
 
-bootlaoder() {
+bootloader() {
   init_boot() {
     mkfs.vfat -n EFI "${disk}"-part1
     mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
