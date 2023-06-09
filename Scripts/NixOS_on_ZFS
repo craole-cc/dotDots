@@ -304,12 +304,14 @@ partitions() {
   }
 
   init_swap() {
+    swapoff /dev/mapper/"${disk##*/}"-part4 >/dev/null 2>&1
     cryptsetup open --type plain --key-file /dev/random "${disk}"-part4 "${disk##*/}"-part4
     mkswap /dev/mapper/"${disk##*/}"-part4
     swapon /dev/mapper/"${disk##*/}"-part4
   }
 
   init_boot() {
+    umount "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
     mkfs.vfat -n EFI "${disk}"-part1
     mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
     mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
