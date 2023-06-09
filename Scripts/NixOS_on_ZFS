@@ -97,6 +97,12 @@ environment() {
     done
   }
 
+  validate_elevation() {
+    if [ "$(id -u)" -ne 0 ]; then
+      pout --permission "Use \`sudo -1\` to run this script as root/superuser."
+    fi
+  }
+
   validate_vars() {
 
     validate_var_disk() {
@@ -253,11 +259,11 @@ environment() {
       git
   }
 
+  validate_elevation
   set_defaults
   parse_arguments "$@"
   validate_vars
   validate_deps
-  sudo -i
 }
 
 partitions() {
