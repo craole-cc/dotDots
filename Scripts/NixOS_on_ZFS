@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2046,SC2016,SC3045
+# shellcheck disable=SC2046,SC2154,SC3045
 #DOC https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS.html
 SCR_NAME="$(basename "$0")"
 SCR_DESCRIPTION="Install NixOS on a single disk using the ZFS file system for improved performance and memory management."
@@ -39,7 +39,7 @@ EOF
 environment() {
   set_defaults() {
     #@ Reeset variables
-    unset disk_array email user swap_size reserved_space enable_encryption
+    unset disk_array email user swap_size reserved_space enable_encryption diskNames
 
     #@ Set default variables
     disk_array="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
@@ -317,10 +317,9 @@ partitions() {
 
 containers() {
   for_boot() {
-    printf "\n%s...\n" "Establishing the boot containers..."
+    printf "\n%s...\n" "Establishing the boot containers"
 
     init_boot_container() {
-      #@ Format and initialize the boot partition
       mkfs.vfat -n EFI "${disk}"-part1
       mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
       mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
@@ -359,6 +358,9 @@ containers() {
         -O mountpoint=/ \
         rpool \
         "$(printf '%s ' "${disk}-part3")"
+
+      #@ Format and initialize the boot partition
+      init_boot_container
     }
 
     multi_disk() {
@@ -378,7 +380,9 @@ containers() {
         -R "${temp_mnt}" \
         bpool \
         mirror \
-        "$(printf '%s ' "${disk_array}-part2")"
+        "$(for disk in ${disk_array}; do
+          printf '%s ' "${disk}-part2"
+        done)"
 
       #@ Create root pool for EFI
       zpool create \
@@ -395,10 +399,13 @@ containers() {
         -O mountpoint=/ \
         rpool \
         mirror \
-        "$(printf '%s ' "${disk_array}-part3")"
+        "$(for disk in ${disk_array}; do
+          printf '%s ' "${disk}-part3"
+        done)"
 
+      #@ Format and initialize the boot partition
       for disk in ${disk_array}; do
-        init_boot_container "${disk}"
+        init_boot_container
       done
     }
 
@@ -410,11 +417,11 @@ containers() {
   }
 
   for_system() {
-    printf "\n%s...\n" "Establishing the system container..."
+    printf "\n%s...\n" "Establishing the system container"
 
     #@ Encrypt the system container if enabled
     if [ "$enable_encryption" ]; then
-      printf "%s\n" "Creating encrypted root pool."
+      printf "\n%s...\n" "Creating encrypted root pool"
       printf "%s\n%s\n" \
         "WARNING: Please set a strong password and memorize it." \
         "See zfs-change-key(8) for more info"
@@ -470,6 +477,22 @@ datasets() {
   zfs snapshot rpool/nixos/empty@start
 }
 
+EFI_system_partition() {
+  mount_esp() {
+    mkfs.vfat -n EFI "${disk}"-part1
+    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+  }
+
+  if "${disk_array}"; then
+    for disk in ${disk_array}; do
+      mount_esp
+    done
+  else
+    mount_esp
+  fi
+}
+
 configuration() {
   flake_init() {
     #@ Enable Nix Flakes functionality
@@ -493,50 +516,84 @@ configuration() {
   }
 
   flake_prep() {
-    #@ Prepare configuration based on the system specifications
-    for disk in ${disk_array}; do
-      sed -i \
-        "s|/dev/disk/by-id/|${disk%/*}/|" \
+    config_disk_id() {
+      update_disk_id() {
+        sed -i \
+          "s|/dev/disk/by-id/|${disk%/*}/|" \
+          "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+      }
+
+      if "${disk_array}"; then
+        for disk in ${disk_array}; do
+          update_disk_id
+          break
+        done
+      else
+        update_disk_id
+      fi
+    }
+
+    config_disk_name() {
+      update_disk_name() {
+        diskNames="${diskNames} \"${disk##*/}\""
+      }
+
+      if "${disk_array}"; then
+        for disk in ${disk_array}; do
+          update_disk_name
+        done
+      else
+        update_disk_name
+      fi
+
+      sed -i "s|\"bootDevices_placeholder\"|${diskNames}|g" \
         "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
-      break
-    done
+    }
 
-    diskNames=""
-    for disk in ${disk_array}; do
-      diskNames="${diskNames} \"${disk##*/}\""
-    done
+    config_host_id() {
+      sed -i "s|\"abcd1234\"|\"$(head -c4 /dev/urandom | od -A none -t x4 | sed 's| ||g' || true)\"|g" \
+        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    }
 
-    sed -i "s|\"bootDevices_placeholder\"|${diskNames}|g" \
-      "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    config_system() {
+      sed -i "s|\"x86_64-linux\"|\"$(uname -m || true)-linux\"|g" \
+        "${temp_mnt}"/etc/nixos/flake.nix
+    }
 
-    sed -i "s|\"abcd1234\"|\"$(head -c4 /dev/urandom | od -A none -t x4 | sed 's| ||g' || true)\"|g" \
-      "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    config_kernel() {
+      cp "$(command -v nixos-generate-config || true)" ./nixos-generate-config
+      chmod a+rw ./nixos-generate-config
+      printf "print STDOUT %s\n" "$initrdAvailableKernelModules" >>./nixos-generate-config
 
-    sed -i "s|\"x86_64-linux\"|\"$(uname -m || true)-linux\"|g" \
-      "${temp_mnt}"/etc/nixos/flake.nix
+      kernelModules="$(
+        ./nixos-generate-config --show-hardware-config --no-filesystems |
+          tail -n1 || true
+      )"
 
-    cp "$(command -v nixos-generate-config || true)" ./nixos-generate-config
+      sed -i "s|\"kernelModules_placeholder\"|${kernelModules}|g" \
+        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+    }
 
-    chmod a+rw ./nixos-generate-config
+    config_root_password() {
+      #@ Set root password
+      rootPwd=$(mkpasswd -m SHA-512)
 
-    # shellcheck disable=SC2016
-    echo 'print STDOUT $initrdAvailableKernelModules' >>./nixos-generate-config
+      #@ Declare password in configuration
+      sed -i \
+        "s|rootHash_placeholder|${rootPwd}|" \
+        "${temp_mnt}"/etc/nixos/configuration.nix
+    }
 
-    kernelModules="$(./nixos-generate-config --show-hardware-config --no-filesystems | tail -n1 || true)"
-
-    sed -i "s|\"kernelModules_placeholder\"|${kernelModules}|g" \
-      "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
-
-    #@ Set root password
-    rootPwd=$(mkpasswd -m SHA-512)
-
-    #@ Declare password in configuration
-    sed -i \
-      "s|rootHash_placeholder|${rootPwd}|" \
-      "${temp_mnt}"/etc/nixos/configuration.nix
+    #@ Prepare configuration based on the system specifications
+    config_disk_id
+    config_disk_name
+    config_host_id
+    config_system
+    config_kernel
+    config_root_password
 
     #@ Commit changes to local repo
-    git -C "${temp_mnt}"/etc/nixos commit -asm 'initial installation'
+    git -C "${temp_mnt}"/etc/nixos commit -asm 'Prepped the flake for installation'
   }
 
   flake_install() {
@@ -551,11 +608,7 @@ configuration() {
       --flake "git+file://${temp_mnt}/etc/nixos#exampleHost"
 
     #@ Display information
-    printf "%s\n" "Installation completed successfully."
-
-    #@ Cleanup
-    umount -Rl "${temp_mnt}"
-    zpool export -a
+    printf "\n%s\n" "Installation completed successfully."
   }
 
   flake_init
@@ -563,7 +616,10 @@ configuration() {
   flake_install
 }
 
-prevent_reboot() {
+cleanup() {
+  #@ Unmount the install environment
+  umount -Rl "${temp_mnt}"
+  zpool export -a
 
   #@ Allow the user some time to cancel the reboot
   timer=10 &&
@@ -642,11 +698,12 @@ establish() {
 main() {
 
   environment "$@"
-  # establish partitions
-  # establish containers
-  # establish datasets
-  # establish configuration
-  # prevent_reboot
+  establish partitions
+  establish containers
+  establish datasets
+  establish EFI_system_partition
+  establish configuration
+  establish cleanup
 }
 
 main "$@"
