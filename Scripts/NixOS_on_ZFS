@@ -423,7 +423,7 @@ containers() {
       done
     }
 
-    if "${disk_array}"; then
+    if [ "$disk_array" ]; then
       multi_disk
     else
       single_disk
