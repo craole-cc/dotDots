@@ -247,39 +247,38 @@ environment() {
   }
 
   validate_deps() {
-  # List packages to check and install
-  packages="jq parted bat helix git hello cowsay"
-  installed_packages=""
-  count=0
+    # List packages to check and install
+    packages="jq parted bat helix git hello cowsay"
+    installed_packages=""
+    count=0
 
-  #@ Loop through each package
-  for package in $packages; do
-    #@ Check if the package is installed
-    if ! nix-env --query "$package" >/dev/null 2>&1; then
-      #@ Install the package
-      nix-env \
-        --file '<nixpkgs>' \
-        --install --attr "$package" \
-        >/dev/null 2>&1
-      if [ "${count}" -eq 0 ]; then
-        installed_packages="${package}"
-      else
-        installed_packages="${installed_packages}, ${package}"
+    #@ Loop through each package
+    for package in $packages; do
+      #@ Check if the package is installed
+      if ! nix-env --query "$package" >/dev/null 2>&1; then
+        #@ Install the package
+        nix-env \
+          --file '<nixpkgs>' \
+          --install --attr "$package" \
+          >/dev/null 2>&1
+        if [ "${count}" -eq 0 ]; then
+          installed_packages="${package}"
+        else
+          installed_packages="${installed_packages}, ${package}"
+        fi
+        count=$((count + 1))
       fi
-      count=$((count + 1))
-    fi
-  done
+    done
 
-  #@ Print the installed packages if any
-  if [ "${count}" -gt 0 ]; then
-    if [ "${count}" -gt 1 ]; then
-      last_package=$(echo "${installed_packages}" | awk -F', ' '{print $NF}')
-      installed_packages=$(echo "${installed_packages}" | sed "s/, ${last_package}$/, and ${last_package}/")
+    #@ Print the installed packages if any
+    if [ "${count}" -gt 0 ]; then
+      if [ "${count}" -gt 1 ]; then
+        last_package=$(echo "${installed_packages}" | awk -F', ' '{print $NF}')
+        installed_packages=$(echo "${installed_packages}" | sed "s/, ${last_package}$/, and ${last_package}/")
+      fi
+      printf "     Installed |>  %s\n" "${installed_packages}"
     fi
-    printf "     Installed |>  %s\n" "${installed_packages}"
-  fi
-}
-
+  }
 
   validate_temp_mnt() {
     [ -d "${temp_mnt}" ] || mkdir --parents "${temp_mnt}"
@@ -421,10 +420,10 @@ containers() {
 
     #@ Encrypt the system container if enabled
     if [ "$enable_encryption" ]; then
-       printf "\n%s...\n" "Creating encrypted root pool"
-       printf "%s\n%s\n" \
-         "WARNING: Please set a strong password and memorize it." \
-         "See zfs-change-key(8) for more info"
+      printf "\n%s...\n" "Creating encrypted root pool"
+      printf "%s\n%s\n" \
+        "WARNING: Please set a strong password and memorize it." \
+        "See zfs-change-key(8) for more info"
 
       #@ Creat and encrypt the root container
       zfs create \
@@ -513,14 +512,14 @@ flake() {
 
   flake_prep() {
     config_disk_id() {
-        for disk in ${disk_array}; do
-          sed -i \
-            "s|/dev/disk/by-id/|${disk%/*}/|" \
-            "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
-          break
-        done
+      for disk in ${disk_array}; do
+        sed -i \
+          "s|/dev/disk/by-id/|${disk%/*}/|" \
+          "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+        break
+      done
     }
-    
+
     config_disk_name() {
       for disk in ${disk_array}; do
         diskNames="${diskNames} \"${disk##*/}\""
