@@ -40,7 +40,7 @@
 
   ```sh
   #@ Define dotfiles directory
-  DOTS="$HOME/DOTS"
+  DOTS="/etc/nixos"
 
   #@ Define the scripts directory
   NIXS="$DOTS/Scripts"
