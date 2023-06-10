@@ -48,9 +48,21 @@
 
     #@ Clone the dotfiles repository
     git clone https://github.com/craole-cc/dotfiles.git DOTS
+
+    #@ Establish the scripts directory
+    NixOS_SCRIPTS="DOTS/Scripts"
+
+    #@ Make scripts executable
+    find "$NixOS_SCRIPTS" \
+        -type f ! \
+        -perm -u=x \
+        -exec chmod u+x {} \;
+
+    #@ Make the scripts available
+    export PATH="$PATH:$NixOS_SCRIPTS"
   }
 
-  dots_pull() {
+  dots_update() {
     pushd DOTS/ &&
     git pull &&
     popd
