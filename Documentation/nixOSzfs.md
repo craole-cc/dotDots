@@ -36,44 +36,50 @@
   ip -a | grep 192
   ```
 
+- [ ] Initialize the DOTS
+
+  ```sh
+  #@ Define dotfiles directory
+  DOTS="$HOME/DOTS"
+
+  #@ Define the scripts directory
+  NIXS="$DOTS/Scripts"
+
+  #@ Make the scripts available
+  PATH="$PATH:$NIXS"
+
+  #@ Export environment variables
+  export DOTS NIXS PATH
+  ```
+
 - [ ] Define handy functions for interacting with the dotfiles:
 
   ```sh
   dots_init(){
     #@ Delete the dotfiles
-    rm -rf DOTS
-
-    #@ Install git and helix editor
-    nix-env -f '<nixpkgs>' -iA git helix
+    rm -rf "$DOTS"
 
     #@ Clone the dotfiles repository
-    git clone https://github.com/craole-cc/dotfiles.git DOTS
-
-    #@ Establish the scripts directory
-    NixOS_SCRIPTS="DOTS/Scripts"
+    git clone https://github.com/craole-cc/dotfiles.git "$DOTS"
 
     #@ Make scripts executable
-    find "$NixOS_SCRIPTS" \
+    find "${DOTS}/Scripts" \
         -type f ! \
         -perm -u=x \
         -exec chmod u+x {} \;
-
-    #@ Make the scripts available
-    export PATH="$PATH:$NixOS_SCRIPTS"
   }
 
   dots_update() {
-    pushd DOTS/ &&
+    pushd "$DOTS" &&
     git pull &&
     popd
   }
 
   dots_edit() {
-    hx DOTS/Scripts/nixOSzfs
+    hx $"$DOTS"/nixOSzfs
   }
 
   dots_run() {
-    chmod --changes +x ./DOTS/Scripts/nixOSzfs
     sh DOTS/Scripts/nixOSzfs
   }
   ```

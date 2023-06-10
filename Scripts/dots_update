@@ -1,0 +1,11 @@
+#!/bin/sh
+
+DOTS="${DOTS:-$HOME/DOTS}"
+
+OLD_DIR="$(pwd)"
+
+cd "$DOTS" || exit 1
+
+git pull
+
+cd "$OLD_DIR" || exit 1

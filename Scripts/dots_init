@@ -1,0 +1,17 @@
+#!/bin/sh
+
+#@ Declare the environment variables
+DOTS="${DOTS:-$HOME/DOTS}"
+NIXS="${NIXS:-$DOTS/Scripts}"
+
+#@ Delete the dotfiles
+rm -rf "$DOTS"
+
+#@ Clone the dotfiles repository
+git clone https://github.com/craole-cc/dotfiles.git "$DOTS"
+
+#@ Make scripts executable
+find "$NIXS" \
+  -type f ! \
+  -perm -u=x \
+  -exec chmod u+x {} \;
