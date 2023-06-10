@@ -36,31 +36,32 @@
   ip -a | grep 192
   ```
 
-- [ ] Clone the DOTS
+- [ ] Define handy functions for interacting with the dotfiles:
 
   ```sh
-  #@ Install git and helix editor
-  nix-env -f '<nixpkgs>' -iA git helix
+  dots_init(){
+    #@ Delete the dotfiles
+    rm -rf DOTS
 
-  #@ Clone the dotfiles repository
-  git clone https://github.com/craole-cc/dotfiles.git
-  ```
+    #@ Install git and helix editor
+    nix-env -f '<nixpkgs>' -iA git helix
 
-- [ ] Define handy functions for updating the dotfiles:
+    #@ Clone the dotfiles repository
+    git clone https://github.com/craole-cc/dotfiles.git DOTS
+  }
 
-  ```sh
   dots_pull() {
-    pushd dotfiles/ &&
+    pushd DOTS/ &&
     git pull &&
     popd
   }
 
-  dots_init() {
-    chmod --changes +x ./dotfiles/Scripts/nixOSzfs
-    sh dotfiles/Scripts/nixOSzfs
+  dots_edit() {
+    hx DOTS/Scripts/nixOSzfs
   }
 
-  dots_edit() {
-    hx dotfiles/Scripts/nixOSzfs
+  dots_run() {
+    chmod --changes +x ./DOTS/Scripts/nixOSzfs
+    sh DOTS/Scripts/nixOSzfs
   }
   ```
