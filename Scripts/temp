@@ -6,5 +6,6 @@ get_updated_dots
 packages="git parted bat helix"
 installed_packages="$(get_deps "$packages")"
 
+#@ Display the packages just installed
 [ "$installed_packages" ] &&
   printf "     Installed |>  %s\n" "${installed_packages}"
