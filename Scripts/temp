@@ -1,18 +1,16 @@
 #!/bin/sh
 get_updated_dots
 
+label="Dotfiles"
+value="$DOTS"
 
-      label="Dotfiles"
-      value="$DOTS"
+#@ Exit early if info missing
+[ "$value" ] || pout --missing "$label"
 
-      #@ Exit early if info missing
-      [ "$value" ] || pout --missing "$label"
+if [ -d "$value" ]; then
+  printf "      %s |>  %s\n" "$label" "$value"
+else
+  pout --missing "$value"
+fi
 
-      if [ -d "$value" ]; then
-        printf "      %s |>  %s\n" "$label" "$value"
-      else
-        pout --missing "$value"
-      fi
-
-        printf "      %s |>  %s\n" "$label" "$value"
-      DOTS="$value"
+printf "      %s |>  %s\n" "$label" "$value"
