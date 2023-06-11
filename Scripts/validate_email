@@ -6,14 +6,14 @@ value="$1"
 #@ Exit early if info missing
 [ "$value" ] || {
   pout --missing "$label"
-  exit 1
+  exit "$?"
 }
 
 #@ Use a regular expression to validate the git email address
 printf '%s' "$value" |
   grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' || {
   pout --invalid "$label" "${value}"
-  exit 1
+  exit "$?"
 }
 
 #@ Update/Return Variable
