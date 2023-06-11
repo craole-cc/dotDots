@@ -11,10 +11,11 @@ regex="^\(https?\|git\)://.*\.git$"
 }
 
 #@ Use a regular expression to validate the git email address
-validate_with_regex "$value" "$regex" || {
-  pout --invalid "$label" "${value}"
-  exit 1
-}
+validate_with_regex "$value" "$regex"
+#  {
+#   pout --invalid "$label" "${value}"
+#   exit 1
+# }
 
 #@ Update/Return Variable
 printf "%s" "$value"
