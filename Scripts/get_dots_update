@@ -9,14 +9,15 @@
   printf "NIXS variable unset"
   exit 1
 }
-# OLD_DIR="$(pwd)"
 
-# #@ Go to the dotfiles directory
-# cd "$DOTS" || exit 1
+OLD_DIR="$(pwd)"
+
+#@ Go to the dotfiles directory
+cd "$DOTS" || exit 1
 
 #@ Get the updates
-git -c "$DOTS" reset --hard
-git -c "$DOTS"  pull
+git reset --hard
+git  pull
 
 #@ Make scripts executable
 find "$NIXS" \
@@ -24,5 +25,5 @@ find "$NIXS" \
   -perm -u=x \
   -exec chmod u+x {} \;
 
-# #@ Return to the original directory
-# cd "$OLD_DIR" || exit 1
+#@ Return to the original directory
+cd "$OLD_DIR" || exit 1
