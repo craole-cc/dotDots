@@ -1,11 +1,18 @@
 #!/bin/sh
 get_updated_dots
-# nix-env --uninstall jq parted bat helix hello cowsay
 
-#@ List packages to check and install
-packages="git parted bat helix"
-installed_packages="$(get_deps "$packages")"
 
-#@ Display the packages just installed
-[ "$installed_packages" ] &&
-  printf "     Installed |>  %s\n" "${installed_packages}"
+      label="Dotfiles"
+      value="$DOTS"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      if [ -d "$value" ]; then
+        printf "      %s |>  %s\n" "$label" "$value"
+      else
+        pout --missing "$value"
+      fi
+
+        printf "      %s |>  %s\n" "$label" "$value"
+      DOTS="$value"
