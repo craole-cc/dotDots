@@ -2,7 +2,6 @@
 
 label="Git Reposiory URL"
 value="$1"
-regex="^\(https?\|git\)://.*\.git$"
 
 #@ Exit early if info missing
 [ "$value" ] || {
@@ -10,12 +9,10 @@ regex="^\(https?\|git\)://.*\.git$"
   exit 1
 }
 
-#@ Use a regular expression to validate the git email address
-validate_with_regex "$value" "$regex"
-#  {
-#   pout --invalid "$label" "${value}"
-#   exit 1
-# }
-
-#@ Update/Return Variable
-printf "%s" "$value"
+if git ls-remote "$value" -q >/dev/null 2>&1; then
+  #@ Update/Return Variable
+  printf "%s" "$value"
+else
+  pout --invalid "$label" "${value}"
+  exit 1
+fi
