@@ -172,7 +172,7 @@ environment() {
       GIT_EMAIL="$value"
     }
 
-    validate_var_userR() {
+    validate_var_user() {
       label="Username"
       value="$GIT_USER"
 
