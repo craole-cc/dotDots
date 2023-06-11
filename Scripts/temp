@@ -1,5 +1,5 @@
 #!/bin/sh
-
+get_updated_dots
 # nix-env --uninstall jq parted bat helix hello cowsay
 
 #@ List packages to check and install
