@@ -1,35 +1,28 @@
 #!/bin/sh
 SCR_NAME="get_dots"
 SCR_DESCRIPTION="Get the most resent vopy of the dotfiles repository"
-DOTS_REPO=https://github.com/craole-cc/dotfiles.git
 
 show_usage_guide() {
   cat <<EOF
 Usage: $SCR_NAME [OPTIONS]
 
 Options:
-  -d, --disk          DISK_ARRAY        Disk (e.g., /dev/disk/by-id/DISK_ID_HERE)
-  -e, --git-email     DOTS_EMAIL         Git email address
-  -u, --git-user      DOTS_USER          Git username
-  -s, --swap-size     swap_size         Swap size in GB (min: 4 | max: 32 | default: 8)
-  -r, --reserve       reserved_size     Reserved space at the end of the disk in GB (default: 1)
-  -n, --no-encrypt                      Disable encryption (default: enabled)
-  -h, --help                            Display this help and exit
+  -h, --help                   Display this help and exit
+  -x, --reset                  Reset and clone the repo
+  -p, --update                 Pull updates from the repo [DEFAULT]
+  -r, --repo      DOTS_REPO    Git repository
+  -e, --email     DOTS_EMAIL   Git email address
+  -u, --user      DOTS_USER    Git username
 
 Description:
   $SCR_DESCRIPTION
 
 Example:
   $SCR_NAME \\
-    --disk /dev/disk/by-id/ata-TOSHIBA_MQ01ACF050_76ULCLH7T \\
-    --git-email user@example.com \\
-    --git-user username \\
-    --swap-size 4 \\
-    --reserve 1 \\
-    --no-encrypt
-
-Disclaimer:
-  $SCR_DISCLAIMER
+    --repo "https://github.com/craole-cc/dotfiles.git" \\
+    --email user@example.com \\
+    --user username \\
+    --clone
 
 EOF
 }
@@ -37,12 +30,40 @@ EOF
 parse_arguments() {
   while [ "$1" -ge 1 ]; do
     case $1 in
-    -r | --repo) [ "$2" ] && DOTS_REPO="$2" ;;
-    --reset | --init | --clone) clone_dots ;;
-    *) pull_dots ;;
+    -x | --reset | --init | --clone) action=reset ;;
+    -r | --repo)
+      [ "$2" ] && {
+        DOTS_REPO="$2"
+        shift
+      }
+      ;;
+    -e | --email)
+      [ "$2" ] && {
+        DOTS_EMAIL="$2"
+        shift
+      }
+      ;;
+    -u | --user)
+      [ "$2" ] && {
+        DOTS_USER="$2"
+        shift
+      }
+      ;;
+    -h | --help)
+      show_usage_guide
+      exit 0
+      ;;
+    -*) pout --invalid Option "${1}" ;;
+    *) action=update ;;
     esac
     shift
   done
+}
+
+validate_environment() {
+  DOTS_REPO="$(validate_email "$DOTS_EMAIL")"
+  DOTS_EMAIL="$(validate_email "$DOTS_EMAIL")"
+  DOTS_USER="$(validate_username "$DOTS_USER")"
 }
 
 clone_dots() {
