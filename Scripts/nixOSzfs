@@ -105,17 +105,24 @@ environment() {
 
   validate_vars() {
     validate_var_dots() {
-      if [ -d "$DOTS" ]; then
-        printf "       DOTS |>  %s\n" "$DOTS"
+      label="Dotfiles"
+      value="$DOTS"
+
+      #@ Exit early if info missing
+      [ "$value" ] || pout --missing "$label"
+
+      if [ -d "$value" ]; then
+        printf "      %s |>  %s\n" "$label" "$value"
       else
-        pout --missing "DOTS directory missing"
+        pout --missing "$value"
       fi
+
+      DOTS="$value"
     }
 
     validate_var_disk() {
       label="Disk ID"
       value="$DISK_ARRAY"
-      unset DISK_ARRAY disk
 
       #@ Exit early if info missing
       [ "$value" ] || pout --missing "$label"
