@@ -1,6 +1,9 @@
 #!/bin/sh
 
+nix-env --uninstall jq parted bat helix hello cowsay
+
 #@ List packages to check and install
 packages="git jq parted bat helix hello cowsay"
 installed_packages="$(get_deps "$packages")"
-printf "     Installed |>  %s\n" "${installed_packages}"
+echo "$installed_packages"
+# printf "     Installed |>  %s\n" "${installed_packages}"
