@@ -104,14 +104,15 @@ ssh root@192.168.0.11
 > Get the dotfiles
 
 ```sh
-#@ Enter a temporary shell with git installed
-nix-shell -p git
+#@ Install git
+nix-env -f '<nixpkgs>' -iA git
 
 #@ Clone the dotfiles repository
 git clone https://github.com/craole-cc/dotfiles.git "$DOTS"
 
 #@ Exit the temporary shell
-exit
+chmod u+x $NIXS/get_updated_dots
+sh $NIXS/get_updated_dots
 ```
 
 > Get the disk information

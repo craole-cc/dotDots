@@ -10,4 +10,4 @@ disk_id="$(
     awk '{print $9; exit}'
 )"
 
-printf "%s/%s" "$disk_id" "$disk"
+printf "%s/%s" "$disk_id_dir" "$disk_id"
