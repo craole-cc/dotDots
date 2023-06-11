@@ -26,6 +26,6 @@ else
   printf "%s" "${*}"
 fi
 
-#@ Print usage and exit with an error code
-# show_usage_guide
-exit 1
+# #@ Print usage and exit with an error code
+# # show_usage_guide
+# exit 1
