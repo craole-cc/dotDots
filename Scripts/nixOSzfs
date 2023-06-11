@@ -249,9 +249,9 @@ environment() {
   validate_deps() {
 
     #@ List packages to check and install
-    # packages="jq parted bat helix git hello cowsay"
+    packages="jq parted bat helix git hello cowsay"
     # get_deps jq parted bat helix git hello cowsay
-    installed_packages=$(./get_deps.sh git jq parted bat helix hello cowsay)
+    installed_packages="$(get_deps "$packages")"
     printf "     Installed |>  %s\n" "${installed_packages}"
 
   }
