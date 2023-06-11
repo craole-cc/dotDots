@@ -1,8 +1,14 @@
 #!/bin/sh
 
 #@ Declare the environment variables
-DOTS="${DOTS:-/etc/nixos}"
-NIXS="${NIXS:-$DOTS/Scripts}"
+[ -d "$DOTS" ] || {
+  printf "DOTS directory missing"
+  exit 1
+}
+[ "$NIXS" ] || {
+  printf "NIXS variable unset"
+  exit 1
+}
 
 #@ Delete the dotfiles
 rm -rf "$DOTS"
