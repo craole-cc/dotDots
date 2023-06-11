@@ -250,7 +250,7 @@ environment() {
 
     #@ List packages to check and install
     # packages="jq parted bat helix git hello cowsay"
-    dots_deps jq parted bat helix git hello cowsay
+    get_deps jq parted bat helix git hello cowsay
     printf "     Installed |>  %s\n" "${installed_packages}"
 
   }
