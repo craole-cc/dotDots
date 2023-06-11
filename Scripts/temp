@@ -1,6 +1,7 @@
 #!/bin/sh
 get_updated_dots
 
+echo "$DOTS"
 label="Dotfiles"
 value="$DOTS"
 
