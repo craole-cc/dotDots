@@ -38,4 +38,5 @@ if [ "${count}" -gt 0 ]; then
     )
   fi
   # printf "     Installed |>  %s\n" "${installed_packages}"
+  export installed_packages
 fi
