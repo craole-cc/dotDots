@@ -38,3 +38,5 @@ if [ "${count}" -gt 0 ]; then
     )
   fi
 fi
+
+export installed_packages

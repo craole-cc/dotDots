@@ -15,7 +15,7 @@ OLD_DIR="$(pwd)"
 cd "$DOTS" || exit 1
 
 #@ Get the updates
-git pull
+git pull --force
 
 #@ Make scripts executable
 find "$NIXS" \
