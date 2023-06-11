@@ -15,8 +15,8 @@
 # cd "$DOTS" || exit 1
 
 #@ Get the updates
-dots reset --hard
-dots pull
+git -c "$DOTS" reset --hard
+git -c "$DOTS"  pull
 
 #@ Make scripts executable
 find "$NIXS" \
