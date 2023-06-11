@@ -85,10 +85,10 @@ ssh root@192.168.0.11
 
   ```sh
   #@ Define the temporary mountpoint
-  MNT="$(mktemp -d)"
+  TEMP_MNT="$(mktemp -d)"
 
   #@ Define dotfiles directory
-  DOTS="$MNT/etc/nixos"
+  DOTS="$TEMP_MNT/etc/nixos"
   mkdir --parents "$DOTS"
 
   #@ Define the scripts directory
@@ -98,7 +98,7 @@ ssh root@192.168.0.11
   PATH="$PATH:$NIXS"
 
   #@ Export core environment variables
-  export MNT DOTS NIXS MNT PATH
+  export TEMP_MNT DOTS NIXS TEMP_MNT PATH
   ```
 
 > Get the dotfiles
@@ -129,12 +129,15 @@ get_disk_id nvme0n1
 
 ```sh
 #@ Define the disks (separated by space)
-disk_array="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
+DISK_ARRAY="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
 
 #@ Define the git informantion
-git_email="craole-cc@proton.me"
-git_user="craole-cc"
+GIT_EMAIL="craole-cc@proton.me"
+GIT_USER="craole-cc"
+
+#@ Define the hostname
+HOST_CLIENT=a3k
 
 #@ Export installer environment variables
-export disk_array git_email git_user temp_mnt
+export DISK_ARRAY GIT_EMAIL GIT_USER HOST_CLIENT
 ```

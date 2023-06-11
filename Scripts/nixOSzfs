@@ -10,9 +10,9 @@ show_usage_guide() {
 Usage: $SCR_NAME [OPTIONS]
 
 Options:
-  -d, --disk          disk_array        Disk (e.g., /dev/disk/by-id/DISK_ID_HERE)
-  -e, --git-email     git_email         Git email address
-  -u, --git-user      git_user          Git username
+  -d, --disk          DISK_ARRAY        Disk (e.g., /dev/disk/by-id/DISK_ID_HERE)
+  -e, --git-email     GIT_EMAIL         Git email address
+  -u, --git-user      GIT_USER          Git username
   -s, --swap-size     swap_size         Swap size in GB (min: 4 | max: 32 | default: 8)
   -r, --reserve       reserved_size     Reserved space at the end of the disk in GB (default: 1)
   -n, --no-encrypt                      Disable encryption (default: enabled)
@@ -39,17 +39,17 @@ EOF
 environment() {
   set_defaults() {
     #@ Reeset variables
-    unset disk_array git_email git_user swap_size reserved_space enable_encryption diskNames
+    # unset DISK_ARRAY GIT_EMAIL GIT_USER swap_size reserved_space enable_encryption diskNames
 
     #@ Set default variables
-    disk_array="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
-    git_email="iamcraole@gmail.com"
-    git_user="Craole"
+    DISK_ARRAY="${DISK_ARRAY:-/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46}"
+    GIT_EMAIL="${GIT_EMAIL:-iamcraole@gmail.com}"
+    GIT_USER="${GIT_USER:-Craole}"
+    HOST_CLIENT="${HOST_CLIENT:-exampleHost}"
     swap_size=8
     reserved_space=1
     enable_encryption=true
-    temp_mnt="/tmp/${SCR_NAME}"
-    # temp_mnt=$(mktemp -d)
+    TEMP_MNT="$TEMP_MNT:-$(mktemp -d)}"
   }
 
   parse_arguments() {
@@ -59,19 +59,19 @@ environment() {
       #@ Set the DISK variable while handling missing info
       -d | --disk | --id)
         [ "$2" ] && {
-          disk_array="$2"
+          DISK_ARRAY="$2"
           shift
         }
         ;;
       -e | --email)
         [ "$2" ] && {
-          git_email="$2"
+          GIT_EMAIL="$2"
           shift
         }
         ;;
       -u | --user)
         [ "$2" ] && {
-          git_user="$2"
+          GIT_USER="$2"
           shift
         }
         ;;
@@ -105,11 +105,18 @@ environment() {
   }
 
   validate_vars() {
+    validate_dots() {
+      if [ -d "$DOTS" ]; then
+        printf "       DOTS |>  %s\n" "$DOTS"
+      else
+        pout --missing "DOTS directory missing"
+      fi
+    }
 
     validate_var_disk() {
       label="Disk ID"
-      value="$disk_array"
-      unset disk_array disk
+      value="$DISK_ARRAY"
+      unset DISK_ARRAY disk
 
       #@ Exit early if info missing
       [ "$value" ] || pout --missing "$label"
@@ -131,20 +138,20 @@ environment() {
 
       #@ Update Variable
       disk_count="$(printf "%s\n" "$value" | wc -w)"
-      disk_array="$value"
+      DISK_ARRAY="$value"
 
       #@ Display information
       if [ "$disk_count" -gt 1 ]; then
-        printf "      %ss |>  %s\n" "$label" "$disk_array"
+        printf "      %ss |>  %s\n" "$label" "$DISK_ARRAY"
         printf "  No. of Disks |>  %s\n" "$disk_count"
       else
-        printf "       %s |>  %s\n" "$label" "$disk_array"
+        printf "       %s |>  %s\n" "$label" "$DISK_ARRAY"
       fi
     }
 
-    validate_var_git_email() {
+    validate_var_email() {
       label="Email"
-      value="$git_email"
+      value="$GIT_EMAIL"
 
       #@ Exit early if info missing
       [ "$value" ] || pout --missing "$label"
@@ -158,12 +165,12 @@ environment() {
       printf "     Git Email |>  %s\n" "$value"
 
       #@ Update/Return Variable
-      git_email="$value"
+      GIT_EMAIL="$value"
     }
 
-    validate_var_git_user() {
+    validate_var_userR() {
       label="Username"
-      value="$git_user"
+      value="$GIT_USER"
 
       #@ Exit early if info missing
       [ "$value" ] || pout --missing "$label"
@@ -176,7 +183,7 @@ environment() {
       printf "  Git Username |>  %s\n" "$value"
 
       #@ Update/Return Variable
-      git_user="$value"
+      GIT_USER="$value"
     }
 
     validate_var_swap_size() {
@@ -238,9 +245,10 @@ environment() {
     }
 
     #@ Validate variables
+    validate_var_dots
     validate_var_disk
-    validate_var_git_email
-    validate_var_git_user
+    validate_var_email
+    validate_var_user
     validate_var_swap_size
     validate_var_reserved_space
     validate_var_enable_encryption
@@ -250,6 +258,8 @@ environment() {
 
     #@ List packages to check and install
     packages="git parted bat helix"
+
+    #@ Install missing packages
     installed_packages="$(get_deps "$packages")"
 
     #@ Display the packages just installed
@@ -258,8 +268,8 @@ environment() {
 
   }
 
-  validate_temp_mnt() {
-    [ -d "${temp_mnt}" ] || mkdir --parents "${temp_mnt}"
+  validate_mnt() {
+    [ -d "${TEMP_MNT}" ] || mkdir --parents "${TEMP_MNT}"
   }
 
   disclaimer() {
@@ -268,12 +278,13 @@ environment() {
   }
 
   validate_elevation
+  validate_dots
   set_defaults
   parse_arguments "$@"
   validate_vars
   validate_deps
   disclaimer
-  validate_temp_mnt
+  validate_TEMP_MNT
 }
 
 partitions() {
@@ -305,7 +316,7 @@ partitions() {
     swapon /dev/mapper/"${disk##*/}"-part4
   }
 
-  for disk in ${disk_array}; do
+  for disk in ${DISK_ARRAY}; do
     wipe_disk || pout --error "Failed to wipe disk"
     partition_disk || pout --error "Failed to partition disk"
     init_swap || pout --error "Failed to initialize swap partition"
@@ -328,10 +339,10 @@ containers() {
         -O relatime=on \
         -O xattr=sa \
         -O mountpoint=/boot \
-        -R "${temp_mnt}" \
+        -R "${TEMP_MNT}" \
         bpool \
         mirror \
-        $(for i in ${disk_array}; do
+        $(for i in ${DISK_ARRAY}; do
           printf '%s ' "${i}-part2"
         done)
 
@@ -339,7 +350,7 @@ containers() {
       zpool create \
         -o ashift=12 \
         -o autotrim=on \
-        -R "${temp_mnt}" \
+        -R "${TEMP_MNT}" \
         -O acltype=posixacl \
         -O canmount=off \
         -O compression=zstd \
@@ -350,7 +361,7 @@ containers() {
         -O mountpoint=/ \
         rpool \
         mirror \
-        $(for i in ${disk_array}; do
+        $(for i in ${DISK_ARRAY}; do
           printf '%s ' "${i}-part3"
         done)
     else
@@ -367,9 +378,9 @@ containers() {
         -O relatime=on \
         -O xattr=sa \
         -O mountpoint=/boot \
-        -R "${temp_mnt}" \
+        -R "${TEMP_MNT}" \
         bpool \
-        $(for i in ${disk_array}; do
+        $(for i in ${DISK_ARRAY}; do
           printf '%s ' "${i}-part2"
         done)
 
@@ -377,7 +388,7 @@ containers() {
       zpool create \
         -o ashift=12 \
         -o autotrim=on \
-        -R "${temp_mnt}" \
+        -R "${TEMP_MNT}" \
         -O acltype=posixacl \
         -O canmount=off \
         -O compression=zstd \
@@ -387,7 +398,7 @@ containers() {
         -O xattr=sa \
         -O mountpoint=/ \
         rpool \
-        $(for i in ${disk_array}; do
+        $(for i in ${DISK_ARRAY}; do
           printf '%s ' "${i}-part3"
         done)
     fi
@@ -428,26 +439,26 @@ datasets() {
   #| Boot
   zfs create -o mountpoint=none bpool/nixos
   zfs create -o mountpoint=legacy bpool/nixos/root
-  mkdir "${temp_mnt}"/boot
-  mount -t zfs bpool/nixos/root "${temp_mnt}"/boot
+  mkdir "${TEMP_MNT}"/boot
+  mount -t zfs bpool/nixos/root "${TEMP_MNT}"/boot
 
   #| Root
   zfs create -o mountpoint=legacy rpool/nixos/root
-  mount -t zfs rpool/nixos/root "${temp_mnt}"/
+  mount -t zfs rpool/nixos/root "${TEMP_MNT}"/
 
   #| Home
   zfs create -o mountpoint=legacy rpool/nixos/home
-  mkdir "${temp_mnt}"/home
-  mount -t zfs rpool/nixos/home "${temp_mnt}"/home
+  mkdir "${TEMP_MNT}"/home
+  mount -t zfs rpool/nixos/home "${TEMP_MNT}"/home
 
   #| Var
   zfs create -o mountpoint=legacy rpool/nixos/var
   zfs create -o mountpoint=legacy rpool/nixos/var/lib
   zfs create -o mountpoint=legacy rpool/nixos/var/log
-  mkdir -p "${temp_mnt}"/var/log
-  mkdir -p "${temp_mnt}"/var/lib
-  mount -t zfs rpool/nixos/var/lib "${temp_mnt}"/var/lib
-  mount -t zfs rpool/nixos/var/log "${temp_mnt}"/var/log
+  mkdir -p "${TEMP_MNT}"/var/log
+  mkdir -p "${TEMP_MNT}"/var/lib
+  mount -t zfs rpool/nixos/var/lib "${TEMP_MNT}"/var/lib
+  mount -t zfs rpool/nixos/var/log "${TEMP_MNT}"/var/log
 
   #| Empty
   zfs create -o mountpoint=legacy rpool/nixos/empty
@@ -457,11 +468,11 @@ datasets() {
 bootloader() {
   init_boot() {
     mkfs.vfat -n EFI "${disk}"-part1
-    mkdir -p "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
-    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${temp_mnt}"/boot/efis/"${disk##*/}"-part1
+    mkdir -p "${TEMP_MNT}"/boot/efis/"${disk##*/}"-part1
+    mount -t vfat -o iocharset=iso8859-1 "${disk}"-part1 "${TEMP_MNT}"/boot/efis/"${disk##*/}"-part1
   }
 
-  for disk in ${disk_array}; do
+  for disk in ${DISK_ARRAY}; do
     init_boot || pout --error "Failed to initialize the boot partition"
   done
 }
@@ -474,47 +485,42 @@ flake() {
       "experimental-features = nix-command flakes" >> \
       ~/.config/nix/nix.conf
 
-    #@ Clone the template repository
-    mkdir -p "${temp_mnt}"/etc
-    git clone --depth 1 --branch openzfs-guide \
-      https://github.com/ne9z/dotfiles-flake.git "${temp_mnt}"/etc/nixos
-
     #@ Update the flake with the user's git credentials
-    rm -rf "${temp_mnt}"/etc/nixos/.git
-    git -C "${temp_mnt}"/etc/nixos/ init -b main
-    git -C "${temp_mnt}"/etc/nixos/ add "${temp_mnt}"/etc/nixos/
-    git -C "${temp_mnt}"/etc/nixos config user.email "$git_email"
-    git -C "${temp_mnt}"/etc/nixos config user.name "$git_user"
-    git -C "${temp_mnt}"/etc/nixos commit -asm 'initial commit'
+    rm -rf "${DOTS}"/.git
+    git -C "${DOTS}"/ init -b main
+    git -C "${DOTS}"/ add "${DOTS}"/
+    git -C "${DOTS}" config user.email "$GIT_EMAIL"
+    git -C "${DOTS}" config user.name "$GIT_USER"
+    git -C "${DOTS}" commit -asm 'initial flake commit'
   }
 
   flake_prep() {
     config_disk_id() {
-      for disk in ${disk_array}; do
+      for disk in ${DISK_ARRAY}; do
         sed -i \
           "s|/dev/disk/by-id/|${disk%/*}/|" \
-          "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+          "${DOTS}/Clients/${HOST_CLIENT}/default.nix"
         break
       done
     }
 
     config_disk_name() {
-      for disk in ${disk_array}; do
+      for disk in ${DISK_ARRAY}; do
         diskNames="${diskNames} \"${disk##*/}\""
       done
 
       sed -i "s|\"bootDevices_placeholder\"|${diskNames}|g" \
-        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+        "${DOTS}/Clients/${HOST_CLIENT}/default.nix"
     }
 
     config_host_id() {
       sed -i "s|\"abcd1234\"|\"$(head -c4 /dev/urandom | od -A none -t x4 | sed 's| ||g' || true)\"|g" \
-        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+        "${DOTS}/Clients/${HOST_CLIENT}/default.nix"
     }
 
     config_system() {
       sed -i "s|\"x86_64-linux\"|\"$(uname -m || true)-linux\"|g" \
-        "${temp_mnt}"/etc/nixos/flake.nix
+        "${DOTS}/flake.nix"
     }
 
     config_kernel() {
@@ -528,17 +534,17 @@ flake() {
       )"
 
       sed -i "s|\"kernelModules_placeholder\"|${kernelModules}|g" \
-        "${temp_mnt}"/etc/nixos/hosts/exampleHost/default.nix
+        "${DOTS}/Clients/${HOST_CLIENT}/default.nix"
     }
 
     config_root_password() {
       #@ Set root password
-      rootPwd=$(mkpasswd -m SHA-512)
+      root_password=$(mkpasswd -m SHA-512)
 
       #@ Declare password in configuration
       sed -i \
-        "s|rootHash_placeholder|${rootPwd}|" \
-        "${temp_mnt}"/etc/nixos/configuration.nix
+        "s|rootHash_placeholder|${root_password}|" \
+        "${DOTS}/configuration.nix"
     }
 
     #@ Prepare configuration based on the system specifications
@@ -550,19 +556,19 @@ flake() {
     config_root_password
 
     #@ Commit changes to local repo
-    git -C "${temp_mnt}"/etc/nixos commit -asm 'Prepped the flake for installation'
+    git -C "${DOTS}" commit -asm 'Prepped the flake for installation'
   }
 
   flake_install() {
     #@ Update the flake lock file
     nix flake update \
-      --commit-lock-file "git+file://${temp_mnt}/etc/nixos"
+      --commit-lock-file "git+file://${DOTS}"
 
     #@ Install the flake to the system
     nixos-install \
-      --root "${temp_mnt}" \
+      --root "${TEMP_MNT}" \
       --no-root-passwd \
-      --flake "git+file://${temp_mnt}/etc/nixos#exampleHost"
+      --flake "git+file://${DOTS}#${HOST_CLIENT}"
 
     #@ Display information
     printf "\n%s\n" "Installation completed successfully."
@@ -575,7 +581,7 @@ flake() {
 
 cleanup() {
   #@ Unmount the install environment
-  umount -Rl "${temp_mnt}"
+  umount -Rl "${TEMP_MNT}"
   zpool export -a
 
   #@ Allow the user some time to cancel the reboot
@@ -654,9 +660,9 @@ establish() {
 
 main() {
   environment "$@"
-  # establish partitions
-  # establish containers
-  # establish datasets
+  establish partitions
+  establish containers
+  establish datasets
   establish bootloader
   establish flake
   establish cleanup

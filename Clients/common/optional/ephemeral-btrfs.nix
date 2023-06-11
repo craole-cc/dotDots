@@ -5,22 +5,22 @@ let
   hostname = config.networking.hostName;
   wipeScript = ''
     mkdir /tmp -p
-    MNTPOINT=$(mktemp -d)
+    TEMP_MNTPOINT=$(mktemp -d)
     (
-      mount -t btrfs -o subvol=/ /dev/disk/by-label/${hostname} "$MNTPOINT"
-      trap 'umount "$MNTPOINT"' EXIT
+      mount -t btrfs -o subvol=/ /dev/disk/by-label/${hostname} "$TEMP_MNTPOINT"
+      trap 'umount "$TEMP_MNTPOINT"' EXIT
 
       echo "Creating needed directories"
-      mkdir -p "$MNTPOINT"/persist/var/{log,lib/{nixos,systemd}}
+      mkdir -p "$TEMP_MNTPOINT"/persist/var/{log,lib/{nixos,systemd}}
 
       echo "Cleaning root subvolume"
-      btrfs subvolume list -o "$MNTPOINT/root" | cut -f9 -d ' ' |
+      btrfs subvolume list -o "$TEMP_MNTPOINT/root" | cut -f9 -d ' ' |
       while read -r subvolume; do
-        btrfs subvolume delete "$MNTPOINT/$subvolume"
-      done && btrfs subvolume delete "$MNTPOINT/root"
+        btrfs subvolume delete "$TEMP_MNTPOINT/$subvolume"
+      done && btrfs subvolume delete "$TEMP_MNTPOINT/root"
 
       echo "Restoring blank subvolume"
-      btrfs subvolume snapshot "$MNTPOINT/root-blank" "$MNTPOINT/root"
+      btrfs subvolume snapshot "$TEMP_MNTPOINT/root-blank" "$TEMP_MNTPOINT/root"
     )
   '';
   phase1Systemd = config.boot.initrd.systemd.enable;
