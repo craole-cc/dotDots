@@ -1,0 +1,21 @@
+#!/bin/sh
+
+#@ Declare the environment variables
+DOTS="${DOTS:-/etc/nixos}"
+NIXS="${NIXS:-$DOTS/Scripts}"
+OLD_DIR="$(pwd)"
+
+#@ Go to the dotfiles directory
+cd "$DOTS" || exit 1
+
+#@ Get the updates
+git pull
+
+#@ Make scripts executable
+find "$NIXS" \
+  -type f ! \
+  -perm -u=x \
+  -exec chmod u+x {} \;
+
+#@ Return to the original directory
+cd "$OLD_DIR" || exit 1

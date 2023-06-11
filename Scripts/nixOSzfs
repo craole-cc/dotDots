@@ -39,7 +39,7 @@ EOF
 environment() {
   set_defaults() {
     #@ Reeset variables
-    unset disk_array email user swap_size reserved_space enable_encryption diskNames
+    unset disk_array git_email git_user swap_size reserved_space enable_encryption diskNames
 
     #@ Set default variables
     disk_array="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
@@ -247,37 +247,12 @@ environment() {
   }
 
   validate_deps() {
-    # List packages to check and install
-    packages="jq parted bat helix git hello cowsay"
-    installed_packages=""
-    count=0
 
-    #@ Loop through each package
-    for package in $packages; do
-      #@ Check if the package is installed
-      if ! nix-env --query "$package" >/dev/null 2>&1; then
-        #@ Install the package
-        nix-env \
-          --file '<nixpkgs>' \
-          --install --attr "$package" \
-          >/dev/null 2>&1
-        if [ "${count}" -eq 0 ]; then
-          installed_packages="${package}"
-        else
-          installed_packages="${installed_packages}, ${package}"
-        fi
-        count=$((count + 1))
-      fi
-    done
+    #@ List packages to check and install
+    # packages="jq parted bat helix git hello cowsay"
+    dots_deps jq parted bat helix git hello cowsay
+    printf "     Installed |>  %s\n" "${installed_packages}"
 
-    #@ Print the installed packages if any
-    if [ "${count}" -gt 0 ]; then
-      if [ "${count}" -gt 1 ]; then
-        last_package=$(echo "${installed_packages}" | awk -F', ' '{print $NF}')
-        installed_packages=$(echo "${installed_packages}" | sed "s/, ${last_package}$/, and ${last_package}/")
-      fi
-      printf "     Installed |>  %s\n" "${installed_packages}"
-    fi
   }
 
   validate_temp_mnt() {
