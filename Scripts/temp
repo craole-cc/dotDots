@@ -5,5 +5,7 @@ get_updated_dots
 #@ List packages to check and install
 packages="git jq parted bat helix hello cowsay"
 installed_packages="$(get_deps "$packages")"
-echo "$installed_packages"
+
+[ "$installed_packages" ] && echo there
+
 # printf "     Installed |>  %s\n" "${installed_packages}"
