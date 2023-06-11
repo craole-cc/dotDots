@@ -37,6 +37,4 @@ if [ "${count}" -gt 0 ]; then
         sed "s/, ${last_package}$/, and ${last_package}/"
     )
   fi
-  # printf "     Installed |>  %s\n" "${installed_packages}"
-  export installed_packages
 fi
