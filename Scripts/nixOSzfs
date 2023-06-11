@@ -116,9 +116,6 @@ environment() {
       else
         pout --missing "$value"
       fi
-
-        printf "      %s |>  %s\n" "$label" "$value"
-      DOTS="$value"
     }
 
     validate_var_disk() {
