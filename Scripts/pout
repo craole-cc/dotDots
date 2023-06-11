@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#@ Print appropriate error message
+case "${1}" in
+--*)
+  msg="$(printf "\n:::%s:::" "${1#--}" | tr '[:lower:]' '[:upper:]')"
+  var=${2}
+  shift 2
+  arg=${*}
+  ;;
+*)
+  shift
+  printf "A valid %s is required \n" "${*}"
+  ;;
+esac
+
+if
+  [ -n "${msg}" ] && [ -n "${var}" ] && [ -z "${arg}" ]
+then
+  printf "%s %s\n" "${msg}" "${var}"
+elif
+  [ -n "${msg}" ] && [ -n "${var}" ] && [ -n "${arg}" ]
+then
+  printf "%s %s -> %s\n" "${msg}" "${var}" "${arg}"
+else
+  printf "%s\n" "${*}"
+fi
+
+#@ Print usage and exit with an error code
+# show_usage_guide
+exit 1
