@@ -6,6 +6,5 @@ get_updated_dots
 packages="git jq parted bat helix hello cowsay"
 installed_packages="$(get_deps "$packages")"
 
-[ "$installed_packages" ] && echo there
-
-# printf "     Installed |>  %s\n" "${installed_packages}"
+[ "$installed_packages" ] &&
+  printf "     Installed |>  %s\n" "${installed_packages}"
