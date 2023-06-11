@@ -13,5 +13,3 @@ if [ -d "$value" ]; then
 else
   pout --missing "$value"
 fi
-
-printf "      %s |>  %s\n" "$label" "$value"
