@@ -1,8 +1,8 @@
 #!/bin/sh
 
-label="Email"
+label="Git Reposiory URL"
 value="$1"
-regex="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+regex="^\(https?\|git\)://.*\.git$"
 
 #@ Exit early if info missing
 [ "$value" ] || {
@@ -11,8 +11,7 @@ regex="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 }
 
 #@ Use a regular expression to validate the git email address
-printf '%s' "$value" |
-  grep -Eq "$regex" || {
+validate_with_regex "$value" "$regex" || {
   pout --invalid "$label" "${value}"
   exit 1
 }

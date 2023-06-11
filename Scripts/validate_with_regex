@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#@ Use a regular expression to validate the git email address
+printf '%s' "$1" |  grep -Eq "$2"
