@@ -1,0 +1,15 @@
+#!/bin/sh
+
+label="Email"
+value="$DOTS_EMAIL"
+
+#@ Exit early if info missing
+[ "$value" ] || pout --missing "$label"
+
+#@ Use a regular expression to validate the git email address
+printf '%s' "$value" |
+  grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' ||
+  pout --invalid "$label" "${value}"
+
+#@ Update/Return Variable
+printf "%s" "$value"

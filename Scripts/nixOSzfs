@@ -11,8 +11,8 @@ Usage: $SCR_NAME [OPTIONS]
 
 Options:
   -d, --disk          DISK_ARRAY        Disk (e.g., /dev/disk/by-id/DISK_ID_HERE)
-  -e, --git-email     GIT_EMAIL         Git email address
-  -u, --git-user      GIT_USER          Git username
+  -e, --git-email     DOTS_EMAIL         Git email address
+  -u, --git-user      DOTS_USER          Git username
   -s, --swap-size     swap_size         Swap size in GB (min: 4 | max: 32 | default: 8)
   -r, --reserve       reserved_size     Reserved space at the end of the disk in GB (default: 1)
   -n, --no-encrypt                      Disable encryption (default: enabled)
@@ -38,13 +38,16 @@ EOF
 
 environment() {
   set_defaults() {
+    #@ Pull the most recent dotfiles
+    get_updated_dots
+
     #@ Reeset variables
-    # unset DISK_ARRAY GIT_EMAIL GIT_USER swap_size reserved_space enable_encryption diskNames
+    # unset DISK_ARRAY DOTS_EMAIL DOTS_USER swap_size reserved_space enable_encryption diskNames
 
     #@ Set default variables
     DISK_ARRAY="${DISK_ARRAY:-/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46}"
-    GIT_EMAIL="${GIT_EMAIL:-iamcraole@gmail.com}"
-    GIT_USER="${GIT_USER:-Craole}"
+    DOTS_EMAIL="${DOTS_EMAIL:-iamcraole@gmail.com}"
+    DOTS_USER="${DOTS_USER:-Craole}"
     HOST_CLIENT="${HOST_CLIENT:-exampleHost}"
     swap_size=8
     reserved_space=1
@@ -64,13 +67,13 @@ environment() {
         ;;
       -e | --email)
         [ "$2" ] && {
-          GIT_EMAIL="$2"
+          DOTS_EMAIL="$2"
           shift
         }
         ;;
       -u | --user)
         [ "$2" ] && {
-          GIT_USER="$2"
+          DOTS_USER="$2"
           shift
         }
         ;;
@@ -155,7 +158,7 @@ environment() {
 
     validate_var_email() {
       label="Email"
-      value="$GIT_EMAIL"
+      value="$DOTS_EMAIL"
 
       #@ Exit early if info missing
       [ "$value" ] || pout --missing "$label"
@@ -169,12 +172,12 @@ environment() {
       printf "     Git Email |>  %s\n" "$value"
 
       #@ Update/Return Variable
-      GIT_EMAIL="$value"
+      DOTS_EMAIL="$value"
     }
 
     validate_var_user() {
       label="Username"
-      value="$GIT_USER"
+      value="$DOTS_USER"
 
       #@ Exit early if info missing
       [ "$value" ] || pout --missing "$label"
@@ -187,7 +190,7 @@ environment() {
       printf "  Git Username |>  %s\n" "$value"
 
       #@ Update/Return Variable
-      GIT_USER="$value"
+      DOTS_USER="$value"
     }
 
     validate_var_swap_size() {
@@ -489,12 +492,12 @@ flake() {
       ~/.config/nix/nix.conf
 
     #@ Update the flake with the user's git credentials
-    rm -rf "${DOTS}"/.git
-    git -C "${DOTS}"/ init -b main
-    git -C "${DOTS}"/ add "${DOTS}"/
-    git -C "${DOTS}" config user.email "$GIT_EMAIL"
-    git -C "${DOTS}" config user.name "$GIT_USER"
-    git -C "${DOTS}" commit -asm 'initial flake commit'
+    # rm -rf "${DOTS}"/.git
+    # git -C "${DOTS}"/ init -b main
+    # git -C "${DOTS}"/ add "${DOTS}"/
+    dot config user.email "$DOTS_EMAIL"
+    dot config user.name "$DOTS_USER"
+    dot commit -asm 'initial flake commit'
   }
 
   flake_prep() {

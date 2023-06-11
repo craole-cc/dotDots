@@ -87,9 +87,9 @@ ssh root@192.168.0.11
   #@ Define the temporary mountpoint
   TEMP_MNT="$(mktemp -d)"
 
-  #@ Define dotfiles directory
+  #@ Define dotfiles directory and repository
   DOTS="$TEMP_MNT/etc/nixos"
-  mkdir --parents "$DOTS"
+  DOTS_REPO="https://github.com/craole-cc/dotfiles.git"
 
   #@ Define the scripts directory
   NIXS="$DOTS/Scripts"
@@ -108,11 +108,15 @@ ssh root@192.168.0.11
 nix-env -f '<nixpkgs>' -iA git
 
 #@ Clone the dotfiles repository
+mkdir --parents "$DOTS"
 git clone https://github.com/craole-cc/dotfiles.git "$DOTS"
 
 #@ Exit the temporary shell
 chmod u+x $NIXS/get_updated_dots
 sh $NIXS/get_updated_dots
+
+#@ Create an alias to manage the dotfiles with git
+alias dots='git -C "$DOTS"'
 ```
 
 > Get the disk information
@@ -132,12 +136,12 @@ get_disk_id nvme0n1
 DISK_ARRAY="/dev/disk/by-id/nvme-HFM256GDJTNG-8310A_CY9CN00281150CJ46"
 
 #@ Define the git informantion
-GIT_EMAIL="craole-cc@proton.me"
-GIT_USER="craole-cc"
+DOTS_EMAIL="craole-cc@proton.me"
+DOTS_USER="craole-cc"
 
 #@ Define the hostname
 HOST_CLIENT=a3k
 
 #@ Export installer environment variables
-export DISK_ARRAY GIT_EMAIL GIT_USER HOST_CLIENT
+export DISK_ARRAY DOTS_EMAIL DOTS_USER HOST_CLIENT
 ```

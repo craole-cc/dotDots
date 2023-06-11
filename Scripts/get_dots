@@ -1,23 +1,129 @@
 #!/bin/sh
+SCR_NAME="get_dots"
+SCR_DESCRIPTION="Get the most resent vopy of the dotfiles repository"
+DOTS_REPO=https://github.com/craole-cc/dotfiles.git
 
-#@ Declare the environment variables
-[ -d "$DOTS" ] || {
-  printf "DOTS directory missing"
+show_usage_guide() {
+  cat <<EOF
+Usage: $SCR_NAME [OPTIONS]
+
+Options:
+  -d, --disk          DISK_ARRAY        Disk (e.g., /dev/disk/by-id/DISK_ID_HERE)
+  -e, --git-email     DOTS_EMAIL         Git email address
+  -u, --git-user      DOTS_USER          Git username
+  -s, --swap-size     swap_size         Swap size in GB (min: 4 | max: 32 | default: 8)
+  -r, --reserve       reserved_size     Reserved space at the end of the disk in GB (default: 1)
+  -n, --no-encrypt                      Disable encryption (default: enabled)
+  -h, --help                            Display this help and exit
+
+Description:
+  $SCR_DESCRIPTION
+
+Example:
+  $SCR_NAME \\
+    --disk /dev/disk/by-id/ata-TOSHIBA_MQ01ACF050_76ULCLH7T \\
+    --git-email user@example.com \\
+    --git-user username \\
+    --swap-size 4 \\
+    --reserve 1 \\
+    --no-encrypt
+
+Disclaimer:
+  $SCR_DISCLAIMER
+
+EOF
+}
+
+parse_arguments() {
+  while [ "$1" -ge 1 ]; do
+    case $1 in
+    -r | --repo) [ "$2" ] && DOTS_REPO="$2" ;;
+    --reset | --init | --clone) clone_dots ;;
+    *) pull_dots ;;
+    esac
+    shift
+  done
+}
+
+clone_dots() {
+  #@ Process based on user setting
+  [ "$reset" ] || return 1
+
+  #@ Install git
+  nix-env -f '<nixpkgs>' -iA git
+
+  #@ Remove the dotfiles, if requested
+  [ -d "$DOTS" ] && rm -rf "$DOTS"
+
+  #@ Create the empty dotfiles directory
+  mkdir --parents "$DOTS"
+
+  #@ Clone the dotfiles repository
+  git clone "$DOTS_REPO" "$DOTS"
+
+  #@ Update git credentials
+  dots config user.email "$DOTS_EMAIL"
+  dots config user.name "$DOTS_USER"
+}
+
+pull_dots() {
+  #@ Get the updates
+  dots reset --hard
+  dots pull
+}
+
+exe_nixs() {
+  [ "$NIXS" ] || pout --missing "NIXS variable unset"
+
+  if [ -d "$NIXS" ]; then
+    #@ Make scripts executable
+    find "$NIXS" \
+      -type f ! \
+      -perm -u=x \
+      -exec chmod u+x {} \;
+  else
+    pout --missing "$NIXS" "Clone the dots with 'get_dots --clone'"
+  fi
+}
+
+pout() {
+  #@ Print appropriate error message
+  case "${1}" in
+  --*)
+    msg="$(printf "\n:::%s:::" "${1#--}" | tr '[:lower:]' '[:upper:]')"
+    var=${2}
+    shift 2
+    arg=${*}
+    ;;
+  *)
+    shift
+    printf "A valid %s is required \n" "${*}"
+    ;;
+  esac
+
+  if
+    [ -n "${msg}" ] && [ -n "${var}" ] && [ -z "${arg}" ]
+  then
+    printf "%s %s\n" "${msg}" "${var}"
+  elif
+    [ -n "${msg}" ] && [ -n "${var}" ] && [ -n "${arg}" ]
+  then
+    printf "%s %s -> %s\n" "${msg}" "${var}" "${arg}"
+  else
+    printf "%s\n" "${*}"
+  fi
+
+  #@ Print usage and exit with an error code
+  # show_usage_guide
   exit 1
 }
-[ "$NIXS" ] || {
-  printf "NIXS variable unset"
-  exit 1
+
+main() {
+  #@ Acquire the most recent dotfiles
+  parse_arguments "$@"
+
+  #@ Activate the scripts
+  exe_nixs
 }
 
-#@ Delete the dotfiles
-rm -rf "$DOTS"
-
-#@ Clone the dotfiles repository
-git clone https://github.com/craole-cc/dotfiles.git "$DOTS"
-
-#@ Make scripts executable
-find "$NIXS" \
-  -type f ! \
-  -perm -u=x \
-  -exec chmod u+x {} \;
+main "$@"

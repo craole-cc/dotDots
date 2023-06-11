@@ -9,20 +9,15 @@
   printf "NIXS variable unset"
   exit 1
 }
-OLD_DIR="$(pwd)"
 
-#@ Go to the dotfiles directory
-cd "$DOTS" || exit 1
+#@ Delete the dotfiles
+rm -rf "$DOTS"
 
-#@ Get the updates
-git reset --hard
-git pull
+#@ Clone the dotfiles repository
+git clone https://github.com/craole-cc/dotfiles.git "$DOTS"
 
 #@ Make scripts executable
 find "$NIXS" \
   -type f ! \
   -perm -u=x \
   -exec chmod u+x {} \;
-
-#@ Return to the original directory
-cd "$OLD_DIR" || exit 1
