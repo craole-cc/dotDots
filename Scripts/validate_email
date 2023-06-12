@@ -1,20 +1,87 @@
 #!/bin/sh
 
+SCR_NAME="validate_email"
 label="Email"
-value="$1"
-regex="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
-#@ Exit early if info missing
-[ "$value" ] || {
-  pout --missing "$label"
-  exit 1
+show_usage_guide() {
+  printf "\n\nUsage: %s <email>\n\n" "$SCR_NAME"
+  printf "Examples:\n"
+  printf "  %s john.doe@example.com\n" "$SCR_NAME"
+  printf "  %s jane.doe@\n" "$SCR_NAME"
+  printf "  %s @example.com\n" "$SCR_NAME"
+  printf "  %s invalid.email\n" "$SCR_NAME"
 }
 
-#@ Use a regular expression to validate the git email address
-if printf '%s' "$value" | grep -Eq "$regex"; then
-  #@ Update/Return Variable
-  printf "%s" "$value"
-else
-  pout --invalid "$label" "${value}"
+parse_arguments() {
+  case "$1" in
+  -h | --help) show_usage_guide ;;
+  "") pOut --missing "$label" ;;
+  -*) pOut --ivalid "Option" "$1" ;;
+  *) email="$1" ;;
+  esac
+}
+
+split_email_on_at() {
+  #@ Check if the email contains an @ sign
+  printf '%s' "$email" | grep -q '@' || {
+    pOut "--invalid $label" "Missing the @ sign" "$email"
+  }
+
+  #@ Split the email into username and domain parts
+  username=$(printf '%s' "$email" | cut -d '@' -f 1)
+  domain=$(printf '%s' "$email" | cut -d '@' -f 2)
+}
+
+check_username() {
+  #@ Check if the username is empty
+  if [ -z "$username" ]; then
+    pOut "--invalid $label" "Missing the username" "$email"
+  fi
+}
+
+check_domain() {
+  domain_name() {
+    [ "$domain" ] ||
+      pOut "--invalid $label" "Missing the domain" "$email"
+  }
+
+  domain_dot() {
+    printf '%s' "$domain" | grep -q '\.' ||
+      pOut "--invalid $label" "Missing the '.' in the domain" "$email"
+  }
+
+  tld() {
+    tld_regex='^[a-zA-Z]+$'
+
+    #@ Extract the top-level domain from the domain
+    tld=$(printf "%s" "$domain" | awk -F. '{print $NF}')
+
+    #@ Check if the top-level domain is empty
+    [ "$tld" ] ||
+      pOut "--invalid $label" "Missing the top-level domain" "$email"
+
+    #@ Check if the top-level contains invalid characters
+    printf "%s" "$tld" | grep -Eq "$tld_regex" ||
+      pOut "--invalid $label" "Check characters in the top-level domain" "$email"
+  }
+
+  domain_name
+  domain_dot
+  tld
+}
+
+pOut() {
+  pout "$@"
   exit 1
-fi
+}
+main() {
+  parse_arguments "$@"
+  split_email_on_at
+  check_username
+  check_domain
+
+  #@ All checks passed, the email address is valid
+  printf "%s" "$email"
+}
+
+main "$@"
