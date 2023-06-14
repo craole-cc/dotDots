@@ -61,7 +61,7 @@ parse_arguments() {
 }
 
 validate_environment() {
-  DOTS_REPO="$(validate_email "$DOTS_EMAIL")"
+  DOTS_REPO="$(validate_repo "$DOTS_REPO")"
   DOTS_EMAIL="$(validate_email "$DOTS_EMAIL")"
   DOTS_USER="$(validate_username "$DOTS_USER")"
 }

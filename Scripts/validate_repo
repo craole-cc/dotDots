@@ -1,18 +1,55 @@
 #!/bin/sh
 
-label="Git Reposiory URL"
-value="$1"
+SCR_NAME="validate_repo"
+label="Git Repository URL"
 
-#@ Exit early if info missing
-[ "$value" ] || {
-  pout --missing "$label"
+show_usage_guide() {
+  printf "\n\nUsage: %s <url>\n\n" "$SCR_NAME"
+  printf "Example:\n"
+  printf "  %s https://github.com/user/repo.git\n" "$SCR_NAME"
+}
+
+parse_arguments() {
+  while [ $# -ge 1 ]; do
+    case "$1" in
+    -h | --help) show_usage_guide ;;
+    "") p0ut "--missing $label" ;;
+    -*) p0ut "--invalid Option" "$1" ;;
+    *) url="$1" ;;
+    esac
+    shift
+  done
+}
+
+check_git_url() {
+  git_url_regex='^(https?|git)://([^/]+/)*[^/]+/[^/]+\.git$'
+  ssh_git_url_regex='^git@([^:]+):([^/]+)/[^/]+\.git$'
+
+  if ! printf "%s" "$url" | grep -Eq "$git_url_regex" && ! printf "%s" "$url" | grep -Eq "$ssh_git_url_regex"; then
+    p0ut "--invalid $label" "$url"
+  fi
+}
+
+check_subdomain() {
+  domain_regex='(https?|git)://([^/]+)/'
+
+  if ! printf "%s" "$url" | grep -Eq "$domain_regex"; then
+    p0ut "--invalid $label" "Missing subdomain" "$url"
+  fi
+}
+
+p0ut() {
+  pout "$@"
   exit 1
 }
 
-if git ls-remote "$value" -q >/dev/null 2>&1; then
-  #@ Update/Return Variable
-  printf "%s" "$value"
-else
-  pout --invalid "$label" "${value}"
-  exit 1
-fi
+main() {
+  parse_arguments "$@"
+  check_git_url
+  check_subdomain
+
+  #@ All checks passed, the Git repository URL is valid
+  printf "%s" "$url"
+}
+
+main "$@"
