@@ -1,0 +1,176 @@
+#!/usr/bin/env rust-script
+
+use std::env;
+use std::process;
+
+// Define the Args struct to hold command-line arguments
+struct Args {
+    email: Option<String>,
+    verbose: bool,
+    test: bool,
+}
+
+// Define the ValidationError enum to represent email validation errors
+enum ValidationError {
+    MissingAtSign,
+    MissingUsername,
+    MissingDomain,
+    MissingExtension,
+    InvalidExtension,
+}
+
+// Implement methods for the ValidationError enum
+impl ValidationError {
+    fn message(&self) -> String {
+        match self {
+            ValidationError::MissingAtSign => "Email is missing the @ sign.".to_string(),
+            ValidationError::MissingUsername => "Email is missing the username.".to_string(),
+            ValidationError::MissingDomain => "Email is missing the domain.".to_string(),
+            ValidationError::MissingExtension => "Email is missing the extension.".to_string(),
+            ValidationError::InvalidExtension => {
+                "Email has an invalid domain extension.".to_string()
+            }
+        }
+    }
+}
+
+// Print the usage guide for the script
+fn print_usage_guide() {
+    println!("Usage: {} [OPTIONS] <EMAIL>", env::args().next().unwrap());
+    println!();
+    println!("OPTIONS:");
+    println!("    -h, --help      Display this help message");
+    println!("    -d, --verbose   Enable verbose output");
+    println!("    -t, --test      Perform tests on various email scenarios");
+    println!();
+    println!("EMAIL:");
+    println!("    Email address to validate");
+}
+
+// Parse command-line arguments and return the Args struct
+fn parse_args() -> Args {
+    let mut args = Args {
+        email: None,
+        verbose: false,
+        test: false,
+    };
+
+    let mut iter = env::args().skip(1);
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "-h" | "--help" => {
+                print_usage_guide();
+                process::exit(0);
+            }
+            "-d" | "--verbose" => {
+                args.verbose = true;
+            }
+            "-t" | "--test" => {
+                args.test = true;
+                args.verbose = true;
+            }
+            _ => {
+                if args.email.is_some() {
+                    // Only one email argument is allowed
+                    println!("Error: Only one email address can be provided.");
+                    process::exit(1);
+                }
+                args.email = Some(arg);
+            }
+        }
+    }
+
+    args
+}
+
+// Perform tests on various email scenarios
+fn perform_tests(args: &Args) -> bool {
+    let test_emails = [
+        "missingdomain@",
+        "@missingusername.com",
+        "invalidemail",
+        "missing@dotcom",
+        "incomplete@domain.",
+        "invalid@extensionchars.#$%com",
+        "valid@domain.subdomain.tld",
+        "valid@example.com",
+    ];
+
+    let mut has_errors = false;
+
+    for (index, email) in test_emails.iter().enumerate() {
+        if index > 0 {
+            println!(); // Add a blank line between tests
+        }
+
+        print_message(args, &format!("Validating email: {}", email));
+
+        match validate_email(email) {
+            Ok(_) => print_message(args, "Email is valid."),
+            Err(err) => {
+                print_message(args, &format!("Error: {}", err.message()));
+                has_errors = true;
+            }
+        }
+    }
+
+    has_errors
+}
+
+// Validate an email address and return a Result indicating success or an error
+fn validate_email(email: &str) -> Result<(), ValidationError> {
+    let parts: Vec<&str> = email.split('@').collect();
+    if parts.len() != 2 {
+        return Err(ValidationError::MissingAtSign);
+    }
+
+    let username = parts[0];
+    let domain = parts[1];
+
+    if username.is_empty() {
+        return Err(ValidationError::MissingUsername);
+    }
+
+    let last_dot = domain.rfind('.').ok_or(ValidationError::MissingDomain)?;
+    let extension = &domain[(last_dot + 1)..];
+
+    if extension.is_empty() {
+        return Err(ValidationError::MissingExtension);
+    }
+
+    if !extension.chars().all(|c| c.is_alphanumeric()) {
+        return Err(ValidationError::InvalidExtension);
+    }
+
+    Ok(())
+}
+
+// Print a message if verbose output is enabled
+fn print_message(args: &Args, message: &str) {
+    if args.verbose {
+        println!("{}", message);
+    }
+}
+
+fn main() {
+    let args = parse_args(); // Parse command-line arguments
+
+    if args.test {
+        let has_errors = perform_tests(&args); // Perform tests if the test flag is provided
+
+        if !has_errors {
+            print_message(&args, "Email is valid.");
+        }
+    } else if let Some(ref email) = args.email {
+        match validate_email(&email) {
+            Ok(_) => print_message(&args, "Email is valid."),
+            Err(err) => {
+                print_message(&args, &format!("Error: {}", err.message()));
+                process::exit(1);
+            }
+        }
+    } else {
+        print_usage_guide(); // Print the usage guide if no email argument is provided
+        process::exit(1);
+    }
+}

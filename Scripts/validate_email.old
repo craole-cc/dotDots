@@ -42,10 +42,10 @@ check_username() {
 
 check_domain() {
 
-  tld_regex='^[a-zA-Z]+$'
+  ext_regex='^[a-zA-Z]+$'
 
   # Extract the top-level domain from the domain
-  tld="${domain##*.}"
+  ext="${domain##*.}"
 
   if [ -z "$domain" ]; then
     # pout "--invalid $label" "Missing the domain" "$email"
@@ -58,12 +58,12 @@ check_domain() {
   elif
 
     # Check if the top-level domain is empty
-    [ -z "$tld" ]
+    [ -z "$ext" ]
   then
     pout "--invalid $label" "Missing the top-level domain" "$email"
   elif
     # Check if the top-level contains invalid characters
-    printf "%s" "$tld" | grep -Eq "$tld_regex"
+    printf "%s" "$ext" | grep -Eq "$ext_regex"
   then
     pout "--invalid $label" "Check characters in the top-level domain" "$email"
   fi
@@ -93,7 +93,7 @@ run_tests() {
     @example.com
     johndoe@
     johndoe@example
-    johndoe@example.123
+    johndoe@example.123*
     johndoe@example.com
   "
 
@@ -109,51 +109,43 @@ run_tests() {
 }
 
 process() {
-  for email in $emails; do
 
-    # Check if the email contains an @ sign
-    if printf '%s' "$email" | grep -q '@'; then
-      # Split the email into username and domain parts
+  for email in $emails; do
+    #@ Check for the @ sign
+    if ! printf '%s' "$email" | grep -q '@'; then
+      pout "--invalid $label" "Missing the @" "$email"
+    else
+      #@ Split the email into parts
       username="${email%%@*}"
       domain="${email#*@}"
-    else
-      pout "--invalid $label" "Missing the @" "$email"
-      continue
-    fi
+      ext="${domain##*.}"
+      ext_regex='^[a-zA-Z0-9-]+$' #@ Accept only letters, numbers and hyphens
 
-    # printf "USER: %s DOMAIN:%s\n" "$username" "$domain"
-    [ "$username" ] || pout "--invalid $label" "Missing the username" "$email"
+      #@ Check for the username
+      [ "$username" ] ||
+        pout "--invalid $label" "Missing the username" "$email"
 
-    if [ "$domain" ]; then
-      tld_regex='^[a-zA-Z0-9-]+$' # Accept only letters, numbers and hyphens
-      tld="${domain##*.}" # Top-level domain
+      #@ Check for the domain
+      if [ "$domain" ]; then
 
-      if ! printf '%s' "$domain" | grep -q '\.'; then
-        pout "--invalid $label" "Missing the domain extension" "$email"
-      elif ! printf "%s" "$tld" | grep -Eq "$tld_regex"; then
-        pout "--invalid $label" "Check characters in the domain extension" "$email"
+        #@ Check for the dot
+        if ! printf '%s' "$domain" | grep -q '\.'; then
+          pout "--invalid $label" \
+            "Missing the domain extension" "$email"
+
+          #@ Check the extension for invalid characters
+        elif ! printf "%s" "$ext" | grep -Eq "$ext_regex"; then
+          pout "--invalid $label" \
+            "Check characters in the domain extension" "$email"
+        fi
+      else
+        pout "--invalid $label" "Missing the domain" "$email"
       fi
     fi
-    # if split_email_on_at; then
-    #   echo " | has @"
-    #   # printf "%s" "$email"
-    #   if split_email_on_at; then
-    #     echo " | has @"
-    # printf "%s" "$email"
-    #   else
-    #     pout "--invalid $label" "Missing the @ sign" "$email"
-    #     echo
-    #     continue
-    #   fi
-    # else
-    #   pout "--invalid $label" "Missing the @ sign" "$email"
-    #   echo
-    #   continue
-    # fi
-  done
 
-  #@ All checks passed, the email address is valid
-  # printf "%s" "$email"
+    #@ All checks passed, the email address is valid
+    # printf "%s" "$email"
+  done
 }
 
 main() {
