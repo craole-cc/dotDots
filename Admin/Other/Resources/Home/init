@@ -7,7 +7,9 @@ deploy_symlink() {
     --verbose
 }
 
-res_HOME="/home/craole/DOTS/Admin/Other/Resources/Home"
+# res_HOME="/home/craole/DOTS/Admin/Other/Resources/Home"
 
-deploy_symlink "${res_HOME}"/profile ${HOME}/.profile
-deploy_symlink "${res_HOME}"/bashrc ${HOME}/.bashrc
+res_HOME="${DOTS:-/home/craole/DOTS/Admin/Other}/Resources/Home"
+
+deploy_symlink "${res_HOME}"/profile "${HOME}"/.profile
+deploy_symlink "${res_HOME}"/bashrc "${HOME}"/.bashrc

@@ -4,7 +4,7 @@
 set -o posix
 
 # |> Disable ctrl-s and ctrl-q (Pause)
-stty -ixon
+# stty -ixon
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert

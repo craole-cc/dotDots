@@ -1,0 +1,171 @@
+#!/usr/bin/env rust-script
+//! ```cargo
+//! [dependencies]
+//! time = "0.1.25"
+//! ```
+// cargo-deps: regex = "1"
+
+use regex::Regex;
+use std::env;
+use std::process;
+
+const TEST_URLS: [&str; 13] = [
+    // VALID: HTTP-based
+    "http://github.com/user/repo.git",
+    // VALID: HTTPS-based
+    "https://github.com/user/repo.git",
+    // VALID: HTTPS-based Git URL sans extension
+    "https://github.com/user/repo",
+    // VALID: HTTPS-based with a username and password
+    "https://user:pass@github.com/user/repo.git",
+    // VALID: HTTPS-based with a fragment/anchor
+    "https://github.com/user/repo.git#branch-name",
+    // VALID: SSH-based
+    "ssh:user@example.com:my-project",
+    // VALID: SSH-based
+    "git@github.com:user/repo.git",
+    // VALID: SSH-based with a specific port
+    "git://github.com:1234/user/repo.git",
+    // VALID: SSH-based with a specific path
+    "git://github.com/user/repo.git/subfolder",
+    // VALID: Local file-based
+    "file:///absolute/path/to/my-project.git",
+    // INVALID: Missing user and project
+    "https://github.com",
+    // INVALID: Missing project
+    "https://github.com/craole",
+    // INVALID: HTTPS-based with query parameters
+    "https://github.com/user/repo.git?param1=value1&param2=value2",
+];
+
+// Define the Args struct to hold command-line arguments
+struct Args {
+    urls: Vec<String>,
+    verbose: bool,
+    test: bool,
+}
+
+// Define the ValidationError enum to represent Git URL validation errors
+enum ValidationError {
+    InvalidFormat,
+}
+
+// Implement methods for the ValidationError enum
+impl ValidationError {
+    fn message(&self) -> String {
+        match self {
+            ValidationError::InvalidFormat => "Invalid Git URL format.".to_string(),
+        }
+    }
+}
+
+// Print the usage guide for the script
+fn print_usage_guide() {
+    println!("Usage: {} [OPTIONS] <URL...>", env::args().next().unwrap());
+    println!();
+    println!("OPTIONS:");
+    println!("    -h, --help      Display this help message");
+    println!("    -d, --verbose   Enable verbose output");
+    println!("    -t, --test      Perform tests on various Git URL scenarios");
+    println!();
+    println!("URL:");
+    println!("    Git URLs to validate");
+}
+
+// Parse command-line arguments and return the Args struct
+fn parse_args() -> Args {
+    let mut args = Args {
+        urls: Vec::new(),
+        verbose: false,
+        test: false,
+    };
+
+    let mut iter = env::args().skip(1);
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "-h" | "--help" => {
+                print_usage_guide();
+                process::exit(0);
+            }
+            "-d" | "--verbose" => {
+                args.verbose = true;
+            }
+            "-t" | "--test" => {
+                args.test = true;
+                args.verbose = true;
+            }
+            _ => {
+                args.urls.push(arg);
+            }
+        }
+    }
+
+    args
+}
+
+// Perform tests on various Git URL scenarios
+fn perform_tests() {
+    for (i, url) in TEST_URLS.iter().enumerate() {
+        println!("Test {:02}: {}", i + 1, url);
+        match validate_git_url(url) {
+            Ok(_) => println!("\t Valid Git URL"),
+            Err(err) => println!("\t Error - {}", err.message()),
+        }
+        println!();
+    }
+}
+
+// Validate a Git URL and return a Result indicating success or an error
+fn validate_git_url(url: &str) -> Result<(), ValidationError> {
+    // let regex =
+    // Regex::new(r#"^(https?|ssh|git|file):\/\/([^/:]+(:\d+)?/)?[^/]+\/[^/]+(\.git)?(/.*)?$"#)
+    //     .unwrap();
+
+    // let regex =
+    //     Regex::new(r#"(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$"#)
+    //         .unwrap();
+    // let regex =
+    //     Regex::new(r#"(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$"#)
+    //         .unwrap();
+
+    // let regex = Regex::new(r#"^(?:https?|git(?:\+\w+)?|ssh|file):\/\/(?:[a-zA-Z0-9]+\:[^\s@]+@)?(?:[a-zA-Z0-9.-]+)(?::\d+)?(?:\/[^\s?#]*)?(?:\.git(?:\/[^\s]*)?)?(?:\?[^\s]*)?(?:#[^\s]*)?$"#).unwrap();
+    let regex = Regex::new(
+      r"^(?:https?|git|ssh|file)://(?:[^:@]+:[^@]*@)?(?:[^/]+/)*[^/?#\s]+(?:\.git)?(?:\?[^#\s]*)?(?:#[^\s]*)?$").unwrap();
+    if !regex.is_match(url) {
+        return Err(ValidationError::InvalidFormat);
+    }
+
+    Ok(())
+}
+
+// Print a message if verbose output is enabled
+fn print_message(args: &Args, message: &str) {
+    if args.verbose {
+        println!("{}", message);
+    }
+}
+
+fn main() {
+    let args = parse_args(); // Parse command-line arguments
+
+    if args.test {
+        perform_tests(); // Perform tests if the test flag is provided
+    } else if !args.urls.is_empty() {
+        for url in &args.urls {
+            if args.verbose {
+                print_message(&args, &format!("Validating URL: {}", url));
+            }
+
+            match validate_git_url(url) {
+                Ok(_) => print_message(&args, "Git URL is valid."),
+                Err(err) => {
+                    print_message(&args, &format!("Error: {}", err.message()));
+                    process::exit(1);
+                }
+            }
+        }
+    } else {
+        print_usage_guide(); // Print the usage guide if no URL argument is provided
+        process::exit(1);
+    }
+}

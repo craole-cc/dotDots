@@ -1,6 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC1090,SC1091
 # DOC: This script is used to initialize the dotfiles via a list of selected modules.
+VERBOSE=false
 
 #@ Ensure the dotfiles exist
 [ -d "${DOTS}" ] || return 1
@@ -11,10 +12,10 @@ DOTS_MOD="${DOTS}/Modules"
 #@ Initialize the modules individually
 modules_to_activate="
   profile
-  # display
-  # config
+  display
+  prompt
   # fonts
-  # prompts
+  # config
   # keys
   # autostart
   # shell
@@ -28,11 +29,24 @@ while IFS= read -r module; do
 
     #@ Initialize selected modules by skipping commented modules
     case ${module} in
-        *[![:alnum:]]*) ;;
-        *) [ -n "${module}" ] && . "${DOTS}/Modules/${module}" ;;
+              *[![:alnum:]]*) ;;
+            *)
+             [ -n "${module}" ] && {
+              printf "Loading the %s module... " "${module}"
+              . "${DOTS}/Modules/${module}"
+              printf "complete\n"
+              }
+               ;;
     esac
 
 done <<< "${modules_to_activate}"
 
 #@ Print success message
-[ -n "${VERBOSE}" ] && printf "DOTS=[%s]\n" "${DOTS}"
+[ "$VERBOSE" = true ] && printf "DOTS=[%s]\n" "$DOTS"
+
+if type INFor >/dev/null 2>&1; then
+  INFor
+else
+  exit
+fi
+return 0

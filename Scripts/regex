@@ -1,0 +1,33 @@
+#!/usr/bin/env rust-script
+//! ```cargo
+//! [dependencies]
+//! regex = "1.8.4"
+//! lazy_static = "1.4.0"
+//! ```
+
+use regex::Regex;
+// use lazy_static::lazy_static;
+
+fn main() {
+    let re = Regex::new(r"(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})").unwrap();
+    let dates = "2012-03-13, 2022-12-29 and 2023-11-14";
+let after - re.replace_all(dates)
+    for cap in re.captures_iter(dates) {
+        println!("Month: {} Day: {} Year: {} Full Match: {}", &cap[2], &cap[3], &cap[1], &cap[0]);
+    }
+    //     let re = Regex::new(
+    //         r"(?x)
+    // (?P<year>\d{4})  # the year
+    // -
+    // (?P<month>\d{2}) # the month
+    // -
+    // (?P<day>\d{2})   # the day
+    // ",
+    //     )
+    //     .unwrap();
+    //     let caps = re.captures("2010-03-14").unwrap();
+
+    //     assert_eq!("2010", &caps["year"]);
+    //     assert_eq!("03", &caps["month"]);
+    //     assert_eq!("14", &caps["day"]);
+}

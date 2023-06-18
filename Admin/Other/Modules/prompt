@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# . "$RC_bash"
 #TODO: This doesn't work because the $SHELL is always bash
 case "$SHELL" in
 *ash) . "$RC_bash" ;;
@@ -7,9 +8,3 @@ case "$SHELL" in
 *fish) . "$RC_fish" ;;
 *nu) . "$RC_nush" ;;
 esac
-
-if type sysInfo >/dev/null 2>&1; then
-  sysInfo
-else
-  exit
-fi

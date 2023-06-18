@@ -13,9 +13,7 @@
 # _________________________________________ LOCAL<|
 
 #* Verify Instalation *#
-if ! weHave pacman; then
-	return
-fi
+weHave pacman || return
 
 # _______________________________________ EXPORT<|
 
