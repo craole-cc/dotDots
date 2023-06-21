@@ -1,22 +1,27 @@
 #!/bin/sh
 
-: <<THEMES
-  bracketed-segments
-  craole
-  nerd-font-symbols
-  no-nerd-font
-  pastel-powerline
-  tokyo-night
-THEMES
+app=starship
 
-theme="bracketed-segments"
-theme_src="$DOTS_CLI/starship/themes/${theme}.toml"
-theme_lnk="$DOTS_CLI/starship/config.toml"
+#| Load Environment Variables
+[ -d "${DOTS_ENV_CTX}/${app}" ] &&
+  . "${DOTS_ENV_CTX}/${app}"
+# : <<THEMES
+#   bracketed-segments
+#   craole
+#   nerd-font-symbols
+#   no-nerd-font
+#   pastel-powerline
+#   tokyo-night
+# THEMES
 
-cmp -s "$theme_src" "$theme_lnk" ||
+# theme="bracketed-segments"
+# theme_src="$DOTS_CLI/starship/themes/${theme}.toml"
+# theme_lnk="$DOTS_CLI/starship/config.toml"
+
+cmp -s "$src" "$lnk" ||
   symbiolink --force \
-    --src "$theme_src" \
-    --lnk "$theme_lnk"
+    --src "$src" \
+    --lnk "$lnk"
 
 # if [ -f "$STARSHIP_CONFIG" ]; then
 #   symbiolink --force \

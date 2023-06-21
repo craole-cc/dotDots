@@ -1,0 +1,32 @@
+#!/bin/sh
+
+#> Info
+_APP="starship"
+_NAME="Helix Editor"
+
+#> TYPE
+_TYPE="tty"
+
+#> Config
+_HOME="${DOTS_CLI}/${_APP}"
+_EXT="toml"
+_CFG="${_HOME}/${_APP}/config.${_EXT}"
+
+#> THEME
+: <<THEMES
+  bracketed-segments
+  craole
+  nerd-font-symbols
+  no-nerd-font
+  pastel-powerline
+  tokyo-night
+THEMES
+
+theme="bracketed-segments"
+# theme_src="$DOTS_CLI/starship/themes/${theme}.toml"
+# theme_lnk="$DOTS_CLI/starship/config.toml"
+_THEME="${_HOME}/${_APP}/${theme}.${_EXT}"
+
+#> LINK
+src="$_THEME"
+lnk="$_CFG"
