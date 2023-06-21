@@ -1,176 +1,72 @@
-[aws]
-format = '\[[$symbol($profile)(\($region\))(\[$duration\])]($style)\]'
 
-# [bun]
-# format = '\[[$symbol($version)]($style)\]'
+# Wait 10 milliseconds for starship to check files under the current directory.
+scan_timeout = 10
 
-[c]
-format = '\[[$symbol($version(-$name))]($style)\]'
+[line_break]
+# disabled = true
 
-[cmake]
-format = '\[[$symbol($version)]($style)\]'
+[directory]
+format = "[$path]($style)[$read_only]($read_only_style) "
+truncation_length = 4
+truncate_to_repo = false
+truncation_symbol = "…/"
 
-[cmd_duration]
-format = '\[[⏱ $duration]($style)\]'
-
-[cobol]
-format = '\[[$symbol($version)]($style)\]'
-
-[conda]
-format = '\[[$symbol$environment]($style)\]'
-
-[crystal]
-format = '\[[$symbol($version)]($style)\]'
-
-# [daml]
-# format = '\[[$symbol($version)]($style)\]'
-
-[dart]
-format = '\[[$symbol($version)]($style)\]'
-
-[deno]
-format = '\[[$symbol($version)]($style)\]'
-
-[docker_context]
-format = '\[[$symbol$context]($style)\]'
-
-[dotnet]
-format = '\[[$symbol($version)(🎯 $tfm)]($style)\]'
-
-[elixir]
-format = '\[[$symbol($version \(OTP $otp_version\))]($style)\]'
-
-[elm]
-format = '\[[$symbol($version)]($style)\]'
-
-[erlang]
-format = '\[[$symbol($version)]($style)\]'
-
-[gcloud]
-format = '\[[$symbol$account(@$domain)(\($region\))]($style)\]'
-
-[git_branch]
-format = '\[[$symbol$branch]($style)\]'
-
-[git_status]
-format = '([\[$all_status$ahead_behind\]]($style))'
-
-[golang]
-format = '\[[$symbol($version)]($style)\]'
-
-# [guix_shell]
-# format = '\[[$symbol]($style)\]'
-
-[haskell]
-format = '\[[$symbol($version)]($style)\]'
-
-# [haxe]
-# format = '\[[$symbol($version)]($style)\]'
-
-[helm]
-format = '\[[$symbol($version)]($style)\]'
-
-[hg_branch]
-format = '\[[$symbol$branch]($style)\]'
-
-[java]
-format = '\[[$symbol($version)]($style)\]'
-
-[julia]
-format = '\[[$symbol($version)]($style)\]'
-
-[kotlin]
-format = '\[[$symbol($version)]($style)\]'
-
-[kubernetes]
-format = '\[[$symbol$context( \($namespace\))]($style)\]'
-
-[lua]
-format = '\[[$symbol($version)]($style)\]'
-
-[memory_usage]
-format = '\[$symbol[$ram( | $swap)]($style)\]'
-
-# [meson]
-# format = '\[[$symbol$project]($style)\]'
-
-[nim]
-format = '\[[$symbol($version)]($style)\]'
-
-[nix_shell]
-format = '\[[$symbol$state( \($name\))]($style)\]'
-
-[nodejs]
-format = '\[[$symbol($version)]($style)\]'
-
-[ocaml]
-format = '\[[$symbol($version)(\($switch_indicator$switch_name\))]($style)\]'
-
-# [opa]
-# format = '\[[$symbol($version)]($style)\]'
-
-[openstack]
-format = '\[[$symbol$cloud(\($project\))]($style)\]'
-
-# [os]
-# format = '\[[$symbol]($style)\]'
+[directory.substitutions]
+"Documents" = " "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+"Dotfiles" = "°°°"
+"~/DOTS" = "°°°"
 
 [package]
-format = '\[[$symbol$version]($style)\]'
+disabled = true
 
-[perl]
-format = '\[[$symbol($version)]($style)\]'
-
-[php]
-format = '\[[$symbol($version)]($style)\]'
-
-[pulumi]
-format = '\[[$symbol$stack]($style)\]'
-
-[purescript]
-format = '\[[$symbol($version)]($style)\]'
-
-[python]
-format = '\[[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)\]'
-
-# [raku]
-# format = '\[[$symbol($version-$vm_version)]($style)\]'
-
-[red]
-format = '\[[$symbol($version)]($style)\]'
-
-[ruby]
-format = '\[[$symbol($version)]($style)\]'
-
-[rust]
-format = '\[[$symbol($version)]($style)\]'
-
-[scala]
-format = '\[[$symbol($version)]($style)\]'
-
-[spack]
-format = '\[[$symbol$environment]($style)\]'
-
-[sudo]
-format = '\[[as $symbol]\]'
-
-[swift]
-format = '\[[$symbol($version)]($style)\]'
-
-[terraform]
-format = '\[[$symbol$workspace]($style)\]'
+[cmd_duration]
+min_time = 1000
+show_notifications = true
 
 [time]
-format = '\[[$time]($style)\]'
+disabled = false
+format = '🕙[ $time ]($style)'
+time_format = "%H:%M"
+utc_time_offset = "-5"
+time_range = '22:00:00-07:00:00'
 
-[username]
-format = '\[[$user]($style)\]'
+[shell]
+disabled = true
 
-[vagrant]
-format = '\[[$symbol($version)]($style)\]'
+[status]
+disabled = false
+symbol = "🔴"
+format = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
+map_symbol = true
 
-[vlang]
-format = '\[[$symbol($version)]($style)\]'
+[character]
+success_symbol = "🚀"
+error_symbol = "🚩"
 
-[zig]
-format = '\[[$symbol($version)]($style)\]'
+[battery]
+full_symbol = "🔋 "
+charging_symbol = "⚡️ "
+discharging_symbol = "💀 "
+
+[sudo]
+style = "bold green"
+symbol = "👩‍💻 "
+allow_windows = true
+disabled = false
+
+[git_status]
+# disabled = true
+conflicted = "🏳"
+ahead = "🏎💨"
+behind = "😰"
+diverged = "😵"
+up_to_date = "✓"
+untracked = "🤷‍"
+stashed = "📦"
+modified = "📝"
+staged = '[++\($count\)](green)'
+renamed = "👅"
+deleted = "🗑"

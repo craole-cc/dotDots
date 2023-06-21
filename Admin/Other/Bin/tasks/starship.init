@@ -1,37 +1,45 @@
 #!/bin/sh
 
-app=starship
+SCR_NAME="starship.init"
+SCR_DESCRIPTION="Script to set Starship theme and environment"
+SCR_USAGE_GUIDE=$(
+  cat <<EOF
+Usage: $SCR_NAME [theme]
+$SCR_DESCRIPTION
 
-#| Load Environment Variables
-[ -d "${DOTS_ENV_CTX}/${app}" ] &&
-  . "${DOTS_ENV_CTX}/${app}"
-# : <<THEMES
-#   bracketed-segments
-#   craole
-#   nerd-font-symbols
-#   no-nerd-font
-#   pastel-powerline
-#   tokyo-night
-# THEMES
+Options:
+  [theme]     Specify the desired Starship theme (default: craole).
+              Available themes: bracketed-segments, default, craole,
+              nerd-font-symbols, no-nerd-font, pastel-powerline, tokyo-night
+EOF
+)
 
-# theme="bracketed-segments"
-# theme_src="$DOTS_CLI/starship/themes/${theme}.toml"
-# theme_lnk="$DOTS_CLI/starship/config.toml"
+#@ Define a function to display the usage guide
+show_usage_guide() {
+  printf "%s\n\n" "$SCR_USAGE_GUIDE"
+}
 
-cmp -s "$src" "$lnk" ||
-  symbiolink --force \
-    --src "$src" \
-    --lnk "$lnk"
+process() {
+  #@ Load the Starship environment
+  starship_env="${DOTS}/Environment/export/package/starship.sh"
+  . "${starship_env}"
+}
 
-# if [ -f "$STARSHIP_CONFIG" ]; then
-#   symbiolink --force \
-#     --src "$starship_theme" \
-#     --lnk "$starship_toml"
-# else
-#   symbiolink \
-#     --src "$starship_theme" \
-#     --lnk "$starship_toml"
-# fi
-symbiolink \
-  --src "$theme_src" \
-  --lnk "$theme_lnk"
+parse_arguments() {
+  #@ Parse the command-line arguments
+  case $1 in
+  -h | --help)
+    show_usage_guide
+    exit
+    ;;
+  *)
+    #@ Set the default theme to "craole" if no theme is specified
+    starship_theme="${1:-craole}"
+    ;;
+  esac
+}
+
+main() {
+  parse_arguments "$@"
+  process
+} && main "$@"

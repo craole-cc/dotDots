@@ -2,15 +2,15 @@
 
 #> Info
 _APP="starship"
-_NAME="Helix Editor"
-
-#> TYPE
+_NAME="Starship Prompt"
 _TYPE="tty"
 
 #> Config
 _HOME="${DOTS_CLI}/${_APP}"
 _EXT="toml"
-_CFG="${_HOME}/${_APP}/config.${_EXT}"
+_CFG="${_HOME}/config.${_EXT}"
+STARSHIP_CONFIG="${_CFG}"
+STARSHIP_CACHE="${CACHE_HOME}/${_APP}"
 
 #> THEME
 : <<THEMES
@@ -22,10 +22,8 @@ _CFG="${_HOME}/${_APP}/config.${_EXT}"
   tokyo-night
 THEMES
 
-theme="bracketed-segments"
-# theme_src="$DOTS_CLI/starship/themes/${theme}.toml"
-# theme_lnk="$DOTS_CLI/starship/config.toml"
-_THEME="${_HOME}/${_APP}/${theme}.${_EXT}"
+theme="craole"
+_THEME="${_HOME}/themes/${theme}.${_EXT}"
 
 #> LINK
 src="$_THEME"

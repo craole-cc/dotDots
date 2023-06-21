@@ -22,6 +22,7 @@ fi
 #>_____________                                                         DOTFILES<|
 
 # | Dotfiles
+export DOTS
 DOTS_DOC="$DOTS/Documentation"
 DOTS_DOWN="$DOTS/Downloads"
 DOTS_MOD="$DOTS/Modules"
