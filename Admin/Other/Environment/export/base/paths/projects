@@ -2,8 +2,9 @@
 # shellcheck disable=SC2034,SC2154
 
 #@ Define Projets Home
-PROJECTS="/store/Documents/Projects/"
-# PROJECTS="$DOTS/../Projects"
+# PROJECTS="/store/Documents/Projects/"
+PROJECTS="$DOTS/../../.."
+
 
 #@ Projects by Language
 PRJ_rs="$PROJECTS/Rust"
