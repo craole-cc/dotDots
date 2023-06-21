@@ -2,51 +2,40 @@
 # shellcheck disable=SC1090,SC1091
 # DOC: This script is used to initialize the dotfiles via a list of selected modules.
 VERBOSE=false
+SHELL_PREFERRED=bash
 
-#@ Ensure the dotfiles exist
-[ -d "${DOTS}" ] || return 1
-
-#@ Establish the modules directory
+#@ Ensure the dotfile modules exist
 DOTS_MOD="${DOTS}/Modules"
+[ -d "${DOTS_MOD}" ] || exit 1
 
-#@ Initialize the modules individually
-modules_to_activate="
+#@ Set modules [ profile <other modules> shell ]
+modules="
   profile
   display
-  prompt
   # fonts
   # config
-  # keys
+  # input
   # autostart
-  # shell
+  # prompt
+  shell
 "
 
-#@ Initialize each module
-while IFS= read -r module; do
+#@ Prep the module list for use in the loop
+modules="$(
+  printf "%s" "$modules" |
+    sed 's/# /#/g'
+)"
 
-    #@ Remove leading/trailing whitespace
-    module=$(printf "%s" "${module}" | tr -d '[:blank:]')
+#@ Loop through the list of modules
+for module in $modules; do
 
-    #@ Initialize selected modules by skipping commented modules
-    case ${module} in
-              *[![:alnum:]]*) ;;
-            *)
-             [ -n "${module}" ] && {
-              printf "Loading the %s module... " "${module}"
-              . "${DOTS}/Modules/${module}"
-              printf "complete\n"
-              }
-               ;;
-    esac
+  # #@ Initialize selected modules without comment characters
+  case $module in
+  [[:alnum:]]*)
+    [ "$VERBOSE" = true ] &&
+      printf "Initializing the %s module\n" "$module"
 
-done <<< "${modules_to_activate}"
-
-#@ Print success message
-[ "$VERBOSE" = true ] && printf "DOTS=[%s]\n" "$DOTS"
-
-if type INFor >/dev/null 2>&1; then
-  INFor
-else
-  exit
-fi
-return 0
+    . "${DOTS_MOD}/${module}"
+    ;;
+  esac
+done

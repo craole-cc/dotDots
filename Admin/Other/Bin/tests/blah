@@ -4,7 +4,7 @@
 wallpaper_src_path="$WALLPAPERS/test/README.md"
 wallpaper_src_path="$WALLPAPERS/test/zWfHddo.jpg"
 wallpaper_src_path="$WALLPAPERS/test/italki_2022.png"
-wallpaper_src_path="$WALLPAPERS"
+wallpaper_src_path="$WALLPAPERS"
 wallpaper_src_path="$WALLPAPERS/test"
 min_width=1920
 min_height=1080

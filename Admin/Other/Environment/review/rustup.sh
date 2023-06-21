@@ -6,15 +6,13 @@
 #==================================================
 
 # _________________________________ DOCUMENTATION<|
-weHave rustc || return
 
 # _________________________________________ LOCAL<|
-
 # --> Rustup
 RUSTUP_HOME="$HOME/.rustup"
 # RUSTUP_CONFIG="$DOTS_TOOL/utilities/rustup/settings.toml"
 RUSTUP_CONFIG="$RUSTUP_HOME/settings.toml"
-RUSTUP_BASH_COMPLETION="$BASH_COMPLETION/completions/rustup"
+RUSTUP_BASH_COMPLETION="$BASH_COMPLETION/rustup"
 
 # --> Cargo
 CARGO_HOME="$HOME/.cargo"
@@ -28,14 +26,17 @@ CARGO_ENV="$CARGO_HOME/env"
 [ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
 
 #> Install Rust if missing
-weHave rustc || install_rust
+#* Verify Instalation *#
+if ! type rustc >/dev/null 2>&1; then
+  install_rust
+fi
 
 #> Completion
 case "$sys_INFO" in
-baSHell) rustup completions bash ;;
+pwsh) rustup completions powershell ;;
 zSHell) rustup completions zsh ;;
 fiSHell) rustup completions fish ;;
-pwsh) rustup completions powershell ;;
+baSHell | *SH*) rustup completions bash ;;
 esac
 
 # _________________________________________ ALIAS<|

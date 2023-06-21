@@ -1,10 +1,15 @@
 #!/bin/sh
 
+
 # . "$RC_bash"
 #TODO: This doesn't work because the $SHELL is always bash
 case "$SHELL" in
 *ash) . "$RC_bash" ;;
 *zsh) . "$RC_zsh" ;;
 *fish) . "$RC_fish" ;;
-*nu) . "$RC_nush" ;;
+nu*) . "$RC_nush" ;;
 esac
+
+
+# #@ Show the system info
+# type INFor >/dev/null 2>&1 && INFor

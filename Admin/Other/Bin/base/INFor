@@ -13,7 +13,8 @@ __info__() {
   _cmd_DESCRIPTION="Write output to the standard output stream"
   _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
   _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, weHave"
-  _cmd_USAGEGUIDE="$( cat <<USAGE_GUIDE
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
     #>----------------------------------------------------<#
                                                 $_cmd_NAME
     #>----------------------------------------------------<#
@@ -140,7 +141,7 @@ __os__() {
     # printf "%s" "Info via /etc/issue"
     sd </etc/issue ' \\.*\n' ''
   else
-  uname -a
+    uname -a
   fi
 
 }
@@ -248,34 +249,34 @@ __power__() {
 __ip__() {
   if weHave ip; then
     ip route get 1.2.3.4 | awk '{print $7}'
-    elif wehave ipconfig;then
+  elif wehave ipconfig; then
     ipconfig | grep "IPv4.*192" | awk '{print $NF}'
   fi
 }
 
 __fetch__() {
-  printf "\n%s\n" "            Host |   | $(__user__)@$(__host__)"
+  printf "\n%s\n" "            Host |  | $(__user__)@$(__host__)"
 
- [   "$(__type__)" ] &&
-  printf "%s\n" "            Type |   | $(__type__)"
+  [ "$(__type__)" ] &&
+    printf "%s\n" "            Type |  | $(__type__)"
 
- [   "$(__kernel__)" ] &&
-  printf "%s\n" "          Kernel |   | $(__kernel__)"
+  [ "$(__kernel__)" ] &&
+    printf "%s\n" "          Kernel |  | $(__kernel__)"
 
-#  [   "$(__os__)" ] &&
-#   printf "%s\n" "    Distribution |   | $(__os__)"
+  #  [   "$(__os__)" ] &&
+  #   printf "%s\n" "    Distribution |  | $(__os__)"
 
- [   "$(__wm__)" ] &&
-  printf "%s\n" "  Window Manager | 拓 | $(__wm__)"
+  [ "$(__wm__)" ] &&
+    printf "%s\n" "  Window Manager | 拓 | $(__wm__)"
 
-[ "$(__ip__)" ]&&
-  printf "%s\n" "      IP Address |   | $(__ip__)"
+  [ "$(__ip__)" ] &&
+    printf "%s\n" "      IP Address |  | $(__ip__)"
 
- [   "$(__shell__)" ] &&
-  printf "%s\n" "           Shell |   | $(__shell__)"
+  [ "$(__shell__)" ] &&
+    printf "%s\n" "           Shell |  | $(__shell__)"
 
- [   "$(__power__)" ] &&
-  printf "%s\n" "         Battery |   | $(__power__)"
+  [ "$(__power__)" ] &&
+    printf "%s\n" "         Battery |  | $(__power__)"
 }
 
 __inf__() {

@@ -5,7 +5,7 @@ prep_script_env() {
   version=2.0
   usage_guide="USAGE [OPTIONS] <ARG>"
   verbose_flag="${VERBOSE:-}"
-  win_os="$(win_os)"
+  windows_flag="$(case "$(uname -a)" in *NT*) echo true ;; esac)"
   # test_flag=true
   # reset_flag=true
 
@@ -17,13 +17,6 @@ prep_script_env() {
 print_usage_guide() {
   printf "%s\n" "$usage_guide"
   exit "$exit_code"
-}
-
-win_os() {
-  case "$(uname -a)" in
-  *NT*) echo true ;;
-  *) ;;
-  esac
 }
 
 get_sources() {
@@ -109,9 +102,9 @@ process_sources() {
       #| Make scripts executable
       if [ "$src_type" = "BIN" ]; then
         if [ "$verbose_flag" = true ]; then
-          [ "$win_os" ] || chmod --changes +x "$src_path"
+          [ "$windows_flag" = true ] || chmod --changes +x "$src_path"
         else
-          [ "$win_os" ] || chmod +x "$src_path"
+          [ "$windows_flag" = true ] || chmod +x "$src_path"
         fi
 
       #| Load environmental variables from files
@@ -180,7 +173,6 @@ initialize_source() {
       printf "Invalid Option: %s\n" "$1"
       exit_code=1
       print_usage_guide
-      break
       ;;
     *) ;;
     esac
@@ -216,15 +208,6 @@ cleanup() {
     reset_flag \
     test_flag \
     verbose_flag
-
-  # unset -f \
-  #   prep_script_env \
-  #   print_usage_guide \
-  #   get_sources \
-  #   process_sources \
-  #   initialize_source \
-  #   simulate_initialization \
-  #   cleanup
 }
 
 main() {
@@ -237,4 +220,4 @@ main() {
     --env "$DOTS/Environment/export"
 
   cleanup
-} && main $@
+} && main

@@ -7,9 +7,13 @@
 
 # _________________________________ DOCUMENTATION<|
 
+
 # _________________________________________ LOCAL<|
 
-weHave ruby || return
+#* Verify Instalation *#
+if ! type ruby >/dev/null 2>&1; then
+  return
+fi
 
 GEM_HOME="$(ruby -e 'puts Gem.user_dir')/bin"
 # PATH_add "$GEM_HOME"

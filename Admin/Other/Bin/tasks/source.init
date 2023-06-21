@@ -110,10 +110,7 @@ __sources__() {
 
   src_include() {
     if [ "$(src_exclude)" ]; then
-      grep \
-        --extended-regexp \
-        --invert-match \
-        --ignore-case \
+      grep --extended-regexp --invert-match --ignore-case \
         "$(src_exclude)" |
         sort
     else
