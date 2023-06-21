@@ -9,11 +9,24 @@
   tokyo-night
 THEMES
 
-theme="craole"
-starship_theme="$DOTS_CLI/starship/themes/${theme}.toml"
-starship_toml="$DOTS_CLI/starship/config.toml"
+theme="bracketed-segments"
+theme_src="$DOTS_CLI/starship/themes/${theme}.toml"
+theme_lnk="$DOTS_CLI/starship/config.toml"
 
-symLink \
-  --force \
-  --src "$starship_theme" \
-  --lnk "$starship_toml"
+cmp -s "$theme_src" "$theme_lnk" ||
+  symbiolink --force \
+    --src "$theme_src" \
+    --lnk "$theme_lnk"
+
+# if [ -f "$STARSHIP_CONFIG" ]; then
+#   symbiolink --force \
+#     --src "$starship_theme" \
+#     --lnk "$starship_toml"
+# else
+#   symbiolink \
+#     --src "$starship_theme" \
+#     --lnk "$starship_toml"
+# fi
+symbiolink \
+  --src "$theme_src" \
+  --lnk "$theme_lnk"

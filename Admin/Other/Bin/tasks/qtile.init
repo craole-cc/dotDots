@@ -8,4 +8,4 @@ weHave qtile || exit
 . "$DOTS_ENV_CTX/qtile"
 
 #| Deploy Link
-symLink --src "$DESKTOP_HOME" --lnk "$DESKTOP_LINK"
+symbiolink --src "$DESKTOP_HOME" --lnk "$DESKTOP_LINK"

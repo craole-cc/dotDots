@@ -6,8 +6,8 @@ __init__() {
   . "$DOTS_ENV_CTX/macchina"
 
   #| Push to $CONFIG_HOME
-  symLink --src "$ASCII" --lnk "$MACCHINA_IMAGES"
-  symLink --src "$MACCHINA_HOME" --lnk "$MACCHINA_LINK"
+  symbiolink --src "$ASCII" --lnk "$MACCHINA_IMAGES"
+  symbiolink --src "$MACCHINA_HOME" --lnk "$MACCHINA_LINK"
 }
 
 if weHave macchina; then

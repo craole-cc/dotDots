@@ -249,7 +249,7 @@ __process__() {
   __mkdir__
 
   #@ Link
-  __link__
+  [ -e "$lnk_path" ] || __link__
 }
 
 __test__() {

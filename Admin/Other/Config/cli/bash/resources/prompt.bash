@@ -116,6 +116,6 @@ init_zoxide() {
 }
 
 init_PS1
-# init_direnv
+init_direnv
 init_starship
-# init_zoxide
+init_zoxide

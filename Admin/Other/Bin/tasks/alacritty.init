@@ -8,4 +8,4 @@ weHave alacritty || exit
 . "$DOTS_ENV_CTX/alacritty"
 
 #| Deploy Link
-symLink --src "$src" --lnk "$lnk" --force --verbose
+symbiolink --src "$src" --lnk "$lnk" --force --verbose

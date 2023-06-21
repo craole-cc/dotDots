@@ -47,9 +47,9 @@ __lnk__() {
 
     #| Show details when symlinking, if requested.
     if [ "$verbose" ]; then
-      symLink --src "$src" --lnk "$lnk" --verbose
+      symbiolink --src "$src" --lnk "$lnk" --verbose
     else
-      symLink --src "$src" --lnk "$lnk"
+      symbiolink --src "$src" --lnk "$lnk"
     fi
 
   else

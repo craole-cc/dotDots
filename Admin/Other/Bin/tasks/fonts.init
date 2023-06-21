@@ -9,10 +9,10 @@ mkdir --parents --verbose "$FONTCONFIG_USER"
 mkdir --parents --verbose "$LOCAL_SHARE"
 
 #| Deploy Link
-# src_path="$FONT_CONFIG_HOME" symLink --lnk "$FONT_CONFIG_LINK"
-symLink \
+# src_path="$FONT_CONFIG_HOME" symbiolink --lnk "$FONT_CONFIG_LINK"
+symbiolink \
   --src "$FONT_CONFIG_HOME" \
   --lnk "$FONT_CONFIG_LINK"
-symLink \
+symbiolink \
   --src "$FONT_TYPES_HOME" \
   --lnk "$FONT_TYPES_LINK"

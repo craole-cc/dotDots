@@ -8,4 +8,4 @@ weHave kitty || exit
 . "$DOTS_ENV_CTX/kitty"
 
 #| Deploy Link
-symLink --src "$src" --lnk "$lnk" --force --verbose
+symbiolink --src "$src" --lnk "$lnk" --force --verbose
