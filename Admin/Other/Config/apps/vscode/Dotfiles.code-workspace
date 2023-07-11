@@ -5,26 +5,26 @@
       "path": "../../.."
     },
     {
-      "name": "Bin",
+      "name": "DOTS_FLAKE",
+      "path": "../../../../.."
+    },
+    {
+      "name": "DOTS_BIN",
       "path": "../../../Bin"
     },
     {
-      "name": "Config",
+      "name": "DOTS_CFG",
       "path": "../.."
     },
     {
-      "name": "Qtile",
-      "path": "../../tools/interface/qtile"
+      "name": "WORK",
+      "path": "../../../../../../Projects"
     },
     {
-      "name": "NixOS",
-      "path": "../nixos"
+      "path": "../../../../../.."
     },
     {
-      "path": "../../../../Projects"
-    },
-    {
-      "path": "../../../.."
+      "path": "../NixWSL"
     }
   ],
   "extensions": {
@@ -56,8 +56,6 @@
     "editor.cursorStyle": "line",
     "editor.formatOnType": true,
     "editor.fontFamily": "'Operator Mono Lig','Cascadia Code','Noto Color Emoji','FantasqueSansMono NF','Hack NFM','monospace',monospace",
-    // "editor.fontFamily": "'FantasqueSansMono NF'",
-    // "editor.fontFamily": "'monospace',monospace",
     "editor.fontLigatures": true,
     "editor.letterSpacing": 1,
     "editor.fontSize": 16,
@@ -177,20 +175,22 @@
     "terminal.integrated.lineHeight": 1.2,
     "terminal.integrated.letterSpacing": 1.2,
     "terminal.integrated.rightClickBehavior": "copyPaste",
-    "workbench.commandPalette.preserveInput": true,
     //@ /*Workbench */
+    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    "workbench.commandPalette.preserveInput": true,
     "workbench.editor.untitled.hint": "hidden",
     "workbench.editor.revealIfOpen": true,
     "workbench.editorAssociations": {},
     "workbench.quickOpen.preserveInput": true,
-    "material-icon-theme.activeIconPack": "react",
-    "material-icon-theme.hidesExplorerArrows": true,
     "workbench.settings.openDefaultKeybindings": true,
     "workbench.startupEditor": "none",
     "workbench.tips.enabled": true,
+    "workbench.productIconTheme": "icons-carbon",
+    "workbench.statusBar.visible": true,
+    "material-icon-theme.activeIconPack": "react",
+    "material-icon-theme.hidesExplorerArrows": true,
     //@ /*Files */
     "files.autoSave": "afterDelay",
-    "files.hotExit": "onExitAndWindowClose",
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
     "files.simpleDialog.enable": true,
@@ -199,7 +199,6 @@
     "code-runner.saveFileBeforeRun": true,
     //@ /*Window */
     "window.autoDetectColorScheme": true,
-    "window.doubleClickIconToClose": true,
     //@ /*Explorer */
     "explorer.confirmDelete": false,
     "explorer.incrementalNaming": "smart",
@@ -397,7 +396,6 @@
     "editor.bracketPairColorization.enabled": true,
     "editor.guides.bracketPairs": "active",
     "shellcheck.useWorkspaceRootAsCwd": true,
-    "workbench.statusBar.visible": true,
     "git.confirmSync": false,
     "files.eol": "\n",
     "editor.unicodeHighlight.invisibleCharacters": false,
@@ -409,31 +407,23 @@
       "RUSTUP_TOOLCHAIN": "nightly"
     },
     "editor.linkedEditing": true,
-    "workbench.preferredDarkColorTheme": "Nebula Oni (Spirograph)",
-    "workbench.colorTheme": "Nebula Oni (Spirograph)",
     "[toml]": {
       "editor.defaultFormatter": "tamasfe.even-better-toml"
     },
-    "lldb.suppressUpdateNotifications": true,
     "codeium.enableSearch": true,
     "codeium.enableConfig": {
       "*": true,
       "markdown": true,
       "plaintext": true,
-      "postgres": true,
-      "dax-language": true,
+      // "postgres": true,
+      // "dax-language": true,
       "env": true,
+      "toml": true,
+      "rust": true,
+      "sh": true,
       "csv": true
     },
-    "[sql]": {
-      // "editor.defaultFormatter": "cweijan.vscode-database-client2"
-      // "editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
-    },
-    "database-client.resultRowHeight": "24px",
-    "database-client.maximumColumnWidth": "160",
-    "database-client.showReverseSwitch": true,
     "terminal.integrated.defaultProfile.windows": "Git Bash",
-    "workbench.productIconTheme": "icons-carbon",
     "shellformat.useEditorConfig": true,
     // "window.zoomLevel": -1
   }

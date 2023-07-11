@@ -1,0 +1,104 @@
+#!/bin/sh
+
+main() {
+  delimiter=line
+  desired_amt=1
+
+  for arg in "$@"; do
+    lowercased_arg="$(printf "%s" "$arg" | tr '[:upper:]' '[:lower:]')"
+    case "$lowercased_arg" in
+    -h | --help) print_help ;;
+    -l* | -n* | -t* | -s*) ;;
+    -*) print_error --invalid "$arg" ;;
+    esac
+  done
+
+  while [ "$#" -ge 1 ]; do
+    lowercased_arg="$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')"
+    case "$lowercased_arg" in
+    -l* | -n* | -t* | -s*)
+      case "$lowercased_arg" in
+      -l* | -n*) delimiter=line ;;
+      -t*) delimiter=tab ;;
+      -s*) delimiter=space ;;
+      esac
+
+      desired_amt="$(printf "%s" "$1" | tr -cd '[:digit:]')"
+      ;;
+    -*) print_error --invalid ;;
+    *) msg=$1 ;;
+    esac
+
+    # process_tests "$@"
+    print_delim
+    print_message
+    shift
+    unset delimiter desired_amt msg
+  done
+}
+
+process_tests() {
+  [ "$delimiter" ] && {
+    printf "ARG: %s\n" "$1"
+    printf "DLM: %s\n" "$delimiter"
+    printf "CNT: %s\n" "$desired_amt"
+  }
+  [ "$msg" ] && {
+    counter=$((counter + 1))
+    printf "::%s:: %s\n" "$counter" "$msg"
+  }
+  printf "\n"
+}
+
+print_delim() {
+  #@ Exit early if no delimiter is specified
+  [ "$delimiter" ] || return
+
+  #@ Set the defaults for the function
+  counter=0
+  desired_amt="${desired_amt:-1}"
+
+  #@ Print the desired amount of th delimiter
+  while [ "$counter" -lt "$desired_amt" ]; do
+    counter=$((counter + 1))
+    case "$delimiter" in
+    line) printf "\n" ;;
+    tab) printf "\t" ;;
+    space) printf " " ;;
+    esac
+  done
+}
+
+print_message() {
+  [ "$msg" ] || return
+  printf "%s" "$msg"
+}
+
+print_out() {
+  print_delim
+  print_message
+}
+
+print_error() {
+  case "$1" in
+  --invalid)
+    msg="Error: Invalid option"
+    var="$2"
+    unset arg
+    ;;
+  *) ;;
+  esac
+
+  # echo $msg $arg $var
+  if [ -n "$msg" ] && [ -n "$var" ] && [ -z "$arg" ]; then
+    printf "%s %s" "$msg" "$var"
+  elif [ -n "$msg" ] && [ -n "$var" ] && [ -n "$arg" ]; then
+    printf "%s %s -> %s" "$msg" "$var" "$arg"
+  else
+    printf "%s" "$*"
+  fi
+
+  exit 1
+}
+
+main "$@"
