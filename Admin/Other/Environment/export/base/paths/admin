@@ -73,3 +73,4 @@ ASCII="$DOTS_RES/Images/ascii"
 # @_____________________________________________________________________ GUIX<|
 DOTS_GUIX="$DOTS_TOOL/utilities/guix"
 DOTS_NIX="$DOTS_APP/nixos"
+DOTS_WSLnix="$DOTS_APP/NixWSL"
