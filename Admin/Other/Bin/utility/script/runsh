@@ -1,6 +1,6 @@
 #!/bin/sh
 
-scr_NAME="launch"
+scr_NAME="runsh"
 
 display_usage_guide() {
   printf "Usage: %s [options] [script1] [script2] ...\n" "$scr_NAME"
