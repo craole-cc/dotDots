@@ -1,63 +1,30 @@
 #!/bin/sh
 
-scr_NAME="launch"
+# Function to find the last existing directory in a path
+find_last_existing_dir() {
+  path="$1"
 
-display_usage_guide() {
-  printf "Usage: %s [options] [script1] [script2] ...\n" "$scr_NAME"
-  printf "Options:\n"
-  printf "  --help\tDisplay this usage guide\n"
-}
+  # Iterate over each component of the path
+  while [ -n "$path" ]; do
+    # Check if the current path exists as a directory
+    if [ -d "$path" ]; then
+      echo "Last existing directory: $path"
+      exit 0
+    fi
 
-validate_path() {
-  #@ Check if the target is a valid file
-  [ -f "$1" ] || {
-    printf "Invalid or missing file: %s\n" "$1"
-    exit 1
-  }
-}
-
-access_directory() {
-  {
-    #@ Change to the target directory
-    cd "$1" &&
-      #@ verify the current directory is the same as the target
-      [ "$PWD" = "$1" ]
-  } || {
-    printf "Failed to access target: %s\n" "$1"
-    exit 1
-  }
-}
-
-execute_script() {
-  #@ Execute the target script
-  [ -f "$1" ] && sh "$1"
-}
-
-main() {
-  #@ Check if any arguments are provided
-  [ "$#" -eq 0 ] && {
-    display_usage_guide
-    exit 1
-  }
-
-  #@ Process each argument
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    -h | --help) display_usage_guide ;;
-    *)
-      #@ Validate the script file
-      validate_path "$1"
-
-      #@ Access the script's directory
-      access_directory "$(dirname -- "$1")"
-
-      #@ Execute the script
-      execute_script "$(basename -- "$1")"
-      ;;
-    esac
-    shift
+    # Remove the last component from the path and try again
+    path=$(dirname "$path")
   done
+
+  echo "No existing directories found in the path."
+  exit 1
 }
 
-#@ Invoke the main function
-main "$@"
+# Usage: Provide the path to check as the argument
+if [ $# -eq 0 ]; then
+  echo "Usage: $0 <path>"
+  exit 1
+fi
+
+# Call the function with the provided path
+find_last_existing_dir "$1"

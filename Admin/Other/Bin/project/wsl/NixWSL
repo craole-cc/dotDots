@@ -1,4 +1,4 @@
 #!/bin/sh
 
 type runsh >/dev/null 2>&1 &&
-  runsh "${DOTS_WSLnix}/init"
+  runsh "${DOTS_WSLnix}/init" "$@"

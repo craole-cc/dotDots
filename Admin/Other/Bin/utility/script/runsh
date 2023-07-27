@@ -3,7 +3,7 @@
 scr_NAME="runsh"
 
 display_usage_guide() {
-  printf "Usage: %s [options] [script1] [script2] ...\n" "$scr_NAME"
+  printf "Usage: %s [options] [script]\n" "$scr_NAME"
   printf "Options:\n"
   printf "  --help\tDisplay this usage guide\n"
 }
@@ -29,8 +29,16 @@ access_directory() {
 }
 
 execute_script() {
-  #@ Execute the target script
-  [ -f "$1" ] && sh "$1"
+  #@ Validate the script file
+  validate_path "$1"
+
+  #@ Access the script's directory
+  access_directory "$(dirname -- "$1")"
+
+  #@ Execute the script
+  script_name=$(basename -- "$1")
+  shift
+  sh "$script_name" "$@"
 }
 
 main() {
@@ -41,22 +49,15 @@ main() {
   }
 
   #@ Process each argument
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    -h | --help) display_usage_guide ;;
-    *)
-      #@ Validate the script file
-      validate_path "$1"
-
-      #@ Access the script's directory
-      access_directory "$(dirname -- "$1")"
-
-      #@ Execute the script
-      execute_script "$(basename -- "$1")"
-      ;;
-    esac
-    shift
-  done
+  case "$1" in
+  -h | --help)
+    display_usage_guide
+    ;;
+  *)
+    #@ Execute the script
+    execute_script "$@"
+    ;;
+  esac
 }
 
 #@ Invoke the main function
