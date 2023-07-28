@@ -1,0 +1,301 @@
+#!/bin/sh
+
+func_name="bakitup"
+func_usage="$(txtBarber "
+      Usage: $func_name [OPTIONS] [CONTENTS]
+
+      Description:
+        A backup utility to create backups of files or directories.
+        The utility uses the 'cp' command to handle existing files
+        and create backup files with different types.
+
+      Options:
+        -h, --help         Display this help message.
+        --source           Specify the source path of the file or directory.
+        --destination      Set the path of the backup. [Default: <SOURCE>.bak]
+        --directory
+        --type [TYPE]      Set the backup type to handle existing files.
+
+      Backup Types: [TYPE]
+        none, off:  Overwrite existing backup files.
+        simple:     Backup with a tilde (file~).
+        numbered:   Backup with numbering (file.~1~, file.~2~, etc.).
+        existing:   Use 'numbered' backups, if present, 'simple' if not.
+        symlink:    Make symbolic links instead of copying
+        hardlink:   Make hard links instead of copying
+        update:     Copy only when the source is newer than the backup. [Default]
+
+      Examples:
+        __bakitup /etc/bashrc
+        __bakitup --source /etc/bashrc --destination \$HOME/test --type symlink
+        __bakitup --source /path/to/file.txt --type numbered
+        __bakitup --source /path/to/directory --destination /backup --type t
+      ")"
+backup_cmd="cp --no-clobber"
+backup_opt="--backup=update"
+
+while [ "$#" -ge 1 ]; do
+  case "$1" in
+  --type)
+    case "$2" in
+    none | off | simple | numbered | existing)
+      backup_opt="--backup=$2"
+      ;;
+    update)
+      backup_opt="--update"
+      ;;
+    link)
+      backup_opt="--link"
+      ;;
+    symlink)
+      backup_opt="--symbolic-link"
+      ;;
+    *)
+      if [ "$2" ]; then
+        pout \
+          --lbl "Invalid Backup Option" \
+          --var "$2" \
+          --msg "Reverting to normal backup" \
+          --usg "$func_usage"
+      else
+        pout \
+          --lbl "Missing Backup Option" \
+          --msg "Reverting to normal backup" \
+          --usg "$func_usage"
+      fi
+      return
+      ;;
+    esac
+    shift
+    ;;
+  --src | --source)
+    backup_src="$2"
+    ;;
+  --bak | --destination)
+    backup_dest="$2"
+    ;;
+    # --dir*)
+    #   backup_dir="$2"
+    #   if [ ! -d "$backup_dir" ]; then
+    #     mkdir --parents "$backup_dir"
+    #   fi
+
+    #   path="$backup_dir"
+    #   sudo_needed=0
+
+    #   # Split the path into components using '/' delimiter
+    #   IFS="/" read -ra path_components <<<"$path"
+
+    #   # Loop through the path components and check existence and ownership
+    #   current_path=""
+    #   for component in "${path_components[@]}"; do
+    #     current_path="${current_path}/${component}"
+    #     stat --format=%U "$current_path"
+
+    # # Check if the directory exists
+    # if [ ! -d "$current_path" ]; then
+    #   sudo_needed=1
+    #   break
+    # fi
+    # # Check if the current user owns the directory
+    # if [ "$(stat -c %U "$current_path")" != "$(whoami)" ]; then
+    #   sudo_needed=1
+    #   break
+    # fi
+    # done
+
+    # Create the directory with or without sudo based on the flag
+    # if [ "$sudo_needed" -eq 1 ]; then
+    #   # sudo mkdir --parents "$path"
+    #   echo "sudo mkdir --parents $path"
+    # else
+    #   # mkdir --parents "$path"
+    #   echo "mkdir --parents \"$path\""
+    # fi
+    # ;;
+  --none | --off | --simple | --numbered | --existing)
+    backup_opt="--backup=${1#--*}"
+    ;;
+  --update)
+    backup_opt="--update"
+    ;;
+  --link)
+    backup_opt="--link"
+    ;;
+  --symlink)
+    backup_opt="--symbolic-link"
+    ;;
+  -*)
+    pout \
+      --lbl "Invalid Option" \
+      --var "$1" \
+      --usage "$func_usage" \
+      --fatal
+    ;;
+  *)
+    if [ "$1" ]; then
+      if [ "$backup_src" ]; then
+        [ "$backup_dir" ] || backup_dest="$1"
+      else
+        backup_src="$1"
+      fi
+    else
+      echo "invalid"
+    fi
+    ;;
+  esac
+  shift
+done
+
+# for opt in $@; do
+
+#   case "${1#--*}" in
+#   none | off | simple | numbered | exiting)
+#     backup_opt="--backup=$2"
+#     shift
+#     ;;
+#   update)
+#     backup_opt="--update"
+#     shift
+#     ;;
+#   link)
+#     backup_opt="--link"
+#     shift
+#     ;;
+#   symlink)
+#     backup_opt="--symbolic-link"
+#     shift
+#     ;;
+#   esac
+# done
+
+# case "$@" in
+# --*)
+#   while [ "$#" -ge 1 ]; do
+#     case "$1" in
+#     --type)
+#       case "$2" in
+#       none | off | numbered | t | exiting | nil | simple | never)
+#         backup_opt="--backup=$2"
+#         ;;
+#       update)
+#         backup_opt="--update"
+#         ;;
+#       link)
+#         backup_opt="--link"
+#         ;;
+#       symlink)
+#         backup_opt="--symbolic-link"
+#         ;;
+#       *)
+#         if [ "$2" ]; then
+#           pout \
+#             --lbl "Invalid Backup Option" \
+#             --var "$2" \
+#             --msg "Reverting to normal backup" \
+#             --usg "$func_usage"
+#         else
+#           pout \
+#             --lbl "Missing Backup Option" \
+#             --msg "Reverting to normal backup" \
+#             --usg "$func_usage"
+#         fi
+#         return
+#         ;;
+#       esac
+#       shift
+#       ;;
+#     --source)
+#       backup_src="$2"
+#       ;;
+#     --destination)
+#       backup_dest="$2"
+#       ;;
+#     *)
+#       case "${1#--*}" in
+#       none | off | simple | numbered | exiting)
+#         backup_opt="--backup=--${1#--*}"
+#         shift
+#         ;;
+#       update)
+#         backup_opt="--update"
+#         shift
+#         ;;
+#       link)
+#         backup_opt="--link"
+#         shift
+#         ;;
+#       symlink)
+#         backup_opt="--symbolic-link"
+#         shift
+#         ;;
+#       esac
+#       # -*)
+#       #   pout \
+#       #     --lbl "Invalid Option" \
+#       #     --var "$1" \
+#       #     --usage "$func_usage" \
+#       #     --fatal
+#       ;;
+#     esac
+#     shift
+#   done
+#   ;;
+# *)
+#   [ "$1" ] && backup_src="$1"
+#   [ "$2" ] && backup_dest="$2"
+#   ;;
+# esac
+
+#@ Validate the path of the source file/folder
+if [ ! "$backup_src" ]; then
+  pout \
+    --lbl "Missing source" \
+    --usage "$func_usage" \
+    --fatal
+elif [ ! -e "$backup_src" ]; then
+  pout \
+    --lbl "Invalid source" \
+    --var "$backup_src" \
+    --usage "$func_usage" \
+    --fatal
+fi
+
+#@ Define the backup destination path
+case "$backup_dest" in
+-*)
+  pout \
+    --lbl "Missing Backup Destination" \
+    --msg "Reverting to default backup destination" \
+    --usg "$func_usage"
+  ;;
+*)
+  if [ "$backup_dir" ]; then
+    if [ "$backup_dest" ]; then
+      backup_dest="${backup_dir}/${backup_dest}"
+    else
+      backup_cmd="$backup_cmd --parents"
+      backup_dest="$backup_dir"
+      # backup_dest="$backup_dir/$(basename "$backup_src")"
+    fi
+  else
+    [ "$backup_dest" ] || backup_dest="${backup_src}.bak"
+  fi
+
+  #@ Allow elevation, if necessary
+  [ -w "$(dirname -- "$backup_dest")" ] || {
+    backup_cmd="sudo $backup_cmd"
+  }
+  ;;
+esac
+
+#@ Update the backup command
+backup_cmd="$backup_cmd $backup_opt $backup_src $backup_dest"
+
+#@ Generate the backup file
+echo "$backup_cmd"
+# eval "$backup_cmd"
+
+#@ Cleanup
+unset func_name func_usage
+unset backup_cmd backup_src backup_dest
