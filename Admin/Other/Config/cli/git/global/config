@@ -12,7 +12,7 @@
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 	#@ Global gitignore (applied to all repositories)
-	excludesFile = C:/Users/Administrator/.dots/Admin/Other/Config/cli/git/gitignore
+	excludesFile = C:/Users/Administrator/.dots/Admin/Other/Config/cli/git/global/ignore
 
 [init]
 	defaultBranch = main
@@ -102,10 +102,10 @@
 		required = true
 
 [IncludeIf "gitdir:~/.dots/"]
-	path = github_craole-cc.gitconfig
+	path = ../clients/github_craole-cc.gitconfig
 
 [IncludeIf "gitdir:~/Documents/github_craole-cc/"]
-	path = github_craole-cc.gitconfig
+	path = ../clients/github_craole-cc.gitconfig
 
 [IncludeIf "gitdir:~/Documents/github_craole/"]
-	path = github_craole.gitconfig
+	path = ../clients/github_craole.gitconfig

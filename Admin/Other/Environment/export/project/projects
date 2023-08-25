@@ -3,7 +3,7 @@
 
 #@ Define Projets Home
 # PROJECTS="/store/Documents/Projects/"
-PROJECTS="$DOTS/../../.."
+PROJECTS="$HOME/Documents"
 
 #@ Projects by Language
 PRJ_rs="$PROJECTS/Rust"

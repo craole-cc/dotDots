@@ -1,0 +1,19 @@
+#!/bin/sh
+
+#@ Update the config to read the ignore file
+GIT_IGNORE="$GDOTDIR/global/ignore"
+git config --global core.excludesFile "$GIT_IGNORE"
+
+#@ Ensure Git Projects Directory exists
+GIT_DIRS="
+  $PROJECTS/github_craole-cc
+  $PROJECTS/github_craole
+  $PROJECTS/gitlab_craole
+"
+for dir in $GIT_DIRS; do
+  mkdir --parents "$dir"
+done
+
+#@ Enable bash shell git aliases
+GIT_ALIAS="$GDOTDIR/global/alias"
+. "$GIT_ALIAS"

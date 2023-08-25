@@ -18,7 +18,6 @@ modules="
   # autostart
   # prompt
   shell
-  vsc
 "
 
 #@ Prep the module list for use in the loop

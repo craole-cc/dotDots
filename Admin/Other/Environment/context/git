@@ -1,7 +1,0 @@
-#!/bun/sh
-
-GDOTDIR="$DOTS_CLI/git"
-GIT_CONFIG_GLOBAL="$GDOTDIR/config"
-GIT_IGNORE_GLOBAL="$GDOTDIR/gitignore"
-GIT_DIR_1="$HOME/Documents/github_craole-cc"
-GIT_DIR_2="$HOME/Documents/github_craole"
