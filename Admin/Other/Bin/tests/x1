@@ -1,108 +1,287 @@
-#!/bin/sh
-vars="pop DOTS flop HOME love"
-vars="$(are --save "$vars" "$1")"
-vars="$(are --expand "$vars")"
-total_vars="$(are --count "$vars")"
-last_var="$(are --last "$vars")"
-verbosity=1
-
-main() {
-
-  #@ Initialize variables and success flag
-  set -- $vars
-  counter=0
-  prev_success=""
-
-  #@ Loop through all arguments using a while loop
-  while [ $# -gt 0 ]; do
-    var="$1"
-
-    #@ Extract the value of a variable
-    var_LABEL="$var"
-    var_VALUE="$(eval printf '%s' "\"\${$var_LABEL?}\"" 2>/dev/null)"
-    msg="$var_LABEL => $var_VALUE"
-    var_LABELS="$(are --save "$var_LABELS" "$var_LABEL")"
-
-    #@ Increment the counter variable
-    counter=$((counter + 1))
-
-    #@ Set output message based on verbosity level
-    if [ "$var_VALUE" ]; then
-      msg0="$var_VALUE"
-      msg1="$counter: ✅ $msg"
-      msg2="$counter: ✅ '$var_LABEL' resolves to $var_VALUE"
-      # unset succes failure
-      prev_success=true
-      # failure=""
-      var_VALUES="$(are --save "$var_VALUES" "$var_VALUE")"
-    else
-      unset msg0
-      msg1="$counter: ❌ $msg"
-      msg2="$counter: ❌ '$var_LABEL' is not a valid parameter"
-      # prev_success=""
-      # unset succes failure
-      # failure=true
-      # args="$(are --save "$args" "$var_LABEL")"
-    fi
-
-    #@ Generate message based on verbosity eg. "$msg2"
-    unset msg
-    msg="$(eval printf '%s' "\"\$msg$verbosity\"" 2>/dev/null)"
-
-    # printf "%s\n" "vars: $# count: $counter failure: $failure"
-    # printf "%s|%s: %s: P" "$#" "$counter" "$var_LABEL"
-    # if [ "$prev_success" ] ;then
-    # printf "\n%s|%s: %s: PrevSuc" "$#" "$counter" "$var_LABEL"
-    # else
-    # printf "%s: %s " "$counter" "$var_LABEL"
-    # fi
-
-    # printf "%s" "$var_VALUE"
-    #@ Send information to display where applicable
-    # if [ "$msg" ]; then
-    #   if [ $# -ge 1 ]; then
-    #     display_info -n "$msg"
-    #   else
-    #     display_info "$msg"
-    #   fi
-    # fi
-    shift
-    #@ Update success flag for the next iteration
-    # [ "$prev_success" ] && printf "\n"
-    # [ "$var_VALUE" ] && printf "%s" "val: $var_VALUE"
-    # [ "$var_VALUE" ] && unset var_VALUE && prev_success="true"
-
-    # printf "%s" "$# $prev_success"
-  done
-
-  var_LABELS="$(are --expand "$var_LABELS")"
-  vals() {
-    var_VALUES="$(are --expand "$var_VALUES")"
-    last_val="$(are --last "$var_VALUES")"
-    set -- $var_VALUES
-
-    for val in $var_VALUES; do
-    # echo "$val | $last_val"
-      if [ "$val" != "$last_val" ]; then
-        # display_info "$val"
-        printf "%s\n" "$val != $last_val"
-      # else
-        printf "%s" "$val = $last_val"
-
-        # display_info -n "$val"
-      fi
-    done
-  }
-  vals
-}
-display_info() {
-  case "$1" in
-  -n)
-    shift
-    printf "%s\n" "$*"
-    ;;
-  *) printf "%s" "$*" ;;
-  esac
-}
-
-main "$@"
+#!/bin/sh
+
+init_scr_env() {
+  scr_name="ligna"
+  scr_version="0.1"
+
+  cleanup() {
+    unset verbose alignment pad_char pad_char_l pad_char_r text text_length buffer padding_length term_width padding_right padding_left padding
+  } && trap cleanup EXIT
+
+  parse_arguments() {
+
+    while [ $# -gt 0 ]; do
+      case "$1" in
+      --help)
+        print_help
+        exit
+        ;;
+      -v | --version)
+        print_version
+        exit
+        ;;
+      -d | --verbose) verbose=true ;;
+      -c | --center) alignment="center" ;;
+      -r | --right) alignment="right" ;;
+      -l | --left) alignment="left" ;;
+      -p | --pad | --char)
+        if [ "$2" ]; then
+          pad_char="$2"
+          shift
+        else
+          [ "$verbose" ] && printf "Error: Missing argument for %s\n" "$1"
+        fi
+        ;;
+      --lpad)
+        if [ "$2" ]; then
+          pad_char_l="$2"
+          shift
+        else
+          [ "$verbose" ] && printf "Error: Missing argument for %s\n" "$1"
+
+        fi
+        ;;
+      --rpad)
+        if [ "$2" ]; then
+          pad_char_r="$2"
+          shift
+        else
+          [ "$verbose" ] && printf "Error: Missing argument for %s\n" "$1"
+
+        fi
+        ;;
+      --width)
+        if [ "$2" ]; then
+          term_width="$2"
+          shift
+        else
+          [ "$verbose" ] && printf "Error: Missing argument for %s\n" "$1"
+        fi
+        ;;
+      *) text="$1" ;;
+      esac
+      shift
+    done
+  } && parse_arguments "$@"
+
+  set_environment() {
+
+    __width() {
+      label="Terminal Width"
+
+      term_width="${term_width:-$(get_len --term)}" &&
+        is_number "$term_width" "$label"
+
+      [ "$verbose" ] &&
+        printf "%15s: %s characters\n" "Term Width" "$term_width"
+
+    } && __width
+
+    __text() {
+      label="Text Length"
+
+      text_length="$(get_len "$text")" &&
+        is_number "$text_length" "$label"
+
+      [ "$verbose" ] &&
+        printf "%15s: %s characters\n" "$label" "$text_length"
+    } && __text
+
+    __alignment() {
+      if [ -z "$alignment" ]; then
+        if
+          { [ "$pad_char_l" ] && [ "$pad_char_r" ]; } ||
+            { [ -z "$pad_char_l" ] && [ -z "$pad_char_r" ]; }
+        then
+          alignment=center
+        elif [ "$pad_char_l" ]; then
+          alignment="left"
+        else
+          alignment="right"
+        fi
+      fi
+
+      [ "$verbose" ] &&
+        printf "%15s: %s\n" "Alignment" "$alignment"
+
+    } && __alignment
+
+    __buffer() {
+      label="Buffer"
+
+      if [ "$alignment" = "center" ]; then
+        buffer_length=2
+      else
+        buffer_length=1
+      fi
+
+      [ "$verbose" ] &&
+        if [ "$buffer_length" -eq 1 ]; then
+          printf "%15s: %s space\n" "$label" "$buffer_length"
+        else
+          printf "%15s: %s spaces\n" "$label" "$buffer_length"
+        fi
+    } && __buffer
+
+    __char() {
+      label="Paddin Character"
+      pad_char="${pad_char:-" "}" &&
+        is_single_char "$pad_char" "$label"
+    } && __char
+
+    __padding() {
+      label="Padding"
+
+      #@ Generate padding only if needed
+      [ "$term_width" -gt "$text_length" ] || return
+
+      #@ Calculate padding length based on terminal width and the length of the text and buffer.
+      padding_length=$(((term_width - text_length - buffer_length) / buffer_length))
+
+      case $alignment in
+      center)
+        if [ "$pad_char_l" ] && [ "$pad_char_r" ]; then
+          if [ "$pad_char_l" = "$pad_char_r" ]; then
+            padding="$(repeat_char "$pad_char_l" "$padding_length")"
+          else
+            padding_left="$(repeat_char "$pad_char_l" "$padding_length")"
+            padding_right="$(repeat_char "$pad_char_r" "$padding_length")"
+          fi
+        elif [ "$pad_char_l" ] && [ -z "$pad_char_r" ]; then
+          padding="$(repeat_char "$pad_char_l" "$padding_length")"
+        elif [ "$pad_char_r" ] && [ -z "$pad_char_l" ]; then
+          padding="$(repeat_char "$pad_char_r" "$padding_length")"
+        else
+          padding="$(repeat_char "$pad_char" "$padding_length")"
+        fi
+        ;;
+      left)
+        padding="$(repeat_char "${pad_char_l:-${pad_char_r:-$pad_char}}" "$padding_length")"
+        ;;
+      right)
+        padding="$(repeat_char "${pad_char_r:-${pad_char_l:-$pad_char}}" "$padding_length")"
+        ;;
+      esac
+
+      [ "$verbose" ] || return
+      if [ "$padding" ]; then
+        printf \
+          "%15s: %s reps of '%s'\n" \
+          "$label" "$padding_length" \
+          "${pad_char_l:-${pad_char_r:-$pad_char}}"
+
+      else
+        printf \
+          "%15s: %s reps of '%s' and '%s'\n" \
+          "$label" "$padding_length" "$pad_char_l" "$pad_char_r"
+      fi
+
+    } && __padding
+  } && set_environment
+}
+
+repeat_char() {
+  char="$1"
+  reps="$2"
+  printf "%-${reps}s" | tr " " "$char"
+}
+
+is_number() {
+  var="$1"
+  lbl="$2"
+
+  case $var in
+  '' | *[!0-9]*)
+    #TODO use pout for error handling to replace printf and exit
+    # printf "%s Error: '%s' is not a valid number\n" "$lbl" "$var"
+    [ "$verbose" ] &&
+      embellish \
+        --reset --underline --bg-red --fg-white \
+        "$lbl Error:" \
+        --reset --space --bold --red --italic \
+        "$var" \
+        --reset --space \
+        "is not a valid number." \
+        --reset --new-line
+    exit 1
+    ;;
+  *) return 0 ;;
+  esac
+}
+
+is_single_char() {
+  var="$1"
+  lbl="$2"
+
+  case $var in
+  [[:print:]]) return 0 ;; # Printable characters, including whitespace
+  *)
+    #TODO use pout for error handling to replace printf and exit
+    # printf "%s Error: '%s' is not a valid single character\n" "$lbl" "$var"
+    [ "$verbose" ] &&
+      if [ "$var" ]; then
+        embellish \
+          --reset --underline --bg-red --fg-white \
+          "$lbl Error:" \
+          --reset --space --bold --red --italic \
+          "$var" \
+          --reset --space \
+          "is not a valid single character." \
+          --reset --new-line
+      else
+        embellish \
+          --reset --underline --bg-red --fg-white \
+          "$lbl Error:" \
+          --reset --space \
+          "missing character" \
+          --reset --new-line
+      fi
+
+    exit 1
+    ;;
+  esac
+}
+
+get_len() {
+  case $1 in
+  --term) stty size 2>/dev/null | awk '{print $2}' ;;
+  *) printf "%s" "${#1}" ;;
+  esac
+}
+
+print_padded_text() {
+  if [ "$padding_length" ]; then
+    case "$alignment" in
+    center)
+      printf \
+        "%s %s %s\n" \
+        "${padding:-$padding_right}" \
+        "$text" \
+        "${padding:-$padding_left}"
+      ;;
+    right)
+      printf "%s %s\n" "$padding" "$text"
+      ;;
+    left)
+      printf "%s %s\n" "$text" "$padding"
+      ;;
+    esac
+  else
+    printf "%s\n" "$text"
+  fi
+}
+
+print_help() {
+  printf "Usage: %s [OPTIONS] TEXT\n" "$scr_name"
+}
+
+print_version() {
+  printf "%s\n" "$scr_version"
+}
+
+main() {
+  init_scr_env "$@"
+  print_padded_text
+}
+
+main "$@"

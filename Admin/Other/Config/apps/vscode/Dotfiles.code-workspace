@@ -49,20 +49,33 @@
       "timonwong.shellcheck",
       "syler.ignore",
       "oderwat.indent-rainbow",
-      "editorconfig.editorconfig"
+      "editorconfig.editorconfig",
+      "eamodio.gitlens",
+      "bbenoist.nix",
+      "kamadorueda.alejandra",
+      "skellock.just",
+      "rogalmic.bash-debug",
+      "mads-hartmann.bash-ide-vscode",
+      "jeff-hykin.better-shellscript-syntax",
+      "shakram02.bash-beautify"
     ]
   },
   "settings": {
+    "editor.accessibilitySupport": "off",
+    "editor.bracketPairColorization.enabled": true,
     "editor.cursorStyle": "line",
-    "editor.formatOnType": true,
-    "editor.fontFamily": "'Operator Mono Lig','Cascadia Code','Noto Color Emoji','FantasqueSansMono NF','Hack NFM','monospace',monospace",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": false,
+    "editor.fontFamily": "'Operator Mono Lig','FantasqueSansMono NF','Cascadia Code','Noto Color Emoji','Hack NFM','monospace',monospace",
     "editor.fontLigatures": true,
-    "editor.letterSpacing": 1,
-    "editor.fontSize": 16,
+    "editor.letterSpacing": 0.5,
+    "editor.fontSize": 22,
     "editor.lineHeight": 2,
     "editor.fontWeight": "400",
+    "editor.guides.bracketPairs": "active",
+    "editor.linkedEditing": true,
     "editor.minimap.size": "fill",
-    "editor.mouseWheelZoom": false,
+    "editor.mouseWheelZoom": true,
     "editor.renderControlCharacters": true,
     "editor.smoothScrolling": true,
     "editor.tabSize": 2,
@@ -70,7 +83,7 @@
       "textMateRules": [
         {
           "scope": [
-            /* The following will be italicized */
+            /*  The following will be italicized */
             "comment",
             "emphasis",
             "entity.name.method.js",
@@ -159,60 +172,8 @@
       ]
     },
     "editor.wordWrap": "on",
-    //@ /*Powershell */
-    "[powershell]": {
-      "editor.renderWhitespace": "all",
-      "editor.renderControlCharacters": true,
-      "files.trimTrailingWhitespace": true,
-      "files.encoding": "utf8bom",
-      "files.autoGuessEncoding": true,
-      "editor.tabCompletion": "on"
-    },
-    //@ /*Integrated Terminal */
-    "terminal.integrated.cursorBlinking": true,
-    "terminal.integrated.cursorStyle": "block",
-    "terminal.integrated.fontWeight": "400",
-    "terminal.integrated.lineHeight": 1.2,
-    "terminal.integrated.letterSpacing": 1.2,
-    "terminal.integrated.rightClickBehavior": "copyPaste",
-    //@ /*Workbench */
-    "workbench.colorTheme": "Nebula Oni (Pegasus)",
-    "workbench.commandPalette.preserveInput": true,
-    "workbench.editor.untitled.hint": "hidden",
-    "workbench.editor.revealIfOpen": true,
-    "workbench.editorAssociations": {},
-    "workbench.quickOpen.preserveInput": true,
-    "workbench.settings.openDefaultKeybindings": true,
-    "workbench.startupEditor": "none",
-    "workbench.tips.enabled": true,
-    "workbench.productIconTheme": "icons-carbon",
-    "workbench.statusBar.visible": true,
-    "material-icon-theme.activeIconPack": "react",
-    "material-icon-theme.hidesExplorerArrows": true,
-    //@ /*Files */
-    "files.autoSave": "afterDelay",
-    "files.trimFinalNewlines": true,
-    "files.trimTrailingWhitespace": true,
-    "files.simpleDialog.enable": true,
-    //@ /*Code Runner */
-    "code-runner.clearPreviousOutput": true,
-    "code-runner.saveFileBeforeRun": true,
-    //@ /*Window */
-    "window.autoDetectColorScheme": true,
-    //@ /*Explorer */
-    "explorer.confirmDelete": false,
-    "explorer.incrementalNaming": "smart",
-    "explorer.compactFolders": false,
-    //@ /*Markdown */
-    "markdown.links.openLocation": "beside",
-    "markdown.preview.fontSize": 18,
-    //@ /*Git */
-    "git.enableSmartCommit": true,
-    "git.autofetch": true,
-    //@ /*JavaScript & TypeScript */
-    "javascript.updateImportsOnFileMove.enabled": "always",
-    "typescript.updateImportsOnFileMove.enabled": "always",
-    //@ /*Linters & Formatters */
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    //@ /* Linters & Formatters */
     "editor.acceptSuggestionOnEnter": "smart",
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true,
@@ -224,25 +185,60 @@
     "[jsonc]": {
       "editor.defaultFormatter": "vscode.json-language-features"
     },
-    "editor.formatOnSave": true,
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "[shellscript]": {
       "editor.defaultFormatter": "foxundermoon.shell-format"
     },
-    "color-highlight.markerType": "dot-after",
-    "color-highlight.matchWords": true,
-    "editor.accessibilitySupport": "off",
-    "security.workspace.trust.untrustedFiles": "open",
+    "[toml]": {
+      "editor.defaultFormatter": "tamasfe.even-better-toml"
+    },
+    //@ /* Files */
     "files.associations": {
       "*.vim": "vim",
       "*.css": "css",
       ".env": "env",
-      "**/.env/**": "env",
+      "**/.env/* *": "env",
       "config": "properties",
       "*.pgsql": "sql"
     },
+    "files.autoSave": "afterDelay",
+    "files.eol": "\n",
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "files.simpleDialog.enable": true,
+    "files.exclude": {
+      "**/.classpath": true,
+      "**/.factorypath": true,
+      "**/.git": false,
+      "**/.project": true,
+      "**/.settings": true
+    },
+    "files.watcherExclude": {
+      "**/.local/* *": true,
+      "**/.vscode-server-insiders/* *": true,
+      "**/* cache/* *": true
+    },
+    //@ /* Code Runner */
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.saveFileBeforeRun": true,
+    //@ /* Explorer */
+    "explorer.confirmDelete": false,
+    "explorer.incrementalNaming": "smart",
+    "explorer.compactFolders": false,
+    //@ /* Markdown */
+    "markdown.links.openLocation": "beside",
+    "markdown.preview.fontSize": 18,
+    //@ /* Git */
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "git.enableSmartCommit": true,
+    //@ /* JavaScript & TypeScript */
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "color-highlight.markerType": "dot-after",
+    "color-highlight.matchWords": true,
     //@ Line Width
     "LWI.style.fontStyle": "italic",
     "LWI.style.fontWeight": "100",
@@ -299,7 +295,7 @@
         "italic": true
       },
       {
-        "tag": "?",
+        "tag": "HELP",
         "color": "#fed200",
         "strikethrough": false,
         "underline": false,
@@ -376,55 +372,41 @@
       "jupyter-notebook": "left"
     },
     "bashBeautify.tabSize": 4,
-    "files.watcherExclude": {
-      "**/.local/**": true,
-      "**/.vscode-server-insiders/**": true,
-      "**/*cache/**": true
-    },
-    "workbench.iconTheme": "material-icon-theme",
-    "files.exclude": {
-      "**/.classpath": true,
-      "**/.factorypath": true,
-      "**/.git": false,
-      "**/.project": true,
-      "**/.settings": true
-    },
-    "remote.SSH.remotePlatform": {
-      "Rootless": "linux",
-      "CC": "linux"
-    },
-    "editor.bracketPairColorization.enabled": true,
-    "editor.guides.bracketPairs": "active",
     "shellcheck.useWorkspaceRootAsCwd": true,
-    "git.confirmSync": false,
-    "files.eol": "\n",
-    "editor.unicodeHighlight.invisibleCharacters": false,
     "shellcheck.exclude": [
       "1091",
       "1017"
     ],
+    "shellformat.useEditorConfig": true,
     "rust-analyzer.server.extraEnv": {
       "RUSTUP_TOOLCHAIN": "nightly"
     },
-    "editor.linkedEditing": true,
-    "[toml]": {
-      "editor.defaultFormatter": "tamasfe.even-better-toml"
-    },
-    "codeium.enableSearch": true,
-    "codeium.enableConfig": {
-      "*": true,
-      "markdown": true,
-      "plaintext": true,
-      // "postgres": true,
-      // "dax-language": true,
-      "env": true,
-      "toml": true,
-      "rust": true,
-      "sh": true,
-      "csv": true
-    },
+    //@ /* Integrated Terminal */
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.cursorStyle": "block",
     "terminal.integrated.defaultProfile.windows": "Git Bash",
-    "shellformat.useEditorConfig": true,
-    // "window.zoomLevel": -1
+    "terminal.integrated.fontWeight": "400",
+    "terminal.integrated.lineHeight": 1.2,
+    "terminal.integrated.letterSpacing": 1.2,
+    "terminal.integrated.rightClickBehavior": "copyPaste",
+    //@ /*  Workbench */
+    "workbench.commandPalette.preserveInput": true,
+    "workbench.editor.untitled.hint": "hidden",
+    "workbench.editor.revealIfOpen": true,
+    "workbench.editorAssociations": {},
+    "workbench.iconTheme": "material-icon-theme",
+    "material-icon-theme.activeIconPack": "react",
+    "material-icon-theme.hidesExplorerArrows": true,
+    "workbench.quickOpen.preserveInput": true,
+    "workbench.settings.openDefaultKeybindings": true,
+    "workbench.startupEditor": "none",
+    "workbench.tips.enabled": true,
+    "workbench.productIconTheme": "icons-carbon",
+    "workbench.statusBar.visible": true,
+    "workbench.preferredLightColorTheme": "Default Light Modern",
+    "workbench.preferredDarkColorTheme": "Nebula Oni (Pegasus)",
+    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    //@ /* Window */
+    "window.autoDetectColorScheme": true,
   }
 }

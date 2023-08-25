@@ -8,5 +8,5 @@ VERBOSE=true
 #   . "${NixOS_FLAKE}"/Environment/profile
 
 #@ Initialize DOTS
-DOTS="/d/Projects/NixOS/Admin/Other"
+DOTS="/c/Users/Administrator/.dots/Admin/Other"
 [ -f "${DOTS}"/.dotsrc ] && . "${DOTS}"/.dotsrc

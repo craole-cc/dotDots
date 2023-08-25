@@ -1,15 +1,71 @@
 #!/bin/sh
 
+init_scr_env() {
+  scr_name="init_profile"
+  scr_version="0.2"
+  scr_description="replaces the users shell profile [ .bashrc, .profile ] with symbolic links to those of the DOTS Resources."
+  scr_usage="$(
+    cat <<HELP
+Usage: $scr_name [OPTIONS] [DIR]
+Description: $scr_name $scr_description
+
+Options:
+  -h, --help        Display this help message
+  -v, --version     Display the version of $scr_name
+  -d, --verbose     Enable verbose mode
+
+HELP
+
+)"
+
+  DOTS="${1:-$HOME/.dots/Admin/Other}"
+  res_HOME="$DOTS/Resources/Home"
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+      print_help
+      exit
+      ;;
+    -v | --version)
+      print_version
+      exit
+      ;;
+    -d | --verbose) verbose=true ;;
+    -s | -t | --simulate | --test) simulate=true ;;
+    *) ;;
+    esac
+    shift
+  done
+
+} && init_scr_env "$@"
+
 deploy_symlink() {
-  ln "${1}" "${2}" \
-    --symbolic \
-    --force \
-    --verbose
+  ln --symbolic --force --verbose "${1}" "${2}"
 }
 
-# res_HOME="/home/craole/DOTS/Admin/Other/Resources/Home"
+deploy_profile_link() {
+  # Escape the special characters in the variable for safe use in sed
+  escaped_dots=$(printf "%s" "$DOTS" | sed 's/[\/&]/\\&/g')
 
-res_HOME="${DOTS:-/home/craole/DOTS/Admin/Other}/Resources/Home"
+  # Use sed to replace the line starting with "DOTS" in the profile
+  sed -i "/^DOTS=/s/.*/DOTS=\"$escaped_dots\"/" "$res_HOME/profile"
 
-deploy_symlink "${res_HOME}"/profile "${HOME}"/.profile
-deploy_symlink "${res_HOME}"/bashrc "${HOME}"/.bashrc
+  #@ Initialize DOTS via symlinks
+  deploy_symlink "$res_HOME/profile" "$HOME/.profile"
+}
+
+deploy_bashrc_link() {
+  deploy_symlink "$res_HOME/bashrc" "$HOME/.bashrc"
+}
+
+# simulate() {
+
+# }
+main() {
+  deploy_profile_link
+  deploy_bashrc_link
+}
+
+# main "$@"
+echo "$scr_name"

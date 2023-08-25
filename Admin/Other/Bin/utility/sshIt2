@@ -4,85 +4,87 @@
 appName="sshIt"
 appVersion="0.10"
 
-init_scr_env() {
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    -h | --help)
-      __help__
-      exit
-      ;;
-    -v | --version)
-      __version__
-      exit
-      ;;
-    *)
-      # echo "Var: $1"
-      __valid_env__ "$1"
-      ;;
-    esac
-    shift
-  done
-}
+case "$1" in
+-h | --help)
+  _HELP=true
+  ;;
+-v | --version)
+  _VER=true
+  ;;
+-e | --src | --env)
+  _SRC=true
+  shift
+  _ENV="$*"
+  ;;
+*) ;;
+esac
 
 __help__() {
-  printf "%s\n" "$appName"
+  printf "%s" "$appName"
 }
 
 __version__() {
-  printf "%s]n" "$appVersion"
+  printf "%s" "$appVersion"
+}
+
+__main__() {
+  [ "$_HELP" ] && __help__
+  [ "$_VER" ] && __version__
+  __variables__
+  # __init__
 }
 
 __error__() {
-  printf "🚩 "
-
   args=$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')
   case "$args" in
   --required)
-    printf "This is %srequired%s" "$clr_error" "$tfx_reset"
+    printf "%s" "🚩 This is ${error}required${reset}
+            "
     exit 1
     ;;
-  --selection)
-    printf "Invalid Selection"
-    ;;
   --naked)
-    printf \
-      "Invalid character(s): %s%s%s" \
-      "$clr_error" "$_invalid" "$tfx_reset"
+    printf "%s" "🚩 Invalid character(s): ${error}$_invalid${reset}
+            "
     exit 1
     ;;
   --character)
-    printf \
-      "Invalid characters were removed: \n🟥 %s \n✅ %s" \
-      "$_invalid" "$_valid"
+    printf "%s" "🚩 Invalid characters were removed:
+    🟥 $_invalid
+    ✅ $_valid
+            "
+    ;;
+  --selection)
+    printf "%s" "🚩 Invalid Selection
+            "
     ;;
   --env)
     shift
-    printf \
-      "The %sENV file%s path is invalid: %s" \
-      "$clr_error" "$tfx_reset" "$1"
-    # __ui__ --file
+    printf "%s" "🚩 The ${error}ENV file${reset} path is invalid: \"$_ENV\""
+    __ui__ --file
     ;;
   --id_exists)
     shift
-    printf \
-      "This %sidentity file%s already exists: %s" \
-      "$clr_error" "$tfx_reset" "$1"
+    printf "%s" "
+🚩 This ${error}identity file${reset} already exists:
+\"$*\"
+            "
     __ui__ --id_exists
     ;;
   --file)
     shift
-    printf "Invalid File: %s" "$1"
+    printf "%s
+🚩 Invalid File:
+\"$*\""
     __ui__ --file
     ;;
   --path)
     shift
-    printf "Invalid Path: %s" "$1"
+    printf "%s" "
+            🚩 Invalid Path:
+            \"$*\""
     __ui__ --path
     ;;
-    # ;;
   esac
-
-  printf "%s\n" "$tfx_reset"
 }
 
 #@ User Input                                                                 #
@@ -94,32 +96,32 @@ __ui__() {
   opts=$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')
   case "$opts" in
   --host)
-    printf "%s " "${italic}Who is the ${success}host$tfx_reset?"
+    printf "%s " "${italic}Who is the ${success}host${reset}?"
     read -r _INPUT
     __valid_name__ "$_INPUT"
     sshHost="$_valid"
     ;;
   --user)
-    printf "%s " "${italic}Who is the ${info}user$tfx_reset?"
+    printf "%s " "${italic}Who is the ${info}user${reset}?"
     read -r _INPUT
     __valid_name__ "$_INPUT"
     sshName="$_valid"
     ;;
   --hostname)
-    printf "%s " "${italic}What is the ${info}hostname$tfx_reset?"
+    printf "%s " "${italic}What is the ${info}hostname${reset}?"
     read -r _INPUT
     __valid_name__ "$_INPUT"
     sshHostName="$_valid"
     ;;
   --id_new)
-    printf "%s " "${italic}Where should the ${info}Identity File$tfx_reset be saved?"
+    printf "%s " "${italic}Where should the ${info}Identity File${reset} be saved?"
     read -r _INPUT
     __valid_id__ "$_INPUT"
     __valid_pathname__ "$_INPUT"
     sshID="$_valid"
     ;;
   --id_default)
-    printf "%s " "${italic}Save the ${info}Identity File$tfx_reset to the default location? [Y|n]
+    printf "%s " "${italic}Save the ${info}Identity File${reset} to the default location? [Y|n]
             ${defaultID}"
     read -r OPT
     case $OPT in
@@ -132,7 +134,7 @@ __ui__() {
     esac
     ;;
   --id_exists)
-    printf "%s " "${italic}Overwrite the current ${bold}identity$tfx_reset file [${bold}N$tfx_reset|y]?"
+    printf "%s " "${italic}Overwrite the current ${bold}identity${reset} file [${bold}N${reset}|y]?"
     read -r OPT
     case $OPT in
     y* | Y*)
@@ -149,17 +151,17 @@ __ui__() {
     esac
     ;;
   --env)
-    printf "%s " "${italic}What is the path to the ${info}ENV$tfx_reset file?"
+    printf "%s " "${italic}What is the path to the ${info}ENV${reset} file?"
     read -r _INPUT
     __valid_env__ "$_INPUT"
     ;;
   --file)
-    printf "%s " "${italic}Please enter a valid path to the ${bold}file$tfx_reset."
+    printf "%s " "${italic}Please enter a valid path to the ${bold}file${reset}."
     read -r _INPUT
     __valid_file__ "$_INPUT"
     ;;
   --path)
-    printf "%s " "${italic}Please enter a valid ${bold}path$tfx_reset."
+    printf "%s " "${italic}Please enter a valid ${bold}path${reset}."
     read -r _INPUT
     __valid_pathname__ "$_INPUT"
     ;;
@@ -230,12 +232,12 @@ __ui__() {
 #@ Variables                                                                  #
 __variables__() {
 
-  # #*** UserID ***#
-  # if [ -z "$userID" ]; then
-  #   [ -n "${USER+x}" ] && user="$USER"
-  #   [ -n "${USERNAME+x}" ] && user="$USERNAME"
-  #   userID="$(hostname)_$user"
-  # fi
+  #*** UserID ***#
+  if [ -z "$userID" ]; then
+    [ -n "${USER+x}" ] && user="$USER"
+    [ -n "${USERNAME+x}" ] && user="$USERNAME"
+    userID="$(hostname)_$user"
+  fi
 
   #*** SSH Variables ***#
   _ssh_() {
@@ -245,8 +247,11 @@ __variables__() {
 
     #*** Host ***#
     _host_() {
-      if [ -n "$Host" ]; then
-        sshHost="$(__valid_name__ "$Host")"
+      _key="$Host"
+      if [ -n "$_key" ]; then
+        sshHost="$_key"
+        __valid_name__ "$sshHost"
+        sshHost="$_valid"
       else
         __ui__ --host
       fi
@@ -256,19 +261,6 @@ __variables__() {
       *gitlab*) sshHostLabel="$GitLab" ;;
       *) ;;
       esac
-      _key="$HostName"
-      if [ -n "$_key" ]; then
-        sshHostName="$_key"
-        unset _key
-      elif [ "$sshHostLabel" ]; then
-        sshHostName="$sshHost"
-      else
-        __ui__ --hostname
-        sshHostName="$_INPUT"
-      fi
-
-      __valid_name__ "$sshHostName"
-      sshHostName="$_valid"
     }
 
     #*** User ***#
@@ -348,6 +340,7 @@ __variables__() {
 
   #*** Environment Key File ***#
   if [ "$_SRC" ]; then
+
     for file in $_ENV; do
       #| Ensure the ENV file is found.
       __valid_env__ "$file"
@@ -392,36 +385,18 @@ __init__() {
 #@ Utilities                                                                  #
 #| Validation
 __valid_chars__() {
-  while [ $# -ge 1 ]; do
-    case "$1" in
-    --chars)
-      _chars="$2"
-      ;;
-    --text)
-      if [ "$2" = "" ]; then
-        __error__ --naked
-      else
-        _text="$2"
-      fi
-      ;;
-    *)
-      __error__ --required
-      ;;
-    esac
-    shift
-  done
+  _invalid="$(printf "%s" "$*" | highlight_text "$_validchars")"
+  _valid="$(printf "%s" "$*" | extract_text "$_validchars")"
 
-  _invalid="$(printf "%s" "$text" | highlight_text "$chars")"
-  _valid="$(printf "%s" "$text" | extract_text "$chars")"
-
+  [ -z "$*" ] && __error__ --required
   [ "$_valid" = "" ] && __error__ --naked
-  [ "$_text" != "$_valid" ] && __error__ --character
+  [ "$*" != "$_valid" ] && __error__ --character
 
 }
 
 __valid_name__() {
   _validchars="[^A-Za-z0-9._-]"
-  __valid_chars__ "[^A-Za-z0-9._-]" "$@"
+  __valid_chars__ "$@"
 }
 
 __valid_pathname__() {
@@ -430,35 +405,21 @@ __valid_pathname__() {
 }
 
 #| Existing File Check
-__valid_env__() {
-  [ "$1" ] || echo "missing var"
-  [ -f "$1" ] || __error__ --env "$1"
-  # [ -f "$1" ] || echo "invalid env \"$1\""
-}
+__valid_env__() { [ -f "$*" ] || __error__ --env "$*"; }
 __valid_id__() { [ -f "$*" ] && __error__ --id_exists "$*"; }
 __valid_file__() { [ -f "$*" ] || __error__ --file "$*"; }
 __valid_dir__() { [ -d "$*" ] || __error__ --path "$*"; }
 
+#| Terminal Characteristics
+# . TERM_by_TPUT
+use_TPUT
+# . sysINF
 highlight_text() { grep --color=always "$@"; }
 extract_text() { sed "s!$*!!g"; }
+# mkfile() { install -m 644 -D /dev/null "$@"; }
 
-#| Run the script
-__main__() {
-  #| Terminal Characteristics
-  . "$(PathOf term_output)"
-
-  # . sysINF
-  # mkfile() { install -m 644 -D /dev/null "$@"; }
-
-  # [ "$_HELP" ] && __help__
-  # [ "$_VER" ] && __version__
-  # __variables__
-  # __init__
-  # __valid_chars__ "[^A-Za-z0-9._-]" "pop"
-  echo "$clr_error casd"
-  init_scr_env "$@"
-
-} && __main__ "$@"
+#| Main
+__main__
 
 # : <<'TODO'
 # - Allow options for Key, Host, Mame, ID and Port.

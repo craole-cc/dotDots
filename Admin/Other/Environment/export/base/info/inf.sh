@@ -15,6 +15,10 @@ __os__() {
   printf "%s" "$(INFor --os)"
 }
 
+__label__ () {
+  printf "%s" "$(INFor --label)"
+}
+
 __type__() {
   info="$(
     uname --kernel-name
@@ -99,11 +103,6 @@ sys_INFO="$(
     "$(__shell__)"
 )"
 
-sys_LABEL="$(
-  printf "%s@%s_on_%s" \
-    "$(__user__)" \
-    "$(__host__)" \
-    "$(__trim__ "$(__os__)")"
-)"
+sys_LABEL="$(INFor --label)"
 
 unset info

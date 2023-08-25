@@ -12,7 +12,7 @@ __info__() {
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Write output to the standard output stream"
   _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
-  _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, weHave"
+  _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, __weHave__"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
     #>----------------------------------------------------<#
@@ -53,7 +53,7 @@ __version__() {
   exit 0
 }
 
-weHave() { #@ Check if the command exists
+__weHave__() { #@ Check if the command exists
   type "$1" >/dev/null 2>&1
 }
 
@@ -128,30 +128,41 @@ __defaults__() {
 __os__() {
   # hostnamectl | rg "Operating System" | sd "^.*:\s" ''
   # hostnamectl | rg '.*'"Operating System: " --replace "" --trim
-  if weHave hostnamectl; then
-    filtrate "hostnamectl" --filter "Operating System" --delimiter ": "
-  elif weHave lsb_release; then
-    filtrate "$(lsb_release --description)" --delimiter ":"
+  if __weHave__ hostnamectl; then
+    inf_OS_cmd="
+      filtrate \"hostnamectl\" --filter \"Operating System\" --delimiter \": \"
+    "
+  elif __weHave__ lsb_release; then
+    inf_OS_cmd="
+        filtrate \"$(lsb_release --description)\" --delimiter \":\"
+    "
   elif [ -f /etc/os-release ]; then
-    . /etc/os-release && printf "%s" "$NAME"
+    inf_OS_cmd="
+      . /etc/os-release &&
+      printf \"%s\" \"$NAME\"
+    "
   elif [ -f /etc/debian_version ]; then
     # printf "%s" "Info via /etc/debian_version"
-    . /etc/debian_version && printf "%s" "$DISTRIB_DESCRIPTION"
+    inf_OS_cmd="
+      . /etc/debian_version &&
+      printf \"%s\" \"$DISTRIB_DESCRIPTION\"
+    "
   elif [ -f /etc/issue ]; then
     # printf "%s" "Info via /etc/issue"
-    sd </etc/issue ' \\.*\n' ''
+    inf_OS_cmd="sd </etc/issue ' \\.*\n' ''"
   else
-    uname -a
+    inf_OS_cmd="uname -a"
   fi
 
+  eval "$inf_OS_cmd" | awk '{print $1}'
 }
 
 __type__() {
   # uname --kernel-name
   get_type() {
-    if weHave uname; then
+    if __weHave__ uname; then
       uname --kernel-name
-    elif weHave python; then
+    elif __weHave__ python; then
       python -mplatform
     fi
   }
@@ -223,7 +234,7 @@ __shell__() {
 }
 
 __wm__() {
-  weHave wmctl || return
+  __weHave__ wmctl || return
   wmctrl -m | rg "Name" | sd "^.*:\s" ''
 }
 
@@ -232,13 +243,13 @@ __width__() {
 }
 
 __power__() {
-  if weHave acpi; then
+  if __weHave__ acpi; then
     # acpi | awk '{  print $4 " & " $3; }' | sd ',' ''
     # acpi | rg '.*'": " --replace "" --trim
     filtrate \
       --data acpi \
       --delimiter ": "
-  elif weHave upower; then
+  elif __weHave__ upower; then
     filtrate \
       --data "$(upower --dump)" \
       --filter "percentage" \
@@ -247,9 +258,9 @@ __power__() {
 }
 
 __ip__() {
-  if weHave ip; then
+  if __weHave__ ip; then
     ip route get 1.2.3.4 | awk '{print $7}'
-  elif wehave ipconfig; then
+  elif __weHave__ ipconfig; then
     ipconfig | grep "IPv4.*192" | awk '{print $NF}'
   fi
 }
@@ -263,8 +274,8 @@ __fetch__() {
   [ "$(__kernel__)" ] &&
     printf "%s\n" "          Kernel |  | $(__kernel__)"
 
-  #  [   "$(__os__)" ] &&
-  #   printf "%s\n" "    Distribution |  | $(__os__)"
+   [   "$(__os__)" ] &&
+    printf "%s\n" "    Distribution |  | $(__os__)"
 
   [ "$(__wm__)" ] &&
     printf "%s\n" "  Window Manager | 拓 | $(__wm__)"
@@ -296,12 +307,12 @@ __label__() {
 }
 
 __pacman__() {
-  weHave xbps-install && PacMan="xbps-install"
-  weHave pacman && PacMan="pacman"
-  weHave yay && PacMan="yay"
-  weHave paru && PacMan="paru"
-  weHave apt-get && PacMan="apt-get"
-  weHave yum && PacMan="yum"
+  __weHave__ xbps-install && PacMan="xbps-install"
+  __weHave__ pacman && PacMan="pacman"
+  __weHave__ yay && PacMan="yay"
+  __weHave__ paru && PacMan="paru"
+  __weHave__ apt-get && PacMan="apt-get"
+  __weHave__ yum && PacMan="yum"
 
   echo "$PacMan"
 }

@@ -1,0 +1,343 @@
+#!/bin/sh
+# shellcheck disable=SC1003
+
+scr_name="path_convert"
+scr_usage=$(
+  cat <<HELP
+USAGE:
+  $scr_name [OPTIONS] [STRING]
+
+DESCRIPTION:
+  Convert paths between Windows and Unix.
+
+OPTIONS:
+  -h, --help            Display this help message
+  -d, --verbose         Display detailed information
+  -p, --prefix PREFIX   Allow a prefix (eg /mnt)
+  -c, --clip            Copy to system clipboard
+
+ARGUMENTS:
+  STRING                The path to convert
+
+EXAMPLES:
+    $scr_name -p mnt "C:\Users\USERNAME\Path to Convert"
+    Result|> /mnt/c/Users/USERNAME/Path\ to\ Convert/
+    Result|> "/mnt/c/Users/USERNAME/Path to Convert/"
+
+    $scr_name /mnt/c/Users/John
+    Result|> C:\Users\John
+
+    $scr_name "C:\Users\Username" --prefix mnt
+    Result|> /mnt/c/Users/John
+
+    $scr_name "C:\Users\John" --clip
+    Result|> Copied to clipboard: /c/Users/John
+HELP
+)
+
+main() {
+  purge_env
+  parse_input "$@"
+  parse_output
+  exit "$exit_code"
+}
+
+purge_env() {
+  exit_code=0
+  verbosity=1
+  unset path path_type clip verbose
+}
+
+parse_input() {
+  purge_env
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+      print_help
+      exit
+      ;;
+    -d | --verbose)
+      verbosity=2
+      ;;
+    -p | --prefix)
+      input_prefix="$2"
+      shift
+      ;;
+    -c | --clip)
+      clip=true
+      ;;
+    -q | --quiet)
+      verbosity=0
+      ;;
+    *)
+      if [ "$1" ]; then
+        input_path="$1"
+        input_path_type="$(get_path_type "$input_path")"
+      else
+        printf "%s\n" "$scr_usage"
+        exit 1
+      fi
+      ;;
+    esac
+    shift
+  done
+}
+
+get_path_pure() {
+  #@ Parse path from arguments
+  get_path_pure="$1"
+
+  #@ Convert backslashes to forward slashes
+  case "$get_path_pure" in *\\*)
+    get_path_pure="$(printf "%s" "$get_path_pure" | tr '\\' '/')"
+    ;;
+  esac
+
+  #@ Convert duplicated slashes to single
+  case "$get_path_pure" in *//*)
+    get_path_pure="$(printf "%s" "$get_path_pure" | tr -s "/")"
+    ;;
+  esac
+
+  #@ Remove the trailing slash, if one exists
+  get_path_pure="${get_path_pure%/}"
+
+  #@ Remove the leading slash, if one exists (eg. /C:/ = C:/)
+  get_path_pure="${get_path_pure#/}"
+
+  # #@ Check for Windows path then default to Unix
+  # case "$(get_path_type "$get_path_pure")" in
+  # Windows)
+  #   #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
+  #   [ "${get_path_pure#"${get_path_pure%?}"}" = ":" ] &&
+  #     get_path_pure="${get_path_pure}/"
+  #   ;;
+  # Unix)
+  #   #@ Add a leading slash, if missing (eg. mnt/... = /mnt/...)
+  #   [ "${get_path_pure#/}" = "$get_path_pure" ] &&
+  #     get_path_pure="/$get_path_pure"
+  #   ;;
+  # esac
+
+  printf "%s" "$get_path_pure"
+}
+
+get_path_type() {
+  case $1 in
+  *:*) printf "Windows" ;;
+  *) printf "Unix" ;;
+  esac
+}
+
+get_path_tld() {
+  set -- "$(get_path_pure "$1")"
+  printf "%s" "${1%%/*}"
+}
+
+get_path_root() {
+  case $1 in
+  --win) cd "$2" && pwd -W ;;
+  --unix) cd "$2" && pwd ;;
+  *) cd "$1" && pwd -W ;;
+  esac
+}
+
+set_path_prefix() {
+  #@ Update the path with the prefix
+  printf "/%s" "$(get_path_pure "$1")"
+}
+
+validate_path() {
+  #@ Parse the path input
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    -q | --quiet) quiet=true ;;
+    -w | --win*) path_type="Windows" ;;
+    -u | --unix) path_type="Unix" ;;
+    *)
+      #@ Check if the path is empty
+      if [ "$1" ]; then
+        path="$(get_path_pure "$1")"
+      else
+        printf "Missing path string"
+        return 1
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  #@ Check for Windows path then default to Unix
+  case "${path_type:-$(get_path_type "$path")}" in
+  Windows)
+    #@ Validate the Windows path
+    case "$path" in
+    [A-Za-z]:*)
+      #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
+      [ "${path#"${path%?}"}" = ":" ] &&
+        path="${path}/"
+      ;;
+    *)
+      #@ Extract the drive letter (e.g., C)
+      drive=${path%%:*}
+
+      #@ Validate the drive letter (e.g., C)
+      if [ -z "$drive" ]; then
+        err="Missing Windows drive letter"
+      elif ! printf "%s" "$drive" |
+        grep --extended-regexp --quiet "'^[A-Za-z]$'"; then
+        err="Invalid character(s) in Windows drive letter"
+      elif [ "${#drive}" -ne 1 ]; then
+        err="Invalid length of Windows drive letter"
+      fi
+
+      #@ Print drive letter error message if not in quiet mode
+      [ "$quiet" ] ||
+        printf "%s %s" "$err" "$path" |
+        grep --color=always "$drive"
+
+      #@ Return an error code
+      return 1
+      ;;
+    esac
+    ;;
+  Unix)
+    #@ Validate the Windows path
+    #TODO Implement error checking logic.
+    # err="Unix path"
+    # printf "%s" "$err"
+    # return 1
+    ;;
+  esac
+
+  #@ Return valid path
+  printf "%s" "$path"
+
+}
+
+convert_path() {
+  path="$(validate_path "$1")"
+  path_type="$input_path_type"
+  prefix="$input_prefix"
+
+  to_windows() {
+    #@ Extract the drive letter
+    drive="${path%"${path#?}"}"
+
+    #@ Convert the drive letter to lowercase
+    drive=$(printf "%s" "$drive" | tr '[:upper:]' '[:lower:]')
+
+    #@ Update the path and remove the drive letter colon
+    path="${drive}${path#*:}"
+
+    #@ Set default prefix
+    if [ "$prefix" ]; then
+      prefix="$(get_path_pure "$prefix")"
+    else
+      prefix="/mnt"
+    fi
+
+    #@ Update the path with the prefix
+    path=${prefix}/$path
+
+  }
+
+  to_unix() {
+    #@ Update path info
+    path="$(get_path_pure "$path")"
+    path_root="$(get_path_root --win "/")"
+    path_stem="$(get_path_tld "$path")"
+
+    if [ -e "$path_root/$path_stem" ]; then
+      path="${path_root}/${path}"
+    else
+      #@ Set the path root as the user's home directory
+      case "$path" in
+      home/* | *:/home/*)
+        path_root="$(get_path_root "$HOME")"
+        path="$path_root/${path#*home/}"
+        ;;
+      *)
+        # # path="$path_root${path}"
+        # path="C:/${path}"
+        path="$(get_path_pure "$path")"
+
+        # Extract the drive (e.g. c: from /c:/)
+        drive="$(get_path_tld "$path")"
+
+        # Extract the drive letter (e.g. c from c:)
+        drive_letter="$(
+          printf "%s" "${drive%:}" | tr '[:upper:]' '[:lower:]'
+        )"
+
+        # Update the path and include a leading slash
+        path="${drive_letter}${path#"${drive}"}"
+
+        # Update the path with the prefix
+        prefix="/$(get_path_pure "${prefix:-mnt}")"
+        path="${prefix}/${path}"
+        ;;
+      esac
+      # return
+    fi
+  }
+
+  #@ Convert the path
+  case "$path_type" in
+  Windows) to_unix ;;
+  Unix) to_windows ;;
+  esac
+
+  #@ Return the converted path
+  printf "%s" "$path"
+}
+
+parse_output() {
+
+  output_path="$(convert_path "$input_path")"
+  output_path_type="$(get_path_type "$output_path")"
+
+  case "$verbosity" in
+  0) ;;
+  1) ;;
+  *)
+    printf "Input Path   |> %s\n" "$input_path"
+    printf "Input Type   |> %s\n" "$input_path_type"
+    [ "$input_prefix" ] && printf "Input Prefix |> %s\n" "$input_prefix"
+    printf "Output Path  |> %s\n" "$output_path"
+    printf "Output Type  |> %s\n" "$output_path_type"
+    [ "$exit_code" -gt 0 ] && printf "Exit Code    |>  %s\n" "$exit_code"
+    [ "$check_type" ] && printf "Check Type   |>  %s\n" "$check_type"
+    ;;
+  esac
+
+  [ "$clip" ] && send_to_clipboard "$path"
+
+  # printf "\n"
+  # ls -lAFh "$output_path"
+  # printf "\n"
+}
+
+print_usage() {
+  printf "%s\n" "$scr_usage"
+}
+
+send_to_clipboard() {
+  path="$1"
+  type | grep -iq "win" # Check if running on Windows
+  if [ $? -eq 0 ]; then
+    printf '%s' "$path" | clip
+  else
+    printf '%s' "$path" | xclip -selection clipboard
+  fi
+  printf "Path copied to clipboard.\n"
+}
+
+set -- \
+  --verbose \
+  "/c/ikhome/sadashome/profile.d" \
+  --prefix "///etc"
+# "s:\users\user"
+
+main "$@"
