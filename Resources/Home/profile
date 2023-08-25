@@ -1,0 +1,12 @@
+#!/bin/sh
+# TODO: Handle this declaritivly via the flake
+VERBOSE=true
+
+#@ Initialize NixOS Flake
+# NixOS_FLAKE="$HOME/DOTS"
+# [ -f "${NixOS_FLAKE}"/Environment/profile ] &&
+#   . "${NixOS_FLAKE}"/Environment/profile
+
+#@ Initialize DOTS
+DOTS="/c/Users/Administrator/.dots/Admin/Other"
+[ -f "${DOTS}"/.dotsrc ] && . "${DOTS}"/.dotsrc

@@ -1,0 +1,111 @@
+[core]
+	#@ Set the default text editor for Git to BIN::Editor
+	editor = Editor
+
+	#@ Ensure that Git doesn't change line endings automatically
+	autocrlf = input
+
+	#@ Disable detection of changes in the executable bit of files
+	filemode = false
+
+	#@ Automatically fix whitespace issues
+	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+
+	#@ Global gitignore (applied to all repositories)
+	excludesFile = C:/Users/Administrator/.dots/Config/cli/git/global/ignore
+
+[init]
+	defaultBranch = main
+
+[commit]
+	; Show full diff when editing commit message
+	verbose = true
+
+[push]
+	default = simple
+
+[merge]
+	# ; Tool used by `git mergetool`
+	# tool = nvim-diff4
+
+[pull]
+	ff = only
+
+[alias]
+	#/> Alias.CONFIG                                                              |
+	cfg-ls = config --list
+	cfg-lg = cfg-ls --global
+	cfg-ll = cfg-ls --local
+	cfg-lw = cfg-ls --worktree
+	cfg-lsys = cfg-ls --system
+	cfg-la = "!f() { git cfg-ls | grep alias | cut -c 7-; }; f"
+
+	#/> Alias.LOG                                                                 |
+	#@ Beautify the log output
+	logdeco = log --pretty=format:\"%C(auto)%h %d %s %C(green)(%an) %C(italic cyan)[%ad]\" --date=relative --decorate
+	#@ Show oneline format
+	lg = logdeco --graph
+	#@ Show filename changes
+	ls = logdeco --name-status
+	#@ Show status and filename Changes
+	ll = logdeco --stat
+	#@ Show the most recent commit
+	last = ll -1
+
+	log-diff-upstream = logdeco --left-right HEAD...@{u}
+	log-diff-master = logdeco --left-right HEAD...origin/master
+
+	#/> Alias.STASH                                                                 |
+	sl = stash list
+	sa = stash apply
+	ss = stash save
+
+	diff-staged = diff --staged
+	diffs = diff-staged
+	branch-master = "!f() { git fetch; git checkout --no-track -b $1 origin/master; }; f"
+	branch-develop = "!f() { git fetch; git checkout --no-track -b $1 origin/develop; }; f"
+	branch-rename = "!f() { git push origin -d $(git branch --show-current); git branch -m $(git branch --show-current) $1; git push-new; }; f"
+	push-new = push --set-upstream origin HEAD
+	delete-merged-branches = !git branch --merged | egrep -v \"(^\\*|master|dev)\" | xargs git branch -d
+	config-list-all = config --list
+	config-list-all-origin = config --list --show-origin
+	# initial empty commit
+	empty = "!git commit -am\"[empty] Initial commit\" --allow-empty"
+
+	up = "!f() { \
+			git_msg=${*:-Updating}; \
+			git pull --quiet; \
+			git status --short; \
+			git add --all . ; \
+			git commit --all --quiet --message=\"$git_msg\"; \
+			git push --progress; \
+	}; f"
+	upignore = "!f() { \
+		printf \"%s\" \"Updating ignored files...\"; \
+		git_msg=\"${*:-Updated ignored files}\"; \
+		git rm -r --cached . >/dev/null 2>&1; \
+		git add --all . >/dev/null 2>&1; \
+		git commit --quiet --message=\"$git_msg\" >/dev/null 2>&1; \
+		git push >/dev/null 2>&1; \
+		printf \" %s\\n\" \"complete\"; \
+	}; f"
+	ignored = "!git ls-files --others --ignored --exclude-standard"
+	iggy = "!git status --short --ignored"
+
+[rerere]
+	; Track and remember conflict resolutions
+	enabled = true
+
+[filter "lfs"]
+		clean = git-lfs clean %f
+		smudge = git-lfs smudge %f
+		required = true
+
+[IncludeIf "gitdir:~/.dots/"]
+	path = ../clients/github_craole-cc.gitconfig
+
+[IncludeIf "gitdir:~/Documents/github_craole-cc/"]
+	path = ../clients/github_craole-cc.gitconfig
+
+[IncludeIf "gitdir:~/Documents/github_craole/"]
+	path = ../clients/github_craole.gitconfig

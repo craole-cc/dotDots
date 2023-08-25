@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#==================================================
+#
+# ENVIRONMENT MANAGER
+# CLI/bin/script/ENVman
+#
+#==================================================
+
+# _________________________________ DOCUMENTATION<|
+
+# The functions below operate on PATH-like variables whose fields are separated
+# with ':'.
+# Note: The *name* of the PATH-style variable must be passed in as the 1st
+#       argument and that variable's value is modified *directly*.
+
+# SYNOPSIS: path_prepend varName path
+# Note: Forces path into the first position, if already present.
+#       Duplicates are removed too, unless they're directly adjacent.
+# EXAMPLE: path_prepend PATH /usr/local/bin
+
+# >>= Example =<< #
+# _path -a /usr/local/bin       |> Append
+# _path -p /usr/local/bin       |> Perpend
+# _path -r /usr/local/bin       |> Remove
+# _path -p /usr/local/bin -R    |> Recursive
+# _path -l                      |> List
+
+# __________________________________________ NAME<|
+
+getShellName() {
+  unset Shell
+  if [ -n "$BASH" ]; then
+    Shell=${BASH##/*/}
+  elif [ -n "$ZSH_NAME" ]; then
+    Shell=$ZSH_NAME
+  else
+    Shell=${0##/*/}
+  fi
+  export Shell
+}
+# ________________________________________ SCRIPT<|
+
+getScriptPath() {
+  getShellName
+  result=""
+  case "$Shell" in
+  # case "$(getShellName)" in
+  bash)
+    # Shellcheck disable=SC3000-SC4000
+    result=${BASH_SOURCE[0]}
+    ;;
+  zsh)
+    emulate -L zsh
+    result=${funcfiletrace[1]%:*}
+    ;;
+  dash | sh)
+    result=$(
+      lsof -p $$ -Fn |
+        tail --lines=1 |
+        xargs --max-args=2 |
+        cut --delimiter=' ' --fields=2
+    )
+    result=${result#n}
+    ;;
+  *)
+    result=$0
+    ;;
+  esac
+
+  # --> Script
+  scrFILE=$(realpath "$result")
+  echo "$scrFILE"
+
+  # --> Parent Directory
+  scrDIR="$(dirname "${scrFILE}")"
+  echo "$scrDIR"
+}

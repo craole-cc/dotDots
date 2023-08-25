@@ -1,0 +1,46 @@
+#!/bin/sh
+
+#@ Check if a directory exists
+directory_exists() {
+  [ -d "$1" ]
+}
+
+#@ Parse and validate arguments
+parse_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --dir)
+      [ "$2" ] && {
+        directory_exists "$2" && workspace="$2"
+        shift
+      }
+      ;;
+    *) directory_exists "$1" && workspace="${1:-$PWD}" ;;
+    esac
+    shift
+  done
+}
+
+#@ Access development workspace
+access_workspace() {
+  if directory_exists "$workspace"; then
+    cd "$workspace" || {
+      printf "Failed to access %s\n" "$workspace"
+      exit 1
+    }
+  fi
+}
+
+#@ Initialize development environment
+initialize_environment() {
+  # nix develop --command bash -c "Terminal -- bash -c 'eval $editor $workspace; exec bash'"
+  # nix develop --command bash -c "eval $editor $workspace"
+  nix develop
+}
+
+#@ Execute the final command
+main() {
+  parse_arguments "$@"
+  access_workspace
+  initialize_environment "$@"
+} && main "$@"

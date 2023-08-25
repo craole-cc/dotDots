@@ -1,0 +1,219 @@
+#!/bin/sh
+
+#> DOTSactivate_                                                             <#
+#DOC => Dowload, update and activate dotfiles (variables, scripts, & config)
+VERSION="1.0"
+
+#@ Usage Guide                                                                 |
+__help__() {
+  printf "
+                    📓 USAGE
+        Dowload, update and activate dotfiles
+▶ -------------------------------------------------- ◀
+    -h --help       Usage guide
+    -v --version    Display script version number
+    -r --reset      Delete existing dotfiles
+    -p --pull       Download from the online repo
+    [default]       Activate (pull, if necessary)
+▶ -------------------------------------------------- ◀
+        |> DOTS=DOTS_Folder . DOTSactivate <|
+        |>      DOTSactivate --reset       <|
+\n"
+}
+
+#@ Version                                                                     |
+__version__() {
+  [ "$_VERSION" ] &&
+    printf "%s$VERSION\n"
+}
+
+__error__() {
+  case $1 in
+  -o | --opt)
+    printf "Please double-check the attachment, it's missing.\n"
+    __help__
+    exit 1
+    ;;
+  -f | --file)
+    shift
+    printf "%s🟥 \"$*\" 😱 is not a file."
+    ;;
+  -m | --missing)
+    shift
+    printf "%s🟥 $* 💀 is not installed."
+    ;;
+  *)
+    echo nest
+    ;;
+  esac
+}
+
+__install_git__() {
+  if ! command -v git >/dev/null 2>&1; then
+    if command -v paru >/dev/null 2>&1; then
+      paru -S git
+    elif command -v pacman >/dev/null 2>&1; then
+      sudo pacman -S git
+    elif command -v choco >/dev/null 2>&1; then
+      choco install git -y
+    elif command -v winget >/dev/null 2>&1; then
+      winget install git
+    elif command -v apt-get >/dev/null 2>&1; then
+      sudo apt-get install git
+    elif command -v yum >/dev/null 2>&1; then
+      sudo yum install git
+    fi
+  fi
+}
+
+gitbash_compatible=$(
+  echo https://github.com/anhsirk0/fetch-master-6000.git
+  echo https://github.com/mrowa44/emojify.git
+  echo https://github.com/lucc/nvimpager.git
+)
+linux_compatable=$(
+  echo https://github.com/kennedy69/kfetch.git
+  echo https://github.com/gavinhoward/bc.git
+)
+dispensable=$(
+  echo https://github.com/rsvp/speedtest-linux.git
+  echo https://github.com/krebs/array.git
+  echo https://github.com/UrsaDK/getopts_long.git
+  echo https://github.com/alan1world/yt_chapters.git
+  echo https://aur.archlinux.org/paru-bin.git
+  echo https://github.com/hroptatyr/dateutils.git
+  echo https://github.com/sanderjo/fast.com.git
+)
+
+__repositories__() {
+  __pull__() {
+    case "${OS_SHELL:?}" in
+    *Git*)
+      echo "$gitbash_compatible"
+      ;;
+    *)
+      echo "$gitbash_compatible"
+      echo "$linux_compatable"
+      ;;
+    esac
+  }
+  __drop__() {
+    echo "$dispensable"
+  }
+}
+
+__GitIt__() {
+  #| Ensure the download directory exists
+  [ -d "$downloadDIR" ] ||
+    echo "$downloadDIR"
+  # mkdir --parents "$downloadDIR"
+
+  __repositories__
+
+  for repo in $(__pull__); do
+    {
+      reponame=$(basename "$repo" .git)
+      dir="${DOTS_DOWN:?}/$reponame"
+    }
+    # echo "pull $repo $dir"
+    if [ ! -d "$dir" ]; then
+      git clone "$repo" "$dir"
+    else
+      cd "$dir" || return 1
+      git pull "$repo"
+    fi
+
+    cd "$OLDDIR" || return 1
+  done
+
+  # DROP
+  for repo in $(__drop__); do
+    {
+      reponame=$(basename "$repo" .git)
+      dir="${DOTS_DOWN:?}/$reponame"
+    }
+
+    # echo "drop $dir"
+    rm "$dir" \
+      --recursive \
+      --verbose \
+      --force
+  done
+}
+
+#@ Remove existing                                                            |
+__drop__() {
+  #| Halt if in the BARE repo
+  if [ "$(HOSTNAME)" = "CRAOLE-LATE6430" ] &&
+    [ -d "$DOTS/Log" ]; then
+    printf "This is the bare repo, you know better"
+    return 1
+  fi
+
+  #| Use elevated privalages if not on Windows
+  case "$(uname --all | tr '[:upper:]' '[:lower:]')" in
+  *windows* | *nt*) rm --recursive --force "DOTS" ;;
+  *) su -c "rm --recursive --force $DOTS" ;;
+  esac
+}
+
+#@ Pull from Git Repo                                                         |
+__pull__() {
+  #| Halt if user is root
+  # shellcheck disable=SC3000-SC4000
+  if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+    printf "Why would you want to run this as root?"
+    return 1
+  fi
+
+  [ -d "$DOTS" ] || echo dotpull
+  # git clone git@gitlab.com:craole/dotfiles.git "$DOTS"
+}
+
+#@ Activate DOTS                                                              |
+__activate__() { #| Activate the DOTS
+  [ -d "$DOTS" ] && . "$DOTS/.config"
+}
+
+__test__() {
+  echo "-------------------------"
+  echo "   🧪 Testing for DOTS"
+  echo "-------------------------"
+  __drop__
+}
+
+__main__() {
+  [ "$_HELP" ] && __help__       #| Usage guide
+  [ "$_VERSION" ] && __version__ #| Version number
+  [ "$_RESET" ] && __drop__      #| Delete existing DOTS
+  [ "$_PULL" ] && __pull__       #| Download from repo
+  __activate__                   #| Activate the DOTS
+}
+
+#| GUI Options
+case $1 in
+-v | --version)
+  _VERSION=true
+  ;;
+-h | --help)
+  shift
+  _HELP=true
+  ;;
+-r | --reset)
+  shift
+  _RESET=true
+  _PULL=true
+  ;;
+-p | --pull)
+  shift
+  _PULL=true
+  ;;
+*) ;;
+esac
+
+downloadDIR="$1"
+
+#| Execute
+__test__
+__install_git__
+# __main__

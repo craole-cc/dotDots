@@ -1,0 +1,24 @@
+#!/bin/sh
+
+text_to_trim="$*"
+
+#@ Remove the first line if it is blank
+text_to_trim="$(
+  printf "%s\n" "${text_to_trim}" |
+    awk 'NR==1 && /^$/{next} 1'
+)"
+
+#@ Calculate leading whitespace of the first non-blank line
+leading_whitespace=$(
+  printf "%s\n" "${text_to_trim}" |
+    awk '{match($0, /^[[:space:]]+/); print RLENGTH}'
+)
+
+#@ Trim the calculated leading whitespace from all lines
+text_to_trim="$(
+  printf "%s\n" "${text_to_trim}" |
+    awk -v tabs="${leading_whitespace}" \
+      '{$0=substr($0, tabs+1)}1'
+)"
+
+printf "%s" "$text_to_trim"

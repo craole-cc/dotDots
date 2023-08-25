@@ -1,0 +1,18 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+#| Load Environment Variables
+. "$DOTS_ENV_CTX/fonts"
+
+#| Ensure Fontconfig Directory exists
+mkdir --parents --verbose "$FONTCONFIG_USER"
+mkdir --parents --verbose "$LOCAL_SHARE"
+
+#| Deploy Link
+# src_path="$FONT_CONFIG_HOME" symbiolink --lnk "$FONT_CONFIG_LINK"
+symbiolink \
+  --src "$FONT_CONFIG_HOME" \
+  --lnk "$FONT_CONFIG_LINK"
+symbiolink \
+  --src "$FONT_TYPES_HOME" \
+  --lnk "$FONT_TYPES_LINK"

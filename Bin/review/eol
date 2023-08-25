@@ -1,0 +1,117 @@
+#!/bin/sh
+
+# find . -type f -exec unix2dos {} \;
+
+__lf__() {
+    find "$@" -type f -exec dos2unix {} \;
+}
+__crlf__() {
+    find "$@" -type f -exec unix2dos {} \;
+}
+
+__convert__() {
+    for x in "$@"; do
+        if [ -d "$x" ]; then
+            __ui__ --dir
+        elif [ -f "$x" ]; then
+            __ui__ --file
+            # [ "$LF" ] && __lf__ "$@"
+            # [ "$CRLF" ] && __crlf__ "$@"
+
+        fi
+    done
+}
+
+#@ User Input                                                                 #
+__ui__() {
+
+    #| Disable user input display
+    #   stty -echo
+
+    opts=$(echo "$*" | tr '[:upper:]' '[:lower:]')
+    case "$opts" in
+    --dir)
+        printf "%sConfirm converting directory [Y|n]: \n$x"
+        ;;
+    --file)
+        printf "%sFile: \"$x\""
+        ;;
+    esac
+
+    #| Enable user input display
+    stty echo
+
+}
+#| Existing File Check
+__locate_file__() { [ -f "$*" ] || __error__ --file "$*"; }
+__locate_dir__() { [ -d "$*" ] || __error__ --path "$*"; }
+
+#@ __________________________________________________ INFO<|
+
+__ver__() {
+    echo "1.0"
+}
+
+__help__() {
+    echo "                      :spiral_notepad:  USAGE
+        command <[options]> <[files]>
+        >>> sortFile --row list.txt <<<
+:arrow_forward: ----------------------------------------------- :arrow_backward:
+    -h --help      Usage guide
+    -L --lf        Line endings to LF
+    -C --cr        Line endings to CR
+"
+}
+
+__error__() {
+    case $1 in
+    -o | --opt)
+        printf "File not declared.\n" >&2
+        __help__
+        exit 1
+        ;;
+    -f | --file)
+        shift
+        printf "%s\"$*\" is not a file." >&2
+        ;;
+    *)
+        echo nest
+        ;;
+    esac
+}
+
+#@ ___________________________________________________ MAIN<|
+
+__main__() {
+
+    #> Options <#
+    case $1 in
+    '-h' | '--help') HELP=true ;;
+    '-V' | '--version') VERSION=true ;;
+    '-v' | '--verbose') VERBOSE=true ;;
+    '-u' | '--unix') LF=true ;;
+    '-d' | '--dos') CRLF=true ;;
+    '-c' | '--check') CHECK=true ;;
+    *) ;;
+    esac
+
+    #> Test <#
+    # __test__ "$@"
+
+    #> Run <#
+    if [ "$HELP" ]; then
+        __help__
+        exit 0
+    elif [ "$VERSION" ]; then
+        __ver__
+        exit 0
+    elif [ "$#" -eq 0 ]; then
+        __error__ --opt
+    elif [ "$VERBOSE" ]; then
+        __verbose__ "$@"
+    elif [ "$LF" ] || [ "$CRLF" ]; then
+        __convert__ "$@"
+    fi
+}
+
+__main__ "$@"

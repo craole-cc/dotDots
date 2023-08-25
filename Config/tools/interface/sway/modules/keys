@@ -1,0 +1,186 @@
+################################################################################
+#
+# Key bindings
+#
+################################################################################
+
+### Basics
+
+bindsym {
+    # Terminal
+    $mod_sup+Return exec $terminal
+    $mod_supS+Return exec $terminal_sec
+
+    # System Info
+    $mod_sup+F1 exec $sysmon
+
+    # Launcher
+    $mod_alt+space exec $launcher
+    $mod_supS+d exec $launcher
+    $mod_alt+F2 exec $launcher
+    $mod_alt+F3 exec $launcher_sec
+
+    # Kill focused window
+    $mod_sup+q kill
+
+    # Reload the configuration file
+    $mod_supS+r reload
+
+    # Exit sway (logs you out of your Wayland session)
+    $mod_supS+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -b 'Yes, exit sway' 'swaymsg exit'
+    $mod_supS+q exit
+
+    ### Moving around
+    # Move your focus around
+    $mod_sup+$mod_left focus left
+    $mod_sup+left focus left
+    $mod_sup+$mod_down focus down
+    $mod_sup+down focus down
+    $mod_sup+$mod_up focus up
+    $mod_sup+up focus up
+    $mod_sup+$mod_right focus right
+    $mod_sup+right focus right
+
+    # Move the focused window with the same, but add Shift
+    $mod_supS+$mod_left move left
+    $mod_supS+left move left
+    $mod_supS+$mod_down move down
+    $mod_supS+down move down
+    $mod_supS+$mod_up move up
+    $mod_supS+up move up
+    $mod_supS+$mod_right move right
+    $mod_supS+right move right
+
+    ### Workspaces
+
+    # Note: workspaces can have any name you want, not just numbers.
+    # We just use 1-10 as the default.
+
+    # Switch to workspace
+    # $mod_sup+Grave workspace $workspace_term
+    $mod_sup+1 workspace $workspace_code
+    $mod_sup+2 workspace $workspace_www
+    $mod_sup+3 workspace $workspace_tool
+    $mod_sup+4 workspace $workspace_comm
+    $mod_sup+5 workspace $workspace_vids
+    $mod_sup+6 workspace $workspace_music
+    $mod_sup+7 workspace $workspace_pics
+    $mod_sup+8 workspace $workspace_documents
+    $mod_sup+9 workspace $workspace_multimedia
+    $mod_sup+0 workspace $workspace_info
+
+    # Move focused container to workspace
+    # $mod_supS+grave workspace $workspace_term
+    $mod_supS+1 move container to workspace $workspace_code
+    $mod_supS+2 move container to workspace $workspace_www
+    $mod_supS+3 move container to workspace $workspace_tool
+    $mod_supS+4 move container to workspace $workspace_comm
+    $mod_supS+5 move container to workspace $workspace_vids
+    $mod_supS+6 move container to workspace $workspace_music
+    $mod_supS+7 move container to workspace $workspace_pics
+    $mod_supS+8 move container to workspace $workspace_documents
+    $mod_supS+9 move container to workspace $workspace_multimedia
+    $mod_supS+0 move container to workspace $workspace_info
+
+
+    ### Layout stuff
+
+    # You can "split" the current object of your focus with
+    # $mod_sup+b or $mod_sup+v, for horizontal and vertical splits
+    # respectively.
+    $mod_sup+b splith
+    $mod_sup+v splitv
+
+    # Switch the current container between different layout styles
+    $mod_sup+s layout stacking
+    $mod_sup+w layout tabbed
+    $mod_sup+e layout toggle split
+
+    # Make the current focus fullscreen
+    $mod_sup+f fullscreen
+    $mod_alt+Return fullscreen
+
+    # Toggle the current focus between tiling and floating mode
+    $mod_supS+space floating toggle
+
+    # Swap focus between the tiling area and the floating area
+    $mod_sup+space focus mode_toggle
+
+    # Move focus between the parent and child containers
+    $mod_sup+a focus parent
+    $mod_supS+a focus child
+}
+
+# Drag floating windows by holding down $mod_sup and left mouse button.
+# Resize them with right mouse button + $mod_sup.
+# Despite the name, also works for non-floating windows.
+# Change normal to inverse to use left mouse button for resizing and right
+# mouse button for dragging.
+floating_modifier $mod_sup normal
+
+
+
+### Scratchpad
+
+# Sway has a "scratchpad", which is a bag of holding for windows.
+# You can send windows there and get them back later.
+
+# Move the currently focused window to the scratchpad
+bindsym $mod_supS+minus move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $mod_sup+minus scratchpad show
+
+
+### Resizing containers
+
+mode "resize" {
+    # left will shrink the containers width
+    # right will grow the containers width
+    # up will shrink the containers height
+    # down will grow the containers height
+    bindsym $mod_left resize shrink width 10px
+    bindsym $mod_down resize grow height 10px
+    bindsym $mod_up resize shrink height 10px
+    bindsym $mod_right resize grow width 10px
+
+    # Ditto, with arrow keys
+    bindsym Left resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym Right resize grow width 10px
+
+    # Return to default mode
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod_sup+r mode "resize"
+
+
+### Custom
+#
+# NOTE: To get keysym names used for bindings use `wev` command
+
+# Lock on keypress.
+# bindsym $mod_sup+l exec $lockscreen
+
+# Keyboard function buttons
+#
+# Non-assigned buttons:
+# - XF86WLAN (hardware bound to disabling WiFi adapter)
+# - XF86Favorites
+set $audio_sink @DEFAULT_SINK@
+set $audio_source @DEFAULT_SOURCE@
+set $audio_unmute pactl set-sink-mute $audio_sink false
+bindsym --locked XF86AudioMute exec 'pactl set-sink-mute $audio_sink toggle'
+bindsym --locked XF86AudioRaiseVolume exec '$audio_unmute ; pactl set-sink-volume $audio_sink +10%'
+bindsym --locked XF86AudioLowerVolume exec '$audio_unmute ; pactl set-sink-volume $audio_sink -10%'
+bindsym --locked XF86AudioMicMute exec 'pactl set-source-mute $audio_source toggle'
+bindsym --locked XF86MonBrightnessUp exec 'brightnessctl set +10%'
+bindsym --locked XF86MonBrightnessDown exec 'brightnessctl set -10%'
+bindsym --locked XF86Display exec 'swaymsg "output $output_laptop toggle"'
+
+# Change keyboard layout
+# Also send signal 1 to waybar to signal the change.
+bindsym Control+Shift+space exec "swaymsg input type:keyboard xkb_switch_layout next ; pkill --signal SIGRTMIN+1 waybar"

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+exa --help >/dev/null 2>&1 || {
+  Ls "$@"
+  exit 1
+}
+
+exa \
+  --icons \
+  --color-scale \
+  --sort=.name \
+  --header \
+  --time modified \
+  --time-style long-iso \
+  --octal-permissions \
+  "$@"

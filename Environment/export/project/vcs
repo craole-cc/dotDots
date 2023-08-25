@@ -1,0 +1,35 @@
+#! /bin/sh
+
+#==================================================
+#
+# GIT
+# ~/.config/git/gitalias
+#
+#==================================================
+
+# _________________________________________ LOCAL<|
+
+#@ Ensure git is installed
+type git >/dev/null 2>&1 || return
+
+# ________________________________________ EXPORT<|
+GIT_CONFIG_GLOBAL="$GDOTDIR/global/config"
+GIT_IGNORE="$GDOTDIR/global/ignore"
+# GIT_ALIAS="$GDOTDIR/global/alias"
+GIT_CLIENT_DIRS="
+  $PROJECTS/github_craole-cc
+  $PROJECTS/github_craole
+  $PROJECTS/gitlab_craole
+"
+# __________________________________________ EXEC<|
+
+#@ Update the config to read the ignore file
+git config --global core.excludesFile "$GIT_IGNORE"
+
+#@ Ensure Git Projects Directory exists
+for dir in $GIT_CLIENT_DIRS; do
+  mkdir --parents "$dir"
+done
+
+#@ Enable bash shell git aliases
+# . "$GIT_ALIAS"

@@ -1,0 +1,20 @@
+#!/bin/sh
+app=bash
+
+init_env() {
+  #| Load Environment Variables
+  . "$DOTS_ENV_CTX/$app"
+}
+
+launch_bash() {
+  bash \
+    --init-file "${BDOTDIR}/${SHELL_CONF}"
+}
+
+if bash --help >/dev/null 2>&1; then
+  init_env
+  launch_bash
+else
+  printf "How is it that you don't have bash?"
+  exit 1
+fi

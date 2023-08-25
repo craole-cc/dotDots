@@ -1,0 +1,31 @@
+#!/bin/sh
+
+FILE="$1"
+LINE="$2"
+
+if [ ! -f "$FILE" ]; then
+  printf "Create %s [n|Y]\n" "$FILE"
+
+  case "$(read_char)" in
+  [nN]*) echo "Exiting" ;;
+  [Yy]*|*)
+    # if [ "$Root" ]; then
+    #   touch "$FILE"
+    # else
+      touch "$FILE"
+    # fi
+    ;;
+  esac
+
+fi
+
+find_line() { grep --line-regexp --quiet "$LINE" "$FILE"; }
+push_line() { printf "%s\n" "$LINE"; }
+add_line() { push_line >>"$FILE"; }
+add_line_sudo() { push_line | sudo tee --append "$FILE"; }
+
+if [ "$Root" ] || [ -O "$FILE" ]; then
+  find_line || echo "$LINE" | sudo tee --append "$FILE"
+else
+  find_line || append_line
+fi

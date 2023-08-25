@@ -1,0 +1,5 @@
+NixWSL_conf=/mnt/c/Users/Craole/DOTS/Admin/Other/Config/apps/NixWSL
+NixWSL_host=NixWSL
+NixWSL_user=craole
+NixWSL_vr3n=22.05
+wslNixOS() { sh /mnt/c/Users/Craole/DOTS/Admin/Other/Config/apps/NixWSL $@ \;}

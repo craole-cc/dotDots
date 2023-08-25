@@ -1,0 +1,8 @@
+#!/bin/sh
+
+case "$SHELL_PREFERRED" in
+*ash) shell_bash ;;
+*zsh) shell_zsh ;;
+*fish) shell_fish ;;
+nu*) shell_nu ;;
+esac

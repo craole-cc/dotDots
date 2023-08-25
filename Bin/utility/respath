@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Check if target path is provided as an argument
+if [ -z "$1" ]; then
+  echo "Usage: $(basename "$0") <target_path>" >&2
+  exit 1
+fi
+
+# Check if target path exists and is accessible
+if [ ! -e "$1" ]; then
+  echo "Error: target path '$1' does not exist" >&2
+  exit 1
+fi
+
+# Check if target path is a symbolic link
+if [ -L "$1" ]; then
+  # Follow the symbolic link recursively until it points to a real file or directory
+  target_path=$(readlink -f "$1")
+
+  # Check for circular symbolic links
+  if [ "$1" = "$target_path" ]; then
+    echo "Error: target path '$1' contains a circular symbolic link" >&2
+    exit 1
+  fi
+else
+  # Use the target path directly if it's a real file or directory
+  target_path="$1"
+fi
+
+# Normalize target path
+normalized_path=""
+rest_path="$target_path"
+while [ -n "$rest_path" ]; do
+  # Remove leading slashes
+  rest_path="${rest_path#/}"
+  # Extract the next path component
+  next_path="${rest_path%%/*}"
+  # Remove the extracted component from the remaining path
+  rest_path="${rest_path#"$next_path"}"
+  # Remove trailing slashes
+  rest_path="${rest_path#/}"
+  # Append the extracted component to the normalized path
+  normalized_path="$normalized_path/$next_path"
+done
+
+# Print the absolute path
+printf "%s" "$normalized_path"

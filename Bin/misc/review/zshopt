@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+args='';
+for item in "$@"
+  do
+    args="$args $item";
+  done
+shopt "$args";
+
+# alias shopt="$shSCR/zshopt"

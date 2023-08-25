@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -a
+# ==| Test Strings |==
+
+_testStr_APPS="
+$DOTS_DOWN/speedtest-linux/speedtest
+$DOTS_DOWN/speedtest-linux/fasttest
+$DOTS_DOWN/fast.com/fast_com.py
+"
+
+_testStr_geekstut="
+ajay manager account 45000
+sunil clerk account 25000
+varun manager sales 50000
+amit manager account 47000
+tarun peon sales 15000
+deepak clerk sales 23000
+sunil peon sales 13000
+satvik director purchase 80000
+"
+
+_testStr_tomcat="
+/logs/tc0001/tomcat/tomcat7.1/conf/catalina.properties:app.env.server.name = demo.example.com
+/logs/tc0001/tomcat/tomcat7.2/conf/catalina.properties:app.env.server.name = quest.example.com
+/logs/tc0001/tomcat/tomcat7.5/conf/catalina.properties:app.env.server.name = www.example.com
+"
+
+_testStr_IGNORE="
+   review
+archive
+
+temp
+
+templates flowers
+"
+
+_testStr_TimDennis="
+MarkerName  Allele1 Allele2 Freq1   FreqSE  P-value Chr Pos
+rs2326918   a   g   0.8510  0.0001  0.5255  6   130881784
+rs2439906   c   g   0.0316  0.0039  0.8997  10  6870306
+rs10760160  a   c   0.5289  0.0191  0.8107  9   123043147
+rs977590    a   g   0.9354  0.0023  0.8757  7   34415290
+rs17278013  t   g   0.7498  0.0067  0.3595  14  24783304
+rs7852050   a   g   0.8814  0.0006  0.7671  9   9151167
+rs7323548   a   g   0.0432  0.0032  0.4555  13  112320879
+rs12364336  a   g   0.8720  0.0015  0.4542  11  99515186
+rs12562373  a   g   0.7548  0.0020  0.6151  1   164634379
+"
+set +a

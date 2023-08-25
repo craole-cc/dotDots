@@ -1,0 +1,81 @@
+#!/bin/sh
+
+#@ Initialize test arguments
+
+set -- "var 1" -p var2 var3 -s pop var4
+
+parse_args() {
+
+  while [ "$#" -ge 1 ]; do
+
+    case "$1" in
+
+    -s)
+
+      shift
+
+      echo "TRASH: $1"
+
+      ;;
+
+    -*) echo "TRASH: $1" ;;
+
+    *)
+
+      # echo "KEEP: $1"
+
+      # args="$(arr --save "$args" "$1")"
+
+      args="$(are --save "$args" "$1")"
+
+      ;;
+
+    esac
+
+    shift
+
+  done
+
+  # args="$(are --expand "$args")"
+
+  # args="$(are --expand "$args")"
+
+}
+
+# parse_args "$@"
+
+# printf "%s\n" "$args"
+
+i=0
+
+args="$(are --expand "$args")"
+
+set -- "$args"
+
+# echo $#
+
+# echo "$i: $args"
+
+# for arg; do
+
+#   i="$((i + 1))"
+
+#   printf "%s: %s\n" "$i" "$arg"
+
+# done
+
+input="var 1%var2%var3%var4"
+
+delimiter="%"
+
+# Replace delimiter with newline to split into separate arguments
+
+arguments=$(printf "%s" "$input" | tr "$delimiter" "\n")
+
+# Loop through arguments and do something with each one
+
+for arg in $arguments; do
+
+  echo "$arg"
+
+done

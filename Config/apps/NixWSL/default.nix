@@ -1,0 +1,6 @@
+{...}: {
+  imports = [
+    # ./global
+    # ./home
+  ];
+}

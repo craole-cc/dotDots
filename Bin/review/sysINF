@@ -1,0 +1,117 @@
+#!/bin/sh
+
+# |> OS Information <|
+# *** Type *** #
+{
+  # UNAME=$(python -mplatform | tr '[:upper:]' '[:lower:]')
+  UNAME=$(uname --all | tr '[:upper:]' '[:lower:]')
+  case "$UNAME" in
+  *linux*) OS_TYPE=Linux ;;
+  *bsd*) OS_TYPE=FreeBSD ;;
+  *nt*) OS_TYPE=Windows ;;
+  *windows*) OS_TYPE=WSL ;;
+  *darwin*) OS_TYPE=Mac ;;
+  *sunos*) OS_TYPE=Solaris ;;
+  *aix*) ;;
+  *) ;;
+  esac
+}
+
+# *** Name & Version *** #
+# OS_NAME() {
+{
+  if [ -f /etc/os-release ]; then
+    # freedesktop.org and systemd
+    . /etc/os-release
+    OS_NAME=$NAME
+    OS_VERSION=$VERSION_ID
+  elif type lsb_release >/dev/null 2>&1; then
+    # linuxbase.org
+    OS_NAME=$(lsb_release -si)
+    OS_VERSION=$(lsb_release -sr)
+  elif [ -f /etc/lsb-release ]; then
+    # For some versions of Debian/Ubuntu without lsb_release command
+    . /etc/lsb-release
+    OS_NAME=$DISTRIB_ID
+    OS_VERSION=$DISTRIB_RELEASE
+  elif [ -f /etc/debian_version ]; then
+    # Older Debian/Ubuntu/etc.
+    OS_NAME=Debian
+    OS_VERSION=$(cat /etc/debian_version)
+  # elif [ -f /etc/SuSe-release ]; then
+  #   # Older SuSE/etc.
+  #   ...
+  # elif [ -f /etc/redhat-release ]; then
+  #   # Older Red Hat, CentOS_NAME, etc.
+  #   ...
+  else
+    # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+    OS_NAME=$(uname -s)
+    OS_VERSION=$(uname -r)
+  fi
+}
+
+# *** Architecture *** #
+{
+  case $(uname -m) in
+  x86_64)
+    OS_ARCH=x64 # or AMD64 or Intel64 or whatever
+    ;;
+  i*86)
+    OS_ARCH=x86 # or IA32 or Intel32 or whatever
+    ;;
+  *)
+    # leave OS_ARCH as-is
+    ;;
+  esac
+}
+
+# |> Shell Information <|
+# *** Shell *** #
+if [ -n "$BASH" ]; then
+  OS_SHELL=${BASH##/*/}
+elif [ -n "$ZSH_NAME" ]; then
+  OS_SHELL=$ZSH_NAME
+else
+  OS_SHELL=${0##/*/}
+fi
+
+# Shell Label
+case "$OS_TYPE" in
+Windows)
+  case $OS_SHELL in
+  bash) OS_SHELL=GitBASH ;;
+  nu) OS_SHELL=NU ;;
+  *) ;;
+  esac
+  ;;
+Linux | *WSL)
+  case $OS_SHELL in
+  bash) OS_SHELL=baSHell ;;
+  zsh) OS_SHELL=zSHell ;;
+  dash) OS_SHELL=daSHell ;;
+  fish) OS_SHELL=fiSHell ;;
+  nu) OS_SHELL=nuSHell ;;
+  *) printf "Undefined Linux Shell" ;;
+  esac
+  ;;
+*) ;;
+esac
+
+# *** Label *** #
+OS_LABEL_long="
+>>== type ==>>  $OS_TYPE
+>>== arch ==>>  $OS_ARCH
+>>== name ==>>  $OS_NAME
+>>==  ver ==>>  $OS_VERSION
+>>==  cli ==>>  $OS_SHELL
+"
+
+OS_LABEL="$OS_TYPE"_"$(hostname)"
+
+osINF() {
+  case $1 in
+  -l | --long) printf "%s\n" "$OS_LABEL_long" ;;
+  *) printf "%s\n" "$OS_LABEL" ;;
+  esac
+}

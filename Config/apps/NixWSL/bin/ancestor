@@ -1,0 +1,38 @@
+#!/bin/sh
+
+func_name="ancestor"
+func_usage="$(
+  txtBarber "
+      Usage: $func_name [PATH]
+
+      Description:
+        pop
+    "
+)"
+
+# Usage: Provide the path to check as the argument
+if [ $# -eq 1 ]; then
+  path="$1"
+else
+  pout \
+    --usage "$func_usage" \
+    --fatal
+  echo "pop"
+  exit 1
+fi
+
+#@ Iterate over each component of the path
+while [ -n "$path" ]; do
+
+  #@ Check if the current path exists as a directory
+  [ -d "$path" ] && {
+    printf "%s" "$path"
+    exit 0
+  }
+
+  #@ Remove the last component from the path and try again
+  path=$(dirname "$path")
+done
+
+echo "No existing directories found in the path."
+exit 1

@@ -1,0 +1,11 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+#| Load Environment Variables
+weHave nu || exit
+
+#| Load Environment Variables
+. "$DOTS_ENV_CTX/nushell"
+
+#| Deploy Link
+symbiolink --src "$NUSHELL_HOME" --lnk "$NUSHELL_LINK" --force --verbose

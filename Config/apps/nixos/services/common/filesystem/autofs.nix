@@ -1,0 +1,3 @@
+{...}:{
+  services.autofs.enable = true;
+}

@@ -1,0 +1,30 @@
+#!/bin/sh
+
+#> Info
+_APP="starship"
+_NAME="Starship Prompt"
+_TYPE="tty"
+
+#> Config
+_HOME="${DOTS_CLI}/${_APP}"
+_EXT="toml"
+_CFG="${_HOME}/config.${_EXT}"
+STARSHIP_CONFIG="${_CFG}"
+STARSHIP_CACHE="${CACHE_HOME}/${_APP}"
+
+#> THEME
+: <<THEMES
+  bracketed-segments
+  craole
+  nerd-font-symbols
+  no-nerd-font
+  pastel-powerline
+  tokyo-night
+THEMES
+
+theme="craole"
+_THEME="${_HOME}/themes/${theme}.${_EXT}"
+
+#> LINK
+src="$_THEME"
+lnk="$_CFG"

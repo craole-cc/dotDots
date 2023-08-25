@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# RELEASE=v1.14.10
+RELEASE=stable
+sh -c "$(curl -sSfL https://release.solana.com/${RELEASE}/install)"

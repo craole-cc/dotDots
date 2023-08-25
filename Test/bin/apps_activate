@@ -1,0 +1,5 @@
+#!/bin/sh
+
+  for __app__ in "$@"; do
+    app_run "$__app__"
+  done

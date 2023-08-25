@@ -1,0 +1,107 @@
+#!/bin/sh
+
+: <<'Documenation'
+# Calculate the duration two timespamps
+::USAGE::
+dtdiff "$(__timeNow__)" "$(__timeBoot__)"
+Documenation
+
+strStart="$2"
+strEND="$1"
+
+__usage__() {
+  echo ::USAGE::
+  echo Format should be at lease yyyymmddHHMMss
+  echo dtdiff "End" "Start"
+  echo example: dtdiff "2022011917171642630661" "20220118005104.803626-300"
+}
+__toDate__() {
+  # shellcheck disable=SC3057
+
+  # |===>> using AWK <<===|
+  echo "$*" |
+    awk 'BEGIN \
+    { FIELDWIDTHS = "4 2 2 2 2 2" }
+    { printf "%s-%s-%s %s:%s:%s\n", $1, $2, $3, $4, $5, $6 }'
+
+  # |===>> using BASH <<===|
+  # echo "${1:0:4}-${1:4:2}-${1:6:2} ${1:8:2}:${1:10:2}:${1:12:2}"
+
+  # |===>> using SED <<===|
+  # echo "$1" | sed -nr 's/(....)(..)(..)(..)(..)(..)/\1-\2-\3 \4:\5:\6/p'
+}
+
+__Duration__() {
+  dtStart=$(__toDate__ "$strStart")
+  dtEND=$(__toDate__ "$strEND")
+
+  startSeconds="$(date --date "$dtStart" +%s)"
+  endSeconds="$(date --date "$dtEND" +%s)"
+
+  seconds=$(echo $((endSeconds - startSeconds)))
+  printf "%s $seconds"
+}
+
+pyFormat() {
+  python - <<CODE
+# print ($*)
+days, remainder = divmod($*, (60*60*24))
+hours, remainder = divmod(remainder, (60*60))
+minutes, seconds = divmod(remainder, 60)
+print ('%dd %dh %dm' % (days, hours, minutes))
+CODE
+}
+
+pyFormat "$(__Duration__)"
+
+: <<Comment
+  _usage() {
+    ###### U S A G E : Help and ERROR ######
+    cat <<EOF
+    foobar $Options
+    $*
+            Usage: foobar <[options]>
+            Options:
+                    -b   --bar            Set bar to ✔️    ($foo)
+                    -f   --foo            Set foo to ✔️    ($bar)
+                    -h   --help           Show this message
+                    -A   --arguments=...  Set arguments to ✔️ ($arguments) AND get ARGUMENT ($ARG)
+                    -B   --barfoo         Set barfoo to ✔️ ($barfoo)
+                    -F   --foobar         Set foobar to ✔️ ($foobar)
+  EOF
+  }
+
+  [ $# = 0 ] && _usage "  >>>>>>>> no options given "
+
+  while getopts ':fbh-A:FB' OPTION; do
+    case "$OPTION" in
+    h|--help) __usage__ ;;
+    S|--seconds)
+      sfoo="Short FOO"
+      printf "%s\n" "$sfoo"
+      ;;
+    M|--minutes)
+      sbar="Short BAR"
+      printf "%s\n" "$sbar"
+      ;;
+    H|--hours)
+      sbarfoo="Short BARFOO"
+      printf "%s\n" "$sbarfoo"
+      ;;
+    F)
+      sfoobar="Short FOOBAR"
+      printf "%s\n" "$sfoobar"
+      ;;
+    A)
+      sarguments="Short ARGUMENT"
+      sARG="$OPTARG"
+      printf "%s\n" "$sarguments: \"$sARG"\"
+      ;;
+    -)
+      [ $OPTIND -ge 1 ] && optind=$((OPTIND - 1)) || optind=$OPTIND
+      eval OPTION="\$$optind"
+      OPTARG=$(printf "%s\n" $OPTION | cut -d'=' -f2)
+      OPTION=$(printf "%s\n" $OPTION | cut -d'=' -f1)
+    esac
+  done
+Comment

@@ -1,0 +1,40 @@
+# Utilities
+set $output_laptop WL-1
+set $lockscreen swaylock
+set $bar Waybar
+# set $bar waybar --config "/storage/DOTS/Config/tools/widgets/waybar/config" | swaymsg exec --
+set $terminal foot
+set $sysmon Top
+set $launcher Launcher
+set $launcher_sec wofi --show=drun --prompt="Enter the application name" | swaymsg exec --
+
+# Modifier Keys
+set $mod_sup mod4
+set $mod_alt mod1
+set $mod_sht shift
+set $mod_ctl control
+set $mod_supA mod4+mod1
+set $mod_supS mod4+shift
+set $mod_supC mod4+control
+set $mod_ctlS control+shift
+set $mod_altS mod1+shift
+set $mod_altC mod1+control
+set $mod_altSC mod1+shift+control
+set $mod_supSC mod4+shift+control
+set $mod_up k
+set $mod_down l
+set $mod_left h
+set $mod_right j
+
+# Workspaces
+# set $workspace_term  TERM
+set $workspace_code  ₁ CODE
+set $workspace_www  ₂ WWW
+set $workspace_tool  ₃ TOOL
+set $workspace_comm  ₄ COMM
+set $workspace_vids 磊  ₅ VIDS
+set $workspace_music 露 ₆ MUSIC
+set $workspace_pics 行 ₇ PICS
+set $workspace_documents 8:Documents
+set $workspace_multimedia 9:Multimedia
+set $workspace_info 變 INFO

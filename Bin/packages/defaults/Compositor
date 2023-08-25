@@ -1,0 +1,19 @@
+#!/bin/sh
+
+#@ Declare command information
+_APP="picom"
+_ARGS="--config $DOTS_TOOL/utilities/picom/picom.conf"
+
+#@ Validate app availability
+[ "${WAYLAND_DISPLAY}" ] &&
+  weHave --check --verbose "$_APP"
+
+#@ Kill all active instances of the app
+murda "$_APP"
+
+#@ Launch with or without arguments
+if [ "$_ARGS" ]; then
+  eval "$_APP" "$_ARGS"
+else
+  eval "$_APP"
+fi

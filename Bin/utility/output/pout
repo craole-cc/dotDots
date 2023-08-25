@@ -1,0 +1,88 @@
+#!/bin/sh
+SCR_NAME="pout"
+SCR_DESC="display messages"
+SCR_USAGE="$SCR_NAME [OPTIONS] MESSAGE"
+SCR_GUIDE="$(
+  cat <<EOF
+  Usage: $SCR_USAGE
+
+  DESCRIPTION:
+  $SCR_DESC
+
+  OPTIONS:
+    -n | --newline  [num]   Print the given number of blank lines. (default: 1)
+    -s | --space    [num]   Print the given number of spaces. (default: 1)
+    -t | --tab      [num]   Print the given number of tabs. (default: 1)
+
+  ARGUMENTS:
+    MESSAGE    The message to be displayed.
+
+  EXAMPLES:
+    $SCR_NAME Hello, world!
+      Prints the message "Hello, world!".
+
+    $SCR_NAME -n Hello world!
+      Prints each word in a new line:
+      Hello
+      world!
+
+    $SCR_NAME -s Hello world!
+      Prints each word separated by a space:
+      Hello world!
+
+EOF
+)"
+
+parse_args() {
+  #/> Core
+  lowercased_arg="$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')"
+
+  case "$lowercased_arg" in
+  -h | --help) print_help ;;
+  "") print_error --missing ;;
+  -n | --n | -t | --t | -s | --s) [ "$2" ] || print_error --missing ;;
+  -*) print_error --invalid ;;
+  esac
+
+  #/> Options
+  # while [ $# -ge 1 ]; do
+  #   case "$lowercased_arg" in
+  #   -n* | --n*) num=${2:-1} && printf "%s" "$num" ;;
+  #   -t* | --t*) printf "%s" "$tabs" ;;
+  #   -s* | --s*) printf "%s" "$spaces" ;;
+  #   *) printf "%s" "$1" ;;
+  #   esac
+  #   shift
+  # done
+
+  # if [ "$2" ]; then
+  #   print_out "$1" "$2"
+  #   shift
+  # else
+  #   print_out "$1"
+  # fi
+  #   shift
+  # done
+}
+
+print_out() {
+  
+
+}
+
+print_help() {
+  print_out -n "$SCR_GUIDE"
+  exit "${exit_code:-0}"
+}
+
+print_error() {
+  case "$1" in
+  --missing) msg="Missing message" ;;
+  --invalid) msg="Invalid option" ;;
+  esac
+
+  print_out -n "ERROR: $msg"
+  exit_code=1
+}
+
+parse_args "$@"

@@ -1,0 +1,78 @@
+#!/bin/sh
+scr_PATH="$(PathOf "$0")"
+scr_NAME="$(basename "$scr_PATH")"
+scr_DIR="$(dirname "$scr_PATH")"
+scr_VERSION="1.0"
+scr_DESCRIPTION="finds active LAN hosts on the specified interface"
+scr_DEPENDENCIES="unalias, command, printf, getoptions"
+scr_USAGE="$(
+  cat <<USAGE_GUIDE
+    ::----------------------------------------------------::
+                        USAGE: $scr_NAME
+        $scr_DESCRIPTION
+    ::----------------------------------------------------::
+        $scr_NAME INTERFACE [FIRST_HOST] [LAST_HOST]
+                >>> $scr_NAME eth0 <<<
+    ::----------------------------------------------------::
+        -h --help      |>   Usage guide
+        -v --version   |>   Version
+        -t --test      |>   Detailed app info
+    ::----------------------------------------------------::
+      INTERFACE  -> The network interface to use.
+    ::----------------------------------------------------::
+USAGE_GUIDE
+)"
+
+parse_arguments() {
+  #@ Ensure that an interface is specified
+  [ "$#" -ge 1 ] || {
+    printf "%s" "$scr_USAGE"
+    exit 1
+  }
+
+  #@ Parse the network ID using ip and awk
+  network_id="$(ip -o -6 addr show dev $1 scope link | awk '{print $4}')"
+
+  #@ Parse a sequence of hosts
+  hosts="$(nmap -n -sP $network_id | grep "for" | awk '{print $5}')"
+
+  #@ Check for flag
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -h | --help)
+      printf "%s" "$scr_USAGE"
+      exit 0
+      ;;
+    -t | --test | --dry-run)
+      #@ Print the range of hosts and exit if the test flag is set
+      printf "Hosts to ping: %s\n" "$network_id"
+      printf "%s" "$hosts"
+      exit 0
+      ;;
+    esac
+    shift
+  done
+}
+
+validate_connectivity() {
+  #@ Ping the specified host once with a timeout of 1 second
+  if ping "$1" -c1 -W1 >/dev/null 2>&1; then
+    #@ Print the IP address on a successful ping
+    printf "%s\n" "$1"
+  fi
+}
+
+process_core() {
+  #@ Loop through each host in the sequence
+  for host in $hosts; do
+    #@ Validate connectivity to the host
+    validate_connectivity "$host"
+  done
+}
+
+point_of_entry() {
+  parse_arguments "$@" #@ Parse command-line arguments
+  process_core "$@"    #@ Process the hosts in the sequence
+}
+
+point_of_entry "$@" #@ Execute script with the command-line arguments

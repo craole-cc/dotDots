@@ -1,0 +1,133 @@
+#!/bin/sh
+
+__info__() {
+  _cmd_PATH="$(PathOf "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+}
+
+__opts__() {
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    -j | --cd) origDIR="$2" ;;
+    -d | --workdir | --dir) workDIR="$2" ;;
+    -m | --message) message="$2" ;;
+    -c | --command) command="$2" ;;
+    -h | --help) __help__ ;;
+    *) ;;
+    esac
+    shift
+  done
+}
+
+__help__() {
+  #@ Enable information display for usage
+  verbose=true
+
+  #@ Display usage info
+  __msg__ --usage
+
+  #@ Exit gracefully
+  __exit__
+
+}
+
+__defaults__() {
+  #@ Set the default directories
+  [ "$origDIR" ] || origDIR="$PWD"
+  [ "$workDIR" ] || workDIR="$DOTS"
+
+  #@ Store the absolute paths
+  origDIR="$(PathOf "$origDIR")"
+  workDIR="$(PathOf "$workDIR")"
+
+  #@ Declare the default message
+  message="${message:-"General Update"}"
+
+  #@ Declare the default command
+  [ "$command" ] || command="ls $workDIR"
+}
+
+__validate__() {
+  [ -d "$origDIR" ] || __err__ --dir "$origDIR"
+  [ -d "$workDIR" ] || __err__ --dir "$workDIR"
+}
+
+__err__() {
+  #@ Enable information display for errors
+  verbose=true
+
+  #@ Handle errors and exit with an error flag
+  case "$1" in
+  --dir) __msg__ --err-dir "$2" ;;
+  --cd) __msg__ --err-cd "$2" ;;
+  *) ;;
+  esac
+
+  #@ Exit with an error
+  __exit__ --error
+}
+
+__msg__() {
+  [ "$verbose" ] || return
+  case "$1" in
+  --cd) printf "Current Directory: '%s'\n" "$2" ;;
+  --err-dir) printf "%s is not a valid directory" "$2" ;;
+  --usage) printf "::USAGE:: %s [directory] [commands...]\n %s %s %s\n" \
+    "$_cmd_NAME" "$_cmd_NAME" "$DOTS" "touch file.test" ;;
+  *) ;;
+  esac
+}
+
+__cd__() {
+  if cd "$1"; then
+    __msg__ --cd "$1"
+  else
+    __err__ --cd "$1"
+  fi
+}
+
+__process__() {
+  case "$origDIR" in
+  "$workDIR"/*)
+    #@ Execute the command
+    eval "$command"
+    ;;
+  *)
+    #@ Enter the target/work directory
+    __cd__ "$workDIR"
+
+    #@ Execute the command
+    eval "$command"
+
+    #@ Return to initial directory
+    __cd__ "$origDIR"
+    ;;
+  esac
+}
+
+__test__() {
+  echo "ORIG: $origDIR"
+  echo "WORK: $workDIR"
+  echo "MSG: $message"
+  echo "CMD: $command"
+  # __cd__ "$workDIR"
+  eval "$command"
+  # cd "$HOME"
+}
+
+__exit__() {
+  case "$1" in
+  --error) exit 1 ;;
+  *) exit 0 ;;
+  esac
+}
+
+__main__() {
+  __info__
+  __opts__ "$@"
+  __defaults__
+  __validate__
+  __test__
+} && __main__ "$@"

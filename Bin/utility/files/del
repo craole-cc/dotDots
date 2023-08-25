@@ -1,0 +1,7 @@
+#!/bin/sh
+
+#@ Ensure trashy is installed
+type trash >/dev/null 2>&1 || return
+
+#@ Move file to trash list
+trash "$@"

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+Editor --app helix "$@"

@@ -1,0 +1,184 @@
+#!/bin/sh
+
+point_of_entry() {
+
+  #@ Declare variables
+  prepare_script_meta
+
+  #@ Accept user options
+  eval "$(getoptions parse_arguments) exit 1"
+
+  #@ Initialialize relevant environment
+  prepare_environment
+
+  #@ Process
+  if [ "$flag_TEST" ]; then
+    __test__ "$@"
+  else
+    process_core "$@"
+  fi
+
+  #@ Exit gracefully
+  point_of_exit
+
+}
+
+prepare_script_meta() {
+  #> Script Info
+  scr_PATH="$(PathOf "$0")"
+  scr_NAME="$(basename "$scr_PATH")"
+  scr_HOME="$(dirname -- "$scr_PATH")"
+  scr_VERSION="1.0"
+  scr_DESCRIPTION="Launch the default code editor"
+  scr_DEPENDENCIES="getoptions, coreutils"
+
+  #> Options
+  _APP_types="gui|visual|tty|terminal"
+  _APPS="vscode|emacs|helix|hx|neovim|nvim|vim|bat"
+  _APPS_tty="helix|neovim|nvim|vim"
+}
+
+parse_arguments() {
+  setup REST plus:true help:usage abbr:true
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                               $scr_NAME"
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                   $scr_DESCRIPTION"
+  msg -- "#>--------------------------------------------------------------<#"
+  msg -- "                  command [options] [arguments...]"
+  msg -- "                     $scr_NAME --app $_APP"
+  msg -- "#>--------------------------------------------------------------<#"
+  disp :usage -h --help -- "Display usage information"
+  disp scr_VERSION -v --version -- "Display version i_APPS_ttynformation"
+  flag flag_VERBOSE -d --verbose counter:true init:=0 -- "Enable log information"
+  flag flag_TEST -D --dry-run --test -- "Run tests"
+  flag flag_CHECK -C --check -- "Check app validity"
+  param _APP --app init:="$_APP" pattern:"$_APPS" -- "Set the default $scr_NAME"
+  param _APP_type --type init:="$_APP_type" pattern:"$_APP_types" -- "Set the default $scr_NAME"
+  msg -- "#>--------------------------------------------------------------<#"
+}
+
+prepare_environment() {
+  #@ Enable verbose if test flag set
+  [ "$flag_TEST" ] && flag_VERBOSE=true
+
+  #@ Check if the active environment is a graphical one
+  is_graphical_environment() {
+    { #? Active TTY session
+      [ "$XDG_SESSION_TYPE" = tty ]
+    } && {
+      present_information --disp Non-graphical "$(tty)"
+      return 1
+    }
+
+    #? Presence of a Unix graphical envronment
+    { [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; } && {
+      present_information --disp Graphical Unix
+      return 0
+    }
+
+    { #? Presence of a Windows graphical envronment
+      [ "$TERM" = "cygwin" ] ||
+        [ "$(uname)" = "MINGW64_NT" ] ||
+        [ "$(uname)" = "MINGW32_NT" ]
+    } && {
+      present_information --disp Graphical Windows
+      return 0
+    }
+  }
+
+  #@ Establish default Type based on user option and environment
+  if is_graphical_environment; then
+    _APP_type="${_APP_type:-gui}"
+  else
+    _APP_type="tty"
+  fi
+
+  #@ Establish default app per type
+  #TODO# Ensure that a gui app will not be allowed in tty
+  case "$_APP_type" in
+  t*) _APP=${_APP:-helix} ;;
+  *) _APP=${_APP:-vscode} ;;
+  esac
+
+  #@ Declare the editor to use
+  case "$_APP_type" in
+  [tT]*)
+    case "|$_APPS_tty|" in
+    *"|$_APP|"*) ;;
+    *)
+      present_information --env-tty "$_APP" "$_APP_tty"
+      _APP="$_APP_tty"
+      ;;
+    esac
+    ;;
+  *) ;;
+  esac
+
+  #@ Load Environment Variables from context file
+  _CTX="$DOTS_ENV_CTX/${_APP}"
+  if [ -f "$_CTX" ]; then
+    . "$_CTX"
+    present_information --env-loaded
+  else
+    _ERR=true
+    present_information --env-missing
+  fi
+
+  #@ Throw an error if app not found
+  weHave "$(printf '%s' "$_CMD" | awk '{print $1}')" || {
+    _ERR=true
+    present_information --missing
+  }
+
+  [ "$flag_CHECK" ] && printf "%s" "$_APP"
+
+  # @ Exit if app not installed or if checking
+  { [ "$flag_CHECK" ] || [ "$_ERR" ]; } && point_of_exit
+}
+
+present_information() {
+  [ "$flag_VERBOSE" -eq 0 ] && return
+
+  case "$1" in
+  --missing) printf "Please confirm that '%s' is installed and in \$PATH.\n" "$_APP" ;;
+  --env-tty)
+    printf "%s is not available in a non-graphical session" "$2"
+    printf "Switching to %s\n" "$3"
+    ;;
+  --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
+  --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
+  --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
+  --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
+  --disp) printf "%s session on %s\n" "$2" "$3" ;;
+  esac
+}
+
+point_of_exit() {
+  #@ Release variables
+  unset _APP _CFG check verbose
+
+  #@ Exit with error code, if necessary
+  if [ "$_ERR" ]; then
+    unset _ERR && exit 1
+  else
+    unset _ERR && exit 0
+  fi
+}
+
+process_core() {
+  if [ "$DISPLAY" ]; then
+    eval Terminal -- "$_CMD" "$*" &
+  else
+    eval "$_CMD" "$*"
+  fi
+}
+
+__test__() {
+  echo "NAME: $_NAME"
+  echo "APP: $_APP"
+  echo "TYPE: $_TYPE"
+  echo "CMD: $_CMD"
+}
+
+point_of_entry "$@"

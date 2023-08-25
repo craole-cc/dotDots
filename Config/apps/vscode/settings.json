@@ -1,0 +1,429 @@
+{
+  "better-comments.tags": [
+    {
+      "tag": "@",
+      "color": "#11cbc9",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "#252526",
+      "bold": true,
+      "italic": true
+    },
+    {
+      "tag": ">",
+      "color": "#11cbc9",
+      "strikethrough": false,
+      "underline": true,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": true
+    },
+    {
+      "tag": "{",
+      "color": "#11cbc9",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "#252526",
+      "bold": true,
+      "italic": true
+    },
+    {
+      "tag": "|",
+      "color": "#B026FF",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": true
+    },
+    {
+      "tag": "?",
+      "color": "#fed200",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": true
+    },
+    {
+      "tag": "!",
+      "color": "#ff0000",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "shellcheck",
+      "color": "#d8482c",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "DOC",
+      "color": "#3498DB",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
+    },
+    {
+      "tag": "//",
+      "color": "#ffffff33",
+      "strikethrough": true,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "todo",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "=",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "*",
+      "color": "#98C379",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    }
+  ],
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "color-highlight.markerType": "dot-after",
+  "color-highlight.matchWords": true,
+  "code-runner.clearPreviousOutput": true,
+  "code-runner.saveFileBeforeRun": true,
+  "git.enableSmartCommit": true,
+  "git.autofetch": true,
+  "editor.acceptSuggestionOnEnter": "smart",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true
+  },
+  "editor.cursorBlinking": "phase",
+  "editor.cursorStyle": "line",
+  "editor.cursorWidth": 3,
+  "editor.renderControlCharacters": true,
+  "editor.wordWrap": "on",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": true,
+  "editor.minimap.size": "fit",
+  "editor.fontFamily": "monospace,'monospace'",
+  "editor.fontLigatures": true,
+  "editor.fontWeight": "500",
+  "editor.fontSize": 16,
+  "editor.lineHeight": 32,
+  "editor.linkedEditing": true,
+  "editor.letterSpacing": 1.1,
+  "editor.suggestSelection": "first",
+  "editor.tabSize": 2,
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "comment",
+          "emphasis",
+          "entity.name.method.js",
+          "entity.name.class.js",
+          "entity.name.tag.doctype",
+          "entity.other.attribute-name",
+          "entity.other.attribute-name.tag.jade",
+          "entity.other.attribute-name.tag.pug",
+          "keyword",
+          "keyword.control",
+          "keyword.operator.comparison",
+          "keyword.control.flow.js",
+          "keyword.control.flow.ts",
+          "keyword.control.flow.tsx",
+          "keyword.control.ruby",
+          "keyword.control.module.ruby",
+          "keyword.control.class.ruby",
+          "keyword.control.def.ruby",
+          "keyword.control.loop.js",
+          "keyword.control.loop.ts",
+          "keyword.control.import.js",
+          "keyword.control.import.ts",
+          "keyword.control.import.tsx",
+          "keyword.control.from.js",
+          "keyword.control.from.ts",
+          "keyword.control.from.tsx",
+          "keyword.operator.expression.delete",
+          "keyword.operator.new",
+          "keyword.operator.expression",
+          "keyword.operator.cast",
+          "keyword.operator.relational",
+          "keyword.operator.sizeof",
+          "keyword.operator.logical.python",
+          "italic",
+          "markup.italic",
+          "markup.quote",
+          "markup.changed",
+          "markup.italic.markdown",
+          "markup.quote.markdown",
+          "markup.deleted.diff",
+          "markup.inserted.diff",
+          "meta.delimiter.period",
+          "meta.diff.header.git",
+          "meta.diff.header.from-file",
+          "meta.diff.header.to-file",
+          "meta.tag.sgml.doctype",
+          "meta.var.expr",
+          "meta.class meta.method.declaration meta.var.expr storage.type.js",
+          "meta.decorator punctuation.decorator",
+          "meta.selector",
+          "punctuation.accessor",
+          "punctuation.definition.comment",
+          "punctuation.definition.template-expression.begin",
+          "punctuation.definition.template-expression.end",
+          "punctuation.section.embedded",
+          "quote",
+          "source.js constant.other.object.key.js string.unquoted.label.js",
+          "source.go keyword.package.go",
+          "source.go keyword.import.go",
+          "source.go keyword.function.go",
+          "source.go keyword.type.go",
+          "source.go keyword.struct.go",
+          "source.go keyword.interface.go",
+          "source.go keyword.const.go",
+          "source.go keyword.var.go",
+          "source.go keyword.map.go",
+          "source.go keyword.channel.go",
+          "source.go keyword.control.go",
+          "storage",
+          "storage.type",
+          "storage.modifier",
+          "storage.type.property.js",
+          "storage.type.property.ts",
+          "storage.type.property.tsx",
+          "tag.decorator.js entity.name.tag.js",
+          "tag.decorator.js",
+          "text.html.basic entity.other.attribute-name.html",
+          "text.html.basic entity.other.attribute-name",
+          "variable.language",
+          "variable.other.object.property"
+        ],
+        "settings": {
+          "fontStyle": "italic"
+        }
+      }
+    ]
+  },
+  "emmet.syntaxProfiles": {
+    "javascript": "jsx"
+  },
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+  "eslint.packageManager": "pnpm",
+  "eslint.run": "onSave",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.alwaysShowStatus": true,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.incrementalNaming": "smart",
+  "explorer.compactFolders": false,
+  "files.autoSave": "afterDelay",
+  "files.hotExit": "onExitAndWindowClose",
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.simpleDialog.enable": true,
+  "files.associations": {
+    "*.vim": "viml",
+    "nu": "nu",
+    "**/.i3/config": "i3",
+    "**/i3/config": "i3",
+    "**/sway/*config": "i3",
+    "**/sway/modules/*": "i3",
+    "**/.config/shell/dash/*": "shellscript",
+    "*dashrc*": "shellscript",
+    "**/.config/shell/bash/*": "shellscript",
+    "*bashrc*": "shellscript",
+    "**/.config/shell/zsh/*": "shellscript",
+    "*zshrc*": "shellscript",
+    "*shellrc*": "shellscript",
+    "**/.config/shell/common/*": "shellscript",
+    "**/.config/sxiv/exec/*": "shellscript",
+    "**/.config/dunst/*": "shellscript",
+    "**/.local/bin/*": "shellscript",
+    "**/CLI/config/*": "shellscript",
+    "**/CLI/bin/**": "shellscript",
+    "**/bin/*": "shellscript",
+    "*.fish*": "fish",
+    "jgmenurc": "shellscript",
+    "**/.config/git/config": "properties",
+    "gitignore": "ignore",
+    "*.py*": "python",
+    "config": "properties",
+    "sxhdrc": "sxhkdrc",
+    "**/sxhkd/**": "sxhkdrc",
+    "*.toml": "toml"
+  },
+  "files.watcherExclude": {
+    "**/.local/**": true,
+    "**/.vscode-server-insiders/**": true,
+    "**/*cache/**": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "LWI.style.fontStyle": "italic",
+  "LWI.style.fontWeight": "100",
+  "LWI.breakpoints": [
+    {
+      "color": "rgb(0, 255, 0, 0.6)",
+      "column": 54
+    },
+    {
+      "color": "rgb(255, 255, 0, 0.6)",
+      "column": 69
+    },
+    {
+      "color": "rgb(255, 0, 0, 0.6)",
+      "column": 79
+    }
+  ],
+  "material-icon-theme.activeIconPack": "react_redux",
+  "nebulaOni.applyChanges": false,
+  "nebulaOni.add.favorite": "OFF",
+  "nebulaOni.color.backgroundColor": "Grey",
+  "nebulaOni.color.mainColor": "Mint",
+  "nebulaOni.editor.comments": "Light Forest",
+  "nebulaOni.editor.fontStyle": "Italic",
+  "nebulaOni.interface.editorSelectionAndFindMatch": "Clear",
+  "nebulaOni.interface.focusBorder": "ON",
+  "nebulaOni.update.restoreConfiguration": {
+    "themeSettings": {
+      "background": "Grey",
+      "main": "Mint",
+      "highlight": "Clear",
+      "focusBorder": "ON",
+      "fontStyle": "Italic",
+      "comments": "Light Forest",
+      "favorite": "OFF"
+    },
+    "favoriteSettings": {
+      "background": "Dark Grey",
+      "main": "Aqua",
+      "highlight": "Ultra Violet",
+      "focusBorder": "OFF",
+      "fontStyle": "Italic",
+      "comments": "Dark Violet",
+      "favorite": "Nebula Oni (Spirograph)"
+    }
+  },
+  "prettier.semi": true,
+  "prettier.singleQuote": true,
+  "prettier.tabWidth": 2,
+  "prettier.trailingComma": "none",
+  "prettier.printWidth": 70,
+  "prettier.proseWrap": "always",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none"
+  },
+  "python.languageServer": "Pylance",
+  "[scss]": {
+    "editor.defaultFormatter": "michelemelluso.code-beautifier"
+  },
+  "shellcheck.run": "onSave",
+  "shellcheck.exclude": [
+    "1090",
+    "1091",
+    "3040",
+    "2154",
+    "2034" //? Unused Variable
+  ],
+  "shellcheck.customArgs": [
+    "--source-path=SCRIPTDIR",
+    "--external-sources"
+  ],
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "terminal.external.linuxExec": "alacritty",
+  "terminal.explorerKind": "external",
+  "terminal.integrated.cursorStyle": "underline",
+  "terminal.integrated.fontSize": 16,
+  "terminal.integrated.fontWeight": "600",
+  "terminal.integrated.fontWeightBold": "bold",
+  "terminal.integrated.lineHeight": 1,
+  "terminal.integrated.letterSpacing": 1.2,
+  "terminal.integrated.rightClickBehavior": "copyPaste",
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "security.workspace.trust.enabled": false,
+  "update.mode": "none",
+  "window.doubleClickIconToClose": true,
+  "window.menuBarVisibility": "toggle",
+  "window.zoomLevel": 1,
+  "workbench.colorTheme": "Nebula Oni (Spirograph)",
+  "workbench.commandPalette.preserveInput": true,
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
+  "workbench.editor.enablePreviewFromQuickOpen": true,
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.revealIfOpen": true,
+  "workbench.editor.wrapTabs": true,
+  "workbench.editor.splitInGroupLayout": "vertical",
+  "workbench.editor.tabSizing": "fit",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.panel.defaultLocation": "right",
+  "workbench.productIconTheme": "icons-carbon",
+  "workbench.quickOpen.preserveInput": true,
+  "workbench.settings.openDefaultKeybindings": true,
+  "workbench.settings.openDefaultSettings": true,
+  "workbench.startupEditor": "none",
+  "workbench.statusBar.visible": true,
+  "workbench.tips.enabled": true
+}

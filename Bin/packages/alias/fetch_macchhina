@@ -1,0 +1,30 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+__init__() {
+  #| Load Environment Variables
+  . "$DOTS_ENV_CTX/macchina"
+
+  #| Initialize
+  macchina.init
+}
+
+__run__() {
+  if [ "$TERM_PROGRAM" = "vscode" ] && [ -f "$MACCHINA_LITE" ]; then
+    macchina --config "$MACCHINA_LITE"
+  elif [ -f "$MACCHINA_MAIN" ]; then
+    macchina --config "$MACCHINA_MAIN"
+  else
+    macchina
+  fi
+}
+
+if weHave macchina; then
+  __init__
+  __run__
+else
+  exit
+fi

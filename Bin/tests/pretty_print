@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# ...
+
+parse_arguments() {
+  local format_args=() # Array to store text formatting options
+  local color_args=()  # Array to store color options
+
+  while [ $# -ge 1 ]; do
+    case $1 in
+    --reset) format_args+=("$(tput sgr0)") ;;
+    --bold | -dim | --italic | --underline | --invert | --hidden | --blink)
+      format_args+=("$(tput ${1#--})")
+      ;;
+    --fg-* | --bg-*)
+      color_option=${1#--}                                      # Remove the leading '--'
+      color_name=${color_option#*-}                             # Remove the 'fg-' or 'bg-' prefix
+      variable_name=$(printf "%s" "$color_option" | tr '-' '_') # Convert dashes to underscores
+      color_args+=("$(tput ${variable_name})")
+      ;;
+    -l | --new-line) format_args+=("\n") ;;
+    -s | --space) format_args+=(" ") ;;
+    --center)
+      while [ $# -ge 2 ]; do
+        case $2 in
+        --*)
+          echo "OPTION: $2"
+          parse_arguments "$2"
+          ;;
+        *)
+          format_args+=("$2")
+          ;;
+        esac
+        shift
+      done
+      ;;
+    *)
+      format_args+=("$1")
+      ;;
+    esac
+    shift
+  done
+
+  # Print the formatted text
+  printf "%s" "${format_args[@]}"
+}
+
+print_with_tput() {
+  # Print the formatted text in the correct order
+  printf "%s" "${format_args[@]}"
+}
+
+# ...
+
+parse_arguments --center --fg-blue --fg-red --bg-yellow --underline pop
+print_with_tput

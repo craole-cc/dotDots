@@ -1,0 +1,278 @@
+#!/bin/sh
+# shellcheck disable=SC1083
+
+# ===================================================================
+#@		                           	INFO			                       @#
+# ===================================================================
+
+__info__() {
+  _cmd_PATH="$(realpath -s "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_NAME")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Write output to the standard output stream"
+  _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
+  _cmd_DEPENDENCIES_optional="getO, calk, emojify, weHave"
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
+    #>----------------------------------------------------<#
+                                                $_cmd_NAME
+    #>----------------------------------------------------<#
+          $_cmd_DESCRIPTION
+    #>----------------------------------------------------<#
+          -h --help       |>     Usage guide
+          -v --version    |>     Version
+          -l --left       |>     Align left [default]
+          -c --center     |>     Align center
+          -r --right      |>     Align right
+          -n --newline    |>     Blank line
+    #>----------------------------------------------------<#
+                command <[options]> <[arguments]>
+            $_cmd_NAME -nnn --center "string to transform"
+    #>----------------------------------------------------<#
+USAGE_GUIDE
+  )"
+}
+
+__info__
+
+# ===================================================================
+#@		                        GLOBAL TOOLS                         @#
+# ===================================================================
+
+#@ Usage display
+__help__() {
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  # exit 0
+}
+
+#@ Version display
+__version__() {
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
+}
+
+#@ Command validation tool
+__weHave__() {
+  if command -v weHave >/dev/null 2>&1; then
+    weHave "$@"
+  else
+    command -v "$@" >/dev/null 2>&1
+  fi
+}
+
+# ===================================================================
+#@		                          OPTIONS			                       @#
+# ===================================================================
+
+#@ Declare user options (Allow multiple flags)
+opts() {
+  setup REST
+  disp _cmd_USAGEGUIDE -h --help
+  disp _cmd_VERSION -v --version
+  flag VERBOSE -d --verbose -- "takes no arguments"
+  flag LEFT -l --left -- "takes no arguments"
+  flag RIGHT -r --right -- "takes no arguments"
+  flag CENTER -c --center -- "takes no arguments"
+  param ALIGNMENT -a --align pattern:"left | center | right" -- "accepts --param value / --param=value"
+  flag NEWLINE -n --newline counter:true init:=0 -- "e.g. -nnn will print 3 blan lines"
+}
+
+#@ Load options
+eval "$(getO opts) exit 1"
+
+# ===================================================================
+#@		                          DEFAULT			                       @#
+# ===================================================================
+
+__defaults__() {
+
+  #@ Default to align left
+  [ "$CENTER" ] && ALIGNMENT="center"
+  [ "$RIGHT" ] && ALIGNMENT="right"
+  [ "$LEFT" ] && ALIGNMENT="left"
+
+  [ ! "$ALIGNMENT" = "center" ] &&
+    [ ! "$ALIGNMENT" = "right" ] &&
+    ALIGNMENT="left"
+
+}
+
+# ===================================================================
+#@		                          PROCESS			                       @#
+# ===================================================================
+
+#@ Print
+__print__() {
+  if command -v emojify >/dev/null 2>&1; then
+    emojify "$*"
+  else
+    printf "%s$*" |
+      sed \
+        -e 's/:arrow_forward:/▶/g' \
+        -e 's/:arrow_backward:/◀/g' \
+        -e 's/:rocket:/🚀/g' \
+        -e 's/:white_check_mark:/✅/g' \
+        -e 's/:x:/🟥/g' \
+        -e 's/:x:/❎/g' \
+        -e 's/:x:/🚫/g' \
+        -e 's/:x:/❌/g' \
+        -e 's/:red_flag:/🚩/g' \
+        -e 's/:spiral_notepad:/🗒/g' \
+        -e 's/:rose:/🌹/g' \
+        -e 's/:scream:/😱/g' \
+        -e 's/:dizzy_face:/😵/g' \
+        -e 's/:[^:]*://g;s/  / /g'
+    # awk '{
+    #   all="";
+    #   for(i=0; i<=NF; i++) {
+    #     if(!($i~/:.*:/)) { all=all" "$i; }
+    #     };
+    #     print all;
+    #     }' |
+    # awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'
+
+    # printf "%s$*" | sed -e "s%:[^:]*:%:%g"
+  fi
+
+  #| Add newline per user request
+  if __weHave__ trs; then
+    printf '%*s' "$NEWLINE" "" | tr ' ' '\n'
+  elif __weHave__ awk && __weHave__ seq; then
+    seq "$NEWLINE" | awk '{printf "\n"}'
+  fi
+
+}
+
+#@ Align
+__align__() {
+  # | Width of the display area
+  term_width="$COLUMNS" || "$(tput cols)"
+
+  # | Length of the text to display
+  str_length="$(echo "$*" | awk '{print length}' | sort -nr | head -1)"
+
+  # | Calculate tab size
+  if [ "$term_width" -gt "$str_length" ]; then
+    _tab="$term_width - $str_length"
+    if __weHave__ calk; then
+      tab_right=$(calk "$_tab")
+      tab_center=$(calk "($_tab) / 2")
+    else
+      tab_right=$((_tab))
+      tab_center=$(((_tab) / 2))
+    fi
+  fi
+
+  # | Place tab to the left of the text
+  [ "$ALIGNMENT" = "left" ] && tab_size=""
+  [ "$ALIGNMENT" = "center" ] && tab_size="$tab_center"
+  [ "$ALIGNMENT" = "right" ] && tab_size="$tab_right"
+
+  # | Print text with calculated tab
+  printf "%${tab_size}s"
+  __print__ "$*"
+}
+
+#@ Run
+__process__() {
+  __align__ "$*"
+}
+
+# ===================================================================
+#@		                           	ERROR			                       @#
+# ===================================================================
+
+__error__() {
+  case $* in
+  -s | --string)
+    msg="🟥 Please ensure that a valid equation is entered."
+    printf "\n%s\n" "$msg"
+    __help__
+    exit 1
+    ;;
+  *) ;;
+  esac
+}
+
+# ===================================================================
+#@		                          CLEANUP			                       @#
+# ===================================================================
+
+__cleanup__() {
+  unset \
+    LEFT \
+    CENTER \
+    RIGHT \
+    ALIGNMENT \
+    VERBOSE \
+    term_width \
+    tab_right \
+    tab_center \
+    tab_size \
+    str_length
+}
+
+# ===================================================================
+#@		                           	 VERBOSE	                       @#
+# ===================================================================
+
+__verbose__() {
+
+  #@ Process all stings
+  term_width="$COLUMNS" || "$(tput cols)"
+  line="$(printf "%${term_width}s\n\n" | tr ' ' '*')"
+
+  while [ $# -gt 0 ]; do
+
+    printf "%s" "$line"
+
+    __process__ "$1"
+
+    [ "$NEWLINE" ] && printf "\n" || printf "\n\n"
+
+    printf "%s" "$line"
+    printf "String          |  %s\n" "$1"
+    printf "Alignment       |  %s\n" "$ALIGNMENT"
+    printf "Terminal Width  |  %s\n" "$term_width"
+    printf "String Length   |  %s\n" "$str_length"
+    printf "Tab Size        |  %s\n" "$tab_size"
+    printf "Newline         |  %s\n\n" "$NEWLINE"
+    shift
+  done
+
+}
+
+# ===================================================================
+#@		                           	 MAIN			                       @#
+# ===================================================================
+
+__main__() {
+
+  #@ Process all stings
+  while [ $# -gt 0 ]; do
+    __process__ "$1"
+    shift
+  done
+
+}
+
+# ===================================================================
+#@		                            RUN	  		                       @#
+# ===================================================================
+
+#@ Load internal variables
+__info__
+
+#@ Establish defaults
+__defaults__
+
+#@ Allow verbose option if requested
+if [ "$VERBOSE" ]; then
+  __verbose__ "$@"
+else
+  __main__ "$@"
+fi
+
+#@ Remove any leftover variables
+__cleanup__

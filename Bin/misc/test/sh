@@ -1,0 +1,179 @@
+#!/bin/sh
+
+# echo "test"
+dsh() {
+    # clear;
+    # TestFunc="$shFUN/app.kit.sh"
+    . "$shDBG/sh" &&
+    . "$shFUN/app.kit.sh" && 
+        printf "===============================\n"
+    printf " Debugging in %s\n" "$0"
+    # [ "$1" ] && echo Arg 1 = "$1"
+    # [ "$2" ] && echo Arg 2 = "$2"
+    # [ "$*" ] && echo Argws = "$*"
+    printf "===============================\n"
+    # --------------------------------------------------------
+    # printf '\n%s\n' "Installed: $Installed"
+    # --------------------------------------------------------
+
+    # --------------------------------------------------------
+    # appCheck exa kit git fish
+    # appRequired git
+    # appRequired exa has zsh fish dash lol paru
+    appRequired exa
+    # --------------------------------------------------------
+    # hash "$app" >/dev/null 2>&1
+    # if [ $? -eq 1 ]; then
+    #     echo >&2 "$app" is required.
+    # fi
+
+    # --------------------------------------------------------
+    # if [ -x "$(command -v "$@")" ]; then
+    #     command -v "$@"
+    #     echo "Version: $("$@" -v)"
+    # else
+    #     command -v "$@" &&
+    #     echo "$@" Not Installed
+    # fi
+}
+
+T1() {
+    package="" # Default to empty package
+    target=""  # Default to empty target
+
+    # Parse options to the `pip` command
+    while getopts ":h" opt; do
+        case ${opt} in
+        h)
+            echo "Usage:"
+            echo "    pip -h                      Display this help message."
+            echo "    pip install <package>       Install <package>."
+            exit 0
+            ;;
+        \?)
+            echo "Invalid Option: -$OPTARG" 1>&2
+            exit 1
+            ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    subcommand=$1
+    shift # Remove 'pip' from the argument list
+    case "$subcommand" in
+    # Parse options to the install sub command
+    install)
+        package=$1
+        shift # Remove 'install' from the argument list
+
+        # Process package options
+        while getopts ":t:" opt; do
+            case ${opt} in
+            t)
+                target=$OPTARG
+                ;;
+            \?)
+                echo "Invalid Option: -$OPTARG" 1>&2
+                exit 1
+                ;;
+            :)
+                echo "Invalid Option: -$OPTARG requires an argument" 1>&2
+                exit 1
+                ;;
+            esac
+        done
+        shift $((OPTIND - 1))
+        ;;
+    esac
+}
+
+T2() {
+    rflag=false
+    small_r=false
+    big_r=false
+
+    usage() { echo "How to use"; }
+
+    options=':ij:rRvh'
+    while getopts $options option; do
+        case "$option" in
+        i) i_func ;;
+        j) j_arg=$OPTARG ;;
+        r)
+            rflag=true
+            small_r=true
+            ;;
+        R)
+            rflag=true
+            big_r=true
+            ;;
+        v)
+            v_func
+            other_func
+            ;;
+        h)
+            usage
+            exit
+            ;;
+        \?)
+            echo "Unknown option: -$OPTARG" >&2
+            exit 1
+            ;;
+        :)
+            echo "Missing option argument for -$OPTARG" >&2
+            exit 1
+            ;;
+        *)
+            echo "Unimplemented option: -$OPTARG" >&2
+            exit 1
+            ;;
+        esac
+    done
+
+    if ((OPTIND == 1)); then
+        echo "No options specified"
+    fi
+
+    shift $((OPTIND - 1))
+
+    if (($# == 0)); then
+        echo "No positional arguments specified"
+    fi
+
+    if ! $rflag && [[ -d $1 ]]; then
+        echo "-r or -R must be included when a directory is specified" >&2
+        exit 1
+    fi
+}
+
+T3() {
+    dsh &&
+        usage() {
+            echo "$0 usage:" && grep " .)\ #" $0
+            exit 0
+        }
+    [ $# -eq 0 ] && usage
+    while getopts ":hs:p:" arg; do
+        case $arg in
+        p) # Specify p value.
+            echo "p is ${OPTARG}"
+            ;;
+        s) # Specify strength, either 45 or 90.
+            strength=${OPTARG}
+            [ $strength -eq 45 -o $strength -eq 90 ] &&
+                echo "Strength is $strength." ||
+                echo "Strength needs to be either 45 or 90, $strength found instead."
+            ;;
+        h | *) # Display help.
+            usage
+            exit 0
+            ;;
+        esac
+    done
+}
+
+
+# 6 133 or 56
+# 13 - Max 40,000 | Min 25,000
+# 39 1385
+# 42 Rastafarism and Christianity

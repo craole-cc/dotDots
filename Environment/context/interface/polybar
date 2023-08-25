@@ -1,0 +1,2 @@
+BAR_HOME="$DOTS_TOOL/widgets/polybar"
+BAR_CONF="config"

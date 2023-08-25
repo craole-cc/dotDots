@@ -1,0 +1,38 @@
+#!/bin/sh
+
+#==================================================
+#
+# ENVIRONMENT DEFAULTS
+# VPS
+#
+#==================================================
+
+HOST="${USER_VPS}@${HOST_VPS}"
+# shellcheck disable=SC2154
+HOST_ROOT="${rootUSER_VPS}@${HOST_VPS}"
+PORT="$PORT_SSH_VPS"
+ID="${VPS_PREFIX}_${USER_VPS}"
+ID_ROOT="${VPS_PREFIX}_${rootUSER_VPS}"
+LABEL=E6430_Win
+
+vps() {
+  ssh -i "$ID" -p "$PORT" "$HOST"
+}
+
+vpsRoot() {
+  ssh -i "$ID_ROOT" -p "$PORT" "$HOST_ROOT"
+}
+
+vpsWeb () {
+  ssh -i "$ID" -p "$PORT" "$HOST" -L "$PORT_RANDOM":127.0.0.1:10000 -N &
+  git web--browse https://localhost:"$PORT_RANDOM"
+}
+
+vpsInit () {
+  ssh-keygen -t ed25519 -a 100 -f "$ID" -C "$LABEL"
+  ssh-keygen -y -f "$ID" > "$ID.pub"
+  eval "$(ssh-agent)" && ssh-add "$ID"
+  ssh-copy-id -i "$ID.pub" -p "$PORT" "$HOST"
+  # shellcheck disable=SC2088
+  vps cat "~/.ssh/authorized_keys"
+}
