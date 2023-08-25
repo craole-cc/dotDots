@@ -5,7 +5,6 @@
 # PROJECTS="/store/Documents/Projects/"
 PROJECTS="$DOTS/../../.."
 
-
 #@ Projects by Language
 PRJ_rs="$PROJECTS/Rust"
 PRJ_js="$PROJECTS/Javascript"

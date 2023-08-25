@@ -1,15 +1,6 @@
-[user]
-	# email = iamcraole@gmail.com
-	# name = craole
-
 [core]
 	#@ Set the default text editor for Git to BIN::Editor
 	editor = Editor
-
-	#@ Global gitignore (applied to all repositories)
-	excludesfile = "~/.dots/Config/cli/git/gitignore"
-	# excludesfile = "$GDOTDIR/gitignore"
-	#DOC https://github.com/git/git/blob/ce81b1da230cf04e231ce337c2946c0671ffb303/Documentation/git.txt#L83-L104
 
 	#@ Ensure that Git doesn't change line endings automatically
 	autocrlf = input
@@ -19,6 +10,9 @@
 
 	#@ Automatically fix whitespace issues
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+
+	#@ Global gitignore (applied to all repositories)
+	excludesFile = C:/Users/Administrator/.dots/Admin/Other/Config/cli/git/gitignore
 
 [init]
 	defaultBranch = main

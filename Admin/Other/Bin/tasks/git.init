@@ -1,0 +1,15 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+#| Load Environment Variables
+. "$DOTS_ENV_CTX/git"
+
+#| Ensure Git Projects Directory exists
+mkdir --parents "$GIT_DIR_1" "$GIT_DIR_2"
+
+#@ Enable the configuration file
+export GIT_CONFIG_GLOBAL
+
+#@ Update the config to read the ignore file
+type git >/dev/null 2>&1 &&
+  git config --global core.excludesFile "$GIT_IGNORE_GLOBAL"

@@ -37,14 +37,12 @@
 
 # DotFiles
 .vscode
-.code-workspace
-*.code-workspace
 debug/
 *cache*
-.tmp
-.bak
-.bac
-.backup
+*.tmp
+*.bak
+*.bac
+*.backup
 plugged/
 autoload/
 
