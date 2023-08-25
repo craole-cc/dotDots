@@ -408,5 +408,6 @@
     "workbench.colorTheme": "Default Light Modern",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
+    "terminal.integrated.fontSize": 18,
   }
 }
