@@ -405,7 +405,7 @@
     "workbench.statusBar.visible": true,
     "workbench.preferredLightColorTheme": "Default Light Modern",
     "workbench.preferredDarkColorTheme": "Nebula Oni (Pegasus)",
-    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    "workbench.colorTheme": "Default Light Modern",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
   }
