@@ -1,6 +1,6 @@
 [user]
-	email = iamcraole@gmail.com
-	name = craole
+	# email = iamcraole@gmail.com
+	# name = craole
 
 [core]
 	#@ Set the default text editor for Git to BIN::Editor
@@ -107,18 +107,11 @@
 		smudge = git-lfs smudge %f
 		required = true
 
-# [IncludeIf "gitdir:~/DOTS/"]
-# 	path = gilab_craole.gitconfig
-
 [IncludeIf "gitdir:~/.dots/"]
 	path = github_craole-cc.gitconfig
-  # path = "~/.dots/Config/cli/git/gilab_craole-cc.gitconfig"
 
-# [IncludeIf "gitdir:/data/DOTS/.git"]
-# 	path = github_craole-cc.gitconfig
+[IncludeIf "gitdir:~/Documents/github_craole-cc/"]
+	path = github_craole-cc.gitconfig
 
-# [IncludeIf "gitdir:/data/github_craole-cc/"]
-# 	path = github_craole-cc.gitconfig
-
-# [IncludeIf "gitdir:/data/github_craole/"]
-# 	path = github_craole.gitconfig
+[IncludeIf "gitdir:~/Documents/github_craole/"]
+	path = github_craole.gitconfig

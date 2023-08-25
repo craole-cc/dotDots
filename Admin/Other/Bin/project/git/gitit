@@ -58,12 +58,12 @@ main() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    -H | --host*) git_host="$2" ;;
-    -U | --user*) git_user="$2" ;;
-    -R | --repo*) git_repo="$2" ;;
-    -L | --url | --link) git_url="$2" ;;
-    -B | --branch) git_branch="$2" ;;
-    -P | --path | --dir*) git_dir="$2" ;;
+    -H | --host*) git_host="$2" shift ;;
+    -U | --user*) git_user="$2" shift ;;
+    -R | --repo*) git_repo="$2" shift ;;
+    -L | --url | --link) git_url="$2" shift ;;
+    -B | --branch) git_branch="$2" shift ;;
+    -P | --path | --dir*) git_dir="$2" shift ;;
     -t | --simulate | --test) simulate=true ;;
     -*)
       display_info "$1"

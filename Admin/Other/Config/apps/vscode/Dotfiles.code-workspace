@@ -69,7 +69,7 @@
     "editor.fontFamily": "'Operator Mono Lig','FantasqueSansMono NF','Cascadia Code','Noto Color Emoji','Hack NFM','monospace',monospace",
     "editor.fontLigatures": true,
     "editor.letterSpacing": 0.5,
-    "editor.fontSize": 22,
+    "editor.fontSize": 18,
     "editor.lineHeight": 2,
     "editor.fontWeight": "400",
     "editor.guides.bracketPairs": "active",
