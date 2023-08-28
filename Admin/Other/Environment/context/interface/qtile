@@ -1,2 +1,0 @@
-qtile_home="$DOTS_TOOL/interface/qtile"
-qtile_conf="$qtile_home/config.py"

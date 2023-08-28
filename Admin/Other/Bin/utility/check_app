@@ -1,7 +1,0 @@
-#!/bin/sh
-
-#@ Exit if not installed
-weHave "$1" || {
-    printf "🚫 %s not found in PATH\n" "$1"
-    exit 1
-}

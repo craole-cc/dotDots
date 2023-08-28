@@ -1,79 +1,0 @@
-#!/usr/bin/env rust-script
-//! ```cargo
-//! [dependencies]
-//! clap = "2.33.0"
-//! toml = "0.7.3"
-//! users = "0.11.0"
-//! ```
-extern crate clap;
-
-// Add the following dependencies to your Cargo.toml file:
-// [dependencies]
-// clap = "2.33.0"
-
-use clap::{App, Arg};
-use std::error::Error;
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::Path;
-
-fn convert_to_lf(file_path: &str) -> Result<(), Box<dyn Error>> {
-    let path = Path::new(file_path);
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    let lf_contents = contents.replace("\r\n", "\n");
-
-    let mut output_file = File::create(path)?;
-    output_file.write_all(lf_contents.as_bytes())?;
-
-    Ok(())
-}
-
-fn convert_to_crlf(file_path: &str) -> Result<(), Box<dyn Error>> {
-    let path = Path::new(file_path);
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    let crlf_contents = contents.replace("\n", "\r\n");
-
-    let mut output_file = File::create(path)?;
-    output_file.write_all(crlf_contents.as_bytes())?;
-
-    Ok(())
-}
-
-fn main() -> Result<(), Box<dyn Error>> {
-    let matches = App::new("Line Ending Converter")
-        .arg(
-            Arg::with_name("conversion_type")
-                .required(true)
-                .possible_values(&["lf", "crlf"])
-                .help("The type of line ending conversion"),
-        )
-        .arg(
-            Arg::with_name("file_path")
-                .required(true)
-                .help("The path to the file"),
-        )
-        .get_matches();
-
-    let conversion_type = matches.value_of("conversion_type").unwrap();
-    let file_path = matches.value_of("file_path").unwrap();
-
-    match conversion_type {
-        "lf" => {
-            convert_to_lf(file_path)?;
-            println!("Conversion to LF format completed.");
-        }
-        "crlf" => {
-            convert_to_crlf(file_path)?;
-            println!("Conversion to CRLF format completed.");
-        }
-        _ => println!("Invalid conversion type."),
-    }
-
-    Ok(())
-}

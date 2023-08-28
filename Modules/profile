@@ -1,6 +1,11 @@
 #!/bin/sh
 
-prep_script_env() {
+main() {
+  establish_env
+  execute
+}
+
+establish_env() {
   cleanup
   version=2.0
   usage_guide="USAGE [OPTIONS] <ARG>"
@@ -12,6 +17,15 @@ prep_script_env() {
   #| Establish IGNORE path to declare directories to skip
   ignore_file="${SRC_IGNORE:-$DOTS/.ignore}"
   [ -f "$ignore_file" ] || touch "$ignore_file"
+}
+
+execute() {
+  initialize_source \
+    --exclude "archive" "review" "template" "temp" "tmp" \
+    --bin "$DOTS/Bin" \
+    --bin "$DOTS/Modules" \
+    --bin "$DOTS/../../Scripts" \
+    --env "$DOTS/Environment/export"
 }
 
 print_usage_guide() {
@@ -210,14 +224,4 @@ cleanup() {
     verbose_flag
 }
 
-main() {
-  prep_script_env
-
-  initialize_source \
-    --exclude "archive" "review" "template" "temp" "tmp" \
-    --bin "$DOTS/Bin" \
-    --bin "$DOTS/../../Scripts" \
-    --env "$DOTS/Environment/export"
-
-  cleanup
-} && main
+main

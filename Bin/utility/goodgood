@@ -1,42 +1,42 @@
 #!/bin/sh
 
+main() {
+  initialize_script
+  parse_arguments "$@"
+  set_environment
+  print_verbose_info
+  print_padded_text
+}
+
 initialize_script() {
   __information() {
-    scr_name="align"
-    scr_version="0.2"
-    scr_description="simple STDOUT horizontal line text alignment script."
+    scr_name="goodgood"
+    scr_version="1"
+    scr_description="validates variables based on a specified type"
+    scr_authors="Craole"
     scr_usage="$(
       txtBarber "
-        Usage: $scr_name [OPTIONS] [TEXT]
+        Usage: $scr_name [OPTIONS] <VAR>
         Description: $scr_name is a $scr_description
 
         Options:
-          -h, --help        Display this help message
-          -v, --version     Display the version of $scr_name
-          -d, --verbose     Enable verbose mode
-          -c, --center      Align the text to the center (default)
-          -r, --right       Align the text to the right
-          -l, --left        Align the text to the left
-          -p, --pad CHAR    Set the padding character
-          --padl CHAR       Set the left padding character
-          --padr CHAR       Set the right padding character
-          --width WIDTH     Set the terminal width (default is auto-detect)
+          -h, --help          Display this help message
+          -v, --version       Display the version of $scr_name
+          -d, --verbose       Enable verbose mode
+          -t, --type  TYPE    Specify the type to validate against (default is NUM)
+              --var   VAR     Specify the variable to check (Default)
 
         Arguments:
-          TEXT              The text to be padded
-          WIDTH             The number of characters for the terminal width
-          CHAR              A single character to be repeated for padding
+          TYPE              Types may be NUM, CHAR, or STR
 
-        Note:
-          - The options \`--pad\`, \`--padl\`, and \`--padr\` require an argument which must be a single character.
-          - The \`--width\` option requires an argument which must be a positive integer representing the terminal width.
+        Authors: $scr_authors
+        Version: $scr_version
       "
     )"
   } && __information
 
   __variables() {
-    unset verbose alignment pad_char pad_char_l pad_char_r text text_length buffer padding_length term_width padding_right padding_left padding
-    term_width="${term_width:-$(get_len --term)}"
+    type="NUM"
     exit_code=0
   } && __variables
 
@@ -356,14 +356,11 @@ show_usage_guide() {
       case $1 in
       -x | --fatal) exit_code="${2:-1}" ;;
       --*)
+        #@ Remove the leading hyphens from the option
+        variable_name=${1#--}
+
         #@ Assign the value of $2 to the extracted variable name
-        if [ "$2" ]; then
-          eval "$variable_name=\"\$2\""
-          shift
-        else
-          #TODO: handle better
-          printf "Error: Missing argument for %s\n" "$1"
-        fi
+        eval "$variable_name=\"\$2\""
         ;;
       esac
       shift
@@ -401,35 +398,6 @@ show_usage_guide() {
   exit "$exit_code"
 }
 
-print_version() {
-  printf "%s\n" "$scr_version"
-}
 
-print_verbose_info() {
-  [ "$verbose" ] || return
-  cat <<EOF
-         Alignment: $alignment
-    Terminal Width: $term_width characters
-       Text Length: $text_length character(s)
-            Buffer: $buffer_length space(s)
-EOF
-  if [ "$padding" ]; then
-    cat <<EOF
-         Padding: $padding_length reps of '$pad_char'
-EOF
-  else
-    cat <<EOF
-           Padding: $padding_length reps of '$pad_char_r' and '$pad_char_l'
-EOF
-  fi
-}
-
-main() {
-  initialize_script
-  parse_arguments "$@"
-  set_environment
-  print_verbose_info
-  print_padded_text
-}
 
 main "$@"

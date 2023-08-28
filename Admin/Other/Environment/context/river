@@ -1,3 +1,0 @@
-DESKTOP_HOME="$DOTS_TOOL/interface/river"
-DESKTOP_CONF="init"
-DESKTOP_TYPE="wayland"

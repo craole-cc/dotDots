@@ -1,3 +1,0 @@
-DESKTOP_HOME="$DOTS_TOOL/interface/xmonad"
-DESKTOP_CONF="config.py"
-DESKTOP_TYPE="X11"

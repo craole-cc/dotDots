@@ -1,9 +1,0 @@
-#!/bin/sh
-
-for file in "$@"; do
-  bakDIR="$(dirname "$file")/archive"
-  mkdir --parents "$bakDIR"
-  mv "$file" \
-    --backup \
-    --target-directory="$bakDIR"
-done

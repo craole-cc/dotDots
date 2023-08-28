@@ -1,3 +1,0 @@
-DESKTOP_HOME="$DOTS_TOOL/interface/berry"
-DESKTOP_CONF="autostart"
-DESKTOP_TYPE="X11"

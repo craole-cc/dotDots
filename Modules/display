@@ -1,12 +1,19 @@
 #!/bin/sh
 
-unset app
+label="Display"
 
-if [ "${WAYLAND_DISPLAY}" ]; then
-  app=wayland
-elif [ "${DISPLAY}" ]; then
-  app=X11
-fi
+main() {
+  execute
+}
 
-[ -f "${DOTS_ENV_CTX}/${app}" ] &&
-  . "${DOTS_ENV_CTX}/${app}"
+execute() {
+  if [ "$WAYLAND_DISPLAY" ]; then
+    . "${DOTS_ENV_CTX}/wayland"
+  else
+    case "$DISPLAY" in
+    *:*) . "${DOTS_ENV_CTX}/X11" ;;
+    esac
+  fi
+}
+
+main

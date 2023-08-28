@@ -1,0 +1,115 @@
+#!/bin/sh
+
+scr_name="dots.init"
+scr_version="0.0.2"
+scr_authors="Craole"
+scr_usage="Usage: scr_name [OPTIONS] [Path to DOTS]
+
+  Options:
+    -h, --help                Display this help message and exit.
+    -v, --version             Display the version information and exit.
+    -d, --verbose             Display detailed information during operation
+    -t, --simulate            Simulate the actions without actually executing them.
+
+  Description:
+    $scr_name replaces the users shell profile [ .bashrc, .profile ] with symbolic links to those of the DOTS Resources.
+
+  Author: $scr_authors
+  Version: $scr_version
+"
+
+main() {
+  establish_env "$@"
+  execute
+}
+
+parse_arguments() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    -D | --dots) dots="$2" shift ;;
+    -P | --profile) profile="$2" shift ;;
+    -B | --bashrc) bashrc="$2" shift ;;
+    -d | --verbose) verbose=true ;;
+    -s | -t | --simulate | --test) simulate=true ;;
+    -*)
+      display_info "$1"
+      exit
+      ;;
+    *) dots="$1" ;;
+    esac
+    shift
+  done
+}
+
+establish_env() {
+  #@ Parse the user input
+  parse_arguments "$@"
+
+  #@ Set script variables
+  dots="${dots:-$HOME/.dots}"
+  profile="${profile:-"$dots/Resources/Home/profile"}"
+  bashrc="${bashrc:-"$dots/Resources/Home/bashrc"}"
+}
+
+execute() {
+
+  deploy_symlink() {
+    ln --symbolic --force --verbose "${1}" "${2}"
+  }
+
+  is_diff() {
+    #TODO: Compare the both files and skip if they are the same
+    diff --brief "$1" "$2"
+  }
+
+  update_profile() {
+
+    # Escape the special characters in the variable for safe use in sed
+    escaped_dots=$(printf "%s" "$2" | sed 's/[\/&]/\\&/g')
+
+    # Use sed to replace the line starting with "DOTS" in the profile
+    sed -i "/^DOTS=/s/.*/DOTS=\"$escaped_dots\"/" "$1"
+  }
+
+  if [ "$simulate" ]; then
+    display_info "Simulating..."
+    display_info "   DOTS === $dots"
+    display_info "Profile === $profile"
+    display_info " BashRC === $bashrc"
+
+    #@ Initialize DOTS
+    DOTS="/c/Users/Administrator/.dots"
+    [ -f "${DOTS}/.dotsrc" ] && . "${DOTS}/.dotsrc"
+
+  else
+    update_profile "$profile" "$dots"
+    deploy_symlink "$profile" "$HOME/.profile"
+    deploy_symlink "$bashrc" "$HOME/.bashrc"
+  fi
+}
+
+display_info() {
+  file_contents() {
+    printf "\n===[ %s ]===\n" "$1"
+    if type bat >/dev/null 2>&1; then
+      bat "$1"
+    else
+      cat "$1"
+    fi
+    printf "\n===[ EOF ]===\n"
+  }
+
+  case $1 in
+  -h | --help) printf "%s\n" "$scr_usage" ;;
+  -v | --version) printf "%s\n" "$scr_version" ;;
+  *)
+    if [ -f "$1" ]; then
+      file_contents "$1"
+    else
+      printf "%s\n" "$*"
+    fi
+    ;;
+  esac
+}
+
+main "$@"

@@ -1,4 +1,0 @@
-SHELL_HOME="$DOTS_CLI/bash"
-SHELL_CONF=".config"
-
-src="$SHELL_HOME"

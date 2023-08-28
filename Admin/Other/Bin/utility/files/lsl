@@ -1,9 +1,0 @@
-#!/bin/sh
-
-ls \
-	-l \
-	--almost-all \
-	--color=always \
-	--classify \
-	--human-readable \
-	"$@"

@@ -8,7 +8,6 @@ DeployConfig \
   qtile \
   rofi \
   helix \
-  git \
   --quiet
 
   # nushell \

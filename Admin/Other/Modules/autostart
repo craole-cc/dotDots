@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if type launch >/dev/null 2>&1; then
-  launch autostarter
-else
-  exit
-fi

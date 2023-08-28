@@ -1,0 +1,123 @@
+#!/bin/sh
+
+scr_name="howto"
+scr_version="1"
+scr_description="prints usage guides or messages"
+scr_authors="Craole"
+scr_usage="$(
+  txtBarber "
+    Usage: $scr_name [OPTIONS] <USAGE GUIDE>
+    Description: $scr_name is a $scr_description
+
+    Options:
+      -h, --help                Display this help message
+      -v, --version             Display the version of $scr_name
+      -d, --verbose             Enable verbose mode
+          --usage     GUIDE     Usage guide to display
+          --label     LABEL     Label for error tagging
+          --short     CMD       Short message to show help command
+
+    Arguments:
+      GUIDE    Message to display as usage guide
+      LABEL    Short message heading
+      CMD      Script/function that works with '--help'
+
+    Authors: $scr_authors
+    Version: $scr_version
+  "
+)"
+
+main() {
+  parse_arguments "$@"
+  establish_environment
+  execute
+  terminate
+}
+
+parse_arguments() {
+  exit_code=0
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --label | --usage | --short)
+      #@ Remove the leading hyphens from the option
+      variable_name=${1#--}
+
+      #@ Assign the value of $2 to the extracted variable name
+      [ "$2" ] && {
+        eval "$variable_name=\"\$2\""
+        shift
+      }
+      ;;
+    -x | --fatal)
+      if [ "$2" ]; then
+        case "$2" in
+        *[!0-9]* | "") ;;
+        *)
+          exit_code="$2"
+          shift
+          ;;
+        esac
+      else
+        exit_code=1
+      fi
+      ;;
+    *) ;;
+    esac
+    shift
+  done
+}
+
+establish_environment() {
+  __validate() {
+    [ "$usage" ] || {
+      exit_code=1
+      label="Usage Missing"
+      short="$scr_name"
+      usage="$(
+        embellish \
+          "Usage: " --bold "$scr_name" \
+          --reset--fg-red \
+          " --usage <GUIDE>" \
+          --reset --new-line
+      )"
+    }
+  } && __validate
+
+  __theme() {
+    # if [ "$exit_code" -gt 0 ] || [ -z "$usage" ]; then
+    if [ "$exit_code" -gt 0 ]; then
+      pri=red
+      sec=white
+    else
+      pri=green
+      sec=yellow
+    fi
+  } && __theme
+
+}
+
+execute() {
+
+  #/> Label
+  [ "$label" ] &&
+    embellish \
+      --reset --bold --bg-"$pri" --fg-"$sec" \
+      "$(align --center "$label")" \
+      --reset --new-line
+
+  #/> Usage Guide
+  printf "%s\n" "$usage"
+
+  #/> Additional information
+  [ "$short" ] && embellish \
+    "For more information, run" \
+    --reset --space --bold --italic \
+    "$short --help." \
+    --reset --new-line
+}
+
+terminate() {
+  exit "$exit_code"
+}
+
+main "$@"

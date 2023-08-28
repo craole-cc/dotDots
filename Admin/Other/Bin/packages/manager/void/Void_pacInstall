@@ -1,7 +1,0 @@
-#!/bin/sh
-
-sudo xbps-install \
-    --sync \
-    --update \
-    --verbose \
-    "$@"

@@ -1,2 +1,0 @@
-qutebrowser_home="$DOTS_APP/qutebrowser"
-qutebrowser_conf="$qutebrowser_home/config.py"

@@ -1,2 +1,0 @@
-waybar_home="$DOTS_TOOL/widgets/waybar"
-waybar_conf="$waybar_home/config"

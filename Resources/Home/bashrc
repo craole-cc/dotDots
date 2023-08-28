@@ -7,8 +7,8 @@ case "$BASHOPTS" in
   [ -n "$SSH_CLIENT" ] && . /etc/profile
 
   # Source user profiles
-  # [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile"
-  # [ -f "$HOME/.bash_login" ] && . "$HOME/.bash_login" 
+  [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile"
+  [ -f "$HOME/.bash_login" ] && . "$HOME/.bash_login"
   [ -f "$HOME/.profile" ] && . "$HOME/.profile"
   ;;
 *)

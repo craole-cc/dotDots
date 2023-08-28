@@ -1,6 +1,0 @@
-#! /bin/sh
-
-old=$(stty -g)
-# stty raw min 0 time 50
-printf '%s' "$(dd bs=1 count=1 2>/dev/null)"
-stty "$old"

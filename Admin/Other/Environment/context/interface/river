@@ -1,2 +1,0 @@
-river_home="$DOTS_TOOL/interface/river"
-river_conf="$river_home/config.py"

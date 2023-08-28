@@ -1,8 +1,16 @@
 #!/bin/sh
 # shellcheck disable=SC1090,SC1091
 # DOC: This script is used to initialize the dotfiles via a list of selected modules.
-VERBOSE=false
-SHELL_PREFERRED=bash
+
+while [ $# -gt 0 ]; do
+  case $1 in
+  -d | --verbose) VERBOSE=true ;;
+  -s | --shell) SHELL_PREFERRED=$2 ;;
+  esac
+  shift
+done
+
+SHELL_PREFERRED="${SHELL_PREFERRED:-bash}"
 
 #@ Ensure the dotfile modules exist
 DOTS_MOD="${DOTS}/Modules"
@@ -12,7 +20,7 @@ DOTS_MOD="${DOTS}/Modules"
 modules="
   profile
   display
-  # fonts
+  fonts
   # config
   # input
   # autostart

@@ -7,3 +7,8 @@ Here's another line that contains the word "foo".
 And here's another one.
 
 This is the last line of the file.
+your_search_text_here
+POP
+POPsads
+
+POPper

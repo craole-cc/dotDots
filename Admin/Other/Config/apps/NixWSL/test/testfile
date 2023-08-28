@@ -1,5 +1,0 @@
-NixWSL_conf=/c/Users/Craole/DOTS/Admin/Other/Config/apps/NixWSL
-NixWSL_host=NixWSL
-NixWSL_user="craole"
-NixWSL_vr3n="22.11"
-NixWSL_sys_conf="/etc/nixos/configuration.nix"

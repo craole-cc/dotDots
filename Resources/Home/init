@@ -18,7 +18,7 @@ HELP
 
 )"
 
-  DOTS="${1:-$HOME/.dots/Admin/Other}"
+  DOTS="${1:-$HOME/.dots}"
   res_HOME="$DOTS/Resources/Home"
 
   while [ $# -gt 0 ]; do

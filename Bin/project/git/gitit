@@ -69,7 +69,7 @@ parse_arguments() {
       display_info "$1"
       exit
       ;;
-    *) git_url="${git_url:-$1}" ;;
+    *) git_url="$1" ;;
     esac
     shift
   done

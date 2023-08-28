@@ -5,27 +5,18 @@
       "path": "../../.."
     },
     {
-      "name": "DOTS_FLAKE",
-      "path": "../../../../.."
-    },
-    {
-      "name": "DOTS_BIN",
+      "name": "Bin",
       "path": "../../../Bin"
     },
     {
-      "name": "DOTS_CFG",
+      "name": "Config",
       "path": "../.."
     },
     {
-      "name": "HOME",
-      "path": "../../../../../.."
+      "path": "../../../.."
     },
     {
-      "path": "../NixWSL"
-    },
-    {
-      "name": "WORK",
-      "path": "../../../../../../Documents"
+      "path": "../../../../Downloads"
     }
   ],
   "extensions": {
@@ -70,7 +61,7 @@
     "editor.fontFamily": "'Operator Mono Lig','FantasqueSansMono NF','Cascadia Code','Noto Color Emoji','Hack NFM','monospace',monospace",
     "editor.fontLigatures": true,
     "editor.letterSpacing": 0.5,
-    "editor.fontSize": 18,
+    "editor.fontSize": 24,
     "editor.lineHeight": 2,
     "editor.fontWeight": "400",
     "editor.guides.bracketPairs": "active",
@@ -406,7 +397,7 @@
     "workbench.statusBar.visible": true,
     "workbench.preferredLightColorTheme": "Default Light Modern",
     "workbench.preferredDarkColorTheme": "Nebula Oni (Pegasus)",
-    "workbench.colorTheme": "Default Light Modern",
+    "workbench.colorTheme": "Nebula Oni (Pegasus)",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
     "terminal.integrated.fontSize": 18,

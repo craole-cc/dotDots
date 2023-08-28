@@ -1,6 +1,0 @@
-ROFI_HOME="$DOTS_TOOL/pipes/rofi"
-menu="launcher"
-type=7
-style=4
-
-src="$ROFI_HOME"

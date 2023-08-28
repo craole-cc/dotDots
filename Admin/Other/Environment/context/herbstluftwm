@@ -1,5 +1,0 @@
-_HOME="${DOTS_TOOL}/interface/herbstluftwm"
-_MODS="${_HOME}/modules"
-_CONF="${_MODS}/autostart"
-_TYPE="X11"
-_LINK="${CONFIG_HOME}/$(basename "${_HOME}")"

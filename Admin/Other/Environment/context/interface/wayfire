@@ -1,3 +1,0 @@
-DESKTOP_HOME="$DOTS_TOOL/interface/wayfire"
-DESKTOP_CONF="wayfire.ini"
-DESKTOP_TYPE="wayland"

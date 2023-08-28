@@ -1,4 +1,0 @@
-#!/bin/sh
-
-#@ Include hidden and system files
-Exa --all "$@"

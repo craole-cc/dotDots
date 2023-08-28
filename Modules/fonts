@@ -1,3 +1,14 @@
 #!/bin/sh
 
-fonts.init
+main() {
+  execute
+}
+
+execute() {
+  #| Load Environment Variables
+  type fc-list >/dev/null 2>&1 &&
+    . "$DOTS_ENV_CTX/fonts"
+}
+
+
+main

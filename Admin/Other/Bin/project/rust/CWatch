@@ -1,6 +1,0 @@
-#!/bin/sh
-
-cargo watch \
-  --quiet \
-  --clear \
-  --exec

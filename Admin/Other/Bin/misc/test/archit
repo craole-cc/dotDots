@@ -1,8 +1,0 @@
-#!/bin/sh
-
-files="$*"
-
-for file in $files; do
-  echo "${file%/*}/archiver/${file##*/}"
-  # time echo "${file%/*}/archiver/"$(basename "$file")""
-done

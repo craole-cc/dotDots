@@ -1,7 +1,0 @@
-#@ App
-_APP="foot"
-_HOME="${DOTS_APP}/${_APP}"
-
-#> Config
-_EXT="config"
-_CFG="${_HOME}/${_APP}.${_EXT}"
