@@ -170,7 +170,7 @@ __process__() {
   case "$CALCULATOR" in
   fend) _fend_ "$*" ;;
   qalc) _qalc_ "$*" ;;
-  python_math) _pc_ "$*" ;;
+  py*) _pc_ "$*" ;;
   bc) _bc_ "$*" ;;
   *) printf "%s\n" $(("$*")) ;;
   esac

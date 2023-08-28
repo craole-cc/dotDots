@@ -58,6 +58,7 @@ parse_arguments() {
     -l | --left) alignment="left" ;;
     -p | --pad | --char)
       if [ "$2" ]; then
+      
         validate_var \
           --lbl "Padding Character" \
           --var "$2" &&
