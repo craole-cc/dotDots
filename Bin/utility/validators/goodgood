@@ -92,8 +92,7 @@ parse_arguments() {
       ;;
     --var)
       [ "$2" ] && {
-        var=("$2")
-        # var="$2"
+        var="$2"
         shift
       }
       ;;
