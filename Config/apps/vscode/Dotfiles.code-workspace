@@ -5,14 +5,15 @@
       "path": "../../.."
     },
     {
-      "name": "Bin",
+      "name": "BIN",
       "path": "../../../Bin"
     },
     {
-      "name": "Config",
+      "name": "CFG",
       "path": "../.."
     },
     {
+      "name": "HOME",
       "path": "../../../.."
     },
     {
@@ -49,7 +50,8 @@
       "rogalmic.bash-debug",
       "mads-hartmann.bash-ide-vscode",
       "jeff-hykin.better-shellscript-syntax",
-      "shakram02.bash-beautify"
+      "shakram02.bash-beautify",
+      "tion.evenbettercomments"
     ]
   },
   "settings": {
@@ -177,9 +179,9 @@
     "[jsonc]": {
       "editor.defaultFormatter": "vscode.json-language-features"
     },
-    "[python]": {
-      "editor.defaultFormatter": "ms-python.black-formatter"
-    },
+    // "[python]": {
+    //   "editor.defaultFormatter": "ms-python.black-formatter"
+    // },
     "[shellscript]": {
       "editor.defaultFormatter": "foxundermoon.shell-format"
     },

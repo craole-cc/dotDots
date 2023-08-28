@@ -113,9 +113,10 @@ parse_arguments() {
       ;;
     -*) [ "$2" ] && shift ;;
     *)
-      [ "$1" ] &&
+      [ "$1" ] && {
         attribute="text"
-      attribute_cmd="printf \"$1\""
+        attribute_cmd="printf \"$1\""
+      }
       ;;
     esac
 
@@ -200,9 +201,8 @@ stylize() {
         "$attribute" "$attribute_cmd"
       ;;
     esac
-
   else
-    eval "$attribute_cmd"s
+    eval "$attribute_cmd"
   fi
 }
 
