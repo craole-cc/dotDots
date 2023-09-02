@@ -177,7 +177,7 @@ let light_theme = {
 
 
 # The default config record. This is where much of your global configuration is setup.
-let-env config = {
+$env.config = {
   # true or false to enable or disable the welcome banner at startup
   show_banner: false
   ls: {
@@ -295,9 +295,9 @@ let-env config = {
 
   hooks: {
     pre_prompt: [{||
-      let direnv = (direnv export json | from json)
-      let direnv = if ($direnv | length) == 1 { $direnv } else { {} }
-      $direnv | load-env
+      # let direnv = (direnv export json | from json)
+      # let direnv = if ($direnv | length) == 1 { $direnv } else { {} }
+      # $direnv | load-env
       # null  # replace with source code to run before the prompt is shown
     }]
     pre_execution: [{||

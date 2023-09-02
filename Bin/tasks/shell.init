@@ -6,15 +6,15 @@ establish_environment() {
     )"
 
     case "$SHELL_PREFERRED" in
-    *z*) SHELL_PREFERRED=zsh ;;
-    *f*) SHELL_PREFERRED=fish ;;
-    *n*) SHELL_PREFERRED=nu ;;
-    *p*) SHELL_PREFERRED=powershell ;;
-    *k*) SHELL_PREFERRED=ksh ;;
-    *t*) SHELL_PREFERRED=tcsh ;;
-    *b* | *s* | *d*) SHELL_PREFERRED=bash ;;
+    *z*) SHELL_PREFERRED="zsh" ;;
+    *f*) SHELL_PREFERRED="fish" ;;
+    *n*) SHELL_PREFERRED="nu" ;;
+    *p*) SHELL_PREFERRED="powershell" ;;
+    *k*) SHELL_PREFERRED="ksh" ;;
+    *t*) SHELL_PREFERRED="tcsh" ;;
+    *b* | *s* | *d*) SHELL_PREFERRED="bash" ;;
     *)
-      "${SHELL_PREFERRED:-nu}"
+      SHELL_PREFERRED="${SHELL_PREFERRED:-"nu"}"
       ;;
     esac
   } && parse_arguments "$@"
@@ -54,7 +54,8 @@ establish_utilities() {
 
   #@ Nushell
   launch_nu() {
-    nu --config "${NUSHDIR}/config.nu" \
+    nu \
+      --config "${NUSHDIR}/config.nu" \
       --env-config "${NUSHDIR}/env.nu"
   }
 
