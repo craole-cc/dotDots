@@ -5,19 +5,14 @@
       "path": "../../.."
     },
     {
-      "name": "BIN",
-      "path": "../../../Bin"
-    },
-    {
-      "name": "CFG",
-      "path": "../.."
-    },
-    {
       "name": "HOME",
       "path": "../../../.."
     },
     {
       "path": "../../../../Downloads"
+    },
+    {
+      "path": "../../../../Documents/github_craole-cc"
     }
   ],
   "extensions": {
@@ -379,6 +374,7 @@
     "terminal.integrated.cursorBlinking": true,
     "terminal.integrated.cursorStyle": "block",
     "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.fontSize": 18,
     "terminal.integrated.fontWeight": "400",
     "terminal.integrated.lineHeight": 1.2,
     "terminal.integrated.letterSpacing": 1.2,
@@ -395,13 +391,13 @@
     "workbench.settings.openDefaultKeybindings": true,
     "workbench.startupEditor": "none",
     "workbench.tips.enabled": true,
-    "workbench.productIconTheme": "icons-carbon",
     "workbench.statusBar.visible": true,
+    "workbench.panel.defaultLocation": "right",
     "workbench.preferredLightColorTheme": "Default Light Modern",
     "workbench.preferredDarkColorTheme": "Nebula Oni (Pegasus)",
-    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    "workbench.productIconTheme": "icons-carbon",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
-    "terminal.integrated.fontSize": 18,
+    "workbench.colorTheme": "Default Light Modern",
   }
 }

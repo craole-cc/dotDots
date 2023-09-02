@@ -1,7 +1,40 @@
 #!/bin/sh
 
-if type launch >/dev/null 2>&1; then
-  launch autostarter
-else
-  exit
-fi
+#!/bin/sh
+
+establish_environment() {
+  #@ Ensure the launcher is available
+  type launch >/dev/null 2>&1 || exit
+
+}
+
+execute() {
+  #@ Launch display monitor settings
+  DisplayMonitor
+
+  #@ Launch display-specific apps
+  if [ "$WAYLAND_DISPLAY" ]; then
+    launch foot --server
+  else
+    case "$DISPLAY" in *:*)
+      launch picom --config "$DOTS_TOOL/utilities/picom/picom.conf"
+      ;;
+    esac
+  fi
+
+  #@ Launch universal apps
+  launch cbatticon --icon-type standard "$(
+    find /sys/class/power_supply | grep BAT
+  )"
+  launch blueman-applet
+  launch volumeicon
+  launch nm-applet --indicator
+  launch dunst -config "$DOTS_TOOL/utilities/dunst/dunstrc"
+  launch flameshot
+  launch udiskie
+  launch copyq
+  # launch doublecmd
+  # launch firefox
+  # launch code "$codeDOTS"--
+  sysMonitor
+}

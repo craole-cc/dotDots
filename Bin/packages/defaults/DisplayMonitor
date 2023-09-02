@@ -1,4 +1,8 @@
 #!/bin/sh
+
+#@ Ensure xrandr is available
+type xrandr >/dev/null 2>&1 || exit
+
 intern=eDP-1
 extern=HDMI-1
 

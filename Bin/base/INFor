@@ -126,6 +126,14 @@ __defaults__() {
 
 #@ Run
 __os__() {
+  get_os_type() {
+  if [ -n "$OSTYPE" ]; then
+    printf "%s\n" "$OSTYPE"
+  else
+    uname -s
+  fi
+}
+
   # hostnamectl | rg "Operating System" | sd "^.*:\s" ''
   # hostnamectl | rg '.*'"Operating System: " --replace "" --trim
   if __weHave__ hostnamectl; then

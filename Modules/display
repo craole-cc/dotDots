@@ -1,19 +1,27 @@
 #!/bin/sh
 
-label="Display"
-
-main() {
-  execute
-}
-
-execute() {
+establish_environment() {
+  #@ Set environment context file
   if [ "$WAYLAND_DISPLAY" ]; then
-    . "${DOTS_ENV_CTX}/wayland"
+    env="${DOTS_ENV_CTX}/wayland"
   else
-    case "$DISPLAY" in
-    *:*) . "${DOTS_ENV_CTX}/X11" ;;
+    case "$DISPLAY" in *:*)
+      env="${DOTS_ENV_CTX}/X11"
+      ;;
     esac
   fi
 }
 
-main
+execute() {
+  #@ Load Environment Variables from file
+  if [ -f "$env" ]; then
+    . "$env"
+  else
+    printf "Missing environment file: %s\n" "$env"
+    exit 1
+  fi
+}
+
+main() {
+  execute
+} && main "$@"

@@ -1,0 +1,118 @@
+#!/bin/sh
+establish_environment() {
+  parse_arguments() {
+    SHELL_PREFERRED="$(
+      printf "%s" "$*" | tr '[:upper:]' '[:lower:]'
+    )"
+
+    case "$SHELL_PREFERRED" in
+    *z*) SHELL_PREFERRED=zsh ;;
+    *f*) SHELL_PREFERRED=fish ;;
+    *n*) SHELL_PREFERRED=nu ;;
+    *p*) SHELL_PREFERRED=powershell ;;
+    *k*) SHELL_PREFERRED=ksh ;;
+    *t*) SHELL_PREFERRED=tcsh ;;
+    *b* | *s* | *d*) SHELL_PREFERRED=bash ;;
+    *)
+      "${SHELL_PREFERRED:-nu}"
+      ;;
+    esac
+  } && parse_arguments "$@"
+
+  case "$SHELL_PREFERRED" in
+  nu)
+    install_script_available=true
+    ;;
+  esac
+
+}
+
+establish_utilities() {
+  weHave() {
+    command -v "$1" >/dev/null 2>&1
+  }
+
+  install_starship() {
+    if weHave starship; then
+      return 0
+    elif weHave nix-shell; then
+      nix-shell -p starship
+    elif weHave choco; then
+      choco install starship.install
+    elif weHave winget; then
+      winget install Starship.Starship
+    elif weHave paru; then
+      paru -S starship
+    elif weHave pacman; then
+      sudo pacman -S starship
+    elif weHave brew; then
+      brew install starship
+    elif weHave apt; then
+      sudo apt install starship
+    fi
+  }
+
+  #@ Nushell
+  launch_nu() {
+    nu --config "${NUSHDIR}/config.nu" \
+      --env-config "${NUSHDIR}/env.nu"
+  }
+
+  install_nu() {
+    Install openssl-devel
+    CargoInstall nu --features=extra
+    launch_nu
+  }
+
+  launch_bash() {
+    bash --init-file "${BDOTDIR}/${SHELL_CONF}"
+  }
+
+  launch_dash() {
+    dash
+  }
+}
+
+initialize_shell() {
+  #@ Ensure that the shell is available
+  weHave "$1" || {
+    printf "We don't seem to have %s installed\n" "$SHELL_PREFERRED"
+    #TODO: Offer to install if there is a script to do so
+    #TODO: The script name would be launch_"${SHELL_PREFERRED}"
+    return 1
+  }
+
+  #@ Load Environment Variables, if available
+  [ -f "$DOTS_ENV_CTX/$SHELL_PREFERRED" ] &&
+    . "$DOTS_ENV_CTX/$SHELL_PREFERRED"
+}
+
+launch_shell() {
+  eval launch_"${1}"
+}
+
+execute() {
+  case "$SHELL_PREFERRED" in
+  bash | nu | fish | zsh | ksh | pwsh | powershell | tcsh)
+
+    #@ Ensure that the shell is available
+    initialize_shell "$SHELL_PREFERRED"
+
+    #@ Launch the shell
+    launch_shell "$SHELL_PREFERRED"
+    ;;
+  *)
+    printf "%s\n" "Unknown shell: $SHELL_PREFERRED"
+    exit 1
+    ;;
+  esac
+}
+
+main() {
+  establish_environment "$@"
+  establish_utilities
+  install_starship
+  execute
+}
+
+main "$@"

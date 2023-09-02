@@ -1,115 +1,240 @@
 #!/bin/sh
 
-scr_name="dots.init"
-scr_version="0.0.2"
-scr_authors="Craole"
-scr_usage="Usage: scr_name [OPTIONS] [Path to DOTS]
-
-  Options:
-    -h, --help                Display this help message and exit.
-    -v, --version             Display the version information and exit.
-    -d, --verbose             Display detailed information during operation
-    -t, --simulate            Simulate the actions without actually executing them.
-
-  Description:
-    $scr_name replaces the users shell profile [ .bashrc, .profile ] with symbolic links to those of the DOTS Resources.
-
-  Author: $scr_authors
-  Version: $scr_version
-"
-
 main() {
-  establish_env "$@"
+  establish_env
   execute
 }
 
-parse_arguments() {
-  while [ $# -gt 0 ]; do
+establish_env() {
+  cleanup
+  version=2.0
+  usage_guide="USAGE [OPTIONS] <ARG>"
+
+  #@ Verbosity
+  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+  [1-9] | true) verbose_flag=true ;; esac
+
+  #@ OS Type for chmod and chown
+  os_type_script="$DOTS/Bin/base/inf/get_os_type"
+  if [ -f "$os_type_script" ]; then
+    os_type=$(sh "$os_type_script")
+    if [ "$os_type" = "Windows" ]; then
+      windows_flag=true
+    fi
+  fi
+
+  unset test_flag reset_flag
+
+  #| Establish IGNORE path to declare directories to skip
+  ignore_file="${SRC_IGNORE:-$DOTS/Admin/ignore}"
+  [ -f "$ignore_file" ] || touch "$ignore_file"
+}
+
+execute() {
+  initialize_source \
+    --exclude "archive" "review" "template" "temp" "tmp" \
+    --bin "$DOTS/Bin" \
+    --env "$DOTS/Environment/export"
+}
+
+print_usage_guide() {
+  printf "%s\n" "$usage_guide"
+  exit "$exit_code"
+}
+
+get_sources() {
+
+  prep_ignore() { #? Update .ignore file
+    if [ "$ignore_action" = "EXCLUDE" ]; then
+      grep --line-regexp --quiet "$1" "$ignore_file" ||
+        printf "\n%s" "$1" >>"$ignore_file"
+    elif [ "$ignore_action" = "INCLUDE" ]; then
+      sed --in-place "/$1/d" "$ignore_file"
+    else
+      return 0
+    fi
+  }
+
+  src_exclude() {
+    #? Remove blank lines
+    sed -i '/^[[:space:]]*$/d' "$ignore_file"
+
+    #? Sort alphabetically
+    sort --human-numeric-sort --output "$ignore_file" "$ignore_file"
+
+    #? Prep for use with `grep`
+    # sed -e 's/^/\//g' -e 's/$/*/g' "$ignore_file" |
+    sed -e 's/^/\//g' "$ignore_file" |
+      tr '\n' '|' | sed '$s/|$/\n/'
+  }
+
+  src_include() {
+    if [ "$(src_exclude)" ]; then
+      grep \
+        --extended-regexp \
+        --invert-match \
+        --ignore-case \
+        "$(src_exclude)" |
+        sort
+    else
+      sort
+    fi
+  }
+
+  #? Identify valid sources
+  generate_sources() {
+    find "$1" | src_include
+  }
+
+  if [ ! -e "$1" ]; then
+    prep_ignore "$1"
+  else
+    generate_sources "$1"
+  fi
+}
+
+process_sources() {
+
+  #| Enable global variable export
+  set -o allexport
+
+  #| Process sources recursively
+  for src_path in $(get_sources "$1"); do
+    [ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
+      case ":${XDG_DATA_DIRS}:" in
+      *:"$src_path":*) ;;
+      *)
+        XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
+        [ "$verbose_flag" = true ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
+        ;;
+      esac
+
+    #| Update PATH directories
+    [ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
+      case ":${PATH}:" in
+      *:"$src_path":*) ;;
+      *)
+        PATH="${PATH:+$PATH:}$src_path"
+        [ "$verbose_flag" = true ] && printf "Appended to PATH: %s\n" "${src_path}"
+        ;;
+      esac
+
+    #| Activate Scripts and Variables
+    [ -f "$src_path" ] &&
+
+      #| Make scripts executable
+      if [ "$src_type" = "BIN" ]; then
+        if [ "$verbose_flag" = true ]; then
+          [ "$windows_flag" = true ] || chmod --changes +x "$src_path"
+        else
+          [ "$windows_flag" = true ] || chmod +x "$src_path"
+        fi
+
+      #| Load environmental variables from files
+      elif [ "$src_type" = "ENV" ]; then
+        # shellcheck disable=SC1090
+        . "$src_path"
+        [ "$verbose_flag" = true ] && printf "Initialized: %s\n" "$src_path"
+      fi
+
+  done
+
+  #| Disable global export
+  set +o allexport
+}
+
+initialize_source() {
+  #| Core Arguments
+  case "$1" in
+  -h | --help)
+    exit_code=0
+    print_usage_guide
+    ;;
+  -v | --version)
+    printf "%s\n" "$version"
+    exit 0
+    ;;
+  -d | --verbose)
+    verbose_flag=true
+    shift
+    ;;
+  -t | --simulate | --test)
+    test_flag=true
+    shift
+    ;;
+  -q | --quiet)
+    unset verbose_flag
+    shift
+    ;;
+  --ignore-file)
+    ignore_file="$2"
+    shift 2
+    ;;
+  *) ;;
+  esac
+
+  #| Process Arguments
+  while [ "$#" -ge 1 ]; do
     case "$1" in
-    -D | --dots) dots="$2" shift ;;
-    -P | --profile) profile="$2" shift ;;
-    -B | --bashrc) bashrc="$2" shift ;;
-    -d | --verbose) verbose=true ;;
-    -s | -t | --simulate | --test) simulate=true ;;
-    -*)
-      display_info "$1"
-      exit
+    --bin) #| Expects a file/directory
+      src_type="BIN"
+      shift
       ;;
-    *) dots="$1" ;;
+    --env) #| Expects a file/directory
+      src_type="ENV"
+      shift
+      ;;
+    --xdg) #| Expects a directory
+      src_type="XDG"
+      shift
+      ;;
+    --exclude) #| Expects a string
+      ignore_action="EXCLUDE"
+      shift
+      ;;
+    -I | --include) #| Expects a string
+      ignore_action="INCLUDE"
+      shift
+      ;;
+    -*)
+      printf "Invalid Option: %s\n" "$1"
+      exit_code=1
+      print_usage_guide
+      ;;
+    *) ;;
     esac
+
+    if [ "$test_flag" = true ]; then
+      # echo "Testing"
+      simulate_initialization "$1"
+    else
+      # echo "Processing"
+      process_sources "$1"
+    fi
+
     shift
   done
 }
 
-establish_env() {
-  #@ Parse the user input
-  parse_arguments "$@"
-
-  #@ Set script variables
-  dots="${dots:-$HOME/.dots}"
-  profile="${profile:-"$dots/Resources/Home/profile"}"
-  bashrc="${bashrc:-"$dots/Resources/Home/bashrc"}"
+simulate_initialization() {
+  # [ "$src_type" ] && printf "\n%s: %s\n" "$src_type" "$1"
+  # [ "$ignore_action" ] && printf "%s: %s\n" "$ignore_action" "$1"
+  get_sources "$1"
 }
 
-execute() {
+cleanup() {
+  [ "$reset_flag" = true ] &&
+    rm -rf "$ignore_file"
 
-  deploy_symlink() {
-    ln --symbolic --force --verbose "${1}" "${2}"
-  }
-
-  is_diff() {
-    #TODO: Compare the both files and skip if they are the same
-    diff --brief "$1" "$2"
-  }
-
-  update_profile() {
-
-    # Escape the special characters in the variable for safe use in sed
-    escaped_dots=$(printf "%s" "$2" | sed 's/[\/&]/\\&/g')
-
-    # Use sed to replace the line starting with "DOTS" in the profile
-    sed -i "/^DOTS=/s/.*/DOTS=\"$escaped_dots\"/" "$1"
-  }
-
-  if [ "$simulate" ]; then
-    display_info "Simulating..."
-    display_info "   DOTS === $dots"
-    display_info "Profile === $profile"
-    display_info " BashRC === $bashrc"
-
-    #@ Initialize DOTS
-    DOTS="/c/Users/Administrator/.dots"
-    [ -f "${DOTS}/.dotsrc" ] && . "${DOTS}/.dotsrc"
-
-  else
-    update_profile "$profile" "$dots"
-    deploy_symlink "$profile" "$HOME/.profile"
-    deploy_symlink "$bashrc" "$HOME/.bashrc"
-  fi
-}
-
-display_info() {
-  file_contents() {
-    printf "\n===[ %s ]===\n" "$1"
-    if type bat >/dev/null 2>&1; then
-      bat "$1"
-    else
-      cat "$1"
-    fi
-    printf "\n===[ EOF ]===\n"
-  }
-
-  case $1 in
-  -h | --help) printf "%s\n" "$scr_usage" ;;
-  -v | --version) printf "%s\n" "$scr_version" ;;
-  *)
-    if [ -f "$1" ]; then
-      file_contents "$1"
-    else
-      printf "%s\n" "$*"
-    fi
-    ;;
-  esac
+  unset -v \
+    BIN_ \
+    ENV_ \
+    src_path \
+    src_type \
+    ignore_file \
+    reset_flag \
+    test_flag \
+    verbose_flag
 }
 
 main "$@"

@@ -25,7 +25,7 @@ fi
 export DOTS
 DOTS_DOC="$DOTS/Documentation"
 DOTS_DOWN="$DOTS/Downloads"
-DOTS_MOD="$DOTS/Modules"
+DOTS_MOD="${DOTS_MOD:-"$DOTS/Modules"}"
 DOTS_RES="$DOTS/Resources"
 DOTS_LOG="$DOTS/Log"
 DOTS_TODO="$DOTS_DOC/Tasks"

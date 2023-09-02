@@ -1,12 +1,34 @@
 #!/bin/sh
+
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -d | --verbose) flag_VERBOSE=true ;;
+    -d | --verbose) VERBOSITY=1 ;;
     *) ;;
     esac
     shift
   done
+}
+
+execute(){
+  if type tasklist >/dev/null 2>&1; then
+  launch_on_windows
+  elif type pgrep >/dev/null 2>&1; then
+  launch_on_unix
+  fi
+}
+
+launch_on_unix() {
+  if
+    #@ Check if the application is already running
+    pgrep "$1" >/dev/null
+  then
+    #@ Activate the window (switch to its desktop and raise it)
+    wmctrl -a "$@"
+  else
+    #@ Launch the application if it's not already running
+    exec "$@" &
+  fi
 }
 
 process_core() {
@@ -30,8 +52,14 @@ process_core() {
 
 present_info() {
   case "$1" in
-  --active) [ "$flag_VERBOSE" ] && msg="$_APP is already running." ;;
-  --launched) [ "$flag_VERBOSE" ] && msg="$_APP has been started" ;;
+  --active)
+    [ "$VERBOSITY" -gt 0 ] &&
+      msg="$_APP is already running."
+    ;;
+  --launched)
+    [ "$VERBOSITY" -gt 0 ] &&
+      msg="$_APP has been started"
+    ;;
   *) printf "%s\n" "${msg:-$*}" ;;
   esac
 }

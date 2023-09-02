@@ -9,10 +9,21 @@ establish_env() {
   cleanup
   version=2.0
   usage_guide="USAGE [OPTIONS] <ARG>"
-  verbose_flag="${VERBOSE:-}"
-  windows_flag="$(case "$(uname -a)" in *NT*) echo true ;; esac)"
-  # test_flag=true
-  # reset_flag=true
+
+  #@ Verbosity
+  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+  [1-9] | true) verbose_flag=true ;; esac
+
+  #@ OS Type for chmod and chown
+  os_type_script="$DOTS/Bin/base/inf/get_os_type"
+  if [ -f "$os_type_script" ]; then
+    os_type=$(sh "$os_type_script")
+    if [ "$os_type" = "Windows" ]; then
+      windows_flag=true
+    fi
+  fi
+
+  unset test_flag reset_flag
 
   #| Establish IGNORE path to declare directories to skip
   ignore_file="${SRC_IGNORE:-$DOTS/.ignore}"
@@ -24,7 +35,6 @@ execute() {
     --exclude "archive" "review" "template" "temp" "tmp" \
     --bin "$DOTS/Bin" \
     --bin "$DOTS/Modules" \
-    --bin "$DOTS/../../Scripts" \
     --env "$DOTS/Environment/export"
 }
 
@@ -149,6 +159,10 @@ initialize_source() {
     verbose_flag=true
     shift
     ;;
+  -t | --simulate | --test)
+    test_flag=true
+    shift
+    ;;
   -q | --quiet)
     unset verbose_flag
     shift
@@ -204,8 +218,8 @@ initialize_source() {
 }
 
 simulate_initialization() {
-  # [ $src_type ] && printf "%s: %s\n" "$src_type" "$1"
-  # [ $ignore_action ] && printf "%s: %s\n" "$ignore_action" "$1"
+  # [ "$src_type" ] && printf "\n%s: %s\n" "$src_type" "$1"
+  # [ "$ignore_action" ] && printf "%s: %s\n" "$ignore_action" "$1"
   get_sources "$1"
 }
 
@@ -224,4 +238,4 @@ cleanup() {
     verbose_flag
 }
 
-main
+main "$@"

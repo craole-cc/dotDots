@@ -1,14 +1,36 @@
 #!/bin/sh
 
-main() {
-  execute
+establish_environment() {
+  #@ Ensure fontconfig is available
+  type fc-list >/dev/null 2>&1 || exit
+
+  #@ Set environment file
+  env="$DOTS_ENV_CTX/fonts"
 }
 
 execute() {
-  #| Load Environment Variables
-  type fc-list >/dev/null 2>&1 &&
-    . "$DOTS_ENV_CTX/fonts"
+  #@ Load Environment Variables from file
+  if [ -f "$env" ]; then
+    . "$env"
+  else
+    printf "Missing environment file: %s\n" "$env"
+    exit 1
+  fi
+
+  #@ Ensure Fontconfig Directory exists
+  mkdir --parents --verbose "$FONTCONFIG_USER"
+  mkdir --parents --verbose "$LOCAL_SHARE"
+
+  #@ Deploy Link
+  symbiolink \
+    --src "$FONT_CONFIG_HOME" \
+    --lnk "$FONT_CONFIG_LINK"
+  symbiolink \
+    --src "$FONT_TYPES_HOME" \
+    --lnk "$FONT_TYPES_LINK"
 }
 
-
-main
+main() {
+  establish_environment
+  execute
+} && main "$@"

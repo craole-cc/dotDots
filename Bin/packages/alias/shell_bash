@@ -7,8 +7,7 @@ init_env() {
 }
 
 launch_bash() {
-  bash \
-    --init-file "${BDOTDIR}/${SHELL_CONF}"
+  bash --init-file "${BDOTDIR}/${SHELL_CONF}"
 }
 
 if bash --help >/dev/null 2>&1; then
