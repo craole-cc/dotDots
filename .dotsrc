@@ -54,6 +54,9 @@ establish_env() {
 }
 
 execute() {
+  #@ Update the user profile
+  update_profile
+
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
@@ -62,6 +65,11 @@ execute() {
 
   #@ Load Shell
   shell.init --bash
+
+  #@ Load Fonts
+  fonts.init
+
+  
 }
 
 print_usage_guide() {

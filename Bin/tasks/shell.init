@@ -1,4 +1,5 @@
 #!/bin/sh
+#TODO: So far, only nu and bash are supported
 establish_environment() {
   parse_arguments() {
     SHELL_PREFERRED="$(
