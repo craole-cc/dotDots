@@ -1,6 +1,11 @@
 #!/bin/sh
 
 establish_env() {
+  [ "$DOTS" ] || {
+    printf "Missing DOTS variable\n" >&2 &&
+      exit 1
+  }
+
   cleanup
 
   #@ Verbosity
@@ -48,14 +53,20 @@ establish_env() {
   #@ Set the interactive shell
   SHELL_PREFERRED="${SHELL_PREFERRED:-nushell}"
 
+  #@ Establish the profile init
+  dots_init() {
+    [ -f "$DOTS/Bin/tasks/dots.init" ] && . "$DOTS/Bin/tasks/dots.init"
+  }
+
   #@ Establish IGNORE path to declare directories to skip
   ignore_file="${SRC_IGNORE:-$DOTS/.ignore}"
   [ -f "$ignore_file" ] || touch "$ignore_file"
 }
 
 execute() {
+
   #@ Update the user profile
-  update_profile
+  dots_init
 
   #@ Load Environment
   initialize_source \
@@ -69,7 +80,6 @@ execute() {
   #@ Load Fonts
   fonts.init
 
-  
 }
 
 print_usage_guide() {
@@ -168,6 +178,7 @@ process_sources() {
       #| Load environmental variables from files
       elif [ "$src_type" = "ENV" ]; then
         # shellcheck disable=SC1090
+        dos2unix "$src_path"
         . "$src_path"
         [ "$verbose_flag" = true ] && printf "Initialized: %s\n" "$src_path"
       fi

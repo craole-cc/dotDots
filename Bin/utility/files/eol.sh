@@ -85,7 +85,7 @@ parse_arguments() {
 
   #@ If unset, set default eol based on Operating System
   [ "$target_eol" ] ||
-    case $OS_TYPE in
+    case $(os.type.fetch) in
     Windows) target_eol="cr" ;;
     *) target_eol="lf" ;;
     esac

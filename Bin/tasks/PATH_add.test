@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# PATH_add --append 1 --perpend 2 --append 3 --append 4 5
+# PATH_add 1 -a 2 --append 3 4
+PATH_add \
+  /store/DOTS/Test/bin/1 \
+  --append /store/DOTS/Test/bin/2 \
+  /store/DOTS/Test/bin/3 \
+  -a /store/DOTS/Test/bin/4 &&
+  PATH_ls

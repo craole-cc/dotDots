@@ -1,84 +1,1 @@
-#!/bin/sh
-
-__check_err__() {
-	error_code="$?"
-	[ "$error_code" -ne 0 ] && printf "Error of %d\n\n" "$error_code"
-}
-
-echo "
-#>######################################<#
-##################| CMD |#################
-#>######################################<#
-
-$(
-	filtrate \
-		--info hostnamectl \
-		--filter "host" \
-		--delim ":"
-	__check_err__
-)
-
-#>######################################<#
-#################| FILE |################
-#>######################################<#
-
-$(
-	filtrate \
-		--info /home/qc/Dotfiles/Test/env/hostnamectl \
-		--filter "host" \
-		--delim ":"
-	__check_err__
-	# bat /home/qc/Dotfiles/hostnamectl
-)
-
-#>######################################<#
-##################| DIR |#################
-#>######################################<#
-
-$(
-	filtrate \
-		--info "/home/qc/Dotfiles/Test/env" \
-		--filter "host" \
-		--delim ":"
-	__check_err__
-	# bat /home/qc/Dotfiles/hostnamectl
-)
-
-#>######################################<#
-#################| INFO |################
-#>######################################<#
-
-$(
-	filtrate \
-		--info hostnamectls \
-		--filter "host" \
-		--delim ":"
-	__check_err__
-)
-
-
-#>######################################<#
-################| NO INFO |###############
-#>######################################<#
-$(
-	filtrate hostnamectl --filter "host"
-	__check_err__
-)
-
-#>######################################<#
-###################| RG |#################
-#>######################################<#
-
-$(
-	hostnamectl | rg "host"
-	hostnamectl | rg "host" | sd "^.*:\s" ''
-	__check_err__
-)
-"
-
-# how_fast_is \
-# 	'filtrate \
-# 	--info hostnamectl \
-# 	--filter "host" \
-# 	--delim ":"' \
-# 	'weHave hostnamectl && weHave rg && weHave sd hostnamectl | rg "host" | sd "^.*:\s" '''
+#!/bin/sh__check_err__() {	error_code="$?"	[ "$error_code" -ne 0 ] && printf "Error of %d\n\n" "$error_code"}echo "#>######################################<###################| CMD |##################>######################################<#$(	filtrate \		--info hostnamectl \		--filter "host" \		--delim ":"	__check_err__)#>######################################<##################| FILE |#################>######################################<#$(	filtrate \		--info /home/qc/Dotfiles/Test/env/hostnamectl \		--filter "host" \		--delim ":"	__check_err__	# bat /home/qc/Dotfiles/hostnamectl)#>######################################<###################| DIR |##################>######################################<#$(	filtrate \		--info "/home/qc/Dotfiles/Test/env" \		--filter "host" \		--delim ":"	__check_err__	# bat /home/qc/Dotfiles/hostnamectl)#>######################################<##################| INFO |#################>######################################<#$(	filtrate \		--info hostnamectls \		--filter "host" \		--delim ":"	__check_err__)#>######################################<#################| NO INFO |################>######################################<#$(	filtrate hostnamectl --filter "host"	__check_err__)#>######################################<####################| RG |##################>######################################<#$(	hostnamectl | rg "host"	hostnamectl | rg "host" | sd "^.*:\s" ''	__check_err__)"# how_fast_is \# 	'filtrate \# 	--info hostnamectl \# 	--filter "host" \# 	--delim ":"' \# 	'weHave hostnamectl && weHave rg && weHave sd hostnamectl | rg "host" | sd "^.*:\s" '''

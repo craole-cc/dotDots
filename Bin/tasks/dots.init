@@ -15,10 +15,11 @@ establish_environment() {
     printf "\n"
   )"
 
-  DOTS="$HOME/.dots"
+  DOTS="${DOTS:-$HOME/.dots}"
+  export DOTS
   res_HOME="$DOTS/Resources/Home"
 
-  parse_arguments "$@"  # Call the argument parsing function
+  parse_arguments "$@" # Call the argument parsing function
 
   # Validate that required files and directories exist
   validate_file_or_directory "$res_HOME" "directory"
@@ -40,7 +41,7 @@ parse_arguments() {
       ;;
     -d | --verbose) verbose=true ;;
     -s | -t | --simulate | --test) simulate=true ;;
-    *) DOTS="$1" ;;  # Use the argument as the DOTS directory
+    *) DOTS="$1" ;; # Use the argument as the DOTS directory
     esac
     shift
   done
@@ -52,7 +53,7 @@ validate_file_or_directory() {
   type="$2"
   if [ ! -e "$path" ]; then
     printf "Error: The %s '%s' does not exist.\n" "$type" "$path"
-    exit 1
+    return 1
   fi
 }
 
@@ -70,15 +71,11 @@ deploy_profile_link() {
   # Escape the special characters in the variable for safe use in sed
   escaped_dots=$(printf "%s" "$DOTS" | sed 's/[\/&]/\\&/g')
 
-  # Check if the line with DOTS=* already exists and if it's different
-  if grep --quiet "^DOTS=\"$escaped_dots\"$" "$res_HOME/profile"; then
-    [ "$verbose" ] && printf "DOTS is already set correctly in profile.\n"
-    exit 0
-  else
+  grep --quiet "^DOTS=\"$escaped_dots\"$" "$res_HOME/profile" || {
     # Use sed to replace the line starting with "DOTS" in the profile
     sed --in-place "/^DOTS=/s/.*/DOTS=\"$escaped_dots\"/" "$res_HOME/profile"
     [ "$verbose" ] && printf "Updated DOTS in profile.\n"
-  fi
+  }
 
   # Initialize DOTS via symlinks
   deploy_symlink "$res_HOME/profile" "$HOME/.profile"
@@ -91,9 +88,9 @@ deploy_bashrc_link() {
 
 # Main function
 main() {
-  establish_environment "$@"  # Set up environment and parse arguments
-  deploy_profile_link  # Deploy .profile symbolic link
-  deploy_bashrc_link   # Deploy .bashrc symbolic link
+  establish_environment "$@" # Set up environment and parse arguments
+  deploy_profile_link        # Deploy .profile symbolic link
+  deploy_bashrc_link         # Deploy .bashrc symbolic link
 }
 
-main "$@"  # Run the main function with command-line arguments
+main "$@" # Run the main function with command-line arguments

@@ -1,0 +1,281 @@
+#!/bin/sh
+scr_NAME="EOLor"
+scr_VERSION="1.0"
+scr_DESCRIPTION="converts text file line endings between CRLF (Carriage Return and Line Feed) and LF (Line Feed) formats"
+scr_AUTHORS="Craole"
+scr_USAGE="$scr_NAME [OPTIONS] <PATH>"
+scr_DEPENDENCIES="POSIX shell utilities"
+scr_OPTIONAL_DEPENDENCIES="dos2unix, unix2dos"
+
+main() {
+  establish_utilities
+  establish_environment "$@"
+}
+
+establish_utilities() {
+  #@ Display script usage and version information
+  print_scr_info() {
+    case "$1" in
+    --usage) printf "%s [OPTIONS] <PATH>" "$scr_NAME" ;;
+    --version) printf "%s" "$scr_VERSION" ;;
+    --help)
+      printf "%s [v.%s]\n" "$scr_NAME" "$scr_VERSION"
+      printf "Usage: %s" "$scr_USAGE"
+      printf "\n\nDescription: \n%s %s" "$scr_NAME" "$scr_DESCRIPTION"
+      printf "\n\nOptions:"
+      printf "\n  -h                    Display the condensed usage guide"
+      printf "\n      --help            Display this help message"
+      printf "\n  -v, --version         Display the current version number"
+      printf "\n  -d, --verbose         Enable verbose mode (Default)"
+      printf "\n  -q, --quiet           Suppress all output including errors"
+      printf "\n  -c, --win, --crlf     Convert to CRLF line endings"
+      printf "\n  -l, --nix, --lf       Convert to LF line endings"
+      printf "\n  -t, --test            Test mode"
+      printf "\n\nOptional Dependencies:"
+      printf "\n  %s" "$scr_OPTIONAL_DEPENDENCIES"
+      printf "\n\nLicense: MIT"
+      printf "\nCopyright: (c) 2023 %s" "$scr_AUTHORS"
+      ;;
+    *) printf "%s\n" "$1" ;;
+    esac
+  }
+
+  #@ Validate the existence of a command
+  weHave() {
+    command -v "$1" >/dev/null 2>&1
+  }
+
+  #@ Set the converter based ont he operating system
+  set_converter_per_os() {
+    os_type() {
+      if weHave os.type.fetch; then
+        os.type.fetch
+      else
+        weHave uname &&
+          case "$(uname)" in
+          msys* | cygwin* | mingw* | win*)
+            printf "%s" "Windows"
+            ;;
+          esac
+      fi
+    }
+
+    case "$(os_type)" in
+    Windows) printf "%s" "unix2dos" ;;
+    *) printf "%s" "unix2dos" ;;
+    esac
+  }
+
+  #@ Check if a file is binary
+  is_binary_file() {
+    #@ Use the 'file' command to determine if the file is binary
+    file --brief --mime-encoding "$1" | grep --quiet "binary"
+  }
+
+  #@ Convert LF to CRLF (Unix to DOS)
+  convert_lf_to_crlf() {
+    func_name="convert_lf_to_crlf"
+    input_file="$1"
+
+    #@ Check if the file is regular file and skip conversion
+    [ -f "$input_file" ] || {
+      printf "Skipping %s, not a regular file\n" "$input_file"
+      return 1
+    }
+
+    #@ Check if the file is binary and skip conversion
+    is_binary_file "$input_file" && {
+      printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
+      return 0
+    }
+
+    #@ Check for and remove the Byte Order Mark (BOM)
+    if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
+      tail -c +4 "$input_file" | tr '\n' '\r\n' >"$input_file.tmp"
+      mv "$input_file.tmp" "$input_file"
+    else
+      tr <"$input_file" '\n' '\r\n' >"$input_file.tmp"
+      mv "$input_file.tmp" "$input_file"
+    fi
+
+    printf "Converting %s to DOS format\n" "$input_file"
+  }
+
+  #@ Convert CRLF to LF (DOS to Unix)
+  convert_crlf_to_lf() {
+    func_name="convert_crlf_to_lf"
+    input_file="$1"
+
+    #@ Check if the file is regular file and skip conversion
+    [ -f "$input_file" ] || {
+      printf "Skipping %s, not a regular file\n" "$input_file"
+      return 1
+    }
+
+    #@ Check if the file is binary and skip conversion
+    is_binary_file "$input_file" && {
+      printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
+      return 0
+    }
+
+    #@ Check for and remove the Byte Order Mark (BOM)
+    if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
+      tail -c +4 "$input_file" | tr -d '\r' >"$input_file.tmp"
+      mv "$input_file.tmp" "$input_file"
+    else
+      tr <"$input_file" -d '\r' >"$input_file.tmp"
+      mv "$input_file.tmp" "$input_file"
+    fi
+
+    printf "Converting %s to UNIX format\n" "$input_file"
+
+  }
+}
+
+establish_environment() {
+
+  #@ Establish script defaults
+  set_defaults() {
+    verbose_flag=true
+  } && set_defaults
+
+  #@ Parse script arguments (help, version, etc)
+  parse_script_args() {
+    [ $# -eq 0 ] && {
+      print_scr_info --usage
+      return 1
+    }
+
+    for arg in "$@"; do
+      case "$arg" in
+      -h)
+        print_scr_info --usage
+        return 0
+        ;;
+      --help)
+        print_scr_info --help
+        return 0
+        ;;
+      -v | --version)
+        print_scr_info --version
+        return 0
+        ;;
+      -d | --verbose) verbose_flag=true ;;
+      -q | --quiet) unset verbose_flag ;;
+      -t | --test | --simulate)
+        test_flag=true
+        verbose_flag=true
+        ;;
+      -c | --cr | --crlf | -l | --lf) ;;
+      -*)
+        printf "Invalid argument: %s\n" "$arg"
+        exit 1
+        ;;
+      esac
+    done
+
+    [ "$test_flag" ] &&
+      printf "Simulating operation of %s.\n" "$scr_NAME"
+
+  } && parse_script_args "$@"
+
+  #@ Parse core arguments (type, path, etc)
+  parse_core_arguments() {
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      -c | --cr | --crlf)
+        validate_arguments --converter unix2dos --path "$2"
+        shift
+        ;;
+      -l | --lf)
+        validate_arguments --converter dos2unix --path "$2"
+        shift
+        ;;
+      -*) ;;
+      *)
+        validate_arguments \
+          --converter "$(set_converter_per_os)" --path "$1"
+        ;;
+      esac
+
+      #@ Allow processing only if environment is valid
+      [ "$converter_cmd" ] && [ "$path" ] || return
+
+      #@ Execute Conversion
+      execute_core
+
+      #@ Move to the next argument
+      shift
+
+      #@ Reset the environment
+      unset path converter_cmd
+    done
+  }
+
+  #@ Validate script arguments and set constants
+  validate_arguments() {
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      -c | --converter)
+        if weHave "$2"; then
+          case "$2" in
+          dos2unix | unix2dos)
+            converter_cmd="$2"
+            ;;
+          *) converter_cmd="$2" ;;
+          esac
+        else
+          case "$2" in
+          dos2unix) converter_cmd="convert_crlf_to_lf" ;;
+          unix2dos) converter_cmd="convert_lf_to_crlf" ;;
+          *)
+            printf "Converter not found: %s\n" "$1"
+            print_scr_info --help
+            return 1
+            ;;
+          esac
+        fi
+        ;;
+      -p | --path)
+        [ "$2" ] || {
+          printf "Error: Missing path argument.\n"
+          print_scr_info -h
+          return 1
+        }
+
+        [ -x "$2" ] || {
+          printf "File not found: %s\n" "$2"
+          print_scr_info -h
+          return 1
+        }
+
+        path="$2"
+        ;;
+      esac
+      shift
+    done
+  }
+
+  #@ Execute the core functionality per arguments
+  time parse_core_arguments "$@"
+}
+
+execute_core() {
+  #DOC: Iterate over files using find.
+  #DOC: Execute based on flags within a loop:
+  #DOC: - Test: print the command and file
+  #DOC: - Verbose: execute with messaging
+  #DOC: - Quiet: suppress messaging
+
+  find "$path" -type f | while IFS= read -r file; do
+    if [ "$test_flag" ]; then
+      printf "%s: %s\n" "$converter_cmd" "$file"
+    elif [ "$verbose_flag" ]; then
+      "$converter_cmd" "$file"
+    else
+      "$converter_cmd" "$file" >/dev/null 2>&1
+    fi
+  done
+}
+
+main "$@"

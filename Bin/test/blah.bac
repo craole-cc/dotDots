@@ -1,0 +1,20 @@
+#!/bin/sh
+
+options="--suggest --syntax --transform --check --replace"
+for opt in $options; do
+  if [ "$1" = "$opt" ]; then
+    opt_arg="$1"
+    shift
+    break
+  fi
+done
+
+if [ -z "$opt_arg" ]; then
+  if [ "$1" = "-b" ] || [ "$1" = "--bin" ]; then
+    script_path="$(type "$2" | awk '{ print $3 }')"
+    shift
+  else
+    script_path="$*"
+    shift $#
+  fi
+fi

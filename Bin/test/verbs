@@ -1,56 +1,56 @@
-#!/bin/sh
-
-while [ $# -gt 0 ]; do
-  case $1 in
-  -h | --help) end_process --usage ;;
-  -v | --version) end_process --version ;;
-  -q | --quiet) verbosity="quiet" ;;
-  -d=* | --verbose=*) verbosity="${1#*=}" ;;
-  -d | --verbose)
-    case "$2" in
-    */*) ;;
-    *)
-      if [ "$2" ]; then
-        verbosity="$2"
-        shift
-      fi
-      ;;
-    esac
-    ;;
-  -*) end_process --error opt "$1" ;;
-  *) ;;
-  esac
-  shift
-done
-
-targetDIR="${targetDIR:-$1}"
-targetCMD="${targetCMD:-$2}"
-returnDIR="${returnDIR:-$PWD}"
-
-case "$verbosity" in
-0 | quiet) verbosity=0 ;;
-1 | error | debug) verbosity=1 ;;
-2 | info | *) verbosity=2 ;;
-esac
-
-# print_out() {
-#   var_name="$1"
-#   var_label="${var_name}"
-#   var_value="$(eval "echo \${$var_name}")"
-#   printf '%s: %s\n' "$var_label" "$var_value"
-# }
-
-print_var_info() {
-  var_label="$1"
-  var_value="$(eval printf '%s' "\"\${$1?}\"")"
-  printf '%s: %s\n' "$var_label" "$var_value"
-}
-
-print_var_info "verbosity"
-print_var_info "DOTS"
-
-### In POSIX sh, indirect expansion is undefined.shellcheckSC3053
-### Help me find a viable solution
-### Please review this option script snippet.
-### Do I need the shift in line 15?
-### How would you improve this script?
+#!/bin/sh
+
+while [ $# -gt 0 ]; do
+  case $1 in
+  -h | --help) end_process --usage ;;
+  -v | --version) end_process --version ;;
+  -q | --quiet) verbosity="quiet" ;;
+  -d=* | --verbose=*) verbosity="${1#*=}" ;;
+  -d | --verbose)
+    case "$2" in
+    */*) ;;
+    *)
+      if [ "$2" ]; then
+        verbosity="$2"
+        shift
+      fi
+      ;;
+    esac
+    ;;
+  -*) end_process --error opt "$1" ;;
+  *) ;;
+  esac
+  shift
+done
+
+targetDIR="${targetDIR:-$1}"
+targetCMD="${targetCMD:-$2}"
+returnDIR="${returnDIR:-$PWD}"
+
+case "$verbosity" in
+0 | quiet) verbosity=0 ;;
+1 | error | debug) verbosity=1 ;;
+2 | info | *) verbosity=2 ;;
+esac
+
+# print_out() {
+#   var_name="$1"
+#   var_label="${var_name}"
+#   var_value="$(eval "echo \${$var_name}")"
+#   printf '%s: %s\n' "$var_label" "$var_value"
+# }
+
+print_var_info() {
+  var_label="$1"
+  var_value="$(eval printf '%s' "\"\${$1?}\"")"
+  printf '%s: %s\n' "$var_label" "$var_value"
+}
+
+print_var_info "verbosity"
+print_var_info "DOTS"
+
+### In POSIX sh, indirect expansion is undefined.shellcheckSC3053
+### Help me find a viable solution
+### Please review this option script snippet.
+### Do I need the shift in line 15?
+### How would you improve this script?

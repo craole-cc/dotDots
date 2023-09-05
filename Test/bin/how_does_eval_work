@@ -1,13 +1,1 @@
-#!/bin/sh
-
-flake=true
-trace=true
-cmd="ls"
-
-if [ "$flake" ]; then
-  opts="-l"
-  [ "$trace" ] && opts="$opts -A -F -h"
-fi
-
-echo "$cmd" "$opts"
-eval "$cmd" "$opts"
+#!/bin/shflake=truetrace=truecmd="ls"if [ "$flake" ]; then  opts="-l"  [ "$trace" ] && opts="$opts -A -F -h"fiecho "$cmd" "$opts"eval "$cmd" "$opts"

@@ -1,85 +1,1 @@
-#!/bin/sh
-
-_day="$(date +'%a')"
-_date="$(date +'%b %d')"
-_time="$(date +'%l:%M %p')"
-
-print_center() {
-	# printf "%-3s%-15s%-3s\n" "" "$1" ""
-	str_length="${#1}"
-	# term_width="$(tput cols)"
-	term_width="52"
-	tab_length=$(((term_width - str_length) / 2))
-
-	printf "%${tab_length}s"
-	printf "%s" "$1"
-	printf "%${tab_length}s\n"
-}
-print_opts() { printf "%-3s %-14s %-3s %3s\n" "" "$1" "|>" "$2"; }
-
-# printf "#>------------------------------------------------<#\n"
-# print_center "command <[options]> <[arguments]>"
-# printf "#>------------------------------------------------<#\n"
-# print_opts "-v --version" "Version"
-# print_opts "-V --verbose" "Show changes"
-# print_opts "-t --trim" "Remove spaces [default]"
-# print_opts "-l --lower" "Lower case [default]"
-# print_opts "-u --upper" "Upper case"
-# print_opts "-p --proper" "Proper/Title case"
-# print_opts "-s --sentence" "Sentence case"
-# print_opts "-d --delim" "Accept delimiter eg. \"|\""
-# print_center "#>------------------------------------------------<#"
-
-# mango
-# echo "$_day | $_date | $_time"
-# eko --left "$_date" "$_time"
-# eko --center "#>------------------------------------------------<#"
-# eko --center "$_day" "$_date" "$_time"
-# eko --left "$_day" --center "$_date" --right "$_time"
-# eko --center "#>------------------------------------------------<#"
-# eko --right "$_date" "$_time"
-
-# tester --multiple "one" --multiple "two"
-# tester --help
-# tester +o on right pattern "foo"  --pattern "bar"
-
-# eko \
-# 	left "$_day" \
-# 	right "$_date" \
-# 	center "$_time" \
-# 	right "rte"
-
-# eko "left string" --right "right string" --center "center string"
-
-# eko \
-# 	right "right string" \
-# 	center "center string" \
-# 	left "left string" \
-# 	left "2nd left string" \
-# 	right "2nd  right string" \
-# 	center "2nd center string"
-
-echo ""
-# eko --right "right string"
-# 	align --center "center string" \
-# 	center "2nd center string"
-
-# eko --newline=off "today"
-# eko "$_day | $_date | $_time"
-# eko "${#_day} | ${#_date} | ${#_time}"
-# eko -c "$_day"
-# eko -c "$_date"
-# eko -c "$_time"
-# eko -r "$_day | $_date | $_time"
-
-# eko -h--align=left "left test" s
-# eko --help
-# eko --verbose --newline --align=right "right test newline"
-eko --verbose --align right "test"
-eko --verbose --newline --newline --center "tezzzzzzzzzzzzzzzzzzzsssssssssssszzzzzzzzzzzzzzzzzzst"
-eko --verbose -n "left test"
-eko --verbose --no-newline "testo"
-eko --verbose "testo"
-eko --verbose -nnn "testo"
-eko --newline "testo"
-eko "testo"
+#!/bin/sh_day="$(date +'%a')"_date="$(date +'%b %d')"_time="$(date +'%l:%M %p')"print_center() {	# printf "%-3s%-15s%-3s\n" "" "$1" ""	str_length="${#1}"	# term_width="$(tput cols)"	term_width="52"	tab_length=$(((term_width - str_length) / 2))	printf "%${tab_length}s"	printf "%s" "$1"	printf "%${tab_length}s\n"}print_opts() { printf "%-3s %-14s %-3s %3s\n" "" "$1" "|>" "$2"; }# printf "#>------------------------------------------------<#\n"# print_center "command <[options]> <[arguments]>"# printf "#>------------------------------------------------<#\n"# print_opts "-v --version" "Version"# print_opts "-V --verbose" "Show changes"# print_opts "-t --trim" "Remove spaces [default]"# print_opts "-l --lower" "Lower case [default]"# print_opts "-u --upper" "Upper case"# print_opts "-p --proper" "Proper/Title case"# print_opts "-s --sentence" "Sentence case"# print_opts "-d --delim" "Accept delimiter eg. \"|\""# print_center "#>------------------------------------------------<#"# mango# echo "$_day | $_date | $_time"# eko --left "$_date" "$_time"# eko --center "#>------------------------------------------------<#"# eko --center "$_day" "$_date" "$_time"# eko --left "$_day" --center "$_date" --right "$_time"# eko --center "#>------------------------------------------------<#"# eko --right "$_date" "$_time"# tester --multiple "one" --multiple "two"# tester --help# tester +o on right pattern "foo"  --pattern "bar"# eko \# 	left "$_day" \# 	right "$_date" \# 	center "$_time" \# 	right "rte"# eko "left string" --right "right string" --center "center string"# eko \# 	right "right string" \# 	center "center string" \# 	left "left string" \# 	left "2nd left string" \# 	right "2nd  right string" \# 	center "2nd center string"echo ""# eko --right "right string"# 	align --center "center string" \# 	center "2nd center string"# eko --newline=off "today"# eko "$_day | $_date | $_time"# eko "${#_day} | ${#_date} | ${#_time}"# eko -c "$_day"# eko -c "$_date"# eko -c "$_time"# eko -r "$_day | $_date | $_time"# eko -h--align=left "left test" s# eko --help# eko --verbose --newline --align=right "right test newline"eko --verbose --align right "test"eko --verbose --newline --newline --center "tezzzzzzzzzzzzzzzzzzzsssssssssssszzzzzzzzzzzzzzzzzzst"eko --verbose -n "left test"eko --verbose --no-newline "testo"eko --verbose "testo"eko --verbose -nnn "testo"eko --newline "testo"eko "testo"
