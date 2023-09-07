@@ -1,26 +1,31 @@
 #!/bin/sh
 #TODO: So far, only nu and bash are supported
 establish_environment() {
+  #@ Verbosity
+  # shellcheck disable=SC2153
+  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+  [1-9] | true) verbose_flag=true ;; esac
+
   parse_arguments() {
-    SHELL_PREFERRED="$(
+    SHELL_INTERACTIVE="$(
       printf "%s" "$*" | tr '[:upper:]' '[:lower:]'
     )"
 
-    case "$SHELL_PREFERRED" in
-    *z*) SHELL_PREFERRED="zsh" ;;
-    *f*) SHELL_PREFERRED="fish" ;;
-    *n*) SHELL_PREFERRED="nu" ;;
-    *p*) SHELL_PREFERRED="powershell" ;;
-    *k*) SHELL_PREFERRED="ksh" ;;
-    *t*) SHELL_PREFERRED="tcsh" ;;
-    *b* | *s* | *d*) SHELL_PREFERRED="bash" ;;
+    case "$SHELL_INTERACTIVE" in
+    *z*) SHELL_INTERACTIVE="zsh" ;;
+    *f*) SHELL_INTERACTIVE="fish" ;;
+    *n*) SHELL_INTERACTIVE="nu" ;;
+    *p*) SHELL_INTERACTIVE="powershell" ;;
+    *k*) SHELL_INTERACTIVE="ksh" ;;
+    *t*) SHELL_INTERACTIVE="tcsh" ;;
+    *b* | *s* | *d*) SHELL_INTERACTIVE="bash" ;;
     *)
-      SHELL_PREFERRED="${SHELL_PREFERRED:-"nu"}"
+      SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"nu"}"
       ;;
     esac
   } && parse_arguments "$@"
 
-  case "$SHELL_PREFERRED" in
+  case "$SHELL_INTERACTIVE" in
   nu)
     install_script_available=true
     ;;
@@ -78,15 +83,15 @@ establish_utilities() {
 initialize_shell() {
   #@ Ensure that the shell is available
   weHave "$1" || {
-    printf "We don't seem to have %s installed\n" "$SHELL_PREFERRED"
+    printf "We don't seem to have %s installed\n" "$SHELL_INTERACTIVE"
     #TODO: Offer to install if there is a script to do so
-    #TODO: The script name would be launch_"${SHELL_PREFERRED}"
+    #TODO: The script name would be launch_"${SHELL_INTERACTIVE}"
     return 1
   }
 
   #@ Load Environment Variables, if available
-  [ -f "$DOTS_ENV_CTX/$SHELL_PREFERRED" ] &&
-    . "$DOTS_ENV_CTX/$SHELL_PREFERRED"
+  [ -f "$DOTS_ENV_CTX/$SHELL_INTERACTIVE" ] &&
+    . "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
 }
 
 launch_shell() {
@@ -94,17 +99,19 @@ launch_shell() {
 }
 
 execute() {
-  case "$SHELL_PREFERRED" in
+  case "$SHELL_INTERACTIVE" in
   bash | nu | fish | zsh | ksh | pwsh | powershell | tcsh)
 
     #@ Ensure that the shell is available
-    initialize_shell "$SHELL_PREFERRED"
+    initialize_shell "$SHELL_INTERACTIVE"
 
     #@ Launch the shell
-    launch_shell "$SHELL_PREFERRED"
+    launch_shell "$SHELL_INTERACTIVE" && {
+      [ "$verbose" = true ] && printf "Launched %s\n" "$SHELL_INTERACTIVE"
+    }
     ;;
   *)
-    printf "%s\n" "Unknown shell: $SHELL_PREFERRED"
+    printf "%s\n" "Unknown shell: $SHELL_INTERACTIVE"
     exit 1
     ;;
   esac

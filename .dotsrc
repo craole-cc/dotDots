@@ -1,21 +1,81 @@
 #!/bin/sh
 
-establish_env() {
-  [ "$DOTS" ] || {
-    printf "Missing DOTS variable\n" >&2 &&
-      exit 1
+establish_utilities() {
+  set_verbosity_level() {
+    #@ Check for global verbosity settings
+    # shellcheck disable=SC2153
+    case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+    [1-9]) VERBOSITY="$verbose$verbosity$VERBOSE$VERBOSITY" ;;
+    true) VERBOSITY=1 ;;
+    false | 0 | '') VERBOSITY=0 ;;
+    esac
+
+    #@ Check for local verbosity override
+    [ -n "$1" ] &&
+      case "$1" in
+      [1-9]) VERBOSITY="$1" ;;
+      true) VERBOSITY=1 ;;
+      false | 0 | '') VERBOSITY=0 ;;
+      *) printf "%s\n" "Unknown verbosity level: $1" ;;
+      esac
+
+    #@ Make variables available globally
+    [ -n "$VERBOSITY" ] && export VERBOSITY
   }
 
-  cleanup
+  set_dots_path() {
+    #@ Set the path to the DOTS directory based in argument
+    case "$1" in --default) ;; *) DOTS="$1" ;; esac
 
-  #@ Verbosity
-  verbose=true
-  # shellcheck disable=SC2153
-  case "$verbose$verbosity$VERBOSE$VERBOSITY" in
-  [1-9] | true) verbose_flag=true ;; esac
+    #@ Ensure the path is a directory or default to the current directory
+    if [ -d "$DOTS" ]; then
+      #@ Print the DOTS variable
+      case "$VERBOSITY" in
+      0) ;;
+      *) printf "DOTS: %s\n" "$DOTS" ;;
+      esac
+    else
+      #@ Find the path of the current script
+      DOTS_RC="$0"
 
-  #@ Verify OS type for chmod and chown operations
-  os_type() {
+      #@ Use readlink to resolve symlinks
+      while [ -L "$DOTS_RC" ]; do
+        DOTS_RC="$(readlink "$DOTS_RC")"
+      done
+
+      #@ Set the DOTS variable as the parent directory
+      DOTS="$(cd "$(dirname "$DOTS_RC")" >/dev/null 2>&1 && pwd)"
+
+      #@ Print the DOTS variable
+      case "$VERBOSITY" in
+      0) ;;
+      1) printf "DOTS: %s\n" "$DOTS" ;;
+      *) printf "DOTS set relative to .dotrc: %s\n" "$DOTS" ;;
+      esac
+    fi
+
+    export DOTS
+  }
+
+  set_dots_ignore() {
+
+    #@ Set the DOTS_IGNORE variable
+    case "$1" in --default) shift ;; esac
+    DOTS_IGNORE="${1:-$DOTS/.ignore}"
+
+    #@ Create the DOTS_IGNORE file, if necessary
+    [ -f "$DOTS_IGNORE" ] || touch "$DOTS_IGNORE"
+  }
+
+  set_interactive_shell() {
+    #@ Set the preferred interactive shell prompt
+    SHELL_INTERACTIVE="${1:-bash}"
+
+    #@ Ensure the variable is available globally
+    export SHELL_INTERACTIVE
+  }
+
+  get_os_type() {
     if [ "$WSL_DISTRO_NAME" ]; then
       os_type="Windows Subsystem for Linux [WSL]"
     elif [ -f "/proc/version" ]; then
@@ -45,29 +105,41 @@ establish_env() {
     *aix*) os_type="AIX" ;;
     *irix*) os_type="IRIX" ;;
     esac
-
-    printf "%s" "$os_type"
   }
-  [ "$(os_type)" = "Windows" ] && windows_flag=true
+
+  update_user_profile() {
+    #@ Update the user's DOTS variable
+    [ -f "$DOTS/Bin/tasks/dots.init" ] &&
+      . "$DOTS/Bin/tasks/dots.init"
+  }
+
+  set_local_flags() {
+    get_os_type
+    [ "$os_type" = "Windows" ] && windows_flag=true
+    [ "$VERBOSITY" -gt 0 ] && verbosity_flag=true
+    [ "$DOTS_IGNORE" ] && ignore_file="$DOTS_IGNORE"
+  }
+}
+
+establish_environment() {
+  #@ Set the verbosity level
+  set_verbosity_level 1
 
   #@ Set the interactive shell
-  SHELL_PREFERRED="${SHELL_PREFERRED:-nushell}"
+  set_interactive_shell bash
 
-  #@ Establish the profile init
-  dots_init() {
-    [ -f "$DOTS/Bin/tasks/dots.init" ] && . "$DOTS/Bin/tasks/dots.init"
-  }
+  #@ Ensure DOTS variable is set if not use the path of the current file
+  set_dots_path --default
 
   #@ Establish IGNORE path to declare directories to skip
-  ignore_file="${SRC_IGNORE:-$DOTS/.ignore}"
-  [ -f "$ignore_file" ] || touch "$ignore_file"
+  set_dots_ignore --default
+
+  #@ Establish the script environment variables
+  cleanup
+  set_local_flags
 }
 
 execute() {
-
-  #@ Update the user profile
-  dots_init
-
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
@@ -75,11 +147,16 @@ execute() {
     --env "$DOTS/Environment/export"
 
   #@ Load Shell
-  shell.init --bash
+  shell.init bash
 
   #@ Load Fonts
-  fonts.init
+  # fonts.init
 
+  #@ Update the user profile
+  # update_user_profile
+
+  echo "$sys_INFO"
+  echo "$sys_LABEL"
 }
 
 print_usage_guide() {
@@ -178,7 +255,7 @@ process_sources() {
       #| Load environmental variables from files
       elif [ "$src_type" = "ENV" ]; then
         # shellcheck disable=SC1090
-        dos2unix "$src_path"
+        # EOLor --lf "$src_path"
         . "$src_path"
         [ "$verbose_flag" = true ] && printf "Initialized: %s\n" "$src_path"
       fi
@@ -284,6 +361,7 @@ cleanup() {
 }
 
 main() {
-  establish_env
+  establish_utilities
+  establish_environment
   execute
 } && main "$@"

@@ -136,7 +136,12 @@ establish_environment() {
 
   #@ Establish script defaults
   set_defaults() {
-    verbose_flag=true
+    #@ Verbosity
+    # shellcheck disable=SC2153
+    case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+    [1-9] | true) verbose_flag=true ;;
+    *) unset verbose_flag ;;
+    esac
   } && set_defaults
 
   #@ Parse script arguments (help, version, etc)
@@ -257,7 +262,7 @@ establish_environment() {
   }
 
   #@ Execute the core functionality per arguments
-  time parse_core_arguments "$@"
+  parse_core_arguments "$@"
 }
 
 execute_core() {
