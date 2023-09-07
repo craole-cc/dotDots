@@ -15,8 +15,7 @@ establish_environment() {
     printf "\n"
   )"
 
-  DOTS="${DOTS:-$HOME/.dots}"
-  export DOTS
+  DOTS="${DOTS:-$HOME/.dots}" && export DOTS
   res_HOME="$DOTS/Resources/Home"
 
   parse_arguments "$@" # Call the argument parsing function

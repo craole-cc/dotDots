@@ -37,7 +37,7 @@ else
   WALLPAPERS="$DOTS_RES/Images/wallpaper"
 fi
 
-#>_____________                                                         DOTFILES<|
+#|> ________________________________________ DOTFILES<|
 
 # | Dotfiles
 DOTS_DOC="$DOTS/Documentation"
@@ -50,7 +50,6 @@ DOTS_TEST="$DOTS/Test"
 DOTS_RC="$DOTS/.dotrc"
 DOTS_loaded_apps="$DOTS_LOG/loaded_apps"
 
-# @__________________________________________________________________ DOTFILES<|
 # | BIN
 DOTS_BIN="$DOTS/Bin"
 DOTS_BIN_CORE="$DOTS_BIN/core"
