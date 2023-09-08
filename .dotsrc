@@ -1,5 +1,11 @@
 #!/bin/sh
 
+main() {
+  establish_utilities
+  establish_environment
+  execute
+}
+
 establish_utilities() {
   set_verbosity_level() {
     #@ Check for global verbosity settings
@@ -107,28 +113,53 @@ establish_utilities() {
     esac
   }
 
+  delete_line_from_file() {
+    sed --in-place --expression "/$1/d" "$profile"
+  }
+
   update_user_profile() {
-    #@ Update the user's DOTS variable
-    # [ -f "$DOTS/Bin/tasks/dots.init" ] &&
-    #   . "$DOTS/Bin/tasks/dots.init"
+    #@ Define the profile path
+    profile="$HOME/.profile"
 
-    # Escape the special characters in the variable for safe use in sed
-    escaped_dots=$(printf "%s" "$DOTS" | sed 's/[\/&]/\\&/g')
+    #@ Create the profile file if it doesn't exist
+    [ -f "$profile" ] || touch "$profile"
 
-    # Check if the DOTS variable already exists in ~/.profile
-    if grep -q "^DOTS=\"$escaped_dots\"$" "$HOME/.profile"; then
-      [ "$verbose" ] && printf "DOTS variable in ~/.profile is already up to date.\n"
+    #@ Define the lines with and without quotes
+    dots_unquoted="DOTS=$DOTS"
+    dots_quoted="DOTS=\"$DOTS\""
+    dots_init="[ -f \"\$DOTS/.dotsrc\" ] && . \"\$DOTS/.dotsrc\""
+
+    #@ Check if the DOTS line exists and if it's different or if dots_init is missing
+    if grep --quiet --regexp "^DOTS=" "$profile"; then
+      {
+        #@ Check if the DOTS line matches the current DOTS variable or is quoted
+        grep --quiet --regexp "^DOTS=$DOTS" --regexp "^DOTS=\"$DOTS\"" "$profile" ||
+
+          #@ Check if dots_init is missing
+          grep --quiet --fixed-strings "$dots_init" "$profile"
+      } ||
+        {
+          #@ If either condition is false, remove both lines
+          delete_line_from_file "^DOTS="
+          delete_line_from_file "$(printf "%s" "$dots_init" | sed 's/[\/&]/\\&/g')"
+        }
+    fi
+
+    #@ Append the new lines to the profile file only if they are missing
+    if
+      ! grep --quiet --regexp "^DOTS=" "$profile" ||
+        ! grep --quiet --fixed-strings "$dots_init" "$profile"
+    then
+      #@ If either line is missing, append both lines
+      temp_file=$(mktemp)
+      grep --invert-match "^DOTS=" "$profile" |
+        grep --invert-match "$dots_init" >"$temp_file"
+      printf "\nDOTS=\"%s\"\n%s\n" "$DOTS" "$dots_init" >>"$temp_file"
+      mv "$temp_file" "$profile"
+      [ "$verbose_flag" ] && printf "Updated DOTS in profile.\n"
     else
-      # Add or update the DOTS variable in ~/.profile
-      if grep -q "^DOTS=" "$HOME/.profile"; then
-        # DOTS variable exists, update it
-        sed -i "s/^DOTS=.*/DOTS=\"$escaped_dots\"/" "$HOME/.profile"
-        [ "$verbose" ] && printf "Updated DOTS variable in ~/.profile.\n"
-      else
-        # DOTS variable doesn't exist, add it to ~/.profile
-        echo "DOTS=\"$escaped_dots\"" >>"$HOME/.profile"
-        [ "$verbose" ] && printf "Added DOTS variable to ~/.profile.\n"
-      fi
+      #@ If both lines are present and the DOTS line is the same, no need to update
+      [ "$verbose_flag" ] && printf "DOTS in profile is already up to date.\n"
     fi
   }
 
@@ -145,37 +176,36 @@ establish_utilities() {
   }
 
   get_sources() {
-    prep_ignore() { #? Update .ignore file
+    prepare_ignore_list() { #? Update .ignore file
       if [ "$ignore_action" = "EXCLUDE" ]; then
-        grep --line-regexp --quiet "$1" "$ignore_file" ||
-          printf "\n%s" "$1" >>"$ignore_file"
+        grep --line-regexp --quiet "$1" "$DOTS_IGNORE" ||
+          printf "\n%s" "$1" >>"$DOTS_IGNORE"
       elif [ "$ignore_action" = "INCLUDE" ]; then
-        sed --in-place "/$1/d" "$ignore_file"
+        sed --in-place "/$1/d" "$DOTS_IGNORE"
       else
         return 0
       fi
     }
 
-    src_exclude() {
+    exclude_source() {
       #? Remove blank lines
-      sed -i '/^[[:space:]]*$/d' "$ignore_file"
+      sed -i '/^[[:space:]]*$/d' "$DOTS_IGNORE"
 
       #? Sort alphabetically
-      sort --human-numeric-sort --output "$ignore_file" "$ignore_file"
+      sort --human-numeric-sort --output "$DOTS_IGNORE" "$DOTS_IGNORE"
 
       #? Prep for use with `grep`
-      # sed -e 's/^/\//g' -e 's/$/*/g' "$ignore_file" |
-      sed -e 's/^/\//g' "$ignore_file" |
+      sed -e 's/^/\//g' "$DOTS_IGNORE" |
         tr '\n' '|' | sed '$s/|$/\n/'
     }
 
-    src_include() {
-      if [ "$(src_exclude)" ]; then
+    include_source() {
+      if [ "$(exclude_source)" ]; then
         grep \
           --extended-regexp \
           --invert-match \
           --ignore-case \
-          "$(src_exclude)" |
+          "$(exclude_source)" |
           sort
       else
         sort
@@ -184,21 +214,21 @@ establish_utilities() {
 
     #? Identify valid sources
     generate_sources() {
-      find "$1" | src_include
+      find "$1" | include_source
     }
 
-    if [ ! -e "$1" ]; then
-      prep_ignore "$1"
-    else
+    if [ -e "$1" ]; then
       generate_sources "$1"
+    else
+      prepare_ignore_list "$1"
     fi
   }
 
   process_sources() {
-    #| Enable global variable export
+    #@ Enable global variable export
     set -o allexport
 
-    #| Process sources recursively
+    #@ Process sources recursively
     for src_path in $(get_sources "$1"); do
       [ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
         case ":${XDG_DATA_DIRS}:" in
@@ -209,7 +239,7 @@ establish_utilities() {
           ;;
         esac
 
-      #| Update PATH directories
+      #@ Update PATH directories
       [ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
         case ":${PATH}:" in
         *:"$src_path":*) ;;
@@ -219,7 +249,7 @@ establish_utilities() {
           ;;
         esac
 
-      #| Activate Scripts and Variables
+      #@ Activate Scripts and Variables
       [ -f "$src_path" ] &&
 
         #| Make scripts executable
@@ -230,7 +260,7 @@ establish_utilities() {
             [ "$windows_flag" = true ] || chmod +x "$src_path"
           fi
 
-        #| Load environmental variables from files
+        #@ Load environmental variables from files
         elif [ "$src_type" = "ENV" ]; then
           # shellcheck disable=SC1090
           # EOLor --lf "$src_path"
@@ -240,7 +270,7 @@ establish_utilities() {
 
     done
 
-    #| Disable global export
+    #@ Disable global export
     set +o allexport
   }
 
@@ -325,7 +355,7 @@ establish_utilities() {
 
   cleanup() {
     [ "$reset_flag" = true ] &&
-      rm -rf "$ignore_file"
+      rm -rf "$DOTS_IGNORE"
 
     unset -v \
       BIN_ \
@@ -340,6 +370,9 @@ establish_utilities() {
 }
 
 establish_environment() {
+  #@ Reset the environment
+  cleanup
+
   #@ Set the verbosity level
   set_verbosity_level 1
 
@@ -353,11 +386,13 @@ establish_environment() {
   set_dots_ignore --default
 
   #@ Establish the script environment variables
-  cleanup
   set_local_flags
 }
 
 execute() {
+  #@ Update the user profile
+  update_user_profile
+
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
@@ -369,13 +404,6 @@ execute() {
 
   #@ Load Fonts
   fonts.init
-
-  #@ Update the user profile
-  update_user_profile
 }
 
-main() {
-  establish_utilities
-  establish_environment
-  execute
-} && main "$@"
+main "$@"

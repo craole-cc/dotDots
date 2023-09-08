@@ -398,6 +398,6 @@
     "workbench.productIconTheme": "icons-carbon",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
-    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    "workbench.colorTheme": "Default Light Modern",
   }
 }
