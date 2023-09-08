@@ -16,12 +16,14 @@ establish_environment() {
   )"
 
   DOTS="${DOTS:-$HOME/.dots}" && export DOTS
+  res_HOME="$DOTS/Resources/Home"
 
   parse_arguments "$@" # Call the argument parsing function
 
   # Validate that required files and directories exist
-  validate_file_or_directory "$DOTS" "directory"
-  validate_file_or_directory "$HOME/.profile" "target file"
+  validate_file_or_directory "$res_HOME" "directory"
+  validate_file_or_directory "$res_HOME/profile" "source file"
+  validate_file_or_directory "$res_HOME/bashrc" "source file"
 }
 
 # Function to parse command-line arguments

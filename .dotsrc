@@ -374,7 +374,7 @@ establish_environment() {
   cleanup
 
   #@ Set the verbosity level
-  set_verbosity_level 1
+  set_verbosity_level 0
 
   #@ Set the interactive shell
   set_interactive_shell bash

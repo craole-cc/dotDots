@@ -1,7 +1,5 @@
 #!/bin/sh
 
-#!/bin/sh
-
 establish_environment() {
   #@ Ensure the launcher is available
   type launch >/dev/null 2>&1 || exit

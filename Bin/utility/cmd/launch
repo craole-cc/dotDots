@@ -10,11 +10,11 @@ parse_arguments() {
   done
 }
 
-execute(){
-  if type tasklist >/dev/null 2>&1; then
-  launch_on_windows
-  elif type pgrep >/dev/null 2>&1; then
-  launch_on_unix
+execute() {
+  if command -v tasklist >/dev/null 2>&1; then
+    launch_on_windows "$@"
+  elif command -v pgrep >/dev/null 2>&1; then
+    launch_on_unix "$@"
   fi
 }
 
@@ -66,8 +66,8 @@ present_info() {
 
 point_of_entry() {
   parse_arguments "$@"
-  process_core "$@"
-  exit 0
+  execute "$@"
+  # exit 0
 }
 
 point_of_entry "$@"
