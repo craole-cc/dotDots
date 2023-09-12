@@ -53,7 +53,7 @@ parse_core_arguments() {
     -d | --verbose) verbose=true ;;
     -t | --simulate | --test | --dry-run) simulate=true verbose=true ;;
     -q | --quiet) unset verbose ;;
-    -u | --un* | --up* | -x | -r | -i | --in*) ;;
+    -u | --un* | --up* | -x | -r | -i | --in* | -l | -c | --check) ;;
     -*)
       printf "Unknown option: %s" "$1"
       exit 1
@@ -73,6 +73,7 @@ parse_proc_arguments() {
       -i | --in*) action=install ;;
       -u | --up*) action=update ;;
       -x | -r | --uninstall) action=uninstall ;;
+      -l | -c | --check) action=check ;;
       esac
       ;;
     *)
@@ -119,6 +120,19 @@ manage_application() {
       return 1
     fi
     ;;
+  check)
+    if weHave "$app"; then
+      check_application "$app"
+
+      four1one "We have '$app' [$app_version]" || {
+        [ "$app_id" -gt 1 ] && printf "\n"
+        printf "%s = %s" "$app" "$app_version"
+      }
+    else
+      four1one "'$app' was not found"
+      return 1
+    fi
+    ;;
   *)
     printf "Usage: validate_operation <OPERATION> <APP>\n"
     exit 1
@@ -144,6 +158,28 @@ uninstall_application() {
 
 update_application() {
   cargo install-update "$1"
+}
+
+check_application() {
+  # app_version="$(
+  #   cargo install --list |
+  #     grep --only-matching "$app v[0-9.]*" |
+  #     sed 's/^[^v]*v//'
+  # )"
+
+  # app_version="$(
+  #   cargo install --list |
+  #     grep "$app v" |
+  #     awk '{print $2}'
+  # )"
+  # app_version="${app_version##v}" #@ Remove the leading letter
+  # app_version="${app_version%%:}" #@ Remove the trailing colon
+
+  app_version="$(
+    cargo install --list |
+      awk --assign app="$app" '$1 == app {print $2}' |
+      sed 's/[:v]//g'
+  )"
 }
 
 wrap_up() {
