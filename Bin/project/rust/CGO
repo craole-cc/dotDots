@@ -8,6 +8,6 @@ case $1 in
     printf "%s\n" "Tests Failed"
   fi
   ;;
--r | --run) cargo run --quiet "$*" ;;
+-r | --run) cargo run --quiet -- "$*" ;;
 *) cargo "$*" ;;
 esac

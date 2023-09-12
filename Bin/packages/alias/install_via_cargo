@@ -1,33 +1,152 @@
 #!/bin/sh
 
-case "$1" in
--d | --verbose) verbose=true ;;
-*) ;;
-esac
+main() {
+  initialize_tools
+  parse_core_arguments "$@"
+  parse_proc_arguments "$@"
+  wrap_up
+}
 
-weHave cargo || install_rust
-weHave cargo-binstall || install_via_cargo cargo-binstall
-weHave cargo-add || install_via_cargo cargo-add
-weHave cargo-watch || install_via_cargo cargo-watch
-cargo update -h >/dev/null 2>&1 || install_via_cargo cargo-update
+initialize_tools() {
+  weHave() {
+    command -v "$1" >/dev/null 2>&1 ||
+      cargo install --list | grep --quiet "$1" ||
+      return 1
+  }
 
-for app in "$@"; do
-  if ! weHave "$app"; then
-    printf "Installing: %s\n" "$app"
+  four1one() {
+    [ "$verbose" ] || return
+    printf "%s" "$*"
+  }
 
-    if weHave cargo-binstall; then
-      cargo binstall \
-        --no-confirm \
-        --no-symlinks \
-        --log-level error \
-        "$app"
+  install_dependencies() {
+    weHave cargo || {
+      printf "Installing dependency: cargo\n"
+      install_rust
+    }
+
+    #TODO# binstall is not working
+    # weHave cargo-binstall || {
+    #   printf "Installing dependency: cargo-binstall\n"
+    #   install_application cargo-binstall
+    # }
+    # weHave cargo-binstall && binstall_in_path=true
+
+    weHave cargo-update || {
+      printf "Installing dependency: cargo-update\n"
+      install_application cargo-update
+    }
+  } && install_dependencies
+}
+
+parse_core_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    -h | --help)
+      printf "Help"
+      exit 0
+      ;;
+    -v | --version)
+      printf "Version"
+      exit 0
+      ;;
+    -d | --verbose) verbose=true ;;
+    -t | --simulate | --test | --dry-run) simulate=true verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -u | --un* | --up* | -x | -r | -i | --in*) ;;
+    -*)
+      printf "Unknown option: %s" "$1"
+      exit 1
+      ;;
+    esac
+    shift
+  done
+}
+
+parse_proc_arguments() {
+  app_id=0
+  action=update
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -*)
+      case "$1" in
+      -i | --in*) action=install ;;
+      -u | --up*) action=update ;;
+      -x | -r | --uninstall) action=uninstall ;;
+      esac
+      ;;
+    *)
+      app_id=$((app_id + 1))
+
+      [ "$verbose" ] && {
+        [ "$app_id" -gt 1 ] && printf "\n"
+      }
+      app="$1"
+      manage_application
+      ;;
+    esac
+    unset app
+    shift
+  done
+}
+
+manage_application() {
+  case "$action" in
+  install)
+    if weHave "$app"; then
+      four1one "'$app' is already installed."
+      return 1
     else
-      cargo install "$app"
+      four1one "'$app' is being installed."
+      [ "$simulate" ] || install_application "$app"
     fi
-  else
-    [ "$verbose" ] &&
-      weHave --verbose "$app"
-  fi
-done
+    ;;
+  update)
+    if weHave "$app"; then
+      four1one "'%s' is being updated."
+      [ "$simulate" ] || update_application "$app"
+    else
+      four1one "'$app' is being installed."
+      [ "$simulate" ] || install_application "$app"
+    fi
+    ;;
+  uninstall)
+    if weHave "$app"; then
+      four1one "'$app' is being uninstalled."
+      [ "$simulate" ] || uninstall_application "$app"
+    else
+      four1one "'$app' was not found"
+      return 1
+    fi
+    ;;
+  *)
+    printf "Usage: validate_operation <OPERATION> <APP>\n"
+    exit 1
+    ;;
+  esac
+}
 
-unset app
+install_application() {
+  if [ "$binstall_in_path" ]; then
+    cargo binstall \
+      --no-confirm \
+      --no-symlinks \
+      --log-level error \
+      "$1"
+  else
+    cargo install "$1"
+  fi
+}
+
+uninstall_application() {
+  cargo uninstall "$1"
+}
+
+update_application() {
+  cargo install-update "$1"
+}
+
+wrap_up() {
+  unset action app app_id simulate verbose
+}
+main "$@"

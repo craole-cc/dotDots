@@ -40,7 +40,7 @@ establish_utilities() {
 
   install_starship() {
     if weHave starship; then
-      return 0
+      :
     elif weHave nix-shell; then
       nix-shell -p starship
     elif weHave choco; then
@@ -56,6 +56,8 @@ establish_utilities() {
     elif weHave apt; then
       sudo apt install starship
     fi
+
+    . "$DOTS_ENV_CTX/starship"
   }
 
   #@ Nushell
@@ -63,6 +65,9 @@ establish_utilities() {
     nu \
       --config "${NUSHDIR}/config.nu" \
       --env-config "${NUSHDIR}/env.nu"
+    nu \
+      --config "$HOME/.dots/Config/cli/config.nu" \
+      --env-config "$HOME/.dots/Config/cli/env.nu"
   }
 
   install_nu() {
@@ -72,7 +77,9 @@ establish_utilities() {
   }
 
   launch_bash() {
-    bash --init-file "${BDOTDIR}/${SHELL_CONF}"
+    # bash --init-file "${BDOTDIR}/${SHELL_CONF}"
+    # bash --init-file "C:\Users\Administrator\.dots\Config\cli\bash\.config"
+    bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
   }
 
   launch_dash() {
@@ -100,15 +107,17 @@ launch_shell() {
 
 execute() {
   case "$SHELL_INTERACTIVE" in
-  bash | nu | fish | zsh | ksh | pwsh | powershell | tcsh)
+  bash)
+    bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+    ;;
+  nu | fish | zsh | ksh | pwsh | powershell | tcsh)
 
     #@ Ensure that the shell is available
-    initialize_shell "$SHELL_INTERACTIVE"
+    # initialize_shell "$SHELL_INTERACTIVE"
 
     #@ Launch the shell
-    launch_shell "$SHELL_INTERACTIVE" && {
-      [ "$verbose" = true ] && printf "Launched %s\n" "$SHELL_INTERACTIVE"
-    }
+    launch_shell "$SHELL_INTERACTIVE" || return 1
+    [ "$verbose" = true ] && printf "Launched %s\n" "$SHELL_INTERACTIVE"
     ;;
   *)
     printf "%s\n" "Unknown shell: $SHELL_INTERACTIVE"

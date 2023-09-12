@@ -2,7 +2,7 @@
 
 establish_environment() {
   #@ Establish script information
-  scr_name="$get_os_shell"
+  scr_name="shell.fetch"
   scr_version="1.0"
   scr_usage="$(
     printf "Usage: %s [OPTIONS]\n" "$scr_name"
@@ -14,17 +14,17 @@ establish_environment() {
 
   #@ Set default values
   label="OS Shell"
-  verbosity=0
+  verbosity=1
   exit_code=0
   dud="Unknown"
   unset info_source output
 
   #@ Establish utility functions
-  initialize_utilities
+  establish_utilities
   get_os_type >/dev/null  2>&1
 }
 
-initialize_utilities() {
+establish_utilities() {
   weHave() {
     #@ Check if the info_source is available
     info_source="$1"
@@ -93,7 +93,7 @@ initialize_utilities() {
       if [ -n "$last_line_process_name" ]; then
         info="$last_line_process_name"
       else
-        # If not found in the last line, check the previous line
+        #@ If not found in the last line, check the previous line
         prev_line_process_name=$(
           extract_process_name "$(
             printf "%s" "$ps_output" | tail -n 3 | head -n 1
@@ -107,7 +107,7 @@ initialize_utilities() {
     }
 
     extract_windows_process_name() {
-      # Extract the process name from the first line
+      #@ Extract the process name from the first line
       first_line_process_name=$(
         extract_process_name "$(
           printf "%s" "$ps_output" | head -n 1

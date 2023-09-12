@@ -92,12 +92,14 @@ parse_arguments() { #@ Establish the script environment
 }
 
 probe_availability() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+  # type "$1" >/dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 parse_type() { #@ Return the type of command
-  case "$(type "$1" | head -n 1)" in
-  *special*) present_info --oneline "a special shell builtin" ;;
+  # case "$(type -t -- "$1")" in
+  case "$(command -V -- "$1")" in
+  *"special shell builtin") present_info --oneline "a special shell builtin" ;;
   *builtin*) present_info --oneline "a shell builtin" ;;
   *function*) present_info --oneline "a function" ;;
   */*) present_info --oneline "a PATH binary" ;;
@@ -124,14 +126,17 @@ parse_version() { #@ Return the version of the command
             print $2
         }'
       ;;
-    *exa*) #| exa
+    ps*)
+      ps --version | awk 'NR==1 {print $NF}'
+      ;;
+    exa*) #| exa
       "$1" --version |
         awk '/v/ {
             gsub(/v/, "");
             print $1
         }'
       ;;
-    *rust*) #| rustc
+    rust*) #| rustc
       "$1" --version |
         cut -d' ' -f2-
       ;;
@@ -150,19 +155,21 @@ parse_version() { #@ Return the version of the command
             }}'
       ;;
     *) #| Plain
-      "$1" --version | awk '{print $NF}'
+      "$1" --version | awk 'NR==1 {print $NF}'
+      # awk '{print $NF}'
       ;;
     esac
   elif "$1" -v type >/dev/null 2>&1; then
     "$1" -v
   else
     #TODO# manage apps that dont have --version or -v
-    echo
+    :
   fi
 }
 
 parse_location() { #@ Return the location of command
-  type "$1" | awk '{print $NF}'
+  command -v "$1"
+  # type "$1" | awk '{print $NF}'
 }
 
 process_core() { #@ Provide command info based on user requirements
@@ -172,6 +179,8 @@ process_core() { #@ Provide command info based on user requirements
     #@ Manage messaging
     purge_leftovers --msg
 
+    # echo "cmd: $param_CMD"
+    # command -V "$param_CMD"
     if probe_availability "$param_CMD"; then
       msg_VER="$(parse_version "$param_CMD")"
       msg_PATH="$(parse_location "$param_CMD")"
@@ -320,4 +329,5 @@ point_of_exit() {
     exit 0
   fi
 }
+
 point_of_entry "$@"

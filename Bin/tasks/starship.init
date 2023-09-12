@@ -19,27 +19,55 @@ show_usage_guide() {
   printf "%s\n\n" "$SCR_USAGE_GUIDE"
 }
 
-process() {
+init_theme() {
+  #@ Set the default theme to "craole" if no theme is specified
+  theme="${theme:-craole}"
+  echo "THEME: $theme"
+
   #@ Load the Starship environment
   starship_env="${DOTS}/Environment/export/package/starship.sh"
   . "${starship_env}"
 }
 
-parse_arguments() {
-  #@ Parse the command-line arguments
-  case $1 in
-  -h | --help)
-    show_usage_guide
-    exit
-    ;;
-  *)
-    #@ Set the default theme to "craole" if no theme is specified
-    starship_theme="${1:-craole}"
+init_shell() {
+  #@ Set the default shell to "bash" if no shell is specified
+  shell="${shell:-bash}"
+  echo "SHELL: $shell"
+  # shell.init "$shell"
+  #shellcheck disable=SC3040
+  case "$shell" in
+  *fish) ;;
+  *nu) ;;
+  *zsh) ;;
+  *bash)
+    set +o posix
+    eval "$(starship init bash)"
+    set -o posix
     ;;
   esac
 }
 
+parse_arguments() {
+  #@ Parse the command-line arguments
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    -h | --help)
+      show_usage_guide
+      exit
+      ;;
+    -s | --shell) shell=$2 ;;
+    -t | --theme) theme=$2 ;;
+    *)
+      #@ Set the default theme to "craole" if no theme is specified
+      # theme="$1"
+      ;;
+    esac
+    shift
+  done
+}
+
 main() {
   parse_arguments "$@"
-  process
+  init_theme
+  init_shell
 } && main "$@"

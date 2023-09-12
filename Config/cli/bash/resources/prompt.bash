@@ -57,6 +57,13 @@
 #   unset color_prompt force_color_prompt
 # }
 
+weHaveOR() {
+  weHave "$1" || {
+    echo exiting
+    return
+  }
+}
+
 init_PS1() {
   # git dirty functions for prompt
   parse_git_dirty() {
@@ -98,24 +105,23 @@ init_PS1() {
 }
 
 init_direnv() {
-  type direnv >/dev/null 2>&1 || return 1
+  weHave direnv || return
   eval "$(direnv hook bash)"
 }
 
 init_starship() {
-  type starship >/dev/null 2>&1 || return 1
+  weHave starship || return
   set +o posix
   eval "$(starship init bash)"
   set -o posix
 }
 
 init_zoxide() {
-  type zoxide >/dev/null 2>&1 || return 1
+  weHave zoxide || return
   # eval "$(zoxide init bash)"
   eval "$(zoxide init posix --hook prompt)"
 }
 
-init_PS1
+init_starship || init_PS1
 init_direnv
-init_starship
 init_zoxide

@@ -1,4 +1,21 @@
-SHELL_HOME="$DOTS_CLI/bash"
+#!/bin/sh
+
+SHELL_HOME="$DOTS/Config/cli/bash"
 SHELL_CONF=".config"
 
 src="$SHELL_HOME"
+app="bash"
+
+for resource in "${SHELL_HOME}"/resources/*.*; do
+  if [ -r "$resource" ]; then
+    . "$resource"
+  fi
+done
+
+for function in "${SHELL_HOME}/"functions/*.*; do
+  if [ -r "$function" ]; then
+    . "$function"
+  fi
+done
+
+unset resource function

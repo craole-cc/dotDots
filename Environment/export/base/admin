@@ -22,15 +22,15 @@ sys_LABEL="$(
     "$(os.distro.fetch)"
 )"
 
-# DOTS="$HOME/.dots"
-DLDS="$HOME/Downloads"
-VIDS="$HOME/Videos"
-MUSIC="$HOME/Music"
-PICS="$HOME/Pictures"
+DOTS="${DOTS:-"$HOME/.dots"}"
+DLS_DIR="$HOME/Downloads"
+VID_DIR="$HOME/Videos"
+MUS_DIR="$HOME/Music"
+PIC_DIR="$HOME/Pictures"
 TIMESTAMP="$(date +%F_%H-%M)"
 
-if [ -d "$PICS/Wallpapers" ]; then
-  WALLPAPERS="$PICS/Wallpapers"
+if [ -d "$PIC_DIR/Wallpapers" ]; then
+  WALLPAPERS="$PIC_DIR/Wallpapers"
 elif [ -d "$HOME/Pictures/wallpapers" ]; then
   WALLPAPERS="$HOME/Pictures/wallpapers"
 else

@@ -3,40 +3,24 @@
 
 # @___________________________________________________ CACHE & CONF<|
 
-# XDG - Linux
-XDG_CONFIG_HOME="$HOME/.config"
-XDG_STATE_HOME="$HOME/.local/state"
-XDG_CACHE_HOME="$HOME/.cache"
-XDG_DATA_HOME="$HOME/.local/share"
-XDG_CACHE_HOME="$HOME/.cache"
-XDG_RUNTIME_DIR="/run/user/$(id -u)"
-WIN_CONFIG_HOME="$HOME/AppData/Roaming"
-WIN_CACHE_HOME="$HOME/AppData/Local/Temp"
-WIN_DATA_HOME="$HOME/.data"
-
 case "$sys_INFO" in
 *Windows*)
-  CACHE_HOME="${WIN_CACHE_HOME}"
-  CONFIG_HOME="${WIN_CONFIG_HOME}"
-  DATA_HOME="${XDG_DATA_HOME}"
+  DATA_HOME="$HOME/AppData/Roaming" # powershell \$env:APPDATA
+  CACHE_HOME="$HOME/AppData/Local"  # powershell \$env:LOCALAPPDATA
+  CONFIG_HOME="$HOME/.config"
   ;;
-*Linux* | *WSL*)
-  CACHE_HOME="${XDG_CACHE_HOME}"
-  CONFIG_HOME="${XDG_CONFIG_HOME}"
-  DATA_HOME="${XDG_DATA_HOME}"
-  TRASH="${XDG_DATA_HOME}/Trash/files"
+*)
+  DATA_HOME="${XDG_DATA_HOME:-"$HOME/.local/share"}"
+  CACHE_HOME="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+  CONFIG_HOME="${XDG_CONFIG_HOME:-"$HOME/.config"}"
+  STATE_HOME="${XDG_STATE_HOME:-"$HOME/.local/state"}"
+  RUNTIME_DIR="${XDG_RUNTIME_DIR:-"/run/user/$id -u)"}"
+  TRASH="${DATA_HOME}/Trash/files"
   ;;
 esac
 
-
-# @__________________________________________________________________ DESKTOP<|
-RC_QTILE="$DOTS_TOOL/interface/qtile/config.py"
-RC_SWAY="$DOTS_TOOL/interface/sway/config"
-RC_BERRY="$DOTS_TOOL/interface/berry/autostart"
-RC_TINT2="$DOTS_TOOL/widgets/tint2/tint2rc"
-RC_SXHKD="$DOTS_TOOL/utilities/sxhkd/global"
-
-# @_____________________________________________________________________APPS <|
-RC_FUZZEL="$DOTS_APP/fuzzel/config"
-RC_NEOFETCH="$DOTS_CLI/neofetch/config"
-EMACS_BIN="$HOME/emacs.d/bin"
+XDG_DATA_HOME="$DATA_HOME"
+XDG_CACHE_HOME="$CACHE_HOME"
+XDG_CONFIG_HOME="$CONFIG_HOME"
+[ "$STATE_HOME" ] && XDG_STATE_HOME="$STATE_HOME"
+[ "$RUNTIME_DIR" ] && XDG_RUNTIME_DIR="$RUNTIME_DIR"

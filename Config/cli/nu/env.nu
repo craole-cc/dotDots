@@ -19,7 +19,6 @@ $env.NU_PLUGIN_DIRS = [ ($nu.config-path | path dirname | path join 'plugins')]
 $env.SHELL = 'nu'
 $env.EDITOR = 'helix'
 $env.FZF_DEFAULT_COMMAND = 'fd --type f --hidden --follow --exclude .git'
-$env.GPG_TTY = (tty | str trim)
 $env.GREP_OPTIONS = '--color=auto'
 $env.PF_INFO = 'ascii title os host kernel uptime memory shell editor'
 
