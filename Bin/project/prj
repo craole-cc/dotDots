@@ -1,0 +1,136 @@
+#!/bin/sh
+
+main() {
+  parse_arguments "$@"
+  access_directory "$project"
+  execute_command "$command"
+}
+
+parse_arguments() {
+  #@ Clear variables
+  unset project command
+
+  #@ Declare directories
+  projects="${PROJECTS:-$HOME/Documents}"
+  craole=$projects/github_craole
+  cc=$projects/github_craole-cc
+  gitlab=$projects/gitlab_craole
+
+  #@ Set the first argument as the project directory
+  case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')" in
+  -*dd | -*.dots | -*dotdots)
+    validate_arguments --project "${craole}"/dotDOTS
+    ;;
+  -*data | -*say)
+    validate_arguments --project "${cc}"/say_data
+    ;;
+  -*dots)
+    validate_arguments --project "${DOTS:-$HOME/.dots}"
+    ;;
+  -*)
+    handle_error \
+      --msg "Unknown option" \
+      --var "$1" \
+      --code 1 \
+      --fatal
+    ;;
+  *)
+    validate_arguments --project "$1"
+    ;;
+  esac
+
+  #@ Set the remaining arguments as the command
+  shift
+  validate_arguments --command "$*"
+}
+
+validate_arguments() {
+  case "$1" in
+  --project)
+    [ "$2" ] || handle_error \
+      --msg "Project directory not specified" \
+      --code 1 \
+      --fatal
+
+    case "$2" in
+    *\\* | */*) project="$2" ;;
+    *)
+      if command -v realpath >/dev/null 2>&1; then
+        project=$(realpath "$2")
+      else
+        project="${PWD}/${2}"
+      fi
+      ;;
+    esac
+
+    validate_directory "$project"
+    ;;
+  --command)
+    [ "$2" ] ||
+      handle_error \
+        --msg "Command not specified" \
+        --code 1 \
+        --fatal
+
+    command="$2"
+    ;;
+  esac
+}
+
+validate_directory() {
+  [ -d "$1" ] && return
+
+  if [ -e "$1" ]; then
+    handle_error \
+      --msg "Not a Directory" \
+      --var "$1" \
+      --code 1 \
+      --fatal
+  else
+    handle_error \
+      --msg "Directory not found" \
+      --var "$1" \
+      --code 1 \
+      --fatal
+  fi
+}
+
+access_directory() {
+  cd "$1" >/dev/null 2>&1 || {
+    handle_error \
+      --msg "Failed to change to directory" \
+      --var "$1" \
+      --code 2 \
+      --fatal
+  }
+}
+
+execute_command() {
+  # printf "Executing Command: %s\n\n" "$1"
+  sh -c "$1"
+}
+
+handle_error() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --msg) msg="$2" ;;
+    --var) var="$2" ;;
+    --code) code="$2" ;;
+    --fatal) fatal=true ;;
+    esac
+    shift
+  done
+
+  #@ Output Error Information
+  printf "ERROR"
+  [ "$msg" ] && printf ": %s" "$msg"
+  [ "$var" ] && printf " => %s" "$var"
+  unset msg var
+
+  #@ Terminate with Error
+  if [ "$fatal" = true ]; then
+    exit "${code:-1}"
+  fi
+}
+
+main "$@"

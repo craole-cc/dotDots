@@ -3,4 +3,5 @@
 cargo watch \
   --quiet \
   --clear \
-  --exec
+  --exec \
+  "run --quiet -- $*"

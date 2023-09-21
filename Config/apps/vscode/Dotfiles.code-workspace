@@ -13,6 +13,9 @@
     },
     {
       "path": "../../../../Documents/github_craole-cc"
+    },
+    {
+      "path": "../../../../Documents/github_craole"
     }
   ],
   "extensions": {
@@ -398,10 +401,11 @@
     "workbench.productIconTheme": "icons-carbon",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
-    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    "workbench.colorTheme": "Default Light Modern",
     "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.linkedProjects": [
-      ".\\sysfo\\Cargo.toml"
-    ],
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    // "rust-analyzer.linkedProjects": [
+    //   ".\\dotdots\\Cargo.toml",
+    // ],
   }
 }
