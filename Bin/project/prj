@@ -19,7 +19,7 @@ parse_arguments() {
   #@ Set the first argument as the project directory
   case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')" in
   -*dd | -*.dots | -*dotdots)
-    validate_arguments --project "${craole}"/dotDOTS
+    validate_arguments --project "${cc}"/dotDOTS
     ;;
   -*data | -*say)
     validate_arguments --project "${cc}"/say_data
