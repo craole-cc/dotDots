@@ -18,3 +18,5 @@ done
 
 unset RESOURCES resource
 # source /home/craole/.config/broot/launcher/bash/br
+
+source C:\Users\Administrator\AppData\Roaming\dystroy\broot\config\launcher\bash\br

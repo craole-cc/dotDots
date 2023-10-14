@@ -30,7 +30,6 @@
       "naumovs.color-highlight",
       "anseki.vscode-color",
       "mkhl.direnv",
-      "github.remotehub",
       "lkrms.inifmt",
       "jnoortheen.nix-ide",
       "ms-python.python",
@@ -45,10 +44,7 @@
       "bbenoist.nix",
       "kamadorueda.alejandra",
       "skellock.just",
-      "rogalmic.bash-debug",
       "mads-hartmann.bash-ide-vscode",
-      "jeff-hykin.better-shellscript-syntax",
-      "shakram02.bash-beautify",
       "tion.evenbettercomments"
     ]
   },
@@ -327,7 +323,7 @@
         "color": "#ffffff33",
         "strikethrough": true,
         "underline": false,
-        "backgroundColor": "transparent",
+        "backgroundColor": "#FF8C00",
         "bold": false,
         "italic": false
       },
@@ -396,14 +392,15 @@
     "workbench.tips.enabled": true,
     "workbench.statusBar.visible": true,
     "workbench.panel.defaultLocation": "bottom",
-    "workbench.preferredLightColorTheme": "Default Light Modern",
+    "workbench.preferredLightColorTheme": "Bluloco Light Italic",
     "workbench.preferredDarkColorTheme": "Nebula Oni (Pegasus)",
     "workbench.productIconTheme": "icons-carbon",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
-    "workbench.colorTheme": "Default Light Modern",
+    "workbench.colorTheme": "Nebula Oni (Pegasus)",
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.showUnlinkedFileNotification": false,
+    "workbench.editor.empty.hint": "hidden",
     // "rust-analyzer.linkedProjects": [
     //   ".\\dotdots\\Cargo.toml",
     // ],

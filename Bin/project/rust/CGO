@@ -1,13 +1,128 @@
 #!/bin/sh
 
-case $1 in
--t | --test)
-  if cargo test; then
-    printf "%s\n" "Tests Passed"
+init_commands() {
+  cmd_test="test --quiet"
+  cmd_test_args="-- --nocapture --exact"
+  cmd_build="build --release --"
+  cmd_run="run --quiet --"
+  cmd_add="add"
+  cmd_remove="remove"
+  cmd_install="install"
+  cmd_uninstall="uninstall"
+  cmd_uninstall_args="--dry-run"
+  cmd_clean="clean"
+  cmd_clean_args="--release"
+  cmd_watch="cargo watch --quiet --clear --exec"
+}
+
+weHave_cargo() {
+  #@ Check if cargo is installed
+  cargo --help >/dev/null 2>&1 || {
+    printf "Please ensure 'cargo' is installed and in your PATH. \nSee https://www.rust-lang.org/tools/install for more information."
+    exit 1
+  }
+}
+
+display_usage() {
+  printf "Usage: %s [OPTIONS] [COMMAND]\n" "$(basename "$0")"
+  printf "Options:\n"
+  printf "  -h, --help                   Display this help message\n"
+  printf "Modes:\n"
+  printf "  -W, --watch                  Enable watch mode\n"
+  printf "  -L, --lib                    Enable lib mode\n"
+  printf "Commands:\n"
+  printf "  -a, --add <PACKAGE>          Add packages to the project\n"
+  printf "  -x, --remove <PACKAGE>       Remove packages from the project\n"
+  printf "  -i, --install <PACKAGE>      Install packages to the system\n"
+  printf "  -u, --uninstall <PACKAGE>    Uninstall packages from the system\n"
+  printf "  -b, --build                  Build in release mode\n"
+  printf "  -c, --clean                  Clean the project\n"
+  printf "  -t, --test [NAME]            Run tests\n"
+  printf "  -r, --run [OPTIONS]          Run the application\n"
+}
+
+parse_arguments() {
+  #@ Reset variables
+  unset watch cmd
+
+  #@ Help
+  for arg in "$@"; do
+    case "$arg" in -[hH] | --help) display_usage && exit 0 ;; esac
+  done
+
+  #@ Modes
+  case $1 in -*W*) watch=true ;; esac
+  case $1 in -*L*) lib=true ;; esac
+
+  #@ Commands
+  case $1 in
+  -A | --add)
+    shift
+    cmd="$cmd_add"
+    args="$cmd_add_args $*"
+    ;;
+  -X | --remove)
+    shift
+    cmd="$cmd_remove"
+    args="$cmd_remove_args $*"
+    ;;
+  -I | --install*)
+    shift
+    cmd="$cmd_install"
+    args="$cmd_install_args $*"
+    ;;
+  -U | --uninstall*)
+    shift
+    cmd="$cmd_uninstall"
+    args="$cmd_uninstall_args $*"
+    ;;
+  -B | --build)
+    shift
+    cmd="$cmd_build"
+    args="$cmd_build_args $*"
+    ;;
+  -C | --clean)
+    unset watch
+    shift
+    cmd="$cmd_clean"
+    args="$cmd_clean_args $*"
+    ;;
+  -*T* | --test*)
+    shift
+    cmd="$cmd_test"
+    args="$cmd_test_args $*"
+    ;;
+  -*R* | --run*)
+    shift
+    cmd="run --quiet -- $*"
+    ;;
+  *) cmd="$*" ;;
+  esac
+
+  #@ Update the command
+  [ "$lib" ] && cmd="$cmd --lib"
+  cmd="$cmd $args"
+
+  case "$cmd" in !"test "* | !"run "*) unset watch ;; esac
+
+  if [ "$watch" ]; then
+    cmd="$cmd_watch \"$cmd\""
   else
-    printf "%s\n" "Tests Failed"
+    cmd="cargo $cmd"
   fi
-  ;;
--r | --run) cargo run --quiet -- "$*" ;;
-*) cargo "$*" ;;
-esac
+}
+
+execute() {
+  #@ Display the command that would be executed
+  printf "/> %s" "$cmd"
+
+  #@ Execute the command
+  eval "$cmd"
+}
+
+main() {
+  weHave_cargo || exit 1
+  init_commands
+  parse_arguments "$@"
+  execute
+} && main "$@"

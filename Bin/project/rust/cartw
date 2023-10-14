@@ -4,4 +4,4 @@ cargo watch \
   --quiet \
   --clear \
   --exec \
-  "$*"
+  "test --quiet -- $* --nocapture --exact"
