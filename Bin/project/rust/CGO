@@ -1,24 +1,11 @@
 #!/bin/sh
 
-init_commands() {
-  cmd_test="test --quiet"
-  cmd_test_args="-- --nocapture --exact"
-  cmd_build="build --release --"
-  cmd_run="run --quiet --"
-  cmd_add="add"
-  cmd_remove="remove"
-  cmd_install="install"
-  cmd_uninstall="uninstall"
-  cmd_uninstall_args="--dry-run"
-  cmd_clean="clean"
-  cmd_clean_args="--release"
-  cmd_watch="cargo watch --quiet --clear --exec"
-}
-
 weHave_cargo() {
   #@ Check if cargo is installed
   cargo --help >/dev/null 2>&1 || {
-    printf "Please ensure 'cargo' is installed and in your PATH. \nSee https://www.rust-lang.org/tools/install for more information."
+    printf "%s\n%s" \
+      "Please ensure 'cargo' is installed and in your PATH." \
+      "See https://www.rust-lang.org/tools/install for more information."
     exit 1
   }
 }
@@ -42,87 +29,204 @@ display_usage() {
 }
 
 parse_arguments() {
-  #@ Reset variables
-  unset watch cmd
-
   #@ Help
-  for arg in "$@"; do
-    case "$arg" in -[hH] | --help) display_usage && exit 0 ;; esac
+  for args in "$@"; do
+    case "$args" in -[hH] | --help) display_usage && exit 0 ;; esac
   done
 
-  #@ Modes
-  case $1 in -*W*) watch=true ;; esac
-  case $1 in -*L*) lib=true ;; esac
+  #@ Reset variables
+  unset watch cmd opt
+  arg="$*"
 
   #@ Commands
   case $1 in
-  -A | --add)
-    shift
-    cmd="$cmd_add"
-    args="$cmd_add_args $*"
+  -[aA]*)
+    #@ Command
+    cmd="add"
+
+    #@ Options
+    unset opt
+
+    #@ Arguments
+    unset arg
     ;;
-  -X | --remove)
-    shift
-    cmd="$cmd_remove"
-    args="$cmd_remove_args $*"
+  -[bB]*)
+    #@ Command
+    cmd="build"
+
+    #@ Options
+    opt="--release"
+    case $1 in
+    -*[bB]*[bB]*)
+      if [ "$2" ]; then
+        opt="$opt --bin $2"
+      else
+        opt="$opt --bins"
+      fi
+      ;;
+    -*[bB]*[lL]*)
+      shift
+      opt="$opt --lib"
+      ;;
+    -*[bB]*[tT]*)
+      if [ "$2" ]; then
+        opt="$opt --test $2"
+      else
+        opt="$opt --tests"
+      fi
+      ;;
+    -*[bB]*[eE]*)
+      if [ "$2" ]; then
+        opt="$opt --example $2"
+      else
+        opt="$opt --examples"
+      fi
+      ;;
+    -*[bB]*[wW]*)
+      shift
+      opt="$opt --workspace $1"
+      ;;
+    -*[bB]*[xX]*)
+      [ "$2" ] && {
+        shift
+        opt="$opt --exclude $*"
+      }
+      ;;
+    *) opt="--all-features --all-targets" ;;
+    esac
+
+    #@ Arguments
+    unset arg
     ;;
-  -I | --install*)
-    shift
-    cmd="$cmd_install"
-    args="$cmd_install_args $*"
+  -[cC]*)
+    #@ Command
+    cmd="clean"
+
+    #@ Options
+    # opt="--release"
+
+    #@ Arguments
+    unset arg
     ;;
-  -U | --uninstall*)
-    shift
-    cmd="$cmd_uninstall"
-    args="$cmd_uninstall_args $*"
+  -[rR]*)
+    #@ Command
+    cmd="run"
+
+    #@ Options
+    opt="--quiet --release"
+    case $1 in
+    -*[rR]*[bB]*)
+      [ "$2" ] &&
+        {
+          opt="$opt --bin $2"
+          shift 2
+        }
+      ;;
+    -*[rR]*[eE]*)
+      [ "$2" ] && {
+        opt="$opt --example $2"
+        shift 2
+      }
+      ;;
+    -*[rR]*p*)
+      [ "$2" ] && {
+        opt="$opt --package $2"
+        shift 2
+      }
+      ;;
+    -*[rR]*P*)
+      [ "$2" ] && {
+        opt="$opt --profile $2"
+        shift 2
+      }
+      ;;
+    -*[rR]*t*)
+      [ "$2" ] && {
+        opt="$opt --target $2"
+        shift 2
+      }
+      ;;
+    -*[rR]*T*)
+      [ "$2" ] && {
+        opt="$opt --target-dir $2"
+        shift 2
+      }
+      ;;
+    -*[rR]*[jJ]*)
+      [ "$2" ] && {
+        opt="$opt --jobs $2"
+        shift 2
+      }
+      ;;
+    *)
+      shift
+      opt="--all-features"
+      ;;
+    esac
+
+    #@ Arguments
+    unset arg
+    [ "$1" ] && arg="-- $*"
     ;;
-  -B | --build)
-    shift
-    cmd="$cmd_build"
-    args="$cmd_build_args $*"
+  -[tT]*)
+    #@ Command
+    cmd="test"
+
+    #@ Options
+    opt="--quiet"
+    case $1 in
+    -*[tT]*[tT]*)
+      if [ "$2" ]; then
+        opt="$opt --test $2"
+        shift 2
+      else
+        opt="$opt --test $(basename "$PWD")"
+        shift
+      fi
+      ;;
+    *)
+      shift
+      ;;
+    esac
+
+    #@ Arguments
+    arg="-- --nocapture --exact"
+    [ "$1" ] && arg="$arg $*"
     ;;
-  -C | --clean)
-    unset watch
-    shift
-    cmd="$cmd_clean"
-    args="$cmd_clean_args $*"
-    ;;
-  -*T* | --test*)
-    shift
-    cmd="$cmd_test"
-    args="$cmd_test_args $*"
-    ;;
-  -*R* | --run*)
-    shift
-    cmd="run --quiet -- $*"
-    ;;
-  *) cmd="$*" ;;
+
   esac
 
-  #@ Update the command
-  [ "$lib" ] && cmd="$cmd --lib"
-  cmd="$cmd $args"
+  #@ Join the command parts
+  cmd="$cmd $opt $arg"
+}
 
+initialize_command() {
+
+  #@ Ensure watch is used only on test and run commands
   case "$cmd" in !"test "* | !"run "*) unset watch ;; esac
 
+  # #@ Update the final command
   if [ "$watch" ]; then
-    cmd="$cmd_watch \"$cmd\""
+    cmd="cargo watch --quiet --clear --exec \"$cmd\""
   else
     cmd="cargo $cmd"
   fi
 }
 
-execute() {
+display_command() {
   #@ Display the command that would be executed
   printf "/> %s" "$cmd"
+}
 
+execute_command() {
   #@ Execute the command
   eval "$cmd"
 }
 
 main() {
   weHave_cargo || exit 1
-  init_commands
   parse_arguments "$@"
-  execute
+  initialize_command
+  display_command
+  execute_command
 } && main "$@"
