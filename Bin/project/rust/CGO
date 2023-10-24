@@ -29,18 +29,19 @@ display_usage() {
 }
 
 parse_arguments() {
-  #@ Help
+  #@ Options
   for args in "$@"; do
-    case "$args" in -[hH] | --help) display_usage && exit 0 ;; esac
+    case "$args" in -*W*) watch=true ;; esac
+    case "$args" in -*L*) opt="$opt --lib" ;; esac
+    case "$args" in -*Q*) opt="$opt --quiet" ;; esac
+    case "$args" in -*R*) opt="$opt --release" ;; esac
+    case "$args" in -*A*) opt="$opt --all-features" ;; esac
   done
-
-  #@ Reset variables
-  unset watch cmd opt
-  arg="$*"
 
   #@ Commands
   case $1 in
-  -[aA]*)
+  -h | --help) display_usage && exit 0 ;;
+  -a*)
     #@ Command
     cmd="add"
 
@@ -50,154 +51,144 @@ parse_arguments() {
     #@ Arguments
     unset arg
     ;;
-  -[bB]*)
+  -b*)
     #@ Command
     cmd="build"
 
     #@ Options
-    opt="--release"
+    opt="$opt --release"
     case $1 in
-    -*[bB]*[bB]*)
+    -b*b*)
       if [ "$2" ]; then
         opt="$opt --bin $2"
       else
         opt="$opt --bins"
       fi
       ;;
-    -*[bB]*[lL]*)
-      shift
-      opt="$opt --lib"
-      ;;
-    -*[bB]*[tT]*)
+    -b*t*)
       if [ "$2" ]; then
         opt="$opt --test $2"
       else
         opt="$opt --tests"
       fi
       ;;
-    -*[bB]*[eE]*)
+    -b*e*)
       if [ "$2" ]; then
         opt="$opt --example $2"
       else
         opt="$opt --examples"
       fi
       ;;
-    -*[bB]*[wW]*)
+    -b*w*)
       shift
       opt="$opt --workspace $1"
       ;;
-    -*[bB]*[xX]*)
+    -b*x*)
       [ "$2" ] && {
         shift
         opt="$opt --exclude $*"
       }
       ;;
-    *) opt="--all-features --all-targets" ;;
+    *)
+      opt="$opt --all-targets"
+      ;;
     esac
 
     #@ Arguments
     unset arg
     ;;
-  -[cC]*)
+  -c*)
     #@ Command
     cmd="clean"
 
     #@ Options
-    # opt="--release"
 
     #@ Arguments
     unset arg
     ;;
-  -[rR]*)
+  -r*)
     #@ Command
     cmd="run"
 
     #@ Options
-    opt="--quiet --release"
     case $1 in
-    -*[rR]*[bB]*)
+    -r*b*)
       [ "$2" ] &&
         {
           opt="$opt --bin $2"
-          shift 2
+          shift
         }
       ;;
-    -*[rR]*[eE]*)
+    -r*e*)
       [ "$2" ] && {
         opt="$opt --example $2"
-        shift 2
+        shift
       }
       ;;
-    -*[rR]*p*)
+    -r*p*)
       [ "$2" ] && {
         opt="$opt --package $2"
-        shift 2
+        shift
       }
       ;;
-    -*[rR]*P*)
+    -r*o*)
       [ "$2" ] && {
         opt="$opt --profile $2"
-        shift 2
+        shift
       }
       ;;
-    -*[rR]*t*)
+    -r*t*)
       [ "$2" ] && {
         opt="$opt --target $2"
-        shift 2
+        shift
       }
       ;;
-    -*[rR]*T*)
+    -r*d*)
       [ "$2" ] && {
         opt="$opt --target-dir $2"
-        shift 2
+        shift
       }
       ;;
-    -*[rR]*[jJ]*)
+    -r*j*)
       [ "$2" ] && {
         opt="$opt --jobs $2"
-        shift 2
+        shift
       }
-      ;;
-    *)
-      shift
-      opt="--all-features"
       ;;
     esac
 
     #@ Arguments
-    unset arg
-    [ "$1" ] && arg="-- $*"
+    [ "$2" ] && shift && arg="$*"
     ;;
-  -[tT]*)
+  -t*)
     #@ Command
     cmd="test"
 
     #@ Options
-    opt="--quiet"
     case $1 in
-    -*[tT]*[tT]*)
+    -t*t*)
       if [ "$2" ]; then
         opt="$opt --test $2"
-        shift 2
+        shift
       else
         opt="$opt --test $(basename "$PWD")"
-        shift
       fi
-      ;;
-    *)
-      shift
       ;;
     esac
 
     #@ Arguments
-    arg="-- --nocapture --exact"
-    [ "$1" ] && arg="$arg $*"
+    arg="--nocapture --exact"
+    [ "$2" ] && shift && arg="$arg $*"
     ;;
-
   esac
 
   #@ Join the command parts
-  cmd="$cmd $opt $arg"
+  cmd="$cmd $opt"
+  if [ "$arg" ]; then
+    cmd="$cmd -- $arg"
+  else
+    cmd="$cmd $*"
+  fi
 }
 
 initialize_command() {
@@ -205,7 +196,7 @@ initialize_command() {
   #@ Ensure watch is used only on test and run commands
   case "$cmd" in !"test "* | !"run "*) unset watch ;; esac
 
-  # #@ Update the final command
+  #@ Update the command according to the mode
   if [ "$watch" ]; then
     cmd="cargo watch --quiet --clear --exec \"$cmd\""
   else
@@ -215,7 +206,7 @@ initialize_command() {
 
 display_command() {
   #@ Display the command that would be executed
-  printf "/> %s" "$cmd"
+  printf "/> %s\n" "$cmd"
 }
 
 execute_command() {
