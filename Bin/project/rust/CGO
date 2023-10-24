@@ -182,17 +182,22 @@ parse_arguments() {
     ;;
   esac
 
-  #@ Join the command parts
-  cmd="$cmd $opt"
   if [ "$arg" ]; then
-    cmd="$cmd -- $arg"
+    arg="-- $arg"
   else
-    cmd="$cmd $*"
+    arg="$*"
   fi
+
+  #@ Join the command parts
+  cmd="$cmd $opt $arg"
+  # if [ "$arg" ]; then
+  #   cmd="$cmd -- $arg"
+  # else
+  #   cmd="$cmd $*"
+  # fi
 }
 
 initialize_command() {
-
   #@ Ensure watch is used only on test and run commands
   case "$cmd" in !"test "* | !"run "*) unset watch ;; esac
 
@@ -219,5 +224,5 @@ main() {
   parse_arguments "$@"
   initialize_command
   display_command
-  execute_command
+  # execute_command
 } && main "$@"
