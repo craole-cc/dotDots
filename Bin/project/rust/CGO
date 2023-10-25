@@ -1,6 +1,79 @@
 #!/bin/sh
+scr_name="$(basename "$0")"
+scr_guide="$(
+  cat <<EOF
+Usage:
+  $(basename "$0") <MODES> [COMMAND/OPTION] -- <ARGUMENTS>
 
-weHave_cargo() {
+Modes:
+  -h, --help                  Display this help message
+  -W, --watch                 Enable watch mode
+  -L, --lib                   Enable lib mode
+  -Q, --quiet                 Enable quiet mode
+  -R, --release               Enable release mode
+  -A, --all-features          Enable all-features mode
+
+Build Options:
+  -b                          Build all targets (default)
+  -bb <BIN_NAME>              Build a specific binary
+  -bt <TEST_NAME>             Run a specific test
+  -be <EXAMPLE_NAME>          Build a specific example
+  -bw <WORKSPACE_DIR>         Build within a workspace
+  -bx <EXCLUDE_TARGETS>       Exclude specified targets
+
+Run Options:
+  -r                          Run the application
+  -rb <BIN_NAME>              Run a specific binary
+  -re <EXAMPLE_NAME>          Run a specific example
+  -rp <PACKAGE_NAME>          Specify a package to run
+  -ro <PROFILE_NAME>          Set the profile for the build
+  -rt <TARGET_NAME>           Specify a target triple
+  -rd <TARGET_DIR>            Specify the target directory
+  -rj <NUM_JOBS>              Set the number of jobs for parallel builds
+
+Test Options:
+  -t                          Run tests with default options
+  -tt <TEST_NAME>             Run a specific test (default: current directory name)
+
+Package Commands:
+  -a <PACKAGE>                Add packages to the project
+  -x <PACKAGE>                Remove packages from the project
+  -i <PACKAGE>                Install packages to the system
+  -u <PACKAGE>                Uninstall packages from the system
+
+EOF
+)"
+
+display_usage() {
+  if [ "$#" -eq 0 ]; then
+    #@ No arguments
+    exit_code=0
+  else
+    if [ "$1" -eq "$1" ] 2>/dev/null; then
+      #@ The first argument is a number
+      exit_code="$1"
+      shift
+    else
+      #@ The first argument is not a number
+      exit_code=1
+    fi
+  fi
+  #@ Display the error or custom message
+  [ "$*" ] &&
+    if [ "$exit_code" -ne 0 ]; then
+      printf "Error: %s\n\n" "$*"
+    else
+      printf "%s\n\n" "$*"
+    fi
+
+  #@ Display the usage guide
+  printf "%s\n" "$scr_guide"
+
+  #@ Terminate
+  exit "${exit_code:-0}"
+}
+
+cargo_cmd() {
   #@ Check if cargo is installed
   cargo --help >/dev/null 2>&1 || {
     printf "%s\n%s" \
@@ -8,221 +81,288 @@ weHave_cargo() {
       "See https://www.rust-lang.org/tools/install for more information."
     exit 1
   }
+
+  if [ "$2" ]; then
+    printf "cargo watch --quiet --clear --exec \"%s\"" "$1"
+  else
+    printf "cargo %s" "$1"
+  fi
 }
 
-display_usage() {
-  printf "Usage: %s [OPTIONS] [COMMAND]\n" "$(basename "$0")"
-  printf "Options:\n"
-  printf "  -h, --help                   Display this help message\n"
-  printf "Modes:\n"
-  printf "  -W, --watch                  Enable watch mode\n"
-  printf "  -L, --lib                    Enable lib mode\n"
-  printf "Commands:\n"
-  printf "  -a, --add <PACKAGE>          Add packages to the project\n"
-  printf "  -x, --remove <PACKAGE>       Remove packages from the project\n"
-  printf "  -i, --install <PACKAGE>      Install packages to the system\n"
-  printf "  -u, --uninstall <PACKAGE>    Uninstall packages from the system\n"
-  printf "  -b, --build                  Build in release mode\n"
-  printf "  -c, --clean                  Clean the project\n"
-  printf "  -t, --test [NAME]            Run tests\n"
-  printf "  -r, --run [OPTIONS]          Run the application\n"
-}
-
-parse_arguments() {
-  #@ Options
-  for args in "$@"; do
-    case "$args" in -*W*) watch=true ;; esac
-    case "$args" in -*L*) opt="$opt --lib" ;; esac
-    case "$args" in -*Q*) opt="$opt --quiet" ;; esac
-    case "$args" in -*R*) opt="$opt --release" ;; esac
-    case "$args" in -*A*) opt="$opt --all-features" ;; esac
-  done
-
-  #@ Commands
-  case $1 in
-  -h | --help) display_usage && exit 0 ;;
-  -a*)
-    #@ Command
-    cmd="add"
-
-    #@ Options
-    unset opt
-
-    #@ Arguments
-    unset arg
-    ;;
-  -b*)
-    #@ Command
-    cmd="build"
-
-    #@ Options
-    opt="$opt --release"
+get_option() {
+  while [ $# -gt 0 ]; do
     case $1 in
-    -b*b*)
-      if [ "$2" ]; then
-        opt="$opt --bin $2"
-      else
-        opt="$opt --bins"
-      fi
+    -p* | --p*)
+      [ "$2" ] &&
+        if [ "$2" -eq "$2" ] 2>/dev/null; then
+          position="$2"
+          shift
+        else
+          printf "Error: Position not a number\n"
+          printf "Invalid position: %s\n" "$2"
+          exit 66 #? Developer Error - Script Logic Error
+        fi
+
       ;;
-    -b*t*)
-      if [ "$2" ]; then
-        opt="$opt --test $2"
-      else
-        opt="$opt --tests"
-      fi
-      ;;
-    -b*e*)
-      if [ "$2" ]; then
-        opt="$opt --example $2"
-      else
-        opt="$opt --examples"
-      fi
-      ;;
-    -b*w*)
-      shift
-      opt="$opt --workspace $1"
-      ;;
-    -b*x*)
+    -o* | --o*)
       [ "$2" ] && {
+        options="$2"
         shift
-        opt="$opt --exclude $*"
       }
       ;;
     *)
-      opt="$opt --all-targets"
+      options="${options:-$1}"
+      position="${position:-$2}"
       ;;
     esac
+    shift
+  done
 
-    #@ Arguments
-    unset arg
-    ;;
-  -c*)
-    #@ Command
-    cmd="clean"
+  #@ Update position
+  case "$options" in --*) offset=2 ;; -*) offset=1 ;; esac
+  position="$(("${position:-1}" + offset))"
 
-    #@ Options
+  #@ Debug
+  # echo "Options: ${#options} [$options] | Position: $position | Offset: $offset"
 
-    #@ Arguments
-    unset arg
-    ;;
-  -r*)
-    #@ Command
-    cmd="run"
-
-    #@ Options
-    case $1 in
-    -r*b*)
-      [ "$2" ] &&
-        {
-          opt="$opt --bin $2"
-          shift
-        }
-      ;;
-    -r*e*)
-      [ "$2" ] && {
-        opt="$opt --example $2"
-        shift
-      }
-      ;;
-    -r*p*)
-      [ "$2" ] && {
-        opt="$opt --package $2"
-        shift
-      }
-      ;;
-    -r*o*)
-      [ "$2" ] && {
-        opt="$opt --profile $2"
-        shift
-      }
-      ;;
-    -r*t*)
-      [ "$2" ] && {
-        opt="$opt --target $2"
-        shift
-      }
-      ;;
-    -r*d*)
-      [ "$2" ] && {
-        opt="$opt --target-dir $2"
-        shift
-      }
-      ;;
-    -r*j*)
-      [ "$2" ] && {
-        opt="$opt --jobs $2"
-        shift
-      }
-      ;;
-    esac
-
-    #@ Arguments
-    [ "$2" ] && shift && arg="$*"
-    ;;
-  -t*)
-    #@ Command
-    cmd="test"
-
-    #@ Options
-    case $1 in
-    -t*t*)
-      if [ "$2" ]; then
-        opt="$opt --test $2"
-        shift
-      else
-        opt="$opt --test $(basename "$PWD")"
-      fi
-      ;;
-    esac
-
-    #@ Arguments
-    arg="--nocapture --exact"
-    [ "$2" ] && shift && arg="$arg $*"
-    ;;
-  esac
-
-  if [ "$arg" ]; then
-    arg="-- $arg"
+  #@ Return the option
+  if [ "$position" -gt "${#options}" ]; then
+    printf "Error: Position out of range\n"
+    printf "Invalid Position: %s | Max Position: %s | Actual Option: %s\n" \
+      "$position" "${#options}" "$options"
+    exit 66 #? Developer Error - Script Logic Error
   else
-    arg="$*"
+    printf "%s\n" "$options" | cut -c "$position"
   fi
 
-  #@ Join the command parts
-  cmd="$cmd $opt $arg"
-  # if [ "$arg" ]; then
-  #   cmd="$cmd -- $arg"
-  # else
-  #   cmd="$cmd $*"
-  # fi
 }
 
-initialize_command() {
+parse_arguments() {
+
+  internal() {
+    [ $# -eq 0 ] && display_usage 1 "Missing arguments"
+
+    case "$1" in -h | --help) display_usage ;; esac
+
+    for argument in "$@"; do
+      #@ Modes
+      case "$argument" in --debug)
+        debug=true
+        verbose=true
+        ;;
+      esac
+      case "$argument" in -D)
+        verbose=true
+        verbosity="--verbose"
+        ;;
+      esac
+      case "$argument" in -Q) verbosity="--quiet" ;; esac
+      case "$argument" in -W) watch=true ;; esac
+    done
+  } && internal "$@"
+
+  external() {
+    while [ $# -gt 0 ]; do
+      case "$1" in
+      -a*)
+        #> Command
+        cmd="add"
+
+        #> Option
+        case "$(get_option "$1")" in
+        h)
+          opt="--help"
+          ;;
+        esac
+
+        #> Argument
+        unset arg
+        ;;
+      -b*)
+        cmd="build"
+
+        case "$(get_option --opt "$1" --pos 2)" in
+        h)
+          opt="--help"
+          ;;
+        b)
+          if [ "$2" ]; then
+            opt="--bin"
+          else
+            opt="--bins"
+          fi
+          ;;
+        e)
+          if [ "$2" ]; then
+            opt="--example"
+          else
+            opt="--examples"
+          fi
+          ;;
+        l)
+          opt="--lib"
+          ;;
+        n)
+          if [ "$2" ]; then
+            opt="--bench"
+          else
+            opt="--benches"
+          fi
+          ;;
+        t)
+          if [ "$2" ]; then
+            opt="--test"
+          else
+            opt="--test $(basename "$PWD")"
+          fi
+          ;;
+        a)
+          opt="--all-targets --all-features"
+          ;;
+        w)
+          opt="--workspace"
+          ;;
+        x)
+          opt="--exclude"
+          ;;
+        esac
+
+        while [ $# -gt 1 ]; do
+          case "$2" in --) break ;; -*) ;; *) opt="$opt $2" ;; esac
+          shift
+        done
+        ;;
+      -c*)
+        #@ Command
+        cmd="clean"
+
+        #@ Options
+        case "$(get_option "$1")" in
+        h) opt="--help" ;;
+        p)
+          shift
+          opt="$opt $*"
+          ;;
+        esac
+
+        #@ Arguments
+        unset arg
+        ;;
+      -r*)
+        cmd="run"
+
+        case "$(get_option --opt "$1" --pos 2)" in
+        h) opt="--help" ;;
+        b) opt="--bin" ;;
+        e) opt="--example" ;;
+        j) opt="--jobs" ;;
+        p) opt="--package" ;;
+        o) opt="--profile" ;;
+        t) opt="--target" ;;
+        d) opt="--target-dir" ;;
+        r | a) opt="--all-features --release" ;;
+        u | g) opt="--unit-graph" ;;
+        esac
+
+        while [ $# -gt 1 ]; do
+          case "$2" in -*) ;; *) opt="$opt $2" ;; esac
+          shift
+        done
+        ;;
+      -t*)
+        cmd="test"
+
+        case "$(get_option --opt "$1" --pos 2)" in
+        h)
+          opt="--help"
+          ;;
+        b)
+          if [ "$2" ]; then
+            opt="--bin"
+          else
+            opt="--bins"
+          fi
+          ;;
+        e)
+          if [ "$2" ]; then
+            opt="--example"
+          else
+            opt="--examples"
+          fi
+          ;;
+        l)
+          opt="--lib"
+          ;;
+        n)
+          if [ "$2" ]; then
+            opt="--bench"
+          else
+            opt="--benches"
+          fi
+          ;;
+        t)
+          if [ "$2" ]; then
+            opt="--test"
+          else
+            opt="--test $(basename "$PWD")"
+          fi
+          ;;
+        a)
+          opt="--all-targets --all-features"
+          ;;
+        w)
+          opt="--workspace"
+          ;;
+        x)
+          opt="--exclude"
+          ;;
+        esac
+
+        while [ $# -gt 1 ]; do
+          case "$2" in --) break ;; -*) ;; *) opt="$opt $2" ;; esac
+          shift
+        done
+
+        [ "$3" ] && shift
+
+        arg="--nocapture --exact"
+        while [ $# -gt 1 ]; do
+          case "$2" in --) break ;; -*) ;; *) arg="$arg $2" ;; esac
+          shift
+        done
+        ;;
+      *)
+        case $1 in
+        -Q | -D | -W | --debug) ;;
+        *) cmd="$cmd $1" ;;
+        esac
+        ;;
+      esac
+      shift
+    done
+  } && external "$@"
+}
+
+process() {
+  #@ Join the command parts
+  [ "$opt" ] || opt="$verbosity $opt"
+  [ "$arg" ] && arg=" -- $arg"
+  cmd="$cmd $opt $arg"
+
   #@ Ensure watch is used only on test and run commands
-  case "$cmd" in !"test "* | !"run "*) unset watch ;; esac
+  case "$cmd" in "test "* | "run "*) ;; *) unset watch ;; esac
 
   #@ Update the command according to the mode
-  if [ "$watch" ]; then
-    cmd="cargo watch --quiet --clear --exec \"$cmd\""
-  else
-    cmd="cargo $cmd"
-  fi
-}
+  cmd="$(cargo_cmd "$cmd" "$watch")"
 
-display_command() {
-  #@ Display the command that would be executed
-  printf "/> %s\n" "$cmd"
-}
+  #@ Display the command
+  [ "$verbose" ] && printf "/> %s\n" "$cmd"
 
-execute_command() {
   #@ Execute the command
-  eval "$cmd"
+  [ "$debug" ] || eval "$cmd"
 }
 
 main() {
-  weHave_cargo || exit 1
   parse_arguments "$@"
-  initialize_command
-  display_command
-  # execute_command
+  process
 } && main "$@"

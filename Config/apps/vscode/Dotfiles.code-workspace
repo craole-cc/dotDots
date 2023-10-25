@@ -397,7 +397,7 @@
     "workbench.productIconTheme": "icons-carbon",
     //@ /* Window */
     "window.autoDetectColorScheme": true,
-    "workbench.colorTheme": "Bluloco Light Italic",
+    "workbench.colorTheme": "Nebula Oni (Pegasus)",
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.showUnlinkedFileNotification": false,
     "workbench.editor.empty.hint": "hidden",
