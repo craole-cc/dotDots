@@ -48,14 +48,16 @@ init_variables() {
   #> Initialize variables
   unset \
     clean \
+    check \
     build \
     run \
     test \
     watch \
-    watch_on \
+    last_cmd \
     verbosity \
     release \
-    package
+    package \
+    cmd
 }
 
 display_usage_guide() {
@@ -88,17 +90,18 @@ parse_arguments() {
       ;;
     -c | --check)
       check=true
+      last_cmd="check"
       ;;
     -b | --build)
       build=true
       ;;
     -r | --run)
       run=true
-      watch_on="run"
+      last_cmd="run"
       ;;
     -t | --test)
       test=true
-      watch_on="test"
+      last_cmd="test"
       ;;
     -0 | --rx)
       clean=true
@@ -106,26 +109,28 @@ parse_arguments() {
       run=true
       release=true
       # watch=true
-      # watch_on="run"
+      # last_cmd="run"
       verbosity="verbose"
       ;;
     -1 | --rw)
       # clean=true
-      build=true
+      # build=true
+      # check=true
       # test=true
       run=true
       release=true
       watch=true
-      watch_on="run"
+      last_cmd="run"
       verbosity="quiet"
       ;;
     -2 | --tw)
       # clean=true
-      build=true
+      # build=true
+      # check=true
       test=true
       release=true
       watch=true
-      watch_on="test"
+      last_cmd="test"
       verbosity="quiet"
       ;;
     -3 | --all)
@@ -135,37 +140,50 @@ parse_arguments() {
       run=true
       release=true
       # watch=true
-      # watch_on="run"
+      # last_cmd="run"
       verbosity="verbose"
       ;;
 
     *)
-      # Capture package name
       package="$1"
       ;;
     esac
     shift
   done
+
+  #> Set default values, if none specified
+  {
+    : &&
+      [ "$clean" ] ||
+      [ "$check" ] ||
+      [ "$build" ] ||
+      [ "$run" ] ||
+      [ "$test" ]
+  } || {
+    last_cmd="run"
+    watch=true
+    release=true
+    verbosity="verbose"
+
+    case "$last_cmd" in
+    check) check=true ;;
+    test) test=true ;;
+    run) run=true ;;
+    esac
+  }
 }
 
 process_commands() {
-  #> Execute the specified commands.
-  if [ "$clean" ] || [ "$build" ] || [ "$run" ] || [ "$test" ]; then
-    [ "$clean" ] && execute_command "clean"
-    [ "$check" ] && execute_command "check"
-    [ "$build" ] && execute_command "build"
+  [ "$clean" ] && execute_command "clean"
+  [ "$build" ] && execute_command "build"
 
-    [ "$test" ] && [ "$watch_on" != "test" ] && execute_command "test"
-    [ "$run" ] && [ "$watch_on" != "run" ] && execute_command "run"
+  [ "$check" ] && [ "$last_cmd" != "check" ] && execute_command "check"
+  [ "$test" ] && [ "$last_cmd" != "test" ] && execute_command "test"
+  [ "$run" ] && [ "$last_cmd" != "run" ] && execute_command "run"
 
-    [ "$test" ] && [ "$watch_on" = "test" ] && execute_command "test"
-    [ "$run" ] && [ "$watch_on" = "run" ] && execute_command "run"
-  else
-    #> If no commands are specified, execute a defaut set.
-    execute_command "check"
-    # execute_command "build"
-    execute_command "run"
-  fi
+  [ "$check" ] && [ "$last_cmd" = "check" ] && execute_command "check"
+  [ "$test" ] && [ "$last_cmd" = "test" ] && execute_command "test"
+  [ "$run" ] && [ "$last_cmd" = "run" ] && execute_command "run"
 }
 
 execute_command() {
@@ -191,11 +209,11 @@ execute_command() {
   [ "$package" ] && cmd="$cmd --package $package"
 
   #> Check if the command is 'run' or 'test'
-  case "$cmd" in "test "* | "run "*)
-  #> Check if the watch flag is set
+  case "$cmd" in "test"* | "run"* | "check"*)
+    #> Check if the watch flag is set
     if [ "$watch" ]; then
-    #> Perpend the cargo watch command to the designated command
-      case "$cmd" in "$watch_on"*)
+      #> Perpend the cargo watch command to the designated command
+      case "$cmd" in "$last_cmd"*)
         cmd="$(
           printf \
             "cargo watch --quiet --clear --exec \"%s\"" \
@@ -204,7 +222,7 @@ execute_command() {
         ;;
       esac
     else
-    #> Perpend the cargo command to the next command
+      #> Perpend the cargo command to the next command
       cmd="$(printf "cargo %s" "$cmd")"
     fi
     ;;
