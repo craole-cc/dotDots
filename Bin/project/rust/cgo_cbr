@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cgo -cr -D
+cgo -br -D
+cgo -rr -D

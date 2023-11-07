@@ -18,17 +18,18 @@ RUSTUP_BASH_COMPLETION="$BDOTDIR/scripts/rustup"
 CARGO_HOME="$HOME/.cargo"
 CARGO_CONFIG="$CARGO_HOME/.crates.toml"
 CARGO_ENV="$CARGO_HOME/env"
+CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 #CARGO_ENV="$DOTS_TOOL/utilities/rustup/env"
 
 # _________________________________________ TOOLS<|
 
-#@ Load Config
+#> Load Config
 [ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
 
-#@ Install Rust if missing
+#> Install Rust if missing
 command -v rustc >/dev/null 2>&1 || install_rust
 
-# #@ Enable completions
+# #> Enable completions
 # case "$sys_INFO" in
 # pwsh) rustup completions powershell ;;
 # zSHell) rustup completions zsh ;;

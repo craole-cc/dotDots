@@ -1,0 +1,224 @@
+#!/bin/sh
+
+main() {
+  #> Initialize variables
+  init_variables
+
+  #> Parse command-line arguments
+  parse_arguments "$@"
+
+  #> Execute the specified commands
+  process_commands
+}
+
+init_variables() {
+  scr_name="$(basename "$0")"
+  scr_description="A Cargo package manager wrapper to simplify common tasks"
+  scr_guide="$(
+    printf "Usage:\n"
+    printf "  %s [ MODES ] [OPTIONS] [PACKAGE]\n" "$scr_name"
+    printf "  %s\n" "$scr_description"
+
+    printf "\nModes:\n"
+    printf "  -h, --help      Display this help message\n"
+    printf "  -W, --watch     Watch the package for changes\n"
+    printf "  -Q, --quiet     Suppress output\n"
+    printf "  -D, --verbose   Enable verbose output\n"
+    printf "  -R, --release   Build the package in release mode\n"
+
+    printf "\nCargo Commands:\n"
+    printf "  -c, --clean     Execute 'cargo clean'\n"
+    printf "  -b, --build     Execute 'cargo build'\n"
+    printf "  -r, --run       Execute 'cargo run'\n"
+    printf "  -t, --test      Execute 'cargo test'\n"
+
+    printf "\nCommand Presets:\n"
+    printf "  -0, --rx     Preset: clean; build; run\n"
+    printf "  -1, --rw        Preset: build; run in watch mode\n"
+    printf "  -2, --tw        Preset: build; test in watch mode\n"
+    printf "  -3, --tr        Preset: build; test; run\n"
+
+    printf "\nExamples:\n"
+    printf "  %s -c -b -r\n" "$scr_name"
+    printf "  %s -c -b -r --watch\n" "$scr_name" # Add --watch flag
+    printf "  %s -X hello_world\n" "$scr_name"
+    printf "  %s -rw\n" "$scr_name"
+  )"
+
+  #> Initialize variables
+  unset \
+    clean \
+    build \
+    run \
+    test \
+    watch \
+    watch_on \
+    verbosity \
+    release \
+    package
+}
+
+display_usage_guide() {
+  #> Display usage guide with all available options and examples
+  printf "%s\n\n" "$scr_guide"
+}
+
+parse_arguments() {
+  #> Parse command-line arguments from stdin
+  while [ "$#" -gt 0 ]; do
+    case $1 in
+    -h | --help)
+      display_usage_guide
+      exit 0
+      ;;
+    -W | --watch)
+      watch=true
+      ;;
+    -Q | --quiet)
+      verbosity="quiet"
+      ;;
+    -V | --verbose)
+      verbosity="verbose"
+      ;;
+    -R | --release)
+      release=true
+      ;;
+    -C | --clean)
+      clean=true
+      ;;
+    -c | --check)
+      check=true
+      ;;
+    -b | --build)
+      build=true
+      ;;
+    -r | --run)
+      run=true
+      watch_on="run"
+      ;;
+    -t | --test)
+      test=true
+      watch_on="test"
+      ;;
+    -0 | --rx)
+      clean=true
+      build=true
+      run=true
+      release=true
+      # watch=true
+      # watch_on="run"
+      verbosity="verbose"
+      ;;
+    -1 | --rw)
+      # clean=true
+      build=true
+      # test=true
+      run=true
+      release=true
+      watch=true
+      watch_on="run"
+      verbosity="quiet"
+      ;;
+    -2 | --tw)
+      # clean=true
+      build=true
+      test=true
+      release=true
+      watch=true
+      watch_on="test"
+      verbosity="quiet"
+      ;;
+    -3 | --all)
+      # clean=true
+      build=true
+      test=true
+      run=true
+      release=true
+      # watch=true
+      # watch_on="run"
+      verbosity="verbose"
+      ;;
+
+    *)
+      # Capture package name
+      package="$1"
+      ;;
+    esac
+    shift
+  done
+}
+
+process_commands() {
+  #> Execute the specified commands.
+  if [ "$clean" ] || [ "$build" ] || [ "$run" ] || [ "$test" ]; then
+    [ "$clean" ] && execute_command "clean"
+    [ "$check" ] && execute_command "check"
+    [ "$build" ] && execute_command "build"
+
+    [ "$test" ] && [ "$watch_on" != "test" ] && execute_command "test"
+    [ "$run" ] && [ "$watch_on" != "run" ] && execute_command "run"
+
+    [ "$test" ] && [ "$watch_on" = "test" ] && execute_command "test"
+    [ "$run" ] && [ "$watch_on" = "run" ] && execute_command "run"
+  else
+    #> If no commands are specified, execute a defaut set.
+    execute_command "check"
+    # execute_command "build"
+    execute_command "run"
+  fi
+}
+
+execute_command() {
+  #> Ensure 'cargo' is installed
+  if cargo --help >/dev/null 2>&1; then
+    cmd="$1"
+  else
+    printf "%s\n%s" \
+      "Please ensure 'cargo' is installed and available." \
+      "See https://www.rust-lang.org/tools/install for more information."
+    exit 1
+  fi
+
+  #> Append the verbosity flag, if applicable
+  case "$verbosity" in
+  quiet) cmd="$cmd --quiet" ;;
+  verbose) cmd="$cmd --verbose" ;;
+  *) ;;
+  esac
+
+  #> Append the release flag, if applicable
+  [ "$release" ] && cmd="$cmd --release"
+  [ "$package" ] && cmd="$cmd --package $package"
+
+  #> Check if the command is 'run' or 'test'
+  case "$cmd" in "test "* | "run "*)
+  #> Check if the watch flag is set
+    if [ "$watch" ]; then
+    #> Perpend the cargo watch command to the designated command
+      case "$cmd" in "$watch_on"*)
+        cmd="$(
+          printf \
+            "cargo watch --quiet --clear --exec \"%s\"" \
+            "$cmd"
+        )"
+        ;;
+      esac
+    else
+    #> Perpend the cargo command to the next command
+      cmd="$(printf "cargo %s" "$cmd")"
+    fi
+    ;;
+  *)
+    #> Perpend the cargo command all other commands
+    cmd="$(printf "cargo %s" "$cmd")"
+    ;;
+  esac
+
+  #> Display the command, if verbosity is not 'quiet'
+  [ "$verbosity" = "quiet" ] || printf "\n/> %s\n" "$cmd"
+
+  #> Execute the command
+  eval "$cmd"
+}
+
+main "$@"

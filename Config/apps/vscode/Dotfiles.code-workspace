@@ -248,18 +248,18 @@
     "evenbettercomments.tags": [
       {
         "tag": "@",
-        "color": "#11cbc9",
+        "color": "#ab00cd",
         "strikethrough": false,
         "underline": false,
-        "backgroundColor": "#252526",
+        "backgroundColor": "#6d6d6d",
         "bold": true,
         "italic": true
       },
       {
         "tag": ">",
-        "color": "#11cbc9",
+        "color": "#6bc300",
         "strikethrough": false,
-        "underline": true,
+        "underline": false,
         "backgroundColor": "transparent",
         "bold": true,
         "italic": true
@@ -275,7 +275,7 @@
       },
       {
         "tag": "|",
-        "color": "#B026FF",
+        "color": "#009fc3",
         "strikethrough": false,
         "underline": false,
         "backgroundColor": "transparent",

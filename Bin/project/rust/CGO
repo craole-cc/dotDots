@@ -1,49 +1,60 @@
 #!/bin/sh
-scr_name="$(basename "$0")"
-scr_guide="$(
-  cat <<EOF
+
+main() {
+  scr_name="$(basename "$0")"
+  scr_guide="$(
+    cat <<EOF
 Usage:
   $(basename "$0") <MODES> [COMMAND/OPTION] -- <ARGUMENTS>
 
 Modes:
-  -h, --help                  Display this help message
-  -W, --watch                 Enable watch mode
-  -L, --lib                   Enable lib mode
-  -Q, --quiet                 Enable quiet mode
-  -R, --release               Enable release mode
-  -A, --all-features          Enable all-features mode
+  -H                Display this help message
+  -W                Enable watch mode
+  -Q                Enable quiet mode
+  -D                Enable verbose mode
+  --debug           Enable debug mode
 
-Build Options:
-  -b                          Build all targets (default)
-  -bb <BIN_NAME>              Build a specific binary
-  -bt <TEST_NAME>             Run a specific test
-  -be <EXAMPLE_NAME>          Build a specific example
-  -bw <WORKSPACE_DIR>         Build within a workspace
-  -bx <EXCLUDE_TARGETS>       Exclude specified targets
+Build Commands: Compile a local package and all of its dependencies
+  -b                    Execute the build command with default options
+  -bh                   Display help for the build command
+  -bb <BIN...>          Build specific binary  (default: all binaries)
+  -be <EXAMPLE...>      Build specific example  (default: all examples)
+  -bt <TEST...>         Build a specific test (default: all tests)
+  -bw <WORKSPACE...>    Build within a workspace
+  -bx <TARGET...>       Exclude specified target
 
-Run Options:
-  -r                          Run the application
-  -rb <BIN_NAME>              Run a specific binary
-  -re <EXAMPLE_NAME>          Run a specific example
-  -rp <PACKAGE_NAME>          Specify a package to run
-  -ro <PROFILE_NAME>          Set the profile for the build
-  -rt <TARGET_NAME>           Specify a target triple
-  -rd <TARGET_DIR>            Specify the target directory
-  -rj <NUM_JOBS>              Set the number of jobs for parallel builds
+Clean Commands: Remove artifacts that cargo has generated in the past
+  -c                    Execute the clean command with default options
 
-Test Options:
-  -t                          Run tests with default options
-  -tt <TEST_NAME>             Run a specific test (default: current directory name)
+Install Commands: Install packages to the system
+  -i                    Execute the install command with default options
+  -iu <PACKAGE>         Install a specific package
+
+Run Commands: Run a binary or example of the local package
+  -r                    Run the application
+  -rb <BIN_NAME>        Run a specific binary
+  -re <EXAMPLE_NAME>    Run a specific example
+  -rp <PACKAGE_NAME>    Specify a package to run
+  -ro <PROFILE_NAME>    Set the profile for the build
+  -rt <TARGET_NAME>     Specify a target triple
+  -rd <TARGET_DIR>      Specify the target directory
+  -rj <NUM_JOBS>        Set the number of jobs for parallel builds
+
+Test Options: Execute all unit and integration tests and build examples of a local package
+  -t                    Run tests with default options
+  -tt <TEST_NAME>       Run a specific test (default: current directory name)
 
 Package Commands:
-  -a <PACKAGE>                Add packages to the project
-  -x <PACKAGE>                Remove packages from the project
-  -i <PACKAGE>                Install packages to the system
-  -u <PACKAGE>                Uninstall packages from the system
+  -a <PACKAGE>          Add packages to the project
+  -x <PACKAGE>          Remove packages from the project
+  -i <PACKAGE>          Install packages to the system
+  -u <PACKAGE>          Uninstall packages from the system
 
 EOF
-)"
-
+  )"
+  parse_arguments "$@"
+  process
+}
 display_usage() {
   if [ "$#" -eq 0 ]; then
     #@ No arguments
@@ -156,8 +167,10 @@ parse_arguments() {
         verbosity="--verbose"
         ;;
       esac
-      case "$argument" in -Q) verbosity="--quiet" ;; esac
-      case "$argument" in -W) watch=true ;; esac
+      case "$argument" in -*Q*) verbosity="--quiet" ;; esac
+      case "$argument" in -*W*) watch=true ;; esac
+      case "$argument" in -*R*) release=true ;; esac
+      case "$argument" in -*H*) display_usage ;; esac
     done
   } && internal "$@"
 
@@ -216,9 +229,7 @@ parse_arguments() {
             opt="--test $(basename "$PWD")"
           fi
           ;;
-        a)
-          opt="--all-targets --all-features"
-          ;;
+        r | a) opt="--all-targets --all-features --release" ;;
         w)
           opt="--workspace"
           ;;
@@ -333,7 +344,7 @@ parse_arguments() {
         ;;
       *)
         case $1 in
-        -Q | -D | -W | --debug) ;;
+        -*D* | -*Q* | -*R* | -*W* | -H | --debug) ;;
         *) cmd="$cmd $1" ;;
         esac
         ;;
@@ -346,6 +357,7 @@ parse_arguments() {
 process() {
   #@ Join the command parts
   [ "$opt" ] || opt="$verbosity $opt"
+  [ "$release" ] && opt="$opt --release"
   [ "$arg" ] && arg=" -- $arg"
   cmd="$cmd $opt $arg"
 
@@ -362,7 +374,8 @@ process() {
   [ "$debug" ] || eval "$cmd"
 }
 
-main() {
-  parse_arguments "$@"
-  process
-} && main "$@"
+if [ -x "$PWD/cgo.sh" ]; then
+  ./cgo.sh "$@"
+else
+  main "$@"
+fi
