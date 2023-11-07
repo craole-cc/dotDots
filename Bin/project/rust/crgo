@@ -163,7 +163,7 @@ parse_arguments() {
     last_cmd="run"
     watch=true
     release=true
-    verbosity="verbose"
+    [ "$verbosity" ] || verbosity="verbose"
 
     case "$last_cmd" in
     check) check=true ;;
