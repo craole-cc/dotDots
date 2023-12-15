@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Purpose: This script initializes BDOTDIR and loads bash resources and functions.
+
+# Get the directory of the currently running script
+BDOTDIR="${BDOTDIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+
+# Export BDOTDIR
+export BDOTDIR
+
+# Function to load files from a directory
+# Parameters:
+#   $1: Directory path
+#   $2: File extension (default is "bash")
+load_files() {
+  local dir_path="$1"
+  local file_extension="${2:-bash}"
+  for file in "${dir_path}"/*."${file_extension}"; do
+    if [ -r "$file" ]; then
+      . "$file" || {
+        echo "Error loading $file"
+        exit 1
+      }
+    else
+      echo "File not readable: $file"
+    fi
+  done
+}
+
+# Load resources and functions
+load_files "$BDOTDIR/resources"
+load_files "$BDOTDIR/functions"

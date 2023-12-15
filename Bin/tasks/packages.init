@@ -38,12 +38,12 @@ weHave cargo-watch || CargoInstall cargo-watch
 weHave cargo-add || CargoInstall cargo-add
 
 #@ Emacs
-weHave emacs || Install emacs
-weHave doom ||
-  {
-    git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.emacs.d
-    ~/.emacs.d/bin/doom install
-  }
+# weHave emacs || Install emacs
+# weHave doom ||
+#   {
+#     git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.emacs.d
+#     ~/.emacs.d/bin/doom install
+#   }
 
 weHave exa || Install exa
 weHave bat || Install bat

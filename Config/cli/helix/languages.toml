@@ -1,2 +1,20 @@
-# in <config_dir>/helix/languages.toml
+use-grammars = { only = [
+  "rust",
+  "html",
+  "css",
+  "sql",
+  "python",
+  "bash",
+  "make",
+  "toml",
+  "json",
+  "json5",
+  "yaml",
+  "markdown",
+  "awk",
+  "nu",
+  "nix",
+] }
 
+[[languages]]
+name = "rust"

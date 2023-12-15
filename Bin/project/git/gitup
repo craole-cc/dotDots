@@ -8,6 +8,7 @@ gitup_from_config() {
 }
 
 gitup_from_bin() {
+  cd "$(git rev-parse --show-toplevel)" || exit
   gitPull          #| Update from repo
   # gitReset         #| Honor changess to gitignore
   gitStatus        #| Check status

@@ -84,7 +84,6 @@ __init__() {
   [ -e "$src_path" ] || __error__ --source "$src_path"
 
   #| Link
-
   #@ Declare the destination directory
   lnk_parent="$(dirname "$lnk_path")"
   lnk_lineage="$lnk_parent"
@@ -96,7 +95,6 @@ __init__() {
 
   #@ Check destination ownership
   [ -O "$lnk_lineage" ] && owned=true
-
 }
 
 # ===================================================================
@@ -104,8 +102,9 @@ __init__() {
 # ===================================================================
 
 __archive__() {
+
   #@ Skip unless user requested
-  [ "$force" ] || return
+  { [ "$force" ] && [ -e "$lnk_path" ]; } || return
 
   #@ Store archive path in a variable
   link_archive="${lnk_path}.bac"
@@ -259,10 +258,11 @@ __test__() {
   echo "Owned:   $owned"
   echo "Reset:   $force"
   echo "Verbose: $verbose"
-  # echo "MkDir:   $_MKDIR"
+  echo "MkDir:   $_MKDIR"
   # __error__ --args
-  [ -e "$link_archive" ] && echo "ARCHIVE $link_archive"
-  [ -e "$lnk_path" ] || echo "LINK: $lnk_path"
+  [ -e "$lnk_parent" ] && ls "$lnk_parent"
+  [ -e "$link_archive" ] && echo "ARCHIVING $link_archive"
+  [ -e "$lnk_path" ] || echo "LINKING: $lnk_path" to "$src_path"
 
 }
 

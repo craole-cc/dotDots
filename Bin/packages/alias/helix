@@ -1,3 +1,4 @@
 #!/bin/sh
 
-Editor --app helix "$@"
+# Editor --app helix "$@"
+hx "$@"

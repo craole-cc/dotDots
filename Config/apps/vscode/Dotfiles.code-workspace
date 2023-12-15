@@ -49,23 +49,20 @@
     ]
   },
   "settings": {
-    "editor.accessibilitySupport": "off",
-    "editor.bracketPairColorization.enabled": true,
-    "editor.cursorStyle": "line",
-    "editor.formatOnSave": true,
-    "editor.formatOnType": false,
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> EDITOR
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     "editor.fontFamily": "'Operator Mono Lig','FantasqueSansMono NF','Cascadia Code','Noto Color Emoji','Hack NFM','monospace',monospace",
     "editor.fontLigatures": true,
-    "editor.letterSpacing": 0.5,
-    "editor.fontSize": 24,
-    "editor.lineHeight": 2,
+    "editor.fontSize": 18,
     "editor.fontWeight": "400",
     "editor.guides.bracketPairs": "active",
+    "editor.inlayHints.enabled": "offUnlessPressed",
+    "editor.letterSpacing": 0.5,
+    "editor.lineHeight": 2,
     "editor.linkedEditing": true,
     "editor.minimap.size": "fill",
     "editor.mouseWheelZoom": true,
-    "editor.renderControlCharacters": true,
-    "editor.smoothScrolling": true,
     "editor.tabSize": 2,
     "editor.tokenColorCustomizations": {
       "textMateRules": [
@@ -160,91 +157,6 @@
       ]
     },
     "editor.wordWrap": "on",
-    "editor.unicodeHighlight.invisibleCharacters": false,
-    //@ /* Linters & Formatters */
-    "editor.acceptSuggestionOnEnter": "smart",
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true,
-      "source.organizeImports": true
-    },
-    "[html]": {
-      "editor.defaultFormatter": "vscode.html-language-features"
-    },
-    "[jsonc]": {
-      "editor.defaultFormatter": "vscode.json-language-features"
-    },
-    // "[python]": {
-    //   "editor.defaultFormatter": "ms-python.black-formatter"
-    // },
-    "[shellscript]": {
-      "editor.defaultFormatter": "foxundermoon.shell-format"
-    },
-    "[toml]": {
-      "editor.defaultFormatter": "tamasfe.even-better-toml"
-    },
-    //@ /* Files */
-    "files.associations": {
-      "*.vim": "vim",
-      "*.css": "css",
-      ".env": "env",
-      "**/.env/* *": "env",
-      "config": "properties",
-      "*.pgsql": "sql"
-    },
-    "files.autoSave": "afterDelay",
-    "files.eol": "\n",
-    "files.trimFinalNewlines": true,
-    "files.trimTrailingWhitespace": true,
-    "files.simpleDialog.enable": true,
-    "files.exclude": {
-      "**/.classpath": true,
-      "**/.factorypath": true,
-      "**/.git": false,
-      "**/.project": true,
-      "**/.settings": true
-    },
-    "files.watcherExclude": {
-      "**/.local/* *": true,
-      "**/.vscode-server-insiders/* *": true,
-      "**/* cache/* *": true
-    },
-    //@ /* Code Runner */
-    "code-runner.clearPreviousOutput": true,
-    "code-runner.saveFileBeforeRun": true,
-    //@ /* Explorer */
-    "explorer.confirmDelete": false,
-    "explorer.incrementalNaming": "smart",
-    "explorer.compactFolders": false,
-    //@ /* Markdown */
-    "markdown.links.openLocation": "beside",
-    "markdown.preview.fontSize": 18,
-    //@ /* Git */
-    "git.autofetch": true,
-    "git.confirmSync": false,
-    "git.enableSmartCommit": true,
-    //@ /* JavaScript & TypeScript */
-    "javascript.updateImportsOnFileMove.enabled": "always",
-    "typescript.updateImportsOnFileMove.enabled": "always",
-    "color-highlight.markerType": "dot-after",
-    "color-highlight.matchWords": true,
-    //@ Line Width
-    "LWI.style.fontStyle": "italic",
-    "LWI.style.fontWeight": "100",
-    "LWI.breakpoints": [
-      {
-        "color": "rgb(0, 255, 0, 0.6)",
-        "column": 54
-      },
-      {
-        "color": "rgb(255, 255, 0, 0.6)",
-        "column": 69
-      },
-      {
-        "color": "rgb(255, 0, 0, 0.6)",
-        "column": 79
-      }
-    ],
-    //@ Documentation
     "evenbettercomments.tags": [
       {
         "tag": "@",
@@ -279,7 +191,7 @@
         "strikethrough": false,
         "underline": false,
         "backgroundColor": "transparent",
-        "bold": false,
+        "bold": true,
         "italic": true
       },
       {
@@ -355,54 +267,113 @@
         "italic": false
       }
     ],
-    "notebook.cellToolbarLocation": {
-      "default": "right",
-      "jupyter-notebook": "left"
-    },
-    "bashBeautify.tabSize": 4,
-    "shellcheck.useWorkspaceRootAsCwd": true,
-    "shellcheck.exclude": [
-      "1091",
-      "1017"
+    "LWI.style.fontStyle": "italic",
+    "LWI.style.fontWeight": "100",
+    "LWI.breakpoints": [
+      {
+        "color": "rgb(0, 255, 0, 0.6)",
+        "column": 54
+      },
+      {
+        "color": "rgb(255, 255, 0, 0.6)",
+        "column": 69
+      },
+      {
+        "color": "rgb(255, 0, 0, 0.6)",
+        "column": 79
+      }
     ],
-    "shellformat.useEditorConfig": true,
-    "rust-analyzer.server.extraEnv": {
-      "RUSTUP_TOOLCHAIN": "nightly"
-    },
-    //@ /* Integrated Terminal */
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> TERMINAL
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     "terminal.integrated.cursorBlinking": true,
-    "terminal.integrated.cursorStyle": "block",
+    "terminal.integrated.cursorStyle": "line",
+    "terminal.integrated.cursorWidth": 1.8,
     "terminal.integrated.defaultProfile.windows": "Nushell",
     "terminal.integrated.fontSize": 18,
     "terminal.integrated.fontWeight": "400",
     "terminal.integrated.lineHeight": 1.2,
     "terminal.integrated.letterSpacing": 1.2,
     "terminal.integrated.rightClickBehavior": "copyPaste",
-    //@ /*  Workbench */
     "workbench.commandPalette.preserveInput": true,
-    "workbench.editor.untitled.hint": "hidden",
     "workbench.editor.revealIfOpen": true,
-    "workbench.editorAssociations": {},
     "workbench.iconTheme": "material-icon-theme",
-    "material-icon-theme.activeIconPack": "react",
+    "material-icon-theme.activeIconPack": "angular_ngrx",
+    "material-icon-theme.files.associations": {
+      "justfile": "robot",
+      ".justfile": "robot"
+    },
+    "material-icon-theme.folders.associations": {
+      "day-*": "job",
+      "days": "job",
+      "macros": "Hooks",
+      "crates": "Stack",
+      "rust": "Debug"
+    },
     "material-icon-theme.hidesExplorerArrows": true,
     "workbench.quickOpen.preserveInput": true,
     "workbench.settings.openDefaultKeybindings": true,
     "workbench.startupEditor": "none",
-    "workbench.tips.enabled": true,
-    "workbench.statusBar.visible": true,
-    "workbench.panel.defaultLocation": "bottom",
+    "workbench.panel.defaultLocation": "right",
     "workbench.preferredLightColorTheme": "Bluloco Light Italic",
     "workbench.preferredDarkColorTheme": "Nebula Oni (Pegasus)",
     "workbench.productIconTheme": "icons-carbon",
-    //@ /* Window */
     "window.autoDetectColorScheme": true,
-    "workbench.colorTheme": "Nebula Oni (Pegasus)",
+    "workbench.colorTheme": "Bluloco Light Italic",
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> FORMATTERS & LINTERS
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    "[html]": {
+      "editor.defaultFormatter": "vscode.html-language-features"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "[shellscript]": {
+      "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[toml]": {
+      "editor.defaultFormatter": "tamasfe.even-better-toml"
+    },
+    "editor.formatOnSave": true,
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> FILES
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    "files.autoSave": "afterDelay",
+    "files.eol": "\n",
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "files.exclude": {
+      "**/.classpath": true,
+      "**/.factorypath": true,
+      "**/.git": false,
+      "**/.project": true,
+      "**/.settings": true
+    },
+    "files.watcherExclude": {
+      "**/.local/* *": true,
+      "**/.vscode-server-insiders/* *": true,
+      "**/* cache/* *": true
+    },
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> EXPLORER
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    "explorer.confirmDelete": false,
+    "explorer.incrementalNaming": "smart",
+    "explorer.compactFolders": false,
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> GIT
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "git.enableSmartCommit": true,
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    //> RUST
+    //> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.showUnlinkedFileNotification": false,
-    "workbench.editor.empty.hint": "hidden",
-    // "rust-analyzer.linkedProjects": [
-    //   ".\\dotdots\\Cargo.toml",
-    // ],
   }
 }

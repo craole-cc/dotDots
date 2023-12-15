@@ -1,8 +1,12 @@
 #!/bin/sh
 
-name="__pycache__"
+find_and_delete() {
+  find . \
+    -type d \
+    -name "$1" \
+    -exec rm --recursive --force --verbose {} +
+}
 
-find . \
-  -type d \
-  -name "__pycache__" \
-  -exec rm --recursive --verbose {} +
+find_and_delete ".venv"
+find_and_delete "poetry.lock"
+find_and_delete "__pycache__"

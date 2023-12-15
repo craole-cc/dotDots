@@ -8,23 +8,22 @@
 # _________________________________ DOCUMENTATION<|
 
 # _________________________________________ LOCAL<|
+
 # --> Rustup
 RUSTUP_HOME="$HOME/.rustup"
-# RUSTUP_CONFIG="$DOTS_TOOL/utilities/rustup/settings.toml"
-RUSTUP_CONFIG="$RUSTUP_HOME/settings.toml"
-RUSTUP_BASH_COMPLETION="$BDOTDIR/scripts/rustup"
+RUSTUP_BASH_COMPLETION="$BDOTDIR/functions/rustup"
+RUSTUP_CONFIG="$DOTS_CLI/rust/rustup_unix.toml"
+case "$sys_INFO" in *Windows*) RUSTUP_CONFIG="$DOTS_CLI/rust/rustup_win.toml" ;; esac
 
 # --> Cargo
 CARGO_HOME="$HOME/.cargo"
-CARGO_CONFIG="$CARGO_HOME/.crates.toml"
-CARGO_ENV="$CARGO_HOME/env"
-CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
-#CARGO_ENV="$DOTS_TOOL/utilities/rustup/env"
+CARGO_CONFIG="$DOTS_CLI/rust/cargo.toml"
+# CARGO_UNSTABLE_GC=true
 
 # _________________________________________ TOOLS<|
 
 #> Load Config
-[ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
+# [ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
 
 #> Install Rust if missing
 command -v rustc >/dev/null 2>&1 || install_rust

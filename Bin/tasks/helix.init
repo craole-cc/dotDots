@@ -1,0 +1,19 @@
+#!/bin/sh
+
+src="$DOTS_CLI/helix"
+lnk="$DATA_HOME/helix"
+# rm -rf "${lnk:?}/"*
+# rm -rf "${lnk:?}"
+
+symbiolink --force --verbose \
+  --src "$src/helix.toml" \
+  --lnk "$lnk/config.toml"
+
+symbiolink --force --verbose \
+  --src "$src/languages.toml" \
+  --lnk "$lnk/languages.toml"
+
+hx --grammar fetch
+hx "${@:-.}"
+
+# bat "$lnk/config.toml"

@@ -1,0 +1,24 @@
+[alias]
+conf =  "+nightly -Z unstable-options config get"
+
+[unstable]
+trim-paths = true
+gc = true
+
+[term]
+quiet = true
+
+[gc.auto]
+# The maximum frequency that automatic garbage collection happens.
+# Can be "never" to disable automatic-gc, or "always" to run on every command.
+frequency = "1 day"
+# Anything older than this duration will be deleted in the source cache.
+max-src-age = "1 month"
+# Anything older than this duration will be deleted in the compressed crate cache.
+max-crate-age = "3 months"
+# Any index older than this duration will be deleted from the index cache.
+max-index-age = "3 months"
+# Any git checkout older than this duration will be deleted from the checkout cache.
+max-git-co-age = "1 month"
+# Any git clone older than this duration will be deleted from the git cache.
+max-git-db-age = "3 months"
