@@ -1,8 +1,15 @@
 #!/bin/sh
+# shellcheck disable=SC1091
+
 #TODO: So far, only nu and bash are supported
 establish_environment() {
+  #@ Contextual Config Files
+  DOTS_ENV_CTX="${DOTS_ENV_CTX:-$DOTS/Environment/context}"
+  [ -d "$DOTS_ENV_CTX" ] || return 1
+
+  default_shell=bash
+
   #@ Verbosity
-  # shellcheck disable=SC2153
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
   [1-9] | true) verbose_flag=true ;; esac
 
@@ -20,7 +27,7 @@ establish_environment() {
     *t*) SHELL_INTERACTIVE="tcsh" ;;
     *b* | *s* | *d*) SHELL_INTERACTIVE="bash" ;;
     *)
-      SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"nu"}"
+      SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"$default_shell"}"
       ;;
     esac
   } && parse_arguments "$@"
@@ -77,8 +84,6 @@ establish_utilities() {
   }
 
   launch_bash() {
-    # bash --init-file "${BDOTDIR}/${SHELL_CONF}"
-    # bash --init-file "C:\Users\Administrator\.dots\Config\cli\bash\.config"
     bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
   }
 

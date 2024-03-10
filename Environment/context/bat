@@ -1,11 +1,13 @@
 #!/bin/sh
 
-#> NAME
+#> INFO
 _APP="bat"
 _NAME="bat"
 _CMD="bat"
+_TYPE="tty"
 
 #> Config
+DOTS_CLI="${DOTS_CLI:-$DOTS/Config/cli}"
 _HOME="${DOTS_CLI}/${_APP}"
 _EXT="config"
 _CFG="${_HOME}/${_APP}.${_EXT}"
@@ -20,8 +22,5 @@ weHave "$_CMD" || {
 
 [ -f "$_CFG" ] && {
   export BAT_CONFIG_PATH
-  _CMD="${_CMD}"
+  _CMD="${_CMD $*}"
 }
-
-#> TYPE
-_TYPE="tty"

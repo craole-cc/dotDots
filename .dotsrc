@@ -1,65 +1,74 @@
 #!/bin/sh
 
-main() {
-  establish_utilities
-  establish_environment
-  execute
-}
-
 establish_utilities() {
   set_verbosity_level() {
     #@ Check for global verbosity settings
     # shellcheck disable=SC2153
-    case "$verbose$verbosity$VERBOSE$VERBOSITY" in
-    [1-9]) VERBOSITY="$verbose$verbosity$VERBOSE$VERBOSITY" ;;
-    true) VERBOSITY=1 ;;
-    false | 0 | '') VERBOSITY=0 ;;
+    VERBOSITY="$verbose$verbosity$VERBOSE$VERBOSITY"
+    [ "$VERBOSITY" ] || VERBOSITY="$1"
+
+    case "$VERBOSITY" in
+    [1-9])
+      #TODO: accept any integer
+      VERBOSITY="$1"
+      ;;
+    true)
+      VERBOSITY=1
+      ;;
+    false | 0 | '')
+      VERBOSITY=0
+      ;;
+    *)
+      printf "%s\n" "Unknown verbosity level: $1"
+      VERBOSITY=1
+      ;;
     esac
 
-    #@ Check for local verbosity override
-    [ -n "$1" ] &&
-      case "$1" in
-      [1-9]) VERBOSITY="$1" ;;
-      true) VERBOSITY=1 ;;
-      false | 0 | '') VERBOSITY=0 ;;
-      *) printf "%s\n" "Unknown verbosity level: $1" ;;
-      esac
-
     #@ Make variables available globally
-    [ "$VERBOSITY" ] && export VERBOSITY
+    export VERBOSITY
+    [ "$VERBOSITY" -gt 1 ] &&
+      printf "Verbosity level set to %s\n" "$VERBOSITY"
   }
 
   set_dots_path() {
-    #@ Set the path to the DOTS directory based in argument
+    # #@ Set the path to the DOTS directory based in argument
     case "$1" in --default) ;; *) DOTS="$1" ;; esac
 
     #@ Ensure the path is a directory or default to the current directory
     if [ -d "$DOTS" ]; then
       #@ Print the DOTS variable
-      case "$VERBOSITY" in
-      0) ;;
-      *) printf "DOTS: %s\n" "$DOTS" ;;
+      case "$VERBOSITY" in 0) ;; *)
+        printf "DOTS: %s\n" "$DOTS"
+        ;;
       esac
     else
-      #@ Find the path of the current script
-      DOTS_RC="$0"
+      # TODO: Find the DOTS directory based on the location of this script
+      # This might not be possible with pure POSIX-compliant shell
+      # Consider using bashisms
+      # $0 will not work because of how the script is sourced
+      echo "Unable to determine the DOTS directory"
+      return 1
 
-      #@ Use readlink to resolve symlinks
-      while [ -L "$DOTS_RC" ]; do
-        DOTS_RC="$(readlink "$DOTS_RC")"
-      done
+      # #@ Find the path of the current script
+      # DOTS_RC="$0"
 
-      #@ Set the DOTS variable as the parent directory
-      DOTS="$(cd "$(dirname "$DOTS_RC")" >/dev/null 2>&1 && pwd)"
+      # #@ Use readlink to resolve symlinks
+      # while [ -L "$DOTS_RC" ]; do
+      #   DOTS_RC="$(readlink "$DOTS_RC")"
+      # done
 
-      #@ Print the DOTS variable
-      case "$VERBOSITY" in
-      0) ;;
-      1) printf "DOTS: %s\n" "$DOTS" ;;
-      *) printf "DOTS set relative to .dotrc: %s\n" "$DOTS" ;;
-      esac
+      # #@ Set the DOTS variable as the parent directory
+      # DOTS="$(cd "$(dirname "$DOTS_RC")" >/dev/null 2>&1 && pwd)"
+
+      # #@ Print the DOTS variable
+      # case "$VERBOSITY" in
+      # 0) ;;
+      # 1) printf "DOTS: %s\n" "$DOTS" ;;
+      # *) printf "DOTS set relative to .dotrc: %s\n" "$DOTS" ;;
+      # esac
     fi
-    export DOTS
+
+    [ "$DOTS" ] && export DOTS
   }
 
   set_dots_ignore() {
@@ -110,6 +119,8 @@ establish_utilities() {
     *aix*) os_type="AIX" ;;
     *irix*) os_type="IRIX" ;;
     esac
+
+    printf "%s" "$os_type"
   }
 
   delete_line_from_file() {
@@ -162,9 +173,8 @@ establish_utilities() {
     fi
   }
 
-  set_local_flags() {
-    get_os_type
-    [ "$os_type" = "Windows" ] && windows_flag=true
+  set_flags() {
+    [ "$(get_os_type)" = "Windows" ] && windows_flag=true
     [ "$VERBOSITY" -gt 0 ] && verbose_flag=true
   }
 
@@ -233,7 +243,7 @@ establish_utilities() {
         *:"$src_path":*) ;;
         *)
           XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
-          [ "$verbose_flag" = true ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
+          [ "$verbose_flag" ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
           ;;
         esac
 
@@ -243,7 +253,7 @@ establish_utilities() {
         *:"$src_path":*) ;;
         *)
           PATH="${PATH:+$PATH:}$src_path"
-          [ "$verbose_flag" = true ] && printf "Appended to PATH: %s\n" "${src_path}"
+          [ "$verbose_flag" ] && printf "Appended to PATH: %s\n" "${src_path}"
           ;;
         esac
 
@@ -252,10 +262,10 @@ establish_utilities() {
 
         #| Make scripts executable
         if [ "$src_type" = "BIN" ]; then
-          if [ "$verbose_flag" = true ]; then
-            [ "$windows_flag" = true ] || chmod --changes +x "$src_path"
+          if [ "$verbose_flag" ]; then
+            [ "$windows_flag" ] || chmod --changes +x "$src_path"
           else
-            [ "$windows_flag" = true ] || chmod +x "$src_path"
+            [ "$windows_flag" ] || chmod +x "$src_path"
           fi
 
         #@ Load environmental variables from files
@@ -263,7 +273,7 @@ establish_utilities() {
           # shellcheck disable=SC1090
           # EOLor --lf "$src_path"
           . "$src_path"
-          [ "$verbose_flag" = true ] && printf "Initialized: %s\n" "$src_path"
+          [ "$verbose_flag" ] && printf "Initialized: %s\n" "$src_path"
         fi
 
     done
@@ -371,20 +381,18 @@ establish_environment() {
   #@ Reset the environment
   cleanup
 
-  #@ Set the verbosity level
+  #@ Establish the script environment variables
   set_verbosity_level 0
+  set_flags
+
+  #@ Ensure DOTS variable is set if not use the path of the current file
+  set_dots_path --default || return 1
 
   #@ Set the interactive shell
   set_interactive_shell bash
 
-  #@ Ensure DOTS variable is set if not use the path of the current file
-  set_dots_path --default
-
   #@ Establish IGNORE path to declare directories to skip
   set_dots_ignore --default
-
-  #@ Establish the script environment variables
-  set_local_flags
 }
 
 execute() {
@@ -394,14 +402,19 @@ execute() {
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
-    --bin "$DOTS/Bin" \
-    --env "$DOTS/Environment/export"
+    --bin "$DOTS/Bin"
+  #   --env "$DOTS/Environment/export"
 
   #@ Load Shell
-  shell.init bash
+  shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
   # fonts.init
 }
 
+main() {
+  establish_utilities || return 1
+  establish_environment || return 1
+  execute
+}
 main "$@"

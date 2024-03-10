@@ -5,13 +5,6 @@ _APP="starship"
 _NAME="Starship Prompt"
 _TYPE="tty"
 
-#> Config
-_HOME="${DOTS_CLI}/${_APP}"
-_EXT="toml"
-_CFG="${_HOME}/config.${_EXT}"
-STARSHIP_CONFIG="${_CFG}"
-STARSHIP_CACHE="${CACHE_HOME}/${_APP}"
-
 #> THEME
 : <<THEMES
   bracketed-segments
@@ -23,8 +16,15 @@ STARSHIP_CACHE="${CACHE_HOME}/${_APP}"
 THEMES
 
 theme="craole"
-_THEME="${_HOME}/themes/${theme}.${_EXT}"
+
+#> Config
+DOTS_CLI="${DOTS_CLI:-$DOTS/Config/cli}"
+_HOME="${DOTS_CLI}/${_APP}"
+_EXT="toml"
+STARSHIP_CACHE="${CACHE_HOME}/${_APP}"
+STARSHIP_CONFIG="${_HOME}/themes/${theme}.${_EXT}"
 
 #> LINK
 src="$_THEME"
 lnk="$_CFG"
+export STARSHIP_CONFIG STARSHIP_CACHE

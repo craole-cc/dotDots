@@ -1,21 +1,24 @@
 #!/bin/sh
 
-SHELL_HOME="$DOTS/Config/cli/bash"
-SHELL_CONF=".config"
+#> NAME
+_APP="bash"
+_NAME="bash"
+_CMD="bash"
+_TYPE="tty"
 
-src="$SHELL_HOME"
-app="bash"
+DOTS_CLI="${DOTS_CLI:-$DOTS/Config/cli}"
+_HOME="${DOTS_CLI}/${_APP}"
 
-for resource in "${SHELL_HOME}"/resources/*.*; do
+for resource in "${_HOME}"/resources/*.*; do
   if [ -r "$resource" ]; then
     . "$resource"
   fi
 done
 
-for function in "${SHELL_HOME}/"functions/*.*; do
+for function in "${_HOME}/"functions/*.*; do
   if [ -r "$function" ]; then
     . "$function"
   fi
 done
 
-unset resource function
+unset _HOME resource function
