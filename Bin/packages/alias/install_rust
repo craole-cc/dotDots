@@ -1,8 +1,8 @@
 #!/bin/sh
 
 case $1 in
--f | --force) FORCE=true ;;
-*) ;;
+-f | --force) force=true ;;
+*) unset force ;;
 esac
 
 installRust() {
@@ -11,7 +11,7 @@ installRust() {
   *git*)
     echo "Install Rust for Windows"
     rustupHTTP="https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe"
-    rustupEXE="$DOTS_DOWN/tmp/rustup-init.exe"
+    rustupEXE="${DOTS_DOWN:-$DOTS/Downloads}/rust/rustup-init.exe"
 
     #| Download EXE
     curl "$rustupHTTP" \
@@ -33,7 +33,7 @@ installRust() {
   esac
 }
 
-if [ "$FORCE" ]; then
+if [ "$force" ]; then
   installRust
 else
   weHave rustc || installRust

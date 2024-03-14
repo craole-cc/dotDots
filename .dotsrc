@@ -31,7 +31,7 @@ establish_utilities() {
   }
 
   set_dots_path() {
-    # #@ Set the path to the DOTS directory based in argument
+    #@ Set the path to the DOTS directory based in argument
     case "$1" in --default) ;; *) DOTS="$1" ;; esac
 
     #@ Ensure the path is a directory or default to the current directory
@@ -395,15 +395,77 @@ establish_environment() {
   set_dots_ignore --default
 }
 
+update_launcher() {
+  delete_line_from_file() {
+    sed --in-place --expression "/$1/d" "$2"
+  }
+
+  append_lines_to_file() {
+    temp_file=$(mktemp)
+    grep --invert-match "^DOTS=" "$1" |
+      grep --invert-match "$2" >"$temp_file"
+    printf "\nDOTS=\"%s\"\n%s\n" "$DOTS" "$2" >>"$temp_file"
+    mv "$temp_file" "$1"
+    [ "$verbose_flag" ] && printf "Updated DOTS in %s.\n" "$1"
+  }
+
+  update_file() {
+    file=$1
+
+    #@ Create the file if it doesn't exist
+    [ -f "$file" ] || touch "$file"
+
+    #@ Check if the DOTS line exists and if it's different or if dots_init is missing
+    if grep --quiet --regexp "^DOTS=" "$file"; then
+      {
+        #@ Check if the DOTS line matches the current DOTS variable or is quoted
+        grep --quiet --regexp "^DOTS=$DOTS" --regexp "^DOTS=\"$DOTS\"" "$file" ||
+
+          #@ Check if dots_init is missing
+          grep --quiet --fixed-strings "$dots_init" "$file"
+      } || {
+        #@ If either condition is false, remove both lines
+        delete_line_from_file "^DOTS=" "$file"
+        delete_line_from_file "$(printf "%s" "$dots_init" | sed 's/[\/&]/\\&/g')" "$file"
+      }
+    fi
+
+    #@ Append the new lines to the file only if they are missing
+    if
+      ! grep --quiet --regexp "^DOTS=" "$file" ||
+        ! grep --quiet --fixed-strings "$dots_init" "$file"
+    then
+      #@ If either line is missing, append both lines
+      append_lines_to_file "$file" "$dots_init"
+    else
+      #@ If both lines are present and the DOTS line is the same, no need to update
+      [ "$verbose_flag" ] && printf "DOTS in %s is already up to date.\n" "$file"
+    fi
+  }
+
+  #@ Define the profile path
+  profile="$HOME/.profile"
+  bashrc="$HOME/.bashrc"
+
+  #@ Define the lines with and without quotes
+  dots_unquoted="DOTS=$DOTS"
+  dots_quoted="DOTS=\"$DOTS\""
+  dots_init="[ -f \"\$DOTS/.dotsrc\" ] && . \"\$DOTS/.dotsrc\""
+
+  #@ Update the files
+  update_file "$profile"
+  [ "$SHELL_INTERACTIVE" = "bash" ] && update_file "$bashrc"
+}
+
 execute() {
-  #@ Update the user profile
-  update_user_profile
+  #@ Update the dotsrc launcher through .profile and .bashrc
+  update_launcher
 
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
     --bin "$DOTS/Bin"
-  #   --env "$DOTS/Environment/export"
+  # --env "$DOTS/Environment/export"
 
   #@ Load Shell
   shell.init "$SHELL_INTERACTIVE"
@@ -416,5 +478,7 @@ main() {
   establish_utilities || return 1
   establish_environment || return 1
   execute
+  echo "DOTS: $DOTS"
 }
+
 main "$@"

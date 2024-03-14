@@ -1,0 +1,27 @@
+#!/bin/sh
+# shellcheck disable=2153
+
+command_exists() {
+	command -v "$1" > /dev/null 2>&1
+}
+
+set_editor() {
+	while [ "$#" -ge 1 ]; do
+		if command_exists "$1"; then
+			printf "%s" "$1"
+			return
+		else
+			shift
+		fi
+	done
+}
+
+edit() {
+	preferred_editor="$(set_editor "codium" "code" "code-insiders" "hx" "nim" "vim")"
+	current_editor="$EDITOR"
+
+	editor="${preferred_editor:-"$current_editor"}"
+	"$editor" "${@:-$PWD}"
+}
+
+edit "$@"
