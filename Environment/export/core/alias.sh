@@ -21,7 +21,7 @@ cfGIT() { $1 "$GIT_CONFIG"; }
 cfSSH() { $1 "$RC_ssh"; }
 cfFSH() { $1 "$RC_fish"; }
 cfINI() { $1 "$RC_init"; }
-cfDOT() { VScode "$codeDOTS"; }
+cfDOT() { ede "$codeDOTS"; }
 
 # --> Change Shell Permanently
 csB() { chsh "$USER" -s /bin/bash; }

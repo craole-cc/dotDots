@@ -25,12 +25,11 @@ initialize_tools() {
       install_rust
     }
 
-    #TODO# binstall is not working
-    # weHave cargo-binstall || {
-    #   printf "Installing dependency: cargo-binstall\n"
-    #   install_application cargo-binstall
-    # }
-    # weHave cargo-binstall && binstall_in_path=true
+    weHave cargo-binstall || {
+      printf "Installing dependency: cargo-binstall\n"
+      install_application cargo-binstall
+    }
+    weHave cargo-binstall && wehave_binstall=true
 
     weHave cargo-update || {
       printf "Installing dependency: cargo-update\n"
@@ -141,13 +140,15 @@ manage_application() {
 }
 
 install_application() {
-  if [ "$binstall_in_path" ]; then
-    cargo binstall \
+  if weHave cargo-binstall; then
+    four1one "Installing '$1' via cargo-binstall"
+    cargo-binstall \
       --no-confirm \
       --no-symlinks \
       --log-level error \
       "$1"
   else
+    four1one "Installing '$1' via cargo install"
     cargo install "$1"
   fi
 }
@@ -185,4 +186,5 @@ check_application() {
 wrap_up() {
   unset action app app_id simulate verbose
 }
+
 main "$@"
