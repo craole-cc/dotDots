@@ -4,8 +4,21 @@ weHave() { #@ Check if the command exists
   type "$1" >/dev/null 2>&1
 }
 
-if weHave firefox; then
+win="/c/Program Files/Mozilla Firefox/firefox.exe"
+win_dev="/c/Program Files/Firefox Developer Edition/firefox.exe"
+# if weHave firefox; then
+#   firefox
+# elif weHave icecat; then
+#   icecat
+# elif [ -f "/c/Program Files/Firefox Developer Edition/firefox.exe" ]; then
+#   # "/c/Program Files/Firefox Developer Edition/firefox.exe"
+#   echo "Opening Firefox Developer Edition..."
+# fi
+
+if [ -f "$win_dev" ]; then
+  "$win_dev"
+elif [ -f "$win" ]; then
+  "$win"
+elif weHave firefox; then
   firefox
-elif weHave icecat; then
-  icecat
 fi

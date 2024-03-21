@@ -471,14 +471,14 @@ execute() {
   shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
-  # fonts.init
+  # fonts.init #TODO: This needs to be made portable to work on Windows
+
 }
 
 main() {
   establish_utilities || return 1
   establish_environment || return 1
   execute
-  echo "DOTS: $DOTS"
 }
 
 main "$@"

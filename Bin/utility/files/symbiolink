@@ -157,6 +157,9 @@ __link__() {
     __exit__ --success
   }
 
+#@ Ensure the is nested if the source is a file
+[ -f "$src_path" ] && lnk_lineage="$lnk_parent"
+
   #@ Create link using sudo, if necessay
   if [ "$owned" ]; then
     ln --symbolic "$src_path" "$lnk_path"

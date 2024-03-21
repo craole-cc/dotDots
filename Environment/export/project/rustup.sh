@@ -10,31 +10,30 @@
 # _________________________________________ LOCAL<|
 
 # --> Rustup
+RUST_HOME="$DOTS_CLI/rust"
 RUSTUP_HOME="$HOME/.rustup"
 RUSTUP_BASH_COMPLETION="$BDOTDIR/functions/rustup"
-RUSTUP_CONFIG="$DOTS_CLI/rust/rustup_unix.toml"
-case "$sys_INFO" in *Windows*) RUSTUP_CONFIG="$DOTS_CLI/rust/rustup_win.toml" ;; esac
+case "$sys_INFO" in
+*Windows*) RUSTUP_CONFIG="$RUST_HOME/rustup_win.toml" ;;
+*) RUSTUP_CONFIG="$RUST_HOME/rustup_unix.toml" ;;
+esac
 
 # --> Cargo
 CARGO_HOME="$HOME/.cargo"
-CARGO_CONFIG="$DOTS_CLI/rust/cargo.toml"
-# CARGO_UNSTABLE_GC=true
+CARGO_CONFIG="$RUST_HOME/cargo.toml"
+CARGO_ENV="$RUST_HOME/cargo.env"
 
 # _________________________________________ TOOLS<|
 
 #> Load Config
-# [ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
+[ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
+
+[ -d "$CARGO_HOME" ] && [ -f "$CARGO_CONFIG" ] && {
+  ln --symbolic --force "$CARGO_CONFIG" "$CARGO_HOME/config.toml"
+}
 
 #> Install Rust if missing
-command -v rustc >/dev/null 2>&1 || install_rust
-
-# #> Enable completions
-# case "$sys_INFO" in
-# pwsh) rustup completions powershell ;;
-# zSHell) rustup completions zsh ;;
-# fiSHell) rustup completions fish ;;
-# baSHell | *sh | *SH) rustup completions bash >"$RUSTUP_BASH_COMPLETION" ;;
-# esac
+# command -v rustc >/dev/null 2>&1 || install_rust
 
 # _________________________________________ ALIAS<|
 alias C='cargo'

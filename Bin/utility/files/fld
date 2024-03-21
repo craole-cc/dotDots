@@ -3,10 +3,10 @@
 case $1 in
 -l | -v | --long)
   shift
-  ll "$@" --sort=time
+  fll "$@" --sort=time
   ;;
 -r | --reverse)
-  ll "$@" --sort=time --reverse
+  fll "$@" --sort=time --reverse
   ;;
 *)
   la --sort=time "$@"

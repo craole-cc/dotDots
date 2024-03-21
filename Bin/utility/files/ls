@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if lsd --help >/dev/null 2>&1; then
-  lsd "$@"
-else
-  ls "$@"
-fi

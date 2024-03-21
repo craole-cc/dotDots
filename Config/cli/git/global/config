@@ -12,7 +12,7 @@
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 	#@ Global gitignore (applied to all repositories)
-	excludesFile = D:/Configuration/common/Config/cli/git/global/ignore
+	excludesFile = D:/Configuration/dots/Config/cli/git/global/ignore
 
 [init]
 	defaultBranch = main

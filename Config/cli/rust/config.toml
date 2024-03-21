@@ -1,12 +1,17 @@
 [alias]
-conf =  "+nightly -Z unstable-options config get"
+rr = "run --release"
+w = "watch --quiet --clear --exec run"
+wc = "watch --quiet --clear --watch crates --exec run"
+
+[term]
+quiet = true
+
+[doc]
+browser = "firefox"
 
 [unstable]
 trim-paths = true
 gc = true
-
-[term]
-quiet = true
 
 [gc.auto]
 # The maximum frequency that automatic garbage collection happens.

@@ -57,16 +57,16 @@
 			<FILE>...     [default: .]
 LSD
 
-: <<EXA
+: <<EZA
 	DESCRIPTION:
 		An improved file lister with more features and better defaults.
 
 	USAGE:
-		exa [options] [files...]
+		eza [options] [files...]
 
 	META OPTIONS
 		-?, --help         show list of command-line options
-		-v, --version      show version of exa
+		-v, --version      show version of eza
 
 	DISPLAY OPTIONS
 		-1, --oneline      display one entry per line
@@ -117,7 +117,7 @@ LSD
 		--no-time            suppress the time field
 		--git                list each file's Git status, if tracked or ignored
 		-@, --extended       list each file's extended attributes and sizes
-EXA
+EZA
 
 : <<LS
 	DESCRIPTION:
@@ -276,8 +276,8 @@ cmd_lsd() {
     "$@"
 }
 
-cmd_exa() {
-  exa \
+cmd_eza() {
+  eza \
     --all \
     --color-scale \
     --icons \
@@ -295,14 +295,13 @@ cmd_ls() {
     "$@"
 }
 
-
 process_core() {
   if [ "$SHELL" = "nu" ]; then
     ls_nu "$@"
   elif weHave lsd; then
     cmd_lsd "$@"
-  elif weHave exa; then
-    cmd_exa "$@"
+  elif weHave eza; then
+    cmd_eza "$@"
   else
     cmd_ls "$@"
   fi
