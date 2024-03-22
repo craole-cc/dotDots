@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cargo --config "${CARGO_CONFIG}" "$@"
