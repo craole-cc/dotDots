@@ -7,6 +7,8 @@
 
 # _________________________________ DOCUMENTATION<|
 
+command -v rustc >/dev/null 2>&1 || return
+
 # _________________________________________ LOCAL<|
 
 # --> Rustup
@@ -22,6 +24,7 @@ esac
 CARGO_HOME="$HOME/.cargo"
 CARGO_CONFIG="$RUST_HOME/cargo.toml"
 CARGO_ENV="$RUST_HOME/cargo.env"
+RUSTFMT_CONFIG="$RUST_HOME/rustfmt.toml"
 
 # _________________________________________ TOOLS<|
 
@@ -32,8 +35,10 @@ CARGO_ENV="$RUST_HOME/cargo.env"
   ln --symbolic --force "$CARGO_CONFIG" "$CARGO_HOME/config.toml"
 }
 
-#> Install Rust if missing
-# command -v rustc >/dev/null 2>&1 || install_rust
+[ -f "$RUSTFMT_CONFIG" ] && {
+  [ -d "$CONFIG_HOME/rustfmt" ] || mkdir --parents "$DATA_HOME/rustfmt"
+  ln --symbolic --force "$RUSTFMT_CONFIG" "$DATA_HOME/rustfmt"
+}
 
 # _________________________________________ ALIAS<|
 alias C='cargo'
