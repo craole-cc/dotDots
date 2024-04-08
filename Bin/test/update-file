@@ -1,0 +1,95 @@
+#!/bin/sh
+debug=true
+
+parse_arguments() {
+  file="$1"
+  line_query="$2"
+  info="$2"
+
+  [ "$file" ] || [ "$line_query" ] || [ "$info" ] || {
+    printf "Usage: %s <file> <line> <info>\n" "$0"
+    return 1
+  }
+
+  [ "$debug" ] &&
+    printf "Input:\n  File: %s\n  Line: %s\n  Info: %s\n" \
+      "$file" "$line" "$info"
+}
+
+find_line() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --line | --query) _line_query="$2" ;;
+    --file) _file="$2" ;;
+    esac
+    shift
+  done
+
+  #@ Find the line in the file
+  line="$(
+    grep "$_file" \
+      --line-number \
+      --quiet \
+      --fixed-strings "^$_line_query" |
+      cut -d: -f1
+  )"
+
+  if [ "$line" ]; then
+    [ "$debug" ] && printf "Line: %s\n" "$line"
+  else
+    [ "$debug" ] && printf "Line not found.\n"
+    return 1
+  fi
+}
+
+find_info() {
+  #@ Find the line in the file
+  find_line --line
+  grep --line-number --quiet --fixed-strings "^$line" "$file" | cut -d: -f1
+}
+
+main() {
+  parse_arguments "$@"
+}
+
+# main "$@"
+main pop
+#   write_to_file() {
+#     #@ Create the file if it doesn't exist
+#     [ -f "$file" ] || touch "$file"
+
+#   }
+
+#     #@ Check the query line line exists if it's different or missing
+
+#     grep --quiet --regexp "^DOTS=" "$file"
+#   }
+
+# check_for_profile() {
+#     #@ Check if the DOTS line exists and if it's different or if dots_init is missing
+#     if grep --quiet --regexp "^DOTS=" "$file"; then
+#       {
+#         #@ Check if the DOTS line matches the current DOTS variable or is quoted
+#         grep --quiet --regexp "^DOTS=$DOTS" --regexp "^DOTS=\"$DOTS\"" "$file" ||
+
+#           #@ Check if dots_init is missing
+#           grep --quiet --fixed-strings "$dots_init" "$file"
+#       } || {
+#         #@ If either condition is false, remove both lines
+#         delete_line_from_file "^DOTS=" "$file"
+#         delete_line_from_file "$(printf "%s" "$dots_init" | sed 's/[\/&]/\\&/g')" "$file"
+#       }
+#     fi
+
+#     #@ Append the new lines to the file only if they are missing
+#     if
+#       ! grep --quiet --regexp "^DOTS=" "$file" ||
+#         ! grep --quiet --fixed-strings "$dots_init" "$file"
+#     then
+#       #@ If either line is missing, append both lines
+#       append_lines_to_file "$file" "$dots_init"
+#     else
+#       #@ If both lines are present and the DOTS line is the same, no need to update
+#       [ "$verbose_flag" ] && printf "DOTS in %s is already up to date.\n" "$file"
+#     fi
+# }

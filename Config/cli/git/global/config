@@ -12,7 +12,7 @@
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 	#@ Global gitignore (applied to all repositories)
-	excludesFile = D:/Configuration/dots/Config/cli/git/global/ignore
+	excludesFile = D:/Configuration/global/Config/cli/git/global/ignore
 
 [init]
 	defaultBranch = main
@@ -97,10 +97,11 @@
 	enabled = true
 
 [filter "lfs"]
-		clean = git-lfs clean %f
-		smudge = git-lfs smudge %f
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
 		required = true
 
+	process = git-lfs filter-process
 [IncludeIf "gitdir:~/.dots/"]
 	path = ../clients/github_craole-cc.gitconfig
 
