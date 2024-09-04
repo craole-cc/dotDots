@@ -16,5 +16,36 @@ use-grammars = { only = [
   "nix",
 ] }
 
-[[languages]]
+# [[languages]]
+# name = "rust"
+
+[language-server.rust-analyzer.config]
+cargo = { buildScripts = { enable = true }, features = "all" }
+check = { features = "all" }
+procMacro = { enable = true }
+
+[language-server.rust-analyzer.config.inlayHints]
+lifetimeElisionHints = { enable = false, useParameterNames = false }
+renderColons = false
+typeHints = { hideNamedConstructor = true, hideClosureInitialization = true }
+parameterHints = { enable = false }
+chainingHints = { enable = false }
+
+[language-server.tailwind-ls]
+command = "tailwindcss-language-server"
+args = ["--stdio"]
+
+[language-server.tailwind-ls.config]
+tailwindCSS = { experimental = { classRegex = ["class=\"(.*)\""] } }
+
+[[language]]
 name = "rust"
+language-servers = ["rust-analyzer", "tailwind-ls"]
+
+[[language]]
+name = "css"
+language-servers = ["vscode-css-language-server", "tailwind-ls"]
+
+[[language]]
+name = "html"
+language-servers = ["vscode-html-language-server", "tailwind-ls"]

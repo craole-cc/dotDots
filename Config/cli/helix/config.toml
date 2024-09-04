@@ -1,10 +1,12 @@
 # theme = "catppuccin_macchiato"
 # theme = "catppuccin_mocha"
-# theme = "kanagawa"
+# theme = "catppuccin_frappe"
+# theme = "catppuccin_latte"
+theme = "kanagawa"
 # theme = "noctis"
 # theme = "noctis_bordo"
 # theme = "monokai_pro_machine"
-theme = "monokai_pro_octagon"
+# theme = "monokai_pro_octagon"
 # theme = "monokai_pro_spectrum"
 # theme = "monokai_pro_ristretto"
 # theme = "monokai_pro_spectrum"
@@ -12,12 +14,14 @@ theme = "monokai_pro_octagon"
 # theme = "tokyonight_storm"
 
 [editor]
-line-number = "relative"
-mouse = true
-bufferline = "multiple"
-cursorline = true
-color-modes = true
 auto-save = true
+auto-format = true
+bufferline = "never"     # "multiple"
+cursorline = true
+line-number = "relative"
+idle-timeout = 50
+mouse = true
+color-modes = true
 
 [editor.cursor-shape]
 insert = "bar"
@@ -41,10 +45,11 @@ display-inlay-hints = true
 snippets = true
 
 [editor.statusline]
-left = ["mode", "spinner"]
+left = ["mode", "spinner", "spacer", "file-modification-indicator"]
 center = ["file-name"]
 right = [
   "diagnostics",
+  "version-control",
   "selections",
   "position",
   "file-encoding",
@@ -52,9 +57,11 @@ right = [
   "file-type",
 ]
 separator = "│"
-mode.normal = "NORMAL"
-mode.insert = "INSERT"
-mode.select = "SELECT"
+
+[editor.statusline.mode]
+normal = "NORMAL"
+insert = "INSERT"
+select = "SELECT"
 
 [editor.whitespace]
 # render = "all"
@@ -80,12 +87,13 @@ a = "move_char_left"                  # Maps the 'a' key to the move_char_left c
 w = "move_line_up"                    # Maps the 'w' key move_line_up
 "C-S-esc" = "extend_line"             # Maps Ctrl-Shift-Escape to extend_line
 "ret" = ["open_below", "normal_mode"]
+
 [keys.normal.space]
-s = ":write"
-m = ":format"
-q = ":quit!"
-r = ":config-reload"
-o = ":config-open"
+# s = ":write"
+# m = ":format"
+# q = ":quit!"
+# r = ":config-reload"
+# o = ":config-open"
 
 [keys.normal.g]
 a = ":format"

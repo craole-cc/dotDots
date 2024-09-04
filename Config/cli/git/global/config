@@ -3,7 +3,7 @@
 	editor = Editor
 
 	#@ Ensure that Git doesn't change line endings automatically
-	autocrlf = input
+	autocrlf = false
 
 	#@ Disable detection of changes in the executable bit of files
 	filemode = false
@@ -13,10 +13,7 @@
 
 	#@ Global gitignore (applied to all repositories)
 	excludesFile = D:/Configuration/global/Config/cli/git/global/ignore
-
-[init]
-	defaultBranch = main
-
+	eol = lf
 [commit]
 	; Show full diff when editing commit message
 	verbose = true
@@ -110,3 +107,9 @@
 
 [IncludeIf "gitdir:~/Documents/github_craole/"]
 	path = ../clients/github_craole.gitconfig
+	
+[http]
+	postBuffer = 1048576000
+[credential]
+	helper = 
+	helper = C:/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe

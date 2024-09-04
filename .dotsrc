@@ -464,7 +464,7 @@ execute() {
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
-    --bin "$DOTS/Bin" \
+    --bin "$DOTS/Bin" "/d/Configurations/nixos/src/libraries/shellscript" \
     --env "$DOTS/Environment/export"
 
   #@ Load Shell

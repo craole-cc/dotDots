@@ -14,16 +14,16 @@
       "keys": "ctrl+v"
     },
     {
-      "command": "find",
-      "keys": "ctrl+shift+f"
-    },
-    {
       "command": {
         "action": "splitPane",
         "split": "auto",
         "splitMode": "duplicate"
       },
       "keys": "alt+shift+d"
+    },
+    {
+      "command": "find",
+      "keys": "ctrl+shift+f"
     }
   ],
   "alwaysShowNotificationIcon": true,
@@ -33,7 +33,7 @@
   "copyFormatting": "none",
   "copyOnSelect": true,
   "defaultProfile": "{9a2722e6-0664-4d7f-a618-9b9c9a199f9f}",
-  "firstWindowPreference": "defaultProfile",
+  "firstWindowPreference": "persistedWindowLayout",
   "focusFollowMouse": true,
   "minimizeToNotificationArea": true,
   "newTabMenu": [
@@ -45,7 +45,7 @@
     "defaults": {
       "adjustIndistinguishableColors": "always",
       "bellStyle": "taskbar",
-      "colorScheme": "Catppuccin Frappe",
+      "colorScheme": "Catppuccin Latte",
       "cursorShape": "vintage",
       "experimental.retroTerminalEffect": false,
       "font": {
@@ -63,7 +63,7 @@
         "hidden": false,
         "icon": "C:\\Program Files\\Git\\git-cmd.exe",
         "name": "Bash",
-        "startingDirectory": "D:"
+        "startingDirectory": "D:\\Configuration\\nixos"
       },
       {
         "commandline": "C:\\Users\\mrcra\\AppData\\Local\\Programs\\nu\\bin\\nu.exe",
@@ -71,8 +71,7 @@
         "guid": "{631ae500-69d4-4faa-8a5c-bfaa566f254b}",
         "hidden": false,
         "icon": "C:\\Users\\mrcra\\AppData\\Local\\Programs\\nu\\nu.ico",
-        "name": "Nushell",
-        "startingDirectory": "D:\\"
+        "name": "Nushell"
       },
       {
         "elevate": true,
@@ -92,12 +91,6 @@
         "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
         "hidden": true,
         "name": "Windows PowerShell"
-      },
-      {
-        "guid": "{8ab8e6f6-35c6-5b46-8419-3e1568105476}",
-        "hidden": false,
-        "name": "podman-machine-default",
-        "source": "Windows.Terminal.Wsl"
       }
     ]
   },
@@ -193,29 +186,6 @@
       "selectionBackground": "#ACB0BE",
       "white": "#ACB0BE",
       "yellow": "#DF8E1D"
-    },
-    {
-      "background": "#000000",
-      "black": "#0C0C0C",
-      "blue": "#0037DA",
-      "brightBlack": "#767676",
-      "brightBlue": "#3B78FF",
-      "brightCyan": "#61D6D6",
-      "brightGreen": "#16C60C",
-      "brightPurple": "#B4009E",
-      "brightRed": "#E74856",
-      "brightWhite": "#F2F2F2",
-      "brightYellow": "#F9F1A5",
-      "cursorColor": "#FFFFFF",
-      "cyan": "#3A96DD",
-      "foreground": "#FFFFFF",
-      "green": "#13A10E",
-      "name": "Color Scheme 12",
-      "purple": "#881798",
-      "red": "#C50F1F",
-      "selectionBackground": "#FFFFFF",
-      "white": "#CCCCCC",
-      "yellow": "#C19C00"
     },
     {
       "background": "#282C34",
@@ -389,6 +359,7 @@
       "name": "Catppuccin Frappe",
       "tab": {
         "background": "#303446FF",
+        "iconStyle": "default",
         "showCloseButton": "always",
         "unfocusedBackground": null
       },
@@ -408,6 +379,7 @@
       "name": "Catppuccin Latte",
       "tab": {
         "background": "#EFF1F5FF",
+        "iconStyle": "default",
         "showCloseButton": "always",
         "unfocusedBackground": null
       },

@@ -5,7 +5,7 @@
 weHave nu || exit
 
 #| Load Environment Variables
-. "$DOTS_ENV_CTX/nushell"
+. "$DOTS_ENV_CTX/nu"
 
 #| Deploy Link
-symbiolink --src "$NUSHELL_HOME" --lnk "$NUSHELL_LINK" --force --verbose
+symbiolink --src "$src" --lnk "$link" --force --verbose

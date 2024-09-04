@@ -1,4 +1,7 @@
 #!/bin/sh
 
-# Editor --app helix "$@"
-hx "$@"
+
+# Editor --app helix "${@:-$PWD}"
+hx \
+  --config "$DOTS_CLI/helix/config.toml" \
+  --working-dir "${@:-$PWD}"
