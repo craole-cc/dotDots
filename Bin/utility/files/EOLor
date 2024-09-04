@@ -66,7 +66,7 @@ establish_environment() {
       -e | --exclude)
         [ "$2" ] && {
           list_exclude="$(
-            listman__ \
+            listman \
               --list "$list_exclude" \
               --item "$2" \
               --action "add"
@@ -102,7 +102,6 @@ establish_environment() {
     done
   }
 
-  #@ Validate script arguments and set constants
   validate_arguments() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
@@ -192,21 +191,6 @@ establish_environment() {
     #| Default to the current path if no paths are specified
     [ "$default_to_pwd" ] && paths="${paths:-"$PWD"}"
 
-    # Iterate through the list of paths, handling spaces correctly
-    list_paths() {
-      # Set IFS (Internal Field Separator) to the delimiter
-      old_ifs="$IFS"
-      IFS="$delimiter"
-
-      # Iterate over each path in the list
-      for path in $paths; do
-        printf "Path: %s\n" "$path"
-      done
-
-      # Restore the original IFS
-      IFS="$old_ifs"
-    }
-
     # Function to display valid and invalid paths
     display_paths() {
       # Count the total number of paths
@@ -257,9 +241,9 @@ establish_environment() {
     #| Get the status of each path
     for path in $list_include; do
       if [ -x "$path" ]; then
-        valid_paths="$(listman__ "$valid_paths" "$path")"
+        valid_paths="$(listman "$valid_paths" "$path")"
       else
-        invalid_paths="$(listman__ "$invalid_paths" "$path")"
+        invalid_paths="$(listman "$invalid_paths" "$path")"
       fi
     done
 
@@ -270,7 +254,7 @@ establish_environment() {
     # valid_paths="$(prune_strlistman__ "$(list_paths "$valid_paths")")"
     # invalid_paths=$(prune_strlistman__ "$invalid_paths")
 
-    valid_paths_count=$(count_strlistman___items "$valid_paths")
+    valid_paths_count="$(listman "$valid_paths" --count)"
     invalid_paths_count=$(count_strlistman___items "$invalid_paths")
 
     #| Display the results
@@ -315,7 +299,7 @@ initialize_utilities() {
     command -v "$1" >/dev/null 2>&1
   }
 
-  listman__() {
+  listman() {
     listman__main() {
       #| Parse list information
       while [ "$#" -gt 0 ]; do
@@ -390,15 +374,12 @@ initialize_utilities() {
 
     listman__count() {
       #| Return the number of items in the list
-      printf "%s" "$(
-        printf "%s" "$list" |
-          tr "$delimiter" '\n' |
-          wc -l
-      )"
+      listman__split | wc -l
     }
 
     listman__main "$@"
   }
+
   print_lean() {
     # Remove leading and trailing spaces and squeeze multiple spaces
     # by using `set` to parse the string and reassigning it with "$*"
@@ -411,14 +392,6 @@ initialize_utilities() {
   prune_str_list() {
     # shellcheck disable=SC2086
     printf "%s\n" $1 | sort --unique
-  }
-
-  count_str_list_items() {
-    count=0
-    for path in $1; do
-      count=$((count + 1))
-    done
-    printf "%s" "$count"
   }
 
   #@ Set the converter based ont he operating system
@@ -520,6 +493,7 @@ execute_core_process() {
   # get_paths
   # printf "%s" "$list_include" | tr "$delimiter" '\n'
   listman --list "$list_include" --print
+  listman --count "$list_include"
 
   [ "$test_flag" ] ||
     # find "$path" -type f | while IFS= read -r file; do
@@ -541,7 +515,8 @@ main --test \
   --include /d/Configuration \
   --include '/d/Configuration/global/Bin/utility/files/eol_test/path with space' \
   --include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
-  --exclude /d/Configuration
+  --include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
+  --include /d/Configuration
 
 # --include '/d/Configuration global' \
 # --include /d/Configuration \

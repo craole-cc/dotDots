@@ -482,3 +482,12 @@ main() {
 }
 
 main "$@"
+
+# Temporary until I fint the right place to put it
+
+
+  case "$(uname --all | tr '[:lower:]' '[:upper:]')" in
+  *MSYS* | *MINGW* | *CYGWIN*)
+    MSYS=winsymlinks:nativestrict
+    ;;
+  esac
