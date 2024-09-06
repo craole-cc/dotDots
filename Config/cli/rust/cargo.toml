@@ -1,10 +1,13 @@
 [alias]
+r = "run"
+rq = "run --quiet"
 rr = "run --release"
-w = "watch --quiet --clear --exec run"
+w = "watch --quiet --clear --exec rr"
 wc = "watch --quiet --clear --watch crates --exec run"
+wq = "watch --quiet --clear --exec rq"
 
 [term]
-quiet = true
+# quiet = true
 
 [doc]
 browser = "firefox"
