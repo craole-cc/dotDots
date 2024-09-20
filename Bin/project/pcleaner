@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# pcleaner - Project Cleaner
+# Deletes common project-related temporary directories and build artifacts
+
+set -e
+
+directories_to_remove=(
+  "node_modules"
+  ".next"
+  "target"
+  "dist"
+  "build"
+  ".cache"
+  "out"
+  "coverage"
+  ".pytest_cache"
+  "__pycache__"
+  ".mypy_cache"
+  ".tox"
+  ".eggs"
+  "*.egg-info"
+)
+
+echo "Cleaning project directories..."
+
+for dir in "${directories_to_remove[@]}"; do
+  echo "Searching for '$dir' directories..."
+  while IFS= read -r -d '' file; do
+    echo "Removing: $file"
+    rm -rf "$file"
+  done < <(find . -type d -name "$dir" -print0)
+done
+
+echo "Cleaning complete."

@@ -2,7 +2,8 @@
 r = "run"
 rq = "run --quiet"
 rr = "run --release"
-w = "watch --quiet --clear --exec rr"
+w = "watch --quiet --clear --exec r"
+wr = "watch --quiet --clear --exec rr"
 wc = "watch --quiet --clear --watch crates --exec run"
 wq = "watch --quiet --clear --exec rq"
 
