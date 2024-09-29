@@ -1,16 +1,0 @@
-#!/bin/sh
-
-_list="$DOTS_TEST/wallpapers"
-_love="~L~" #| Favorite
-_hate="~A~" #| Archive
-
-[ -f "$_list" ] || return
-
-bat "$_list"
-
-total_lines() { awk 'END { print NR;}' "$_list"; }
-# filter_lines() { awk -v filter="~A~" '/filter/ {print}' "$_list"; }
-# filter_lines() { filtrate --filter "$1" "$2"; }
-hated="$(filtrate --filter "$_hate" "$_list")"
-
-#

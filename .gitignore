@@ -9,13 +9,18 @@
 # --------- FOLDERS ----------
 # ----------------------------
 
-[Pp]rivate/
+# Archives & Temporary Folders
+[Aa]rchive/
 [Dd]ownloads/
+[Tt]emp/
+[Tt]est/
+
+# Logs
 [Ll]ogs/
 [Ll]og/
-[Tt]emp/
-[Aa]rchive/
+
+# Private folders
+[Pp]rivate/
 [Ss]ecrets/
 [Kk]eys/
-history.txt
 **/*.env

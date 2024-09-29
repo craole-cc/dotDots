@@ -1,1 +1,0 @@
-#!/bin/sh__run__() {  # | Close APP  app_kill "$@"  # | Delay reload by 500 milliseconds  sleep 0.5  # |Start APP  app_run "$@"}__pid__() {  #| Show ID  pgrep --list-full "$@"}for app_to_reload in "$@"; do  __pid__ "$app_to_reload"  __run__ "$app_to_reload"  __pid__ "$app_to_reload"done

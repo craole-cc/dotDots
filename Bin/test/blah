@@ -1,115 +1,0 @@
-#!/bin/sh
-
-# sorted=true
-wallpaper_src_path="$WALLPAPERS/test/README.md"
-wallpaper_src_path="$WALLPAPERS/test/zWfHddo.jpg"
-wallpaper_src_path="$WALLPAPERS/test/italki_2022.png"
-wallpaper_src_path="$WALLPAPERS"
-wallpaper_src_path="$WALLPAPERS/test"
-min_width=1920
-min_height=1080
-
-is_image() { #@ Check if file is an image
-  usage="Usage: is_image [FILE]"
-
-  #@ Check if file exists and is a regular file
-  [ -f "$1" ] || {
-    echo "Not a file"
-    return 1
-  }
-
-  #@ Check if file is an image using `file`
-  case "$(file --mime-type -b "$1")" in
-  image/*) ;;
-  *)
-    echo "Not an image"
-    return 1
-    ;;
-  esac
-}
-
-is_image_hd() { #@ Check of a file is an HD image
-  usage="Usage: is_image_hd [IMAGE_FILE]"
-  #? is_image_hd "$(get_image "$wallpaper_src_path")"
-  #TODO Improve efficiency as it is currently unusable
-
-  #@ Ensure file is an image
-  is_image "$1" || return 1
-
-  #@ Set the minimum width and height for an image to be considered HD
-  min_width="${min_width:-1280}"
-  min_height="${min_height:-720}"
-
-  #@ Get the dimensions of the image
-  dimensions=$(identify -format "%wx%h" "$1")
-  width=${dimensions%x*}
-  height=${dimensions#*x}
-
-  #@ Return true if the image is HD
-  { [ "$width" -ge "$min_width" ] && [ "$height" -ge "$min_height" ]; } || {
-    # echo "Not HD"
-    return 1
-  }
-}
-
-find_images() { #@ Return a list of images from a given path
-  usage="Usage: find_images [IMAGE_PATH]"
-
-  if [ -d "$1" ]; then
-    if
-      command -v fd >/dev/null
-    then
-      fd . "$1" \
-        --extension bmp \
-        --extension gif \
-        --extension jpeg \
-        --extension jpg \
-        --extension png \
-        --extension svg \
-        --extension tiff \
-        --type file
-    else
-      find "$1" \
-        \( \
-        -name "*.bmp" -o \
-        -name "*.gif" -o \
-        -name "*.jpeg" -o \
-        -name "*.jpg" -o \
-        -name "*.png" -o \
-        -name "*.svg" -o \
-        -name "*.tiff" \
-        \) \
-        -type f |
-        sort --human-numeric-sort
-    fi
-  else
-    is_image "$1" && printf "%s" "$1"
-  fi
-}
-
-#@ Select a wallpaper from the folder
-get_image() {
-  #@ Ensure a valid image is available
-  find_images "$1" >/dev/null || return 1
-
-  #@ Choose a random image if the path is a folder
-  if [ "$sorted" ]; then
-    find_images "$1" | head -n1
-  else
-    find_images "$1" |
-      awk 'BEGIN {srand()} {a[NR]=$0} END {print a[int(rand()*NR)+1]}'
-    # shuf -n1
-  fi
-}
-
-select_hd_image() {
-  while true; do
-    image=$(get_image "$1")
-    if is_image_hd "$image"; then
-      printf "%s" "$image"
-      return 0
-    fi
-  done
-}
-
-select_hd_image "$wallpaper_src_path"

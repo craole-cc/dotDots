@@ -1,1 +1,0 @@
-This is a test filethat contains some text.It has multiple lines,and some of the lines contain the word "foo".Here's another line that contains the word "foo".And here's another one.This is the last line of the file.your_search_text_herePOPPOPsadsPOPper
