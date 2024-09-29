@@ -4,10 +4,14 @@
 _APP="vscode"
 _NAME="Visual Studio Code"
 
-#> TYPE
+#> Type of Application
 _TYPE="gui"
 
-#> CMD
+#| Config
+_HOME="${DOTS_APP}/${_APP}"
+_CFG="${_HOME}/settings.json"
+
+#> Command
 if weHave code-insiders; then
   _CMD="code-insiders"
 elif weHave code; then
@@ -19,6 +23,6 @@ elif Flatpak_check visualstudio.code; then
 fi
 
 [ "$_CMD" ] || {
-  eko ':x: $_NAME not found.'
+  printf "🟥 %s not found." "$_NAME"
   exit 1
 }

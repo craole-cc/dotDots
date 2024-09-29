@@ -473,6 +473,9 @@ execute() {
   #@ Load Fonts
   # fonts.init #TODO: This needs to be made portable to work on Windows
 
+  #@ Load Additional Configs
+  DeployConfig zed
+
 }
 
 main() {

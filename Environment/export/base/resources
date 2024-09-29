@@ -7,7 +7,8 @@ case "$sys_INFO" in
 *Windows*)
   DATA_HOME="$HOME/AppData/Roaming" # powershell \$env:APPDATA
   CACHE_HOME="$HOME/AppData/Local"  # powershell \$env:LOCALAPPDATA
-  CONFIG_HOME="$HOME/.config"
+  # CONFIG_HOME="$HOME/.config"
+  CONFIG_HOME="$DATA_HOME"
   ;;
 *)
   DATA_HOME="${XDG_DATA_HOME:-"$HOME/.local/share"}"

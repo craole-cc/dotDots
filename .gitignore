@@ -1,26 +1,47 @@
-#===============================================================
-#
-# GLOBAL GIT IGNORE
-# ~/.gitignore
-#
-#===============================================================
-
-# ----------------------------
-# --------- FOLDERS ----------
-# ----------------------------
-
-# Archives & Temporary Folders
-[Aa]rchive/
-[Dd]ownloads/
-[Tt]emp/
-[Tt]est/
-
-# Logs
-[Ll]ogs/
-[Ll]og/
-
-# Private folders
+#| Sensitive Data
 [Pp]rivate/
 [Ss]ecrets/
 [Kk]eys/
 **/*.env
+
+#| Logs
+[Ll]ogs/
+[Ll]og/
+
+#| Temporary Folders
+[Aa]rchive/
+[Dd]ownloads/
+[Tt]emp/
+[Tt]mp/
+[Tt]est/
+
+#| Build Folders
+node_modules/
+result/
+build/
+dist/
+coverage/
+.direnv/
+target/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.nox/
+.venv/
+.svn/
+.hg/
+.cache/
+.eggs/
+.pybuilder/
+.gradle/
+.idea/
+.vscode/
+.zed/
+*.egg-info/
+.serverless/
+.webpack/
+.parcel-cache/
+.next/
+out/
+release/

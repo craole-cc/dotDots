@@ -1,90 +1,175 @@
 #!/bin/sh
-__help__() {
-  printf "usage\n"
+
+_cmd_PATH="$(PathOf "$0")"
+_cmd_NAME="$(basename "$_cmd_PATH")"
+_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+# _cmd_DIR="$(cd "$(dirname "$0")" && pwd)"
+_cmd_VERSION="1.0"
+_cmd_DESCRIPTION="$(printf "creates symbolic links for application configurations.\nIt uses variables set in the corresponding context file.\nContext file: %s\nLink Directory: %s" "$DOTS_ENV_CTX" "$XDG_CONFIG_HOME")"
+_cmd_DEPENDENCIES="weHave, symbiolink, pout"
+_cmd_USAGE="$_cmd_NAME [OPTIONS] CFG"
+_cmd_GUIDE="$(
+  cat <<USAGE_GUIDE
+$_cmd_NAME [$_cmd_VERSION] creates symbolic links for application configurations.
+It uses variables set in the context file to deploy links.
+
+Usage:
+  $_cmd_USAGE
+
+Options:
+  -h --help           Usage guide
+  -v --version        Show detailed output
+  -d --verbose        Display info
+  -a --app            Name of the application to deploy
+  -f --ctx            Path of the context file
+  -s --src            Set the source directory of the configuration (ignored if --ctx is provided)
+  -l --lnk            Set the destination parent directory of the link (ignored if --ctx is provided)
+
+Arguments:
+  APP                 The name of the application to deploy.
+  SRC                 The source directory of the configuration. Ignored if --ctx is provided.
+  LNK                 The link directory to use. Ignored if --ctx is provided.
+  CTX                 The context file to use.
+
+Variables:
+  APP = _NAME (set in the context file)
+  CFG = _APP (set in the context file)
+  CMD = _CMD (set in the context file)
+  SRC = _HOME (set in the context file)
+  LNK = $XDG_CONFIG_HOME/APP
+  CTX = $DOTS_ENV_CTX/APP
+  VERBOSE = false
+  FORCE = false
+
+Dependencies:
+  $_cmd_DEPENDENCIES
+
+Examples:
+  $_cmd_NAME -d myApp
+  --------------------------------------------------------------------------------
+  This command will create symbolic links for the application named "myApp" in
+  the default locations. The "-d" option enables detailed output, which can be
+  useful for debugging.
+USAGE_GUIDE
+)"
+
+pout() {
+  case $1 in
+  --usage) printf "Usage: %s\n" "$_cmd_USAGE" ;;
+  --help) printf "%s\n" "$_cmd_GUIDE" ;;
+  --warning)
+    #> Print the warning heading with space before and after
+    printf "%*sINFO [%s]:%*s" 3 "" "$_cmd_NAME" 1 ""
+
+    #> Print the warning message
+    case $2 in
+    --name) printf "Consider defining the '_NAME' variable in '%s', defaulting to '%s'\n" "$ctx" "$_NAME" ;;
+    esac
+    ;;
+  --error)
+    #> Print the error heading with space before and after
+    printf "%*sERROR [%s]:%*s" 3 "" "$_cmd_NAME" 1 ""
+
+    #> Print the error message
+    case $2 in
+    --ctx) printf "The config file '%s' is missing" "$3" ;;
+    --src) printf "Ensure the '_HOME' variable is set for '%s'" "$3" ;;
+    --app) printf "Please ensure '%s' is installed and in PATH" "$3" ;;
+    --arg) printf "The name of the app was not provided\n%*s%s" 18 "" "$(pout --usage)" ;;
+    esac
+
+    #> Terminate the script
+    exit 1
+    ;;
+  esac
 }
 
 weHave() { #@ Check if the command exists
   type "$1" >/dev/null 2>&1
 }
 
-__error__() {
-  #| Display general usage instructions
-  __help__
-
-  #| Display specific error messaging
-  case $1 in
-  --ctx) printf "'%s' is missing\n" "$DOTS_ENV_CTX/$app" ;;
-  --src) printf "Ensure th 'src' variable is set for '%s'\n" "$app" ;;
-  --app) printf "Please ensure '%s' is install and in PATH\n" "$app" ;;
-  --arg) printf "What should we do?\n" ;;
-  esac
-  return 1
-}
-
-__gc__() { unset src lnk; }
-
-__ctx__() {
-  #| Load Environment Variables
-  if [ -f "$DOTS_ENV_CTX/$app" ]; then
-    . "$DOTS_ENV_CTX/$app"
-  else
-    __error__ --ctx
-  fi
-}
-
-__check__() {
-  if [ "$verbose" ]; then
-    weHave "$app" || __error__ --app
-  fi
-}
-
-__lnk__() {
-  #| Deploy Link
-  if [ "$src" ]; then
-
-    #| Set the destination to app name in XDG_CONFIG
-    lnk="$CONFIG_HOME/$(basename "$src")"
-
-    #| Show details when symlinking, if requested.
-    if [ "$verbose" ]; then
-      symbiolink --src "$src" --lnk "$lnk" --verbose
-    else
-      symbiolink --src "$src" --lnk "$lnk"
-    fi
-
-  else
-    __error__ --src
-  fi
-}
-
-__process__() {
+collect_vars() {
   #| Reset variables
-  __gc__
+  unset _HOME _NAME src lnk
 
-  #| Ensure context is established
-  __ctx__ || return 1
+  #| Load Environment Variables
+  if [ -f "$ctx" ]; then
+    . "$ctx"
+  else
+    pout --error --ctx "$ctx"
+  fi
 
-  #| Ensure app is installed
-  __check__ || return 1
+  #| Set the app's home directory as source
+  src="$_HOME"
+
+  #| Set the destination to app name in XDG_CONFIG
+  lnk="${_LINK:-"$XDG_CONFIG_HOME/$(basename "$src")"}"
+}
+
+validate() {
+  case $1 in
+  --home)
+    [ "$_HOME" ] || pout --error --src "$app"
+    ;;
+  --name)
+    [ "$_NAME" ] || _NAME="$app"
+    pout --warning --name
+    ;;
+  --app)
+    weHave "$_CMD" || pout --error --app "$_NAME"
+    ;;
+  --all)
+    validate --home
+    validate --app
+    validate --name
+    ;;
+  esac
+
+}
+
+deploy_link() {
+  #| Show details when symlinking, if requested.
+  if [ "$verbose" ]; then
+    symbiolink --src "$src" --lnk "$lnk" --verbose
+  else
+    symbiolink --src "$src" --lnk "$lnk"
+  fi
+}
+
+exexute_process() {
+  #| Gather the context variables from the Environmental Context directory
+  collect_vars
+
+  #| Validate the app
+  validate --all
 
   #| Deploy link
-  __lnk__ || return 1
+  deploy_link
 }
 
 __test__() {
-  __gc__
-  __ctx__ && {
-    printf "%-12s | \t%20s \t | %40s\n" \
-      "$app" "$src" "$CONFIG_HOME/$(basename "$src")"
+  collect_garbage
+  collect_vars && {
+    printf "%-12s | \t%12s \t | %12s\n" \
+      "$app" "$_HOME" "$CONFIG_HOME/$(basename "$_HOME")"
   }
+
+  printf "%s\n" "$_HOME"
+  eza --long --absolute "$_HOME"
+
+  _CFG_HOME="$XDG_CONFIG_HOME/$(basename "$_HOME")"
+  printf "\n%s\n" "$_CFG_HOME"
+  eza --long --absolute "$_CFG_HOME"
 }
 
-__opt__() {
-  [ "$#" -eq 0 ] && __error__ --arg
+main() {
+  [ "$#" -eq 0 ] && pout --error --arg
 
   for arg in "$@"; do
     case "$arg" in
-    #todo: allow input-file
+    #TODO: allow input-file
+    -h) pout --usage ;;
+    --help) pout --help ;;
     -d | --verbose) verbose=true ;;
     -f | --force) force=true ;;
     -q | --quiet) unset verbose ;;
@@ -96,12 +181,12 @@ __opt__() {
     -*) ;;
     *)
       app="$1"
-      # __test__
-      __process__
+      ctx="$DOTS_ENV_CTX/$app"
+      echo exexute_process
       ;;
     esac
     shift
   done
 }
 
-__opt__ "$@"
+main "$@"

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+#> Info
+_APP="zed"
+# _NAME="Zed Editor"
+
+#> Type of Application
+_TYPE="gui"
+
+#| Config
+_HOME="${DOTS_APP}/${_APP}"
+_CFG="${_HOME}/settings.json"
+
+#> Command
+if weHave zeditor; then
+  _CMD="zeditor"
+elif weHave zed; then
+  _CMD="zed"
+fi

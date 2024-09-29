@@ -8,6 +8,7 @@ DeployConfig \
   qtile \
   rofi \
   helix \
+  zed \
   --quiet
 
   # nushell \
