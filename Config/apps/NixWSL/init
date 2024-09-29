@@ -169,7 +169,7 @@ environment() {
 
 utilities() {
 
-  __bakitup() {
+  __backitup() {
     func_name="${FUNCNAME[0]}"
     func_usage="$(__txtBarber "
       Usage: $func_name [OPTIONS] [CONTENTS]

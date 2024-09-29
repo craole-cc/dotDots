@@ -1,6 +1,6 @@
 [core]
 	#@ Set the default text editor for Git to BIN::Editor
-	editor = Editor
+	editor = "hx"
 
 	#@ Ensure that Git doesn't change line endings automatically
 	autocrlf = false
@@ -107,9 +107,10 @@
 
 [IncludeIf "gitdir:~/Documents/github_craole/"]
 	path = ../clients/github_craole.gitconfig
-	
+
 [http]
 	postBuffer = 1048576000
+
 [credential]
-	helper = 
+	helper =
 	helper = C:/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe
