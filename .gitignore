@@ -16,4 +16,6 @@
 [Tt]emp/
 [Aa]rchive/
 [Ss]ecrets/
+[Kk]eys/
 history.txt
+**/*.env
