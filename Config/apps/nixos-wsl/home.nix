@@ -27,9 +27,9 @@
     tmux
     tree
     unzip
-    vim
     wget
     zip
+    eza
   ];
 
   stable-packages = with pkgs; [
