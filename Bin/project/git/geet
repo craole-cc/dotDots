@@ -98,7 +98,7 @@ establish_defaults() {
 
 	target_repo="${target_repo:-$actual_repo}"
 	geet_dir="${git_dir_super:-$git_dir}"
-	geetmodules="$geet_dir/.gitmodules"
+	geet_modules="$geet_dir/.gitmodules"
 
 	# | Dependencies
 	_cmd_DEPENDENCIES=$(
@@ -108,7 +108,7 @@ establish_defaults() {
 
 establish_environment() {
 	# | Ensure dependencies are present
-	[ "$debug" ] || validate_dependenies
+	[ "$debug" ] || validate_dependencies
 
 	# | Clear previously set variables
 	unset msg push pull reset status commit add
@@ -217,12 +217,12 @@ establish_environment() {
 # @	VALIDATION             	                       @ #
 # @ ============================================== @ #
 
-validate_dependenies() {
+validate_dependencies() {
 	# | Set default values for local variables
 	missing_deps=""
 	missing_deps_count=0
 
-	# | Validate dependecies as executable files
+	# | Validate dependencies as executable files
 	for dependency in $_cmd_DEPENDENCIES; do
 		pathof "$dependency" --is-executable ||
 			if [ -n "$missing_deps" ]; then
@@ -282,10 +282,10 @@ validate_submodules() {
 	work_in "$geet_dir"
 
 	#| Ensure the project has submodules
-	if [ -f "$geetmodules" ]; then
+	if [ -f "$geet_modules" ]; then
 		submodules=$(
 			awk -F'"' 'BEGIN {ORS=" "} /^\[submodule "[^"]+"\]/{print $2}' \
-				"$geetmodules"
+				"$geet_modules"
 		)
 
 		# shellcheck disable=2086
@@ -293,7 +293,7 @@ validate_submodules() {
 	else
 		console_log --error \
 			"Submodules Missing. Ensure .gitmodules exists at the project root" \
-			"$geetmodules"
+			"$geet_modules"
 		exit 2
 	fi
 
