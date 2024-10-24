@@ -1,0 +1,496 @@
+#!/bin/sh
+# TODO: Merge with geet
+
+main() {
+  define_metadata
+  define_defaults
+  validate_dependencies
+  parse_arguments "$@"
+  establish_environment
+
+  # | Run the test process
+  [ "$debug" ] && execute_tests
+
+  # | Run the main process
+  if [ "$info" ]; then
+    execute_info
+  else
+    execute_process
+  fi
+
+  exit "$exit_code"
+}
+
+# @ ============================================================= @ #
+# @                            INFO                               @ #
+# @ ============================================================= @ #
+
+define_metadata() {
+  _cmd_PATH="$(pathof "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Simplifies the git update process"
+  _cmd_DEPENDENCIES="git, bat"
+}
+
+define_defaults() {
+  unset \
+    name email branch message repo \
+    info verbose debug
+
+  default_branch="main"
+  icon_for_update="🔃"
+  icon_for_init="🆕"
+  exit_code=0
+
+  [ "$GEET_USER" ] || GEET_USER="$(get_user_name)"
+  [ "$GEET_EMAIL" ] || GEET_EMAIL="$(get_user_email)"
+  [ "$GEET_BRANCH" ] || GEET_BRANCH="$(get_branch)"
+  [ "$GEET_URL" ] || GEET_URL="$(get_remote_url)"
+  [ "$GEET_PLATFORM" ] || GEET_PLATFORM="$(get_platform)"
+  [ "$GEET_OWNER" ] || GEET_OWNER="$(get_owner)"
+  [ "$GEET_NAME" ] || GEET_NAME="$(get_name)"
+  [ "$GEET_MESSAGE" ] || GEET_MESSAGE="$(get_commit_message)"
+  [ "$GEET_PAT" ] || GEET_PAT="$(get_pat)"
+  [ "$GEET_STORE_CREDENTIALS" ] || GEET_STORE_CREDENTIALS=true
+  [ "$GEET_INCLUDE_SUBMODULES" ] || GEET_INCLUDE_SUBMODULES=true
+  [ "$GEET_SCOPE" ] || GEET_SCOPE="local"
+}
+get_dir() {
+  case "$1" in
+  -q | --quiet)
+    [ "$(git rev-parse --show-toplevel 2>/dev/null)" ] >/dev/null
+    ;;
+  *)
+    git rev-parse --show-toplevel 2>/dev/null
+    ;;
+  esac
+}
+
+get_branch() {
+  git rev-parse --abbrev-ref HEAD 2>/dev/null | grep -v HEAD ||
+    git describe --exact-match HEAD 2>/dev/null ||
+    git branch --show-current 2>/dev/null ||
+    git branch 2>/dev/null | sed -n 's/^\* //p' 2>/dev/null
+}
+
+get_user_email() {
+  git config --get user.email 2>/dev/null
+  # TODO: fetch the public one if possible based on the user.name or repo url
+}
+
+get_user_name() {
+  git config --get user.nam 2>/dev/null ||
+    get_remote_url | sed 's#https://\([^@]\+\)@.*#\1#' ||
+    ${USER:-$USERNAME}
+    # get_remote_url | sed -n 's/.*:\([^@]*\)@.*/\1/p' ||
+}
+
+get_remote_url() {
+  git config --get remote.origin.url 2>/dev/null
+}
+
+get_platform() {
+  get_remote_url | sed -E 's#(https?://|git@)([^:/]+).*#\2#'
+}
+
+get_name() {
+  printf "%s" "$(get_remote_url)" | sed -n 's/.*\/\([^/]*\)\.git$/\1/p'
+}
+
+get_owner() {
+  get_remote_url |
+    sed 's#\(https\?://\|git@\)[^:/]\+[:/]\([^/]\+\)/.*#\2#'
+}
+
+get_pat() {
+  # get_remote_url |
+  #   sed -E 's#https://([^:]+):([^@]+)@.*#\2#' 2>/dev/null ||
+  get_remote_url | sed -n 's/.*:\([^@]*\)@.*/\1/p'
+}
+
+get_scope() {
+  printf "local"
+}
+get_commit_message() {
+  if git log >/dev/null 2>&1; then
+    previous_message="$(git log -1 --pretty=%B)"
+    commits_count="$(git log --oneline | wc -l)"
+
+    [ "$commits_count" -eq 1 ] &&
+      [ "$previous_message" = "$icon_for_init" ] &&
+      previous_message="$icon_for_update"
+  else
+    previous_message="$icon_for_init"
+  fi
+}
+
+# @ ============================================================= @ #
+# @		                           	ENV 			                      @ #
+# @ ============================================================= @ #
+
+parse_dependencies() {
+  printf "%s" "$*" | tr -s -c '[:alnum:]' ' '
+}
+
+parse_arguments() {
+  [ "$#" -eq 0 ] && info=true
+
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    -n | --name)
+      if [ -z "$2" ]; then
+        console_log --error "No name provided for -n or --name option." --ll
+        exit 1
+      else
+        name="$2"
+      fi
+      ;;
+    -e | --email)
+      if [ -z "$2" ]; then
+        console_log --error "No email provided for -e or --email option." --ll
+        exit 1
+      else
+        email="$2"
+      fi
+      ;;
+    -b | --branch) GEET_BRANCH="$2" ;;
+    -m | --message) GEET_MESSAGE="$2" ;;
+    -s | --scope) scope="$2" ;;
+    -c | --store-creds) store=true ;;
+    -i | --info | --debug) info=true ;;
+    -d | --verbose) verbose=true ;;
+    -v | --version)
+      console_log "$_cmd_VERSION" --ll
+      exit 0
+      ;;
+    -h | --help)
+      show_usage=true
+      ;;
+    -*)
+      console_log --error "Unknown Option:" "$1"
+      console_log "Use -h or --help to display the usage guide." --ll
+      exit 1
+      ;;
+    *) message="$message $1" ;;
+    esac
+    shift
+  done
+
+  message="${message# }"
+}
+
+# @ ============================================================= @ #
+# @		                          VALIDATION	                      @ #
+# @ ============================================================= @ #
+
+validate_dependencies() {
+  # | Set default values for local variables
+  missing_deps=""
+  missing_deps_count=0
+
+  # | Validate dependencies as executable files
+  for dependency in $(parse_dependencies "$_cmd_DEPENDENCIES"); do
+    pathof "$dependency" --is-executable ||
+      if [ -n "$missing_deps" ]; then
+        missing_deps="$missing_deps, $dependency"
+      else
+        missing_deps="$dependency"
+      fi
+  done
+
+  # | Continue the program if dependency paths are validated
+  [ "$missing_deps" ] || return
+
+  # | Count the number of missing dependencies
+  missing_deps_count="$(
+    console_log "$missing_deps" |
+      tr ',' '\n' | wc -l
+  )"
+
+  # | Update the error message based on the count
+  msg="Missing dependency"
+  [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
+
+  # | Halt the program and report missing dependencies
+  # TODO: Fix console_log to print each dependency on a new line
+  console_log --error "$msg" "$missing_deps"
+  exit_code=2
+  exit "$exit_code"
+}
+
+validate_message() {
+  # Strip the name and email from the message
+  if [ -n "$name" ]; then
+    message=$(printf "%s" "$message" | sed "s/$name //g")
+  fi
+
+  if [ -n "$email" ]; then
+    message=$(printf "%s" "$message" | sed "s/$email //g")
+  fi
+
+  case "$message" in "$name" | "$email" | "$branch")
+    unset message
+    ;;
+  esac
+}
+
+# validate_email() {
+# 	if get_user_email; then
+# 		[ "$verbose" ] && console_log --info " Email" "$(get_user_email)"
+# 	else
+# 		[ "$verbose" ] && console_log --error "The email address is not set"
+# 		return 2
+# 	fi
+# }
+
+# validate_name() {
+# 	if get_user_name; then
+# 		[ "$verbose" ] && console_log --info " Name" "$(get_user_name)"
+# 	else
+# 		[ "$verbose" ] && console_log --error "The name is not set"
+# 		return 2
+# 	fi
+# }
+
+# @ ============================================================= @ #
+# @		                          UTILITIES 	                      @ #
+# @ ============================================================= @ #
+
+updates_pending() {
+  [ "$(git status --porcelain)" ]
+}
+
+set_config() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --key) key="$2" ;;
+    --val) val="$2" ;;
+    esac
+    shift
+  done
+
+  [ "$key" ] && [ "$val" ] &&
+    eval "git config --${scope}" "$key" "$val"
+}
+
+set_dir() {
+  if git init --initial-branch="$branch" >/dev/null 2>&1; then
+    [ "$verbose" ] && console_log --info "GIT_DIR" "$(get_dir)"
+  else
+    console_log --error "Failed to rename branch."
+    return 2
+  fi
+}
+
+set_branch() {
+  if git branch --move --force "$branch" >/dev/null 2>&1; then
+    [ "$verbose" ] && console_log --info "Branch" "$(get_branch)"
+  else
+    console_log --error "Failed to initialize the repository."
+    return 2
+  fi
+}
+
+set_credential_store() {
+  [ "$store_creds" ] &&
+    eval "git config --${scope} credential.helper store" 2>/dev/null
+}
+
+# set_remote_origin() {
+#   # TODO: This should use the _URL or all of [_PLATFORM, _OWNER, _USER, _NAME, _PAT]
+
+# }
+
+set_message() {
+  validate_message
+  get_message
+  message="${message:-$previous_message}"
+  [ "$verbose" ] && console_log --info "Message" "$previous_message"
+}
+
+set_email() {
+  [ "$email" ] && set_config --key "user.email" --val "$email"
+}
+
+set_name() {
+  [ "$name" ] && set_config --key "user.name" --val "$name"
+}
+
+# @ ============================================================= @ #
+# @		                           EXECUTE  	                      @ #
+# @ ============================================================= @ #
+
+execute_info() {
+  if get_dir --quiet; then
+    console_log --info "   NAME" "$(get_user_name)"
+    console_log --info "  EMAIL" "$(get_user_email)"
+    console_log --info " BRANCH" "$(get_branch)"
+    set_message
+    console_log --info "GIT_DIR" "$(get_dir)"
+    console_log --info "MESSAGE" "$message" --ll
+  else
+    console_log "This directory has not been initialized for git"
+  fi
+}
+
+execute_process() {
+  if get_dir --quiet; then
+    [ "$branch" ] && [ "$(get_branch)" = "$branch" ] &&
+      set_branch
+  else
+    branch="${branch:-"$default_branch"}"
+    set_dir
+  fi
+
+  set_credential_store
+  set_email
+  set_name
+  set_message
+
+  # | Validate && Update
+  if
+    get_user_name >/dev/null 2>&1 &&
+      get_user_email >/dev/null 2>&1 &&
+      get_branch >/dev/null 2>&1
+  then
+    updates_pending && {
+      git add --all
+      git commit --quiet --message="$message"
+      [ "$verbose" ] && console_log "$message"
+    }
+  else
+    exit_code="$?"
+  fi
+
+  execute_info
+
+}
+
+define_usage() {
+  _cmd_USAGE="$(
+    title="$_cmd_NAME ($_cmd_VERSION)"
+    border="::-----------------------------------------------------------------::"
+    padding=$(((${#border} - ${#title}) / 2))
+    heading="$(printf "%*s\n" $((padding + ${#title})) "$title")"
+    note="$(
+      fold -s -w $((${#border} - 6)) <<'NOTE' | sed 's/^/    /'
+ can be run with or without options. If options are not provided, it will attempt to perform a commit with the current repository state and default configurations.
+
+If the repository is not initialized, the script will initialize it with the specified branch. If both local and global configurations exist, the local configurations take precedence.
+
+Also, if both an option and its corresponding environment variable are set, the option value takes precedence.
+NOTE
+    )"
+    cat <<USAGE_GUIDE
+$border
+$heading
+$border
+  Usage:
+    $_cmd_NAME [OPTIONS] <COMMIT_MESSAGE>
+
+  Description:
+    $_cmd_DESCRIPTION
+
+  Dependencies:
+    $_cmd_DEPENDENCIES
+
+  Options:
+    [General]
+        --help        Display the usage guide
+    -h                Display the condensed version of the usage guide
+    -v, --version     Display version information
+    -d, --verbose     Enable verbose mode
+    -q, --quiet       Suppress output including errors
+
+    [Configuration]
+    -i, --info        Display Git repository information
+    -u, --user        Git username
+    -e, --email       Git email
+    -b, --branch      Branch name
+    -t, --pat         Personal Access Token
+    -U, --url         Repository URL
+    -r, --repo        Repository name
+    -o, --owner       Repo owner
+    -P, --platform    Git platform [Default: github, ENV: ${_cmd_ENV}PLATFORM]
+    -R, --recursive   Handle submodules recursively [ENV: ${_cmd_ENV}RECURSIVE, Default: false]
+    -s, --scope       Configuration scope [ENV: ${_cmd_ENV}CONFIG_SCOPE, Default: local ]
+    -m, --message     Commit message [ENV: ${_cmd_ENV}COMMIT_MESSAGE, Default: {last commit message}]
+
+    [Status]
+    -s, --status      Display status
+    -D, --diff        Display changes
+
+    [Actions]
+    -I, --ignore      Honor .gitignore changes (rebase)
+    -p, --pull        Pull changes from remote
+    -a, --add         Add untracked files
+    -c, --commit      Record changes with an accompanying message
+    -u, --push        Push changes to remote
+
+  Examples:
+    # Set user name, email, and branch
+    $_cmd_NAME -n 'John Doe' -e 'john.doe@example.com' -b 'torch'
+
+    # Display information about the current Git repository
+    $_cmd_NAME -i
+
+  Environment Variables:
+    The options can also be set using defaults.
+
+    GEET_USER_NAME
+      Description: The user.name Git configuration if set, otherwise, the current user.
+      Default: $GEET_USER_NAME
+
+    GEET_USER_EMAIL
+      Description: The user.email Git configuration if set.
+      Default: $GEET_USER_EMAIL
+
+    GEET_BRANCH
+      Description: The name of the branch to be used for the Git repository.
+      Default: $GEET_BRANCH
+
+    GEET_URL
+      Description: The url [HTTPS|SSH] of the Git repository.
+      Default: $GEET_URL
+
+    GEET_NAME
+      Description: The name of the Git repository.
+      Default: $GEET_NAME
+
+    GEET_PAT
+      Description: The Personal Access Token for the Git repository.
+      Default: $GEET_PAT
+
+    GEET_OWNER
+      Description: The owner of the Git repository.
+      Default: $GEET_OWNER
+
+    GEET_PLATFORM
+      Description: Git username
+      Default: $GEET_PLATFORM
+
+    GEET_INCLUDE_SUBMODULES
+      Description: Include submodules of the repository.
+      Default: $GEET_INCLUDE_SUBMODULES
+
+    GEET_SCOPE
+      Description: The default configuration scope.
+      Default: $GEET_SCOPE
+
+    GEET_MESSAGE
+      Description: The commit message for the current changes.
+      Default: $GEET_MESSAGE
+
+    USE_CREDENTIALS_STORE
+
+  Note:
+$note
+$border
+USAGE_GUIDE
+  )"
+}
+
+# main "$@"
+main --help
