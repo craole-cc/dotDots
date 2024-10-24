@@ -9,14 +9,14 @@
 # --------- FOLDERS ----------
 # ----------------------------
 
-[Pp]rivate/
-[Dd]ownloads/
-[Ll]og*/
-[Tt]emp/
+[Pp]rivate
+[Dd]ownloads
+[Ll]og
+[Tt]emp
 [Tt]mp/
-[Aa]rchive/
-[Tt]arget/
-[Dd]ebug/
+[Aa]rchive
+[Tt]arget
+[Dd]ebug
 
 # ----------------------------
 # ---------- LINUX -----------

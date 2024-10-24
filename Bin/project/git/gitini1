@@ -14,6 +14,7 @@ main() {
   if [ "$debug" ]; then
     execute_tests
   elif [ "$info" ]; then
+    get_platform
     execute_info
   else
     execute_process
@@ -25,12 +26,12 @@ main() {
 # @ ============================================================= @ #
 
 define_metadata() {
-  _cmd_PATH="$(PathOf "$_cmd_PATH")"
+  _cmd_PATH="$(pathof "$0")"
   _cmd_NAME="$(basename "$_cmd_PATH")"
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Simplifies the git update process"
-  _cmd_DEPENDENCIES="git, pathof, consolog"
+  _cmd_DEPENDENCIES="git, bat"
 }
 
 define_defaults() {
@@ -45,7 +46,7 @@ define_defaults() {
   exit_code=0
 
   [ "$GEET_DIR" ] || GEET_DIR="$(get_dir)"
-  [ "$GEET_PLATFORM" ] || GEET_PLATFORM="$(get_platform)"
+  [ "$GEET_DIR" ] || GEET_PLATFORM="$(get_platform)"
   [ "$GEET_OWNER" ] || GEET_OWNER="$(get_owner)"
   [ "$GEET_NAME" ] || GEET_NAME="$(get_repo_name)"
   [ "$GEET_USER" ] || GEET_USER="$(get_user_name)"
@@ -161,18 +162,18 @@ parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case $1 in
     -h | --help)
-      consolog "$(define_usage)" --ll
+      console_log "$(define_usage)" --ll
       exit 0
       ;;
     -v | --version)
-      consolog "$_cmd_VERSION" --ll
+      console_log "$_cmd_VERSION" --ll
       exit 0
       ;;
     -d | --verbose | --debug) verbose=true ;;
     -i | --info) info=true ;;
     -n | --name)
       if [ -z "$2" ]; then
-        consolog --error "No name provided for -n or --name option." --ll
+        console_log --error "No name provided for -n or --name option." --ll
         exit 1
       else
         GEET_NAME="$2"
@@ -180,7 +181,7 @@ parse_arguments() {
       ;;
     -e | --email)
       if [ -z "$2" ]; then
-        consolog --error "No email provided for -e or --email option." --ll
+        console_log --error "No email provided for -e or --email option." --ll
         exit 1
       else
         GEET_EMAIL="$2"
@@ -191,8 +192,8 @@ parse_arguments() {
     -s | --scope) GEET_SCOPE="$2" ;;
     -c | --store-creds) GEET_STORE_CREDENTIALS=true ;;
     -*)
-      consolog --error "Unknown Option:" "$1"
-      consolog "Use -h or --help to display the usage guide." --ll
+      console_log --error "Unknown Option:" "$1"
+      console_log "Use -h or --help to display the usage guide." --ll
       exit 1
       ;;
     *) message="$message $1" ;;
@@ -227,7 +228,7 @@ validate_dependencies() {
 
   # | Count the number of missing dependencies
   missing_deps_count="$(
-    consolog "$missing_deps" |
+    console_log "$missing_deps" |
       tr ',' '\n' | wc -l
   )"
 
@@ -236,11 +237,8 @@ validate_dependencies() {
   [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
 
   # | Halt the program and report missing dependencies
-  # TODO: Fix consolog to print each dependency on a new line
-  for dependency in $(parse_list "$missing_deps"); do
-    consolog --error "$msg" "$dependency"
-  done
-  # consolog --error "$msg" "$missing_deps"
+  # TODO: Fix console_log to print each dependency on a new line
+  console_log --error "$msg" "$missing_deps"
   exit_code=2
   exit "$exit_code"
 }
@@ -263,18 +261,18 @@ validate_message() {
 
 # validate_email() {
 # 	if get_user_email; then
-# 		[ "$verbose" ] && consolog --info " Email" "$(get_user_email)"
+# 		[ "$verbose" ] && console_log --info " Email" "$(get_user_email)"
 # 	else
-# 		[ "$verbose" ] && consolog --error "The email address is not set"
+# 		[ "$verbose" ] && console_log --error "The email address is not set"
 # 		return 2
 # 	fi
 # }
 
 # validate_name() {
 # 	if get_user_name; then
-# 		[ "$verbose" ] && consolog --info " Name" "$(get_user_name)"
+# 		[ "$verbose" ] && console_log --info " Name" "$(get_user_name)"
 # 	else
-# 		[ "$verbose" ] && consolog --error "The name is not set"
+# 		[ "$verbose" ] && console_log --error "The name is not set"
 # 		return 2
 # 	fi
 # }
@@ -302,18 +300,18 @@ set_config() {
 
 set_dir() {
   if git init --initial-branch="$branch" >/dev/null 2>&1; then
-    [ "$verbose" ] && consolog --info "GIT_DIR" "$(get_dir)"
+    [ "$verbose" ] && console_log --info "GIT_DIR" "$(get_dir)"
   else
-    consolog --error "Failed to rename branch."
+    console_log --error "Failed to rename branch."
     return 2
   fi
 }
 
 set_branch() {
   if git branch --move --force "$branch" >/dev/null 2>&1; then
-    [ "$verbose" ] && consolog --info "Branch" "$(get_branch)"
+    [ "$verbose" ] && console_log --info "Branch" "$(get_branch)"
   else
-    consolog --error "Failed to initialize the repository."
+    console_log --error "Failed to initialize the repository."
     return 2
   fi
 }
@@ -332,7 +330,7 @@ set_message() {
   validate_message
   get_message
   message="${message:-$previous_message}"
-  [ "$verbose" ] && consolog --info "Message" "$previous_message"
+  [ "$verbose" ] && console_log --info "Message" "$previous_message"
 }
 
 set_email() {
@@ -350,23 +348,21 @@ set_name() {
 execute_info() {
   if [ "$GEET_DIR" ]; then
     # TODO: Improve output
-    consolog --info "DIRECTORY     " "$GEET_DIR"
-    consolog --info "PLATFORM      " "$GEET_PLATFORM"
-    consolog --info "OWNER         " "$GEET_OWNER"
-    consolog --info "NAME          " "$GEET_NAME"
-    consolog --info "USER          " "$GEET_USER"
-    consolog --info "EMAIL         " "$GEET_EMAIL"
-    consolog --info "BRANCH        " "$GEET_BRANCH"
-    consolog --info "URL           " "$GEET_URL"
-    consolog --info "PAT           " "$GEET_PAT"
-    consolog --info "MESSAGE       " "$GEET_MESSAGE" --paragraph
-
-    [ "$GEET_INCLUDE_SUBMODULES" ] &&
-      consolog --note "Submodules will be included"
-    [ "$GEET_STORE_CREDENTIALS" ] &&
-      consolog --ll --note "The git credential_store is being activated"
+    console_log --info "DIR           " "$GEET_DIR"
+    console_log --info "PLATFORM      " "$GEET_PLATFORM"
+    console_log --info "OWNER         " "$GEET_OWNER"
+    console_log --info "NAME          " "$GEET_NAME"
+    console_log --info "USER          " "$GEET_USER"
+    console_log --info "EMAIL         " "$GEET_EMAIL"
+    console_log --info "BRANCH        " "$GEET_BRANCH"
+    console_log --info "URL           " "$GEET_URL"
+    [ "$GEET_PAT" ] &&
+      console_log --info "PAT           " "$GEET_PAT"
+    # console_log --info "SUBMODULES    " "$(get_submodules)"
+    # set_message
+    console_log --info "MESSAGE       " "$GEET_MESSAGE" --ll
   else
-    consolog "This directory has not been initialized for git"
+    console_log "This directory has not been initialized for git"
   fi
 }
 
@@ -393,7 +389,7 @@ execute_process() {
     updates_pending && {
       git add --all
       git commit --quiet --message="$message"
-      [ "$verbose" ] && consolog "$message"
+      [ "$verbose" ] && console_log "$message"
     }
   else
     exit_code="$?"
@@ -450,10 +446,10 @@ $border
     -U, --url         Repository URL
     -r, --repo        Repository name
     -o, --owner       Repo owner
-    -P, --platform    Git platform
-    -R, --recursive   Handle submodules recursively
-    -s, --scope       Configuration scope
-    -m, --message     Commit message
+    -P, --platform    Git platform [Default: github, ENV: ${_cmd_ENV}PLATFORM]
+    -R, --recursive   Handle submodules recursively [ENV: ${_cmd_ENV}RECURSIVE, Default: false]
+    -s, --scope       Configuration scope [ENV: ${_cmd_ENV}CONFIG_SCOPE, Default: local ]
+    -m, --message     Commit message [ENV: ${_cmd_ENV}COMMIT_MESSAGE, Default: {last commit message}]
 
     [Status]
     -s, --status      Display status
@@ -537,4 +533,3 @@ USAGE_GUIDE
 # main "$@"
 # main --help
 main --info
-# main -h

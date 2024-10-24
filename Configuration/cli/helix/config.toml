@@ -2,7 +2,7 @@
 # theme = "catppuccin_mocha"
 # theme = "catppuccin_frappe"
 # theme = "catppuccin_latte"
-theme = "kanagawa"
+# theme = "kanagawa"
 # theme = "noctis"
 # theme = "noctis_bordo"
 # theme = "monokai_pro_machine"
@@ -10,7 +10,7 @@ theme = "kanagawa"
 # theme = "monokai_pro_spectrum"
 # theme = "monokai_pro_ristretto"
 # theme = "monokai_pro_spectrum"
-# theme = "rose_pine_moon"
+theme = "rose_pine_moon"
 # theme = "tokyonight_storm"
 
 [editor]

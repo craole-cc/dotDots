@@ -59,7 +59,7 @@ DOTS_BIN_PRJ="$DOTS_BIN/project"
 DOTS_BIN_MISC="$DOTS_BIN/misc"
 
 # | CFG
-DOTS_CFG="$DOTS/Config"
+DOTS_CFG="$DOTS/Configuration"
 DOTS_APP="$DOTS_CFG/apps"
 DOTS_TOOL="$DOTS_CFG/tools"
 DOTS_CLI="$DOTS_CFG/cli"

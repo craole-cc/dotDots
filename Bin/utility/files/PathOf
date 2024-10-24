@@ -16,11 +16,11 @@ main() { #@ Run the application
 
 #/> Initialization                                  <\
 init_metadata() { #@ Initalize script metadata
-  SCRIPT_NAME="absolute"
-  SCRIPT_VERSION="1.0.0"
-  SCRIPT_AUTHOR="Craole"
-  SCRIPT_USAGE="$SCRIPT_NAME [OPTIONS] <target_path>"
-  SCRIPT_DESCRIPTION="normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..'."
+  _cmd_NAME="pathof"
+  _cmd_VERSION="1.0.0"
+  _cmd_AUTHOR="Craole"
+  _cmd_USAGE="$_cmd_NAME [OPTIONS] <target_path>"
+  _cmd_DESCRIPTION="normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..'."
 }
 parse_arguments() { #@ Parse command-line arguments
   while [ $# -gt 0 ]; do
@@ -185,7 +185,7 @@ display_info() { #@ Display infoirmation
     --error-path) printf "Invalid path: %s" "$2" ;;
     --error-circ) printf "Circular symbolic link: %s" "$2" ;;
     --error-info) printf "Invalid verbosity level: %s" "$2" ;;
-    --error-arg) printf "<target_path> required \nUsage: %s\n" "$SCRIPT_USAGE" ;;
+    --error-arg) printf "<target_path> required \nUsage: %s\n" "$_cmd_USAGE" ;;
     --error-opt) printf "Unrecognized option: %s" "$2" ;;
     --error-cd) printf "Change directory operation failed" ;;
     esac
@@ -202,15 +202,15 @@ display_info() { #@ Display infoirmation
     esac
     ;;
   --version)
-    printf "%s" "$SCRIPT_VERSION"
+    printf "%s" "$_cmd_VERSION"
     ;;
   --usage)
     cat <<USAGE
 Description:
-'$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
+'$_cmd_NAME' by $_cmd_AUTHOR $_cmd_DESCRIPTION
 
 Usage:
-$SCRIPT_USAGE
+$_cmd_USAGE
 
 Options:
   -h, --help       Show detailed help information and exit.
@@ -226,9 +226,9 @@ Exit status:
   1                   An error occurred.
 
 Examples:
-  "$SCRIPT_NAME" -d=debug ~/../../usr/bin
-  "$SCRIPT_NAME" /var/log/../lib --verbose info
-  "$SCRIPT_NAME" /var/run
+  "$_cmd_NAME" -d=debug ~/../../usr/bin
+  "$_cmd_NAME" /var/log/../lib --verbose info
+  "$_cmd_NAME" /var/run
 USAGE
     ;;
   *) printf "%s\n" "$*" ;;
