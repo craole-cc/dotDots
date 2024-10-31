@@ -21,7 +21,7 @@
       ...
     }:
     let
-      libs = import ./libraries { inherit inputs; };
+      libs = import ./core/libraries { inherit inputs; };
       DOTS = {
         inherit inputs;
         flakeHome = libs.extended.filesystem.locateProjectRoot;
