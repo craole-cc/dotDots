@@ -21,12 +21,14 @@
       ...
     }:
     let
-      libs = import ./core/libraries { inherit inputs; };
+      CORE = import ./core { inherit inputs; };
+      inherit (CORE) libs;
       DOTS = {
-        inherit inputs;
-        flakeHome = libs.extended.filesystem.locateProjectRoot;
-        flakePath = ./.;
-        libs = libs;
+        inherit inputs libs;
+        flake = {
+          homePath = libs.extended.filesystem.locateProjectRoot;
+          storePath = homePath;
+        };
       };
     in
     {
