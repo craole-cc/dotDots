@@ -15,7 +15,7 @@ let
   inherit (dib.lists)
     prep
     clean
-    infixed 
+    infixed   
     suffixed
     ;
   inherit (dib.filesystem) nullOrPathOf;
