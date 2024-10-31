@@ -1,3 +1,4 @@
+# TODO: This is ineffective as it needs config for most things like date, hostname and username.
 {
   dib,
   lib,
@@ -10,7 +11,12 @@ let
   inherit (lib.attrsets) hasAttr;
   inherit (lib.misc) fakeHash;
   inherit (lib.options) mkOption;
-  inherit (lib.strings) fileContents fromJSON floatToString;
+  inherit (lib.strings)
+    removeSuffix
+    fileContents
+    fromJSON
+    floatToString
+    ;
   inherit (lib.types) str attrs;
   inherit (dib.lists)
     prep
@@ -22,16 +28,26 @@ let
 in
 with dib.fetchers;
 {
+  datetime =
+    let
+      dateOutput = runCommand "date" { } ''
+        date "+%Y-%m-%d %H:%M:%S %Z" > $out
+      '';
+      result = removeSuffix "\n" (readFile dateOutput);
+    in
+    result;
+
   /**
     "Get the hostname of the current machine."
   */
   hostname =
     let
       # Function to get the hostname
-      getHostname = pkgs.runCommand "get-hostname" { buildInputs = [ pkgs.hostname ]; } ''
-        printf "This is the hostname: %s" "preci $(hostname)" > $out
+      getHostname = runCommand "get-hostname" { } ''
+        printf "This is the hostname: %s" "preci $(hostnamectl)" > $out
       '';
 
+      # Get the hostname
       # Read and clean the output
       # result = lib.removeSuffix "\n" (builtins.readFile getHostname);
       result = readFile getHostname;
