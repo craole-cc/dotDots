@@ -38,7 +38,7 @@
         preci = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
-            # ./core
+            ./core  
             # ./libraries
             # ./options/core        # ./options/libraries
             # ./configurations/core
