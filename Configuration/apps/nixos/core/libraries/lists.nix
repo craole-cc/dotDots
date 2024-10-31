@@ -10,6 +10,8 @@ let
     unique
     sort
     length
+    head
+    last
     ;
   inherit (lib.strings)
     hasPrefix
@@ -21,7 +23,8 @@ let
   #| Extended
   mod = "lists";
 in
-with dib.${mod}; {
+with dib.${mod};
+{
 
   /**
     prep :: [a] -> [a]
