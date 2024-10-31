@@ -27,7 +27,7 @@
         inherit inputs libs;
         flake = {
           homePath = libs.extended.filesystem.locateProjectRoot;
-          storePath = ./.;
+          # storePath = ./.;
         };
       };
     in
