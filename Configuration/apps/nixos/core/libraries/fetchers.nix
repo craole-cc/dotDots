@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inherit (builtins) getEnv;
+  inherit (builtins) getEnv readFile;
   inherit (pkgs) fetchurl runCommand;
   inherit (lib.attrsets) hasAttr;
   inherit (lib.misc) fakeHash;
@@ -15,7 +15,7 @@ let
   inherit (dib.lists)
     prep
     clean
-    infixed   
+    infixed
     suffixed
     ;
   inherit (dib.filesystem) nullOrPathOf;
@@ -25,9 +25,18 @@ with dib.fetchers;
   /**
     "Get the hostname of the current machine."
   */
-  hostname = runCommand "get-hostname" { } ''
-    echo "$(hostname)" > $out
-  '';
+  hostname =
+    let
+      # Function to get the hostname
+      getHostname = pkgs.runCommand "get-hostname" { buildInputs = [ pkgs.hostname ]; } ''
+        printf "This is the hostname: %s" "preci $(hostname)" > $out
+      '';
+
+      # Read and clean the output
+      # result = lib.removeSuffix "\n" (builtins.readFile getHostname);
+      result = readFile getHostname;
+    in
+    result;
 
   /**
     "Get the username of the current user."
