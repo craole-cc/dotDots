@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# # establish_environment() {
+
+# # }
+# delete_project() {
+# 	target="$1"
+
+# 	if [ "$target" = "$PWD" ]; then
+# 		grant_permission \
+# 			"Are you sure you want to remove all data from the current directory?" &&
+# 			rm -rf *
+# 	else
+# 		if [ -e "$target" ]; then
+# 			grant_permission "Are you sure you want to delete the project '$target'?" && {
+# 				rm -rf "$target"
+# 				printf "Project '%s' deleted.\n" "$target"
+# 			} || printf "Deletion aborted.\n"
+# 		else
+# 			printf "Project '%s' not found. Nothing to delete.\n" "$target"
+# 		fi
+# 	fi
+# }

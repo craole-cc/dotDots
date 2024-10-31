@@ -1,0 +1,56 @@
+#!/bin/sh
+
+main() {
+	case "$1" in
+		--nixos)
+			flush_nixos
+			;;
+		--home-manager)
+			flush_home_manager
+			;;
+		--vscodium)
+			flush_vscodium
+			;;
+		--all)
+			flush_nixos
+			flush_home_manager
+			flush_vscodium
+			rebuild_system
+			;;
+		*)
+			flush_nixos
+			flush_home_manager
+			;;
+	esac
+}
+flush_nixos() {
+	# | Remove old nixos core generations
+	sudo nix-collect-garbage --delete-old
+	sudo nix-store --gc
+}
+
+flush_home_manager() {
+	# | Remove old home-manager generations
+	home-manager expire-generations "$(
+		printf "%s" "$(home-manager generations)" |
+			awk 'NR==1 {print $1, $2}'
+	)"
+}
+
+flush_vscodium() {
+	# | Close and reset VSCodium configurations
+	wmctrl -l -x -c vscodium
+	rm -rf \
+		~/.config/VSCodium \
+		~/.local/share/VSCodium \
+		~/.vscode-oss
+}
+
+rebuild_system() {
+	# | Rebuild NixOS
+	sudo nixos-rebuild switch \
+		--flake "${FLAKE:-$DOTS}" \
+		--show-trace
+}
+
+main "$@"

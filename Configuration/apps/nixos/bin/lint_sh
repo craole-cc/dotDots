@@ -1,0 +1,24 @@
+#!/bin/sh
+
+debug=0
+
+execute_process() {
+	filepath="$1"
+	if [ -f "$filepath" ]; then
+		[ "$debug" -eq 1 ] &&
+			printf "Linting %s\n" "$(realpath "$filepath")"
+
+		command -v shellcheck > /dev/null &&
+			{ shellcheck "$filepath" || return 1; }
+
+		command -v shfmt > /dev/null &&
+			shfmt \
+				--case-indent \
+				--keep-padding \
+				--keep-padding \
+				--space-redirects \
+				--write "$filepath"
+	fi
+}
+
+execute_process "$1"

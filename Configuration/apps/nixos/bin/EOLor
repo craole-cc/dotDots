@@ -1,0 +1,576 @@
+#!/bin/sh
+
+scr_NAME="EOLor"
+scr_VERSION="1.0"
+scr_DESCRIPTION="converts text file line endings between CRLF (Carriage Return and Line Feed) and LF (Line Feed) formats"
+scr_AUTHORS="Craole"
+scr_USAGE="$scr_NAME [OPTIONS] <PATH>"
+scr_DEPENDENCIES="POSIX shell utilities"
+scr_OPTIONAL_DEPENDENCIES="dos2unix, unix2dos"
+
+main() {
+	define_defaults
+	initialize_utilities
+	establish_environment "$@"
+	execute_core_process
+}
+
+define_defaults() {
+	#@ Verbosity
+	# shellcheck disable=SC2153
+	case "$verbose$verbosity$VERBOSE$VERBOSITY" in
+	[1-9] | true) verbose_flag=true ;;
+	*) unset verbose_flag ;;
+	esac
+
+	list_exclude=".git"
+	eol_target="lf"
+	default_to_pwd=true
+	delimiter="+"
+}
+
+establish_environment() {
+	#| Parse script arguments
+	parse_arguments() {
+		[ $# -eq 0 ] && {
+			print_scr_info --usage
+			return 1
+		}
+
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			-h)
+				print_scr_info --usage
+				return 0
+				;;
+			--help)
+				print_scr_info --help
+				return 0
+				;;
+			-v | --version)
+				print_scr_info --version
+				return 0
+				;;
+			-d | --verbose) verbose_flag=true ;;
+			-q | --quiet) unset verbose_flag ;;
+			-t | --test | --simulate | --dry-run)
+				test_flag=true
+				verbose_flag=true
+				;;
+			-c | --cr | --crlf | crlf)
+				eol_target="crlf"
+				;;
+			-l | --lf | lf)
+				eol_target="lf"
+				;;
+			-e | --exclude)
+				[ "$2" ] && {
+					list_exclude="$(
+						listman \
+							--list "$list_exclude" \
+							--item "$2" \
+							--action "add"
+					)"
+					shift
+				}
+				;;
+			-i | --include)
+				[ "$2" ] && {
+					list_include="$(
+						listman \
+							--list "$list_include" \
+							--item "$2" \
+							--action "add"
+					)"
+					shift
+				}
+				;;
+			-*)
+				printf "Invalid argument: %s\n" "$1":
+				exit 1
+				;;
+			*)
+				list_include="$(
+					listman \
+						--list "$list_include" \
+						--item "$2" \
+						--action "add"
+				)"
+				;;
+			esac
+			shift
+		done
+	}
+
+	validate_arguments() {
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--eol)
+				case "$2" in
+				"crlf") validate_arguments --converter dos2unix ;;
+				"lf") validate_arguments --converter unix2dos ;;
+				esac
+				;;
+			-c | --converter)
+				if ! weHave "$2"; then
+					converter_cmd="$2"
+				else
+					case "$2" in
+					dos2unix) converter_cmd="convert_crlf_to_lf" ;;
+					unix2dos) converter_cmd="convert_lf_to_crlf" ;;
+					*)
+						printf "Converter not found: %s\n" "$1"
+						print_scr_info --help
+						return 1
+						;;
+					esac
+				fi
+				;;
+			-p | --path)
+				[ "$2" ] || {
+					printf "Error: Missing path argument.\n"
+					print_scr_info -h
+					return 1
+				}
+
+				[ -x "$2" ] || {
+					printf "File not found: %s\n" "$2"
+					print_scr_info -h
+					return 1
+				}
+
+				path="$2"
+				;;
+			-e | --exclude | -s | --skip)
+				[ "$2" ] || {
+					printf "Error: Missing pattern argument.\n"
+					print_scr_info -h
+					return 1
+				}
+
+				# Add the pattern to the list of patterns to skip
+				patterns_to_skip="$patterns_to_skip $2"
+				# shift
+
+				# Convert the patterns_to_skip into find-compatible conditions
+				prune_conditions=""
+				for pattern in $patterns_to_skip; do
+					prune_conditions="$prune_conditions -name \"$pattern\" -o"
+				done
+				prune_conditions="${prune_conditions% -o}"
+				;;
+			esac
+			shift
+		done
+	}
+
+	get_converter() {
+		if [ "$eol_target" = "crlf" ]; then
+			converter_cmd="unix2dos"
+		else
+			converter_cmd="dos2unix"
+		fi
+
+		#| Use the installed converter if it exists
+		weHave "$converter_cmd" && return
+
+		#| Fallback to the scripted converter
+		case "$converter_cmd" in
+		dos2unix) converter_cmd="convert_crlf_to_lf" ;;
+		unix2dos) converter_cmd="convert_lf_to_crlf" ;;
+		esac
+
+		printf "%s" "$converter_cmd"
+	}
+
+	get_paths() {
+		#| Default to the current path if no paths are specified
+		[ "$default_to_pwd" ] && paths="${paths:-"$PWD"}"
+
+		# Function to display valid and invalid paths
+		display_paths() {
+			# Count the total number of paths
+			total_count=$((valid_paths_count + invalid_paths_count))
+			[ "$verbose_flag" ] && {
+				# Determine the header for the paths
+				if [ "$total_count" -gt 1 ]; then
+					printf "[Paths]\n"
+				else
+					printf "Path"
+				fi
+
+				# Display valid paths
+				[ "$valid_paths" ] && {
+					if [ "$valid_paths_count" -eq 1 ] &&
+						[ "$invalid_paths_count" -eq 0 ]; then
+						printf ":%s\n" "$valid_paths"
+					else
+						i=1
+						[ "$invalid_paths" ] && printf "  Valid:\n"
+						listman "$valid_paths" --print
+						# IFS="$delimiter"
+						# for path in $(listman "$valid_paths" --print); do
+						# for path in $valid_paths; do
+						# printf "  %3d: %s\n" "$i" "$path"
+						# printf "%s. %s" "$i" "$(listman "$invalid_paths" --print)"
+						# i=$((i + 1))
+						# done
+						unset i
+						[ "$invalid_paths" ] && printf "  Invalid:\n"
+					fi
+				}
+
+				# Display invalid paths
+				[ "$invalid_paths" ] && {
+					if [ "$valid_paths" ] || [ "$invalid_paths_count" -gt 1 ]; then
+						i=1
+						# listman "$invalid_paths" --print
+						# IFS="$delimiter"
+						for path in $(listman "$invalid_paths" --print); do
+							printf "  %3d: %s\n" "$i" "$path"
+							i=$((i + 1))
+						done
+						unset i
+					else
+						printf " Invalid:%s\n" "$invalid_paths"
+					fi
+				}
+			}
+		}
+
+		i=0
+		IFS="$delimiter"
+		#| Get the status of each path
+		for path in $(listman "$list_include" --print); do
+			i=$((i + 1))
+			echo "$i: $path"
+			# if [ -x "$path" ]; then
+			# 	valid_paths="$(listman "$valid_paths" "$path")"
+			# else
+			# 	invalid_paths="$(listman "$invalid_paths" "$path")"
+			# fi
+		done
+		# valid_paths="$(list_paths "$valid_paths")"
+		# invalid_paths="$(list_paths "$invalid_paths")"
+		#| Remove duplicates and count the paths
+		# valid_paths="$(list_paths "$valid_paths")"
+		# valid_paths="$(prune_strlistman__ "$(list_paths "$valid_paths")")"
+		# invalid_paths=$(prune_strlistman__ "$invalid_paths")
+
+		valid_paths_count="$(listman "$valid_paths" --count)"
+		invalid_paths_count=$(listman "$invalid_paths" --count)
+
+		#| Display the results
+		# listman "$valid_paths" --print
+		# listman "$invalid_paths" --print
+		# [ "$verbose_flag" ] && display_paths
+	}
+
+	parse_arguments "$@"
+
+}
+
+initialize_utilities() {
+	#@ Display script usage and version information
+	print_scr_info() {
+		case "$1" in
+		--usage) printf "%s [OPTIONS] <PATH>" "$scr_NAME" ;;
+		--version) printf "%s" "$scr_VERSION" ;;
+		--help)
+			printf "%s [v.%s]\n" "$scr_NAME" "$scr_VERSION"
+			printf "Usage: %s" "$scr_USAGE"
+			printf "\n\nDescription: \n%s %s" "$scr_NAME" "$scr_DESCRIPTION"
+			printf "\n\nOptions:"
+			printf "\n  -h                    Display the condensed usage guide"
+			printf "\n      --help            Display this help message"
+			printf "\n  -v, --version         Display the current version number"
+			printf "\n  -d, --verbose         Enable verbose mode (Default)"
+			printf "\n  -q, --quiet           Suppress all output including errors"
+			printf "\n  -c, --win, --crlf     Convert to CRLF line endings"
+			printf "\n  -l, --nix, --lf       Convert to LF line endings"
+			printf "\n  -t, --test            Test mode"
+			printf "\n\nOptional Dependencies:"
+			printf "\n  %s" "$scr_OPTIONAL_DEPENDENCIES"
+			printf "\n\nLicense: MIT"
+			printf "\nCopyright: (c) 2023 %s" "$scr_AUTHORS"
+			;;
+		*) printf "%s\n" "$1" ;;
+		esac
+	}
+
+	#@ Validate the existence of a command
+	weHave() {
+		command -v "$1" >/dev/null 2>&1
+	}
+
+	print_lean() {
+		# Remove leading and trailing spaces and squeeze multiple spaces
+		# by using `set` to parse the string and reassigning it with "$*"
+		# which automatically handles the squeezing and trimming.
+		# shellcheck disable=SC2086,SC2048
+		set -- $*
+		printf "%s" "$*"
+	}
+
+	prune_str_list() {
+		# shellcheck disable=SC2086
+		printf "%s\n" $1 | sort --unique
+	}
+
+	#@ Set the converter based ont he operating system
+	get_converter_per_os() {
+		os_type() {
+			if weHave os.type.fetch; then
+				os.type.fetch
+			else
+				weHave uname &&
+					case "$(uname)" in
+					msys* | cygwin* | mingw* | win*)
+						printf "%s" "Windows"
+						;;
+					esac
+			fi
+		}
+
+		case "$(os_type)" in
+		Windows) printf "%s" "unix2dos" ;;
+		*) printf "%s" "unix2dos" ;;
+		esac
+	}
+
+	#@ Check if a file is binary
+	is_binary_file() {
+		#@ Use the 'file' command to determine if the file is binary
+		file --brief --mime-encoding "$1" | grep --quiet "binary"
+	}
+
+	#@ Convert LF to CRLF (Unix to DOS)
+	convert_lf_to_crlf() {
+		func_name="convert_lf_to_crlf"
+		input_file="$1"
+
+		#@ Check if the file is regular file and skip conversion
+		[ -f "$input_file" ] || {
+			printf "Skipping %s, not a regular file\n" "$input_file"
+			return 1
+		}
+
+		#@ Check if the file is binary and skip conversion
+		is_binary_file "$input_file" && {
+			printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
+			return 0
+		}
+
+		#@ Check for and remove the Byte Order Mark (BOM)
+		if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
+			tail -c +4 "$input_file" | tr '\n' '\r\n' >"$input_file.tmp"
+			mv "$input_file.tmp" "$input_file"
+		else
+			tr <"$input_file" '\n' '\r\n' >"$input_file.tmp"
+			mv "$input_file.tmp" "$input_file"
+		fi
+
+		printf "Converting %s to DOS format\n" "$input_file"
+	}
+
+	#@ Convert CRLF to LF (DOS to Unix)
+	convert_crlf_to_lf() {
+		func_name="convert_crlf_to_lf"
+		input_file="$1"
+
+		#@ Check if the file is regular file and skip conversion
+		[ -f "$input_file" ] || {
+			printf "Skipping %s, not a regular file\n" "$input_file"
+			return 1
+		}
+
+		#@ Check if the file is binary and skip conversion
+		is_binary_file "$input_file" && {
+			printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
+			return 0
+		}
+
+		#@ Check for and remove the Byte Order Mark (BOM)
+		if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
+			tail -c +4 "$input_file" | tr -d '\r' >"$input_file.tmp"
+			mv "$input_file.tmp" "$input_file"
+		else
+			tr <"$input_file" -d '\r' >"$input_file.tmp"
+			mv "$input_file.tmp" "$input_file"
+		fi
+
+		printf "Converting %s to UNIX format\n" "$input_file"
+
+	}
+
+	listman() {
+		listman__main() {
+			#| Parse list information
+			while [ "$#" -gt 0 ]; do
+				case "$1" in
+				--delim) delimiter="$2" ;;
+				--delim=*) delimiter="${1#*=}" ;;
+				--list) list="$2" ;;
+				--list=*) list="${1#*=}" ;;
+				--item) item="$2" ;;
+				--item=*) item="${1#*=}" ;;
+				--action) action="$2" ;;
+				--action=*) action="${1#*=}" ;;
+				--add) action="add" ;;
+				--remove) action="remove" ;;
+				--count) action="count" ;;
+				--pretty-print) action="list" ;;
+				--print) action="print" ;;
+				--file) action="file" ;;
+				*)
+					[ "$list" ] || list="${1:-}"
+					[ "$item" ] || item="${2:-}"
+					[ "$delimiter" ] || delimiter="${3:-|}"
+					[ "$action" ] || action="${4:-"add"}"
+					;;
+				esac
+				shift
+			done
+
+			case "$action" in
+			count) listman__count ;;
+			drop | remove) listman__drop ;;
+			print) listman__print ;;
+			list) listman_print_indexed ;;
+			file) listman__file ;;
+			add | *) listman__add ;;
+			esac
+		}
+
+		listman__add() {
+			#| Set IFS to the delimiter
+			IFS="$delimiter"
+
+			#| Prevent duplicates entries
+			for element in $list; do
+				[ "$element" = "$item" ] && {
+					printf "%s" "$list"
+					return
+				}
+			done
+
+			#| Return the updated list with each item separated by the delimiter
+			printf "%s" "${list}${delimiter}${item}"
+		}
+
+		listman__drop() {
+			#| Return the updated list with each item separated by the delimiter
+			printf "%s" "$(
+				printf "%s" "$list" |
+					tr "$delimiter" '\n' |
+					grep -v "$item" |
+					tr '\n' "$delimiter"
+			)"
+		}
+
+		listman__split() {
+			printf "%s\n" "$list" | tr "$delimiter" "\n"
+		}
+
+		listman_print_indexed() {
+			i=0
+			# Use a pipe to read from the output of the command
+			listman__split | while IFS= read -r item; do
+				i=$((i + 1))
+				printf "%3d. %s\n" "$i" "$item"
+			done
+		}
+
+		listman__file() {
+			listman__split | while IFS= read -r item; do
+				[ -e "$item" ] && {
+					find "$item" -type f -print -exec "$(get_converter)" {} \;
+				}
+			done
+		}
+
+		listman__print() {
+			listman__split | while IFS= read -r item; do
+				[ -e "$item" ] && {
+					find "$item"
+					# ls --directory "$item"
+				}
+			done
+		}
+
+		listman__count() {
+			#| Return the number of items in the list
+			listman__split | wc -l
+		}
+
+		listman__main "$@"
+	}
+}
+
+execute_core_process() {
+	#doc Iterate over files using find.
+	#doc Execute based on flags within a loop:
+	#doc - Test: print the command and file
+	#doc - Verbose: execute with messaging
+	#doc - Quiet: suppress messaging
+	[ "$test_flag" ] && printf "Simulating operation of %s\n" "$scr_NAME"
+
+	# get_converter
+	# echo "$(get_converter)"
+	# get_paths
+	# printf "%s" "$list_include" | tr "$delimiter" '\n'
+	# echo
+	listman "$list_include" --file
+	# find "$$list_include" -type f -print | while IFS= read -r file; do
+	# 	[ "$verbose_flag" ] && printf "%s>>> %s\n" "$converter_cmd" "$file"
+	# 	# "$converter_cmd" "$file" >/dev/null 2>&1
+	# 	# eval ls "$file"
+	# done
+	# listman --count "$list_include"
+
+	[ "$test_flag" ] ||
+		# find "$path" -type f | while IFS= read -r file; do
+		#   [ "$verbose_flag" ] && printf "%s: %s\n" "$converter_cmd" "$file"
+		#   "$converter_cmd" "$file" >/dev/null 2>&1
+		# done
+
+		# Build and execute the find command
+		eval "find \"$path\" \( $prune_conditions \) -prune -o -type f -print" |
+		while IFS= read -r file; do
+			[ "$verbose_flag" ] && printf "%s: %s\n" "$converter_cmd" "$file"
+			"$converter_cmd" "$file" >/dev/null 2>&1
+		done
+
+}
+
+# main "$@"
+main --test \
+	--include /d/Configuration \
+	--include '/d/Configuration/global/Bin/utility/files/eol_test/path with space' \
+	--include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
+	--include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
+	--include /d/Configuration
+
+# --include /home/craole/Projects/Test/EOLor/path \
+# --include /home/craole/Projects/Test/EOLor/path \
+# --include "/home/craole/Projects/Test/EOLor/path with spaces" \
+# --exclude /home/craole/Projects/Test/EOLor/path \
+# --include "/home/craole/Projects/Test/EOLor/path with spaces" \
+# --include "/home/craole/Projects/Test/EOLor/path with spaces/fluff" \
+# --exclude /home/craole/Projects/Test/EOLor/path/test.txt \
+# --include /home/craole/Projects/Test/EOLor/path/test.txt \
+# --exclude /home/craole/Projects/Test/EOLor
+
+# --include /d/Configuration \
+# --include '/d/Configuration/global/Bin/utility/files/eol_test/path with space' \
+# --include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
+# --include /d/Configuration/global/Bin/utility/files/eol_test/.gitactions \
+# --include /d/Configuration
+
+# --include '/d/Configuration global' \
+# --include /d/Configuration \
+# --include '/d/Configuration global/Bin' \
+# --include '/d/Configuration global' \
+# --include '/d/path with spaces' \
+# --include '/d/path with spaces' \
+# --include '/d/path with spaces as well' \

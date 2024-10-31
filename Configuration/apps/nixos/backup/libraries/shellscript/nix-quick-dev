@@ -1,0 +1,80 @@
+#!/bin/sh
+
+establish_environment() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --stable) unset unstable ;;
+    --small) small=true ;;
+    --label) label="$2" ;;
+    --version) version="$2" ;;
+    --apps) apps="$apps $2" ;;
+    --debug) debug=true ;;
+    -*) handle_error "Invalid argument: $1" ;;
+    *) apps="$apps $1" ;;
+    esac
+    shift
+  done
+
+  label="${label:-"nixos"}"
+  version="${version:-23.11}"
+  unstable="${unstable:-true}"
+  small="${small:-}"
+  apps="{$apps:-"vscodium-fhs helix nixfmt-rfc-style nil git gh lsd"}"
+
+  channel_url_old="$(get_channel "$label")"
+
+  if [ "$unstable" ] && [ "$small" ]; then
+    channel_url_new="https://nixos.org/channels/nixos-unstable-small"
+  elif [ "$unstable" ]; then
+    channel_url_new="https://nixos.org/channels/nixos-unstable"
+  elif [ "$small" ]; then
+    channel_url_new="https://nixos.org/channels/nixos-${version}-small"
+  else
+    channel_url_new="https://nixos.org/channels/nixos-${version}"
+  fi
+
+  [ "$debug" ] && {
+    printf "Channels for '%s'\n" "$label"
+    printf "   OLD: %s\n   NEW: %s\n" \
+      "$channel_url_old" "$channel_url_new"
+
+    [ "$apps" ] && {
+      printf "Apps:\n"
+      for app in $apps; do printf "   %s\n" "$app"; done
+    }
+
+    exit 0
+  }
+}
+
+get_channel() {
+  nix-channel --list | grep "^$1 " | awk '{print $NF}'
+}
+
+set_channel() {
+  [ "$1" ] || return
+  nix-channel --add "$1" "$2" ||
+    handle_error "Failed to add channel: $1"
+  nix-channel --update "$2" ||
+    handle_error "Failed to update channel: $2"
+}
+
+install_apps() {
+  set_channel "$channel_url_new" "$label"
+  export NIXPKGS_ALLOW_UNFREE=1
+  nix-shell -p "$apps" ||
+    handle_error "Failed to install apps"
+  set_channel "$channel_url_old" "$label"
+}
+
+handle_error() {
+  printf "Error: %s\n" "$1" >&2
+  exit 1
+}
+
+main() {
+  establish_environment "$@"
+  install_apps
+}
+
+main "$@"

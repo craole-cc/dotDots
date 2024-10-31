@@ -1,0 +1,66 @@
+#!/bin/sh
+
+set -e
+
+main() {
+	establish_env "$@"
+	execute_process
+}
+
+establish_env() {
+	#| Arguments
+	parse_arguments "$@"
+
+	#| Paths
+	paths="${paths:-$PWD}"
+
+	#| Application
+	app="${app:-fd}"
+	wehave "$app" || unset app
+
+	#| Command
+	exec="chmod --changes +x"
+	case "$app" in
+	"fd") cmd="fd . $paths --type file --exec $exec {}" ;;
+	*) cmd="find $paths -type f -exec $exec {} \;" ;;
+	esac
+}
+
+parse_arguments() {
+	#| Reset
+	unset path paths app cmd
+
+	#| Parse
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		--app)
+			wehave "$2" && {
+				app="$2"
+				shift
+			}
+			;;
+		--path)
+			[ -e "$2" ] &&
+				paths="$paths $2"
+			;;
+		*)
+			if wehave "$1"; then
+				app="$1"
+			else
+				paths="$paths $1"
+			fi
+			;;
+		esac
+		shift
+	done
+}
+
+wehave() {
+	type "$1" >/dev/null 2>&1
+}
+
+execute_process() {
+	eval "$cmd"
+}
+
+main "$@"

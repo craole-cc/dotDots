@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Usage
+# filepath can be a file or a directory
+# command is the command to run on each file
+
+filepath="$1"
+command="$2"
+
+if command -v fda > /dev/null; then
+	# Use fd if available
+	fd . "$filepath" --type file --exec bash -c "\"$0\" \"$1\"" "$command" {} \;
+else
+	# Fallback to find if fd is not available
+	find "$filepath" -type f -exec bash -c '"$0" "$1"' "$command" {} \;
+fi

@@ -1,0 +1,124 @@
+#!/bin/sh
+
+establish_environment() {
+	# | Set default values for local variables
+	code=0
+	notify=""
+	info=""
+	label=""
+	last_line=
+	delimiter=" |> "
+
+	# | Quit function early if no arguments provided, print a blank line like echo
+	[ $# -eq 0 ] && return 0
+
+	# | Tag the last line to prevent printing a blank line
+	case "$@" in *"-ll"*) last_line=true ;; esac
+
+	# | Parse options
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+			--info | --error | --warn*)
+				special=true
+				case "$1" in
+					--info)
+						# label="INFO: "
+						code="${code:-0}"
+						;;
+					--warn*)
+						label="WARN: "
+						code="${code:-1}"
+						;;
+					--error)
+						label="ERROR: "
+						code="${code:-1}"
+						;;
+				esac
+
+				[ "$#" -eq 2 ] && info="${label}${2}"
+				[ "$#" -gt 2 ] && {
+					label="${label}${2}"
+					info="${label}${delimiter}${3}"
+
+					# | Generate padding to place before each info
+					len_label="${#label}"
+					len_delim="${#delimiter}"
+					padding_length=$((len_label + len_delim))
+					info_padding="$(printf "%-${padding_length}s")"
+
+					# | Append additional info with leading padding and new line
+					while [ "$#" -gt 3 ]; do
+						case "$4" in -*) break ;; esac
+						info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+						shift
+					done
+				}
+				;;
+			--code)
+				special=true
+				code=1
+				case "$2" in '' | *[!0-9]*) ;; *) code="$2" ;; esac
+				;;
+			--note)
+				special=true
+				info="Note: "
+				while [ "$#" -gt 1 ]; do
+					case "$2" in -*) break ;; esac
+					info="${info}${2}"
+					shift
+				done
+				;;
+			--notify) notify=true ;;
+			--delim*)
+				delimiter="$(printf "%s" "$2")"
+				;;
+			-ll | --ll) ;;
+			-n | --line)
+				[ "$2" ] && {
+					info="$(printf "%s\n%s" "$info" "$2")"
+					shift
+				}
+				;;
+			-s | --space)
+				[ "$2" ] && {
+					info="$(printf "%s %s" "$info" "$2")"
+					shift
+				}
+				;;
+			-j | --join)
+				[ "$2" ] && {
+					info="$(printf "%s%s" "$info" "$2")"
+					shift
+				}
+				;;
+			-*) ;;
+			*)
+				[ "$special" ] ||
+					if [ "$info" ]; then
+						info="${info} ${1}"
+					else
+						info="$1"
+					fi
+				;;
+		esac
+		shift
+	done
+}
+
+print_info() {
+	if [ "$last_line" ]; then
+		printf "%s" "$info"
+	else
+		printf "%s\n" "$info"
+	fi
+
+	[ "$notify" ] && notify-send "$info"
+}
+
+main() {
+	establish_environment "$@"
+	print_info
+	return "$code"
+}
+
+main "$@"

@@ -1,0 +1,153 @@
+#!/bin/sh
+
+# @ ============================================================= @ #
+# @		                           	INFO			              @ #
+# @ ============================================================= @ #
+establish_metadata() {
+	_cmd_PATH="$(pathof "$0")"
+	_cmd_NAME="$(basename "$_cmd_PATH")"
+	_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+	_cmd_VERSION="1.0"
+	_cmd_DESCRIPTION="Execute a command if it exists and is allowed"
+	_cmd_DEPENDENCIES="coreutils"
+	_cmd_USAGEGUIDE="$(
+		cat << USAGE_GUIDE
+::------------------------------------------------------------::
+                          $_cmd_NAME ($_cmd_VERSION)
+::------------------------------------------------------------::
+  Usage:
+    $_cmd_NAME [OPTIONS] <MESSAGE|COMMAND>
+
+  Description:
+    $_cmd_DESCRIPTION
+
+  Options:
+    -m, --message    Specify the prompt message.
+    -c, --command    Specify the command to execute.
+    -q, --quiet      Suppress internal messages.
+    -h, --help       Display this help message.
+    -v, --version    Display version information.
+
+  Arguments:
+    <MESSAGE>  A message to promt the user for permission.
+
+  Examples:
+    # Execute with default
+    $_cmd_NAME "ls -la --color=always /path/to/list"
+
+    # Defaults with custom message
+    $_cmd_NAME -m "Proceed with deletion?" "rm -rf /path/to/delete"
+
+    # Defaults with lomg options
+    $_cmd_NAME \\
+        --message "Proceed with deletion?" \\
+        --command "rm -rf /path/to/delete"
+
+  Dependencies:
+    $_cmd_DEPENDENCIES
+::------------------------------------------------------------::
+USAGE_GUIDE
+	)"
+}
+
+establish_environment() {
+	unset msg cmd quiet
+
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+			-m | --m*)
+				[ "$2" ] && {
+					msg="$2"
+					shift
+				}
+				;;
+			-c | --c*)
+				[ "$2" ] && {
+					cmd="$2"
+					shift
+				}
+				;;
+			-h | --help)
+				console_log "$_cmd_USAGEGUIDE"
+				exit 0
+				;;
+			-v | --version)
+				console_log "$_cmd_VERSION"
+				exit 0
+				;;
+			-q | --quiet)
+				quiet=true
+				;;
+			*)
+				cmd="$1"
+				;;
+		esac
+		shift
+	done
+}
+
+get_permission() {
+	if [ -n "$msg" ]; then
+		if [ "$quiet" = false ]; then
+			printf "%s [y|N]: " "$msg"
+			read -r response
+		else
+			response="y"
+		fi
+
+		case $response in
+			[yY]*)
+				return 0 # | Permission granted
+				;;
+			[nN]*)
+				[ "$quiet" ] || printf "Action aborted.\n"
+				return 1 # | Permission denied
+				;;
+			*)
+				[ "$quiet" ] || printf "Invalid response. Action aborted.\n"
+				return 1 # | Permission denied
+				;;
+		esac
+	fi
+
+	# | Proceed without prompting if no message is provided
+	return 0
+}
+
+validate_command() {
+	# | Ensure a command is provided
+	[ -n "$cmd" ] || return 1
+
+	# | Extract the command name
+	cmd_name=$(printf "%s" "$cmd" | awk '{print $1}')
+
+	# | Exit early if command doesn't exist
+	command -v "$cmd_name" > /dev/null 2>&1 || {
+		[ "$quiet" ] || printf "Command not found: %s\n" "$cmd_name"
+		return 1
+	}
+}
+
+execute_command() {
+	eval "$cmd"
+	return "$?"
+}
+
+display_usage_guide() {
+	printf "%s" "$_cmd_USAGEGUIDE"
+}
+
+main() {
+	# | Initialization
+	establish_metadata
+	establish_environment "$@"
+
+	# | Validation
+	validate_command || exit 2
+
+	# | Termination
+	get_permission
+	execute_command && return "$?"
+}
+
+main "$@"

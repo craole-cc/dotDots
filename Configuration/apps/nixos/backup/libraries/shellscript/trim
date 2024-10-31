@@ -1,0 +1,11 @@
+#!/bin/sh
+
+[ "$1" ] || {
+	printf "Trim Error: No input provided\n"
+	return 1
+}
+
+trimmed="${1#"${1%%[![:space:]]*}"}"
+trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+
+printf "%s" "$trimmed"

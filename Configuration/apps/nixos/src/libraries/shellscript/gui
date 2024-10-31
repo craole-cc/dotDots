@@ -1,0 +1,174 @@
+#!/bin/sh
+default_app="${VISUAL:-code}"
+
+initialize_script() {
+	unset app args files dirs app_id cmd
+}
+# | Parse options
+parse_arguments() {
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+			-h | --help)
+				echo "Usage: Open a file or application"
+				exit 0
+				;;
+			-a | --app) app="$2" ;;
+			-f | --file)
+				if [ "$files" ]; then
+					files="$files $2"
+				else
+					files="$2"
+				fi
+				shift
+				;;
+			-d | --dir)
+				if [ "$dirs" ]; then
+					dirs="$dirs $2"
+				else
+					dirs="$2"
+				fi
+				;;
+			*)
+				if [ "$args" ]; then
+					args="$args $1"
+				else
+					args="$1"
+				fi
+				;;
+		esac
+		shift
+	done
+
+	# | Set the app if it is not set
+	if [ -z "$app" ] && [ -n "$args" ]; then
+		#> Extract app as the first argument without a hyphen
+		first_arg=${args%% *}
+
+		#> If the first argument as the app if it doesn't start with a hyphen
+		case "$first_arg" in -*) ;; *) app="$first_arg" ;; esac
+		#> Remove the app from the args
+		remaining_args="${args#*"$app"}"
+
+		#> Extract arguments until the first occurrence of a file or directory argument
+		for arg in $remaining_args; do
+			#> Check if the argument is in files
+			[ "$special_arg_found" ] || {
+				for file_arg in $files; do
+					if [ "$file_arg" = "$arg" ]; then
+						special_arg_found=true
+						break
+					fi
+				done
+			}
+
+			#> Check if the argument is in dirs
+			[ "$special_arg_found" ] || {
+				for dir_arg in $dirs; do
+					if [ "$dir_arg" = "$arg" ]; then
+						special_arg_found=true
+						break
+					fi
+				done
+			}
+
+			#> Stop if the argument is in files or dirs
+			[ "$special_arg_found" ] && break
+
+			#> Append the argument to the extracted arguments
+			extracted_args="$extracted_args $arg"
+
+			#> Remove the leading and trailing whitespace
+			extracted_args="${extracted_args# }"
+			extracted_args="${extracted_args% }"
+		done
+
+		#> Return args as the trimmed extracted arguments
+		args="$extracted_args"
+
+	fi
+}
+
+establish_environment() {
+	command_exists() {
+		command -v "$1" > /dev/null 2>&1
+	}
+
+	set_cmd() {
+		while [ "$#" -ge 1 ]; do
+			if command_exists "$1"; then
+				printf "%s" "$1"
+				return 0
+			else
+				shift
+			fi
+		done
+	}
+
+	# | Define the command to execute
+	execution_cmd() {
+		app="${app:-$default_app}"
+
+		{ [ "$app" ] && command_exists "$app"; } || {
+			printf "Error: %s is not installed" "$app" >&2
+			exit 1
+		}
+
+		# | Set the app based on the args
+		if
+			[ -n "$files" ] ||
+				[ -n "$dirs" ] ||
+				[ -f "$args" ] ||
+				[ -d "$args" ]
+		then
+			app="$(set_cmd "$app" "$VISUAL" "$EDITOR" "xdg-open")"
+		else
+			app="$(set_cmd "$app" "$TERMINAL" "wezterm" "alacritty" "kitty" "rio")"
+
+			# | Set the app_id based on the app, but only if there are no args set
+			[ "$args" ] || {
+				case "$app" in
+					wezterm) app_id="org.wezfurlong.wezterm" ;;
+					alacritty) app_id="Alacritty" ;;
+					kitty) app_id="kitty" ;;
+					rio) app_id="rio" ;;
+					code) app_id="Code" ;;
+					codium) app_id="vscodium" ;;
+					dolphin) app_id="dolphin" ;;
+					opera) app_id="Opera" ;;
+					*) ;;
+				esac
+			}
+		fi
+
+		if [ "$app_id" ] && wmctrl -l -x | grep -q "$app_id"; then
+			#> Raise the window with wmctrl if active
+			printf "wmctrl -x -a %s" "$app_id"
+		else
+			#>  Start the application if inactive
+			printf "%s %s %s %s &" "$app" "$args" "$files" "$dirs"
+		fi
+	}
+
+	cmd=$(execution_cmd | tr -s '[:space:]' ' ')
+}
+
+execute_process() {
+	eval "$cmd"
+}
+
+debug() {
+	echo
+	echo "app:$app"
+	echo "app_id:$app_id"
+	echo "args:$args"
+	echo "files:$files"
+	echo "dirs:$dirs"
+	echo "cmd:$cmd"
+}
+
+main() {
+	initialize_script
+	parse_arguments "$@"
+	establish_environment
+	execute_process
+} && main "$@"

@@ -1,0 +1,58 @@
+#!/bin/sh
+
+main() {
+	install_direnv_if_necessary \
+		--actual "$(direnv --version 2> /dev/null)" \
+		--expect "2.21.3"
+
+	# watch_nix_files
+	watch_file fd . --extension "nix"
+
+	initialize_env_via_cmd "use flake ."
+}
+
+validate_direnv_version() {
+	highest_version="$(
+		printf "%s\n%s" "$1" "$2" |
+			sort --version-sort |
+			tail --lines=1
+	)"
+
+	[ "$1" = "$highest_version" ]
+}
+
+install_direnv_if_necessary() {
+	while [ "$#" -ge 1 ]; do
+		case $1 in
+			--actual) actual="$2" ;;
+			--expect) expect="$2" ;;
+		esac
+		shift
+	done
+
+	[ -n "$actual" ] || install=true
+	validate_direnv_version "$actual" "$expect" || install=true
+
+	[ "$install" ] && {
+		source_url \
+			"https://raw.githubusercontent.com/nix-community/nix-direnv/${expect}/direnvrc" \
+			"sha256-zelF0vLbEl5uaqrfIzbgNzJWGmLzCmYAkInj/LNxvKs="
+	}
+}
+
+watch_nix_files() {
+	if command -v fd > /dev/null 2>&1; then
+		fd . --extension "nix" --exec watch_file '{}'
+	else
+		find . -type f -name '*.nix' -exec watch_file '{}' \;
+	fi
+}
+
+initialize_env_via_cmd() {
+	if ! eval "$*"; then
+		printf "Error: Failed to initialize the dev environment.\n"
+		exit 1
+	fi
+}
+
+main

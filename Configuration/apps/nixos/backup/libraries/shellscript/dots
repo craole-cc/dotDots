@@ -1,0 +1,462 @@
+#!/bin/sh
+# TODO: Fix the Usage Guide
+# TODO: Use console_log for all output
+
+# @ ============================================================= @ #
+# @		                           	INFO			                      @ #
+# @ ============================================================= @ #
+establish_metadata() {
+	_cmd_NAME="dots"
+	_cmd_VERSION="1.0"
+	_cmd_DESCRIPTION="Manages the local NixOS Configurations"
+	_cmd_DEPENDENCIES="geet"
+	_cmd_USAGEGUIDE="$(
+		cat <<USAGE_GUIDE
+::------------------------------------------------------------::
+                          $_cmd_NAME ($_cmd_VERSION)
+::------------------------------------------------------------::
+  Usage:
+    $_cmd_NAME [OPTIONS] <MESSAGE>
+
+  Description:
+    $_cmd_DESCRIPTION
+
+  Options:
+    -h, --help        Display this usage guide
+    -v, --version     Show the current version $_cmd_NAME
+    -i, --ignore      Honor .gitignore changes
+    -s, --status      Show the git status
+    -a, --add         Ensure all files are indexed
+    -c, --commit      Record changes to the repository
+    -p, --pull        Update the local repository
+    -u, --push        Update the remote repository
+	--hostname        Choose a specific hostname defined in the flake
+    --repo            Git Repository URL
+    --user            Git User
+    --email           Git Email
+    --key             Git SSH Private Key
+
+  Defaults:
+    pull    |>  git pull --quiet
+    status  |>  git status --short
+    add     |>  git add --all
+    commit  |>  git commit --quiet --message="\$msg"
+    push    |>  git push --quiet
+
+  Arguments:
+    <MESSAGE>  A custom message for the -c/--commit option.
+
+  Examples:
+    # Execute with defaults
+    $_cmd_NAME
+
+    # Defaults with custom message
+    $_cmd_NAME "Updated the README.md"
+
+    # Include 'git rm -r --force --cached .'
+    $_cmd_NAME --ignore "Added cache to .gitignore"
+
+  Dependencies:
+    $_cmd_DEPENDENCIES
+::------------------------------------------------------------::
+USAGE_GUIDE
+	)"
+}
+
+parse_arguments() {
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+		--home)
+			home=true
+			;;
+		--core)
+			core=true
+			;;
+		-dd | --dots)
+			dots="$2"
+			;;
+		-bd | --bin)
+			bin="$2"
+			;;
+		-f | --lint | --fmt | --format)
+			lint=true
+			;;
+		-d | --dbg | --debug)
+			debug=true
+			;;
+		-c | -chk | --check)
+			check=true
+			;;
+		-p | --pkg) package_remote="$2" ;;
+		-l | --local) package_local="$2" ;;
+		-e | --ede | --edit)
+			edit=true
+			editor="$2"
+			;;
+		-x | --clean)
+			clean=true
+			;;
+		-u | --update)
+			update=true
+			;;
+		--hostname) hostname="$2" ;;
+		-h | --help) display_info --usage ;;
+		-v | --version) display_info --version ;;
+		-*)
+			printf "Invalid Option: %s" "$1"
+			return 1
+			;;
+		*)
+			msg="$1"
+			;;
+		esac
+		shift
+	done
+}
+
+establish_defaults() {
+	# | Configuration Option
+	if [ -z "$home" ] && [ -z "$core" ]; then
+		core=true
+		# home=true
+	fi
+
+	# | Directories
+	dots="${dots:-"${DOTS:-"$(geet --gitisuper)"}"}"
+
+	# | Messages
+	msg="${msg:-"General updates"}"
+	msg_core="$(printf "|CORE| %s" "$msg")"
+	msg_home="$(printf "|HOME| %s" "$msg")"
+
+	# | Editor
+	editor="${editor:-${VISUAL:-${EDITOR:-code}}}"
+}
+
+establish_environment() {
+	establish_defaults
+
+	cd "$dots" >/dev/null 2>&1 || {
+		printf "Error: Unable to access the DOTS directory: %s\n" "$dots" >&2
+		return 1
+	}
+
+	binini="$(find "$dots" -name init_dots_bin)"
+
+	# shellcheck source=/dev/null
+	if [ -f "$binini" ]; then
+		. "$binini"
+		bin="$(eval "$binini" --path)"
+	else
+		display_info --code 1 --error \
+			"BIN Initialization Failed"
+		return "$code"
+	fi
+
+}
+
+lint_dots() {
+	type lint_sh >/dev/null 2>&1 &&
+		type find_exec >/dev/null 2>&1 &&
+		find_exec "$bin" lint_sh
+
+	type treefmt >/dev/null 2>&1 && treefmt "$dots"
+}
+
+edit_dots() {
+	eval "$editor" "$dots"
+}
+
+update_inputs() {
+	# | Update the flake inputs
+	nix flake update
+}
+
+collect_garbage() {
+	# | Remove old nixos generations
+	sudo nix-collect-garbage --delete-old
+
+	# | Remove old application links from the store
+	sudo nix-store --gc
+
+	# | Extract the date of the most recent home-manager generation
+	last_gen_date=$(
+		printf "%s" "$(home-manager generations)" |
+			awk 'NR==1 {print $1, $2}'
+	)
+
+	# | Remove old home-manager generations
+	home-manager expire-generations "$last_gen_date"
+}
+
+process_core() {
+	# | Update git repository
+	# geet "$msg_core"
+	# display_info --line
+
+	# | Check the config and return, if requested
+	[ "$check" ] && {
+		nix flake check --all-systems --show-trace --impure 2>&1 |
+			grep -v '^warning:'
+		return
+	}
+
+	# | Deploy the updated configuration
+	if sudo nixos-rebuild switch \
+		--flake "$dots" \
+		--show-trace \
+		--impure \
+		--use-remote-sudo; then
+		console_log "Done"
+	else
+		console_log --code 1 --error \
+			"Core Configuration" \
+			"Review the flake for errors." &&
+			return "$?"
+	fi
+}
+
+search() {
+	# | Search for packages on the system
+	[ "$package_local" ] && nix-locate "bin/${package_local}"
+	[ "$package_remote" ] && nix search nixpkgs "${package_remote}"
+}
+
+process_home() {
+	# | Update git repository
+	# geet "$msg_home"
+	# display_info --line
+
+	# | Define the home-manager command
+	cmd_home="home-manager switch --flake $dots --show-trace"
+
+	# | Check the config and return, if requested
+	[ "$check" ] && {
+		eval "$cmd_home -n"
+		return
+	}
+
+	# | Deploy the updated configuration
+	if ! eval "$cmd_home"; then
+		display_info --code 1 --error \
+			"Home Configuration" \
+			"Review the flake for errors."
+		return "$code"
+	fi
+}
+
+command_exists() {
+	command -v "$1" >/dev/null
+}
+
+# @ ============================================================= @ #
+# @		                           UTILS			                      @ #
+# @ ============================================================= @ #
+display_info() {
+	# | Set default values for local variables
+	delimiter=" |> "
+	padding="  "
+	unset last_line exit code info
+
+	# | Quit function early if no arguments provided
+	[ $# -eq 0 ] && return
+
+	# | Tag the last line to prevent printing a blank line
+	case "$@" in *"--ll"*) last_line=true ;; esac
+
+	# | Parse options
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+		--usage) info="$_cmd_USAGEGUIDE" exit=true ;;
+		--version) info="$SCRIPT_VERSION" exit=true ;;
+		--info)
+			[ "$#" -eq 2 ] && info="$2"
+			[ "$#" -gt 2 ] && {
+				label="$2"
+				info="${padding}${label}${delimiter}${3}"
+
+				# | Generate padding to place before each info
+				len_label="${#label}"
+				len_delim="${#delimiter}"
+				len_pad="${#padding}"
+				padding_length=$((len_label + len_delim + len_pad))
+				info_padding="$(printf "%-${padding_length}s")"
+
+				# | Append additional info with leading padding and new line
+				shift 2 && [ "$2" ] && shift
+				while [ "$#" -gt 1 ]; do
+					info="$info $(printf "\n%s%s" "$info_padding" "$1")"
+					shift
+				done
+			}
+			;;
+		--error)
+			label="ERR: "
+			exit=true
+			code="${code:-1}"
+
+			[ "$#" -eq 2 ] && info="${label}${2}"
+			[ "$#" -gt 2 ] && {
+				label="${label}${2}"
+				info="${label}${delimiter}${3}"
+
+				# | Generate padding to place before each info
+				len_label="${#label}"
+				len_delim="${#delimiter}"
+				padding_length=$((len_label + len_delim))
+				info_padding="$(printf "%-${padding_length}s")"
+
+				# | Append additional info with leading padding and new line
+				while [ "$#" -gt 3 ]; do
+					case "$4" in -*) break ;; esac
+					info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+					shift
+				done
+			}
+			;;
+		--warning)
+			label="WARN: "
+			exit=
+			code="${code:-2}"
+
+			[ "$#" -eq 2 ] && info="${label}${2}"
+			[ "$#" -gt 2 ] && {
+				label="${label}${2}"
+				info="${label}${delimiter}${3}"
+
+				# | Generate padding to place before each info
+				len_label="${#label}"
+				len_delim="${#delimiter}"
+				padding_length=$((len_label + len_delim))
+				info_padding="$(printf "%-${padding_length}s")"
+
+				# | Append additional info with leading padding and new line
+				while [ "$#" -gt 3 ]; do
+					case "$4" in -*) break ;; esac
+					info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+					shift
+				done
+			}
+			;;
+		--code)
+			exit=true
+			code=1
+			case "$2" in '' | *[!0-9]*) ;; *) code="$2" ;; esac
+			;;
+		--note)
+			info="Note: "
+			while [ "$#" -gt 1 ]; do
+				case "$2" in -*) break ;; esac
+				info="${info}${2}"
+				shift
+			done
+			;;
+		--line)
+			print_a_line "$2"
+			return
+			;;
+		*)
+			# | Update local variables
+			info="${info:-$*}"
+			;;
+		esac
+		shift
+	done
+
+	# | Quit the program if requested
+	[ "$exit" ] && {
+		code="${code:-0}"
+		if [ "$code" -eq 0 ]; then
+			printf "%s" "$info"
+		else
+			printf "%s" "$info" >&2
+		fi
+
+		exit "$code"
+	}
+
+	# | Print to terminal
+	if [ -z "$last_line" ] && [ -z "$exit" ]; then
+		printf "%s\n" "$info"
+	else
+		printf "%s" "$info"
+	fi
+}
+
+print_a_line() {
+	if command -v tput >/dev/null; then
+		cols=$(tput cols)
+		char="${1:-"="}"
+		printf "%${cols}s\n" | tr ' ' "$char"
+	else
+		printf "\n"
+	fi
+}
+
+# @ ============================================================= @ #
+# @		                           EXECUTE  	                      @ #
+# @ ============================================================= @ #
+execute_tests() {
+	printf "DOTS: %s\n BIN: %s\n" "$dots" "$bin"
+	[ "$core" ] && printf "%s" "$msg_core"
+	[ "$core" ] && [ "$home" ] && printf "\n"
+	[ "$home" ] && printf "%s" "$msg_home"
+}
+
+execute_process() {
+	[ "$debug" ] && {
+		execute_tests
+		return
+	}
+
+	# | Search for packages on the system
+	[ "$package_local" ] && {
+		nix-locate "bin/${package_local}"
+		return
+	}
+
+	# | Search for packages remotely with mixpkgs
+	[ "$package_remote" ] && {
+		nix search nixpkgs "${package_remote}" | bat --style "grid" --force-colorization
+		return
+	}
+
+	[ "$lint" ] && {
+		lint_dots
+		return
+	}
+
+	[ "$edit" ] && {
+		edit_dots
+		return
+	}
+
+	[ "$update" ] && {
+		update_inputs
+		return
+	}
+
+	[ "$clean" ] && {
+		collect_garbage
+		return
+	}
+
+	[ "$hostname" ] && sudo hostname -v "$hostname"
+	[ "$core" ] && process_core
+	[ "$home" ] && process_home
+
+	return 0
+}
+
+main() {
+	# | Initialize the script
+	establish_metadata
+
+	{
+		parse_arguments "$@" &&
+			establish_environment &&
+			execute_process
+	} || exit "$?"
+}
+
+main "$@"

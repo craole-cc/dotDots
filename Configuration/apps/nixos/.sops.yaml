@@ -1,0 +1,11 @@
+keys:
+  - &user_craole age12a8xzr4zkeq0cx5qywjgxydpj6k2sqdeznqnxwjdv4puuxvyqscsgz22yg
+  - &host_victus age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv
+
+creation_rules:
+  # - path_regex: src/core/modules/authentication/sops/[^/]+\.(yaml|json|env|ini)$
+  - path_regex: core/services/sops/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+        - *user_craole
+        - *host_victus
