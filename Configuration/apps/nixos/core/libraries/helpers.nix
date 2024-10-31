@@ -1,6 +1,5 @@
 { config, lib, ... }:
 let
-  #| Internal Libraries
   inherit (config.DOTS) Libraries;
   inherit (Libraries.filesystem) pathOf pathsIn;
 

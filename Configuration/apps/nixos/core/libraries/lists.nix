@@ -19,11 +19,8 @@ let
     hasSuffix
     toLower
     ;
-
-  #| Extended
-  mod = "lists";
 in
-with dib.${mod};
+with dib.lists;
 {
 
   /**

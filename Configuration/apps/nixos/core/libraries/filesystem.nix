@@ -4,7 +4,6 @@
   ...
 }:
 let
-  #| Native
   inherit (builtins)
     baseNameOf
     tryEval
@@ -29,10 +28,6 @@ let
   inherit (lib.attrsets) nameValuePair listToAttrs;
   inherit (lib.filesystem) locateDominatingFile listFilesRecursive;
   inherit (lib.options) mkOption;
-
-  #| Extended
-  mod = "filesystem";
-
   inherit (dib.lists)
     prep
     clean
@@ -40,7 +35,7 @@ let
     suffixed
     ;
 in
-with dib."${mod}";
+with dib.filesystem;
 {
   /**
     "Get the current working directory."

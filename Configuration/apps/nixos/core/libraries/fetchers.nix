@@ -5,9 +5,6 @@
   ...
 }:
 let
-  #| Internal Imports
-
-  #| External Libraries
   inherit (builtins) getEnv;
   inherit (pkgs) fetchurl runCommand;
   inherit (lib.attrsets) hasAttr;
@@ -15,19 +12,15 @@ let
   inherit (lib.options) mkOption;
   inherit (lib.strings) fileContents fromJSON floatToString;
   inherit (lib.types) str attrs;
-
-  #| Extended
-  mod = "fetchers";
-
   inherit (dib.lists)
     prep
     clean
-    infixed
+    infixed 
     suffixed
     ;
   inherit (dib.filesystem) nullOrPathOf;
 in
-with dib."${mod}";
+with dib.fetchers;
 {
   /**
     "Get the hostname of the current machine."
