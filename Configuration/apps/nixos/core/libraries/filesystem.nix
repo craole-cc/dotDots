@@ -17,7 +17,12 @@ let
     # head
     length
     ;
-  inherit (lib.lists) toList foldl' head;
+  inherit (lib.lists)
+    toList
+    foldl'
+    head
+    tail
+    ;
   inherit (lib.strings)
     stringToCharacters
     hasPrefix
@@ -303,19 +308,6 @@ with dib.filesystem;
   #   in
   #   head result;
 
-  # test = locateParentByChildren {
-  #   children = [
-  #     "flake.nix"
-  #     "flake.lock"
-  #     "Cargo.lock"
-  #     "Cargo.toml"
-  #     ".git"
-  #     ".gitignore"
-  #     ".envrc"
-  #     ".cargo.lock"
-  #     "package.json"
-  #   ];
-  # };
   /**
     Find the absolute path of a specific path (by name) in a parent directory.
 
@@ -386,7 +378,10 @@ with dib.filesystem;
 
   # Helper function to locate a single file
   locateParentByChild' =
-    child:
+    {
+      child,
+      workingDir ? (getEnv "PWD"),
+    }:
     let
       # Start from working directory and walk up until root
       findUp =
@@ -404,7 +399,7 @@ with dib.filesystem;
         else
           findUp parentDir; # Continue searching up
     in
-    findUp (getEnv "PWD");
+    findUp workingDir;
 
   # Main function to locate parent by multiple children
   locateParentByChildren' =
@@ -429,5 +424,19 @@ with dib.filesystem;
           if result != null then result else findFirst (tail remaining);
     in
     findFirst childrenList;
+
+  test = locateParentByChildren' {
+    children = [
+      # "flake.nix"
+      # "flake.lock"
+      "Cargo.lock"
+      "Cargo.toml"
+      ".git"
+      ".gitignore"
+      ".envrc"
+      ".cargo.lock"
+      "package.json"
+    ];
+  };
 
 }
