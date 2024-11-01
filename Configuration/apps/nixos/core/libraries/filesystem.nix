@@ -14,10 +14,10 @@ let
     any
     elem
     filter
-    head
+    # head
     length
     ;
-  inherit (lib.lists) toList foldl';
+  inherit (lib.lists) toList foldl' head;
   inherit (lib.strings)
     stringToCharacters
     hasPrefix
@@ -290,32 +290,32 @@ with dib.filesystem;
     Example:
       locateParentByChildren "src" ==> "/path/to/project"
   */
-  locateParentByChildren =
-    {
-      children,
-      workingDir ? (getEnv "PWD"),
-    }:
-    let
-      # search = child: locateDominatingFile child workingDir;
-      search = _child: locateParentByChild _child;
-      result = filter (_p: _p != null) (map search (toList children));
-      nullOrLocation = if length result > 0 then (head result).path else null;
-    in
-    nullOrLocation;
+  # locateParentByChildren =
+  #   {
+  #     children,
+  #     workingDir ? (getEnv "PWD"),
+  #   }:
+  #   let
+  #     # search = child: locateDominatingFile child workingDir;
+  #     search = _child: locateParentByChild _child;
+  #     result = filter (_p: _p != null) (map search (toList children));
+  #     nullOrLocation = if length result > 0 then (head result) else null;
+  #   in
+  #   head result;
 
-  test = locateParentByChildren {
-    children = [
-      "flake.nix"
-      # "flake.lock"
-      # "Cargo.lock"
-      # "Cargo.toml"
-      # ".git"
-      # ".gitignore"
-      # ".envrc"
-      # ".cargo.lock"
-      # "package.json"
-    ];
-  };
+  # test = locateParentByChildren {
+  #   children = [
+  #     "flake.nix"
+  #     "flake.lock"
+  #     "Cargo.lock"
+  #     "Cargo.toml"
+  #     ".git"
+  #     ".gitignore"
+  #     ".envrc"
+  #     ".cargo.lock"
+  #     "package.json"
+  #   ];
+  # };
   /**
     Find the absolute path of a specific path (by name) in a parent directory.
 
@@ -383,5 +383,51 @@ with dib.filesystem;
   locateProjectRoot = locateFlakeRoot;
 
   locateFlakeRoot = locateParentByChild "flake.nix";
+
+  # Helper function to locate a single file
+  locateParentByChild' =
+    child:
+    let
+      # Start from working directory and walk up until root
+      findUp =
+        dir:
+        let
+          filePath = dir + "/${child}";
+          parentDir = dirOf dir;
+        in
+        if pathExists filePath then
+          dir # Found the file, return current directory
+        else if
+          dir == parentDir # Reached root
+        then
+          null
+        else
+          findUp parentDir; # Continue searching up
+    in
+    findUp (getEnv "PWD");
+
+  # Main function to locate parent by multiple children
+  locateParentByChildren' =
+    {
+      children,
+      workingDir ? (getEnv "PWD"),
+    }:
+    let
+      # Convert input to list if it's not already
+      childrenList = toList children;
+
+      # Try to find parent directory for each child
+      # Stop after first successful find
+      findFirst =
+        remaining:
+        if remaining == [ ] then
+          null
+        else
+          let
+            result = locateParentByChild' (head remaining);
+          in
+          if result != null then result else findFirst (tail remaining);
+    in
+    findFirst childrenList;
 
 }
