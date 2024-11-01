@@ -30,10 +30,13 @@ with dib.fetchers;
 {
   datetime =
     let
-      dateOutput = runCommand "date" { } ''
-        date "+%Y-%m-%d %H:%M:%S %Z" > $out
-      '';
-      result = removeSuffix "\n" (readFile dateOutput);
+      viaDateCommand = readFile (
+        runCommand "date" { } ''
+          result=$(date "+%Y-%m-%d %H:%M:%S %Z")
+          printf "%s" "$result" > $out
+        ''
+      );
+      result = viaDateCommand;
     in
     result;
 
@@ -42,22 +45,29 @@ with dib.fetchers;
   */
   hostname =
     let
-      # Function to get the hostname
-      getHostname = runCommand "get-hostname" { } ''
-        printf "This is the hostname: %s" "preci $(hostnamectl)" > $out
-      '';
-
-      # Get the hostname
-      # Read and clean the output
-      # result = lib.removeSuffix "\n" (builtins.readFile getHostname);
-      result = readFile getHostname;
+      viaEnv = getEnv "HOSTNAME";
+      viaFile = removeSuffix "\n" (readFile "/etc/hostname");
+      viaDefault = "nixos";
+      result =
+        if viaEnv != "" then
+          viaEnv
+        else if viaFile != "" then
+          viaFile
+        else
+          viaDefault;
     in
     result;
 
   /**
     "Get the username of the current user."
   */
-  username = getEnv "USER";
+  username =
+    let
+      viaEnvUSER = getEnv "USER";
+      viaUSERNAME = getEnv "USERNAME";
+      result = if viaEnvUSER != null then viaEnvUSER else viaUSERNAME;
+    in
+    result;
 
   /**
     Retrieve a github email for the specified user via the GitHub API

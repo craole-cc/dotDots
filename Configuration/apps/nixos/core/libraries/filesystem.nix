@@ -8,6 +8,7 @@ let
     baseNameOf
     tryEval
     getEnv
+    pathExists
     ;
   inherit (lib)
     any
@@ -57,18 +58,12 @@ with dib.filesystem;
       => "/etc/nixos/src/configurations/user/review/craole.bac.nix"
   */
   pathOf =
-    let
-      absolute = _path: if hasPrefix "/" _path then _path else locateProjectRoot + "/${_path}";
-      normalized =
-        _path:
-        foldl' (x: y: if y == "/" && hasSuffix "/" x then x else x + y) "" (
-          stringToCharacters (toString _path)
-        );
-      path = _path: normalized (absolute _path);
-      nullOrLocation = if path != null then path else null;
-    in
-    _path: absolute _path;
-  # nullOrLocation;
+    _path:
+    foldl' (x: y: if y == "/" && hasSuffix "/" x then x else x + y) "" (
+      stringToCharacters (toString _path)
+    );
+
+  pathOrNull = _path: if pathExists (pathOf _path) then pathOf _path else null;
 
   # "Recursively list path items including directories, files and modules
   pathsIn =
@@ -128,7 +123,6 @@ with dib.filesystem;
       lists = rec {
         all = prep (filter (_p: _p != path') (paths ++ map (_p: dirOf _p) paths));
         perDots = pathsIgnored.perDots all;
-
         perNix = rec {
           base = filter (_p: isBaseModule _p && isNixModule _p && !isNixSpecial _p) perDots;
           sub = {
@@ -153,7 +147,7 @@ with dib.filesystem;
     in
     {
       inherit lists attrs;
-      inherit (lists) Nix;
+      # inherit (lists) perNix;
 
       all = {
         lists = lists.all;
@@ -234,10 +228,11 @@ with dib.filesystem;
             "archive"
           ];
         in
-        mkOption {
-          description = "Process ignore checks based on the .dotignore file at the project root";
-          default = _pathList: check _pathList toIgnore;
-        };
+        _pathList: check _pathList toIgnore;
+      # mkOption {
+      #   description = "Process ignore checks based on the .dotignore file at the project root";
+      #   default = _pathList: check _pathList toIgnore;
+      # };
 
       perGit =
         let
@@ -246,10 +241,11 @@ with dib.filesystem;
             ".gitignore"
           ];
         in
-        mkOption {
-          description = "Process ignore checks based on the .dotignore file at the project root";
-          default = _pathList: check _pathList toIgnore;
-        };
+        _pathList: check _pathList toIgnore;
+      # mkOption {
+      #   description = "Process ignore checks based on the .dotignore file at the project root";
+      #   default = _pathList: check _pathList toIgnore;
+      # };
     };
 
   importModules = mkOption {
@@ -275,11 +271,9 @@ with dib.filesystem;
       locateParentByChild "src" ==> "/path/to/project"
   */
   locateParentByChild =
-    {
-      child,
-      _starting_directory ? (getEnv "PWD"),
-    }:
+    _child:
     let
+      _starting_directory = (getEnv "PWD");
       result = locateDominatingFile _child _starting_directory;
       nullOrLocation = if result != null then builtins.toString result.path else null;
     in
@@ -302,13 +296,26 @@ with dib.filesystem;
       workingDir ? (getEnv "PWD"),
     }:
     let
-      search = child: locateDominatingFile child workingDir;
-      # search = _child: locateDominatingFile _child ./.;
+      # search = child: locateDominatingFile child workingDir;
+      search = _child: locateParentByChild _child;
       result = filter (_p: _p != null) (map search (toList children));
       nullOrLocation = if length result > 0 then (head result).path else null;
     in
     nullOrLocation;
 
+  test = locateParentByChildren {
+    children = [
+      "flake.nix"
+      "flake.lock"
+      "Cargo.lock"
+      "Cargo.toml"
+      ".git"
+      ".gitignore"
+      ".envrc"
+      ".cargo.lock"
+      "package.json"
+    ];
+  };
   /**
     Find the absolute path of a specific path (by name) in a parent directory.
 
@@ -360,40 +367,21 @@ with dib.filesystem;
     Example:
       locateProjectRoot ==> "/path/to/project/root"
   */
-  locateProjectRoot =
-    let
-      nullOrLocation = locateParentByChildren { children = [ "flake.nix" ]; };
-    in
-    # nullOrLocation = locateParentByChildren [
-    #   "flake.nix"
-    #   "flake.lock"
-    #   "Cargo.lock"
-    #   "Cargo.toml"
-    #   ".git"
-    #   ".gitignore"
-    #   ".envrc"
-    #   ".cargo.lock"
-    #   "package.json"
-    # ];
-    nullOrLocation;
+  # locateProjectRoot = locateParentByChildren {
+  #   children = [
+  #     "flake.nix"
+  #     "flake.lock"
+  #     "Cargo.lock"
+  #     "Cargo.toml"
+  #     ".git"
+  #     ".gitignore"
+  #     ".envrc"
+  #     ".cargo.lock"
+  #     "package.json"
+  #   ];
+  # };
+  locateProjectRoot = locateFlakeRoot;
 
-  /**
-    "Find the absolute path of the project root."
+  locateFlakeRoot = locateParentByChild "flake.nix";
 
-    Parameters:
-      _path = Path to convert to an absolute path.
-
-    Returns: absolute path
-
-    Example:
-      locateProjectRoot ==> "/path/to/project/root"
-  */
-  nullOrPathOf =
-    _path:
-    let
-      checkPath = tryEval (pathOf _path);
-    in
-    if checkPath.success then checkPath.value else null;
-
-  test = locateProjectRoot;
 }
