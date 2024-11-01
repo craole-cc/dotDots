@@ -306,14 +306,14 @@ with dib.filesystem;
   test = locateParentByChildren {
     children = [
       "flake.nix"
-      "flake.lock"
-      "Cargo.lock"
-      "Cargo.toml"
-      ".git"
-      ".gitignore"
-      ".envrc"
-      ".cargo.lock"
-      "package.json"
+      # "flake.lock"
+      # "Cargo.lock"
+      # "Cargo.toml"
+      # ".git"
+      # ".gitignore"
+      # ".envrc"
+      # ".cargo.lock"
+      # "package.json"
     ];
   };
   /**
