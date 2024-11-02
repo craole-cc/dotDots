@@ -11,26 +11,48 @@
         select = "underline";
       };
       statusline = {
-        left = ["mode" "spinner" "spacer" "file-modification-indicator"];
+        left = [
+          "mode"
+          "spinner"
+          "spacer"
+          "file-modification-indicator"
+        ];
         center = ["file-name"];
-        right = ["diagnostics" "version-control" "selections" "file-encoding"];
+        right = [
+          "diagnostics"
+          "version-control"
+          "selections"
+          "position"
+          "file-encoding"
+        ];
         mode = {
           normal = "NORMAL";
           insert = "INSERT";
           select = "SELECT";
         };
-        seperator = "|";
+        separator = "│";
       };
-      idle-timeout=50;
-      line-number="relative";
-      lsp={
-        auto-signature-help=true;
-        display-inlay-hints=true;
-        display-messages=true;
-        display-signature-help-docs=true;
-        snippets=true;
+      idle-timeout = 50;
+      line-number = "relative";
+      lsp = {
+        auto-signature-help = true;
+        display-inlay-hints = true;
+        display-messages = true;
+        display-signature-help-docs = true;
+        snippets = true;
       };
-      # indent
+      indent-guides = {
+        render = true;
+        character = "╎"; # "▏", "╎", "┆", "┊", "⸽"
+        skip-levels = 1;
+        rainbow-option = "normal";
+      };
+      mouse = false;
+      soft-wrap = {
+        enable = true;
+        wrap-at-text-width = true;
+      };
+      text-width = 120;
     };
   };
 }
