@@ -3,7 +3,7 @@
 in {
   imports = [
     <home-manager/nixos>
-    ./apps
+    # ./apps
     # ./stylix.nix
   ];
 
@@ -14,6 +14,7 @@ in {
     verbose = true;
     backupFileExtension = "BaC";
     users.${alpha} = {osConfig, ...}: {
+      imports = [(./configurations + "/${alpha}")];
       home = {
         inherit (osConfig.system) stateVersion;
       };
