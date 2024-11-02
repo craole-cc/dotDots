@@ -24,7 +24,7 @@ let
     infixed
     suffixed
     ;
-  inherit (dib.filesystem) nullOrPathOf;
+  inherit (dib.filesystem) pathOrNull;
 in
 with dib.fetchers;
 {
@@ -96,7 +96,7 @@ with dib.fetchers;
       fetchData =
         login: hash:
         let
-          fetchedData = nullOrPathOf (fetchurl {
+          fetchedData = pathOrNull (fetchurl {
             url = "https://api.github.com/users/${login}";
             sha256 = hash;
           });

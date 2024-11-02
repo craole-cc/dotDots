@@ -69,8 +69,28 @@ with dib.filesystem;
     );
 
   pathOrNull = _path: if pathExists (pathOf _path) then pathOf _path else null;
+  /**
+    "Recursively list path items including directories, files and modules
 
-  # "Recursively list path items including directories, files and modules
+    Parameters:
+      _path = Path to list.
+
+    Returns:
+      all = List of all items in the path.
+      attrs = Paths as attrs.
+      lists = Paths as lists.
+      perDots = Paths as lists filtered by pathsIgnored.perDots.
+      perNix = Paths as lists filtered by pathsIgnored.perNix.
+
+    Example:
+      pathsIn ./. ==> {
+        all = { ... };
+        attrs = { ... };
+        lists = { ... };
+        perDots = { ... };
+        perNix = { ... };
+      }
+  */
   pathsIn =
     let
       #| Validation
@@ -263,7 +283,6 @@ with dib.filesystem;
       in
       map (_module: import _module) modules;
   };
-
   /**
     Find the absolute path of the first parent directory of an item or a list of children.
 
@@ -276,112 +295,7 @@ with dib.filesystem;
       locateParentByChild "src" ==> "/path/to/project"
   */
   locateParentByChild =
-    _child:
-    let
-      _starting_directory = (getEnv "PWD");
-      result = locateDominatingFile _child _starting_directory;
-      nullOrLocation = if result != null then builtins.toString result.path else null;
-    in
-    nullOrLocation;
-
-  /**
-    Find the absolute path of the first parent directory of an item or a list of children.
-
-    Parameters:
-      _children = List of children to search.
-
-    Returns: absolute path
-
-    Example:
-      locateParentByChildren "src" ==> "/path/to/project"
-  */
-  # locateParentByChildren =
-  #   {
-  #     children,
-  #     workingDir ? (getEnv "PWD"),
-  #   }:
-  #   let
-  #     # search = child: locateDominatingFile child workingDir;
-  #     search = _child: locateParentByChild _child;
-  #     result = filter (_p: _p != null) (map search (toList children));
-  #     nullOrLocation = if length result > 0 then (head result) else null;
-  #   in
-  #   head result;
-
-  /**
-    Find the absolute path of a specific path (by name) in a parent directory.
-
-    Parameters:
-      _name = Name of the parent directory to search.
-
-    Returns: absolute path
-
-    Example:
-      locateParentByName "src" ==> "/path/to/project/src"
-  */
-  locateParentByName =
-    _name:
-    let
-      result = locateParentByChildren _name;
-      nullOrLocation = if result != null then result + "/${_name}" else null;
-    in
-    nullOrLocation;
-
-  /**
-    Find the absolute path of a parent directory by name, falling back to files or a list of files for search.
-
-    Parameters:
-      _name = Name of the parent directory to search.
-      _children = List of files to search for.
-
-    Returns: absolute path
-
-    Example:
-      locateParentByNameOrChildren "src" [".git" ".gitignore" ".flake.nix"] ==> "/path/to/project/root"
-  */
-  locateParentByNameOrChildren =
-    _name: _children:
-    let
-      byName = locateParentByName _name;
-      byChildren = locateParentByChildren _children;
-      nullOrLocation = if byName != null then byName else byChildren;
-    in
-    nullOrLocation;
-
-  /**
-    "Find the absolute path of the project root."
-
-    Parameters:
-      _path = Path to convert to an absolute path.
-
-    Returns: absolute path
-
-    Example:
-      locateProjectRoot ==> "/path/to/project/root"
-  */
-  # locateProjectRoot = locateParentByChildren {
-  #   children = [
-  #     "flake.nix"
-  #     "flake.lock"
-  #     "Cargo.lock"
-  #     "Cargo.toml"
-  #     ".git"
-  #     ".gitignore"
-  #     ".envrc"
-  #     ".cargo.lock"
-  #     "package.json"
-  #   ];
-  # };
-  locateProjectRoot = locateFlakeRoot;
-
-  locateFlakeRoot = locateParentByChild "flake.nix";
-
-  # Helper function to locate a single file
-  locateParentByChild' =
-    {
-      child,
-      workingDir ? (getEnv "PWD"),
-    }:
+    child: workingDir:
     let
       # Start from working directory and walk up until root
       findUp =
@@ -401,8 +315,18 @@ with dib.filesystem;
     in
     findUp workingDir;
 
-  # Main function to locate parent by multiple children
-  locateParentByChildren' =
+  /**
+    Find the absolute path of the first parent directory of an item or a list of children.
+
+    Parameters:
+      _children = List of children to search.
+
+    Returns: absolute path
+
+    Example:
+      locateParentByChildren "src" ==> "/path/to/project"
+  */
+  locateParentByChildren =
     {
       children,
       workingDir ? (getEnv "PWD"),
@@ -419,23 +343,187 @@ with dib.filesystem;
           null
         else
           let
-            result = locateParentByChild' (head remaining);
+            result = locateParentByChild (head remaining) workingDir;
           in
           if result != null then result else findFirst (tail remaining);
     in
     findFirst childrenList;
 
-  test = locateParentByChildren' {
+  /**
+    Find the absolute path of a specific path (by name) in a parent directory.
+
+    Parameters:
+      _name = Name of the parent directory to search.
+
+    Returns: absolute path
+
+    Example:
+      locateParentByName "src" ==> "/path/to/project/src"
+  */
+  locateParentByName =
+    _name:
+    let
+      result = locateParentByChildren { children = _name; };
+      nullOrLocation = if result != null then result + "/${_name}" else null;
+    in
+    nullOrLocation;
+
+  /**
+    Find the absolute path of a parent directory by name, falling back to files or a list of files for search.
+
+    Parameters:
+      _name = Name of the parent directory to search.
+      _children = List of files to search for.
+
+    Returns: absolute path
+
+    Example:
+      locateParentByNameOrChildren "src" [ ".flake.nix" ".git" ".gitignore"] ==> "/path/to/project/root"
+  */
+  locateParentByNameOrChildren =
+    name: children:
+    let
+      byName = locateParentByName name;
+      byChildren = locateParentByChildren { inherit children; };
+      nullOrLocation = if byName != null then byName else byChildren;
+    in
+    nullOrLocation;
+
+  /**
+    "Find the absolute path of the project root."
+
+    Parameters:
+      _path = Path to convert to an absolute path.
+
+    Returns: absolute path
+
+    Example:
+      locateProjectRoot ==> "/path/to/project/root"
+  */
+  locateProjectRoot = locateParentByChildren {
     children = [
-      # "flake.nix"
-      # "flake.lock"
+      # Nix
+      "flake.nix"
+      "flake.lock"
+      ".envrc"
+
+      # Rust
       "Cargo.lock"
       "Cargo.toml"
-      ".git"
-      ".gitignore"
-      ".envrc"
-      ".cargo.lock"
+
+      # JavaScript/Node.js
       "package.json"
+      "yarn.lock"
+      "pnpm-lock.yaml"
+
+      # Python
+      "pyproject.toml"
+      "Pipfile"
+      "requirements.txt"
+      "setup.py"
+      "setup.cfg"
+
+      # Java/Maven/Gradle
+      "pom.xml"
+      "build.gradle"
+      "build.gradle.kts"
+
+      # Ruby
+      "Gemfile"
+      "Gemfile.lock"
+
+      # Go
+      "go.mod"
+      "go.sum"
+
+      # PHP/Composer
+      "composer.json"
+      "composer.lock"
+
+      # C/C++/CMake
+      "CMakeLists.txt"
+      "Makefile"
+
+      # .NET
+      "*.sln"
+      "*.csproj"
+      "*.fsproj"
+
+      # CI/CD
+      ".github/workflows"
+      ".gitlab-ci.yml"
+      "Jenkinsfile"
+
+      # Docker
+      "Dockerfile"
+      ".dockerignore"
+
+      # Git
+      ".gitignore"
+      ".git"
+
+      # IDE/editor-specific directories
+      ".idea" # IntelliJ-based IDEs (e.g., IDEA, PyCharm, WebStorm)
+      ".vscode" # Visual Studio Code
+      ".atom" # Atom editor
+      ".eclipse" # Eclipse IDE
+      ".metadata" # Eclipse workspace folder
+      ".devcontainer" # VS Code development container
+      ".vs" # Visual Studio
+      ".editorconfig" # Editor configuration
+
+      # Documentation
+      "README"
+      "README.md"
+      "README.org"
+      "LICENSE"
+      "LICENSE.txt"
+      "LICENSE.md"
+      "COPYING"
+      "COPYING.txt"
+      "COPYING.md"
+      "CONTRIBUTING"
+      "CONTRIBUTING.md"
+      "CONTRIBUTING.txt"
+      "CHANGELOG.md"
+      "NOTES.md"
+      "NOTES.org"
+      "TODO.org"
+      "TODO.md"
+    ];
+  };
+  /**
+    Find the absolute path of the flake root.
+  */
+  locateFlakeRoot = locateParentByChildren {
+    children = [
+      "flake.lock"
+      "flake.nix"
+    ];
+  };
+
+  /**
+    Find the absolute path of the git root.
+  */
+  locateGitRoot = locateParentByChild ".git" (getEnv "PWD");
+
+  test = locateParentByChildren {
+    children = [
+      # Nix
+      "flake.lock"
+      "flake.nix"
+      ".envrc"
+
+      # Rust
+      "Cargo.lock"
+      "Cargo.toml"
+
+      # JavaScript
+      "package.json"
+
+      # Git
+      ".gitignore"
+      ".git"
     ];
   };
 
