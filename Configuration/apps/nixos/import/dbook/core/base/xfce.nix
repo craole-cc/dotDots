@@ -1,8 +1,9 @@
-{pkgs, ...}: {
-  imports = [./x11.nix];
-
+{ pkgs, ... }:
+{
   services = {
     xserver = {
+      enable = true;
+      excludePackages = [ pkgs.xterm ];
       displayManager = {
         lightdm = {
           enable = true;
@@ -30,7 +31,8 @@
     };
   };
 
-  environment.systemPackages = with pkgs;
+  environment.systemPackages =
+    with pkgs;
     [
       orca
       file-roller
@@ -47,7 +49,7 @@
       xfce4-cpugraph-plugin
       xfce4-dict
       xfce4-fsguard-plugin
-      xfce4-genmon-plugin
+      # xfce4-genmon-plugin
       xfce4-netload-plugin
       xfce4-panel
       xfce4-pulseaudio-plugin

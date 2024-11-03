@@ -1,12 +1,12 @@
 {
   lib,
-  dib,
+  config,
   ...
 }:
 let
+  dib = import ./lists.nix { inherit lib; };
   inherit (builtins)
     baseNameOf
-    tryEval
     getEnv
     pathExists
     ;
@@ -14,8 +14,6 @@ let
     any
     elem
     filter
-    # head
-    length
     ;
   inherit (lib.lists)
     toList
@@ -25,14 +23,13 @@ let
     ;
   inherit (lib.strings)
     stringToCharacters
-    hasPrefix
     hasSuffix
     splitString
     removeSuffix
     fileContents
     ;
   inherit (lib.attrsets) nameValuePair listToAttrs;
-  inherit (lib.filesystem) locateDominatingFile listFilesRecursive;
+  inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.options) mkOption;
   inherit (dib.lists)
     prep
@@ -40,9 +37,7 @@ let
     infixed
     suffixed
     ;
-in
-with dib.filesystem;
-{
+
   /**
     "Get the current working directory."
   */
@@ -273,16 +268,16 @@ with dib.filesystem;
       # };
     };
 
-  importModules = mkOption {
+  /**
     description = "List all nix paths in a directory.";
     example = ''nixModulesToImport "path/to/directory"'';
-    default =
-      _path:
-      let
-        modules = (pathsIn _path).perNix.list.paths;
-      in
-      map (_module: import _module) modules;
-  };
+  */
+  importModules =
+    _path:
+    let
+      modules = (pathsIn _path).perNix.list.paths;
+    in
+    map (_module: import _module) modules;
   /**
     Find the absolute path of the first parent directory of an item or a list of children.
 
@@ -495,7 +490,7 @@ with dib.filesystem;
   /**
     Find the absolute path of the flake root.
   */
-  locateFlakeRoot = locateParentByChildren {
+  locateFlake = locateParentByChildren {
     children = [
       "flake.lock"
       "flake.nix"
@@ -504,13 +499,13 @@ with dib.filesystem;
   /**
     Find the absolute path of the nixos config root.
   */
-  locateNixosRoot = locateParentByChild "configuration.nix" pathOfPWD;
+  locateNixos = locateParentByChild "configuration.nix" pathOfPWD;
   /**
     Find the absolute path of the git root.
   */
   locateGitRoot = locateParentByChild ".git" pathOfPWD;
 
-  test = locateParentByChildren {
+  tests = locateParentByChildren {
     children = [
       # Nix
       "flake.lock"
@@ -530,4 +525,26 @@ with dib.filesystem;
     ];
   };
 
+in
+{
+  options.DOTS.lib.filesystem = mkOption {
+    default = {
+      inherit
+        # pathOf
+        # pathOfPWD
+        # pathOrNull
+        # pathsIn
+        # importModules
+        # locateParentByChild
+        # locateParentByChildren
+        # locateParentByName
+        # locateParentByNameOrChildren
+        # locateProjectRoot
+        locateFlake
+        locateNixos
+        locateGitRoot
+        # tests
+        ;
+    };
+  };
 }

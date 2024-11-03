@@ -2,6 +2,7 @@
   //> ===================================
   //> EDITOR CORE SETTINGS
   //> ===================================
+  "update.mode": "none",
   "editor.cursorBlinking": "expand",
   "editor.fontSize": 18,
   "editor.fontWeight": "500",
@@ -68,8 +69,8 @@
   "glassit.alpha": 245,
   "glassit.step": 5,
   "glassit.force_sway": false,
-  "workbench.preferredDarkColorTheme": "Bearded Theme feat. Melle Julie",
-  "workbench.preferredLightColorTheme": "Bearded Theme Coffee Cream",
+  "workbench.preferredDarkColorTheme": "Gruvbox Dark Medium",
+  "workbench.preferredLightColorTheme": "Gruvbox Light Medium",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorCustomizations": {},
   "editor.tokenColorCustomizations": {
@@ -112,6 +113,47 @@
     ".cargo": "config",
     "benches": "debug"
   },
+  "material-icon-theme.folders.customClones": [
+    {
+      "name": "rust-entrypoint",
+      "base": "rust",
+      "color": "amber-300",
+      "lightColor": "amber-600",
+      "fileNames": [
+        "lib.rs",
+        "main.rs",
+        "mod.rs"
+      ]
+    },
+    {
+      "name": "nix-entrypoint",
+      "base": "nix",
+      "color": "indigo-300",
+      "lightColor": "indigo-600",
+      "fileNames": [
+        "default.nix",
+        "flake.nix",
+        "configuration.nix"
+      ]
+    },
+    {
+      "name": "users-admin",
+      "base": "admin",
+      "color": "light-green-500",
+      "lightColor": "light-green-700",
+      "folderNames": [
+        "users"
+      ]
+    },
+    {
+      "name": "roles-admin",
+      "base": "admin",
+      "color": "purple-400",
+      "folderNames": [
+        "roles"
+      ]
+    }
+  ],
   //> ===================================
   //> TERMINAL CONFIGURATION
   //> ===================================
@@ -280,7 +322,9 @@
       "formatting": {
         "command": [
           "nixfmt"
-        ] // akejabdra or nixfmt or nixpkgs-fmt
+          // "alejandra"
+          // "nixpkgs-fmt"
+        ]
       }
       // "options": {
       //    "nixos": {
@@ -482,8 +526,10 @@
     "mimalloc",
     "mktemp",
     "nbsp",
+    "nixd",
     "nixfmt",
     "nixos",
+    "nixpkgs",
     "novemdecillion",
     "novemvigintillion",
     "numba",
@@ -541,6 +587,5 @@
     "winget",
     "worktree",
     "yamlfmt"
-  ],
-  "update.mode": "none"
+  ]
 }

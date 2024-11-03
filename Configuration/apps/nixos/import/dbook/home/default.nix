@@ -1,5 +1,5 @@
 {config, ...}: let
-  inherit (config.DOTS) alpha;
+  inherit (config.DOTS.users.alpha) name;
 in {
   imports = [
     <home-manager/nixos>
@@ -13,8 +13,8 @@ in {
     useGlobalPkgs = true;
     verbose = true;
     backupFileExtension = "BaC";
-    users.${alpha} = {osConfig, ...}: {
-      imports = [(./configurations + "/${alpha}")];
+    users.${name} = {osConfig, ...}: {
+      imports = [(./configurations + "/${name}")];
       home = {
         inherit (osConfig.system) stateVersion;
       };
