@@ -480,6 +480,7 @@ in
       description = "Tests for {{base}}.{{mod}}";
       default = with cfg; {
         pathOf = pathOf ./.;
+        pathOfPWD = pathOfPWD;
       };
     };
   };
