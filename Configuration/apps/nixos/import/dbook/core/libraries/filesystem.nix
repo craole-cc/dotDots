@@ -482,6 +482,8 @@ in
         pathOf = pathOf ./.;
         pathOfPWD = pathOfPWD;
         pathOrNull = pathOrNull (pathOfPWD + "/none-existent-path");
+        pathsIn = pathsIn ./.; 
+
       };
     };
   };
