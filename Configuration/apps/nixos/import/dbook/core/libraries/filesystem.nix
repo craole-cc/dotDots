@@ -48,7 +48,7 @@ let
 
   inherit (DOTS.${base}.lists)
     prep
-    clean
+    prune
     infixed
     suffixed
     ;
@@ -180,7 +180,7 @@ in
       description = "Processes ignore checks based on the .dotignore file at the project root";
       default =
         pathList: ignoreList:
-        clean
+        prune
           (suffixed {
             list =
               (infixed {
@@ -242,7 +242,7 @@ in
         default =
           let
             # TODO: Include all .gitignore files up to the git root
-            toIgnore = splitString "\n" (fileContents locateGitRoot);
+            toIgnore = splitString "\n" (fileContents (locateGitRoot+"/.gitignore"));
           in
           pathList: pathsIgnoredCheck pathList toIgnore;
       };
@@ -482,7 +482,9 @@ in
         pathOf = pathOf ./.;
         pathOfPWD = pathOfPWD;
         pathOrNull = pathOrNull (pathOfPWD + "/none-existent-path");
-        pathsIn = pathsIn ./.; 
+        pathsIn = pathsIn ./.;
+        pathsIgnoredDot = pathsIgnored.perDots ./.;
+        pathsIgnoredGit = pathsIgnored.perGit ./.;
 
       };
     };
