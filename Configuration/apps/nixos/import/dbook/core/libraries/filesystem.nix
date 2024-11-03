@@ -481,6 +481,7 @@ in
       default = with cfg; {
         pathOf = pathOf ./.;
         pathOfPWD = pathOfPWD;
+        pathOrNull = pathOrNull (pathOfPWD + "/none-existent-path");
       };
     };
   };
