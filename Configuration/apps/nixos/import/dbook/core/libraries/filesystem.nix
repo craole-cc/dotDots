@@ -240,11 +240,20 @@ in
       perGit = mkOption {
         description = "Process ignore checks based on the .gitignore file at the project root";
         default =
+          pathList:
           let
+            #| Input
+            list' = toList pathList;
+
+            #| Process
             # TODO: Include all .gitignore files up to the git root
-            toIgnore = splitString "\n" (fileContents (locateGitRoot+"/.gitignore"));
+            ignoreRaw = splitString "\n" (fileContents (locateGitRoot + "/.gitignore"));
+            ignoreCleaned = prune ignoreRaw;
+            filtered = pathsIgnoredCheck list' ignoreCleaned;
+
+            #| Output
           in
-          pathList: pathsIgnoredCheck pathList toIgnore;
+          filtered;
       };
     };
 
