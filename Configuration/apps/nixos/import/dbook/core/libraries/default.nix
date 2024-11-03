@@ -11,4 +11,9 @@
 # {
 #   inherit lists filesystem;
 # }
-{imports=[./filesystem.nix];}
+{
+  imports = [
+    ./filesystem.nix
+    ./lists.nix
+  ];
+}

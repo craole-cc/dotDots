@@ -7,6 +7,7 @@ let
   #| Native Imports
   inherit (lib) filter lessThan;
   inherit (lib.lists)
+    all
     any
     flatten
     toList
@@ -21,6 +22,7 @@ let
     hasInfix
     hasSuffix
     toLower
+    toInt
     ;
   inherit (lib.options) mkOption;
 
@@ -125,8 +127,8 @@ in
         let
           list' = prep list;
           check = item: item == "" || item == null || hasPrefix "\n" item;
-          filtered = filter (item: (check item)) list';
-          inverted = filter (item: (!check item)) list';
+          inverted = filter (item: (check item)) list';
+          filtered = filter (item: (!check item)) list';
           total = length filtered;
         in
         {
@@ -416,21 +418,6 @@ in
     };
 
     order = mkOption {
-      /**
-        order :: [String] -> [String]
-
-        Sorts alphanumerically and case-insensitively.
-
-        Parameters:
-          list = List of strings to process
-
-        Returns:
-          list = Sorted list of strings
-
-        Example:
-          order [ "B" "a" "C" ]
-          => [ "a" "B" "C" ]
-      */
       description = ''
         Sorts alphanumerically and case-insensitively.
 
@@ -441,14 +428,23 @@ in
           list = Sorted list of strings
 
         Example:
-          order [ "B" "a" "C" ]
-          => [ "a" "B" "C" ]
+          order [ "B" "11" "02" "a" "C" "01" "10" ]
+          => [ "01" "02" "10" "11" "a" "B" "C" ]
       '';
       default =
+        list:
+        # TODO: Order is sorting '01 10 02', this should be '01 02 10'
         let
+          #| Input
+          list' = prep list;
+
+          #| Processing
           check = a: b: lessThan (toLower a) (toLower b);
+
+          #| Output
+          ordered = sort check list';
         in
-        list: sort check (prep list);
+        ordered;
     };
 
     prune = mkOption {
@@ -599,7 +595,6 @@ in
         {
           prep = prep list;
           prune = prune list;
-          clean = clean list;
           order = order list;
           blanks = blanks list;
           prefixed = prefixed { inherit list; };
