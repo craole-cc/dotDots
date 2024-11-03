@@ -8,7 +8,12 @@ let
   #| Native Imports
 
   inherit (pkgs) fetchFromGitHub;
-  inherit (builtins) baseNameOf getEnv pathExists;
+  inherit (builtins)
+    baseNameOf
+    getEnv
+    storePath
+    pathExists
+    ;
   # inherit (lib)
   #   any
   #   elem
@@ -22,7 +27,7 @@ let
     toList
     foldl'
     head
-    tail
+    # tail
     ;
   inherit (lib.strings)
     stringToCharacters
@@ -51,7 +56,14 @@ let
   cfg = DOTS.${base}.${mod};
   inherit (cfg)
     pathOf
+    pathOfPWD
     pathsIgnored
+    pathsIn
+    locateGitRoot
+    pathsIgnoredCheck
+    locateParentByChild
+    locateParentByChildren
+    locateParentByName
     ;
 in
 {
@@ -135,7 +147,8 @@ in
             perDots = listToAttrs (map (_p: nameValuePair (baseNameOf _p) _p) lists.perDots);
             perNix = listToAttrs (map (_p: nameValuePair (trimNix (baseNameOf _p)) _p) lists.perNix.paths);
           };
-        in {
+        in
+        {
           inherit lists attrs;
           inherit (lists) Nix;
 
@@ -163,81 +176,80 @@ in
         };
     };
 
-    pathsIgnored =
-      let
-        check =
-          pathList: ignoreList:
-          clean
-            (suffixed {
-              list =
-                (infixed {
-                  list = pathList;
-                  target = map (_p: "/" + _p + "/") ignoreList;
-                }).inverted;
-              target = map (_p: "/" + _p) ignoreList;
-            }).inverted;
-      in
-      {
-        perDots = mkOption {
-          description = "Process ignore checks based on the .dotignore file at the project root";
-          default =
-            let
-              toIgnore = [
-                #| Settings
-                ".env"
-                ".envrc"
-                ".git"
-                ".github"
-                ".gitlab"
-                ".gitignore"
-                ".vscode"
-                ".sops.yaml"
-                ".ignore"
+    pathsIgnoredCheck = mkOption {
+      description = "Processes ignore checks based on the .dotignore file at the project root";
+      default =
+        pathList: ignoreList:
+        clean
+          (suffixed {
+            list =
+              (infixed {
+                list = pathList;
+                target = map (_p: "/" + _p + "/") ignoreList;
+              }).inverted;
+            target = map (_p: "/" + _p) ignoreList;
+          }).inverted;
+    };
 
-                #| Project
-                "LICENSE"
-                "README"
-                "bin"
+    pathsIgnored = {
+      perDots = mkOption {
+        description = "Process ignore checks based on the .dotignore file at the project root";
+        default =
+          let
+            toIgnore = [
+              #| Settings
+              ".env"
+              ".envrc"
+              ".git"
+              ".github"
+              ".gitlab"
+              ".gitignore"
+              ".vscode"
+              ".sops.yaml"
+              ".ignore"
 
-                #| Nix
-                # "default.nix"
-                # "flake.nix"
-                # "flake.lock"
-                # "shell.nix"
-                # "package.nix"
-                # "options.nix"
-                # "config.nix"
-                # "modules.nix"
-                # "module.nix"
-                "settings"
+              #| Project
+              "LICENSE"
+              "README"
+              "bin"
 
-                #| Temporary
-                "review"
-                "tmp"
-                "temp"
-                "result"
-                ".Trash-1000"
-                ".DS_Store"
-                "archive"
-              ];
-            in
-            mkOption {
-              description = "Process ignore checks based on the .dotignore file at the project root";
-              default = _pathList: check _pathList toIgnore;
-            };
+              #| Nix
+              # "default.nix"
+              # "flake.nix"
+              # "flake.lock"
+              # "shell.nix"
+              # "package.nix"
+              # "options.nix"
+              # "config.nix"
+              # "modules.nix"
+              # "module.nix"
+              "settings"
 
-          perGit =
-            let
-              toIgnore = splitString "\n" (fileContents (locateProjectRoot + "/.gitignore")) ++ [
-                ".git"
-                ".gitignore"
-              ];
-            in
-            _pathList: check _pathList toIgnore;
-        };
+              #| Temporary
+              "review"
+              "tmp"
+              "temp"
+              "result"
+              ".Trash-1000"
+              ".DS_Store"
+              "archive"
+            ];
+          in
+          pathList: pathsIgnoredCheck pathList toIgnore;
       };
+      perGit = mkOption {
+        description = "Process ignore checks based on the .gitignore file at the project root";
+        default =
+          let
+            # TODO: Include all .gitignore files up to the git root
+            toIgnore = splitString "\n" (fileContents locateGitRoot);
+          in
+          pathList: pathsIgnoredCheck pathList toIgnore;
+      };
+    };
 
     importModules = mkOption {
+      # TODO: Move to nixpkgs as it will cause infinite recursion here.
       description = "List all nix paths in a directory.";
       example = ''nixModulesToImport "path/to/directory"'';
       default =
@@ -247,80 +259,206 @@ in
         in
         map (_module: import _module) modules;
     };
+
     locateParentByChild = mkOption {
       description = "Find the absolute path of the first parent directory of an item or a list of children.";
-      example = ''parentByChild "src" ==> "/path/to/project"'';
+      example = ''parentByChild "src" ./. ==> "/path/to/project"'';
       default =
-        _child:
+        child: workingDir:
         let
-          result = locateDominatingFile _child ./.;
-          nullOrLocation = if result != null then builtins.toString result.path else null;
+          # Start from working directory and walk up until root
+          findUp =
+            dir:
+            let
+              filePath = dir + "/${child}";
+              parentDir = dirOf dir;
+            in
+            if pathExists filePath then
+              dir # Found the file, return current directory
+            else if
+              dir == parentDir # Reached root
+            then
+              null
+            else
+              findUp parentDir; # Continue searching up
         in
-        nullOrLocation;
+        findUp workingDir;
     };
+
     locateParentByChildren = mkOption {
       description = "Find the absolute path of the first parent directory of an item or a list of children.";
       example = ''parentByChildren "src" ==> "/path/to/project"'';
       default =
-        _children:
+        {
+          children,
+          workingDir ? (getEnv "PWD"),
+        }:
         let
-          search = _child: locateDominatingFile _child ./.;
-          result = filter (_p: _p != null) (map search (toList _children));
-          nullOrLocation = if length result > 0 then (head result).path else null;
+          # Convert input to list if it's not already
+          childrenList = toList children;
+
+          # Try to find parent directory for each child
+          # Stop after first successful find
+          findFirst =
+            remaining:
+            if remaining == [ ] then
+              null
+            else
+              let
+                result = locateParentByChild (head remaining) workingDir;
+              in
+              if result != null then result else findFirst (tail remaining);
         in
-        nullOrLocation;
+        findFirst childrenList;
     };
+
     locateParentByName = mkOption {
       description = "Find the absolute path of a specific path (by name) in a parent directory.";
       example = ''parentByName "src" ==> "/path/to/project/src"'';
       default =
-        _name:
+        name:
         let
-          result = locateParentByChildren _name;
-          nullOrLocation = if result != null then result + "/${_name}" else null;
+          result = locateParentByChildren { children = name; };
+          nullOrLocation = if result != null then result + "/${name}" else null;
         in
         nullOrLocation;
     };
+
     locateParentByNameOrChildren = mkOption {
       description = "Find the absolute path of a parent directory by name, falling back to files or a list of files for search.";
       example = ''locateParentByNameOrChildren "src" [".git" ".gitignore" ".flake.nix"] ==> "/path/to/project/root"'';
       default =
-        _name: _children:
+        name: children:
         let
-          byName = locateParentByName _name;
-          byChildren = locateParentByChildren _children;
+          byName = locateParentByName name;
+          byChildren = locateParentByChildren { inherit children; };
           nullOrLocation = if byName != null then byName else byChildren;
         in
         nullOrLocation;
     };
+
     locateProjectRoot = mkOption {
       description = "Find the absolute path of the project root.";
       example = ''locateProjectRoot ==> "/path/to/project/root"'';
-      default =
-        let
-          nullOrLocation = locateParentByChildren [
-            ".git"
-            ".gitignore"
-            ".envrc"
-            ".cargo.lock"
-            "flake.lock"
-            "flake.nix"
-            "package.json"
-            "Cargo.lock"
-            "Cargo.toml"
-          ];
-        in
-        nullOrLocation;
+      default = locateParentByChildren {
+        children = [
+          # Nix
+          "flake.nix"
+          "flake.lock"
+          ".envrc"
+
+          # Rust
+          "Cargo.lock"
+          "Cargo.toml"
+
+          # JavaScript/Node.js
+          "package.json"
+          "yarn.lock"
+          "pnpm-lock.yaml"
+
+          # Python
+          "pyproject.toml"
+          "Pipfile"
+          "requirements.txt"
+          "setup.py"
+          "setup.cfg"
+
+          # Java/Maven/Gradle
+          "pom.xml"
+          "build.gradle"
+          "build.gradle.kts"
+
+          # Ruby
+          "Gemfile"
+          "Gemfile.lock"
+
+          # Go
+          "go.mod"
+          "go.sum"
+
+          # PHP/Composer
+          "composer.json"
+          "composer.lock"
+
+          # C/C++/CMake
+          "CMakeLists.txt"
+          "Makefile"
+
+          # .NET
+          "*.sln"
+          "*.csproj"
+          "*.fsproj"
+
+          # CI/CD
+          ".github/workflows"
+          ".gitlab-ci.yml"
+          "Jenkinsfile"
+
+          # Docker
+          "Dockerfile"
+          ".dockerignore"
+
+          # Git
+          ".gitignore"
+          ".git"
+
+          # IDE/editor-specific directories
+          ".idea" # IntelliJ-based IDEs (e.g., IDEA, PyCharm, WebStorm)
+          ".vscode" # Visual Studio Code
+          ".atom" # Atom editor
+          ".eclipse" # Eclipse IDE
+          ".metadata" # Eclipse workspace folder
+          ".devcontainer" # VS Code development container
+          ".vs" # Visual Studio
+          ".editorconfig" # Editor configuration
+
+          # Documentation
+          "README"
+          "README.md"
+          "README.org"
+          "LICENSE"
+          "LICENSE.txt"
+          "LICENSE.md"
+          "COPYING"
+          "COPYING.txt"
+          "COPYING.md"
+          "CONTRIBUTING"
+          "CONTRIBUTING.md"
+          "CONTRIBUTING.txt"
+          "CHANGELOG.md"
+          "NOTES.md"
+          "NOTES.org"
+          "TODO.org"
+          "TODO.md"
+        ];
+      };
     };
-    nullOrPathOf = mkOption {
-      default =
-        _path:
-        let
-          checkPath = tryEval _path;
-        in
-        if checkPath.success then checkPath.value else null;
+
+    locateFlake = mkOption {
+      description = "Find the absolute path of the git root.";
+      example = "locateGitRoot ==> \"/path/to/project/root\"";
+      default = locateParentByChildren {
+        children = [
+          "flake.lock"
+          "flake.nix"
+        ];
+      };
     };
-    githubPathOf = mkOption {
+
+    locateNixos = mkOption {
+      description = "Find the absolute path of the git root.";
+      example = "locateGitRoot ==> \"/path/to/project/root\"";
+      default = locateParentByChild "configuration.nix" pathOfPWD;
+    };
+
+    locateGitRoot = mkOption {
+      description = "Find the absolute path of the git root.";
+      example = "locateGitRoot ==> \"/path/to/project/root\"";
+      default = locateParentByChild ".git" pathOfPWD;
+    };
+
+    pathOfGitHub = mkOption {
+      description = "Fetches the contents of a GitHub repository and returns the absolute path to the .nix file.";
       default =
         {
           owner,
@@ -337,6 +475,12 @@ in
             ;
         });
     };
-    test = { };
+
+    tests = mkOption {
+      description = "Tests for {{base}}.{{mod}}";
+      default = with cfg; {
+        pathOf = pathOf ./.;
+      };
+    };
   };
 }
