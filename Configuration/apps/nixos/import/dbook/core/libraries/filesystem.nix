@@ -27,7 +27,7 @@ let
     toList
     foldl'
     head
-    # tail
+    tail
     ;
   inherit (lib.strings)
     stringToCharacters
