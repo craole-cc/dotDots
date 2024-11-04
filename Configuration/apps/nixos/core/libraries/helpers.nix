@@ -2,7 +2,7 @@
 let
   #| Native Imports
   inherit (lib.options) mkOption;
-  
+
   #| Extended Imports
   inherit (config) DOTS;
   base = "lib";
@@ -27,7 +27,7 @@ in
         };
     };
 
-    mkAppOptions = mkOption {
+    makeAppOptions = mkOption {
       description = "Options to pass to an application";
       default =
         name: attrs:

@@ -1,1 +1,6 @@
-{ imports = [ ./craole.nix ]; }
+{
+  imports = [
+    ./base
+    ./craole.nix
+  ];
+}
