@@ -21,28 +21,28 @@
       ...
     }:
     let
-      # CORE = import ./core { inherit inputs; };
-      # inherit (CORE) libs;
-      # DOTS = {
-      #   inherit inputs libs;
-      # };
-      flake = rec {
-        # homePath = libs.extended.filesystem.locateFlakeRoot;
-        storePath = ./.;
-        homePath = toString storePath;
+      mods = {
+        core = [
+          ./core/libraries
+          ./core/options
+        ];
+        home = [
+          ./home/libraries
+          ./home/options
+        ];
+        craole = [
+          ./home/configurations/craole
+        ] ++ mods.home;
       };
-
-      coreModules = [ ./core ];
+      coreModules = mods.core;
       homeModules = [
         home-manager.nixosModules.home-manager
         {
           home-manager = {
-            backupFileExtension = "bac";
-            extraSpecialArgs = flake;
-
+            backupFileExtension = "BaC";
             useGlobalPkgs = true;
             useUserPackages = true;
-            # users.craole.imports = [ ./home ];
+            users.craole.imports = mods.craole;
           };
         }
       ];
@@ -56,7 +56,7 @@
         dbook = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
-            ./imports/dbook
+            ./core/hosts/dbook
           ] ++ coreModules ++ homeModules;
         };
       };
