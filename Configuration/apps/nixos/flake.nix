@@ -25,11 +25,12 @@
       # inherit (CORE) libs;
       # DOTS = {
       #   inherit inputs libs;
-      #   flake = {
-      #     homePath = libs.extended.filesystem.locateFlakeRoot;
-      #     storePath = ./.;
-      #   };
       # };
+      flake = rec {
+        # homePath = libs.extended.filesystem.locateFlakeRoot;
+        storePath = ./.;
+        homePath = toString storePath;
+      };
 
       coreModules = [ ./core ];
       homeModules = [
@@ -37,7 +38,7 @@
         {
           home-manager = {
             backupFileExtension = "bac";
-            # extraSpecialArgs = DOTS;
+            extraSpecialArgs = flake;
 
             useGlobalPkgs = true;
             useUserPackages = true;
@@ -47,8 +48,6 @@
       ];
     in
     {
-      # inherit DOTS;
-
       nixosConfigurations = {
         preci = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
