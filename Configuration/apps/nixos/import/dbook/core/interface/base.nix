@@ -12,7 +12,7 @@ in
     manager = mkOption {
       description = "Desktop/Window Manager";
       default = "hyprland";
-      type = nullOr oneOf [
+      type = nullOr (oneOf [
         "hyprland"
         "sway"
         "river"
@@ -20,7 +20,7 @@ in
         "gnome"
         "plasma"
         "none"
-      ];
+      ]);
     };
     isMinimal = mkEnableOption "no desktop";
     # isMinimal = mkEnableOption "no desktop" // {
