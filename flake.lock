@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "darwin": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1730698801,
+        "narHash": "sha256-sq68bCmk4tCXSt5CoRNimfigIZSLJSpNi/gjFtNLjRE=",
+        "owner": "LnL7",
+        "repo": "nix-darwin",
+        "rev": "189d2d422c773fa065cc9c72e6806f007ebb9be0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LnL7",
+        "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -17,6 +37,22 @@
       "original": {
         "owner": "nix-community",
         "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixed": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1727616766,
+        "narHash": "sha256-jpWh/zCu9ZwYYTyhe+Y9SubbPO8boxcGWK38197b7as=",
+        "owner": "Craole",
+        "repo": "nixed",
+        "rev": "a2c54518edf6610b975cc1a9dd4bfe5536ba93fa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Craole",
+        "repo": "nixed",
         "type": "github"
       }
     },
@@ -38,7 +74,9 @@
     },
     "root": {
       "inputs": {
+        "darwin": "darwin",
         "home-manager": "home-manager",
+        "nixed": "nixed",
         "nixpkgs": "nixpkgs"
       }
     }
