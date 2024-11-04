@@ -25,7 +25,7 @@
           preci = nixosSystem {
             system = "x86_64-linux";
             modules = [
-              ./configurations.nix
+              ./configuration.nix
               # ./core
               # ./libraries
               # ./options/core        # ./options/libraries
@@ -44,12 +44,12 @@
             ];
           };
 
-          # dbook = nixosSystem {
-          #   system = "x86_64-linux";
-          #   modules = [
-
-          #   ];
-          # };
+          dbook = nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./configuration.nix
+            ];
+          };
         };
     };
 }
