@@ -6,7 +6,12 @@
 }:
 let
   #| Native Imports
-  inherit (builtins) getEnv readFile;
+  inherit (builtins)
+    getEnv
+    readFile
+    currentTime
+    toString
+    ;
   inherit (pkgs) fetchurl runCommand;
   inherit (lib.attrsets) hasAttr;
   inherit (lib.misc) fakeHash;
@@ -17,7 +22,7 @@ let
     floatToString
     ;
   inherit (lib.options) mkOption;
-  inherit (lib.types) str attrs;
+  inherit (lib.types) nullOr str attrs;
 
   #| Extended Imports
   inherit (config) DOTS;
@@ -43,15 +48,18 @@ in
       '';
       default =
         let
-          viaDateCommand = readFile (
+          viaBuiltin = fileContents (
             runCommand "date" { } ''
-              result=$(date "+%Y-%m-%d %H:%M:%S %Z")
-              printf "%s" "$result" > $out
+              date -d @${toString currentTime} "+%Y-%m-%d %H:%M:%S %Z" > $out
             ''
           );
-          result = viaDateCommand;
+          viaDateCommand = fileContents (
+            runCommand "date" { } ''
+              date "+%Y-%m-%d %H:%M:%S %Z" > $out
+            ''
+          );
         in
-        result;
+        viaDateCommand;
     };
   };
 }
