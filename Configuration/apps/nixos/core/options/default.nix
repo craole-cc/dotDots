@@ -1,1 +1,8 @@
-{ imports = [ ./users ]; }
+{
+  imports = [
+    ./app
+    ./hosts
+    ./service
+    ./users
+  ];
+}

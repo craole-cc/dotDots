@@ -1,9 +1,9 @@
 {
   imports = [
-    ./hardware.nix
+    ./configuration.nix
   ];
 
   DOTS = {
-    # users.craole.enable = true;
+    users.craole.enable = true;
   };
 }

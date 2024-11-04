@@ -10,6 +10,7 @@ let
     passwdEntry
     str
     attrs
+    bool
     ;
 
   #| Extended Imports
@@ -23,14 +24,15 @@ in
   options.DOTS.${base}.${mod} = {
     enable = mkEnableOption "Initialize the user account for {{mod}}";
 
-    isNormalUser = mkEnableOption // {
-      description = "Allow the user to login";
+    isNormalUser = mkOption {
+      description = "Allow the user to perform non-admin tasks including logging in";
       default = true;
     };
 
-    isAdmin = mkEnableOption // {
+    isElevatedUser = mkOption {
       description = "Allow the user to perform administrative tasks";
       default = true;
+      type = bool;
     };
 
     name = mkOption {
@@ -134,20 +136,20 @@ in
 
   };
 
-  # config = mkIf cfg.enable {
-    # users.users.${cfg.name} = {
-    #   inherit (cfg)
-    #     description
-    #     uid
-    #     isNormalUser
-    #     hashedPassword
-    #     extraGroups
-    #     ;
-    # };
-    # home-manager.users.${cfg.name} = {
-    #   home = {
-    #     inherit (system) stateVersion;
-    #   };
-    # };
-  # };
+  config = mkIf cfg.enable {
+    users.users.${cfg.name} = {
+      inherit (cfg)
+        description
+        uid
+        isNormalUser
+        hashedPassword
+        extraGroups
+        ;
+    };
+    home-manager.users.${cfg.name} = {
+      home = {
+        inherit (system) stateVersion;
+      };
+    };
+  };
 }
