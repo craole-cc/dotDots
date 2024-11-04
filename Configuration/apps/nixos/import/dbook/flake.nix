@@ -22,7 +22,7 @@
           inherit (nixpkgs.lib) nixosSystem;
         in
         {
-          preci = nixosSystem {
+          preci = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./core
@@ -44,12 +44,12 @@
             ];
           };
 
-          dbook = nixosSystem {
-            system = "x86_64-linux";
-            modules = [
+          # dbook = nixosSystem {
+          #   system = "x86_64-linux";
+          #   modules = [
 
-            ];
-          };
+          #   ];
+          # };
         };
     };
 }
