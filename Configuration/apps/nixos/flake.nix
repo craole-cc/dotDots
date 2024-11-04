@@ -11,47 +11,45 @@
     #   flake = false;
     # };
   };
-  outputs = inputs@{ self, ... }:
+  outputs =
+    inputs@{ self, ... }:
     let
       inherit (inputs.nixpkgs.lib) nixosSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
       mods = {
-        core = [
-          ./core/libraries
-          ./core/options
-        ];
+        core =
+          [
+            ./core/libraries
+            ./core/options
+          ]
+          ++ [
+            home-manager
+            {
+              home-manager = {
+                backupFileExtension = "BaC";
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.craole.imports = mods.home ++ [
+                  ./home/configurations/craole
+                ];
+              };
+            }
+          ];
         home = [
           ./home/libraries
           ./home/options
         ];
-        craole = [
-          ./home/configurations/craole
-        ] ++ mods.home;
       };
-      coreModules = mods.core;
-      homeModules = [
-        home-manager
-        {
-          home-manager = {
-            backupFileExtension = "BaC";
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.craole.imports = mods.craole;
-          };
-        }
-      ];
     in
     {
       nixosConfigurations = {
         preci = nixosSystem {
           system = "x86_64-linux";
-          modules = coreModules ++ homeModules;
+          modules = mods.core ++ [ ./core/configurations/preci ];
         };
         dbook = nixosSystem {
           system = "x86_64-linux";
-          modules = [
-            ./core/hosts/dbook
-          ] ++ coreModules ++ homeModules;
+          modules = mods.core ++ [ ./core/configurations/dbook ];
         };
       };
     };
