@@ -43,11 +43,11 @@
       nixosConfigurations = {
         preci = nixosSystem {
           system = "x86_64-linux";
-          modules = mods.core ++ [ ./core/configurations/preci ];
+          modules = mods.core ++ [ (src + "/core/configurations/preci") ];
         };
         dbook = nixosSystem {
           system = "x86_64-linux";
-          modules = mods.core ++ [ ./core/configurations/dbook ];
+          modules = mods.core ++ [ (src + "/core/configurations/dbook") ];
         };
       };
     };
