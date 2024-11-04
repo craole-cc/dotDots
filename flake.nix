@@ -16,13 +16,28 @@
     let
       inherit (inputs.nixpkgs.lib) nixosSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
-      src = ./Configuration/apps/nixos;
+      paths = {
+        src = ./Configuration/apps/nixos;
+        core = with core; {
+          src = paths.src + "/home";
+          lib = src + "/libraries";
+          opt = src + "/options";
+          cfg = src + "/configurations";
+        };
+        home = with home; {
+          src = paths.src + "/home";
+          lib = src + "/libraries";
+          opt = src + "/options";
+          cfg = src + "/configurations";
+        };
+      };
+
       mods = {
         core =
-          [
-            (src + "/core/libraries")
-            (src + "/core/options")
-          ]
+          (with paths.core; [
+            lib
+            opt
+          ])
           ++ [
             home-manager
             {
@@ -33,22 +48,26 @@
               };
             }
           ];
-        home = [
-          (src + "/home/libraries")
-          (src + "/home/options")
+        home = with paths.home; [
+          lib
+          opt
         ];
       };
     in
     {
-      nixosConfigurations = {
-        preci = nixosSystem {
-          system = "x86_64-linux";
-          modules = mods.core ++ [ (src + "/core/configurations/preci") ];
+      nixosConfigurations =
+        let
+          inherit (paths.core) cfg;
+        in
+        {
+          preci = nixosSystem {
+            system = "x86_64-linux";
+            modules = mods.core ++ [ (cfg + "/preci") ];
+          };
+          dbook = nixosSystem {
+            system = "x86_64-linux";
+            modules = mods.core ++ [ (cfg + "/dbook") ];
+          };
         };
-        dbook = nixosSystem {
-          system = "x86_64-linux";
-          modules = mods.core ++ [ (src + "/core/configurations/dbook") ];
-        };
-      };
     };
 }
