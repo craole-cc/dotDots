@@ -21,35 +21,44 @@
       ...
     }:
     let
-      CORE = import ./core { inherit inputs; };
-      inherit (CORE) libs;
-      DOTS = {
-        inherit inputs libs;
-        flake = {
-          homePath = libs.extended.filesystem.locateFlakeRoot;
-          storePath = ./.;
-        };
-      };
+      # CORE = import ./core { inherit inputs; };
+      # inherit (CORE) libs;
+      # DOTS = {
+      #   inherit inputs libs;
+      #   flake = {
+      #     homePath = libs.extended.filesystem.locateFlakeRoot;
+      #     storePath = ./.;
+      #   };
+      # };
 
       coreModules = [ ./core ];
-      homeModules = home-manager.nixosModules.home-manager {
-        home-manager = {
-          backupFileExtension = "bac";
-          extraSpecialArgs = DOTS;
+      homeModules = [
+        home-manager.nixosModules.home-manager
+        {
+          home-manager = {
+            backupFileExtension = "bac";
+            # extraSpecialArgs = DOTS;
 
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          # users.craole.imports = [ ./home ];
-        };
-      };
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            # users.craole.imports = [ ./home ];
+          };
+        }
+      ];
     in
     {
-      inherit DOTS;
+      # inherit DOTS;
 
       nixosConfigurations = {
         preci = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = coreModules ++ homeModules;
+        };
+        dbook = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            "./imports/dbook"
+          ] ++ coreModules ++ homeModules;
         };
       };
     };

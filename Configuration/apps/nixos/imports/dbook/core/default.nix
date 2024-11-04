@@ -3,7 +3,6 @@
     ./base
     ./environment
     ./interface
-    ./libraries
     ./packages
     ./security
     ./services
