@@ -30,6 +30,18 @@
           storePath = ./.;
         };
       };
+
+      coreModules = [ ./core ];
+      homeModules = home-manager.nixosModules.home-manager {
+        home-manager = {
+          backupFileExtension = "bac";
+          extraSpecialArgs = DOTS;
+
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          # users.craole.imports = [ ./home ];
+        };
+      };
     in
     {
       inherit DOTS;
@@ -37,25 +49,7 @@
       nixosConfigurations = {
         preci = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          modules = [
-            ./core
-            # ./libraries
-            # ./options/core        # ./options/libraries
-            # ./configurations/core
-
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                backupFileExtension = "bac";
-                extraSpecialArgs = DOTS;
-
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                # users.craole.imports = [ ./home ];
-              };
-            }
-          ];
-          specialArgs = DOTS;
+          modules = coreModules ++ homeModules;
         };
       };
     };

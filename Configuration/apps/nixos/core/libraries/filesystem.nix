@@ -1,23 +1,29 @@
 {
+  config,
   lib,
-  dib,
+  pkgs,
   ...
 }:
 let
+  #| Native Imports
+
+  inherit (pkgs) fetchFromGitHub;
   inherit (builtins)
     baseNameOf
-    tryEval
     getEnv
+    storePath
     pathExists
     ;
-  inherit (lib)
+  # inherit (lib)
+  #   any
+  #   elem
+  #   filter
+  #   length
+  #   ;
+  inherit (lib.lists)
     any
     elem
     filter
-    # head
-    length
-    ;
-  inherit (lib.lists)
     toList
     foldl'
     head
@@ -25,183 +31,156 @@ let
     ;
   inherit (lib.strings)
     stringToCharacters
-    hasPrefix
     hasSuffix
     splitString
     removeSuffix
     fileContents
     ;
   inherit (lib.attrsets) nameValuePair listToAttrs;
-  inherit (lib.filesystem) locateDominatingFile listFilesRecursive;
+  inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.options) mkOption;
-  inherit (dib.lists)
+
+  #| Extended Imports
+  inherit (config) DOTS;
+
+  base = "lib";
+  mod = "filesystem";
+
+  inherit (DOTS.${base}.lists)
     prep
-    clean
+    prune
     infixed
     suffixed
     ;
+
+  cfg = DOTS.${base}.${mod};
+  inherit (cfg)
+    pathOf
+    pathOfPWD
+    pathsIgnored
+    pathsIn
+    locateGitRoot
+    pathsIgnoredCheck
+    locateParentByChild
+    locateParentByChildren
+    locateParentByName
+    ;
 in
-with dib.filesystem;
 {
-  /**
-    "Get the current working directory."
-  */
-  pathOfPWD = getEnv "PWD";
-
-  /**
-    pathOf :: path -> absolute path
-
-    "Obtains the absolute path of a given file or directory, relative to the project root."
-
-    Parameters:
-      _path = Path to convert to an absolute path.
-
-    Returns: absolute path
-
-    Example:
-      pathOf "src/configurations/user/review/craole.bac.nix"
-      => "/etc/nixos/src/configurations/user/review/craole.bac.nix"
-  */
-  pathOf =
-    _path:
-    foldl' (x: y: if y == "/" && hasSuffix "/" x then x else x + y) "" (
-      stringToCharacters (toString _path)
-    );
-
-  pathOrNull = _path: if pathExists (pathOf _path) then pathOf _path else null;
-  /**
-    "Recursively list path items including directories, files and modules
-
-    Parameters:
-      _path = Path to list.
-
-    Returns:
-      all = List of all items in the path.
-      attrs = Paths as attrs.
-      lists = Paths as lists.
-      perDots = Paths as lists filtered by pathsIgnored.perDots.
-      perNix = Paths as lists filtered by pathsIgnored.perNix.
-
-    Example:
-      pathsIn ./. ==> {
-        all = { ... };
-        attrs = { ... };
-        lists = { ... };
-        perDots = { ... };
-        perNix = { ... };
-      }
-  */
-  pathsIn =
-    let
-      #| Validation
-      isInDir = _path: _directory: dirOf _path == _directory;
-      isNixModule = _file: hasSuffix ".nix" _file;
-      isNixSpecial =
-        _file:
-        any (suffix: hasSuffix suffix _file) [
-          "default.nix"
-          "flake.nix"
-          "flake.lock"
-          "shell.nix"
-          "package.nix"
-          "options.nix"
-          "config.nix"
-          "modules.nix"
-          "module.nix"
-        ];
-
-      #| Filters
-      # modulesBase = { base, list }: filter (p: (dirOf p == base)) list;
-      # modulesNix =
-      #   fileList:
-      #   (suffixed {
-      #     list = fileList;
-      #     target = "nix";
-      #   }).filtered;
-      # modulesNixSpecial =
-      #   list:
-      #   (suffixed {
-      #     inherit list;
-      #     target = [
-      #       "default.nix"
-      #       "flake.nix"
-      #       "flake.lock"
-      #       "shell.nix"
-      #       "package.nix"
-      #       "options.nix"
-      #       "config.nix"
-      #       "modules.nix"
-      #       "module.nix"
-      #     ];
-      #   }).inverted;
-
-      #| Utility
-      trimNix = _file: removeSuffix ".nix" _file;
-    in
-    _path:
-    let
-      path' = pathOf _path;
-      paths = listFilesRecursive path';
-      isBaseModule = _path: isInDir _path path';
-
-      #| Lists
-      lists = rec {
-        all = prep (filter (_p: _p != path') (paths ++ map (_p: dirOf _p) paths));
-        perDots = pathsIgnored.perDots all;
-        perNix = rec {
-          base = filter (_p: isBaseModule _p && isNixModule _p && !isNixSpecial _p) perDots;
-          sub = {
-            dir = map (_p: dirOf _p) (
-              filter (_p: !isBaseModule _p && isNixModule _p && isNixSpecial _p) perDots
-            );
-            file = filter (
-              _p: !isBaseModule _p && !isNixSpecial _p && !elem _p sub.dir && (!elem (dirOf _p) sub.dir)
-            ) perDots;
-          };
-          paths = base ++ sub.dir ++ sub.file;
-          names = map (_p: trimNix _p) (map (_p: baseNameOf _p) paths);
-        };
-      };
-
-      #| Sets
-      attrs = {
-        all = listToAttrs (map (_p: nameValuePair (baseNameOf _p) _p) lists.all);
-        perDots = listToAttrs (map (_p: nameValuePair (baseNameOf _p) _p) lists.perDots);
-        perNix = listToAttrs (map (_p: nameValuePair (trimNix (baseNameOf _p)) _p) lists.perNix.paths);
-      };
-    in
-    {
-      inherit lists attrs;
-      # inherit (lists) perNix;
-
-      all = {
-        lists = lists.all;
-        attrs = attrs.all;
-      };
-
-      perDots = {
-        lists = lists.perDots;
-        attrs = attrs.perDots;
-      };
-
-      perNix = {
-        lists = {
-          inherit (lists.perNix)
-            base
-            sub
-            paths
-            names
-            ;
-        };
-        attrs = attrs.perNix;
-      };
-
+  options.DOTS.${base}.${mod} = {
+    pathOf = mkOption {
+      description = "Obtains the absolute path of a given file or directory, relative to the project root.";
+      example = "
+      pathOf \"src/configurations/user/review/craole.bac.nix\"
+      => \"/etc/nixos/src/configurations/user/review/craole.bac.nix\"
+      ";
+      default =
+        _path:
+        foldl' (x: y: if y == "/" && hasSuffix "/" x then x else x + y) "" (
+          stringToCharacters (toString _path)
+        );
     };
-  pathsIgnored =
-    let
-      check =
+
+    pathOfPWD = mkOption {
+      description = "Returns the current working directory.";
+      default = getEnv "PWD";
+    };
+
+    pathOrNull = mkOption {
+      description = "";
+      default = _path: if pathExists (pathOf _path) then pathOf _path else null;
+    };
+
+    pathsIn = mkOption {
+      description = "Recursively list path items including directories, files and modules";
+      default =
+        path:
+        let
+          #| Validation
+          isInDir = _path: _directory: dirOf _path == _directory;
+          isNixModule = _file: hasSuffix ".nix" _file;
+          isNixSpecial =
+            _file:
+            any (suffix: hasSuffix suffix _file) [
+              "default.nix"
+              "flake.nix"
+              "flake.lock"
+              "shell.nix"
+              "package.nix"
+              "options.nix"
+              "config.nix"
+              "modules.nix"
+              "module.nix"
+            ];
+
+          #| Utility
+          trimNix = _file: removeSuffix ".nix" _file;
+
+          #| Paths
+          path' = pathOf path;
+          paths = listFilesRecursive path';
+          isBaseModule = path: isInDir path path';
+
+          #| Lists
+          lists = rec {
+            all = prep (filter (_p: _p != path') (paths ++ map (_p: dirOf _p) paths));
+            perDots = pathsIgnored.perDots all;
+
+            perNix = rec {
+              base = filter (_p: isBaseModule _p && isNixModule _p && !isNixSpecial _p) perDots;
+              sub = {
+                dir = map (_p: dirOf _p) (
+                  filter (_p: !isBaseModule _p && isNixModule _p && isNixSpecial _p) perDots
+                );
+                file = filter (
+                  _p: !isBaseModule _p && !isNixSpecial _p && !elem _p sub.dir && (!elem (dirOf _p) sub.dir)
+                ) perDots;
+              };
+              paths = base ++ sub.dir ++ sub.file;
+              names = map (_p: trimNix _p) (map (_p: baseNameOf _p) paths);
+            };
+          };
+
+          #| Sets
+          attrs = {
+            all = listToAttrs (map (_p: nameValuePair (baseNameOf _p) _p) lists.all);
+            perDots = listToAttrs (map (_p: nameValuePair (baseNameOf _p) _p) lists.perDots);
+            perNix = listToAttrs (map (_p: nameValuePair (trimNix (baseNameOf _p)) _p) lists.perNix.paths);
+          };
+        in
+        {
+          inherit lists attrs;
+          inherit (lists) Nix;
+
+          all = {
+            lists = lists.all;
+            attrs = attrs.all;
+          };
+
+          perDots = {
+            lists = lists.perDots;
+            attrs = attrs.perDots;
+          };
+
+          perNix = {
+            lists = {
+              inherit (lists.perNix)
+                base
+                sub
+                paths
+                names
+                ;
+            };
+            attrs = attrs.perNix;
+          };
+        };
+    };
+
+    pathsIgnoredCheck = mkOption {
+      description = "Processes ignore checks based on the .dotignore file at the project root";
+      default =
         pathList: ignoreList:
-        clean
+        prune
           (suffixed {
             list =
               (infixed {
@@ -210,324 +189,313 @@ with dib.filesystem;
               }).inverted;
             target = map (_p: "/" + _p) ignoreList;
           }).inverted;
-    in
-    {
-      perDots =
-        let
-          toIgnore = [
-            #| Settings
-            ".env"
-            ".envrc"
-            ".git"
-            ".github"
-            ".gitlab"
-            ".gitignore"
-            ".vscode"
-            ".sops.yaml"
-            ".ignore"
-
-            #| Project
-            "LICENSE"
-            "README"
-            "bin"
-
-            #| Nix
-            # "default.nix"
-            # "flake.nix"
-            # "flake.lock"
-            # "shell.nix"
-            # "package.nix"
-            # "options.nix"
-            # "config.nix"
-            # "modules.nix"
-            # "module.nix"
-            "settings"
-
-            #| Temporary
-            "review"
-            "tmp"
-            "temp"
-            "result"
-            ".Trash-1000"
-            ".DS_Store"
-            "archive"
-          ];
-        in
-        _pathList: check _pathList toIgnore;
-      # mkOption {
-      #   description = "Process ignore checks based on the .dotignore file at the project root";
-      #   default = _pathList: check _pathList toIgnore;
-      # };
-
-      perGit =
-        let
-          toIgnore = splitString "\n" (fileContents (locateProjectRoot + "/.gitignore")) ++ [
-            ".git"
-            ".gitignore"
-          ];
-        in
-        _pathList: check _pathList toIgnore;
-      # mkOption {
-      #   description = "Process ignore checks based on the .dotignore file at the project root";
-      #   default = _pathList: check _pathList toIgnore;
-      # };
     };
 
-  importModules = mkOption {
-    description = "List all nix paths in a directory.";
-    example = ''nixModulesToImport "path/to/directory"'';
-    default =
-      _path:
-      let
-        modules = (pathsIn _path).perNix.list.paths;
-      in
-      map (_module: import _module) modules;
-  };
-  /**
-    Find the absolute path of the first parent directory of an item or a list of children.
-
-    Parameters:
-      _child = Child to search.
-
-    Returns: absolute path
-
-    Example:
-      locateParentByChild "src" ==> "/path/to/project"
-  */
-  locateParentByChild =
-    child: workingDir:
-    let
-      # Start from working directory and walk up until root
-      findUp =
-        dir:
-        let
-          filePath = dir + "/${child}";
-          parentDir = dirOf dir;
-        in
-        if pathExists filePath then
-          dir # Found the file, return current directory
-        else if
-          dir == parentDir # Reached root
-        then
-          null
-        else
-          findUp parentDir; # Continue searching up
-    in
-    findUp workingDir;
-
-  /**
-    Find the absolute path of the first parent directory of an item or a list of children.
-
-    Parameters:
-      _children = List of children to search.
-
-    Returns: absolute path
-
-    Example:
-      locateParentByChildren "src" ==> "/path/to/project"
-  */
-  locateParentByChildren =
-    {
-      children,
-      workingDir ? (getEnv "PWD"),
-    }:
-    let
-      # Convert input to list if it's not already
-      childrenList = toList children;
-
-      # Try to find parent directory for each child
-      # Stop after first successful find
-      findFirst =
-        remaining:
-        if remaining == [ ] then
-          null
-        else
+    pathsIgnored = {
+      perDots = mkOption {
+        description = "Process ignore checks based on the .dotignore file at the project root";
+        default =
           let
-            result = locateParentByChild (head remaining) workingDir;
+            toIgnore = [
+              #| Settings
+              ".env"
+              ".envrc"
+              ".git"
+              ".github"
+              ".gitlab"
+              ".gitignore"
+              ".vscode"
+              ".sops.yaml"
+              ".ignore"
+
+              #| Project
+              "LICENSE"
+              "README"
+              "bin"
+
+              #| Nix
+              # "default.nix"
+              # "flake.nix"
+              # "flake.lock"
+              # "shell.nix"
+              # "package.nix"
+              # "options.nix"
+              # "config.nix"
+              # "modules.nix"
+              # "module.nix"
+              "settings"
+
+              #| Temporary
+              "review"
+              "tmp"
+              "temp"
+              "result"
+              ".Trash-1000"
+              ".DS_Store"
+              "archive"
+            ];
           in
-          if result != null then result else findFirst (tail remaining);
-    in
-    findFirst childrenList;
+          pathList: pathsIgnoredCheck pathList toIgnore;
+      };
+      perGit = mkOption {
+        description = "Process ignore checks based on the .gitignore file at the project root";
+        default =
+          pathList:
+          let
+            #| Input
+            list' = toList pathList;
 
-  /**
-    Find the absolute path of a specific path (by name) in a parent directory.
+            #| Process
+            # TODO: Include all .gitignore files up to the git root
+            ignoreRaw = splitString "\n" (fileContents (locateGitRoot + "/.gitignore"));
+            ignoreCleaned = prune ignoreRaw;
+            filtered = pathsIgnoredCheck list' ignoreCleaned;
 
-    Parameters:
-      _name = Name of the parent directory to search.
+            #| Output
+          in
+          filtered;
+      };
+    };
 
-    Returns: absolute path
+    importModules = mkOption {
+      # TODO: Move to nixpkgs as it will cause infinite recursion here.
+      description = "List all nix paths in a directory.";
+      example = ''nixModulesToImport "path/to/directory"'';
+      default =
+        _path:
+        let
+          modules = (pathsIn _path).perNix.list.paths;
+        in
+        map (_module: import _module) modules;
+    };
 
-    Example:
-      locateParentByName "src" ==> "/path/to/project/src"
-  */
-  locateParentByName =
-    _name:
-    let
-      result = locateParentByChildren { children = _name; };
-      nullOrLocation = if result != null then result + "/${_name}" else null;
-    in
-    nullOrLocation;
+    locateParentByChild = mkOption {
+      description = "Find the absolute path of the first parent directory of an item or a list of children.";
+      example = ''parentByChild "src" ./. ==> "/path/to/project"'';
+      default =
+        child: workingDir:
+        let
+          # Start from working directory and walk up until root
+          findUp =
+            dir:
+            let
+              filePath = dir + "/${child}";
+              parentDir = dirOf dir;
+            in
+            if pathExists filePath then
+              dir # Found the file, return current directory
+            else if
+              dir == parentDir # Reached root
+            then
+              null
+            else
+              findUp parentDir; # Continue searching up
+        in
+        findUp workingDir;
+    };
 
-  /**
-    Find the absolute path of a parent directory by name, falling back to files or a list of files for search.
+    locateParentByChildren = mkOption {
+      description = "Find the absolute path of the first parent directory of an item or a list of children.";
+      example = ''parentByChildren "src" ==> "/path/to/project"'';
+      default =
+        {
+          children,
+          workingDir ? (getEnv "PWD"),
+        }:
+        let
+          # Convert input to list if it's not already
+          childrenList = toList children;
 
-    Parameters:
-      _name = Name of the parent directory to search.
-      _children = List of files to search for.
+          # Try to find parent directory for each child
+          # Stop after first successful find
+          findFirst =
+            remaining:
+            if remaining == [ ] then
+              null
+            else
+              let
+                result = locateParentByChild (head remaining) workingDir;
+              in
+              if result != null then result else findFirst (tail remaining);
+        in
+        findFirst childrenList;
+    };
 
-    Returns: absolute path
+    locateParentByName = mkOption {
+      description = "Find the absolute path of a specific path (by name) in a parent directory.";
+      example = ''parentByName "src" ==> "/path/to/project/src"'';
+      default =
+        name:
+        let
+          result = locateParentByChildren { children = name; };
+          nullOrLocation = if result != null then result + "/${name}" else null;
+        in
+        nullOrLocation;
+    };
 
-    Example:
-      locateParentByNameOrChildren "src" [ ".flake.nix" ".git" ".gitignore"] ==> "/path/to/project/root"
-  */
-  locateParentByNameOrChildren =
-    name: children:
-    let
-      byName = locateParentByName name;
-      byChildren = locateParentByChildren { inherit children; };
-      nullOrLocation = if byName != null then byName else byChildren;
-    in
-    nullOrLocation;
+    locateParentByNameOrChildren = mkOption {
+      description = "Find the absolute path of a parent directory by name, falling back to files or a list of files for search.";
+      example = ''locateParentByNameOrChildren "src" [".git" ".gitignore" ".flake.nix"] ==> "/path/to/project/root"'';
+      default =
+        name: children:
+        let
+          byName = locateParentByName name;
+          byChildren = locateParentByChildren { inherit children; };
+          nullOrLocation = if byName != null then byName else byChildren;
+        in
+        nullOrLocation;
+    };
 
-  /**
-    "Find the absolute path of the project root."
+    locateProjectRoot = mkOption {
+      description = "Find the absolute path of the project root.";
+      example = ''locateProjectRoot ==> "/path/to/project/root"'';
+      default = locateParentByChildren {
+        children = [
+          # Nix
+          "flake.nix"
+          "flake.lock"
+          ".envrc"
 
-    Parameters:
-      _path = Path to convert to an absolute path.
+          # Rust
+          "Cargo.lock"
+          "Cargo.toml"
 
-    Returns: absolute path
+          # JavaScript/Node.js
+          "package.json"
+          "yarn.lock"
+          "pnpm-lock.yaml"
 
-    Example:
-      locateProjectRoot ==> "/path/to/project/root"
-  */
-  locateProjectRoot = locateParentByChildren {
-    children = [
-      # Nix
-      "flake.nix"
-      "flake.lock"
-      ".envrc"
+          # Python
+          "pyproject.toml"
+          "Pipfile"
+          "requirements.txt"
+          "setup.py"
+          "setup.cfg"
 
-      # Rust
-      "Cargo.lock"
-      "Cargo.toml"
+          # Java/Maven/Gradle
+          "pom.xml"
+          "build.gradle"
+          "build.gradle.kts"
 
-      # JavaScript/Node.js
-      "package.json"
-      "yarn.lock"
-      "pnpm-lock.yaml"
+          # Ruby
+          "Gemfile"
+          "Gemfile.lock"
 
-      # Python
-      "pyproject.toml"
-      "Pipfile"
-      "requirements.txt"
-      "setup.py"
-      "setup.cfg"
+          # Go
+          "go.mod"
+          "go.sum"
 
-      # Java/Maven/Gradle
-      "pom.xml"
-      "build.gradle"
-      "build.gradle.kts"
+          # PHP/Composer
+          "composer.json"
+          "composer.lock"
 
-      # Ruby
-      "Gemfile"
-      "Gemfile.lock"
+          # C/C++/CMake
+          "CMakeLists.txt"
+          "Makefile"
 
-      # Go
-      "go.mod"
-      "go.sum"
+          # .NET
+          "*.sln"
+          "*.csproj"
+          "*.fsproj"
 
-      # PHP/Composer
-      "composer.json"
-      "composer.lock"
+          # CI/CD
+          ".github/workflows"
+          ".gitlab-ci.yml"
+          "Jenkinsfile"
 
-      # C/C++/CMake
-      "CMakeLists.txt"
-      "Makefile"
+          # Docker
+          "Dockerfile"
+          ".dockerignore"
 
-      # .NET
-      "*.sln"
-      "*.csproj"
-      "*.fsproj"
+          # Git
+          ".gitignore"
+          ".git"
 
-      # CI/CD
-      ".github/workflows"
-      ".gitlab-ci.yml"
-      "Jenkinsfile"
+          # IDE/editor-specific directories
+          ".idea" # IntelliJ-based IDEs (e.g., IDEA, PyCharm, WebStorm)
+          ".vscode" # Visual Studio Code
+          ".atom" # Atom editor
+          ".eclipse" # Eclipse IDE
+          ".metadata" # Eclipse workspace folder
+          ".devcontainer" # VS Code development container
+          ".vs" # Visual Studio
+          ".editorconfig" # Editor configuration
 
-      # Docker
-      "Dockerfile"
-      ".dockerignore"
+          # Documentation
+          "README"
+          "README.md"
+          "README.org"
+          "LICENSE"
+          "LICENSE.txt"
+          "LICENSE.md"
+          "COPYING"
+          "COPYING.txt"
+          "COPYING.md"
+          "CONTRIBUTING"
+          "CONTRIBUTING.md"
+          "CONTRIBUTING.txt"
+          "CHANGELOG.md"
+          "NOTES.md"
+          "NOTES.org"
+          "TODO.org"
+          "TODO.md"
+        ];
+      };
+    };
 
-      # Git
-      ".gitignore"
-      ".git"
+    locateFlake = mkOption {
+      description = "Find the absolute path of the git root.";
+      example = "locateGitRoot ==> \"/path/to/project/root\"";
+      default = locateParentByChildren {
+        children = [
+          "flake.lock"
+          "flake.nix"
+        ];
+      };
+    };
 
-      # IDE/editor-specific directories
-      ".idea" # IntelliJ-based IDEs (e.g., IDEA, PyCharm, WebStorm)
-      ".vscode" # Visual Studio Code
-      ".atom" # Atom editor
-      ".eclipse" # Eclipse IDE
-      ".metadata" # Eclipse workspace folder
-      ".devcontainer" # VS Code development container
-      ".vs" # Visual Studio
-      ".editorconfig" # Editor configuration
+    locateNixos = mkOption {
+      description = "Find the absolute path of the git root.";
+      example = "locateGitRoot ==> \"/path/to/project/root\"";
+      default = locateParentByChild "configuration.nix" pathOfPWD;
+    };
 
-      # Documentation
-      "README"
-      "README.md"
-      "README.org"
-      "LICENSE"
-      "LICENSE.txt"
-      "LICENSE.md"
-      "COPYING"
-      "COPYING.txt"
-      "COPYING.md"
-      "CONTRIBUTING"
-      "CONTRIBUTING.md"
-      "CONTRIBUTING.txt"
-      "CHANGELOG.md"
-      "NOTES.md"
-      "NOTES.org"
-      "TODO.org"
-      "TODO.md"
-    ];
+    locateGitRoot = mkOption {
+      description = "Find the absolute path of the git root.";
+      example = "locateGitRoot ==> \"/path/to/project/root\"";
+      default = locateParentByChild ".git" pathOfPWD;
+    };
+
+    pathOfGitHub = mkOption {
+      description = "Fetches the contents of a GitHub repository and returns the absolute path to the .nix file.";
+      default =
+        {
+          owner,
+          repo,
+          rev,
+          sha256,
+        }:
+        storePath (fetchFromGitHub {
+          inherit
+            owner
+            repo
+            rev
+            sha256
+            ;
+        });
+    };
+
+    tests = mkOption {
+      description = "Tests for {{base}}.{{mod}}";
+      default = with cfg; {
+        pathOf = pathOf ./.;
+        pathOfPWD = pathOfPWD;
+        pathOrNull = pathOrNull (pathOfPWD + "/none-existent-path");
+        pathsIn = pathsIn ./.;
+        pathsIgnoredDot = pathsIgnored.perDots ./.;
+        pathsIgnoredGit = pathsIgnored.perGit ./.;
+
+      };
+    };
   };
-  /**
-    Find the absolute path of the flake root.
-  */
-  locateFlakeRoot = locateParentByChildren {
-    children = [
-      "flake.lock"
-      "flake.nix"
-    ];
-  };
-  /**
-    Find the absolute path of the nixos config root.
-  */
-  locateNixosRoot = locateParentByChild "configuration.nix" pathOfPWD;
-  /**
-    Find the absolute path of the git root.
-  */
-  locateGitRoot = locateParentByChild ".git" pathOfPWD;
-
-  test = locateParentByChildren {
-    children = [
-      # Nix
-      "flake.lock"
-      "flake.nix"
-      ".envrc"
-
-      # Rust
-      "Cargo.lock"
-      "Cargo.toml"
-
-      # JavaScript
-      "package.json"
-
-      # Git
-      ".gitignore"
-      ".git"
-    ];
-  };
-
 }
