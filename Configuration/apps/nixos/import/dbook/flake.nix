@@ -17,36 +17,39 @@
       ...
     }:
     {
-      nixosConfigurations =let inherit ( nixpkgs.lib ) nixosSystem;
-      in {
-        preci =nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./core
-            # ./libraries
-            # ./options/core        # ./options/libraries
-            # ./configurations/core
+      nixosConfigurations =
+        let
+          inherit (nixpkgs.lib) nixosSystem;
+        in
+        {
+          preci = nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./core
+              # ./libraries
+              # ./options/core        # ./options/libraries
+              # ./configurations/core
 
-            # home-manager.nixosModules.home-manager
-            # {
-            #   home-manager = {
-            #     backupFileExtension = "bac";
-            #     extraSpecialArgs = DOTS;
+              # home-manager.nixosModules.home-manager
+              # {
+              #   home-manager = {
+              #     backupFileExtension = "bac";
+              #     extraSpecialArgs = DOTS;
 
-            #     useGlobalPkgs = true;
-            #     useUserPackages = true;
-            #     # users.craole.imports = [ ./home ];
-            #   };
-            # }
-          ];
+              #     useGlobalPkgs = true;
+              #     useUserPackages = true;
+              #     # users.craole.imports = [ ./home ];
+              #   };
+              # }
+            ];
+          };
+
+          dbook = nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+
+            ];
+          };
         };
-
-        dbook = nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-
-          ];
-        };
-      };
     };
 }
