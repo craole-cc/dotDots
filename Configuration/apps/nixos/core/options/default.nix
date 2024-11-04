@@ -1,8 +1,8 @@
 {
   imports = [
     ./app
-    ./hosts
+    ./host
     ./service
-    ./users
+    ./user
   ];
 }

@@ -5,12 +5,15 @@
   ...
 }:
 let
+#| Native Imports
   inherit (lib.options) mkOption;
   inherit (lib.attrsets) mapAttrs filterAttrs hasAttr;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
-  inherit (config) dot;
-  inherit (config.dot) users active;
+
+#| Extended Imports
+  inherit (config) DOTS;
+  inherit (DOTS) users active;
   inherit (active) user host;
 
   userConfig =

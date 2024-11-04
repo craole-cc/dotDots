@@ -1,15 +1,21 @@
 { config, lib, ... }:
 let
+  #| Native Imports
   inherit (lib.options) mkOption;
   inherit (lib.types) listOf str;
 
-  src = config.dot.sources.user;
+  #| Extended Imports
+  inherit (config) DOTS;
+  base = "enums";
+  mod = "user";
+  src = DOTS.sources.user;
 in
 {
-  options.dot.enums.user = with config.dot.enums.user; {
+  options.DOTS.${base}.${mod} = {
     configuration = mkOption {
-      description = "List of user configurations";
+      description = "{{mod}} configurations";
       default = src.configuration.names;
+      type = listOf str;
     };
 
     context = mkOption {
