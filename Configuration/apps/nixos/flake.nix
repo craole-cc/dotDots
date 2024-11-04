@@ -1,6 +1,5 @@
 {
   description = "NixOS Configuration Flake";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     home-manager = {
@@ -12,15 +11,10 @@
     #   flake = false;
     # };
   };
-
-  outputs =
-    inputs@{
-      self,
-      nixpkgs,
-      home-manager,
-      ...
-    }:
+  outputs = inputs@{ self, ... }:
     let
+      inherit (inputs.nixpkgs.lib) nixosSystem;
+      inherit (inputs.home-manager.nixosModules) home-manager;
       mods = {
         core = [
           ./core/libraries
@@ -36,7 +30,7 @@
       };
       coreModules = mods.core;
       homeModules = [
-        home-manager.nixosModules.home-manager
+        home-manager
         {
           home-manager = {
             backupFileExtension = "BaC";
@@ -49,11 +43,11 @@
     in
     {
       nixosConfigurations = {
-        preci = nixpkgs.lib.nixosSystem {
+        preci = nixosSystem {
           system = "x86_64-linux";
           modules = coreModules ++ homeModules;
         };
-        dbook = nixpkgs.lib.nixosSystem {
+        dbook = nixosSystem {
           system = "x86_64-linux";
           modules = [
             ./core/hosts/dbook
