@@ -1,0 +1,1 @@
+/home/craole/Documents/dotfiles/Configuration/apps/nixos/flake.nix
