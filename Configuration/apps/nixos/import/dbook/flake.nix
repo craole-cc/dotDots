@@ -22,13 +22,13 @@
           inherit (nixpkgs.lib) nixosSystem;
         in
         {
-          preci = nixpkgs.lib.nixosSystem {
+          preci = nixosSystem {
             system = "x86_64-linux";
             modules = [
-              ./core
+              ./configurations.nix
+              # ./core
               # ./libraries
               # ./options/core        # ./options/libraries
-              # ./configurations/core
 
               # home-manager.nixosModules.home-manager
               # {
