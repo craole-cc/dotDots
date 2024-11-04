@@ -34,4 +34,4 @@ Feel free to contribute to this repository by submitting pull requests. Any impr
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](../nixos/LICENSE).

@@ -16,43 +16,45 @@
     let
       inherit (inputs.nixpkgs.lib) nixosSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
-      paths = {
-        src = ./Configuration/apps/nixos;
-        core = with core; {
-          src = paths.src + "/home";
-          lib = src + "/libraries";
-          opt = src + "/options";
-          cfg = src + "/configurations";
-        };
-        home = with home; {
-          src = paths.src + "/home";
-          lib = src + "/libraries";
-          opt = src + "/options";
-          cfg = src + "/configurations";
-        };
-      };
 
-      mods = {
-        core =
-          (with paths.core; [
-            lib
-            opt
-          ])
-          ++ [
-            home-manager
-            {
-              home-manager = {
-                backupFileExtension = "BaC";
-                useGlobalPkgs = true;
-                useUserPackages = true;
-              };
-            }
-          ];
-        home = with paths.home; [
-          lib
-          opt
-        ];
-      };
+      # paths = {
+      #   src = ./Configuration/apps/nixos;
+      #   core = with paths.core; {
+      #     src = paths.src + "/core";
+      #     lib = src + "/libraries";
+      #     opt = src + "/options";
+      #     cfg = src + "/configurations";
+      #   };
+      #   home = with paths.home; {
+      #     src = paths.src + "/home";
+      #     lib = src + "/libraries";
+      #     opt = src + "/options";
+      #     cfg = src + "/configurations";
+      #   };
+      # };
+
+      # mods = {
+      #   core =
+      #     (with paths.core; [
+      #       lib
+      #       opt
+      #     ])
+      #     ++ [
+      #       home-manager
+      #       {
+      #         home-manager = {
+      #           backupFileExtension = "BaC";
+      #           useGlobalPkgs = true;
+      #           useUserPackages = true;
+      #         };
+      #       }
+      #     ];
+      #   home = with paths.home; [
+      #     lib
+      #     opt
+      #   ];
+      # };
+      modules = ./Configuration/apps/nixos;
     in
     {
       nixosConfigurations =
@@ -60,13 +62,24 @@
           inherit (paths.core) cfg;
         in
         {
-          preci = nixosSystem {
-            system = "x86_64-linux";
-            modules = mods.core ++ [ (cfg + "/preci") ];
-          };
+          # preci = nixosSystem {
+          #   system = "x86_64-linux";
+          #   modules = mods.core ++ [ (cfg + "/preci") ];
+          # };
           dbook = nixosSystem {
             system = "x86_64-linux";
-            modules = mods.core ++ [ (cfg + "/dbook") ];
+            modules =
+              [ ./Configuration/apps/nixos ]
+              ++ [
+                home-manager
+                {
+                  home-manager = {
+                    backupFileExtension = "BaC";
+                    useGlobalPkgs = true;
+                    useUserPackages = true;
+                  };
+                }
+              ];
           };
         };
     };

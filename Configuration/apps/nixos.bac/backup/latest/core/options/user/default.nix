@@ -1,0 +1,6 @@
+{
+  imports = [
+    ./base
+    ./craole.nix
+  ];
+}

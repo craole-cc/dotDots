@@ -45,3 +45,14 @@ __pycache__/
 .next/
 out/
 release/
+
+#| Nix
+result
+.devenv
+.direnv
+devenv.local.nix
+.pre-commit-config.yaml
+
+#| System
+.Trash*
+.directory
