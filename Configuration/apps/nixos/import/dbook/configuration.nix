@@ -1,6 +1,6 @@
 {
   imports = [
     ./core
-    ./home
+    # ./home
   ];
 }
