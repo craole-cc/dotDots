@@ -17,8 +17,9 @@
       ...
     }:
     {
-      nixosConfigurations = {
-        preci = nixpkgs.lib.nixosSystem {
+      nixosConfigurations =let inherit ( nixpkgs.lib ) nixosSystem;
+      in {
+        preci =nixosSystem {
           system = "x86_64-linux";
           modules = [
             ./core
@@ -39,6 +40,13 @@
             # }
           ];
         };
+
+        dbook = nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+
+          ]
+        }
       };
     };
 }
