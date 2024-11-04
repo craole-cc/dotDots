@@ -1,14 +1,18 @@
 { config, lib, ... }:
 let
+  #| Native Imports
   inherit (lib.options) mkOption mkEnableOption;
+  inherit (lib.modules) mkIf;
   inherit (lib.types)
     listOf
     nullOr
     int
     passwdEntry
     str
+    attrs
     ;
 
+  #| Extended Imports
   inherit (config) DOTS system;
   base = "users";
   mod = "craole";
@@ -31,7 +35,7 @@ in
 
     name = mkOption {
       description = "The name of the user account.";
-      default = user;
+      default = mod;
       type = passwdEntry str;
       apply =
         x:
@@ -40,7 +44,6 @@ in
           || abort "Username '${x}' is longer than 31 characters which is not allowed!"
         );
         x;
-      description = "The name of the user account.";
     };
 
     uid = mkOption {
@@ -98,10 +101,10 @@ in
     };
 
     paths = mkOption {
-      type = attrs;
+      description = "The important paths for the {{mod}}";
       default = rec {
-        config = ./. + "/${user}.nix";
-        homeDirectory = "/home/${user}";
+        config = ./. + "/${mod}.nix";
+        homeDirectory = "/home/${mod}";
         toLink = [ ];
         media = rec {
           default = homeDirectory;
@@ -126,24 +129,25 @@ in
           rust = default + "/Rust";
         };
       };
+      type = attrs;
     };
 
   };
 
-  config = mkIf cfg.enable {
-    users.users.${cfg.name} = {
-      inherit (cfg)
-        description
-        uid
-        isNormalUser
-        hashedPassword
-        extraGroups
-        ;
-    };
-    home-manager.users.${cfg.name} = {
-      home = {
-        inherit (system) stateVersion;
-      };
-    };
-  };
+  # config = mkIf cfg.enable {
+    # users.users.${cfg.name} = {
+    #   inherit (cfg)
+    #     description
+    #     uid
+    #     isNormalUser
+    #     hashedPassword
+    #     extraGroups
+    #     ;
+    # };
+    # home-manager.users.${cfg.name} = {
+    #   home = {
+    #     inherit (system) stateVersion;
+    #   };
+    # };
+  # };
 }
