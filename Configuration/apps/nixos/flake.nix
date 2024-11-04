@@ -29,9 +29,9 @@
                 backupFileExtension = "BaC";
                 useGlobalPkgs = true;
                 useUserPackages = true;
-                users.craole.imports = mods.home ++ [
-                  ./home/configurations/craole
-                ];
+                # users.craole.imports = mods.home ++ [
+                #   ./home/configurations/craole
+                # ];
               };
             }
           ];
