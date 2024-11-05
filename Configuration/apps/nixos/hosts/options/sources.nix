@@ -20,8 +20,8 @@ in
       description = "{{mod}} context {{base}}";
       default = makeSource ../export/context;
     };
-    machine = mkOption {
-      description = "{{mod}} machine {{base}}";
+    base = mkOption {
+      description = "{{mod}} base {{base}}";
       default = makeSource ../export/base;
     };
   };

@@ -123,8 +123,8 @@ in
           #| Lists
           lists = rec {
             all = prep (filter (_p: _p != path') (paths ++ map (_p: dirOf _p) paths));
-            perDots = pathsIgnored.perDots all;
-
+            # perDots = pathsIgnored.perDots all; #TODO: This filter isn't working
+            perDots = all;
             perNix = rec {
               base = filter (_p: isBaseModule _p && isNixModule _p && !isNixSpecial _p) perDots;
               sub = {
@@ -149,7 +149,6 @@ in
         in
         {
           inherit lists attrs;
-          inherit (lists) Nix;
 
           all = {
             lists = lists.all;
@@ -250,8 +249,8 @@ in
             ignoreCleaned = prune ignoreRaw;
             filtered = pathsIgnoredCheck list' ignoreCleaned;
 
-            #| Output
           in
+          #| Output
           filtered;
       };
     };

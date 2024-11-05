@@ -16,9 +16,9 @@ in
       description = "Create a source from a directory";
       example = ''mkSource "path/to/directory"'';
       default =
-        _home:
+        targetDir:
         let
-          home = pathOf _home;
+          home = pathOf targetDir;
           inherit ((pathsIn home).perNix) attrs lists;
         in
         {

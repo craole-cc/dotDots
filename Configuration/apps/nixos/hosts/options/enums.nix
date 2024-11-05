@@ -10,23 +10,25 @@ let
   mod = "host";
   src = DOTS.sources.${mod};
   cfg = DOTS.${base}.${mod};
+
+  inherit (DOTS.lib.helpers) makeSource;
 in
 {
   options.DOTS.${base}.${mod} = {
-    configuration = mkOption {
+    configurations = mkOption {
       description = "List of host configurations";
       default = src.configuration.names;
+    };
+
+    base = mkOption {
+      description = "List of host types;";
+      default = src.base.names;
+      type = listOf str;
     };
 
     context = mkOption {
       description = "List of host types;";
       default = src.context.names;
-      type = listOf str;
-    };
-
-    machine = mkOption {
-      description = "List of host types;";
-      default = src.machine.names;
       type = listOf str;
     };
 
