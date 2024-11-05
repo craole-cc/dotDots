@@ -135,7 +135,7 @@ in
               then
                 "x86_64-linux"
               else
-              #TODO: Add support for macs
+                #TODO: Add support for macs
                 "aarch64-linux";
             # default = "x86_64-linux";
             type = with types; enum enums.host.processor.arch;
@@ -308,7 +308,7 @@ in
           };
         };
 
-        mount = {
+        devices = {
           fileSystems = mkOption {
             description = "Mountpoints";
             default = { };
@@ -318,10 +318,9 @@ in
           swap = mkOption {
             description = "Swap devices";
             default = [ ];
+            type = with types; listOf attrs;
           };
-        };
 
-        devices = {
           luks = mkOption {
             description = "Encrypted (luks) devices";
             default = { };

@@ -1,15 +1,5 @@
 {
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  base = "hosts";
-  mod = "dbook";
-in
-{
-  DOTS.${base}.${mod} = {
+  DOTS.hosts.dbook = {
     id = "105D9A39";
     base = "chromebook";
     processor = {

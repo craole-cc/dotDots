@@ -25,7 +25,7 @@ let
       boot = {
         loader =
           with boot;
-          mkIf (machine != "server") {
+          mkIf (base != "server") {
             systemd-boot = {
               enable = loader == "systemd-boot";
               inherit configurationLimit;
@@ -65,7 +65,7 @@ let
       networking = {
         hostName = name;
         hostId = id;
-        networkmanager.enable = machine != "server";
+        networkmanager.enable = base != "server";
       };
 
       time = {

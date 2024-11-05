@@ -1,9 +1,9 @@
 {
   imports = [
-    # ./configurations
+    ./configurations
     # ./options
     # ./export
 
-    ./review/preci
+    # ./review/preci
   ];
 }

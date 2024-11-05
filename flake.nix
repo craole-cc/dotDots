@@ -1,16 +1,13 @@
 {
   description = "NixOS Configuration Flake";
   outputs =
-    inputs@{
-      self,
-      ...
-    }:
+    inputs@{ ... }:
     let
       inherit (inputs.nixpkgs.lib) nixosSystem;
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
+
       modules = ./Configuration/apps/nixos;
-      # hostModules = modules + "/hosts";
       coreModules = [ modules ] ++ homeModules;
       homeModules = [
         home-manager
