@@ -68,25 +68,25 @@ in
           throw ''
             Missing host configuration. Possible solutions:
 
-            1. Enable one of the known hosts in your configuration file: 
+            1. Enable one of the known hosts in your configuration file:
                 {
                   ${msgEnable}
                 };
 
-            2. Create a host configuration at either of the following locations: 
+            2. Create a host configuration at either of the following locations:
                 [
                   ${toString home + "/${hostName}.nix"}
                   ${toString home + "/${hostName}/default.nix"}
                 ]
-                
+
                then enable it in your configuration file via:
                 { config.dot.hosts.${hostName}.enable = true; };
           ''
         else if enabled.count >= 2 then
           throw ''
-            Multiple (${toString enabled.count}) hosts enabled: [ ${concatStringsSep ", " enabled.names} ] 
+            Multiple (${toString enabled.count}) hosts enabled: [ ${concatStringsSep ", " enabled.names} ]
 
-              Disable all but one of the known hosts: 
+              Disable all but one of the known hosts:
                 {
                   ${msgEnable}
                 };

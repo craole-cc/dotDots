@@ -42,7 +42,18 @@ let
 in
 {
   options.DOTS.${base}.${mod} = {
-    datetime = mkOption {
+    currentUser = mkOption {
+      description = "Get the username of the current user.";
+      default =
+        let
+          viaEnvUSER = getEnv "USER";
+          viaUSERNAME = getEnv "USERNAME";
+          result = if viaEnvUSER != null then viaEnvUSER else viaUSERNAME;
+        in
+        result;
+      type = str;
+    };
+    currentTime = mkOption {
       description = ''
         Formatted time
       '';
