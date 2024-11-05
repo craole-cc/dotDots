@@ -34,12 +34,12 @@
           system = "x86_64-linux";
           modules = [ (hostModules + "/dbook") ] ++ coreModules;
         };
+      };
 
-        darwinConfigurations = {
-          MBPoNine = darwinSystem {
-            system = "x86_64-darwin";
-            modules = [ (hostModules + "/MBPoNine") ] ++ homeModules;
-          };
+      darwinConfigurations = {
+        MBPoNine = darwinSystem {
+          system = "x86_64-darwin";
+          modules = [ (hostModules + "/MBPoNine") ] ++ homeModules;
         };
       };
     };
