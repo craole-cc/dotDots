@@ -102,7 +102,7 @@
 
     desktopManager = {
       # plasma6.enable = true;
-      gnone.enable = true;
+      gnome.enable = true;
     };
 
     kmscon = {
