@@ -1,6 +1,9 @@
 {
   imports = [
-    ./preci
-    ./dbook
+    ./base
+    # ./configurations
+    # ./components
+    # ./preci
+    # ./dbook
   ];
 }

@@ -10,7 +10,7 @@
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
       modules = ./Configuration/apps/nixos;
-      hostModules = modules + "/hosts";
+      # hostModules = modules + "/hosts";
       coreModules = [ modules ] ++ homeModules;
       homeModules = [
         home-manager
@@ -27,19 +27,24 @@
       nixosConfigurations = {
         preci = nixosSystem {
           system = "x86_64-linux";
-          modules = [ (hostModules + "/preci") ] ++ coreModules;
+          modules = coreModules ++ [
+            {
+              # DOTS.hosts.Preci.enable = true;
+            }
+          ];
         };
 
         dbook = nixosSystem {
           system = "x86_64-linux";
-          modules = [ (hostModules + "/dbook") ] ++ coreModules;
+          modules = coreModules ++ [ { DOTS.hosts.DBook.enable = true; } ];
+          # modules = [ (hostModules + "/dbook") ] ++ coreModules;
         };
       };
 
       darwinConfigurations = {
         MBPoNine = darwinSystem {
           system = "x86_64-darwin";
-          modules = [ (hostModules + "/MBPoNine") ] ++ homeModules;
+          modules = homeModules ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
         };
       };
     };

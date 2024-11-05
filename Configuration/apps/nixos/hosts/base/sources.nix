@@ -6,7 +6,7 @@ let
   #| Extended Imports
   inherit (config) DOTS;
   base = "sources";
-  mod = "user";
+  mod = "host";
 
   inherit (DOTS.lib.helpers) makeSource;
 in
@@ -19,6 +19,10 @@ in
     context = mkOption {
       description = "{{mod}} context {{base}}";
       default = makeSource ../components/context;
+    };
+    machine = mkOption {
+      description = "{{mod}} machine {{base}}";
+      default = makeSource ../components/base;
     };
   };
 }

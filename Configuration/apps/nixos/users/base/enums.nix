@@ -8,7 +8,7 @@ let
   inherit (config) DOTS;
   base = "enums";
   mod = "user";
-  src = DOTS.sources.user;
+  src = DOTS.sources.${mod};
 in
 {
   options.DOTS.${base}.${mod} = {
@@ -24,8 +24,8 @@ in
       type = listOf str;
     };
 
-    desktop = {
-      manager = mkOption {
+    manager = {
+      desktop = mkOption {
         description = "List of desktop managers";
         default = [
           "hyprland"
@@ -35,27 +35,12 @@ in
         type = listOf str;
       };
 
-      server = mkOption {
+      protocol = mkOption {
         description = "List of desktop managers";
         default = [
           "wayland"
           "x11"
         ];
-        type = listOf str;
-      };
-    };
-
-    display = {
-      manager = mkOption {
-        description = "List of login managers";
-        example = "systemd";
-        default = [
-          "sddm"
-          "kmscon"
-          "greetd"
-          "lightdm"
-          "gdm"
-        ]; # TODO: get from source
         type = listOf str;
       };
     };
