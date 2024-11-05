@@ -135,6 +135,7 @@ in
               then
                 "x86_64-linux"
               else
+              #TODO: Add support for macs
                 "aarch64-linux";
             # default = "x86_64-linux";
             type = with types; enum enums.host.processor.arch;
