@@ -1,6 +1,6 @@
 {
-  config,
-  lib,pkgs,
+  lib,
+  pkgs,
   modulesPath,
   ...
 }:
@@ -166,6 +166,14 @@
   programs = {
     hyprland.enable = true;
     hyprlock.enable = true;
+    git = {
+      enable = true;
+      lfs.enable = true;
+    };
+    direnv = {
+      enable = true;
+      silent = true;
+    };
   };
 
   environment = {
@@ -179,7 +187,6 @@
       speedtest-go
       nix-info
       bat
-      brave
       pavucontrol
       easyeffects
       qjackctl
@@ -226,6 +233,8 @@
         zed-editor
         vscode-fhs
         warp-terminal
+        freetube
+        brave
       ];
     };
   };
