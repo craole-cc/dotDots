@@ -100,10 +100,11 @@
       };
     };
 
-    desktopManager = {
-      # plasma6.enable = true;
-      gnome.enable = true;
-    };
+    # desktopManager = {
+    #   plasma6.enable = true;
+    # };
+
+    xserver.desktopManager.gnome.enable = true;
 
     kmscon = {
       enable = true;
