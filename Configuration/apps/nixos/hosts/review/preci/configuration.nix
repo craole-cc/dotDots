@@ -11,7 +11,7 @@
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
-    timeout = 1;
+    loader.timeout = 1;
   };
 
   nix = {
