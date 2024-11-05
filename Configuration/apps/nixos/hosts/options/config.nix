@@ -10,13 +10,17 @@ let
   inherit (lib.lists) elem length head;
   inherit (lib.modules) mkIf mkDefault mkForce;
   inherit (lib.options) mkOption;
-  inherit (config.dot.active) host;
+  # inherit (config.dot.active) host; ???
 
-  cfg = config.dot.config;
+  #| Extended Imports
+  inherit (config) DOTS;
+  base = "config";
+  mod = "host";
+  cfg = config.DOTS.config;
 
   hostConfig =
-    with host;
-    with location;
+    # with host; ???
+    # with location; ???
     mkIf enable {
       boot = {
         loader =
@@ -112,14 +116,11 @@ let
     };
 in
 {
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    ./types
-  ];
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  options.dot.config.host = mkOption {
+  options.DOTS.${base}.${mod} = mkOption {
     default = with hostConfig; if condition == true then content else { };
   };
 
-  config = hostConfig;
+  # config = hostConfig;
 }

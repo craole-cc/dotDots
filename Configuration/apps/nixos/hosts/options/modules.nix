@@ -109,13 +109,13 @@ in
             description = "CPU scaling governor";
             default =
               if
-                (elem base [
+                (elem cfg.base [
                   "chromebook"
                   "raspberry-pi"
                 ])
               then
                 "ondemand"
-              else if (elem base [ "laptop" ]) then
+              else if (elem cfg.base [ "laptop" ]) then
                 "powersave"
               else
                 "performance";
@@ -157,7 +157,7 @@ in
           ];
           type =
             let
-              user = submodule {
+              user = types.submodule {
                 options = {
                   name = mkOption {
                     description = "Font name, as used by fontconfig.";
@@ -170,7 +170,7 @@ in
                 };
               };
             in
-            nonEmptyListOf user;
+            types.nonEmptyListOf user;
         };
 
         context = mkOption {
@@ -327,7 +327,7 @@ in
             type = with types; attrsOf attrs;
           };
 
-          network = mkOptions {
+          network = mkOption {
             description = "List of networking interfaces to enable";
             default = [ ];
             type = with types; listOf str;
