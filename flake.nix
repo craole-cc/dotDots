@@ -9,9 +9,9 @@
       inherit (inputs.nixpkgs.lib) nixosSystem;
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
-      coreModules = [
-        ./Configuration/apps/nixos
-      ] ++ homeModules;
+      modules = ./Configuration/apps/nixos;
+      hostModules = modules + "/hosts";
+      coreModules = [ modules ] ++ homeModules;
       homeModules = [
         home-manager
         {
@@ -27,19 +27,19 @@
       nixosConfigurations = {
         preci = nixosSystem {
           system = "x86_64-linux";
-          modules = coreModules;
+          modules = [ (hostModules + "/preci") ] ++ coreModules;
         };
 
         dbook = nixosSystem {
           system = "x86_64-linux";
-          modules = coreModules;
+          modules = [ (hostModules + "/dbook") ] ++ coreModules;
         };
-      };
 
-      darwinConfigurations = {
-        MBPoNine = darwinSystem {
-          system = "x86_64-darwin";
-          modules = homeModules;
+        darwinConfigurations = {
+          MBPoNine = darwinSystem {
+            system = "x86_64-darwin";
+            modules = [ (hostModules + "/MBPoNine") ] ++ homeModules;
+          };
         };
       };
     };

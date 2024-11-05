@@ -1,6 +1,6 @@
 {
   imports = [
-    # ./preci.nix
-    # ./dbook.nix
+    ./preci
+    ./dbook
   ];
 }

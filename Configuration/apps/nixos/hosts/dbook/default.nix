@@ -4,6 +4,9 @@
   ];
 
   DOTS = {
-    users.craole.enable = true;
+    users = {
+      craole.enable = true;
+      # qyatt.enable = true;
+    };
   };
 }
