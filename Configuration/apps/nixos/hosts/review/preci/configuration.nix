@@ -101,8 +101,8 @@
     };
 
     desktopManager = {
-      plasma6.enable = true;
-      # gnone.enable = true; #TODO: use gnome as the base system
+      # plasma6.enable = true;
+      gnone.enable = true;
     };
 
     kmscon = {
