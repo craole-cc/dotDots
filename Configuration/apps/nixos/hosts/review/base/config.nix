@@ -114,7 +114,7 @@ in
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  options.dot.config.host = lib.mkOption {
+  options.dot.config.host = mkOption {
     default = with hostConfig; if condition == true then content else { };
   };
 

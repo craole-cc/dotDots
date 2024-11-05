@@ -1,8 +1,8 @@
 {
   imports = [
-    # ./config.nix
     ./enums.nix
-    # ./modules.nix
     ./sources.nix
+    # ./config.nix
+    # ./modules.nix
   ];
 }

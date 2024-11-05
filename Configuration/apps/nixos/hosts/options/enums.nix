@@ -9,6 +9,7 @@ let
   base = "enums";
   mod = "host";
   src = DOTS.sources.${mod};
+  cfg = DOTS.${base}.${mod};
 in
 {
   options.DOTS.${base}.${mod} = {
@@ -63,7 +64,7 @@ in
       gpu = mkOption {
         description = "List of GPU types";
         example = "intel";
-        default = processor.cpu ++ [ "nvidia" ];
+        default = cfg.processor.cpu ++ [ "nvidia" ];
         type = listOf str;
       };
     };

@@ -7,7 +7,7 @@
 {
   config =
     with config.dot.libraries.host;
-    lib.mkIf (machine == "chromebook") {
+    lib.mkIf (machine == "laptop") {
       hardware = {
         bluetooth = {
           enable = true;
