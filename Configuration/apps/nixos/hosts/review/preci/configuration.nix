@@ -11,6 +11,7 @@
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
+    timeout = 1;
   };
 
   nix = {
@@ -191,10 +192,11 @@
       qjackctl
       brightnessctl
       sutils
+      eza
     ];
     variables = {
       EDITOR = "hx";
-      VISUAL = "zeditor";
+      VISUAL = "code";
       BROWSER = "brave";
       PAGER = "bat --paging=always";
       MANPAGER = "bat --paging=always --plain";
@@ -204,8 +206,8 @@
     };
     shellAliases = {
       h = "history";
-      # la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
-      # ll = "la --long";
+      la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
+      ll = "la --long";
       ".." = "cd ..";
       "..." = "cd ../..";
       "...." = "cd ../../..";
