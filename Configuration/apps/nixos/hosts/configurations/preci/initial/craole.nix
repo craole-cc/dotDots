@@ -5,7 +5,7 @@ let
   inherit (config.system) stateVersion;
 in
 {
-  environment.udev.rules = ''
+  services.udev.extraRules=''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="*vial:f64c2b3c*", MODE="0660", GROUP="${cfgUser.extraGroups.${mod}}", TAG+="uaccess", TAG+="udev-acl"
   '';
 
