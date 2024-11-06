@@ -1,14 +1,9 @@
 { config, pkgs, ... }:
 let
   mod = "craole";
-  cfgUser = config.users.users.${mod};
   inherit (config.system) stateVersion;
 in
 {
-  services.udev.extraRules = ''
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="*vial:f64c2b3c*", MODE="0660", GROUP="wheel", TAG+="uaccess", TAG+="udev-acl"
-  '';
-
   users.users.${mod} = {
     isNormalUser = true;
     description = "Craole";

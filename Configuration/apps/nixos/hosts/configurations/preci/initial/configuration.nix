@@ -116,6 +116,14 @@
       autologinUser = "craole";
     };
 
+    blueman = {
+      enable = true;
+    };
+
+    udev.extraRules = ''
+      ACTION=="add", SUBSYSTEM=="hidraw", GROUP="users", MODE="0660", TAG+="uaccess"
+    '';
+
     upower = {
       enable = true;
     };
@@ -130,10 +138,6 @@
         day = 5500;
         night = 3800;
       };
-    };
-
-    blueman = {
-      enable = true;
     };
 
     libinput = {
