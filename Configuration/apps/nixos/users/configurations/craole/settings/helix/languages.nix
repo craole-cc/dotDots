@@ -8,7 +8,7 @@ in
     languages = [
       {
         name = "nix";
-        language-servers = [ "nil" ];
+        language-servers = [ "nixd" ];
         formatter.command = "nixfmt";
         auto-format = true;
       }

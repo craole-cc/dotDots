@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   modulesPath,
@@ -198,6 +199,9 @@
       brightnessctl
       sutils
       eza
+      jq
+      fzf
+      uutils-coreutils-noprefix
     ];
     variables = {
       EDITOR = "hx";
@@ -225,23 +229,5 @@
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
     ];
-  };
-
-  users.users = {
-    craole = {
-      isNormalUser = true;
-      description = "Craole";
-      extraGroups = [
-        "networkmanager"
-        "wheel"
-      ];
-      packages = with pkgs; [
-        zed-editor
-        vscode-fhs
-        warp-terminal
-        freetube
-        brave
-      ];
-    };
   };
 }
