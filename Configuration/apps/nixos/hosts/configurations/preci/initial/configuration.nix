@@ -206,6 +206,7 @@
       jq
       fzf
       uutils-coreutils-noprefix
+      busybox
     ];
     variables = {
       EDITOR = "hx";
