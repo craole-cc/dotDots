@@ -1,6 +1,6 @@
 {
   imports = [
     ./initial
-    # ./dots.nix
+    ./dots
   ];
 }
