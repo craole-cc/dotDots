@@ -20,8 +20,9 @@
           freetube
           whatsapp-for-linux
           warp-terminal
-          vscode-fhs
+          via
           vial
+          vscode-fhs
         ];
       };
       programs = {
