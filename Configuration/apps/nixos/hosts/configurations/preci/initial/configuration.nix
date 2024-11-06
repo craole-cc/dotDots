@@ -198,7 +198,10 @@ in
       bat
       busybox
       fzf
-      just
+      ripgrep-all
+      sd
+      tldr
+      fd
       jq
       sutils
       usbutils
