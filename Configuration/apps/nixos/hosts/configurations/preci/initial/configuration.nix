@@ -5,6 +5,9 @@
   modulesPath,
   ...
 }:
+let
+  DOTS = "$HOME/Documents/dotfiles";
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -187,53 +190,55 @@
   };
 
   environment = {
+    pathsToLink = [
+      DOTS
+    ];
     systemPackages = with pkgs; [
-      helix
+      #| Core Utilities
+      bat
+      busybox
+      fzf
+      just
+      jq
+      sutils
+      usbutils
+      uutils-coreutils-noprefix
+
+      #| Development
       nil
       nixd
       nixfmt-rfc-style
-      btop
-      dust
-      speedtest-go
       nix-info
-      bat
-      pavucontrol
+      shellcheck
+      shfmt
+
+      #| Filesystem
+      dust
+      eza
+
+      #| Network
+      speedtest-go
+
+      #| System
       easyeffects
+      pavucontrol
       qjackctl
       brightnessctl
-      sutils
-      eza
-      jq
-      fzf
-      uutils-coreutils-noprefix
-      busybox
-      usbutils
     ];
     variables = {
-      EDITOR = "hx";
-      VISUAL = "code";
-      BROWSER = "brave";
-      PAGER = "bat --paging=always";
-      MANPAGER = "bat --paging=always --plain";
-      LESS = "-R";
-      COLORTERM = "truecolor";
-      TERM = "xterm-256color";
+      inherit DOTS;
+      NIXOS_CONFIG = "${DOTS}";
+      # LESS = "-R";
+      # COLORTERM = "truecolor";
+      # TERM = "xterm-256color";
     };
     shellAliases = {
       h = "history";
-      la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
-      ll = "la --long";
       ".." = "cd ..";
       "..." = "cd ../..";
       "...." = "cd ../../..";
       "....." = "cd ../../../..";
       x = "exit";
     };
-  };
-
-  fonts = {
-    packages = with pkgs; [
-      (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
-    ];
   };
 }

@@ -14,9 +14,44 @@ in
   };
 
   home-manager.users.${mod} = {
+    fonts.fontconfig = {
+      enable = true;
+      defaultFonts = rec {
+        emoji = [
+          "vscodeIcons"
+          "Noto Color Emoji"
+        ];
+        monospace = [
+          "Operator Mono Lig Medium"
+          "Operator Mono Lig"
+          "Cascadia Code PL"
+          "JetBrainsMono Nerd Font"
+        ] ++ emoji;
+        sansSerif = [
+          "Lexend"
+        ] ++ emoji;
+        serif = [
+          "Noto Serif"
+        ] ++ emoji;
+      };
+    };
     home = {
       inherit stateVersion;
       packages = with pkgs; [
+        #| Fonts
+        (fetchFromGitHub {
+          owner = "rng70";
+          repo = "Awesome-Fonts";
+          rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
+          sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
+        })
+        (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
+
+        lexend
+        material-design-icons
+        material-icons
+        noto-fonts-emoji
+
         brave
         freetube
         whatsapp-for-linux
@@ -25,8 +60,46 @@ in
         vial
         vscode-fhs
       ];
+
+      sessionVariables = {
+        EDITOR = "hx";
+        VISUAL = "code";
+        BROWSER = "brave";
+        PAGER = "bat --paging=always";
+        MANPAGER = "bat --paging=always --plain";
+      };
+
+      shellAliases = {
+        h = "history";
+        la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
+        ll = "la --long";
+      };
     };
     programs = {
+      btop = {
+        enable = true;
+        settings = {
+          color_theme = "nord";
+          theme_background = false;
+        };
+      };
+      eza = {
+        enable = true;
+        git = true;
+        icons = true;
+        extraOptions = [
+          "--group-directories-first"
+          "--color-scale"
+        ];
+      };
+      skim = {
+        enable = true;
+        defaultCommand = "rg --files --hidden";
+        changeDirWidgetOptions = [
+          "--preview 'eza --icons --git --color always -T -L 3 {} | head -200'"
+          "--exact"
+        ];
+      };
       git = {
         enable = true;
         userName = "Craole";
