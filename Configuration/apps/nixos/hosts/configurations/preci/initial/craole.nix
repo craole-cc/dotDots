@@ -26,7 +26,7 @@
       programs = {
         git = {
           enable = true;
-          userName = "Craole";
+          userName = "Craoles";
           userEmail = "32288735+Craole@users.noreply.github.com";
         };
         helix = {
