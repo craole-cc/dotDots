@@ -8,13 +8,6 @@
         "networkmanager"
         "wheel"
       ];
-      packages = with pkgs; [
-        vscode-fhs
-        warp-terminal
-        freetube
-        brave
-        whatsapp-for-linux
-      ];
     };
   };
 
@@ -22,23 +15,38 @@
     craole = {
       home = {
         inherit (config.system) stateVersion;
+        packages = with pkgs; [
+          brave
+          freetube
+          whatsapp-for-linux
+          warp-terminal
+          vscode-fhs
+          vial
+        ];
       };
       programs = {
         git = {
           enable = true;
-          userName = "Craoles";
+          userName = "Craole";
           userEmail = "32288735+Craole@users.noreply.github.com";
         };
         helix = {
           enable = true;
           languages = {
+            # https://github-wiki-see.page/m/helix-editor/helix/wiki/External-formatter-configuration
             languages = [
+              #| Nix
               {
                 name = "nix";
-                language-servers = [ "nixd" ];
+                language-servers = [
+                  "nixd"
+                  "nil"
+                ];
                 formatter.command = "nixfmt";
                 auto-format = true;
               }
+
+              #| Shell
               {
                 name = "bash";
                 indent = {
@@ -51,49 +59,87 @@
                 };
                 auto-format = true;
               }
+
+              #| Rust
               {
                 name = "rust";
                 language-servers = [ "rust-analyzer" ];
                 auto-format = true;
               }
+
+              #| Ruby
               {
                 name = "ruby";
                 language-servers = [
                   "rubocop"
                   "solargraph"
                 ];
+                config = {
+                  solargraph = {
+                    diagnostics = true;
+                    formatting = false;
+                  };
+                };
                 formatter = {
                   command = "bundle";
                   args = [
                     "exec"
-                    "stree"
-                    "format"
+                    "rubocop"
+                    "--stdin"
+                    "foo.rb"
+                    "-a"
+                    "--stderr"
+                    "--fail-level"
+                    "fatal"
                   ];
-
-                  #   command = "rubocop";
-                  #   args = [
-                  #     "--stdin"
-                  #     "foo.rb"
-                  #     "-a"
-                  #     "--stderr"
-                  #     "--fail-level"
-                  #     "fatal"
-                  #   ];
-                  #   timeout = 3;
                 };
+
+                # formatter = {
+                #   command = "bundle";
+                #   args = [
+                #     "exec"
+                #     "stree"
+                #     "format"
+                #   ];
+
+                #   command = "rubocop";
+                #   args = [
+                #     "--stdin"
+                #     "foo.rb"
+                #     "-a"
+                #     "--stderr"
+                #     "--fail-level"
+                #     "fatal"
+                #   ];
+                #   timeout = 3;
+                # };
                 auto-format = true;
               }
+
+              #| Python
               {
                 name = "python";
                 formatter = {
-                  command = "black";
+                  command = "ruff";
                   args = [
+                    "format"
+                    "--line-length"
+                    "88"
                     "-"
-                    "-q"
                   ];
                 };
+
+                # formatter = {
+                #   command = "black";
+                #   args = [
+                #     "-"
+                #     "-q"
+                #   ];
+                # };
                 auto-format = true;
               }
+
+              #| SQL
               {
                 name = "sql";
                 formatter = {
@@ -110,6 +156,8 @@
                   ];
                 };
               }
+
+              #| Toml
               {
                 name = "toml";
                 formatter = {
@@ -121,81 +169,131 @@
                 };
                 auto-format = true;
               }
+
+              #| Json
               {
                 name = "json";
                 formatter = {
-                  command = "deno";
+
+                  command = "prettier";
                   args = [
-                    "fmt"
-                    "-"
-                    "--ext"
+                    "--parser"
                     "json"
                   ];
+
+                  # command = "deno";
+                  # args = [
+                  #   "fmt"
+                  #   "-"
+                  #   "--ext"
+                  #   "json"
+                  # ];
                 };
                 auto-format = true;
               }
+
+              #| Markdown
               {
                 name = "markdown";
                 formatter = {
-                  command = "deno";
+
+                  command = "prettier";
                   args = [
-                    "fmt"
-                    "-"
-                    "--ext"
-                    "md"
+                    "--parser"
+                    "markdown"
                   ];
+
+                  # command = "deno";
+                  # args = [
+                  #   "fmt"
+                  #   "-"
+                  #   "--ext"
+                  #   "md"
+                  # ];
+
                 };
                 auto-format = true;
               }
+
+              #| TypeScript
               {
                 name = "typescript";
                 formatter = {
-                  command = "deno";
+
+                  command = "prettier";
                   args = [
-                    "fmt"
-                    "-"
-                    "--ext"
-                    "ts"
+                    "--parser"
+                    "typescript"
                   ];
+
+                  # command = "deno";
+                  # args = [
+                  #   "fmt"
+                  #   "-"
+                  #   "--ext"
+                  #   "ts"
+                  # ];
                 };
                 auto-format = true;
               }
               {
                 name = "tsx";
                 formatter = {
-                  command = "deno";
+
+                  command = "prettier";
                   args = [
-                    "fmt"
-                    "-"
-                    "--ext"
+                    "--parser"
                     "tsx"
                   ];
+                  # command = "deno";
+                  # args = [
+                  #   "fmt"
+                  #   "-"
+                  #   "--ext"
+                  #   "tsx"
+                  # ];
                 };
                 auto-format = true;
               }
+
+              #| JavaScript
               {
                 name = "javascript";
                 formatter = {
-                  command = "deno";
+
+                  command = "prettier";
                   args = [
-                    "fmt"
-                    "-"
-                    "--ext"
-                    "js"
+                    "--parser"
+                    "javascript"
                   ];
+
+                  # command = "deno";
+                  # args = [
+                  #   "fmt"
+                  #   "-"
+                  #   "--ext"
+                  #   "js"
+                  # ];
                 };
                 auto-format = true;
               }
               {
                 name = "jsx";
                 formatter = {
-                  command = "deno";
+
+                  command = "prettier";
                   args = [
-                    "fmt"
-                    "-"
-                    "--ext"
+                    "--parser"
                     "jsx"
                   ];
+
+                  # command = "deno";
+                  # args = [
+                  #   "fmt"
+                  #   "-"
+                  #   "--ext"
+                  #   "jsx"
+                  # ];
                 };
                 auto-format = true;
               }
