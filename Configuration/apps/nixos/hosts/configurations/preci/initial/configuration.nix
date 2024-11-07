@@ -178,11 +178,11 @@ in
   };
 
   programs = {
-    bash = {
-      shellInit = ''
-        [ -f ${DOTSRC} ] && . "${DOTSRC}"
-      '';
-    };
+    # bash = {
+      # shellInit = ''
+      #   [ -f ${DOTSRC} ] && . "${DOTSRC}"
+      # '';
+    # };
     hyprland.enable = true;
     hyprlock.enable = true;
     git = {
