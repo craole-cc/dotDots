@@ -225,14 +225,14 @@ validate_dependencies() {
 
   # | Validate dependencies as executable files
   #TODO: PathOf Dependency
-  # for dependency in $_cmd_DEPENDENCIES; do
-  #   pathof "$dependency" --is-executable ||
-  #     if [ -n "$missing_deps" ]; then
-  #       missing_deps="$missing_deps, $dependency"
-  #     else
-  #       missing_deps="$dependency"
-  #     fi
-  # done
+  for dependency in $_cmd_DEPENDENCIES; do
+    # pathof "$dependency" --is-executable ||
+    if [ -n "$missing_deps" ]; then
+      missing_deps="$missing_deps, $dependency"
+    else
+      missing_deps="$dependency"
+    fi
+  done
 
   # | Continue the program if dependency paths are validated
   [ "$missing_deps" ] || return
