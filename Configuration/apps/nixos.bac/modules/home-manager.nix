@@ -1,9 +1,18 @@
-{ self, home-manager, nixpkgs, templates, ... }:
+{
+  self,
+  home-manager,
+  nixpkgs,
+  templates,
+  ...
+}:
 let
   inherit (nixpkgs) lib;
 
-  genModules = hostName: { homeDirectory, ... }:
-    { config, pkgs, ... }: {
+  genModules =
+    hostName:
+    { homeDirectory, ... }:
+    { config, pkgs, ... }:
+    {
       imports = [
         (../servers + "/${hostName}")
       ];
@@ -21,19 +30,22 @@ let
           "nixpkgs-overlays=${config.xdg.dataHome}/overlays"
         ];
       };
-      
+
       xdg = {
         dataFile = {
           nixpkgs.source = nixpkgs;
           overlays.source = ../middleware;
         };
         configFile."nix/nix.conf".text = ''
-          flake-registry = ${config.xdg.configHome}/nix/registry.json
+          
+                    flake-registry = ${config.xdg.configHome}/nix/registry.json
         '';
       };
     };
 
-  genConfiguration = hostName: { hostPlatform, ... }@attrs:
+  genConfiguration =
+    hostName:
+    { hostPlatform, ... }@attrs:
     home-manager.lib.homeManagerConfiguration {
       pkgs = self.pkgs.${hostPlatform};
       modules = [ (genModules hostName attrs) ];

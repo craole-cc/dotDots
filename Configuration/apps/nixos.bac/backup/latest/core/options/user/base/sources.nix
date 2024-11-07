@@ -24,6 +24,6 @@ in
     context = mkOption {
       description = "{{mod}} context {{base}}";
       default = makeSource ../components/context;
-      };
+    };
   };
 }

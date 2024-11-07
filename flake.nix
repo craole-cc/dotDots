@@ -7,7 +7,14 @@
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
 
-      modules = ./Configuration/apps/nixos;
+dots=./.;
+bin=dots +"/Bin";
+      modules = dots+"/Configuration/apps/nixos";
+      variables = {
+        DOTS=dots;
+        DOTS_BIN=bin;
+        DOTS_NIX=modules;
+      };
       coreModules = [ modules ] ++ homeModules;
       homeModules = [
         home-manager
@@ -26,6 +33,7 @@
           system = "x86_64-linux";
           modules = coreModules ++ [
             {
+            environment={inherit variables;};
               # DOTS.hosts.Preci.enable = true;
             }
           ];
@@ -45,6 +53,7 @@
         };
       };
     };
+
   inputs = {
     nixpkgs = {
       url = "github:nixos/nixpkgs?ref=nixos-unstable";

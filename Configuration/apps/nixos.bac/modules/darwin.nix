@@ -1,4 +1,11 @@
-{ self, darwin, home-manager, nixpkgs, templates, ... }:
+{
+  self,
+  darwin,
+  home-manager,
+  nixpkgs,
+  templates,
+  ...
+}:
 let
   inherit (nixpkgs) lib;
 
@@ -11,7 +18,9 @@ let
     };
   };
 
-  genConfiguration = hostname: { hostPlatform, ... }:
+  genConfiguration =
+    hostname:
+    { hostPlatform, ... }:
     darwin.lib.darwinSystem {
       system = hostPlatform;
       pkgs = self.pkgs.${hostPlatform};

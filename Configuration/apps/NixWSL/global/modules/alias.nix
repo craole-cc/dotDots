@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   programs.bash.shellAliases = {
     la = "lsd --almost-all";
     ll = "la --long";

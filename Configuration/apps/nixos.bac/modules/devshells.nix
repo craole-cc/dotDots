@@ -1,4 +1,5 @@
-{ self, ... }: system:
+{ self, ... }:
+system:
 with self.pkgs.${system};
 
 mkShell {
@@ -36,6 +37,7 @@ mkShell {
   ];
 
   shellHook = ''
-    ${self.checks.${system}.pre-commit-check.shellHook}
+    
+        ${self.checks.${system}.pre-commit-check.shellHook}
   '';
 }

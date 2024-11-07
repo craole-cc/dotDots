@@ -8,14 +8,29 @@ let
     };
   };
 
-  inherit (builtins) attrNames concatMap listToAttrs filter;
+  inherit (builtins)
+    attrNames
+    concatMap
+    listToAttrs
+    filter
+    ;
 
-  filterAttrs = pred: set:
-    listToAttrs (concatMap (name: let value = set.${name}; in if pred name value then [{ inherit name value; }] else [ ]) (attrNames set));
+  filterAttrs =
+    pred: set:
+    listToAttrs (
+      concatMap (
+        name:
+        let
+          value = set.${name};
+        in
+        if pred name value then [ { inherit name value; } ] else [ ]
+      ) (attrNames set)
+    );
 
   removeEmptyAttrs = filterAttrs (_: v: v != { });
 
-  genSystemGroups = hosts:
+  genSystemGroups =
+    hosts:
     let
       systems = [
         "aarch64-darwin"
@@ -30,9 +45,14 @@ let
     in
     removeEmptyAttrs (listToAttrs (map systemHostGroup systems));
 
-  genTypeGroups = hosts:
+  genTypeGroups =
+    hosts:
     let
-      types = [ "darwin" "homeManager" "nixos" ];
+      types = [
+        "darwin"
+        "homeManager"
+        "nixos"
+      ];
       typeHostGroup = name: {
         inherit name;
         value = filterAttrs (_: host: host.type == name) hosts;
@@ -40,7 +60,8 @@ let
     in
     removeEmptyAttrs (listToAttrs (map typeHostGroup types));
 
-  genHostGroups = hosts:
+  genHostGroups =
+    hosts:
     let
       all = hosts;
       systemGroups = genSystemGroups all;

@@ -250,8 +250,8 @@ in
             ignoreCleaned = prune ignoreRaw;
             filtered = pathsIgnoredCheck list' ignoreCleaned;
 
-            #| Output
           in
+          #| Output
           filtered;
       };
     };

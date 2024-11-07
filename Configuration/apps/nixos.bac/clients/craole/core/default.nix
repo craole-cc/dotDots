@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   imports = [
     ./atuin.nix
     ./bash.nix
@@ -18,7 +19,10 @@
     username = "craole";
     homeDirectory = "/home/craole";
     stateVersion = "22.11";
-    extraOutputsToInstall = [ "doc" "devdoc" ];
+    extraOutputsToInstall = [
+      "doc"
+      "devdoc"
+    ];
     packages = with pkgs; [
       bandwhich
       btop

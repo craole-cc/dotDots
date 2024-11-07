@@ -1,22 +1,25 @@
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+{
   programs = {
     fish = {
       enable = true;
       interactiveShellInit = lib.mkMerge [
         (lib.mkBefore ''
-          set -g ATUIN_NOBIND true
-          set -g fish_escape_delay_ms 300
-          set -g fish_greeting
+          
+                    set -g ATUIN_NOBIND true
+                    set -g fish_escape_delay_ms 300
+                    set -g fish_greeting
         '')
         (lib.mkAfter ''
-          enable_ayu_theme_dark
-          ${pkgs.any-nix-shell}/bin/any-nix-shell fish | source
-
-          fish_vi_key_bindings insert
-          # atuin
-          bind -M insert \cr _atuin_search
-          # quickly open text file
-          bind -M insert \co 'fzf | xargs -r $VISUAL'
+          
+                    enable_ayu_theme_dark
+                    ${pkgs.any-nix-shell}/bin/any-nix-shell fish | source
+          
+                    fish_vi_key_bindings insert
+                    # atuin
+                    bind -M insert \cr _atuin_search
+                    # quickly open text file
+                    bind -M insert \co 'fzf | xargs -r $VISUAL'
         '')
       ];
       plugins = [

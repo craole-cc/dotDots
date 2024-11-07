@@ -1,9 +1,16 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   home.packages = with pkgs; [
     (beets-unstable.override {
       pluginOverrides = {
-        alternatives = { enable = true; propagatedBuildInputs = [ beetsPackages.alternatives ]; };
-        limit = { enable = true; builtin = true; };
+        alternatives = {
+          enable = true;
+          propagatedBuildInputs = [ beetsPackages.alternatives ];
+        };
+        limit = {
+          enable = true;
+          builtin = true;
+        };
       };
     })
     checkart

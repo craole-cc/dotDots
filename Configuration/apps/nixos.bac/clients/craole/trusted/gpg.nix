@@ -1,4 +1,10 @@
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
   services.gpg-agent = lib.mkIf pkgs.stdenv.isLinux {
     enable = true;
     enableExtraSocket = true;
@@ -7,7 +13,8 @@
     defaultCacheTtl = 34560000;
     maxCacheTtl = 34560000;
     extraConfig = ''
-      extra-socket /run/user/${toString config.home.uid}/gnupg/S.gpg-agent.extra
+      
+            extra-socket /run/user/${toString config.home.uid}/gnupg/S.gpg-agent.extra
     '';
   };
 

@@ -1,4 +1,10 @@
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
   imports = [
     ./alacritty.nix
     ./dunst.nix
@@ -8,7 +14,10 @@
     ./screen-locker.nix
   ];
 
-  home.packages = with pkgs; [ xclip xsel ];
+  home.packages = with pkgs; [
+    xclip
+    xsel
+  ];
 
   programs.feh.enable = true;
 
@@ -56,7 +65,10 @@
         Unit = {
           Description = "feh background";
           PartOf = [ "i3-session.target" ];
-          After = [ "xrandr.service" "picom.service" ];
+          After = [
+            "xrandr.service"
+            "picom.service"
+          ];
         };
         Service = {
           ExecStart = "${pkgs.feh}/bin/feh --bg-fill ${config.xdg.dataHome}/wall.png";

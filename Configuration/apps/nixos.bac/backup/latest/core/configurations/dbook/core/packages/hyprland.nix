@@ -1,7 +1,7 @@
 { config, ... }:
 let
   # enable = config.DOTS.interface.manager == "hyprland";
-  enable=false;
+  enable = false;
 in
 {
   programs = {

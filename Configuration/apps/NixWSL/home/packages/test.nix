@@ -2,7 +2,8 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   # TODO please change the username & home direcotry to your own
   home.username = "nixos";
   home.homeDirectory = "/home/nixos";
@@ -131,7 +132,8 @@
     enable = true;
     enableCompletion = true;
     bashrcExtra = ''
-      export PATH="$PATH:$HOME/bin:$HOME/.local/bin:$HOME/go/bin"
+      
+            export PATH="$PATH:$HOME/bin:$HOME/.local/bin:$HOME/go/bin"
     '';
 
     # set some aliases, feel free to add more or remove some

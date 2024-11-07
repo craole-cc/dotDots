@@ -1,4 +1,5 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, ... }:
+{
   programs.zsh = {
     enable = true;
     enableAutosuggestions = true;
@@ -16,35 +17,37 @@
       share = true;
     };
     envExtra = ''
-      export LESSHISTFILE="${config.xdg.dataHome}/less_history"
-      export CARGO_HOME="${config.xdg.cacheHome}/cargo"
+      
+            export LESSHISTFILE="${config.xdg.dataHome}/less_history"
+            export CARGO_HOME="${config.xdg.cacheHome}/cargo"
     '';
     initExtra = ''
-      nix-closure-size() {
-        nix-store -q --size $(nix-store -qR $(${pkgs.coreutils}/bin/readlink -e $1) ) |
-          ${pkgs.gawk}/bin/gawk '{ a+=$1 } END { print a }' |
-          ${pkgs.coreutils}/bin/numfmt --to=iec-i
-      }
-
-      bindkey "$${terminfo[khome]}" beginning-of-line
-      bindkey "$${terminfo[kend]}" end-of-line
-      bindkey "$${terminfo[kdch1]}" delete-char
-      bindkey '\eOA' history-substring-search-up
-      bindkey '\eOB' history-substring-search-down
-      bindkey "^[[A" history-substring-search-up
-      bindkey "^[[B" history-substring-search-down
-      bindkey "$$terminfo[kcuu1]" history-substring-search-up
-      bindkey "$$terminfo[kcud1]" history-substring-search-down
-      bindkey "^[[1;5C" forward-word
-      bindkey "^[[1;3C" forward-word
-      bindkey "^[[1;5D" backward-word
-      bindkey "^[[1;3D" backward-word
-      bindkey -s "^O" 'fzf | xargs -r $VISUAL^M'
-
-      bindkey -rpM viins '^[^['
-      KEYTIMEOUT=1
-
-      ${pkgs.any-nix-shell}/bin/any-nix-shell zsh | source /dev/stdin
+      
+            nix-closure-size() {
+              nix-store -q --size $(nix-store -qR $(${pkgs.coreutils}/bin/readlink -e $1) ) |
+                ${pkgs.gawk}/bin/gawk '{ a+=$1 } END { print a }' |
+                ${pkgs.coreutils}/bin/numfmt --to=iec-i
+            }
+      
+            bindkey "$${terminfo[khome]}" beginning-of-line
+            bindkey "$${terminfo[kend]}" end-of-line
+            bindkey "$${terminfo[kdch1]}" delete-char
+            bindkey '\eOA' history-substring-search-up
+            bindkey '\eOB' history-substring-search-down
+            bindkey "^[[A" history-substring-search-up
+            bindkey "^[[B" history-substring-search-down
+            bindkey "$$terminfo[kcuu1]" history-substring-search-up
+            bindkey "$$terminfo[kcud1]" history-substring-search-down
+            bindkey "^[[1;5C" forward-word
+            bindkey "^[[1;3C" forward-word
+            bindkey "^[[1;5D" backward-word
+            bindkey "^[[1;3D" backward-word
+            bindkey -s "^O" 'fzf | xargs -r $VISUAL^M'
+      
+            bindkey -rpM viins '^[^['
+            KEYTIMEOUT=1
+      
+            ${pkgs.any-nix-shell}/bin/any-nix-shell zsh | source /dev/stdin
     '';
     sessionVariables = {
       RPROMPT = "";

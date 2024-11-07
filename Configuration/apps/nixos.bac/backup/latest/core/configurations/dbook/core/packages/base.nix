@@ -6,7 +6,7 @@ let
   base = "programs";
 in
 {
-  options.${base}= {
+  options.${base} = {
     enable = mkEnableOption mod // {
       default = true;
     };

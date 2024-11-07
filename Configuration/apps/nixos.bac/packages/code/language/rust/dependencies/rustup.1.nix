@@ -1,4 +1,6 @@
-{ pkgs ? import <nixpkgs> { } }:
+{
+  pkgs ? import <nixpkgs> { },
+}:
 pkgs.mkShell rec {
   buildInputs = with pkgs; [
     # llvmPackages_latest.llvm
@@ -17,13 +19,16 @@ pkgs.mkShell rec {
   # LIBCLANG_PATH = pkgs.lib.makeLibraryPath [ pkgs.llvmPackages_latest.libclang.lib ];
   HISTFILE = toString ./.history;
   shellHook = ''
-    export PATH=$PATH:${CARGO_HOME:-~/.cargo}/bin
-    export PATH=$PATH:${RUSTUP_HOME:-~/.rustup}/toolchains/$RUSTC_VERSION-x86_64-unknown-linux-gnu/bin/
+    
+        export PATH=$PATH:${CARGO_HOME: -~/.cargo}/bin
+        export PATH=$PATH:${RUSTUP_HOME: -~/.rustup}/toolchains/$RUSTC_VERSION-x86_64-unknown-linux-gnu/bin/
   '';
   # Add libvmi precompiled library to rustc search path
-  RUSTFLAGS = (builtins.map (a: ''-L ${a}/lib'') [
-    pkgs.libvmi
-  ]);
+  RUSTFLAGS = (
+    builtins.map (a: ''-L ${a}/lib'') [
+      pkgs.libvmi
+    ]
+  );
   # Add libvmi, glibc, clang, glib headers to bindgen search path
   BINDGEN_EXTRA_CLANG_ARGS =
     # Includes with normal include path

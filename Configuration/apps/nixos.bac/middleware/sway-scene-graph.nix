@@ -1,6 +1,4 @@
-final: prev:
-with final.lib;
-{
+final: prev: with final.lib; {
   libxkbcommon_1_5_0 = final.libxkbcommon.overrideAttrs (old: rec {
     version = "1.5.0";
     src = final.fetchFromGitHub {
@@ -22,13 +20,18 @@ with final.lib;
     };
   });
 
-  sway-unwrapped = (prev.sway-unwrapped.overrideAttrs (old: {
-    version = "scene-graph-2022-12-09";
-    src = final.fetchFromGitHub {
-      owner = "Nefsen402";
-      repo = "sway";
-      rev = "c77e6c0008747f1de4dee7912009bcba043cb257";
-      hash = "sha256-W99yp35sFiS/WwGHn8kmPYS+B/6ldYVMOrF1mq6L+Cs=";
-    };
-  })).override { libxkbcommon = final.libxkbcommon_1_5_0; wlroots_0_16 = final.wlroots_0_17; };
+  sway-unwrapped =
+    (prev.sway-unwrapped.overrideAttrs (old: {
+      version = "scene-graph-2022-12-09";
+      src = final.fetchFromGitHub {
+        owner = "Nefsen402";
+        repo = "sway";
+        rev = "c77e6c0008747f1de4dee7912009bcba043cb257";
+        hash = "sha256-W99yp35sFiS/WwGHn8kmPYS+B/6ldYVMOrF1mq6L+Cs=";
+      };
+    })).override
+      {
+        libxkbcommon = final.libxkbcommon_1_5_0;
+        wlroots_0_16 = final.wlroots_0_17;
+      };
 }

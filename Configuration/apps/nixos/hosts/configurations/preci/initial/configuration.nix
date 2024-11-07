@@ -179,9 +179,9 @@ in
 
   programs = {
     # bash = {
-      # shellInit = ''
-      #   [ -f ${DOTSRC} ] && . "${DOTSRC}"
-      # '';
+    # shellInit = ''
+    #   [ -f ${DOTSRC} ] && . "${DOTSRC}"
+    # '';
     # };
     hyprland.enable = true;
     hyprlock.enable = true;
@@ -197,19 +197,18 @@ in
 
   environment = {
 
-    pathsToLink = [
-      (DOTS + "/base")
-      (DOTS + "/core")
-      (DOTS + "/import")
-      (DOTS + "/interface")
-      (DOTS + "/misc")
-      (DOTS + "/packages")
-      (DOTS + "/project")
-      (DOTS + "/tasks")
-      (DOTS + "/template")
-      (DOTS + "/utility")
-
-    ];
+    # pathsToLink = [
+    #   (DOTS + "/base")
+    #   (DOTS + "/core")
+    #   (DOTS + "/import")
+    #   (DOTS + "/interface")
+    #   (DOTS + "/misc")
+    #   (DOTS + "/packages")
+    #   (DOTS + "/project")
+    #   (DOTS + "/tasks")
+    #   (DOTS + "/template")
+    #   (DOTS + "/utility")
+    # ];
     systemPackages = with pkgs; [
       #| Core Utilities
       usbutils
@@ -245,14 +244,14 @@ in
       qjackctl
       brightnessctl
     ];
-    variables = {
-      inherit DOTS;
-      # PATH = "$PATH:$DOTS/Bin";
-      NIXOS_CONFIG = DOTS;
-      # LESS = "-R";
-      # COLORTERM = "truecolor";
-      # TERM = "xterm-256color";
-    };
+    # variables = {
+    #   inherit DOTS;
+    #   # PATH = "$PATH:$DOTS/Bin";
+    #   NIXOS_CONFIG = DOTS;
+    #   # LESS = "-R";
+    #   # COLORTERM = "truecolor";
+    #   # TERM = "xterm-256color";
+    # };
     shellAliases = {
       h = "history";
       ".." = "cd ..";

@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 
 {
-  imports = [];
+  imports = [ ];
   environment.systemPackages = with pkgs; [
     xorg.xev
     picom-next
@@ -12,7 +12,10 @@
     numlockx
     wmctrl
     lxqt.lxqt-policykit # provides a default authentification client for policykit
-    gnome.gnome-keyring libsecret libgnome-keyring gnome.seahorse
+    gnome.gnome-keyring
+    libsecret
+    libgnome-keyring
+    gnome.seahorse
     xclip
   ];
 }

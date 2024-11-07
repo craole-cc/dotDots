@@ -17,11 +17,17 @@
 
     settings = {
       allowed-users = [ "@wheel" ];
-      trusted-users = [ "root" "@wheel" ];
+      trusted-users = [
+        "root"
+        "@wheel"
+      ];
       auto-optimise-store = true;
       builders-use-substitutes = true;
       flake-registry = "/etc/nix/registry.json";
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       system-features = [ "recursive-nix" ];
       cores = 0;
       max-jobs = "auto";

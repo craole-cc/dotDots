@@ -4,7 +4,8 @@
   username,
   nix-index-database,
   ...
-}: let
+}:
+let
   unstable-packages = with pkgs.unstable; [
     bat
     bottom
@@ -68,7 +69,8 @@
     shfmt
     statix # nix
   ];
-in {
+in
+{
   imports = [
     nix-index-database.hmModules.nix-index
   ];
@@ -120,7 +122,7 @@ in {
     lsd.enableAliases = true;
     zoxide.enable = true;
     zoxide.enableFishIntegration = true;
-    zoxide.options = ["--cmd cd"];
+    zoxide.options = [ "--cmd cd" ];
     broot.enable = true;
     broot.enableFishIntegration = true;
     direnv.enable = true;
@@ -164,13 +166,15 @@ in {
       interactiveShellInit = ''
         ${pkgs.any-nix-shell}/bin/any-nix-shell fish --info-right | source
 
-        ${pkgs.lib.strings.fileContents (pkgs.fetchFromGitHub {
+        ${pkgs.lib.strings.fileContents (
+          pkgs.fetchFromGitHub {
             owner = "rebelot";
             repo = "kanagawa.nvim";
             rev = "de7fb5f5de25ab45ec6039e33c80aeecc891dd92";
             sha256 = "sha256-f/CUR0vhMJ1sZgztmVTPvmsAgp0kjFov843Mabdzvqo=";
           }
-          + "/extras/kanagawa.fish")}
+          + "/extras/kanagawa.fish"
+        )}
 
         set -U fish_greeting
         fish_add_path --append /mnt/c/Users/mrcra/AppData/Local/Microsoft/WinGet/Links/

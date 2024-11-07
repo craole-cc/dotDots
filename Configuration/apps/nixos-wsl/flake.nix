@@ -24,33 +24,37 @@
 
   };
 
-  outputs = inputs:
-    with inputs; let
+  outputs =
+    inputs:
+    with inputs;
+    let
       system = "x86_64-linux";
       hostname = "victus";
       username = "craole";
       # secrets = builtins.fromJSON (builtins.readFile "${self}/secrets.json");
       secrets = builtins.fromJSON (builtins.readFile "${self}/.env");
 
-      nixpkgsWithOverlays = system: (import nixpkgs rec {
-        inherit system;
+      nixpkgsWithOverlays =
+        system:
+        (import nixpkgs rec {
+          inherit system;
 
-        config = {
-          allowUnfree = true;
-          permittedInsecurePackages = [];
-        };
+          config = {
+            allowUnfree = true;
+            permittedInsecurePackages = [ ];
+          };
 
-        overlays = [
-          nur.overlay
+          overlays = [
+            nur.overlay
 
-          (_final: prev: {
-            unstable = import nixpkgs-unstable {
-              inherit (prev) system;
-              inherit config;
-            };
-          })
-        ];
-      });
+            (_final: prev: {
+              unstable = import nixpkgs-unstable {
+                inherit (prev) system;
+                inherit config;
+              };
+            })
+          ];
+        });
 
       configurationDefaults = args: {
         home-manager = {
@@ -62,12 +66,20 @@
       };
 
       specialArgs = {
-        inherit secrets inputs self nix-index-database hostname username;
+        inherit
+          secrets
+          inputs
+          self
+          nix-index-database
+          hostname
+          username
+          ;
         channels = {
           inherit nixpkgs nixpkgs-unstable;
         };
       };
-    in {
+    in
+    {
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
       # formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
 

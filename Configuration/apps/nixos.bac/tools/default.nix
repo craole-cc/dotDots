@@ -1,3 +1,4 @@
-{self, ...}: {
-  exportedModules = [./python.toml];
+{ self, ... }:
+{
+  exportedModules = [ ./python.toml ];
 }

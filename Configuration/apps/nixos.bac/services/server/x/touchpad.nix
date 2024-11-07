@@ -1,4 +1,5 @@
-{...}:{
+{ ... }:
+{
   #| Touchpad
   services.xserver.libinput = {
     enable = true;

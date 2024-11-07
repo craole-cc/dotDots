@@ -1,4 +1,5 @@
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+{
   imports = [
     ./common.nix
     ./chromium.nix
@@ -9,29 +10,32 @@
   ];
 
   home = {
-    packages = with pkgs; [
-      gammastep
-      gnome.adwaita-icon-theme
-      hicolor-icon-theme
-      libnotify
-      lollypop
-      pavucontrol
-      pinentry-gnome
-      qgnomeplatform
-      qt5.qtwayland
-      qt6.qtwayland
-      spawn
-      qalculate-gtk
-      xdg-utils
-    ] ++ lib.optionals (pkgs.hostPlatform.system == "x86_64-linux") [
-      discord
-      element-desktop
-      gnome.evince
-      ledger-live-desktop
-      plexamp
-      signal-desktop
-      thunderbird-bin
-    ];
+    packages =
+      with pkgs;
+      [
+        gammastep
+        gnome.adwaita-icon-theme
+        hicolor-icon-theme
+        libnotify
+        lollypop
+        pavucontrol
+        pinentry-gnome
+        qgnomeplatform
+        qt5.qtwayland
+        qt6.qtwayland
+        spawn
+        qalculate-gtk
+        xdg-utils
+      ]
+      ++ lib.optionals (pkgs.hostPlatform.system == "x86_64-linux") [
+        discord
+        element-desktop
+        gnome.evince
+        ledger-live-desktop
+        plexamp
+        signal-desktop
+        thunderbird-bin
+      ];
 
     pointerCursor = {
       package = pkgs.gnome.adwaita-icon-theme;

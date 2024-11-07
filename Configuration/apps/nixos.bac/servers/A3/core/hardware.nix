@@ -4,8 +4,9 @@
   pkgs,
   modulesPath,
   ...
-}: {
-  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
+}:
+{
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   fileSystems = {
     "/boot/efi" = {
@@ -56,14 +57,23 @@
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
-    kernelModules = ["kvm-amd"];
+    kernelModules = [ "kvm-amd" ];
     initrd = {
-      availableKernelModules = ["nvme" "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod"];
-      kernelModules = [];
+      availableKernelModules = [
+        "nvme"
+        "xhci_pci"
+        "ahci"
+        "usb_storage"
+        "usbhid"
+        "sd_mod"
+      ];
+      kernelModules = [ ];
       luks.devices."luks-20c6c296-a0a7-4d38-b656-fa8534db75ad".device = "/dev/disk/by-uuid/20c6c296-a0a7-4d38-b656-fa8534db75ad";
-      secrets = {"/crypto_keyfile.bin" = null;};
+      secrets = {
+        "/crypto_keyfile.bin" = null;
+      };
     };
-    extraModulePackages = [];
+    extraModulePackages = [ ];
     loader = {
       efi = {
         canTouchEfiVariables = true;
@@ -84,7 +94,7 @@
     };
   };
 
-  swapDevices = [];
+  swapDevices = [ ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

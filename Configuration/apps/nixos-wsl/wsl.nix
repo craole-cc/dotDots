@@ -5,14 +5,15 @@
   pkgs,
   inputs,
   ...
-}: {
+}:
+{
   time.timeZone = "America/Jamaica";
 
   networking.hostName = "${hostname}";
 
   programs.fish.enable = true;
-  environment.pathsToLink = ["/share/fish"];
-  environment.shells = [pkgs.fish];
+  environment.pathsToLink = [ "/share/fish" ];
+  environment.shells = [ pkgs.fish ];
 
   environment.enableAllTerminfo = true;
 
@@ -64,7 +65,7 @@
 
   systemd.user = {
     paths.vscode-remote-workaround = {
-      wantedBy = ["default.target"];
+      wantedBy = [ "default.target" ];
       pathConfig.PathChanged = "%h/.vscode-server/bin";
     };
     services.vscode-remote-workaround.script = ''
@@ -79,7 +80,7 @@
 
   nix = {
     settings = {
-      trusted-users = [username];
+      trusted-users = [ username ];
       access-tokens = [
         "github.com=${secrets.github_token}"
         "gitlab.com=OAuth2:${secrets.gitlab_token}"

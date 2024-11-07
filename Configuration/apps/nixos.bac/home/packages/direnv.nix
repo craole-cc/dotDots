@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   # let HM manage itself when in standalone mode
   programs = {
     # direnv.enable = true;

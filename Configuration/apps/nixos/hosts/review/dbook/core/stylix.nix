@@ -2,7 +2,8 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   inherit (config.DOTS.pictures) wallpapers;
   stylix = pkgs.fetchFromGitHub {
     owner = "danth";
@@ -10,7 +11,8 @@
     rev = "master";
     sha256 = "W9Y/+K4L7JcF5xcXO4MVGQk/0DgzHrp/IjlHyLeYExY=";
   };
-in {
+in
+{
   imports = [
     # (import stylix).nixosModules.stylix
     "${stylix}/nixosModules/stylix"

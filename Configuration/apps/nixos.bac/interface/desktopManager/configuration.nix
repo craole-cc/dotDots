@@ -5,10 +5,10 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -76,12 +76,15 @@
   users.users.craole = {
     isNormalUser = true;
     description = "Craig 'Craole' Cole";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     packages = with pkgs; [
-      	firefox
-	brave
-	vscode
-    #  thunderbird
+      firefox
+      brave
+      vscode
+      #  thunderbird
     ];
   };
 
@@ -99,12 +102,12 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
-	vim
-	git
-	bat
-	alacritty
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
+    vim
+    git
+    bat
+    alacritty
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

@@ -1,5 +1,5 @@
 {
-   DOTS.hosts.preci = {
+  DOTS.hosts.preci = {
     id = "8f792eed";
     base = "laptop";
     stateVersion = "24.05";

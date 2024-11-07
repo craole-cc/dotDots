@@ -3,7 +3,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   gtk = {
     enable = true;
     iconTheme = {

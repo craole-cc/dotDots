@@ -1,4 +1,10 @@
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
   xsession.windowManager.i3 = {
     enable = true;
     package = pkgs.i3-gaps;
@@ -29,8 +35,9 @@
       startup = [
         {
           command = ''
-            ${pkgs.systemd}/bin/systemctl --user import-environment DISPLAY; \
-              ${pkgs.systemd}/bin/systemctl --user start i3-session.target
+            
+                        ${pkgs.systemd}/bin/systemctl --user import-environment DISPLAY; \
+                          ${pkgs.systemd}/bin/systemctl --user start i3-session.target
           '';
           always = false;
           notification = false;
@@ -50,12 +57,16 @@
       terminal = "${lib.getExe config.programs.kitty.package} -1";
 
       window.commands = [
-        { command = "floating enable"; criteria.class = "feh"; }
+        {
+          command = "floating enable";
+          criteria.class = "feh";
+        }
       ];
     };
 
     extraConfig = ''
-      focus_wrapping no
+      
+            focus_wrapping no
     '';
   };
 }

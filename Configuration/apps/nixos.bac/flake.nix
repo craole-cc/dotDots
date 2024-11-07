@@ -6,7 +6,7 @@
       #| Standard Binaries
       {
         # url = "github:NixOS/nixpkgs/release-22.11"; #| Stable - 22.11
-        url = "github:NixOS/nixpkgs/nixos-unstable"; #| Unstable
+        url = "github:NixOS/nixpkgs/nixos-unstable"; # | Unstable
         # url = "github:nixos/nixpkgs/master"; #| Master
         # url = "github:nixos/nixpkgs/nixos-unstable-small"; #|Minimal
       };
@@ -82,7 +82,7 @@
 
     #/> Development <\
     devshell = {
-      url = github:numtide/devshell;
+      url = "github:numtide/devshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -122,12 +122,13 @@
     #   url = "github:colemickens/flake-firefox-nightly";
     # };
   };
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    ...
-  } @ inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
+    }@inputs:
     {
       # hosts = import ./modules/hosts.nix;
       # deploy = import ./modules/deploy.nix inputs;
@@ -136,31 +137,35 @@
       homeConfigurations = import ./modules/home-manager.nix inputs;
       nixosConfigurations = import ./modules/nixos.nix inputs;
     }
-    // flake-utils.lib.eachSystem [
-      "aarch64-linux"
-      "x86_64-linux"
-      "aarch64-darwin"
-      "x86_64-darwin"
-    ]
-    (localSystem: {
-      checks = import ./modules/checks.nix inputs localSystem;
-      # devShells.default = import ./modules/devshells.nix inputs localSystem;
-      devShells.${localSystem}.default = import ./modules/devshells.nix inputs localSystem;
-      packages = let
-        hostDrvs = import ./modules/derivations.nix inputs localSystem;
-        default =
-          if builtins.hasAttr "${localSystem}" hostDrvs
-          then {default = self.packages.${localSystem}.${localSystem};}
-          else {};
-      in
-        hostDrvs // default;
-      pkgs = import nixpkgs {
-        inherit localSystem;
-        overlays = [self.overlays.default];
-        config = {
-          allowUnfree = true;
-          allowAliases = true;
-        };
-      };
-    });
+    //
+      flake-utils.lib.eachSystem
+        [
+          "aarch64-linux"
+          "x86_64-linux"
+          "aarch64-darwin"
+          "x86_64-darwin"
+        ]
+        (localSystem: {
+          checks = import ./modules/checks.nix inputs localSystem;
+          # devShells.default = import ./modules/devshells.nix inputs localSystem;
+          devShells.${localSystem}.default = import ./modules/devshells.nix inputs localSystem;
+          packages =
+            let
+              hostDrvs = import ./modules/derivations.nix inputs localSystem;
+              default =
+                if builtins.hasAttr "${localSystem}" hostDrvs then
+                  { default = self.packages.${localSystem}.${localSystem}; }
+                else
+                  { };
+            in
+            hostDrvs // default;
+          pkgs = import nixpkgs {
+            inherit localSystem;
+            overlays = [ self.overlays.default ];
+            config = {
+              allowUnfree = true;
+              allowAliases = true;
+            };
+          };
+        });
 }

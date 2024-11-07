@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 let
@@ -10,7 +15,6 @@ in
 {
   options = {
     craole.cleanHome.enable = mkEnableOption "Enable environment variables to reduce clutter in $HOME";
-
 
     craole.cleanHome.variables = lib.mkOption {
       default = {

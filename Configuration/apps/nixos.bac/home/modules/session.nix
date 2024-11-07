@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   services.xserver.displayManager = {
     defaultSession = "none+qtile";
     autoLogin = {

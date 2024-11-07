@@ -6,12 +6,21 @@ let
     hash = "sha256-vIRB+0ICtH8ZvyWhUPqc4VU5po+G+z8bTMrfCLBPPdM=";
   };
 
-  emoji_list = final.runCommand "emoji_list.txt"
-    { nativeBuildInputs = with final; [ jq gnused ]; } ''
-    cat ${emoji_json} | jq -r '.[] | "\(.emoji) \t   \(.description)"' | sed -e 's,\\t,\t,g' > $out
-  '';
+  emoji_list =
+    final.runCommand "emoji_list.txt"
+      {
+        nativeBuildInputs = with final; [
+          jq
+          gnused
+        ];
+      }
+      ''
+        
+            cat ${emoji_json} | jq -r '.[] | "\(.emoji) \t   \(.description)"' | sed -e 's,\\t,\t,g' > $out
+      '';
 
-  writeShellApp = args:
+  writeShellApp =
+    args:
     let
       pname = args.name;
       src = args.src or (./. + "/${args.name}.sh");
@@ -26,19 +35,21 @@ let
       dontBuild = true;
 
       installPhase = ''
-        runHook preInstall
-        mkdir -p $out/bin
-        cp $src $out/bin/${args.name}
-        runHook postInstall
+        
+                runHook preInstall
+                mkdir -p $out/bin
+                cp $src $out/bin/${args.name}
+                runHook postInstall
       '';
 
       doInstallCheck = true;
       installCheckPhase = ''
-        runHook preInstallCheck
-        ${final.stdenv.shellDryRun} "$out/bin/${args.name}"
-        ${final.shellcheck}/bin/shellcheck "$out/bin/${args.name}"
-        ${final.shfmt}/bin/shfmt --diff -s -ln bash -i 0 -ci "$out/bin/${args.name}"
-        runHook postInstallCheck
+        
+                runHook preInstallCheck
+                ${final.stdenv.shellDryRun} "$out/bin/${args.name}"
+                ${final.shellcheck}/bin/shellcheck "$out/bin/${args.name}"
+                ${final.shfmt}/bin/shfmt --diff -s -ln bash -i 0 -ci "$out/bin/${args.name}"
+                runHook postInstallCheck
       '';
 
       solutions.default = {
@@ -50,13 +61,20 @@ in
 {
   checkart = writeShellApp {
     name = "checkart";
-    inputs = with final; [ coreutils findutils ];
+    inputs = with final; [
+      coreutils
+      findutils
+    ];
   };
 
   drunmenu-wayland = writeShellApp {
     name = "drunmenu";
     src = ./drunmenu-wayland.sh;
-    inputs = with final; [ gnused spawn wofi ];
+    inputs = with final; [
+      gnused
+      spawn
+      wofi
+    ];
     execer = [
       "cannot:${final.wofi}/bin/wofi"
       # FIXME: This is a lie, but I don't know how to get resholve to relax
@@ -68,7 +86,10 @@ in
   drunmenu-x11 = writeShellApp {
     name = "drunmenu";
     src = ./drunmenu-x11.sh;
-    inputs = with final; [ rofi spawn ];
+    inputs = with final; [
+      rofi
+      spawn
+    ];
     execer = [
       "cannot:${final.rofi}/bin/rofi"
       # FIXME: This is a lie, but I don't know how to get resholve to relax
@@ -80,38 +101,60 @@ in
   emojimenu-wayland = writeShellApp {
     name = "emojimenu";
     src = ./emojimenu-wayland.sh;
-    inputs = with final; [ coreutils wl-clipboard wofi ];
+    inputs = with final; [
+      coreutils
+      wl-clipboard
+      wofi
+    ];
     execer = [
       "cannot:${final.wofi}/bin/wofi"
       "cannot:${final.wl-clipboard}/bin/wl-copy"
     ];
-    prologue = (final.writeText "export-emoji-list" ''
-      export emoji_list="${emoji_list}"
-    '').outPath;
+    prologue =
+      (final.writeText "export-emoji-list" ''
+        
+              export emoji_list="${emoji_list}"
+      '').outPath;
   };
 
   emojimenu-x11 = writeShellApp {
     name = "emojimenu";
     src = ./emojimenu-x11.sh;
-    inputs = with final; [ coreutils rofi xclip ];
+    inputs = with final; [
+      coreutils
+      rofi
+      xclip
+    ];
     execer = [
       "cannot:${final.rofi}/bin/rofi"
       "cannot:${final.xclip}/bin/xclip"
     ];
-    prologue = (final.writeText "export-emoji-list" ''
-      export emoji_list="${emoji_list}"
-    '').outPath;
+    prologue =
+      (final.writeText "export-emoji-list" ''
+        
+              export emoji_list="${emoji_list}"
+      '').outPath;
   };
 
   fixart = writeShellApp {
     name = "fixart";
-    inputs = with final; [ coreutils findutils ];
+    inputs = with final; [
+      coreutils
+      findutils
+    ];
     fake.external = [ "beet" ];
   };
 
   screenocr = writeShellApp {
     name = "screenocr";
-    inputs = with final; [ coreutils findutils grim slurp tesseract5 wl-clipboard ];
+    inputs = with final; [
+      coreutils
+      findutils
+      grim
+      slurp
+      tesseract5
+      wl-clipboard
+    ];
     execer = [
       "cannot:${final.tesseract5}/bin/tesseract"
     ];
@@ -119,7 +162,11 @@ in
 
   screenshot = writeShellApp {
     name = "screenshot";
-    inputs = with final; [ grim slurp swappy ];
+    inputs = with final; [
+      grim
+      slurp
+      swappy
+    ];
     execer = [
       "cannot:${final.swappy}/bin/swappy"
     ];
@@ -127,7 +174,11 @@ in
 
   spawn = writeShellApp {
     name = "spawn";
-    inputs = with final; [ coreutils systemd util-linux ];
+    inputs = with final; [
+      coreutils
+      systemd
+      util-linux
+    ];
     execer = [ "cannot:${final.systemd}/bin/systemd-run" ];
   };
 }

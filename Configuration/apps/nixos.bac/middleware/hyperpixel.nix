@@ -13,13 +13,15 @@ final: _: {
     buildInputs = [ final.libgpiod ];
 
     buildPhase = ''
-      gcc -o hyperpixel4-init src/hyperpixel4-init.c -lgpiod
+      
+            gcc -o hyperpixel4-init src/hyperpixel4-init.c -lgpiod
     '';
 
     installPhase = ''
-      mkdir -p $out/bin
-
-      install -m 0755 hyperpixel4-init -t $out/bin
+      
+            mkdir -p $out/bin
+      
+            install -m 0755 hyperpixel4-init -t $out/bin
     '';
   };
 
@@ -37,17 +39,19 @@ final: _: {
     buildInputs = [ final.dtc ];
 
     buildPhase = ''
-      dtc -@ -I dts -O dtb -o hyperpixel4-common.dtbo src/hyperpixel4-common-overlay.dts
-      dtc -@ -I dts -O dtb -o hyperpixel4-0x14.dtbo src/hyperpixel4-0x14-overlay.dts
-      dtc -@ -I dts -O dtb -o hyperpixel4-0x5d.dtbo src/hyperpixel4-0x5d-overlay.dts
+      
+            dtc -@ -I dts -O dtb -o hyperpixel4-common.dtbo src/hyperpixel4-common-overlay.dts
+            dtc -@ -I dts -O dtb -o hyperpixel4-0x14.dtbo src/hyperpixel4-0x14-overlay.dts
+            dtc -@ -I dts -O dtb -o hyperpixel4-0x5d.dtbo src/hyperpixel4-0x5d-overlay.dts
     '';
 
     installPhase = ''
-      mkdir -p $out/share/overlays
-      mkdir -p $out/share/sources
-
-      install *.dtbo -t $out/share/overlays
-      install src/*.dts -t $out/share/sources
+      
+            mkdir -p $out/share/overlays
+            mkdir -p $out/share/sources
+      
+            install *.dtbo -t $out/share/overlays
+            install src/*.dts -t $out/share/sources
     '';
   };
 }

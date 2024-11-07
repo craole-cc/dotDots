@@ -13,10 +13,9 @@
     autorandr.enable = true;
   };
 
-  environment.systemPackages = with pkgs;
-    [
-      wev
-      fuzzel
-      foot
-    ];
+  environment.systemPackages = with pkgs; [
+    wev
+    fuzzel
+    foot
+  ];
 }

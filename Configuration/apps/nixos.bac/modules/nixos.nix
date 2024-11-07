@@ -1,25 +1,26 @@
-{ self
-, home-manager
-, impermanence
-, nixos-hardware
-, templates
-, nixpkgs
-, ragenix
-, ...
+{
+  self,
+  home-manager,
+  impermanence,
+  nixos-hardware,
+  templates,
+  nixpkgs,
+  ragenix,
+  ...
 }:
 let
   inherit (nixpkgs) lib;
-  nixRegistry =
-    {
-      nix.registry = {
-        nixpkgs.flake = nixpkgs;
-        p.flake = nixpkgs;
-        pkgs.flake = nixpkgs;
-        templates.flake = templates;
-      };
+  nixRegistry = {
+    nix.registry = {
+      nixpkgs.flake = nixpkgs;
+      p.flake = nixpkgs;
+      pkgs.flake = nixpkgs;
+      templates.flake = templates;
     };
+  };
   genConfiguration =
-    hostname: { hostPlatform, ... }:
+    hostname:
+    { hostPlatform, ... }:
     lib.nixosSystem {
       modules = [
         (../servers + "/${hostname}")

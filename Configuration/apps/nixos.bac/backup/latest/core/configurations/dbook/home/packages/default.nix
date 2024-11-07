@@ -1,1 +1,9 @@
-{imports = [./bash ./helix ./inkscape ./ripgrep ./starship];}
+{
+  imports = [
+    ./bash
+    ./helix
+    ./inkscape
+    ./ripgrep
+    ./starship
+  ];
+}

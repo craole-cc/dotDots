@@ -15,10 +15,11 @@ final: prev: {
     ];
 
     postPatch = ''
-      substituteInPlace scripts/mosh.pl \
-          --subst-var-by ssh "${final.openssh}/bin/ssh"
-      substituteInPlace scripts/mosh.pl \
-          --subst-var-by mosh-client "$out/bin/mosh-client"
+      
+            substituteInPlace scripts/mosh.pl \
+                --subst-var-by ssh "${final.openssh}/bin/ssh"
+            substituteInPlace scripts/mosh.pl \
+                --subst-var-by mosh-client "$out/bin/mosh-client"
     '';
   });
 }

@@ -9,15 +9,16 @@ final: _: {
     extraMeta.platforms = [ "aarch64-linux" ];
     filesToInstall = [ "u-boot.bin" ];
     extraConfig = ''
-      CONFIG_CMD_NVME=y
-      CONFIG_NVME=y
-      CONFIG_NVME_PCI=y
-      CONFIG_USB_EHCI_GENERIC=y
-      CONFIG_USB_EHCI_HCD=y
-      CONFIG_USB_FUNCTION_MASS_STORAGE=y
-      CONFIG_USB_OHCI_HCD=y
-      CONFIG_USB_STORAGE=y
-      CONFIG_USB_XHCI_BRCM=y
+      
+            CONFIG_CMD_NVME=y
+            CONFIG_NVME=y
+            CONFIG_NVME_PCI=y
+            CONFIG_USB_EHCI_GENERIC=y
+            CONFIG_USB_EHCI_HCD=y
+            CONFIG_USB_FUNCTION_MASS_STORAGE=y
+            CONFIG_USB_OHCI_HCD=y
+            CONFIG_USB_STORAGE=y
+            CONFIG_USB_XHCI_BRCM=y
     '';
     # These were taken from:
     # https://github.com/home-assistant/operating-system/tree/dev/buildroot-external/board/raspberrypi/patches/uboot

@@ -1,12 +1,14 @@
-{ self
-, deploy-rs
-, nixpkgs
-, ...
+{
+  self,
+  deploy-rs,
+  nixpkgs,
+  ...
 }:
 let
   inherit (nixpkgs) lib;
 
-  genNode = hostName: nixosCfg:
+  genNode =
+    hostName: nixosCfg:
     let
       inherit (self.hosts.${hostName}) address hostPlatform remoteBuild;
       inherit (deploy-rs.lib.${hostPlatform}) activate;

@@ -1,4 +1,4 @@
-{ config, lib,... }:
+{ config, lib, ... }:
 let
   inherit (config) DOTS;
   inherit (lib.options) mkOption;
@@ -12,17 +12,16 @@ in
 {
   options.DOTS.${base}.${mod} = mkOption {
     description = "The users that should been activated";
-    default =
-      {
-        ${name} = {
-          isNormalUser = true;
-          inherit description;
-          extraGroups = [
-            "networkmanager"
-            "wheel"
-          ];
-        };
+    default = {
+      ${name} = {
+        isNormalUser = true;
+        inherit description;
+        extraGroups = [
+          "networkmanager"
+          "wheel"
+        ];
       };
+    };
     type = attrsOf attrs;
   };
 

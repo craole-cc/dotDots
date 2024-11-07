@@ -136,8 +136,5 @@ let
 in
 {
   xdg.mimeApps.defaultApplications =
-    audioDefaults
-    // chatDefaults
-    // documentDefaults
-    // imageDefaults;
+    audioDefaults // chatDefaults // documentDefaults // imageDefaults;
 }

@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 
 {
-  imports = [];
+  imports = [ ];
   environment.systemPackages = with pkgs; [
     wl-clipboard
   ];

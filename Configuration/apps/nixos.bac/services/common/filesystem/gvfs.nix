@@ -1,4 +1,5 @@
-{ lib, pkgs, ... }:{
+{ lib, pkgs, ... }:
+{
   #| Automount USB
   services.gvfs = {
     enable = true;

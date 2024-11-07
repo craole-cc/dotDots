@@ -1,4 +1,10 @@
-{ lib, pkgs, config, modulesPath, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  modulesPath,
+  ...
+}:
 
 let
   nixos-wsl = import ./nixos-wsl;
@@ -12,12 +18,12 @@ let
   NixWSL_vr3n = vars.NixWSL_vr3n or "";
 in
 {
-  imports =
-    [ "${modulesPath}/profiles/minimal.nix"
-      nixos-wsl.nixosModules.wsl
-      <home-manager/nixos>
-      NixWSL_conf
-    ];
+  imports = [
+    "${modulesPath}/profiles/minimal.nix"
+    nixos-wsl.nixosModules.wsl
+    <home-manager/nixos>
+    NixWSL_conf
+  ];
 
   wsl = {
     enable = true;

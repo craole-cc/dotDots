@@ -1,4 +1,10 @@
-{ config, impermanence, lib, pkgs, ... }:
+{
+  config,
+  impermanence,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
 {
   age.secrets.craolePassword.file = ./password.age;
@@ -9,10 +15,17 @@ with lib;
     createHome = true;
     description = "Craig 'Craole' Cole";
     group = "craole";
-    extraGroups = [ "wheel" "dialout" ]
+    extraGroups =
+      [
+        "wheel"
+        "dialout"
+      ]
       ++ optionals config.hardware.i2c.enable [ "i2c" ]
       ++ optionals config.networking.networkmanager.enable [ "networkmanager" ]
-      ++ optionals config.programs.sway.enable [ "input" "video" ]
+      ++ optionals config.programs.sway.enable [
+        "input"
+        "video"
+      ]
       ++ optionals config.services.unbound.enable [ "unbound" ]
       ++ optionals config.sound.enable [ "audio" ]
       ++ optionals config.virtualisation.docker.enable [ "docker" ]
@@ -34,16 +47,16 @@ with lib;
 
   home-manager.users.craole = {
     imports = [
-    #   impermanence.home-manager.impermanence
-    #   ./core
-    #   ./dev
-    #   ./modules
-    # ] ++ optionals config.programs.sway.enable [
-    #   ./graphical
-    #   ./graphical/sway
-    # ] ++ optionals config.services.xserver.windowManager.i3.enable [
-    #   ./graphical
-    #   ./graphical/i3
+      #   impermanence.home-manager.impermanence
+      #   ./core
+      #   ./dev
+      #   ./modules
+      # ] ++ optionals config.programs.sway.enable [
+      #   ./graphical
+      #   ./graphical/sway
+      # ] ++ optionals config.services.xserver.windowManager.i3.enable [
+      #   ./graphical
+      #   ./graphical/i3
     ];
 
     home.username = config.users.users.craole.name;
