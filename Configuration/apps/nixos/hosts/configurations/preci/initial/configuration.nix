@@ -179,7 +179,6 @@ in
 
   programs = {
     bash = {
-      enable = true;
       shellInit = ''
         [ -f ${DOTSRC} ] && . "${DOTSRC}"
       '';
