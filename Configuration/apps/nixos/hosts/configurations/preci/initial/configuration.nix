@@ -160,11 +160,11 @@ in
     pam.services = {
       login = {
         enableKwallet = plasmaEnabled;
-        forceRun = true;
+        # forceRun = true;
       };
       sddm = {
         enableKwallet = plasmaEnabled && sddmEnabled;
-        forceRun = true;
+        # forceRun = true;
       };
     };
     sudo = {
