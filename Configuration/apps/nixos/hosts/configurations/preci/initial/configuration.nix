@@ -218,7 +218,6 @@ in
       tldr
       fd
       jq
-      pcutils
 
       #| Development
       nil
