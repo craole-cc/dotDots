@@ -92,11 +92,14 @@
           };
         }
       ];
-      args = [
-        dot
-        mod
-        bin
-      ];
+      args = {
+        inherit
+          dot
+          mod
+          bin
+          ;
+      };
+
     in
     {
       nixosConfigurations = {
