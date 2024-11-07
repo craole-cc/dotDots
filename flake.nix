@@ -92,6 +92,11 @@
           };
         }
       ];
+      args = [
+        dot
+        mod
+        bin
+      ];
     in
     {
       nixosConfigurations = {
@@ -113,6 +118,7 @@
                 # DOTS.hosts.Preci.enable = true;
               }
             ];
+            extraArgs = args;
           };
 
         dbook = nixosSystem {
