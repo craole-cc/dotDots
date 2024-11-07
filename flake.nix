@@ -7,17 +7,20 @@
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
 
-      dots = __getEnv "HOME" + "/Documents/dotfiles";
-      bin = dots + "/Bin";
-      modules = dots + "/Configuration/apps/nixos";
+      dot = (__getEnv "HOME") + "/Documents/dotfiles";
+      mod = "/Configuration/apps/nixos";
+      bin = "/Bin";
+
       variables = {
-        DOTS = dots;
-        DOTS_BIN = bin;
-        DOTS_NIX = modules;
+        DOTS = dot;
+        DOTS_BIN = dot + bin;
+        DOTS_NIX = dot + mod;
       };
       shellAliases = {
-        Flake = "sudo nixos-rebuild switch --flake ${dots}";
+        Flake = "sudo nixos-rebuild switch --flake ${dot}";
       };
+
+      modules = ./. + mod;
       coreModules = [ modules ] ++ homeModules;
       homeModules = [
         home-manager
