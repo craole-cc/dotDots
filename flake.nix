@@ -121,7 +121,9 @@
                 # DOTS.hosts.Preci.enable = true;
               }
             ];
-            extraArgs = args;
+            specialArgs = {
+              inherit args;
+            };
           };
 
         dbook = nixosSystem {
