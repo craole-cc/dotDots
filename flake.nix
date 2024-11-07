@@ -6,10 +6,34 @@
       inherit (inputs.nixpkgs.lib) nixosSystem;
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
+      pkg = system: inputs.nixpkgs.legacyPackages.${system};
 
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
       bin = dot + "/Bin";
+
+      flakeSwitch =
+        pkgs:
+        pkgs.writeShellScriptBin "flake-switch" ''
+          #! /bin/sh
+
+          #| Set default message if not provided
+          MESSAGE="Flake Update"
+          [ "$1" ] && MESSAGE="$1"
+
+          #| Navigate to the directory where the flake is located
+          pushd ${dot} || exit
+
+          #| Add all changes and commit with the provided or default message
+          git add --all
+          git commit --message "$MESSAGE"
+
+          #| Rebuild NixOS configuration using flakes
+          sudo nixos-rebuild switch --flake .
+
+          #| Return to the previous directory
+          popd
+        '';
 
       variables = {
         DOTS = dot;
@@ -48,17 +72,24 @@
     in
     {
       nixosConfigurations = {
-        preci = nixosSystem {
-          system = "x86_64-linux";
-          modules = coreModules ++ [
-            {
-              environment = {
-                inherit variables shellAliases pathsToLink;
-              };
-              # DOTS.hosts.Preci.enable = true;
-            }
-          ];
-        };
+        preci =
+          let
+            system = "x86_64-linux";
+          in
+          nixosSystem {
+            inherit system;
+            modules = coreModules ++ [
+              {
+                environment = {
+                  inherit variables shellAliases pathsToLink;
+                  systemPackages = [
+                    (flakeSwitch pkg system)
+                  ];
+                };
+                # DOTS.hosts.Preci.enable = true;
+              }
+            ];
+          };
 
         dbook = nixosSystem {
           system = "x86_64-linux";

@@ -160,9 +160,11 @@ in
     pam.services = {
       login = {
         enableKwallet = plasmaEnabled;
+        forceRun = true;
       };
       sddm = {
         enableKwallet = plasmaEnabled && sddmEnabled;
+        forceRun = true;
       };
     };
     sudo = {
@@ -212,11 +214,11 @@ in
       bat
       fzf
       ripgrep
-      ripgrep-all
       sd
       tldr
       fd
       jq
+      pcutils
 
       #| Development
       nil
