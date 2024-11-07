@@ -5,6 +5,10 @@
   modulesPath,
   ...
 }:
+let
+  plasmaEnabled = config.services.desktopManager.plasma6.enable;
+  sddmEnabled = config.services.displayManager.sddm.enable;
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -65,27 +69,6 @@
 
   i18n = {
     defaultLocale = lib.mkDefault "en_US.UTF-8";
-  };
-
-  security = {
-    sudo = {
-      execWheelOnly = true;
-      extraRules = [
-        {
-          users = [ "craole" ];
-          commands = [
-            {
-              command = "ALL";
-              options = [
-                "SETENV"
-                "NOPASSWD"
-              ];
-            }
-          ];
-        }
-      ];
-    };
-    rtkit.enable = true;
   };
 
   console = {
@@ -173,6 +156,35 @@
     };
   };
 
+  security = {
+    pam.services = {
+      login = {
+        enableKwallet = plasmaEnabled;
+      };
+      sddm = {
+        enableKwallet = plasmaEnabled && sddmEnabled;
+      };
+    };
+    sudo = {
+      execWheelOnly = true;
+      extraRules = [
+        {
+          users = [ "craole" ];
+          commands = [
+            {
+              command = "ALL";
+              options = [
+                "SETENV"
+                "NOPASSWD"
+              ];
+            }
+          ];
+        }
+      ];
+    };
+    rtkit.enable = true;
+  };
+
   programs = {
     # bash = {
     # shellInit = ''
@@ -192,18 +204,6 @@
   };
 
   environment = {
-    # pathsToLink = [
-    #   (DOTS + "/base")
-    #   (DOTS + "/core")
-    #   (DOTS + "/import")
-    #   (DOTS + "/interface")
-    #   (DOTS + "/misc")
-    #   (DOTS + "/packages")
-    #   (DOTS + "/project")
-    #   (DOTS + "/tasks")
-    #   (DOTS + "/template")
-    #   (DOTS + "/utility")
-    # ];
     systemPackages = with pkgs; [
       #| Core Utilities
       usbutils
