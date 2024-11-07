@@ -93,14 +93,6 @@ in
           "--color-scale"
         ];
       };
-      skim = {
-        enable = true;
-        defaultCommand = "rg --files --hidden";
-        changeDirWidgetOptions = [
-          "--preview 'eza --icons --git --color always -T -L 3 {} | head -200'"
-          "--exact"
-        ];
-      };
       git = {
         enable = true;
         userName = "Craole";
@@ -514,6 +506,17 @@ in
           "--max-columns-preview"
           "--colors=line:style:bold"
         ];
+      };
+      skim = {
+        enable = true;
+        defaultCommand = "rg --files --hidden";
+        changeDirWidgetOptions = [
+          "--preview 'eza --icons --git --color always -T -L 3 {} | head -200'"
+          "--exact"
+        ];
+      };
+      starship = {
+        enable = true;
       };
     };
   };

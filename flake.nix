@@ -17,7 +17,7 @@
         DOTS_NIX = dot + mod;
       };
       shellAliases = {
-        Flake = "sudo nixos-rebuild switch --flake ${dot}";
+        Flake = ''pushd ${dot} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
       };
 
       pathsToLink = [
