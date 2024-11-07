@@ -198,8 +198,17 @@ in
   environment = {
 
     pathsToLink = [
-      #TODO: This doesnt work
-      DOTS
+      (DOTS + "/base")
+      (DOTS + "/core")
+      (DOTS + "/import")
+      (DOTS + "/interface")
+      (DOTS + "/misc")
+      (DOTS + "/packages")
+      (DOTS + "/project")
+      (DOTS + "/tasks")
+      (DOTS + "/template")
+      (DOTS + "/utility")
+
     ];
     systemPackages = with pkgs; [
       #| Core Utilities
@@ -238,7 +247,7 @@ in
     ];
     variables = {
       inherit DOTS;
-      PATH = "$PATH:$DOTS/Bin";
+      # PATH = "$PATH:$DOTS/Bin";
       NIXOS_CONFIG = DOTS;
       # LESS = "-R";
       # COLORTERM = "truecolor";
