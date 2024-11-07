@@ -7,7 +7,7 @@
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
 
-      dot = "$HOME/Documents/dotfiles";
+      dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
       bin = dot + "/Bin";
 
