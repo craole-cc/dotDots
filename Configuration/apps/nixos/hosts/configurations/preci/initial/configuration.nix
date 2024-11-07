@@ -7,6 +7,7 @@
 }:
 let
   DOTS = "$HOME/Documents/dotfiles";
+  DOTSRC = DOTS + "/.dotsrc";
 in
 {
   imports = [
@@ -177,6 +178,12 @@ in
   };
 
   programs = {
+    bash = {
+      enable = true;
+      shellInit = ''
+        [ -f ${DOTSRC} ] && . "${DOTSRC}"
+      '';
+    };
     hyprland.enable = true;
     hyprlock.enable = true;
     git = {
