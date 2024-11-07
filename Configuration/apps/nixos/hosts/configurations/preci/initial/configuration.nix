@@ -190,7 +190,9 @@ in
   };
 
   environment = {
+
     pathsToLink = [
+      #TODO: This doesnt work
       DOTS
     ];
     systemPackages = with pkgs; [
@@ -230,6 +232,7 @@ in
     ];
     variables = {
       inherit DOTS;
+      PATH = "$PATH:$DOTS/Bin";
       NIXOS_CONFIG = DOTS;
       # LESS = "-R";
       # COLORTERM = "truecolor";

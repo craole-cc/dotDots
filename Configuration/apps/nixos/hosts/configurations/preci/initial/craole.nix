@@ -85,12 +85,12 @@ in
       };
       eza = {
         enable = true;
+        #TODO: None of these are working
         git = true;
         icons = "auto";
         extraOptions = [
           "--group-directories-first"
           "--color-scale"
-          "--icons"
         ];
       };
       skim = {
