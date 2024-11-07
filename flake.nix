@@ -7,13 +7,16 @@
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
 
-dots=./.;
-bin=dots +"/Bin";
-      modules = dots+"/Configuration/apps/nixos";
+      dots = ./.;
+      bin = dots + "/Bin";
+      modules = dots + "/Configuration/apps/nixos";
       variables = {
-        DOTS=dots;
-        DOTS_BIN=bin;
-        DOTS_NIX=modules;
+        DOTS = dots;
+        DOTS_BIN = bin;
+        DOTS_NIX = modules;
+      };
+      shellAliases = {
+        Flake = "sudo nixos-rebuild switch --flake ${dots}";
       };
       coreModules = [ modules ] ++ homeModules;
       homeModules = [
@@ -33,7 +36,9 @@ bin=dots +"/Bin";
           system = "x86_64-linux";
           modules = coreModules ++ [
             {
-            environment={inherit variables;};
+              environment = {
+                inherit variables;
+              };
               # DOTS.hosts.Preci.enable = true;
             }
           ];

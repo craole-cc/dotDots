@@ -5,10 +5,6 @@
   modulesPath,
   ...
 }:
-let
-  DOTS = "$HOME/Documents/dotfiles";
-  DOTSRC = DOTS + "/.dotsrc";
-in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -196,7 +192,6 @@ in
   };
 
   environment = {
-
     # pathsToLink = [
     #   (DOTS + "/base")
     #   (DOTS + "/core")
