@@ -195,17 +195,17 @@ in
     ];
     systemPackages = with pkgs; [
       #| Core Utilities
-      bat
+      usbutils
+      uutils-coreutils-noprefix
       busybox
+      bat
       fzf
+      ripgrep
       ripgrep-all
       sd
       tldr
       fd
       jq
-      sutils
-      usbutils
-      uutils-coreutils-noprefix
 
       #| Development
       nil
@@ -230,7 +230,7 @@ in
     ];
     variables = {
       inherit DOTS;
-      NIXOS_CONFIG = "${DOTS}";
+      NIXOS_CONFIG = DOTS;
       # LESS = "-R";
       # COLORTERM = "truecolor";
       # TERM = "xterm-256color";
