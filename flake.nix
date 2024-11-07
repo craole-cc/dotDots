@@ -35,6 +35,28 @@
           popd
         '';
 
+      # Define the flake-update script as a binary
+      flakeUpdate = pkgs.writeShellScriptBin "flake-update" ''
+        #! /bin/sh
+
+        # Set default message if not provided
+        MESSAGE="Flake Update"
+        [ "$1" ] && MESSAGE="$1"
+
+        # Navigate to the directory where the flake is located
+        pushd ${dot} || exit
+
+        # Add all changes and commit with the provided or default message
+        git add --all
+        git commit --message "$MESSAGE"
+
+        # Rebuild NixOS configuration using flakes
+        sudo nixos-rebuild switch --flake .
+
+        # Return to the previous directory
+        popd
+      '';
+
       variables = {
         DOTS = dot;
         DOTS_BIN = bin;
@@ -83,7 +105,8 @@
                 environment = {
                   inherit variables shellAliases pathsToLink;
                   systemPackages = [
-                    (flakeSwitch pkg system)
+                    flakeUpdate
+                    # (flakeSwitch pkg system)
                   ];
                 };
                 # DOTS.hosts.Preci.enable = true;
