@@ -9,16 +9,29 @@
 
       dot = (__getEnv "HOME") + "/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
-      bin = "/Bin";
+      bin = dot + "/Bin";
 
       variables = {
         DOTS = dot;
-        DOTS_BIN = dot + bin;
+        DOTS_BIN = bin;
         DOTS_NIX = dot + mod;
       };
       shellAliases = {
         Flake = "sudo nixos-rebuild switch --flake ${dot}";
       };
+
+      pathsToLink = [
+        (bin + "/base")
+        (bin + "/core")
+        (bin + "/import")
+        (bin + "/interface")
+        (bin + "/misc")
+        (bin + "/packages")
+        (bin + "/project")
+        (bin + "/tasks")
+        (bin + "/template")
+        (bin + "/utility")
+      ];
 
       modules = ./. + mod;
       coreModules = [ modules ] ++ homeModules;
@@ -40,7 +53,7 @@
           modules = coreModules ++ [
             {
               environment = {
-                inherit variables shellAliases;
+                inherit variables shellAliases pathsToLink;
               };
               # DOTS.hosts.Preci.enable = true;
             }
