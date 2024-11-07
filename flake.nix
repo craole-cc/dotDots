@@ -7,6 +7,7 @@
       inherit (inputs.darwin.lib) darwinSystem;
       inherit (inputs.home-manager.nixosModules) home-manager;
       pkg = system: inputs.nixpkgs.legacyPackages.${system};
+      pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
 
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
