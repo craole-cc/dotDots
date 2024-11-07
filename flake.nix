@@ -37,7 +37,7 @@
           modules = coreModules ++ [
             {
               environment = {
-                inherit variables;
+                inherit variables shellAliases;
               };
               # DOTS.hosts.Preci.enable = true;
             }
