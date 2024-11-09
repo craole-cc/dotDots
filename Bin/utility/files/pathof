@@ -1,0 +1,401 @@
+#!/bin/sh
+
+main() {
+  #@ Define metadata
+  _cmd_PATH="$(search_all "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_AUTHOR="Craole"
+  _cmd_USAGE="$_cmd_NAME [OPTIONS] <target_path>"
+  _cmd_VERSION="1.5.0"
+  _cmd_DESCRIPTION="Search for a target in the filesystem and in the PATH"
+  _cmd_DEPENDENCIES="coreutils, fd, find"
+
+  #@ Parse arguments
+  unset cwd pattern path
+
+  if [ "$1" ]; then
+    path="$(search_all --closest "$1")"
+  else
+    logline --fatal --error "$_cmd_NAME" "target not provided."
+  fi
+
+  #@ Check if the target path is a known binary
+  if [ -e "$path" ]; then
+    printf "%s" "$path"
+  elif [ "$path" ]; then
+    logline \
+      --error "$_cmd_NAME" "The path to '$1' does not exist" \
+      --fatal 2
+  else
+    logline \
+      --error "$_cmd_NAME" "Unable to locate path to '$1'" \
+      --fatal 1
+  fi
+}
+
+logline() {
+  # | Set default values for local variables
+  code=0
+  notify=""
+  info=""
+  label=""
+  last_line=
+  paragraph=""
+  delimiter=" |> "
+
+  if type notify-send >/dev/null 2>&1; then
+    notifier="notify-send"
+  fi
+
+  # | Quit function early if no arguments provided, print a blank line like echo
+  [ $# -eq 0 ] && return 0
+
+  # | Tag the last line to prevent printing a blank line
+  case "$@" in *"-ll"* | *"-last"* | *"-fatal"*) last_line=true ;; esac
+
+  # | Parse options
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --info | --error | --warn*)
+      special=true
+      case "$1" in
+      --info)
+        [ "$verbose" ] && label="INFO: "
+        code="${code:-0}"
+        ;;
+      --warn*)
+        label="WARN: "
+        code="${code:-1}"
+        ;;
+      --error)
+        label="ERROR: "
+        code="${code:-1}"
+        ;;
+      esac
+
+      [ "$#" -eq 2 ] && info="${label}${2}"
+      [ "$#" -gt 2 ] && {
+        label="${label}${2}"
+        info="${label}${delimiter}${3}"
+
+        # | Generate padding to place before each info
+        len_label="${#label}"
+        len_delim="${#delimiter}"
+        padding_length=$((len_label + len_delim))
+        info_padding="$(printf "%-${padding_length}s")"
+
+        # | Append additional info with leading padding and new line
+        while [ "$#" -gt 3 ]; do
+          case "$4" in -*) break ;; esac
+          info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+          shift
+        done
+      }
+      ;;
+    --code)
+      special=true
+      case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
+      ;;
+    --fatal)
+      special=true
+      fatal=true
+      case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
+      ;;
+    --note)
+      special=true
+      info="Note: "
+      while [ "$#" -gt 1 ]; do
+        case "$2" in -*) break ;; esac
+        info="${info}${2}"
+        shift
+      done
+      ;;
+    --notify) notify=true ;;
+    --delim*)
+      delimiter="$(printf "%s" "$2")"
+      ;;
+    -l | --last | --line-last) ;;
+    -n | --line | --line-new)
+      [ "$2" ] && {
+        info="$(printf "%s\n%s" "$info" "$2")"
+        shift
+      }
+      ;;
+    -p | --paragraph)
+      [ "$2" ] && {
+        info="$(printf "%s\n%s" "$info" "$2")"
+        shift
+      }
+      paragraph=true
+      ;;
+    -s | --space)
+      [ "$2" ] && {
+        info="$(printf "%s %s" "$info" "$2")"
+        shift
+      }
+      ;;
+    -j | --join)
+      [ "$2" ] && {
+        info="$(printf "%s%s" "$info" "$2")"
+        shift
+      }
+      ;;
+    -*) ;;
+    *)
+      [ "$special" ] ||
+        if [ "$info" ]; then
+          info="${info} ${1}"
+        else
+          info="$1"
+        fi
+      ;;
+    esac
+    shift
+  done
+
+  #| TTY Output
+  printf "%s" "$info"
+  [ "$last_line" ] || printf "\n"
+  [ "$paragraph" ] && printf "\n"
+
+  #| GUI Output
+  [ "$notify" ] && [ "$notifier" ] && "$notifier" "$info"
+
+  #| Terminate
+  if [ "$fatal" ]; then exit "$code"; else return "$code"; fi
+}
+
+prep_lookup() {
+  #doc Description
+  #doc Parse arguments, resolve the given pattern to an absolute path if it is relative,
+  #doc and return the resolved path. Otherwise, return the original pattern.
+  #doc
+  #doc Usage
+  #doc prep_lookup [options] pattern
+  #doc
+  #doc Options
+  #doc -c, --cwd cwd    The current working directory to resolve the pattern in.
+  #doc
+  #doc Examples
+  #doc    prep_lookup -c /usr/share/icons foo.png
+  #doc    $(pwd)/foo.png
+  #doc
+  #doc    prep_lookup ./usr/share/icons/foo.png
+  #doc    /usr/share/icons/foo.png${reset}
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    -c | --cwd) cwd="$2" ;;
+    *) pattern="$1" ;;
+    esac
+    shift
+  done
+
+  #@ Resolve the pattern to an absolute path if it is relative
+  #@ Otherwise, return the original pattern
+  case "$pattern" in
+  ./*)
+    #@ Remove the leading './' from the pattern if present
+    pattern="${pattern#./}"
+
+    #@ Return the prep_lookupd path
+    printf "%s" "${cwd:-$(pwd)}/${pattern}"
+    ;;
+  *)
+    #@ Return the original pattern
+    printf "%s" "$pattern"
+    ;;
+  esac
+}
+
+search_exe() {
+  #doc Check if a command exists in the system's PATH and return its path if found.
+  #doc
+  #doc Usage: search_exe <pattern>
+  #doc
+  #doc Description:
+  #doc   This function searches for a command by name (pattern) in the system's PATH
+  #doc   using the 'command -v' utility. If the command is found, the function returns
+  #doc   the path to the executable. Otherwise, it returns nothing.
+
+  command -v "$pattern" >/dev/null 2>&1 &&
+    command -v "$pattern"
+}
+
+search_fs() {
+  #doc Search the filesystem for a pattern in both directions from the
+  #doc current working directory, and return the list of paths.
+  #doc
+  #doc Usage: search_fs [--cwd <directory>] <pattern>
+  #doc
+  #doc Options:
+  #doc   --cwd: Set the current working directory to <directory>. If not provided,
+  #doc          the current working directory is used.
+  #doc
+  #doc Examples:
+  #doc   search_fs --cwd /home/user test.txt
+  #doc   search_fs test.txt
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --cwd) cwd="$2" ;;
+    *) pattern="$1" ;;
+    esac
+    shift
+  done
+
+  #@ Set defaults
+  [ "$cwd" ] || cwd="$(pwd)"
+
+  search_fs__downwards() {
+    #doc Search for a pattern in the directory tree below the given directory,
+    #doc recursively. The search is case-sensitive. The search is performed
+    #doc downwards from the given directory, and the paths are returned as absolute
+    #doc paths.
+    #doc
+    #doc Usage: search_fs__downwards <directory> <pattern>
+    #doc
+    #doc Options:
+    #doc   <directory>: The directory to start the search from.
+    #doc   <pattern>: The pattern to search for.
+    #doc
+    #doc Notes:
+    #doc   The function returns nothing if the pattern is not found.
+
+    dir="$1"
+    target="$2"
+
+    if type fd >/dev/null 2>&1; then
+      fd --base-directory "$dir" --absolute-path --hidden --glob "$target"
+    elif type find >/dev/null 2>&1; then
+      find "$dir" -wholename "*/$target"
+    fi
+  }
+
+  search_fs__upwards() {
+    #doc Search for the pattern in the current working directory and upwards.
+    #doc
+    #doc Usage: search_fs__upwards
+    #doc
+    #doc Description:
+    #doc   This function searches for the given pattern in the current working directory
+    #doc   and upwards. It runs search_fs__downwards in a loop until it reaches the root
+    #doc   directory, at which point it stops.
+
+    dir="$1"
+    target="$2"
+
+    while [ "$dir" != "/" ]; do
+      result="$(search_fs__downwards "$dir" "$target")"
+      [ "$result" ] && printf "%s" "$result" && break
+      dir="$(dirname "$dir")"
+    done
+  }
+
+  #@ Search the filesystem in both directions
+  pathlist="$(search_fs__downwards "$cwd" "$pattern")"
+  [ "$pathlist" ] ||
+    pathlist="$(search_fs__upwards "$cwd" "$pattern")"
+
+  #@ Return the list of paths
+  printf "%s" "$pathlist"
+}
+
+find_closest() {
+  #doc   Return the closest match to the current directory.
+  #doc
+  #doc   This function takes a list of paths and returns the closest one to the current directory.
+  #doc   The algorithm works as follows:
+  #doc
+  #doc   1. Print each file path with its level of nesting (NF-1)
+  #doc   2. Sort the file list by nesting level
+  #doc   3. Remove the nesting level from each line
+  #doc   4. Select the first item (i.e. the file closest to the current directory)
+  #doc
+  #doc   The closest file is defined as the file with the lowest nesting level. If two files have
+  #doc   the same nesting level, the first one is returned.
+
+  #@ Extract the desired path from the list
+  path="$(
+    printf "%s" "$pathlist" |
+      awk -F'/' '{print NF-1, $0}' | # 1
+      sort -n |                      # 2
+      cut -d' ' -f2- |               # 3
+      head -n 1                      # 4
+  )"
+
+  #@ Remove trailing backslash on Windows
+  path="${path%\\}"
+
+  #@ Remove trailing slash, if any
+  path="${path%/}"
+
+  #@ Return the path
+  printf "%s" "$path"
+}
+
+search_all() {
+  #doc Search for a pattern in the current directory, the filesystem, and in the PATH.
+  #doc
+  #doc Usage: search_all [--cwd <directory>] [--first | --closest] <pattern>
+  #doc
+  #doc Options:
+  #doc   --cwd: Set the current working directory to <directory>. If not provided,
+  #doc          the current working directory is used.
+  #doc   --first | --closest: Return the first match or the closest match to the
+  #doc                    current directory.
+  #doc
+  #doc Examples:
+  #doc   search_all --cwd /home/user --first test.txt
+  #doc   search_all --cwd /home/user --closest test.txt
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --cwd) cwd="$2" ;;
+    --first | --closest) closest=true ;;
+    *) pattern="$1" ;;
+    esac
+    shift
+  done
+
+  #@ Set defaults
+  [ "$cwd" ] || cwd="$(pwd)"
+  pattern="$(prep_lookup "$pattern")"
+
+  #@ Define the pattern as the initial path return
+  path="$pattern"
+
+  #@ Check for the path among the known executables
+  [ -e "$path" ] || path="$(search_exe "$pattern")"
+
+  #@ Check for the path in the filesystem
+  [ -e "$path" ] || {
+    pathlist="$(search_fs --cwd "$cwd" "$pattern")"
+
+    if [ "$closest" ]; then
+      path="$(find_closest "$pathlist")"
+    else
+      path="$pathlist"
+    fi
+  }
+
+  #@ Return the path or an empty string
+  printf "%s" "$path"
+}
+
+tests() {
+  main ls
+  echo
+  main bat
+  echo
+  main geet
+  echo
+  main adcocjohghhfpidemphmcmlmhnfgikei
+}
+
+main "$@"
+# tests

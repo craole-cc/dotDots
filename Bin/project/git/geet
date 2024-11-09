@@ -8,8 +8,7 @@
 # @	INFORMATION         			                     @ #
 # @ ============================================== @ #
 establish_metadata() {
-  # _cmd_PATH="$(pathof "$0")"
-  _cmd_PATH="$(readlink -f "$0")"
+  _cmd_PATH="$(pathof "$0")"
   _cmd_NAME="$(basename "$_cmd_PATH")"
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
@@ -217,163 +216,445 @@ establish_environment() {
 # @ ============================================== @ #
 # @	VALIDATION             	                       @ #
 # @ ============================================== @ #
+establish_validators() {
+  validate_dependencies() {
+    # | Set default values for local variables
+    missing_deps=""
+    missing_deps_count=0
 
-validate_dependencies() {
-  # | Set default values for local variables
-  missing_deps=""
-  missing_deps_count=0
+    # | Validate dependencies as executable files
+    #TODO: pathof Dependency
+    for dependency in $_cmd_DEPENDENCIES; do
+      printf "%s\n" "$dependency"
+      #  [ -x "$(pathof "$dependency")" ] ||
+      #     if [ -n "$missing_deps" ]; then
+      #       missing_deps="$missing_deps, $dependency"
+      #     else
+      #       missing_deps="$dependency"
+      #     fi
+    done
 
-  # | Validate dependencies as executable files
-  #TODO: PathOf Dependency
-  for dependency in $_cmd_DEPENDENCIES; do
-    # pathof "$dependency" --is-executable ||
-    if [ -n "$missing_deps" ]; then
-      missing_deps="$missing_deps, $dependency"
+    # | Continue the program if dependency paths are validated
+    [ "$missing_deps" ] || return
+
+    # | Count the number of missing dependencies
+    missing_deps_count="$(
+      printf "%s\n" "$missing_deps" |
+        tr ',' '\n' | wc -l
+    )"
+
+    # | Update the error message based on the count
+    msg="Missing dependency"
+    [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
+
+    # | Halt the program and report missing dependencies
+    logline --error "$msg" "$missing_deps"
+    exit 2
+  }
+
+  validate_local_repo() {
+
+    # | Check if the folder is part of a valid git repository
+    [ "$geet_dir" ] || {
+      logline --error \
+        "Invalid Directory" \
+        "Git has not been initialized in this directory"
+      exit 2
+    }
+
+    [ "$target_repo" ] || {
+      logline --error \
+        "Invalid Repository" \
+        "Ensure the origin is set"
+      exit 2
+    }
+
+    # | Check if the remote origin URL matches the expected repository URL
+    [ "$actual_repo" = "$target_repo" ] || {
+      logline --error \
+        "invalid local repository" \
+        "expected: $target_repo" \
+        "  actual: $actual_repo"
+      exit 3
+    }
+  }
+
+  validate_submodules() {
+    # | Ensure we are running our commands from the topmost git_dir
+    work_in "$geet_dir"
+
+    #| Ensure the project has submodules
+    if [ -f "$geet_modules" ]; then
+      submodules=$(
+        awk -F'"' 'BEGIN {ORS=" "} /^\[submodule "[^"]+"\]/{print $2}' \
+          "$geet_modules"
+      )
+
+      # shellcheck disable=2086
+      set -- $submodules
     else
-      missing_deps="$dependency"
-    fi
-  done
-
-  # | Continue the program if dependency paths are validated
-  [ "$missing_deps" ] || return
-
-  # | Count the number of missing dependencies
-  missing_deps_count="$(
-    printf "%s\n" "$missing_deps" |
-      tr ',' '\n' | wc -l
-  )"
-
-  # | Update the error message based on the count
-  msg="Missing dependency"
-  [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
-
-  # | Halt the program and report missing dependencies
-  console_log --error "$msg" "$missing_deps"
-  exit 2
-}
-
-validate_local_repo() {
-
-  # | Check if the folder is part of a valid git repository
-  [ "$geet_dir" ] || {
-    console_log --error \
-      "Invalid Directory" \
-      "Git has not been initialized in this directory"
-    exit 2
-  }
-
-  [ "$target_repo" ] || {
-    console_log --error \
-      "Invalid Repository" \
-      "Ensure the origin is set"
-    exit 2
-  }
-
-  # | Check if the remote origin URL matches the expected repository URL
-  [ "$actual_repo" = "$target_repo" ] || {
-    console_log --error \
-      "invalid local repository" \
-      "expected: $target_repo" \
-      "  actual: $actual_repo"
-    exit 3
-  }
-}
-
-validate_submodules() {
-  # | Ensure we are running our commands from the topmost git_dir
-  work_in "$geet_dir"
-
-  #| Ensure the project has submodules
-  if [ -f "$geet_modules" ]; then
-    submodules=$(
-      awk -F'"' 'BEGIN {ORS=" "} /^\[submodule "[^"]+"\]/{print $2}' \
+      logline --error \
+        "Submodules Missing. Ensure .gitmodules exists at the project root" \
         "$geet_modules"
-    )
+      exit 2
+    fi
+
+    # | Exit early if submodule is unspecified
+    [ "$submodule" ] || {
+      logline --info \
+        "Including submodule(s)" \
+        "$@"
+
+      return 0
+    }
+
+    #| Validate the requested submodule
+    valid=false
+    submodule="${submodule%%\\}" # Remove trailing backslash on Windows
+    submodule="${submodule%/}"   # Remove trailing slash, if any
+    submodule="${submodule#/}"   # Remove leading slash, if any
+
+    for item in $submodules; do
+      case "$item" in "$submodule") valid=true break ;; esac
+    done
 
     # shellcheck disable=2086
-    set -- $submodules
-  else
-    console_log --error \
-      "Submodules Missing. Ensure .gitmodules exists at the project root" \
-      "$geet_modules"
-    exit 2
-  fi
+    if [ "$valid" = false ]; then
+      logline --warn "'$submodule' is not a valid submodule"
 
-  # | Exit early if submodule is unspecified
-  [ "$submodule" ] || {
-    console_log --info \
-      "Including submodule(s)" \
-      "$@"
+      # | Prompt the user for confirmation
+      printf "Did you intend this as the commit message? [y/N]: "
+      read -r response
 
-    return 0
+      case "$response" in
+      [yY])
+        return 0
+        ;;
+      *)
+        logline --error \
+          "Invalid Submodule. See valid submodules" "$@"
+        exit 1
+        ;;
+      esac
+    fi
+
   }
-
-  #| Validate the requested submodule
-  valid=false
-  submodule="${submodule%%\\}" # Remove trailing backslash on Windows
-  submodule="${submodule%/}"   # Remove trailing slash, if any
-  submodule="${submodule#/}"   # Remove leading slash, if any
-
-  for item in $submodules; do
-    case "$item" in "$submodule") valid=true break ;; esac
-  done
-
-  # shellcheck disable=2086
-  if [ "$valid" = false ]; then
-    console_log --warn "'$submodule' is not a valid submodule"
-
-    # | Prompt the user for confirmation
-    printf "Did you intend this as the commit message? [y/N]: "
-    read -r response
-
-    case "$response" in
-    [yY])
-      return 0
-      ;;
-    *)
-      console_log --error \
-        "Invalid Submodule. See valid submodules" "$@"
-      exit 1
-      ;;
-    esac
-  fi
-
 }
-
 # @ ============================================== @ #
 # @	UTILITIES			                                 @ #
 # @ ============================================== @ #
-display_info() {
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --usage)
-      # console_log --ll "$_cmd_USAGEGUIDE"
-      printf "%s" "$_cmd_USAGEGUIDE"
-      exit=true
-      ;;
-    --version)
-      console_log --ll "$_cmd_VERSION"
-      exit=true
-      ;;
-    --error)
-      code="$2" && shift 2
-      console_log --error "$@" -ll
-      exit=true
-      ;;
-    --code) code="$2" ;;
-    esac
-    shift
-  done
+establish_utilities() {
+  pathof() {
+    pathof__resolved() {
+      #@ Parse arguments
+      while [ "$#" -ge 1 ]; do
+        case $1 in
+        -c | --cwd) cwd="$2" ;;
+        *) pattern="$1" ;;
+        esac
+        shift
+      done
 
-  [ "$exit" ] && exit "${code:-0}"
-}
+      #@ Resolve the pattern to an absolute path if it is a relative path
+      #@ Otherwise, return the original pattern
+      case "$pattern" in
+      ./*)
+        #@ Remove the leading './' from the pattern if present
+        pattern="${pattern#./}"
 
-work_in() {
-  cd "$1" >/dev/null 2>&1 || {
-    console_log --error \
-      "Failed to access the directory" \
-      "$1"
-    exit 4
+        #@ Return the resolved path
+        printf "%s" "${cwd:-$(pwd)}/${pattern}"
+        ;;
+      *)
+        #@ Return the original pattern
+        printf "%s" "$pattern"
+        ;;
+      esac
+    }
+
+    pathof_found() {
+      #@ Parse arguments
+      while [ "$#" -ge 1 ]; do
+        case "$1" in
+        --cwd) cwd="$2" ;;
+        *) pattern="$1" ;;
+        esac
+        shift
+      done
+
+      #@ Set defaults
+      [ "$cwd" ] || cwd="$(pwd)"
+
+      #@ Use fd if it exists, otherwise use find to search for the pattern
+      if type fd >/dev/null 2>&1; then
+        fd --base-directory "$cwd" --absolute-path --hidden --glob "$pattern"
+      elif type find >/dev/null 2>&1; then
+        find "$cwd" -wholename "*/$pattern"
+      fi
+    }
+
+    pathof__pattern() {
+      #@ Parse arguments
+      while [ "$#" -ge 1 ]; do
+        case "$1" in
+        --cwd) cwd="$2" ;;
+        --first | --closest) closest=true ;;
+        *) pattern="$1" ;;
+        esac
+        shift
+      done
+
+      #@ Set defaults
+      [ "$cwd" ] || cwd="$(pwd)"
+      pattern="$(pathof__resolved "$pattern")"
+
+      #@ Return the path of the pattern or the pattern itself
+      path="$pattern"
+
+      [ -e "$path" ] || {
+        command -v "$pattern" >/dev/null 2>&1 &&
+          path="$(command -v "$pattern")"
+      }
+
+      [ -e "$path" ] || {
+        pathlist="$(pathof_found --cwd "$cwd" "$pattern")"
+
+        [ "$pathlist" ] || {
+          while [ "$cwd" != "/" ]; do
+            pathlist="$(pathof_found --cwd "$cwd" "$pattern")"
+            [ "$pathlist" ] && break
+            cwd="$(dirname "$cwd")"
+          done
+        }
+
+        if [ "$closest" ]; then
+          #@ Return the closest match to the current directory
+          #@ 1. Print each file path with its level of nesting (NF-1)
+          #@ 2. Sort the file list by nesting level
+          #@ 3. Remove the nesting level from each line
+          #@ 4. Select the first item (i.e. the file closest to the current directory)
+          path="$(
+            printf "%s" "$pathlist" |
+              awk -F'/' '{print NF-1, $0}' | # 1
+              sort -n |                      # 2
+              cut -d' ' -f2- |               # 3
+              head -n 1                      # 4
+          )"
+
+          path="${path%\\}" # Remove trailing backslash on Windows
+          path="${path%/}"  # Remove trailing slash, if any
+        else
+          path="$pathlist"
+        fi
+
+      }
+
+      printf "%s" "$path"
+    }
+
+    pathof__main() {
+      #@ Parse arguments
+      unset cwd pattern path
+
+      if [ "$1" ]; then
+        path="$(pathof__pattern --closest "$1")"
+      else
+        logline --fatal --error "$_cmd_NAME" "pathof target not provided."
+        return 1
+      fi
+
+      #@ Check if the target path is a known binary
+      if [ -e "$path" ]; then
+        printf "%s" "$path"
+      elif [ "$path" ]; then
+        logline \
+          --error "$_cmd_NAME" "The path to '$1' does not exist" \
+          --fatal 2
+      else
+        logline \
+          --error "$_cmd_NAME" "Unable to locate path to '$1'" \
+          --fatal 5
+      fi
+    }
+
+    pathof__main "$@"
+  }
+
+  logline() {
+    # | Set default values for local variables
+    code=0
+    notify=""
+    info=""
+    label=""
+    last_line=
+    paragraph=""
+    delimiter=" |> "
+
+    if type notify-send >/dev/null 2>&1; then
+      notifier="notify-send"
+    fi
+
+    # | Quit function early if no arguments provided, print a blank line like echo
+    [ $# -eq 0 ] && return 0
+
+    # | Tag the last line to prevent printing a blank line
+    case "$@" in *"-ll"* | *"-last"* | *"-fatal"*) last_line=true ;; esac
+
+    # | Parse options
+    while [ "$#" -ge 1 ]; do
+      case "$1" in
+      --info | --error | --warn*)
+        special=true
+        case "$1" in
+        --info)
+          [ "$verbose" ] && label="INFO: "
+          code="${code:-0}"
+          ;;
+        --warn*)
+          label="WARN: "
+          code="${code:-1}"
+          ;;
+        --error)
+          label="ERROR: "
+          code="${code:-1}"
+          ;;
+        esac
+
+        [ "$#" -eq 2 ] && info="${label}${2}"
+        [ "$#" -gt 2 ] && {
+          label="${label}${2}"
+          info="${label}${delimiter}${3}"
+
+          # | Generate padding to place before each info
+          len_label="${#label}"
+          len_delim="${#delimiter}"
+          padding_length=$((len_label + len_delim))
+          info_padding="$(printf "%-${padding_length}s")"
+
+          # | Append additional info with leading padding and new line
+          while [ "$#" -gt 3 ]; do
+            case "$4" in -*) break ;; esac
+            info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+            shift
+          done
+        }
+        ;;
+      --code)
+        special=true
+        case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
+        ;;
+      --fatal)
+        special=true
+        fatal=true
+        case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
+        ;;
+      --note)
+        special=true
+        info="Note: "
+        while [ "$#" -gt 1 ]; do
+          case "$2" in -*) break ;; esac
+          info="${info}${2}"
+          shift
+        done
+        ;;
+      --notify) notify=true ;;
+      --delim*)
+        delimiter="$(printf "%s" "$2")"
+        ;;
+      -l | --last | --line-last) ;;
+      -n | --line | --line-new)
+        [ "$2" ] && {
+          info="$(printf "%s\n%s" "$info" "$2")"
+          shift
+        }
+        ;;
+      -p | --paragraph)
+        [ "$2" ] && {
+          info="$(printf "%s\n%s" "$info" "$2")"
+          shift
+        }
+        paragraph=true
+        ;;
+      -s | --space)
+        [ "$2" ] && {
+          info="$(printf "%s %s" "$info" "$2")"
+          shift
+        }
+        ;;
+      -j | --join)
+        [ "$2" ] && {
+          info="$(printf "%s%s" "$info" "$2")"
+          shift
+        }
+        ;;
+      -*) ;;
+      *)
+        [ "$special" ] ||
+          if [ "$info" ]; then
+            info="${info} ${1}"
+          else
+            info="$1"
+          fi
+        ;;
+      esac
+      shift
+    done
+
+    #| TTY Output
+    printf "%s" "$info"
+    [ "$last_line" ] || printf "\n"
+    [ "$paragraph" ] && printf "\n"
+
+    #| GUI Output
+    [ "$notify" ] && [ "$notifier" ] && "$notifier" "$info"
+
+    #| Terminate
+    if [ "$fatal" ]; then exit "$code"; else return "$code"; fi
+  }
+
+  display_info() {
+    while [ "$#" -ge 1 ]; do
+      case "$1" in
+      --usage)
+        logline --line-last"$_cmd_USAGEGUIDE"
+        exit=true
+        ;;
+      --version)
+        logline --line-last "$_cmd_VERSION"
+        exit=true
+        ;;
+      --error*)
+        exit=true
+        [ "$verbosity" = "quiet" ] && return
+        case "$1" in
+        *path) printf "Invalid path: %s" "$2" ;;
+        *sym) printf "Circular symbolic link: %s" "$2" ;;
+        *info) printf "Invalid verbosity level: %s" "$2" ;;
+        *arg) printf "<target_path> required \nUsage: %s\n" "$_cmd_USAGE" ;;
+        *opt) printf "Unrecognized option: %s" "$2" ;;
+        *cd) printf "Change directory operation failed" ;;
+        esac
+        ;;
+      # --error)
+      #   code="$2" && shift 2
+      #   logline --error "$@" -ll
+      #   exit=true
+      #   ;;
+      --code) code="$2" ;;
+      esac
+      shift
+    done
+
+    [ "$exit" ] && exit "${code:-0}"
+  }
+
+  work_in() {
+    cd "$1" >/dev/null 2>&1 || {
+      logline --error \
+        "Failed to access the directory" \
+        "$1"
+      exit 4
+    }
   }
 }
 
@@ -429,12 +710,12 @@ execute_process() {
 
   #| Return GIT_DIR if requested
   [ "$get_geet_dir" ] && {
-    console_log "$geet_dir"
+    logline "$geet_dir"
     exit 0
   }
 
   [ "$get_git_dir" ] && {
-    console_log "$git_dir"
+    logline "$git_dir"
     exit 0
   }
 
@@ -480,15 +761,15 @@ execute_tests() {
 
   test_execute_git_actions() {
     work_in "$1"
-    console_log --info "  path" "$PWD"
-    console_log --info "ignore" "$ignore"
-    console_log --info "  pull" "$pull"
-    console_log --info "  diff" "$diff"
-    console_log --info "status" "$status"
-    console_log --info "   add" "$add"
-    console_log --info "commit" "$commit"
-    console_log --info "   msg" "$msg"
-    console_log --info "  push" "$push"
+    logline --info "  path" "$PWD"
+    logline --info "ignore" "$ignore"
+    logline --info "  pull" "$pull"
+    logline --info "  diff" "$diff"
+    logline --info "status" "$status"
+    logline --info "   add" "$add"
+    logline --info "commit" "$commit"
+    logline --info "   msg" "$msg"
+    logline --info "  push" "$push"
   }
 
   test_execute_process
@@ -499,16 +780,22 @@ execute_tests() {
 # @ ============================================== @ #
 main() {
   # | Initialize the script
+  establish_utilities
+  establish_validators
   establish_defaults
   establish_metadata
 
-  # | Initialize variables
-  establish_environment "$@"
+  pathof exportsa
 
-  # | Run the necessary process
-  if [ "$debug" ]; then
-    execute_tests
-  else
-    execute_process
-  fi
+  echo "CODE = $code vs $?"
+
+  # # | Initialize variables
+  # establish_environment "$@"
+
+  # # | Run the necessary process
+  # if [ "$debug" ]; then
+  #   execute_tests
+  # else
+  #   execute_process
+  # fi
 } && main "$@"

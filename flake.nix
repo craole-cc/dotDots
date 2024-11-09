@@ -93,11 +93,13 @@
         }
       ];
       args = {
-        inherit
-          dot
-          mod
-          bin
-          ;
+        paths = {
+          inherit
+            dot
+            mod
+            bin
+            ;
+        };
       };
 
     in
@@ -115,15 +117,13 @@
                   inherit variables shellAliases pathsToLink;
                   systemPackages = [
                     flakeUpdate
-                    # (flakeSwitch pkg system)
+                    (flakeSwitch pkg system)
                   ];
                 };
                 # DOTS.hosts.Preci.enable = true;
               }
             ];
-            specialArgs = {
-              inherit args;
-            };
+            specialArgs = args;
           };
 
         dbook = nixosSystem {
