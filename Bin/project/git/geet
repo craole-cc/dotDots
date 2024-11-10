@@ -8,7 +8,7 @@
 # @	INFORMATION         			                     @ #
 # @ ============================================== @ #
 establish_metadata() {
-  _cmd_PATH="$(pathof "$0")"
+  _cmd_PATH="$(realpath "$0")"
   _cmd_NAME="$(basename "$_cmd_PATH")"
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
@@ -344,141 +344,6 @@ establish_validators() {
 # @	UTILITIES			                                 @ #
 # @ ============================================== @ #
 establish_utilities() {
-  pathof() {
-    pathof__resolved() {
-      #@ Parse arguments
-      while [ "$#" -ge 1 ]; do
-        case $1 in
-        -c | --cwd) cwd="$2" ;;
-        *) pattern="$1" ;;
-        esac
-        shift
-      done
-
-      #@ Resolve the pattern to an absolute path if it is a relative path
-      #@ Otherwise, return the original pattern
-      case "$pattern" in
-      ./*)
-        #@ Remove the leading './' from the pattern if present
-        pattern="${pattern#./}"
-
-        #@ Return the resolved path
-        printf "%s" "${cwd:-$(pwd)}/${pattern}"
-        ;;
-      *)
-        #@ Return the original pattern
-        printf "%s" "$pattern"
-        ;;
-      esac
-    }
-
-    pathof_found() {
-      #@ Parse arguments
-      while [ "$#" -ge 1 ]; do
-        case "$1" in
-        --cwd) cwd="$2" ;;
-        *) pattern="$1" ;;
-        esac
-        shift
-      done
-
-      #@ Set defaults
-      [ "$cwd" ] || cwd="$(pwd)"
-
-      #@ Use fd if it exists, otherwise use find to search for the pattern
-      if type fd >/dev/null 2>&1; then
-        fd --base-directory "$cwd" --absolute-path --hidden --glob "$pattern"
-      elif type find >/dev/null 2>&1; then
-        find "$cwd" -wholename "*/$pattern"
-      fi
-    }
-
-    pathof__pattern() {
-      #@ Parse arguments
-      while [ "$#" -ge 1 ]; do
-        case "$1" in
-        --cwd) cwd="$2" ;;
-        --first | --closest) closest=true ;;
-        *) pattern="$1" ;;
-        esac
-        shift
-      done
-
-      #@ Set defaults
-      [ "$cwd" ] || cwd="$(pwd)"
-      pattern="$(pathof__resolved "$pattern")"
-
-      #@ Return the path of the pattern or the pattern itself
-      path="$pattern"
-
-      [ -e "$path" ] || {
-        command -v "$pattern" >/dev/null 2>&1 &&
-          path="$(command -v "$pattern")"
-      }
-
-      [ -e "$path" ] || {
-        pathlist="$(pathof_found --cwd "$cwd" "$pattern")"
-
-        [ "$pathlist" ] || {
-          while [ "$cwd" != "/" ]; do
-            pathlist="$(pathof_found --cwd "$cwd" "$pattern")"
-            [ "$pathlist" ] && break
-            cwd="$(dirname "$cwd")"
-          done
-        }
-
-        if [ "$closest" ]; then
-          #@ Return the closest match to the current directory
-          #@ 1. Print each file path with its level of nesting (NF-1)
-          #@ 2. Sort the file list by nesting level
-          #@ 3. Remove the nesting level from each line
-          #@ 4. Select the first item (i.e. the file closest to the current directory)
-          path="$(
-            printf "%s" "$pathlist" |
-              awk -F'/' '{print NF-1, $0}' | # 1
-              sort -n |                      # 2
-              cut -d' ' -f2- |               # 3
-              head -n 1                      # 4
-          )"
-
-          path="${path%\\}" # Remove trailing backslash on Windows
-          path="${path%/}"  # Remove trailing slash, if any
-        else
-          path="$pathlist"
-        fi
-
-      }
-
-      printf "%s" "$path"
-    }
-
-    pathof__main() {
-      #@ Parse arguments
-      unset cwd pattern path
-
-      if [ "$1" ]; then
-        path="$(pathof__pattern --closest "$1")"
-      else
-        logline --fatal --error "$_cmd_NAME" "pathof target not provided."
-        return 1
-      fi
-
-      #@ Check if the target path is a known binary
-      if [ -e "$path" ]; then
-        printf "%s" "$path"
-      elif [ "$path" ]; then
-        logline \
-          --error "$_cmd_NAME" "The path to '$1' does not exist" \
-          --fatal 2
-      else
-        logline \
-          --error "$_cmd_NAME" "Unable to locate path to '$1'" \
-          --fatal 5
-      fi
-    }
-
-    pathof__main "$@"
-  }
 
   logline() {
     # | Set default values for local variables
@@ -784,10 +649,8 @@ main() {
   establish_validators
   establish_defaults
   establish_metadata
-
-  pathof exportsa
-
-  echo "CODE = $code vs $?"
+  
+  echo "Path: $_cmd_PATH"
 
   # # | Initialize variables
   # establish_environment "$@"
