@@ -47,13 +47,10 @@ parse_arguments() {
   }
 
   [ "$cwd" ] || cwd="$(pwd -P)"
-  [ "$sort" ] || sort="natural" # depth, alphanumeric, natural, unsorted
-
-  case "$limit" in ![0-9]*) limit="" ;; esac
+  [ "$sort" ] || sort="depth" # depth, alphanumeric, natural, unsorted
 
   case $depth in
-  [0-9]*) ;;
-  any) unset depth ;;
+  ![0-9]* | '' | any) unset depth ;;
   least | closest) depth=0 ;;
   one*) depth="1" ;;
   esac
@@ -154,6 +151,207 @@ search_exe() {
     command -v "$pattern"
 }
 
+sort_list() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --type | -t) sort_type="$2" ;;
+    --list) sort_list="$2" ;;
+    *) sort_list="$1" ;;
+    esac
+    shift
+  done
+
+  case "$sort_type" in
+  depth | d*)
+    printf "%s" "$sort_list" |
+      awk -v ORS="\n" -v tab="$(printf '\t')" '
+        BEGIN { FS = "/" }
+
+        function get_sort_priority(str) {
+          first = substr(str, 1, 1)
+          #@ Return "1" for punctuation (highest priority)
+          if (first ~ /^[[:punct:]]/) return "1"
+
+          #@ Return "2" for numbers (second priority)
+          if (first ~ /^[0-9]/) return "2"
+
+          #@ Return "3" for everything else (lowest priority)
+          return "3"
+        }
+
+        #@ Pad numbers in string while preserving non-numeric characters
+        function pad_numbers(str) {
+          result = ""
+          pos = 1
+          len = length(str)
+
+          while (pos <= len) {
+            #@ Process numeric sequences
+            if (substr(str, pos, 1) ~ /^[0-9]/) {
+                num = ""
+                #@ Accumulate consecutive digits
+                while (pos <= len && substr(str, pos, 1) ~ /^[0-9]/) {
+                    num = num substr(str, pos, 1)
+                    pos++
+                }
+                #@ Zero-pad number to 10 digits for correct sorting
+                result = result sprintf("%010d", num)
+            } else {
+                #@ Preserve non-numeric character
+                result = result substr(str, pos, 1)
+                pos++
+            }
+          }
+          return result
+        }
+
+        {
+          #@ Calculate directory depth
+          depth = NF - 1
+
+          #@ Initialize empty sort key
+          sort_key = ""
+
+          #@ Process each path component
+          for (i = 1; i <= NF; i++) {
+            if ($i != "") {
+              #@ Normalize case
+              part = tolower($i)
+
+              #@ Get sort category (1=punct, 2=num, 3=other)
+              priority = get_sort_priority(part)
+
+              #@ Convert numbers to padded form
+              padded = pad_numbers(part)
+
+              #@ Append to sort key with comma separator
+              sort_key = sort_key priority padded ","
+            }
+          }
+
+          #@ Clean up trailing delimiter
+          if (sort_key != "") {
+            sort_key = substr(sort_key, 1, length(sort_key) - 1)
+          }
+
+          #@ Output format: depth<tab>sort_key<tab>original_path
+          printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
+        }' |
+      sort | cut -f3 | grep --invert-match '^$'
+    ;;
+  lexical | l* | alphanumeric | alnum | a*)
+    printf "%s" "$(
+      printf "%s" "$sort_list" |
+        while IFS= read -r line; do
+          case "$line" in
+          */[[:punct:]]*) printf "%s\n" "$line" ;;
+          esac
+        done | sort --human-numeric-sort
+      printf "%s" "$sort_list" |
+        while IFS= read -r line; do
+          case "$line" in
+          */[[:punct:]]*) ;;
+          *) printf "%s\n" "$line" ;;
+          esac
+        done | sort --human-numeric-sort
+    )" | grep --invert-match '^$'
+    ;;
+  natural | n*)
+    printf "%s" "$sort_list" |
+      awk -v ORS="\n" -v tab="$(printf '\t')" '
+            BEGIN { FS = "/" }
+
+            function get_sort_priority(str) {
+              first = substr(str, 1, 1)
+              #@ Return "1" for punctuation (highest priority)
+              if (first ~ /^[[:punct:]]/) return "1"
+
+              #@ Return "2" for numbers (second priority)
+              if (first ~ /^[0-9]/) return "2"
+
+              #@ Return "3" for everything else (lowest priority)
+              return "3"
+            }
+
+            #@ Pad numbers in string while preserving non-numeric characters
+            function pad_numbers(str) {
+              result = ""
+              pos = 1
+              len = length(str)
+
+              while (pos <= len) {
+                #@ Process numeric sequences
+                if (substr(str, pos, 1) ~ /^[0-9]/) {
+                    num = ""
+                    #@ Accumulate consecutive digits
+                    while (pos <= len && substr(str, pos, 1) ~ /^[0-9]/) {
+                        num = num substr(str, pos, 1)
+                        pos++
+                    }
+                    #@ Zero-pad number to 10 digits for correct sorting
+                    result = result sprintf("%010d", num)
+                } else {
+                    #@ Preserve non-numeric character
+                    result = result substr(str, pos, 1)
+                    pos++
+                }
+              }
+              return result
+            }
+
+            {
+              #@ Initialize empty sort key
+              sort_key = ""
+
+              #@ Process each path component
+              for (i = 1; i <= NF; i++) {
+                if ($i != "") {
+                  #@ Normalize case
+                  part = tolower($i)
+
+                  #@ Get sort category (1=punct, 2=num, 3=other)
+                  priority = get_sort_priority(part)
+
+                  #@ Convert numbers to padded form
+                  padded = pad_numbers(part)
+
+                  #@ Append to sort key with comma separator
+                  sort_key = sort_key priority padded ","
+                }
+              }
+
+              #@ Clean up trailing delimiter
+              if (sort_key != "") {
+                sort_key = substr(sort_key, 1, length(sort_key) - 1)
+              }
+
+              #@ Output format: depth<tab>sort_key<tab>original_path
+              printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
+            }' |
+      sort | cut -f3 | grep --invert-match '^$'
+    ;;
+  *)
+    printf "%s" "$sort_list"
+    ;;
+  esac
+}
+
+limit_list() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --limit) limit="$2" ;;
+    --list) list="$2" ;;
+    *) list="$1" ;;
+    esac
+    shift
+  done
+
+  case "$limit" in
+  ![0-9]* | '') printf "%s" "$list" | head -n 1 ;;
+  *) printf "%s" "$list" | head -n "$limit" ;;
+  esac
+}
+
 search_fs() {
   #doc Search the filesystem for a pattern in both directions from the
   #doc current working directory, and return the list of paths.
@@ -216,99 +414,7 @@ search_fs() {
       pat="-wholename \"*/$target\""
     fi
 
-    search_fs__result="$(eval "$cmd" "$opt" "$pat")"
-    # echo ALL
-    # echo "$search_fs__result"
-    # [ "$depth" ]
-    # [ "$limit" ] && path="$(
-    #   printf "%s" "$search_fs__result" |
-    #     sort -n |
-    #     head -n "$limit"
-    # )"
-    search_fs__sort() {
-      search_fs__result="
-/home/craole/Documents/dotfiles/Configuration/cli/git/global/config
-/home/craole/Documents/dotfiles/Configuration/cli/git10/config
-/home/craole/Documents/dotfiles/.git/config
-/home/craole/Documents/dotfiles/Configuration/cli/git100/config
-/home/craole/Documents/dotfiles/Configuration/cli/git03/config
-/home/craole/Documents/dotfiles/Configuration/cli/git11/config
-/home/craole/Documents/dotfiles/configuration/cli/git2/config
-/home/craole/Documents/dotfiles/Configuration/cli/git1/config
-/home/craole/Documents/dotfiles/Configuration/cli/gitOne/config
-/home/craole/Documents/dotfiles/Configuration/cli/Git1/config
-/home/craole/Documents/dotfiles/Configuration/cli/git/backup/config
-/home/craole/Documents/dotfiles/_hidden10/config
-/home/craole/Documents/dotfiles/_hidden4/config
-/home/craole/Documents/dotfiles/_hidden/config
-/home/craole/Documents/dotfiles/1test/config
-/home/craole/Documents/dotfiles/abc/config
-/home/craole/Documents/dotfiles/123/config
-/home/craole/Documents/dotfiles/abc_2/config
-"
-
-      sort_type="natural"
-      sort_cmd="LC_ALL=C sort"
-      sort_opt="--ignore-case"
-
-      printf "SORT TYPE: %s\n" "$sort_type"
-
-      starts_with_punctuation() {
-        printf "%s" "$1" | while IFS= read -r line; do
-          case "$line" in
-          */[[:punct:]]*) printf "%s\n" "$line" ;;
-          esac
-        done
-      }
-      starts_without_punctuation() {
-        printf "%s" "$1" | while IFS= read -r line; do
-          case "$line" in
-          */[[:punct:]]*) ;;
-          *) printf "%s\n" "$line" ;;
-          esac
-        done
-      }
-
-      prune_list() {
-        #@ Print the sorted list, removing any empty lines.
-        printf "%s" "$1" | grep --invert-match '^$'
-      }
-
-      case "$sort_type" in
-      depth | d*)
-        sort_opt="$sort_opt --sort=human-numeric"
-        printf "%s" "$search_fs__result" |
-          awk -F'/' '{print NF-1, $0}' |
-          eval "$sort_cmd $sort_opt" |
-          cut -d' ' -f2-
-        ;;
-      lexical | l* | alphanumeric | alnum | a*)
-        sort_opt="$sort_opt --sort=human-numeric"
-        prune_list "$(
-          starts_with_punctuation "$search_fs__result" | eval "$sort_cmd $sort_opt"
-          starts_without_punctuation "$search_fs__result" | eval "$sort_cmd $sort_opt"
-        )"
-        ;;
-      natural | n*)
-        sort_opt="$sort_opt --sort=version"
-        prune_list "$(
-          starts_with_punctuation "$search_fs__result" |
-            # Create a temporary lowercase list for sorting only
-            tr '[:upper:]' '[:lower:]' |
-            eval "$sort_cmd $sort_opt"
-          starts_without_punctuation "$search_fs__result" |
-            # Create a temporary lowercase list for sorting only
-            tr '[:upper:]' '[:lower:]' |
-            eval "$sort_cmd $sort_opt"
-        )"
-        ;;
-      *)
-        printf "%s" "$search_fs__result"
-        ;;
-      esac
-    }
-
-    search_fs__sort
+    eval "$cmd" "$opt" "$pat"
   }
 
   search_fs__upwards() {
@@ -369,11 +475,15 @@ search_fs() {
   [ "$pathlist" ] ||
     pathlist="$(search_fs__upwards "$cwd" "$pattern")"
 
-  if [ "$closest" ]; then
-    path="$(search_fs__closest "$pathlist")"
-  else
-    path="$pathlist"
-  fi
+  # if [ "$closest" ]; then
+  #   path="$(search_fs__closest "$pathlist")"
+  # else
+  #   path="$pathlist"
+  # fi
+
+  pathlist="$(sort_list "$sort" "$pathlist")"
+  pathlist="$(limit_list "$pathlist")"
+
   #@ Return the list of paths
   printf "%s" "$pathlist"
 }
@@ -423,7 +533,41 @@ tests() {
   main geet
   echo
   main adcocjohghhfpidemphmcmlmhnfgikei
+  echo
+  main pathof
+  echo
+
+  sort_list_test="
+/home/craole/Documents/dotfiles/configuration/cli/git/global/config
+/home/craole/Documents/dotfiles/.git/config
+/home/craole/Documents/dotfiles/_hidden10/config
+/home/craole/Documents/dotfiles/_hidden4/config
+/home/craole/Documents/dotfiles/_hidden/config
+/home/craole/Documents/dotfiles/1test/config
+/home/craole/Documents/dotfiles/abc/config
+/home/craole/Documents/dotfiles/123/config
+/home/craole/Documents/dotfiles/abc/2/config
+/home/craole/Documents/dotfiles/Configuration/cli/gitOne/config
+/home/craole/Documents/dotfiles/Configuration/cli/git10/config
+/home/craole/Documents/dotfiles/configuration/cli/git100/config
+/home/craole/Documents/dotfiles/Configuration/cli/git03/config
+/home/craole/Documents/dotfiles/Configuration/cli/git11/config
+/home/craole/Documents/dotfiles/Configuration/cli/git3/config
+/home/craole/Documents/dotfiles/Configuration/cli/git02/config
+/home/craole/Documents/dotfiles/Configuration/cli/git000002/config
+/home/craole/Documents/dotfiles/Configuration/cli/git/backup/config
+/home/craole/Documents/dotfiles/Configuration/cli/git03/config
+/home/craole/Documents/dotfiles/Configuration/cli/git2/config
+/home/craole/Documents/dotfiles/configuration/cli/git3/config
+/home/craole/Documents/dotfiles/Configuration/cli/git1/config
+/home/craole/Documents/dotfiles/Configuration/cli/Git1/config
+/home/craole/Documents/dotfiles/Configuration/cli/git1/configs
+"
+
+  sort_type="depth"
+  printf "SORT TYPE: %s\n" "$sort_type"
+  sort_list --type "$sort" --list "$sort_list_test"
 }
 
-main "$@"
-# tests
+# main "$@"
+tests
