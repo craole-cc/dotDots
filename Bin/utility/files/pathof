@@ -25,13 +25,13 @@ parse_arguments() {
     --include-hidden | --hidden) hidden=true ;;
     --limit) limit="$2" ;;
     --closest)
-      sort="closest"
+      sort_type="closest"
       limit=1
       depth="any"
       direction="both"
       ;;
     --first)
-      sort="alnum"
+      sort_type="alnum"
       limit=1
       depth="any"
       direction="both"
@@ -47,7 +47,7 @@ parse_arguments() {
   }
 
   [ "$cwd" ] || cwd="$(pwd -P)"
-  [ "$sort" ] || sort="depth" # depth, alphanumeric, natural, unsorted
+  [ "$sort_type" ] || sort_type="depth" # depth, alphanumeric, natural, unsorted
 
   case $depth in
   ![0-9]* | '' | any) unset depth ;;
@@ -58,7 +58,7 @@ parse_arguments() {
   direction="both"
   # echo "PATTERN: $pattern"
   # echo "HIDDEN: $hidden"
-  # echo "SORT: $sort"
+  # echo "SORT: $sort_type"
   # echo "LIMIT: $limit"
   # echo "DEPTH: $depth"
   # echo "DIRECTION: $direction"
@@ -161,6 +161,7 @@ sort_list() {
     shift
   done
 
+  echo "SORT_TYPE: $sort_type"
   case "$sort_type" in
   depth | d*)
     printf "%s" "$sort_list" |
@@ -240,20 +241,28 @@ sort_list() {
       sort | cut -f3 | grep --invert-match '^$'
     ;;
   lexical | l* | alphanumeric | alnum | a*)
-    printf "%s" "$(
-      printf "%s" "$sort_list" |
+    sort_cmd="sort --numeric-sort"
+    with_punctuation() {
+      printf "%s" "$1" |
         while IFS= read -r line; do
           case "$line" in
           */[[:punct:]]*) printf "%s\n" "$line" ;;
           esac
-        done | sort --human-numeric-sort
-      printf "%s" "$sort_list" |
+        done | eval "$2"
+    }
+    without_punctuation() {
+      printf "%s" "$1" |
         while IFS= read -r line; do
           case "$line" in
           */[[:punct:]]*) ;;
           *) printf "%s\n" "$line" ;;
           esac
-        done | sort --human-numeric-sort
+        done | eval "$2"
+    }
+
+    printf "%s" "$(
+      with_punctuation "$sort_list" "$sort_cmd"
+      without_punctuation "$sort_list" "$sort_cmd"
     )" | grep --invert-match '^$'
     ;;
   natural | n*)
@@ -564,9 +573,8 @@ tests() {
 /home/craole/Documents/dotfiles/Configuration/cli/git1/configs
 "
 
-  sort_type="depth"
-  printf "SORT TYPE: %s\n" "$sort_type"
-  sort_list --type "$sort" --list "$sort_list_test"
+  sort_type="lexical"
+  sort_list --type "$sort_type" --list "$sort_list_test"
 }
 
 # main "$@"
