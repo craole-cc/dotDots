@@ -13,7 +13,7 @@
 [Dd]ownloads
 [Ll]og
 [Tt]emp
-[Tt]mp/
+[Tt]mp
 [Aa]rchive
 [Tt]arget
 [Dd]ebug
@@ -38,7 +38,7 @@
 # DotFiles
 .vscode
 debug/
-*cache*
+*cache
 *.tmp
 *.bak
 *.bac
