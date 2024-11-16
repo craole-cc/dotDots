@@ -13,7 +13,7 @@ establish_metadata() {
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Simplifies the git update process"
-  _cmd_DEPENDENCIES="command, git"
+  _cmd_DEPENDENCIES="git, cd, pwd, dirname, basename,command, printf, tr"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
