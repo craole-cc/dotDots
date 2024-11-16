@@ -104,9 +104,9 @@ establish_defaults() {
   geet_modules="$geet_dir/.gitmodules"
 
   # | Dependencies
-  _cmd_DEPENDENCIES=$(
-    printf "%s" "$_cmd_DEPENDENCIES" | tr -s -c '[:alnum:]' ' '
-  )
+  # _cmd_DEPENDENCIES=$(
+  #   printf "%s" "$_cmd_DEPENDENCIES" | tr -s -c '[:alnum:]' ' '
+  # )
 }
 
 establish_environment() {
@@ -610,7 +610,6 @@ execute_tests() {
   logline "Testing" "$_cmd_PATH"
 
   test_execute_process() {
-
     if [ "$recurse" ]; then
       validate_submodules
 
