@@ -8,12 +8,12 @@
 # @	INFORMATION         			                     @ #
 # @ ============================================== @ #
 establish_metadata() {
-  _cmd_PATH="$(realpath "$0")"
+  _cmd_PATH="$(pathof "$0")"
   _cmd_NAME="$(basename "$_cmd_PATH")"
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Simplifies the git update process"
-  _cmd_DEPENDENCIES="coreutils, git"
+  _cmd_DEPENDENCIES="command, git"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
@@ -74,20 +74,23 @@ USAGE_GUIDE
 # @ ============================================== @ #
 establish_defaults() {
   # | Actions
-  [ "$pull" ] || pull=true
-  [ "$ignore" ] || ignore=
-  [ "$diff" ] || diff=
-  [ "$status" ] || status=true
-  [ "$add" ] || add=true
-  [ "$commit" ] || commit=true
-  [ "$push" ] || push=true
+  pull=true
+  ignore=
+  diff=
+  status=true
+  add=true
+  commit=true
+  push=true
 
   # | Message
-  default_msg="Updated via geet"
-  # [ "$msg" ] || msg="$default_msg"
+  if git log -1 --pretty=%B >/dev/null 2>&1; then
+    default_msg=$(git log -1 --pretty=%B)
+  else
+    default_msg="Updated via geet"
+  fi
 
   # | Verbosity
-  [ "$verbose" ] || verbose=true
+  verbose=true
 
   # | Paths
   git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
@@ -104,17 +107,21 @@ establish_defaults() {
   geet_modules="$geet_dir/.gitmodules"
 
   # | Dependencies
-  # _cmd_DEPENDENCIES=$(
-  #   printf "%s" "$_cmd_DEPENDENCIES" | tr -s -c '[:alnum:]' ' '
-  # )
+  _cmd_DEPENDENCIES=$(
+    printf "%s" "$_cmd_DEPENDENCIES" | tr -s -c '[:alnum:]' ' '
+  )
 }
 
 establish_environment() {
+
+  # | Initialize the parts
+  establish_utilities
+  establish_metadata
+  establish_defaults
+  establish_validators
+
   # | Ensure dependencies are present
   [ "$debug" ] || validate_dependencies
-
-  # | Clear previously set variables
-  unset msg push pull reset status commit add
 
   # | Parse arguments from CLI arguments
   while [ "$#" -ge 1 ]; do
@@ -211,9 +218,6 @@ establish_environment() {
 
     shift
   done
-
-  # | Update defaults, if necessary
-  establish_defaults
 }
 
 # @ ============================================== @ #
@@ -228,13 +232,13 @@ establish_validators() {
     # | Validate dependencies as executable files
     #TODO: pathof Dependency
     for dependency in $_cmd_DEPENDENCIES; do
-      printf "%s\n" "$dependency"
       #  [ -x "$(pathof "$dependency")" ] ||
-      #     if [ -n "$missing_deps" ]; then
-      #       missing_deps="$missing_deps, $dependency"
-      #     else
-      #       missing_deps="$dependency"
-      #     fi
+      command -v "$dependency" >/dev/null 2>&1 ||
+        if [ -n "$missing_deps" ]; then
+          missing_deps="$missing_deps, $dependency"
+        else
+          missing_deps="$dependency"
+        fi
     done
 
     # | Continue the program if dependency paths are validated
@@ -366,7 +370,14 @@ establish_utilities() {
     [ $# -eq 0 ] && return 0
 
     # | Tag the last line to prevent printing a blank line
-    case "$@" in *"-ll"* | *"-last"* | *"-fatal"*) last_line=true ;; esac
+    case "$@" in
+    *"-ll"* | *"-last"* | *"-fatal"*)
+      last_line=true
+      ;;
+    *"-new"* | *"-n"*)
+      unset last_line
+      ;;
+    esac
 
     # | Parse options
     while [ "$#" -ge 1 ]; do
@@ -484,16 +495,16 @@ establish_utilities() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --usage)
-        logline --line-last"$_cmd_USAGEGUIDE"
+        logline "$_cmd_USAGEGUIDE"
         exit=true
         ;;
       --version)
-        logline --line-last "$_cmd_VERSION"
+        logline "$_cmd_VERSION"
         exit=true
         ;;
       --error*)
         exit=true
-        [ "$verbosity" = "quiet" ] && return
+        [ "$verbose" ] && return
         case "$1" in
         *path) printf "Invalid path: %s" "$2" ;;
         *sym) printf "Circular symbolic link: %s" "$2" ;;
@@ -515,6 +526,47 @@ establish_utilities() {
     done
 
     [ "$exit" ] && exit "${code:-0}"
+  }
+
+  pathof() {
+    #@ Input validation
+    [ "$1" ] || return 1
+
+    _path="$1"
+    _dir="$(dirname "$_path")"
+    _name="$(basename "$_path")"
+
+    #@ Change to directory containing the link/file
+    #@ Get absolute path of the directory
+    _dir="$(cd "$_dir" 2>/dev/null && pwd)" || return 1
+
+    #@ Resolve symbolic links recursively
+    while [ -L "$_dir/$_name" ]; do
+      #@ Read the target of the symbolic link using find
+      _target="$(
+        find "$_dir" \
+          -maxdepth 1 \
+          -name "$_name" \
+          -printf "%l\n" \
+          2>/dev/null
+      )"
+      [ "$_target" ] || break
+
+      #@ Handle relative vs absolute paths in symlink target
+      case "$_target" in
+      /*) #@ Absolute path
+        _dir="$(dirname "$_target")"
+        _name="$(basename "$_target")"
+        ;;
+      *) #@ Relative path
+        _dir="$(cd "$_dir" && cd "$(dirname "$_target")" && pwd)"
+        _name="$(basename "$_target")"
+        ;;
+      esac
+    done
+
+    #@ Return the absolute path
+    printf '%s/%s' "$_dir" "$_name"
   }
 
   work_in() {
@@ -636,7 +688,11 @@ execute_tests() {
     logline --info "status" "$status"
     logline --info "   add" "$add"
     logline --info "commit" "$commit"
-    logline --info "   msg" "$msg"
+    if [ "$msg" ]; then
+      logline --info "   msg" "$msg"
+    else
+      logline --info "   msg" "$default_msg"
+    fi
     logline --info "  push" "$push"
   }
 
@@ -648,13 +704,9 @@ execute_tests() {
 # @ ============================================== @ #
 main() {
   #@ Initialize the script
-  establish_utilities
-  establish_validators
-  establish_defaults
-  establish_metadata
+  establish_environment "$@"
 
   #@ Initialize variables
-  establish_environment "$@"
 
   #@ Run the necessary process
   if [ "$debug" ]; then
