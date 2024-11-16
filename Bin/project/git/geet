@@ -13,7 +13,7 @@ establish_metadata() {
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Simplifies the git update process"
-  _cmd_DEPENDENCIES="git"
+  _cmd_DEPENDENCIES="coreutils, git"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
@@ -74,17 +74,20 @@ USAGE_GUIDE
 # @ ============================================== @ #
 establish_defaults() {
   # | Actions
-  pull="${pull:-true}"
-  ignore="${ignore:-}"
-  diff="${diff:-}"
-  status="${status:-true}"
-  add="${add:-true}"
-  commit="${commit:-true}"
-  push="${push:-true}"
+  [ "$pull" ] || pull=true
+  [ "$ignore" ] || ignore=
+  [ "$diff" ] || diff=
+  [ "$status" ] || status=true
+  [ "$add" ] || add=true
+  [ "$commit" ] || commit=true
+  [ "$push" ] || push=true
 
   # | Message
   default_msg="Updated via geet"
-  verbose="${verbose:-true}"
+  # [ "$msg" ] || msg="$default_msg"
+
+  # | Verbosity
+  [ "$verbose" ] || verbose=true
 
   # | Paths
   git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
@@ -506,6 +509,7 @@ establish_utilities() {
       #   exit=true
       #   ;;
       --code) code="$2" ;;
+      *) logline --info "$@" -ll ;;
       esac
       shift
     done
@@ -603,7 +607,7 @@ execute_process() {
 }
 
 execute_tests() {
-  display_info "Testing" "$_cmd_PATH"
+  logline "Testing" "$_cmd_PATH"
 
   test_execute_process() {
 
@@ -644,21 +648,19 @@ execute_tests() {
 # @	ENTRY-POINT                                    @ #
 # @ ============================================== @ #
 main() {
-  # | Initialize the script
+  #@ Initialize the script
   establish_utilities
   establish_validators
   establish_defaults
   establish_metadata
-  
-  echo "Path: $_cmd_PATH"
 
-  # # | Initialize variables
-  # establish_environment "$@"
+  #@ Initialize variables
+  establish_environment "$@"
 
-  # # | Run the necessary process
-  # if [ "$debug" ]; then
-  #   execute_tests
-  # else
-  #   execute_process
-  # fi
+  #@ Run the necessary process
+  if [ "$debug" ]; then
+    execute_tests
+  else
+    execute_process
+  fi
 } && main "$@"
