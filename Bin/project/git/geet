@@ -26,19 +26,21 @@ establish_metadata() {
     $_cmd_DESCRIPTION
 
   Options:
-    -h, --help        Display this usage guide
-    -v, --version     Show the current version of $_cmd_NAME
-    -i, --ignore      Honor .gitignore changes
-    -s, --status      Show the git status
-    -a, --add         Ensure all files are indexed
-    -c, --commit      Record changes to the repository
-    -p, --pull        Update the local repository
-    -u, --push        Update the remote repository
-    -q, --quiet       Suppress output
-    --repo            Git Repository URL
-    --user            Git User
-    --email           Git Email
-    --key             Git SSH Private Key
+    -h, --help          Display this usage guide
+    -v, --version       Show the current version of $_cmd_NAME
+    -i, --ignore        Honor .gitignore changes
+    -s, --status        Show the git status
+    -a, --add           Ensure all files are indexed
+    -c, --commit        Record changes to the repository
+    -p, --pull          Update the local repository
+    -u, --push          Update the remote repository
+    -q, --quiet         Suppress output
+    --git-dir           Local git repository directory
+    --git-dir-super     Top-level git repository directory
+    --repo              Git Repository URL
+    --user              Git User
+    --email             Git Email
+    --key               Git SSH Private Key
 
   Arguments:
     <MESSAGE>  A custom message for the -c/--commit option.
@@ -156,10 +158,10 @@ establish_environment() {
     -q | --quiet)
       unset verbose
       ;;
-    --gitisuper)
+    --gitisuper | --git-dir-super)
       get_geet_dir=true
       ;;
-    --gitis)
+    --gitis | --git-dir)
       get_git_dir=true
       ;;
     -h | --help)
@@ -225,11 +227,9 @@ establish_validators() {
     missing_deps_count=0
 
     #@ Validate dependencies as executable files
-    #TODO: pathof Dependency
     for dependency in $(parse_alnum "$_cmd_DEPENDENCIES"); do
-      #  [ -x "$(pathof "$dependency")" ] ||
       command -v "$dependency" >/dev/null 2>&1 ||
-        if [ -n "$missing_deps" ]; then
+        if [ "$missing_deps" ]; then
           missing_deps="$missing_deps, $dependency"
         else
           missing_deps="$dependency"
@@ -353,7 +353,7 @@ establish_utilities() {
     notify=""
     info=""
     label=""
-    last_line=
+    last_line=true
     paragraph=""
     delimiter=" |> "
 
@@ -366,10 +366,10 @@ establish_utilities() {
 
     #@ Tag the last line to prevent printing a blank line
     case "$@" in
-    *"-ll"* | *"-last"* | *"-fatal"*)
+    *"-last"* | *"-l"* | *"-fatal"*)
       last_line=true
       ;;
-    *"-new"* | *"-n"*)
+    *"--new"* | *"-n"*)
       unset last_line
       ;;
     esac
@@ -643,16 +643,14 @@ execute_process() {
   #@ Ensure the directory is a valid git project
   [ "$debug" ] || validate_local_repo
 
-  #| Return GIT_DIR if requested
-  [ "$get_geet_dir" ] && {
-    logline "$geet_dir"
+  #@ Return GIT_DIR if requested
+  if [ "$get_geet_dir" ]; then
+    logline --last-line "$geet_dir"
     exit 0
-  }
-
-  [ "$get_git_dir" ] && {
+  elif [ "$get_git_dir" ]; then
     logline "$git_dir"
     exit 0
-  }
+  fi
 
   #@ Execute the git actions
   if [ "$recurse" ]; then
@@ -673,7 +671,6 @@ execute_process() {
 }
 
 execute_tests() {
-  logline "Testing" "$_cmd_PATH"
 
   test_execute_process() {
     if [ "$recurse" ]; then
@@ -694,20 +691,21 @@ execute_tests() {
   }
 
   test_execute_git_actions() {
+    logline --newline "Testing" "$_cmd_PATH"
     work_in "$1"
-    logline --info "  path" "$PWD"
-    logline --info "ignore" "$ignore"
-    logline --info "  pull" "$pull"
-    logline --info "  diff" "$diff"
-    logline --info "status" "$status"
-    logline --info "   add" "$add"
-    logline --info "commit" "$commit"
+    logline --newline --info "  path" "$geet_dir"
+    logline --newline --info "ignore" "$ignore"
+    logline --newline --info "  pull" "$pull"
+    logline --newline --info "  diff" "$diff"
+    logline --newline --info "status" "$status"
+    logline --newline --info "   add" "$add"
+    logline --newline --info "commit" "$commit"
     if [ "$msg" ]; then
-      logline --info "   msg" "$msg"
+      logline --newline --info"   msg" "$msg"
     else
-      logline --info "   msg" "$default_msg"
+      logline --newline --info "   msg" "$default_msg"
     fi
-    logline --info "  push" "$push"
+    logline --newline --info "  push" "$push"
   }
 
   test_execute_process
