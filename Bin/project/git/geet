@@ -10,10 +10,10 @@
 establish_metadata() {
   _cmd_PATH="$(pathof "$0")"
   _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_HOME="$(dirname "$_cmd_PATH")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Simplifies the git update process"
-  _cmd_DEPENDENCIES="git, cd, pwd, dirname, basename,command, printf, tr"
+  _cmd_DEPENDENCIES="git, cd, pwd, dirname, basename, command, printf, tr"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
@@ -27,30 +27,30 @@ establish_metadata() {
 
   Options:
     -h, --help        Display this usage guide
-    -v, --version     Show the current version $_cmd_NAME
+    -v, --version     Show the current version of $_cmd_NAME
     -i, --ignore      Honor .gitignore changes
     -s, --status      Show the git status
     -a, --add         Ensure all files are indexed
     -c, --commit      Record changes to the repository
     -p, --pull        Update the local repository
     -u, --push        Update the remote repository
-		-q, --quiet       Suppress output
+    -q, --quiet       Suppress output
     --repo            Git Repository URL
     --user            Git User
     --email           Git Email
     --key             Git SSH Private Key
 
+  Arguments:
+    <MESSAGE>  A custom message for the -c/--commit option.
+
   Defaults:
-    repo    |>  $target_repo
+    repo    |>  $(sanitize_url "$target_repo")
     msg     |>  $default_msg
     pull    |>  git pull --quiet
     status  |>  git status --short
     add     |>  git add --all
-    commit  |>  git commit --quiet --message="\$msg"
+    commit  |>  git commit --quiet --message='$default_msg'
     push    |>  git push --quiet
-
-  Arguments:
-    <MESSAGE>  A custom message for the -c/--commit option.
 
   Examples:
     # Execute with defaults
@@ -73,7 +73,7 @@ USAGE_GUIDE
 # @	ENVIRONMENT         			                     @ #
 # @ ============================================== @ #
 establish_defaults() {
-  # | Actions
+  #| Actions
   pull=true
   ignore=
   diff=
@@ -82,17 +82,17 @@ establish_defaults() {
   commit=true
   push=true
 
-  # | Message
+  #| Message
   if git log -1 --pretty=%B >/dev/null 2>&1; then
     default_msg=$(git log -1 --pretty=%B)
   else
     default_msg="Updated via geet"
   fi
 
-  # | Verbosity
+  #| Verbosity
   verbose=true
 
-  # | Paths
+  #| Paths
   git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
     git_dir_super="$(git rev-parse --show-superproject-working-tree)"
 
@@ -105,25 +105,20 @@ establish_defaults() {
   target_repo="${target_repo:-$actual_repo}"
   geet_dir="${git_dir_super:-$git_dir}"
   geet_modules="$geet_dir/.gitmodules"
-
-  # | Dependencies
-  _cmd_DEPENDENCIES=$(
-    printf "%s" "$_cmd_DEPENDENCIES" | tr -s -c '[:alnum:]' ' '
-  )
 }
 
 establish_environment() {
 
-  # | Initialize the parts
+  #@ Initialize the parts
   establish_utilities
-  establish_metadata
   establish_defaults
+  establish_metadata
   establish_validators
 
-  # | Ensure dependencies are present
+  #@ Ensure dependencies are present
   [ "$debug" ] || validate_dependencies
 
-  # | Parse arguments from CLI arguments
+  #@ Parse arguments from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     -p | --pull)
@@ -225,13 +220,13 @@ establish_environment() {
 # @ ============================================== @ #
 establish_validators() {
   validate_dependencies() {
-    # | Set default values for local variables
+    #@ Set default values for local variables
     missing_deps=""
     missing_deps_count=0
 
-    # | Validate dependencies as executable files
+    #@ Validate dependencies as executable files
     #TODO: pathof Dependency
-    for dependency in $_cmd_DEPENDENCIES; do
+    for dependency in $(parse_alnum "$_cmd_DEPENDENCIES"); do
       #  [ -x "$(pathof "$dependency")" ] ||
       command -v "$dependency" >/dev/null 2>&1 ||
         if [ -n "$missing_deps" ]; then
@@ -241,27 +236,27 @@ establish_validators() {
         fi
     done
 
-    # | Continue the program if dependency paths are validated
+    #@ Continue the program if dependency paths are validated
     [ "$missing_deps" ] || return
 
-    # | Count the number of missing dependencies
+    #@ Count the number of missing dependencies
     missing_deps_count="$(
       printf "%s\n" "$missing_deps" |
         tr ',' '\n' | wc -l
     )"
 
-    # | Update the error message based on the count
+    #@ Update the error message based on the count
     msg="Missing dependency"
     [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
 
-    # | Halt the program and report missing dependencies
+    #@ Halt the program and report missing dependencies
     logline --error "$msg" "$missing_deps"
     exit 2
   }
 
   validate_local_repo() {
 
-    # | Check if the folder is part of a valid git repository
+    #@ Check if the folder is part of a valid git repository
     [ "$geet_dir" ] || {
       logline --error \
         "Invalid Directory" \
@@ -276,7 +271,7 @@ establish_validators() {
       exit 2
     }
 
-    # | Check if the remote origin URL matches the expected repository URL
+    #@ Check if the remote origin URL matches the expected repository URL
     [ "$actual_repo" = "$target_repo" ] || {
       logline --error \
         "invalid local repository" \
@@ -287,7 +282,7 @@ establish_validators() {
   }
 
   validate_submodules() {
-    # | Ensure we are running our commands from the topmost git_dir
+    #@ Ensure we are running our commands from the topmost git_dir
     work_in "$geet_dir"
 
     #| Ensure the project has submodules
@@ -306,7 +301,7 @@ establish_validators() {
       exit 2
     fi
 
-    # | Exit early if submodule is unspecified
+    #@ Exit early if submodule is unspecified
     [ "$submodule" ] || {
       logline --info \
         "Including submodule(s)" \
@@ -329,7 +324,7 @@ establish_validators() {
     if [ "$valid" = false ]; then
       logline --warn "'$submodule' is not a valid submodule"
 
-      # | Prompt the user for confirmation
+      #@ Prompt the user for confirmation
       printf "Did you intend this as the commit message? [y/N]: "
       read -r response
 
@@ -353,7 +348,7 @@ establish_validators() {
 establish_utilities() {
 
   logline() {
-    # | Set default values for local variables
+    #@ Set default values for local variables
     code=0
     notify=""
     info=""
@@ -366,10 +361,10 @@ establish_utilities() {
       notifier="notify-send"
     fi
 
-    # | Quit function early if no arguments provided, print a blank line like echo
+    #@ Quit function early if no arguments provided, print a blank line like echo
     [ $# -eq 0 ] && return 0
 
-    # | Tag the last line to prevent printing a blank line
+    #@ Tag the last line to prevent printing a blank line
     case "$@" in
     *"-ll"* | *"-last"* | *"-fatal"*)
       last_line=true
@@ -379,7 +374,7 @@ establish_utilities() {
       ;;
     esac
 
-    # | Parse options
+    #@ Parse options
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --info | --error | --warn*)
@@ -404,13 +399,13 @@ establish_utilities() {
           label="${label}${2}"
           info="${label}${delimiter}${3}"
 
-          # | Generate padding to place before each info
+          #@ Generate padding to place before each info
           len_label="${#label}"
           len_delim="${#delimiter}"
           padding_length=$((len_label + len_delim))
           info_padding="$(printf "%-${padding_length}s")"
 
-          # | Append additional info with leading padding and new line
+          #@ Append additional info with leading padding and new line
           while [ "$#" -gt 3 ]; do
             case "$4" in -*) break ;; esac
             info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
@@ -569,6 +564,25 @@ establish_utilities() {
     printf '%s/%s' "$_dir" "$_name"
   }
 
+  parse_alnum() {
+    printf "%s" "$1" | tr -s -c '[:alnum:]' ' '
+  }
+
+  sanitize_url() {
+    url="$1"
+
+    case "$url" in
+    *://*:*@*) # URLs with credentials like https://user:pass@host
+      printf '%s' "$url" | sed -E 's/(.*:)[^@]*(@.*)/\1*****\2/'
+      ;;
+    *@*) # SSH URLs like git@github.com:user/repo.git
+      printf '%s' "$url" | sed -E 's/(@[^:]*):(.*)/@\1:\2/'
+      ;;
+    *) # Plain URLs like https://github.com/user/repo.git or relative paths
+      printf '%s' "$url"
+      ;;
+    esac
+  }
   work_in() {
     cd "$1" >/dev/null 2>&1 || {
       logline --error \
@@ -583,16 +597,16 @@ establish_utilities() {
 # @	EXECUTE  	                                     @ #
 # @ ============================================== @ #
 execute_git_actions() {
-  # | Ensure we are running our commands from the target git_dir
+  #@ Ensure we are running our commands from the target git_dir
   work_in "$1"
 
-  # | Honor changes to gitignore
+  #@ Honor changes to gitignore
   [ "$ignore" ] && git rm -r --force --cached .
 
-  # | Check if there are changes
+  #@ Check if there are changes
   [ "$(git status --porcelain)" ] || return 0
 
-  # | Lint
+  #@ Lint
   type treefmt >/dev/null 2>&1 &&
     if [ "$ci" ]; then
       treefmt --no-cache --fail-on-change || return 1
@@ -601,32 +615,32 @@ execute_git_actions() {
       treefmt
     fi
 
-  # | Update the local repository
+  #@ Update the local repository
   [ "$pull" ] && git pull --quiet
 
-  # | Display changes
+  #@ Display changes
   if [ "$diff" ]; then
     git diff
   elif [ "$status" ]; then
     git status --short
   fi
 
-  # | Add untracked files
+  #@ Add untracked files
   [ "$add" ] && git add --all
 
-  # | Commit changes
+  #@ Commit changes
   [ "$msg" ] || {
     default_msg=$(git log -1 --pretty=%B)
     printf "Enter a commit message [Default: %s ]: " "$default_msg" && read -r msg
   }
   [ "$commit" ] && git commit --quiet --message="${msg:-"$default_msg"}"
 
-  # | Update the remote repository
+  #@ Update the remote repository
   [ "$push" ] && git push --recurse-submodules=check --quiet
 }
 
 execute_process() {
-  # | Ensure the directory is a valid git project
+  #@ Ensure the directory is a valid git project
   [ "$debug" ] || validate_local_repo
 
   #| Return GIT_DIR if requested
@@ -640,7 +654,7 @@ execute_process() {
     exit 0
   }
 
-  # | Execute the git actions
+  #@ Execute the git actions
   if [ "$recurse" ]; then
     validate_submodules
 
