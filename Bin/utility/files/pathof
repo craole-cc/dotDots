@@ -161,7 +161,6 @@ sort_list() {
     shift
   done
 
-  echo "SORT_TYPE: $sort_type"
   case "$sort_type" in
   depth | d*)
     printf "%s" "$sort_list" |
@@ -356,7 +355,8 @@ limit_list() {
   done
 
   case "$limit" in
-  ![0-9]* | '') printf "%s" "$list" | head -n 1 ;;
+  '') printf "%s" "$list";;
+  ![0-9]*) printf "%s" "$list" | head -n 1 ;;
   *) printf "%s" "$list" | head -n "$limit" ;;
   esac
 }
@@ -423,6 +423,8 @@ search_fs() {
       pat="-wholename \"*/$target\""
     fi
 
+    # echo "LIMIT: $limit"
+    # eval "$cmd" "$opt" ""
     eval "$cmd" "$opt" "$pat"
   }
 
@@ -491,7 +493,7 @@ search_fs() {
   # fi
 
   pathlist="$(sort_list "$sort" "$pathlist")"
-  pathlist="$(limit_list "$pathlist")"
+  pathlist="$(limit_list --limit "$limit" --list "$pathlist")"
 
   #@ Return the list of paths
   printf "%s" "$pathlist"
@@ -577,5 +579,5 @@ tests() {
   sort_list --type "$sort_type" --list "$sort_list_test"
 }
 
-# main "$@"
-tests
+main "$@"
+# tests
