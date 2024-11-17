@@ -470,7 +470,7 @@ execute() {
     --env "$DOTS/Environment/export"
 
   #@ Load Shell
-  shell.init "$SHELL_INTERACTIVE"
+  # shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
   # fonts.init #TODO: This needs to be made portable to work on Windows

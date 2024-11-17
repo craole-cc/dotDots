@@ -12,7 +12,7 @@
 # _________________________________________ LOCAL<|
 
 #@ Verify Instalation
-weHave starship || return
+command -v starship >/dev/null 2>&1 || return
 
 #@ Set Environment Variables
 STARSHIP_HOME="${DOTS_CLI}/starship"
