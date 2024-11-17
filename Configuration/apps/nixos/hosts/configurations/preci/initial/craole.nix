@@ -59,6 +59,7 @@ in
         via
         vial
         vscode-fhs
+        qbittorrent
       ];
 
       sessionVariables = {

@@ -239,6 +239,7 @@ in
       pavucontrol
       qjackctl
       brightnessctl
+      wmctl
     ];
     # variables = {
     #   inherit DOTS;
