@@ -2,8 +2,8 @@
   description = "NixOS Configuration Flake";
   inputs = {
     nixpkgs = {
-      # url = "github:nixos/nixpkgs/nixos-24.05";
-      url = "github:NixOS/nixpkgs/nixos-unstable";
+      url = "github:nixos/nixpkgs/nixos-24.05";
+      # url = "github:NixOS/nixpkgs/nixos-unstable";
     };
     nixpkgsUnstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -22,7 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     homeManager = {
-      url = "github:nix-community/home-manager";
+      # url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixed = {
