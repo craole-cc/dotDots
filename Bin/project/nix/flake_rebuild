@@ -23,7 +23,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 #@ Navigate to the directory where the flake is located
-[ -d "$dots" ] || exit 1
+[ -f "$dots/flake.nix" ] || exit 1
 cd "$dots" || exit 1
 
 #@ Add all changes and commit with the provided or default message
