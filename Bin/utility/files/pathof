@@ -36,15 +36,15 @@ parse_arguments() {
       depth="any"
       direction="both"
       ;;
-    --name)
+    -n|--name|--basename)
       get_name=true
       sort_type="alnum"
       limit=1
       depth="any"
       direction="both"
       ;;
-    --dir)
-      get_dir=true
+    -d|--dir|--dirname|--home)
+      get_home=true
       sort_type="alnum"
       limit=1
       depth="any"
@@ -77,7 +77,7 @@ parse_arguments() {
   # echo "DEPTH: $depth"
   # echo "DIRECTION: $direction"
   # echo "NAME: $get_name"
-  # echo "DIR: $get_dir"
+  # echo "DIR: $get_home"
 
 }
 
@@ -91,7 +91,7 @@ execute_process() {
 
   if [ "$get_name" ]; then
     result="$(basename "$result")"
-  elif [ "$get_dir" ]; then
+  elif [ "$get_home" ]; then
     result="$(dirname "$result")"
   fi
 

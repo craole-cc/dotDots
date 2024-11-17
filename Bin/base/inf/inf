@@ -7,6 +7,24 @@ point_of_entry() {
   # point_of_exit
 }
 
+parse_arguments() {
+  [ "$#" -eq 0 ] && process_info --info && return
+
+  while [ "$#" -gt 0 ]; do
+    case $1 in
+    -h | --help | -v | --version)
+      process_output "$1"
+      return
+      ;;
+    -d | --debug | --test) process_tests ;;
+    *) process_info "$1" ;;
+    esac
+
+    #@ Continue to the next argument
+    shift
+  done
+}
+
 prepare_environment() {
   set_defaults() {
     unset output info
@@ -23,14 +41,14 @@ prepare_environment() {
     #@ Fetch the system type from the first available tool
     if [ "$info" ]; then
       :
-    elif [ -n "$OSTYPE" ]; then
-      info="$OSTYPE"
     elif weHave uname; then
       info="$(uname --kernel-name)"
     elif weHave python; then
       info="$(
         python -c 'import platform; print(platform.system())'
       )"
+    elif [ -n "$OSTYPE" ]; then
+      info="$OSTYPE"
     else
       return 1
     fi
@@ -105,11 +123,11 @@ prepare_environment() {
     info="${info%%.0}" # eg. '10.0' -> '10'
   }
 
-  get_os_kernel_version() {
+  get_os_kernel() {
     if [ "$info" ]; then
       :
     elif weHave uname; then
-      info="$(uname --kernel-name)"
+      info="$(uname --kernel-release)"
     else
       return 1
     fi
@@ -143,7 +161,64 @@ prepare_environment() {
     [ -n "${USERNAME+x}" ] && info="$USERNAME"
   }
 
-  getinfo() {
+  get_git() {
+    weHave git || return 1
+
+    case "$1" in
+    url | remote) info="$(git remote get-url origin 2>/dev/null)" ;;
+    platform)
+      regex="s#https://[^@]\+@##; s#git@\([^:]\+\):.*#\1#; s#https\?://##; s#/.*##"
+      info="$(
+        process_info --git-url | sed "$regex"
+      )"
+      ;;
+    # owner)
+    #   info
+    user)
+      echo "$regex"
+      from_url="$(
+        get_remote_url | sed --quiet 's#https://\([^:]\+\):.*@.*#\1#p'
+      )"
+      from_config="$(git config --get user.name)"
+      from_owner="$(process_info --git-owner)"
+      from_system="$(process_info --user)"
+
+      if [ "$info" ]; then
+        :
+      elif [ "$from_url" ]; then
+        info="$from_url"
+      elif [ "$from_config" ]; then
+        info="$from_config"
+      elif [ "$from_owner" ]; then
+        info="$from_owner"
+      elif [ "$from_system" ]; then
+        info="$from_system"
+      fi
+      ;;
+    email)
+      info="$(
+        git config --local user.email ||
+          git config --global user.email
+      )"
+      ;;
+    branch) info="$(git branch --show-current)" ;;
+    message) info="$(git log -1 --pretty=%B)" ;;
+    dir) info="$(git rev-parse --show-toplevel)" ;;
+    *)
+      info="$(
+        printf "%s | %s | %s | %s | %s | %s" \
+          "$(process_info --git-name)" \
+          "$(process_info --git-email)" \
+          "$(process_info --git-branch)" \
+          "$(process_info --git-dir)" \
+          "$(process_info --git-remote)" \
+          "$(process_info --git-message)"
+      )"
+      ;;
+    esac
+  }
+
+  get_shell() {
     case $SHELL in
     *bash*) info="Bourne Again SHell ${BASH_VERSION}" ;;
     *zsh*) info="Z SHell" ;;
@@ -153,8 +228,7 @@ prepare_environment() {
     *) ;;
     esac
 
-    [ "$info" ] &&
-      info="$info | $SHELL"
+    [ "$info" ] && info="$info | $SHELL"
   }
 
   get_hardware_model() {
@@ -170,7 +244,7 @@ prepare_environment() {
       }
       info="$(
         powershell -ExecutionPolicy Bypass -File "$hardware_info_script"
-        )"
+      )"
     fi
   }
 
@@ -178,19 +252,21 @@ prepare_environment() {
 
     #@ Select the first package found manager from thge list
     known_package_managers="
-      apt
-      brew
-      dnf
-      choco
-      pacman
       nix
+      apt
+      dnf
+      pacman
       yum
-      winget
       zypper
+      brew
+      winget
+      choco
+      scoop
       flatpak
       snap
       cargo
       pip
+      pipx
     "
 
     for package_manager in $known_package_managers; do
@@ -209,9 +285,45 @@ prepare_environment() {
   get_window_manager() {
     if [ "$info" ]; then
       :
+    elif weHave plasmashell; then
+      info="KDE Plasma $(plasmashell --version | cut -d ' ' -f 2)"
+    elif weHave gnome-shell; then
+      info="GNOME $(gnome-shell --version | cut -d ' ' -f 2)"
+    elif weHave xfce4-session; then
+      info="Xfce $(xfce4-session --version | cut -d ' ' -f 2)"
+    elif weHave mate-session; then
+      info="MATE $(mate-session --version | cut -d ' ' -f 2)"
+    elif weHave cinnamon; then
+      info="Cinnamon $(cinnamon --version | cut -d ' ' -f 2)"
     elif weHave wmctrl; then
       # info="$(wmctrl --mutter |  grep "Name" | sed 's/^.*:[[:space:]]*//')"
+      # info=$(wmctrl -m | awk -F ': ' '/Name/ {print $2}')
       info="$(wmctrl --mutter | awk -F ':\\s*' '/Name/ {print $2}')"
+    elif weHave xprop; then
+      info=$(xprop -root _NET_WM_NAME | awk -F '"' '{print $2}')
+    elif [ "$XDG_CURRENT_DESKTOP" ] || [ "$DESKTOP_SESSION" ]; then
+      de="$(
+        printf "%s" "${XDG_CURRENT_DESKTOP:-$DESKTOP_SESSION}" |
+          tr '[:upper:]' '[:lower:]'
+      )"
+
+      case "$de" in
+      *kde* | *plasma*) info="KDE Plasma" ;;
+      *xfce*) info="Xfce" ;;
+      *mate*) info="MATE" ;;
+      *cinnamon*) info="Cinnamon" ;;
+      *lxde*) info="LXDE" ;;
+      *lxqt*) info="LXQt" ;;
+      *deepin*) info="Deepin" ;;
+      *pantheon*) info="Pantheon" ;;
+      *budgie*) info="Budgie" ;;
+      *gnome*flashback*) info="GNOME Flashback" ;;
+      *gnome*classic*) info="GNOME Classic" ;;
+      *gnome*) info="GNOME" ;;
+      *enlightenment* | *e1* | *e2* | *e3*) info="Enlightenment" ;;
+      *unity*) info="Unity" ;;
+      *lumina*) info="Lumina" ;;
+      esac
     else
       get_os_type
     fi
@@ -219,11 +331,10 @@ prepare_environment() {
 
   get_sys_info() {
     info="$(
-      printf "%s | %s | %s | %s | %s | %s" \
+      printf "%s | %s | %s | %s | %s" \
         "$(process_info --type)" \
         "$(process_info --distro)" \
         "$(process_info --kernel)" \
-        "$(process_info --model)" \
         "$(process_info --host)" \
         "$(process_info --user)"
     )"
@@ -231,12 +342,11 @@ prepare_environment() {
 
   get_sys_label() {
     info="$(
-      printf "%s@%s_%s_%s_%s" \
+      printf "%s@%s|%s|%s" \
         "$(process_info --user)" \
         "$(process_info --host)" \
         "$(process_info --type)" \
-        "$(process_info --distro)" \
-        "$(process_info --model)" |
+        "$(process_info --distro)" |
         tr ' ' '_'
     )"
   }
@@ -312,38 +422,32 @@ prepare_tests() {
   }
 }
 
-parse_arguments() {
-  while [ "$#" -gt 0 ]; do
-
-    #
-    case $1 in
-    -h | --help | -v | --version)
-      process_output "$1"
-      return
-      ;;
-    -d | --debug | --test) process_tests ;;
-    *) process_info "$1" ;;
-    esac
-
-    #@ Continue to the next argument
-    shift
-  done
-}
-
 process_info() {
   case $1 in
   -t | --type) get_os_type ;;
   -o | --os | --distro) get_os_name ;;
-  -k | --kernel) get_os_kernel_version ;;
+  -k | --kernel) get_os_kernel ;;
   -a | --arch) get_os_architecture ;;
   -n | --host | node) get_hostname ;;
   -m | --model) get_hardware_model ;;
   -u | --user) get_username ;;
-  -s | --shell) getinfo ;;
+  -s | --shell) get_shell ;;
   -p | --pacman) get_package_manager ;;
   -w | --wm) get_window_manager ;;
-  -i | --info) get_sys_info ;;
+  -b | --browser) get_browser ;;
   -l | --label) get_sys_label ;;
+  --git-dir) get_git dir ;;
+  --git-platform) get_git platform ;;
+  --git-owner) get_git owner ;;
+  --git-name) get_git name ;;
+  --git-user) get_git user ;;
+  --git-email) get_git email ;;
+  --git-url) get_git url ;;
+  --git-pat) get_git pat ;;
+  --git-branch) get_git branch ;;
+  --git-message) get_git message ;;
+  -g | --git) get_git ;;
+  -i | --info | *) get_sys_info ;;
   esac
 
   if [ "$info" ]; then

@@ -8,29 +8,30 @@
 __info__() {
   _cmd_PATH="$(pathof "$0")"
   _cmd_NAME="$(pathof --name "$_cmd_PATH")"
-  _cmd_HOME="$(pathof --dir "$_cmd_PATH")"
+  _cmd_HOME="$(pathof --home "$_cmd_PATH")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Write output to the standard output stream"
   _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
   _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, __weHave__"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE
-    #>----------------------------------------------------<#
-                                                $_cmd_NAME
-    #>----------------------------------------------------<#
-          $_cmd_DESCRIPTION
-    #>----------------------------------------------------<#
-          -h --help       |>     Usage guide
-          -v --version    |>     Version
-          -l --left       |>     Align left [default]
-          -c --center     |>     Align center
-          -r --right      |>     Align right
-          -n --newline    |>     Blank line
-    #>----------------------------------------------------<#
-                command <[options]> <[arguments]>
-            $_cmd_NAME -nnn --center "string to transform"
-            $_cmd_PATH
-    #>----------------------------------------------------<#
+    #> ------------------------------------------------------ <#
+        $_cmd_NAME
+    #> ------------------------------------------------------ <#
+        $_cmd_DESCRIPTION
+    #> ------------------------------------------------------ <#
+              -h --help       |>     Usage guide
+              -v --version    |>     Version
+              -l --left       |>     Align left [default]
+              -c --center     |>     Align center
+              -r --right      |>     Align right
+              -n --newline    |>     Blank line
+    #> ------------------------------------------------------ <#
+                  command <[options]> <[arguments]>
+          $_cmd_NAME --center "string to transform"
+          $_cmd_PATH
+          $_cmd_HOME
+    #> ------------------------------------------------------ <#
 USAGE_GUIDE
   )"
 }
