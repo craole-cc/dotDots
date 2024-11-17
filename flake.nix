@@ -141,8 +141,8 @@
                 environment = {
                   inherit variables shellAliases pathsToLink;
                   systemPackages = [
-                    flakeUpdate
-                    (flakeSwitch pkg system)
+                    # flakeUpdate
+                    # (flakeSwitch pkg system)
                   ];
                 };
                 # DOTS.hosts.Preci.enable = true;
