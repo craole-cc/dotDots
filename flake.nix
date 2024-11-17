@@ -148,12 +148,17 @@
       repo = "nixpkgs";
       ref = "nixpkgs-unstable";
     };
-
     nixpkgs-stable = {
       type = "github";
       owner = "NixOS";
       repo = "nixpkgs";
       ref = "nixos-24.05";
+    };
+    nixos-hardware = {
+      type = "github";
+      owner = "NixOS";
+      repo = "nixos-hardware";
+      flake = false;
     };
     home-manager = {
       type = "github";
@@ -162,19 +167,6 @@
       ref = "master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # nixpkgs-unstable = {
-    #   url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    # };
-    # nixpkgs-stable = {
-    #   url = "github:NixOS/nixpkgs/nixos-24.11";
-    # };
-    # nixpkgs = {
-    #   url = "github:NixOS/nixpkgs/nixos-24.11";
-    # };
-    # home-manager = {
-    #   url = "github:nix-community/home-manager";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
