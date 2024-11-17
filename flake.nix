@@ -143,37 +143,27 @@
 
   inputs = {
     nixpkgs = {
-      type = "github";
-      owner = "NixOS";
-      repo = "nixpkgs";
-      ref = "nixpkgs-unstable";
+      url = "github:nixos/nixpkgs/nixos-unstable";
+    };
+    nixpkgs-unstable = {
+      url = "github:nixos/nixpkgs/nixos-unstable";
     };
     nixpkgs-stable = {
-      type = "github";
-      owner = "NixOS";
-      repo = "nixpkgs";
-      ref = "nixos-24.05";
+      url = "github:nixos/nixpkgs/nixos-24.05";
     };
     nixos-hardware = {
-      type = "github";
-      owner = "NixOS";
-      repo = "nixos-hardware";
-      flake = false;
-    };
-    home-manager = {
-      type = "github";
-      owner = "rycee";
-      repo = "home-manager";
-      ref = "master";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:NixOS/nixos-hardware";
     };
     darwin = {
       url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
+    home-manager = {
+      url = "github:rycee/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
     };
     nixed = {
       url = "github:Craole/nixed";
-      flake = false;
     };
   };
 }
