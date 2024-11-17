@@ -718,8 +718,6 @@ main() {
   #@ Initialize the script
   establish_environment "$@"
 
-  #@ Initialize variables
-
   #@ Run the necessary process
   if [ "$debug" ]; then
     execute_tests

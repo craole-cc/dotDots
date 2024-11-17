@@ -113,6 +113,6 @@
 
 [credential]
 	helper =
-	helper = C:/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe
+	# helper = C:/Program\\ Files/Git/mingw64/bin/git-credential-manager.exe
 [safe]
 	directory = D:/Projects/Rust/slink
