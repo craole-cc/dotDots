@@ -2,8 +2,8 @@
   description = "NixOS Configuration Flake";
   inputs = {
     nixpkgs = {
-      url = "github:nixos/nixpkgs/nixos-24.05";
-      # url = "github:NixOS/nixpkgs/nixos-unstable";
+      # url = "github:nixos/nixpkgs/nixos-24.05";
+      url = "github:NixOS/nixpkgs/nixos-unstable";
     };
     nixpkgsUnstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -22,8 +22,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     homeManager = {
-      # url = "github:nix-community/home-manager";
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager";
+      # url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixed = {
@@ -31,7 +31,7 @@
     };
   };
   outputs =
-    {
+    inputs@{
       nixpkgs,
       nixDarwin,
       homeManager,
@@ -107,9 +107,8 @@
         (bin + "/utility")
       ];
       modules = ./. + mod;
-      coreModules = [ modules ] ++ homeModules;
+      coreModules = [ modules ] ++ homeModulesNix ++ homeModules;
       homeModules = [
-        homeManager.nixosModules.home-manager
         {
           home-manager = {
             backupFileExtension = "BaC";
@@ -118,6 +117,8 @@
           };
         }
       ];
+      homeModulesNix = homeManager.nixosModules.home-manager;
+      homeModulesDarwin = homeManager.darwinModules.home-manager;
       args = {
         paths = {
           inherit
@@ -161,7 +162,7 @@
       darwinConfigurations = {
         MBPoNine = lib.darwinSystem {
           system = "x86_64-darwin";
-          modules = homeModules ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
+          modules = homeModulesDarwin ++ homeModules ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
         };
       };
     };
