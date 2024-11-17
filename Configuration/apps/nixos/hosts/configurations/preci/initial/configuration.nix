@@ -243,7 +243,7 @@ in
         brightnessctl
       ]
       ++ (
-        if config.services.xserver then
+        if config.services.xserver.enable then
           [
             wmctrl
             xprop
