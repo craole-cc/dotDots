@@ -58,9 +58,9 @@ in
         whatsapp-for-linux
         warp-terminal
         via
-        vial
         vscode-fhs
-        # qbittorrent
+        qbittorrent
+        mpv
       ];
 
       sessionVariables = {
