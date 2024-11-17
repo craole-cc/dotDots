@@ -143,7 +143,8 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:nixos/nixpkgs/nixos-24.05";
+      # url = "github:nixos/nixpkgs/nixos-24.05";
+      url = "github:nixos/nixpkgs/nixos-unstable";
     };
     nixpkgs-unstable = {
       url = "github:nixos/nixpkgs/nixos-unstable";
@@ -156,11 +157,11 @@
     };
     darwin = {
       url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs-stable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
       url = "github:rycee/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-stable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nixed = {
       url = "github:Craole/nixed";
