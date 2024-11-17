@@ -2,7 +2,7 @@
 # shellcheck disable=SC2034,SC1090,SC2154
 
 #==================================================
-# RUSTUP
+# PYTHON
 #==================================================
 
 # _________________________________ DOCUMENTATION<|
@@ -18,10 +18,10 @@ HATCH_CONFIG="$DOTS_CLI/python/hatch.toml"
 # _________________________________________ TOOLS<|
 
 #> Load Config
-[ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
+# [ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
 
 #> Install Rust if missing
-command -v rustc >/dev/null 2>&1 || install_rust
+# command -v rustc >/dev/null 2>&1 || install_rust
 
 
 # _________________________________________ ALIAS<|

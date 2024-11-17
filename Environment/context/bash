@@ -6,11 +6,11 @@ _NAME="bash"
 _CMD="bash"
 _TYPE="tty"
 
-DOTS_CLI="${DOTS_CLI:-$DOTS/Config/cli}"
+DOTS_CLI="${DOTS_CLI:-$DOTS/Configuration/cli}"
 _HOME="${DOTS_CLI}/${_APP}"
 
 for resource in "${_HOME}"/resources/*.*; do
-  if [ -r "$resource" ]; then
+  if [ -f "$resource" ]; then
     . "$resource"
   fi
 done

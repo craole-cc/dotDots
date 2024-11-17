@@ -462,16 +462,15 @@ update_launcher() {
 execute() {
   #@ Update the dotsrc launcher through .profile and .bashrc
   update_launcher
-  printf "Loaded DOTS via %s\n" "$DOTS"
 
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
-    --bin "$DOTS/Bin"
-  # --env "$DOTS/Environment/export"
+    --bin "$DOTS/Bin" \
+    --env "$DOTS/Environment/export"
 
   #@ Load Shell
-  # shell.init "$SHELL_INTERACTIVE"
+  shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
   # fonts.init #TODO: This needs to be made portable to work on Windows
