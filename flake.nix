@@ -1,5 +1,34 @@
 {
   description = "NixOS Configuration Flake";
+  inputs = {
+    nixpkgs = {
+      # url = "github:nixos/nixpkgs/nixos-24.05";
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+    nixpkgsUnstable = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+    nixpkgsStable = {
+      url = "github:NixOS/nixpkgs/nixos-24.05";
+    };
+    nixosHardware = {
+      url = "github:NixOS/nixos-hardware";
+    };
+    systems = {
+      url = "github:nix-systems/default-linux";
+    };
+    nixDarwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    homeManager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixed = {
+      url = "github:Craole/nixed";
+    };
+  };
   outputs =
     {
       nixpkgs,
@@ -8,9 +37,7 @@
       ...
     }:
     let
-      inherit (nixpkgs.lib) nixosSystem;
-      inherit (nixDarwin.lib) darwinSystem;
-      # inherit (homeManager.nixosModules) home-manager;
+      lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
       pkg = system: nixpkgs.legacyPackages.${system};
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
       dot = "/home/craole/Documents/dotfiles";
@@ -106,7 +133,7 @@
           let
             system = "x86_64-linux";
           in
-          nixosSystem {
+          lib.nixosSystem {
             inherit system;
             modules = coreModules ++ [
               {
@@ -123,7 +150,7 @@
             specialArgs = args;
           };
 
-        dbook = nixosSystem {
+        dbook = lib.nixosSystem {
           system = "x86_64-linux";
           modules = coreModules ++ [ { DOTS.hosts.DBook.enable = true; } ];
           # modules = [ (hostModules + "/dbook") ] ++ coreModules;
@@ -131,40 +158,10 @@
       };
 
       darwinConfigurations = {
-        MBPoNine = darwinSystem {
+        MBPoNine = lib.darwinSystem {
           system = "x86_64-darwin";
           modules = homeModules ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
         };
       };
     };
-
-  inputs = {
-    nixpkgs = {
-      # url = "github:nixos/nixpkgs/nixos-24.05";
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-    nixpkgsUnstable = {
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-    nixpkgsStable = {
-      url = "github:NixOS/nixpkgs/nixos-24.05";
-    };
-    nixosHardware = {
-      url = "github:NixOS/nixos-hardware";
-    };
-    systems = {
-      url = "github:nix-systems/default-linux";
-    };
-    nixDarwin = {
-      url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    homeManager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nixed = {
-      url = "github:Craole/nixed";
-    };
-  };
 }
