@@ -1,0 +1,19 @@
+#! /bin/sh
+
+#@ Set default message if not provided
+MESSAGE="Flake Update"
+[ "$1" ] && MESSAGE="$1"
+
+#@ Navigate to the directory where the flake is located
+cwd="$(pwd)"
+cd "${DOTS:-$1}" || exit 1
+
+#@ Add all changes and commit with the provided or default message
+git add --all
+git commit --message "$MESSAGE"
+
+#@ Rebuild NixOS configuration using flakes
+sudo nixos-rebuild switch --flake .
+
+#@ Return to the previous directory
+cd "$cwd" || exit 1
