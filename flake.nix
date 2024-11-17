@@ -116,13 +116,13 @@
       };
       modulesNixos = [
         modulesCore
-        homeManager.nixosModules.home-manager
         modulesHome
+        homeManager.nixosModules.home-manager
       ];
       modulesDarwin = [
         modulesCore
-        homeManager.darwinModules.home-manager
         modulesHome
+        homeManager.darwinModules.home-manager
       ];
       args = {
         paths = {
@@ -147,8 +147,8 @@
                 environment = {
                   inherit variables shellAliases pathsToLink;
                   systemPackages = [
-                    # flakeUpdate
-                    # (flakeSwitch pkg system)
+                    flakeUpdate
+                    (flakeSwitch pkg system)
                   ];
                 };
                 # DOTS.hosts.Preci.enable = true;
