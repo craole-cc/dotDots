@@ -2,8 +2,8 @@
 
 for file in "$@"; do
   bakDIR="$(dirname "$file")/archive"
-  mkdir --parents "$bakDIR"
+  mkdir --parents "$bacDIR"
   mv "$file" \
     --backup \
-    --target-directory="$bakDIR"
+    --target-directory="$bacDIR"
 done

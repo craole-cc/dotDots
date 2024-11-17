@@ -468,7 +468,7 @@ execute() {
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
     --bin "$DOTS/Bin"
-    # --env "$DOTS/Environment/export"
+  # --env "$DOTS/Environment/export"
 
   #@ Load Shell
   # shell.init "$SHELL_INTERACTIVE"
