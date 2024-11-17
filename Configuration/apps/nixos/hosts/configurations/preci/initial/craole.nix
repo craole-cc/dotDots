@@ -37,6 +37,7 @@ in
     };
     home = {
       inherit stateVersion;
+      enableNixpkgsReleaseCheck = false;
       packages = with pkgs; [
         #| Fonts
         (fetchFromGitHub {

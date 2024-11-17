@@ -31,7 +31,7 @@
     };
   };
   outputs =
-    inputs@{
+    {
       nixpkgs,
       nixDarwin,
       homeManager,
@@ -106,19 +106,24 @@
         (bin + "/template")
         (bin + "/utility")
       ];
-      modules = ./. + mod;
-      coreModules = [ modules ] ++ homeModulesNix ++ homeModules;
-      homeModules = [
-        {
-          home-manager = {
-            backupFileExtension = "BaC";
-            useGlobalPkgs = true;
-            useUserPackages = true;
-          };
-        }
+      modulesCore = ./. + mod;
+      modulesHome = {
+        home-manager = {
+          backupFileExtension = "BaC";
+          useGlobalPkgs = true;
+          useUserPackages = true;
+        };
+      };
+      modulesNixos = [
+        modulesCore
+        homeManager.nixosModules.home-manager
+        modulesHome
       ];
-      homeModulesNix = homeManager.nixosModules.home-manager;
-      homeModulesDarwin = homeManager.darwinModules.home-manager;
+      modulesDarwin = [
+        modulesCore
+        homeManager.darwinModules.home-manager
+        modulesHome
+      ];
       args = {
         paths = {
           inherit
@@ -137,7 +142,7 @@
           in
           lib.nixosSystem {
             inherit system;
-            modules = coreModules ++ [
+            modules = modulesNixos ++ [
               {
                 environment = {
                   inherit variables shellAliases pathsToLink;
@@ -154,15 +159,19 @@
 
         dbook = lib.nixosSystem {
           system = "x86_64-linux";
-          modules = coreModules ++ [ { DOTS.hosts.DBook.enable = true; } ];
-          # modules = [ (hostModules + "/dbook") ] ++ coreModules;
+          modules = modulesNixos ++ [
+            {
+              # DOTS.hosts.DBook.enable = true;
+            }
+          ];
+          # modules = [ (hostModules + "/dbook") ] ++ modulesNixos;
         };
       };
 
       darwinConfigurations = {
         MBPoNine = lib.darwinSystem {
           system = "x86_64-darwin";
-          modules = homeModulesDarwin ++ homeModules ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
+          modules = modulesDarwin ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
         };
       };
     };
