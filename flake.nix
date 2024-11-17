@@ -142,19 +142,39 @@
     };
 
   inputs = {
-    nixpkgs-unstable = {
-      url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    };
-    nixpkgs-stable = {
-      url = "github:NixOS/nixpkgs/nixos-24.05";
-    };
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-unstable";
+      type = "github";
+      owner = "NixOS";
+      repo = "nixpkgs";
+      ref = "nixpkgs-unstable";
+    };
+
+    nixpkgs-stable = {
+      type = "github";
+      owner = "NixOS";
+      repo = "nixpkgs";
+      ref = "nixos-24.05";
     };
     home-manager = {
-      url = "github:nix-community/home-manager";
+      type = "github";
+      owner = "rycee";
+      repo = "home-manager";
+      ref = "master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # nixpkgs-unstable = {
+    #   url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # };
+    # nixpkgs-stable = {
+    #   url = "github:NixOS/nixpkgs/nixos-24.11";
+    # };
+    # nixpkgs = {
+    #   url = "github:NixOS/nixpkgs/nixos-24.11";
+    # };
+    # home-manager = {
+    #   url = "github:nix-community/home-manager";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
