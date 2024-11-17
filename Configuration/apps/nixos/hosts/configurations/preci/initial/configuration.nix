@@ -206,41 +206,54 @@ in
   };
 
   environment = {
-    systemPackages = with pkgs; [
-      #| Core Utilities
-      usbutils
-      uutils-coreutils-noprefix
-      busybox
-      bat
-      fzf
-      ripgrep
-      sd
-      tldr
-      fd
-      jq
+    systemPackages =
+      with pkgs;
+      [
+        #| Core Utilities
+        usbutils
+        uutils-coreutils-noprefix
+        busybox
+        bat
+        fzf
+        ripgrep
+        sd
+        tldr
+        fd
+        jq
 
-      #| Development
-      nil
-      nixd
-      nixfmt-rfc-style
-      nix-info
-      shellcheck
-      shfmt
+        #| Development
+        nil
+        nixd
+        nixfmt-rfc-style
+        nix-info
+        shellcheck
+        shfmt
 
-      #| Filesystem
-      dust
-      eza
+        #| Filesystem
+        dust
+        eza
 
-      #| Network
-      speedtest-go
+        #| Network
+        speedtest-go
 
-      #| System
-      easyeffects
-      pavucontrol
-      qjackctl
-      brightnessctl
-      wmctl
-    ];
+        #| System
+        easyeffects
+        pavucontrol
+        qjackctl
+        brightnessctl
+      ]
+      ++ (
+        if config.services.xserver then
+          [
+            wmctrl
+            xprop
+            xdotool
+            xinput
+            xrandr
+          ]
+        else
+          [ ]
+      );
     # variables = {
     #   inherit DOTS;
     #   # PATH = "$PATH:$DOTS/Bin";
