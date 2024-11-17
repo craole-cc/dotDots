@@ -1,6 +1,6 @@
 #!/bin/sh
 
-_cmd_PATH="$(PathOf "$0")"
+_cmd_PATH="$(pathof "$0")"
 _cmd_NAME="$(basename "$_cmd_PATH")"
 _cmd_HOME="$(dirname -- "$_cmd_PATH")"
 _cmd_VERSION="1.0"
