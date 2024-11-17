@@ -40,8 +40,7 @@ in
   nixpkgs = {
     config.allowUnfree = lib.mkDefault true;
     permittedInsecurePackages = [
-      # "qbittorrent-4.6.4"
-      "qbittorrent"
+      "qbittorrent-4.6.4"
     ];
   };
 
