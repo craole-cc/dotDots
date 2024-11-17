@@ -142,16 +142,24 @@
     };
 
   inputs = {
-    nixpkgs = {
+    nixpkgs-unstable = {
       url = "github:nixos/nixpkgs?ref=nixos-unstable";
     };
+    nixpkgs-stable = {
+      url = "github:NixOS/nixpkgs/nixos-24.05";
+    };
+    # nixpkgs = {
+    #   inherit (nixpkgs-unstable) url;
+    #   # url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # };
+    # nixpkgs = nixpkgs-unstable;
     home-manager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     darwin = {
       url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     nixed = {
       url = "github:Craole/nixed";
