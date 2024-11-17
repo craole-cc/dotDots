@@ -148,11 +148,6 @@
     nixpkgs-stable = {
       url = "github:NixOS/nixpkgs/nixos-24.05";
     };
-    # nixpkgs = {
-    #   inherit (nixpkgs-unstable) url;
-    #   # url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    # };
-    # nixpkgs = nixpkgs-unstable;
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
