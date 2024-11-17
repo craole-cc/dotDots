@@ -2,9 +2,9 @@
 set -e
 path="$1"
 shift 1
-while [ "$(PathOf "$path")" != / ]; do
+while [ "$(pathof "$path")" != / ]; do
   find "$path" -maxdepth 1 -mindepth 1 "$@"
-  # Note: if you want to ignore symlinks, use "$(PathOf "$path"/..)"
+  # Note: if you want to ignore symlinks, use "$(pathof "$path"/..)"
   # path="$(readlink -f "$path"/..)"
-  path="$(PathOf "$path"/..)"
+  path="$(pathof "$path"/..)"
 done

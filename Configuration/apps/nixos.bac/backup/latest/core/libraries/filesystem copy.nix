@@ -40,10 +40,10 @@ let
   /**
     "Get the current working directory."
   */
-  pathOfPWD = getEnv "PWD";
+  pathofPWD = getEnv "PWD";
 
   /**
-    pathOf :: path -> absolute path
+    pathof :: path -> absolute path
 
     "Obtains the absolute path of a given file or directory, relative to the project root."
 
@@ -53,16 +53,16 @@ let
     Returns: absolute path
 
     Example:
-      pathOf "src/configurations/user/review/craole.bac.nix"
+      pathof "src/configurations/user/review/craole.bac.nix"
       => "/etc/nixos/src/configurations/user/review/craole.bac.nix"
   */
-  pathOf =
+  pathof =
     _path:
     foldl' (x: y: if y == "/" && hasSuffix "/" x then x else x + y) "" (
       stringToCharacters (toString _path)
     );
 
-  pathOrNull = _path: if pathExists (pathOf _path) then pathOf _path else null;
+  pathOrNull = _path: if pathExists (pathof _path) then pathof _path else null;
   /**
     "Recursively list path items including directories, files and modules
 
@@ -134,7 +134,7 @@ let
     in
     _path:
     let
-      path' = pathOf _path;
+      path' = pathof _path;
       paths = listFilesRecursive path';
       isBaseModule = _path: isInDir _path path';
 
@@ -498,11 +498,11 @@ let
   /**
     Find the absolute path of the nixos config root.
   */
-  locateNixos = locateParentByChild "configuration.nix" pathOfPWD;
+  locateNixos = locateParentByChild "configuration.nix" pathofPWD;
   /**
     Find the absolute path of the git root.
   */
-  locateGitRoot = locateParentByChild ".git" pathOfPWD;
+  locateGitRoot = locateParentByChild ".git" pathofPWD;
 
   tests = locateParentByChildren {
     children = [
@@ -528,8 +528,8 @@ in
 {
   filesystem = {
     inherit
-      # pathOf
-      # pathOfPWD
+      # pathof
+      # pathofPWD
       # pathOrNull
       # pathsIn
       # importModules

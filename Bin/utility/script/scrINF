@@ -2,7 +2,7 @@
 
 script="$1"
 
-get_path() { PathOf "$script"; }
+get_path() { pathof "$script"; }
 get_directory() {
   directory="$(
     dirname "$script"

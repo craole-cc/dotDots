@@ -3,7 +3,7 @@ let
   #| Internal Imports
   inherit (config.DOTS) Libraries Active Sources;
   inherit (Libraries.helpers) mkSource;
-  inherit (Libraries.filesystem) nullOrPathOf githubPathOf;
+  inherit (Libraries.filesystem) nullOrpathof githubpathof;
   inherit (Active.host) stateVersion;
   homeManager = <home-manager/nixos>;
 
@@ -37,7 +37,7 @@ in
       channel = mkOption {
         description = "The channel of the home-manager source";
         default = {
-          path = nullOrPathOf <home-manager/nixos>;
+          path = nullOrpathof <home-manager/nixos>;
         };
         type = attrs;
       };
@@ -60,7 +60,7 @@ in
                   };
                 in
                 key.${rev};
-              fetched = githubPathOf {
+              fetched = githubpathof {
                 inherit
                   owner
                   repo
@@ -68,7 +68,7 @@ in
                   sha256
                   ;
               };
-              path = nullOrPathOf (fetched + "/nixos");
+              path = nullOrpathof (fetched + "/nixos");
             in
             {
               inherit

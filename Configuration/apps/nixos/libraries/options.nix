@@ -20,7 +20,7 @@ with path;
     locateParentByNameOrChildren = mkOption { default = locateParentByNameOrChildren; };
     locateParentByChildren = mkOption { default = locateParentByChildren; };
     locateProjectRoot = mkOption { default = locateProjectRoot; };
-    pathOf = mkOption { default = pathOf; };
+    pathof = mkOption { default = pathof; };
 
     #| Path
     # listNixModuleNames = mkOption { default = listNixModuleNames; };

@@ -7,7 +7,7 @@
 let
   #| Internal Imports
   inherit (config.DOTS) Libraries;
-  inherit (Libraries.filesystem) nullOrPathOf;
+  inherit (Libraries.filesystem) nullOrpathof;
 
   mod = "fetchers";
   cfg = Libraries.${mod};
@@ -64,7 +64,7 @@ in
           fetchData =
             login: sha256:
             let
-              fetchedData = nullOrPathOf (fetchurl {
+              fetchedData = nullOrpathof (fetchurl {
                 url = "https://api.github.com/users/${login}";
                 inherit sha256;
               });

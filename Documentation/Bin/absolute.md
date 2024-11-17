@@ -1,11 +1,11 @@
-# PathOf
+# pathof
 
 The absolute script normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..'.
 
 ## Usage
 
 ```sh
-PathOf [OPTIONS] <target_path>
+pathof [OPTIONS] <target_path>
 ```
 
 ## Options
@@ -26,16 +26,16 @@ PathOf [OPTIONS] <target_path>
 ## Examples
 
 ```sh
-$ PathOf ~/../../usr/bin
+$ pathof ~/../../usr/bin
 /usr/bin
 
-$ PathOf /usr/local/bin/../lib
+$ pathof /usr/local/bin/../lib
 /usr/local/lib
 
-$ PathOf /var/log/../lib
+$ pathof /var/log/../lib
 /var/lib
 
-$ PathOf /var//log/syslog
+$ pathof /var//log/syslog
 Invalid path: /var//log/syslog
 ```
 

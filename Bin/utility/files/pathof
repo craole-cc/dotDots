@@ -36,6 +36,20 @@ parse_arguments() {
       depth="any"
       direction="both"
       ;;
+    --name)
+      get_name=true
+      sort_type="alnum"
+      limit=1
+      depth="any"
+      direction="both"
+      ;;
+    --dir)
+      get_dir=true
+      sort_type="alnum"
+      limit=1
+      depth="any"
+      direction="both"
+      ;;
     *) pattern="$1" ;;
     esac
     shift
@@ -55,23 +69,32 @@ parse_arguments() {
   one*) depth="1" ;;
   esac
 
-  direction="both"
+  # direction="both"
   # echo "PATTERN: $pattern"
   # echo "HIDDEN: $hidden"
   # echo "SORT: $sort_type"
   # echo "LIMIT: $limit"
   # echo "DEPTH: $depth"
   # echo "DIRECTION: $direction"
+  # echo "NAME: $get_name"
+  # echo "DIR: $get_dir"
 
 }
 
 execute_process() {
-  [ -e "$pattern" ] && {
-    printf "%s" "$pattern"
-    exit 0
-  }
+  # [ -e "$pattern" ] && {
+  #   printf "%s" "$pattern"
+  #   exit 0
+  # }
 
   result="$(search_all)"
+
+  if [ "$get_name" ]; then
+    result="$(basename "$result")"
+  elif [ "$get_dir" ]; then
+    result="$(dirname "$result")"
+  fi
+
   printf "%s" "$result"
 
   #@ Check if the target path is a known binary
@@ -355,7 +378,7 @@ limit_list() {
   done
 
   case "$limit" in
-  '') printf "%s" "$list";;
+  '') printf "%s" "$list" ;;
   ![0-9]*) printf "%s" "$list" | head -n 1 ;;
   *) printf "%s" "$list" | head -n "$limit" ;;
   esac

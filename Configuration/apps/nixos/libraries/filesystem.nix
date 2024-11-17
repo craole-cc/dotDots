@@ -54,8 +54,8 @@ let
 
   cfg = DOTS.${base}.${mod};
   inherit (cfg)
-    pathOf
-    pathOfPWD
+    pathof
+    pathofPWD
     pathsIgnored
     pathsIn
     locateGitRoot
@@ -67,10 +67,10 @@ let
 in
 {
   options.DOTS.${base}.${mod} = {
-    pathOf = mkOption {
+    pathof = mkOption {
       description = "Obtains the absolute path of a given file or directory, relative to the project root.";
       example = "
-      pathOf \"src/configurations/user/review/craole.bac.nix\"
+      pathof \"src/configurations/user/review/craole.bac.nix\"
       => \"/etc/nixos/src/configurations/user/review/craole.bac.nix\"
       ";
       default =
@@ -80,14 +80,14 @@ in
         );
     };
 
-    pathOfPWD = mkOption {
+    pathofPWD = mkOption {
       description = "Returns the current working directory.";
       default = getEnv "PWD";
     };
 
     pathOrNull = mkOption {
       description = "";
-      default = _path: if pathExists (pathOf _path) then pathOf _path else null;
+      default = _path: if pathExists (pathof _path) then pathof _path else null;
     };
 
     pathsIn = mkOption {
@@ -116,7 +116,7 @@ in
           trimNix = _file: removeSuffix ".nix" _file;
 
           #| Paths
-          path' = pathOf path;
+          path' = pathof path;
           paths = listFilesRecursive path';
           isBaseModule = path: isInDir path path';
 
@@ -455,16 +455,16 @@ in
     locateNixos = mkOption {
       description = "Find the absolute path of the git root.";
       example = "locateGitRoot ==> \"/path/to/project/root\"";
-      default = locateParentByChild "configuration.nix" pathOfPWD;
+      default = locateParentByChild "configuration.nix" pathofPWD;
     };
 
     locateGitRoot = mkOption {
       description = "Find the absolute path of the git root.";
       example = "locateGitRoot ==> \"/path/to/project/root\"";
-      default = locateParentByChild ".git" pathOfPWD;
+      default = locateParentByChild ".git" pathofPWD;
     };
 
-    pathOfGitHub = mkOption {
+    pathofGitHub = mkOption {
       description = "Fetches the contents of a GitHub repository and returns the absolute path to the .nix file.";
       default =
         {
@@ -486,9 +486,9 @@ in
     tests = mkOption {
       description = "Tests for {{base}}.{{mod}}";
       default = with cfg; {
-        pathOf = pathOf ./.;
-        pathOfPWD = pathOfPWD;
-        pathOrNull = pathOrNull (pathOfPWD + "/none-existent-path");
+        pathof = pathof ./.;
+        pathofPWD = pathofPWD;
+        pathOrNull = pathOrNull (pathofPWD + "/none-existent-path");
         pathsIn = pathsIn ./.;
         pathsIgnoredDot = pathsIgnored.perDots ./.;
         pathsIgnoredGit = pathsIgnored.perGit ./.;

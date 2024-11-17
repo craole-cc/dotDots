@@ -22,7 +22,7 @@ let
   inherit (lib.strings) hasPrefix toLower replaceStrings;
 
   inherit (USER) isMinimal context;
-  inherit (LIBS.filesystem) nullOrPathOf pathOf;
+  inherit (LIBS.filesystem) nullOrpathof pathof;
 in
 with _cfg;
 {

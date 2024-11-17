@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if type rust-script >/dev/null 2>&1; then
-  rust-script "$(PathOf eol.rs)" -- "$@"
+  rust-script "$(pathof eol.rs)" -- "$@"
 else
-  sh "$(PathOf eol.sh)" -- "$@"
-# ducta --rust "$(PathOf eol.rs) $*"
+  sh "$(pathof eol.sh)" -- "$@"
+# ducta --rust "$(pathof eol.rs) $*"
 fi

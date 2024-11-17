@@ -30,7 +30,7 @@ main() {
 #/> Initialization                                  <\
 
 init_metadata() { #@ Initalize script metadata
-  scr_PATH="$(PathOf "$0")"
+  scr_PATH="$(pathof "$0")"
   scr_NAME="$(basename "$scr_PATH")"
   scr_HOME="$(dirname -- "$scr_PATH")"
   scr_VERSION="1.0"
@@ -103,7 +103,6 @@ init_defaults() { #@ Initalize default variables
 
 find_images() { #@ Recursively search for image files
   usage="Usage: find_images [IMAGE_PATH]"
-
 
   #@ Ensure file is an image
   [ -d "$1" ] || {
@@ -212,7 +211,7 @@ wipe_wallpaper_cache() { #@ Reset wallpaper management
 }
 
 get_wallpaper() { #$
-  wallpaper_src_path="$(PathOf "$wallpaper_src_path")"
+  wallpaper_src_path="$(pathof "$wallpaper_src_path")"
 
   if [ -d "$wallpaper_src_path" ]; then
     for image in $(find_images "$wallpaper_src_path"); do
@@ -245,11 +244,11 @@ log_wallpaper() {
 
     #@ Add default wallpaper, if valid but not in the log
     if
-      [ "$(PathOf "$wallpaper_lnk_path")" != "$wallpaper_lnk_path" ] &&
+      [ "$(pathof "$wallpaper_lnk_path")" != "$wallpaper_lnk_path" ] &&
         [ -f "$wallpaper_lnk_path" ] && [ ! "$wallpaper_src_path" ]
     then
       #@ Set wallpaper as default
-      wallpaper="$(PathOf "$wallpaper_lnk_path")"
+      wallpaper="$(pathof "$wallpaper_lnk_path")"
       # __msg__ --log-default
       update
       #@ Update log if existing wallpaper not in it
@@ -354,7 +353,7 @@ set_wallpaper() {
 __info__() {
   #@ Display information about the current wallpaper
   printf "      DIR: %s\nWallpaper: %s\nLog Entry: %s\n" \
-    "$WALLPAPERS" "$(PathOf "$wallpaper_lnk_path")" "$(log_entry)"
+    "$WALLPAPERS" "$(pathof "$wallpaper_lnk_path")" "$(log_entry)"
 
   #@ Display wallpaper log
   bat --style='numbers,changes,grid' "$wallpaper_log_path"

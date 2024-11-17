@@ -15,7 +15,7 @@ establish_metadata() {
 	_cmd_DESCRIPTION="Simplifies the git update process"
 	_cmd_DEPENDENCIES="git"
 	_cmd_USAGEGUIDE="$(
-		cat << USAGE_GUIDE
+		cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
                           $_cmd_NAME ($_cmd_VERSION)
 ::------------------------------------------------------------::
@@ -86,13 +86,13 @@ establish_defaults() {
 	verbose="${verbose:-true}"
 
 	# | Paths
-	git rev-parse --show-superproject-working-tree > /dev/null 2>&1 &&
+	git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
 		git_dir_super="$(git rev-parse --show-superproject-working-tree)"
 
-	git rev-parse --show-toplevel > /dev/null 2>&1 &&
+	git rev-parse --show-toplevel >/dev/null 2>&1 &&
 		git_dir="$(git rev-parse --show-toplevel)"
 
-	git remote get-url origin > /dev/null 2>&1 &&
+	git remote get-url origin >/dev/null 2>&1 &&
 		actual_repo="$(git remote get-url origin)"
 
 	target_repo="${target_repo:-$actual_repo}"
@@ -115,86 +115,86 @@ establish_environment() {
 	# | Parse arguments from CLI arguments
 	while [ "$#" -ge 1 ]; do
 		case "$1" in
-			-p | --pull)
-				pull=true
-				;;
-			-i | --ignore)
-				ignore=true
-				;;
-			-d | --diff)
-				diff=true
-				;;
-			-s | --status)
-				status=true
-				;;
-			-a | --add)
-				add=true
-				;;
-			-c | --commit)
-				commit=true
-				[ "$2" ] && {
-					msg="$2"
-					shift
-				}
-				;;
-			-u | --push)
-				push=true
-				;;
-			-R | --sub* | --recurse)
-				recurse=true
-				[ "$2" ] && {
-					submodule="$2"
-					shift
-				}
-				;;
-			--gitisuper)
-				get_geet_dir=true
-				;;
-			--gitis)
-				get_git_dir=true
-				;;
-			-h | --help)
-				display_info --usage
-				;;
-			-v | --version)
-				display_info --version
-				;;
-			# -d | --verbose) verbose=true ;;
-			--debug) debug=true ;;
-			-m | --m*)
+		-p | --pull)
+			pull=true
+			;;
+		-i | --ignore)
+			ignore=true
+			;;
+		-d | --diff)
+			diff=true
+			;;
+		-s | --status)
+			status=true
+			;;
+		-a | --add)
+			add=true
+			;;
+		-c | --commit)
+			commit=true
+			[ "$2" ] && {
 				msg="$2"
-				;;
-			--ci) ci=true ;;
-			-*) ;;
-				# --key)
-				# 	[ "$2" ] || display_info --error "SSH Key required"
-				# 	key="$2"
-				# 	;;
-				# -r | --repo)
-				# 	[ "$2" ] || display_info --error \
-				# 		"Git repository required"
-				# 	target_repo="$2"
-				# 	;;
-				# --user)
-				# 	[ "$2" ] ||
-				# 		display_info --error \
-				# 			"A git repository url is required"
-				# 	user="$2"
-				# 	;;
-				# --email)
-				# 	[ "$2" ] ||
-				# 		display_info --error \
-				# 			Aye"A git repository url is required"
-				# 	email="$2"
-				# 	;;
-				# --dir)
-				# 	[ "$2" ] || display_info --error \
-				# 		"A local git directory is required"
-				# 	dir="$2"
-				# ;;
-			*)
-				msg="$1"
-				;;
+				shift
+			}
+			;;
+		-u | --push)
+			push=true
+			;;
+		-R | --sub* | --recurse)
+			recurse=true
+			[ "$2" ] && {
+				submodule="$2"
+				shift
+			}
+			;;
+		--gitisuper)
+			get_geet_dir=true
+			;;
+		--gitis)
+			get_git_dir=true
+			;;
+		-h | --help)
+			display_info --usage
+			;;
+		-v | --version)
+			display_info --version
+			;;
+		# -d | --verbose) verbose=true ;;
+		--debug) debug=true ;;
+		-m | --m*)
+			msg="$2"
+			;;
+		--ci) ci=true ;;
+		-*) ;;
+			# --key)
+			# 	[ "$2" ] || display_info --error "SSH Key required"
+			# 	key="$2"
+			# 	;;
+			# -r | --repo)
+			# 	[ "$2" ] || display_info --error \
+			# 		"Git repository required"
+			# 	target_repo="$2"
+			# 	;;
+			# --user)
+			# 	[ "$2" ] ||
+			# 		display_info --error \
+			# 			"A git repository url is required"
+			# 	user="$2"
+			# 	;;
+			# --email)
+			# 	[ "$2" ] ||
+			# 		display_info --error \
+			# 			Aye"A git repository url is required"
+			# 	email="$2"
+			# 	;;
+			# --dir)
+			# 	[ "$2" ] || display_info --error \
+			# 		"A local git directory is required"
+			# 	dir="$2"
+			# ;;
+		*)
+			msg="$1"
+			;;
 		esac
 
 		shift
@@ -300,8 +300,8 @@ validate_submodules() {
 	#| Validate the requested submodule
 	valid=false
 	submodule="${submodule%%\\}" # Remove trailing backslash on Windows
-	submodule="${submodule%/}" # Remove trailing slash, if any
-	submodule="${submodule#/}" # Remove leading slash, if any
+	submodule="${submodule%/}"   # Remove trailing slash, if any
+	submodule="${submodule#/}"   # Remove leading slash, if any
 
 	for item in $submodules; do
 		case "$item" in "$submodule") valid=true break ;; esac
@@ -316,14 +316,14 @@ validate_submodules() {
 		read -r response
 
 		case "$response" in
-			[yY])
-				return 0
-				;;
-			*)
-				console_log --error \
-					"Invalid Submodule. See valid submodules" "$@"
-				exit 1
-				;;
+		[yY])
+			return 0
+			;;
+		*)
+			console_log --error \
+				"Invalid Submodule. See valid submodules" "$@"
+			exit 1
+			;;
 		esac
 	fi
 
@@ -335,20 +335,20 @@ validate_submodules() {
 display_info() {
 	while [ "$#" -ge 1 ]; do
 		case "$1" in
-			--usage)
-				console_log --ll "$_cmd_USAGEGUIDE"
-				exit=true
-				;;
-			--version)
-				console_log --ll "$_cmd_VERSION"
-				exit=true
-				;;
-			--error)
-				code="$2" && shift 2
-				console_log --error "$@" -ll
-				exit=true
-				;;
-			--code) code="$2" ;;
+		--usage)
+			console_log --ll "$_cmd_USAGEGUIDE"
+			exit=true
+			;;
+		--version)
+			console_log --ll "$_cmd_VERSION"
+			exit=true
+			;;
+		--error)
+			code="$2" && shift 2
+			console_log --error "$@" -ll
+			exit=true
+			;;
+		--code) code="$2" ;;
 		esac
 		shift
 	done
@@ -357,7 +357,7 @@ display_info() {
 }
 
 work_in() {
-	cd "$1" > /dev/null 2>&1 || {
+	cd "$1" >/dev/null 2>&1 || {
 		console_log --error \
 			"Failed to access the directory" \
 			"$1"
@@ -379,7 +379,7 @@ execute_git_actions() {
 	[ "$(git status --porcelain)" ] || return 0
 
 	# | Lint
-	type treefmt > /dev/null 2>&1 &&
+	type treefmt >/dev/null 2>&1 &&
 		if [ "$ci" ]; then
 			treefmt --no-cache --fail-on-change || return 1
 		else

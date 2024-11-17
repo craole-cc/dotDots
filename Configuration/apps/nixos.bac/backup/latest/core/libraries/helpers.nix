@@ -8,7 +8,7 @@ let
   base = "lib";
   mod = "helpers";
 
-  inherit (DOTS.lib.filesystem) pathOf pathsIn;
+  inherit (DOTS.lib.filesystem) pathof pathsIn;
 in
 {
   options.DOTS.${base}.${mod} = {
@@ -18,7 +18,7 @@ in
       default =
         _home:
         let
-          home = pathOf _home;
+          home = pathof _home;
           inherit ((pathsIn home).perNix) attrs lists;
         in
         {

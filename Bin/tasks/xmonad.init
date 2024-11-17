@@ -1,5 +1,5 @@
 #!/bin/sh
-_cmd_PATH="$(PathOf "$0")"
+_cmd_PATH="$(pathof "$0")"
 _cmd_NAME="$(basename "$_cmd_PATH")"
 
 _cmd="$(printf "%s" "$_cmd_NAME" | sed 's/install_//')"

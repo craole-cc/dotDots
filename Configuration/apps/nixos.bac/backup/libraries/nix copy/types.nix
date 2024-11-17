@@ -21,7 +21,7 @@ let
 
   #| Internal libraries
   inherit (config) dot;
-  inherit (dot.libraries.filesystem) locateProjectRoot pathOf;
+  inherit (dot.libraries.filesystem) locateProjectRoot pathof;
 in
 with dot.libraries.${mod};
 {
@@ -67,8 +67,8 @@ with dot.libraries.${mod};
           gitignoreContents = fileContents gitignorePath;
           gitignorePatterns = splitString "\n" gitignoreContents;
 
-          absPath = pathOf path;
-          absPatt = map (pattern: pathOf pattern) gitignorePatterns;
+          absPath = pathof path;
+          absPatt = map (pattern: pathof pattern) gitignorePatterns;
 
           matchesPattern =
             pattern: file:

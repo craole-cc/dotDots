@@ -17,7 +17,7 @@ main() { # @ Run the application
 
 #/> Initialization                                  <\
 init_metadata() {     # @ Initalize script metadata
-	SCRIPT_NAME="pathof" # PathOf
+	SCRIPT_NAME="pathof" # pathof
 	SCRIPT_VERSION="1.0.0"
 	SCRIPT_AUTHOR="Craole"
 	SCRIPT_USAGE="$SCRIPT_NAME [OPTIONS] <target_path>"
@@ -26,25 +26,25 @@ init_metadata() {     # @ Initalize script metadata
 parse_arguments() { # @ Parse command-line arguments
 	while [ $# -gt 0 ]; do
 		case $1 in
-			-h | --help) end_process --usage ;;
-			-v | --version) end_process --version ;;
-			-q | --quiet | --exists | --is-executable) verbosity=quiet ;;
-			-d=* | --verbose=*) verbosity="${1#*=}" ;;
-			-d | --verbose)
-				case "$2" in
-					*/*) verbosity="debug" ;;
-					*)
-						if [ "$2" ]; then
-							verbosity="$2"
-							shift
-						else
-							verbosity="debug"
-						fi
-						;;
-				esac
+		-h | --help) end_process --usage ;;
+		-v | --version) end_process --version ;;
+		-q | --quiet | --exists | --is-executable) verbosity=quiet ;;
+		-d=* | --verbose=*) verbosity="${1#*=}" ;;
+		-d | --verbose)
+			case "$2" in
+			*/*) verbosity="debug" ;;
+			*)
+				if [ "$2" ]; then
+					verbosity="$2"
+					shift
+				else
+					verbosity="debug"
+				fi
 				;;
-			-*) end_process --error opt "$1" ;;
-			*) target_path="$1" ;;
+			esac
+			;;
+		-*) end_process --error opt "$1" ;;
+		*) target_path="$1" ;;
 		esac
 		shift
 	done
@@ -57,8 +57,8 @@ parse_arguments() { # @ Parse command-line arguments
 validate_environment() { # @ Run various validation checks
 	# @ Check verbosity level
 	case "$verbosity" in
-		debug | info | quiet) ;;
-		*) end_process --error info "$verbosity" ;;
+	debug | info | quiet) ;;
+	*) end_process --error info "$verbosity" ;;
 	esac
 
 	# @ Check if target path is provided as an argument
@@ -81,9 +81,9 @@ get_path() {
 	[ -e "$target_path" ] &&
 
 		# @ Use `realpath` or `readlink -f`, if available.
-		if realpath / > /dev/null 2>&1; then
+		if realpath / >/dev/null 2>&1; then
 			normalized_path="$(realpath -- "$target_path")"
-		elif readlink -f / > /dev/null 2>&1; then
+		elif readlink -f / >/dev/null 2>&1; then
 			normalized_path="$(readlink -f -- "$target_path")"
 		else
 			# @ Split the path into components
@@ -121,9 +121,9 @@ get_path() {
 
 				# @ Replace any occurrence of '..' or '../' with its corresponding directory
 				case "$next_path_part" in
-					..) normalized_path="$(dirname "$normalized_path")" ;;
-					../*) normalized_path="$(dirname "$normalized_path")/${next_path_part#../}" ;;
-					*) normalized_path="$normalized_path/$next_path_part" ;;
+				..) normalized_path="$(dirname "$normalized_path")" ;;
+				../*) normalized_path="$(dirname "$normalized_path")/${next_path_part#../}" ;;
+				*) normalized_path="$normalized_path/$next_path_part" ;;
 				esac
 			done
 		fi
@@ -175,15 +175,15 @@ run_process() { # @ Normalize path
 
 end_process() { # @ Exit application gracefully
 	case "$1" in
-		--error)
-			# @ Throw errors based on options
-			display_info "${1}"-"${2}" "${3}"
+	--error)
+		# @ Throw errors based on options
+		display_info "${1}"-"${2}" "${3}"
 
-			# @ Set error status code
-			error_generated=true
-			;;
-		--output) display_info "$1" "$2" ;;
-		*) ;;
+		# @ Set error status code
+		error_generated=true
+		;;
+	--output) display_info "$1" "$2" ;;
+	*) ;;
 	esac
 
 	# @ Exit with an error status
@@ -209,33 +209,33 @@ sanitize_environment() { # @ Remove varibles
 display_info() { # @ Display infoirmation
 
 	case "$1" in
-		--error*)
-			[ "$verbosity" = "quiet" ] && return
-			case "$1" in
-				--error-path) printf "Invalid path: %s" "$2" ;;
-				--error-circ) printf "Circular symbolic link: %s" "$2" ;;
-				--error-info) printf "Invalid verbosity level: %s" "$2" ;;
-				--error-arg) printf "<target_path> required \nUsage: %s\n" "$SCRIPT_USAGE" ;;
-				--error-opt) printf "Unrecognized option: %s" "$2" ;;
-				--error-cd) printf "Change directory operation failed" ;;
-			esac
+	--error*)
+		[ "$verbosity" = "quiet" ] && return
+		case "$1" in
+		--error-path) printf "Invalid path: %s" "$2" ;;
+		--error-circ) printf "Circular symbolic link: %s" "$2" ;;
+		--error-info) printf "Invalid verbosity level: %s" "$2" ;;
+		--error-arg) printf "<target_path> required \nUsage: %s\n" "$SCRIPT_USAGE" ;;
+		--error-opt) printf "Unrecognized option: %s" "$2" ;;
+		--error-cd) printf "Change directory operation failed" ;;
+		esac
+		;;
+	--output)
+		case "$verbosity" in
+		quiet) ;;
+		info) printf "%s" "$normalized_path" ;;
+		debug)
+			printf "    Verbosity: %s\n" "$verbosity"
+			printf "  Target Path: %s\n" "$target_path"
+			printf "Absolute Path: %s\n" "$normalized_path"
 			;;
-		--output)
-			case "$verbosity" in
-				quiet) ;;
-				info) printf "%s" "$normalized_path" ;;
-				debug)
-					printf "    Verbosity: %s\n" "$verbosity"
-					printf "  Target Path: %s\n" "$target_path"
-					printf "Absolute Path: %s\n" "$normalized_path"
-					;;
-			esac
-			;;
-		--version)
-			printf "%s" "$SCRIPT_VERSION"
-			;;
-		--usage)
-			cat << USAGE
+		esac
+		;;
+	--version)
+		printf "%s" "$SCRIPT_VERSION"
+		;;
+	--usage)
+		cat <<USAGE
 Description:
 '$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
 
@@ -260,8 +260,8 @@ Examples:
   "$SCRIPT_NAME" /var/log/../lib --verbose info
   "$SCRIPT_NAME" /var/run
 USAGE
-			;;
-		*) printf "%s\n" "$*" ;;
+		;;
+	*) printf "%s\n" "$*" ;;
 	esac
 }
 

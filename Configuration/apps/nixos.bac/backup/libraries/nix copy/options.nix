@@ -17,7 +17,7 @@ with config.dot.lib;
     locateParentByChildren = mkOption { default = filesystem.locateParentByChildren; };
     locateProjectRoot = mkOption { default = filesystem.locateProjectRoot; };
     nixModulesWithOptions = mkOption { default = filesystem.nixModulesWithOptions; };
-    pathOf = mkOption { default = filesystem.pathOf; };
+    pathof = mkOption { default = filesystem.pathof; };
 
     #| Types
     inFileList = mkOption { default = types.inFileList; };

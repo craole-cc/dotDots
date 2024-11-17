@@ -2,7 +2,7 @@
 let
   #| Internal Libraries
   inherit (config.DOTS) Libraries;
-  inherit (Libraries.filesystem) pathOf pathsIn;
+  inherit (Libraries.filesystem) pathof pathsIn;
 
   mod = "helpers";
   # cfg = Libraries.${mod};
@@ -18,7 +18,7 @@ in
       default =
         _home:
         let
-          home = pathOf _home;
+          home = pathof _home;
           inherit ((pathsIn home).perNix) attrs lists;
         in
         {

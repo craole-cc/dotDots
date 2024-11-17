@@ -1,5 +1,5 @@
 #!/bin/bash
-scr_PATH="$(PathOf "$0")"
+scr_PATH="$(pathof "$0")"
 scr_NAME="$(basename "$scr_PATH")"
 scr_HOME="$(dirname -- "$scr_PATH")"
 scr_VERSION="1.0"

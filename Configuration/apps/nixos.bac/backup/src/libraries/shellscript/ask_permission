@@ -11,7 +11,7 @@ establish_metadata() {
 	_cmd_DESCRIPTION="Prompts the user for permission"
 	_cmd_DEPENDENCIES="coreutils"
 	_cmd_USAGEGUIDE="$(
-		cat << USAGE_GUIDE
+		cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
                           $_cmd_NAME ($_cmd_VERSION)
 ::------------------------------------------------------------::
@@ -58,12 +58,12 @@ establish_environment() {
 
 	while [ "$#" -ge 1 ]; do
 		case "$1" in
-			-d | --desc*) desc="$2" ;;
-			-m | --m*) shift 2 ;;
-			-*)
-				break
-				;;
-			*) console_log --info "${desc}" "${1}" ;;
+		-d | --desc*) desc="$2" ;;
+		-m | --m*) shift 2 ;;
+		-*)
+			break
+			;;
+		*) console_log --info "${desc}" "${1}" ;;
 		esac
 		shift
 	done
@@ -108,8 +108,8 @@ establish_environment() {
 
 print_message() {
 	case "$opt" in
-		[yY]*) msg="${msg} [Y|n ]" ;;
-		[nN]*) msg="${msg} [y|N]" ;;
+	[yY]*) msg="${msg} [Y|n ]" ;;
+	[nN]*) msg="${msg} [y|N]" ;;
 	esac
 
 	[ "$desc" ] && console_log --info "${desc}"
@@ -124,23 +124,23 @@ get_response() {
 	opt=$(console_log "$opt" | awk '{print tolower(substr($0, 1, 1))}')
 
 	case "$res" in
-		y | n)
-			if [ "$res" = "$opt" ]; then
-				return 1
-			else
-				return 0
-			fi
-			;;
-		*)
-			if [ "$res" ]; then
-				console_log -ll --error "Invalid option selected."
-			else
-				[ "$quiet" ] || console_log --ll --error "No option selected."
-			fi
-
-			[ "$quiet" ] || console_log -s "Proceeding with default."
+	y | n)
+		if [ "$res" = "$opt" ]; then
 			return 1
-			;;
+		else
+			return 0
+		fi
+		;;
+	*)
+		if [ "$res" ]; then
+			console_log -ll --error "Invalid option selected."
+		else
+			[ "$quiet" ] || console_log --ll --error "No option selected."
+		fi
+
+		[ "$quiet" ] || console_log -s "Proceeding with default."
+		return 1
+		;;
 	esac
 }
 

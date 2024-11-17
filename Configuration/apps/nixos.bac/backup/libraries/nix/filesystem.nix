@@ -63,7 +63,7 @@ let
 in
 {
   options.dot.libraries.${mod} = with config.dot.libraries.${mod}; {
-    pathOf =
+    pathof =
       let
         absolute = path: if hasPrefix "/" path then path else locateProjectRoot + "/${path}";
         normalized =
@@ -105,7 +105,7 @@ in
         default =
           path:
           let
-            path' = pathOf path;
+            path' = pathof path;
             paths = listFilesRecursive path';
             isBaseModule = file: dirOf file == path';
 
@@ -315,7 +315,7 @@ in
         };
     };
 
-    nullOrPathOf = mkOption {
+    nullOrpathof = mkOption {
       default =
         path:
         let
@@ -324,7 +324,7 @@ in
         if checkPath.success then checkPath.value else null;
     };
 
-    githubPathOf = mkOption {
+    githubpathof = mkOption {
       default =
         {
           owner,

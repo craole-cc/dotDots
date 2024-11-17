@@ -445,7 +445,7 @@ extract_text() { sed "s!$*!!g"; }
 #| Run the script
 __main__() {
   #| Terminal Characteristics
-  . "$(PathOf term_output)"
+  . "$(pathof term_output)"
 
   # . sysINF
   # mkfile() { install -m 644 -D /dev/null "$@"; }

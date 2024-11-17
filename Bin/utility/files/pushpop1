@@ -1,7 +1,7 @@
 #!/bin/sh
 
 __info__() {
-  _cmd_PATH="$(PathOf "$0")"
+  _cmd_PATH="$(pathof "$0")"
   _cmd_NAME="$(basename "$_cmd_PATH")"
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
@@ -39,8 +39,8 @@ __defaults__() {
   [ "$workDIR" ] || workDIR="$DOTS"
 
   #@ Store the absolute paths
-  origDIR="$(PathOf "$origDIR")"
-  workDIR="$(PathOf "$workDIR")"
+  origDIR="$(pathof "$origDIR")"
+  workDIR="$(pathof "$workDIR")"
 
   #@ Declare the default message
   message="${message:-"General Update"}"

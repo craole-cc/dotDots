@@ -1,6 +1,6 @@
 { config, lib, ... }:
 let
-  inherit (dib.filesystem) pathOf pathsIn;
+  inherit (dib.filesystem) pathof pathsIn;
 in
 with dib.helpers;
 {
@@ -10,7 +10,7 @@ with dib.helpers;
     default =
       _home:
       let
-        home = pathOf _home;
+        home = pathof _home;
         inherit ((pathsIn home).perNix) attrs lists;
       in
       {

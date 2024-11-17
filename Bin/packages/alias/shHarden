@@ -54,7 +54,7 @@ validate_environment() { #@ Run various validation checks
 
   #@ Check if a path is provided as an argument
   if [ "$binary" ]; then
-    binary="$(PathOf "$binary")"
+    binary="$(pathof "$binary")"
   else
     display_info --error-arg
     exit 1
