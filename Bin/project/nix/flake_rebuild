@@ -1,19 +1,37 @@
 #! /bin/sh
 
-#@ Set default message if not provided
-MESSAGE="Flake Update"
-[ "$1" ] && MESSAGE="$1"
+#@ Set defaults
+msg="Flake Update"
+dots="$DOTS"
+orig="$(pwd)"
+host="$(hostname)"
+
+#@ Parse arguments
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+  --flake) dots="$1" ;;
+  --host) host=$1 ;;
+  *)
+    if [ -d "$dots" ]; then
+      msg="$1"
+    else
+      dots="$1"
+    fi
+    ;;
+  esac
+  shift
+done
 
 #@ Navigate to the directory where the flake is located
-cwd="$(pwd)"
-cd "${DOTS:-$1}" || exit 1
+[ -d "$dots" ] || exit 1
+cd "$dots" || exit 1
 
 #@ Add all changes and commit with the provided or default message
 git add --all
-git commit --message "$MESSAGE"
+git commit --message "$msg"
 
 #@ Rebuild NixOS configuration using flakes
-sudo nixos-rebuild switch --flake .
+sudo nixos-rebuild switch --flake .#"$host"
 
 #@ Return to the previous directory
-cd "$cwd" || exit 1
+cd "$orig" || exit 1
