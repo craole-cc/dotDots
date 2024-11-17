@@ -1,14 +1,678 @@
 {
   "folders": [
-	{
-		"path": "../../.."
-	},
-	{
-		"path": "../../../../nixos"
-	},
-	{
-		"path": "C:/Users/mrcra"
-	}
-],
-  "settings": {}
+    {
+      "name": "DOTS",
+      "path": "../../.."
+    },
+    {
+      "name": "BIN",
+      "path": "../../../Bin"
+    },
+    {
+      "name": "APP",
+      "path": "../../../Configuration/apps"
+    },
+    {
+      "name": "CLI",
+      "path": "../../../Configuration/cli"
+    },
+    {
+      "name": "TOOLS",
+      "path": "../../../Configuration/tools"
+    },
+    {
+      "name": "ENV",
+      "path": "../../../Environment"
+    },
+  ],
+  "extensions": {
+    "recommendations": [
+      "PKief.material-icon-theme",
+      "PKief.material-product-icons",
+      "jdinhlife.gruvbox",
+      "James-Yu.latex-workshop",
+      "tamasfe.even-better-toml",
+      "natqe.reload",
+      "ms-azuretools.vscode-docker",
+      "esbenp.prettier-vscode",
+      "kiranshah.chatgpt-helper",
+      "lbragile.line-width-indicator",
+      "edwinkofler.vscode-assorted-languages",
+      "naumovs.color-highlight",
+      "anseki.vscode-color",
+      "mkhl.direnv",
+      "lkrms.inifmt",
+      "ms-python.python",
+      // "dlasagno.rasi",
+      "foxundermoon.shell-format",
+      "codeium.codeium",
+      "timonwong.shellcheck",
+      "syler.ignore",
+      "oderwat.indent-rainbow",
+      "editorconfig.editorconfig",
+      // "eamodio.gitlens",
+      "bbenoist.nix",
+      // "kamadorueda.alejandra",
+      "skellock.just",
+      "jnoortheen.nix-ide",
+      "mads-hartmann.bash-ide-vscode",
+      "aaron-bond.better-comments"
+    ]
+  },
+  "settings": {
+    //> ===================================
+    //> EDITOR CORE SETTINGS
+    //> ===================================
+    "update.mode": "none",
+    "editor.cursorBlinking": "expand",
+    "editor.fontSize": 18,
+    "editor.fontWeight": "500",
+    "editor.letterSpacing": 1.2,
+    "editor.lineHeight": 1.7,
+    "editor.fontFamily": "'Operator Mono Lig','JetBrainsMono Nerd Font','FantasqueSansMono NF','Cascadia Code','Cascadia Code PL','monospace',monospace",
+    "editor.fontLigatures": true,
+    "editor.wordWrap": "on",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.mouseWheelZoom": true,
+    "editor.accessibilitySupport": "off",
+    //> ===================================
+    //> EDITOR FEATURES
+    //> ===================================
+    "editor.formatOnSave": true,
+    "editor.guides.bracketPairs": "active",
+    "editor.inlayHints.enabled": "offUnlessPressed",
+    "editor.linkedEditing": true,
+    "editor.quickSuggestions": {
+      "strings": "on"
+    },
+    "editor.semanticHighlighting.enabled": true,
+    "editor.inlineSuggest.suppressSuggestions": true,
+    //> ===================================
+    //> MINIMAP AND LINE INDICATORS
+    //> ===================================
+    "editor.minimap.enabled": true,
+    "editor.minimap.size": "fill",
+    "LWI.style.fontStyle": "italic",
+    "LWI.style.fontWeight": "100",
+    "LWI.breakpoints": [
+      {
+        "color": "rgb(0, 255, 0, 0.6)",
+        "column": 54
+      },
+      {
+        "color": "rgb(255, 255, 0, 0.6)",
+        "column": 69
+      },
+      {
+        "color": "rgb(255, 0, 0, 0.6)",
+        "column": 79
+      }
+    ],
+    //> ===================================
+    //> WORKBENCH & UI
+    //> ===================================
+    "window.autoDetectColorScheme": true,
+    "window.menuBarVisibility": "toggle",
+    "window.titleBarStyle": "custom",
+    "workbench.startupEditor": "none",
+    "workbench.panel.defaultLocation": "bottom",
+    "workbench.commandPalette.preserveInput": true,
+    "workbench.quickOpen.preserveInput": true,
+    "workbench.settings.openDefaultKeybindings": true,
+    "workbench.editor.revealIfOpen": true,
+    "workbench.editorAssociations": {
+      "*.pdf": "latex-workshop-pdf-hook"
+    },
+    //> ===================================
+    //> THEME & VISUAL CUSTOMIZATION
+    //> ===================================
+    "glassit.alpha": 245,
+    "glassit.step": 5,
+    "glassit.force_sway": false,
+    "workbench.preferredDarkColorTheme": "Gruvbox Dark Medium",
+    "workbench.preferredLightColorTheme": "Gruvbox Light Medium",
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.colorCustomizations": {},
+    "editor.tokenColorCustomizations": {
+      "textMateRules": []
+    },
+    //> ===================================
+    //> MATERIAL ICON THEME
+    //> ===================================
+    "material-icon-theme.hidesExplorerArrows": true,
+    "material-icon-theme.activeIconPack": "react",
+    "material-icon-theme.folders.color": "#81c8be",
+    "material-icon-theme.files.color": "#e8ddd8",
+    "material-icon-theme.files.associations": {
+      ".dotsrc": "dll",
+      ".envrc": "robot",
+      ".ignore": "mocha",
+      ".shellcheckrc": "astyle",
+      "rust-toolchain": "rust",
+      "rust-toolchain.toml": "rust"
+    },
+    "material-icon-theme.folders.associations": {
+      "users": "admin",
+      "overlays": "plugin",
+      "hosts": "client",
+      "systems": "client",
+      "day-*": "job",
+      "days": "job",
+      "macros": "Hooks",
+      "crates": "Packages",
+      "challenges": "Cluster",
+      "Advent-of-Code": "Middleware",
+      "nixos": "config",
+      "media": "video",
+      "rust": "Debug",
+      "rails": "Debug",
+      "types": "Enum",
+      "methods": "Config",
+      "traits": "Tools",
+      "dots": "Cluster",
+      ".cargo": "config",
+      "benches": "debug",
+      "options": "tasks",
+    },
+    "material-icon-theme.folders.customClones": [
+      {
+        "name": "rust-entrypoint",
+        "base": "rust",
+        "color": "amber-300",
+        "lightColor": "amber-600",
+        "fileNames": [
+          "lib.rs",
+          "main.rs",
+          "mod.rs"
+        ]
+      },
+      {
+        "name": "nix-entrypoint",
+        "base": "nix",
+        "color": "indigo-300",
+        "lightColor": "indigo-600",
+        "fileNames": [
+          "default.nix",
+          "flake.nix",
+          "configuration.nix"
+        ]
+      },
+      {
+        "name": "users",
+        "base": "admin",
+        "color": "light-green-300",
+        "lightColor": "light-green-700",
+        "folderNames": [
+          "users",
+          "user",
+          "people",
+        ]
+      },
+      {
+        "name": "hosts",
+        "base": "client",
+        "color": "orange-300",
+        "lightColor": "orange-700",
+        "folderNames": [
+          "hosts",
+          "host",
+          "machine",
+          "machines"
+        ]
+      },
+      {
+        "name": "roles-admin",
+        "base": "admin",
+        "color": "purple-400",
+        "folderNames": [
+          "roles"
+        ]
+      }
+    ],
+    //> ===================================
+    //> TERMINAL CONFIGURATION
+    //> ===================================
+    "terminal.integrated.allowMnemonics": true,
+    "terminal.integrated.copyOnSelection": true,
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.cursorStyle": "block",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.enableImages": true,
+    "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font','Cascadia Code','Cascadia Code PL','Operator Mono Lig','monospace',monospace",
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.fontWeight": "bold",
+    "terminal.integrated.hideOnStartup": "whenEmpty",
+    "terminal.integrated.smoothScrolling": true,
+    "terminal.integrated.mouseWheelZoom": false,
+    "terminal.integrated.letterSpacing": 1.5,
+    "terminal.integrated.lineHeight": 1.1,
+    "terminal.integrated.rightClickBehavior": "copyPaste",
+    "terminal.external.linuxExec": "warp-terminal",
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+    "terminal.integrated.profiles.windows": {
+      "PowerShell": {
+        "source": "PowerShell",
+        "icon": "terminal-powershell"
+      },
+      "Command Prompt": {
+        "path": [
+          "${env:windir}\\Sysnative\\cmd.exe",
+          "${env:windir}\\System32\\cmd.exe"
+        ],
+        "args": [],
+        "icon": "terminal-cmd"
+      },
+      "Git Bash": {
+        "source": "Git Bash"
+      },
+      "NixOS (WSL)": {
+        "path": "C:\\WINDOWS\\System32\\wsl.exe",
+        "args": [
+          "-d",
+          "NixOS"
+        ]
+      }
+    },
+    //> ===================================
+    //> FILE HANDLING
+    //> ===================================
+    "files.autoSave": "afterDelay",
+    "files.trimFinalNewlines": true,
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "files.eol": "\n",
+    "files.associations": {
+      ".env*": "dotenv",
+      "Gemfile": "ruby",
+      "*.erb": "ruby",
+      "*.css": "tailwindcss",
+      "*.gs": "javascript"
+    },
+    "files.exclude": {
+      ".Trash-1000": true,
+      "**/.classpath": true,
+      "**/.factorypath": true,
+      "**/.git": false,
+      "**/.idea": true,
+      "**/.project": true,
+      "**/.settings": true,
+      "**/.trunk/*actions/": true,
+      "**/.trunk/*logs/": true,
+      "**/.trunk/*notifications/": true,
+      "**/.trunk/*out/": true,
+      "**/.trunk/*plugins/": true,
+      "$RECYCLE.BIN": true,
+      "System Volume Information": true
+    },
+    "files.watcherExclude": {
+      "**/.local/* *": true,
+      "**/.vscode-server-insiders/* *": true,
+      "**/* cache/* *": true,
+      "**/.trunk/*actions/": true,
+      "**/.trunk/*logs/": true,
+      "**/.trunk/*notifications/": true,
+      "**/.trunk/*out/": true,
+      "**/.trunk/*plugins/": true
+    },
+    //> ===================================
+    //> GIT CONFIGURATION
+    //> ===================================
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "git.enableSmartCommit": true,
+    "git.allowForcePush": true,
+    "git.rebaseWhenSync": true,
+    "git.confirmForcePush": false,
+    "git.ignoreRebaseWarning": true,
+    //> ===================================
+    //> LANGUAGE-SPECIFIC FORMATTERS
+    //> ===================================
+    "[astro]": {
+      "editor.defaultFormatter": "astro-build.astro-vscode"
+    },
+    "[dockercompose]": {
+      "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+    },
+    "[dockerfile]": {
+      "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+    },
+    "[html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[ignore]": {
+      "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[markdown]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[nix]": {
+      "editor.defaultFormatter": "brettm12345.nixfmt-vscode",
+      "editor.formatOnPaste": false
+    },
+    "[ruby]": {
+      "editor.defaultFormatter": "LoranKloeze.ruby-rubocop-revived",
+      "editor.letterSpacing": 1.0,
+      "editor.lineHeight": 1.4,
+      "editor.rulers": [
+        120
+      ]
+    },
+    "[shellscript]": {
+      "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[svg]": {
+      "editor.defaultFormatter": "jock.svg"
+    },
+    "[toml]": {
+      "editor.defaultFormatter": "tamasfe.even-better-toml"
+    },
+    //> ===================================
+    //> LANGUAGE-SPECIFIC SETTINGS
+    //> ===================================
+    "typescript.inlayHints.parameterNames.enabled": "all",
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "rust-analyzer.cargo.buildScripts.enable": true,
+    "rubyLsp.enableExperimentalFeatures": true,
+    "rubyLsp.rubyExecutablePath": "c:\\Tools\\ruby33\\bin\\ruby.exe",
+    "tailwindCSS.includeLanguages": {
+      "plaintext": "html"
+    },
+    "nix.serverPath": "nixd",
+    "nix.enableLanguageServer": true,
+    "nix.serverSettings": {
+      "nixd": {
+        "formatting": {
+          "command": [
+            "nixfmt"
+            // "alejandra"
+            // "nixpkgs-fmt"
+          ]
+        }
+        // "options": {
+        //    "nixos": {
+        //      "expr": "(builtins.getFlake \"/PATH/TO/FLAKE\").nixosConfigurations.CONFIGNAME.options"
+        //    },
+        //    "home_manager": {
+        //      "expr": "(builtins.getFlake \"/PATH/TO/FLAKE\").homeConfigurations.CONFIGNAME.options"
+        //    },
+        // },
+      }
+    },
+    //> ===================================
+    //> CSS CONFIGURATION
+    //> ===================================
+    "cssvar.files": [
+      "./node_modules/open-props/open-props.min.css",
+      "assets/styles/variables.css",
+      "style.css"
+    ],
+    "cssvar.ignore": [],
+    "cssvar.extensions": [
+      "css",
+      "postcss",
+      "jsx",
+      "tsx"
+    ],
+    //> ===================================
+    //> INTELLISENSE & CODE ASSISTANCE
+    //> ===================================
+    "chatgpt.lang": "en",
+    "codeium.enableConfig": {
+      "*": true,
+      "nix": true
+    },
+    "codeium.enableSearch": true,
+    "continue.enableQuickActions": true,
+    "continue.enableTabAutocomplete": true,
+    //> ===================================
+    //> MARKDOWN & DOCUMENTATION
+    //> ===================================
+    "markdown.marp.enableHtml": true,
+    "markdown.marp.pdf.noteAnnotations": true,
+    "markdown.marp.pdf.outlines": "both",
+    "markdown.updateLinksOnFileMove.enabled": "always",
+    "markdown.validate.enabled": true,
+    "markdown-pdf.breaks": true,
+    "markdown-pdf.displayHeaderFooter": false,
+    "markdown-pdf.format": "Letter",
+    "markdown.marp.exportType": "html",
+    "markdown.marp.strictPathResolutionDuringExport": true,
+    //> ===================================
+    //> COMMENTS
+    //> ===================================
+    "better-comments.tags": [
+      {
+        "tag": "@",
+        "italic": true,
+        "backgroundColor": "#ec8dff2a",
+        "color": "#b203d4"
+      },
+      {
+        "tag": ">",
+        "italic": true,
+        "backgroundColor": "transparent",
+        "color": "#6bc300"
+      },
+      {
+        "tag": "|",
+        "italic": true,
+        "color": "#22ee11"
+      },
+      {
+        "tag": "HELP",
+        "italic": true,
+        "backgroundColor": "transparent",
+        "color": "#fed200"
+      },
+      {
+        "tag": "!",
+        "backgroundColor": "transparent",
+        "color": "#ff0000"
+      },
+      {
+        "tag": "shellcheck",
+        "italic": true,
+        "backgroundColor": "transparent",
+        "color": "#fd7b30"
+      },
+      {
+        "tag": "DOC ",
+        "italic": true,
+        "backgroundColor": "transparent",
+        "color": "#08c3d4"
+      },
+      {
+        "tag": " http",
+        "italic": true,
+        "backgroundColor": "transparent",
+        "color": "#3498DB"
+      },
+      {
+        "tag": "//",
+        "backgroundColor": "#FF8C00",
+        "color": "#ffffff33"
+      },
+      {
+        "tag": " -- ",
+        "bold": true,
+        "backgroundColor": "transparent",
+        "color": "#3498DB"
+      },
+      {
+        "tag": "todo",
+        "italic": true,
+        "underline": true,
+        "backgroundColor": "transparent",
+        "color": "#FF8C00"
+      },
+      {
+        "tag": "=",
+        "italic": true,
+        "backgroundColor": "transparent",
+        "color": "#FF8C00"
+      },
+      {
+        "tag": "*",
+        "backgroundColor": "transparent",
+        "color": "#98C379"
+      },
+      {
+        "tag": "?",
+        "backgroundColor": "transparent",
+        "color": "#ff7d52"
+      }
+    ],
+    //> ===================================
+    //> REMOTE & WORKSPACE
+    //> ===================================
+    "remote.SSH.remotePlatform": {
+      "delle.deer-iguana.ts.net": "linux",
+      "dbook.deer-iguana.ts.net": "linux"
+    },
+    "rss.accounts": {
+      "fb0e47b0-9982-11ef-a698-3778cde2492f": {
+        "name": "Default",
+        "type": "local",
+        "feeds": []
+      }
+    },
+    //> ===================================
+    //> DICTIONARIES
+    //> ===================================
+    "cSpell.userWords": [
+      "alnum",
+      "astyle",
+      "autofetch",
+      "bigdecimal",
+      "bitmask",
+      "brettm",
+      "Cascadia",
+      "Catppuccin",
+      "cbrt",
+      "ccutils",
+      "choco",
+      "chrono",
+      "clippy",
+      "codeium",
+      "commandv",
+      "consolog",
+      "coreutils",
+      "cpus",
+      "craole",
+      "creds",
+      "crossterm",
+      "cssvar",
+      "dashmap",
+      "Datelike",
+      "dbook",
+      "delim",
+      "delle",
+      "direnv",
+      "distro",
+      "dockercompose",
+      "donot",
+      "dotsrc",
+      "dtfmt",
+      "duotrigintillion",
+      "duovigintillion",
+      "envrc",
+      "erks",
+      "esbenp",
+      "factorypath",
+      "Fantasque",
+      "fdignore",
+      "fndgsc",
+      "foxundermoon",
+      "fract",
+      "geet",
+      "getenv",
+      "gitmodules",
+      "iname",
+      "intime",
+      "justfile",
+      "Kloeze",
+      "logline",
+      "LOGNAME",
+      "marp",
+      "mdformat",
+      "mimalloc",
+      "mktemp",
+      "nbsp",
+      "nixd",
+      "nixfmt",
+      "nixos",
+      "nixpkgs",
+      "novemdecillion",
+      "novemvigintillion",
+      "numba",
+      "Numver",
+      "octovigintillion",
+      "oklch",
+      "oneline",
+      "pathof",
+      "peekable",
+      "proptest",
+      "quattuordecillion",
+      "quattuorvigintillion",
+      "quindecillion",
+      "quinvigintillion",
+      "rhkp",
+      "rubocop",
+      "rustc",
+      "rustfmt",
+      "semgrep",
+      "septendecillion",
+      "septenvigintillion",
+      "setaf",
+      "sexvigintillion",
+      "shellcheck",
+      "shellcheckrc",
+      "shfmt",
+      "statusline",
+      "strsim",
+      "symbiolink",
+      "sysfo",
+      "sysinfo",
+      "Sysnative",
+      "tailwindcss",
+      "tamasfe",
+      "taplo",
+      "textwrap",
+      "thiserror",
+      "timefmt",
+      "Timelike",
+      "tokei",
+      "toplevel",
+      "treefmt",
+      "trevigintillion",
+      "trigintillion",
+      "undecillion",
+      "untrigintillion",
+      "unvigintillion",
+      "versionsort",
+      "vigintillion",
+      "whereis",
+      "whereismybin",
+      "wherismybin",
+      "whers",
+      "windir",
+      "winget",
+      "worktree",
+      "yamlfmt"
+    ]
+  }
 }

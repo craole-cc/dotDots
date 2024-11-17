@@ -111,7 +111,7 @@ establish_defaults() {
 
 establish_environment() {
 
-  #@ Initialize the parts
+  #@ Initialize the tools
   establish_utilities
   establish_defaults
   establish_metadata

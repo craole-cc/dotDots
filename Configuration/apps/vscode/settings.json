@@ -111,7 +111,8 @@
     "traits": "Tools",
     "dots": "Cluster",
     ".cargo": "config",
-    "benches": "debug"
+    "benches": "debug",
+    "options": "tasks",
   },
   "material-icon-theme.folders.customClones": [
     {
@@ -137,12 +138,26 @@
       ]
     },
     {
-      "name": "users-admin",
+      "name": "users",
       "base": "admin",
-      "color": "light-green-500",
+      "color": "light-green-300",
       "lightColor": "light-green-700",
       "folderNames": [
-        "users"
+        "users",
+        "user",
+        "people",
+      ]
+    },
+    {
+      "name": "hosts",
+      "base": "client",
+      "color": "orange-300",
+      "lightColor": "orange-700",
+      "folderNames": [
+        "hosts",
+        "host",
+        "machine",
+        "machines"
       ]
     },
     {
@@ -376,7 +391,7 @@
   "markdown.marp.exportType": "html",
   "markdown.marp.strictPathResolutionDuringExport": true,
   //> ===================================
-  //> BETTER COMMENTS CONFIGURATION
+  //> COMMENTS
   //> ===================================
   "better-comments.tags": [
     {
@@ -467,6 +482,16 @@
     "delle.deer-iguana.ts.net": "linux",
     "dbook.deer-iguana.ts.net": "linux"
   },
+  "rss.accounts": {
+    "fb0e47b0-9982-11ef-a698-3778cde2492f": {
+      "name": "Default",
+      "type": "local",
+      "feeds": []
+    }
+  },
+  //> ===================================
+  //> DICTIONARIES
+  //> ===================================
   "cSpell.userWords": [
     "alnum",
     "astyle",
