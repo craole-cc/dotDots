@@ -1,18 +1,21 @@
 {
   description = "NixOS Configuration Flake";
   outputs =
-    inputs@{ ... }:
+    {
+      nixpkgs,
+      nixDarwin,
+      homeManager,
+      ...
+    }:
     let
-      inherit (inputs.nixpkgs.lib) nixosSystem;
-      inherit (inputs.darwin.lib) darwinSystem;
-      inherit (inputs.home-manager.nixosModules) home-manager;
-      pkg = system: inputs.nixpkgs.legacyPackages.${system};
-      pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
-
+      inherit (nixpkgs.lib) nixosSystem;
+      inherit (nixDarwin.lib) darwinSystem;
+      # inherit (homeManager.nixosModules) home-manager;
+      pkg = system: nixpkgs.legacyPackages.${system};
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
       bin = dot + "/Bin";
-
       flakeSwitch =
         pkgs:
         pkgs.writeShellScriptBin "flake-switch" ''
@@ -35,8 +38,6 @@
           #| Return to the previous directory
           popd
         '';
-
-      # Define the flake-update script as a binary
       flakeUpdate = pkgs.writeShellScriptBin "flake-update" ''
         #! /bin/sh
 
@@ -57,7 +58,6 @@
         # Return to the previous directory
         popd
       '';
-
       variables = {
         DOTS = dot;
         DOTS_BIN = bin;
@@ -66,7 +66,6 @@
       shellAliases = {
         Flake = ''pushd ${dot} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
       };
-
       pathsToLink = [
         (bin + "/base")
         (bin + "/core")
@@ -79,11 +78,10 @@
         (bin + "/template")
         (bin + "/utility")
       ];
-
       modules = ./. + mod;
       coreModules = [ modules ] ++ homeModules;
       homeModules = [
-        home-manager
+        homeManager.nixosModules.home-manager
         {
           home-manager = {
             backupFileExtension = "BaC";
@@ -101,7 +99,6 @@
             ;
         };
       };
-
     in
     {
       nixosConfigurations = {
@@ -144,22 +141,25 @@
   inputs = {
     nixpkgs = {
       # url = "github:nixos/nixpkgs/nixos-24.05";
-      url = "github:nixos/nixpkgs/nixos-unstable";
+      url = "github:NixOS/nixpkgs/nixos-unstable";
     };
-    nixpkgs-unstable = {
-      url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgsUnstable = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
     };
-    nixpkgs-stable = {
-      url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgsStable = {
+      url = "github:NixOS/nixpkgs/nixos-24.05";
     };
-    nixos-hardware = {
+    nixosHardware = {
       url = "github:NixOS/nixos-hardware";
     };
-    darwin = {
+    systems = {
+      url = "github:nix-systems/default-linux";
+    };
+    nixDarwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    home-manager = {
+    homeManager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
