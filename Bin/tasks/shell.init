@@ -6,8 +6,8 @@ establish_environment() {
   #@ Contextual Config Files
   DOTS_ENV_CTX="${DOTS_ENV_CTX:-$DOTS/Environment/context}"
   [ -d "$DOTS_ENV_CTX" ] || return 1
-
-  default_shell=bash
+  profile="$HOME/.profile"
+  default_shell="bash"
 
   #@ Verbosity
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
@@ -107,28 +107,39 @@ initialize_shell() {
 }
 
 launch_shell() {
-  eval launch_"${1}"
+  #@ Ensure that the shell is available
+  weHave "$1" || {
+    printf "We don't seem to have %s installed\n" "$1"
+    #TODO: Offer to install if there is a script to do so
+    #TODO: The script name would be launch_"${SHELL_INTERACTIVE}"
+    return 1
+  }
+
+  eval "$1"
+  # eval launch_"${1}"
 }
 
 execute() {
   case "$SHELL_INTERACTIVE" in
   bash)
-    bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+    # bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+    rc="$HOME/.bashrc"
+    [ -f "$rc" ] || touch "$rc"
+    grep --quiet --fixed-strings \
+      ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" "$rc" ||
+      printf "%s\n" ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" >>"$rc"
     ;;
-  nu | fish | zsh | ksh | pwsh | powershell | tcsh)
-
-    #@ Ensure that the shell is available
-    # initialize_shell "$SHELL_INTERACTIVE"
-
-    #@ Launch the shell
-    launch_shell "$SHELL_INTERACTIVE" || return 1
-    [ "$verbose" = true ] && printf "Launched %s\n" "$SHELL_INTERACTIVE"
-    ;;
+  nu | fish | zsh | ksh | pwsh | powershell | tcsh) ;;
   *)
     printf "%s\n" "Unknown shell: $SHELL_INTERACTIVE"
     exit 1
     ;;
   esac
+
+  #@ Launch the shell
+  launch_shell "$SHELL_INTERACTIVE" || return 1
+  [ "$verbose" = true ] &&
+    printf "Launched %s\n" "$SHELL_INTERACTIVE"
 }
 
 main() {

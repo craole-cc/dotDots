@@ -39,8 +39,8 @@
     }:
     let
       lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
-      pkg = system: nixpkgs.legacyPackages.${system};
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      # pkg = system: nixpkgs.legacyPackages.${system};
+      # pkgs = nixpkgs.legacyPackages.x86_64-linux;
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
       bin = dot + "/Bin";

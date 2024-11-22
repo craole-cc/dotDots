@@ -28,5 +28,6 @@ load_files() {
 }
 
 # Load resources and functions
-load_files "$BDOTDIR/resources"
-load_files "$BDOTDIR/functions"
+. "$HOME/.profile"
+# load_files "$BDOTDIR/resources"
+# load_files "$BDOTDIR/functions"

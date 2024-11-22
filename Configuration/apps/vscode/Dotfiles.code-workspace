@@ -24,6 +24,10 @@
       "name": "ENV",
       "path": "../../../Environment"
     },
+    {
+      "name": "HOME",
+      "path": "../../../../.."
+    }
   ],
   "extensions": {
     "recommendations": [

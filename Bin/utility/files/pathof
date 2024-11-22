@@ -36,14 +36,14 @@ parse_arguments() {
       depth="any"
       direction="both"
       ;;
-    -n|--name|--basename)
+    -n | --basename | --get-name | --name)
       get_name=true
       sort_type="alnum"
       limit=1
       depth="any"
       direction="both"
       ;;
-    -d|--dir|--dirname|--home)
+    -d | --dir | --dirname | --get-home | --home)
       get_home=true
       sort_type="alnum"
       limit=1
