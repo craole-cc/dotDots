@@ -14,7 +14,7 @@ main() {
     return 1
 
   #@ Set the interactive shell
-  # set_interactive_shell bash
+  set_interactive_shell bash
 
   #@ Load DOTS
   initialize_dots
@@ -80,7 +80,7 @@ set_dots_paths() {
 
   #@ Set the DOTS_IGNORE variable
   if [ -f "$ignore" ]; then
-    DOTS_IGNORE="$ignore"
+    DOTS_IGNORE="$(pwd)/$ignore"
   elif [ "$ignore" ]; then
     DOTS_IGNORE="$DOTS/$ignore"
   else
@@ -461,11 +461,15 @@ initialize_profile() {
     initrc="$key_rc=\"\$$key/$rc\" && [ -f \"\$$key_rc\" ] && . \"\$$key_rc\""
   }
 
-grep --quiet --regexp "$keyval" "$profile" ||
-  printf "\n%s" "$keyval" >> "$profile"
+  grep --quiet --regexp "^$key=*" "$profile" || {
+    # grep --quiet --regexp "$keyval" "$profile" ||
+    # printf "\n%s" "$keyval" >>"$profile"
 
-grep --quiet --regexp "$initrc" "$profile" ||
-  printf "$initrc" >> "$profile"
+    # grep --quiet --regexp "$initrc" "$profile" ||
+    # printf "\n%s" "$initrc" >>"$profile"
+
+    printf "\n%s\n%s\n" "$keyval" "$initrc" >>"$profile"
+  }
 
   delete_line_from_file() {
     sed --in-place --expression "/$1/d" "$2"
@@ -570,14 +574,14 @@ initialize_dots() {
     --rc ".dotsrc"
 
   #@ Load Environment
-  # initialize_source \
-  #   --exclude "archive" "review" "template" "temp" "tmp" \
-  #   --bin "$DOTS/Bin" \
-  #   --env "$DOTS/Environment/export"
+  initialize_source \
+    --exclude "archive" "review" "template" "temp" "tmp" \
+    --bin "$DOTS/Bin"
+  #  \
+  # --env "$DOTS/Environment/export"
 
   #@ Load Shell
-  # shell.init "$SHELL_INTERACTIVE"
-  # initialize_profile
+  shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
   # fonts.init #TODO: This needs to be made portable to work on Windows

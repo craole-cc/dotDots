@@ -8,17 +8,19 @@ _TYPE="tty"
 
 DOTS_CLI="${DOTS_CLI:-$DOTS/Configuration/cli}"
 _HOME="${DOTS_CLI}/${_APP}"
-BDOTDIR="$HOME"
 _CONF="${DOTS_CLI}/${_APP}/config"
+BDOTDIR="$_HOME"
 
-# . "$_CONF"
+[ -f "$_CONF" ] && . "$_CONF"
 
-for resource in "${_HOME}"/resources/*.*; do
-  [ -f "$resource" ] && . "$resource"
-done
+# for resource in "${_HOME}"/resources/*.*; do
+#   [ -f "$resource" ] && . "$resource"
+# done
 
-for function in "${_HOME}/"functions/*.*; do
-  [ -r "$function" ] && . "$function"
-done
+# for function in "${_HOME}/"functions/*.*; do
+#   [ -r "$function" ] && . "$function"
+# done
+
+# find "${_HOME}" -type f -exec . {} + 2>/dev/null
 
 unset _HOME resource function

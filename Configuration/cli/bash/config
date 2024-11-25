@@ -4,7 +4,7 @@
 
 # Get the directory of the currently running script
 BDOTDIR="${BDOTDIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-echo "BDOT: $BDOTDIR"
+
 # Export BDOTDIR
 export BDOTDIR
 
@@ -12,22 +12,18 @@ export BDOTDIR
 # Parameters:
 #   $1: Directory path
 #   $2: File extension (default is "bash")
-load_files() {
-  local dir_path="$1"
-  local file_extension="${2:-bash}"
-  for file in "${dir_path}"/*."${file_extension}"; do
-    if [ -r "$file" ]; then
-      . "$file" || {
-        echo "Error loading $file"
-        exit 1
-      }
+init_config() {
+  for conf in $(find $1 -type f); do
+    if [ -r "$conf" ]; then
+      # echo "$conf"
+      # time . "$conf"
+      . "$conf"
     else
-      echo "File not readable: $file"
+      printf "File not readable:  %s" "$conf"
     fi
   done
 }
 
 # Load resources and functions
-. "$HOME/.profile"
-# load_files "$BDOTDIR/resources"
-# load_files "$BDOTDIR/functions"
+init_config "$BDOTDIR/resources"
+# init_config "$BDOTDIR/functions"

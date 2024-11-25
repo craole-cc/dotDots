@@ -12,7 +12,7 @@
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 	#@ Global gitignore (applied to all repositories)
-	excludesFile = /home/craole/Documents/dotfiles/Configuration/cli/git/global/ignore
+	excludesFile = D:/Configuration/global/Configuration/cli/git/global/ignore
 	eol = lf
 [commit]
 	; Show full diff when editing commit message

@@ -14,10 +14,10 @@ elif [ -r /etc/bash_completion ]; then
   BASH_COMPLETION="/etc/bash_completion"
 fi
 
-# weHave rustup && rustup completions bash >"$BASH_FUNCTIONS/rustup"
+rustup --version >/dev/null 2>&1 &&
+  rustup completions bash >"$BDOTDIR/functions/rustup"
 
-# Use bash-completion, if available
+#@ Use bash-completion, if available
 if ! shopt -oq posix; then
-  [[ $PS1 && -f "$BASH_COMPLETION" ]] &&
-    . "$BASH_COMPLETION"
+  [[ $PS1 && -f "$BASH_COMPLETION" ]] && . "$BASH_COMPLETION"
 fi
