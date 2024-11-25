@@ -17,7 +17,7 @@ main() {
   # set_interactive_shell bash
 
   #@ Load DOTS
-  # initialize_dots
+  initialize_dots
 }
 
 set_dots_paths() {
@@ -242,7 +242,6 @@ set_flags() {
   [ "$(get_os_type)" = "Windows" ] && windows_flag=true
 
   set_verbosity_level
-  echo flags
 }
 
 print_usage_guide() {
@@ -453,8 +452,20 @@ initialize_profile() {
     shift
   done
 
-  [ "$rc" ] &&
-    initrc="[ -f \"\$$key/$rc\" ] && . \"\$$key/$rc\""
+  { [ "$key" ] && [ "$val" ]; } || return 1
+  keyval="$key=$val"
+
+  [ "$rc" ] && {
+    key_rc="$(printf "%s_rc" "$key" | tr '[:lower:]' '[:upper:]')"
+    val_rc="$val/$rc"
+    initrc="$key_rc=\"\$$key/$rc\" && [ -f \"\$$key_rc\" ] && . \"\$$key_rc\""
+  }
+
+grep --quiet --regexp "$keyval" "$profile" ||
+  printf "\n%s" "$keyval" >> "$profile"
+
+grep --quiet --regexp "$initrc" "$profile" ||
+  printf "$initrc" >> "$profile"
 
   delete_line_from_file() {
     sed --in-place --expression "/$1/d" "$2"
@@ -473,42 +484,72 @@ initialize_profile() {
     #@ Create the profile if it doesn't exist
     [ -f "$profile" ] || touch "$profile"
 
+    #@ Check if the key/value declaration exists
+
+    # grep --quiet \
+    #   --regexp "^$key=$val" \
+    #   --regexp "^$key=\"$val\"" "$profile" || {
+    #   delete_line_from_file "^$key=" "$profile"
+    #   # printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
+    # }
+
+    # [ "$rc" ] && {
+    #   grep --quiet --fixed-strings "$initrc" "$profile" || {
+    #     delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
+    #   # printf "\n%s\n" "$initrc" >>"$profile"
+    #   }
+    # }
+
+    # { &&
+    #     grep --quiet --fixed-strings "$initrc" "$profile"
+    # } || {
+    #   #@ If either condition is false, remove both lines
+    #   delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
+    #   printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$profile"
+    # }
+
+    #@ Check if the initrc declaration exists
+    # printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
+    # printf "\n%s\n" "$initrc" >>"$profile"
+
     #@ Check if the key declaration exists and if it's different
-    if grep --quiet --regexp "^$key=" "$profile"; then
-      echo lol
-      {
-        #@ Check if the key/value declaration exists
-        grep --quiet \
-          --regexp "^$key=$val" \
-          --regexp "^$key=\"$val\"" "$profile" ||
+    # {
+    #   grep --quiet \
+    #     --regexp "^$key=$val" \
+    #     --regexp "^$key=\"$val\"" "$profile" ||
 
-          #@  Check if the rc initialization declaration exists
-          grep --quiet --fixed-strings "$initrc" "$profile"
-      } || {
-        #@ If either condition is false, remove both lines
-        delete_line_from_file "^$key=" "$profile"
-        delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
-      }
-    else
-      echo pop
-    fi
+    #     #@  Check if the rc initialization declaration exists
+    #     grep --quiet --fixed-strings "$initrc" "$profile"
+    # } || {
+    #   #@ If either condition is false, remove both lines
+    #   delete_line_from_file "^$key=" "$profile"
+    #   delete_line_from_file "^[ -f \"$key/$rc\" ]*" "$profile"
+    #   # delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
+    # }
+    # delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
 
-    #@ Append the new lines to the file only if they are missing
-    if
-      ! grep --quiet --regexp "^$key=" "$profile" ||
-        ! grep --quiet --fixed-strings "$initrc" "$profile"
-    then
-      #@ If either line is missing, append both lines
-      # append_lines_to_file "$profile" "$initrc"
-      printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$profile"
-    else
-      #@ If both lines are present and the DOTS line is the same, no need to update
-      [ "$verbose_flag" ] &&
-        printf "%s in %s is already up to date.\n" "$key" "$profile"
-    fi
+    # #@ Append the new lines to the file only if they are missing
+    # if
+    #   ! grep --quiet --regexp "^$key=" "$profile" ||
+    #     ! grep --quiet --fixed-strings "$initrc" "$profile"
+    # then
+    #   #@ If either line is missing, append both lines
+    #   # append_lines_to_file "$profile" "$initrc"
+    # printf "\n%s=\"%s\"\n%s\n" \
+    #   "$key" "$val" \
+    #   "[ -f \"\$$key/$rc\" ] && . \"\$$key/$rc\"" \
+    #   >>"$profile"
+    # else
+    #   #@ If both lines are present and the DOTS line is the same, no need to update
+    #   [ "$verbose_flag" ] &&
+    #     printf "%s in %s is already up to date.\n" "$key" "$profile"
+    # fi
+
+    # echo profiling
   }
 
   update_profile
+  # echo profiler
 }
 
 initialize_shell() {
@@ -527,8 +568,6 @@ initialize_dots() {
     --key "DOTS" \
     --val "$DOTS" \
     --rc ".dotsrc"
-  # --text "[ -f \"\$DOTS/.dotsrc\" ] && . \"\$DOTS/.dotsrc\""
-  # echo "DOTS $DOTS"
 
   #@ Load Environment
   # initialize_source \

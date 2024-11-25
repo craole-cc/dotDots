@@ -677,6 +677,9 @@
       "winget",
       "worktree",
       "yamlfmt"
+    ],
+    "cSpell.words": [
+      "initrc"
     ]
   }
 }
