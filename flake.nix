@@ -123,11 +123,14 @@
                 # DOTS.hosts.Preci.enable = true;
               }
             ];
-            specialArgs = args ++ [
-              pkgs
-              pkgsStable
-              pkgsUnstable
-            ];
+            specialArgs = {
+              inherit
+                args
+                pkgs
+                pkgsStable
+                pkgsUnstable
+                ;
+            };
           };
 
         dbook = lib.nixosSystem {
