@@ -67,6 +67,9 @@ in
           vscode-fhs
           qbittorrent
           mpv
+          inkscape-with-extensions
+          darktable
+          ansel
         ];
 
       sessionVariables = {
