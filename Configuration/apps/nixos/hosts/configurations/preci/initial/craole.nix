@@ -41,13 +41,7 @@ in
       packages =
         let
           fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
-          # fontMonoAwesome = pkgs.fetchFromGitHub {
-          #   owner = "rng70";
-          #   repo = "Awesome-Fonts";
-          #   rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
-          #   sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
-          # };
-          fontMonoAwesome = pkgs.stdenv.mkDerivation {
+          fontMono = pkgs.stdenv.mkDerivation {
             pname = "Awesome-Fonts";
             version = "1.0";
 
@@ -98,55 +92,55 @@ in
             pname = "Monolisa";
             version = "2.012";
             src = pkgs.fetchFromGitHub {
-              owner = "shaunsingh";
-              repo = "SFMono-Nerd-Font-Ligaturized";
-              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
-              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+              owner = "redyf"; # Correct owner for Monolisa
+              repo = "monolisa"; # Correct repo for Monolisa
+              rev = "main"; # Use a specific branch or tag if needed
+              sha256 = "your_sha256_hash_here"; # Replace with the actual hash
             };
             installPhase = ''
               mkdir -p $out/share/fonts/truetype
-              mv *.ttf $out/share/fonts/truetype/
+              find $src -type f -name '*.ttf' -exec cp {} $out/share/fonts/truetype/ \;
             '';
           };
           fontCartograph = pkgs.stdenv.mkDerivation {
             pname = "CartographCF";
             version = "1.0";
             src = pkgs.fetchFromGitHub {
-              owner = "shaunsingh";
-              repo = "SFMono-Nerd-Font-Ligaturized";
-              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
-              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+              owner = "redyf"; # Correct owner for Cartograph
+              repo = "cartograph"; # Correct repo for Cartograph
+              rev = "main"; # Use a specific branch or tag if needed
+              sha256 = "your_sha256_hash_here"; # Replace with the actual hash
             };
             installPhase = ''
               mkdir -p $out/share/fonts/opentype
               find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
             '';
           };
-          fontBerkeley = pkgs.stdenv.mkDerivation rec {
+          fontBerkeley = pkgs.stdenv.mkDerivation {
             pname = "BerkeleyMono";
             version = "1.001";
             src = pkgs.fetchFromGitHub {
-              owner = "shaunsingh";
-              repo = "SFMono-Nerd-Font-Ligaturized";
-              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
-              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+              owner = "redyf"; # Correct owner for BerkeleyMono
+              repo = "BerkeleyMono"; # Correct repo for BerkeleyMono
+              rev = "main"; # Use a specific branch or tag if needed
+              sha256 = "your_sha256_hash_here"; # Replace with the actual hash
             };
             installPhase = ''
               mkdir -p $out/share/fonts/truetype
-              mv *.ttf $out/share/fonts/truetype/
+              find $src -type f -name '*.ttf' -exec cp {} $out/share/fonts/truetype/ \;
             '';
           };
         in
         with pkgs;
         [
           #| Fonts
-          fontMonoAwesome
+          fontMono
           fontNerd
           fontLilex
           fontSfMono
-          # fontMonolisa
-          # fontCartograph
-          # fontBerkeley
+          fontMonolisa
+          fontCartograph
+          fontBerkeley
           lexend
           material-design-icons
           material-icons
