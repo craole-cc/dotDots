@@ -64,7 +64,8 @@ in
           whatsapp-for-linux
           warp-terminal
           via
-          vscode-fhs
+          vscode
+          # vscode-fhs
           qbittorrent
           mpv
           inkscape-with-extensions
@@ -520,7 +521,7 @@ in
       };
       vscode = {
         enable = true;
-        # package = pkgs.vscode-fhs;
+        package = pkgs.vscodium;
         enableUpdateCheck = false;
         mutableExtensionsDir = true;
       };
