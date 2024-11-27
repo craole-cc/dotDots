@@ -48,9 +48,20 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
-      nixpkgsStable = forAllSystems (system: import nixpkgsStable { inherit system; });
-      nixpkgsUnstable = forAllSystems (system: import nixpkgsUnstable { inherit system; });
+      nixpkgsStable = forAllSystems (
+        system:
+        import nixpkgsStable {
+          inherit system;
+          allowUnfree = true;
+        }
+      );
+      nixpkgsUnstable = forAllSystems (
+        system:
+        import nixpkgsUnstable {
+          inherit system;
+          allowUnfree = true;
+        }
+      );
 
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
@@ -108,9 +119,9 @@
         preci =
           let
             system = "x86_64-linux";
-            pkgs = nixpkgsFor."${system}";
             pkgsStable = nixpkgsStable."${system}";
             pkgsUnstable = nixpkgsUnstable."${system}";
+            pkgs = pkgsUnstable;
           in
           lib.nixosSystem {
             inherit system;
@@ -126,9 +137,9 @@
             specialArgs = {
               inherit
                 args
-                # pkgs
-                # pkgsStable
-                # pkgsUnstable
+                pkgs
+                pkgsStable
+                pkgsUnstable
                 ;
             };
           };
