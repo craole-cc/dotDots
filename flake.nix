@@ -1,9 +1,9 @@
 {
   description = "NixOS Configuration Flake";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "nixpkgs/nixos-24.05";
+    nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     nixosHardware = {
       url = "github:NixOS/nixos-hardware";
     };
@@ -35,8 +35,8 @@
       ...
     }:
     let
-      lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
-      pkgsFor = system: scope: inputs."${scope}".legacyPackages.${system};
+      # lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
+      pkgsFor = system: repo: inputs."${repo}".legacyPackages.${system};
 
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
@@ -86,28 +86,30 @@
           bin
           ;
       };
+      flake = self;
       packages =
         {
           system ? "x86_64-linux",
-          repo ? "unstable",
+          allowUnfree ? true,
         }:
+        with inputs;
         {
-          default = pkgsFor system "nixpkgs-${repo}";
-          stable = pkgsFor system "nixpkgs-stable";
-          unstable = pkgsFor system "nixpkgs-unstable";
+          stable = inputs.nixpkgs-stable.legacyPackages.${system};
+          unstable = inputs.nixpkgs-unstable.legacyPackages.${system};
+          # unstable = pkgsFor system nixpkgs-unstable;
+          # stable = pkgsFor system nixpkgs-stable;
+          # unstable = pkgsFor system nixpkgs-unstable;
         };
-      flake = self;
+      libraries = system: pkgs_repo: pkgs_repo // homeManager.lib;
     in
     {
       nixosConfigurations = {
         preci =
           let
             system = "x86_64-linux";
-            packs = packages {
-              inherit system;
-              # repo = "unstable";
-            };
-            pkgs = packs.default;
+            packs = packages { inherit system; };
+            pkgs = packs.unstable;
+            lib = libraries system pkgs;
           in
           # pkgs = nixpkgs.legacyPackages.${system};
           # packs = {
@@ -116,7 +118,7 @@
           #   unstable = pkgsFor system "nixpkgsUnstable";
           # };
           lib.nixosSystem {
-            inherit system;
+            inherit system pkgs;
             modules = modulesNixos ++ [
               {
                 environment = {
@@ -135,22 +137,36 @@
             };
           };
 
-        dbook = lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = modulesNixos ++ [
-            {
-              # DOTS.hosts.DBook.enable = true;
-            }
-          ];
-          # modules = [ (hostModules + "/dbook") ] ++ modulesNixos;
-        };
+        dbook =
+          let
+            system = "x86_64-linux";
+            packs = packages { inherit system; };
+            pkgs = packs.unstable;
+            lib = libraries system pkgs;
+          in
+          lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = modulesNixos ++ [
+              {
+                # DOTS.hosts.DBook.enable = true;
+              }
+            ];
+            # modules = [ (hostModules + "/dbook") ] ++ modulesNixos;
+          };
       };
 
       darwinConfigurations = {
-        MBPoNine = lib.darwinSystem {
-          system = "x86_64-darwin";
-          modules = modulesDarwin ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
-        };
+        MBPoNine =
+          let
+            system = "x86_64-linux";
+            packs = packages { inherit system; };
+            pkgs = packs.unstable;
+            lib = libraries system pkgs // nixDarwin.lib;
+          in
+          lib.darwinSystem {
+            system = "x86_64-darwin";
+            modules = modulesDarwin ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
+          };
       };
     };
 }
