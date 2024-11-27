@@ -25,7 +25,7 @@ in
           "Operator Mono Lig Medium"
           "Operator Mono Lig"
           "Cascadia Code PL"
-          # "JetBrainsMono Nerd Font"
+          "JetBrainsMono Nerd Font"
         ] ++ emoji;
         sansSerif = [
           "Lexend"
@@ -53,17 +53,18 @@ in
           #| Fonts
           fontsMonoAwesome
           fontsNerd
+          lexend
+          material-design-icons
+          material-icons
+          noto-fonts-emoji
 
-          # lexend
-          # material-design-icons
-          # material-icons
-          # noto-fonts-emoji
-
+#| Apps
           brave
           freetube
           whatsapp-for-linux
           warp-terminal
           via
+          vscode-fhs
           qbittorrent
           mpv
           inkscape-with-extensions
@@ -519,7 +520,7 @@ in
       };
       vscode = {
         enable = true;
-        package = pkgs.vscode-fhs;
+        # package = pkgs.vscode-fhs;
         enableUpdateCheck = false;
         mutableExtensionsDir = true;
       };
