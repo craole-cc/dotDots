@@ -1,3 +1,4 @@
+  #| This is a comment
 { config, pkgs, ... }:
 let
   mod = "craole";
@@ -12,7 +13,6 @@ in
       "wheel"
     ];
   };
-
   home-manager.users.${mod} = {
     fonts.fontconfig = {
       enable = true;
@@ -54,93 +54,15 @@ in
 
             installPhase = ''
               mkdir -p $out/share/fonts/opentype
-              # Copy all TTF files from subdirectories into the font directory
               find $src -type f \( -name '*.ttf' -o -name '*.otf' \) -exec cp {} $out/share/fonts/opentype/ \;
-            '';
-          };
-          fontLilex = pkgs.stdenv.mkDerivation {
-            pname = "lilex";
-            version = "2.530";
-            src = pkgs.fetchurl {
-              url = "https://github.com/mishamyrt/Lilex/releases/download/2.530/Lilex.zip";
-              sha256 = "sha256-sBn8DaXj7OXHNaoEAhjTuMmUVUbS0zNZi1h7EjembEo=";
-            };
-            buildInputs = [ pkgs.unzip ];
-            unpackPhase = ''
-              unzip -j $src
-            '';
-            installPhase = ''
-              mkdir -p $out/share/fonts/truetype
-              mv *.ttf $out/share/fonts/truetype/
-            '';
-          };
-          fontSfMono = pkgs.stdenv.mkDerivation {
-            pname = "SFMono-Nerd-Font-Ligaturized";
-            version = "1.0";
-            src = pkgs.fetchFromGitHub {
-              owner = "shaunsingh";
-              repo = "SFMono-Nerd-Font-Ligaturized";
-              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
-              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
-            };
-            installPhase = ''
-              mkdir -p $out/share/fonts/opentype
-              find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
-            '';
-          };
-          fontMonolisa = pkgs.stdenv.mkDerivation {
-            pname = "Monolisa";
-            version = "2.012";
-            src = pkgs.fetchFromGitHub {
-              owner = "redyf"; # Correct owner for Monolisa
-              repo = "monolisa"; # Correct repo for Monolisa
-              rev = "main"; # Use a specific branch or tag if needed
-              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0"; # Replace with the actual hash
-            };
-            installPhase = ''
-              mkdir -p $out/share/fonts/truetype
-              find $src -type f -name '*.ttf' -exec cp {} $out/share/fonts/truetype/ \;
-            '';
-          };
-          fontCartograph = pkgs.stdenv.mkDerivation {
-            pname = "CartographCF";
-            version = "1.0";
-            src = pkgs.fetchFromGitHub {
-              owner = "redyf"; # Correct owner for Cartograph
-              repo = "cartograph"; # Correct repo for Cartograph
-              rev = "main"; # Use a specific branch or tag if needed
-              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0"; # Replace with the actual hash
-            };
-            installPhase = ''
-              mkdir -p $out/share/fonts/opentype
-              find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
-            '';
-          };
-          fontBerkeley = pkgs.stdenv.mkDerivation {
-            pname = "BerkeleyMono";
-            version = "1.001";
-            src = pkgs.fetchFromGitHub {
-              owner = "redyf"; # Correct owner for BerkeleyMono
-              repo = "BerkeleyMono"; # Correct repo for BerkeleyMono
-              rev = "main"; # Use a specific branch or tag if needed
-              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0"; # Replace with the actual hash
-            };
-            installPhase = ''
-              mkdir -p $out/share/fonts/truetype
-              find $src -type f -name '*.ttf' -exec cp {} $out/share/fonts/truetype/ \;
             '';
           };
         in
         with pkgs;
         [
           #| Fonts
-          fontMono
           fontNerd
-          fontLilex
-          fontSfMono
-          fontMonolisa
-          fontCartograph
-          fontBerkeley
+          fontMono
           lexend
           material-design-icons
           material-icons

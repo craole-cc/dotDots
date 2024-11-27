@@ -29,7 +29,7 @@
     nixed = {
       url = "github:Craole/nixed";
     };
-    redyFonts={
+    redyFonts = {
       url = "github:redyf/font-flake";
     };
   };
@@ -42,8 +42,19 @@
     }:
     let
       lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
-      # pkg = system: nixpkgs.legacyPackages.${system};
-      # pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      forAllSystems = nixpkgs.lib.genAttrs [
+        "x86_64-linux"
+        "x86_64-darwin"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+      nixpkgsStable = forAllSystems (system: import nixpkgsStable { inherit system; });
+      nixpkgsUnstable = forAllSystems (system: import nixpkgsUnstable { inherit system; });
+      pkgs = nixpkgsFor."${system}";
+      pkgsStable = nixpkgsStable."${system}";
+      pkgsUnstable = nixpkgsUnstable."${system}";
+
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
       bin = dot + "/Bin";
@@ -107,14 +118,12 @@
               {
                 environment = {
                   inherit variables shellAliases pathsToLink;
-                  systemPackages =
-                    [
-                    ];
+                  systemPackages = [ ];
                 };
                 # DOTS.hosts.Preci.enable = true;
               }
             ];
-            specialArgs = args;
+            specialArgs = args ++ [ pkgs ];
           };
 
         dbook = lib.nixosSystem {
