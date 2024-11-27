@@ -42,7 +42,7 @@
     }:
     let
       lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
-      forAllSystems = nixpkgs.lib.genAttrs [
+      forAllSystems = lib.genAttrs [
         "x86_64-linux"
         "x86_64-darwin"
         "aarch64-linux"
@@ -104,14 +104,12 @@
         modulesHome
         homeManager.darwinModules.home-manager
       ];
-      args = {
-        paths = {
-          inherit
-            dot
-            mod
-            bin
-            ;
-        };
+      paths = {
+        inherit
+          dot
+          mod
+          bin
+          ;
       };
     in
     {
@@ -119,9 +117,10 @@
         preci =
           let
             system = "x86_64-linux";
-            pkgsStable = nixpkgsStable."${system}";
-            pkgsUnstable = nixpkgsUnstable."${system}";
-            pkgs = pkgsUnstable;
+            packs = {
+              stable = nixpkgsStable.${system};
+              unstable = nixpkgsUnstable.${system};
+            };
           in
           lib.nixosSystem {
             inherit system;
@@ -135,12 +134,7 @@
               }
             ];
             specialArgs = {
-              inherit
-                args
-                # pkgs
-                pkgsStable
-                pkgsUnstable
-                ;
+              inherit paths packs;
             };
           };
 
