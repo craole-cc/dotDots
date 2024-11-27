@@ -137,7 +137,7 @@
             specialArgs = {
               inherit
                 args
-                pkgs
+                # pkgs
                 pkgsStable
                 pkgsUnstable
                 ;
