@@ -40,13 +40,30 @@ in
       enableNixpkgsReleaseCheck = false;
       packages =
         let
-          fontMono = pkgs.fetchFromGitHub {
-            owner = "rng70";
-            repo = "Awesome-Fonts";
-            rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
-            sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
-          };
           fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+          # fontMonoAwesome = pkgs.fetchFromGitHub {
+          #   owner = "rng70";
+          #   repo = "Awesome-Fonts";
+          #   rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
+          #   sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
+          # };
+          fontMonoAwesome = pkgs.stdenv.mkDerivation {
+            pname = "Awesome-Fonts";
+            version = "1.0";
+
+            src = pkgs.fetchFromGitHub {
+              owner = "rng70";
+              repo = "Awesome-Fonts";
+              rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
+              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
+            };
+
+            installPhase = ''
+              mkdir -p $out/share/fonts/opentype
+              # Copy all TTF files from subdirectories into the font directory
+              find $src -type f \( -name '*.ttf' -o -name '*.otf' \) -exec cp {} $out/share/fonts/opentype/ \;
+            '';
+          };
           fontLilex = pkgs.stdenv.mkDerivation {
             pname = "lilex";
             version = "2.530";
@@ -63,7 +80,6 @@ in
               mv *.ttf $out/share/fonts/truetype/
             '';
           };
-
           fontSfMono = pkgs.stdenv.mkDerivation {
             pname = "SFMono-Nerd-Font-Ligaturized";
             version = "1.0";
@@ -78,7 +94,6 @@ in
               find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
             '';
           };
-
           fontMonolisa = pkgs.stdenv.mkDerivation {
             pname = "Monolisa";
             version = "2.012";
@@ -93,7 +108,6 @@ in
               mv *.ttf $out/share/fonts/truetype/
             '';
           };
-
           fontCartograph = pkgs.stdenv.mkDerivation {
             pname = "CartographCF";
             version = "1.0";
@@ -108,7 +122,6 @@ in
               find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
             '';
           };
-
           fontBerkeley = pkgs.stdenv.mkDerivation rec {
             pname = "BerkeleyMono";
             version = "1.001";
@@ -127,7 +140,7 @@ in
         with pkgs;
         [
           #| Fonts
-          fontMono
+          fontMonoAwesome
           fontNerd
           fontLilex
           fontSfMono
@@ -139,7 +152,7 @@ in
           material-icons
           noto-fonts-emoji
 
-#| Apps
+          #| Apps
           brave
           freetube
           whatsapp-for-linux
