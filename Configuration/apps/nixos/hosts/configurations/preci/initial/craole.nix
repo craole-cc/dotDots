@@ -25,7 +25,7 @@ in
           "Operator Mono Lig Medium"
           "Operator Mono Lig"
           "Cascadia Code PL"
-          "JetBrainsMono Nerd Font"
+          # "JetBrainsMono Nerd Font"
         ] ++ emoji;
         sansSerif = [
           "Lexend"
