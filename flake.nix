@@ -29,6 +29,9 @@
     nixed = {
       url = "github:Craole/nixed";
     };
+    redyFonts={
+      url = "github:redyf/font-flake";
+    };
   };
   outputs =
     {

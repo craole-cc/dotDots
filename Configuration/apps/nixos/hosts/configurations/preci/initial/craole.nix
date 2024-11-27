@@ -40,19 +40,85 @@ in
       enableNixpkgsReleaseCheck = false;
       packages =
         let
-          fontsMonoAwesome = pkgs.fetchFromGitHub {
+          fontMono = pkgs.fetchFromGitHub {
             owner = "rng70";
             repo = "Awesome-Fonts";
             rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
             sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
           };
-          fontsNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+          fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+          fontLilex = pkgs.stdenv.mkDerivation {
+            pname = "lilex";
+            version = "2.530";
+            src = pkgs.fetchurl {
+              url = "https://github.com/mishamyrt/Lilex/releases/download/2.530/Lilex.zip";
+              sha256 = "sha256-sBn8DaXj7OXHNaoEAhjTuMmUVUbS0zNZi1h7EjembEo=";
+            };
+            buildInputs = [ pkgs.unzip ];
+            unpackPhase = ''
+              unzip -j $src
+            '';
+            installPhase = ''
+              mkdir -p $out/share/fonts/truetype
+              mv *.ttf $out/share/fonts/truetype/
+            '';
+          };
+
+          fontSfMono = pkgs.stdenv.mkDerivation {
+            pname = "SFMono-Nerd-Font-Ligaturized";
+            version = "1.0";
+            src = pkgs.fetchFromGitHub {
+              owner = "shaunsingh";
+              repo = "SFMono-Nerd-Font-Ligaturized";
+              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
+              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+            };
+            installPhase = ''
+              mkdir -p $out/share/fonts/opentype
+              find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
+            '';
+          };
+
+          fontMonolisa = pkgs.stdenv.mkDerivation {
+            pname = "Monolisa";
+            version = "2.012";
+            src = monolisa;
+            installPhase = ''
+              mkdir -p $out/share/fonts/truetype
+              mv *.ttf $out/share/fonts/truetype/
+            '';
+          };
+
+          fontCartograph = pkgs.stdenv.mkDerivation {
+            pname = "CartographCF";
+            version = "1.0";
+            src = cartograph;
+            installPhase = ''
+              mkdir -p $out/share/fonts/opentype
+              find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
+            '';
+          };
+
+          fontBerkeley = pkgs.stdenv.mkDerivation rec {
+            pname = "BerkeleyMono";
+            version = "1.001";
+            src = BerkeleyMono;
+            installPhase = ''
+              mkdir -p $out/share/fonts/truetype
+              mv *.ttf $out/share/fonts/truetype/
+            '';
+          };
         in
         with pkgs;
         [
           #| Fonts
-          fontsMonoAwesome
-          fontsNerd
+          fontMono
+          fontNerd
+          fontLilex
+          fontSfMono
+          fontMonolisa
+          fontCartograph
+          fontBerkeley
           lexend
           material-design-icons
           material-icons
@@ -64,8 +130,8 @@ in
           whatsapp-for-linux
           warp-terminal
           via
-          vscode
-          # vscode-fhs
+          # vscode
+          vscode-fhs
           qbittorrent
           mpv
           inkscape-with-extensions
@@ -519,12 +585,12 @@ in
           "--colors=line:style:bold"
         ];
       };
-      vscode = {
-        enable = true;
-        package = pkgs.vscodium;
-        enableUpdateCheck = false;
-        mutableExtensionsDir = true;
-      };
+      # vscode = {
+      #   enable = true;
+      #   package = pkgs.vscode-fhs;
+      #   enableUpdateCheck = false;
+      #   mutableExtensionsDir = true;
+      # };
       skim = {
         enable = true;
         defaultCommand = "rg --files --hidden";
