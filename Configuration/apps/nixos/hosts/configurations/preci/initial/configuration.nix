@@ -221,6 +221,10 @@ in
         tldr
         fd
         jq
+        nix-prefetch-scripts
+        nix-prefetch
+        nix-prefetch-github
+        nix-prefetch-docker
 
         #| Development
         nil
