@@ -95,7 +95,7 @@ in
               owner = "redyf"; # Correct owner for Monolisa
               repo = "monolisa"; # Correct repo for Monolisa
               rev = "main"; # Use a specific branch or tag if needed
-              sha256 = "your_sha256_hash_here"; # Replace with the actual hash
+              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0"; # Replace with the actual hash
             };
             installPhase = ''
               mkdir -p $out/share/fonts/truetype
@@ -109,7 +109,7 @@ in
               owner = "redyf"; # Correct owner for Cartograph
               repo = "cartograph"; # Correct repo for Cartograph
               rev = "main"; # Use a specific branch or tag if needed
-              sha256 = "your_sha256_hash_here"; # Replace with the actual hash
+              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0"; # Replace with the actual hash
             };
             installPhase = ''
               mkdir -p $out/share/fonts/opentype
@@ -123,7 +123,7 @@ in
               owner = "redyf"; # Correct owner for BerkeleyMono
               repo = "BerkeleyMono"; # Correct repo for BerkeleyMono
               rev = "main"; # Use a specific branch or tag if needed
-              sha256 = "your_sha256_hash_here"; # Replace with the actual hash
+              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0"; # Replace with the actual hash
             };
             installPhase = ''
               mkdir -p $out/share/fonts/truetype
