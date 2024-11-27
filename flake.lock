@@ -187,7 +187,7 @@
         "url": "https://flakehub.com/f/NixOS/nixpkgs/0.2405.%2A"
       }
     },
-    "nixpkgsStable": {
+    "nixpkgs-stable": {
       "locked": {
         "lastModified": 1732632634,
         "narHash": "sha256-+G7n/ZD635aN0sEXQLynU7pWMd3PKDM7yBIXvYmjABQ=",
@@ -203,7 +203,7 @@
         "type": "github"
       }
     },
-    "nixpkgsUnstable": {
+    "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1732521221,
         "narHash": "sha256-2ThgXBUXAE1oFsVATK1ZX9IjPcS4nKFOAjhPNKuiMn0=",
@@ -279,8 +279,8 @@
         "nixed": "nixed",
         "nixosHardware": "nixosHardware",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgsStable": "nixpkgsStable",
-        "nixpkgsUnstable": "nixpkgsUnstable",
+        "nixpkgs-stable": "nixpkgs-stable",
+        "nixpkgs-unstable": "nixpkgs-unstable",
         "redyFonts": "redyFonts",
         "systems": "systems_2"
       }

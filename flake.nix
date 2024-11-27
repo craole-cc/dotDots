@@ -1,16 +1,9 @@
 {
   description = "NixOS Configuration Flake";
   inputs = {
-    nixpkgs = {
-      # url = "github:nixos/nixpkgs/nixos-24.05";
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-    nixpkgsUnstable = {
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-    nixpkgsStable = {
-      url = "github:NixOS/nixpkgs/nixos-24.05";
-    };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixosHardware = {
       url = "github:NixOS/nixos-hardware";
     };
@@ -34,7 +27,8 @@
     };
   };
   outputs =
-    {
+    inputs@{
+      self,
       nixpkgs,
       nixDarwin,
       homeManager,
@@ -42,26 +36,7 @@
     }:
     let
       lib = nixpkgs.lib // homeManager.lib // nixDarwin.lib;
-      forAllSystems = lib.genAttrs [
-        "x86_64-linux"
-        "x86_64-darwin"
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
-      nixpkgsStable = forAllSystems (
-        system:
-        import nixpkgsStable {
-          inherit system;
-          allowUnfree = true;
-        }
-      );
-      nixpkgsUnstable = forAllSystems (
-        system:
-        import nixpkgsUnstable {
-          inherit system;
-          allowUnfree = true;
-        }
-      );
+      pkgsFor = system: scope: inputs."${scope}".legacyPackages.${system};
 
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
@@ -111,17 +86,35 @@
           bin
           ;
       };
+      packages =
+        {
+          system ? "x86_64-linux",
+          repo ? "unstable",
+        }:
+        {
+          default = pkgsFor system "nixpkgs-${repo}";
+          stable = pkgsFor system "nixpkgs-stable";
+          unstable = pkgsFor system "nixpkgs-unstable";
+        };
+      flake = self;
     in
     {
       nixosConfigurations = {
         preci =
           let
             system = "x86_64-linux";
-            packs = {
-              stable = nixpkgsStable.${system};
-              unstable = nixpkgsUnstable.${system};
+            packs = packages {
+              inherit system;
+              # repo = "unstable";
             };
+            pkgs = packs.default;
           in
+          # pkgs = nixpkgs.legacyPackages.${system};
+          # packs = {
+          #   default = pkgsFor system "nixpkgs";
+          #   stable = pkgsFor system "nixpkgsStable";
+          #   unstable = pkgsFor system "nixpkgsUnstable";
+          # };
           lib.nixosSystem {
             inherit system;
             modules = modulesNixos ++ [
@@ -134,7 +127,11 @@
               }
             ];
             specialArgs = {
-              inherit paths packs;
+              inherit
+                flake
+                paths
+                packs
+                ;
             };
           };
 
