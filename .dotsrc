@@ -557,12 +557,24 @@ initialize_profile() {
 }
 
 initialize_shell() {
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    --shell) shell="$2" ;;
-    esac
-    shift
-  done
+  # while [ "$#" -gt 0 ]; do
+  #   case "$1" in
+  #   --shell) shell="$2" ;;
+  #   esac
+  #   shift
+  # done
+
+  profile="$HOME/.profile"
+  bashrc="$HOME/.bashrc"
+  zshrc="$HOME/.zshrc"
+
+  case "$SHELL_INTERACTIVE" in
+  bash)
+    grep --regexp "[ -f $profile ]*"
+    # grep --quiet --regexp "[ -f $profile ]*" ||
+    # printf "\n%s" "[ -f $profile ] && . $profile" >>"$bashrc"
+    ;;
+  esac
 }
 
 initialize_dots() {
@@ -573,6 +585,12 @@ initialize_dots() {
     --val "$DOTS" \
     --rc ".dotsrc"
 
+  # initialize_profile \
+  #   --file "$HOME/.bashrc" \
+  #   --key "BDOTDIR" \
+  #   --val "$DOTS/Configuration/cli/bash" \
+  #   --rc "config"
+
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
@@ -580,6 +598,7 @@ initialize_dots() {
     --env "$DOTS/Environment/export"
 
   #@ Load Shell
+  # initialize_shell
   shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts

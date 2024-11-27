@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Purpose: This script initializes BDOTDIR and loads bash resources and functions.
+#|
+ Purpose: This script initializes BDOTDIR and loads bash resources and functions.
 
-# Get the directory of the currently running script
+#@ Get the directory of the currently running script
 BDOTDIR="${BDOTDIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
-# Export BDOTDIR
+#@ Export BDOTDIR
 export BDOTDIR
 
 # Function to load files from a directory
