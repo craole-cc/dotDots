@@ -2,13 +2,13 @@
 let
   mod = "craole";
   inherit (config.system) stateVersion;
-  awesomeFonts = pkgs.fetchFromGitHub {
+  fontsMonoAwesome = pkgs.fetchFromGitHub {
     owner = "rng70";
     repo = "Awesome-Fonts";
     rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
     sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
   };
-  nerdFonts = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+  fontsNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
 in
 {
   users.users.${mod} = {
@@ -47,8 +47,8 @@ in
       enableNixpkgsReleaseCheck = false;
       packages = with pkgs; [
         #| Fonts
-        awesomeFonts
-        nerdFonts
+        fontsMonoAwesome
+        fontsNerd
 
         lexend
         material-design-icons
