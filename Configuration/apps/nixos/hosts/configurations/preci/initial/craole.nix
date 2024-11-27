@@ -54,10 +54,10 @@ in
           fontsMonoAwesome
           fontsNerd
 
-          lexend
-          material-design-icons
-          material-icons
-          noto-fonts-emoji
+          # lexend
+          # material-design-icons
+          # material-icons
+          # noto-fonts-emoji
 
           brave
           freetube
