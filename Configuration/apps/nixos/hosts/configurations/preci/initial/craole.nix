@@ -82,7 +82,12 @@ in
           fontMonolisa = pkgs.stdenv.mkDerivation {
             pname = "Monolisa";
             version = "2.012";
-            src = monolisa;
+            src = pkgs.fetchFromGitHub {
+              owner = "shaunsingh";
+              repo = "SFMono-Nerd-Font-Ligaturized";
+              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
+              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+            };
             installPhase = ''
               mkdir -p $out/share/fonts/truetype
               mv *.ttf $out/share/fonts/truetype/
@@ -92,7 +97,12 @@ in
           fontCartograph = pkgs.stdenv.mkDerivation {
             pname = "CartographCF";
             version = "1.0";
-            src = cartograph;
+            src = pkgs.fetchFromGitHub {
+              owner = "shaunsingh";
+              repo = "SFMono-Nerd-Font-Ligaturized";
+              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
+              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+            };
             installPhase = ''
               mkdir -p $out/share/fonts/opentype
               find $src -type f -name '*.otf' -exec cp {} $out/share/fonts/opentype/ \;
@@ -102,7 +112,12 @@ in
           fontBerkeley = pkgs.stdenv.mkDerivation rec {
             pname = "BerkeleyMono";
             version = "1.001";
-            src = BerkeleyMono;
+            src = pkgs.fetchFromGitHub {
+              owner = "shaunsingh";
+              repo = "SFMono-Nerd-Font-Ligaturized";
+              rev = "dc5a3e6fcc2e16ad476b7be3c3c17c2273b260ea";
+              hash = "sha256-AYjKrVLISsJWXN6Cj74wXmbJtREkFDYOCRw1t2nVH2w=";
+            };
             installPhase = ''
               mkdir -p $out/share/fonts/truetype
               mv *.ttf $out/share/fonts/truetype/
@@ -116,9 +131,9 @@ in
           fontNerd
           fontLilex
           fontSfMono
-          fontMonolisa
-          fontCartograph
-          fontBerkeley
+          # fontMonolisa
+          # fontCartograph
+          # fontBerkeley
           lexend
           material-design-icons
           material-icons
