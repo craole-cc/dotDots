@@ -51,9 +51,6 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
       nixpkgsStable = forAllSystems (system: import nixpkgsStable { inherit system; });
       nixpkgsUnstable = forAllSystems (system: import nixpkgsUnstable { inherit system; });
-      pkgs = nixpkgsFor."${system}";
-      pkgsStable = nixpkgsStable."${system}";
-      pkgsUnstable = nixpkgsUnstable."${system}";
 
       dot = "/home/craole/Documents/dotfiles";
       mod = "/Configuration/apps/nixos";
@@ -111,6 +108,9 @@
         preci =
           let
             system = "x86_64-linux";
+            pkgs = nixpkgsFor."${system}";
+            pkgsStable = nixpkgsStable."${system}";
+            pkgsUnstable = nixpkgsUnstable."${system}";
           in
           lib.nixosSystem {
             inherit system;
@@ -123,7 +123,11 @@
                 # DOTS.hosts.Preci.enable = true;
               }
             ];
-            specialArgs = args ++ [ pkgs ];
+            specialArgs = args ++ [
+              pkgs
+              pkgsStable
+              pkgsUnstable
+            ];
           };
 
         dbook = lib.nixosSystem {
