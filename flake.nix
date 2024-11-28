@@ -150,10 +150,8 @@
             import repo {
               inherit system;
               config = {
-                inherit
-                  allowUnfree
-                  allowAliases
-                  ;
+                allowUnfree = allowUnfree;
+                allowAliases = allowAliases;
               } // extraConfig;
             };
           pkgs = mkPkgs (if repo == "stable" then nixpkgs-stable else nixpkgs-unstable);
