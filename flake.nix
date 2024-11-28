@@ -12,7 +12,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixosUnstable";
     };
-    # systems.url = "github:nix-systems/default";
     nixed.url = "github:Craole/nixed";
   };
   outputs =
@@ -70,6 +69,11 @@
             # enableDots = true;
             name = "preci";
             system = "x86_64-linux";
+            configMods = {
+              environment = {
+                inherit variables shellAliases pathsToLink;
+              };
+            };
           in
           import paths.mkCoreConfig {
             inherit name system;
@@ -84,12 +88,8 @@
               inherit
                 flake
                 paths
+                configMods
                 ;
-            };
-            configMods = {
-              environment = {
-                inherit variables shellAliases pathsToLink;
-              };
             };
           };
 

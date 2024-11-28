@@ -32,6 +32,7 @@ let
       forDarwin = homeManager.darwinModules.home-manager;
       forNixos = homeManager.nixosModules.home-manager;
     };
+    config = configMods;
   };
   pkgs =
     let
@@ -60,7 +61,7 @@ let
     );
   lib = pkgs.lib;
   modules =
-    [ mods.core ]
+    [ configPath ]
     ++ (
       if allowHomeManager then
         with mods.home;
@@ -72,8 +73,8 @@ let
         [ ]
     )
     ++ [
-      configMods
-      (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
+      configArgs.configMods
+      (if enableDots then { DOTS.hosts.${name}.enable = true; } else {})
     ];
 in
 if isDarwin then
