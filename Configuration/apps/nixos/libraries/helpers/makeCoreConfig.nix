@@ -65,7 +65,7 @@ let
     )
     ++ [
       coreMods
-      (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
+      # (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
 if isDarwin then

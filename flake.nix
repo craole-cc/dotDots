@@ -101,7 +101,9 @@
               variables = with paths; {
                 DOTS = flake.local;
                 DOTS_BIN = scripts.local;
-                DOTS_NIX = modules.local;
+                DOTS_NIX = with paths; modules.local + names.hosts + "/${name}";
+                NIX_PATHS = mkForce ''$NIX_PATH:$DOTS_NIX'';
+                NIX_MODS = modules.local;
                 NIX_PATH = mkForce "${getEnv "NIX_PATH"}:${with paths; modules.local + names.hosts + "/${name}"}";
               };
               shellAliases = {
