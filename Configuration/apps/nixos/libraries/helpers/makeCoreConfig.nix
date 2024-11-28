@@ -9,7 +9,7 @@
   allowUnfree ? true,
   allowAliases ? true,
   allowHomeManager ? true,
-  # allowDots ? true,
+  enableDots ? false,
   configPath,
   configArgs ? { },
   configMods ? { },
@@ -72,9 +72,8 @@ let
         [ ]
     )
     ++ [
-      {
-        inherit configMods;
-      }
+      # configMods
+      (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
 if isDarwin then

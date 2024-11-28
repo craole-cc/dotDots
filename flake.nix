@@ -48,7 +48,7 @@
         DOTS_NIX = conf;
       };
       shellAliases = {
-        Flake = ''pushd ${paths.dot} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+        Flake = ''pushd ${paths.flake} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
       };
       pathsToLink = with paths; [
         (bin + "/base")
@@ -171,6 +171,7 @@
       nixosConfigurations = {
         preci =
           let
+            # enableDots = true;
             name = "preci";
             system = "x86_64-linux";
           in
@@ -193,7 +194,6 @@
               environment = {
                 inherit variables shellAliases pathsToLink;
               };
-              # DOTS.hosts.${name}.enable = allowDots;
             };
           };
 
