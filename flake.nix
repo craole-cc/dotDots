@@ -119,6 +119,12 @@
                   DOTS_MODS_NIX = modules.local;
                   DOTS_NIX = hostPath;
                   NIX_PATH = mkForce nixPath.env;
+                  test_nix_path_def=nixPath.def;
+                  test_nix_path_etc=nixPath.etc;
+                  test_nix_path_channels=nixPath.channels;
+                  test_nix_path_host=nixPath.host;
+                  test_nix_path_env=nixPath.env;
+
                 };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
