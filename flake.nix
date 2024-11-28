@@ -102,6 +102,7 @@
                 let
                   hostPath = with paths; modules.local + names.hosts + "/${name}";
                   nixPath = rec {
+                    current = getEnv "NIX_PATH";
                     def = "$HOME/.nix-defexpr/channels";
                     defraw = "/home/craole/.nix-defexpr/channels";
                     etc = "/etc/nixos/configuration.nix";
@@ -109,8 +110,11 @@
                     # pkgs = channels + "/nixos";
                     pkgs = "flake";
                     host = with paths; modules.local + names.hosts + "/${name}";
-                    env = "${def}:nixpkgs=${pkgs}:nixos-config=${etc}:${channels}:${host}";
+                    # env = "${def}:nixpkgs=${pkgs}:nixos-config=${etc}:${channels}:${host}";
+                    env =
+                      if builtins.elem hostPath (builtins.split ":" current) then current else "${current}:${hostPath}";
                   };
+
                 in
                 # nixPath = "${getEnv "NIX_PATH"}:nixos-config=/etc/nixos${hostPath}";
                 with paths;
@@ -119,7 +123,7 @@
                   DOTS_BIN = scripts.local;
                   DOTS_MODS_NIX = modules.local;
                   DOTS_NIX = hostPath;
-                  # NIX_PATH = mkForce nixPath.env;
+                  NIX_PATH = mkForce nixPath.env;
                   test_nixpath_def = nixPath.def;
                   test_nixpath_defraw = nixPath.defraw;
                   test_nixpath_etc = nixPath.etc;
