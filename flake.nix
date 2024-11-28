@@ -98,14 +98,19 @@
           corePath = paths.modules.store;
           coreMods = {
             environment = {
-              variables = with paths; {
-                DOTS = flake.local;
-                DOTS_BIN = scripts.local;
-                DOTS_NIX = with paths; modules.local + names.hosts + "/${name}";
-                NIX_PATHS = mkForce ''$NIX_PATH:$DOTS_NIX'';
-                NIX_MODS = modules.local;
-                NIX_PATH = mkForce "${getEnv "NIX_PATH"}:${with paths; modules.local + names.hosts + "/${name}"}";
-              };
+              variables =
+                let
+                  hostPath = with paths; modules.local + names.hosts + "/${name}";
+                  nixPath = "${getEnv "NIX_PATH"}:${hostPath}";
+                in
+                with paths;
+                {
+                  DOTS = flake.local;
+                  DOTS_BIN = scripts.local;
+                  DOTS_MODS_NIX = modules.local;
+                  DOTS_NIX = hostPath;
+                  NIX_PATH = mkForce nixPath;
+                };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
               };
