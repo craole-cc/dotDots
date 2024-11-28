@@ -76,7 +76,7 @@
             };
           in
           import paths.mkCoreConfig {
-            inherit name system;
+            inherit name system configMods;
             inherit (inputs)
               nixosStable
               nixosUnstable
