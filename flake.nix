@@ -39,7 +39,6 @@
             lib
             bin
             ;
-          mkCoreConfig = flake + lib + "/helpers/makeCoreConfig.nix";
         };
 
       core = {
@@ -83,18 +82,28 @@
           };
         };
       };
+      mkCore =
+        { name, system }:
+        import (with paths; flake + lib + "/helpers/makeCoreConfig.nix") {
+          inherit
+            inputs
+            core
+            name
+            system
+            ;
+        };
     in
     {
       nixosConfigurations = {
-        preci = import paths.mkCoreConfig {
-          inherit inputs core;
+        preci = mkCore {
           name = "preci";
           system = "x86_64-linux";
-          # enableDots = true;
-          # configPath = core.path;
-          # configArgs = core.args;
-          # configMods = core.modules;
         };
+        # preci = import paths.mkCoreConfig {
+        #   inherit inputs core;
+        #   name = "preci";
+        #   system = "x86_64-linux";
+        # };
 
         # preci = mkCore {
         #   name = "preci";
