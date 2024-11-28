@@ -24,86 +24,125 @@
       ...
     }:
     let
-      flake = self;
-      paths =
+      core =
         let
-          flake = "/home/craole/Documents/dotfiles";
-          conf = "/Configuration/apps/nixos";
-          bin = flake + "/Bin";
-          lib = conf + "/libraries";
+          paths =
+            let
+              flake = {
+                local = "/home/craole/Documents/dotfiles";
+                store = ./.;
+              };
+              names = {
+                modules = "/Configuration/apps/nixos";
+                scripts = "/Bin";
+                libraries = "/libraries";
+                mkCore = "/helpers/makeCoreConfig.nix";
+              };
+              scripts = {
+                local = flake.local + names.scripts;
+                store = flake.store + names.scripts;
+              };
+              modules = {
+                local = flake.local + names.modules;
+                store = flake.store + names.modules;
+              };
+              libraries = {
+                local = modules.local + names.libraries;
+                store = modules.store + names.libraries;
+                mkCore = libraries.local + names.mkCore;
+              };
+            in
+            {
+              inherit
+                flake
+                names
+                scripts
+                modules
+                libraries
+                ;
+            };
+          args = {
+            inherit paths;
+            flake = self;
+          };
+          conf = {
+            environment = {
+              variables = with paths; {
+                DOTS = flake.local;
+                DOTS_BIN = scripts.local;
+                DOTS_NIX = modules.local;
+              };
+              shellAliases = {
+                Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+              };
+              pathsToLink =
+                let
+                  bin = paths.scripts.local;
+                in
+                [
+                  (bin + "/base")
+                  (bin + "/core")
+                  (bin + "/import")
+                  (bin + "/interface")
+                  (bin + "/misc")
+                  (bin + "/packages")
+                  (bin + "/project")
+                  (bin + "/tasks")
+                  (bin + "/template")
+                  (bin + "/utility")
+                ];
+            };
+          };
+          builder =
+            {
+              name,
+              system,
+              preferredRepo ? "unstable",
+              allowUnfree ? true,
+              allowAliases ? true,
+              allowHomeManager ? true,
+              enableDots ? false,
+              extraPkgConfig ? { },
+              extraPkgAttrs ? { },
+            }:
+            import paths.libraries.mkCore {
+              inherit
+                name
+                system
+                preferredRepo
+                allowUnfree
+                allowAliases
+                allowHomeManager
+                enableDots
+                extraPkgConfig
+                extraPkgAttrs
+                ;
+              inherit (inputs)
+                nixosStable
+                nixosUnstable
+                homeManager
+                nixDarwin
+                ;
+              configPath = paths.modules.store;
+              configArgs = args;
+              configMods = conf;
+            };
         in
         {
           inherit
-            flake
-            conf
-            lib
-            bin
-            ;
-        };
-
-      core = {
-        inputs = {
-          inherit (inputs)
-            nixosStable
-            nixosUnstable
-            homeManager
-            nixDarwin
-            ;
-        };
-        path = ./. + paths.conf;
-        args = {
-          inherit
-            flake
             paths
-            ;
-        };
-        modules = {
-          environment = {
-            variables = with paths; {
-              DOTS = flake;
-              DOTS_BIN = bin;
-              DOTS_NIX = conf;
-            };
-            shellAliases = {
-              Flake = ''pushd ${paths.flake} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
-            };
-            pathsToLink = with paths; [
-              (bin + "/base")
-              (bin + "/core")
-              (bin + "/import")
-              (bin + "/interface")
-              (bin + "/misc")
-              (bin + "/packages")
-              (bin + "/project")
-              (bin + "/tasks")
-              (bin + "/template")
-              (bin + "/utility")
-            ];
-          };
-        };
-      };
-      mkCore =
-        { name, system }:
-        import (with paths; flake + lib + "/helpers/makeCoreConfig.nix") {
-          inherit
-            inputs
-            core
-            name
-            system
+            args
+            conf
+            builder
             ;
         };
     in
     {
       nixosConfigurations = {
-        preci = mkCore {
+        preci = core.builder {
           name = "preci";
           system = "x86_64-linux";
         };
-        # preci = import paths.mkCoreConfig {
-        #   inherit inputs core;
-        #   name = "preci";
-        #   system = "x86_64-linux";
-        # };
 
         # preci = mkCore {
         #   name = "preci";

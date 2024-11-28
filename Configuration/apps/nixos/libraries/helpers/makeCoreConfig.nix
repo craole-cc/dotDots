@@ -1,9 +1,14 @@
 {
   name,
-  preferredRepo ? "unstable",
   system,
-  inputs,
-  core,
+  nixosStable,
+  nixosUnstable,
+  homeManager,
+  nixDarwin,
+  configPath,
+  preferredRepo ? "unstable",
+  configArgs ? { },
+  configMods ? { },
   allowUnfree ? true,
   allowAliases ? true,
   allowHomeManager ? true,
@@ -12,15 +17,6 @@
   extraPkgAttrs ? { },
 }:
 let
-  inherit (inputs)
-    nixosStable
-    nixosUnstable
-    homeManager
-    nixDarwin
-    ;
-  configPath = core.path;
-  configArgs = core.args;
-  configMods = core.modules;
   isDarwin = builtins.match ".*darwin" system != null;
   specialArgs = configArgs;
   mods = {
