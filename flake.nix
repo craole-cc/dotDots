@@ -151,8 +151,6 @@
               inherit system;
               config = {
                 inherit allowUnfree allowAliases;
-                # allowUnfree = true;
-                # allowAliases = true;
               } // extraConfig;
             };
           pkgs = mkPkgs (if repo == "stable" then nixpkgs-stable else nixpkgs-unstable);
