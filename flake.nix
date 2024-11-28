@@ -26,7 +26,7 @@
     let
       inherit (inputs.nixosUnstable) lib;
       inherit (lib.modules) mkForce;
-      inherit (builtins) getEnv;
+      inherit (builtins) getEnv baseNameOf;
       paths =
         let
           flake = {
@@ -101,15 +101,24 @@
               variables =
                 let
                   hostPath = with paths; modules.local + names.hosts + "/${name}";
-                  nixPath = "${getEnv "NIX_PATH"}:${hostPath}";
+                  nixPath = rec {
+                    def = getEnv "HOME" + "/.nix-defexpr/channels";
+                    etc = "/etc/nixos/configuration.nix";
+                    channels = "/nix/var/nix/profiles/per-user/root/channels";
+                    # pkgs = channels + "/nixos";
+                    pkgs = "flake";
+                    host = with paths; modules.local + names.hosts + "/${name}";
+                    env = "${def}:nixpkgs=${pkgs}:nixos-config=${etc}:${channels}:${host}";
+                  };
                 in
+                # nixPath = "${getEnv "NIX_PATH"}:nixos-config=/etc/nixos${hostPath}";
                 with paths;
                 {
                   DOTS = flake.local;
                   DOTS_BIN = scripts.local;
                   DOTS_MODS_NIX = modules.local;
                   DOTS_NIX = hostPath;
-                  NIX_PATH = mkForce nixPath;
+                  NIX_PATH = mkForce nixPath.env;
                 };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
