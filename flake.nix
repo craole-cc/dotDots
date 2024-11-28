@@ -86,19 +86,15 @@
     in
     {
       nixosConfigurations = {
-        preci =
-          let
-            # enableDots = true;
-            name = "preci";
-            system = "x86_64-linux";
-          in
-          import paths.mkCoreConfig {
-            inherit name system inputs;
-            configInputs = core.inputs;
-            configPath = core.path;
-            configArgs = core.args;
-            configMods = core.modules;
-          };
+        preci = import paths.mkCoreConfig {
+          inherit inputs core;
+          name = "preci";
+          system = "x86_64-linux";
+          # enableDots = true;
+          # configPath = core.path;
+          # configArgs = core.args;
+          # configMods = core.modules;
+        };
 
         # preci = mkCore {
         #   name = "preci";

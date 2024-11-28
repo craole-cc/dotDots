@@ -3,13 +3,10 @@
   preferredRepo ? "unstable",
   system,
   inputs,
-  configPath,
-  configArgs ? { },
-  configMods ? { },
-  # nixosStable ? configInputs.nixosStable,
-  # nixosUnstable ? configInputs.nixosUnstable,
-  # homeManager ? configInputs.homeManager,
-  # nixDarwin ? configInputs.nixDarwin,
+  core,
+  # configPath,
+  # configArgs ? { },
+  # configMods ? { },
   allowUnfree ? true,
   allowAliases ? true,
   allowHomeManager ? true,
@@ -24,6 +21,9 @@ let
     homeManager
     nixDarwin
     ;
+  configPath = core.path;
+  configArgs = core.args;
+  configMods = core.modules;
   isDarwin = builtins.match ".*darwin" system != null;
   specialArgs = configArgs;
   mods = {
