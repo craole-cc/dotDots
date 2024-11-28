@@ -19,7 +19,14 @@
     # };
   };
   outputs =
-    inputs@{ self, ... }:
+    inputs@{
+      self,
+      nixosStable,
+      nixosUnstable,
+      homeManager,
+      nixDarwin,
+      ...
+    }:
     let
       flake = self;
       paths = {
@@ -58,109 +65,229 @@
       modulesNixos = [
         modulesCore
         modulesHome
-        inputs.homeManager.nixosModules.home-manager
+        homeManager.nixosModules.home-manager
       ];
       modulesDarwin = [
         modulesCore
         modulesHome
-        inputs.homeManager.darwinModules.home-manager
+        homeManager.darwinModules.home-manager
       ];
       packages =
         {
           system,
+          repo ? "unstable",
+          allowHomeManager ? true,
           allowUnfree ? true,
         }:
-        with inputs;
-        {
-          stable = import nixosStable {
-            inherit system;
-            config = {
-              inherit allowUnfree;
+        let
+          nixpkgs = if repo == "stable" then inputs.nixosStable else inputs.nixosUnstable;
+          mkPkgs =
+            repo:
+            import repo {
+              inherit system;
+              config = {
+                inherit allowUnfree;
+              };
             };
-          };
-          unstable = import nixosUnstable {
-            inherit system;
-            config = {
-              inherit allowUnfree;
-            };
-          };
-          libraries =
+          mkLibs =
+            repo:
             let
-              libs = with inputs; rec {
-                default = nixosUnstable.lib // homeManager.lib;
-                darwin = default // nixDarwin.lib;
+              libs = {
+                default = if allowHomeManager then repo.lib // homeManager.lib else repo.lib;
+                darwin = nixDarwin.lib;
               };
             in
             if
-              elem system [
+              builtins.elem system [
                 "x86_64-darwin"
                 "aarch64-darwin"
               ]
             then
-              libs.darwin
+              with libs; default // darwin
             else
               libs.default;
+        in
+        {
+          default = mkPkgs nixpkgs;
+          stable = mkPkgs nixosStable;
+          unstable = mkPkgs nixosUnstable;
+          libraries = mkLibs nixpkgs;
+        };
+      args = {
+        inherit
+          flake
+          paths
+          ;
+      };
+
+      mkNixpkgs =
+        {
+          system,
+          repo,
+          allowUnfree ? true,
+        }:
+        import repo {
+          inherit system;
+          config = {
+            inherit allowUnfree;
+          };
+        };
+
+      mkPkgsOverlays =
+        {
+          system,
+          nixpkgs-stable ? nixosStable,
+          nixpkgs-unstable ? nixosUnstable,
+          allowUnfree ? true,
+          allowAliases ? true,
+          extraConfig ? { },
+          extraAttrs ? { },
+        }:
+        let
+          mkPkgs =
+            repo:
+            import repo {
+              inherit system;
+              config = {
+                inherit
+                  allowUnfree
+                  allowAliases
+                  ;
+              } // extraConfig;
+            };
+          unstablePkgs = mkPkgs nixpkgs-unstable;
+          stablePkgs = mkPkgs nixpkgs-stable;
+        in
+        unstablePkgs.extend (
+          final: prev:
+          {
+            stable = stablePkgs;
+            unstable = unstablePkgs;
+          }
+          // extraAttrs
+        );
+      # {
+      #   inherit unstable stable;
+      #   default = unstable;
+      # }
+      # // extraAttrs;
+
+      mkNixos =
+        {
+          system,
+          name ? "nixos",
+          repo ? "unstable",
+          allowHomeManager ? true,
+          allowUnfree ? true,
+          extraArgs ? args,
+        }:
+        let
+          inherit (builtins) elem;
+          nixpkgs = if repo == "stable" then nixosStable else nixosUnstable;
+          sets = {
+            libraries = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
+            packages = mkPkgsOverlays { inherit system; };
+          };
+          pkgs = sets.packages.default;
+          # pkgs = sets.packages;
+          lib = sets.libraries;
+          specialArgs = {
+            inherit sets;
+          } // extraArgs;
+        in
+        lib.nixosSystem {
+          inherit
+            system
+            pkgs
+            lib
+            specialArgs
+            ;
+          modules =
+            (
+              if allowHomeManager then
+                [
+                  modulesCore
+                  modulesHome
+                  homeManager.nixosModules.home-manager
+                ]
+              else
+                [ modulesCore ]
+            )
+            ++ [
+              {
+                #  DOTS.hosts.${name}.enable = true;
+                environment = {
+                  inherit variables shellAliases pathsToLink;
+                };
+              }
+            ];
         };
     in
     {
       nixosConfigurations = {
-        preci =
-          let
-            system = "x86_64-linux";
-            packs = packages { inherit system; };
-            pkgs = packs.unstable;
-            lib = packs.libraries;
-          in
-          lib.nixosSystem {
-            inherit system pkgs lib;
-            modules = modulesNixos ++ [
-              {
-                environment = {
-                  inherit variables shellAliases pathsToLink;
-                  systemPackages = [ ];
-                };
-                # DOTS.hosts.Preci.enable = true;
-              }
-            ];
-            specialArgs = {
-              inherit
-                flake
-                paths
-                packs
-                ;
-            };
-          };
-
-        dbook =
-          let
-            system = "x86_64-linux";
-            packs = packages { inherit system; };
-            pkgs = packs.unstable;
-            lib = packs.libraries;
-          in
-          lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = modulesNixos ++ [
-              {
-                # DOTS.hosts.DBook.enable = true;
-              }
-            ];
-            # modules = [ (hostModules + "/dbook") ] ++ modulesNixos;
-          };
+        preci = mkNixos {
+          name = "preci";
+          system = "x86_64-linux";
+        };
       };
+      # nixosConfigurations = {
+      #   preci =
+      #     let
+      #       system = "x86_64-linux";
+      #       packs = packages { inherit system; };
+      #       pkgs = packs.default;
+      #       lib = packs.libraries;
+      #       specialArgs = {
+      #         inherit packs;
+      #       } // args;
+      #     in
+      #     lib.nixosSystem {
+      #       inherit
+      #         system
+      #         pkgs
+      #         lib
+      #         specialArgs
+      #         ;
+      #       modules = modulesNixos ++ [
+      #         {
+      #           environment = {
+      #             inherit variables shellAliases pathsToLink;
+      #           };
+      #           # DOTS.hosts.Preci.enable = true;
+      #         }
+      #       ];
+      #     };
 
-      darwinConfigurations = {
-        MBPoNine =
-          let
-            system = "x86_64-linux";
-            packs = packages { inherit system; };
-            pkgs = packs.unstable;
-            lib = packs.libraries;
-          in
-          lib.darwinSystem {
-            system = "x86_64-darwin";
-            modules = modulesDarwin ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
-          };
-      };
+      #   dbook =
+      #     let
+      #       system = "x86_64-linux";
+      #       packs = packages { inherit system; };
+      #       pkgs = packs.unstable;
+      #       lib = packs.libraries;
+      #     in
+      #     lib.nixosSystem {
+      #       system = "x86_64-linux";
+      #       modules = modulesNixos ++ [
+      #         {
+      #           # DOTS.hosts.DBook.enable = true;
+      #         }
+      #       ];
+      #       # modules = [ (hostModules + "/dbook") ] ++ modulesNixos;
+      #     };
+      # };
+
+      # darwinConfigurations = {
+      #   MBPoNine =
+      #     let
+      #       system = "x86_64-linux";
+      #       packs = packages { inherit system; };
+      #       pkgs = packs.unstable;
+      #       lib = packs.libraries;
+      #     in
+      #     lib.darwinSystem {
+      #       system = "x86_64-darwin";
+      #       modules = modulesDarwin ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
+      #     };
+      # };
     };
 }

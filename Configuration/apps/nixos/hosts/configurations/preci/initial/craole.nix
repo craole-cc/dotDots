@@ -1,4 +1,3 @@
-  #| This is a comment
 { config, pkgs, ... }:
 let
   mod = "craole";
