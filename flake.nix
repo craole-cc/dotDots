@@ -123,13 +123,13 @@
                   DOTS_BIN = scripts.local;
                   DOTS_MODS_NIX = modules.local;
                   DOTS_NIX = hostPath;
-                  NIX_PATH = mkForce nixPath.env;
-                  test_nixpath_def = nixPath.def;
-                  test_nixpath_defraw = nixPath.defraw;
-                  test_nixpath_etc = nixPath.etc;
-                  test_nixpath_channels = nixPath.channels;
-                  test_nixpath_host = nixPath.host;
-                  test_nixpath_env = nixPath.env;
+                  # NIX_PATH = mkForce nixPath.env;
+                  # test_nixpath_def = nixPath.def;
+                  # test_nixpath_defraw = nixPath.defraw;
+                  # test_nixpath_etc = nixPath.etc;
+                  # test_nixpath_channels = nixPath.channels;
+                  # test_nixpath_host = nixPath.host;
+                  # test_nixpath_env = nixPath.env;
                 };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
