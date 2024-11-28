@@ -62,110 +62,6 @@
         (bin + "/template")
         (bin + "/utility")
       ];
-      # mods = {
-      #   core = ./. + paths.conf;
-      #   home = {
-      #     forAll = {
-      #       home-manager = {
-      #         backupFileExtension = "BaC";
-      #         useGlobalPkgs = true;
-      #         useUserPackages = true;
-      #       };
-      #     };
-      #     forDarwin = homeManager.darwinModules.home-manager;
-      #     forNixos = homeManager.nixosModules.home-manager;
-      #   };
-      # };
-      # mkCore =
-      #   {
-      #     system,
-      #     name ? "nixos",
-      #     repo ? "unstable",
-      #     nixpkgs-stable ? nixosStable,
-      #     nixpkgs-unstable ? nixosUnstable,
-      #     allowUnfree ? true,
-      #     allowAliases ? true,
-      #     allowHomeManager ? true,
-      #     extraArgs ? { },
-      #     extraPkgConfig ? { },
-      #     extraPkgAttrs ? { },
-      #   }:
-      #   let
-      #     isDarwin = builtins.match ".*darwin" system != null;
-      #     specialArgs = {
-      #       inherit
-      #         flake
-      #         paths
-      #         ;
-      #     } // extraArgs;
-      #     pkgs =
-      #       let
-      #         mkPkgs =
-      #           pkgsInput:
-      #           import pkgsInput {
-      #             inherit system;
-      #             config = {
-      #               inherit allowUnfree allowAliases;
-      #             } // extraPkgConfig;
-      #           };
-      #         nixpkgs = if repo == "stable" then nixpkgs-stable else nixpkgs-unstable;
-      #         lib = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
-      #         defaultPkgs = mkPkgs nixpkgs;
-      #         unstablePkgs = mkPkgs nixpkgs-unstable;
-      #         stablePkgs = mkPkgs nixpkgs-stable;
-      #       in
-      #       defaultPkgs.extend (
-      #         final: prev:
-      #         {
-      #           stable = stablePkgs;
-      #           unstable = unstablePkgs;
-      #           inherit lib;
-      #         }
-      #         // extraPkgAttrs
-      #       );
-      #     lib = pkgs.lib;
-      #     modules =
-      #       [ mods.core ]
-      #       ++ (
-      #         if allowHomeManager then
-      #           with mods.home;
-      #           [
-      #             forAll
-      #             (if isDarwin then forDarwin else forNixos)
-      #           ]
-      #         else
-      #           [ ]
-      #       )
-      #       ++ [
-      #         {
-      #           #TODO:  DOTS.hosts.${name}.enable = true;
-      #           environment = {
-      #             inherit variables shellAliases pathsToLink;
-      #           };
-      #         }
-      #       ];
-      #   in
-      #   if isDarwin then
-      #     lib.darwinSystem {
-      #       inherit
-      #         system
-      #         pkgs
-      #         lib
-      #         modules
-      #         specialArgs
-      #         ;
-      #     }
-      #   else
-      #     lib.nixosSystem {
-      #       inherit
-      #         system
-      #         pkgs
-      #         lib
-      #         modules
-      #         specialArgs
-      #         ;
-      #     };
-
     in
     {
       nixosConfigurations = {
@@ -190,11 +86,11 @@
                 paths
                 ;
             };
-            # configMods = {
-            #   environment = {
-            #     inherit variables shellAliases pathsToLink;
-            #   };
-            # };
+            configMods = {
+              environment = {
+                inherit variables shellAliases pathsToLink;
+              };
+            };
           };
 
         # preci = mkCore {

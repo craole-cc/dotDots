@@ -12,7 +12,7 @@
   enableDots ? false,
   configPath,
   configArgs ? { },
-  # configMods ? { },
+  configMods ? { },
   extraPkgConfig ? { },
   extraPkgAttrs ? { },
 }:
