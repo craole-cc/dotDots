@@ -42,7 +42,6 @@ in
     # mkAppOptions = mkOption {
     #   description="Options to pass to an application";
     #   default = name: attrs: with attrs; { "${name}" =lib.foldr(options: newOption: options//newOption) {} (builtins.mapAttrsToList (_: optionAttrs:optionAttrs.mkOption optionAttrs)attrs); };
-    # }
 
   };
 }
