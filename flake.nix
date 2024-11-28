@@ -141,6 +141,7 @@
           nixpkgs-unstable ? nixosUnstable,
           allowUnfree ? true,
           allowAliases ? true,
+          allowHomeManager ? true,
           extraConfig ? { },
           extraAttrs ? { },
         }:
@@ -153,7 +154,9 @@
                 inherit allowUnfree allowAliases;
               } // extraConfig;
             };
-          pkgs = mkPkgs (if repo == "stable" then nixpkgs-stable else nixpkgs-unstable);
+          nixpkgs = if repo == "stable" then nixpkgs-stable else nixpkgs-unstable;
+          pkgs = mkPkgs nixpkgs;
+          lib = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
           unstablePkgs = mkPkgs nixpkgs-unstable;
           stablePkgs = mkPkgs nixpkgs-stable;
         in
@@ -162,6 +165,7 @@
           {
             stable = stablePkgs;
             unstable = unstablePkgs;
+            inherit lib;
           }
           // extraAttrs
         );
@@ -177,24 +181,9 @@
         }:
         let
           inherit (builtins) elem;
-          nixpkgs = if repo == "stable" then nixosStable else nixosUnstable;
-          sets = {
-            libraries = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
-            packages = mkPkgsOverlays { inherit system; };
-          };
-          pkgs = sets.packages;
-          lib = sets.libraries;
-          specialArgs = {
-            inherit sets;
-          } // extraArgs;
-        in
-        lib.nixosSystem {
-          inherit
-            system
-            pkgs
-            lib
-            specialArgs
-            ;
+          pkgs = mkPkgsOverlays { inherit system; };
+          lib = pkgs.lib;
+          specialArgs = { } // extraArgs;
           modules =
             (
               if allowHomeManager then
@@ -214,6 +203,15 @@
                 };
               }
             ];
+        in
+        lib.nixosSystem {
+          inherit
+            system
+            pkgs
+            lib
+            specialArgs
+            modules
+            ;
         };
     in
     {

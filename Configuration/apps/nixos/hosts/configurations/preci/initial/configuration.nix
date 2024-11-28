@@ -38,13 +38,6 @@ in
     networkmanager.enable = true;
   };
 
-  # nixpkgs = {
-  #   config = lib.mkForce {
-  #     allowUnfree = true;
-  #     allowAliases = true;
-  #   };
-  # };
-
   hardware = {
     pulseaudio.enable = lib.mkDefault false;
     bluetooth = {
