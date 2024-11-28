@@ -47,12 +47,10 @@
           modules = {
             local = flake.local + names.modules;
             store = flake.store + names.modules;
-            host = modules.local + names.hosts;
           };
           libraries = {
             local = modules.local + names.libraries;
             store = modules.store + names.libraries;
-            mkCore = libraries.store + names.mkCore;
           };
         in
         {
@@ -78,7 +76,7 @@
           extraPkgAttrs ? { },
           extraArgs ? { },
         }:
-        import paths.libraries.mkCore {
+        import (with paths; libraries.store + names.mkCore) {
           inherit
             name
             system
@@ -104,7 +102,7 @@
                 DOTS = flake.local;
                 DOTS_BIN = scripts.local;
                 DOTS_NIX = modules.local;
-                NIX_PATH = mkForce "${getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
+                NIX_PATH = mkForce "${getEnv "NIX_PATH"}:${with paths; modules.local + names.hosts + "/${name}"}";
               };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
