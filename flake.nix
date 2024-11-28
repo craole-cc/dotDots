@@ -121,8 +121,9 @@
                 {
                   DOTS = flake.local;
                   DOTS_BIN = scripts.local;
-                  DOTS_MODS_NIX = modules.local;
-                  DOTS_NIX = hostPath;
+                  DOTS_NIX = modules.local;
+                  NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+                  NIXOS_FLAKE = flake.local;
                   # NIX_PATH = mkForce nixPath.env;
                   # test_nixpath_def = nixPath.def;
                   # test_nixpath_defraw = nixPath.defraw;
