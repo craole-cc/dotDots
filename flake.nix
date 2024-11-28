@@ -103,6 +103,7 @@
                   hostPath = with paths; modules.local + names.hosts + "/${name}";
                   nixPath = rec {
                     def = "$HOME/.nix-defexpr/channels";
+                    defraw = "/home/craole/.nix-defexpr/channels";
                     etc = "/etc/nixos/configuration.nix";
                     channels = "/nix/var/nix/profiles/per-user/root/channels";
                     # pkgs = channels + "/nixos";
@@ -119,12 +120,12 @@
                   DOTS_MODS_NIX = modules.local;
                   DOTS_NIX = hostPath;
                   NIX_PATH = mkForce nixPath.env;
-                  test_nix_path_def = nixPath.def;
-                  test_nix_path_etc = nixPath.etc;
-                  test_nix_path_channels = nixPath.channels;
-                  test_nix_path_host = nixPath.host;
-                  test_nix_path_env = nixPath.env;
-
+                  test_nixpath_def = nixPath.def;
+                  test_nixpath_defraw = nixPath.defraw;
+                  test_nixpath_etc = nixPath.etc;
+                  test_nixpath_channels = nixPath.channels;
+                  test_nixpath_host = nixPath.host;
+                  test_nixpath_env = nixPath.env;
                 };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
