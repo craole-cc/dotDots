@@ -102,7 +102,7 @@
                 let
                   hostPath = with paths; modules.local + names.hosts + "/${name}";
                   nixPath = rec {
-                    def = getEnv "HOME" + "/.nix-defexpr/channels";
+                    def = "$HOME/.nix-defexpr/channels";
                     etc = "/etc/nixos/configuration.nix";
                     channels = "/nix/var/nix/profiles/per-user/root/channels";
                     # pkgs = channels + "/nixos";
@@ -119,11 +119,11 @@
                   DOTS_MODS_NIX = modules.local;
                   DOTS_NIX = hostPath;
                   NIX_PATH = mkForce nixPath.env;
-                  test_nix_path_def=nixPath.def;
-                  test_nix_path_etc=nixPath.etc;
-                  test_nix_path_channels=nixPath.channels;
-                  test_nix_path_host=nixPath.host;
-                  test_nix_path_env=nixPath.env;
+                  test_nix_path_def = nixPath.def;
+                  test_nix_path_etc = nixPath.etc;
+                  test_nix_path_channels = nixPath.channels;
+                  test_nix_path_host = nixPath.host;
+                  test_nix_path_env = nixPath.env;
 
                 };
               shellAliases = {
