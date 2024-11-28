@@ -39,7 +39,7 @@ in
   };
 
   nixpkgs = {
-    config.allowUnfree = lib.mkDefault true;
+    # config.allowUnfree = lib.mkDefault true;
   };
 
   hardware = {
