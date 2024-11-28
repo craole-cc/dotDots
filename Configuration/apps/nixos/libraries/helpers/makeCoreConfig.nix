@@ -73,8 +73,8 @@ let
         [ ]
     )
     ++ [
-      configArgs.configMods
-      (if enableDots then { DOTS.hosts.${name}.enable = true; } else {})
+      configMods
+      (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
 if isDarwin then
