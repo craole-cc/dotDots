@@ -62,20 +62,20 @@
         (bin + "/template")
         (bin + "/utility")
       ];
-      mods = {
-        core = ./. + paths.conf;
-        home = {
-          forAll = {
-            home-manager = {
-              backupFileExtension = "BaC";
-              useGlobalPkgs = true;
-              useUserPackages = true;
-            };
-          };
-          forDarwin = homeManager.darwinModules.home-manager;
-          forNixos = homeManager.nixosModules.home-manager;
-        };
-      };
+      # mods = {
+      #   core = ./. + paths.conf;
+      #   home = {
+      #     forAll = {
+      #       home-manager = {
+      #         backupFileExtension = "BaC";
+      #         useGlobalPkgs = true;
+      #         useUserPackages = true;
+      #       };
+      #     };
+      #     forDarwin = homeManager.darwinModules.home-manager;
+      #     forNixos = homeManager.nixosModules.home-manager;
+      #   };
+      # };
       # mkCore =
       #   {
       #     system,
@@ -190,11 +190,11 @@
                 paths
                 ;
             };
-            configMods = {
-              environment = {
-                inherit variables shellAliases pathsToLink;
-              };
-            };
+            # configMods = {
+            #   environment = {
+            #     inherit variables shellAliases pathsToLink;
+            #   };
+            # };
           };
 
         # preci = mkCore {
