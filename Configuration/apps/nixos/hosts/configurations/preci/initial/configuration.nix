@@ -39,7 +39,10 @@ in
   };
 
   nixpkgs = {
-    # config.allowUnfree = lib.mkDefault true;
+    config = {
+      allowUnfree = true;
+      allowAliases = true;
+    };
   };
 
   hardware = {
