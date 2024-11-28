@@ -72,7 +72,7 @@ let
         [ ]
     )
     ++ [
-      # configMods
+      configMods
       (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
