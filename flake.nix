@@ -34,6 +34,7 @@
             modules = "/Configuration/apps/nixos";
             scripts = "/Bin";
             libraries = "/libraries";
+            hosts = "/hosts/configurations";
             mkCore = "/helpers/makeCoreConfig.nix";
           };
           scripts = {
@@ -43,6 +44,7 @@
           modules = {
             local = flake.local + names.modules;
             store = flake.store + names.modules;
+            host = modules.local + names.hosts;
           };
           libraries = {
             local = modules.local + names.libraries;
@@ -59,38 +61,6 @@
             libraries
             ;
         };
-      args = {
-        inherit paths;
-        flake = self;
-      };
-      mods = {
-        environment = {
-          variables = with paths; {
-            DOTS = flake.local;
-            DOTS_BIN = scripts.local;
-            DOTS_NIX = modules.local;
-          };
-          shellAliases = {
-            Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
-          };
-          pathsToLink =
-            let
-              bin = paths.scripts.local;
-            in
-            [
-              (bin + "/base")
-              (bin + "/core")
-              (bin + "/import")
-              (bin + "/interface")
-              (bin + "/misc")
-              (bin + "/packages")
-              (bin + "/project")
-              (bin + "/tasks")
-              (bin + "/template")
-              (bin + "/utility")
-            ];
-        };
-      };
       init =
         {
           name,
@@ -102,6 +72,7 @@
           enableDots ? false,
           extraPkgConfig ? { },
           extraPkgAttrs ? { },
+          extraArgs ? { },
         }:
         import paths.libraries.mkCore {
           inherit
@@ -121,8 +92,42 @@
             homeManager
             nixDarwin
             ;
-          inherit args mods;
           path = paths.modules.store;
+
+          args = {
+            inherit paths;
+            flake = self;
+          } // extraArgs;
+          mods = {
+            environment = {
+              variables = with paths; {
+                DOTS = flake.local;
+                DOTS_BIN = scripts.local;
+                DOTS_NIX = modules.local;
+                # NIX_PATH = "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
+                DOTS_NIX_PATH = "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
+              };
+              shellAliases = {
+                Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+              };
+              pathsToLink =
+                let
+                  bin = paths.scripts.local;
+                in
+                [
+                  (bin + "/base")
+                  (bin + "/core")
+                  (bin + "/import")
+                  (bin + "/interface")
+                  (bin + "/misc")
+                  (bin + "/packages")
+                  (bin + "/project")
+                  (bin + "/tasks")
+                  (bin + "/template")
+                  (bin + "/utility")
+                ];
+            };
+          };
         };
     in
     {
@@ -131,15 +136,10 @@
           name = "preci";
           system = "x86_64-linux";
         };
-
-        # preci = mkCore {
-        #   name = "preci";
-        #   system = "x86_64-linux";
-        # };
-        # dbook = mkCore {
-        #   name = "dbook";
-        #   system = "x86_64-linux";
-        # };
+        dbook = init {
+          name = "dbook";
+          system = "x86_64-linux";
+        };
       };
 
       # darwinConfigurations = {

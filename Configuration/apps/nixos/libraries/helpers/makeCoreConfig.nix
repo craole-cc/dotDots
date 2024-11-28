@@ -46,6 +46,9 @@ let
     );
   lib = pkgs.lib;
   modules =
+    let
+      envNixPath = "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
+    in
     [ path ]
     ++ (
       if allowHomeManager then
@@ -62,7 +65,7 @@ let
       else
         [ ]
     )
-    ++ [
+    ++ lib.mkForce [
       mods
       (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
