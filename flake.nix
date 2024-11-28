@@ -107,7 +107,7 @@
               };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
-                Flick = ''nix-collect-garbage -d; Flake; sudo reboot'';
+                Flick = ''nix-collect-garbage -d && Flake && sudo reboot'';
               };
               pathsToLink =
                 let
