@@ -136,6 +136,7 @@
       mkPkgsOverlays =
         {
           system,
+          repo ? "unstable",
           nixpkgs-stable ? nixosStable,
           nixpkgs-unstable ? nixosUnstable,
           allowUnfree ? true,
@@ -155,10 +156,11 @@
                   ;
               } // extraConfig;
             };
+          pkgs = mkPkgs (if repo == "stable" then nixpkgs-stable else nixpkgs-unstable);
           unstablePkgs = mkPkgs nixpkgs-unstable;
           stablePkgs = mkPkgs nixpkgs-stable;
         in
-        unstablePkgs.extend (
+        pkgs.extend (
           final: prev:
           {
             stable = stablePkgs;
@@ -166,11 +168,6 @@
           }
           // extraAttrs
         );
-      # {
-      #   inherit unstable stable;
-      #   default = unstable;
-      # }
-      # // extraAttrs;
 
       mkNixos =
         {
@@ -188,8 +185,7 @@
             libraries = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
             packages = mkPkgsOverlays { inherit system; };
           };
-          pkgs = sets.packages.default;
-          # pkgs = sets.packages;
+          pkgs = sets.packages;
           lib = sets.libraries;
           specialArgs = {
             inherit sets;
