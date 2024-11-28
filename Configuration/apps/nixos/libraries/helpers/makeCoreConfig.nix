@@ -2,21 +2,28 @@
   name,
   preferredRepo ? "unstable",
   system,
-  nixosStable,
-  nixosUnstable,
-  homeManager,
-  nixDarwin,
+  inputs,
+  configPath,
+  configArgs ? { },
+  configMods ? { },
+  # nixosStable ? configInputs.nixosStable,
+  # nixosUnstable ? configInputs.nixosUnstable,
+  # homeManager ? configInputs.homeManager,
+  # nixDarwin ? configInputs.nixDarwin,
   allowUnfree ? true,
   allowAliases ? true,
   allowHomeManager ? true,
   enableDots ? false,
-  configPath,
-  configArgs ? { },
-  configMods ? { },
   extraPkgConfig ? { },
   extraPkgAttrs ? { },
 }:
 let
+  inherit (inputs)
+    nixosStable
+    nixosUnstable
+    homeManager
+    nixDarwin
+    ;
   isDarwin = builtins.match ".*darwin" system != null;
   specialArgs = configArgs;
   mods = {
