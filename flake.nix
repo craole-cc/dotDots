@@ -98,42 +98,16 @@
           corePath = paths.modules.store;
           coreMods = {
             environment = {
-              variables =
-                let
-                  hostPath = with paths; modules.local + names.hosts + "/${name}";
-                  nixPath = rec {
-                    current = getEnv "NIX_PATH";
-                    def = "$HOME/.nix-defexpr/channels";
-                    defraw = "/home/craole/.nix-defexpr/channels";
-                    etc = "/etc/nixos/configuration.nix";
-                    channels = "/nix/var/nix/profiles/per-user/root/channels";
-                    # pkgs = channels + "/nixos";
-                    pkgs = "flake";
-                    host = with paths; modules.local + names.hosts + "/${name}";
-                    # env = "${def}:nixpkgs=${pkgs}:nixos-config=${etc}:${channels}:${host}";
-                    env =
-                      if builtins.elem hostPath (builtins.split ":" current) then current else "${current}:${hostPath}";
-                  };
-
-                in
-                # nixPath = "${getEnv "NIX_PATH"}:nixos-config=/etc/nixos${hostPath}";
-                with paths;
-                {
-                  DOTS = flake.local;
-                  DOTS_BIN = scripts.local;
-                  DOTS_NIX = modules.local;
-                  NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
-                  NIXOS_FLAKE = flake.local;
-                  # NIX_PATH = mkForce nixPath.env;
-                  # test_nixpath_def = nixPath.def;
-                  # test_nixpath_defraw = nixPath.defraw;
-                  # test_nixpath_etc = nixPath.etc;
-                  # test_nixpath_channels = nixPath.channels;
-                  # test_nixpath_host = nixPath.host;
-                  # test_nixpath_env = nixPath.env;
-                };
+              variables = with paths; {
+                DOTS = flake.local;
+                DOTS_BIN = scripts.local;
+                DOTS_NIX = modules.local;
+                NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+                NIXOS_FLAKE = flake.local;
+              };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+                Flick = ''nix-collect-garbage -d; Flake; sudo reboot'';
               };
               pathsToLink =
                 let
