@@ -1,24 +1,25 @@
 {
   name,
   system,
+  preferredRepo,
+  allowUnfree,
+  allowAliases,
+  allowHomeManager,
+  backupFileExtension,
+  enableDots,
+  extraPkgConfig,
+  extraPkgAttrs,
+  specialArgs,
+
   nixosStable,
   nixosUnstable,
   homeManager,
   nixDarwin,
-  path,
-  args ? { },
-  mods ? { },
-  preferredRepo ? "unstable",
-  allowUnfree ? true,
-  allowAliases ? true,
-  allowHomeManager ? true,
-  enableDots ? false,
-  extraPkgConfig ? { },
-  extraPkgAttrs ? { },
+  corePath,
+  coreMods,
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
-  specialArgs = args;
   pkgs =
     let
       mkPkgs =
@@ -46,16 +47,13 @@ let
     );
   lib = pkgs.lib;
   modules =
-    let
-      envNixPath = "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
-    in
-    [ path ]
+    [ corePath ]
     ++ (
       if allowHomeManager then
         [
           {
             home-manager = {
-              backupFileExtension = "BaC";
+              inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
             };
@@ -66,7 +64,7 @@ let
         [ ]
     )
     ++ [
-      mods
+      coreMods
       (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
