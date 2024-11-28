@@ -58,12 +58,12 @@
       modulesNixos = [
         modulesCore
         modulesHome
-        homeManager.nixosModules.home-manager
+        inputs.homeManager.nixosModules.home-manager
       ];
       modulesDarwin = [
         modulesCore
         modulesHome
-        homeManager.darwinModules.home-manager
+        inputs.homeManager.darwinModules.home-manager
       ];
       packages =
         {
