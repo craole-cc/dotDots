@@ -39,7 +39,7 @@ in
   };
 
   nixpkgs = {
-    config = {
+    config = lib.mkForce {
       allowUnfree = true;
       allowAliases = true;
     };
