@@ -1,16 +1,16 @@
 {
   description = "NixOS Configuration Flake";
   inputs = {
-    nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "nixpkgs/nixos-24.05";
+    nixosStable.url = "nixpkgs/nixos-24.05";
+    nixosUnstable.url = "nixpkgs/nixos-unstable";
     nixosHardware.url = "github:NixOS/nixos-hardware";
     nixDarwin = {
       url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixosUnstable";
     };
     homeManager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixosUnstable";
     };
     systems.url = "github:nix-systems/default-linux";
     nixed.url = "github:Craole/nixed";
@@ -19,42 +19,35 @@
     # };
   };
   outputs =
-    inputs@{
-      self,
-      nixpkgs-stable,
-      nixpkgs-unstable,
-      nixDarwin,
-      homeManager,
-      ...
-    }:
+    inputs@{ self, ... }:
     let
-      # lib = nixpkgs-stable.lib // nixpkgs-unstable.lib // homeManager.lib ;
-      # pkgsFor = system: repo: inputs."${repo}".legacyPackages.${system};
-
-      dot = "/home/craole/Documents/dotfiles";
-      mod = "/Configuration/apps/nixos";
-      bin = dot + "/Bin";
-      variables = {
+      flake = self;
+      paths = {
+        dot = "/home/craole/Documents/dotfiles";
+        mod = "/Configuration/apps/nixos";
+        bin = "/Bin";
+      };
+      variables = with paths; {
         DOTS = dot;
-        DOTS_BIN = bin;
+        DOTS_BIN = dot + bin;
         DOTS_NIX = dot + mod;
       };
       shellAliases = {
-        Flake = ''pushd ${dot} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+        Flake = ''pushd ${paths.dot} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
       };
-      pathsToLink = [
-        (bin + "/base")
-        (bin + "/core")
-        (bin + "/import")
-        (bin + "/interface")
-        (bin + "/misc")
-        (bin + "/packages")
-        (bin + "/project")
-        (bin + "/tasks")
-        (bin + "/template")
-        (bin + "/utility")
+      pathsToLink = with paths; [
+        (dot + bin + "/base")
+        (dot + bin + "/core")
+        (dot + bin + "/import")
+        (dot + bin + "/interface")
+        (dot + bin + "/misc")
+        (dot + bin + "/packages")
+        (dot + bin + "/project")
+        (dot + bin + "/tasks")
+        (dot + bin + "/template")
+        (dot + bin + "/utility")
       ];
-      modulesCore = ./. + mod;
+      modulesCore = ./. + paths.mod;
       modulesHome = {
         home-manager = {
           backupFileExtension = "BaC";
@@ -72,24 +65,32 @@
         modulesHome
         homeManager.darwinModules.home-manager
       ];
-      paths = {
-        inherit
-          dot
-          mod
-          bin
-          ;
-      };
-      flake = self;
       packages =
         {
           system,
           allowUnfree ? true,
+          includeDarwin ? false,
         }:
+        with inputs;
         {
-          stable = import nixpkgs-stable { inherit system; };
-          unstable = import nixpkgs-unstable { inherit system; };
+          stable = import nixosStable {
+            inherit system;
+            config = {
+              inherit allowUnfree;
+            };
+          };
+          unstable = import nixosUnstable {
+            inherit system;
+            config = {
+              inherit allowUnfree;
+            };
+          };
+          libraries =
+            let
+              libs = nixosUnstable.lib // homeManager.lib;
+            in
+            if includeDarwin then libs // nixDarwin.lib else libs;
         };
-      libraries = nixpkgs-unstable.lib // homeManager.lib;
     in
     {
       nixosConfigurations = {
