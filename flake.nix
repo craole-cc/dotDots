@@ -69,7 +69,6 @@
         {
           system,
           allowUnfree ? true,
-          includeDarwin ? false,
         }:
         with inputs;
         {
@@ -87,9 +86,20 @@
           };
           libraries =
             let
-              libs = nixosUnstable.lib // homeManager.lib;
+              libs = with inputs; rec {
+                default = nixosUnstable.lib // homeManager.lib;
+                darwin = default // nixDarwin.lib;
+              };
             in
-            if includeDarwin then libs // nixDarwin.lib else libs;
+            if
+              elem system [
+                "x86_64-darwin"
+                "aarch64-darwin"
+              ]
+            then
+              libs.darwin
+            else
+              libs.default;
         };
     in
     {
@@ -99,7 +109,7 @@
             system = "x86_64-linux";
             packs = packages { inherit system; };
             pkgs = packs.unstable;
-            lib = libraries;
+            lib = packs.libraries;
           in
           lib.nixosSystem {
             inherit system pkgs lib;
@@ -126,7 +136,7 @@
             system = "x86_64-linux";
             packs = packages { inherit system; };
             pkgs = packs.unstable;
-            lib = libraries system pkgs;
+            lib = packs.libraries;
           in
           lib.nixosSystem {
             system = "x86_64-linux";
@@ -145,7 +155,7 @@
             system = "x86_64-linux";
             packs = packages { inherit system; };
             pkgs = packs.unstable;
-            lib = libraries system pkgs // nixDarwin.lib;
+            lib = packs.libraries;
           in
           lib.darwinSystem {
             system = "x86_64-darwin";

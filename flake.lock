@@ -36,7 +36,7 @@
     "homeManager": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs-unstable"
+          "nixosUnstable"
         ]
       },
       "locked": {
@@ -56,7 +56,7 @@
     "nixDarwin": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs-unstable"
+          "nixosUnstable"
         ]
       },
       "locked": {
@@ -107,21 +107,7 @@
         "type": "github"
       }
     },
-    "nixpkgs": {
-      "locked": {
-        "lastModified": 1731797254,
-        "narHash": "sha256-df3dJApLPhd11AlueuoN0Q4fHo/hagP75LlM5K1sz9g=",
-        "rev": "e8c38b73aeb218e27163376a2d617e61a2ad9b59",
-        "revCount": 636838,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.2405.636838%2Brev-e8c38b73aeb218e27163376a2d617e61a2ad9b59/01933af8-1a6e-73c9-86e6-04b8a0066d59/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/NixOS/nixpkgs/0.2405.%2A"
-      }
-    },
-    "nixpkgs-stable": {
+    "nixosStable": {
       "locked": {
         "lastModified": 1732632634,
         "narHash": "sha256-+G7n/ZD635aN0sEXQLynU7pWMd3PKDM7yBIXvYmjABQ=",
@@ -136,7 +122,7 @@
         "type": "indirect"
       }
     },
-    "nixpkgs-unstable": {
+    "nixosUnstable": {
       "locked": {
         "lastModified": 1732521221,
         "narHash": "sha256-2ThgXBUXAE1oFsVATK1ZX9IjPcS4nKFOAjhPNKuiMn0=",
@@ -151,14 +137,28 @@
         "type": "indirect"
       }
     },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1731797254,
+        "narHash": "sha256-df3dJApLPhd11AlueuoN0Q4fHo/hagP75LlM5K1sz9g=",
+        "rev": "e8c38b73aeb218e27163376a2d617e61a2ad9b59",
+        "revCount": 636838,
+        "type": "tarball",
+        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.2405.636838%2Brev-e8c38b73aeb218e27163376a2d617e61a2ad9b59/01933af8-1a6e-73c9-86e6-04b8a0066d59/source.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://flakehub.com/f/NixOS/nixpkgs/0.2405.%2A"
+      }
+    },
     "root": {
       "inputs": {
         "homeManager": "homeManager",
         "nixDarwin": "nixDarwin",
         "nixed": "nixed",
         "nixosHardware": "nixosHardware",
-        "nixpkgs-stable": "nixpkgs-stable",
-        "nixpkgs-unstable": "nixpkgs-unstable",
+        "nixosStable": "nixosStable",
+        "nixosUnstable": "nixosUnstable",
         "systems": "systems"
       }
     },
