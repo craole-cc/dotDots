@@ -5,10 +5,10 @@
   nixosUnstable,
   homeManager,
   nixDarwin,
-  configPath,
+  path,
+  args ? { },
+  mods ? { },
   preferredRepo ? "unstable",
-  configArgs ? { },
-  configMods ? { },
   allowUnfree ? true,
   allowAliases ? true,
   allowHomeManager ? true,
@@ -18,22 +18,7 @@
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
-  specialArgs = configArgs;
-  mods = {
-    core = configPath;
-    home = {
-      forAll = {
-        home-manager = {
-          backupFileExtension = "BaC";
-          useGlobalPkgs = true;
-          useUserPackages = true;
-        };
-      };
-      forDarwin = homeManager.darwinModules.home-manager;
-      forNixos = homeManager.nixosModules.home-manager;
-    };
-    config = configMods;
-  };
+  specialArgs = args;
   pkgs =
     let
       mkPkgs =
@@ -61,19 +46,24 @@ let
     );
   lib = pkgs.lib;
   modules =
-    [ configPath ]
+    [ path ]
     ++ (
       if allowHomeManager then
-        with mods.home;
         [
-          forAll
-          (if isDarwin then forDarwin else forNixos)
+          {
+            home-manager = {
+              backupFileExtension = "BaC";
+              useGlobalPkgs = true;
+              useUserPackages = true;
+            };
+          }
+          (with homeManager; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
         ]
       else
         [ ]
     )
     ++ [
-      configMods
+      mods
       (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
