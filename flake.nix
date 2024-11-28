@@ -72,47 +72,7 @@
         modulesHome
         homeManager.darwinModules.home-manager
       ];
-      packages =
-        {
-          system,
-          repo ? "unstable",
-          allowHomeManager ? true,
-          allowUnfree ? true,
-        }:
-        let
-          nixpkgs = if repo == "stable" then inputs.nixosStable else inputs.nixosUnstable;
-          mkPkgs =
-            repo:
-            import repo {
-              inherit system;
-              config = {
-                inherit allowUnfree;
-              };
-            };
-          mkLibs =
-            repo:
-            let
-              libs = {
-                default = if allowHomeManager then repo.lib // homeManager.lib else repo.lib;
-                darwin = nixDarwin.lib;
-              };
-            in
-            if
-              builtins.elem system [
-                "x86_64-darwin"
-                "aarch64-darwin"
-              ]
-            then
-              with libs; default // darwin
-            else
-              libs.default;
-        in
-        {
-          default = mkPkgs nixpkgs;
-          stable = mkPkgs nixosStable;
-          unstable = mkPkgs nixosUnstable;
-          libraries = mkLibs nixpkgs;
-        };
+
       args = {
         inherit
           flake
@@ -121,19 +81,6 @@
       };
 
       mkNixpkgs =
-        {
-          system,
-          repo,
-          allowUnfree ? true,
-        }:
-        import repo {
-          inherit system;
-          config = {
-            inherit allowUnfree;
-          };
-        };
-
-      mkPkgsOverlays =
         {
           system,
           repo ? "unstable",
@@ -180,8 +127,7 @@
           extraArgs ? args,
         }:
         let
-          inherit (builtins) elem;
-          pkgs = mkPkgsOverlays { inherit system; };
+          pkgs = mkNixpkgs { inherit system; };
           lib = pkgs.lib;
           specialArgs = { } // extraArgs;
           modules =
@@ -213,59 +159,86 @@
             modules
             ;
         };
+
+      mkCore =
+        {
+          system,
+          name ? "nixos",
+          repo ? "unstable",
+          allowHomeManager ? true,
+          allowUnfree ? true,
+          specialArgs ? args,
+        }:
+        let
+          isDarwin = builtins.elem system [
+            "x86_64-darwin"
+            "aarch64-darwin"
+          ];
+          pkgs = mkNixpkgs { inherit system; };
+          lib = pkgs.lib;
+          modules =
+            [ modulesCore ]
+            ++ [
+              (
+                if allowHomeManager then
+                  [
+                    modulesHome
+                    (if with homeManager; isDarwin then darwinModules.home-manager else nixosModules.home-manager)
+                  ]
+                else
+                  [ ]
+              )
+            ]
+            ++ [
+              {
+                #  DOTS.hosts.${name}.enable = true;
+                environment = {
+                  inherit variables shellAliases pathsToLink;
+                };
+              }
+            ];
+        in
+        if isDarwin then
+          lib.darwinSystem {
+            inherit
+              system
+              pkgs
+              lib
+              specialArgs
+              modules
+              ;
+          }
+        else
+          lib.nixosSystem {
+            inherit
+              system
+              pkgs
+              lib
+              specialArgs
+              modules
+              ;
+          };
     in
     {
       nixosConfigurations = {
-        preci = mkNixos {
+        preci = mkCore {
           name = "preci";
           system = "x86_64-linux";
         };
+        dbook = mkCore {
+          name = "dbook";
+          system = "x86_64-linux";
+        };
       };
-      # nixosConfigurations = {
-      #   preci =
-      #     let
-      #       system = "x86_64-linux";
-      #       packs = packages { inherit system; };
-      #       pkgs = packs.default;
-      #       lib = packs.libraries;
-      #       specialArgs = {
-      #         inherit packs;
-      #       } // args;
-      #     in
-      #     lib.nixosSystem {
-      #       inherit
-      #         system
-      #         pkgs
-      #         lib
-      #         specialArgs
-      #         ;
-      #       modules = modulesNixos ++ [
-      #         {
-      #           environment = {
-      #             inherit variables shellAliases pathsToLink;
-      #           };
-      #           # DOTS.hosts.Preci.enable = true;
-      #         }
-      #       ];
-      #     };
 
-      #   dbook =
-      #     let
-      #       system = "x86_64-linux";
-      #       packs = packages { inherit system; };
-      #       pkgs = packs.unstable;
-      #       lib = packs.libraries;
-      #     in
-      #     lib.nixosSystem {
-      #       system = "x86_64-linux";
-      #       modules = modulesNixos ++ [
-      #         {
-      #           # DOTS.hosts.DBook.enable = true;
-      #         }
-      #       ];
-      #       # modules = [ (hostModules + "/dbook") ] ++ modulesNixos;
-      #     };
-      # };
+      darwinConfigurations = {
+        MBPoNine = mkCore {
+          name = "MBPoNine";
+          system = "x86_64-darwin";
+        };
+      };
+
+      # TODO create mkHome for standalone home manager configs
 
       # darwinConfigurations = {
       #   MBPoNine =
