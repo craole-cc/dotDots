@@ -65,7 +65,7 @@ let
       else
         [ ]
     )
-    ++ lib.mkForce [
+    ++ [
       mods
       (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];

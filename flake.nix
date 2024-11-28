@@ -61,6 +61,7 @@
             libraries
             ;
         };
+      lib = nixosUnstable.lib;
       init =
         {
           name,
@@ -105,7 +106,7 @@
                 DOTS_BIN = scripts.local;
                 DOTS_NIX = modules.local;
                 # NIX_PATH = "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
-                DOTS_NIX_PATH = "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
+                DOTS_NIX_PATH = lib.mkForce "${builtins.getEnv "NIX_PATH"}:${modules.host + "/${name}"}";
               };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
