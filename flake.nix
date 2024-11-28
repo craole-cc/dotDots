@@ -52,7 +52,7 @@
           libraries = {
             local = modules.local + names.libraries;
             store = modules.store + names.libraries;
-            mkCore = libraries.local + names.mkCore;
+            mkCore = libraries.store + names.mkCore;
           };
         in
         {
