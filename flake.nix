@@ -12,11 +12,8 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixosUnstable";
     };
-    systems.url = "github:nix-systems/default-linux";
+    # systems.url = "github:nix-systems/default";
     nixed.url = "github:Craole/nixed";
-    # redyFonts = {
-    #   url = "github:redyf/font-flake";
-    # };
   };
   outputs =
     inputs@{
@@ -54,144 +51,83 @@
         (dot + bin + "/template")
         (dot + bin + "/utility")
       ];
-      modulesCore = ./. + paths.mod;
-      modulesHome = {
-        home-manager = {
-          backupFileExtension = "BaC";
-          useGlobalPkgs = true;
-          useUserPackages = true;
+      mods = {
+        core = ./. + paths.mod;
+        home = {
+          forAll = {
+            home-manager = {
+              backupFileExtension = "BaC";
+              useGlobalPkgs = true;
+              useUserPackages = true;
+            };
+          };
+          forDarwin = homeManager.darwinModules.home-manager;
+          forNixos = homeManager.nixosModules.home-manager;
         };
       };
-      modulesNixos = [
-        modulesCore
-        modulesHome
-        homeManager.nixosModules.home-manager
-      ];
-      modulesDarwin = [
-        modulesCore
-        modulesHome
-        homeManager.darwinModules.home-manager
-      ];
-
-      args = {
-        inherit
-          flake
-          paths
-          ;
-      };
-
-      mkNixpkgs =
+      mkCore =
         {
           system,
+          name ? "nixos",
           repo ? "unstable",
           nixpkgs-stable ? nixosStable,
           nixpkgs-unstable ? nixosUnstable,
           allowUnfree ? true,
           allowAliases ? true,
           allowHomeManager ? true,
-          extraConfig ? { },
-          extraAttrs ? { },
+          extraArgs ? { },
+          extraPkgConfig ? { },
+          extraPkgAttrs ? { },
         }:
         let
-          mkPkgs =
-            repo:
-            import repo {
-              inherit system;
-              config = {
-                inherit allowUnfree allowAliases;
-              } // extraConfig;
-            };
-          nixpkgs = if repo == "stable" then nixpkgs-stable else nixpkgs-unstable;
-          pkgs = mkPkgs nixpkgs;
-          lib = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
-          unstablePkgs = mkPkgs nixpkgs-unstable;
-          stablePkgs = mkPkgs nixpkgs-stable;
-        in
-        pkgs.extend (
-          final: prev:
-          {
-            stable = stablePkgs;
-            unstable = unstablePkgs;
-            inherit lib;
-          }
-          // extraAttrs
-        );
-
-      mkNixos =
-        {
-          system,
-          name ? "nixos",
-          repo ? "unstable",
-          allowHomeManager ? true,
-          allowUnfree ? true,
-          extraArgs ? args,
-        }:
-        let
-          pkgs = mkNixpkgs { inherit system; };
+          isDarwin = builtins.match ".*darwin" system != null;
+          specialArgs = {
+            inherit
+              flake
+              paths
+              ;
+          } // extraArgs;
+          pkgs =
+            let
+              mkPkgs =
+                fromInput:
+                import fromInput {
+                  inherit system;
+                  config = {
+                    inherit allowUnfree allowAliases;
+                  } // extraPkgConfig;
+                };
+              nixpkgs = if repo == "stable" then nixpkgs-stable else nixpkgs-unstable;
+              lib = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
+              defaultPkgs = mkPkgs nixpkgs;
+              unstablePkgs = mkPkgs nixpkgs-unstable;
+              stablePkgs = mkPkgs nixpkgs-stable;
+            in
+            defaultPkgs.extend (
+              final: prev:
+              {
+                stable = stablePkgs;
+                unstable = unstablePkgs;
+                inherit lib;
+              }
+              // extraPkgAttrs
+            );
           lib = pkgs.lib;
-          specialArgs = { } // extraArgs;
           modules =
-            (
+            [ mods.core ]
+            ++ (
               if allowHomeManager then
+                with mods.home;
                 [
-                  modulesCore
-                  modulesHome
-                  homeManager.nixosModules.home-manager
+                  forAll
+                  (if isDarwin then forDarwin else forNixos)
                 ]
               else
-                [ modulesCore ]
+                [ ]
             )
             ++ [
               {
-                #  DOTS.hosts.${name}.enable = true;
-                environment = {
-                  inherit variables shellAliases pathsToLink;
-                };
-              }
-            ];
-        in
-        lib.nixosSystem {
-          inherit
-            system
-            pkgs
-            lib
-            specialArgs
-            modules
-            ;
-        };
-
-      mkCore =
-        {
-          system,
-          name ? "nixos",
-          repo ? "unstable",
-          allowHomeManager ? true,
-          allowUnfree ? true,
-          specialArgs ? args,
-        }:
-        let
-          isDarwin = builtins.elem system [
-            "x86_64-darwin"
-            "aarch64-darwin"
-          ];
-          pkgs = mkNixpkgs { inherit system; };
-          lib = pkgs.lib;
-          modules =
-            [ modulesCore ]
-            ++ [
-              (
-                if allowHomeManager then
-                  [
-                    modulesHome
-                    (if with homeManager; isDarwin then darwinModules.home-manager else nixosModules.home-manager)
-                  ]
-                else
-                  [ ]
-              )
-            ]
-            ++ [
-              {
-                #  DOTS.hosts.${name}.enable = true;
+                #TODO:  DOTS.hosts.${name}.enable = true;
                 environment = {
                   inherit variables shellAliases pathsToLink;
                 };
@@ -204,8 +140,8 @@
               system
               pkgs
               lib
-              specialArgs
               modules
+              specialArgs
               ;
           }
         else
@@ -214,8 +150,8 @@
               system
               pkgs
               lib
-              specialArgs
               modules
+              specialArgs
               ;
           };
     in
@@ -239,19 +175,10 @@
       };
 
       # TODO create mkHome for standalone home manager configs
-
-      # darwinConfigurations = {
-      #   MBPoNine =
-      #     let
-      #       system = "x86_64-linux";
-      #       packs = packages { inherit system; };
-      #       pkgs = packs.unstable;
-      #       lib = packs.libraries;
-      #     in
-      #     lib.darwinSystem {
-      #       system = "x86_64-darwin";
-      #       modules = modulesDarwin ++ [ { DOTS.hosts.MBPoNine.enable = true; } ];
-      #     };
+      # homeConfigurations = {
+      #   craole = mkHome {
+      #     name = "craole";
+      #   };
       # };
     };
 }
