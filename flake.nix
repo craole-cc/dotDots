@@ -105,6 +105,7 @@
                 DOTS_NIX = modules.local;
                 NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
                 NIXOS_FLAKE = flake.local;
+                DOTS_SCRIPTS = ''$(fd . ${scripts.local} --exclude /archive/ --exclude /review/ --exclude /temp/ --exclude /tmp/)'';
               };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
@@ -115,7 +116,6 @@
                   bin = paths.scripts.local;
                 in
                 [
-                  (bin + "/base/calk")
                   (bin + "/base")
                   (bin + "/core")
                   (bin + "/import")

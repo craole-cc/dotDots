@@ -242,6 +242,9 @@ in
         pavucontrol
         qjackctl
         brightnessctl
+
+        #| Utilities
+        fend
       ]
       ++ (
         if config.services.xserver.enable then
@@ -251,9 +254,10 @@ in
             xdotool
             xinput
             xrandr
+            qalculate-gtk
           ]
         else
-          [ ]
+          [ qalculate-qt ]
       );
     # variables = {
     #   inherit DOTS;
