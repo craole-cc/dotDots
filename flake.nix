@@ -115,6 +115,7 @@
                   bin = paths.scripts.local;
                 in
                 [
+                  (bin + "/base/calk")
                   (bin + "/base")
                   (bin + "/core")
                   (bin + "/import")
