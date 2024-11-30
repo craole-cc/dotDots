@@ -144,9 +144,6 @@
             homeManager
             nixDarwin
             ;
-          homeMods = with inputs; [
-            plasmaManager.homeManagerModules.plasma-manager
-          ];
           specialModules = modules;
           specialArgs = {
             inherit paths;
