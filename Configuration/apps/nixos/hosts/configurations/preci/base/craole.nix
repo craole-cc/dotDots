@@ -80,6 +80,7 @@ in
           inkscape-with-extensions
           darktable
           ansel
+          obs-studio
         ];
 
       sessionVariables = {

@@ -234,9 +234,6 @@ in
         dust
         eza
 
-        #| Network
-        speedtest-go
-
         #| System
         easyeffects
         pavucontrol
@@ -244,7 +241,9 @@ in
         brightnessctl
 
         #| Utilities
+        speedtest-go
         fend
+        libqalculate
       ]
       ++ (
         if config.services.xserver.enable then
