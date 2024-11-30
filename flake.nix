@@ -133,9 +133,12 @@
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
             };
           };
-          # extraMods = {
-          #   core = [ ];
-          # };
+          extraMods = {
+            core = [ ];
+            home = with inputs; [
+              plasmaManager.homeManagerModules.plasma-manager
+            ];
+          };
           homeMods = with inputs; [
             plasmaManager.homeManagerModules.plasma-manager
           ];

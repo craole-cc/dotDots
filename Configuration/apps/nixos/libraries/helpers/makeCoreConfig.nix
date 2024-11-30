@@ -18,6 +18,7 @@
   corePath,
   coreMods,
   homeMods,
+  extraMods,
   inputs,
 }:
 let
@@ -59,9 +60,7 @@ let
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
-              sharedModules =  homeMods;
-                # inputs.plasmaManager.homeManagerModules.plasma-manager
-              # ];
+              sharedModules = extraMods.home;
             };
           }
         ]
