@@ -59,10 +59,9 @@ let
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
-              sharedModules = [
-                # homeMods
-                inputs.plasmaManager.homeManagerModules.plasma-manager
-              ];
+              sharedModules =  homeMods
+                # inputs.plasmaManager.homeManagerModules.plasma-manager
+              # ];
             };
           }
         ]
