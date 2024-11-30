@@ -135,8 +135,8 @@
           # extraMods = {
           #   core = [ ];
           # };
-          homeMods = [
-            inputs.plasmaManager.homeManagerModules.plasma-manager
+          homeMods = with inputs; [
+            plasmaManager.homeManagerModules.plasma-manager
           ];
           specialArgs = {
             inherit paths;
