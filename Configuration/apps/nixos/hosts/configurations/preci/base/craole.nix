@@ -573,7 +573,7 @@ in
       };
       plasma = {
         enable = true;
-        kate.enable = false;
+        # kate.enable = false;
       };
     };
   };
