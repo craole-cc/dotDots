@@ -39,8 +39,18 @@ in
       enableNixpkgsReleaseCheck = false;
       packages =
         let
-          fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
-          fontMono = pkgs.stdenv.mkDerivation {
+          # fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+          fontsNerd = with pkgs.nerd-fonts; [
+            fantasque-sans-mono
+            fira-code
+            hack
+            jetbrains-mono
+            monaspace
+            monoid
+            victor-mono
+            zed-mono
+          ];
+          fontsMono = pkgs.stdenv.mkDerivation {
             pname = "Awesome-Fonts";
             version = "1.0";
 
@@ -60,8 +70,8 @@ in
         with pkgs;
         [
           #| Fonts
-          fontNerd
-          fontMono
+          fontsNerd
+          fontsMono
           lexend
           material-design-icons
           material-icons
