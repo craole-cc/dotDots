@@ -1,6 +1,7 @@
 {
   description = "NixOS Configuration Flake";
   inputs = {
+    nixed.url = "github:Craole/nixed";
     nixosStable.url = "nixpkgs/nixos-24.05";
     nixosUnstable.url = "nixpkgs/nixos-unstable";
     nixosHardware.url = "github:NixOS/nixos-hardware";
@@ -12,7 +13,13 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixosUnstable";
     };
-    nixed.url = "github:Craole/nixed";
+    plasmaManager = {
+      url = "github:pjones/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixosUnstable";
+        home-manager.follows = "homeManager";
+      };
+    };
   };
   outputs =
     inputs@{
