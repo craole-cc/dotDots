@@ -2,6 +2,7 @@
 {
   programs.plasma = {
     enable = true;
+    kate.enable = false;
 
     #
     # Some high-level settings:
@@ -76,14 +77,14 @@
           # Adding configuration to the widgets can also for example be used to
           # pin apps to the task-manager, which this example illustrates by
           # pinning dolphin and konsole to the task-manager by default with widget-specific options.
-          {
-            iconTasks = {
-              launchers = [
-                "applications:org.kde.dolphin.desktop"
-                "applications:org.kde.konsole.desktop"
-              ];
-            };
-          }
+          # {
+          #   iconTasks = {
+          #     launchers = [
+          #       "applications:org.kde.dolphin.desktop"
+          #       "applications:org.kde.konsole.desktop"
+          #     ];
+          #   };
+          # }
           # Or you can do it manually, for example:
           # {
           #   name = "org.kde.plasma.icontasks";
@@ -98,8 +99,8 @@
           # }
           # If no configuration is needed, specifying only the name of the
           # widget will add them with the default configuration.
-          "org.kde.dolphin.desktop"
-          "org.kde.konsole.desktop"
+          "applications:org.kde.dolphin.desktop"
+          "applications:org.kde.konsole.desktop"
           "org.kde.plasma.marginsseparator"
           # If you need configuration for your widget, instead of specifying the
           # the keys and values directly using the config attribute as shown
