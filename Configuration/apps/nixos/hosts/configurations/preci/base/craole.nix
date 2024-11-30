@@ -69,6 +69,8 @@ in
         in
         (with pkgs; [
           #| Fonts
+
+          fontsMono
           lexend
           material-design-icons
           material-icons
@@ -87,8 +89,7 @@ in
           darktable
           ansel
         ])
-        ++ fontsNerd
-        ++ fontsMono;
+        ++ fontsNerd;
 
       sessionVariables = {
         EDITOR = "hx";
