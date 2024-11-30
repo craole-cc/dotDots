@@ -114,13 +114,13 @@
                 Reboot = ''leave --reboot'';
                 Reload = ''leave --logout'';
                 Retire = ''leave --shutdown'';
-                Q = ''leave --terminal'';
+                Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
+                q = ''leave --terminal'';
                 ".." = "cd .. || return 1";
                 "..." = "cd ../.. || return 1";
                 "...." = "cd ../../.. || return 1";
                 "....." = "cd ../../../.. || return 1";
                 h = "history";
-                q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
               };
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
               # pathsToLink =
