@@ -15,9 +15,8 @@
       MANPAGER = "bat --paging=always --plain";
     };
     shellAliases = {
-      h = "history";
-      la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
-      ll = "la --long";
+      # la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
+      # ll = "la --long";
     };
   };
 }

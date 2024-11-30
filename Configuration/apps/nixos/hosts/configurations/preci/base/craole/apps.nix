@@ -17,7 +17,6 @@
     home-manager.enable = true;
     bash = {
       enable = true;
-      # initExtra = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
       historyControl = [
         "erasedups"
         "ignoredups"
