@@ -170,7 +170,6 @@
             enableDots
             extraPkgConfig
             extraPkgAttrs
-            inputs
             ;
           inherit (inputs)
             nixosStable
