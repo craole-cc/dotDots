@@ -18,6 +18,7 @@
   corePath,
   coreMods,
   homeMods,
+  inputs,
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
@@ -58,7 +59,10 @@ let
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
-              sharedModules = [ homeMods ];
+              sharedModules = [
+                # homeMods
+                inputs.plasmaManager.homeManagerModules.plasma-manager
+              ];
             };
           }
         ]
