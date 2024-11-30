@@ -67,15 +67,8 @@ in
             '';
           };
         in
-        (with pkgs; [
-          #| Fonts
-
-          fontsMono
-          lexend
-          material-design-icons
-          material-icons
-          noto-fonts-emoji
-
+        with pkgs;
+        [
           #| Apps
           brave
           # freetube
@@ -88,8 +81,24 @@ in
           inkscape-with-extensions
           darktable
           ansel
-        ])
-        ++ fontsNerd;
+
+          #| Fonts
+          fontsMono
+          lexend
+          material-design-icons
+          material-icons
+          noto-fonts-emoji
+        ]
+        ++ (with nerd-fonts; [
+          fantasque-sans-mono
+          fira-code
+          hack
+          jetbrains-mono
+          monaspace
+          monoid
+          victor-mono
+          zed-mono
+        ]);
 
       sessionVariables = {
         EDITOR = "hx";
