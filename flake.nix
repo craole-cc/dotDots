@@ -133,8 +133,11 @@
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
             };
           };
-          extraMods = {
-            core = [ ];
+          specialModules = {
+            core = [
+              paths.modules.store
+              coreMods
+            ];
             home = with inputs; [
               plasmaManager.homeManagerModules.plasma-manager
             ];

@@ -10,6 +10,7 @@
   extraPkgConfig,
   extraPkgAttrs,
   specialArgs,
+  specialModules,
 
   nixosStable,
   nixosUnstable,
@@ -18,7 +19,6 @@
   corePath,
   coreMods,
   homeMods,
-  extraMods,
   inputs,
 }:
 let
@@ -50,7 +50,7 @@ let
     );
   lib = pkgs.lib;
   modules =
-    [ corePath ]
+    specialModules.core
     ++ (
       if allowHomeManager then
         [
@@ -66,10 +66,7 @@ let
         ]
       else
         [ ]
-    )
-    ++ [
-      coreMods
-    ];
+    );
 in
 if isDarwin then
   lib.darwinSystem {
