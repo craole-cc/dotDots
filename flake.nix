@@ -59,8 +59,19 @@
             local = modules.local + names.libraries;
             store = modules.store + names.libraries;
           };
-
-          coreMods = {
+        in
+        {
+          inherit
+            flake
+            names
+            scripts
+            modules
+            libraries
+            ;
+        };
+      modules =
+        let
+          configMods = {
             environment = {
               variables = with paths; {
                 DOTS = flake.local;
@@ -89,24 +100,15 @@
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
             };
           };
-          modules = {
-            core = [
-              paths.modules.store
-              coreMods
-            ];
-            home = with inputs; [
-              plasmaManager.homeManagerModules.plasma-manager
-            ];
-          };
         in
         {
-          inherit
-            flake
-            names
-            scripts
-            modules
-            libraries
-            ;
+          core = [
+            paths.modules.store
+            configMods
+          ];
+          home = with inputs; [
+            plasmaManager.homeManagerModules.plasma-manager
+          ];
         };
       init =
         {
