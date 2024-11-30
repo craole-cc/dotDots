@@ -102,7 +102,6 @@
           };
           core = [
             paths.modules.store
-            # configMods
             {
               environment = {
                 variables = with paths; {
@@ -110,7 +109,7 @@
                   DOTS_RC = flake.local + "/.dotsrc";
                   DOTS_BIN = scripts.local;
                   DOTS_NIX = modules.local;
-                  NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+                  # NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
                   NIXOS_FLAKE = flake.local;
                 };
                 shellAliases = {
@@ -177,7 +176,14 @@
             homeManager
             nixDarwin
             ;
-          inherit specialModules;
+          # inherit specialModules;
+          specialModules =
+            let
+              nixosConfig = {
+                environment.variables.NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+              };
+            in
+            specialModules // nixosConfig;
           specialArgs = specialArgs // extraArgs;
         };
     in
