@@ -16,10 +16,6 @@
   nixosUnstable,
   homeManager,
   nixDarwin,
-  # corePath,
-  # coreMods,
-  # homeMods,
-  inputs,
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
