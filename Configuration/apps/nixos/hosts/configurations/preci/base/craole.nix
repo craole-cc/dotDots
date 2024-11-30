@@ -567,6 +567,7 @@ in
         enable = true;
       };
       plasma = {
+        enable = true;
         kate.enable = false;
       };
     };
