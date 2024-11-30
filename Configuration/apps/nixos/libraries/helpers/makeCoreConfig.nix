@@ -16,9 +16,9 @@
   nixosUnstable,
   homeManager,
   nixDarwin,
-  corePath,
-  coreMods,
-  homeMods,
+  # corePath,
+  # coreMods,
+  # homeMods,
   inputs,
 }:
 let
