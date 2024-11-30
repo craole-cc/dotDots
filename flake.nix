@@ -134,10 +134,10 @@
           };
           # extraMods = {
           #   core = [ ];
-          #   home = [
-          #     inputs.plasmaManager.homeManagerModules.plasma-manager
-          #   ];
           # };
+            homeMods = [
+              inputs.plasmaManager.homeManagerModules.plasma-manager
+            ];
           specialArgs = {
             inherit paths;
             flake = self;

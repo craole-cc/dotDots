@@ -17,7 +17,7 @@
   nixDarwin,
   corePath,
   coreMods,
-  # extraMods,
+  homeMods,
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
@@ -60,7 +60,7 @@ let
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
-              # sharedModules = [ extraMods.home ];
+              # sharedModules = [ homeMods ];
             };
           }
 
