@@ -53,9 +53,8 @@ let
     ]
     ++ (
       if allowHomeManager then
-        with homeManager;
         [
-          nixosModules.home-manager
+          (with homeManager; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
           {
             home-manager = {
               inherit backupFileExtension;
@@ -64,7 +63,6 @@ let
               sharedModules = [ homeMods ];
             };
           }
-          (if isDarwin then darwinModules.home-manager else { })
         ]
       else
         [ ]
