@@ -132,12 +132,12 @@
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
             };
           };
-          extraMods = {
-            core = [ ];
-            home = [
-              inputs.plasmaManager.homeManagerModules.plasma-manager
-            ];
-          };
+          # extraMods = {
+          #   core = [ ];
+          #   home = [
+          #     inputs.plasmaManager.homeManagerModules.plasma-manager
+          #   ];
+          # };
           specialArgs = {
             inherit paths;
             flake = self;

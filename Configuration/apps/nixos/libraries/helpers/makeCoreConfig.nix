@@ -17,7 +17,7 @@
   nixDarwin,
   corePath,
   coreMods,
-  extraMods,
+  # extraMods,
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
@@ -71,7 +71,6 @@ let
     )
     ++ [
       coreMods
-      # (if enableDots then { DOTS.hosts.${name}.enable = true; } else { })
     ];
 in
 if isDarwin then
