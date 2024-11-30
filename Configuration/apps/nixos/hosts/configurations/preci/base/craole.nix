@@ -68,18 +68,19 @@ in
           };
         in
         with pkgs;
+        with nerd-fonts;
         [
+          fantasque-sans-mono
+          fira-code
+          hack
+          jetbrains-mono
+          monaspace
+          monoid
+          victor-mono
+          zed-mono
+        ]
+        ++ [
           #| Fonts
-          (with nerd-fonts; [
-            fantasque-sans-mono
-            fira-code
-            hack
-            jetbrains-mono
-            monaspace
-            monoid
-            victor-mono
-            zed-mono
-          ])
           fontsMono
           lexend
           material-design-icons
