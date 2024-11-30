@@ -250,8 +250,9 @@ in
           [ kde-gruvbox ]
           ++ (with kdePackages; [
             koi
-            kalk
+            kio
             kalm
+            full
           ])
         else
           [ ]
