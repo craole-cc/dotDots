@@ -1,5 +1,18 @@
+{ pkgs, ... }:
 {
-  imports = [ plasma.nix ];
+  home = {
+    packages = with pkgs; [
+      brave
+      whatsapp-for-linux
+      warp-terminal
+      via
+      vscode-fhs
+      qbittorrent
+      inkscape-with-extensions
+      darktable
+      ansel
+    ];
+  };
   programs = {
     home-manager.enable = true;
     bash = {

@@ -10,11 +10,10 @@ in
       "wheel"
     ];
   };
-
   home-manager.users.${mod}.imports = [
-    ./programs
-    ./packages.nix
-    ./fonts.nix
+    ./apps.nix
     ./environment.nix
+    ./fonts.nix
+    ./plasma.nix
   ];
 }
