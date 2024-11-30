@@ -40,7 +40,7 @@ in
       packages =
         let
           # fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
-          fontsNerd = with pkgs.nerd-fonts; [
+          fontsNerd = with nerd-fonts; [
             fantasque-sans-mono
             fira-code
             hack
