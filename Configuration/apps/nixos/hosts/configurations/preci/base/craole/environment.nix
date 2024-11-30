@@ -1,7 +1,7 @@
-{ config, ... }:
+{ nixosConfig, ... }:
 {
   home = {
-    inherit (config.system) stateVersion;
+    inherit (nixosConfig.system) stateVersion;
     enableNixpkgsReleaseCheck = false;
     extraOutputsToInstall = [
       "doc"

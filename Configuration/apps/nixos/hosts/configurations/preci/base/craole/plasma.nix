@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  plasma = {
+  programs.plasma = {
     enable = true;
 
     #
