@@ -68,8 +68,7 @@ in
           };
         in
         with pkgs;
-        with nerd-fonts;
-        [
+        (with nerd-fonts; [
           fantasque-sans-mono
           fira-code
           hack
@@ -78,7 +77,7 @@ in
           monoid
           victor-mono
           zed-mono
-        ]
+        ])
         ++ [
           #| Fonts
           fontsMono
