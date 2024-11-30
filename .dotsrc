@@ -594,8 +594,8 @@ initialize_dots() {
   #@ Load Environment
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
-    --bin "$DOTS/Bin" \
-    --env "$DOTS/Environment/export"
+    --bin "$DOTS/Bin"
+    # --env "$DOTS/Environment/export"
 
   #@ Load Shell
   # initialize_shell
