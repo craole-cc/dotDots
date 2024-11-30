@@ -59,7 +59,7 @@ set_dots_paths() {
 
   if [ -d "$DOTS" ]; then
     #@ Set the DOTS variables
-    DOTS_RC="${DOTS}/${rc}"
+    DOTS_RC="${DOTS_RC:-"${DOTS}/${rc}"}"
 
     #@ Print the DOTS variable
     case "$VERBOSITY" in
@@ -595,7 +595,7 @@ initialize_dots() {
   initialize_source \
     --exclude "archive" "review" "template" "temp" "tmp" \
     --bin "$DOTS/Bin"
-    # --env "$DOTS/Environment/export"
+  # --env "$DOTS/Environment/export"
 
   #@ Load Shell
   # initialize_shell

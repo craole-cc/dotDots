@@ -98,7 +98,7 @@ in
     programs = {
       bash = {
         enable = true;
-        initExtra = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
+        # initExtra = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
         historyControl = [
           "erasedups"
           "ignoredups"

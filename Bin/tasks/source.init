@@ -74,8 +74,8 @@ __help__() {
 }
 
 __defaults__() {
-  # Verbose
-  verbose=
+  #| Verbose
+  # verbose=
 
   #| Establish IGNORE path to declare directories to skip
   [ "$ignore_file" ] || ignore_file="$DOTS/.ignore"

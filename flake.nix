@@ -105,28 +105,28 @@
                 DOTS_NIX = modules.local;
                 NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
                 NIXOS_FLAKE = flake.local;
-                DOTS_SCRIPTS = ''$(fd . ${scripts.local} --exclude /archive/ --exclude /review/ --exclude /temp/ --exclude /tmp/)'';
               };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
                 Flick = ''nix-collect-garbage -d && Flake && sudo reboot'';
               };
-              pathsToLink =
-                let
-                  bin = paths.scripts.local;
-                in
-                [
-                  (bin + "/base")
-                  (bin + "/core")
-                  (bin + "/import")
-                  (bin + "/interface")
-                  (bin + "/misc")
-                  (bin + "/packages")
-                  (bin + "/project")
-                  (bin + "/tasks")
-                  (bin + "/template")
-                  (bin + "/utility")
-                ];
+              extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
+              # pathsToLink =
+              #   let
+              #     bin = paths.scripts.local;
+              #   in
+              #   [
+              #     (bin + "/base")
+              #     (bin + "/core")
+              #     (bin + "/import")
+              #     (bin + "/interface")
+              #     (bin + "/misc")
+              #     (bin + "/packages")
+              #     (bin + "/project")
+              #     (bin + "/tasks")
+              #     (bin + "/template")
+              #     (bin + "/utility")
+              #   ];
             };
           };
           specialArgs = {
