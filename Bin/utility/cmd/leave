@@ -1,0 +1,119 @@
+#!/bin/sh
+
+establish_environment() {
+	usage_guide="$(basename "$0") [OPTION]
+
+Shutdown, restart, or logout the system.
+
+Options:
+  -h, --help        Show this help text
+  -l, --logout      Logout the current user [Default]
+  -r, --reboot      Reboot the system
+  -x, --shutdown    Shutdown the system
+  -t, --exit        Exit the terminal session
+"
+	action="logout"
+	[ "$(uname)" = "Windows_NT" ] && is_windows=true
+	[ "$(id -u)" -eq 0 ] && is_root=true
+
+	# Parse options
+	while [ $# -gt 0 ]; do
+		case $1 in
+			-l | --logout)
+				action="logout"
+				;;
+			-r | --reboot)
+				action="reboot"
+				;;
+			-x | -s | --shutdown)
+				action="shutdown"
+				;;
+			-q | -t | --terminal | --exit)
+				action="exit"
+				;;
+			-h | --help)
+				show_usage
+				exit 0
+				;;
+			*)
+				console_log --error "Unknown option" "$1"
+				show_usage
+				exit 1
+				;;
+		esac
+		shift
+	done
+}
+
+show_usage() {
+	console_log --ll "$usage_guide"
+}
+
+shutdown_system() {
+	if [ "$is_windows" ]; then
+		shutdown /s /t 0 /f
+	else
+		sudo shutdown -h now
+	fi
+}
+
+logout_user() {
+	# Check not root
+	if [ "$is_root" ]; then
+		console_log --error "This script must be run as a normal user, not root"
+		exit 1
+	fi
+
+	if [ "$is_windows" ]; then
+		taskkill /FI "USERNAME eq $USER" /F
+	else
+		pkill -u "$USER"
+	fi
+
+}
+
+reboot_system() {
+	if [ "$is_windows" ]; then
+		shutdown /r /t 0
+	else
+		sudo reboot
+	fi
+}
+
+exit_terminal() {
+
+	if [ "$is_windows" ]; then
+
+		# Get PowerShell session ID
+		session_id=$(powershell -Command "Get-PSSession | Select-Object -ExpandProperty Id")
+
+		# Kill session by ID
+		powershell -Command "Get-PSSession -Id $session_id | Remove-PSSession"
+
+	else
+
+		# Find parent PID of current terminal
+		terminal_pid=$(ps -o ppid= -p $$)
+
+		# Kill the terminal process
+		kill -KILL "$terminal_pid"
+
+	fi
+}
+
+execute_process() {
+	case "$action" in
+		"logout") logout_user ;;
+		"reboot") reboot_system ;;
+		"exit") exit_terminal ;;
+		"shutdown") shutdown_system ;;
+	esac
+
+}
+
+main() {
+	establish_environment "$@"
+	execute_process
+}
+
+main "$@"
