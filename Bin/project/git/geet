@@ -738,6 +738,8 @@ main() {
   echo "PATH: $_cmd_PATH"
   echo "HOME: $_cmd_HOME"
   echo "NAME: $_cmd_NAME"
+    execute_process
+
   return
 
   #@ Run the necessary process
