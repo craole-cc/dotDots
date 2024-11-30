@@ -566,10 +566,10 @@ in
       atuin = {
         enable = true;
       };
-      plasma = {
-        enable = true;
-        kate.enable = false;
-      };
+      # plasma = {
+      #   enable = true;
+      #   kate.enable = false;
+      # };
     };
   };
 }

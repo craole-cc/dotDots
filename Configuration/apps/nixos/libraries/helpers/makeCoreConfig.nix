@@ -60,7 +60,7 @@ let
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
-              sharedModules = [ homeMods ];
+              # sharedModules = [ homeMods ];
             };
           }
         ]
