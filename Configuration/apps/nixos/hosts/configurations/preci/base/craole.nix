@@ -67,20 +67,8 @@ in
             '';
           };
         in
-        with pkgs;
-        (with nerd-fonts; [
-          fantasque-sans-mono
-          fira-code
-          hack
-          jetbrains-mono
-          monaspace
-          monoid
-          victor-mono
-          zed-mono
-        ])
-        ++ [
+        (with pkgs; [
           #| Fonts
-          fontsMono
           lexend
           material-design-icons
           material-icons
@@ -98,7 +86,9 @@ in
           inkscape-with-extensions
           darktable
           ansel
-        ];
+        ])
+        ++ fontsNerd
+        ++ fontsMono;
 
       sessionVariables = {
         EDITOR = "hx";
