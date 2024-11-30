@@ -84,13 +84,6 @@ establish_defaults() {
   commit=true
   push=true
 
-  #| Message
-  if git log -1 --pretty=%B >/dev/null 2>&1; then
-    default_msg=$(git log -1 --pretty=%B)
-  else
-    default_msg="Updated via geet"
-  fi
-
   #| Verbosity
   verbose=true
 
@@ -107,6 +100,10 @@ establish_defaults() {
   target_repo="${target_repo:-$actual_repo}"
   geet_dir="${git_dir_super:-$git_dir}"
   geet_modules="$geet_dir/.gitmodules"
+
+  #| Message
+  default_msg="Updated via geet"
+  log_fmt="-1 --pretty=%B"
 }
 
 establish_environment() {
@@ -123,6 +120,12 @@ establish_environment() {
   #@ Parse arguments from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
+    -P | --path)
+      [ -d "$2" ] && {
+        geet_dir="$2"
+        shift
+      }
+      ;;
     -p | --pull)
       pull=true
       ;;
@@ -255,7 +258,6 @@ establish_validators() {
   }
 
   validate_local_repo() {
-
     #@ Check if the folder is part of a valid git repository
     [ "$geet_dir" ] || {
       logline --error \
@@ -264,12 +266,12 @@ establish_validators() {
       exit 2
     }
 
-    [ "$target_repo" ] || {
-      logline --error \
-        "Invalid Repository" \
-        "Ensure the origin is set"
-      exit 2
-    }
+    # [ "$target_repo" ] || {
+    #   logline --error \
+    #     "Invalid Repository" \
+    #     "Ensure the origin is set"
+    #   exit 2
+    # }
 
     #@ Check if the remote origin URL matches the expected repository URL
     [ "$actual_repo" = "$target_repo" ] || {
@@ -283,7 +285,7 @@ establish_validators() {
 
   validate_submodules() {
     #@ Ensure we are running our commands from the topmost git_dir
-    work_in "$geet_dir"
+    # work_in "$geet_dir"
 
     #| Ensure the project has submodules
     if [ -f "$geet_modules" ]; then
@@ -342,6 +344,7 @@ establish_validators() {
 
   }
 }
+
 # @ ============================================== @ #
 # @	UTILITIES			                                 @ #
 # @ ============================================== @ #
@@ -608,6 +611,32 @@ establish_utilities() {
       exit 4
     }
   }
+
+  run_in_dir() {
+    while [ "$#" -ge 1 ]; do
+      case "$1" in
+      --return) return_dir="$2" ;;
+      --target) target_dir="$2" ;;
+      --command) cmd="$2" ;;
+      esac
+      shift
+    done
+
+    cd_to() {
+      cd "$1" >/dev/null 2>&1 || {
+        logline --error \
+          "Failed to access the directory" \
+          "$1"
+        exit 4
+      }
+    }
+
+    return_dir="${return_dir:-$PWD}"
+
+    cd_to "$target_dir"
+    eval "$cmd"
+    cd_to "$return_dir"
+  }
 }
 
 # @ ============================================== @ #
@@ -615,7 +644,7 @@ establish_utilities() {
 # @ ============================================== @ #
 execute_git_actions() {
   #@ Ensure we are running our commands from the target git_dir
-  work_in "$1"
+  # work_in "$1"
 
   #@ Honor changes to gitignore
   [ "$ignore" ] && git rm -r --force --cached .
@@ -646,14 +675,21 @@ execute_git_actions() {
   [ "$add" ] && git add --all
 
   #@ Commit changes
-  [ "$msg" ] || {
-    default_msg=$(git log -1 --pretty=%B)
-    printf "Enter a commit message [Default: %s ]: " "$default_msg" && read -r msg
-  }
   [ "$commit" ] && git commit --quiet --message="${msg:-"$default_msg"}"
 
   #@ Update the remote repository
   [ "$push" ] && git push --recurse-submodules=check --quiet
+}
+
+update_message() {
+  last_msg="$(git log >/dev/null 2>&1 && eval git log "$log_fmt")"
+  default_msg="${last_msg:-"$default_msg"}"
+  [ "$msg" ] ||
+    if [ "$debug" ]; then
+      msg="$default_msg"
+    else
+      printf "Enter a commit message [Default: %s ]: " "$default_msg" && read -r msg
+    fi
 }
 
 execute_process() {
@@ -708,26 +744,30 @@ execute_tests() {
   }
 
   test_execute_git_actions() {
-    logline --newline "Testing" "$_cmd_PATH"
-    work_in "$1"
-    logline --newline --info "  path" "$geet_dir"
+    logline --newline --info " path" "$geet_dir"
     logline --newline --info "ignore" "$ignore"
-    logline --newline --info "  pull" "$pull"
-    logline --newline --info "  diff" "$diff"
+    logline --newline --info " pull" "$pull"
+    logline --newline --info " diff" "$diff"
     logline --newline --info "status" "$status"
-    logline --newline --info "   add" "$add"
+    logline --newline --info " add" "$add"
     logline --newline --info "commit" "$commit"
-    if [ "$msg" ]; then
-      logline --newline --info"   msg" "$msg"
-    else
-      logline --newline --info "   msg" "$default_msg"
-    fi
-    logline --newline --info "  push" "$push"
+    logline --newline --info " push" "$push"
+    logline --info " msg" "$msg"
   }
 
   test_execute_process
 }
 
+execute() {
+  update_message
+
+  if [ "$debug" ]; then
+    execute_tests
+  else
+    execute_process
+  fi
+
+}
 # @ ============================================== @ #
 # @	ENTRY-POINT                                    @ #
 # @ ============================================== @ #
@@ -736,9 +776,7 @@ main() {
   establish_environment "$@"
 
   #@ Run the necessary process
-  if [ "$debug" ]; then
-    execute_tests
-  else
-    execute_process
-  fi
+  run_in_dir \
+    --target "$geet_dir" \
+    --command "execute"
 } && main "$@"
