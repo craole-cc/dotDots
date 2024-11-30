@@ -14,9 +14,5 @@
       PAGER = "bat --paging=always";
       MANPAGER = "bat --paging=always --plain";
     };
-    shellAliases = {
-      # la = "eza --group-directories-first --git --almost-all  --smart-group --absolute";
-      # ll = "la --long";
-    };
   };
 }
