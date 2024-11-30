@@ -51,7 +51,7 @@ let
     [
       corePath
     ]
-    ++ extraMods.core
+    # ++ extraMods.core
     ++ (
       if allowHomeManager then
         [
