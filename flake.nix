@@ -107,14 +107,15 @@
                 NIXOS_FLAKE = flake.local;
               };
               shellAliases = {
-                Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
-                Flick = ''nix-collect-garbage -d && Flake && sudo reboot'';
+                FlakeUp = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+                Flake = ''pushd ${paths.flake.local} && geet && sudo nixos-rebuild switch --flake .; popd'';
+                Flick = ''nix-collect-garbage --delete-old && Flake && sudo reboot'';
                 ".." = "cd .. || return 1";
                 "..." = "cd ../.. || return 1";
                 "...." = "cd ../../.. || return 1";
                 "....." = "cd ../../../.. || return 1";
                 h = "history";
-                q = "exit";
+                q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
               };
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
               # pathsToLink =
