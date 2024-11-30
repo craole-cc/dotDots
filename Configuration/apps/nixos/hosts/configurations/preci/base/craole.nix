@@ -69,18 +69,16 @@ in
 
           #| Apps
           brave
-          freetube
+          # freetube
           whatsapp-for-linux
           warp-terminal
           via
-          # vscode
           vscode-fhs
           qbittorrent
-          mpv
+          # mpv
           inkscape-with-extensions
           darktable
           ansel
-          obs-studio
         ];
 
       sessionVariables = {
@@ -98,6 +96,16 @@ in
       };
     };
     programs = {
+      bash = {
+        enable = true;
+        initExtra = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
+        historyControl = [
+          "erasedups"
+          "ignoredups"
+          "ignorespace"
+          "ignoreboth"
+        ];
+      };
       btop = {
         enable = true;
         settings = {
@@ -544,6 +552,18 @@ in
         ];
       };
       starship = {
+        enable = true;
+      };
+      obs-studio = {
+        enable = true;
+      };
+      freetube = {
+        enable = true;
+      };
+      mpv = {
+        enable = true;
+      };
+      atuin = {
         enable = true;
       };
     };
