@@ -2,7 +2,6 @@
 {
   programs.plasma = {
     enable = true;
-    kate.enable = false;
 
     #
     # Some high-level settings:
@@ -113,7 +112,7 @@
           {
             digitalClock = {
               calendar.firstDayOfWeek = "sunday";
-              time.format = "12h";
+              time.format = "24h";
             };
           }
           {
