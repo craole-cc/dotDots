@@ -245,6 +245,7 @@ in
         fend
         libqalculate
       ]
+      ++ (if plasmaEnabled then [ kde-gruvbox ] else [ ])
       ++ (
         if config.services.xserver.enable then
           [
@@ -258,21 +259,5 @@ in
         else
           [ qalculate-qt ]
       );
-    # variables = {
-    #   inherit DOTS;
-    #   # PATH = "$PATH:$DOTS/Bin";
-    #   NIXOS_CONFIG = DOTS;
-    #   # LESS = "-R";
-    #   # COLORTERM = "truecolor";
-    #   # TERM = "xterm-256color";
-    # };
-    # shellAliases = {
-    #   h = "history";
-    #   ".." = "cd ..";
-    #   "..." = "cd ../..";
-    #   "...." = "cd ../../..";
-    #   "....." = "cd ../../../..";
-    #   x = "exit";
-    # };
   };
 }

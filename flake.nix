@@ -123,22 +123,6 @@
                 h = "history";
               };
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
-              # pathsToLink =
-              #   let
-              #     bin = paths.scripts.local;
-              #   in
-              #   [
-              #     (bin + "/base")
-              #     (bin + "/core")
-              #     (bin + "/import")
-              #     (bin + "/interface")
-              #     (bin + "/misc")
-              #     (bin + "/packages")
-              #     (bin + "/project")
-              #     (bin + "/tasks")
-              #     (bin + "/template")
-              #     (bin + "/utility")
-              #   ];
             };
           };
           specialArgs = {
