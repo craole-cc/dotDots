@@ -110,7 +110,7 @@
                 Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
                 Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
                 Flash = ''geet --path ${paths.flake.local} && sudo nixos-rebuild switch --flake ${paths.flake.local} --show-trace'';
-                Flick = ''Flush && Flash && sudo reboot'';
+                Flick = ''Flush && Flash && Reboot'';
                 Reboot = ''leave --reboot'';
                 Reload = ''leave --logout'';
                 Retire = ''leave --shutdown'';
