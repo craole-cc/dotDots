@@ -566,6 +566,9 @@ in
       atuin = {
         enable = true;
       };
+      kate = {
+        enable = false;
+      };
     };
   };
 }

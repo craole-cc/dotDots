@@ -17,6 +17,7 @@
   nixDarwin,
   corePath,
   coreMods,
+  extraMods,
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
@@ -47,7 +48,10 @@ let
     );
   lib = pkgs.lib;
   modules =
-    [ corePath ]
+    [
+      corePath
+    ]
+    ++ extraMods.core
     ++ (
       if allowHomeManager then
         [
@@ -56,8 +60,10 @@ let
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
+              sharedModules = [ extraMods.home ];
             };
           }
+
           (with homeManager; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
         ]
       else

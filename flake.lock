@@ -40,11 +40,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1732793095,
-        "narHash": "sha256-6TrknJ8CpvSSF4gviQSeD+wyj3siRcMvdBKhOXkEMKU=",
+        "lastModified": 1732884235,
+        "narHash": "sha256-r8j6R3nrvwbT1aUp4EPQ1KC7gm0pu9VcV1aNaB+XG6Q=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "2f7739d01080feb4549524e8f6927669b61c6ee3",
+        "rev": "819f682269f4e002884702b87e445c82840c68f2",
         "type": "github"
       },
       "original": {
@@ -124,11 +124,11 @@
     },
     "nixosUnstable": {
       "locked": {
-        "lastModified": 1732521221,
-        "narHash": "sha256-2ThgXBUXAE1oFsVATK1ZX9IjPcS4nKFOAjhPNKuiMn0=",
+        "lastModified": 1732758367,
+        "narHash": "sha256-RzaI1RO0UXqLjydtz3GAXSTzHkpb/lLD1JD8a0W4Wpo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4633a7c72337ea8fd23a4f2ba3972865e3ec685d",
+        "rev": "fa42b5a5f401aab8a32bd33c9a4de0738180dc59",
         "type": "github"
       },
       "original": {
@@ -151,6 +151,29 @@
         "url": "https://flakehub.com/f/NixOS/nixpkgs/0.2405.%2A"
       }
     },
+    "plasmaManager": {
+      "inputs": {
+        "home-manager": [
+          "homeManager"
+        ],
+        "nixpkgs": [
+          "nixosUnstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1732639391,
+        "narHash": "sha256-kFtXjoCIqx9xe0ZryPXpqS6l/HVg71aNcuL8Y5e8+pI=",
+        "owner": "pjones",
+        "repo": "plasma-manager",
+        "rev": "06e3209d11797d9c741e25df06ab61048746bf93",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pjones",
+        "repo": "plasma-manager",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "homeManager": "homeManager",
@@ -158,7 +181,8 @@
         "nixed": "nixed",
         "nixosHardware": "nixosHardware",
         "nixosStable": "nixosStable",
-        "nixosUnstable": "nixosUnstable"
+        "nixosUnstable": "nixosUnstable",
+        "plasmaManager": "plasmaManager"
       }
     }
   },
