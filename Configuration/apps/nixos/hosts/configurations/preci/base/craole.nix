@@ -566,8 +566,8 @@ in
       atuin = {
         enable = true;
       };
-      kate = {
-        enable = false;
+      plasma = {
+        kate.enable = false;
       };
     };
   };
