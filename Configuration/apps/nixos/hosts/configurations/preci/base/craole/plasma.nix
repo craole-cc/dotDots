@@ -98,8 +98,6 @@
           }
           # If no configuration is needed, specifying only the name of the
           # widget will add them with the default configuration.
-          "org.kde.dolphin.desktop"
-          "org.kde.konsole.desktop"
           "org.kde.plasma.marginsseparator"
           # If you need configuration for your widget, instead of specifying the
           # the keys and values directly using the config attribute as shown
