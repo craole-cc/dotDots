@@ -107,7 +107,7 @@
                 NIXOS_FLAKE = flake.local;
               };
               shellAliases = {
-                FlakeUp = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
+                Flip = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
                 Flake = ''pushd ${paths.flake.local} && geet && sudo nixos-rebuild switch --flake .; popd'';
                 Flick = ''nix-collect-garbage --delete-old && Flake && sudo reboot'';
                 Fold=''nix-collect-garbage --delete-old;nix-collect-garbage --delete-old'';
