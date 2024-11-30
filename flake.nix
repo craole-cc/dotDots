@@ -108,7 +108,6 @@
               };
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} && sudo nixos-rebuild switch --flake . --show-trace; popd'';
-                Flip = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
                 Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
                 Flick = ''Flush && Flake && sudo reboot'';
                 ".." = "cd .. || return 1";
