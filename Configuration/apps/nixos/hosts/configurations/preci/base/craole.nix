@@ -40,7 +40,7 @@ in
       packages =
         let
           # fontNerd = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
-          fontsNerd = with nerd-fonts; [
+          fontsNerd = with pkgs.nerd-fonts; [
             fantasque-sans-mono
             fira-code
             hack
@@ -70,7 +70,16 @@ in
         with pkgs;
         [
           #| Fonts
-          fontsNerd
+          (with nerd-fonts; [
+            fantasque-sans-mono
+            fira-code
+            hack
+            jetbrains-mono
+            monaspace
+            monoid
+            victor-mono
+            zed-mono
+          ])
           fontsMono
           lexend
           material-design-icons
