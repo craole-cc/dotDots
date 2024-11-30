@@ -107,10 +107,10 @@
                 NIXOS_FLAKE = flake.local;
               };
               shellAliases = {
+                Flake = ''pushd ${paths.flake.local} && geet && sudo nixos-rebuild switch --flake . --show-trace; popd'';
                 Flip = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
-                Flake = ''pushd ${paths.flake.local} && geet && sudo nixos-rebuild switch --flake .; popd'';
-                Flick = ''nix-collect-garbage --delete-old && Flake && sudo reboot'';
-                Flush=''nix-collect-garbage --delete-old;nix-collect-garbage --delete-old'';
+                Flush=''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
+                Flick = ''Flush && Flake && sudo reboot'';
                 ".." = "cd .. || return 1";
                 "..." = "cd ../.. || return 1";
                 "...." = "cd ../../.. || return 1";
