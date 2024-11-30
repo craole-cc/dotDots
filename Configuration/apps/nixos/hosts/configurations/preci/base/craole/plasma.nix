@@ -32,16 +32,16 @@
 
     desktop.widgets = [
       {
-        # plasmusicToolbar = {
-        #   position = {
-        #     horizontal = 51;
-        #     vertical = 100;
-        #   };
-        #   size = {
-        #     width = 250;
-        #     height = 250;
-        #   };
-        # };
+        plasmusicToolbar = {
+          position = {
+            horizontal = 51;
+            vertical = 100;
+          };
+          size = {
+            width = 250;
+            height = 250;
+          };
+        };
       }
     ];
 
@@ -85,19 +85,21 @@
             };
           }
           # Or you can do it manually, for example:
-          {
-            name = "org.kde.plasma.icontasks";
-            config = {
-              General = {
-                launchers = [
-                  "applications:org.kde.dolphin.desktop"
-                  "applications:org.kde.konsole.desktop"
-                ];
-              };
-            };
-          }
+          # {
+          #   name = "org.kde.plasma.icontasks";
+          #   config = {
+          #     General = {
+          #       launchers = [
+          #         "applications:org.kde.dolphin.desktop"
+          #         "applications:org.kde.konsole.desktop"
+          #       ];
+          #     };
+          #   };
+          # }
           # If no configuration is needed, specifying only the name of the
           # widget will add them with the default configuration.
+          "org.kde.dolphin.desktop"
+          "org.kde.konsole.desktop"
           "org.kde.plasma.marginsseparator"
           # If you need configuration for your widget, instead of specifying the
           # the keys and values directly using the config attribute as shown
