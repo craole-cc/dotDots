@@ -51,20 +51,20 @@ let
     [
       corePath
     ]
-    # ++ extraMods.core
     ++ (
       if allowHomeManager then
+        with homeManager;
         [
+          nixosModules.home-manager
           {
             home-manager = {
               inherit backupFileExtension;
               useGlobalPkgs = true;
               useUserPackages = true;
-              # sharedModules = [ homeMods ];
+              sharedModules = [ homeMods ];
             };
           }
-
-          (with homeManager; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
+          (if isDarwin then darwinModules.home-manager else { })
         ]
       else
         [ ]
