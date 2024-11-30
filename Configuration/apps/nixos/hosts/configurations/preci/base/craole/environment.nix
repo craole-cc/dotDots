@@ -3,6 +3,10 @@
   home = {
     inherit (config.system) stateVersion;
     enableNixpkgsReleaseCheck = false;
+    extraOutputsToInstall = [
+      "doc"
+      "devdoc"
+    ];
     sessionVariables = {
       EDITOR = "hx";
       VISUAL = "code";
