@@ -245,7 +245,17 @@ in
         fend
         libqalculate
       ]
-      ++ (if plasmaEnabled then [ kde-gruvbox ] else [ ])
+      ++ (
+        if plasmaEnabled then
+          [ kde-gruvbox ]
+          ++ (with kdePackages; [
+            koi
+            kalk
+            kalm
+          ])
+        else
+          [ ]
+      )
       ++ (
         if config.services.xserver.enable then
           [
