@@ -249,10 +249,10 @@ in
         if plasmaEnabled then
           [ kde-gruvbox ]
           ++ (with kdePackages; [
-            # koi
-            # kio
-            kalm
             # full
+            # kio
+            koi
+            kalm
           ])
         else
           [ ]
