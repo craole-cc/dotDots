@@ -266,13 +266,13 @@ in
     #   # COLORTERM = "truecolor";
     #   # TERM = "xterm-256color";
     # };
-    shellAliases = {
-      h = "history";
-      ".." = "cd ..";
-      "..." = "cd ../..";
-      "...." = "cd ../../..";
-      "....." = "cd ../../../..";
-      x = "exit";
-    };
+    # shellAliases = {
+    #   h = "history";
+    #   ".." = "cd ..";
+    #   "..." = "cd ../..";
+    #   "...." = "cd ../../..";
+    #   "....." = "cd ../../../..";
+    #   x = "exit";
+    # };
   };
 }

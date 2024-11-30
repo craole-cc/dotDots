@@ -109,6 +109,12 @@
               shellAliases = {
                 Flake = ''pushd ${paths.flake.local} && git add --all; git commit --message "Flake Update"; sudo nixos-rebuild switch --flake .; popd'';
                 Flick = ''nix-collect-garbage -d && Flake && sudo reboot'';
+                ".." = "cd .. || return 1";
+                "..." = "cd ../.. || return 1";
+                "...." = "cd ../../.. || return 1";
+                "....." = "cd ../../../.. || return 1";
+                h = "history";
+                q = "exit";
               };
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
               # pathsToLink =
