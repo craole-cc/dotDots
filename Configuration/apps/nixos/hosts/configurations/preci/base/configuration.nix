@@ -80,6 +80,7 @@ in
       autoLogin = {
         enable = true;
         user = "craole";
+        relogin = true; 
       };
       sddm = {
         enable = true;

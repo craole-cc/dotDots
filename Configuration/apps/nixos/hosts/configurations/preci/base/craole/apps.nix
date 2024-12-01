@@ -15,6 +15,7 @@
   };
   programs = {
     home-manager.enable = true;
+    kate.enable = false;
     bash = {
       enable = true;
       historyControl = [
