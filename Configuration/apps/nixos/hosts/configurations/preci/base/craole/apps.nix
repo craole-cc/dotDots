@@ -479,5 +479,8 @@
     atuin = {
       enable = true;
     };
+    yazi = {
+      enable = true;
+    };
   };
 }
