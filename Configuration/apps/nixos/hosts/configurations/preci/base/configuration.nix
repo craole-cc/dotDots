@@ -84,7 +84,7 @@ in
       sddm = {
         enable = true;
         wayland.enable = true;
-        relogin = true;
+        autoLogin.relogin = true;
       };
     };
 
