@@ -271,5 +271,6 @@ in
         else
           [ qalculate-qt ]
       );
+    plasma6.excludePackages = if plasmaEnabled then with pkgs; [ kate ] else [ ];
   };
 }
