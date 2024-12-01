@@ -80,11 +80,11 @@ in
       autoLogin = {
         enable = true;
         user = "craole";
-        relogin = true; 
       };
       sddm = {
         enable = true;
         wayland.enable = true;
+        relogin = true;
       };
     };
 
