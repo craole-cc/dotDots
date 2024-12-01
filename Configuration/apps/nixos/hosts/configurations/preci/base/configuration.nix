@@ -8,6 +8,7 @@
 let
   plasmaEnabled = config.services.desktopManager.plasma6.enable;
   sddmEnabled = config.services.displayManager.sddm.enable;
+  xserverEnabled = config.services.xserver.enable;
 in
 {
   imports = [
@@ -39,9 +40,9 @@ in
   };
 
   hardware = {
-    pulseaudio.enable = lib.mkDefault false;
+    pulseaudio.enable = false;
     bluetooth = {
-      enable = lib.mkDefault true;
+      enable = true;
       settings.General = {
         Enable = "Source,Sink,Media,Socket";
         Experimental = true;
@@ -84,7 +85,7 @@ in
       sddm = {
         enable = true;
         wayland.enable = true;
-        # autoLogin.relogin = true; #TODO This doesn't work
+        autoLogin.relogin = false; # TODO This doesn't work
       };
     };
 
@@ -254,12 +255,13 @@ in
             # kio
             koi
             kalm
+            yakuake
           ])
         else
           [ ]
       )
       ++ (
-        if config.services.xserver.enable then
+        if xserverEnabled then
           [
             wmctrl
             xprop
@@ -271,6 +273,6 @@ in
         else
           [ qalculate-qt ]
       );
-    plasma6.excludePackages = if plasmaEnabled then with pkgs; [ kate ] else [ ];
+    plasma6.excludePackages = with pkgs; [ kate ];
   };
 }
