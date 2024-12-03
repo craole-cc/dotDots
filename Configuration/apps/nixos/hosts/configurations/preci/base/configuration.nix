@@ -252,7 +252,6 @@ in
           [ kde-gruvbox ]
           ++ (with kdePackages; [
             # full
-            # kio
             koi
             kalm
             yakuake

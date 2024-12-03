@@ -141,17 +141,17 @@ establish_environment() {
 		return 1
 	}
 
-	binini="$(find "$dots" -name init_dots_bin)"
+	# binini="$(find "$dots" -name init_dots_bin)"
 
-	# shellcheck source=/dev/null
-	if [ -f "$binini" ]; then
-		. "$binini"
-		bin="$(eval "$binini" --path)"
-	else
-		display_info --code 1 --error \
-			"BIN Initialization Failed"
-		return "$code"
-	fi
+	# # shellcheck source=/dev/null
+	# if [ -f "$binini" ]; then
+	# 	. "$binini"
+	# 	bin="$(eval "$binini" --path)"
+	# else
+	# 	display_info --code 1 --error \
+	# 		"BIN Initialization Failed"
+	# 	return "$code"
+	# fi
 
 }
 
