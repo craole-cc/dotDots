@@ -2,7 +2,7 @@
 {
   home = {
     inherit (nixosConfig.system) stateVersion;
-    enableNixpkgsReleaseCheck = false;
+    # enableNixpkgsReleaseCheck = false;
     extraOutputsToInstall = [
       "doc"
       "devdoc"
