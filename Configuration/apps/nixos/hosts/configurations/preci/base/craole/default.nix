@@ -15,7 +15,7 @@ in
       ./apps.nix
       ./environment.nix
       ./fonts.nix
-      # ./plasma.nix+s
+      # ./plasma.nix
     ];
   };
 }
