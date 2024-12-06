@@ -97,10 +97,10 @@
               extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
             };
           };
-          core = with inputs; [
+          core = [
             paths.modules.store
             conf
-            stylix.nixosModules.stylix
+            inputs.stylix.nixosModules.stylix
           ];
           home = with inputs; [
             plasmaManager.homeManagerModules.plasma-manager
