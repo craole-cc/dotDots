@@ -23,14 +23,14 @@
     stylix.url = "github:danth/stylix";
   };
   outputs =
-    inputs@{
+    {
       self,
       nixosStable,
       nixosUnstable,
       homeManager,
       nixDarwin,
       ...
-    }:
+    }@inputs:
     let
       paths =
         let
@@ -100,11 +100,11 @@
           core = with inputs; [
             paths.modules.store
             conf
-            # stylix.nixosModules.stylix
+            stylix.nixosModules.stylix
           ];
           home = with inputs; [
             plasmaManager.homeManagerModules.plasma-manager
-            stylix.homeManagerModules.stylix
+            # stylix.homeManagerModules.stylix
           ];
         in
         {
