@@ -100,7 +100,7 @@
           core = [
             paths.modules.store
             conf
-            # inputs.stylix.nixosModules.stylix
+            inputs.stylix.nixosModules.stylix
           ];
           home = with inputs; [
             plasmaManager.homeManagerModules.plasma-manager
