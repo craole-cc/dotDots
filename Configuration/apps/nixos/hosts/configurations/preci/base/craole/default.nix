@@ -11,6 +11,8 @@ in
     ];
   };
   home-manager.users.${mod} = {
+    programs.home-manager.enable = true;
+
     imports = [
       ./apps.nix
       ./environment.nix
