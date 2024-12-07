@@ -104,7 +104,6 @@
           ];
           home = with inputs; [
             plasmaManager.homeManagerModules.plasma-manager
-            # stylix.homeManagerModules.stylix
           ];
         in
         {

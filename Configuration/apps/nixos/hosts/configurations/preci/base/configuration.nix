@@ -85,7 +85,7 @@ in
       sddm = {
         enable = true;
         wayland.enable = true;
-        autoLogin.relogin = false; # TODO This doesn't work
+        # autoLogin.relogin = false; # TODO This doesn't work
       };
     };
 
