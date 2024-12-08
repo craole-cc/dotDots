@@ -23,14 +23,7 @@
     stylix.url = "github:danth/stylix";
   };
   outputs =
-    {
-      self,
-      nixosStable,
-      nixosUnstable,
-      homeManager,
-      nixDarwin,
-      ...
-    }@inputs:
+    { self, ... }@inputs:
     let
       paths =
         let
@@ -67,48 +60,48 @@
             libraries
             ;
         };
-      specialModules =
-        let
-          conf = {
-            environment = {
-              variables = with paths; {
-                DOTS = flake.local;
-                DOTS_RC = flake.local + "/.dotsrc";
-                DOTS_BIN = scripts.local;
-                DOTS_NIX = modules.local;
-                NIXOS_FLAKE = flake.local;
-              };
-              shellAliases = {
-                Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
-                Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
-                Flash = ''geet --path ${paths.flake.local} && sudo nixos-rebuild switch --flake ${paths.flake.local} --show-trace'';
-                Flick = ''Flush && Flash && Reboot'';
-                Reboot = ''leave --reboot'';
-                Reload = ''leave --logout'';
-                Retire = ''leave --shutdown'';
-                Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
-                q = ''leave --terminal'';
-                ".." = "cd .. || return 1";
-                "..." = "cd ../.. || return 1";
-                "...." = "cd ../../.. || return 1";
-                "....." = "cd ../../../.. || return 1";
-                h = "history";
-              };
-              extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
-            };
-          };
-          core = with inputs; [
-            paths.modules.store
-            conf
-            stylix.nixosModules.stylix
-          ];
-          home = with inputs; [
-            plasmaManager.homeManagerModules.plasma-manager
-          ];
-        in
-        {
-          inherit core home;
-        };
+      # specialModules =
+      #   let
+      #     conf = {
+      #       environment = {
+      #         variables = with paths; {
+      #           DOTS = flake.local;
+      #           DOTS_RC = flake.local + "/.dotsrc";
+      #           DOTS_BIN = scripts.local;
+      #           DOTS_NIX = modules.local;
+      #           NIXOS_FLAKE = flake.local;
+      #         };
+      #         shellAliases = {
+      #           Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
+      #           Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
+      #           Flash = ''geet --path ${paths.flake.local} && sudo nixos-rebuild switch --flake ${paths.flake.local} --show-trace'';
+      #           Flick = ''Flush && Flash && Reboot'';
+      #           Reboot = ''leave --reboot'';
+      #           Reload = ''leave --logout'';
+      #           Retire = ''leave --shutdown'';
+      #           Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
+      #           q = ''leave --terminal'';
+      #           ".." = "cd .. || return 1";
+      #           "..." = "cd ../.. || return 1";
+      #           "...." = "cd ../../.. || return 1";
+      #           "....." = "cd ../../../.. || return 1";
+      #           h = "history";
+      #         };
+      #         extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
+      #       };
+      #     };
+      #     core = with inputs; [
+      #       paths.modules.store
+      #       conf
+      #       stylix.nixosModules.stylix
+      #     ];
+      #     home = with inputs; [
+      #       plasmaManager.homeManagerModules.plasma-manager
+      #     ];
+      #   in
+      #   {
+      #     inherit core home;
+      #   };
       specialArgs = {
         inherit paths;
         flake = self;
@@ -126,6 +119,10 @@
           extraPkgConfig ? { },
           extraPkgAttrs ? { },
           extraArgs ? { },
+          extraMods ? { },
+          ui ? {
+            env = "hyprland";
+          },
         }:
         import (with paths; libraries.store + names.mkCore) {
           inherit
@@ -148,12 +145,52 @@
             ;
           specialModules =
             let
-              nixosConfig = {
-                environment.variables.NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+              conf = {
+                environment = {
+                  variables = with paths; {
+                    DOTS = flake.local;
+                    DOTS_RC = flake.local + "/.dotsrc";
+                    DOTS_BIN = scripts.local;
+                    DOTS_NIX = modules.local;
+                    NIXOS_FLAKE = flake.local;
+                    NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+                  };
+                  shellAliases = {
+                    Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
+                    Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
+                    Flash = ''geet --path ${paths.flake.local} && sudo nixos-rebuild switch --flake ${paths.flake.local} --show-trace'';
+                    Flick = ''Flush && Flash && Reboot'';
+                    Reboot = ''leave --reboot'';
+                    Reload = ''leave --logout'';
+                    Retire = ''leave --shutdown'';
+                    Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
+                    q = ''leave --terminal'';
+                    ".." = "cd .. || return 1";
+                    "..." = "cd ../.. || return 1";
+                    "...." = "cd ../../.. || return 1";
+                    "....." = "cd ../../../.. || return 1";
+                    h = "history";
+                  };
+                  extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
+                };
               };
+              core = with inputs; [
+                paths.modules.store
+                conf
+                stylix.nixosModules.stylix
+              ];
+              home =
+                [ ]
+                ++ (
+                  if ui.env == "plasma" then with inputs; [ plasmaManager.homeManagerModules.plasma-manager ] else [ ]
+                );
             in
-            specialModules // nixosConfig;
-          specialArgs = specialArgs // extraArgs;
+            { inherit core home; } // extraMods;
+
+          specialArgs = {
+            inherit paths;
+            flake = self;
+          } // extraArgs;
         };
     in
     {
@@ -161,10 +198,12 @@
         preci = init {
           name = "preci";
           system = "x86_64-linux";
+          ui.env = "plasma";
         };
         dbook = init {
           name = "dbook";
           system = "x86_64-linux";
+          ui.env = "xfce";
         };
       };
 
