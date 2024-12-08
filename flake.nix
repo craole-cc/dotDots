@@ -41,6 +41,7 @@
           extraMods ? { },
           ui ? {
             env = "hyprland";
+            user = "craole";
           },
         }:
         let
@@ -50,36 +51,37 @@
                 local = "/home/craole/Documents/dotfiles";
                 store = ./.;
               };
-              names = {
+              parts = {
                 modules = "/Configuration/apps/nixos";
                 scripts = "/Bin";
                 libraries = "/libraries";
                 hosts = "/hosts/configurations";
                 mkCore = "/helpers/makeCoreConfig.nix";
-                uiCore = "/apps/ui/core";
-                uiHome = "/apps/ui/home";
+                uiCore = "/ui/core";
+                uiHome = "/ui/home";
               };
               scripts = {
-                local = flake.local + names.scripts;
-                store = flake.store + names.scripts;
+                local = flake.local + parts.scripts;
+                store = flake.store + parts.scripts;
               };
               modules = {
-                local = flake.local + names.modules;
-                store = flake.store + names.modules;
+                local = flake.local + parts.modules;
+                store = flake.store + parts.modules;
               };
               libraries = {
-                local = modules.local + names.libraries;
-                store = modules.store + names.libraries;
+                local = modules.local + parts.libraries;
+                store = modules.store + parts.libraries;
               };
             in
             {
               inherit
                 flake
-                names
                 scripts
+                parts
                 modules
                 libraries
                 ;
+              names = parts;
             };
           specialModules =
             let
@@ -91,7 +93,7 @@
                     DOTS_BIN = scripts.local;
                     DOTS_NIX = modules.local;
                     NIXOS_FLAKE = flake.local;
-                    NIXOS_CONFIG = with paths; modules.local + names.hosts + "/${name}";
+                    NIXOS_CONFIG = with paths; modules.local + parts.hosts + "/${name}";
                   };
                   shellAliases = {
                     Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
@@ -111,15 +113,20 @@
                   };
                   extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
                 };
+                services = {
+                  displayManager.autoLogin = {
+                    enable = true;
+                    inherit (ui) user;
+                  };
+                };
               };
               core =
-                with inputs;
-                [
-                  paths.modules.store
-                  conf
-                  stylix.nixosModules.stylix
-                ]
-                ++ (import (with paths; modules.store + names.uiCore) { inherit (ui) env; });
+                [ conf ]
+                ++ (with paths; [
+                  modules.store
+                  (modules.store + parts.uiCore + "/${ui.env}")
+                ])
+                ++ (with inputs; [ stylix.nixosModules.stylix ]);
               home =
                 with inputs;
                 [ ]
@@ -142,7 +149,7 @@
             flake = self;
           } // extraArgs;
         in
-        import (with paths; libraries.store + names.mkCore) {
+        import (with paths; libraries.store + parts.mkCore) {
           inherit (inputs)
             nixosStable
             nixosUnstable
@@ -175,7 +182,7 @@
         dbook = mkConfig {
           name = "dbook";
           system = "x86_64-linux";
-          ui.env = "xfce";
+          # ui.env = "xfce";
         };
       };
 

@@ -24,8 +24,10 @@ let
       (import ./hyprland.nix);
 in
 {
-  inherit ui;
+  # imports = [ ui ];
   displayManager = {
-    inherit (autoLogin) enable user;
+    # autoLogin = {
+    #   inherit (autoLogin) enable user;
+    # };
   };
 }
