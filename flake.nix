@@ -25,8 +25,7 @@
   outputs =
     { self, ... }@inputs:
     let
-
-      init =
+      mkConfig =
         {
           name,
           system,
@@ -57,6 +56,8 @@
                 libraries = "/libraries";
                 hosts = "/hosts/configurations";
                 mkCore = "/helpers/makeCoreConfig.nix";
+                uiCore = "/apps/ui/core";
+                uiHome = "/apps/ui/home";
               };
               scripts = {
                 local = flake.local + names.scripts;
@@ -111,15 +112,26 @@
                   extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
                 };
               };
-              core = with inputs; [
-                paths.modules.store
-                conf
-                stylix.nixosModules.stylix
-              ];
+              core =
+                with inputs;
+                [
+                  paths.modules.store
+                  conf
+                  stylix.nixosModules.stylix
+                ]
+                ++ (import (with paths; modules.store + names.uiCore) { inherit (ui) env; });
               home =
+                with inputs;
                 [ ]
                 ++ (
-                  if ui.env == "plasma" then with inputs; [ plasmaManager.homeManagerModules.plasma-manager ] else [ ]
+                  if ui.env == "hyprland" then
+                    [ ]
+                  else if ui.env == "plasma" then
+                    [ plasmaManager.homeManagerModules.plasma-manager ]
+                  else if ui.env == "xfce" then
+                    [ ]
+                  else
+                    [ ]
                 );
             in
             { inherit core home; } // extraMods;
@@ -131,6 +143,12 @@
           } // extraArgs;
         in
         import (with paths; libraries.store + names.mkCore) {
+          inherit (inputs)
+            nixosStable
+            nixosUnstable
+            homeManager
+            nixDarwin
+            ;
           inherit
             name
             system
@@ -145,22 +163,16 @@
             specialArgs
             specialModules
             ;
-          inherit (inputs)
-            nixosStable
-            nixosUnstable
-            homeManager
-            nixDarwin
-            ;
         };
     in
     {
       nixosConfigurations = {
-        preci = init {
+        preci = mkConfig {
           name = "preci";
           system = "x86_64-linux";
           ui.env = "plasma";
         };
-        dbook = init {
+        dbook = mkConfig {
           name = "dbook";
           system = "x86_64-linux";
           ui.env = "xfce";
