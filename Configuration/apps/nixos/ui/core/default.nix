@@ -1,33 +1,19 @@
 {
-  env ? "hyprland",
-  autoLogin ? {
-    enable = true;
-    user =
-      let
-        currentUser = builtins.getEnv "USER";
-        defaultUser = "craole";
-        # user = defaultUser;
-        # user = if currentUser != "" then currentUser else defaultUser;
-        user = currentUser;
-      in
-      currentUser;
-  },
+  config,
+  specialArgs,
   ...
 }:
 let
-  ui =
-    if env == "plasma" then
-      (import ./plasma.nix)
-    else if env == "xfce" then
-      (import ./xfce.nix)
-    else
-      (import ./hyprland.nix);
+  defaultUser = "craole";
+  userName =
+    if (specialArgs ? alpha) && (specialArgs.alpha != null) then specialArgs.alpha else defaultUser;
+  user = if config.users.users ? userName then userName else throw "Unknown user: ${userName}";
 in
 {
-  # imports = [ ui ];
-  displayManager = {
-    # autoLogin = {
-    #   inherit (autoLogin) enable user;
-    # };
+  services.displayManager = {
+    autoLogin = {
+      enable = true;
+      inherit user;
+    };
   };
 }

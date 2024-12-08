@@ -25,6 +25,7 @@
   outputs =
     { self, ... }@inputs:
     let
+      alpha = "craoles";
       mkConfig =
         {
           name,
@@ -113,28 +114,37 @@
                   };
                   extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
                 };
-                services = {
-                  displayManager.autoLogin = {
-                    enable = true;
-                    inherit (ui) user;
-                  };
-                };
+                # services = {
+                #   displayManager.autoLogin = {
+                #     enable = true;
+                #     inherit (ui) user;
+                #   };
+                # };
               };
               core =
-                [ conf ]
-                ++ (with paths; [
-                  modules.store
-                  (modules.store + parts.uiCore + "/${ui.env}")
-                ])
-                ++ (with inputs; [ stylix.nixosModules.stylix ]);
+                [
+                  conf
+                  paths.modules.store
+                ]
+                # ++ (with paths; [
+                #   modules.store
+                #   # (modules.store + parts.uiCore + "/${ui.env}")
+                # ])
+                ++ (with inputs; [
+                  stylix.nixosModules.stylix
+                ]);
               home =
-                with inputs;
-                [ ]
+                (with paths; [
+                  (modules.store + parts.uiHome + "/${ui.env}")
+                ])
                 ++ (
+                  with inputs;
                   if ui.env == "hyprland" then
                     [ ]
                   else if ui.env == "plasma" then
-                    [ plasmaManager.homeManagerModules.plasma-manager ]
+                    [
+                      plasmaManager.homeManagerModules.plasma-manager
+                    ]
                   else if ui.env == "xfce" then
                     [ ]
                   else
@@ -142,9 +152,8 @@
                 );
             in
             { inherit core home; } // extraMods;
-
           specialArgs = {
-            inherit paths ui;
+            inherit paths alpha ui;
             mods = specialModules;
             flake = self;
           } // extraArgs;

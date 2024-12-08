@@ -78,10 +78,10 @@ in
 
   services = {
     displayManager = {
-      autoLogin = {
-        enable = true;
-        user = "craole";
-      };
+      # autoLogin = {
+      #   enable = true;
+      #   user = "craole";
+      # };
       sddm = {
         enable = true;
         wayland.enable = true;
