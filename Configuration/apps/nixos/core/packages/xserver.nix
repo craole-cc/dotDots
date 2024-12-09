@@ -1,7 +1,10 @@
 { pkgs, config, ... }:
-if config.services.xserver.enable then
-  {
-    environment.systemPackages =
+let
+  isX11 = config.services.xserver.enable;
+in
+{
+  environment.systemPackages =
+    if isX11 then
       with pkgs;
       [
         brave
@@ -14,12 +17,17 @@ if config.services.xserver.enable then
         xdotool
         xinput
         xrandr
-      ]);
-    programs = {
-      firefox = {
-        # enable = true;
-      };
-    };
-  }
-else
-  { }
+      ])
+    else
+      [ ];
+      
+  programs =
+    if isX11 then
+      {
+        firefox = {
+          # enable = true;
+        };
+      }
+    else
+      { };
+}
