@@ -1,5 +1,5 @@
-{ config, specialArgs, ... }:
-if specialArgs.ui.env == "hyprland" || config.programs.hyprland.enable then
+{ specialArgs, ... }:
+if specialArgs.ui.env == "hyprland" then
   {
     programs = {
       hyprland = {

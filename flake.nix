@@ -42,7 +42,6 @@
           extraMods ? { },
           ui ? {
             env = "hyprland";
-            user = "craole";
           },
         }:
         let
@@ -61,7 +60,7 @@
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
                 env = "/environment";
-                lib = "libraries";
+                lib = "/libraries";
                 ui = "/ui";
               };
               core = {
@@ -87,51 +86,20 @@
             {
               inherit
                 flake
+                core
                 scripts
                 parts
                 modules
                 libraries
                 ;
-              names = parts;
             };
           specialModules =
             let
-              conf = {
-                environment = {
-                  shellAliases = {
-                    Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
-                    Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
-                    Flash = ''geet --path ${paths.flake.local} && sudo nixos-rebuild switch --flake ${paths.flake.local} --show-trace'';
-                    Flick = ''Flush && Flash && Reboot'';
-                    Reboot = ''leave --reboot'';
-                    Reload = ''leave --logout'';
-                    Retire = ''leave --shutdown'';
-                    Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
-                    q = ''leave --terminal'';
-                    ".." = "cd .. || return 1";
-                    "..." = "cd ../.. || return 1";
-                    "...." = "cd ../../.. || return 1";
-                    "....." = "cd ../../../.. || return 1";
-                    h = "history";
-                  };
-                  extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
-                };
-                # services = {
-                #   displayManager.autoLogin = {
-                #     enable = true;
-                #     inherit (ui) user;
-                #   };
-                # };
-              };
               core =
                 [
-                  # conf
-                  paths.modules.store
+                  paths.core.default
+                  # (core.ui + "/${ui.env}")
                 ]
-                # ++ (with paths; [
-                #   modules.store
-                #   # (modules.store + parts.uiCore + "/${ui.env}")
-                # ])
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
@@ -161,7 +129,6 @@
             host = name;
           } // extraArgs;
         in
-        # import (with paths; libraries.store + parts.mkCore) {
         import paths.libraries.mkCore {
           inherit (inputs)
             nixosStable
@@ -195,7 +162,7 @@
         dbook = mkConfig {
           name = "dbook";
           system = "x86_64-linux";
-          # ui.env = "xfce";
+          ui.env = "xfce";
         };
       };
 

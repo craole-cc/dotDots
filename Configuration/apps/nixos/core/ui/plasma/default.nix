@@ -1,24 +1,28 @@
-{
-  services = {
-    displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
+{ specialArgs, ... }:
+if specialArgs.ui.env == "plasma" then
+  {
+    services = {
+      desktopManager = {
+        plasma6.enable = true;
+      };
+      displayManager.sddm = {
+        enable = true;
+        wayland.enable = true;
+      };
     };
-    desktopManager = {
-      plasma6.enable = true;
-    };
-  };
 
-  security = {
-    pam.services = {
-      login = {
-        enableKwallet = true;
-        forceRun = true;
-      };
-      sddm = {
-        enableKwallet = true;
-        forceRun = true;
+    security = {
+      pam.services = {
+        login = {
+          enableKwallet = true;
+          forceRun = true;
+        };
+        sddm = {
+          enableKwallet = true;
+          forceRun = true;
+        };
       };
     };
-  };
-}
+  }
+else
+  { }
