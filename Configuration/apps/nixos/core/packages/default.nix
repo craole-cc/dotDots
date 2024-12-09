@@ -3,6 +3,6 @@
   imports = [
     ./common.nix
     ./xserver.nix
-    ./wayland.nix
+    # ./wayland.nix
   ];
 }
