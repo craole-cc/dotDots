@@ -216,16 +216,20 @@ in
       )
       ++ (
         if xserverEnabled then
-          with xorg;[
+          with xorg;
+          [
+            qalculate-gtk
             wmctrl
             xprop
             xdotool
             xinput
             xrandr
-            qalculate-gtk
           ]
         else
-          [ qalculate-qt ]
+          [
+            qalculate-qt
+            wlprop
+          ]
       );
     plasma6.excludePackages = with pkgs; [ kate ];
   };
