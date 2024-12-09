@@ -55,7 +55,7 @@
                 modules = "/Configuration/apps/nixos";
                 scripts = "/Bin";
                 libraries = "/libraries";
-                hosts = "/configurations/configurations";
+                hosts = "/configurations/hosts";
                 mkCore = "/helpers/makeCoreConfig.nix";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";

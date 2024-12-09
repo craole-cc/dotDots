@@ -23,11 +23,11 @@
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
+      timeout = 1;
     };
 
     kernelModules = [ "kvm-intel" ];
     kernelPackages = pkgs.linuxPackages_latest;
-    timeout = 1;
     extraModulePackages = [ ];
   };
 

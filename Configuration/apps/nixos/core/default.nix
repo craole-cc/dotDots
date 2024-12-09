@@ -1,8 +1,8 @@
 {
   imports = [
+    ./configurations
     # ./apps
     ./environment
-    # ./hosts
     # ./libraries
     # ./services
     ./ui
