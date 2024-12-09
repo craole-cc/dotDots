@@ -57,15 +57,18 @@
                 scripts = "/Bin";
                 libraries = "/libraries";
                 hosts = "/hosts/configurations";
-                # mkCore = "/helpers/makeCoreConfig.nix";
-                mkCore = "/makeCoreConfig.nix";
+                mkCore = "/helpers/makeCoreConfig.nix";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
+                env = "/environment";
+                lib = "libraries";
+                ui = "/ui";
               };
               core = {
-                env = flake.store + "/core/environment";
-                lib = flake.store + "/core/libraries";
-                ui = flake.store + "/core/ui";
+                default = modules.store + "/core";
+                env = core.default + parts.env;
+                lib = core.default + parts.lib;
+                ui = core.default + parts.ui;
               };
               scripts = {
                 local = flake.local + parts.scripts;
@@ -95,14 +98,6 @@
             let
               conf = {
                 environment = {
-                  #   variables = with paths; {
-                  #     DOTS = flake.local;
-                  #     DOTS_RC = flake.local + "/.dotsrc";
-                  #     DOTS_BIN = scripts.local;
-                  #     DOTS_NIX = modules.local;
-                  #     NIXOS_FLAKE = flake.local;
-                  #     NIXOS_CONFIG = with paths; modules.local + parts.hosts + "/${name}";
-                  #   };
                   shellAliases = {
                     Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
                     Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
@@ -130,7 +125,7 @@
               };
               core =
                 [
-                  conf
+                  # conf
                   paths.modules.store
                 ]
                 # ++ (with paths; [
