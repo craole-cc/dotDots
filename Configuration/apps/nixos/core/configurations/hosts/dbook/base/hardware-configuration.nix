@@ -80,7 +80,7 @@
   };
 
   console = {
-    font = "ter-u24n";
+    font = lib.mkForce "ter-u24n";
   };
 
   system = {
