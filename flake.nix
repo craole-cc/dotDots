@@ -106,7 +106,7 @@
                 ]);
               home =
                 (with paths; [
-                  (modules.store + parts.uiHome + "/${ui.env}")
+                  # (modules.store + parts.uiHome + "/${ui.env}")
                 ])
                 ++ (
                   with inputs;
