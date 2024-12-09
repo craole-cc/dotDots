@@ -156,6 +156,7 @@
             inherit paths alpha ui;
             mods = specialModules;
             flake = self;
+            host=name;
           } // extraArgs;
         in
         import (with paths; libraries.store + parts.mkCore) {
