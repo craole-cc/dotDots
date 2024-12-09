@@ -1,6 +1,6 @@
 { pkgs, ... }:{
   environment.systemPackages =
-    with pkgs; if config.xserver.enable then
+    with pkgs; if config.services.xserver.enable then
     [
       qalculate-gtk
       wmctrl
