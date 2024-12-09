@@ -10,8 +10,8 @@
     };
 
     blueman = {
-      enable = true; # TODO for devices with bluetooth
-    };
+      enable = true;
+    }; # TODO for devices with bluetooth
 
     udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="hidraw", GROUP="users", MODE="0660", TAG+="uaccess"
@@ -19,7 +19,7 @@
 
     upower = {
       enable = true;
-    };
+    }; # TODO for devices with battery
 
     redshift = {
       enable = true;
@@ -31,11 +31,11 @@
         day = 5500;
         night = 3800;
       };
-    };
+    }; # TODO for devices with battery
 
     libinput = {
-      enable = true; # TODO for devices with mouse or touchpad
-    };
+      enable = true;
+    }; # TODO for devices with mouse or touchpad
 
     tailscale = {
       enable = true;
