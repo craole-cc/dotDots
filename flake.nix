@@ -62,6 +62,7 @@
                 env = "/environment";
                 lib = "/libraries";
                 ui = "/ui";
+                args = "/args";
               };
               core = {
                 default = modules.store + "/core";
@@ -96,11 +97,12 @@
             };
           specialModules =
             let
+              host = paths.core.conf + "/${name}";
               core =
-                (with paths.core; [
-                  default
-                  (conf + "/${name}")
-                ])
+                [
+                  paths.core.default
+                  host
+                ]
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
@@ -122,7 +124,7 @@
                     [ ]
                 );
             in
-            { inherit core home; } // extraMods;
+            { inherit core home host; } // extraMods;
           specialArgs =
             let
               mods = specialModules;
@@ -146,6 +148,7 @@
                 location
                 ;
             }
+            // (import "./${mods.host}/args")
             // extraArgs;
         in
         import paths.libraries.mkCore {

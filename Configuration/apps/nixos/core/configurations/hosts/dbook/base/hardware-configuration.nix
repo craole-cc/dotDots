@@ -3,7 +3,10 @@
   lib,
   pkgs,
   ...
-}:let inherit (lib.modules)mkForce;in
+}:
+let
+  inherit (lib.modules) mkForce;
+in
 {
   boot = {
     initrd = {

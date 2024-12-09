@@ -4,6 +4,4 @@
     ./xserver.nix
     # ./wayland.nix
   ];
-
-  specialArgs.pop = "lol";
 }
