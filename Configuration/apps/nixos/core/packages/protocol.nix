@@ -11,7 +11,7 @@
       xdotool
       xinput
       xrandr
-    ]); else [
+    ]) else [
       qalculate-qt
       wlprop
     ];
