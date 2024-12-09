@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
   environment = {
-    xfce.excludePackages = with pkgs; [ kate ];
+    xfce.excludePackages = with pkgs; [ xterm ];
   };
 }

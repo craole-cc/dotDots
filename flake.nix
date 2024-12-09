@@ -128,6 +128,12 @@
               mods = specialModules;
               flake = self;
               host = name;
+              location = {
+                latitude = 18.015;
+                longitude = 77.49;
+                timeZone = "America/Jamaica";
+                defaultLocale = "en_US.UTF-8";
+              };
             in
             {
               inherit
@@ -137,6 +143,7 @@
                 mods
                 flake
                 host
+                location
                 ;
             }
             // extraArgs;

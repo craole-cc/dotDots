@@ -6,51 +6,51 @@
   ...
 }:
 let
-  plasmaEnabled = config.services.desktopManager.plasma6.enable;
-  sddmEnabled = config.services.displayManager.sddm.enable;
-  xserverEnabled = config.services.xserver.enable;
+  # plasmaEnabled = config.services.desktopManager.plasma6.enable;
+  # sddmEnabled = config.services.displayManager.sddm.enable;
+  # xserverEnabled = config.services.xserver.enable;
 in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  nix = {
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-        "pipe-operators"
-      ];
-      trusted-users = [
-        "root"
-        "craole"
-        "@wheel"
-      ];
-    };
-  };
+  # nix = {
+  #   settings = {
+  #     experimental-features = [
+  #       "nix-command"
+  #       "flakes"
+  #       "pipe-operators"
+  #     ];
+  #     trusted-users = [
+  #       "root"
+  #       "craole"
+  #       "@wheel"
+  #     ];
+  #   };
+  # };
 
-  time = {
-    timeZone = lib.mkDefault "America/Jamaica";
-    hardwareClockInLocalTime = lib.mkDefault true;
-  };
+  # time = {
+  #   timeZone = lib.mkDefault "America/Jamaica";
+  #   hardwareClockInLocalTime = lib.mkDefault true;
+  # };
 
-  location = {
-    latitude = 18.015;
-    longitude = 77.49;
-    provider = "manual";
-  };
+  # location = {
+  #   latitude = 18.015;
+  #   longitude = 77.49;
+  #   provider = "manual";
+  # };
 
-  i18n = {
-    defaultLocale = lib.mkDefault "en_US.UTF-8";
-  };
+  # i18n = {
+  #   defaultLocale = lib.mkDefault "en_US.UTF-8";
+  # };
 
-  console = {
-    packages = [ pkgs.terminus_font ];
-    font = "ter-u32n";
-    earlySetup = true;
-    useXkbConfig = true;
-  };
+  # console = {
+  #   packages = [ pkgs.terminus_font ];
+  #   font = "ter-u32n";
+  #   earlySetup = true;
+  #   useXkbConfig = true;
+  # };
 
   services = {
     kmscon = {
@@ -115,36 +115,36 @@ in
     };
   };
 
-  security = {
-    pam.services = {
-      login = {
-        enableKwallet = plasmaEnabled;
-        # forceRun = true;
-      };
-      sddm = {
-        enableKwallet = plasmaEnabled && sddmEnabled;
-        # forceRun = true;
-      };
-    };
-    sudo = {
-      execWheelOnly = true;
-      extraRules = [
-        {
-          users = [ "craole" ];
-          commands = [
-            {
-              command = "ALL";
-              options = [
-                "SETENV"
-                "NOPASSWD"
-              ];
-            }
-          ];
-        }
-      ];
-    };
-    rtkit.enable = true;
-  };
+  # security = {
+  #   pam.services = {
+  #     login = {
+  #       enableKwallet = plasmaEnabled;
+  #       # forceRun = true;
+  #     };
+  #     sddm = {
+  #       enableKwallet = plasmaEnabled && sddmEnabled;
+  #       # forceRun = true;
+  #     };
+  #   };
+  #   sudo = {
+  #     execWheelOnly = true;
+  #     extraRules = [
+  #       {
+  #         users = [ "craole" ];
+  #         commands = [
+  #           {
+  #             command = "ALL";
+  #             options = [
+  #               "SETENV"
+  #               "NOPASSWD"
+  #             ];
+  #           }
+  #         ];
+  #       }
+  #     ];
+  #   };
+  #   rtkit.enable = true;
+  # };
 
   # programs = {
   #   hyprland.enable = true;
@@ -159,78 +159,78 @@ in
   #   };
   # };
 
-  environment = {
-    systemPackages =
-      with pkgs;
-      [
-        #| Core Utilities
-        usbutils
-        uutils-coreutils-noprefix
-        busybox
-        bat
-        fzf
-        ripgrep
-        sd
-        tldr
-        fd
-        jq
-        nix-prefetch-scripts
-        nix-prefetch
-        nix-prefetch-github
-        nix-prefetch-docker
+  # environment = {
+  #   systemPackages =
+  #     with pkgs;
+  #     [
+  #       #| Core Utilities
+  #       usbutils
+  #       uutils-coreutils-noprefix
+  #       busybox
+  #       bat
+  #       fzf
+  #       ripgrep
+  #       sd
+  #       tldr
+  #       fd
+  #       jq
+  #       nix-prefetch-scripts
+  #       nix-prefetch
+  #       nix-prefetch-github
+  #       nix-prefetch-docker
 
-        #| Development
-        nil
-        nixd
-        nixfmt-rfc-style
-        nix-info
-        shellcheck
-        shfmt
+  #       #| Development
+  #       nil
+  #       nixd
+  #       nixfmt-rfc-style
+  #       nix-info
+  #       shellcheck
+  #       shfmt
 
-        #| Filesystem
-        dust
-        eza
+  #       #| Filesystem
+  #       dust
+  #       eza
 
-        #| System
-        easyeffects
-        pavucontrol
-        qjackctl
-        brightnessctl
+  #       #| System
+  #       easyeffects
+  #       pavucontrol
+  #       qjackctl
+  #       brightnessctl
 
-        #| Utilities
-        speedtest-go
-        fend
-        libqalculate
-      ]
-      ++ (
-        if plasmaEnabled then
-          [ kde-gruvbox ]
-          ++ (with kdePackages; [
-            # full
-            koi
-            kalm
-            yakuake
-          ])
-        else
-          [ ]
-      )
-      ++ (
-        if xserverEnabled then
-          with xorg;
-          [
-            qalculate-gtk
-            wmctrl
-            xprop
-            xdotool
-            xinput
-            xrandr
-          ]
-        else
-          [
-            qalculate-qt
-            wlprop
-          ]
-      );
-    plasma6.excludePackages = with pkgs; [ kate ];
-  };
+  #       #| Utilities
+  #       speedtest-go
+  #       fend
+  #       libqalculate
+  #     ]
+  #     ++ (
+  #       if plasmaEnabled then
+  #         [ kde-gruvbox ]
+  #         ++ (with kdePackages; [
+  #           # full
+  #           koi
+  #           kalm
+  #           yakuake
+  #         ])
+  #       else
+  #         [ ]
+  #     )
+  #     ++ (
+  #       if xserverEnabled then
+  #         with xorg;
+  #         [
+  #           qalculate-gtk
+  #           wmctrl
+  #           xprop
+  #           xdotool
+  #           xinput
+  #           xrandr
+  #         ]
+  #       else
+  #         [
+  #           qalculate-qt
+  #           wlprop
+  #         ]
+  #     );
+  #   plasma6.excludePackages = with pkgs; [ kate ];
+  # };
 }
