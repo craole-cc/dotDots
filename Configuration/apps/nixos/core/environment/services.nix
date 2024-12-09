@@ -1,25 +1,10 @@
-{
-  specialArgs,
-  ...
-}:
+{ specialArgs, ...}:
 {
   services = {
-    kmscon = {
-      enable = true;
-      autologinUser = specialArgs.alpha;
-    };
 
     blueman = {
       enable = true;
     }; # TODO for devices with bluetooth
-
-    udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="hidraw", GROUP="users", MODE="0660", TAG+="uaccess"
-    '';
-
-    upower = {
-      enable = true;
-    }; # TODO for devices with battery
 
     redshift = {
       enable = true;
@@ -32,22 +17,23 @@
         night = 3800;
       };
     }; # TODO for devices with battery
+    
+    kmscon = {
+      enable = true;
+      autologinUser = specialArgs.alpha;
+    };
 
     libinput = {
       enable = true;
     }; # TODO for devices with mouse or touchpad
 
-    tailscale = {
+    ollama = {
       enable = true;
-    };
-
-    # ollama = {
-    #   enable = true;
-    #   loadModels = [
-    #     "mistral-nemo"
-    #     # "yi-coder:9b"
-    #   ];
-    # };
+      loadModels = [
+        "mistral-nemo"
+        # "yi-coder:9b"
+      ];
+    }; # TODO for devices with 16GB memory
 
     pipewire = {
       enable = true;
@@ -63,6 +49,18 @@
           max-quantum = 32;
         };
       };
+    }; # TODO for devices with audio
+
+    tailscale = {
+      enable = true;
     };
+
+    udev.extraRules = ''
+      ACTION=="add", SUBSYSTEM=="hidraw", GROUP="users", MODE="0660", TAG+="uaccess"
+    '';
+
+    upower = {
+      enable = true;
+    }; # TODO for devices with battery
   };
 }

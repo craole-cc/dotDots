@@ -5,6 +5,7 @@
     [
       qalculate-gtk
       wmctrl
+      variety
     ]
     ++ (with xorg; [
       xprop

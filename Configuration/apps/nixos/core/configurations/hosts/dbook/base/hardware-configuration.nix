@@ -79,6 +79,10 @@
     pulseaudio.enable = false;
   };
 
+  console = {
+    font = "ter-u24n";
+  };
+
   system = {
     stateVersion = "24.05";
   };

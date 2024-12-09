@@ -1,7 +1,7 @@
 {
   imports = [
     #| Core
-    ./configuration.nix
+    # ./configuration.nix
     ./hardware-configuration.nix
     # ./xfce.nix
 

@@ -30,6 +30,7 @@
     #| Development
     nil
     nixd
+    alejandra
     nixfmt-rfc-style
     nix-info
     shellcheck
