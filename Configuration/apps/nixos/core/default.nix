@@ -3,9 +3,10 @@
     ./configurations
     # ./apps
     ./environment
+    ./packages
     # ./libraries
-    # ./services
-    ./ui
+    ./services
+    # ./ui
     # ./users
   ];
 }

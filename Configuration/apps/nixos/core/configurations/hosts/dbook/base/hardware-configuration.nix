@@ -3,7 +3,7 @@
   lib,
   pkgs,
   ...
-}:
+}:let inherit (lib.modules)mkForce;in
 {
   boot = {
     initrd = {
@@ -54,7 +54,7 @@
   networking = {
     hostId = "0ab86678";
     hostName = "dbook";
-    interfaces.wlp2s0.useDHCP = lib.mkDefault true;
+    interfaces.wlp2s0.useDHCP = lib.mkForce true;
     networkmanager.enable = true;
     firewall = {
       enable = false;

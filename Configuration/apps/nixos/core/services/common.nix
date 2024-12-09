@@ -1,7 +1,6 @@
 { specialArgs, ...}:
 {
   services = {
-
     blueman = {
       enable = true;
     }; # TODO for devices with bluetooth
@@ -17,7 +16,7 @@
         night = 3800;
       };
     }; # TODO for devices with battery
-    
+
     kmscon = {
       enable = true;
       autologinUser = specialArgs.alpha;
