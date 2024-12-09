@@ -57,7 +57,8 @@
                 scripts = "/Bin";
                 libraries = "/libraries";
                 hosts = "/hosts/configurations";
-                mkCore = "/helpers/makeCoreConfig.nix";
+                # mkCore = "/helpers/makeCoreConfig.nix";
+                mkCore = "/core/libraries/makeCoreConfig.nix";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
               };
@@ -88,14 +89,14 @@
             let
               conf = {
                 environment = {
-                #   variables = with paths; {
-                #     DOTS = flake.local;
-                #     DOTS_RC = flake.local + "/.dotsrc";
-                #     DOTS_BIN = scripts.local;
-                #     DOTS_NIX = modules.local;
-                #     NIXOS_FLAKE = flake.local;
-                #     NIXOS_CONFIG = with paths; modules.local + parts.hosts + "/${name}";
-                #   };
+                  #   variables = with paths; {
+                  #     DOTS = flake.local;
+                  #     DOTS_RC = flake.local + "/.dotsrc";
+                  #     DOTS_BIN = scripts.local;
+                  #     DOTS_NIX = modules.local;
+                  #     NIXOS_FLAKE = flake.local;
+                  #     NIXOS_CONFIG = with paths; modules.local + parts.hosts + "/${name}";
+                  #   };
                   shellAliases = {
                     Flake = ''pushd ${paths.flake.local} && { { { command -v geet && geet ;} || git add --all; git commit --message "Flake Update" ;} ; sudo nixos-rebuild switch --flake . --show-trace ;}; popd'';
                     Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
@@ -156,7 +157,7 @@
             inherit paths alpha ui;
             mods = specialModules;
             flake = self;
-            host=name;
+            host = name;
           } // extraArgs;
         in
         import (with paths; libraries.store + parts.mkCore) {
