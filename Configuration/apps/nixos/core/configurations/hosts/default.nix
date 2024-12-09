@@ -1,6 +1,6 @@
 {
   imports = [
-    ./preci
+    # ./preci
     # ./dbook
     # ./delle
     # ./victus

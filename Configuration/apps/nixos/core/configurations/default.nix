@@ -1,6 +1,6 @@
 {
   imports = [
-    ./configurations
+    # ./configurations
     ./options
     # ./export
 

@@ -57,6 +57,7 @@ let
               useGlobalPkgs = true;
               useUserPackages = true;
               sharedModules = specialModules.home;
+              extraSpecialArgs = specialArgs;
             };
           }
         ]

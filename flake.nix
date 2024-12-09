@@ -55,7 +55,7 @@
                 modules = "/Configuration/apps/nixos";
                 scripts = "/Bin";
                 libraries = "/libraries";
-                hosts = "/hosts/configurations";
+                hosts = "/configurations/configurations";
                 mkCore = "/helpers/makeCoreConfig.nix";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
@@ -68,6 +68,7 @@
                 env = core.default + parts.env;
                 lib = core.default + parts.lib;
                 ui = core.default + parts.ui;
+                conf = core.default + parts.hosts;
               };
               scripts = {
                 local = flake.local + parts.scripts;
@@ -96,10 +97,10 @@
           specialModules =
             let
               core =
-                [
-                  paths.core.default
-                  # (core.ui + "/${ui.env}")
-                ]
+                (with paths.core; [
+                  default
+                  (conf + "/${name}")
+                ])
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
@@ -122,12 +123,23 @@
                 );
             in
             { inherit core home; } // extraMods;
-          specialArgs = {
-            inherit paths alpha ui;
-            mods = specialModules;
-            flake = self;
-            host = name;
-          } // extraArgs;
+          specialArgs =
+            let
+              mods = specialModules;
+              flake = self;
+              host = name;
+            in
+            {
+              inherit
+                paths
+                alpha
+                ui
+                mods
+                flake
+                host
+                ;
+            }
+            // extraArgs;
         in
         import paths.libraries.mkCore {
           inherit (inputs)
