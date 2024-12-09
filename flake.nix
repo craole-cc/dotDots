@@ -58,9 +58,14 @@
                 libraries = "/libraries";
                 hosts = "/hosts/configurations";
                 # mkCore = "/helpers/makeCoreConfig.nix";
-                mkCore = "/core/libraries/makeCoreConfig.nix";
+                mkCore = "/makeCoreConfig.nix";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
+              };
+              core = {
+                env = flake.store + "/core/environment";
+                lib = flake.store + "/core/libraries";
+                ui = flake.store + "/core/ui";
               };
               scripts = {
                 local = flake.local + parts.scripts;
@@ -73,6 +78,7 @@
               libraries = {
                 local = modules.local + parts.libraries;
                 store = modules.store + parts.libraries;
+                mkCore = core.lib + parts.mkCore;
               };
             in
             {
@@ -160,7 +166,8 @@
             host = name;
           } // extraArgs;
         in
-        import (with paths; libraries.store + parts.mkCore) {
+        # import (with paths; libraries.store + parts.mkCore) {
+        import paths.libraries.mkCore {
           inherit (inputs)
             nixosStable
             nixosUnstable
