@@ -1,8 +1,8 @@
 { config, ... }:
 {
   imports = [
-    ./tty.nix
-    ./gui.nix
-    ./protocol.nix
+    ./common.nix
+    ./xserver.nix
+    ./wayland.nix
   ];
 }
