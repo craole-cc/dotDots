@@ -146,18 +146,18 @@ in
     rtkit.enable = true;
   };
 
-  programs = {
-    hyprland.enable = true;
-    hyprlock.enable = true;
-    git = {
-      enable = true;
-      lfs.enable = true;
-    };
-    direnv = {
-      enable = true;
-      silent = true;
-    };
-  };
+  # programs = {
+  #   hyprland.enable = true;
+  #   hyprlock.enable = true;
+  #   git = {
+  #     enable = true;
+  #     lfs.enable = true;
+  #   };
+  #   direnv = {
+  #     enable = true;
+  #     silent = true;
+  #   };
+  # };
 
   environment = {
     systemPackages =

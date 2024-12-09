@@ -1,6 +1,7 @@
-{ specialArgs, ... }:
+{ specialArgs, pkgs, ... }:
 if specialArgs.ui.env == "plasma" then
   {
+    imports=[./packages.nix];
     services = {
       desktopManager = {
         plasma6.enable = true;
@@ -23,6 +24,9 @@ if specialArgs.ui.env == "plasma" then
         };
       };
     };
+
+    environment.plasma6.excludePackages = with pkgs; [ kate ];
+
   }
 else
   { }
