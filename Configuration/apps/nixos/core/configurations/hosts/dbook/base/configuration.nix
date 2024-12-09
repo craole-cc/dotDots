@@ -216,7 +216,7 @@ in
       )
       ++ (
         if xserverEnabled then
-          [
+          with xorg;[
             wmctrl
             xprop
             xdotool
