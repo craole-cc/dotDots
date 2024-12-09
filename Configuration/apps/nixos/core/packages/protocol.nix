@@ -1,4 +1,4 @@
-{ pkgs, ... }:{
+{ pkgs,config, ... }:{
   environment.systemPackages =
     with pkgs; if config.services.xserver.enable then
     [
