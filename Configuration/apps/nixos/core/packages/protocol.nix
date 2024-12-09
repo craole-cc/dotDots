@@ -1,7 +1,6 @@
-{ pkgs, ... }:
-{
+{ pkgs, ... }:{
   environment.systemPackages =
-    with pkgs;
+    with pkgs; if config.xserver.enable then
     [
       qalculate-gtk
       wmctrl
@@ -12,5 +11,8 @@
       xdotool
       xinput
       xrandr
-    ]);
+    ]); else [
+      qalculate-qt
+      wlprop
+    ];
 }
