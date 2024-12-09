@@ -1,19 +1,11 @@
-{
-  config,
-  specialArgs,
-  ...
-}:
+{ specialArgs, ... }:
 let
-  defaultUser = "craole";
-  userName =
-    if (specialArgs ? alpha) && (specialArgs.alpha != null) then specialArgs.alpha else defaultUser;
-  user = if config.users.users ? userName then userName else throw "Unknown user: ${userName}";
+  name = if (specialArgs ? alpha) then specialArgs.alpha else null;
+  display.autoLogin = true;
 in
 {
-  services.displayManager = {
-    autoLogin = {
-      enable = true;
-      inherit user;
-    };
+  services.displayManager.autoLogin = {
+    enable = display.autoLogin && (name != null);
+    user = name;
   };
 }
