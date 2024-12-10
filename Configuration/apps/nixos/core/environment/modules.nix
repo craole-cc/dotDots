@@ -5,7 +5,7 @@
   pkgs,
   modulesPath,
   ...
-}:
+}:let inherit (specialArgs)host;in
 {
   console = {
     # TODO use specialArgs
@@ -16,7 +16,7 @@
   };
 
   i18n = {
-    inherit (specialArgs.location) defaultLocale;
+    inherit (host.location) defaultLocale;
   };
 
   imports = [
@@ -24,7 +24,7 @@
   ];
 
   location = {
-    inherit (specialArgs.location) latitude longitude;
+    inherit (host.location) latitude longitude;
     provider =
       with config.location;
       if latitude == null || longitude == null then "geoclue2" else "manual";
@@ -51,7 +51,7 @@
   };
 
   time = {
-    inherit (specialArgs.location) timeZone;
+    inherit (host.location) timeZone;
     hardwareClockInLocalTime = lib.mkDefault true;
   };
 
