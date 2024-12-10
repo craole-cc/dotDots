@@ -129,13 +129,13 @@ in
       };
     };
 
-    sensor =
-      if hasBareMetal then
-        {
-          iio.enable = true;
-          hddtemp.enable = true;
-        }
-      else
-        { };
+    # sensor =
+    #   if hasBareMetal then
+    #     {
+    #       iio.enable = true;
+    #       hddtemp.enable = true;
+    #     }
+    #   else
+    #     { };
   };
 }
