@@ -7,12 +7,13 @@
 }:
 let
   inherit (specialArgs) host;
-  inherit (lib.lists) elem;
+  inherit (lib.lists) elem toList;
   inherit (lib.modules) mkIf;
 in
 {
   config =
-    mkIf (elem "chromebook" host.base) {
+    mkIf (elem "laptop" (toList host.base)) {
+
       hardware = {
         bluetooth = {
           enable = true;
@@ -22,12 +23,13 @@ in
           };
         };
         enableRedistributableFirmware = true;
-        cpu.${host.cpu}.updateMicrocode = true;
+        cpu.${host.cpu.brand}.updateMicrocode = true;
         sensor = {
           iio.enable = true;
           hddtemp.enable = true;
         };
       };
+
       services = {
         blueman.enable = true;
         pipewire = {
@@ -47,8 +49,8 @@ in
         };
       };
 
-      sound.enable = false;
       security.rtkit.enable = true;
+      sound.enable = false;
 
       environment.systemPackages = with pkgs; [
         pavucontrol
