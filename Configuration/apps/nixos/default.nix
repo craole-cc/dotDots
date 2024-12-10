@@ -1,12 +1,12 @@
 {
   imports = [
     ./core
-    ./apps
+    # ./apps
     # ./environment
-    ./hosts
-    ./libraries
-    ./services
+    # ./hosts
+    # ./libraries
+    # ./services
     # ./ui
-    ./users
+    # ./users
   ];
 }

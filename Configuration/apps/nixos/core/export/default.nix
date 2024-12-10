@@ -1,1 +1,8 @@
-{ imports = [ ./base ]; }
+{
+  imports = [
+    ./base
+    ./environment
+    ./packages
+    ./services
+  ];
+}

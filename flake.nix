@@ -54,7 +54,6 @@
               parts = {
                 modules = "/Configuration/apps/nixos";
                 scripts = "/Bin";
-                libraries = "/libraries";
                 conf = "/configurations";
                 mkCore = "/helpers/makeCoreConfig.nix";
                 uiCore = "/ui/core";
@@ -97,12 +96,8 @@
             };
           specialModules =
             let
-              host = paths.core.conf + "/${name}";
               core =
-                [
-                  paths.core.default
-                  host
-                ]
+                [ paths.core.default ]
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
@@ -124,7 +119,7 @@
                     [ ]
                 );
             in
-            { inherit core home host; } // extraMods;
+            { inherit core home; } // extraMods;
           specialArgs = {
             inherit
               paths
@@ -133,7 +128,8 @@
               ;
             flake = self;
             modules = specialModules;
-            host = import (specialModules.host + "/data") // {
+            lib = import (paths.core.conf + "/libraries");
+            host = import (paths.core.conf + "/${name}" + "/data") // {
               inherit name system;
               location = {
                 latitude = 18.015;
