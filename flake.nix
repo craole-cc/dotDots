@@ -125,31 +125,24 @@
                 );
             in
             { inherit core home host; } // extraMods;
-          specialArgs =
-            let
-              mods = specialModules;
-              flake = self;
-              host = name;
+          specialArgs = {
+            inherit
+              paths
+              alpha
+              ui
+              ;
+            flake = self;
+            modules = specialModules;
+            host = import (specialModules.host + "/data") // {
+              inherit name system;
               location = {
                 latitude = 18.015;
                 longitude = 77.49;
                 timeZone = "America/Jamaica";
                 defaultLocale = "en_US.UTF-8";
               };
-            in
-            {
-              inherit
-                paths
-                alpha
-                ui
-                mods
-                flake
-                host
-                location
-                ;
-            }
-            // (import "./${mods.host}/args")
-            // extraArgs;
+            };
+          } // extraArgs;
         in
         import paths.libraries.mkCore {
           inherit (inputs)

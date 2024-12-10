@@ -57,7 +57,7 @@ in
   networking = {
     hostId = "0ab86678";
     hostName = "dbook";
-    interfaces.wlp2s0.useDHCP = lib.mkForce true;
+    interfaces.wlp2s0.useDHCP = mkForce true;
     networkmanager.enable = true;
     firewall = {
       enable = false;
@@ -67,11 +67,11 @@ in
   };
 
   nixpkgs = {
-    hostPlatform = lib.mkDefault "x86_64-linux";
+    hostPlatform = mkForce "x86_64-linux";
   };
 
   hardware = {
-    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+    cpu.intel.updateMicrocode = mkForce config.hardware.enableRedistributableFirmware;
     bluetooth = {
       enable = true;
       settings.General = {
