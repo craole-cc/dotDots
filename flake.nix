@@ -128,7 +128,7 @@
               ;
             flake = self;
             modules = specialModules;
-            lib = import (paths.core.conf + "/libraries");
+            # lib = import (paths.core + "/libraries");
             host = import (paths.core.conf + "/${name}" + "/data") // {
               inherit name system;
               location = {

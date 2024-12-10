@@ -1,4 +1,4 @@
-{ specialArgs, pkgs, ... }:
+{ specialArgs, ... }:
 if specialArgs.ui.env == "plasma" then
   {
     services = {
@@ -13,14 +13,8 @@ if specialArgs.ui.env == "plasma" then
 
     security = {
       pam.services = {
-        login = {
-          enableKwallet = true;
-          forceRun = true;
-        };
-        sddm = {
-          enableKwallet = true;
-          forceRun = true;
-        };
+        login.enableKwallet = true;
+        sddm.enableKwallet = true;
       };
     };
   }

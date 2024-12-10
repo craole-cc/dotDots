@@ -1,6 +1,6 @@
 {
   imports = [
-    ./base
+    # ./context
     ./environment
     ./packages
     ./services

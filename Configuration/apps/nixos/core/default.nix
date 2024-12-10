@@ -1,11 +1,8 @@
 {
   imports = [
     ./configurations
-    # ./apps
-    ./environment
-    ./packages
+    ./export
     # ./libraries
     ./options
-    ./export
   ];
 }

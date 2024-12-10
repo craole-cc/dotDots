@@ -1,11 +1,12 @@
 { specialArgs, ... }:
-if specialArgs.ui.env == "hyprland" then
-  {
-    services = {
-      hypridle = {
-        enable = true;
-      };
-    };
-  }
-else
-  { }
+{
+  services =
+    if specialArgs.ui.env == "hyprland" then
+      {
+        hypridle = {
+          enable = true;
+        };
+      }
+    else
+      { };
+}

@@ -1,6 +1,7 @@
-{ specialArgs, ... }:
+{ specialArgs,lib, ... }:
 let
   inherit (specialArgs.host) capabilities ai;
+  inherit(specialArgs.host.cpu)brand;
   inherit (lib.lists) elem;
   # TODO: use host.people.{name}.autoLogin
   alpha = if (specialArgs ? alpha) then specialArgs.alpha else null;
@@ -12,7 +13,7 @@ let
   hasAudio = elem "audio" capabilities;
   hasRemote = elem "remote" capabilities;
   hasInput = elem "mouse" capabilities || elem "touchpad" capabilities;
-  hasBareMetal = elem host.cpu.brand [
+  hasBareMetal = elem brand [
     "amd"
     "intel"
     "x86"
@@ -20,7 +21,7 @@ let
 in
 {
   services = {
-    autoLogin = {
+    displayManager.autoLogin = {
       enable = login && (alpha != null);
       user = alpha;
     };
@@ -115,7 +116,7 @@ in
     cpu =
       if hasBareMetal then
         {
-          ${host.cpu.brand}.updateMicrocode = true;
+          ${brand}.updateMicrocode = true;
         }
       else
         { };
