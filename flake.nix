@@ -55,7 +55,7 @@
                 modules = "/Configuration/apps/nixos";
                 scripts = "/Bin";
                 libraries = "/libraries";
-                hosts = "/configurations/hosts";
+                conf = "/configurations";
                 mkCore = "/helpers/makeCoreConfig.nix";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
@@ -69,7 +69,7 @@
                 env = core.default + parts.env;
                 lib = core.default + parts.lib;
                 ui = core.default + parts.ui;
-                conf = core.default + parts.hosts;
+                conf = core.default + parts.conf;
               };
               scripts = {
                 local = flake.local + parts.scripts;

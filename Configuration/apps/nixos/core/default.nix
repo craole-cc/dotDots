@@ -8,5 +8,7 @@
     ./services
     # ./ui
     # ./users
+    ./options
+    ./export
   ];
 }
