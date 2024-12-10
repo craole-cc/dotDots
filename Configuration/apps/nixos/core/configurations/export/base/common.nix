@@ -13,7 +13,7 @@ in
   console = {
     # TODO use specialArgs
     packages = [ pkgs.terminus_font ];
-    font = "ter-u32n";
+    font = "ter-u28n";
     earlySetup = true;
     useXkbConfig = true;
   };

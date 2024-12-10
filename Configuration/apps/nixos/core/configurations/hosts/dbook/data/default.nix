@@ -1,9 +1,6 @@
 {
   id = "0ab86678";
-  base = [
-    "laptop"
-    "chromebook"
-  ];
+  base = "chromebook";
   context = [
     "development"
     "media"

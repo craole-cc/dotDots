@@ -5,12 +5,12 @@
   ...
 }:
 let
-  inherit (config) dot;
-  inherit (dot.current) host;
+  inherit (specialArgs) host;
+  inherit (lib.lists) elem;
+  inherit (lib.modules) mkIf;
 in
-with host;
 {
-  config = lib.mkIf (machine == "server") {
+  config = lib.mkIf (elem host.base [ "server" ]) {
     hardware = { };
     services = { };
     environment.systemPackages = with pkgs; [ ];

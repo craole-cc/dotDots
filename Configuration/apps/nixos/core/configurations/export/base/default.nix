@@ -1,1 +1,6 @@
-{ imports = [ ./chromebook.nix ]; }
+{
+  imports = [
+    ./laptop.nix
+    ./server.nix
+  ];
+}
