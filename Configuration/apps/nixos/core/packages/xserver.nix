@@ -17,10 +17,11 @@ in
         xdotool
         xinput
         xrandr
+        xev
       ])
     else
       [ ];
-      
+
   programs =
     if isX11 then
       {
