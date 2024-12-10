@@ -7,12 +7,12 @@
 }:
 let
   inherit (specialArgs) host;
-  inherit (lib.options) mkIf;
+  inherit (lib.lists) elem;
+  inherit (lib.modules) mkIf;
 in
 {
   config =
-    # with config.dot.libraries.host;
-    mkIf (machine == "chromebook") {
+    mkIf (elem "chromebook" host.base) {
       hardware = {
         bluetooth = {
           enable = true;
@@ -22,7 +22,7 @@ in
           };
         };
         enableRedistributableFirmware = true;
-        cpu.${cpu}.updateMicrocode = true;
+        cpu.${host.cpu}.updateMicrocode = true;
         sensor = {
           iio.enable = true;
           hddtemp.enable = true;

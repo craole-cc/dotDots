@@ -1,10 +1,10 @@
 {
   id = "0ab86678";
-  context = [
+  base = [
     "laptop"
     "chromebook"
   ];
-  profile = [
+  context = [
     "development"
     "media"
     "productivity"
