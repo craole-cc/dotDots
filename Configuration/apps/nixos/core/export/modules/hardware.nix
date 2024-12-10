@@ -5,11 +5,12 @@ let
   inherit (specialArgs.host)
     name
     id
-    modules
+    boot
     cpu
     devices
     access
     ;
+  inherit (boot) modules;
   inherit (access) firewall;
   inherit (firewall) tcp udp;
   inherit (cpu) brand;
