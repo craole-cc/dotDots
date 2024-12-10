@@ -11,7 +11,7 @@ with paths;
       DOTS_BIN = scripts.local;
       DOTS_NIX = modules.local;
       NIXOS_FLAKE = flake.local;
-      NIXOS_CONFIG = modules.local + parts.hosts + "/${host}";
+      NIXOS_CONFIG = modules.local + parts.hosts + "/${host.name}";
     };
     extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
   };
