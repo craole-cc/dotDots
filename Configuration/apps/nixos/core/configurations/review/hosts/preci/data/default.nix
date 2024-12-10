@@ -34,9 +34,10 @@
   access = {
     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
     age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
-    ports = {
-      tcp = [ ];
-      udp = [ ];
+    firewall={
+      enable = false;
+      tcp = {ranges=[];ports=[];  };
+      udp = {ranges=[];ports=[];  };
     };
   };
   people = [

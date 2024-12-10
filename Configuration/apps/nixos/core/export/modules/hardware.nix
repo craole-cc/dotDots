@@ -1,11 +1,18 @@
-{
-  specialArgs,
-  config,
-  lib,
-  ...
-}:
+{ specialArgs, lib, ... }:
 let
-  inherit (specialArgs.host) modules cpu devices;
+  inherit (lib.lists) elem;
+  inherit (lib.attrsets) listToAttrs mapAttrs;
+  inherit (specialArgs.host)
+    name
+    id
+    modules
+    cpu
+    devices
+    access
+    ;
+  inherit (access) firewall;
+  inherit (firewall) tcp udp;
+  inherit (cpu) brand;
 in
 {
   boot = {
@@ -20,14 +27,11 @@ in
     };
 
     kernelModules =
-      let
-        inherit (cpu) brand;
-      in
       if
         (elem brand [
           "intel"
           "amd"
-          "x86"
+          # "x86"
         ])
       then
         [ "kvm-${brand}" ]
@@ -41,17 +45,13 @@ in
   networking = {
     hostId = id;
     hostName = name;
-    # interfaces = {
-    #   eno1.useDHCP = true;
-    #   wlp3s0.useDHCP = true;
-    # };
     interfaces =
-      lib.mapAttrs
+      mapAttrs
         (_: iface: {
           useDHCP = true;
         })
         (
-          lib.listToAttrs (
+          listToAttrs (
             map (iface: {
               name = iface;
               value = { };
@@ -60,9 +60,11 @@ in
         );
 
     firewall = {
-      enable = false;
-      # allowedTCPPorts = [ ... ];
-      # allowedUDPPorts = [ ... ];
+      enable = if firewall ? enable then firewall.enable else false;
+      allowedTCPPorts = tcp.ports;
+      allowedUDPPorts = udp.ports;
+      allowedTCPPortRanges = tcp.ranges;
+      allowedUDPPortRanges = udp.ranges;
     };
   };
 }
