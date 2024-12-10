@@ -18,7 +18,7 @@
     brand = "intel";
   };
   keyboard = {
-    modifier = "Alt Control";
+    modifier = "SUPER_L";
     swapCapsEscape = false;
   };
   access = {

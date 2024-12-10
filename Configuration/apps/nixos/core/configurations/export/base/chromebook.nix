@@ -2,12 +2,17 @@
   config,
   lib,
   pkgs,
+  specialArgs,
   ...
 }:
+let
+  inherit (specialArgs) host;
+  inherit (lib.options) mkIf;
+in
 {
   config =
     # with config.dot.libraries.host;
-    lib.mkIf (machine == "chromebook") {
+    mkIf (machine == "chromebook") {
       hardware = {
         bluetooth = {
           enable = true;
