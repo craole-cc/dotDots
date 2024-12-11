@@ -2,7 +2,7 @@
   id = "0ab86678";
   stateVersion = "24.05";
   base = "laptop";
-  desktop = "hyprland";
+  desktop = "plasma";
   capabilities = [
     "ai"
     "audio"
@@ -51,15 +51,11 @@
   people = [
     {
       name = "craole";
-      isElevated = true;
       autoLogin = true;
-      hashedPassword = "$6$FoqL4RSvypLQSN6j$RvZp4NAkCNxz/nFUuAYWo8CAXrqqrpOL/LXCBPITCkzPTso2kJXcko8O61torGdCa5pJIq/hOv2rfSwcDbOSX1";
     }
     {
       name = "qyatt";
-      isElevated = false;
       autoLogin = false;
-      hashedPassword = "$6$Lu5.su9TVoFNRmlW$VfZ3TZDgBLV4qPLOdGHDhV5EL8M.xKtfJ..WfavFliN.UnEhHve0drIjD4WA6ALCy1nEnLk8UyJFQY4XtvsVx1";
     }
   ];
   ai = {

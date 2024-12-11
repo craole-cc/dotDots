@@ -49,23 +49,40 @@
                 store = ./.;
               };
               parts = {
-                modules = "/Configuration/apps/nixos";
-                scripts = "/Bin";
-                conf = "/configurations";
+                args = "/args";
+                cfgs = "/configurations";
+                env = "/environment";
+                libs = "/libraries";
                 mkCore = "/helpers/makeCoreConfig.nix";
+                modules = "/Configuration/apps/nixos";
+                mods = "/modules";
+                opts = "/options";
+                pkgs = "/packages";
+                scripts = "/Bin";
+                svcs = "/services";
+                ui = "/ui";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
-                env = "/environment";
-                lib = "/libraries";
-                ui = "/ui";
-                args = "/args";
               };
               core = {
                 default = modules.store + "/core";
-                env = core.default + parts.env;
-                lib = core.default + parts.lib;
-                ui = core.default + parts.ui;
-                conf = core.default + parts.conf;
+                configurations = core.default + parts.cfgs;
+                environment = core.default + parts.env;
+                libraries = core.default + parts.libs;
+                modules = core.default + parts.mods;
+                options = core.default + parts.opts;
+                packages = core.default + parts.pkgs;
+                services = core.default + parts.svcs;
+              };
+              home = {
+                default = modules.store + "/home";
+                configurations = home.default + parts.cfgs;
+                environment = home.default + parts.env;
+                libraries = home.default + parts.libs;
+                modules = home.default + parts.mods;
+                options = home.default + parts.opts;
+                packages = home.default + parts.pkgs;
+                services = home.default + parts.svcs;
               };
               scripts = {
                 local = flake.local + parts.scripts;
@@ -94,7 +111,29 @@
           specialModules =
             let
               core =
-                [ paths.core.default ]
+                (
+                  with paths;
+                  (with core; [
+                    configurations
+                    # context
+                    environment
+                    libraries
+                    modules
+                    options
+                    packages
+                    services
+                  ])
+                  ++ (with home; [
+                    configurations
+                    # context
+                    # environment
+                    # libraries
+                    # modules
+                    # options
+                    # packages
+                    # services
+                  ])
+                )
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
