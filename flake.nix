@@ -25,7 +25,14 @@
   outputs =
     { self, ... }@inputs:
     let
-      alpha = "craole";
+      lib = inputs.nixosUnstable.lib;
+      inherit (lib.strings) concatStringsSep;
+      inherit (lib.lists)
+        foldl'
+        filter
+        length
+        head
+        ;
       mkConfig =
         {
           name,
@@ -93,57 +100,70 @@
                 store = flake.store + parts.modules;
               };
               libraries = {
-                local = modules.local + parts.libraries;
-                store = modules.store + parts.libraries;
-                mkCore = core.lib + parts.mkCore;
+                local = modules.local + parts.libs;
+                store = modules.store + parts.libs;
+                mkCore = core.libraries + parts.mkCore;
               };
             in
             {
               inherit
                 flake
                 core
+                home
                 scripts
                 parts
                 modules
                 libraries
                 ;
             };
+
+          #@ Define the host config
+          host = import (paths.core.configurations + "/${name}") // {
+            inherit name system;
+            location = {
+              latitude = 18.015;
+              longitude = 77.49;
+              timeZone = "America/Jamaica";
+              defaultLocale = "en_US.UTF-8";
+            };
+          };
+
+          #@ Filter enabled users based on the 'enable' attribute
+          enabledUsers = map (user: user.name) (filter (user: user.enable or true) host.people);
+
+          #@ Check for autoLogin constraints
+          autoLoginUsers = filter (user: user.autoLogin or false) host.people;
+          autoLoginUser = if length autoLoginUsers == 1 then (head autoLoginUsers).name else null;
+
+          #@ Import user configurations for enabled users
+          users = foldl' (
+            acc: userFile: acc // import (paths.home.configurations + "/${userFile}")
+          ) { } enabledUsers;
+
           specialModules =
             let
               core =
-                (
-                  with paths;
-                  (with core; [
-                    configurations
-                    # context
-                    environment
-                    libraries
-                    modules
-                    options
-                    packages
-                    services
-                  ])
-                  ++ (with home; [
-                    configurations
-                    # context
-                    # environment
-                    # libraries
-                    # modules
-                    # options
-                    # packages
-                    # services
-                  ])
-                )
+                (with paths.core; [
+                  # default
+                  configurations
+                  # context
+                  environment
+                  libraries
+                  modules
+                  options
+                  packages
+                  services
+                ])
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
               home =
-                (with paths; [
-                  # (modules.store + parts.uiHome + "/${ui.env}")
-                ])
+                let
+                  inherit (host) desktop;
+                in
+                (with paths.home; [ ])
                 ++ (
                   with inputs;
-                  with specialArgs.host;
                   if desktop == "hyprland" then
                     [ ]
                   else if desktop == "plasma" then
@@ -157,25 +177,26 @@
                 );
             in
             { inherit core home; } // extraMods;
-          specialArgs = {
-            inherit
-              paths
-              alpha
-              # ui
-              ;
-            flake = self;
-            modules = specialModules;
-            # lib = import (paths.core + "/libraries");
-            host = import (paths.core.conf + "/${name}") // {
-              inherit name system;
-              location = {
-                latitude = 18.015;
-                longitude = 77.49;
-                timeZone = "America/Jamaica";
-                defaultLocale = "en_US.UTF-8";
-              };
-            };
-          } // extraArgs;
+
+          specialArgs =
+            assert
+              length autoLoginUsers <= 1
+              || throw "Error: autoLogin enabled for multiple users: ${
+                concatStringsSep ", " (map (user: user.name) autoLoginUsers)
+              }";
+            {
+              inherit
+                paths
+                host
+                users
+                autoLoginUser
+                ;
+              alpha = autoLoginUser;
+              flake = self;
+              modules = specialModules;
+              # lib = import (paths.core + "/libraries");
+            }
+            // extraArgs;
         in
         import paths.libraries.mkCore {
           inherit (inputs)

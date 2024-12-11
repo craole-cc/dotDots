@@ -51,11 +51,12 @@
   people = [
     {
       name = "craole";
+      # enable = true; #? This defaults to true if unset
       autoLogin = true;
     }
     {
       name = "qyatt";
-      autoLogin = false;
+      # enable = true;
     }
   ];
   ai = {

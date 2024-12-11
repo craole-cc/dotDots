@@ -1,9 +1,5 @@
-{ specialArgs, ... }:
-let
-  enable = true;
-in
-if enable then
-  {
+{
+  craole = {
     description = "Craig 'Craole' Cole";
     id = 1551;
     isElevated = true;
@@ -30,6 +26,5 @@ if enable then
       bat.enable = true;
       btop.enable = true;
     };
-  }
-else
-  { }
+  };
+}
