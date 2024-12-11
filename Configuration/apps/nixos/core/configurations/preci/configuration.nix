@@ -132,13 +132,13 @@ in
       enable = true;
     };
 
-    # ollama = {
-    #   enable = true;
-    #   loadModels = [
-    #     "mistral-nemo"
-    #     # "yi-coder:9b"
-    #   ];
-    # };
+    ollama = {
+      enable = true;
+      loadModels = [
+        "mistral-nemo"
+        # "yi-coder:9b"
+      ];
+    };
 
     pipewire = {
       enable = true;

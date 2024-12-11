@@ -49,6 +49,10 @@ in
     };
   };
 
+  nixpkgs = {
+    hostPlatform = host.system;
+  };
+
   powerManagement = {
     cpuFreqGovernor = host.cpu.mode or "performance";
     powertop.enable = true;

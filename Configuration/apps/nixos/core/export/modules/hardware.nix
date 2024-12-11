@@ -61,7 +61,7 @@ in
         );
 
     firewall = {
-      enable = if firewall ? enable then firewall.enable else false;
+      enable = firewall.enable or false;
       allowedTCPPorts = tcp.ports;
       allowedUDPPorts = udp.ports;
       allowedTCPPortRanges = tcp.ranges;

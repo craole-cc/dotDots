@@ -1,6 +1,15 @@
-{ specialArgs, pkgs, ... }:
-if specialArgs.ui.env == "xfce" then
-  {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  inherit (lib.modules) mkIf;
+  enable = config.services.desktopManager.xfce.enable;
+in
+{
+  config = mkIf enable {
     programs = {
       thunar = {
         enable = true;
@@ -43,6 +52,5 @@ if specialArgs.ui.env == "xfce" then
         ]);
       xfce.excludePackages = with pkgs; [ xterm ];
     };
-  }
-else
-  { }
+  };
+}

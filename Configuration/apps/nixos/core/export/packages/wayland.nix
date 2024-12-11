@@ -1,26 +1,25 @@
-{ pkgs, config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  isWayland = with config; programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
+  inherit (lib.modules) mkIf;
+  enable = with config; programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
 in
 {
-  environment.systemPackages =
-    if isWayland then
-      with pkgs;
-      [
-        brave
-        qalculate-qt
-        wlprop
-      ]
-    else
-      [ ];
+  config = mkIf enable {
+    environment.systemPackages = with pkgs; [
+      brave
+      qalculate-qt
+      wlprop
+    ];
 
-  programs =
-    if isWayland then
-      {
-        firefox = {
-          # enable = true;
-        };
-      }
-    else
-      { };
+    programs = {
+      firefox = {
+        # enable = true;
+      };
+    };
+  };
 }

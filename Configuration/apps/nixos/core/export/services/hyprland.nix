@@ -1,7 +1,11 @@
-{ specialArgs, ... }:
+{ config, ... }:
+let
+  # enable = specialArgs.host.desktop == "hyprland";
+  enable = config.programs.hyprland.enable;
+in
 {
   services =
-    if specialArgs.ui.env == "hyprland" then
+    if enable then
       {
         hypridle = {
           enable = true;

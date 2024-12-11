@@ -1,10 +1,16 @@
-{ pkgs, config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  isX11 = config.services.xserver.enable;
+  inherit (lib.modules) mkIf;
+  enable = config.services.xserver.enable;
 in
 {
-  environment.systemPackages =
-    if isX11 then
+  config = mkIf enable {
+    environment.systemPackages =
       with pkgs;
       [
         brave
@@ -18,17 +24,12 @@ in
         xinput
         xrandr
         xev
-      ])
-    else
-      [ ];
+      ]);
 
-  programs =
-    if isX11 then
-      {
-        firefox = {
-          # enable = true;
-        };
-      }
-    else
-      { };
+    programs = {
+      firefox = {
+        # enable = true;
+      };
+    };
+  };
 }

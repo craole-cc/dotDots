@@ -40,9 +40,6 @@
           extraPkgAttrs ? { },
           extraArgs ? { },
           extraMods ? { },
-          ui ? {
-            env = "hyprland";
-          },
         }:
         let
           paths =
@@ -107,13 +104,14 @@
                 ])
                 ++ (
                   with inputs;
-                  if ui.env == "hyprland" then
+                  with specialArgs.host;
+                  if desktop == "hyprland" then
                     [ ]
-                  else if ui.env == "plasma" then
+                  else if desktop == "plasma" then
                     [
                       plasmaManager.homeManagerModules.plasma-manager
                     ]
-                  else if ui.env == "xfce" then
+                  else if desktop == "xfce" then
                     [ ]
                   else
                     [ ]
@@ -124,12 +122,12 @@
             inherit
               paths
               alpha
-              ui
+              # ui
               ;
             flake = self;
             modules = specialModules;
             # lib = import (paths.core + "/libraries");
-            host = import (paths.core.conf + "/${name}" + "/data") // {
+            host = import (paths.core.conf + "/${name}") // {
               inherit name system;
               location = {
                 latitude = 18.015;
@@ -168,7 +166,6 @@
         preci = mkConfig {
           name = "preci";
           system = "x86_64-linux";
-          ui.env = "plasma";
         };
         dbook = mkConfig {
           name = "dbook";

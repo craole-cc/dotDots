@@ -1,6 +1,12 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  plasmaEnabled =
+  inherit (lib.modules) mkIf;
+  enable =
     with config.services;
     desktopManager.plasma6.enable || displayManager.defaultSession == "plasma";
   excludePackages = with pkgs; [ kate ];
@@ -15,13 +21,11 @@ let
     ]);
 in
 {
-  environment =
-    if plasmaEnabled then
-      {
-        plasma5 = { inherit excludePackages; };
-        plasma6 = { inherit excludePackages; };
-        systemPackages = includePackages;
-      }
-    else
-      { };
+  config = mkIf enable {
+    environment = {
+      plasma5 = { inherit excludePackages; };
+      plasma6 = { inherit excludePackages; };
+      systemPackages = includePackages;
+    };
+  };
 }

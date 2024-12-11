@@ -1,16 +1,18 @@
-{ specialArgs, ... }:
+{ lib, specialArgs, ... }:
+let
+  inherit (lib.modules) mkIf;
+  enable = specialArgs.host.desktop == "hyprland";
+in
 {
-  programs =
-    if specialArgs.ui.env == "hyprland" then
-      {
-        hyprland = {
-          enable = true;
-          withUWSM = true;
-        };
-        hyprlock = {
-          enable = true;
-        };
-      }
-    else
-      { };
+  config = mkIf enable {
+    programs = {
+      hyprland = {
+        enable = true;
+        withUWSM = true;
+      };
+      hyprlock = {
+        enable = true;
+      };
+    };
+  };
 }
