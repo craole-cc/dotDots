@@ -154,6 +154,17 @@
                   packages
                   services
                 ])
+                ++ (with paths.home; [
+                  # default
+                  configurations
+                  # context
+                  # environment
+                  # libraries
+                  # modules
+                  # options
+                  # packages
+                  # services
+                ])
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
                 ]);
@@ -161,7 +172,9 @@
                 let
                   inherit (host) desktop;
                 in
-                (with paths.home; [ ])
+                (with paths.home; [
+
+                ])
                 ++ (
                   with inputs;
                   if desktop == "hyprland" then
