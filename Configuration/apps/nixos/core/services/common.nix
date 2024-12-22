@@ -1,11 +1,11 @@
-{ specialArgs,lib, ... }:
+{ specialArgs, lib, ... }:
 let
   inherit (specialArgs.host) capabilities ai;
-  inherit(specialArgs.host.cpu)brand;
+  inherit (specialArgs.host.cpu) brand;
   inherit (lib.lists) elem;
   # TODO: use host.people.{name}.autoLogin
   alpha = if (specialArgs ? alpha) then specialArgs.alpha else null;
-  login = if (specialArgs.ui ? autoLogin) then specialArgs.ui.autoLogin else true;
+  login = if (specialArgs ? autoLoginUser) then specialArgs.autoLoginUser != null else true;
 
   hasBluetooth = elem "bluetooth" capabilities;
   hasBattery = elem "battery" capabilities;
