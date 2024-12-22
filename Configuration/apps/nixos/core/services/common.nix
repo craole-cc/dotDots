@@ -1,11 +1,8 @@
 { specialArgs, lib, ... }:
 let
-  inherit (specialArgs.host) capabilities ai;
+  inherit (specialArgs.host) ai autologinUser capabilities;
   inherit (specialArgs.host.cpu) brand;
   inherit (lib.lists) elem;
-  # TODO: use host.people.{name}.autoLogin
-  alpha = if (specialArgs ? alpha) then specialArgs.alpha else null;
-  login = if (specialArgs ? autoLoginUser) then specialArgs.autoLoginUser != null else true;
 
   hasBluetooth = elem "bluetooth" capabilities;
   hasBattery = elem "battery" capabilities;
@@ -22,8 +19,8 @@ in
 {
   services = {
     displayManager.autoLogin = {
-      enable = login && (alpha != null);
-      user = alpha;
+      enable = autologinUser != null;
+      user = autologinUser;
     };
 
     blueman =
@@ -52,7 +49,7 @@ in
 
     kmscon = {
       enable = true;
-      autologinUser = alpha;
+      inherit autologinUser;
     };
 
     libinput =

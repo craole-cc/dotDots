@@ -6,7 +6,7 @@
 }:
 let
   inherit (lib.modules) mkIf;
-  enable = config.services.desktopManager.xfce.enable;
+  enable = config.services.xserver.desktopManager.xfce.enable;
 in
 {
   config = mkIf enable {

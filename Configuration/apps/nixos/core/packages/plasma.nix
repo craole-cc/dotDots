@@ -1,14 +1,14 @@
 {
-  config,
+  config,specialArgs,
   lib,
   pkgs,
   ...
 }:
 let
   inherit (lib.modules) mkIf;
-  enable =
-    with config.services;
-    desktopManager.plasma6.enable || displayManager.defaultSession == "plasma";
+  enable =specialArgs.host.desktop=="plasma" ||
+    (with config.services;
+    desktopManager.plasma6.enable || displayManager.defaultSession == "plasma");
   excludePackages = with pkgs; [ kate ];
   includePackages =
     with pkgs;

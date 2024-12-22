@@ -131,14 +131,13 @@
           #@ Filter enabled users based on the 'enable' attribute
           enabledUsers = map (user: user.name) (filter (user: user.enable or true) host.people);
 
-          #@ Check for autoLogin constraints
-          autoLoginUsers = filter (user: user.autoLogin or false) host.people;
-          autoLoginUser = if length autoLoginUsers == 1 then (head autoLoginUsers).name else null;
-
           #@ Import user configurations for enabled users
           users = foldl' (
             acc: userFile: acc // import (paths.home.configurations + "/${userFile}")
           ) { } enabledUsers;
+
+          autologinUsers = filter (user: user.autoLogin or false) host.people;
+          autologinUser = if length autologinUsers <= 1 then (head autologinUsers).name else null;
 
           specialModules =
             let
@@ -192,19 +191,20 @@
             { inherit core home; } // extraMods;
 
           specialArgs =
+            #@ Check for autoLogin constraints
             assert
-              length autoLoginUsers <= 1
-              || throw "Error: autoLogin enabled for multiple users: ${
-                concatStringsSep ", " (map (user: user.name) autoLoginUsers)
-              }";
+              length autologinUsers <= 1
+              || throw "Error: Multiple users designated for autologin (${
+                concatStringsSep ", " (map (user: user.name) autologinUsers)
+              }). Check the 'host.people' configuration.";
             {
               inherit
                 paths
-                host
                 users
-                autoLoginUser
                 ;
-              alpha = autoLoginUser;
+              host = host // {
+                inherit autologinUser;
+              };
               flake = self;
               modules = specialModules;
               # lib = import (paths.core + "/libraries");

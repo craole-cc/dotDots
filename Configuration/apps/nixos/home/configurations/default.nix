@@ -1,4 +1,8 @@
-{ specialArgs, lib, ... }:
+{
+  specialArgs,
+  lib,
+  ...
+}:
 let
   #@ Import necessary libs and specialArgs
   inherit (specialArgs.host) people;
@@ -21,10 +25,9 @@ let
 
   #@ Import user configurations for enabled users
   enabledUsers = foldl' (acc: user: acc // import (./. + "/${user}")) { } hostUsers;
-in
-{
-  _module.args.debugConfig = {
 
+  #| Config modifications
+  configModifications = {
     programs.hyprland.enable = any (user: user.desktop.manager or null == "hyprland") (
       attrValues enabledUsers
     );
@@ -52,4 +55,8 @@ in
       ) enabledUsers;
     };
   };
+in
+{
+  # _module.args = { inherit configModifications; };
+  config = { inherit (configModifications) programs users home-manager; };
 }

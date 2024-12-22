@@ -17,6 +17,7 @@ in
         qalculate-gtk
         wmctrl
         variety
+        kitty
       ]
       ++ (with xorg; [
         xprop

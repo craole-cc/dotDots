@@ -14,6 +14,7 @@ in
       brave
       qalculate-qt
       wlprop
+      kitty
     ];
 
     programs = {

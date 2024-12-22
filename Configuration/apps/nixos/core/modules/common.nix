@@ -7,7 +7,10 @@
   ...
 }:
 let
-  inherit (specialArgs) host;
+  inherit (specialArgs) host users;
+  inherit (host) cpu stateVersion system;
+  inherit (host.location) latitude longitude defaultLocale;
+  inherit (lib.attrsets) attrNames;
 in
 {
   console = {
@@ -19,7 +22,7 @@ in
   };
 
   i18n = {
-    inherit (host.location) defaultLocale;
+    inherit defaultLocale;
   };
 
   imports = [
@@ -27,7 +30,7 @@ in
   ];
 
   location = {
-    inherit (host.location) latitude longitude;
+    inherit latitude longitude;
     provider =
       with config.location;
       if latitude == null || longitude == null then "geoclue2" else "manual";
@@ -43,18 +46,16 @@ in
       trusted-users = [
         "root"
         "@wheel"
-        "craole"
-        # TODO: all hosts.people.name
-      ];
+      ] ++ attrNames users;
     };
   };
 
   nixpkgs = {
-    hostPlatform = host.system;
+    hostPlatform = system;
   };
 
   powerManagement = {
-    cpuFreqGovernor = host.cpu.mode or "performance";
+    cpuFreqGovernor = cpu.mode or "performance";
     powertop.enable = true;
   };
 
@@ -85,4 +86,6 @@ in
       ];
     };
   };
+
+  system = { inherit stateVersion; };
 }

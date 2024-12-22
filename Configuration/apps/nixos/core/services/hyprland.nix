@@ -1,7 +1,6 @@
-{ config, ... }:
+{ specialArgs, ... }:
 let
-  # enable = specialArgs.host.desktop == "hyprland";
-  enable = config.programs.hyprland.enable;
+  enable = specialArgs.host.desktop == "hyprland";
 in
 {
   services =
