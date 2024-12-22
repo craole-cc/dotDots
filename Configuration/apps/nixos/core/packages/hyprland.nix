@@ -20,7 +20,10 @@ in
       };
     };
     environment = {
-      systemPackages = with pkgs; [ kitty ];
+      systemPackages = with pkgs; [
+        kitty
+        waybar
+      ];
     };
   };
 }
