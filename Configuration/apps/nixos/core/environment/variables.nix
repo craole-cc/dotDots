@@ -10,7 +10,7 @@ in
       DOTS_BIN = scripts.local;
       DOTS_NIX = modules.local;
       NIXOS_FLAKE = flake.local;
-      NIXOS_CONFIG = core.conf + "/${host.name}";
+      NIXOS_CONFIG = core.configurations + "/${host.name}";
     };
     extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
   };
