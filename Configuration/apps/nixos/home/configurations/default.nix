@@ -1,5 +1,6 @@
 { specialArgs, lib, ... }:
 let
+  #@ Import necessary libs and specialArgs
   inherit (specialArgs.host) people;
   inherit (lib.attrsets) mapAttrs attrValues;
   inherit (lib.lists)
@@ -11,37 +12,44 @@ let
     ;
   inherit (lib.strings) concatStringsSep;
 
-  # Use more descriptive names and leverage Nix's pattern matching
-  isUserEnabled = user: user.enable or true;
-  isHyprlandUser = user: user.desktop.manager or null == "hyprland";
+  #@ Filter enabled users based on the 'enable' attribute
+  hostUsers = map (user: user.name) (filter (user: user.enable or true) people);
 
-  # Directly filter and map in one go
-  hostUsers = map (user: user.name) (filter isUserEnabled people);
+  #@ Check for autoLogin constraints
+  autoLoginUsers = filter (user: user.autoLogin or false) people;
+  autoLoginUser = if length autoLoginUsers == 1 then (head autoLoginUsers).name else null;
 
-  # Simplify autoLogin logic
-  autoLoginUser =
-    let
-      autoLoginUsers = filter (user: user.autoLogin or false) people;
-    in
-    if length autoLoginUsers == 1 then (head autoLoginUsers).name else null;
-
-  # Use more functional approach for importing user configurations
-  enabledUsers = lib.genAttrs hostUsers (user: import (./. + "/${user}"));
+  #@ Import user configurations for enabled users
+  enabledUsers = foldl' (acc: user: acc // import (./. + "/${user}")) { } hostUsers;
 in
 {
-  # Use more explicit boolean check
-  programs.hyprland.enable = any isHyprlandUser (attrValues enabledUsers);
+  _module.args.debugConfig = {
 
-  users.users = mapAttrs (name: user: {
-    inherit (user)
-      description
-      isNormalUser
-      hashedPassword
-      ;
-    uid = user.id;
-  }) enabledUsers;
+    programs.hyprland.enable = any (user: user.desktop.manager or null == "hyprland") (
+      attrValues enabledUsers
+    );
 
-  home-manager.users = mapAttrs (name: user: {
-    wayland.windowManager.hyprland.enable = isHyprlandUser user;
-  }) enabledUsers;
+    users.users = mapAttrs (
+      name: user: with user; {
+        inherit
+          description
+          isNormalUser
+          hashedPassword
+          ;
+        uid = id;
+      }
+    ) enabledUsers;
+
+    home-manager = {
+      users = mapAttrs (
+        name: user:
+        { config, ... }:
+        {
+          wayland.windowManager.hyprland = {
+            enable = user.desktop.manager or null == "hyprland";
+          };
+        }
+      ) enabledUsers;
+    };
+  };
 }

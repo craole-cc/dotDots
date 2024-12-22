@@ -1,4 +1,9 @@
-{ lib, specialArgs, ... }:
+{
+  lib,
+  pkgs,
+  specialArgs,
+  ...
+}:
 let
   inherit (lib.modules) mkIf;
   enable = specialArgs.host.desktop == "hyprland";
@@ -13,6 +18,9 @@ in
       hyprlock = {
         enable = true;
       };
+    };
+    environment = {
+      systemPackages = with pkgs; [ kitty ];
     };
   };
 }
