@@ -46,8 +46,9 @@ let
     home-manager = {
       users = mapAttrs (
         name: user:
-        { config, ... }:
+        { config, osConfig, ... }:
         {
+          home = { inherit (osConfig.system) stateVersion; };
           wayland.windowManager.hyprland = {
             enable = user.desktop.manager or null == "hyprland";
           };
