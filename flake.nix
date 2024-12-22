@@ -159,7 +159,7 @@
                   # context
                   # environment
                   # libraries
-                  # modules
+                  modules
                   # options
                   # packages
                   # services

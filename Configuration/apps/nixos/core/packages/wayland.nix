@@ -19,7 +19,7 @@ in
 
     programs = {
       firefox = {
-        # enable = true;
+        enable = true;
       };
     };
   };

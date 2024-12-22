@@ -1,6 +1,8 @@
-{ specialArgs }:
+{ specialArgs, lib, ... }:
 let
-  inherit (specialArgs) host modules;
+  inherit (specialArgs) host modules users;
+  inherit (lib.attrsets) mapAttrs filterAttrs;
+
 in
 {
   home-manager = {
@@ -9,48 +11,16 @@ in
     sharedModules = modules.home;
     useUserPackages = true;
     useGlobalPkgs = true;
-    # users = mapAttrs (user: {
-
-    #   # gtk = {
-    #   #   enable = true;
-    #   #   font = fonts.gtk;
-    #   #   iconTheme = icons.gtk;
-    #   # };
-
-    #   home = {
-    #     # inherit
-    #     #   packages
-    #     #   sessionVariables
-    #     #   shellAliases
-    #     #   stateVersion
-    #     #   ;
-    #   };
-
-    #   programs =
-    #     # with applications;
-    #     {
-    #       home-manager.enable = true;
-    #       # bat = bat.export;
-    #       # btop = btop.export;
-    #       # git = git.export;
-    #       # helix = helix.export;
-    #       # firefox = dot.applications.firefox.export;
-    #     } // programs;
-    #   # // dot.applications;
-
-    #   # wayland = {
-    #   #   windowManager =
-    #   #     let
-    #   #       mkWM =
-    #   #         wm: if hasAttr wm applications && desktop.manager == wm then applications.${wm}.export else { };
-    #   #     in
-    #   #     {
-    #   #       hyprland = mkWM "hyprland";
-    #   #       river = mkWM "river";
-    #   #       sway = mkWM "sway";
-    #   #     };
-    #   # };
-    # }) (filterAttrs (_: u: (u.enable == true && u.isNormalUser)) host.users);
+    users = mapAttrs (
+      name: user:
+      { config, osConfig, ... }:
+      {
+        home = { inherit (osConfig.system) stateVersion; };
+        wayland.windowManager.hyprland = {
+          enable = user.desktop.manager or null == "hyprland";
+        };
+      }
+    ) users;
     verbose = true;
   };
 }

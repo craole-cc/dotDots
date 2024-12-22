@@ -40,6 +40,7 @@ in
       nix-info
       shellcheck
       shfmt
+      helix
 
       #| Filesystem
       dust
