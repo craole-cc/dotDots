@@ -15,6 +15,9 @@ in
       enable = true;
       silent = true;
     };
+    dconf={
+      enable=true;
+    }
   };
   environment.systemPackages =
     with pkgs;
@@ -61,6 +64,8 @@ in
           ansel
           brave
           darktable
+          dconf2nix
+          dconf-editor
           freetube
           inkscape-with-extensions
           kitty
