@@ -41,23 +41,23 @@ in
     provider = if latitude == null || longitude == null then "geoclue2" else "manual";
   };
 
-  nix = {
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-        "pipe-operators"
-      ];
-      trusted-users = [
-        "root"
-        "@wheel"
-      ] ++ userList;
-    };
-  };
+  # nix = {
+  #   settings = {
+  #     experimental-features = [
+  #       "nix-command"
+  #       "flakes"
+  #       "pipe-operators"
+  #     ];
+  #     trusted-users = [
+  #       "root"
+  #       "@wheel"
+  #     ] ++ userList;
+  #   };
+  # };
 
-  nixpkgs = {
-    hostPlatform = system;
-  };
+  # nixpkgs = {
+  #   hostPlatform = system;
+  # };
 
   powerManagement = {
     cpuFreqGovernor = cpu.mode or "performance";
@@ -69,25 +69,5 @@ in
     hardwareClockInLocalTime = lib.mkDefault true;
   };
 
-  # security = {
-  #   sudo = {
-  #     execWheelOnly = true;
-  #     extraRules = [
-  #       {
-  #         users = adminList;
-  #         commands = [
-  #           {
-  #             command = "ALL";
-  #             options = [
-  #               "SETENV"
-  #               "NOPASSWD"
-  #             ];
-  #           }
-  #         ];
-  #       }
-  #     ];
-  #   };
-  # };
-
-  system = { inherit stateVersion; };
+  # system = { inherit stateVersion; };
 }
