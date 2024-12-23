@@ -5,6 +5,7 @@ let
   inherit (specialArgs.host)
     boot
     devices
+    cpu
     ;
   inherit (boot) modules;
   inherit (cpu) brand;

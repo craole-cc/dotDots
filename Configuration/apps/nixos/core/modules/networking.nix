@@ -1,6 +1,6 @@
 { specialArgs, lib, ... }:
 let
-  inherit (lib.lists) elem;
+  inherit (lib.lists) elem length;
   inherit (lib.attrsets) listToAttrs mapAttrs;
   inherit (specialArgs.host)
     name
@@ -29,11 +29,11 @@ in
           )
         );
     networkmanager = {
-      enable = true;
+      enable = length devices.network >= 1;
       #TODO: take this from the host config
     };
     firewall = {
-      enable = firewall.enable or false;
+      enable = access.firewall.enable;
       allowedTCPPorts = tcp.ports;
       allowedUDPPorts = udp.ports;
       allowedTCPPortRanges = tcp.ranges;

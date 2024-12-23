@@ -71,7 +71,7 @@
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
                 hosts = parts.cfgs + "/hosts";
-                users = parts.cfgs + "/hosts";
+                users = parts.cfgs + "/users";
               };
               core = {
                 default = modules.store + "/core";
@@ -149,7 +149,7 @@
               core =
                 (with paths.core; [
                   # default
-                  configurations
+                  # configurations
                   # context
                   environment
                   libraries
