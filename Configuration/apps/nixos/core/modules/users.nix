@@ -1,4 +1,9 @@
-{ specialArgs, lib, ... }:
+{
+  specialArgs,
+  lib,
+  config,
+  ...
+}:
 let
   inherit (specialArgs) users;
   inherit (lib.attrsets) mapAttrs;
