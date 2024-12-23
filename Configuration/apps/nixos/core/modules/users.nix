@@ -18,8 +18,8 @@ in
     extraGroups = (
       if user.isNormalUser or true then
         [ "users" ]
-        ++ (if networkmanager.enable or false then [ "networkmanager" ] else [ ])
         ++ (if user.isAdminUser or false then [ "wheel" ] else [ ])
+        ++ (if networkmanager.enable or false then [ "networkmanager" ] else [ ])
       else
         [ ]
     );

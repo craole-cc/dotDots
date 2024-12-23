@@ -51,15 +51,15 @@ let
       if allowHomeManager then
         [
           (with homeManager; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
-          # {
-          #   home-manager = {
-          #     inherit backupFileExtension;
-          #     useGlobalPkgs = true;
-          #     useUserPackages = true;
-          #     sharedModules = specialModules.home;
-          #     extraSpecialArgs = specialArgs;
-          #   };
-          # }
+          {
+            home-manager = {
+              inherit backupFileExtension;
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              sharedModules = specialModules.home;
+              extraSpecialArgs = specialArgs;
+            };
+          }
         ]
       else
         [ ]
