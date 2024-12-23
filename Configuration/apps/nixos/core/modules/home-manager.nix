@@ -12,7 +12,7 @@ in
     useUserPackages = true;
     useGlobalPkgs = true;
     users = mapAttrs (
-      name: user:
+      _: user:
       { config, osConfig, ... }:
       {
         home = { inherit (osConfig.system) stateVersion; };

@@ -1,4 +1,4 @@
-{ specialArgs,lib, ... }:
+{ specialArgs, lib, ... }:
 let
   inherit (specialArgs) users;
   inherit (lib.attrsets) mapAttrs;
@@ -8,7 +8,7 @@ in
   # programs.hyprland.enable = lib.any (user: user.desktop.manager or null == "hyprland") (users);
 
   users.users = mapAttrs (
-    name: user: with user; {
+    _: user: with user; {
       inherit
         description
         isNormalUser

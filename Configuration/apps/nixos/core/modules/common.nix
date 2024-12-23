@@ -8,11 +8,16 @@
 let
   inherit (specialArgs) host users;
   inherit (host) cpu stateVersion system;
-  inherit (host.location) latitude longitude defaultLocale;
-  inherit (lib.attrsets) attrNames;
-  inherit (lib.lists) filter toList;
+  inherit (host.location)
+    latitude
+    longitude
+    defaultLocale
+    timeZone
+    ;
+  inherit (lib.attrsets) attrNames filterAttrs;
+
   userList = attrNames users;
-  adminList = filter (user: user.isAdminUser) userList;
+  adminList = attrNames (filterAttrs (_: user: user.isAdminUser or false) users);
 in
 {
   console = {
@@ -60,30 +65,29 @@ in
   };
 
   time = {
-    inherit (host.location) timeZone;
+    inherit timeZone;
     hardwareClockInLocalTime = lib.mkDefault true;
   };
 
-  security = {
-    sudo = {
-      execWheelOnly = true;
-      extraRules = [
-        {
-          # users = adminList ++ [ "alpha" ];
-          users=["alpha"];
-          commands = [
-            {
-              command = "ALL";
-              options = [
-                "SETENV"
-                "NOPASSWD"
-              ];
-            }
-          ];
-        }
-      ];
-    };
-  };
+  # security = {
+  #   sudo = {
+  #     execWheelOnly = true;
+  #     extraRules = [
+  #       {
+  #         users = adminList;
+  #         commands = [
+  #           {
+  #             command = "ALL";
+  #             options = [
+  #               "SETENV"
+  #               "NOPASSWD"
+  #             ];
+  #           }
+  #         ];
+  #       }
+  #     ];
+  #   };
+  # };
 
   system = { inherit stateVersion; };
 }
