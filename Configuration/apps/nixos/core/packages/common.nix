@@ -1,6 +1,9 @@
 { config, pkgs, ... }:
 let
   inherit (config.services) pipewire;
+  gui =
+    with config;
+    services.xserver.enable || programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
 in
 {
   programs = {
@@ -52,6 +55,17 @@ in
       fend
       libqalculate
     ]
+    ++ (
+      if gui then
+        [
+          brave
+          kitty
+          vscode-fhs
+          cowsay
+        ]
+      else
+        [ ]
+    )
     ++ (
       if pipewire.enable then
         [

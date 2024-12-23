@@ -11,7 +11,6 @@ in
 {
   config = mkIf enable {
     environment.systemPackages = with pkgs; [
-      brave
       qalculate-qt
       wlprop
       kitty

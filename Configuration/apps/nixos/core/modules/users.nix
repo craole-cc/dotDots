@@ -2,21 +2,14 @@
 let
   inherit (specialArgs) users;
   inherit (lib.attrsets) mapAttrs;
-  inherit (lib.lists) any;
 in
 {
-  # programs.hyprland.enable = lib.any (user: user.desktop.manager or null == "hyprland") (users);
-
-  users.users = mapAttrs (
-    _: user: with user; {
-      inherit
-        description
-        isNormalUser
-        hashedPassword
-        ;
-      uid = id;
-    }
-  ) specialArgs.users;
+  users.users = mapAttrs (name: user: {
+    uid = user.id;
+    description = user.description or name;
+    isNormalUser = user.isNormalUser or true;
+    hashedPassword = user.hashedPassword or null;
+  }) specialArgs.users;
   # users = {
   #   users = mapAttrs (
   #     name: u: with u; {

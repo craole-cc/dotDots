@@ -13,11 +13,9 @@ in
     environment.systemPackages =
       with pkgs;
       [
-        brave
         qalculate-gtk
         wmctrl
         variety
-        kitty
       ]
       ++ (with xorg; [
         xprop
