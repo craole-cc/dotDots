@@ -15,9 +15,9 @@ in
       enable = true;
       silent = true;
     };
-    dconf={
-      enable=true;
-    }
+    dconf = {
+      enable = true;
+    };
   };
   environment.systemPackages =
     with pkgs;
