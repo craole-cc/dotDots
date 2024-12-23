@@ -59,7 +59,10 @@ in
             }) devices.network
           )
         );
-    networkManager.enable=true;
+    networkmanager = {
+      enable = true;
+      #TODO: take this from the host config
+    };
     firewall = {
       enable = firewall.enable or false;
       allowedTCPPorts = tcp.ports;

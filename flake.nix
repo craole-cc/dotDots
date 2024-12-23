@@ -73,7 +73,10 @@
               };
               core = {
                 default = modules.store + "/core";
-                configurations = core.default + parts.cfgs;
+                configurations = {
+                  hosts = core.default + parts.cfgs + "/hosts";
+                  users = core.default + parts.cfgs + "/users";
+                };
                 environment = core.default + parts.env;
                 libraries = core.default + parts.libs;
                 modules = core.default + parts.mods;
@@ -118,7 +121,7 @@
             };
 
           #@ Define the host config
-          host = import (paths.core.configurations + "/${name}") // {
+          host = import (paths.core.configurations.hosts + "/${name}") // {
             inherit name system;
             location = {
               latitude = 18.015;
@@ -133,7 +136,7 @@
 
           #@ Import user configurations for enabled users
           users = foldl' (
-            acc: userFile: acc // import (paths.home.configurations + "/${userFile}")
+            acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
           ) { } enabledUsers;
 
           autologinUsers = filter (user: user.autoLogin or false) host.people;
@@ -155,11 +158,11 @@
                 ])
                 ++ (with paths.home; [
                   # default
-                  configurations
+                  # configurations
                   # context
                   # environment
                   # libraries
-                  modules
+                  # modules
                   # options
                   # packages
                   # services
