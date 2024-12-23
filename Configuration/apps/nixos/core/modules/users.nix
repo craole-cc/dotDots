@@ -16,10 +16,10 @@ in
     isNormalUser = user.isNormalUser or true;
     hashedPassword = user.hashedPassword or null;
     extraGroups = (
-      if user.isNormalUser then
+      if user.isNormalUser or true then
         [ "users" ]
-        ++ (if networkmanager.enable then [ "networkmanager" ] else [ ])
-        ++ (if user.isAdminUser then [ "wheel" ] else [ ])
+        ++ (if networkmanager.enable or false then [ "networkmanager" ] else [ ])
+        ++ (if user.isAdminUser or false then [ "wheel" ] else [ ])
       else
         [ ]
     );
