@@ -70,12 +70,14 @@
                 ui = "/ui";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
+                hosts = parts.cfgs + "/hosts";
+                users = parts.cfgs + "/hosts";
               };
               core = {
                 default = modules.store + "/core";
                 configurations = {
-                  hosts = core.default + parts.cfgs + "/hosts";
-                  users = core.default + parts.cfgs + "/users";
+                  hosts = core.default + parts.hosts;
+                  users = core.default + parts.users;
                 };
                 environment = core.default + parts.env;
                 libraries = core.default + parts.libs;
