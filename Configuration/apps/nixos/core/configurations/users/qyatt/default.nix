@@ -1,6 +1,8 @@
 {
   qyatt = {
     description = "Kezia 'Qyatt' Fullerton";
+    id = 2208;
+    isAdminUser = true;
     applications = {
       git = {
         name = "Qyatt876";

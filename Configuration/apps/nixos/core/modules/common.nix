@@ -10,6 +10,9 @@ let
   inherit (host) cpu stateVersion system;
   inherit (host.location) latitude longitude defaultLocale;
   inherit (lib.attrsets) attrNames;
+  inherit (lib.lists) filter toList;
+  userList = attrNames users;
+  adminList = filter (user: user.isAdminUser) userList;
 in
 {
   console = {
@@ -30,8 +33,7 @@ in
 
   location = {
     inherit latitude longitude;
-    provider =
-      if latitude == null || longitude == null then "geoclue2" else "manual";
+    provider = if latitude == null || longitude == null then "geoclue2" else "manual";
   };
 
   nix = {
@@ -44,7 +46,7 @@ in
       trusted-users = [
         "root"
         "@wheel"
-      ] ++ attrNames users;
+      ] ++ userList;
     };
   };
 
@@ -67,10 +69,8 @@ in
       execWheelOnly = true;
       extraRules = [
         {
-          users = [
-            "craole"
-            # TODO: all hosts.people.name that isElevated = true
-          ];
+          # users = adminList ++ [ "alpha" ];
+          users=["alpha"];
           commands = [
             {
               command = "ALL";

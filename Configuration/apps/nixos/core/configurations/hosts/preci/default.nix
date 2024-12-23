@@ -37,13 +37,29 @@
     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
     age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
     firewall = {
-      # enable = true;
+      enable = true;
       tcp = {
-        ranges = [ ];
-        ports = [ ];
+        ranges = [
+          {
+            from = 49160;
+            to = 65534;
+          } # Allowing a range for random port selection
+        ];
+        ports = [
+          22
+          80
+          443
+          1678
+          1876
+        ];
       };
       udp = {
-        ranges = [ ];
+        ranges = [
+          {
+            from = 49160;
+            to = 65534;
+          } # Allowing a range for random port selection
+        ];
         ports = [ ];
       };
     };
@@ -56,7 +72,7 @@
     }
     {
       name = "qyatt";
-      enable = false;
+      # enable = false;
     }
   ];
   ai = {
