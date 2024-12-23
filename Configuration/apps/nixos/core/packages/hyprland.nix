@@ -6,7 +6,12 @@
 }:
 let
   inherit (lib.modules) mkIf;
-  enable = specialArgs.host.desktop == "hyprland";
+  inherit (lib.attrsets) attrValues;
+  inherit (lib.lists) any;
+  inherit (specialArgs) host users;
+  enable =
+    host.desktop == "hyprland"
+    || any (user: user.desktop.manager or null == "hyprland") (attrValues users);
 in
 {
   config = mkIf enable {

@@ -1,7 +1,7 @@
 {
   imports = [
     ./home-manager.nix
-    ./programs.nix
+    # ./programs.nix
     ./users.nix
   ];
 }
