@@ -8,6 +8,7 @@
 let
   inherit (specialArgs) host users;
   inherit (host) stateVersion system;
+  inherit (lib.attrsets) attrNames;
   userList = attrNames users;
 in
 {

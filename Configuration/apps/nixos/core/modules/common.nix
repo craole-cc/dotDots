@@ -7,18 +7,18 @@
 }:
 let
   inherit (specialArgs) host users;
-  inherit (host) cpu stateVersion system;
-  inherit (host.location)
-    latitude
-    longitude
-    defaultLocale
-    timeZone
-    ;
-  inherit (lib.attrsets) attrNames filterAttrs;
+  inherit (specialArgs.host) cpu;
+  # inherit (host.location)
+  #   latitude
+  #   longitude
+  #   defaultLocale
+  #   timeZone
+  #   ;
+  # inherit (lib.attrsets) attrNames filterAttrs;
 
-  userList = attrNames users;
-  adminList = attrNames (filterAttrs (_: user: user.isAdminUser or false) users);
 in
+# userList = attrNames users;
+# adminList = attrNames (filterAttrs (_: user: user.isAdminUser or false) users);
 {
   console = {
     # TODO use specialArgs
@@ -28,35 +28,13 @@ in
     useXkbConfig = true;
   };
 
-  i18n = {
-    inherit defaultLocale;
-  };
-
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-  ];
-
-  location = {
-    inherit latitude longitude;
-    provider = if latitude == null || longitude == null then "geoclue2" else "manual";
-  };
-
-  # nix = {
-  #   settings = {
-  #     experimental-features = [
-  #       "nix-command"
-  #       "flakes"
-  #       "pipe-operators"
-  #     ];
-  #     trusted-users = [
-  #       "root"
-  #       "@wheel"
-  #     ] ++ userList;
-  #   };
+  # i18n = {
+  #   inherit defaultLocale;
   # };
 
-  # nixpkgs = {
-  #   hostPlatform = system;
+  # location = {
+  #   inherit latitude longitude;
+  #   provider = if latitude == null || longitude == null then "geoclue2" else "manual";
   # };
 
   powerManagement = {
@@ -64,10 +42,8 @@ in
     powertop.enable = true;
   };
 
-  time = {
-    inherit timeZone;
-    hardwareClockInLocalTime = lib.mkDefault true;
-  };
-
-  # system = { inherit stateVersion; };
+  # time = {
+  #   inherit timeZone;
+  #   hardwareClockInLocalTime = lib.mkDefault true;
+  # };
 }
