@@ -58,10 +58,16 @@ in
     ++ (
       if gui then
         [
+          ansel
           brave
+          darktable
+          inkscape-with-extensions
           kitty
-          vscode-fhs
           qbittorrent
+          via
+          vscode-fhs
+          warp-terminal
+          whatsapp-for-linux
         ]
       else
         [ ]
