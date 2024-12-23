@@ -13,7 +13,6 @@ in
     environment.systemPackages = with pkgs; [
       qalculate-qt
       wlprop
-      kitty
     ];
 
     programs = {

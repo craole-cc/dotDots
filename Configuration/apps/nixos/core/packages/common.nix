@@ -61,7 +61,7 @@ in
           brave
           kitty
           vscode-fhs
-          cowsay
+          qbittorrent
         ]
       else
         [ ]
