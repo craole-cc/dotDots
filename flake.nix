@@ -151,12 +151,12 @@
                   # default
                   # configurations
                   # context
-                  environment
+                  # environment
                   libraries
                   modules
                   options
-                  packages
-                  services
+                  # packages
+                  # services
                 ])
                 ++ (with paths.home; [
                   # default

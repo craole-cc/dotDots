@@ -1,5 +1,9 @@
 {
   imports = [
+    ./environment
+    ./packages
+    ./services
+    
     ./common.nix
     ./boot.nix
     ./fonts.nix

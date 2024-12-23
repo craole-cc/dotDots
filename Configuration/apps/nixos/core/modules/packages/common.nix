@@ -61,6 +61,7 @@ in
           ansel
           brave
           darktable
+          freetube
           inkscape-with-extensions
           kitty
           qbittorrent
