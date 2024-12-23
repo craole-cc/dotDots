@@ -59,7 +59,7 @@ in
             }) devices.network
           )
         );
-
+    networkManager.enable=true;
     firewall = {
       enable = firewall.enable or false;
       allowedTCPPorts = tcp.ports;

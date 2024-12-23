@@ -1,7 +1,6 @@
 {
   specialArgs,
   lib,
-  config,
   pkgs,
   modulesPath,
   ...
@@ -32,7 +31,6 @@ in
   location = {
     inherit latitude longitude;
     provider =
-      with config.location;
       if latitude == null || longitude == null then "geoclue2" else "manual";
   };
 
