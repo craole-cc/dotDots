@@ -25,7 +25,7 @@
   outputs =
     { self, ... }@inputs:
     let
-      lib = inputs.nixosUnstable.lib;
+      lib = with inputs; nixosUnstable.lib // nixDarwin.lib // homeManager.lib;
       inherit (lib.strings) concatStringsSep;
       inherit (lib.attrsets) mapAttrs;
       inherit (lib.lists)

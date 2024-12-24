@@ -8,7 +8,7 @@
   backupFileExtension,
   extraPkgConfig,
   extraPkgAttrs,
-  
+
   specialArgs,
   specialModules,
 
@@ -30,7 +30,11 @@ let
           } // extraPkgConfig;
         };
       nixpkgs = if preferredRepo == "stable" then nixosStable else nixosUnstable;
-      lib = if allowHomeManager then nixpkgs.lib // homeManager.lib else nixpkgs.lib;
+      # lib = if allowHomeManager then nixpkgs.lib // homeManager.lib else if else nixpkgs.lib;
+      lib =
+        nixpkgs.lib
+        // (if isDarwin then nixDarwin.lib else { })
+        // (if allowHomeManager then homeManager.lib else { });
       defaultPkgs = mkPkgs nixpkgs;
       unstablePkgs = mkPkgs nixosUnstable;
       stablePkgs = mkPkgs nixosStable;
