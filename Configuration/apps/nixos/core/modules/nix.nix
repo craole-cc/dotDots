@@ -29,7 +29,7 @@ in
       ] ++ userList;
     };
     extraOptions = ''
-      download-buffer-size = 1024 * 1024 * 1024 * 4;
+      download-buffer-size = 40964;
       prefer-dynamic-linking = true
       max-jobs = 4
     '';
