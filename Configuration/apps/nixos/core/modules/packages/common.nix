@@ -64,7 +64,6 @@ in
       speedtest-go
       fend
       libqalculate
-      radioboat
       radio-cli
     ]
     ++ (

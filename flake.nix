@@ -1,31 +1,36 @@
 {
   description = "NixOS Configuration Flake";
   inputs = {
-    nixed.url = "github:Craole/nixed";
-    nixosStable.url = "nixpkgs/nixos-24.05";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
     nixosUnstable.url = "nixpkgs/nixos-unstable";
+    nixosStable.url = "nixpkgs/nixos-24.05";
     nixosHardware.url = "github:NixOS/nixos-hardware";
     nixDarwin = {
       url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixosUnstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     homeManager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixosUnstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+    nid = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixed.url = "github:Craole/nixed";
     plasmaManager = {
       url = "github:pjones/plasma-manager";
       inputs = {
-        nixpkgs.follows = "nixosUnstable";
+        nixpkgs.follows = "nixpkgs";
         home-manager.follows = "homeManager";
       };
     };
     stylix.url = "github:danth/stylix";
   };
   outputs =
-    { self, ... }@inputs:
+    { self, nixpkgs, ... }@inputs:
     let
-      lib = with inputs; nixosUnstable.lib // nixDarwin.lib // homeManager.lib;
+      lib = nixpkgs.lib;
       inherit (lib.strings) concatStringsSep;
       inherit (lib.lists)
         foldl'
@@ -229,10 +234,6 @@
       };
 
       # TODO create mkHome for standalone home manager configs
-      # homeConfigurations = {
-      #   craole = mkHome {
-      #     name = "craole";
-      #   };
-      # };
+      homeConfigurations = mkConfig "craole" { };
     };
 }
