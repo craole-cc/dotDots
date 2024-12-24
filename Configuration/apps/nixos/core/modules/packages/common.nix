@@ -53,13 +53,18 @@ in
       #| Filesystem
       dust
       eza
-      macchina fastfetch cpufetch neofetch ufetch
+      macchina
+      fastfetch
+      cpufetch
+      neofetch
+      ufetch
 
       #| Utilities
       brightnessctl
       speedtest-go
       fend
       libqalculate
+      curseradio
     ]
     ++ (
       if gui then
