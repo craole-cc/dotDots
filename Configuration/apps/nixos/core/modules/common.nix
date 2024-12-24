@@ -10,6 +10,7 @@ let
 
 in
 {
+  users.mutableUsers = false;
   console = {
     # TODO use specialArgs
     packages = [ pkgs.terminus_font ];

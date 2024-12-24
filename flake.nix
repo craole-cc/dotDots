@@ -27,7 +27,6 @@
     let
       lib = with inputs; nixosUnstable.lib // nixDarwin.lib // homeManager.lib;
       inherit (lib.strings) concatStringsSep;
-      inherit (lib.attrsets) mapAttrs;
       inherit (lib.lists)
         foldl'
         filter
