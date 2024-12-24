@@ -6,9 +6,9 @@
   allowAliases,
   allowHomeManager,
   backupFileExtension,
-  enableDots,
   extraPkgConfig,
   extraPkgAttrs,
+  
   specialArgs,
   specialModules,
 

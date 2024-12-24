@@ -1,5 +1,5 @@
 {
-  system = "x86_64-linux";
+  system = "x86_64-darwin";
   id = "0ab86678";
   stateVersion = "24.05";
   base = "laptop";

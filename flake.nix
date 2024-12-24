@@ -35,21 +35,7 @@
         head
         ;
       mkConfig =
-        prefix: attrs: name:
-        # attrs@{
-        #   # name,
-        #   # system,
-        #   preferredRepo ? "unstable",
-        #   allowUnfree ? true,
-        #   allowAliases ? true,
-        #   allowHomeManager ? true,
-        #   backupFileExtension ? "BaC",
-        #   enableDots ? false,
-        #   extraPkgConfig ? { },
-        #   extraPkgAttrs ? { },
-        #   extraArgs ? { },
-        #   extraMods ? { },
-        # }:
+        name: extraArgs:
         let
           paths =
             let
@@ -125,27 +111,29 @@
             };
 
           #@ Define the host config
-          host = import (paths.core.configurations.hosts + "/${name}") // {
-            inherit name system;
-            #| Universial Configuration Overrides
-            location = {
-              latitude = 18.015;
-              longitude = 77.49;
-              timeZone = "America/Jamaica";
-              defaultLocale = "en_US.UTF-8";
-            };
-          };
+          host =
+            import (paths.core.configurations.hosts + "/${name}")
+            // {
+              inherit name;
+              #| Universial Configuration Overrides
+              location = {
+                latitude = 18.015;
+                longitude = 77.49;
+                timeZone = "America/Jamaica";
+                defaultLocale = "en_US.UTF-8";
+              };
+            }
+            // extraArgs;
 
-          #@ Filter enabled users based on the 'enable' attribute
+          #@ Filter enabled users based on the 'enable' and 'autoLogin' attributes
           enabledUsers = map (user: user.name) (filter (user: user.enable or true) host.people);
+          autologinUsers = filter (user: user.autoLogin or false) host.people;
+          autologinUser = if length autologinUsers <= 1 then (head autologinUsers).name else null;
 
           #@ Import user configurations for enabled users
           users = foldl' (
             acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
           ) { } enabledUsers;
-
-          autologinUsers = filter (user: user.autoLogin or false) host.people;
-          autologinUser = if length autologinUsers <= 1 then (head autologinUsers).name else null;
 
           specialModules =
             let
@@ -179,9 +167,13 @@
                     [ ]
                 );
             in
-            { inherit core home; } // extraMods;
+            {
+              inherit core home;
+            };
 
           specialArgs =
+            #TODO add assertion for required args from host, like system
+
             #@ Check for autoLogin constraints
             assert
               length autologinUsers <= 1
@@ -199,8 +191,7 @@
               flake = self;
               modules = specialModules;
               # lib = import (paths.core + "/libraries");
-            }
-            // extraArgs;
+            };
         in
         import paths.libraries.mkCore {
           inherit (inputs)
@@ -209,44 +200,35 @@
             homeManager
             nixDarwin
             ;
+
           inherit (host)
             name
             system
-            preferredRepo
-            allowUnfree
-            allowAliases
-            allowHomeManager
-            backupFileExtension
-            enableDots
-            extraPkgConfig
-            extraPkgAttrs
+            ;
+
+          inherit
             specialArgs
             specialModules
             ;
+
+          preferredRepo = host.preferredRepo or "unstable";
+          allowUnfree = host.allowUnfree or true;
+          allowAliases = host.allowAliases or true;
+          allowHomeManager = host.allowHomeManager or true;
+          backupFileExtension = host.backupFileExtension or "BaC";
+          extraPkgConfig = host.extraPkgConfig or { };
+          extraPkgAttrs = host.extraPkgAttrs or { };
         };
     in
     {
-      nixosConfigurations = mapAttrs (mkConfig { } nixosConfigurations) {
-        preci = { };
-        dbook = { };
+      nixosConfigurations = {
+        preci = mkConfig "preci" { };
+        dbook = mkConfig "dbook" { };
       };
-      # nixosConfigurations = {
-      #   preci = mkConfig {
-      #     name = "preci";
-      #     system = "x86_64-linux";
-      #   };
-      #   dbook = mkConfig {
-      #     name = "dbook";
-      #     system = "x86_64-linux";
-      #   };
-      # };
 
-      # darwinConfigurations = {
-      #   MBPoNine = mkConfig {
-      #     name = "MBPoNine";
-      #     system = "x86_64-darwin";
-      #   };
-      # };
+      darwinConfigurations = {
+        MBPoNine = mkConfig "MBPoNine" { };
+      };
 
       # TODO create mkHome for standalone home manager configs
       # homeConfigurations = {
