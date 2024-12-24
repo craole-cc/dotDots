@@ -114,19 +114,12 @@
                 ;
             };
 
-          #@ Define the host config
           host =
-            import (paths.core.configurations.hosts + "/${name}")
-            // {
+            {
               inherit name;
-              #| Universial Configuration Overrides
-              location = {
-                latitude = 18.015;
-                longitude = 77.49;
-                timeZone = "America/Jamaica";
-                defaultLocale = "en_US.UTF-8";
-              };
             }
+            // import (paths.core.configurations.hosts + "/common")
+            // import (paths.core.configurations.hosts + "/${name}")
             // extraArgs;
 
           #@ Filter enabled users based on the 'enable' and 'autoLogin' attributes
