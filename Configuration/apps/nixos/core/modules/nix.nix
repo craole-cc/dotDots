@@ -17,7 +17,6 @@ in
   ];
 
   nix = {
-    download-buffer-size = 1024 * 1024 * 1024 * 4;
     settings = {
       experimental-features = [
         "nix-command"
@@ -29,6 +28,9 @@ in
         "@wheel"
       ] ++ userList;
     };
+    extraOptions = ''
+      download-buffer-size = 1024 * 1024 * 1024 * 4;
+    '';
   };
 
   nixpkgs = {
