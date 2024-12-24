@@ -30,6 +30,8 @@ in
     };
     extraOptions = ''
       download-buffer-size = 1024 * 1024 * 1024 * 4;
+      prefer-dynamic-linking = true
+      max-jobs = 4
     '';
   };
 
