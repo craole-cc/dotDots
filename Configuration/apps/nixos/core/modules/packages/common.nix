@@ -64,7 +64,8 @@ in
       speedtest-go
       fend
       libqalculate
-      curseradio
+      radioboat
+      radio-cli
     ]
     ++ (
       if gui then
@@ -78,6 +79,7 @@ in
           inkscape-with-extensions
           kitty
           qbittorrent
+          shortwave
           via
           vscode-fhs
           warp-terminal
