@@ -37,6 +37,7 @@ in
       nix-prefetch
       nix-prefetch-github
       nix-prefetch-docker
+      cachix
 
       #| Development
       nil
@@ -47,6 +48,7 @@ in
       shellcheck
       shfmt
       helix
+      helix-gpt
 
       #| Filesystem
       dust
