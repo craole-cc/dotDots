@@ -18,6 +18,7 @@ in
 
   nix = {
     settings = {
+      auto-optimise-store = true;
       experimental-features = [
         "nix-command"
         "flakes"
@@ -30,8 +31,6 @@ in
     };
     extraOptions = ''
       download-buffer-size = 4096
-      prefer-dynamic-linking = true
-      max-jobs = 4
     '';
   };
 
