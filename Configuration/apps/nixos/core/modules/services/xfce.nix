@@ -1,8 +1,4 @@
-{
-  specialArgs,
-  pkgs,
-  ...
-}:
+{ specialArgs, pkgs, ... }:
 let
   enable = specialArgs.host.desktop == "xfce";
 in

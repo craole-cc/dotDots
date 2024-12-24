@@ -1,7 +1,7 @@
 { specialArgs, lib, ... }:
 let
-  inherit (specialArgs) host modules users;
-  inherit (lib.attrsets) mapAttrs filterAttrs;
+  inherit (specialArgs) modules users;
+  inherit (lib.attrsets) mapAttrs;
 
 in
 {
@@ -13,7 +13,7 @@ in
     useGlobalPkgs = true;
     users = mapAttrs (
       _: user:
-      { config, osConfig, ... }:
+      { osConfig, ... }:
       {
         home = { inherit (osConfig.system) stateVersion; };
         wayland.windowManager.hyprland = {

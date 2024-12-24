@@ -1,7 +1,6 @@
 {
   specialArgs,
   lib,
-  pkgs,
   modulesPath,
   ...
 }:

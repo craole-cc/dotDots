@@ -1,6 +1,6 @@
 { specialArgs, lib, ... }:
 let
-  inherit (lib.lists) elem length;
+  inherit (lib.lists) length;
   inherit (lib.attrsets) listToAttrs mapAttrs;
   inherit (specialArgs.host)
     name
@@ -37,12 +37,6 @@ in
       allowedTCPPorts = tcp.ports;
       allowedUDPPorts = udp.ports;
       allowedTCPPortRanges = tcp.ranges;
-      # allowedTCPPortRanges = [
-      #   {
-      #     from = 8760;
-      #     to = 8769;
-      #   }
-      # ];
       allowedUDPPortRanges = udp.ranges;
     };
   };

@@ -1,7 +1,6 @@
 { specialArgs, lib, ... }:
 let
   inherit (lib.lists) elem;
-  inherit (lib.attrsets) listToAttrs mapAttrs;
   inherit (specialArgs.host)
     boot
     devices
@@ -27,7 +26,7 @@ in
         (elem brand [
           "intel"
           "amd"
-          # "x86"
+          "x86"
         ])
       then
         [ "kvm-${brand}" ]

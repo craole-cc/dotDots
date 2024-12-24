@@ -1,11 +1,5 @@
-{
-  specialArgs,
-  lib,
-  pkgs,
-  ...
-}:
+{ specialArgs, pkgs, ... }:
 let
-  inherit (specialArgs) host users;
   inherit (specialArgs.host) cpu;
 
 in

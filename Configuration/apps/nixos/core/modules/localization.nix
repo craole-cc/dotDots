@@ -1,10 +1,4 @@
-{
-  specialArgs,
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
+{ specialArgs, lib, ... }:
 let
   inherit (specialArgs.host.location)
     latitude

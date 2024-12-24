@@ -77,6 +77,7 @@ in
           freetube
           inkscape-with-extensions
           kitty
+          onedrive
           qbittorrent
           shortwave
           via
