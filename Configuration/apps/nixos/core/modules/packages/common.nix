@@ -53,6 +53,7 @@ in
       #| Filesystem
       dust
       eza
+      macchina fastfetch cpufetch neofetch ufetch
 
       #| Utilities
       brightnessctl
