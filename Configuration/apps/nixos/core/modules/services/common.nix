@@ -1,6 +1,6 @@
 { specialArgs, lib, ... }:
 let
-  inherit (specialArgs.host) ai autologinUser capabilities;
+  inherit (specialArgs.host) ollama autologinUser capabilities;
   inherit (specialArgs.host.cpu) brand;
   inherit (lib.lists) elem;
 
@@ -61,8 +61,8 @@ in
         { };
 
     ollama = {
-      inherit (ai) enable;
-      loadModels = ai.models;
+      inherit (ollama) enable;
+      loadModels = ollama.models;
     };
 
     pipewire =

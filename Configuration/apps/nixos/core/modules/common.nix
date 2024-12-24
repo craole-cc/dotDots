@@ -2,7 +2,6 @@
   specialArgs,
   lib,
   pkgs,
-  modulesPath,
   ...
 }:
 let

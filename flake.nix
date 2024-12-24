@@ -172,8 +172,6 @@
             };
 
           specialArgs =
-            #TODO add assertion for required args from host, like system
-
             #@ Check for autoLogin constraints
             assert
               length autologinUsers <= 1
@@ -226,6 +224,7 @@
         dbook = mkConfig "dbook" { };
       };
 
+      #TODO: Create seperate config directory for nix systems since the config is drastically different
       darwinConfigurations = {
         MBPoNine = mkConfig "MBPoNine" { };
       };

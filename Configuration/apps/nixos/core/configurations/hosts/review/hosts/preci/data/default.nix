@@ -52,7 +52,7 @@
       autoLogin = false;
     }
   ];
-  ai = {
+  ollama = {
     enable = true;
     models = [
       "mistral-nemo"
