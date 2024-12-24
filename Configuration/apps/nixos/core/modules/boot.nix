@@ -19,6 +19,7 @@ in
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
+      timeout = boot.timeout or 1;
     };
 
     kernelModules =

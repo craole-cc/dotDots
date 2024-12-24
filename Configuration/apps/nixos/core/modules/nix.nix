@@ -16,6 +16,11 @@ in
   ];
 
   nix = {
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 5d";
+    };
     settings = {
       auto-optimise-store = true;
       experimental-features = [

@@ -29,7 +29,6 @@ let
       kaccounts-providers
       kaccounts-integration
       kapman
-      kamoso
       kanagram
       kalarm
       kalk
