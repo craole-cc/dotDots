@@ -3,6 +3,18 @@
   stateVersion = "24.05";
   base = "laptop";
   desktop = "plasma";
+  system = "x86_64-linux";
+  preferredRepo = "unstable";
+  allowUnfree = true;
+  allowAliases = true;
+  allowHomeManager = true;
+  backupFileExtension = "BaC";
+  enableDots = false;
+  extraPkgConfig = { };
+  extraPkgAttrs = { };
+  extraArgs = { };
+  extraMods = { };
+
   capabilities = [
     "ai"
     "audio"
@@ -28,6 +40,12 @@
   };
   gpu = {
     brand = "intel";
+  };
+  location = {
+    latitude = 18.015;
+    longitude = 77.49;
+    timeZone = "America/Jamaica";
+    defaultLocale = "en_US.UTF-8";
   };
   keyboard = {
     modifier = "SUPER_L";
@@ -75,7 +93,7 @@
       # enable = false;
     }
   ];
-  ai = {
+  ollama = {
     enable = true;
     models = [
       "mistral-nemo"

@@ -27,6 +27,7 @@
     let
       lib = inputs.nixosUnstable.lib;
       inherit (lib.strings) concatStringsSep;
+      inherit (lib.attrsets) mapAttrs;
       inherit (lib.lists)
         foldl'
         filter
@@ -34,20 +35,21 @@
         head
         ;
       mkConfig =
-        {
-          name,
-          system,
-          preferredRepo ? "unstable",
-          allowUnfree ? true,
-          allowAliases ? true,
-          allowHomeManager ? true,
-          backupFileExtension ? "BaC",
-          enableDots ? false,
-          extraPkgConfig ? { },
-          extraPkgAttrs ? { },
-          extraArgs ? { },
-          extraMods ? { },
-        }:
+        prefix: attrs: name:
+        # attrs@{
+        #   # name,
+        #   # system,
+        #   preferredRepo ? "unstable",
+        #   allowUnfree ? true,
+        #   allowAliases ? true,
+        #   allowHomeManager ? true,
+        #   backupFileExtension ? "BaC",
+        #   enableDots ? false,
+        #   extraPkgConfig ? { },
+        #   extraPkgAttrs ? { },
+        #   extraArgs ? { },
+        #   extraMods ? { },
+        # }:
         let
           paths =
             let
@@ -125,6 +127,7 @@
           #@ Define the host config
           host = import (paths.core.configurations.hosts + "/${name}") // {
             inherit name system;
+            #| Universial Configuration Overrides
             location = {
               latitude = 18.015;
               longitude = 77.49;
@@ -148,26 +151,9 @@
             let
               core =
                 (with paths.core; [
-                  # default
-                  # configurations
-                  # context
-                  # environment
                   libraries
                   modules
                   options
-                  # packages
-                  # services
-                ])
-                ++ (with paths.home; [
-                  # default
-                  # configurations
-                  # context
-                  # environment
-                  # libraries
-                  # modules
-                  # options
-                  # packages
-                  # services
                 ])
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
@@ -223,7 +209,7 @@
             homeManager
             nixDarwin
             ;
-          inherit
+          inherit (host)
             name
             system
             preferredRepo
@@ -240,20 +226,23 @@
         };
     in
     {
-      nixosConfigurations = {
-        preci = mkConfig {
-          name = "preci";
-          system = "x86_64-linux";
-        };
-        dbook = mkConfig {
-          name = "dbook";
-          system = "x86_64-linux";
-          ui.env = "xfce";
-        };
+      nixosConfigurations = mapAttrs (mkConfig { } nixosConfigurations) {
+        preci = { };
+        dbook = { };
       };
+      # nixosConfigurations = {
+      #   preci = mkConfig {
+      #     name = "preci";
+      #     system = "x86_64-linux";
+      #   };
+      #   dbook = mkConfig {
+      #     name = "dbook";
+      #     system = "x86_64-linux";
+      #   };
+      # };
 
       # darwinConfigurations = {
-      #   MBPoNine = mkCore {
+      #   MBPoNine = mkConfig {
       #     name = "MBPoNine";
       #     system = "x86_64-darwin";
       #   };
