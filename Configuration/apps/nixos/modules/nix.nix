@@ -52,12 +52,10 @@ in
       find ${flake.root} -type d -exec chmod g+s {} +
 
 
-      for user in $(
-        getent group wheel | cut -d: -f4 | tr ',' ' '
-      ); do
+      for user in $(getent group wheel | cut -d: -f4 | tr ',' ' '); do
         case "$user" in "root") continue;; esac
-        echo "USER: $user"
-        # [ ! -L "${flake.link}" ] && ln -s "${flake.root}" "${flake.link}"
+        [ -L "/home/$user/.dots" ] ||
+          ln --symbolic "${flake.root}" "/home/$user/.dots"
       done
     '';
   };
