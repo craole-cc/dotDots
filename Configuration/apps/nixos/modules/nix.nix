@@ -1,6 +1,5 @@
 {
   specialArgs,
-  pkgs,
   lib,
   modulesPath,
   ...
@@ -46,7 +45,9 @@ in
     inherit stateVersion;
     activationScripts.setDotsPermissions.text = ''
       #!/bin/sh
-      ${pkgs.rsync}/bin/rsync --delete --recursive ${flake.local}/ ${flake.root}/
+      # rsync --delete --recursive ${flake.local}/ ${flake.root}/
+      rm --recursive --force ${flake.root}
+      cp --recursive --force ${flake.local} ${flake.root}
       chown -R root:wheel ${flake.root}
       find ${flake.root} -type d -exec chmod 770 {} +
       find ${flake.root} -type f -exec chmod 660 {} +
