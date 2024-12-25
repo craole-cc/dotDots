@@ -83,7 +83,7 @@
     {
       name = "craole";
       admin = true;
-      autoLogin = true;
+      # autoLogin = true;
       # enable = true; #? This defaults to true if unset
     }
     {

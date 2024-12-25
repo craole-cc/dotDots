@@ -1,6 +1,6 @@
 {
   cc = {
-    description = "Craig 'Craole' Cole";
+    description = "Craig 'CC' Cole";
     id = 1551;
     # isAdminUser = true;
     isNormalUser = true;
@@ -20,7 +20,7 @@
     # shell = pkgs.nushell;
     applications = {
       git = {
-        name = "Craole";
+        name = "craole-cc";
         email = "32288735+Craole@users.noreply.github.com";
       };
 
