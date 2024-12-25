@@ -12,7 +12,7 @@
     ./nix.nix
     ./security.nix
     # ./home-manager.nix
-    ./users.nix
+    # ./users.nix
     ./test.nix
   ];
 }

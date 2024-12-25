@@ -226,11 +226,11 @@
       };
 
       #TODO: Create seperate config directory for nix systems since the config is drastically different
-      darwinConfigurations = {
-        MBPoNine = mkConfig "MBPoNine" { };
-      };
+      # darwinConfigurations = {
+      #   MBPoNine = mkConfig "MBPoNine" { };
+      # };
 
       # TODO create mkHome for standalone home manager configs
-      homeConfigurations = mkConfig "craole" { };
+      # homeConfigurations = mkConfig "craole" { };
     };
 }

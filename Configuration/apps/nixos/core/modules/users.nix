@@ -12,10 +12,10 @@ let
     foldl'
     filter
     ;
-  inherit (lib.modules) mkIf;
+  # inherit (lib.modules) mkIf;
   inherit (config.networking) networkmanager;
 
-  allowHomeManager = host.applications.home-manager.enable or false;
+  # allowHomeManager = users.applications.home-manager.enable or false;
 
   #@ Import user configurations for enabled users
   enabledUsers = map (user: user.name) (filter (user: user.enable or true) host.people);
@@ -38,7 +38,7 @@ in
         [ ]
     );
   }) users;
-  home-manager = mkIf allowHomeManager {
+  home-manager = {
     backupFileExtension = "BaC";
     extraSpecialArgs = specialArgs;
     sharedModules = modules.home;

@@ -7,7 +7,7 @@
   preferredRepo = "unstable";
   allowUnfree = true;
   allowAliases = true;
-  allowHomeManager = true;
+  allowHomeManager = false;
   backupFileExtension = "BaC";
   extraPkgConfig = { };
   extraPkgAttrs = { };
