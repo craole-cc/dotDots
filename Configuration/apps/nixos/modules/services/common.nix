@@ -29,8 +29,8 @@ in
   services =
     #@ Check for autoLogin constraints
     assert
-      length autologinUsers >= 1
-      && throw "Error: Multiple users designated for autologin (${
+      length autologinUsers <= 1
+      || throw "Error: Multiple users designated for autologin (${
         concatStringsSep ", " (map (user: user.name) autologinUsers)
       }). Check the 'host.people' configuration.";
     {
