@@ -41,4 +41,9 @@ in
   };
 
   system = { inherit stateVersion; };
+
+  systemd.tmpfiles.rules = ''
+    d /dots 0770 root wheel -
+    d /dots 2770 root wheel -
+  '';
 }
