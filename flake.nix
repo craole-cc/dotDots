@@ -128,6 +128,7 @@
             // extraArgs;
           specialModules =
             let
+              inherit (host) desktop;
               core =
                 (with paths.core; [
                   libraries
@@ -136,27 +137,18 @@
                 ])
                 ++ (with inputs; [
                   stylix.nixosModules.stylix
+                  nid.nixosModules.nix-index
                 ]);
               home =
-                let
-                  inherit (host) desktop;
-                in
-                (with paths.home; [
-
-                ])
-                ++ (
-                  with inputs;
-                  if desktop == "hyprland" then
-                    [ ]
-                  else if desktop == "plasma" then
-                    [
-                      plasmaManager.homeManagerModules.plasma-manager
-                    ]
-                  else if desktop == "xfce" then
-                    [ ]
-                  else
-                    [ ]
-                );
+                with inputs;
+                if desktop == "hyprland" then
+                  [ ]
+                else if desktop == "plasma" then
+                  [ plasmaManager.homeManagerModules.plasma-manager ]
+                else if desktop == "xfce" then
+                  [ ]
+                else
+                  [ ];
             in
             {
               inherit core home;
@@ -164,9 +156,8 @@
 
           specialArgs = {
             inherit self paths host;
-            flake = self;
             modules = specialModules;
-            libraries = import paths.libraries.store;
+            libraries = import paths.libraries.store; # TODO: Check on this
           };
         in
         import paths.libraries.mkCore {
