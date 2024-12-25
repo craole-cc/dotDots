@@ -11,7 +11,7 @@ let
     ;
 
   autologinUsers = filter (user: user.autoLogin or false) people;
-  autologinUser = if length autologinUsers <= 1 then (head autologinUsers).name else null;
+  autologinUser = if length autologinUsers >= 1 then (head autologinUsers).name else null;
 
   hasBluetooth = elem "bluetooth" capabilities;
   hasBattery = elem "battery" capabilities;
