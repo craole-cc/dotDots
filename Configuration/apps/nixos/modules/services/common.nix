@@ -47,22 +47,6 @@ in
         else
           { };
 
-      redshift =
-        if hasVideo then
-          {
-            enable = true;
-            brightness = {
-              day = "1";
-              night = "0.75";
-            };
-            temperature = {
-              day = 5500;
-              night = 3800;
-            };
-          }
-        else
-          { };
-
       kmscon = {
         enable = true;
         inherit autologinUser;
@@ -100,6 +84,27 @@ in
           }
         else
           { };
+
+      redshift =
+        if hasVideo then
+          {
+            enable = true;
+            brightness = {
+              day = "1";
+              night = "0.75";
+            };
+            temperature = {
+              day = 5500;
+              night = 3800;
+            };
+          }
+        else
+          { };
+
+      rsyncd = {
+        enable = true;
+
+      };
 
       tailscale =
         if hasRemote then
