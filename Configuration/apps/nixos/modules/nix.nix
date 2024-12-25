@@ -45,9 +45,9 @@ in
     inherit stateVersion;
     activationScripts.setDotsPermissions.text = ''
       #!/bin/sh
-      # rsync --delete --recursive ${flake.local}/ ${flake.root}/
-      rm --recursive --force ${flake.root}
-      cp --recursive --force ${flake.local} ${flake.root}
+      rsync --delete --recursive ${flake.local}/ ${flake.root}/
+      # rm --recursive --force ${flake.root}
+      # cp --recursive --force ${flake.local} ${flake.root}
       chown -R root:wheel ${flake.root}
       find ${flake.root} -type d -exec chmod 770 {} +
       find ${flake.root} -type f -exec chmod 660 {} +
@@ -59,7 +59,7 @@ in
         if [ ! -L "/home/$user/.dots" ]; then
           printf "🔴 /home/%s/.dots already exists\n" "$user"
         else
-          ln --symbolic --force "${flake.root}" "/home/$user/.dots"
+          ln --symbolic --force "${flake.root}/" "/home/$user/.dots/"
         fi
       done
     '';
