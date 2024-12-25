@@ -23,7 +23,7 @@ in
       else
         [ ]
     );
-  }) specialArgs.users;
+  }) users;
   # users = {
   #   users = mapAttrs (
   #     name: u: with u; {
