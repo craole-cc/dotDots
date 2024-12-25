@@ -7,7 +7,7 @@
 let
   inherit (specialArgs.host) userConfigs stateVersion system;
   inherit (lib.attrsets) attrNames;
-  flake = specialArgs.paths.flake.local;
+  inherit (specialArgs.paths) flake;
 in
 {
   imports = [
@@ -43,30 +43,27 @@ in
 
   system = {
     inherit stateVersion;
-    activationScripts.setDotsPermissions = {
-      text = ''
-        #!/bin/sh
-        mkdir -p ${flake}
-        chown -R root:wheel ${flake}
-        find ${flake} -type d -exec chmod 770 {} +
-        find ${flake} -type f -exec chmod 660 {} +
-        find ${flake} -type d -exec chmod g+s {} +
+    activationScripts.setDotsPermissions.text = ''
+      #!/bin/sh
+      mkdir -p ${flake.root}
+      chown -R root:wheel ${flake.root}
+      find ${flake.root} -type d -exec chmod 770 {} +
+      find ${flake.root} -type f -exec chmod 660 {} +
+      find ${flake.root} -type d -exec chmod g+s {} +
 
 
-        for user in $(
-          getent group wheel | cut -d: -f4 | tr ',' ' '
-        ); do
-          if [ ! -L /home/$user/dots ]; then
-            ln -s /dots /home/$user/dots
-          fi
-          [ -f ~/.gitconfig]
-        done
-      '';
-    };
+      for user in $(
+        getent group wheel | cut -d: -f4 | tr ',' ' '
+      ); do
+        if [ ! -L "${flake.link}" ]; then
+          ln -s "${flake.root}" "${flake.link}"
+        fi
+      done
+    '';
   };
 
   systemd.tmpfiles.rules = [
-    "d ${flake} 0770 root wheel -"
-    "d ${flake} 2770 root wheel -"
+    "d ${flake.root} 0770 root wheel -"
+    "d ${flake.root} 2770 root wheel -"
   ];
 }
