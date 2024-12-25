@@ -41,7 +41,18 @@ in
     hostPlatform = system;
   };
 
-  system = { inherit stateVersion; };
+  system = {
+    inherit stateVersion;
+    activationScripts.setDotsPermissions = {
+      text = ''
+        #!/bin/sh
+        chown -R root:wheel ${flake}
+        find ${flake} -type d -exec chmod 770 {} +
+        find ${flake} -type f -exec chmod 660 {} +
+        find ${flake} -type d -exec chmod g+s {} +
+      '';
+    };
+  };
 
   systemd.tmpfiles.rules = [
     "d ${flake} 0770 root wheel -"
