@@ -55,9 +55,9 @@ in
       for user in $(
         getent group wheel | cut -d: -f4 | tr ',' ' '
       ); do
-        if [ ! -L "${flake.link}" ]; then
-          ln -s "${flake.root}" "${flake.link}"
-        fi
+        case "$user" in "root") continue;; esac
+        echo "USER: $user"
+        # [ ! -L "${flake.link}" ] && ln -s "${flake.root}" "${flake.link}"
       done
     '';
   };
