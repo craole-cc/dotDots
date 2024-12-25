@@ -5,10 +5,8 @@
   ...
 }:
 let
-  inherit (specialArgs) host users;
-  inherit (host) stateVersion system;
+  inherit (specialArgs.host) userConfigs stateVersion system;
   inherit (lib.attrsets) attrNames;
-  userList = attrNames users;
 in
 {
   imports = [
@@ -31,7 +29,7 @@ in
       trusted-users = [
         "root"
         "@wheel"
-      ] ++ userList;
+      ] ++ (attrNames userConfigs);
     };
     extraOptions = ''
       download-buffer-size = 4096

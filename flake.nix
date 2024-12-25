@@ -28,13 +28,8 @@
     stylix.url = "github:danth/stylix";
   };
   outputs =
-    { self, nixpkgs, ... }@inputs:
+    { self, ... }@inputs:
     let
-      lib = nixpkgs.lib;
-      inherit (lib.lists)
-        foldl'
-        filter
-        ;
       mkConfig =
         name: extraArgs:
         let
@@ -110,9 +105,9 @@
                 libraries
                 ;
             };
-
           host =
             let
+              inherit (inputs.nixpkgs.lib.lists) foldl' filter;
               confCommon = import (paths.core.configurations.hosts + "/common");
               confSystem = import (paths.core.configurations.hosts + "/${name}");
               enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
