@@ -3,7 +3,7 @@
     ./environment
     ./packages
     ./services
-    
+
     ./common.nix
     ./boot.nix
     ./fonts.nix
@@ -11,7 +11,8 @@
     ./networking.nix
     ./nix.nix
     ./security.nix
-    ./home-manager.nix
+    # ./home-manager.nix
     ./users.nix
+    ./test.nix
   ];
 }

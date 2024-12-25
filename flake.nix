@@ -124,7 +124,6 @@
 
           #@ Filter enabled users based on the 'enable' and 'autoLogin' attributes
           enabledUsers = map (user: user.name) (filter (user: user.enable or true) host.people);
-          adminUsers = filter (user: user.admin or false) host.people;
           autologinUsers = filter (user: user.autoLogin or false) host.people;
           autologinUser = if length autologinUsers <= 1 then (head autologinUsers).name else null;
 
@@ -189,7 +188,7 @@
               # lib = import (paths.core + "/libraries");
 
               test = {
-                inherit enabledUsers adminUsers;
+                inherit enabledUsers;
               };
             };
         in

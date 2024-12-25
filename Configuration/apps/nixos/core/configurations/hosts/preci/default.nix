@@ -92,7 +92,7 @@
     }
     {
       name = "qyatt";
-      enable = false;
+      # enable = false;
       admin = false;
     }
   ];
