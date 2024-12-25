@@ -1,6 +1,12 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  specialArgs,
+  ...
+}:
 let
   inherit (config.services) pipewire;
+  flake = specialArgs.paths.flake.local;
   gui =
     with config;
     services.xserver.enable || programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
@@ -10,6 +16,13 @@ in
     git = {
       enable = true;
       lfs.enable = true;
+      config = {
+        init = {
+          defaultBranch = "main";
+        };
+        safe.directory = flake;
+
+      };
     };
     direnv = {
       enable = true;

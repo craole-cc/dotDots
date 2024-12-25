@@ -12,10 +12,7 @@ let
     || (
       with config.services; desktopManager.plasma6.enable || displayManager.defaultSession == "plasma"
     );
-  excludePackages = with pkgs; [
-    kate
-    konsole
-  ];
+  excludePackages = with pkgs; [ kate ];
   includePackages =
     with pkgs;
     [ kde-gruvbox ]

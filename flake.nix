@@ -36,7 +36,8 @@
           paths =
             let
               flake = {
-                local = "/home/craole/Documents/dotfiles";
+                # local = "/home/craole/Documents/dotfiles";
+                local = "/dots";
                 store = ./.;
               };
               parts = {

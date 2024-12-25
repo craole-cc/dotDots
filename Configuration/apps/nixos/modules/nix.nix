@@ -7,6 +7,7 @@
 let
   inherit (specialArgs.host) userConfigs stateVersion system;
   inherit (lib.attrsets) attrNames;
+  flake = specialArgs.paths.flake.local;
 in
 {
   imports = [
@@ -43,7 +44,7 @@ in
   system = { inherit stateVersion; };
 
   systemd.tmpfiles.rules = [
-    "d /dots 0770 root wheel -"
-    "d /dots 2770 root wheel -"
+    "d ${flake} 0770 root wheel -"
+    "d ${flake} 2770 root wheel -"
   ];
 }
