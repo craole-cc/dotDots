@@ -38,7 +38,7 @@
               flake = {
                 local = "/home/craole/Documents/dotfiles";
                 root = "/dots";
-                link = "/home/$USER/.dots";
+                link = "~/.dots";
                 store = ./.;
               };
               parts = {
