@@ -1,6 +1,6 @@
 { specialArgs, lib, ... }:
 let
-  inherit (specialArgs) users host;
+  inherit (specialArgs.host) users host;
   inherit (lib.attrsets) attrNames filterAttrs;
   inherit (lib.lists) unique filter elem;
 
