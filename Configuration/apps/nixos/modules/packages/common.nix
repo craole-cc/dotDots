@@ -17,6 +17,8 @@ in
       enable = true;
       lfs.enable = true;
       config = {
+        user.name = "Your Name"; # Set your name
+        user.email = "you@example.com"; # Set your email
         init = {
           defaultBranch = "main";
         };

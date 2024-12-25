@@ -46,10 +46,21 @@ in
     activationScripts.setDotsPermissions = {
       text = ''
         #!/bin/sh
+        mkdir -p ${flake}
         chown -R root:wheel ${flake}
         find ${flake} -type d -exec chmod 770 {} +
         find ${flake} -type f -exec chmod 660 {} +
         find ${flake} -type d -exec chmod g+s {} +
+
+
+        for user in $(
+          getent group wheel | cut -d: -f4 | tr ',' ' '
+        ); do
+          if [ ! -L /home/$user/dots ]; then
+            ln -s /dots /home/$user/dots
+          fi
+          [ -f ~/.gitconfig]
+        done
       '';
     };
   };

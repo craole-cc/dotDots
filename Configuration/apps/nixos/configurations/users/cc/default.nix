@@ -7,7 +7,7 @@
     hashedPassword = "$6$FoqL4RSvypLQSN6j$RvZp4NAkCNxz/nFUuAYWo8CAXrqqrpOL/LXCBPITCkzPTso2kJXcko8O61torGdCa5pJIq/hOv2rfSwcDbOSX1";
 
     desktop = {
-      manager = "hyprland";
+      # manager = "hyprland";
       server = "wayland";
     };
 
