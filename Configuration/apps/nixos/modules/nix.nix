@@ -45,8 +45,7 @@ in
     inherit stateVersion;
     activationScripts.setDotsPermissions.text = ''
       #!/bin/sh
-      # mkdir -p ${flake.root}
-      cp -r -i ${flake.local} ${flake.root}
+      rsync --delete --recursive ${flake.local}/ ${flake.root}/
       chown -R root:wheel ${flake.root}
       find ${flake.root} -type d -exec chmod 770 {} +
       find ${flake.root} -type f -exec chmod 660 {} +
@@ -55,7 +54,11 @@ in
 
       for user in $(getent group wheel | cut -d: -f4 | tr ',' ' '); do
         case "$user" in "root") continue;; esac
-          ln --symbolic "${flake.local}" "/home/$user/.dots"
+        if [ -d "/home/$user/.dots" ]; then
+          printf "🔴 /home/%s/.dots already exists\n" "$user"
+        else
+          ln --symbolic --force "${flake.root}" "/home/$user/.dots"
+        fi
       done
     '';
   };
