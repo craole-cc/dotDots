@@ -31,12 +31,9 @@
     { self, nixpkgs, ... }@inputs:
     let
       lib = nixpkgs.lib;
-      inherit (lib.strings) concatStringsSep;
       inherit (lib.lists)
         foldl'
         filter
-        length
-        head
         ;
       mkConfig =
         name: extraArgs:
@@ -66,7 +63,7 @@
                 users = parts.cfgs + "/users";
               };
               core = {
-                default = modules.store + "/core";
+                default = modules.store;
                 configurations = {
                   hosts = core.default + parts.hosts;
                   users = core.default + parts.users;
@@ -115,23 +112,20 @@
             };
 
           host =
+            let
+              confCommon = import (paths.core.configurations.hosts + "/common");
+              confSystem = import (paths.core.configurations.hosts + "/${name}");
+              enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
+              userConfigs = foldl' (
+                acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
+              ) { } enabledUsers;
+            in
             {
-              inherit name;
+              inherit name userConfigs;
             }
-            // import (paths.core.configurations.hosts + "/common")
-            // import (paths.core.configurations.hosts + "/${name}")
+            // confCommon
+            // confSystem
             // extraArgs;
-
-          #@ Filter enabled users based on the 'enable' and 'autoLogin' attributes
-          enabledUsers = map (user: user.name) (filter (user: user.enable or true) host.people);
-          autologinUsers = filter (user: user.autoLogin or false) host.people;
-          autologinUser = if length autologinUsers <= 1 then (head autologinUsers).name else null;
-
-          #@ Import user configurations for enabled users
-          users = foldl' (
-            acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
-          ) { } enabledUsers;
-
           specialModules =
             let
               core =
@@ -168,29 +162,12 @@
               inherit core home;
             };
 
-          specialArgs =
-            #@ Check for autoLogin constraints
-            assert
-              length autologinUsers <= 1
-              || throw "Error: Multiple users designated for autologin (${
-                concatStringsSep ", " (map (user: user.name) autologinUsers)
-              }). Check the 'host.people' configuration.";
-            {
-              inherit
-                paths
-                users
-                ;
-              host = host // {
-                inherit autologinUser;
-              };
-              flake = self;
-              modules = specialModules;
-              # lib = import (paths.core + "/libraries");
-
-              test = {
-                inherit enabledUsers;
-              };
-            };
+          specialArgs = {
+            inherit self paths host;
+            flake = self;
+            modules = specialModules;
+            libraries = import paths.libraries.store;
+          };
         in
         import paths.libraries.mkCore {
           inherit (inputs)

@@ -8,10 +8,10 @@ let
   inherit (lib.modules) mkIf;
   inherit (lib.attrsets) attrValues;
   inherit (lib.lists) any;
-  inherit (specialArgs) host users;
+  inherit (specialArgs) host;
   enable =
     host.desktop == "hyprland"
-    || any (user: user.desktop.manager or null == "hyprland") (attrValues users);
+    || any (user: user.desktop.manager or null == "hyprland") (attrValues host.userConfigs);
 in
 {
   config = mkIf enable {
