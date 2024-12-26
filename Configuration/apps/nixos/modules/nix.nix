@@ -67,7 +67,6 @@ in
         --source ${flake.local} \
         --target ${flake.root} \
         --verbose \
-        --dry-run \
         --strict
     '';
   };

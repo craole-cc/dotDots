@@ -528,11 +528,9 @@ cleanup() {
       log "$LOG_WARN" "Checking target directory integrity..."
 
       #@ If source exists and sync was interrupted, verify integrity
-      if [ -d "$SOURCE_PATH" ]; then
-        if ! diff_dir "$SOURCE_PATH" "$TARGET_PATH" >/dev/null 2>&1; then
-          log "$LOG_ERROR" "Target directory may be in inconsistent state"
-        fi
-      fi
+      [ -d "$SOURCE_PATH" ] &&
+        diff_dir "$SOURCE_PATH" "$TARGET_PATH" >/dev/null 2>&1 &&
+        log "$LOG_ERROR" "Target directory may be in inconsistent state"
     fi
   fi
 
