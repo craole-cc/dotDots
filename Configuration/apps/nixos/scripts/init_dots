@@ -519,32 +519,32 @@ cleanup() {
   #@ Store the exit code of the last command
   _exit_code=$?
 
-  #@ Create a flag to track if we're cleaning up after an error
-  [ "$_exit_code" -ne 0 ] && _is_error=true || _is_error=false
+  # #@ Create a flag to track if we're cleaning up after an error
+  # [ "$_exit_code" -ne 0 ] && _is_error=true || _is_error=false
 
-  #@ Handle interrupted syncs or failed operations
-  if [ "$_is_error" = true ]; then
-    if [ -d "$TARGET_PATH" ]; then
-      log "$LOG_WARN" "Checking target directory integrity..."
+  # #@ Handle interrupted syncs or failed operations
+  # if [ "$_is_error" = true ]; then
+  #   if [ -d "$TARGET_PATH" ]; then
+  #     log "$LOG_WARN" "Checking target directory integrity..."
 
-      #@ If source exists and sync was interrupted, verify integrity
-      [ -d "$SOURCE_PATH" ] &&
-        diff_dir "$SOURCE_PATH" "$TARGET_PATH" >/dev/null 2>&1 &&
-        log "$LOG_ERROR" "Target directory may be in inconsistent state"
-    fi
-  fi
+  #     #@ If source exists and sync was interrupted, verify integrity
+  #     [ -d "$SOURCE_PATH" ] &&
+  #       diff_dir "$SOURCE_PATH" "$TARGET_PATH" >/dev/null 2>&1 &&
+  #       log "$LOG_ERROR" "Target directory may be in inconsistent state"
+  #   fi
+  # fi
 
-  #@ Clean up any temporary files
-  for _temp in /tmp/link_dots.*; do
-    [ -e "$_temp" ] && rm -rf "$_temp"
-  done
+  # #@ Clean up any temporary files
+  # for _temp in /tmp/link_dots.*; do
+  #   [ -e "$_temp" ] && rm -rf "$_temp"
+  # done
 
-  #@ Report final status
-  if [ "$_is_error" = true ]; then
-    log "$LOG_ERROR" "Script terminated with errors (exit code: $_exit_code)"
-  else
-    log "$LOG_INFO" "Cleanup completed successfully"
-  fi
+  # #@ Report final status
+  # if [ "$_is_error" = true ]; then
+  #   log "$LOG_ERROR" "Script terminated with errors (exit code: $_exit_code)"
+  # else
+  #   log "$LOG_INFO" "Cleanup completed successfully"
+  # fi
 
   return "$_exit_code"
 }
