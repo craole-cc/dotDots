@@ -1,0 +1,537 @@
+#!/bin/sh
+
+initialize_script() {
+  LOG_INFO="INFO"
+  LOG_WARN="WARN"
+  LOG_ERROR="ERROR"
+
+  SCR_NAME="link_dots"
+  SCR_VERSION="0.1"
+  SCR_USAGE_BASIC="Usage: $SCR_NAME --source [SOURCE_DIR] --target [TARGET_DIR]"
+  SCR_USAGE_GUIDE=$(
+    cat <<EOF
+$SCR_USAGE_BASIC
+
+Options:
+  -s, --source     Source directory containing dot files
+  -t, --target     Target directory for synchronized files
+  -v, --verbose    Enable verbose logging
+  -d, --dry-run    Show what would happen without making changes
+  -h               Show the usage instructions
+      --help       Show this help message
+      --version    Show version information
+EOF
+  )
+}
+
+initialize_utilities() {
+  #? Enhanced logging function with timestamps and levels
+  #? Parameters:
+  #?   $1 (string): Log level (INFO, WARN, ERROR)
+  #?   $2 (string): Message to log
+  log() {
+    _level="$1"
+    _message="$2"
+    _timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+
+    printf "[%s] [%s] %s\n" "$_timestamp" "$_level" "$_message"
+
+    #@ Exit on error messages if strict mode is enabled
+    [ "$_level" = "$LOG_ERROR" ] && [ "$STRICT_MODE" = true ] && exit 1
+  }
+
+  #? Validate the existence of an argument, file, directory, or path.
+  #? Arguments:
+  #?   --arg [NAME] (optional): Validate that the argument NAME is set.
+  #?   --dir [PATH] (optional): Validate that the directory specified by PATH exists.
+  #?   --file [PATH] (optional): Validate that the file specified by PATH exists.
+  #?   --path [PATH] (optional): Validate that the path specified by PATH exists.
+  #? If no validation type is specified, validate_info will exit with code 0.
+  validate_info() {
+    unset _validated _type _var
+
+    case "$1" in
+    --root-user)
+      [ "$(id -u)" -eq 0 ] || {
+        printf "🔴 This script must be run as root\n"
+        return 1
+      }
+      ;;
+    --arg | --var)
+      [ -n "$(get_var "$2")" ] || {
+        printf "🔴 Missing required argument/variable: %s\n" "$2"
+        return 1
+      }
+      return 0
+      ;;
+    --dir)
+      _type="Directory"
+      _var="$(get_var "$2")"
+      [ -d "$_var" ] && _validated=true
+      ;;
+    --file)
+      _type="File"
+      _var="$(get_var "$2")"
+      [ -f "$_var" ] && _validated=true
+      ;;
+    --diff)
+      _source="$(get_var "$2")"
+      _target="$(get_var "$3")"
+
+      [ "$(resolve_path "$_source")" = "$(resolve_path "$_target")" ] && {
+        log "$LOG_ERROR" "Source and target paths cannot be the same"
+        return 1
+      }
+
+      return 0
+      ;;
+    --link)
+      _type="Symbolic link"
+      _var="$(get_var "$2")"
+      _target="$(get_var "$3")"
+
+      _resolved="$(resolve_path "$_var")"
+
+      [ -L "$_var" ] && [ -n "$_resolved" ] &&
+        diff_dir "$_resolved" "$_target" && _validated=true
+      ;;
+    esac
+
+    case "$_type" in
+    "Directory" | "File")
+
+      #@ Check path lengths
+      [ "${#_var}" -gt 4096 ] && {
+        log "$LOG_ERROR" "Path exceeds maximum length: $_var"
+        return 1
+      }
+
+      #@ Prevent relative path traversal
+      case "$_var" in
+      */../* | ../* | */.. | \.\.)
+        log "$LOG_ERROR" "Path contains invalid parent directory references: $_var"
+        return 1
+        ;;
+      esac
+
+      #@ Prevent traversal of root directory
+      [ "$_var" = "/" ] && {
+        log "$LOG_ERROR" "Root directory cannot be used as source"
+        return 1
+      }
+      ;;
+    esac
+
+    if [ "$_validated" ]; then
+      [ "$VERBOSE" ] &&
+        log "$LOG_INFO" "$_type validated: $(ls -ld "$_var")"
+      return 0
+    else
+      log "$LOG_ERROR" "$_type does not exist: $_var"
+      return 1
+    fi
+  }
+
+  #? Safely retrieve a value, either directly or from a variable name.
+  #?
+  #? Examples:
+  #?   get_var FOO      # Gets value of $FOO
+  #?   get_var '$FOO'   # Gets value of $FOO
+  #?   get_var "$FOO"   # Returns $FOO value directly
+  #?   get_var /path    # Returns "/path" directly
+  #?
+  #? Parameters:
+  #?   $1 (string): Direct value or name of variable to get
+  #?
+  #? Returns:
+  #?   The value, either directly or from the specified variable
+  #?
+  #? Notes:
+  #?   - Safely handles unset variables
+  #?   - Preserves whitespace in values
+  #?   - POSIX-compliant implementation
+  get_var() {
+    value="$1"
+
+    #@ Return empty string if no argument provided
+    [ -z "$value" ] && return 1
+
+    #@ Treat value as variable ref if starts with $ or is a valid name
+    case "$value" in
+    '$'*) value="${value#$}" ;;            #? Strip leading $
+    [a-zA-Z_]*[a-zA-Z0-9_]*) ;;            #? Valid variable name
+    *) printf '%s' "$value" && return 0 ;; #? Direct value
+    esac
+
+    #@ Get the variable value
+    eval "printf '%s' \"\${$value:-}\""
+  }
+
+  #? Retrieve the list of users belonging to a specified group.
+  #?
+  #? Parameters:
+  #?   $1 (string): The name of the group to query.
+  #?
+  #? Returns:
+  #?   A space-separated string of usernames that are members of the specified group.
+  #?
+  #? Notes:
+  #?   This function uses the `getent` command to fetch group information and
+  #?   extracts the list of users from the group entry. It assumes that the
+  #?   group name provided exists in the system.
+  get_users_per_group() {
+    _group="$1"
+
+    #@ Return cached result if available
+    [ -n "$USERS_CACHE" ] && {
+      printf '%s' "$USERS_CACHE"
+      return 0
+    }
+
+    #@ Get and cache new result
+    USERS_CACHE="$(getent group "$_group" | cut -d: -f4 | tr ',' ' ')"
+    printf '%s' "$USERS_CACHE"
+  }
+
+  #? Compare the contents of two directories.
+  #?
+  #? Parameters:
+  #?   $1 (string): The path to the first directory to compare.
+  #?   $2 (string): The path to the second directory to compare.
+  #?
+  #? Returns:
+  #?   0 if the contents of the directories match, otherwise 1.
+  #?
+  #? Notes:
+  #?   This function compares the contents of the two directories using the
+  #?   `diff` command with the `--recursive` and `--quiet` flags. This means
+  #?   that the comparison will be done recursively, and that no output will
+  #?   be produced if the contents match. If the contents differ, a message will
+  #?   be printed indicating which files differ.
+  diff_dir() {
+    _dir1="$1"
+    _dir2="$2"
+
+    if diff --recursive --quiet "$_dir1" "$_dir2" >/dev/null; then
+      [ "$VERBOSE" ] &&
+        log "$LOG_INFO" "Contents of '$_dir1' and '$_dir2' match"
+      return 0
+    else
+      log "$LOG_WARN" "Contents of '$_dir1' and '$_dir2' differ"
+      return 1
+    fi
+  }
+
+  #? Set permissions for a directory.
+  #?
+  #? Parameters:
+  #?   $1 (string): The path to the directory to set permissions for.
+  #?   $2 (string): The type of items to set permissions for. Can be 'd' for directories,
+  #?       'f' for files, or 'l' for symbolic links.
+  #?   $3 (string): The permissions to set. Can be in octal (e.g. 755) or symbolic (e.g. rwxr-x).
+  #?   $4 (string): A description of the permissions being set.
+  #?
+  #? Returns:
+  #?   0 if the permissions were set successfully, otherwise 1.
+  #?
+  #? Notes:
+  #?   This function uses the `find` command to locate all items of the specified type
+  #?   inside the specified directory, and then sets the permissions using the `chmod`
+  #?   command. If the permissions are set successfully, a success message will be printed.
+  #?   If the permissions cannot be set, a failure message will be printed and the script
+  #?   will exit with a non-zero status code.
+  set_permissions() {
+    _path="$1"
+    _type="$2"
+    _mode="$3"
+    _description="$4"
+
+    [ "$DRY_RUN" ] && {
+      log "$LOG_INFO" "[DRY RUN] Would set '$_description' permissions for $_path"
+      return 0
+    }
+
+    if find "$_path" -type "$_type" -exec chmod "$_mode" {} +; then
+      log "$LOG_INFO" "Set '$_description' permissions for $_path"
+    else
+      log "$LOG_ERROR" "Failed to set '$_description' permissions for $_path"
+      return 1
+    fi
+  }
+
+  #? Change the owner and group of a directory.
+  #?
+  #? Parameters:
+  #?   $1 (string): The path to the directory whose ownership is to be changed.
+  #?   $2 (string): The new owner of the directory.
+  #?   $3 (string): The new group of the directory.
+  #?
+  #? Returns:
+  #?   0 if the ownership is successfully changed, otherwise exits with a non-zero status code.
+  #?
+  #? Notes:
+  #?   This function uses the `chown` command to recursively change the ownership and group
+  #?   of the specified directory. If successful, a success message will be printed and the
+  #?   directory's detailed listing will be shown. On failure, an error message will be printed
+  #?   and the script will exit.
+  set_ownership() {
+    _path="$1"
+    _owner="$2"
+    _group="$3"
+
+    [ "$DRY_RUN" ] && {
+      log "$LOG_INFO" "[DRY RUN] Would set ownership of $_path to $_owner:$_group"
+      return 0
+    }
+
+    if chown -R "$_owner:$_group" "$_path"; then
+      log "$LOG_INFO" "Set ownership of $_path to $_owner:$_group"
+      [ "$VERBOSE" ] && ls -la "$_path"
+    else
+      log "$LOG_ERROR" "Failed to set ownership for $_path"
+      return 1
+    fi
+  }
+
+  #? Synchronizes one directory with another
+  #?
+  #? Parameters:
+  #?   $1 (string): The source directory.
+  #?   $2 (string): The target directory.
+  #?
+  #? Returns:
+  #?   none
+  #?
+  #? Notes:
+  #?   This function uses the `rsync` command to recursively synchronize the source
+  #?   directory to the target directory. If the `rsync` command is not available,
+  #?   it will remove the target directory and copy the source directory to the
+  #?   target directory instead.
+  synchronize_dirs() {
+    _source="$1"
+    _target="$2"
+    _backup_dir=""
+
+    [ "$DRY_RUN" ] && {
+      log "$LOG_INFO" "[DRY RUN] Would synchronize $_source to $_target"
+      return 0
+    }
+
+    remove_path() { rm --recursive --force "$@"; }
+
+    #@ Create backup if target exists
+    if [ -d "$_target" ]; then
+      _backup_dir="$(mktemp -d "${_target}.backup.XXXXXX")"
+      _backup_space=$(df -P "$(dirname "$_backup_dir")" | awk 'NR==2 {print $4}')
+      _target_size=$(du -s "$_target" | cut -f1)
+      if [ "$_target_size" -gt "$_backup_space" ]; then
+        log "$LOG_ERROR" "Insufficient space for backup"
+        return 1
+      fi
+      cp -a "$_target/." "$_backup_dir/"
+      log "$LOG_INFO" "Created backup at $_backup_dir"
+    fi
+
+    if command -v rsync >/dev/null 2>&1; then
+      rsync --delete --recursive "$_source/" "$_target/" || {
+        [ -d "$_backup_dir" ] && {
+          log "$LOG_WARN" "Sync failed, restoring from backup"
+          remove_path "$_target"
+          mv "$_backup_dir" "$_target"
+        }
+        log "$LOG_ERROR" "Failed to synchronize directories"
+        return 1
+      }
+    else
+      remove_path "$_target"
+      cp --recursive "$_source" "$_target" || {
+        [ -d "$_backup_dir" ] && {
+          log "$LOG_WARN" "Copy failed, restoring from backup"
+          mv "$_backup_dir" "$_target"
+        }
+        log "$LOG_ERROR" "Failed to copy directory"
+        return 1
+      }
+    fi
+
+    #@ Clean up backup if successful
+    [ -d "$_backup_dir" ] && remove_path "$_backup_dir"
+
+    log "$LOG_INFO" "Updated '$_target' to match '$_source'"
+  }
+
+  #? Prints the resolved path of a file or directory
+  #?
+  #? Parameters:
+  #?   $1 (string): The file or directory path to resolve.
+  #?
+  #? Returns:
+  #?   The resolved path of the file or directory.
+  #?
+  #? Notes:
+  #?   This function will first try to use the `respath` command to resolve the
+  #?   path. If `respath` is not available, it will try to use the `readlink` or
+  #?   `realpath` commands. If all of these are unavailable, it will simply print
+  #?   the path as is.
+  resolve_path() {
+    _path="$1"
+
+    if command -v respath >/dev/null 2>&1; then
+      _resolver="respath"
+    elif command -v readlink >/dev/null 2>&1; then
+      _resolver="readlink -f"
+    elif command -v realpath >/dev/null 2>&1; then
+      _resolver="realpath"
+    else
+      log "$LOG_WARN" "No path resolver found, using raw path"
+      printf '%s' "$_path"
+      return 0
+    fi
+
+    eval "$_resolver" "'$_path'"
+  }
+
+  #? Prompts the user to overwrite an existing file
+  #?
+  #? Parameters:
+  #?   $1 (string): The path to the file or directory to overwrite.
+  #?
+  #? Returns:
+  #?   0 if the user chooses to overwrite, otherwise 1.
+  #?
+  #? Notes:
+  #?   This function will repeatedly prompt the user to overwrite the file or
+  #?   directory until they either choose to overwrite or exit. If the user chooses
+  #?   to overwrite, the file or directory will be removed and the function will
+  #?   return 0. If the user chooses to exit, the function will return 1.
+  prompt_to_overwrite() {
+    _path="$1"
+
+    [ "$DRY_RUN" ] && {
+      log "$LOG_INFO" "[DRY RUN] Would prompt to overwrite $_path"
+      return 0
+    }
+
+    while true; do
+      printf "%s already exists. Overwrite it? (y|N): " "$_path"
+      read -r _choice
+
+      case "$_choice" in
+      [Yy]*)
+        log "$LOG_INFO" "Overwriting $_path"
+        rm -rf "$_path"
+        return 0
+        ;;
+      [Nn]*)
+        log "$LOG_WARN" "Skipping $_path"
+        return 1
+        ;;
+      *)
+        log "$LOG_WARN" "Invalid choice. Please enter 'Y' or 'N'"
+        ;;
+      esac
+    done
+  }
+}
+
+#? Deploys symbolic links for DOTS for all users in the "wheel" group.
+#?
+#? This function will iterate over all users in the "wheel" group and attempt to
+#? create a symbolic link for DOTS in their home directory. If a file already
+#? exists at the target path, it will prompt the user to overwrite it. If the
+#? user chooses to overwrite, the file will be removed and the symlink will be
+#? created. If the user chooses not to overwrite, the function will skip the
+#? current user and continue with the next one.
+#?
+#? If DRY_RUN is set, the function will not create any symlinks and will only
+#? print information about which symlinks would be created.
+deploy_links() {
+  for _user in $(get_users_per_group "wheel"); do
+    case "$_user" in
+    "root") continue ;;
+    esac
+
+    _link_path="/home/$_user/.dots"
+
+    [ -e "$_link_path" ] && [ ! -L "$_link_path" ] && {
+      log "$LOG_WARN" "DOTS cannot be symlinked because another file exists at $_link_path"
+      prompt_to_overwrite "$_link_path" || continue
+    }
+
+    validate_info --link "$_link_path" "$TARGET_PATH" && continue
+
+    [ "$DRY_RUN" ] && {
+      log "$LOG_INFO" "[DRY RUN] Would create symlink $_link_path -> $TARGET_PATH"
+      continue
+    }
+
+    ln --symbolic --force "$TARGET_PATH" "$_link_path"
+    log "$LOG_INFO" "Created symlink $_link_path -> $TARGET_PATH"
+  done
+}
+
+cleanup() {
+  log "$LOG_INFO" "Cleaning up..."
+
+  #@ Store the exit code of the last command
+  _exit_code=$?
+
+  #@ Create a flag to track if we're cleaning up after an error
+  [ "$_exit_code" -ne 0 ] && _is_error=true || _is_error=false
+
+  #@ Handle interrupted syncs or failed operations
+  if [ "$_is_error" = true ]; then
+    if [ -d "$TARGET_PATH" ]; then
+      log "$LOG_WARN" "Checking target directory integrity..."
+
+      #@ If source exists and sync was interrupted, verify integrity
+      if [ -d "$SOURCE_PATH" ]; then
+        if ! diff_dir "$SOURCE_PATH" "$TARGET_PATH" >/dev/null 2>&1; then
+          log "$LOG_ERROR" "Target directory may be in inconsistent state"
+        fi
+      fi
+    fi
+  fi
+
+  #@ Clean up any temporary files
+  for _temp in /tmp/link_dots.*; do
+    [ -e "$_temp" ] && rm -rf "$_temp"
+  done
+
+  #@ Report final status
+  if [ "$_is_error" = true ]; then
+    log "$LOG_ERROR" "Script terminated with errors (exit code: $_exit_code)"
+  else
+    log "$LOG_INFO" "Cleanup completed successfully"
+  fi
+
+  return "$_exit_code"
+}
+
+main() {
+  #@ Include signal trapping
+  trap cleanup EXIT INT TERM
+
+  #@ Enable strict mode (uncomment these)
+  set -e #? Exit on error
+  set -u #? Exit on undefined variable
+
+  #@ Initialize the script
+  initialize_utilities
+  initialize_script
+  initialize_environment "$@"
+
+  #@ Synchronize files from the source directory to the target directory
+  synchronize_dirs "$SOURCE_PATH" "$TARGET_PATH"
+
+  #@ Set ownersip and permissions of the target directory
+  set_ownership "$TARGET_PATH" "root" "wheel"
+  set_permissions "$TARGET_PATH" "d" "770" "directory"
+  set_permissions "$TARGET_PATH" "f" "660" "file"
+  set_permissions "$TARGET_PATH" "d" "g+s" "group sticky bit for directories"
+
+  #@ Deploy symlinks for each user in the wheel group
+  deploy_links
+}
+
+main "$@"

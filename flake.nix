@@ -51,13 +51,14 @@
                 mods = "/modules";
                 opts = "/options";
                 pkgs = "/packages";
-                scripts = "/Bin";
+                bin = "/Bin";
                 svcs = "/services";
                 ui = "/ui";
                 uiCore = "/ui/core";
                 uiHome = "/ui/home";
                 hosts = parts.cfgs + "/hosts";
                 users = parts.cfgs + "/users";
+                scripts = "/scripts";
               };
               core = {
                 default = modules.store;
@@ -83,8 +84,10 @@
                 services = home.default + parts.svcs;
               };
               scripts = {
-                local = flake.local + parts.scripts;
+                global = flake.local + parts.bin;
+                local = modules.store + parts.scripts;
                 store = flake.store + parts.scripts;
+                dots = modules.store + parts.scripts + "/init_dots";
               };
               modules = {
                 local = flake.local + parts.modules;

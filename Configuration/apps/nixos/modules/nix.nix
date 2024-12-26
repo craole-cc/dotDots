@@ -1,13 +1,16 @@
 {
   specialArgs,
   lib,
+  pkgs,
   modulesPath,
   ...
 }:
 let
   inherit (specialArgs.host) userConfigs stateVersion system;
   inherit (lib.attrsets) attrNames;
-  inherit (specialArgs.paths) flake;
+  inherit (lib.strings) makeBinPath;
+  inherit (specialArgs.paths) flake scripts;
+
 in
 {
   imports = [
@@ -44,24 +47,26 @@ in
   system = {
     inherit stateVersion;
     activationScripts.setDotsPermissions.text = ''
-      #!/bin/sh
-      rsync --delete --recursive ${flake.local}/ ${flake.root}/
-      # rm --recursive --force ${flake.root}
-      # cp --recursive --force ${flake.local} ${flake.root}
-      chown -R root:wheel ${flake.root}
-      find ${flake.root} -type d -exec chmod 770 {} +
-      find ${flake.root} -type f -exec chmod 660 {} +
-      find ${flake.root} -type d -exec chmod g+s {} +
+      #@ Ensure required commands are available
+      PATH=$PATH:${
+        makeBinPath (
+          with pkgs;
+          [
+            coreutils
+            findutils
+            rsync
+            gnused
+            gawk
+            getent
+            diffutils
+          ]
+        )
+      }
 
-
-      for user in $(getent group wheel | cut -d: -f4 | tr ',' ' '); do
-        case "$user" in "root") continue;; esac
-        if [ ! -L "/home/$user/.dots" ]; then
-          printf "🔴 /home/%s/.dots already exists\n" "$user"
-        else
-          ln --symbolic --force "${flake.root}/" "/home/$user/.dots/"
-        fi
-      done
+      ${pkgs.bash}/bin/bash ${scripts.dots} \
+        --source ${flake.local} \
+        --target ${flake.root} \
+        --strict
     '';
   };
 
