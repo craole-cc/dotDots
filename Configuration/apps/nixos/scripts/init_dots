@@ -63,6 +63,7 @@ initialize_environment() {
       ;;
     --dry-run | --simulate)
       DRY_RUN=true
+      VERBOSE=true
       ;;
     -x | --strict)
       STRICT_MODE=true
@@ -574,8 +575,8 @@ main() {
   trap cleanup EXIT INT TERM
 
   #@ Enable strict mode (uncomment these)
-  set -e #? Exit on error
-  set -u #? Exit on undefined variable
+  # set -e #? Exit on error
+  # set -u #? Exit on undefined variable
 
   #@ Initialize the script
   initialize_utilities
