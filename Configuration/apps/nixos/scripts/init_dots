@@ -199,8 +199,6 @@ initialize_utilities() {
     if [ ! -e "$_path" ]; then
       log "$LOG_ERROR" "Path does not exist: $_path"
       return 1
-    elif command -v pls >/dev/null 2>&1; then
-      pls "$_path" -d oct -d perm -d group -d user -d typ
     elif command -v eza >/dev/null 2>&1; then
       eza "$_path" \
         --long \
@@ -208,7 +206,9 @@ initialize_utilities() {
         --smart-group \
         --no-time \
         --octal-permissions \
-        --color=always
+        --color=always --icons=always
+    elif command -v pls >/dev/null 2>&1; then
+      pls "$_path" -d oct -d perm -d group -d user -d typ
     else
       _size="$(du -sh "$_path" | cut -f1)"
       _perm="$(stat -c '%a' "$_path")"
