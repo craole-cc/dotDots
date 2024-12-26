@@ -75,14 +75,6 @@ initialize_environment() {
     esac
     shift
   done
-
-  #@ Validate the environment
-  validate_info --root-user || return 1
-  validate_info --arg "SOURCE_PATH" || return 1
-  validate_info --dir "SOURCE_PATH" || return 1
-  validate_info --dir "TARGET_PATH" || return 1
-  validate_info --diff "$SOURCE_PATH" "$TARGET_PATH" || return 1
-
 }
 
 initialize_utilities() {
@@ -99,7 +91,7 @@ initialize_utilities() {
     printf "[%s] [%s] %s\n" "$_timestamp" "$_level" "$_message"
 
     #@ Exit on error messages if strict mode is enabled
-    [ "$_level" = "$LOG_ERROR" ] && [ "$STRICT_MODE" = true ] && exit 1
+    [ "$_level" = "$LOG_ERROR" ] && [ "$STRICT_MODE" = true ] && return 1
   }
 
   #? Validate the existence of an argument, file, directory, or path.
@@ -274,7 +266,7 @@ initialize_utilities() {
     _dir1="$1"
     _dir2="$2"
 
-    if diff --recursive --quiet "$_dir1" "$_dir2" >/dev/null; then
+    if diff --recursive --brief "$_dir1" "$_dir2" >/dev/null; then
       [ "$VERBOSE" ] &&
         log "$LOG_INFO" "Contents of '$_dir1' and '$_dir2' match"
       return 0
@@ -496,18 +488,7 @@ initialize_utilities() {
   }
 }
 
-#? Deploys symbolic links for DOTS for all users in the "wheel" group.
-#?
-#? This function will iterate over all users in the "wheel" group and attempt to
-#? create a symbolic link for DOTS in their home directory. If a file already
-#? exists at the target path, it will prompt the user to overwrite it. If the
-#? user chooses to overwrite, the file will be removed and the symlink will be
-#? created. If the user chooses not to overwrite, the function will skip the
-#? current user and continue with the next one.
-#?
-#? If DRY_RUN is set, the function will not create any symlinks and will only
-#? print information about which symlinks would be created.
-deploy_links() {
+execute_process() {
   for _user in $(get_users_per_group "wheel"); do
     case "$_user" in
     "root") continue ;;
@@ -574,14 +555,17 @@ main() {
   #@ Include signal trapping
   trap cleanup EXIT INT TERM
 
-  #@ Enable strict mode (uncomment these)
-  # set -e #? Exit on error
-  # set -u #? Exit on undefined variable
-
   #@ Initialize the script
   initialize_utilities
   initialize_script
   initialize_environment "$@"
+
+  #@ Validate the environment
+  # validate_info --root-user || return 1
+  validate_info --arg "SOURCE_PATH" || return 1
+  validate_info --dir "SOURCE_PATH" || return 1
+  validate_info --dir "TARGET_PATH" || return 1
+  validate_info --diff "$SOURCE_PATH" "$TARGET_PATH" || return 1
 
   #@ Synchronize files from the source directory to the target directory
   synchronize_dirs "$SOURCE_PATH" "$TARGET_PATH"
@@ -593,7 +577,11 @@ main() {
   set_permissions "$TARGET_PATH" "d" "g+s" "group sticky bit for directories"
 
   #@ Deploy symlinks for each user in the wheel group
-  deploy_links
+  execute_process
 }
 
 main "$@"
+# main \
+#   --source /home/craole/Documents/dotfiles \
+#   --target /dots \
+#   --strict
