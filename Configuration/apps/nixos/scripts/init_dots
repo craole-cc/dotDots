@@ -199,7 +199,8 @@ initialize_utilities() {
       --list-dirs \
       --smart-group \
       --no-time \
-      --octal-permissions
+      --octal-permissions \
+      --color=always
   }
 
   #? Safely retrieve a value, either directly or from a variable name.
@@ -356,7 +357,7 @@ initialize_utilities() {
 
     if chown -R "$_owner:$_group" "$_path"; then
       log "$LOG_INFO" "Set ownership of $_path to $_owner:$_group"
-      [ "$VERBOSE" ] && ls -la "$_path"
+      [ "$VERBOSE" ] && validate_info --dir "$_path"
     else
       log "$LOG_ERROR" "Failed to set ownership for $_path"
       return 1
@@ -530,7 +531,7 @@ execute_process() {
 }
 
 cleanup() {
-  log "$LOG_INFO" "Cleaning up..."
+  log "$LOG_INFO" "Wrapping up..."
 
   #@ Store the exit code of the last command
   _exit_code=$?
