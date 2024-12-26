@@ -192,8 +192,14 @@ initialize_utilities() {
     _perm="$(stat -c '%a' "$_path")"
     _user="$(stat -c '%U' "$_path")"
     _group="$(stat -c '%G' "$_path")"
-    printf "%-20s %-10s %-10s %s\n" "$_path" "$_size" "$_perm" "$_user,$_group"
-    eza --list-dirs --show-symlinks --color=always --long "$_path"
+
+    # printf "%-20s %-10s %-10s %s\n" "$_path" "$_size" "$_perm" "$_user,$_group"
+    eza "$_path" \
+      --long \
+      --list-dirs \
+      --smart-group \
+      --no-time \
+      --octal-permissions
   }
 
   #? Safely retrieve a value, either directly or from a variable name.
