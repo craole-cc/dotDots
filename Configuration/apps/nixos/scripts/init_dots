@@ -147,7 +147,7 @@ initialize_utilities() {
       _resolved="$(resolve_path "$_var")"
 
       [ -L "$_var" ] && [ -n "$_resolved" ] &&
-        diff_dir "$_resolved" "$_target" && _validated=true
+        diff_dir "$_var" "$_target" && _validated=true
       ;;
     esac
 
