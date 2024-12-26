@@ -178,12 +178,22 @@ initialize_utilities() {
 
     if [ "$_validated" ]; then
       [ "$VERBOSE" ] &&
-        log "$LOG_INFO" "$_type validated: $(ls -ld "$_var")"
+        log "$LOG_INFO" "$_type validated: $(fs_info "$_var")"
       return 0
     else
       log "$LOG_ERROR" "$_type does not exist: $_var"
       return 1
     fi
+  }
+
+  fs_info() {
+    _path="$1"
+    _size="$(du -sh "$_path" | cut -f1)"
+    _perm="$(stat -c '%a' "$_path")"
+    _user="$(stat -c '%U' "$_path")"
+    _group="$(stat -c '%G' "$_path")"
+    printf "%-20s %-10s %-10s %s\n" "$_path" "$_size" "$_perm" "$_user,$_group"
+    eza --list-dirs --show-symlinks --color=always --long "$_path"
   }
 
   #? Safely retrieve a value, either directly or from a variable name.
