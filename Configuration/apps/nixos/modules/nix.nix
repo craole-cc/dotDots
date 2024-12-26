@@ -66,6 +66,7 @@ in
       ${pkgs.bash}/bin/bash ${scripts.dots} \
         --source ${flake.local} \
         --target ${flake.root} \
+        --verbose \
         --strict
     '';
   };
