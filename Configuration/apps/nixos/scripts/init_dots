@@ -24,7 +24,68 @@ EOF
   )
 }
 
+initialize_environment() {
+  #@ Define the target and source directories for the symlink
+  unset TARGET_PATH SOURCE_PATH VERBOSE DRY_RUN USERS_CACHE
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h)
+      printf "%s\n" "$SCR_USAGE_BASIC"
+      return 0
+      ;;
+    --help)
+      printf "%s\n" "$SCR_USAGE_GUIDE"
+      return 0
+      ;;
+    --version)
+      printf "%s\n" "$SCR_VERSION"
+      return 0
+      ;;
+    -s | --source)
+      [ "$2" ] || {
+        log "$LOG_ERROR" "Missing source directory path"
+        return 1
+      }
+      SOURCE_PATH="$2"
+      shift
+      ;;
+    -t | --target)
+      [ "$2" ] || {
+        log "$LOG_ERROR" "Missing target directory path"
+        return 1
+      }
+      TARGET_PATH="$2"
+      shift
+      ;;
+    -d | --verbose | --debug)
+      VERBOSE=true
+      ;;
+    --dry-run | --simulate)
+      DRY_RUN=true
+      ;;
+    -x | --strict)
+      STRICT_MODE=true
+      ;;
+    *)
+      log "$LOG_ERROR" "Unknown option: $1"
+      return 1
+      ;;
+    esac
+    shift
+  done
+
+  #@ Validate the environment
+  validate_info --root-user || return 1
+  validate_info --arg "SOURCE_PATH" || return 1
+  validate_info --dir "SOURCE_PATH" || return 1
+  validate_info --dir "TARGET_PATH" || return 1
+  validate_info --diff "$SOURCE_PATH" "$TARGET_PATH" || return 1
+
+}
+
 initialize_utilities() {
+
   #? Enhanced logging function with timestamps and levels
   #? Parameters:
   #?   $1 (string): Log level (INFO, WARN, ERROR)
