@@ -60,6 +60,7 @@ in
             getent
             diffutils
             eza
+            pls
           ]
         )
       }

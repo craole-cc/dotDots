@@ -68,6 +68,8 @@ in
       #| Filesystem
       dust
       eza
+      pls
+      lsd
       macchina
       fastfetch
       cpufetch

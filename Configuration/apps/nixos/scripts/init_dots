@@ -143,11 +143,18 @@ initialize_utilities() {
       _type="Symbolic link"
       _var="$(get_var "$2")"
       _target="$(get_var "$3")"
-
       _resolved="$(resolve_path "$_var")"
 
-      [ -L "$_var" ] && [ -n "$_resolved" ] &&
-        diff_dir "$_var" "$_target" && _validated=true
+      [ -L "$_var" ] && [ -n "$_resolved" ] && {
+        if [ "$_resolved" = "$_target" ]; then
+          _validated=true
+        elif diff_dir "$_var" "$_target"; then
+          _validated=true
+        else
+          log "$LOG_ERROR" "Symbolic link does not point to target path"
+          return 1
+        fi
+      }
       ;;
     esac
 
