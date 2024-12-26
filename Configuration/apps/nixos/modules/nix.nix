@@ -59,6 +59,7 @@ in
             gawk
             getent
             diffutils
+            eza
           ]
         )
       }
