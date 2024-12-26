@@ -6,7 +6,7 @@
 }:
 let
   inherit (config.services) pipewire;
-  flake = specialArgs.paths.flake.local;
+  inherit (specialArgs.paths) flake;
   gui =
     with config;
     services.xserver.enable || programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
@@ -22,7 +22,10 @@ in
         init = {
           defaultBranch = "main";
         };
-        safe.directory = flake;
+        safe.directory = with flake; [
+          root
+          local
+        ];
 
       };
     };
@@ -75,6 +78,8 @@ in
       cpufetch
       neofetch
       ufetch
+      trashy
+      conceal
 
       #| Utilities
       brightnessctl

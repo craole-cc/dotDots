@@ -94,7 +94,18 @@ initialize_utilities() {
     [ "$_level" = "$LOG_ERROR" ] && [ "$STRICT_MODE" = true ] && return 1
   }
 
-  #? Validate the existence of an argument, file, directory, or path.
+  #? Check if all of the given commands are available in the system PATH.
+  #? Parameters:
+  #?   $@ (string): The commands to check for.
+  #?
+  #? Returns 0 if all commands are available, 1 otherwise.
+  wehave() {
+    for _cmd in "$@"; do
+      command -v "$_cmd" >/dev/null 2>&1
+    done
+  }
+
+  #? Validates the existence of an argument, file, directory, or path.
   #? Arguments:
   #?   --arg [NAME] (optional): Validate that the argument NAME is set.
   #?   --dir [PATH] (optional): Validate that the directory specified by PATH exists.
@@ -131,6 +142,16 @@ initialize_utilities() {
     --diff)
       _source="$(get_var "$2")"
       _target="$(get_var "$3")"
+
+      [ -d "$_source" ] || {
+        log "$LOG_WARN" "Source directory does not exist"
+        return 1
+      }
+
+      [ "$_target" ] || {
+        log "$LOG_ERROR" "Target directory not defined"
+        return 1
+      }
 
       [ "$(resolve_path "$_source")" = "$(resolve_path "$_target")" ] && {
         log "$LOG_ERROR" "Source and target paths cannot be the same"
@@ -193,28 +214,36 @@ initialize_utilities() {
     fi
   }
 
+  #? Retrieves and displays detailed information about the given path.
+  #?
+  #? Parameters:
+  #?   _path: The file or directory path for which to retrieve information.
+  #?
+  #? Returns:
+  #?   1 if the path does not exist, otherwise prints the detailed information.
+  #?   Uses 'eza' or 'pls' for enhanced formatting if available, defaulting to 'ls'.
   fs_info() {
     _path="$1"
 
     if [ ! -e "$_path" ]; then
       log "$LOG_ERROR" "Path does not exist: $_path"
       return 1
-    elif command -v eza >/dev/null 2>&1; then
+    elif wehave eza; then
       eza "$_path" \
         --long \
         --list-dirs \
         --smart-group \
         --no-time \
         --octal-permissions \
-        --color=always --icons=always
-    elif command -v pls >/dev/null 2>&1; then
+        --color=always --icons=auto
+    elif wehave pls; then
       pls "$_path" -d oct -d perm -d group -d user -d typ
     else
-      _size="$(du -sh "$_path" | cut -f1)"
-      _perm="$(stat -c '%a' "$_path")"
-      _user="$(stat -c '%U' "$_path")"
-      _group="$(stat -c '%G' "$_path")"
-      printf "%-20s %-10s %-10s %s\n" "$_path" "$_size" "$_perm" "$_user,$_group"
+      ls "$_path" \
+        -l \
+        --human-readable \
+        --directory \
+        --color=always
     fi
   }
 
@@ -394,36 +423,50 @@ initialize_utilities() {
   #?   it will remove the target directory and copy the source directory to the
   #?   target directory instead.
   synchronize_dirs() {
-    _source="$1"
-    _target="$2"
-    _backup_dir=""
+    unset _source _target _backup
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      --source) _source=$2 ;;
+      --target) _target=$2 ;;
+      --backup) _backup=$2 ;;
+      *) break ;;
+      esac
+      shift
+    done
+
+    validate_info --diff "$_source" "$_target" || {
+      log "$LOG_WARN" "Skipping synchronization"
+      return 0
+    }
+
+    validate_info --arg "SOURCE_PATH" || return 1
+    validate_info --dir "SOURCE_PATH" || return 1
+    validate_info --arg "TARGET_PATH" || return 1
 
     [ "$DRY_RUN" ] && {
       log "$LOG_INFO" "[DRY RUN] Would synchronize $_source to $_target"
       return 0
     }
 
-    remove_path() { rm --recursive --force "$@"; }
-
     #@ Create backup if target exists
     if [ -d "$_target" ]; then
-      _backup_dir="$(mktemp -d "${_target}.backup.XXXXXX")"
-      _backup_space=$(df -P "$(dirname "$_backup_dir")" | awk 'NR==2 {print $4}')
+      _backup="$(mktemp -d "${_target}.backup.XXXXXX")"
+      _backup_space=$(df -P "$(dirname "$_backup")" | awk 'NR==2 {print $4}')
       _target_size=$(du -s "$_target" | cut -f1)
       if [ "$_target_size" -gt "$_backup_space" ]; then
         log "$LOG_ERROR" "Insufficient space for backup"
         return 1
       fi
-      cp -a "$_target/." "$_backup_dir/"
-      log "$LOG_INFO" "Created backup at $_backup_dir"
+      cp -a "$_target/." "$_backup/"
+      log "$LOG_INFO" "Created backup at $_backup"
     fi
 
-    if command -v rsync >/dev/null 2>&1; then
+    if wehave rsync; then
       rsync --delete --recursive "$_source/" "$_target/" || {
-        [ -d "$_backup_dir" ] && {
+        [ -d "$_backup" ] && {
           log "$LOG_WARN" "Sync failed, restoring from backup"
           remove_path "$_target"
-          mv "$_backup_dir" "$_target"
+          mv "$_backup" "$_target"
         }
         log "$LOG_ERROR" "Failed to synchronize directories"
         return 1
@@ -431,9 +474,9 @@ initialize_utilities() {
     else
       remove_path "$_target"
       cp --recursive "$_source" "$_target" || {
-        [ -d "$_backup_dir" ] && {
+        [ -d "$_backup" ] && {
           log "$LOG_WARN" "Copy failed, restoring from backup"
-          mv "$_backup_dir" "$_target"
+          mv "$_backup" "$_target"
         }
         log "$LOG_ERROR" "Failed to copy directory"
         return 1
@@ -441,7 +484,7 @@ initialize_utilities() {
     fi
 
     #@ Clean up backup if successful
-    [ -d "$_backup_dir" ] && remove_path "$_backup_dir"
+    [ -d "$_backup" ] && remove_path "$_backup"
 
     log "$LOG_INFO" "Updated '$_target' to match '$_source'"
   }
@@ -459,14 +502,30 @@ initialize_utilities() {
   #?   path. If `respath` is not available, it will try to use the `readlink` or
   #?   `realpath` commands. If all of these are unavailable, it will simply print
   #?   the path as is.
+
+  remove_path() {
+    if [ "$#" -gt 0 ]; then
+      log "$LOG_ERROR" "No paths to remove provided"
+      return 1
+    elif wehave cnc; then
+      cnc "$@"
+    elif wehave trashy; then
+      trash "$@"
+    elif wehave trash-put; then
+      trash-put "$@"
+    elif wehave rm; then
+      rm --recursive --force --verbose "$@"
+    fi
+  }
+
   resolve_path() {
     _path="$1"
 
-    if command -v respath >/dev/null 2>&1; then
+    if wehave respath; then
       _resolver="respath"
-    elif command -v readlink >/dev/null 2>&1; then
+    elif wehave readlink; then
       _resolver="readlink -f"
-    elif command -v realpath >/dev/null 2>&1; then
+    elif wehave realpath; then
       _resolver="realpath"
     else
       log "$LOG_WARN" "No path resolver found, using raw path"
@@ -592,13 +651,12 @@ main() {
 
   #@ Validate the environment
   # validate_info --root-user || return 1
-  validate_info --arg "SOURCE_PATH" || return 1
-  validate_info --dir "SOURCE_PATH" || return 1
-  validate_info --dir "TARGET_PATH" || return 1
-  validate_info --diff "$SOURCE_PATH" "$TARGET_PATH" || return 1
+  # validate_info --arg "SOURCE_PATH" || return 1
+  # validate_info --dir "SOURCE_PATH" || return 1
+  # validate_info --dir "TARGET_PATH" || return 1
 
   #@ Synchronize files from the source directory to the target directory
-  synchronize_dirs "$SOURCE_PATH" "$TARGET_PATH"
+  synchronize_dirs --source "$SOURCE_PATH" --target "$TARGET_PATH"
 
   #@ Set ownersip and permissions of the target directory
   set_ownership "$TARGET_PATH" "root" "wheel"

@@ -54,13 +54,14 @@ in
           [
             coreutils
             findutils
+            fd
             rsync
             gnused
             gawk
             getent
             diffutils
             eza
-            pls
+            trashy
           ]
         )
       }
