@@ -17,7 +17,7 @@ in
       enable = true;
       lfs.enable = true;
       config = {
-        user.name = "Your Name"; # Set your name
+        user.name = "Your Name"; # TODO: Use the autologin user info if available
         user.email = "you@example.com"; # Set your email
         init = {
           defaultBranch = "main";

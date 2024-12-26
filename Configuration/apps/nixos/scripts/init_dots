@@ -605,7 +605,7 @@ execute_process() {
 }
 
 cleanup() {
-  log "$LOG_INFO" "Wrapping up..."
+  # log "$LOG_INFO" "Wrapping up..."
 
   #@ Store the exit code of the last command
   _exit_code=$?
@@ -648,12 +648,6 @@ main() {
   initialize_utilities
   initialize_script
   initialize_environment "$@"
-
-  #@ Validate the environment
-  # validate_info --root-user || return 1
-  # validate_info --arg "SOURCE_PATH" || return 1
-  # validate_info --dir "SOURCE_PATH" || return 1
-  # validate_info --dir "TARGET_PATH" || return 1
 
   #@ Synchronize files from the source directory to the target directory
   synchronize_dirs --source "$SOURCE_PATH" --target "$TARGET_PATH"
