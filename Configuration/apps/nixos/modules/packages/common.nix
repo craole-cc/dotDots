@@ -17,16 +17,19 @@ in
       enable = true;
       lfs.enable = true;
       config = {
-        user.name = "Your Name"; # TODO: Use the autologin user info if available
-        user.email = "you@example.com"; # Set your email
-        init = {
-          defaultBranch = "main";
-        };
+        user =
+          let
+          in
+          # TODO: Use the git info from the autologin user or the elevated user, if available
+          {
+            name = "Your Name";
+            email = "you@example.com";
+          };
+        init.defaultBranch = "main";
         safe.directory = with flake; [
           root
           local
         ];
-
       };
     };
     direnv = {

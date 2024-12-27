@@ -1,5 +1,43 @@
 #!/bin/sh
 
+: <<NIX
+  system.activationScripts.setDotsPermissions.text =
+  let
+    inherit (lib.strings) makeBinPath;
+    inherit (specialArgs.paths) flake scripts;
+  in ''
+    #@ Ensure required commands are available
+    PATH=$PATH:${
+      makeBinPath (
+        with pkgs;
+        [
+          coreutils
+          findutils
+          fd
+          rsync
+          gnused
+          gawk
+          getent
+          diffutils
+          eza
+          trashy
+        ]
+      )
+    }
+
+    . ${scripts.dots} \
+      --source ${flake.local} \
+      --target ${flake.root} \
+      --verbose \
+      --strict
+  '';
+
+  systemd.tmpfiles.rules = [
+    "d ${flake.root} 0770 root wheel -"
+    "d ${flake.root} 2770 root wheel -"
+  ];
+NIX
+
 initialize_script() {
   LOG_INFO="INFO"
   LOG_WARN="WARN"
@@ -337,7 +375,7 @@ initialize_utilities() {
     fi
   }
 
-  #? Set permissions for a directory.
+  #? Set permissions for items in a directory.
   #?
   #? Parameters:
   #?   $1 (string): The path to the directory to set permissions for.
@@ -350,11 +388,11 @@ initialize_utilities() {
   #?   0 if the permissions were set successfully, otherwise 1.
   #?
   #? Notes:
-  #?   This function uses the `find` command to locate all items of the specified type
-  #?   inside the specified directory, and then sets the permissions using the `chmod`
-  #?   command. If the permissions are set successfully, a success message will be printed.
-  #?   If the permissions cannot be set, a failure message will be printed and the script
-  #?   will exit with a non-zero status code.
+  #?   This function uses either the `fd` command or the `find` command to locate all items
+  #?   of the specified type inside the specified directory, and then sets the permissions
+  #?   using the `chmod` command. If the permissions are set successfully, a success message
+  #?   will be printed. If the permissions cannot be set, a failure message will be printed
+  #?   and the script will exit with a non-zero status code.
   set_permissions() {
     _path="$1"
     _type="$2"
@@ -366,7 +404,13 @@ initialize_utilities() {
       return 0
     }
 
-    if find "$_path" -type "$_type" -exec chmod "$_mode" {} +; then
+    if wehave fd; then
+      cmd="fd --type $_type . $_path --exec chmod $_mode {}"
+    else
+      cmd="find $_path -type $_type -exec chmod $_mode {} +"
+    fi
+
+    if eval "$cmd"; then
       log "$LOG_INFO" "Set '$_description' permissions for $_path"
     else
       log "$LOG_ERROR" "Failed to set '$_description' permissions for $_path"
@@ -399,7 +443,7 @@ initialize_utilities() {
       return 0
     }
 
-    if chown -R "$_owner:$_group" "$_path"; then
+    if chown --recursive "$_owner:$_group" "$_path"; then
       log "$LOG_INFO" "Set ownership of $_path to $_owner:$_group"
       [ "$VERBOSE" ] && validate_info --dir "$_path"
     else

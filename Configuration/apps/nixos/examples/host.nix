@@ -1,17 +1,40 @@
 {
-  system = "x86_64-linux";
-  id = "8f792eed";
-  stateVersion = "24.05";
-  base = "laptop";
-  desktop = "plasma";
+  #> head -c 8 /etc/machine-id
+  id = "";
+
+  #> grep -r stateVersion . | awk -F '"' '{print $2; next}'
+  stateVersion = "";
+
+  cpu = {
+    #> grep -oP 'cpu\.\K[^\s\.]+' hardware-configuration.nix
+    brand = "";
+
+    #> grep -r hostPlatform . | awk -F '"' '{print $2; next}'
+    arch = "";
+
+    #? [ "ondemand" | "powersave" | "performance" ]
+    mode = "";
+  };
+  gpu = {
+    brand = "intel";
+  };
+
+  #? [ "laptop" | "server" | "chromebook" | "raspberry-pi" | "virtual" | "desktop" ]
+  base = "";
+
+  #? [ "plasma" | "gnome" | "hyprland" ]
+  desktop = "";
+
+  #? [ unstable | stable ]
   preferredRepo = "unstable";
+
+  #? [ true | false ]
   allowUnfree = true;
   allowAliases = true;
-  # allowHomeManager = false;
+  allowHomeManager = false;
   backupFileExtension = "BaC";
   extraPkgConfig = { };
   extraPkgAttrs = { };
-
   capabilities = [
     "ai"
     "audio"
@@ -30,14 +53,6 @@
     "media"
     "productivity"
   ];
-  cpu = {
-    brand = "intel";
-    arch = "x86_64-linux";
-    mode = "ondemand";
-  };
-  gpu = {
-    brand = "intel";
-  };
   location = {
     latitude = 18.015;
     longitude = 77.49;
@@ -81,16 +96,19 @@
   };
   people = [
     {
-      name = "craole";
+      #! Required
+      name = ""; # ? printf "%s" "$USER"
       admin = true;
-      # autoLogin = true;
-      # enable = true; #? This defaults to true if unset
+      autoLogin = true;
+      enable = true; # ? This defaults to true if unset
     }
     {
-      name = "cc";
+      #! Optional
+      name = "";
       admin = true;
     }
     {
+      #! Optional
       name = "qyatt";
       # enable = false;
       admin = false;
