@@ -1,15 +1,15 @@
 {
-  #> head -c 8 /etc/machine-id
+  #! head -c 8 /etc/machine-id
   id = "";
 
-  #> grep -r stateVersion . | awk -F '"' '{print $2; next}'
+  #! grep -r stateVersion . | awk -F '"' '{print $2; next}'
   stateVersion = "";
 
   cpu = {
-    #> grep -oP 'cpu\.\K[^\s\.]+' hardware-configuration.nix
+    #! grep -oP 'cpu\.\K[^\s\.]+' hardware-configuration.nix
     brand = "";
 
-    #> grep -r hostPlatform . | awk -F '"' '{print $2; next}'
+    #! grep -r hostPlatform . | awk -F '"' '{print $2; next}'
     arch = "";
 
     #? [ "ondemand" | "powersave" | "performance" ]
@@ -22,7 +22,7 @@
   #? [ "laptop" | "server" | "chromebook" | "raspberry-pi" | "virtual" | "desktop" ]
   base = "";
 
-  #? [ "plasma" | "gnome" | "hyprland" ]
+  #? [ "plasma" | "gnome" | "hyprland" | "none"]
   desktop = "";
 
   #? [ unstable | stable ]

@@ -1,16 +1,12 @@
 {
   specialArgs,
   lib,
-  pkgs,
   modulesPath,
   ...
 }:
 let
-  inherit (specialArgs.host) userConfigs stateVersion system;
+  inherit (specialArgs.host) userConfigs stateVersion cpu;
   inherit (lib.attrsets) attrNames;
-  inherit (lib.strings) makeBinPath;
-  inherit (specialArgs.paths) flake scripts;
-
 in
 {
   imports = [
@@ -41,10 +37,10 @@ in
   };
 
   nixpkgs = {
-    hostPlatform = system;
+    hostPlatform = cpu.arch;
   };
 
   system = {
     inherit stateVersion;
-  };  
+  };
 }
