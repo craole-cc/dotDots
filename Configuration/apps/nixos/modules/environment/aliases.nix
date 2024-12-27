@@ -22,7 +22,7 @@ in
     h = "history";
     ".dots-local" = ''cd ${flake.local}'';
     ".dots-root" = ''cd ${flake.root}'';
-    ".dots-link" = ''cd ${flake.link}'';
+    # ".dots-link" = ''cd ${flake.link}'';
     ".." = "cd ..";
     "..." = "cd ../..";
     "...." = "cd ../../..";
