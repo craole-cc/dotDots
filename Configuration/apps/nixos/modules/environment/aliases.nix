@@ -4,6 +4,14 @@ let
 in
 {
   environment.shellAliases = {
+    ".dots" = ''.dots-local'';
+    ".dots-local" = ''cd ${flake.local}'';
+    ".dots-root" = ''cd ${flake.root}'';
+    # ".dots-link" = ''cd ${flake.link}'';
+    ".." = "cd ..";
+    "..." = "cd ../..";
+    "...." = "cd ../../..";
+    "....." = "cd ../../../..";
     Flake = ''if command -v geet ; then geet ; else git add --all; git commit --message "Flake Update" ; fi ; sudo nixos-rebuild switch --flake . --show-trace'';
     Flash-local = ''geet --path ${flake.local} && sudo nixos-rebuild switch --flake ${flake.local} --show-trace'';
     Flash-root = ''geet --path ${flake.root} && sudo nixos-rebuild switch --flake ${flake.root} --show-trace'';
@@ -20,12 +28,5 @@ in
     Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
     q = ''leave --terminal'';
     h = "history";
-    ".dots-local" = ''cd ${flake.local}'';
-    ".dots-root" = ''cd ${flake.root}'';
-    # ".dots-link" = ''cd ${flake.link}'';
-    ".." = "cd ..";
-    "..." = "cd ../..";
-    "...." = "cd ../../..";
-    "....." = "cd ../../../..";
   };
 }
