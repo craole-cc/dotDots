@@ -114,6 +114,7 @@ in
         else
           { };
 
+xrdp =if hasRemote then {enable=true;}else{};
       udev.extraRules = ''
         ACTION=="add", SUBSYSTEM=="hidraw", GROUP="users", MODE="0660", TAG+="uaccess"
       '';
