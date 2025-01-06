@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inherit (specialArgs.host) userConfigs stateVersion cpu;
+  inherit (specialArgs.host) userConfigs stateVersion platform;
   inherit (lib.attrsets) attrNames;
 in
 {
@@ -37,7 +37,7 @@ in
   };
 
   nixpkgs = {
-    hostPlatform = cpu.arch;
+    hostPlatform = platform;
   };
 
   system = {

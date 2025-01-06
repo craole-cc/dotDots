@@ -169,7 +169,7 @@
 
           inherit (host)
             name
-            system
+            # system
             ;
 
           inherit
@@ -177,6 +177,7 @@
             specialModules
             ;
 
+          system = host.platform;
           preferredRepo = host.preferredRepo or "unstable";
           allowUnfree = host.allowUnfree or true;
           allowAliases = host.allowAliases or true;
