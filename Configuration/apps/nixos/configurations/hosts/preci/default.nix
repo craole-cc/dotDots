@@ -1,10 +1,11 @@
 {
+  platform = "x86_64-linux";
   id = "8f792eed";
   stateVersion = "24.05";
   base = "laptop";
   cpu = {
     brand = "intel";
-    arch = "x86_64-linux";
+    arch = "x86_64";
     mode = "ondemand";
   };
   gpu = {
