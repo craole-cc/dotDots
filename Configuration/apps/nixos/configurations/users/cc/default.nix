@@ -21,7 +21,7 @@
     applications = {
       git = {
         name = "craole-cc";
-        email = "32288735+Craole@users.noreply.github.com";
+        email = "134658831+craole-cc@users.noreply.github.com";
       };
 
       home-manager.enable = true;

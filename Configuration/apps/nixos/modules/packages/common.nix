@@ -104,6 +104,7 @@ in
           kitty
           onedrive
           qbittorrent
+          remmina
           shortwave
           via
           vscode-fhs

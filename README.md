@@ -61,6 +61,8 @@ git clone "https://github.com/craole-cc/dotfiles.git" "$DOTS"
 
 > Dependencies: `nixos-rebuild` `sudo`
 
+1. In the flake.nix, update the DOTS path `paths.flake.local`
+
 1. Initialize your host config.
 
    - The script below matches the previous steps.
