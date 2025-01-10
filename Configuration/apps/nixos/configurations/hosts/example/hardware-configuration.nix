@@ -51,7 +51,7 @@
   ];
 
   networking = {
-    hostId = "8f792eed";
+    hostId = "2d8e6e4e";
     hostName = "preci";
     interfaces = {
       eno1.useDHCP = lib.mkDefault true;
