@@ -30,32 +30,33 @@ set_dots_paths() {
     shift
   done
 
+  echo "Small DOTS: $dots"
   #@ Set the path to the DOTS directory based in argument
   if [ "$dots" ]; then
     DOTS="$dots"
+  elif [ -f "$HOME/$rc" ]; then
+    DOTS="$HOME"
+  elif [ -f "$PWD/$rc" ]; then
+    DOTS="$PWD"
+  elif [ -f "$HOME/Documents/dotfiles/$rc" ]; then
+    DOTS="$HOME/Documents/dotfiles"
+  elif [ -f "$HOME/.dots/$rc" ]; then
+    DOTS="$HOME/.dots"
+  elif [ -f "$HOME/dots/$rc" ]; then
+    DOTS="$HOME/dots"
+  elif [ -f "$HOME/.dotfiles/$rc" ]; then
+    DOTS="$HOME/.dotfiles"
+  elif [ -f "$HOME/.config/dotfiles/$rc" ]; then
+    DOTS="$HOME/.config/dotfiles"
+  elif [ -f "$HOME/.config/dots/$rc" ]; then
+    DOTS="$HOME/.config/dots"
+  elif [ -f "/dots/$rc" ]; then
+    DOTS="/dots"
   else
-    if [ -f "$HOME/$rc" ]; then
-      DOTS="$HOME"
-    elif [ -f "$PWD/$rc" ]; then
-      DOTS="$PWD"
-    elif [ -f "$HOME/Documents/dotfiles/$rc" ]; then
-      DOTS="$HOME/Documents/dotfiles"
-    elif [ -f "$HOME/.dots/$rc" ]; then
-      DOTS="$HOME/.dots"
-    elif [ -f "$HOME/dots/$rc" ]; then
-      DOTS="$HOME/dots"
-    elif [ -f "$HOME/.dotfiles/$rc" ]; then
-      DOTS="$HOME/.dotfiles"
-    elif [ -f "$HOME/.config/dotfiles/$rc" ]; then
-      DOTS="$HOME/.config/dotfiles"
-    elif [ -f "$HOME/.config/dots/$rc" ]; then
-      DOTS="$HOME/.config/dots"
-    elif [ -f "/dots/$rc" ]; then
-      DOTS="/dots"
-    else
-      DOTS="$(cd "$(dirname "$0")" 2>/dev/null && pwd)" || return 1
-    fi
+    DOTS="$(cd "$(dirname "$0")" 2>/dev/null && pwd)" || return 1
   fi
+
+  echo "DOTS: $DOTS"
 
   if [ -d "$DOTS" ]; then
     #@ Set the DOTS variables
@@ -578,6 +579,10 @@ initialize_shell() {
 }
 
 initialize_dots() {
+
+  echo "DOTS: $dots"
+  echo "BDOTDIR: $BDOTDIR"
+
   #@ Update the dotsrc launcher through .profile
   initialize_profile \
     --file "$HOME/.profile" \
@@ -585,11 +590,11 @@ initialize_dots() {
     --val "$DOTS" \
     --rc ".dotsrc"
 
-  # initialize_profile \
-  #   --file "$HOME/.bashrc" \
-  #   --key "BDOTDIR" \
-  #   --val "$DOTS/Configuration/cli/bash" \
-  #   --rc "config"
+  initialize_profile \
+    --file "$HOME/.bashrc" \
+    --key "DOTS_BASH" \
+    --val "$DOTS/Configuration/cli/bash" \
+    --rc "config"
 
   #@ Load Environment
   initialize_source \
@@ -599,7 +604,7 @@ initialize_dots() {
 
   #@ Load Shell
   # initialize_shell
-  shell.init "$SHELL_INTERACTIVE"
+  # shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
   # fonts.init #TODO: This needs to be made portable to work on Windows
