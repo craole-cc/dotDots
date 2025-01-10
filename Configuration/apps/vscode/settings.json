@@ -52,7 +52,7 @@
   //> WORKBENCH & UI
   //> ===================================
   "window.autoDetectColorScheme": true,
-  "window.menuBarVisibility": "toggle",
+  "window.menuBarVisibility": "compact",
   "window.titleBarStyle": "custom",
   "workbench.startupEditor": "none",
   "workbench.panel.defaultLocation": "bottom",
@@ -69,8 +69,8 @@
   "glassit.alpha": 245,
   "glassit.step": 5,
   "glassit.force_sway": false,
-  "workbench.preferredDarkColorTheme": "Gruvbox Dark Medium",
-  "workbench.preferredLightColorTheme": "Gruvbox Light Medium",
+  "workbench.preferredDarkColorTheme": "Bluloco Dark Italic",
+  "workbench.preferredLightColorTheme": "Bluloco Light Italic",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorCustomizations": {},
   "editor.tokenColorCustomizations": {
@@ -112,7 +112,7 @@
     "dots": "Cluster",
     ".cargo": "config",
     "benches": "debug",
-    "options": "tasks",
+    "options": "tasks"
   },
   "material-icon-theme.folders.customClones": [
     {
@@ -145,7 +145,7 @@
       "folderNames": [
         "users",
         "user",
-        "people",
+        "people"
       ]
     },
     {
@@ -172,6 +172,9 @@
   //> ===================================
   //> TERMINAL CONFIGURATION
   //> ===================================
+  "terminal.integrated.commandsToSkipShell": [
+    "workbench.action.terminal.copySelection"
+  ],
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.copyOnSelection": true,
   "terminal.integrated.cursorBlinking": true,
@@ -226,7 +229,8 @@
     "Gemfile": "ruby",
     "*.erb": "ruby",
     "*.css": "tailwindcss",
-    "*.gs": "javascript"
+    "*.gs": "javascript",
+    "README": "markdown"
   },
   "files.exclude": {
     ".Trash-1000": true,
@@ -612,5 +616,9 @@
     "winget",
     "worktree",
     "yamlfmt"
+  ],
+  "settingsSync.ignoredExtensions": [
+    "jnoortheen.nix-ide",
+    "ms-edgedevtools.vscode-edge-devtools"
   ]
 }

@@ -1,4 +1,3 @@
-# requires -RunAsAdministrator
 #requires -Version 5.1
 
 <#
@@ -55,6 +54,9 @@ function Install-Applications {
             }
             catch {
                 Write-Host "Error installing $app`: $_" -ForegroundColor Red
+                #@ Log the error to a file
+                # $errorMessage = "Error installing $app`: $_"
+                # $errorMessage | Out-File -FilePath "install_errors.log" -Append
             }
         }
     }
@@ -64,6 +66,33 @@ function Update-AllPackages {
     Write-Host "`nRunning topgrade to ensure everything is up to date..." -ForegroundColor Yellow
     topgrade --cleanup --no-retry --yes --disable microsoft_store
 }
+
+<#
+.SYNOPSIS
+    Verifies that winget is installed and available.
+
+.DESCRIPTION
+    This function checks if winget is installed. If not, it exits the script with an error.
+#>
+function Checkpoint-Winget {
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Error "Winget is not installed. Please install it from the Microsoft Store."
+        exit 1
+    }
+}
+
+
+<#
+.SYNOPSIS
+    Combines all application arrays into a single array.
+
+.DESCRIPTION
+    This function returns a combined array of all applications to be installed.
+#>
+function Get-AllApps {
+    return $systemUtils + $devTools + $mediaApps + $communicationApps + $creativeApps + $internetApps
+}
+
 
 function Main {
     param([switch]$WhatIf)
@@ -151,7 +180,14 @@ $devTools = @(
     "Wilfred.difftastic", # Structural diff
     "pnpm.pnpm", # Package manager
     "Yarn.Yarn", # Package manager
-    "OpenJS.NodeJS"                                         # JavaScript runtime
+    "OpenJS.NodeJS" # JavaScript runtime
+    "LGUG2Z.komorebi" # Window manager
+    "LGUG2Z.komokana" # Window manager
+    "LGUG2Z.whkd" # Window manager
+    "MartiCliment.UniGetUI.Pre-Release", # Package manager
+    "Chocolatey.Chocolatey", # Package manager
+    "ChawyeHsu.Hok", # Package manager
+    "Ollama.Ollama"
 )
 #endregion
 
@@ -190,6 +226,7 @@ $internetApps = @(
     "Bitwarden.Bitwarden", # Password manager
     "ProtonTechnologies.ProtonVPN", # VPN client
     "Ookla.Speedtest.CLI" # Speed test tool
+
 )
 #endregion
 

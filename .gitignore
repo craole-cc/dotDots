@@ -56,3 +56,7 @@ devenv.local.nix
 #| System
 .Trash*
 .directory
+
+#| Google Drive
+./.tmp.drivedownload/
+./.tmp.driveupload/

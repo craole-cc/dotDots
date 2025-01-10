@@ -579,11 +579,11 @@ initialize_shell() {
 
 initialize_dots() {
   #@ Update the dotsrc launcher through .profile
-  initialize_profile \
-    --file "$HOME/.profile" \
-    --key "DOTS" \
-    --val "$DOTS" \
-    --rc ".dotsrc"
+  # initialize_profile \
+  #   --file "$HOME/.profile" \
+  #   --key "DOTS" \
+  #   --val "$DOTS" \
+  #   --rc ".dotsrc"
 
   # initialize_profile \
   #   --file "$HOME/.bashrc" \
@@ -599,7 +599,7 @@ initialize_dots() {
 
   #@ Load Shell
   # initialize_shell
-  shell.init "$SHELL_INTERACTIVE"
+  # shell.init "$SHELL_INTERACTIVE"
 
   #@ Load Fonts
   # fonts.init #TODO: This needs to be made portable to work on Windows
