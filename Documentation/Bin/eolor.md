@@ -122,4 +122,4 @@ EOLor [OPTIONS] <PATH>
 
 ## License
 
-*EOLor* is released under the MIT License. See the [LICENSE](LICENSE) file for details.
+*EOLor* is released under the MIT License. See the [license](Code/Dots/Configuration/tools/interface/qtile/license.md) file for details.
