@@ -57,12 +57,10 @@
 #   unset color_prompt force_color_prompt
 # }
 
-weHaveOR() {
-  weHave "$1" || {
-    echo exiting
-    return
+command -v weHave >/dev/null 2>&1 ||
+  weHave() {
+    command -v "$1" >/dev/null 2>&1 || return
   }
-}
 
 init_PS1() {
   # git dirty functions for prompt

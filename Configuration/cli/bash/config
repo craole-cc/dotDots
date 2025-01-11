@@ -3,12 +3,10 @@
 #|
 #?  Purpose: This script initializes BDOTDIR and loads bash resources and functions.
 
-echo "BASCH_CONF: $DOTS_BASH"
 #@ Get the directory of the currently running script
 BDOTDIR="${DOTS_BASH:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 #@ Export BDOTDIR
-echo "BDOTDIR: $BDOTDIR"
 export BDOTDIR
 
 # Function to load files from a directory
@@ -28,5 +26,5 @@ init_config() {
 }
 
 # Load resources and functions
-init_config "$BDOTDIR/resources"
+# init_config "$BDOTDIR/resources"
 # init_config "$BDOTDIR/functions"
