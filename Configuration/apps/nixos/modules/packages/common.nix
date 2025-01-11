@@ -99,10 +99,11 @@ in
           darktable
           dconf2nix
           dconf-editor
+          drive
           freetube
           inkscape-with-extensions
           kitty
-          onedrive
+          microsoft-edge
           qbittorrent
           remmina
           shortwave
