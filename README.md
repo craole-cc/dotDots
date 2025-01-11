@@ -40,11 +40,11 @@ git clone "https://github.com/craole-cc/dotfiles.git" "$DOTS"
 2. Ensure the following lines are in your user profile: `$HOME/.profile`
 
    ```sh
-   #| Initialize DOTS
-   # shellcheck disable=SC1091
-   [ -f "$DOTS/.dotsrc" ] && . "$DOTS/.dotsrc"
-   DOTS="${DOTS:-"path/to/the/cloned/repo"}"
-   export DOTS
+    #| Initialize DOTS
+    # shellcheck disable=SC1091
+    DOTS=/t/Projects/Code/Dotfiles
+    export DOTS
+    [ -f "$DOTS/.dotsrc" ] && . "$DOTS/.dotsrc"
    ```
 
 3. Ensure the following lines are in your bash profile: `$HOME/.bashrc`
