@@ -64,6 +64,7 @@ in
         inherit (ollama) enable;
         loadModels = ollama.models;
       };
+      nextjs-ollama-llm-ui.enable = true;
 
       pipewire =
         if hasAudio then
