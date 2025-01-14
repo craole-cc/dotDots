@@ -32,7 +32,7 @@ in
       ] ++ (attrNames userConfigs);
     };
     extraOptions = ''
-      download-buffer-size = 4096
+      download-buffer-size = 4096 #TODO: Doesn't work
     '';
   };
 
