@@ -134,8 +134,10 @@
   ollama = {
     enable = true;
     models = [
-      "mistral-nemo"
-      "yi-coder:9b"
+      "codegemma"
+      "qwen2.5-coder:32b"
+      # "mistral-nemo"
+      # "yi-coder:9b"
     ];
   };
   preferredRepo = "unstable";
