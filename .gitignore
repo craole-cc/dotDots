@@ -7,7 +7,7 @@
 #| Logs
 [Ll]ogs/
 [Ll]og/
-**/*.log
+.log
 
 #| Temporary Folders
 [Aa]rchive/
