@@ -135,7 +135,7 @@
     enable = true;
     models = [
       "codegemma"
-      # "qwen2.5-coder:32b"
+      "qwen2.5-coder:32b"
       # "mistral-nemo"
       # "yi-coder:9b"
     ];
