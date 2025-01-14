@@ -11,7 +11,8 @@
     ./networking.nix
     ./nix.nix
     ./users.nix
-    
-    ./test.nix
+
+    # ./dots
+    # ./test.nix
   ];
 }
