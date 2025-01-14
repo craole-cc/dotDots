@@ -30,7 +30,7 @@ manage_script_env() {
     __profile="$HOME/.profile"
     __bashrc="$HOME/.bashrc"
     __mode="simulation" #? simulation | normal | reset
-    __filter="included" #? EXCLUDE | INCLUDE
+    __filter="included" #? included | excluded
 
     #@ Initialize logger and printer
     # initialize_messaging
