@@ -48,8 +48,10 @@ manage_script_env() {
     __start=$(get_time_in_secs)
     __stop=0
     __duration=0
+
+    VERBOSITY=4
     # [ "$VERBOSITY" -ne 0 ] &&
-    printf "INFO: Initializing DOTS...\n"
+    pout --info "Initializing DOTS..." --log "$DOTS_LOG"
 
     #@ Get relevant system information
     set_os_type
@@ -59,23 +61,15 @@ manage_script_env() {
       [ "$(to_lower "$__mode")" = "simulation" ] ||
         [ "$VERBOSITY" -ge 3 ]
     then
-      # pout --paddel "$__pad" "Operation Mode" "$(to_lower "$__mode")"
-      # pout --padded "$__pad" "Verbosity Level" "$VERBOSITY"
-      pout --lead --pad --key "Operation Mode" --val "$(to_lower "$__mode")"
-      pout --pad --key "Verbosity Level" --val "$__mode"
-      pout --pad --key "Verbosity Level" --val "$VERBOSITY" --log "$DOTS_LOG"
-      pout --last --pad --key "Log Level" --val "$LOG_LEVEL"
-
-      # pout --pad "$__pad" --pair "Verbosity Level" "$VERBOSITY"
-      # pout --padded "$__pad" "Operation Mode" "$(to_lower "$__mode")"
-      # pout --paddel "$__pad" "Operation Mode" "$(to_lower "$__mode")"
-      # logline --padded 20 "Label" "Value"
-      # printf "\n%${__pad}s: %s" "Verbosity Level" "$VERBOSITY"
-      # printf "\n%${__pad}s: %s" "Operating System" "$OS_TYPE"
-      # printf "\n%${__pad}s: %s" "Interactive Shell" "$__shell"
-      # printf "\n%${__pad}s: %s" "User Config Path" "$__profile"
-      # printf "\n%${__pad}s: %s" "Bash Config Path" "$__bashrc"
-      printf "\n\n"
+      pout --pad --key "Operation Mode" --val "$(to_lower "$__mode")" --lead
+      pout --pad --key "Verbosity Level" --val "$VERBOSITY"
+      pout --pad --key "Log Level" --val "$LOG_LEVEL"
+      pout --pad --key "Operating System" --val "$OS_TYPE"
+      pout --pad --key "Interactive Shell" --val "$__shell"
+      pout --pad --key "DOTS Directory" --val "$DOTS"
+      pout --pad --key "DOTS Loader" --val "$DOTS_RC"
+      pout --pad --key "User Loader" --val "$__profile"
+      pout --pad --key "Bash Loader" --val "$__bashrc" --trail
     fi
   }
 
@@ -87,17 +81,21 @@ manage_script_env() {
     case "$VERBOSITY" in
     0) ;;
     2)
-      printf "INFO: Initialization completed in %s\n" "$__duration"
+      pout --info "Initialization completed in %s" "$__duration" --log "$DOTS_LOG"
       ;;
     3)
-      printf \
-        "DOTS initialization completed successfully:\n -> Path: %s\n -> Time: %s\n" \
-        "$DOTS" "$__duration"
+      pout --debug "DOTS initialization completed successfully in $__duration seconds" --log "$DOTS_LOG"
+      # printf \
+      #   "DOTS initialization completed successfully:\n -> Path: %s\n -> Time: %s\n" \
+      #   "$DOTS" "$__duration"
       ;;
     *)
-      printf "DOTS_INIT_START: %s\n" "$__start"
-      printf "DOTS_INIT_END: %s\n" "$__stop"
-      printf "DOTS_INIT_DURATION: %s\n" "$__duration"
+      pout --trace --key "DOTS_INIT_START" --val "$__start"
+      pout --trace --key "DOTS_INIT_END" --val "$__stop"
+      pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
+      # printf "DOTS_INIT_START: %s\n" "$__start"
+      # printf "DOTS_INIT_END: %s\n" "$__stop"
+      # printf "DOTS_INIT_DURATION: %s\n" "$__duration"
       ;;
     esac
 
