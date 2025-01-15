@@ -247,6 +247,12 @@ util_functions() {
         return 1
       fi
       ;;
+    --parent)
+      { [ -d "$(dirname "$1")" ] && [ -w "$(dirname "$1")" ]; } || {
+        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Parent directory of '%s' does not exist\n" "$1" >&2
+        return 1
+      }
+      ;;
     *)
       [ -f "$1" ] || {
         [ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
@@ -694,6 +700,7 @@ util_functions() {
     #@ Validate input
     [ $# -eq 0 ] && return 1
 
+    #@ Parse arguments
     while [ "$#" -gt 0 ]; do
       case $1 in
       --error) msg_prefix="ERROR: " ;;
@@ -717,6 +724,7 @@ util_functions() {
       --log)
         [ "$2" ] && {
           shift
+          [ -d "$(dirname "$1")" ] || return 1
           log_file="$1"
         }
         ;;
@@ -752,53 +760,19 @@ util_functions() {
     "D*") printf "%s%s\\n" "$msg_prefix" "$msg" ;;
     "T*") printf "%s%s\\n" "$msg_prefix" "$msg" ;;
     *)
-      if [ "$log_file" ]; then
+      if [ "$log_file" ] && validate_file --parent "$log_file"; then
         printf "[%s] %s\\n" "$(date "+%Y-%m-%d %H:%M:%S")" "$msg" >>"$log_file"
       elif [ "$pad_width" ]; then
-if [ "$newline" ]; then
-  printf "\n%${pad_width}s%s\\n" "$msg_prefix" "$msg"
-        printf "%${pad_width}s%s\\n" "$msg_prefix" "$msg"
+        if [ "$newline" ]; then
+          printf "\n%${pad_width}s%s\\n" "$msg_prefix" "$msg"
+        else
+          printf "%${pad_width}s%s\\n" "$msg_prefix" "$msg"
+        fi
       else
         printf "%s\\n" "$msg"
       fi
       ;;
     esac
-    # --warn*)
-    #   shift
-    #   printf "WARN: %s\\n" "$*" >&2
-    #   ;;
-    # --info)
-    #   shift
-    #   printf "INFO: %s\\n" "$*"
-    #   ;;
-    # --debug)
-    #   shift
-    #   printf "DEBUG: %s\\n" "$*"
-    #   ;;
-    # --trace)
-    #   shift
-    #   printf "TRACE: %s\\n" "$*"
-    #   ;;
-    # --padded)
-    #   #@ Validate pad width argument
-    #   [ "$#" -lt 3 ] && return 1
-    #   pad=$2
-    #   shift 2
-    #   printf "%${pad}s: %s" "$1" "$2"
-    #   ;;
-    # --padded-nl | --padded-newline | --paddel)
-    #   #@ Validate pad width argument
-    #   [ "$#" -lt 3 ] && return 1
-    #   pad=$2
-    #   shift 2
-    #   printf "\\n%${pad}s: %s" "$1" "$2"
-    #   ;;
-    # *)
-    #   printf "%s\\n" "$*"
-    #   ;;
-    # esac
-
-    #   printf "ERROR: %s\\n" "$*" >&2
   }
 
   slog() {
