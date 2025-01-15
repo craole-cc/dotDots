@@ -11,4 +11,4 @@ runif() {
 }
 
 runif colorscheme
-runif theme_wt || runif "/c/Users/Administrator/Projects/Code/Dotfiles/Bin/interface/theme/theme_wt"
+runif theme_wt || runif "$HOME/.dots/Bin/interface/theme/theme_wt"
