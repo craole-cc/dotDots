@@ -1,5 +1,17 @@
 #!/bin/sh
 
+main() {
+  #@ Initialization the script environment
+  manage_script --init functions
+  manage_script --init environment
+
+  #@ Initialize the DOTS environment
+  manage_script --process
+
+  #@ Reset the environment
+  manage_script --exit
+}
+
 manage_script() {
   init_functions() {
     util_functions
@@ -14,6 +26,7 @@ manage_script() {
 
     #@ Set temporary variables in lowercase and perpended by double underscorez
     __mode="normal" #? simulation | normal | reset
+    __verbosity=0
     __log_path="$DOTS_LOG"
     __pad=24
     __shell="Bash"
@@ -27,10 +40,8 @@ manage_script() {
     __duration=0
 
     #@ Initialize messaging to the log and console (stdout/stderr)
-    # initialize_messaging
-
-    [ "${VERBOSITY:-0}" -ne 0 ] &&
-      pout --info "Initializing DOTS..."
+    initialize_messaging
+    [ "${VERBOSITY:-0}" -ne 0 ] && pout --info "Initializing DOTS..."
 
     #@ Get relevant system information
     set_os_type
@@ -50,14 +61,17 @@ manage_script() {
       pout --pad --key "Bash Loader" --val "$__bashrc" --trail
       ;;
     *)
-      # echo pop
-      # manage_dots
       #TODO: This is temporary
       #| FastFetch
-      weHave fastfetch && fastfetch
+      weHave fastfetch && fastfetch \
+      --logo small
 
       #| Starship
-      weHave starship && eval "$(starship init bash)"
+      weHave starship && {
+        export STARSHIP_COMMAND_TIMEOUT=8000
+        export STARSHIP_LOG="error"
+        eval "$(starship init bash)"
+      }
 
       ;;
     esac
@@ -1655,14 +1669,4 @@ core_functions() {
   }
 }
 
-main() {
-  #@ Initialization the script environment
-  manage_script --init functions
-  manage_script --init environment
-
-  #@ Initialize the DOTS environment
-  manage_script --process
-
-  #@ Reset the environment
-  manage_script --exit
-} && main "$@"
+main "$@"
