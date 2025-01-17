@@ -74,7 +74,7 @@ manage_script() {
     # echo pop
       # initialize_dots
       #TODO: This is temporary
-      type starship >/dev/null 2>&1 && eval "$(starship init bash)"
+      # type starship >/dev/null 2>&1 && eval "$(starship init bash)"
       ;;
     esac
 

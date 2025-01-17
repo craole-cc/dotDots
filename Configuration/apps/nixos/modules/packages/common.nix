@@ -39,9 +39,9 @@ in
     dconf = {
       enable = true;
     };
-    starship = {
-      enable = true;
-    };
+    # starship = {
+    #   enable = true;
+    # };
   };
   environment.systemPackages =
     with pkgs;
