@@ -20,12 +20,28 @@ manage_script() {
 
   init_script_env() {
     #@ Set persistent variables
+    set -o allexport
     DOTS="$(dirname "$DOTS_RC")"
-    DOTS_IGNORE="${DOTS_IGNORE:-"$DOTS/.ignore"}"
-    DOTS_LOG="${DOTS_LOG:-"$DOTS/.log"}"
+    DOTS_IGNORE="$DOTS/.ignore"
+    DOTS_LOG="$DOTS/.log"
+    # DOTS_LOG="$DOTS/Logs/dots.log"
+    DOTS_BIN="$DOTS/Bin"
+    DOTS_CFG="$DOTS/Configuration"
+    DOTS_APP="$DOTS_CFG/apps"
+    DOTS_KIT="$DOTS_CFG/tools"
+    DOTS_CLI="$DOTS_CFG/cli"
+    DOTS_DOC="$DOTS/Documentation"
+    DOTS_JOB="$DOTS_DOC/Tasks"
+    DOTS_MOD="$DOTS/Modules"
+    DOTS_RES="$DOTS/Resources"
+    DOTS_ENV="$DOTS/Environment"
+    DOTS_CTX="$DOTS_ENV/context"
+    DOTS_EXP="$DOTS_ENV/export"
+    DOTS_NIX="$DOTS_APP/nixos"
+    set +o allexport
 
     #@ Set temporary variables in lowercase and perpended by double underscorez
-    __mode="normal" #? simulation | normal | reset
+    __mode="reset" #? simulation | normal | reset
     __verbosity=0
     __log_path="$DOTS_LOG"
     __pad=24
@@ -39,16 +55,32 @@ manage_script() {
     __stop=0
     __duration=0
 
-    #@ Initialize messaging to the log and console (stdout/stderr)
-    initialize_messaging
-    [ "${VERBOSITY:-0}" -ne 0 ] && pout --info "Initializing DOTS..."
-
     #@ Get relevant system information
     set_os_type
+
+    #@ Initialize messaging to the log and console (stdout/stderr)
+    initialize_messaging
+
+    #@ Initialize the environment
+    case "$(to_lower "$__mode")" in reset) rm "$DOTS_LOG" ;; esac
+    pout --info "Initializing DOTS..."
+    pout --trace --key "DOTS_PATH" --val "$DOTS"
+    pout --trace --key "DOTS_INIT_START" --val "$__start"
+    pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
+    pout --trace --key "Verbosity Level" --val "$VERBOSITY"
+    pout --trace --key "Log Level" --val "$LOG_LEVEL"
+    pout --trace --key "Operating System" --val "$OS_TYPE"
+    pout --trace --key "Interactive Shell" --val "$__shell"
+    pout --trace --key "DOTS Directory" --val "$DOTS"/
+    pout --trace --key "DOTS Loader" --val "$DOTS_RC"
+    pout --trace --key "User Loader" --val "$__profile"
+    pout --trace --key "Bash Loader" --val "$__bashrc"
   }
 
   run_process() {
-    case "$(to_lower "$__mode")" in simulation)
+
+    case "$(to_lower "$__mode")" in
+    simulation)
       #@ Display environment variables
       pout --pad --key "Operation Mode" --val "$(to_lower "$__mode")" --lead
       pout --pad --key "Verbosity Level" --val "$VERBOSITY"
@@ -63,16 +95,18 @@ manage_script() {
     *)
       #TODO: This is temporary
       #| FastFetch
-      weHave fastfetch && fastfetch \
-      --logo small
+      weHave fastfetch && {
+        FASTFETCH_CONFIG="${DOTS_CLI}/fastfetch/config.jsonc"
+        export FASTFETCH_CONFIG
+        fastfetch --config "$FASTFETCH_CONFIG"
+      }
 
       #| Starship
       weHave starship && {
-        export STARSHIP_COMMAND_TIMEOUT=8000
-        export STARSHIP_LOG="error"
+        STARSHIP_CONFIG="${DOTS_CLI}/starship/config.toml"
+        export STARSHIP_CONFIG
         eval "$(starship init bash)"
       }
-
       ;;
     esac
 
@@ -84,22 +118,9 @@ manage_script() {
     #@ Tag the end and duration of the initialization
     __stop=$(get_time_in_secs)
     __duration=$(format_duration --start "$__start" --stop "$__stop")
-
-    case "${VERBOSITY:-0}" in
-    4)
-      pout --trace --key "DOTS_INIT_START" --val "$__start"
-      pout --trace --key "DOTS_INIT_END" --val "$__stop"
-      pout --trace --key "DOTS_INIT_DURATION" --val "$__duration" --trail -1
-      ;;
-    3)
-      pout \
-        --debug "DOTS initialization completed successfully in $__duration seconds from $DOTS" --trail -1
-      ;;
-    2 | 1)
-      pout --info "Initialization completed in %s" "$__duration" --log "$DOTS_LOG" --trail -1
-      ;;
-    *) ;;
-    esac
+    pout --trace --key "DOTS_INIT_END" --val "$__stop"
+    pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
+    pout --info "Initialization completed in %s" "$__duration" --trail -1
 
     unset __scr_start __stop __duration
 
@@ -682,6 +703,7 @@ util_functions() {
     padding="${__pad:-36}"
     log="$__log_path"
     hide_level="${__hide_level:-}"
+    hide_output="${__hide_output:-}"
     show_timestamp="${__show_timestamp:-}"
 
     #@ Parse arguments
@@ -763,7 +785,13 @@ util_functions() {
       --hide-timestamp)
         hide_timestamp=true
         ;;
-      --no-log)
+      --hide-console | --log-only | --no-output | --no-print)
+        hide_output=true
+        ;;
+      --print)
+        unset hide_output
+        ;;
+      --no-log | --console-only)
         unset log
         ;;
       -l | --log)
@@ -807,8 +835,8 @@ util_functions() {
     [ "$hide_level" ] ||
       case "$(to_lower "$level")" in
       0 | "error") level="ERROR: " ;;
-      1 | "warn") level="WARN: " ;;
-      2 | "info") level="INFO: " ;;
+      1 | "warn") level=" WARN: " ;;
+      2 | "info") level=" INFO: " ;;
       3 | "debug") level="DEBUG: " ;;
       4 | "trace") level="TRACE: " ;;
       *) level="" ;;
@@ -818,10 +846,21 @@ util_functions() {
     timestamp="$(printf "[%s] " "$(get_timestamp)")"
 
     #@ Write message to the log
-    [ "$log" ] &&
-      printf "%s%s\n" "$timestamp" "$msg" >>"$log"
+    [ "$log" ] && printf "%s%s%s\n" "$timestamp" "$level" "${msg:-"$pair"}" >>"$log"
 
-    #@ Print the message to the console
+    #@ Write message to the console
+    # [ "$hide_output" ] && return 0
+    [ "$VERBOSITY" -eq 0 ] && return 0
+
+    # case "$VERBOSITY" in
+    # 0) return 0 ;;
+    # 1) return 0 ;;
+    # 2) return 0 ;;
+    # 3) return 0 ;;
+    # 4) return 0 ;;
+    # *) ;;
+    # esac
+
     [ "$leading_lines" -gt 0 ] &&
       reppat --reps "$leading_lines" --pattern "\\n"
     if [ "$pad" ]; then
@@ -1043,6 +1082,7 @@ core_functions() {
 
     set_verbosity_level
     set_log_level
+    [ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
   }
 
   set_verbosity_level_OLD() {
