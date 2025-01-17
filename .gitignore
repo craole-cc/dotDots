@@ -2,7 +2,7 @@
 [Pp]rivate/
 [Ss]ecrets/
 [Kk]eys/
-**/*.env
+.env
 
 #| Logs
 [Ll]ogs/
