@@ -1,17 +1,5 @@
 #!/bin/sh
 
-main() {
-  #@ Initialization the script environment
-  manage_script --init functions
-  manage_script --init environment
-
-  #@ Initialize the DOTS environment
-  manage_script --process
-
-  #@ Reset the environment
-  manage_script --exit
-}
-
 manage_script() {
   init_functions() {
     util_functions
@@ -25,33 +13,24 @@ manage_script() {
     DOTS_LOG="${DOTS_LOG:-"$DOTS/.log"}"
 
     #@ Set temporary variables in lowercase and perpended by double underscorez
-    __quiet=-1
-    __error=0
-    __warn=1
-    __info=2
-    __debug=3
-    __trace=4
-    __verbosity="$__info"
-    __log_level="$__info"
-    # __show_timestamp=""
-    __log="$DOTS_LOG"
-    __pad=20
+    __mode="normal" #? simulation | normal | reset
+    __log_path="$DOTS_LOG"
+    __pad=24
     __shell="Bash"
+    __filter="included" #? included | excluded
     __profile="$HOME/.profile"
     __bashrc="$HOME/.bashrc"
-    __mode="reset"      #? simulation | normal | reset
-    __filter="included" #? included | excluded
-
-    #@ Initialize logger and printer
-    initialize_messaging
 
     #@ Tag the time of initialization
     __start=$(get_time_in_secs)
     __stop=0
     __duration=0
 
+    #@ Initialize messaging to the log and console (stdout/stderr)
+    # initialize_messaging
+
     [ "${VERBOSITY:-0}" -ne 0 ] &&
-      pout --info "Initializing DOTS..." --log "$DOTS_LOG"
+      pout --info "Initializing DOTS..."
 
     #@ Get relevant system information
     set_os_type
@@ -72,13 +51,18 @@ manage_script() {
       ;;
     *)
       # echo pop
-      # initialize_dots
+      # manage_dots
       #TODO: This is temporary
-      type starship >/dev/null 2>&1 && eval "$(starship init bash)"
+      #| FastFetch
+      weHave fastfetch && fastfetch
+
+      #| Starship
+      weHave starship && eval "$(starship init bash)"
+
       ;;
     esac
 
-    # initialize_dots --sources
+    # manage_dots --sources
 
   }
 
@@ -141,7 +125,7 @@ manage_script() {
   done
 }
 
-initialize_dots() {
+manage_dots() {
   case $1 in
   --sources)
     #@ Load binary and environment sources
@@ -153,13 +137,13 @@ initialize_dots() {
   --profile)
     #@ Update user profile
     # initialize_profile \
-    #   --file "$HOME/.profile" \
+    #   --file "${__profile:-"$HOME/.profile"}" \
     #   --key "DOTS" \
     #   --val "$DOTS" \
     #   --rc ".dotsrc"
 
     # initialize_profile \
-    #   --file "$HOME/.bashrc" \
+    #   --file "${__bashrc:-"$HOME/.bashrc"}" \
     #   --key "DOTS_BASH" \
     #   --val "$DOTS/Configuration/cli/bash" \
     #   --rc "config"
@@ -682,7 +666,7 @@ util_functions() {
     trailing_lines=1
     sep="${__sep:-": "}"
     padding="${__pad:-36}"
-    log="$__log"
+    log="$__log_path"
     hide_level="${__hide_level:-}"
     show_timestamp="${__show_timestamp:-}"
 
@@ -909,6 +893,14 @@ core_functions() {
 
   initialize_messaging() {
     set_verbosity_level() {
+      #@ Set default values for quiet, verbosity, and log level
+      __quiet="${__quiet:--1}"
+      __error="${__error:-0}"
+      __warn="${__warn:-1}"
+      __info="${__info:-2}"
+      __debug="${__debug:-3}"
+      __trace="${__trace:-4}"
+
       #@ Check for global verbosity settings from various environment variables
       __quiet=$(to_lower "${__quiet:-$QUIET}")
       __verbosity=$(to_lower "${__verbosity:-${VERBOSITY:-$VERBOSE}}")
@@ -926,7 +918,7 @@ core_functions() {
       info | normal | 2) __verbosity="$__info" ;;
       debug | verbose | 3) __verbosity="$__debug" ;;
       trace | all | true | 4) __verbosity="$__trace" ;;
-      '' | *[!0-9]*) __verbosity="${__verbosity:-"$__info"}" ;;
+      '' | *[!0-9]*) __verbosity="$__info" ;; #? Set default to INFO
       *)
         #@ Check if number is in valid range (0-4)
         if [ "$__verbosity" -lt 0 ]; then
@@ -1663,4 +1655,14 @@ core_functions() {
   }
 }
 
-main "$@"
+main() {
+  #@ Initialization the script environment
+  manage_script --init functions
+  manage_script --init environment
+
+  #@ Initialize the DOTS environment
+  manage_script --process
+
+  #@ Reset the environment
+  manage_script --exit
+} && main "$@"
