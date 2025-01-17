@@ -88,6 +88,7 @@ in
       conceal
 
       #| Utilities
+      starship # TODO: This is temporary until finished setting up .dotsrc
       brightnessctl
       speedtest-go
       fend

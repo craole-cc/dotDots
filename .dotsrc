@@ -31,7 +31,7 @@ manage_script() {
     __info=2
     __debug=3
     __trace=4
-    __verbosity="$__trace"
+    __verbosity="$__info"
     __log_level="$__info"
     # __show_timestamp=""
     __log="$DOTS_LOG"
@@ -39,7 +39,7 @@ manage_script() {
     __shell="Bash"
     __profile="$HOME/.profile"
     __bashrc="$HOME/.bashrc"
-    __mode="normal" #? simulation | normal | reset
+    __mode="reset" #? simulation | normal | reset
     __filter="included" #? included | excluded
 
     #@ Initialize logger and printer
@@ -74,7 +74,7 @@ manage_script() {
     # echo pop
       # initialize_dots
       #TODO: This is temporary
-      # type starship >/dev/null 2>&1 && eval "$(starship init bash)"
+      type starship >/dev/null 2>&1 && eval "$(starship init bash)"
       ;;
     esac
 
