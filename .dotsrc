@@ -3,7 +3,7 @@
 main() {
   #@ Initialization the script environment
   manage_script --init functions
-  manage_script --init env
+  manage_script --init environment
 
   #@ Initialize the DOTS environment
   manage_script --process
@@ -39,7 +39,7 @@ manage_script() {
     __shell="Bash"
     __profile="$HOME/.profile"
     __bashrc="$HOME/.bashrc"
-    __mode="reset" #? simulation | normal | reset
+    __mode="reset"      #? simulation | normal | reset
     __filter="included" #? included | excluded
 
     #@ Initialize logger and printer
@@ -71,7 +71,7 @@ manage_script() {
       pout --pad --key "Bash Loader" --val "$__bashrc" --trail
       ;;
     *)
-    # echo pop
+      # echo pop
       # initialize_dots
       #TODO: This is temporary
       type starship >/dev/null 2>&1 && eval "$(starship init bash)"
@@ -131,7 +131,7 @@ manage_script() {
     case "$1" in
     --init)
       case "$2" in
-      func* | fn) init_functions ;; env | *) init_script_env ;;
+      func* | fn) init_functions ;; env* | *) init_script_env ;;
       esac
       ;;
     --process) run_process ;;
