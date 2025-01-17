@@ -84,7 +84,9 @@ manage_script_env() {
       pout --info "Initialization completed in %s" "$__duration" --log "$DOTS_LOG"
       ;;
     3)
-      pout --debug "DOTS initialization completed successfully in $__duration seconds" --log "$DOTS_LOG"
+      pout \
+        --debug "DOTS initialization completed successfully in $__duration seconds from $DOTS" \
+        --log "$DOTS_LOG"
       # printf \
       #   "DOTS initialization completed successfully:\n -> Path: %s\n -> Time: %s\n" \
       #   "$DOTS" "$__duration"
@@ -579,119 +581,6 @@ util_functions() {
     fi
   }
 
-  logline() {
-    #DOC Unified function for logging and printing messages
-    #DOC Args:
-    #DOC   --error       Log/print message with 'ERROR: ' prefix (stderr for print)
-    #DOC   --warn        Log/print message with 'WARN: ' prefix (stderr for print)
-    #DOC   --info        Log/print message with 'INFO: ' prefix (stdout for print)
-    #DOC   --debug       Log/print message with 'DEBUG: ' prefix (stdout for print)
-    #DOC   --trace       Log/print message with 'TRACE: ' prefix (stdout for print)
-    #DOC   --file <path> Specify the log file path (default: $DOTS_LOG or ./script.log)
-    #DOC   --no-log      Do not log to file
-    #DOC   --no-print    Do not print to console
-    #DOC   --padded      Print message with given width padding
-    #DOC   --padded-nl   Print message with given width padding on a newline
-    #DOC   $@ - Messages to log/print
-    #DOC Returns:
-    #DOC   0 - Success
-    #DOC   1 - Failure
-    #DOC Example:
-    #DOC   log --info "Hello, World!"
-    #DOC   log --error "Critical error" --file "/var/log/myapp.log"
-    #DOC   log --padded 20 "Label" "Value"
-
-    # Default log file
-    _log_file="$DOTS_LOG"
-    _level="INFO"
-    _log_to_file=true
-    _print_to_console=true
-    _message=""
-    _padded=false
-    _padded_nl=false
-    _pad_width=0
-
-    # Parse arguments
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --error) _level="ERROR" ;;
-      --warn) _level="WARN" ;;
-      --info) _level="INFO" ;;
-      --debug) _level="DEBUG" ;;
-      --trace) _level="TRACE" ;;
-      --file)
-        _log_file="$2"
-        shift
-        ;;
-      --no-log) _log_to_file=false ;;
-      --no-print) _print_to_console=false ;;
-      --padded)
-        _padded=true
-        _pad_width="$2"
-        shift
-        ;;
-      --padded-nl | --padded-newline | --paddel)
-        _padded_nl=true
-        _pad_width="$2"
-        shift
-        ;;
-      *) _message="$1" ;;
-      esac
-      shift
-    done
-
-    # Validate message
-    [ -z "$_message" ] && {
-      printf "ERROR: No message provided to log function\n" >&2
-      return 1
-    }
-
-    # Get current timestamp
-    _timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-
-    # Format the log entry
-    _log_entry="[$_timestamp] [$_level] $_message"
-
-    # Log to file if enabled
-    if "$_log_to_file"; then
-      # Ensure log file exists and is writable
-      if [ ! -f "$_log_file" ]; then
-        touch "$_log_file" || {
-          printf "ERROR: Failed to create log file at %s\n" "$_log_file" >&2
-          return 1
-        }
-      fi
-      [ -w "$_log_file" ] || {
-        printf "ERROR: Log file '%s' is not writable\n" "$_log_file" >&2
-        return 1
-      }
-      printf "%s\n" "$_log_entry" >>"$_log_file" || {
-        printf "ERROR: Failed to write to log file at %s\n" "$_log_file" >&2
-        return 1
-      }
-    fi
-
-    # Print to console if enabled
-    if "$_print_to_console"; then
-      if "$_padded"; then
-        printf "%${_pad_width}s: %s" "$_level" "$_message"
-      elif "$_padded_nl"; then
-        printf "\n%${_pad_width}s: %s" "$_level" "$_message"
-      else
-        case "$_level" in
-        ERROR | WARN)
-          printf "%s\n" "$_log_entry" >&2 # Errors and warnings go to stderr
-          ;;
-        *)
-          printf "%s\n" "$_log_entry" # Other messages go to stdout
-          ;;
-        esac
-      fi
-    fi
-
-    return 0
-  }
-
   reppat() {
     #DOC Repeat a pattern a specified number of times
     #DOC Args:
@@ -767,7 +656,17 @@ util_functions() {
     [ $# -eq 0 ] && return 1
 
     #@ Establish defaults
-    unset level msg pad newline log key value sep
+    unset \
+      msg \
+      pad \
+      newline \
+      log \
+      key \
+      value \
+      sep \
+      hide_level \
+      hide_timestamp
+    level="${__log_level:-2}"
     leading_lines=0
     trailing_lines=0
     sep="${__sep:-": "}"
@@ -776,11 +675,12 @@ util_functions() {
     #@ Parse arguments
     while [ "$#" -gt 0 ]; do
       case $1 in
-      --error) level="ERROR: " ;;
-      --warn) level="WARN: " ;;
-      --info) level="INFO: " ;;
-      --debug) level="DEBUG: " ;;
-      --trace) level="TRACE: " ;;
+      --quiet) level=-1 ;;
+      --error) level=0 ;;
+      --warn) level=1 ;;
+      --info) level=2 ;;
+      --debug) level=3 ;;
+      --trace) level=5 ;;
       --key)
         if [ "$2" ]; then
           key="$2"
@@ -839,6 +739,12 @@ util_functions() {
           shift
         }
         ;;
+      --hide-level)
+        hide_level=true
+        ;;
+      --hide-timestamp)
+        hide_timestamp=true
+        ;;
       --msg | --message)
         [ "$2" ] && {
           if [ "$msg" ]; then
@@ -860,40 +766,53 @@ util_functions() {
       shift
     done
 
-    #@ Format message
-    if [ "$key" ] && [ "$val" ]; then
+    #@ Update message with key-value pair
+    [ "$key" ] && [ "$val" ] && {
       [ "$sep" ] || sep="${__sep:-": "}"
       msg="${key}${sep:-"$__sep"}${val}"
-    else
-      msg="${level}${msg}"
-    fi
+    }
 
     #@ Validate message
     [ "$msg" ] || return 1
 
-    #@ Print message
-    case "$msg" in
-    "ERROR*" | "WARN*") printf "%s\n" "$msg" >&2 ;;
-    "INFO*" | "DEBUG*" | "TRACE*") printf "%s\n" "$msg" ;;
-    *)
-      [ "$log" ] && validate_file --parent "$log" &&
-        printf "[%s] %s\n" "$(get_timestamp)" "$msg" >>"$log"
+    #@ Append the level to the message.
+    [ "$hide_level" ] ||
+      case "$(to_lower "$level")" in
+      0 | "error") level="ERROR: " ;;
+      1 | "warn") level="WARN: " ;;
+      2 | "info") level="INFO: " ;;
+      3 | "debug") level="DEBUG: " ;;
+      4 | "trace") level="TRACE: " ;;
+      *) level="" ;;
+      esac
+    msg="${level}${msg}"
+    [ "$hide_timestamp" ] || msg="$(get_timestamp) ${msg}"
+    echo "$msg"
+    return
 
-      [ "$leading_lines" -gt 0 ] &&
-        reppat --reps "$leading_lines" --pattern "\\n"
+    # #@ Print message
+    # case "$msg" in
+    # "ERROR*" | "WARN*") printf "%s\n" "$msg" >&2 ;;
+    # "INFO*" | "DEBUG*" | "TRACE*") printf "%s\n" "$msg" ;;
+    # *)
+    #   [ "$log" ] && validate_file --parent "$log" &&
+    #     printf "[%s] %s\n" "$(get_timestamp)" "$msg" >>"$log"
 
-      if [ "$pad" ]; then
-        printf "%${padding}s%s%s" "${key}" "$sep" "${val}"
-      else
-        printf "%s" "$msg"
-      fi
+    #   [ "$leading_lines" -gt 0 ] &&
+    #     reppat --reps "$leading_lines" --pattern "\\n"
 
-      [ "$trailing_lines" -gt 0 ] &&
-        reppat --reps "$trailing_lines" --pattern "\\n"
+    #   if [ "$pad" ]; then
+    #     printf "%${padding}s%s%s" "${key}" "$sep" "${val}"
+    #   else
+    #     printf "%s" "$msg"
+    #   fi
 
-      [ "$last_line" ] || printf "\n"
-      ;;
-    esac
+    #   [ "$trailing_lines" -gt 0 ] &&
+    #     reppat --reps "$trailing_lines" --pattern "\\n"
+
+    #   [ "$last_line" ] || printf "\n"
+    #   ;;
+    # esac
   }
 }
 

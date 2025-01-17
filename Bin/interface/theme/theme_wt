@@ -4,7 +4,7 @@ set -eu
 
 # Default theme names
 DARK_THEME="One Half Dark"
-LIGHT_THEME="One Half Light"
+LIGHT_THEME="Solarized Light"
 
 # Check if a command exists
 cmd_exists() {
@@ -22,12 +22,12 @@ install_jq() {
   else
     printf "Error: Neither winget nor chocolatey is available.\n" >&2
     printf "Please install jq manually from: https://stedolan.github.io/jq/download/\n" >&2
-    exit 1
+    return 1
   fi
 }
 
 # Check for Windows Terminal (including preview)
-check_terminal() {
+check_windows_terminal() {
   if cmd_exists "wt.exe"; then
     return 0
   elif cmd_exists "wtpreview.exe"; then
@@ -41,8 +41,8 @@ check_terminal() {
 # Check dependencies
 check_dependencies() {
   # First check for Windows Terminal
-  if ! check_terminal; then
-    exit 1
+  if ! check_windows_terminal; then
+    return 1
   fi
 
   #@ Only check for jq if Terminal exists
@@ -51,7 +51,7 @@ check_dependencies() {
     install_jq
     if ! cmd_exists "jq"; then
       printf "Error: Failed to install jq\n" >&2
-      exit 1
+      return 1
     fi
   fi
 }
@@ -119,7 +119,6 @@ main() {
 
   #@ Find all settings files
   settings_files=$(find_settings_paths "$1")
-
   [ "$settings_files" ] || {
     printf "Error: No Windows Terminal settings files found\n" >&2
     return 1
