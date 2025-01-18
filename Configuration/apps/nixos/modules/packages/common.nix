@@ -79,13 +79,12 @@ in
       eza
       pls
       lsd
-      macchina
       fastfetch
       cpufetch
-      neofetch
-      ufetch
       trashy
       conceal
+      figlet
+      jq
 
       #| Utilities
       starship # TODO: This is temporary until finished setting up .dotsrc
