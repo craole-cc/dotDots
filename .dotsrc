@@ -93,20 +93,21 @@ manage_script() {
       pout --pad --key "Bash Loader" --val "$__bashrc" --trail
       ;;
     *)
-      #TODO: This is temporary
-      #| FastFetch
-      weHave fastfetch && {
-        FASTFETCH_CONFIG="${DOTS_CLI}/fastfetch/config.jsonc"
-        export FASTFETCH_CONFIG
-        fastfetch --config "$FASTFETCH_CONFIG"
-      }
+      initialize_shell
+      # #TODO: This is temporary
+      # #| FastFetch
+      # weHave fastfetch && {
+      #   FASTFETCH_CONFIG="${DOTS_CLI}/fastfetch/config.jsonc"
+      #   export FASTFETCH_CONFIG
+      #   fastfetch --config "$FASTFETCH_CONFIG"
+      # }
 
-      #| Starship
-      weHave starship && {
-        STARSHIP_CONFIG="${DOTS_CLI}/starship/config.toml"
-        export STARSHIP_CONFIG
-        eval "$(starship init bash)"
-      }
+      # #| Starship
+      # weHave starship && {
+      #   STARSHIP_CONFIG="${DOTS_CLI}/starship/config.toml"
+      #   export STARSHIP_CONFIG
+      #   eval "$(starship init bash)"
+      # }
       ;;
     esac
 
@@ -225,6 +226,10 @@ util_functions() {
     else
       command -v "$1" >/dev/null 2>&1
     fi
+  }
+
+  pathOf() {
+    command -v "$1"
   }
 
   to_lower() {
@@ -1620,63 +1625,61 @@ core_functions() {
 
   initialize_shell() {
     #@ Define supported shells and their canonical names
-    _SHELL_MAP="bash:bash zsh:zsh fish:fish nu:nu nushell:nu pwsh:pwsh powershell:powershell ksh:ksh tcsh:tcsh dash:dash"
-    _SHELL_SUPPORTED="bash zsh fish nu pwsh powershell"
+    __shell_map="bash:bash zsh:zsh fish:fish nu:nu nushell:nu pwsh:pwsh powershell:powershell ksh:ksh tcsh:tcsh dash:dash"
+    __shell_supported="bash zsh fish nu pwsh powershell"
+    __shell="$(
+      printf "%s\n" "$_SHELL_MAP" | tr ' ' '\n' |
+        awk -F: -v shell="$(to_lower "${__shell:-"$SHELL"}")" '$1 == shell {print $2}'
+    )"
 
-    #@ Get current shell and convert to lowercase
-    _SHELL="$(to_lower "${_SHELL:-"$SHELL"}")"
+    __shell="$(to_lower "${__shell:-"$(
+      printf "%s" "$SHELL" | awk -F/ '{print $NF}'
+    )"}")"
 
-    #@ Map shell aliases to canonical names
-    _SHELL_CANONICAL="$(printf "%s\n" "$_SHELL_MAP" | tr ' ' '\n' |
-      awk -F: -v shell="$_SHELL" '$1 == shell {print $2}')"
-
-    echo "SHELL: $_SHELL"
-    echo "SHELL_CANONICAL: $_SHELL_CANONICAL"
-
-    #@ Validate shell is supported
-    if ! printf "%s\n" "$_SHELL_SUPPORTED" | grep -qw "$_SHELL_CANONICAL"; then
-      printf "ERROR: The defined shell (%s) is not supported.\n" "$_SHELL" >&2
+    #@ Validate shell
+    case "$__shell" in
+    bash)
+      SHELL_NAME="Bash"
+      SHELL_PATH="$(pathOf bash)"
+      __shell_conf="config"
+      ;;
+    fish)
+      SHELL_NAME="Fish"
+      SHELL_PATH="$(pathOf fish)"
+      __shell_conf="config.fish"
+      ;;
+    zsh)
+      SHELL_NAME="Zsh"
+      SHELL_PATH="$(pathOf zsh)"
+      SHELL_CONFIG="${DOTS_CLI}/${SHELL_NAME}/.zshrc"
+      ;;
+    nu | nushell)
+      SHELL_NAME="Nushell"
+      SHELL_PATH="$(pathOf nu)"
+      __shell_conf=".zshrc"
+      ;;
+    pwsh)
+      SHELL_NAME="Pwsh"
+      SHELL_PATH="$(pathOf pwsh)"
+      ;;
+    powershell)
+      SHELL_NAME="Powershell"
+      SHELL_PATH="$(pathOf powershell)"
+      ;;
+    *)
+      pout --error "The defined shell (%s) is not supported." "$__shell"
       return 1
-    fi
-
-    #@ Validate shell is available
-    if ! weHave "$_SHELL_CANONICAL"; then
-      printf "ERROR: The defined shell (%s) is not available.\n" "$_SHELL" >&2
-      return 1
-    fi
-
-    #@ Set interactive shell name if valid mapping found
-    case "$_SHELL_CANONICAL" in
-    bash) SHELL_NAME="Bash" ;;
-    zsh) SHELL_NAME="Zsh" ;;
-    fish) SHELL_NAME="Fish" ;;
-    nu) SHELL_NAME="Nushell" ;;
-    pwsh) SHELL_NAME="Pwsh" ;;
-    powershell) SHELL_NAME="Powershell" ;;
+      ;;
     esac
 
-    #@ Set the paths to the shell binary and configuration
-    SHELL_PATH="$(command -v "$_SHELL_CANONICAL")"
-    SHELL_CONF="$DOTS/Configuration/cli/$(to_lower "$SHELL_NAME")"
+    SHELL_HOME="${DOTS_CLI}/$(to_lower "$SHELL_NAME")"
+    SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
 
-    [ "$VERBOSITY" -gt 2 ] && printf \
-      "Shell:\n -> Name: %s\n -> Path: %s\n -> Conf: %s\n" \
-      "$SHELL_NAME" "$SHELL_PATH" "$SHELL_CONF"
-
-    #   _SHELL_SUPPORTED="bash zsh fish nu pwsh powershell"
-    #   _SHELL="$(to_lower "${_SHELL:-"$SHELL_INTERACTIVE"}")"
-    #   case "$_SHELL" in
-    #   *bash*) SHELL_INTERACTIVE="bash" ;;
-    #   *zsh*) SHELL_INTERACTIVE="zsh" ;;
-    #   *fish*) SHELL_INTERACTIVE="fish" ;;
-    #   *nu | *nushell) SHELL_INTERACTIVE="nu" ;;
-    #   *pwsh*) SHELL_INTERACTIVE="pwsh" ;;
-    #   *pow*) SHELL_INTERACTIVE="powershell" ;;
-    #   *ksh*) SHELL_INTERACTIVE="ksh" ;;
-    #   *tcsh*) SHELL_INTERACTIVE="tcsh" ;;
-    #   *dash*) SHELL_INTERACTIVE="dash" ;;
-    #   *) ;;
-    #   esac
+    pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
+    pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
+    pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
+    pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
+    # export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF
 
     #   #@ Ensure that the shell is supported
     #   case "$SHELL_INTERACTIVE" in "$_SHELL_SUPPORTED")
@@ -1706,6 +1709,23 @@ core_functions() {
     #   # printf "\n%s" "[ -f $profile ] && . $profile" >>"$bashrc"
     #   ;;
     # esac
+    set +o allexport
+
+  }
+
+  init_fastfetch() {
+    weHave fastfetch || return
+
+    FASTFETCH_PATH="$(command -v fastfetch)"
+    FASTFETCH_CONF="$DOTS_CLI/fastfetch/config.jsonc"
+    fastfetch --config "$FASTFETCH_CONF"
+  }
+
+  init_starship() {
+    weHave starship || return
+    STARSHIP_CONFIG="$DOTS_CLI/starship/config.toml"
+
+    # case "$SHELL_INTERACTIVE" in
   }
 }
 
