@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 main() {
   #@ Initialization the script environment
@@ -21,11 +21,19 @@ manage_script() {
   init_script_env() {
     #@ Set persistent variables
     set -o allexport
-    DOTS="${DOTS:-"$(cd "$(dirname "$0")" && pwd)"}"
-    DOTS_RC="$DOTS/.dotsrc"
+
+    if [ -f "$DOTS_RCs" ]; then
+      DOTS="$(dirname "${DOTS_RC}")"
+    elif [ -d "$DOTSs" ]; then
+      DOTS_RC="$DOTS/.dotsrc"
+    else
+      # shellcheck disable=SC3054,SC3028
+      DOTS_RC="${BASH_SOURCE[0]}"
+      DOTS="$(dirname "$DOTS_RC")"
+    fi
+
     DOTS_IGNORE="$DOTS/.ignore"
     DOTS_LOG="$DOTS/.log"
-    # DOTS_LOG="$DOTS/Logs/dots.log"
     DOTS_BIN="$DOTS/Bin"
     DOTS_CFG="$DOTS/Configuration"
     DOTS_APP="$DOTS_CFG/apps"
@@ -43,7 +51,7 @@ manage_script() {
 
     #@ Set temporary variables in lowercase and perpended by double underscorez
     __mode="reset" #? simulation | normal | reset
-    __verbosity=0
+    __verbosity=2
     __log_path="$DOTS_LOG"
     __pad=24
     __shell="Bash"
@@ -52,9 +60,7 @@ manage_script() {
     __bashrc="$HOME/.bashrc"
 
     #@ Tag the time of initialization
-    __start=$(get_time_in_secs)
-    __stop=0
-    __duration=0
+    __dots_inittime=$(get_time_in_secs)
 
     #@ Get relevant system information
     set_os_type
@@ -62,20 +68,8 @@ manage_script() {
     #@ Initialize messaging to the log and console (stdout/stderr)
     set_messaging
 
-    #@ Initialize the environment
+    #@ Remove the log file if requested
     case "$(to_lower "$__mode")" in reset) rm "$DOTS_LOG" ;; esac
-    pout --info "Initializing DOTS..."
-    pout --trace --key "DOTS_PATH" --val "$DOTS"
-    pout --trace --key "DOTS_INIT_START" --val "$__start"
-    pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
-    pout --trace --key "Verbosity Level" --val "$VERBOSITY"
-    pout --trace --key "Log Level" --val "$LOG_LEVEL"
-    pout --trace --key "Operating System" --val "$OS_TYPE"
-    pout --trace --key "Interactive Shell" --val "$__shell"
-    pout --trace --key "DOTS Directory" --val "$DOTS"/
-    pout --trace --key "DOTS Loader" --val "$DOTS_RC"
-    pout --trace --key "User Loader" --val "$__profile"
-    pout --trace --key "Bash Loader" --val "$__bashrc"
   }
 
   run_process() {
@@ -94,23 +88,12 @@ manage_script() {
       pout --pad --key "Bash Loader" --val "$__bashrc" --trail
       ;;
     *)
-      init_fastfetch
-      set_shell
+      # set_shell
+      __shell_inittime=$(get_time_in_secs)
+      initialize_shell
+      __shell_stoptime=$(get_time_in_secs)
+      __shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
 
-      # #TODO: This is temporary
-      # #| FastFetch
-      # weHave fastfetch && {
-      #   FASTFETCH_CONFIG="${DOTS_CLI}/fastfetch/config.jsonc"
-      #   export FASTFETCH_CONFIG
-      #   fastfetch --config "$FASTFETCH_CONFIG"
-      # }
-
-      # #| Starship
-      # weHave starship && {
-      #   STARSHIP_CONFIG="${DOTS_CLI}/starship/config.toml"
-      #   export STARSHIP_CONFIG
-      #   eval "$(starship init bash)"
-      # }
       ;;
     esac
 
@@ -120,11 +103,8 @@ manage_script() {
 
   exit_script_env() {
     #@ Tag the end and duration of the initialization
-    __stop=$(get_time_in_secs)
-    __duration=$(format_duration --start "$__start" --stop "$__stop")
-    # pout --trace --key "DOTS_INIT_END" --val "$__stop"
-    # pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
-    pout --info "Initialization completed in %s" "$__duration" --trail -1
+    __dots_stoptime=$(get_time_in_secs)
+    __dots_duration=$(format_duration --start "$__dots_inittime" --stop "$__dots_stoptime")
 
     unset __scr_start __stop __duration
 
@@ -148,6 +128,80 @@ manage_script() {
 
     #@ Ensure the local variables are exported
     export DOTS DOTS_RC DOTS_IGNORE
+
+    #@ Report
+    case "$VERBOSITY" in
+    0) ;;
+    1) ;;
+    2)
+      pout --info "Shell initialized in $__shell_duration" --lead
+      pout --info "DOTS initialized in $__dots_duration" --trail -1
+      ;;
+    3)
+      pout --debug --key "DOTS_PATH" --val "$DOTS"
+      pout --debug --key "DOTS_RC" --val "$DOTS_RC"
+      pout --debug --key "DOTS_IGNORE" --val "$DOTS_IGNORE"
+      pout --debug --key "DOTS_LOG" --val "$DOTS_LOG"
+      pout --debug --key "DOTS_BIN" --val "$DOTS_BIN"
+      pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
+      pout --debug --key "DOTS_APP" --val "$DOTS_APP"
+      pout --debug --key "DOTS_KIT" --val "$DOTS_KIT"
+      pout --debug --key "DOTS_CLI" --val "$DOTS_CLI"
+      pout --debug --key "DOTS_DOC" --val "$DOTS_DOC"
+      pout --debug --key "DOTS_JOB" --val "$DOTS_JOB"
+      pout --debug --key "DOTS_MOD" --val "$DOTS_MOD"
+      pout --debug --key "DOTS_RES" --val "$DOTS_RES"
+      pout --debug --key "DOTS_ENV" --val "$DOTS_ENV"
+      pout --debug --key "DOTS_CTX" --val "$DOTS_CTX"
+
+      pout --debug --key "DOTS_INIT_START" --val "$__start"
+      pout --debug --key "Operation Mode" --val "$(to_lower "$__mode")"
+      pout --debug --key "Verbosity Level" --val "$VERBOSITY"
+      pout --debug --key "Log Level" --val "$LOG_LEVEL"
+      pout --debug --key "Operating System" --val "$OS_TYPE"
+      pout --debug --key "Interactive Shell" --val "$__shell"
+      pout --debug --key "DOTS Directory" --val "$DOTS"/
+      pout --debug --key "DOTS Loader" --val "$DOTS_RC"
+      pout --debug --key "User Loader" --val "$__profile"
+      pout --debug --key "Bash Loader" --val "$__bashrc"
+      pout --debug --key "SHELL_NAME" --val "$SHELL_NAME"
+      pout --debug --key "SHELL_PATH" --val "$SHELL_PATH"
+      pout --debug --key "SHELL_HOME" --val "$SHELL_HOME"
+      pout --debug --key "SHELL_VERSION" --val "$SHELL_VERSION"
+      pout --debug --key "SHELL_CONF" --val "$SHELL_CONF"
+      pout --debug --key "SHELL_INIT" --val "$SHELL_INIT"
+      pout --debug --key "SHELL_INIT_START" --val "$__time_before_shell"
+      pout --debug --key "SHELL_INIT_STOP" --val "$__time_after_shell"
+      pout --debug --key "SHELL_INIT_DURATION" --val "$__duration"
+      pout --debug --key "DOTS_INIT_START" --val "$__start"
+      pout --debug --key "DOTS_INIT_STOP" --val "$__stop"
+      pout --debug --key "DOTS_INIT_DURATION" --val "$__duration"
+    ;;
+    4)
+      pout --trace --key "DOTS_PATH" --val "$DOTS"
+      pout --trace --key "DOTS_INIT_START" --val "$__start"
+      pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
+      pout --trace --key "Verbosity Level" --val "$VERBOSITY"
+      pout --trace --key "Log Level" --val "$LOG_LEVEL"
+      pout --trace --key "Operating System" --val "$OS_TYPE"
+      pout --trace --key "Interactive Shell" --val "$__shell"
+      pout --trace --key "DOTS Loader" --val "$DOTS_RC"
+      pout --trace --key "User Loader" --val "$__profile"
+      pout --trace --key "Bash Loader" --val "$__bashrc"
+      pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
+      pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
+      pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
+      pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
+      pout --trace --key "SHELL" --val "$SHELL"
+      pout --trace --key "SHELL_INIT_START" --val "$__time_before_shell"
+      pout --trace --key "SHELL_INIT_DURATION" --val "$__duration_shell"
+      pout --trace --key "SHELL_INIT_END" --val "$__time_after_shell"
+      pout --trace --key "DOTS_INIT_END" --val "$__stop"
+      pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
+
+      ;;
+    *) ;;
+    esac
   }
 
   while [ "$#" -gt 0 ]; do
@@ -245,7 +299,7 @@ util_functions() {
     #DOC   lower_text=$(to_lower "HELLO")
 
     if [ -z "${1:-}" ]; then
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No string provided for conversion\n" >&2
+      # [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No string provided for conversion\n" >&2
       return 1
     else
       printf "%s" "${1:-}" | tr '[:upper:]' '[:lower:]' 2>/dev/null || {
@@ -887,6 +941,18 @@ util_functions() {
     -1 | 0 | *) ;;
     esac
   }
+
+  init_fastfetch() {
+    weHave fastfetch || return
+
+    FASTFETCH_PATH="$(pathOf fastfetch)"
+    FASTFETCH_CONF="$1"
+    weHave figlet && weHave jq &&
+      figlet -f slant "$(
+        fastfetch -s os --format json | jq -r '.[0].result.name'
+      )"
+    fastfetch --config "$FASTFETCH_CONF"
+  }
 }
 
 core_functions() {
@@ -1000,13 +1066,7 @@ core_functions() {
     SHELL_PATH="$(pathOf "$__shell")"
     SHELL="$__shell"
 
-    pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
-    pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
-    pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
-    pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
-    pout --trace --key "SHELL" --val "$SHELL"
     export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL
-    . "$SHELL_CONF"
   }
 
   set_messaging() {
@@ -1685,6 +1745,8 @@ core_functions() {
 
   initialize_shell() {
     set_shell
+    init_fastfetch "$DOTS_CLI/fastfetch/config.jsonc"
+    # "$SHELL_PATH" "$SHELL_CONF"
     . "$SHELL_CONF"
     # init_fastfetch
     # init_starship
@@ -1705,19 +1767,6 @@ core_functions() {
     #   ;;
     # esac
 
-  }
-
-  init_fastfetch() {
-    weHave fastfetch || return
-
-    FASTFETCH_PATH="$(command -v fastfetch)"
-    FASTFETCH_CONF="$DOTS_CLI/fastfetch/config.jsonc"
-    # fastfetch --config "$FASTFETCH_CONF"
-    weHave figlet && weHave jq &&
-      figlet -f slant "$(
-        fastfetch -s os --format json | jq -r '.[0].result.name'
-      )"
-    fastfetch --config "$FASTFETCH_CONF"
   }
 }
 
