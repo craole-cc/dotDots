@@ -26,5 +26,5 @@ init_config() {
 }
 
 # Load resources and functions
-# init_config "$BDOTDIR/resources"
+init_config "$BDOTDIR/resources"
 # init_config "$BDOTDIR/functions"

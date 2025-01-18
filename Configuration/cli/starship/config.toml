@@ -1,6 +1,6 @@
 
 # Wait x milliseconds for starship to check files under the current directory.
-command_timeout = 1111
+command_timeout = 11111
 scan_timeout = 1000
 
 [line_break]
