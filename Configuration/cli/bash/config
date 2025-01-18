@@ -14,9 +14,10 @@ export BDOTDIR
 #   $1: Directory path
 #   $2: File extension (default is "bash")
 init_config() {
-  for conf in $(find $1 -type f); do
+  conf_files="$(find $1 -type f)"
+
+  for conf in $conf_files; do
     if [ -r "$conf" ]; then
-      # echo "$conf"
       # time . "$conf"
       . "$conf"
     else
