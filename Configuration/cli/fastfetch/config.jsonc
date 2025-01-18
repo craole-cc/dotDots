@@ -4,25 +4,47 @@
     "padding": {
       "top": 2
     },
+    "color": {
+      "1": "red",
+      "2": "green",
+      "3": "yellow",
+      "4": "blue",
+      "5": "magenta",
+      "6": "cyan",
+      "7": "white"
+    },
     "type": "small"
   },
   "modules": [
-    // "title",
-    // "separator",
-    // "os",
+    "title",
+    "separator",
+    "board",
+    "bios",
+    {
+      "type": "cpu",
+      "showPeCoreCount": true,
+      "temp": true
+    },
+    "os",
+    "kernel",
+    {
+      "type": "terminal",
+      "format": "{pretty-name} {version} {#37}█{#97}█ {#36}█{#96}█ {#35}█{#95}█ {#34}█{#94}█ {#33}█{#93}█ {#32}█{#92}█ {#31}█{#91}█ {#30}█{#90}█"
+    },
     // "host",
-    // "bios",
     // "bootmgr",
-    // "board",
     // "chassis",
-    // "kernel",
     // "initsystem",
-    // "uptime",
     // "loadavg",
     // "processes",
     // "packages",
-    // "shell",
-    // "editor",
+    "shell",
+    {
+      "type": "command",
+      "text": "$EDITOR --version | head -1",
+      "key": "Editor"
+    },
+    "editor",
     // "display",
     // "brightness",
     // "monitor",
@@ -39,11 +61,6 @@
     // "terminalfont",
     // "terminalsize",
     // "terminaltheme",
-    // {
-    //   "type": "cpu",
-    //   "showPeCoreCount": true,
-    //   "temp": true
-    // },
     // "cpucache",
     // "cpuusage",
     // {
@@ -70,17 +87,24 @@
     // },
     // {
     //   "type": "localip",
-    //   "showIpv6": true,
-    //   "showMac": true,
-    //   "showSpeed": true,
-    //   "showMtu": true,
-    //   "showLoop": true,
-    //   "showFlags": true,
-    //   "showAllIps": true
+    // "showIpv6": true,
+    // "showMac": true,
+    // "showSpeed": true,
+    // "showMtu": true,
+    // "showLoop": true,
+    // "showFlags": true,
+    // "showAllIps": true
     // },
     // "dns",
     // "wifi",
-    // "datetime",
+    {
+      "type": "localip",
+      "key": "LAN IP",
+      "showIpv6": false,
+      "showPrefixLen": false
+    },
+    "datetime",
+    "uptime",
     // "locale",
     // "vulkan",
     // "opengl",
@@ -104,6 +128,7 @@
     // "tpm",
     // "version",
     // "break",
+    // "separator",
     // "colors"
   ]
 }

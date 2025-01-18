@@ -59,22 +59,22 @@ manage_script() {
     set_os_type
 
     #@ Initialize messaging to the log and console (stdout/stderr)
-    initialize_messaging
+    set_messaging
 
     #@ Initialize the environment
     case "$(to_lower "$__mode")" in reset) rm "$DOTS_LOG" ;; esac
     pout --info "Initializing DOTS..."
-    pout --trace --key "DOTS_PATH" --val "$DOTS"
-    pout --trace --key "DOTS_INIT_START" --val "$__start"
-    pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
-    pout --trace --key "Verbosity Level" --val "$VERBOSITY"
-    pout --trace --key "Log Level" --val "$LOG_LEVEL"
-    pout --trace --key "Operating System" --val "$OS_TYPE"
-    pout --trace --key "Interactive Shell" --val "$__shell"
-    pout --trace --key "DOTS Directory" --val "$DOTS"/
-    pout --trace --key "DOTS Loader" --val "$DOTS_RC"
-    pout --trace --key "User Loader" --val "$__profile"
-    pout --trace --key "Bash Loader" --val "$__bashrc"
+    # pout --trace --key "DOTS_PATH" --val "$DOTS"
+    # pout --trace --key "DOTS_INIT_START" --val "$__start"
+    # pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
+    # pout --trace --key "Verbosity Level" --val "$VERBOSITY"
+    # pout --trace --key "Log Level" --val "$LOG_LEVEL"
+    # pout --trace --key "Operating System" --val "$OS_TYPE"
+    # pout --trace --key "Interactive Shell" --val "$__shell"
+    # pout --trace --key "DOTS Directory" --val "$DOTS"/
+    # pout --trace --key "DOTS Loader" --val "$DOTS_RC"
+    # pout --trace --key "User Loader" --val "$__profile"
+    # pout --trace --key "Bash Loader" --val "$__bashrc"
   }
 
   run_process() {
@@ -93,7 +93,9 @@ manage_script() {
       pout --pad --key "Bash Loader" --val "$__bashrc" --trail
       ;;
     *)
-      initialize_shell
+      init_fastfetch
+      set_shell
+
       # #TODO: This is temporary
       # #| FastFetch
       # weHave fastfetch && {
@@ -119,8 +121,8 @@ manage_script() {
     #@ Tag the end and duration of the initialization
     __stop=$(get_time_in_secs)
     __duration=$(format_duration --start "$__start" --stop "$__stop")
-    pout --trace --key "DOTS_INIT_END" --val "$__stop"
-    pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
+    # pout --trace --key "DOTS_INIT_END" --val "$__stop"
+    # pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
     pout --info "Initialization completed in %s" "$__duration" --trail -1
 
     unset __scr_start __stop __duration
@@ -949,7 +951,64 @@ core_functions() {
     export OS_TYPE MSYS
   }
 
-  initialize_messaging() {
+  set_shell() {
+    #@ Define supported shells
+    __shell="$(to_lower "${__shell:-"$(
+      printf "%s" "$SHELL" | awk -F/ '{print $NF}'
+    )"}")"
+
+    case "$__shell" in
+    bash)
+      __shell="bash"
+      __shell_conf="config"
+      SHELL_NAME="Bash"
+      ;;
+    fish)
+      __shell="fish"
+      __shell_conf="config.fish"
+      SHELL_NAME="Fish"
+      ;;
+    zsh)
+      __shell="zsh"
+      __shell_conf=".zshrc"
+      SHELL_NAME="Zsh"
+      ;;
+    nu | nushell)
+      __shell="nu"
+      __shell_conf="config.nu"
+      SHELL_NAME="Nushell"
+      ;;
+    pwsh)
+      __shell="pwsh"
+      __shell_conf="profile.ps1"
+      SHELL_NAME="Pwsh"
+      ;;
+    powershell)
+      __shell="powershell"
+      __shell_conf="profile.ps1"
+      SHELL_NAME="Powershell"
+      ;;
+    *)
+      pout --error "The defined shell (%s) is not supported." "$__shell"
+      return 1
+      ;;
+    esac
+
+    SHELL_HOME="${DOTS_CLI}/$(to_lower "$SHELL_NAME")"
+    SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
+    SHELL_PATH="$(pathOf "$__shell")"
+    SHELL="$__shell"
+
+    pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
+    pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
+    pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
+    pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
+    pout --trace --key "SHELL" --val "$SHELL"
+    export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL
+    . "$SHELL_CONF"
+  }
+
+  set_messaging() {
     set_verbosity_level() {
       #@ Set default values for quiet, verbosity, and log level
       __quiet="${__quiet:--1}"
@@ -1624,75 +1683,10 @@ core_functions() {
   }
 
   initialize_shell() {
-    #@ Define supported shells and their canonical names
-    __shell_map="bash:bash zsh:zsh fish:fish nu:nu nushell:nu pwsh:pwsh powershell:powershell ksh:ksh tcsh:tcsh dash:dash"
-    __shell_supported="bash zsh fish nu pwsh powershell"
-    __shell="$(
-      printf "%s\n" "$_SHELL_MAP" | tr ' ' '\n' |
-        awk -F: -v shell="$(to_lower "${__shell:-"$SHELL"}")" '$1 == shell {print $2}'
-    )"
-
-    __shell="$(to_lower "${__shell:-"$(
-      printf "%s" "$SHELL" | awk -F/ '{print $NF}'
-    )"}")"
-
-    #@ Validate shell
-    case "$__shell" in
-    bash)
-      SHELL_NAME="Bash"
-      SHELL_PATH="$(pathOf bash)"
-      __shell_conf="config"
-      ;;
-    fish)
-      SHELL_NAME="Fish"
-      SHELL_PATH="$(pathOf fish)"
-      __shell_conf="config.fish"
-      ;;
-    zsh)
-      SHELL_NAME="Zsh"
-      SHELL_PATH="$(pathOf zsh)"
-      SHELL_CONFIG="${DOTS_CLI}/${SHELL_NAME}/.zshrc"
-      ;;
-    nu | nushell)
-      SHELL_NAME="Nushell"
-      SHELL_PATH="$(pathOf nu)"
-      __shell_conf=".zshrc"
-      ;;
-    pwsh)
-      SHELL_NAME="Pwsh"
-      SHELL_PATH="$(pathOf pwsh)"
-      ;;
-    powershell)
-      SHELL_NAME="Powershell"
-      SHELL_PATH="$(pathOf powershell)"
-      ;;
-    *)
-      pout --error "The defined shell (%s) is not supported." "$__shell"
-      return 1
-      ;;
-    esac
-
-    SHELL_HOME="${DOTS_CLI}/$(to_lower "$SHELL_NAME")"
-    SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
-
-    pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
-    pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
-    pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
-    pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
-    # export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF
-
-    #   #@ Ensure that the shell is supported
-    #   case "$SHELL_INTERACTIVE" in "$_SHELL_SUPPORTED")
-    #     printf "ERROR: The defined shell (%s) is not supported\n" "$_SHELL"
-    #     return 1
-    #     ;;
-    #   esac
-
-    #   #@ Ensure that the shell is available
-    #   weHave "$_SHELL" || {
-    #     printf "ERROR: The defined shell (%s) is not available\n" "$_SHELL"
-    #     return 1
-    #   }
+    set_shell
+    . "$SHELL_CONF"
+    # init_fastfetch
+    # init_starship
 
     # DOTS_SHELL="$DOTS/Configuration/cli/$_SHELL"
     # DOTS_BASH_RC="$DOTS_BASH/config"
@@ -1709,7 +1703,6 @@ core_functions() {
     #   # printf "\n%s" "[ -f $profile ] && . $profile" >>"$bashrc"
     #   ;;
     # esac
-    set +o allexport
 
   }
 
@@ -1718,14 +1711,12 @@ core_functions() {
 
     FASTFETCH_PATH="$(command -v fastfetch)"
     FASTFETCH_CONF="$DOTS_CLI/fastfetch/config.jsonc"
+    # fastfetch --config "$FASTFETCH_CONF"
+    weHave figlet && weHave jq &&
+      figlet -f slant "$(
+        fastfetch -s os --format json | jq -r '.[0].result.name'
+      )"
     fastfetch --config "$FASTFETCH_CONF"
-  }
-
-  init_starship() {
-    weHave starship || return
-    STARSHIP_CONFIG="$DOTS_CLI/starship/config.toml"
-
-    # case "$SHELL_INTERACTIVE" in
   }
 }
 
