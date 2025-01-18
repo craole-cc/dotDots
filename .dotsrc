@@ -21,7 +21,8 @@ manage_script() {
   init_script_env() {
     #@ Set persistent variables
     set -o allexport
-    DOTS="$(dirname "$DOTS_RC")"
+    DOTS="${DOTS:-"$(cd "$(dirname "$0")" && pwd)"}"
+    DOTS_RC="$DOTS/.dotsrc"
     DOTS_IGNORE="$DOTS/.ignore"
     DOTS_LOG="$DOTS/.log"
     # DOTS_LOG="$DOTS/Logs/dots.log"
@@ -64,17 +65,17 @@ manage_script() {
     #@ Initialize the environment
     case "$(to_lower "$__mode")" in reset) rm "$DOTS_LOG" ;; esac
     pout --info "Initializing DOTS..."
-    # pout --trace --key "DOTS_PATH" --val "$DOTS"
-    # pout --trace --key "DOTS_INIT_START" --val "$__start"
-    # pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
-    # pout --trace --key "Verbosity Level" --val "$VERBOSITY"
-    # pout --trace --key "Log Level" --val "$LOG_LEVEL"
-    # pout --trace --key "Operating System" --val "$OS_TYPE"
-    # pout --trace --key "Interactive Shell" --val "$__shell"
-    # pout --trace --key "DOTS Directory" --val "$DOTS"/
-    # pout --trace --key "DOTS Loader" --val "$DOTS_RC"
-    # pout --trace --key "User Loader" --val "$__profile"
-    # pout --trace --key "Bash Loader" --val "$__bashrc"
+    pout --trace --key "DOTS_PATH" --val "$DOTS"
+    pout --trace --key "DOTS_INIT_START" --val "$__start"
+    pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
+    pout --trace --key "Verbosity Level" --val "$VERBOSITY"
+    pout --trace --key "Log Level" --val "$LOG_LEVEL"
+    pout --trace --key "Operating System" --val "$OS_TYPE"
+    pout --trace --key "Interactive Shell" --val "$__shell"
+    pout --trace --key "DOTS Directory" --val "$DOTS"/
+    pout --trace --key "DOTS Loader" --val "$DOTS_RC"
+    pout --trace --key "User Loader" --val "$__profile"
+    pout --trace --key "Bash Loader" --val "$__bashrc"
   }
 
   run_process() {

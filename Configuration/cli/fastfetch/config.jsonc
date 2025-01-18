@@ -39,12 +39,12 @@
     // "processes",
     // "packages",
     "shell",
-    {
-      "type": "command",
-      "text": "$EDITOR --version | head -1",
-      "key": "Editor"
-    },
-    "editor",
+    // {
+    //   "type": "command",
+    //   "text": "printf 'TTY: %s %s | GUI: %s %s' \"$EDITOR\" \"$(eval \"$EDITOR\" --version | head -1 | awk '{print $NF}')\" \"${VISUAL:-code}\" \"$(eval \"${VISUAL:-code}\" --version | head -1 | awk '{print $NF}')\"",
+    //   "key": "Editor"
+    // },
+    // "editor",
     // "display",
     // "brightness",
     // "monitor",
