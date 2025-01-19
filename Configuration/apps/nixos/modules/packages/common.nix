@@ -83,16 +83,22 @@ in
       cpufetch
       trashy
       conceal
-      figlet
-      jq
 
       #| Utilities
-      starship # TODO: This is temporary until finished setting up .dotsrc
       brightnessctl
       speedtest-go
       fend
       libqalculate
       radio-cli
+
+      #| Shells
+      #TODO: This is temporary, for testing .dotrc
+      fish
+      zsh
+      powershell
+      nushell
+      starship
+      figlet # Stylized Printing
     ]
     ++ (
       if gui then

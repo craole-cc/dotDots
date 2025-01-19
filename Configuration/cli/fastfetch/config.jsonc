@@ -39,11 +39,11 @@
     // "processes",
     // "packages",
     "shell",
-    // {
-    //   "type": "command",
-    //   "text": "printf 'TTY: %s %s | GUI: %s %s' \"$EDITOR\" \"$(eval \"$EDITOR\" --version | head -1 | awk '{print $NF}')\" \"${VISUAL:-code}\" \"$(eval \"${VISUAL:-code}\" --version | head -1 | awk '{print $NF}')\"",
-    //   "key": "Editor"
-    // },
+    {
+      "type": "command",
+      "text": "printf 'TTY: %s [%s] | GUI: %s [%s]' \"$EDITOR\" \"$EDITOR_VERSION\" \"$VISUAL\" \"$VISUAL_VERSION\"",
+      "key": "Editor"
+    },
     // "editor",
     // "display",
     // "brightness",
@@ -74,50 +74,54 @@
     // "disk",
     // "btrfs",
     // "zpool",
-    // {
-    //   "type": "battery",
-    //   "temp": true
-    // },
+    {
+      "type": "battery",
+      "temp": true
+    },
     // "poweradapter",
     // "player",
-    // "media",
-    // {
-    //   "type": "publicip",
-    //   "timeout": 1000
-    // },
-    // {
-    //   "type": "localip",
-    // "showIpv6": true,
-    // "showMac": true,
-    // "showSpeed": true,
-    // "showMtu": true,
-    // "showLoop": true,
-    // "showFlags": true,
-    // "showAllIps": true
-    // },
-    // "dns",
-    // "wifi",
+    "media",
+    {
+      "type": "publicip",
+      "format": "{ip}",
+      "timeout": 1000
+    },
     {
       "type": "localip",
-      "key": "LAN IP",
-      "showIpv6": false,
+      // "format": "{ipv4} ",
+      // "showIpv6": true,
+      // "showMac": true,
+      // "showSpeed": true,
+      // "showMtu": true,
+      // "showLoop": true,
+      // "showFlags": true,
+      "showAllIps": true,
       "showPrefixLen": false
     },
-    "datetime",
-    "uptime",
+    "dns",
+    "wifi",
     // "locale",
     // "vulkan",
     // "opengl",
     // "opencl",
-    // "users",
-    // "bluetooth",
-    // "bluetoothradio",
-    // "sound",
+    "users",
+    "bluetooth",
+    "bluetoothradio",
+    "sound",
+    "datetime",
+    "uptime",
     // "camera",
     // "gamepad",
+    {
+      "type": "weather",
+      "location": "37.7749,-122.4194",
+      "outputFormat": "%t+-+%C+(%l)",
+      "timeout": 1000
+    },
     // {
-    //   "type": "weather",
-    //   "timeout": 1000
+    //   "type": "command",
+    //   "text": "printf '%s' \"$LOCATION\"",
+    //   "key": "Weather"
     // },
     // "netio",
     // "diskio",
