@@ -51,7 +51,7 @@ manage_script() {
 
     #@ Set temporary variables in lowercase and perpended by double underscorez
     __mode="reset" #? simulation | normal | reset
-    __verbosity=2
+    __verbosity=0
     __log_path="$DOTS_LOG"
     __pad=24
     __shell="Bash"
@@ -62,17 +62,19 @@ manage_script() {
     #@ Tag the time of initialization
     __dots_inittime=$(get_time_in_secs)
 
-    #@ Get relevant system information
-    set_os_type
+    #@ Remove the log file if requested
+    case "$(to_lower "$__mode")" in reset) rm -rf "$DOTS_LOG" ;; esac
+  }
+
+  run_process() {
 
     #@ Initialize messaging to the log and console (stdout/stderr)
     set_messaging
 
-    #@ Remove the log file if requested
-    case "$(to_lower "$__mode")" in reset) rm "$DOTS_LOG" ;; esac
-  }
+    #@ Get relevant system information
+    set_os_type
 
-  run_process() {
+    set_location "Mandeville, Jamaica"
 
     case "$(to_lower "$__mode")" in
     simulation)
@@ -176,7 +178,7 @@ manage_script() {
       pout --debug --key "DOTS_INIT_START" --val "$__start"
       pout --debug --key "DOTS_INIT_STOP" --val "$__stop"
       pout --debug --key "DOTS_INIT_DURATION" --val "$__duration"
-    ;;
+      ;;
     4)
       pout --trace --key "DOTS_PATH" --val "$DOTS"
       pout --trace --key "DOTS_INIT_START" --val "$__start"
@@ -942,6 +944,31 @@ util_functions() {
     esac
   }
 
+  resolve_location() {
+    #DOC Resolve a city/country name to GPS coordinates using an external API
+    #DOC Args:
+    #DOC   $1 - Location name (e.g., "San Francisco, USA")
+    #DOC Returns:
+    #DOC   GPS coordinates (e.g., "37.7749,-122.4194") or empty string on failure
+    #DOC Example:
+    #DOC   resolve_location "San Francisco, USA"
+
+    # Use a geocoding API to resolve the location
+    _location_name=$(echo "$1" | tr ' ' '+')
+    _api_url="https://nominatim.openstreetmap.org/search?q=${_location_name}&format=json"
+
+    # Fetch coordinates from the API
+    _response=$(curl -s "$_api_url")
+    _lat=$(echo "$_response" | grep -oP '"lat":"\K[^"]+')
+    _lon=$(echo "$_response" | grep -oP '"lon":"\K[^"]+')
+
+    if [ -n "$_lat" ] && [ -n "$_lon" ]; then
+      printf "%s,%s" "$_lat" "$_lon"
+    else
+      printf ""
+    fi
+  }
+
   init_fastfetch() {
     weHave fastfetch || return
 
@@ -987,6 +1014,7 @@ core_functions() {
       #? https://nixos.wiki/wiki/FAQ#How_can_I_avoid_the_.22winsymlinks.22_warning_when_installing_Nix_on_WSL.3F
       # for more information.
       MSYS=winsymlinks:nativestrict
+      export MSYS
       ;;
     *darwin*)
       OS_TYPE="Mac"
@@ -1015,7 +1043,7 @@ core_functions() {
     esac
 
     # printf "%s" "$OS_TYPE"
-    export OS_TYPE MSYS
+    export OS_TYPE
   }
 
   set_shell() {
@@ -1054,6 +1082,10 @@ core_functions() {
       __shell="powershell"
       __shell_conf="profile.ps1"
       SHELL_NAME="Powershell"
+      ;;
+    '')
+      pout --error "Unable to confir support for the active shell."
+      return 1
       ;;
     *)
       pout --error "The defined shell (%s) is not supported." "$__shell"
@@ -1210,35 +1242,45 @@ core_functions() {
     [ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
   }
 
-  set_verbosity_level_OLD() {
-    #@ Check for global verbosity settings
-    __quiet=$(to_lower "${__quiet:-$QUIET}")
-    __verbosity=$(to_lower "${__verbosity:-$VERBOSE}")
-    __verbosity=$(to_lower "${__verbosity:-$LOGLEVEL}")
-    __verbosity=$(to_lower "${__verbosity:-$VERBOSITY}")
+  set_location() {
+    #      "location": "$LOCATION",
+DOC Set the LOCATION variable in a standardized format
+    #DOC Args:
+    #DOC   $1 - Location input (e.g., "37.7749,-122.4194" or "San Francisco, USA")
+    #DOC Returns:
+    #DOC   0 - Success
+    #DOC   1 - Failure
+    #DOC Example:
+    #DOC   set_location "37.7749,-122.4194"
+    #DOC   set_location "San Francisco, USA"
 
-    #@ Handle quiet flags
-    case "$(to_lower "$__quiet")" in
-    true | 1) __verbosity=0 ;;
-    esac
+    #@ Validate input
+    if [ -z "$1" ]; then
+      printf "ERROR: No location provided\n" >&2
+      return 1
+    fi
 
-    #@ Map levels to numerical values
-    case "$__verbosity" in
-    none | off | quiet | false | 0) __verbosity=0 ;;
-    warn | warning | error | 1) __verbosity=1 ;;
-    info | normal | 2) __verbosity=2 ;;
-    debug | verbose | 3) __verbosity=3 ;;
-    trace | all | true | 4) __verbosity=4 ;;
-    '' | *[!0-9]*) __verbosity=1 ;; # Default to INFO
-    *)
-      { [ "$__verbosity" -lt 0 ] || [ "$__verbosity" -gt 999 ]; } &&
-        __verbosity=1 # Invalid number defaults to INFO
-      ;;
-    esac
+    #@ Check if input is GPS coordinates
+    if echo "$1" | grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$'; then
+      LOCATION="$1"
+      export LOCATION
+      printf "Location set to GPS coordinates: %s\n" "$LOCATION"
+      return 0
+    fi
 
-    #@ Set and export the final level
-    VERBOSITY="$__verbosity"
-    export VERBOSITY
+    #@ If input is not GPS coordinates, assume it's a city/country and try to resolve it
+    printf "Resolving location: %s\n" "$1"
+    _location=$(resolve_location "$1")
+    if [ -n "$_location" ]; then
+      LOCATION="$_location"
+      export LOCATION
+     [ "$VERBOSITY" -ge 2 ] # printf "Location set to GPS coordinates: %s\n" "$LOCATION"
+      return 0
+    else
+      [ "$VERBOSITY" -ge 1 ] &&
+        printf "ERROR: Failed to resolve location: %s\n" "$1" >&2
+      return 1
+    fi
   }
 
   set_interactive_shell() {
@@ -1745,28 +1787,19 @@ core_functions() {
 
   initialize_shell() {
     set_shell
+    weHave hx && {
+      EDITOR=hx
+      EDITOR_VERSION="$(hx --version | awk '{print $2}')"
+      export EDITOR EDITOR_VERSION
+    }
+    weHave code && {
+      VISUAL=code
+      VISUAL_VERSION="$(code --version | head -n1 | awk '{print $NF}')"
+      export VISUAL VISUAL_VERSION
+    }
+
     init_fastfetch "$DOTS_CLI/fastfetch/config.jsonc"
-    # "$SHELL_PATH" "$SHELL_CONF"
-    . "$SHELL_CONF"
-    # init_fastfetch
-    # init_starship
-
-    # DOTS_SHELL="$DOTS/Configuration/cli/$_SHELL"
-    # DOTS_BASH_RC="$DOTS_BASH/config"
-    # [ -f "$DOTS_BASH_RC" ] && . "$DOTS_BASH_RC"
-
-    # profile="$HOME/.profile"
-    # bashrc="$HOME/.bashrc"
-    # zshrc="$HOME/.zshrc"
-
-    # case "$SHELL_INTERACTIVE" in
-    # bash)
-    #   grep --regexp "[ -f $profile ]*"
-    #   # grep --quiet --regexp "[ -f $profile ]*" ||
-    #   # printf "\n%s" "[ -f $profile ] && . $profile" >>"$bashrc"
-    #   ;;
-    # esac
-
+    "$SHELL_PATH" "$SHELL_CONF"
   }
 }
 
