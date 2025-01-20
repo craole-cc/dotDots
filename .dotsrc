@@ -16,6 +16,7 @@ manage_script() {
   init_functions() {
     util_functions
     core_functions
+
   }
 
   init_script_env() {
@@ -75,6 +76,8 @@ manage_script() {
     set_os_type
 
     set_location "Mandeville, Jamaica"
+    echo "$LOCATION"
+    # export LOCATION="Ja"
 
     case "$(to_lower "$__mode")" in
     simulation)
@@ -1244,7 +1247,7 @@ core_functions() {
 
   set_location() {
     #      "location": "$LOCATION",
-DOC Set the LOCATION variable in a standardized format
+    # DOC Set the LOCATION variable in a standardized format
     #DOC Args:
     #DOC   $1 - Location input (e.g., "37.7749,-122.4194" or "San Francisco, USA")
     #DOC Returns:
@@ -1274,7 +1277,8 @@ DOC Set the LOCATION variable in a standardized format
     if [ -n "$_location" ]; then
       LOCATION="$_location"
       export LOCATION
-     [ "$VERBOSITY" -ge 2 ] # printf "Location set to GPS coordinates: %s\n" "$LOCATION"
+      [ "$VERBOSITY" -ge 2 ] &&
+        printf "Location set to GPS coordinates: %s\n" "$LOCATION"
       return 0
     else
       [ "$VERBOSITY" -ge 1 ] &&

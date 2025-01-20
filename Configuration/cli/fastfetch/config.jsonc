@@ -114,8 +114,8 @@
     // "gamepad",
     {
       "type": "weather",
-      "location": "37.7749,-122.4194",
-      "outputFormat": "%t+-+%C+(%l)",
+      "location": "Jamaica",
+      // "outputFormat": "%t+-+%C+(%l)",
       "timeout": 1000
     },
     // {
