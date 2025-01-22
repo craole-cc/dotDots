@@ -30,19 +30,45 @@ parse_arguments() {
   { [ "$scheme" ] || [ "$light" ] || [ "$dark" ]; } || toggle=true
 }
 
-command -v weHave >/dev/null 2>&1 || {
-  weHave() {
-    #| Checks if a command exists in the system PATH
-    #| Args:
-    #|   $1 - Command name to check
-    #| Returns:
-    #|   0 if command exists, 1 otherwise
-    #| Example:
-    #|   if weHave git; then
-    #|     git status
-    #|   fi
-    command -v "$1" >/dev/null 2>&1
-  }
+weHave() {
+  #| Checks if a command exists in the system PATH
+  #| Args:
+  #|   $1 - Command name to check
+  #| Returns:
+  #|   0 if command exists, 1 otherwise
+  #| Example:
+  #|   if weHave git; then
+  #|     git status
+  #|   fi
+  check=true
+  unset args path arg
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --check | --quiet | --silent)
+      check=true
+      ;;
+    --path)
+      path=true
+      ;;
+    *)
+      if [ "$args" ]; then
+        args="$args $1"
+      else
+        args="$1"
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  if [ "$path" ]; then
+    for arg in $args; do
+      command -v "$arg"
+    done
+  else
+    command -v "$@" >/dev/null 2>&1
+  fi
 }
 
 toggle_theme() {
@@ -128,7 +154,7 @@ apply_theme() {
 }
 
 for_plasma() {
-  weHave --check plasma-apply-colorscheme || return
+  weHave plasma-apply-colorscheme || return
 
   #| Preferred themes
   dark_scheme="Gruvbox"
