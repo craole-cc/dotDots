@@ -749,9 +749,6 @@ util_functions() {
     #DOC   0 - Success
     #DOC   1 - Failure (invalid arguments or options)
 
-    #@ Validate input
-    [ $# -eq 0 ] && return 1
-
     #@ Establish defaults
     unset \
       msg \
@@ -773,26 +770,32 @@ util_functions() {
     hide_output="${__hide_output:-}"
     show_timestamp="${__show_timestamp:-}"
 
+    #@ Validate input
+    [ $# -eq 0 ] && return 1
+
     #@ Parse arguments
     while [ "$#" -gt 0 ]; do
       case $1 in
-      --quiet)
-        level=-1
-        ;;
-      --error)
-        level=0
-        ;;
-      --warn)
-        level=1
-        ;;
-      --info)
-        level=2
-        ;;
-      --debug)
-        level=3
-        ;;
-      --trace)
-        level=4
+      -h) show_info --usage;;
+      --help) show_info --help;;
+      -v | --version) show_info --version ;;
+      --quiet) level=-1 ;;
+      --error) level=0 ;;
+      --warn) level=1 ;;
+      --info) level=2 ;;
+      --debug) level=3 ;;
+      --trace) level=4 ;;
+      --hide-level) hide_level=true ;;
+      --hide-timestamp) hide_timestamp=true ;;
+      --hide-console | --log-only | --no-output | --no-print) hide_output=true ;;
+      --print) unset hide_output ;;
+      --no-log | --console-only) unset log ;;
+      -L | --log)
+        [ "$2" ] && {
+          validate_file --parent "$2" || return 1
+          log="$2"
+          shift
+        }
         ;;
       --key)
         if [ "$2" ]; then
@@ -843,28 +846,6 @@ util_functions() {
         unset log
         [ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
           pad="$2"
-          shift
-        }
-        ;;
-      --hide-level)
-        hide_level=true
-        ;;
-      --hide-timestamp)
-        hide_timestamp=true
-        ;;
-      --hide-console | --log-only | --no-output | --no-print)
-        hide_output=true
-        ;;
-      --print)
-        unset hide_output
-        ;;
-      --no-log | --console-only)
-        unset log
-        ;;
-      -l | --log)
-        [ "$2" ] && {
-          validate_file --parent "$2" || return 1
-          log="$2"
           shift
         }
         ;;
@@ -1104,6 +1085,7 @@ core_functions() {
     export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL
   }
 
+
   set_messaging() {
     set_verbosity_level() {
       #@ Set default values for quiet, verbosity, and log level
@@ -1172,72 +1154,6 @@ core_functions() {
 
       LOG_LEVEL="$__log_level"
       export LOG_LEVEL
-    }
-
-    # Unified logging and printing function
-    loger() {
-      _level=""
-      _message=""
-      _log_to_file=true
-      _print_to_console=true
-
-      # Parse arguments
-      while [ "$#" -gt 0 ]; do
-        case "$1" in
-        --error | -e) _level="$LOG_LEVEL_ERROR" ;;
-        --warn | -w) _level="$LOG_LEVEL_WARN" ;;
-        --info | -i) _level="$LOG_LEVEL_INFO" ;;
-        --debug | -d) _level="$LOG_LEVEL_DEBUG" ;;
-        --trace | -t) _level="$LOG_LEVEL_TRACE" ;;
-        --no-log) _log_to_file=false ;;
-        --no-print) _print_to_console=false ;;
-        *) _message="$1" ;;
-        esac
-        shift
-      done
-
-      # Validate message
-      [ -z "$_message" ] && {
-        printf "ERROR: No message provided to log function\n" >&2
-        return 1
-      }
-
-      # Get current verbosity level
-      _current_level="${VERBOSITY:-2}"
-
-      # Early return if message level is above current verbosity
-      [ "$_level" -le "$_current_level" ] || return 0
-
-      # Log level names
-      case "$_level" in
-      0) _level_name="ERROR" ;;
-      1) _level_name="WARN" ;;
-      2) _level_name="INFO" ;;
-      3) _level_name="DEBUG" ;;
-      4) _level_name="TRACE" ;;
-      *)
-        printf "Invalid log level: %s\n" "$_level" >&2
-        return 1
-        ;;
-      esac
-
-      # Format the log entry
-      _timestamp=$(get_timestamp)
-      _log_entry="[$_timestamp] [$_level_name] $_message"
-
-      # Log to file if enabled
-      if "$_log_to_file"; then
-        validate_log_file || return 1
-        printf "%s\n" "$_log_entry" >>"$DOTS_LOG"
-      fi
-
-      # Print to console if enabled
-      if "$_print_to_console"; then
-        case "$_level" in
-        0 | 1) printf "%s\n" "$_log_entry" >&2 ;; # Errors and warnings go to stderr
-        *) printf "%s\n" "$_log_entry" ;;         # Other messages go to stdout
-        esac
-      fi
     }
 
     set_verbosity_level
