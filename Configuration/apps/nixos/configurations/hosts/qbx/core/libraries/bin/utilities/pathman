@@ -1,217 +1,238 @@
 #!/bin/sh
+# shellcheck disable=SC2031
 
 main() {
-    #@ set defaults
-    verbosity=3
-    action="show"
-    bins=""
-    debug=""
-
-    #@ Define the path to the bin directory
-    parse_arguments "$@" || return 1
-
-    #@ Perform the requested action
-    perform_action
+  initialize_env
+  parse_arguments "$@" || return 1
+  perform_action
 }
 
+initialize_env() {
+  #@ set defaults
+  verbosity=3
+  action="show"
+  bins=""
+  debug=""
+
+  #@ Cache command checks at startup
+  HAS_REALPATH=0
+  HAS_FD=0
+  command -v realpath >/dev/null 2>&1 && HAS_REALPATH=1
+  command -v fd >/dev/null 2>&1 && HAS_FD=1
+}
 parse_arguments() {
-    while [ "$#" -gt 0 ]; do
-        case "$1" in
-        --show)
-            action="show"
-            ;;
-        --clean)
-            action="clean"
-            ;;
-        --action)
-            if [ "$2" ]; then
-                action="$2"
-                shift
-            else
-                printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
-                return 1
-            fi
-            ;;
-        --append)
-            action="append"
-            ;;
-        --prepend)
-            action="prepend"
-            ;;
-        --dir*)
-            if [ "$2" ]; then
-                shift
-                if [ -z "$bins" ]; then
-                    bins="$(resolved_path "$1")"
-                else
-                    bins="$(
-                        printf "%s\n%s" "$bins" "$(resolved_path "$1")"
-                    )"
-                fi
-            else
-                printf "'%s' requires an argument\n" "$1"
-                return 1
-            fi
-            ;;
-        *)
-            if [ -z "$bins" ]; then
-                bins="$(resolved_path "$1")"
-            else
-                bins="$(
-                    printf "%s\n%s" "$bins" "$(resolved_path "$1")"
-                )"
-            fi
-            ;;
-        esac
+  delimiter="|"
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --debug)
+      debug="debug"
+      ;;
+    --error) verbosity=1 ;;
+    --quiet) verbosity=0 ;;
+    --show)
+      action="show"
+      ;;
+    --clean)
+      action="clean"
+      ;;
+    --action)
+      if [ "$2" ]; then
+        action="$2"
         shift
-    done
+      else
+        printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
+        return 1
+      fi
+      ;;
+    --append)
+      action="append"
+      ;;
+    --prepend)
+      action="prepend"
+      ;;
+    --dir*)
+      if [ "$2" ]; then
+        shift
+        if [ "$bins" ]; then
+          bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
+        else
+          bins="$(resolved_path "$1")"
+        fi
+      else
+        printf "'%s' requires an argument\n" "$1"
+        return 1
+      fi
+      ;;
+    *)
+      if [ "$bins" ]; then
+        bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
+      else
+        bins="$(resolved_path "$1")"
+      fi
+      ;;
+    esac
+    shift
+  done
 }
 
 perform_action() {
-    case "$action" in
-    append | prepend)
-        #@ Validate that a directory was provided
-        if [ -z "$bins" ]; then
-            printf "ERROR: No path provided\n"
-            return 1
-        fi
-        add_to_path
-        ;;
-    clean)
-        clean_path
-        ;;
-    show)
-        show_bins "$PATH"
-        ;;
-    esac
-}
+  case "$action" in
+  append | prepend)
+    #@ Validate that a directory was provided
+    if [ -z "$bins" ]; then
+      printf "ERROR: No path provided\n"
+      return 1
+    fi
 
-recursive_paths() {
-    for bin in "$@"; do
-        if command -v fd >/dev/null 2>&1; then
-            #@ Add the results from fd
-            fd . "$bin"
-
-            #@ Include the lookup directory
-            printf "%s\n" "$bin"
-        else
-            #@ Fallback to find
-            find "$bin"
-        fi
-    done | sort
+    add_to_path
+    ;;
+  clean)
+    clean_path
+    ;;
+  show)
+    show_bins "$PATH"
+    ;;
+  esac
 }
 
 resolved_path() {
-    path="$1"
-    if command -v realpath >/dev/null 2>&1; then
-        realpath "$path"
+  [ "$HAS_REALPATH" = 1 ] && realpath "$1" && return
+
+  if [ -d "$1" ]; then
+    (cd -- "$1" && pwd)
+  else
+    dir="$(cd "$(dirname "$1")" && pwd)"
+    printf '%s/%s\n' "$dir" "$(basename "$1")"
+  fi
+}
+
+# recursive_paths() {
+#   dirs="$(printf '%s' "$*" | tr "$delimiter" '\n')"
+
+#   for dir in $dirs; do
+#     if [ "$HAS_FD" = 1 ]; then
+#       #@ Add the results from fd
+#       fd . "$dir"
+
+#       #@ Include the lookup directory
+#       printf "%s\n" "$dir"
+#     else
+#       #@ Fallback to find
+#       find "$dir"
+#     fi
+#   done | sort
+# }
+recursive_paths() {
+  printf '%s' "$1" | tr "$delimiter" '\n' | while IFS= read -r dir; do
+    [ ! -d "$dir" ] && {
+      printf "Error: '%s' is not a directory\n" "$dir" >&2
+      continue
+    }
+
+    if [ "$HAS_FD" = 1 ]; then
+      fd -H -t f . "$dir" 2>/dev/null
+      printf '%s\n' "$dir"
     else
-        if [ -d "$path" ]; then
-            (cd "$path" && pwd)
-        else
-            dir="$(cd "$(dirname "$path")" && pwd)"
-            printf '%s/%s\n' "$dir" "$(basename "$path")"
-        fi
+      find "$dir" -type f 2>/dev/null
+      printf '%s\n' "$dir"
     fi
+  done | sort
 }
 
 os_type() {
-    case "$(uname -a | tr '[:upper:]' '[:lower:]')" in
-    *linux*) os_type="linux" ;;
-    *darwin*) os_type="mac" ;;
-    *) os_type="windows" ;;
-    esac
+  case "$(uname -a | tr '[:upper:]' '[:lower:]')" in
+  *linux*) os_type="linux" ;;
+  *darwin*) os_type="mac" ;;
+  *) os_type="windows" ;;
+  esac
 
-    #TODO This is utterly inadequete, just temporary
-    printf "%s" "$os_type"
+  #TODO This is utterly inadequete, just temporary
+  printf "%s" "$os_type"
 }
 add_to_path() {
-    #@ Initialize variables
+  [ "$debug" ] && {
     counter=1
-
-    #@ Process sources recursively
-    [ "$debug" ] && {
-        for bin_path in $(recursive_paths "$bins"); do
-            #@ Increment the counter
-            printf "  %4d %s\n" "$counter" "$bin_path"
-            counter=$((counter + 1))
-        done
-        return 0
-    }
-
-    #@ Update PATH directories
-    for bin_path in $(recursive_paths "$bins"); do
-        [ -d "$bin_path" ] &&
-            case ":${PATH}:" in
-            *:"$bin_path":*) ;;
-            *)
-                case "$action" in
-                prepend)
-                    PATH="${bin_path}${PATH:+:$PATH}"
-                    _action="Appended"
-                    ;;
-                append)
-                    PATH="${PATH:+$PATH:}${bin_path}"
-                    _action="Perpended"
-                    ;;
-                esac
-
-                [ "$verbosity" -gt 1 ] &&
-                    printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
-                ;;
-            esac
-
-        #@ Make scripts executable
-        [ -f "$bin_path" ] &&
-            case "$(os_type)" in windows) ;;
-            *)
-                if chmod +x "$bin_path" >/dev/null 2>&1; then
-                    printf "    Script initialized: %s\n" "${bin_path}"
-                else
-                    printf "    Failed to make %s executable: %s\n" "${bin_path}" "$?"
-                fi
-                ;;
-            esac
+    recursive_paths "$bins" | while IFS= read -r bin_path; do
+      printf "  %4d %s\n" "$counter" "$bin_path"
+      #@ Increment the counter
+      counter=$((counter + 1))
     done
+    return 0
+  }
+
+  #@ Update PATH directories recursively
+  recursive_paths "$bins" | while IFS= read -r bin_path; do
+    [ -d "$bin_path" ] &&
+      case ":${PATH}:" in
+      *:"$bin_path":*) ;;
+      *)
+        case "$action" in
+        prepend)
+          PATH="${bin_path}${PATH:+:$PATH}"
+          _action="Appended"
+          ;;
+        append)
+          PATH="${PATH:+$PATH:}${bin_path}"
+          _action="Perpended"
+          ;;
+        esac
+
+        [ "$verbosity" -gt 1 ] &&
+          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+        ;;
+      esac
+
+    #@ Make scripts executable
+    [ -f "$bin_path" ] &&
+      case "$(os_type)" in windows) ;;
+      *)
+        chmod_status=0
+        chmod +x "$bin_path" >/dev/null 2>&1
+        chmod_status=$?
+
+        [ "$verbosity" -gt 1 ] && {
+          if [ "$chmod_status" -eq 0 ]; then
+            printf "    Script initialized: %s\n" "${bin_path}"
+          else
+            printf "    Failed to make %s executable: %s\n" "${bin_path}" "$chmod_status"
+          fi
+        }
+        ;;
+      esac
+  done
 }
 
 show_bins() {
-    printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' | nl -s '  '
+  printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' | nl -s '  '
 }
 
 is_absolute_path() {
-    case "$1" in
-    /*) return 0 ;; # Path starts with /, so it's absolute
-    *) return 1 ;;  # Otherwise, it's not absolute
-    esac
+  case "$1" in
+  /*) return 0 ;; # Path starts with /, so it's absolute
+  *) return 1 ;;  # Otherwise, it's not absolute
+  esac
 }
 
 clean_path() {
-    #@ Initialize variables
-    cleaned_path=""
-    IFS=':'
+  #DOC 1. printf '%s\n' "${PATH-}"
+  #DOC   - Prints PATH safely
+  #DOC   - Handles empty PATH with - modifier
+  #DOC
+  #DOC 2. tr ':' '\n'
+  #DOC   - Converts PATH separators to newlines
+  #DOC   - Creates one path per line
+  #DOC
+  #DOC 3. grep '^/'
+  #DOC   - Filters for absolute paths only
+  #DOC   - ^/ matches paths starting with /
+  #DOC   - Automatically removes invalid paths
+  #DOC
+  #DOC 4. paste -s -d ':'
+  #DOC   - -s serializes input into single line
+  #DOC   - -d ':' joins with : delimiter
+  #DOC   - Reconstructs PATH format
 
-    #@ Clean the path
-    for path in $PATH; do
-        if is_absolute_path "$path"; then
-            if [ -z "$cleaned_path" ]; then
-                cleaned_path="$path"
-            else
-                cleaned_path="$cleaned_path:$path"
-            fi
-        fi
-    done
-
-    #@ Reset IFS to default
-    unset IFS
-
-    #@ Export the cleaned path
-    if [ "$debug" ]; then
-        show_bins "$cleaned_path"
-    else
-        PATH="$cleaned_path"
-        export PATH
-    fi
+  printf '%s\n' "${PATH-}" | tr ':' '\n' | grep '^/' | paste -s -d ':'
 }
 
 #@ Execute the main function with the provided argument
