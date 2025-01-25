@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+#@ Function to ensure directory exists and is in PATH
+ensure_path() {
+    local dir="$1"
+    #@ Create directory if it doesn't exist
+    mkdir -p "$dir"
+
+    #@ Add to PATH if not already present
+    case ":$PATH:" in
+        *":$dir:"*) ;;
+        *) export PATH="$PATH:$dir" ;;
+    esac
+
+    #@ Make all files in directory executable
+    find "$dir" -type f -exec chmod u+x {} +
+}
+
+#@ Watch directories for changes and update permissions
+watch_directory() {
+    local dir="$1"
+    while inotifywait -q -e create -e moved_to "$dir"; do
+        find "$dir" -type f -exec chmod u+x {} +
+    done
+}
+
+#@ Setup script directories
+SCRIPT_DIRS=(
+    "$HOME/bin"
+    "$HOME/scripts"
+    # Add more directories as needed
+)
+
+#@ Initial setup
+for dir in "${SCRIPT_DIRS[@]}"; do
+    ensure_path "$dir"
+done
+
+#@ Start watching directories in the background
+for dir in "${SCRIPT_DIRS[@]}"; do
+    watch_directory "$dir" &
+done
