@@ -126,6 +126,7 @@ in
       taplo
       treefmtScript
       imagemagick
+      speedtest-go
     ];
 
     variables = {

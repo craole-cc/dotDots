@@ -47,7 +47,8 @@ in
     variables = {
       DOTS = cfg.base;
       DOTS_CONF = cfg.conf.base;
-      DOTS_BIN = cfg.core.bin;
+      DOTS_BIN = dotsBin;
+      QBX_BIN = "${cfg.core.bin}";
     };
     shellInit =
       with cfg.core;

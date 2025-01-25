@@ -6,7 +6,7 @@
   ];
   services.dunst = {
     enable = true;
-    configFile = osConfig.dots.paths.conf.dunst + "/dunstrc";
+    configFile = osConfig.dots.paths.qbx.conf.dunst + "/dunstrc";
   };
   home.packages = with pkgs; [
     jq

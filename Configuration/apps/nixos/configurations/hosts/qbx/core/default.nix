@@ -1,8 +1,9 @@
 {
   imports = [
-    ./build
     ./libraries
     ./modules
     ./options
+    ./programs
+    ./services
   ];
 }

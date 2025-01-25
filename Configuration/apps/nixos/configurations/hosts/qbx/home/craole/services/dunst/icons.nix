@@ -1,7 +1,7 @@
 { osConfig, ... }:
 {
   services.dunst = {
-    settings.global.icon_path = "${osConfig.dots.paths.conf}/dunst/icons";
+    settings.global.icon_path = "${osConfig.dots.paths.qbx.conf}/dunst/icons";
     iconTheme = {
       name = "Catppuccin-Mocha-Dark";
       package = pkgs.catppuccinIcons;
