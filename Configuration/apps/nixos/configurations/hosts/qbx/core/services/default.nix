@@ -1,6 +1,6 @@
 {
   imports = [
-    ./development
+    ./obs-studio
     ./ollama
     ./tailscale
     ./xrdp
