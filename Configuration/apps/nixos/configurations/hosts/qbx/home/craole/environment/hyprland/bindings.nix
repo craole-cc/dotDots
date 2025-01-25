@@ -40,7 +40,7 @@ let
   keyboard.swapCapsEscape = false;
 
   workspaces = [
-    # "grave"
+    "grave"
     "0"
     "1"
     "2"
@@ -138,13 +138,13 @@ in
     bind =
       [
         #| Applications
-        "$MOD, GRAVE, exec, ${terminal.primary}"
-        "$MODSHIFT, GRAVE, exec, ${terminal.secondary}"
+        # "$MOD, GRAVE, exec, ${terminal.primary}"
+        # "$MODSHIFT, GRAVE, exec, ${terminal.secondary}"
         "$MOD, RETURN, exec, ${terminal.primary}"
-        "CTRL ALT, RETURN,  exec, ${terminal.primary}"
-
-        "$MODSHIFT, GRAVE, exec, ${terminal.secondary}"
         "$MODSHIFT, RETURN, exec, ${terminal.secondary}"
+
+        "CTRL ALT, RETURN,  exec, ${terminal.primary}"
+        "CTRL ALT SHIFT, RETURN,  exec, ${terminal.primary}"
 
         "$MOD, B, exec, ${browser.primary.command}"
         "$MODSHIFT, B, exec, ${browser.secondary.command}"

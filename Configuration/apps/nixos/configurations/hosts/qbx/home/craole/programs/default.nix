@@ -16,6 +16,7 @@
     ./jq
     ./kitty
     ./mpv
+    ./nushell
     ./powershell
     ./qbittorrent
     ./ripgrep

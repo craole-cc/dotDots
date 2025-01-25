@@ -106,38 +106,39 @@ resolved_path() {
   fi
 }
 
-# recursive_paths() {
-#   dirs="$(printf '%s' "$*" | tr "$delimiter" '\n')"
-
-#   for dir in $dirs; do
-#     if [ "$HAS_FD" = 1 ]; then
-#       #@ Add the results from fd
-#       fd . "$dir"
-
-#       #@ Include the lookup directory
-#       printf "%s\n" "$dir"
-#     else
-#       #@ Fallback to find
-#       find "$dir"
-#     fi
-#   done | sort
-# }
 recursive_paths() {
-  printf '%s' "$1" | tr "$delimiter" '\n' | while IFS= read -r dir; do
-    [ ! -d "$dir" ] && {
-      printf "Error: '%s' is not a directory\n" "$dir" >&2
-      continue
-    }
+  dirs="$(printf '%s' "$*" | tr "$delimiter" '\n')"
 
+  for dir in $dirs; do
     if [ "$HAS_FD" = 1 ]; then
-      fd -H -t f . "$dir" 2>/dev/null
-      printf '%s\n' "$dir"
+      #@ Add the results from fd
+      fd . "$dir"
+
+      #@ Include the lookup directory
+      printf "%s\n" "$dir"
     else
-      find "$dir" -type f 2>/dev/null
-      printf '%s\n' "$dir"
+      #@ Fallback to find
+      find "$dir"
     fi
   done | sort
 }
+
+# recursive_paths() {
+#   printf '%s' "$1" | tr "$delimiter" '\n' | while IFS= read -r dir; do
+#     [ ! -d "$dir" ] && {
+#       printf "Error: '%s' is not a directory\n" "$dir" >&2
+#       continue
+#     }
+
+#     if [ "$HAS_FD" = 1 ]; then
+#       fd -H -t f . "$dir" 2>/dev/null
+#       printf '%s\n' "$dir"
+#     else
+#       find "$dir" -type f 2>/dev/null
+#       printf '%s\n' "$dir"
+#     fi
+#   done | sort
+# }
 
 os_type() {
   case "$(uname -a | tr '[:upper:]' '[:lower:]')" in
