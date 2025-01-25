@@ -45,10 +45,17 @@ in
 
   config.environment = {
     variables = {
-      DOTS = cfg.base;
-      DOTS_CONF = cfg.conf.base;
+      DOTS = dots;
       DOTS_BIN = dotsBin;
+      OBX = cfg.base;
       QBX_BIN = "${cfg.core.bin}";
+    };
+    shellAliases = {
+      qbx = ''cd ${cfg.base} | return 1'';
+      dots = ''cd ${dots} | return 1'';
+      binit =
+        with cfg.core;
+        ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
     };
     shellInit =
       with cfg.core;

@@ -89,6 +89,7 @@ in
 
     bindl = [
       #| System
+      "$MODSHIFT CTRL, Q , exec, systemctl poweroff" # Shutdown
       "$MODSHIFT, Q, exit"
       "$MODSHIFT, ESC, exit"
       "CTRL ALT, DEL, exit"
