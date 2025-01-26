@@ -1,4 +1,4 @@
-theme = light:dayfox,dark:rose-pine
+theme = light:BlulocoLight,dark:BlulocoDark
 
 cursor-style = block_hollow
 copy-on-select = clipboard

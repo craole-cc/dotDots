@@ -47,12 +47,12 @@ in
     variables = {
       DOTS = dots;
       DOTS_BIN = dotsBin;
-      OBX = cfg.base;
+      QBX = cfg.base;
       QBX_BIN = "${cfg.core.bin}";
     };
     shellAliases = {
-      qbx = ''cd ${cfg.base} | return 1'';
-      dots = ''cd ${dots} | return 1'';
+      qbx = ''cd ${cfg.base}'';
+      dots = ''cd ${dots}'';
       binit =
         with cfg.core;
         ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
