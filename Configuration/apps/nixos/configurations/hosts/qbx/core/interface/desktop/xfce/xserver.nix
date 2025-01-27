@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
   inherit (lib.modules) mkIf;
-  cfg = config.dots.services.gnome;
+  cfg = config.dots.services.xfce;
 in
 {
   config = mkIf cfg.enable {

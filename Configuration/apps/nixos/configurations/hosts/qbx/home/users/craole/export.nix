@@ -1,7 +1,6 @@
 { config, lib, ... }:
 let
   cfg = config.dots.users.craole;
-  cfgDir = ./${cfg.name};
 in
 {
   config = lib.mkIf cfg.enable {
@@ -14,12 +13,12 @@ in
       ];
     };
 
-    dots.services = {
-      gnome.enable = cfg.gnome.enable;
-      hyprland.enable = cfg.hyprland.enable;
-      plasma.enable = cfg.plasma.enable;
-      xfce.enable = cfg.xfce.enable;
-    };
+    # dots.services = {
+    #   # gnome.enable = cfg.gnome.enable;
+    #   # hyprland.enable = cfg.hyprland.enable;
+    #   # plasma.enable = cfg.plasma.enable;
+    #   # xfce.enable = cfg.xfce.enable;
+    # };
 
     services.displayManager.autoLogin = {
       enable = cfg.autoLogin;
@@ -34,7 +33,7 @@ in
           home.stateVersion = osConfig.system.stateVersion;
           programs.home-manager.enable = true;
           dots = {
-            services.hyprland.enable = cfg.hyprland.enable;
+            # services.hyprland.enable = cfg.hyprland.enable;
           };
           imports = [
             #| Common
@@ -43,9 +42,9 @@ in
             # ../../programs
 
             #| Custom
-            # ./services
-            # ./modules
-            # ./programs
+            ./services
+            ./modules
+            ./programs
           ];
         };
     };

@@ -1,7 +1,6 @@
 {
   imports = [
-    ./exclude.nix
-    ./include.nix
+    ./export.nix
     ./options.nix
   ];
 }

@@ -1,9 +1,14 @@
-# user-options.nix
-{ lib, ... }:
+{ lib, config, ... }:
 let
   user = "craole";
+  cfg = config.dots.users.${user};
   inherit (lib.options) mkOption mkEnableOption;
-  inherit (lib.types) bool str;
+  inherit (lib.types)
+    bool
+    str
+    enum
+    nullOr
+    ;
 in
 {
   options.dots.users.${user} = {
@@ -29,28 +34,21 @@ in
       type = str;
     };
 
-    gnome.enable = mkOption {
-      description = "Gnome";
-      default = true;
-      type = bool;
+    desktopEnvironment = mkOption {
+      type = nullOr (enum [
+        "none"
+        "gnome"
+        "plasma"
+        "xfce"
+      ]);
+      default = "gnome";
+      description = "Selected desktop environment";
     };
 
-    hyprland.enable = mkOption {
-      description = "Hyprland";
-      default = true;
-      type = bool;
-    };
-
-    plasma.enable = mkOption {
-      description = "Plasma";
-      default = true;
-      type = bool;
-    };
-
-    xfce.enable = mkOption {
-      description = "Xfce";
-      default = true;
-      type = bool;
+    windowManager = mkOption {
+      type = nullOr (enum [ "hyprland" ]);
+      default = "hyprland";
+      description = "Selected a window manager";
     };
   };
 }

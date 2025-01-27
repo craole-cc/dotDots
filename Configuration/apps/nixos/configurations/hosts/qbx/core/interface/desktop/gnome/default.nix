@@ -1,8 +1,6 @@
 {
   imports = [
-    ./exclude.nix
-    ./include.nix
-    ./options.nix
+    ./common.nix
     ./wayland.nix
     ./xserver.nix
   ];
