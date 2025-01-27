@@ -5,12 +5,18 @@
   ];
 
   dots = {
+    interface.autologin = {
+      enable = true;
+      user = "craole";
+    };
+
     users = {
       craole = {
         enable = true;
-        # autoLogin = true;
-        # gnome.enable = true;
-        # hyprland.enable = true;
+        display = "sddm";
+        desktop = "gnome";
+        manager = "hyprland";
+        protocol = "wayland";
       };
     };
   };

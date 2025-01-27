@@ -7,7 +7,6 @@ let
     str
     listOf
     attrsOf
-    enum
     ;
 in
 {

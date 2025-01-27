@@ -5,7 +5,7 @@
   ];
 
   home-manager = {
-    backupFileExtension = "pop";
+    backupFileExtension = "BaC";
     useGlobalPkgs = true;
     useUserPackages = true;
   };

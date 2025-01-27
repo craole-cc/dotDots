@@ -5,11 +5,23 @@
   ...
 }:
 let
-  inherit (lib.modules) mkIf mkDefault;
-  cfg = config.dots.services.gnome;
+  inherit (lib.modules) mkIf;
+  cfgEnabled = config.dots.interface.desktopEnvironment.gnome;
 in
 {
-  config = mkIf cfg.enable {
+  config = mkIf cfgEnabled {
+    services.xserver = {
+      #@ Enable GNOME desktop environment
+      desktopManager.gnome.enable = true;
+
+      #@ Enable GDM (GNOME Display Manager)
+      displayManager.gdm.enable = true;
+
+      #@ Xterm is unnecessary since console is enabled automatically
+      excludePackages = [ pkgs.xterm ];
+    };
+
+    #@ Exclude packages [optional]
     environment.gnome.excludePackages = with pkgs; [
       # baobab
       epiphany
@@ -38,10 +50,5 @@ in
       totem # Videos
       yelp
     ];
-
-    services = {
-      xserver.excludePackages = [ pkgs.xterm ];
-      gnome = { };
-    };
   };
 }

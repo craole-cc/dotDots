@@ -1,4 +1,3 @@
-# plasma6/common.nix
 {
   config,
   lib,
@@ -7,7 +6,7 @@
 }:
 let
   inherit (lib.modules) mkIf;
-  cfg = config.dots.services.plasma;
+  cfg = config.dots.interface.desktopEnvironment.plasma;
 in
 {
   config = mkIf cfg.enable {
@@ -19,8 +18,11 @@ in
       displayManager.sddm.enable = true;
     };
 
-    #@ Exclude packages
-    environment.plasma6.excludePackages = with pkgs; [
-    ];
+    environment = {
+      #@ Include packages
+      systemPackages = with pkgs; [ yakuake ];
+      #@ Exclude packages
+      plasma6.excludePackages = with pkgs; [ kate ];
+    };
   };
 }
