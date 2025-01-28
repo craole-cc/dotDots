@@ -1,9 +1,10 @@
 { config, lib, ... }:
 let
-  cfg = config.dots.interface.autologin;
-  gnomeEnabled = config.dots.interface.desktopEnvironment == "gnome";
-
   inherit (lib.modules) mkIf;
+  inherit (config.dots.interface) autologin desktop;
+
+  cfg = autologin;
+  gnomeEnabled = desktop.environment == "gnome";
 in
 {
   config = mkIf cfg.enable {

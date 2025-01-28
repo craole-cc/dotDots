@@ -1,49 +1,43 @@
-{ lib, ... }:
+{ config, lib, ... }:
 let
+  dom = "dots";
+  mod = "interface";
+  cfg = config.${dom}.${mod};
+
   inherit (lib.options) mkOption mkEnableOption;
-  inherit (lib.types) oneOf;
+  inherit (lib.types) enum nullOr;
+  inherit (config.dots.enums)
+    displayProtocols
+    loginManagers
+    desktopEnvironments
+    windowManagers
+    users
+    ;
 in
 {
-  options.interface = {
+  options.${dom}.${mod} = {
     display = {
       protocol = mkOption {
         description = "Desktop Protocol to use";
         default = "wayland";
-        types = oneOf [
-          "wayland"
-          "xserver"
-        ];
+        type = enum displayProtocols;
       };
       manager = mkOption {
         description = "Login Manager to use";
         default = "sddm";
-        types = oneOf [
-          "sddm"
-          "gdm"
-          "lightdm"
-          "none"
-        ];
+        type = nullOr (enum loginManagers);
       };
     };
     desktop = {
       environment = mkOption {
         description = "Desktop Environment to use";
         default = "gnome";
-        types = oneOf [
-          "gnome"
-          "plasma"
-          "xfce"
-          "none"
-        ];
+        type = nullOr (enum desktopEnvironments);
       };
       manager = mkOption {
         description = "Window Manager to use";
         default = "hyprland";
-        types = oneOf [
-          "hyprland"
-          "none"
-          "qtile"
-        ];
+        type = nullOr (enum windowManagers);
       };
     };
     autologin = {
@@ -51,7 +45,17 @@ in
       user = mkOption {
         description = "User to use for autologin";
         default = null;
+        type = nullOr (enum users);
       };
     };
+  };
+
+  config = {
+    assertions = [
+      {
+        assertion = !cfg.autologin.enable || cfg.autologin.user != null;
+        message = "Autologin enabled but no user specified";
+      }
+    ];
   };
 }

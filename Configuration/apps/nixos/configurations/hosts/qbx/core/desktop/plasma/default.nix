@@ -6,21 +6,17 @@
 }:
 let
   inherit (lib.modules) mkIf;
-  cfg = config.dots.interface.desktopEnvironment.plasma;
+  cfg = config.dots.interface.desktop.environment.plasma;
 in
 {
   config = mkIf cfg.enable {
-    services = {
-      #@ Enable Plasma 6 desktop environment
-      desktopManager.plasma6.enable = true;
-
-      #@ Enable SDDM (Simple Desktop Display Manager)
-      displayManager.sddm.enable = true;
-    };
+    #@ Enable Plasma 6 desktop environment
+    services.desktopManager.plasma6.enable = true;
 
     environment = {
       #@ Include packages
       systemPackages = with pkgs; [ yakuake ];
+
       #@ Exclude packages
       plasma6.excludePackages = with pkgs; [ kate ];
     };
