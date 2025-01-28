@@ -2,7 +2,7 @@
   imports = [
     ./gnome
     ./hyprland
-    # ./plasma
+    ./plasma
     # ./xfce
   ];
 }

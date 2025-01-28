@@ -1,9 +1,8 @@
 { config, lib, ... }:
 let
   inherit (lib.modules) mkIf;
-  cfgEnabled =
-    config.dots.interface.desktop.environment == "gnome"
-    && config.dots.interface.display.protocol == "xserver";
+  inherit (config.dots.interface) display desktop;
+  cfgEnabled = desktop.environment == "gnome" && display.protocol == "xserver";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable;
 in
 {

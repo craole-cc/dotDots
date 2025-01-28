@@ -1,7 +1,7 @@
 {
   imports = [
     ./core
-    ./home
+    # ./home
   ];
 
   dots = {
@@ -9,15 +9,14 @@
       enable = true;
       user = "craole";
     };
-
-    users = {
-      craole = {
-        enable = true;
-        display = "sddm";
-        desktop = "gnome";
-        manager = "hyprland";
-        protocol = "wayland";
-      };
-    };
+    # users = {
+    #   craole = {
+    #     enable = true;
+    #     display = "sddm";
+    #     desktop = "gnome";
+    #     manager = "hyprland";
+    #     protocol = "wayland";
+    #   };
+    # };
   };
 }

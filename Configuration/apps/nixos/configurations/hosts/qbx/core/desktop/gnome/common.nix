@@ -6,7 +6,7 @@
 }:
 let
   inherit (lib.modules) mkIf;
-  cfgEnabled = config.dots.interface.desktopEnvironment.gnome;
+  cfgEnabled = config.dots.interface.desktop.environment == "gnome";
 in
 {
   config = mkIf cfgEnabled {

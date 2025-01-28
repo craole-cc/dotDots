@@ -1,14 +1,11 @@
 { config, lib, ... }:
 let
   inherit (lib.modules) mkIf;
-  cfgEnabled =
-    config.dots.interface.desktopEnvironment == "gnome"
-    && config.dots.interface.display.protocol == "wayland";
+  inherit (config.dots.interface) display desktop;
+  cfgEnabled = desktop.environment == "gnome" && display.protocol == "wayland";
 in
 {
   config = mkIf cfgEnabled {
-    services.xserver.displayManager.gdm.wayland = true;
-
     environment.sessionVariables = {
       #@ Enable Wayland for Firefox
       MOZ_ENABLE_WAYLAND = "1";

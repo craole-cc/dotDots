@@ -1,10 +1,12 @@
 {
   imports = [
-    ./libraries
-    ./interface
-    ./modules
+    ./base
+    ./desktop
+    ./display
+    # ./libraries
     ./options
-    ./programs
-    ./services
+    # ./programs
+    # ./services
+
   ];
 }

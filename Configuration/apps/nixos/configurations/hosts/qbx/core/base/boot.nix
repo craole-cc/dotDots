@@ -1,4 +1,9 @@
-{ lib, config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   boot = {
     initrd = {
@@ -13,6 +18,7 @@
       kernelModules = [ ];
     };
     kernelModules = [ "kvm-amd" ];
+    kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = [ ];
     loader = {
       systemd-boot.enable = true;
