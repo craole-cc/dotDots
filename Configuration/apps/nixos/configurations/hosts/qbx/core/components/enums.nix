@@ -49,6 +49,15 @@ in
       type = listOf str;
     };
 
+    waylandReadyDEs = mkOption {
+      description = "Wayland Ready Desktop Environments";
+      default = [
+        "gnome"
+        "plasma"
+      ];
+      type = listOf str;
+    };
+
     users = mkOption {
       description = "Users";
       default = attrNames config.${dom}.users;
