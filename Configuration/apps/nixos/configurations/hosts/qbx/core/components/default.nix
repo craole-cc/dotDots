@@ -1,8 +1,7 @@
 {
   imports = [
     ./enums.nix
-    ./interface.nix
+    # ./desktop.nix
     ./paths.nix
-    ./users.nix
   ];
 }

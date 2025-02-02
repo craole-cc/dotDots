@@ -5,20 +5,32 @@
 }:
 let
   inherit (lib.options) mkOption;
+  inherit (lib.strings) toUpper;
   inherit (lib.types) attrs;
 
-  dots = "/home/craole/.dots";
-  dotsBin = "${dots}/Bin";
   dom = "dots";
   mod = "paths";
+  sub = "qbx";
   cfg = config.${dom}.${mod};
 in
 {
   options.${dom}.${mod} = {
-    qbx = mkOption {
+    dots = mkOption {
+      description = "Path to the dots repository.";
+      default = "/home/craole/.dots";
+    };
+    dotsBin = mkOption {
+      description = "Path to the dots bin directory.";
+      default = "${cfg.dots}/Bin";
+    };
+    passwordDir = mkOption {
+      description = "Path to the password directory.";
+      default = "/var/lib/dots/passwords";
+    };
+    "${sub}" = mkOption {
       description = "Paths related to the dots configuration.";
       default = {
-        base = "${dots}/Configuration/apps/nixos/configurations/hosts/qbx";
+        base = "${cfg.dots}/Configuration/apps/nixos/configurations/hosts/qbx";
         link = ../../.;
         core = rec {
           base = "${cfg.base}/core";
@@ -43,24 +55,25 @@ in
       };
       type = attrs;
     };
+    type = attrs;
   };
 
   config.environment = {
     variables = {
-      DOTS = dots;
-      DOTS_BIN = dotsBin;
-      QBX = cfg.base;
-      QBX_BIN = "${cfg.core.bin}";
+      DOTS = cfg.dots;
+      DOTS_BIN = cfg.dotsBin;
+      "DOTS_${toUpper sub}" = cfg.${sub}.base;
+      "DOTS_${toUpper sub}_BIN" = "${cfg.core.${sub}.bin}";
     };
     shellAliases = {
       qbx = ''cd ${cfg.base}'';
-      dots = ''cd ${dots}'';
+      dots = ''cd ${cfg.dots}'';
       binit =
-        with cfg.core;
+        with cfg.core.${sub};
         ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
     };
     shellInit =
-      with cfg.core;
+      with cfg.core.${sub};
       ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
   };
 }
