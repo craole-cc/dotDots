@@ -20,6 +20,8 @@ main() {
   # )" || return 1
 
   purge_environment
+  return "$exit_code"
+
 }
 
 show_usage() {
@@ -180,8 +182,8 @@ set_defaults() {
 execute_tests() {
   verbosity="$(pout --set-level trace)"
   # echo "Verbosity: $verbosity"
-  pout --name paths__tests --trace --msg "Files" --leading-lines pop --trailing-lines 5
-
+  pout --name paths__tests --type traces --msg "Files" --leading-lines 6 --trailing-lines 0
+  pout pop
   # pout__tests
   # paths --test
 }
@@ -464,12 +466,10 @@ pout() {
     pout__purge
     pout__set_defaults
     pout__parse_arguments "$@"
-
-    pout__blank "$leading_lines"
-    printf "leading_lines: %s\nmsg: %s\ntrailing_lines: %s" "$leading_lines" "$msg" "$trailing_lines"
-    pout__blank "$trailing_lines"
-    # pout__execute
+    pout__execute
     # pout__purge
+
+    return "$exit_code"
   }
 
   pout__purge() {
@@ -486,20 +486,20 @@ pout() {
 
   pout__set_defaults() {
     #@ Set default formatting variables
-    fmt_success="${fmt_success:-"$(pout__fmt green)"}"
-    fmt_info="${fmt_info:-"$(pout__fmt blue)"}"
-    fmt_warn="${fmt_warn:-"$(pout__fmt yellow)"}"
-    fmt_debug="${fmt_debug:-"$(pout__fmt cyan)"}"
-    fmt_error="${fmt_error:-"$(pout__fmt red)"}"
-    fmt_trace="${fmt_trace:-"$(pout__fmt magenta)"}"
-    fmt_normal="${fmt_normal:-"$(pout__fmt normal)"}"
-    fmt_bold="${fmt_bold:-"$(pout__fmt bold)"}"
-    fmt_italic="${fmt_italic:-"$(pout__fmt italic)"}"
-    fmt_underline="${fmt_underline:-"$(pout__fmt underline)"}"
+    fmt_success="${fmt_success:-"$(pout__set_format green)"}"
+    fmt_info="${fmt_info:-"$(pout__set_format blue)"}"
+    fmt_warn="${fmt_warn:-"$(pout__set_format yellow)"}"
+    fmt_debug="${fmt_debug:-"$(pout__set_format cyan)"}"
+    fmt_error="${fmt_error:-"$(pout__set_format red)"}"
+    fmt_trace="${fmt_trace:-"$(pout__set_format magenta)"}"
+    fmt_normal="${fmt_normal:-"$(pout__set_format normal)"}"
+    fmt_bold="${fmt_bold:-"$(pout__set_format bold)"}"
+    fmt_italic="${fmt_italic:-"$(pout__set_format italic)"}"
+    fmt_underline="${fmt_underline:-"$(pout__set_format underline)"}"
     fmt_highlight="${fmt_highlight:-"${fmt_debug}${fmt_bold}${fmt_italic}"}"
 
     #@ Set default values for log parameters
-    output_code=1
+    exit_code=0
     log_color="$fmt_normal"
     log_title=""
     msg=""
@@ -509,9 +509,11 @@ pout() {
     tag="$scr_name"
     leading_lines=0
     trailing_lines=0
+    msg_types="success failure info information warn warning error debug trace normal simple"
+    msg_type="simple"
   }
 
-  pout__verbosity() {
+  pout__set_verbosity() {
     #DOC Set the verbosity level based on command-line arguments
     #DOC
     #DOC Globals:
@@ -570,7 +572,7 @@ pout() {
     printf "%s" "$verbosity"
   }
 
-  pout__fmt() {
+  pout__set_format() {
     if command -v tput >/dev/null 2>&1; then
       fmt_black=$(tput setaf 0)
       fmt_red=$(tput setaf 1)
@@ -707,13 +709,101 @@ pout() {
     fi
   }
 
+  pout__list_optionss() {
+    #todo: improve with options
+    _list_options="$1"
+    _list_default="$2"
+    _list_delimeter="${3:- }"
+    _list_seperator="${4:-, }"
+
+    printf "%s\n" "$_list_options" |
+      tr "$_list_delimeter" '\n' |
+      sort -u |
+      awk -v def="$_list_default" -v sep="$_list_seperator" '
+        BEGIN {first=1} {
+          # Tag default option
+          if ($0 == def) $0 = $0 " [default]"
+
+          # Store in array
+          opts[NR] = $0
+        }
+        END {
+          # Join with custom separator and preserve existing colons
+          for (i=1; i<=NR; i++) {
+              printf "%s%s", (i>1 ? sep : ""), opts[i]
+          }
+          print ""
+        }
+      '
+  }
+
+  pout__list_options() {
+    _list_options="$1"
+    _list_default="$2"
+    _list_delimeter="${3:- }"
+    _list_separator="${4:-, }" # Fixed spelling from seperator to separator
+
+    printf "%s" "$_list_options" |
+      tr "$_list_delimeter" '\n' |
+      sort -u |
+      awk -v def="$_list_default" -v sep="$_list_separator" '
+    BEGIN { count = 0 }
+    {
+        # Tag the default option
+        if ($0 == def) {
+            $0 = $0 " [default]"
+        }
+        opts[++count] = $0
+    }
+    END {
+        if (count == 0) exit
+        for (i = 1; i <= count; i++) {
+            if (i == count) {
+                #| Last item
+                if (count > 1) printf "or "
+                printf "%s", opts[i]
+            } else {
+                #| All items except last
+                printf "%s%s", opts[i], (i < count - 1 ? sep : sep)
+            }
+        }
+        printf "\n"
+    }'
+  }
+
+  pout__templates() {
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      --invalid)
+        shift
+
+        msg_type="error"
+        tag="$1"
+        _field="$2"
+        _option="$3"
+        _options="$4"
+        msg="An invalid ${_field}, \"${fmt_bold}${_option}${fmt_normal},\" was provided. Instead, try one of the following: ${fmt_italic}$(pout__list_options "$_options")${fmt_normal}."
+
+        # pout --name "$fn_name" --type "$log_type" --msg \
+        #   "An invalid ${field}," \
+        #   "\"${fmt_bold}${given_option}\"${fmt_normal}," \
+        #   "was provided. Instead, try any of the following:" \
+        #   "$fmt_italic$(
+        #     pout__list_options "$valid_options"
+        #   )$fmt_normal."
+        ;;
+      esac
+      shift
+    done
+  }
+
   pout__tests() {
     # Test formatting capabilities
     for color in black red green yellow blue magenta cyan white normal bold italic underline blink; do
       printf "Testing color: %s\n" "$color"
-      pout__fmt "$color"
+      pout__set_format "$color"
       printf "This is a test message for %s\n" "$color"
-      pout__fmt normal # Reset to normal after each test
+      pout__set_format normal # Reset to normal after each test
     done
 
     # Test usage and help messages
@@ -757,74 +847,116 @@ pout() {
     #@ Parse arguments
     while [ $# -gt 0 ]; do
       case "$1" in
-      # --set-level | --level | -*verb*)
-      #   if [ "$2" ]; then
-      #     pout__verbosity "$2"
-      #     shift
-      #   else
-      #     pout__verbosity
-      #   fi
-      #   ;;
-      # -t | --tag | -N | --name)
-      #   [ "$2" ] || return 1
-      #   tag="$2"
-      #   shift
-      #   ;;
-      # -m | --message | --msg)
-      #   while [ "$#" -gt 1 ]; do
-      #     case "$2" in
-      #     -*) break ;;
-      #     *)
-      #       msg="${msg:+$msg }$2"
-      #       shift
-      #       ;;
-      #     esac
-      #   done
-      #   ;;
+      -*level | -*verb*)
+        if [ "$2" ]; then
+          pout__set_verbosity "$2"
+          shift
+        else
+          pout__set_verbosity
+        fi
+        ;;
+      -t | --tag | -N | --name)
+        if [ "$2" ]; then
+          tag="$2"
+          shift
+        else
+          return 1
+        fi
+        ;;
+      -*type)
+        if [ "$2" ]; then
+          #@ Check id the specified type is in the list
+          unset is_valid_type
+          for type in $msg_types; do
+            [ "$type" = "$2" ] && {
+              msg_type="$2"
+              is_valid_type=true
+              break
+            }
+          done
+
+          #@ Throw error if message type is invalid
+          [ "$is_valid_type" ] || {
+            pout__templates --invalid "pout__parse_arguments" "message type" "$2" "$msg_types"
+            # return 1
+            break
+          }
+          shift
+        else
+          #@ Throw error if message type is not specified
+          pout --name "pout__parse_arguments" --type error --msg "Message type not specified"
+          return 1
+        fi
+        ;;
+      -*lead*)
+        if [ "$2" ]; then
+          #TODO: Create a validater wrapper that can do this check and others
+          if expr "$2" : '^[0-9][0-9]*$' >/dev/null 2>&1; then
+            leading_lines="$2"
+            shift
+          else
+            leading_lines=1
+          fi
+        else
+          leading_lines=1
+        fi
+        ;;
+      -*trail*)
+        if [ "$2" ]; then
+          if expr "$2" : '^[0-9][0-9]*$' >/dev/null 2>&1; then
+            trailing_lines="$2"
+            shift
+          else
+            trailing_lines=1
+          fi
+        else
+          trailing_lines=1
+        fi
+        ;;
       # -f | --format | --fmt)
       #   if [ "$2" ]; then
-      #     pout__fmt "$2"
+      #     pout__set_format "$2"
       #     shift
       #   else
       #     return 1
       #   fi
       #   ;;
       # --success)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 1 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 1 ] || return
       #   log_color="$fmt_success"
       #   log_title="SUCCESS"
       #   output_code=1
       #   ;;
       # --fail)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 1 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 1 ] || return
       #   log_color="$fmt_error"
       #   log_title="FAILURE"
       #   output_code=2
       #   ;;
       # --error)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 1 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 1 ] || return
       #   log_color="$fmt_error"
       #   log_title="ERROR"
       #   output_code=2
       #   ;;
       # --warn)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 2 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 2 ] || return
       #   log_color="$fmt_warn"
       #   log_title=" WARN"
       #   output_code=2
       #   ;;
       # --info)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 3 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 3 ] || return
       #   log_color="$fmt_info"
       #   log_title=" INFO"
       #   ;;
       # --debug)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 4 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 4 ] || return
       #   log_color="$fmt_debug"
       #   log_title="DEBUG"
       #   ;;
       # --trace)
-      #   [ "$(pout__verbosity "$verbosity")" -ge 5 ] || return
+      #   [ "$(pout__set_verbosity "$verbosity")" -ge 5 ] || return
       #   log_color="$fmt_trace"
       #   log_title="TRACE"
       #   ;;
@@ -845,35 +977,21 @@ pout() {
       #   fi
       #   return
       #   ;;
-      --*lead*)
-        if [ "$2" ]; then
-          #TODO: Create a validater wrapper that can do this check and others
-          if expr "$2" : '^[1-9][0-9]*$' >/dev/null 2>&1; then
-            leading_lines="$2"
-            shift
-          else
-            leading_lines=1
-          fi
-        else
-          leading_lines=1
-        fi
-        ;;
-      --*trail*)
-        if [ "$2" ]; then
-          if expr "$2" : '^[1-9][0-9]*$' >/dev/null 2>&1; then
-            trailing_lines="$2"
-            shift
-          else
-            trailing_lines=1
-          fi
-        else
-          trailing_lines=1
-        fi
-        ;;
       # -n | --new-line)
       #   trailing_lines=1
       #   return
       #   ;;
+      -m | --message | --msg)
+        while [ "$#" -gt 1 ]; do
+          case "$2" in
+          -*) break ;;
+          *)
+            msg="${msg:+$msg }$2"
+            shift
+            ;;
+          esac
+        done
+        ;;
       # -*) ;;
       *)
         msg="${msg:+$msg }$1"
@@ -886,45 +1004,59 @@ pout() {
   pout__execute() {
     #@ Return early if verbosity is set to 0/quiet
     [ "$verbosity" ] && {
-      [ "$(pout__verbosity "${verbosity:-0}")" -ge 1 ] ||
+      [ "$(pout__set_verbosity "${verbosity:-0}")" -ge 1 ] ||
         return
     }
 
-    #@ Update the message
-    if [ "$msg" ]; then
-      [ "$usage_msg" ] &&
-        msg="$(printf "%s\n%s" "$msg" "$usage_msg")"
-    elif [ "$usage_msg" ]; then
-      tag="$usage_msg"
-      leading_seperator=" "
-      trailing_seperator=""
+    #@ Format the tag
+    log_tag="$fmt_highlight $tag /> $fmt_normal"
+
+    #@ Format the title
+    case "$msg_type" in
+    err* | fail*)
+      log_title="${fmt_error}[ERROR]${fmt_normal}"
+      exit_code=1
+      ;;
+    warn*)
+      log_title="${fmt_warn}[ WARN]${fmt_normal}"
+      exit_code=1
+      ;;
+    info*)
+      log_title="${fmt_info}[ INFO]${fmt_normal}"
+      ;;
+    debug*)
+      log_title="${fmt_debug}[DEBUG]${fmt_normal}"
+      ;;
+    trace*)
+      log_title="${fmt_trace}[TRACE]${fmt_normal}"
+      ;;
+    success*)
+      log_title="${fmt_success}[SUCCESS]${fmt_normal}"
+      ;;
+    normal | simple | *)
+      log_title=""
+      log_tag=""
+      ;;
+    esac
+
+    #@ Define the output stream
+    if [ "$exit_code" -gt 0 ]; then
+      stream_code=2
+    else
+      stream_code=1
     fi
 
-    #@ Print a blank line, if requested
-    # pout__blank "$leading_lines"
-    echo "leading_lines: $leading_lines"
+    #@ Print leading lines, if requested
+    pout__blank "$leading_lines"
 
     #@ Print the message
-    # if [ "$log_title" ]; then
-    #   printf "\n%s%s[%s]%s%s%s%s%s%s%s%s\n" \
-    #     "$fmt_normal" \
-    #     "$log_color" \
-    #     "$log_title" \
-    #     "$fmt_normal" \
-    #     "$leading_seperator" \
-    #     "$fmt_highlight" \
-    #     "$tag" \
-    #     "$fmt_normal" \
-    #     "$trailing_seperator" \
-    #     "$msg" \
-    #     "$fmt_normal" \
-    #     >&"${output_code}"
-    # else
-    #   printf "%s" "$msg"
-    # fi
+    printf "%s%s%s" "$log_title" "$log_tag" "$msg" >&"${stream_code}"
 
-    #@ Print a blank line, if requested
-    # pout__blank "$trailing_lines"
+    #@ Print trailing lines, if requested
+    pout__blank "$trailing_lines"
+
+    #@ Return the exit code
+    return "$exit_code"
   }
 
   pout__main "$@"
