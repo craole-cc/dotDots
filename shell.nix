@@ -24,6 +24,7 @@ pkgs.mkShell {
     nixd
     fend
     fastfetch
+    treefmt2
   ];
 
   shellHook = ''
@@ -32,8 +33,9 @@ pkgs.mkShell {
     DOTS_CFG="$DOTS/Configuration"
     export DOTS DOTS_BIN DOTS_CFG
 
-    STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
     FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
+    STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
+    TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
 
     . "$DOTS_BIN/utility/files/pathman" --append "$DOTS_BIN"
     fastfetch --config "$FASTFETCH_CONFIG"
@@ -42,6 +44,5 @@ pkgs.mkShell {
     eval "$(zoxide init bash)"
     eval "$(thefuck --alias)"
     eval "$(starship init bash)"
-
   '';
 }

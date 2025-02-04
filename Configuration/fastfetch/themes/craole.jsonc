@@ -117,7 +117,7 @@
       "location": "Jamaica",
       // "outputFormat": "%t+-+%C+(%l)",
       "timeout": 1000
-    },
+    }
     // {
     //   "type": "command",
     //   "text": "printf '%s' \"$LOCATION\"",
