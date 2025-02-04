@@ -1,0 +1,207 @@
+#!/bin/sh
+
+#/> Script Entry-point                              <\
+main() { #@ Run the application
+  #> Initialization
+  sanitize_environment
+  init_metadata
+  parse_arguments "$@"
+
+  #> Validation
+  validate_environment
+
+  #> Termination
+  run_process
+}
+
+#/> Initialization                                  <\
+init_metadata() { #@ Initalize script metadata
+  SCRIPT_NAME="absolute"
+  SCRIPT_VERSION="1.0.0"
+  SCRIPT_AUTHOR="Craole"
+  SCRIPT_USAGE="$SCRIPT_NAME [OPTIONS] <target_path>"
+  SCRIPT_DESCRIPTION="normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..'."
+}
+parse_arguments() { #@ Parse command-line arguments
+  while [ $# -gt 0 ]; do
+    case $1 in
+    -h | --help) end_process --usage ;;
+    -v | --version) end_process --version ;;
+    -q | --quiet) verbosity=quiet ;;
+    -d=* | --verbose=*) verbosity="${1#*=}" ;;
+    -d | --verbose)
+      case "$2" in
+      */*) verbosity="debug" ;;
+      *)
+        if [ "$2" ]; then
+          verbosity="$2"
+          shift
+        else
+          verbosity="debug"
+        fi
+        ;;
+      esac
+      ;;
+    -*) end_process --error opt "$1" ;;
+    *) target_path="$1" ;;
+    esac
+    shift
+  done
+
+  #@ Establish defaults
+  verbosity="${verbosity:-info}"
+}
+
+#/> Validation                                      <\
+validate_environment() { #@ Run various validation checks
+  #@ Check verbosity level
+  case "$verbosity" in
+  debug | info | quiet) ;;
+  *) end_process --error info "$verbosity" ;;
+  esac
+
+  #@ Check if target path is provided as an argument
+  [ "$target_path" ] || end_process --error arg
+
+  #@ Check if target path exists and is accessible
+  [ -e "$target_path" ] ||
+    end_process --error path "$target_path"
+}
+
+#/> Execution                                         <\
+run_process() { #@ Normalize path
+
+  #@ Use realpath if available as it is more efficient
+  if command -v realpath >/dev/null 2>&1; then
+    normalized_path="$(realpath -- "$target_path")"
+  else
+    #@ Update the target path to respect symbolic links
+    path_part="$(
+
+      #@ Follow the symbolic link recursively until it points to an actual file or directory
+      cd -P -- "$(dirname -- "$target_path")" ||
+        end_process --error cd "$target_path"
+
+      #@  Print value of symbolic link normalized path
+      printf '%s\n' "$(pwd -P)/$(basename -- "$target_path")"
+    )"
+
+    #@ Split the path into components
+    while [ -n "$path_part" ]; do
+
+      #@ Remove leading slashes
+      path_part="${path_part#/}"
+
+      #@ Extract the next path component
+      next_path_part="${path_part%%/*}"
+
+      #@ Remove the extracted component from the remaining path
+      path_part="${path_part#"$next_path_part"}"
+
+      #@ Remove trailing slashes
+      path_part="${path_part#/}"
+
+      #@ Replace any occurrence of '..' or '../' with its corresponding directory
+      case "$next_path_part" in
+      ..) normalized_path="$(dirname "$normalized_path")" ;;
+      ../*) normalized_path="$(dirname "$normalized_path")/${next_path_part#../}" ;;
+      *) normalized_path="$normalized_path/$next_path_part" ;;
+      esac
+    done
+  fi
+
+  end_process --output "$normalized_path"
+}
+end_process() { #@ Exit application gracefully
+  case "$1" in
+  --error)
+    #@ Throw errors based on options
+    display_info "${1}"-"${2}" "${3}"
+
+    #@ Set error status code
+    error_generated=true
+    ;;
+  --output) display_info "$1" "$2" ;;
+  *) ;;
+  esac
+
+  #@ Exit with an error status
+  if [ "$error_generated" ]; then
+    sanitize_environment && exit 1
+  else
+    sanitize_environment && exit 0
+  fi
+}
+
+#/> Sanitization                                    <\
+sanitize_environment() { #@ Remove varibles
+  unset \
+    verbosity \
+    target_path \
+    normalized_path \
+    target_path \
+    next_target_path_component \
+    error_generated
+}
+
+#/> Output Management                               <\
+display_info() { #@ Display infoirmation
+
+  case "$1" in
+  --error*)
+    [ "$verbosity" = "quiet" ] && return
+    case "$1" in
+    --error-path) printf "Invalid path: %s" "$2" ;;
+    --error-circ) printf "Circular symbolic link: %s" "$2" ;;
+    --error-info) printf "Invalid verbosity level: %s" "$2" ;;
+    --error-arg) printf "<target_path> required \nUsage: %s\n" "$SCRIPT_USAGE" ;;
+    --error-opt) printf "Unrecognized option: %s" "$2" ;;
+    --error-cd) printf "Change directory operation failed" ;;
+    esac
+    ;;
+  --output)
+    case "$verbosity" in
+    quiet) ;;
+    info) printf "%s\n" "$normalized_path" ;;
+    debug)
+      printf "    Verbosity: %s\n" "$verbosity"
+      printf "  Target Path: %s\n" "$target_path"
+      printf "Absolute Path: %s\n" "$normalized_path"
+      ;;
+    esac
+    ;;
+  --version)
+    printf "%s" "$SCRIPT_VERSION"
+    ;;
+  --usage)
+    cat <<USAGE
+Description:
+'$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
+
+Usage:
+$SCRIPT_USAGE
+
+Options:
+  -h, --help       Show detailed help information and exit.
+  -v, --version    Show the script version number and exit.
+  -d, --verbose    Display additional information during execution: quiet, info (default), debug.
+  -q, --quiet      Supress all output. Error flag will still work.
+
+Arguments:
+  <target_path>       The path to normalize.
+
+Exit status:
+  0                   The path was successfully normalized.
+  1                   An error occurred.
+
+Examples:
+  $SCRIPT_NAME -d=debug ~/../../usr/bin
+  $SCRIPT_NAME /var/log/../lib --verbose info
+  $SCRIPT_NAME /var/run
+USAGE
+    ;;
+  *) printf "%s\n" "$*" ;;
+  esac
+}
+
+main "$@"

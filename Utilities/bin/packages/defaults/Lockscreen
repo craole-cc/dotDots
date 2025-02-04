@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if weHave betterlockscreen; then
+  __lock__() { betterlockscreen --lock; }
+  __update__() {
+    # eko --notify "$(betterlockscreen --update ~/.background-image)"
+    say --notify betterlockscreen --update ~/.background-image
+  }
+fi
+
+case $1 in
+-u | --update) __update__ ;;
+*) __lock__ ;;
+esac

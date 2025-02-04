@@ -1,7 +1,7 @@
 {
   imports = [
-    ./base
-    ./components
+    ./core
+    ./modules
     ./desktop
     # ./libraries
     # ./programs

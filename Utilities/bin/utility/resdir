@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+SOURCE=${BASH_SOURCE[0]}
+while [ -L "$SOURCE" ]; do
+
+  #@ Follow symlinks
+  DIR=$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)
+  SOURCE=$(readlink "$SOURCE")
+
+  #@ Resolve relative symlinks to the actual path
+  [[ $SOURCE != /* ]] && SOURCE=$DIR/$SOURCE
+done
+
+DIR=$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)
+
+printf "%s" "$DIR"

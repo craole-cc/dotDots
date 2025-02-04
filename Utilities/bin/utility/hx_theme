@@ -1,0 +1,8 @@
+#!/bin/sh
+
+config_file="/home/craole/DOTS/Test/helix.toml"
+theme="$1"
+
+echo "$theme"
+
+sed -i 's/theme = ".*"/theme = "\$theme"/' "$config_file"

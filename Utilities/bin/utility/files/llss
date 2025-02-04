@@ -1,0 +1,8 @@
+#!/bin/sh
+
+lsd \
+  --almost-all \
+  --long \
+  --total-size \
+  --sizesort \
+  "$@"

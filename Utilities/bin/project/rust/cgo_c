@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cgo --clean --run

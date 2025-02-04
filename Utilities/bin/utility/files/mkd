@@ -1,0 +1,49 @@
+#!/bin/sh
+
+make_dir() {
+  mkdir_cmd="mkdir --parents"
+  [ "$(is_writable "$path")" ] || mkdir_cmd="sudo $mkdir_cmd"
+  [ "$verbose" ] && mkdir_cmd="$mkdir_cmd --verbose"
+
+  eval "$mkdir_cmd" "$path"
+}
+
+enter_dir() {
+  cd pop >/dev/null 2>&1 || {
+    pout \
+      --var "$path" \
+      --msg "Unable to enter folder" \
+      --term exit 1
+  }
+}
+
+execute_operation() {
+  41one "==[ OPERATION ]==> $operation ▼▼▼"
+  eval "$operation"
+}
+
+main() {
+  while [ $# -ge 1 ]; do
+    case "$1" in
+    --cd)
+      [ "$2" ] && {
+        shift && path="$1"
+        make_dir
+      }
+
+      [ "$2" ] && {
+        shift && operation="$1"
+        enter_dir
+        execute_operation
+      }
+      ;;
+    *)
+      path="$1"
+      make_dir "$1"
+      ;;
+    esac
+
+    shift
+    unset path operation
+  done
+} && main "$@"

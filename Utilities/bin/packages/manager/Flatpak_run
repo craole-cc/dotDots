@@ -1,0 +1,10 @@
+#!/bin/sh
+
+
+if Flatpak_check "$1"; then
+    flatpak run "$(
+        flatpak list |
+            grep "$1" |
+            awk 'BEGIN{FS=OFS="\t"}{print $2}'
+    )"
+fi

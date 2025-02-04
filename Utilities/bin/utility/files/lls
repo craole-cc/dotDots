@@ -1,0 +1,36 @@
+#!/bin/sh
+
+weHave() {
+  type "$1" >/dev/null 2>&1
+}
+
+case "$SHELL" in
+nu)
+  echo 'nuse'
+  lls_nu
+  ;;
+*)
+  if weHave lsd; then
+    lsd \
+      --almost-all \
+      --long \
+      --total-size \
+      --group-dirs=first \
+      "$@"
+  elif weHave exa; then
+    exa \
+      --all \
+      --long \
+      --color-scale \
+      --icons \
+      --group-directories-first \
+      "$@"
+  elif weHave ls; then
+    ls \
+      --almost-all -l \
+      --classify \
+      --group-directories-first \
+      "$@"
+  fi
+  ;;
+esac

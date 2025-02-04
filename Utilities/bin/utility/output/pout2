@@ -1,0 +1,77 @@
+#!/bin/sh
+
+while [ $# -ge 1 ]; do
+  case "$1" in
+  --lbl | --type)
+    [ "$2" ] && {
+      label="$2"
+      # echo shift
+      shift
+    }
+    ;;
+  --term | --exit | --return)
+    label="${label:-Error}"
+    exit_action="${exit_action:-return}"
+    exit_code="${exit_code:-0}"
+
+    while [ "$#" -ge 2 ]; do
+      echo "1: $1"
+      echo "2: $2"
+      echo "3: $3"
+      case $2 in
+      exit | return)
+        exit_action="$2"
+        ;;
+      [0-9] | [1-9][0-9] | [1-9][0-9][0-9])
+        exit_code="$2"
+        ;;
+      *)
+        if [ "$2" ]; then
+          echo invalid
+        fi
+        ;;
+      esac
+      shift
+    done
+    ;;
+  -x | --fatal)
+    error_cmd="exit"
+    if [ $# -gt 1 ] && [ "$2" -eq "$2" ] 2>/dev/null; then
+      error_code="$2"
+      shift
+    else
+      error_code=1
+    fi
+    ;;
+  -v | --var)
+    [ "$2" ] && {
+      error_var="$2"
+      shift
+    }
+    ;;
+  -m | --msg | --message)
+    [ "$2" ] && {
+      error_msg="$2"
+      shift
+    }
+    ;;
+  -u | --usg | --usage)
+    [ "$2" ] && {
+      error_usg="$2"
+      shift
+    }
+    ;;
+  # *) error_msg="$*" ;;
+  esac
+  shift
+done
+
+# printf "==[ %s ]==" "$label" | tr '[:lower:]' '[:upper:]'
+# [ "$error_var" ] && printf "> '%s'" "$error_var"
+# [ "$error_msg" ] && printf "\n->> %s\n" "$error_msg"
+# [ "$error_usg" ] && printf "\n%s\n" "$error_usg"
+# printf "\n"
+# eval "$error_cmd" "$error_code"
+# echo "$label: $exit_action $exit_code
+pouter="exit 1"
+export pouter

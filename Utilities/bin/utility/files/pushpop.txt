@@ -1,0 +1,18 @@
+Show me a shellscript that can jumps into a directory (workDIR), run a command (COMMAND) and return to the original directory or one specified by the user (returnDIR).
+
+- Use multiple functions for readability
+- include options (
+  -v|--version for version
+  -h|--help for help/usage
+  -q | -d |--verbose for verbosity allow -dd for info and -d for error -q for quiet
+  allow --verbose=info --verbose=quiet --verbose=error
+  -R | --cd| --rd [PATH]  for returnDIR
+  -W | --wd [PATH] for workDIR
+  -c | --command [COMMAND] for command
+  *) WorkDIR="$1" Command="$2" returnDIR="$PWD"
+  )
+- put all printing in a separate function for usage, version and errors
+- use heredoc for usage
+- use prinf instead of echo
+- Prioritize efficiency, portability and POSIX compliance.
+- Merge verbosity options as best as possible

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Editor --app zed "${@:-$PWD}"
+if weHave zeditor; then
+  app="zeditor"
+elif weHave zed; then
+  app="zed"
+fi
+
+$app "${@:-$PWD}"

@@ -1,0 +1,71 @@
+#!/bin/sh
+
+main(){
+    install_topgrade
+    update_with_topgrade
+}
+
+wehave(){
+    command -v $1 >/dev/null 2>&1
+}
+
+install_topgrade(){
+    wehave topgrade && return
+
+    #| System package managers first
+    if wehave pacman; then
+        echo "Installing Topgrade using pacman..."
+        sudo pacman --sync topgrade
+    elif wehave yay; then
+        echo "Installing Topgrade using AUR (yay)..."
+        yay --sync topgrade
+    elif wehave nix; then
+        echo "Installing Topgrade using nix-shell..."
+        nix-shell --package topgrade
+    elif wehave xbps-install; then
+        echo "Installing Topgrade using XBPS (Void Linux)..."
+        sudo xbps-install --sync topgrade
+    elif wehave dnf; then
+        echo "Installing Topgrade using dnf (Fedora)..."
+        sudo dnf copr enable atim/topgrade
+        sudo dnf install topgrade
+    elif wehave apt; then
+        echo "Installing Topgrade using apt..."
+        sudo apt update
+        sudo apt install --yes topgrade
+    #| macOS package managers
+    elif wehave brew; then
+        echo "Installing Topgrade using Homebrew..."
+        brew install topgrade
+    elif wehave port; then
+        echo "Installing Topgrade using MacPorts..."
+        sudo port install topgrade
+    #| Windows package managers
+    elif wehave winget; then
+        echo "Installing Topgrade using winget..."
+        winget install topgrade-rs.topgrade --accept-package-agreements --accept-source-agreements
+    elif wehave choco; then
+        echo "Installing Topgrade using Chocolatey..."
+        choco install topgrade
+    elif wehave scoop; then
+        echo "Installing Topgrade using Scoop..."
+        scoop install topgrade
+    #| Cross-platform package managers as fallback
+    elif wehave cargo; then
+        echo "Installing Topgrade using Cargo..."
+        cargo install topgrade
+    elif wehave pip3; then
+        echo "Installing Topgrade using pip..."
+        pip3 install --user topgrade
+    else
+        echo "No supported package manager found. Please install Topgrade manually."
+        echo "Visit: https://github.com/topgrade-rs/topgrade for installation instructions."
+        exit 1
+    fi
+}
+
+update_with_topgrade(){
+    topgrade --cleanup --no-retry --yes --disable microsoft_store
+}
+
+main "$@"

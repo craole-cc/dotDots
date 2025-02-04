@@ -1,0 +1,15 @@
+#!/bin/sh
+
+__run__() {
+  # | Run APP if not already running
+  if ! app_is_active "$@"; then
+    "$@" >/dev/null 2>&1 &
+    printf "🚀 %s\n" "$@"
+  fi
+}
+
+for app_to_run in "$@"; do
+  __run__ "$app_to_run"
+done
+
+#TODO Add an option "-r" to reload
