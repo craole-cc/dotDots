@@ -68,7 +68,8 @@
         "sd_mod"
       ];
       kernelModules = [ ];
-      luks.devices."luks-20c6c296-a0a7-4d38-b656-fa8534db75ad".device = "/dev/disk/by-uuid/20c6c296-a0a7-4d38-b656-fa8534db75ad";
+      luks.devices."luks-20c6c296-a0a7-4d38-b656-fa8534db75ad".device =
+        "/dev/disk/by-uuid/20c6c296-a0a7-4d38-b656-fa8534db75ad";
       secrets = {
         "/crypto_keyfile.bin" = null;
       };

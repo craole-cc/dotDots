@@ -37,8 +37,8 @@ let
           overlays.source = ../middleware;
         };
         configFile."nix/nix.conf".text = ''
-          
-                    flake-registry = ${config.xdg.configHome}/nix/registry.json
+
+          flake-registry = ${config.xdg.configHome}/nix/registry.json
         '';
       };
     };

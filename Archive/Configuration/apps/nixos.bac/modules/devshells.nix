@@ -37,7 +37,7 @@ mkShell {
   ];
 
   shellHook = ''
-    
-        ${self.checks.${system}.pre-commit-check.shellHook}
+
+    ${self.checks.${system}.pre-commit-check.shellHook}
   '';
 }

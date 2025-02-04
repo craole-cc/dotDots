@@ -26,5 +26,5 @@ strings_sep_comma = "btm,alacritty,kitty,st"
 TTY = TTY_cmd()
 TTY.classname = "System Monitor"
 TTY.command = "btm"
-system_monitor_tty=TTY
+system_monitor_tty = TTY
 print(system_monitor_tty)

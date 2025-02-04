@@ -26,9 +26,7 @@ email = "craole@tuta.io"
 
 [template.licenses]
 headers = true
-default = [
-    "MIT",
-]
+default = ["MIT"]
 
 [template.plugins.default]
 tests = true

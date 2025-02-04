@@ -25,7 +25,7 @@ let
 
   # TODO: mkConfig for every user of every host.
 
-  # mkConfig = 
+  # mkConfig =
 
   userConfig =
     with user;

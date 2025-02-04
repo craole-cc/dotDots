@@ -98,4 +98,4 @@ class TTY_cmd:
         elif classopt and not classname:
             return f'{emulator} -e {classopt} "{command}" {command}'
         else:
-            return f'\'{emulator} -e {classopt} "{classname}" {command}\''
+            return f"'{emulator} -e {classopt} \"{classname}\" {command}'"

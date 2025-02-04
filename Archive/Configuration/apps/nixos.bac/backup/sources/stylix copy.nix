@@ -20,8 +20,8 @@ with types;
           };
         in
         import "${if channel.success then channel.value else tarball}/nixos";
-      # type = path; 
-      # TODO: `config.dots.sources.home-manager.source` is a lamda function but needs to be a path. 
+      # type = path;
+      # TODO: `config.dots.sources.home-manager.source` is a lamda function but needs to be a path.
     };
   };
 

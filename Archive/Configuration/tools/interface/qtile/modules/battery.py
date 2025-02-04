@@ -16,6 +16,7 @@ from __future__ import division
 from pathlib import Path
 
 import cairocffi
+
 # === Third-Party === #
 from libqtile import bar
 from libqtile.widget import base
@@ -54,7 +55,7 @@ class _Battery(base._TextBox):
         (
             "status_file",
             "status",
-            "Name of status file in" " /sys/class/power_supply/battery_name",
+            "Name of status file in /sys/class/power_supply/battery_name",
         ),
         (
             "energy_now_file",

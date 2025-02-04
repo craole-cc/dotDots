@@ -1,5 +1,4 @@
 class Command:
-
     _command = []
 
     def __init__(self):

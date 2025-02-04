@@ -9,7 +9,7 @@ let
   plasmaEnabled = config.services.desktopManager.plasma6.enable;
   sddmEnabled = config.services.displayManager.sddm.enable;
   xserverEnabled = config.services.xserver.enable;
-  alpha="craole";
+  alpha = "craole";
 in
 {
   imports = [

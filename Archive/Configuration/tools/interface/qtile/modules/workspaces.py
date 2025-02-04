@@ -61,7 +61,7 @@ workspaces = [
             "Font-manager",
             "pcmanfm-qt",
             "Double Commander",
-            "Thunar" "thunar" "Pamac-manager",
+            "ThunarthunarPamac-manager",
             "stacer",
             "notion-app-enhanced",
         ],
