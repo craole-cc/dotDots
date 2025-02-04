@@ -1,8 +1,0 @@
-#!/bin/sh
-
-Write \
-  "$DOTS_TEST/testfile" \
-  "this is a test
-  Pop"
-
-bat "$DOTS_TEST/testfile"

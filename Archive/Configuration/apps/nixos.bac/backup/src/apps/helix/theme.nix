@@ -1,5 +1,0 @@
-{ }:
-{
-
-}
-# TODO: Set up theme

@@ -1,5 +1,0 @@
-p7zip
-neovim
-git
-curl
-ripgrep

@@ -1,3 +1,0 @@
-#!/bin/sh
-
-wat ~/.local/share/qtile/qtile.log

@@ -1,3 +1,0 @@
-#!/bin/sh
-
-flatpak list | grep --quiet "$1"

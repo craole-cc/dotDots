@@ -1,4 +1,0 @@
-# NixWSL
-
-# Install NixOS WSL
-

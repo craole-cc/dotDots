@@ -1,3 +1,0 @@
-#!/bin/sh
-
-    $1 "$RUSTUP_CONFIG:-~/.rustup/settings.toml"

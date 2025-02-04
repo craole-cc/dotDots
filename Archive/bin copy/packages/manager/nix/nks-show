@@ -1,3 +1,0 @@
-#!/bin/shell
-
-DOTSup "${1:-flaking}" && nix flake show --check-trace

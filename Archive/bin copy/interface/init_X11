@@ -1,3 +1,0 @@
-#!/bin/sh
-
-. "${DOTS_ENV_DESKTOPS}/X11"

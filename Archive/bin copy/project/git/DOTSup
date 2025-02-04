@@ -1,9 +1,0 @@
-#!/bin/sh
-
-push="$DOTS"
-pop="$PWD"
-
-cd "$push" || exit 1
-gitup "$*"
-cd "$pop" || exit 1
-

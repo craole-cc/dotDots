@@ -1,8 +1,0 @@
-#!/bin/sh
-
-while [ "$#" -ge 1 ]; do
-    font_type="$1"
-    font_match="$(fc-match "$font_type")"
-    printf "%s => %s\n" "$font_type" "$font_match"
-    shift
-done

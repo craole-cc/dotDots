@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if weHave rg; then
-  xprop | rg WM_CLASS | awk '{print $NF}'
-else
-  xprop | grep WM_CLASS | awk '{print $NF}'
-fi

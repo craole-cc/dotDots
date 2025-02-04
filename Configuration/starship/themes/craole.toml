@@ -4,7 +4,7 @@ command_timeout = 1111
 scan_timeout = 1000
 
 [line_break]
-disabled = true
+disabled = false
 
 [directory]
 format = "[$path]($style)[$read_only]($read_only_style) "

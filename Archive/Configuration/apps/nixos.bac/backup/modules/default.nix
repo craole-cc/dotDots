@@ -1,7 +1,0 @@
-{
-  imports = [
-    ./host
-    ./user
-    ./app
-  ];
-}

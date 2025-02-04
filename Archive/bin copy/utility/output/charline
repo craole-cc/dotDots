@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# Get the terminal width using stty
-terminal_width=$(stty size | awk '{print $2}')
-
-line_character="${1:-"-"}"
-printf "%-${terminal_width}s\n" |
-  tr ' ' "$line_character"

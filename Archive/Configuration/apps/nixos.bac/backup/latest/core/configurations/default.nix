@@ -1,6 +1,0 @@
-{
-  imports = [
-    ./dbook
-    ./preci
-  ];
-}
