@@ -1,0 +1,126 @@
+#!/bin/sh
+
+jot_init() {
+  func_usage="$(
+    txtBarber "
+        Usage: jot [CONTENTS]
+
+        Options:
+          --backup[=type]  Set backup type for the file (Valid options: none, off, numbered, t, exiting, nil, simple, never).
+          -f, --file       Specify the target file path.
+          -c, --contents   Set the content of the target file.
+          -h, --help       Display this help message.dfgdgd
+        "
+  )"
+  backup_types="none | off | numbered | t | exiting | nil | simple | never"
+
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --backup=*)
+      backup_type="${1#*=}"
+      case "$backup_type" in
+      none | off | numbered | t | exiting | nil | simple | never) ;;
+      *)
+        pout \
+          --lbl "Invalid Backup Type" \
+          --var "$backup_type" \
+          --usage "$func_usage" \
+          --fatal
+        ;;
+      esac
+      ;;
+    --backup)
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        none | off | numbered | t | exiting | nil | simple | never)
+          backup_type="$2"
+          ;;
+        *)
+          if [ ! "$2" ] || [ "$2" = "-*" ]; then
+            pout "Backup file name is missing after '--backup' option."
+          else
+            backup_file_path="$2"
+          fi
+          break
+          ;;
+        esac
+        shift
+      done
+      ;;
+    -f | --file)
+      [ "$2" ] && {
+        target_file_path="$2"
+        shift
+      }
+      ;;
+    -c | --contents)
+      [ "$2" ] && {
+        txt_to_jot="$(__txtBarber "$2")"
+        shift
+      }
+      ;;
+    -*)
+      pout \
+        --lbl "Invalid Option" \
+        --var "$1" \
+        --usage "$func_usage" \
+        --fatal
+      ;;
+    *)
+      txt_to_jot="$(__txtBarber "$1")"
+      ;;
+    esac
+    shift
+  done
+
+  # echo "$target_file_path"
+  # echo "$backup_type $backup_file_path"
+  # echo "$txt_to_jot"
+} && __jot_init "$@"
+
+backup_file() {
+  #@ Set backup command
+  if [ "$backup_type" ]; then
+    backup_cmd="cp --backup=$backup_type"
+  else
+    backup_cmd="cp"
+  fi
+
+  #@ All elevation if necessary
+  [ -w "$(dirname -- "$backup_file_path")" ] || {
+    backup_cmd="sudo $backup_cmd"
+  }
+
+  #@ Update the backup command
+  backup_cmd="$backup_cmd $target_file_path $backup_file_path"
+
+  #@ Generate the backup file
+  echo "$backup_cmd"
+  # eval "$backup_cmd"
+
+  #@ Cleanup
+  unset backup_cmd
+}
+
+prep_writer() {
+  if [ -w "$(dirname -- "$target_file_path")" ]; then
+    writer="tee"
+  else
+    writer="sudo tee"
+  fi
+
+  [ "$backup_file_path" ] || arg="--append"
+
+  printf "%s %s %s" "$writer" "$arg" "$target_file_path"
+}
+
+#@ Backup the target file
+backup_file
+
+#@ Prepare the content
+
+# __txtBarber
+# prep_writer
+
+#@ Write the target file
+# prep_writer

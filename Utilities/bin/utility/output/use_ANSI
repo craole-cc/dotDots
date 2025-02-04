@@ -1,0 +1,130 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+
+: <<"DOCUMENTATION"
+#| References
+  https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
+  https://linux.die.net/man/1/tput
+  https://htmlcolorcodes.com/color-names/
+  https://misc.flogisoft.com/bash/tip_colors_and_formatting
+  https://funprojects.blog/tag/tput/
+  https://martin-thoma.com/colorize-your-scripts-output
+  https://linuxcommand.org/lc3_adv_tput.php
+DOCUMENTATION
+
+#| Confirm terminal environment.
+[ -t 2 ] || return
+
+#> Cursor                                                                     |
+scp=
+hide="$(printf "\033[8m")"
+show="$(printf "\033[28m")"
+
+#> FORMAT                                                                     |
+
+reset="$(printf "\033[m")"
+bold="$(printf "\033[1m")"
+dim="$(printf "\033[2m")"
+italic="$(printf "\033[3m")"
+underline="$(printf "\033[4m")"
+blink="$(printf "\033[5m")"
+rapid="$(printf "\033[6m")"
+invert="$(printf "\033[7m")"
+strike="$(printf "\033[9m")"
+
+#> Colors                                                                     |
+
+#| Declare colors for supported terminals
+case $TERM in
+*-m) return ;;
+*) ;;
+esac
+
+#@ ANSI
+
+#| Foreground Colors
+black="$(printf "\033[0;30m")"
+red="$(printf "\033[38;2;255;0;0m")"
+darkred="$(printf "\033[38;2;139;0;0m")"
+maroon="$(printf "\033[38;2;128;0;0m")"
+saddlebrown="$(printf "\033[38;2;139;69;19m")"
+orangered="$(printf "\033[38;2;255;69;0m")"
+darkorange="$(printf "\033[38;2;255;140;0m")"
+orange="$(printf "\033[38;2;255;165;0m")"
+yellow="$(printf "\033[38;2;255;255;0m")"
+gold="$(printf "\033[38;2;255;255;0m")"
+green="$(printf "\033[38;2;0;128;0m")"
+lime="$(printf "\033[38;2;0;249;0m")"
+olive="$(printf "\033[38;2;128;128;0m")"
+darkolivegreen="$(printf "\033[38;2;85;107;47m")"
+cyan="$(printf "\033[38;2;0;255;255m")"
+turquoise="$(printf "\033[38;2;64;244;208m")"
+teal="$(printf "\033[38;2;0;128;128m")"
+slateblue="$(printf "\033[38;2;106;90;205m")"
+darkslateblue="$(printf "\033[38;2;72;61;139m")"
+blue="$(printf "\033[38;2;0;0;255m")"
+midnightblue="$(printf "\033[38;2;25;25;112m")"
+purple="$(printf "\033[38;2;128;0;128m")"
+indigo="$(printf "\033[38;2;75;0;130m")"
+magenta="$(printf "\033[38;2;255;0;255m")"
+fuchsia="$(printf "\033[38;2;255;0;255m")"
+violet="$(printf "\033[38;2;238;130;238m")"
+deeppink="$(printf "\033[38;2;255;20;147m")"
+hotpink="$(printf "\033[38;2;255;105;180m")"
+pink="$(printf "\033[38;2;255;192;205m")"
+silver="$(printf "\033[38;2;192;192;192m")"
+gray="$(printf "\033[38;2;128;128;128m")"
+dimgray="$(printf "\033[38;2;105;105;105m")"
+darkslategray="$(printf "\033[38;2;47;79;79m")"
+cornsilk="$(printf "\033[38;2;255;248;220m")"
+tan="$(printf "\033[38;2;210;180;140m")"
+snow="$(printf "\033[38;2;255;250;250m")"
+ivory="$(printf "\033[38;2;255;255;240m")"
+white="$(printf "\033[37m")"
+
+#| Background Colors
+black_bg="$(printf "\033[0;40m")"
+red_bg="$(printf "\033[48;2;255;0;0m")"
+darkred_bg="$(printf "\033[48;2;139;0;0m")"
+maroon_bg="$(printf "\033[48;2;128;0;0m")"
+saddlebrown_bg="$(printf "\033[48;2;139;69;19m")"
+orangered_bg="$(printf "\033[48;2;255;69;0m")"
+darkorange_bg="$(printf "\033[48;2;255;140;0m")"
+orange_bg="$(printf "\033[48;2;255;165;0m")"
+yellow_bg="$(printf "\033[48;2;255;255;0m")"
+gold_bg="$(printf "\033[48;2;255;255;0m")"
+green_bg="$(printf "\033[48;2;0;128;0m")"
+lime_bg="$(printf "\033[48;2;0;249;0m")"
+olive_bg="$(printf "\033[48;2;128;128;0m")"
+darkolivegreen_bg="$(printf "\033[48;2;85;107;47m")"
+cyan_bg="$(printf "\033[48;2;0;255;255m")"
+turquoise_bg="$(printf "\033[48;2;64;244;208m")"
+teal_bg="$(printf "\033[48;2;0;128;128m")"
+slateblue_bg="$(printf "\033[48;2;106;90;205m")"
+darkslateblue_bg="$(printf "\033[48;2;72;61;139m")"
+blue_bg="$(printf "\033[48;2;0;0;255m")"
+midnightblue_bg="$(printf "\033[48;2;25;25;112m")"
+purple_bg="$(printf "\033[48;2;128;0;128m")"
+indigo_bg="$(printf "\033[48;2;75;0;130m")"
+magenta_bg="$(printf "\033[48;2;255;0;255m")"
+fuchsia_bg="$(printf "\033[48;2;255;0;255m")"
+violet_bg="$(printf "\033[48;2;238;130;238m")"
+deeppink_bg="$(printf "\033[48;2;255;20;147m")"
+hotpink_bg="$(printf "\033[48;2;255;105;180m")"
+pink_bg="$(printf "\033[48;2;255;192;205m")"
+silver_bg="$(printf "\033[48;2;192;192;192m")"
+gray_bg="$(printf "\033[48;2;128;128;128m")"
+dimgray_bg="$(printf "\033[48;2;105;105;105m")"
+darkslategray_bg="$(printf "\033[48;2;47;79;79m")"
+cornsilk_bg="$(printf "\033[48;2;255;248;220m")"
+tan_bg="$(printf "\033[48;2;210;180;140m")"
+snow_bg="$(printf "\033[48;2;255;250;250m")"
+ivory_bg="$(printf "\033[48;2;255;255;240m")"
+white_bg="$(printf "\033[47m")"
+
+#> Presets                                                                    |
+
+success="$(printf "%s${green}${bold}")"
+error="$(printf "%s${red}${bold}")"
+warning="$(printf "%s${yellow}${bold}")"
+info="$(printf "%s${blue}${bold}")"

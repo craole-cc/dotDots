@@ -1,0 +1,11 @@
+#!/bin/sh
+
+__run__() {
+  for app in "$@"; do
+    app_reload "$app"
+  done
+}
+
+__run__ "$@"
+
+unset app

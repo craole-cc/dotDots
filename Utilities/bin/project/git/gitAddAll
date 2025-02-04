@@ -1,0 +1,10 @@
+#!/bin/sh
+
+case "$1" in
+-n | --dry-run | --test) opt="--dry-run" ;;
+-d | --verbose) opt="--verbose" ;;
+-f | --force) opt="--force" ;;
+*) ;;
+esac
+
+eval "git add --all . $opt"

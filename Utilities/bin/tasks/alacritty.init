@@ -1,0 +1,11 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+#| Load Environment Variables
+weHave alacritty || exit
+
+#| Load Environment Variables
+. "$DOTS_ENV_CTX/alacritty"
+
+#| Deploy Link
+symbiolink --src "$src" --lnk "$lnk" --force --verbose

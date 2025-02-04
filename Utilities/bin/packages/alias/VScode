@@ -1,0 +1,26 @@
+#!/bin/sh
+
+parse_arguments() {
+  case "$1" in
+  -D | --dots) process_core "$codeDOTS" ;;
+  -R | --rust) process_core "$codeRUST" ;;
+  -N | --nix) process_core "$codeNIX" ;;
+  *) process_core "$@" ;;
+  esac
+}
+
+process_core() {
+  if weHave code-insiders; then
+    code-insiders "$@" &
+  elif weHave code; then
+    code "$@" &
+  elif weHave code-oss; then
+    code-oss "$@" &
+  elif Flatpak_check visualstudio.code; then
+    $(Flatpak_run visualstudio.code) "$@" &
+  else
+    printf "%s" "🟥 Visual Studio Code not found."
+  fi
+}
+
+parse_arguments "$@"

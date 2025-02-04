@@ -1,0 +1,43 @@
+#!/bin/sh
+
+__list__() {
+    while [ "$#" -ge 1 ]; do
+        printf "Font type: %s\n" "$1"
+
+        fc-list :"$1" |
+            awk --field-separator=: '{print $2}' |
+            sort --unique |
+            bat --style 'numbers,grid'
+        shift
+    done
+}
+
+__type__() {
+    while [ "$#" -ge 1 ]; do
+        font_type="$1"
+        font_match="$(fc-match --sort "$font_type")"
+        printf "%s => %s\n" "$font_type" "$font_match"
+        shift
+    done
+}
+
+__refresh__() {
+    fc-cache --really-force
+    [ "$verbose" ] && __list__
+}
+
+while [ "$#" -gt 1 ]; do
+    case "$1" in
+    -d | --verbose) verbose=true ;;
+    -t | --type)
+        shift
+        __type__ "$1"
+        ;;
+    -r | reset | refresh)
+        shift
+        __refresh__
+        ;;
+    *) __list__ "$@" ;;
+    esac
+    shift
+done

@@ -1,0 +1,399 @@
+#!/bin/sh
+
+# ===================================================================
+#@                            DECLARATIONS                         @#
+# ===================================================================
+_cmd_PATH="$(PathOf "$0")"
+_cmd_NAME="$(basename "$_cmd_PATH")"
+_cmd_DIR="$(dirname -- "$_cmd_NAME")"
+_cmd_VERSION="1.0"
+_cmd_DESCRIPTION="Display system informaion"
+_cmd_DEPENDENCIES="eko, grep, sed, awk"
+_cmd_USAGEGUIDE="$(
+  cat <<USAGE_GUIDE
+    ::----------------------------------------------------::
+                        USAGE: $_cmd_NAME
+        $_cmd_DESCRIPTION
+    ::----------------------------------------------------::
+                command <[options]> <[cmd]>
+                >>> $_cmd_NAME --verbose cmd <<<
+    ::----------------------------------------------------::
+        -h --help      |>   Usage guide
+        -v --version   |>   Version
+        -c --check     |>   Verify installation [default]
+        -d --verbose   |>   Detailed app info
+    ::----------------------------------------------------::
+USAGE_GUIDE
+)"
+
+# ===================================================================
+#@		                            TOOLS			                       @#
+# ===================================================================
+
+#@ Usage display
+__help__() {
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  exit 0
+}
+
+#@ Version display
+__version__() {
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
+}
+
+__filter__() {
+  if weHave rg; then
+    rg --color=never "$*"
+  elif weHave grep; then
+    grep --color=never "$*"
+  fi
+}
+
+__check_match__() {
+  if weHave rg; then
+    rg --quiet "$*"
+  elif weHave grep; then
+    rep --quiet "$*"
+  fi
+}
+
+__get_after__() {
+  if weHave sd; then
+    sd "^.*$*\s" ''
+  elif weHave sed; then
+    sed "s/.*$*[ \t]*//"
+  fi
+}
+
+__match__() {
+  if weHave rg; then
+    rg --color=never '.*'"$*" -r "$*"
+  else
+    grep --color=never --only-matching "$*"'.*'
+  fi
+}
+
+__extract_info__() {
+  parser_definition() {
+    setup REST help:usage -- "Usage: __extract_info__ [options]... [arguments]..."
+    param _CMD -c --cmd -- "accepts --param value / --param=value"
+    param _DELIM -d --delim -- "accepts --param value / --param=value"
+    param _FILTER -f --filter -- "accepts --param value / --param=value"
+  }
+
+  eval "$(GetO parser_definition parse) exit 1"
+  parse "$@"
+  eval "set -- $REST"
+
+  [ "$_DELIM" ] || echo "Data separator \`\$_DELIM\` not defined"
+  [ "$_CMD" ] || echo "Data retriever \`\$_CMD\` not defined"
+
+  _check_for_() {
+    if weHave rg; then
+      rg --quiet "$*"
+    elif weHave grep; then
+      rep --quiet "$*"
+    fi
+  }
+
+  _filter_by_() {
+    if weHave rg; then
+      rg --color=never "$*"
+    elif weHave grep; then
+      grep --color=never "$*"
+    fi
+  }
+
+  _after_() {
+    if weHave sd; then
+      sd "^.*$*\s" ''
+    elif weHave sed; then
+      sed "s/.*$*[ \t]*//"
+    fi
+  }
+
+  validate() {
+    if ! eko "$($_CMD)" | _check_for_ "$_DELIM"; then
+      eko "The delimiter \"$_DELIM\" was not found in the string."
+      exit 0
+    fi
+  }
+
+  run() {
+    validate
+    if [ "$_FILTER" ]; then
+      eko "$($_CMD)" | _filter_by_ "$_FILTER" | _after_ "$_DELIM"
+    else
+      eko "$($_CMD)" | _after_ "$_DELIM"
+    fi
+  }
+
+  cleanup() { unset _CMD _DELIM; }
+
+  run
+  cleanup
+}
+
+# ===================================================================
+#@                                OS                               @#
+# ===================================================================
+
+sys_os() {
+  if weHave hostnamectl; then
+    hostnamectl | rg "Operating System" | sd "^.*:\s" ''
+    # seive \
+    #   --cmd "hostnamectl" \
+    #   --filter "Operating System" \
+    #   --delim ":"
+  elif weHave lsb_release; then
+    seive \
+      --cmd "lsb_release --description" \
+      --delim ":"
+  elif [ -f /etc/os-release ]; then
+    . /etc/os-release && eko "$NAME"
+  elif [ -f /etc/debian_version ]; then
+    eko "Info via /etc/debian_version"
+    . /etc/debian_version && eko "$DISTRIB_DESCRIPTION"
+  elif [ -f /etc/issue ]; then
+    eko "Info via /etc/issue"
+    sd </etc/issue ' \\.*\n' ''
+  fi
+
+  echo "ing"
+}
+
+# ===================================================================
+#@                               TYPE                              @#
+# ===================================================================
+
+sys_type() {
+  get_type() {
+    if weHave uname; then
+      uname --kernel-name
+    elif weHave python; then
+      python -mplatform
+    fi
+  }
+
+  set_type() {
+    _INFO=$(get_type)
+    case "$(mango --lower "$_INFO")" in
+    *linux*) _SET="Linux" ;;
+    *bsd*) _SET="FreeBSD" ;;
+    *nt*) _SET="Windows" ;;
+    *windows*) _SET="WSL" ;;
+    *darwin*) _SET="Mac" ;;
+    *sunos*) _SET="Solaris" ;;
+    *aix* | *) ;;
+    esac
+
+    [ "$_SET" ] && eko "$_SET"
+    unset _SET
+  }
+
+  set_type
+}
+
+# ===================================================================
+#@                              KERNEL                             @#
+# ===================================================================
+
+sys_kernel() {
+  if weHave uname; then
+    uname --kernel-release
+  elif weHave hostnamectl; then
+    seive \
+      --cmd "hostnamectl" \
+      --filter "Kernel" \
+      --delim ": $(sys_type)"
+  elif [ -f /proc/version ]; then
+    awk </proc/version '{print $3}'
+  fi
+}
+
+# ===================================================================
+#@                                ARCH                             @#
+# ===================================================================
+
+sys_arch() {
+  if weHave uname; then
+    uname --machine
+  elif weHave hostnamectl; then
+    seive \
+      --cmd "hostnamectl" \
+      --filter "Architecture" \
+      --delim ":"
+  elif weHave wmic; then
+    wmic os get osarchitecture
+  fi
+}
+
+# ===================================================================
+#@                                HOST                             @#
+# ===================================================================
+
+sys_host() {
+  if weHave uname; then
+    uname --nodename
+  elif weHave hostnamectl; then
+    seive \
+      --cmd "hostnamectl" \
+      --filter "Static hostname" \
+      --delim ":"
+  elif weHave hostname; then
+    hostname
+  fi
+}
+
+# ===================================================================
+#@                                USER                             @#
+# ===================================================================
+
+sys_user() {
+  [ -n "${USER+x}" ] && eko "$USER"
+  [ -n "${USERNAME+x}" ] && eko "$USERNAME"
+  [ -n "${user+x}" ] && eko "$user"
+}
+
+# ===================================================================
+#@                               SHELL                             @#
+# ===================================================================
+
+sys_shell() {
+  case "$(sys_type)" in
+  Windows)
+    case $SHELL in
+    *bash*) sys_SHELL="gitSH" ;;
+    *nu*) sys_SHELL="nuSHell" ;;
+    *) ;;
+    esac
+    ;;
+  Linux | *WSL)
+    case $SHELL in
+    *bash*) sys_SHELL="baSH" ;;
+    *zsh*) sys_SHELL="zSH" ;;
+    *dash*) sys_SHELL="daSH" ;;
+    *fish*) sys_SHELL="fiSH" ;;
+    *nu*) sys_SHELL="nuSHell" ;;
+    *) sys_SHELL="Undefined Linux Shell" ;;
+    esac
+    ;;
+  *) ;;
+  esac
+
+  eko "$sys_SHELL"
+}
+
+# ===================================================================
+#@                               WM/DE                             @#
+# ===================================================================
+
+sys_wm() {
+  if weHave wmctrl; then
+    seive \
+      --cmd "wmctrl -m" \
+      --filter "Name" \
+      --delim ":"
+  fi
+}
+
+# |> Window Manager / Desktop Environment <|
+
+# if weHave upower; then
+#   upower --enumerate | __filter__ "BAT"
+# elif [ -d "/sys/class/power_supply" ]; then
+#   find "/sys/class/power_supply" | __filter__ "BAT"
+# fi
+# if weHave upower; then
+#   sys_BAT=$(upower --enumerate | __match__ "BAT")
+# elif [ -d "/sys/class/power_supply" ]; then
+#   sys_BAT=$(find "/sys/class/power_supply" | __match__ "BAT")
+# fi
+
+# if weHave upower; then
+#   #   weHave rg &&
+#   #     BAT_match=$(
+#   #       upower --show-info "$(upower --enumerate | rg BAT)" | rg --color=never '.*BAT' -r 'BAT'
+#   #       rg --color=never '.*BAT' -r 'BAT'
+#   #       # upower --show-info "$(upower --enumerate | rg BAT)" | rg --color=never '.*BAT' -r 'BAT'
+
+#   #     )
+#   #   weHave grep &&
+#   #     BAT_match=$(
+#   #       upower --show-info "$(upower --enumerate | grep BAT)" | grep --color=never --only-matching 'BAT.*'
+#   #     )
+#   #   # upower -i "$(upower -e | grep BAT)" | grep --color=never -E "state|to\ full|to\ empty|percentage"
+
+# fi
+# # echo "$sys_BAT"
+# upower --show-info | rg "$sys_BAT"
+# upower --enumerate | rg "$sys_BAT" | grep --color=never -E "state|to\ full|to\ empty|percentage"
+# upower -i "$(upower -e | grep BAT)" | grep --color=never -E "state|to\ full|to\ empty|percentage"
+# echo "$bat_state | $bat_per | $bat_time"
+# |> Label <|
+# if [ "$sys_HOST" ]; then
+#   sys_LABEL="$sys_TYPE"_"$sys_HOST"
+# else
+#   sys_LABEL="${sys_TYPE}_${sys_ARCH}_${sys_USER}"
+# fi
+
+# sys_LABEL_long="$(
+#   cat <<INF
+#     >>== type ==>>  $sys_TYPE
+#     >>== arch ==>>  $sys_ARCH
+#     >>== name ==>>  $sys_NAME
+#     >>== host ==>>  $sys_HOST
+#     >>== user ==>>  $sys_USER
+#     >>== wmde ==>>  $sys_WM_DE
+#     >>== .ver ==>>  $sys_VERSION
+#     >>== .cli ==>>  $sys_SHELL
+# INF
+# )"
+
+__fetch__() {
+  # Colors and palette method stolen from dylanaraps pftech
+  # https://github.com/dylanaraps/pfetch
+  c0='[0m'
+  c1='[31m'
+  c2='[32m'
+  c3='[33m'
+  c4='[34m'
+  c5='[35m'
+  c6='[36m'
+  c7='[37m'
+  c8='[38m'
+  palette="[7m$c1 $c1 $c2 $c2 $c3 $c3 $c4 $c4 $c5 $c5 $c6 $c6 $c7 $c8 [m"
+
+  # Output
+  printf '%s\n' "
+
+    ${c5}     .-.         ${sys_USER}${c0}@${c5}${sys_HOST}
+    ${c5}  __/   (        ${c6}os${c0}      $sys_NAME
+    ${c5}, '-.____\\       ${ARTR3}${c6}kernel${c0}  $sys_VERSION
+    ${c5} u=='/  \\        ${c6}shell${c0}   $sys_SHELL
+    ${c5}    /_/  \\       ${c6}wm${c0}      ${sys_WM_DE}
+    ${c5}  .-''   |
+    ${c5} (  ${c6}____${c5}/${c6}_____   ${palette}
+
+"
+}
+
+# #| Accept options
+# case "$1" in
+# -o | --os) sys_os ;;
+# -t | --type) sys_type ;;
+# -k | --kernel) sys_kernel ;;
+# -a | --arch) sys_arch ;;
+# -h | --host) sys_host ;;
+# -u | --user) sys_user ;;
+# -s | --shell) sys_shell ;;
+# -w | --wm) sys_wm ;;
+# # -b | --battery) eko "$(mango --de-space "$sys_BAT")" ;;
+# # -l | --label) eko "$(mango --de-space "$sys_LABEL")" ;;
+# -ll | --label-long) eko "$sys_LABEL_long" ;;
+# -f | --fetch) __fetch__ ;;
+# *) ;;
+# esac
+
+sys_os

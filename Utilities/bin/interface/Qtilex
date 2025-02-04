@@ -1,0 +1,55 @@
+#!/bin/sh
+
+RC_QTILE="${RC_QTILE:-"$HOME/.config/qtile/config.py"}"
+XDISPLAY=${XDISPLAY:-:1}
+LOG_LEVEL=${LOG_LEVEL:-INFO}
+[ "$PYTHON" ] || PYTHON=python3
+
+__start__() {
+    sleep 1
+    env DISPLAY="${XDISPLAY}" "${PYTHON}" /bin/qtile start -c "${RC_QTILE}" -l "${LOG_LEVEL}" "$@" &
+    QTILE_PID=$!
+    wait "$QTILE_PID"
+    pkill "$XEPHYR_PID"
+}
+
+__run__() {
+
+    echo Qtile before
+    echo "wayland: ${WAYLAND_DISPLAY}"
+    echo "x11: ${DISPLAY}"
+    { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } && return 1
+    echo Qtile before
+    echo "wayland: ${WAYLAND_DISPLAY}"
+    echo "x11: ${DISPLAY}"
+    __start__ "$@"
+    # if [ -z "$DISPLAY" ] && [ "$(tty)" = /dev/tty1 ]; then
+    #     if [ "$RC_xinit" ]; then
+    #         startx "$RC_xinit"
+    #         echo "X"
+    #     else
+    #         startx
+    #     fi
+    # fi
+    # . /storage/Dotfiles/Environment/core/display/.env/X11
+    # . /storage/Dotfiles/Config/tools/utilities/X11/xinitrc.sh
+    # /bin/qtile start -c "${RC_QTILE}"
+    # echo "$RC_QTILE"
+
+}
+
+__test__() {
+    SCREEN_SIZE=${SCREEN_SIZE:-800x600}
+    Xephyr +extension RANDR -screen "${SCREEN_SIZE}" "${XDISPLAY}" -ac &
+    XEPHYR_PID=$!
+
+    __start__ "$@"
+}
+
+case $1 in
+--test)
+    shift
+    __test__ "$@"
+    ;;
+*) __run__ "$@" ;;
+esac

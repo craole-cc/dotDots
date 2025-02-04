@@ -1,0 +1,18 @@
+#!/bin/sh
+
+wehave() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+if [ "$#" -eq 0 ]; then
+  echo "Usage: $0 <file>"
+  return 1
+elif wehave trash; then
+  trash "$@"
+elif wehave cnc; then
+  cnc "$@"
+elif wehave trash-put; then
+  trash-put "$@"
+elif wehave rm; then
+  rm --interactive --recursive "$@"
+fi

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#@ Detailed tree
+lx --all --long --tree "$@"

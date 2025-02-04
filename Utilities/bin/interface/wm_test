@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# _USAGE="UGAGE: WMinit <window manager>"
+# case "$1" in
+# sway)
+
+#     WM_NAME="sway"
+#     WM_CONF_NAME="config"
+#     # . ./wm/env/Sway
+#     ;;
+# wayfire)
+#     WM_NAME="wayfire"
+#     WM_CONF_NAME="wayfire.ini"
+#     ;;
+# river)
+#     WM_NAME="river"
+#     WM_CONF_NAME="init"
+#     ;;
+# *)
+#     printf "\t::USAGE::\n %s\n %s\n" \
+#         "WMinit <window manager>" \
+#         "    eg. WMinit sway   "
+#     return 1
+#     ;;
+# esac
+
+# case "$WM_NAME" in
+# sway | river | wayfire) WM_TYPE="wayland" ;;
+# *) ;;
+# esac
+
+
+echo "$DOTS"
+echo "WM_CONF: $WM_CONF_NAME"

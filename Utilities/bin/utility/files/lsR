@@ -1,0 +1,9 @@
+#!/bin/sh
+
+case $1 in
+-l | -v | --long)
+  shift
+  ll "$@" --recursive | less
+  ;;
+*) la "$@" --recursive | less ;;
+esac

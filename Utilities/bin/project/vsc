@@ -1,0 +1,10 @@
+#!/bin/sh
+
+path="$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')"
+
+
+case "$path" in
+*say* | data) VScode /data/github_craole-cc/say_data ;;
+dots) VScode --dots ;;
+*) VScode "$@" ;;
+esac

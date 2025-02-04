@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# shellcheck disable=SC3046
+
+# case "$0" in
+# bash)
+#   eval "$(starship init bash)"
+#   echo "this is bash"
+#   ;;
+# # *GitBASH* | *baSHell*) skipPOSIX eval "$(starship init bash)" ;;
+# zsh) eval "$(starship init zsh)" ;;
+# fish) starship init fish | source ;;
+# nu) echo "this is nu" ;;
+# *) echo pop ;;
+# esac
+
+# echo "$current_shell"
+# case "$current_shell" in
+# *bash*) echo bash ;;
+# *zsh*) echo zsh ;;
+# *fish*) echo fish ;;
+# *nu*) echo nu ;;
+# *) ;;
+# esac
+
+__shell__() {
+  pid="$$"
+
+  set -- sh bash zsh ksh ash dash csh tcsh pdksh mksh fish nu psh rc scsh bournesh wish Wish login
+  unset echo env sed ps lsof awk getconf
+
+  # getconf _POSIX_VERSION  # reliable test for availability of POSIX system?
+  PATH="$(PATH=/usr/bin:/bin:/usr/sbin:/sbin getconf PATH)"
+  # shellcheck disable=SC2181
+  [ $? -ne 0 ] && {
+    echo "'getconf PATH' failed"
+    exit 1
+  }
+  export PATH
+
+  type lsof 1>/dev/null 2>&1 || {
+    echo "lsof is required for this operation"
+    exit 1
+  }
+
+  awkstr="$(echo "$@" | sed 's/\([^ ]\{1,\}\)/|\/\1/g; s/ /$/g' | sed 's/^|//; s/$/$/')"
+
+  ppid="$(env -i PATH="${PATH}" ps -p "$pid" -o ppid=)"
+  [ "${ppid}"X = ""X ] && {
+    echo "no ppid found"
+    exit 1
+  }
+
+  # shellcheck disable=SC2086
+  lsofstr="$(lsof -p $ppid)" ||
+    {
+      printf "%s\n" "lsof failed" "try: sudo lsof -p \`ps -p \$\$ -o ppid=\`"
+      exit 1
+    }
+
+  printf "%s\n" "${lsofstr}" |
+    LC_ALL=C awk -v var="${awkstr}" '$NF ~ var {print $NF}'
+
+}
+
+# SHell
+case "$(__shell__)" in
+*ash) neofetch ;;
+*zsh) . "$RC_zsh" ;;
+*fish) . "$RC_fish" ;;
+*nu) . "$RC_nush" ;;
+esac

@@ -1,0 +1,74 @@
+#!/bin/sh
+
+	#| Help
+	__help__() {
+		_USAGE="::USAGE:: rcEdit [RC] <EDITOR>"
+		printf "%s\n" "$_USAGE"
+		return 1
+	}
+	
+	__opts__() {
+		case "$1" in 
+			'-h'|'--help') __help__ ;;
+			*) 
+				if [ "$#" -eq 0 ] ;then
+					__help__
+				else
+					__process__ "$@"
+				fi
+				;;
+		esac
+	}	
+
+	__process__() {
+		#| Validate RC File
+		if [ -f "$1" ] ;then
+			_RC="$1"
+		else
+			printf "%s is not a valid config file\n" "$_RC"
+		fi
+
+		#| Set Editor
+        # EDITOR
+            weHave vim && _TTY=vim
+            weHave nvim && _TTY=nvim
+            weHave "$2" && _TTY="$2"
+        
+        # VISUAL
+            weHave code-oss && _VISUAL=code-oss
+            weHave code && _VISUAL=code
+            weHave "$2" && _VISUAL="$2"
+
+        # TERM
+            weHave kitty && _EMULATOR="kitty --detatch"
+            weHave alacritty && _EMULATOR="alacritty --command"
+            weHave foot-client && _EMULATOR="footclient"
+
+        case "$(tty)" in
+        *"/dev/tty"*) [ "$_TTY" ] && _EDITOR="$_TTY" ;;
+        *) 
+            if [ "$_VISUAL" ] ;then
+                _EDITOR="$_VISUAL"
+            elif [ "$_TTY" ] ;then
+                _EDITOR="$_EMULATOR" "$_TTY"
+            fi
+            ;;
+        esac
+		
+		#| Process
+		if 
+			#| Root or Owner
+			[ "$isROOT" ] || [ -O "$_RC" ]
+		then
+			"$_EDITOR" "$_RC"
+		else
+			sudo "$_EDITOR" "$_RC"
+		fi
+	}
+
+	#| Cleanup
+	__cleanup__() { unset _RC _EDITOR _USAGE ;}
+
+	#| Main
+	__opts__ "$@"
+	__cleanup__

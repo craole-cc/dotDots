@@ -1,0 +1,174 @@
+#!/bin/sh
+
+establish_environment() {
+  #@ Establish script information
+  scr_name="get_distro_name"
+  scr_version="1.0"
+  scr_usage="$(
+    printf "Usage: %s [OPTIONS]\n" "$scr_name"
+    printf "Options:\n"
+    printf "  -h, --help      Display this help message\n"
+    printf "  -v, --version   Display script version\n"
+    printf "  -d, --verbose   Enable detailed messaging\n"
+  )"
+
+  #@ Set default values
+  label="OS Distribution Name"
+  verbosity=0
+  exit_code=0
+  dud="Unknown"
+  unset info_source output
+
+  #@ Establish utility functions
+  initialize_utilities
+}
+
+initialize_utilities() {
+  weHave() {
+    #@ Check if the info_source is available
+    info_source="$1"
+
+    if command -v "$info_source" >/dev/null 2>&1; then
+      return 0
+    elif [ -f "$info_source" ]; then
+      return 0
+    else
+      unset info_source
+      return 1
+    fi
+  }
+
+  get_via_os_release() {
+    if weHave "/etc/os-release"; then
+      info="$(
+        awk -F '"' '/PRETTY_NAME/ {print $2}' /etc/os-release
+      )"
+    elif weHave "/etc/debian_version"; then
+      info="Debian $(cat /etc/debian_version)"
+    elif weHave "/etc/redhat-release"; then
+      info="$(cat /etc/redhat-release)"
+    else
+      return 1
+    fi
+  }
+
+  get_via_issue() {
+    #@ Check if issue exists
+    weHave "/etc/issue" || return 1
+
+    #@ Extract the line containing "Welcome"
+    info="$(awk '/Welcome/{print; exit}' /etc/issue)"
+
+    #@ Extract everything after "Welcome to "
+    info="${info#*Welcome to }"
+
+    #@ Extract the first 2 columns
+    info="$(
+      printf "%s" "$info" | awk '{print $1 " " $2}'
+    )"
+  }
+
+  get_via_hostnamectl() {
+    #@ Check if hostnamectl is installed
+    weHave hostnamectl || return 1
+
+    #@ Return the distro name
+    info="$(
+      hostnamectl | awk -F ': ' '/Operating System/ {print $2}'
+    )"
+  }
+
+  get_via_uname() {
+    #@ Check if uname is installed
+    weHave uname || return 1
+
+    #@ Extract the version number
+    info="$(uname --kernel-name)" # eg. MINGW64_NT-10.0-22621
+    info="${info#*-}"             # eg. 'MINGW64_NT-10.0-22621' ->'10.0-22621'
+    # info="${info%%-*}"            # eg. '10.0-22621' -> '10.0'
+  }
+
+  get_via_python() {
+    #@ Check if python is installed
+    weHave python || return 1
+
+    #@ Get the OS release/version (e.g., "10.0.19043" for Windows)
+    info="$(
+      python -c 'import platform; print(platform.version())'
+    )"
+  }
+}
+
+present_info() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+      if [ "$2" ]; then
+        output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
+        shift
+      else
+        output="$scr_usage"
+      fi
+      ;;
+    -v | --version)
+      output="$scr_version"
+      ;;
+    *) output="$1" ;;
+    esac
+
+    #@ Print the output
+    if [ "$verbosity" -gt 0 ]; then
+      if [ "$info_source" ]; then
+        printf "%s via %s: %s" "$label" "$info_source" "$output"
+      else
+        printf "%s: %s" "$label" "$output"
+      fi
+    else
+      printf "%s" "$output"
+    fi
+
+    #@ Continue to the next argument
+    shift
+  done
+}
+
+process_info() {
+  false ||
+    get_via_issue ||
+    get_via_hostnamectl ||
+    get_via_os_release ||
+    get_via_uname ||
+    get_via_python ||
+    exit_code=1
+
+  present_info "${info:-$dud}"
+}
+
+main() {
+  #@ Initialize the script environment
+  establish_environment
+
+  #@ Parse the arguments
+  while [ "$#" -gt 0 ]; do
+    case $1 in
+    -d | --verbose)
+      verbosity=1
+      ;;
+    -h | --help | -v | --version)
+      present_info "$1"
+      return 0
+      ;;
+    *)
+      present_info --help "Unknown option: $1"
+      return 1
+      ;;
+    esac
+    shift
+  done
+
+  #@ Retrieve the requested information
+  process_info
+
+  #@ Terminate the script with the appropriate exit code
+  return "$exit_code"
+} && main "$@"

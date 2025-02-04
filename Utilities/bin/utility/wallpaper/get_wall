@@ -1,0 +1,67 @@
+#!/bin/sh
+
+# Cross-Platform POSIX Shell Desktop Wallpaper Finder
+# Attempts to locate the current desktop wallpaper
+
+find_wallpaper() {
+  # MacOS Wallpaper (requires osascript)
+  if [ "$(uname)" = "Darwin" ]; then
+    osascript -e 'tell application "System Events" to path of desktop picture' 2>/dev/null
+    return $?
+  fi
+
+  # Try various Desktop Environment config files and methods
+
+  # GNOME (look in dconf/gsettings backup)
+  gnome_wallpaper=$(grep "picture-uri" "$HOME/.config/dconf/user" 2>/dev/null |
+    sed -n 's/.*file:\/\/\(.*\)".*/\1/p' |
+    head -n 1)
+  if [ -n "$gnome_wallpaper" ] && [ -f "$gnome_wallpaper" ]; then
+    printf '%s\n' "$gnome_wallpaper"
+    return 0
+  fi
+
+  # KDE (look in config file)
+  kde_wallpaper=$(
+    grep "Image=" "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" 2>/dev/null |
+      sed -n 's/^.*Image=file:\/\/\(.*\)$/\1/p' |
+      head -n 1
+  )
+  if [ -n "$kde_wallpaper" ] && [ -f "$kde_wallpaper" ]; then
+    printf '%s\n' "$kde_wallpaper"
+    return 0
+  fi
+
+  # XFCE (look in config)
+  xfce_wallpaper=$(grep "last-image" "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml" 2>/dev/null |
+    sed -n 's/.*last-image=\"\(.*\)\".*/\1/p' |
+    head -n 1)
+  if [ -n "$xfce_wallpaper" ] && [ -f "$xfce_wallpaper" ]; then
+    printf '%s\n' "$xfce_wallpaper"
+    return 0
+  fi
+
+  # Fallback: search common wallpaper directories
+  for dir in "$HOME/Pictures/Wallpapers" "$HOME/Wallpapers" "/usr/share/backgrounds"; do
+    if [ -d "$dir" ]; then
+      first_wallpaper=$(find "$dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" \) -print -quit 2>/dev/null)
+      if [ -n "$first_wallpaper" ]; then
+        printf '%s\n' "$first_wallpaper"
+        return 0
+      fi
+    fi
+  done
+
+  return 1
+}
+
+# Main execution
+wallpaper=$(find_wallpaper)
+
+if [ -n "$wallpaper" ]; then
+  printf 'Current Wallpaper: %s\n' "$wallpaper"
+  exit 0
+else
+  printf 'Could not locate current wallpaper.\n' >&2
+  exit 1
+fi

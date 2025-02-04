@@ -1,0 +1,169 @@
+#!/bin/sh
+
+parse_arguments() {
+  for arg in "$@"; do
+    case $arg in
+    -d | --simulate | --verbose) simulate=true ;;
+    -h | --help) printf "%s" "USAGE" ;;
+    -v | --version) printf "%s" "VERSION" ;;
+    *)
+      #@ Reset variables
+      unset \
+        attribute attribute_cmd \
+        color_name color_type color_cmd color_code
+
+      #@ Set default alignment
+      alignment="left"
+      ;;
+    esac
+  done
+
+  while [ $# -ge 1 ]; do
+    unset attribute attribute_cmd tput_code ansi_code class
+
+    case $1 in
+    --reset)
+      attribute="reset"
+      tput_code="sgr0"
+      ansi_code="0"
+      stylize
+      ;;
+    --bold)
+      attribute="bold"
+      tput_code="bold"
+      ansi_code="1"
+      stylize
+      ;;
+    --dim)
+      attribute="dim"
+      tput_code="dim"
+      ansi_code="2"
+      stylize
+      ;;
+    --italic)
+      attribute="italic"
+      tput_code="sitm"
+      ansi_code="3"
+      stylize
+      ;;
+    --underline)
+      attribute="underline"
+      tput_code="smul"
+      ansi_code="4"
+      stylize
+      ;;
+    --blink)
+      attribute="blink"
+      tput_code="blink"
+      ansi_code="5"
+      stylize
+      ;;
+    --double-underline | --double*)
+      attribute="double underline"
+      tput_code=""
+      ansi_code="6"
+      stylize
+      ;;
+    --invert| --highlight | --standout)
+      attribute="invert"
+      tput_code="smso"
+      ansi_code="7"
+      stylize
+      ;;
+    --hidden)
+      attribute="hidden"
+      tput_code="invis"
+      ansi_code="8"
+      stylize
+      ;;
+    --strikethrough | --strike*)
+      attribute="strikethrough"
+      tput_code=""
+      ansi_code="9"
+      stylize
+      ;;
+
+    -*black | -*red | -*green | -*yellow | -*blue | -*magenta | -*cyan | -*white)
+      attribute="color"
+
+      #@ Set the color name and code
+      case "$1" in
+      *black) color_name="black" color_code=0 ;;
+      *red) color_name="red" color_code=1 ;;
+      *green) color_name="green" color_code=2 ;;
+      *yellow) color_name="yellow" color_code=3 ;;
+      *blue) color_name="blue" color_code=4 ;;
+      *magenta) color_name="magenta" color_code=5 ;;
+      *cyan) color_name="cyan" color_code=6 ;;
+      *white) color_name="white" color_code=7 ;;
+      esac
+
+      #@ Set the color type
+      case "$1" in
+      *bg*)
+        class="background"
+        tput_code="setab ${color_code}"
+        ansi_code="4${color_code}"
+        ;;
+      *fg* | *)
+        class="foreground"
+        tput_code="setaf ${color_code}"
+        ansi_code="3${color_code}"
+        ;;
+      esac
+
+      stylize
+      ;;
+    -l | --new-line)
+      attribute="position"
+      attribute_cmd="printf \"\n"\"
+      stylize
+      ;;
+    -s | --space)
+      attribute="position"
+      attribute_cmd="printf \" "\"
+      stylize
+      ;;
+    --center)
+      alignment="center"
+      ;;
+    --right)
+      alignment="right"
+      ;;
+    --left)
+      alignment="left"
+      ;;
+    -*) ;;
+    *)
+      attribute="text"
+      attribute_cmd="printf \"$1\""
+      stylize
+      ;;
+    esac
+    shift
+  done
+}
+
+stylize() {
+  #@ Set the styling system [TPUT vs ANSI]
+  if type tput >/dev/null 2>&1 && [ "$tput_code" ]; then
+    attribute_cmd="tput ${tput_code}"
+  else
+    [ "$attribute_cmd" ] ||
+      attribute_cmd="printf \"\033[${ansi_code}m\""
+  fi
+
+  if [ "$simulate" ]; then
+
+    #@ Print a line of repeated characters
+    charline "*"
+
+    #@ Print the attribute information
+    printf "ATTR: %s \nCODE: %s\n" \
+      "$attribute" "$attribute_cmd"
+  else
+    eval "$attribute_cmd"
+  fi
+}
+
+parse_arguments "$@"

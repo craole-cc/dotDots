@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# ytdon - a cross-platform posix-compliant binary to download YouTube videos using yt-dlp
+
+# Function to handle user input for media type
+media_input() {
+  echo "Enter media type (video/audio):"
+  read -r media
+  if [ "$media" != "video" ] && [ "$media" != "audio" ]; then
+    echo "Invalid input. Setting media type to video/audio by default."
+    media="video"
+  fi
+}
+
+# Function to handle user input for quality
+quality_input() {
+  echo "Enter quality (hd/sd):"
+  read quality
+  if [ "$quality" != "hd" ] && [ "$quality" != "sd" ]; then
+    echo "Invalid input. Setting quality to hd (1080p resolution, 320kbps at 24-bit) by default."
+    quality="hd"
+  fi
+}
+
+# Function to handle user input for link
+link_input() {
+  echo "Enter YouTube link:"
+  read link
+}
+
+# Function to check if file already exists and handle user input for overwrite/skip/rename
+handle_existing_file() {
+  if [ -f "$file_name" ]; then
+    echo "File already exists. What would you like to do?"
+    echo "1. Overwrite"
+    echo "2. Skip"
+    echo "3. Rename"
+    read choice
+    case $choice in
+    1) echo "Overwriting file..." ;;
+    2)
+      echo "Skipping file..."
+      return 1
+      ;;
+    3)
+      echo "Enter new file name:"
+      read new_file_name
+      file_name=$new_file_name
+      ;;
+    *)
+      echo "Invalid input. Skipping file..."
+      return 1
+      ;;
+    esac
+  fi
+}
+
+# Function to download video/audio
+download() {
+  if [ "$media" == "video" ]; then
+    if [ "$quality" == "hd" ]; then
+      yt-dlp -f best -o "$file_name" "$link"
+    else
+      yt-dlp -f best[height=360] -o "$file_name" "$link"
+    fi
+  else
+    if [ "$quality" == "hd" ]; then
+      yt-dlp -f bestaudio -o "$file_name" "$link"
+    else
+      yt-dlp -f bestaudio[abr -o "$file_name" "$link" <=128]
+    fi
+  fi
+}
+
+# Main script
+
+# Default values
+media="video"
+quality="hd"
+
+# User input
+media_input
+quality_input
+link_input
+
+# Get file name and folder name
+file_name=$(yt-dlp --get-filename -o "%(title)s.%(ext)s" "$link")
+folder_name=$(yt-dlp --get-id "$link")
+
+# Check if link is for a playlist or channel
+if [ "$folder_name" != "" ]; then
+  if [ ! -d "$folder_name" ]; then
+    mkdir "$folder_name"
+  fi
+  file_name="$folder_name/$file_name"
+fi
+
+# Check if file already exists and handle user input
+handle_existing_file
+download
+
+echo "Download complete!"

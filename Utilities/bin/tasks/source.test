@@ -1,0 +1,3 @@
+#!/bin/sh
+
+source.init --bin /store/DOTS/Test/bin/1

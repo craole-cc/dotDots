@@ -1,0 +1,3 @@
+#!/bin/sh
+
+kitty --config "$DOTS_APP/kitty/kitty.conf"

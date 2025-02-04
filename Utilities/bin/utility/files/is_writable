@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# ancestor_dir="$(ancestor "$1")"
+# dir_owner="$(stat --format=%U "$ancestor_dir")"
+# current_user="$(whoami)"
+
+# if
+#   [ "$dir_owner" != "$current_user" ] || [ ! -w "$ancestor_dir" ]
+# then
+#   41one "Elevation required for operations in $ancestor_dir"
+#   exit 0
+# else
+#   41one "No elevation required for operations in $ancestor_dir"
+#   exit 1
+# fi
+
+ancestor_dir="$(ancestor "$1")"
+
+if [ -w "$ancestor_dir" ]; then
+  41one "No elevation required for operations in $ancestor_dir"
+  exit 0
+else
+  41one "Elevation required for operations in $ancestor_dir"
+  exit 1
+fi

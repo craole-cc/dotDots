@@ -1,0 +1,125 @@
+#!/bin/sh
+
+#@ __________________________________________________ INFO<|
+
+__ver__() {
+    echo "1.0"
+}
+
+__help__() {
+    emojify "                      :spiral_notepad:  USAGE
+        command <[options]> <[files]>
+        >>> sortFile --row list.txt <<<
+:arrow_forward: ----------------------------------------------- :arrow_backward:
+    -c --col       List down [Default]
+    -r --row       List across
+    -h --help      Usage guide
+"
+}
+
+__error__() {
+    case $1 in
+    -o | --opt)
+        emojify ":dizzy_face: Please double-check the attachment, it's missing." >&2
+        echo ""
+        __help__
+        exit 1
+        ;;
+    -f | --file)
+        shift
+        emojify ":scream: \"$*\" is not a file. " >&2
+        ;;
+    *)
+        echo nest
+        ;;
+    esac
+}
+
+#@ __________________________________________________ CORE<|
+
+__col__() {
+    if [ -f "$*" ]; then
+        sort "$*" \
+            --ignore-nonprinting \
+            --ignore-leading-blanks
+    else
+        __error__ --file "$*"
+    fi
+}
+
+__row__() {
+    __col__ "$@" | column
+}
+
+__out__() {
+    if [ "$ROW" ]; then
+        __row__ "$@"
+    else
+        __col__ "$@"
+    fi
+}
+
+#@ __________________________________________________ TEST<|
+
+__test__() {
+    printf "%stoROW: $HELP\n"
+    printf "%stoCOL: $VER\n"
+    printf "%stoROW: $ROW\n"
+    printf "%stoCOL: $COL\n"
+    printf "%sARG #: $#\n"
+    printf "%s    1: $1\n"
+    printf "%s    2: $2\n"
+    printf "%s    3: $3\n"
+    printf "%s    4: $4\n"
+    printf "%s    5: $5\n\n"
+}
+
+#@ ___________________________________________________ MAIN<|
+
+__main__() {
+
+    #> Options <#
+    case $1 in
+    '-h' | '--help') HELP=true ;;
+    '-v' | '--version') VER=true ;;
+    '-r' | '--row')
+        ROW=true
+        shift
+        ;;
+    '-c' | '--col')
+        COL=true
+        shift
+        ;;
+    *) ;;
+    esac
+
+    #> Test <#
+    # __test__ "$@"
+
+    #> Run <#
+    if [ "$HELP" ]; then
+        __help__
+        exit 0
+    elif [ "$VER" ]; then
+        __ver__
+        exit 0
+    elif [ "$#" -eq 0 ]; then
+        __error__ --opt
+    elif [ $# -gt 1 ]; then
+        i=0
+        for file in "$@"; do
+            i=$((i + 1))
+            emojify ":arrow_forward: $i :arrow_backward:"
+            __out__ "$file"
+            echo ""
+        done
+    else
+        __out__ "$@"
+    fi
+}
+
+__main__ "$@"
+
+#@ __________________________________________________ TIDY<|
+
+# unset HELP VER ROW COL

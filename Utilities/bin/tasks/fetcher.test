@@ -1,0 +1,16 @@
+#!/bin/sh
+
+script="$DOTS/Bin/inf/sysinf"
+
+test_get_os_type() {
+  result=$(get_os_type)
+  expected="GNU/Linux"  # Update with expected result
+  if [ "$result" = "$expected" ]; then
+    echo "get_os_type: Passed"
+  else
+    echo "get_os_type: Failed. Expected: $expected, Actual: $result"
+  fi
+}
+
+# Run the test
+test_get_os_type

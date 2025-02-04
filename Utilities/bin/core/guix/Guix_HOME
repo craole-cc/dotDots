@@ -1,0 +1,21 @@
+#!/bin/sh
+
+targetFILE="${DOTS_GUIX}/home.scm"
+archiveFILE="${DOTS_GUIX}/archive/$(basename "$targetFILE")"
+
+__backupSCM__() {
+    mkdir --parents "$(dirname "$archiveFILE")"
+    mv --backup=numbered --update --verbose \
+        "${targetFILE}" "${archiveFILE}"
+}
+
+init_guix_home() {
+    __backupSCM__
+    guix home import "${targetFILE}"
+}
+update_guix_home() { guix home reconfigure "${targetFILE}"; }
+
+case "$1" in
+-r | -f | --reset) init_guix_home ;;
+*) update_guix_home ;;
+esac

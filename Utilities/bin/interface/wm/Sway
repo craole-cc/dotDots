@@ -1,0 +1,9 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+#| Load variables
+. "${DOTS_ENV_CTX}/sway"
+. "${DOTS_ENV_CTX}/wayland"
+
+#| Initialize with specific config
+sway --config "${DESKTOP_HOME}/${DESKTOP_CONF}"

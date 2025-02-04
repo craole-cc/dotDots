@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# Define the usage message
+usage() {
+  printf "Usage: %s [-s | --single] [-d | --double] <string>\n" "$0"
+}
+
+#@ Set default quotation mark
+qm="'"
+
+# Parse the command-line options
+while [ $# -gt 0 ]; do
+  case "$1" in
+  -s | --single) qm="'" ;;
+  -d | --double) qm="\"" ;;
+  -b | --backtick) qm="\`" ;;
+  -c | --code) qm="\`\`\`" ;;
+  -t | --tilde) qm="~" ;;
+  -a | --at) qm="@" ;;
+  -H | --hash) qm="#" ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  --) # End of options
+    shift
+    break
+    ;;
+  -*)
+    printf "%s: invalid option -- '%s'\n" "$0" "${1#-}" >&2
+    usage >&2
+    exit 1
+    ;;
+  *)
+    break
+    ;;
+  esac
+  shift
+done
+
+# Check that a string argument was provided
+if [ $# -ne 1 ]; then
+  usage >&2
+  exit 1
+fi
+
+# Escape any quotation marks in the string
+string="$1"
+escaped_string="$(
+  printf '%s' "$string" | sed "s/$qm/$qm\\\\$qm/g"
+)"
+
+# Enclose the string in quotation marks
+printf '%s%s%s' "$qm" "$escaped_string" "$qm"

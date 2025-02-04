@@ -1,0 +1,75 @@
+#!/bin/sh
+#dependency yt-dlp
+
+__opts__() {
+  for flag in "$@"; do
+    case "$flag" in
+    -h | --help) __help__ ;;
+    -v | --version) __version__ ;;
+    -d | --verbose) verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -f | --overwrite) force=true ;;
+    --audio) audio=true ;;
+    --hd) resolution=1080 ;;
+    --sd) resolution=360 ;;
+    esac
+  done
+
+  #todo add a while loop to accept user input for format
+  #todo search fot url
+}
+
+url="${1:-https://youtu.be/yaie5Uia4k8}"
+resolution=360
+filename="%(title)s.%(ext)s"
+format="mp3"
+# filename="$(yt-dlp --get-filename -o "%(title)s.%(ext)s" "$link" | tr -c '[:alnum:]._-' '_')"
+
+__process__() {
+  #@ Overwrite
+  if [ "$force" ]; then
+    if [ "$audio" ]; then
+      yt-dlp "$url" \
+        --force-overwrites \
+        --extract-audio \
+        --output "$filename"
+    elif [ "$resolution" ]; then
+      yt-dlp "$url" \
+        --force-overwrites \
+        --audio-format "$format" \
+        --format-sort "height:$resolution" \
+        --output "$filename"
+    else
+      yt-dlp "$url" --output "$filename"es
+    fi
+    #@ Skip
+  else
+    if [ "$audio" ]; then
+      yt-dlp "$url" \
+        --extract-audio \
+        --audio-format "$format" \
+        --output "$filename"
+    elif [ "$resolution" ]; then
+      yt-dlp "$url" \
+        --format-sort "height:$resolution" \
+        --output "$filename"
+    else
+      yt-dlp "$url" --output "$filename"
+    fi
+  fi
+}
+__audio__() {
+  # yt-dlp -f 'ba' -x --audio-format mp3 "$link" -o '%("$title")s.mp3'
+  yt-dlp \
+    --format 'ba' \
+    -x \
+    --audio-format "$format" "$link" -o "$file" --ignore-errors --audio-quality 0
+}
+
+__opts__ "$@"
+[ "$audio" ] &&
+  printf \
+    "yt-dlp -f 'ba' -x --audio-format '%s' \"%s\" -o '%s'\n" \
+    "$format" "$link" "$file"
+
+__process__

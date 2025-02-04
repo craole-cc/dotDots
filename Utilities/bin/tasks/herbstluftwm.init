@@ -1,0 +1,33 @@
+#!/bin/sh
+# shellcheck disable=SC1091
+
+_APP=herbstluftwm
+
+#@ Exit if not installed
+# weHave "$_APP" || {
+#     printf "🚫 %s not found in PATH\n" "$_APP"
+#     exit 1
+# }
+
+#@ Load Environment Variables
+. "$DOTS_ENV_CTX/herbstluftwm"
+
+#@ Initialize alias
+hc() { herbstclient "$@"; }
+
+#@ Initialize modules
+for module in "${_MODS}"/*; do
+  case "$(basename "$module")" in
+  panel*) #| Panels for each monitor
+    for monitor in $(hc list_monitors | cut -d: -f1); do
+      "$panel" "$monitor" &
+    done
+    ;;
+  *) #| Other modules
+    . "$module"
+    ;;
+  esac
+done
+
+# hc split vertical 0.6
+# hc remove

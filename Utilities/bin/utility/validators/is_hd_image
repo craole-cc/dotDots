@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -e # Exit immediately if any command below fails
+set -u # Treat unset variables as errors
+
+verbosity=0
+
+check_image() {
+  #@ Set the file to check
+  if ! file "$1" | grep -q "image"; then
+    [ "$verbosity" -gt 0 ] && echo "Not an image: $1"
+    exit 1
+  else
+    image_file="$1"
+  fi
+
+  #@ Set the minimum width and height for an image to be considered HD
+  min_width=1280
+  min_height=720
+
+  #@ Get the dimensions of the image
+  dimensions=$(identify -format "%wx%h" "$image_file")
+  width=${dimensions%x*}
+  height=${dimensions#*x}
+
+  #@ Return true if the image is HD
+  [ "$width" -ge "$min_width" ] && [ "$height" -ge "$min_height" ]
+}
+
+check_image "$1"

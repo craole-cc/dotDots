@@ -1,0 +1,10 @@
+#!/bin/sh
+
+user="${1:-$(INFor --user)}"
+
+[ "$user" = "root" ] && {
+  printf "%s" "Logging out root would crash the system"
+  exit 1
+}
+
+sudo pkill -KILL -u "$user"

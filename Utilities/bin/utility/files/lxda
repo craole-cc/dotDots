@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#@ Sort by date accessed
+lx --all --long --sort=acc "$@"

@@ -12,4 +12,5 @@
 
   TERM="xterm-256color"
   COLORTERM="truecolor"
-  EDITOR="VScode"
+  EDITOR="hx"
+  VISUAL="VScode"

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# START=$(./epoch)
+# . "$1"
+# END=$(./epoch)
+# echo "$END - $START" | bc

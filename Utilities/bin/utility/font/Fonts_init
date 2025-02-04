@@ -1,0 +1,42 @@
+#!/bin/sh
+
+#| Source DIR
+conf_src="$DOTS_FONT/config"
+configs="$(
+    find "$conf_src" \
+        -type f \
+        -name "*.conf"
+)"
+
+#| Config DIR
+# conf_des="/etc/fonts/conf.d"
+conf_des="$CONFIG_HOME/fontconfig/conf.d"
+[ -d "$conf_des" ] || mkdir --parents "$conf_des"
+
+
+__new__() {
+    LANG=C
+    diff --brief --recursive "$conf_src" "$conf_des" |
+        grep "$conf_src*"
+}
+
+__link__() {
+    if [ -O "$conf_des" ]; then
+        ln --symbolic --force "$1" "$2"
+    else
+        sudo ln --symbolic --force "$1" "$2"
+    fi
+}
+
+__process__() {
+    for config in $configs; do
+        __link__ "$config" "$conf_des"
+    done
+}
+
+__cleanup__() {
+    unset force verbose conf_src conf_des configs
+}
+
+__process__
+__cleanup__

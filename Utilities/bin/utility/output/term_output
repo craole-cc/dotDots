@@ -1,0 +1,395 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+
+__tput__() {
+  #@ Ensure `tput` is available
+  type tput >/dev/null 2>&1 || return
+
+  #@ Declare colors for supported terminals
+  case "$TERM" in *-m) return ;; esac
+
+  #| Text Effects
+  tfx_reset="$(tput sgr0)"        # Turn off all attributes
+  tfx_bold="$(tput bold)"         # Bold
+  tfx_dim="$(tput dim)"           # Half-bright
+  tfx_italic="$(tput sitm)"       # Italic
+  tfx_italic_reset="$(tput ritm)" # End italic
+  tfx_underline="$(tput smul)"    # Underline
+  tfx_under_reset="$(tput rmul)"  # End underline
+  tfx_invert="$(tput smso)"       # Stand-out
+  tfx_invert_reset="$(tput rmso)" # End stand-out
+  tfx_hidden="$(tput invis)"      # Invisible
+  tfx_blink="$(tput blink)"       # Blink
+
+  #| Text Colors
+  clr_fg_black="$(tput setaf 0)"
+  clr_bg_black="$(tput setab 0)"
+  clr_fg_red="$(tput setaf 1)"
+  clr_bg_red="$(tput setab 1)"
+  clr_fg_green="$(tput setaf 2)"
+  clr_bg_green="$(tput setab 2)"
+  clr_fg_blue="$(tput setaf 4)"
+  clr_bg_blue="$(tput setab 4)"
+  clr_fg_magenta="$(tput setaf 5)"
+  clr_bg_magenta="$(tput setab 5)"
+  clr_fg_cyan="$(tput setaf 6)"
+  clr_bg_cyan="$(tput setab 6)"
+  clr_fg_white="$(tput setaf 7)"
+  clr_bg_white="$(tput setab 7)"
+
+  #| Cursor Movement
+  cur_save="$(tput sc)"      # Save cursor position
+  cur_restore="$(tput rc)"   # Restore cursor position
+  cur_mv_XY="$(tput cup)"    # Move cursor to <row> <col>
+  cur_mv_X="$(tput hpa)"     # Move cursor to <col>
+  cur_mv_Y="$(tput vpa)"     # Move cursor to <row>
+  cur_mv_Left="$(tput cub)"  # Move cursor left #1 spaces
+  cur_mv_Down="$(tput cud)"  # Move cursor down #1 lines
+  cur_mv_Right="$(tput cuf)" # Move cursor right #1 spaces
+  cur_mv_Down="$(tput cuu)"  # Move cursor up #1 lines
+  cur_hide="$(tput civis)"   # Make the cursor invisible
+  cur_show="$(tput cnorm)"   # Set the cursor to its normal state
+  cur_resize="$(tput wind)"  # Set window to lines #1-#2, columns #3-#4
+
+  #| Terminal Information
+  term_rows="$(tput lines)" # Count or rows in terminal
+  term_cols="$(tput cols)"  # Count or rows in terminal
+
+}
+
+__ansi__() {
+  # ANSI escape sequences
+  #| Text Effects
+  tfx_reset="\e[0m"
+  tfx_bold="\e[1m"
+  tfx_dim="\e[2m"
+  tfx_italic="\e[3m"
+  tfx_italic_reset="\e[23m"
+  tfx_underline="\e[4m"
+  tfx_under_reset="\e[24m"
+  tfx_blink="\e[5m"
+  tfx_invert="\e[7m"
+  tfx_invert_reset="\e[27m"
+  tfx_hidden="\e[8m"
+
+  #| Text Colors
+  clr_fg_black="\e[30m"
+  clr_bg_black="\e[40m"
+  clr_fg_red="\e[31m"
+  clr_bg_red="\e[41m"
+  clr_fg_green="\e[32m"
+  clr_bg_green="\e[42m"
+  clr_fg_blue="\e[34m"
+  clr_bg_blue="\e[44m"
+  clr_fg_magenta="\e[35m"
+  clr_bg_magenta="\e[45m"
+  clr_fg_cyan="\e[36m"
+  clr_bg_cyan="\e[46m"
+  clr_fg_white="\e[37m"
+  clr_bg_white="\e[47m"
+
+  #| Cursor Movement
+  cur_save="\e[s"
+  cur_restore="\e[u"
+  cur_mv_XY="\e[%d;%dH"
+  cur_mv_X="\e[%dG"
+  cur_mv_Y="\e[%dd"
+  cur_mv_Left="\e[%dD"
+  cur_mv_Right="\e[%dC"
+  cur_mv_Up="\e[%dA"
+  cur_mv_Down="\e[%dB"
+  cur_hide="\e[?25l"
+  cur_show="\e[?25h"
+  cur_resize="\e[8;%d;%dt"
+}
+
+center_with_tput() {
+  while [ $# -gt 0 ]; do
+    case $1 in
+    -t | --text)
+      text="$2"
+      ;;
+    -s | --spacer)
+      if [ "${#2}" -ne 1 ]; then
+        echo "Error: Spacer must be a single character."
+        return 1
+      fi
+      spacer="$2"
+      ;;
+    *)
+      text="${text:-"$1"}"
+      spacer="${spacer:-" "}"
+      ;;
+    esac
+    shift
+  done
+
+  text_length="$(
+    text_with_escapes="$text"
+    escape_sequence_pattern='\x1B\[[0-9;]*[mGKHf]'
+
+    visible_text="$(
+      printf "%s" "$text_with_escapes" | sed "s/$escape_sequence_pattern//g"
+    )"
+
+    printf "%s" "${#visible_text}"
+  )"
+  term_width="$(tput cols)"
+  space_buffer="$(((term_width - text_length - 2) / 2))"
+
+  i=0
+  while [ "$i" -lt "$space_buffer" ]; do
+    buffer="$buffer$spacer"
+    i=$((i + 1))
+  done
+
+  echo "text: $text"
+  echo "term_width: $term_width"
+  echo "text_length: $text_length"
+  echo "space_buffer: $space_buffer"
+  echo "spacer: $spacer"
+
+  if [ "$space_buffer" -gt 0 ]; then
+    printf "%s %s %s\n" "$buffer" "$text" "$buffer"
+  else
+    printf "%s\n" "$text"
+  fi
+}
+
+print_with_tput() {
+  __print__() {
+    while [ $# -gt 0 ]; do
+      case $1 in
+      --reset) printf "%s" "$(tput sgr0)" ;;
+      --bold) printf "%s" "$(tput bold)" ;;
+      --dim) printf "%s" "$(tput dim)" ;;
+      --italic) printf "%s" "$(tput sitm)" ;;
+      --underline) printf "%s" "$(tput smul)" ;;
+      --invert) printf "%s" "$(tput smso)" ;;
+      --hidden) printf "%s" "$(tput invis)" ;;
+      --blink) printf "%s" "$(tput blink)" ;;
+      --fg-black) printf "%s" "$(tput setaf 0)" ;;
+      --fg-red) printf "%s" "$(tput setaf 1)" ;;
+      --fg-green) printf "%s" "$(tput setaf 2)" ;;
+      --fg-yellow) printf "%s" "$(tput setaf 3)" ;;
+      --fg-blue) printf "%s" "$(tput setaf 4)" ;;
+      --fg-magenta) printf "%s" "$(tput setaf 5)" ;;
+      --fg-cyan) printf "%s" "$(tput setaf 6)" ;;
+      --bg-black) printf "%s" "$(tput setab 0)" ;;
+      --fg-white) printf "%s" "$(tput setaf 7)" ;;
+      --bg-red) printf "%s" "$(tput setab 1)" ;;
+      --bg-green) printf "%s" "$(tput setab 2)" ;;
+      --bg-yellow) printf "%s" "$(tput setab 3)" ;;
+      --bg-blue) printf "%s" "$(tput setab 4)" ;;
+      --bg-magenta) printf "%s" "$(tput setab 5)" ;;
+      --bg-cyan) printf "%s" "$(tput setab 6)" ;;
+      --bg-white) printf "%s" "$(tput setab 7)" ;;
+      --newline) printf "\n" ;;
+      --space) printf " " ;;
+      --center)
+        [ "$2" ] && {
+          center_with_tput "$2"
+          shift
+        }
+        ;;
+      *) printf "%s" "$1" ;;
+      esac
+      shift
+    done
+
+    # [ "$fx_reset" ] && printf "%s" "$(tput sgr0)"
+    # [ "$fx_bold" ] && printf "%s" "$(tput bold)"
+    # [ "$fx_dim" ] && printf "%s" "$(tput dim)"
+    # [ "$fx_italic" ] && printf "%s" "$(tput sitm)"
+    # [ "$fx_underline" ] && printf "%s" "$(tput smul)"
+    # [ "$fx_invert" ] && printf "%s" "$(tput smso)"
+    # [ "$fx_transparent" ] && printf "%s" "$(tput invis)"
+    # [ "$fx_blink" ] && printf "%s" "$(tput blink)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 0)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 1)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 2)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 3)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 4)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 5)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 6)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 0)"
+    # [ "$fx_" ] && printf "%s" "$(tput setaf 7)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 1)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 2)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 3)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 4)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 5)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 6)"
+    # [ "$fx_" ] && printf "%s" "$(tput setab 7)"
+    # [ "$fx_" ] && printf "\n"
+    # [ "$fx_" ] && printf " "
+  }
+  __print__ "$@"
+}
+
+# __tput__ ||
+__ansi__
+
+#| Preset
+clr_success="${clr_fg_green}${tfx_bold}"
+clr_failure="${clr_fg_red}${tfx_bold}"
+clr_warning="${clr_fg_yellow}${tfx_bold}"
+clr_info="${clr_fg_blue}${tfx_bold}"
+
+__test__() {
+  # echo "
+  # printf \
+  #   "%s%s%s" \
+  #   "$clr_info" \
+  #   "$(center_with_tput "Effects")" \
+  #   "$tfx_reset"
+
+  # printf "${clr_fg_blue}%s${tfx_reset}\n" \
+  #   "$(
+  #     center_with_tput -t "Text Effects" -s "+"
+  #   )"
+
+  # printf " bold |> ${tfx_bold}looks this${tfx_reset}\n"
+  # printf \
+  #   "%s |> ${tfx_bold}%s${tfx_reset}\n" \
+  #   "bold" \
+  #   "looks like this"
+
+  # printf \
+  #   " %s |> ${tfx_dim}%s${tfx_reset}\n" \
+  #   "dim" \
+  #   "looks like this"
+  print_with_tput --center "$(
+    print_with_tput --underline "Text Color" --reset --space --fg-red "Red text" --reset --space "pop"
+  )"
+  # Text Colors Red text pop
+  # center_with_tput --text "$(
+  #   print_with_tput --bg-black --fg-magenta "Text Colors" --reset --space --fg-yellow "Red text" --reset --space "pop" --newline
+  # )"
+
+  # Text Colors Red text pop
+  # printf " dim | like >%slooks this%s\n" "$tfx_dim" "$tfx_reset"
+  # printf "underline | like >%slooks this%s\n" "$tfx_underline" "$tfx_reset"
+  # printf " italic | like >%slooks this%s\n" "$tfx_italic" "$tfx_reset"
+  # printf " invert | like >%slooks this%s\n" "$tfx_invert" "$tfx_reset"
+  # printf " blink | like >%slooks this%s\n" "$tfx_blink" "$tfx_reset"
+  # printf " hidden | like >%slooks this%s\n" "$tfx_hidden" "$tfx_reset"
+
+  # for effect in "bold" "dim" "italic" "underline" "invert" "blink" "hidden" "strikethrough"; do
+  #   txt_effect="$(printf "tfx_%s" "$effect")"
+  #   # echo "$txt_effect"
+  #   printf "This is the %s%s%s effect\n" "$txt_effect" "$effect" "$tfx_reset"
+  # done
+  # printf "%s\n" "${tfx_dim}dim$tfx_reset
+  # printf "%s\n" "${tfx_italic}italic$tfx_reset
+  # printf "%s\n" "${tfx_underline}underline$tfx_reset
+  # printf "%s\n" "${tfx_invert}invert$tfx_reset
+  # printf "%s\n" "${tfx_blink}blinking$tfx_reset
+
+  #   $tfx_reset${info}::: Colors :::$tfx_reset
+  #   ${black}black
+  #   ${red}red
+  #   ${darkred}darkred
+  #   ${maroon}maroon
+  #   ${saddlebrown}saddlebrown
+  #   ${orangered}orangered
+  #   ${darkorange}darkorange
+  #   ${orange}orange
+  #   ${yellow}yellow
+  #   ${gold}gold
+  #   ${green}green
+  #   ${lime}lime
+  #   ${olive}olive
+  #   ${darkolivegreen}darkolivegreen
+  #   ${cyan}cyan
+  #   ${turquoise}turquoise
+  #   ${teal}teal
+  #   ${slateblue}slateblue
+  #   ${darkslateblue}darkslateblue
+  #   ${blue}blue
+  #   ${midnightblue}midnightblue
+  #   ${cornsilk}${purple_bg}purple$tfx_reset
+  #   ${lime}${indigo_bg} indigo $tfx_reset
+  #   ${magenta}magenta
+  #   ${fuchsia}fuchsia
+  #   ${violet}violet
+  #   ${deeppink}deeppink
+  #   ${hotpink}hotpink
+  #   ${pink}pink
+  #   ${silver}silver
+  #   ${gray}gray
+  #   ${dimgray}dimgray
+  #   ${darkslategray}darkslategray
+  #   ${cornsilk}cornsilk
+  #   ${tan}tan
+  #   ${snow}snow
+  #   ${ivory}ivory
+  #   ${white}white
+
+  #   $tfx_reset${info}::: Background Colors :::$tfx_reset
+  #   ${black_bg}black$tfx_reset
+  #   ${red_bg}red$tfx_reset
+  #   ${darkred_bg}darkred$tfx_reset
+  #   ${maroon_bg}maroon$tfx_reset
+  #   ${saddlebrown_bg}saddlebrown$tfx_reset
+  #   ${orangered_bg}orangered$tfx_reset
+  #   ${darkorange_bg}darkorange$tfx_reset
+  #   ${orange_bg}orange$tfx_reset
+  #   ${yellow_bg}yellow$tfx_reset
+  #   ${gold_bg}gold$tfx_reset
+  #   ${green_bg}green$tfx_reset
+  #   ${lime_bg}lime$tfx_reset
+  #   ${olive_bg}olive$tfx_reset
+  #   ${darkolivegreen_bg}darkolivegreen$tfx_reset
+  #   ${cyan_bg}cyan$tfx_reset
+  #   ${turquoise_bg}turquoise$tfx_reset
+  #   ${teal_bg}teal$tfx_reset
+  #   ${slateblue_bg}slateblue$tfx_reset
+  #   ${darkslateblue_bg}darkslateblue$tfx_reset
+  #   ${blue_bg}blue$tfx_reset
+  #   ${midnightblue_bg}midnightblue$tfx_reset
+  #   ${cornsilk_bg}${purple_bg}purple$tfx_reset$tfx_reset
+  #   ${lime_bg}${indigo_bg} indigo $tfx_reset$tfx_reset
+  #   ${magenta_bg}magenta$tfx_reset
+  #   ${fuchsia_bg}fuchsia$tfx_reset
+  #   ${violet_bg}violet$tfx_reset
+  #   ${deeppink_bg}deeppink$tfx_reset
+  #   ${hotpink_bg}hotpink$tfx_reset
+  #   ${pink_bg}pink$tfx_reset
+  #   ${silver_bg}silver$tfx_reset
+  #   ${gray_bg}gray$tfx_reset
+  #   ${dimgray_bg}dimgray$tfx_reset
+  #   ${darkslategray_bg}darkslategray$tfx_reset
+  #   ${cornsilk_bg}cornsilk$tfx_reset
+  #   ${tan_bg}tan$tfx_reset
+  #   ${snow_bg}snow$tfx_reset
+  #   ${ivory_bg}ivory$tfx_reset
+  #   ${white_bg}white$tfx_reset
+  #   "
+  # echo "${tfx_underline}${USERNAME}$tfx_reset"
+  # printf \
+  #   "The Username is %s\n" \
+  #   "${tfx_underline}${USERNAME}${tfx_reset}"
+
+  # printf "This is %ssuccess%s\n" "${clr_success}" "${tfx_reset}"
+  # printf "This is %s%s%s\n" "${clr_failure}" "failure" "${tfx_reset}"
+
+  # echo "${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though $tfx_reset"
+  # echo "${invert}${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though $tfx_reset"
+  # echo "${magenta}This is ${bold}${gold}how we $tfx_reset${italic}${cornsilk}do it. ${error} Y'all don't hear me though $tfx_reset"
+
+  # printf "\033[48:2:255:165:0m%s\033[m\n" "Hello world"
+  # printf "\033[48;2;255;165;0m%s\033[m\n" "Hello world"
+
+  # # prints “hotpink” in #205 (HEX: #f69, RGB: 255, 102, 153)
+  # printf "\033[38;5;205mhotpink\033[m\n"
+  # printf "\033[38;3;205mhotpink\033[m\n"
+
+  # # prints “giant goldfish” in 24-bit orange (HEX: #F38630, RGB: 243, 134, 48)
+  # printf "\033[38;2;243;134;48mgiant goldfish\033[0m\n"
+
+}
+
+# tput setaf >/dev/null 2>&1
+
+__test__

@@ -1,0 +1,22 @@
+#!/bin/sh
+
+#@ Declare command information
+_APP="blueman-applet"
+
+#@ Check if the application is already running
+pgrep "$_APP" >/dev/null ||
+  #@ Launch the application if it's not already running
+  exec "$_APP" &
+
+# #@ Validate app availability
+# weHave --check "$_APP"
+
+# #@ Kill all active instances of the app
+# murda "$_APP"
+
+# #@ Launch with or without arguments
+# if [ "$_ARGS" ]; then
+#   eval "$_APP" "$_ARGS"
+# else
+#   eval "$_APP"
+# fi

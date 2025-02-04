@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# https://stackoverflow.com/a/52586842
+
+# shellcheck disable=SC3000-SC4000
+
+case $1 in
+-d | --verbose)
+  VERBOSE=true
+  shift
+  ;;
+*) ;;
+esac
+
+# is_user_root () { [ "$(id -u)" -eq 0 ]; }
+is_user_root() { [ "${EUID:-$(id -u)}" -eq 0 ]; }
+
+# Example
+if is_user_root; then
+  [ "$VERBOSE" ] && printf "You are the almighty root!\n"
+  exit 0 # implicit, here it serves the purpose to be explicit for the reader
+else
+  [ "$VERBOSE" ] && printf "You are just an ordinary user.\n"
+  exit 1
+fi

@@ -1,0 +1,56 @@
+#!/bin/sh
+
+force=false
+uninstall_all=false
+gem=""
+
+# Parse options
+while [ "$#" -gt 0 ]; do
+  case $2 in
+  -f | --force)
+    force=true
+    ;;
+  -A | --all)
+    uninstall_all=true
+    ;;
+  -g | --gem)
+    gem="$2"
+    uninstall_all=false
+    ;;
+  -*)
+    printf "Invalid option: %s\n" "$2" >&2
+    exit 1
+    ;;
+  *) gem="$1" ;;
+  esac
+done
+
+# Function to uninstall a gem with error handling
+uninstall_gem() {
+  gem_to_uninstall="$1"
+
+  if $force; then
+    gem uninstall "$gem_to_uninstall" --all --executables --force
+  else
+    gem uninstall "$gem_to_uninstall" --all --executables
+  fi
+}
+
+# Example of installing a gem for testing
+gem install a --no-document
+echo "GEM_NAME: $gem_name"
+
+# Uninstall gems based on options
+if $uninstall_all; then
+  for gem in $(gem list --no-versions | cut -d" " -f1); do
+    uninstall_gem "$gem"
+  done
+elif [ -n "$gem_name" ]; then
+  uninstall_gem "$gem_name"
+fi
+
+# Clear gem cache (optional)
+# gem clean
+
+# Update RubyGems system (optional)
+# gem update --system

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+wehave() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+if [ "$#" -eq 0 ]; then
+  echo "Usage: $0 <file>"
+  return 1
+elif wehave trash; then
+  trash restore
+elif wehave conceal; then
+  conceal restore
+elif wehave trash-restore; then
+  trash-restore "$@"
+fi

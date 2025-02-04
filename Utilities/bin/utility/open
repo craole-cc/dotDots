@@ -1,0 +1,105 @@
+#!/bin/sh
+
+if [ -z "$DISPLAY" ] &&
+  [ "$(tty)" = /dev/tty1 ]; then
+  _TTY=TRUE
+else
+  unset _TTY
+fi
+
+__default__() {
+  case $OS_TYPE in
+  Windows) start "$@" ;;
+  Mac) open "$@" ;;
+  Linux) xdg-open "$@" ;;
+  *) ;;
+  esac
+}
+
+__tty__() {
+  #> File Manager
+  if weHave "$FM_TTY"; then
+    FM="$FM_TTY"
+  elif weHave clifm; then
+    FM="clifm"
+  elif weHave lf; then
+    FM="lf"
+  fi
+
+  #> Editor
+  if weHave "$EDITOR"; then
+    IDE="$EDITOR"
+  elif weHave nvim; then
+    IDE="nvim"
+  elif weHave vim; then
+    IDE="vim"
+  elif weHave nano; then
+    IDE="nano"
+  fi
+}
+
+__gui__() {
+  DOUBLECMD="/C/Program Files/Double Commander/doublecmd.exe"
+
+  #> File Manager
+  if weHave "$FM_GUI"; then
+    FM="$FM_GUI"
+  elif weHave "$DOUBLECMD"; then
+    FM="$DOUBLECMD"
+  elif weHave "$doublecmd"; then
+    FM="$doublecmd"
+  elif weHave "pcmanfm"; then
+    FM="pcmanfm"
+  elif weHave "nautilus"; then
+    FM="nautilus"
+  fi
+
+  #> Editor
+  if weHave "$VISUAL"; then
+    IDE="$VISUAL"
+  elif weHave "notepad++"; then
+    IDE="notepad++"
+  elif weHave "notepadqq"; then
+    IDE="notepad++"
+  elif weHave "notepad"; then
+    IDE="notepad"
+  fi
+}
+
+__root__() {
+  case $OS_TYPE in
+  Linux) sudo $FM "$@" ;;
+  *) sudo open "$@" ;;
+  esac
+}
+
+__main__() {
+  for path in "$@"; do
+    if [ "$DEFAULT" ]; then
+      __default__ "$path"
+    elif [ -d "$path" ]; then
+      "$FM" "$path"
+    else
+      "$IDE" "$path"
+    fi
+  done
+}
+
+#todo
+# tty: -t | --term
+# gui: -g | --gui
+# allow
+
+case $1 in
+-t | --term)
+  shift
+  __tty__
+  ;;
+-g | --gui)
+  shift
+  __gui__
+  ;;
+*) DEFAULT=true ;;
+esac
+
+__main__ "$@"

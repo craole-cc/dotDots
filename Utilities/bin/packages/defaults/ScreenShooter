@@ -1,0 +1,66 @@
+#!/bin/sh
+
+weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+get_app() {
+  if weHave flameshot; then
+    app=flameshot
+  elif weHave bpytop; then
+    app=bpytop
+  elif weHave btm; then
+    app=btm
+  elif weHave gotop; then
+    app=gotop
+  elif weHave ytop; then
+    app=ytop
+  elif weHave htop; then
+    app=htop
+  else
+    app=top
+  fi
+
+  printf "%s" "$app"
+}
+
+get_cmd() {
+  case "$(get_app)" in
+  flameshot)
+    ss_full() { flameshot full; }
+    ss_screen() { flameshot screen; }
+    ss_section() { flameshot gui; }
+    ;;
+  esac
+}
+process_core() {
+  #@ Launch the application if it's not already running
+  launch "$(get_app)"
+
+  #@ Initialize screen shooter
+  get_cmd
+
+  #@ Take the screenshot based on the user's option
+  eval "ss_$area"
+}
+
+parse_arguments() {
+  #@ Accept user options
+  while [ $# -ge 1 ]; do
+    case "$1" in
+    --screen) area="screen" ;;
+    --snip | --section | --gui) area="section" ;;
+    --full) area="full" ;;
+    *) [ -f "$1" ] && dir="$(dirname "$1")"
+    esac
+    shift
+  done
+
+  #@ Set default screenshot type
+  area="${area:-full}"
+}
+
+parse_arguments "$@"
+process_core
+
+exit 0

@@ -1,0 +1,44 @@
+#!/bin/sh
+
+__weHave() { #@ Check if the command exists
+  type "$1" >/dev/null 2>&1
+}
+
+__launch() { #@ Launch the application if it's not already running
+  if ! pgrep "$1" >/dev/null; then
+    exec "$@" &
+  fi
+}
+
+__target_text() {
+  if [ -f "$*" ]; then
+    cat <"$*"
+  else
+    printf "%s" "$*"
+  fi
+}
+
+process_core() {
+  if [ "$XDG_SESSION_TYPE" = "wayland" ] && __weHave wl-clipboard; then
+    wl-copy | __target_text "$@"
+  elif __weHave xclip; then
+    __target_text "$@" | xclip -selection clipboard
+  elif __weHave clip.exe; then
+    __target_text "$@" | clip.exe
+  # elif __weHave pbcopy; then
+  #   __target_text "$@" | pbcopy
+  # elif __weHave vis-clipboard; then
+  #   vis-clipboard --copy
+  # elif [ -f "/dev/clipboard" ]; then
+  #   /dev/clipboard
+  elif __weHave copyq; then
+    __launch copyq --start-server
+    copyq disable
+    copyq copy -- "$(__target_text "$@")" >/dev/null 2>&1
+    copyq enable
+  else
+    printf "No clipboard tool found"
+  fi
+}
+
+process_core "$@"

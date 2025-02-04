@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#@ Sort by size
+lx --all --long --sort=size "$@"

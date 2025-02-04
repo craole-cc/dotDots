@@ -1,0 +1,112 @@
+#!/bin/sh
+
+__sys__() {
+  eko "
+:notebook: $1
+Should we use the system's default editor [Y|n]?
+  "
+  read -r OPT
+  case $OPT in
+  n | N) __opt__ "$@" ;;
+  ^y* | ^Y* | *) "$EDITOR" "$@" ;;
+  esac
+}
+
+__vsc__() {
+  if weHave code; then
+    code "$@"
+  elif weHave code-insiders; then
+    code-insiders "$@"
+  else
+    eo ':x: Visual Studio Code not found.'
+    __sys__ "$@"
+  fi
+}
+
+__vim__() {
+  if weHave nvim; then
+    nvim "$@"
+  elif weHave vim; then
+    vim "$@"
+  else
+    eo ':x: VIM not found.'
+    __sys__ "$@"
+  fi
+}
+
+__sel__() {
+  eko "Enter the name of the editor we should use?"
+  read -r INPUT
+  eddor="$(
+    echo "$INPUT" |
+      awk '{ gsub(/ /,""); print tolower($0) }'
+  )"
+
+  case "$eddor" in
+  *code*)
+    __vsc__ "$@"
+    ;;
+  *vim*)
+    __vim__ "$@"
+    ;;
+  *)
+    if weHave "$eddor"; then
+      "$eddor" "$@"
+    else
+      eko ":x: Editor not found."
+      __sys__ "$@"
+    fi
+    ;;
+  esac
+}
+
+__opt__() {
+  eko "             Options             "
+  eko "|> --------------------------- <|"
+  eko "         1. Default              "
+  eko "         2. vsCode               "
+  eko "         3. vim                  "
+  eko "         4. Custom               "
+  eko "         5. Read instead         "
+  eko "         6. Cancel               "
+
+  read -r n
+  case $n in
+  1) "$EDITOR" "$@" ;;
+  2) __vsc__ "$@" ;;
+  3) __vim__ "$@" ;;
+  4) __sel__ "$@" ;;
+  5) wat "$@" ;;
+  6) ;;
+  *) eo ":x: Invalid Selection" ;;
+  esac
+}
+
+for file in "$@"; do
+  case "$file" in
+  -c | --code)
+    __vsc__ "$file"
+    ;;
+  -v | --vim)
+    shift
+    __vim__ "$file"
+    ;;
+  -R | --root)
+    __sys__ "$file"
+    ;;
+  *)
+    __sys__ "$file"
+    ;;
+  esac
+done
+
+        # case "$(tty)" in
+        # *"/dev/tty"*) [ "$_TTY" ] && _EDITOR="$_TTY" ;;
+        # *) 
+        #     if [ "$_VISUAL" ] ;then
+        #         _EDITOR="$_VISUAL"
+        #     elif [ "$_TTY" ] ;then
+        #         _EDITOR="$_EMULATOR" "$_TTY"
+        #     fi
+        #     ;;
+        # esac

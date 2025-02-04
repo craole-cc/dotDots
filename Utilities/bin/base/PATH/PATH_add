@@ -1,0 +1,60 @@
+#!/bin/sh
+
+__defaults__() {
+  action="${action:-perpend}"
+}
+
+__append__() {
+ true
+}
+
+__perpend__() {
+  case ":${PATH}:" in
+  *:"$path":*) ;;
+  *)
+    PATH="${PATH:+$PATH:}$path"
+    [ "$verbose" ] &&
+      printf "Appended to PATH: %s\n" "${path}"
+    ;;
+  esac
+}
+
+__process__() {
+  [ -d "$path" ] && {
+    case "$action" in
+    append) __append__ ;;
+    perpend) __perpend__ ;;
+    esac
+  }
+}
+
+main() {
+  #| User options
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -a | --append)
+      action="append"
+      shift
+      ;;
+    -p | --perpend)
+      action="perpend"
+      shift
+      ;;
+    *) ;;
+    esac
+
+    #| Activate default behaviour
+    __defaults__
+
+    #| Process valid directories
+    path="$1" && __process__ "$path"
+
+    #| Loop through arguments
+    shift
+
+    #| Reset variables
+    unset action path
+  done
+}
+
+main "$@"

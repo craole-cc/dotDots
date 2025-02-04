@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#@ Sort by date modified
+lx --all --long --sort=new "$@"

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+Browser --default brave

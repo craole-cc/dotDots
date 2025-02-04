@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#@ Sort by extension
+lx --all --long --sort=ext "$@"

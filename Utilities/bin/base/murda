@@ -1,0 +1,54 @@
+#!/bin/sh
+# This script kills all processes with a given name using pgrep
+
+usage() {
+  printf "Usage: %s [--verbose] [--quiet] NAME\n" "$0"
+  printf "Kill all processes with the given name\n\n"
+  printf "Options:\n"
+  printf "  -v, --verbose     Print verbose output\n"
+  printf "  -q, --quiet       Suppress output (default)\n"
+}
+
+display_info() { [ "$verbose" ] && printf "%s\n" "$*"; }
+
+# Parse options
+while [ $# -gt 0 ]; do
+  case "$1" in
+  -h | --help) usage ;;
+  -v | --version) printf "%s\n" "1.0" ;;
+  -d | --verbose) verbose=true ;;
+  -q | --quiet) unset verbose ;;
+  -*)
+    printf "Invalid option: %s\n" "$1"
+    usage
+    exit 1
+    ;;
+  *)
+    break
+    ;;
+  esac
+  shift
+done
+
+# Check if name argument is provided
+if [ $# -eq 0 ]; then
+  printf "Missing argument: NAME\n"
+  usage
+  exit 1
+fi
+
+# Get the PIDs of all processes with the given name
+pids=$(pgrep "$1")
+
+if [ -z "$pids" ]; then
+  display_info "No processes with name %s found\n" "$1"
+  exit 0
+fi
+
+# Kill all processes with the given name
+if kill "$pids"; then
+  display_info "All processes with name $1 killed"
+else
+  display_info "Failed to kill processes with name %s\n" "$1"
+  exit 1
+fi

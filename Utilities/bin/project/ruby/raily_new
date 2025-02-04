@@ -1,0 +1,260 @@
+#!/bin/sh
+
+establish_environment() {
+  while [ "$#" -ge 1 ]; do
+    case $1 in
+    -e | --edit) edit=true ;;
+    -s | --serv) serv=true ;;
+    -d | --debug | --test) debug=true ;;
+    --rspec)
+      rspec=true
+      case $2 in -* | *[!0-9] | "") ;; *)
+        shift
+        rspec_ver="$1"
+        ;;
+      esac
+      ;;
+    --devise)
+      devise=true
+      case $2 in -* | *[!0-9] | "") ;; *)
+        shift
+        devise_ver="$1"
+        ;;
+      esac
+      ;;
+    *) project_name="$1" ;;
+    esac
+    shift
+  done
+
+  [ "$project_name" ] || {
+    printf "A project directory was not specified\n" >&2
+    exit 1
+  }
+
+  project_path="${PWD}/${project_name}"
+  project_bin="${project_path}/bin"
+  rails_path="${project_bin}/rails"
+  gemfile_path="${project_path}/Gemfile"
+  app_config="${project_path}/config/application.rb"
+
+  rspec_ver="${rspec_ver:-"~> 6.0"}"
+  rspec_comment="Use rspec-rails as the default testing framework."
+
+  devise_ver="${devise_ver:-""}"
+  devise_comment="Use devise as the default authentication framework."
+}
+
+deploy_postgresql() {
+  if weHave pg_config; then
+    pg_config_path="$(type pg_config)"
+  elif weHave powershell; then
+    pg_config_path="$(powershell -Command "Get-ChildItem -Path 'C:\\Program Files\\PostgreSQL' -Filter pg_config.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName")"
+  fi
+
+  gem list -i "^pg$" >/dev/null 2>&1 && return 0
+
+  [ "$pg_config_path" ] && {
+    gem install pg -- --with-pg-config="$pg_config_path"
+    return 0
+  }
+
+  return 1
+}
+
+update_gems() {
+  [ -f "$gemfile_path" ] || {
+    printf "No Gemfile found\n" >&2
+    return 1
+  }
+
+  include_rspec() {
+    {
+      [ "$rspec" ] &&
+        ! grep -Eq "^\s*gem ['\"]rspec-rails['\"].*$rspec_ver" "$gemfile_path"
+    } || return 0
+
+    if grep -q "^\s*group :development, :test do" "$gemfile_path"; then
+      echo "Group found"
+      #> The group exists, check if it contains rspec-rails
+      if grep -q "^\s*gem ['\"]rspec-rails['\"].*" "$gemfile_path"; then
+        echo "Line found"
+        if grep -q "^\s*gem ['\"]rspec-rails['\"].*$rspec_ver" "$gemfile_path"; then
+          echo "Line found and is correct"
+          #> rspec-rails is already in the group with the specified version
+          return 0
+        else
+          echo "Line not found or is not correct"
+          #> rspec-rails is already in the group but with a different version
+          sed -i -E 's/^\s*gem ['\''\"]rspec-rails['\''\"](.*)$/gem "rspec-rails", "'"$rspec_ver"'"/' "$gemfile_path"
+        fi
+      else
+        echo "Line not found"
+      fi
+mari    else
+      echo "Group not found"
+      # If the group block doesn't exist, create it and append gem "rspec-rails" within
+      {
+        #> Append dev/test group with a comment and a blank line before it
+        printf "\ngroup :development, :test do\n"
+
+        #> Append an informational comment with the link.
+        [ "$rspec_comment" ] && printf "  # %s\n" "$rspec_comment"
+
+        #> Append gem rspec-rails with the version if specified
+        if [ "$rspec_ver" ]; then
+          printf "  gem \"rspec-rails\", \"%s\"\n" "$rspec_ver"
+        else
+          printf "  gem \"rspec-rails\"\n"
+        fi
+
+        #> Close the group
+        printf "end\n"
+      } >>"$gemfile_path"
+    fi
+
+    #     if grep -q "^\s*group :development, :test do" "$gemfile_path"; then
+    #       #> Append the gem information within the existing group block
+    #       sed -i '/^\s*group :development, :test do/{:a;n;/^\s*end/!ba;i\
+    # \
+    #   '"# $rspec_comment"'\
+    #   gem "rspec-rails", "'"$rspec_ver"'"
+    # }' "$gemfile_path"
+    #     else
+    #       {
+    #   #> Append dev/test group with a comment and a blank line before it
+    #   printf "\ngroup :development, :test do\n"
+
+    #   #> Append an informational comment with the link.
+    #   [ "$rspec_comment" ] && printf "  # %s\n" "$rspec_comment"
+
+    #   #> Append gem rspec-rails with the version if specified
+    #   if [ "$rspec_ver" ]; then
+    #     printf "  gem \"rspec-rails\", \"%s\"\n" "$rspec_ver"
+    #   else
+    #     printf "  gem \"rspec-rails\"\n"
+    #   fi
+
+    #   #> Close the group
+    #   printf "end\n"
+    # } >>"$gemfile_path"
+    #     fi
+
+    #     {
+    #       [ -f "$project_path/.rspec" ] &&
+    #         [ -f "$project_path/spec/spec_helper.rb" ] &&
+    #         [ -f "$project_path/spec/rails_helper.rb" ]
+    #     } || {
+    #       cd "$project_path" && {
+    #         "${project_bin}"/rails generate rspec:install
+    #         "${project_bin}"/bundle binstubs rspec-core
+    #       } && rspec=true
+    #     }
+  } && include_rspec
+
+  # include_devise() {
+  #   [ "$devise" ] ||
+  #     grep -Eq "^\s*gem ['\"]devise['\"].*" "$gemfile_path" ||
+  #     {
+  #       printf "gem \"devise\"\n"
+  #       printf "gem \"letter_opener_web\"\n"
+  #     } >>"$gemfile_path"
+
+  #   cd "$project_path" && {
+  #     "${project_bin}"/rails generate device:install
+  #     "${project_bin}"/rails generate devise User
+  #   } && device=true
+  # } && include_devise
+
+  # | Devise
+  # grep -Eq "^\s*gem ['\"]devise['\"].*" "$gemfile_path" ||
+  #   {
+  #     printf "gem \"devise\"\n"
+  #     printf "gem \"letter_opener_web\"\n"
+  #   } >>"$gemfile_path"
+
+  # cd "$project_path" && {
+  #   "${project_bin}"/rails generate device:install
+  #   "${project_bin}"/rails generate devise User
+  # } && device=true
+}
+
+#   update_app_config() {
+#     lines_to_add="
+# config.generators do |g|
+#   g.skip_routes true
+#   g.helper false
+#   g.assets false
+#   g.test_framework :rspec, fixture: false
+#   g.helper_specs false
+#   g.controller_specs false
+#   g.system_tests false
+#   g.view_specs false
+# end
+
+# # GZip all responses
+# config.middleware.use Rack::Deflater
+# "
+#     printf "%s" "$lines_to_add" | while IFS= read -r line; do
+#       if ! grep -Fx "$line" "$app_config" >/dev/null 2>&1; then
+#         printf "%s\n" "$line" | tee -a "$app_config" >/dev/null
+#       fi
+#     done
+#   }
+
+#   [ -f "$gemfile_path" ] && update_gemfile
+#   # [ -f "$app_config" ] && update_app_config
+
+# }
+
+deploy_project() {
+  weHave rails || {
+    printf "The rails application is required for this operation\n" >&2
+    return 1
+  }
+
+  args="new \"$project_path\" --skip --skip-test --css=tailwind"
+
+  deploy_postgresql && args="$args --database=postgresql"
+  weHave yarn && args="$args --skip-jbuilder --javascript=esbuild"
+
+  [ -f "$rails_path" ] || {
+    cmd="rails $args"
+    printf "Running: %s\n" "$cmd"
+    eval "$cmd"
+  }
+}
+
+enter_dev_env() {
+  [ -f "$rails_path" ] || {
+    printf "It seems the project has not been deployed yet\n" >&2
+    return 1
+  }
+
+  [ "$edit" ] && "$EDITOR" "$project_path"
+  [ "$serv" ] && "$rails_path" server
+}
+
+debug() {
+  echo "Project: $project_path"
+  echo "Rails: $rails_path"
+  echo "EDIT: $edit"
+  echo "SERV: $serv"
+  echo "RSPEC: $rspec $rspec_ver"
+  echo "DEVISE: $devise $devise_ver"
+  exit 0
+}
+
+main() {
+  establish_environment "$@"
+
+  if [ "$debug" ]; then
+    debug
+  else
+    # deploy_project
+    update_gems
+    # enter_dev_env
+  fi
+}
+
+main "$@"

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+while true; do
+    wall_rand
+    # feh --bg-fill "$(wall_rand)"
+    # nitrogen --set-zoom-fill "$(wall_rand)" &
+    sleep 10
+done
+
+# wall_rand &
+# OLD_PID=$!
+# while true; do
+#     sleep 10
+#     wall_rand &
+#     NEXT_PID=$!
+#     sleep 5
+#     pkill "$OLD_PID"
+#     OLD_PID=$NEXT_PID
+# done

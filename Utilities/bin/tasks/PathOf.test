@@ -1,0 +1,19 @@
+#!/bin/sh
+
+printf "\n::Directories & Files::%s" "
+\$HOME -> $(PathOf "$HOME")
+~/.config -> $(PathOf ~/.config)
+\$HOME/.bash_history -> $(PathOf "$HOME"/.bash_history)
+\$HOME/.ssh/known_hosts -> $(PathOf "$HOME"/.ssh/known_hosts)
+"
+
+printf "\n::Links:: %s" "
+\$HOME/.background-image -> $(PathOf "$HOME"/.background-image)
+\$HOME/.config/qtile/../berry -> $(PathOf ~/.config/qtile/../berry)
+"
+
+printf "\n::Binaries:: %s" "
+PathOf -> $(PathOf PathOf)
+qtile -> $(PathOf qtile)
+grep -> $(PathOf grep)
+"

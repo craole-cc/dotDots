@@ -1,0 +1,3 @@
+#!/bin/sh
+
+printf "%s" "$@" | perl -pe '$_=lc'

@@ -1,0 +1,51 @@
+#!/bin/sh
+
+point_of_entry() {
+  parse_arguments "$@"
+  process_core
+  # echo "$template"
+  # debug_environment
+}
+
+parse_arguments() {
+  #@ Parse options from CLI arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -r* | --r*) repository="$2" ;;
+    -t* | --t*) template="$2" ;;
+    -p* | --p*) project="$2" ;;
+    -i* | --i*) init_dir=true ;;
+    *) ;;
+    esac
+    shift
+  done
+
+  #@ Set defaults
+  repository="${repository:-"github:Craole/nixed"}"
+  template="${template:-"rustly"}"
+  project="${project:-"$template"}"
+}
+
+process_core() {
+  #@ Initialize flake and extablish development environment
+  if [ "$init_dir" ]; then
+    nix flake init --template "$repository#$template"
+    # nix develop
+  else
+    flake_template="$(printf "%s#%s %s" "$repository" "$template" "$project")"
+    # echo "$flake_template"
+    # nix flake new --template github:Craole/nixed#rustly rustly
+    # nix flake new --template "$(eval printf "%s#%s %s" "$repository" "$template" "$project")"
+    # nix flake new --template "$repository#$template $project"
+    # cd "$project" || exit 1
+    # nix develop
+  fi
+}
+
+debug_environment() {
+  echo "REPOSITORY: $repository"
+  echo "TEMPLATE: $template"
+  echo "PROJECT: $project"
+}
+
+point_of_entry "$@"

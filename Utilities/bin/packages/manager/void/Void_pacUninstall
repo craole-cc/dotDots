@@ -1,0 +1,8 @@
+#!/bin/sh
+
+sudo xbps-remove \
+    --recursive \
+    --remove-orphans \
+    --clean-cache \
+    --verbose \
+    "$@"

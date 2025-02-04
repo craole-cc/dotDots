@@ -1,0 +1,117 @@
+#!/bin/sh
+
+#==================================================
+#
+# ENVIRONMENT MANAGER
+# CLI/bin/script/ENVman
+#
+#==================================================
+
+# _________________________________ DOCUMENTATION<|
+
+# The functions below operate on PATH-like variables whose fields are separated
+# with ':'.
+# Note: The *name* of the PATH-style variable must be passed in as the 1st
+#       argument and that variable's value is modified *directly*.
+
+# SYNOPSIS: path_prepend varName path
+# Note: Forces path into the first position, if already present.
+#       Duplicates are removed too, unless they're directly adjacent.
+# EXAMPLE: path_prepend PATH /usr/local/bin
+
+# >>= Example =<< #
+# _path -a /usr/local/bin       |> Append
+# _path -p /usr/local/bin       |> Perpend
+# _path -r /usr/local/bin       |> Remove
+# _path -p /usr/local/bin -R    |> Recursive
+# _path -l                      |> List
+
+# ________________________________________ SOURCE<|
+
+__dir__() {
+  fd --full-path "$1" \
+    --exclude review \
+    --exclude archive \
+    --exclude temp
+}
+# __dir__() {
+#   fd \
+#     --full-path "$1" \
+#     --hidden \
+#     --exclude review \
+#     --exclude archive \
+#     --exclude temp
+# }
+
+__Plist__() {
+  printf %s\\n "$PATH" |
+    awk -v RS=: '!($0 in a) {
+    a[$0];
+    printf("%s%s", length(a) > 1 ? ":" : "", $0)
+    }' |
+    tr ":" "\n"
+}
+
+__src__() {
+  # chmod 755 "$1" &&
+  . "$1"
+}
+
+__env__() {
+  for SOURCE in $(
+    __dir__ "$1"
+  ); do
+    if [ -d "$SOURCE" ]; then
+      # echo "DIR $SOURCE"
+      __pendP__ "$SOURCE"
+    else
+      # echo "FILE $SOURCE"
+      __src__ "$SOURCE"
+    fi
+  done
+}
+
+### Function extract for common file formats ###
+SAVEIFS=$IFS
+IFS=$(printf "\n\b")
+# IFS=$(echo -en "\n\b")
+
+Extract() {
+  if [ -z "$1" ]; then
+    # display usage if no parameters given
+    echo "Usage: extract <path/file_name>.<zip|rar|bz2|gz|tar|tbz2|tgz|Z|7z|xz|ex|tar.bz2|tar.gz|tar.xz>"
+    echo "       extract <path/file_name_1.ext> [path/file_name_2.ext] [path/file_name_3.ext]"
+  else
+    for n in "$@"; do
+      if [ -f "$n" ]; then
+        case "${n%,}" in
+        *.cbt | *.tar.bz2 | *.tar.gz | *.tar.xz | *.tbz2 | *.tgz | *.txz | *.tar)
+          tar xvf "$n"
+          ;;
+        *.lzma) unlzma ./"$n" ;;
+        *.bz2) bunzip2 ./"$n" ;;
+        *.cbr | *.rar) unrar x -ad ./"$n" ;;
+        *.gz) gunzip ./"$n" ;;
+        *.cbz | *.epub | *.zip) unzip ./"$n" ;;
+        *.z) uncompress ./"$n" ;;
+        *.7z | *.arj | *.cab | *.cb7 | *.chm | *.deb | *.dmg | *.iso | *.lzh | *.msi | *.pkg | *.rpm | *.udf | *.wim | *.xar)
+          7z x ./"$n"
+          ;;
+        *.xz) unxz ./"$n" ;;
+        *.exe) cabextract ./"$n" ;;
+        *.cpio) cpio -id <./"$n" ;;
+        *.cba | *.ace) unace x ./"$n" ;;
+        *)
+          echo "extract: '$n' - unknown archive method"
+          return 1
+          ;;
+        esac
+      else
+        echo "'$n' - file does not exist"
+        return 1
+      fi
+    done
+  fi
+}
+
+IFS=$SAVEIFS

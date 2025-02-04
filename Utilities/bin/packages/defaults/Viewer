@@ -1,0 +1,6 @@
+#!/bin/sh
+
+feh \
+  --zoom 80 \
+  --borderless \
+  "$@"

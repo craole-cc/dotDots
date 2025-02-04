@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sudo lsblk -o name,mountpoint,label,size,uuid
