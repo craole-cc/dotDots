@@ -1,0 +1,15 @@
+PulseOut::PulseOut() called
+AlsaOut::AlsaOut() called
+AlsaOut: destructor
+AlsaOut: joining...
+AlsaOut: thread finished
+AlsaOut: closing device...
+AlsaOut: destroyed.
+[2021-04-21 08:48:54] [info] asio async_connect error: system:111 (Connection refused)
+[2021-04-21 08:48:54] [info] Error getting remote endpoint: system:107 (Transport endpoint is not connected)
+[2021-04-21 08:48:54] [error] handle_connect error: Underlying Transport Error
+[2021-04-21 08:48:54] [info] asio async_connect error: system:111 (Connection refused)
+[2021-04-21 08:48:54] [info] Error getting remote endpoint: system:107 (Transport endpoint is not connected)
+[2021-04-21 08:48:54] [error] handle_connect error: Underlying Transport Error
+PulseOut: destroy
+PulseOut: destructor

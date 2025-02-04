@@ -1,0 +1,123 @@
+#!/bin/sh
+
+# Inspired by https://github.com/oncomouse/dotfiles/blob/master/stow/river/dot-config/river/init
+
+riverctl map normal Super Return spawn alacritty
+riverctl map normal Super Y spawn 'grim -g "$(slurp)" -t png - | wl-copy -t image/png'
+riverctl map normal Super+Shift W exit
+riverctl map normal Super+Shift Q close
+riverctl map normal Super Q spawn "$HOME"/.config/river/init
+riverctl map normal Super J focus-view next
+riverctl map normal Super K focus-view previous
+riverctl map normal Super+Shift J swap next
+riverctl map normal Super+Shift K swap previous
+riverctl map normal Super Period focus-output next
+riverctl map normal Super Comma focus-output previous
+riverctl map normal Super+Shift Period send-to-output next
+riverctl map normal Super+Shift Comma send-to-output previous
+riverctl map normal Super+Shift Return zoom
+riverctl map normal Super H send-layout-cmd rivertile "main-ratio -0.05"
+riverctl map normal Super L send-layout-cmd rivertile "main-ratio +0.05"
+riverctl map normal Super+Shift H send-layout-cmd rivertile "main-count +1"
+riverctl map normal Super+Shift L send-layout-cmd rivertile "main-count -1"
+riverctl map normal Super Left move left 25
+riverctl map normal Super Down move down 25
+riverctl map normal Super Up move up 25
+riverctl map normal Super Right move right 25
+riverctl map normal Super+Control Left snap left
+riverctl map normal Super+Control Down snap down
+riverctl map normal Super+Control Up snap up
+riverctl map normal Super+Control Right snap right
+riverctl map normal Super+Shift Left resize horizontal -25
+riverctl map normal Super+Shift Down resize vertical 25
+riverctl map normal Super+Shift Up resize vertical -25
+riverctl map normal Super+Shift Right resize horizontal 25
+riverctl map-pointer normal Super BTN_LEFT move-view
+riverctl map-pointer normal Super BTN_RIGHT resize-view
+
+for i in $(seq 1 9); do
+    tags=$((1 << ("$i" - 1)))
+
+    # Super+[1-9] to focus tag [0-8]
+    riverctl map normal Super "$i" set-focused-tags $tags
+
+    # Super+Shift+[1-9] to tag focused view with tag [0-8]
+    riverctl map normal Super+Shift "$i" set-view-tags $tags
+
+    # Super+Ctrl+[1-9] to toggle focus of tag [0-8]
+    riverctl map normal Super+Control "$i" toggle-focused-tags $tags
+
+    # Super+Shift+Ctrl+[1-9] to toggle tag [0-8] of focused view
+    riverctl map normal Super+Shift+Control "$i" toggle-view-tags $tags
+done
+
+# Super+0 to focus all tags
+# Super+Shift+0 to tag focused view with all tags
+all_tags=$(((1 << 32) - 1))
+riverctl map normal Super 0 set-focused-tags $all_tags
+riverctl map normal Super+Shift 0 set-view-tags $all_tags
+
+riverctl map normal Super Space toggle-float
+riverctl map normal Super F toggle-fullscreen
+riverctl map normal Super+Control+Alt K send-layout-cmd rivertile "main-location top"
+riverctl map normal Super+Control+Alt L send-layout-cmd rivertile "main-location right"
+riverctl map normal Super+Control+Alt J send-layout-cmd rivertile "main-location bottom"
+riverctl map normal Super+Control+Alt H send-layout-cmd rivertile "main-location left"
+riverctl declare-mode passthrough
+riverctl map normal Super F11 enter-mode passthrough
+riverctl map passthrough Super F11 enter-mode normal
+# not have a modifier
+for mode in normal locked; do
+    # Eject the optical drive (well if you still have one that is)
+    riverctl map $mode None XF86Eject spawn 'eject -T'
+
+    # Control pulse audio volume with pamixer (https://github.com/cdemoulins/pamixer)
+    riverctl map $mode None XF86AudioRaiseVolume spawn 'dotfiles-media volume down'
+    riverctl map $mode None XF86AudioLowerVolume spawn 'dotfiles-media volume up'
+    riverctl map $mode None XF86AudioMute spawn 'dotfiles-media mute'
+
+    # Control MPRIS aware media players with playerctl (https://github.com/altdesktop/playerctl)
+    riverctl map $mode None XF86AudioMedia spawn 'dotfiles-media play'
+    riverctl map $mode None XF86AudioPlay spawn 'dotfiles-media play'
+    riverctl map $mode None XF86AudioPrev spawn 'dotfiles-media prev'
+    riverctl map $mode None XF86AudioNext spawn 'dotfiles-media next'
+
+    # Control screen backlight brighness with light (https://github.com/haikarainen/light)
+    riverctl map $mode None XF86MonBrightnessUp spawn 'light -A 5'
+    riverctl map $mode None XF86MonBrightnessDown spawn 'light -U 5'
+done
+
+riverctl map normal Super E spawn "nautilus"
+riverctl map normal Super D spawn "wofi"
+
+riverctl background-color 0x002b36
+riverctl border-color-focused 0x93a1a1
+riverctl border-color-unfocused 0x586e75
+
+riverctl attach-mode bottom
+
+# Set keyboard repeat rate
+riverctl set-repeat 50 300
+riverctl float-filter-add app-id float
+riverctl float-filter-add app-id Rofi
+riverctl float-filter-add app-id nautilus
+riverctl float-filter-add title "popup title with spaces"
+
+# Start Waybar
+#pkill yambar
+#yambar &
+pkill waybar
+waybar &
+pkill swaybg
+swaybg -i ~/wallpapers/Arch-2.png &
+~/monitors
+
+export _JAVA_AWT_WM_NONREPARENTING=1
+wmname LG3D
+
+# Set and exec into the default layout generator, rivertile.
+# River will send the process group of the init executable SIGTERM on exit.
+if [ "$DOTFILES_TARGET" != "laptop" ]; then
+    riverctl default-layout rivertile
+    exec rivertile -view-padding 0 -outer-padding 0
+fi

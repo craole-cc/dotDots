@@ -10,7 +10,7 @@
 .log
 
 #| Temporary Folders
-[Aa]rchive/
+# [Aa]rchive/
 [Dd]ownloads/
 [Tt]emp/
 [Tt]mp/
