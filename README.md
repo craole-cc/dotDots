@@ -3,7 +3,7 @@
 dotDOTS is a collection of my personal tools and configuration files designed to be portable and efficient across various systems and environments. These configurations reflect my approach to creating a streamlined and consistent setup for:
 
 - **Windows**: Primarily using Git Bash with support through `.dotsrc` to manage configurations. While I rarely use WSL but when I do, I use NixWSL, these are supported when needed.
-- **Linux**: Focused on NixOS with flakes integration. Systems without nixos can use stanalone nix and home-manager or even less, just the dotsrc like on windows
+- **Linux**: Focused on NixOS with flakes integration. Systems without NixOS can use standalone nix and home-manager or even less, just the dotsrc like on windows
 - **macOS**: Additional configuration through nix-darwin and home-manager.
 
 The goal of these configurations is to enhance efficiency, maintain portability, and prioritize simplicity while ensuring compatibility across devices ranging from desktops and laptops to servers and Raspberry Pi systems.
@@ -12,7 +12,7 @@ Others are welcome to explore and adapt these configurations as they see fit.
 
 ## Key Features
 
-- **POSIX Compliance**: Scripts are designed to work on POSIX-compliant systems.
+- **POSIX-Compliance**: Scripts are designed to work on POSIX-compliant systems.
 - **Rust Migration**: Legacy scripts are being upgraded to Rust for enhanced performance and maintainability.
 - **Nix Flakes Integration**: Configurations leverage Nix flakes for non-Windows environments.
 - **Cross-System Compatibility**: Scripts are stored in a separate `bin` folder to ensure availability and functionality across all systems, including Windows.
@@ -103,4 +103,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+This project is licensed under the [MIT License](./LICENSE.md).
