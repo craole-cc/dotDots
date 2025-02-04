@@ -1,0 +1,42 @@
+[manager]
+ratio = [1, 2, 2]
+sort_by = "natural"
+sort_dir_first = true
+linemode = "mtime"
+
+[preview]
+max_width = 1024
+max_height = 1024
+
+[plugin]
+prepend_previewers = [
+  { mime = "application/*zip",            run = "ouch" },
+  { mime = "application/x-tar",           run = "ouch" },
+  { mime = "application/x-bzip2",         run = "ouch" },
+  { mime = "application/x-7z-compressed", run = "ouch" },
+  { mime = "application/x-rar",           run = "ouch" },
+  { mime = "application/x-xz",            run = "ouch" },
+]
+
+[opener]
+generic_open = [
+  { run = 'xdg-open "$@"', desc = "Open" }
+]
+edit = [
+    { run = 'nvim "$@"', block = true }
+]
+extract = [
+  { run = 'ouch d -y "$@"', desc = "Extract here with ouch" }
+]
+display = [
+  { run = 'zathura "$@"', desc = "Show in Zathura" }
+]
+
+[open]
+prepend_rules = [
+  { name = "*.epub", use = "display" },
+  { name = "*.pdf", use = "display" }
+]
+append_rules = [
+  { name = "*", use = "generic_open" },
+]

@@ -1,0 +1,32 @@
+################################################################################
+#
+# Appearance
+#
+################################################################################
+
+
+# Set font (default was monospace)
+# font pango:SpaceMono Nerd Font Medium 14
+# font pango:system-ui 14px
+
+# Set wallpaper randomly from a selection
+# output "*" bg `find /storage/Dotfiles/Resources/Images/wallpaper -type f | sort -R | head -1` fill
+# $output_laptop bg /storage/Dotfiles/Resources/Images/wallpaper/weeds3.jpg fill
+output "*" bg "$(find "$WALLPAPERS" -type f -exec file --mime-type {} \+ | awk -F: '{if ($2 ~/image\//) print $1}' | sort -R | head -1)" fill
+
+
+# Gaps
+smart_gaps on
+smart_borders on
+gaps inner 4
+gaps outer 4
+
+# Colors
+client.focused #c53034ef #c53034ef #efefefef #c53034ef
+client.focused_tab_title #a92b1bef #a92b1bef #efefefef
+client.focused_inactive #61b8a6dd #61b8a6dd #000000ef
+client.unfocused #000000dd #000000dd #434343dd
+default_border pixel 2
+default_floating_border pixel 2
+for_window [class="^.*"] border pixel 2
+

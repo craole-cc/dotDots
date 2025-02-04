@@ -1,0 +1,95 @@
+# theme = "catppuccin_macchiato"
+# theme = "catppuccin_mocha"
+# theme = "kanagawa"
+# theme = "noctis"
+# theme = "noctis_bordo"
+# theme = "monokai_pro_machine"
+theme = "monokai_pro_octagon"
+# theme = "monokai_pro_spectrum"
+# theme = "monokai_pro_ristretto"
+# theme = "monokai_pro_spectrum"
+# theme = "rose_pine_moon"
+# theme = "tokyonight_storm"
+
+[editor]
+line-number = "relative"
+mouse = true
+bufferline = "multiple"
+cursorline = true
+color-modes = true
+auto-save = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+parents = false
+
+[editor.indent-guides]
+render = true
+character = "╎" # Some characters that work well: "▏", "╎", "┆", "┊", "⸽"
+skip-levels = 1
+
+[editor.lsp]
+display-messages = true
+auto-signature-help = true
+display-signature-help-docs = true
+display-inlay-hints = true
+snippets = true
+
+[editor.statusline]
+left = ["mode", "spinner"]
+center = ["file-name"]
+right = [
+  "diagnostics",
+  "selections",
+  "position",
+  "file-encoding",
+  "file-line-ending",
+  "file-type",
+]
+separator = "│"
+mode.normal = "NORMAL"
+mode.insert = "INSERT"
+mode.select = "SELECT"
+
+[editor.whitespace]
+# render = "all"
+
+
+[editor.whitespace.characters]
+space = " "
+nbsp = "⍽"
+tab = "→"
+# newline = "⏎"
+tabpad = "·" # Tabs will look like "→···" (depending on tab width)
+
+# At most one section each of 'keys.normal', 'keys.insert' and 'keys.select'
+[keys.normal]
+"C-]" = "indent"
+
+esc = ["collapse_selection", "keep_primary_selection"]
+# tab = ["collapse_selection", "keep_primary_selection"]
+C-s = ":w"                            # Maps the Ctrl-s to the typable command :w which is an alias for :write (save file)
+C-S-o = ":config-open"                # Maps the Ctrl-o to opening of the helix config file
+C-S-r = ":config-reload"              # Maps the Ctrl-o to opening of the helix config file
+a = "move_char_left"                  # Maps the 'a' key to the move_char_left command
+w = "move_line_up"                    # Maps the 'w' key move_line_up
+"C-S-esc" = "extend_line"             # Maps Ctrl-Shift-Escape to extend_line
+"ret" = ["open_below", "normal_mode"]
+[keys.normal.space]
+s = ":write"
+m = ":format"
+q = ":quit!"
+r = ":config-reload"
+o = ":config-open"
+
+[keys.normal.g]
+a = ":format"
+
+[keys.insert]
+"A-x" = "normal_mode"     # Maps Alt-X to enter normal mode
+j = { k = "normal_mode" } # Maps `jk` to exit insert mode

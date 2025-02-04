@@ -1,0 +1,63 @@
+{
+    "workbench.startupEditor": "none",
+    "files.autoSave": "afterDelay",
+
+    "nix.serverPath": "nixd",
+    "nix.enableLanguageServer": true,
+    "nix.serverSettings": {
+      "nixd": {
+        "formatting": {
+          "command": [ "nixfmt" ] // akejabdra or nixfmt or nixpkgs-fmt
+        }
+        // "options": {
+        //    "nixos": {
+        //      "expr": "(builtins.getFlake \"/PATH/TO/FLAKE\").nixosConfigurations.CONFIGNAME.options"
+        //    },
+        //    "home_manager": {
+        //      "expr": "(builtins.getFlake \"/PATH/TO/FLAKE\").homeConfigurations.CONFIGNAME.options"
+        //    },
+        // },
+      }
+    },
+    "window.autoDetectColorScheme": true,
+    "editor.mouseWheelZoom": true,
+    "files.exclude": {
+      "**/.git": false
+    },
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "workbench.preferredLightColorTheme": "Gruvbox Light Hard",
+    "workbench.iconTheme": "material-icon-theme",
+    "material-icon-theme.hidesExplorerArrows": true,
+    "material-icon-theme.enableLogging": true,
+    "material-icon-theme.folders.customClones": [
+      {
+        "name": "rust-entrypoint",
+        "base": "rust",
+        "color": "amber-300",
+        "lightColor": "amber-600",
+        "fileNames": ["lib.rs","main.rs","mod.rs"]
+      },
+      {
+        "name": "nix-entrypoint",
+        "base": "nix",
+        "color": "indigo-300",
+        "lightColor": "indigo-600",
+        "fileNames": ["default.nix", "flake.nix","configuration.nix"]
+      },
+      {
+        "name": "users-admin",
+        "base": "admin",
+        "color": "light-green-500",
+        "lightColor": "light-green-700",
+        "folderNames": ["users"]
+      },
+      {
+        "name": "roles-admin",
+        "base": "admin",
+        "color": "purple-400",
+        "folderNames": ["roles"]
+      }
+    ]
+}
