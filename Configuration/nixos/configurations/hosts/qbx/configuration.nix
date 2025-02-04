@@ -1,9 +1,9 @@
 {
   imports = [
     ./core
-    ./modules
+    ./custom
     ./desktop
-    # ./libraries
+    ./libraries
     # ./programs
     # ./services
     ./users

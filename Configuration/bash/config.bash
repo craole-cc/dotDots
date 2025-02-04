@@ -2,10 +2,12 @@
 
 BDOTRC="$(realpath "${BASH_SOURCE[0]}")"
 BDOTDIR="$(dirname "$BDOTRC")"
-DOTS_CFG="${DOTS_CFG:-"$(dirname "$BDOTDIR")"}"
-DOTS="${DOTS:-"$(dirname "$DOTS_CFG")"}"
-DOTS_BIN="${DOTS_BIN:-"$DOTS/Utilities/bin"}"
-export BDOTDIR BDOTRC DOTS DOTS_CFG DOTS_BIN
+export BDOTRC BDOTDIR
+
+# DOTS_CFG="${DOTS_CFG:-"$(dirname "$BDOTDIR")"}"
+# DOTS="${DOTS:-"$(dirname "$DOTS_CFG")"}"
+# DOTS_BIN="${DOTS_BIN:-"$DOTS/Utilities/bin"}"
+# export BDOTDIR BDOTRC DOTS DOTS_CFG DOTS_BIN
 
 source_external_cfg() {
   [ -f /etc/bashrc ] && . /etc/bashrc
@@ -79,4 +81,4 @@ source_external_cfg
 source_internal_cfg
 set_app_defaults
 init_prompt
-update_dots_path "$DOTS/Utilities/bin"
+# update_dots_path "$DOTS/Utilities/bin"
