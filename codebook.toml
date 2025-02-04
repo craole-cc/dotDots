@@ -1,0 +1,10 @@
+dictionaries = []
+words = [
+    "coreutils",
+    "dotsrc",
+    "posix",
+    "starship",
+    "wsl",
+]
+flag_words = []
+ignore_paths = []

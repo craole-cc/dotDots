@@ -22,17 +22,26 @@ pkgs.mkShell {
     direnv
     nixfmt-rfc-style
     nixd
-    statix
     fend
+    fastfetch
   ];
 
   shellHook = ''
     DOTS="$HOME/.dots"
     DOTS_BIN="$DOTS/Bin"
-    export DOTS DOTS_BIN
+    DOTS_CFG="$DOTS/Configuration"
+    export DOTS DOTS_BIN DOTS_CFG
 
-    pathman="$DOTS_BIN/utility/files/pathman"
-    . "$pathman" --append "$DOTS_BIN"
+    STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
+    FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
+
+    . "$DOTS_BIN/utility/files/pathman" --append "$DOTS_BIN"
+    fastfetch --config "$FASTFETCH_CONFIG"
+
+    eval "$(direnv hook bash)"
+    eval "$(zoxide init bash)"
+    eval "$(thefuck --alias)"
+    eval "$(starship init bash)"
 
   '';
 }
