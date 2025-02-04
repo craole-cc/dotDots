@@ -5,6 +5,6 @@ copy-on-select = clipboard
 
 gtk-tabs-location = bottom
 
-background-opacity = 0.98
+# background-opacity = 0.98
 background-blur-radius = 70
 keybind = super+ctrl+grave_accent=toggle_quick_terminal

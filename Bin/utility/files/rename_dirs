@@ -1,0 +1,79 @@
+#!/bin/sh
+#
+# rename_albums.sh
+#
+# This script renames album folders matching the format:
+#
+#   (YEAR) - ARTIST - ALBUM [QUALITY]
+#
+# to the format:
+#
+#   ARTIST -YEAR- ALBUM
+#
+# Usage:
+#   ./rename_albums.sh [-n] [directory]
+#
+#   -n         dry-run; only print renaming operations without executing them
+#   directory  folder containing the albums (default is the current directory)
+
+usage() {
+  echo "Usage: $0 [-n] [directory]" >&2
+  exit 1
+}
+
+# Default values
+dry_run=1
+
+# Process options
+while getopts "n" opt; do
+  case $opt in
+  n)
+    dry_run=1
+    ;;
+  *)
+    usage
+    ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+# Directory to process (default is '.')
+target_dir=${1:-.}
+
+# Change to the target directory
+cd "$target_dir" || {
+  echo "Cannot cd to directory: $target_dir" >&2
+  exit 1
+}
+
+# Process each item (assumed to be directories, but works for files too)
+for f in *; do
+  [ -e "$f" ] || continue # skip if no match
+
+  # The sed command uses an extended regular expression to capture:
+  #   \1: the 4-digit year (inside parentheses at the beginning)
+  #   \2: the artist name (with extra leading/trailing spaces removed)
+  #   \3: the album name (ditto)
+  #
+  # Explanation of the regex:
+  #   ^\(([0-9]{4})\)              => Match a '(' then capture 4 digits (year) then ')'
+  #   [[:space:]]*-[[:space:]]*     => Skip a hyphen with optional spaces around it
+  #   ([^[:space:]].*[^[:space:]])  => Capture artist: at least two non-space characters
+  #                                   (ensures no extra spaces at start or end)
+  #   [[:space:]]*-[[:space:]]*     => Skip the next hyphen (with optional spaces)
+  #   (.*[^[:space:]])             => Capture album: remove trailing spaces (if any)
+  #   [[:space:]]*\[.*\][[:space:]]*$ => Match quality info in square brackets (and trailing spaces)
+  #
+  # The replacement reassembles the name as: "ARTIST -YEAR- ALBUM"
+  new=$(printf "%s" "$f" | sed -E 's/^\(([0-9]{4})\)[[:space:]]*-[[:space:]]*([^[:space:]].*[^[:space:]])[[:space:]]*-[[:space:]]*(.*[^[:space:]])[[:space:]]*\[.*\][[:space:]]*$/\2 -\1- \3/')
+
+  # Only rename if the new name is different from the original.
+  if [ "$f" != "$new" ]; then
+    echo "Renaming:"
+    echo "  Old: $f"
+    echo "  New: $new"
+    if [ "$dry_run" -eq 0 ]; then
+      mv -- "$f" "$new"
+    fi
+  fi
+done
