@@ -1,4 +1,0 @@
-{ ... }:
-{
-  services.autorandr.enable = true;
-}

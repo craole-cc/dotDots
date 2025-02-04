@@ -1,7 +1,0 @@
-{
-  imports = [
-    ./dbook
-    # ./delle
-    # ./victus
-  ];
-}

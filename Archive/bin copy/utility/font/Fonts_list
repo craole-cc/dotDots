@@ -1,6 +1,0 @@
-#!/bin/sh
-
-fc-list :"$1" |
-    awk --field-separator=: '{print $2}' |
-    sort --unique |
-    bat --style 'numbers,grid'

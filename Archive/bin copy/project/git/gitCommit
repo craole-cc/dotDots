@@ -1,3 +1,0 @@
-#!/bin/sh
-
-git commit --all --quiet --message="$*"

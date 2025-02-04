@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if ! ( emacsclient -c "$@" 2> /dev/null ); then
-    echo "Couldn't start emacsclient"
-    echo "Starting Emacs..."
-    emacs --eval="(server-start)" "$@"
-fi
