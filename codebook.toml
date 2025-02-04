@@ -1,10 +1,10 @@
 dictionaries = []
 words = [
-    "coreutils",
-    "dotsrc",
-    "posix",
-    "starship",
-    "wsl",
+    "jsonc",
+    "markdownlint",
+    "shellcheck",
+    "shfmt",
+    "taplo",
 ]
 flag_words = []
 ignore_paths = []
