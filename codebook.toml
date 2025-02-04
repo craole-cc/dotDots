@@ -1,10 +1,4 @@
 dictionaries = []
-words = [
-    "jsonc",
-    "markdownlint",
-    "shellcheck",
-    "shfmt",
-    "taplo",
-]
+words = ["jsonc", "markdownlint", "shellcheck", "shfmt", "taplo"]
 flag_words = []
 ignore_paths = []

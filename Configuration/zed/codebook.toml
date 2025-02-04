@@ -1,18 +1,18 @@
 dictionaries = []
 words = [
-    "coreutils",
-    "dotsrc",
-    "direnv",
-    "fastfetch",
-    "posix",
-    "jsonc",
-    "rosé",
-    "nixos",
-    "starship",
-    "thefuck",
-    "treefmt",
-    "wsl",
-    "zoxide",
+  "coreutils",
+  "dotsrc",
+  "direnv",
+  "fastfetch",
+  "posix",
+  "jsonc",
+  "rosé",
+  "nixos",
+  "starship",
+  "thefuck",
+  "treefmt",
+  "wsl",
+  "zoxide",
 ]
 flag_words = []
 ignore_paths = []

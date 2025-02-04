@@ -38,7 +38,7 @@ groups.append(
                 height=0.5,
                 width=1,
                 x=0,
-                y=.5,
+                y=0.5,
                 opacity=1,
                 on_focus_lost_hide=False,
             ),

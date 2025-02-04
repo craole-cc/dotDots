@@ -205,10 +205,10 @@
       };
 
     script = ''
-      
-            for m in $(polybar --list-monitors | ${pkgs.coreutils-full}/bin/cut -d":" -f1); do
-                MONITOR=$m polybar --reload top &
-            done
+
+      for m in $(polybar --list-monitors | ${pkgs.coreutils-full}/bin/cut -d":" -f1); do
+          MONITOR=$m polybar --reload top &
+      done
     '';
   };
 }

@@ -21,8 +21,8 @@ let
       buildInputs = [ perl ];
 
       installPhase = ''
-        
-                install -D -m 755 $src $out/bin/colorcheck
+
+        install -D -m 755 $src $out/bin/colorcheck
       '';
     };
 in

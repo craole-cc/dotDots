@@ -55,9 +55,12 @@
         };
         dbook = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          modules = [
-            ./core/hosts/dbook
-          ] ++ coreModules ++ homeModules;
+          modules =
+            [
+              ./core/hosts/dbook
+            ]
+            ++ coreModules
+            ++ homeModules;
         };
       };
     };

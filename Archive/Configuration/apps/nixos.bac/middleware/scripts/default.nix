@@ -15,8 +15,8 @@ let
         ];
       }
       ''
-        
-            cat ${emoji_json} | jq -r '.[] | "\(.emoji) \t   \(.description)"' | sed -e 's,\\t,\t,g' > $out
+
+        cat ${emoji_json} | jq -r '.[] | "\(.emoji) \t   \(.description)"' | sed -e 's,\\t,\t,g' > $out
       '';
 
   writeShellApp =
@@ -35,21 +35,21 @@ let
       dontBuild = true;
 
       installPhase = ''
-        
-                runHook preInstall
-                mkdir -p $out/bin
-                cp $src $out/bin/${args.name}
-                runHook postInstall
+
+        runHook preInstall
+        mkdir -p $out/bin
+        cp $src $out/bin/${args.name}
+        runHook postInstall
       '';
 
       doInstallCheck = true;
       installCheckPhase = ''
-        
-                runHook preInstallCheck
-                ${final.stdenv.shellDryRun} "$out/bin/${args.name}"
-                ${final.shellcheck}/bin/shellcheck "$out/bin/${args.name}"
-                ${final.shfmt}/bin/shfmt --diff -s -ln bash -i 0 -ci "$out/bin/${args.name}"
-                runHook postInstallCheck
+
+        runHook preInstallCheck
+        ${final.stdenv.shellDryRun} "$out/bin/${args.name}"
+        ${final.shellcheck}/bin/shellcheck "$out/bin/${args.name}"
+        ${final.shfmt}/bin/shfmt --diff -s -ln bash -i 0 -ci "$out/bin/${args.name}"
+        runHook postInstallCheck
       '';
 
       solutions.default = {
@@ -112,8 +112,8 @@ in
     ];
     prologue =
       (final.writeText "export-emoji-list" ''
-        
-              export emoji_list="${emoji_list}"
+
+        export emoji_list="${emoji_list}"
       '').outPath;
   };
 
@@ -131,8 +131,8 @@ in
     ];
     prologue =
       (final.writeText "export-emoji-list" ''
-        
-              export emoji_list="${emoji_list}"
+
+        export emoji_list="${emoji_list}"
       '').outPath;
   };
 

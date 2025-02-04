@@ -19,9 +19,9 @@ pkgs.mkShell rec {
   # LIBCLANG_PATH = pkgs.lib.makeLibraryPath [ pkgs.llvmPackages_latest.libclang.lib ];
   HISTFILE = toString ./.history;
   shellHook = ''
-    
-        export PATH=$PATH:${CARGO_HOME: -~/.cargo}/bin
-        export PATH=$PATH:${RUSTUP_HOME: -~/.rustup}/toolchains/$RUSTC_VERSION-x86_64-unknown-linux-gnu/bin/
+
+    export PATH=$PATH:${CARGO_HOME: -~/.cargo}/bin
+    export PATH=$PATH:${RUSTUP_HOME: -~/.rustup}/toolchains/$RUSTC_VERSION-x86_64-unknown-linux-gnu/bin/
   '';
   # Add libvmi precompiled library to rustc search path
   RUSTFLAGS = (

@@ -3,6 +3,7 @@
 from shutil import which
 from classes.cmd_list import Command
 
+
 def wehave(cmd):
     CMD = Command()
     CMD.command = cmd
@@ -11,6 +12,7 @@ def wehave(cmd):
         if which(cmd):
             return cmd
             break
+
 
 def wehave_location(cmd):
     CMD = Command()

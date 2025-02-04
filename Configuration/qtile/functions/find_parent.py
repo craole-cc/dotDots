@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def find_parent(name):
     # Start from the current working directory
     p = Path.cwd()

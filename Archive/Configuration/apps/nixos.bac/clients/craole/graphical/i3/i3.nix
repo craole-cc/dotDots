@@ -35,9 +35,9 @@
       startup = [
         {
           command = ''
-            
-                        ${pkgs.systemd}/bin/systemctl --user import-environment DISPLAY; \
-                          ${pkgs.systemd}/bin/systemctl --user start i3-session.target
+
+            ${pkgs.systemd}/bin/systemctl --user import-environment DISPLAY; \
+              ${pkgs.systemd}/bin/systemctl --user start i3-session.target
           '';
           always = false;
           notification = false;
@@ -65,8 +65,8 @@
     };
 
     extraConfig = ''
-      
-            focus_wrapping no
+
+      focus_wrapping no
     '';
   };
 }

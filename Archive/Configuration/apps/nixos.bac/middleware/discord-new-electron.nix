@@ -11,13 +11,13 @@ final: prev: {
         postInstall =
           (old.postInstall or "")
           + ''
-            
-                    rm $out/opt/${binaryName}/${binaryName}
-                    cat << EOF > $out/opt/${binaryName}/${binaryName}
-                    #!${runtimeShell}
-                    ${lib.getExe electron_20} "$out/opt/${binaryName}/resources/app.asar" "$@"
-                    EOF
-                    chmod +x $out/opt/${binaryName}/${binaryName}
+
+            rm $out/opt/${binaryName}/${binaryName}
+            cat << EOF > $out/opt/${binaryName}/${binaryName}
+            #!${runtimeShell}
+            ${lib.getExe electron_20} "$out/opt/${binaryName}/resources/app.asar" "$@"
+            EOF
+            chmod +x $out/opt/${binaryName}/${binaryName}
           '';
       }
     )).override

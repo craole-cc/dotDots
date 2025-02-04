@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
-# Python program to explain os.path.expandvars() method 
+# Python program to explain os.path.expandvars() method
 
-# importing os.path module 
+# importing os.path module
 import os.path
 
 # Path
 path = "$DOTS"
 
 # Expand the environment variables
-# with their corresponding 
+# with their corresponding
 # value in the given path
 exp_var = os.path.expandvars(path)
 
@@ -19,7 +19,7 @@ exp_var = os.path.expandvars(path)
 print(exp_var)
 
 
-# Change the value of 
+# Change the value of
 # Environment variable 'HOME'
 
 os.environ["HOME"] = "/home/GeeksForGeeks"
@@ -28,7 +28,7 @@ os.environ["HOME"] = "/home/GeeksForGeeks"
 path = "$HOME/Documents/file.txt"
 
 # Expand the environment variables
-# with their corresponding 
+# with their corresponding
 # value in the given path
 exp_var = os.path.expandvars(path)
 
@@ -44,7 +44,7 @@ os.environ["USER"] = "ihritik"
 path = "/home/${USER}/file.txt"
 
 # Expand the environment variables
-# with their corresponding 
+# with their corresponding
 # value in the given path
 exp_var = os.path.expandvars(path)
 
@@ -54,6 +54,6 @@ print(exp_var)
 
 
 # In the above example,
-# os.path.expandvars() method replaced 
+# os.path.expandvars() method replaced
 # the environment variable 'HOME' and 'USER'
 # with their corresponding values
