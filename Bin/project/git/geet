@@ -661,10 +661,10 @@ execute_git_actions() {
   #@ Lint
   [ "$treefmt_cmd" ] && {
     if [ "$ci" ]; then
-      eval "$treefmt_cmd" "--ci" || return 1
+      eval "$treefmt_cmd --ci" || return 1
       # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
     else
-      eval "$treefmt_cmd"
+      "$(treefmt_cmd)"
     fi
   }
 
