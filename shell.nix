@@ -26,6 +26,7 @@ pkgs.mkShell {
     fastfetch
     treefmt2
     yamlfmt
+    stylua
   ];
 
   shellHook = ''
