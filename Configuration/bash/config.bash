@@ -4,38 +4,26 @@ BDOTRC="$(realpath "${BASH_SOURCE[0]}")"
 BDOTDIR="$(dirname "$BDOTRC")"
 export BDOTRC BDOTDIR
 
-# DOTS_CFG="${DOTS_CFG:-"$(dirname "$BDOTDIR")"}"
-# DOTS="${DOTS:-"$(dirname "$DOTS_CFG")"}"
-# DOTS_BIN="${DOTS_BIN:-"$DOTS/Utilities/bin"}"
-# export BDOTDIR BDOTRC DOTS DOTS_CFG DOTS_BIN
+DOTS="$HOME/.dots"
+DOTS_BIN="$DOTS/Bin"
+DOTS_CFG="$DOTS/Configuration"
+export DOTS DOTS_BIN DOTS_CFG
 
-source_external_cfg() {
-  [ -f /etc/bashrc ] && . /etc/bashrc
-  [ -f "$HOME/.bash_aliases" ] && . "$HOME/.bash_aliases"
-  [ -f "$HOME/.bash_functions" ] && . "$HOME/.bash_functions"
-  [ -f "$HOME/.profile" ] && . "$HOME/.profile"
-}
+init_config() {
+  conf_files="$(find "$1" -type f)"
 
-source_internal_cfg() {
-  init_config() {
-    conf_files="$(find "$1" -type f)"
-
-    for conf in $conf_files; do
-      if [ -r "$conf" ]; then
-        # time . "$conf"
-        . "$conf"
-      else
-        printf "File not readable:  %s" "$conf"
-      fi
-    done
-  }
-
-  #@ Load resources and functions
-  init_config "$BDOTDIR/functions"
-  init_config "$BDOTDIR/resources"
+  for conf in $conf_files; do
+    if [ -r "$conf" ]; then
+      # time . "$conf"
+      . "$conf"
+    else
+      printf "File not readable:  %s" "$conf"
+    fi
+  done
 }
 
 set_app_defaults() {
+
   #| Default TTY Editor
   if weHave hx; then
     EDITOR="hx"
@@ -77,8 +65,39 @@ set_app_defaults() {
   export READER
 }
 
-source_external_cfg
-source_internal_cfg
-set_app_defaults
-init_prompt
-# update_dots_path "$DOTS/Utilities/bin"
+#@ Only execute this script for interactive shells
+case "$BASHOPTS" in
+*i*)
+  #@ Source the system-wide profile if SSH client is detected
+  [ -n "$SSH_CLIENT" ] && . /etc/profile
+  [ -f /etc/bashrc ] && . /etc/bashrc
+  [ -f ~/.bash_aliases ] && . ~/.bash_aliases
+  [ -f ~/.bash_profile ] && . ~/.bash_profile
+  [ -f ~/.bash_login ] && . ~/.bash_login
+  [ -f ~/.bash_functions ] && . ~/.bash_functions
+  [ -f ~/.profile ] && . ~/.profile
+
+  FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
+  STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
+
+  TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
+  alias treefmt='treefmt --config "$TREEFMT_CONFIG"'
+
+  #@ Load resources and functions
+  init_config "$BDOTDIR/functions"
+  init_config "$BDOTDIR/resources"
+
+  update_dots_path "$DOTS/Bin"
+  set_app_defaults
+  init_prompt
+  ;;
+*)
+  # If this is a login shell, exit instead of returning
+  # to ensure that the shell is completely closed.
+  if shopt -q login_shell; then
+    exit
+  else
+    return
+  fi
+  ;;
+esac

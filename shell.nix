@@ -28,6 +28,7 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
+    . /home/craole/.dots/Configuration/bash/config.bash
     DOTS="$HOME/.dots"
     DOTS_BIN="$DOTS/Bin"
     DOTS_CFG="$DOTS/Configuration"
