@@ -7,10 +7,10 @@ excludes = [
   "**/dist/**",
   "**/.git/**",
   "**/review/**",
-  "**/qbittorrent/**", #TODO Temporary
+  "**/qbittorrent/**",  #TODO Temporary
   "Configuration/**",
   "Bin/**",
-  "Documentation/**", #TODO Temporary
+  "Documentation/**",   #TODO Temporary
   "Assets/**",
 ]
 
@@ -291,10 +291,11 @@ excludes = []
 includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
 options = ["fmt"]
 
-# [formatter.typos]
-# command = "typos"
-# excludes = []
-# includes = ["*"]
+[formatter.typos]
+command = "typos"
+excludes = []
+includes = ["*"]
+options = ["--diff" ]
 # options = ["--write-changes"]
 
 [formatter.zig]

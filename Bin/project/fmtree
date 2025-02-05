@@ -1,16 +1,50 @@
 #!/bin/sh
 
-treefmt_cmd="$(command -v treefmt 2>&1)"
-treefmt_cfg="$DOTS_CFG/treefmt/config.toml"
+unset _cmd _args
+_cmd="$(command -v treefmt 2>&1)"
+_args="--allow-missing-formatter"
 
-[ "$treefmt_cmd" ] || {
+[ "$_cmd" ] || {
   printf "Error: treefmt not found." >&2
   return 1
 }
 
-[ -f "$treefmt_cfg" ] && {
-  mv "$HOME/.treefmt.toml" "$HOME/.treefmt.toml.bak"
-  cp "$treefmt_cfg" "$HOME/.treefmt.toml"
-}
+while [ "$#" -ge 1 ]; do
+  case "$1" in
+  --config)
+    [ "$2" ] || {
+      printf "Error: Config file not specified." >&2
+      return 1
+    }
 
-treefmt --allow-missing-formatter "${@:-$DOTS}"
+    [ -f "$2" ] || {
+      printf "Error: Config file not found." >&2
+      return 1
+    }
+
+    _args="${_args:+$_args }--config-file $2"
+    shift
+    ;;
+  --root)
+    [ "$2" ] || {
+      printf "Error: Root directory not specified." >&2
+      return 1
+    }
+
+    [ -d "$2" ] || {
+      printf "Error: Root directory not found." >&2
+      return 1
+    }
+
+    _args="${_args:+$_args }--tree-root $2"
+    shift
+    ;;
+  *)
+    _args="${_args:+$_args }$1"
+    ;;
+  esac
+  shift
+done
+
+_cmd="$(printf "%s %s" "$_cmd" "$_args")"
+echo "$_cmd"
