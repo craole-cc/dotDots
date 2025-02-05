@@ -1,16 +1,17 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "users";
   cfg = config.${dom}.${mod};
 
   inherit (lib.options) mkOption;
-  inherit (lib.strings) toUpper substring stringLength;
   inherit (lib.types) attrs attrsOf;
   inherit (lib.attrsets) mapAttrs' filterAttrs;
   inherit (config.system) stateVersion;
-
-  capitalizeFirst = str: "${toUpper (substring 0 1 str)}${substring 1 (stringLength str - 1) str}";
 
   confirguration = mapAttrs' (key: val: {
     name = key;
@@ -20,7 +21,6 @@ let
       wayland.windowManager = { inherit (val) hyprland; };
     };
   }) (filterAttrs (_: u: u.enable && u.isNormalUser) cfg);
-
 in
 {
   options.${dom} = {

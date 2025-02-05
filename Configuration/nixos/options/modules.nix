@@ -7,22 +7,11 @@
 let
   inherit (lib) types;
   inherit (config.nixpkgs.localSystem) isEfi;
-  inherit (lib.attrsets)
-    filterAttrs
-    attrNames
-    attrValues
-    mapAttrs
-    isAttrs
-    ;
   inherit (lib.lists)
-    length
-    head
     elem
-    elemAt
     ;
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.strings)
-    concatStringsSep
     fileContents
     stringLength
     substring
@@ -33,7 +22,6 @@ let
   inherit (config) DOTS;
   base = "modules";
   mod = "host";
-  cfg = DOTS.${base}.${mod};
   alpha = DOTS.lib.fetchers.currentUser;
 
   inherit (DOTS) hosts enums;

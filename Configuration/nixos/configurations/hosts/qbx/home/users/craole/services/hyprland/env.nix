@@ -1,4 +1,8 @@
-{ osConfig, pkgs, ... }:
+{
+  osConfig,
+  pkgs,
+  ...
+}:
 let
   inherit (osConfig) nixpkgs hardware;
   nvidia = hardware.nvidia.modesetting.enable;

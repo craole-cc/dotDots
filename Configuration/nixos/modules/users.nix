@@ -89,7 +89,6 @@ let
         wayland.windowManager.hyprland = {
           enable = user.desktop.manager or null == "hyprland";
         };
-
       }
     ) userConfigs;
     verbose = true;

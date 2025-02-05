@@ -1,4 +1,8 @@
-{ specialArgs, lib, ... }:
+{
+  specialArgs,
+  lib,
+  ...
+}:
 let
   inherit (specialArgs.host.location)
     latitude

@@ -1,4 +1,7 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "users";
@@ -20,7 +23,11 @@ in
     default = { };
     type = attrsOf (
       submodule (
-        { name, config, ... }:
+        {
+          name,
+          config,
+          ...
+        }:
         {
           options = {
             enable = mkEnableOption "Enable user";

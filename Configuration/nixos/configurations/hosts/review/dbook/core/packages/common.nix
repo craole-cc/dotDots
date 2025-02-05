@@ -5,7 +5,6 @@
   ...
 }:
 let
-  inherit (lib.lists) elem;
   inherit (lib.options) mkOption;
   inherit (lib.types)
     listOf

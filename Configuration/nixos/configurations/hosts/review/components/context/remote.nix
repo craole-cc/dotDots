@@ -16,7 +16,6 @@ in
 with lib;
 {
   config = mkIf (elem "remote" context) {
-
     environment = {
       systemPackages = with packages; if isMinimal then tui else tui ++ gui;
     };

@@ -1,7 +1,10 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   inherit (lib.options) mkEnableOption;
-  inherit (config) DOTS;
 
   base = "programs";
 in

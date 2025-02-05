@@ -1,12 +1,9 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
 let
-  user = "craole";
-  app = "bat";
 
   catppuccin = pkgs.fetchFromGitHub {
     owner = "catppuccin";

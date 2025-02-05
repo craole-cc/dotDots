@@ -3,7 +3,6 @@ let
   inherit (config) DOTS;
   inherit (DOTS) location;
   stateVersion = "24.05";
-
 in
 {
   system = {

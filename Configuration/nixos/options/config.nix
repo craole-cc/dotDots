@@ -1,13 +1,10 @@
 {
   config,
   lib,
-  pkgs,
   modulesPath,
   ...
 }:
-
 let
-  inherit (lib.lists) elem length head;
   inherit (lib.modules) mkIf mkDefault mkForce;
   inherit (lib.options) mkOption;
   # inherit (config.dot.active) host; ???
@@ -16,7 +13,6 @@ let
   inherit (config) DOTS;
   base = "config";
   mod = "host";
-  cfg = config.DOTS.config;
 
   hostConfig =
     # with host; ???

@@ -4,7 +4,6 @@
   ...
 }:
 let
-  inherit (config.DOTS.pictures) wallpapers;
   stylix = pkgs.fetchFromGitHub {
     owner = "danth";
     repo = "stylix";

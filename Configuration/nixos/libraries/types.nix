@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   mod = "types";
 
@@ -17,8 +21,6 @@ let
     replaceStrings
     ;
 
-  inherit (lib.types) path;
-
   #| Internal libraries
   inherit (config.DOTS) Libraries;
   inherit (Libraries.filesystem) locateProjectRoot pathof;
@@ -26,7 +28,6 @@ in
 with Libraries.${mod};
 {
   options.DOTS.Libraries.${mod} = {
-
     isNixFile = mkOption {
       description = "Check if a file is a Nix file";
       example = ''isNixFile "file.nix"'';

@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "desktop";
@@ -18,7 +22,6 @@ let
 in
 {
   config = {
-
     assertions = [
       {
         assertion = activeCount == 1;

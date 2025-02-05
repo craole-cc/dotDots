@@ -1,4 +1,8 @@
-{ osConfig, pkgs, ... }:
+{
+  osConfig,
+  pkgs,
+  ...
+}:
 {
   imports = [
     # ./icons.nix

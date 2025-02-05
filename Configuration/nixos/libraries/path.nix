@@ -13,7 +13,6 @@ let
 in
 {
   options.DOTS.Libraries.${mod} = with cfg; {
-
     listFilesRecursively = mkOption {
       description = "List all nix paths in a directory.";
       example = ''listRecursively "path/to/directory"'';
@@ -71,15 +70,6 @@ in
           # sansExcludedFolders = filter (folder: !isExcluded folder) sansLoaders;
 
           # isExcluded = file: any (folder: hasPrefix folder file) excludeFolders;
-          filesSansExcludedFolders = filter (folder: !isExcluded folder) filesSansLoaders;
-
-          gitignorePath = "${path}/.gitignore";
-          gitignoreContents = builtins.readFile gitignorePath;
-          filteredFiles = builtins.filterSource (f: builtins.elem f) files;
-          filteredFilesWithoutExcluded = filter (file: !isExcluded file) filteredFiles;
-          filesOrig = filter (file: file == path || (!elem (baseNameOf file) loaders)) (
-            listFilesRecursive path
-          );
         in
         modules;
     };

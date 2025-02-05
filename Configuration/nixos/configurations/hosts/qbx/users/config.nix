@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "users";
@@ -11,7 +15,6 @@ let
   inherit (config.system) stateVersion;
 
   capitalizeFirst = str: "${toUpper (substring 0 1 str)}${substring 1 (stringLength str - 1) str}";
-
 in
 {
   options.${dom} = {
@@ -26,7 +29,6 @@ in
     config = mkOption {
       description = "Modules to merge into the configuration";
       default = {
-
         users.users = mapAttrs' (key: val: {
           name = key;
           value = {
@@ -52,7 +54,6 @@ in
             wayland.windowManager = { inherit (val) hyprland; };
           };
         }) (filterAttrs (_: u: u.enable && u.isNormalUser) cfg);
-
       };
       type = attrsOf attrs;
     };

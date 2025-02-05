@@ -1,7 +1,7 @@
 { lib, ... }:
 let
   inherit (lib.options) mkOption mkEnableOption;
-  inherit (lib.types) bool string;
+  inherit (lib.types) string;
 in
 {
   options.dots.services.hyprland = {

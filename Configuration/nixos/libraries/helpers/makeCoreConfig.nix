@@ -1,5 +1,4 @@
 {
-  name,
   system,
   preferredRepo,
   allowUnfree,
@@ -8,10 +7,8 @@
   backupFileExtension,
   extraPkgConfig,
   extraPkgAttrs,
-
   specialArgs,
   specialModules,
-
   nixosStable,
   nixosUnstable,
   homeManager,
@@ -39,7 +36,7 @@ let
       stablePkgs = mkPkgs nixosStable;
     in
     defaultPkgs.extend (
-      final: prev:
+      _final: _prev:
       {
         stable = stablePkgs;
         unstable = unstablePkgs;

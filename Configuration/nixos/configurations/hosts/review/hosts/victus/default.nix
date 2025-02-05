@@ -15,7 +15,6 @@ in
     };
     # context = [ "everything" ];
     extraConfig = {
-
       boot = {
         initrd.availableKernelModules = [
           "xhci_pci"
@@ -50,5 +49,4 @@ in
       };
     };
   };
-
 }

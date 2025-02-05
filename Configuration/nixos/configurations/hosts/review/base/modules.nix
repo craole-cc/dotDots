@@ -10,15 +10,12 @@ let
   inherit (lib.attrsets)
     filterAttrs
     attrNames
-    attrValues
     mapAttrs
-    isAttrs
     ;
   inherit (lib.lists)
     length
     head
     elem
-    elemAt
     ;
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.strings)
@@ -33,7 +30,6 @@ let
     nullOr
     bool
     str
-    strMatching
     float
     enum
     attrs
@@ -56,7 +52,7 @@ in
           inherit (enums.host) configuration;
 
           enabled = rec {
-            names = attrNames (filterAttrs (name: hostConfig: hostConfig.enable == true) hosts);
+            names = attrNames (filterAttrs (_name: hostConfig: hostConfig.enable == true) hosts);
             count = length names;
           };
 
@@ -103,7 +99,6 @@ in
         with hosts.${host'};
         with enums;
         {
-
           enable = mkEnableOption "Enable host: ${host'}";
 
           name = mkOption {

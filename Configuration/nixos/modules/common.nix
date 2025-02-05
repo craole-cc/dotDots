@@ -1,7 +1,10 @@
-{ specialArgs, pkgs, ... }:
+{
+  specialArgs,
+  pkgs,
+  ...
+}:
 let
   inherit (specialArgs.host) cpu;
-
 in
 {
   console = {

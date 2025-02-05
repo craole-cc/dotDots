@@ -104,6 +104,5 @@ in
     };
     programs = cfg.programs;
     environment.systemPackages = cfg.packages;
-
   };
 }

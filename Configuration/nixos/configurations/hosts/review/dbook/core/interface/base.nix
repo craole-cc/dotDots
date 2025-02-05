@@ -1,11 +1,13 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  ...
+}:
 let
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.types) oneOf nullOr;
-  inherit (lib.lists) elem;
 
   base = "interface";
-  cfg = config.DOTS.${base};
 in
 {
   options.DOTS.${base} = {

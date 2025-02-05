@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   inherit (lib.modules) mkIf;
   cfg = config.dots.env.gnome;

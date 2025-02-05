@@ -190,7 +190,6 @@
           {
             name = "json";
             formatter = {
-
               command = "prettier";
               args = [
                 "--parser"
@@ -212,7 +211,6 @@
           {
             name = "markdown";
             formatter = {
-
               command = "prettier";
               args = [
                 "--parser"
@@ -226,7 +224,6 @@
               #   "--ext"
               #   "md"
               # ];
-
             };
             auto-format = true;
           }
@@ -235,7 +232,6 @@
           {
             name = "typescript";
             formatter = {
-
               command = "prettier";
               args = [
                 "--parser"
@@ -255,7 +251,6 @@
           {
             name = "tsx";
             formatter = {
-
               command = "prettier";
               args = [
                 "--parser"
@@ -276,7 +271,6 @@
           {
             name = "javascript";
             formatter = {
-
               command = "prettier";
               args = [
                 "--parser"
@@ -296,7 +290,6 @@
           {
             name = "jsx";
             formatter = {
-
               command = "prettier";
               args = [
                 "--parser"

@@ -1,4 +1,8 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 let
   enable = config.DOTS.interface.manager == "hyprland";
 in
@@ -62,5 +66,4 @@ in
       xfce4-xkb-plugin
       # xfdashboard
     ]);
-
 }

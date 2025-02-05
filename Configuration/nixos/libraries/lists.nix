@@ -7,22 +7,18 @@ let
   #| Native Imports
   inherit (lib) filter lessThan;
   inherit (lib.lists)
-    all
     any
     flatten
     toList
     unique
     sort
     length
-    head
-    last
     ;
   inherit (lib.strings)
     hasPrefix
     hasInfix
     hasSuffix
     toLower
-    toInt
     ;
   inherit (lib.options) mkOption;
 
@@ -43,7 +39,8 @@ in
 {
   options.DOTS.${base}.${mod} = {
     prep = mkOption {
-      /**
+      /*
+        *
         prep :: [a] -> [a]
 
         Flattens a nested list structure or string into a single list.
@@ -69,7 +66,8 @@ in
     };
 
     blanks = mkOption {
-      /**
+      /*
+        *
         blanks :: [String] -> AttrSet
 
         Removes blank lines in a list and provides filtering statistics.
@@ -143,7 +141,8 @@ in
     };
 
     prefixed = mkOption {
-      /**
+      /*
+        *
         prefixed :: AttrSet -> AttrSet
 
         Removes lines that start with specified string(s).
@@ -240,7 +239,8 @@ in
     };
 
     infixed = mkOption {
-      /**
+      /*
+        *
         infixed :: AttrSet -> AttrSet
 
         Removes lines that contain specified string(s).
@@ -331,7 +331,8 @@ in
     };
 
     suffixed = mkOption {
-      /**
+      /*
+        *
         suffixed :: AttrSet -> AttrSet
 
         Removes lines that end with specified string(s).
@@ -448,7 +449,8 @@ in
     };
 
     prune = mkOption {
-      /**
+      /*
+        *
         prune :: [String] -> [String]
 
         Comprehensive list cleaning function that:

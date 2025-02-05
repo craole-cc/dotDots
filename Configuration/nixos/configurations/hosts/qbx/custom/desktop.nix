@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "desktop";
@@ -9,21 +13,17 @@ let
     windowManagers
     displayProtocols
     loginManagers
-    users
     waylandReadyDEs
     ;
   inherit (lib.options)
     mkOption
     mkEnableOption
-    mergeEqualOption
     ;
-  inherit (lib.strings) concatMapStringsSep;
-  inherit (lib.lists) elem head;
+  inherit (lib.lists) elem;
   inherit (lib.types)
     enum
     nullOr
     str
-    mkOptionType
     ;
 in
 {

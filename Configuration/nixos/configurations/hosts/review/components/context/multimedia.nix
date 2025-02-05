@@ -7,7 +7,7 @@
 let
   ctx = "multimedia";
 
-  inherit (lib.options) mkOption mkDefault;
+  inherit (lib.options) mkDefault;
   inherit (config) dots;
   inherit (config.dots.active.user) context;
 
@@ -18,7 +18,6 @@ let
 in
 {
   config = mkIf (elem ctx context) {
-
     environment = {
       systemPackages = with packages; if isMinimal then tui else tui ++ gui;
     };

@@ -1,4 +1,8 @@
-{ specialArgs, lib, ... }:
+{
+  specialArgs,
+  lib,
+  ...
+}:
 let
   inherit (lib.lists) elem;
   inherit (specialArgs.host)

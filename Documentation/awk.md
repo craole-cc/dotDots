@@ -34,4 +34,5 @@ echo "$geekstut" |
 
 echo "$tomcat" |
     awk -F'[/|=]' -vOFS='\t' '{print $3, $5, $NF}'
+
 # awk -F'[/=]' '{print $3 "\t" $5 "\t" $8}'

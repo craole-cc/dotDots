@@ -5,17 +5,14 @@
   ...
 }:
 let
-
-  inherit (specialArgs) host modules;
+  inherit (specialArgs) host;
   inherit (host) userConfigs people;
   inherit (lib.attrsets)
     mapAttrs
-    attrValues
     attrNames
     filterAttrs
     ;
   inherit (lib.lists)
-    any
     filter
     unique
     elem
@@ -34,7 +31,6 @@ let
     filter (user: !elem user regularUsersPerHost) (elevatedUsersPerHostConf ++ elevatedUsersPerUserConf)
   );
   users = lib.attrNames specialArgs.host.userConfigs;
-
 in
 {
   _module.args = {

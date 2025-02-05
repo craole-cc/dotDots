@@ -83,8 +83,7 @@ case "$BASHOPTS" in
 
   FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
   STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
-  # TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
-  export FASTFETCH_CONFIG STARSHIP_CONFIG
+    export FASTFETCH_CONFIG STARSHIP_CONFIG
 
   #@ Load resources and functions
   init_config "$BDOTDIR/functions"

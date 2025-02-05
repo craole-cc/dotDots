@@ -1,4 +1,7 @@
-{ config, pkgs, ... }:
+{
+  config,
+  ...
+}:
 {
   # imports = [ ./settings ];
 

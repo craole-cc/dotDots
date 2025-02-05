@@ -1,19 +1,17 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   #| External libraries
-  inherit (lib) mkOption filter;
+  inherit (lib) mkOption;
   inherit (lib.lists)
-    any
     concatMap
-    unique
-    naturalSort
     ;
   inherit (lib.strings)
     fileContents
     splitString
-    hasPrefix
-    hasInfix
-    hasSuffix
     ;
 
   #| Internal libraries
@@ -79,7 +77,7 @@ in
     perGit = mkOption {
       description = "Process ignore checks based on the .gitignore file at the project root";
       default =
-        path:
+        _path:
         let
           lines = concatMap (contents: splitString "\n" contents) (fileContents "/dots/.gitignore");
         in

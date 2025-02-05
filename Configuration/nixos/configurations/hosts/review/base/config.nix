@@ -1,18 +1,13 @@
 {
   config,
   lib,
-  pkgs,
   modulesPath,
   ...
 }:
-
 let
-  inherit (lib.lists) elem length head;
   inherit (lib.modules) mkIf mkDefault mkForce;
   inherit (lib.options) mkOption;
   inherit (config.dot.active) host;
-
-  cfg = config.dot.config;
 
   hostConfig =
     with host;

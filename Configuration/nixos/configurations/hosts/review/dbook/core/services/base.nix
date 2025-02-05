@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   inherit (lib.lists) elem;
   inherit (lib.options) mkOption;
@@ -14,14 +18,13 @@ let
 
   base = "services";
   cfg = DOTS.${base};
-
 in
 {
   options.DOTS.${base} = mkOption {
     description = "The configuration for {{mod}}";
     default = {
       displayManager = {
-        enable = (!isMinimal);
+        enable = !isMinimal;
         autoLogin = {
           enable = loginAutomatically;
           user = name;
@@ -55,10 +58,10 @@ in
         extraOptions = "--term xterm-256color";
         fonts = sets;
       };
-      blueman.enable = (!isMinimal);
+      blueman.enable = !isMinimal;
       pipewire =
         let
-          enable = (!isMinimal);
+          enable = !isMinimal;
         in
         {
           inherit enable;
@@ -81,7 +84,7 @@ in
             };
           };
         };
-      tailscale.enable = (!isMinimal);
+      tailscale.enable = !isMinimal;
     };
     type = attrs;
   };

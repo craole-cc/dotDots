@@ -7,26 +7,19 @@
 let
   #| Native Imports
   inherit (lib.attrsets)
-    filterAttrs
-    attrNames
-    attrValues
     mapAttrs
-    isAttrs
     ;
   inherit (lib.lists)
     length
-    head
     any
     elem
     elemAt
     findFirst
     isList
     ;
-  inherit (lib.modules) mkIf;
   inherit (lib.options) mkOption mkEnableOption mkPackageOption;
-  inherit (lib.strings) concatStringsSep substring;
+  inherit (lib.strings) substring;
   inherit (lib.types)
-    nonEmptyStr
     package
     nullOr
     bool
@@ -58,7 +51,6 @@ let
   mod = "user";
 
   inherit (DOTS.active) host;
-  inherit (DOTS) users;
 in
 {
   options.DOTS.${base}.${mod} = mkOption {
@@ -572,7 +564,7 @@ in
             str
             path
           ]);
-          apply = mapAttrs (n: v: if isList v then concatMapStringsSep ":" toString v else toString v);
+          apply = mapAttrs (_n: v: if isList v then concatMapStringsSep ":" toString v else toString v);
         };
 
         shellAliases = mkOption {
@@ -703,22 +695,15 @@ in
           btop = {
             enable = mkEnableOption "btop";
             package = mkPackageOption pkgs "btop" { };
-            export = mkOption { default = if btop.enable then { inherit (btop) enable package; } else { }; };
+            export = mkOption {
+              default = if btop.enable then { inherit (btop) enable package; } else { };
+            };
           };
 
           git = with git; {
             enable = mkEnableOption "Git" // {
               default =
                 let
-                  isRequired =
-                    context != null
-                    && any (
-                      name:
-                      elem name [
-                        "development"
-                        # "productivity"
-                      ]
-                    ) context;
                   isRequested = userName != null && userEmail != null;
                 in
                 isRequested;

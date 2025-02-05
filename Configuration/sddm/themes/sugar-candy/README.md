@@ -7,7 +7,6 @@ All controls use the [latest Qt Quick Controls 2](http://doc.qt.io/qt-5/qtquickc
 
 To learn how to control sugar levels read the section below about customization. Your secret sauce is located at ./sddm/themes/sugar-candy/theme.conf! There are **46 customizable variables** in total! This candy will be yours and only yours.  
 
-
 ### Installation  
 
 **From within KDE Plasma**  
@@ -49,7 +48,6 @@ including: [`Qt Quick Controls 2`](https://doc.qt.io/archives/qt-5.11/qtquickcon
 **Red Hat** based distros using the **dnf** package manager:  
 *(Fedora/Mageia/RHEL/CentOS)*  
 `sudo dnf install sddm qt5‑qtgraphicaleffects qt5‑qtquickcontrols2 qt5‑qtsvg`  
-
 
 ### Configuration
 
@@ -120,7 +118,7 @@ And as if that wouldn't still be enough you can **translate every single button 
 *Integer in pixels. Increase or delete this to have a padding of color BackgroundColor all around your screen. This makes your login greeter appear as if it was a canvas. Cool!*  
 
 **`Font="Noto Sans"`**  
-*If you want to choose a custom font it will have to be available to the X root user. See https://wiki.archlinux.org/index.php/fonts#Manual_installation*  
+*If you want to choose a custom font it will have to be available to the X root user. See <https://wiki.archlinux.org/index.php/fonts#Manual_installation>*  
 
 **`FontSize=""`**  
 *Only set a fixed value if fonts are way too small for your resolution. Preferrably kept empty.*  
@@ -153,15 +151,15 @@ And as if that wouldn't still be enough you can **translate every single button 
 *The time and date locale should usually be set in your system settings. Only hard set this if something is not working by default or you want a seperate locale setting in your login screen.*  
 
 **`HourFormat="HH:mm"`**  
-*Defaults to Locale.ShortFormat - Accepts "long" or a custom string like "hh:mm A". See http://doc.qt.io/qt-5/qml-qtqml-date.html*  
+*Defaults to Locale.ShortFormat - Accepts "long" or a custom string like "hh:mm A". See <http://doc.qt.io/qt-5/qml-qtqml-date.html>*  
 
 **`DateFormat="dddd, d of MMMM"`**  
-*Defaults to Locale.LongFormat - Accepts "short" or a custom string like "dddd, d 'of' MMMM". See http://doc.qt.io/qt-5/qml-qtqml-date.html*  
+*Defaults to Locale.LongFormat - Accepts "short" or a custom string like "dddd, d 'of' MMMM". See <http://doc.qt.io/qt-5/qml-qtqml-date.html>*  
 
 **`HeaderText="Welcome!"`**  
 *Header can be empty to not display any greeting at all. Keep it short.*  
 
-*SDDM may lack proper translation for every element. Sugar defaults to SDDM translations. Please help translate SDDM as much as possible for your language: https://github.com/sddm/sddm/wiki/Localization. These are in order as they appear on screen.*  
+*SDDM may lack proper translation for every element. Sugar defaults to SDDM translations. Please help translate SDDM as much as possible for your language: <https://github.com/sddm/sddm/wiki/Localization>. These are in order as they appear on screen.*  
 
 **`TranslatePlaceholderUsername=""`**  
 **`TranslatePlaceholderPassword=""`**  
@@ -176,7 +174,6 @@ And as if that wouldn't still be enough you can **translate every single button 
 **`TranslateShutdown=""`**  
 **`TranslateVirtualKeyboardButton=""`**  
 *These don't necessarily need to translate anything. You can enter whatever you want here.*  
-
 
 ### Legal Notice
 
@@ -202,7 +199,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with SDDM Sugar Candy. If not, see <https://www.gnu.org/licenses/>
 
-
 ### Other awesome projects
 
 - [Chili—the hottest login theme for KDE Plasma](https://www.opendesktop.org/p/1214121)
@@ -210,7 +206,6 @@ along with SDDM Sugar Candy. If not, see <https://www.gnu.org/licenses/>
 - [Flat OSX like aurorae window decorations for your Linux desktop](https://www.opendesktop.org/p/1199822) and [its high contrast version](https://www.opendesktop.org/p/1246756)
 - [Finely crafted folder icons for Linux](https://www.opendesktop.org/p/1228310)
 - [Inline clock widget for KDE Plasma](https://www.opendesktop.org/p/1245902)
-
 
 ### Motivate a developer
 

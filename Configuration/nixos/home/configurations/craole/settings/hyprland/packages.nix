@@ -1,8 +1,11 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 {
   config = {
     home-manager.users.craole = {
-
       wayland.windowManager.hyprland.enable = true;
 
       home.packages = with pkgs; [

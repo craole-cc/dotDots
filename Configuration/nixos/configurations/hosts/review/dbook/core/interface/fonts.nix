@@ -1,4 +1,8 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 let
   inherit (config) DOTS;
   inherit (DOTS.libs) native;

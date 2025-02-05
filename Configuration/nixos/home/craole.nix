@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   #| Native Imports
   inherit (lib.options) mkOption mkEnableOption;
@@ -18,7 +22,6 @@ let
   base = "users";
   mod = "craole";
   cfg = DOTS.${base}.${mod};
-
 in
 {
   options.DOTS.${base}.${mod} = {
@@ -133,7 +136,6 @@ in
       };
       type = attrs;
     };
-
   };
 
   config = mkIf cfg.enable {

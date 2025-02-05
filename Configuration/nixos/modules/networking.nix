@@ -1,4 +1,8 @@
-{ specialArgs, lib, ... }:
+{
+  specialArgs,
+  lib,
+  ...
+}:
 let
   inherit (lib.lists) length;
   inherit (lib.attrsets) listToAttrs mapAttrs;
@@ -17,7 +21,7 @@ in
     hostName = name;
     interfaces =
       mapAttrs
-        (_: iface: {
+        (_: _iface: {
           useDHCP = true;
         })
         (

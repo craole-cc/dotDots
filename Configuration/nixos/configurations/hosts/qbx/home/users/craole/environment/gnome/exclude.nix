@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inherit (lib.modules) mkIf mkDefault;
+  inherit (lib.modules) mkIf;
   cfg = config.dots.env.gnome;
 in
 {
