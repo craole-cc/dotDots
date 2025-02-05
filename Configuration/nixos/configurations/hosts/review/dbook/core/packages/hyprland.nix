@@ -1,9 +1,7 @@
-{ ... }:
-let
+{...}: let
   # enable = config.DOTS.interface.manager == "hyprland";
   enable = false;
-in
-{
+in {
   programs = {
     hyprland = {
       inherit enable;

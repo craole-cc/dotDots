@@ -1,1 +1,1 @@
-{ imports = [ ./font ]; }
+{imports = [./font];}

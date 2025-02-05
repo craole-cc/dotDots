@@ -1,5 +1,5 @@
 {
-  imports = [ ./configuration.nix ];
+  imports = [./configuration.nix];
   DOTS.hosts.preci = {
     id = "8f792eed";
     base = "laptop";
@@ -59,7 +59,7 @@
       };
 
       swap = [
-        { device = "/dev/disk/by-uuid/d1aa80d2-ba1f-412f-9d81-5c5f5c6a839d"; }
+        {device = "/dev/disk/by-uuid/d1aa80d2-ba1f-412f-9d81-5c5f5c6a839d";}
       ];
 
       network = [

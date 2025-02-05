@@ -3,25 +3,21 @@
   pkgs,
   specialArgs,
   ...
-}:
-let
+}: let
   inherit (config.services) pipewire;
   inherit (specialArgs.paths) flake;
-  gui =
-    with config;
+  gui = with config;
     services.xserver.enable || programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
-in
-{
+in {
   programs = {
     git = {
       enable = true;
       lfs.enable = true;
       config = {
-        user =
-          {
-            name = "Your Name";
-            email = "you@example.com";
-          };
+        user = {
+          name = "Your Name";
+          email = "you@example.com";
+        };
         init.defaultBranch = "main";
         safe.directory = with flake; [
           root
@@ -40,8 +36,7 @@ in
     #   enable = true;
     # };
   };
-  environment.systemPackages =
-    with pkgs;
+  environment.systemPackages = with pkgs;
     [
       #| Core Utilities
       usbutils
@@ -98,37 +93,39 @@ in
       figlet # Stylized Printing
     ]
     ++ (
-      if gui then
-        [
-          ansel
-          brave
-          darktable
-          dconf2nix
-          dconf-editor
-          drive
-          freetube
-          inkscape-with-extensions
-          kitty
-          microsoft-edge
-          qbittorrent
-          remmina
-          shortwave
-          via
-          vscode-fhs
-          warp-terminal
-          whatsapp-for-linux
-        ]
-      else
-        [ ]
+      if gui
+      then [
+        ansel
+        brave
+        darktable
+        dconf2nix
+        dconf-editor
+        drive
+        freetube
+        inkscape-with-extensions
+        kitty
+        microsoft-edge
+        qbittorrent
+        remmina
+        shortwave
+        via
+        vscode-fhs
+        warp-terminal
+        whatsapp-for-linux
+      ]
+      else []
     )
     ++ (
-      if pipewire.enable then
-        [
-          pavucontrol
-          easyeffects
-        ]
-      else
-        [ ]
+      if pipewire.enable
+      then [
+        pavucontrol
+        easyeffects
+      ]
+      else []
     )
-    ++ (if pipewire.jack.enable then [ qjackctl ] else [ ]);
+    ++ (
+      if pipewire.jack.enable
+      then [qjackctl]
+      else []
+    );
 }

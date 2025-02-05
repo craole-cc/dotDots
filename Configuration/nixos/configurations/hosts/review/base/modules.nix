@@ -3,28 +3,31 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (config.nixpkgs.localSystem) isEfi;
 
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     filterAttrs
     attrNames
     mapAttrs
     ;
-  inherit (lib.lists)
+  inherit
+    (lib.lists)
     length
     head
     elem
     ;
   inherit (lib.options) mkOption mkEnableOption;
-  inherit (lib.strings)
+  inherit
+    (lib.strings)
     concatStringsSep
     fileContents
     stringLength
     substring
     ;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     nonEmptyStr
     package
     nullOr
@@ -40,27 +43,26 @@ let
     nonEmptyListOf
     ;
   inherit (lib.filesystem) pathIsRegularFile;
-in
-{
+in {
   options.dot = with config.dot; {
     active.host = mkOption {
       description = "The current host configuration";
-      default =
-        let
-          inherit (config.networking) hostName;
-          inherit (sources.host.configuration) home;
-          inherit (enums.host) configuration;
+      default = let
+        inherit (config.networking) hostName;
+        inherit (sources.host.configuration) home;
+        inherit (enums.host) configuration;
 
-          enabled = rec {
-            names = attrNames (filterAttrs (_name: hostConfig: hostConfig.enable == true) hosts);
-            count = length names;
-          };
+        enabled = rec {
+          names = attrNames (filterAttrs (_name: hostConfig: hostConfig.enable == true) hosts);
+          count = length names;
+        };
 
-          msgEnable = ''${concatStringsSep "\n      # " (
+        msgEnable = ''${concatStringsSep "\n      # " (
             map (host: "config.dot.hosts." + host + ".enable = true;") configuration
           )}'';
-        in
-        if enabled.count == 0 then
+      in
+        if enabled.count == 0
+        then
           throw ''
             Missing host configuration. Possible solutions:
 
@@ -78,7 +80,8 @@ in
                then enable it in your configuration file via:
                 { config.dot.hosts.${hostName}.enable = true; };
           ''
-        else if enabled.count >= 2 then
+        else if enabled.count >= 2
+        then
           throw ''
             Multiple (${toString enabled.count}) hosts enabled: [ ${concatStringsSep ", " enabled.names} ]
 
@@ -87,18 +90,15 @@ in
                   ${msgEnable}
                 };
           ''
-        else
-          hosts.${head enabled.names};
+        else hosts.${head enabled.names};
       type = attrs;
     };
 
     modules.host = mkOption {
       description = "Module options for each host";
-      default =
-        host': path':
+      default = host': path':
         with hosts.${host'};
-        with enums;
-        {
+        with enums; {
           enable = mkEnableOption "Enable host: ${host'}";
 
           name = mkOption {
@@ -127,19 +127,17 @@ in
               `head -c 8 /etc/machine-id`
               `head -c4 /dev/urandom | od -A none -t x4`
             '';
-            default =
-              let
-                machineId = /etc/machine-id;
-                devUrandom = pkgs.writeShellScriptBin "random-hex" ''
-                  hexdump -n 4 -e '/1 "%02x"' -v /dev/urandom
-                '';
+            default = let
+              machineId = /etc/machine-id;
+              devUrandom = pkgs.writeShellScriptBin "random-hex" ''
+                hexdump -n 4 -e '/1 "%02x"' -v /dev/urandom
+              '';
 
-                idFile =
-                  if pathIsRegularFile machineId && stringLength (fileContents machineId) == 32 then
-                    fileContents machineId
-                  else
-                    devUrandom; # TODO: This is not working. How to run random-hex shellscript?
-              in
+              idFile =
+                if pathIsRegularFile machineId && stringLength (fileContents machineId) == 32
+                then fileContents machineId
+                else devUrandom; # TODO: This is not working. How to run random-hex shellscript?
+            in
               substring 0 8 idFile;
             type = nullOr str;
           };
@@ -165,12 +163,10 @@ in
                     "chromebook"
                     "raspberry-pi"
                   ])
-                then
-                  "ondemand"
-                else if (elem machine [ "laptop" ]) then
-                  "powersave"
-                else
-                  "performance";
+                then "ondemand"
+                else if (elem machine ["laptop"])
+                then "powersave"
+                else "performance";
               type = enum enums.host.processor.mode;
             };
 
@@ -184,10 +180,8 @@ in
                     "intel"
                     "x86_64"
                   ])
-                then
-                  "x86_64-linux"
-                else
-                  "aarch64-linux";
+                then "x86_64-linux"
+                else "aarch64-linux";
               # default = "x86_64-linux";
               type = enum enums.host.processor.arch;
             };
@@ -207,21 +201,20 @@ in
                 isElevated = true;
               }
             ];
-            type =
-              let
-                user = submodule {
-                  options = {
-                    name = mkOption {
-                      description = "Font name, as used by fontconfig.";
-                      type = enum enums.user.configuration;
-                    };
-                    isElevated = mkOption {
-                      type = bool;
-                      description = "Package providing the font.";
-                    };
+            type = let
+              user = submodule {
+                options = {
+                  name = mkOption {
+                    description = "Font name, as used by fontconfig.";
+                    type = enum enums.user.configuration;
+                  };
+                  isElevated = mkOption {
+                    type = bool;
+                    description = "Package providing the font.";
                   };
                 };
-              in
+              };
+            in
               nonEmptyListOf user;
           };
 
@@ -233,21 +226,18 @@ in
                   "chromebook"
                   "laptop"
                 ]
-              then
-                host.context
+              then host.context
               else if
                 elem machine [
                   "server"
                   "raspberry-pi"
                 ]
-              then
-                [
-                  "minimal"
-                  "development"
-                ]
-              else
-                [ "minimal" ];
-            type = listOf (enum (host.context ++ [ "minimal" ]));
+              then [
+                "minimal"
+                "development"
+              ]
+              else ["minimal"];
+            type = listOf (enum (host.context ++ ["minimal"]));
           };
 
           location = {
@@ -272,7 +262,7 @@ in
 
           packages = mkOption {
             description = "System packages";
-            default = [ ];
+            default = [];
             type = listOf package;
           };
 
@@ -300,13 +290,17 @@ in
               type = enum enums.host.manager.boot;
             };
 
-            isEfi = mkEnableOption "Is an EFI system" // {
-              default = isEfi;
-            };
+            isEfi =
+              mkEnableOption "Is an EFI system"
+              // {
+                default = isEfi;
+              };
 
-            allowDualBoot = mkEnableOption "Allow dual boot" // {
-              default = false;
-            };
+            allowDualBoot =
+              mkEnableOption "Allow dual boot"
+              // {
+                default = false;
+              };
 
             configurationLimit = mkOption {
               description = "Configuration limit";
@@ -316,22 +310,20 @@ in
                     "chromebook"
                     "raspberry-pi"
                   ]
-                then
-                  5
-                else
-                  50;
+                then 5
+                else 50;
               type = int;
             };
 
             kernel = {
               initrd = mkOption {
                 description = "";
-                default = [ ];
+                default = [];
                 type = listOf str;
               };
               modules = mkOption {
                 description = "";
-                default = [ ];
+                default = [];
                 type = listOf str;
               };
               packages = mkOption {
@@ -345,29 +337,28 @@ in
           mount = {
             fileSystem = mkOption {
               description = "Mountpoints";
-              default = { };
+              default = {};
               type = attrs;
             };
 
             swap = mkOption {
               description = "Swap devices";
-              default = [ ];
+              default = [];
             };
           };
 
           networking = mkOption {
             description = "Networking config like DHCP";
-            default = { };
+            default = {};
           };
         };
       type = raw;
     };
 
-    hosts =
-      let
-        inherit (modules) host;
-        inherit (sources.host.configuration) attrs;
-      in
+    hosts = let
+      inherit (modules) host;
+      inherit (sources.host.configuration) attrs;
+    in
       mapAttrs (name: path: host name path) attrs;
   };
 }

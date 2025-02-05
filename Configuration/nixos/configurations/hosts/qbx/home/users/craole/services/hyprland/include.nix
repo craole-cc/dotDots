@@ -2,13 +2,11 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   cfg = config.dots.env.gnome;
   user = config.dots.env.hyprland.user;
-in
-{
+in {
   config = mkIf cfg.enable {
     programs.hyprland = {
       enable = true;

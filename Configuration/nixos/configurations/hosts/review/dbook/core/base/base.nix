@@ -1,10 +1,8 @@
-{ config, ... }:
-let
+{config, ...}: let
   inherit (config) DOTS;
   inherit (DOTS) location;
   stateVersion = "24.05";
-in
-{
+in {
   system = {
     inherit stateVersion;
   };
@@ -16,11 +14,12 @@ in
   };
   location = {
     inherit (location) longitude latitude;
-    provider =
-      let
-        inherit (config.location) latitude longitude;
-      in
-      if (latitude == null || longitude == null) then "geoclue2" else "manual";
+    provider = let
+      inherit (config.location) latitude longitude;
+    in
+      if (latitude == null || longitude == null)
+      then "geoclue2"
+      else "manual";
   };
   nix = {
     gc = {

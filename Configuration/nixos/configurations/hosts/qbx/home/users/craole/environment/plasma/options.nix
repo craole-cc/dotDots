@@ -1,9 +1,7 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.types) bool;
-in
-{
+in {
   options.dots.env.gnome = {
     enable = mkEnableOption "Enable GNOME desktop environment";
     wayland.enable = mkOption {

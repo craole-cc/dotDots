@@ -3,18 +3,15 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.strings) makeBinPath;
   inherit (specialArgs.paths) flake scripts;
-in
-{
+in {
   system.activationScripts.setDotsPermissions.text = ''
     #@ Ensure required commands are available
     PATH=$PATH:${
       makeBinPath (
-        with pkgs;
-        [
+        with pkgs; [
           coreutils
           findutils
           fd

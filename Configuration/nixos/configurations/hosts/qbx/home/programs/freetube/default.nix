@@ -1,5 +1,5 @@
 {
-  imports = [ ];
+  imports = [];
   programs.freetube = {
     enable = true;
     settings = {

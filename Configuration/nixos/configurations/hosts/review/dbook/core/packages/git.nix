@@ -2,8 +2,7 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.options) mkOption;
   inherit (lib.types) attrs;
   inherit (config) DOTS;
@@ -11,8 +10,7 @@ let
   base = "programs";
   mod = "git";
   cfg = DOTS.${base}.${mod};
-in
-{
+in {
   options.DOTS.${base}.${mod} = mkOption {
     description = "{{mod}}";
     default = {

@@ -1,15 +1,12 @@
-{ specialArgs, ... }:
-let
+{specialArgs, ...}: let
   enable = specialArgs.host.desktop == "hyprland";
-in
-{
+in {
   services =
-    if enable then
-      {
-        hypridle = {
-          enable = true;
-        };
-      }
-    else
-      { };
+    if enable
+    then {
+      hypridle = {
+        enable = true;
+      };
+    }
+    else {};
 }

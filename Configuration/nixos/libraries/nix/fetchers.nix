@@ -3,8 +3,7 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   #| Internal Imports
   inherit (config.DOTS) Libraries;
   inherit (Libraries.filesystem) nullOrpathof;
@@ -18,8 +17,7 @@ let
   inherit (lib.options) mkOption;
   inherit (lib.strings) fileContents fromJSON floatToString;
   inherit (lib.types) str;
-in
-{
+in {
   options.DOTS.Libraries.${mod} = {
     host = {
       name = mkOption {
@@ -51,39 +49,35 @@ in
 
     githubEmail = mkOption {
       description = "Retrieve a github email for the specified user via the GitHub API";
-      default =
-        {
-          user,
-          sha256 ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-        }:
-        let
-          # Function to fetch user data from GitHub API
-          fetchData =
-            login: sha256:
-            let
-              fetchedData = nullOrpathof (fetchurl {
-                url = "https://api.github.com/users/${login}";
-                inherit sha256;
-              });
-            in
-            if fetchedData != null then fetchedData else throw "Unable to retrieve the requested data";
-
-          # Read the contents of the file
-          parseData =
-            file:
-            let
-              data = fromJSON (fileContents file);
-            in
-            if data ? login then data else throw "The 'login' field is missing in the JSON data";
-
-          # Extract/build the email from JSON data
-          getEmail =
-            data:
-            if data.email != null then
-              data.email
-            else
-              "${floatToString data.id}+${data.login}@users.noreply.github.com";
+      default = {
+        user,
+        sha256 ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      }: let
+        # Function to fetch user data from GitHub API
+        fetchData = login: sha256: let
+          fetchedData = nullOrpathof (fetchurl {
+            url = "https://api.github.com/users/${login}";
+            inherit sha256;
+          });
         in
+          if fetchedData != null
+          then fetchedData
+          else throw "Unable to retrieve the requested data";
+
+        # Read the contents of the file
+        parseData = file: let
+          data = fromJSON (fileContents file);
+        in
+          if data ? login
+          then data
+          else throw "The 'login' field is missing in the JSON data";
+
+        # Extract/build the email from JSON data
+        getEmail = data:
+          if data.email != null
+          then data.email
+          else "${floatToString data.id}+${data.login}@users.noreply.github.com";
+      in
         getEmail (parseData (fetchData user sha256));
     };
 

@@ -5,9 +5,8 @@
   modulesPath,
   ...
 }:
-with lib;
-{
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+with lib; {
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
   boot = {
     initrd = {
@@ -21,18 +20,18 @@ with lib;
         "sr_mod"
         "sdhci_pci"
       ];
-      kernelModules = [ ];
+      kernelModules = [];
     };
-    kernelModules = [ "kvm-intel" ];
+    kernelModules = ["kvm-intel"];
     kernelPackages = pkgs.linuxPackages_latest;
-    extraModulePackages = [ ];
+    extraModulePackages = [];
   };
 
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-uuid/e887045d-f7a8-4064-b463-71544ad82a2d";
       fsType = "btrfs";
-      options = [ "subvol=@" ];
+      options = ["subvol=@"];
     };
 
     "/boot" = {
@@ -41,7 +40,7 @@ with lib;
     };
   };
 
-  swapDevices = [ { device = "/dev/disk/by-uuid/2eff8f3f-3920-4aec-ac15-7fe659123ba5"; } ];
+  swapDevices = [{device = "/dev/disk/by-uuid/2eff8f3f-3920-4aec-ac15-7fe659123ba5";}];
 
   networking = {
     useDHCP = mkDefault true;

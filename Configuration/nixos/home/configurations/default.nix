@@ -2,8 +2,7 @@
   specialArgs,
   lib,
   ...
-}:
-{
+}: {
   # _module.args={
   config = {
     # home-manager = {
