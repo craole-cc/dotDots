@@ -10,7 +10,7 @@ __info__() {
   _cmd_NAME="$(basename "$_cmd_PATH")"
   _cmd_HOME="$(dirname -- "$_cmd_PATH")"
   _cmd_VERSION="1.0"
-  _cmd_DESCRIPTION="Transform strings, particularily case and space."
+  _cmd_DESCRIPTION="Transform strings, particularly case and space."
   _cmd_DEPENDENCIES="perl, sed, tr, printf, getoptions, __cmd_exists__"
   _cmd_USAGEGUIDE="$(
     cat <<USAGE_GUIDE

@@ -45,6 +45,7 @@ pkgs.mkShell {
     typst # ? typesetting system to replace LaTeX
     typstyle # ? typst style
     typstfmt # ? typst formatter
+    markdownlint-cli2 # ? Markdown
   ];
 
   shellHook = ''

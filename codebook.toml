@@ -41,7 +41,7 @@ words = [
   "thefuck",
   "treefmt",
   "wsl",
-  "zoxide",
+  "zoxide"
 ]
 flag_words = []
 ignore_paths = []

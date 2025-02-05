@@ -1,10 +1,10 @@
 #!/bin/sh
 
-: <<'Documenation'
+: <<'Documentation'
 # Calculate the duration two timespamps
 ::USAGE::
 dtdiff "$(__timeNow__)" "$(__timeBoot__)"
-Documenation
+Documentation
 
 strStart="$2"
 strEND="$1"

@@ -19,7 +19,7 @@ from threading import Thread
 
 def gethtmlresult(url,result,index):
 	'''
-	get the stuff from url in chuncks of size CHUNK, and keep writing the number of bytes retrieved into result[index]
+	get the stuff from url in chunks of size CHUNK, and keep writing the number of bytes retrieved into result[index]
 	'''
 	#print url, index, result[index]
 	req = urllib2.urlopen(url)
@@ -84,7 +84,7 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 	urlresult = urllib.urlopen(url)
 	allJSstuff = urlresult.read()	# this is a obfuscated Javascript file 
 	'''
-	# OLD STUFF ... beautiful, but needs the js-beautifier module, which was a non-stardard requirement
+	# OLD STUFF ... beautiful, but needs the js-beautifier module, which was a non-standard requirement
 	res = jsbeautifier.beautify(allJSstuff)	# ... so un-obfuscate it
 	for line in res.split('\n'):
 		if line.find('token:') >= 0:

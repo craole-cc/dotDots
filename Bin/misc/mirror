@@ -28,5 +28,5 @@
 
 # >>= Update =<<
   msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)" OUTPUT $msg
-  # systemctl start reflector.service # Update mirrors immediatly
+  # systemctl start reflector.service # Update mirrors immediately
   msg="⌛ The package mirrorlist has been updated" OUTPUT $msg

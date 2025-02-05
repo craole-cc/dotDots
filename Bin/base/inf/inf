@@ -56,7 +56,7 @@ prepare_environment() {
     case "$(
       printf "%s" "$info" | tr '[:upper:]' '[:lower:]'
     )" in
-    *linix* | *gnu*) info="GNU/Linux" ;;
+    *linux* | *gnu*) info="GNU/Linux" ;;
     *darwin*) info="Mac" ;;
     *cygwin* | *msys* | *mingw*) info="Windows" ;;
     *freebsd*) info="FreeBSD" ;;
@@ -250,7 +250,7 @@ prepare_environment() {
 
   get_package_manager() {
 
-    #@ Select the first package found manager from thge list
+    #@ Select the first package found manager from the list
     known_package_managers="
       nix
       apt

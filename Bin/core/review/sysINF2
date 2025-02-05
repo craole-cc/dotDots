@@ -7,7 +7,7 @@ _cmd_PATH="$(PathOf "$0")"
 _cmd_NAME="$(basename "$_cmd_PATH")"
 _cmd_DIR="$(dirname -- "$_cmd_NAME")"
 _cmd_VERSION="1.0"
-_cmd_DESCRIPTION="Display system informaion"
+_cmd_DESCRIPTION="Display system information"
 _cmd_DEPENDENCIES="eko, grep, sed, awk"
 _cmd_USAGEGUIDE="$(
   cat <<USAGE_GUIDE
@@ -142,12 +142,12 @@ __extract_info__() {
 sys_os() {
   if weHave hostnamectl; then
     hostnamectl | rg "Operating System" | sd "^.*:\s" ''
-    # seive \
+    # sieve \
     #   --cmd "hostnamectl" \
     #   --filter "Operating System" \
     #   --delim ":"
   elif weHave lsb_release; then
-    seive \
+    sieve \
       --cmd "lsb_release --description" \
       --delim ":"
   elif [ -f /etc/os-release ]; then
@@ -203,7 +203,7 @@ sys_kernel() {
   if weHave uname; then
     uname --kernel-release
   elif weHave hostnamectl; then
-    seive \
+    sieve \
       --cmd "hostnamectl" \
       --filter "Kernel" \
       --delim ": $(sys_type)"
@@ -220,7 +220,7 @@ sys_arch() {
   if weHave uname; then
     uname --machine
   elif weHave hostnamectl; then
-    seive \
+    sieve \
       --cmd "hostnamectl" \
       --filter "Architecture" \
       --delim ":"
@@ -237,7 +237,7 @@ sys_host() {
   if weHave uname; then
     uname --nodename
   elif weHave hostnamectl; then
-    seive \
+    sieve \
       --cmd "hostnamectl" \
       --filter "Static hostname" \
       --delim ":"
@@ -291,7 +291,7 @@ sys_shell() {
 
 sys_wm() {
   if weHave wmctrl; then
-    seive \
+    sieve \
       --cmd "wmctrl -m" \
       --filter "Name" \
       --delim ":"
