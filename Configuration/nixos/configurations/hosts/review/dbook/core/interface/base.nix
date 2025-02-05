@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.types) oneOf nullOr;
 

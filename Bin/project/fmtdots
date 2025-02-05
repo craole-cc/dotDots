@@ -2,6 +2,7 @@
 
 treefmt_cmd="$(command -v treefmt 2>&1)"
 treefmt_cfg="$DOTS_CFG/treefmt/config.toml"
+treefmt_prj="$DOTS/.treefmt.toml"
 
 [ "$treefmt_cmd" ] || {
   printf "Error: treefmt not found." >&2
@@ -9,8 +10,8 @@ treefmt_cfg="$DOTS_CFG/treefmt/config.toml"
 }
 
 [ -f "$treefmt_cfg" ] && {
-  mv "$HOME/.treefmt.toml" "$HOME/.treefmt.toml.bak"
-  cp "$treefmt_cfg" "$HOME/.treefmt.toml"
+  # mv "$DOTS/.treefmt.toml" "$DOTS/.treefmt.toml.bak"
+  cp "$treefmt_cfg" "$treefmt_prj"
 }
 
-treefmt --allow-missing-formatter "${@:-$DOTS}"
+treefmt --allow-missing-formatter "$DOTS"

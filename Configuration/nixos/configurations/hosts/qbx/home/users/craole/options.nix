@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}: let
+{lib, ...}: let
   user = "craole";
   inherit (lib.options) mkOption mkEnableOption;
   inherit
