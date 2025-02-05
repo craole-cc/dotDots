@@ -10,7 +10,7 @@ DOTS_CFG="$DOTS/Configuration"
 alias .dots='cd "$DOTS"'
 alias .bin='cd "$DOTS_BIN"'
 alias .cfg='cd "$DOTS_CFG"'
-export DOTS DOTS_BIN DOTS_CFG
+    export DOTS DOTS_BIN DOTS_CFG
 
 init_config() {
   conf_files="$(find "$1" -type f)"
