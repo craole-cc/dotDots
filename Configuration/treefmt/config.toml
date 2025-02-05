@@ -1,60 +1,114 @@
-
 [global]
-excludes = ["treefmt.toml", "generated.nix"]
+excludes = [
+  "treefmt.toml",
+  "generated.nix",
+  "**/node_modules/**",
+  "**/target/**",
+  "**/dist/**",
+  "**/.git/**",
+]
 
+# Nix formatting
 [formatter.nixfmt]
 command = "nixfmt"
 includes = ["*.nix"]
 priority = 1
 
-# [formatter.alejandra]
-# command = "alejandra"
-# includes = ["*.nix"]
-# priority = 1
+[formatter.alejandra]
+command = "alejandra"
+includes = ["*.nix"]
+priority = 1
 
-# [formatter.deadnix]
-# command = "deadnix"
-# options = ["-e"]
-# includes = ["*.nix"]
-# priority = 2
+[formatter.deadnix]
+command = "deadnix"
+options = ["-e"]
+includes = ["*.nix"]
+priority = 2
 
-# [formatter.statix]
-# command = "statix"
-# options = ["check"]
-# includes = ["*.nix"]
-# priority = 3
+[formatter.statix]
+command = "statix"
+options = ["check"]
+includes = ["*.nix"]
+priority = 3
 
+# Rust formatting
 [formatter.rust]
 command = "rustfmt"
 includes = ["*.rs"]
+options = ["--edition", "2021"]
 
+# Shell script formatting
 [formatter.shellcheck]
 command = "shellcheck"
-includes = ["*.sh"]
-options = ["-i", "2", "-s"]
+includes = ["*.sh", "*.bash", "*.zsh"]
+options = ["-x", "-e", "SC1090,SC1091"]
 priority = 2
 
 [formatter.shfmt]
 command = "shfmt"
-includes = ["*.sh", "*.bash"]
-options = ["-i", "2", "-s"]
+includes = ["*.sh", "*.bash", "*.zsh"]
+options = ["-i", "2", "-ci", "-bn", "-sr"]
 
-[formatter.python]
+# Python formatting
+[formatter.black]
+command = "black"
+includes = ["*.py"]
+options = ["--quiet"]
+
+[formatter.ruff]
 command = "ruff"
 includes = ["*.py"]
 options = ["format", "--quiet"]
 
+[formatter.isort]
+command = "isort"
+includes = ["*.py"]
+options = ["--profile", "black"]
+
+# Web formatting
+[formatter.prettier]
+command = "prettier"
+includes = [
+  "*.js",
+  "*.jsx",
+  "*.ts",
+  "*.tsx",
+  "*.css",
+  "*.scss",
+  "*.html",
+  "*.yaml",
+  "*.yml",
+]
+options = ["--write"]
+
+# Data formats
 [formatter.json]
 command = "jq"
 includes = ["*.json", "*.jsonc"]
-options = ["--indent", "2", "--sort-keys"]
+options = ["--indent", "2", "--sort-keys", "-M"]
 
 [formatter.toml]
 command = "taplo"
 includes = ["*.toml"]
 options = ["fmt"]
 
+# Documentation
 [formatter.markdown]
-command = "markdownlint"
-includes = ["*.md"]
-options = ["--prose-wrap", "always", "--write"]
+command = "prettier"
+includes = ["*.md", "*.mdx"]
+options = ["--write", "--prose-wrap", "always"]
+
+# Lua formatting
+[formatter.stylua]
+command = "stylua"
+includes = ["*.lua"]
+
+# Docker
+[formatter.hadolint]
+command = "hadolint"
+includes = ["Dockerfile"]
+
+# Make
+[formatter.checkmake]
+command = "checkmake"
+includes = ["Makefile"]
