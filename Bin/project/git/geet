@@ -654,14 +654,15 @@ execute_git_actions() {
   [ "$(git status --porcelain)" ] || return 0
 
   #@ Lint
-  type treefmt >/dev/null 2>&1 &&
-    if [ "$ci" ]; then
-      treefmt --no-cache --fail-on-change || return 1
-      # TODO: There is a --ci flag in treefmt that simplifies this, check and use it
-    else
-      treefmt
-    fi
+  type treefmt >/dev/null 2>&1 && {
+    [ -f "$TREEFMT_CONFIG" ] && tfmt_args="$tfmt_args --config-file $TREEFMT_CONFIG"
 
+    [ "$ci" ] && tfmt_args="$tfmt_args --ci"
+    # tfmt_args="$tfmt_args --no-cache --fail-on-change"
+    # eval treefmt "$tfmt_args" || return 1
+    # # TODO: There is a --ci flag in treefmt that simplifies this, check and use it
+    eval treefmt "$tfmt_args"
+  }
   #@ Update the local repository
   [ "$pull" ] && git pull --quiet
 

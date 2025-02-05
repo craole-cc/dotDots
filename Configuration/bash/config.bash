@@ -81,7 +81,7 @@ case "$BASHOPTS" in
   STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
 
   TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
-  alias treefmt='treefmt --config-file "$TREEFMT_CONFIG"'
+  # alias treefmt='treefmt --config-file "$TREEFMT_CONFIG"'
 
   #@ Load resources and functions
   init_config "$BDOTDIR/functions"
