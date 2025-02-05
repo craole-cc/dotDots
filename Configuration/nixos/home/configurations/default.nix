@@ -1,6 +1,4 @@
-{
-  ...
-}: {
+{...}: {
   # _module.args={
   config = {
     # home-manager = {

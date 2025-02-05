@@ -1,7 +1,4 @@
-{
-  pkgs,
-  ...
-}: let
+{pkgs, ...}: let
   stylix = pkgs.fetchFromGitHub {
     owner = "danth";
     repo = "stylix";
