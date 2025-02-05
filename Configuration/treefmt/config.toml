@@ -33,12 +33,21 @@ command = "typstfmt"
 excludes = []
 includes = ["*.typ", "*.typst"]
 options = []
+priority = 1
+
+[formatter.typstyle]
+command = "typstyle"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options = ["-i"]
+priority = 2
 
 #| Nix formatting
 [formatter.alejandra]
 command = "alejandra"
 includes = ["*.nix"]
 priority = 1
+fail_on_error = false
 
 # [formatter.nixfmt]
 # command = "nixfmt"
@@ -80,15 +89,17 @@ options = ["-x", "-e", "SC1090,SC1091"]
 priority = 1
 
 [formatter.shfmt]
-command = "shfmt"
-excludes = []
-includes = ["*.sh", "*.bash", "*.envrc", "*.envrc.*", "*.zsh", ".zsh*"]
-options = ["-s", "-w", "-i", "2"]
+# includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
+options = [
+  "-i",
+  "2",  # indent 2
+  "-s", # simplify the code
+  "-w", # write back to the file
+]
 priority = 2
 
 # [formatter.shfmt]
 # command = "shfmt"
-# includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
 # options = ["-i", "2", "-ci", "-bn", "-sr", "-ln", "bash"]
 
 #| Python formatting
@@ -247,11 +258,19 @@ excludes = []
 includes = ["*.nu"]
 options = []
 
+#| Ruby
+[formatter.rufo]
+command = "rufo"
+options = ["-x"]
+includes = ["*.rb"]
+priority = 1
+
 [formatter.rubocop]
 command = "rubocop"
 excludes = []
 includes = ["*.rb"]
 options = []
+priority = 2
 
 #| SQL
 [formatter.sqruff]
@@ -272,4 +291,8 @@ excludes = []
 includes = ["*"]
 options = ["--write-changes"]
 
-#| Typst
+[formatter.zig]
+command = "zig"
+excludes = []
+includes = ["*.zig", "*.zon"]
+options = ["fmt"]
