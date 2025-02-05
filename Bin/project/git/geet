@@ -107,7 +107,7 @@ establish_defaults() {
   log_fmt="-1 --pretty=%B"
 
   #| Treefmt
-  treefmt_cmd="$(command -v treefmt >/dev/null 2>&1 && "treefmt")"
+  treefmt_cmd="$(command -v treefmt 2>&1)"
   [ "$treefmt_cmd" ] && [ -f "$TREEFMT_CONFIG" ] &&
     treefmt_cmd="$treefmt_cmd --config-file $TREEFMT_CONFIG"
 }
