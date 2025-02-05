@@ -16,7 +16,6 @@ in
 with lib;
 {
   config = mkIf (elem "development" context) {
-
     environment = {
       systemPackages = with packages; if isMinimal then tui else tui ++ gui;
     };

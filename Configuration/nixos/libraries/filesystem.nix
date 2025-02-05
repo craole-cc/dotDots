@@ -248,7 +248,6 @@ in
             ignoreRaw = splitString "\n" (fileContents (locateGitRoot + "/.gitignore"));
             ignoreCleaned = prune ignoreRaw;
             filtered = pathsIgnoredCheck list' ignoreCleaned;
-
           in
           #| Output
           filtered;
@@ -492,7 +491,6 @@ in
         pathsIn = pathsIn ./.;
         pathsIgnoredDot = pathsIgnored.perDots ./.;
         pathsIgnoredGit = pathsIgnored.perGit ./.;
-
       };
     };
   };

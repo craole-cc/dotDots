@@ -1,5 +1,4 @@
 {
-
   #| Universial Configuration Overrides
   location = {
     latitude = 18.015;

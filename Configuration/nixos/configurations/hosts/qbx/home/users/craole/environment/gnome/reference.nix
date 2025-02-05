@@ -5,7 +5,6 @@
   utils,
   ...
 }:
-
 let
   inherit (lib)
     mkOption
@@ -77,18 +76,14 @@ let
     mkDefault (
       !(lib.elem (lib.getName pkg) (map lib.getName config.environment.gnome.excludePackages))
     );
-
 in
-
 {
-
   meta = {
     doc = ./gnome.md;
     maintainers = lib.teams.gnome.members;
   };
 
   options = {
-
     services.gnome = {
       core-os-services.enable = mkEnableOption "essential services for GNOME3";
       core-shell.enable = mkEnableOption "GNOME Shell services";
@@ -200,7 +195,6 @@ in
       type = types.listOf types.package;
       description = "Which packages gnome should exclude from the default environment";
     };
-
   };
 
   config = lib.mkMerge [
@@ -350,7 +344,7 @@ in
       services.gnome.gnome-user-share.enable = mkDefault true;
       services.gnome.rygel.enable = mkDefault true;
       services.gvfs.enable = true;
-      services.system-config-printer.enable = (lib.mkIf config.services.printing.enable (mkDefault true));
+      services.system-config-printer.enable = lib.mkIf config.services.printing.enable (mkDefault true);
 
       systemd.packages = [
         pkgs.gnome-session
@@ -519,5 +513,4 @@ in
       services.sysprof.enable = notExcluded pkgs.sysprof;
     })
   ];
-
 }

@@ -78,9 +78,7 @@ let
   };
 in
 {
-
   wayland.windowManager.hyprland.settings = {
-
     "$MOD" = toUpper launcher.modifier;
 
     input = {

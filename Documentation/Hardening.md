@@ -159,7 +159,6 @@ EOF
 systemctl restart sshd
  ```
 
-
 ## UFW
 
 ---

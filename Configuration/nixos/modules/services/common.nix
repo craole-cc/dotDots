@@ -1,4 +1,8 @@
-{ specialArgs, lib, ... }:
+{
+  specialArgs,
+  lib,
+  ...
+}:
 let
   inherit (specialArgs.host) ollama people capabilities;
   inherit (specialArgs.host.cpu) brand;
@@ -104,7 +108,6 @@ in
 
       rsyncd = {
         enable = true;
-
       };
 
       tailscale =

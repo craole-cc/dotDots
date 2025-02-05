@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -59,7 +58,7 @@ let
 
       users = {
         users = mapAttrs (
-          name: u: with u; {
+          _name: u: with u; {
             inherit
               description
               isNormalUser
@@ -84,8 +83,7 @@ let
         useUserPackages = true;
         useGlobalPkgs = true;
         users = mapAttrs (
-          name: u: with u; {
-
+          _name: u: with u; {
             gtk = {
               enable = true;
               font = fonts.gtk;

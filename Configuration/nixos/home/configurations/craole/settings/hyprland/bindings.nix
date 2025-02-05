@@ -61,9 +61,7 @@ let
   };
 in
 {
-
   config.dots.users.craole.applications.hyprland.settings = {
-
     "$MOD" = modifier;
 
     input = {

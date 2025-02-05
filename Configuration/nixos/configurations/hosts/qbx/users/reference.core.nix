@@ -5,7 +5,6 @@
   pkgs,
   ...
 }:
-
 let
   inherit (lib)
     any
@@ -128,11 +127,13 @@ let
   '';
 
   userOpts =
-    { name, config, ... }:
     {
-
+      name,
+      config,
+      ...
+    }:
+    {
       options = {
-
         name = mkOption {
           type = types.passwdEntry types.str;
           apply =
@@ -484,15 +485,16 @@ let
           autoSubUidGidRange = mkDefault true;
         })
       ];
-
     };
 
   groupOpts =
-    { name, config, ... }:
     {
-
+      name,
+      config,
+      ...
+    }:
+    {
       options = {
-
         name = mkOption {
           type = types.passwdEntry types.str;
           description = ''
@@ -518,17 +520,15 @@ let
             `/etc/group` file.
           '';
         };
-
       };
 
       config = {
         name = mkDefault name;
 
-        members = mapAttrsToList (n: u: u.name) (
-          filterAttrs (n: u: elem config.name u.extraGroups) cfg.users
+        members = mapAttrsToList (_n: u: u.name) (
+          filterAttrs (_n: u: elem config.name u.extraGroups) cfg.users
         );
       };
-
     };
 
   subordinateUidRange = {
@@ -570,7 +570,10 @@ let
     !(foldr
       (
         name:
-        args@{ dup, acc }:
+        args@{
+          dup,
+          acc,
+        }:
         let
           id = toString (getAttr idAttr (getAttr name set));
           exists = hasAttr id acc;
@@ -603,17 +606,17 @@ let
       (attrNames set)
     ).dup;
 
-  uidsAreUnique = idsAreUnique (filterAttrs (n: u: u.uid != null) cfg.users) "uid";
-  gidsAreUnique = idsAreUnique (filterAttrs (n: g: g.gid != null) cfg.groups) "gid";
+  uidsAreUnique = idsAreUnique (filterAttrs (_n: u: u.uid != null) cfg.users) "uid";
+  gidsAreUnique = idsAreUnique (filterAttrs (_n: g: g.gid != null) cfg.groups) "gid";
   sdInitrdUidsAreUnique = idsAreUnique (filterAttrs (
-    n: u: u.uid != null
+    _n: u: u.uid != null
   ) config.boot.initrd.systemd.users) "uid";
   sdInitrdGidsAreUnique = idsAreUnique (filterAttrs (
-    n: g: g.gid != null
+    _n: g: g.gid != null
   ) config.boot.initrd.systemd.groups) "gid";
-  groupNames = lib.mapAttrsToList (n: g: g.name) cfg.groups;
+  groupNames = lib.mapAttrsToList (_n: g: g.name) cfg.groups;
   usersWithoutExistingGroup = lib.filterAttrs (
-    n: u: u.group != "" && !lib.elem u.group groupNames
+    _n: u: u.group != "" && !lib.elem u.group groupNames
   ) cfg.users;
 
   spec = pkgs.writeText "users-groups.json" (
@@ -651,7 +654,7 @@ let
     in
     filter types.shellPackage.check shells;
 
-  lingeringUsers = map (u: u.name) (attrValues (flip filterAttrs cfg.users (n: u: u.linger)));
+  lingeringUsers = map (u: u.name) (attrValues (flip filterAttrs cfg.users (_n: u: u.linger)));
 in
 {
   imports = [
@@ -665,7 +668,6 @@ in
 
   ###### interface
   options = {
-
     users.mutableUsers = mkOption {
       type = types.bool;
       default = true;
@@ -811,7 +813,6 @@ in
       cryptSchemeIdPatternGroup = "(${lib.concatStringsSep "|" pkgs.libxcrypt.enabledCryptSchemeIds})";
     in
     {
-
       users.users = {
         root = {
           uid = ids.uids.root;
@@ -937,7 +938,11 @@ in
 
       environment.etc = mapAttrs' (
         _:
-        { packages, name, ... }:
+        {
+          packages,
+          name,
+          ...
+        }:
         {
           name = "profiles/per-user/${name}";
           value.source = pkgs.buildEnv {
@@ -1032,7 +1037,7 @@ in
             message =
               let
                 errUsers = lib.attrNames usersWithoutExistingGroup;
-                missingGroups = lib.unique (lib.mapAttrsToList (n: u: u.group) usersWithoutExistingGroup);
+                missingGroups = lib.unique (lib.mapAttrsToList (_n: u: u.group) usersWithoutExistingGroup);
                 mkConfigHint = group: "users.groups.${group} = {};";
               in
               ''
@@ -1215,5 +1220,4 @@ in
           )
         );
     };
-
 }

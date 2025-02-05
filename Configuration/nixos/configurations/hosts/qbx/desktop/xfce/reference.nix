@@ -5,13 +5,10 @@
   utils,
   ...
 }:
-
 with lib;
-
 let
   cfg = config.services.xserver.desktopManager.xfce;
   excludePackages = config.environment.xfce.excludePackages;
-
 in
 {
   meta = {
@@ -226,7 +223,7 @@ in
     services.gnome.glib-networking.enable = true;
     services.gvfs.enable = true;
     services.tumbler.enable = true;
-    services.system-config-printer.enable = (mkIf config.services.printing.enable (mkDefault true));
+    services.system-config-printer.enable = mkIf config.services.printing.enable (mkDefault true);
     services.libinput.enable = mkDefault true; # used in xfce4-settings-manager
     services.colord.enable = mkDefault true;
 

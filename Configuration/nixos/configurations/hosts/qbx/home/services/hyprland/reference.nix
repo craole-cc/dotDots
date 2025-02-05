@@ -5,7 +5,6 @@
   ...
 }:
 let
-
   cfg = config.wayland.windowManager.hyprland;
 
   variables = builtins.concatStringsSep " " cfg.systemd.variables;
@@ -21,31 +20,40 @@ in
   # module.
   imports = [
     (lib.mkRemovedOptionModule # \
+
       [ "wayland" "windowManager" "hyprland" "disableAutoreload" ]
       "Autoreloading now always happens"
     )
 
     (lib.mkRemovedOptionModule # \
+
       [ "wayland" "windowManager" "hyprland" "recommendedEnvironment" ]
       "Recommended environment variables are now always set"
     )
 
     (lib.mkRemovedOptionModule # \
+
       [ "wayland" "windowManager" "hyprland" "xwayland" "hidpi" ]
       "HiDPI patches are deprecated. Refer to https://wiki.hyprland.org/Configuring/XWayland"
     )
 
     (lib.mkRemovedOptionModule # \
+
       [ "wayland" "windowManager" "hyprland" "nvidiaPatches" ] # \
+
       "Nvidia patches are no longer needed"
     )
     (lib.mkRemovedOptionModule # \
+
       [ "wayland" "windowManager" "hyprland" "enableNvidiaPatches" ] # \
+
       "Nvidia patches are no longer needed"
     )
 
     (lib.mkRenamedOptionModule # \
+
       [ "wayland" "windowManager" "hyprland" "systemdIntegration" ] # \
+
       [ "wayland" "windowManager" "hyprland" "systemd" "enable" ]
     )
   ];

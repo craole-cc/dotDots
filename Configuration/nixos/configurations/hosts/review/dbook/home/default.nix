@@ -10,8 +10,6 @@ in
   ];
 
   home-manager =
-    let
-    in
     {
       useUserPackages = true;
       useGlobalPkgs = true;

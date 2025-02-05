@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   inherit (lib.options) mkOption;
   inherit (lib.types) nullOr str;
@@ -9,7 +13,6 @@ let
 
   base = "paths";
   cfg = DOTS.${base};
-
 in
 {
   options.DOTS.${base} = {

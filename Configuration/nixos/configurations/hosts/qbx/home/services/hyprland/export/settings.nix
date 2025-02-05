@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   cfg = config.dots.services.hyprland;
   inherit (lib.modules) mkIf;
@@ -130,7 +134,6 @@ in
       xwayland = {
         force_zero_scaling = true;
       };
-
     };
   };
 }

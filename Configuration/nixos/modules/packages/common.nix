@@ -18,9 +18,6 @@ in
       lfs.enable = true;
       config = {
         user =
-          let
-          in
-          # TODO: Use the git info from the autologin user or the elevated user, if available
           {
             name = "Your Name";
             email = "you@example.com";

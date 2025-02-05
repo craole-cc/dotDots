@@ -6,7 +6,6 @@
 let
   inherit (lib.options) mkOption;
   inherit (lib.modules) mkForce mkIf;
-  inherit (lib.types) attrsOf attrs;
 
   inherit (config) DOTS;
   inherit (DOTS.paths) nixos;

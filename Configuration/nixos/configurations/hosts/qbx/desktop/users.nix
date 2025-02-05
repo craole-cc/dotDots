@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "users";
@@ -49,7 +53,6 @@ let
         hashedPassword = cfgUser.password;
       };
     }) (filterAttrs (_: cfgUser: cfgUser.enable && (cfgUser.isNormalUser or true)) userConfig);
-
 in
 {
   options.${dom} = {

@@ -8,21 +8,12 @@
 let
   inherit (builtins) getEnv readFile;
   inherit (pkgs) fetchurl runCommand;
-  inherit (lib.attrsets) hasAttr;
   inherit (lib.misc) fakeHash;
-  inherit (lib.options) mkOption;
   inherit (lib.strings)
     removeSuffix
     fileContents
     fromJSON
     floatToString
-    ;
-  inherit (lib.types) str attrs;
-  inherit (dib.lists)
-    prep
-    clean
-    infixed
-    suffixed
     ;
   inherit (dib.filesystem) pathOrNull;
 in
@@ -40,7 +31,8 @@ with dib.fetchers;
     in
     result;
 
-  /**
+  /*
+    *
     "Get the hostname of the current machine."
   */
   hostname =
@@ -58,7 +50,8 @@ with dib.fetchers;
     in
     result;
 
-  /**
+  /*
+    *
     "Get the username of the current user."
   */
   username =
@@ -69,7 +62,8 @@ with dib.fetchers;
     in
     result;
 
-  /**
+  /*
+    *
     Retrieve a github email for the specified user via the GitHub API
 
     Parameters:
@@ -149,5 +143,4 @@ with dib.fetchers;
     {
       inherit (assertions) githubEmail;
     };
-
 }

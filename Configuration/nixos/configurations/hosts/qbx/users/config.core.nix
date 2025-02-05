@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "users";
@@ -8,7 +12,6 @@ let
   inherit (lib.strings) toUpper substring stringLength;
   inherit (lib.types) attrs attrsOf;
   inherit (lib.attrsets) mapAttrs' filterAttrs;
-  inherit (config.system) stateVersion;
 
   capitalizeFirst = str: "${toUpper (substring 0 1 str)}${substring 1 (stringLength str - 1) str}";
 
@@ -27,7 +30,6 @@ let
       hashedPassword = val.password;
     };
   }) (filterAttrs (_: u: u.enable) cfg);
-
 in
 {
   options.${dom} = {

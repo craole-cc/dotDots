@@ -15,14 +15,12 @@ let
   #| External Libraries
   inherit (builtins) getEnv;
   inherit (pkgs) fetchurl;
-  inherit (lib.attrsets) hasAttr;
   inherit (lib.options) mkOption;
   inherit (lib.strings) fileContents fromJSON floatToString;
-  inherit (lib.types) str attrs;
+  inherit (lib.types) str;
 in
 {
   options.DOTS.Libraries.${mod} = {
-
     host = {
       name = mkOption {
         description = "The current hostname";
@@ -59,7 +57,6 @@ in
           sha256 ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
         }:
         let
-
           # Function to fetch user data from GitHub API
           fetchData =
             login: sha256:

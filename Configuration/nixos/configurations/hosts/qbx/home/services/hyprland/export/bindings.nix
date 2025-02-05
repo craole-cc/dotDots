@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   cfg = config.dots.services.hyprland;
 
@@ -19,7 +23,6 @@ in
 {
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland.settings = {
-
       "$MOD" = toUpper launcher.modifier;
 
       input = {

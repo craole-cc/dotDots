@@ -1,9 +1,7 @@
 # importer.nix
 {
-  pkgs ? import <nixpkgs> { },
   ...
 }:
-
 let
   importAll =
     dir:

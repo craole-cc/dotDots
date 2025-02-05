@@ -1,7 +1,10 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   inherit (lib.options) mkOption;
-  inherit (lib.types) attrs;
 
   #| Extended Imports
   inherit (config) DOTS;

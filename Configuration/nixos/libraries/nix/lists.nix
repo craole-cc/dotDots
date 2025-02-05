@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   #| Internal Libraries
   inherit (config.DOTS) Libraries;

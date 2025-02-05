@@ -1,7 +1,7 @@
 { lib, ... }:
 let
   umport =
-    inputs@{
+    {
       path ? null,
       paths ? [ ],
       include ? [ ],

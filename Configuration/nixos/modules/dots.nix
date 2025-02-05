@@ -7,7 +7,6 @@
 let
   inherit (lib.strings) makeBinPath;
   inherit (specialArgs.paths) flake scripts;
-
 in
 {
   system.activationScripts.setDotsPermissions.text = ''

@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   inherit (lib) mkOption;
   inherit (config.DOTS) Libraries;
@@ -11,7 +15,6 @@ with filesystem;
 with path;
 {
   options.dib = {
-
     #| Filesystem
     importNixModules = mkOption { default = importNixModules; };
     listFilesRecursively = mkOption { default = listFilesRecursively; };

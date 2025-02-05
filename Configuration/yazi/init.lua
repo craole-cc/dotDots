@@ -1,6 +1,6 @@
-require("zoxide"):setup {
+require("zoxide"):setup({
   update_db = true,
-}
+})
 
 -- Status:children_add(function()
 --   local h = cx.active.current.hovered

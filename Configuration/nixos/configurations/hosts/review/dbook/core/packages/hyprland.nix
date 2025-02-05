@@ -1,4 +1,4 @@
-{ config, ... }:
+{ ... }:
 let
   # enable = config.DOTS.interface.manager == "hyprland";
   enable = false;
@@ -12,5 +12,4 @@ in
       inherit enable;
     };
   };
-
 }

@@ -11,8 +11,6 @@ let
 
   user = "craole";
   cfg = dots.users."${user}";
-
-  inherit (config.system) stateVersion;
   inherit (dots.hosts.${dib.currentHost}) admin;
 in
 {
@@ -660,7 +658,6 @@ in
   };
 
   config = mkIf (cfg.enable || cfg.isAdmin) {
-
     users.users.${user} = {
       inherit (cfg)
         description

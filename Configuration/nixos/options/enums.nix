@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   #| Native Imports
   inherit (lib.options) mkOption;
@@ -10,8 +14,6 @@ let
   mod = "host";
   src = DOTS.sources.${mod};
   cfg = DOTS.${base}.${mod};
-
-  inherit (DOTS.lib.helpers) makeSource;
 in
 {
   options.DOTS.${base}.${mod} = {

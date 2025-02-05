@@ -1,7 +1,10 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  ...
+}:
 let
   user = "craole";
-  cfg = config.dots.users.${user};
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.types)
     bool
