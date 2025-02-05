@@ -664,7 +664,7 @@ execute_git_actions() {
       eval "$treefmt_cmd --ci" || return 1
       # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
     else
-      "$treefmt_cmd"
+      eval "$treefmt_cmd"
     fi
   }
 
