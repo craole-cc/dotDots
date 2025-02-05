@@ -1068,7 +1068,7 @@ core_functions() {
       SHELL_NAME="Powershell"
       ;;
     '')
-      pout --error "Unable to confir support for the active shell."
+      pout --error "Unable to confirm support for the active shell."
       return 1
       ;;
     *)

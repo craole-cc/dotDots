@@ -225,7 +225,7 @@ for_plasma() {
     if [ "$scheme" = "$current_scheme" ]; then
       [ "$quiet" ] || printf "The %s scheme '%s' is already active\n" "$selected" "$scheme"
       return 0
-    elif printf "%s" "$avalable_schemes" | grep --quiet "$scheme"; then
+    elif printf "%s" "$available_schemes" | grep --quiet "$scheme"; then
       [ "$quiet" ] || printf "Applying the %s scheme: %s\n" "$selected" "$scheme"
     else
       [ "$quiet" ] || printf "Unknown scheme '%s'. " "$scheme"

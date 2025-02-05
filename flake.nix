@@ -186,7 +186,7 @@
       dbook = mkConfig "dbook" {};
     };
 
-    #TODO: Create seperate config directory for nix systems since the config is drastically different
+    #TODO: Create separate config directory for nix systems since the config is drastically different
     # darwinConfigurations = {
     #   MBPoNine = mkConfig "MBPoNine" { };
     # };

@@ -102,7 +102,7 @@ apply_theme() {
   done
   [ "$scheme" ] || {
     printf \
-      "Niether of the themes, preferred ('%s') or fallback ('%s') were found.\n" \
+      "Neither of the themes, preferred ('%s') or fallback ('%s') were found.\n" \
       "$preferred" "$fallback"
     return 1
   }
@@ -128,7 +128,7 @@ apply_theme() {
       "The %s scheme '%s' is already active\n" \
       "$selected" "$scheme"
     return 0
-  elif printf "%s" "$avalable_schemes" | grep --quiet "$scheme"; then
+  elif printf "%s" "$available_schemes" | grep --quiet "$scheme"; then
     [ "$quiet" ] || printf \
       "Applying the %s scheme: %s\n" \
       "$selected" "$scheme"
@@ -166,7 +166,7 @@ for_plasma() {
     plasma-apply-colorscheme --list-schemes |
       grep "$current_tag" | sed "s/^ \* //; s/$current_tag//"
   )
-  avalable_schemes=$(
+  available_schemes=$(
     plasma-apply-colorscheme --list-schemes |
       grep --invert-match "$current_tag" | sed "s/^ \* //"
   )
@@ -192,7 +192,7 @@ for_plasma() {
       scheme="$fallback"
     else
       printf \
-        "Niether of the themes, preferred ('%s') or fallback ('%s') were found.\n" \
+        "Neither of the themes, preferred ('%s') or fallback ('%s') were found.\n" \
         "$preferred" "$fallback"
       return 1
     fi
@@ -207,7 +207,7 @@ for_plasma() {
         "The %s scheme '%s' is already active\n" \
         "$selected" "$scheme"
       return 0
-    elif printf "%s" "$avalable_schemes" | grep --quiet "$scheme"; then
+    elif printf "%s" "$available_schemes" | grep --quiet "$scheme"; then
       [ "$quiet" ] || printf \
         "Applying the %s scheme: %s\n" \
         "$selected" "$scheme"
