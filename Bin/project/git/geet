@@ -655,13 +655,14 @@ execute_git_actions() {
 
   #@ Lint
   type treefmt >/dev/null 2>&1 && {
-    echo "CONFIG: $TREEFMT_CONFIG"
-    [ -f "$TREEFMT_CONFIG" ] && tfmt_args="$tfmt_args --config-file $TREEFMT_CONFIG"
-
-    [ "$ci" ] && tfmt_args="$tfmt_args --ci"
+    [ "$ci" ] &&
+      tfmt_args="$tfmt_args --ci"
     # tfmt_args="$tfmt_args --no-cache --fail-on-change"
-    # eval treefmt "$tfmt_args" || return 1
-    # # TODO: There is a --ci flag in treefmt that simplifies this, check and use it
+
+    [ -f "$TREEFMT_CONFIG" ] &&
+      tfmt_args="$tfmt_args --config-file $TREEFMT_CONFIG"
+
+    eval treefmt "$tfmt_args" || return 1
     # eval treefmt "$tfmt_args"
   }
   #@ Update the local repository
