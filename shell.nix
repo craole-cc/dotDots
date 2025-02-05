@@ -1,4 +1,6 @@
-{pkgs ? import <nixpkgs> {}}:
+{
+  pkgs ? import <nixpkgs> { },
+}:
 pkgs.mkShell {
   buildInputs = with pkgs; [
     eza
@@ -21,9 +23,27 @@ pkgs.mkShell {
     nixd
     fend
     fastfetch
+
+    #| Formatters
     treefmt2
-    yamlfmt
-    stylua
+    actionlint # ? GitHub Actions
+    asmfmt # ? Go
+    shfmt # ? Shell
+    yamlfmt # ? YAML
+    stylua # ? Lua
+    deno # ? javascript and typescript
+    beautysh # ? bash
+    biome # ? javascript and typescript
+    fish # ? fish and fish_indent
+    keep-sorted # ? Sorter
+    leptosfmt # ? leptos rs
+    sqlfluff # ? SQL
+    tex-fmt # ? TeX
+    tenv # ? Terraform
+    toml-sort # ? TOML
+    taplo # ? TOML
+    typos # ? Typo correction
+    typst # ? typesetting system
   ];
 
   shellHook = ''
