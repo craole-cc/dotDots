@@ -1,6 +1,6 @@
 # tr
 
-tr is a POSIX-compliant command-line utility used to translate, squeeze, and/or delete characters from standard input and send the result to standard output.  `STRING1` and `STRING2` specify arrays of characters `ARRAY1` and `ARRAY2` that control the action. It can perform operations like removing repeated characters, converting uppercase to lowercase, and basic character replacing and removing. Typically, it is used in combination with other commands through piping.
+tr is a POSIX-compliant command-line utility used to translate, squeeze, and/or delete characters from standard input and send the result to standard output. `STRING1` and `STRING2` specify arrays of characters `ARRAY1` and `ARRAY2` that control the action. It can perform operations like removing repeated characters, converting uppercase to lowercase, and basic character replacing and removing. Typically, it is used in combination with other commands through piping.
 
 ## How to Use the tr Command
 
@@ -8,16 +8,16 @@ tr is a POSIX-compliant command-line utility used to translate, squeeze, and/or 
 tr [OPTION]... STRING1 [STRING2]
 ```
 
-| Option | Description|
-|---|---|
-|`-c, -C, --compliment` | use the complement of ARRAY1 |
-|`-d, --delete` | delete characters in ARRAY1, do not translate |
-|`-s, --squeeze-repeats` | replace each sequence of a repeated character that is listed in the last specified ARRAY, with a single occurrence of that character |
-|`-t, --truncate-set1` | first truncate ARRAY1 to length of ARRAY2 |
+| Option                  | Description                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `-c, -C, --compliment`  | use the complement of ARRAY1                                                                                                         |
+| `-d, --delete`          | delete characters in ARRAY1, do not translate                                                                                        |
+| `-s, --squeeze-repeats` | replace each sequence of a repeated character that is listed in the last specified ARRAY, with a single occurrence of that character |
+| `-t, --truncate-set1`   | first truncate ARRAY1 to length of ARRAY2                                                                                            |
 
 The syntax for the tr command is as follows:
 
-**tr** accepts two sets of characters, usually of the same length, and replaces the characters of the first sets with the corresponding characters in the second set. A *SET* is basically a string of characters, including any special backslash-escaped characters.
+**tr** accepts two sets of characters, usually of the same length, and replaces the characters of the first sets with the corresponding characters in the second set. A _SET_ is basically a string of characters, including any special backslash-escaped characters.
 
 In the following example, a message via the standard input is piped through the `tr` command which replaces each occurrence of `l` with `r`, `i` with `e`, and `n` with `d` by mapping characters from the first set with the matching ones from the second set.
 
@@ -97,7 +97,7 @@ Copy
 Tr Command Examples
 In this section, we’ll cover a few examples of common uses of the tr command.
 Convert lower case to upper case
-Converting lower case to upper case or reverse is one of the typical use cases of the tr command. [:lower:] matches all lower case characters and [:upper:] matches all uppercase characters.
+Converting lower case to upper case or reverse is one of the typical use cases of the tr command. `[:lower:]` matches all lower case characters and `[:upper:]` matches all uppercase characters.
 
 ```sh
 echo 'Linuxize' | tr '[:lower:]' '[:upper:]'
@@ -114,15 +114,15 @@ To convert upper case to lower case, simply switch the places of the sets.
 Remove all non-numeric characters
 The following command removes all non-numeric characters:
 
-echo "my phone is 123-456-7890" | tr -cd [:digit:]
+echo "my phone is 123-456-7890" | tr -cd `[:digit:]`
 Copy
-[:digit:] stands for all digit characters, and by using the -c option, the command removes all non-digit characters. The output will look like this:
+`[:digit:]` stands for all digit characters, and by using the -c option, the command removes all non-digit characters. The output will look like this:
 1234567890
 Copy
 Put each word in a new line
 To put each word in a new line, we need to match all non-alphanumerical characters and replace them with a new line:
 
-echo 'GNU is an operating system' | tr -cs '[:alnum:]' '\n'
+echo 'GNU is an operating system' | tr -cs `[:alnum:]` '\n'
 Copy
 GNU
 is
