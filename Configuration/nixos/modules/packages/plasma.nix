@@ -4,18 +4,17 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   enable =
-    specialArgs.host.desktop == "plasma"
+    specialArgs.host.desktop
+    == "plasma"
     || (
       with config.services; desktopManager.plasma6.enable || displayManager.defaultSession == "plasma"
     );
-  excludePackages = with pkgs; [ kate ];
-  includePackages =
-    with pkgs;
-    [ kde-gruvbox ]
+  excludePackages = with pkgs; [kate];
+  includePackages = with pkgs;
+    [kde-gruvbox]
     ++ (with kdePackages; [
       # full
       koi # TODO: Doesn't realy work
@@ -41,12 +40,11 @@ let
 
       yakuake
     ]);
-in
-{
+in {
   config = mkIf enable {
     environment = {
-      plasma5 = { inherit excludePackages; };
-      plasma6 = { inherit excludePackages; };
+      plasma5 = {inherit excludePackages;};
+      plasma6 = {inherit excludePackages;};
       systemPackages = includePackages;
     };
   };

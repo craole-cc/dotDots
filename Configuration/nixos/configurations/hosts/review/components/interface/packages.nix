@@ -6,40 +6,37 @@
 }:
 with lib;
 with config.dots.lib.get.host;
-with interface.desktop;
-let
+with interface.desktop; let
   inherit (config.dots.info.host) interface isMinimal;
   inherit (interface.desktop) server manager;
 
   packages = with pkgs; rec {
     wayland =
-      if (server == "wayland") then
-        [
-          #| Notification
-          mako
-          swayosd
+      if (server == "wayland")
+      then [
+        #| Notification
+        mako
+        swayosd
 
-          eww
-          swww
-          fuzzel
-          foot
-          grim
-          slurp
-          wl-clipboard
-          hyprshot
-        ]
-      else
-        [ ];
+        eww
+        swww
+        fuzzel
+        foot
+        grim
+        slurp
+        wl-clipboard
+        hyprshot
+      ]
+      else [];
     x11 =
-      if (server == "x11") then
-        [
-          xclip
-          xsel
-          variety
-          betterlockscreen
-        ]
-      else
-        [ ];
+      if (server == "x11")
+      then [
+        xclip
+        xsel
+        variety
+        betterlockscreen
+      ]
+      else [];
     tui = [
       #| System Information
       btop
@@ -79,7 +76,8 @@ let
       curl
     ];
     gui =
-      if (manager != null) then
+      if (manager != null)
+      then
         [
           #| Notification
           dunst
@@ -95,11 +93,9 @@ let
         ]
         ++ wayland
         ++ x11
-      else
-        [ ];
+      else [];
   };
-in
-{
+in {
   config = {
     environment = {
       systemPackages = with packages; tui ++ gui;

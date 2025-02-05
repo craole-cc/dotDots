@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{lib, ...}: {
   programs.starship.settings = {
     add_newline = false;
     format = lib.concatStrings [

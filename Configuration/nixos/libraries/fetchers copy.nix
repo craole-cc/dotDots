@@ -4,12 +4,12 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (builtins) getEnv readFile;
   inherit (pkgs) fetchurl runCommand;
   inherit (lib.misc) fakeHash;
-  inherit (lib.strings)
+  inherit
+    (lib.strings)
     removeSuffix
     fileContents
     fromJSON
@@ -17,52 +17,50 @@ let
     ;
   inherit (dib.filesystem) pathOrNull;
 in
-with dib.fetchers;
-{
-  datetime =
-    let
+  with dib.fetchers; {
+    datetime = let
       viaDateCommand = readFile (
-        runCommand "date" { } ''
+        runCommand "date" {} ''
           result=$(date "+%Y-%m-%d %H:%M:%S %Z")
           printf "%s" "$result" > $out
         ''
       );
       result = viaDateCommand;
     in
-    result;
+      result;
 
-  /*
+    /*
     *
     "Get the hostname of the current machine."
-  */
-  hostname =
-    let
+    */
+    hostname = let
       viaEnv = getEnv "HOSTNAME";
       viaFile = removeSuffix "\n" (readFile "/etc/hostname");
       viaDefault = "nixos";
       result =
-        if viaEnv != "" then
-          viaEnv
-        else if viaFile != "" then
-          viaFile
-        else
-          viaDefault;
+        if viaEnv != ""
+        then viaEnv
+        else if viaFile != ""
+        then viaFile
+        else viaDefault;
     in
-    result;
+      result;
 
-  /*
+    /*
     *
     "Get the username of the current user."
-  */
-  username =
-    let
+    */
+    username = let
       viaEnvUSER = getEnv "USER";
       viaUSERNAME = getEnv "USERNAME";
-      result = if viaEnvUSER != null then viaEnvUSER else viaUSERNAME;
+      result =
+        if viaEnvUSER != null
+        then viaEnvUSER
+        else viaUSERNAME;
     in
-    result;
+      result;
 
-  /*
+    /*
     *
     Retrieve a github email for the specified user via the GitHub API
 
@@ -79,44 +77,39 @@ with dib.fetchers;
       }
 
       githubEmail { user = "gituser"; }
-  */
-  githubEmail =
-    {
+    */
+    githubEmail = {
       user,
       hash ? fakeHash,
-    }:
-    let
+    }: let
       # Function to fetch user data from GitHub API
-      fetchData =
-        login: hash:
-        let
-          fetchedData = pathOrNull (fetchurl {
-            url = "https://api.github.com/users/${login}";
-            sha256 = hash;
-          });
-        in
-        if fetchedData != null then fetchedData else throw "Unable to retrieve the requested data";
+      fetchData = login: hash: let
+        fetchedData = pathOrNull (fetchurl {
+          url = "https://api.github.com/users/${login}";
+          sha256 = hash;
+        });
+      in
+        if fetchedData != null
+        then fetchedData
+        else throw "Unable to retrieve the requested data";
 
       # Read the contents of the file
-      parseData =
-        file:
-        let
-          data = fromJSON (fileContents file);
-        in
-        if data ? login then data else throw "The 'login' field is missing in the JSON data";
+      parseData = file: let
+        data = fromJSON (fileContents file);
+      in
+        if data ? login
+        then data
+        else throw "The 'login' field is missing in the JSON data";
 
       # Extract/build the email from JSON data
-      getEmail =
-        data:
-        if data.email != null then
-          data.email
-        else
-          "${floatToString data.id}+${data.login}@users.noreply.github.com";
+      getEmail = data:
+        if data.email != null
+        then data.email
+        else "${floatToString data.id}+${data.login}@users.noreply.github.com";
     in
-    getEmail (parseData (fetchData user hash));
+      getEmail (parseData (fetchData user hash));
 
-  tests =
-    let
+    tests = let
       assertions = {
         githubEmail = [
           "Craole => ${
@@ -139,8 +132,7 @@ with dib.fetchers;
           }"
         ];
       };
-    in
-    {
+    in {
       inherit (assertions) githubEmail;
     };
-}
+  }

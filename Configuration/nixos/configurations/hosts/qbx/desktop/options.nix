@@ -2,31 +2,32 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   dom = "dots";
   mod = "desktop";
   cfg = config.${dom}.${mod};
 
-  inherit (config.${dom}.enums)
+  inherit
+    (config.${dom}.enums)
     desktopEnvironments
     windowManagers
     displayProtocols
     loginManagers
     waylandReadyDEs
     ;
-  inherit (lib.options)
+  inherit
+    (lib.options)
     mkOption
     mkEnableOption
     ;
   inherit (lib.lists) elem;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     enum
     nullOr
     str
     ;
-in
-{
+in {
   options.${dom}.${mod} = {
     environment = mkOption {
       description = "Desktop Environment to use";
@@ -40,7 +41,10 @@ in
     };
     protocol = mkOption {
       description = "Desktop Protocol to use";
-      default = if elem cfg.environment waylandReadyDEs then "wayland" else "xserver";
+      default =
+        if elem cfg.environment waylandReadyDEs
+        then "wayland"
+        else "xserver";
       type = enum displayProtocols;
     };
     login = {

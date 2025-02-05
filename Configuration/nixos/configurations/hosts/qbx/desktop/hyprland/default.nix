@@ -2,12 +2,10 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   cfgEnabled = config.dots.interface.desktopEnvironment == "hyprland";
-in
-{
+in {
   config = mkIf cfgEnabled {
     programs.hyprland = {
       enable = true;

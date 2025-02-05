@@ -1,7 +1,6 @@
 let
-  ports = [ 3389 ];
-in
-{
+  ports = [3389];
+in {
   services.xrdp = {
     enable = true;
     audio.enable = true;

@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
-  imports = [ ];
-  home.packages = with pkgs; [ warp-terminal ];
+{pkgs, ...}: {
+  imports = [];
+  home.packages = with pkgs; [warp-terminal];
 }

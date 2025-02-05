@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   home = {
     packages = with pkgs; [
       brave
@@ -79,7 +78,7 @@
           #| Rust
           {
             name = "rust";
-            language-servers = [ "rust-analyzer" ];
+            language-servers = ["rust-analyzer"];
             auto-format = true;
           }
 
@@ -326,7 +325,7 @@
               "spacer"
               "file-modification-indicator"
             ];
-            center = [ "file-name" ];
+            center = ["file-name"];
             right = [
               "diagnostics"
               "version-control"

@@ -1,8 +1,4 @@
-{
-  config,
-  ...
-}:
-{
+{config, ...}: {
   # imports = [ ./settings ];
 
   config.dot = {

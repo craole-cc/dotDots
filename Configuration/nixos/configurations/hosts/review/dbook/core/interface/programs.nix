@@ -2,18 +2,17 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   base = "interface";
   mod = "programs";
   cfg = config.DOTS.${base}.${mod};
 
   inherit (lib.options) mkOption;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     attrs
     ;
-in
-{
+in {
   options.DOTS.${base}.${mod} = mkOption {
     description = "List of {{base}}-specific programs";
     default = {

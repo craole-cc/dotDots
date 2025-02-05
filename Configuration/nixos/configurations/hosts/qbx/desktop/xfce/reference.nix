@@ -5,12 +5,10 @@
   utils,
   ...
 }:
-with lib;
-let
+with lib; let
   cfg = config.services.xserver.desktopManager.xfce;
   excludePackages = config.environment.xfce.excludePackages;
-in
-{
+in {
   meta = {
     maintainers = teams.xfce.members;
   };
@@ -19,37 +17,43 @@ in
     # added 2019-08-18
     # needed to preserve some semblance of UI familarity
     # with original XFCE module
-    (mkRenamedOptionModule
-      [ "services" "xserver" "desktopManager" "xfce4-14" "extraSessionCommands" ]
-      [ "services" "xserver" "displayManager" "sessionCommands" ]
+    (
+      mkRenamedOptionModule
+      ["services" "xserver" "desktopManager" "xfce4-14" "extraSessionCommands"]
+      ["services" "xserver" "displayManager" "sessionCommands"]
     )
 
     # added 2019-11-04
     # xfce4-14 module removed and promoted to xfce.
     # Needed for configs that used xfce4-14 module to migrate to this one.
-    (mkRenamedOptionModule
-      [ "services" "xserver" "desktopManager" "xfce4-14" "enable" ]
-      [ "services" "xserver" "desktopManager" "xfce" "enable" ]
+    (
+      mkRenamedOptionModule
+      ["services" "xserver" "desktopManager" "xfce4-14" "enable"]
+      ["services" "xserver" "desktopManager" "xfce" "enable"]
     )
-    (mkRenamedOptionModule
-      [ "services" "xserver" "desktopManager" "xfce4-14" "noDesktop" ]
-      [ "services" "xserver" "desktopManager" "xfce" "noDesktop" ]
+    (
+      mkRenamedOptionModule
+      ["services" "xserver" "desktopManager" "xfce4-14" "noDesktop"]
+      ["services" "xserver" "desktopManager" "xfce" "noDesktop"]
     )
-    (mkRenamedOptionModule
-      [ "services" "xserver" "desktopManager" "xfce4-14" "enableXfwm" ]
-      [ "services" "xserver" "desktopManager" "xfce" "enableXfwm" ]
+    (
+      mkRenamedOptionModule
+      ["services" "xserver" "desktopManager" "xfce4-14" "enableXfwm"]
+      ["services" "xserver" "desktopManager" "xfce" "enableXfwm"]
     )
-    (mkRenamedOptionModule
-      [ "services" "xserver" "desktopManager" "xfce" "extraSessionCommands" ]
-      [ "services" "xserver" "displayManager" "sessionCommands" ]
+    (
+      mkRenamedOptionModule
+      ["services" "xserver" "desktopManager" "xfce" "extraSessionCommands"]
+      ["services" "xserver" "displayManager" "sessionCommands"]
     )
-    (mkRemovedOptionModule [ "services" "xserver" "desktopManager" "xfce" "screenLock" ] "")
+    (mkRemovedOptionModule ["services" "xserver" "desktopManager" "xfce" "screenLock"] "")
 
     # added 2022-06-26
     # thunar has its own module
-    (mkRenamedOptionModule
-      [ "services" "xserver" "desktopManager" "xfce" "thunarPlugins" ]
-      [ "programs" "thunar" "plugins" ]
+    (
+      mkRenamedOptionModule
+      ["services" "xserver" "desktopManager" "xfce" "thunarPlugins"]
+      ["programs" "thunar" "plugins"]
     )
   ];
 
@@ -97,7 +101,7 @@ in
     };
 
     environment.xfce.excludePackages = mkOption {
-      default = [ ];
+      default = [];
       example = literalExpression "[ pkgs.xfce.xfce4-volumed-pulse ]";
       type = types.listOf types.package;
       description = "Which packages XFCE should exclude from the default environment";
@@ -105,63 +109,69 @@ in
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = utils.removePackagesByName (
-      with pkgs;
-      [
-        glib # for gsettings
-        gtk3.out # gtk-update-icon-cache
+    environment.systemPackages =
+      utils.removePackagesByName (
+        with pkgs;
+          [
+            glib # for gsettings
+            gtk3.out # gtk-update-icon-cache
 
-        gnome-themes-extra
-        adwaita-icon-theme
-        hicolor-icon-theme
-        tango-icon-theme
-        xfce.xfce4-icon-theme
+            gnome-themes-extra
+            adwaita-icon-theme
+            hicolor-icon-theme
+            tango-icon-theme
+            xfce.xfce4-icon-theme
 
-        desktop-file-utils
-        shared-mime-info # for update-mime-database
+            desktop-file-utils
+            shared-mime-info # for update-mime-database
 
-        # For a polkit authentication agent
-        polkit_gnome
+            # For a polkit authentication agent
+            polkit_gnome
 
-        # Needed by Xfce's xinitrc script
-        xdg-user-dirs # Update user dirs as described in https://freedesktop.org/wiki/Software/xdg-user-dirs/
+            # Needed by Xfce's xinitrc script
+            xdg-user-dirs # Update user dirs as described in https://freedesktop.org/wiki/Software/xdg-user-dirs/
 
-        xfce.exo
-        xfce.garcon
-        xfce.libxfce4ui
+            xfce.exo
+            xfce.garcon
+            xfce.libxfce4ui
 
-        xfce.mousepad
-        xfce.parole
-        xfce.ristretto
-        xfce.xfce4-appfinder
-        xfce.xfce4-notifyd
-        xfce.xfce4-screenshooter
-        xfce.xfce4-session
-        xfce.xfce4-settings
-        xfce.xfce4-taskmanager
-        xfce.xfce4-terminal
-      ]
-      # TODO: NetworkManager doesn't belong here
-      ++ lib.optional config.networking.networkmanager.enable networkmanagerapplet
-      ++ lib.optional config.powerManagement.enable xfce.xfce4-power-manager
-      ++ lib.optionals (config.services.pulseaudio.enable || config.services.pipewire.pulse.enable) [
-        pavucontrol
-        # volume up/down keys support:
-        # xfce4-pulseaudio-plugin includes all the functionalities of xfce4-volumed-pulse
-        # but can only be used with xfce4-panel, so for no-desktop usage we still include
-        # xfce4-volumed-pulse
-        (if cfg.noDesktop then xfce.xfce4-volumed-pulse else xfce.xfce4-pulseaudio-plugin)
-      ]
-      ++ lib.optionals cfg.enableXfwm [
-        xfce.xfwm4
-        xfce.xfwm4-themes
-      ]
-      ++ lib.optionals (!cfg.noDesktop) [
-        xfce.xfce4-panel
-        xfce.xfdesktop
-      ]
-      ++ lib.optional cfg.enableScreensaver xfce.xfce4-screensaver
-    ) excludePackages;
+            xfce.mousepad
+            xfce.parole
+            xfce.ristretto
+            xfce.xfce4-appfinder
+            xfce.xfce4-notifyd
+            xfce.xfce4-screenshooter
+            xfce.xfce4-session
+            xfce.xfce4-settings
+            xfce.xfce4-taskmanager
+            xfce.xfce4-terminal
+          ]
+          # TODO: NetworkManager doesn't belong here
+          ++ lib.optional config.networking.networkmanager.enable networkmanagerapplet
+          ++ lib.optional config.powerManagement.enable xfce.xfce4-power-manager
+          ++ lib.optionals (config.services.pulseaudio.enable || config.services.pipewire.pulse.enable) [
+            pavucontrol
+            # volume up/down keys support:
+            # xfce4-pulseaudio-plugin includes all the functionalities of xfce4-volumed-pulse
+            # but can only be used with xfce4-panel, so for no-desktop usage we still include
+            # xfce4-volumed-pulse
+            (
+              if cfg.noDesktop
+              then xfce.xfce4-volumed-pulse
+              else xfce.xfce4-pulseaudio-plugin
+            )
+          ]
+          ++ lib.optionals cfg.enableXfwm [
+            xfce.xfwm4
+            xfce.xfwm4-themes
+          ]
+          ++ lib.optionals (!cfg.noDesktop) [
+            xfce.xfce4-panel
+            xfce.xfdesktop
+          ]
+          ++ lib.optional cfg.enableScreensaver xfce.xfce4-screensaver
+      )
+      excludePackages;
 
     programs.gnupg.agent.pinentryPackage = mkDefault pkgs.pinentry-gtk2;
     programs.xfconf.enable = true;
@@ -182,7 +192,7 @@ in
       {
         name = "xfce";
         prettyName = "Xfce Session";
-        desktopNames = [ "XFCE" ];
+        desktopNames = ["XFCE"];
         bgSupport = !cfg.noDesktop;
         start = ''
           ${pkgs.runtimeShell} ${pkgs.xfce.xfce4-session.xinitrc} &
@@ -205,15 +215,16 @@ in
           Type=Application
           DesktopNames=XFCE
           Keywords=xfce;wayland;desktop;environment;session;
-        '').overrideAttrs
+        '')
+        .overrideAttrs
         (_: {
-          passthru.providedSessions = [ "xfce-wayland" ];
+          passthru.providedSessions = ["xfce-wayland"];
         })
       )
     ];
 
     services.xserver.updateDbusEnvironment = true;
-    programs.gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
+    programs.gdk-pixbuf.modulePackages = [pkgs.librsvg];
 
     # Enable helpful DBus services.
     services.udisks2.enable = true;
@@ -235,12 +246,14 @@ in
     programs.zsh.vteIntegration = mkDefault true;
 
     # Systemd services
-    systemd.packages = utils.removePackagesByName (with pkgs.xfce; [
-      xfce4-notifyd
-    ]) excludePackages;
+    systemd.packages =
+      utils.removePackagesByName (with pkgs.xfce; [
+        xfce4-notifyd
+      ])
+      excludePackages;
 
     security.pam.services.xfce4-screensaver.unixAuth = cfg.enableScreensaver;
 
-    xdg.portal.configPackages = mkDefault [ pkgs.xfce.xfce4-session ];
+    xdg.portal.configPackages = mkDefault [pkgs.xfce.xfce4-session];
   };
 }

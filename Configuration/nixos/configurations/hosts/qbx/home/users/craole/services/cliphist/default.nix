@@ -1,5 +1,5 @@
 {
-  imports = [ ];
+  imports = [];
   services.cliphist = {
     enable = true;
     extraOptions = [

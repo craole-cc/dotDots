@@ -3,17 +3,18 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   inherit (specialArgs) host modules;
   inherit (host) userConfigs people;
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     mapAttrs
     attrValues
     attrNames
     filterAttrs
     ;
-  inherit (lib.lists)
+  inherit
+    (lib.lists)
     any
     filter
     unique
@@ -34,19 +35,29 @@ let
   );
 
   #@ Define the users configuration
-  users.users = mapAttrs (name: user: {
-    uid = user.id or null;
-    description = user.description or name;
-    isNormalUser = user.isNormalUser or true;
-    hashedPassword = user.hashedPassword or null;
-    extraGroups =
-      if user.isNormalUser or true then
-        [ "users" ]
-        ++ (if elem name elevatedUsers then [ "wheel" ] else [ ])
-        ++ (if networkmanager.enable or false then [ "networkmanager" ] else [ ])
-      else
-        [ ];
-  }) userConfigs;
+  users.users =
+    mapAttrs (name: user: {
+      uid = user.id or null;
+      description = user.description or name;
+      isNormalUser = user.isNormalUser or true;
+      hashedPassword = user.hashedPassword or null;
+      extraGroups =
+        if user.isNormalUser or true
+        then
+          ["users"]
+          ++ (
+            if elem name elevatedUsers
+            then ["wheel"]
+            else []
+          )
+          ++ (
+            if networkmanager.enable or false
+            then ["networkmanager"]
+            else []
+          )
+        else [];
+    })
+    userConfigs;
 
   security = {
     sudo = {
@@ -71,32 +82,39 @@ let
   #@ Define the home-manager configuration
   allowHomeManager =
     host.allowHomeManager
-      or (any (user: user.applications.home-manager.enable or false == true) (attrValues userConfigs));
+    or (any (user: user.applications.home-manager.enable or false == true) (attrValues userConfigs));
   home-manager = {
     backupFileExtension = host.backupFileExtension or "BaC";
     extraSpecialArgs = specialArgs;
     sharedModules = modules.home;
     useUserPackages = true;
     useGlobalPkgs = true;
-    users = mapAttrs (
-      _: user:
-      { osConfig, ... }:
-      {
-        home = { inherit (osConfig.system) stateVersion; };
-        programs = {
-          home-manager.enable = user.applications.home-manager.enable or false;
-        };
-        wayland.windowManager.hyprland = {
-          enable = user.desktop.manager or null == "hyprland";
-        };
-      }
-    ) userConfigs;
+    users =
+      mapAttrs (
+        _: user: {osConfig, ...}: {
+          home = {inherit (osConfig.system) stateVersion;};
+          programs = {
+            home-manager.enable = user.applications.home-manager.enable or false;
+          };
+          wayland.windowManager.hyprland = {
+            enable = user.desktop.manager or null == "hyprland";
+          };
+        }
+      )
+      userConfigs;
     verbose = true;
   };
-in
-{
+in {
   config =
-    { }
-    // (if userConfigs != { } then { inherit users security; } else { })
-    // (if allowHomeManager then { inherit home-manager; } else { });
+    {}
+    // (
+      if userConfigs != {}
+      then {inherit users security;}
+      else {}
+    )
+    // (
+      if allowHomeManager
+      then {inherit home-manager;}
+      else {}
+    );
 }

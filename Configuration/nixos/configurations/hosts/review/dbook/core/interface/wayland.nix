@@ -3,8 +3,7 @@
   pkgs,
   config,
   ...
-}:
-let
+}: let
   mod = "wayland";
   # cfg = config.DOTS.${mod};
 
@@ -12,16 +11,17 @@ let
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.types) listOf package oneOf;
   inherit (config.DOTS.interface) manager;
-in
-{
+in {
   options.DOTS.${mod} = {
-    enable = mkEnableOption mod // {
-      default = elem manager [
-        "hyprland"
-        "sway"
-        "river"
-      ];
-    };
+    enable =
+      mkEnableOption mod
+      // {
+        default = elem manager [
+          "hyprland"
+          "sway"
+          "river"
+        ];
+      };
     packages = {
       tui = mkOption {
         description = "List or terminal-specific packages";

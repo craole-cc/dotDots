@@ -1,7 +1,6 @@
 let
   mod = "craole";
-in
-{
+in {
   users.users.${mod} = {
     isNormalUser = true;
     description = "Craole";

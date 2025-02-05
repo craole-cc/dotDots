@@ -2,23 +2,25 @@
   specialArgs,
   lib,
   ...
-}:
-let
-  inherit (specialArgs.host.location)
+}: let
+  inherit
+    (specialArgs.host.location)
     latitude
     longitude
     defaultLocale
     timeZone
     ;
-in
-{
+in {
   i18n = {
     inherit defaultLocale;
   };
 
   location = {
     inherit latitude longitude;
-    provider = if latitude == null || longitude == null then "geoclue2" else "manual";
+    provider =
+      if latitude == null || longitude == null
+      then "geoclue2"
+      else "manual";
   };
 
   time = {

@@ -3,16 +3,17 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   inherit (specialArgs) host;
   inherit (host) userConfigs people;
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     mapAttrs
     attrNames
     filterAttrs
     ;
-  inherit (lib.lists)
+  inherit
+    (lib.lists)
     filter
     unique
     elem
@@ -31,8 +32,7 @@ let
     filter (user: !elem user regularUsersPerHost) (elevatedUsersPerHostConf ++ elevatedUsersPerUserConf)
   );
   users = lib.attrNames specialArgs.host.userConfigs;
-in
-{
+in {
   _module.args = {
     users =
       {
@@ -45,12 +45,21 @@ in
         isNormalUser = user.isNormalUser or true;
         hashedPassword = user.hashedPassword or null;
         extraGroups =
-          if user.isNormalUser or true then
-            [ "users" ]
-            ++ (if elem name elevatedUsers then [ "wheel" ] else [ ])
-            ++ (if networkmanager.enable or false then [ "networkmanager" ] else [ ])
-          else
-            [ ];
-      }) userConfigs;
+          if user.isNormalUser or true
+          then
+            ["users"]
+            ++ (
+              if elem name elevatedUsers
+              then ["wheel"]
+              else []
+            )
+            ++ (
+              if networkmanager.enable or false
+              then ["networkmanager"]
+              else []
+            )
+          else [];
+      })
+      userConfigs;
   };
 }

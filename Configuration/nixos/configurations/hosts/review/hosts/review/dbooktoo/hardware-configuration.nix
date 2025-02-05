@@ -4,9 +4,8 @@
   pkgs,
   modulesPath,
   ...
-}:
-{
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+}: {
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
   boot = {
     initrd = {
@@ -16,11 +15,11 @@
         "sd_mod"
         "sdhci_pci"
       ];
-      kernelModules = [ ];
+      kernelModules = [];
     };
-    kernelModules = [ "kvm-intel" ];
+    kernelModules = ["kvm-intel"];
     kernelPackages = pkgs.linuxPackages_latest;
-    extraModulePackages = [ ];
+    extraModulePackages = [];
   };
 
   fileSystems = {
@@ -40,7 +39,7 @@
     };
   };
 
-  swapDevices = [ ];
+  swapDevices = [];
 
   networking = {
     useDHCP = lib.mkDefault true;

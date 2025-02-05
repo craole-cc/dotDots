@@ -27,179 +27,171 @@
     };
     stylix.url = "github:danth/stylix";
   };
-  outputs =
-    { self, ... }@inputs:
-    let
-      paths =
-        let
-          flake = {
-            local = "/home/craole/.dots";
-            root = "/dots";
-            store = ./.;
-          };
-          parts = {
-            args = "/args";
-            cfgs = "/configurations";
-            env = "/environment";
-            libs = "/libraries";
-            mkCore = "/helpers/makeCoreConfig.nix";
-            modules = "/Configuration/apps/nixos";
-            mods = "/modules";
-            opts = "/options";
-            pkgs = "/packages";
-            bin = "/Bin";
-            svcs = "/services";
-            ui = "/ui";
-            uiCore = "/ui/core";
-            uiHome = "/ui/home";
-            hosts = parts.cfgs + "/hosts";
-            users = parts.cfgs + "/users";
-            scripts = "/scripts";
-          };
-          core = {
-            default = modules.store;
-            configurations = {
-              hosts = core.default + parts.hosts;
-              users = core.default + parts.users;
-            };
-            environment = core.default + parts.env;
-            libraries = core.default + parts.libs;
-            modules = core.default + parts.mods;
-            options = core.default + parts.opts;
-            packages = core.default + parts.pkgs;
-            services = core.default + parts.svcs;
-          };
-          home = {
-            default = modules.store + "/home";
-            configurations = home.default + parts.cfgs;
-            environment = home.default + parts.env;
-            libraries = home.default + parts.libs;
-            modules = home.default + parts.mods;
-            options = home.default + parts.opts;
-            packages = home.default + parts.pkgs;
-            services = home.default + parts.svcs;
-          };
-          scripts = {
-            global = flake.local + parts.bin;
-            local = modules.store + parts.scripts;
-            store = flake.store + parts.scripts;
-            dots = modules.store + parts.scripts + "/init_dots";
-          };
-          modules = {
-            local = flake.local + parts.modules;
-            store = flake.store + parts.modules;
-          };
-          libraries = {
-            local = modules.local + parts.libs;
-            store = modules.store + parts.libs;
-            mkCore = core.libraries + parts.mkCore;
-          };
-        in
+  outputs = {self, ...} @ inputs: let
+    paths = let
+      flake = {
+        local = "/home/craole/.dots";
+        root = "/dots";
+        store = ./.;
+      };
+      parts = {
+        args = "/args";
+        cfgs = "/configurations";
+        env = "/environment";
+        libs = "/libraries";
+        mkCore = "/helpers/makeCoreConfig.nix";
+        modules = "/Configuration/apps/nixos";
+        mods = "/modules";
+        opts = "/options";
+        pkgs = "/packages";
+        bin = "/Bin";
+        svcs = "/services";
+        ui = "/ui";
+        uiCore = "/ui/core";
+        uiHome = "/ui/home";
+        hosts = parts.cfgs + "/hosts";
+        users = parts.cfgs + "/users";
+        scripts = "/scripts";
+      };
+      core = {
+        default = modules.store;
+        configurations = {
+          hosts = core.default + parts.hosts;
+          users = core.default + parts.users;
+        };
+        environment = core.default + parts.env;
+        libraries = core.default + parts.libs;
+        modules = core.default + parts.mods;
+        options = core.default + parts.opts;
+        packages = core.default + parts.pkgs;
+        services = core.default + parts.svcs;
+      };
+      home = {
+        default = modules.store + "/home";
+        configurations = home.default + parts.cfgs;
+        environment = home.default + parts.env;
+        libraries = home.default + parts.libs;
+        modules = home.default + parts.mods;
+        options = home.default + parts.opts;
+        packages = home.default + parts.pkgs;
+        services = home.default + parts.svcs;
+      };
+      scripts = {
+        global = flake.local + parts.bin;
+        local = modules.store + parts.scripts;
+        store = flake.store + parts.scripts;
+        dots = modules.store + parts.scripts + "/init_dots";
+      };
+      modules = {
+        local = flake.local + parts.modules;
+        store = flake.store + parts.modules;
+      };
+      libraries = {
+        local = modules.local + parts.libs;
+        store = modules.store + parts.libs;
+        mkCore = core.libraries + parts.mkCore;
+      };
+    in {
+      inherit
+        flake
+        core
+        home
+        scripts
+        parts
+        modules
+        libraries
+        ;
+    };
+    mkConfig = name: extraArgs: let
+      host = let
+        inherit (inputs.nixpkgs.lib.lists) foldl' filter;
+        confCommon = import (paths.core.configurations.hosts + "/common");
+        confSystem = import (paths.core.configurations.hosts + "/${name}");
+        enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
+        userConfigs =
+          foldl' (
+            acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
+          ) {}
+          enabledUsers;
+      in
         {
-          inherit
-            flake
-            core
-            home
-            scripts
-            parts
-            modules
+          inherit name userConfigs;
+        }
+        // confCommon
+        // confSystem
+        // extraArgs;
+      specialModules = let
+        inherit (host) desktop;
+        core =
+          (with paths.core; [
             libraries
-            ;
-        };
-      mkConfig =
-        name: extraArgs:
-        let
-          host =
-            let
-              inherit (inputs.nixpkgs.lib.lists) foldl' filter;
-              confCommon = import (paths.core.configurations.hosts + "/common");
-              confSystem = import (paths.core.configurations.hosts + "/${name}");
-              enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
-              userConfigs = foldl' (
-                acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
-              ) { } enabledUsers;
-            in
-            {
-              inherit name userConfigs;
-            }
-            // confCommon
-            // confSystem
-            // extraArgs;
-          specialModules =
-            let
-              inherit (host) desktop;
-              core =
-                (with paths.core; [
-                  libraries
-                  modules
-                  options
-                ])
-                ++ (with inputs; [
-                  stylix.nixosModules.stylix
-                  nid.nixosModules.nix-index
-                ]);
-              home =
-                with inputs;
-                if desktop == "hyprland" then
-                  [ ]
-                else if desktop == "plasma" then
-                  [ plasmaManager.homeManagerModules.plasma-manager ]
-                else if desktop == "xfce" then
-                  [ ]
-                else
-                  [ ];
-            in
-            {
-              inherit core home;
-            };
-
-          specialArgs = {
-            inherit self paths host;
-            modules = specialModules;
-            libraries = import paths.libraries.store; # TODO: Check on this
-          };
-        in
-        import paths.libraries.mkCore {
-          inherit (inputs)
-            nixosStable
-            nixosUnstable
-            homeManager
-            nixDarwin
-            ;
-
-          inherit (host)
-            name
-            # system
-            ;
-
-          inherit
-            specialArgs
-            specialModules
-            ;
-
-          system = host.platform;
-          preferredRepo = host.preferredRepo or "unstable";
-          allowUnfree = host.allowUnfree or true;
-          allowAliases = host.allowAliases or true;
-          allowHomeManager = host.allowHomeManager or true;
-          backupFileExtension = host.backupFileExtension or "BaC";
-          extraPkgConfig = host.extraPkgConfig or { };
-          extraPkgAttrs = host.extraPkgAttrs or { };
-        };
-    in
-    {
-      nixosConfigurations = {
-        example = mkConfig "example" { };
-        preci = mkConfig "preci" { };
-        dbook = mkConfig "dbook" { };
+            modules
+            options
+          ])
+          ++ (with inputs; [
+            stylix.nixosModules.stylix
+            nid.nixosModules.nix-index
+          ]);
+        home = with inputs;
+          if desktop == "hyprland"
+          then []
+          else if desktop == "plasma"
+          then [plasmaManager.homeManagerModules.plasma-manager]
+          else if desktop == "xfce"
+          then []
+          else [];
+      in {
+        inherit core home;
       };
 
-      #TODO: Create seperate config directory for nix systems since the config is drastically different
-      # darwinConfigurations = {
-      #   MBPoNine = mkConfig "MBPoNine" { };
-      # };
+      specialArgs = {
+        inherit self paths host;
+        modules = specialModules;
+        libraries = import paths.libraries.store; # TODO: Check on this
+      };
+    in
+      import paths.libraries.mkCore {
+        inherit
+          (inputs)
+          nixosStable
+          nixosUnstable
+          homeManager
+          nixDarwin
+          ;
 
-      # TODO create mkHome for standalone home manager configs
-      # homeConfigurations = mkConfig "craole" { };
+        inherit
+          (host)
+          name
+          # system
+          ;
+
+        inherit
+          specialArgs
+          specialModules
+          ;
+
+        system = host.platform;
+        preferredRepo = host.preferredRepo or "unstable";
+        allowUnfree = host.allowUnfree or true;
+        allowAliases = host.allowAliases or true;
+        allowHomeManager = host.allowHomeManager or true;
+        backupFileExtension = host.backupFileExtension or "BaC";
+        extraPkgConfig = host.extraPkgConfig or {};
+        extraPkgAttrs = host.extraPkgAttrs or {};
+      };
+  in {
+    nixosConfigurations = {
+      example = mkConfig "example" {};
+      preci = mkConfig "preci" {};
+      dbook = mkConfig "dbook" {};
     };
+
+    #TODO: Create seperate config directory for nix systems since the config is drastically different
+    # darwinConfigurations = {
+    #   MBPoNine = mkConfig "MBPoNine" { };
+    # };
+
+    # TODO create mkHome for standalone home manager configs
+    # homeConfigurations = mkConfig "craole" { };
+  };
 }
