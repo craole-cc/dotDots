@@ -1,6 +1,6 @@
 [global]
 excludes = [
-  "treefmt.toml",
+  # "treefmt.toml",
   "generated.nix",
   "**/node_modules/**",
   "**/target/**",
@@ -65,22 +65,6 @@ command = "isort"
 includes = ["*.py"]
 options = ["--profile", "black"]
 
-# Web formatting
-[formatter.prettier]
-command = "prettier"
-includes = [
-  "*.js",
-  "*.jsx",
-  "*.ts",
-  "*.tsx",
-  "*.css",
-  "*.scss",
-  "*.html",
-  "*.yaml",
-  "*.yml",
-]
-options = ["--write"]
-
 # Data formats
 [formatter.json]
 command = "jq"
@@ -94,21 +78,16 @@ options = ["fmt"]
 
 # Documentation
 [formatter.markdown]
-command = "prettier"
-includes = ["*.md", "*.mdx"]
-options = ["--write", "--prose-wrap", "always"]
+command = "markdownlint"
+includes = ["*.md"]
+options = ["--fix", "--config", ".markdownlint.json"]
 
 # Lua formatting
 [formatter.stylua]
 command = "stylua"
 includes = ["*.lua"]
 
-# Docker
-[formatter.hadolint]
-command = "hadolint"
-includes = ["Dockerfile"]
-
-# Make
-[formatter.checkmake]
-command = "checkmake"
-includes = ["Makefile"]
+# YAML formatting
+[formatter.yamlfmt]
+command = "yamlfmt"
+includes = ["*.yaml", "*.yml"]
