@@ -13,4 +13,4 @@ treefmt_cfg="$DOTS_CFG/treefmt/config.toml"
   cp "$treefmt_cfg" "$HOME/.treefmt.toml"
 }
 
-treefmt "$@"
+treefmt --allow-missing-formatter "$@"

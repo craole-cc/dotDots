@@ -1,6 +1,4 @@
 {
-  specialArgs,
-  lib,
   ...
 }: {
   # _module.args={

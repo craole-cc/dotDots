@@ -1,6 +1,4 @@
-{
-  pkgs ? import <nixpkgs> { },
-}:
+{pkgs ? import <nixpkgs> {}}:
 pkgs.mkShell {
   buildInputs = with pkgs; [
     eza
@@ -37,13 +35,16 @@ pkgs.mkShell {
     fish # ? fish and fish_indent
     keep-sorted # ? Sorter
     leptosfmt # ? leptos rs
+    rufo # ? Ruby
     sqlfluff # ? SQL
     tex-fmt # ? TeX
     tenv # ? Terraform
     toml-sort # ? TOML
     taplo # ? TOML
     typos # ? Typo correction
-    typst # ? typesetting system
+    typst # ? typesetting system to replace LaTeX
+    typstyle # ? typst style
+    typstfmt # ? typst formatter
   ];
 
   shellHook = ''

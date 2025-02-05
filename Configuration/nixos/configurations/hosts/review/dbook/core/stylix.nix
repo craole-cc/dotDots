@@ -1,6 +1,5 @@
 {
   pkgs,
-  config,
   ...
 }: let
   stylix = pkgs.fetchFromGitHub {

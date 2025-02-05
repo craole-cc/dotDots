@@ -9,7 +9,6 @@
     (builtins)
     getEnv
     currentTime
-    toString
     ;
   inherit (pkgs) runCommand;
   inherit
