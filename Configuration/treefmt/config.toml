@@ -1,6 +1,6 @@
 [global]
 excludes = [
-  # "treefmt.toml",
+  "treefmt.toml",
   "generated.nix",
   "**/node_modules/**",
   "**/target/**",
@@ -50,20 +50,10 @@ includes = ["*.sh", "*.bash", "*.zsh"]
 options = ["-i", "2", "-ci", "-bn", "-sr"]
 
 # Python formatting
-[formatter.black]
-command = "black"
-includes = ["*.py"]
-options = ["--quiet"]
-
 [formatter.ruff]
 command = "ruff"
 includes = ["*.py"]
 options = ["format", "--quiet"]
-
-[formatter.isort]
-command = "isort"
-includes = ["*.py"]
-options = ["--profile", "black"]
 
 # Data formats
 [formatter.json]
