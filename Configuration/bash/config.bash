@@ -7,6 +7,9 @@ export BDOTRC BDOTDIR
 DOTS="$HOME/.dots"
 DOTS_BIN="$DOTS/Bin"
 DOTS_CFG="$DOTS/Configuration"
+alias .dots='cd "$DOTS"'
+alias .bin='cd "$DOTS_BIN"'
+alias .cfg='cd "$DOTS_CFG"'
 export DOTS DOTS_BIN DOTS_CFG
 
 init_config() {
@@ -81,7 +84,6 @@ case "$BASHOPTS" in
   STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
   TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
   export FASTFETCH_CONFIG STARSHIP_CONFIG TREEFMT_CONFIG
-  # alias treefmt='treefmt --config-file "$TREEFMT_CONFIG"'
 
   #@ Load resources and functions
   init_config "$BDOTDIR/functions"

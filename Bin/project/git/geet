@@ -105,11 +105,6 @@ establish_defaults() {
   #| Message
   default_msg="Updated via geet"
   log_fmt="-1 --pretty=%B"
-
-  #| Treefmt
-  treefmt_cmd="$(command -v treefmt 2>&1)"
-  [ "$treefmt_cmd" ] && [ -f "$TREEFMT_CONFIG" ] &&
-    treefmt_cmd="$treefmt_cmd --config-file $TREEFMT_CONFIG"
 }
 
 establish_environment() {
@@ -659,14 +654,12 @@ execute_git_actions() {
   [ "$(git status --porcelain)" ] || return 0
 
   #@ Lint
-  [ "$treefmt_cmd" ] && {
-    if [ "$ci" ]; then
-      eval "$treefmt_cmd --ci" || return 1
-      # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
-    else
-      eval "$treefmt_cmd"
-    fi
-  }
+  if [ "$ci" ]; then
+    fmtree --ci || return 1
+    # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
+  else
+    fmtree --ci
+  fi
 
   #@ Update the local repository
   [ "$pull" ] && git pull --quiet
