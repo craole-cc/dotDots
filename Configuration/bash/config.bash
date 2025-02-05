@@ -10,7 +10,7 @@ DOTS_CFG="$DOTS/Configuration"
 alias .dots='cd "$DOTS"'
 alias .bin='cd "$DOTS_BIN"'
 alias .cfg='cd "$DOTS_CFG"'
-    export DOTS DOTS_BIN DOTS_CFG
+export DOTS DOTS_BIN DOTS_CFG
 
 init_config() {
   conf_files="$(find "$1" -type f)"
@@ -79,11 +79,12 @@ case "$BASHOPTS" in
   [ -f ~/.bash_login ] && . ~/.bash_login
   [ -f ~/.bash_functions ] && . ~/.bash_functions
   [ -f ~/.profile ] && . ~/.profile
+  [ -f "$BDOTDIR/inputrc" ] && bind -f "$BDOTDIR/inputrc"
 
   FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
   STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
-  TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
-  export FASTFETCH_CONFIG STARSHIP_CONFIG TREEFMT_CONFIG
+  # TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
+  export FASTFETCH_CONFIG STARSHIP_CONFIG
 
   #@ Load resources and functions
   init_config "$BDOTDIR/functions"

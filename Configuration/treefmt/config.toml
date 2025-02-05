@@ -8,76 +8,89 @@ excludes = [
   "**/.git/**",
 ]
 
-# Nix formatting
+#| Nix formatting
 [formatter.nixfmt]
 command = "nixfmt"
 includes = ["*.nix"]
 priority = 1
+fail_on_missing = false
 
 [formatter.alejandra]
 command = "alejandra"
 includes = ["*.nix"]
 priority = 1
+fail_on_missing = false
 
 [formatter.deadnix]
 command = "deadnix"
 options = ["-e"]
 includes = ["*.nix"]
 priority = 2
+fail_on_missing = false
 
 [formatter.statix]
 command = "statix"
 options = ["check"]
 includes = ["*.nix"]
 priority = 3
+fail_on_missing = false
 
-# Rust formatting
+#| Rust formatting
 [formatter.rust]
 command = "rustfmt"
 includes = ["*.rs"]
 options = ["--edition", "2021"]
+fail_on_missing = false
 
-# Shell script formatting
+#| Shell script formatting
 [formatter.shellcheck]
 command = "shellcheck"
 includes = ["*.sh", "*.bash", "*.zsh"]
 options = ["-x", "-e", "SC1090,SC1091"]
 priority = 2
+fail_on_missing = false
 
 [formatter.shfmt]
 command = "shfmt"
 includes = ["*.sh", "*.bash", "*.zsh"]
 options = ["-i", "2", "-ci", "-bn", "-sr"]
+fail_on_missing = false
 
-# Python formatting
+#| Python formatting
 [formatter.ruff]
 command = "ruff"
 includes = ["*.py"]
 options = ["format", "--quiet"]
+fail_on_missing = false
 
-# Data formats
+#| Data formats
 [formatter.json]
 command = "jq"
 includes = ["*.json", "*.jsonc"]
 options = ["--indent", "2", "--sort-keys", "-M"]
+fail_on_missing = false
 
 [formatter.toml]
 command = "taplo"
 includes = ["*.toml"]
 options = ["fmt"]
+fail_on_missing = false
 
-# Documentation
+#| Documentation
 [formatter.markdown]
 command = "markdownlint"
 includes = ["*.md"]
 options = ["--fix", "--config", ".markdownlint.json"]
+fail_on_missing = false
 
-# Lua formatting
+#| Lua formatting
 [formatter.stylua]
 command = "stylua"
 includes = ["*.lua"]
+fail_on_missing = false
 
-# YAML formatting
+#| YAML formatting
 [formatter.yamlfmt]
 command = "yamlfmt"
 includes = ["*.yaml", "*.yml"]
+fail_on_missing = false
