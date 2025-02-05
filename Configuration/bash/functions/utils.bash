@@ -467,14 +467,14 @@ init_direnv() {
 
 init_fasfetch() {
   weHave fastfetch || return
-  FASTFETCH_CONFIG="${DOTS_CFG}/fastfetch/config.jsonc"
+  FASTFETCH_CONFIG="${FASTFETCH_CONFIG:-"${DOTS_CFG}/fastfetch/config.jsonc"}"
   export FASTFETCH_CONFIG
   fastfetch --config "$FASTFETCH_CONFIG"
 }
 
 init_starship() {
   weHave starship || return
-  STARSHIP_CONFIG="${DOTS_CFG}/starship/starship.toml"
+  STARSHIP_CONFIG="${STARSHIP_CONFIG:-"${DOTS_CFG}/starship/starship.toml"}"
   export STARSHIP_CONFIG
   set +o posix
   eval "$(starship init bash)"

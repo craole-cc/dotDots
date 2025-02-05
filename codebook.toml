@@ -1,4 +1,4 @@
-dictionaries = []
+dictionaries = ["en_us"]
 words = [
   "deadnix",
   "jsonc",
@@ -11,6 +11,37 @@ words = [
   "statix",
   "taplo",
   "treefmt",
+  "fastfetch",
+  "coreutils",
+  "bdotrc",
+  "bdotdir",
+  "bashrc",
+  "bash_profile",
+  "bash_aliases",
+  "bash_functions",
+  "bash_logout",
+  "bash_history",
+  "bash_prompt",
+  "bashrc.d",
+  "bash_profile.d",
+  "bash_aliases.d",
+  "bash_functions.d",
+  "bash_logout.d",
+  "bash_prompt.d",
+  "bash_history",
+  "realpath",
+  "dotsrc",
+  "direnv",
+  "fastfetch",
+  "posix",
+  "jsonc",
+  "rosé",
+  "nixos",
+  "starship",
+  "thefuck",
+  "treefmt",
+  "wsl",
+  "zoxide",
 ]
 flag_words = []
 ignore_paths = []
