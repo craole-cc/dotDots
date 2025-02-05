@@ -79,8 +79,8 @@ case "$BASHOPTS" in
 
   FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
   STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
-
   TREEFMT_CONFIG="$DOTS_CFG/treefmt/config.toml"
+  export FASTFETCH_CONFIG STARSHIP_CONFIG TREEFMT_CONFIG
   # alias treefmt='treefmt --config-file "$TREEFMT_CONFIG"'
 
   #@ Load resources and functions
