@@ -1,12 +1,12 @@
 #!/bin/sh
 
 # kitty \
-#   --config "$DOTS_APP/kitty/kitty.conf" \
-#   --detach hx --config "$DOTS_APP/helix/helix.toml" \
+#   --config "$DOTS_CFG/kitty/kitty.conf" \
+#   --detach hx --config "$DOTS_CFG/helix/helix.toml" \
 #   "$DOTS_TEST/text_editor"
 
-KITTY_CFG="$DOTS_APP/kitty/kitty.conf"
-HELIX_CFG="$DOTS_APP/helix/helix.toml"
+KITTY_CFG="$DOTS_CFG/kitty/kitty.conf"
+HELIX_CFG="$DOTS_CFG/helix/helix.toml"
 FILE="$DOTS_TEST/text_editor"
 CMD="hx --config $HELIX_CFG"
 
@@ -17,4 +17,3 @@ pop="Terminal -- ${CMD}"
 # $CMD
 # eval "$pop" "$FILE"
 # eval Terminal -- "${CMD}" "$FILE"
-

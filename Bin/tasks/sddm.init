@@ -2,6 +2,6 @@
 
 sudo ln --symbolic --force /store/DOTS/Config/tools/utilities/sddm/sddm.conf.d/appearance.conf /etc/sddm.conf.d/
 
-# cat "$DOTS_TOOL/utilities/sddm/themes" >
-  printf "%s\n" "Installing Solana"
-  sh -c "$(curl -sSfL https://release.solana.com/LATEST_RELEASE/install)"
+# cat "$DOTS_CFG/utilities/sddm/themes" >
+printf "%s\n" "Installing Solana"
+sh -c "$(curl -sSfL https://release.solana.com/LATEST_RELEASE/install)"

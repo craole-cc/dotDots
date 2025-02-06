@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 main() {
   #@ Initialization the script environment
@@ -37,9 +37,9 @@ manage_script() {
     DOTS_LOG="$DOTS/.log"
     DOTS_BIN="$DOTS/Bin"
     DOTS_CFG="$DOTS/Configuration"
-    DOTS_APP="$DOTS_CFG/apps"
+    DOTS_CFG="$DOTS_CFG/apps"
     DOTS_KIT="$DOTS_CFG/tools"
-    DOTS_CLI="$DOTS_CFG/cli"
+    DOTS_CFG="$DOTS_CFG/cli"
     DOTS_DOC="$DOTS/Documentation"
     DOTS_JOB="$DOTS_DOC/Tasks"
     DOTS_MOD="$DOTS/Modules"
@@ -47,7 +47,7 @@ manage_script() {
     DOTS_ENV="$DOTS/Environment"
     DOTS_CTX="$DOTS_ENV/context"
     DOTS_EXP="$DOTS_ENV/export"
-    DOTS_NIX="$DOTS_APP/nixos"
+    DOTS_NIX="$DOTS_CFG/nixos"
     set +o allexport
 
     #@ Set temporary variables in lowercase and perpended by double underscorez
@@ -149,9 +149,9 @@ manage_script() {
       pout --debug --key "DOTS_LOG" --val "$DOTS_LOG"
       pout --debug --key "DOTS_BIN" --val "$DOTS_BIN"
       pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
-      pout --debug --key "DOTS_APP" --val "$DOTS_APP"
+      pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
       pout --debug --key "DOTS_KIT" --val "$DOTS_KIT"
-      pout --debug --key "DOTS_CLI" --val "$DOTS_CLI"
+      pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
       pout --debug --key "DOTS_DOC" --val "$DOTS_DOC"
       pout --debug --key "DOTS_JOB" --val "$DOTS_JOB"
       pout --debug --key "DOTS_MOD" --val "$DOTS_MOD"
@@ -838,7 +838,7 @@ util_functions() {
           shift
         }
         ;;
-      -L | --last*)
+      --last*)
         last_line=true
         ;;
       --pad)
@@ -1077,7 +1077,7 @@ core_functions() {
       ;;
     esac
 
-    SHELL_HOME="${DOTS_CLI}/$(to_lower "$SHELL_NAME")"
+    SHELL_HOME="${DOTS_CFG}/$(to_lower "$SHELL_NAME")"
     SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
     SHELL_PATH="$(pathOf "$__shell")"
     SHELL="$__shell"
@@ -1718,7 +1718,7 @@ core_functions() {
       export VISUAL VISUAL_VERSION
     }
 
-    init_fastfetch "$DOTS_CLI/fastfetch/config.jsonc"
+    init_fastfetch "$DOTS_CFG/fastfetch/config.jsonc"
     "$SHELL_PATH" "$SHELL_CONF"
   }
 }

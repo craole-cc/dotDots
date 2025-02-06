@@ -6,9 +6,9 @@ _NAME="bash"
 _CMD="bash"
 _TYPE="tty"
 
-DOTS_CLI="${DOTS_CLI:-$DOTS/Configuration/cli}"
-_HOME="${DOTS_CLI}/${_APP}"
-_CONF="${DOTS_CLI}/${_APP}/config"
+DOTS_CFG="${DOTS_CFG:-$DOTS/Configuration/cli}"
+_HOME="${DOTS_CFG}/${_APP}"
+_CONF="${DOTS_CFG}/${_APP}/config"
 BDOTDIR="$_HOME"
 
 [ -f "$_CONF" ] && . "$_CONF"

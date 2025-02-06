@@ -15,7 +15,7 @@ elif [ -r /etc/bash_completion ]; then
 fi
 
 rustup --version >/dev/null 2>&1 &&
-  rustup completions bash >"$BDOTDIR/functions/rustup"
+  rustup completions bash >"$BDOTDIR/scripts/rustup.bash"
 
 #@ Use bash-completion, if available
 if ! shopt -oq posix; then

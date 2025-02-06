@@ -8,7 +8,7 @@ _NAME="Visual Studio Code"
 _TYPE="gui"
 
 #| Config
-_HOME="${DOTS_APP}/${_APP}"
+_HOME="${DOTS_CFG}/${_APP}"
 _CFG="${_HOME}/settings.json"
 
 #> Command

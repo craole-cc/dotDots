@@ -1,13 +1,13 @@
 #! /bin/sh
 # shellcheck disable=SC2034,SC2154
 
-BDOTDIR="$DOTS_CLI/bash"
-ZDOTDIR="$DOTS_CLI/zsh"
-DDOTDIR="$DOTS_CLI/dash"
-FDOTDIR="$DOTS_CLI/fish"
-NDOTDIR="$DOTS_CLI/nushell"
-GDOTDIR="$DOTS_CLI/git"
-PDOTDIR="$DOTS_CLI/pwsh"
+BDOTDIR="$DOTS_CFG/bash"
+ZDOTDIR="$DOTS_CFG/zsh"
+DDOTDIR="$DOTS_CFG/dash"
+FDOTDIR="$DOTS_CFG/fish"
+NDOTDIR="$DOTS_CFG/nushell"
+GDOTDIR="$DOTS_CFG/git"
+PDOTDIR="$DOTS_CFG/pwsh"
 SSHDIR="$HOME/.ssh"
 
 # | Config Files

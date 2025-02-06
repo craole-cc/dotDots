@@ -1,50 +1,97 @@
 #!/bin/sh
 
-unset _cmd _args
-_cmd="$(command -v treefmt 2>&1)"
-_args="--allow-missing-formatter"
-
-[ "$_cmd" ] || {
-  printf "Error: treefmt not found." >&2
-  return 1
+main() {
+  init_env
+  parse_arguments "$@"
+  execute_process
+  drop_env
 }
 
-while [ "$#" -ge 1 ]; do
-  case "$1" in
-  --config)
-    [ "$2" ] || {
-      printf "Error: Config file not specified." >&2
-      return 1
-    }
+init_env() {
+  _cmd="$(command -v treefmt 2>&1)"
+  _cfg="$DOTS_CFG/treefmt/treefmt.toml"
+  _root="$DOTS"
+  _ci=true
+  _args="--allow-missing-formatter"
+}
 
-    [ -f "$2" ] || {
+drop_env() {
+  unset _cmd _cfg _root _ci _args
+}
+
+parse_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --config)
+      [ "$2" ] || {
+        printf "Error: Config file not specified." >&2
+        exit 1
+      }
+
+      _cfg=" $2"
+      shift
+      ;;
+    --root)
+      [ "$2" ] || {
+        printf "Error: Root directory not specified." >&2
+        exit 1
+      }
+
+      [ -d "$2" ] || {
+        printf "Error: Root directory not found." >&2
+        exit 1
+      }
+
+      _args="${_args:+$_args }--tree-root $2"
+      shift
+      ;;
+    *)
+      _args="${_args:+$_args }$1"
+      ;;
+    esac
+    shift
+  done
+}
+
+build_command() {
+  #@ Validate command
+  [ "$_cmd" ] || {
+    printf "Error: treefmt not found." >&2
+    return 1
+  }
+
+  #@ Validate config
+  [ "$_cfg" ] && {
+    if [ -f "$_cfg" ]; then
+      _cfg="--config-file $_cfg"
+    else
       printf "Error: Config file not found." >&2
       return 1
-    }
+    fi
+  }
 
-    _args="${_args:+$_args }--config-file $2"
-    shift
-    ;;
-  --root)
-    [ "$2" ] || {
-      printf "Error: Root directory not specified." >&2
-      return 1
-    }
-
-    [ -d "$2" ] || {
+  #@ Validate tree root
+  [ "$_root" ] && {
+    if [ -d "$_root" ]; then
+      _root="--tree-root $_root"
+    else
       printf "Error: Root directory not found." >&2
       return 1
-    }
+    fi
+  }
 
-    _args="${_args:+$_args }--tree-root $2"
-    shift
-    ;;
-  *)
-    _args="${_args:+$_args }$1"
-    ;;
-  esac
-  shift
-done
+  [ "$_ci" ] && _args="${_args:+$_args }--ci"
 
-_cmd="$(printf "%s %s" "$_cmd" "$_args")"
-echo "$_cmd"
+  printf "%s %s %s %s" "$_cmd" "$_cfg" "$_root" "$_args"
+}
+
+execute_process() {
+
+  #@ Print command
+  printf "Command: %s\n" "$(build_command)"
+
+  #@ Run command
+  eval "$(build_command)"
+}
+
+main "$@"

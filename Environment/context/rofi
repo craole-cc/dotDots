@@ -1,4 +1,4 @@
-ROFI_HOME="$DOTS_TOOL/pipes/rofi"
+ROFI_HOME="$DOTS_CFG/pipes/rofi"
 menu="launcher"
 type=7
 style=4

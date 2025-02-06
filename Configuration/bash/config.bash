@@ -7,9 +7,6 @@ export BDOTRC BDOTDIR
 DOTS="$HOME/.dots"
 DOTS_BIN="$DOTS/Bin"
 DOTS_CFG="$DOTS/Configuration"
-alias .dots='cd "$DOTS"'
-alias .bin='cd "$DOTS_BIN"'
-alias .cfg='cd "$DOTS_CFG"'
 export DOTS DOTS_BIN DOTS_CFG
 
 init_config() {
@@ -26,7 +23,6 @@ init_config() {
 }
 
 set_app_defaults() {
-
   #| Default TTY Editor
   if weHave hx; then
     EDITOR="hx"
@@ -83,11 +79,11 @@ case "$BASHOPTS" in
 
   FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
   STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
-    export FASTFETCH_CONFIG STARSHIP_CONFIG
+  export FASTFETCH_CONFIG STARSHIP_CONFIG
 
   #@ Load resources and functions
-  init_config "$BDOTDIR/functions"
-  init_config "$BDOTDIR/resources"
+  init_config "$BDOTDIR/bin"
+  init_config "$BDOTDIR/modules"
 
   update_dots_path "$DOTS/Bin"
   set_app_defaults

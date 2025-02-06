@@ -8,7 +8,7 @@ _NAME="Helix Editor"
 _TYPE="tty"
 
 #> Config
-_HOME="${DOTS_CLI}/${_APP}"
+_HOME="${DOTS_CFG}/${_APP}"
 _EXT="toml"
 _CFG="${_HOME}/${_APP}.${_EXT}"
 

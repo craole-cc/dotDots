@@ -5,7 +5,7 @@ _APP="alacritty"
 _NAME="Alacritty"
 _DESC="a GPU-accelerated terminal emulator written in Rust"
 _TYPE="tty"
-_HOME="${DOTS_APP}/${_APP}"
+_HOME="${DOTS_CFG}/${_APP}"
 
 #/> Config                                          <\
 _EXT="yml"

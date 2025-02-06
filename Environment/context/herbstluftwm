@@ -1,4 +1,4 @@
-_HOME="${DOTS_TOOL}/interface/herbstluftwm"
+_HOME="${DOTS_CFG}/interface/herbstluftwm"
 _MODS="${_HOME}/modules"
 _CONF="${_MODS}/autostart"
 _TYPE="X11"

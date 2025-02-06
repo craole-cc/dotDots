@@ -10,7 +10,7 @@ cat <<EOF >"$ROOT_README"
 
 dotDOTS is a collection of my personal tools and configuration files designed to be portable and efficient across various systems and environments.
 
-For full documentation, visit [mydocumentation/README.md](./mydocumentation/README.md).
+For full documentation, visit [Documentation/README.md](./Documentation/README.md).
 
 ## Quick Links
 

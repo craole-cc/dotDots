@@ -2,7 +2,7 @@
 
 #@ Declare command information
 _APP="picom"
-_ARGS="--config $DOTS_TOOL/utilities/picom/picom.conf"
+_ARGS="--config $DOTS_CFG/utilities/picom/picom.conf"
 
 #@ Validate app availability
 [ "${WAYLAND_DISPLAY}" ] &&
