@@ -12,7 +12,7 @@ command -v rustc >/dev/null 2>&1 || return
 # _________________________________________ LOCAL<|
 
 # --> Rustup
-RUST_HOME="$DOTS_CLI/rust"
+RUST_HOME="$DOTS_CFG/rust"
 RUSTUP_HOME="$HOME/.rustup"
 RUSTUP_BASH_COMPLETION="$BDOTDIR/functions/rustup"
 case "$sys_INFO" in

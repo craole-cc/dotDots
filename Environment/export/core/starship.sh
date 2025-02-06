@@ -15,7 +15,7 @@
 command -v starship >/dev/null 2>&1 || return
 
 #@ Set Environment Variables
-STARSHIP_HOME="${DOTS_CLI}/starship"
+STARSHIP_HOME="${DOTS_CFG}/starship"
 STARSHIP_CACHE="${CACHE_HOME}/starship"
 STARSHIP_CONFIG="${STARSHIP_HOME}/config.toml"
 

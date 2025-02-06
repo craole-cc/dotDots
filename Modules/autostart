@@ -15,7 +15,7 @@ execute() {
     launch foot --server
   else
     case "$DISPLAY" in *:*)
-      launch picom --config "$DOTS_TOOL/utilities/picom/picom.conf"
+      launch picom --config "$DOTS_CFG/utilities/picom/picom.conf"
       ;;
     esac
   fi
@@ -27,7 +27,7 @@ execute() {
   launch blueman-applet
   launch volumeicon
   launch nm-applet --indicator
-  launch dunst -config "$DOTS_TOOL/utilities/dunst/dunstrc"
+  launch dunst -config "$DOTS_CFG/utilities/dunst/dunstrc"
   launch flameshot
   launch udiskie
   launch copyq

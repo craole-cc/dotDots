@@ -1,14 +1,8 @@
 #!/bin/sh
 
-treefmt_cmd="$(command -v treefmt 2>&1)"
-treefmt_cfg="$DOTS_CFG/treefmt/config.toml"
-
-[ "$treefmt_cmd" ] || {
-  printf "Error: treefmt not found." >&2
-  return 1
-}
-
-treefmt \
-  --allow-missing-formatter \
-  --config-file "$treefmt_cfg" \
-  --tree-root "$DOTS"
+fmtree \
+  --config "$DOTS_CFG/treefmt/treefmt.toml" \
+  --root "$DOTS" \
+  --no-cache \
+  --fail-on-change \
+  "$@"

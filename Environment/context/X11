@@ -1,4 +1,4 @@
-X11="$DOTS_TOOL/utilities/X11"
+X11="$DOTS_CFG/utilities/X11"
 RC_xinit="$X11/xinitrc.sh"
 RC_xresources="$X11/xresources.cpp"
 RC_modmap="$X11/xmodmap.cpp"

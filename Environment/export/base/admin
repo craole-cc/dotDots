@@ -60,9 +60,9 @@ DOTS_BIN_MISC="$DOTS_BIN/misc"
 
 # | CFG
 DOTS_CFG="$DOTS/Configuration"
-DOTS_APP="$DOTS_CFG/apps"
-DOTS_TOOL="$DOTS_CFG/tools"
-DOTS_CLI="$DOTS_CFG/cli"
+DOTS_CFG="$DOTS_CFG/apps"
+DOTS_CFG="$DOTS_CFG/tools"
+DOTS_CFG="$DOTS_CFG/cli"
 
 # | ENV
 DOTS_ENV="$DOTS/Environment"
@@ -79,14 +79,14 @@ DOTS_ENV_PRJ="$DOTS_ENV_EXP/project"
 DOTS_KEY="$DOTS/Keys"
 
 # | General
-codeDOTS="$DOTS_APP/vscode/Dotfiles.code-workspace"
-codeRUST="$DOTS_APP/vscode/Rust.code-workspace"
-codeNIX="$DOTS_APP/vscode/Nix.code-workspace"
+codeDOTS="$DOTS_CFG/vscode/Dotfiles.code-workspace"
+codeRUST="$DOTS_CFG/vscode/Rust.code-workspace"
+codeNIX="$DOTS_CFG/vscode/Nix.code-workspace"
 DOTS_FONT="$DOTS_RES/Fonts"
-KEYMAPS="$DOTS_TOOL/utilities/sxhkd"
+KEYMAPS="$DOTS_CFG/utilities/sxhkd"
 ASCII="$DOTS_RES/Images/ascii"
 
 # @_____________________________________________________________________ GUIX<|
-DOTS_GUIX="$DOTS_TOOL/utilities/guix"
-DOTS_NIX="$DOTS_APP/nixos"
-DOTS_WSLnix="$DOTS_APP/NixWSL"
+DOTS_GUIX="$DOTS_CFG/utilities/guix"
+DOTS_NIX="$DOTS_CFG/nixos"
+DOTS_WSLnix="$DOTS_CFG/NixWSL"

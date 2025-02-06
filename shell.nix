@@ -1,4 +1,6 @@
-{pkgs ? import <nixpkgs> {}}:
+{
+  pkgs ? import <nixpkgs> { config.allowUnfree = true; },
+}:
 pkgs.mkShell {
   buildInputs = with pkgs; [
     eza
@@ -21,11 +23,15 @@ pkgs.mkShell {
     nixd
     fend
     fastfetch
+    lesspipe
+    lmstudio
+    langgraph-cli
 
     #| Formatters
     treefmt2
     actionlint # ? GitHub Actions
     asmfmt # ? Go
+    alejandra # ? Nix
     shfmt # ? Shell
     yamlfmt # ? YAML
     stylua # ? Lua
@@ -46,6 +52,8 @@ pkgs.mkShell {
     typstyle # ? typst style
     typstfmt # ? typst formatter
     markdownlint-cli2 # ? Markdown
+    editorconfig-checker # ? EditorConfig
+    eclint # ? EditorConfig linter written in Go
   ];
 
   shellHook = ''

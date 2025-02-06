@@ -1,6 +1,6 @@
 #!/bin/sh
 
-src="$DOTS_CLI/helix"
+src="$DOTS_CFG/helix"
 lnk="$DATA_HOME/helix"
 # rm -rf "${lnk:?}/"*
 # rm -rf "${lnk:?}"

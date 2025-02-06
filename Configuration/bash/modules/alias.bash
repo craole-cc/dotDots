@@ -29,9 +29,7 @@ csD() { chsh "$USER" -s /bin/dash; }
 csZ() { chsh "$USER" -s /bin/zsh; }
 
 # >>= Shell =<< #
-alias B='clear; bash' b='bash' \
-  D='clear; dash' d='dash' \
-  Z='clear; zsh' z='zsh'
+alias B='clear; bash' b='bash'
 alias envSH='env | less'
 alias b='init_prompt'
 alias B='init_prompt_blank; clear'
@@ -51,14 +49,24 @@ alias pth="path"
 alias lsb="lsblk --output=NAME,FSTYPE,FSVER,LABEL,PARTLABEL,MOUNTPOINT,FSAVAIL,FSUSE%"
 alias jctl="journalctl -p 3 -xb"
 
-# >>= Common =<< #e
+# >>= Common =<< #
+alias "bd"='cd -'
+alias ".."='cd ..'
+alias "..."='cd ../..'
+alias "...."='cd ../../..'
+alias "....."='cd ../../../..'
+alias ".dots"='cd "$DOTS"'
+alias ".bin"='cd "$DOTS_BIN"'
+alias ".cfg"='cd "$DOTS_CFG"'
+alias D='cd "$DOTS" && nix-shell'
+alias "dom"='cd "$(git rev-parse --show-toplevel 2>/dev/null || find . -name flake.nix -exec dirname {} \; | head -n 1 || echo ~)"'
+
 alias k="killall"
 alias X='exit'
 alias sdn="shutdown -h now"
 alias h="showhist"
 alias j="jobs -l"
 alias which="command -v"
-alias ..="cd .."
 alias cls="clear" c="clear"
 alias xk="xev -event keyboard" # keyboard mapping
 alias xp="xprop"

@@ -1,26 +1,84 @@
 #!/bin/sh
+# A robust, POSIX-compliant launcher for Visual Studio Code variants.
+#
+# Options:
+#   -D, --dots   : Launch using the DOTS configuration.
+#   -R, --rust   : Launch using the RUST configuration.
+#   -N, --nix    : Launch using the NIX configuration.
+#   -h, --help   : Display this help message.
+#
+# If none of the above options is provided, all arguments are passed as-is.
+
+# Enable strict error handling.
+set -eu
+
+# Default configurations for code variants.
+: "${codeDOTS:=--extension some-dots-extension}"
+: "${codeRUST:=--extension some-rust-extension}"
+: "${codeNIX:=--extension some-nix-extension}"
+
+usage() {
+  cat <<EOF >&2
+Usage: $0 [option] [arguments...]
+
+Options:
+  -D, --dots     Launch using DOTS configuration (default: ${codeDOTS})
+  -R, --rust     Launch using RUST configuration (default: ${codeRUST})
+  -N, --nix      Launch using NIX configuration (default: ${codeNIX})
+  -h, --help     Show this help message
+
+If an unrecognized option is provided, all arguments are passed to the VS Code command.
+EOF
+  exit 1
+}
 
 parse_arguments() {
+  if [ "$#" -eq 0 ]; then
+    process_core "$(pwd)"
+  fi
+
   case "$1" in
-  -D | --dots) process_core "$codeDOTS" ;;
-  -R | --rust) process_core "$codeRUST" ;;
-  -N | --nix) process_core "$codeNIX" ;;
-  *) process_core "$@" ;;
+  -D | --dots)
+    #@ Expand the DOTS configuration and pass remaining args.
+    shift
+    process_core "$codeDOTS" "$@"
+    ;;
+  -R | --rust)
+    shift
+    process_core "$codeRUST" "$@"
+    ;;
+  -N | --nix)
+    shift
+    process_core "$codeNIX" "$@"
+    ;;
+  -h | --help)
+    usage
+    ;;
+  *)
+    process_core "$@"
+    ;;
   esac
 }
 
 process_core() {
-  if weHave code-insiders; then
-    code-insiders "$@" &
-  elif weHave code; then
-    code "$@" &
-  elif weHave code-oss; then
-    code-oss "$@" &
-  elif Flatpak_check visualstudio.code; then
-    $(Flatpak_run visualstudio.code) "$@" &
-  else
-    printf "%s" "🟥 Visual Studio Code not found."
+  #@ List Visual Studio Code variants in order of preference.
+  for cmd in code-insiders code code-oss codium; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      "$cmd" "$@" &
+      printf "Launched %s with arguments: %s\n" "$cmd" "$*"
+      return 0
+    fi
+  done
+
+  #@ Fallback: Try Flatpak if available.
+  if command -v flatpak >/dev/null 2>&1 && flatpak info visualstudio.code >/dev/null 2>&1; then
+    flatpak run visualstudio.code "$@" &
+    printf "Launched Flatpak version of Visual Studio Code with arguments: %s\n" "$*"
+    return 0
   fi
+
+  printf "🟥 Visual Studio Code not found.\n" >&2
+  return 1
 }
 
 parse_arguments "$@"

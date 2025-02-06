@@ -5,7 +5,7 @@ _APP="kitty"
 _NAME="Kitty Terminal"
 _DESC="a fast feature-rich ,GPU based terminal emulator"
 _TYPE="tty"
-_HOME="${DOTS_APP}/${_APP}"
+_HOME="${DOTS_CFG}/${_APP}"
 
 #/> Config                                          <\
 _EXT="conf"

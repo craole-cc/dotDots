@@ -5,7 +5,7 @@ _APP="git"
 _NAME="git"
 _DESC=""
 _TYPE="tty"
-_HOME="${DOTS_CLI}/${_APP}"
+_HOME="${DOTS_CFG}/${_APP}"
 
 #/> Config                                          <\
 _EXT="conf"

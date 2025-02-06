@@ -7,8 +7,8 @@ _CMD="bat"
 _TYPE="tty"
 
 #> Config
-DOTS_CLI="${DOTS_CLI:-$DOTS/Config/cli}"
-_HOME="${DOTS_CLI}/${_APP}"
+DOTS_CFG="${DOTS_CFG:-$DOTS/Config/cli}"
+_HOME="${DOTS_CFG}/${_APP}"
 _EXT="config"
 _CFG="${_HOME}/${_APP}.${_EXT}"
 BAT_CONFIG_PATH="$_CFG"

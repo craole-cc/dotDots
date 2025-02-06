@@ -9,11 +9,10 @@
 
 # _________________________________________ LOCAL<|
 # --> Hatch
-HATCH_CONFIG="$DOTS_CLI/python/hatch.toml"
-# _HATCH_COMPLETE=bash_source hatch > "$DOTS_CLI/bash/resources/hatch-complete.bash"
+HATCH_CONFIG="$DOTS_CFG/python/hatch.toml"
+# _HATCH_COMPLETE=bash_source hatch > "$DOTS_CFG/bash/resources/hatch-complete.bash"
 
 # HATCH_DATA_DIR
-
 
 # _________________________________________ TOOLS<|
 
@@ -22,7 +21,6 @@ HATCH_CONFIG="$DOTS_CLI/python/hatch.toml"
 
 #> Install Rust if missing
 # command -v rustc >/dev/null 2>&1 || install_rust
-
 
 # _________________________________________ ALIAS<|
 alias P='python'

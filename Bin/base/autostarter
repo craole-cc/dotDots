@@ -5,7 +5,7 @@
 if [ "${WAYLAND_DISPLAY}" ]; then
   launch foot --server
 else
-  launch picom --config "$DOTS_TOOL/utilities/picom/picom.conf"
+  launch picom --config "$DOTS_CFG/utilities/picom/picom.conf"
 fi
 dispScreen
 launch cbatticon --icon-type standard "$(
@@ -14,7 +14,7 @@ launch cbatticon --icon-type standard "$(
 launch blueman-applet
 launch volumeicon
 launch nm-applet --indicator
-launch dunst -config "$DOTS_TOOL/utilities/dunst/dunstrc"
+launch dunst -config "$DOTS_CFG/utilities/dunst/dunstrc"
 
 launch flameshot
 launch udiskie
