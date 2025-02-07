@@ -10,9 +10,10 @@ main() {
 init_env() {
   _cmd="$(command -v treefmt 2>&1)"
   _cfg="$DOTS_CFG/treefmt/treefmt.toml"
-  _root="$DOTS"
+  _root="$(pwd)"
   _ci=true
   _args="--allow-missing-formatter"
+  _dry=
 }
 
 drop_env() {
@@ -28,7 +29,7 @@ parse_arguments() {
         exit 1
       }
 
-      _cfg=" $2"
+      _cfg="$2"
       shift
       ;;
     --root)
@@ -45,6 +46,9 @@ parse_arguments() {
       _args="${_args:+$_args }--tree-root $2"
       shift
       ;;
+    --debug | --dry*)
+      _dry=true
+      ;;
     *)
       _args="${_args:+$_args }$1"
       ;;
@@ -53,7 +57,7 @@ parse_arguments() {
   done
 }
 
-build_command() {
+execute_process() {
   #@ Validate command
   [ "$_cmd" ] || {
     printf "Error: treefmt not found." >&2
@@ -80,18 +84,17 @@ build_command() {
     fi
   }
 
+  #@ Add the --ci flag if specified
   [ "$_ci" ] && _args="${_args:+$_args }--ci"
 
-  printf "%s %s %s %s" "$_cmd" "$_cfg" "$_root" "$_args"
-}
-
-execute_process() {
+  #@ Build the final command
+  _cmd="$(printf "%s %s %s %s" "$_cmd" "$_cfg" "$_root" "$_args")"
 
   #@ Print command
-  printf "Command: %s\n" "$(build_command)"
+  printf '\033[1;36m[ INFO ]\033[0m Executing command => %s\n' "$_cmd"
 
   #@ Run command
-  eval "$(build_command)"
+  [ "$_dry" ] || eval "$_cmd"
 }
 
 main "$@"

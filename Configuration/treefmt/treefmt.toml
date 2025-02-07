@@ -62,8 +62,11 @@ excludes = [
 # ]
 
 [formatter.editorconfig_lint]
-command = "editorconfig.sh --lint"
+command = "fmt_editorconfig"
 includes = [".editorconfig"]
+options = [
+  # "--lint"
+]
 
 # #| Nix formatting
 # [formatter.alejandra]

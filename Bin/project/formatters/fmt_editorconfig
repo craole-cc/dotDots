@@ -1,0 +1,120 @@
+#!/bin/sh
+#DOC Usage: fmt.sh [--lint] file...
+#DOC
+#DOC If --lint (or --check) is given, the script prints a unified diff
+#DOC for files that need formatting and returns with code 1 if any file differs.
+#DOC Otherwise, it rewrites files that are not formatted.
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  execute_action "$@"
+}
+
+set_defaults() {
+  #DOC set_defaults sets default values for the variables:
+  #DOC   - conf: the path to the .editorconfig file to use
+  #DOC   - action: the action to take for each file (either "format" or "check")
+  #DOC   - format_needed: a flag indicating whether any file needs formatting
+
+  files="$(pwd)/.editorconfig"
+  action="format"
+  verbosity=0
+  unset format_needed
+}
+
+parse_arguments() {
+  #DOC parse_arguments processes command-line arguments for the script.
+  #DOC   - If no arguments are provided, it prints an error message and returns 1.
+  #DOC   - Recognizes the options:
+  #DOC       --lint or --check: sets the action to "check".
+  #DOC   - Ignores '--' and unknown options, printing an error message for the latter.
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --lint | --check) action="check" ;;
+    --) ;;
+    -*)
+      printf 'Unknown option: %s\n' "$1" >&2
+      return 1
+      ;;
+    *) files="${files:+$files }$1" ;;
+    esac
+    shift
+  done
+}
+
+format_file() {
+  #DOC format_file applies the formatting changes:
+  #DOC   - Inserts a backslash line before any line beginning with “[”
+  #DOC   - Removes leading blanks before assignment names
+  #DOC   - Trims trailing blanks
+  #DOC   - Deletes empty (or all blank) lines
+
+  #@ Ensure there is a file to process
+  [ -f "$1" ] || return 1
+
+  #@ Apply the formatting changes
+  sed \
+    -e '/^\[/i\\' \
+    -e 's/^[[:blank:]]*\([a-zA-Z_][a-zA-Z0-9_]*[[:blank:]]*=\)/\1/' \
+    -e 's/[[:blank:]]*$//' \
+    -e '/^[[:blank:]]*$/d' \
+    "$1"
+}
+
+execute_action() {
+  #@ Process each file
+  for file in $files; do
+    tmp=$(mktemp) || return 1
+    format_file "$file" >"$tmp"
+
+    #@ Capture the diff output (if any)
+    diff_output=$(diff -u "$file" "$tmp")
+    status=$?
+
+    case "$action" in
+    check)
+      case "$status" in
+      0) return 0 ;;
+      1)
+
+        format_needed=1
+        printf 'Formatting needed for: %s\n%s\n' "$file" "$diff_output"
+        ;;
+      *)
+        rm "$tmp"
+        printf 'Error diffing file: %s\n' "$file" >&2
+        return 1
+        ;;
+      esac
+
+      rm "$tmp"
+      ;;
+    format)
+      case "$status" in
+      1)
+        [ "$verbosity" -ge 1 ] && printf 'Formatting: %s\n' "$file"
+        mv "$tmp" "$file" || {
+          rm "$tmp"
+          return 1
+        }
+        ;;
+      0)
+        rm "$tmp"
+        ;;
+      *)
+        rm "$tmp"
+        printf 'Error diffing file: %s\n' "$file" >&2
+        return 1
+        ;;
+      esac
+      ;;
+    esac
+  done
+
+  [ "$format_needed" ] && return 1
+  return 0
+}
+
+main "$@"

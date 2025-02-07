@@ -24,8 +24,8 @@ pkgs.mkShell {
     fend
     fastfetch
     lesspipe
-    lmstudio
-    langgraph-cli
+    # lmstudio
+    # langgraph-cli
 
     #| Formatters
     treefmt2
@@ -57,9 +57,9 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    eval "$(direnv hook bash)"
-    eval "$(zoxide init bash)"
-    eval "$(thefuck --alias)"
-    eval "$(starship init bash)"
+    # eval "$(direnv hook bash)"
+    # eval "$(zoxide init bash)"
+    # eval "$(thefuck --alias)"
+    # eval "$(starship init bash)"
   '';
 }
