@@ -11,7 +11,7 @@ init_env() {
   _cmd="$(command -v treefmt 2>&1)"
   _cfg="$DOTS_CFG/treefmt/treefmt.toml"
   _root="$(pwd)"
-  _ci=true
+  _ci=1
   _args="--allow-missing-formatter"
   _dry=
 }
@@ -47,7 +47,7 @@ parse_arguments() {
       shift
       ;;
     --debug | --dry*)
-      _dry=true
+      _dry=1
       ;;
     *)
       _args="${_args:+$_args }$1"
