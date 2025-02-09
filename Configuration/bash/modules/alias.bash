@@ -58,6 +58,7 @@ alias "....."='cd ../../../..'
 alias ".dots"='cd "$DOTS"'
 alias ".bin"='cd "$DOTS_BIN"'
 alias ".cfg"='cd "$DOTS_CFG"'
+alias ".root"='cd /'
 alias D='cd "$DOTS" && nix-shell'
 alias "dom"='cd "$(git rev-parse --show-toplevel 2>/dev/null || find . -name flake.nix -exec dirname {} \; | head -n 1 || echo ~)"'
 

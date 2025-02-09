@@ -655,10 +655,10 @@ execute_git_actions() {
 
   #@ Lint
   if [ "$ci" ]; then
-    fmtdots --ci || return 1
+    fmtree --ci || return 1
     # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
   else
-    fmtdots
+    fmtree
   fi
 
   #@ Update the local repository
