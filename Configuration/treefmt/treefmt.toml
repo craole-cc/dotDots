@@ -49,24 +49,14 @@ excludes = [
 # options = ["-i"]
 # priority = 2
 
-# [formatter.editorconfig]
-# command = "sed"
-# includes = [".editorconfig"]
-# options = [
-#   "-Ei",
-#   #@ Fix indentation for key-value lines (skip sections and comments)
-#   "s/^([[:blank:]]*)([a-zA-Z_]+[[:blank:]]*=)/  \\2/",
-
-#   #@ Trim trailing whitespace
-#   "s/[[:blank:]]+$//",
-# ]
-
-[formatter.editorconfig_lint]
+[formatter.editorconfig]
 command = "fmt_editorconfig"
 includes = [".editorconfig"]
-options = [
-  # "--lint"
-]
+
+# [formatter.editorconfig_lint]
+# command = "fmt_editorconfig"
+# includes = [".editorconfig"]
+# options = ["--lint"]
 
 # #| Nix formatting
 # [formatter.alejandra]

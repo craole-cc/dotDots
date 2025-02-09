@@ -1,120 +1,763 @@
 #!/bin/sh
-#DOC Usage: fmt.sh [--lint] file...
-#DOC
-#DOC If --lint (or --check) is given, the script prints a unified diff
-#DOC for files that need formatting and returns with code 1 if any file differs.
-#DOC Otherwise, it rewrites files that are not formatted.
+# shellcheck disable=SC1003
+
+#TODO: Check my script for POSIX-compliance and idiomatic operation.
+#TODO: Also update all the documentation.
+#TODO: I have chosen to use readonly as local is undefined in POSIX.
+#TODO: I use special comment types [ #| for lists, #@ for actions, and #DOC for documentation]
+#TODO: I put the documentation within the functions to improve readability and allow for foldiong.
 
 main() {
-  set_defaults
+  #DOC Main entry point for .editorconfig formatting tool
+  #DOC
+  #DOC Coordinates the complete formatting workflow:
+  #DOC - Sets up default configuration
+  #DOC - Processes command line arguments
+  #DOC - Executes formatting on provided files
+  #DOC
+  #DOC Parameters:
+  #DOC   $@ - Command line arguments
+  #DOC
+  #DOC Returns:
+  #DOC   Exit code from execute_process
+
+  initialize_environment
+  initialize_utilities
+
   parse_arguments "$@"
-  execute_action "$@"
+  execute_process
 }
 
-set_defaults() {
-  #DOC set_defaults sets default values for the variables:
-  #DOC   - conf: the path to the .editorconfig file to use
-  #DOC   - action: the action to take for each file (either "format" or "check")
-  #DOC   - format_needed: a flag indicating whether any file needs formatting
+initialize_environment() {
+  #DOC Initialize default configuration settings
+  #DOC
+  #DOC Sets up initial state:
+  #DOC - Cleans existing variables
+  #DOC - Sets verbosity and delimiter
+  #DOC - Configures default formatting options
+  #DOC
+  #DOC Default formatting flags:
+  #DOC - ACTION=check: Verify but don't modify
+  #DOC - All formatting options enabled
+  #DOC
+  #DOC No parameters or return value
 
-  files="$(pwd)/.editorconfig"
-  action="format"
-  verbosity=0
-  unset format_needed
+  #| Script Options
+  SCR_PATH="$(pathof "$0")"
+  SCR_NAME="$(basename "$0")"
+  SCR_USAGE="Usage: fmt_editorconfig [OPTIONS] FILE..."
+  SCR_VERSION="1.0.0"
+
+  #| General Options
+  VERBOSITY=0
+  CODE_SUCCESS=0
+  CODE_ARGS=1
+  CODE_FILE=2
+  CODE_FORMAT=3
+  CODE_SYSTEM=4
+  LC_ALL=C
+  readonly VERSION USAGE CODE_SUCCESS CODE_ARGS CODE_FILE CODE_FORMAT CODE_SYSTEM LC_ALL
+
+  #| Core Options
+  ACTION="format"
+  ALLOW_SECTION_SEPARATION=1
+  ALLOW_LEADING_WHITESPACE_TRIM=1
+  ALLOW_TRAILING_WHITESPACE_TRIM=1
+  ALLOW_MULTIPLE_SPACE_SQUEEZE=1
+  ALLOW_BLANK_LINE_REMOVAL=1
+  DELIMITER="$(printf '\037')"
+  IFS="$DELIMITER"
+  UMASK_ORIG="$(umask)"
+  UMASK_USER=077
+  TMPDIR=${TMPDIR:-/tmp}
+  readonly DELIMITER TMPDIR UMASK_USER UMASK_ORIG
+  unset FILES
+
+  #| Terminal formatting codes
+  FMT_RED="$(printf '\033[31m')"
+  FMT_GREEN="$(printf '\033[32m')"
+  FMT_YELLOW="$(printf '\033[33m')"
+  FMT_BLUE="$(printf '\033[34m')"
+  FMT_MAGENTA="$(printf '\033[35m')"
+  FMT_CYAN="$(printf '\033[36m')"
+  FMT_WHITE="$(printf '\033[37m')"
+  FMT_ITALIC="$(printf '\033[3m')"
+  FMT_BOLD="$(printf '\033[1m')"
+  FMT_RESET="$(printf '\033[0m')"
+  readonly FMT_RED FMT_GREEN FMT_YELLOW FMT_BLUE FMT_MAGENTA FMT_CYAN FMT_WHITE FMT_ITALIC FMT_BOLD FMT_RESET
+
+  #| Patterns for text processing
+  PATTERN_LEADING_SPACE_TRIM='/^[[:space:]]*/s///'
+  PATTERN_TRAILING_SPACE_TRIM='s/[[:space:]]*$//'
+  # PATTERN_MULTIPLE_SPACE_SQUEEZE='s/[[:space:]]\{2,\}/ /g'
+  PATTERN_MULTIPLE_SPACE_SQUEEZE='s/[[:space:]][[:space:]]*/ /g'
+  PATTERN_BLANK_LINE_REMOVAL='/^[[:blank:]]*$/d'
+  PATTERN_SECTION_SPLIT='/^\[/i\\'
+  PATTERN_DIFF_COLOR="
+    s/^-/${FMT_RED}-/; #? Deletions with a '-' prefix
+    s/^+/${FMT_GREEN}+/; #? Additions with a '+' prefix
+    s/^@/${FMT_BLUE}@/;  #? Line info with a '@' prefix
+    s/\$/${FMT_RESET}/  #? Color reset at the end of each line
+  "
+  readonly PATTERN_LEADING_SPACE_TRIM PATTERN_TRAILING_SPACE_TRIM PATTERN_MULTIPLE_SPACE_SQUEEZE PATTERN_BLANK_LINE_REMOVAL PATTERN_SECTION_SPLIT PATTERN_DIFF_COLOR
+}
+
+initialize_mod_time_fetcher() {
+  #DOC Determine which function to use for retrieving file modification times.
+  #DOC
+  #DOC Attempts to use stat command with BSD or GNU-specific options.
+  #DOC If both of those fail, it falls back on using perl.
+  #DOC
+  #DOC Uses:
+  #DOC   $SCR_PATH - Path of the current script (if available)
+  #DOC   $MOD_TIME_FETCHER - Global variable to store the chosen function
+  #DOC
+  #DOC Modifies:
+  #DOC   $MOD_TIME_FETCHER - Sets the chosen function for retrieving modification times
+
+  get_mod_time_bsd() {
+    # DOC Try to get the modification time using BSD stat command
+    # DOC
+    # DOC Uses BSD-specific options to retrieve the file's epoch time
+    # DOC and format it into a human-readable date.
+    # DOC
+    # DOC Returns:
+    # DOC   Formatted date string on success
+    # DOC   CODE_SYSTEM if commands fail
+
+    if _epoch=$(stat -f '%m' "$_path" 2>/dev/null); then
+      if _date=$(date -r "$_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null); then
+        printf "%s" "$_date"
+        return "$CODE_SUCCESS"
+      fi
+    fi
+
+    return "$CODE_SYSTEM"
+  }
+
+  get_mod_time_gnu() {
+    # DOC Try to get the modification time using GNU stat command
+    # DOC
+    # DOC Uses GNU-specific options to retrieve the file's epoch time
+    # DOC and format it into a human-readable date.
+    # DOC
+    # DOC Returns:
+    # DOC   Formatted date string on success
+    # DOC   CODE_SYSTEM if commands fail
+
+    if _epoch=$(stat -c '%Y' "$_path" 2>/dev/null); then
+      if _date=$(date -d @"$_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null); then
+        printf "%s" "$_date"
+        return "$CODE_SUCCESS"
+      fi
+    fi
+
+    return "$CODE_SYSTEM"
+  }
+
+  get_mod_time_perl() {
+    # DOC Try to get the modification time using Perl
+    # DOC
+    # DOC Uses Perl to retrieve the file's epoch time and format it into
+    # DOC a human-readable date.  This is the last resort and is done to
+    # DOC support systems that do not have a working "stat" or "date"
+    # DOC command.
+    # DOC
+    # DOC Returns:
+    # DOC   Formatted date string on success
+    # DOC   CODE_SYSTEM if commands fail
+
+    if command -v perl >/dev/null 2>&1; then
+      if _epoch=$(perl -e 'printf("%d\n",(stat(shift))[9])' "$_path" 2>/dev/null); then
+        if _date=$(date -r "$_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null); then
+          printf "%s" "$_date"
+          return "$CODE_SUCCESS"
+        fi
+        if _date=$(date -d @"$_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null); then
+          printf "%s" "$_date"
+          return "$CODE_SUCCESS"
+        fi
+        if _date=$(perl -MPOSIX -e 'print strftime("%Y-%m-%d %H:%M", localtime(shift))' "$_epoch" 2>/dev/null); then
+          printf "%s" "$_date"
+          return "$CODE_SUCCESS"
+        fi
+      fi
+    fi
+
+    return "$CODE_SYSTEM"
+  }
+
+  #@ If MOD_TIME_CMD is already set, do nothing.
+  [ -n "$MOD_TIME_FETCHER" ] && return 0
+
+  #@ Use the current script as a test file if available; otherwise fallback.
+  if [ -n "$SCR_PATH" ] && [ -f "$SCR_PATH" ]; then
+    test_file="$SCR_PATH"
+  else
+    test_file="/dev/null"
+  fi
+
+  if stat -f '%m' "$test_file" >/dev/null 2>&1; then
+    MOD_TIME_FETCHER=get_mod_time_bsd
+  elif stat -c '%Y' "$test_file" >/dev/null 2>&1; then
+    MOD_TIME_FETCHER=get_mod_time_gnu
+  elif command -v perl >/dev/null 2>&1; then
+    MOD_TIME_FETCHER=get_mod_time_perl
+  else
+    MOD_TIME_FETCHER="" # fallback
+  fi
+}
+
+initialize_utilities() {
+  make_tempfile() {
+    #DOC Create a temporary file for processing
+    #DOC
+    #DOC Attempts to create temp file using:
+    #DOC 1. mktemp with template
+    #DOC 2. Fallback to PID + random number
+    #DOC
+    #DOC Uses:
+    #DOC   TMPDIR environment variable or /tmp
+    #DOC
+    #DOC Returns:
+    #DOC   Path to created temporary file on success
+    #DOC   CODE_SYSTEM on failure to create file
+
+    #@ Use mktemp more safely with explicit error handling
+    unset tmpfile
+
+    #@ Set restrictive permissions for the temporary file
+    umask "$UMASK_USER"
+
+    #@ Redirect stderr to /dev/null to suppress mktemp messages
+    if ! tmpfile=$(mktemp "${TMPDIR}/fmt.XXXXXX" 2>/dev/null); then
+
+      #@ Fallback to PID + random number
+      tmpfile="${TMPDIR}/fmt.$$.$(awk \
+        'BEGIN {srand(); printf "%d", int(rand() * 1000000)}' 2>/dev/null)"
+
+      #@ Create the temporary file or return an error
+      if ! : >"$tmpfile"; then
+        printf 'Failed to create temporary file\n' >&2
+        return "$CODE_SYSTEM"
+      fi
+    fi
+
+    #@ Restore the original umask
+    umask "$UMASK_ORIG"
+
+    #@ Return the path to the temporary file
+    printf '%s\n' "$tmpfile"
+  }
+
+  diff_sans_header() {
+    #DOC Compares two files, excluding diff header lines
+    #DOC
+    #DOC Options:
+    #DOC   -s, --source FILE   Source file to compare
+    #DOC   -t, --target FILE   Target file to compare
+    #DOC   -f, --filter EXPR   Additional sed filter
+    #DOC   --help             Show usage info
+    #DOC
+    #DOC Returns:
+    #DOC   0 if no differences, 1 if differences or errors
+
+    #@ Unset local variables
+    unset file_a
+    unset file_b
+    unset filter
+
+    #@ Define the usage guide
+    diff_sans_header__usage() {
+      printf "Usage: diff_sans_header -a FILE_A -b FILE_B [-f FILTER]"
+    }
+
+    #@ Parse arguments
+    while [ $# -gt 0 ]; do
+      case $1 in
+      -a | --file-a)
+        [ "$2" ] || {
+          printf 'Error: Missing argument for %s\n' "$1" >&2
+          return "$CODE_ARGS"
+        }
+
+        shift
+        file_a=$1
+        ;;
+      -b | --file-b)
+        [ "$2" ] || {
+          printf 'Error: Missing argument for %s\n' "$1" >&2
+          return "$CODE_ARGS"
+        }
+
+        shift
+        file_b=$1
+        ;;
+      -f | --filter)
+        [ "$2" ] || {
+          printf 'Error: Missing argument for %s\n' "$1" >&2
+          return "$CODE_ARGS"
+        }
+
+        shift
+        filter=$1
+        ;;
+      --help)
+        diff_sans_header__usage
+        return "$CODE_SUCCESS"
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        printf 'Unknown option: %s\n' "$1" >&2
+        diff_sans_header__usage >&2
+        return "$CODE_ARGS"
+        ;;
+      *) break ;;
+      esac
+      shift
+    done
+
+    #@ Ensure required arguments are provided
+    { [ -n "$file_a" ] && [ -n "$file_b" ]; } || {
+      diff_sans_header__usage >&2
+      return "$CODE_ARGS"
+    }
+
+    #@ Ensure files exist and are readable
+    { [ -r "$file_a" ] && [ -r "$file_b" ]; } || {
+      diff_sans_header__usage >&2
+      return "$CODE_FILE"
+    }
+
+    #@ Use diff to compare files, while filtering out header lines
+    diff -u "$file_a" "$file_b" |
+      sed -e '/^---[[:space:]]/d' \
+        -e '/^+++[[:space:]]/d' \
+        ${filter:+-e} "${filter:-}"
+  }
+
+  get_mod_time() {
+    # DOC Retrieve the modification time for a file
+    # DOC
+    # DOC Parameters:
+    # DOC   $1 - Path to file
+    # DOC
+    # DOC Returns:
+    # DOC   Formatted date string on success
+    # DOC   CODE_SYSTEM if commands fail
+
+    #@ Initialize MOD_TIME_FETCHER only once.
+    [ -n "$MOD_TIME_FETCHER" ] || initialize_mod_time_fetcher
+
+    #@ Set the fallback time to "Unknown" padded with 16 characters.
+    _date="$(printf "%-16.16s" "Unknown")"
+
+    #@ Update modification time using the cached fetcher.
+    [ -e "$1" ] && {
+      _path="$1"
+      _date="$("$MOD_TIME_FETCHER" "$_path" 2>/dev/null)"
+    }
+
+    #@ Return the date.
+    printf "%s" "$_date"
+  }
+
+  get_file_info() {
+    # DOC Return the absolute path and modification time of a file
+    # DOC
+    # DOC Parameters:
+    # DOC   $1 - Path to file
+    # DOC
+    # DOC Returns:
+    # DOC   Formatted string of "YYYY-MM-DD HH:MM <AbsolutePath>" on success
+    # DOC   CODE_FILE if file does not exist
+    # DOC   CODE_SYSTEM if system operations fail
+
+    #@ Ensure the file exists
+    _file="$1"
+    [ -f "$_file" ] || {
+      printf "File not found: %s\n" "$_file" >&2
+      return "$CODE_FILE"
+    }
+
+    #@ Get absolute path of the file.
+    _pwd=$(pwd)
+    cd "$(dirname "$_file")" >/dev/null 2>&1 || return "$CODE_SYSTEM"
+    _path="$(pwd)/$(basename "$_file")"
+    cd "$_pwd" >/dev/null 2>&1 || return "$CODE_SYSTEM"
+
+    #@ Get the modification time of the file.
+    _date=$(get_mod_time "$_file")
+
+    #@ Return the formatted string.
+    printf "%s %s" "$_date" "$_path"
+    return "$CODE_SUCCESS"
+  }
 }
 
 parse_arguments() {
-  #DOC parse_arguments processes command-line arguments for the script.
-  #DOC   - If no arguments are provided, it prints an error message and returns 1.
-  #DOC   - Recognizes the options:
-  #DOC       --lint or --check: sets the action to "check".
-  #DOC   - Ignores '--' and unknown options, printing an error message for the latter.
+  #DOC Process command line arguments into configuration
+  #DOC
+  #DOC Handles all supported options:
+  #DOC - Action mode (check/format)
+  #DOC - Formatting flags enable/disable
+  #DOC - File list accumulation
+  #DOC
+  #DOC Parameters:
+  #DOC   $@ - Command line arguments to process
+  #DOC
+  #DOC Sets globals:
+  #DOC   files - List of files to process
+  #DOC   action - Operation mode
+  #DOC   [formatting flags] - Various formatting controls
+  #DOC
+  #DOC Returns:
+  #DOC   CODE_ARGS if no files provided or invalid options
+  #DOC   CODE_SUCCESS on successful parsing
 
-  while [ $# -gt 0 ]; do
-    case "$1" in
-    --lint | --check) action="check" ;;
-    --) ;;
+  #@ Parse command line arguments
+  while [ "$#" -gt 0 ]; do
+    case $1 in
+    -d | --debug)
+      VERBOSITY=5
+      ACTION="check"
+      ;;
+    --lint | --check | --dry*) ACTION="check" ;;
+    -f | --fmt | --format) ACTION="format" ;;
+    --skip-sections) ALLOW_SECTION_SEPARATION=0 ;;
+    --skip-leading-space) ALLOW_LEADING_WHITESPACE_TRIM=0 ;;
+    --skip-trailing-space) ALLOW_TRAILING_WHITESPACE_TRIM=0 ;;
+    --skip-blank-lines) ALLOW_BLANK_LINE_REMOVAL=0 ;;
+    -s | --separate-sections) ALLOW_SECTION_SEPARATION=1 ;;
+    -l | --trim-leading-space) ALLOW_LEADING_WHITESPACE_TRIM=1 ;;
+    -t | --trim-trailing-space) ALLOW_TRAILING_WHITESPACE_TRIM=1 ;;
+    -w | --whitespace) ALLOW_BLANK_LINE_REMOVALEEZE=1 ;;
+    -b | --drop-blank-lines) ALLOW_BLANK_LINE_REMOVAL=1 ;;
+    --version)
+      printf '%s\n' "$SCR_VERSION"
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
     -*)
       printf 'Unknown option: %s\n' "$1" >&2
-      return 1
+      printf '%s\n' "$SCR_USAGE" >&2
+      exit 1
       ;;
-    *) files="${files:+$files }$1" ;;
+    *) FILES="${FILES:+${FILES}${DELIMITER}}$1" ;;
     esac
     shift
   done
-}
 
-format_file() {
-  #DOC format_file applies the formatting changes:
-  #DOC   - Inserts a backslash line before any line beginning with “[”
-  #DOC   - Removes leading blanks before assignment names
-  #DOC   - Trims trailing blanks
-  #DOC   - Deletes empty (or all blank) lines
+  #@ Add remaining arguments after --
+  for arg; do
+    FILES="${FILES:+${FILES}${DELIMITER}}$arg"
+  done
 
-  #@ Ensure there is a file to process
-  [ -f "$1" ] || return 1
+  #@ Debug the parsed arguments
+  [ "$VERBOSITY" -ge 4 ] && {
+    printf "FILES: [%s]\n" "$FILES"
+    printf "  IFS: %s\n" "$IFS"
+  }
 
-  #@ Apply the formatting changes
-  sed \
-    -e '/^\[/i\\' \
-    -e 's/^[[:blank:]]*\([a-zA-Z_][a-zA-Z0-9_]*[[:blank:]]*=\)/\1/' \
-    -e 's/[[:blank:]]*$//' \
-    -e '/^[[:blank:]]*$/d' \
-    "$1"
+  #@ Ensure at least one file is provided.
+  if [ -n "$FILES" ]; then
+    return "$CODE_SUCCESS"
+  else
+    printf "No files provided for linting/formatting.\n" >&2
+    return "$CODE_ARGS"
+  fi
 }
 
 execute_action() {
-  #@ Process each file
-  for file in $files; do
-    tmp=$(mktemp) || return 1
-    format_file "$file" >"$tmp"
+  #DOC Process all provided files with configured formatting
+  #DOC
+  #DOC For each file:
+  #DOC - Shows file stats
+  #DOC - Executes formatting action
+  #DOC - Reports any linting issues
+  #DOC
+  #DOC Uses globals:
+  #DOC   files - List of files to process
+  #DOC   delimiter - File list separator
+  #DOC
+  #DOC Returns:
+  #DOC   CODE_SUCCESS if all files processed successfully
+  #DOC   CODE_FORMAT if any file has linting issues
+  #DOC   CODE_FILE if file access issues
+  #DOC   CODE_SYSTEM if system operations fail
 
-    #@ Capture the diff output (if any)
-    diff_output=$(diff -u "$file" "$tmp")
-    status=$?
+  execute_action__main() {
+    #DOC Main execution flow for formatting .editorconfig files
+    #DOC
+    #DOC Handles the complete formatting lifecycle:
+    #DOC - Sets up cleanup trap
+    #DOC - Initializes working files
+    #DOC - Performs formatting
+    #DOC - Shows diff or applies changes
+    #DOC - Cleans up temporary files
+    #DOC
+    #DOC Parameters:
+    #DOC   $1 - Path to .editorconfig file to process
+    #DOC
+    #DOC Returns:
+    #DOC   0 if no changes needed/successful
+    #DOC   1 if error or changes made
 
-    case "$action" in
-    check)
-      case "$status" in
-      0) return 0 ;;
-      1)
+    #@ Ensure clean up on exit
+    trap execute_action__purge EXIT
 
-        format_needed=1
-        printf 'Formatting needed for: %s\n%s\n' "$file" "$diff_output"
-        ;;
-      *)
-        rm "$tmp"
-        printf 'Error diffing file: %s\n' "$file" >&2
-        return 1
-        ;;
-      esac
+    #@ Ensure the file exists and create a temporary file
+    execute_action__initialize_environment "$@" || return "$?"
 
-      rm "$tmp"
-      ;;
-    format)
-      case "$status" in
-      1)
-        [ "$verbosity" -ge 1 ] && printf 'Formatting: %s\n' "$file"
-        mv "$tmp" "$file" || {
-          rm "$tmp"
-          return 1
-        }
-        ;;
-      0)
-        rm "$tmp"
-        ;;
-      *)
-        rm "$tmp"
-        printf 'Error diffing file: %s\n' "$file" >&2
-        return 1
-        ;;
-      esac
-      ;;
-    esac
+    #@ Format the temporary file using sed
+    execute_action__prep || return "$?"
+
+    #@ Compare files and procees only if different
+    cmp -s "$src" "$tmp" && return "$CODE_SUCCESS"
+
+    #@ Execute the action
+    execute_action__diff || return "$?"
+
+    #@ Update the file if format is specified
+    execute_action__fmt || return "$?"
+
+    #@ Return failure to indicate changes were made
+    return "$CODE_FORMAT"
+  }
+
+  execute_action__initialize_environment() {
+    #DOC Initialize formatting by validating input and creating workspace
+    #DOC
+    #DOC Creates a temporary working copy of the source file for formatting.
+    #DOC Validates that the source file exists and is readable.
+    #DOC
+    #DOC Parameters:
+    #DOC   $1 - Path to source .editorconfig file
+    #DOC
+    #DOC Sets globals:
+    #DOC   src - Path to source file
+    #DOC   tmp - Path to temporary working file
+    #DOC
+    #DOC Returns:
+    #DOC   0 on success, 1 on any error
+
+    #@ Remove all local variables
+    execute_action__purge
+
+    #@ Ensure there is a file to process
+    src=$1
+    [ -f "$src" ] || {
+      printf 'File not found: %s\n' "$src" >&2
+      return "$CODE_FILE"
+    }
+
+    #@ Create a temporary file to store the formatted version of the file.
+    tmp="$(make_tempfile)"
+    [ -f "$tmp" ] || {
+      printf 'Failed to create temporary file\n' >&2
+      return "$CODE_SYSTEM"
+    }
+
+    #@ Create working copy
+    cp "$src" "$tmp" || {
+      printf "Failed to create working copy\n" >&2
+      return "$CODE_SYSTEM"
+    }
+  }
+
+  execute_action__purge() {
+    #DOC Clean up temporary files and variables
+    #DOC
+    #DOC Called automatically on exit to remove temporary files
+    #DOC and unset working variables to avoid conflicts
+    #DOC
+    #DOC Removes:
+    #DOC - Temporary working file
+    #DOC - All local variables used during formatting
+    #DOC
+    #DOC No parameters or return value
+
+    #@ Remove the temporary file
+    rm -f "$tmp"
+
+    #@ Unset local variables
+    unset src
+    unset tmp
+    unset sed_script
+  }
+
+  execute_action__prep() {
+    #DOC Prepares and executes text formatting actions on a temporary file using sed
+    #DOC
+    #DOC This function builds and executes a sed script based on enabled formatting flags:
+    #DOC - trim_leading_whitespace: Removes leading whitespace from each line
+    #DOC - trim_trailing_whitespace: Removes trailing whitespace from each line
+    #DOC - squeeze_whitespace: Replaces multiple whitespace characters with a single space
+    #DOC - remove_blank_lines: Removes empty or whitespace-only lines
+    #DOC - separate_sections: Adds newline before lines starting with '['
+    #DOC
+    #DOC Parameters:
+    #DOC   No parameters. Uses global variables for configuration flags and tmp file path:
+    #DOC   |> trim_leading_whitespace - Flag to enable leading whitespace trimming
+    #DOC   |> trim_trailing_whitespace - Flag to enable trailing whitespace trimming
+    #DOC   |> squeeze_whitespace - Flag to enable whitespace squeezing
+    #DOC   |> remove_blank_lines - Flag to enable blank line removal
+    #DOC   |> separate_sections - Flag to enable section separation
+    #DOC   |> tmp - Path to temporary file being processed
+    #DOC
+    #DOC Returns:
+    #DOC   0 on success, 1 on sed processing failure
+    #DOC
+    #DOC Note:
+    #DOC   Uses SC1003 shellcheck directive to handle backslash in sed script
+
+    [ -n "$ALLOW_LEADING_WHITESPACE_TRIM" ] &&
+      sed_script="${sed_script:+$sed_script;}${PATTERN_LEADING_SPACE_TRIM}"
+
+    [ -n "$ALLOW_TRAILING_WHITESPACE_TRIM" ] &&
+      sed_script="${sed_script:+$sed_script;}${PATTERN_TRAILING_SPACE_TRIM}"
+
+    [ -n "$PATTERN_MULTIPLE_SPACE_SQUEEZE" ] &&
+      sed_script="${sed_script:+$sed_script;}${PATTERN_MULTIPLE_SPACE_SQUEEZE}"
+
+    [ -n "$PATTERN_BLANK_LINE_REMOVAL" ] &&
+      sed_script="${sed_script:+$sed_script;}""${PATTERN_BLANK_LINE_REMOVAL}"
+
+    [ -n "$ALLOW_SECTION_SEPARATION" ] &&
+      sed_script="${sed_script:+$sed_script;}${PATTERN_SECTION_SPLIT}"
+
+    [ "$VERBOSITY" -ge 4 ] &&
+      printf "SED PATTERN: %s\n" "$sed_script"
+
+    [ -n "$sed_script" ] && {
+      #@ Apply the sed script to the temporary file
+      sed -e "$sed_script" "$tmp" >"${tmp}.new" || {
+        printf "Formatting failed\n" >&2
+        return "$CODE_FORMAT"
+      }
+
+      #@ Replace the temporary file with the formatted version
+      mv "${tmp}.new" "$tmp"
+    }
+  }
+
+  execute_action__diff() {
+    #DOC Displays a colored diff between source and temporary files, with:
+    #DOC - Red text for deletions (-)
+    #DOC - Green text for additions (+)
+    #DOC - Blue text for line info (@)
+    #DOC
+    #DOC Implementation:
+    #DOC - Removes timestamp headers from diff output
+    #DOC - Uses ANSI escape codes for colors
+    #DOC - Only applies colors when output is to a terminal
+    #DOC
+    #DOC Parameters:
+    #DOC   No parameters. Uses global variables:
+    #DOC   |> src - Source file path
+    #DOC   |> tmp - Temporary file path
+    #DOC
+    #DOC Output:
+    #DOC   Prints colored diff output to stdout if terminal
+    #DOC   Prints plain diff output if not terminal
+    #DOC
+    #DOC Dependencies:
+    #DOC   diff - For file comparison
+    #DOC   sed - For text processing
+
+    #@ Print the diff with color, if the output is a terminal
+    if [ -t 1 ]; then
+      diff_sans_header \
+        --file-a "$src" \
+        --file-b "$tmp" \
+        --filter "$PATTERN_DIFF_COLOR"
+    else
+      diff_sans_header --file-a "$src" --file-b "$tmp"
+    fi
+  }
+
+  execute_action__fmt() {
+    #DOC Apply formatted changes back to source file
+    #DOC
+    #DOC Only executes if ACTION="format" is set.
+    #DOC Copies temporary formatted file back to source location.
+    #DOC
+    #DOC Parameters:
+    #DOC   No parameters. Uses global variables:
+    #DOC   |> action - Must be "format" to apply changes
+    #DOC   |> tmp - Path to formatted temp file
+    #DOC   |> src - Path to source file
+    #DOC
+    #DOC Returns:
+    #DOC   1 to indicate formatting occurred
+    #DOC   Prints error if copy fails
+
+    #@ Skip if not in format mode
+    case "$ACTION" in format | fmt) ;; *) return 0 ;; esac
+
+    #@ Print an error message if the file cannot be updated
+    cp "$tmp" "$src" || {
+      printf 'Failed to update file: %s\n' "$src" >&2
+      return "$CODE_SYSTEM"
+    }
+  }
+
+  execute_action__main "$@"
+}
+
+execute_process() {
+  #DOC Execute formatting process across all provided files
+  #DOC
+  #DOC Main processing loop that:
+  #DOC - Validates input file list
+  #DOC - Sets up field separator for file processing
+  #DOC - Optionally shows debug information
+  #DOC - Processes each file through execute_action
+  #DOC
+  #DOC Uses globals:
+  #DOC   files - Delimiter-separated list of files
+  #DOC   delimiter - Field separator for file list
+  #DOC   debug - Debug mode flag
+  #DOC
+  #DOC Returns:
+  #DOC   CODE_SUCCESS if all files processed successfully
+  #DOC   CODE_ARGS if no files provided
+  #DOC   CODE_FORMAT if any file has formatting issues
+  #DOC   CODE_SYSTEM if system operations fail
+
+  #@ Define the debugging file counter and header
+  [ "$VERBOSITY" -ge 4 ] && {
+    counter=0
+
+    #@ Print file info header
+    printf "${bold}  %4s %-16s %-s${reset}\n" \
+      "#" "DATETIME" "PATH"
+  }
+
+  #@ Process each file in the list
+  for file in $FILES; do
+
+    [ "$VERBOSITY" -ge 4 ] && {
+      #@ Increment the file counter
+      counter=$((counter + 1))
+
+      #@ Print file info
+      printf "  %4d %s\n" "$counter" "$(get_file_info "$file")" ||
+        return "$?"
+    }
+
+    #@ Process the file based on the specified action
+    execute_action "$file" || {
+      printf '\nLinting issues identiied: %s' "$file" >&2
+      return "$CODE_FORMAT"
+    }
   done
-
-  [ "$format_needed" ] && return 1
-  return 0
 }
 
 main "$@"

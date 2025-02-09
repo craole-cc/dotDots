@@ -1,8 +1,0 @@
-#!/bin/sh
-
-fmtree \
-  --config "$DOTS_CFG/treefmt/treefmt.toml" \
-  --root "$DOTS" \
-  --no-cache \
-  --fail-on-change \
-  "$@"
