@@ -1,25 +1,74 @@
 #!/bin/sh
 # shellcheck disable=SC1003
 
-#TODO: Check my script for POSIX-compliance and idiomatic operation.
-#TODO: Also update all the documentation.
-#TODO: I have chosen to use readonly as local is undefined in POSIX.
-#TODO: I use special comment types [ #| for lists, #@ for actions, and #DOC for documentation]
-#TODO: I put the documentation within the functions to improve readability and allow for foldiong.
+#DOC fmt_editorconfig: POSIX-compliant .editorconfig file formatter and linter
+#DOC
+#DOC This script provides functionality to format and lint .editorconfig files according
+#DOC to standardized formatting rules. It supports both checking and formatting modes,
+#DOC with configurable options for various formatting operations.
+#DOC
+#DOC Features:
+#DOC - POSIX-compliant shell script
+#DOC - Configurable formatting options
+#DOC - Check (lint) and format modes
+#DOC - Colored diff output
+#DOC - Detailed debugging information
+#DOC - Safe temporary file handling
+#DOC
+#DOC Usage: fmt_editorconfig [OPTIONS] FILE...
+#DOC
+#DOC Options:
+#DOC   -d, --debug              Enable debug mode and check-only
+#DOC   --lint, --check, --dry   Check files without modifying
+#DOC   -f, --fmt, --format      Format files (default)
+#DOC
+#DOC   Formatting Controls:
+#DOC   --skip-sections          Disable section separation
+#DOC   --skip-leading-space     Disable leading space trimming
+#DOC   --skip-trailing-space    Disable trailing space trimming
+#DOC   --skip-blank-lines       Disable blank line removal
+#DOC   -s, --separate-sections  Enable section separation
+#DOC   -l, --trim-leading      Enable leading space trimming
+#DOC   -t, --trim-trailing     Enable trailing space trimming
+#DOC   -w, --whitespace        Enable multiple space squeezing
+#DOC   -b, --drop-blank-lines  Enable blank line removal
+#DOC
+#DOC   Other:
+#DOC   --version               Show version information
+#DOC   --                      End of options
+#DOC
+#DOC Exit Codes:
+#DOC   0 - Success
+#DOC   1 - Invalid arguments
+#DOC   2 - File access error
+#DOC   3 - Formatting issues found
+#DOC   4 - System operation failure
+#DOC
+#DOC Examples:
+#DOC   # Format a single file
+#DOC   fmt_editorconfig myfile.editorconfig
+#DOC
+#DOC   # Check multiple files without modifying
+#DOC   fmt_editorconfig --check file1.editorconfig file2.editorconfig
+#DOC
+#DOC   # Format with specific options
+#DOC   fmt_editorconfig -s -l -t file.editorconfig
 
 main() {
-  #DOC Main entry point for .editorconfig formatting tool
+  #DOC Main entry point for the script
   #DOC
-  #DOC Coordinates the complete formatting workflow:
-  #DOC - Sets up default configuration
-  #DOC - Processes command line arguments
-  #DOC - Executes formatting on provided files
+  #DOC This function coordinates the overall flow of the script:
+  #DOC 1. Initializes the environment and utilities
+  #DOC 2. Parses command line arguments
+  #DOC 3. Executes the requested processing
   #DOC
-  #DOC Parameters:
-  #DOC   $@ - Command line arguments
+  #DOC No parameters
   #DOC
   #DOC Returns:
-  #DOC   Exit code from execute_process
+  #DOC   CODE_SUCCESS if all operations complete successfully
+  #DOC   CODE_ARGS if no files provided or invalid options
+  #DOC   CODE_FILE if file access issues
+  #DOC   CODE_SYSTEM if system operations fail
 
   initialize_environment
   initialize_utilities
@@ -29,18 +78,25 @@ main() {
 }
 
 initialize_environment() {
-  #DOC Initialize default configuration settings
+  #DOC Initialize script environment with default configuration
   #DOC
-  #DOC Sets up initial state:
-  #DOC - Cleans existing variables
-  #DOC - Sets verbosity and delimiter
-  #DOC - Configures default formatting options
+  #DOC Sets up all core script variables and configuration:
+  #DOC - Script metadata (version, usage, etc.)
+  #DOC - Exit codes and general options
+  #DOC - Core formatting options and defaults
+  #DOC - Terminal formatting codes
+  #DOC - Text processing patterns
   #DOC
-  #DOC Default formatting flags:
-  #DOC - ACTION=check: Verify but don't modify
-  #DOC - All formatting options enabled
+  #DOC No parameters
   #DOC
-  #DOC No parameters or return value
+  #DOC Global variables initialized:
+  #DOC - Script options (SCR_*)
+  #DOC - Exit codes (CODE_*)
+  #DOC - Formatting flags (ALLOW_*)
+  #DOC - Terminal colors (FMT_*)
+  #DOC - Processing patterns (PATTERN_*)
+  #DOC
+  #DOC No return value
 
   #| Script Options
   SCR_PATH="$(pathof "$0")"
@@ -89,7 +145,6 @@ initialize_environment() {
   #| Patterns for text processing
   PATTERN_LEADING_SPACE_TRIM='/^[[:space:]]*/s///'
   PATTERN_TRAILING_SPACE_TRIM='s/[[:space:]]*$//'
-  # PATTERN_MULTIPLE_SPACE_SQUEEZE='s/[[:space:]]\{2,\}/ /g'
   PATTERN_MULTIPLE_SPACE_SQUEEZE='s/[[:space:]][[:space:]]*/ /g'
   PATTERN_BLANK_LINE_REMOVAL='/^[[:blank:]]*$/d'
   PATTERN_SECTION_SPLIT='/^\[/i\\'
@@ -103,27 +158,36 @@ initialize_environment() {
 }
 
 initialize_mod_time_fetcher() {
-  #DOC Determine which function to use for retrieving file modification times.
+  #DOC Configure the appropriate file modification time retrieval method
   #DOC
-  #DOC Attempts to use stat command with BSD or GNU-specific options.
-  #DOC If both of those fail, it falls back on using perl.
+  #DOC Determines the best available method for getting file modification times
+  #DOC based on system capabilities. Tries methods in this order:
+  #DOC 1. BSD stat command
+  #DOC 2. GNU stat command
+  #DOC 3. Perl fallback method
   #DOC
-  #DOC Uses:
-  #DOC   $SCR_PATH - Path of the current script (if available)
-  #DOC   $MOD_TIME_FETCHER - Global variable to store the chosen function
+  #DOC No parameters
   #DOC
-  #DOC Modifies:
-  #DOC   $MOD_TIME_FETCHER - Sets the chosen function for retrieving modification times
+  #DOC Sets global MOD_TIME_FETCHER to one of:
+  #DOC - get_mod_time_bsd
+  #DOC - get_mod_time_gnu
+  #DOC - get_mod_time_perl
+  #DOC - empty string if no method works
+  #DOC
+  #DOC No return value
 
   get_mod_time_bsd() {
-    # DOC Try to get the modification time using BSD stat command
-    # DOC
-    # DOC Uses BSD-specific options to retrieve the file's epoch time
-    # DOC and format it into a human-readable date.
-    # DOC
-    # DOC Returns:
-    # DOC   Formatted date string on success
-    # DOC   CODE_SYSTEM if commands fail
+    #DOC Get file modification time using BSD stat command
+    #DOC
+    #DOC Uses BSD-specific stat options to get epoch time
+    #DOC and formats it as YYYY-MM-DD HH:MM
+    #DOC
+    #DOC Uses:
+    #DOC   $_path - Path to file (set by caller)
+    #DOC
+    #DOC Returns:
+    #DOC   Formatted date string on success
+    #DOC   CODE_SYSTEM on failure
 
     if _epoch=$(stat -f '%m' "$_path" 2>/dev/null); then
       if _date=$(date -r "$_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null); then
@@ -136,14 +200,17 @@ initialize_mod_time_fetcher() {
   }
 
   get_mod_time_gnu() {
-    # DOC Try to get the modification time using GNU stat command
-    # DOC
-    # DOC Uses GNU-specific options to retrieve the file's epoch time
-    # DOC and format it into a human-readable date.
-    # DOC
-    # DOC Returns:
-    # DOC   Formatted date string on success
-    # DOC   CODE_SYSTEM if commands fail
+    #DOC Get file modification time using GNU stat command
+    #DOC
+    #DOC Uses GNU-specific stat options to get epoch time
+    #DOC and formats it as YYYY-MM-DD HH:MM
+    #DOC
+    #DOC Uses:
+    #DOC   $_path - Path to file (set by caller)
+    #DOC
+    #DOC Returns:
+    #DOC   Formatted date string on success
+    #DOC   CODE_SYSTEM on failure
 
     if _epoch=$(stat -c '%Y' "$_path" 2>/dev/null); then
       if _date=$(date -d @"$_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null); then
@@ -156,16 +223,20 @@ initialize_mod_time_fetcher() {
   }
 
   get_mod_time_perl() {
-    # DOC Try to get the modification time using Perl
-    # DOC
-    # DOC Uses Perl to retrieve the file's epoch time and format it into
-    # DOC a human-readable date.  This is the last resort and is done to
-    # DOC support systems that do not have a working "stat" or "date"
-    # DOC command.
-    # DOC
-    # DOC Returns:
-    # DOC   Formatted date string on success
-    # DOC   CODE_SYSTEM if commands fail
+    #DOC Get file modification time using Perl fallback
+    #DOC
+    #DOC Uses Perl to get epoch time when stat commands fail
+    #DOC Attempts multiple date formatting methods:
+    #DOC 1. BSD date
+    #DOC 2. GNU date
+    #DOC 3. Perl strftime
+    #DOC
+    #DOC Uses:
+    #DOC   $_path - Path to file (set by caller)
+    #DOC
+    #DOC Returns:
+    #DOC   Formatted date string on success
+    #DOC   CODE_SYSTEM if all methods fail
 
     if command -v perl >/dev/null 2>&1; then
       if _epoch=$(perl -e 'printf("%d\n",(stat(shift))[9])' "$_path" 2>/dev/null); then
@@ -210,18 +281,20 @@ initialize_mod_time_fetcher() {
 
 initialize_utilities() {
   make_tempfile() {
-    #DOC Create a temporary file for processing
+    #DOC Create a secure temporary file for processing
     #DOC
-    #DOC Attempts to create temp file using:
-    #DOC 1. mktemp with template
-    #DOC 2. Fallback to PID + random number
+    #DOC Creates a temporary file with strict permissions using:
+    #DOC 1. mktemp with template (preferred)
+    #DOC 2. PID + random number fallback
     #DOC
     #DOC Uses:
-    #DOC   TMPDIR environment variable or /tmp
+    #DOC   TMPDIR - Base temp directory
+    #DOC   UMASK_USER - Restrictive umask for creation
+    #DOC   UMASK_ORIG - Original umask to restore
     #DOC
     #DOC Returns:
     #DOC   Path to created temporary file on success
-    #DOC   CODE_SYSTEM on failure to create file
+    #DOC   CODE_SYSTEM if file creation fails
 
     #@ Use mktemp more safely with explicit error handling
     unset tmpfile
@@ -251,16 +324,21 @@ initialize_utilities() {
   }
 
   diff_sans_header() {
-    #DOC Compares two files, excluding diff header lines
+    #DOC Compare files while filtering diff headers
+    #DOC
+    #DOC Generates a unified diff between two files but removes
+    #DOC the timestamp header lines for cleaner output.
     #DOC
     #DOC Options:
-    #DOC   -s, --source FILE   Source file to compare
-    #DOC   -t, --target FILE   Target file to compare
-    #DOC   -f, --filter EXPR   Additional sed filter
+    #DOC   -a, --file-a FILE   First file to compare
+    #DOC   -b, --file-b FILE   Second file to compare
+    #DOC   -f, --filter EXPR   Additional sed filter expression
     #DOC   --help             Show usage info
     #DOC
     #DOC Returns:
-    #DOC   0 if no differences, 1 if differences or errors
+    #DOC   0 if files identical
+    #DOC   1 if differences found or errors occur
+    #DOC   Prints diff output to stdout
 
     #@ Unset local variables
     unset file_a
@@ -340,14 +418,20 @@ initialize_utilities() {
   }
 
   get_mod_time() {
-    # DOC Retrieve the modification time for a file
-    # DOC
-    # DOC Parameters:
-    # DOC   $1 - Path to file
-    # DOC
-    # DOC Returns:
-    # DOC   Formatted date string on success
-    # DOC   CODE_SYSTEM if commands fail
+    #DOC Get file modification time using configured method
+    #DOC
+    #DOC Uses the method selected by initialize_mod_time_fetcher
+    #DOC to retrieve and format a file's modification time
+    #DOC
+    #DOC Parameters:
+    #DOC   $1 - Path to file
+    #DOC
+    #DOC Uses:
+    #DOC   MOD_TIME_FETCHER - Function to use for retrieval
+    #DOC
+    #DOC Returns:
+    #DOC   Formatted date string (YYYY-MM-DD HH:MM)
+    #DOC   "Unknown" (padded) if retrieval fails
 
     #@ Initialize MOD_TIME_FETCHER only once.
     [ -n "$MOD_TIME_FETCHER" ] || initialize_mod_time_fetcher
@@ -366,15 +450,26 @@ initialize_utilities() {
   }
 
   get_file_info() {
-    # DOC Return the absolute path and modification time of a file
-    # DOC
-    # DOC Parameters:
-    # DOC   $1 - Path to file
-    # DOC
-    # DOC Returns:
-    # DOC   Formatted string of "YYYY-MM-DD HH:MM <AbsolutePath>" on success
-    # DOC   CODE_FILE if file does not exist
-    # DOC   CODE_SYSTEM if system operations fail
+    #DOC Process command line arguments into configuration
+    #DOC
+    #DOC Parses arguments to configure:
+    #DOC - Processing mode (check/format)
+    #DOC - Formatting options
+    #DOC - Debug level
+    #DOC - File list
+    #DOC
+    #DOC Parameters:
+    #DOC   $@ - Command line arguments
+    #DOC
+    #DOC Modifies:
+    #DOC   ACTION - Processing mode
+    #DOC   VERBOSITY - Debug level
+    #DOC   FILES - File list (delimiter-separated)
+    #DOC   ALLOW_* - Formatting flags
+    #DOC
+    #DOC Returns:
+    #DOC   CODE_SUCCESS if parsing successful
+    #DOC   CODE_ARGS if no files or invalid options
 
     #@ Ensure the file exists
     _file="$1"
@@ -475,22 +570,21 @@ parse_arguments() {
 }
 
 execute_action() {
-  #DOC Process all provided files with configured formatting
+  #DOC Format or check a single file
   #DOC
-  #DOC For each file:
-  #DOC - Shows file stats
-  #DOC - Executes formatting action
-  #DOC - Reports any linting issues
+  #DOC Handles the complete formatting process:
+  #DOC - Creates working copy
+  #DOC - Applies formatting
+  #DOC - Shows differences
+  #DOC - Updates file if in format mode
   #DOC
-  #DOC Uses globals:
-  #DOC   files - List of files to process
-  #DOC   delimiter - File list separator
+  #DOC Parameters:
+  #DOC   $1 - Path to file to process
   #DOC
   #DOC Returns:
-  #DOC   CODE_SUCCESS if all files processed successfully
-  #DOC   CODE_FORMAT if any file has linting issues
-  #DOC   CODE_FILE if file access issues
-  #DOC   CODE_SYSTEM if system operations fail
+  #DOC   CODE_SUCCESS if no changes needed
+  #DOC   CODE_FORMAT if changes found/made
+  #DOC   CODE_FILE/SYSTEM on errors
 
   execute_action__main() {
     #DOC Main execution flow for formatting .editorconfig files
@@ -712,24 +806,22 @@ execute_action() {
 }
 
 execute_process() {
-  #DOC Execute formatting process across all provided files
+  #DOC Process all provided files
   #DOC
   #DOC Main processing loop that:
-  #DOC - Validates input file list
-  #DOC - Sets up field separator for file processing
-  #DOC - Optionally shows debug information
+  #DOC - Shows debug info if enabled
   #DOC - Processes each file through execute_action
+  #DOC - Tracks overall success/failure
   #DOC
-  #DOC Uses globals:
-  #DOC   files - Delimiter-separated list of files
-  #DOC   delimiter - Field separator for file list
-  #DOC   debug - Debug mode flag
+  #DOC Uses:
+  #DOC   FILES - List of files to process
+  #DOC   VERBOSITY - Debug level
+  #DOC   DELIMITER - File list separator
   #DOC
   #DOC Returns:
-  #DOC   CODE_SUCCESS if all files processed successfully
-  #DOC   CODE_ARGS if no files provided
-  #DOC   CODE_FORMAT if any file has formatting issues
-  #DOC   CODE_SYSTEM if system operations fail
+  #DOC   CODE_SUCCESS if all files ok
+  #DOC   CODE_FORMAT if any changes needed
+  #DOC   Other codes for errors
 
   #@ Define the debugging file counter and header
   [ "$VERBOSITY" -ge 4 ] && {
