@@ -76,16 +76,16 @@ USAGE_GUIDE
 #@ ============================================= @#
 establish_defaults() {
   #| Actions
-  pull=true
+  pull=1
   ignore=
   diff=
-  status=true
-  add=true
-  commit=true
-  push=true
+  status=1
+  add=1
+  commit=1
+  push=1
 
   #| Verbosity
-  verbose=true
+  verbose=1
 
   #| Paths
   #TODO: this doesn't wor because it need eval
@@ -128,32 +128,32 @@ establish_environment() {
       }
       ;;
     -p | --pull)
-      pull=true
+      pull=1
       ;;
     -i | --ignore)
-      ignore=true
+      ignore=1
       ;;
     -D | --diff)
-      diff=true
+      diff=1
       ;;
     -s | --status)
-      status=true
+      status=1
       ;;
     -a | --add)
-      add=true
+      add=1
       ;;
     -c | --commit)
-      commit=true
+      commit=1
       [ "$2" ] && {
         msg="$2"
         shift
       }
       ;;
     -u | --push)
-      push=true
+      push=1
       ;;
     -R | --sub* | --recurse)
-      recurse=true
+      recurse=1
       [ "$2" ] && {
         submodule="$2"
         shift
@@ -163,10 +163,10 @@ establish_environment() {
       unset verbose
       ;;
     --gitisuper | --git-dir-super)
-      get_geet_dir=true
+      get_geet_dir=1
       ;;
     --gitis | --git-dir)
-      get_git_dir=true
+      get_git_dir=1
       ;;
     -h | --help)
       display_info --usage
@@ -175,15 +175,15 @@ establish_environment() {
       display_info --version
       ;;
     -vv | --verbose)
-      verbose=true
+      verbose=1
       ;;
     -d | --debug)
-      debug=true
+      debug=1
       ;;
     -m | --m*)
       msg="$2"
       ;;
-    --ci) ci=true ;;
+    --ci) ci=1 ;;
     -*) ;;
       # TODO: Add support for initalization
       # --key)
@@ -320,7 +320,7 @@ establish_validators() {
     submodule="${submodule#/}"   # Remove leading slash, if any
 
     for item in $submodules; do
-      case "$item" in "$submodule") valid=true break ;; esac
+      case "$item" in "$submodule") valid=1 break ;; esac
     done
 
     # shellcheck disable=2086
@@ -357,7 +357,7 @@ establish_utilities() {
     notify=""
     info=""
     label=""
-    last_line=true
+    last_line=1
     paragraph=""
     delimiter=" |> "
 
@@ -371,7 +371,7 @@ establish_utilities() {
     #@ Tag the last line to prevent printing a blank line
     case "$@" in
     *"-last"* | *"-l"* | *"-fatal"*)
-      last_line=true
+      last_line=1
       ;;
     *"--new"* | *"-n"*)
       unset last_line
@@ -382,7 +382,7 @@ establish_utilities() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --info | --error | --warn*)
-        special=true
+        special=1
         case "$1" in
         --info)
           [ "$verbose" ] && label="INFO: "
@@ -418,16 +418,16 @@ establish_utilities() {
         }
         ;;
       --code)
-        special=true
+        special=1
         case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
         ;;
       --fatal)
-        special=true
-        fatal=true
+        special=1
+        fatal=1
         case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
         ;;
       --note)
-        special=true
+        special=1
         info="Note: "
         while [ "$#" -gt 1 ]; do
           case "$2" in -*) break ;; esac
@@ -435,7 +435,7 @@ establish_utilities() {
           shift
         done
         ;;
-      --notify) notify=true ;;
+      --notify) notify=1 ;;
       --delim*)
         delimiter="$(printf "%s" "$2")"
         ;;
@@ -451,7 +451,7 @@ establish_utilities() {
           info="$(printf "%s\n%s" "$info" "$2")"
           shift
         }
-        paragraph=true
+        paragraph=1
         ;;
       -s | --space)
         [ "$2" ] && {
@@ -495,14 +495,14 @@ establish_utilities() {
       case "$1" in
       --usage)
         logline "$_cmd_USAGEGUIDE"
-        exit=true
+        exit=1
         ;;
       --version)
         logline "$_cmd_VERSION"
-        exit=true
+        exit=1
         ;;
       --error*)
-        exit=true
+        exit=1
         [ "$verbose" ] && return
         case "$1" in
         *path) printf "Invalid path: %s" "$2" ;;
@@ -516,7 +516,7 @@ establish_utilities() {
       # --error)
       #   code="$2" && shift 2
       #   logline --error "$@" -ll
-      #   exit=true
+      #   exit=1
       #   ;;
       --code) code="$2" ;;
       *) logline --info "$@" -ll ;;
@@ -534,8 +534,8 @@ establish_utilities() {
     #@ Input validation
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --get-home) get_home=true ;;
-      --get-name) get_name=true ;;
+      --get-home) get_home=1 ;;
+      --get-name) get_name=1 ;;
       --path | --target) _path="$2" ;;
       *) _path="$1" ;;
       esac
