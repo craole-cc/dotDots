@@ -661,6 +661,7 @@ execute_git_actions() {
     fmtree || return 1
   fi
 
+echo Prompt
   #@ Update the local repository
   [ "$pull" ] && git pull --quiet
 
