@@ -658,7 +658,7 @@ execute_git_actions() {
     fmtree --ci || return 1
     # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
   else
-    fmtree
+    fmtree || return 1
   fi
 
   #@ Update the local repository
