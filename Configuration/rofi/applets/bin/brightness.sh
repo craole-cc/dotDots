@@ -10,17 +10,17 @@ source "$HOME"/.config/rofi/applets/shared/theme.bash
 theme="$type/$style"
 
 # Brightness Info
-backlight="$(printf "%.0f\n" `light -G`)"
-card="`light -L | grep 'backlight' | head -n1 | cut -d'/' -f3`"
+backlight="$(printf "%.0f\n" $(light -G))"
+card="$(light -L | grep 'backlight' | head -n1 | cut -d'/' -f3)"
 
 if [[ $backlight -ge 0 ]] && [[ $backlight -le 29 ]]; then
-    level="Low"
+	level="Low"
 elif [[ $backlight -ge 30 ]] && [[ $backlight -le 49 ]]; then
-    level="Optimal"
+	level="Optimal"
 elif [[ $backlight -ge 50 ]] && [[ $backlight -le 69 ]]; then
-    level="High"
+	level="High"
 elif [[ $backlight -ge 70 ]] && [[ $backlight -le 100 ]]; then
-    level="Peak"
+	level="Peak"
 fi
 
 # Theme Elements
@@ -39,14 +39,14 @@ elif [[ "$theme" == *'type-5'* ]]; then
 	list_col='1'
 	list_row='4'
 	win_width='425px'
-elif [[ ( "$theme" == *'type-2'* ) || ( "$theme" == *'type-4'* ) ]]; then
+elif [[ ("$theme" == *'type-2'*) || ("$theme" == *'type-4'*) ]]; then
 	list_col='4'
 	list_row='1'
 	win_width='550px'
 fi
 
 # Options
-layout=`cat ${theme} | grep 'USE_ICON' | cut -d'=' -f2`
+layout=$(cat ${theme} | grep 'USE_ICON' | cut -d'=' -f2)
 if [[ "$layout" == 'NO' ]]; then
 	option_1=" Increase"
 	option_2=" Optimal"
@@ -92,16 +92,16 @@ run_cmd() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-    $option_1)
+	$option_1)
 		run_cmd --opt1
-        ;;
-    $option_2)
+		;;
+	$option_2)
 		run_cmd --opt2
-        ;;
-    $option_3)
+		;;
+	$option_3)
 		run_cmd --opt3
-        ;;
-    $option_4)
+		;;
+	$option_4)
 		run_cmd --opt4
-        ;;
+		;;
 esac

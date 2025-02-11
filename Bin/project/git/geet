@@ -87,6 +87,8 @@ establish_defaults() {
   #| Verbosity
   verbose=1
 
+  DELIMITER="$(printf '\037')"
+
   #| Paths
   #TODO: this doesn't wor because it need eval
   git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
@@ -648,35 +650,29 @@ execute_git_actions() {
   # work_in "$1"
 
   #@ Honor changes to gitignore
-  [ "$ignore" ] && git rm -r --force --cached .
+  [ -n "$ignore" ] && git rm -r --force --cached .
 
-  #@ Check if there are changes
-  [ "$(git status --porcelain)" ] || return 0
+  #@ Skip if there are no changes
+  git status --porcelain >/dev/null 2>&1 || return 0
 
   #@ Lint
-  if [ "$ci" ]; then
-    fmtree --ci || return 1
-    # eval "$(treefmt_cmd  --no-cache --fail-on-change)" || return 1
-  else
-    fmtree || return 1
-  fi
+  .fmt || return 1
 
-echo Prompt
   #@ Update the local repository
-  [ "$pull" ] && git pull --quiet
+  [ -n  "$pull" ] && git pull --quiet
 
   #@ Display changes
-  if [ "$diff" ]; then
+  if [ -n "$diff" ]; then
     git diff
-  elif [ "$status" ]; then
+  elif [ -n "$status" ]; then
     git status --short
   fi
 
   #@ Add untracked files
-  [ "$add" ] && git add --all
+  [ -n "$add" ] && git add --all
 
   #@ Commit changes
-  [ "$commit" ] && git commit --quiet --message="${msg:-"$default_msg"}"
+  [ -n "$commit" ] && git commit --quiet --message="${msg:-"$default_msg"}"
 
   #@ Update the remote repository
   [ "$push" ] && git push --recurse-submodules=check --quiet

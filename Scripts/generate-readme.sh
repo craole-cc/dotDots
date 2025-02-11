@@ -5,7 +5,7 @@ DOC_PATH="${DOTS}/Documentation/README.md"
 ROOT_README="README.md"
 
 #@ Generate Root README
-cat <<EOF >"$ROOT_README"
+cat << EOF > "$ROOT_README"
 # dotDOTS
 
 dotDOTS is a collection of my personal tools and configuration files designed to be portable and efficient across various systems and environments.

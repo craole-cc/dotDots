@@ -28,7 +28,7 @@ options="$terminal\n$files\n$editor\n$browser\n$music\n$settings"
 
 chosen="$(echo -e "$options" | $rofi_command -p "Most Used" -dmenu -selected-row 0)"
 case $chosen in
-    $terminal)
+	$terminal)
 		if [[ -f /usr/bin/termite ]]; then
 			termite &
 		elif [[ -f /usr/bin/urxvt ]]; then
@@ -44,8 +44,8 @@ case $chosen in
 		else
 			msg "No suitable terminal found!"
 		fi
-        ;;
-    $files)
+		;;
+	$files)
 		if [[ -f /usr/bin/thunar ]]; then
 			thunar &
 		elif [[ -f /usr/bin/pcmanfm ]]; then
@@ -53,8 +53,8 @@ case $chosen in
 		else
 			msg "No suitable file manager found!"
 		fi
-        ;;
-    $editor)
+		;;
+	$editor)
 		if [[ -f /usr/bin/geany ]]; then
 			geany &
 		elif [[ -f /usr/bin/leafpad ]]; then
@@ -66,8 +66,8 @@ case $chosen in
 		else
 			msg "No suitable text editor found!"
 		fi
-        ;;
-    $browser)
+		;;
+	$browser)
 		if [[ -f /usr/bin/firefox ]]; then
 			firefox &
 		elif [[ -f /usr/bin/chromium ]]; then
@@ -77,19 +77,19 @@ case $chosen in
 		else
 			msg "No suitable web browser found!"
 		fi
-        ;;
-    $music)
+		;;
+	$music)
 		if [[ -f /usr/bin/lxmusic ]]; then
 			lxmusic &
 		else
 			msg "No suitable music player found!"
 		fi
-        ;;
-    $settings)
+		;;
+	$settings)
 		if [[ -f /usr/bin/xfce4-settings-manager ]]; then
 			xfce4-settings-manager &
 		else
 			msg "No suitable settings manager found!"
 		fi
-        ;;
+		;;
 esac

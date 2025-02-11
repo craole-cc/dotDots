@@ -1,4 +1,6 @@
 dictionaries = ["en_us"]
+flag_words = []
+ignore_paths = []
 words = [
   "deadnix",
   "jsonc",
@@ -43,5 +45,3 @@ words = [
   "wsl",
   "zoxide",
 ]
-flag_words = []
-ignore_paths = []

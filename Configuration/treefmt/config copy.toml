@@ -1,0 +1,298 @@
+[global]
+excludes = [
+  # "treefmt.toml",
+  "generated.nix",
+  "**/node_modules/**",
+  "**/target/**",
+  "**/dist/**",
+  "**/.git/**",
+]
+
+#| Documentation
+[formatter.markdown]
+command  = "markdownlint"
+includes = ["*.md"]
+options  = ["--fix", "--config", ".markdownlint.json"]
+priority = 1
+
+[formatter.mdsh]
+command  = "mdsh"
+excludes = []
+includes = ["README.md"]
+options  = ["--inputs"]
+priority = 2
+
+[formatter.texfmt]
+command  = "tex-fmt"
+excludes = []
+includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
+options  = []
+
+[formatter.typstfmt]
+command  = "typstfmt"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options  = []
+priority = 1
+
+[formatter.typstyle]
+command  = "typstyle"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options  = ["-i"]
+priority = 2
+
+#| Nix formatting
+[formatter.alejandra]
+command       = "alejandra"
+fail_on_error = false
+includes      = ["*.nix"]
+priority      = 1
+
+# [formatter.nixfmt]
+# command = "nixfmt"
+# includes = ["*.nix"]
+# priority = 1
+
+[formatter.deadnix]
+command  = "deadnix"
+excludes = []
+includes = ["*.nix"]
+options  = ["--edit"]
+priority = 2
+
+[formatter.statix]
+command  = "statix"
+includes = ["*.nix"]
+options  = ["check"]
+priority = 3
+
+#| Rust formatting
+[formatter.rust]
+command  = "rustfmt"
+includes = ["*.rs"]
+options  = ["--edition", "2021"]
+priority = 1
+
+[formatter.leptosfmt]
+command  = "leptosfmt"
+excludes = []
+includes = ["*.rs"]
+options  = []
+priority = 2
+
+#| Shell script formatting# Shell script formatting
+[formatter.shellcheck]
+command  = "shellcheck"
+includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
+options  = ["-x", "-e", "SC1090,SC1091"]
+priority = 1
+
+[formatter.shfmt]
+# includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
+options = [
+  "-i",
+  "2",  # indent 2
+  "-s", # simplify the code
+  "-w", # write back to the file
+]
+priority = 2
+
+# [formatter.shfmt]
+# command = "shfmt"
+# options = ["-i", "2", "-ci", "-bn", "-sr", "-ln", "bash"]
+
+#| Python formatting
+[formatter.ruff]
+command  = "ruff"
+includes = ["*.py"]
+options  = ["format", "--quiet"]
+
+#| Data formats
+[formatter.json]
+command  = "jq"
+includes = ["*.json", "*.jsonc"]
+options  = ["--indent", "2", "--sort-keys", "-M"]
+
+#| TOML
+[formatter.toml]
+command  = "taplo"
+includes = ["*.toml"]
+options  = ["fmt"]
+priority = 1
+
+[formatter.toml-sort]
+command  = "toml-sort"
+excludes = []
+includes = ["*.toml"]
+options  = ["-i"]
+priority = 2
+
+#| Lua formatting
+[formatter.stylua]
+command  = "stylua"
+includes = ["*.lua"]
+
+#| YAML formatting
+[formatter.yamlfmt]
+command  = "yamlfmt"
+includes = ["*.yaml", "*.yml"]
+
+[formatter.actionlint]
+command  = "actionlint"
+excludes = []
+includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+options  = []
+
+[formatter.asmfmt]
+command  = "asmfmt"
+excludes = []
+includes = ["*.s"]
+options  = ["-w"]
+
+[formatter.beautysh]
+command  = "beautysh"
+excludes = []
+includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
+options  = ["-i", "2"]
+
+[formatter.biome]
+command = "biome"
+excludes = []
+includes = [
+  "*.js",
+  "*.ts",
+  "*.mjs",
+  "*.mts",
+  "*.cjs",
+  "*.cts",
+  "*.jsx",
+  "*.tsx",
+  "*.d.ts",
+  "*.d.cts",
+  "*.d.mts",
+  "*.json",
+  "*.jsonc",
+]
+options = ["format", "--write", "--no-errors-on-unmatched"]
+
+[formatter.buildifier]
+command  = "buildifier"
+excludes = []
+includes = ["*.bazel", "*.bzl"]
+options  = []
+
+[formatter.cabal-fmt]
+command  = "cabal-fmt"
+excludes = []
+includes = ["*.cabal"]
+options  = ["--inplace"]
+
+[formatter.clang-format]
+command  = "clang-format"
+excludes = []
+includes = ["*.c", "*.cc", "*.cpp", "*.h", "*.hh", "*.hpp"]
+options  = ["-i"]
+
+[formatter.cljfmt]
+command  = "cljfmt"
+excludes = []
+includes = ["*.clj", "*.cljc", "*.cljs", "*.cljx"]
+options  = ["fix"]
+
+[formatter.cmake-format]
+command  = "cmake-format"
+excludes = []
+includes = ["*.cmake", "CMakeLists.txt"]
+options  = ["--in-place"]
+
+[formatter.dart-format]
+command  = "dart"
+excludes = []
+includes = ["*.dart"]
+options  = ["format"]
+
+[formatter.deno]
+command = "deno"
+excludes = []
+includes = [
+  "*.css",
+  "*.html",
+  "*.js",
+  "*.json",
+  "*.jsonc",
+  "*.jsx",
+  "*.less",
+  "*.markdown",
+  "*.md",
+  "*.sass",
+  "*.scss",
+  "*.ts",
+  "*.tsx",
+  "*.yaml",
+  "*.yml",
+]
+options = ["fmt"]
+
+[formatter.dos2unix]
+command  = "dos2unix"
+excludes = []
+includes = ["*"]
+options  = ["--keepdate"]
+
+[formatter.fish_indent]
+command  = "fish_indent-wrapper"
+excludes = []
+includes = ["*.fish"]
+options  = []
+
+[formatter.keep-sorted]
+command  = "keep-sorted"
+excludes = []
+includes = ["*"]
+options  = []
+
+[formatter.nufmt]
+command  = "nufmt"
+excludes = []
+includes = ["*.nu"]
+options  = []
+
+#| Ruby
+[formatter.rufo]
+command  = "rufo"
+includes = ["*.rb"]
+options  = ["-x"]
+priority = 1
+
+[formatter.rubocop]
+command  = "rubocop"
+excludes = []
+includes = ["*.rb"]
+options  = []
+priority = 2
+
+#| SQL
+[formatter.sqruff]
+command  = "sqruff"
+excludes = []
+includes = ["*.sql"]
+options  = ["fix", "--force"]
+
+[formatter.terraform]
+command  = "tofu"
+excludes = []
+includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
+options  = ["fmt"]
+
+[formatter.typos]
+command  = "typos"
+excludes = []
+includes = ["*"]
+options  = ["--write-changes"]
+
+[formatter.zig]
+command  = "zig"
+excludes = []
+includes = ["*.zig", "*.zon"]
+options  = ["fmt"]

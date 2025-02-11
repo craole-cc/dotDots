@@ -30,7 +30,6 @@ physical_cores = true
 # theme = "Hydrogen"
 
 
-theme = "Craole"
 show = [
   "Host",
   "Machine",
@@ -51,3 +50,4 @@ show = [
   "Memory",
   "Battery",
 ]
+theme = "Craole"

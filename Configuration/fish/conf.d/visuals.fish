@@ -18,7 +18,7 @@
 # freshfetch
 
 ### TERMINAL TYPE ###
-set TERM "xterm-256color"
+set TERM xterm-256color
 
 ### SETTING THE STARSHIP PROMPT ###
 starship init fish | source
