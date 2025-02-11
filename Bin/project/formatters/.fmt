@@ -23,18 +23,19 @@ use_taplo() {
 use_fmt_editorconfig() {
   [ -n "$wehave_fmt_editorconfig" ] || return
 
-  if [ -n "$wehave_fd" ]; then
-    fd \
-      --glob '{.editorconfig,editorconfig}' \
-      --type file \
-      --hidden \
-      --absolute-path \
-      --exec fmt_editorconfig {} \;
-  else
-    find "$DOTS" \
-      -type f \( -name ".editorconfig" -o -name "editorconfig" \) \
-      -exec fmt_editorconfig {} \;
-  fi
+  fmt_editorconfig
+  # if [ -n "$wehave_fd" ]; then
+  #   fd \
+  #     --glob '{.editorconfig,editorconfig}' \
+  #     --type file \
+  #     --hidden \
+  #     --absolute-path \
+  #     --exec fmt_editorconfig {} \;
+  # else
+  #   find "$DOTS" \
+  #     -type f \( -name ".editorconfig" -o -name "editorconfig" \) \
+  #     -exec fmt_editorconfig {} \;
+  # fi
 }
 
 # use_taplo
