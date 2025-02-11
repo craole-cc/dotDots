@@ -17,12 +17,12 @@ alias j='jobs -l'
 # alias r='rlogin'
 alias which='type -all'
 alias ..='cd ..'
-alias print='/usr/bin/lp -o nobanner -d $LPDEST'   # Assumes LPDEST is defined
-alias pjet='enscript -h -G -fCourier9 -d $LPDEST'  # Pretty-print using enscript
-alias background='xv -root -quit -max -rmode 5'    # Put a picture in the background
+alias print='/usr/bin/lp -o nobanner -d $LPDEST' # Assumes LPDEST is defined
+alias pjet='enscript -h -G -fCourier9 -d $LPDEST' # Pretty-print using enscript
+alias background='xv -root -quit -max -rmode 5' # Put a picture in the background
 alias du='du -kh'
-alias df='df -kTh'                          # human-readable sizes
-alias free='free -m'                      # show sizes in MB
+alias df='df -kTh' # human-readable sizes
+alias free='free -m' # show sizes in MB
 alias vifm='./.config/vifm/scripts/vifmrun'
 alias calc='qalculate-gtk' &
 alias cls='clear'
@@ -68,19 +68,19 @@ alias bs='broot --sizes'
 # The 'ls' family (this assumes you use the GNU ls)
 # alias la='ls -Al'               # show hidden files
 # alias ls='ls -hF --color'	# add colors for filetype recognition
-alias lx='ls -lXB'              # sort by extension
-alias lk='ls -lSr'              # sort by size
-alias lc='ls -lcr'		          # sort by change time
-alias lu='ls -lur'		          # sort by access time
-alias lr='ls -lR'               # recursive ls
+alias lx='ls -lXB' # sort by extension
+alias lk='ls -lSr' # sort by size
+alias lc='ls -lcr' # sort by change time
+alias lu='ls -lur' # sort by access time
+alias lr='ls -lR' # recursive ls
 # alias lt='ls -ltr'              # sort by date
-alias lm='ls -al |more'         # pipe through 'more'
-alias tree='tree -Csu'		# nice alternative to 'ls'
+alias lm='ls -al |more' # pipe through 'more'
+alias tree='tree -Csu' # nice alternative to 'ls'
 
 # Changing "ls" to "exa"
 alias ls='exa -al --color=always --group-directories-first' # my preferred listing
-alias la='exa -a --color=always --group-directories-first'  # all files and dirs
-alias ll='exa -l --color=always --group-directories-first'  # long format
+alias la='exa -a --color=always --group-directories-first' # all files and dirs
+alias ll='exa -l --color=always --group-directories-first' # long format
 alias lt='exa -aT --color=always --group-directories-first' # tree listing
 alias l.='exa -a | egrep "^\."'
 
@@ -105,19 +105,19 @@ export LESS='-i -N -w  -z-4 -g -e -M -X -F -R -P%t?f%f \
 
 # Package Management
 alias pacs='pacman -Ss'
-alias pacu='sudo pacman -Syyu'                # update only standard pkgs
-alias yaysua='yay -Sua --noconfirm'             # update only AUR pkgs (yay)
-alias yaysyu='yay -Syu --noconfirm'             # update standard pkgs and AUR pkgs (yay)
-alias parsua='paru -Sua --noconfirm'            # update only AUR pkgs (paru)
-alias u='paru'                                  # update standard pkgs and AUR pkgs (paru)
-alias p='paru'                                  # update standard pkgs and AUR pkgs (paru)
-alias paq='paru -Qua'                           # print available AUR updates
-alias pin='paru -S'                             # install package (paru)
-alias prm='paru -Rsu'                           # remove package (paru)
-alias prx='paru -Rsc'                           # remove package and dependencies (paru)
-alias pao='pacman -Qdt'                         # list orphaned packages
-alias pad='pacman -Qsq'                         # list dependent packages
-alias unlock='sudo rm /var/lib/pacman/db.lck'   # remove pacman lock
+alias pacu='sudo pacman -Syyu' # update only standard pkgs
+alias yaysua='yay -Sua --noconfirm' # update only AUR pkgs (yay)
+alias yaysyu='yay -Syu --noconfirm' # update standard pkgs and AUR pkgs (yay)
+alias parsua='paru -Sua --noconfirm' # update only AUR pkgs (paru)
+alias u='paru' # update standard pkgs and AUR pkgs (paru)
+alias p='paru' # update standard pkgs and AUR pkgs (paru)
+alias paq='paru -Qua' # print available AUR updates
+alias pin='paru -S' # install package (paru)
+alias prm='paru -Rsu' # remove package (paru)
+alias prx='paru -Rsc' # remove package and dependencies (paru)
+alias pao='pacman -Qdt' # list orphaned packages
+alias pad='pacman -Qsq' # list dependent packages
+alias unlock='sudo rm /var/lib/pacman/db.lck' # remove pacman lock
 alias cleanup='sudo pacman -Rns (pacman -Qtdq)' # remove orphaned packages
 # alias umountext="udiskie-umount --detach"
 alias pall="expac --timefmt='%Y-%m-%d %T' '%l\t%n' | sort"
@@ -151,8 +151,8 @@ alias mv='mv -i'
 alias rm='rm -i'
 
 # adding flags
-alias df='df -h'                          # human-readable sizes
-alias free='free -m'                      # show sizes in MB
+alias df='df -h' # human-readable sizes
+alias free='free -m' # show sizes in MB
 alias lynx='lynx -cfg=~/.lynx/lynx.cfg -lss=~/.lynx/lynx.lss -vikeys'
 alias vifm='./.config/vifm/scripts/vifmrun'
 
@@ -182,7 +182,7 @@ alias commit='git commit -m'
 alias fetch='git fetch'
 alias pull='git pull origin'
 alias push='git push origin'
-alias stat='git status'  # 'status' is protected name so using 'stat' instead
+alias stat='git status' # 'status' is protected name so using 'stat' instead
 alias tag='git tag'
 alias newtag='git tag -a'
 

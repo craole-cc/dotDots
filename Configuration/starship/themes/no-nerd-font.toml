@@ -1,9 +1,9 @@
 [battery]
-full_symbol = "• "
-charging_symbol = "⇡ "
+charging_symbol    = "⇡ "
 discharging_symbol = "⇣ "
-unknown_symbol = "❓ "
-empty_symbol = "❗ "
+empty_symbol       = "❗ "
+full_symbol        = "• "
+unknown_symbol     = "❓ "
 
 [erlang]
 symbol = "ⓔ "

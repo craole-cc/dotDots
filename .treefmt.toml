@@ -99,41 +99,23 @@ priority = 2
 #| Shell script formatting# Shell script formatting
 [formatter.shellcheck]
 command  = "shellcheck"
-includes = ["*.sh", ".dotsrc", ".envrc"]
+options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
+includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc"]
 priority = 1
 
 [formatter.shfmt]
 command = "shfmt"
-includes = ["*.sh", ".dotsrc", ".envrc"]
+includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc", "*.bash", ".bash*"]
 options = [
   "--apply-ignore",
   "--binary-next-line",
   "--space-redirects",
   "--case-indent",
   "--diff",
+  "--posix",
   "--write",
 ]
 priority = 2
-
-[formatter.shellcheck_bash]
-command  = "shellcheck"
-includes = ["*.bash", ".bash*"]
-options  = ["--shell=bash"]
-priority = 1
-
-[formatter.shfmt_bash]
-command = "shfmt"
-includes = ["*.bash", ".bash*"]
-options = [
-  "-i",
-  "2",        # indent 2
-  "-s",       # simplify the code
-  "-bn",      # remove leading blank lines
-  "-sr",      # remove trailing blank lines
-  "-w",       # write back to the file
-  "-ln bash", # Specify the language as bash
-]
-priority = 3
 
 [formatter.fish]
 command  = "fish_indent"

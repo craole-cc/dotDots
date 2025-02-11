@@ -1,22 +1,22 @@
 # Helium
 
-hide_ascii = false
-spacing = 2
-padding = 0
-separator = "->"
-key_color = "Blue"
+hide_ascii      = false
+key_color       = "Blue"
+padding         = 0
+separator       = "->"
 separator_color = "Yellow"
+spacing         = 2
 
 [bar]
-glyph = "o"
-symbol_open = "("
-symbol_close = ")"
+glyph           = "o"
 hide_delimiters = false
-visible = false
+symbol_close    = ")"
+symbol_open     = "("
+visible         = false
 
 [box]
-title = " Helium "
-border = "rounded"
+border  = "rounded"
+title   = " Helium "
 visible = false
 
 [box.inner_margin]
@@ -27,25 +27,25 @@ y = 1
 color = "Yellow"
 
 [randomize]
-key_color = false
+key_color       = false
 separator_color = false
 
 [keys]
-host = "Host"
-kernel = "Kernel"
-battery = "Battery"
-os = "OS"
-de = "DE"
-wm = "WM"
-distro = "Distro"
-terminal = "Terminal"
-shell = "Shell"
-packages = "Packages"
-uptime = "Uptime"
-memory = "Memory"
-machine = "Machine"
-local_ip = "IP"
-backlight = "Brightness"
+backlight  = "Brightness"
+battery    = "Battery"
+cpu        = "CPU"
+cpu_load   = "CPU Load"
+de         = "DE"
+distro     = "Distro"
+host       = "Host"
+kernel     = "Kernel"
+local_ip   = "IP"
+machine    = "Machine"
+memory     = "Memory"
+os         = "OS"
+packages   = "Packages"
 resolution = "Resolution"
-cpu_load = "CPU Load"
-cpu = "CPU"
+shell      = "Shell"
+terminal   = "Terminal"
+uptime     = "Uptime"
+wm         = "WM"

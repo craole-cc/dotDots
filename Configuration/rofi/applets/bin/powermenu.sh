@@ -10,19 +10,19 @@ source "$HOME"/.config/rofi/applets/shared/theme.bash
 theme="$type/$style"
 
 # Theme Elements
-prompt="`hostname`"
-mesg="Uptime : `uptime -p | sed -e 's/up //g'`"
+prompt="$(hostname)"
+mesg="Uptime : $(uptime -p | sed -e 's/up //g')"
 
-if [[ ( "$theme" == *'type-1'* ) || ( "$theme" == *'type-3'* ) || ( "$theme" == *'type-5'* ) ]]; then
+if [[ ("$theme" == *'type-1'*) || ("$theme" == *'type-3'*) || ("$theme" == *'type-5'*) ]]; then
 	list_col='1'
 	list_row='6'
-elif [[ ( "$theme" == *'type-2'* ) || ( "$theme" == *'type-4'* ) ]]; then
+elif [[ ("$theme" == *'type-2'*) || ("$theme" == *'type-4'*) ]]; then
 	list_col='6'
 	list_row='1'
 fi
 
 # Options
-layout=`cat ${theme} | grep 'USE_ICON' | cut -d'=' -f2`
+layout=$(cat ${theme} | grep 'USE_ICON' | cut -d'=' -f2)
 if [[ "$layout" == 'NO' ]]; then
 	option_1=" Lock"
 	option_2=" Logout"
@@ -78,13 +78,13 @@ confirm_exit() {
 }
 
 # Confirm and execute
-confirm_run () {	
+confirm_run() {
 	selected="$(confirm_exit)"
 	if [[ "$selected" == "$yes" ]]; then
-        ${1} && ${2} && ${3}
-    else
-        exit
-    fi	
+		${1} && ${2} && ${3}
+	else
+		exit
+	fi
 }
 
 # Execute Command
@@ -107,23 +107,22 @@ run_cmd() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-    $option_1)
+	$option_1)
 		run_cmd --opt1
-        ;;
-    $option_2)
+		;;
+	$option_2)
 		run_cmd --opt2
-        ;;
-    $option_3)
+		;;
+	$option_3)
 		run_cmd --opt3
-        ;;
-    $option_4)
+		;;
+	$option_4)
 		run_cmd --opt4
-        ;;
-    $option_5)
+		;;
+	$option_5)
 		run_cmd --opt5
-        ;;
-    $option_6)
+		;;
+	$option_6)
 		run_cmd --opt6
-        ;;
+		;;
 esac
-

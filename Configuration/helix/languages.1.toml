@@ -20,32 +20,32 @@ use-grammars = { only = [
 # name = "rust"
 
 [language-server.rust-analyzer.config]
-cargo = { buildScripts = { enable = true }, features = "all" }
-check = { features = "all" }
+cargo     = { buildScripts = { enable = true }, features = "all" }
+check     = { features = "all" }
 procMacro = { enable = true }
 
 [language-server.rust-analyzer.config.inlayHints]
+chainingHints        = { enable = false }
 lifetimeElisionHints = { enable = false, useParameterNames = false }
-renderColons = false
-typeHints = { hideNamedConstructor = true, hideClosureInitialization = true }
-parameterHints = { enable = false }
-chainingHints = { enable = false }
+parameterHints       = { enable = false }
+renderColons         = false
+typeHints            = { hideNamedConstructor = true, hideClosureInitialization = true }
 
 [language-server.tailwind-ls]
+args    = ["--stdio"]
 command = "tailwindcss-language-server"
-args = ["--stdio"]
 
 [language-server.tailwind-ls.config]
 tailwindCSS = { experimental = { classRegex = ["class=\"(.*)\""] } }
 
 [[language]]
-name = "rust"
 language-servers = ["rust-analyzer", "tailwind-ls"]
+name             = "rust"
 
 [[language]]
-name = "css"
 language-servers = ["vscode-css-language-server", "tailwind-ls"]
+name             = "css"
 
 [[language]]
-name = "html"
 language-servers = ["vscode-html-language-server", "tailwind-ls"]
+name             = "html"

@@ -74,7 +74,7 @@ main() {
   initialize_utilities
 
   parse_arguments "$@"
-  execute_process
+  execute_process || return "$?"
 }
 
 initialize_environment() {
@@ -116,6 +116,7 @@ initialize_environment() {
 
   #| Core Options
   ACTION="format"
+  FILES=".editorconfig"
   ALLOW_SECTION_SEPARATION=1
   ALLOW_LEADING_WHITESPACE_TRIM=1
   ALLOW_TRAILING_WHITESPACE_TRIM=1
@@ -127,7 +128,6 @@ initialize_environment() {
   UMASK_USER=077
   TMPDIR=${TMPDIR:-/tmp}
   readonly DELIMITER TMPDIR UMASK_USER UMASK_ORIG
-  unset FILES
 
   #| Terminal formatting codes
   FMT_RED="$(printf '\033[31m')"
@@ -354,7 +354,7 @@ initialize_utilities() {
     while [ $# -gt 0 ]; do
       case $1 in
       -a | --file-a)
-        [ "$2" ] || {
+        [ -z "$2" ] && {
           printf 'Error: Missing argument for %s\n' "$1" >&2
           return "$CODE_ARGS"
         }
@@ -363,7 +363,7 @@ initialize_utilities() {
         file_a=$1
         ;;
       -b | --file-b)
-        [ "$2" ] || {
+        [ -z "$2" ] && {
           printf 'Error: Missing argument for %s\n' "$1" >&2
           return "$CODE_ARGS"
         }
@@ -372,7 +372,7 @@ initialize_utilities() {
         file_b=$1
         ;;
       -f | --filter)
-        [ "$2" ] || {
+        [ -z "$2" ] && {
           printf 'Error: Missing argument for %s\n' "$1" >&2
           return "$CODE_ARGS"
         }
@@ -400,12 +400,14 @@ initialize_utilities() {
 
     #@ Ensure required arguments are provided
     { [ -n "$file_a" ] && [ -n "$file_b" ]; } || {
+      echo pop
       diff_sans_header__usage >&2
       return "$CODE_ARGS"
     }
 
     #@ Ensure files exist and are readable
     { [ -r "$file_a" ] && [ -r "$file_b" ]; } || {
+      echo lol
       diff_sans_header__usage >&2
       return "$CODE_FILE"
     }

@@ -1,32 +1,32 @@
 # Craole
 
-spacing = 0
-padding = 1
-hide_ascii = false
+hide_ascii         = false
+key_color          = "Green"
+padding            = 1
 prefer_small_ascii = false
-separator = " | "
-key_color = "Green"
-separator_color = "Green"
+separator          = " | "
+separator_color    = "Green"
+spacing            = 0
 
 [custom_ascii]
-path = "~/.config/macchina/images/terminal.ascii"
 color = "Green"
+path  = "~/.config/macchina/images/terminal.ascii"
 
 [palette]
-type = "Light"
+glyph   = " ❇ "
+type    = "Light"
 visible = true
-glyph = " ❇ "
 
 [bar]
-glyph = "■"
-symbol_open = '['
-symbol_close = ']'
+glyph           = "■"
 hide_delimiters = false
-visible = false
+symbol_close    = ']'
+symbol_open     = '['
+visible         = false
 
 [box]
-title = " Craole "
-border = "plain"
+border  = "plain"
+title   = " Craole "
 visible = false
 
 [box.inner_margin]
@@ -35,25 +35,25 @@ y = 1
 
 [randomize]
 # key_color = false
+pool            = "hexadecimal"
 separator_color = false
-pool = "hexadecimal"
 
 [keys]
-host = "          Host | "
-kernel = "        Kernel | "
-battery = "       Battery | "
-os = "            OS | "
-de = "   Desktop Env | "
-wm = "Window Manager | 拓"
-distro = "  Distribution | "
-terminal = "      Terminal | "
-shell = "         Shell | "
-packages = "      Packages | "
-uptime = "        Uptime | "
-memory = "        Memory | "
-machine = "       Machine | "
-local_ip = "    IP Address | "
-backlight = "    Brightness | "
+backlight  = "    Brightness | "
+battery    = "       Battery | "
+cpu        = "           CPU | "
+cpu_load   = "      CPU Load | "
+de         = "   Desktop Env | "
+distro     = "  Distribution | "
+host       = "          Host | "
+kernel     = "        Kernel | "
+local_ip   = "    IP Address | "
+machine    = "       Machine | "
+memory     = "        Memory | "
+os         = "            OS | "
+packages   = "      Packages | "
 resolution = "    Resolution | "
-cpu_load = "      CPU Load | "
-cpu = "           CPU | "
+shell      = "         Shell | "
+terminal   = "      Terminal | "
+uptime     = "        Uptime | "
+wm         = "Window Manager | 拓"

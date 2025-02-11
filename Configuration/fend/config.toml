@@ -33,10 +33,10 @@ unknown-settings = 'warn'
 #   underline:  whether or not to underline text
 #
 [colors]
-number = {}
-string = {}
-identifier = { foreground = 'white' }
-keyword = { foreground = 'blue', bold = true }
 built-in-function = { foreground = 'blue', bold = true }
-date = {}
-other = {}
+date              = {}
+identifier        = { foreground = 'white' }
+keyword           = { foreground = 'blue', bold = true }
+number            = {}
+other             = {}
+string            = {}
