@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-command -v weHave >/dev/null 2>&1 ||
-  weHave() {
-    command -v "$1" >/dev/null 2>&1 || return
-  }
+# command -v weHave >/dev/null 2>&1 ||
+weHave() {
+  command -v "$1" >/dev/null 2>&1 || return
+}
 
 execute() {
   weHave "$1" || return 1
@@ -117,11 +117,13 @@ cd() {
 
 # Show the current distribution
 distribution() {
-  local dtype="unknown" # Default to unknown
+  dtype="unknown" # Default to unknown
 
   # Use /etc/os-release for modern distro identification
   if [ -r /etc/os-release ]; then
-    source /etc/os-release
+    # shellcheck disable=SC1091
+    . /etc/os-release
+
     case $ID in
     fedora | rhel | centos)
       dtype="redhat"
@@ -423,7 +425,7 @@ skipPOSIX() {
 init_PS1() {
   # git dirty functions for prompt
   parse_git_dirty() {
-    [[ $(git status --porcelain 2>/dev/null) ]] && echo "*"
+    git status --porcelain 2>/dev/null && echo "*"
   }
 
   # This function is called in your prompt to output your active git branch.
@@ -432,9 +434,7 @@ init_PS1() {
   }
 
   # set a fancy prompt (non-color, unless we know we "want" color)
-  case "$TERM" in
-  xterm-color | *-256color) color_prompt=yes ;;
-  esac
+  case "$TERM" in xterm-color | *-256color) color_prompt=yes ;; esac
 
   if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -460,56 +460,186 @@ init_PS1() {
   unset color_prompt force_color_prompt
 }
 
+# init_direnv() {
+#   weHave direnv || return
+#   eval "$(direnv hook bash)"
+# }
 init_direnv() {
-  weHave direnv || return
-  eval "$(direnv hook bash)"
+  command -v direnv >/dev/null 2>&1 || return
+  eval "$(direnv hook bash)" || true
 }
 
 init_fasfetch() {
-  weHave fastfetch || return
-  FASTFETCH_CONFIG="${FASTFETCH_CONFIG:-"${DOTS_CFG}/fastfetch/config.jsonc"}"
+  command -v fastfetch >/dev/null 2>&1 || return
+  : "${FASTFETCH_CONFIG:=${DOTS_CFG}/fastfetch/config.jsonc}"
   export FASTFETCH_CONFIG
   fastfetch --config "$FASTFETCH_CONFIG"
 }
 
 init_starship() {
-  weHave starship || return
-  STARSHIP_CONFIG="${STARSHIP_CONFIG:-"${DOTS_CFG}/starship/starship.toml"}"
+  #@ Check if starship exists, return if not
+  command -v starship >/dev/null 2>&1 || return
+
+  #@ Set config path with POSIX-compliant parameter expansion
+  : "${STARSHIP_CONFIG:=${DOTS_CFG}/starship/starship.toml}"
   export STARSHIP_CONFIG
-  set +o posix
-  eval "$(starship init bash)"
-  set -o posix
+
+  #@ Initialize starship (no POSIX mode toggling)
+  eval "$(starship init bash)" || true
 }
 
 init_zoxide() {
-  weHave zoxide || return
-  # eval "$(zoxide init bash)"
-  eval "$(zoxide init posix --hook prompt)"
+  command -v zoxide >/dev/null 2>&1 || return
+  eval "$(zoxide init bash)" || true
+  # eval "$(zoxide init posix --hook prompt)" || true
 }
 
 init_prompt() {
-  init_fasfetch
-  init_starship || init_PS1
+  #| Tools
   init_direnv
   init_zoxide
+
+  #| System Information
+  init_fasfetch
+
+  #| Prompt
+  init_starship
+  status=$?
+  if [ "$status" -ne 0 ]; then
+    init_PS1
+  fi
 }
 
-update_dots_path() {
-  local base_dir="$1"
-  local executable_dirs=()
+update_dots_path_OLD() {
+  #@ Get the base directory
+  base_dir="$1"
 
-  #@ Find directories with executable files, excluding review
+  #@ Create a temporary file to store directories
+  temp_file=$(mktemp) || exit 1
+
+  #@ Use find with correct path handling
+  find "$base_dir" -type d -not -path "*/review/*" >"$temp_file"
+
+  #@ Read each directory from the temporary file and update PATH if not already present
   while IFS= read -r dir; do
-    executable_dirs+=("$dir")
-  done < <(find "$base_dir" -type d -not -path '*/review/*' | while read -r d; do
-    find "$d" -maxdepth 1 -type f -executable | grep -q . && printf "%s\n" "$d"
-  done)
+    case ":$PATH:" in
+    *":$dir:"*) ;;
+    *) PATH="$dir:$PATH" ;;
+    esac
+  done <"$temp_file"
 
-  #@ Update PATH in the current shell
-  for dir in "${executable_dirs[@]}"; do
-    if [[ ":$PATH:" != *":$dir:"* ]]; then
-      export PATH="$dir:$PATH"
-      # echo "Added: $dir"
-    fi
-  done
+  #@ Clean up the temporary file
+  rm -f "$temp_file"
+
+  #@ Output the updated PATH
+  export PATH
+}
+
+# update_dots_path() {
+#   #@ Get the base directory
+#   BASE_DIR="$1"
+
+#   #@ Define exclusion patterns at the top level for reusability
+#   EXCLUDE_PATTERNS="review temp tmp archive backup"
+
+#   echo "$PATH"
+#   echo
+
+#   if command -v fd >/dev/null 2>&1; then
+#     #@ Include base dir first if it exists and isn't excluded
+#     case ":$PATH:" in
+#     *":$BASE_DIR:"*) ;;
+#     *) PATH="$BASE_DIR:$PATH" ;;
+#     esac
+
+#     #@ Convert patterns to fd --exclude args
+#     exclude_args=""
+#     for pattern in $EXCLUDE_PATTERNS; do
+#       exclude_args="$exclude_args --exclude '$pattern'"
+#     done
+
+#     eval "fd --type d $exclude_args . '$BASE_DIR'" |
+#       while IFS= read -r dir; do
+#         case ":$PATH:" in
+#         *":$dir:"*) ;;
+#         *) PATH="$dir:$PATH" ;;
+#         esac
+#       done
+#   else
+#     #@ Convert patterns to find -iname args
+#     find_pattern=""
+#     for pattern in $EXCLUDE_PATTERNS; do
+#       [ -n "$find_pattern" ] && find_pattern="$find_pattern -o"
+#       find_pattern="$find_pattern -iname '$pattern'"
+#     done
+
+#     eval "find '$base_dir' -type d \( $find_pattern \) -prune -o -type d -print" |
+#       while IFS= read -r dir; do
+#         case ":$PATH:" in
+#         *":$dir:"*) ;;
+#         *) PATH="$dir:$PATH" ;;
+#         esac
+#       done
+#   fi
+
+#   export PATH
+#   echo "$PATH"
+# }
+
+update_dots_path() {
+  #@ Get the base directory
+  BASE_DIR="$1"
+
+  #@ Define exclusion patterns at the top level for reusability
+  EXCLUDE_PATTERNS="review temp tmp archive backup"
+  unset exclude_args pattern
+
+  #@ Create temporary file securely
+  TMP_FILE=$(mktemp)
+  trap 'rm -f "$TMP_FILE"' EXIT
+
+  if command -v fd >/dev/null 2>&1; then
+    #@ Convert patterns to fd --exclude args
+    for pattern in $EXCLUDE_PATTERNS; do
+      exclude_args="$exclude_args --exclude '$pattern'"
+    done
+
+    #@ Store fd command and options
+    find_cmd="fd ."
+    find_opt="--type d $exclude_args"
+  else
+    #@ Convert patterns to find -iname args
+    for pattern in $EXCLUDE_PATTERNS; do
+      [ -n "$find_pattern" ] && find_pattern="$find_pattern -o"
+      find_pattern="$find_pattern -iname '$pattern'"
+    done
+
+    #@ Store fd command and options
+    find_cmd="find"
+    find_opt="-type d \( $find_pattern \) -prune -o -type d -print"
+  fi
+
+  #@ Build find/fd command with dynamic exclusion patterns
+  #@ eval is necessary here for POSIX compliance since arrays aren't available
+  #@ and we need to construct a complex command with multiple patterns.
+  #@ This is safe since EXCLUDE_PATTERNS is defined within the script.
+  eval "$find_cmd" "$BASE_DIR" "$find_opt" >"$TMP_FILE"
+
+  # @Include base dir first if it exists and isn't excluded
+  case ":$PATH:" in
+  ":$BASE_DIR:") ;;
+  *) temp_path="${PATH}:${BASE_DIR}" ;;
+  esac
+
+  #@ Build updated path
+  while IFS= read -r dir; do
+    case ":$temp_path:" in
+    ":$dir:") ;;
+    *) temp_path="${temp_path}:${dir}" ;;
+    esac
+  done <"$TMP_FILE"
+
+  #@ Update the PATH variable
+  PATH="$temp_path"
+  export PATH
 }

@@ -9,10 +9,10 @@ use_treefmt() {
   [ -n "$wehave_treefmt" ] || return
 
   treefmt \
-    --config-file"$DOTS_CFG/treefmt/config.toml" \
-    --tree-root "$DOTS" \
+    --config-file "${DOTS_CFG}/treefmt/config.toml" \
     --allow-missing-formatter \
-    --ci
+    --ci \
+    --tree-root "$DOTS"
 }
 
 use_taplo() {
@@ -23,21 +23,19 @@ use_taplo() {
 use_fmt_editorconfig() {
   [ -n "$wehave_fmt_editorconfig" ] || return
 
-  fmt_editorconfig
-  # if [ -n "$wehave_fd" ]; then
-  #   fd \
-  #     --glob '{.editorconfig,editorconfig}' \
-  #     --type file \
-  #     --hidden \
-  #     --absolute-path \
-  #     --exec fmt_editorconfig {} \;
-  # else
-  #   find "$DOTS" \
-  #     -type f \( -name ".editorconfig" -o -name "editorconfig" \) \
-  #     -exec fmt_editorconfig {} \;
-  # fi
+  if [ -n "$wehave_fds" ]; then
+    fd \
+      --glob '{.editorconfig,editorconfig}' \
+      --type file \
+      --hidden \
+      --absolute-path \
+      --exec fmt_editorconfig {}
+  else
+    find "$DOTS" \
+      -type f \( -name ".editorconfig" -o -name "editorconfig" \) \
+      -exec fmt_editorconfig {} \;
+  fi
 }
 
-# use_taplo
-# use_treefmt
-# use_fmt_editorconfig
+use_treefmt
+use_fmt_editorconfig
