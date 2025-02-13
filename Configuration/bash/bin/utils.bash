@@ -500,7 +500,7 @@ init_prompt() {
   init_zoxide
 
   #| System Information
-  init_fasfetch
+  # init_fasfetch
 
   #| Prompt
   init_starship
