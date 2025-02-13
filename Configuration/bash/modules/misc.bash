@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# |> POSIX Compliance
-set -o posix
-
 # Allow ctrl-S for history navigation (with ctrl-R)
 [[ $- == *i* ]] && stty -ixon
 
