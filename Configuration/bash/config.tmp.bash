@@ -427,9 +427,9 @@ init_utilities() {
 define_exports() {
   #| Paths [Configuration]
   BASHRC="$scr_path"
-  BDOTDIR="$scr_dir"
-  DOTS_CFG="${DOTS_CFG:-"$(dirname "$BDOTDIR")"}"
-  export BASHRC BDOTDIR DOTS_CFG
+  DOTS_BASH="$scr_dir"
+  DOTS_CFG="${DOTS_CFG:-"$(dirname "$DOTS_BASH")"}"
+  export BASHRC DOTS_BASH DOTS_CFG
 
   #| Paths [Data]
   XDG_DATA_HOME="$HOME/.local/share"
@@ -665,7 +665,7 @@ define_aliases() {
 }
 
 init_starship() {
-  wehave starship || return
+  weHave starship || return
   STARSHIP_CONFIG="${DOTS_CFG}/starship/starship.toml"
   # PROMPT_COMMAND=(history -a 'starship_precmd')
   export STARSHIP_CONFIG PROMPT_COMMAND

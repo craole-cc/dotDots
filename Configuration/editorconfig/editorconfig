@@ -6,12 +6,12 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
-    indent_size = 2
+indent_size = 2
 charset = utf-8
 
 [*.md]
 max_line_length = 78
-  trim_trailing_whitespace = false
+trim_trailing_whitespace = false
 
 [*.rs]
 indent_style = space

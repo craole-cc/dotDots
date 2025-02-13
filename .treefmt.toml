@@ -7,12 +7,12 @@ excludes = [
   "**/dist/**",
   "**/.git/**",
   "**/review/**",
-  "**/qbittorrent/**",  #TODO Temporary
-  "Assets/**",          #TODO Temporary
-  "Configuration/**",   #TODO Temporary
-  "Environment/**",     #TODO Temporary
-  "Bin/**",             #TODO Temporary
-  "Documentation/**",   #TODO Temporary
+  # "**/qbittorrent/**",  #TODO Temporary
+  # "Assets/**",          #TODO Temporary
+  # "Configuration/**",   #TODO Temporary
+  # "Environment/**",     #TODO Temporary
+  # "Bin/**",             #TODO Temporary
+  # "Documentation/**",   #TODO Temporary
 ]
 
 # #| Documentation
@@ -49,6 +49,7 @@ excludes = [
 # options = ["-i"]
 # priority = 2
 
+#TODO: Not working
 # [formatter.editorconfig]
 # command = "fmt_editorconfig"
 # includes = [".editorconfig"]
@@ -60,130 +61,130 @@ excludes = [
 # options = ["--lint"]
 
 # #| Nix formatting
-[formatter.alejandra]
-command       = "alejandra"
-fail_on_error = true
-includes      = ["*.nix"]
-priority      = 1
+# [formatter.alejandra]
+# command       = "alejandra"
+# fail_on_error = true
+# includes      = ["*.nix"]
+# priority      = 1
 
-# # [formatter.nixfmt]
-# # command = "nixfmt"
+# # # [formatter.nixfmt]
+# # # command = "nixfmt"
+# # # includes = ["*.nix"]
+# # # priority = 1
+
+# # [formatter.deadnix]
+# # command = "deadnix"
+# # excludes = []
 # # includes = ["*.nix"]
-# # priority = 1
+# # options = ["--edit"]
+# # priority = 2
 
-# [formatter.deadnix]
-# command = "deadnix"
-# excludes = []
-# includes = ["*.nix"]
-# options = ["--edit"]
+# # [formatter.statix]
+# # command = "statix"
+# # options = ["fix"]
+# # includes = ["*.nix"]
+# # priority = 3
+
+# # #| Rust formatting
+# [formatter.rust]
+# command  = "rustfmt"
+# options  = ["--edition", "2021"]
+# includes = ["*.rs"]
+# priority = 1
+
+# [formatter.leptosfmt]
+# command  = "leptosfmt"
+# includes = ["*.rs"]
 # priority = 2
 
-# [formatter.statix]
-# command = "statix"
-# options = ["fix"]
-# includes = ["*.nix"]
-# priority = 3
+# #| Shell script formatting# Shell script formatting
+# [formatter.shellcheck]
+# command  = "shellcheck"
+# options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
+# includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc"]
+# priority = 1
 
-# #| Rust formatting
-[formatter.rust]
-command  = "rustfmt"
-options  = ["--edition", "2021"]
-includes = ["*.rs"]
-priority = 1
+# [formatter.shfmt]
+# command = "shfmt"
+# includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc", "*.bash", ".bash*"]
+# options = [
+#   "--apply-ignore",
+#   "--binary-next-line",
+#   "--space-redirects",
+#   "--case-indent",
+#   "--diff",
+#   "--posix",
+#   "--write",
+# ]
+# priority = 2
 
-[formatter.leptosfmt]
-command  = "leptosfmt"
-includes = ["*.rs"]
-priority = 2
+# [formatter.fish]
+# command  = "fish_indent"
+# includes = ["*.fish"]
+# options  = ["--write"]
 
-#| Shell script formatting# Shell script formatting
-[formatter.shellcheck]
-command  = "shellcheck"
-options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
-includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc"]
-priority = 1
+# [formatter.justfile]
+# command  = "just"
+# includes = [".justfile"]
+# options  = ["--unstable", "--fmt", "--justfile"]
 
-[formatter.shfmt]
-command = "shfmt"
-includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc", "*.bash", ".bash*"]
-options = [
-  "--apply-ignore",
-  "--binary-next-line",
-  "--space-redirects",
-  "--case-indent",
-  "--diff",
-  "--posix",
-  "--write",
-]
-priority = 2
+# #| Python formatting
+# [formatter.ruff]
+# command  = "ruff"
+# includes = ["*.py"]
+# options  = ["format", "--quiet"]
 
-[formatter.fish]
-command  = "fish_indent"
-includes = ["*.fish"]
-options  = ["--write"]
+# #| Data formats
+# [formatter.biome]
+# command = "biome"
+# includes = [
 
-[formatter.justfile]
-command  = "just"
-includes = [".justfile"]
-options  = ["--unstable", "--fmt", "--justfile"]
+#   "*.ts",
+#   "*.mts",
+#   "*.cts",
+#   "*.js",
+#   "*.cjs",
+#   "*.mjs",
+#   "*.jsx",
+#   "*.tsx",
+#   "*.d.ts",
+#   "*.d.mts",
+#   "*.d.cts",
+#   "*.vue",
+#   "*.html",
+#   "*.css",
+#   "*.json",
+#   "*.jsonc",
+#   "*.astro",
+#   "*.svelte",
+#   "*.graphql",
+#   "*.webmanifest",
+# ]
+# options = ["format", "ci"]
+# priority = 1
 
-#| Python formatting
-[formatter.ruff]
-command  = "ruff"
-includes = ["*.py"]
-options  = ["format", "--quiet"]
+# [formatter.json]
+# command  = "jq"
+# includes = ["*.json", "*.jsonc"]
+# options  = ["--indent", "2", "--sort-keys", "-M"]
+# priority = 2
 
-#| Data formats
-[formatter.biome]
-command = "biome"
-includes = [
+# #| TOML
+# [formatter.toml]
+# command  = "taplo"
+# includes = ["*.toml"]
+# options  = ["format"]
 
-  "*.ts",
-  "*.mts",
-  "*.cts",
-  "*.js",
-  "*.cjs",
-  "*.mjs",
-  "*.jsx",
-  "*.tsx",
-  "*.d.ts",
-  "*.d.mts",
-  "*.d.cts",
-  "*.vue",
-  "*.html",
-  "*.css",
-  "*.json",
-  "*.jsonc",
-  "*.astro",
-  "*.svelte",
-  "*.graphql",
-  "*.webmanifest",
-]
-options = ["format", "ci"]
-priority = 1
+# #| Lua formatting
+# [formatter.stylua]
+# command  = "stylua"
+# includes = ["*.lua"]
 
-[formatter.json]
-command  = "jq"
-includes = ["*.json", "*.jsonc"]
-options  = ["--indent", "2", "--sort-keys", "-M"]
-priority = 2
-
-#| TOML
-[formatter.toml]
-command  = "taplo"
-includes = ["*.toml"]
-options  = ["format"]
-
-#| Lua formatting
-[formatter.stylua]
-command  = "stylua"
-includes = ["*.lua"]
-
-#| YAML formatting
-[formatter.yamlfmt]
-command  = "yamlfmt"
-includes = ["*.yaml", "*.yml"]
-options  = ["-formatter", "retain_line_breaks=true"]
+# #| YAML formatting
+# [formatter.yamlfmt]
+# command  = "yamlfmt"
+# includes = ["*.yaml", "*.yml"]
+# options  = ["-formatter", "retain_line_breaks=true"]
 
 # [formatter.actionlint]
 # command = "actionlint"

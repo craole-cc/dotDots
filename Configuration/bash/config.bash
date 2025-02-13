@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 
-BDOTRC="$(realpath "${BASH_SOURCE[0]}")"
-BDOTDIR="$(dirname "$BDOTRC")"
-export BDOTRC BDOTDIR
-
-DOTS="$HOME/.dots"
+DOTS="${DOTS:-"$HOME/.dots"}"
 DOTS_BIN="$DOTS/Bin"
 DOTS_CFG="$DOTS/Configuration"
-export DOTS DOTS_BIN DOTS_CFG
+DOTS_BASHRC="$(realpath "${BASH_SOURCE[0]}")"
+DOTS_BASH="$(dirname "$DOTS_BASHRC")"
+export DOTS DOTS_BIN DOTS_CFG DOTS_BASH DOTS_BASH
 
 init_config() {
   conf_files="$(find "$1" -type f)"
 
   for conf in $conf_files; do
-    if [ -r "$conf" ]; then
-      # time . "$conf"
-      . "$conf"
-    else
-      printf "File not readable:  %s" "$conf"
+    if [[ "$conf" =~ \.bash$ ]]; then
+      if [ -r "$conf" ]; then
+        # time . "$conf"
+        . "$conf"
+      else
+        printf "File not readable:  %s\n" "$conf"
+      fi
     fi
   done
 }
@@ -68,22 +68,17 @@ set_app_defaults() {
 case "$BASHOPTS" in
 *i*)
   #@ Source the system-wide profile if SSH client is detected
-  [ -n "$SSH_CLIENT" ] && . /etc/profile
   [ -f /etc/bashrc ] && . /etc/bashrc
   [ -f ~/.bash_aliases ] && . ~/.bash_aliases
   [ -f ~/.bash_profile ] && . ~/.bash_profile
   [ -f ~/.bash_login ] && . ~/.bash_login
   [ -f ~/.bash_functions ] && . ~/.bash_functions
   [ -f ~/.profile ] && . ~/.profile
-  [ -f "$BDOTDIR/inputrc" ] && bind -f "$BDOTDIR/inputrc"
-
-  FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
-  STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
-  export FASTFETCH_CONFIG STARSHIP_CONFIG
+  [ -f "$DOTS_BASH/inputrc" ] && bind -f "$DOTS_BASH/inputrc"
 
   #@ Load resources and functions
-  init_config "$BDOTDIR/bin"
-  init_config "$BDOTDIR/modules"
+  init_config "$DOTS_BASH/bin"
+  init_config "$DOTS_BASH/modules"
 
   update_dots_path "$DOTS/Bin"
   set_app_defaults

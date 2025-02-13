@@ -23,7 +23,7 @@ pkgs.mkShell {
     fastfetch
     lesspipe
     rust-script
-    # lmstudio
+    lmstudio
     # langgraph-cli
     just
 
