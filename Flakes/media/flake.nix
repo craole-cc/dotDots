@@ -1,8 +1,10 @@
+# flake.nix
 {
   description = "Comprehensive media environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
@@ -39,6 +41,26 @@
           mpv = pkgs.mpv;
         };
 
+        mpvScripts = with pkgs.mpvScripts; [
+          uosc
+          memo
+          quack
+          mpris
+          reload
+          cutter
+          evafast
+          autosub
+          smartskip
+          skipsilence
+          chapterskip
+          sponsorblock
+          quality-menu
+          inhibit-gnome
+          mpv-notify-send
+          webtorrent-mpv-hook
+          mpv-playlistmanager
+        ];
+
         ytdScript = substituteAll {
           src = ./modules/ytd.sh;
           isExecutable = true;
@@ -46,66 +68,62 @@
         };
       in {
         default = mkShell {
-          buildInputs = with pkgs;
-            [
-              mpv
-              mpvc
-              yt-dlp
-              ffmpeg
-              feh
-              imv
-              ncmpcpp
-              mpc-cli
-              mpd
-              curseradio
-              playerctl
-              pamixer
-              btop
-              curl
-              fzf
-              jq
-              libnotify
-              mediainfo
-              rlwrap
-              socat
-              xclip
-            ]
-            ++ (with mpvScripts; [
-              uosc
-              memo
-              quack
-              mpris
-              reload
-              cutter
-              evafast
-              autosub
-              smartskip
-              skipsilence
-              chapterskip
-              sponsorblock
-              quality-menu
-              inhibit-gnome
-              mpv-notify-send
-              webtorrent-mpv-hook
-              mpv-playlistmanager
-            ]);
+          buildInputs = with pkgs; [
+            #| Video
+            freetube
+            (mpv.override {
+              scripts = [mpvScripts];
+            })
+            mpvc
+            yt-dlp
+
+            #| Image
+            feh
+            imv
+            swww
+
+            #| Music
+            ncmpcpp
+            mpc-cli
+            mpd
+            curseradio
+            playerctl
+            pamixer
+
+            #| Utilities
+            btop
+            ffmpeg
+            curl
+            fzf
+            jq
+            libnotify
+            mediainfo
+            rlwrap
+            socat
+            xclip
+          ];
 
           shellHook = ''
             printf "🎬 Comprehensive Media Environment Loaded!"
 
-            mkdir -p {bin,config/{mpv/scripts,mpd/playlists},music,videos}
+            #@ Set up directory structure
+            # mkdir -p {bin,config/{mpv/scripts,mpd/playlists},music,videos}
 
+            #@ Copy and process config files
             cp -f ${mpvScript} ./bin/mpv
             cp -f ${ytdScript} ./bin/ytd
             cp -f ${mpvConfig} ./config/mpv/mpv.conf
             cp -f ${mpdConfig} ./config/mpd/mpd.conf
 
+            #@ Set up executable scripts
             chmod +x bin/*
             PATH="$PATH:$PWD/bin"
             export PATH
 
+            #@ Set up aliases
             alias radio='curseradio'
 
+            #@ Print usage message
             printf "\n\nVideo Tools:"
             printf "\n  mpv      - Enhanced MPV with custom config"
             printf "\n  ytd      - Download videos (usage: ytd <url> [quality])"
