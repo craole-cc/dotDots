@@ -22,8 +22,8 @@ pkgs.mkShell {
     fend
     fastfetch
     lesspipe
-    rust-script
-    lmstudio
+        rust-script
+    # lmstudio
     # langgraph-cli
     just
 
