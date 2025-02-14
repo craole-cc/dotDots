@@ -13,8 +13,8 @@
 # _________________________________________ LOCAL<|
 
 #* Verify Instalation *#
-if ! type pacman >/dev/null 2>&1; then
-  return
+if ! type pacman > /dev/null 2>&1; then
+	return
 fi
 
 # _______________________________________ EXPORT<|

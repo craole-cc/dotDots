@@ -10,7 +10,7 @@
 
 # _______________________________________ TWEAKS<|
 
-  TERM="xterm-256color"
-  COLORTERM="truecolor"
-  EDITOR="hx"
-  VISUAL="VScode"
+TERM="xterm-256color"
+COLORTERM="truecolor"
+EDITOR="hx"
+VISUAL="VScode"

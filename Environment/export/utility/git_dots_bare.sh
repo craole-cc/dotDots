@@ -10,19 +10,19 @@
 
 #> Install <#
 if ! weHave git; then
-  if weHave paru; then
-    paru -S git
-  elif weHave pacman; then
-    sudo pacman -S git
-  elif weHave choco; then
-    cup git -y
-  elif weHave winget; then
-    winget install git
-  elif weHave apt-get; then
-    sudo apt-get install git
-  elif weHave yum; then
-    sudo yum install git
-  fi
+	if weHave paru; then
+		paru -S git
+	elif weHave pacman; then
+		sudo pacman -S git
+	elif weHave choco; then
+		cup git -y
+	elif weHave winget; then
+		winget install git
+	elif weHave apt-get; then
+		sudo apt-get install git
+	elif weHave yum; then
+		sudo yum install git
+	fi
 fi
 
 #> Verify Instalation <#
@@ -54,36 +54,36 @@ alias get='git --git-dir="$gitBARE" --work-tree="$DOTS"'
 
 # --> Update Config
 GetInit() {
-  # --> Allow Update
-  unset GIT_CONFIG
+	# --> Allow Update
+	unset GIT_CONFIG
 
-  gitBARE="${HOME}/.dots"
-  gitWORK="${DOTS}"
-  gitCONFIG="${gitBARE}/config"
-  gitIGNORE="${GDOTDIR}/gitignore"
-  gitNAME="${Name}"
-  gitEMAIL="${Email}"
+	gitBARE="${HOME}/.dots"
+	gitWORK="${DOTS}"
+	gitCONFIG="${gitBARE}/config"
+	gitIGNORE="${GDOTDIR}/gitignore"
+	gitNAME="${Name}"
+	gitEMAIL="${Email}"
 
-  if [ ! -d "${gitBARE}" ]; then
-    mkdir --parents "${gitBARE}"
-    git init --bare "${gitBARE}"
-    get remote add remote git@gitlab.com:craole/dotfiles.git
-  fi
+	if [ ! -d "${gitBARE}" ]; then
+		mkdir --parents "${gitBARE}"
+		git init --bare "${gitBARE}"
+		get remote add remote git@gitlab.com:craole/dotfiles.git
+	fi
 
-  get config --local user.name "${gitNAME}"
-  get config --local user.email "${gitEMAIL}"
-  get config --local core.excludesfile "${gitIGNORE}"
-  get config --local core.editor "${VISUAL}" --wait
-  get config --local init.defaultBranch main
-  get config --local status.showUntrackedFiles no
-  get config --local --unset core.autocrlf
-  get config --local core.autocrlf false
-  get config --local core.safecrlf true
-  # get config --local push.autoSetupRemote
-  # git config --local fetch.prune true
-  # git config --local alias.empty "git commit --allow-empty"
+	get config --local user.name "${gitNAME}"
+	get config --local user.email "${gitEMAIL}"
+	get config --local core.excludesfile "${gitIGNORE}"
+	get config --local core.editor "${VISUAL}" --wait
+	get config --local init.defaultBranch main
+	get config --local status.showUntrackedFiles no
+	get config --local --unset core.autocrlf
+	get config --local core.autocrlf false
+	get config --local core.safecrlf true
+	# get config --local push.autoSetupRemote
+	# git config --local fetch.prune true
+	# git config --local alias.empty "git commit --allow-empty"
 
-  export GIT_CONFIG="${gitCONFIG}"
+	export GIT_CONFIG="${gitCONFIG}"
 }
 
 # list
@@ -270,30 +270,30 @@ alias Gtl='get tag -l'
 
 # shellcheck disable=SC2154
 case "${sys_INFO}" in
-*Mac*)
-  alias gtls="get tag -l | gsort -V"
-  ;;
-*)
-  alias gtls='get tag -l | sort -V'
-  ;;
+	*Mac*)
+		alias gtls="get tag -l | gsort -V"
+		;;
+	*)
+		alias gtls='get tag -l | sort -V'
+		;;
 esac
 
 # # functions
 Gdv() {
-  get diff --ignore-all-space "$@" | vim -R -
+	get diff --ignore-all-space "$@" | vim -R -
 }
 
 GUP() {
-  case $1 in
-  -r | --reset)
-    Grmc
-    shift
-    ;;
-  *) ;;
-  esac
-  GetInit
-  Gss
-  Gal
-  Gcam "$@"
-  Gp
+	case $1 in
+		-r | --reset)
+			Grmc
+			shift
+			;;
+		*) ;;
+	esac
+	GetInit
+	Gss
+	Gal
+	Gcam "$@"
+	Gp
 }

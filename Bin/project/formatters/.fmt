@@ -23,7 +23,7 @@ use_taplo() {
 use_fmt_editorconfig() {
   [ -n "$wehave_fmt_editorconfig" ] || return
 
-  if [ -n "$wehave_fds" ]; then
+  if [ -n "$wehave_fd" ]; then
     fd \
       --glob '{.editorconfig,editorconfig}' \
       --type file \
