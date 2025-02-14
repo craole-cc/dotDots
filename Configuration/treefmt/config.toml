@@ -60,11 +60,11 @@ excludes = [
 # options = ["--lint"]
 
 #| Nix
-[formatter.deadnix]
-includes = ["*.nix"]
-priority = 1
-command  = "deadnix"
-options  = ["--edit"]
+# [formatter.deadnix]
+# includes = ["*.nix"]
+# priority = 1
+# command  = "deadnix"
+# options  = ["--edit"]
 
 [formatter.statix]
 includes = ["*.nix"]
