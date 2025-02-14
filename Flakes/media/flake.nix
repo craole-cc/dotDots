@@ -69,9 +69,11 @@
               rlwrap
               socat
               xclip
+
+              mpvScripts.uosc
             ]
             ++ (with mpvScript; [
-              uosc
+              # uosc
               memo
               # quack
               # mpris
