@@ -37,44 +37,57 @@
           isExecutable = true;
           ytdlp = pkgs.yt-dlp;
         };
-
-        initScript = substituteAll {
-          src = ./modules/init.sh;
-          isExecutable = true;
-          ytdlp = pkgs.yt-dlp;
-        };
       in {
         devShells.default = mkShell {
-          buildInputs = with pkgs; [
-            #| Video tools
-            mpv
-            mpvc
-            yt-dlp
-            ffmpeg
+          buildInputs = with pkgs;
+            [
+              #| Video tools
+              mpv
+              mpvc
+              yt-dlp
+              ffmpeg
 
-            #| Image viewers
-            feh
-            imv
+              #| Image viewers
+              feh
+              imv
 
-            #| Music and radio
-            ncmpcpp
-            mpc-cli
-            mpd
-            curseradio
-            playerctl
-            pamixer
+              #| Music and radio
+              ncmpcpp
+              mpc-cli
+              mpd
+              curseradio
+              playerctl
+              pamixer
 
-            #| Additional utilities
-            btop
-            curl
-            fzf
-            jq
-            libnotify
-            mediainfo
-            rlwrap
-            socat
-            xclip
-          ];
+              #| Additional utilities
+              btop
+              curl
+              fzf
+              jq
+              libnotify
+              mediainfo
+              rlwrap
+              socat
+              xclip
+            ]
+            ++ (with mpvScript; [
+              memo
+              quack
+              mpris
+              reload
+              cutter
+              evafast
+              autosub
+              smartskip
+              skipsilence
+              chapterskip
+              sponsorblock
+              quality-menu
+              inhibit-gnome
+              mpv-notify-send
+              webtorrent-mpv-hook
+              mpv-playlistmanager
+            ]);
 
           shellHook = ''
             printf "🎬 Comprehensive Media Environment Loaded!"
