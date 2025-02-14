@@ -112,7 +112,7 @@ options = [
   "--binary-next-line",
   "--space-redirects",
   "--case-indent",
-  "--diff",
+  # "--diff",
   # "--posix",
   "--write",
 ]
