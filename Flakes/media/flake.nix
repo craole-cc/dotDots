@@ -37,6 +37,12 @@
           isExecutable = true;
           ytdlp = pkgs.yt-dlp;
         };
+
+        initScript = substituteAll {
+          src = ./modules/init.sh;
+          isExecutable = true;
+          ytdlp = pkgs.yt-dlp;
+        };
       in {
         devShells.default = mkShell {
           buildInputs = with pkgs; [
@@ -71,28 +77,13 @@
             mkdir -p {bin,config/{mpv/scripts,mpd/playlists},music,videos}
 
             #@ Copy and process config files
-            cp ${mpvScript} bin/mpv
-            cp ${ytdScript} bin/ytd
-            cp ${mpvConfig} config/mpv/mpv.conf
-            cp ${mpdConfig} config/mpd/mpd.conf
+            cp ${mpvScript} ./bin/mpv
+            cp ${ytdScript} ./bin/ytd
+            cp ${initScript} ./bin/media-init
+            cp ${mpvConfig} ./config/mpv/mpv.conf
+            cp ${mpdConfig} ./config/mpd/mpd.conf
 
-            #@ Set up executable scripts
-            chmod +x bin/*
-            PATH="$PATH:$PWD/bin"
-            export PATH
-            alias radio='curseradio'
-
-            printf "Video Tools:\n"
-            printf "  mpv       - Enhanced MPV with custom config\n"
-            printf "  ytd       - Download videos (usage: ytd <url> [quality])\n\n"
-
-            printf "Image Viewers:\n"
-            printf "  feh       - Light image viewer\n"
-            printf "  imv       - Alternative image viewer\n\n"
-
-            printf "Music & Radio:\n"
-            printf "  ncmpcpp   - Music player (music dir: music)\n"
-            printf "  radio     - Terminal radio\n\n"
+            media-init
           '';
         };
       }
