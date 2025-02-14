@@ -48,6 +48,7 @@
           buildInputs = with pkgs; [
             #| Video tools
             mpv
+            mpvc
             yt-dlp
             ffmpeg
 
@@ -64,26 +65,50 @@
             pamixer
 
             #| Additional utilities
-            xclip
-            socat
+            btop
+            curl
+            fzf
             jq
+            libnotify
             mediainfo
+            rlwrap
+            socat
+            xclip
           ];
 
           shellHook = ''
-            printf "🎬 Comprehensive Media Environment Loaded!\n\n"
+            printf "🎬 Comprehensive Media Environment Loaded!"
 
             #@ Set up directory structure
             mkdir -p {bin,config/{mpv/scripts,mpd/playlists},music,videos}
 
             #@ Copy and process config files
-            cp ${mpvScript} ./bin/mpv
-            cp ${ytdScript} ./bin/ytd
-            cp ${initScript} ./bin/media-init
-            cp ${mpvConfig} ./config/mpv/mpv.conf
-            cp ${mpdConfig} ./config/mpd/mpd.conf
+            cp -f ${mpvScript} ./bin/mpv
+            cp -f ${ytdScript} ./bin/ytd
+            cp -f ${mpvConfig} ./config/mpv/mpv.conf
+            cp -f ${mpdConfig} ./config/mpd/mpd.conf
 
-            media-init
+            #@ Set up executable scripts
+            chmod +x bin/*
+            PATH="$PATH:$PWD/bin"
+            export PATH
+
+            #@ Set up aliases
+            alias radio='curseradio'
+
+            #@ Print usage message
+            printf "\n\nVideo Tools:"
+            printf "\n  mpv      - Enhanced MPV with custom config"
+            printf "\n  ytd      - Download videos (usage: ytd <url> [quality])"
+
+            printf "\n\nImage Viewers:"
+            printf "\n  feh      - Light image viewer"
+            printf "\n  imv      - Alternative image viewer"
+
+            printf "\n\nMusic & Radio:"
+            printf "\n  ncmpcpp  - Music player (music dir: music)"
+            printf "\n  radio    - Terminal radio"
+            echo
           '';
         };
       }
