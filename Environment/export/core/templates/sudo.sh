@@ -10,39 +10,39 @@
 # _________________________________ DOCUMENTATION<|
 
 for x in \
-    mount \
-    umount \
-    sv \
-    pacman \
-    updatedb \
-    su \
-    shutdown \
-    halt \
-    poweroff \
-    reboot \
-    fc-cache \
-    df \
-    du \
-    rm \
-    reflector \
-    powerpill \
-    chsh \
-    chmod \
-    featherpad \
-    notepadqq; do
-    #/// shellcheck disable=SC2139
-    alias $x='sudo $x'
-    # x="sudo $x"
+	mount \
+	umount \
+	sv \
+	pacman \
+	updatedb \
+	su \
+	shutdown \
+	halt \
+	poweroff \
+	reboot \
+	fc-cache \
+	df \
+	du \
+	rm \
+	reflector \
+	powerpill \
+	chsh \
+	chmod \
+	featherpad \
+	notepadqq; do
+	#/// shellcheck disable=SC2139
+	alias $x='sudo $x'
+	# x="sudo $x"
 done
 
 alias update="pacman -Syu"
 
-# sudo() { 
-#     if alias "$1" > /dev/null 2>&1 ; then 
+# sudo() {
+#     if alias "$1" > /dev/null 2>&1 ; then
 #         $(type "$1" | sed -E 's/^.*`(.*).$/\1/') "${@:2}"
-#     else 
+#     else
 #         command sudo "$@"
-#     fi 
+#     fi
 # }
 
 update

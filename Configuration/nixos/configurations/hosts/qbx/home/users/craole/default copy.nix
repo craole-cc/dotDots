@@ -1,9 +1,7 @@
-{ config, ... }:
 let
   user = "craole";
-  autoLogin=true
-in
-{
+  autoLogin = true;
+in {
   dots = {
     services = {
       gnome.enable = true;
@@ -23,17 +21,15 @@ in
   };
 
   home-manager = {
-    users.${user} =
-      { osConfig, ... }:
-      {
-        home.stateVersion = osConfig.system.stateVersion;
-        programs.home-manager.enable = true;
-        imports = [
-          ./modules
-          ./services
-          ./programs
-        ];
-      };
+    users.${user} = {osConfig, ...}: {
+      home.stateVersion = osConfig.system.stateVersion;
+      programs.home-manager.enable = true;
+      imports = [
+        ./modules
+        ./services
+        ./programs
+      ];
+    };
   };
 
   services.displayManager = {

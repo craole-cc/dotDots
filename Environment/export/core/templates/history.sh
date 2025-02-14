@@ -18,10 +18,10 @@ HISTCONTROL=ignoreboth:erasedups
 HISTIGNORE="ls:ll:cd:pwd:bg:fg:history:clear:history -a:history -n:history -r: history -c"
 
 updateHistory() {
-  history -a
-  history -n
-  history -r
-  # history -c
+	history -a
+	history -n
+	history -r
+	# history -c
 }
 
 # updateHistory

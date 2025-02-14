@@ -49,22 +49,23 @@ excludes = [
 # options = ["-i"]
 # priority = 2
 
-[formatter.editorconfig]
-command = "fmt_editorconfig"
-includes = [".editorconfig"]
-options = ["--format"]
+#TODO: Not working
+# [formatter.editorconfig]
+# command = "fmt_editorconfig"
+# includes = [".editorconfig"]
+# options = ["--format"]
 
 # [formatter.editorconfig_lint]
 # command = "fmt_editorconfig"
 # includes = [".editorconfig"]
 # options = ["--lint"]
 
-# #| Nix formatting
-# [formatter.alejandra]
-# command       = "alejandra"
+#| Nix formatting
+[formatter.alejandra]
+command  = "alejandra"
+includes = ["*.nix"]
+priority = 1
 # fail_on_error = true
-# includes      = ["*.nix"]
-# priority      = 1
 
 # # # [formatter.nixfmt]
 # # # command = "nixfmt"
@@ -96,26 +97,26 @@ options = ["--format"]
 # includes = ["*.rs"]
 # priority = 2
 
-# #| Shell script formatting# Shell script formatting
-# [formatter.shellcheck]
-# command  = "shellcheck"
-# options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
-# includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc"]
-# priority = 1
+#| Shell script formatting# Shell script formatting
+[formatter.shellcheck]
+command  = "shellcheck"
+options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
+includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc"]
+priority = 1
 
-# [formatter.shfmt]
-# command = "shfmt"
-# includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc", "*.bash", ".bash*"]
-# options = [
-#   "--apply-ignore",
-#   "--binary-next-line",
-#   "--space-redirects",
-#   "--case-indent",
-#   "--diff",
-#   "--posix",
-#   "--write",
-# ]
-# priority = 2
+[formatter.shfmt]
+command = "shfmt"
+includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc", "*.bash", ".bash*"]
+options = [
+  "--apply-ignore",
+  "--binary-next-line",
+  "--space-redirects",
+  "--case-indent",
+  "--diff",
+  # "--posix",
+  "--write",
+]
+priority = 2
 
 # [formatter.fish]
 # command  = "fish_indent"
