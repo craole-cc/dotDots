@@ -69,27 +69,25 @@
               rlwrap
               socat
               xclip
-
-              mpvScripts.uosc
             ]
-            ++ (with mpvScript; [
-              # uosc
+            ++ (with mpvScripts; [
+              uosc
               memo
-              # quack
-              # mpris
-              # reload
+              quack
+              mpris
+              reload
               cutter
-              # evafast
-              # autosub
-              # smartskip
-              # skipsilence
-              # chapterskip
-              # sponsorblock
-              # quality-menu
-              # inhibit-gnome
-              # mpv-notify-send
-              # webtorrent-mpv-hook
-              # mpv-playlistmanager
+              evafast
+              autosub
+              smartskip
+              skipsilence
+              chapterskip
+              sponsorblock
+              quality-menu
+              inhibit-gnome
+              mpv-notify-send
+              webtorrent-mpv-hook
+              mpv-playlistmanager
             ]);
 
           shellHook = ''
