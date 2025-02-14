@@ -9,9 +9,9 @@
 # # enable=require-double-brackets #? Require [[ and warn about [ in Bash/Ksh
 
 # #> Disable Warnings
-# disable=SC2154 #? Variable is referenced but not assigned
+disable=SC2154 #? Variable is referenced but not assigned
 disable=SC1090-SC1091 #? Can't follow non-constant source. Use a directive to specify location.
-# disable=SC2034 #? Unused variables.
+disable=SC2034 #? Unused variables.
 # disable=SC2317 #?  Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
 
 # #>

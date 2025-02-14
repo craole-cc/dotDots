@@ -10,7 +10,7 @@ const SCR_VERSION: &str = "1.0";
 const PADDING: &str = "  ";
 
 // Global variables
-let mut flag_VERBOSE: bool = false;
+// let mut flag_VERBOSE: bool = false;
 
 // Parse command-line options
 fn parse_cli(args: &[String]) {
@@ -98,7 +98,10 @@ fn get_environment() -> &'static str {
         }
     }
 
-    if let Some(display) = std::env::var("WAYLAND_DISPLAY").ok().or_else(|| std::env::var("DISPLAY").ok()) {
+    if let Some(display) = std::env::var("WAYLAND_DISPLAY")
+        .ok()
+        .or_else(|| std::env::var("DISPLAY").ok())
+    {
         if !display.is_empty() {
             return "graphical Unix";
         }

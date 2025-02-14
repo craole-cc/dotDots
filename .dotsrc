@@ -1,5 +1,5 @@
 #!/bin/sh
-
+## shellcheck disable=SC2034,SC2154,SC2164,SC2181,SC2213,SC2230,SC2291,SC2317,SC2320,SC2039
 main() {
   #@ Initialization the script environment
   manage_script --init functions
@@ -23,14 +23,13 @@ manage_script() {
     #@ Set persistent variables
     set -o allexport
 
-    if [ -f "$DOTS_RCs" ]; then
+    if [ -f "$DOTS_RC" ]; then
       DOTS="$(dirname "${DOTS_RC}")"
-    elif [ -d "$DOTSs" ]; then
+    elif [ -d "$DOTS" ]; then
       DOTS_RC="$DOTS/.dotsrc"
-    else
-      # shellcheck disable=SC3054,SC3028
-      DOTS_RC="${BASH_SOURCE[0]}"
-      DOTS="$(dirname "$DOTS_RC")"
+    # else
+    #   # DOTS_RC="${BASH_SOURCE[0]}"
+    #   DOTS="$(dirname "$DOTS_RC")"
     fi
 
     DOTS_IGNORE="$DOTS/.ignore"

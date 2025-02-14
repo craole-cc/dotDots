@@ -23,22 +23,24 @@ LOCAL_sh
 
 ## Backup Files
   {
-    export TIME=$(date --utc +"%Y%m%dT%H%M%S_%Z")
-    export ARCHIVE="$HOME/.archive"
+    TIMESTAMP="${TIMESTAMP:-"$(date --utc +"%Y%m%dT%H%M%S_%Z")"}"
+    export TIMESTAMP
+    ARCHIVE="$HOME/.archive"
+    export ARCHIVE
 
-    cp() {
+    cpx() {
       cp \
         --parents \
         --backup \
-        --suffix=$TIME \
-        --target-directory=$ARCHIVE \
+        --suffix="$TIMESTAMP" \
+        --target-directory="$ARCHIVE" \
         --preserve=all \
         --verbose \
-        $*
+        "$@"
     }
 
     touch testcopy
-    cp testcopy
+    cpx testcopy
 
     _DATE_=$(date --utc  +"%Y%m%dT%H%M%S_%Z")
     _FILE_="$HOME/.bashrc"
