@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 mod=mod1 # Use alt as the main modifier
 #mod=mod4   # Use the super key as the main modifier
@@ -9,10 +9,10 @@ hc keyunbind --all
 
 # System controls #
 #-----------------#
-hc keybind "${mod}"-Shift-c spawn alacritty -t logout -e herbst-logout.sh
+hc keybind "${mod}"-Shift-c spawn kitty -t logout -e herbst-logout.sh
 hc keybind "${mod}"-Control-r reload
 hc keybind "${mod}"-Shift-q close
-hc keybind "${mod}"-Shift-Return spawn "${TERMINAL:-alacritty}" #
+hc keybind "${mod}"-Shift-Return spawn "${TERMINAL:-kitty}" #
 
 # multimedia #
 #------------#
@@ -101,14 +101,14 @@ tag_keys=({1..9} 0)
 
 hc rename default "${tag_names[0]}" || true
 for i in "${!tag_names[@]}"; do
-    hc add "${tag_names[$i]}"
-    hc set_layout horizontal
-    hc set default_frame_layout 1
-    key="${tag_keys[$i]}"
-    if ! [ -z "$key" ]; then
-        hc keybind ""${mod}"-$key" use_index "$i"
-        hc keybind ""${mod}"-Shift-$key" move_index "$i"
-    fi
+	hc add "${tag_names[$i]}"
+	hc set_layout horizontal
+	hc set default_frame_layout 1
+	key="${tag_keys[$i]}"
+	if ! [ -z "$key" ]; then
+		hc keybind ""${mod}"-$key" use_index "$i"
+		hc keybind ""${mod}"-Shift-$key" move_index "$i"
+	fi
 done
 
 # layouting #
@@ -123,9 +123,9 @@ hc keybind "${mod}"-p pseudotile toggle
 # layouts, if the layout change wouldn't affect the actual window positions.
 # I.e. if there are two windows within a frame, the grid layout is skipped.
 hc keybind "${mod}"-space \
-    or , and . compare tags.focus.curframe_wcount = 2 \
-    . cycle_layout +1 vertical horizontal max vertical grid \
-    , cycle_layout +1
+	or , and . compare tags.focus.curframe_wcount = 2 \
+	. cycle_layout +1 vertical horizontal max vertical grid \
+	, cycle_layout +1
 
 # focus #
 #-------#
