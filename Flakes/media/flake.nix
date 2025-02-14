@@ -72,7 +72,7 @@
               #| Video
               freetube
               (mpv.override {
-                scripts = [mpvScripts];
+                scripts = mpvScripts;
               })
               mpvc
               yt-dlp
