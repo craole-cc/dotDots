@@ -60,12 +60,12 @@ excludes = [
 # includes = [".editorconfig"]
 # options = ["--lint"]
 
-# #| Nix formatting
-# [formatter.alejandra]
-# command       = "alejandra"
-# fail_on_error = true
-# includes      = ["*.nix"]
-# priority      = 1
+#| Nix formatting
+[formatter.alejandra]
+command       = "alejandra"
+fail_on_error = true
+includes      = ["*.nix"]
+priority      = 1
 
 # # # [formatter.nixfmt]
 # # # command = "nixfmt"

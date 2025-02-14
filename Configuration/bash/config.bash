@@ -11,13 +11,12 @@ init_config() {
   conf_files="$(find "$1" -type f)"
 
   for conf in $conf_files; do
-    if [[ "$conf" =~ \.bash$ ]]; then
-      if [ -r "$conf" ]; then
-        # time . "$conf"
-        . "$conf"
-      else
-        printf "File not readable:  %s\n" "$conf"
-      fi
+    # if [[ "$conf" =~ \.bash$ ]]; then
+    if [ -r "$conf" ]; then
+      # time . "$conf"
+      . "$conf"
+    else
+      printf "File not readable:  %s\n" "$conf"
     fi
   done
 }
@@ -83,6 +82,7 @@ case "$BASHOPTS" in
   update_dots_path "$DOTS/Bin"
   set_app_defaults
   init_prompt
+  # init_fasfetch
   ;;
 *)
   # If this is a login shell, exit instead of returning

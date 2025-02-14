@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Allow ctrl-S for history navigation (with ctrl-R)
 [[ $- == *i* ]] && stty -ixon
 
