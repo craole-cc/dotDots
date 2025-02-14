@@ -11,12 +11,12 @@ QUALITY="${2:-1080p}"
 
 case $QUALITY in
 "best")
-  @yt-dlp@/bin/yt-dlp "$URL"
+  @ytdlp@/bin/yt-dlp "$URL"
   ;;
 "audio")
-  @yt-dlp@/bin/yt-dlp -x --audio-format mp3 "$URL"
+  @ytdlp@/bin/yt-dlp -x --audio-format mp3 "$URL"
   ;;
 *)
-  @yt-dlp@/bin/yt-dlp -f "bestvideo[height<=${QUALITY%p}]+bestaudio/best[height<=${QUALITY%p}]" "$URL"
+  @ytdlp@/bin/yt-dlp -f "bestvideo[height<=${QUALITY%p}]+bestaudio/best[height<=${QUALITY%p}]" "$URL"
   ;;
 esac

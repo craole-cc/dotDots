@@ -8,7 +8,6 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     flake-utils,
   }:
@@ -23,7 +22,7 @@
 
         mpvConfig = substituteAll {
           src = ./modules/mpv.conf;
-          yt-dlp = pkgs.yt-dlp;
+          ytdlp = pkgs.yt-dlp;
         };
 
         mpvScript = substituteAll {
@@ -35,7 +34,7 @@
         ytdScript = substituteAll {
           src = ./modules/ytd.sh;
           isExecutable = true;
-          yt-dlp = pkgs.yt-dlp;
+          ytdlp = pkgs.yt-dlp;
         };
       in {
         devShells.default = mkShell {
