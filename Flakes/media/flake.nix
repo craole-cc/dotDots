@@ -38,6 +38,7 @@
           ytdlp = pkgs.yt-dlp;
         };
       in {
+        nixpkgs.config.allowUnfree = true;
         devShells.default = mkShell {
           buildInputs = with pkgs;
             [
