@@ -19,6 +19,9 @@ scr_OPTIONS="Options:
 scr_ARGUMENTS="Arguments:
     <LEVEL>    [quiet, info [default], debug, 0, 1, 2]
 "
+scr_DEPS="Dependencies:
+    $scr_DEPENDENCIES
+"
 scr_EXAMPLES="Examples:
     $scr_NAME HOME XDG_CONFIG
     $scr_NAME HOME XDG_CONFIG --verbose info
@@ -34,6 +37,7 @@ scr_HELP="$(
   $scr_USAGE
   $scr_OPTIONS
   $scr_ARGUMENTS
+  $scr_DEPS
   $scr_EXAMPLES
   $scr_AUTHORS
 HELP
@@ -73,9 +77,15 @@ parse_arguments() {
 	#@ Accept user options
 	while [ "$#" -ge 1 ]; do
 		case "$1" in
-			-h | --help) present_info --exit "$scr_USAGE" ;;
-			-v | --version) present_info --exit "$scr_VERSION" ;;
-			-d | --verbose) verbose=true ;;
+			-h | --help)
+				printf "%s\n" "$scr_HELP"
+				exit 0
+				;;
+			-v | --version)
+				printf "%s\n" "$scr_VERSION"
+				exit 0
+				;;
+			# -d | --verbose) verbose=true ;;e
 			-q | --quiet) unset verbose ;;
 			-c | --cr) target_eol="cr" ;;
 			-l | --lf) target_eol="lf" ;;
@@ -109,11 +119,11 @@ process_core() {
 			case "$target_eol" in
 				"cr")
 					convert_to_cr "$file"
-					printf "| $file | LF to CRLF |\n"
+					printf "| %s | LF to CRLF |\n" "$file"
 					;;
 				"lf")
 					convert_to_lf "$file"
-					printf "| $file | CRLF to LF |\n"
+					printf "| %s | CRLF to LF |\n" "$file"
 					;;
 			esac
 
@@ -125,7 +135,7 @@ process_core() {
 		shift
 	done
 
-	printf "\nConversion of $files_processed file(s) completed.\n"
+	printf "\nConversion of %s file(s) completed.\n" "$files_processed"
 }
 
 #@ __________________________________________________ INFO<|
