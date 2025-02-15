@@ -66,12 +66,12 @@
       };
 
       ytdCommand = pkgs.substituteAll {
-        src = paths.mod + "/ytd/cmd.sh";
         isExecutable = true;
+        src = paths.mod + "/ytd/cmd.sh";
         ytdlp = pkgs.yt-dlp;
         downloads = paths.dls;
-        module = paths.mod + "/ytd/settings.nix";
         config = paths.cfg + "/ytd/yt-dlp.conf";
+        module = paths.mod + "/ytd/settings.nix";
       };
     in {
       devShells.default = pkgs.mkShell {
