@@ -14,12 +14,12 @@ excludes = [
   "Documentation/**", #TODO Temporary
 ]
 
-# #| Documentation
-# [formatter.markdown]
-# command = "markdownlint"
-# includes = ["*.md"]
-# options = ["--fix", "--config", ".markdownlint.json"]
-# priority = 1
+#| Documentation
+[formatter.markdown]
+command  = "markdownlint"
+includes = ["*.md", "LICENSE", "README"]
+options  = ["--fix", "--config", ".markdownlint.json"]
+priority = 1
 
 # [formatter.mdsh]
 # command = "mdsh"
@@ -118,7 +118,7 @@ includes = [
   ".bash*",
   "Bin/shellscript/**",
   "Modules/**",
-  "Flakes/media/modules/ytd/settings.conf",
+  "*.conf",
 ]
 options = [
   # "--apply-ignore",
