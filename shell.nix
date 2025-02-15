@@ -56,6 +56,8 @@ pkgs.mkShell {
     # deno # ? javascript and typescript
     biome # ? Json, JavaScript and TypeScript
     nufmt
+    editorconfig-checker
+    powershell
   ];
 
   shellHook = ''
