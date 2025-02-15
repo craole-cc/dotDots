@@ -80,17 +80,17 @@ setcolors
 if [ -p /dev/stdin ]; then
 	lastarg=$(</dev/stdin)
 else
-	lastarg=$(echo "${@: -1}")
+	lastarg="$(echo "${@: -1}")"
 	if test -f "$lastarg"; then
-		lastarg=$(<$lastarg)
+		lastarg=$(<"$lastarg")
 	fi
 fi
 # Cleanup the input data
-lastarg=$(echo $lastarg | sed 's/\n/;/g; s/  / /g; s/\t//g; s/;;/;/g')
-IFS=';' read -r -a array <<<$lastarg
+lastarg=$(echo "$lastarg" | sed 's/\n/;/g; s/  / /g; s/\t//g; s/;;/;/g')
+IFS=';' read -r -a array <<<"$lastarg"
 
 # ensure that there is some data
-if [[ ${array} == 0 ]]; then
+if [[ ${array[0]} == 0 ]]; then
 	echo "No data found"
 	exit 0
 fi
@@ -151,16 +151,16 @@ for element in "${array[@]}"; do
 			colidx=$color
 		fi
 		setcolors
-		eval $color_set
+		eval "$color_set"
 		printf " %${maxlbl}s " "$label"
 		bar="printf '█%.0s' {1..$sval}"
-		eval $bar
+		eval "$bar"
 		# add value and units if available
 		units=""
 		if [[ ${#datapt[@]} > 2 ]]; then
 			units=${datapt[2]}
 		fi
-		printf " %d %s\n\n" $val "$units"
-		eval $color_rs
+		printf " %d %s\n\n" "$val" "$units"
+		eval "$color_rs"
 	fi
 done
