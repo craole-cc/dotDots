@@ -295,11 +295,12 @@ options = ["format", "--quiet"]
 # includes = ["*"]
 # options = []
 
-# [formatter.nufmt]
-# command = "nufmt"
-# excludes = []
-# includes = ["*.nu"]
-# options = []
+[formatter.nufmt]
+includes = [
+  "*.nu",
+  "Bin/nushell/**",
+]
+command = "nufmt"
 
 # #| Ruby
 # [formatter.rufo]
