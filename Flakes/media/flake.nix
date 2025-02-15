@@ -67,11 +67,12 @@
 
       ytdCommand = pkgs.substituteAll {
         isExecutable = true;
-        src = paths.mod + "/ytd/cmd.sh";
+        src = ./modules/ytd/cmd.sh;
+        # src = paths.mod + "/ytd/cmd.sh";
         ytdlp = pkgs.yt-dlp;
         downloads = paths.dls;
         config = paths.cfg + "/ytd/yt-dlp.conf";
-        module = paths.mod + "/ytd/settings.nix";
+        module = paths.mod + "/ytd/settings.conf";
       };
     in {
       devShells.default = pkgs.mkShell {
@@ -111,10 +112,8 @@
         shellHook = ''
           printf "🎬 Comprehensive Media Environment Loaded!\n\n"
 
-          #@ Set up directory structure
-          mkdir -p {${paths.bin}
-
-          #@ Copy scripts
+          #@ Deploy scripts
+          mkdir -p ${paths.bin}
           cp -f ${ytdCommand} ${paths.bin}/ytd
 
           #@ Set up executable scripts
