@@ -115,6 +115,8 @@ options = [
   "--binary-next-line",
   "--space-redirects",
   "--case-indent",
+  "--indent",
+  "--indent-size 2",
   # "--diff",
   # "--posix",
   "--write",
