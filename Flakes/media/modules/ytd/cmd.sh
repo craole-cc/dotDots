@@ -28,11 +28,11 @@ usage() {
 set_defaults() {
   #@ Set defaults
   URL=""
-  FMT="1080p"
-  DIR=@downloads@
-  MOD=@module@
-  CFG=@config@
-  CMD=@ytdlp@/bin/yt-dlp
+  FMT=@fmt@
+  DIR=@dls@
+  MOD=@mod@
+  CFG=@cfg@
+  CMD=@cmd@
 }
 
 #@ Parse arguments

@@ -53,7 +53,7 @@
       };
 
       mpvCommand = pkgs.substituteAll {
-        src = paths.mod + "/mpv/cmd.sh";
+        src = ./modules/mpv/cmd.sh;
         isExecutable = true;
         mpv = pkgs.mpv.override {
           scripts = mpvEnhanced;
@@ -68,11 +68,11 @@
       ytdCommand = pkgs.substituteAll {
         isExecutable = true;
         src = ./modules/ytd/cmd.sh;
-        # src = paths.mod + "/ytd/cmd.sh";
-        ytdlp = pkgs.yt-dlp;
-        downloads = paths.dls;
-        config = paths.cfg + "/ytd/yt-dlp.conf";
-        module = paths.mod + "/ytd/settings.conf";
+        cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
+        cfg = paths.cfg + "/ytd/yt-dlp.conf";
+        mod = paths.mod + "/ytd/settings.conf";
+        dls = paths.dls;
+        fmt = "1080p";
       };
     in {
       devShells.default = pkgs.mkShell {
@@ -120,7 +120,7 @@
           find "${paths.bin}" -type f -exec chmod +x {} +
           PATH="$PATH:${paths.bin}"
           export PATH
-          unalias ytd mpv
+          unalias mpv ytd
 
           #@ Show the usage guide
           printf "Video Tools:\n"
