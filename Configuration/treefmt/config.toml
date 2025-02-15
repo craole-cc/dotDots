@@ -116,7 +116,6 @@ options = [
   "--space-redirects",
   "--case-indent",
   "--indent",
-  "--indent-size",
   "4",
   # "--diff",
   # "--posix",
