@@ -117,6 +117,7 @@ includes = [
   "*.bash",
   ".bash*",
   "Bin/shellscript/**",
+  "Modules/**",
 ]
 options = [
   # "--apply-ignore",
