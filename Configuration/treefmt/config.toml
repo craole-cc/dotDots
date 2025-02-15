@@ -159,7 +159,7 @@ options = [
 
 #| Data formats
 [formatter.biome]
-command = "biome"
+priority = 1
 includes = [
   "*.ts",
   "*.mts",
@@ -183,9 +183,14 @@ includes = [
   "*.webmanifest",
   "README",
 ]
-options = ["format", "ci"]
-priority = 1
-
+# command = "biome"
+# options = ["format", "ci"]
+command = "sh"
+options = [
+  "-euc",
+  "command -v biome >/dev/null || exit 0",
+  "for file in \"$@\"; do biome format ci \"$file\"; done",
+]
 # [formatter.json]
 # command  = "jq"
 # includes = ["*.json", "*.jsonc"]
