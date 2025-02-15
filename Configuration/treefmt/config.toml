@@ -156,34 +156,33 @@ options = [
   "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
 ]
 
-# #| Data formats
-# [formatter.biome]
-# command = "biome"
-# includes = [
-
-#   "*.ts",
-#   "*.mts",
-#   "*.cts",
-#   "*.js",
-#   "*.cjs",
-#   "*.mjs",
-#   "*.jsx",
-#   "*.tsx",
-#   "*.d.ts",
-#   "*.d.mts",
-#   "*.d.cts",
-#   "*.vue",
-#   "*.html",
-#   "*.css",
-#   "*.json",
-#   "*.jsonc",
-#   "*.astro",
-#   "*.svelte",
-#   "*.graphql",
-#   "*.webmanifest",
-# ]
-# options = ["format", "ci"]
-# priority = 1
+#| Data formats
+[formatter.biome]
+command = "biome"
+includes = [
+  "*.ts",
+  "*.mts",
+  "*.cts",
+  "*.js",
+  "*.cjs",
+  "*.mjs",
+  "*.jsx",
+  "*.tsx",
+  "*.d.ts",
+  "*.d.mts",
+  "*.d.cts",
+  "*.vue",
+  "*.html",
+  "*.css",
+  "*.json",
+  "*.jsonc",
+  "*.astro",
+  "*.svelte",
+  "*.graphql",
+  "*.webmanifest",
+]
+options = ["format", "ci"]
+priority = 1
 
 # [formatter.json]
 # command  = "jq"
