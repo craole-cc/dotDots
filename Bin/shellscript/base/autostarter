@@ -3,13 +3,13 @@
 
 #/> Wayland vs X11
 if [ "${WAYLAND_DISPLAY}" ]; then
-  launch foot --server
+	launch foot --server
 else
-  launch picom --config "$DOTS_CFG/utilities/picom/picom.conf"
+	launch picom --config "$DOTS_CFG/utilities/picom/picom.conf"
 fi
 dispScreen
 launch cbatticon --icon-type standard "$(
-  find /sys/class/power_supply | grep BAT
+	find /sys/class/power_supply | grep BAT
 )"
 launch blueman-applet
 launch volumeicon

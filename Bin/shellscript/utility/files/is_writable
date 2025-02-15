@@ -17,9 +17,9 @@
 ancestor_dir="$(ancestor "$1")"
 
 if [ -w "$ancestor_dir" ]; then
-  41one "No elevation required for operations in $ancestor_dir"
-  exit 0
+	41one "No elevation required for operations in $ancestor_dir"
+	exit 0
 else
-  41one "Elevation required for operations in $ancestor_dir"
-  exit 1
+	41one "Elevation required for operations in $ancestor_dir"
+	exit 1
 fi

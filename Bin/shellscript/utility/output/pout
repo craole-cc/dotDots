@@ -3,7 +3,7 @@ SCR_NAME="pout"
 SCR_DESC="display messages"
 SCR_USAGE="$SCR_NAME [OPTIONS] MESSAGE"
 SCR_GUIDE="$(
-  cat <<EOF
+	cat <<EOF
   Usage: $SCR_USAGE
 
   DESCRIPTION:
@@ -34,55 +34,54 @@ EOF
 )"
 
 parse_args() {
-  #/> Core
-  lowercased_arg="$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')"
+	#/> Core
+	lowercased_arg="$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')"
 
-  case "$lowercased_arg" in
-  -h | --help) print_help ;;
-  "") print_error --missing ;;
-  -n | --n | -t | --t | -s | --s) [ "$2" ] || print_error --missing ;;
-  -*) print_error --invalid ;;
-  esac
+	case "$lowercased_arg" in
+	-h | --help) print_help ;;
+	"") print_error --missing ;;
+	-n | --n | -t | --t | -s | --s) [ "$2" ] || print_error --missing ;;
+	-*) print_error --invalid ;;
+	esac
 
-  #/> Options
-  # while [ $# -ge 1 ]; do
-  #   case "$lowercased_arg" in
-  #   -n* | --n*) num=${2:-1} && printf "%s" "$num" ;;
-  #   -t* | --t*) printf "%s" "$tabs" ;;
-  #   -s* | --s*) printf "%s" "$spaces" ;;
-  #   *) printf "%s" "$1" ;;
-  #   esac
-  #   shift
-  # done
+	#/> Options
+	# while [ $# -ge 1 ]; do
+	#   case "$lowercased_arg" in
+	#   -n* | --n*) num=${2:-1} && printf "%s" "$num" ;;
+	#   -t* | --t*) printf "%s" "$tabs" ;;
+	#   -s* | --s*) printf "%s" "$spaces" ;;
+	#   *) printf "%s" "$1" ;;
+	#   esac
+	#   shift
+	# done
 
-  # if [ "$2" ]; then
-  #   print_out "$1" "$2"
-  #   shift
-  # else
-  #   print_out "$1"
-  # fi
-  #   shift
-  # done
+	# if [ "$2" ]; then
+	#   print_out "$1" "$2"
+	#   shift
+	# else
+	#   print_out "$1"
+	# fi
+	#   shift
+	# done
 }
 
 print_out() {
 
-
 }
 
 print_help() {
-  print_out -n "$SCR_GUIDE"
-  exit "${exit_code:-0}"
+	print_out -n "$SCR_GUIDE"
+	exit "${exit_code:-0}"
 }
 
 print_error() {
-  case "$1" in
-  --missing) msg="Missing message" ;;
-  --invalid) msg="Invalid option" ;;
-  esac
+	case "$1" in
+	--missing) msg="Missing message" ;;
+	--invalid) msg="Invalid option" ;;
+	esac
 
-  print_out -n "ERROR: $msg"
-  exit_code=1
+	print_out -n "ERROR: $msg"
+	exit_code=1
 }
 
 parse_args "$@"

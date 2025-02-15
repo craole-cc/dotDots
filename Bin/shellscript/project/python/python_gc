@@ -1,10 +1,10 @@
 #!/bin/sh
 
 find_and_delete() {
-  find . \
-    -type d \
-    -name "$1" \
-    -exec rm --recursive --force --verbose {} +
+	find . \
+		-type d \
+		-name "$1" \
+		-exec rm --recursive --force --verbose {} +
 }
 
 find_and_delete ".venv"

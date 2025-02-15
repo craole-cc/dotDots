@@ -5,14 +5,14 @@
 # ===================================================================
 
 __info__() {
-  _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
-  _cmd_VERSION="1.0"
-  _cmd_DESCRIPTION="Adjust audio volume levels"
-  _cmd_DEPENDENCIES="coreutils, pamixer"
-  _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+	_cmd_PATH="$(pathof "$0")"
+	_cmd_NAME="$(basename "$_cmd_PATH")"
+	_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+	_cmd_VERSION="1.0"
+	_cmd_DESCRIPTION="Adjust audio volume levels"
+	_cmd_DEPENDENCIES="coreutils, pamixer"
+	_cmd_USAGEGUIDE="$(
+		cat <<USAGE_GUIDE
 
 #>----------------------------------------------<#
                   USAGE: $_cmd_NAME
@@ -37,7 +37,7 @@ __info__() {
 #>----------------------------------------------<#
 
 USAGE_GUIDE
-  )"
+	)"
 }
 
 # ===================================================================
@@ -46,20 +46,20 @@ USAGE_GUIDE
 
 #@ Usage display
 __help__() {
-  printf "%s\n" "$_cmd_USAGEGUIDE"
-  exit 0
+	printf "%s\n" "$_cmd_USAGEGUIDE"
+	exit 0
 }
 
 #@ Version display
 __version__() {
-  printf "%s\n" "$_cmd_VERSION"
-  exit 0
+	printf "%s\n" "$_cmd_VERSION"
+	exit 0
 }
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+	unalias "$@" >/dev/null 2>&1
+	command -v "$@" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -67,24 +67,24 @@ __cmd_exists__() {
 # ===================================================================
 
 __opts__() {
-  while [ "$#" -gt 0 ]; do
-    case $1 in
-    --help | -h) __help__ ;;
-    --verbose | -d) verbose=true ;;
-    --quiet | -q) quiet=true ;;
-    --test | --dry-run) dry_run=true ;;
-    --set | -S) action="set" ;;
-    --toggle* | -T) action="toggle" ;;
-    --increase | --up | -I) action="increase" ;;
-    --decrease | --down | -D) action="decrease" ;;
-    --unmute | -U) action="unmute" ;;
-    --mute | -M) action="mute" ;;
-    --status | -s) action="get-status" ;;
-    --level | -l | --step) level="$2" ;;
-    *) level="$1" ;;
-    esac
-    shift
-  done
+	while [ "$#" -gt 0 ]; do
+		case $1 in
+		--help | -h) __help__ ;;
+		--verbose | -d) verbose=true ;;
+		--quiet | -q) quiet=true ;;
+		--test | --dry-run) dry_run=true ;;
+		--set | -S) action="set" ;;
+		--toggle* | -T) action="toggle" ;;
+		--increase | --up | -I) action="increase" ;;
+		--decrease | --down | -D) action="decrease" ;;
+		--unmute | -U) action="unmute" ;;
+		--mute | -M) action="mute" ;;
+		--status | -s) action="get-status" ;;
+		--level | -l | --step) level="$2" ;;
+		*) level="$1" ;;
+		esac
+		shift
+	done
 }
 
 # ===================================================================
@@ -93,36 +93,36 @@ __opts__() {
 
 __defaults__() {
 
-  #| Verbose
-  [ "$quiet" ] || verbose=true
+	#| Verbose
+	[ "$quiet" ] || verbose=true
 
-  #| Level/Step
-  case $level in
-  *[0-9]*)
-    [ "$action" ] || {
-      action="set"
-      level=50
-    }
-    ;;
-  *) level=10 ;;
-  esac
+	#| Level/Step
+	case $level in
+	*[0-9]*)
+		[ "$action" ] || {
+			action="set"
+			level=50
+		}
+		;;
+	*) level=10 ;;
+	esac
 
-  #| Action
-  action="${action:-"toggle"}"
+	#| Action
+	action="${action:-"toggle"}"
 
-  #| Application
-  if __cmd_exists__ pamixer; then
-    __set__() { pamixer --set-volume "$level"; }
-    __toggle__() { pamixer --toggle-mute; }
-    __increase__() { pamixer --increase "$level"; }
-    __decrease__() { pamixer --decrease "$level"; }
-    __mute__() { pamixer --mute; }
-    __unmute__() { pamixer --unmute; }
-    __status__() { pamixer --get-volume-human; }
-  else
-    echo "no known audio control tool available"
-    exit
-  fi
+	#| Application
+	if __cmd_exists__ pamixer; then
+		__set__() { pamixer --set-volume "$level"; }
+		__toggle__() { pamixer --toggle-mute; }
+		__increase__() { pamixer --increase "$level"; }
+		__decrease__() { pamixer --decrease "$level"; }
+		__mute__() { pamixer --mute; }
+		__unmute__() { pamixer --unmute; }
+		__status__() { pamixer --get-volume-human; }
+	else
+		echo "no known audio control tool available"
+		exit
+	fi
 }
 
 # ===================================================================
@@ -130,29 +130,29 @@ __defaults__() {
 # ===================================================================
 
 __process__() {
-  case "$action" in
-  set) __unmute__ && __set__ ;;
-  toggle) __toggle__ ;;
-  increase) __unmute__ && __increase__ ;;
-  decrease) __unmute__ && __decrease__ ;;
-  unmute) __unmute__ ;;
-  mute) __mute__ ;;
-  status) __status__ ;;
-  *) ;;
-  esac
+	case "$action" in
+	set) __unmute__ && __set__ ;;
+	toggle) __toggle__ ;;
+	increase) __unmute__ && __increase__ ;;
+	decrease) __unmute__ && __decrease__ ;;
+	unmute) __unmute__ ;;
+	mute) __mute__ ;;
+	status) __status__ ;;
+	*) ;;
+	esac
 }
 
 __display__() {
-  case "$action" in
-  *crease) printf "Volume %sd by %sdb to %s" "$action" "$level" "$(__status__)" ;;
-  set) printf "Volume %s to %s\n" "$action" "$(__status__)" ;;
-  *)
-    case "$(__status__)" in
-    *"%") printf "Audio level is at %s\n" "$(__status__)" ;;
-    *) printf "Audio stream disabled\n" ;;
-    esac
-    ;;
-  esac
+	case "$action" in
+	*crease) printf "Volume %sd by %sdb to %s" "$action" "$level" "$(__status__)" ;;
+	set) printf "Volume %s to %s\n" "$action" "$(__status__)" ;;
+	*)
+		case "$(__status__)" in
+		*"%") printf "Audio level is at %s\n" "$(__status__)" ;;
+		*) printf "Audio stream disabled\n" ;;
+		esac
+		;;
+	esac
 }
 
 # ===================================================================
@@ -160,28 +160,28 @@ __display__() {
 # ===================================================================
 
 __test__() {
-  echo "action: $action | level: $level"
+	echo "action: $action | level: $level"
 }
 
 __main__() {
-  #| Initialize app
-  __info__
+	#| Initialize app
+	__info__
 
-  #| Accept user arguments
-  __opts__ "$@"
+	#| Accept user arguments
+	__opts__ "$@"
 
-  #| Load default options
-  __defaults__
+	#| Load default options
+	__defaults__
 
-  #| Process
-  if [ "$dry_run" ]; then
-    __test__
-  else
-    __process__
-  fi
+	#| Process
+	if [ "$dry_run" ]; then
+		__test__
+	else
+		__process__
+	fi
 
-  #| Display Info
-  [ "$quiet" ] || __display__
+	#| Display Info
+	[ "$quiet" ] || __display__
 }
 
 __main__ "$@"

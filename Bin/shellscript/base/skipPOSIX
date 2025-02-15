@@ -18,8 +18,8 @@
 # _________________________________________ POSIX<|
 
 skipPOSIX() {
-    set +o posix
-    "$@"
-    set -o posix
-    # echo "📌 Bypassed POSIX 👟 $* 🏁"
+	set +o posix
+	"$@"
+	set -o posix
+	# echo "📌 Bypassed POSIX 👟 $* 🏁"
 }

@@ -8,25 +8,28 @@
 #===============================================================
 
 # >>= Dependencies =<< #
-  # Required: https://xyne.archlinux.ca/projects/reflector
-  # edit /etc/xdg/reflector/reflector.conf
+# Required: https://xyne.archlinux.ca/projects/reflector
+# edit /etc/xdg/reflector/reflector.conf
 
 # >>= Notification =<<
-  red=$(tput setaf 1)
-  green=$(tput setaf 2)
-  blue=$(tput setaf 4)
-  magenta=$(tput setaf 5)
-  cyan=$(tput setaf 6)
-  reset=$(tput sgr0)
-  OUTPUT() { echo "${blue}::${reset} $msg" ; notify-send "$msg";}
-  clear
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+blue=$(tput setaf 4)
+magenta=$(tput setaf 5)
+cyan=$(tput setaf 6)
+reset=$(tput sgr0)
+OUTPUT() {
+	echo "${blue}::${reset} $msg"
+	notify-send "$msg"
+}
+clear
 
 # >>= Service =<< #
-  # systemctl enable reflector.timer
-  # systemctl start reflector.timer
-  msg="🕓 Mirrorlist weekly update timer set" OUTPUT $msg
+# systemctl enable reflector.timer
+# systemctl start reflector.timer
+msg="🕓 Mirrorlist weekly update timer set" OUTPUT $msg
 
 # >>= Update =<<
-  msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)" OUTPUT $msg
-  # systemctl start reflector.service # Update mirrors immediately
-  msg="⌛ The package mirrorlist has been updated" OUTPUT $msg
+msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)" OUTPUT $msg
+# systemctl start reflector.service # Update mirrors immediately
+msg="⌛ The package mirrorlist has been updated" OUTPUT $msg

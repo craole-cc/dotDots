@@ -10,40 +10,40 @@ strStart="$2"
 strEND="$1"
 
 __usage__() {
-  echo ::USAGE::
-  echo Format should be at lease yyyymmddHHMMss
-  echo dtdiff "End" "Start"
-  echo example: dtdiff "2022011917171642630661" "20220118005104.803626-300"
+	echo ::USAGE::
+	echo Format should be at lease yyyymmddHHMMss
+	echo dtdiff "End" "Start"
+	echo example: dtdiff "2022011917171642630661" "20220118005104.803626-300"
 }
 __toDate__() {
-  # shellcheck disable=SC3057
+	# shellcheck disable=SC3057
 
-  # |===>> using AWK <<===|
-  echo "$*" |
-    awk 'BEGIN \
+	# |===>> using AWK <<===|
+	echo "$*" |
+		awk 'BEGIN \
     { FIELDWIDTHS = "4 2 2 2 2 2" }
     { printf "%s-%s-%s %s:%s:%s\n", $1, $2, $3, $4, $5, $6 }'
 
-  # |===>> using BASH <<===|
-  # echo "${1:0:4}-${1:4:2}-${1:6:2} ${1:8:2}:${1:10:2}:${1:12:2}"
+	# |===>> using BASH <<===|
+	# echo "${1:0:4}-${1:4:2}-${1:6:2} ${1:8:2}:${1:10:2}:${1:12:2}"
 
-  # |===>> using SED <<===|
-  # echo "$1" | sed -nr 's/(....)(..)(..)(..)(..)(..)/\1-\2-\3 \4:\5:\6/p'
+	# |===>> using SED <<===|
+	# echo "$1" | sed -nr 's/(....)(..)(..)(..)(..)(..)/\1-\2-\3 \4:\5:\6/p'
 }
 
 __Duration__() {
-  dtStart=$(__toDate__ "$strStart")
-  dtEND=$(__toDate__ "$strEND")
+	dtStart=$(__toDate__ "$strStart")
+	dtEND=$(__toDate__ "$strEND")
 
-  startSeconds="$(date --date "$dtStart" +%s)"
-  endSeconds="$(date --date "$dtEND" +%s)"
+	startSeconds="$(date --date "$dtStart" +%s)"
+	endSeconds="$(date --date "$dtEND" +%s)"
 
-  seconds=$(echo $((endSeconds - startSeconds)))
-  printf "%s $seconds"
+	seconds=$(echo $((endSeconds - startSeconds)))
+	printf "%s $seconds"
 }
 
 pyFormat() {
-  python - <<CODE
+	python - <<CODE
 # print ($*)
 days, remainder = divmod($*, (60*60*24))
 hours, remainder = divmod(remainder, (60*60))

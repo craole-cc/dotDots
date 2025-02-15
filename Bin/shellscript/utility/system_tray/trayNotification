@@ -12,7 +12,7 @@ _ARGS="-config /home/craole/DOTS/Config/tools/utilities/dunst/dunstrc"
 
 #@ Launch with or without arguments
 if [ "$_ARGS" ]; then
-  eval "$_APP" "$_ARGS" &
+	eval "$_APP" "$_ARGS" &
 else
-  eval "$_APP" &
+	eval "$_APP" &
 fi
