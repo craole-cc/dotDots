@@ -26,14 +26,14 @@ pkgs.mkShell {
     # lmstudio
     # langgraph-cli
     just
+    powershell
 
     #| Formatters
     treefmt2
-    # actionlint # ? GitHub Actions
+    actionlint # ? GitHub Actions
     asmfmt # ? Go
     alejandra # ? Nix
     shfmt # ? Shell
-    beautysh # ? bash
     yamlfmt # ? YAML
     stylua # ? Lua
     biome # ? javascript and typescript
@@ -53,11 +53,9 @@ pkgs.mkShell {
     markdownlint-cli2 # ? Markdown
     editorconfig-checker # ? EditorConfig
     eclint # ? EditorConfig linter written in Go
-    # deno # ? javascript and typescript
     biome # ? Json, JavaScript and TypeScript
     nufmt
     editorconfig-checker
-    powershell
   ];
 
   shellHook = ''
