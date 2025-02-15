@@ -148,7 +148,7 @@ includes = [
   "Bin/python/**",
 ]
 command = "ruff"
-options = ["format", "--quiet"]
+# options = ["format", "--quiet"]
 
 # #| Data formats
 # [formatter.biome]
