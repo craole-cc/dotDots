@@ -14,7 +14,8 @@
     flake-utils.lib.eachDefaultSystem (system: let
       paths = rec {
         home = "/home/craole/.dots/Flakes/media";
-        mod = ./modules;
+        # mod = ./modules;
+        mod = home + "/modules";
         bin = home + "/bin";
         cfg = home + "/config";
         dls = home + "/downloads";
