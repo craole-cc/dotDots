@@ -55,6 +55,7 @@ pkgs.mkShell {
     eclint # ? EditorConfig linter written in Go
     # deno # ? javascript and typescript
     biome # ? Json, JavaScript and TypeScript
+    nufmt
   ];
 
   shellHook = ''
