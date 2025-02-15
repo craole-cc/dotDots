@@ -147,8 +147,14 @@ includes = [
   "*.py",
   "Bin/python/**",
 ]
-command = "ruff"
+# command = "ruff"
 # options = ["format", "--quiet"]
+command = "sh"
+options = [
+  "-euc",
+  "command -v ruff >/dev/null || exit 0",
+  "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
+]
 
 # #| Data formats
 # [formatter.biome]
