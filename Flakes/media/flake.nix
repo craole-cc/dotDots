@@ -13,9 +13,9 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       flakeHome = "/home/craole/.dots/Flakes/media";
-      flakeMod = "${flakeHome}/modules";
-      flakeBin = "${flakeHome}/bin";
-      flakeCfg = "${flakeHome}/config";
+      flakeMod = ./modules;
+      flakeBin = flakeHome + "/bin";
+      flakeCfg = flakeHome + "/config";
       pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;
@@ -43,13 +43,13 @@
         ];
       };
       ytdInit = pkgs.substituteAll {
-        src = "${flakeMod}/ytd/init.sh";
+        src = flakeMod + "/ytd/ytd.sh";
         isExecutable = true;
         ytdlp = pkgs.yt-dlp;
       };
 
       mpvInit = pkgs.substituteAll {
-        src = "${flakeMod}/mpv/init.sh";
+        src = flakeMod + "/mpv/init.sh";
         isExecutable = true;
         mpv = pkgs.mpv.override {
           scripts = mpvEnhanced;
@@ -57,7 +57,7 @@
       };
 
       mpvConfig = pkgs.substituteAll {
-        src = "${flakeMod}/mpv/settings.conf";
+        src = flakeMod + "/mpv/settings.conf";
         ytdlp = pkgs.yt-dlp;
       };
       # mpvInput = "${flakeMod}/mpv/input.conf";
@@ -149,6 +149,12 @@
 
           #@ Copy and process config files
           cp -f ${mpvConfig} ${flakeCfg}/mpv/mpv.conf
+          cp -f ${ytdInit} ${flakeBin}/ytd
+
+          #@ Set up executable scripts
+          find "${flakeBin}" -type f -exec chmod +x {} +
+          PATH="$PATH:${flakeBin}"
+          export PATH
 
           #@ Show the usage guide
           printf "Video Tools:\n"
@@ -166,13 +172,9 @@
       };
     });
 }
-# #@ Set up executable scripts
-# cp ${ytdInit} ${flakeBin}/init-ytd
-# cp ${mpvInit} ${flakeBin}/init-mpv
-# find "${flakeBin}" -type f -exec chmod +x {} +
-# PATH="$PATH:${flakeBin}"
-# export PATH
-# #@ Initialize the apps
+#@ Initialize the apps
 # init-ytd
 # init-mpv
+# cp -f ${ytdInit} ${flakeBin}/init-ytd
+# cp -f ${mpvInit} ${flakeBin}/init-mpv
 
