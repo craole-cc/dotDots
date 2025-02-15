@@ -17,8 +17,7 @@
         mod = ./modules;
         bin = home + "/bin";
         cfg = home + "/config";
-        vid = home + "/videos";
-        mus = home + "/music";
+        dls = home + "/downloads";
       };
       pkgs = import nixpkgs {
         inherit system;
@@ -69,7 +68,9 @@
         src = paths.mod + "/ytd/cmd.sh";
         isExecutable = true;
         ytdlp = pkgs.yt-dlp;
-        videos = paths.videos;
+        downloads = paths.dls;
+        module = paths.mod + "/ytd/settings.nix";
+        config = paths.cfg + "/ytd/yt-dlp.conf";
       };
     in {
       devShells.default = pkgs.mkShell {
@@ -110,19 +111,16 @@
           printf "🎬 Comprehensive Media Environment Loaded!\n\n"
 
           #@ Set up directory structure
-          mkdir -p {${paths.bin},${paths.cfg}/{mpd,mpv}}
-          unalias ytd mpv
+          mkdir -p {${paths.bin}
 
-          #@ Copy and process config files
-          cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
-          cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
-
+          #@ Copy scripts
+          cp -f ${ytdCommand} ${paths.bin}/ytd
 
           #@ Set up executable scripts
-          cp -f ${ytdCommand} ${paths.bin}/ytd
           find "${paths.bin}" -type f -exec chmod +x {} +
           PATH="$PATH:${paths.bin}"
           export PATH
+          unalias ytd mpv
 
           #@ Show the usage guide
           printf "Video Tools:\n"
@@ -146,4 +144,6 @@
 # cp -f ${ytdInit} ${flakeBin}/init-ytd
 # cp -f ${mpvInit} ${flakeBin}/init-mpv
 # cp -f ${mpvCommand} ${flakeBin}/mpv
+# cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
+# cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
 

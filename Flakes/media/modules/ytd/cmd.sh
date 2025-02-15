@@ -1,26 +1,79 @@
 #!/usr/bin/env bash
 
-if [ -z "$1" ]; then
-	printf "Usage: yt-download <url> [quality]\n"
-	printf "Quality options: best, 1080p, 720p, 480p, audio\n"
+usage() {
+	case "$1" in
+		--option)
+			printf "Error: %s requires an argument\n" "$2"
+			;;
+		*)
+			printf "Usage: yt-download <url> [quality]\n"
+			printf "Quality options: best, 1080p, 720p, 480p, audio\n"
+			;;
+	esac
+
 	exit 1
-fi
+}
 
-URL="$1"
-QUALITY="${2:-1080p}"
-DIR="${3:-@videos@}"
+#@ Set defaults
+URL=""
+FMT="1080p"
+DIR=@downloads@
+MOD=@module@
+CFG=@config@
+CMD=@ytdlp@/bin/yt-dlp
 
-case $QUALITY in
+#@ Parse arguments
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		-u | --url)
+			[ -n "$2" ] || usage --option "$1"
+			shift
+			URL="$1"
+			;;
+		-f | --format)
+			[ -n "$2" ] || usage --option "$1"
+			shift
+			FMT="$1"
+			;;
+		-d | --dir)
+			[ -n "$2" ] || usage --option "$1"
+			shift
+			DIR="$1"
+			;;
+		-c | --config)
+			[ -n "$2" ] || usage --option "$1"
+			shift
+			CFG="$1"
+			;;
+		-m | --module)
+			[ -n "$2" ] || usage --option "$1"
+			shift
+			MOD="$1"
+			;;
+	esac
+	shift
+done
+
+#@ Skip if no arguments are provided
+[ -n "$URL" ] || usage >&2
+
+#@ Create config if it doesn't exist or is out of date
+mkdir -p "$(dirname "$CFG")"
+cmp "$MOD" "$CFG" || cp -f "$MOD" "$CFG"
+
+#@ Execute the command
+case $FMT in
 	"best")
-		@ytdlp@/bin/yt-dlp "$URL"
+		"$CMD" "$URL"
 		;;
 	"audio")
-		@ytdlp@/bin/yt-dlp -x --audio-format mp3 "$URL"
+		"$CMD" --extract-audio --audio-format mp3 "$URL"
 		;;
 	*)
-		@ytdlp@/bin/yt-dlp \
-			-f "bestvideo[height<=${QUALITY%p}]+bestaudio/best[height<=${QUALITY%p}]" \
-			-o "$DIR/%(title)s.%(ext)s" \
+		"$CMD" \
+			--config-location "$CFG" \
+			--format "bestvideo[height<=${FMT%p}]+bestaudio/best[height<=${FMT%p}]" \
+			--output "${DIR}/%(title)s.%(ext)s" \
 			"$URL"
 		;;
 esac
