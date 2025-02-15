@@ -12,6 +12,8 @@ excludes = [
   "Environment/**",     #TODO Temporary
   # "Bin/**",             #TODO Temporary
   "Documentation/**", #TODO Temporary
+  "**/.bin/**",
+  "**/.config/**",
 ]
 
 #| Documentation
@@ -49,10 +51,16 @@ excludes = [
 # priority = 2
 
 #TODO: Not working
-# [formatter.editorconfig]
-# command = "fmt_editorconfig"
-# includes = [".editorconfig"]
-# options = ["--format"]
+[formatter.editorconfig]
+includes = [".editorconfig"]
+# command  = "fmt_editorconfig"
+# options  = ["--format"]
+# command = "sh"
+# options = [
+#   "-euc",
+#   "command -v fmt_editorconfig >/dev/null || exit 0",
+#   "for file in \"$@\"; do fmt_editorconfig --format \"$file\"; done",
+# ]
 
 # [formatter.editorconfig_lint]
 # command = "fmt_editorconfig"
@@ -68,7 +76,7 @@ excludes = [
 
 [formatter.statix]
 includes = ["*.nix"]
-priority = 2
+priority = 1
 # command  = "statix"
 # options  = ["fix"]
 command = "sh"
@@ -80,7 +88,7 @@ options = [
 
 [formatter.alejandra]
 includes = ["*.nix"]
-priority = 3
+priority = 2
 command  = "alejandra"
 
 # [formatter.nixfmt]
@@ -119,6 +127,7 @@ includes = [
   "Bin/shellscript/**",
   "Modules/**",
 ]
+excludes = ["Flakes/media/bin/ytd"]
 options = [
   # "--apply-ignore",
   # "--binary-next-line",
@@ -197,22 +206,22 @@ options = [
 # options  = ["--indent", "2", "--sort-keys", "-M"]
 # priority = 2
 
-# #| TOML
-# [formatter.toml]
-# command  = "taplo"
-# includes = ["*.toml"]
-# options  = ["format"]
+#| TOML
+[formatter.toml]
+includes = ["*.toml"]
+command  = "taplo"
+options  = ["format"]
 
 # #| Lua formatting
 # [formatter.stylua]
 # command  = "stylua"
 # includes = ["*.lua"]
 
-# #| YAML formatting
-# [formatter.yamlfmt]
-# command  = "yamlfmt"
-# includes = ["*.yaml", "*.yml"]
-# options  = ["-formatter", "retain_line_breaks=true"]
+#| YAML formatting
+[formatter.yamlfmt]
+includes = ["*.yaml", "*.yml"]
+command  = "yamlfmt"
+options  = ["-formatter", "retain_line_breaks=true"]
 
 # [formatter.actionlint]
 # command = "actionlint"
