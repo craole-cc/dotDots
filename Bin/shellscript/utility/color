@@ -54,8 +54,8 @@ fi
 colidx=0
 
 setcolors() {
-if [ $web = true ]; then
-  colors=(gray red green yellow blue magenta cyan white)
+if [ "$web" = true ]; then
+  colors="gray red green yellow blue magenta cyan white"
   titlebold="echo '<h1>'"
   titlereset="echo '</h1>'"
   #color_set='echo "<span style=font-size:$(font)px  >" '
