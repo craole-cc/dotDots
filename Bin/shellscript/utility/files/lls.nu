@@ -1,4 +1,5 @@
 #!/usr/bin/env nu
 # shellcheck shell=bash
-
-ls --all --du --short-names
+ls --all
+--du
+--short-names
