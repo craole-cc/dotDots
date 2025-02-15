@@ -141,11 +141,11 @@ priority = 2
 # includes = [".justfile"]
 # options  = ["--unstable", "--fmt", "--justfile"]
 
-# #| Python formatting
-# [formatter.ruff]
-# command  = "ruff"
-# includes = ["*.py"]
-# options  = ["format", "--quiet"]
+#| Python formatting
+[formatter.ruff]
+command  = "ruff"
+includes = ["*.py"]
+options  = ["format", "--quiet"]
 
 # #| Data formats
 # [formatter.biome]
