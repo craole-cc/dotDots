@@ -42,22 +42,23 @@
           mpv-playlistmanager
         ];
       };
-      ytdInit = pkgs.substituteAll {
-        src = flakeMod + "/ytd/ytd.sh";
-        isExecutable = true;
+
+      mpvConfig = pkgs.substituteAll {
+        src = flakeMod + "/mpv/settings.conf";
         ytdlp = pkgs.yt-dlp;
       };
 
-      mpvInit = pkgs.substituteAll {
-        src = flakeMod + "/mpv/init.sh";
+      mpvCommand = pkgs.substituteAll {
+        src = flakeMod + "/mpv/cmd.sh";
         isExecutable = true;
         mpv = pkgs.mpv.override {
           scripts = mpvEnhanced;
         };
       };
 
-      mpvConfig = pkgs.substituteAll {
-        src = flakeMod + "/mpv/settings.conf";
+      ytdCommand = pkgs.substituteAll {
+        src = flakeMod + "/ytd/cmd.sh";
+        isExecutable = true;
         ytdlp = pkgs.yt-dlp;
       };
       # mpvInput = "${flakeMod}/mpv/input.conf";
@@ -146,10 +147,13 @@
 
           #@ Set up directory structure
           mkdir -p {${flakeBin},${flakeCfg}/{mpd,mpv}}
+          unalias ytd mpv
 
           #@ Copy and process config files
           cp -f ${mpvConfig} ${flakeCfg}/mpv/mpv.conf
-          cp -f ${ytdInit} ${flakeBin}/ytd
+          cp -f ${ytdCommand} ${flakeBin}/ytd
+          cp -f ${mpvCommand} ${flakeBin}/mpv
+
 
           #@ Set up executable scripts
           find "${flakeBin}" -type f -exec chmod +x {} +
