@@ -118,6 +118,7 @@ includes = [
   ".bash*",
   "Bin/shellscript/**",
   "Modules/**",
+  "Flakes/media/modules/ytd/settings.conf",
 ]
 options = [
   # "--apply-ignore",
