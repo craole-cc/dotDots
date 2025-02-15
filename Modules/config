@@ -4,11 +4,11 @@
 # apps="alacritty kitty pop macchina"
 
 DeployConfig \
-  macchina \
-  qtile \
-  rofi \
-  helix \
-  zed \
-  --quiet
+	macchina \
+	qtile \
+	rofi \
+	helix \
+	zed \
+	--quiet
 
-  # nushell \
+# nushell \
