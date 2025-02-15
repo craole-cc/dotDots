@@ -150,10 +150,14 @@ priority = 2
 # includes = ["*.fish"]
 # options  = ["--write"]
 
-# [formatter.justfile]
-# command  = "just"
-# includes = [".justfile"]
-# options  = ["--unstable", "--fmt", "--justfile"]
+# [formatter.psscriptanalyzer]
+# includes = ["*.ps1"]
+# command  = "pwsh -Command Invoke-Formatter -ScriptDefinition (Get-Content {file} | Out-String) -SettingsFilePath ./PSScriptAnalyzerSettings.psd1"
+
+[formatter.justfile]
+command  = "just"
+includes = [".justfile"]
+options  = ["--unstable", "--fmt", "--justfile"]
 
 #| Python formatting
 [formatter.ruff]
@@ -320,12 +324,12 @@ options  = ["-formatter", "retain_line_breaks=true"]
 # includes = ["*"]
 # options = []
 
-[formatter.nufmt]
-includes = [
-  "*.nu",
-  "Bin/nushell/**",
-]
-command = "nufmt"
+# [formatter.nufmt]
+# includes = [
+#   "*.nu",
+#   "Bin/nushell/**",
+# ]
+# command = "nufmt"
 
 # #| Ruby
 # [formatter.rufo]

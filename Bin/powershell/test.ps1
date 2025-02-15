@@ -31,7 +31,7 @@
     Version:        2.1
     Author:         [Your Name]
     Last Modified:  2025-01-03
-    
+
     Requirements:
     - Windows 10/11
     - PowerShell 5.1+
@@ -56,22 +56,22 @@ function Write-Log {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Message,
-        
+
         [Parameter(Mandatory = $false)]
         [ValidateSet('Info', 'Warning', 'Error')]
         [string]$Level = 'Info'
     )
-    
+
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logMessage = "[$timestamp] [$Level] $Message"
-    
+
     # Write to console with appropriate color
     switch ($Level) {
         'Info' { Write-Host $logMessage -ForegroundColor Gray }
         'Warning' { Write-Host $logMessage -ForegroundColor Yellow }
         'Error' { Write-Host $logMessage -ForegroundColor Red }
     }
-    
+
     # Append to log file
     Add-Content -Path $LogPath -Value $logMessage
 }
@@ -81,25 +81,25 @@ function Install-ApplicationPackage {
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string]$PackageId,
-        
+
         [Parameter(Mandatory = $false)]
         [int]$RetryCount = 3,
-        
+
         [Parameter(Mandatory = $false)]
         [int]$RetryDelaySeconds = 30
     )
-    
+
     process {
         $attempt = 1
         $success = $false
-        
+
         do {
             try {
                 Write-Log "Installing package: $PackageId (Attempt $attempt of $RetryCount)"
-                
+
                 if ($PSCmdlet.ShouldProcess($PackageId, "Install application")) {
                     $installOutput = winget install --id $PackageId --silent --accept-package-agreements --accept-source-agreements
-                    
+
                     if ($LASTEXITCODE -eq 0) {
                         Write-Log "Successfully installed: $PackageId"
                         Write-Log "Installation output: $installOutput"
@@ -126,11 +126,11 @@ function Install-ApplicationPackage {
             }
             $attempt++
         } while ($attempt -le $RetryCount)
-        
+
         if (-not $success) {
             Write-Log "Failed to install $PackageId after $RetryCount attempts" -Level Error
         }
-        
+
         return $success
     }
 }
@@ -138,7 +138,7 @@ function Install-ApplicationPackage {
 function Test-Prerequisites {
     [CmdletBinding()]
     param()
-    
+
     process {
         $prerequisites = @(
             @{
@@ -157,7 +157,7 @@ function Test-Prerequisites {
                 Message = "Script requires administrative privileges."
             }
         )
-        
+
         $allPassed = $true
         foreach ($prereq in $prerequisites) {
             Write-Log "Checking prerequisite: $($prereq.Name)"
@@ -166,7 +166,7 @@ function Test-Prerequisites {
                 $allPassed = $false
             }
         }
-        
+
         return $allPassed
     }
 }
@@ -174,10 +174,10 @@ function Test-Prerequisites {
 function Update-AllPackages {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param()
-    
+
     process {
         Write-Log "Starting system-wide updates..."
-        
+
         if ($PSCmdlet.ShouldProcess("System", "Run updates")) {
             try {
                 $updateOutput = topgrade --cleanup --no-retry --yes --disable microsoft_store
@@ -204,16 +204,16 @@ function Update-AllPackages {
 function Start-Installation {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param()
-    
+
     begin {
         Write-Log "Starting installation process..."
-        
+
         if (-not (Test-Prerequisites)) {
             Write-Log "Prerequisites check failed. Exiting." -Level Error
             return
         }
     }
-    
+
     process {
         $categories = @{
             "System Utilities"      = $systemUtils
@@ -223,20 +223,20 @@ function Start-Installation {
             "Creative Applications" = $creativeApps
             "Internet Applications" = $internetApps
         }
-        
+
         foreach ($category in $categories.GetEnumerator()) {
             Write-Log "Processing category: $($category.Key)"
-            
+
             $category.Value | ForEach-Object {
                 $_ | Install-ApplicationPackage
             }
         }
-        
+
         if ($PSCmdlet.ShouldProcess("System", "Run updates")) {
             Update-AllPackages
         }
     }
-    
+
     end {
         Write-Log "Installation process completed"
     }
