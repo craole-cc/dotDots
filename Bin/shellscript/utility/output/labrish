@@ -10,16 +10,16 @@
 line_break=true
 
 for arg in "$@"; do
-  case "$arg" in
-  -n | --noline)
-    shift
-    unset line_break
-    ;;
-  esac
+	case "$arg" in
+	-n | --noline)
+		shift
+		unset line_break
+		;;
+	esac
 
-  if [ "$line_break" ]; then
-    printf "%s\n" "$arg"
-  else
-    printf "%s" "$arg"
-  fi
+	if [ "$line_break" ]; then
+		printf "%s\n" "$arg"
+	else
+		printf "%s" "$arg"
+	fi
 done

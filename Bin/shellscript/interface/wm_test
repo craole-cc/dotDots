@@ -29,6 +29,5 @@
 # *) ;;
 # esac
 
-
 echo "$DOTS"
 echo "WM_CONF: $WM_CONF_NAME"

@@ -6,12 +6,12 @@ lnk="$DATA_HOME/helix"
 # rm -rf "${lnk:?}"
 
 symbiolink --force --verbose \
-  --src "$src/config.toml" \
-  --lnk "$lnk/config.toml"
+	--src "$src/config.toml" \
+	--lnk "$lnk/config.toml"
 
 symbiolink --force --verbose \
-  --src "$src/languages.toml" \
-  --lnk "$lnk/languages.toml"
+	--src "$src/languages.toml" \
+	--lnk "$lnk/languages.toml"
 
 hx --grammar fetch
 hx "${@:-$PWD}"

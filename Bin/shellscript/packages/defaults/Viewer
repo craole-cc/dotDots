@@ -1,6 +1,6 @@
 #!/bin/sh
 
 feh \
-  --zoom 80 \
-  --borderless \
-  "$@"
+	--zoom 80 \
+	--borderless \
+	"$@"

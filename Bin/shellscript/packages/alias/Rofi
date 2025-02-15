@@ -5,15 +5,15 @@
 # ===================================================================
 
 __info__() {
-  _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
-  _cmd_APP="rofi"
-  _cmd_VERSION="1.0"
-  _cmd_DESCRIPTION="Theme (rofi) window switcher and application launcher"
-  _cmd_DEPENDENCIES="rofi, weHave"
-  _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+	_cmd_PATH="$(pathof "$0")"
+	_cmd_NAME="$(basename "$_cmd_PATH")"
+	_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+	_cmd_APP="rofi"
+	_cmd_VERSION="1.0"
+	_cmd_DESCRIPTION="Theme (rofi) window switcher and application launcher"
+	_cmd_DEPENDENCIES="rofi, weHave"
+	_cmd_USAGEGUIDE="$(
+		cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
             $_cmd_NAME <[options]> <[arguments]>
@@ -31,35 +31,35 @@ __info__() {
 #>----------------------------------------------------<#
 
 USAGE_GUIDE
-  )"
+	)"
 
-  #@ Usage display
-  __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
+	#@ Usage display
+	__help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
 
-  #@ Version display
-  __version__() { printf "%s\n" "$_cmd_VERSION"; }
+	#@ Version display
+	__version__() { printf "%s\n" "$_cmd_VERSION"; }
 
-  #@ App
-  __init__() {
+	#@ App
+	__init__() {
 
-    #@ Ensure dependencies are met
-    weHave "$_cmd_APP" || __error__ --app
+		#@ Ensure dependencies are met
+		weHave "$_cmd_APP" || __error__ --app
 
-    #@ Confirm active desktop environment
-    { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } ||
-      __error__ --protocol
+		#@ Confirm active desktop environment
+		{ [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } ||
+			__error__ --protocol
 
-    #@ Load context variables
-    context="$DOTS_ENV_CTX/rofi"
+		#@ Load context variables
+		context="$DOTS_ENV_CTX/rofi"
 
-    for file in $context; do
-      if [ -f "$file" ]; then
-        . "$file"
-      else
-        __error__ --context
-      fi
-    done
-  }
+		for file in $context; do
+			if [ -f "$file" ]; then
+				. "$file"
+			else
+				__error__ --context
+			fi
+		done
+	}
 }
 
 # ===================================================================
@@ -67,26 +67,26 @@ USAGE_GUIDE
 # ===================================================================
 
 __opts__() {
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    -h | --help)
-      __help__
-      exit
-      ;;
-    -v | --version)
-      __version__
-      exit
-      ;;
-    -d | --verbose) verbose=true ;;
-    -q | --quiet) unset verbose ;;
-    -m | --menu) menu="$2" ;;
-    -t | --type) type="$2" ;;
-    -s | --style) style="$2" ;;
-    -T | --theme) theme="$2" ;;
-    *) ;;
-    esac
-    shift
-  done
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		-h | --help)
+			__help__
+			exit
+			;;
+		-v | --version)
+			__version__
+			exit
+			;;
+		-d | --verbose) verbose=true ;;
+		-q | --quiet) unset verbose ;;
+		-m | --menu) menu="$2" ;;
+		-t | --type) type="$2" ;;
+		-s | --style) style="$2" ;;
+		-T | --theme) theme="$2" ;;
+		*) ;;
+		esac
+		shift
+	done
 }
 
 # ===================================================================
@@ -94,20 +94,20 @@ __opts__() {
 # ===================================================================
 
 __validate__() {
-  #@ Set default parameters
-  [ "$theme" ] || {
-    [ "$menu" ] || menu=launcher
-    [ "$type" ] || type=1
-    [ "$style" ] || style=1
-    ext=rasi
-    theme="${ROFI_HOME}/${menu}/type-${type}/style-${style}.${ext}"
-  }
+	#@ Set default parameters
+	[ "$theme" ] || {
+		[ "$menu" ] || menu=launcher
+		[ "$type" ] || type=1
+		[ "$style" ] || style=1
+		ext=rasi
+		theme="${ROFI_HOME}/${menu}/type-${type}/style-${style}.${ext}"
+	}
 
-  #@ Validation
-  is_number "$type" || __error__ --type
-  is_number "$style" || __error__ --style
-  [ "${theme##*.}" = "$ext" ] || __error__ --ext
-  [ -f "$theme" ] || __error__ --config
+	#@ Validation
+	is_number "$type" || __error__ --type
+	is_number "$style" || __error__ --style
+	[ "${theme##*.}" = "$ext" ] || __error__ --ext
+	[ -f "$theme" ] || __error__ --config
 }
 
 # ===================================================================
@@ -115,21 +115,21 @@ __validate__() {
 # ===================================================================
 
 __error__() {
-  case $* in
-  --app) msg="'$_cmd_APP' not found in PATH" ;;
-  --protocol) msg="Display not accessible" ;;
-  --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
-  --context) msg="Missing context file [$NIXOS_CONFIG]" ;;
-  --extension) msg="Missing the '$ext' ext
+	case $* in
+	--app) msg="'$_cmd_APP' not found in PATH" ;;
+	--protocol) msg="Display not accessible" ;;
+	--config) msg="Missing config file [$NIXOS_CONFIG]" ;;
+	--context) msg="Missing context file [$NIXOS_CONFIG]" ;;
+	--extension) msg="Missing the '$ext' ext
    CONFIG: $NIXOS_CONFIG" ;;
-  --type) msg="Invalid type '$type'" ;;
-  --style) msg="Invalid style '$style'" ;;
-  *) ;;
-  esac
+	--type) msg="Invalid type '$type'" ;;
+	--style) msg="Invalid style '$style'" ;;
+	*) ;;
+	esac
 
-  printf "\n🟥 %s\n" "$msg"
-  __help__
-  exit 1
+	printf "\n🟥 %s\n" "$msg"
+	__help__
+	exit 1
 }
 
 # ===================================================================
@@ -137,10 +137,10 @@ __error__() {
 # ===================================================================
 
 __test__() {
-  # echo "menu: $menu"
-  # echo "type: $type"
-  # echo "style: $style"
-  echo "theme: $theme"
+	# echo "menu: $menu"
+	# echo "type: $type"
+	# echo "style: $style"
+	echo "theme: $theme"
 }
 
 # ===================================================================
@@ -148,7 +148,7 @@ __test__() {
 # ===================================================================
 
 __process__() {
-  rofi -show drun -theme "$theme"
+	rofi -show drun -theme "$theme"
 }
 
 # ===================================================================
@@ -156,11 +156,11 @@ __process__() {
 # ===================================================================
 
 __cleanup__() {
-  unset \
-    menu \
-    type \
-    style \
-    theme
+	unset \
+		menu \
+		type \
+		style \
+		theme
 }
 
 # ===================================================================
@@ -169,20 +169,20 @@ __cleanup__() {
 
 __main__() {
 
-  #@ Load app info
-  __info__
+	#@ Load app info
+	__info__
 
-  #@ Load internal variables
-  __init__
-  __opts__ "$@"
-  __validate__
+	#@ Load internal variables
+	__init__
+	__opts__ "$@"
+	__validate__
 
-  #@ Run
-  # __test__
-  __process__
+	#@ Run
+	# __test__
+	__process__
 
-  #@ Exit
-  __cleanup__
+	#@ Exit
+	__cleanup__
 }
 
 __main__ "$@"

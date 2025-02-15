@@ -2,7 +2,7 @@
 
 # [ "$Root" ] || exec sudo -- "$0" "$@"
 # if [ ! "$Root" ] ;then
-#     alias sudo='sudo ' 
+#     alias sudo='sudo '
 #     type sudo
 #     sudo "$@"
 # fi
@@ -10,4 +10,3 @@
 # type -a "$@" | grep -o -P "(?<=\`).*(?=')" | xargs sudo
 # type -a pacQuery | grep -o -P "(?<=\`).*(?=')" | xargs sudo
 sudo "$1" shift "$@"
-

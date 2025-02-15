@@ -4,7 +4,5 @@
 printf "%s\n" "#/> Shellscript <\#"
 ducta --shell "$DOTS/Bin/tests/hello.sh"
 
-
-
 printf "\n\n%s\n" "#/> Rust-script <\#"
 ducta --rust "$DOTS/Bin/tests/hello.rs"

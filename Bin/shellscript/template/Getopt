@@ -33,38 +33,38 @@ unset TEMP
 
 while true; do
 	case "$1" in
-		'-a'|'--a-long')
-			echo 'Option a'
-			shift
-			continue
+	'-a' | '--a-long')
+		echo 'Option a'
+		shift
+		continue
 		;;
-		'-b'|'--b-long')
-			echo "Option b, argument '$2'"
-			shift 2
-			continue
+	'-b' | '--b-long')
+		echo "Option b, argument '$2'"
+		shift 2
+		continue
 		;;
-		'-c'|'--c-long')
-			# c has an optional argument. As we are in quoted mode,
-			# an empty parameter will be generated if its optional
-			# argument is not found.
-			case "$2" in
-				'')
-					echo 'Option c, no argument'
-				;;
-				*)
-					echo "Option c, argument '$2'"
-				;;
-			esac
-			shift 2
-			continue
-		;;
-		'--')
-			shift
-			break
-		;;
+	'-c' | '--c-long')
+		# c has an optional argument. As we are in quoted mode,
+		# an empty parameter will be generated if its optional
+		# argument is not found.
+		case "$2" in
+		'')
+			echo 'Option c, no argument'
+			;;
 		*)
-			echo 'Internal error!' >&2
-			exit 1
+			echo "Option c, argument '$2'"
+			;;
+		esac
+		shift 2
+		continue
+		;;
+	'--')
+		shift
+		break
+		;;
+	*)
+		echo 'Internal error!' >&2
+		exit 1
 		;;
 	esac
 done

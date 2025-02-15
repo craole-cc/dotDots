@@ -1,190 +1,190 @@
 #!/bin/sh
 
 main() {
-  initialize_tools
-  parse_core_arguments "$@"
-  parse_proc_arguments "$@"
-  wrap_up
+	initialize_tools
+	parse_core_arguments "$@"
+	parse_proc_arguments "$@"
+	wrap_up
 }
 
 initialize_tools() {
-  weHave() {
-    command -v "$1" >/dev/null 2>&1 ||
-      cargo install --list | grep --quiet "$1" ||
-      return 1
-  }
+	weHave() {
+		command -v "$1" >/dev/null 2>&1 ||
+			cargo install --list | grep --quiet "$1" ||
+			return 1
+	}
 
-  four1one() {
-    [ "$verbose" ] || return
-    printf "%s" "$*"
-  }
+	four1one() {
+		[ "$verbose" ] || return
+		printf "%s" "$*"
+	}
 
-  install_dependencies() {
-    weHave cargo || {
-      printf "Installing dependency: cargo\n"
-      install_rust
-    }
+	install_dependencies() {
+		weHave cargo || {
+			printf "Installing dependency: cargo\n"
+			install_rust
+		}
 
-    weHave cargo-binstall || {
-      printf "Installing dependency: cargo-binstall\n"
-      install_application cargo-binstall
-    }
-    weHave cargo-binstall && wehave_binstall=true
+		weHave cargo-binstall || {
+			printf "Installing dependency: cargo-binstall\n"
+			install_application cargo-binstall
+		}
+		weHave cargo-binstall && wehave_binstall=true
 
-    weHave cargo-update || {
-      printf "Installing dependency: cargo-update\n"
-      install_application cargo-update
-    }
-  } && install_dependencies
+		weHave cargo-update || {
+			printf "Installing dependency: cargo-update\n"
+			install_application cargo-update
+		}
+	} && install_dependencies
 }
 
 parse_core_arguments() {
-  while [ "$#" -ge 1 ]; do
-    case $1 in
-    -h | --help)
-      printf "Help"
-      exit 0
-      ;;
-    -v | --version)
-      printf "Version"
-      exit 0
-      ;;
-    -d | --verbose) verbose=true ;;
-    -t | --simulate | --test | --dry-run) simulate=true verbose=true ;;
-    -q | --quiet) unset verbose ;;
-    -u | --un* | --up* | -x | -r | -i | --in* | -l | -c | --check) ;;
-    -*)
-      printf "Unknown option: %s" "$1"
-      exit 1
-      ;;
-    esac
-    shift
-  done
+	while [ "$#" -ge 1 ]; do
+		case $1 in
+		-h | --help)
+			printf "Help"
+			exit 0
+			;;
+		-v | --version)
+			printf "Version"
+			exit 0
+			;;
+		-d | --verbose) verbose=true ;;
+		-t | --simulate | --test | --dry-run) simulate=true verbose=true ;;
+		-q | --quiet) unset verbose ;;
+		-u | --un* | --up* | -x | -r | -i | --in* | -l | -c | --check) ;;
+		-*)
+			printf "Unknown option: %s" "$1"
+			exit 1
+			;;
+		esac
+		shift
+	done
 }
 
 parse_proc_arguments() {
-  app_id=0
-  action=update
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    -*)
-      case "$1" in
-      -i | --in*) action=install ;;
-      -u | --up*) action=update ;;
-      -x | -r | --uninstall) action=uninstall ;;
-      -l | -c | --check) action=check ;;
-      esac
-      ;;
-    *)
-      app_id=$((app_id + 1))
+	app_id=0
+	action=update
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+		-*)
+			case "$1" in
+			-i | --in*) action=install ;;
+			-u | --up*) action=update ;;
+			-x | -r | --uninstall) action=uninstall ;;
+			-l | -c | --check) action=check ;;
+			esac
+			;;
+		*)
+			app_id=$((app_id + 1))
 
-      [ "$verbose" ] && {
-        [ "$app_id" -gt 1 ] && printf "\n"
-      }
-      app="$1"
-      manage_application
-      ;;
-    esac
-    unset app
-    shift
-  done
+			[ "$verbose" ] && {
+				[ "$app_id" -gt 1 ] && printf "\n"
+			}
+			app="$1"
+			manage_application
+			;;
+		esac
+		unset app
+		shift
+	done
 }
 
 manage_application() {
-  case "$action" in
-  install)
-    if weHave "$app"; then
-      four1one "'$app' is already installed."
-      return 1
-    else
-      four1one "'$app' is being installed."
-      [ "$simulate" ] || install_application "$app"
-    fi
-    ;;
-  update)
-    if weHave "$app"; then
-      four1one "'%s' is being updated."
-      [ "$simulate" ] || update_application "$app"
-    else
-      four1one "'$app' is being installed."
-      [ "$simulate" ] || install_application "$app"
-    fi
-    ;;
-  uninstall)
-    if weHave "$app"; then
-      four1one "'$app' is being uninstalled."
-      [ "$simulate" ] || uninstall_application "$app"
-    else
-      four1one "'$app' was not found"
-      return 1
-    fi
-    ;;
-  check)
-    if weHave "$app"; then
-      check_application "$app"
+	case "$action" in
+	install)
+		if weHave "$app"; then
+			four1one "'$app' is already installed."
+			return 1
+		else
+			four1one "'$app' is being installed."
+			[ "$simulate" ] || install_application "$app"
+		fi
+		;;
+	update)
+		if weHave "$app"; then
+			four1one "'%s' is being updated."
+			[ "$simulate" ] || update_application "$app"
+		else
+			four1one "'$app' is being installed."
+			[ "$simulate" ] || install_application "$app"
+		fi
+		;;
+	uninstall)
+		if weHave "$app"; then
+			four1one "'$app' is being uninstalled."
+			[ "$simulate" ] || uninstall_application "$app"
+		else
+			four1one "'$app' was not found"
+			return 1
+		fi
+		;;
+	check)
+		if weHave "$app"; then
+			check_application "$app"
 
-      four1one "We have '$app' [$app_version]" || {
-        [ "$app_id" -gt 1 ] && printf "\n"
-        printf "%s = %s" "$app" "$app_version"
-      }
-    else
-      four1one "'$app' was not found"
-      return 1
-    fi
-    ;;
-  *)
-    printf "Usage: validate_operation <OPERATION> <APP>\n"
-    exit 1
-    ;;
-  esac
+			four1one "We have '$app' [$app_version]" || {
+				[ "$app_id" -gt 1 ] && printf "\n"
+				printf "%s = %s" "$app" "$app_version"
+			}
+		else
+			four1one "'$app' was not found"
+			return 1
+		fi
+		;;
+	*)
+		printf "Usage: validate_operation <OPERATION> <APP>\n"
+		exit 1
+		;;
+	esac
 }
 
 install_application() {
-  if weHave cargo-binstall; then
-    four1one "Installing '$1' via cargo-binstall"
-    cargo-binstall \
-      --no-confirm \
-      --no-symlinks \
-      --log-level error \
-      "$1"
-  else
-    four1one "Installing '$1' via cargo install"
-    cargo install "$1"
-  fi
+	if weHave cargo-binstall; then
+		four1one "Installing '$1' via cargo-binstall"
+		cargo-binstall \
+			--no-confirm \
+			--no-symlinks \
+			--log-level error \
+			"$1"
+	else
+		four1one "Installing '$1' via cargo install"
+		cargo install "$1"
+	fi
 }
 
 uninstall_application() {
-  cargo uninstall "$1"
+	cargo uninstall "$1"
 }
 
 update_application() {
-  cargo install-update "$1"
+	cargo install-update "$1"
 }
 
 check_application() {
-  # app_version="$(
-  #   cargo install --list |
-  #     grep --only-matching "$app v[0-9.]*" |
-  #     sed 's/^[^v]*v//'
-  # )"
+	# app_version="$(
+	#   cargo install --list |
+	#     grep --only-matching "$app v[0-9.]*" |
+	#     sed 's/^[^v]*v//'
+	# )"
 
-  # app_version="$(
-  #   cargo install --list |
-  #     grep "$app v" |
-  #     awk '{print $2}'
-  # )"
-  # app_version="${app_version##v}" #@ Remove the leading letter
-  # app_version="${app_version%%:}" #@ Remove the trailing colon
+	# app_version="$(
+	#   cargo install --list |
+	#     grep "$app v" |
+	#     awk '{print $2}'
+	# )"
+	# app_version="${app_version##v}" #@ Remove the leading letter
+	# app_version="${app_version%%:}" #@ Remove the trailing colon
 
-  app_version="$(
-    cargo install --list |
-      awk --assign app="$app" '$1 == app {print $2}' |
-      sed 's/[:v]//g'
-  )"
+	app_version="$(
+		cargo install --list |
+			awk --assign app="$app" '$1 == app {print $2}' |
+			sed 's/[:v]//g'
+	)"
 }
 
 wrap_up() {
-  unset action app app_id simulate verbose
+	unset action app app_id simulate verbose
 }
 
 main "$@"

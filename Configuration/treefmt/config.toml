@@ -109,7 +109,15 @@ priority = 2
 
 [formatter.shfmt]
 command = "shfmt"
-includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc", "*.bash", ".bash*"]
+includes = [
+  "*.sh",
+  ".dotsrc",
+  ".env*",
+  ".shellcheckrc",
+  "*.bash",
+  ".bash*",
+  "Bin/shellscript/**",
+]
 options = [
   # "--apply-ignore",
   # "--binary-next-line",

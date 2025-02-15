@@ -3,18 +3,18 @@
 msg="$(kwote -d "${@:-Updating}")"
 
 gitup_from_config() {
-  git config --get-regexp ^alias.up >/dev/null 2>&1 &&
-    git up "$@"
+	git config --get-regexp ^alias.up >/dev/null 2>&1 &&
+		git up "$@"
 }
 
 gitup_from_bin() {
-  cd "$(git rev-parse --show-toplevel)" || exit
-  gitPull          #| Update from repo
-  # gitReset         #| Honor changess to gitignore
-  gitStatus        #| Check status
-  gitAddAll        #| Add untracked files
-  gitCommit "$msg" #| Add untracked files
-  gitPush          #| Update git repo
+	cd "$(git rev-parse --show-toplevel)" || exit
+	gitPull #| Update from repo
+	# gitReset         #| Honor changess to gitignore
+	gitStatus        #| Check status
+	gitAddAll        #| Add untracked files
+	gitCommit "$msg" #| Add untracked files
+	gitPush          #| Update git repo
 }
 
 # gitup_from_config "$@"

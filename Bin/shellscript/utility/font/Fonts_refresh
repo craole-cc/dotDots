@@ -2,9 +2,9 @@
 
 case "$1" in
 --verbose | -d)
-    fc-cache --really-force --verbose
-    ;;
+	fc-cache --really-force --verbose
+	;;
 *)
-    fc-cache --really-force
-    ;;
+	fc-cache --really-force
+	;;
 esac

@@ -2,11 +2,11 @@
 
 case "$sys_INFO" in
 *Linux*)
-  if [ "${WAYLAND_DISPLAY}" ]; then
-    Fuzzel
-  else
-    Rofi
-  fi
-  ;;
+	if [ "${WAYLAND_DISPLAY}" ]; then
+		Fuzzel
+	else
+		Rofi
+	fi
+	;;
 *) return ;;
 esac

@@ -1,23 +1,23 @@
 #!/bin/sh
 
 weHave() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+	type "$1" >/dev/null 2>&1
 }
 
 if weHave brave-nightly-bin; then
-  brave-nightly-bin
+	brave-nightly-bin
 elif weHave brave-browser-nightly; then
-  brave-browser-nightly
+	brave-browser-nightly
 elif weHave brave-beta-bin; then
-  brave-beta-bin
+	brave-beta-bin
 elif weHave brave-bin; then
-  brave-bin
+	brave-bin
 elif weHave brave-browser; then
-  brave-browser
+	brave-browser
 elif weHave brave; then
-  brave
+	brave
 else
-  flatrun brave
+	flatrun brave
 # elif flatpak list | rg --quiet "\.brave"; then
 #   flatpak run "$(
 #     flatpak list |

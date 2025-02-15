@@ -25,10 +25,10 @@
 #   --reset --new-line
 
 embellish \
-  --yellow "$(align -d --padl "[" --padr "]" CENTERFOLD )" --reset --new-line \
-  --fg-cyan --italic "$(align --right "right" --pad "*")" --reset --new-line \
-  --green --underline "$(align --left "left")" --reset --new-line \
-  --fg-blue --bg-magenta "$(align --left " HEADING 1")" --reset --new-line \
+	--yellow "$(align -d --padl "[" --padr "]" CENTERFOLD)" --reset --new-line \
+	--fg-cyan --italic "$(align --right "right" --pad "*")" --reset --new-line \
+	--green --underline "$(align --left "left")" --reset --new-line \
+	--fg-blue --bg-magenta "$(align --left " HEADING 1")" --reset --new-line
 
 # printf "\nBefore\n"
 # printf "\033[9m"

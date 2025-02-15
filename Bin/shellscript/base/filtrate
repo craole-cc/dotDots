@@ -6,14 +6,14 @@
 # ===================================================================
 
 __info__() {
-  _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
-  _cmd_VERSION="1.0"
-  _cmd_DESCRIPTION="Transform strings, particularly case and space."
-  _cmd_DEPENDENCIES="perl, sed, tr, printf, getoptions, __cmd_exists__"
-  _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+	_cmd_PATH="$(pathof "$0")"
+	_cmd_NAME="$(basename "$_cmd_PATH")"
+	_cmd_HOME="$(dirname -- "$_cmd_PATH")"
+	_cmd_VERSION="1.0"
+	_cmd_DESCRIPTION="Transform strings, particularly case and space."
+	_cmd_DEPENDENCIES="perl, sed, tr, printf, getoptions, __cmd_exists__"
+	_cmd_USAGEGUIDE="$(
+		cat <<USAGE_GUIDE
     #>----------------------------------------------------<#
                                                 $_cmd_NAME
     #>----------------------------------------------------<#
@@ -33,7 +33,7 @@ __info__() {
         -s --delimiter  |>     Accept delimiter eg. \"|\"
     #>----------------------------------------------------<#
 USAGE_GUIDE
-  )"
+	)"
 }
 
 __info__
@@ -44,20 +44,20 @@ __info__
 
 #@ Usage display
 __help__() {
-  printf "%s\n" "$_cmd_USAGEGUIDE"
-  # exit 0
+	printf "%s\n" "$_cmd_USAGEGUIDE"
+	# exit 0
 }
 
 #@ Version display
 __version__() {
-  printf "%s\n" "$_cmd_VERSION"
-  exit 0
+	printf "%s\n" "$_cmd_VERSION"
+	exit 0
 }
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+	unalias "$@" >/dev/null 2>&1
+	command -v "$@" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -65,14 +65,14 @@ __cmd_exists__() {
 # ===================================================================
 
 parser_definition() {
-  setup REST
-  disp _cmd_USAGEGUIDE -h --help
-  disp _cmd_VERSION -v --version
-  param _DATA -i --data -- "accepts --param value / --param=value"
-  param _DELIMITER -d --delimiter -- "accepts --param value / --param=value"
-  param _FILTER -f --filter -- "accepts --param value / --param=value"
-  flag _opt_CASE -s --case-sensitive -- "takes no arguments"
-  flag _opt_ALL -a --all -- "takes no arguments"
+	setup REST
+	disp _cmd_USAGEGUIDE -h --help
+	disp _cmd_VERSION -v --version
+	param _DATA -i --data -- "accepts --param value / --param=value"
+	param _DELIMITER -d --delimiter -- "accepts --param value / --param=value"
+	param _FILTER -f --filter -- "accepts --param value / --param=value"
+	flag _opt_CASE -s --case-sensitive -- "takes no arguments"
+	flag _opt_ALL -a --all -- "takes no arguments"
 }
 
 eval "$(getoptions parser_definition) exit 1"
@@ -83,56 +83,56 @@ eval "$(getoptions parser_definition) exit 1"
 
 __defaults__() {
 
-  { #@ Tools
-    if __cmd_exists__ rg; then
-      __filter_by__() {
-        if [ "$_opt_CASE" ]; then
-          rg --case-sensitive "$*"
-        else
-          rg --smart-case "$*"
-        fi
-      }
-      __check__() { rg --quiet "$*"; }
-      # __info_after__() { rg '.*'"$*" --replace ""; }
-      __info_after__() {
-        if [ "$_opt_ALL" ]; then
-          rg '.*'"$*" \
-            --replace "" \
-            --trim
-        else
-          rg '.*'"$*" \
-            --replace "" \
-            --trim \
-            --max-count 1
-        fi
-      }
-    else
-      __filter_by__() {
-        if [ "$_opt_CASE" ]; then
-          grep "$*"
-        else
-          grep --ignore-case "$*"
-        fi
-      }
-      __check__() { grep --quiet "$*"; }
-      __info_after__() {
-        if [ "$_opt_ALL" ]; then
-          grep --only-matching "$*"'.*' |
-            sed "s/$*.*\s//"
-        else
-          grep --only-matching "$*"'.*' --max-count=1 |
-            sed "s/.*$*[ \t]*//"
-        fi
-      }
-    fi
-  }
+	{ #@ Tools
+		if __cmd_exists__ rg; then
+			__filter_by__() {
+				if [ "$_opt_CASE" ]; then
+					rg --case-sensitive "$*"
+				else
+					rg --smart-case "$*"
+				fi
+			}
+			__check__() { rg --quiet "$*"; }
+			# __info_after__() { rg '.*'"$*" --replace ""; }
+			__info_after__() {
+				if [ "$_opt_ALL" ]; then
+					rg '.*'"$*" \
+						--replace "" \
+						--trim
+				else
+					rg '.*'"$*" \
+						--replace "" \
+						--trim \
+						--max-count 1
+				fi
+			}
+		else
+			__filter_by__() {
+				if [ "$_opt_CASE" ]; then
+					grep "$*"
+				else
+					grep --ignore-case "$*"
+				fi
+			}
+			__check__() { grep --quiet "$*"; }
+			__info_after__() {
+				if [ "$_opt_ALL" ]; then
+					grep --only-matching "$*"'.*' |
+						sed "s/$*.*\s//"
+				else
+					grep --only-matching "$*"'.*' --max-count=1 |
+						sed "s/.*$*[ \t]*//"
+				fi
+			}
+		fi
+	}
 
-  { #@ Data
-    [ "$_DATA" ] || _DATA="$*"
-    __cmd_exists__ "$_DATA" && _DATA="$($_DATA)"
-    [ -f "$_DATA" ] && _DATA="$(bat "$_DATA")"
-    [ -d "$_DATA" ] && _DATA="$(find "$_DATA")"
-  }
+	{ #@ Data
+		[ "$_DATA" ] || _DATA="$*"
+		__cmd_exists__ "$_DATA" && _DATA="$($_DATA)"
+		[ -f "$_DATA" ] && _DATA="$(bat "$_DATA")"
+		[ -d "$_DATA" ] && _DATA="$(find "$_DATA")"
+	}
 }
 
 # ===================================================================
@@ -140,14 +140,14 @@ __defaults__() {
 # ===================================================================
 
 __process__() {
-  if [ "$_DELIMITER" ]; then
-    printf "%s" "$_DATA" |
-      __filter_by__ "$_FILTER" |
-      __info_after__ "$_DELIMITER"
-  else
-    printf "%s" "$_DATA" |
-      __filter_by__ "$_FILTER"
-  fi
+	if [ "$_DELIMITER" ]; then
+		printf "%s" "$_DATA" |
+			__filter_by__ "$_FILTER" |
+			__info_after__ "$_DELIMITER"
+	else
+		printf "%s" "$_DATA" |
+			__filter_by__ "$_FILTER"
+	fi
 }
 
 # ===================================================================
@@ -155,14 +155,14 @@ __process__() {
 # ===================================================================
 
 __error__() {
-  case $* in
-  -s | --string)
-    printf "🟥 Please ensure that a valid string is entered.\n"
-    __help__
-    exit 1
-    ;;
-  *) ;;
-  esac
+	case $* in
+	-s | --string)
+		printf "🟥 Please ensure that a valid string is entered.\n"
+		__help__
+		exit 1
+		;;
+	*) ;;
+	esac
 }
 
 # ===================================================================
@@ -170,13 +170,13 @@ __error__() {
 # ===================================================================
 
 __cleanup__() {
-  unset \
-    SENTENCE \
-    PROPER \
-    UPPER \
-    LOWER \
-    _DELIMITER \
-    _opt__opt_CASE
+	unset \
+		SENTENCE \
+		PROPER \
+		UPPER \
+		LOWER \
+		_DELIMITER \
+		_opt__opt_CASE
 }
 
 # ===================================================================

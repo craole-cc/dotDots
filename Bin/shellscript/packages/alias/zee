@@ -2,9 +2,9 @@
 
 # Editor --app zed "${@:-$PWD}"
 if weHave zeditor; then
-  app="zeditor"
+	app="zeditor"
 elif weHave zed; then
-  app="zed"
+	app="zed"
 fi
 
 $app "${@:-$PWD}"
