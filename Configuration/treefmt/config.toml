@@ -143,9 +143,12 @@ priority = 2
 
 #| Python formatting
 [formatter.ruff]
-command  = "ruff"
-includes = ["*.py"]
-options  = ["format", "--quiet"]
+includes = [
+  "*.py",
+  "Bin/python/**",
+]
+command = "ruff"
+options = ["format", "--quiet"]
 
 # #| Data formats
 # [formatter.biome]
