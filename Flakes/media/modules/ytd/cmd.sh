@@ -9,7 +9,7 @@ main() {
 usage() {
   case "$1" in
     --option)
-      printf "Error: %s requires an argument\n" "$2"
+        printf "Error: %s requires an argument\n" "$2"
       ;;
     *)
       printf "Usage: yt-download [-u url] [-f format] [-d dir] [-c config] [-m module]\n"
