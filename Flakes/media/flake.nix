@@ -12,10 +12,14 @@
     flake-utils,
   }:
     flake-utils.lib.eachDefaultSystem (system: let
-      flakeHome = "/home/craole/.dots/Flakes/media";
-      flakeMod = ./modules;
-      flakeBin = flakeHome + "/bin";
-      flakeCfg = flakeHome + "/config";
+      paths = rec {
+        home = "/home/craole/.dots/Flakes/media";
+        mod = ./modules;
+        bin = home + "/bin";
+        cfg = home + "/config";
+        vid = home + "/videos";
+        mus = home + "/music";
+      };
       pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;
@@ -44,69 +48,29 @@
       };
 
       mpvConfig = pkgs.substituteAll {
-        src = flakeMod + "/mpv/settings.conf";
+        src = paths.mod + "/mpv/settings.conf";
         ytdlp = pkgs.yt-dlp;
       };
 
       mpvCommand = pkgs.substituteAll {
-        src = flakeMod + "/mpv/cmd.sh";
+        src = paths.mod + "/mpv/cmd.sh";
         isExecutable = true;
         mpv = pkgs.mpv.override {
           scripts = mpvEnhanced;
         };
       };
 
-      ytdCommand = pkgs.substituteAll {
-        src = flakeMod + "/ytd/cmd.sh";
-        isExecutable = true;
+      ytdConfig = pkgs.substituteAll {
+        src = paths.mod + "/ytd/settings.conf";
         ytdlp = pkgs.yt-dlp;
       };
-      # mpvInput = "${flakeMod}/mpv/input.conf";
-      # mpdConfig = "${flakeMod}/mpd/settings.conf";
-      # mpvConfig =
-      #   pkgs.runCommand "mpv-config" {
-      #     src = ./modules/mpv;
-      #   } ''
-      #     #@ Create the config directory
-      #     mkdir -p $out/config
-      #     cp -r $src/* $out/config/
-      #     #@ Ensure yt-dlp path is set in settings.conf
-      #     echo "ytdl_path=${pkgs.yt-dlp}/bin/yt-dlp" >> $out/config/settings.conf
-      #     echo "script-opts=ytdl_hook-ytdl_path=${pkgs.yt-dlp}/bin/yt-dlp" >> $out/config/settings.conf
-      #   '';
-      # mpvEnhanced = pkgs.symlinkJoin {
-      #   name = "mpv";
-      #   paths = [
-      #     (pkgs.mpv.override {
-      #       scripts = with pkgs.mpvScripts; [
-      #         uosc
-      #         memo
-      #         quack
-      #         mpris
-      #         reload
-      #         cutter
-      #         evafast
-      #         autosub
-      #         smartskip
-      #         skipsilence
-      #         chapterskip
-      #         sponsorblock
-      #         quality-menu
-      #         inhibit-gnome
-      #         mpv-notify-send
-      #         webtorrent-mpv-hook
-      #         mpv-playlistmanager
-      #       ];
-      #     })
-      #   ];
-      #   buildInputs = [pkgs.makeWrapper];
-      #   postBuild = ''
-      #     wrapProgram $out/bin/mpv \
-      #       --set MPV_HOME "${mpvConfig}/config" \
-      #       --set MPV_CONFIG_DIR "${mpvConfig}/config" \
-      #       --prefix PATH : "${pkgs.yt-dlp}/bin"
-      #   '';
-      # };
+
+      ytdCommand = pkgs.substituteAll {
+        src = paths.mod + "/ytd/cmd.sh";
+        isExecutable = true;
+        ytdlp = pkgs.yt-dlp;
+        videos = paths.videos;
+      };
     in {
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
@@ -137,7 +101,7 @@
 
           #| Video
           freetube
-          mpvEnhanced
+          # mpvEnhanced
           mpvc
           # yt-dlp
         ];
@@ -146,18 +110,18 @@
           printf "🎬 Comprehensive Media Environment Loaded!\n\n"
 
           #@ Set up directory structure
-          mkdir -p {${flakeBin},${flakeCfg}/{mpd,mpv}}
+          mkdir -p {${paths.bin},${paths.cfg}/{mpd,mpv}}
           unalias ytd mpv
 
           #@ Copy and process config files
-          cp -f ${mpvConfig} ${flakeCfg}/mpv/mpv.conf
-          cp -f ${ytdCommand} ${flakeBin}/ytd
-          cp -f ${mpvCommand} ${flakeBin}/mpv
+          cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
+          cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
 
 
           #@ Set up executable scripts
-          find "${flakeBin}" -type f -exec chmod +x {} +
-          PATH="$PATH:${flakeBin}"
+          cp -f ${ytdCommand} ${paths.bin}/ytd
+          find "${paths.bin}" -type f -exec chmod +x {} +
+          PATH="$PATH:${paths.bin}"
           export PATH
 
           #@ Show the usage guide
@@ -170,7 +134,7 @@
           printf "  imv         - Alternative image viewer\n\n"
 
           printf "Music & Radio:\n"
-          printf "  ncmpcpp     - Music player (music dir: ${flakeHome}/music)\n"
+          printf "  ncmpcpp     - Music player (music dir: ${paths.home}/music)\n"
           printf "  curseradio  - Terminal radio\n\n"
         '';
       };
@@ -181,4 +145,5 @@
 # init-mpv
 # cp -f ${ytdInit} ${flakeBin}/init-ytd
 # cp -f ${mpvInit} ${flakeBin}/init-mpv
+# cp -f ${mpvCommand} ${flakeBin}/mpv
 

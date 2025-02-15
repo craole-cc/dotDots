@@ -8,6 +8,7 @@ fi
 
 URL="$1"
 QUALITY="${2:-1080p}"
+DIR="${3:-@videos@}"
 
 case $QUALITY in
 	"best")
@@ -17,6 +18,9 @@ case $QUALITY in
 		@ytdlp@/bin/yt-dlp -x --audio-format mp3 "$URL"
 		;;
 	*)
-		@ytdlp@/bin/yt-dlp -f "bestvideo[height<=${QUALITY%p}]+bestaudio/best[height<=${QUALITY%p}]" "$URL"
+		@ytdlp@/bin/yt-dlp \
+			-f "bestvideo[height<=${QUALITY%p}]+bestaudio/best[height<=${QUALITY%p}]" \
+			-o "$DIR/%(title)s.%(ext)s" \
+			"$URL"
 		;;
 esac
