@@ -31,7 +31,7 @@ scr_AUTHORS="Authors:
     Craole <iamcraole@gmail.com>
 "
 scr_HELP="$(
-    cat << HELP
+  cat << HELP
   $scr_NAME [v.$scr_VERSION] $scr_DESCRIPTION.
 
   $scr_USAGE
@@ -44,108 +44,108 @@ HELP
 )"
 
 point_of_entry() {
-    parse_arguments "$@"
+  parse_arguments "$@"
 }
 
 convert_to_lf() {
-    if dos2unix -h /dev/null 2>&1; then
-        dos2unix "$1"
-    elif perl -h /dev/null 2>&1; then
-        perl -pi -e 's/\r\n$/\n/g' "$1"
-    else
-        sed -i 's/\r$//' "$1"
-    fi
+  if dos2unix -h /dev/null 2>&1; then
+    dos2unix "$1"
+  elif perl -h /dev/null 2>&1; then
+    perl -pi -e 's/\r\n$/\n/g' "$1"
+  else
+    sed -i 's/\r$//' "$1"
+  fi
 }
 
 convert_to_cr() {
-    if unix2dos -h /dev/null 2>&1; then
-        unix2dos "$1"
-    elif perl -h /dev/null 2>&1; then
-        perl -pi -e 's/$/\r/' "$1"
-    else
-        sed -i 's/$/\r/' "$1"
-    fi
+  if unix2dos -h /dev/null 2>&1; then
+    unix2dos "$1"
+  elif perl -h /dev/null 2>&1; then
+    perl -pi -e 's/$/\r/' "$1"
+  else
+    sed -i 's/$/\r/' "$1"
+  fi
 }
 
 parse_arguments() {
-    #@ Ensure there is an argument to parse
-    [ "$#" -eq 0 ] && {
-        echo "we need something to process"
-        exit 1
-    }
+  #@ Ensure there is an argument to parse
+  [ "$#" -eq 0 ] && {
+    echo "we need something to process"
+    exit 1
+  }
 
-    #@ Accept user options
-    while [ "$#" -ge 1 ]; do
-        case "$1" in
-            -h | --help)
-                printf "%s\n" "$scr_HELP"
-                exit 0
-                ;;
-            -v | --version)
-                printf "%s\n" "$scr_VERSION"
-                exit 0
-                ;;
-            # -d | --verbose) verbose=true ;;e
-            -q | --quiet) unset verbose ;;
-            -c | --cr) target_eol="cr" ;;
-            -l | --lf) target_eol="lf" ;;
-        esac
-        shift
-    done
+  #@ Accept user options
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+      -h | --help)
+        printf "%s\n" "$scr_HELP"
+        exit 0
+        ;;
+      -v | --version)
+        printf "%s\n" "$scr_VERSION"
+        exit 0
+        ;;
+      # -d | --verbose) verbose=true ;;e
+      -q | --quiet) unset verbose ;;
+      -c | --cr) target_eol="cr" ;;
+      -l | --lf) target_eol="lf" ;;
+    esac
+    shift
+  done
 
-    #@ If unset, set default eol based on Operating System
-    [ "$target_eol" ] \
-        || case $(os.type.fetch) in
-            Windows) target_eol="cr" ;;
-            *) target_eol="lf" ;;
-        esac
+  #@ If unset, set default eol based on Operating System
+  [ "$target_eol" ] \
+    || case $(os.type.fetch) in
+      Windows) target_eol="cr" ;;
+      *) target_eol="lf" ;;
+    esac
 
-    echo "$target_eol"
+  echo "$target_eol"
 }
 
 process_core() {
-    files_processed=0
-    table_header_printed=false
+  files_processed=0
+  table_header_printed=false
 
-    while [ "$#" -ge 1 ]; do
-        file="$1"
-        if [ -f "$file" ]; then
-            if [ "$table_header_printed" = false ]; then
-                printf " | File | Conversion |\n"
-                printf "|---|---|\n"
-                table_header_printed=true
-            fi
+  while [ "$#" -ge 1 ]; do
+    file="$1"
+    if [ -f "$file" ]; then
+      if [ "$table_header_printed" = false ]; then
+        printf " | File | Conversion |\n"
+        printf "|---|---|\n"
+        table_header_printed=true
+      fi
 
-            case "$target_eol" in
-                "cr")
-                    convert_to_cr "$file"
-                    printf "| %s | LF to CRLF |\n" "$file"
-                    ;;
-                "lf")
-                    convert_to_lf "$file"
-                    printf "| %s | CRLF to LF |\n" "$file"
-                    ;;
-            esac
+      case "$target_eol" in
+        "cr")
+          convert_to_cr "$file"
+          printf "| %s | LF to CRLF |\n" "$file"
+          ;;
+        "lf")
+          convert_to_lf "$file"
+          printf "| %s | CRLF to LF |\n" "$file"
+          ;;
+      esac
 
-            files_processed=$((files_processed + 1))
-        else
-            echo "File not found: $file"
-        fi
+      files_processed=$((files_processed + 1))
+    else
+      echo "File not found: $file"
+    fi
 
-        shift
-    done
+    shift
+  done
 
-    printf "\nConversion of %s file(s) completed.\n" "$files_processed"
+  printf "\nConversion of %s file(s) completed.\n" "$files_processed"
 }
 
 #@ __________________________________________________ INFO<|
 
 __ver__() {
-    echo "1.0"
+  echo "1.0"
 }
 
 __help__() {
-    emojify "                      :spiral_notepad:  USAGE
+  emojify "                      :spiral_notepad:  USAGE
         command <[options]> <[files]>
         >>> sortFile --row list.txt <<<
 :arrow_forward: ----------------------------------------------- :arrow_backward:
@@ -156,18 +156,18 @@ __help__() {
 }
 
 display_info() { #@ Display information to via Stdout or Notification
-    #? USAGE: display_info --noline $arg
+  #? USAGE: display_info --noline $arg
 
-    #@ Ensure there is something to print
-    [ "$*" ] || return 1
+  #@ Ensure there is something to print
+  [ "$*" ] || return 1
 
-    case "$1" in
-        -l | -n | --new-line)
-            shift
-            printf '%s\n' "$*"
-            ;;
-        *) printf '%s' "$*" ;;
-    esac
+  case "$1" in
+    -l | -n | --new-line)
+      shift
+      printf '%s\n' "$*"
+      ;;
+    *) printf '%s' "$*" ;;
+  esac
 }
 
 point_of_entry "$@"
