@@ -1,1725 +1,1724 @@
 #!/bin/sh
 ## shellcheck disable=SC2034,SC2154,SC2164,SC2181,SC2213,SC2230,SC2291,SC2317,SC2320,SC2039
 main() {
-  #@ Initialization the script environment
-  manage_script --init functions
-  manage_script --init environment
+	#@ Initialization the script environment
+	manage_script --init functions
+	manage_script --init environment
 
-  #@ Initialize the DOTS environment
-  manage_script --process
+	#@ Initialize the DOTS environment
+	manage_script --process
 
-  #@ Reset the environment
-  manage_script --exit
+	#@ Reset the environment
+	manage_script --exit
 }
 
 manage_script() {
-  init_functions() {
-    util_functions
-    core_functions
+	init_functions() {
+		util_functions
+		core_functions
 
-  }
+	}
 
-  init_script_env() {
-    #@ Set persistent variables
-    set -o allexport
+	init_script_env() {
+		#@ Set persistent variables
+		set -o allexport
 
-    if [ -f "$DOTS_RC" ]; then
-      DOTS="$(dirname "${DOTS_RC}")"
-    elif [ -d "$DOTS" ]; then
-      DOTS_RC="$DOTS/.dotsrc"
-    # else
-    #   # DOTS_RC="${BASH_SOURCE[0]}"
-    #   DOTS="$(dirname "$DOTS_RC")"
-    fi
+		if [ -f "$DOTS_RC" ]; then
+			DOTS="$(dirname "${DOTS_RC}")"
+		elif [ -d "$DOTS" ]; then
+			DOTS_RC="$DOTS/.dotsrc"
+		# else
+		#   # DOTS_RC="${BASH_SOURCE[0]}"
+		#   DOTS="$(dirname "$DOTS_RC")"
+		fi
 
-    DOTS_IGNORE="$DOTS/.ignore"
-    DOTS_LOG="$DOTS/.log"
-    DOTS_BIN="$DOTS/Bin"
-    DOTS_CFG="$DOTS/Configuration"
-    DOTS_CFG="$DOTS_CFG/apps"
-    DOTS_KIT="$DOTS_CFG/tools"
-    DOTS_CFG="$DOTS_CFG/cli"
-    DOTS_DOC="$DOTS/Documentation"
-    DOTS_JOB="$DOTS_DOC/Tasks"
-    DOTS_MOD="$DOTS/Modules"
-    DOTS_RES="$DOTS/Resources"
-    DOTS_ENV="$DOTS/Environment"
-    DOTS_CTX="$DOTS_ENV/context"
-    DOTS_EXP="$DOTS_ENV/export"
-    DOTS_NIX="$DOTS_CFG/nixos"
-    set +o allexport
+		DOTS_IGNORE="$DOTS/.ignore"
+		DOTS_LOG="$DOTS/.log"
+		DOTS_BIN="$DOTS/Bin"
+		DOTS_CFG="$DOTS/Configuration"
+		DOTS_CFG="$DOTS_CFG/apps"
+		DOTS_KIT="$DOTS_CFG/tools"
+		DOTS_CFG="$DOTS_CFG/cli"
+		DOTS_DOC="$DOTS/Documentation"
+		DOTS_JOB="$DOTS_DOC/Tasks"
+		DOTS_MOD="$DOTS/Modules"
+		DOTS_RES="$DOTS/Resources"
+		DOTS_ENV="$DOTS/Environment"
+		DOTS_CTX="$DOTS_ENV/context"
+		DOTS_EXP="$DOTS_ENV/export"
+		DOTS_NIX="$DOTS_CFG/nixos"
+		set +o allexport
 
-    #@ Set temporary variables in lowercase and perpended by double underscorez
-    __mode="reset" #? simulation | normal | reset
-    __verbosity=0
-    __log_path="$DOTS_LOG"
-    __pad=24
-    __shell="Bash"
-    __filter="included" #? included | excluded
-    __profile="$HOME/.profile"
-    __bashrc="$HOME/.bashrc"
+		#@ Set temporary variables in lowercase and perpended by double underscorez
+		__mode="reset" #? simulation | normal | reset
+		__verbosity=0
+		__log_path="$DOTS_LOG"
+		__pad=24
+		__shell="Bash"
+		__filter="included" #? included | excluded
+		__profile="$HOME/.profile"
+		__bashrc="$HOME/.bashrc"
 
-    #@ Tag the time of initialization
-    __dots_inittime=$(get_time_in_secs)
+		#@ Tag the time of initialization
+		__dots_inittime=$(get_time_in_secs)
 
-    #@ Remove the log file if requested
-    case "$(to_lower "$__mode")" in reset) rm -rf "$DOTS_LOG" ;; esac
-  }
+		#@ Remove the log file if requested
+		case "$(to_lower "$__mode")" in reset) rm -rf "$DOTS_LOG" ;; esac
+	}
 
-  run_process() {
+	run_process() {
 
-    #@ Initialize messaging to the log and console (stdout/stderr)
-    set_messaging
+		#@ Initialize messaging to the log and console (stdout/stderr)
+		set_messaging
 
-    #@ Get relevant system information
-    set_os_type
+		#@ Get relevant system information
+		set_os_type
 
-    set_location "Mandeville, Jamaica"
-    echo "$LOCATION"
-    # export LOCATION="Ja"
+		set_location "Mandeville, Jamaica"
+		echo "$LOCATION"
+		# export LOCATION="Ja"
 
-    case "$(to_lower "$__mode")" in
-    simulation)
-      #@ Display environment variables
-      pout --pad --key "Operation Mode" --val "$(to_lower "$__mode")" --lead
-      pout --pad --key "Verbosity Level" --val "$VERBOSITY"
-      pout --pad --key "Log Level" --val "$LOG_LEVEL"
-      pout --pad --key "Operating System" --val "$OS_TYPE"
-      pout --pad --key "Interactive Shell" --val "$__shell"
-      pout --pad --key "DOTS Directory" --val "$DOTS"
-      pout --pad --key "DOTS Loader" --val "$DOTS_RC"
-      pout --pad --key "User Loader" --val "$__profile"
-      pout --pad --key "Bash Loader" --val "$__bashrc" --trail
-      ;;
-    *)
-      # set_shell
-      __shell_inittime=$(get_time_in_secs)
-      initialize_shell
-      __shell_stoptime=$(get_time_in_secs)
-      __shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
+		case "$(to_lower "$__mode")" in
+		simulation)
+			#@ Display environment variables
+			pout --pad --key "Operation Mode" --val "$(to_lower "$__mode")" --lead
+			pout --pad --key "Verbosity Level" --val "$VERBOSITY"
+			pout --pad --key "Log Level" --val "$LOG_LEVEL"
+			pout --pad --key "Operating System" --val "$OS_TYPE"
+			pout --pad --key "Interactive Shell" --val "$__shell"
+			pout --pad --key "DOTS Directory" --val "$DOTS"
+			pout --pad --key "DOTS Loader" --val "$DOTS_RC"
+			pout --pad --key "User Loader" --val "$__profile"
+			pout --pad --key "Bash Loader" --val "$__bashrc" --trail
+			;;
+		*)
+			# set_shell
+			__shell_inittime=$(get_time_in_secs)
+			initialize_shell
+			__shell_stoptime=$(get_time_in_secs)
+			__shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
 
-      ;;
-    esac
+			;;
+		esac
 
-    # manage_dots --sources
+		# manage_dots --sources
 
-  }
+	}
 
-  exit_script_env() {
-    #@ Tag the end and duration of the initialization
-    __dots_stoptime=$(get_time_in_secs)
-    __dots_duration=$(format_duration --start "$__dots_inittime" --stop "$__dots_stoptime")
+	exit_script_env() {
+		#@ Tag the end and duration of the initialization
+		__dots_stoptime=$(get_time_in_secs)
+		__dots_duration=$(format_duration --start "$__dots_inittime" --stop "$__dots_stoptime")
 
-    unset __scr_start __stop __duration
+		unset __scr_start __stop __duration
 
-    unset -v \
-      BIN_ \
-      ENV_ \
-      src_path \
-      src_type \
-      ignore_file \
-      reset_flag \
-      test_flag \
-      verbosity \
-      loglevel
+		unset -v \
+			BIN_ \
+			ENV_ \
+			src_path \
+			src_type \
+			ignore_file \
+			reset_flag \
+			test_flag \
+			verbosity \
+			loglevel
 
-    #@ Print the DOTS variable
-    # TODO: Add error handling so we don't even get here if dots weren't loaded
-    [ "$DOTS" ] || {
-      printf "DOTS not set.\n"
-      return 1
-    }
+		#@ Print the DOTS variable
+		# TODO: Add error handling so we don't even get here if dots weren't loaded
+		[ "$DOTS" ] || {
+			printf "DOTS not set.\n"
+			return 1
+		}
 
-    #@ Ensure the local variables are exported
-    export DOTS DOTS_RC DOTS_IGNORE
+		#@ Ensure the local variables are exported
+		export DOTS DOTS_RC DOTS_IGNORE
 
-    #@ Report
-    case "$VERBOSITY" in
-    0) ;;
-    1) ;;
-    2)
-      pout --info "Shell initialized in $__shell_duration" --lead
-      pout --info "DOTS initialized in $__dots_duration" --trail -1
-      ;;
-    3)
-      pout --debug --key "DOTS_PATH" --val "$DOTS"
-      pout --debug --key "DOTS_RC" --val "$DOTS_RC"
-      pout --debug --key "DOTS_IGNORE" --val "$DOTS_IGNORE"
-      pout --debug --key "DOTS_LOG" --val "$DOTS_LOG"
-      pout --debug --key "DOTS_BIN" --val "$DOTS_BIN"
-      pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
-      pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
-      pout --debug --key "DOTS_KIT" --val "$DOTS_KIT"
-      pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
-      pout --debug --key "DOTS_DOC" --val "$DOTS_DOC"
-      pout --debug --key "DOTS_JOB" --val "$DOTS_JOB"
-      pout --debug --key "DOTS_MOD" --val "$DOTS_MOD"
-      pout --debug --key "DOTS_RES" --val "$DOTS_RES"
-      pout --debug --key "DOTS_ENV" --val "$DOTS_ENV"
-      pout --debug --key "DOTS_CTX" --val "$DOTS_CTX"
+		#@ Report
+		case "$VERBOSITY" in
+		0) ;;
+		1) ;;
+		2)
+			pout --info "Shell initialized in $__shell_duration" --lead
+			pout --info "DOTS initialized in $__dots_duration" --trail -1
+			;;
+		3)
+			pout --debug --key "DOTS_PATH" --val "$DOTS"
+			pout --debug --key "DOTS_RC" --val "$DOTS_RC"
+			pout --debug --key "DOTS_IGNORE" --val "$DOTS_IGNORE"
+			pout --debug --key "DOTS_LOG" --val "$DOTS_LOG"
+			pout --debug --key "DOTS_BIN" --val "$DOTS_BIN"
+			pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
+			pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
+			pout --debug --key "DOTS_KIT" --val "$DOTS_KIT"
+			pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
+			pout --debug --key "DOTS_DOC" --val "$DOTS_DOC"
+			pout --debug --key "DOTS_JOB" --val "$DOTS_JOB"
+			pout --debug --key "DOTS_MOD" --val "$DOTS_MOD"
+			pout --debug --key "DOTS_RES" --val "$DOTS_RES"
+			pout --debug --key "DOTS_ENV" --val "$DOTS_ENV"
+			pout --debug --key "DOTS_CTX" --val "$DOTS_CTX"
 
-      pout --debug --key "DOTS_INIT_START" --val "$__start"
-      pout --debug --key "Operation Mode" --val "$(to_lower "$__mode")"
-      pout --debug --key "Verbosity Level" --val "$VERBOSITY"
-      pout --debug --key "Log Level" --val "$LOG_LEVEL"
-      pout --debug --key "Operating System" --val "$OS_TYPE"
-      pout --debug --key "Interactive Shell" --val "$__shell"
-      pout --debug --key "DOTS Directory" --val "$DOTS"/
-      pout --debug --key "DOTS Loader" --val "$DOTS_RC"
-      pout --debug --key "User Loader" --val "$__profile"
-      pout --debug --key "Bash Loader" --val "$__bashrc"
-      pout --debug --key "SHELL_NAME" --val "$SHELL_NAME"
-      pout --debug --key "SHELL_PATH" --val "$SHELL_PATH"
-      pout --debug --key "SHELL_HOME" --val "$SHELL_HOME"
-      pout --debug --key "SHELL_VERSION" --val "$SHELL_VERSION"
-      pout --debug --key "SHELL_CONF" --val "$SHELL_CONF"
-      pout --debug --key "SHELL_INIT" --val "$SHELL_INIT"
-      pout --debug --key "SHELL_INIT_START" --val "$__time_before_shell"
-      pout --debug --key "SHELL_INIT_STOP" --val "$__time_after_shell"
-      pout --debug --key "SHELL_INIT_DURATION" --val "$__duration"
-      pout --debug --key "DOTS_INIT_START" --val "$__start"
-      pout --debug --key "DOTS_INIT_STOP" --val "$__stop"
-      pout --debug --key "DOTS_INIT_DURATION" --val "$__duration"
-      ;;
-    4)
-      pout --trace --key "DOTS_PATH" --val "$DOTS"
-      pout --trace --key "DOTS_INIT_START" --val "$__start"
-      pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
-      pout --trace --key "Verbosity Level" --val "$VERBOSITY"
-      pout --trace --key "Log Level" --val "$LOG_LEVEL"
-      pout --trace --key "Operating System" --val "$OS_TYPE"
-      pout --trace --key "Interactive Shell" --val "$__shell"
-      pout --trace --key "DOTS Loader" --val "$DOTS_RC"
-      pout --trace --key "User Loader" --val "$__profile"
-      pout --trace --key "Bash Loader" --val "$__bashrc"
-      pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
-      pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
-      pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
-      pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
-      pout --trace --key "SHELL" --val "$SHELL"
-      pout --trace --key "SHELL_INIT_START" --val "$__time_before_shell"
-      pout --trace --key "SHELL_INIT_DURATION" --val "$__duration_shell"
-      pout --trace --key "SHELL_INIT_END" --val "$__time_after_shell"
-      pout --trace --key "DOTS_INIT_END" --val "$__stop"
-      pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
+			pout --debug --key "DOTS_INIT_START" --val "$__start"
+			pout --debug --key "Operation Mode" --val "$(to_lower "$__mode")"
+			pout --debug --key "Verbosity Level" --val "$VERBOSITY"
+			pout --debug --key "Log Level" --val "$LOG_LEVEL"
+			pout --debug --key "Operating System" --val "$OS_TYPE"
+			pout --debug --key "Interactive Shell" --val "$__shell"
+			pout --debug --key "DOTS Directory" --val "$DOTS"/
+			pout --debug --key "DOTS Loader" --val "$DOTS_RC"
+			pout --debug --key "User Loader" --val "$__profile"
+			pout --debug --key "Bash Loader" --val "$__bashrc"
+			pout --debug --key "SHELL_NAME" --val "$SHELL_NAME"
+			pout --debug --key "SHELL_PATH" --val "$SHELL_PATH"
+			pout --debug --key "SHELL_HOME" --val "$SHELL_HOME"
+			pout --debug --key "SHELL_VERSION" --val "$SHELL_VERSION"
+			pout --debug --key "SHELL_CONF" --val "$SHELL_CONF"
+			pout --debug --key "SHELL_INIT" --val "$SHELL_INIT"
+			pout --debug --key "SHELL_INIT_START" --val "$__time_before_shell"
+			pout --debug --key "SHELL_INIT_STOP" --val "$__time_after_shell"
+			pout --debug --key "SHELL_INIT_DURATION" --val "$__duration"
+			pout --debug --key "DOTS_INIT_START" --val "$__start"
+			pout --debug --key "DOTS_INIT_STOP" --val "$__stop"
+			pout --debug --key "DOTS_INIT_DURATION" --val "$__duration"
+			;;
+		4)
+			pout --trace --key "DOTS_PATH" --val "$DOTS"
+			pout --trace --key "DOTS_INIT_START" --val "$__start"
+			pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
+			pout --trace --key "Verbosity Level" --val "$VERBOSITY"
+			pout --trace --key "Log Level" --val "$LOG_LEVEL"
+			pout --trace --key "Operating System" --val "$OS_TYPE"
+			pout --trace --key "Interactive Shell" --val "$__shell"
+			pout --trace --key "DOTS Loader" --val "$DOTS_RC"
+			pout --trace --key "User Loader" --val "$__profile"
+			pout --trace --key "Bash Loader" --val "$__bashrc"
+			pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
+			pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
+			pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
+			pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
+			pout --trace --key "SHELL" --val "$SHELL"
+			pout --trace --key "SHELL_INIT_START" --val "$__time_before_shell"
+			pout --trace --key "SHELL_INIT_DURATION" --val "$__duration_shell"
+			pout --trace --key "SHELL_INIT_END" --val "$__time_after_shell"
+			pout --trace --key "DOTS_INIT_END" --val "$__stop"
+			pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
 
-      ;;
-    *) ;;
-    esac
-  }
+			;;
+		*) ;;
+		esac
+	}
 
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    --init)
-      case "$2" in
-      func* | fn) init_functions ;; env* | *) init_script_env ;;
-      esac
-      ;;
-    --process) run_process ;;
-    --exit) exit_script_env ;;
-    esac
-    shift
-  done
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		--init)
+			case "$2" in
+			func* | fn) init_functions ;; env* | *) init_script_env ;;
+			esac
+			;;
+		--process) run_process ;;
+		--exit) exit_script_env ;;
+		esac
+		shift
+	done
 }
 
 manage_dots() {
-  case $1 in
-  --sources)
-    #@ Load binary and environment sources
-    initialize_source \
-      --exclude "archive" "review" "template" "temp" "tmp" \
-      --bin "$DOTS/Bin"
-    # --env "$DOTS/Environment/export"
-    ;;
-  --profile)
-    #@ Update user profile
-    # initialize_profile \
-    #   --file "${__profile:-"$HOME/.profile"}" \
-    #   --key "DOTS" \
-    #   --val "$DOTS" \
-    #   --rc ".dotsrc"
+	case $1 in
+	--sources)
+		#@ Load binary and environment sources
+		initialize_source \
+			--exclude "archive" "review" "template" "temp" "tmp" \
+			--bin "$DOTS/Bin"
+		# --env "$DOTS/Environment/export"
+		;;
+	--profile)
+		#@ Update user profile
+		# initialize_profile \
+		#   --file "${__profile:-"$HOME/.profile"}" \
+		#   --key "DOTS" \
+		#   --val "$DOTS" \
+		#   --rc ".dotsrc"
 
-    # initialize_profile \
-    #   --file "${__bashrc:-"$HOME/.bashrc"}" \
-    #   --key "DOTS_BASH" \
-    #   --val "$DOTS/Configuration/cli/bash" \
-    #   --rc "config"
+		# initialize_profile \
+		#   --file "${__bashrc:-"$HOME/.bashrc"}" \
+		#   --key "DOTS_BASH" \
+		#   --val "$DOTS/Configuration/cli/bash" \
+		#   --rc "config"
 
-    # update_user_profile
-    ;;
-  --shell)
-    #@ Load interactive shell
-    # shell.init "$SHELL_INTERACTIVE"
-    initialize_shell
-    ;;
-  --fonts)
-    #@ Load Fonts
-    #TODO: This needs to be made portable to work on Windows
-    # fonts.init
-    ;;
-  --config)
-    #@ Load additional configs
-    DeployConfig git
-    DeployConfig zed
-    ;;
-  esac
+		# update_user_profile
+		;;
+	--shell)
+		#@ Load interactive shell
+		# shell.init "$SHELL_INTERACTIVE"
+		initialize_shell
+		;;
+	--fonts)
+		#@ Load Fonts
+		#TODO: This needs to be made portable to work on Windows
+		# fonts.init
+		;;
+	--config)
+		#@ Load additional configs
+		DeployConfig git
+		DeployConfig zed
+		;;
+	esac
 }
 
 #> ------------------------------------------------------------------------------
 #> Functions
 #> ------------------------------------------------------------------------------
 util_functions() {
-  weHave() {
-    #DOC Checks if a command exists in the system PATH
-    #DOC Args:
-    #DOC   $1 - Command name to check
-    #DOC Returns:
-    #DOC   0 if command exists, 1 otherwise
-    #DOC Example:
-    #DOC   if weHave git; then
-    #DOC     git status
-    #DOC   fi
+	weHave() {
+		#DOC Checks if a command exists in the system PATH
+		#DOC Args:
+		#DOC   $1 - Command name to check
+		#DOC Returns:
+		#DOC   0 if command exists, 1 otherwise
+		#DOC Example:
+		#DOC   if weHave git; then
+		#DOC     git status
+		#DOC   fi
 
-    if [ -z "$1" ]; then
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf "ERROR: No command specified\n" >&2
-      return 1
-    else
-      command -v "$1" >/dev/null 2>&1
-    fi
-  }
+		if [ -z "$1" ]; then
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf "ERROR: No command specified\n" >&2
+			return 1
+		else
+			command -v "$1" >/dev/null 2>&1
+		fi
+	}
 
-  pathOf() {
-    command -v "$1"
-  }
+	pathOf() {
+		command -v "$1"
+	}
 
-  to_lower() {
-    #DOC Converts a string to lowercase
-    #DOC Args:
-    #DOC   $1 - String to convert
-    #DOC Returns:
-    #DOC   Lowercase string on success, 1 on failure
-    #DOC Example:
-    #DOC   lower_text=$(to_lower "HELLO")
+	to_lower() {
+		#DOC Converts a string to lowercase
+		#DOC Args:
+		#DOC   $1 - String to convert
+		#DOC Returns:
+		#DOC   Lowercase string on success, 1 on failure
+		#DOC Example:
+		#DOC   lower_text=$(to_lower "HELLO")
 
-    if [ -z "${1:-}" ]; then
-      # [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No string provided for conversion\n" >&2
-      return 1
-    else
-      printf "%s" "${1:-}" | tr '[:upper:]' '[:lower:]' 2>/dev/null || {
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to convert string to lowercase\n" >&2
-        return 1
-      }
-    fi
+		if [ -z "${1:-}" ]; then
+			# [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No string provided for conversion\n" >&2
+			return 1
+		else
+			printf "%s" "${1:-}" | tr '[:upper:]' '[:lower:]' 2>/dev/null || {
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to convert string to lowercase\n" >&2
+				return 1
+			}
+		fi
 
-  }
+	}
 
-  validate_file() {
-    #DOC Validates file existence and properties
-    #DOC Args:
-    #DOC   $1 - Option (--writable, --non-empty) or file path
-    #DOC   $2 - File path (when using options)
-    #DOC Returns:
-    #DOC   0 if validation passes, 1 otherwise
-    #DOC Example:
-    #DOC   validate_file --writable "/path/to/file"
-    #DOC   validate_file --non-empty "/path/to/file"
-    #DOC   validate_file "/path/to/file"
+	validate_file() {
+		#DOC Validates file existence and properties
+		#DOC Args:
+		#DOC   $1 - Option (--writable, --non-empty) or file path
+		#DOC   $2 - File path (when using options)
+		#DOC Returns:
+		#DOC   0 if validation passes, 1 otherwise
+		#DOC Example:
+		#DOC   validate_file --writable "/path/to/file"
+		#DOC   validate_file --non-empty "/path/to/file"
+		#DOC   validate_file "/path/to/file"
 
-    case "$1" in
-    --writable)
-      if [ -z "$2" ]; then
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
-        return 1
-      elif [ -f "$2" ] && [ -w "$2" ]; then
-        return 0
-      else
-        [ "$VERBOSITY" -ge 1 ] &&
-          printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
-        return 1
-      fi
-      ;;
-    --non-empty)
-      if [ -z "$2" ]; then
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
-        return 1
-      elif [ -f "$2" ] && [ -s "$2" ]; then
-        return 0
-      else
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist or is empty\n" "$2" >&2
-        return 1
-      fi
-      ;;
-    --parent)
-      if [ -z "$2" ]; then
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
-        return 1
-      elif [ -d "$(dirname "$2")" ] && [ -w "$(dirname "$2")" ]; then
-        return 0
-      else
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Parent directory of '%s' does not exist\n" "$1" >&2
-        return 1
-      fi
-      ;;
-    *)
-      [ -f "$1" ] || {
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
-        return 1
-      }
-      ;;
-    esac
-  }
+		case "$1" in
+		--writable)
+			if [ -z "$2" ]; then
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+				return 1
+			elif [ -f "$2" ] && [ -w "$2" ]; then
+				return 0
+			else
+				[ "$VERBOSITY" -ge 1 ] &&
+					printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
+				return 1
+			fi
+			;;
+		--non-empty)
+			if [ -z "$2" ]; then
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+				return 1
+			elif [ -f "$2" ] && [ -s "$2" ]; then
+				return 0
+			else
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist or is empty\n" "$2" >&2
+				return 1
+			fi
+			;;
+		--parent)
+			if [ -z "$2" ]; then
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+				return 1
+			elif [ -d "$(dirname "$2")" ] && [ -w "$(dirname "$2")" ]; then
+				return 0
+			else
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Parent directory of '%s' does not exist\n" "$1" >&2
+				return 1
+			fi
+			;;
+		*)
+			[ -f "$1" ] || {
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
+				return 1
+			}
+			;;
+		esac
+	}
 
-  create_file() {
-    #DOC Creates a new file with 1 byte size
-    #DOC Args:
-    #DOC   $1 - Path of file to create
-    #DOC Returns:
-    #DOC   0 on success, 1 on failure
-    #DOC Example:
-    #DOC   create_file "/path/to/new/file"
+	create_file() {
+		#DOC Creates a new file with 1 byte size
+		#DOC Args:
+		#DOC   $1 - Path of file to create
+		#DOC Returns:
+		#DOC   0 on success, 1 on failure
+		#DOC Example:
+		#DOC   create_file "/path/to/new/file"
 
-    [ -z "$1" ] && {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
-      return 1
-    }
+		[ -z "$1" ] && {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+			return 1
+		}
 
-    #@ Check if parent directory exists and is writable
-    dir=$(dirname "$1")
-    { [ -d "$dir" ] && [ -w "$dir" ]; } || {
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf "ERROR: Directory '%s' does not exist or is not writable\n" "$dir" >&2
-      return 1
-    }
+		#@ Check if parent directory exists and is writable
+		dir=$(dirname "$1")
+		{ [ -d "$dir" ] && [ -w "$dir" ]; } || {
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf "ERROR: Directory '%s' does not exist or is not writable\n" "$dir" >&2
+			return 1
+		}
 
-    #@ Create the file
-    touch "$1" 2>/dev/null || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create file '%s'\n" "$1" >&2
-      return 1
-    }
+		#@ Create the file
+		touch "$1" 2>/dev/null || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create file '%s'\n" "$1" >&2
+			return 1
+		}
 
-    #@ Modify the file size to 1 byte so it passes the non-empty test
-    truncate -s 1 "$1" 2>/dev/null || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to truncate file '%s'\n" "$1" >&2
-      return 1
-    }
-  }
+		#@ Modify the file size to 1 byte so it passes the non-empty test
+		truncate -s 1 "$1" 2>/dev/null || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to truncate file '%s'\n" "$1" >&2
+			return 1
+		}
+	}
 
-  read_file() {
-    #DOC Reads and displays file content using bat or cat
-    #DOC Args:
-    #DOC   $1 - Path of file to read
-    #DOC Returns:
-    #DOC   0 on success, 1 on failure
-    #DOC Example:
-    #DOC   read_file "/path/to/file"
+	read_file() {
+		#DOC Reads and displays file content using bat or cat
+		#DOC Args:
+		#DOC   $1 - Path of file to read
+		#DOC Returns:
+		#DOC   0 on success, 1 on failure
+		#DOC Example:
+		#DOC   read_file "/path/to/file"
 
-    [ -z "$1" ] && {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
-      return 1
-    }
+		[ -z "$1" ] && {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+			return 1
+		}
 
-    [ -f "$1" ] || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
-      return 1
-    }
+		[ -f "$1" ] || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
+			return 1
+		}
 
-    [ -r "$1" ] || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' is not readable\n" "$1" >&2
-      return 1
-    }
+		[ -r "$1" ] || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' is not readable\n" "$1" >&2
+			return 1
+		}
 
-    if weHave bat; then
-      bat "$1" 2>/dev/null || {
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to read file '%s' with bat\n" "$1" >&2
-        return 1
-      }
-    else
-      cat "$1" 2>/dev/null || {
-        [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to read file '%s'\n" "$1" >&2
-        return 1
-      }
-    fi
-  }
+		if weHave bat; then
+			bat "$1" 2>/dev/null || {
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to read file '%s' with bat\n" "$1" >&2
+				return 1
+			}
+		else
+			cat "$1" 2>/dev/null || {
+				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to read file '%s'\n" "$1" >&2
+				return 1
+			}
+		fi
+	}
 
-  get_list_from_file() {
-    #@ Validate arguments
-    if [ $# -lt 2 ]; then
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Invalid arguments\nUsage: get_list_from_file [--update|--read] <file_path>\n" >&2
-      return 1
-    fi
+	get_list_from_file() {
+		#@ Validate arguments
+		if [ $# -lt 2 ]; then
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Invalid arguments\nUsage: get_list_from_file [--update|--read] <file_path>\n" >&2
+			return 1
+		fi
 
-    action="$1"
-    file_path="$2"
-    output=""
+		action="$1"
+		file_path="$2"
+		output=""
 
-    #@ Validate file exists and is readable
-    if [ ! -f "$file_path" ]; then
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf "ERROR: File '%s' does not exist\n" "$file_path" >&2
-      return 1
-    fi
+		#@ Validate file exists and is readable
+		if [ ! -f "$file_path" ]; then
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf "ERROR: File '%s' does not exist\n" "$file_path" >&2
+			return 1
+		fi
 
-    #@ Process file based on action
-    case "$action" in
-    --update)
-      #@ Remove empty lines and comments, then sort and update the file
-      sed -i '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$file_path"
-      sort --human-numeric-sort --output "$file_path" "$file_path"
-      ;;
-    --read)
-      #@ Return processed list without modifying the file
-      output=$(
-        grep \
-          --invert-match \
-          --extended-regexp '^[[:space:]]*#|^[[:space:]]*$' \
-          "$file_path" | sort --human-numeric-sort
-      )
-      printf "%s\n" "$output"
-      ;;
-    *)
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf \
-          "ERROR: Invalid action '%s'. Use --update or --read\n" \
-          "$action" >&2
-      return 1
-      ;;
-    esac
-  }
+		#@ Process file based on action
+		case "$action" in
+		--update)
+			#@ Remove empty lines and comments, then sort and update the file
+			sed -i '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$file_path"
+			sort --human-numeric-sort --output "$file_path" "$file_path"
+			;;
+		--read)
+			#@ Return processed list without modifying the file
+			output=$(
+				grep \
+					--invert-match \
+					--extended-regexp '^[[:space:]]*#|^[[:space:]]*$' \
+					"$file_path" | sort --human-numeric-sort
+			)
+			printf "%s\n" "$output"
+			;;
+		*)
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf \
+					"ERROR: Invalid action '%s'. Use --update or --read\n" \
+					"$action" >&2
+			return 1
+			;;
+		esac
+	}
 
-  delete_line_from_file() {
-    #DOC Deletes lines matching a pattern from file with backup
-    #DOC Args:
-    #DOC   $1 - Pattern to match
-    #DOC   $2 - File path
-    #DOC Returns:
-    #DOC   0 on success, 1 on failure
-    #DOC Notes:
-    #DOC   - Creates backup in .archive directory
-    #DOC   - Maintains last 5 backups
-    #DOC Example:
-    #DOC   delete_line_from_file "pattern" "/path/to/file"
+	delete_line_from_file() {
+		#DOC Deletes lines matching a pattern from file with backup
+		#DOC Args:
+		#DOC   $1 - Pattern to match
+		#DOC   $2 - File path
+		#DOC Returns:
+		#DOC   0 on success, 1 on failure
+		#DOC Notes:
+		#DOC   - Creates backup in .archive directory
+		#DOC   - Maintains last 5 backups
+		#DOC Example:
+		#DOC   delete_line_from_file "pattern" "/path/to/file"
 
-    #@ Validate arguments
-    [ -z "$1" ] && {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No pattern provided\n" >&2
-      return 1
-    }
+		#@ Validate arguments
+		[ -z "$1" ] && {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No pattern provided\n" >&2
+			return 1
+		}
 
-    [ -z "$2" ] && {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
-      return 1
-    }
+		[ -z "$2" ] && {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+			return 1
+		}
 
-    { [ -f "$2" ] && [ -w "$2" ]; } || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
-      return 1
-    }
+		{ [ -f "$2" ] && [ -w "$2" ]; } || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
+			return 1
+		}
 
-    #@ Setup backup directory
-    backup_dir="$(dirname "$2")/.archive"
-    mkdir -p "$backup_dir" 2>/dev/null || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create backup directory '%s'\n" "$backup_dir" >&2
-      return 1
-    }
+		#@ Setup backup directory
+		backup_dir="$(dirname "$2")/.archive"
+		mkdir -p "$backup_dir" 2>/dev/null || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create backup directory '%s'\n" "$backup_dir" >&2
+			return 1
+		}
 
-    #@ Generate timestamped backup filename
-    backup_file="$backup_dir/$(basename "$2").$(date +%Y%m%d_%H%M%S).bak"
+		#@ Generate timestamped backup filename
+		backup_file="$backup_dir/$(basename "$2").$(date +%Y%m%d_%H%M%S).bak"
 
-    #@ Create backup with timestamp
-    cp "$2" "$backup_file" 2>/dev/null || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create backup of '%s'\n" "$2" >&2
-      return 1
-    }
+		#@ Create backup with timestamp
+		cp "$2" "$backup_file" 2>/dev/null || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create backup of '%s'\n" "$2" >&2
+			return 1
+		}
 
-    #@ Clean up old backups (keep last 5)
-    list_cmd=""
-    if weHave fd; then
-      list_cmd="fd -t f '$(basename "$2").*' '$backup_dir' -x stat -f '%m %n' {} \;"
-    else
-      list_cmd="find '$backup_dir' -name '$(basename "$2").*' -type f -printf '%T@ %p\n'"
-    fi
+		#@ Clean up old backups (keep last 5)
+		list_cmd=""
+		if weHave fd; then
+			list_cmd="fd -t f '$(basename "$2").*' '$backup_dir' -x stat -f '%m %n' {} \;"
+		else
+			list_cmd="find '$backup_dir' -name '$(basename "$2").*' -type f -printf '%T@ %p\n'"
+		fi
 
-    eval "$list_cmd" |
-      sort -rn |
-      cut -d' ' -f2- |
-      tail -n +6 |
-      xargs -r rm --
+		eval "$list_cmd" |
+			sort -rn |
+			cut -d' ' -f2- |
+			tail -n +6 |
+			xargs -r rm --
 
-    #@ Delete the target line
-    sed --in-place --expression "/$1/d" "$2" 2>/dev/null || {
-      [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to delete lines matching pattern '%s' from '%s'\n" "$1" "$2" >&2
-      # Restore from backup
-      mv "${2}.bak" "$2"
-      return 1
-    }
-  }
+		#@ Delete the target line
+		sed --in-place --expression "/$1/d" "$2" 2>/dev/null || {
+			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to delete lines matching pattern '%s' from '%s'\n" "$1" "$2" >&2
+			# Restore from backup
+			mv "${2}.bak" "$2"
+			return 1
+		}
+	}
 
-  get_timestamp() {
-    #DOC Gets current timestamp in a human-readable format
-    #DOC Returns:
-    #DOC   Human-readable timestamp in the format %Y-%m-%d %H:%M:%S
-    command -v date >/dev/null 2>&1 || return 1
-    date "+%Y-%m-%d %H:%M:%S"
-    #TODO: check for other date tools to ensure portability
-  }
+	get_timestamp() {
+		#DOC Gets current timestamp in a human-readable format
+		#DOC Returns:
+		#DOC   Human-readable timestamp in the format %Y-%m-%d %H:%M:%S
+		command -v date >/dev/null 2>&1 || return 1
+		date "+%Y-%m-%d %H:%M:%S"
+		#TODO: check for other date tools to ensure portability
+	}
 
-  get_time_in_secs() {
-    #DOC Gets current time in seconds with maximum precision
-    #DOC Returns:
-    #DOC   Current time in seconds (with decimal precision if available)
-    #DOC Notes:
-    #DOC   - Tries multiple methods for maximum compatibility
-    #DOC   - Falls back to lower precision if necessary
-    #DOC Example:
-    #DOC   start_time=$(get_time_in_secs)
+	get_time_in_secs() {
+		#DOC Gets current time in seconds with maximum precision
+		#DOC Returns:
+		#DOC   Current time in seconds (with decimal precision if available)
+		#DOC Notes:
+		#DOC   - Tries multiple methods for maximum compatibility
+		#DOC   - Falls back to lower precision if necessary
+		#DOC Example:
+		#DOC   start_time=$(get_time_in_secs)
 
-    if date +"%T.%N" >/dev/null 2>&1; then
-      date +%s.%N
-    elif command -v gdate >/dev/null 2>&1; then
-      gdate +%s.%N
-    elif weHave python3; then
-      python3 -c 'import time; print(time.time())'
-    elif weHave python; then
-      python -c 'import time; print(time.time())'
-    elif weHave perl; then
-      perl -e 'use Time::HiRes; print Time::HiRes::time();'
-    elif weHave ruby; then
-      ruby -e 'puts Time.now.to_f'
-    elif weHave php; then
-      php -r 'echo microtime(true);'
-    elif weHave node; then
-      node -e 'console.log(Date.now()/1000)'
-    elif weHave pwsh; then
-      pwsh -Command '(New-TimeSpan -Start (Get-Date "1970-01-01") -End (Get-Date)).TotalSeconds'
-    elif weHave powershell; then
-      powershell -Command '(New-TimeSpan -Start (Get-Date "1970-01-01") -End (Get-Date)).TotalSeconds'
-    elif [ -f /proc/uptime ]; then
-      read -r up rest </proc/uptime
-      time_val="${up%.*}${up#*.}"
-    else
-      #@ Fallback to basic second precision BSD/macOS with
-      date +%s
-    fi | {
-      #@ Validate output is numeric and non-empty
-      read -r result
-      case "$result" in
-      '' | *[!0-9.]*)
-        echo "Error: Failed to get valid timestamp" >&2
-        return 1
-        ;;
-      *)
-        echo "$result"
-        ;;
-      esac
-    }
-  }
+		if date +"%T.%N" >/dev/null 2>&1; then
+			date +%s.%N
+		elif command -v gdate >/dev/null 2>&1; then
+			gdate +%s.%N
+		elif weHave python3; then
+			python3 -c 'import time; print(time.time())'
+		elif weHave python; then
+			python -c 'import time; print(time.time())'
+		elif weHave perl; then
+			perl -e 'use Time::HiRes; print Time::HiRes::time();'
+		elif weHave ruby; then
+			ruby -e 'puts Time.now.to_f'
+		elif weHave php; then
+			php -r 'echo microtime(true);'
+		elif weHave node; then
+			node -e 'console.log(Date.now()/1000)'
+		elif weHave pwsh; then
+			pwsh -Command '(New-TimeSpan -Start (Get-Date "1970-01-01") -End (Get-Date)).TotalSeconds'
+		elif weHave powershell; then
+			powershell -Command '(New-TimeSpan -Start (Get-Date "1970-01-01") -End (Get-Date)).TotalSeconds'
+		elif [ -f /proc/uptime ]; then
+			read -r up rest </proc/uptime
+			time_val="${up%.*}${up#*.}"
+		else
+			#@ Fallback to basic second precision BSD/macOS with
+			date +%s
+		fi | {
+			#@ Validate output is numeric and non-empty
+			read -r result
+			case "$result" in
+			'' | *[!0-9.]*)
+				echo "Error: Failed to get valid timestamp" >&2
+				return 1
+				;;
+			*)
+				echo "$result"
+				;;
+			esac
+		}
+	}
 
-  format_duration() {
-    #DOC Formats time duration in human-readable format
-    #DOC Args:
-    #DOC   --start <time> - Start time in seconds
-    #DOC   --stop <time>  - End time in seconds
-    #DOC Returns:
-    #DOC   Formatted duration string (milliseconds/seconds/minutes)
-    #DOC Example:
-    #DOC   format_duration --start "1234567890" --stop "1234567895"
+	format_duration() {
+		#DOC Formats time duration in human-readable format
+		#DOC Args:
+		#DOC   --start <time> - Start time in seconds
+		#DOC   --stop <time>  - End time in seconds
+		#DOC Returns:
+		#DOC   Formatted duration string (milliseconds/seconds/minutes)
+		#DOC Example:
+		#DOC   format_duration --start "1234567890" --stop "1234567895"
 
-    unset start stop duration
+		unset start stop duration
 
-    #@ Parse arguments for start and stop times
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --start) [ "$2" ] && {
-        start="$2"
-        shift
-      } ;;
-      --stop) [ "$2" ] && {
-        stop="$2"
-        shift
-      } ;;
-      esac
-      shift
-    done
+		#@ Parse arguments for start and stop times
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--start) [ "$2" ] && {
+				start="$2"
+				shift
+			} ;;
+			--stop) [ "$2" ] && {
+				stop="$2"
+				shift
+			} ;;
+			esac
+			shift
+		done
 
-    #@ Validate inputs exist
-    if [ -z "$start" ] || [ -z "$stop" ]; then
-      [ "$VERBOSITY" -ge 1 ] && {
-        printf "ERROR: Both --start and --end times are required\n" >&2
-        return 1
-      }
-    fi
+		#@ Validate inputs exist
+		if [ -z "$start" ] || [ -z "$stop" ]; then
+			[ "$VERBOSITY" -ge 1 ] && {
+				printf "ERROR: Both --start and --end times are required\n" >&2
+				return 1
+			}
+		fi
 
-    #@ Calculate the duration
-    duration=$(awk "BEGIN {print $stop - $start}")
+		#@ Calculate the duration
+		duration=$(awk "BEGIN {print $stop - $start}")
 
-    #@ Validate duration calculation
-    [ "$duration" ] || {
-      [ "$VERBOSITY" -eq 0 ] ||
-        printf "Error: Failed to calculate duration\n" >&2
-      return 1
-    }
+		#@ Validate duration calculation
+		[ "$duration" ] || {
+			[ "$VERBOSITY" -eq 0 ] ||
+				printf "Error: Failed to calculate duration\n" >&2
+			return 1
+		}
 
-    #@ Format the duration using awk for floating point comparisons
-    if [ "$(awk "BEGIN {print ($duration < 1)}")" -eq 1 ]; then
-      milliseconds=$(awk "BEGIN {print $duration * 1000}")
-      printf "%.3f milliseconds\n" "$milliseconds"
-    elif [ "$(awk "BEGIN {print ($duration < 60)}")" -eq 1 ]; then
-      printf "%.3f seconds\n" "$duration"
-    else
-      minutes=$(awk "BEGIN {print int($duration / 60)}")
-      seconds=$(awk "BEGIN {print $duration % 60}")
-      printf "%d minutes and %.3f seconds\n" "$minutes" "$seconds"
-    fi
-  }
+		#@ Format the duration using awk for floating point comparisons
+		if [ "$(awk "BEGIN {print ($duration < 1)}")" -eq 1 ]; then
+			milliseconds=$(awk "BEGIN {print $duration * 1000}")
+			printf "%.3f milliseconds\n" "$milliseconds"
+		elif [ "$(awk "BEGIN {print ($duration < 60)}")" -eq 1 ]; then
+			printf "%.3f seconds\n" "$duration"
+		else
+			minutes=$(awk "BEGIN {print int($duration / 60)}")
+			seconds=$(awk "BEGIN {print $duration % 60}")
+			printf "%d minutes and %.3f seconds\n" "$minutes" "$seconds"
+		fi
+	}
 
-  reppat() {
-    #DOC Repeat a pattern a specified number of times
-    #DOC Args:
-    #DOC   --reps <int>     Number of times to repeat the pattern (must be a positive integer)
-    #DOC   --pattern <str>  Pattern to repeat (supports escape sequences like \n, \t, etc.)
-    #DOC Returns:
-    #DOC   0 - Success
-    #DOC   1 - Failure (invalid arguments or options)
-    #DOC Example:
-    #DOC   reppat --reps 3 --pattern "\n"  # Prints three newlines
+	reppat() {
+		#DOC Repeat a pattern a specified number of times
+		#DOC Args:
+		#DOC   --reps <int>     Number of times to repeat the pattern (must be a positive integer)
+		#DOC   --pattern <str>  Pattern to repeat (supports escape sequences like \n, \t, etc.)
+		#DOC Returns:
+		#DOC   0 - Success
+		#DOC   1 - Failure (invalid arguments or options)
+		#DOC Example:
+		#DOC   reppat --reps 3 --pattern "\n"  # Prints three newlines
 
-    _repeat_pattern() {
-      reps=$1
-      pattern=$2
-      i=0
-      while [ "$i" -lt "$reps" ]; do
-        #@ Use %b to interpret escape sequences
-        printf "%b" "$pattern"
-        i=$((i + 1))
-      done
-    }
+		_repeat_pattern() {
+			reps=$1
+			pattern=$2
+			i=0
+			while [ "$i" -lt "$reps" ]; do
+				#@ Use %b to interpret escape sequences
+				printf "%b" "$pattern"
+				i=$((i + 1))
+			done
+		}
 
-    case "$1" in
-    --reps)
-      #? Validate --reps argument
-      if [ -z "$2" ] || ! echo "$2" | grep -Eq '^[0-9]+$' || [ "$2" -lt 1 ]; then
-        printf "ERROR: --reps requires a positive integer argument\n" >&2
-        return 1
-      fi
-      #? $4 is the pattern argument
-      [ "$2" -eq "$2" ] && _repeat_pattern "$2" "$4"
-      ;;
-    --pattern)
-      #@ Validate --pattern argument
-      if [ -z "$2" ]; then
-        printf "ERROR: --pattern requires a string argument\n" >&2
-        return 1
-      fi
-      #@ Use %b to interpret escape sequences
-      printf "%b" "$2"
-      ;;
-    *)
-      #@ Handle invalid options
-      printf "ERROR: Invalid option '%s'\n" "$1" >&2
-      printf "Usage: reppat [--reps <int> --pattern <string>]\n" >&2
-      return 1
-      ;;
-    esac
-  }
+		case "$1" in
+		--reps)
+			#? Validate --reps argument
+			if [ -z "$2" ] || ! echo "$2" | grep -Eq '^[0-9]+$' || [ "$2" -lt 1 ]; then
+				printf "ERROR: --reps requires a positive integer argument\n" >&2
+				return 1
+			fi
+			#? $4 is the pattern argument
+			[ "$2" -eq "$2" ] && _repeat_pattern "$2" "$4"
+			;;
+		--pattern)
+			#@ Validate --pattern argument
+			if [ -z "$2" ]; then
+				printf "ERROR: --pattern requires a string argument\n" >&2
+				return 1
+			fi
+			#@ Use %b to interpret escape sequences
+			printf "%b" "$2"
+			;;
+		*)
+			#@ Handle invalid options
+			printf "ERROR: Invalid option '%s'\n" "$1" >&2
+			printf "Usage: reppat [--reps <int> --pattern <string>]\n" >&2
+			return 1
+			;;
+		esac
+	}
 
-  pout() {
-    #DOC Outputs log messages to console and/or file with various formatting options.
-    #DOC Args:
-    #DOC   --quiet            Suppress output.
-    #DOC   --error            Mark message as error level.
-    #DOC   --warn             Mark message as warning level.
-    #DOC   --info             Mark message as info level.
-    #DOC   --debug            Mark message as debug level.
-    #DOC   --trace            Mark message as trace level.
-    #DOC   --key <str>        Key for key-value pair in message.
-    #DOC   --val <str>        Value for key-value pair in message.
-    #DOC   --sep <str>        Separator for key-value pair.
-    #DOC   --lead <int>       Number of leading blank lines.
-    #DOC   --trail <int>      Number of trailing blank lines.
-    #DOC   --last             Ensure message is the last line output.
-    #DOC   --pad              Pad key-value pair for aligned output.
-    #DOC   --hide-level       Hide verbosity level in message.
-    #DOC   --hide-timestamp   Hide timestamp in message.
-    #DOC   --no-log           Do not log the message to a file.
-    #DOC   --log <file>       Log message to specified file.
-    #DOC   --msg <str>        Specify message to output.
-    #DOC Returns:
-    #DOC   0 - Success
-    #DOC   1 - Failure (invalid arguments or options)
+	pout() {
+		#DOC Outputs log messages to console and/or file with various formatting options.
+		#DOC Args:
+		#DOC   --quiet            Suppress output.
+		#DOC   --error            Mark message as error level.
+		#DOC   --warn             Mark message as warning level.
+		#DOC   --info             Mark message as info level.
+		#DOC   --debug            Mark message as debug level.
+		#DOC   --trace            Mark message as trace level.
+		#DOC   --key <str>        Key for key-value pair in message.
+		#DOC   --val <str>        Value for key-value pair in message.
+		#DOC   --sep <str>        Separator for key-value pair.
+		#DOC   --lead <int>       Number of leading blank lines.
+		#DOC   --trail <int>      Number of trailing blank lines.
+		#DOC   --last             Ensure message is the last line output.
+		#DOC   --pad              Pad key-value pair for aligned output.
+		#DOC   --hide-level       Hide verbosity level in message.
+		#DOC   --hide-timestamp   Hide timestamp in message.
+		#DOC   --no-log           Do not log the message to a file.
+		#DOC   --log <file>       Log message to specified file.
+		#DOC   --msg <str>        Specify message to output.
+		#DOC Returns:
+		#DOC   0 - Success
+		#DOC   1 - Failure (invalid arguments or options)
 
-    #@ Establish defaults
-    unset \
-      msg \
-      pad \
-      newline \
-      log \
-      key \
-      value \
-      sep \
-      hide_level \
-      hide_timestamp
-    level="${__log_level:-2}" #TODO: This doesn't make much sense, as we're sending all log levels to the file
-    leading_lines=0
-    trailing_lines=1
-    sep="${__sep:-": "}"
-    padding="${__pad:-36}"
-    log="$__log_path"
-    hide_level="${__hide_level:-}"
-    hide_output="${__hide_output:-}"
-    show_timestamp="${__show_timestamp:-}"
+		#@ Establish defaults
+		unset \
+			msg \
+			pad \
+			newline \
+			log \
+			key \
+			value \
+			sep \
+			hide_level \
+			hide_timestamp
+		level="${__log_level:-2}" #TODO: This doesn't make much sense, as we're sending all log levels to the file
+		leading_lines=0
+		trailing_lines=1
+		sep="${__sep:-": "}"
+		padding="${__pad:-36}"
+		log="$__log_path"
+		hide_level="${__hide_level:-}"
+		hide_output="${__hide_output:-}"
+		show_timestamp="${__show_timestamp:-}"
 
-    #@ Validate input
-    [ $# -eq 0 ] && return 1
+		#@ Validate input
+		[ $# -eq 0 ] && return 1
 
-    #@ Parse arguments
-    while [ "$#" -gt 0 ]; do
-      case $1 in
-      -h) show_info --usage;;
-      --help) show_info --help;;
-      -v | --version) show_info --version ;;
-      --quiet) level=-1 ;;
-      --error) level=0 ;;
-      --warn) level=1 ;;
-      --info) level=2 ;;
-      --debug) level=3 ;;
-      --trace) level=4 ;;
-      --hide-level) hide_level=true ;;
-      --hide-timestamp) hide_timestamp=true ;;
-      --hide-console | --log-only | --no-output | --no-print) hide_output=true ;;
-      --print) unset hide_output ;;
-      --no-log | --console-only) unset log ;;
-      -L | --log)
-        [ "$2" ] && {
-          validate_file --parent "$2" || return 1
-          log="$2"
-          shift
-        }
-        ;;
-      --key)
-        if [ "$2" ]; then
-          key="$2"
-          shift
-        else
-          pout --error "No key provided to --key"
-          return 1
-        fi
-        ;;
-      --val)
-        if [ "$2" ]; then
-          val="$2"
-          shift
-        else
-          pout --error "No value provided to --val"
-          return 1
-        fi
-        ;;
-      --sep*)
-        if [ "$2" ]; then
-          sep="$2"
-          shift
-        else
-          pout --error "No separator provided to --sep"
-          return 1
-        fi
-        ;;
-      -b | --lead* | --blank)
-        leading_lines=1
-        [ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
-          leading_lines="$2"
-          shift
-        }
-        ;;
-      -n | --trail* | --newline)
-        trailing_lines=2
-        [ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
-          trailing_lines="$2"
-          shift
-        }
-        ;;
-      --last*)
-        last_line=true
-        ;;
-      --pad)
-        pad=true
-        unset log
-        [ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
-          pad="$2"
-          shift
-        }
-        ;;
-      -m | --msg | --message)
-        [ "$2" ] && {
-          if [ "$msg" ]; then
-            msg="$msg $2"
-          else
-            msg="$2"
-          fi
-          shift
-        }
-        ;;
-      *)
-        if [ "$msg" ]; then
-          msg="$msg $1"
-        else
-          msg="$1"
-        fi
-        ;;
-      esac
-      shift
-    done
+		#@ Parse arguments
+		while [ "$#" -gt 0 ]; do
+			case $1 in
+			-h) show_info --usage ;;
+			--help) show_info --help ;;
+			-v | --version) show_info --version ;;
+			--quiet) level=-1 ;;
+			--error) level=0 ;;
+			--warn) level=1 ;;
+			--info) level=2 ;;
+			--debug) level=3 ;;
+			--trace) level=4 ;;
+			--hide-level) hide_level=true ;;
+			--hide-timestamp) hide_timestamp=true ;;
+			--hide-console | --log-only | --no-output | --no-print) hide_output=true ;;
+			--print) unset hide_output ;;
+			--no-log | --console-only) unset log ;;
+			-L | --log)
+				[ "$2" ] && {
+					validate_file --parent "$2" || return 1
+					log="$2"
+					shift
+				}
+				;;
+			--key)
+				if [ "$2" ]; then
+					key="$2"
+					shift
+				else
+					pout --error "No key provided to --key"
+					return 1
+				fi
+				;;
+			--val)
+				if [ "$2" ]; then
+					val="$2"
+					shift
+				else
+					pout --error "No value provided to --val"
+					return 1
+				fi
+				;;
+			--sep*)
+				if [ "$2" ]; then
+					sep="$2"
+					shift
+				else
+					pout --error "No separator provided to --sep"
+					return 1
+				fi
+				;;
+			-b | --lead* | --blank)
+				leading_lines=1
+				[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+					leading_lines="$2"
+					shift
+				}
+				;;
+			-n | --trail* | --newline)
+				trailing_lines=2
+				[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+					trailing_lines="$2"
+					shift
+				}
+				;;
+			--last*)
+				last_line=true
+				;;
+			--pad)
+				pad=true
+				unset log
+				[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+					pad="$2"
+					shift
+				}
+				;;
+			-m | --msg | --message)
+				[ "$2" ] && {
+					if [ "$msg" ]; then
+						msg="$msg $2"
+					else
+						msg="$2"
+					fi
+					shift
+				}
+				;;
+			*)
+				if [ "$msg" ]; then
+					msg="$msg $1"
+				else
+					msg="$1"
+				fi
+				;;
+			esac
+			shift
+		done
 
-    #@ Update message with key-value pair
-    sep="${sep:-"${__sep:-": "}"}"
-    [ "$key" ] && [ "$val" ] && {
-      pair="${key}${sep}${val}"
-    }
+		#@ Update message with key-value pair
+		sep="${sep:-"${__sep:-": "}"}"
+		[ "$key" ] && [ "$val" ] && {
+			pair="${key}${sep}${val}"
+		}
 
-    #@ Validate message
-    [ "${msg:-$pair}" ] || return 1
+		#@ Validate message
+		[ "${msg:-$pair}" ] || return 1
 
-    #@ Append the level to the message.
-    [ "$hide_level" ] ||
-      case "$(to_lower "$level")" in
-      0 | "error") level="ERROR: " ;;
-      1 | "warn") level=" WARN: " ;;
-      2 | "info") level=" INFO: " ;;
-      3 | "debug") level="DEBUG: " ;;
-      4 | "trace") level="TRACE: " ;;
-      *) level="" ;;
-      esac
+		#@ Append the level to the message.
+		[ "$hide_level" ] ||
+			case "$(to_lower "$level")" in
+			0 | "error") level="ERROR: " ;;
+			1 | "warn") level=" WARN: " ;;
+			2 | "info") level=" INFO: " ;;
+			3 | "debug") level="DEBUG: " ;;
+			4 | "trace") level="TRACE: " ;;
+			*) level="" ;;
+			esac
 
-    #@ Get thetimestamp
-    timestamp="$(printf "[%s] " "$(get_timestamp)")"
+		#@ Get thetimestamp
+		timestamp="$(printf "[%s] " "$(get_timestamp)")"
 
-    #@ Write message to the log
-    [ "$log" ] && printf "%s%s%s\n" "$timestamp" "$level" "${msg:-"$pair"}" >>"$log"
+		#@ Write message to the log
+		[ "$log" ] && printf "%s%s%s\n" "$timestamp" "$level" "${msg:-"$pair"}" >>"$log"
 
-    #@ Write message to the console
-    # [ "$hide_output" ] && return 0
-    [ "$VERBOSITY" -eq 0 ] && return 0
+		#@ Write message to the console
+		# [ "$hide_output" ] && return 0
+		[ "$VERBOSITY" -eq 0 ] && return 0
 
-    # case "$VERBOSITY" in
-    # 0) return 0 ;;
-    # 1) return 0 ;;
-    # 2) return 0 ;;
-    # 3) return 0 ;;
-    # 4) return 0 ;;
-    # *) ;;
-    # esac
+		# case "$VERBOSITY" in
+		# 0) return 0 ;;
+		# 1) return 0 ;;
+		# 2) return 0 ;;
+		# 3) return 0 ;;
+		# 4) return 0 ;;
+		# *) ;;
+		# esac
 
-    [ "$leading_lines" -gt 0 ] &&
-      reppat --reps "$leading_lines" --pattern "\\n"
-    if [ "$pad" ]; then
-      printf "%${padding}s%s%s" "$key" "$sep" "$val"
-    else
-      msg="${msg:-"${key}${sep}${val}"}"
-      [ "$show_timestamp" ] || timestamp=""
-      printf "%s%s%s" "$timestamp" "$level" "$msg"
-    fi
+		[ "$leading_lines" -gt 0 ] &&
+			reppat --reps "$leading_lines" --pattern "\\n"
+		if [ "$pad" ]; then
+			printf "%${padding}s%s%s" "$key" "$sep" "$val"
+		else
+			msg="${msg:-"${key}${sep}${val}"}"
+			[ "$show_timestamp" ] || timestamp=""
+			printf "%s%s%s" "$timestamp" "$level" "$msg"
+		fi
 
-    case "$trailing_lines" in
-    '') printf "\n" ;;
-    [1-9] | [1-9][0-9]*)
-      reppat --reps "$trailing_lines" --pattern "\\n"
-      ;;
-    -1 | 0 | *) ;;
-    esac
-  }
+		case "$trailing_lines" in
+		'') printf "\n" ;;
+		[1-9] | [1-9][0-9]*)
+			reppat --reps "$trailing_lines" --pattern "\\n"
+			;;
+		-1 | 0 | *) ;;
+		esac
+	}
 
-  resolve_location() {
-    #DOC Resolve a city/country name to GPS coordinates using an external API
-    #DOC Args:
-    #DOC   $1 - Location name (e.g., "San Francisco, USA")
-    #DOC Returns:
-    #DOC   GPS coordinates (e.g., "37.7749,-122.4194") or empty string on failure
-    #DOC Example:
-    #DOC   resolve_location "San Francisco, USA"
+	resolve_location() {
+		#DOC Resolve a city/country name to GPS coordinates using an external API
+		#DOC Args:
+		#DOC   $1 - Location name (e.g., "San Francisco, USA")
+		#DOC Returns:
+		#DOC   GPS coordinates (e.g., "37.7749,-122.4194") or empty string on failure
+		#DOC Example:
+		#DOC   resolve_location "San Francisco, USA"
 
-    # Use a geocoding API to resolve the location
-    _location_name=$(echo "$1" | tr ' ' '+')
-    _api_url="https://nominatim.openstreetmap.org/search?q=${_location_name}&format=json"
+		# Use a geocoding API to resolve the location
+		_location_name=$(echo "$1" | tr ' ' '+')
+		_api_url="https://nominatim.openstreetmap.org/search?q=${_location_name}&format=json"
 
-    # Fetch coordinates from the API
-    _response=$(curl -s "$_api_url")
-    _lat=$(echo "$_response" | grep -oP '"lat":"\K[^"]+')
-    _lon=$(echo "$_response" | grep -oP '"lon":"\K[^"]+')
+		# Fetch coordinates from the API
+		_response=$(curl -s "$_api_url")
+		_lat=$(echo "$_response" | grep -oP '"lat":"\K[^"]+')
+		_lon=$(echo "$_response" | grep -oP '"lon":"\K[^"]+')
 
-    if [ -n "$_lat" ] && [ -n "$_lon" ]; then
-      printf "%s,%s" "$_lat" "$_lon"
-    else
-      printf ""
-    fi
-  }
+		if [ -n "$_lat" ] && [ -n "$_lon" ]; then
+			printf "%s,%s" "$_lat" "$_lon"
+		else
+			printf ""
+		fi
+	}
 
-  init_fastfetch() {
-    weHave fastfetch || return
+	init_fastfetch() {
+		weHave fastfetch || return
 
-    FASTFETCH_PATH="$(pathOf fastfetch)"
-    FASTFETCH_CONF="$1"
-    weHave figlet && weHave jq &&
-      figlet -f slant "$(
-        fastfetch -s os --format json | jq -r '.[0].result.name'
-      )"
-    fastfetch --config "$FASTFETCH_CONF"
-  }
+		FASTFETCH_PATH="$(pathOf fastfetch)"
+		FASTFETCH_CONF="$1"
+		weHave figlet && weHave jq &&
+			figlet -f slant "$(
+				fastfetch -s os --format json | jq -r '.[0].result.name'
+			)"
+		fastfetch --config "$FASTFETCH_CONF"
+	}
 }
 
 core_functions() {
-  set_os_type() {
-    if [ "$WSL_DISTRO_NAME" ]; then
-      OS_TYPE="Windows Subsystem for Linux [WSL]"
-    elif [ -f "/proc/version" ]; then
-      OS_TYPE=$(cat "/proc/version")
-    elif command -v uname >/dev/null 2>&1; then
-      OS_TYPE="$(uname --kernel-name)"
-    elif command -v python >/dev/null 2>&1; then
-      OS_TYPE="$(
-        python -c 'import platform; print(platform.system())'
-      )"
-    elif command -v hostnamectl >/dev/null 2>&1; then
-      OS_TYPE="$(
-        hostnamectl | awk -F ': ' '/Kernel/ {print $2}'
-      )"
-    fi
-
-    case "$(to_lower "$OS_TYPE")" in
-    *linux* | *gnu*)
-      OS_TYPE="GNU/Linux"
-      ;;
-    *wsl* | *microsoft*)
-      OS_TYPE="Windows Subsystem for Linux [WSL]"
-      ;;
-    *cygwin* | *msys* | *mingw* | *windows*)
-      OS_TYPE="Windows"
-      #? This line is needed to avoid a warning from Nix when using WSL.
-      #? See https://github.com/microsoft/WSL/issues/1936 and
-      #? https://nixos.wiki/wiki/FAQ#How_can_I_avoid_the_.22winsymlinks.22_warning_when_installing_Nix_on_WSL.3F
-      # for more information.
-      MSYS=winsymlinks:nativestrict
-      export MSYS
-      ;;
-    *darwin*)
-      OS_TYPE="Mac"
-      ;;
-    *freebsd*)
-      OS_TYPE="FreeBSD"
-      ;;
-    *netbsd*)
-      OS_TYPE="NetBSD"
-      ;;
-    *openbsd*)
-      OS_TYPE="OpenBSD"
-      ;;
-    *hp*)
-      OS_TYPE="HP"
-      ;;
-    *solaris* | *sunos*)
-      OS_TYPE="Solaris"
-      ;;
-    *aix*)
-      OS_TYPE="AIX"
-      ;;
-    *irix*)
-      OS_TYPE="IRIX"
-      ;;
-    esac
-
-    # printf "%s" "$OS_TYPE"
-    export OS_TYPE
-  }
-
-  set_shell() {
-    #@ Define supported shells
-    __shell="$(to_lower "${__shell:-"$(
-      printf "%s" "$SHELL" | awk -F/ '{print $NF}'
-    )"}")"
-
-    case "$__shell" in
-    bash)
-      __shell="bash"
-      __shell_conf="config"
-      SHELL_NAME="Bash"
-      ;;
-    fish)
-      __shell="fish"
-      __shell_conf="config.fish"
-      SHELL_NAME="Fish"
-      ;;
-    zsh)
-      __shell="zsh"
-      __shell_conf=".zshrc"
-      SHELL_NAME="Zsh"
-      ;;
-    nu | nushell)
-      __shell="nu"
-      __shell_conf="config.nu"
-      SHELL_NAME="Nushell"
-      ;;
-    pwsh)
-      __shell="pwsh"
-      __shell_conf="profile.ps1"
-      SHELL_NAME="Pwsh"
-      ;;
-    powershell)
-      __shell="powershell"
-      __shell_conf="profile.ps1"
-      SHELL_NAME="Powershell"
-      ;;
-    '')
-      pout --error "Unable to confirm support for the active shell."
-      return 1
-      ;;
-    *)
-      pout --error "The defined shell (%s) is not supported." "$__shell"
-      return 1
-      ;;
-    esac
-
-    SHELL_HOME="${DOTS_CFG}/$(to_lower "$SHELL_NAME")"
-    SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
-    SHELL_PATH="$(pathOf "$__shell")"
-    SHELL="$__shell"
-
-    export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL
-  }
-
-
-  set_messaging() {
-    set_verbosity_level() {
-      #@ Set default values for quiet, verbosity, and log level
-      __quiet="${__quiet:--1}"
-      __error="${__error:-0}"
-      __warn="${__warn:-1}"
-      __info="${__info:-2}"
-      __debug="${__debug:-3}"
-      __trace="${__trace:-4}"
-
-      #@ Check for global verbosity settings from various environment variables
-      __quiet=$(to_lower "${__quiet:-$QUIET}")
-      __verbosity=$(to_lower "${__verbosity:-${VERBOSITY:-$VERBOSE}}")
-
-      #@ Handle quiet flags first
-      case "$(to_lower "$__quiet")" in
-      true | 1 | on) __verbosity="quiet" ;;
-      esac
-
-      #@ Map verbal levels to numerical values
-      case "$__verbosity" in
-      none | off | quiet | false) __verbosity="$__quiet" ;;
-      error | fatal | 0) __verbosity="$__error" ;;
-      warn | warning | 1) __verbosity="$__warn" ;;
-      info | normal | 2) __verbosity="$__info" ;;
-      debug | verbose | 3) __verbosity="$__debug" ;;
-      trace | all | true | 4) __verbosity="$__trace" ;;
-      '' | *[!0-9]*) __verbosity="$__info" ;; #? Set default to INFO
-      *)
-        #@ Check if number is in valid range (0-4)
-        if [ "$__verbosity" -lt 0 ]; then
-          __verbosity="$__quiet" #? Set minimum to QUIET
-        elif [ "$__verbosity" -gt 4 ]; then
-          __verbosity="$__trace" #? Set maximum to TRACE
-        fi
-        ;;
-      esac
-
-      #@ Set and export the final level
-      VERBOSITY="$__verbosity"
-      export VERBOSITY
-    }
-
-    set_log_level() {
-      #@ Check for global log level settings
-      __log_level=$(to_lower "${__log_level:-$LOG_LEVEL}")
-
-      #@ Map log levels to numerical values
-      case "$(to_lower "$__log_level")" in
-      none | off | quiet | false) __log_level="$__quiet" ;;
-      error | fatal | 0) __log_level="$__error" ;;
-      warn | warning | 1) __log_level="$__warn" ;;
-      info | normal | 2) __log_level="$__info" ;;
-      debug | verbose | 3) __log_level="$__debug" ;;
-      trace | all | true | 4) __log_level="$__trace" ;;
-      '' | *[!0-9]*) __log_level="${__log_level:-"$__info"}" ;;
-      *)
-        #@ Check if number is in valid range (0-4)
-        if [ "$__log_level" -lt 0 ]; then
-          __log_level="$__quiet" #? Set minimum to QUIET
-        elif [ "$__log_level" -gt 4 ]; then
-          __log_level="$__trace" #? Set maximum to TRACE
-        fi
-        ;;
-      esac
-
-      LOG_LEVEL="$__log_level"
-      export LOG_LEVEL
-    }
-
-    set_verbosity_level
-    set_log_level
-    [ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
-  }
-
-  set_location() {
-    #      "location": "$LOCATION",
-    # DOC Set the LOCATION variable in a standardized format
-    #DOC Args:
-    #DOC   $1 - Location input (e.g., "37.7749,-122.4194" or "San Francisco, USA")
-    #DOC Returns:
-    #DOC   0 - Success
-    #DOC   1 - Failure
-    #DOC Example:
-    #DOC   set_location "37.7749,-122.4194"
-    #DOC   set_location "San Francisco, USA"
-
-    #@ Validate input
-    if [ -z "$1" ]; then
-      printf "ERROR: No location provided\n" >&2
-      return 1
-    fi
-
-    #@ Check if input is GPS coordinates
-    if echo "$1" | grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$'; then
-      LOCATION="$1"
-      export LOCATION
-      printf "Location set to GPS coordinates: %s\n" "$LOCATION"
-      return 0
-    fi
-
-    #@ If input is not GPS coordinates, assume it's a city/country and try to resolve it
-    printf "Resolving location: %s\n" "$1"
-    _location=$(resolve_location "$1")
-    if [ -n "$_location" ]; then
-      LOCATION="$_location"
-      export LOCATION
-      [ "$VERBOSITY" -ge 2 ] &&
-        printf "Location set to GPS coordinates: %s\n" "$LOCATION"
-      return 0
-    else
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf "ERROR: Failed to resolve location: %s\n" "$1" >&2
-      return 1
-    fi
-  }
-
-  set_interactive_shell() {
-    #@ Get the active interactive shell prompt
-    SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"${SHELL##*/}"}"
-    defined_shell="$(to_lower "$__shell")"
-
-    #@ Set the preferred interactive shell prompt
-    [ -n "$defined_shell" ] &&
-      [ "$defined_shell" != "$SHELL_INTERACTIVE" ] &&
-      SHELL_INTERACTIVE="$defined_shell"
-
-    #@ Ensure the variable is available globally
-    export SHELL_INTERACTIVE
-  }
-
-  manage_ignore_list() {
-    create_ignore_file() {
-      #@ Skip if the mode is set to simulation
-      case "$(to_lower "$__mode")" in simulation)
-        printf \
-          "DEBUG: Would create the ignore file at %s\n" \
-          "$DOTS_IGNORE"
-        return 0
-        ;;
-      esac
-
-      #@ Create the DOTS_IGNORE file, if necessary
-      validate_file "$DOTS_IGNORE" ||
-        {
-          if [ "$VERBOSITY" -ge 1 ]; then
-            printf \
-              "WARN: Ignore file not found at %s. Create it? [y/N] " \
-              "$DOTS_IGNORE"
-            read -r response
-            case "$(to_lower "$response")" in
-            y | yes) touch "$DOTS_IGNORE" ;;
-            *) return 1 ;;
-            esac
-          else
-            touch "$DOTS_IGNORE"
-            truncate -s 1 "$DOTS_IGNORE"
-          fi
-        }
-
-      #@ Check if the ignore file was created
-      validate_file "$DOTS_IGNORE" || {
-        if [ "$VERBOSITY" -ge 1 ]; then
-          printf "ERROR: Unable to create ignore file at %s\n" "$DOTS_IGNORE"
-          return 1
-        else
-          return 1
-        fi
-      }
-    }
-
-    remove_ignore_file() {
-      #@ Skip if the ignore file if it doesn't exist
-      validate_file "$DOTS_IGNORE" || return 0
-
-      #@ Skip if the mode is not set to reset
-      case "$(to_lower "$__mode")" in
-      simulation)
-        printf "DEBUG: Would delete the ignore file."
-        printf "\n -> FILE: %s" "$DOTS_IGNORE"
-        printf "\n -> PATTERNS: "
-        first=true
-        while IFS= read -r line; do
-          if [ "$first" = true ]; then
-            printf "%s\n" "$line"
-            first=false
-          else
-            printf "%-14s%s\n" "${first:+ }" "$line"
-          fi
-        done <"$DOTS_IGNORE"
-        return 0
-        ;;
-      reset)
-        if [ "$VERBOSITY" -ge 1 ]; then
-          # Confirm the deletion of the ignore file
-          printf "WARN: Current ignore patterns in %s:\n" "$DOTS_IGNORE"
-          read_file "$DOTS_IGNORE"
-          printf "\nAre you sure you want to delete this file? [y/N] "
-          read -r response
-          case "$(to_lower "$response")" in
-          [y | Y]*) ;;
-          *) printf "Keeping ignore file intact.\n" ;;
-          esac
-        else
-          # Delete the ignore file without confirmation
-          rm "$DOTS_IGNORE"
-        fi
-        ;;
-      *) return 0 ;;
-      esac
-    }
-
-    update_patterns() {
-      #@ Check if ignore file is writable first
-      validate_file --writable "$DOTS_IGNORE" || {
-        [ "$VERBOSITY" -ge 1 ] &&
-          printf "ERROR: %s is not writable\n" "$DOTS_IGNORE" >&2
-        return 1
-      }
-
-      #@ Handle ignore file actions based on the ignore_action setting
-      case "$(to_lower "$__filter")" in
-      exclude)
-        #@ Add pattern to ignore file if it doesn't already exist
-        if ! grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
-          printf "\n%s" "$1" >>"$DOTS_IGNORE" || {
-            [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to write to %s\n" "$DOTS_IGNORE" >&2
-            return 1
-          }
-          [ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Added pattern '%s' to ignore file\n" "$1"
-        else
-          [ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Pattern '%s' already in ignore file\n" "$1"
-        fi
-        ;;
-      include)
-        #@ Remove pattern from ignore file if it exists
-        if grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
-          sed --in-place "/$1/d" "$DOTS_IGNORE" || {
-            [ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to modify %s\n" "$DOTS_IGNORE" >&2
-            return 1
-          }
-          [ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Removed pattern '%s' from ignore file\n" "$1"
-        else
-          [ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Pattern '%s' not found in ignore file\n" "$1"
-        fi
-        ;;
-      esac
-    }
-
-    remove_ignore_file
-    create_ignore_file
-    update_patterns "$1"
-  }
-
-  update_user_profile() {
-    #TODO: This function is not yet complete
-    #@ Create the profile file if it doesn't exist
-    [ -f "$rc_profile" ] || touch "$rc_profile"
-
-    #@ Define the lines with and without quotes
-    dots_unquoted="DOTS=$DOTS"
-    dots_quoted="DOTS=\"$DOTS\""
-    dots_init="[ -f \"\$DOTS/.dotsrc\" ] && . \"\$DOTS/.dotsrc\""
-
-    #@ Check if the DOTS line exists and if it's different or if dots_init is missing
-    if grep --quiet --regexp "^DOTS=" "$profile"; then
-      {
-        #@ Check if the DOTS line matches the current DOTS variable or is quoted
-        grep --quiet --regexp "^DOTS=$DOTS" --regexp "^DOTS=\"$DOTS\"" "$profile" ||
-
-          #@ Check if dots_init is missing
-          grep --quiet --fixed-strings "$dots_init" "$profile"
-      } ||
-        {
-          #@ If either condition is false, remove both lines
-          delete_line_from_file "^DOTS="
-          delete_line_from_file "$(printf "%s" "$dots_init" | sed 's/[\/&]/\\&/g')"
-        }
-    fi
-
-    #@ Append the new lines to the profile file only if they are missing
-    if
-      ! grep --quiet --regexp "^DOTS=" "$profile" ||
-        ! grep --quiet --fixed-strings "$dots_init" "$profile"
-    then
-      #@ If either line is missing, append both lines
-      temp_file=$(mktemp)
-      grep --invert-match "^DOTS=" "$profile" |
-        grep --invert-match "$dots_init" >"$temp_file"
-      printf "\nDOTS=\"%s\"\n%s\n" "$DOTS" "$dots_init" >>"$temp_file"
-      mv "$temp_file" "$profile"
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf "WARN: Path to DOTS in updated in %s.\n" "$profile"
-    else
-      #@ If both lines are present and the DOTS line is the same, no need to update
-      [ "$VERBOSITY" -gt 2 ] && printf "DEBUG: DOTS in profile is already up to date.\n"
-    fi
-  }
-
-  get_sources() {
-
-    get_excluded_sources() {
-      #@ Remove blank lines and sort the ignore file
-      sed -i '/^[[:space:]]*$/d' "$DOTS_IGNORE"
-      sort --human-numeric-sort --output "$DOTS_IGNORE" "$DOTS_IGNORE"
-
-      # Get the list of excluded files
-      excluded_pattern=$(sed -e 's/^/\//g' "$DOTS_IGNORE" | tr '\n' '|' | sed '$s/|$/\n/')
-
-      if [ -n "$excluded_pattern" ]; then
-        if weHave fd; then
-          fd . --no-ignore "$1" | grep --extended-regexp --ignore-case "$excluded_pattern" | sort
-        else
-          find "$1" | grep --extended-regexp --ignore-case "$excluded_pattern" | sort
-        fi
-      fi
-    }
-
-    get_included_sources() {
-      if validate_file --non-empty "$DOTS_IGNORE"; then
-        excluded_pattern=$(sed -e 's/^/\//g' "$DOTS_IGNORE" | tr '\n' '|' | sed '$s/|$/\n/')
-
-        if weHave fd; then
-          fd . "$1" | grep --extended-regexp --invert-match --ignore-case "$excluded_pattern" | sort
-        else
-          find "$1" | grep --extended-regexp --invert-match --ignore-case "$excluded_pattern" | sort
-        fi
-      else
-        if weHave fd; then
-          fd . "$1" | sort
-        else
-          find "$1" | sort
-        fi
-      fi
-    }
-
-    case "$1" in
-    --included)
-      source_filter="included" source="$2"
-      ;;
-    --excluded)
-      source_filter="excluded" source="$2"
-      ;;
-    --all)
-      source_filter="all" source="$2"
-      ;;
-    --ignore)
-      unset source_filter
-      source="$2"
-      ;;
-    *)
-      source_filter="$__filter" source="$1"
-      ;;
-    esac
-
-    if [ -z "$source" ]; then
-      [ "$VERBOSITY" -ge 1 ] &&
-        printf "ERROR: No source path or ignore pattern provided.\n" >&2
-      return 1
-    elif [ "$source_filter" ] && [ -e "$1" ]; then
-      case "$source_filter" in
-      excluded) get_excluded_sources "$1" ;;
-      included) get_included_sources "$1" ;;
-      all) get_excluded_sources "$1" && get_included_sources "$1" ;;
-      esac
-    else
-      #? Non-file entries are meant to be handled by the ignore list
-      manage_ignore_list "$1"
-    fi
-  }
-
-  process_sources() {
-    #@ Enable global variable export
-    set -o allexport #TODO: This is risky. So through each script and set the exports manually
-
-    #@ Process sources recursively
-    for src_path in $(get_sources "$1"); do
-      [ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
-        case ":${XDG_DATA_DIRS}:" in
-        *:"$src_path":*) ;;
-        *)
-          XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
-          [ "$VERBOSITY" -gt 2 ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
-          ;;
-        esac
-
-      #@ Update PATH directories
-      [ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
-        case ":${PATH}:" in
-        *:"$src_path":*) ;;
-        *)
-          PATH="${PATH:+$PATH:}$src_path"
-          [ "$VERBOSITY" -gt 2 ] && printf "Appended to PATH: %s\n" "${src_path}"
-          ;;
-        esac
-
-      #@ Activate Scripts and Variables
-      [ -f "$src_path" ] &&
-
-        #| Make scripts executable
-        if [ "$src_type" = "BIN" ]; then
-          case "$(to_lower "$OS_TYPE")" in
-          Windows) ;;
-          *)
-            if [ "$VERBOSITY" -gt 2 ]; then
-              chmod --changes +x "$src_path"
-            else
-              chmod +x "$src_path"
-            fi
-            ;;
-          esac
-
-        #@ Load environmental variables from files
-        elif [ "$src_type" = "ENV" ]; then
-          # shellcheck disable=SC1090
-          # EOLor --lf "$src_path"
-          . "$src_path"
-          [ "$VERBOSITY" -gt 2 ] && printf "Initialized: %s\n" "$src_path"
-        fi
-
-    done
-
-    #@ Disable global export
-    set +o allexport
-  }
-
-  initialize_source() {
-    #@ Parse core arguments
-    case "$1" in
-    -h | --help)
-      exit_code=0
-      print_usage_guide
-      ;;
-    -v | --version)
-      printf "%s\n" "$version"
-      exit 0
-      ;;
-    -d | --verbose)
-      verbose_flag=true
-      shift
-      ;;
-    -t | --simulation | --test)
-      test_flag=true
-      shift
-      ;;
-    -q | --quiet)
-      unset verbose_flag
-      shift
-      ;;
-    --ignore-file)
-      ignore_file="$2"
-      shift 2
-      ;;
-    *) ;;
-    esac
-
-    #@ Parse process arguments
-    while [ "$#" -ge 1 ]; do
-      case "$1" in
-      --bin)
-        #? Expects a file/directory
-        src_type="BIN"
-        shift
-        ;;
-      --env)
-        #? Expects a file/directory
-        src_type="ENV"
-        shift
-        ;;
-      --xdg)
-        #? Expects a directory
-        src_type="XDG"
-        shift
-        ;;
-      --exclude)
-        #? Expects a string
-        ignore_action="EXCLUDE"
-        shift
-        ;;
-      -I | --include)
-        #? Expects a string
-        ignore_action="INCLUDE"
-        shift
-        ;;
-      -*)
-        printf "Invalid Option: %s\n" "$1"
-        exit_code=1
-        print_usage_guide
-        ;;
-      *) ;;
-      esac
-
-      case "$__mode" in
-      simulation)
-        # [ "$src_type" ] && printf "\n%s: %s\n" "$src_type" "$1"
-        # [ "$ignore_action" ] && printf "%s: %s\n" "$ignore_action" "$1"
-        get_sources "$1"
-        echo "Filter: $source_filter"
-        ;;
-      *) process_sources "$1" ;;
-      esac
-
-      shift
-    done
-  }
-
-  initialize_profile() {
-    #@ Parse arguments
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --file | --profile) profile="$2" ;;
-      --key) key="$2" ;;
-      --val) val="$2" ;;
-      --rc) rc="$2" ;;
-      esac
-      shift
-    done
-
-    { [ "$key" ] && [ "$val" ]; } || return 1
-    keyval="$key=$val"
-
-    [ "$rc" ] && {
-      key_rc="$(printf "%s_rc" "$key" | tr '[:lower:]' '[:upper:]')"
-      val_rc="$val/$rc"
-      initrc="$key_rc=\"\$$key/$rc\" && [ -f \"\$$key_rc\" ] && . \"\$$key_rc\""
-    }
-
-    grep --quiet --regexp "^$key=*" "$profile" || {
-      # grep --quiet --regexp "$keyval" "$profile" ||
-      # printf "\n%s" "$keyval" >>"$profile"
-
-      # grep --quiet --regexp "$initrc" "$profile" ||
-      # printf "\n%s" "$initrc" >>"$profile"
-
-      printf "\n%s\n%s\n" "$keyval" "$initrc" >>"$profile"
-    }
-
-    delete_line_from_file() {
-      sed --in-place --expression "/$1/d" "$2"
-    }
-
-    append_lines_to_file() {
-      temp_file=$(mktemp)
-      grep --invert-match "^$key=" "$file" |
-        grep --invert-match "$initrc" >"$temp_file"
-      printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$temp_file"
-      mv "$temp_file" "$1"
-      [ "$verbose_flag" ] && printf "Updated DOTS in %s.\n" "$1"
-    }
-
-    update_profile() {
-      #@ Create the profile if it doesn't exist
-      [ -f "$profile" ] || touch "$profile"
-
-      #@ Check if the key/value declaration exists
-
-      # grep --quiet \
-      #   --regexp "^$key=$val" \
-      #   --regexp "^$key=\"$val\"" "$profile" || {
-      #   delete_line_from_file "^$key=" "$profile"
-      #   # printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
-      # }
-
-      # [ "$rc" ] && {
-      #   grep --quiet --fixed-strings "$initrc" "$profile" || {
-      #     delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
-      #   # printf "\n%s\n" "$initrc" >>"$profile"
-      #   }
-      # }
-
-      # { &&
-      #     grep --quiet --fixed-strings "$initrc" "$profile"
-      # } || {
-      #   #@ If either condition is false, remove both lines
-      #   delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
-      #   printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$profile"
-      # }
-
-      #@ Check if the initrc declaration exists
-      # printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
-      # printf "\n%s\n" "$initrc" >>"$profile"
-
-      #@ Check if the key declaration exists and if it's different
-      # {
-      #   grep --quiet \
-      #     --regexp "^$key=$val" \
-      #     --regexp "^$key=\"$val\"" "$profile" ||
-
-      #     #@  Check if the rc initialization declaration exists
-      #     grep --quiet --fixed-strings "$initrc" "$profile"
-      # } || {
-      #   #@ If either condition is false, remove both lines
-      #   delete_line_from_file "^$key=" "$profile"
-      #   delete_line_from_file "^[ -f \"$key/$rc\" ]*" "$profile"
-      #   # delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
-      # }
-      # delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
-
-      # #@ Append the new lines to the file only if they are missing
-      # if
-      #   ! grep --quiet --regexp "^$key=" "$profile" ||
-      #     ! grep --quiet --fixed-strings "$initrc" "$profile"
-      # then
-      #   #@ If either line is missing, append both lines
-      #   # append_lines_to_file "$profile" "$initrc"
-      # printf "\n%s=\"%s\"\n%s\n" \
-      #   "$key" "$val" \
-      #   "[ -f \"\$$key/$rc\" ] && . \"\$$key/$rc\"" \
-      #   >>"$profile"
-      # else
-      #   #@ If both lines are present and the DOTS line is the same, no need to update
-      #   [ "$verbose_flag" ] &&
-      #     printf "%s in %s is already up to date.\n" "$key" "$profile"
-      # fi
-    }
-
-    update_profile
-  }
-
-  initialize_shell() {
-    set_shell
-    weHave hx && {
-      EDITOR=hx
-      EDITOR_VERSION="$(hx --version | awk '{print $2}')"
-      export EDITOR EDITOR_VERSION
-    }
-    weHave code && {
-      VISUAL=code
-      VISUAL_VERSION="$(code --version | head -n1 | awk '{print $NF}')"
-      export VISUAL VISUAL_VERSION
-    }
-
-    init_fastfetch "$DOTS_CFG/fastfetch/config.jsonc"
-    "$SHELL_PATH" "$SHELL_CONF"
-  }
+	set_os_type() {
+		if [ "$WSL_DISTRO_NAME" ]; then
+			OS_TYPE="Windows Subsystem for Linux [WSL]"
+		elif [ -f "/proc/version" ]; then
+			OS_TYPE=$(cat "/proc/version")
+		elif command -v uname >/dev/null 2>&1; then
+			OS_TYPE="$(uname --kernel-name)"
+		elif command -v python >/dev/null 2>&1; then
+			OS_TYPE="$(
+				python -c 'import platform; print(platform.system())'
+			)"
+		elif command -v hostnamectl >/dev/null 2>&1; then
+			OS_TYPE="$(
+				hostnamectl | awk -F ': ' '/Kernel/ {print $2}'
+			)"
+		fi
+
+		case "$(to_lower "$OS_TYPE")" in
+		*linux* | *gnu*)
+			OS_TYPE="GNU/Linux"
+			;;
+		*wsl* | *microsoft*)
+			OS_TYPE="Windows Subsystem for Linux [WSL]"
+			;;
+		*cygwin* | *msys* | *mingw* | *windows*)
+			OS_TYPE="Windows"
+			#? This line is needed to avoid a warning from Nix when using WSL.
+			#? See https://github.com/microsoft/WSL/issues/1936 and
+			#? https://nixos.wiki/wiki/FAQ#How_can_I_avoid_the_.22winsymlinks.22_warning_when_installing_Nix_on_WSL.3F
+			# for more information.
+			MSYS=winsymlinks:nativestrict
+			export MSYS
+			;;
+		*darwin*)
+			OS_TYPE="Mac"
+			;;
+		*freebsd*)
+			OS_TYPE="FreeBSD"
+			;;
+		*netbsd*)
+			OS_TYPE="NetBSD"
+			;;
+		*openbsd*)
+			OS_TYPE="OpenBSD"
+			;;
+		*hp*)
+			OS_TYPE="HP"
+			;;
+		*solaris* | *sunos*)
+			OS_TYPE="Solaris"
+			;;
+		*aix*)
+			OS_TYPE="AIX"
+			;;
+		*irix*)
+			OS_TYPE="IRIX"
+			;;
+		esac
+
+		# printf "%s" "$OS_TYPE"
+		export OS_TYPE
+	}
+
+	set_shell() {
+		#@ Define supported shells
+		__shell="$(to_lower "${__shell:-"$(
+			printf "%s" "$SHELL" | awk -F/ '{print $NF}'
+		)"}")"
+
+		case "$__shell" in
+		bash)
+			__shell="bash"
+			__shell_conf="config"
+			SHELL_NAME="Bash"
+			;;
+		fish)
+			__shell="fish"
+			__shell_conf="config.fish"
+			SHELL_NAME="Fish"
+			;;
+		zsh)
+			__shell="zsh"
+			__shell_conf=".zshrc"
+			SHELL_NAME="Zsh"
+			;;
+		nu | nushell)
+			__shell="nu"
+			__shell_conf="config.nu"
+			SHELL_NAME="Nushell"
+			;;
+		pwsh)
+			__shell="pwsh"
+			__shell_conf="profile.ps1"
+			SHELL_NAME="Pwsh"
+			;;
+		powershell)
+			__shell="powershell"
+			__shell_conf="profile.ps1"
+			SHELL_NAME="Powershell"
+			;;
+		'')
+			pout --error "Unable to confirm support for the active shell."
+			return 1
+			;;
+		*)
+			pout --error "The defined shell (%s) is not supported." "$__shell"
+			return 1
+			;;
+		esac
+
+		SHELL_HOME="${DOTS_CFG}/$(to_lower "$SHELL_NAME")"
+		SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
+		SHELL_PATH="$(pathOf "$__shell")"
+		SHELL="$__shell"
+
+		export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL
+	}
+
+	set_messaging() {
+		set_verbosity_level() {
+			#@ Set default values for quiet, verbosity, and log level
+			__quiet="${__quiet:--1}"
+			__error="${__error:-0}"
+			__warn="${__warn:-1}"
+			__info="${__info:-2}"
+			__debug="${__debug:-3}"
+			__trace="${__trace:-4}"
+
+			#@ Check for global verbosity settings from various environment variables
+			__quiet=$(to_lower "${__quiet:-$QUIET}")
+			__verbosity=$(to_lower "${__verbosity:-${VERBOSITY:-$VERBOSE}}")
+
+			#@ Handle quiet flags first
+			case "$(to_lower "$__quiet")" in
+			true | 1 | on) __verbosity="quiet" ;;
+			esac
+
+			#@ Map verbal levels to numerical values
+			case "$__verbosity" in
+			none | off | quiet | false) __verbosity="$__quiet" ;;
+			error | fatal | 0) __verbosity="$__error" ;;
+			warn | warning | 1) __verbosity="$__warn" ;;
+			info | normal | 2) __verbosity="$__info" ;;
+			debug | verbose | 3) __verbosity="$__debug" ;;
+			trace | all | true | 4) __verbosity="$__trace" ;;
+			'' | *[!0-9]*) __verbosity="$__info" ;; #? Set default to INFO
+			*)
+				#@ Check if number is in valid range (0-4)
+				if [ "$__verbosity" -lt 0 ]; then
+					__verbosity="$__quiet" #? Set minimum to QUIET
+				elif [ "$__verbosity" -gt 4 ]; then
+					__verbosity="$__trace" #? Set maximum to TRACE
+				fi
+				;;
+			esac
+
+			#@ Set and export the final level
+			VERBOSITY="$__verbosity"
+			export VERBOSITY
+		}
+
+		set_log_level() {
+			#@ Check for global log level settings
+			__log_level=$(to_lower "${__log_level:-$LOG_LEVEL}")
+
+			#@ Map log levels to numerical values
+			case "$(to_lower "$__log_level")" in
+			none | off | quiet | false) __log_level="$__quiet" ;;
+			error | fatal | 0) __log_level="$__error" ;;
+			warn | warning | 1) __log_level="$__warn" ;;
+			info | normal | 2) __log_level="$__info" ;;
+			debug | verbose | 3) __log_level="$__debug" ;;
+			trace | all | true | 4) __log_level="$__trace" ;;
+			'' | *[!0-9]*) __log_level="${__log_level:-"$__info"}" ;;
+			*)
+				#@ Check if number is in valid range (0-4)
+				if [ "$__log_level" -lt 0 ]; then
+					__log_level="$__quiet" #? Set minimum to QUIET
+				elif [ "$__log_level" -gt 4 ]; then
+					__log_level="$__trace" #? Set maximum to TRACE
+				fi
+				;;
+			esac
+
+			LOG_LEVEL="$__log_level"
+			export LOG_LEVEL
+		}
+
+		set_verbosity_level
+		set_log_level
+		[ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
+	}
+
+	set_location() {
+		#      "location": "$LOCATION",
+		# DOC Set the LOCATION variable in a standardized format
+		#DOC Args:
+		#DOC   $1 - Location input (e.g., "37.7749,-122.4194" or "San Francisco, USA")
+		#DOC Returns:
+		#DOC   0 - Success
+		#DOC   1 - Failure
+		#DOC Example:
+		#DOC   set_location "37.7749,-122.4194"
+		#DOC   set_location "San Francisco, USA"
+
+		#@ Validate input
+		if [ -z "$1" ]; then
+			printf "ERROR: No location provided\n" >&2
+			return 1
+		fi
+
+		#@ Check if input is GPS coordinates
+		if echo "$1" | grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$'; then
+			LOCATION="$1"
+			export LOCATION
+			printf "Location set to GPS coordinates: %s\n" "$LOCATION"
+			return 0
+		fi
+
+		#@ If input is not GPS coordinates, assume it's a city/country and try to resolve it
+		printf "Resolving location: %s\n" "$1"
+		_location=$(resolve_location "$1")
+		if [ -n "$_location" ]; then
+			LOCATION="$_location"
+			export LOCATION
+			[ "$VERBOSITY" -ge 2 ] &&
+				printf "Location set to GPS coordinates: %s\n" "$LOCATION"
+			return 0
+		else
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf "ERROR: Failed to resolve location: %s\n" "$1" >&2
+			return 1
+		fi
+	}
+
+	set_interactive_shell() {
+		#@ Get the active interactive shell prompt
+		SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"${SHELL##*/}"}"
+		defined_shell="$(to_lower "$__shell")"
+
+		#@ Set the preferred interactive shell prompt
+		[ -n "$defined_shell" ] &&
+			[ "$defined_shell" != "$SHELL_INTERACTIVE" ] &&
+			SHELL_INTERACTIVE="$defined_shell"
+
+		#@ Ensure the variable is available globally
+		export SHELL_INTERACTIVE
+	}
+
+	manage_ignore_list() {
+		create_ignore_file() {
+			#@ Skip if the mode is set to simulation
+			case "$(to_lower "$__mode")" in simulation)
+				printf \
+					"DEBUG: Would create the ignore file at %s\n" \
+					"$DOTS_IGNORE"
+				return 0
+				;;
+			esac
+
+			#@ Create the DOTS_IGNORE file, if necessary
+			validate_file "$DOTS_IGNORE" ||
+				{
+					if [ "$VERBOSITY" -ge 1 ]; then
+						printf \
+							"WARN: Ignore file not found at %s. Create it? [y/N] " \
+							"$DOTS_IGNORE"
+						read -r response
+						case "$(to_lower "$response")" in
+						y | yes) touch "$DOTS_IGNORE" ;;
+						*) return 1 ;;
+						esac
+					else
+						touch "$DOTS_IGNORE"
+						truncate -s 1 "$DOTS_IGNORE"
+					fi
+				}
+
+			#@ Check if the ignore file was created
+			validate_file "$DOTS_IGNORE" || {
+				if [ "$VERBOSITY" -ge 1 ]; then
+					printf "ERROR: Unable to create ignore file at %s\n" "$DOTS_IGNORE"
+					return 1
+				else
+					return 1
+				fi
+			}
+		}
+
+		remove_ignore_file() {
+			#@ Skip if the ignore file if it doesn't exist
+			validate_file "$DOTS_IGNORE" || return 0
+
+			#@ Skip if the mode is not set to reset
+			case "$(to_lower "$__mode")" in
+			simulation)
+				printf "DEBUG: Would delete the ignore file."
+				printf "\n -> FILE: %s" "$DOTS_IGNORE"
+				printf "\n -> PATTERNS: "
+				first=true
+				while IFS= read -r line; do
+					if [ "$first" = true ]; then
+						printf "%s\n" "$line"
+						first=false
+					else
+						printf "%-14s%s\n" "${first:+ }" "$line"
+					fi
+				done <"$DOTS_IGNORE"
+				return 0
+				;;
+			reset)
+				if [ "$VERBOSITY" -ge 1 ]; then
+					# Confirm the deletion of the ignore file
+					printf "WARN: Current ignore patterns in %s:\n" "$DOTS_IGNORE"
+					read_file "$DOTS_IGNORE"
+					printf "\nAre you sure you want to delete this file? [y/N] "
+					read -r response
+					case "$(to_lower "$response")" in
+					[y | Y]*) ;;
+					*) printf "Keeping ignore file intact.\n" ;;
+					esac
+				else
+					# Delete the ignore file without confirmation
+					rm "$DOTS_IGNORE"
+				fi
+				;;
+			*) return 0 ;;
+			esac
+		}
+
+		update_patterns() {
+			#@ Check if ignore file is writable first
+			validate_file --writable "$DOTS_IGNORE" || {
+				[ "$VERBOSITY" -ge 1 ] &&
+					printf "ERROR: %s is not writable\n" "$DOTS_IGNORE" >&2
+				return 1
+			}
+
+			#@ Handle ignore file actions based on the ignore_action setting
+			case "$(to_lower "$__filter")" in
+			exclude)
+				#@ Add pattern to ignore file if it doesn't already exist
+				if ! grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
+					printf "\n%s" "$1" >>"$DOTS_IGNORE" || {
+						[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to write to %s\n" "$DOTS_IGNORE" >&2
+						return 1
+					}
+					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Added pattern '%s' to ignore file\n" "$1"
+				else
+					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Pattern '%s' already in ignore file\n" "$1"
+				fi
+				;;
+			include)
+				#@ Remove pattern from ignore file if it exists
+				if grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
+					sed --in-place "/$1/d" "$DOTS_IGNORE" || {
+						[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to modify %s\n" "$DOTS_IGNORE" >&2
+						return 1
+					}
+					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Removed pattern '%s' from ignore file\n" "$1"
+				else
+					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Pattern '%s' not found in ignore file\n" "$1"
+				fi
+				;;
+			esac
+		}
+
+		remove_ignore_file
+		create_ignore_file
+		update_patterns "$1"
+	}
+
+	update_user_profile() {
+		#TODO: This function is not yet complete
+		#@ Create the profile file if it doesn't exist
+		[ -f "$rc_profile" ] || touch "$rc_profile"
+
+		#@ Define the lines with and without quotes
+		dots_unquoted="DOTS=$DOTS"
+		dots_quoted="DOTS=\"$DOTS\""
+		dots_init="[ -f \"\$DOTS/.dotsrc\" ] && . \"\$DOTS/.dotsrc\""
+
+		#@ Check if the DOTS line exists and if it's different or if dots_init is missing
+		if grep --quiet --regexp "^DOTS=" "$profile"; then
+			{
+				#@ Check if the DOTS line matches the current DOTS variable or is quoted
+				grep --quiet --regexp "^DOTS=$DOTS" --regexp "^DOTS=\"$DOTS\"" "$profile" ||
+
+					#@ Check if dots_init is missing
+					grep --quiet --fixed-strings "$dots_init" "$profile"
+			} ||
+				{
+					#@ If either condition is false, remove both lines
+					delete_line_from_file "^DOTS="
+					delete_line_from_file "$(printf "%s" "$dots_init" | sed 's/[\/&]/\\&/g')"
+				}
+		fi
+
+		#@ Append the new lines to the profile file only if they are missing
+		if
+			! grep --quiet --regexp "^DOTS=" "$profile" ||
+				! grep --quiet --fixed-strings "$dots_init" "$profile"
+		then
+			#@ If either line is missing, append both lines
+			temp_file=$(mktemp)
+			grep --invert-match "^DOTS=" "$profile" |
+				grep --invert-match "$dots_init" >"$temp_file"
+			printf "\nDOTS=\"%s\"\n%s\n" "$DOTS" "$dots_init" >>"$temp_file"
+			mv "$temp_file" "$profile"
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf "WARN: Path to DOTS in updated in %s.\n" "$profile"
+		else
+			#@ If both lines are present and the DOTS line is the same, no need to update
+			[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: DOTS in profile is already up to date.\n"
+		fi
+	}
+
+	get_sources() {
+
+		get_excluded_sources() {
+			#@ Remove blank lines and sort the ignore file
+			sed -i '/^[[:space:]]*$/d' "$DOTS_IGNORE"
+			sort --human-numeric-sort --output "$DOTS_IGNORE" "$DOTS_IGNORE"
+
+			# Get the list of excluded files
+			excluded_pattern=$(sed -e 's/^/\//g' "$DOTS_IGNORE" | tr '\n' '|' | sed '$s/|$/\n/')
+
+			if [ -n "$excluded_pattern" ]; then
+				if weHave fd; then
+					fd . --no-ignore "$1" | grep --extended-regexp --ignore-case "$excluded_pattern" | sort
+				else
+					find "$1" | grep --extended-regexp --ignore-case "$excluded_pattern" | sort
+				fi
+			fi
+		}
+
+		get_included_sources() {
+			if validate_file --non-empty "$DOTS_IGNORE"; then
+				excluded_pattern=$(sed -e 's/^/\//g' "$DOTS_IGNORE" | tr '\n' '|' | sed '$s/|$/\n/')
+
+				if weHave fd; then
+					fd . "$1" | grep --extended-regexp --invert-match --ignore-case "$excluded_pattern" | sort
+				else
+					find "$1" | grep --extended-regexp --invert-match --ignore-case "$excluded_pattern" | sort
+				fi
+			else
+				if weHave fd; then
+					fd . "$1" | sort
+				else
+					find "$1" | sort
+				fi
+			fi
+		}
+
+		case "$1" in
+		--included)
+			source_filter="included" source="$2"
+			;;
+		--excluded)
+			source_filter="excluded" source="$2"
+			;;
+		--all)
+			source_filter="all" source="$2"
+			;;
+		--ignore)
+			unset source_filter
+			source="$2"
+			;;
+		*)
+			source_filter="$__filter" source="$1"
+			;;
+		esac
+
+		if [ -z "$source" ]; then
+			[ "$VERBOSITY" -ge 1 ] &&
+				printf "ERROR: No source path or ignore pattern provided.\n" >&2
+			return 1
+		elif [ "$source_filter" ] && [ -e "$1" ]; then
+			case "$source_filter" in
+			excluded) get_excluded_sources "$1" ;;
+			included) get_included_sources "$1" ;;
+			all) get_excluded_sources "$1" && get_included_sources "$1" ;;
+			esac
+		else
+			#? Non-file entries are meant to be handled by the ignore list
+			manage_ignore_list "$1"
+		fi
+	}
+
+	process_sources() {
+		#@ Enable global variable export
+		set -o allexport #TODO: This is risky. So through each script and set the exports manually
+
+		#@ Process sources recursively
+		for src_path in $(get_sources "$1"); do
+			[ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
+				case ":${XDG_DATA_DIRS}:" in
+				*:"$src_path":*) ;;
+				*)
+					XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
+					[ "$VERBOSITY" -gt 2 ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
+					;;
+				esac
+
+			#@ Update PATH directories
+			[ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
+				case ":${PATH}:" in
+				*:"$src_path":*) ;;
+				*)
+					PATH="${PATH:+$PATH:}$src_path"
+					[ "$VERBOSITY" -gt 2 ] && printf "Appended to PATH: %s\n" "${src_path}"
+					;;
+				esac
+
+			#@ Activate Scripts and Variables
+			[ -f "$src_path" ] &&
+
+				#| Make scripts executable
+				if [ "$src_type" = "BIN" ]; then
+					case "$(to_lower "$OS_TYPE")" in
+					Windows) ;;
+					*)
+						if [ "$VERBOSITY" -gt 2 ]; then
+							chmod --changes +x "$src_path"
+						else
+							chmod +x "$src_path"
+						fi
+						;;
+					esac
+
+				#@ Load environmental variables from files
+				elif [ "$src_type" = "ENV" ]; then
+					# shellcheck disable=SC1090
+					# EOLor --lf "$src_path"
+					. "$src_path"
+					[ "$VERBOSITY" -gt 2 ] && printf "Initialized: %s\n" "$src_path"
+				fi
+
+		done
+
+		#@ Disable global export
+		set +o allexport
+	}
+
+	initialize_source() {
+		#@ Parse core arguments
+		case "$1" in
+		-h | --help)
+			exit_code=0
+			print_usage_guide
+			;;
+		-v | --version)
+			printf "%s\n" "$version"
+			exit 0
+			;;
+		-d | --verbose)
+			verbose_flag=true
+			shift
+			;;
+		-t | --simulation | --test)
+			test_flag=true
+			shift
+			;;
+		-q | --quiet)
+			unset verbose_flag
+			shift
+			;;
+		--ignore-file)
+			ignore_file="$2"
+			shift 2
+			;;
+		*) ;;
+		esac
+
+		#@ Parse process arguments
+		while [ "$#" -ge 1 ]; do
+			case "$1" in
+			--bin)
+				#? Expects a file/directory
+				src_type="BIN"
+				shift
+				;;
+			--env)
+				#? Expects a file/directory
+				src_type="ENV"
+				shift
+				;;
+			--xdg)
+				#? Expects a directory
+				src_type="XDG"
+				shift
+				;;
+			--exclude)
+				#? Expects a string
+				ignore_action="EXCLUDE"
+				shift
+				;;
+			-I | --include)
+				#? Expects a string
+				ignore_action="INCLUDE"
+				shift
+				;;
+			-*)
+				printf "Invalid Option: %s\n" "$1"
+				exit_code=1
+				print_usage_guide
+				;;
+			*) ;;
+			esac
+
+			case "$__mode" in
+			simulation)
+				# [ "$src_type" ] && printf "\n%s: %s\n" "$src_type" "$1"
+				# [ "$ignore_action" ] && printf "%s: %s\n" "$ignore_action" "$1"
+				get_sources "$1"
+				echo "Filter: $source_filter"
+				;;
+			*) process_sources "$1" ;;
+			esac
+
+			shift
+		done
+	}
+
+	initialize_profile() {
+		#@ Parse arguments
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--file | --profile) profile="$2" ;;
+			--key) key="$2" ;;
+			--val) val="$2" ;;
+			--rc) rc="$2" ;;
+			esac
+			shift
+		done
+
+		{ [ "$key" ] && [ "$val" ]; } || return 1
+		keyval="$key=$val"
+
+		[ "$rc" ] && {
+			key_rc="$(printf "%s_rc" "$key" | tr '[:lower:]' '[:upper:]')"
+			val_rc="$val/$rc"
+			initrc="$key_rc=\"\$$key/$rc\" && [ -f \"\$$key_rc\" ] && . \"\$$key_rc\""
+		}
+
+		grep --quiet --regexp "^$key=*" "$profile" || {
+			# grep --quiet --regexp "$keyval" "$profile" ||
+			# printf "\n%s" "$keyval" >>"$profile"
+
+			# grep --quiet --regexp "$initrc" "$profile" ||
+			# printf "\n%s" "$initrc" >>"$profile"
+
+			printf "\n%s\n%s\n" "$keyval" "$initrc" >>"$profile"
+		}
+
+		delete_line_from_file() {
+			sed --in-place --expression "/$1/d" "$2"
+		}
+
+		append_lines_to_file() {
+			temp_file=$(mktemp)
+			grep --invert-match "^$key=" "$file" |
+				grep --invert-match "$initrc" >"$temp_file"
+			printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$temp_file"
+			mv "$temp_file" "$1"
+			[ "$verbose_flag" ] && printf "Updated DOTS in %s.\n" "$1"
+		}
+
+		update_profile() {
+			#@ Create the profile if it doesn't exist
+			[ -f "$profile" ] || touch "$profile"
+
+			#@ Check if the key/value declaration exists
+
+			# grep --quiet \
+			#   --regexp "^$key=$val" \
+			#   --regexp "^$key=\"$val\"" "$profile" || {
+			#   delete_line_from_file "^$key=" "$profile"
+			#   # printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
+			# }
+
+			# [ "$rc" ] && {
+			#   grep --quiet --fixed-strings "$initrc" "$profile" || {
+			#     delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
+			#   # printf "\n%s\n" "$initrc" >>"$profile"
+			#   }
+			# }
+
+			# { &&
+			#     grep --quiet --fixed-strings "$initrc" "$profile"
+			# } || {
+			#   #@ If either condition is false, remove both lines
+			#   delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
+			#   printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$profile"
+			# }
+
+			#@ Check if the initrc declaration exists
+			# printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
+			# printf "\n%s\n" "$initrc" >>"$profile"
+
+			#@ Check if the key declaration exists and if it's different
+			# {
+			#   grep --quiet \
+			#     --regexp "^$key=$val" \
+			#     --regexp "^$key=\"$val\"" "$profile" ||
+
+			#     #@  Check if the rc initialization declaration exists
+			#     grep --quiet --fixed-strings "$initrc" "$profile"
+			# } || {
+			#   #@ If either condition is false, remove both lines
+			#   delete_line_from_file "^$key=" "$profile"
+			#   delete_line_from_file "^[ -f \"$key/$rc\" ]*" "$profile"
+			#   # delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
+			# }
+			# delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
+
+			# #@ Append the new lines to the file only if they are missing
+			# if
+			#   ! grep --quiet --regexp "^$key=" "$profile" ||
+			#     ! grep --quiet --fixed-strings "$initrc" "$profile"
+			# then
+			#   #@ If either line is missing, append both lines
+			#   # append_lines_to_file "$profile" "$initrc"
+			# printf "\n%s=\"%s\"\n%s\n" \
+			#   "$key" "$val" \
+			#   "[ -f \"\$$key/$rc\" ] && . \"\$$key/$rc\"" \
+			#   >>"$profile"
+			# else
+			#   #@ If both lines are present and the DOTS line is the same, no need to update
+			#   [ "$verbose_flag" ] &&
+			#     printf "%s in %s is already up to date.\n" "$key" "$profile"
+			# fi
+		}
+
+		update_profile
+	}
+
+	initialize_shell() {
+		set_shell
+		weHave hx && {
+			EDITOR=hx
+			EDITOR_VERSION="$(hx --version | awk '{print $2}')"
+			export EDITOR EDITOR_VERSION
+		}
+		weHave code && {
+			VISUAL=code
+			VISUAL_VERSION="$(code --version | head -n1 | awk '{print $NF}')"
+			export VISUAL VISUAL_VERSION
+		}
+
+		init_fastfetch "$DOTS_CFG/fastfetch/config.jsonc"
+		"$SHELL_PATH" "$SHELL_CONF"
+	}
 }
 
 main "$@"
