@@ -2,8 +2,8 @@
 
 #@ Ensure the DOTS variable is set
 [ -n "$DOTS" ] || {
-  printf "ERROR: The path to DOTS directory must be set.\n" >&2
-  exit 1
+	printf "ERROR: The path to DOTS directory must be set.\n" >&2
+	exit 1
 }
 
 #@ Define the DOTS flake and shell
@@ -12,7 +12,7 @@ DOTS_SHELL="$DOTS/shell.nix"
 
 #@ Run the nix-shell command if available and present
 if [ -f "$DOTS_FLAKE" ]; then
-  command -v nix shell >/dev/null 2>&1 && nix shell "$DOTS_FLAKE"
+	command -v nix shell >/dev/null 2>&1 && nix shell "$DOTS_FLAKE"
 elif [ -f "$DOTS_SHELL" ]; then
-  command -v nix-shell >/dev/null 2>&1 && nix-shell "$DOTS_SHELL"
+	command -v nix-shell >/dev/null 2>&1 && nix-shell "$DOTS_SHELL"
 fi
