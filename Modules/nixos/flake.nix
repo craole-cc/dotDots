@@ -40,7 +40,7 @@
         env = "/environment";
         libs = "/libraries";
         mkCore = "/helpers/makeCoreConfig.nix";
-        modules = "/Configuration/apps/nixos";
+        modules = "/Modules/nixos";
         mods = "/modules";
         opts = "/options";
         pkgs = "/packages";

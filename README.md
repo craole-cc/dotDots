@@ -6,9 +6,6 @@ dotDOTS is a collection of my personal tools and configuration files designed to
 - **Linux**: Focused on NixOS with flakes integration. Systems without NixOS can use standalone nix and home-manager or even less, just the dotsrc like on windows
 - **macOS**: Additional configuration through nix-darwin and home-manager.
 
-
-
-
 The goal of these configurations is to enhance efficiency, maintain portability, and prioritize simplicity while ensuring compatibility across devices ranging from desktops and laptops to servers and Raspberry Pi systems.
 
 Others are welcome to explore and adapt these configurations as they see fit.
