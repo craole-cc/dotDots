@@ -21,7 +21,7 @@ case "$BASHOPTS" in
 	init_config "$SHELL_HOME/bin"
 	init_config "$SHELL_HOME/modules"
 
-	update_dots_path "$DOTS/Bin" #TODO: Move to dotrc
+	# update_dots_path "$DOTS/Bin" #TODO: Move to dotrc
 	# update_dots_path "$SHELL_HOME/bin"
 	init_prompt
 	# init_fasfetch

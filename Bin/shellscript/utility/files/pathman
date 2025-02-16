@@ -11,7 +11,8 @@ initialize_env() {
 	#@ set defaults
 	verbosity=0
 	action="show"
-	bins=""
+	PRINT_RAW=0
+	PATHS=""
 	debug=""
 	delimiter="$(printf '\037')"
 
@@ -22,6 +23,7 @@ initialize_env() {
 	command -v fd >/dev/null 2>&1 && HAS_FD=1
 	command -v bat >/dev/null 2>&1 && HAS_BAT=1
 }
+
 parse_arguments() {
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
@@ -51,13 +53,16 @@ parse_arguments() {
 		--prepend)
 			action="prepend"
 			;;
+		--print)
+			PRINT_RAW=1
+			;;
 		--dir*)
 			if [ "$2" ]; then
 				shift
-				if [ "$bins" ]; then
-					bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
+				if [ "$PATHS" ]; then
+					PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
 				else
-					bins="$(resolved_path "$1")"
+					PATHS="$(resolved_path "$1")"
 				fi
 			else
 				printf "'%s' requires an argument\n" "$1"
@@ -68,10 +73,10 @@ parse_arguments() {
 			if [ -f "$1" ]; then
 				make_exec "$1"
 				return 0
-			elif [ "$bins" ]; then
-				bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
+			elif [ "$PATHS" ]; then
+				PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
 			else
-				bins="$(resolved_path "$1")"
+				PATHS="$(resolved_path "$1")"
 			fi
 			;;
 		esac
@@ -83,12 +88,17 @@ perform_action() {
 	case "$action" in
 	append | prepend)
 		#@ Validate that a directory was provided
-		if [ -z "$bins" ]; then
+		if [ -z "$PATHS" ]; then
 			printf "ERROR: No path provided\n"
 			return 1
 		fi
 
-		add_to_path
+		#@ Define the directories [DIRES] and files [FILES] to process
+		set_paths
+
+		#@ Perform the actions
+		update_path
+		# update_exec "$PATHS"
 		;;
 	clean)
 		clean_path
@@ -110,21 +120,84 @@ resolved_path() {
 	fi
 }
 
-recursive_paths() {
-	dirs="$(printf '%s' "$*" | tr "$delimiter" '\n')"
+set_paths() {
 
-	for dir in $dirs; do
-		if [ "$HAS_FD" = 1 ]; then
-			#@ Add the results from fd
-			fd . "$dir"
+	set_paths__cleanup() {
+		rm -f "$DIRES" "$FILES"
+		unset exclude_args pattern EXCLUDE_PATTERNS
+	}
 
-			#@ Include the lookup directory
-			printf "%s\n" "$dir"
-		else
-			#@ Fallback to find
-			find "$dir"
-		fi
-	done | sort
+	set_paths__process() {
+		#@ Define exclusion patterns and temporary files
+		PATHS="$(printf '%s' "$PATHS" | tr "$delimiter" '\n')"
+		DIRES="$(mktemp)" FILES="$(mktemp)"
+
+		#@ Define exclusion patterns at the top level for reusability
+		EXCLUDE_PATTERNS="review temp tmp archive backup"
+
+		#@ Collect paths
+		for find_path in $PATHS; do
+			if [ "$HAS_FD" -eq 7 ]; then
+
+				#@ Define the base command
+				find_cmd="fd ."
+
+				#@ Convert patterns to fd --exclude args
+				for pattern in $EXCLUDE_PATTERNS; do
+					find_omit="$find_omit --exclude '$pattern'"
+				done
+
+				if [ -d "$find_path" ]; then
+					#@ Include the lookup path
+					printf "%s\n" "$find_path" | tee -a "$DIRES" >/dev/null
+
+					#@ Define the find options
+					find_files="--type file $find_omit"
+					find_dires="--type directory $find_omit"
+				else
+					#@ Include the lookup path
+					printf "%s\n" "$find_path" | tee -a "$FILES" >/dev/null
+				fi
+
+				#@ Update the directories file
+				eval "$find_cmd" "$find_path" "$find_dires" |
+					tee -a "$DIRES" >/dev/null
+
+				#@ Update the files file
+				eval "$find_cmd" "$find_path" "$find_files" |
+					tee -a "$FILES" >/dev/null
+			else
+				#@ Define the base command
+				find_cmd="find"
+
+				#@ Convert patterns to find -iname args
+				for pattern in $EXCLUDE_PATTERNS; do
+					[ -n "$find_omit" ] && find_omit="$find_omit -o"
+					find_omit="$find_omit -iname '$pattern'"
+				done
+
+				#@ Define the find options
+				find_dires="\( $find_omit \) -prune -o -type d -print"
+				find_files="\( $find_omit \) -prune -o -type f -print"
+			fi
+
+			#@ Update the directories file
+			eval "$find_cmd" "$find_path" "$find_dires" | tee -a "$DIRES" >/dev/null
+
+			#@ Update the files file
+			eval "$find_cmd $find_path $find_files" | tee -a "$FILES" >/dev/null
+		done
+	}
+
+	set_paths__main() {
+		trap 'set_paths__cleanup' EXIT
+		set_paths__cleanup
+		set_paths__process
+		# bat "$DIRES"
+		# bat "$FILES"
+	}
+
+	set_paths__main
 }
 
 os_type() {
@@ -137,70 +210,21 @@ os_type() {
 	#TODO This is utterly inadequete, just temporary
 	printf "%s" "$os_type"
 }
-add_to_path_ORIG() {
-	[ "$debug" ] && {
-		counter=1
-		recursive_paths "$bins" | while IFS= read -r bin_path; do
-			printf "  %4d %s\n" "$counter" "$bin_path"
-			#@ Increment the counter
-			counter=$((counter + 1))
-		done
-		return 0
-	}
-
-	#@ Update PATH directories recursively
-	recursive_paths "$bins" | while IFS= read -r bin_path; do
-		[ -d "$bin_path" ] &&
-			case ":${PATH}:" in
-			*:"$bin_path":*) ;;
-			*)
-				case "$action" in
-				prepend)
-					PATH="${bin_path}${PATH:+:$PATH}"
-					_action="Appended"
-					;;
-				append)
-					PATH="${PATH:+$PATH:}${bin_path}"
-					_action="Perpended"
-					;;
-				esac
-
-				[ "$verbosity" -gt 1 ] &&
-					printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
-				;;
-			esac
-
-		#@ Make scripts executable
-		[ -f "$bin_path" ] &&
-			case "$(os_type)" in windows) ;;
-			*)
-				chmod_status=0
-				chmod +x "$bin_path" >/dev/null 2>&1
-				chmod_status=$?
-
-				[ "$verbosity" -gt 1 ] && {
-					if [ "$chmod_status" -eq 0 ]; then
-						printf "    Script initialized: %s\n" "${bin_path}"
-					else
-						printf "    Failed to make %s executable: %s\n" "${bin_path}" "$chmod_status"
-					fi
-				}
-				;;
-			esac
-
-	done
-
-	#@ Return the new PATH
-	printf "%s\n" "$PATH"
-}
 
 show_bins() {
-	printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' |
-		eval "$(if [ "$HAS_BAT" ]; then
-			printf "bat --color=always --style=grid --plain --number"
-		else
-			printf "nl -s '  ' | less"
-		fi)"
+	if [ "$PRINT_RAW" -eq 1 ]; then
+		printf "%s\n" "${1:-"$PATH"}"
+		return
+	else
+		printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' |
+			eval "$(
+				if [ "$HAS_BAT" ]; then
+					printf "bat --color=always --style=grid --plain --number"
+				else
+					printf "nl -s '  ' | less"
+				fi
+			)"
+	fi
 }
 
 is_absolute_path() {
@@ -246,9 +270,66 @@ make_exec() {
 	}
 }
 
+add_to_path_ORIG() {
+	[ "$debug" ] && {
+		counter=1
+		recursive_paths "$PATHS" | while IFS= read -r bin_path; do
+			printf "  %4d %s\n" "$counter" "$bin_path"
+			#@ Increment the counter
+			counter=$((counter + 1))
+		done
+		return 0
+	}
+
+	#@ Update PATH directories recursively
+	recursive_paths "$PATHS" | while IFS= read -r bin_path; do
+		[ -d "$bin_path" ] &&
+			case ":${PATH}:" in
+			*:"$bin_path":*) ;;
+			*)
+				case "$action" in
+				prepend)
+					PATH="${bin_path}${PATH:+:$PATH}"
+					_action="Appended"
+					;;
+				append)
+					PATH="${PATH:+$PATH:}${bin_path}"
+					_action="Perpended"
+					;;
+				esac
+
+				[ "$verbosity" -gt 1 ] &&
+					printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+				;;
+			esac
+
+		#@ Make scripts executable
+		[ -f "$bin_path" ] &&
+			case "$(os_type)" in windows) ;;
+			*)
+				chmod_status=0
+				chmod +x "$bin_path" >/dev/null 2>&1
+				chmod_status=$?
+
+				[ "$verbosity" -gt 1 ] && {
+					if [ "$chmod_status" -eq 0 ]; then
+						printf "    Script initialized: %s\n" "${bin_path}"
+					else
+						printf "    Failed to make %s executable: %s\n" "${bin_path}" "$chmod_status"
+					fi
+				}
+				;;
+			esac
+
+	done
+
+	#@ Return the new PATH
+	printf "%s\n" "$PATH"
+}
+
 add_to_path() {
 	tmp_path=$(mktemp) || return 1
-	recursive_paths "$bins" >"$tmp_path"
+	recursive_paths "$PATHS" >"$tmp_path"
 
 	if [ "$debug" ]; then
 		counter=1
@@ -290,6 +371,39 @@ add_to_path() {
 	rm "$tmp_path"
 	[ "$verbosity" -gt 1 ] && show_bins
 	export PATH
+}
+
+update_path() {
+	#@ Copy the PATH variable
+	TMP_PATH="$PATH"
+
+	#@ Build updated path
+	while IFS= read -r dir; do
+		case "$TMP_PATH" in
+		*":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
+		*)
+			case "$action" in
+			prepend) TMP_PATH="$dir${TMP_PATH:+:$TMP_PATH}" ;;
+			append) TMP_PATH="${TMP_PATH:+$TMP_PATH:}$dir" ;;
+			esac
+			;;
+		esac
+	done <"$DIRES"
+	unset IFS
+
+	#@ Display the temporary file contents
+	# printf "%s" "$TMP_PATH" | tr ':' '\n' | bat
+
+	#@ Update the PATH variable
+	PATH="$TMP_PATH"
+
+	#@ Print or export the PATH variable
+	if [ "$PRINT_RAW" -eq 1 ]; then
+		printf "%s" "$PATH"
+	else
+		PATH="$TMP_PATH"
+		export PATH
+	fi
 }
 
 #@ Execute the main function with the provided argument
