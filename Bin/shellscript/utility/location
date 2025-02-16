@@ -415,5 +415,5 @@ get_info() {
 	# [ "$boundingbox" ] && get_boundingbox
 }
 
-# main "$@"
-tests "$@"
+main "$@"
+# tests "$@"

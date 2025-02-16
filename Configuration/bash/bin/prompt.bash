@@ -68,16 +68,22 @@ init_zoxide() {
   # eval "$(zoxide init posix --hook prompt)" || true
 }
 
+init_thefuck() {
+  command -v thefuck >/dev/null 2>&1 || return
+  eval "$(thefuck --alias)"
+}
+
 init_prompt() {
   #| Tools
   init_direnv
   init_zoxide
+  init_thefuck
 
   #| Prompt
   init_starship
   status=$?
   if [ "$status" -ne 0 ]; then
-    _ init_PS1
+    init_PS1
   fi
 }
 

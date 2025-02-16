@@ -89,6 +89,10 @@
           curseradio
           playerctl
           pamixer
+          tauon
+          shortwave
+          strawberry
+          deadbeef
 
           #| Utilities
           btop

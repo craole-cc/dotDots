@@ -1,82 +1,162 @@
 #!/bin/sh
 ## shellcheck disable=SC2034,SC2154,SC2164,SC2181,SC2213,SC2230,SC2291,SC2317,SC2320,SC2039
+
 main() {
 	#@ Initialization the script environment
-	manage_script --init functions
-	manage_script --init environment
+	manage_script --init || return $?
 
 	#@ Initialize the DOTS environment
-	manage_script --process
+	manage_script --process || return $?
 
 	#@ Reset the environment
-	manage_script --exit
+	manage_script --exit || return $?
 }
 
 manage_script() {
-	init_functions() {
-		util_functions
-		core_functions
+	#DOC Manage the script operations including initialization, processing, and cleanup.
+	#DOC
+	#DOC This function orchestrates the script's lifecycle, handling different command-line options
+	#DOC to initialize the environment, perform operations, or reset the settings.
+	#DOC
+	#DOC Options:
+	#DOC   --init [all|fn|env]  	Initialize the script. Defaults to all
+	#DOC   --process        	Perform operations
+	#DOC   --exit           	Reset the environment
 
+	manage_script__usage() {
+		printf "Usage: %s [OPTIONS]\n" "dotsrc-manage_script"
+		printf "  Manage the script operations including initialization, processing, and cleanup.\n"
+		printf "Options:\n"
+		printf "  --init [all|fn|env]  	Initialize the script. Defaults to all\n"
+		printf "  --process         		Initialize the DOTS environment\n"
+		printf "  --exit            		Reset the environment\n"
 	}
 
-	init_script_env() {
-		#@ Set persistent variables
-		set -o allexport
+	manage_script__init() {
+		load_all() {
+			manage_script__functions
+			manage_script__environment
+		}
 
-		if [ -f "$DOTS_RC" ]; then
-			DOTS="$(dirname "${DOTS_RC}")"
-		elif [ -d "$DOTS" ]; then
-			DOTS_RC="$DOTS/.dotsrc"
-		# else
-		#   # DOTS_RC="${BASH_SOURCE[0]}"
-		#   DOTS="$(dirname "$DOTS_RC")"
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--init)
+				case "$2" in
+				'')
+					load_all
+					;;
+				func* | fn | util*)
+					manage_script__functions
+					shift
+					;;
+				env*)
+					manage_script__environment
+					shift
+					;;
+				all)
+					load_all
+					shift
+					;;
+				*)
+					printf "ERROR: Unknown option: %s\n" "$1" >&2
+					manage_script__usage
+					return 1
+					;;
+				esac
+				;;
+			--process) manage_script__process ;;
+			--exit) manage_script__exit ;;
+			*)
+				load_all
+				;;
+			esac
+			shift
+		done
+	}
+
+	manage_script__environment() {
+		#@ Ensure the DOTS variable is set
+		[ -n "$DOTS" ] || {
+			if
+				command -v git >/dev/null 2>&1 &&
+					git rev-parse --is-inside-work-tree >/dev/null 2>&1
+			then
+				DOTS="$(git rev-parse --show-toplevel)"
+			else
+				for file in shell.nix README.md; do
+					if [ -f "$file" ]; then
+						\cd "$(dirname "$file")" || {
+							printf "ERROR: Failed to change directory.\n" >&2
+							return 1
+						}
+						TEST_DOTS=$(pwd)
+						break
+					fi
+				done
+			fi
+		}
+
+		if [ -d "$DOTS" ]; then
+			export DOTS
+		else
+			printf "ERROR: The path to DOTS directory must be set.\n" >&2
+			return 1
 		fi
 
-		DOTS_IGNORE="$DOTS/.ignore"
-		DOTS_LOG="$DOTS/.log"
+		#@ Set variables to be exported globally
+		set -o allexport
 		DOTS_BIN="$DOTS/Bin"
 		DOTS_CFG="$DOTS/Configuration"
-		DOTS_CFG="$DOTS_CFG/apps"
-		DOTS_KIT="$DOTS_CFG/tools"
-		DOTS_CFG="$DOTS_CFG/cli"
 		DOTS_DOC="$DOTS/Documentation"
-		DOTS_JOB="$DOTS_DOC/Tasks"
-		DOTS_MOD="$DOTS/Modules"
-		DOTS_RES="$DOTS/Resources"
 		DOTS_ENV="$DOTS/Environment"
+		DOTS_JOB="$DOTS/Tasks"
+		DOTS_LOG="$DOTS/Log"
+		DOTS_MOD="$DOTS/Modules"
+		DOTS_DOT="$DOTS_MOD/global"
+		DOTS_NIX="$DOTS_MOD/nixos"
+		DOTS_RES="$DOTS/Resources"
+		DOTS_MOD_AUTOSTART="$DOTS_DOT/autostart"
+		DOTS_MOD_CONFIG="$DOTS_DOT/config"
+		DOTS_MOD_DISPLAY="$DOTS_DOT/display"
+		DOTS_MOD_FONTS="$DOTS_DOT/fonts"
+		DOTS_MOD_IGNORE="$DOTS_DOT/ignore"
+		DOTS_MOD_INPUT="$DOTS_DOT/input"
+		DOTS_MOD_PROFILE="$DOTS_DOT/profile"
+		DOTS_LOG_DOTS="$DOTS_LOG/dots.log"
 		DOTS_CTX="$DOTS_ENV/context"
 		DOTS_EXP="$DOTS_ENV/export"
-		DOTS_NIX="$DOTS_CFG/nixos"
+		DOTS_RC="$DOTS/Scripts/init"
+		USER_RC="$HOME/.profile"
+		BASH_RC="$HOME/.bashrc"
+		DOTS_BASH="$DOTS_CFG/bash"
+		readonly DOTS DOTS_LOG DOTS_BIN DOTS_CFG DOTS_DOC DOTS_ENV DOTS_CTX DOTS_EXP DOTS_JOB DOTS_MOD DOTS_DOT DOTS_NIX DOTS_RES DOTS_MOD_AUTOSTART DOTS_MOD_CONFIG DOTS_MOD_DISPLAY DOTS_MOD_FONTS DOTS_MOD_IGNORE DOTS_MOD_INPUT DOTS_MOD_PROFILE DOTS_BASH DOTS_RC USER_RC BASH_RC
 		set +o allexport
 
-		#@ Set temporary variables in lowercase and perpended by double underscorez
-		__mode="reset" #? simulation | normal | reset
+		#@ Set temporary variables in lowercase and perpended by double underscore
 		__verbosity=0
-		__log_path="$DOTS_LOG"
+		__mode="reset"      #? simulation | normal | reset
+		__filter="included" #? included | excluded
 		__pad=24
 		__shell="Bash"
-		__filter="included" #? included | excluded
-		__profile="$HOME/.profile"
-		__bashrc="$HOME/.bashrc"
-
-		#@ Tag the time of initialization
-		__dots_inittime=$(get_time_in_secs)
+		__dots_inittime=$(get_time_in_secs) #? Time the initialization started
+		__log_path="$DOTS_LOG_DOTS"
 
 		#@ Remove the log file if requested
-		case "$(to_lower "$__mode")" in reset) rm -rf "$DOTS_LOG" ;; esac
+		case "$(to_lower "$__mode")" in reset) rm -rf "$__log_path" ;; esac
 	}
 
-	run_process() {
+	manage_script__functions() {
+		util_functions
+		core_functions
+	}
+
+	manage_script__process() {
 
 		#@ Initialize messaging to the log and console (stdout/stderr)
 		set_messaging
 
 		#@ Get relevant system information
 		set_os_type
-
-		set_location "Mandeville, Jamaica"
-		echo "$LOCATION"
-		# export LOCATION="Ja"
 
 		case "$(to_lower "$__mode")" in
 		simulation)
@@ -94,7 +174,10 @@ manage_script() {
 		*)
 			# set_shell
 			__shell_inittime=$(get_time_in_secs)
-			initialize_shell
+			set_app_defaults
+			set_shell
+			# set_prompt
+
 			__shell_stoptime=$(get_time_in_secs)
 			__shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
 
@@ -102,54 +185,29 @@ manage_script() {
 		esac
 
 		# manage_dots --sources
-
 	}
 
-	exit_script_env() {
+	manage_script__exit() {
 		#@ Tag the end and duration of the initialization
 		__dots_stoptime=$(get_time_in_secs)
 		__dots_duration=$(format_duration --start "$__dots_inittime" --stop "$__dots_stoptime")
 
-		unset __scr_start __stop __duration
-
-		unset -v \
-			BIN_ \
-			ENV_ \
-			src_path \
-			src_type \
-			ignore_file \
-			reset_flag \
-			test_flag \
-			verbosity \
-			loglevel
-
-		#@ Print the DOTS variable
-		# TODO: Add error handling so we don't even get here if dots weren't loaded
-		[ "$DOTS" ] || {
-			printf "DOTS not set.\n"
-			return 1
-		}
-
-		#@ Ensure the local variables are exported
-		export DOTS DOTS_RC DOTS_IGNORE
-
-		#@ Report
+		#@ Report on the initialization, if requested
 		case "$VERBOSITY" in
-		0) ;;
+		0 | '') ;;
 		1) ;;
 		2)
-			pout --info "Shell initialized in $__shell_duration" --lead
-			pout --info "DOTS initialized in $__dots_duration" --trail -1
+			[ -n "$__shell_duration" ] &&
+				pout --info "Shell initialized in $__shell_duration" --lead
+			[ -n "$__dots_duration" ] &&
+				pout --info "DOTS initialized in $__dots_duration" --trail -1
 			;;
 		3)
-			pout --debug --key "DOTS_PATH" --val "$DOTS"
+			pout --debug --key "DOTS" --val "$DOTS"
 			pout --debug --key "DOTS_RC" --val "$DOTS_RC"
 			pout --debug --key "DOTS_IGNORE" --val "$DOTS_IGNORE"
 			pout --debug --key "DOTS_LOG" --val "$DOTS_LOG"
 			pout --debug --key "DOTS_BIN" --val "$DOTS_BIN"
-			pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
-			pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
-			pout --debug --key "DOTS_KIT" --val "$DOTS_KIT"
 			pout --debug --key "DOTS_CFG" --val "$DOTS_CFG"
 			pout --debug --key "DOTS_DOC" --val "$DOTS_DOC"
 			pout --debug --key "DOTS_JOB" --val "$DOTS_JOB"
@@ -158,13 +216,13 @@ manage_script() {
 			pout --debug --key "DOTS_ENV" --val "$DOTS_ENV"
 			pout --debug --key "DOTS_CTX" --val "$DOTS_CTX"
 
-			pout --debug --key "DOTS_INIT_START" --val "$__start"
+			pout --debug --key "DOTS_INIT_START" --val "$__dots_inittime"
 			pout --debug --key "Operation Mode" --val "$(to_lower "$__mode")"
 			pout --debug --key "Verbosity Level" --val "$VERBOSITY"
 			pout --debug --key "Log Level" --val "$LOG_LEVEL"
 			pout --debug --key "Operating System" --val "$OS_TYPE"
 			pout --debug --key "Interactive Shell" --val "$__shell"
-			pout --debug --key "DOTS Directory" --val "$DOTS"/
+			pout --debug --key "DOTS Directory" --val "$DOTS"
 			pout --debug --key "DOTS Loader" --val "$DOTS_RC"
 			pout --debug --key "User Loader" --val "$__profile"
 			pout --debug --key "Bash Loader" --val "$__bashrc"
@@ -177,49 +235,47 @@ manage_script() {
 			pout --debug --key "SHELL_INIT_START" --val "$__time_before_shell"
 			pout --debug --key "SHELL_INIT_STOP" --val "$__time_after_shell"
 			pout --debug --key "SHELL_INIT_DURATION" --val "$__duration"
-			pout --debug --key "DOTS_INIT_START" --val "$__start"
-			pout --debug --key "DOTS_INIT_STOP" --val "$__stop"
+			pout --debug --key "DOTS_INIT_START" --val "$__dots_inittime"
+			pout --debug --key "DOTS_INIT_STOP" --val "$__dots_stoptime"
 			pout --debug --key "DOTS_INIT_DURATION" --val "$__duration"
 			;;
-		4)
-			pout --trace --key "DOTS_PATH" --val "$DOTS"
-			pout --trace --key "DOTS_INIT_START" --val "$__start"
-			pout --trace --key "Operation Mode" --val "$(to_lower "$__mode")"
+		4 | *)
+			pout --trace --key "DOTS Initialization Started" --val "$(get_timestamp "$__dots_inittime")"
+			pout --trace --key "DOTS" --val "$DOTS"
+			pout --trace --key "Operation Mode" --val "$__mode"
 			pout --trace --key "Verbosity Level" --val "$VERBOSITY"
 			pout --trace --key "Log Level" --val "$LOG_LEVEL"
 			pout --trace --key "Operating System" --val "$OS_TYPE"
-			pout --trace --key "Interactive Shell" --val "$__shell"
+			pout --trace --key "Interactive Shell" --val "${__shell:-"Bash"}"
 			pout --trace --key "DOTS Loader" --val "$DOTS_RC"
-			pout --trace --key "User Loader" --val "$__profile"
-			pout --trace --key "Bash Loader" --val "$__bashrc"
+			pout --trace --key "User Loader" --val "$USER_RC"
+			pout --trace --key "Bash Loader" --val "$BASH_RC"
 			pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
 			pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
 			pout --trace --key "SHELL_HOME" --val "$SHELL_HOME"
 			pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
 			pout --trace --key "SHELL" --val "$SHELL"
-			pout --trace --key "SHELL_INIT_START" --val "$__time_before_shell"
-			pout --trace --key "SHELL_INIT_DURATION" --val "$__duration_shell"
-			pout --trace --key "SHELL_INIT_END" --val "$__time_after_shell"
-			pout --trace --key "DOTS_INIT_END" --val "$__stop"
-			pout --trace --key "DOTS_INIT_DURATION" --val "$__duration"
-
+			pout --trace --key "SHELL Initialization Started" --val "$(get_timestamp "$__time_before_shell")"
+			pout --trace --key "SHELL Initialization Duration" --val "$(get_timestamp "$__duration_shell")"
+			pout --trace --key "SHELL Initialization Stopped" --val "$(get_timestamp "$__time_after_shell")"
+			pout --trace --key "DOTS Initialization Stopped" --val "$(get_timestamp "$__dots_stoptime")"
+			pout --trace --key "DOTS Initialization Duration" --val "$(get_timestamp "$__dots_duration")"
 			;;
-		*) ;;
 		esac
+
+		manage_script__cleanup
 	}
 
-	while [ "$#" -gt 0 ]; do
-		case "$1" in
-		--init)
-			case "$2" in
-			func* | fn) init_functions ;; env* | *) init_script_env ;;
-			esac
-			;;
-		--process) run_process ;;
-		--exit) exit_script_env ;;
-		esac
-		shift
-	done
+	manage_script__cleanup() {
+		unset __mode __verbosity __log_path __pad __shell __filter
+		unset __scr_start __duration
+		unset __dots_inittime __dots_stoptime __dots_duration
+		unset src_path src_type
+		unset ignore_file
+		unset reset_flag test_flag verbose_flag
+	}
+
+	manage_script__init "$@"
 }
 
 manage_dots() {
@@ -605,11 +661,11 @@ util_functions() {
 			read -r result
 			case "$result" in
 			'' | *[!0-9.]*)
-				echo "Error: Failed to get valid timestamp" >&2
+				printf "Error: Failed to get valid timestamp\n" >&2
 				return 1
 				;;
 			*)
-				echo "$result"
+				printf "%s\n" "$result"
 				;;
 			esac
 		}
@@ -698,7 +754,7 @@ util_functions() {
 		case "$1" in
 		--reps)
 			#? Validate --reps argument
-			if [ -z "$2" ] || ! echo "$2" | grep -Eq '^[0-9]+$' || [ "$2" -lt 1 ]; then
+			if [ -z "$2" ] || ! printf "%s" "$2" | grep -Eq '^[0-9]+$' || [ "$2" -lt 1 ]; then
 				printf "ERROR: --reps requires a positive integer argument\n" >&2
 				return 1
 			fi
@@ -937,13 +993,13 @@ util_functions() {
 		#DOC   resolve_location "San Francisco, USA"
 
 		# Use a geocoding API to resolve the location
-		_location_name=$(echo "$1" | tr ' ' '+')
+		_location_name=$(printf "%s" "$1" | tr ' ' '+')
 		_api_url="https://nominatim.openstreetmap.org/search?q=${_location_name}&format=json"
 
 		# Fetch coordinates from the API
 		_response=$(curl -s "$_api_url")
-		_lat=$(echo "$_response" | grep -oP '"lat":"\K[^"]+')
-		_lon=$(echo "$_response" | grep -oP '"lon":"\K[^"]+')
+		_lat=$(printf "%s\n" "$_response" | grep -oP '"lat":"\K[^"]+')
+		_lon=$(printf "%s\n" "$_response" | grep -oP '"lon":"\K[^"]+')
 
 		if [ -n "$_lat" ] && [ -n "$_lon" ]; then
 			printf "%s,%s" "$_lat" "$_lon"
@@ -1037,33 +1093,33 @@ core_functions() {
 
 		case "$__shell" in
 		bash)
-			__shell="bash"
-			__shell_conf="config"
+			__shell_conf="config.bash"
+			SHELL_TYPE="bash"
 			SHELL_NAME="Bash"
 			;;
 		fish)
-			__shell="fish"
 			__shell_conf="config.fish"
+			SHELL_TYPE="fish"
 			SHELL_NAME="Fish"
 			;;
 		zsh)
-			__shell="zsh"
 			__shell_conf=".zshrc"
+			SHELL_TYPE="zsh"
 			SHELL_NAME="Zsh"
 			;;
 		nu | nushell)
-			__shell="nu"
 			__shell_conf="config.nu"
+			SHELL_TYPE="nu"
 			SHELL_NAME="Nushell"
 			;;
 		pwsh)
-			__shell="pwsh"
 			__shell_conf="profile.ps1"
+			SHELL_TYPE="pwsh"
 			SHELL_NAME="Pwsh"
 			;;
 		powershell)
-			__shell="powershell"
 			__shell_conf="profile.ps1"
+			SHELL_TYPE="powershell"
 			SHELL_NAME="Powershell"
 			;;
 		'')
@@ -1079,9 +1135,231 @@ core_functions() {
 		SHELL_HOME="${DOTS_CFG}/$(to_lower "$SHELL_NAME")"
 		SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
 		SHELL_PATH="$(pathOf "$__shell")"
-		SHELL="$__shell"
 
-		export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL
+		case "$__shell" in
+		bash)
+			# SHELL_INIT="$(printf "%s --rcfile %s" "$SHELL_PATH" "$SHELL_CONF")" #TODO: Why is this not printing the prompt properly?
+			SHELL_INIT=". $SHELL_CONF"
+			;;
+		esac
+		readonly SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL_INIT SHELL_TYPE
+		export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL_INIT SHELL_TYPE
+
+		#| Initialize the Shell
+		printf "SHELL_TYPE: %s\n" "$SHELL_TYPE"
+		printf "SHELL_NAME: %s\n" "$SHELL_NAME"
+		printf "SHELL_PATH: %s\n" "$SHELL_PATH"
+		printf "SHELL_INIT: %s\n" "$SHELL_INIT"
+		eval "$SHELL_INIT" || true
+	}
+
+	set_app_defaults() {
+		#| Default TUI Editor
+		if weHave hx; then
+			EDITOR="hx"
+			EDITOR_VERSION="$("$EDITOR" --version | awk '{print $2}')"
+		elif weHave nvim; then
+			EDITOR="nvim"
+			EDITOR_VERSION="$("$EDITOR" --version | head -n1 | awk '{print $NF}')"
+			EDITOR_VERSION="${EDITOR_VERSION#v}"
+		elif weHave nano; then
+			EDITOR="nano"
+			EDITOR_VERSION="$("$EDITOR" --version | head -n1 | awk '{print $NF}')"
+		else
+			EDITOR="vi"
+			EDITOR_VERSION="$("$EDITOR" --version | head -n1 | awk '{print $5}')"
+		fi
+
+		case "$(to_lower "$EDITOR")" in
+		hx) ;;
+		zed*)
+			EDITOR_VERSION="$("$EDITOR" --version | head -n1 | awk '{print $2}')"
+			;;
+		esac
+		export EDITOR EDITOR_VERSION
+
+		#| Default GUI Editor
+		if weHave code; then
+			VISUAL="code"
+		elif weHave code-insiders; then
+			VISUAL="code-insiders"
+		elif weHave codium; then
+			VISUAL="codium"
+		elif weHave zeditor; then
+			VISUAL="zeditor"
+		else
+			VISUAL="$EDITOR"
+			VISUAL_VERSION="$EDITOR_VERSION"
+		fi
+
+		case "$(to_lower "$VISUAL")" in
+		cod*)
+			VISUAL_VERSION="$("$VISUAL" --version | head -n1 | awk '{print $NF}')"
+			;;
+		zed*)
+			VISUAL_VERSION="$("$VISUAL" --version | head -n1 | awk '{print $2}')"
+			;;
+		esac
+		export VISUAL VISUAL_VERSION
+
+		#| Default TUI Reader/Pager
+		if weHave bat; then
+			READER="bat"
+			READER_VERSION="$("$READER" --version | awk '{print $NF}')"
+		elif weHave most; then
+			READER="most"
+			READER_VERSION="$(
+				"$READER" --help 2>&1 |
+					head -n1 |
+					sed 's/MOST version //; s/ .*//'
+			)"
+		elif weHave less; then
+			READER="less"
+			READER_VERSION="$("$READER" --version | head -n1 | awk '{print $2}')"
+		elif weHave more; then
+			READER="more"
+			READER_VERSION="$("$READER" --version | awk '{print $NF}')"
+		else
+			READER="cat"
+			READER_VERSION="$("$READER" --version | head -n1 | awk '{print $NF}')"
+		fi
+		export READER READER_VERSION
+
+		#| Default TUI Image Viewer
+		if weHave viu; then
+			VIEWER="viu"
+			VIEWER_VERSION="$("$VIEWER" --version | awk '{print $NF}')"
+		elif weHave swww && pgrep swww; then
+			VIEWER="swww"
+			VIEWER_VERSION="$("$VIEWER" --version | awk '{print $NF}')"
+		elif weHave feh; then
+			VIEWER="feh"
+			VIEWER_VERSION="$("$VIEWER" --version | head -n1 | awk '{print $2}')"
+		elif weHave imgcat; then
+			VIEWER="imgcat"
+			VIEWER_VERSION="$("$VIEWER" --version | head -n1 | awk '{print $NF}')"
+		else
+			#@ Fallback to echo (will just print the filename)
+			VIEWER="echo"
+			VIEWER_VERSION="-"
+		fi
+		export VIEWER VIEWER_VERSION
+
+		#| Default GUI Image Viewer
+		if weHave imv; then
+			GUI_VIEWER="imv"
+			GUI_VIEWER_VERSION="$(
+				"$GUI_VIEWER" --version 2>/dev/null |
+					head -n1 | awk '{print $2}'
+			)"
+		elif weHave nomacs; then
+			GUI_VIEWER="nomacs"
+			GUI_VIEWER_VERSION="$(
+				"$GUI_VIEWER" --version 2>/dev/null |
+					tail -n1 | awk '{print $NF}'
+			)"
+			echo "$GUI_VIEWER_VERSION"
+		elif weHave geeqie; then
+			GUI_VIEWER="geeqie"
+			GUI_VIEWER_VERSION="$(
+				"$GUI_VIEWER" --version 2>/dev/null |
+					head -n1 | awk '{print $2}'
+			)"
+		elif weHave gimp; then
+			GUI_VIEWER="gimp"
+			GUI_VIEWER_VERSION="$(
+				"$GUI_VIEWER" --version 2>/dev/null |
+					head -n1 | awk '{print $2}'
+			)"
+		else
+			#@ Fallback to TTY viewer if no GUI viewer found
+			GUI_VIEWER="$VIEWER"
+			GUI_VIEWER_VERSION="$VIEWER_VERSION"
+		fi
+		export GUI_VIEWER GUI_VIEWER_VERSION
+
+		#| Default TTY Media Player
+		if weHave mpv; then
+			PLAYER="mpv"
+			PLAYER_VERSION="$(
+				"$PLAYER" --version 2>/dev/null | awk '/^mpv/ {print $2}'
+			)"
+		elif weHave vlc; then
+			PLAYER="vlc"
+			PLAYER_VERSION="$(
+				"$PLAYER" --version 2>/dev/null | head -n1 | awk '{print $3}'
+			)"
+		elif weHave mocp; then
+			PLAYER="mocp"
+			PLAYER_VERSION="$(
+				"$PLAYER" --version |
+					sed -n 's/^ *Version *: *//p' | awk '{print $NF}'
+			)"
+		elif weHave cmus; then
+			PLAYER="cmus"
+			PLAYER_VERSION="$(
+				"$PLAYER" --version 2>/dev/null | head -n1 | awk '{print $NF}'
+			)"
+		elif weHave ffplay; then
+			PLAYER="ffplay"
+			PLAYER_VERSION="$(
+				"$PLAYER" -version 2>/dev/null | head -n1 | awk '{print $3}'
+			)"
+		fi
+		export PLAYER PLAYER_VERSION
+
+		#| Default GUI Media Player
+		if weHave strawberry; then
+			GUI_PLAYER="strawberry"
+			GUI_PLAYER_VERSION="$("$GUI_PLAYER" --version | head -n1 | awk '{print $NF}')"
+		elif weHave mpv; then
+			GUI_PLAYER="mpv"
+			PLAYER_VERSION="$(
+				"$GUI_PLAYER" --version 2>/dev/null | awk '/^mpv/ {print $2}'
+			)"
+		elif weHave vlc; then
+			GUI_PLAYER="vlc"
+			GUI_PLAYER_VERSION="$(
+				"$GUI_PLAYER" --version 2>/dev/null | head -n1 | awk '{print $3}'
+			)"
+		elif weHave audacious; then
+			GUI_PLAYER="audacious"
+			GUI_PLAYER_VERSION="$(
+				"$GUI_PLAYER" --version 2>/dev/null | head -n1 | awk '{print $2}'
+			)"
+		elif weHave deadbeef; then
+			GUI_PLAYER="deadbeef"
+			GUI_PLAYER_VERSION="$(
+				"$GUI_PLAYER" --version 2>/dev/null | head -n1 | awk '{print $2}'
+			)"
+		else
+			GUI_PLAYER="$PLAYER" # Fallback to TTY player if no GUI player found
+			GUI_PLAYER_VERSION="$PLAYER_VERSION"
+		fi
+		export GUI_PLAYER GUI_PLAYER_VERSION
+	}
+
+	set_prompt() {
+
+		init_starship() {
+			#@ Check if starship exists, return if not
+			command -v starship >/dev/null 2>&1 || return
+
+			#@ Set config path with POSIX-compliant parameter expansion
+			: "${STARSHIP_CONFIG:=${DOTS_CFG}/starship/starship.toml}"
+			export STARSHIP_CONFIG
+
+			#@ Initialize starship (no POSIX mode toggling)
+			case "$(to_lower "$SHELL_NAME")" in
+			bash)
+				eval "$(starship init bash)"
+				;;
+			esac
+
+			echo "STARSHIP_CONFIG: $STARSHIP_CONFIG"
+		}
+
+		init_starship
 	}
 
 	set_messaging() {
@@ -1157,48 +1435,6 @@ core_functions() {
 		set_verbosity_level
 		set_log_level
 		[ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
-	}
-
-	set_location() {
-		#      "location": "$LOCATION",
-		# DOC Set the LOCATION variable in a standardized format
-		#DOC Args:
-		#DOC   $1 - Location input (e.g., "37.7749,-122.4194" or "San Francisco, USA")
-		#DOC Returns:
-		#DOC   0 - Success
-		#DOC   1 - Failure
-		#DOC Example:
-		#DOC   set_location "37.7749,-122.4194"
-		#DOC   set_location "San Francisco, USA"
-
-		#@ Validate input
-		if [ -z "$1" ]; then
-			printf "ERROR: No location provided\n" >&2
-			return 1
-		fi
-
-		#@ Check if input is GPS coordinates
-		if echo "$1" | grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$'; then
-			LOCATION="$1"
-			export LOCATION
-			printf "Location set to GPS coordinates: %s\n" "$LOCATION"
-			return 0
-		fi
-
-		#@ If input is not GPS coordinates, assume it's a city/country and try to resolve it
-		printf "Resolving location: %s\n" "$1"
-		_location=$(resolve_location "$1")
-		if [ -n "$_location" ]; then
-			LOCATION="$_location"
-			export LOCATION
-			[ "$VERBOSITY" -ge 2 ] &&
-				printf "Location set to GPS coordinates: %s\n" "$LOCATION"
-			return 0
-		else
-			[ "$VERBOSITY" -ge 1 ] &&
-				printf "ERROR: Failed to resolve location: %s\n" "$1" >&2
-			return 1
-		fi
 	}
 
 	set_interactive_shell() {
@@ -1705,18 +1941,9 @@ core_functions() {
 
 	initialize_shell() {
 		set_shell
-		weHave hx && {
-			EDITOR=hx
-			EDITOR_VERSION="$(hx --version | awk '{print $2}')"
-			export EDITOR EDITOR_VERSION
-		}
-		weHave code && {
-			VISUAL=code
-			VISUAL_VERSION="$(code --version | head -n1 | awk '{print $NF}')"
-			export VISUAL VISUAL_VERSION
-		}
+		set_app_defaults
 
-		init_fastfetch "$DOTS_CFG/fastfetch/config.jsonc"
+		# init_fastfetch "$DOTS_CFG/fastfetch/config.jsonc"
 		"$SHELL_PATH" "$SHELL_CONF"
 	}
 }
