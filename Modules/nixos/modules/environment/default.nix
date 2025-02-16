@@ -1,6 +1,6 @@
 {
-  imports = [
-    ./aliases.nix
-    ./variables.nix
-  ];
+	imports = [
+	./aliases.nix
+	./variables.nix
+	]
 }

@@ -1,9 +1,9 @@
 {
-  imports = [
-    ./common.nix
+	imports = [
+	./common.nix
 
-    ./hyprland.nix
-    ./plasma.nix
-    ./xfce.nix
-  ];
+	./hyprland.nix
+	./plasma.nix
+	./xfce.nix
+	]
 }

@@ -1,7 +1,7 @@
 {
-  imports = [
-    # ./desktop.nix
-    # ./login.nix
-    # ./packages.nix
-  ];
+	imports = [
+	# ./desktop.nix
+	# ./login.nix
+	# ./packages.nix
+	]
 }

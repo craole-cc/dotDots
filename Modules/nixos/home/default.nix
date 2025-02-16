@@ -1,7 +1,7 @@
 {
-  imports = [
-    # ./base
-    # ./craole.nix
-    ./configurations
-  ];
+	imports = [
+	# ./base
+	# ./craole.nix
+	./configurations
+	]
 }

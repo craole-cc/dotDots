@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+#@ Load configuration files
+module_files="$(find "$1" -type f)"
+
+#@ Load modules
+for module in $conf_files; do
+  if [ -r "$module" ]; then
+    # time . "$conf"
+    . "$module"
+  else
+    printf "Module not readable:  %s\n" "$module"
+  fi
+done
+
+#@ Clean up
+unset module_files

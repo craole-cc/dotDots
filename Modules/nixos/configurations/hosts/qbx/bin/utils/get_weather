@@ -8,32 +8,32 @@ DEBUG=0
 
 # Help function
 usage() {
-  printf "Usage: %s [OPTIONS] [LOCATION]\n" "$0"
-  printf "Options:\n"
-  printf "  --format 1-4    Weather display format (default: 4)\n"
-  printf "  --debug         Enable debug output\n"
-  printf "  --help          Show this help message\n"
-  exit 1
+	printf "Usage: %s [OPTIONS] [LOCATION]\n" "$0"
+	printf "Options:\n"
+	printf "  --format 1-4    Weather display format (default: 4)\n"
+	printf "  --debug         Enable debug output\n"
+	printf "  --help          Show this help message\n"
+	exit 1
 }
 
 # Parse arguments
 while test $# -gt 0; do
-  case "$1" in
-  --format)
-    shift
-    FORMAT="$1"
-    ;;
-  --debug)
-    DEBUG=1
-    ;;
-  --help)
-    usage
-    ;;
-  *)
-    LOCATION="$1"
-    ;;
-  esac
-  shift
+	case "$1" in
+	--format)
+		shift
+		FORMAT="$1"
+		;;
+	--debug)
+		DEBUG=1
+		;;
+	--help)
+		usage
+		;;
+	*)
+		LOCATION="$1"
+		;;
+	esac
+	shift
 done
 
 # Use default location if not provided
@@ -41,23 +41,23 @@ LOCATION="${LOCATION:-$DEFAULT_LOCATION}"
 
 # Debug output
 debug_print() {
-  if test "$DEBUG" -eq 1; then
-    printf "%s\n" "$1" >&2
-  fi
+	if test "$DEBUG" -eq 1; then
+		printf "%s\n" "$1" >&2
+	fi
 }
 
 # Fetch weather using curl
 fetch_weather() {
-  location="$1"
-  format="$2"
+	location="$1"
+	format="$2"
 
-  # URL encode location (basic implementation)
-  encoded_location=$(printf "%s" "$location" | sed 's/ /%20/g')
+	# URL encode location (basic implementation)
+	encoded_location=$(printf "%s" "$location" | sed 's/ /%20/g')
 
-  debug_print "Fetching weather for $location"
+	debug_print "Fetching weather for $location"
 
-  # Attempt to fetch with curl
-  curl -s "https://wttr.in/${encoded_location}?format=${format}"
+	# Attempt to fetch with curl
+	curl -s "https://wttr.in/${encoded_location}?format=${format}"
 }
 
 # Main execution

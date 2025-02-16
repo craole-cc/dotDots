@@ -1,4 +1,4 @@
 {
-  imports = [];
-  # programs.thunderbird.enable = true;
+	imports = []
+	# programs.thunderbird.enable = true;
 }

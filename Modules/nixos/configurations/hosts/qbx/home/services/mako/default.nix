@@ -1,4 +1,4 @@
 {
-  imports = [];
-  services.mako.enable = true;
+	imports = []
+	services.mako.enable = true
 }

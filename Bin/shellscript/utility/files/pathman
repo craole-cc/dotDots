@@ -391,16 +391,11 @@ update_path() {
 	done <"$DIRES"
 	unset IFS
 
-	#@ Display the temporary file contents
-	# printf "%s" "$TMP_PATH" | tr ':' '\n' | bat
-
-	#@ Update the PATH variable
-	PATH="$TMP_PATH"
-
 	#@ Print or export the PATH variable
 	if [ "$PRINT_RAW" -eq 1 ]; then
-		printf "%s" "$PATH"
+		printf "%s" "$TMP_PATH"
 	else
+		#@ Update and make the PATH persistent
 		PATH="$TMP_PATH"
 		export PATH
 	fi
