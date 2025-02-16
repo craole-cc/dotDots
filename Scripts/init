@@ -4,7 +4,7 @@
 main() {
 	#@ Initialization the script environment
 	manage_script --init || return $?
-
+	return 0
 	#@ Initialize the DOTS environment
 	manage_script --process || return $?
 
@@ -33,48 +33,12 @@ manage_script() {
 	}
 
 	manage_script__init() {
-		load_all() {
-			manage_script__functions
-			manage_script__environment
-		}
-
-		while [ "$#" -gt 0 ]; do
-			case "$1" in
-			--init)
-				case "$2" in
-				'')
-					load_all
-					;;
-				func* | fn | util*)
-					manage_script__functions
-					shift
-					;;
-				env*)
-					manage_script__environment
-					shift
-					;;
-				all)
-					load_all
-					shift
-					;;
-				*)
-					printf "ERROR: Unknown option: %s\n" "$1" >&2
-					manage_script__usage
-					return 1
-					;;
-				esac
-				;;
-			--process) manage_script__process ;;
-			--exit) manage_script__exit ;;
-			*)
-				load_all
-				;;
-			esac
-			shift
-		done
+		manage_script__env_global
+		manage_script__functions
+		manage_script__env_local
 	}
 
-	manage_script__environment() {
+	manage_script__env_global() {
 		#@ Ensure the DOTS variable is set
 		[ -n "$DOTS" ] || {
 			if
@@ -132,6 +96,13 @@ manage_script() {
 		readonly DOTS DOTS_LOG DOTS_BIN DOTS_CFG DOTS_DOC DOTS_ENV DOTS_CTX DOTS_EXP DOTS_JOB DOTS_MOD DOTS_DOT DOTS_NIX DOTS_RES DOTS_MOD_AUTOSTART DOTS_MOD_CONFIG DOTS_MOD_DISPLAY DOTS_MOD_FONTS DOTS_MOD_IGNORE DOTS_MOD_INPUT DOTS_MOD_PROFILE DOTS_BASH DOTS_RC USER_RC BASH_RC
 		set +o allexport
 
+		PATH="$(
+			eval "$DOTS_BIN/shellscript/utility/files/pathman" "--append" "$DOTS_BIN" --print
+		)"
+		export PATH
+	}
+
+	manage_script__env_local() {
 		#@ Set temporary variables in lowercase and perpended by double underscore
 		__verbosity=0
 		__mode="reset"      #? simulation | normal | reset
@@ -172,9 +143,11 @@ manage_script() {
 			pout --pad --key "Bash Loader" --val "$__bashrc" --trail
 			;;
 		*)
-			# set_shell
 			__shell_inittime=$(get_time_in_secs)
 			set_app_defaults
+			PATH=$(set_bin_path)
+			echo "$PATH" | tr ':' '\n' | bat --color=always
+			echo pop
 			set_shell
 			# set_prompt
 
@@ -275,7 +248,7 @@ manage_script() {
 		unset reset_flag test_flag verbose_flag
 	}
 
-	manage_script__init "$@"
+	manage_script__init
 }
 
 manage_dots() {
@@ -1022,6 +995,10 @@ util_functions() {
 }
 
 core_functions() {
+	set_bin_path() {
+		eval "$DOTS_BIN/shellscript/utility/files/pathman" --append "$DOTS_BIN" --print
+	}
+
 	set_os_type() {
 		if [ "$WSL_DISTRO_NAME" ]; then
 			OS_TYPE="Windows Subsystem for Linux [WSL]"
