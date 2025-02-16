@@ -1,7 +1,7 @@
 {
-  imports = [
-    ./settings.nix
-    ./keybindings.nix
-    ./languages.nix
-  ];
+	imports = [
+	./settings.nix
+	./keybindings.nix
+	./languages.nix
+	]
 }

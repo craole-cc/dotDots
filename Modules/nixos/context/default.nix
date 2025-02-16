@@ -1,7 +1,7 @@
 {
-  imports = [
-    ./minimal.nix
-    # ./development.nix
-    # ./remote.nix
-  ];
+	imports = [
+	./minimal.nix
+	# ./development.nix
+	# ./remote.nix
+	]
 }

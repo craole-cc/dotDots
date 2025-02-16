@@ -1,6 +1,6 @@
 {
-  imports = [
-    ./options.nix
-    ./export
-  ];
+	imports = [
+	./options.nix
+	./export
+	]
 }

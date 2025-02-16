@@ -1,7 +1,7 @@
 {
-  imports = [
-    ./config.nix
-    # ./development.nix
-    # ./remote.nix
-  ];
+	imports = [
+	./config.nix
+	# ./development.nix
+	# ./remote.nix
+	]
 }

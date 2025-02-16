@@ -1,7 +1,7 @@
 {
-  imports = [
-    # ./bat
-    ./helix
-    # ./hyprland
-  ];
+	imports = [
+	# ./bat
+	./helix
+	# ./hyprland
+	]
 }

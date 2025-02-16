@@ -1,9 +1,9 @@
 {
-  imports = [
-    ./exclude.nix
-    ./include.nix
-    ./options.nix
-    ./wayland.nix
-    ./xserver.nix
-  ];
+	imports = [
+	./exclude.nix
+	./include.nix
+	./options.nix
+	./wayland.nix
+	./xserver.nix
+	]
 }

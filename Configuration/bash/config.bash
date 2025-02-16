@@ -1,29 +1,15 @@
 #!/usr/bin/env bash
 
-init_config() {
-	conf_files="$(find "$1" -type f)"
-
-	for conf in $conf_files; do
-		# if [[ "$conf" =~ \.bash$ ]]; then
-		if [ -r "$conf" ]; then
-			# time . "$conf"
-			. "$conf"
-		else
-			printf "File not readable:  %s\n" "$conf"
-		fi
-	done
-}
-
 #@ Only execute this script for interactive shells
 case "$BASHOPTS" in
 *i*)
-	#@ Load resources and functions
-	init_config "$SHELL_HOME/bin"
-	init_config "$SHELL_HOME/modules"
+	#@ Add the bin directory to the path
+	PATH="$(pathman --append "$SHELL_HOME/bin" --print)" export PATH
 
-	# update_dots_path "$DOTS/Bin" #TODO: Move to dotrc
-	# update_dots_path "$SHELL_HOME/bin"
-	init_prompt
+	#@ Load resources and functions
+	mod.init "$SHELL_HOME/bin"
+	mod.init "$SHELL_HOME/modules"
+	# init_prompt
 	# init_fasfetch
 	;;
 *)

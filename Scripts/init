@@ -4,7 +4,7 @@
 main() {
 	#@ Initialization the script environment
 	manage_script --init || return $?
-	return 0
+
 	#@ Initialize the DOTS environment
 	manage_script --process || return $?
 
@@ -32,93 +32,113 @@ manage_script() {
 		printf "  --exit            		Reset the environment\n"
 	}
 
-	manage_script__init() {
-		manage_script__env_global
-		manage_script__functions
-		manage_script__env_local
-	}
+	manage_script__env() {
+		env__global() {
+			#@ Ensure the DOTS variable is set
+			[ -n "$DOTS" ] || {
+				if
+					command -v git >/dev/null 2>&1 &&
+						git rev-parse --is-inside-work-tree >/dev/null 2>&1
+				then
+					DOTS="$(git rev-parse --show-toplevel)"
+				else
+					for file in shell.nix README.md; do
+						if [ -f "$file" ]; then
+							\cd "$(dirname "$file")" || {
+								printf "ERROR: Failed to change directory.\n" >&2
+								return 1
+							}
+							TEST_DOTS=$(pwd)
+							break
+						fi
+					done
+				fi
+			}
 
-	manage_script__env_global() {
-		#@ Ensure the DOTS variable is set
-		[ -n "$DOTS" ] || {
-			if
-				command -v git >/dev/null 2>&1 &&
-					git rev-parse --is-inside-work-tree >/dev/null 2>&1
-			then
-				DOTS="$(git rev-parse --show-toplevel)"
+			if [ -d "$DOTS" ]; then
+				export DOTS
 			else
-				for file in shell.nix README.md; do
-					if [ -f "$file" ]; then
-						\cd "$(dirname "$file")" || {
-							printf "ERROR: Failed to change directory.\n" >&2
-							return 1
-						}
-						TEST_DOTS=$(pwd)
-						break
-					fi
-				done
+				printf "ERROR: The path to DOTS directory must be set.\n" >&2
+				return 1
 			fi
+
+			#@ Set dots variables
+			set -o allexport
+			DOTS_BIN="$DOTS/Bin"
+			DOTS_CFG="$DOTS/Configuration"
+			DOTS_DOC="$DOTS/Documentation"
+			DOTS_ENV="$DOTS/Environment"
+			DOTS_JOB="$DOTS/Tasks"
+			DOTS_LOG="$DOTS/Log"
+			DOTS_MOD="$DOTS/Modules"
+			DOTS_DOT="$DOTS_MOD/global"
+			DOTS_NIX="$DOTS_MOD/nixos"
+			DOTS_RES="$DOTS/Resources"
+			DOTS_MOD_AUTOSTART="$DOTS_DOT/autostart"
+			DOTS_MOD_CONFIG="$DOTS_DOT/config"
+			DOTS_MOD_DISPLAY="$DOTS_DOT/display"
+			DOTS_MOD_FONTS="$DOTS_DOT/fonts"
+			DOTS_MOD_IGNORE="$DOTS_DOT/ignore"
+			DOTS_MOD_INPUT="$DOTS_DOT/input"
+			DOTS_MOD_PROFILE="$DOTS_DOT/profile"
+			DOTS_LOG_DOTS="$DOTS_LOG/dots.log"
+			DOTS_CTX="$DOTS_ENV/context"
+			DOTS_EXP="$DOTS_ENV/export"
+			DOTS_BIN_SH="$DOTS_BIN/shellscript"
+			DOTS_BIN_RS="$DOTS_BIN/rust"
+			DOTS_BIN_PY="$DOTS_BIN/python"
+			DOTS_BIN_RB="$DOTS_BIN/ruby"
+			DOTS_BIN_RS="$DOTS_BIN/rust"
+			DOTS_BIN_RS="$DOTS_BIN/rust"
+			DOTS_BIN_CMD="$DOTS_BIN/cmd"
+			DOTS_RC="$DOTS/Scripts/init"
+			USER_RC="$HOME/.profile"
+			BASH_RC="$HOME/.bashrc"
+			DOTS_BASH="$DOTS_CFG/bash"
+			readonly DOTS DOTS_BIN DOTS_CFG DOTS_DOC DOTS_ENV DOTS_JOB DOTS_LOG DOTS_MOD DOTS_RES DOTS_CTX DOTS_EXP DOTS_BIN_SH DOTS_BIN_RS DOTS_BIN_PY DOTS_BIN_RB DOTS_BIN_CMD DOTS_RC USER_RC BASH_RC DOTS_BASH DOTS_MOD_AUTOSTART DOTS_MOD_CONFIG DOTS_MOD_DISPLAY DOTS_MOD_FONTS DOTS_MOD_IGNORE DOTS_MOD_INPUT DOTS_MOD_PROFILE
+
+			#@ Add the bin directory to the path
+			PATH="$(
+				eval "$DOTS_BIN_SH/utility/files/pathman" \
+					--append "$DOTS_BIN" --print
+			)"
+
+			#@ Define terminal formatting codes
+			FMT_RED="$(printf '\033[31m')"
+			FMT_GREEN="$(printf '\033[32m')"
+			FMT_YELLOW="$(printf '\033[33m')"
+			FMT_BLUE="$(printf '\033[34m')"
+			FMT_MAGENTA="$(printf '\033[35m')"
+			FMT_CYAN="$(printf '\033[36m')"
+			FMT_WHITE="$(printf '\033[37m')"
+			FMT_ITALIC="$(printf '\033[3m')"
+			FMT_BOLD="$(printf '\033[1m')"
+			FMT_RESET="$(printf '\033[0m')"
+			FMT_NORMAL="$FMT_RESET"
+			readonly FMT_RED FMT_GREEN FMT_YELLOW FMT_BLUE FMT_MAGENTA FMT_CYAN FMT_WHITE FMT_ITALIC FMT_BOLD FMT_RESET
+			set +o allexport
 		}
 
-		if [ -d "$DOTS" ]; then
-			export DOTS
-		else
-			printf "ERROR: The path to DOTS directory must be set.\n" >&2
-			return 1
-		fi
+		env__local() {
+			#DOC Set temporary variables in lowercase and perpended by double underscore.
+			#DOC
+			#DOC The variables set in this function are used to store temporary state
+			#DOC information, such as the time the initialization started, verbosity level,
+			#DOC operation mode, and log file path.
 
-		#@ Set variables to be exported globally
-		set -o allexport
-		DOTS_BIN="$DOTS/Bin"
-		DOTS_CFG="$DOTS/Configuration"
-		DOTS_DOC="$DOTS/Documentation"
-		DOTS_ENV="$DOTS/Environment"
-		DOTS_JOB="$DOTS/Tasks"
-		DOTS_LOG="$DOTS/Log"
-		DOTS_MOD="$DOTS/Modules"
-		DOTS_DOT="$DOTS_MOD/global"
-		DOTS_NIX="$DOTS_MOD/nixos"
-		DOTS_RES="$DOTS/Resources"
-		DOTS_MOD_AUTOSTART="$DOTS_DOT/autostart"
-		DOTS_MOD_CONFIG="$DOTS_DOT/config"
-		DOTS_MOD_DISPLAY="$DOTS_DOT/display"
-		DOTS_MOD_FONTS="$DOTS_DOT/fonts"
-		DOTS_MOD_IGNORE="$DOTS_DOT/ignore"
-		DOTS_MOD_INPUT="$DOTS_DOT/input"
-		DOTS_MOD_PROFILE="$DOTS_DOT/profile"
-		DOTS_LOG_DOTS="$DOTS_LOG/dots.log"
-		DOTS_CTX="$DOTS_ENV/context"
-		DOTS_EXP="$DOTS_ENV/export"
-		DOTS_RC="$DOTS/Scripts/init"
-		USER_RC="$HOME/.profile"
-		BASH_RC="$HOME/.bashrc"
-		DOTS_BASH="$DOTS_CFG/bash"
-		readonly DOTS DOTS_LOG DOTS_BIN DOTS_CFG DOTS_DOC DOTS_ENV DOTS_CTX DOTS_EXP DOTS_JOB DOTS_MOD DOTS_DOT DOTS_NIX DOTS_RES DOTS_MOD_AUTOSTART DOTS_MOD_CONFIG DOTS_MOD_DISPLAY DOTS_MOD_FONTS DOTS_MOD_IGNORE DOTS_MOD_INPUT DOTS_MOD_PROFILE DOTS_BASH DOTS_RC USER_RC BASH_RC
-		set +o allexport
+			__dots_inittime=$(get_time_in_secs) #? Time the initialization started
+			__verbosity="${VERBOSITY:-info}"    #? [0-5|quiet|error|warn|info|debug|trace]
+			__mode="reset"                      #? [simulation|normal|reset]
+			__filter="included"                 #? [included|excluded]
+			__pad=24                            #? Padding for aligned output
+			__shell="Bash"                      #? Interactive shell
+			__log_path="$DOTS_LOG_DOTS"         #? Path to the log file
+		}
 
-		PATH="$(
-			eval "$DOTS_BIN/shellscript/utility/files/pathman" "--append" "$DOTS_BIN" --print
-		)"
-		export PATH
-	}
-
-	manage_script__env_local() {
-		#@ Set temporary variables in lowercase and perpended by double underscore
-		__verbosity=0
-		__mode="reset"      #? simulation | normal | reset
-		__filter="included" #? included | excluded
-		__pad=24
-		__shell="Bash"
-		__dots_inittime=$(get_time_in_secs) #? Time the initialization started
-		__log_path="$DOTS_LOG_DOTS"
-
-		#@ Remove the log file if requested
-		case "$(to_lower "$__mode")" in reset) rm -rf "$__log_path" ;; esac
-	}
-
-	manage_script__functions() {
-		util_functions
-		core_functions
+		case "$1" in
+		--local) env__local ;;
+		--global | *) env__global ;;
+		esac
 	}
 
 	manage_script__process() {
@@ -144,16 +164,9 @@ manage_script() {
 			;;
 		*)
 			__shell_inittime=$(get_time_in_secs)
-			set_app_defaults
-			PATH=$(set_bin_path)
-			echo "$PATH" | tr ':' '\n' | bat --color=always
-			echo pop
-			set_shell
-			# set_prompt
-
+			initialize_shell
 			__shell_stoptime=$(get_time_in_secs)
 			__shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
-
 			;;
 		esac
 
@@ -169,13 +182,14 @@ manage_script() {
 		case "$VERBOSITY" in
 		0 | '') ;;
 		1) ;;
-		2)
+		2) ;;
+		3)
 			[ -n "$__shell_duration" ] &&
 				pout --info "Shell initialized in $__shell_duration" --lead
 			[ -n "$__dots_duration" ] &&
 				pout --info "DOTS initialized in $__dots_duration" --trail -1
 			;;
-		3)
+		4)
 			pout --debug --key "DOTS" --val "$DOTS"
 			pout --debug --key "DOTS_RC" --val "$DOTS_RC"
 			pout --debug --key "DOTS_IGNORE" --val "$DOTS_IGNORE"
@@ -212,7 +226,7 @@ manage_script() {
 			pout --debug --key "DOTS_INIT_STOP" --val "$__dots_stoptime"
 			pout --debug --key "DOTS_INIT_DURATION" --val "$__duration"
 			;;
-		4 | *)
+		5 | *)
 			pout --trace --key "DOTS Initialization Started" --val "$(get_timestamp "$__dots_inittime")"
 			pout --trace --key "DOTS" --val "$DOTS"
 			pout --trace --key "Operation Mode" --val "$__mode"
@@ -229,10 +243,10 @@ manage_script() {
 			pout --trace --key "SHELL_CONF" --val "$SHELL_CONF"
 			pout --trace --key "SHELL" --val "$SHELL"
 			pout --trace --key "SHELL Initialization Started" --val "$(get_timestamp "$__time_before_shell")"
-			pout --trace --key "SHELL Initialization Duration" --val "$(get_timestamp "$__duration_shell")"
+			pout --trace --key "SHELL Initialization Duration" --val "$__duration_shell"
 			pout --trace --key "SHELL Initialization Stopped" --val "$(get_timestamp "$__time_after_shell")"
 			pout --trace --key "DOTS Initialization Stopped" --val "$(get_timestamp "$__dots_stoptime")"
-			pout --trace --key "DOTS Initialization Duration" --val "$(get_timestamp "$__dots_duration")"
+			pout --trace --key "DOTS Initialization Duration" --val "$__dots_duration"
 			;;
 		esac
 
@@ -248,7 +262,20 @@ manage_script() {
 		unset reset_flag test_flag verbose_flag
 	}
 
-	manage_script__init
+	manage_script__main() {
+		case $1 in
+		--init)
+			manage_script__env --global
+			util_functions
+			core_functions
+			manage_script__env --local
+			;;
+		--process) manage_script__process ;;
+		--exit) manage_script__exit ;;
+		esac
+	}
+
+	manage_script__main "$1"
 }
 
 manage_dots() {
@@ -839,8 +866,7 @@ util_functions() {
 					val="$2"
 					shift
 				else
-					pout --error "No value provided to --val"
-					return 1
+					val="{ ${FMT_RED}Missing Value${FMT_NORMAL} }"
 				fi
 				;;
 			--sep*)
@@ -922,7 +948,16 @@ util_functions() {
 		timestamp="$(printf "[%s] " "$(get_timestamp)")"
 
 		#@ Write message to the log
-		[ "$log" ] && printf "%s%s%s\n" "$timestamp" "$level" "${msg:-"$pair"}" >>"$log"
+		[ "$log" ] && {
+
+			#@ Sanitize the message by removing all terminal formatting codes
+			log_msg="$(printf "%s" "${msg:-$pair}" |
+				sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g')"
+
+			#@ Create the log directory if it does not exist
+			printf "%s%s%s\n" "$timestamp" "$level" "$log_msg" |
+				tee -a "$log" >/dev/null
+		}
 
 		#@ Write message to the console
 		# [ "$hide_output" ] && return 0
@@ -995,10 +1030,6 @@ util_functions() {
 }
 
 core_functions() {
-	set_bin_path() {
-		eval "$DOTS_BIN/shellscript/utility/files/pathman" --append "$DOTS_BIN" --print
-	}
-
 	set_os_type() {
 		if [ "$WSL_DISTRO_NAME" ]; then
 			OS_TYPE="Windows Subsystem for Linux [WSL]"
@@ -1113,21 +1144,16 @@ core_functions() {
 		SHELL_CONF="${SHELL_HOME}/${__shell_conf}"
 		SHELL_PATH="$(pathOf "$__shell")"
 
-		case "$__shell" in
-		bash)
-			# SHELL_INIT="$(printf "%s --rcfile %s" "$SHELL_PATH" "$SHELL_CONF")" #TODO: Why is this not printing the prompt properly?
-			SHELL_INIT=". $SHELL_CONF"
-			;;
+		case "$SHELL_TYPE" in
+		bash) SHELL_INIT=". ${SHELL_CONF}" ;;
 		esac
 		readonly SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL_INIT SHELL_TYPE
 		export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL_INIT SHELL_TYPE
 
-		#| Initialize the Shell
-		printf "SHELL_TYPE: %s\n" "$SHELL_TYPE"
-		printf "SHELL_NAME: %s\n" "$SHELL_NAME"
-		printf "SHELL_PATH: %s\n" "$SHELL_PATH"
-		printf "SHELL_INIT: %s\n" "$SHELL_INIT"
-		eval "$SHELL_INIT" || true
+		pout --trace --key "SHELL_NAME" --val "$SHELL_NAME"
+		pout --trace --key "SHELL_TYPE" --val "$SHELL_TYPE"
+		pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
+		pout --trace --key "SHELL_INIT" --val "$SHELL_INIT"
 	}
 
 	set_app_defaults() {
@@ -1383,6 +1409,9 @@ core_functions() {
 		}
 
 		set_log_level() {
+			#@ Remove the log file if requested
+			case "$(to_lower "$__mode")" in reset) rm -rf "$__log_path" ;; esac
+
 			#@ Check for global log level settings
 			__log_level=$(to_lower "${__log_level:-$LOG_LEVEL}")
 
@@ -1917,11 +1946,9 @@ core_functions() {
 	}
 
 	initialize_shell() {
-		set_shell
 		set_app_defaults
-
-		# init_fastfetch "$DOTS_CFG/fastfetch/config.jsonc"
-		"$SHELL_PATH" "$SHELL_CONF"
+		set_shell
+		eval "$SHELL_INIT" || true
 	}
 }
 
