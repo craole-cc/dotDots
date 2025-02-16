@@ -12,6 +12,10 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
+      packages.default = pkgs.writeScriptBin "dots-env" ''
+        echo "This is a development environment flake"
+      '';
+
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
           # pre-commit
