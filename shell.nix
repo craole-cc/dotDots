@@ -65,5 +65,15 @@ in
       editorconfig-checker
     ];
 
-    shellHook = ''. "${paths.dotsRC}" '';
+    shellHook = ''
+      #@ Show the system info
+      fastfetch
+
+      #@ Open the DOTS directory in the editor
+      if [ -n "$DISPLAY" ]; then
+        "$VISUAL" "$DOTS"
+      else
+        "$EDITOR" "$DOTS"
+      fi
+    '';
   }

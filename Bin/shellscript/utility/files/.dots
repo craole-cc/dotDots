@@ -2,17 +2,30 @@
 
 #@ Ensure the DOTS variable is set
 [ -n "$DOTS" ] || {
-	printf "ERROR: The path to DOTS directory must be set.\n" >&2
-	exit 1
+  printf "ERROR: The path to DOTS directory must be set.\n" >&2
+  exit 1
 }
 
-#@ Define the DOTS flake and shell
-DOTS_FLAKE="$DOTS/flake.nix"
-DOTS_SHELL="$DOTS/shell.nix"
+#@ Go to the DOTS directory
+\cd "$DOTS" || {
+  printf "ERROR: Failed to change directory.\n" >&2
+  exit 1
+}
 
-#@ Run the nix-shell command if available and present
-if [ -f "$DOTS_FLAKE" ]; then
-	command -v nix shell >/dev/null 2>&1 && nix shell "$DOTS_FLAKE"
-elif [ -f "$DOTS_SHELL" ]; then
-	command -v nix-shell >/dev/null 2>&1 && nix-shell "$DOTS_SHELL"
+#@ Check if nix is available
+weHave_nix() { command -v nix-shell >/dev/null 2>&1; }
+weHave_flakes() { nix develop --help >/dev/null 2>&1; }
+
+#@ Initialize the development environment
+if weHave_flakes && [ -f "flake.nix" ]; then
+  nix develop
+elif weHave_nix && [ -f "$shell.nix" ]; then
+  nix-shell
+else
+  #@ Open the DOTS directory in the editor
+  if [ -n "$DISPLAY" ]; then
+    "$VISUAL" "$DOTS"
+  else
+    "$EDITOR" "$DOTS"
+  fi
 fi

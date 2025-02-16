@@ -5,9 +5,9 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     flake-utils,
+    ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -18,7 +18,6 @@
 
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
-          # pre-commit
           eza
           bat
           fd
@@ -41,8 +40,6 @@
           fastfetch
           lesspipe
           rust-script
-          # lmstudio
-          # langgraph-cli
           just
           powershell
           bashInteractive
@@ -77,9 +74,17 @@
           editorconfig-checker
         ];
 
-        # shellHook = ''
-        #   . /home/craole/.dots/bashrc
-        # '';
+        shellHook = ''
+          #@ Show the system info
+          fastfetch
+
+          #@ Open the DOTS directory in the editor
+          if [ -n "$DISPLAY" ]; then
+            "$VISUAL" "$DOTS"
+          else
+            "$EDITOR" "$DOTS"
+          fi
+        '';
       };
     });
 }
