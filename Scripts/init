@@ -1,5 +1,5 @@
 #!/bin/sh
-## shellcheck disable=SC2034,SC2154,SC2164,SC2181,SC2213,SC2230,SC2291,SC2317,SC2320,SC2039
+# shellcheck disable=SC2034,SC2154,SC2164,SC2181,SC2213,SC2230,SC2291,SC2317,SC2320,SC2039
 
 main() {
 	#@ Initialization the script environment
@@ -34,6 +34,15 @@ manage_script() {
 
 	manage_script__env() {
 		env__global() {
+			#@ Define verbosity levels
+			VERBOSITY_LEVEL_QUIET=0
+			VERBOSITY_LEVEL_ERROR=1
+			VERBOSITY_LEVEL_WARN=2
+			VERBOSITY_LEVEL_INFO=3
+			VERBOSITY_LEVEL_DEBUG=4
+			VERBOSITY_LEVEL_TRACE=5
+			VERBOSITY_LEVEL="$VERBOSITY_LEVEL_TRACE"
+
 			#@ Ensure the DOTS variable is set
 			[ -n "$DOTS" ] || {
 				if
@@ -103,19 +112,104 @@ manage_script() {
 					--append "$DOTS_BIN" --print
 			)"
 
-			#@ Define terminal formatting codes
-			FMT_RED="$(printf '\033[31m')"
-			FMT_GREEN="$(printf '\033[32m')"
-			FMT_YELLOW="$(printf '\033[33m')"
-			FMT_BLUE="$(printf '\033[34m')"
-			FMT_MAGENTA="$(printf '\033[35m')"
-			FMT_CYAN="$(printf '\033[36m')"
-			FMT_WHITE="$(printf '\033[37m')"
-			FMT_ITALIC="$(printf '\033[3m')"
-			FMT_BOLD="$(printf '\033[1m')"
-			FMT_RESET="$(printf '\033[0m')"
+			#| Terminal Formatting Codes
+			command -v tput >/dev/null 2>&1 && __tput=1
+			FMT_RED="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 1
+				else
+					printf '\033[31m'
+				fi
+			)"
+			FMT_GREEN="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 2
+				else
+					printf '\033[32m'
+				fi
+			)"
+			FMT_YELLOW="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 3
+				else
+					printf '\033[33m'
+				fi
+			)"
+			FMT_BLUE="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 4
+				else
+					printf '\033[34m'
+				fi
+			)"
+			FMT_MAGENTA="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 5
+				else
+					printf '\033[35m'
+				fi
+			)"
+			FMT_CYAN="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 6
+				else
+					printf '\033[36m'
+				fi
+			)"
+			FMT_WHITE="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput setaf 7
+				else
+					printf '\033[37m'
+				fi
+			)"
+			FMT_BOLD="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput bold
+				else
+					printf '\033[1m'
+				fi
+			)"
+			FMT_ITALIC="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput smso
+				else
+					printf '\033[3m'
+				fi
+			)"
+			FMT_UNDERLINE="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput smul
+				else
+					printf '\033[4m'
+				fi
+			)"
+			FMT_BLINK="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput blink
+				else
+					printf '\033[5m'
+				fi
+			)"
+			FMT_RESET="$(
+				if [ "$__tput" -eq 1 ]; then
+					tput sgr0
+				else
+					printf '\033[0m'
+				fi
+			)"
 			FMT_NORMAL="$FMT_RESET"
-			readonly FMT_RED FMT_GREEN FMT_YELLOW FMT_BLUE FMT_MAGENTA FMT_CYAN FMT_WHITE FMT_ITALIC FMT_BOLD FMT_RESET
+			FMT_EMPHASIS="${FMT_EMPHASIS:-"${FMT_BOLD}${FMT_ITALIC}"}"
+			FMT_HIGHLIGHT="${FMT_HIGHLIGHT:-"${FMT_BOLD}${FMT_UNDERLINE}"}"
+			FMT_FAILURE="${FMT_FAILURE:-"${FMT_RED}${FMT_BOLD}"}"
+			FMT_SUCCESS="${FMT_SUCCESS:-"${FMT_GREEN}${FMT_BOLD}"}"
+			FMT_ERROR="${FMT_ERROR:-"$FMT_FAILURE"}"
+			FMT_WARN="${FMT_WARN:-"${FMT_YELLOW}${FMT_BOLD}"}"
+			FMT_INFO="${FMT_INFO:-"${FMT_BLUE}${FMT_BOLD}"}"
+			FMT_DEBUG="${FMT_DEBUG:-"${FMT_CYAN}${FMT_BOLD}"}"
+			FMT_TRACE="${FMT_TRACE:-"${FMT_MAGENTA}${FMT_BOLD}"}"
+			readonly FMT_RED FMT_GREEN FMT_YELLOW FMT_BLUE FMT_MAGENTA FMT_CYAN FMT_WHITE FMT_ITALIC FMT_BOLD FMT_UNDERLINE FMT_RESET FMT_NORMAL FMT_EMPHASIS FMT_HIGHLIGHT
+			unset __tput
 			set +o allexport
 		}
 
@@ -127,12 +221,10 @@ manage_script() {
 			#DOC operation mode, and log file path.
 
 			__dots_inittime=$(get_time_in_secs) #? Time the initialization started
-			__verbosity="${VERBOSITY:-info}"    #? [0-5|quiet|error|warn|info|debug|trace]
 			__mode="reset"                      #? [simulation|normal|reset]
 			__filter="included"                 #? [included|excluded]
 			__pad=24                            #? Padding for aligned output
 			__shell="Bash"                      #? Interactive shell
-			__log_path="$DOTS_LOG_DOTS"         #? Path to the log file
 		}
 
 		case "$1" in
@@ -143,8 +235,8 @@ manage_script() {
 
 	manage_script__process() {
 
-		#@ Initialize messaging to the log and console (stdout/stderr)
-		set_messaging
+		#@ Initialize the logger
+		initialize_logger
 
 		#@ Get relevant system information
 		set_os_type
@@ -154,7 +246,6 @@ manage_script() {
 			#@ Display environment variables
 			pout --pad --key "Operation Mode" --val "$(to_lower "$__mode")" --lead
 			pout --pad --key "Verbosity Level" --val "$VERBOSITY"
-			pout --pad --key "Log Level" --val "$LOG_LEVEL"
 			pout --pad --key "Operating System" --val "$OS_TYPE"
 			pout --pad --key "Interactive Shell" --val "$__shell"
 			pout --pad --key "DOTS Directory" --val "$DOTS"
@@ -163,10 +254,7 @@ manage_script() {
 			pout --pad --key "Bash Loader" --val "$__bashrc" --trail
 			;;
 		*)
-			__shell_inittime=$(get_time_in_secs)
 			initialize_shell
-			__shell_stoptime=$(get_time_in_secs)
-			__shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
 			;;
 		esac
 
@@ -179,7 +267,7 @@ manage_script() {
 		__dots_duration=$(format_duration --start "$__dots_inittime" --stop "$__dots_stoptime")
 
 		#@ Report on the initialization, if requested
-		case "$VERBOSITY" in
+		case "$VERBOSITY_LEVEL" in
 		0 | '') ;;
 		1) ;;
 		2) ;;
@@ -206,7 +294,6 @@ manage_script() {
 			pout --debug --key "DOTS_INIT_START" --val "$__dots_inittime"
 			pout --debug --key "Operation Mode" --val "$(to_lower "$__mode")"
 			pout --debug --key "Verbosity Level" --val "$VERBOSITY"
-			pout --debug --key "Log Level" --val "$LOG_LEVEL"
 			pout --debug --key "Operating System" --val "$OS_TYPE"
 			pout --debug --key "Interactive Shell" --val "$__shell"
 			pout --debug --key "DOTS Directory" --val "$DOTS"
@@ -231,7 +318,6 @@ manage_script() {
 			pout --trace --key "DOTS" --val "$DOTS"
 			pout --trace --key "Operation Mode" --val "$__mode"
 			pout --trace --key "Verbosity Level" --val "$VERBOSITY"
-			pout --trace --key "Log Level" --val "$LOG_LEVEL"
 			pout --trace --key "Operating System" --val "$OS_TYPE"
 			pout --trace --key "Interactive Shell" --val "${__shell:-"Bash"}"
 			pout --trace --key "DOTS Loader" --val "$DOTS_RC"
@@ -249,12 +335,12 @@ manage_script() {
 			pout --trace --key "DOTS Initialization Duration" --val "$__dots_duration"
 			;;
 		esac
-
+		pout --trace --key "DOTS Initialization Duration" --val "$__dots_duration"
 		manage_script__cleanup
 	}
 
 	manage_script__cleanup() {
-		unset __mode __verbosity __log_path __pad __shell __filter
+		unset __mode __verbosity __pad __shell __filter
 		unset __scr_start __duration
 		unset __dots_inittime __dots_stoptime __dots_duration
 		unset src_path src_type
@@ -337,7 +423,7 @@ util_functions() {
 		#DOC   fi
 
 		if [ -z "$1" ]; then
-			[ "$VERBOSITY" -ge 1 ] &&
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf "ERROR: No command specified\n" >&2
 			return 1
 		else
@@ -359,11 +445,13 @@ util_functions() {
 		#DOC   lower_text=$(to_lower "HELLO")
 
 		if [ -z "${1:-}" ]; then
-			# [ "$VERBOSITY" -ge 1 ] && printf "ERROR: No string provided for conversion\n" >&2
+			# [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+			printf "ERROR: No string provided for conversion\n" >&2
 			return 1
 		else
 			printf "%s" "${1:-}" | tr '[:upper:]' '[:lower:]' 2>/dev/null || {
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to convert string to lowercase\n" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: Failed to convert string to lowercase\n" >&2
 				return 1
 			}
 		fi
@@ -385,41 +473,47 @@ util_functions() {
 		case "$1" in
 		--writable)
 			if [ -z "$2" ]; then
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: No file path provided\n" >&2
 				return 1
 			elif [ -f "$2" ] && [ -w "$2" ]; then
 				return 0
 			else
-				[ "$VERBOSITY" -ge 1 ] &&
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 					printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
 				return 1
 			fi
 			;;
 		--non-empty)
 			if [ -z "$2" ]; then
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: No file path provided\n" >&2
 				return 1
 			elif [ -f "$2" ] && [ -s "$2" ]; then
 				return 0
 			else
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist or is empty\n" "$2" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: File '%s' does not exist or is empty\n" "$2" >&2
 				return 1
 			fi
 			;;
 		--parent)
 			if [ -z "$2" ]; then
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: No file path provided\n" >&2
 				return 1
 			elif [ -d "$(dirname "$2")" ] && [ -w "$(dirname "$2")" ]; then
 				return 0
 			else
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Parent directory of '%s' does not exist\n" "$1" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: Parent directory of '%s' does not exist\n" "$1" >&2
 				return 1
 			fi
 			;;
 		*)
 			[ -f "$1" ] || {
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: File '%s' does not exist\n" "$1" >&2
 				return 1
 			}
 			;;
@@ -436,27 +530,30 @@ util_functions() {
 		#DOC   create_file "/path/to/new/file"
 
 		[ -z "$1" ] && {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: No file path provided\n" >&2
 			return 1
 		}
 
 		#@ Check if parent directory exists and is writable
 		dir=$(dirname "$1")
 		{ [ -d "$dir" ] && [ -w "$dir" ]; } || {
-			[ "$VERBOSITY" -ge 1 ] &&
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf "ERROR: Directory '%s' does not exist or is not writable\n" "$dir" >&2
 			return 1
 		}
 
 		#@ Create the file
 		touch "$1" 2>/dev/null || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create file '%s'\n" "$1" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: Failed to create file '%s'\n" "$1" >&2
 			return 1
 		}
 
 		#@ Modify the file size to 1 byte so it passes the non-empty test
 		truncate -s 1 "$1" 2>/dev/null || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to truncate file '%s'\n" "$1" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: Failed to truncate file '%s'\n" "$1" >&2
 			return 1
 		}
 	}
@@ -471,28 +568,33 @@ util_functions() {
 		#DOC   read_file "/path/to/file"
 
 		[ -z "$1" ] && {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: No file path provided\n" >&2
 			return 1
 		}
 
 		[ -f "$1" ] || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist\n" "$1" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: File '%s' does not exist\n" "$1" >&2
 			return 1
 		}
 
 		[ -r "$1" ] || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' is not readable\n" "$1" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: File '%s' is not readable\n" "$1" >&2
 			return 1
 		}
 
 		if weHave bat; then
 			bat "$1" 2>/dev/null || {
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to read file '%s' with bat\n" "$1" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: Failed to read file '%s' with bat\n" "$1" >&2
 				return 1
 			}
 		else
 			cat "$1" 2>/dev/null || {
-				[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to read file '%s'\n" "$1" >&2
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+					printf "ERROR: Failed to read file '%s'\n" "$1" >&2
 				return 1
 			}
 		fi
@@ -501,7 +603,8 @@ util_functions() {
 	get_list_from_file() {
 		#@ Validate arguments
 		if [ $# -lt 2 ]; then
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Invalid arguments\nUsage: get_list_from_file [--update|--read] <file_path>\n" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: Invalid arguments\nUsage: get_list_from_file [--update|--read] <file_path>\n" >&2
 			return 1
 		fi
 
@@ -511,7 +614,7 @@ util_functions() {
 
 		#@ Validate file exists and is readable
 		if [ ! -f "$file_path" ]; then
-			[ "$VERBOSITY" -ge 1 ] &&
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf "ERROR: File '%s' does not exist\n" "$file_path" >&2
 			return 1
 		fi
@@ -534,7 +637,7 @@ util_functions() {
 			printf "%s\n" "$output"
 			;;
 		*)
-			[ "$VERBOSITY" -ge 1 ] &&
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf \
 					"ERROR: Invalid action '%s'. Use --update or --read\n" \
 					"$action" >&2
@@ -558,24 +661,28 @@ util_functions() {
 
 		#@ Validate arguments
 		[ -z "$1" ] && {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No pattern provided\n" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: No pattern provided\n" >&2
 			return 1
 		}
 
 		[ -z "$2" ] && {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: No file path provided\n" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: No file path provided\n" >&2
 			return 1
 		}
 
 		{ [ -f "$2" ] && [ -w "$2" ]; } || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: File '%s' does not exist or is not writable\n" "$2" >&2
 			return 1
 		}
 
 		#@ Setup backup directory
 		backup_dir="$(dirname "$2")/.archive"
 		mkdir -p "$backup_dir" 2>/dev/null || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create backup directory '%s'\n" "$backup_dir" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: Failed to create backup directory '%s'\n" "$backup_dir" >&2
 			return 1
 		}
 
@@ -584,7 +691,8 @@ util_functions() {
 
 		#@ Create backup with timestamp
 		cp "$2" "$backup_file" 2>/dev/null || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to create backup of '%s'\n" "$2" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: Failed to create backup of '%s'\n" "$2" >&2
 			return 1
 		}
 
@@ -604,7 +712,8 @@ util_functions() {
 
 		#@ Delete the target line
 		sed --in-place --expression "/$1/d" "$2" 2>/dev/null || {
-			[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to delete lines matching pattern '%s' from '%s'\n" "$1" "$2" >&2
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				printf "ERROR: Failed to delete lines matching pattern '%s' from '%s'\n" "$1" "$2" >&2
 			# Restore from backup
 			mv "${2}.bak" "$2"
 			return 1
@@ -616,6 +725,9 @@ util_functions() {
 		#DOC Returns:
 		#DOC   Human-readable timestamp in the format %Y-%m-%d %H:%M:%S
 		command -v date >/dev/null 2>&1 || return 1
+
+		# case "$"in
+		# --now)
 		date "+%Y-%m-%d %H:%M:%S"
 		#TODO: check for other date tools to ensure portability
 	}
@@ -700,10 +812,11 @@ util_functions() {
 
 		#@ Validate inputs exist
 		if [ -z "$start" ] || [ -z "$stop" ]; then
-			[ "$VERBOSITY" -ge 1 ] && {
-				printf "ERROR: Both --start and --end times are required\n" >&2
-				return 1
-			}
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+				{
+					printf "ERROR: Both --start and --end times are required\n" >&2
+					return 1
+				}
 		fi
 
 		#@ Calculate the duration
@@ -711,7 +824,7 @@ util_functions() {
 
 		#@ Validate duration calculation
 		[ "$duration" ] || {
-			[ "$VERBOSITY" -eq 0 ] ||
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf "Error: Failed to calculate duration\n" >&2
 			return 1
 		}
@@ -805,22 +918,21 @@ util_functions() {
 		#DOC   1 - Failure (invalid arguments or options)
 
 		#@ Establish defaults
-		unset \
-			msg \
-			pad \
-			newline \
-			log \
-			key \
-			value \
-			sep \
-			hide_level \
-			hide_timestamp
-		level="${__log_level:-2}" #TODO: This doesn't make much sense, as we're sending all log levels to the file
+		unset msg
+		unset pad
+		unset newline
+		unset log
+		unset key
+		unset value
+		unset sep
+		unset level
+		unset hide_level
+		unset hide_timestamp
 		leading_lines=0
 		trailing_lines=1
 		sep="${__sep:-": "}"
 		padding="${__pad:-36}"
-		log="$__log_path"
+		log="$DOTS_LOG_DOTS"
 		hide_level="${__hide_level:-}"
 		hide_output="${__hide_output:-}"
 		show_timestamp="${__show_timestamp:-}"
@@ -834,12 +946,9 @@ util_functions() {
 			-h) show_info --usage ;;
 			--help) show_info --help ;;
 			-v | --version) show_info --version ;;
-			--quiet) level=-1 ;;
-			--error) level=0 ;;
-			--warn) level=1 ;;
-			--info) level=2 ;;
-			--debug) level=3 ;;
-			--trace) level=4 ;;
+			--quiet | --error | --warn | --info | --debug | --trace)
+				level=${1#--}
+				;;
 			--hide-level) hide_level=true ;;
 			--hide-timestamp) hide_timestamp=true ;;
 			--hide-console | --log-only | --no-output | --no-print) hide_output=true ;;
@@ -934,15 +1043,15 @@ util_functions() {
 		[ "${msg:-$pair}" ] || return 1
 
 		#@ Append the level to the message.
-		[ "$hide_level" ] ||
-			case "$(to_lower "$level")" in
-			0 | "error") level="ERROR: " ;;
-			1 | "warn") level=" WARN: " ;;
-			2 | "info") level=" INFO: " ;;
-			3 | "debug") level="DEBUG: " ;;
-			4 | "trace") level="TRACE: " ;;
-			*) level="" ;;
-			esac
+		[ -n "$hide_level" ] && unset level
+		case "$level" in
+		0 | "error") level="${FMT_ERROR}[ERROR] ${FMT_NORMAL}" ;;
+		1 | "warn") level="${FMT_WARN}[WARN] ${FMT_NORMAL}" ;;
+		2 | "info") level="${FMT_INFO}[ INFO] ${FMT_NORMAL}" ;;
+		3 | "debug") level="${FMT_DEBUG}[DEBUG] ${FMT_NORMAL}" ;;
+		4 | "trace") level="${FMT_TRACE}[TRACE] ${FMT_NORMAL}" ;;
+		*) level="" ;;
+		esac
 
 		#@ Get thetimestamp
 		timestamp="$(printf "[%s] " "$(get_timestamp)")"
@@ -961,9 +1070,9 @@ util_functions() {
 
 		#@ Write message to the console
 		# [ "$hide_output" ] && return 0
-		[ "$VERBOSITY" -eq 0 ] && return 0
+		[ "$VERBOSITY_LEVEL" -eq "$VERBOSITY_LEVEL_QUIET" ] && return 0
 
-		# case "$VERBOSITY" in
+		# case "$VERBOSITY_LEVEL" in
 		# 0) return 0 ;;
 		# 1) return 0 ;;
 		# 2) return 0 ;;
@@ -1368,36 +1477,36 @@ core_functions() {
 	set_messaging() {
 		set_verbosity_level() {
 			#@ Set default values for quiet, verbosity, and log level
-			__quiet="${__quiet:--1}"
-			__error="${__error:-0}"
-			__warn="${__warn:-1}"
-			__info="${__info:-2}"
-			__debug="${__debug:-3}"
-			__trace="${__trace:-4}"
+			__quiet="${__quiet:-0}"
+			__error="${__error:-1}"
+			__warn="${__warn:-2}"
+			__info="${__info:-3}"
+			__debug="${__debug:-4}"
+			__trace="${__trace:-5}"
 
 			#@ Check for global verbosity settings from various environment variables
 			__quiet=$(to_lower "${__quiet:-$QUIET}")
 			__verbosity=$(to_lower "${__verbosity:-${VERBOSITY:-$VERBOSE}}")
 
 			#@ Handle quiet flags first
-			case "$(to_lower "$__quiet")" in
+			case "$(to_lower "$VERBOSITY_LEVEL_QUIET")" in
 			true | 1 | on) __verbosity="quiet" ;;
 			esac
 
 			#@ Map verbal levels to numerical values
 			case "$__verbosity" in
-			none | off | quiet | false) __verbosity="$__quiet" ;;
-			error | fatal | 0) __verbosity="$__error" ;;
-			warn | warning | 1) __verbosity="$__warn" ;;
-			info | normal | 2) __verbosity="$__info" ;;
-			debug | verbose | 3) __verbosity="$__debug" ;;
-			trace | all | true | 4) __verbosity="$__trace" ;;
+			none | off | quiet | false | 0) __verbosity="$__quiet" ;;
+			error | fatal | 1) __verbosity="$__error" ;;
+			warn | warning | 2) __verbosity="$__warn" ;;
+			info | normal | 3) __verbosity="$__info" ;;
+			debug | verbose | 4) __verbosity="$__debug" ;;
+			trace | all | true | 5) __verbosity="$__trace" ;;
 			'' | *[!0-9]*) __verbosity="$__info" ;; #? Set default to INFO
 			*)
-				#@ Check if number is in valid range (0-4)
-				if [ "$__verbosity" -lt 0 ]; then
+				#@ Ensure verbosity is set to a valid integer
+				if [ "$__verbosity" -le "$__quiet" ]; then
 					__verbosity="$__quiet" #? Set minimum to QUIET
-				elif [ "$__verbosity" -gt 4 ]; then
+				elif [ "$__verbosity" -ge "$__trace" ]; then
 					__verbosity="$__trace" #? Set maximum to TRACE
 				fi
 				;;
@@ -1417,17 +1526,17 @@ core_functions() {
 
 			#@ Map log levels to numerical values
 			case "$(to_lower "$__log_level")" in
-			none | off | quiet | false) __log_level="$__quiet" ;;
-			error | fatal | 0) __log_level="$__error" ;;
-			warn | warning | 1) __log_level="$__warn" ;;
-			info | normal | 2) __log_level="$__info" ;;
-			debug | verbose | 3) __log_level="$__debug" ;;
+			none | off | quiet | false) __log_level="$VERBOSITY_LEVEL_QUIET" ;;
+			error | fatal | 0) __log_level="$VERBOSITY_LEVEL_ERROR" ;;
+			warn | warning | 1) __log_level="$VERBOSITY_LEVEL_WARN" ;;
+			info | normal | 2) __log_level="$VERBOSITY_LEVEL_INFO" ;;
+			debug | verbose | 3) __log_level="$VERBOSITY_LEVEL_DEBUG" ;;
 			trace | all | true | 4) __log_level="$__trace" ;;
-			'' | *[!0-9]*) __log_level="${__log_level:-"$__info"}" ;;
+			'' | *[!0-9]*) __log_level="${__log_level:-"$VERBOSITY_LEVEL_INFO"}" ;;
 			*)
 				#@ Check if number is in valid range (0-4)
 				if [ "$__log_level" -lt 0 ]; then
-					__log_level="$__quiet" #? Set minimum to QUIET
+					__log_level="$VERBOSITY_LEVEL_QUIET" #? Set minimum to QUIET
 				elif [ "$__log_level" -gt 4 ]; then
 					__log_level="$__trace" #? Set maximum to TRACE
 				fi
@@ -1440,7 +1549,7 @@ core_functions() {
 
 		set_verbosity_level
 		set_log_level
-		[ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
+		# [ "${VERBOSITY:-0}" -eq 0 ] && __hide_output=true
 	}
 
 	set_interactive_shell() {
@@ -1471,7 +1580,7 @@ core_functions() {
 			#@ Create the DOTS_IGNORE file, if necessary
 			validate_file "$DOTS_IGNORE" ||
 				{
-					if [ "$VERBOSITY" -ge 1 ]; then
+					if [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ]; then
 						printf \
 							"WARN: Ignore file not found at %s. Create it? [y/N] " \
 							"$DOTS_IGNORE"
@@ -1488,7 +1597,7 @@ core_functions() {
 
 			#@ Check if the ignore file was created
 			validate_file "$DOTS_IGNORE" || {
-				if [ "$VERBOSITY" -ge 1 ]; then
+				if [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ]; then
 					printf "ERROR: Unable to create ignore file at %s\n" "$DOTS_IGNORE"
 					return 1
 				else
@@ -1519,7 +1628,7 @@ core_functions() {
 				return 0
 				;;
 			reset)
-				if [ "$VERBOSITY" -ge 1 ]; then
+				if [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ]; then
 					# Confirm the deletion of the ignore file
 					printf "WARN: Current ignore patterns in %s:\n" "$DOTS_IGNORE"
 					read_file "$DOTS_IGNORE"
@@ -1541,7 +1650,7 @@ core_functions() {
 		update_patterns() {
 			#@ Check if ignore file is writable first
 			validate_file --writable "$DOTS_IGNORE" || {
-				[ "$VERBOSITY" -ge 1 ] &&
+				[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 					printf "ERROR: %s is not writable\n" "$DOTS_IGNORE" >&2
 				return 1
 			}
@@ -1552,24 +1661,26 @@ core_functions() {
 				#@ Add pattern to ignore file if it doesn't already exist
 				if ! grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
 					printf "\n%s" "$1" >>"$DOTS_IGNORE" || {
-						[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to write to %s\n" "$DOTS_IGNORE" >&2
+						[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+							printf "ERROR: Failed to write to %s\n" "$DOTS_IGNORE" >&2
 						return 1
 					}
-					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Added pattern '%s' to ignore file\n" "$1"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "DEBUG: Added pattern '%s' to ignore file\n" "$1"
 				else
-					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Pattern '%s' already in ignore file\n" "$1"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "DEBUG: Pattern '%s' already in ignore file\n" "$1"
 				fi
 				;;
 			include)
 				#@ Remove pattern from ignore file if it exists
 				if grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
 					sed --in-place "/$1/d" "$DOTS_IGNORE" || {
-						[ "$VERBOSITY" -ge 1 ] && printf "ERROR: Failed to modify %s\n" "$DOTS_IGNORE" >&2
+						[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+							printf "ERROR: Failed to modify %s\n" "$DOTS_IGNORE" >&2
 						return 1
 					}
-					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Removed pattern '%s' from ignore file\n" "$1"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "DEBUG: Removed pattern '%s' from ignore file\n" "$1"
 				else
-					[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: Pattern '%s' not found in ignore file\n" "$1"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "DEBUG: Pattern '%s' not found in ignore file\n" "$1"
 				fi
 				;;
 			esac
@@ -1617,11 +1728,11 @@ core_functions() {
 				grep --invert-match "$dots_init" >"$temp_file"
 			printf "\nDOTS=\"%s\"\n%s\n" "$DOTS" "$dots_init" >>"$temp_file"
 			mv "$temp_file" "$profile"
-			[ "$VERBOSITY" -ge 1 ] &&
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf "WARN: Path to DOTS in updated in %s.\n" "$profile"
 		else
 			#@ If both lines are present and the DOTS line is the same, no need to update
-			[ "$VERBOSITY" -gt 2 ] && printf "DEBUG: DOTS in profile is already up to date.\n"
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "DEBUG: DOTS in profile is already up to date.\n"
 		fi
 	}
 
@@ -1682,7 +1793,7 @@ core_functions() {
 		esac
 
 		if [ -z "$source" ]; then
-			[ "$VERBOSITY" -ge 1 ] &&
+			[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
 				printf "ERROR: No source path or ignore pattern provided.\n" >&2
 			return 1
 		elif [ "$source_filter" ] && [ -e "$1" ]; then
@@ -1708,7 +1819,7 @@ core_functions() {
 				*:"$src_path":*) ;;
 				*)
 					XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
-					[ "$VERBOSITY" -gt 2 ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
 					;;
 				esac
 
@@ -1718,7 +1829,7 @@ core_functions() {
 				*:"$src_path":*) ;;
 				*)
 					PATH="${PATH:+$PATH:}$src_path"
-					[ "$VERBOSITY" -gt 2 ] && printf "Appended to PATH: %s\n" "${src_path}"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "Appended to PATH: %s\n" "${src_path}"
 					;;
 				esac
 
@@ -1730,7 +1841,7 @@ core_functions() {
 					case "$(to_lower "$OS_TYPE")" in
 					Windows) ;;
 					*)
-						if [ "$VERBOSITY" -gt 2 ]; then
+						if [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ]; then
 							chmod --changes +x "$src_path"
 						else
 							chmod +x "$src_path"
@@ -1743,13 +1854,26 @@ core_functions() {
 					# shellcheck disable=SC1090
 					# EOLor --lf "$src_path"
 					. "$src_path"
-					[ "$VERBOSITY" -gt 2 ] && printf "Initialized: %s\n" "$src_path"
+					[ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "Initialized: %s\n" "$src_path"
 				fi
 
 		done
 
 		#@ Disable global export
 		set +o allexport
+	}
+
+	initialize_logger() {
+		#@ Remove the log file if requested
+		case "$(to_lower "$__mode")" in reset) rm -rf "$DOTS_LOG_DOTS" ;; *) ;; esac
+
+		[ -f "$DOTS_LOG_DOTS" ] || {
+			#@ Create the log directory
+			mkdir -p "$(dirname "$DOTS_LOG_DOTS")"
+
+			#@ Create the log file
+			printf "%s\n\n" "***-->>>  THE dotDOTS LOG  >>>" | tee "$DOTS_LOG_DOTS" >/dev/null
+		}
 	}
 
 	initialize_source() {
@@ -1946,9 +2070,21 @@ core_functions() {
 	}
 
 	initialize_shell() {
+		#@ Log the start of the shell initialization
+		__shell_inittime=$(get_time_in_secs)
+		pout --trace "SHELL initialization started"
+
+		#@ Load resources and functions
 		set_app_defaults
 		set_shell
+
+		#@ Initialize the shell
 		eval "$SHELL_INIT" || true
+
+		#@ Log the end and duration of the shell initialization
+		__shell_stoptime=$(get_time_in_secs)
+		__shell_duration=$(format_duration --start "$__shell_inittime" --stop "$__shell_stoptime")
+		pout --trace --key "SHELL initialization completed in" "$__shell_duration"
 	}
 }
 

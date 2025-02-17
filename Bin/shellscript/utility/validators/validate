@@ -1,0 +1,146 @@
+#!/bin/sh
+
+#DOC @description Validates a value against constraints and outputs the validated value if valid.
+#DOC
+#DOC Parameters:
+#DOC 	{string} [options] Options to validate the value.
+#DOC    --integer | -i: Validate as an integer.
+#DOC    --positive | -p: Validate as a positive integer.
+#DOC    --float | -f: Validate as a float.
+#DOC    --string | -s: Validate as a string (default).
+#DOC    --min=<value>: Validate with a minimum value/length.
+#DOC    --max=<value>: Validate with a maximum value/length.
+#DOC    --pattern=<regex>: Validate with a custom regex pattern.
+#DOC
+#DOC 	{string} value The value to validate.
+#DOC
+#DOC 	{string} [default] The default value to output if validation fails.
+#DOC
+#DOC Returns:
+#DOC 	{number} 0 if the value is valid, 1 if the value is invalid.
+#DOC
+#DOC Example:
+#DOC 	validate --integer 10
+#DOC 	# Output: 10
+#DOC
+#DOC 	validate --positive -10
+#DOC 	# Output: (no output, invalid)
+#DOC
+#DOC 	validate --float 10.5
+#DOC 	# Output: 10.5
+
+__type="string" # Default type
+__min=""        # Minimum value/length
+__max=""        # Maximum value/length
+__pattern=""    # Custom regex pattern
+__value=""      # Value to validate
+__default=""    # Default value if validation fails
+
+# Parse options
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --int* | -i)
+    __type="integer"
+    __pattern='^[0-9][0-9]*$'
+    ;;
+  --positive | -p)
+    __type="integer"
+    __pattern='^[1-9][0-9]*$'
+    ;;
+  --float | -f)
+    __type="float"
+    __pattern='^[0-9]+\.?[0-9]*$'
+    ;;
+  --string | -s)
+    __type="string"
+    __pattern='^.*$'
+    ;;
+  --min=*)
+    __min="${1#*=}"
+    ;;
+  --max=*)
+    __max="${1#*=}"
+    ;;
+  --pattern=*)
+    __pattern="${1#*=}"
+    ;;
+  --in* | -i*)
+    [ "$#" -lt 3 ] && {
+      printf "Usage: %s %s <value> <list>\n" "$scr_name" "$1"
+      exit 1
+    }
+    __type="list"
+    __value="$2"
+    __list="$3"
+    shift 2
+    ;;
+  -*)
+    exit 1 # Invalid option
+    ;;
+  *)
+    if [ -z "$__value" ]; then
+      __value="$1"
+    else
+      __default="$1"
+    fi
+    ;;
+  esac
+  shift
+done
+
+#@ Validate based on type and constraints
+case "$__type" in
+integer | positive)
+  # Check pattern match
+  expr "$__value" : "$__pattern" >/dev/null 2>&1 || {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+
+  #@ Check min/max if specified
+  [ -n "$__min" ] && [ "$__value" -lt "$__min" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  [ -n "$__max" ] && [ "$__value" -gt "$__max" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  ;;
+
+float)
+  #@ Check pattern match
+  expr "$__value" : "$__pattern" >/dev/null 2>&1 || {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  ;;
+
+string)
+  #@ Check pattern match if specified
+  {
+    [ -n "$__pattern" ] &&
+      expr "$__value" : "$__pattern" >/dev/null 2>&1
+  } || {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+
+  #@ Check length constraints if specified
+  [ -n "$__min" ] && [ "${#__value}" -lt "$__min" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  [ -n "$__max" ] && [ "${#__value}" -gt "$__max" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  ;;
+
+list)
+  printf "%s" "$__list" | grep -q -w "$__value" || exit 1
+  ;;
+esac
+
+#@ Return the value, validation passed
+printf '%s' "$__value"
