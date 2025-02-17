@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#DOC Highlight a specific item in a delimited list
+#DOC
+#DOC Arguments:
+#DOC   $1 - The delimiter of the input list
+#DOC   $2 - The output delimiter
+#DOC   $3 - The item to highlight
+#DOC   $4 - The list to process
+#DOC
+#DOC Output:
+#DOC   Prints the list with the specified item highlighted
+#DOC
+#DOC Example:
+#DOC   pout_highlight "$(printf '\037')" ", " "code" "code-insiders${delimiter}code${delimiter}codium"
+#DOC   Output: code-insiders, code, codium (with 'code' highlighted)
+
+[ "$#" -ge 4 ] || {
+  printf "Usage: pout-highlight <input delimiter> <output delimiter> <highlight item> <list>\n"
+  exit 1
+}
+
+input_delimiter="$1"
+output_delimiter="$2"
+highlight_item="$3"
+input_list="$4"
+fmt_highlight="${FMT_HIGHLIGHT:-"$5"}"
+fmt_normal="${FMT_NORMAL:-"$6"}"
+
+pout-split "$input_delimiter" "$output_delimiter" "$input_list" |
+  sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${fmt_highlight}${highlight_item}${fmt_normal}\3/"

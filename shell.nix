@@ -1,7 +1,8 @@
-# {pkgs ? import <nixpkgs> {config.allowUnfree = true;}}:
-{pkgs}:
+{pkgs ? import <nixpkgs> {config.allowUnfree = true;}}:
 pkgs.mkShell {
   buildInputs = with pkgs; [
+    vscodium-fhs
+    getoptions
     pre-commit
     eza
     bat
@@ -64,12 +65,12 @@ pkgs.mkShell {
   shellHook = ''
     #@ Show the system info
     fastfetch
-
-    #@ Open the DOTS directory in the editor
-    if [ -n "$DISPLAY" ]; then
-      "$VISUAL" "$DOTS"
-    else
-      "$EDITOR" "$DOTS"
-    fi
+    ede
   '';
 }
+# #@ Open the DOTS directory in the editor
+# if [ -n "$DISPLAY" ]; then
+#   "$VISUAL" "$DOTS"
+# else
+#   "$EDITOR" "$DOTS"
+# fi

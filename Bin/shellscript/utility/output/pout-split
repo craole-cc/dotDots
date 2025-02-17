@@ -1,0 +1,27 @@
+#!/bin/sh
+
+#DOC Convert a delimited string to use a output delimiter
+#DOC
+#DOC Arguments:
+#DOC   $1 - The input delimiter to be replaced
+#DOC   $2 - The output delimiter to replace with
+#DOC   $* - The string to be processed
+#DOC
+#DOC Output:
+#DOC   Prints the modified string with the output delimiter
+#DOC
+#DOC Example:
+#DOC   pout_split " " "," "a b c"
+#DOC   Output: a,b,c
+
+[ "$#" -eq 3 ] || {
+  printf "Usage: pout_split <input delimiter> <output delimiter> <string>\n"
+  return 1
+}
+
+input_delimiter="$1"
+output_delimiter="$2"
+shift 2
+printf "%s" "$*" |
+  sed "s/^$input_delimiter//" |
+  sed "s/$input_delimiter/$output_delimiter/g"
