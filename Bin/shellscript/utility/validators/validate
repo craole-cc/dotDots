@@ -72,6 +72,10 @@ while [ $# -gt 0 ]; do
     __type="list"
     __value="$2"
     __list="$3"
+    [ "$4" ] && {
+      __delim="$4"
+      shift
+    }
     shift 2
     ;;
   -*)
@@ -138,7 +142,18 @@ string)
   ;;
 
 list)
-  printf "%s" "$__list" | grep -q -w "$__value" || exit 1
+  list_contains_set() {
+    old_IFS="$IFS"
+    IFS="${3:-' '}"
+    # shellcheck disable=SC2086
+    set -- $1
+    IFS="$old_IFS"
+
+    for word; do [ "$word" = "$2" ] && return 0; done
+    return 1
+  }
+
+  list_contains_set "$__list" "$__value" "$__delim" || exit 1
   ;;
 esac
 
