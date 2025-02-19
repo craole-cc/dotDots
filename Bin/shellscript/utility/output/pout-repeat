@@ -252,40 +252,26 @@ pout_case() {
 
 pout_guide() {
   #| Global Defaults
+  __guide_pad_pat=" "
   __guide_pad_rep=2
   __guide_buf_rep=1
-  __guide_buf_pat=" "
   __guide_sep_rep=3
   __guide_sep_pat="*"
   __guide_line_rep=1
   __guide_line_pat="\n"
   __guide_section="section"
-
-  #| Section Header Defaults
-  __header_case="upper"
-  __header_pout=""
-  __header_head_line_rep=1
-  __header_head_line_pat="$__guide_line_pat"
-  __header_head_pad_rep="$__guide_pad_rep"
-  __header_head_pad_pat="$__guide_buf_pat"
-  __header_head_sep_rep="$__guide_sep_rep"
-  __header_head_sep_pat="$__guide_sep_pat"
-  __header_head_buf_rep="$__guide_buf_rep"
-  __header_head_buf_pat="$__guide_buf_pat"
-  __header_tail_buf_rep="$__guide_buf_rep"
-  __header_tail_buf_pat="$__guide_buf_pat"
-  __header_tail_sep_rep="$__guide_sep_rep"
-  __header_tail_sep_pat="$__guide_sep_pat"
-  __header_tail_pad_rep="$__guide_pad_rep"
-  __header_tail_pad_pat="$__guide_buf_pat"
-  __header_tail_line_rep="$__guide_line_rep"
-  __header_tail_line_pat="$__guide_line_pat"
+  __info_sep="\n"
+  __info_pad=6
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --section) __section="$2" ;;
     --name) __name_pout="$2" ;;
-    --info) __info_pout="$2" ;;
+    --info)
+      shift
+      #TODO
+      __info_pout="${__info_pout:+$__info_pout${__info_sep}$(pout_repeat "" "${__info_pad}")}$1"
+      ;;
     --name-head-line-rep) __name_head_line_rep="$2" ;;
     --name-head-line-pat) __name_head_line_pat="$2" ;;
     --head* | --tit*)
@@ -307,42 +293,54 @@ pout_guide() {
 
   case "${__section:-$__guide_section}" in
   section)
-    __name_case="${__name_case:-"$__header_case"}"
+    #| Name
     __name_pout="${__name_pout:-"$__header_pout"}"
+    __name_case="${__name_case:-"$__header_case"}"
+
     __name_head_line_rep="${__name_head_line_rep:-1}"
     __name_head_line_pat="${__name_head_line_pat:-"$__guide_line_pat"}"
-    __name_head_pad_rep="${__name_head_pad_rep:-"$((__guide_pad_rep - 0))"}"
-    __name_head_pad_pat="${__name_head_pad_pat:-"$__header_head_pad_pat"}"
-    __name_head_sep_rep="${__name_head_sep_rep:-"$__header_head_sep_rep"}"
-    __name_head_sep_pat="${__name_head_sep_pat:-"$__header_head_sep_pat"}"
-    __name_head_buf_rep="${__name_head_buf_rep:-"$__header_head_buf_rep"}"
-    __name_head_buf_pat="${__name_head_buf_pat:-"$__header_head_buf_pat"}"
-    __name_tail_buf_rep="${__name_tail_buf_rep:-"$__header_tail_buf_rep"}"
-    __name_tail_buf_pat="${__name_tail_buf_pat:-"$__header_tail_buf_pat"}"
-    __name_tail_sep_rep="${__name_tail_sep_rep:-"$__header_tail_sep_rep"}"
-    __name_tail_sep_pat="${__name_tail_sep_pat:-"$__header_tail_sep_pat"}"
-    __name_tail_pad_rep="${__name_tail_pad_rep:-"$__header_tail_pad_rep"}"
-    __name_tail_pad_pat="${__name_tail_pad_pat:-"$__header_tail_pad_pat"}"
-    __name_tail_line_rep="${__name_tail_line_rep:-"$__header_tail_line_rep"}"
-    __name_tail_line_pat="${__name_tail_line_pat:-"$__header_tail_line_pat"}"
 
+    __name_head_pad_rep="${__name_head_pad_rep:-"$((__guide_pad_rep - 0))"}"
+    __name_head_pad_pat="${__name_head_pad_pat:-"$__guide_pad_pat"}"
+    __name_tail_pad_rep="${__name_tail_pad_rep:-"$((__guide_pad_rep - 0))"}"
+    __name_tail_pad_pat="${__name_tail_pad_pat:-"$__guide_pad_pat"}"
+
+    __name_head_sep_rep="${__name_head_sep_rep:-3}"
+    __name_head_sep_pat="${__name_head_sep_pat:-"*"}"
+    __name_tail_sep_rep="${__name_tail_sep_rep:-3}"
+    __name_tail_sep_pat="${__name_tail_sep_pat:-"*"}"
+
+    __name_head_buf_rep="${__name_head_buf_rep:-"$((__guide_buf_rep - 0))"}"
+    __name_head_buf_pat="${__name_head_buf_pat:-"$__guide_buf_pat"}"
+    __name_tail_buf_rep="${__name_tail_buf_rep:-"$((__guide_buf_rep - 0))"}"
+    __name_tail_buf_pat="${__name_tail_buf_pat:-"$__guide_buf_pat"}"
+
+    __name_tail_line_rep="${__name_tail_line_rep:-"$((__guide_line_rep - 1))"}"
+    __name_tail_line_pat="${__name_tail_line_pat:-"$__guide_line_pat"}"
+
+    #| Info
     __info_pout="${__info_pout:-"$__info_pout"}"
-    __info_head_line_rep="${__info_head_line_rep:-"0"}"
-    __info_head_line_pat="${__info_head_line_pat:-"\\n"}"
-    __info_head_pad_rep="${__info_head_pad_rep:-"$((__guide_pad_rep + 2))"}"
-    __info_head_pad_pat="${__info_head_pad_pat:-"$___head_pad_pat"}"
+
+    __info_head_line_rep="${__info_head_line_rep:-"$((__guide_line_rep + 0))"}"
+    __info_head_line_pat="${__info_head_line_pat:-"$__guide_line_pat"}"
+
+    __info_head_pad_rep="${__info_head_pad_rep:-"$((__guide_pad_rep + 4))"}"
+    __info_head_pad_pat="${__info_head_pad_pat:-"$__guide_pad_pat"}"
+    __info_tail_pad_rep="${__info_tail_pad_rep:-"$((__guide_pad_rep - 0))"}"
+    __info_tail_pad_pat="${__info_tail_pad_pat:-"$__guide_pad_pat"}"
+
     __info_head_sep_rep="${__info_head_sep_rep:-0}"
     __info_head_sep_pat="${__info_head_sep_pat:-""}"
-    __info_head_buf_rep="${__info_head_buf_rep:-0}"
-    __info_head_buf_pat="${__info_head_buf_pat:-""}"
-    __info_tail_buf_rep="${__info_tail_buf_rep:-0}"
-    __info_tail_buf_pat="${__info_tail_buf_pat:-""}"
     __info_tail_sep_rep="${__info_tail_sep_rep:-0}"
     __info_tail_sep_pat="${__info_tail_sep_pat:-""}"
-    __info_tail_pad_rep="${__info_tail_pad_rep:-0}"
-    __info_tail_pad_pat="${__info_tail_pad_pat:-""}"
-    __info_tail_line_rep="${__info_tail_line_rep:-1}"
-    __info_tail_line_pat="${__info_tail_line_pat:-"\\n"}"
+
+    __info_head_buf_rep="${__info_head_buf_rep:-"$((__guide_buf_rep - 0))"}"
+    __info_head_buf_pat="${__info_head_buf_pat:-"$__guide_buf_pat"}"
+    __info_tail_buf_rep="${__info_tail_buf_rep:-"$((__guide_buf_rep - 0))"}"
+    __info_tail_buf_pat="${__info_tail_buf_pat:-"$__guide_buf_pat"}"
+
+    __info_tail_line_rep="${__info_tail_line_rep:-"$((__guide_line_rep + 0))"}"
+    __info_tail_line_pat="${__info_tail_line_pat:-"$__guide_line_pat"}"
     ;;
   esac
 
