@@ -1,0 +1,168 @@
+#!/bin/sh
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+}
+
+set_defaults() {
+  scr_name=pout-repeat
+  scr_version=0.2
+  src_description="Prints a character or pattern a specified number of times"
+  scr_usage="Usage: $scr_name <REPS> <CHAR> (use --help for detailed guide)"
+  scr_guide="$(print_guide)"
+  exit_code=0
+  expected_args=2
+  pad=2
+}
+
+is_valid_num() {
+  validate --positive "$1" >/dev/null 2>&1
+}
+
+print_padded() {
+  is_valid_num "$2" && pad="$2"
+  printf "%*s%s" "${pad:-4}" "" "$1"
+}
+
+print_section() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --head*)
+      pad=2
+      sep=":-"
+      printf "\n%s%s\n" "$(print_padded "$2" "$pad")" "$sep"
+      ;;
+    --info*)
+      pad=4
+      printf "%*s%s\n" "$pad" "" "$2"
+      ;;
+    esac
+    shift
+  done
+}
+
+print_guide() {
+  printf "%s [ v.%s]\n" "$scr_name" "$scr_version"
+  print_section \
+    --head "Description" \
+    --info "$src_description"
+  print_section \
+    --head "Arguments" \
+    --info "-r --reps  <REPS>    Times to repeat the pattern" \
+    --info "-p --char  <CHAR>    Character/pattern to repeat" \
+    --info "-l --line  [REPS]    Template: blank lines (Default: 1)" \
+    --info "-s --space [REPS]    Template: whitespaces (Default: 1)"
+
+  print_section \
+    --head "Parameters" \
+    --info "REPS  Positive integer (eg. 1, 2, 15, etc)" \
+    --info "CHAR  Any character or pattern (eg. *, -_, \\n, \\t, etc)"
+  exit 0
+}
+
+print_usage() {
+  exit_code=1
+
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --args)
+      msg="$(
+        printf "Incorrect number of arguments. " >&2
+        printf "Expected at least %s but got %s\n" "$expected_args" "$2" >&2
+      )"
+      ;;
+    --pos)
+      msg="$(
+        printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+      )"
+      ;;
+    --reps)
+      msg="$(printf "Number of repetitions not defined\n" >&2)"
+      ;;
+    *) exit_code="$1" ;;
+    esac
+    shift
+  done
+
+  if [ "$exit_code" -gt 0 ] && [ -n "$msg" ]; then
+    printf "ERROR: %s\n%s" "$msg" "$scr_usage" >&2
+  else
+    printf "%s" "$scr_usage"
+  fi
+
+  exit "$exit_code"
+}
+
+execute_process() {
+  reps=$1
+  char=$2
+  i=0
+  while [ "$i" -lt "$reps" ]; do
+    #@ Use %b to interpret escape sequences
+    printf "%b" "$char"
+    i=$((i + 1))
+  done
+}
+
+parse_arguments() {
+  #@ Script Options
+  for arg in "$@"; do
+    case "$arg" in
+    -h) print_usage 0 ;;
+    --help) print_guide ;;
+    esac
+  done
+
+  #@ Ensure a valid number of args is providied
+  [ "$#" -ge "$expected_args" ] || print_usage --args "$#"
+
+  #@ Process Options
+  while [ "$#" -ge "$expected_args" ]; do
+    case "$1" in
+    -n | -*num | -r | -*rep*)
+      is_valid_num "$2" || print_usage --reps
+      reps="$2"
+      shift
+      ;;
+    -p | --pattern | -c | --char)
+      [ "$2" ] || print_usage --args
+      char="$2"
+      shift
+      ;;
+    -l | --line)
+      char="\n"
+      rep=1
+      is_valid_num "$2" && rep="$2"
+      return
+      ;;
+    -s | --space)
+      char=" "
+      rep=1
+      is_valid_num "$2" && rep="$2"
+      return
+      ;;
+    *)
+      #@ Handle positional arguments
+      if [ -z "$reps" ] && [ -z "$char" ]; then
+        if is_valid_num "$1"; then
+          char="$2"
+          reps="$1"
+        elif is_valid_num "$2"; then
+          char="$1"
+          reps="$2"
+        fi
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  [ "$reps" ] || print_usage --reps
+  [ "$char" ] || print_usage --pattern
+  # Ensure both arguments are provided
+  echo "REPS: $reps CHAR: $char"
+
+}
+
+main "$@"

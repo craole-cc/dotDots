@@ -5,30 +5,30 @@
 #   )"
 
 # Text Color Red text pop
-# embellish --center --fg-red --fg-blue --bg-yellow --underline center --simulate --fg-yellow pop
-# embellish --fg-red --fg-blue --bg-yellow --underline --center middle  --reset --new-line --fg-yellow pop --new-line --reset
-
-# embellish \
-# embellish --verbose \
-#   Before \
-#   --new-line --fg-red --magenta \
-#   "Add embellishments to this text" \
-#   --space "including spaces," \
-#   --new-line "new lines," \
-#   --space --green "and other " \
-#   --bg-blue --underline "embellishments such as " \
-#   --bold \
-#   BOLD -s and \
-#   --reset --space  --cyan --bg-black --italic italic \
-#   --reset --new-line \
-#   After \
-#   --reset --new-line
+embellish --center --fg-red --fg-blue --bg-yellow --underline center --simulate --fg-yellow pop
+embellish --fg-red --fg-blue --bg-yellow --underline --center middle  --reset --new-line --fg-yellow pop --new-line --reset
 
 embellish \
-	--yellow "$(x1 -d --lpad "[" --rpad "]" CENTERFOLD)" --reset --new-line \
-	--fg-cyan --italic "$(x1 --right "right" --pad "*")" --reset --new-line \
-	--green --underline "$(x1 --left "left")" --reset --new-line \
-	--fg-blue --bg-magenta "$(x1 --left " HEADING 1")" --reset --new-line
+embellish --verbose \
+  Before \
+  --new-line --fg-red --magenta \
+  "Add embellishments to this text" \
+  --space "including spaces," \
+  --new-line "new lines," \
+  --space --green "and other " \
+  --bg-blue --underline "embellishments such as " \
+  --bold \
+  BOLD -s and \
+  --reset --space  --cyan --bg-black --italic italic \
+  --reset --new-line \
+  After \
+  --reset --new-line
+
+# embellish \
+# 	--yellow "$(x1 -d --lpad "[" --rpad "]" CENTERFOLD)" --reset --new-line \
+# 	--fg-cyan --italic "$(x1 --right "right" --pad "*")" --reset --new-line \
+# 	--green --underline "$(x1 --left "left")" --reset --new-line \
+# 	--fg-blue --bg-magenta "$(x1 --left " HEADING 1")" --reset --new-line
 
 # printf "\nBefore\n"
 # printf "\033[9m"
