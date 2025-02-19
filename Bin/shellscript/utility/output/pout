@@ -370,10 +370,12 @@ parse_arguments() {
 			;;
 		-*type)
 			if [ "$2" ]; then
+				__msg_type="$(validate "$2" "$__msg_types")"
 				#@ Throw error if message type is invalid
-				validate "$2" "$__msg_types" || {
+				[ -n "$__msg_type" ] || {
 					templates --invalid "parse_arguments" "message type" "$2" "$__msg_types"
-					break
+					__code=1
+					exit "$__code"
 				}
 				shift
 			else
@@ -384,20 +386,24 @@ parse_arguments() {
 			fi
 			;;
 		-*lead*l* | --ll)
-			if [ -n "$2" ] && validate --integer "$2"; then
-				__lead_lines="$2"
+			__lead_lines=1
+			[ -n "$2" ] && {
+				__lead_lines="$(validate --integer "$2" || {
+					printf "ERROR: Invalid leading line count: %s\n" "$2"
+					exit "$__code"
+				})"
 				shift
-			else
-				__lead_lines=1
-			fi
+			}
 			;;
 		-*trail*l* | --tl)
-			if [ -n "$2" ] && validate --integer "$2"; then
-				__trail_lines="$2"
+			__trail_lines=1
+			[ -n "$2" ] && {
+				__trail_lines="$(validate --integer "$2" || {
+					printf "ERROR: Invalid trailing line count: %s\n" "$2"
+					exit "$__code"
+				})"
 				shift
-			else
-				__trail_lines=1
-			fi
+			}
 			;;
 		-*trail*s | --ts)
 			[ "$2" ] && {

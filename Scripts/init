@@ -82,6 +82,7 @@ manage_script() {
 			DOTS_MOD="$DOTS/Modules"
 			DOTS_DOT="$DOTS_MOD/global"
 			DOTS_NIX="$DOTS_MOD/nixos"
+			DOTS_NIX_QBX="$DOTS_NIX/configurations/hosts/qbx"
 			DOTS_RES="$DOTS/Resources"
 			DOTS_MOD_AUTOSTART="$DOTS_DOT/autostart"
 			DOTS_MOD_CONFIG="$DOTS_DOT/config"
@@ -109,7 +110,7 @@ manage_script() {
 			#@ Add the bin directory to the path
 			PATH="$(
 				eval "$DOTS_BIN_SH/utility/files/pathman" \
-					--append "$DOTS_BIN" --print
+					--append "$DOTS_BIN" "$DOTS_NIX_QBX/bin" --print
 			)"
 
 			#| Terminal Formatting Codes
@@ -199,15 +200,26 @@ manage_script() {
 				fi
 			)"
 			FMT_NORMAL="$FMT_RESET"
-			FMT_EMPHASIS="${FMT_EMPHASIS:-"${FMT_BOLD}${FMT_ITALIC}"}"
-			FMT_HIGHLIGHT="${FMT_HIGHLIGHT:-"${FMT_BOLD}${FMT_UNDERLINE}"}"
-			FMT_FAILURE="${FMT_FAILURE:-"${FMT_RED}${FMT_BOLD}"}"
-			FMT_SUCCESS="${FMT_SUCCESS:-"${FMT_GREEN}${FMT_BOLD}"}"
-			FMT_ERROR="${FMT_ERROR:-"$FMT_FAILURE"}"
-			FMT_WARN="${FMT_WARN:-"${FMT_YELLOW}${FMT_BOLD}"}"
-			FMT_INFO="${FMT_INFO:-"${FMT_BLUE}${FMT_BOLD}"}"
-			FMT_DEBUG="${FMT_DEBUG:-"${FMT_CYAN}${FMT_BOLD}"}"
-			FMT_TRACE="${FMT_TRACE:-"${FMT_MAGENTA}${FMT_BOLD}"}"
+			FMT_EMPHASIS="${FMT_EMPHASIS:-"${FMT_NORMAL}${FMT_BOLD}${FMT_ITALIC}"}"
+			FMT_HIGHLIGHT="${FMT_HIGHLIGHT:-"${FMT_NORMAL}${FMT_BOLD}${FMT_UNDERLINE}"}"
+			FMT_FAILURE="${FMT_FAILURE:-"${FMT_NORMAL}${FMT_RED}${FMT_BOLD}"}"
+			FMT_SUCCESS="${FMT_SUCCESS:-"${FMT_NORMAL}${FMT_GREEN}${FMT_BOLD}"}"
+			FMT_ERROR="${FMT_ERROR:-"${FMT_NORMAL}$FMT_FAILURE"}"
+			FMT_WARN="${FMT_WARN:-"${FMT_NORMAL}${FMT_YELLOW}${FMT_BOLD}"}"
+			FMT_INFO="${FMT_INFO:-"${FMT_NORMAL}${FMT_BLUE}${FMT_BOLD}"}"
+			FMT_DEBUG="${FMT_DEBUG:-"${FMT_NORMAL}${FMT_CYAN}${FMT_BOLD}"}"
+			FMT_TRACE="${FMT_TRACE:-"${FMT_NORMAL}${FMT_MAGENTA}${FMT_BOLD}"}"
+			FMT_RED="${FMT_NORMAL}${FMT_RED}"
+			FMT_GREEN="${FMT_NORMAL}${FMT_GREEN}"
+			FMT_YELLOW="${FMT_NORMAL}${FMT_YELLOW}"
+			FMT_BLUE="${FMT_NORMAL}${FMT_BLUE}"
+			FMT_MAGENTA="${FMT_NORMAL}${FMT_MAGENTA}"
+			FMT_CYAN="${FMT_NORMAL}${FMT_CYAN}"
+			FMT_WHITE="${FMT_NORMAL}${FMT_WHITE}"
+			FMT_BOLD="${FMT_NORMAL}${FMT_BOLD}"
+			FMT_ITALIC="${FMT_NORMAL}${FMT_ITALIC}"
+			FMT_UNDERLINE="${FMT_NORMAL}${FMT_UNDERLINE}"
+			FMT_BLINK="${FMT_NORMAL}${BLINK}"
 			readonly FMT_RED FMT_GREEN FMT_YELLOW FMT_BLUE FMT_MAGENTA FMT_CYAN FMT_WHITE FMT_ITALIC FMT_BOLD FMT_UNDERLINE FMT_RESET FMT_NORMAL FMT_EMPHASIS FMT_HIGHLIGHT
 			unset __tput
 			set +o allexport
@@ -842,7 +854,7 @@ util_functions() {
 		fi
 	}
 
-	reppat() {
+	reppatX() {
 		#DOC Repeat a pattern a specified number of times
 		#DOC Args:
 		#DOC   --reps <int>     Number of times to repeat the pattern (must be a positive integer)
@@ -855,11 +867,11 @@ util_functions() {
 
 		_repeat_pattern() {
 			reps=$1
-			pattern=$2
+			char=$2
 			i=0
 			while [ "$i" -lt "$reps" ]; do
 				#@ Use %b to interpret escape sequences
-				printf "%b" "$pattern"
+				printf "%b" "$char"
 				i=$((i + 1))
 			done
 		}
@@ -874,7 +886,7 @@ util_functions() {
 			#? $4 is the pattern argument
 			[ "$2" -eq "$2" ] && _repeat_pattern "$2" "$4"
 			;;
-		--pattern)
+		-p | --pattern | -c | --char)
 			#@ Validate --pattern argument
 			if [ -z "$2" ]; then
 				printf "ERROR: --pattern requires a string argument\n" >&2

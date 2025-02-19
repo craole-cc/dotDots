@@ -6,7 +6,7 @@ main() {
 	#@ Set defaults
 	set_defaults
 
-	listman --test && return
+	# listman --test && return
 
 	#@ Parse arguments
 	parse_arguments "$@"
@@ -992,7 +992,7 @@ set_expiry_date() {
 			value=$(printf "%s" "$generations" | sed 's/[hdwmy]$//')
 			unit=$(printf "%s" "$generations" | sed 's/.*\(.\)$/\1/')
 			seconds=$(convert_to_seconds "$value" "$unit")
-			cutoff_date=$(date -d "@$(expr $(date +%s) - $seconds)" +%Y-%m-%d)
+			cutoff_date=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
 			num_generations=$(nix-env --list-generations |
 				awk -v cutoff="$cutoff_date" '$1 > cutoff {count++} END {print count}')
 			;;
@@ -1000,7 +1000,7 @@ set_expiry_date() {
 			value=$(printf "%s" "$generations" | cut -d' ' -f1)
 			unit=$(printf "%s" "$generations" | cut -d' ' -f2 | sed 's/s$//')
 			seconds=$(convert_to_seconds "$value" "$unit")
-			cutoff_date=$(date -d "@$(expr $(date +%s) - $seconds)" +%Y-%m-%d)
+			cutoff_date=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
 			num_generations=$(nix-env --list-generations |
 				awk -v cutoff="$cutoff_date" '$1 > cutoff {count++} END {print count}')
 			;;
@@ -1024,12 +1024,12 @@ set_expiry_date() {
 				value=$(printf "%s" "$generations" | sed 's/[hdwmy]$//')
 				unit=$(printf "%s" "$generations" | sed 's/.*\(.\)$/\1/')
 				seconds=$(convert_to_seconds "$value" "$unit")
-				target_timestamp=$(date -d "@$(expr $(date +%s) - $seconds)" +%Y-%m-%d)
+				target_timestamp=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
 			elif printf "%s" "$generations" | grep -q " "; then
 				value=$(printf "%s" "$generations" | cut -d' ' -f1)
 				unit=$(printf "%s" "$generations" | cut -d' ' -f2 | sed 's/s$//')
 				seconds=$(convert_to_seconds "$value" "$unit")
-				target_timestamp=$(date -d "@$(expr $(date +%s) - $seconds)" +%Y-%m-%d)
+				target_timestamp=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
 			else
 				target_timestamp="$generations"
 			fi
@@ -1059,7 +1059,7 @@ gc_nix() {
 		expiry_date=$(set_expiry_date "$generations")
 
 		if [ "$expiry_date" ]; then
-			opt="--delete-older-than "$expiry_date""
+			opt="--delete-older-than $expiry_date"
 		else
 			opt="--delete-old"
 		fi
