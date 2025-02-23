@@ -35,7 +35,7 @@ set_defaults() {
 	verbosity=2
 	debug=""
 	gen_date_or_count=0
-	delimiter="$(printf '\037')"
+	delimiter="$(printf '\003')"
 
 	#@ Define the default  applications to collect garbage from
 	garbage_list=""

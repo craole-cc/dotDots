@@ -7,6 +7,7 @@ pkgs.mkShell {
     eza
     bat
     fd
+    btop
     ripgrep
     fzf
     lsd
@@ -31,6 +32,21 @@ pkgs.mkShell {
     just
     powershell
     bashInteractive
+    glib
+
+    #| Languages
+    python314
+    rustup
+    coreutils-prefixed
+    ruby
+    php
+    nodejs-slim_latest
+    pnpm
+
+    #| Image Tools
+    viu
+    imv
+    sxiv
 
     #| Formatters
     treefmt2
@@ -64,13 +80,7 @@ pkgs.mkShell {
 
   shellHook = ''
     #@ Show the system info
-    fastfetch
-    ede
+    # fastfetch
+    # ede
   '';
 }
-# #@ Open the DOTS directory in the editor
-# if [ -n "$DISPLAY" ]; then
-#   "$VISUAL" "$DOTS"
-# else
-#   "$EDITOR" "$DOTS"
-# fi

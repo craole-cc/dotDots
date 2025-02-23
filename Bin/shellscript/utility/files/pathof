@@ -117,22 +117,22 @@ execute_process() {
 }
 
 prep_lookup() {
-	#doc Description
-	#doc Parse arguments, resolve the given pattern to an absolute path if it is relative,
-	#doc and return the resolved path. Otherwise, return the original pattern.
-	#doc
-	#doc Usage
-	#doc prep_lookup [options] pattern
-	#doc
-	#doc Options
-	#doc -c, --cwd cwd    The current working directory to resolve the pattern in.
-	#doc
-	#doc Examples
-	#doc    prep_lookup -c /usr/share/icons foo.png
-	#doc    $(pwd)/foo.png
-	#doc
-	#doc    prep_lookup ./usr/share/icons/foo.png
-	#doc    /usr/share/icons/foo.png${reset}
+	#DOC Description
+	#DOC Parse arguments, resolve the given pattern to an absolute path if it is relative,
+	#DOC and return the resolved path. Otherwise, return the original pattern.
+	#DOC
+	#DOC Usage
+	#DOC prep_lookup [options] pattern
+	#DOC
+	#DOC Options
+	#DOC -c, --cwd cwd    The current working directory to resolve the pattern in.
+	#DOC
+	#DOC Examples
+	#DOC    prep_lookup -c /usr/share/icons foo.png
+	#DOC    $(pwd)/foo.png
+	#DOC
+	#DOC    prep_lookup ./usr/share/icons/foo.png
+	#DOC    /usr/share/icons/foo.png${reset}
 
 	#@ Parse arguments
 	while [ "$#" -ge 1 ]; do
@@ -161,14 +161,14 @@ prep_lookup() {
 }
 
 search_exe() {
-	#doc Check if a command exists in the system's PATH and return its path if found.
-	#doc
-	#doc Usage: search_exe <pattern>
-	#doc
-	#doc Description:
-	#doc   This function searches for a command by name (pattern) in the system's PATH
-	#doc   using the 'command -v' utility. If the command is found, the function returns
-	#doc   the path to the executable. Otherwise, it returns nothing.
+	#DOC Check if a command exists in the system's PATH and return its path if found.
+	#DOC
+	#DOC Usage: search_exe <pattern>
+	#DOC
+	#DOC Description:
+	#DOC   This function searches for a command by name (pattern) in the system's PATH
+	#DOC   using the 'command -v' utility. If the command is found, the function returns
+	#DOC   the path to the executable. Otherwise, it returns nothing.
 
 	command -v "$pattern" >/dev/null 2>&1 &&
 		command -v "$pattern"
@@ -385,18 +385,18 @@ limit_list() {
 }
 
 search_fs() {
-	#doc Search the filesystem for a pattern in both directions from the
-	#doc current working directory, and return the list of paths.
-	#doc
-	#doc Usage: search_fs [--cwd <directory>] <pattern>
-	#doc
-	#doc Options:
-	#doc   --cwd: Set the current working directory to <directory>. If not provided,
-	#doc          the current working directory is used.
-	#doc
-	#doc Examples:
-	#doc   search_fs --cwd /home/user test.txt
-	#doc   search_fs test.txt
+	#DOC Search the filesystem for a pattern in both directions from the
+	#DOC current working directory, and return the list of paths.
+	#DOC
+	#DOC Usage: search_fs [--cwd <directory>] <pattern>
+	#DOC
+	#DOC Options:
+	#DOC   --cwd: Set the current working directory to <directory>. If not provided,
+	#DOC          the current working directory is used.
+	#DOC
+	#DOC Examples:
+	#DOC   search_fs --cwd /home/user test.txt
+	#DOC   search_fs test.txt
 
 	#@ Parse arguments
 	while [ "$#" -ge 1 ]; do
@@ -412,19 +412,19 @@ search_fs() {
 	[ "$cwd" ] || cwd="$(pwd)"
 
 	search_fs__downwards() {
-		#doc Search for a pattern in the directory tree below the given directory,
-		#doc recursively. The search is case-sensitive. The search is performed
-		#doc downwards from the given directory, and the paths are returned as absolute
-		#doc paths.
-		#doc
-		#doc Usage: search_fs__downwards <directory> <pattern>
-		#doc
-		#doc Options:
-		#doc   <directory>: The directory to start the search from.
-		#doc   <pattern>: The pattern to search for.
-		#doc
-		#doc Notes:
-		#doc   The function returns nothing if the pattern is not found.
+		#DOC Search for a pattern in the directory tree below the given directory,
+		#DOC recursively. The search is case-sensitive. The search is performed
+		#DOC downwards from the given directory, and the paths are returned as absolute
+		#DOC paths.
+		#DOC
+		#DOC Usage: search_fs__downwards <directory> <pattern>
+		#DOC
+		#DOC Options:
+		#DOC   <directory>: The directory to start the search from.
+		#DOC   <pattern>: The pattern to search for.
+		#DOC
+		#DOC Notes:
+		#DOC   The function returns nothing if the pattern is not found.
 
 		dir="$1"
 		target="$2"
@@ -452,14 +452,14 @@ search_fs() {
 	}
 
 	search_fs__upwards() {
-		#doc Search for the pattern in the current working directory and upwards.
-		#doc
-		#doc Usage: search_fs__upwards
-		#doc
-		#doc Description:
-		#doc   This function searches for the given pattern in the current working directory
-		#doc   and upwards. It runs search_fs__downwards in a loop until it reaches the root
-		#doc   directory, at which point it stops.
+		#DOC Search for the pattern in the current working directory and upwards.
+		#DOC
+		#DOC Usage: search_fs__upwards
+		#DOC
+		#DOC Description:
+		#DOC   This function searches for the given pattern in the current working directory
+		#DOC   and upwards. It runs search_fs__downwards in a loop until it reaches the root
+		#DOC   directory, at which point it stops.
 
 		dir="$1"
 		target="$2"
@@ -472,18 +472,18 @@ search_fs() {
 	}
 
 	search_fs__closest() {
-		#doc   Return the closest match to the current directory.
-		#doc
-		#doc   This function takes a list of paths and returns the closest one to the current directory.
-		#doc   The algorithm works as follows:
-		#doc
-		#doc   1. Print each file path with its level of nesting (NF-1)
-		#doc   2. Sort the file list by nesting level
-		#doc   3. Remove the nesting level from each line
-		#doc   4. Select the first item (i.e. the file closest to the current directory)
-		#doc
-		#doc   The closest file is defined as the file with the lowest nesting level. If two files have
-		#doc   the same nesting level, the first one is returned.
+		#DOC   Return the closest match to the current directory.
+		#DOC
+		#DOC   This function takes a list of paths and returns the closest one to the current directory.
+		#DOC   The algorithm works as follows:
+		#DOC
+		#DOC   1. Print each file path with its level of nesting (NF-1)
+		#DOC   2. Sort the file list by nesting level
+		#DOC   3. Remove the nesting level from each line
+		#DOC   4. Select the first item (i.e. the file closest to the current directory)
+		#DOC
+		#DOC   The closest file is defined as the file with the lowest nesting level. If two files have
+		#DOC   the same nesting level, the first one is returned.
 
 		#@ Extract the desired path from the list
 		path="$(
@@ -523,19 +523,19 @@ search_fs() {
 }
 
 search_all() {
-	#doc Search for a pattern in the current directory, the filesystem, and in the PATH.
-	#doc
-	#doc Usage: search_all [--cwd <directory>] [--first | --closest] <pattern>
-	#doc
-	#doc Options:
-	#doc   --cwd: Set the current working directory to <directory>. If not provided,
-	#doc          the current working directory is used.
-	#doc   --first | --closest: Return the first match or the closest match to the
-	#doc                    current directory.
-	#doc
-	#doc Examples:
-	#doc   search_all --cwd /home/user --first test.txt
-	#doc   search_all --cwd /home/user --closest test.txt
+	#DOC Search for a pattern in the current directory, the filesystem, and in the PATH.
+	#DOC
+	#DOC Usage: search_all [--cwd <directory>] [--first | --closest] <pattern>
+	#DOC
+	#DOC Options:
+	#DOC   --cwd: Set the current working directory to <directory>. If not provided,
+	#DOC          the current working directory is used.
+	#DOC   --first | --closest: Return the first match or the closest match to the
+	#DOC                    current directory.
+	#DOC
+	#DOC Examples:
+	#DOC   search_all --cwd /home/user --first test.txt
+	#DOC   search_all --cwd /home/user --closest test.txt
 
 	#@ Parse arguments
 	while [ "$#" -ge 1 ]; do

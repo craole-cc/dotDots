@@ -87,7 +87,7 @@ establish_defaults() {
 	#| Verbosity
 	verbose=1
 
-	DELIMITER="$(printf '\037')"
+	delimiter="$(printf '\003')"
 
 	#| Paths
 	#TODO: this doesn't wor because it need eval

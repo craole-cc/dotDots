@@ -21,18 +21,17 @@
           ];
         };
       in {
-        # devShells.default = import ./shell.nix {inherit pkgs;};
         devShells.default = pkgs.mkShell {
           inputsFrom = [(import ./shell.nix {inherit pkgs;})];
 
-          shellHook = ''
-            # Original shell.nix shellHook
-            fastfetch
-            ede
+          # shellHook = ''
+          #   # Original shell.nix shellHook
+          #   fastfetch
+          #   ede
 
-            echo "Development environment loaded!"
-            echo "Neovim nightly is available as 'nvim'"
-          '';
+          #   echo "Development environment loaded!"
+          #   echo "Neovim nightly is available as 'nvim'"
+          # '';
         };
       }
     );

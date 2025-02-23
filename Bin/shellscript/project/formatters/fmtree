@@ -14,7 +14,7 @@ init_env() {
 	FMTREE_ARG="--allow-missing-formatter"
 	FMTREE_DRY=0
 	FMTREE_CI=1
-	DELIMITER="$(printf '\037')"
+	DELIMITER="$(printf '\003')"
 	IFS="$DELIMITER"
 	VERBOSITY="${VERBOSITY:-4}"
 }

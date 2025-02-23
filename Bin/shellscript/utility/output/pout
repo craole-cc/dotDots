@@ -1,538 +1,242 @@
 #!/bin/sh
+
+# Outputs log messages to console and/or file with various formatting options.
+# Arguments:
+#   --quiet            Suppress output.
+#   --error            Mark message as error level.
+#   --warn             Mark message as warning level.
+#   --info             Mark message as info level.
+#   --debug            Mark message as debug level.
+#   --trace            Mark message as trace level.
+#   --key <string>     Key for key-value pair in message.
+#   --val <string>     Value for key-value pair in message.
+#   --sep <string>     Separator for key-value pair.
+#   --lead <integer>   Number of leading blank lines.
+#   --trail <integer>  Number of trailing blank lines.
+#   --end             Ensure message is the last line output.
+#   --pad              Pad key-value pair for aligned output.
+#   --hide-level       Hide verbosity level in message.
+#   --hide-timestamp   Hide timestamp in message.
+#   --no-log           Do not log the message to a file.
+#   --log <file>       Log message to specified file.
+#   --msg <string>     Specify message to output.
+# Returns:
+#   0 - Success
+#   1 - Failure (invalid arguments or options)
+
 main() {
-	trap 'purge; exit "$__code" $__code' EXIT
+	trap 'purge_environment' EXIT
 	set_defaults
 	parse_arguments "$@"
-	execute
+	execute_process
 }
 
-purge() {
-	unset __code __stream
-	unset __color __title __tag __msg __msg_usage
-	unset __lead_sep __lead_lines __trail_sep __trail_lines
-	unset __level __level_quiet __level_error __level_warn __level_info __level_debug __level_trace
+purge_environment() {
+	#@ Establish defaults
+	unset msg key val
+	unset lvl hide_lvl
+	unset ln_lead ln_trail
+	unset pad sep
+	unset log
+	unset hide_time
+	unset target
+	unset ln_line
 }
 
 set_defaults() {
-	purge
-
-	#| Local Parameters
-	__code=0
-	__stream=1
-	__lead_sep=" >>> "
-	__trail_sep=" <<< "
-	__lead_lines=0
-	__trail_lines=0
-	__msg_types="success failure info information warn warning err error debug trace normal simple"
-	__msg_type="simple"
-	__msg_type_valid=0
-	__level_quiet="${VERBOSITY_LEVEL:-0}"
-	__level_error="${VERBOSITY_LEVEL_ERROR:-1}"
-	__level_warn="${VERBOSITY_LEVEL_WARN:-2}"
-	__level_info="${VERBOSITY_LEVEL_INFO:-3}"
-	__level_debug="${VERBOSITY_LEVEL_DEBUG:-4}"
-	__level_trace="${VERBOSITY_LEVEL_TRACE:-5}"
-	__level="${VERBOSITY_LEVEL:-$__level_info}"
-
-	#| Attributes
-	__normal=$(
-		tput sgr0 2>/dev/null ||
-			tput me 2>/dev/null ||
-			printf '%b' '\033[0m'
-	)
-	__bold=$(
-		tput bold 2>/dev/null ||
-			tput md 2>/dev/null ||
-			printf '%b' '\033[1m'
-	)
-	__underline=$(
-		tput smul 2>/dev/null ||
-			tput um 2>/dev/null ||
-			tput us 2>/dev/null ||
-			printf '%b' '\033[4m'
-	)
-	__italic=$(
-		tput sitm 2>/dev/null ||
-			tput it 2>/dev/null ||
-			tput ti 2>/dev/null ||
-			printf '%b' '\033[3m'
-	)
-	__blink=$(
-		tput blink 2>/dev/null ||
-			tput mb 2>/dev/null ||
-			printf '%b' '\033[5m'
-	)
-
-	#| Colors
-	__black=$(
-		tput setaf 0 2>/dev/null ||
-			printf '%b' '\033[30m'
-	)
-	__red=$(
-		tput setaf 1 2>/dev/null ||
-			printf '%b' '\033[31m'
-	)
-	__green=$(
-		tput setaf 2 2>/dev/null ||
-			printf '%b' '\033[32m'
-	)
-	__yellow=$(
-		tput setaf 3 2>/dev/null ||
-			printf '%b' '\033[33m'
-	)
-	__blue=$(
-		tput setaf 4 2>/dev/null ||
-			printf '%b' '\033[34m'
-	)
-	__magenta=$(
-		tput setaf 5 2>/dev/null ||
-			printf '%b' '\033[35m'
-	)
-	__cyan=$(
-		tput setaf 6 2>/dev/null ||
-			printf '%b' '\033[36m'
-	)
-	__white=$(
-		tput setaf 7 2>/dev/null ||
-			printf '%b' '\033[37m'
-	)
-
-	#| Templates with overrides
-	__black="${FMT_BLACK:-"$__black"}"
-	__red="${FMT_RED:-"$__red"}"
-	__green="${FMT_GREEN:-"$__green"}"
-	__yellow="${FMT_YELLOW:-"$__yellow"}"
-	__blue="${FMT_BLUE:-"$__blue"}"
-	__magenta="${FMT_MAGENTA:-"$__magenta"}"
-	__cyan="${FMT_CYAN:-"$__cyan"}"
-	__white="${FMT_WHITE:-"$__white"}"
-	__normal="${FMT_NORMAL:-"$__normal"}"
-	__bold="${FMT_BOLD:-"$__bold"}"
-	__italic="${FMT_ITALIC:-"$__italic"}"
-	__underline="${FMT_UNDERLINE:-"$__underline"}"
-	__blink="${FMT_BLINK:-"$__blink"}"
-	__reset="${FMT_RESET:-"$__normal"}"
-	__success="${FMT_SUCCESS:-"${__green}${__bold}"}"
-	__failure="${FMT_FAILURE:-"${__red}${__bold}"}"
-	__error="${FMT_ERROR:-"${__red}${__bold}"}"
-	__info="${FMT_INFO:-"${__blue}${__bold}"}"
-	__warn="${FMT_WARN:-"${__yellow}${__bold}"}"
-	__debug="${FMT_DEBUG:-"${__cyan}${__bold}"}"
-	__trace="${FMT_TRACE:-"${__magenta}${__bold}"}"
-	__highlight="${FMT_HIGHLIGHT:-"${__underline}${__bold}"}"
-	__emphasis="${FMT_EMPHASIS:-"${__italic}${__bold}"}"
+	purge_environment
+	ln_lead=0
+	ln_trail=1
+	delimiter="$(printf '\006')"
+	target="console${delimiter}log"
 }
 
-set_verbosity() {
-	#DOC Set the verbosity level based on command-line arguments
-	#DOC
-	#DOC Globals:
-	#DOC   VERBOSITY: The verbosity level to be set.
-	#DOC
-	#DOC Arguments:
-	#DOC   $@: The list of command-line arguments to parse.
-	#DOC
-	#DOC Returns:
-	#DOC   Sets the global variable 'verbosity' to one of the following values:
-	#DOC     0: quiet
-	#DOC     1: error
-	#DOC     2: warn
-	#DOC     3: info (normal)
-	#DOC     4: debug (verbose)
-	#DOC     5: trace
-
-	#@ Take defaults from system variables
-	_verbosity="${VERBOSITY:-"$VERBOSE"}"
-	_quiet="${SILENT:-"$QUIET"}"
-
-	#@ Take defaults from local variables
-	verbosity="${verbosity:-"$_verbosity"}"
-	quiet="${quiet:-"$_quiet"}"
-	case "${quiet:-"$_quiet"}" in true | 1 | on) verbosity=0 ;; esac
-
-	#@ Set verbosity based on arguments or defaults
-	case "${1:-"$verbosity"}" in
-	0 | quiet | false | off) verbosity=0 ;;
-	1 | error | fail*) verbosity=1 ;;
-	2 | warn*) verbosity=2 ;;
-	3 | info | normal) verbosity=3 ;;
-	4 | verbose | true | debug | on) verbosity=4 ;;
-	5 | trace) verbosity=5 ;;
-	*[0-9]* | *[0-9][0-9]*) verbosity="$1" ;;
-	*) verbosity=3 ;;
-	esac
+is_number() {
+	# validate --integer "$2" >/dev/null 2>&1
+	[ "$1" -eq "$1" ] 2>/dev/null
+}
+# sep="${__sep:-": "}"
+# padding="${__pad:-36}"
+# log="$DOTS_LOG_DOTS"
+parse_arguments() {
 
 	#@ Parse arguments
-	for arg in "$@"; do
-		case "$arg" in
-		-q | --quiet) verbosity=0 ;;
-		-qe | --error) verbosity=1 ;;
-		-qw | --warn*) verbosity=2 ;;
-		-i | --info | --normal) verbosity=3 ;;
-		-vv | --verbose | -d | --debug*) verbosity=4 ;;
-		-V | -[dD][dD] | -[tT] | --trace*) verbosity=5 ;;
-		esac
-	done
-
-	#@ Clamp values
-	[ "$verbosity" -gt 5 ] && verbosity=5
-	[ "$verbosity" -lt 0 ] && verbosity=0
-
-	#@ Return verbosity level
-	printf "%s" "$verbosity"
-}
-
-set_format() {
-	case "$1" in
-	black) printf "%s" "$__black" ;;
-	red) printf "%s" "$__red" ;;
-	green) printf "%s" "$__green" ;;
-	yellow) printf "%s" "$__yellow" ;;
-	blue) printf "%s" "$__blue" ;;
-	magenta) printf "%s" "$__magenta" ;;
-	cyan) printf "%s" "$__cyan" ;;
-	white) printf "%s" "$__white" ;;
-	bold) printf "%s" "$__bold" ;;
-	italic) printf "%s" "$__italic" ;;
-	underline) printf "%s" "$__underline" ;;
-	blink) printf "%s" "$__blink" ;;
-	success) printf "%s" "${__green}${__bold}" ;;
-	failure) printf "%s" "${__red}${__bold}" ;;
-	info) printf "%s" "${__blue}${__bold}" ;;
-	information) printf "%s" "${__blue}${__bold}" ;;
-	warn) printf "%s" "${__yellow}${__bold}" ;;
-	warning) printf "%s" "${__yellow}${__bold}" ;;
-	error) printf "%s" "${__red}${__bold}" ;;
-	debug) printf "%s" "${__magenta}${__bold}" ;;
-	trace) printf "%s" "${__cyan}${__bold}" ;;
-	highlight) printf "%s" "${__underline}${__bold}" ;;
-	emphasis) printf "%s" "${__italic}${__bold}" ;;
-	normal | reset) printf "%s" "$__normal" ;;
-	*) printf "%s" "$__normal" ;;
-	esac
-}
-
-list_options() {
-	#todo: improve with options
-	_list_options="$1"
-	_list_default="$2"
-	_list_delimiter="${3:- }"
-	_list_separator="${4:-, }"
-
-	printf "%s\n" "$_list_options" |
-		tr "$_list_delimiter" '\n' |
-		sort -u |
-		awk -v def="$_list_default" -v sep="$_list_separator" '
-        BEGIN {first=1} {
-          # Tag default option
-          if ($0 == def) $0 = $0 " [default]"
-
-          # Store in array
-          opts[NR] = $0
-        }
-        END {
-          # Join with custom separator and preserve existing colons
-          for (i=1; i<=NR; i++) {
-              printf "%s%s", (i>1 ? sep : ""), opts[i]
-          }
-          print ""
-        }
-      '
-}
-
-list_options() {
-	_list_options="$1"
-	_list_default="$2"
-	_list_delimiter="${3:- }"
-	_list_separator="${4:-, }"
-
-	printf "%s" "$_list_options" |
-		tr "$_list_delimiter" '\n' |
-		sort -u |
-		awk -v def="$_list_default" -v sep="$_list_separator" '
-    BEGIN { count = 0 }
-    {
-        # Tag the default option
-        if ($0 == def) {
-            $0 = $0 " [default]"
-        }
-        opts[++count] = $0
-    }
-    END {
-        if (count == 0) exit "$__code"
-        for (i = 1; i <= count; i++) {
-            if (i == count) {
-                #| Last item
-                if (count > 1) printf "or "
-                printf "%s", opts[i]
-            } else {
-                #| All items except last
-                printf "%s%s", opts[i], (i < count - 1 ? sep : sep)
-            }
-        }
-        printf "\n"
-    }'
-}
-
-templates() {
 	while [ "$#" -gt 0 ]; do
-		case "$1" in
-		--invalid)
-			shift
-
-			__msg_type="error"
-			__tag="$1"
-			_field="$2"
-			_option="$3"
-			_options="$4"
-			__msg="An invalid ${_field}, \"${__bold}${_option}${__normal},\" was provided. Instead, try one of the following: ${__italic}$(list_options "$_options")${__normal}."
-
-			# pout --name "$fn_name" --type "$log_type" --msg \
-			#   "An invalid ${field}," \
-			#   "\"${__bold}${given_option}\"${__normal}," \
-			#   "was provided. Instead, try any of the following:" \
-			#   "$__italic$(
-			#     list_options "$valid_options"
-			#   )$__normal."
-			;;
-		esac
-		shift
-	done
-}
-
-tests() {
-	# Test formatting capabilities
-	for color in black red green yellow blue magenta cyan white normal bold italic underline blink; do
-		printf "Testing color: %s\n" "$color"
-		set_format "$color"
-		printf "This is a test message for %s\n" "$color"
-		set_format normal # Reset to normal after each test
-	done
-
-	# Test usage and help messages
-	for command in detect_user detect_group validate_arguments initialize_script; do
-		printf "Testing help for command: %s\n" "$command"
-		help --tag "$command"
-	done
-
-	# Test default formatting variables
-	printf "Testing default formatting variables\n"
-	printf "%sSuccess message%s\n" "$__success" "$__normal"
-	printf "%sInfo message%s\n" "$__info" "$__normal"
-	printf "%sWarning message%s\n" "$__warn" "$__normal"
-	printf "%sDebug message%s\n" "$__debug" "$__normal"
-	printf "%sError message%s\n" "$__error" "$__normal"
-	printf "%sTrace message%s\n" "$__trace" "$__normal"
-	printf "%sBold message%s\n" "$__bold" "$__normal"
-	printf "%sItalic message%s\n" "$__italic" "$__normal"
-	printf "%sUnderline message%s\n" "$__underline" "$__normal"
-}
-
-parse_arguments() {
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-h)
-			printf '%s' "$scr_usage"
-			exit "$__code"
-			;;
-		--help)
-			printf '%s' "$scr_guide"
-			exit "$__code"
-			;;
-		-v)
-			printf '%s' "$scr_version"
-			exit "$__code"
-			;;
-		--version)
-			printf "%s [ v.%s ]\n" "$scr_name" "$scr_version"
-			exit "$__code"
-			;;
+		case $1 in
+		-h) show_info --usage ;;
+		--help) show_info --help ;;
+		-v | --version) show_info --version ;;
 		--quiet | --error | --warn | --info | --debug | --trace)
-			__msg_type=${1#--}
+			lvl=${1#--}
+			ln_trail=1
 			;;
-		-*level | -*verb*)
-			if [ "$2" ]; then
-				set_verbosity "$2"
-				shift
-			else
-				set_verbosity
-			fi
-			;;
-		-t | --tag | -N | --name)
-			if [ "$2" ]; then
-				__tag="$2"
-				shift
-			else
-				printf "ERROR: Tag not specified.\n"
-				__code=1
-				exit "$__code"
-			fi
-			;;
-		-*type)
-			if [ "$2" ]; then
-				__msg_type="$(validate "$2" "$__msg_types")"
-				#@ Throw error if message type is invalid
-				[ -n "$__msg_type" ] || {
-					templates --invalid "parse_arguments" "message type" "$2" "$__msg_types"
-					__code=1
-					exit "$__code"
-				}
-				shift
-			else
-				#@ Throw error if message type is not specified
-				pout --name "parse_arguments" --type error --msg "Message type not specified"
-				__code=1
-				exit "$__code"
-			fi
-			;;
-		-*lead*l* | --ll)
-			__lead_lines=1
-			[ -n "$2" ] && {
-				__lead_lines="$(validate --integer "$2" || {
-					printf "ERROR: Invalid leading line count: %s\n" "$2"
-					exit "$__code"
-				})"
-				shift
-			}
-			;;
-		-*trail*l* | --tl)
-			__trail_lines=1
-			[ -n "$2" ] && {
-				__trail_lines="$(validate --integer "$2" || {
-					printf "ERROR: Invalid trailing line count: %s\n" "$2"
-					exit "$__code"
-				})"
-				shift
-			}
-			;;
-		-*trail*s | --ts)
+		--hide-l*) hide_lvl=true ;;
+		--hide-t*) hide_time=true ;;
+		--hide-console | --log-only | --no-output | --no-print) target="log" ;;
+		--no-log | --print | --console-only) target="console" ;;
+		-L | --log)
 			[ "$2" ] && {
-				__trail_sep="$2"
+				validate_file --parent "$2" || return 1
+				log="$2"
 				shift
 			}
 			;;
-		-m | -*message | -*msg)
-			while [ "$#" -gt 1 ]; do
-				case "$2" in
-				-*) break ;;
-				*)
-					__msg="${__msg:+$__msg }$2"
-					shift
-					;;
-				esac
-			done
-			;;
-		-c | -*code)
-			if [ "$2" ]; then
-				__code="$2"
+		-b | -ll | --line-l* | --lead*l*)
+			if [ "$2" ] && is_number "$2"; then
+				ln_lead="$2"
 				shift
 			else
-				__code=1
+				ln_lead=1
 			fi
 			;;
-		--) ;;
-		-*)
-			printf 'ERROR: Unknown option '%s'\n' "$1" >&2
-			__code=1
-			exit "$__code"
+		-n | -lt | --line-t* | --lead*t*)
+			if is_number "$2"; then
+				ln_trail="$2"
+				shift
+			else
+				ln_trail=1
+			fi
+			;;
+		--key)
+			if [ "$2" ]; then
+				key="$2"
+				shift
+			else
+				pout --error "No key provided to --key"
+				return 1
+			fi
+			;;
+		--val)
+			if [ "$2" ]; then
+				val="$2"
+				shift
+			else
+				val="{ Missing Value }"
+				val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
+			fi
+			;;
+		--sep*)
+			if [ "$2" ]; then
+				sep="$2"
+				shift
+			else
+				pout --error "No separator provided to --sep"
+				return 1
+			fi
+			;;
+		-z | --end | --last*)
+			end=true
+			;;
+		--pad)
+			pad=true
+			[ "$2" ] && valid_number "$2" && {
+				pad="$2"
+				shift
+			}
+			;;
+		--delimiter)
+			list_delimiter="$2"
+			shift
+			;;
+		-m | --msg | --message)
+			[ "$2" ] && {
+				if [ "$msg" ]; then
+					msg="${msg}${delimiter}${2}"
+				else
+					msg="$2"
+				fi
+				shift
+			}
 			;;
 		*)
-			__msg="${__msg:+$__msg }$1"
+			if [ "$msg" ]; then
+				msg="$msg $1"
+			else
+				msg="$1"
+			fi
 			;;
 		esac
 		shift
 	done
 }
 
-print_blank() {
-	#DOC Prints blank lines to separate output messages.
-	#
-	#DOC Parameters:
-	#DOC   LINES: The number of blank lines to print.
-	#
-	#DOC Returns:
-	#DOC   None
-	#
-	#DOC Example:
-	#DOC   print_blank 2
-	#
-	#DOC Notes:
-	#DOC   The argument is optional and defaults to 1 if not provided.
+set_pair() {
+	#@ Update message with key-value pair
+	[ "$key" ] && [ "$val" ] && {
+		#| Unformatted key-value pair
+		pair_log="${key}${sep}${val}"
 
-	[ "$1" ] && [ "$1" -gt 0 ] && printf "\n%.0s" $(seq "$1")
+		#| Formatted key-value pair
+		pair_fmt="${key}${sep}${val_fmt:-$val}"
+	}
 }
 
-print_out() {
-	#@ Return early if verbosity is set to 0/quiet
-	[ "$__level" -eq "$__level_quiet" ] && exit "$__code"
-
-	#@ Format the title with consistent spacing and color handling
-	case "$__msg_type" in
-	err*)
-		[ "$__level" -ge "$__level_error" ] || exit "$__code"
-		__title="$(printf '%b[ERROR]%b' "$__error" "$__normal")"
+set_level() {
+	#@ Append the level to the message.
+	case "$lvl" in
+	error)
+		lvl_log="[ERROR] "
+		lvl_fmt="${FMT_ERROR}${lvl_log}${FMT_NORMAL}"
 		;;
-	warn*)
-		[ "$__level" -ge "$__level_warn" ] || exit "$__code"
-		__title="$(printf '%b[ WARN]%b' "$__warn" "$__normal")"
+	warn)
+		lvl_log="[ WARN] "
+		lvl_fmt="${FMT_WARN}${lvl_log}${FMT_NORMAL}"
 		;;
-	info*)
-		[ "$__level" -ge "$__level_info" ] || exit "$__code"
-		__title="$(printf '%b[ INFO]%b' "$__info" "$__normal")"
+	info)
+		lvl_log="[ INFO] "
+		lvl_fmt="${FMT_INFO}${lvl_log}${FMT_NORMAL}"
 		;;
-	debug*)
-		[ "$__level" -ge "$__level_debug" ] || exit "$__code"
-		__title="$(printf '%b[DEBUG]%b' "$__debug" "$__normal")"
+	debug)
+		lvl_log="[DEBUG] "
+		lvl_fmt="${FMT_DEBUG}${lvl_log}${FMT_NORMAL}"
 		;;
-	trace*)
-		[ "$__level" -ge "$__level_trace" ] || exit "$__code"
-		__title="$(printf '%b[TRACE]%b' "$__trace" "$__normal")"
+	trace)
+		lvl_log="[TRACE] "
+		lvl_fmt="${FMT_TRACE}${lvl_log}${FMT_NORMAL}"
 		;;
-	succ*)
-		[ "$__level" -gt "$__level_quiet" ] || exit "$__code"
-		__title="$(printf '%b[SUCCESS]%b' "$__success" "$__normal")"
-		;;
-	fail*)
-		[ "$__level" -gt "$__level_quiet" ] || exit "$__code"
-		__title="$(printf '%b[FAILURE]%b' "$__failure" "$__normal")"
-		;;
-	normal | simple | *) unset __title __tag __color ;;
+	*) unset lvl ;;
 	esac
 
-	#@ Format the tag with proper color handling
-	[ "$__tag" ] && __tag="$(
-		printf '%b%s%b' "$__highlight" " $__tag /> " "$__normal"
-	)"
-
-	#@ Define the output stream and exit "$__code" code
-	case "$__msg_type" in
-	err* | fail*)
-		__code="${__code:-1}"
-		__stream=2
-		;;
-	warn*)
-		__stream=2
-		;;
-	*)
-		__stream=1
-		;;
-	esac
-
-	#@ Print leading lines, if requested
-	print_blank "$__lead_lines"
-
-	#@ Print the message with proper formatting
-	if [ "$__title" ] || [ "$__tag" ]; then
-		printf '%s%s%s' "$__title" "$__tag" "$__msg" >&"$__stream"
-	else
-		printf '%s' "$__msg" >&"$__stream"
-	fi
-
-	#@ Print trailing lines, if requested
-	print_blank "$__trail_lines"
-
-	#@ Return the exit code
-	exit "$__code"
+	[ -n "$hide_lvl" ] && unset lvl
 }
 
-main "$@"
+#@ Get thetimestamp
+# timestamp="$(printf "[%s] " "$(fetch.time)")"
+
+# #@ Write message to the log
+# [ "$log" ] && {
+
+# 	#@ Sanitize the message by removing all terminal formatting codes
+# 	msg_log="$(printf "%s" "${msg:-$pair_log}" |
+# 		sed 's/\x1B\[[0-9;]*[mGK]//g' |
+# 		sed 's/(B\[[0-9;]*[mGK]//g' |
+# 		sed 's/(B//g')"
+
+# 	#@ Create the log directory if it does not exist
+# 	# printf "%s%s%s\n" "$timestamp" "$lvl_log" "$msg_log" |
+# 	# 	tee -a "$log" >/dev/null
+# }
+
+#@ Write message to the console
+# [ "${VERBOSITY_LEVEL:-0}" -eq "${VERBOSITY_LEVEL_QUIET:-0}" ] && exit 0
+
+# case "$VERBOSITY_LEVEL" in
+# 0) return 0 ;;
+# 1) return 0 ;;
+# 2) return 0 ;;
+# 3) return 0 ;;
+# 4) return 0 ;;
+# *) ;;
+# esac
+
+pout-repeat --line "${ln_lead:-0}"
+printf "%s" "$msg"
+# if [ "$pad" ]; then
+# 	printf "%${padding}s%s%s" "${key_fmt:-"$key"}" "$sep" "${val_fmt:-"$val"}"
+# else
+# 	msg="${msg:-"${key_fmt:-"$key"}${sep}${val_fmt:-"$val"}"}"
+# 	[ "$show_timestamp" ] || unset timestamp
+# 	printf "%s%s%s" "$timestamp" "$lvl_fmt" "$msg"
+# fi
+
+pout-repeat --line "${ln_trail:-0}"

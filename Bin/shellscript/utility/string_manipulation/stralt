@@ -34,6 +34,28 @@ USAGE_GUIDE
 }
 
 # ===================================================================
+#@		                           	 MAIN			                       @#
+# ===================================================================
+
+__main__() {
+
+	#@ Confirm that a string was entered
+	[ "$#" -eq 0 ] && __error__ --string
+
+	#@ Load internal variables
+	__info__
+
+	#@ Establish defaults
+	__defaults__
+
+	#@ Load internal variables
+	__opts__ "$@"
+
+	#@ Remove any leftover variables
+	__cleanup__
+}
+
+# ===================================================================
 #@		                        GLOBAL TOOLS                         @#
 # ===================================================================
 
@@ -63,30 +85,44 @@ __cmd_exists__() {
 # echo "1: $1"
 # echo "2: $2"
 __opts__() {
-	while [ $# -gt 1 ]; do
-		_OPT="$1"
-		_STRING="$2"
-		_NEWLINE="$3"
+	# while [ $# -gt 1 ]; do
+	# 	_OPT="$1"
+	# 	_STRING="$2"
+	# 	_NEWLINE="$3"
 
-		case "$_OPT" in
-		'-d' | '--verbose')
-			_VERBOSE=true
-			shift
-			;;
-		'-l' | '--lower')
-			_CASE="lower"
-			__process__ "$_STRING" "$_NEWLINE"
-			;;
-		'-u' | '--upper')
-			_CASE="upper"
-			__process__ "$_STRING"
-			;;
+	# 	case "$_OPT" in
+	# 	'-d' | '--verbose')
+	# 		_VERBOSE=true
+	# 		shift
+	# 		;;
+	# 	'-l' | '--lower')
+	# 		_CASE="lower"
+	# 		__process__ "$_STRING" "$_NEWLINE"
+	# 		;;
+	# 	'-u' | '--upper')
+	# 		_CASE="upper"
+	# 		__process__ "$_STRING"
+	# 		;;
+	# 	'-v' | '--version') __version__ ;;
+	# 	'-h' | '--help') __help__ ;;
+	# 	*) ;;
+	# 	esac
+	# 	shift
+	# done
+
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		'-d' | '--verbose') _VERBOSE=true ;;
+		'-l' | '--lower') _CASE="lower" ;;
+		'-u' | '--upper') _CASE="upper" ;;
 		'-v' | '--version') __version__ ;;
 		'-h' | '--help') __help__ ;;
-		*) ;;
+		*) _STRING="$1" ;;
 		esac
 		shift
 	done
+
+	[ "$_STRING" ] && __process__ "$_STRING"
 }
 
 # ===================================================================
@@ -185,27 +221,20 @@ __verbose__() {
 
 __process__() {
 	if [ -n "$_STRING" ]; then
-		[ "$_CASE" = "lower" ] && printf "%s" "$_STRING" | __lower__
-		[ "$_CASE" = "upper" ] && printf "%s" "$_STRING" | __upper__
+		case "$_CASE" in
+		lower)
+			printf "%s" "$_STRING" | __lower__
+			;;
+		upper)
+			printf "%s" "$_STRING" | __upper__
+			;;
+		*)
+			printf "%s" "$_STRING"
+			;;
+		esac
+
 		[ "$_NEWLINE" ] && printf "\n"
 	fi
-}
-
-# ===================================================================
-#@		                           	 MAIN			                       @#
-# ===================================================================
-
-__main__() {
-
-	#@ Confirm that a string was entered
-	[ "$#" -eq 0 ] && __error__ --string
-
-	#@ Process all stings
-	while [ $# -gt 0 ]; do
-		__process__ "$1"
-		shift
-	done
-
 }
 
 # ===================================================================
@@ -220,16 +249,4 @@ __cleanup__() {
 #@		                            RUN	  		                       @#
 # ===================================================================
 
-#@ Load internal variables
-__info__
-
-#@ Establish defaults
-__defaults__
-
-#@ Load internal variables
-__opts__ "$@"
-
-#@ Remove any leftover variables
-__cleanup__
-
-# printf "%s" "$@" | __lower__
+__main__ "$@"
