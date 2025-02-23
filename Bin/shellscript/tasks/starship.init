@@ -26,12 +26,12 @@ init_theme() {
 
 	#@ Load the Starship environment
 	starship_env="${DOTS}/Environment/export/package/starship.sh"
-	. "${starship_env}"
+	[ -f "$starship_env" ] &&. "$starship_env"
 }
 
 init_shell() {
 	#@ Set the default shell to "bash" if no shell is specified
-	shell="${shell:-bash}"
+	shell="${SHELL_TYPE:-bash}"
 	echo "SHELL: $shell"
 	# shell.init "$shell"
 	#shellcheck disable=SC3040

@@ -1,16 +1,18 @@
 #!/bin/sh
-# debug=true
+
 main() {
   set_defaults
   parse_arguments "$@"
+  execute_process
 }
 
 set_defaults() {
   scr_name=pout-repeat
-  scr_version=0.2
-  scr_authors="Craig 'Craole' Cole"
-  src_description="Prints a character or pattern a specified number of times"
+  scr_version=0.1
+  src_description="Prints a leading padding before the specified text"
+  scr_usage="Usage: $scr_name <SPACES> <STRING> (use --help for detailed guide)"
   exit_code=0
+  debug=0
   expected_args=2
   pad=2
 }
@@ -19,424 +21,26 @@ is_valid_num() {
   validate --positive "$1" >/dev/null 2>&1
 }
 
-pout_repeat() {
-  #@ Set default values for local variables
-  __rep=0
-  __pat=""
-
-  #@ Parse arguments
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --rep) __rep="$2" ;;
-    --pat) __pat="$2" ;;
-    *) ;;
-    esac
-    shift
-  done
-
-  #@ Debug Process
-  [ "$debug" ] && {
-    printf "DEBUG: pout_repeat [%3s ] %s \n" "$__rep" "$__pat"
-  }
-
-  #@ Execute the process
-  is_valid_num "$__rep" && [ -n "$__pat" ] && i=1 &&
-    while [ "$i" -le "${__rep:-0}" ]; do
-      #@ Use %b to interpret escape sequences
-      printf "%b" "${__pat:-}"
-      i=$((i + 1))
-    done
-}
-
-pout_pad() {
-  #@ Set Defaults
-  __pout_rep=1
-  __pout_pat=""
-  __pout_sep=" "
-  __rep=0
-  __pat=" "
-  __line_pat="\n"
-  __line_rep=0
-
-  #@ Parse arguments
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --rep)
-      __rep="$2"
-      shift 2
-      ;;
-    --pat)
-      __pat="$2"
-      shift 2
-      ;;
-    --line-rep)
-      __line_rep="$2"
-      shift 2
-      ;;
-    --line-pat)
-      __line_pat="$2"
-      shift 2
-      ;;
-    --head-line-rep)
-      __head_line_rep="$2"
-      shift 2
-      ;;
-    --head-line-pat)
-      __head_line_pat="$2"
-      shift 2
-      ;;
-    --head-pad-rep)
-      __head_pad_rep="$2"
-      shift 2
-      ;;
-    --head-pad-pat)
-      __head_pad_pat="$2"
-      shift 2
-      ;;
-    --head-sep-rep)
-      __head_sep_rep="$2"
-      shift 2
-      ;;
-    --head-sep-pat)
-      __head_sep_pat="$2"
-      shift 2
-      ;;
-    --head-buf-rep)
-      __head_buf_rep="$2"
-      shift 2
-      ;;
-    --head-buf-pat)
-      __head_buf_pat="$2"
-      shift 2
-      ;;
-    --tail-buf-rep)
-      __tail_buf_rep="$2"
-      shift 2
-      ;;
-    --tail-buf-pat)
-      __tail_buf_pat="$2"
-      shift 2
-      ;;
-    --tail-sep-rep)
-      __tail_sep_rep="$2"
-      shift 2
-      ;;
-    --tail-sep-pat)
-      __tail_sep_pat="$2"
-      shift 2
-      ;;
-    --tail-pad-rep)
-      __tail_pad_rep="$2"
-      shift 2
-      ;;
-    --tail-pad-pat)
-      __tail_pad_pat="$2"
-      shift 2
-      ;;
-    --tail-line-rep)
-      __tail_line_rep="$2"
-      shift 2
-      ;;
-    --tail-line-pat)
-      __tail_line_pat="$2"
-      shift 2
-      ;;
-    *)
-      __pout_pat="${__pout_pat:+$__pout_pat${__pout_sep}}$1"
-      shift
-      ;;
-    esac
-  done
-
-  #@ Override per arguments
-  __head_line_rep="${__head_line_rep:-"$__line_rep"}"
-  __head_line_pat="${__head_line_pat:-"$__line_pat"}"
-  __tail_line_rep="${__tail_line_rep:-"$__line_rep"}"
-  __tail_line_pat="${__tail_line_pat:-"$__line_pat"}"
-
-  __head_pad_rep="${__head_pad_rep:-"$__rep"}"
-  __head_pad_pat="${__head_pad_pat:-"$__pat"}"
-  __tail_pad_rep="${__tail_pad_rep:-"$__rep"}"
-  __tail_pad_pat="${__tail_pad_pat:-"$__pat"}"
-
-  __head_sep_rep="${__head_sep_rep:-"$__rep"}"
-  __head_sep_pat="${__head_sep_pat:-"$__pat"}"
-  __tail_sep_rep="${__tail_sep_rep:-"$__rep"}"
-  __tail_sep_pat="${__tail_sep_pat:-"$__pat"}"
-
-  __head_buf_rep="${__head_buf_rep:-"$__rep"}"
-  __head_buf_pat="${__head_buf_pat:-"$__pat"}"
-  __tail_buf_rep="${__tail_buf_rep:-"$__rep"}"
-  __tail_buf_pat="${__tail_buf_pat:-"$__pat"}"
-
-  #@ Debug Process
-  pout_pad__debug() {
-    __label="$1"
-    __label_pad=2
-    __label_sep=16
-    __rep="$2"
-    __pat="$3"
-
-    printf \
-      "%${__label_pad}s%-${__label_sep}s [%3s ] %s\n" \
-      "" "$__label" "$__rep" "$__pat"
-  } &&
-    [ "$debug" ] && {
-    printf "DEBUG: pout_guide\n"
-    pout_pad__debug "Head Line" "$__head_line_rep" "$__head_line_pat"
-    pout_pad__debug "Head Pad" "$__head_pad_rep" "$__head_pad_pat"
-    pout_pad__debug "Head Separator" "$__head_sep_rep" "$__head_sep_pat"
-    pout_pad__debug "Head Buffer" "$__head_buf_rep" "$__head_buf_pat"
-    pout_pad__debug "Pout" "$__pout_rep" "$__pout_pat"
-    pout_pad__debug "Tail Buffer" "$__tail_buf_rep" "$__tail_buf_pat"
-    pout_pad__debug "Tail Separator" "$__tail_sep_rep" "$__tail_sep_pat"
-    pout_pad__debug "Tail Pad" "$__tail_pad_rep" "$__tail_pad_pat"
-    pout_pad__debug "Tail Line" "$__tail_line_rep" "$__tail_line_pat"
-  }
-
-  #@ Execute process
-  pout_repeat --rep "$__head_line_rep" --pat "$__head_line_pat"
-  pout_repeat --rep "$__head_pad_rep" --pat "$__head_pad_pat"
-  pout_repeat --rep "$__head_sep_rep" --pat "$__head_sep_pat"
-  pout_repeat --rep "$__head_buf_rep" --pat "$__head_buf_pat"
-  pout_repeat --rep "$__pout_rep" --pat "$__pout_pat"
-  pout_repeat --rep "$__tail_buf_rep" --pat "$__tail_buf_pat"
-  pout_repeat --rep "$__tail_sep_rep" --pat "$__tail_sep_pat"
-  pout_repeat --rep "$__tail_pad_rep" --pat "$__tail_pad_pat"
-  pout_repeat --rep "$__tail_line_rep" --pat "$__tail_line_pat"
-
-  #@ Cleanup
-  unset __pout_rep __pout_pat __pout_sep __rep __pat __line_pat __line_rep
-  unset __head_line_rep __head_line_pat __tail_line_rep __tail_line_pat
-  unset __head_pad_rep __head_pad_pat __tail_pad_rep __tail_pad_pat
-  unset __head_sep_rep __head_sep_pat __tail_sep_rep __tail_sep_pat
-  unset __head_buf_rep __head_buf_pat __tail_buf_rep __tail_buf_pat
-}
-
-pout_case() {
-  #DOC Convert a series of input strings to either uppercase or lowercase based on flags.
-  #DOC
-  #DOC Arguments:
-  #DOC   --upper  Convert input strings to uppercase.
-  #DOC   --lower  Convert input strings to lowercase.
-  #DOC   <string> Input strings to be processed.
-  #DOC
-  #DOC Output:
-  #DOC   Prints the converted strings to standard output.
-
-  #@ Create temporary variables
-  __case=""
-  __pout=""
-  __pout_sed=" "
-
-  #@ Parse arguments
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --upper) __case="upper" ;;
-    --lower) __case="lower" ;;
-    *) __pout="${__pout:+$__pout${__pout_sed}}$1" ;;
-    esac
-    shift
-  done
-
-  #@ Execute process
-  case "$__case" in
-  upper) printf "%s" "$__pout" | tr '[:lower:]' '[:upper:]' ;;
-  lower) printf "%s" "$__pout" | tr '[:upper:]' '[:lower:]' ;;
-  *) printf "%s" "$__pout" ;;
-  esac
-
-  #@ Remove temporary variables
-  unset __pout __pout_sed __case
-}
-
-pout_guide() {
-  #| Global Defaults
-  __guide_pad_pat=" "
-  __guide_pad_rep=2
-  __guide_buf_rep=1
-  __guide_sep_rep=3
-  __guide_sep_pat="*"
-  __guide_line_rep=1
-  __guide_line_pat="\n"
-  __guide_section="section"
-  __info_sep="\n"
-  __info_pad=6
-
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --section) __section="$2" ;;
-    --name) __name_pout="$2" ;;
-    --info)
-      shift
-      #TODO
-      __info_pout="${__info_pout:+$__info_pout${__info_sep}$(pout_repeat "" "${__info_pad}")}$1"
-      ;;
-    --name-head-line-rep) __name_head_line_rep="$2" ;;
-    --name-head-line-pat) __name_head_line_pat="$2" ;;
-    --head* | --tit*)
-      __head="$2"
-      ;;
-    --inf*)
-      _info="$2"
-      ;;
-    --sep-head) _head_end="$2" ;;
-    --sep-info) _info_end="$2" ;;
-    --ll-head) is_valid_num "$2" && _head_leading_ln="$2" ;;
-    --lt-head) is_valid_num "$2" && _head_trailing_ln="$2" ;;
-    --pad-head) is_valid_num "$2" && _head_pad="$2" ;;
-    --pad-info) is_valid_num "$2" && _info_pad="$2" ;;
-    --no-case) unset case ;;
-    esac
-    shift
-  done
-
-  case "${__section:-$__guide_section}" in
-  section)
-    #| Name
-    __name_pout="${__name_pout:-"$__header_pout"}"
-    __name_case="${__name_case:-"$__header_case"}"
-
-    __name_head_line_rep="${__name_head_line_rep:-1}"
-    __name_head_line_pat="${__name_head_line_pat:-"$__guide_line_pat"}"
-
-    __name_head_pad_rep="${__name_head_pad_rep:-"$((__guide_pad_rep - 0))"}"
-    __name_head_pad_pat="${__name_head_pad_pat:-"$__guide_pad_pat"}"
-    __name_tail_pad_rep="${__name_tail_pad_rep:-"$((__guide_pad_rep - 0))"}"
-    __name_tail_pad_pat="${__name_tail_pad_pat:-"$__guide_pad_pat"}"
-
-    __name_head_sep_rep="${__name_head_sep_rep:-3}"
-    __name_head_sep_pat="${__name_head_sep_pat:-"*"}"
-    __name_tail_sep_rep="${__name_tail_sep_rep:-3}"
-    __name_tail_sep_pat="${__name_tail_sep_pat:-"*"}"
-
-    __name_head_buf_rep="${__name_head_buf_rep:-"$((__guide_buf_rep - 0))"}"
-    __name_head_buf_pat="${__name_head_buf_pat:-"$__guide_buf_pat"}"
-    __name_tail_buf_rep="${__name_tail_buf_rep:-"$((__guide_buf_rep - 0))"}"
-    __name_tail_buf_pat="${__name_tail_buf_pat:-"$__guide_buf_pat"}"
-
-    __name_tail_line_rep="${__name_tail_line_rep:-"$((__guide_line_rep - 1))"}"
-    __name_tail_line_pat="${__name_tail_line_pat:-"$__guide_line_pat"}"
-
-    #| Info
-    __info_pout="${__info_pout:-"$__info_pout"}"
-
-    __info_head_line_rep="${__info_head_line_rep:-"$((__guide_line_rep + 0))"}"
-    __info_head_line_pat="${__info_head_line_pat:-"$__guide_line_pat"}"
-
-    __info_head_pad_rep="${__info_head_pad_rep:-"$((__guide_pad_rep + 4))"}"
-    __info_head_pad_pat="${__info_head_pad_pat:-"$__guide_pad_pat"}"
-    __info_tail_pad_rep="${__info_tail_pad_rep:-"$((__guide_pad_rep - 0))"}"
-    __info_tail_pad_pat="${__info_tail_pad_pat:-"$__guide_pad_pat"}"
-
-    __info_head_sep_rep="${__info_head_sep_rep:-0}"
-    __info_head_sep_pat="${__info_head_sep_pat:-""}"
-    __info_tail_sep_rep="${__info_tail_sep_rep:-0}"
-    __info_tail_sep_pat="${__info_tail_sep_pat:-""}"
-
-    __info_head_buf_rep="${__info_head_buf_rep:-"$((__guide_buf_rep - 0))"}"
-    __info_head_buf_pat="${__info_head_buf_pat:-"$__guide_buf_pat"}"
-    __info_tail_buf_rep="${__info_tail_buf_rep:-"$((__guide_buf_rep - 0))"}"
-    __info_tail_buf_pat="${__info_tail_buf_pat:-"$__guide_buf_pat"}"
-
-    __info_tail_line_rep="${__info_tail_line_rep:-"$((__guide_line_rep + 0))"}"
-    __info_tail_line_pat="${__info_tail_line_pat:-"$__guide_line_pat"}"
-    ;;
-  esac
-
-  case "$__name_case" in
-  [uU]*) __name_pout="$(pout_case --upper "$__name_pout")" ;;
-  [lL]*) __name_pout="$(pout_case --lower "$__name_pout")" ;;
-  esac
-
-  pout_pad \
-    --head-line-rep "$__name_head_line_rep" \
-    --head-line-pat "$__name_head_line_pat" \
-    --head-pad-rep "$__name_head_pad_rep" \
-    --head-pad-pat "$__name_head_pad_pat" \
-    --head-sep-rep "$__name_head_sep_rep" \
-    --head-sep-pat "$__name_head_sep_pat" \
-    --head-buf-rep "$__name_head_buf_rep" \
-    --head-buf-pat "$__name_head_buf_pat" \
-    --tail-pad-rep "$__name_tail_pad_rep" \
-    --tail-pad-pat "$__name_tail_pad_pat" \
-    --tail-sep-rep "$__name_tail_sep_rep" \
-    --tail-sep-pat "$__name_tail_sep_pat" \
-    --tail-buf-rep "$__name_tail_buf_rep" \
-    --tail-buf-pat "$__name_tail_buf_pat" \
-    --tail-line-rep "$__name_tail_line_rep" \
-    --tail-line-pat "$__name_tail_line_pat" \
-    "$__name_pout"
-
-  pout_pad \
-    --head-line-rep "$__info_head_line_rep" \
-    --head-line-pat "$__info_head_line_pat" \
-    --head-pad-rep "$__info_head_pad_rep" \
-    --head-pad-pat "$__info_head_pad_pat" \
-    --head-sep-rep "$__info_head_sep_rep" \
-    --head-sep-pat "$__info_head_sep_pat" \
-    --head-buf-rep "$__info_head_buf_rep" \
-    --head-buf-pat "$__info_head_buf_pat" \
-    --tail-pad-rep "$__info_tail_pad_rep" \
-    --tail-pad-pat "$__info_tail_pad_pat" \
-    --tail-sep-rep "$__info_tail_sep_rep" \
-    --tail-sep-pat "$__info_tail_sep_pat" \
-    --tail-buf-rep "$__info_tail_buf_rep" \
-    --tail-buf-pat "$__info_tail_buf_pat" \
-    --tail-line-rep "$__info_tail_line_rep" \
-    --tail-line-pat "$__info_tail_line_pat" \
-    "$__info_pout"
-
-  #   --pad-reps "$_head_pad_reps" \
-  #   --pad-char "$_head_pad_char" \
-  #   --end_
-  # --end-reps 1 --end-char ":" \
-  #   --ll "$_head_leading_ln" \
-  #   --lt "$_head_trailing_ln" \
-  #   --info "$_head"
-
-  # _info="$(printf "%*s%s\n" "$_pad" "" "$2")"
-  # printf "%b%b%b" "$_head_pad" "$_head" "$_head_end"
-  # printf "%b%b%b" "$_info_pad" "$_info" "$_info_end"
-  # _info="$(print_padded "$_info" "$_info_pad")$_info_end"
-  # printf "%b%b" "$_head" "$_info"
-  # info="${info:-$(print_padded "$2" "$pad_info")$sep_info}"
-}
-
-pout_help() {
+print_guide() {
   printf "%s [ v.%s]\n" "$scr_name" "$scr_version"
-  # pout_guide \
-  #   --vers "$scr_version" \
-  #   --name "$scr_name" \
-  #   --auth "$scr_authors" \
-  #   --app
+  # print_section \
+  #   --head "Description" \
+  #   --info "$src_description"
+  # print_section \
+  #   --head "Arguments" \
+  #   --info "-r --reps  <REPS>    Times to repeat the pattern" \
+  #   --info "-p --char  <CHAR>    Character/pattern to repeat" \
+  #   --info "-l --line  [REPS]    Template: blank lines (Default: 1)" \
+  #   --info "-s --space [REPS]    Template: whitespaces (Default: 1)"
 
-  pout_guide \
-    --name "Description" \
-    --info "$src_description" \
-    --section
-
-  pout_guide \
-    --name "Options" \
-    --info "-r --reps  <REPS>    Times to repeat the pattern" \
-    --info "-p --char  <CHAR>    Character/pattern to repeat" \
-    --info "-l --line  [REPS]    Template: Blank Lines (Default: 1)" \
-    --info "-s --space [REPS]    Template: Whitespaces (Default: 1)" \
-    --section
-
-  pout_guide \
-    --name "Arguments" \
-    --info "REPS  Positive integer (eg. 1, 2, 15, etc)" \
-    --info "CHAR  Any character or pattern (eg. *, -_, |, ooo, etc)" \
-    --section
-
-  exit "$exit_code"
+  # print_section \
+  #   --head "Parameters" \
+  #   --info "REPS  Positive integer (eg. 1, 2, 15, etc)" \
+  #   --info "CHAR  Any character or pattern (eg. *, -_, \\n, \\t, etc)"
+  exit 0
 }
 
-pout_usage() {
-  exit_code=1
-  scr_usage="$(printf "Usage: %s <REPS> <CHAR> (use --help for detailed guide)" "$scr_name")"
-
+print_usage() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --args)
@@ -453,7 +57,9 @@ pout_usage() {
     --reps)
       msg="$(printf "Number of repetitions not defined\n" >&2)"
       ;;
-    *) exit_code="$1" ;;
+    *)
+      exit_code="${1:-1}"
+      ;;
     esac
     shift
   done
@@ -468,12 +74,10 @@ pout_usage() {
 }
 
 execute_process() {
-  reps=$1
-  char=$2
   i=0
-  while [ "$i" -lt "$reps" ]; do
+  while [ "$i" -lt "$repetitions" ]; do
     #@ Use %b to interpret escape sequences
-    printf "%b" "$char"
+    printf "%b" "$pattern"
     i=$((i + 1))
   done
 }
@@ -482,48 +86,49 @@ parse_arguments() {
   #@ Script Options
   for arg in "$@"; do
     case "$arg" in
-    -h) pout_usage 0 ;;
-    --help) pout_help ;;
+    -h) print_usage 0 ;;
+    --help) print_guide ;;
     esac
   done
 
   #@ Ensure a valid number of args is providied
-  [ "$#" -ge "$expected_args" ] || pout_usage --args "$#"
+  # [ "$#" -ge "$expected_args" ] || print_usage --args "$#"
 
   #@ Process Options
-  while [ "$#" -ge "$expected_args" ]; do
+  while [ "$#" -ge 1 ]; do
     case "$1" in
-    -n | -*num | -r | -*rep*)
-      is_valid_num "$2" || pout_usage --reps
-      reps="$2"
+    -d | --verbose | --debug)
+      debug=1
+      ;;
+    -n | -*num* | -r | -*rep*)
+      is_valid_num "$2" || print_usage --reps
+      repetitions="$2"
       shift
       ;;
-    -p | --pattern | -c | --char)
-      [ "$2" ] || pout_usage --args
-      char="$2"
+    -p | -*pat* | -c | -*char*)
+      [ "$2" ] || print_usage --args
+      pattern="$2"
       shift
       ;;
     -l | --line)
-      char="\n"
-      rep=1
-      is_valid_num "$2" && rep="$2"
-      return
+      pattern="\n"
+      repetitions="${2:-1}"
+      break
       ;;
     -s | --space)
-      char=" "
-      rep=1
-      is_valid_num "$2" && rep="$2"
-      return
+      pattern=" "
+      repetitions="${2:-1}"
+      break
       ;;
     *)
       #@ Handle positional arguments
-      if [ -z "$reps" ] && [ -z "$char" ]; then
+      if [ -z "$repetitions" ] && [ -z "$pattern" ]; then
         if is_valid_num "$1"; then
-          char="$2"
-          reps="$1"
+          pattern="$2"
+          repetitions="$1"
         elif is_valid_num "$2"; then
-          char="$1"
-          reps="$2"
+          pattern="$1"
+          repetitions="$2"
         fi
       fi
       ;;
@@ -531,12 +136,14 @@ parse_arguments() {
     shift
   done
 
-  [ "$reps" ] || pout_usage --reps
-  [ "$char" ] || pout_usage --char
+  #@ Debugging
+  [ "$debug" -gt 0 ] && {
+    printf "REPS: %s CHAR: %s\n" "$repetitions" "$pattern"
+  }
 
-  # Ensure both arguments are provided
-  echo "REPS: $reps CHAR: $char"
-
+  #@ Ensure both arguments are provided
+  [ "$repetitions" ] || print_usage --reps
+  [ "$pattern" ] || print_usage --pattern
 }
 
 main "$@"

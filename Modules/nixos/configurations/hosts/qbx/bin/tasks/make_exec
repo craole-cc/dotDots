@@ -133,7 +133,7 @@ set_defaults() {
 	fmt_highlight="${fmt_debug}${fmt_bold}${fmt_italic}"
 	pout --name set_defaults --trace --msg "Verbosity:" "${verbosity:-"undefined"}"
 
-	delimiter="$(printf '\037')"
+	delimiter="$(printf '\003')"
 	pout --name set_defaults --trace --msg "Delimiter:" "${delimiter:-"undefined"}"
 
 	recursive=true

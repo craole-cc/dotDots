@@ -1,94 +1,103 @@
 #!/bin/sh
 # shellcheck disable=SC2031
-
 main() {
-	initialize_env
-	parse_arguments "$@" || return 1
-	perform_action
+	trap 'exit "$?"' EXIT
+	parse_arguments "$@"
+	establish_environment
+	# perform_action
 }
 
-initialize_env() {
-	#@ set defaults
-	verbosity=0
-	action="show"
-	PRINT_RAW=0
-	PATHS=""
-	debug=""
-	delimiter="$(printf '\003')"
+establish_environment() {
+	#@ Establish variables with fallback defaults
+	debug="${debug:-1}"
+	case "$verbosity" in
+	'' | 0 | off | false | quiet) unset verbose ;;
+	*) verbose=true ;;
+	esac
+	delimiter="${delimiter:-"$(printf '\003')"}"
+	action="${action:-list_paths}" #? [append|prepend|show|clean]
+	path_action="list"             #? [append|clean|list|prepend|print]
+	exclude="${exclude:-"$(printf "%s" \
+		"review, temp, tmp, archive, backup" |
+		sed "s/,/${delimiter}/g"))"}"
 
-	#@ Cache command checks at startup
-	HAS_REALPATH=0
-	HAS_FD=0
-	command -v realpath >/dev/null 2>&1 && HAS_REALPATH=1
-	command -v fd >/dev/null 2>&1 && HAS_FD=1
-	command -v bat >/dev/null 2>&1 && HAS_BAT=1
-}
+	#@ Cache availability checks for commands to be used
+	commands="realpath, jocke, fd, bat"
 
-parse_arguments() {
-	while [ "$#" -gt 0 ]; do
-		case "$1" in
-		--debug)
-			debug="debug"
-			;;
-		--error) verbosity=1 ;;
-		--quiet) verbosity=0 ;;
-		--show)
-			action="show"
-			;;
-		--clean)
-			action="clean"
-			;;
-		--action)
-			if [ "$2" ]; then
-				action="$2"
-				shift
-			else
-				printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
-				return 1
-			fi
-			;;
-		--append)
-			action="append"
-			;;
-		--prepend)
-			action="prepend"
-			;;
-		--print)
-			PRINT_RAW=1
-			;;
-		--dir*)
-			if [ "$2" ]; then
-				shift
-				if [ "$PATHS" ]; then
-					PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
-				else
-					PATHS="$(resolved_path "$1")"
-				fi
-			else
-				printf "'%s' requires an argument\n" "$1"
-				return 1
-			fi
-			;;
-		*)
-			if [ -f "$1" ]; then
-				make_exec "$1"
-				return 0
-			elif [ "$PATHS" ]; then
-				PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
-			else
-				PATHS="$(resolved_path "$1")"
-			fi
-			;;
-		esac
-		shift
+	for cmd in $(printf "%s" "$commands" | sed "s/,/ /g"); do
+		#@ Set the variable if the command is available
+		cmd_key="$(printf 'CMD_%s' "${cmd}" | tr '[:lower:]' '[:upper:]')"
+		cmd_val="$(command -v "$cmd")"
+		eval "$(printf "%s=%s" "$cmd_key" "$cmd_val")"
+
+		#@ Add the command to the cache array
+		cmd_cache="${cmd_cache:+${cmd_cache}${delimiter}}${cmd_key}"
 	done
+
+	# "verbose, debug"
+	testit="$(split_list "$cmd_cache")"
+	echo "TEST: $testit"
+
+	[ "$debug" ] && {
+		execute_test --flag "verbose, debug"
+		# execute_test --pair "$(echo "$cmd_cache" | tr "$delimiter" ' ')"
+		# execute_test --flag "$(for cmd in $cmd_cache; do printf "has_%s" "$cmd"; done)"
+		execute_test --var "$cmd_cache"
+		execute_test --pair action
+	}
+}
+
+execute_test() {
+
+	execute_test__vars() {
+		# vars="$(
+		# 	case "$@" in
+		# 	*"$delimiter"*) printf "%s" "$@" | tr "$delimiter" ' ' ;;
+		# 	*", "*) printf "%s" "$@" | sed "s/,/ /g" ;;
+		# 	*","*) printf "%s" "$@" | tr "," ' ' ;;
+		# 	*";"*) printf "%s" "$@" | tr ";" ' ' ;;
+		# 	*":"*) printf "%s" "$@" | tr ":" ' ' ;;
+		# 	*) printf "%s" "$@" ;;
+		# 	esac
+		# )"
+
+		for var in $(split_list "$@"); do
+			eval "val=\${$var}"
+			printf "%s: %s\n" "$var" "${var_success:-"${val:-$var_failure}"}"
+		done
+	}
+
+	execute_test__main() {
+		var_success=""
+		var_failure="undefined"
+
+		while [ "$#" -ge 1 ]; do
+			case "$1" in
+			--flag)
+				shift
+				var_success="on"
+				var_failure="off"
+				execute_test__vars "$*"
+				;;
+			--pair | --var)
+				shift
+				execute_test__vars "$*"
+				;;
+			*)
+				execute_test__vars "$*"
+				;;
+			esac
+			shift
+		done
+	}
+	execute_test__main "$@"
 }
 
 perform_action() {
 	case "$action" in
 	append | prepend)
 		#@ Validate that a directory was provided
-		if [ -z "$PATHS" ]; then
+		if [ -z "$paths" ]; then
 			printf "ERROR: No path provided\n"
 			return 1
 		fi
@@ -98,7 +107,7 @@ perform_action() {
 
 		#@ Perform the actions
 		update_path
-		# update_exec "$PATHS"
+		# update_exec "$paths"
 		;;
 	clean)
 		clean_path
@@ -110,7 +119,7 @@ perform_action() {
 }
 
 resolved_path() {
-	[ "$HAS_REALPATH" = 1 ] && realpath "$1" && return
+	[ "$has_realpath" = 1 ] && realpath "$1" && return
 
 	if [ -d "$1" ]; then
 		(cd -- "$1" && pwd)
@@ -129,20 +138,15 @@ set_paths() {
 
 	set_paths__process() {
 		#@ Define exclusion patterns and temporary files
-		PATHS="$(printf '%s' "$PATHS" | tr "$delimiter" '\n')"
+		paths="$(printf '%s' "$paths" | tr "$delimiter" '\n')"
 		DIRES="$(mktemp)" FILES="$(mktemp)"
 
 		#@ Define exclusion patterns at the top level for reusability
 		EXCLUDE_PATTERNS="review temp tmp archive backup"
 
 		#@ Collect paths
-		for find_path in $PATHS; do
-
-			#@ Skip non-existent paths
-			[ -e "$find_path" ] || continue
-
-			#@ Define the find command, prioritizing fd
-			if [ "$HAS_FD" -eq 7 ]; then #TODO: Testin find. Reset to 1 when fixed
+		for find_path in $paths; do
+			if [ "$has_fd" -eq 7 ]; then
 
 				#@ Define the base command
 				find_cmd="fd ."
@@ -192,8 +196,6 @@ set_paths() {
 			#@ Update the files file
 			eval "$find_cmd $find_path $find_files" | tee -a "$FILES" >/dev/null
 		done
-
-		cat "$FILES"
 	}
 
 	set_paths__main() {
@@ -219,13 +221,13 @@ os_type() {
 }
 
 show_bins() {
-	if [ "$PRINT_RAW" -eq 1 ]; then
+	if [ "$paths_raw" -eq 1 ]; then
 		printf "%s\n" "${1:-"$PATH"}"
 		return
 	else
 		printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' |
 			eval "$(
-				if [ "$HAS_BAT" ]; then
+				if [ "$has_bat" ]; then
 					printf "bat --color=always --style=grid --plain --number"
 				else
 					printf "nl -s '  ' | less"
@@ -280,7 +282,7 @@ make_exec() {
 add_to_path_ORIG() {
 	[ "$debug" ] && {
 		counter=1
-		recursive_paths "$PATHS" | while IFS= read -r bin_path; do
+		recursive_paths "$paths" | while IFS= read -r bin_path; do
 			printf "  %4d %s\n" "$counter" "$bin_path"
 			#@ Increment the counter
 			counter=$((counter + 1))
@@ -289,7 +291,7 @@ add_to_path_ORIG() {
 	}
 
 	#@ Update PATH directories recursively
-	recursive_paths "$PATHS" | while IFS= read -r bin_path; do
+	recursive_paths "$paths" | while IFS= read -r bin_path; do
 		[ -d "$bin_path" ] &&
 			case ":${PATH}:" in
 			*:"$bin_path":*) ;;
@@ -336,7 +338,7 @@ add_to_path_ORIG() {
 
 add_to_path() {
 	tmp_path=$(mktemp) || return 1
-	recursive_paths "$PATHS" >"$tmp_path"
+	recursive_paths "$paths" >"$tmp_path"
 
 	if [ "$debug" ]; then
 		counter=1
@@ -399,7 +401,7 @@ update_path() {
 	unset IFS
 
 	#@ Print or export the PATH variable
-	if [ "$PRINT_RAW" -eq 1 ]; then
+	if [ "$paths_raw" -eq 1 ]; then
 		printf "%s" "$TMP_PATH"
 	else
 		#@ Update and make the PATH persistent
@@ -408,5 +410,118 @@ update_path() {
 	fi
 }
 
+parse_arguments() {
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		--debug) debug=1 ;;
+		--error) verbosity=1 ;;
+		--quiet) verbosity=0 ;;
+		--action)
+			if [ "$2" ]; then
+				action="$2"
+				shift
+			else
+				printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
+				return 1
+			fi
+			;;
+		--show)
+			action="show"
+			;;
+		--clean)
+			action="clean"
+			;;
+		--append)
+			action="append"
+			;;
+		--prepend)
+			action="prepend"
+			;;
+		--print)
+			paths_raw=1
+			;;
+		--env | --src)
+			if [ "$2" ]; then
+				src="${src:+$src${delimiter}}$2"
+				shift
+			else
+				printf "'%s' requires an argument\n" "$1"
+				return 1
+			fi
+			;;
+		--exe | --bin)
+			if [ "$2" ]; then
+				bin="${bin:+$bin${delimiter}}$2"
+				shift
+			else
+				printf "'%s' requires an argument\n" "$1"
+				return 1
+			fi
+			;;
+		--xdg)
+			if [ "$2" ]; then
+				xdg="${xdg:+$xdg${delimiter}}$2"
+				shift
+			else
+				printf "'%s' requires an argument\n" "$1"
+				return 1
+			fi
+			;;
+		-X | --exclude)
+			#? Expects a string
+			if [ "$2" ]; then
+				exclude="${exclude:+$exclude${delimiter}}$2"
+				shift
+			else
+				printf "'%s' requires an argument\n" "$1"
+				return 1
+			fi
+			;;
+		-I | --include)
+			#? Expects a string
+			ignore_action="INCLUDE"
+			shift
+			;;
+		-*)
+			printf "Invalid Option: %s\n" "$1"
+			exit_code=1
+			print_usage_guide
+			;;
+		# --dir*)
+		# 	if [ "$2" ]; then
+		# 		shift
+		# 		if [ "$paths" ]; then
+		# 			paths="$(printf '%s%s%s' "$paths" "$delimiter" "$(resolved_path "$1")")"
+		# 		else
+		# 			paths="$(resolved_path "$1")"
+		# 		fi
+		# 	else
+		# 		printf "'%s' requires an argument\n" "$1"
+		# 		return 1
+		# 	fi
+		# 	;;
+		# *)
+		# 	if [ -f "$1" ]; then
+		# 		make_exec "$1"
+		# 		return 0
+		# 	elif [ "$paths" ]; then
+		# 		paths="$(printf '%s%s%s' "$paths" "$delimiter" "$(resolved_path "$1")")"
+		# 	else
+		# 		paths="$(resolved_path "$1")"
+		# 	fi
+		# 	;;
+		*) ;;
+		esac
+		shift
+	done
+}
+
 #@ Execute the main function with the provided argument
-main "$@"
+# main "$@"
+echo "TEST - Delim=comma+space: $(split-str "verbose, debug, and so on")"
+echo "TEST - Delim=comma: $(split-str "verbose,debug,and so on")"
+echo "TEST - Delim=colon: $(split-str "verbose:debug")"
+echo "TEST - Delim=semicolon: $(split-str "verbose;debug")"
+echo "TEST - Delim=pipe: $(split-str "verbose|debug")"
+echo "TEST - Delim=plus: $(split-str "verbose+debug")"
+echo "TEST - Delim=space: $(split-str "verbose, debug, and so on")"

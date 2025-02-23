@@ -8,4 +8,7 @@ gtk-tabs-location = bottom
 # background-opacity = 0.98
 background-blur-radius = 70
 keybind = super+ctrl+grave_accent=toggle_quick_terminal
-font-family = "Zed Plex Mono"
+# font-family = "VictorMono Nerd Font"
+# font-variation = wght=800
+# font-variation = ital=1
+# font-family = "Zed Plex Mono"
