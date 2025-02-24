@@ -14,6 +14,6 @@ printf "\n::Links:: %s" "
 
 printf "\n::Binaries:: %s" "
 pathof -> $(pathof pathof)
-eza -> $(pathof eza)
+find -> $(pathof find)
 grep -> $(pathof grep)
 "
