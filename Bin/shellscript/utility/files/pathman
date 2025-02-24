@@ -123,7 +123,7 @@ resolved_path() {
 set_paths() {
 
 	set_paths__cleanup() {
-		rm -f "$DIRES" "$FILES"
+		# rm -f "$DIRES" "$FILES"
 		unset exclude_args pattern EXCLUDE_PATTERNS
 	}
 
