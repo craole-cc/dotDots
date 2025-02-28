@@ -68,18 +68,18 @@ cd "$DOTS"
   - The script below matches the previous steps.
 
     ```sh
-      init_host_config(){
-        host_conf="$DOTS/Configuration/apps/nixos/configurations/hosts/$(hostname)"
-        host_conf_example="$(dirname "$host_conf")/example"
-        [ -d "$host_conf_example" ] || {
-          printf "Failed to locate the example config: %s" "$host_conf_example"
-          return 1
-        }
-        sudo mkdir -p "$host_conf"
-        sudo cp -u "$host_conf_example"/* "$host_conf"
-        sudo cp -u /etc/nixos/* "$host_conf"
-        ls -lAhRF "$host_conf" | grep -v '^total'
-      } && init_host_config
+    init_host_config(){
+      host_conf="$DOTS/Configuration/apps/nixos/configurations/hosts/$(hostname)"
+      host_conf_example="$(dirname "$host_conf")/example"
+      [ -d "$host_conf_example" ] || {
+        printf "Failed to locate the example config: %s" "$host_conf_example"
+        return 1
+      }
+      sudo mkdir -p "$host_conf"
+      sudo cp -u "$host_conf_example"/* "$host_conf"
+      sudo cp -u /etc/nixos/* "$host_conf"
+      ls -lAhRF "$host_conf" | grep -v '^total'
+    } && init_host_config
     ```
 
 - Update `default.nix` with relevant data from the system-generated `hardware-configuration.nix` and loosely from `configuration.nix`.

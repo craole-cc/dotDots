@@ -64,10 +64,10 @@ command = "nixfmt"
 # priority = 1
 # command  = "alejandra"
 
-# [formatter.deadnix]
-# includes = ["*.nix"]
-# priority = 2
-# command  = "deadnix"
+[formatter.deadnix]
+includes = ["*.nix"]
+priority = 2
+command = "deadnix"
 # options  = ["--edit"]
 
 # #| Rust formatting
