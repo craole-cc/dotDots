@@ -1,6 +1,6 @@
 {
-	imports = [
-	./hosts
-	./users
-	]
+  imports = [
+    ./hosts
+    ./users
+  ];
 }

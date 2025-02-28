@@ -1,12 +1,12 @@
 {
-	imports = [
-	# ./gnome
-	# ./hyprland
-	# ./plasma
-	# ./xfce
-	./options.nix
+  imports = [
+    # ./gnome
+    # ./hyprland
+    # ./plasma
+    # ./xfce
+    ./options.nix
 
-	# ./users.nix
-	./login.nix
-	]
+    # ./users.nix
+    ./login.nix
+  ];
 }

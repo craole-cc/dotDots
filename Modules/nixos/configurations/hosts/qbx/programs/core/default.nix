@@ -1,6 +1,6 @@
 {
-	imports = [
-	./development
-	./steam
-	]
+  imports = [
+    ./development
+    ./steam
+  ];
 }

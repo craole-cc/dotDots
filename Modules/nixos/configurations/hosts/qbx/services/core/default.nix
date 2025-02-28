@@ -1,11 +1,11 @@
 {
-	imports = [
-	# Media
-	./obs-studio
-	./ollama
+  imports = [
+    # Media
+    ./obs-studio
+    ./ollama
 
-	# Network
-	./tailscale
-	./xrdp
-	]
+    # Network
+    ./tailscale
+    ./xrdp
+  ];
 }

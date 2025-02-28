@@ -1,9 +1,9 @@
 {
-	imports = [
-	./cliphist
-	./clipman
-	./dunst
-	./mako
-	./remmina
-	]
+  imports = [
+    ./cliphist
+    ./clipman
+    ./dunst
+    ./mako
+    ./remmina
+  ];
 }

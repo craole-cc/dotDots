@@ -1,8 +1,8 @@
 {
-	imports = [
-	./helpers.nix
-	./fetchers.nix
-	./filesystem.nix
-	./lists.nix
-	]
+  imports = [
+    ./helpers.nix
+    ./fetchers.nix
+    ./filesystem.nix
+    ./lists.nix
+  ];
 }
