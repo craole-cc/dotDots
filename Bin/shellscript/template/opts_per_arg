@@ -5,14 +5,14 @@
 # ===================================================================
 
 __info__() {
-	_cmd_PATH="$(PathOf "$0")"
-	_cmd_NAME="$(basename "$_cmd_PATH")"
-	_cmd_DIR="$(dirname -- "$_cmd_PATH")"
-	_cmd_VERSION="1.0"
-	_cmd_DESCRIPTION="Description"
-	_cmd_DEPENDENCIES="printf, echo, command, unalias"
-	_cmd_USAGEGUIDE="$(
-		cat <<USAGE_GUIDE
+  _cmd_PATH="$(PathOf "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_DIR="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Description"
+  _cmd_DEPENDENCIES="printf, echo, command, unalias"
+  _cmd_USAGEGUIDE="$(
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
                       USAGE: $_cmd_NAME
@@ -32,7 +32,7 @@ __info__() {
 #>----------------------------------------------------<#
 
 USAGE_GUIDE
-	)"
+  )"
 }
 
 # ===================================================================
@@ -41,20 +41,20 @@ USAGE_GUIDE
 
 #@ Usage display
 __help__() {
-	printf "%s\n" "$_cmd_USAGEGUIDE"
-	exit 0
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  exit 0
 }
 
 #@ Version display
 __version__() {
-	printf "%s\n" "$_cmd_VERSION"
-	exit 0
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
 }
 
 #@ Command validation
 __cmd_exists__() {
-	unalias "$@" >/dev/null 2>&1
-	command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 # ===================================================================
@@ -63,38 +63,38 @@ __cmd_exists__() {
 
 __opts__() {
 
-	case "$1" in
-	'-h' | '--help') __help__ ;;
-	'-v' | '--version') __version__ ;;
-	'-d' | '--verbose')
-		VERBOSE=true
-		shift
-		;;
-	*) ;;
-	esac
+  case "$1" in
+    '-h' | '--help') __help__ ;;
+    '-v' | '--version') __version__ ;;
+    '-d' | '--verbose')
+      VERBOSE=true
+      shift
+      ;;
+    *) ;;
+  esac
 
-	#@ Declare user options (One flag per command)
-	COUNTER=0
-	while [ $# -gt 1 ]; do
-		case "$1" in
-		'-a' | '--flaga')
-			OPTION="A"
-			;;
-		'-b' | '--flagb')
-			OPTION="B"
-			;;
-		'-c' | '--flagc')
-			OPTION="C"
-			;;
-		*) ;;
-		esac
+  #@ Declare user options (One flag per command)
+  COUNTER=0
+  while [ $# -gt 1 ]; do
+    case "$1" in
+      '-a' | '--flaga')
+        OPTION="A"
+        ;;
+      '-b' | '--flagb')
+        OPTION="B"
+        ;;
+      '-c' | '--flagc')
+        OPTION="C"
+        ;;
+      *) ;;
+    esac
 
-		COUNTER=$((COUNTER + 1))
-		ARG="$2"
-		__process__ "$ARG"
-		shift 2
+    COUNTER=$((COUNTER + 1))
+    ARG="$2"
+    __process__ "$ARG"
+    shift 2
 
-	done
+  done
 
 }
 
@@ -109,15 +109,15 @@ __defaults__() { [ "$OPTION" ] || OPTION="A"; }
 # ===================================================================
 
 __error__() {
-	case $* in
-	--arg)
-		msg="🟥 Please ensure that a valid equation is entered."
-		printf "\n%s\n" "$msg"
-		__help__
-		exit 1
-		;;
-	*) ;;
-	esac
+  case $* in
+    --arg)
+      msg="🟥 Please ensure that a valid equation is entered."
+      printf "\n%s\n" "$msg"
+      __help__
+      exit 1
+      ;;
+    *) ;;
+  esac
 }
 
 # ===================================================================
@@ -126,15 +126,15 @@ __error__() {
 
 __process__() {
 
-	#@ Establish defaults
-	__defaults__
+  #@ Establish defaults
+  __defaults__
 
-	#@ Display details
-	[ "$VERBOSE" ] &&
-		printf "%s <| %s |> %s\n" "$COUNTER" "$OPTION" "$ARG"
+  #@ Display details
+  [ "$VERBOSE" ] \
+    && printf "%s <| %s |> %s\n" "$COUNTER" "$OPTION" "$ARG"
 
-	#@ Process
-	# { ... }
+  #@ Process
+  # { ... }
 
 }
 
@@ -143,7 +143,7 @@ __process__() {
 # ===================================================================
 
 __cleanup__() {
-	unset VERBOSE COUNTER OPTION ARG
+  unset VERBOSE COUNTER OPTION ARG
 }
 
 # ===================================================================

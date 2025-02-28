@@ -1,3 +1,4 @@
-{pkgs, ...}: {
-  home.packages = with pkgs; [inkscape-with-extensions];
+{ pkgs, ... }:
+{
+  home.packages = with pkgs; [ inkscape-with-extensions ];
 }

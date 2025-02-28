@@ -1,25 +1,25 @@
 #!/bin/sh
 
 main() {
-	json="$1"
-	key="$2"
+  json="$1"
+  key="$2"
 
-	via_jq || via_awk || {
-		printf "Error: Failed to parse JSON.\n"
-		return 1
-	}
+  via_jq || via_awk || {
+    printf "Error: Failed to parse JSON.\n"
+    return 1
+  }
 }
 
 via_jq() {
-	command -v jq >/dev/null 2>&1 || return 1
-	printf "%s" "$json" | jq -r ".[0].$key"
+  command -v jq > /dev/null 2>&1 || return 1
+  printf "%s" "$json" | jq -r ".[0].$key"
 }
 
 via_awk() {
-	#@ Fallback to POSIX-compliant parsing with awk. Howeever it doersn't handle lists well and only returns the first item.
-	command -v awk >/dev/null 2>&1 || return 1
+  #@ Fallback to POSIX-compliant parsing with awk. Howeever it doersn't handle lists well and only returns the first item.
+  command -v awk > /dev/null 2>&1 || return 1
 
-	printf "%s" "$json" | awk -v key="$key" '
+  printf "%s" "$json" | awk -v key="$key" '
     BEGIN { RS="[{},]" }
     {
       gsub(/^[ \n\t]+|[ \n\t]+$/, "")  # Trim whitespace

@@ -3,7 +3,7 @@
 # set -euo pipefail
 
 usage() {
-	cat <<-USAGE
+  cat <<- USAGE
 		  Usage: $(basename "$0") [OPTS] [arg1 arg2 ...]
 		  Options:
 		    -h, --help      Show this help message and exit
@@ -14,78 +14,78 @@ usage() {
 }
 
 set_delimiter() {
-	#@ Accept user-defined delimiter
-	while [ $# -ge 1 ]; do
-		case $1 in
-		-d | --delim)
-			delimiter=$2
-			shift 2
-			;;
-		*) break ;;
-		esac
-	done
+  #@ Accept user-defined delimiter
+  while [ $# -ge 1 ]; do
+    case $1 in
+      -d | --delim)
+        delimiter=$2
+        shift 2
+        ;;
+      *) break ;;
+    esac
+  done
 
-	#@ Set fallback delimiter
-	delimiter="${delimiter:-"%"}"
+  #@ Set fallback delimiter
+  delimiter="${delimiter:-"%"}"
 }
 
 save_array() {
-	printf "%s" "$1"
-	shift
+  printf "%s" "$1"
+  shift
 
-	# #@ Create the array by placing the delimter after each argument
-	for i; do printf "%s" "${i}${delimiter}"; done
+  # #@ Create the array by placing the delimter after each argument
+  for i; do printf "%s" "${i}${delimiter}"; done
 }
 
 expand_array() {
-	#@ Replace the delimiter with a new line
-	# for i; do printf "%s\n" "$i" | tr "$delimiter" '\n'; done
-	echo "$@" | tr "$delimiter" '\n'
+  #@ Replace the delimiter with a new line
+  # for i; do printf "%s\n" "$i" | tr "$delimiter" '\n'; done
+  echo "$@" | tr "$delimiter" '\n'
 }
 
 count_arguments() {
-	printf "%s" "$1" | awk '{print NF}'
+  printf "%s" "$1" | awk '{print NF}'
 }
 
 last_argument() {
-	printf "%s" "$@" | awk '{print $NF}'
+  printf "%s" "$@" | awk '{print $NF}'
 }
 
 main() {
-	#@ Handle the delimiter flag
-	set_delimiter "$@"
+  #@ Handle the delimiter flag
+  set_delimiter "$@"
 
-	#@ Handle remaining flags and arguments
-	while [ $# -ge 1 ]; do
-		case $1 in
-		-h | --help)
-			usage
-			exit 0
-			;;
-		-e | --expand)
-			shift
-			expand_array "$@"
-			;;
-		-s | --save)
-			shift
-			save_array "$@"
-			;;
-		-c | --count)
-			shift
-			count_arguments "$@"
-			;;
-		-l | --last)
-			shift
-			last_argument "$@"
-			;;
-		*) ;;
-			# *)
-			#   echo "Unknown option: $1" >&2
-			#   exit 1
-			# ;;
-		esac
-		shift
-	done
+  #@ Handle remaining flags and arguments
+  while [ $# -ge 1 ]; do
+    case $1 in
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      -e | --expand)
+        shift
+        expand_array "$@"
+        ;;
+      -s | --save)
+        shift
+        save_array "$@"
+        ;;
+      -c | --count)
+        shift
+        count_arguments "$@"
+        ;;
+      -l | --last)
+        shift
+        last_argument "$@"
+        ;;
+      *) ;;
+        # *)
+        #   echo "Unknown option: $1" >&2
+        #   exit 1
+        # ;;
+    esac
+    shift
+  done
 }
 
 main "$@"

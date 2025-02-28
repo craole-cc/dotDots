@@ -1,9 +1,11 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.types) oneOf nullOr;
 
   base = "interface";
-in {
+in
+{
   options.DOTS.${base} = {
     manager = mkOption {
       description = "Desktop/Window Manager";

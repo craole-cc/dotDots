@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (config) DOTS;
   inherit (lib.options) mkOption;
   inherit (lib.types) attrsOf attrs;
@@ -11,7 +12,8 @@
   base = "users";
   mod = "users";
   cfg = DOTS.${base}.${mod};
-in {
+in
+{
   options.DOTS.${base}.${mod} = mkOption {
     description = "The users that should been activated";
     default = {

@@ -63,22 +63,22 @@ fn main() {
         }
     }
 }
-#!/usr/bin/env bash
+// #!/usr/bin/env bash
 
-TARGET_DIR="$HOME/.dots/Configuration/apps/nixos/configurations/hosts/qbx/core/libraries/bin/utilities"
+// TARGET_DIR="$HOME/.dots/Configuration/apps/nixos/configurations/hosts/qbx/core/libraries/bin/utilities"
 
-# Fix directory permissions recursively
-find "$TARGET_DIR" -type d -exec chmod 755 {} \;
+// # Fix directory permissions recursively
+// find "$TARGET_DIR" -type d -exec chmod 755 {} \;
 
-# Set base file permissions
-find "$TARGET_DIR" -type f -exec chmod 644 {} \;
+// # Set base file permissions
+// find "$TARGET_DIR" -type f -exec chmod 644 {} \;
 
-# Make executables executable
-find "$TARGET_DIR" -type f ! -name "*.*" -exec chmod +x {} \;
-find "$TARGET_DIR" -type f -name "*.sh" -exec chmod +x {} \;
+// # Make executables executable
+// find "$TARGET_DIR" -type f ! -name "*.*" -exec chmod +x {} \;
+// find "$TARGET_DIR" -type f -name "*.sh" -exec chmod +x {} \;
 
-# Set ownership
-chown -R $(whoami):$(whoami) "$TARGET_DIR"
+// # Set ownership
+// chown -R $(whoami):$(whoami) "$TARGET_DIR"
 
-# Verify changes
-ls -la "$TARGET_DIR"
+// # Verify changes
+// ls -la "$TARGET_DIR"

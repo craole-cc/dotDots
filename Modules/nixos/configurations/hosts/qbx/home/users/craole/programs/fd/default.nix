@@ -1,4 +1,4 @@
 {
-  imports = [];
+  imports = [ ];
   programs.fd.enable = true;
 }

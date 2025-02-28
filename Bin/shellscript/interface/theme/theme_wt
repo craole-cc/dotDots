@@ -8,126 +8,126 @@ LIGHT_THEME="Solarized Light"
 
 # Check if a command exists
 cmd_exists() {
-	command -v "$1" >/dev/null 2>&1
+  command -v "$1" > /dev/null 2>&1
 }
 
 # Install jq using available package manager
 install_jq() {
-	if cmd_exists "winget"; then
-		printf "Installing jq using winget...\n"
-		winget install jqlang.jq
-	elif cmd_exists "choco"; then
-		printf "Installing jq using chocolatey...\n"
-		choco install jq --yes
-	else
-		printf "Error: Neither winget nor chocolatey is available.\n" >&2
-		printf "Please install jq manually from: https://stedolan.github.io/jq/download/\n" >&2
-		return 1
-	fi
+  if cmd_exists "winget"; then
+    printf "Installing jq using winget...\n"
+    winget install jqlang.jq
+  elif cmd_exists "choco"; then
+    printf "Installing jq using chocolatey...\n"
+    choco install jq --yes
+  else
+    printf "Error: Neither winget nor chocolatey is available.\n" >&2
+    printf "Please install jq manually from: https://stedolan.github.io/jq/download/\n" >&2
+    return 1
+  fi
 }
 
 # Check for Windows Terminal (including preview)
 check_windows_terminal() {
-	if cmd_exists "wt.exe"; then
-		return 0
-	elif cmd_exists "wtpreview.exe"; then
-		return 0
-	else
-		printf "Error: Neither Windows Terminal nor Windows Terminal Preview is installed\n" >&2
-		return 1
-	fi
+  if cmd_exists "wt.exe"; then
+    return 0
+  elif cmd_exists "wtpreview.exe"; then
+    return 0
+  else
+    printf "Error: Neither Windows Terminal nor Windows Terminal Preview is installed\n" >&2
+    return 1
+  fi
 }
 
 # Check dependencies
 check_dependencies() {
-	# First check for Windows Terminal
-	if ! check_windows_terminal; then
-		return 1
-	fi
+  # First check for Windows Terminal
+  if ! check_windows_terminal; then
+    return 1
+  fi
 
-	#@ Only check for jq if Terminal exists
-	if ! cmd_exists "jq"; then
-		printf "jq is not installed. Attempting to install...\n"
-		install_jq
-		if ! cmd_exists "jq"; then
-			printf "Error: Failed to install jq\n" >&2
-			return 1
-		fi
-	fi
+  #@ Only check for jq if Terminal exists
+  if ! cmd_exists "jq"; then
+    printf "jq is not installed. Attempting to install...\n"
+    install_jq
+    if ! cmd_exists "jq"; then
+      printf "Error: Failed to install jq\n" >&2
+      return 1
+    fi
+  fi
 }
 
 # Function to find files using fd or find
 find_files() {
-	base_path="$1"
-	if cmd_exists "fd"; then
-		fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2>/dev/null
-	else
-		find "$base_path" \
-			-name "Microsoft.WindowsTerminal*" \
-			-type d 2>/dev/null
-	fi
+  base_path="$1"
+  if cmd_exists "fd"; then
+    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2> /dev/null
+  else
+    find "$base_path" \
+      -name "Microsoft.WindowsTerminal*" \
+      -type d 2> /dev/null
+  fi
 }
 
 find_settings_paths() {
-	#@ Find both regular and preview settings
-	find "$LOCALAPPDATA/Packages" \
-		-name "Microsoft.WindowsTerminal*" \
-		-type d 2>/dev/null |
-		while read -r dir; do
-			settings_path="$dir/LocalState/settings.json"
-			if [ -f "$settings_path" ]; then
-				printf "%s" "$settings_path"
-			fi
-		done
+  #@ Find both regular and preview settings
+  find "$LOCALAPPDATA/Packages" \
+    -name "Microsoft.WindowsTerminal*" \
+    -type d 2> /dev/null \
+    | while read -r dir; do
+      settings_path="$dir/LocalState/settings.json"
+      if [ -f "$settings_path" ]; then
+        printf "%s" "$settings_path"
+      fi
+    done
 }
 
 toggle_theme() {
-	settings_file="$1"
+  settings_file="$1"
 
-	#@ Check if file exists and is readable
-	if [ ! -r "$settings_file" ]; then
-		printf "Error: Cannot read settings file: %s\n" "$settings_file" >&2
-		return 1
-	fi
+  #@ Check if file exists and is readable
+  if [ ! -r "$settings_file" ]; then
+    printf "Error: Cannot read settings file: %s\n" "$settings_file" >&2
+    return 1
+  fi
 
-	#@ Create backup
-	cp "$settings_file" "${settings_file}.bac"
+  #@ Create backup
+  cp "$settings_file" "${settings_file}.bac"
 
-	#@ Get current default theme
-	current_theme=$(jq --raw-output '.profiles.defaults.colorScheme // ""' "$settings_file")
+  #@ Get current default theme
+  current_theme=$(jq --raw-output '.profiles.defaults.colorScheme // ""' "$settings_file")
 
-	#@ Determine new theme
-	new_theme="$DARK_THEME"
-	[ "$current_theme" = "$DARK_THEME" ] && new_theme="$LIGHT_THEME"
+  #@ Determine new theme
+  new_theme="$DARK_THEME"
+  [ "$current_theme" = "$DARK_THEME" ] && new_theme="$LIGHT_THEME"
 
-	#@ Update the theme
-	if ! jq --arg theme "$new_theme" \
-		'.profiles.defaults.colorScheme = $theme' \
-		"$settings_file" >"${settings_file}.tmp"; then
-		printf "Error: Failed to update theme in: %s\n" "$settings_file" >&2
-		mv "${settings_file}.bac" "$settings_file"
-		rm -f "${settings_file}.tmp"
-		return 1
-	fi
+  #@ Update the theme
+  if ! jq --arg theme "$new_theme" \
+    '.profiles.defaults.colorScheme = $theme' \
+    "$settings_file" > "${settings_file}.tmp"; then
+    printf "Error: Failed to update theme in: %s\n" "$settings_file" >&2
+    mv "${settings_file}.bac" "$settings_file"
+    rm -f "${settings_file}.tmp"
+    return 1
+  fi
 
-	mv "${settings_file}.tmp" "$settings_file"
-	printf "Successfully updated theme to '%s' in: %s\n" "$new_theme" "$settings_file"
+  mv "${settings_file}.tmp" "$settings_file"
+  printf "Successfully updated theme to '%s' in: %s\n" "$new_theme" "$settings_file"
 }
 
 main() {
-	check_dependencies
+  check_dependencies
 
-	#@ Find all settings files
-	settings_files=$(find_settings_paths "$1")
-	[ "$settings_files" ] || {
-		printf "Error: No Windows Terminal settings files found\n" >&2
-		return 1
-	}
+  #@ Find all settings files
+  settings_files=$(find_settings_paths "$1")
+  [ "$settings_files" ] || {
+    printf "Error: No Windows Terminal settings files found\n" >&2
+    return 1
+  }
 
-	#@ Process each settings file
-	printf "%s\n" "$settings_files" | while read -r settings_file; do
-		toggle_theme "$settings_file"
-	done
+  #@ Process each settings file
+  printf "%s\n" "$settings_files" | while read -r settings_file; do
+    toggle_theme "$settings_file"
+  done
 }
 
 # Run main function

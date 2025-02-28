@@ -1,9 +1,9 @@
 #!/bin/sh
 
 __run__() {
-	for app in "$@"; do
-		app_reload "$app"
-	done
+  for app in "$@"; do
+    app_reload "$app"
+  done
 }
 
 __run__ "$@"

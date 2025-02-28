@@ -84,7 +84,7 @@ command = "nixfmt"
 
 [formatter.deadnix]
 includes = ["*.nix"]
-priority = 1
+priority = 2
 command = "deadnix"
 # options  = ["--edit"]
 

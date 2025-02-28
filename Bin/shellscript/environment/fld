@@ -1,14 +1,14 @@
 #!/bin/sh
 
 case $1 in
--l | -v | --long)
-	shift
-	fll "$@" --sort=time
-	;;
--r | --reverse)
-	fll "$@" --sort=time --reverse
-	;;
-*)
-	fll --sort=time "$@"
-	;;
+  -l | -v | --long)
+    shift
+    fll "$@" --sort=time
+    ;;
+  -r | --reverse)
+    fll "$@" --sort=time --reverse
+    ;;
+  *)
+    fll --sort=time "$@"
+    ;;
 esac

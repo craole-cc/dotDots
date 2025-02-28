@@ -5,14 +5,14 @@
 # ===================================================================
 
 __info__() {
-	_cmd_PATH="$(pathof "$0")"
-	_cmd_NAME="$(basename "$_cmd_PATH")"
-	_cmd_HOME="$(dirname -- "$_cmd_PATH")"
-	_cmd_VERSION="1.0"
-	_cmd_DESCRIPTION="Manage NixOS"
-	_cmd_DEPENDENCIES="weHave"
-	_cmd_USAGEGUIDE="$(
-		cat <<USAGE_GUIDE
+  _cmd_PATH="$(pathof "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Manage NixOS"
+  _cmd_DEPENDENCIES="weHave"
+  _cmd_USAGEGUIDE="$(
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
               $_cmd_NAME <[options]> <[arguments]>
@@ -30,13 +30,13 @@ __info__() {
 #>----------------------------------------------------<#
 
 USAGE_GUIDE
-	)"
+  )"
 
-	#@ Usage display
-	__help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
+  #@ Usage display
+  __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
 
-	#@ Version display
-	__version__() { printf "%s\n" "$_cmd_VERSION"; }
+  #@ Version display
+  __version__() { printf "%s\n" "$_cmd_VERSION"; }
 }
 
 # ===================================================================
@@ -44,47 +44,47 @@ USAGE_GUIDE
 # ===================================================================
 
 __main__() {
-	#@ Ensure app is installed
-	weHave nixos-version || __error__ --app
+  #@ Ensure app is installed
+  weHave nixos-version || __error__ --app
 
-	#@ Load internal variables
-	__info__
-	__opts__ "$@"
-	__init__
+  #@ Load internal variables
+  __info__
+  __opts__ "$@"
+  __init__
 
-	#@ Run
-	__process__
-	# __test__ "$@"
-	__cleanup__
+  #@ Run
+  __process__
+  # __test__ "$@"
+  __cleanup__
 }
 
 # ===================================================================
 #@		                          OPTIONS			                       @#
 # ===================================================================
 __opts__() {
-	#@ Declare user options (Allow multiple flags)
-	# shellcheck disable=SC1083
-	parser_definition() {
-		setup REST
-		disp _cmd_USAGEGUIDE -h --help
-		disp _cmd_VERSION -v --version
-		flag verbose -d --verbose -- "takes no arguments"
-		flag rebuild -r --rebuild -- "takes no arguments"
-		flag update -u --update -- "takes no arguments"
-		flag clean -g --clean -- "takes no arguments"
-		flag check -c --check_ -- "takes no arguments"
-		flag trace -t --trace -- "takes no arguments"
-		flag flake -f +f --{no-}flake -- "expands to --flake and --no-flake"
-		param config -c --config -- "accepts --param value / --param=value"
+  #@ Declare user options (Allow multiple flags)
+  # shellcheck disable=SC1083
+  parser_definition() {
+    setup REST
+    disp _cmd_USAGEGUIDE -h --help
+    disp _cmd_VERSION -v --version
+    flag verbose -d --verbose -- "takes no arguments"
+    flag rebuild -r --rebuild -- "takes no arguments"
+    flag update -u --update -- "takes no arguments"
+    flag clean -g --clean -- "takes no arguments"
+    flag check -c --check_ -- "takes no arguments"
+    flag trace -t --trace -- "takes no arguments"
+    flag flake -f +f --{no-}flake -- "expands to --flake and --no-flake"
+    param config -c --config -- "accepts --param value / --param=value"
 
-	}
+  }
 
-	#@ Load options
-	weHave getoptions &&
-		eval "$(getoptions parser_definition) exit 1"
+  #@ Load options
+  weHave getoptions \
+    && eval "$(getoptions parser_definition) exit 1"
 
-	#@ Establish defaults
-	# __defaults__ "$@"
+  #@ Establish defaults
+  # __defaults__ "$@"
 }
 
 # ===================================================================
@@ -93,26 +93,26 @@ __opts__() {
 
 __init__() {
 
-	#@ Set flags when no arguments are given
-	# [ "$#" -eq 0 ] && rebuild=true
-	#TODO: Throw an error if no arguments given, allow user to select an option or accept rebuild as the default
+  #@ Set flags when no arguments are given
+  # [ "$#" -eq 0 ] && rebuild=true
+  #TODO: Throw an error if no arguments given, allow user to select an option or accept rebuild as the default
 
-	#@ Load Environment Variables
-	# shellcheck disable=SC1091
-	# . "$DOTS_ENV_CTX/nixos"
+  #@ Load Environment Variables
+  # shellcheck disable=SC1091
+  # . "$DOTS_ENV_CTX/nixos"
 
-	#@ Prioritize user config
-	[ "$config" ] && NIXOS_CONFIG="$config"
+  #@ Prioritize user config
+  [ "$config" ] && NIXOS_CONFIG="$config"
 
-	#@ Validate config
-	[ "${NIXOS_CONFIG##*.}" = "nix" ] || __error__ --extension
-	[ -f "$NIXOS_CONFIG" ] || __error__ --config
+  #@ Validate config
+  [ "${NIXOS_CONFIG##*.}" = "nix" ] || __error__ --extension
+  [ -f "$NIXOS_CONFIG" ] || __error__ --config
 
-	#@ Set Flake directory as config, if necessary
-	# [ "$flake" ] &&
-	# [ "$(basename "$NIXOS_CONFIG")" = "flake.nix" ] &&
-	#   [ "$NixOS_FLAKE" ]
-	#   NIXOS_CONFIG="$(dirname "$NIXOS_CONFIG")"
+  #@ Set Flake directory as config, if necessary
+  # [ "$flake" ] &&
+  # [ "$(basename "$NIXOS_CONFIG")" = "flake.nix" ] &&
+  #   [ "$NixOS_FLAKE" ]
+  #   NIXOS_CONFIG="$(dirname "$NIXOS_CONFIG")"
 
 }
 
@@ -121,17 +121,17 @@ __init__() {
 # ===================================================================
 
 __error__() {
-	case $* in
-	--app) msg="Application not found in PATH" ;;
-	--config) msg="Missing config file [$NIXOS_CONFIG]" ;;
-	--extension) msg="Missing the .nix extension
+  case $* in
+    --app) msg="Application not found in PATH" ;;
+    --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
+    --extension) msg="Missing the .nix extension
    CONFIG: $NIXOS_CONFIG" ;;
-	*) ;;
-	esac
+    *) ;;
+  esac
 
-	printf "\n🟥 %s\n" "$msg"
-	__help__
-	exit 1
+  printf "\n🟥 %s\n" "$msg"
+  __help__
+  exit 1
 }
 
 # ===================================================================
@@ -139,16 +139,16 @@ __error__() {
 # ===================================================================
 
 __test__() {
-	case $1 in
-	--flake) echo "NixOS_FLAKE: $NixOS_FLAKE" ;;
-	--config) echo "NIXOS_CONFIG: $NIXOS_CONFIG" ;;
-	--rebuild) echo "REBUILD: $rebuild" ;;
-	--clean) echo "GC: $clean" ;;
-	esac
+  case $1 in
+    --flake) echo "NixOS_FLAKE: $NixOS_FLAKE" ;;
+    --config) echo "NIXOS_CONFIG: $NIXOS_CONFIG" ;;
+    --rebuild) echo "REBUILD: $rebuild" ;;
+    --clean) echo "GC: $clean" ;;
+  esac
 
-	echo "OPTS REBUILD: $rebuild"
-	echo "OPTS UPDATE: $update"
-	echo "OPTS GC: $clean"
+  echo "OPTS REBUILD: $rebuild"
+  echo "OPTS UPDATE: $update"
+  echo "OPTS GC: $clean"
 
 }
 
@@ -156,57 +156,57 @@ __test__() {
 #@		                          PROCESS			                       @#
 # ===================================================================
 check_roots() {
-	#DOC# https://nixos.wiki/wiki/Storage_optimization
-	# find -H /nix/var/nix/gcroots/auto -type l |
-	#   xargs -I {} sh -c 'readlink {}; realpath {}; echo'
+  #DOC# https://nixos.wiki/wiki/Storage_optimization
+  # find -H /nix/var/nix/gcroots/auto -type l |
+  #   xargs -I {} sh -c 'readlink {}; realpath {}; echo'
 
-	find -H /nix/var/nix/gcroots/auto -type l -exec sh -c 'readlink "$0"; realpath "$0"; echo' {} \;
+  find -H /nix/var/nix/gcroots/auto -type l -exec sh -c 'readlink "$0"; realpath "$0"; echo' {} \;
 
-	doas nix-env -p /nix/var/nix/profiles/system --list-generations
+  doas nix-env -p /nix/var/nix/profiles/system --list-generations
 
 }
 
 clean_garbage() {
-	doas nix-collect-garbage --delete-old
+  doas nix-collect-garbage --delete-old
 }
 
 update_store() {
-	if [ "$flake" ]; then
-		nix flake update --commit-lock-file "$NixOS_FLAKE"
-	else
-		doas nix-channel --update
-	fi
+  if [ "$flake" ]; then
+    nix flake update --commit-lock-file "$NixOS_FLAKE"
+  else
+    doas nix-channel --update
+  fi
 }
 
 rebuild_system() {
-	cmd="doas nixos-rebuild switch"
+  cmd="doas nixos-rebuild switch"
 
-	if [ "$flake" ]; then
-		opts="--flake $NixOS_FLAKE"
-		[ "$trace" ] && opts="$opts --show-trace"
-	fi
+  if [ "$flake" ]; then
+    opts="--flake $NixOS_FLAKE"
+    [ "$trace" ] && opts="$opts --show-trace"
+  fi
 
-	eval "$cmd" "$opts"
+  eval "$cmd" "$opts"
 }
 
 __process__() {
 
-	#@ Manage old configs and garbage
-	[ "$check" ] && check_roots
-	[ "$clean" ] && clean_garbage
+  #@ Manage old configs and garbage
+  [ "$check" ] && check_roots
+  [ "$clean" ] && clean_garbage
 
-	#@ Update DOTS
-	if [ "$update" ]; then
-		DOTSup "NixOS Full Update"
-	elif [ "$rebuild" ]; then
-		DOTSup "NixOS Update"
-	fi
+  #@ Update DOTS
+  if [ "$update" ]; then
+    DOTSup "NixOS Full Update"
+  elif [ "$rebuild" ]; then
+    DOTSup "NixOS Update"
+  fi
 
-	#@ Update Store/Repositories
-	[ "$update" ] && update_store
+  #@ Update Store/Repositories
+  [ "$update" ] && update_store
 
-	#@ Rebuild per flake or config
-	[ "$rebuild" ] && rebuild_system
+  #@ Rebuild per flake or config
+  [ "$rebuild" ] && rebuild_system
 
 }
 
@@ -215,13 +215,13 @@ __process__() {
 # ===================================================================
 
 __cleanup__() {
-	unset \
-		verbose \
-		rebuild \
-		update \
-		clean \
-		config \
-		flake
+  unset \
+    verbose \
+    rebuild \
+    update \
+    clean \
+    config \
+    flake
 }
 
 # ===================================================================

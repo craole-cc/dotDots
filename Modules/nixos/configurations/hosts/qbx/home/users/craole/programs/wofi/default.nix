@@ -1,5 +1,5 @@
 {
-  imports = [];
+  imports = [ ];
   programs.wofi = {
     enable = true;
   };

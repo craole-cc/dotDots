@@ -1,15 +1,15 @@
 #!/bin/sh
 
 #@ Check if starship exists, return if not
-command -v starship >/dev/null 2>&1 || return
+command -v starship > /dev/null 2>&1 || return
 
 #@ Set config path with POSIX-compliant parameter expansion
 if [ -n "$1" ]; then
-	STARSHIP_CONFIG="$1"
+  STARSHIP_CONFIG="$1"
 elif [ -n "$STARSHIP_CONFIG" ]; then
-	:
+  :
 else
-	STARSHIP_CONFIG="${DOTS_CFG}/starship/starship.toml"
+  STARSHIP_CONFIG="${DOTS_CFG}/starship/starship.toml"
 fi
 export STARSHIP_CONFIG
 

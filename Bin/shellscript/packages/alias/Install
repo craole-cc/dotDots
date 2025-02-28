@@ -2,23 +2,23 @@
 printf "Installing %s\n" "$@"
 
 weHave() { #@ Check if the command exists
-	type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 if weHave PackageManager; then
-	PackageManager "[OPTIONS]" "<APP>"
+  PackageManager "[OPTIONS]" "<APP>"
 elif weHave xbps-install; then
-	sudo xbps-install -Suv "$@"
+  sudo xbps-install -Suv "$@"
 elif weHave paru; then
-	paru "$@"
+  paru "$@"
 elif weHave pacman; then
-	sudo pacman -Syu "$@"
+  sudo pacman -Syu "$@"
 elif weHave apt-get; then
-	sudo apt-get install "$@"
+  sudo apt-get install "$@"
 elif weHave dnf; then
-	sudo dnf install --assumeyes "$@"
+  sudo dnf install --assumeyes "$@"
 elif weHave choco; then
-	cup "$@" -y
+  cup "$@" -y
 elif weHave CargoInstall; then
-	CargoInstall "$@"
+  CargoInstall "$@"
 fi

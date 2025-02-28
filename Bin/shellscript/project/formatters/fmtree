@@ -1,121 +1,121 @@
 #!/bin/sh
 
 main() {
-	trap drop_env EXIT
-	init_env
-	parse_arguments "$@"
-	execute_process
+  trap drop_env EXIT
+  init_env
+  parse_arguments "$@"
+  execute_process
 }
 
 init_env() {
-	FMTREE_CMD="$(command -v treefmt 2>&1)"
-	FMTREE_CFG="$DOTS_CFG/treefmt/treefmt.toml"
-	FMTREE_DIR="$(pwd)"
-	FMTREE_ARG="--allow-missing-formatter"
-	FMTREE_DRY=0
-	FMTREE_CI=1
-	DELIMITER="$(printf '\003')"
-	IFS="$DELIMITER"
-	VERBOSITY="${VERBOSITY:-4}"
+  FMTREE_CMD="$(command -v treefmt 2>&1)"
+  FMTREE_CFG="$DOTS_CFG/treefmt/treefmt.toml"
+  FMTREE_DIR="$(pwd)"
+  FMTREE_ARG="--allow-missing-formatter"
+  FMTREE_DRY=0
+  FMTREE_CI=1
+  DELIMITER="$(printf '\003')"
+  IFS="$DELIMITER"
+  VERBOSITY="${VERBOSITY:-4}"
 }
 
 drop_env() {
-	unset FMTREE_CMD
-	unset FMTREE_CFG
-	unset FMTREE_DIR
-	unset FMTREE_ARG
-	unset FMTREE_DRY
-	unset FMTREE_CI
-	unset DELIMITER
-	unset IFS
-	unset VERBOSITY
+  unset FMTREE_CMD
+  unset FMTREE_CFG
+  unset FMTREE_DIR
+  unset FMTREE_ARG
+  unset FMTREE_DRY
+  unset FMTREE_CI
+  unset DELIMITER
+  unset IFS
+  unset VERBOSITY
 }
 
 parse_arguments() {
-	while [ "$#" -ge 1 ]; do
-		case "$1" in
-		--config)
-			[ "$2" ] || {
-				printf "Error: Config file not specified." >&2
-				exit 1
-			}
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+      --config)
+        [ "$2" ] || {
+          printf "Error: Config file not specified." >&2
+          exit 1
+        }
 
-			FMTREE_CFG="$2"
-			shift
-			;;
-		--root)
-			[ "$2" ] || {
-				printf "Error: Root directory not specified." >&2
-				exit 1
-			}
+        FMTREE_CFG="$2"
+        shift
+        ;;
+      --root)
+        [ "$2" ] || {
+          printf "Error: Root directory not specified." >&2
+          exit 1
+        }
 
-			[ -d "$2" ] || {
-				printf "Error: Root directory not found." >&2
-				exit 1
-			}
+        [ -d "$2" ] || {
+          printf "Error: Root directory not found." >&2
+          exit 1
+        }
 
-			FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--tree-root $2"
-			shift
-			;;
-		--debug | --dry*)
-			FMTREE_DRY=1
-			;;
-		-d | --verbose)
-			VERBOSITY=4
-			;;
-		*)
-			FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}$1"
-			;;
-		esac
-		shift
-	done
+        FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--tree-root $2"
+        shift
+        ;;
+      --debug | --dry*)
+        FMTREE_DRY=1
+        ;;
+      -d | --verbose)
+        VERBOSITY=4
+        ;;
+      *)
+        FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}$1"
+        ;;
+    esac
+    shift
+  done
 }
 
 execute_process() {
-	#@ Validate command
-	[ "$FMTREE_CMD" ] || {
-		printf "Error: treefmt not found." >&2
-		return 1
-	}
+  #@ Validate command
+  [ "$FMTREE_CMD" ] || {
+    printf "Error: treefmt not found." >&2
+    return 1
+  }
 
-	#@ Validate config
-	[ "$FMTREE_CFG" ] && {
-		if [ -f "$FMTREE_CFG" ]; then
-			FMTREE_CFG="--config-file $FMTREE_CFG"
-		else
-			printf "Error: Config file not found." >&2
-			return 1
-		fi
-	}
+  #@ Validate config
+  [ "$FMTREE_CFG" ] && {
+    if [ -f "$FMTREE_CFG" ]; then
+      FMTREE_CFG="--config-file $FMTREE_CFG"
+    else
+      printf "Error: Config file not found." >&2
+      return 1
+    fi
+  }
 
-	#@ Validate tree root
-	[ "$FMTREE_DIR" ] && {
-		if [ -d "$FMTREE_DIR" ]; then
-			FMTREE_DIR="--tree-root $FMTREE_DIR"
-		else
-			printf "Error: Root directory not found." >&2
-			return 1
-		fi
-	}
+  #@ Validate tree root
+  [ "$FMTREE_DIR" ] && {
+    if [ -d "$FMTREE_DIR" ]; then
+      FMTREE_DIR="--tree-root $FMTREE_DIR"
+    else
+      printf "Error: Root directory not found." >&2
+      return 1
+    fi
+  }
 
-	#@ Add the --ci flag if specified
-	case "$FMTREE_CI" in 0 | '' | false | no) ;; *)
-		FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--ci"
-		# FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--no-cache --fail-on-change"
-		;;
-	esac
+  #@ Add the --ci flag if specified
+  case "$FMTREE_CI" in 0 | '' | false | no) ;; *)
+    FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--ci"
+    # FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--no-cache --fail-on-change"
+    ;;
+  esac
 
-	#@ Build the final command
-	FMTREE_CMD="$(printf "%s %s %s %s" \
-		"$FMTREE_CMD" "$FMTREE_CFG" "$FMTREE_DIR" \
-		"$(printf "%s" "$FMTREE_ARG" | tr "$DELIMITER" " ")")"
+  #@ Build the final command
+  FMTREE_CMD="$(printf "%s %s %s %s" \
+    "$FMTREE_CMD" "$FMTREE_CFG" "$FMTREE_DIR" \
+    "$(printf "%s" "$FMTREE_ARG" | tr "$DELIMITER" " ")")"
 
-	#@ Print command
-	[ "$VERBOSITY" -ge 4 ] &&
-		printf '\033[1;36m[ INFO ]\033[0m Executing command => %s\n' "$FMTREE_CMD"
+  #@ Print command
+  [ "$VERBOSITY" -ge 4 ] \
+    && printf '\033[1;36m[ INFO ]\033[0m Executing command => %s\n' "$FMTREE_CMD"
 
-	#@ Run command
-	[ "$FMTREE_DRY" -eq 0 ] && eval "$FMTREE_CMD"
+  #@ Run command
+  [ "$FMTREE_DRY" -eq 0 ] && eval "$FMTREE_CMD"
 }
 
 main "$@"

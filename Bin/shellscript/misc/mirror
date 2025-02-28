@@ -19,8 +19,8 @@ magenta=$(tput setaf 5)
 cyan=$(tput setaf 6)
 reset=$(tput sgr0)
 OUTPUT() {
-	echo "${blue}::${reset} $msg"
-	notify-send "$msg"
+  echo "${blue}::${reset} $msg"
+  notify-send "$msg"
 }
 clear
 

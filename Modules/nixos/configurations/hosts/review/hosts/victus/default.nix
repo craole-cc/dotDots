@@ -1,7 +1,8 @@
 let
   base = "hosts";
   mod = "preci";
-in {
+in
+{
   DOTS.${base}.${mod} = {
     id = "444CC9B3";
     machine = "laptop";
@@ -21,7 +22,7 @@ in {
           "sd_mod"
           "sdhci_pci"
         ];
-        kernelModules = ["kvm-intel"];
+        kernelModules = [ "kvm-intel" ];
       };
 
       fileSystems = {
@@ -41,10 +42,10 @@ in {
         };
       };
 
-      swapDevices = [];
+      swapDevices = [ ];
 
       devices = {
-        network = ["wlp2s0"];
+        network = [ "wlp2s0" ];
       };
     };
   };

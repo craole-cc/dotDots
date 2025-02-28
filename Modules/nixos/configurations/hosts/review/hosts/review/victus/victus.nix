@@ -1,4 +1,5 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   systems = [
     # systems = lib.attrValues (lib.mapAttrsToList (_name: host: host.system) hosts);
     # systems = lib.attrValues (lib.mapAttrsToList (hostName: host: host.system) hosts);
@@ -12,7 +13,7 @@
     victus = {
       name = "victus";
       id = "444CC9B3";
-      context = ["laptop"];
+      context = [ "laptop" ];
       profile = [
         "development"
         "gaming"
@@ -37,8 +38,8 @@
     dbooktoo = {
       name = "dbooktoo";
       id = "444OO8D6";
-      context = ["laptop"];
-      profile = ["development"];
+      context = [ "laptop" ];
+      profile = [ "development" ];
       system = "x86_64-linux";
       cpu = "intel";
       timezone = "America/Jamaica";
@@ -59,18 +60,19 @@
     };
   };
 in
-  with lib;
-  with types; {
-    options.coreArgs = {
-      systems = mkOption {
-        description = "Common arguments";
-        type = attrs;
-        default = systems;
-      };
-      clients = mkOption {
-        description = "Common arguments";
-        type = attrs;
-        default = clients;
-      };
+with lib;
+with types;
+{
+  options.coreArgs = {
+    systems = mkOption {
+      description = "Common arguments";
+      type = attrs;
+      default = systems;
     };
-  }
+    clients = mkOption {
+      description = "Common arguments";
+      type = attrs;
+      default = clients;
+    };
+  };
+}

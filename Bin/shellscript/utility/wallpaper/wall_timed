@@ -1,10 +1,10 @@
 #!/bin/sh
 
 while true; do
-	wall_rand
-	# feh --bg-fill "$(wall_rand)"
-	# nitrogen --set-zoom-fill "$(wall_rand)" &
-	sleep 10
+  wall_rand
+  # feh --bg-fill "$(wall_rand)"
+  # nitrogen --set-zoom-fill "$(wall_rand)" &
+  sleep 10
 done
 
 # wall_rand &

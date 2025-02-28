@@ -111,8 +111,8 @@
 
 #@ Declare colors for supported terminals
 case $TERM in
-*-m) return ;;
-*) ;;
+  *-m) return ;;
+  *) ;;
 esac
 
 # #@ Foreground Colors
@@ -203,114 +203,114 @@ clr_info="${blue}${bold}"
 
 #> Test                                                                       |
 __test__() {
-	# echo "
-	#   ${info}::: Attributes :::${reset}
-	#   ${bold}bold${reset}
-	#   ${dim}dim${reset}
-	#   ${italic}italic${reset}
-	#   ${underline}underline${reset}
-	#   ${invert}invert${reset}
-	#   ${blink}blinking${reset}
+  # echo "
+  #   ${info}::: Attributes :::${reset}
+  #   ${bold}bold${reset}
+  #   ${dim}dim${reset}
+  #   ${italic}italic${reset}
+  #   ${underline}underline${reset}
+  #   ${invert}invert${reset}
+  #   ${blink}blinking${reset}
 
-	#   ${reset}${info}::: Colors :::${reset}
-	#   ${black}black
-	#   ${red}red
-	#   ${darkred}darkred
-	#   ${maroon}maroon
-	#   ${saddlebrown}saddlebrown
-	#   ${orangered}orangered
-	#   ${darkorange}darkorange
-	#   ${orange}orange
-	#   ${yellow}yellow
-	#   ${gold}gold
-	#   ${green}green
-	#   ${lime}lime
-	#   ${olive}olive
-	#   ${darkolivegreen}darkolivegreen
-	#   ${cyan}cyan
-	#   ${turquoise}turquoise
-	#   ${teal}teal
-	#   ${slateblue}slateblue
-	#   ${darkslateblue}darkslateblue
-	#   ${blue}blue
-	#   ${midnightblue}midnightblue
-	#   ${cornsilk}${purple_bg}purple${reset}
-	#   ${lime}${indigo_bg} indigo ${reset}
-	#   ${magenta}magenta
-	#   ${fuchsia}fuchsia
-	#   ${violet}violet
-	#   ${deeppink}deeppink
-	#   ${hotpink}hotpink
-	#   ${pink}pink
-	#   ${silver}silver
-	#   ${gray}gray
-	#   ${dimgray}dimgray
-	#   ${darkslategray}darkslategray
-	#   ${cornsilk}cornsilk
-	#   ${tan}tan
-	#   ${snow}snow
-	#   ${ivory}ivory
-	#   ${white}white
+  #   ${reset}${info}::: Colors :::${reset}
+  #   ${black}black
+  #   ${red}red
+  #   ${darkred}darkred
+  #   ${maroon}maroon
+  #   ${saddlebrown}saddlebrown
+  #   ${orangered}orangered
+  #   ${darkorange}darkorange
+  #   ${orange}orange
+  #   ${yellow}yellow
+  #   ${gold}gold
+  #   ${green}green
+  #   ${lime}lime
+  #   ${olive}olive
+  #   ${darkolivegreen}darkolivegreen
+  #   ${cyan}cyan
+  #   ${turquoise}turquoise
+  #   ${teal}teal
+  #   ${slateblue}slateblue
+  #   ${darkslateblue}darkslateblue
+  #   ${blue}blue
+  #   ${midnightblue}midnightblue
+  #   ${cornsilk}${purple_bg}purple${reset}
+  #   ${lime}${indigo_bg} indigo ${reset}
+  #   ${magenta}magenta
+  #   ${fuchsia}fuchsia
+  #   ${violet}violet
+  #   ${deeppink}deeppink
+  #   ${hotpink}hotpink
+  #   ${pink}pink
+  #   ${silver}silver
+  #   ${gray}gray
+  #   ${dimgray}dimgray
+  #   ${darkslategray}darkslategray
+  #   ${cornsilk}cornsilk
+  #   ${tan}tan
+  #   ${snow}snow
+  #   ${ivory}ivory
+  #   ${white}white
 
-	#   ${reset}${info}::: Background Colors :::${reset}
-	#   ${black_bg}black${reset}
-	#   ${red_bg}red${reset}
-	#   ${darkred_bg}darkred${reset}
-	#   ${maroon_bg}maroon${reset}
-	#   ${saddlebrown_bg}saddlebrown${reset}
-	#   ${orangered_bg}orangered${reset}
-	#   ${darkorange_bg}darkorange${reset}
-	#   ${orange_bg}orange${reset}
-	#   ${yellow_bg}yellow${reset}
-	#   ${gold_bg}gold${reset}
-	#   ${green_bg}green${reset}
-	#   ${lime_bg}lime${reset}
-	#   ${olive_bg}olive${reset}
-	#   ${darkolivegreen_bg}darkolivegreen${reset}
-	#   ${cyan_bg}cyan${reset}
-	#   ${turquoise_bg}turquoise${reset}
-	#   ${teal_bg}teal${reset}
-	#   ${slateblue_bg}slateblue${reset}
-	#   ${darkslateblue_bg}darkslateblue${reset}
-	#   ${blue_bg}blue${reset}
-	#   ${midnightblue_bg}midnightblue${reset}
-	#   ${cornsilk_bg}${purple_bg}purple${reset}${reset}
-	#   ${lime_bg}${indigo_bg} indigo ${reset}${reset}
-	#   ${magenta_bg}magenta${reset}
-	#   ${fuchsia_bg}fuchsia${reset}
-	#   ${violet_bg}violet${reset}
-	#   ${deeppink_bg}deeppink${reset}
-	#   ${hotpink_bg}hotpink${reset}
-	#   ${pink_bg}pink${reset}
-	#   ${silver_bg}silver${reset}
-	#   ${gray_bg}gray${reset}
-	#   ${dimgray_bg}dimgray${reset}
-	#   ${darkslategray_bg}darkslategray${reset}
-	#   ${cornsilk_bg}cornsilk${reset}
-	#   ${tan_bg}tan${reset}
-	#   ${snow_bg}snow${reset}
-	#   ${ivory_bg}ivory${reset}
-	#   ${white_bg}white${reset}
-	#   "
+  #   ${reset}${info}::: Background Colors :::${reset}
+  #   ${black_bg}black${reset}
+  #   ${red_bg}red${reset}
+  #   ${darkred_bg}darkred${reset}
+  #   ${maroon_bg}maroon${reset}
+  #   ${saddlebrown_bg}saddlebrown${reset}
+  #   ${orangered_bg}orangered${reset}
+  #   ${darkorange_bg}darkorange${reset}
+  #   ${orange_bg}orange${reset}
+  #   ${yellow_bg}yellow${reset}
+  #   ${gold_bg}gold${reset}
+  #   ${green_bg}green${reset}
+  #   ${lime_bg}lime${reset}
+  #   ${olive_bg}olive${reset}
+  #   ${darkolivegreen_bg}darkolivegreen${reset}
+  #   ${cyan_bg}cyan${reset}
+  #   ${turquoise_bg}turquoise${reset}
+  #   ${teal_bg}teal${reset}
+  #   ${slateblue_bg}slateblue${reset}
+  #   ${darkslateblue_bg}darkslateblue${reset}
+  #   ${blue_bg}blue${reset}
+  #   ${midnightblue_bg}midnightblue${reset}
+  #   ${cornsilk_bg}${purple_bg}purple${reset}${reset}
+  #   ${lime_bg}${indigo_bg} indigo ${reset}${reset}
+  #   ${magenta_bg}magenta${reset}
+  #   ${fuchsia_bg}fuchsia${reset}
+  #   ${violet_bg}violet${reset}
+  #   ${deeppink_bg}deeppink${reset}
+  #   ${hotpink_bg}hotpink${reset}
+  #   ${pink_bg}pink${reset}
+  #   ${silver_bg}silver${reset}
+  #   ${gray_bg}gray${reset}
+  #   ${dimgray_bg}dimgray${reset}
+  #   ${darkslategray_bg}darkslategray${reset}
+  #   ${cornsilk_bg}cornsilk${reset}
+  #   ${tan_bg}tan${reset}
+  #   ${snow_bg}snow${reset}
+  #   ${ivory_bg}ivory${reset}
+  #   ${white_bg}white${reset}
+  #   "
 
-	echo "${deeppink}deeppink"
-	printf \
-		"The Username is %s%s%s\n" \
-		"${deeppink}" "$USERNAME" "${reset}"
+  echo "${deeppink}deeppink"
+  printf \
+    "The Username is %s%s%s\n" \
+    "${deeppink}" "$USERNAME" "${reset}"
 
-	# echo "${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though ${reset}"
-	# echo "${invert}${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though ${reset}"
-	# echo "${magenta}This is ${bold}${gold}how we ${reset}${italic}${cornsilk}do it. ${error} Y'all don't hear me though ${reset}"
+  # echo "${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though ${reset}"
+  # echo "${invert}${warning} This is ${info} how we ${success} do it. ${error} Y'all don't hear me though ${reset}"
+  # echo "${magenta}This is ${bold}${gold}how we ${reset}${italic}${cornsilk}do it. ${error} Y'all don't hear me though ${reset}"
 
-	# printf "\033[48:2:255:165:0m%s\033[m\n" "Hello world"
-	# printf "\033[48;2;255;165;0m%s\033[m\n" "Hello world"
+  # printf "\033[48:2:255:165:0m%s\033[m\n" "Hello world"
+  # printf "\033[48;2;255;165;0m%s\033[m\n" "Hello world"
 
-	# # prints “hotpink” in #205 (HEX: #f69, RGB: 255, 102, 153)
-	# printf "\033[38;5;205mhotpink\033[m\n"
-	# printf "\033[38;3;205mhotpink\033[m\n"
+  # # prints “hotpink” in #205 (HEX: #f69, RGB: 255, 102, 153)
+  # printf "\033[38;5;205mhotpink\033[m\n"
+  # printf "\033[38;3;205mhotpink\033[m\n"
 
-	# # prints “giant goldfish” in 24-bit orange (HEX: #F38630, RGB: 243, 134, 48)
-	# printf "\033[38;2;243;134;48mgiant goldfish\033[0m\n"
+  # # prints “giant goldfish” in 24-bit orange (HEX: #F38630, RGB: 243, 134, 48)
+  # printf "\033[38;2;243;134;48mgiant goldfish\033[0m\n"
 
 }
 

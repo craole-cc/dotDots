@@ -1,4 +1,5 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib) mapAttrsToList mkIf;
   inherit (lib.strings) toUpper;
 
@@ -75,7 +76,8 @@
     k = "u";
     j = "d";
   };
-in {
+in
+{
   wayland.windowManager.hyprland.settings = {
     "$MOD" = toUpper launcher.modifier;
 
@@ -215,8 +217,7 @@ in {
         # Move workspace to other monitor
         mapAttrsToList (
           key: direction: "$MOD ALTSHIFT,${key},movecurrentworkspacetomonitor,${direction}"
-        )
-        directions
+        ) directions
       );
   };
 }

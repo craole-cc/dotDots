@@ -1,40 +1,40 @@
 #!/bin/sh
 
-wehave_fd="$(command -v fd 2>/dev/null)"
-wehave_treefmt="$(command -v treefmt 2>/dev/null)"
-wehave_taplo="$(command -v taplo 2>/dev/null)"
-wehave_fmt_editorconfig="$(command -v fmt_editorconfig 2>/dev/null)"
+wehave_fd="$(command -v fd 2> /dev/null)"
+wehave_treefmt="$(command -v treefmt 2> /dev/null)"
+wehave_taplo="$(command -v taplo 2> /dev/null)"
+wehave_fmt_editorconfig="$(command -v fmt_editorconfig 2> /dev/null)"
 
 use_treefmt() {
-	[ -n "$wehave_treefmt" ] || return
+  [ -n "$wehave_treefmt" ] || return
 
-	treefmt \
-		--config-file "${DOTS_CFG}/treefmt/config.toml" \
-		--allow-missing-formatter \
-		--ci \
-		--tree-root "$DOTS"
+  treefmt \
+    --config-file "${DOTS_CFG}/treefmt/config.toml" \
+    --allow-missing-formatter \
+    --ci \
+    --tree-root "$DOTS"
 }
 
 use_taplo() {
-	[ -n "$wehave_taplo" ] || return
-	taplo format
+  [ -n "$wehave_taplo" ] || return
+  taplo format
 }
 
 use_fmt_editorconfig() {
-	[ -n "$wehave_fmt_editorconfig" ] || return
+  [ -n "$wehave_fmt_editorconfig" ] || return
 
-	if [ -n "$wehave_fd" ]; then
-		fd \
-			--glob '{.editorconfig,editorconfig}' \
-			--type file \
-			--hidden \
-			--absolute-path \
-			--exec fmt_editorconfig {}
-	else
-		find "$DOTS" \
-			-type f \( -name ".editorconfig" -o -name "editorconfig" \) \
-			-exec fmt_editorconfig {} \;
-	fi
+  if [ -n "$wehave_fd" ]; then
+    fd \
+      --glob '{.editorconfig,editorconfig}' \
+      --type file \
+      --hidden \
+      --absolute-path \
+      --exec fmt_editorconfig {}
+  else
+    find "$DOTS" \
+      -type f \( -name ".editorconfig" -o -name "editorconfig" \) \
+      -exec fmt_editorconfig {} \;
+  fi
 }
 
 use_treefmt

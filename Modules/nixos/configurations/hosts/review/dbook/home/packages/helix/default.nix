@@ -1,4 +1,4 @@
 {
   programs.helix.enable = true;
-  imports = [./settings.nix];
+  imports = [ ./settings.nix ];
 }

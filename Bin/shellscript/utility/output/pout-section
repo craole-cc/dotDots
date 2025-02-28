@@ -17,7 +17,7 @@ set_defaults() {
 }
 
 is_valid_num() {
-  validate --positive "$1" >/dev/null 2>&1
+  validate --positive "$1" > /dev/null 2>&1
 }
 
 print_padded() {
@@ -28,15 +28,15 @@ print_padded() {
 print_section() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --head*)
-      pad=2
-      sep=":-"
-      printf "\n%s%s\n" "$(print_padded "$2" "$pad")" "$sep"
-      ;;
-    --info*)
-      pad=4
-      printf "%*s%s\n" "$pad" "" "$2"
-      ;;
+      --head*)
+        pad=2
+        sep=":-"
+        printf "\n%s%s\n" "$(print_padded "$2" "$pad")" "$sep"
+        ;;
+      --info*)
+        pad=4
+        printf "%*s%s\n" "$pad" "" "$2"
+        ;;
     esac
     shift
   done
@@ -66,21 +66,21 @@ print_usage() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --args)
-      msg="$(
-        printf "Incorrect number of arguments. " >&2
-        printf "Expected at least %s but got %s\n" "$expected_args" "$2" >&2
-      )"
-      ;;
-    --pos)
-      msg="$(
-        printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
-      )"
-      ;;
-    --reps)
-      msg="$(printf "Number of repetitions not defined\n" >&2)"
-      ;;
-    *) exit_code="$1" ;;
+      --args)
+        msg="$(
+          printf "Incorrect number of arguments. " >&2
+          printf "Expected at least %s but got %s\n" "$expected_args" "$2" >&2
+        )"
+        ;;
+      --pos)
+        msg="$(
+          printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+        )"
+        ;;
+      --reps)
+        msg="$(printf "Number of repetitions not defined\n" >&2)"
+        ;;
+      *) exit_code="$1" ;;
     esac
     shift
   done
@@ -109,8 +109,8 @@ parse_arguments() {
   #@ Script Options
   for arg in "$@"; do
     case "$arg" in
-    -h) print_usage 0 ;;
-    --help) print_guide ;;
+      -h) print_usage 0 ;;
+      --help) print_guide ;;
     esac
   done
 
@@ -120,40 +120,40 @@ parse_arguments() {
   #@ Process Options
   while [ "$#" -ge "$expected_args" ]; do
     case "$1" in
-    -n | -*num | -r | -*rep*)
-      is_valid_num "$2" || print_usage --reps
-      reps="$2"
-      shift
-      ;;
-    -p | --pattern | -c | --char)
-      [ "$2" ] || print_usage --args
-      char="$2"
-      shift
-      ;;
-    -l | --line)
-      char="\n"
-      rep=1
-      is_valid_num "$2" && rep="$2"
-      return
-      ;;
-    -s | --space)
-      char=" "
-      rep=1
-      is_valid_num "$2" && rep="$2"
-      return
-      ;;
-    *)
-      #@ Handle positional arguments
-      if [ -z "$reps" ] && [ -z "$char" ]; then
-        if is_valid_num "$1"; then
-          char="$2"
-          reps="$1"
-        elif is_valid_num "$2"; then
-          char="$1"
-          reps="$2"
+      -n | -*num | -r | -*rep*)
+        is_valid_num "$2" || print_usage --reps
+        reps="$2"
+        shift
+        ;;
+      -p | --pattern | -c | --char)
+        [ "$2" ] || print_usage --args
+        char="$2"
+        shift
+        ;;
+      -l | --line)
+        char="\n"
+        rep=1
+        is_valid_num "$2" && rep="$2"
+        return
+        ;;
+      -s | --space)
+        char=" "
+        rep=1
+        is_valid_num "$2" && rep="$2"
+        return
+        ;;
+      *)
+        #@ Handle positional arguments
+        if [ -z "$reps" ] && [ -z "$char" ]; then
+          if is_valid_num "$1"; then
+            char="$2"
+            reps="$1"
+          elif is_valid_num "$2"; then
+            char="$1"
+            reps="$2"
+          fi
         fi
-      fi
-      ;;
+        ;;
     esac
     shift
   done

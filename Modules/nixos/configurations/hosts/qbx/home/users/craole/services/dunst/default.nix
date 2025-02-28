@@ -2,7 +2,8 @@
   osConfig,
   pkgs,
   ...
-}: {
+}:
+{
   imports = [
     # ./icons.nix
     ./settings.nix

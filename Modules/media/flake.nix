@@ -6,141 +6,146 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-  }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      paths = rec {
-        home = "/home/craole/.dots/Flakes/media";
-        # mod = ./modules;
-        mod = home + "/modules";
-        bin = home + "/bin";
-        cfg = home + "/config";
-        dls = home + "/downloads";
-      };
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
-      mpvEnhanced = pkgs.mpv.override {
-        scripts = with pkgs.mpvScripts; [
-          uosc
-          memo
-          quack
-          mpris
-          reload
-          cutter
-          evafast
-          autosub
-          smartskip
-          skipsilence
-          chapterskip
-          sponsorblock
-          quality-menu
-          inhibit-gnome
-          mpv-notify-send
-          webtorrent-mpv-hook
-          mpv-playlistmanager
-        ];
-      };
-
-      mpvConfig = pkgs.substituteAll {
-        src = paths.mod + "/mpv/settings.conf";
-        ytdlp = pkgs.yt-dlp;
-      };
-
-      mpvCommand = pkgs.substituteAll {
-        src = ./modules/mpv/cmd.sh;
-        isExecutable = true;
-        mpv = pkgs.mpv.override {
-          scripts = mpvEnhanced;
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        paths = rec {
+          home = "/home/craole/.dots/Flakes/media";
+          # mod = ./modules;
+          mod = home + "/modules";
+          bin = home + "/bin";
+          cfg = home + "/config";
+          dls = home + "/downloads";
         };
-      };
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
 
-      ytdConfig = pkgs.substituteAll {
-        src = paths.mod + "/ytd/settings.conf";
-        ytdlp = pkgs.yt-dlp;
-      };
+        mpvEnhanced = pkgs.mpv.override {
+          scripts = with pkgs.mpvScripts; [
+            uosc
+            memo
+            quack
+            mpris
+            reload
+            cutter
+            evafast
+            autosub
+            smartskip
+            skipsilence
+            chapterskip
+            sponsorblock
+            quality-menu
+            inhibit-gnome
+            mpv-notify-send
+            webtorrent-mpv-hook
+            mpv-playlistmanager
+          ];
+        };
 
-      ytdCommand = pkgs.substituteAll {
-        isExecutable = true;
-        src = ./modules/ytd/cmd.sh;
-        cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
-        cfg = paths.cfg + "/ytd/yt-dlp.conf";
-        mod = paths.mod + "/ytd/settings.conf";
-        dls = paths.dls;
-        fmt = "1080p";
-      };
-    in {
-      devShells.default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          #| Image
-          feh
-          imv
-          swww
+        mpvConfig = pkgs.substituteAll {
+          src = paths.mod + "/mpv/settings.conf";
+          ytdlp = pkgs.yt-dlp;
+        };
 
-          #| Music
-          ncmpcpp
-          mpc-cli
-          mpd
-          curseradio
-          playerctl
-          pamixer
-          # tauon
-          shortwave
-          strawberry
-          # deadbeef
+        mpvCommand = pkgs.substituteAll {
+          src = ./modules/mpv/cmd.sh;
+          isExecutable = true;
+          mpv = pkgs.mpv.override {
+            scripts = mpvEnhanced;
+          };
+        };
 
-          #| Utilities
-          btop
-          ffmpeg
-          curl
-          fzf
-          jq
-          libnotify
-          mediainfo
-          rlwrap
-          socat
-          xclip
+        ytdConfig = pkgs.substituteAll {
+          src = paths.mod + "/ytd/settings.conf";
+          ytdlp = pkgs.yt-dlp;
+        };
 
-          #| Video
-          freetube
-          # mpvEnhanced
-          mpvc
-          # yt-dlp
-        ];
+        ytdCommand = pkgs.substituteAll {
+          isExecutable = true;
+          src = ./modules/ytd/cmd.sh;
+          cmd = "${pkgs.yt-dlp}/bin/yt-dlp";
+          cfg = paths.cfg + "/ytd/yt-dlp.conf";
+          mod = paths.mod + "/ytd/settings.conf";
+          dls = paths.dls;
+          fmt = "1080p";
+        };
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            #| Image
+            feh
+            imv
+            swww
 
-        shellHook = ''
-          printf "🎬 Comprehensive Media Environment Loaded!\n\n"
+            #| Music
+            ncmpcpp
+            mpc-cli
+            mpd
+            curseradio
+            playerctl
+            pamixer
+            # tauon
+            shortwave
+            strawberry
+            # deadbeef
 
-          #@ Deploy scripts
-          mkdir -p ${paths.bin}
-          cp -f ${ytdCommand} ${paths.bin}/ytd
+            #| Utilities
+            btop
+            ffmpeg
+            curl
+            fzf
+            jq
+            libnotify
+            mediainfo
+            rlwrap
+            socat
+            xclip
 
-          #@ Set up executable scripts
-          find "${paths.bin}" -type f -exec chmod +x {} +
-          PATH="$PATH:${paths.bin}"
-          export PATH
-          unalias mpv ytd
+            #| Video
+            freetube
+            # mpvEnhanced
+            mpvc
+            # yt-dlp
+          ];
 
-          #@ Show the usage guide
-          printf "Video Tools:\n"
-          printf "  mpv         - Enhanced MPV with custom config\n"
-          printf "  ytd         - Download videos (usage: yt-download <url> [quality])\n\n"
+          shellHook = ''
+            printf "🎬 Comprehensive Media Environment Loaded!\n\n"
 
-          printf "Image Viewers:\n"
-          printf "  feh         - Light image viewer\n"
-          printf "  imv         - Alternative image viewer\n\n"
+            #@ Deploy scripts
+            mkdir -p ${paths.bin}
+            cp -f ${ytdCommand} ${paths.bin}/ytd
 
-          printf "Music & Radio:\n"
-          printf "  ncmpcpp     - Music player (music dir: ${paths.home}/music)\n"
-          printf "  curseradio  - Terminal radio\n\n"
-        '';
-      };
-    });
+            #@ Set up executable scripts
+            find "${paths.bin}" -type f -exec chmod +x {} +
+            PATH="$PATH:${paths.bin}"
+            export PATH
+            unalias mpv ytd
+
+            #@ Show the usage guide
+            printf "Video Tools:\n"
+            printf "  mpv         - Enhanced MPV with custom config\n"
+            printf "  ytd         - Download videos (usage: yt-download <url> [quality])\n\n"
+
+            printf "Image Viewers:\n"
+            printf "  feh         - Light image viewer\n"
+            printf "  imv         - Alternative image viewer\n\n"
+
+            printf "Music & Radio:\n"
+            printf "  ncmpcpp     - Music player (music dir: ${paths.home}/music)\n"
+            printf "  curseradio  - Terminal radio\n\n"
+          '';
+        };
+      }
+    );
 }
 #@ Initialize the apps
 # init-ytd
@@ -150,4 +155,3 @@
 # cp -f ${mpvCommand} ${flakeBin}/mpv
 # cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
 # cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
-

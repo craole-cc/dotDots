@@ -3,7 +3,8 @@
   lib,
   modulesPath,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf mkDefault mkForce;
   inherit (lib.options) mkOption;
   # inherit (config.dot.active) host; ???
@@ -18,7 +19,8 @@
     # with location; ???
     mkIf enable {
       boot = {
-        loader = with boot;
+        loader =
+          with boot;
           mkIf (base != "server") {
             systemd-boot = {
               enable = loader == "systemd-boot";
@@ -32,7 +34,7 @@
               splashImage = null;
               mirroredBoots = [
                 {
-                  devices = ["nodev"];
+                  devices = [ "nodev" ];
                   path = "/boot";
                 }
               ];
@@ -53,10 +55,7 @@
 
       location = {
         inherit longitude latitude;
-        provider =
-          if (latitude == null || longitude == null)
-          then "geoclue2"
-          else "manual";
+        provider = if (latitude == null || longitude == null) then "geoclue2" else "manual";
       };
 
       networking = {
@@ -111,14 +110,12 @@
         inherit stateVersion;
       };
     };
-in {
-  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
+in
+{
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   options.DOTS.${base}.${mod} = mkOption {
-    default = with hostConfig;
-      if condition == true
-      then content
-      else {};
+    default = with hostConfig; if condition == true then content else { };
   };
 
   # config = hostConfig;

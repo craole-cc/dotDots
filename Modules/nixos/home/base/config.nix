@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   #| Native Imports
   inherit (lib.options) mkOption;
   inherit (lib.attrsets) mapAttrs filterAttrs hasAttr;
@@ -14,7 +15,8 @@
   inherit (DOTS) users active;
   inherit (active) user host;
 
-  userConfig = with user;
+  userConfig =
+    with user;
     mkIf (enable && (elem name (map (u: u.name) host.people))) {
       console = {
         inherit (fonts.console) packages font;
@@ -25,7 +27,7 @@
 
       i18n = {
         defaultLocale = language;
-        supportedLocales = [(language + "/UTF-8")];
+        supportedLocales = [ (language + "/UTF-8") ];
       };
 
       programs = {
@@ -35,10 +37,7 @@
       services = {
         kmscon = with fonts.console; {
           enable = true;
-          autologinUser =
-            if display.autoLogin
-            then name
-            else null;
+          autologinUser = if display.autoLogin then name else null;
           extraConfig = "font-size=${toString size}";
           extraOptions = "--term xterm-256color";
           fonts = sets;
@@ -59,21 +58,20 @@
 
       users = {
         users = mapAttrs (
-          _name: u:
-            with u; {
-              inherit
-                description
-                isNormalUser
-                hashedPassword
-                shell
-                ;
-              uid = id;
-              extraGroups = groups ++ extraGroups;
-              useDefaultShell = elem shell [
-                null
-                config.users.defaultUserShell
-              ];
-            }
+          _name: u: with u; {
+            inherit
+              description
+              isNormalUser
+              hashedPassword
+              shell
+              ;
+            uid = id;
+            extraGroups = groups ++ extraGroups;
+            useDefaultShell = elem shell [
+              null
+              config.users.defaultUserShell
+            ];
+          }
         ) (filterAttrs (_: u: u.enable == true) users);
       };
 
@@ -85,58 +83,56 @@
         useUserPackages = true;
         useGlobalPkgs = true;
         users = mapAttrs (
-          _name: u:
-            with u; {
-              gtk = {
-                enable = true;
-                font = fonts.gtk;
-                iconTheme = icons.gtk;
-              };
+          _name: u: with u; {
+            gtk = {
+              enable = true;
+              font = fonts.gtk;
+              iconTheme = icons.gtk;
+            };
 
-              home = {
-                inherit
-                  packages
-                  sessionVariables
-                  shellAliases
-                  stateVersion
-                  ;
-              };
+            home = {
+              inherit
+                packages
+                sessionVariables
+                shellAliases
+                stateVersion
+                ;
+            };
 
-              programs = with applications;
+            programs =
+              with applications;
+              {
+                home-manager.enable = true;
+                bat = bat.export;
+                btop = btop.export;
+                git = git.export;
+                helix = helix.export;
+                # firefox = dot.applications.firefox.export;
+              }
+              // programs;
+            # // dot.applications;
+
+            wayland = {
+              windowManager =
+                let
+                  mkWM =
+                    wm: if hasAttr wm applications && desktop.manager == wm then applications.${wm}.export else { };
+                in
                 {
-                  home-manager.enable = true;
-                  bat = bat.export;
-                  btop = btop.export;
-                  git = git.export;
-                  helix = helix.export;
-                  # firefox = dot.applications.firefox.export;
-                }
-                // programs;
-              # // dot.applications;
-
-              wayland = {
-                windowManager = let
-                  mkWM = wm:
-                    if hasAttr wm applications && desktop.manager == wm
-                    then applications.${wm}.export
-                    else {};
-                in {
                   hyprland = mkWM "hyprland";
                   river = mkWM "river";
                   sway = mkWM "sway";
                 };
-              };
-            }
+            };
+          }
         ) (filterAttrs (_: u: (u.enable == true && u.isNormalUser)) dot.users);
         verbose = true;
       };
     };
-in {
+in
+{
   options.dot.config.user = lib.mkOption {
-    default = with userConfig;
-      if condition == true
-      then content
-      else {};
+    default = with userConfig; if condition == true then content else { };
   };
 
   config = userConfig;

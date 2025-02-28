@@ -1,6 +1,8 @@
-{specialArgs, ...}: let
+{ specialArgs, ... }:
+let
   inherit (specialArgs) paths host;
-in {
+in
+{
   environment = {
     variables = with paths; {
       DOTS = flake.local;

@@ -1,14 +1,15 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   user = "craole";
   inherit (lib.options) mkOption mkEnableOption;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     bool
     str
     enum
     nullOr
     ;
-in {
+in
+{
   options.dots.users.${user} = {
     enable = mkEnableOption "Craole";
     name = mkOption {
@@ -44,7 +45,7 @@ in {
     };
 
     windowManager = mkOption {
-      type = nullOr (enum ["hyprland"]);
+      type = nullOr (enum [ "hyprland" ]);
       default = "hyprland";
       description = "Selected a window manager";
     };

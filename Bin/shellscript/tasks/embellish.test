@@ -6,10 +6,10 @@
 
 # Text Color Red text pop
 embellish --center --fg-red --fg-blue --bg-yellow --underline center --simulate --fg-yellow pop
-embellish --fg-red --fg-blue --bg-yellow --underline --center middle  --reset --new-line --fg-yellow pop --new-line --reset
+embellish --fg-red --fg-blue --bg-yellow --underline --center middle --reset --new-line --fg-yellow pop --new-line --reset
 
 embellish \
-embellish --verbose \
+  embellish --verbose \
   Before \
   --new-line --fg-red --magenta \
   "Add embellishments to this text" \
@@ -19,7 +19,7 @@ embellish --verbose \
   --bg-blue --underline "embellishments such as " \
   --bold \
   BOLD -s and \
-  --reset --space  --cyan --bg-black --italic italic \
+  --reset --space --cyan --bg-black --italic italic \
   --reset --new-line \
   After \
   --reset --new-line

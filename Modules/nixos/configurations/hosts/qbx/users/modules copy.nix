@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   dom = "dots";
   mod = "users";
   cfg = config.${dom}.${mod};
@@ -22,7 +23,7 @@
     };
     groups = mkOption {
       description = "Additional user groups";
-      default = ["networkmanager"];
+      default = [ "networkmanager" ];
     };
     description = mkOption {
       description = "User description";
@@ -34,7 +35,8 @@
     };
   };
 
-  userConfiguration = userConfig:
+  userConfiguration =
+    userConfig:
     mapAttrs' (user: cfgUser: {
       name = user;
       value = {
@@ -42,19 +44,21 @@
         inherit (cfgUser) isNormalUser;
         extraGroups = cfgUser.groups;
         description =
-          if cfgUser.description != null
-          then cfgUser.description
-          else if cfgUser.isNormalUser
-          then "A user by the name of '${capitalizeFirst user}'"
-          else "A system user dubbed '${user}'";
+          if cfgUser.description != null then
+            cfgUser.description
+          else if cfgUser.isNormalUser then
+            "A user by the name of '${capitalizeFirst user}'"
+          else
+            "A system user dubbed '${user}'";
         hashedPassword = cfgUser.password;
       };
     }) (filterAttrs (_: cfgUser: cfgUser.enable && (cfgUser.isNormalUser or true)) userConfig);
-in {
+in
+{
   options.${dom} = {
     ${mod} = mkOption {
       description = "Users configuration";
-      default = {};
+      default = { };
       type = attrsOf (submodule {
         options = userOptions;
       });

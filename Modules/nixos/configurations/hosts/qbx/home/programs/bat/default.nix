@@ -1,5 +1,5 @@
 {
-  imports = [];
+  imports = [ ];
   programs.bat = {
     enable = true;
   };

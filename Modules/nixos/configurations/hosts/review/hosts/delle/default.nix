@@ -4,7 +4,8 @@
   pkgs,
   ...
 }:
-with lib; {
+with lib;
+{
   config = {
     dot.hosts.delle = {
       machine = "laptop";
@@ -27,7 +28,7 @@ with lib; {
             "sr_mod"
             "sdhci_pci"
           ];
-          kernelModules = ["kvm-intel"];
+          kernelModules = [ "kvm-intel" ];
           kernelPackages = pkgs.linuxPackages_latest;
         };
 
@@ -35,7 +36,7 @@ with lib; {
           "/" = {
             device = "/dev/disk/by-uuid/e887045d-f7a8-4064-b463-71544ad82a2d";
             fsType = "btrfs";
-            options = ["subvol=@"];
+            options = [ "subvol=@" ];
           };
 
           "/boot" = {
@@ -44,7 +45,7 @@ with lib; {
           };
         };
 
-        swapDevices = [{device = "/dev/disk/by-uuid/2eff8f3f-3920-4aec-ac15-7fe659123ba5";}];
+        swapDevices = [ { device = "/dev/disk/by-uuid/2eff8f3f-3920-4aec-ac15-7fe659123ba5"; } ];
 
         networking = {
           useDHCP = mkDefault true;

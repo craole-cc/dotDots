@@ -58,7 +58,7 @@
             to = 65534;
           } # Allowing a range for random port selection
         ];
-        ports = [];
+        ports = [ ];
       };
     };
   };
@@ -78,8 +78,10 @@
   };
   devices = {
     luks = {
-      "luks-ef5cc76c-aa34-460b-beb8-a2ea4f99889d".device = "/dev/disk/by-uuid/ef5cc76c-aa34-460b-beb8-a2ea4f99889d";
-      "luks-858f4df3-a2dd-4a10-bf57-01694195250e".device = "/dev/disk/by-uuid/858f4df3-a2dd-4a10-bf57-01694195250e";
+      "luks-ef5cc76c-aa34-460b-beb8-a2ea4f99889d".device =
+        "/dev/disk/by-uuid/ef5cc76c-aa34-460b-beb8-a2ea4f99889d";
+      "luks-858f4df3-a2dd-4a10-bf57-01694195250e".device =
+        "/dev/disk/by-uuid/858f4df3-a2dd-4a10-bf57-01694195250e";
     };
 
     fileSystems = {
@@ -99,9 +101,9 @@
     };
 
     swapDevices = [
-      {device = "/dev/disk/by-uuid/cdb83eba-7128-46ba-b194-d834925e162a";}
+      { device = "/dev/disk/by-uuid/cdb83eba-7128-46ba-b194-d834925e162a"; }
     ];
 
-    network = ["wlp2s0"];
+    network = [ "wlp2s0" ];
   };
 }
