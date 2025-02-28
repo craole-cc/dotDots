@@ -20,9 +20,9 @@ excludes = [
 
 #| Documentation
 [formatter.markdown]
-command  = "markdownlint-cli2"
+command = "markdownlint-cli2"
 includes = ["*.md", "README"]
-options  = ["--fix"]
+options = ["--fix"]
 # options  = ["--fix", "--config", ".markdownlint.json"]
 priority = 1
 
@@ -71,52 +71,49 @@ includes = [".editorconfig"]
 # options = ["--lint"]
 
 #| Nix
-# [formatter.deadnix]
-# includes = ["*.nix"]
-# priority = 1
-# command  = "deadnix"
-# options  = ["--edit"]
 
-[formatter.statix]
+[formatter.nixfmt]
 includes = ["*.nix"]
 priority = 1
-# command  = "statix"
-# options  = ["fix"]
-command = "sh"
-options = [
-  "-euc",
-  "command -v statix >/dev/null || exit 0",
-  "for file in \"$@\"; do statix fix \"$file\"; done",
-]
+command = "nixfmt"
 
-[formatter.alejandra]
-includes = ["*.nix"]
-priority = 2
-command  = "alejandra"
-
-# [formatter.nixfmt]
+# [formatter.alejandra]
 # includes = ["*.nix"]
-# priority = 3
-# command = "nixfmt"
+# priority = 1
+# command  = "alejandra"
 
+[formatter.deadnix]
+includes = ["*.nix"]
+priority = 1
+command = "deadnix"
+# options  = ["--edit"]
 
 # #| Rust formatting
 [formatter.rust]
-command  = "rustfmt"
+command = "rustfmt"
 includes = ["*.rs"]
 priority = 1
 
 [formatter.leptosfmt]
-command  = "leptosfmt"
+command = "leptosfmt"
 includes = ["*.rs"]
 priority = 2
 
 #| Shell script formatting# Shell script formatting
-# [formatter.shellcheck]
-# command  = "shellcheck"
+[formatter.shellcheck]
+command = "shellcheck"
 # options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
-# includes = ["*.sh", ".dotsrc", ".env*", ".shellcheckrc"]
-# priority = 1
+includes = [
+  "*.sh",
+  ".dotsrc",
+  ".env*",
+  ".shellcheckrc",
+  "*.bash",
+  ".bash*",
+  "Bin/shellscript/**",
+  "Modules/**",
+]
+priority = 1
 
 [formatter.shfmt]
 command = "shfmt"
@@ -132,14 +129,13 @@ includes = [
   ".gitignore",
   ".ignore",
 ]
-excludes = ["Flakes/media/bin/ytd"]
 options = [
   # "--apply-ignore",
-  # "--binary-next-line",
-  # "--space-redirects",
-  # "--case-indent",
-  # "--indent",
-  # "2",
+  "--binary-next-line",
+  "--space-redirects",
+  "--case-indent",
+  "--indent",
+  "2",
   # "--diff",
   # "--posix",
   "--write",
@@ -156,16 +152,13 @@ priority = 2
 # command  = "pwsh -Command Invoke-Formatter -ScriptDefinition (Get-Content {file} | Out-String) -SettingsFilePath ./PSScriptAnalyzerSettings.psd1"
 
 [formatter.justfile]
-command  = "just"
+command = "just"
 includes = [".justfile"]
-options  = ["--unstable", "--fmt", "--justfile"]
+options = ["--unstable", "--fmt", "--justfile"]
 
 #| Python formatting
 [formatter.ruff]
-includes = [
-  "*.py",
-  "Bin/python/**",
-]
+includes = ["*.py", "Bin/python/**"]
 # command = "ruff"
 # options = ["format", "--quiet"]
 command = "sh"
@@ -217,8 +210,8 @@ options = [
 #| TOML
 [formatter.toml]
 includes = ["*.toml"]
-command  = "taplo"
-options  = ["format"]
+command = "taplo"
+options = ["format"]
 
 # #| Lua formatting
 # [formatter.stylua]
@@ -228,8 +221,8 @@ options  = ["format"]
 #| YAML formatting
 [formatter.yamlfmt]
 includes = ["*.yaml", "*.yml"]
-command  = "yamlfmt"
-options  = ["-formatter", "retain_line_breaks=true"]
+command = "yamlfmt"
+options = ["-formatter", "retain_line_breaks=true"]
 
 # [formatter.actionlint]
 # command = "actionlint"

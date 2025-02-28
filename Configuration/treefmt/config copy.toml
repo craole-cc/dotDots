@@ -10,44 +10,44 @@ excludes = [
 
 #| Documentation
 [formatter.markdown]
-command  = "markdownlint"
+command = "markdownlint"
 includes = ["*.md"]
-options  = ["--fix", "--config", ".markdownlint.json"]
+options = ["--fix", "--config", ".markdownlint.json"]
 priority = 1
 
 [formatter.mdsh]
-command  = "mdsh"
+command = "mdsh"
 excludes = []
 includes = ["README.md"]
-options  = ["--inputs"]
+options = ["--inputs"]
 priority = 2
 
 [formatter.texfmt]
-command  = "tex-fmt"
+command = "tex-fmt"
 excludes = []
 includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
-options  = []
+options = []
 
 [formatter.typstfmt]
-command  = "typstfmt"
+command = "typstfmt"
 excludes = []
 includes = ["*.typ", "*.typst"]
-options  = []
+options = []
 priority = 1
 
 [formatter.typstyle]
-command  = "typstyle"
+command = "typstyle"
 excludes = []
 includes = ["*.typ", "*.typst"]
-options  = ["-i"]
+options = ["-i"]
 priority = 2
 
 #| Nix formatting
 [formatter.alejandra]
-command       = "alejandra"
+command = "alejandra"
 fail_on_error = false
-includes      = ["*.nix"]
-priority      = 1
+includes = ["*.nix"]
+priority = 1
 
 # [formatter.nixfmt]
 # command = "nixfmt"
@@ -55,37 +55,37 @@ priority      = 1
 # priority = 1
 
 [formatter.deadnix]
-command  = "deadnix"
+command = "deadnix"
 excludes = []
 includes = ["*.nix"]
-options  = ["--edit"]
+options = ["--edit"]
 priority = 2
 
 [formatter.statix]
-command  = "statix"
+command = "statix"
 includes = ["*.nix"]
-options  = ["check"]
+options = ["check"]
 priority = 3
 
 #| Rust formatting
 [formatter.rust]
-command  = "rustfmt"
+command = "rustfmt"
 includes = ["*.rs"]
-options  = ["--edition", "2021"]
+options = ["--edition", "2021"]
 priority = 1
 
 [formatter.leptosfmt]
-command  = "leptosfmt"
+command = "leptosfmt"
 excludes = []
 includes = ["*.rs"]
-options  = []
+options = []
 priority = 2
 
 #| Shell script formatting# Shell script formatting
 [formatter.shellcheck]
-command  = "shellcheck"
+command = "shellcheck"
 includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
-options  = ["-x", "-e", "SC1090,SC1091"]
+options = ["-x", "-e", "SC1090,SC1091"]
 priority = 1
 
 [formatter.shfmt]
@@ -104,57 +104,57 @@ priority = 2
 
 #| Python formatting
 [formatter.ruff]
-command  = "ruff"
+command = "ruff"
 includes = ["*.py"]
-options  = ["format", "--quiet"]
+options = ["format", "--quiet"]
 
 #| Data formats
 [formatter.json]
-command  = "jq"
+command = "jq"
 includes = ["*.json", "*.jsonc"]
-options  = ["--indent", "2", "--sort-keys", "-M"]
+options = ["--indent", "2", "--sort-keys", "-M"]
 
 #| TOML
 [formatter.toml]
-command  = "taplo"
+command = "taplo"
 includes = ["*.toml"]
-options  = ["fmt"]
+options = ["fmt"]
 priority = 1
 
 [formatter.toml-sort]
-command  = "toml-sort"
+command = "toml-sort"
 excludes = []
 includes = ["*.toml"]
-options  = ["-i"]
+options = ["-i"]
 priority = 2
 
 #| Lua formatting
 [formatter.stylua]
-command  = "stylua"
+command = "stylua"
 includes = ["*.lua"]
 
 #| YAML formatting
 [formatter.yamlfmt]
-command  = "yamlfmt"
+command = "yamlfmt"
 includes = ["*.yaml", "*.yml"]
 
 [formatter.actionlint]
-command  = "actionlint"
+command = "actionlint"
 excludes = []
 includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
-options  = []
+options = []
 
 [formatter.asmfmt]
-command  = "asmfmt"
+command = "asmfmt"
 excludes = []
 includes = ["*.s"]
-options  = ["-w"]
+options = ["-w"]
 
 [formatter.beautysh]
-command  = "beautysh"
+command = "beautysh"
 excludes = []
 includes = ["*.sh", "*.bash", ".bash*", "*.zsh", ".zsh*"]
-options  = ["-i", "2"]
+options = ["-i", "2"]
 
 [formatter.biome]
 command = "biome"
@@ -177,40 +177,40 @@ includes = [
 options = ["format", "--write", "--no-errors-on-unmatched"]
 
 [formatter.buildifier]
-command  = "buildifier"
+command = "buildifier"
 excludes = []
 includes = ["*.bazel", "*.bzl"]
-options  = []
+options = []
 
 [formatter.cabal-fmt]
-command  = "cabal-fmt"
+command = "cabal-fmt"
 excludes = []
 includes = ["*.cabal"]
-options  = ["--inplace"]
+options = ["--inplace"]
 
 [formatter.clang-format]
-command  = "clang-format"
+command = "clang-format"
 excludes = []
 includes = ["*.c", "*.cc", "*.cpp", "*.h", "*.hh", "*.hpp"]
-options  = ["-i"]
+options = ["-i"]
 
 [formatter.cljfmt]
-command  = "cljfmt"
+command = "cljfmt"
 excludes = []
 includes = ["*.clj", "*.cljc", "*.cljs", "*.cljx"]
-options  = ["fix"]
+options = ["fix"]
 
 [formatter.cmake-format]
-command  = "cmake-format"
+command = "cmake-format"
 excludes = []
 includes = ["*.cmake", "CMakeLists.txt"]
-options  = ["--in-place"]
+options = ["--in-place"]
 
 [formatter.dart-format]
-command  = "dart"
+command = "dart"
 excludes = []
 includes = ["*.dart"]
-options  = ["format"]
+options = ["format"]
 
 [formatter.deno]
 command = "deno"
@@ -235,64 +235,64 @@ includes = [
 options = ["fmt"]
 
 [formatter.dos2unix]
-command  = "dos2unix"
+command = "dos2unix"
 excludes = []
 includes = ["*"]
-options  = ["--keepdate"]
+options = ["--keepdate"]
 
 [formatter.fish_indent]
-command  = "fish_indent-wrapper"
+command = "fish_indent-wrapper"
 excludes = []
 includes = ["*.fish"]
-options  = []
+options = []
 
 [formatter.keep-sorted]
-command  = "keep-sorted"
+command = "keep-sorted"
 excludes = []
 includes = ["*"]
-options  = []
+options = []
 
 [formatter.nufmt]
-command  = "nufmt"
+command = "nufmt"
 excludes = []
 includes = ["*.nu"]
-options  = []
+options = []
 
 #| Ruby
 [formatter.rufo]
-command  = "rufo"
+command = "rufo"
 includes = ["*.rb"]
-options  = ["-x"]
+options = ["-x"]
 priority = 1
 
 [formatter.rubocop]
-command  = "rubocop"
+command = "rubocop"
 excludes = []
 includes = ["*.rb"]
-options  = []
+options = []
 priority = 2
 
 #| SQL
 [formatter.sqruff]
-command  = "sqruff"
+command = "sqruff"
 excludes = []
 includes = ["*.sql"]
-options  = ["fix", "--force"]
+options = ["fix", "--force"]
 
 [formatter.terraform]
-command  = "tofu"
+command = "tofu"
 excludes = []
 includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
-options  = ["fmt"]
+options = ["fmt"]
 
 [formatter.typos]
-command  = "typos"
+command = "typos"
 excludes = []
 includes = ["*"]
-options  = ["--write-changes"]
+options = ["--write-changes"]
 
 [formatter.zig]
-command  = "zig"
+command = "zig"
 excludes = []
 includes = ["*.zig", "*.zon"]
-options  = ["fmt"]
+options = ["fmt"]
