@@ -1,5 +1,6 @@
-{config, ...}: {
-  boot.kernelParams = ["nvidia.NVreg_PreserveVideoMemoryAllocations=1"];
+{ config, ... }:
+{
+  boot.kernelParams = [ "nvidia.NVreg_PreserveVideoMemoryAllocations=1" ];
   hardware = {
     graphics.enable = true;
     nvidia = {

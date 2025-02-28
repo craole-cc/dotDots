@@ -2,12 +2,12 @@
   specialArgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (specialArgs.host) ollama people capabilities;
   inherit (specialArgs.host.cpu) brand;
   inherit (lib.strings) concatStringsSep;
-  inherit
-    (lib.lists)
+  inherit (lib.lists)
     elem
     filter
     length
@@ -15,10 +15,7 @@
     ;
 
   autologinUsers = filter (user: user.autoLogin or false) people;
-  autologinUser =
-    if length autologinUsers >= 1
-    then (head autologinUsers).name
-    else null;
+  autologinUser = if length autologinUsers >= 1 then (head autologinUsers).name else null;
 
   hasBluetooth = elem "bluetooth" capabilities;
   hasBattery = elem "battery" capabilities;
@@ -31,25 +28,28 @@
     "intel"
     "x86"
   ];
-in {
+in
+{
   services =
     #@ Check for autoLogin constraints
-    assert length autologinUsers
-    <= 1
-    || throw "Error: Multiple users designated for autologin (${
-      concatStringsSep ", " (map (user: user.name) autologinUsers)
-    }). Check the 'host.people' configuration."; {
+    assert
+      length autologinUsers <= 1
+      || throw "Error: Multiple users designated for autologin (${
+        concatStringsSep ", " (map (user: user.name) autologinUsers)
+      }). Check the 'host.people' configuration.";
+    {
       displayManager.autoLogin = {
         enable = autologinUser != null;
         user = autologinUser;
       };
 
       blueman =
-        if hasBluetooth
-        then {
-          enable = true;
-        }
-        else {};
+        if hasBluetooth then
+          {
+            enable = true;
+          }
+        else
+          { };
 
       kmscon = {
         enable = true;
@@ -57,11 +57,12 @@ in {
       };
 
       libinput =
-        if hasInput
-        then {
-          enable = true;
-        }
-        else {};
+        if hasInput then
+          {
+            enable = true;
+          }
+        else
+          { };
 
       ollama = {
         inherit (ollama) enable;
@@ -70,64 +71,65 @@ in {
       nextjs-ollama-llm-ui.enable = true;
 
       pipewire =
-        if hasAudio
-        then {
-          enable = true;
-          alsa.enable = true;
-          alsa.support32Bit = true;
-          pulse.enable = true;
-          jack.enable = true;
-          extraConfig.pipewire."92-low-latency" = {
-            context.properties.default.clock = {
-              rte = 48000;
-              quantum = 32;
-              min-quantum = 32;
-              max-quantum = 32;
+        if hasAudio then
+          {
+            enable = true;
+            alsa.enable = true;
+            alsa.support32Bit = true;
+            pulse.enable = true;
+            jack.enable = true;
+            extraConfig.pipewire."92-low-latency" = {
+              context.properties.default.clock = {
+                rte = 48000;
+                quantum = 32;
+                min-quantum = 32;
+                max-quantum = 32;
+              };
             };
-          };
-        }
-        else {};
+          }
+        else
+          { };
 
       redshift =
-        if hasVideo
-        then {
-          enable = true;
-          brightness = {
-            day = "1";
-            night = "0.75";
-          };
-          temperature = {
-            day = 5500;
-            night = 3800;
-          };
-        }
-        else {};
+        if hasVideo then
+          {
+            enable = true;
+            brightness = {
+              day = "1";
+              night = "0.75";
+            };
+            temperature = {
+              day = 5500;
+              night = 3800;
+            };
+          }
+        else
+          { };
 
       rsyncd = {
         enable = true;
       };
 
       tailscale =
-        if hasRemote
-        then {
-          enable = true;
-        }
-        else {};
+        if hasRemote then
+          {
+            enable = true;
+          }
+        else
+          { };
 
-      xrdp =
-        if hasRemote
-        then {enable = true;}
-        else {};
+      xrdp = if hasRemote then { enable = true; } else { };
       udev.extraRules = ''
         ACTION=="add", SUBSYSTEM=="hidraw", GROUP="users", MODE="0660", TAG+="uaccess"
       '';
 
       upower =
-        if hasBattery
-        then {
-          enable = true;
-        }
-        else {};
+        if hasBattery then
+          {
+            enable = true;
+          }
+        else
+          { };
     };
   security.rtkit.enable = true;
   # sound.enable = false;
@@ -135,11 +137,12 @@ in {
     enableRedistributableFirmware = hasBareMetal;
 
     cpu =
-      if hasBareMetal
-      then {
-        ${brand}.updateMicrocode = true;
-      }
-      else {};
+      if hasBareMetal then
+        {
+          ${brand}.updateMicrocode = true;
+        }
+      else
+        { };
 
     bluetooth = {
       enable = hasBluetooth;

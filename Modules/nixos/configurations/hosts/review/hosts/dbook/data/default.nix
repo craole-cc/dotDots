@@ -22,8 +22,8 @@
     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
     age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
     ports = {
-      tcp = [];
-      udp = [];
+      tcp = [ ];
+      udp = [ ];
     };
   };
   people = [
@@ -50,8 +50,10 @@
   };
   devices = {
     luks = {
-      "luks-ef5cc76c-aa34-460b-beb8-a2ea4f99889d".device = "/dev/disk/by-uuid/ef5cc76c-aa34-460b-beb8-a2ea4f99889d";
-      "luks-858f4df3-a2dd-4a10-bf57-01694195250e".device = "/dev/disk/by-uuid/858f4df3-a2dd-4a10-bf57-01694195250e";
+      "luks-ef5cc76c-aa34-460b-beb8-a2ea4f99889d".device =
+        "/dev/disk/by-uuid/ef5cc76c-aa34-460b-beb8-a2ea4f99889d";
+      "luks-858f4df3-a2dd-4a10-bf57-01694195250e".device =
+        "/dev/disk/by-uuid/858f4df3-a2dd-4a10-bf57-01694195250e";
     };
     fileSystems = {
       "/" = {
@@ -68,9 +70,9 @@
       };
     };
     swap = [
-      {device = "/dev/disk/by-uuid/cdb83eba-7128-46ba-b194-d834925e162a";}
+      { device = "/dev/disk/by-uuid/cdb83eba-7128-46ba-b194-d834925e162a"; }
     ];
-    network = ["wlp2s0"];
+    network = [ "wlp2s0" ];
   };
   stateVersion = "24.05";
 }

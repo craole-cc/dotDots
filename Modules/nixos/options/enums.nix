@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   #| Native Imports
   inherit (lib.options) mkOption;
   inherit (lib.types) listOf str;
@@ -13,7 +14,8 @@
   mod = "host";
   src = DOTS.sources.${mod};
   cfg = DOTS.${base}.${mod};
-in {
+in
+{
   options.DOTS.${base}.${mod} = {
     configurations = mkOption {
       description = "List of host configurations";
@@ -66,7 +68,7 @@ in {
       gpu = mkOption {
         description = "List of GPU types";
         example = "intel";
-        default = cfg.processor.cpu ++ ["nvidia"];
+        default = cfg.processor.cpu ++ [ "nvidia" ];
         type = listOf str;
       };
     };

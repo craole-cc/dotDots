@@ -1,6 +1,8 @@
-{specialArgs, ...}: let
+{ specialArgs, ... }:
+let
   inherit (specialArgs.paths) flake;
-in {
+in
+{
   environment.shellAliases = {
     ".dots" = ''.dots-local'';
     ".dots-local" = ''cd ${flake.local}'';

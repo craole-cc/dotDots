@@ -1,7 +1,8 @@
 let
   app = "helix";
   user = "craole";
-in {
+in
+{
   config.dot.users.${user}.applications.${app} = {
     settings = {
       auto-save = true;
@@ -20,7 +21,7 @@ in {
           "spacer"
           "file-modification-indicator"
         ];
-        center = ["file-name"];
+        center = [ "file-name" ];
         right = [
           "diagnostics"
           "version-control"

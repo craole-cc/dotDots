@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC2034
 
-: <<"DOCUMENTATION"
+: << "DOCUMENTATION"
 #| References
   https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
   https://linux.die.net/man/1/tput
@@ -36,8 +36,8 @@ strike="$(printf "\033[9m")"
 
 #| Declare colors for supported terminals
 case $TERM in
-*-m) return ;;
-*) ;;
+  *-m) return ;;
+  *) ;;
 esac
 
 #@ ANSI

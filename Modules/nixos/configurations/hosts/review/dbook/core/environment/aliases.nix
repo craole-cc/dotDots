@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.options) mkOption;
   inherit (lib.modules) mkForce mkIf;
 
@@ -12,7 +13,8 @@
   base = "environment";
   mod = "shellAliases";
   cfg = DOTS.${base}.${mod};
-in {
+in
+{
   options.DOTS.${base}.${mod} = {
     NixOSC = mkOption {
       description = "The {{base}} {{mod}}at the system level";

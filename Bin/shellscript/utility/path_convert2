@@ -3,7 +3,7 @@
 
 scr_name="path_convert"
 scr_usage=$(
-	cat <<HELP
+  cat << HELP
 USAGE:
   $scr_name [OPTIONS] [STRING]
 
@@ -36,99 +36,99 @@ HELP
 )
 
 main() {
-	purge_env
-	parse_input "$@"
+  purge_env
+  parse_input "$@"
 
-	# convert_path
-	parse_output
-	exit "$exit_code"
+  # convert_path
+  parse_output
+  exit "$exit_code"
 }
 
 purge_env() {
-	exit_code=0
-	verbosity=1
-	unset path path_type clip verbose
+  exit_code=0
+  verbosity=1
+  unset path path_type clip verbose
 }
 
 parse_input() {
-	purge_env
+  purge_env
 
-	while [ $# -gt 0 ]; do
-		case "$1" in
-		-h | --help)
-			print_help
-			exit
-			;;
-		-d | --verbose)
-			verbosity=2
-			;;
-		-p | --prefix)
-			prefix="$2"
-			shift
-			;;
-		-c | --clip)
-			clip=true
-			;;
-		-q | --quiet)
-			verbosity=0
-			;;
-		*)
-			if [ "$1" ]; then
-				input_path="$1"
-				# input_path="$(clean_path "$1")"
-				# input_path="$(validate_path "$1")"
-				# input_path_type="$(validate_path --type "$1")"
-			else
-				printf "%s\n" "$scr_usage"
-				exit 1
-			fi
-			;;
-		esac
-		shift
-	done
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        print_help
+        exit
+        ;;
+      -d | --verbose)
+        verbosity=2
+        ;;
+      -p | --prefix)
+        prefix="$2"
+        shift
+        ;;
+      -c | --clip)
+        clip=true
+        ;;
+      -q | --quiet)
+        verbosity=0
+        ;;
+      *)
+        if [ "$1" ]; then
+          input_path="$1"
+          # input_path="$(clean_path "$1")"
+          # input_path="$(validate_path "$1")"
+          # input_path_type="$(validate_path --type "$1")"
+        else
+          printf "%s\n" "$scr_usage"
+          exit 1
+        fi
+        ;;
+    esac
+    shift
+  done
 }
 
 clean_path() {
-	#@ Parse path from arguments
-	clean_path="$1"
+  #@ Parse path from arguments
+  clean_path="$1"
 
-	#@ Convert backslashes to forward slashes
-	case "$clean_path" in *\\*)
-		clean_path="$(printf "%s" "$clean_path" | tr '\\' '/')"
-		;;
-	esac
+  #@ Convert backslashes to forward slashes
+  case "$clean_path" in *\\*)
+    clean_path="$(printf "%s" "$clean_path" | tr '\\' '/')"
+    ;;
+  esac
 
-	#@ Convert duplicated slashes to single
-	case "$clean_path" in *//*)
-		clean_path="$(printf "%s" "$clean_path" | tr -s "/")"
-		;;
-	esac
+  #@ Convert duplicated slashes to single
+  case "$clean_path" in *//*)
+    clean_path="$(printf "%s" "$clean_path" | tr -s "/")"
+    ;;
+  esac
 
-	#@ Check for Widsows path then default to Unix
-	case "$clean_path" in
-	*:*)
-		#@ Remove the leading slash, if one exists (eg. /C:/ = C:/)
-		clean_path="${clean_path#/}"
+  #@ Check for Widsows path then default to Unix
+  case "$clean_path" in
+    *:*)
+      #@ Remove the leading slash, if one exists (eg. /C:/ = C:/)
+      clean_path="${clean_path#/}"
 
-		#@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
-		[ "${clean_path#"${clean_path%?}"}" = ":" ] &&
-			clean_path="${clean_path}/"
-		;;
-	*)
-		# Add a leading slash, if missing (eg. mnt/... = /mnt/...)
-		[ "${clean_path#/}" = "$clean_path" ] &&
-			clean_path="/$clean_path"
-		;;
-	esac
+      #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
+      [ "${clean_path#"${clean_path%?}"}" = ":" ] \
+        && clean_path="${clean_path}/"
+      ;;
+    *)
+      # Add a leading slash, if missing (eg. mnt/... = /mnt/...)
+      [ "${clean_path#/}" = "$clean_path" ] \
+        && clean_path="/$clean_path"
+      ;;
+  esac
 
-	printf "%s" "$clean_path"
+  printf "%s" "$clean_path"
 }
 
 get_path_type() {
-	case $1 in
-	:) printf "Windows" ;;
-	*) printf "Unix" ;;
-	esac
+  case $1 in
+    :) printf "Windows" ;;
+    *) printf "Unix" ;;
+  esac
 }
 
 # validate_path() {
@@ -198,144 +198,144 @@ get_path_type() {
 # }
 
 convert_path() {
-	path="$input_path"
-	path_type="$input_path_type"
+  path="$input_path"
+  path_type="$input_path_type"
 
-	# case "$path_type" in
-	# Windows)
-	#   #@ Convert the path type to Unix
-	#   path_type="Unix"
+  # case "$path_type" in
+  # Windows)
+  #   #@ Convert the path type to Unix
+  #   path_type="Unix"
 
-	#   #@ Extract the drive letter
-	#   drive="${path%"${path#?}"}"
+  #   #@ Extract the drive letter
+  #   drive="${path%"${path#?}"}"
 
-	#   #@ Prefix the drive letter with a forward slash
-	#   # drive="/$drive"
+  #   #@ Prefix the drive letter with a forward slash
+  #   # drive="/$drive"
 
-	#   #@ Convert the drive letter to lowercase
-	#   drive=$(printf "%s" "$drive" | tr '[:upper:]' '[:lower:]')
+  #   #@ Convert the drive letter to lowercase
+  #   drive=$(printf "%s" "$drive" | tr '[:upper:]' '[:lower:]')
 
-	#   #@ Set default prefix
-	#   prefix="${prefix:-mnt}"
-	#   prefix="$(__separators "$prefix")"
-	#   if [ "$prefix" ]; then
-	#     path=${prefix}${drive}${path#*:}
-	#   else
-	#     path=/mnt/${drive}${path#*:}
-	#   fi
+  #   #@ Set default prefix
+  #   prefix="${prefix:-mnt}"
+  #   prefix="$(__separators "$prefix")"
+  #   if [ "$prefix" ]; then
+  #     path=${prefix}${drive}${path#*:}
+  #   else
+  #     path=/mnt/${drive}${path#*:}
+  #   fi
 
-	#   #@ Update the path with the drive letter
+  #   #@ Update the path with the drive letter
 
-	#   ;;
-	# Unix)
-	#   path="/${path}"
-	#   output_path="Windows path"
-	#   path_type="Windows"
-	#   ;;
-	# esac
+  #   ;;
+  # Unix)
+  #   path="/${path}"
+  #   output_path="Windows path"
+  #   path_type="Windows"
+  #   ;;
+  # esac
 
-	output_path="$drive"
-	output_path_type="$path_type"
+  output_path="$drive"
+  output_path_type="$path_type"
 }
 
 convert_to_linux_path() {
-	path="$1"
+  path="$1"
 
-	case "$path" in
-	*:/*)
-		printf "Invalid windows path (%s) missing :/" "$path"
-		return 1
-		;;
-	esac
+  case "$path" in
+    *:/*)
+      printf "Invalid windows path (%s) missing :/" "$path"
+      return 1
+      ;;
+  esac
 
-	# Replace backslashes with forward slashes
-	# shellcheck disable=SC1003
-	path=$(printf "%s" "$path" | tr '\\' '/')
+  # Replace backslashes with forward slashes
+  # shellcheck disable=SC1003
+  path=$(printf "%s" "$path" | tr '\\' '/')
 
-	# Extract the drive letter (e.g., C)
-	drive=${path%%:*}
+  # Extract the drive letter (e.g., C)
+  drive=${path%%:*}
 
-	[ "${#drive}" -eq 1 ] || {
-		printf "Drive letter '%s' should be a single letter" "$drive"
-		return 1
-	}
+  [ "${#drive}" -eq 1 ] || {
+    printf "Drive letter '%s' should be a single letter" "$drive"
+    return 1
+  }
 
-	printf "%s" "$drive" | grep -Eq '^[A-Za-z]$' || {
-		printf "Invalid characters in drive letter '%s'" "$drive"
-		return 1
-	}
+  printf "%s" "$drive" | grep -Eq '^[A-Za-z]$' || {
+    printf "Invalid characters in drive letter '%s'" "$drive"
+    return 1
+  }
 
-	# Check if the drive letter contains only one letter and has a length of 1
-	if
-		[ "${#drive}" -eq 1 ] &&
-			printf "%s" "$drive" | grep -Eq '^[A-Za-z]$'
-	then
-		# Remove the colon from the drive letter
-		drive=${drive%:}
+  # Check if the drive letter contains only one letter and has a length of 1
+  if
+    [ "${#drive}" -eq 1 ] \
+      && printf "%s" "$drive" | grep -Eq '^[A-Za-z]$'
+  then
+    # Remove the colon from the drive letter
+    drive=${drive%:}
 
-		# Prefix the drive letter with a forward slash
-		drive="/$drive"
+    # Prefix the drive letter with a forward slash
+    drive="/$drive"
 
-		# Convert the drive letter to lowercase
-		drive=$(printf "%s" "$drive" | tr '[:upper:]' '[:lower:]')
+    # Convert the drive letter to lowercase
+    drive=$(printf "%s" "$drive" | tr '[:upper:]' '[:lower:]')
 
-		# Update the path with the drive letter
-		path=${drive}${path#*:}
-	else
-		echo "Invalid drive letter: $drive"
-		exit 1
-	fi
+    # Update the path with the drive letter
+    path=${drive}${path#*:}
+  else
+    echo "Invalid drive letter: $drive"
+    exit 1
+  fi
 
-	# If a prefix is provided, add it to the path.
-	[ "$prefix" ] && path="${prefix}${path}"
+  # If a prefix is provided, add it to the path.
+  [ "$prefix" ] && path="${prefix}${path}"
 
-	# Ensure a forward slash before the path
-	path=${path#/} # Remove any leading forward slash (if present)
-	path="/$path"  # Ensure the path starts with a forward slash '/'
+  # Ensure a forward slash before the path
+  path=${path#/} # Remove any leading forward slash (if present)
+  path="/$path"  # Ensure the path starts with a forward slash '/'
 
-	# Return the path if it is valid
-	validate_nix_path "$path"
+  # Return the path if it is valid
+  validate_nix_path "$path"
 
-	return
+  return
 }
 
 parse_output() {
-	case "$verbosity" in
-	0) ;;
-	1) ;;
-	*)
-		printf "Path Input: %s\n" "$input_path"
-		printf "Path Input Type: %s\n" "$input_path_type"
-		printf "Path Output: %s\n" "$output_path"
-		printf "Path Output Type: %s\n" "$output_path_type"
-		echo "EXIT CODE: $exit_code"
-		echo "Check Type: $check_type"
-		;;
-	esac
+  case "$verbosity" in
+    0) ;;
+    1) ;;
+    *)
+      printf "Path Input: %s\n" "$input_path"
+      printf "Path Input Type: %s\n" "$input_path_type"
+      printf "Path Output: %s\n" "$output_path"
+      printf "Path Output Type: %s\n" "$output_path_type"
+      echo "EXIT CODE: $exit_code"
+      echo "Check Type: $check_type"
+      ;;
+  esac
 
-	[ "$clip" ] && send_to_clipboard "$path"
+  [ "$clip" ] && send_to_clipboard "$path"
 
 }
 
 print_usage() {
-	printf "%s\n" "$scr_usage"
+  printf "%s\n" "$scr_usage"
 }
 
 send_to_clipboard() {
-	path="$1"
-	type | grep -iq "win" # Check if running on Windows
-	if [ $? -eq 0 ]; then
-		printf '%s' "$path" | clip
-	else
-		printf '%s' "$path" | xclip -selection clipboard
-	fi
-	printf "Path copied to clipboard.\n"
+  path="$1"
+  type | grep -iq "win" # Check if running on Windows
+  if [ $? -eq 0 ]; then
+    printf '%s' "$path" | clip
+  else
+    printf '%s' "$path" | xclip -selection clipboard
+  fi
+  printf "Path copied to clipboard.\n"
 }
 
 set -- \
-	--verbose \
-	"J:/po\p" \
-	--prefix etc
+  --verbose \
+  "J:/po\p" \
+  --prefix etc
 # "s:\users\user"
 
 main "$@"

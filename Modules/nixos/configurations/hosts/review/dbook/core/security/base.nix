@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (config) DOTS;
   inherit (lib.options) mkOption;
   inherit (lib.types) attrs;
@@ -11,7 +12,8 @@
 
   base = "security";
   cfg = DOTS.${base};
-in {
+in
+{
   options.DOTS.${base} = mkOption {
     description = "The configuration for {{mod}}";
     default = {
@@ -21,7 +23,7 @@ in {
         execWheelOnly = true;
         extraRules = [
           {
-            users = [name];
+            users = [ name ];
             commands = [
               {
                 command = "ALL";

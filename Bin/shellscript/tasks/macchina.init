@@ -2,16 +2,16 @@
 # shellcheck disable=SC1091
 
 __init__() {
-	#| Load Environment Variables
-	. "$DOTS_ENV_CTX/macchina"
+  #| Load Environment Variables
+  . "$DOTS_ENV_CTX/macchina"
 
-	#| Push to $CONFIG_HOME
-	symbiolink --src "$ASCII" --lnk "$MACCHINA_IMAGES"
-	symbiolink --src "$MACCHINA_HOME" --lnk "$MACCHINA_LINK"
+  #| Push to $CONFIG_HOME
+  symbiolink --src "$ASCII" --lnk "$MACCHINA_IMAGES"
+  symbiolink --src "$MACCHINA_HOME" --lnk "$MACCHINA_LINK"
 }
 
 if weHave macchina; then
-	__init__
+  __init__
 else
-	exit
+  exit
 fi

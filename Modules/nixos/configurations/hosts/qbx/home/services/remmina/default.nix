@@ -1,7 +1,7 @@
 {
-  imports = [];
+  imports = [ ];
   services.remmina = {
     enable = true;
-    systemdService.startupFlags = ["--icon"];
+    systemdService.startupFlags = [ "--icon" ];
   };
 }

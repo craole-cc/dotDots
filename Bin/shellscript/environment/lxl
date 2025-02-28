@@ -3,9 +3,9 @@
 #@ Detailed list
 lx --all --long "$@"
 Exa \
-	--long \
-	--header \
-	--time modified \
-	--time-style long-iso \
-	--octal-permissions \
-	"$@"
+  --long \
+  --header \
+  --time modified \
+  --time-style long-iso \
+  --octal-permissions \
+  "$@"

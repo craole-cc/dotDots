@@ -2,5 +2,5 @@
 
 # Editor --app helix "${@:-$PWD}"
 hx \
-	--config "$DOTS_CFG/helix/config.toml" \
-	--working-dir "${@:-$PWD}"
+  --config "$DOTS_CFG/helix/config.toml" \
+  --working-dir "${@:-$PWD}"

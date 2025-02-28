@@ -3,8 +3,10 @@
   lib,
   pkgs,
   ...
-}: {
-  config = with config.dot.libraries.host;
+}:
+{
+  config =
+    with config.dot.libraries.host;
     lib.mkIf (machine == "laptop") {
       hardware = {
         bluetooth = {

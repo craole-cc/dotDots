@@ -3,10 +3,12 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   cfg = config.dots.env.gnome;
-in {
+in
+{
   config = mkIf cfg.enable {
     #@ Enable GNOME desktop environment
     services.xserver.desktopManager.gnome.enable = true;

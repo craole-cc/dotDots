@@ -3,15 +3,14 @@
   lib,
   pkgs,
   ...
-}: let
-  inherit
-    (lib.attrsets)
+}:
+let
+  inherit (lib.attrsets)
     filterAttrs
     attrNames
     mapAttrs
     ;
-  inherit
-    (lib.lists)
+  inherit (lib.lists)
     length
     head
     any
@@ -22,8 +21,7 @@
     ;
   inherit (lib.options) mkOption mkEnableOption mkPackageOption;
   inherit (lib.strings) concatStringsSep substring;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     package
     nullOr
     bool
@@ -50,26 +48,27 @@
   inherit (pkgs) fetchFromGitHub;
   inherit (config.DOTS) sources;
   wallpapers = sources.assets.pictures.home;
-in {
+in
+{
   options.DOTS = {
     active.user = mkOption {
       description = "The current user configuration";
-      default = let
-        userName = getEnv "USER";
-        inherit (sources.user.configuration) home;
-        inherit (enums.user) configuration;
+      default =
+        let
+          userName = getEnv "USER";
+          inherit (sources.user.configuration) home;
+          inherit (enums.user) configuration;
 
-        enabled = rec {
-          names = attrNames (filterAttrs (_name: userConfig: userConfig.enable == true) users);
-          count = length names;
-        };
+          enabled = rec {
+            names = attrNames (filterAttrs (_name: userConfig: userConfig.enable == true) users);
+            count = length names;
+          };
 
-        msgEnable = ''${concatStringsSep "\n      # " (
+          msgEnable = ''${concatStringsSep "\n      # " (
             map (user: "config.dot.users." + user + ".enable = true;") configuration
           )}'';
-      in
-        if enabled.count == 0
-        then
+        in
+        if enabled.count == 0 then
           throw ''
             Missing user configuration. Possible solutions:
 
@@ -87,7 +86,8 @@ in {
                then enable it in your configuration file via:
                 { config.dot.users.${userName}.enable = true; };
           ''
-        else users.${head enabled.names};
+        else
+          users.${head enabled.names};
       type = attrs;
     };
 
@@ -98,11 +98,14 @@ in {
 
     modules.user = mkOption {
       description = "Module options for each user";
-      default = user': path':
+      default =
+        user': path':
         with users.${user'};
-        with enums; let
+        with enums;
+        let
           inherit (active) host;
-        in {
+        in
+        {
           enable = mkOption {
             description = "Enable user: ${name}";
             default = elem name (map (u: u.name) host.people);
@@ -135,7 +138,7 @@ in {
             toLink = mkOption {
               description = "Script and binary folders to add to the PATH variable";
               type = listOf path;
-              default = [];
+              default = [ ];
             };
 
             pictures = mkOption {
@@ -201,36 +204,27 @@ in {
 
           groups = mkOption {
             description = "The user's main groups.";
-            default = let
-              userInfo =
-                findFirst (u: u.name == user') {
+            default =
+              let
+                userInfo = findFirst (u: u.name == user') {
                   name = user';
                   isElevated = false;
-                }
-                host.people;
-            in
-              if isNormalUser
-              then
+                } host.people;
+              in
+              if isNormalUser then
                 (
-                  ["users"]
-                  ++ (
-                    if userInfo.isElevated
-                    then ["wheel"]
-                    else []
-                  )
-                  ++ (
-                    if !isMinimal
-                    then ["networkmanager"]
-                    else []
-                  )
+                  [ "users" ]
+                  ++ (if userInfo.isElevated then [ "wheel" ] else [ ])
+                  ++ (if !isMinimal then [ "networkmanager" ] else [ ])
                 )
-              else [];
+              else
+                [ ];
             type = listOf str;
           };
 
           extraGroups = mkOption {
             description = "The user's auxiliary groups.";
-            default = [];
+            default = [ ];
             type = listOf str;
           };
 
@@ -274,12 +268,12 @@ in {
           packages = mkOption {
             description = "List of packages to install.";
             type = listOf package;
-            default = with pkgs; [cowsay];
+            default = with pkgs; [ cowsay ];
           };
 
           programs = mkOption {
             description = "List of packages to install.";
-            default = {};
+            default = { };
             type = attrs;
           };
 
@@ -293,16 +287,18 @@ in {
             server = mkOption {
               description = "The windowing server";
               default =
-                if manager == null
-                then null
+                if manager == null then
+                  null
                 else if
                   elem manager [
                     "hyprland"
                     "kde"
                     "gnome"
                   ]
-                then "wayland"
-                else "x11";
+                then
+                  "wayland"
+                else
+                  "x11";
               type = nullOr (enum enums.user.desktop.server);
             };
           };
@@ -313,19 +309,20 @@ in {
             manager = mkOption {
               description = "The login manager";
               default =
-                if host.isMinimal || desktop.manager == null
-                then "kmscon"
-                else if desktop.manager == "gnome"
-                then "gdm"
+                if host.isMinimal || desktop.manager == null then
+                  "kmscon"
+                else if desktop.manager == "gnome" then
+                  "gdm"
                 else if
-                  desktop.server
-                  == "x11"
+                  desktop.server == "x11"
                   || elem desktop.manager [
                     "pantheon"
                     "xfce"
                   ]
-                then "lightdm"
-                else "sddm";
+                then
+                  "lightdm"
+                else
+                  "sddm";
               type = enum enums.user.display.manager;
             };
           };
@@ -334,11 +331,11 @@ in {
             nerdfonts = with nerdfonts; {
               fonts = mkOption {
                 description = "Fonts to install from nerdfonts";
-                default = ["JetBrainsMono"];
+                default = [ "JetBrainsMono" ];
               };
               package = mkOption {
                 description = "The font package to use.";
-                default = pkgs.nerdfonts.override {fonts = fonts;};
+                default = pkgs.nerdfonts.override { fonts = fonts; };
                 type = package;
               };
             };
@@ -363,7 +360,7 @@ in {
 
               packages = mkOption {
                 description = "The font to use in the console";
-                default = [pkgs.terminus_font];
+                default = [ pkgs.terminus_font ];
                 type = listOf package;
               };
 
@@ -385,20 +382,21 @@ in {
                     package = pkgs.source-code-pro;
                   }
                 ];
-                type = let
-                  font = submodule {
-                    options = {
-                      name = mkOption {
-                        description = "Font name, as used by fontconfig.";
-                        type = str;
-                      };
-                      package = mkOption {
-                        description = "Package providing the font.";
-                        type = package;
+                type =
+                  let
+                    font = submodule {
+                      options = {
+                        name = mkOption {
+                          description = "Font name, as used by fontconfig.";
+                          type = str;
+                        };
+                        package = mkOption {
+                          description = "Package providing the font.";
+                          type = package;
+                        };
                       };
                     };
-                  };
-                in
+                  in
                   nonEmptyListOf font;
               };
             };
@@ -450,7 +448,7 @@ in {
 
             emoji = mkOption {
               description = "The emoji fonts to use.";
-              default = ["Noto Color Emoji"];
+              default = [ "Noto Color Emoji" ];
               type = listOf str;
             };
 
@@ -499,10 +497,7 @@ in {
 
               default = mkOption {
                 description = "The default color scheme to use.";
-                default =
-                  if mode == "dark"
-                  then dark
-                  else light;
+                default = if mode == "dark" then dark else light;
                 type = str;
               };
             };
@@ -544,14 +539,12 @@ in {
               type = path;
             };
 
-            default = with wallpaper;
-            with colors;
+            default =
+              with wallpaper;
+              with colors;
               mkOption {
                 description = "The default wallpaper to use.";
-                default =
-                  if mode == "dark"
-                  then dark
-                  else light;
+                default = if mode == "dark" then dark else light;
                 type = path;
               };
           };
@@ -617,10 +610,7 @@ in {
               str
               path
             ]);
-            apply = mapAttrs (_n: v:
-              if isList v
-              then concatMapStringsSep ":" toString v
-              else toString v);
+            apply = mapAttrs (_n: v: if isList v then concatMapStringsSep ":" toString v else toString v);
           };
 
           shellAliases = mkOption {
@@ -731,15 +721,14 @@ in {
 
             bat = {
               enable = mkEnableOption "bat";
-              package = mkPackageOption pkgs "bat" {};
-              config = mkOption {default = {};};
-              themes = mkOption {default = {};};
-              syntaxes = mkOption {default = {};};
+              package = mkPackageOption pkgs "bat" { };
+              config = mkOption { default = { }; };
+              themes = mkOption { default = { }; };
+              syntaxes = mkOption { default = { }; };
 
               export = mkOption {
                 default = {
-                  inherit
-                    (bat)
+                  inherit (bat)
                     enable
                     package
                     config
@@ -751,25 +740,21 @@ in {
 
             btop = {
               enable = mkEnableOption "btop";
-              package = mkPackageOption pkgs "btop" {};
+              package = mkPackageOption pkgs "btop" { };
               export = mkOption {
-                default =
-                  if btop.enable
-                  then {inherit (btop) enable package;}
-                  else {};
+                default = if btop.enable then { inherit (btop) enable package; } else { };
               };
             };
 
             git = with git; {
-              enable =
-                mkEnableOption "Git"
-                // {
-                  default = let
+              enable = mkEnableOption "Git" // {
+                default =
+                  let
                     isRequested = userName != null && userEmail != null;
                   in
-                    isRequested;
-                  # isRequested || isRequired;
-                };
+                  isRequested;
+                # isRequested || isRequired;
+              };
 
               # enable = mkEnableOption "Git" // {
               #   default = userName != null && userEmail != null ;
@@ -793,72 +778,66 @@ in {
                 type = nullOr str;
               };
 
-              aliases = mkOption {default = {};};
-              attributes = mkOption {default = [];};
-              delta = mkOption {default = {};};
-              diff-so-fancy = mkOption {default = {};};
-              difftastic = mkOption {default = {};};
-              extraConfig = mkOption {default = {};};
-              hooks = mkOption {default = {};};
-              ignores = mkOption {default = [];};
-              includes = mkOption {default = [];};
-              iniContent = mkOption {default = {};};
-              lfs.enable = mkOption {default = enable;};
-              package = mkPackageOption pkgs "gitFull" {};
+              aliases = mkOption { default = { }; };
+              attributes = mkOption { default = [ ]; };
+              delta = mkOption { default = { }; };
+              diff-so-fancy = mkOption { default = { }; };
+              difftastic = mkOption { default = { }; };
+              extraConfig = mkOption { default = { }; };
+              hooks = mkOption { default = { }; };
+              ignores = mkOption { default = [ ]; };
+              includes = mkOption { default = [ ]; };
+              iniContent = mkOption { default = { }; };
+              lfs.enable = mkOption { default = enable; };
+              package = mkPackageOption pkgs "gitFull" { };
               signing = null;
-              userEmail = mkOption {default = email;};
-              userName = mkOption {default = name;};
+              userEmail = mkOption { default = email; };
+              userName = mkOption { default = name; };
 
               export = mkOption {
                 default =
-                  if git.enable
-                  then {
-                    inherit
-                      (git)
-                      aliases
-                      attributes
-                      delta
-                      diff-so-fancy
-                      difftastic
-                      enable
-                      extraConfig
-                      hooks
-                      ignores
-                      includes
-                      iniContent
-                      lfs
-                      package
-                      signing
-                      userName
-                      userEmail
-                      ;
-                  }
-                  else {};
+                  if git.enable then
+                    {
+                      inherit (git)
+                        aliases
+                        attributes
+                        delta
+                        diff-so-fancy
+                        difftastic
+                        enable
+                        extraConfig
+                        hooks
+                        ignores
+                        includes
+                        iniContent
+                        lfs
+                        package
+                        signing
+                        userName
+                        userEmail
+                        ;
+                    }
+                  else
+                    { };
               };
             };
 
             helix = {
-              enable =
-                mkEnableOption "Helix Text Editor"
-                // {
-                  default =
-                    context
-                    != null
-                    && any (
-                      name:
-                        elem name [
-                          "minimal"
-                          "development"
-                        ]
-                    )
-                    context;
-                };
+              enable = mkEnableOption "Helix Text Editor" // {
+                default =
+                  context != null
+                  && any (
+                    name:
+                    elem name [
+                      "minimal"
+                      "development"
+                    ]
+                  ) context;
+              };
 
-              defaultEditor =
-                mkEnableOption "set as the default editor"
-                // {
-                  default = helix.enable;
-                };
+              defaultEditor = mkEnableOption "set as the default editor" // {
+                default = helix.enable;
+              };
 
               bindings = mkOption {
                 default = {
@@ -942,7 +921,7 @@ in {
                 default = [
                   {
                     name = "nix";
-                    language-servers = ["nil"];
+                    language-servers = [ "nil" ];
                     formatter.command = "nixfmt";
                     auto-format = true;
                   }
@@ -960,7 +939,7 @@ in {
                   }
                   {
                     name = "rust";
-                    language-servers = ["rust-analyzer"];
+                    language-servers = [ "rust-analyzer" ];
                     auto-format = true;
                   }
                   {
@@ -1127,7 +1106,7 @@ in {
                       "spacer"
                       "file-modification-indicator"
                     ];
-                    center = ["file-name"];
+                    center = [ "file-name" ];
                     right = [
                       "diagnostics"
                       "version-control"
@@ -1168,43 +1147,42 @@ in {
 
               export = mkOption {
                 default =
-                  if helix.enable
-                  then {
-                    inherit (helix) enable defaultEditor;
-                    languages.language = helix.languages;
-                    settings = {
-                      editor = helix.settings;
-                      keys = helix.bindings;
-                    };
-                  }
-                  else {};
+                  if helix.enable then
+                    {
+                      inherit (helix) enable defaultEditor;
+                      languages.language = helix.languages;
+                      settings = {
+                        editor = helix.settings;
+                        keys = helix.bindings;
+                      };
+                    }
+                  else
+                    { };
               };
             };
 
             hyprland = {
-              enable =
-                mkEnableOption "Hyprland wayland compositor"
-                // {
-                  default = desktop.manager == "hyprland";
-                };
+              enable = mkEnableOption "Hyprland wayland compositor" // {
+                default = desktop.manager == "hyprland";
+              };
 
-              package = mkPackageOption pkgs "hyprland" {};
+              package = mkPackageOption pkgs "hyprland" { };
 
               plugins = mkOption {
                 description = "The Hyprland plugins to use";
-                default = [];
+                default = [ ];
                 type = listOf (either package path);
               };
 
               settings = mkOption {
                 description = "The Hyprland settings to use";
-                default = {};
+                default = { };
                 type = attrs;
               };
 
               systemd = mkOption {
                 description = "The Hyprland settings to use";
-                default = {};
+                default = { };
                 type = attrs;
               };
 
@@ -1259,21 +1237,9 @@ in {
 
               variables = mkOption {
                 default = with host.processor; [
-                  "WLR_RENDERER_ALLOW_SOFTWARE, ${
-                    if gpu == "nvidia" || cpu == "vm"
-                    then "1"
-                    else "0"
-                  }"
-                  "WLR_NO_HARDWARE_CURSORS, ${
-                    if gpu == "nvidia" || cpu == "vm"
-                    then "1"
-                    else "0"
-                  }"
-                  "NIXPKGS_ALLOW_UNFREE, ${
-                    if allowUnfree
-                    then "1"
-                    else "0"
-                  }"
+                  "WLR_RENDERER_ALLOW_SOFTWARE, ${if gpu == "nvidia" || cpu == "vm" then "1" else "0"}"
+                  "WLR_NO_HARDWARE_CURSORS, ${if gpu == "nvidia" || cpu == "vm" then "1" else "0"}"
+                  "NIXPKGS_ALLOW_UNFREE, ${if allowUnfree then "1" else "0"}"
 
                   "XDG_CURRENT_DESKTOP,Hyprland"
                   "XDG_SESSION_TYPE,wayland"
@@ -1302,14 +1268,15 @@ in {
 
               export = mkOption {
                 default =
-                  if hyprland.enable
-                  then {
-                    inherit (hyprland) enable package plugins;
-                    settings = {
-                      env = hyprland.variables;
-                    };
-                  }
-                  else {};
+                  if hyprland.enable then
+                    {
+                      inherit (hyprland) enable package plugins;
+                      settings = {
+                        env = hyprland.variables;
+                      };
+                    }
+                  else
+                    { };
               };
             };
           };
@@ -1317,10 +1284,11 @@ in {
       type = raw;
     };
 
-    users = let
-      inherit (modules) user;
-      inherit (sources.user.configuration) attrs;
-    in
+    users =
+      let
+        inherit (modules) user;
+        inherit (sources.user.configuration) attrs;
+      in
       mapAttrs (name: path: user name path) attrs;
   };
 }

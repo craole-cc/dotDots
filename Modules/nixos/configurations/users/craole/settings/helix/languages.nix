@@ -1,13 +1,14 @@
 let
   app = "helix";
   user = "craole";
-in {
+in
+{
   config.dot.users.${user}.applications.${app} = {
     # https://github-wiki-see.page/m/helix-editor/helix/wiki/External-formatter-configuration
     languages = [
       {
         name = "nix";
-        language-servers = ["nixd"];
+        language-servers = [ "nixd" ];
         formatter.command = "nixfmt";
         auto-format = true;
       }
@@ -25,7 +26,7 @@ in {
       }
       {
         name = "rust";
-        language-servers = ["rust-analyzer"];
+        language-servers = [ "rust-analyzer" ];
         auto-format = true;
       }
       {

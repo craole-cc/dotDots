@@ -1,4 +1,5 @@
-{nixosConfig, ...}: {
+{ nixosConfig, ... }:
+{
   home = {
     inherit (nixosConfig.system) stateVersion;
     # enableNixpkgsReleaseCheck = false;

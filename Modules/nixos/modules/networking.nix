@@ -2,11 +2,11 @@
   specialArgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.lists) length;
   inherit (lib.attrsets) listToAttrs mapAttrs;
-  inherit
-    (specialArgs.host)
+  inherit (specialArgs.host)
     name
     id
     devices
@@ -14,24 +14,24 @@
     ;
   inherit (access) firewall;
   inherit (firewall) tcp udp;
-in {
+in
+{
   networking = {
     hostId = id;
     hostName = name;
     interfaces =
       mapAttrs
-      (_: _iface: {
-        useDHCP = true;
-      })
-      (
-        listToAttrs (
-          map (iface: {
-            name = iface;
-            value = {};
-          })
-          devices.network
-        )
-      );
+        (_: _iface: {
+          useDHCP = true;
+        })
+        (
+          listToAttrs (
+            map (iface: {
+              name = iface;
+              value = { };
+            }) devices.network
+          )
+        );
     networkmanager = {
       enable = length devices.network >= 1;
       #TODO: take this from the host config

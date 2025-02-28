@@ -3,12 +3,12 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (config) DOTS;
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.modules) mkIf;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     listOf
     package
     attrs
@@ -21,16 +21,16 @@
   cfg = DOTS.${base}.${mod};
 
   inherit (DOTS.${base}) manager;
-in {
+in
+{
   options.DOTS.${base}.${mod} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = manager == mod;
-      };
+    enable = mkEnableOption mod // {
+      default = manager == mod;
+    };
     packages = mkOption {
       description = "List of {{mod}}-specific packages";
-      default = with pkgs;
+      default =
+        with pkgs;
         [
           orca
           file-roller
@@ -99,7 +99,7 @@ in {
             test -f ~/.xinitrc && . ~/.xinitrc
           '';
         };
-        excludePackages = [pkgs.xterm];
+        excludePackages = [ pkgs.xterm ];
       };
     };
     programs = cfg.programs;

@@ -2,11 +2,11 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.options) mkOption;
   inherit (lib.strings) toUpper;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     # attrs
     attrsOf
     either
@@ -18,7 +18,8 @@
   mod = "paths";
   sub = "qbx";
   cfg = config.${dom}.${mod};
-in {
+in
+{
   options.${dom}.${mod} = {
     base = mkOption {
       description = "Path to the dots repository.";
@@ -109,8 +110,12 @@ in {
     shellAliases = {
       qbx = ''cd ${cfg.base}'';
       dots = ''cd ${cfg.dots}'';
-      binit = with cfg.core.${sub}; ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
+      binit =
+        with cfg.core.${sub};
+        ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
     };
-    shellInit = with cfg.core.${sub}; ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
+    shellInit =
+      with cfg.core.${sub};
+      ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
   };
 }

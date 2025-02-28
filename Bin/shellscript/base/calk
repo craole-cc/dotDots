@@ -5,14 +5,14 @@
 # ===================================================================
 
 __info__() {
-	_cmd_PATH="$(pathof "$0")"
-	_cmd_NAME="$(basename "$_cmd_PATH")"
-	_cmd_HOME="$(dirname -- "$_cmd_PATH")"
-	_cmd_VERSION="1.0"
-	_cmd_DESCRIPTION="Allow the use of decimals in arithmetic equations"
-	_cmd_DEPENDENCIES="(python or bc), printf, echo, __cmd_exists__"
-	_cmd_USAGEGUIDE="$(
-		cat <<USAGE_GUIDE
+  _cmd_PATH="$(pathof "$0")"
+  _cmd_NAME="$(basename "$_cmd_PATH")"
+  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Allow the use of decimals in arithmetic equations"
+  _cmd_DEPENDENCIES="(python or bc), printf, echo, __cmd_exists__"
+  _cmd_USAGEGUIDE="$(
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
                       USAGE: $_cmd_NAME
@@ -30,7 +30,7 @@ __info__() {
 #>----------------------------------------------------<#
 
 USAGE_GUIDE
-	)"
+  )"
 }
 
 # ===================================================================
@@ -39,20 +39,20 @@ USAGE_GUIDE
 
 #@ Usage display
 __help__() {
-	printf "%s\n" "$_cmd_USAGEGUIDE"
-	exit 0
+  printf "%s\n" "$_cmd_USAGEGUIDE"
+  exit 0
 }
 
 #@ Version display
 __version__() {
-	printf "%s\n" "$_cmd_VERSION"
-	exit 0
+  printf "%s\n" "$_cmd_VERSION"
+  exit 0
 }
 
 #@ Command validation
 __cmd_exists__() {
-	unalias "$@" >/dev/null 2>&1
-	command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 # ===================================================================
@@ -61,49 +61,49 @@ __cmd_exists__() {
 
 if __cmd_exists__ getoptions; then
 
-	#@ Declare user options (Allow multiple flags)
-	parser_definition() {
-		setup REST
-		disp _cmd_USAGEGUIDE -h --help
-		disp _cmd_VERSION -v --version
-		flag VERBOSE -d --verbose -- "takes no arguments"python
-		flag QALC -q --qalc -- "takes no arguments"
-		flag FEND -f --fend -- "takes no arguments"
-		flag PYTHON -p --python -- "takes no arguments"
-		flag BC -b --bc -- "takes no arguments"
-	}
+  #@ Declare user options (Allow multiple flags)
+  parser_definition() {
+    setup REST
+    disp _cmd_USAGEGUIDE -h --help
+    disp _cmd_VERSION -v --version
+    flag VERBOSE -d --verbose -- "takes no arguments"python
+    flag QALC -q --qalc -- "takes no arguments"
+    flag FEND -f --fend -- "takes no arguments"
+    flag PYTHON -p --python -- "takes no arguments"
+    flag BC -b --bc -- "takes no arguments"
+  }
 
-	#@ Load options
-	eval "$(getoptions parser_definition) exit 1"
+  #@ Load options
+  eval "$(getoptions parser_definition) exit 1"
 
 else
 
-	#@ Declare user options (One flag per command)
-	case "$1" in
-	'-h' | '--help') __help__ ;;
-	'-v' | '--version') __version__ ;;
-	'-d' | '--verbose')
-		VERBOSE=true
-		shift
-		;;
-	'-q' | '--qalc')
-		CALCULATOR="qalc"
-		shift
-		;;
-	'-f' | '--fend')
-		CALCULATOR="fend"
-		shift
-		;;
-	'-p' | '--python')
-		CALCULATOR="python"
-		shift
-		;;
-	'-b' | '--bc')
-		CALCULATOR="bc"
-		shift
-		;;
-	*) ;;
-	esac
+  #@ Declare user options (One flag per command)
+  case "$1" in
+    '-h' | '--help') __help__ ;;
+    '-v' | '--version') __version__ ;;
+    '-d' | '--verbose')
+      VERBOSE=true
+      shift
+      ;;
+    '-q' | '--qalc')
+      CALCULATOR="qalc"
+      shift
+      ;;
+    '-f' | '--fend')
+      CALCULATOR="fend"
+      shift
+      ;;
+    '-p' | '--python')
+      CALCULATOR="python"
+      shift
+      ;;
+    '-b' | '--bc')
+      CALCULATOR="bc"
+      shift
+      ;;
+    *) ;;
+  esac
 fi
 
 # ===================================================================
@@ -112,14 +112,14 @@ fi
 
 __defaults__() {
 
-	#| Change calculator to requested
-	[ "$QALC" ] && CALCULATOR="qalc"
-	[ "$FEND" ] && CALCULATOR="fend"
-	[ "$PC" ] && CALCULATOR="python_math"
-	[ "$BC" ] && CALCULATOR="bc"
+  #| Change calculator to requested
+  [ "$QALC" ] && CALCULATOR="qalc"
+  [ "$FEND" ] && CALCULATOR="fend"
+  [ "$PC" ] && CALCULATOR="python_math"
+  [ "$BC" ] && CALCULATOR="bc"
 
-	#| Set the default calculator
-	[ "$CALCULATOR" ] || CALCULATOR="fend"
+  #| Set the default calculator
+  [ "$CALCULATOR" ] || CALCULATOR="fend"
 
 }
 
@@ -129,35 +129,35 @@ __defaults__() {
 
 #| Enable
 _qalc_() {
-	if __cmd_exists__ qalc; then
-		qalc --terse "$@"
-	else
-		printf "\'qalc\' not found"
-	fi
+  if __cmd_exists__ qalc; then
+    qalc --terse "$@"
+  else
+    printf "\'qalc\' not found"
+  fi
 }
 
 _fend_() {
-	if __cmd_exists__ fend; then
-		fend "$@"
-	else
-		printf "\'fend\' not found"
-	fi
+  if __cmd_exists__ fend; then
+    fend "$@"
+  else
+    printf "\'fend\' not found"
+  fi
 }
 
 _pc_() {
-	if __cmd_exists__ python; then
-		python -c "from math import *; result=$*; print (round(result,4))"
-	else
-		echo "'python' not installed"
-	fi
+  if __cmd_exists__ python; then
+    python -c "from math import *; result=$*; print (round(result,4))"
+  else
+    echo "'python' not installed"
+  fi
 }
 
 _bc_() {
-	if __cmd_exists__ bc; then
-		printf "%.4f\n" "$(echo "$*" | bc --mathlib)"
-	else
-		printf "\'bc\' not found"
-	fi
+  if __cmd_exists__ bc; then
+    printf "%.4f\n" "$(echo "$*" | bc --mathlib)"
+  else
+    printf "\'bc\' not found"
+  fi
 }
 
 # ===================================================================
@@ -166,14 +166,14 @@ _bc_() {
 
 __process__() {
 
-	#| Calculate based on app selection
-	case "$CALCULATOR" in
-	fend) _fend_ "$*" ;;
-	qalc) _qalc_ "$*" ;;
-	py*) _pc_ "$*" ;;
-	bc) _bc_ "$*" ;;
-	*) printf "%s\n" $(("$*")) ;;
-	esac
+  #| Calculate based on app selection
+  case "$CALCULATOR" in
+    fend) _fend_ "$*" ;;
+    qalc) _qalc_ "$*" ;;
+    py*) _pc_ "$*" ;;
+    bc) _bc_ "$*" ;;
+    *) printf "%s\n" $(("$*")) ;;
+  esac
 
 }
 
@@ -182,15 +182,15 @@ __process__() {
 # ===================================================================
 
 __error__() {
-	case $* in
-	-s | --string)
-		msg="🟥 Please ensure that a valid equation is entered."
-		printf "\n%s\n" "$msg"
-		__help__
-		exit 1
-		;;
-	*) ;;
-	esac
+  case $* in
+    -s | --string)
+      msg="🟥 Please ensure that a valid equation is entered."
+      printf "\n%s\n" "$msg"
+      __help__
+      exit 1
+      ;;
+    *) ;;
+  esac
 }
 
 # ===================================================================
@@ -198,7 +198,7 @@ __error__() {
 # ===================================================================
 
 __cleanup__() {
-	unset VERBOSE BC PYTHON CALCULATOR
+  unset VERBOSE BC PYTHON CALCULATOR
 }
 
 # ===================================================================
@@ -207,19 +207,19 @@ __cleanup__() {
 
 __verbose__() {
 
-	CALCULATOR_h1="*** Calculator ***"
-	CALCULATOR_tab=$(((${#CALCULATOR_h1} - ${#CALCULATOR}) / 2))
+  CALCULATOR_h1="*** Calculator ***"
+  CALCULATOR_tab=$(((${#CALCULATOR_h1} - ${#CALCULATOR}) / 2))
 
-	printf "%s\n" "$CALCULATOR_h1"
-	printf "%${CALCULATOR_tab}s"
-	printf "%s\n\n" "$CALCULATOR"
+  printf "%s\n" "$CALCULATOR_h1"
+  printf "%${CALCULATOR_tab}s"
+  printf "%s\n\n" "$CALCULATOR"
 
-	echo "*** Equations ***"
-	i=0
-	while [ $# -gt 0 ] && i=$((i + 1)); do
-		printf "%s | %s == %s\n\n" "$i" "$1" "$(__process__ "$1")"
-		shift
-	done
+  echo "*** Equations ***"
+  i=0
+  while [ $# -gt 0 ] && i=$((i + 1)); do
+    printf "%s | %s == %s\n\n" "$i" "$1" "$(__process__ "$1")"
+    shift
+  done
 
 }
 
@@ -229,14 +229,14 @@ __verbose__() {
 
 __main__() {
 
-	#@ Confirm that a string was entered
-	[ "$#" -eq 0 ] && __error__ --string
+  #@ Confirm that a string was entered
+  [ "$#" -eq 0 ] && __error__ --string
 
-	#@ Process all stings
-	while [ $# -gt 0 ]; do
-		__process__ "$1"
-		shift
-	done
+  #@ Process all stings
+  while [ $# -gt 0 ]; do
+    __process__ "$1"
+    shift
+  done
 
 }
 
@@ -252,9 +252,9 @@ __defaults__
 
 #@ Allow verbose option if requested
 if [ "$VERBOSE" ]; then
-	__verbose__ "$@"
+  __verbose__ "$@"
 else
-	__main__ "$@"
+  __main__ "$@"
 fi
 
 #@ Remove any leftover variables

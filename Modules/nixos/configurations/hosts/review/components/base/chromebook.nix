@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   config =
     # with config.dot.libraries.host;
     lib.mkIf (machine == "chromebook") {

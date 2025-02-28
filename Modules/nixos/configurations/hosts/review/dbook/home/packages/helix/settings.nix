@@ -17,7 +17,7 @@
           "spacer"
           "file-modification-indicator"
         ];
-        center = ["file-name"];
+        center = [ "file-name" ];
         right = [
           "diagnostics"
           "version-control"

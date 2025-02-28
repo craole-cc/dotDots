@@ -9,8 +9,8 @@
   allowAliases = true;
   # allowHomeManager = false;
   backupFileExtension = "BaC";
-  extraPkgConfig = {};
-  extraPkgAttrs = {};
+  extraPkgConfig = { };
+  extraPkgAttrs = { };
 
   capabilities = [
     "ai"
@@ -75,7 +75,7 @@
             to = 65534;
           } # Allowing a range for random port selection
         ];
-        ports = [];
+        ports = [ ];
       };
     };
   };
@@ -116,8 +116,10 @@
   };
   devices = {
     luks = {
-      "luks-d6bafe54-e55b-49b8-ab7c-18380939f56f".device = "/dev/disk/by-uuid/d6bafe54-e55b-49b8-ab7c-18380939f56f";
-      "luks-540965a0-c573-42f9-8d14-2ae37c3715e6".device = "/dev/disk/by-uuid/540965a0-c573-42f9-8d14-2ae37c3715e6";
+      "luks-d6bafe54-e55b-49b8-ab7c-18380939f56f".device =
+        "/dev/disk/by-uuid/d6bafe54-e55b-49b8-ab7c-18380939f56f";
+      "luks-540965a0-c573-42f9-8d14-2ae37c3715e6".device =
+        "/dev/disk/by-uuid/540965a0-c573-42f9-8d14-2ae37c3715e6";
     };
 
     fileSystems = {
@@ -136,7 +138,7 @@
     };
 
     swapDevices = [
-      {device = "/dev/disk/by-uuid/d1aa80d2-ba1f-412f-9d81-5c5f5c6a839d";}
+      { device = "/dev/disk/by-uuid/d1aa80d2-ba1f-412f-9d81-5c5f5c6a839d"; }
     ];
 
     network = [

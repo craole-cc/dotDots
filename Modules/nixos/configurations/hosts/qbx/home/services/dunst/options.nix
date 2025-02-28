@@ -1,7 +1,9 @@
 # options.nix
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.options) mkEnableOption;
-in {
+in
+{
   options.dots.services.dunst = {
     enable = mkEnableOption "Dunst, a lightweight notification daemon.";
   };

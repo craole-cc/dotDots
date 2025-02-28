@@ -2,22 +2,20 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.options) mkEnableOption;
 
   base = "programs";
-in {
+in
+{
   options.${base} = {
-    enable =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
-    silent =
-      mkEnableOption mod
-      // {
-        default = true;
-      };
+    enable = mkEnableOption mod // {
+      default = true;
+    };
+    silent = mkEnableOption mod // {
+      default = true;
+    };
   };
 
   config.${base}.${mod} = cfg;

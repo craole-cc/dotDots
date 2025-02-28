@@ -4,15 +4,15 @@
   # hostArgs,
   # userArgs,
   ...
-}: let
+}:
+let
   user = "craole";
 
   inherit (lib) mapAttrsToList mkIf;
   inherit (lib.strings) toUpper;
   inherit (config.dots.users.${user}) applications;
 
-  inherit
-    (applications)
+  inherit (applications)
     launcher
     terminal
     browser
@@ -59,7 +59,8 @@
     k = "u";
     j = "d";
   };
-in {
+in
+{
   config.dots.users.craole.applications.hyprland.settings = {
     "$MOD" = modifier;
 
@@ -148,8 +149,7 @@ in {
         # Move workspace to other monitor
         mapAttrsToList (
           key: direction: "$MOD ALTSHIFT,${key},movecurrentworkspacetomonitor,${direction}"
-        )
-        directions
+        ) directions
       );
 
     bindm = [

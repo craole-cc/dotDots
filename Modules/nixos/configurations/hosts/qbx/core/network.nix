@@ -1,4 +1,5 @@
-{lib, ...}: {
+{ lib, ... }:
+{
   networking = {
     hostName = "QBX";
     hostId = "32856885";

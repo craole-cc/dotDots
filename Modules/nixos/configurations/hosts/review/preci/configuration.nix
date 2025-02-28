@@ -3,7 +3,8 @@
   pkgs,
   modulesPath,
   ...
-}: {
+}:
+{
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
@@ -70,7 +71,7 @@
       execWheelOnly = true;
       extraRules = [
         {
-          users = ["craole"];
+          users = [ "craole" ];
           commands = [
             {
               command = "ALL";
@@ -87,7 +88,7 @@
   };
 
   console = {
-    packages = [pkgs.terminus_font];
+    packages = [ pkgs.terminus_font ];
     font = "ter-u32n";
     earlySetup = true;
     useXkbConfig = true;
@@ -222,7 +223,7 @@
 
   fonts = {
     packages = with pkgs; [
-      (nerdfonts.override {fonts = ["JetBrainsMono"];})
+      (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
     ];
   };
 

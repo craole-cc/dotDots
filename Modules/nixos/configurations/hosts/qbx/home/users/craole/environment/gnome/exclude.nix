@@ -3,10 +3,12 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   cfg = config.dots.env.gnome;
-in {
+in
+{
   config = mkIf cfg.enable {
     environment.gnome.excludePackages = with pkgs; [
       # baobab
@@ -38,8 +40,8 @@ in {
     ];
 
     services = {
-      xserver.excludePackages = [pkgs.xterm];
-      gnome = {};
+      xserver.excludePackages = [ pkgs.xterm ];
+      gnome = { };
     };
   };
 }

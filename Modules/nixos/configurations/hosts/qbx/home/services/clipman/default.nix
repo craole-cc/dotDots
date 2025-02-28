@@ -1,5 +1,5 @@
 {
-  imports = [];
+  imports = [ ];
   services.clipman = {
     enable = true;
   };

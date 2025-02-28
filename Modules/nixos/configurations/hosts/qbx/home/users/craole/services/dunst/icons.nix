@@ -1,4 +1,5 @@
-{osConfig, ...}: {
+{ osConfig, ... }:
+{
   services.dunst = {
     settings.global.icon_path = "${osConfig.dots.paths.qbx.conf}/dunst/icons";
     iconTheme = {

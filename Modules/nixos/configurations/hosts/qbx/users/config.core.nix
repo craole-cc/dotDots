@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   dom = "dots";
   mod = "users";
   cfg = config.${dom}.${mod};
@@ -20,15 +21,17 @@
       inherit (val) isNormalUser isSystemUser;
       extraGroups = val.groups;
       description =
-        if val.description != null
-        then val.description
-        else if val.isNormalUser
-        then "A user by the name of '${capitalizeFirst key}'"
-        else "A system user dubbed '${key}'";
+        if val.description != null then
+          val.description
+        else if val.isNormalUser then
+          "A user by the name of '${capitalizeFirst key}'"
+        else
+          "A system user dubbed '${key}'";
       hashedPassword = val.password;
     };
   }) (filterAttrs (_: u: u.enable) cfg);
-in {
+in
+{
   options.${dom} = {
     test = mkOption {
       description = "Tests";

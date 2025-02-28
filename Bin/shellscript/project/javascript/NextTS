@@ -22,7 +22,7 @@ yarn dlx @yarnpkg/sdks vscode
 yarn plugin import typescript
 
 #* Enable Debug Scripts *#
-ex package.json <<EOF
+ex package.json << EOF
 4 insert
   "scripts": {
     "dev": "next dev",
@@ -37,17 +37,17 @@ EOF
 #* Load Templates *#
 
 rm \
-	--recursive --force \
-	components/ \
-	pages/ \
-	styles/ \
-	test/
+  --recursive --force \
+  components/ \
+  pages/ \
+  styles/ \
+  test/
 
 templates="$prJS/templates/NEXTts"
 cp \
-	--archive \
-	"$templates/." \
-	.
+  --archive \
+  "$templates/." \
+  .
 
 #* Develop in VSCode *#
 code .

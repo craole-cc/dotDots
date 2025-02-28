@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   programs.plasma = {
     enable = false;
     # workspace = {
@@ -161,7 +162,7 @@
             value = "dolphin";
             type = "substring";
           };
-          window-types = ["normal"];
+          window-types = [ "normal" ];
         };
         apply = {
           noborder = {

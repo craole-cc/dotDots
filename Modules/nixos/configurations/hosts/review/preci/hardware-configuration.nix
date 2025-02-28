@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: {
+}:
+{
   boot = {
     initrd = {
       availableKernelModules = [
@@ -14,7 +15,7 @@
         "sr_mod"
         "sdhci_pci"
       ];
-      kernelModules = [];
+      kernelModules = [ ];
       luks.devices = {
         "luks-d6bafe54-e55b-49b8-ab7c-18380939f56f" = {
           device = "/dev/disk/by-uuid/d6bafe54-e55b-49b8-ab7c-18380939f56f";
@@ -30,8 +31,8 @@
       efi.canTouchEfiVariables = true;
     };
 
-    kernelModules = ["kvm-intel"];
-    extraModulePackages = [];
+    kernelModules = [ "kvm-intel" ];
+    extraModulePackages = [ ];
   };
 
   fileSystems = {
@@ -50,7 +51,7 @@
   };
 
   swapDevices = [
-    {device = "/dev/disk/by-uuid/d1aa80d2-ba1f-412f-9d81-5c5f5c6a839d";}
+    { device = "/dev/disk/by-uuid/d1aa80d2-ba1f-412f-9d81-5c5f5c6a839d"; }
   ];
 
   networking = {

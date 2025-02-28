@@ -4,9 +4,10 @@
 _APP="blueman-applet"
 
 #@ Check if the application is already running
-pgrep "$_APP" >/dev/null ||
-	#@ Launch the application if it's not already running
-	exec "$_APP" &
+pgrep "$_APP" > /dev/null \
+  ||
+  #@ Launch the application if it's not already running
+  exec "$_APP" &
 
 # #@ Validate app availability
 # weHave --check "$_APP"

@@ -2,14 +2,14 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.lists) elem;
   inherit (lib.options) mkOption;
   inherit (lib.types) attrs;
 
   inherit (config) DOTS;
-  inherit
-    (DOTS.interface)
+  inherit (DOTS.interface)
     manager
     isMinimal
     fonts
@@ -18,7 +18,8 @@
 
   base = "services";
   cfg = DOTS.${base};
-in {
+in
+{
   options.DOTS.${base} = mkOption {
     description = "The configuration for {{mod}}";
     default = {
@@ -52,38 +53,37 @@ in {
       };
       kmscon = with fonts.console; {
         enable = isMinimal;
-        autologinUser =
-          if loginAutomatically
-          then name
-          else null;
+        autologinUser = if loginAutomatically then name else null;
         extraConfig = "font-size=${toString size}";
         extraOptions = "--term xterm-256color";
         fonts = sets;
       };
       blueman.enable = !isMinimal;
-      pipewire = let
-        enable = !isMinimal;
-      in {
-        inherit enable;
-        alsa = {
+      pipewire =
+        let
+          enable = !isMinimal;
+        in
+        {
           inherit enable;
-          support32Bit = true;
-        };
-        pulse = {
-          inherit enable;
-        };
-        jack = {
-          inherit enable;
-        };
-        extraConfig.pipewire."92-low-latency" = {
-          context.properties.default.clock = {
-            rate = 48000;
-            quantum = 32;
-            min-quantum = 32;
-            max-quantum = 32;
+          alsa = {
+            inherit enable;
+            support32Bit = true;
+          };
+          pulse = {
+            inherit enable;
+          };
+          jack = {
+            inherit enable;
+          };
+          extraConfig.pipewire."92-low-latency" = {
+            context.properties.default.clock = {
+              rate = 48000;
+              quantum = 32;
+              min-quantum = 32;
+              max-quantum = 32;
+            };
           };
         };
-      };
       tailscale.enable = !isMinimal;
     };
     type = attrs;

@@ -4,7 +4,8 @@
   pkgs,
   modulesPath,
   ...
-}: {
+}:
+{
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
@@ -16,8 +17,10 @@
     };
     initrd = {
       luks.devices = {
-        "luks-ef5cc76c-aa34-460b-beb8-a2ea4f99889d".device = "/dev/disk/by-uuid/ef5cc76c-aa34-460b-beb8-a2ea4f99889d";
-        "luks-858f4df3-a2dd-4a10-bf57-01694195250e".device = "/dev/disk/by-uuid/858f4df3-a2dd-4a10-bf57-01694195250e";
+        "luks-ef5cc76c-aa34-460b-beb8-a2ea4f99889d".device =
+          "/dev/disk/by-uuid/ef5cc76c-aa34-460b-beb8-a2ea4f99889d";
+        "luks-858f4df3-a2dd-4a10-bf57-01694195250e".device =
+          "/dev/disk/by-uuid/858f4df3-a2dd-4a10-bf57-01694195250e";
       };
       availableKernelModules = [
         "xhci_pci"
@@ -25,11 +28,11 @@
         "sd_mod"
         "sdhci_pci"
       ];
-      kernelModules = [];
+      kernelModules = [ ];
     };
-    kernelModules = ["kvm-intel"];
+    kernelModules = [ "kvm-intel" ];
     kernelPackages = pkgs.linuxPackages_latest;
-    extraModulePackages = [];
+    extraModulePackages = [ ];
   };
 
   fileSystems = {
@@ -49,7 +52,7 @@
   };
 
   swapDevices = [
-    {device = "/dev/disk/by-uuid/cdb83eba-7128-46ba-b194-d834925e162a";}
+    { device = "/dev/disk/by-uuid/cdb83eba-7128-46ba-b194-d834925e162a"; }
   ];
 
   networking = {

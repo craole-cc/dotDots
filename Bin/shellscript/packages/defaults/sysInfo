@@ -1,19 +1,19 @@
 #!/bin/sh
 
 if weHave pop; then
-	pop
+  pop
 elif weHave Neofetch; then
-	Neofetch
+  Neofetch
 elif weHave macchina; then
-	Macchina
+  Macchina
 elif weHave ufetch; then
-	ufetch
+  ufetch
 elif weHave pfetch; then
-	pfetch
+  pfetch
 elif weHave fastfetch; then
-	fastfetch
+  fastfetch
 elif weHave bfetch; then
-	bfetch
+  bfetch
 elif weHave paleofetch; then
-	paleofetch
+  paleofetch
 fi

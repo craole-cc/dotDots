@@ -7,7 +7,8 @@ with lib;
 with config.dots.lib.get.host;
 with interface;
 with login;
-with fonts.console; {
+with fonts.console;
+{
   config.services = {
     kmscon = {
       enable = true;

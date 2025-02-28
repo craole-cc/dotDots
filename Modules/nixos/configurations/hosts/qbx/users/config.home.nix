@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   dom = "dots";
   mod = "users";
   cfg = config.${dom}.${mod};
@@ -15,12 +16,13 @@
   confirguration = mapAttrs' (key: val: {
     name = key;
     value = {
-      home = {inherit stateVersion;};
+      home = { inherit stateVersion; };
       programs.home-manager.enable = true;
-      wayland.windowManager = {inherit (val) hyprland;};
+      wayland.windowManager = { inherit (val) hyprland; };
     };
   }) (filterAttrs (_: u: u.enable && u.isNormalUser) cfg);
-in {
+in
+{
   options.${dom} = {
     test = mkOption {
       description = "Tests";
@@ -39,9 +41,9 @@ in {
         home-manager.users = mapAttrs' (key: val: {
           name = key;
           value = {
-            home = {inherit stateVersion;};
+            home = { inherit stateVersion; };
             programs.home-manager.enable = true;
-            wayland.windowManager = {inherit (val) hyprland;};
+            wayland.windowManager = { inherit (val) hyprland; };
           };
         }) (filterAttrs (_: u: u.enable && u.isNormalUser) cfg);
       };

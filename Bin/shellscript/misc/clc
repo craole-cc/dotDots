@@ -10,12 +10,12 @@ echo clc
 # python -c "print(f'"{$*}"')"
 
 __calculate__() {
-	python -c "print($expression)"
+  python -c "print($expression)"
 }
 
 __usage__() {
-	cat
-	Wrap the expression in quotes"
+  cat
+  Wrap the expression in quotes"
   "Usage: clc "expression""
   "Example: calc "1 + 2 * 3.0 / 4.5
   "

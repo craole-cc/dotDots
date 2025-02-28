@@ -3,8 +3,8 @@
 weHave wget && return
 
 if weHave winget; then
-	winget install JernejSimoncic.Wget
+  winget install JernejSimoncic.Wget
 elif weHave choco; then
-	choco install wget
+  choco install wget
 #TODO#: Add other options
 fi

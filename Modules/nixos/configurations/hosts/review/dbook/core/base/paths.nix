@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.options) mkOption;
   inherit (lib.types) nullOr str;
   # inherit ((import ../libraries { inherit lib; }).filesystem) locateNixos locateFlake;
@@ -12,7 +13,8 @@
 
   base = "paths";
   cfg = DOTS.${base};
-in {
+in
+{
   options.DOTS.${base} = {
     nixos = {
       config = mkOption {

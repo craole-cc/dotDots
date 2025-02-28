@@ -2,14 +2,14 @@
 
 #| Stop any running instance of sxhkd
 if weHave killall; then
-	killall --quiet sxhkd
+  killall --quiet sxhkd
 else
-	pkill sxhkd
+  pkill sxhkd
 fi
 
-if procs sxhkd >/dev/null 2>&1; then
-	#| Activate the Global keys
-	sxhkd -c "$KEYMAPS/global" &
+if procs sxhkd > /dev/null 2>&1; then
+  #| Activate the Global keys
+  sxhkd -c "$KEYMAPS/global" &
 fi
 
 #> Server-Specific

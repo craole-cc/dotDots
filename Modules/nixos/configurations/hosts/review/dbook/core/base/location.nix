@@ -1,7 +1,9 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.options) mkOption;
   inherit (lib.types) str float nullOr;
-in {
+in
+{
   options.DOTS.location = {
     timeZone = mkOption {
       description = "The time zone used for displaying time and dates.";
