@@ -1,7 +1,7 @@
 {
-	imports = [
-	./bindings.nix
-	./env.nix
-	./settings.nix
-	]
+  imports = [
+    ./bindings.nix
+    ./env.nix
+    ./settings.nix
+  ];
 }

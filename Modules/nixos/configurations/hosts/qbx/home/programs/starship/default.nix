@@ -1,4 +1,4 @@
 {
-	imports = [./settings.nix]
-	programs.starship.enable = true
+  imports = [./settings.nix];
+  programs.starship.enable = true;
 }

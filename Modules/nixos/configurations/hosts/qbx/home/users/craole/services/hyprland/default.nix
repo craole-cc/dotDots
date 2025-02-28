@@ -1,8 +1,8 @@
 {
-	imports = [
-	# ./bindings.nix
-	# ./env.nix
-	# ./settings.nix
-	./options.nix
-	]
+  imports = [
+    # ./bindings.nix
+    # ./env.nix
+    # ./settings.nix
+    ./options.nix
+  ];
 }

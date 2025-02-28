@@ -1,4 +1,4 @@
 {
-	imports = []
-	programs.nushell.enable = true
+  imports = [];
+  programs.nushell.enable = true;
 }

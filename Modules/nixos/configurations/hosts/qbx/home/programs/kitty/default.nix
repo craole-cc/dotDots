@@ -1,4 +1,4 @@
 {
-	imports = []
-	programs.kitty.enable = true
+  imports = [];
+  programs.kitty.enable = true;
 }

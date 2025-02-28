@@ -1,7 +1,7 @@
 {
-	imports = [
-	./common.nix
-	./wayland.nix
-	./xserver.nix
-	]
+  imports = [
+    ./common.nix
+    ./wayland.nix
+    ./xserver.nix
+  ];
 }
