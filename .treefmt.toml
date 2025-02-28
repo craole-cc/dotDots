@@ -22,8 +22,8 @@ excludes = [
 [formatter.markdown]
 command = "markdownlint-cli2"
 includes = ["*.md", "README"]
-# options = ["--fix"]
-options = ["--fix", "--config", ".markdownlint.yaml"]
+options = ["--fix"]
+# options = ["--fix", "--config", ".markdownlint.yaml"]
 priority = 1
 
 # [formatter.mdsh]

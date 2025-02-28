@@ -55,7 +55,7 @@ cd "$DOTS"
     [ -f "$HOME/.profile" ] && . "$HOME/.profile"
     ```
 
-  4. Logout and log back in or reboot te system to complete the initialization.
+4. Logout and log back in or reboot te system to complete the initialization.
 
 ### NixOS Systems
 
