@@ -23,8 +23,7 @@ pkgs.mkShell {
     neovim
     helix
     direnv
-    nixfmt-rfc-style
-    nixd
+
     fend
     fastfetch
     lesspipe
@@ -35,6 +34,7 @@ pkgs.mkShell {
     powershell
     bashInteractive
     glib
+    treefmt2
 
     #| Image Tools
     viu
@@ -42,52 +42,50 @@ pkgs.mkShell {
     sxiv
 
     #| Languages Tools and Formatters
-    # python314
     # coreutils-prefixed
-    # ruby
     # php
-    # nodejs-slim_latest
-    pnpm
-    treefmt2
 
-    #| Formatters
-    # Nix
-    alejandra # Formatter
+    #| Nix
+    nixfmt-rfc-style
+    nixd
+    deadnix
 
-    # JavaScript/TypeScript
+    #| JavaScript/TypeScript
     biome # Formatter, linter, and more
     nodePackages_latest.prettier # Formatter
+    # nodejs-slim_latest
     prettierd # Formatter daemon
+    pnpm
 
-    # Rust
+    #| Rust
+    rustup
     rustfmt # Formatter
-    leptosfmt # Formatter
+    leptosfmt
 
-    # Ruby
+    #| Python
+    # python314
     ruff
 
-    # Shell
-    shfmt # Formatter
+    #| Shell
+    shfmt
+    shellcheck
+    shellharden
 
-    # SQL
-    sqlfluff # Formatter/linter
+    #| SQL
+    # sqlfluff # Formatter/linter
 
-    # Lua
-    stylua # Formatter
-
-    # TOML
-    taplo # Formatter
-    toml-sort # Sorter
-
-    # TeX
-    tex-fmt # Formatter
+    #| Configuration
+    taplo # Toml Formatter
+    stylua # Lua Formatter
+    yamlfmt # YamlFormatter
 
     # Typst
+    typst
     typstfmt # Formatter
+    typstyle # Linter
 
     rustup
     # YAML
-    yamlfmt # Formatter
 
     # Go
     asmfmt # Formatter

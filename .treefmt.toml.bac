@@ -188,7 +188,7 @@ options = [
 
 #| TOML
 [formatter.toml]
-includes = ["*.toml"]
+includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
 command = "taplo"
 options = ["format"]
 

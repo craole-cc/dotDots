@@ -14,7 +14,9 @@ use url::form_urlencoded;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Location to fetch weather for
+    /// Location to
+    /// fetch weather
+    /// for
     #[arg(default_value = "Mandeville,Jamaica")]
     location: String,
 
