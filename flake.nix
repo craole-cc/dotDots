@@ -103,7 +103,7 @@
           };
           modules = {
             local = flake.local + parts.modules;
-            store = flake.store;
+            store = flake.store + parts.modules;
           };
           libraries = {
             local = modules.local + parts.libs;
