@@ -1,4 +1,6 @@
-{ pkgs }:
+{
+  pkgs ? import <nixpkgs> { },
+}:
 
 let
   # Collect all formatting-related packages
@@ -9,7 +11,6 @@ let
     ruff
     shellcheck
     shfmt
-    yamlfmt
   ];
 
   # Additional development tools
@@ -20,55 +21,65 @@ let
   ];
 in
 {
-  # Create treefmt configuration with the specified formatters
-  programs = {
-    # Nix formatting using nixfmt-rfc-style
-    nixfmt-rfc-style.enable = true;
+  # NixOS module for treefmt configuration
+  config =
+    { config, lib, ... }:
+    {
+      programs.treefmt = {
+        enable = true;
 
-    # JavaScript/TypeScript formatting with Biome
-    biome = {
-      enable = true;
-      settings = { };
-    };
+        settings = {
+          global.excludes = [
+            ".git"
+            "node_modules"
+            "target"
+          ];
+        };
 
-    # Python formatting with Ruff
-    ruff = {
-      enable = true;
-      settings = {
-        line-length = 88;
-        target-version = "py310";
+        programs = {
+          # Nix formatting using nixfmt-rfc-style
+          nixfmt-rfc-style.enable = true;
+
+          # JavaScript/TypeScript formatting with Biome
+          biome = {
+            enable = true;
+            settings = { };
+          };
+
+          # Python formatting with Ruff
+          ruff = {
+            enable = true;
+            settings = {
+              line-length = 88;
+              target-version = "py310";
+            };
+          };
+
+          # Shell script formatting with shfmt
+          shfmt = {
+            enable = true;
+            options = [
+              "-i"
+              "2" # Indent with 2 spaces
+              "-bn" # Place function braces on the same line
+              "-ci" # Switch case indent
+              "-sr" # Redirect to same line
+            ];
+          };
+
+          # Shellcheck with all checks enabled (strict mode)
+          shellcheck = {
+            enable = true;
+            settings = {
+              severity = "error";
+            };
+          };
+        };
       };
-    };
 
-    # Shell script formatting with shfmt
-    shfmt = {
-      enable = true;
-      options = [
-        "-i"
-        "2" # Indent with 2 spaces
-        "-bn" # Place function braces on the same line
-        "-ci" # Switch case indent
-        "-sr" # Redirect to same line
-      ];
+      # Ensure required packages are available system-wide
+      environment.systemPackages = formatterPackages;
     };
-
-    # Shellcheck with all checks enabled (strict mode)
-    shellcheck = {
-      enable = true;
-      settings = {
-        severity = "error";
-      };
-    };
-  };
-
-  # Global settings for treefmt
-  global = {
-    excludes = [
-      ".git"
-      "node_modules"
-      "target"
-    ];
-  };
 
   # Expose packages for use in the dev shell
   devInputs = formatterPackages ++ devTools;

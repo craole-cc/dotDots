@@ -24,7 +24,7 @@
         # manager = "hyprland";
         # protocol = "wayland";
       };
-      qyatt= {
+      qyatt = {
         # enable = true;
         # display = "sddm";
         # desktop = "gnome";
