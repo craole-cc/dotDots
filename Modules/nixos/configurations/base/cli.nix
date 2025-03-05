@@ -1,4 +1,11 @@
-{ config, pkgs, lib, inputs, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
+{
 
   environment.variables = {
     EDITOR = "nvim";
@@ -29,9 +36,19 @@
     histFile = "$HOME/.cache/.zsh_history";
     histSize = 100000;
     syntaxHighlighting.enable = true;
-    syntaxHighlighting.highlighters = [ "main" "brackets" "pattern" "root" "line" ];
+    syntaxHighlighting.highlighters = [
+      "main"
+      "brackets"
+      "pattern"
+      "root"
+      "line"
+    ];
     ohMyZsh.enable = true;
-    ohMyZsh.plugins = [ "sudo" "z" "aws" ];
+    ohMyZsh.plugins = [
+      "sudo"
+      "z"
+      "aws"
+    ];
     shellInit = ''
       source ${pkgs.zsh-forgit}/share/zsh/zsh-forgit/forgit.plugin.zsh
       chat() {
@@ -40,9 +57,11 @@
       }
     '';
     promptInit = ''
-      ${builtins.readFile (pkgs.shell-config.override {
-        dockerAliasEnabled = config.virtualisation.docker.enable;
-      })}
+      ${builtins.readFile (
+        pkgs.shell-config.override {
+          dockerAliasEnabled = config.virtualisation.docker.enable;
+        }
+      )}
       autoload -U promptinit && promptinit && prompt pure
       complete -o nospace -C ${pkgs.terraform}/bin/terraform terraform
       complete -o nospace -C ${pkgs.awscli}/bin/aws_completer aws

@@ -25,7 +25,7 @@ struct Args {
     format: u8,
 
     /// Enable debug output
-        #[arg(long)]
+    #[arg(long)]
     debug: bool,
 }
 
