@@ -23,9 +23,7 @@
             system:
             nixpkgs.lib.nixosSystem {
               inherit system;
-              modules = [
-                ./.
-              ];
+              modules = [ ./. ];
             }
           );
     };
