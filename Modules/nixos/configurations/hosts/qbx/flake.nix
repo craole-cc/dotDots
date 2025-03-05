@@ -3,28 +3,16 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
+    { self, nixpkgs }:
     {
-      self,
-      nixpkgs,
-      flake-utils,
-    }:
-    {
-      nixosConfigurations =
-        flake-utils.lib.eachSystem
-          [
-            "aarch64-linux"
-            "x86_64-linux"
-          ]
-          (
-            system:
-            nixpkgs.lib.nixosSystem {
-              inherit system;
-              modules = [ ./. ];
-            }
-          );
+      nixosConfigurations = {
+        myhostname = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [ ./. ];
+        };
+      };
     };
 }
