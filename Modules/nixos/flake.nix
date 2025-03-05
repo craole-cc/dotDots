@@ -9,9 +9,22 @@
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    homeManager = {
+
+    nixUtils.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    home-manager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        utils.follows = "nixUtils";
+      };
+    };
+
+    devshell = {
+      url = "github:numtide/devshell";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "nixUtils";
+      };
     };
     nid = {
       url = "github:nix-community/nix-index-database";
@@ -30,6 +43,8 @@
   outputs =
     { self, ... }@inputs:
     let
+      pkgs = self.pkgs.x86_64-linux.nixpkgs;
+      # mkApp = inputs.nixUtils.lib.mkApp;
       paths =
         let
           flake = {
@@ -187,12 +202,28 @@
           extraPkgAttrs = host.extraPkgAttrs or { };
         };
     in
-    {
-      nixosConfigurations = {
-        example = mkConfig "example" { };
-        preci = mkConfig "preci" { };
-        dbook = mkConfig "dbook" { };
+    inputs.nixUtils.lib.mkFlake {
+
+      supportedSystems = [
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
+
+      channelsConfig = {
+        allowUnfree = true;
       };
+
+      hosts = {
+        QBX = {
+          system = "x86_64-linux";
+          modules = [ ./configurations/hosts/qbx ];
+        };
+      };
+      # nixosConfigurations = {
+      #   example = mkConfig "example" { };
+      #   preci = mkConfig "preci" { };
+      #   dbook = mkConfig "dbook" { };
+      # };
 
       #TODO: Create separate config directory for nix systems since the config is drastically different
       # darwinConfigurations = {
