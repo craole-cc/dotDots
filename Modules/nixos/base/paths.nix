@@ -2,7 +2,7 @@ let
   flake = {
     local = "/home/craole/.dots";
     root = "/dots";
-    store = ../.;
+    store = ./.;
   };
   parts = {
     args = "/args";
