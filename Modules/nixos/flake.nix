@@ -11,7 +11,7 @@
     };
 
     nixUtils.url = "github:gytis-ivaskevicius/flake-utils-plus";
-    home-manager = {
+    homeManager = {
       url = "github:nix-community/home-manager";
       inputs = {
         nixpkgs.follows = "nixpkgs";
