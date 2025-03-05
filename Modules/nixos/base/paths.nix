@@ -9,8 +9,8 @@ let
     cfgs = "/configurations";
     env = "/environment";
     libs = "/libraries";
-    mkCore = "/helpers/makeCoreConfig.nix";
-    mkConf = "/helpers/makeConfig.nix";
+    mkCore = "/helpers/mkCoreConfig.nix";
+    mkConf = "/helpers/mkConfig.nix";
     modules = "/Modules/nixos";
     mods = "/modules";
     opts = "/options";
