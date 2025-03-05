@@ -45,8 +45,8 @@
     let
       # pkgs = self.pkgs.x86_64-linux.nixpkgs;
       # mkApp = inputs.nixUtils.lib.mkApp;
-      paths = import ./base.paths.nix;
-      mkConfig = import ./base/mkConfig.nix {
+      paths = import ./base/paths.nix;
+      mkConfig = import paths.libraries.mkConf {
         inherit self inputs paths;
       };
       # mkConfig =
@@ -149,6 +149,7 @@
     #   };
     # };
     {
+      inherit paths;
       nixosConfigurations = {
         example = mkConfig "example" { };
         preci = mkConfig "preci" { };

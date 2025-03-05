@@ -10,6 +10,7 @@ let
     env = "/environment";
     libs = "/libraries";
     mkCore = "/helpers/makeCoreConfig.nix";
+    mkConf = "/helpers/makeConfig.nix";
     modules = "/Modules/nixos";
     mods = "/modules";
     opts = "/options";
@@ -54,12 +55,13 @@ let
   };
   modules = {
     local = flake.local + parts.modules;
-    store = flake.store + parts.modules;
+    store = flake.store;
   };
   libraries = {
     local = modules.local + parts.libs;
     store = modules.store + parts.libs;
     mkCore = core.libraries + parts.mkCore;
+    mkConf = core.libraries + parts.mkConf;
   };
 in
 {
