@@ -3,12 +3,13 @@
 let
   # Collect all formatting-related packages
   formatterPackages = with pkgs; [
-    treefmt
+    treefmt2
     nixfmt-rfc-style
     biome
     ruff
     shellcheck
     shfmt
+    yamlfmt
   ];
 
   # Additional development tools
