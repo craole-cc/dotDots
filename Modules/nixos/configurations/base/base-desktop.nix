@@ -31,6 +31,7 @@
     hostId = builtins.substring 0 8 (builtins.hashString "md5" config.networking.hostName);
     nameservers = [
       "1.1.1.1" # Cloudflare DNS
+      "1.0.0.1"
       "8.8.8.8" # Google DNS
       "9.9.9.9" # Quad 9
     ];
