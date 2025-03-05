@@ -1,5 +1,9 @@
-{ pkgs, lib, ... }: {
-  environment.systemPackages = with pkgs; [ bc freerdp3 ];
+{ pkgs, lib, ... }:
+{
+  environment.systemPackages = with pkgs; [
+    bc
+    freerdp3
+  ];
 
   programs.virt-manager.enable = true;
   virtualisation = {
@@ -32,7 +36,10 @@
           "/home/docker/windows/data:/storage"
           "/etc/nixos/scripts:/oem"
         ];
-        ports = [ "8006:8006" "3389:3389" ];
+        ports = [
+          "8006:8006"
+          "3389:3389"
+        ];
         environment = {
           VERSION = "win11e";
           USERNAME = "gytis";
@@ -41,8 +48,11 @@
           RAM_SIZE = "16G";
           CPU_CORES = "8";
         };
-        extraOptions =
-          [ "--cap-add=NET_ADMIN" "--device=/dev/kvm" "--stop-timeout=120" ];
+        extraOptions = [
+          "--cap-add=NET_ADMIN"
+          "--device=/dev/kvm"
+          "--stop-timeout=120"
+        ];
       };
       windows-v2 = {
         hostname = "winvm-v2";
@@ -53,7 +63,10 @@
           "/home/docker/windows-v2/data:/storage"
           "/etc/nixos/windows-v2/:/oem"
         ];
-        ports = [ "8000:8006" "3333:3389" ];
+        ports = [
+          "8000:8006"
+          "3333:3389"
+        ];
         environment = {
           VERSION = "win11e";
           USERNAME = "gytis";
@@ -62,8 +75,11 @@
           RAM_SIZE = "16G";
           CPU_CORES = "8";
         };
-        extraOptions =
-          [ "--cap-add=NET_ADMIN" "--device=/dev/kvm" "--stop-timeout=120" ];
+        extraOptions = [
+          "--cap-add=NET_ADMIN"
+          "--device=/dev/kvm"
+          "--stop-timeout=120"
+        ];
       };
     };
   };

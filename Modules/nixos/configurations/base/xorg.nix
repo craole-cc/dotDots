@@ -1,10 +1,19 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   xdg.mime.enable = true;
   environment.systemPackages = with pkgs; [ xclip ];
 
-  fonts.fonts = with pkgs; [ nerdfonts noto-fonts-emoji noto-fonts ];
+  fonts.fonts = with pkgs; [
+    nerdfonts
+    noto-fonts-emoji
+    noto-fonts
+  ];
   services.xserver = {
     enable = true;
     layout = "us";
@@ -17,7 +26,10 @@
     };
 
     # Make auto-repeat on key hold work faster.
-    displayManager.xserverArgs = [ "-ardelay 300" "-arinterval 20" ];
+    displayManager.xserverArgs = [
+      "-ardelay 300"
+      "-arinterval 20"
+    ];
 
     displayManager.lightdm = {
       enable = true;

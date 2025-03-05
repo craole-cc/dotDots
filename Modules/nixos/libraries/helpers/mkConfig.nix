@@ -64,10 +64,10 @@ import paths.libraries.mkCore {
     nixDarwin
     ;
 
-  inherit (host)
-    name
-    # system
-    ;
+  # inherit (host)
+  #   name
+  #   # system
+  #   ;
 
   inherit
     specialArgs

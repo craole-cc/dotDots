@@ -1,0 +1,63 @@
+#| Sensitive Data
+[Pp]rivate/
+[Ss]ecrets/
+[Kk]eys/
+.env
+
+#| Logs
+[Ll]ogs/
+[Ll]og/
+.log
+
+#| Temporary Folders
+# [Aa]rchive/
+[Dd]ownloads/
+[Tt]emp/
+[Tt]mp/
+[Tt]est/
+
+#| Build Folders
+node_modules/
+result/
+build/
+dist/
+coverage/
+.direnv/
+target/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.nox/
+.venv/
+.svn/
+.hg/
+.cache/
+.eggs/
+.pybuilder/
+.gradle/
+.idea/
+.vscode/
+.zed/
+*.egg-info/
+.serverless/
+.webpack/
+.parcel-cache/
+.next/
+out/
+release/
+
+#| Nix
+result
+.devenv
+.direnv
+devenv.local.nix
+.pre-commit-config.yaml
+
+#| System
+.Trash*
+.directory
+
+#| Google Drive
+./.tmp.drivedownload/
+./.tmp.driveupload/
