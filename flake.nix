@@ -1,41 +1,58 @@
 {
+  description = "Development environment for qbx host with treefmt2";
+
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-    neovim.url = "github:nix-community/neovim-nightly-overlay";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
+
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        utils.follows = "utils";
+      };
+    };
+
+    devshell = {
+      url = "github:numtide/devshell";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "utils";
+      };
+    };
   };
 
   outputs =
-    {
-      nixpkgs,
-      flake-utils,
-      neovim,
+    inputs@{
+      self,
+      utils,
+      home-manager,
+      nixos-hardware,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          overlays = [
-            neovim.overlays.default
-          ];
-        };
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          inputsFrom = [ (import ./shell.nix { inherit pkgs; }) ];
+    let
+      pkgs = self.pkgs.x86_64-linux.nixpkgs;
+      mkApp = utils.lib.mkApp;
+    in
+    utils.lib.mkFlake {
 
-          # shellHook = ''
-          #   # Original shell.nix shellHook
-          #   fastfetch
-          #   ede
+      inherit self inputs;
 
-          #   echo "Development environment loaded!"
-          #   echo "Neovim nightly is available as 'nvim'"
-          # '';
+      supportedSystems = [
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
+
+      channelsConfig = {
+        allowUnfree = true;
+      };
+
+      hosts = {
+        qbx = {
+          system = "x86_64-linux";
+          modules = [ ./Modules/nixos/configurations/hosts/qbx ];
         };
-      }
-    );
+      };
+    };
 }
