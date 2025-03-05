@@ -1,12 +1,17 @@
 {
-  description = "QBX Configuration";
+  description = "Development environment for qbx host with treefmt2";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils-plus = {
       url = "github:gytis-ivaskevicius/flake-utils-plus";
+      inputs.flake-utils.follows = "flake-utils";
+    };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
@@ -14,35 +19,28 @@
       self,
       nixpkgs,
       flake-utils-plus,
+      treefmt-nix,
+      flake-utils,
     }:
-    flake-utils-plus.lib.mkFlake {
-      inherit self nixpkgs;
+    flake-utils-plus.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        formatConfig = import ./custom/fmt.nix { inherit pkgs; };
+      in
+      {
+        inherit (formatConfig) formatter;
 
-      systems = [ "x86_64-linux" ];
+        devShells.default = pkgs.mkShell {
+          name = "qbx-dev-shell";
+          buildInputs = formatConfig.devInputs;
 
-      nixosConfigurations = {
-        qbx = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [ ./. ];
+          shellHook = ''
+            echo "🚀 Welcome to the qbx development environment!"
+            echo "Formatting tools are ready with treefmt2"
+            echo "Use 'treefmt' to format all files in the project"
+          '';
         };
-      };
-
-      devShells = {
-        x86_64-linux = {
-          default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-            buildInputs = with nixpkgs.legacyPackages.x86_64-linux; [
-              treefmt2
-              nixfmt-rfc-style
-              nixd
-              shfmt
-              shellcheck
-              bashInteractive
-            ];
-          };
-        };
-      };
-
-      sourceInfo = self.sourceInfo;
-    };
+      }
+    );
 }
-  
