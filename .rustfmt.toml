@@ -1,0 +1,28 @@
+#| General Formatting
+max_width = 100
+hard_tabs = false
+tab_spaces = 4
+newline_style = "Native"
+use_small_heuristics = "Default"
+
+#| Comments
+wrap_comments = true
+comment_width = 80
+
+#| Imports
+reorder_imports = true
+imports_granularity = "Preserve"
+group_imports = "Preserve"
+
+#| Trailing Commas
+trailing_comma = "Never"
+
+#| Control Flow
+match_arm_blocks = false
+
+#| Brace Style
+brace_style = "SameLineWhere"
+
+#| Blank Lines
+blank_lines_upper_bound = 1
+blank_lines_lower_bound = 0

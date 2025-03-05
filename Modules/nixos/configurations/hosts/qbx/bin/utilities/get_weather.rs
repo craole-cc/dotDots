@@ -14,7 +14,9 @@ use url::form_urlencoded;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Location to fetch weather for
+    /// Location to
+    /// fetch weather
+    /// for
     #[arg(default_value = "Mandeville,Jamaica")]
     location: String,
 
@@ -23,7 +25,7 @@ struct Args {
     format: u8,
 
     /// Enable debug output
-    #[arg(long)]
+        #[arg(long)]
     debug: bool,
 }
 
@@ -63,14 +65,25 @@ fn main() {
         }
     }
 }
-// #!/usr/bin/env bash
+// #!/usr/bin/env
+// bash
 
-// TARGET_DIR="$HOME/.dots/Configuration/apps/nixos/configurations/hosts/qbx/core/libraries/bin/utilities"
+// TARGET_DIR="
+// $HOME/.dots/
+// Configuration/
+// apps/nixos/
+// configurations/
+// hosts/qbx/core/
+// libraries/bin/
+// utilities"
 
-// # Fix directory permissions recursively
+// # Fix directory
+// permissions
+// recursively
 // find "$TARGET_DIR" -type d -exec chmod 755 {} \;
 
-// # Set base file permissions
+// # Set base file
+// permissions
 // find "$TARGET_DIR" -type f -exec chmod 644 {} \;
 
 // # Make executables executable

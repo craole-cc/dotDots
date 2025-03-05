@@ -106,7 +106,7 @@ parse_arguments() {
         shift
         ;;
       -p | -*pat* | -c | -*char*)
-        [ "$2" ] || print_usage --args
+        [ -n "$2" ] || print_usage --args
         pattern="$2"
         shift
         ;;
@@ -142,8 +142,8 @@ parse_arguments() {
   }
 
   #@ Ensure both arguments are provided
-  [ "$repetitions" ] || print_usage --reps
-  [ "$pattern" ] || print_usage --pattern
+  [ -n "$repetitions" ] || print_usage --reps
+  [ -n "$pattern" ] || print_usage --pattern
 }
 
 main "$@"
