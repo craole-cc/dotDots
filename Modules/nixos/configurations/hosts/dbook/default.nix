@@ -1,6 +1,6 @@
 {
   system = "x86_64-linux";
-  id = "f7c2e3b1"; # TODO: Change this
+  id = "90fbb0e0";
   stateVersion = "24.05";
   base = "laptop";
   desktop = "xfce";
