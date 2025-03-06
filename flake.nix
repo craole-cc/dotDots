@@ -130,9 +130,16 @@
     {
       inherit paths;
       nixosConfigurations = {
-        # example = mkConfig "example" { };
         Preci = mkConfig "Preci" { };
-        QBX = mkConfig "QBX" { };
+        QBX = mkConfig "QBX" {
+          platform = "x86_64-linux";
+          people = [
+            {
+              name = "craole";
+              enable = true;
+            }
+          ];
+        };
         # dbook = mkConfig "dbook" { };
       };
 
