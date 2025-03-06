@@ -14,7 +14,7 @@ let
 
   inherit (DOTS.lib.filesystem) pathof pathsIn;
 
-  makeSource = mkOption {
+  mkSource = mkOption {
     description = "Create a source from a directory";
     example = ''mkSource "path/to/directory"'';
     default =
@@ -29,7 +29,7 @@ let
       };
   };
 
-  makeAppOptions = mkOption {
+  mkAppOpts = mkOption {
     description = "Options to pass to an application";
     default =
       name: attrs:
@@ -54,17 +54,12 @@ let
       in
       substring 0 num (hashString "md5" string);
   };
+
+  libs = { inherit mkAppOpts mkHash mkSource; };
 in
 {
   options = {
-    DOTS.${base} = {
-      inherit mkHash;
-    };
-    DOTS.${base}.${mod} = {
-      inherit mkHash;
-    };
-    dib = {
-      inherit mkHash;
-    };
+    DOTS.${base}.${mod} = libs;
+    dib = libs;
   };
 }
