@@ -13,47 +13,58 @@ let
   mod = "helpers";
 
   inherit (DOTS.lib.filesystem) pathof pathsIn;
+
+  makeSource = mkOption {
+    description = "Create a source from a directory";
+    example = ''mkSource "path/to/directory"'';
+    default =
+      targetDir:
+      let
+        home = pathof targetDir;
+        inherit ((pathsIn home).perNix) attrs lists;
+      in
+      {
+        inherit home attrs;
+        inherit (lists) names paths;
+      };
+  };
+
+  makeAppOptions = mkOption {
+    description = "Options to pass to an application";
+    default =
+      name: attrs:
+      let
+        options = builtins.mapAttrsToList (_: optionAttrs: optionAttrs.mkOption optionAttrs) attrs;
+      in
+      {
+        "${name}" = lib.foldr (options: newOption: options // newOption) { } options;
+      };
+  };
+
+  # mkAppOptions = mkOption {
+  #   description="Options to pass to an application";
+  #   default = name: attrs: with attrs; { "${name}" =lib.foldr(options: newOption: options//newOption) {} (builtins.mapAttrsToList (_: optionAttrs:optionAttrs.mkOption optionAttrs)attrs); };
+
+  mkHash = mkOption {
+    description = "Generate a hashed value with a specified number od charactrs from a string";
+    default =
+      num: string:
+      let
+        inherit (builtins) hashString substring;
+      in
+      substring 0 num (hashString "md5" string);
+  };
 in
 {
-  options.DOTS.${base}.${mod} = {
-    makeSource = mkOption {
-      description = "Create a source from a directory";
-      example = ''mkSource "path/to/directory"'';
-      default =
-        targetDir:
-        let
-          home = pathof targetDir;
-          inherit ((pathsIn home).perNix) attrs lists;
-        in
-        {
-          inherit home attrs;
-          inherit (lists) names paths;
-        };
+  options = {
+    DOTS.${base} = {
+      inherit mkHash;
     };
-
-    makeAppOptions = mkOption {
-      description = "Options to pass to an application";
-      default =
-        name: attrs:
-        let
-          options = builtins.mapAttrsToList (_: optionAttrs: optionAttrs.mkOption optionAttrs) attrs;
-        in
-        {
-          "${name}" = lib.foldr (options: newOption: options // newOption) { } options;
-        };
+    DOTS.${base}.${mod} = {
+      inherit mkHash;
     };
-
-    # mkAppOptions = mkOption {
-    #   description="Options to pass to an application";
-    #   default = name: attrs: with attrs; { "${name}" =lib.foldr(options: newOption: options//newOption) {} (builtins.mapAttrsToList (_: optionAttrs:optionAttrs.mkOption optionAttrs)attrs); };
-    mkHash = mkOption {
-      description = "Generate a hashed value with a specified number od charactrs from a string";
-      default =
-        num: string:
-        let
-          inherit (builtins) hashString substring;
-        in
-        substring 0 num (hashString "md5" string);
+    dib = {
+      inherit mkHash;
     };
   };
 }
