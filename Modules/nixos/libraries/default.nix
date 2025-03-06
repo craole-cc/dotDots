@@ -5,6 +5,6 @@
     ./filesystem.nix
     ./lists.nix
 
-    ./options.nix
+    # ./options.nix
   ];
 }
