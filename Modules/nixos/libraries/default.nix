@@ -1,3 +1,4 @@
+{ config, lib, ... }:
 {
   imports = [
     ./helpers.nix
@@ -5,4 +6,6 @@
     ./filesystem.nix
     ./lists.nix
   ];
+
+  options.dib = lib // config.DOTS.lib;
 }

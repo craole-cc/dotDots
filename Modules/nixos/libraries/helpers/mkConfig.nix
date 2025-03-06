@@ -52,8 +52,8 @@ let
 
   specialArgs = {
     inherit self paths host;
-    modules = specialModules;
-    libraries = import paths.libraries.store; # TODO: Check on this
+    # modules = specialModules;
+    # libraries = import paths.libraries.store; # TODO: Check on this
   };
 in
 import paths.libraries.mkCore {
@@ -63,11 +63,6 @@ import paths.libraries.mkCore {
     homeManager
     nixDarwin
     ;
-
-  # inherit (host)
-  #   name
-  #   # system
-  #   ;
 
   inherit
     specialArgs

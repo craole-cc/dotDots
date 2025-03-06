@@ -46,5 +46,14 @@ in
     # mkAppOptions = mkOption {
     #   description="Options to pass to an application";
     #   default = name: attrs: with attrs; { "${name}" =lib.foldr(options: newOption: options//newOption) {} (builtins.mapAttrsToList (_: optionAttrs:optionAttrs.mkOption optionAttrs)attrs); };
+    mkHash = mkOption {
+      description = "Generate a hashed value with a specified number od charactrs from a string";
+      default =
+        num: string:
+        let
+          inherit (builtins) hashString substring;
+        in
+        substring 0 num (hashString "md5" string);
+    };
   };
 }

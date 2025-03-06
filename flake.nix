@@ -59,7 +59,6 @@
             libs = "/libraries";
             mkCore = "/helpers/mkCoreConfig.nix";
             mkConf = "/helpers/mkConfig.nix";
-            mkHash = "/helpers/mkHash.nix";
             modules = "/Modules/nixos";
             mods = "/modules";
             opts = "/options";
@@ -111,7 +110,6 @@
             store = modules.store + parts.libs;
             mkCore = core.libraries + parts.mkCore;
             mkConf = core.libraries + parts.mkConf;
-            mkHash = core.libraries + parts.mkHash;
           };
         in
         {
