@@ -8,12 +8,15 @@ let
   inherit (lib.attrsets) listToAttrs mapAttrs;
   inherit (specialArgs.host)
     name
-    id
     devices
     access
     ;
   inherit (access) firewall;
   inherit (firewall) tcp udp;
+  inherit (builtins) hashString substring;
+
+  getHash = num: string: substring 0 num (hashString "md5" string);
+  id = specialArgs.host.id or import specialArgs.paths.libraries.mkHash { string = name; };
 in
 {
   networking = {

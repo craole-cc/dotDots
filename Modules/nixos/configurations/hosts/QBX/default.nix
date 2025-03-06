@@ -1,12 +1,12 @@
 {
   platform = "x86_64-linux";
-  id = "1d022da8";
-  stateVersion = "24.05";
-  base = "laptop";
+  # id = "1d022da8";
+  stateVersion = "24.11";
+  base = "desktop";
   cpu = {
     brand = "amd";
     arch = "x86_64";
-    mode = "ondemand";
+    mode = "performance";
   };
   gpu = {
     brand = "nvidia";
