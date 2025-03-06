@@ -1,6 +1,7 @@
 {
   specialArgs,
   lib,
+  config,
   ...
 }:
 let
@@ -13,13 +14,19 @@ let
     ;
   inherit (access) firewall;
   inherit (firewall) tcp udp;
-  inherit (builtins) hashString substring;
-
-  getHash = num: string: substring 0 num (hashString "md5" string);
-  id = specialArgs.host.id or import specialArgs.paths.libraries.mkHash { string = name; };
+  inherit (config.DOTS.lib.helpers) mkHash;
+  id = specialArgs.host.id or mkHash 8 name;
+  nameservers =
+    access.nameservers or [
+      "1.1.1.1" # Cloudflare DNSa
+      "1.0.0.1" # Cloudflare DNSb
+      "8.8.8.8" # Google DNS
+      "9.9.9.9" # Quad 9
+    ];
 in
 {
   networking = {
+    inherit nameservers;
     hostId = id;
     hostName = name;
     interfaces =
@@ -35,10 +42,7 @@ in
             }) devices.network
           )
         );
-    networkmanager = {
-      enable = length devices.network >= 1;
-      #TODO: take this from the host config
-    };
+    networkmanager.enable = length devices.network >= 1;
     firewall = {
       enable = access.firewall.enable;
       allowedTCPPorts = tcp.ports;
