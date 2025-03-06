@@ -4,9 +4,16 @@
   ...
 }:
 let
-  #| Native Imports
+  #| Module Parts
+  top = "DOTS";
+  dom = "lib";
+  mod = "types";
+  alt = "dib";
+
+  #| Imports
   inherit (builtins) baseNameOf match;
   inherit (lib) mkOption elem any;
+  inherit (lib.filesystem) pathIsDirectory;
   inherit (lib.strings)
     # stringToCharacters
     # hasPrefix
@@ -19,14 +26,8 @@ let
     replaceStrings
     ;
 
-  #| Extended Imports
+  #| Module Imports
   inherit (config.DOTS.lib.filesystem) locateProjectRoot pathof;
-
-  #| Module Parts
-  top = "DOTS";
-  dom = "lib";
-  mod = "types";
-  alt = "dib";
 
   #| Module Options
   isNixFile = mkOption {

@@ -5,18 +5,20 @@
   ...
 }:
 let
-  #| Native Imports
-  inherit (lib.options) mkOption;
-  inherit (lib.)
-
-  #| Extended Imports
-  # inherit (config.DOTS.lib.filesystem) pathof pathsIn;
-
   #| Module Parts
   top = "DOTS";
   dom = "lib";
   mod = "path";
   alt = "dib";
+
+  #| Native Imports
+  inherit (lib.options) mkOption;
+  inherit (lib.filesystem) listFilesRecursive packagesFromDirectoryRecursive;
+  inherit (lib.strings) hasSuffix;
+  inherit (lib.lists) filter map elem;
+
+  #| Module Imports
+  cfg = config.${top}.${dom}.${mod};
 
   #| Module Options
   listFilesRecursively = mkOption {
@@ -68,12 +70,6 @@ let
 
         modules = sansExcludedFolders;
       in
-      # sansExcludedFiles = filter (file: file == path || (!elem (baseNameOf file) excludedFiles)) files;
-      # sansExcludedFiles = filter (file: !isExcludedFile file) files;
-      # sansExcludedFiles = filter (file: file == path || (!elem (baseNameOf file) excludedFiles)) files;
-      # sansLoaders = filter isLoader sansNonNix;
-      # sansExcludedFolders = filter (folder: !isExcluded folder) sansLoaders;
-      # isExcluded = file: any (folder: hasPrefix folder file) excludeFolders;
       modules;
   };
 
@@ -81,7 +77,6 @@ let
     description = "List all nix paths in a directory.";
     example = ''listRecursively "path/to/directory"'';
     default = path: filter (hasSuffix ".nix") (map toString (listFilesRecursive path));
-    # default = path: filter (hasSuffix ".nix") (filesystem.listFilesRecursive path);
   };
 
   importNixModules = mkOption {
@@ -99,6 +94,7 @@ let
   exports = {
     inherit
       listFilesRecursively
+      listNixPackagesRecursively
       listNixModules
       listNix
       importNixModules

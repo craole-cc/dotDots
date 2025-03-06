@@ -5,6 +5,6 @@
     ./filesystem.nix
     ./lists.nix
     ./path.nix
-    # ./types.nix
+    ./validators.nix
   ];
 }
