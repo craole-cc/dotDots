@@ -82,4 +82,5 @@ import paths.libraries.mkCore {
   backupFileExtension = host.backupFileExtension or "BaC";
   extraPkgConfig = host.extraPkgConfig or { };
   extraPkgAttrs = host.extraPkgAttrs or { };
+  id = host.id or builtins.substring 0 8 (builtins.hashString "md5" name);
 }
