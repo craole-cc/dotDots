@@ -1,19 +1,18 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   #| Native Imports
   inherit (lib.options) mkOption;
 
   #| Extended Imports
-  inherit (config) DOTS;
-  base = "lib";
+  inherit (config.DOTS.lib.filesystem) pathof pathsIn;
+
+  #| Module Parts
+  top = "DOTS";
+  dom = "lib";
   mod = "helpers";
+  alt = "dib";
 
-  inherit (DOTS.lib.filesystem) pathof pathsIn;
-
+  #| Module Options
   mkSource = mkOption {
     description = "Create a source from a directory";
     example = ''mkSource "path/to/directory"'';
@@ -39,11 +38,13 @@ let
       {
         "${name}" = lib.foldr (options: newOption: options // newOption) { } options;
       };
+    # default =
+    #   name: attrs: with attrs; {
+    #     "${name}" = lib.foldr (options: newOption: options // newOption) { } (
+    #       builtins.mapAttrsToList (_: "optionAttrs:optionAttrs.mkOption" optionAttrs) attrs
+    #     );
+    #   };
   };
-
-  # mkAppOptions = mkOption {
-  #   description="Options to pass to an application";
-  #   default = name: attrs: with attrs; { "${name}" =lib.foldr(options: newOption: options//newOption) {} (builtins.mapAttrsToList (_: optionAttrs:optionAttrs.mkOption optionAttrs)attrs); };
 
   mkHash = mkOption {
     description = "Generate a hashed value with a specified number od charactrs from a string";
@@ -55,11 +56,12 @@ let
       substring 0 num (hashString "md5" string);
   };
 
-  libs = { inherit mkAppOpts mkHash mkSource; };
+  #| Module Exports
+  exports = { inherit mkAppOpts mkHash mkSource; };
 in
 {
   options = {
-    DOTS.${base}.${mod} = libs;
-    dib = libs;
+    ${top}.${dom}.${mod} = exports;
+    ${alt} = exports;
   };
 }

@@ -4,7 +4,7 @@
     ./fetchers.nix
     ./filesystem.nix
     ./lists.nix
-
-    # ./options.nix
+    ./path.nix
+    # ./types.nix
   ];
 }
