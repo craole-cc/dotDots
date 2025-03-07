@@ -16,13 +16,16 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    devFlake.url = "path:./Templates/dev";
 
     flakeUtils = {
       url = "github:numtide/flake-utils";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
+
+    dotsDev.url = "path:./Templates/dev";
+    dotsMedia.url = "path:./Templates/media";
+    nixed.url = "github:Craole/nixed";
 
     devshell = {
       url = "github:numtide/devshell";
@@ -32,7 +35,6 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixed.url = "github:Craole/nixed";
     plasmaManager = {
       url = "github:pjones/plasma-manager";
       inputs = {
@@ -44,16 +46,15 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      flakeUtils,
-      ...
-    }@inputs:
-    flakeUtils.lib.eachDefaultSystem (
+    { self, ... }@inputs:
+    inputs.flakeUtils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        templates = {
+          dev = inputs.dotsDev.devShells.${system}.default;
+          media = inputs.dotsMedia.devShells.${system}.default;
+          nixed = inputs.nixed.devShells.${system}.default;
+        };
         paths =
           let
             flake = {
@@ -135,24 +136,15 @@
         mkConfig = import paths.libraries.mkConf {
           inherit self inputs paths;
         };
-
       in
       {
         inherit paths;
 
-        devShells =
-          let
-            devTemplate = inputs.devFlake.default;
-          in
-          {
-            default = devTemplate;
-          };
-        # devShells = {
-        #   default = pkgs.mkShell {
-        #     inputsFrom = [ (import ./Templates/dev/flake.nix { inherit pkgs; }) ];
-        #     # inputsFrom = [ (import ./Templates/dev/shell.nix { inherit pkgs; }) ];
-        #   };
-        # };
+        devShells = {
+          default = templates.dev;
+          # default = templates.media;
+          # default = templates.nixed;
+        };
 
         nixosConfigurations = {
           QBX = mkConfig "QBX" { };
