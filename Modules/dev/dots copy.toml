@@ -1,34 +1,37 @@
 # https://numtide.github.io/devshell
-
 [[commands]]
-name = "bash"
-package = "bashInteractive"
-
-[[commands]]
-package = "bat"
-
-[[commands]]
-package = "btop"
-
-[[commands]]
-name = "codium"
-package = "vscodium-fhs"
-help = "Visual Studio Code wrapper without telemetry or nix-specific restrictions."
-
-[[commands]]
-package = "cowsay"
-
-[[commands]]
-package = "delta"
-
-[[commands]]
-package = "direnv"
+package = "treefmt2"
 
 [[commands]]
 package = "eza"
 
 [[commands]]
+package = "bat"
+
+[[commands]]
+package = "vscodium-fhs"
+name = "codium"
+help= "Visual Studio Code without telemetry and easy usage of extensions without nix-specific modifications."
+
+[[commands]]
 package = "fd"
+
+[[commands]]
+package = "btop"
+
+[[commands]]
+package = "ripgrep"
+name = "rg"
+
+[[commands]]
+package = "yazi"
+
+[[commands]]
+package = "neovim"
+name = "nvim"
+
+[[commands]]
+package = "cowsay"
 
 [[commands]]
 package = "fend"
@@ -37,59 +40,78 @@ package = "fend"
 package = "fastfetch"
 
 [[commands]]
-package = "fzf"
-
-[[commands]]
-package = "glib"
-
-[[commands]]
-name = "hx"
-package = "helix"
-
-[[commands]]
-package = "neovim"
-
-[[commands]]
-package = "nodePackages_latest.prettier"
-
-[[commands]]
-package = "just"
-
-[[commands]]
-package = "pnpm"
-
-[[commands]]
-package = "powershell"
-
-[[commands]]
-package = "pre-commit"
-
-[[commands]]
-name = "rg"
-package = "ripgrep"
+package = "lesspipe"
 
 [[commands]]
 package = "rust-script"
 
 [[commands]]
-name = "tldr"
-package = "tldc"
+package = "just"
 
 [[commands]]
-package = "tokei"
+package = "powershell"
+
+[[commands]]
+package = "bashInteractive"
+
+[[commands]]
+package = "glib"
 
 [[commands]]
 package = "treefmt2"
 
 [[commands]]
+package = "getoptions"
+
+[[commands]]
+package = "pre-commit"
+
+[[commands]]
+package = "fd"
+
+[[commands]]
+package = "btop"
+
+[[commands]]
+package = "fzf"
+
+[[commands]]
+package = "lsd"
+
+[[commands]]
+package = "delta"
+
+[[commands]]
 package = "yazi"
+
+[[commands]]
+package = "tlrc"
+name = "tldr"
+
+[[commands]]
+package = "tokei"
+
+[[commands]]
+package = "thefuck"
 
 [[commands]]
 package = "zoxide"
 
+[[commands]]
+package = "neovim"
+
+[[commands]]
+package = "helix"
+name = "hx"
+
+[[commands]]
+package = "direnv"
+
 [[env]]
 name = "CRAOLE"
 value = "on"
+
+# https://numtide.github.io/devshell
 
 [devshell]
 packages = [
@@ -99,7 +121,6 @@ packages = [
   "bat",
   "fd",
   "btop",
-  "jq",
   "ripgrep",
   "fzf",
   "lsd",
@@ -121,6 +142,11 @@ packages = [
   "bashInteractive",
   "glib",
   "treefmt2",
+
+  #| Image Tools
+  "viu",
+  "imv",
+  "sxiv",
 
   #| Languages Tools and Formatters
   "coreutils-prefixed",
@@ -161,5 +187,5 @@ packages = [
   # Typst
   "typst",
   "typstfmt", # Formatter
-  "typstyle", # Linters
+  "typstyle", # Linter
 ]

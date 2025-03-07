@@ -1,3 +1,73 @@
 # https://numtide.github.io/devshell
 [[commands]]
+package = "curseradio"
+
+[[commands]]
+package = "freetube"
+
+[[commands]]
+package = "mpd"
+
+[[commands]]
 package = "mpv"
+
+[[commands]]
+package = "ncmpcpp"
+
+[[commands]]
+package = "playerctl"
+
+# [[commands]]
+# package =
+
+[[commands]]
+package = "shortwave"
+
+[[commands]]
+package = "strawberry"
+
+[[commands]]
+package = "viu"
+
+
+[devshell]
+packages = [
+  "eza",
+  "bat",
+  "fd",
+  "ripgrep",
+  "yazi",
+  "glib",
+
+  #| Image Tools
+  "viu",
+  "imv",
+  "sxiv",
+  "feh",
+  "swww",
+
+  #| Music
+  "ncmpcpp",
+  "mpc-cli",
+  "mpd",
+  "curseradio",
+  "playerctl",
+  "pamixer",
+  "shortwave",
+  "strawberry",
+  # "deadbeef",
+
+  #| Utilities
+  "btop",
+  "ffmpeg",
+  "curl",
+  "fastfetch",
+  "fzf",
+  "jq",
+  "libnotify",
+  "mediainfo",
+  "rlwrap",
+  "socat",
+  "xclip",
+  "yt-dlp",
+]
