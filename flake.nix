@@ -19,7 +19,7 @@
 
     flakeUtils = {
       url = "github:numtide/flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "nixpkgs";
     };
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
