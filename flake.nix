@@ -84,6 +84,11 @@
               users = parts.cfgs + "/users";
               scripts = "/scripts";
             };
+            devShells = rec {
+              default = modules.store;
+              dots = default + "/dots.toml";
+              media = default + "/media.toml";
+            };
             core = {
               default = modules.store;
               configurations = {
@@ -127,6 +132,7 @@
           {
             inherit
               flake
+              devShells
               core
               home
               scripts
@@ -142,23 +148,22 @@
       {
         inherit paths;
 
-        # devShells = {
-        #   default = templates.dev;
-        #   # default = templates.media;
-        #   # default = templates.nixed;
-        # };
-
-        devShells =
+        devShells.default =
           let
             pkgs = import nixpkgs {
               inherit system;
               overlays = [ flakeShell.overlays.default ];
             };
+
+            inherit (pkgs.devshell) mkShell importTOML;
+            shDots = importTOML paths.devShells.dots;
+            shMedia = importTOML paths.devShells.media;
           in
-          {
-            default = pkgs.devshell.mkShell {
-              imports = [ (pkgs.devshell.importTOML ./.devshell.toml) ];
-            };
+          mkShell {
+            imports = [
+              shDots
+              shMedia
+            ];
           };
 
         nixosConfigurations = {
