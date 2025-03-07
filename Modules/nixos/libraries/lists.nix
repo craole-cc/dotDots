@@ -11,7 +11,9 @@ let
   alt = "dib";
 
   #| Native Imports
-  inherit (lib) filter lessThan;
+  inherit (lib)
+    lessThan
+    ;
   inherit (lib.lists)
     any
     flatten
@@ -19,12 +21,19 @@ let
     unique
     sort
     length
+    elemAt
     ;
   inherit (lib.strings)
+    filter
+    match
+    split
+    stringLength
+    substring
     hasPrefix
     hasInfix
     hasSuffix
     toLower
+    toInt
     ;
   inherit (lib.options) mkOption;
 
@@ -33,25 +42,22 @@ let
 
   #| Module Options
   prep = mkOption {
-    /*
-      *
-      prep :: [a] -> [a]
+    description = "Flattens a nested list structure into a single-level list, including all elements from inner lists. Non-list inputs are automatically converted to a list.";
+    example =
+      let
+        input = [
+          "a"
+          [
+            "b"
+            [ "c" ]
+          ]
+        ];
+        output = cfg.prep input;
+      in
+      {
+        inherit input output;
+      };
 
-      Flattens a nested list structure or string into a single list.
-
-      Type: [a] -> [a]
-      Example:
-        prep [ "a" ["b" ["c"]] ]
-        => [ "a" "b" "c" ]
-    */
-    description = "Converts to a list, if it isn't already, then flattens it.";
-    example = [
-      "a"
-      [
-        "b"
-        [ "c" ]
-      ]
-    ];
     default =
       let
         process = list: flatten (toList list);
@@ -60,64 +66,25 @@ let
   };
 
   blanks = mkOption {
-    /*
-      *
-      blanks :: [String] -> AttrSet
-
-      Removes blank lines in a list and provides filtering statistics.
-
-      Parameters:
-        list = List of strings to process
-
-      Returns: AttrSet
-        check    = Function to test if an item is blank
-        filtered = List with blank lines removed
-        inverted = List containing only blank lines
-        total    = Count of non-blank lines
-        list     = Original list after preprocessing
-
-      Example:
-        blanks [ "a" "" "b" "\n" ]
-        => {
-          filtered = [ "a" "b" ];
-          inverted = [ "" "\n" ];
-          total = 2;
-          ...
-        }
-    */
-    description = ''
-      Process blank lines in a list.
-
-      Parameters:
-        list = List of strings to process
-
-      Returns: AttrSet
-        check    = Function to test if an item is blank
-        filtered = List with blank lines removed
-        inverted = List containing only blank lines
-        total    = Count of non-blank lines
-        list     = Original list after preprocessing
-
-      Example:
-        blanks [ "a" "" "b" "c" "\n" ]
-        => {
-          filtered = [ "a" "b" "c" ];
-          inverted = [ "" "\n" ];
-          total = 2;
-          ...
-        }
-    '';
-    example = [
-      "a"
-      ""
-      "b"
-      "c"
-      "\n"
-    ];
+    description = "Processes blank lines in a list. Identifies and filters empty strings, null values, and newline characters. Returns an attrset with the filtered list, inverted list (only blanks), total count, and test function.";
+    example =
+      let
+        input = [
+          "a"
+          ""
+          "b"
+          "\n"
+          "c"
+        ];
+        output = cfg.blanks input;
+      in
+      {
+        inherit input output;
+      };
     default =
       list:
       let
-        list' = prep list;
+        list' = cfg.prep list;
         check = item: item == "" || item == null || hasPrefix "\n" item;
         inverted = filter (item: (check item)) list';
         filtered = filter (item: (!check item)) list';
@@ -135,63 +102,22 @@ let
   };
 
   prefixed = mkOption {
-    /*
-      *
-      prefixed :: AttrSet -> AttrSet
-
-      Removes lines that start with specified string(s).
-
-      Parameters:
-        target = Optional list of prefixes to filter. Defaults to common comment markers
-        list   = List of strings to process
-
-      Returns: AttrSet
-        check    = Function to test if an item has any target prefix
-        filtered = List with prefixed lines removed
-        inverted = List containing only prefixed lines
-        total    = Count of prefixed lines
-        list     = Original list after preprocessing
-        target   = Processed target list
-
-      Example:
-        prefixed {
+    description = "Removes lines that start with specified string(s). By default, filters common comment markers (#, //, <!--, /*, ```, '''). Returns an attrset with filtered results, matching lines, and helper functions.";
+    example =
+      let
+        input = {
           target = [ "#" ];
-          list = [ "a" "#b" "c" ];
-        }
-        => {
-          filtered = [ "a" "c" ];
-          inverted = [ "#b" ];
-          ...
-        }
-    */
-    description = ''
-      Removes lines that start with specified string(s).
-
-      Parameters:
-        target = Optional list of prefixes to filter. Defaults to common comment markers
-        list   = List of strings to process
-
-      Returns: AttrSet
-        check    = Function to test if an item has any target prefix
-        filtered = List with prefixed lines removed
-        inverted = List containing only prefixed lines
-        total    = Count of prefixed lines
-        list     = Original list after preprocessing
-        target   = Processed target list
-
-      Example:
-        prefixed {
-          target = [ "#" ];
-          list = [ "a" "#b" "c" ];
-        }
-        => {
-          filtered = [ "a" "c" ];
-          inverted = [ "#b" ];
-          total = 2;
-          ...
-        }
-      }
-    '';
+          list = [
+            "a"
+            "#b"
+            "c"
+          ];
+        };
+        output = cfg.prefixed input;
+      in
+      {
+        inherit input output;
+      };
     default =
       {
         target ? [
@@ -209,10 +135,10 @@ let
       }:
       let
         #| Input
-        list' = prep list;
-        target' = prep target;
+        list' = cfg.prep list;
+        target' = cfg.prep target;
 
-        #| Processing
+        #| Process
         check = item: targetList: any (target: hasPrefix target item) targetList;
 
         #| Output
@@ -233,63 +159,22 @@ let
   };
 
   infixed = mkOption {
-    /*
-      *
-      infixed :: AttrSet -> AttrSet
-
-      Removes lines that contain specified string(s).
-
-      Parameters:
-        target = Optional list of substrings to filter. Defaults to ["/review" "/tmp" "/temp"]
-        list   = List of strings to process
-
-      Returns: AttrSet
-        check    = Function to test if an item contains any target string
-        filtered = List with matching lines removed
-        inverted = List containing only matching lines
-        total    = Count of matching lines
-        list     = Original list after preprocessing
-        target   = Processed target list
-
-      Example:
-        infixed {
-          target = [ "/review" "/tmp" "/temp" ];
-          list = [ "a" "/review/b" "c" ];
-        }
-        => {
-          filtered = [ "a" "c" ];
-          inverted = [ "/review/b" ];
-          total = 2;
-          ...
-        }
-    */
-    description = ''
-      Removes lines that contain specified string(s).
-
-      Parameters:
-        target = Optional list of substrings to filter. Defaults to ["/review" "/tmp" "/temp"]
-        list   = List of strings to process
-
-      Returns: AttrSet
-        check    = Function to test if an item contains any target string
-        filtered = List with matching lines removed
-        inverted = List containing only matching lines
-        total    = Count of matching lines
-        list     = Original list after preprocessing
-        target   = Processed target list
-
-      Example:
-        infixed {
-          target = [ "/review" "/tmp" "/temp" ];
-          list = [ "a" "/review/b" "c" ];
-        }
-        => {
-          filtered = [ "a" "c" ];
-          inverted = [ "/review/b" ];
-          total = 2;
-          ...
-        }
-    '';
+    description = "Removes lines/paths that contain specified string(s). By default, filters paths containing '/review', '/tmp', or '/temp'. Returns an attrset with filtered results, matching lines, and helper functions.";
+    example =
+      let
+        input = {
+          target = [ "/review" ];
+          list = [
+            "a"
+            "/review/b"
+            "c"
+          ];
+        };
+        output = cfg.infixed input;
+      in
+      {
+        inherit input output;
+      };
     default =
       {
         target ? [
@@ -301,8 +186,8 @@ let
       }:
       let
         #| Input
-        list' = prep list;
-        target' = prep target;
+        list' = cfg.prep list;
+        target' = cfg.prep target;
 
         #| Processing
         check = item: targetList: any (target: hasInfix target item) targetList;
@@ -325,63 +210,22 @@ let
   };
 
   suffixed = mkOption {
-    /*
-      *
-      suffixed :: AttrSet -> AttrSet
-
-      Removes lines that end with specified string(s).
-
-      Parameters:
-        list   = List of strings to process
-        target = Optional suffix or list of suffixes. Defaults to ".nix"
-
-      Returns: AttrSet
-        check    = Function to test if an item ends with any target suffix
-        filtered = List with matching lines removed
-        inverted = List containing only matching lines
-        total    = Count of matching lines
-        list     = Original list after preprocessing
-        target   = Processed target list
-
-      Example:
-        suffixed {
+    description = "Removes lines that end with specified string(s). By default, filters paths ending with '.nix'. Returns an attrset with filtered results, matching lines, and helper functions.";
+    example =
+      let
+        input = {
           target = ".nix";
-          list = [ "a" "b.nix" "c" ];
-        }
-        => {
-          filtered = [ "a" "c" ];
-          inverted = [ "b.nix" ];
-          total = 2;
-          ...
-        }
-    */
-    description = ''
-      Removes lines that end with specified string(s).
-
-      Parameters:
-        list   = List of strings to process
-        target = Optional suffix or list of suffixes. Defaults to ".nix"
-
-      Returns: AttrSet
-        check    = Function to test if an item ends with any target suffix
-        filtered = List with matching lines removed
-        inverted = List containing only matching lines
-        total    = Count of matching lines
-        list     = Original list after preprocessing
-        target   = Processed target list
-
-      Example:
-        suffixed {
-          target = ".nix";
-          list = [ "a" "b.nix" "c" ];
-        }
-        => {
-          filtered = [ "a" "c" ];
-          inverted = [ "b.nix" ];
-          total = 2;
-          ...
-        }
-    '';
+          list = [
+            "a"
+            "b.nix"
+            "c"
+          ];
+        };
+        output = cfg.suffixed input;
+      in
+      {
+        inherit input output;
+      };
     default =
       {
         target ? ".nix",
@@ -389,8 +233,8 @@ let
       }:
       let
         #| Input
-        list' = prep list;
-        target' = prep target;
+        list' = cfg.prep list;
+        target' = cfg.prep target;
 
         #| Processing
         check = item: targetList: any (target: hasSuffix target item) targetList;
@@ -412,74 +256,354 @@ let
       };
   };
 
-  order = mkOption {
-    description = ''
-      Sorts alphanumerically and case-insensitively.
-
-      Parameters:
-        list = List of strings to process
-
-      Returns:
-        list = Sorted list of strings
-
-      Example:
-        order [ "B" "11" "02" "a" "C" "01" "10" ]
-        => [ "01" "02" "10" "11" "a" "B" "C" ]
-    '';
+  orderOld = mkOption {
+    description = "Takes a list of strings and returns them in sorted order, with proper handling of numeric values including percentages and decimals.";
+    example =
+      let
+        input = [
+          "B"
+          "11"
+          "02"
+          "a"
+          "bullseye"
+          "bullsEye"
+          "b"
+          "target"
+          "Targeted"
+          "c"
+          "C"
+          "0.1"
+          "0.2"
+          "15%"
+          "050"
+          "005"
+          "01"
+          "100"
+          "10"
+        ];
+        output = cfg.order input;
+      in
+      {
+        inherit input output;
+      };
     default =
       list:
-      # TODO: Order is sorting '01 10 02', this should be '01 02 10'
       let
         #| Input
-        list' = prep list;
+        list' = cfg.prep list;
 
         #| Processing
-        check = a: b: lessThan (toLower a) (toLower b);
+        # #@ Detect if string is numeric (integer, decimal, or percentage)
+        # isNumericValue =
+        #   str:
+        #   match "^[0-9]+$" str != null
+        #   || match "^[0-9]*\\.[0-9]+$" str != null
+        #   || match "^[0-9]*\\.[0-9]+%$" str != null
+        #   || match "^[0-9]+%$" str != null;
+
+        # #@ Parse a decimal string to a comparable representation
+        # # Since we can't use floating point directly, use a string representation that sorts correctly
+        # parseDecimal =
+        #   str:
+        #   let
+        #     # Split by the decimal point
+        #     parts = split "\\." str;
+        #     # Get integer part (before the dot)
+        #     intPart = if length parts > 0 then elemAt parts 0 else "0";
+        #     # Get decimal part (after the dot)
+        #     decPart = if length parts > 2 then elemAt parts 2 else "0";
+        #   in
+        #   # Convert to string in format "INTEGER.DECIMAL" with leading zeros removed from INTEGER
+        #   "${toString (toInt (removeLeadingZeros intPart))}.${decPart}";
+
+        #@ Function to remove leading zeros
+        removeLeadingZeros =
+          str:
+          let
+            #@ Match any number of leading zeros followed by remaining digits (or just "0")
+            result = match "^0+([1-9][0-9]*)$|^0$" str;
+          in
+          if result == null then
+            str
+          else if result == [ ] then
+            "0" # ? This is just the string "0"
+          else
+            elemAt result 0; # ? The matched part without leading zeros
+
+        #@ Convert percentage to decimal representation for comparison
+        percentToDecimal =
+          str:
+          let
+            #@ Remove the % sign
+            numStr = substring 0 (stringLength str - 1) str;
+            #@ Check if it already has a decimal point
+            hasDecimal = match ".*\\.[0-9]*" numStr != null;
+            #@ If it's a whole number percentage, divide by 100 (e.g., 15% -> 0.15)
+            result =
+              #@ If it already has a decimal, just handle the conversion (e.g., 0.5% -> 0.005)
+              if hasDecimal then
+                let
+                  parts = split "\\." numStr;
+                  intPart = elemAt parts 0;
+                  decPart = elemAt parts 2;
+                  #@ Shift decimal point left by 2 places
+                  newDecPart = "${substring (stringLength intPart - 2) 2 intPart}${decPart}";
+                  newIntPart =
+                    if stringLength intPart <= 2 then "0" else substring 0 (stringLength intPart - 2) intPart;
+                in
+                "${newIntPart}.${newDecPart}"
+              else
+                let
+                  #@ For whole numbers, just divide by 100
+                  num = toInt numStr;
+                  whole = num / 100;
+                  fraction = num - (whole * 100);
+                  fractionStr = if fraction < 10 then "0${toString fraction}" else toString fraction;
+                in
+                "${toString whole}.${fractionStr}";
+          in
+          result;
+
+        #@ Compare items for sorting
+        compareItems =
+          a: b:
+          let
+            #@ Check for different numeric formats
+            isDecimalA = match "^[0-9]*\\.[0-9]+$" a != null;
+            isDecimalB = match "^[0-9]*\\.[0-9]+$" b != null;
+            isPercentA = match "^[0-9]+(\\.[0-9]+)?%$" a != null;
+            isPercentB = match "^[0-9]+(\\.[0-9]+)?%$" b != null;
+            isIntegerA = match "^[0-9]+$" a != null;
+            isIntegerB = match "^[0-9]+$" b != null;
+
+            #@ Convert to comparable values
+            valueA =
+              if isPercentA then
+                percentToDecimal a
+              else if isDecimalA then
+                a
+              else if isIntegerA then
+                "${toString (toInt (removeLeadingZeros a))}.0"
+              else
+                a;
+
+            valueB =
+              if isPercentB then
+                percentToDecimal b
+              else if isDecimalB then
+                b
+              else if isIntegerB then
+                "${toString (toInt (removeLeadingZeros b))}.0"
+              else
+                b;
+
+            #? For comparing numeric strings as numbers
+            isNumericA = isDecimalA || isPercentA || isIntegerA;
+            isNumericB = isDecimalB || isPercentB || isIntegerB;
+
+            #? For non-numeric string comparison
+            lowerA = toLower a;
+            lowerB = toLower b;
+          in
+          if isNumericA && isNumericB then
+            #@ Compare as string representation of numbers
+            lessThan valueA valueB
+          else if isNumericA then
+            #@ Numbers come before strings
+            true
+          else if isNumericB then
+            #@ Strings come after numbers
+            false
+          else if lowerA != lowerB then
+            #@ If the lowercase versions are different, compare those
+            lessThan lowerA lowerB
+          else
+            #@ If the lowercase versions are the same, prioritize uppercase
+            lessThan a b;
 
         #| Output
-        ordered = sort check list';
+        ordered = sort compareItems list';
       in
       ordered;
   };
 
-  prune = mkOption {
-    /*
-      *
-      prune :: [String] -> [String]
-
-      Comprehensive list cleaning function that:
-      1. Removes blank lines and null values
-      2. Removes comments (lines starting with # or //)
-      3. Removes duplicates
-      4. Sorts the result
-
-      Example:
-        prune [ "b" "" "#comment" "a" "a" ]
-        => [ "a" "b" ]
-    */
-    description = ''
-      Comprehensive list cleaning function that:
-      1. Removes blank lines and null values
-      2. Removes comments (lines starting with # or //)
-      3. Removes duplicates
-      4. Sorts the result
-
-      Example:
-        prune [ "b" "" "#comment" "a" "a" ]
-        => [ "a" "b" ]
-    '';
+  order = mkOption {
+    description = "Takes a list of strings and returns them in sorted order, with proper handling of numeric values including percentages and decimals.";
+    example =
+      let
+        input = [
+          "B"
+          "11"
+          "02"
+          "a"
+          "bullseye"
+          "bullsEye"
+          "b"
+          "target"
+          "Targeted"
+          "c"
+          "C"
+          "0.1"
+          "0.2"
+          "15%"
+          "050"
+          "005"
+          "01"
+          "100"
+          "10"
+        ];
+        output = cfg.order input;
+      in
+      {
+        inherit input output;
+      };
     default =
       list:
       let
-        prepped = (blanks list).filtered;
-        sorted = order prepped;
-        pruned = unique (prefixed { list = sorted; }).filtered;
+        #| Input
+        list' = cfg.prep list;
+
+        #| Processing
+        #@ Function to remove leading zeros from numeric strings
+        removeLeadingZeros =
+          str:
+          let
+            #@ Match any number of leading zeros followed by remaining digits (or just "0")
+            result = match "^0+([1-9][0-9]*)$|^0$" str;
+          in
+          if result == null then
+            str
+          else if result == [ ] then
+            "0" # ? This is just the string "0"
+          else
+            elemAt result 0; # ? The matched part without leading zeros
+
+        #@ Convert percentage to decimal representation for comparison
+        percentToDecimal =
+          str:
+          let
+            #@ Remove the % sign
+            numStr = substring 0 (stringLength str - 1) str;
+            #@ Check if it already has a decimal point
+            hasDecimal = match ".*\\.[0-9]*" numStr != null;
+          in
+          #@ Handle both whole number and decimal percentages
+          if hasDecimal then
+            let
+              #@ Split by decimal point
+              parts = split "\\." numStr;
+              intPart = elemAt parts 0;
+              decPart = elemAt parts 2;
+
+              #@ Shift decimal point left by 2 places (e.g., 0.5% → 0.005)
+              newDecPart = "${substring (stringLength intPart - 2) 2 intPart}${decPart}";
+              newIntPart =
+                if stringLength intPart <= 2 then "0" else substring 0 (stringLength intPart - 2) intPart;
+            in
+            "${newIntPart}.${newDecPart}"
+          else
+            let
+              #@ For whole numbers, divide by 100 (e.g., 15% → 0.15)
+              num = toInt numStr;
+              whole = num / 100;
+              fraction = num - (whole * 100);
+
+              #@ Ensure fractional part has leading zero if needed
+              fractionStr = if fraction < 10 then "0${toString fraction}" else toString fraction;
+            in
+            "${toString whole}.${fractionStr}";
+
+        #@ Compare items for sorting
+        compareItems =
+          a: b:
+          let
+            #@ Check for different numeric formats
+            isDecimalA = match "^[0-9]*\\.[0-9]+$" a != null;
+            isDecimalB = match "^[0-9]*\\.[0-9]+$" b != null;
+            isPercentA = match "^[0-9]+(\\.[0-9]+)?%$" a != null;
+            isPercentB = match "^[0-9]+(\\.[0-9]+)?%$" b != null;
+            isIntegerA = match "^[0-9]+$" a != null;
+            isIntegerB = match "^[0-9]+$" b != null;
+
+            #@ Convert to comparable string values
+            valueA =
+              if isPercentA then
+                percentToDecimal a # ? Converts percentage to decimal (15% → 0.15)
+              else if isDecimalA then
+                a # ? Already in correct format
+              else if isIntegerA then
+                "${toString (toInt (removeLeadingZeros a))}.0" # ? Add .0 to integers for proper comparison
+              else
+                a;
+
+            valueB =
+              if isPercentB then
+                percentToDecimal b
+              else if isDecimalB then
+                b
+              else if isIntegerB then
+                "${toString (toInt (removeLeadingZeros b))}.0"
+              else
+                b;
+
+            #? Classification flags for comparison logic
+            isNumericA = isDecimalA || isPercentA || isIntegerA;
+            isNumericB = isDecimalB || isPercentB || isIntegerB;
+
+            #? Case-insensitive string comparison preparation
+            lowerA = toLower a;
+            lowerB = toLower b;
+          in
+          if isNumericA && isNumericB then
+            #@ Compare numeric values via their string representations
+            lessThan valueA valueB
+          else if isNumericA then
+            #@ Numbers always come before non-numeric strings
+            true
+          else if isNumericB then
+            #@ Non-numeric strings always come after numbers
+            false
+          else if lowerA != lowerB then
+            #@ Case-insensitive comparison for different strings
+            lessThan lowerA lowerB
+          else
+            #@ If lowercase versions are equal, uppercase comes first
+            lessThan a b;
+
+        #| Output
+        ordered = sort compareItems list';
+      in
+      ordered;
+  };
+  
+  prune = mkOption {
+    description = "Comprehensive list cleaning function that removes blank lines, null values, comments, duplicates, and sorts the result. Combines multiple list operations into a single utility.";
+    example =
+      let
+        input = [
+          "b"
+          ""
+          "#comment"
+          "a"
+          "a"
+        ];
+        output = cfg.prune input;
+      in
+      {
+        inherit input output;
+      };
+    default =
+      list:
+      let
+        prepped = (cfg.blanks list).filtered;
+        sorted = cfg.order prepped;
+        pruned = unique (cfg.prefixed { list = sorted; }).filtered;
       in
       pruned;
   };
 
   tests = mkOption {
-    description = "Tests for {{base}}.{{mod}}";
+    description = ''Tests for ${cfg.name}'';
     default =
       let
         basicList = [
@@ -502,7 +626,13 @@ let
           ""
           "20"
           "01"
+          "0.25"
+          "22%"
+          "0.1"
+          "40%"
           "2"
+          "090"
+          "005"
           "3"
         ];
 
@@ -587,15 +717,14 @@ let
 
         list = basicList ++ nestedList ++ prefixedList ++ fileList;
       in
-      with cfg;
       {
-        prep = prep list;
-        prune = prune list;
-        order = order list;
-        blanks = blanks list;
-        prefixed = prefixed { inherit list; };
-        infixed = infixed { inherit list; };
-        suffixed = suffixed { inherit list; };
+        prep = cfg.prep list;
+        prune = cfg.prune list;
+        order = cfg.order list;
+        blanks = cfg.blanks list;
+        prefixed = cfg.prefixed { inherit list; };
+        infixed = cfg.infixed { inherit list; };
+        suffixed = cfg.suffixed { inherit list; };
       };
   };
 
@@ -614,7 +743,7 @@ let
 in
 {
   options = {
-    ${top}.${dom}.${mod} = exports ++ {
+    ${top}.${dom}.${mod} = exports // {
       inherit tests;
     };
     ${alt} = exports;
