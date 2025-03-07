@@ -50,118 +50,123 @@
       flakeUtils,
       ...
     }@inputs:
-    # flakeUtils.lib.eachDefaultSystem (
-    #   system:
-    let
-      #     pkgs = import nixpkgs { inherit system; };
-      paths =
-        let
-          flake = {
-            local = "/home/craole/.dots";
-            root = "/dots";
-            store = ./.;
-          };
-          parts = {
-            args = "/args";
-            cfgs = "/configurations";
-            env = "/environment";
-            libs = "/libraries";
-            mkCore = "/helpers/mkCoreConfig.nix";
-            mkConf = "/helpers/mkConfig.nix";
-            modules = "/Modules/nixos";
-            mods = "/modules";
-            opts = "/options";
-            pkgs = "/packages";
-            bin = "/Bin";
-            svcs = "/services";
-            ui = "/ui";
-            uiCore = "/ui/core";
-            uiHome = "/ui/home";
-            hosts = parts.cfgs + "/hosts";
-            users = parts.cfgs + "/users";
-            scripts = "/scripts";
-          };
-          core = {
-            default = modules.store;
-            configurations = {
-              hosts = core.default + parts.hosts;
-              users = core.default + parts.users;
+    flakeUtils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+        paths =
+          let
+            flake = {
+              local = "/home/craole/.dots";
+              root = "/dots";
+              store = ./.;
             };
-            environment = core.default + parts.env;
-            libraries = core.default + parts.libs;
-            modules = core.default + parts.mods;
-            options = core.default + parts.opts;
-            packages = core.default + parts.pkgs;
-            services = core.default + parts.svcs;
+            parts = {
+              args = "/args";
+              cfgs = "/configurations";
+              env = "/environment";
+              libs = "/libraries";
+              mkCore = "/helpers/mkCoreConfig.nix";
+              mkConf = "/helpers/mkConfig.nix";
+              modules = "/Modules/nixos";
+              mods = "/modules";
+              opts = "/options";
+              pkgs = "/packages";
+              bin = "/Bin";
+              svcs = "/services";
+              ui = "/ui";
+              uiCore = "/ui/core";
+              uiHome = "/ui/home";
+              hosts = parts.cfgs + "/hosts";
+              users = parts.cfgs + "/users";
+              scripts = "/scripts";
+            };
+            core = {
+              default = modules.store;
+              configurations = {
+                hosts = core.default + parts.hosts;
+                users = core.default + parts.users;
+              };
+              environment = core.default + parts.env;
+              libraries = core.default + parts.libs;
+              modules = core.default + parts.mods;
+              options = core.default + parts.opts;
+              packages = core.default + parts.pkgs;
+              services = core.default + parts.svcs;
+            };
+            home = {
+              default = modules.store + "/home";
+              configurations = home.default + parts.cfgs;
+              environment = home.default + parts.env;
+              libraries = home.default + parts.libs;
+              modules = home.default + parts.mods;
+              options = home.default + parts.opts;
+              packages = home.default + parts.pkgs;
+              services = home.default + parts.svcs;
+            };
+            scripts = {
+              global = flake.local + parts.bin;
+              local = modules.store + parts.scripts;
+              store = flake.store + parts.scripts;
+              dots = modules.store + parts.scripts + "/init_dots";
+            };
+            modules = {
+              local = flake.local + parts.modules;
+              store = flake.store + parts.modules;
+            };
+            libraries = {
+              local = modules.local + parts.libs;
+              store = modules.store + parts.libs;
+              mkCore = core.libraries + parts.mkCore;
+              mkConf = core.libraries + parts.mkConf;
+            };
+          in
+          {
+            inherit
+              flake
+              core
+              home
+              scripts
+              parts
+              modules
+              libraries
+              ;
           };
-          home = {
-            default = modules.store + "/home";
-            configurations = home.default + parts.cfgs;
-            environment = home.default + parts.env;
-            libraries = home.default + parts.libs;
-            modules = home.default + parts.mods;
-            options = home.default + parts.opts;
-            packages = home.default + parts.pkgs;
-            services = home.default + parts.svcs;
-          };
-          scripts = {
-            global = flake.local + parts.bin;
-            local = modules.store + parts.scripts;
-            store = flake.store + parts.scripts;
-            dots = modules.store + parts.scripts + "/init_dots";
-          };
-          modules = {
-            local = flake.local + parts.modules;
-            store = flake.store + parts.modules;
-          };
-          libraries = {
-            local = modules.local + parts.libs;
-            store = modules.store + parts.libs;
-            mkCore = core.libraries + parts.mkCore;
-            mkConf = core.libraries + parts.mkConf;
-          };
-        in
-        {
-          inherit
-            flake
-            core
-            home
-            scripts
-            parts
-            modules
-            libraries
-            ;
+        mkConfig = import paths.libraries.mkConf {
+          inherit self inputs paths;
         };
-      mkConfig = import paths.libraries.mkConf {
-        inherit self inputs paths;
-      };
 
-    in
-    {
-      inherit paths;
+      in
+      {
+        inherit paths;
 
-      devShells = {
-        default = inputs.devFlake.devShells.default; # Use the default devShell from the external flake
-      };
-      # devShells = {
-      #   default = pkgs.mkShell {
-      #     inputsFrom = [ (import ./Templates/dev/flake.nix { inherit pkgs; }) ];
-      #     # inputsFrom = [ (import ./Templates/dev/shell.nix { inherit pkgs; }) ];
-      #   };
-      # };
+        devShells =
+          let
+            devTemplate = inputs.devFlake;
+          in
+          {
+            default = devTemplate;
+          };
+        # devShells = {
+        #   default = pkgs.mkShell {
+        #     inputsFrom = [ (import ./Templates/dev/flake.nix { inherit pkgs; }) ];
+        #     # inputsFrom = [ (import ./Templates/dev/shell.nix { inherit pkgs; }) ];
+        #   };
+        # };
 
-      nixosConfigurations = {
-        QBX = mkConfig "QBX" { };
-        Preci = mkConfig "Preci" { };
-        # dbook = mkConfig "dbook" { };
-      };
+        nixosConfigurations = {
+          QBX = mkConfig "QBX" { };
+          Preci = mkConfig "Preci" { };
+          # dbook = mkConfig "dbook" { };
+        };
 
-      #TODO: Create separate config directory for nix darwin systems since the config is drastically different
-      # darwinConfigurations = {
-      #   MBPoNine = mkDarwinConfig "MBPoNine" { };
-      # };
+        #TODO: Create separate config directory for nix darwin systems since the config is drastically different
+        # darwinConfigurations = {
+        #   MBPoNine = mkDarwinConfig "MBPoNine" { };
+        # };
 
-      # TODO create mkHome for standalone home manager configs
-      # homeConfigurations = mkHomeConfig "craole" { };
-    };
+        # TODO create mkHome for standalone home manager configs
+        # homeConfigurations = mkHomeConfig "craole" { };
+      }
+    );
 }
