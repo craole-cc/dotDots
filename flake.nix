@@ -72,6 +72,7 @@
               mkCore = "/helpers/mkCoreConfig.nix";
               mkConf = "/helpers/mkConfig.nix";
               modules = "/Modules/nixos";
+              devShells = "/Modules/dev";
               mods = "/modules";
               opts = "/options";
               pkgs = "/packages";
@@ -85,7 +86,7 @@
               scripts = "/scripts";
             };
             devShells = rec {
-              default = modules.store;
+              default = flake.store + parts.devShells;
               dots = default + "/dots.toml";
               media = default + "/media.toml";
             };
