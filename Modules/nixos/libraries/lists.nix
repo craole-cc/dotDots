@@ -256,207 +256,8 @@ let
       };
   };
 
-  orderOld = mkOption {
-    description = "Takes a list of strings and returns them in sorted order, with proper handling of numeric values including percentages and decimals.";
-    example =
-      let
-        input = [
-          "B"
-          "11"
-          "02"
-          "a"
-          "bullseye"
-          "bullsEye"
-          "b"
-          "target"
-          "Targeted"
-          "c"
-          "C"
-          "0.1"
-          "0.2"
-          "15%"
-          "050"
-          "005"
-          "01"
-          "100"
-          "10"
-        ];
-        output = cfg.order input;
-      in
-      {
-        inherit input output;
-      };
-    default =
-      list:
-      let
-        #| Input
-        list' = cfg.prep list;
-
-        #| Processing
-        # #@ Detect if string is numeric (integer, decimal, or percentage)
-        # isNumericValue =
-        #   str:
-        #   match "^[0-9]+$" str != null
-        #   || match "^[0-9]*\\.[0-9]+$" str != null
-        #   || match "^[0-9]*\\.[0-9]+%$" str != null
-        #   || match "^[0-9]+%$" str != null;
-
-        # #@ Parse a decimal string to a comparable representation
-        # # Since we can't use floating point directly, use a string representation that sorts correctly
-        # parseDecimal =
-        #   str:
-        #   let
-        #     # Split by the decimal point
-        #     parts = split "\\." str;
-        #     # Get integer part (before the dot)
-        #     intPart = if length parts > 0 then elemAt parts 0 else "0";
-        #     # Get decimal part (after the dot)
-        #     decPart = if length parts > 2 then elemAt parts 2 else "0";
-        #   in
-        #   # Convert to string in format "INTEGER.DECIMAL" with leading zeros removed from INTEGER
-        #   "${toString (toInt (removeLeadingZeros intPart))}.${decPart}";
-
-        #@ Function to remove leading zeros
-        removeLeadingZeros =
-          str:
-          let
-            #@ Match any number of leading zeros followed by remaining digits (or just "0")
-            result = match "^0+([1-9][0-9]*)$|^0$" str;
-          in
-          if result == null then
-            str
-          else if result == [ ] then
-            "0" # ? This is just the string "0"
-          else
-            elemAt result 0; # ? The matched part without leading zeros
-
-        #@ Convert percentage to decimal representation for comparison
-        percentToDecimal =
-          str:
-          let
-            #@ Remove the % sign
-            numStr = substring 0 (stringLength str - 1) str;
-            #@ Check if it already has a decimal point
-            hasDecimal = match ".*\\.[0-9]*" numStr != null;
-            #@ If it's a whole number percentage, divide by 100 (e.g., 15% -> 0.15)
-            result =
-              #@ If it already has a decimal, just handle the conversion (e.g., 0.5% -> 0.005)
-              if hasDecimal then
-                let
-                  parts = split "\\." numStr;
-                  intPart = elemAt parts 0;
-                  decPart = elemAt parts 2;
-                  #@ Shift decimal point left by 2 places
-                  newDecPart = "${substring (stringLength intPart - 2) 2 intPart}${decPart}";
-                  newIntPart =
-                    if stringLength intPart <= 2 then "0" else substring 0 (stringLength intPart - 2) intPart;
-                in
-                "${newIntPart}.${newDecPart}"
-              else
-                let
-                  #@ For whole numbers, just divide by 100
-                  num = toInt numStr;
-                  whole = num / 100;
-                  fraction = num - (whole * 100);
-                  fractionStr = if fraction < 10 then "0${toString fraction}" else toString fraction;
-                in
-                "${toString whole}.${fractionStr}";
-          in
-          result;
-
-        #@ Compare items for sorting
-        compareItems =
-          a: b:
-          let
-            #@ Check for different numeric formats
-            isDecimalA = match "^[0-9]*\\.[0-9]+$" a != null;
-            isDecimalB = match "^[0-9]*\\.[0-9]+$" b != null;
-            isPercentA = match "^[0-9]+(\\.[0-9]+)?%$" a != null;
-            isPercentB = match "^[0-9]+(\\.[0-9]+)?%$" b != null;
-            isIntegerA = match "^[0-9]+$" a != null;
-            isIntegerB = match "^[0-9]+$" b != null;
-
-            #@ Convert to comparable values
-            valueA =
-              if isPercentA then
-                percentToDecimal a
-              else if isDecimalA then
-                a
-              else if isIntegerA then
-                "${toString (toInt (removeLeadingZeros a))}.0"
-              else
-                a;
-
-            valueB =
-              if isPercentB then
-                percentToDecimal b
-              else if isDecimalB then
-                b
-              else if isIntegerB then
-                "${toString (toInt (removeLeadingZeros b))}.0"
-              else
-                b;
-
-            #? For comparing numeric strings as numbers
-            isNumericA = isDecimalA || isPercentA || isIntegerA;
-            isNumericB = isDecimalB || isPercentB || isIntegerB;
-
-            #? For non-numeric string comparison
-            lowerA = toLower a;
-            lowerB = toLower b;
-          in
-          if isNumericA && isNumericB then
-            #@ Compare as string representation of numbers
-            lessThan valueA valueB
-          else if isNumericA then
-            #@ Numbers come before strings
-            true
-          else if isNumericB then
-            #@ Strings come after numbers
-            false
-          else if lowerA != lowerB then
-            #@ If the lowercase versions are different, compare those
-            lessThan lowerA lowerB
-          else
-            #@ If the lowercase versions are the same, prioritize uppercase
-            lessThan a b;
-
-        #| Output
-        ordered = sort compareItems list';
-      in
-      ordered;
-  };
-
   order = mkOption {
     description = "Takes a list of strings and returns them in sorted order, with proper handling of numeric values including percentages and decimals.";
-    example =
-      let
-        input = [
-          "B"
-          "11"
-          "02"
-          "a"
-          "bullseye"
-          "bullsEye"
-          "b"
-          "target"
-          "Targeted"
-          "c"
-          "C"
-          "0.1"
-          "0.2"
-          "15%"
-          "050"
-          "005"
-          "01"
-          "100"
-          "10"
-        ];
-        output = cfg.order input;
-      in
-      {
-        inherit input output;
-      };
     default =
       list:
       let
@@ -574,8 +375,36 @@ let
         ordered = sort compareItems list';
       in
       ordered;
+    example =
+      let
+        input = [
+          "B"
+          "11"
+          "02"
+          "a"
+          "bullseye"
+          "bullsEye"
+          "b"
+          "target"
+          "Targeted"
+          "c"
+          "C"
+          "0.1"
+          "0.2"
+          "15%"
+          "050"
+          "005"
+          "01"
+          "100"
+          "10"
+        ];
+        output = cfg.order input;
+      in
+      {
+        inherit input output;
+      };
   };
-  
+
   prune = mkOption {
     description = "Comprehensive list cleaning function that removes blank lines, null values, comments, duplicates, and sorts the result. Combines multiple list operations into a single utility.";
     example =
