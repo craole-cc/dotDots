@@ -28,12 +28,15 @@
           inputsFrom = [ (import ./shell.nix { inherit pkgs; }) ];
 
           shellHook = ''
-            # Original shell.nix shellHook
-            fastfetch
-            $VISUAL:$EDITOR
-
             echo "Development environment loaded!"
-            echo "Neovim nightly is available as 'nvim'"
+            if [ t1 ]; then
+              fastfetch
+              if [ -n "$VISUAL" ] ;then
+                "$VISUAL"
+              elif [ -n "$EDITOR" ]; then
+                nvim
+              fi
+            fi
           '';
         };
       }
