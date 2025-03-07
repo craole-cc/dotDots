@@ -16,6 +16,10 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    flakeCompat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
 
     flakeUtils = {
       url = "github:numtide/flake-utils";
@@ -140,11 +144,13 @@
       {
         inherit paths;
 
-        devShells = {
-          default = templates.dev;
-          # default = templates.media;
-          # default = templates.nixed;
-        };
+        # devShells = {
+        #   default = templates.dev;
+        #   # default = templates.media;
+        #   # default = templates.nixed;
+        # };
+
+        devShells.default = inputs.flakeCompat { src = ./Templates/dev; }.shellNix.default;
 
         nixosConfigurations = {
           QBX = mkConfig "QBX" { };

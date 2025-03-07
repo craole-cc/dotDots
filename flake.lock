@@ -128,7 +128,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-E8kZZ1CgVELJVnwums0oGKsoP6Ee1w73f1llfFEicp8=",
+        "narHash": "sha256-UIZLiHupIdMHeghuVzHg4BPPnxVEPDqI2iNcl3C2w08=",
         "path": "./Templates/dev",
         "type": "path"
       },
@@ -144,7 +144,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-sOYg0wsvHMmgmT56GMWB9fPdR/SYv1hw/Yk9GXdOsBA=",
+        "narHash": "sha256-7QFPxmmbxEx3Mxwl7sCj2OIivY1CA04qPtmcUAy2fmU=",
         "path": "./Templates/media",
         "type": "path"
       },
@@ -336,6 +336,22 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flakeCompat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1733328505,
+        "narHash": "sha256-NeCCThCEP3eCl2l/+27kNNK7QrwZB1IJCrXfrbv5oqU=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "ff81ac966bb2cae68946d5ed5fc4994f96d0ffec",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
         "type": "github"
       }
     },
@@ -837,6 +853,7 @@
         "devshell": "devshell",
         "dotsDev": "dotsDev",
         "dotsMedia": "dotsMedia",
+        "flakeCompat": "flakeCompat",
         "flakeUtils": "flakeUtils",
         "homeManager": "homeManager",
         "nid": "nid",

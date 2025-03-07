@@ -26,17 +26,16 @@
       {
         devShells.default = pkgs.mkShell {
           inputsFrom = [ (import ./shell.nix { inherit pkgs; }) ];
-
           shellHook = ''
-            echo "Development environment loaded!"
-            if [ t1 ]; then
-              fastfetch
-              if [ -n "$VISUAL" ] ;then
-                "$VISUAL"
-              elif [ -n "$EDITOR" ]; then
-                nvim
-              fi
-            fi
+            fastfetch
+
+            # if [ t1 ]; then
+            #   if [ -n "$VISUAL" ] ;then
+            #     "$VISUAL"
+            #   elif [ -n "$EDITOR" ]; then
+            #     nvim
+            #   fi
+            # fi
           '';
         };
       }
