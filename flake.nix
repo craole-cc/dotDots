@@ -142,7 +142,7 @@
 
         devShells =
           let
-            devTemplate = inputs.devFlake;
+            devTemplate = inputs.devFlake.default;
           in
           {
             default = devTemplate;
