@@ -16,15 +16,8 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    flakeCompat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
-
-    flakeUtils = {
-      url = "github:numtide/flake-utils";
-      # inputs.nixpkgs.follows = "nixpkgs";
-    };
+    flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
+    flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     dotsDev.url = "path:./Templates/dev";
