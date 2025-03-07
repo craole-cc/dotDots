@@ -1,6 +1,11 @@
 # https://numtide.github.io/devshell
 [[commands]]
-package = "hello"
+packages = ["treefmt2", "cowsay"]
+
+[[env]]
+name = "CRAOLE"
+value = "on"
+
 
 [devshell]
 packages = [

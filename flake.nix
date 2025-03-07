@@ -89,6 +89,7 @@
               default = flake.store + parts.devShells;
               dots = default + "/dots.toml";
               media = default + "/media.toml";
+              filesystem = default + "/filesystem.toml";
             };
             core = {
               default = modules.store;
@@ -157,13 +158,12 @@
             };
 
             inherit (pkgs.devshell) mkShell importTOML;
-            shDots = importTOML paths.devShells.dots;
-            shMedia = importTOML paths.devShells.media;
           in
           mkShell {
-            imports = [
-              shDots
-              shMedia
+            imports = with paths.devShells; [
+              (importTOML dots)
+              (importTOML media)
+              (importTOML filesystem)
             ];
           };
 

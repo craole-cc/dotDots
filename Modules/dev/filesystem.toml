@@ -1,0 +1,54 @@
+# https://numtide.github.io/devshell
+
+[[commands]]
+package = "bat"
+
+[[commands]]
+package = "btop"
+
+[[commands]]
+package = "direnv"
+
+[[commands]]
+package = "eza"
+
+[[commands]]
+package = "fd"
+
+[[commands]]
+package = "fastfetch"
+
+[[commands]]
+package = "fzf"
+
+[[commands]]
+package = "glib"
+
+[[commands]]
+package = "lsd"
+
+[[commands]]
+name = "rg"
+package = "ripgrep"
+
+[[commands]]
+package = "yazi"
+
+[devshell]
+packages = [
+  "bat",
+  "btop",
+  "direnv",
+  "eza",
+  "fastfetch",
+  "fd",
+  "fzf",
+  "glib",
+  "jq",
+  "lsd",
+  "ripgrep",
+  "thefuck",
+  "lesspipe",
+  "yazi",
+  "zoxide",
+]
