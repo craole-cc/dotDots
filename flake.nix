@@ -20,7 +20,7 @@
     flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
-    devshell.url = "github:numtide/devshell";
+    flakeShell.url = "github:numtide/devshell";
 
     dotsDev.url = "path:./Templates/dev";
     dotsMedia.url = "path:./Templates/media";
@@ -45,22 +45,18 @@
       self,
       nixpkgs,
       flakeUtils,
-      devshell,
+      flakeShell,
       ...
     }@inputs:
-    inputs.flakeUtils.lib.eachDefaultSystem (
+    flakeUtils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ devshell.overlays.default ];
-        };
 
-        templates = {
-          dev = inputs.dotsDev.devShells.${system}.default;
-          media = inputs.dotsMedia.devShells.${system}.default;
-          nixed = inputs.nixed.devShells.${system}.default;
-        };
+        # templates = {
+        #   dev = inputs.dotsDev.devShells.${system}.default;
+        #   media = inputs.dotsMedia.devShells.${system}.default;
+        #   nixed = inputs.nixed.devShells.${system}.default;
+        # };
         paths =
           let
             flake = {
@@ -152,9 +148,18 @@
         #   # default = templates.nixed;
         # };
 
-        devShells.default = pkgs.devshell.mkShell {
-          imports = [ (pkgs.devshell.importTOML ./devshell.toml) ];
-        };
+        devShells =
+          let
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ flakeShell.overlays.default ];
+            };
+          in
+          {
+            default = pkgs.devshell.mkShell {
+              imports = [ (pkgs.devshell.importTOML ./.devshell.toml) ];
+            };
+          };
 
         nixosConfigurations = {
           QBX = mkConfig "QBX" { };
