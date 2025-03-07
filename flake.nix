@@ -17,10 +17,10 @@
       };
     };
 
-    # flakeUtils = {
-    #   url = "github:numtide/flake-utils";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    flakeUtils = {
+      url = "github:numtide/flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     devshell = {
@@ -43,7 +43,7 @@
   };
 
   outputs =
-    { self, ... }@inputs:
+    { self, nixpkgs, ... }@inputs:
     let
       paths =
         let
@@ -130,29 +130,56 @@
     {
       inherit paths;
       nixosConfigurations = {
+        QBX = mkConfig "QBX" { };
         Preci = mkConfig "Preci" { };
-        QBX = mkConfig "QBX" {
-          platform = "x86_64-linux";
-          people = [
-            {
-              name = "craole";
-              enable = true;
-            }
-          ];
-        };
         # dbook = mkConfig "dbook" { };
       };
+
+      #TODO: Add devshell for temporary development environment
+      devShells = inputs.flakeUtils.lib.eachDefaultSystem (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShell {
+            buildInputs = [
+              pkgs.hello
+              pkgs.cowsay
+            ];
+
+            shellHook = ''
+              echo "Welcome to the development shell!"
+            '';
+          };
+        }
+      );
 
       # devShells.default = pkgs.mkShell {
       #   inputsFrom = [ (import ./shell.nix { inherit pkgs; }) ];
       # };
+      #      devShells = flake-utils.lib.eachDefaultSystem (system: let
+      #     pkgs = import nixpkgs { inherit system; };
+      #   in {
+      #     default = pkgs.mkShell {
+      #       buildInputs = [
+      #         pkgs.hello  # Add packages you need in your dev shell
+      #         pkgs.cowsay
+      #       ];
 
-      #TODO: Create separate config directory for nix systems since the config is drastically different
+      #       shellHook = ''
+      #         echo "Welcome to the development shell!"
+      #       '';
+      #     };
+      #   });
+      # };
+
+      #TODO: Create separate config directory for nix darwin systems since the config is drastically different
       # darwinConfigurations = {
-      #   MBPoNine = mkConfig "MBPoNine" { };
+      #   MBPoNine = mkDarwinConfig "MBPoNine" { };
       # };
 
       # TODO create mkHome for standalone home manager configs
-      # homeConfigurations = mkConfig "craole" { };
+      # homeConfigurations = mkHomeConfig "craole" { };
     };
 }

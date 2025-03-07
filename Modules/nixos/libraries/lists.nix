@@ -211,21 +211,6 @@ let
 
   suffixed = mkOption {
     description = "Removes lines that end with specified string(s). By default, filters paths ending with '.nix'. Returns an attrset with filtered results, matching lines, and helper functions.";
-    example =
-      let
-        input = {
-          target = ".nix";
-          list = [
-            "a"
-            "b.nix"
-            "c"
-          ];
-        };
-        output = cfg.suffixed input;
-      in
-      {
-        inherit input output;
-      };
     default =
       {
         target ? ".nix",
@@ -253,6 +238,21 @@ let
           ;
         list = list';
         target = target';
+      };
+    example =
+      let
+        input = {
+          target = ".nix";
+          list = [
+            "a"
+            "b.nix"
+            "c"
+          ];
+        };
+        output = cfg.suffixed input;
+      in
+      {
+        inherit input output;
       };
   };
 
@@ -407,6 +407,14 @@ let
 
   prune = mkOption {
     description = "Comprehensive list cleaning function that removes blank lines, null values, comments, duplicates, and sorts the result. Combines multiple list operations into a single utility.";
+    default =
+      list:
+      let
+        prepped = (cfg.blanks list).filtered;
+        sorted = cfg.order prepped;
+        pruned = unique (cfg.prefixed { list = sorted; }).filtered;
+      in
+      pruned;
     example =
       let
         input = [
@@ -421,14 +429,6 @@ let
       {
         inherit input output;
       };
-    default =
-      list:
-      let
-        prepped = (cfg.blanks list).filtered;
-        sorted = cfg.order prepped;
-        pruned = unique (cfg.prefixed { list = sorted; }).filtered;
-      in
-      pruned;
   };
 
   tests = mkOption {
