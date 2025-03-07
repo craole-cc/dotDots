@@ -30,7 +30,7 @@
           shellHook = ''
             # Original shell.nix shellHook
             fastfetch
-            ede
+            $VISUAL:$EDITOR
 
             echo "Development environment loaded!"
             echo "Neovim nightly is available as 'nvim'"

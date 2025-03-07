@@ -1,5 +1,5 @@
 {
-  description = "Comprehensive media environment";
+  description = "Comprehensive Media Environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";

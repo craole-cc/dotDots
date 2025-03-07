@@ -106,10 +106,4 @@ pkgs.mkShell {
     keep-sorted # Sorter
     typst # Typesetting system
   ];
-
-  shellHook = ''
-    #@ Show the system info
-    # fastfetch
-    # ede
-  '';
 }
