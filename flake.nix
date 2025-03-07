@@ -16,6 +16,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    devFlake.url = "path:./Templates/dev";
 
     flakeUtils = {
       url = "github:numtide/flake-utils";
@@ -43,8 +44,16 @@
   };
 
   outputs =
-    { self, nixpkgs, ... }@inputs:
+    {
+      self,
+      nixpkgs,
+      flakeUtils,
+      ...
+    }@inputs:
+    # flakeUtils.lib.eachDefaultSystem (
+    #   system:
     let
+      #     pkgs = import nixpkgs { inherit system; };
       paths =
         let
           flake = {
@@ -126,53 +135,26 @@
       mkConfig = import paths.libraries.mkConf {
         inherit self inputs paths;
       };
+
     in
     {
       inherit paths;
+
+      devShells = {
+        default = inputs.devFlake.devShells.default; # Use the default devShell from the external flake
+      };
+      # devShells = {
+      #   default = pkgs.mkShell {
+      #     inputsFrom = [ (import ./Templates/dev/flake.nix { inherit pkgs; }) ];
+      #     # inputsFrom = [ (import ./Templates/dev/shell.nix { inherit pkgs; }) ];
+      #   };
+      # };
+
       nixosConfigurations = {
         QBX = mkConfig "QBX" { };
         Preci = mkConfig "Preci" { };
         # dbook = mkConfig "dbook" { };
       };
-
-      #TODO: Add devshell for temporary development environment
-      devShells = inputs.flakeUtils.lib.eachDefaultSystem (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        {
-          default = pkgs.mkShell {
-            buildInputs = [
-              pkgs.hello
-              pkgs.cowsay
-            ];
-
-            shellHook = ''
-              echo "Welcome to the development shell!"
-            '';
-          };
-        }
-      );
-
-      # devShells.default = pkgs.mkShell {
-      #   inputsFrom = [ (import ./shell.nix { inherit pkgs; }) ];
-      # };
-      #      devShells = flake-utils.lib.eachDefaultSystem (system: let
-      #     pkgs = import nixpkgs { inherit system; };
-      #   in {
-      #     default = pkgs.mkShell {
-      #       buildInputs = [
-      #         pkgs.hello  # Add packages you need in your dev shell
-      #         pkgs.cowsay
-      #       ];
-
-      #       shellHook = ''
-      #         echo "Welcome to the development shell!"
-      #       '';
-      #     };
-      #   });
-      # };
 
       #TODO: Create separate config directory for nix darwin systems since the config is drastically different
       # darwinConfigurations = {
