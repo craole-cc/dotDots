@@ -16,18 +16,16 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+
     flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    devshell.url = "github:numtide/devshell";
 
     dotsDev.url = "path:./Templates/dev";
     dotsMedia.url = "path:./Templates/media";
     nixed.url = "github:Craole/nixed";
 
-    devshell = {
-      url = "github:numtide/devshell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nid = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -43,10 +41,21 @@
   };
 
   outputs =
-    { self, ... }@inputs:
+    {
+      self,
+      nixpkgs,
+      flakeUtils,
+      devshell,
+      ...
+    }@inputs:
     inputs.flakeUtils.lib.eachDefaultSystem (
       system:
       let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ devshell.overlays.default ];
+        };
+
         templates = {
           dev = inputs.dotsDev.devShells.${system}.default;
           media = inputs.dotsMedia.devShells.${system}.default;
@@ -143,7 +152,9 @@
         #   # default = templates.nixed;
         # };
 
-        devShells.default = inputs.flakeCompat { src = ./Templates/dev; }.shellNix.default;
+        devShells.default = pkgs.devshell.mkShell {
+          imports = [ (pkgs.devshell.importTOML ./devshell.toml) ];
+        };
 
         nixosConfigurations = {
           QBX = mkConfig "QBX" { };
