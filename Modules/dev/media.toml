@@ -55,7 +55,6 @@ packages = [
   "pamixer",
   "shortwave",
   "strawberry",
-  # "deadbeef",
 
   #| Utilities
   "btop",

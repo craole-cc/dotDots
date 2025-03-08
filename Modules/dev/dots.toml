@@ -1,91 +1,74 @@
 # https://numtide.github.io/devshell
 
+
 [[commands]]
+name = "rebuild"
+category = "System Management"
+command = "sudo nixos-rebuild --flake $DOTS switch $@"
+help = "rebuild current NixOS"
+
+[[commands]]
+category = "Interactive Shell"
 name = "bash"
 package = "bashInteractive"
 
 [[commands]]
-package = "bat"
-
-[[commands]]
-package = "btop"
-
-[[commands]]
+category = "Integrated Development Environment"
 name = "codium"
 package = "vscodium-fhs"
 help = "Visual Studio Code wrapper without telemetry or nix-specific restrictions."
 
 [[commands]]
-package = "cowsay"
-
-[[commands]]
+category = "Version Control Tools"
 package = "delta"
 
 [[commands]]
-package = "direnv"
-
-[[commands]]
-package = "eza"
-
-[[commands]]
-package = "fd"
-
-[[commands]]
+category = "Utilities"
 package = "fend"
 
 [[commands]]
-package = "fastfetch"
+category = "Version Control Tools"
+package = "hci"
 
 [[commands]]
-package = "fzf"
-
-[[commands]]
-package = "glib"
-
-[[commands]]
+category = "Integrated Development Environment"
 name = "hx"
 package = "helix"
 
 [[commands]]
+category = "Integrated Development Environment"
+name = "nvim"
+command = "nix run github:nix-community/neovim-nightly-overlay"
 package = "neovim"
 
 [[commands]]
-package = "nodePackages_latest.prettier"
-
-[[commands]]
-package = "just"
-
-[[commands]]
+category = "Package Managers"
 package = "pnpm"
 
 [[commands]]
+category = "Interactive Shell"
+name = "pwsh"
 package = "powershell"
 
 [[commands]]
+category = "Version Control Tools"
 package = "pre-commit"
 
 [[commands]]
-name = "rg"
-package = "ripgrep"
-
-[[commands]]
+category = "Utilities"
 package = "rust-script"
 
 [[commands]]
-name = "tldr"
-package = "tldc"
+category="Information Tools"
+package = "tldr"
 
 [[commands]]
+category="Information Tools"
 package = "tokei"
 
 [[commands]]
+category="Linters/Formatters"
 package = "treefmt2"
-
-[[commands]]
-package = "yazi"
-
-[[commands]]
-package = "zoxide"
 
 [[env]]
 name = "CRAOLE"
@@ -105,11 +88,10 @@ packages = [
   "lsd",
   "delta",
   "yazi",
-  "tlrc",
+  "tldr",
   "tokei",
   "thefuck",
   "zoxide",
-  "neovim",
   "helix",
   "direnv",
   "fend",
