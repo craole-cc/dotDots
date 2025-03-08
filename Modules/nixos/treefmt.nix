@@ -1,10 +1,26 @@
 # treefmt.nix
 { pkgs, ... }:
 {
-  # Used to find the project root
   projectRootFile = "flake.nix";
 
   programs = {
-nixfmt
+    nixfmt = {
+      enabled = true;
+      package = pkgs.nixfmt-rfc-style;
+    };
+
+    shellcheck.enabled = true;
+    shfmt.enabled = true;
+  };
+
+  settings.formatter = {
+    shellcheck = {
+      options = [
+        "-s"
+        "bash"
+        "-f"
+        "diff"
+      ];
+    };
   };
 }
