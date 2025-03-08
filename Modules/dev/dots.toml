@@ -11,8 +11,17 @@ help = "rebuild current NixOS"
 [[commands]]
 name = "update"
 category = "Flake/System Management"
-command = "git status --porcelean nix flake update && git pull && git add --all && git commit -m \"${*:-'General Update'}\" && git push"
-help = "rebuild current NixOS"
+command = '''
+  set -euo pipefail
+  git pull --autostash
+  nix flake update
+  git add --all :/
+  if git status --porcelain | grep -q .; then
+      git commit -m "${*:-'General flake update'}" || true
+      git push
+  fi
+'''
+help = "Update flake inputs, sync repo, and push changes"
 
 [[commands]]
 category = "Information Management"
