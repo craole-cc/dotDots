@@ -16,7 +16,12 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    systems = "";
 
+    flakeParts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
     flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
@@ -53,6 +58,12 @@
     flakeUtils.lib.eachDefaultSystem (
       system:
       let
+        # Small tool to iterate over each systems
+        eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
+
+        # Eval the treefmt modules from ./treefmt.nix
+        treefmtEval = eachSystem (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
+
         paths =
           let
             flake = {
@@ -163,6 +174,11 @@
             ];
           };
 
+        formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
+
+        checks = eachSystem (pkgs: {
+          formatting = treefmtEval.${pkgs.system}.config.build.check self;
+        });
         nixosConfigurations = {
           QBX = mkConfig "QBX" { };
           Preci = mkConfig "Preci" { };
