@@ -1,32 +1,42 @@
 # https://numtide.github.io/devshell
 [[commands]]
+category = "Media Management"
 package = "curseradio"
 
 [[commands]]
+category = "Media Management"
 package = "freetube"
 
 [[commands]]
+category = "Media Management"
 package = "mpd"
 
 [[commands]]
+category = "Media Management"
 package = "mpv"
 
 [[commands]]
+category = "Media Management"
 package = "ncmpcpp"
 
 [[commands]]
+category = "Media Management"
 package = "playerctl"
 
 # [[commands]]
+# category = "Media Management"
 # package =
 
 [[commands]]
+category = "Media Management"
 package = "shortwave"
 
 [[commands]]
+category = "Media Management"
 package = "strawberry"
 
 [[commands]]
+category = "Media Management"
 package = "viu"
 
 
