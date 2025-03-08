@@ -12,12 +12,23 @@ help = "rebuild current NixOS"
 name = "update"
 category = "Flake/System Management"
 command = '''
+  #!/usr/bin/env bash
+
+  #@ Ensure strict mode and exit on error
   set -euo pipefail
-  git pull --autostash
+
+  #@ Pull repo changes
+  if ! git diff --quiet HEAD; then
+      git pull --autostash
+  fi
+
+  #@ Update flake inputs
   nix flake update
+
+  #@ Sync repo and push changes
   git add --all :/
   if git status --porcelain | grep -q .; then
-      git commit -m "${*:-'General flake update'}" || true
+      git commit --message "${*:-'General flake update'}" || true
       git push
   fi
 '''
