@@ -3,71 +3,68 @@
 
 [[commands]]
 name = "rebuild"
-category = "System Management"
+category = "Flake/System Management"
 command = "sudo nixos-rebuild --flake $DOTS switch $@"
 help = "rebuild current NixOS"
 
-[[commands]]
-category = "Interactive Shell"
-name = "bash"
-package = "bashInteractive"
 
 [[commands]]
-category = "Integrated Development Environment"
+name = "update"
+category = "Flake/System Management"
+command = "nix flake update && git pull && git add --all && git commit -m \"${*:-'General Update'}\" && git push"
+help = "rebuild current NixOS"
+
+[[commands]]
+category = "Information Management"
 name = "codium"
 package = "vscodium-fhs"
 help = "Visual Studio Code wrapper without telemetry or nix-specific restrictions."
 
 [[commands]]
-category = "Version Control Tools"
+category = "Version Control"
 package = "delta"
 
 [[commands]]
-category = "Utilities"
+category = "Handy Utilities"
 package = "fend"
 
 [[commands]]
-category = "Version Control Tools"
+category = "Version Control"
 package = "hci"
 
 [[commands]]
-category = "Integrated Development Environment"
+category = "Information Management"
 name = "hx"
 package = "helix"
 
 [[commands]]
-category = "Integrated Development Environment"
+category = "Information Management"
 name = "nvim"
 command = "nix run github:nix-community/neovim-nightly-overlay"
 package = "neovim"
 
 [[commands]]
-category = "Package Managers"
+category = "Package Management"
 package = "pnpm"
 
 [[commands]]
-category = "Interactive Shell"
-name = "pwsh"
-package = "powershell"
-
-[[commands]]
-category = "Version Control Tools"
+category = "Version Control"
 package = "pre-commit"
 
 [[commands]]
-category = "Utilities"
+category = "Interactive Shell & Scripting"
 package = "rust-script"
 
 [[commands]]
-category="Information Tools"
+category = "Information Management"
 package = "tldr"
 
 [[commands]]
-category="Information Tools"
+category = "Information Management"
 package = "tokei"
 
 [[commands]]
-category="Linters/Formatters"
+category = "Information Management"
 package = "treefmt2"
 
 [[env]]
@@ -77,27 +74,9 @@ value = "on"
 [devshell]
 packages = [
   "getoptions",
-  "pre-commit",
-  "eza",
-  "bat",
-  "fd",
-  "btop",
   "jq",
-  "ripgrep",
-  "fzf",
-  "lsd",
-  "delta",
-  "yazi",
-  "tldr",
-  "tokei",
   "thefuck",
-  "zoxide",
-  "helix",
-  "direnv",
-  "fend",
-  "fastfetch",
   "lesspipe",
-  "rust-script",
   "just",
   "powershell",
   "bashInteractive",
@@ -131,9 +110,10 @@ packages = [
   #| Shell
   "shfmt",
   "shellcheck",
+  "fish-lsp",
 
   #| SQL
-  # sqlfluff # Formatter/linter
+  "sqlfluff", # Formatter/linter
 
   #| Configuration
   "taplo",   # Toml Formatter
