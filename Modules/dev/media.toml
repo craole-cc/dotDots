@@ -1,7 +1,9 @@
 # https://numtide.github.io/devshell
+
 [[commands]]
 category = "Media Management"
 package = "curseradio"
+help = "Terminal-based internet radio player"
 
 [[commands]]
 category = "Media Management"
@@ -9,23 +11,28 @@ package = "freetube"
 
 [[commands]]
 category = "Media Management"
+package = "firefox-devedition-bin"
+help = "Mozilla Firefox Developer Edition"
+
+[[commands]]
+category = "Media Management"
 package = "mpd"
 
 [[commands]]
 category = "Media Management"
+name = "mpv"
 package = "mpv"
+help = "General-purpose media player"
 
 [[commands]]
 category = "Media Management"
 package = "ncmpcpp"
+help = "NCurses MPD Client with a modern look and feel"
 
 [[commands]]
 category = "Media Management"
 package = "playerctl"
-
-# [[commands]]
-# category = "Media Management"
-# package =
+# help = "Control media players from the command line"
 
 [[commands]]
 category = "Media Management"
@@ -38,10 +45,11 @@ package = "strawberry"
 [[commands]]
 category = "Media Management"
 package = "viu"
-
+help = "Terminal-based image viewer"
 
 [devshell]
 packages = [
+  #| Shell & Productivity
   "eza",
   "bat",
   "fd",
@@ -55,8 +63,9 @@ packages = [
   "sxiv",
   "feh",
   "swww",
+  "imagemagick", # Gor advanced image processing
 
-  #| Music
+  #| Music & Audio
   "ncmpcpp",
   "mpc-cli",
   "mpd",
@@ -65,18 +74,29 @@ packages = [
   "pamixer",
   "shortwave",
   "strawberry",
+  "libnotify",  # For notifications in media players
 
-  #| Utilities
+  #| Development Tools
   "btop",
   "ffmpeg",
   "curl",
   "fastfetch",
   "fzf",
   "jq",
-  "libnotify",
-  "mediainfo",
   "rlwrap",
   "socat",
-  "xclip",
-  "yt-dlp",
+  "xclip",     # Clipboard utility
+  "yt-dlp",    # For downloading videos
+  "mediainfo", # Media info tool
+
+  #| Additional Tools
+  "xsel",        # Alternative clipboard tool
+  "imagemagick", # For image manipulation
 ]
+
+# Optional: Add service configurations if needed
+# Example for MPD:
+# [[services]]
+# name = "mpd"
+# enable = true
+# start = true

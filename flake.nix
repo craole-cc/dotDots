@@ -21,6 +21,7 @@
     flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
     flakeShell.url = "github:numtide/devshell";
+    flakeFormatter.url = "github:numtide/treefmt-nix";
 
     dotsDev.url = "path:./Templates/dev";
     dotsMedia.url = "path:./Templates/media";
@@ -46,6 +47,7 @@
       nixpkgs,
       flakeUtils,
       flakeShell,
+      flakeFormatter,
       ...
     }@inputs:
     flakeUtils.lib.eachDefaultSystem (
