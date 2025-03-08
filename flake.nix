@@ -51,12 +51,6 @@
     flakeUtils.lib.eachDefaultSystem (
       system:
       let
-
-        # templates = {
-        #   dev = inputs.dotsDev.devShells.${system}.default;
-        #   media = inputs.dotsMedia.devShells.${system}.default;
-        #   nixed = inputs.nixed.devShells.${system}.default;
-        # };
         paths =
           let
             flake = {
@@ -88,8 +82,8 @@
             devShells = rec {
               default = flake.store + parts.devShells;
               dots = default + "/dots.toml";
+              env = default + "/env.toml";
               media = default + "/media.toml";
-              filesystem = default + "/filesystem.toml";
             };
             core = {
               default = modules.store;
@@ -163,7 +157,7 @@
             imports = with paths.devShells; [
               (importTOML dots)
               (importTOML media)
-              (importTOML filesystem)
+              (importTOML env)
             ];
           };
 
