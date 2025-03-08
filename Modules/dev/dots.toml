@@ -11,7 +11,7 @@ help = "rebuild current NixOS"
 [[commands]]
 name = "update"
 category = "Flake/System Management"
-command = "nix flake update && git pull && git add --all && git commit -m \"${*:-'General Update'}\" && git push"
+command = "git status --porcelean nix flake update && git pull && git add --all && git commit -m \"${*:-'General Update'}\" && git push"
 help = "rebuild current NixOS"
 
 [[commands]]
