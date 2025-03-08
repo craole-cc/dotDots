@@ -12,15 +12,17 @@ help = "rebuild current NixOS"
 name = "update"
 category = "Flake/System Management"
 command = '''
-  #!/usr/bin/env bash
+  #!/bin/sh
 
   #@ Ensure strict mode and exit on error
   set -euo pipefail
 
-  #@ Pull repo changes
-  if ! git diff --quiet HEAD; then
-      git pull --autostash
-  fi
+  #@ Pull repo changes, capturing output
+  PULL_OUTPUT=$(git pull --quiet --autostash 2>&1)
+  PULL_IGNORE="Already up to date."
+  case "${PULL_OUTPUT}" in *"${PULL_IGNORE}"*) ;;
+    *) printf "%s\n" "${PULL_OUTPUT}" ;;
+  esac
 
   #@ Update flake inputs
   nix flake update
