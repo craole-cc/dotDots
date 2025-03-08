@@ -1,0 +1,112 @@
+[[commands]]
+category = "Information Management"
+name = "codium"
+command = "nix run github:Numtide/codium"
+package = "vscodium-fhs"
+help = "Visual Studio Code wrapper without telemetry or nix-specific restrictions."
+
+[[commands]]
+category = "Version Control"
+package = "delta"
+
+[[commands]]
+category = "Utilities"
+package = "fend"
+
+[[commands]]
+category = "Version Control"
+package = "hci"
+
+[[commands]]
+category = "Information Management"
+name = "hx"
+package = "helix"
+
+[[commands]]
+category = "Information Management"
+name = "nvim"
+command = "nix run github:nix-community/neovim-nightly-overlay"
+package = "neovim"
+
+[[commands]]
+category = "Package Management"
+package = "pnpm"
+
+[[commands]]
+category = "Version Control"
+package = "pre-commit"
+
+[[commands]]
+category = "Interactive Shell & Scripting"
+package = "rust-script"
+
+[[commands]]
+category = "Information Management"
+package = "tldr"
+
+[[commands]]
+category = "Information Management"
+package = "tokei"
+
+[[commands]]
+category = "Information Management"
+package = "treefmt2"
+
+[[env]]
+name = "CRAOLE"
+value = "on"
+
+[devshell]
+packages = [
+  "getoptions",
+  "jq",
+  "thefuck",
+  "lesspipe",
+  "just",
+  "powershell",
+  "bashInteractive",
+  "glib",
+  "treefmt2",
+
+  #| Languages Tools and Formatters
+  "coreutils-prefixed",
+  # php
+
+  #| Nix
+  "nixfmt-rfc-style",
+  "nixd",
+  "deadnix",
+
+  #| JavaScript/TypeScript
+  "biome",                        # Formatter, linter, and more
+  "nodePackages_latest.prettier", # Formatter
+  "prettierd",                    # Formatter daemon
+  "pnpm",
+
+  #| Rust
+  "rustup",
+  # "rustfmt",   # Formatter
+  "leptosfmt",
+
+  #| Python
+  # python314
+  "ruff",
+
+  #| Shell
+  "shfmt",
+  "shellcheck",
+  "fish-lsp",
+
+  #| SQL
+  "sqlfluff", # Formatter/linter
+
+  #| Configuration
+  "taplo",   # Toml Formatter
+  "stylua",  # Lua Formatter
+  "yamlfmt", # YamlFormatter
+
+  # Typst
+  "typst",
+  "typstfmt", # Formatter
+  "typstyle", # Linters
+]

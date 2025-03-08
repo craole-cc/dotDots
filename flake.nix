@@ -16,7 +16,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    systems = "";
+    # systems = "";
 
     flakeParts = {
       url = "github:hercules-ci/flake-parts";
@@ -58,11 +58,11 @@
     flakeUtils.lib.eachDefaultSystem (
       system:
       let
-        # Small tool to iterate over each systems
-        eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
+        # # Small tool to iterate over each systems
+        # eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
 
-        # Eval the treefmt modules from ./treefmt.nix
-        treefmtEval = eachSystem (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
+        # # Eval the treefmt modules from ./treefmt.nix
+        # treefmtEval = eachSystem (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
 
         paths =
           let
@@ -95,6 +95,7 @@
             devShells = rec {
               default = flake.store + parts.devShells;
               dots = default + "/dots.toml";
+              dev = default + "/dev.toml";
               env = default + "/env.toml";
               media = default + "/media.toml";
             };
@@ -169,16 +170,17 @@
           mkShell {
             imports = with paths.devShells; [
               (importTOML dots)
-              (importTOML media)
-              (importTOML env)
+              # (importTOML dev)
+              # (importTOML media)
+              # (importTOML env)
             ];
           };
 
-        formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
+        # formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
 
-        checks = eachSystem (pkgs: {
-          formatting = treefmtEval.${pkgs.system}.config.build.check self;
-        });
+        # checks = eachSystem (pkgs: {
+        #   formatting = treefmtEval.${pkgs.system}.config.build.check self;
+        # });
         nixosConfigurations = {
           QBX = mkConfig "QBX" { };
           Preci = mkConfig "Preci" { };
