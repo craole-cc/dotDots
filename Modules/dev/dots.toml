@@ -39,6 +39,7 @@ help = "Update flake inputs, sync repo, and push changes"
 [[commands]]
 category = "Information Management"
 name = "codium"
+command = "nix run github:Numtide/codium"
 package = "vscodium-fhs"
 help = "Visual Studio Code wrapper without telemetry or nix-specific restrictions."
 
@@ -47,7 +48,7 @@ category = "Version Control"
 package = "delta"
 
 [[commands]]
-category = "Handy Utilities"
+category = "Utilities"
 package = "fend"
 
 [[commands]]
