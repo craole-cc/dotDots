@@ -23,13 +23,14 @@ let
   };
   devShells = rec {
     default = flake.store + parts.devShells;
-    dots = default + "/dots.toml";
+    dots = default + "/dots.nix";
+    dotsToml = default + "/dots.toml";
     dev = default + "/dev.toml";
     env = default + "/env.toml";
     media = default + "/media.toml";
   };
   core = {
-    default = modules.store;
+    default = flake.modules.store;
     configurations = {
       hosts = core.default + parts.hosts;
       users = core.default + parts.users;
@@ -42,7 +43,7 @@ let
     services = core.default + parts.svcs;
   };
   home = {
-    default = modules.store + "/home";
+    default = flake.modules.store + "/home";
     configurations = home.default + parts.cfgs;
     environment = home.default + parts.env;
     libraries = home.default + parts.libs;
@@ -53,17 +54,17 @@ let
   };
   scripts = {
     global = flake.local + parts.bin;
-    local = modules.store + parts.scripts;
+    local = flake.modules.store + parts.scripts;
     store = flake.store + parts.scripts;
-    dots = modules.store + parts.scripts + "/init_dots";
+    dots = flake.modules.store + parts.scripts + "/init_dots";
   };
-  modules = {
-    local = flake.local + parts.modules;
-    store = flake.store + parts.modules;
-  };
+  # modules = {
+  #   local = flake.local + parts.modules;
+  #   store = flake.store + parts.modules;
+  # };
   libraries = {
-    local = modules.local + parts.libs;
-    store = modules.store + parts.libs;
+    local = flake.modules.local + parts.libs;
+    store = flake.modules.store + parts.libs;
     mkCore = core.libraries + parts.mkCore;
     mkConf = core.libraries + parts.mkConf;
   };
@@ -76,7 +77,6 @@ in
     home
     scripts
     parts
-    modules
     libraries
     ;
 }
