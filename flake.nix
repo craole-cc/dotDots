@@ -168,7 +168,7 @@
             in
             with shells;
             {
-              default = dots ;
+              default = env ;
               inherit dots env;
             };
         };
