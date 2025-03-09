@@ -1,16 +1,3 @@
-let
-  nixosMods = "/Modules/nixos";
-  paths = import (./. + nixosMods + "/paths.nix") rec {
-    store = ./.;
-    local = "/home/craole/.dots"; # TODO: Not portable
-    modules = {
-      store = store + nixosMods;
-      local = local + nixosMods;
-    };
-  };
-in
-# inherit (builtins) map attrNames readDir;
-# inherit (paths.modules) parts;
 {
   description = "NixOS Configuration Flake";
 
@@ -140,6 +127,23 @@ in
 
   outputs =
     inputs@{ self, ... }:
+    let
+      nixosMods = "/Modules/nixos";
+      paths = import (./. + nixosMods + "/paths.nix") rec {
+        store = ./.;
+        local = "/home/craole/.dots"; # TODO: Not portable
+        modules = {
+          store = store + nixosMods;
+          local = local + nixosMods;
+        };
+      };
+      mkConfig = import paths.libraries.mkConf {
+        inherit inputs paths;
+      };
+    in
+    # inherit (builtins) map attrNames readDir;
+    # inherit (paths.modules) parts;
+
     inputs.flakeParts.lib.mkFlake { inherit inputs; } {
       debug = true;
       systems = [
@@ -148,14 +152,50 @@ in
         "aarch64-darwin"
       ];
       # imports = map (fn: ./modules/flake-parts/${fn}) (attrNames (readDir ./modules/flake-parts));
+      imports = with inputs; [
+        flakeShell.flakeModule
+      ];
+
+      perSystem =
+        { ... }:
+        {
+          devshells =
+            let
+              dots = import paths.devShells.dots;
+              env = import paths.devShells.env;
+            in
+            {
+              default = dots;
+              inherit dots env;
+            };
+        };
 
       # perSystem =
-      #   { lib, system, ... }:
+      #   { pkgs, ... }:
       #   {
       #     # Make our overlay available to the devShell
       #     devShells = {
-      #       default = paths.devShells.dots;
+      #       # default = import paths.devShells.dots;
+      #       default = {
+      #         env = [
+      #           {
+      #             name = "HTTP_PORT";
+      #             value = 8080;
+      #           }
+      #         ];
+      #         commands = [
+      #           {
+      #             help = "print hello";
+      #             name = "hello";
+      #             command = "echo hello";
+      #           }
+      #         ];
+      #         packages = [
+      #           pkgs.cowsay
+      #         ];
+      #       };
       #     };
+
       #     # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
       #     # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
       #     # _module.args.pkgs = import inputs.nixpkgs {
