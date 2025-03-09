@@ -1,17 +1,16 @@
 let
-  flake = rec {
+  nixosMods = "/Modules/nixos";
+  paths = import (./. + nixosMods + "/paths.nix") rec {
     store = ./.;
     local = "/home/craole/.dots"; # TODO: Not portable
-    nixos = "/Modules/nixos";
     modules = {
-      store = store + nixos;
-      local = local + nixos;
+      store = store + nixosMods;
+      local = local + nixosMods;
     };
   };
-  paths = import (flake.modules.store + "/paths.nix") { inherit flake; };
-  inherit (builtins) map attrNames readDir;
-  inherit (paths.modules) parts;
 in
+# inherit (builtins) map attrNames readDir;
+# inherit (paths.modules) parts;
 {
   description = "NixOS Configuration Flake";
 
@@ -150,27 +149,27 @@ in
       ];
       # imports = map (fn: ./modules/flake-parts/${fn}) (attrNames (readDir ./modules/flake-parts));
 
-      devshells = {
-        default = paths.devShells.dots;
-      };
-      perSystem =
-        { lib, system, ... }:
-        {
-          # Make our overlay available to the devShell
-          # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
-          # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = lib.attrValues self.overlays;
-            config.allowUnfree = true;
-          };
-        };
+      # perSystem =
+      #   { lib, system, ... }:
+      #   {
+      #     # Make our overlay available to the devShell
+      #     devShells = {
+      #       default = paths.devShells.dots;
+      #     };
+      #     # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
+      #     # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
+      #     # _module.args.pkgs = import inputs.nixpkgs {
+      #     #   inherit system;
+      #     #   overlays = lib.attrValues self.overlays;
+      #     #   config.allowUnfree = true;
+      #     # };
+      #   };
 
       # https://omnix.page/om/ci.html
-      flake.om.ci.default.ROOT = {
-        dir = ".";
-        steps.flake-check.enable = false; # Doesn't make sense to check nixos config on darwin!
-        steps.custom = { };
-      };
+      # flake.om.ci.default.ROOT = {
+      #   dir = ".";
+      #   steps.flake-check.enable = false; # Doesn't make sense to check nixos config on darwin!
+      #   steps.custom = { };
+      # };
     };
 }
