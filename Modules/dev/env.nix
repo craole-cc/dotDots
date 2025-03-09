@@ -31,7 +31,24 @@
     zsh
     just
   ];
-
+  env = [
+    {
+      name = "HTTP_PORT";
+      value = 8080;
+    }
+    {
+      name = "PATH";
+      prefix = "Bin";
+    }
+    {
+      name = "XDG_CACHE_DIR";
+      eval = "$PRJ_ROOT/.cache";
+    }
+    {
+      name = "CARGO_HOME";
+      unset = true;
+    }
+  ];
   commands = [
     {
       name = "rebuild";
