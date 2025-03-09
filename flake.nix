@@ -161,11 +161,14 @@
         {
           devshells =
             let
-              dots = import paths.devShells.dots;
-              env = import paths.devShells.env;
+              shells = with paths.devShells; {
+                dots = import dots.nix;
+                env = import env.nix;
+              };
             in
+            with shells;
             {
-              default = dots;
+              default = dots ;
               inherit dots env;
             };
         };

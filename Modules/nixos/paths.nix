@@ -28,10 +28,15 @@ let
   };
   devShells = rec {
     default = store + parts.devShells;
-    dots = default + "/dots.nix";
-    dotsToml = default + "/dots.toml";
+    dots = {
+      nix = default + "/dots.nix";
+      toml = default + "/dots.toml";
+    };
+    env = {
+      nix = default + "/env.nix";
+      toml = default + "/env.toml";
+    };
     dev = default + "/dev.toml";
-    env = default + "/env.toml";
     media = default + "/media.toml";
   };
   core = {
