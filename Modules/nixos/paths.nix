@@ -1,9 +1,5 @@
+{ flake, ... }:
 let
-  flake = {
-    local = "/home/craole/.dots";
-    root = "/dots";
-    store = ./.;
-  };
   parts = {
     args = "/args";
     cfgs = "/configurations";

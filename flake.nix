@@ -1,61 +1,6 @@
 {
   description = "NixOS Configuration Flake";
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      ...
-    }@inputs:
-    inputs.flakeUtils.lib.eachDefaultSystem (
-      system:
-      let
-        paths = import ./paths.nix;
-        mkConfig = import paths.libraries.mkConf {
-          inherit self inputs paths;
-        };
-      in
-      {
-        # systems = nixpkgs.lib.systems.flakeExposed;
-        # systems = [
-        #   "x86_64-linux"
-        #   "aarch64-linux"
-        # ];
-
-        devShells.default =
-          let
-            pkgs = import nixpkgs {
-              inherit system;
-              config.allowUnfree = true;
-              overlays = with inputs; [ flakeShell.overlays.default ];
-            };
-            inherit (pkgs.devshell) mkShell importTOML;
-          in
-          mkShell {
-            imports = with paths.devShells; [
-              (importTOML dots)
-              # (importTOML dev)
-              # (importTOML media)
-              # (importTOML env)
-            ];
-          };
-
-        nixosConfigurations = {
-          QBX = mkConfig "QBX" { };
-          Preci = mkConfig "Preci" { };
-          dbOOK = mkConfig "dbOOK" { };
-        };
-
-        #TODO: Create separate config directory for nix darwin systems since the config is drastically different
-        # darwinConfigurations = {
-        #   MBPoNine = mkDarwinConfig "MBPoNine" { };
-        # };
-
-        # TODO create mkHome for standalone home manager configs
-        # homeConfigurations = mkHomeConfig "craole" { };
-      }
-    );
-
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     nixosUnstable.url = "nixpkgs/nixos-unstable";
@@ -96,4 +41,59 @@
     };
     stylix.url = "github:danth/stylix";
   };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      ...
+    }@inputs:
+    inputs.flakeUtils.lib.eachDefaultSystem (
+      system:
+      let
+        flake = rec {
+          local = "/home/craole/.dots";
+          root = "/dots";
+          store = ./.;
+          nixos = store + "Modules/nixos";
+        };
+        paths = import (flake.nixos + "/paths.nix") { inherit flake; };
+        mkConfig = import paths.libraries.mkConf {
+          inherit self inputs paths;
+        };
+      in
+      {
+        devShells.default =
+          let
+            pkgs = import nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
+              overlays = with inputs; [ flakeShell.overlays.default ];
+            };
+            inherit (pkgs.devshell) mkShell importTOML;
+          in
+          mkShell {
+            imports = with paths.devShells; [
+              (importTOML dots)
+              # (importTOML dev)
+              # (importTOML media)
+              # (importTOML env)
+            ];
+          };
+
+        nixosConfigurations = {
+          QBX = mkConfig "QBX" { };
+          Preci = mkConfig "Preci" { };
+          dbOOK = mkConfig "dbOOK" { };
+        };
+
+        #TODO: Create separate config directory for nix darwin systems since the config is drastically different
+        # darwinConfigurations = {
+        #   MBPoNine = mkDarwinConfig "MBPoNine" { };
+        # };
+
+        # TODO create mkHome for standalone home manager configs
+        # homeConfigurations = mkHomeConfig "craole" { };
+      }
+    );
 }
