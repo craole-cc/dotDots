@@ -34,8 +34,10 @@
         #@ Sync repo and push changes
         git add --all :/
         if git status --porcelain | grep -q .; then
-            git commit --message "$\{*:-'General flake update'\}" || true
-            git push
+          msg="General flake update"
+          [ $# -gt 0 ] && msg="$*"
+          git commit --message "$mnsg" || true
+          git push
         fi
       '';
       help = "Update flake inputs, sync repo, and push changes";
