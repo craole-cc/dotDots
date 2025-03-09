@@ -6,14 +6,12 @@
       command = "sudo nixos-rebuild --flake $DOTS switch $@";
       help = "rebuild current NixOS";
     }
-
     {
       name = "Clean";
       category = "Flake/System Management";
       command = "nix-collect-garbage --delete-old";
       help = "rebuild current NixOS";
     }
-
     {
       name = "Update";
       category = "Flake/System Management";
