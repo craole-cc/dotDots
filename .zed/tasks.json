@@ -3,24 +3,25 @@
 // Example:
 [
   {
-      "label": "Update Repository",
-      "command": ". Modules/nixos/scripts/update-repo.sh",    
-      // "env": { "foo": "bar" },
-      "use_new_terminal": false,
-      "allow_concurrent_runs": false,
-      "reveal": "always",
-      "reveal_target": "center",
-      "hide": "on_success"
+    "label": "Update Repository",
+    "command": "update-repo.sh",
+    "env": { "PATH": "$PATH:Modules/nixos/scripts" },
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "center",
+    "hide": "on_success"
   },
   {
-      "label": "Update Flake",
-      "command": ". Modules/nixos/scripts/update-flake.sh",
-      "use_new_terminal": false,
-      "allow_concurrent_runs": false,
-      "reveal": "always",
-      "reveal_target": "center",
-      "hide": "on_success"
-    },
+    "label": "Update Flake",
+    "command": "update-repo.sh && update-flake.sh",
+    "env": { "PATH": "$PATH:Modules/nixos/scripts" },
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "center",
+    "hide": "on_success"
+  },
   {
     "label": "Example task",
     "command": "for i in {1..5}; do echo \"Hello $i/5\"; sleep 1; done",
