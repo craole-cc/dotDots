@@ -14,6 +14,9 @@ parse_arguments() {
     #@ Parse arguments
     while [ $# -gt 0 ]; do
         case "${1}" in
+        -d | --verbose)
+            verbose=true
+            ;;
         -m | --message)
             msg="${2}"
             shift
@@ -52,18 +55,10 @@ update_repo() {
         read -r msg &&
         git commit --message "${msg:-"$default_msg"}"
 
-        #@ Update the remote repository
-         git push --recurse-submodules=check --quiet |
-             tee /dev/stderr | 
-             sed -e '/^Enumerating objects:/d' \
-                 -e '/^Counting objects:/d' \
-                 -e '/^Delta compression/d' \
-                 -e '/^Compressing objects:/d' \
-                 -e '/^Writing objects:/d' \
-                 -e '/^Total/d' \
-                 -e '/^remote: Resolving deltas:/d' \
-                 -e '/^To https:\/\/github\.com/d' \
-                 -e '/^ * \[[a-z0-9]* [a-f0-9]*\]/d'
+    #@ Update the remote repository
+    push_args="--recurse-submodules=check"
+    [ -n "${verbose}" ]|| push_args="${push_args} --quiet"
+    eval git push "${push_args:-}" 2>/dev/null
 }
 
 main "$@"
