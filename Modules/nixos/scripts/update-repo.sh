@@ -57,7 +57,7 @@ update_repo() {
 
     #@ Update the remote repository
     push_args="--recurse-submodules=check"
-    [ -n "${verbose}" ]|| push_args="${push_args} --quiet"
+    [ -n "${verbose:-}" ]|| push_args="${push_args} --quiet"
     eval git push "${push_args:-}" 2>/dev/null
 }
 
