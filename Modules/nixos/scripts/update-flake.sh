@@ -35,6 +35,7 @@ update_flake() {
 	}
 
 	eval nix flake update "${args}"
+	return 0
 }
 
 main "$@"
