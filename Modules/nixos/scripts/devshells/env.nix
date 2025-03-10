@@ -35,7 +35,7 @@
     }
     {
       name = "PATH";
-      prefix = "paths.bin";
+      prefix = "${paths.scripts.store.flake}";
     }
     {
       name = "XDG_CACHE_DIR";
