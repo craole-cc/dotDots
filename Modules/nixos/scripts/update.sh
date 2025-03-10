@@ -30,7 +30,7 @@ parse_arguments() {
 update_repo() {
 	#@ Proceed only if there are changes
 	status_output=$(git status --porcelain 2>/dev/null)
-    [ -z "${status_output}" ] && return 0
+	[ -z "${status_output}" ] && return 0
 
 	#@ Display the current status
 	git status --short
@@ -50,8 +50,8 @@ update_repo() {
 	default_msg="${last_msg:-"General update"}"
 	[ -z "${msg}" ] &&
 		printf "Enter a commit message [Default: %s ]: " "${default_msg}" &&
-		read -r msg
-	git commit --message "${msg:-"$default_msg"}"
+		read -r msg &&
+		git commit --message "${msg:-"$default_msg"}"
 
 	#@ Update the remote repository
 	git push --recurse-submodules=check --quiet
