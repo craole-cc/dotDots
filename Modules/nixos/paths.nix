@@ -67,14 +67,14 @@ let
     packages = home.default + parts.pkgs;
     services = home.default + parts.svcs;
   };
-  scripts =
-    let
-    in
+  bin =
     {
-      # local = {
-      #   shellscript = local + parts.bin;
-      # };
-      # # local = modules.store + parts.scripts;
+      local = {
+        shellscript = local + parts.bin;
+      };
+        store = {
+            shellscript = store + parts.bin;
+        };
       # store = {
       #   global = store + parts.bin;
       dots = modules.store + parts.scripts + "/init_dots";
