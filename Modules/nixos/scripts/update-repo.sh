@@ -54,7 +54,6 @@ update_repo() {
 
     #@ Update the remote repository
     # git push --recurse-submodules=check
-    GIT_CONFIG_OPTIONS="advice.pushNonFastForward=false advice.statusHints=false advice.commitBeforeMerge=false advice.resolveConflict=false advice.implicitIdentity=false advice.detachedHead=false" 
-    git push --recurse-submodules=check
+    git push --recurse-submodules=check 2>&1 | grep -i "error"
 
 main "$@"
