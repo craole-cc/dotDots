@@ -66,6 +66,7 @@ update_repo() {
     filter_patterns="$filter_patterns|remote: Resolving deltas:"
     filter_patterns="$filter_patterns|To https:\/\/github\.com"
     
+    echo "Patterns to filter: ${filter_patterns}"
     #@ Check for errors
     if printf "%s" "$push_output" | grep -iq "error"; then
         printf "%s" "$push_output"
