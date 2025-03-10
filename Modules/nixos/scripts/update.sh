@@ -50,7 +50,8 @@ update_repo() {
 	[ -z "${msg}" ] &&
 		printf "Enter a commit message [Default: %s ]: " "${default_msg}" &&
 		read -r msg
-	git commit --quiet --message="${msg:-"$default_msg"}"
+		# git commit --quiet --message="${msg:-"$default_msg"}"
+	git commit --message="${msg:-"$default_msg"}"
 
 	#@ Update the remote repository
 	git push --recurse-submodules=check --quiet
