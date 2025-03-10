@@ -53,8 +53,8 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
         #@ Update the remote repository
-            # tee /dev/stderr | 
         git push --recurse-submodules=check |
+            tee /dev/stderr | 
             sed -e '/^Enumerating objects:/d' \
                 -e '/^Counting objects:/d' \
                 -e '/^Delta compression/d' \
