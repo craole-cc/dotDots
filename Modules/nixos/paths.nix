@@ -1,6 +1,5 @@
 {
-  store,
-  local,
+  flake,
   modules,
   ...
 }:
@@ -12,22 +11,28 @@ let
     libs = "/libraries";
     mkCore = "/helpers/mkCoreConfig.nix";
     mkConf = "/helpers/mkConfig.nix";
-    modules = "/Modules/nixos";
-    devShells = "/Modules/dev";
+    shells = "/dev";
     mods = "/modules";
     opts = "/options";
     pkgs = "/packages";
-    bin = "/Bin";
     svcs = "/services";
     ui = "/ui";
     uiCore = "/ui/core";
     uiHome = "/ui/home";
     hosts = parts.cfgs + "/hosts";
     users = parts.cfgs + "/users";
-    scripts = "/scripts";
+    bin = {
+      default = "/Bin";
+      cmd = parts.bin.default + "/cmd";
+      nix = parts.bin.default + "/nix";
+      rust = parts.bin.default + "/rust";
+      shellscript = parts.bin.default + "/shellscript";
+      scripts = "/scripts";
+      devshells = parts.bin.scripts + "/devshells";
+    };
   };
   devShells = rec {
-    default = store + parts.devShells;
+    default = modules.store + parts.bin.devshells;
     dots = {
       nix = default + "/dots.nix";
       toml = default + "/dots.toml";
@@ -62,12 +67,18 @@ let
     packages = home.default + parts.pkgs;
     services = home.default + parts.svcs;
   };
-  scripts = {
-    global = local + parts.bin;
-    local = modules.store + parts.scripts;
-    store = store + parts.scripts;
-    dots = modules.store + parts.scripts + "/init_dots";
-  };
+  scripts =
+    let
+    in
+    {
+      # local = {
+      #   shellscript = local + parts.bin;
+      # };
+      # # local = modules.store + parts.scripts;
+      # store = {
+      #   global = store + parts.bin;
+      dots = modules.store + parts.scripts + "/init_dots";
+    };
   # modules = {
   #   local = flake.local + parts.modules;
   #   store = flake.store + parts.modules;
