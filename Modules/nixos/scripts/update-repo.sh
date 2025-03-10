@@ -53,10 +53,8 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
         #@ Update the remote repository
-        git push --recurse-submodules=check --quiet 2>&1 || {
-            # If there was an error, show the full output
-            git push --recurse-submodules=check 2>&1
-        }
+        git push --recurse-submodules=check --quiet
+        
         # push_output="$(git push --recurse-submodules=check 2>&1)"
         
         # #@ Check for errors
