@@ -168,13 +168,13 @@
       ];
 
       perSystem =
-        { ... }:
+        { pkgs,... }:
         {
           devshells =
             let
               shells = with paths.devShells; {
                 dots = import dots.nix;
-                env = import env.nix;
+                env = import env.nix {inherit pkgs paths;};
               };
             in
             with shells;
