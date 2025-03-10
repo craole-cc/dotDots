@@ -34,7 +34,7 @@ update_repo() {
 	*) printf "%s\n" "$pull_output" ;;
 	esac
 
-	#@ Proceed only if there are changes
+	#@ Skip if there are no changes
 	status_output=$(git status --porcelain 2>/dev/null)
 	[ -z "${status_output}" ] && return 0
 
@@ -53,7 +53,7 @@ update_repo() {
 		git commit --message "${msg:-"$default_msg"}"
 
 	#@ Update the remote repository
-	git push --recurse-submodules=check --quiet
+	git push --recurse-submodules=check
 }
 
 main "$@"
