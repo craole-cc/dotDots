@@ -1,5 +1,6 @@
 {
-  pkgs ? import <nixpkgs> { },
+  pkgs,
+  paths,
   ...
 }:
 {
@@ -38,7 +39,7 @@
     }
     {
       name = "PATH";
-      prefix = "Bin";
+      prefix = "paths";
     }
     {
       name = "XDG_CACHE_DIR";

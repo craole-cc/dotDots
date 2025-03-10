@@ -128,15 +128,26 @@
   outputs =
     inputs@{ self, ... }:
     let
-      nixosMods = "/Modules/nixos";
-      paths = import (./. + nixosMods + "/paths.nix") rec {
-        store = ./.;
-        local = "/home/craole/.dots"; # TODO: Not portable
-        modules = {
-          store = store + nixosMods;
-          local = local + nixosMods;
+      flakePaths = rec {
+        flake = {
+          store = ./.;
+          local = "/home/craole/.dots"; # TODO: Not portable
         };
+        parts = {
+          modules = "/Modules/nixos";
+        };
+        modules = {
+          store = flake.store + parts.modules;
+          local = flake.local + parts.modules;
+        };
+        self = modules.store + "/paths.nix";
       };
+      paths = import (flakePaths.modules.store + "/paths.nix") {
+        inherit (flakePaths) flake modules;
+      };
+
+      # import (./. + nixosMods + "/paths.nix") rec
+
       mkConfig = import paths.libraries.mkConf {
         inherit inputs paths;
       };
@@ -168,7 +179,7 @@
             in
             with shells;
             {
-              default = env ;
+              default = env;
               inherit dots env;
             };
         };
