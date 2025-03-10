@@ -2,17 +2,16 @@
 
 main() {
 	set -eu
-	set_defaults
 	parse_arguments "$@"
 	update_repo
 }
 
-set_defaults() {
+parse_arguments() {
+	#@ Set defaults
 	delimiter=" "
 	msg=""
-}
 
-parse_arguments() {
+	#@ Parse arguments
 	while [ $# -gt 0 ]; do
 		case "${1}" in
 		-m | --message)
