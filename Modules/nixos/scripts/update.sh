@@ -33,7 +33,7 @@ update_repo() {
     [ -z "${status_output}" ] && return 0
 
 	#@ Display the current status
-	git status --short
+	# git status --short
 
 	#@ Update the local repository
 	pull_output=$(git pull --quiet --autostash 2>&1)
