@@ -25,12 +25,17 @@
       help = "Remove old nixos and home-manager generations";
     }
     {
-      name = "update";
+      name = "repo";
+      category = "System Management";
+      command = ''update-repo.sh'';
+      help = "Sync git repository";
+    }
+    {
+      name = "flake";
       category = "System Management";
       command = ''update-repo.sh && update-flake.sh'';
-      help = "Update flake inputs, sync repo, and push changes";
+      help = "Update flake inputs and sync git repository";
     }
-
     {
       category = "Interactive Shell & Scripting";
       name = "bash";
