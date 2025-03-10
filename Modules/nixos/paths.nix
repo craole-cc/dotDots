@@ -2,8 +2,7 @@
   flake,
   modules,
   ...
-}:
-let
+}: let
   parts = {
     args = "/args";
     cfgs = "/configurations";
@@ -67,18 +66,17 @@ let
     packages = home.default + parts.pkgs;
     services = home.default + parts.svcs;
   };
-  bin =
-    {
-      local = {
-        shellscript = local + parts.bin;
-      };
-        store = {
-            shellscript = store + parts.bin;
-        };
-      # store = {
-      #   global = store + parts.bin;
-      dots = modules.store + parts.scripts + "/init_dots";
+  bin = {
+    local = {
+      shellscript = local + parts.bin;
     };
+    store = {
+      shellscript = store + parts.bin;
+    };
+    # store = {
+    #   global = store + parts.bin;
+    dots = modules.store + parts.scripts + "/init_dots";
+  };
   # modules = {
   #   local = flake.local + parts.modules;
   #   store = flake.store + parts.modules;
@@ -89,8 +87,7 @@ let
     mkCore = core.libraries + parts.mkCore;
     mkConf = core.libraries + parts.mkConf;
   };
-in
-{
+in {
   inherit
     devShells
     core

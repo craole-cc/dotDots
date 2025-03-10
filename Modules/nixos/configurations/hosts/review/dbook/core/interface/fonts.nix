@@ -2,12 +2,12 @@
   config,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (config) DOTS;
   inherit (DOTS.libs) native;
   inherit (native.options) mkOption;
-  inherit (native.types)
+  inherit
+    (native.types)
     listOf
     package
     either
@@ -23,18 +23,17 @@ let
   base = "interface";
   mod = "fonts";
   cfg = DOTS.${base}.${mod};
-in
-{
+in {
   options.DOTS.${base}.${mod} = {
     nerdfonts = {
       fonts = mkOption {
         description = "Fonts to install from nerdfonts";
-        default = [ "JetBrainsMono" ];
+        default = ["JetBrainsMono"];
         type = listOf (either package str);
       };
       package = mkOption {
         description = "The font package to use.";
-        default = pkgs.nerdfonts.override { fonts = cfg.nerdfonts.fonts; };
+        default = pkgs.nerdfonts.override {fonts = cfg.nerdfonts.fonts;};
         type = either package path;
       };
     };
@@ -61,7 +60,7 @@ in
 
       packages = mkOption {
         description = "The font to use in the console";
-        default = [ pkgs.terminus_font ];
+        default = [pkgs.terminus_font];
         type = listOf package;
       };
 
@@ -83,21 +82,20 @@ in
             package = pkgs.source-code-pro;
           }
         ];
-        type =
-          let
-            font = submodule {
-              options = {
-                name = mkOption {
-                  description = "Font name, as used by fontconfig.";
-                  type = str;
-                };
-                package = mkOption {
-                  description = "Package providing the font.";
-                  type = package;
-                };
+        type = let
+          font = submodule {
+            options = {
+              name = mkOption {
+                description = "Font name, as used by fontconfig.";
+                type = str;
+              };
+              package = mkOption {
+                description = "Package providing the font.";
+                type = package;
               };
             };
-          in
+          };
+        in
           nonEmptyListOf font;
       };
     };
@@ -149,7 +147,7 @@ in
 
     emoji = mkOption {
       type = listOf str;
-      default = [ "Noto Color Emoji" ];
+      default = ["Noto Color Emoji"];
       description = "The emoji fonts to use.";
     };
 

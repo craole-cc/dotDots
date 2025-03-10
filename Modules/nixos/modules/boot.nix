@@ -2,18 +2,17 @@
   specialArgs,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.lists) elem;
-  inherit (specialArgs.host)
+  inherit
+    (specialArgs.host)
     boot
     devices
     cpu
     ;
   inherit (boot) modules;
   inherit (cpu) brand;
-in
-{
+in {
   boot = {
     initrd = {
       availableKernelModules = modules;
@@ -33,11 +32,9 @@ in
           "amd"
           "x86"
         ])
-      then
-        [ "kvm-${brand}" ]
-      else
-        [ ];
-    extraModulePackages = [ ];
+      then ["kvm-${brand}"]
+      else [];
+    extraModulePackages = [];
   };
 
   inherit (devices) fileSystems swapDevices;

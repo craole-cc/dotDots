@@ -2,8 +2,7 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   dom = "dots";
   mod = "desktop";
   cfg = config.${dom}.${mod};
@@ -19,8 +18,7 @@ let
     (xserver.displayManager.lightdm.enable)
   ];
   activeCount = lib.count (x: x) enabledDMs;
-in
-{
+in {
   config = {
     assertions = [
       {

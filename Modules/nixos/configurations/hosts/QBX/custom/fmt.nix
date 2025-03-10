@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-let
+{pkgs, ...}: let
   formatterPackages = with pkgs; [
     treefmt2
     nixfmt-rfc-style
@@ -9,8 +7,7 @@ let
     shellcheck
     shfmt
   ];
-in
-{
+in {
   # programs.treefmt = {
   #   enable = true;
 

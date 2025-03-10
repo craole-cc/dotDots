@@ -3,8 +3,7 @@
   pkgs,
   lib,
   ...
-}:
-{
+}: {
   #powerManagement.powertop.enable = true;
   powerManagement.cpuFreqGovernor = "performance";
   console.keyMap = "us";
@@ -77,15 +76,15 @@
     tmp.cleanOnBoot = true;
     loader.systemd-boot.enable = true;
     initrd.systemd.enable = true;
-    initrd.availableKernelModules = [ "amdgpu" ];
-    initrd.kernelModules = [ "amdgpu" ];
+    initrd.availableKernelModules = ["amdgpu"];
+    initrd.kernelModules = ["amdgpu"];
     loader.timeout = 2;
     tmp.useTmpfs = true;
   };
 
   services = {
     fwupd.enable = true;
-    dbus.packages = with pkgs; [ dconf ];
+    dbus.packages = with pkgs; [dconf];
     zfs.autoSnapshot.enable = true;
     zfs.autoScrub.enable = true;
     openssh.enable = true;
@@ -94,7 +93,7 @@
     tlp.enable = true;
   };
   #services.xserver.enable = true;
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.xserver.videoDrivers = ["amdgpu"];
   services.xserver.deviceSection = ''
     Option "VariableRefresh" "true"
   '';

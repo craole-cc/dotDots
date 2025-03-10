@@ -2,11 +2,9 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   cfg = config.dots.users.craole;
-in
-{
+in {
   config = lib.mkIf cfg.enable {
     users.users.${cfg.name} = {
       isNormalUser = true;
@@ -31,26 +29,24 @@ in
 
     home-manager = {
       inherit (cfg) backupFileExtension;
-      users.${cfg.name} =
-        { osConfig, ... }:
-        {
-          home.stateVersion = osConfig.system.stateVersion;
-          programs.home-manager.enable = true;
-          dots = {
-            # services.hyprland.enable = cfg.hyprland.enable;
-          };
-          imports = [
-            #| Common
-            ../../services
-            # ../../modules
-            # ../../programs
-
-            #| Custom
-            ./services
-            ./modules
-            ./programs
-          ];
+      users.${cfg.name} = {osConfig, ...}: {
+        home.stateVersion = osConfig.system.stateVersion;
+        programs.home-manager.enable = true;
+        dots = {
+          # services.hyprland.enable = cfg.hyprland.enable;
         };
+        imports = [
+          #| Common
+          ../../services
+          # ../../modules
+          # ../../programs
+
+          #| Custom
+          ./services
+          ./modules
+          ./programs
+        ];
+      };
     };
   };
 }

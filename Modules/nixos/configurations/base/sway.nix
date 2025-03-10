@@ -1,12 +1,13 @@
-{ pkgs, lib, ... }:
-
 {
-
+  pkgs,
+  lib,
+  ...
+}: {
   services.upower.enable = true;
 
   programs.sway = {
     enable = true;
-    extraPackages = [ ];
+    extraPackages = [];
     wrapperFeatures = {
       base = true;
       gtk = true;
@@ -27,5 +28,4 @@
     XDG_SESSION_TYPE = "wayland";
     XDG_CURRENT_DESKTOP = "sway";
   };
-
 }

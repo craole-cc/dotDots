@@ -3,15 +3,12 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   enable = config.services.xserver.enable;
-in
-{
+in {
   config = mkIf enable {
-    environment.systemPackages =
-      with pkgs;
+    environment.systemPackages = with pkgs;
       [
         qalculate-gtk
         wmctrl

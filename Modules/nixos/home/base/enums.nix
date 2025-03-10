@@ -2,8 +2,7 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   #| Native Imports
   inherit (lib.options) mkOption;
   inherit (lib.types) listOf str;
@@ -13,8 +12,7 @@ let
   base = "enums";
   mod = "user";
   src = DOTS.sources.${mod};
-in
-{
+in {
   options.DOTS.${base}.${mod} = {
     configuration = mkOption {
       description = "{{mod}} configurations";

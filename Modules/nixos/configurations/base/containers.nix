@@ -1,7 +1,8 @@
-{ pkgs, lib, ... }:
-
 {
-
+  pkgs,
+  lib,
+  ...
+}: {
   virtualisation.docker = {
     autoPrune.enable = true;
     enable = true;
@@ -10,14 +11,13 @@
   };
 
   virtualisation.podman.enable = true;
-  virtualisation.containers.registries.search = [ "docker.io" ];
+  virtualisation.containers.registries.search = ["docker.io"];
 
   nix-compose.definitions.test-stack2.compose = {
-
     services.hello.image = pkgs.dockerTools.buildImage {
       name = "hello-docker";
       config = {
-        Cmd = [ "${pkgs.hello}/bin/hello" ];
+        Cmd = ["${pkgs.hello}/bin/hello"];
       };
     };
 
@@ -33,7 +33,7 @@
 
     services.nginx3 = {
       image = "nginx";
-      ports = [ "8083:80" ];
+      ports = ["8083:80"];
       volumes = [
         {
           source = pkgs.writeText "index.html" "Man, SCREW WORLD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
@@ -52,13 +52,10 @@
           target = "/my-volume3";
         }
       ];
-
     };
 
     volumes = {
-      test = { };
+      test = {};
     };
-
   };
-
 }
