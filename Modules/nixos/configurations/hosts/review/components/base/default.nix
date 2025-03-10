@@ -1,1 +1,1 @@
-{ imports = [ ./chromebook.nix ]; }
+{imports = [./chromebook.nix];}

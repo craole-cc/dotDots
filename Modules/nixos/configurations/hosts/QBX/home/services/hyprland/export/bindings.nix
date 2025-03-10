@@ -2,15 +2,15 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   cfg = config.dots.services.hyprland;
 
   inherit (lib.modules) mkIf;
   inherit (lib.attrsets) mapAttrsToList;
   inherit (lib.strings) toUpper;
 
-  inherit (cfg)
+  inherit
+    (cfg)
     launcher
     terminal
     editor
@@ -19,8 +19,7 @@ let
     workspaces
     directions
     ;
-in
-{
+in {
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland.settings = {
       "$MOD" = toUpper launcher.modifier;
@@ -161,7 +160,8 @@ in
           # Move workspace to other monitor
           mapAttrsToList (
             key: direction: "$MOD ALTSHIFT,${key},movecurrentworkspacetomonitor,${direction}"
-          ) directions
+          )
+          directions
         );
     };
   };

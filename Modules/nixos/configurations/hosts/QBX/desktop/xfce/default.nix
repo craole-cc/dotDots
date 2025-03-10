@@ -3,12 +3,10 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   cfgEnabled = config.dots.interface.desktop.environment == "xfce";
-in
-{
+in {
   config = mkIf cfgEnabled {
     services.xserver = {
       #@ Enable XFCE desktop environment
@@ -18,7 +16,7 @@ in
       displayManager.lightdm.enable = true;
 
       #@ Xterm is unnecessary since console is enabled automatically
-      excludePackages = [ pkgs.xterm ];
+      excludePackages = [pkgs.xterm];
     };
 
     #@ Exclude packages [optional]

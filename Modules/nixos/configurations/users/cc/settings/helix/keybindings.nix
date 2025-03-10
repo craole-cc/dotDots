@@ -1,8 +1,7 @@
 let
   app = "helix";
   user = "craole";
-in
-{
+in {
   config.dot.users.${user}.applications.${app} = {
     keybindings = {
       normal = {

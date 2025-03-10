@@ -2,12 +2,10 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   cfg = config.dots.env.gnome.wayland;
-in
-{
+in {
   config = mkIf cfg.enable {
     services.xserver.displayManager.gdm.wayland = true;
 

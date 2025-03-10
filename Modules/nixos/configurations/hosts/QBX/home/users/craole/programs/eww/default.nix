@@ -1,6 +1,5 @@
-{ osConfig, ... }:
-{
-  imports = [ ];
+{osConfig, ...}: {
+  imports = [];
   programs.eww = {
     enable = true;
     # configDir = osConfig.dots.paths.conf.eww;

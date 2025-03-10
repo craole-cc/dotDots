@@ -2,32 +2,29 @@
   specialArgs,
   pkgs,
   ...
-}:
-let
+}: let
   enable = specialArgs.host.desktop == "xfce";
-in
-{
+in {
   services =
-    if enable then
-      {
-        xserver = {
-          enable = true;
-          excludePackages = [ pkgs.xterm ];
-          displayManager = {
-            lightdm = {
+    if enable
+    then {
+      xserver = {
+        enable = true;
+        excludePackages = [pkgs.xterm];
+        displayManager = {
+          lightdm = {
+            enable = true;
+            greeters.slick = {
               enable = true;
-              greeters.slick = {
-                enable = true;
-                theme.name = "Zukitre-dark";
-              };
+              theme.name = "Zukitre-dark";
             };
-            sessionCommands = ''
-              test -f ~/.xinitrc && . ~/.xinitrc
-            '';
           };
-          desktopManager.xfce.enable = true;
+          sessionCommands = ''
+            test -f ~/.xinitrc && . ~/.xinitrc
+          '';
         };
-      }
-    else
-      { };
+        desktopManager.xfce.enable = true;
+      };
+    }
+    else {};
 }

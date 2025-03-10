@@ -1,7 +1,5 @@
-{ pkgs, ... }:
-{
-  home.packages =
-    with pkgs;
+{pkgs, ...}: {
+  home.packages = with pkgs;
     [
       #| Fonts
       (pkgs.stdenv.mkDerivation {
@@ -42,18 +40,24 @@
         "vscodeIcons"
         "Noto Color Emoji"
       ];
-      monospace = [
-        "Operator Mono Lig Medium"
-        "Operator Mono Lig"
-        "Cascadia Code PL"
-        "JetBrainsMono Nerd Font"
-      ] ++ emoji;
-      sansSerif = [
-        "Lexend"
-      ] ++ emoji;
-      serif = [
-        "Noto Serif"
-      ] ++ emoji;
+      monospace =
+        [
+          "Operator Mono Lig Medium"
+          "Operator Mono Lig"
+          "Cascadia Code PL"
+          "JetBrainsMono Nerd Font"
+        ]
+        ++ emoji;
+      sansSerif =
+        [
+          "Lexend"
+        ]
+        ++ emoji;
+      serif =
+        [
+          "Noto Serif"
+        ]
+        ++ emoji;
     };
   };
 }

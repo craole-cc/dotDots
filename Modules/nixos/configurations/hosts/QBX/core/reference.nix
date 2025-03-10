@@ -3,8 +3,7 @@
   lib,
   modulesPath,
   ...
-}:
-{
+}: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
@@ -19,11 +18,11 @@
         "usb_storage"
         "sd_mod"
       ];
-      kernelModules = [ ];
+      kernelModules = [];
     };
-    kernelModules = [ "kvm-amd" ];
-    kernelParams = [ "nvidia.NVreg_PreserveVideoMemoryAllocations=1" ];
-    extraModulePackages = [ ];
+    kernelModules = ["kvm-amd"];
+    kernelParams = ["nvidia.NVreg_PreserveVideoMemoryAllocations=1"];
+    extraModulePackages = [];
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -33,7 +32,7 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/054d14c9-33c7-4fd3-8092-c9efd260e677";
     fsType = "btrfs";
-    options = [ "subvol=@" ];
+    options = ["subvol=@"];
   };
 
   fileSystems."/boot" = {
@@ -45,7 +44,7 @@
     ];
   };
 
-  swapDevices = [ ];
+  swapDevices = [];
 
   networking = {
     hostName = "QBX";

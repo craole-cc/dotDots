@@ -1,9 +1,9 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   dom = "dots";
   mod = "users";
   inherit (lib.options) mkOption mkEnableOption;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     attrsOf
     nullOr
     passwdEntry
@@ -13,19 +13,17 @@ let
 
   # Secure directory for password files
   passwordDir = "/var/lib/dots/passwords";
-in
-{
+in {
   options.${dom}.${mod} = mkOption {
     description = ''Users configuration'';
-    default = { };
+    default = {};
     type = attrsOf (
       submodule (
         {
           name,
           config,
           ...
-        }:
-        {
+        }: {
           options = {
             enable = mkEnableOption "Enable user";
             isSystemUser = mkOption {
@@ -34,7 +32,7 @@ in
             };
             groups = mkOption {
               description = ''Additional user groups'';
-              default = [ "networkmanager" ];
+              default = ["networkmanager"];
             };
             description = mkOption {
               description = ''User description'';
@@ -45,10 +43,9 @@ in
               default = null;
               description = ''Specifies the hashed password for the user.'';
             };
-            passwordFile =
-              let
-                filePath = "${passwordDir}/${name}";
-              in
+            passwordFile = let
+              filePath = "${passwordDir}/${name}";
+            in
               mkOption {
                 type = nullOr str;
                 default = "${filePath}";
@@ -68,9 +65,11 @@ in
                 example = "${filePath}";
               };
             hyprland = {
-              enable = mkEnableOption ''Hyprland'' // {
-                default = config.isNormalUser;
-              };
+              enable =
+                mkEnableOption ''Hyprland''
+                // {
+                  default = config.isNormalUser;
+                };
             };
           };
         }

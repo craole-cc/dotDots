@@ -3,17 +3,16 @@
   pkgs,
   specialArgs,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   inherit (lib.attrsets) attrValues;
   inherit (lib.lists) any;
   inherit (specialArgs) host;
   enable =
-    host.desktop == "hyprland"
+    host.desktop
+    == "hyprland"
     || any (user: user.desktop.manager or null == "hyprland") (attrValues host.userConfigs);
-in
-{
+in {
   config = mkIf enable {
     programs = {
       hyprland = {

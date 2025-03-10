@@ -1,3 +1,3 @@
 {
-  imports = [ ./base ];
+  imports = [./base];
 }

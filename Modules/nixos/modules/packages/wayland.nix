@@ -3,12 +3,10 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   enable = with config; programs.hyprland.enable || services.displayManager.sddm.wayland.enable;
-in
-{
+in {
   config = mkIf enable {
     environment.systemPackages = with pkgs; [
       qalculate-qt

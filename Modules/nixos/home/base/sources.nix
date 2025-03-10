@@ -2,8 +2,7 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.options) mkOption;
 
   #| Extended Imports
@@ -12,8 +11,7 @@ let
   mod = "user";
 
   inherit (DOTS.lib.helpers) makeSource;
-in
-{
+in {
   options.DOTS.${base}.${mod} = {
     configuration = mkOption {
       description = "{{mod}} configuration {{base}}";

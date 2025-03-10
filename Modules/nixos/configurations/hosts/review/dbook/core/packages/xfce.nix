@@ -2,15 +2,13 @@
   config,
   pkgs,
   ...
-}:
-let
+}: let
   enable = config.DOTS.interface.manager == "hyprland";
-in
-{
+in {
   services = {
     xserver = {
       inherit enable;
-      excludePackages = [ pkgs.xterm ];
+      excludePackages = [pkgs.xterm];
       displayManager = {
         lightdm = {
           inherit enable;
@@ -38,8 +36,7 @@ in
     };
   };
 
-  environment.systemPackages =
-    with pkgs;
+  environment.systemPackages = with pkgs;
     [
       orca
       file-roller

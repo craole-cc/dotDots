@@ -42,11 +42,11 @@
         };
       };
 
-      swap = [ ];
+      swap = [];
     };
 
     devices = {
-      network = [ "wlp2s0" ];
+      network = ["wlp2s0"];
     };
   };
 }

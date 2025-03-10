@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
-  imports = [ ];
-  home.packages = with pkgs; [ brave ];
+{pkgs, ...}: {
+  imports = [];
+  home.packages = with pkgs; [brave];
 }

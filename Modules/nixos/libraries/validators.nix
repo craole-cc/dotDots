@@ -2,8 +2,7 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   #| Module Parts
   top = "DOTS";
   dom = "lib";
@@ -14,7 +13,8 @@ let
   inherit (builtins) baseNameOf match;
   inherit (lib) mkOption elem any;
   inherit (lib.filesystem) pathIsDirectory;
-  inherit (lib.strings)
+  inherit
+    (lib.strings)
     # stringToCharacters
     # hasPrefix
     hasSuffix
@@ -39,12 +39,10 @@ let
   isAllowedDir = mkOption {
     description = "Check if a file is a Nix file.";
     example = ''isNixFile "file.nix"'';
-    default =
-      path:
-      let
-        isDir = pathIsDirectory path;
-        isAllowed = !isGitIgnored path;
-      in
+    default = path: let
+      isDir = pathIsDirectory path;
+      isAllowed = !isGitIgnored path;
+    in
       isDir && isAllowed;
   };
 
@@ -63,25 +61,21 @@ let
   isGitIgnored = mkOption {
     description = "Check if a file is ignored by Git based on entries in .gitignore.";
     example = ''isGitIgnored "file.txt"'';
-    default =
-      path:
-      let
-        gitignorePath = locateProjectRoot + "/.gitignore";
-        gitignoreContents = fileContents gitignorePath;
-        gitignorePatterns = splitString "\n" gitignoreContents;
+    default = path: let
+      gitignorePath = locateProjectRoot + "/.gitignore";
+      gitignoreContents = fileContents gitignorePath;
+      gitignorePatterns = splitString "\n" gitignoreContents;
 
-        absPath = pathof path;
-        absPatt = map (pattern: pathof pattern) gitignorePatterns;
+      absPath = pathof path;
+      absPatt = map (pattern: pathof pattern) gitignorePatterns;
 
-        matchesPattern =
-          pattern: file:
-          let
-            regex = replaceStrings [ "*" ] [ ".*" ] pattern;
-          in
-          match regex file != null;
-
-        matches = any (pattern: matchesPattern pattern absPath) absPatt;
+      matchesPattern = pattern: file: let
+        regex = replaceStrings ["*"] [".*"] pattern;
       in
+        match regex file != null;
+
+      matches = any (pattern: matchesPattern pattern absPath) absPatt;
+    in
       matches;
   };
 
@@ -95,8 +89,7 @@ let
       isGitIgnored
       ;
   };
-in
-{
+in {
   options = {
     ${top}.${dom}.${mod} = exports;
     ${alt} = exports;

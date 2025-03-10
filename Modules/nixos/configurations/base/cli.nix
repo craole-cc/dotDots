@@ -4,9 +4,7 @@
   lib,
   inputs,
   ...
-}:
-{
-
+}: {
   environment.variables = {
     EDITOR = "nvim";
     LC_ALL = "en_US.UTF-8";
@@ -84,7 +82,6 @@
       "NOMENUCOMPLETE"
       "SHARE_HISTORY"
     ];
-
   };
 
   environment.shellAliases = {
