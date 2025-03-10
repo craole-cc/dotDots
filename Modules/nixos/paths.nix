@@ -71,7 +71,7 @@
       shellscript = local + parts.bin;
     };
     store = {
-      shellscript = store + parts.bin;
+        shellscript = store + parts.bin;
     };
     # store = {
     #   global = store + parts.bin;

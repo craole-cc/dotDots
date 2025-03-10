@@ -1,8 +1,4 @@
-{
-  pkgs,
-  paths,
-  ...
-}:
+{ pkgs, paths, ... }:
 {
   # motd = ''
   #   Welcome to the development environment!
