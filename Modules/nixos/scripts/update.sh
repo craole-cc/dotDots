@@ -55,5 +55,5 @@ update_repo() {
 	#@ Update the remote repository
 	git push --recurse-submodules=check --quiet
 }
-s
+
 main "$@"
