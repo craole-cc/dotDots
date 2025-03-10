@@ -53,7 +53,8 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
     #@ Update the remote repository
+    # git push --recurse-submodules=check
+    GIT_CONFIG_OPTIONS="advice.pushNonFastForward=false advice.statusHints=false advice.commitBeforeMerge=false advice.resolveConflict=false advice.implicitIdentity=false advice.detachedHead=false" 
     git push --recurse-submodules=check
-}
 
 main "$@"
