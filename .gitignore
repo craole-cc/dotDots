@@ -37,8 +37,8 @@ __pycache__/
 .pybuilder/
 .gradle/
 .idea/
-.vscode/
-.zed/
+#.vscode/
+#.zed/
 *.egg-info/
 .serverless/
 .webpack/
