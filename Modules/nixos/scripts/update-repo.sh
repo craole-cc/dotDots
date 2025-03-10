@@ -53,7 +53,7 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
     #@ Update the remote repository
-    push_output="$(git push --recurse-submodules=check 2>&1)"
+    push_output="$(git push --recurse-submodules=check 2>/dev/null)"
 
     # Define the patterns to filter out
     filter_patterns=""
