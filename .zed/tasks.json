@@ -8,15 +8,11 @@
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
-    // Where to place the task's terminal item after starting the task:
-    // * `dock` — in the terminal dock, "regular" terminal items' place (default)
-    // * `center` — in the central pane group, "main" editor area
-    "reveal_target": "center",
     // What to do with the terminal pane and tab, after the command had finished:
     // * `never` — Do nothing when the command finishes (default)
     // * `always` — always hide the terminal tab, hide the pane also if it was the last tab in it
     // * `on_success` — hide the terminal tab on task success only, otherwise behaves similar to `always`
-    "hide": "on_success",
+    // "hide": "on_success",
     // Which shell to use when running a task inside the terminal.
     // May take 3 values:
     // 1. (default) Use the system's default terminal configuration in /etc/passwd
