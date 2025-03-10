@@ -53,12 +53,25 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
     #@ Update the remote repository
-    push_output="$(git push --recurse-submodules=check)"
-    push_filtered_msg=$(
-        printf "%s" "${push_output:-}" | 
-        grep -vE '^(Enumerating objects:|Counting objects:|Delta compression using up to 16 threads|Compressing objects:|Writing objects:|Total|remote: Resolving deltas:|To https:\/\/github\.com\/craole-cc\/dotDots\.git|0d64b329\.\.ae1ae18f  main -> main)')
-    # printf "%s\n" "$"${push_output##*$push_filtered_msg*}""
-    [ -n "${push_filtered_msg}" ] && printf "%s\n" "${push_filtered_msg}"
-
+    # push_output="$(git push --recurse-submodules=check)"
+    # push_filtered_msg=$(
+    #     printf "%s" "${push_output:-}" |
+    #     grep -vE '^(Enumerating objects:|Counting objects:|Delta compression using up to 16 threads|Compressing objects:|Writing objects:|Total|remote: Resolving deltas:|To https:\/\/github\.com\/craole-cc\/dotDots\.git|0d64b329\.\.ae1ae18f  main -> main)')
+    # # printf "%s\n" "$"${push_output##*$push_filtered_msg*}""
+    # [ -n "${push_filtered_msg}" ] && printf "%s\n" "${push_filtered_msg}"
+    push_output="$(git push --recurse-submodules=check 2>&1)"
+    
+    # Define the patterns to filter out
+    filter_patterns='^(Enumerating objects:|Counting objects:|Delta compression|Compressing objects:|Writing objects:|Total|remote: Resolving deltas:|To https:\/\/github\.com)'
+    
+    # Check for errors
+    if echo "$push_output" | grep -iq "error"; then
+      echo "$push_output"
+    else
+      # Filter out the unwanted lines
+      filtered_output=$(echo "$push_output" | grep -vE "$filter_patterns")
+      echo "$filtered_output"
+    fi
+}
 
 main "$@"
