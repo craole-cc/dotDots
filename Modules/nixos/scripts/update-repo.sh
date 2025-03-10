@@ -54,7 +54,11 @@ update_repo() {
 
     #@ Update the remote repository
     push_output="$(git push --recurse-submodules=check)"
-    printf "%s\n" "$push_output"
+    push_filtered_msg=$(
+        printf "%s" "${push_output:-}" | 
+        grep -vE '^(Enumerating objects:|Counting objects:|Delta compression using up to 16 threads|Compressing objects:|Writing objects:|Total|remote: Resolving deltas:|To https:\/\/github\.com\/craole-cc\/dotDots\.git|0d64b329\.\.ae1ae18f  main -> main)')
+    # printf "%s\n" "$"${push_output##*$push_filtered_msg*}""
+    [ -n "${push_filtered_msg}" ] && printf "%s\n" "${push_filtered_msg}"
 
 
 main "$@"
