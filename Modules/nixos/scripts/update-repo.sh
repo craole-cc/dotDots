@@ -53,7 +53,8 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
     #@ Update the remote repository
-    # git push --recurse-submodules=check
-    git push --recurse-submodules=check 2>&1 | grep -i "error"
+    push_output="$(git push --recurse-submodules=check)"
+    printf "%s\n" "$push_output"
+
 
 main "$@"
