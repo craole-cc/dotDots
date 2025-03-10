@@ -39,7 +39,7 @@
     }
     {
       name = "PATH";
-      prefix = "paths";
+      prefix = "paths.scripts";
     }
     {
       name = "XDG_CACHE_DIR";
