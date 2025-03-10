@@ -53,26 +53,37 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
         #@ Update the remote repository
-        push_output="$(git push --recurse-submodules=check 2>&1)"
+        git push --recurse-submodules=check 2>&1 | 
+            tee /dev/stderr | 
+            sed -e '/^Enumerating objects:/d' \
+                -e '/^Counting objects:/d' \
+                -e '/^Delta compression/d' \
+                -e '/^Compressing objects:/d' \
+                -e '/^Writing objects:/d' \
+                -e '/^Total/d' \
+                -e '/^remote: Resolving deltas:/d' \
+                -e '/^To https:\/\/github\.com/d' \
+                -e '/^ * \[[a-z0-9]* [a-f0-9]*\]/d'
+        # push_output="$(git push --recurse-submodules=check 2>&1)"
         
-        #@ Check for errors
-        if printf "%s" "$push_output" | grep -q "error\|fatal"; then
-            printf "%s\n" "$push_output"
-        else
-            #@ Filter out common git progress messages using sed
-            filtered_output=$(printf "%s" "$push_output" | 
-                sed -e '/^Enumerating objects:/d' \
-                    -e '/^Counting objects:/d' \
-                    -e '/^Delta compression/d' \
-                    -e '/^Compressing objects:/d' \
-                    -e '/^Writing objects:/d' \
-                    -e '/^Total/d' \
-                    -e '/^remote: Resolving deltas:/d' \
-                    -e '/^To https:\/\/github\.com/d')
-            if [ -n "$filtered_output" ]; then
-                printf "%s\n" "$filtered_output"
-            fi
-        fi
+        # #@ Check for errors
+        # if printf "%s" "$push_output" | grep -q "error\|fatal"; then
+        #     printf "%s\n" "$push_output"
+        # else
+        #     #@ Filter out common git progress messages using sed
+        #     filtered_output=$(printf "%s" "$push_output" | 
+        #         sed -e '/^Enumerating objects:/d' \
+        #             -e '/^Counting objects:/d' \
+        #             -e '/^Delta compression/d' \
+        #             -e '/^Compressing objects:/d' \
+        #             -e '/^Writing objects:/d' \
+        #             -e '/^Total/d' \
+        #             -e '/^remote: Resolving deltas:/d' \
+        #             -e '/^To https:\/\/github\.com/d')
+        #     if [ -n "$filtered_output" ]; then
+        #         printf "%s\n" "$filtered_output"
+        #     fi
+        # fi
 }
 
 main "$@"
