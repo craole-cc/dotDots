@@ -29,7 +29,8 @@ parse_arguments() {
 
 update_repo() {
 	#@ Proceed only if there are changes
-	git status --porcelain >/dev/null 2>&1 || return 0
+	status_output=$(git status --porcelain)
+    [ -z "${status_output}" ] && return 0
 
 	#@ Display the current status
 	git status --short
