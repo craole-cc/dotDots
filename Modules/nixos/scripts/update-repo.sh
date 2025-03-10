@@ -53,7 +53,17 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
         #@ Update the remote repository
-        git push --recurse-submodules=check --quiet
+         git push --recurse-submodules=check |
+             tee /dev/stderr | 
+             sed -e '/^Enumerating objects:/d' \
+                 -e '/^Counting objects:/d' \
+                 -e '/^Delta compression/d' \
+                 -e '/^Compressing objects:/d' \
+                 -e '/^Writing objects:/d' \
+                 -e '/^Total/d' \
+                 -e '/^remote: Resolving deltas:/d' \
+                 -e '/^To https:\/\/github\.com/d' \
+                 -e '/^ * \[[a-z0-9]* [a-f0-9]*\]/d'
         
         # push_output="$(git push --recurse-submodules=check 2>&1)"
         
