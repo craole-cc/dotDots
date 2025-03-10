@@ -67,14 +67,14 @@ update_repo() {
     filter_patterns="$filter_patterns|To https:\/\/github\.com"
     
     echo "Patterns to filter: ${filter_patterns}"
-    #@ Check for errors
-    if printf "%s" "$push_output" | grep -iq "error"; then
-        printf "%s" "$push_output"
-    else
-        # Filter out the unwanted lines
-        filtered_output=$(printf "%s" "$push_output" | grep -vE "$filter_patterns")
-        printf "%s" "$filtered_output"
-    fi
+    # #@ Check for errors
+    # if printf "%s" "$push_output" | grep -iq "error"; then
+    #     printf "%s" "$push_output"
+    # else
+    #     # Filter out the unwanted lines
+    #     filtered_output=$(printf "%s" "$push_output" | grep -vE "$filter_patterns")
+    #     printf "%s" "$filtered_output"
+    # fi
 }
 
 main "$@"
