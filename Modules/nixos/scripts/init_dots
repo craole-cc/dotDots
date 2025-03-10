@@ -43,7 +43,7 @@ initialize_environment() {
         return 0
         ;;
       -s | --source)
-        [ "$2" ] || {
+        [ -n "$2" ] || {
           log "$LOG_ERROR" "Missing source directory path"
           return 1
         }
