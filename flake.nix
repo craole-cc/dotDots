@@ -172,7 +172,7 @@
         {
           devshells =
             let
-              shells = with paths.devShells; {
+              shells = with paths.devshells; {
                 dots = import dots.nix;
                 env = import env.nix {inherit pkgs paths;};
               };

@@ -2,7 +2,8 @@
   flake,
   modules,
   ...
-}: let
+}:
+let
   parts = {
     args = "/args";
     cfgs = "/configurations";
@@ -26,11 +27,11 @@
       nix = parts.bin.default + "/nix";
       rust = parts.bin.default + "/rust";
       shellscript = parts.bin.default + "/shellscript";
-      scripts = "/scripts";
-      devshells = parts.bin.scripts + "/devshells";
+      flake = "/scripts";
+      devshells = parts.bin.flake + "/devshells";
     };
   };
-  devShells = rec {
+  devshells = rec {
     default = modules.store + parts.bin.devshells;
     dots = {
       nix = default + "/dots.nix";
@@ -43,53 +44,49 @@
     dev = default + "/dev.toml";
     media = default + "/media.toml";
   };
-  core = {
+  core = rec {
     default = modules.store;
     configurations = {
-      hosts = core.default + parts.hosts;
-      users = core.default + parts.users;
+      hosts = default + parts.hosts;
+      users = default + parts.users;
     };
-    environment = core.default + parts.env;
-    libraries = core.default + parts.libs;
-    modules = core.default + parts.mods;
-    options = core.default + parts.opts;
-    packages = core.default + parts.pkgs;
-    services = core.default + parts.svcs;
+    environment = default + parts.env;
+    libraries = default + parts.libs;
+    modules = default + parts.mods;
+    options = default + parts.opts;
+    packages = default + parts.pkgs;
+    services = default + parts.svcs;
   };
-  home = {
+  home = rec {
     default = modules.store + "/home";
-    configurations = home.default + parts.cfgs;
-    environment = home.default + parts.env;
-    libraries = home.default + parts.libs;
-    modules = home.default + parts.mods;
-    options = home.default + parts.opts;
-    packages = home.default + parts.pkgs;
-    services = home.default + parts.svcs;
+    configurations = default + parts.cfgs;
+    environment = default + parts.env;
+    libraries = default + parts.libs;
+    modules = default + parts.mods;
+    options = default + parts.opts;
+    packages = default + parts.pkgs;
+    services = default + parts.svcs;
   };
-  bin = {
+  scripts = {
     local = {
-      shellscript = local + parts.bin;
+      shellscript = flake.local + parts.bin.shellscript;
     };
     store = {
-        shellscript = store + parts.bin;
+      shellscript = flake.store + parts.bin.shellscript;
+      flake = modules.store + parts.bin.flake;
+      dots = modules.store + parts.scripts + "/init_dots";
     };
-    # store = {
-    #   global = store + parts.bin;
-    dots = modules.store + parts.scripts + "/init_dots";
   };
-  # modules = {
-  #   local = flake.local + parts.modules;
-  #   store = flake.store + parts.modules;
-  # };
   libraries = {
     local = modules.local + parts.libs;
     store = modules.store + parts.libs;
     mkCore = core.libraries + parts.mkCore;
     mkConf = core.libraries + parts.mkConf;
   };
-in {
+in
+{
   inherit
-    devShells
+    devshells
     core
     home
     scripts
