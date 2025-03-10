@@ -53,24 +53,22 @@ update_repo() {
         git commit --message "${msg:-"$default_msg"}"
 
         #@ Update the remote repository
-            push_output="$(git push --recurse-submodules=check 2>&1)"
+        push_output="$(git push --recurse-submodules=check 2>&1)"
         
-        # Define the patterns to filter out
-        filter_patterns="Enumerating objects:"
-        filter_patterns="${filter_patterns}|Counting objects:"
-        filter_patterns="${filter_patterns}|Delta compression"
-        filter_patterns="${filter_patterns}|Compressing objects:"
-        filter_patterns="${filter_patterns}|Writing objects:"
-        filter_patterns="${filter_patterns}|Total"
-        filter_patterns="${filter_patterns}|remote: Resolving deltas:"
-        filter_patterns="${filter_patterns}|To https://github\.com"
-        
-        # Check for errors
+        #@ Check for errors
         if printf "%s" "$push_output" | grep -q "error\|fatal"; then
             printf "%s\n" "$push_output"
         else
-            # Filter out the unwanted lines and print anything that remains
-            filtered_output=$(printf "%s" "$push_output" | grep -Ev "$filter_patterns")
+            #@ Filter out common git progress messages using sed
+            filtered_output=$(printf "%s" "$push_output" | 
+                sed -e '/^Enumerating objects:/d' \
+                    -e '/^Counting objects:/d' \
+                    -e '/^Delta compression/d' \
+                    -e '/^Compressing objects:/d' \
+                    -e '/^Writing objects:/d' \
+                    -e '/^Total/d' \
+                    -e '/^remote: Resolving deltas:/d' \
+                    -e '/^To https:\/\/github\.com/d')
             if [ -n "$filtered_output" ]; then
                 printf "%s\n" "$filtered_output"
             fi
