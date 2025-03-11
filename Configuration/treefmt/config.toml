@@ -10,8 +10,8 @@ excludes = [
   "Assets/**",          #TODO Temporary
   "Configuration/**",   #TODO Temporary
   "Environment/**",     #TODO Temporary
-  # "Bin/**",             #TODO Temporary
-  "Documentation/**", #TODO Temporary
+  "Bin/**",             #TODO Temporary
+  "Documentation/**",   #TODO Temporary
   "**/.bin/**",
   "**/.config/**",
   "*.lock",
@@ -23,7 +23,7 @@ excludes = [
 command = "markdownlint-cli2"
 includes = ["*.md", "README"]
 options = ["--fix"]
-# options  = ["--fix", "--config", ".markdownlint.json"]
+# options = ["--fix", "--config", ".markdownlint.yaml"]
 priority = 1
 
 # [formatter.mdsh]
@@ -53,25 +53,7 @@ priority = 1
 # options = ["-i"]
 # priority = 2
 
-#TODO: Not working
-[formatter.editorconfig]
-includes = [".editorconfig"]
-# command  = "fmt_editorconfig"
-# options  = ["--format"]
-# command = "sh"
-# options = [
-#   "-euc",
-#   "command -v fmt_editorconfig >/dev/null || exit 0",
-#   "for file in \"$@\"; do fmt_editorconfig --format \"$file\"; done",
-# ]
-
-# [formatter.editorconfig_lint]
-# command = "fmt_editorconfig"
-# includes = [".editorconfig"]
-# options = ["--lint"]
-
 #| Nix
-
 [formatter.nixfmt]
 includes = ["*.nix"]
 priority = 1
@@ -94,41 +76,29 @@ command = "rustfmt"
 includes = ["*.rs"]
 priority = 1
 
-[formatter.leptosfmt]
-command = "leptosfmt"
-includes = ["*.rs"]
-priority = 2
+# [formatter.leptosfmt]
+# command = "leptosfmt"
+# includes = ["*.rs"]
+# priority = 2
 
 #| Shell script formatting# Shell script formatting
-[formatter.shellcheck]
-command = "shellcheck"
-# options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
-includes = [
-  "*.sh",
-  ".dotsrc",
-  ".env*",
-  ".shellcheckrc",
-  "*.bash",
-  ".bash*",
-  "Bin/shellscript/**",
-  "Modules/**",
-]
-priority = 1
+# [formatter.shellcheck]
+# command = "shellcheck"
+# # options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
+# includes = [
+#   "*.sh",
+#   ".dotsrc",
+#   ".env*",
+#   ".shellcheckrc",
+#   "*.bash",
+#   ".bash*",
+#   "Bin/shellscript/**",
+#   "Modules/**",
+# ]
+# priority = 1
 
 [formatter.shfmt]
 command = "shfmt"
-includes = [
-  "*.sh",
-  ".dotsrc",
-  ".env*",
-  ".shellcheckrc",
-  "*.bash",
-  ".bash*",
-  "Bin/shellscript/**",
-  "Modules/**",
-  ".gitignore",
-  ".ignore",
-]
 options = [
   # "--apply-ignore",
   "--binary-next-line",
@@ -139,6 +109,15 @@ options = [
   # "--diff",
   # "--posix",
   "--write",
+]
+includes = [
+  "*.sh",
+  "*.dotsrc",
+  "*.env*",
+  "*.shellcheckrc",
+  "*.bash*",
+  "*.gitignore",
+  "*.ignore",
 ]
 priority = 2
 
@@ -209,7 +188,7 @@ options = [
 
 #| TOML
 [formatter.toml]
-includes = ["*.toml"]
+includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
 command = "taplo"
 options = ["format"]
 
