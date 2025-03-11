@@ -7,12 +7,15 @@ main() {
     validate_git
     pull_updates
 
-    if get_status; then
-        echo pop
-        # add_changes
-        # commit_changes
-        # post_changes
-    fi
+    get_status
+
+    echo pop
+    # add_changes
+    # commit_changes
+    # post_changes
+
+    # if get_status; then
+    # fi
 
     # add_changes
     # commit_changes
@@ -82,7 +85,7 @@ pull_updates() {
 }
 
 get_status() {
-    if git status --porcelain >/dev/null 2>&1; then
+    if [ -n "$(git status --porcelain || true)" ]; then
         #@ Display the current status
         git status --short
     else
@@ -90,6 +93,12 @@ get_status() {
         printf "No changes to commit\n"
         exit 1
     fi
+    # if git status --porcelain >/dev/null 2>&1; then
+    #     git status --short
+    # else
+    #     printf "No changes to commit\n"
+    #     exit 1
+    # fi
 
 }
 
@@ -144,5 +153,3 @@ post_changes() {
 }
 
 main "$@"
-
-    # shellcheck disable=SC2310
