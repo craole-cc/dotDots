@@ -90,7 +90,6 @@ get_status() {
     git status --short
   else
     #@ Skip if there are no change
-    printf "No changes to commit\n"
     nothing_to_commit=true
   fi
   # if git status --porcelain >/dev/null 2>&1; then
