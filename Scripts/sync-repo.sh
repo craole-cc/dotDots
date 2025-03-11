@@ -83,11 +83,15 @@ pull_updates() {
 }
 
 get_status() {
-    #@ Skip if there are no change
-    git status --porcelain >/dev/null 2>&1 || return 1
+    if git status --porcelain >/dev/null 2>&1; then
+        #@ Display the current status
+        git status --short
+    else
+        #@ Skip if there are no change
+        printf "No changes to commit\n"
+        return 1
+    fi
 
-    #@ Display the current status
-    git status --short
 }
 
 add_changes() {
