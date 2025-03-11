@@ -7,7 +7,6 @@ main() {
     validate_git
     pull_updates
 
-    # shellcheck disable=SC2310
     if get_status; then
         echo pop
         # add_changes
@@ -98,7 +97,7 @@ add_changes() {
     #@ Define the command with options
     _cmd="git add"
     _cmd="${_cmd} --all"
-    [ -n "${debug}" ] && _cmd="${_cmd} --dry-run"
+    [ -n "$debug" ] && _cmd="${_cmd} --dry-run"
 
     #@ Execute the command, returning an error if it fails
     eval "${_cmd}" >/dev/null 2>&1 || {
@@ -145,3 +144,5 @@ post_changes() {
 }
 
 main "$@"
+
+    # shellcheck disable=SC2310
