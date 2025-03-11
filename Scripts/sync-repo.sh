@@ -89,7 +89,7 @@ get_status() {
     else
         #@ Skip if there are no change
         printf "No changes to commit\n"
-        return 1
+        exit 1
     fi
 
 }
