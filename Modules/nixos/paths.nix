@@ -86,6 +86,8 @@ let
 in
 {
   inherit
+    flake
+    modules
     devshells
     core
     home

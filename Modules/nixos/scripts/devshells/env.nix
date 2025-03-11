@@ -1,13 +1,18 @@
 { pkgs, paths, ... }:
 {
+  name = "dotDots";
   env = [
     {
       name = "PATH";
       prefix = "${paths.scripts.store.flake}";
     }
     {
-      name = "CACHE_DIR";
+      name = "XDG_CACHE_DIR";
       eval = "$PRJ_ROOT/.cache";
+    }
+    {
+      name = "XDG_CONFIG_HOME";
+      eval = "$PRJ_ROOT/.config";
     }
   ];
 
@@ -27,19 +32,14 @@
     {
       name = "repo";
       category = "System Management";
-      command = ''update-repo.sh'';
+      command = ''sync.sh'';
       help = "Sync git repository";
     }
     {
       name = "flake";
       category = "System Management";
-      command = ''update-repo.sh && update-flake.sh'';
+      command = ''sync.sh && update.sh'';
       help = "Update flake inputs and sync git repository";
-    }
-    {
-      category = "Interactive Shell & Scripting";
-      name = "bash";
-      package = "bashInteractive";
     }
     {
       category = "Information Management";
@@ -73,10 +73,14 @@
       category = "Environment Management";
       package = "fzf";
     }
-    # {
-    #   category = "Interactive Shell & Scripting";
-    #   package = "just";
-    # }
+    {
+      category = "Interactive Shell & Scripting";
+      package = "hub";
+    }
+    {
+      category = "Interactive Shell & Scripting";
+      package = "just";
+    }
     {
       category = "Environment Management";
       package = "lsd";
@@ -120,9 +124,11 @@
   ];
 
   packages = with pkgs; [
+    bash-language-server
     glib
     jq
     thefuck
+    nixd
     # fish-lsp
   ];
 }

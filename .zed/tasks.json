@@ -1,10 +1,7 @@
-// Static tasks configuration.
-//
-// Example:
 [
   {
     "label": "Update Repository",
-    "command": "update-repo.sh",
+    "command": "sync.sh",
     "env": { "PATH": "$PATH:Modules/nixos/scripts" },
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
@@ -14,7 +11,7 @@
   },
   {
     "label": "Update Flake",
-    "command": "update-repo.sh && update-flake.sh",
+    "command": "sync.sh && update.sh",
     "env": { "PATH": "$PATH:Modules/nixos/scripts" },
     "use_new_terminal": false,
     "allow_concurrent_runs": false,

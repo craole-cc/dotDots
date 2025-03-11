@@ -597,13 +597,14 @@ establish_utilities() {
 
     case "$url" in
       *://*:*@*) # URLs with credentials like https://user:pass@host
-        printf '%s' "$url" | sed -E 's/(.*:)[^@]*(@.*)/\1*****\2/'
+      printf '%s' "${url}" | sed -E 's/(.*:)[^@]*(@.*)/\1*****\2/'
         ;;
       *@*) # SSH URLs like git@github.com:user/repo.git
-        printf '%s' "$url" | sed -E 's/(@[^:]*):(.*)/@\1:\2/'
+      #TODO: This is not working
+      printf '%s' "${url}" | sed -E 's/(@[^:]*):(.*)/@\1:\2/'
         ;;
       *) # Plain URLs like https://github.com/user/repo.git or relative paths
-        printf '%s' "$url"
+        printf '%s' "${url}"
         ;;
     esac
   }

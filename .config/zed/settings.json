@@ -1,0 +1,71 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "buffer_font_size": 24,
+  "ui_font_size": 18,
+  "features": {
+    "copilot": true
+  },
+  "telemetry": {
+    "metrics": false
+  },
+  "vim_mode": false,
+  "theme": {
+    "mode": "system",
+    "light": "Catppuccin Latte",
+    "dark": "Catppuccin Frappé"
+  },
+  "icon_theme": {
+    "mode": "system",
+    "light": "Material Icon Theme",
+    "dark": "Material Icon Theme"
+  },
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 1000
+    }
+  },
+  "format_on_save": "on",
+  "languages": {
+    // "Shell Script": {
+    //   "formatter": {
+    //     "external": {
+    //       "command": "shfmt",
+    //       "arguments": [
+    //         "--indent",
+    //         "2",
+    //         "--case-indent",
+    //         "--binary-next-line",
+    //         "--space-redirects"
+    //       ]
+    //     }
+    //   }
+    // },
+    "Nix": {
+      "formatter": {
+        "external": {
+          "command": "nixfmt",
+          "arguments": ["--quiet", "--"]
+        }
+      }
+    }
+  },
+  "auto_install_extensions": {
+    "basher": true,
+    "material-icon-theme": true,
+    "cargotoml": true,
+    "codebook": false,
+    "gruvbox material": true,
+    "marksman": true,
+    "nix": true,
+    "snippets": true,
+    "toml": true,
+    "xy-zed": true
+  }
+}

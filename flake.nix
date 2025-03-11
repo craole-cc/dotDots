@@ -142,39 +142,41 @@
         };
         self = modules.store + "/paths.nix";
       };
+
       paths = import (flakePaths.modules.store + "/paths.nix") {
         inherit (flakePaths) flake modules;
       };
 
-      # import (./. + nixosMods + "/paths.nix") rec
-
-      mkConfig = import paths.libraries.mkConf {
-        inherit inputs paths;
-      };
-    in
-    # inherit (builtins) map attrNames readDir;
-    # inherit (paths.modules) parts;
-
-    inputs.flakeParts.lib.mkFlake { inherit inputs; } {
-      debug = true;
+      # mkConfig = import paths.libraries.mkConf {
+      #   inherit inputs paths;
+      # };
+      # 
       systems = [
         "x86_64-linux"
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      # imports = map (fn: ./modules/flake-parts/${fn}) (attrNames (readDir ./modules/flake-parts));
+    in
+    inputs.flakeParts.lib.mkFlake { inherit inputs; } {
+      debug = true;
+      inherit systems;
       imports = with inputs; [
         flakeShell.flakeModule
       ];
 
       perSystem =
-        { pkgs,... }:
+        {
+          pkgs,
+          lib,
+          system,
+          ...
+        }:
         {
           devshells =
             let
               shells = with paths.devshells; {
                 dots = import dots.nix;
-                env = import env.nix {inherit pkgs paths;};
+                env = import env.nix { inherit pkgs paths; };
               };
             in
             with shells;
@@ -182,42 +184,15 @@
               default = env;
               inherit dots env;
             };
+
+          # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
+          # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = lib.attrValues self.overlays;
+            config.allowUnfree = true;
+          };
         };
-
-      # perSystem =
-      #   { pkgs, ... }:
-      #   {
-      #     # Make our overlay available to the devShell
-      #     devShells = {
-      #       # default = import paths.devShells.dots;
-      #       default = {
-      #         env = [
-      #           {
-      #             name = "HTTP_PORT";
-      #             value = 8080;
-      #           }
-      #         ];
-      #         commands = [
-      #           {
-      #             help = "print hello";
-      #             name = "hello";
-      #             command = "echo hello";
-      #           }
-      #         ];
-      #         packages = [
-      #           pkgs.cowsay
-      #         ];
-      #       };
-      #     };
-
-      #     # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
-      #     # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
-      #     # _module.args.pkgs = import inputs.nixpkgs {
-      #     #   inherit system;
-      #     #   overlays = lib.attrValues self.overlays;
-      #     #   config.allowUnfree = true;
-      #     # };
-      #   };
 
       # https://omnix.page/om/ci.html
       # flake.om.ci.default.ROOT = {
