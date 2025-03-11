@@ -82,10 +82,14 @@ pull_updates() {
 get_status() {
 
   #@ Check if there are any changes to commit
-  git status --porcelain 2> /dev/null
-  status=$?
+  _cmd="$(git status --porcelain 2> /dev/null)"
+  [ -n "${_cmd:-}" ] || {
+    printf "%s\n" "Error getting the status of the repository." >&2
+    return 1
+  }
 
-  if [ "${status}" -eq 0 ]; then
+
+  if [ -n "$(git status --porcelain)" ]; then
     #@ Display the current status
     git status --short
   else
