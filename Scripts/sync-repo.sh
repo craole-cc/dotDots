@@ -8,9 +8,9 @@ main() {
     pull_updates
 
     # shellcheck disable=SC2310
-    get_status || return 0
+    get_status
     echo pop
-    
+
     # add_changes
     # commit_changes
     # push_changes
@@ -80,7 +80,7 @@ pull_updates() {
 
 get_status() {
     #@ Skip if there are no change
-    git status --porcelain >/dev/null 2>&1 && exit 0
+    git status --porcelain >/dev/null 2>&1 || exit 0
 
     #@ Display the current status
     git status --short
