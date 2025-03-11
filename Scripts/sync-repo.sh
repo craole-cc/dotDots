@@ -8,8 +8,12 @@ main() {
     pull_updates
 
     # shellcheck disable=SC2310
-    get_status || return 0
-    echo pop
+    get_status && {
+        echo pop
+        # add_changes
+        # commit_changes
+        # post_changes
+    }
 
     # add_changes
     # commit_changes
