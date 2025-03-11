@@ -9,13 +9,8 @@ main() {
 
   get_status
   [ -n "${nothing_to_commit:-}" ] && return 0
-  echo pop
-  # add_changes
-  # commit_changes
-  # post_changes
 
-  # if get_status; then
-  # fi
+  echo pop
 
   # add_changes
   # commit_changes
@@ -85,20 +80,19 @@ pull_updates() {
 }
 
 get_status() {
-  if [ -n "$(git status --porcelain || true)" ]; then
+
+  #@ Check if there are any changes to commit
+  git status --porcelain 2> /dev/null
+  status=$?
+
+  if [ "${status}" -eq 0 ]; then
     #@ Display the current status
     git status --short
   else
-    #@ Skip if there are no change
+    #@ Skip if there are no changes
     nothing_to_commit=true
+    echo nothing
   fi
-  # if git status --porcelain >/dev/null 2>&1; then
-  #     git status --short
-  # else
-  #     printf "No changes to commit\n"
-  #     exit 1
-  # fi
-
 }
 
 add_changes() {
