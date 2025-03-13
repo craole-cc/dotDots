@@ -99,11 +99,11 @@ pout() {
       ;;
     --info)
       [ "${VERBOSITY_LEVEL}" -ge "${VERBOSITY_LEVEL_INFO}" ] || return 0
-      pout_tag="<\  INFO />"
+      pout_tag="<\ INFO />"
       ;;
     --warn*)
       [ "${VERBOSITY_LEVEL}" -ge "${VERBOSITY_LEVEL_WARN}" ] || return 0
-      pout_tag="<\  WARN />"
+      pout_tag="<\ WARN />"
       ;;
     --err*)
       [ "${VERBOSITY_LEVEL}" -ge "${VERBOSITY_LEVEL_ERROR}" ] || return 0
