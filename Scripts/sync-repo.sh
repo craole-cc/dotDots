@@ -9,7 +9,7 @@ main() {
   #| Perform Passive Actions
   validate_git
   create_cmd_output_file
-  # pull_updates
+  pull_updates
   get_status
 
   #| Execute Changes
@@ -347,7 +347,8 @@ create_cmd_output_file() {
 
 pull_updates() {
   #@ Define command information
-  cmd="${GIT_CMD} pull --autostash --no-rebase"
+  # cmd="${GIT_CMD} pull --autostash --no-rebase"
+  cmd="${GIT_CMD} pull"
   cmd_label="Remote Update Retrieval"
   msg_success="Integrated remote changes with the local branch"
   msg_failure="Failed to pull updates from remote repository"
