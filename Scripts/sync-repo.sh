@@ -438,13 +438,13 @@ get_status() {
 should_skip_operation() {
   #@ Helper to determine if an operation should be skipped
   cmd_label="$1"
-  skip_result=1 # Default to not skipping
+  skip_result=1 #? Default to not skipping
 
   #@ Skip if there are no changes and not amending
   if [ -n "${nothing_to_commit:-}" ] && [ -z "${amend_commit:-}" ]; then
     msg_skip="$(pout --sentence "Skipping" "${cmd_label}" "with nothing to commit")"
     pout --debug "${msg_skip}"
-    skip_result=0 # Set to skip
+    skip_result=0 #? Set to skip
   fi
 
   # Set the result in a global variable instead of using return codes
