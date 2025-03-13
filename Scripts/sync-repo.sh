@@ -294,6 +294,7 @@ create_cmd_output_file() {
     else
       #@ Execute and return the output directly
       eval "${CMD}"
+      printf "\n"
       return "$?"
     fi
 
