@@ -546,8 +546,7 @@ commit_changes() {
       "or accept the default: '${msg_default}'"
     read -r msg
   fi
-
-  printf "MSG: %s" "${msg}"
+#TODO Use pout to print new lines
   #@ Define the commit message from the user input or default value
   msg_commit="${msg:-"${msg_default}"}"
 
