@@ -7,8 +7,8 @@ main() {
   set_operation_mode
 
   #| Perform Passive Actions
-  create_cmd_output_file
   validate_git
+  create_cmd_output_file
   pull_updates
   get_status
 
@@ -23,7 +23,7 @@ set_defaults() {
   delimiter=" "
   msg=""
   nothing_to_commit=""
-  error_encountered=""
+  amend_commit=""
 
   #@ Set the verbosity levels
   VERBOSITY_LEVEL_QUIET=0
@@ -34,7 +34,7 @@ set_defaults() {
   VERBOSITY_LEVEL_TRACE=5
 
   #@ Set the default verbosity level
-  VERBOSITY_LEVEL="${VERBOSITY_LEVEL_INFO}"
+  VERBOSITY_LEVEL="${VERBOSITY_LEVEL_WARN}"
 }
 
 set_operation_mode() {
@@ -63,6 +63,7 @@ parse_arguments() {
         msg="${2}"
         shift
         ;;
+      -a | --amend) amend_commit="true" ;;
       *)
         msg="${msg}${msg:+${delimiter}}${1}"
         ;;
@@ -138,14 +139,9 @@ pout() {
     upper) pout_msg="$(printf "%s" "${pout_msg}" | tr '[:lower:]' '[:upper:]')" ;;
     lower) pout_msg="$(printf "%s" "${pout_msg}" | tr '[:upper:]' '[:lower:]')" ;;
     sentence)
-      pout_msg="$(pout --lower "${pout_msg}")"
-      first_char=$(printf "%s" "${pout_msg}" | cut -c1)
-      rest_of_string=$(printf "%s" "${pout_msg}" | cut -c2-)
-      first_char_upper=$(printf "%s" "${first_char}" | tr '[:lower:]' '[:upper:]')
-
-      # Define the message as a sentence the first character capitalized and a period at the end
-      pout_msg="${first_char_upper}${rest_of_string}."
-      # pout_msg="$(printf "%s%s." "${first_char_upper}" "${rest_of_string}")"
+      first_char=$(printf "%s" "${pout_msg}" | cut -c1 | tr '[:lower:]' '[:upper:]')
+      rest_of_string=$(printf "%s" "${pout_msg}" | cut -c2- | tr '[:upper:]' '[:lower:]')
+      pout_msg="${first_char}${rest_of_string}."
       ;;
     title)
       pout_msg="$(pout --lower "${pout_msg}")"
@@ -156,10 +152,12 @@ pout() {
         first_char=$(printf "%s" "${word}" | cut -c1)
         rest_of_word=$(printf "%s" "${word}" | cut -c2-)
         first_char_upper="$(pout --upper "${first_char}")"
-        # first_char_upper=$(printf "%s" "${first_char}" | tr '[:lower:]' '[:upper:]')
 
-        #@ Add space after each word
-        title_cased="${title_cased}${first_char_upper}${rest_of_word} "
+        # Only add space if not the first word
+        if [ -n "${title_cased}" ]; then
+          title_cased="${title_cased} "
+        fi
+        title_cased="${title_cased}${first_char_upper}${rest_of_word}"
       done
 
       # Define the message as the whole title-cased string
@@ -172,10 +170,36 @@ pout() {
   [ -n "${pout_tag}" ] && printf "%s " "${pout_tag}"
 
   #@ Strip leading and trailing whitespace
-  # pout_msg=
+  pout_msg="${pout_msg#"${pout_msg%%[![:space:]]*}"}" #? Remove leading whitespace
+  pout_msg="${pout_msg%"${pout_msg##*[![:space:]]}"}" #? Remove trailing whitespace
 
   #@ Print the output message
   printf "%s\n" "${pout_msg}"
+}
+
+validate_git() {
+  #@ Check if the git command is available
+  GIT_CMD=$(command -v git)
+  if [ -n "${GIT_CMD}" ]; then
+    pout --debug "Using git command:" "${GIT_CMD}"
+  else
+    pout --error "The git command is not available."
+    return 1
+  fi
+
+  #@ Attempt to retrieve the path to the project root directory
+  git_dir="$(eval "${GIT_CMD} rev-parse --show-toplevel" 2> /dev/null)" || {
+    pout --error "This directory is not part of a git repository."
+    pout --warn "Please navigate to a valid git repository and try again."
+    return 1
+  }
+
+  if [ -d "${git_dir}" ]; then #?: Is -d enough to validate access?
+    pout --debug "Using git directory:" "${git_dir}"
+  else
+    pout --error "Git directory exists but cannot be accessed: ${git_dir}"
+    return 1
+  fi
 }
 
 create_cmd_output_file() {
@@ -212,10 +236,10 @@ create_cmd_output_file() {
         --cmd | --command)
           CMD="${2}"
           ;;
-        --header* | --no-exec)
+        --header-only | --no-exec)
           header_print=only
           ;;
-        --no-header | --no-exec)
+        --no-header)
           header_print=off
           ;;
         --success) CMD_SUCCESS="${2}" ;;
@@ -236,22 +260,10 @@ create_cmd_output_file() {
     done
 
     #@ Ensure the arguments are valid
-    # [ -n "${CMD}" ] || {
-    #   pout --error "No command provided"
-    #   return 1
-    # }
-    # [ -n "${CMD_TAG}" ] || {
-    #   pout --error "No tag provided"
-    #   return 1
-    # }
-    # [ -n "${CMD_MSG}" ] || {
-    #   pout --error "No message provided"
-    #   return 1
-    # }
-    # [ -n "${CMD_LABEL}" ] || {
-    #   pout --error "No label provided"
-    #   return 1
-    # }
+    [ -n "${CMD}" ] || {
+      pout --error "No command provided"
+      return 1
+    }
 
     #@ Print the header information of the process
     CMD_LABEL="$(pout --title "${CMD_LABEL}")"
@@ -299,7 +311,7 @@ create_cmd_output_file() {
 
       #@ Skip it "Already up to date"
       case "${CMD_RESULT}" in
-        *"Already up to date"*)  pout --info "The local repo already in sync with the remote" ;;
+        *"Already up to date"*) pout --info "The local repo already in sync with the remote" ;;
         *)
           #@ Tag each line of output seperatly
           while IFS= read -r line; do
@@ -331,35 +343,9 @@ create_cmd_output_file() {
   }
 }
 
-validate_git() {
-  #@ Check if the git command is available
-  GIT_CMD=$(command -v git)
-  if [ -n "${GIT_CMD}" ]; then
-    pout --debug "Using git command:" "${GIT_CMD}"
-  else
-    pout --error "The git command is not available."
-    return 1
-  fi
-
-  return 0
-  #@ Attempt to retrieve the path to the project root directory
-  git_dir="$(eval "${GIT_CMD} rev-parse --show-toplevel" 2> /dev/null)" || {
-    pout --error "This directory is not part of a git repository."
-    pout --warn "Please navigate to a valid git repository and try again."
-    return 1
-  }
-
-  if [ -d "${git_dir}" ]; then #?: Is -d enough to validate access?
-    pout --debug "Using git directory:" "${git_dir}"
-  else
-    pout --error "Git directory exists but cannot be accessed: ${git_dir}"
-    return 1
-  fi
-}
-
 pull_updates() {
   #@ Define command information
-  cmd="${GIT_CMD} pull --autostash"
+  cmd="${GIT_CMD} pull --autostash --no-rebase"
   cmd_label="Remote Update Retrieval"
   msg_success="Integrated remote changes with the local branch"
   msg_failure="Failed to pull updates from remote repository"
@@ -369,6 +355,12 @@ pull_updates() {
     unset cmd cmd_label msg_success msg_failure msg_debug
   }
   trap 'cleanup' EXIT INT TERM HUP
+
+  #@ Skip pull if we're amending
+  if [ -n "${amend_commit:-}" ]; then
+    pout --info "Skipping pull when amending to avoid conflicts"
+    return 0
+  fi
 
   #@ Update the command based on verbosity level
   case "${VERBOSITY_LEVEL}" in
@@ -439,6 +431,22 @@ get_status() {
     --no-tag
 }
 
+should_skip_operation() {
+  #@ Helper to determine if an operation should be skipped
+  cmd_label="$1"
+  skip_result=1 # Default to not skipping
+
+  #@ Skip if there are no changes and not amending
+  if [ -n "${nothing_to_commit:-}" ] && [ -z "${amend_commit:-}" ]; then
+    msg_skip="$(pout --sentence "Skipping" "${cmd_label}" "with nothing to commit")"
+    pout --debug "${msg_skip}"
+    skip_result=0 # Set to skip
+  fi
+
+  # Set the result in a global variable instead of using return codes
+  SKIP_OPERATION_RESULT="${skip_result}"
+}
+
 update_index() {
   #@ Define command information
   cmd="${GIT_CMD} add --all"
@@ -452,12 +460,11 @@ update_index() {
   }
   trap 'cleanup' EXIT INT TERM HUP
 
-  #@ Skip if there are no changes
-  [ -n "${nothing_to_commit:-}" ] && {
-    msg_success="$(pout --sentence "Skipping" "${cmd_label}" "with nothing to commit")"
-    pout --debug "${msg_success}"
+  #@ Check if we should skip
+  should_skip_operation "${cmd_label}"
+  if [ "${SKIP_OPERATION_RESULT}" -eq 0 ]; then
     return 0
-  }
+  fi
 
   #@ Update the command based on verbosity level
   case "${VERBOSITY_LEVEL}" in
@@ -487,16 +494,23 @@ commit_changes() {
 
   #@ Define the cleanup function
   cleanup() {
-    unset cmd cmd_label msg_success msg_failure msg_last_commit msg_init_commit msg_commit
+    unset cmd cmd_label msg_success msg_failure msg_last_commit msg_init_commit msg_commit msg_default
   }
   trap 'cleanup' EXIT INT TERM HUP
 
-  #@ Skip if there are no changes
-  [ -n "${nothing_to_commit:-}" ] && {
-    msg_success="$(pout --sentence "Skipping" "${cmd_label}" "with nothing to commit")"
-    pout --debug "${msg_success}"
+  #@ Check if we should skip
+  should_skip_operation "${cmd_label}"
+  if [ "${SKIP_OPERATION_RESULT}" -eq 0 ]; then
     return 0
-  }
+  fi
+
+  #@ Check if amending the commit
+  if [ -n "${amend_commit:-}" ]; then
+    cmd="${cmd} --amend"
+    cmd_label="Amending Last Commit"
+    msg_success="amended the last commit"
+    msg_failure="failed to amend the last commit"
+  fi
 
   #@ Print the header only
   execute_command \
@@ -510,15 +524,18 @@ commit_changes() {
   #@ Define the commit message with a default value
   msg_init_commit="Initial commit"
 
+  #@ Use last commit as default, falling back to initial commit if no previous commits
+  msg_default="${msg_last_commit:-"${msg_init_commit}"}"
+
   #@ Prompt the user for an updated commit message, if not provided
   if [ -z "${msg:-}" ]; then
     pout --warn --sentence "You may provide a commit message below" \
-      "or accept the default: '${msg_last_commit:-"${msg_init_commit}"}'"
+      "or accept the default: '${msg_default}'"
     read -r msg
   fi
 
   #@ Define the commit message from the user input or default value
-  msg_commit="${msg:-"${msg_init_commit}"}"
+  msg_commit="${msg:-"${msg_default}"}"
 
   #@ Update the command based on verbosity level
   case "${VERBOSITY_LEVEL}" in
@@ -541,7 +558,7 @@ commit_changes() {
 
 push_changes() {
   #@ Define command information
-  cmd="${GIT_CMD} push --recurse-submodules=check"
+  cmd="${GIT_CMD} push --recurse-submodules=check --follow-tags"
   cmd_label="Update Remote"
   msg_success="updated the remote with the local changes"
   msg_failure="failed to the remote with the local changes"
@@ -552,11 +569,16 @@ push_changes() {
   }
   trap 'cleanup' EXIT INT TERM HUP
 
-  #@ Skip if there are no changes
-  [ -n "${nothing_to_commit:-}" ] && {
-    msg_success="$(pout --sentence "Skipping" "${cmd_label}" "with nothing to commit")"
-    pout --debug "${msg_success}"
+  #@ Check if we should skip
+  should_skip_operation "${cmd_label}"
+  if [ "${SKIP_OPERATION_RESULT}" -eq 0 ]; then
     return 0
+  fi
+
+  #@ Add force-with-lease option if we amended a commit
+  [ -n "${amend_commit:-}" ] && {
+    cmd="${cmd} --force-with-lease"
+    pout --warn "Using --force-with-lease to ensure safe commit amending"
   }
 
   #@ Update the command based on verbosity level
