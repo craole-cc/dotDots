@@ -273,6 +273,7 @@ create_cmd_output_file() {
     case "${header_print}" in
     no | off) ;;
     *)
+      printf "\n"
       pout --info "===" "${CMD_LABEL}" "==="
       pout --debug "Command:" "${CMD}"
       ;;
@@ -294,7 +295,6 @@ create_cmd_output_file() {
     else
       #@ Execute and return the output directly
       eval "${CMD}"
-      printf "\n"
       return "$?"
     fi
 
