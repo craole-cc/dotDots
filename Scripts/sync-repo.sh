@@ -11,11 +11,11 @@ main() {
   validate_git
   pull_updates
   get_status
-  
+
   #| Execute Changes
   update_index
   commit_changes
-  push_changes
+  # push_changes
 }
 
 set_defaults() {
@@ -34,7 +34,7 @@ set_defaults() {
   VERBOSITY_LEVEL_TRACE=5
 
   #@ Set the default verbosity level
-  VERBOSITY_LEVEL="${VERBOSITY_LEVEL_WARN}"
+  VERBOSITY_LEVEL="${VERBOSITY_LEVEL_INFO}"
 }
 
 set_operation_mode() {
@@ -55,6 +55,7 @@ parse_arguments() {
       -t | --trace) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_TRACE}" ;;
       -V | --verbose) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_INFO}" ;;
       -d | --debug | --dry-run) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_DEBUG}" ;;
+      --info) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_INFO}" ;;
       --warn*) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_WARN}" ;;
       --error) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_ERROR}" ;;
       -q | --quiet) VERBOSITY_LEVEL="${VERBOSITY_LEVEL_QUIET}" ;;
@@ -295,16 +296,23 @@ create_cmd_output_file() {
 
     #@ Tag and print the output
     if [ "${CMD_STATUS}" -eq 0 ]; then
-      #@ Tag each line of output seperatly
-      while IFS= read -r line; do
-        case "${line}" in
-          '') ;;
-          *) pout --info "${line:-}" ;;
-        esac
-      done < "${CMD_OUTPUT}"
 
-      #@ Print the status message
-      pout --info "${CMD_SUCCESS}"
+      #@ Skip it "Already up to date"
+      case "${CMD_RESULT}" in
+        *"Already up to date"*)  pout --info "The local repo already in sync with the remote" ;;
+        *)
+          #@ Tag each line of output seperatly
+          while IFS= read -r line; do
+            case "${line}" in
+              '') ;;
+              *) pout --info "${line:-}" ;;
+            esac
+          done < "${CMD_OUTPUT}"
+
+          #@ Print the status message
+          pout --info "${CMD_SUCCESS}"
+          ;;
+      esac
     else
       #@ Tag each line of output seperatly
       while IFS= read -r line; do
@@ -427,12 +435,13 @@ get_status() {
     --label "${cmd_label}" \
     --command "${cmd}" \
     --success "${msg_success}" \
-    --failure "${msg_failure}"
+    --failure "${msg_failure}" \
+    --no-tag
 }
 
 update_index() {
   #@ Define command information
-  cmd="${GIT_CMD} pull --autostash"
+  cmd="${GIT_CMD} add --all"
   cmd_label="index update"
   msg_success="updated the index with the changed/untracked files"
   msg_failure="failed to update the index with the changed/untracked files"
@@ -453,7 +462,7 @@ update_index() {
   #@ Update the command based on verbosity level
   case "${VERBOSITY_LEVEL}" in
     "${VERBOSITY_LEVEL_INFO}")
-      cmd="${cmd} --interactive"
+      # cmd="${cmd} --verbose"
       ;;
     "${VERBOSITY_LEVEL_TRACE}" | "${VERBOSITY_LEVEL_DEBUG}")
       cmd="${cmd} --dry-run"
