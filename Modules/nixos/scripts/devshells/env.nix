@@ -4,7 +4,7 @@
   env = [
     {
       name = "PATH";
-      prefix = "${paths.scripts.store.flake}";
+      prefix = "${paths.scripts.local.flake}";
     }
     {
       name = "XDG_CACHE_DIR";

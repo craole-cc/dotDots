@@ -1,0 +1,9 @@
+2025/03/13-14:18:23.307 4 Reusing MANIFEST /home/craole/.dots/.config/opera/Default/Local Storage/leveldb/MANIFEST-000001
+2025/03/13-14:18:23.310 4 Recovering log #3
+2025/03/13-14:18:23.310 4 Reusing old log /home/craole/.dots/.config/opera/Default/Local Storage/leveldb/000003.log 
+2025/03/13-14:19:39.698 5 Level-0 table #5: started
+2025/03/13-14:19:39.703 5 Level-0 table #5: 198076 bytes OK
+2025/03/13-14:19:39.705 5 Delete type=0 #3
+2025/03/13-15:07:44.116 5 Level-0 table #7: started
+2025/03/13-15:07:44.120 5 Level-0 table #7: 33001 bytes OK
+2025/03/13-15:07:44.122 5 Delete type=0 #4

@@ -1,0 +1,13 @@
+2025/03/13-14:44:36.864 e791 Reusing MANIFEST /home/craole/.dots/.config/opera/Default/IndexedDB/https_www.sync.opera.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/03/13-14:44:36.865 e791 Recovering log #3
+2025/03/13-14:44:36.865 e791 Reusing old log /home/craole/.dots/.config/opera/Default/IndexedDB/https_www.sync.opera.com_0.indexeddb.leveldb/000003.log 
+2025/03/13-14:44:38.787 e792 Level-0 table #5: started
+2025/03/13-14:44:38.798 e792 Level-0 table #5: 1062667 bytes OK
+2025/03/13-14:44:38.800 e792 Delete type=0 #3
+2025/03/13-14:44:39.513 e792 Level-0 table #7: started
+2025/03/13-14:44:39.522 e792 Level-0 table #7: 1032492 bytes OK
+2025/03/13-14:44:39.524 e792 Delete type=0 #4
+2025/03/13-14:44:39.525 e792 Compacting 1@1 + 1@2 files
+2025/03/13-14:44:39.534 e792 Generated table #8@1: 7175 keys, 862736 bytes
+2025/03/13-14:44:39.534 e792 Compacted 1@1 + 1@2 files => 862736 bytes
+2025/03/13-14:44:39.536 e792 compacted to: files[ 0 0 1 0 0 0 0 ]
