@@ -9,7 +9,7 @@ main() {
   #| Perform Passive Actions
   validate_git
   create_cmd_output_file
-  pull_updates
+  # pull_updates
   get_status
 
   #| Execute Changes
