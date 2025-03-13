@@ -15,7 +15,7 @@ main() {
   #| Execute Changes
   update_index
   commit_changes
-  # push_changes
+  push_changes
 }
 
 set_defaults() {
