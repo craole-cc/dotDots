@@ -283,6 +283,8 @@ create_cmd_output_file() {
     if [ -n "${CMD_TAG}" ]; then
       #@ Capturing the status command through redirection
       if eval "${CMD}" > "${CMD_OUTPUT}" 2>&1; then
+      #TODO: <\ ERROR /> /home/craole/.dots/Scripts/sync-repo.sh: eval: line 285: unexpected EOF while looking for matching `''
+      #TODO: <\ ERROR /> Failed to amend the last commit. [Exit Code: 2]
         CMD_STATUS="$?"
       else
         CMD_STATUS="$?"
