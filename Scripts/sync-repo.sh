@@ -7,8 +7,8 @@ main() {
   set_operation_mode
 
   #| Perform Passive Actions
-  create_cmd_output_file
   validate_git
+  create_cmd_output_file
   pull_updates
   get_status
 
@@ -138,14 +138,9 @@ pout() {
     upper) pout_msg="$(printf "%s" "${pout_msg}" | tr '[:lower:]' '[:upper:]')" ;;
     lower) pout_msg="$(printf "%s" "${pout_msg}" | tr '[:upper:]' '[:lower:]')" ;;
     sentence)
-      pout_msg="$(pout --lower "${pout_msg}")"
-      first_char=$(printf "%s" "${pout_msg}" | cut -c1)
-      rest_of_string=$(printf "%s" "${pout_msg}" | cut -c2-)
-      first_char_upper=$(printf "%s" "${first_char}" | tr '[:lower:]' '[:upper:]')
-
-      # Define the message as a sentence the first character capitalized and a period at the end
-      pout_msg="${first_char_upper}${rest_of_string}."
-      # pout_msg="$(printf "%s%s." "${first_char_upper}" "${rest_of_string}")"
+      first_char=$(printf "%s" "${pout_msg}" | cut -c1 | tr '[:lower:]' '[:upper:]')
+      rest_of_string=$(printf "%s" "${pout_msg}" | cut -c2- | tr '[:upper:]' '[:lower:]')
+      pout_msg="${first_char}${rest_of_string}."
       ;;
     title)
       pout_msg="$(pout --lower "${pout_msg}")"
@@ -156,10 +151,12 @@ pout() {
         first_char=$(printf "%s" "${word}" | cut -c1)
         rest_of_word=$(printf "%s" "${word}" | cut -c2-)
         first_char_upper="$(pout --upper "${first_char}")"
-        # first_char_upper=$(printf "%s" "${first_char}" | tr '[:lower:]' '[:upper:]')
 
-        #@ Add space after each word
-        title_cased="${title_cased}${first_char_upper}${rest_of_word} "
+        # Only add space if not the first word
+        if [ -n "${title_cased}" ]; then
+          title_cased="${title_cased} "
+        fi
+        title_cased="${title_cased}${first_char_upper}${rest_of_word}"
       done
 
       # Define the message as the whole title-cased string
@@ -172,10 +169,36 @@ pout() {
   [ -n "${pout_tag}" ] && printf "%s " "${pout_tag}"
 
   #@ Strip leading and trailing whitespace
-  # pout_msg=
+  pout_msg="${pout_msg#"${pout_msg%%[![:space:]]*}"}"   #? Remove leading whitespace
+  pout_msg="${pout_msg%"${pout_msg##*[![:space:]]}"}"   #? Remove trailing whitespace
 
   #@ Print the output message
   printf "%s\n" "${pout_msg}"
+}
+
+validate_git() {
+  #@ Check if the git command is available
+  GIT_CMD=$(command -v git)
+  if [ -n "${GIT_CMD}" ]; then
+    pout --debug "Using git command:" "${GIT_CMD}"
+  else
+    pout --error "The git command is not available."
+    return 1
+  fi
+
+  #@ Attempt to retrieve the path to the project root directory
+  git_dir="$(eval "${GIT_CMD} rev-parse --show-toplevel" 2> /dev/null)" || {
+    pout --error "This directory is not part of a git repository."
+    pout --warn "Please navigate to a valid git repository and try again."
+    return 1
+  }
+
+  if [ -d "${git_dir}" ]; then #?: Is -d enough to validate access?
+    pout --debug "Using git directory:" "${git_dir}"
+  else
+    pout --error "Git directory exists but cannot be accessed: ${git_dir}"
+    return 1
+  fi
 }
 
 create_cmd_output_file() {
@@ -236,22 +259,10 @@ create_cmd_output_file() {
     done
 
     #@ Ensure the arguments are valid
-    # [ -n "${CMD}" ] || {
-    #   pout --error "No command provided"
-    #   return 1
-    # }
-    # [ -n "${CMD_TAG}" ] || {
-    #   pout --error "No tag provided"
-    #   return 1
-    # }
-    # [ -n "${CMD_MSG}" ] || {
-    #   pout --error "No message provided"
-    #   return 1
-    # }
-    # [ -n "${CMD_LABEL}" ] || {
-    #   pout --error "No label provided"
-    #   return 1
-    # }
+    [ -n "${CMD}" ] || {
+      pout --error "No command provided"
+      return 1
+    }
 
     #@ Print the header information of the process
     CMD_LABEL="$(pout --title "${CMD_LABEL}")"
@@ -299,7 +310,7 @@ create_cmd_output_file() {
 
       #@ Skip it "Already up to date"
       case "${CMD_RESULT}" in
-        *"Already up to date"*)  pout --info "The local repo already in sync with the remote" ;;
+        *"Already up to date"*) pout --info "The local repo already in sync with the remote" ;;
         *)
           #@ Tag each line of output seperatly
           while IFS= read -r line; do
@@ -329,32 +340,6 @@ create_cmd_output_file() {
     #@ Exit the function with the status from the command
     return "${CMD_STATUS}"
   }
-}
-
-validate_git() {
-  #@ Check if the git command is available
-  GIT_CMD=$(command -v git)
-  if [ -n "${GIT_CMD}" ]; then
-    pout --debug "Using git command:" "${GIT_CMD}"
-  else
-    pout --error "The git command is not available."
-    return 1
-  fi
-
-  return 0
-  #@ Attempt to retrieve the path to the project root directory
-  git_dir="$(eval "${GIT_CMD} rev-parse --show-toplevel" 2> /dev/null)" || {
-    pout --error "This directory is not part of a git repository."
-    pout --warn "Please navigate to a valid git repository and try again."
-    return 1
-  }
-
-  if [ -d "${git_dir}" ]; then #?: Is -d enough to validate access?
-    pout --debug "Using git directory:" "${git_dir}"
-  else
-    pout --error "Git directory exists but cannot be accessed: ${git_dir}"
-    return 1
-  fi
 }
 
 pull_updates() {
@@ -541,7 +526,7 @@ commit_changes() {
 
 push_changes() {
   #@ Define command information
-  cmd="${GIT_CMD} push --recurse-submodules=check"
+  cmd="${GIT_CMD} push --recurse-submodules=check --follow-tags"
   cmd_label="Update Remote"
   msg_success="updated the remote with the local changes"
   msg_failure="failed to the remote with the local changes"
