@@ -355,6 +355,7 @@ pull_updates() {
 
   #@ Define the cleanup function
   cleanup() {
+      echo "Cleaning up in pull..."
     unset cmd cmd_label msg_success msg_failure msg_debug
   }
   trap 'cleanup' EXIT INT TERM HUP
