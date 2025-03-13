@@ -1,6 +1,7 @@
 #!/bin/sh
 
 #TODO: WARN and ERROR should display errors when operations fail
+#TODO: Pout should default to no new line. Add line managemnt
 
 main() {
   #| Initialize the script
@@ -388,7 +389,8 @@ pull_updates() {
     --label "${cmd_label}" \
     --command "${cmd}" \
     --success "${msg_success}" \
-    --failure "${msg_failure}"
+    --failure "${msg_failure}" \
+    --no-tag
 }
 
 get_status() {
@@ -545,6 +547,7 @@ commit_changes() {
     read -r msg
   fi
 
+  printf "MSG: %s" "${msg}"
   #@ Define the commit message from the user input or default value
   msg_commit="${msg:-"${msg_default}"}"
 

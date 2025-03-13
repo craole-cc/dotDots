@@ -10,7 +10,7 @@ set_defaults() {
   scr_name=pout-repeat
   scr_version=0.1
   src_description="Prints a leading padding before the specified text"
-  scr_usage="Usage: $scr_name <SPACES> <STRING> (use --help for detailed guide)"
+  scr_usage="Usage: ${scr_name} <SPACES> <STRING> (use --help for detailed guide)"
   exit_code=0
   debug=0
   expected_args=2
@@ -18,11 +18,11 @@ set_defaults() {
 }
 
 is_valid_num() {
-  validate --positive "$1" > /dev/null 2>&1
+  validate --positive "$1" >/dev/null 2>&1
 }
 
 print_guide() {
-  printf "%s [ v.%s]\n" "$scr_name" "$scr_version"
+  printf "%s [ v.%s]\n" "${scr_name}" "${scr_version}"
   # print_section \
   #   --head "Description" \
   #   --info "$src_description"
@@ -43,41 +43,41 @@ print_guide() {
 print_usage() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --args)
-        msg="$(
-          printf "Incorrect number of arguments. " >&2
-          printf "Expected at least %s but got %s\n" "$expected_args" "$2" >&2
-        )"
-        ;;
-      --pos)
-        msg="$(
-          printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
-        )"
-        ;;
-      --reps)
-        msg="$(printf "Number of repetitions not defined\n" >&2)"
-        ;;
-      *)
-        exit_code="${1:-1}"
-        ;;
+    --args)
+      msg="$(
+        printf "Incorrect number of arguments. " >&2
+        printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
+      )"
+      ;;
+    --pos)
+      msg="$(
+        printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+      )"
+      ;;
+    --reps)
+      msg="$(printf "Number of repetitions not defined\n" >&2)"
+      ;;
+    *)
+      exit_code="${1:-1}"
+      ;;
     esac
     shift
   done
 
-  if [ "$exit_code" -gt 0 ] && [ -n "$msg" ]; then
-    printf "ERROR: %s\n%s" "$msg" "$scr_usage" >&2
+  if [ "${exit_code}" -gt 0 ] && [ -n "${msg}" ]; then
+    printf "ERROR: %s\n%s" "${msg}" "${scr_usage}" >&2
   else
-    printf "%s" "$scr_usage"
+    printf "%s" "${scr_usage}"
   fi
 
-  exit "$exit_code"
+  exit "${exit_code}"
 }
 
 execute_process() {
   i=0
-  while [ "$i" -lt "$repetitions" ]; do
+  while [ "${i}" -lt "${repetitions}" ]; do
     #@ Use %b to interpret escape sequences
-    printf "%b" "$pattern"
+    printf "%b" "${pattern}"
     i=$((i + 1))
   done
 }
@@ -85,9 +85,10 @@ execute_process() {
 parse_arguments() {
   #@ Script Options
   for arg in "$@"; do
-    case "$arg" in
-      -h) print_usage 0 ;;
-      --help) print_guide ;;
+    case "${arg}" in
+    -h) print_usage 0 ;;
+    --help) print_guide ;;
+    *) ;;
     esac
   done
 
@@ -97,53 +98,53 @@ parse_arguments() {
   #@ Process Options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -d | --verbose | --debug)
-        debug=1
-        ;;
-      -n | -*num* | -r | -*rep*)
-        is_valid_num "$2" || print_usage --reps
-        repetitions="$2"
-        shift
-        ;;
-      -p | -*pat* | -c | -*char*)
-        [ -n "$2" ] || print_usage --args
-        pattern="$2"
-        shift
-        ;;
-      -l | --line)
-        pattern="\n"
-        repetitions="${2:-1}"
-        break
-        ;;
-      -s | --space)
-        pattern=" "
-        repetitions="${2:-1}"
-        break
-        ;;
-      *)
-        #@ Handle positional arguments
-        if [ -z "$repetitions" ] && [ -z "$pattern" ]; then
-          if is_valid_num "$1"; then
-            pattern="$2"
-            repetitions="$1"
-          elif is_valid_num "$2"; then
-            pattern="$1"
-            repetitions="$2"
-          fi
+    -d | --verbose | --debug)
+      debug=1
+      ;;
+    -n | --num* | -r | --rep*)
+      is_valid_num "$2" || print_usage --reps
+      repetitions="$2"
+      shift
+      ;;
+    -p | --pat* | -c | --char* | --str*)
+      [ -n "$2" ] || print_usage --args
+      pattern="$2"
+      shift
+      ;;
+    -l | --line)
+      pattern="\n"
+      repetitions="${2:-1}"
+      break
+      ;;
+    -s | --space)
+      pattern=" "
+      repetitions="${2:-1}"
+      break
+      ;;
+    *)
+      #@ Handle positional arguments
+      if [ -z "${repetitions}" ] && [ -z "${pattern}" ]; then
+        if is_valid_num "$1"; then
+          pattern="$2"
+          repetitions="$1"
+        elif is_valid_num "$2"; then
+          pattern="$1"
+          repetitions="$2"
         fi
-        ;;
+      fi
+      ;;
     esac
     shift
   done
 
   #@ Debugging
-  [ "$debug" -gt 0 ] && {
-    printf "REPS: %s CHAR: %s\n" "$repetitions" "$pattern"
+  [ "${debug}" -gt 0 ] && {
+    printf "REPS: %s CHAR: %s\n" "${repetitions}" "${pattern}"
   }
 
   #@ Ensure both arguments are provided
-  [ -n "$repetitions" ] || print_usage --reps
-  [ -n "$pattern" ] || print_usage --pattern
+  [ -n "${repetitions}" ] || print_usage --reps
+  [ -n "${pattern}" ] || print_usage --pattern
 }
 
 main "$@"
