@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#TODO: WARN and ERROR should display errors when operations fail
+
 main() {
   #| Initialize the script
   set_defaults
@@ -283,8 +285,8 @@ create_cmd_output_file() {
     if [ -n "${CMD_TAG}" ]; then
       #@ Capturing the status command through redirection
       if eval "${CMD}" > "${CMD_OUTPUT}" 2>&1; then
-      #TODO: <\ ERROR /> /home/craole/.dots/Scripts/sync-repo.sh: eval: line 285: unexpected EOF while looking for matching `''
-      #TODO: <\ ERROR /> Failed to amend the last commit. [Exit Code: 2]
+        #TODO: <\ ERROR /> /home/craole/.dots/Scripts/sync-repo.sh: eval: line 285: unexpected EOF while looking for matching `''
+        #TODO: <\ ERROR /> Failed to amend the last commit. [Exit Code: 2]
         CMD_STATUS="$?"
       else
         CMD_STATUS="$?"
@@ -354,11 +356,11 @@ pull_updates() {
   msg_failure="Failed to pull updates from remote repository"
 
   #@ Define the cleanup function
-  cleanup() {
-      echo "Cleaning up in pull..."
+  pull__cleanup() {
+    echo "Cleaning up in pull..."
     unset cmd cmd_label msg_success msg_failure msg_debug
   }
-  trap 'cleanup' EXIT INT TERM HUP
+  trap 'pull__cleanup' EXIT INT TERM HUP
 
   #@ Skip pull if we're amending
   if [ -n "${amend_commit:-}" ]; then
@@ -368,10 +370,10 @@ pull_updates() {
 
   #@ Update the command based on verbosity level
   case "${VERBOSITY_LEVEL}" in
-    "${VERBOSITY_LEVEL_TRACE}" | "${VERBOSITY_LEVEL_DEBUG}")
+    "${VERBOSITY_LEVEL_DEBUG}")
       cmd="${cmd} --dry-run"
       ;;
-    "${VERBOSITY_LEVEL_INFO}")
+    "${VERBOSITY_LEVEL_TRACE}")
       cmd="${cmd} --verbose"
       ;;
     "${VERBOSITY_LEVEL_QUIET}")
@@ -406,21 +408,24 @@ get_status() {
   msg_failure="Failed to retrieve the status of the repositroy"
 
   #@ Define the cleanup function
-  cleanup() {
+  status__cleanup() {
     unset cmd cmd_label msg_success msg_failure msg_debug _changes
   }
-  trap 'cleanup' EXIT INT TERM HUP
+  trap 'status__cleanup' EXIT INT TERM HUP
 
   #@ Define the command
   cmd="${GIT_CMD} status"
   case "${VERBOSITY_LEVEL}" in
-    "${VERBOSITY_LEVEL_TRACE}" | "${VERBOSITY_LEVEL_INFO}")
+    "${VERBOSITY_LEVEL_TRACE}")
       cmd="${cmd} --verbose"
       ;;
     "${VERBOSITY_LEVEL_DEBUG}")
+      cmd="${cmd} --long"
+      ;;
+    "${VERBOSITY_LEVEL_WARN}" | "${VERBOSITY_LEVEL_INFO}")
       cmd="${cmd} --short"
       ;;
-    "${VERBOSITY_LEVEL_WARN}" | "${VERBOSITY_LEVEL_ERROR}" | "${VERBOSITY_LEVEL_QUIET}")
+    "${VERBOSITY_LEVEL_ERROR}" | "${VERBOSITY_LEVEL_QUIET}")
       cmd="${cmd} >/dev/null 2>&1"
       ;;
     *) ;;
@@ -459,10 +464,10 @@ update_index() {
   msg_failure="failed to update the index with the changed/untracked files"
 
   #@ Define the cleanup function
-  cleanup() {
+  update_index__cleanup() {
     unset cmd cmd_label msg_success msg_failure msg_debug
   }
-  trap 'cleanup' EXIT INT TERM HUP
+  trap 'update_index__cleanup' EXIT INT TERM HUP
 
   #@ Check if we should skip
   should_skip_operation "${cmd_label}"
@@ -497,10 +502,10 @@ commit_changes() {
   msg_failure="failed to update the index with the changed/untracked files"
 
   #@ Define the cleanup function
-  cleanup() {
+  commit_changes__cleanup() {
     unset cmd cmd_label msg_success msg_failure msg_last_commit msg_init_commit msg_commit msg_default
   }
-  trap 'cleanup' EXIT INT TERM HUP
+  trap 'commit_changes__cleanup' EXIT INT TERM HUP
 
   #@ Check if we should skip
   should_skip_operation "${cmd_label}"
@@ -568,10 +573,10 @@ push_changes() {
   msg_failure="failed to the remote with the local changes"
 
   #@ Define the cleanup function
-  cleanup() {
+  push_changes__cleanup() {
     unset cmd cmd_label msg_success msg_failure msg_debug
   }
-  trap 'cleanup' EXIT INT TERM HUP
+  trap 'push_changes__cleanup' EXIT INT TERM HUP
 
   #@ Check if we should skip
   should_skip_operation "${cmd_label}"
