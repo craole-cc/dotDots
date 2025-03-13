@@ -491,7 +491,8 @@ update_index() {
     --label "${cmd_label}" \
     --command "${cmd}" \
     --success "${msg_success}" \
-    --failure "${msg_failure}"
+    --failure "${msg_failure}" \
+    --no-tag
 }
 
 commit_changes() {
