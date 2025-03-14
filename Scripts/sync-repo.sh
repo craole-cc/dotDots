@@ -37,7 +37,7 @@ set_defaults() {
   VERBOSITY_LEVEL_TRACE=5
 
   #@ Set the default verbosity level
-  VERBOSITY_LEVEL="${VERBOSITY_LEVEL_WARN}"
+  VERBOSITY_LEVEL="${VERBOSITY_LEVEL_INFO}"
 }
 
 set_operation_mode() {
