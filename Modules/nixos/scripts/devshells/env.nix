@@ -4,7 +4,7 @@
   env = [
     {
       name = "PATH";
-      prefix = "${paths.scripts.local.flake}";
+      prefix = with paths.scripts.local; "${flake}:${shellscripts}";
     }
     {
       name = "XDG_CACHE_DIR";
@@ -74,6 +74,10 @@
       package = "fzf";
     }
     {
+      category = "Environment Management";
+      package = "gitui";
+    }
+    {
       category = "Interactive Shell & Scripting";
       package = "hub";
     }
@@ -95,10 +99,10 @@
       name = "pwsh";
       package = "powershell";
     }
-    # {
-    #   category = "Environment Management";
-    #   package = "rbw";
-    # }
+    {
+      category = "Environment Management";
+      package = "rbw";
+    }
     {
       category = "Information Management";
       name = "rg";
@@ -112,6 +116,18 @@
     {
       category = "Environment Management";
       package = "yazi";
+    }
+    {
+      category = "Interactive Shell & Scripting";
+      name = "zeditor";
+      command = ''
+        if [ "$#" -gt 0 ]; then
+          zeditor "$@"
+        else
+          zeditor "$PRJ_ROOT"
+        fi
+      '';
+      package = "zed-editor";
     }
     {
       category = "Environment Management";
@@ -129,6 +145,8 @@
     jq
     thefuck
     nixd
+    gitoxide
+    zed-editor
     # fish-lsp
   ];
 }
