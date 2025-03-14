@@ -1,8 +1,8 @@
 [
   {
     "label": "Update Repository",
-    "command": "sync.sh",
-    "env": { "PATH": "$PATH:Modules/nixos/scripts" },
+    "command": "sync-repo.sh",
+    "env": { "PATH": "$PATH:Scripts" },
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -12,7 +12,7 @@
   {
     "label": "Update Flake",
     "command": "sync.sh && update.sh",
-    "env": { "PATH": "$PATH:Modules/nixos/scripts" },
+    "env": { "PATH": "$PATH:Scripts" },
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
