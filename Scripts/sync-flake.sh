@@ -3,8 +3,13 @@
 main() {
     set -eu
     parse_arguments "$@"
-    command -v sync-repo.sh && sync-repo.sh
+    update_repo
     update_flake
+    update_repo
+}
+
+update_repo(){
+    command -v sync-repo.sh && sync-repo.sh
 }
 
 parse_arguments() {
