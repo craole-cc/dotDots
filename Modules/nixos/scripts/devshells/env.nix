@@ -108,10 +108,10 @@
       name = "pwsh";
       package = "powershell";
     }
-    # {
-    #   category = "Project Management";
-    #   package = "rbw";
-    # }
+    {
+      category = "File/Environment Management";
+      package = "rbw";
+    }
     {
       category = "File/Environment Management";
       name = "rg";
