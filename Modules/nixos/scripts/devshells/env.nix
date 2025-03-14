@@ -28,34 +28,34 @@
   commands = [
     {
       name = "rebuild";
-      category = "System Management";
+      category = "Project Management";
       command = ''sudo nixos-rebuild --flake $DOTS switch $@'';
       help = "Rebuild NixOS with the changes made to the flake";
     }
     {
       name = "clean";
-      category = "System Management";
+      category = "Project Management";
       command = ''nix-collect-garbage --delete-old'';
       help = "Remove old nixos and home-manager generations";
     }
     {
       name = "repo";
-      category = "System Management";
+      category = "Project Management";
       command = ''sync-repo.sh'';
       help = "Sync git repository";
     }
     {
       name = "flake";
-      category = "System Management";
-      command = ''sync-repo.sh && update.sh'';
+      category = "Project Management";
+      command = ''sync-flake.sh'';
       help = "Update flake inputs and sync git repository";
     }
     {
-      category = "Information Management";
+      category = "File/Environment Management";
       package = "bat";
     }
     {
-      category = "Information Management";
+      category = "File/Environment Management";
       package = "btop";
     }
     {
@@ -67,11 +67,11 @@
       package = "direnv";
     }
     {
-      category = "Environment Management";
+      category = "File/Environment Management";
       package = "eza";
     }
     {
-      category = "Environment Management";
+      category = "File/Environment Management";
       package = "fd";
     }
     {
@@ -79,56 +79,57 @@
       package = "fish";
     }
     {
-      category = "Information Management";
+      category = "File/Environment Management";
       package = "fastfetch";
     }
     {
-      category = "Environment Management";
+      category = "File/Environment Management";
       package = "fzf";
     }
     {
-      category = "Environment Management";
+      category = "Project Management";
       package = "gitui";
     }
     {
       category = "Interactive Shell & Scripting";
       package = "just";
     }
-    {
-      category = "Environment Management";
-      package = "lsd";
-    }
-    {
-      category = "Interactive Shell & Scripting";
-      name = "nu";
-      package = "nushell";
-    }
+    # {
+    #   category = "File/Environment Management";
+    #   package = "lsd";
+    # }
+    # {
+    #   category = "Interactive Shell & Scripting";
+    #   name = "nu";
+    #   package = "nushell";
+    # }
     {
       category = "Interactive Shell & Scripting";
       name = "pwsh";
       package = "powershell";
     }
+    # {
+    #   category = "Project Management";
+    #   package = "rbw";
+    # }
     {
-      category = "Environment Management";
-      package = "rbw";
-    }
-    {
-      category = "Information Management";
+      category = "File/Environment Management";
       name = "rg";
       package = "ripgrep";
     }
     {
-      category = "Interactive Shell & Scripting";
+      category = "Project Management";
       name = "treefmt";
       package = "treefmt2";
     }
     {
-      category = "Environment Management";
+      category = "File/Environment Management";
       package = "yazi";
     }
     {
       category = "Interactive Shell & Scripting";
       name = "zeditor";
+      package = "zed-editor-fhs";
       command = ''
         if [ "$#" -gt 0 ]; then
           zeditor "$@"
@@ -136,10 +137,10 @@
           zeditor "$PRJ_ROOT"
         fi
       '';
-      package = "zed-editor";
+      help = '' High-performance Integrated Development Environment (IDE)'';
     }
     {
-      category = "Environment Management";
+      category = "File/Environment Management";
       package = "zoxide";
     }
     {
@@ -149,6 +150,7 @@
   ];
 
   packages = with pkgs; [
+    atuin
     bash-language-server
     biome
     jq
