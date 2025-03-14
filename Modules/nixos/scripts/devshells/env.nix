@@ -4,7 +4,7 @@
   env = [
     {
       name = "PATH";
-      prefix = with paths.scripts.local; "${flake}:${shellscripts}";
+      prefix = with paths.scripts.local; ''"${flake}":"${shellscript}"'';
     }
     {
       name = "XDG_CACHE_DIR";
@@ -32,13 +32,13 @@
     {
       name = "repo";
       category = "System Management";
-      command = ''sync.sh'';
+      command = ''sync-repo.sh'';
       help = "Sync git repository";
     }
     {
       name = "flake";
       category = "System Management";
-      command = ''sync.sh && update.sh'';
+      command = ''sync-repo.sh && update.sh'';
       help = "Update flake inputs and sync git repository";
     }
     {
@@ -50,7 +50,11 @@
       package = "btop";
     }
     {
-      category = "Environment Management";
+      category = "Interactive Shell & Scripting";
+      package = "devenv";
+    }
+    {
+      category = "Interactive Shell & Scripting";
       package = "direnv";
     }
     {
@@ -78,7 +82,7 @@
       package = "gitui";
     }
     {
-      category = "Interactive Shell & Scripting";
+      category = "Environment Management";
       package = "hub";
     }
     {

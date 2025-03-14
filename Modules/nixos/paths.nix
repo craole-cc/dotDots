@@ -72,7 +72,7 @@ let
     local = {
       shellscript = flake.local + parts.bin.shellscript;
       flake = modules.local + parts.bin.flake;
-      dots =  flake.local + ""
+      dots =  flake.local + parts.bin.default;
     };
     store = {
       shellscript = flake.store + parts.bin.shellscript;
