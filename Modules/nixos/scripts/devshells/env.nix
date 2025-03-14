@@ -91,10 +91,6 @@
       package = "gitui";
     }
     {
-      category = "Environment Management";
-      package = "hub";
-    }
-    {
       category = "Interactive Shell & Scripting";
       package = "just";
     }
@@ -154,12 +150,12 @@
 
   packages = with pkgs; [
     bash-language-server
-    glib
+    biome
     jq
     thefuck
     nixd
     gitoxide
-    zed-editor
-    # fish-lsp
+    fish-lsp
+    # zed-editor-fhs
   ];
 }

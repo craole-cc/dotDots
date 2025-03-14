@@ -232,10 +232,10 @@
     "alternate_scroll": "off",
     "option_as_meta": true,
     "copy_on_select": true,
-    "button": true,
+    "button": false,
     "env": {},
     "line_height": "standard",
-    "toolbar": { "title": false }
+    "toolbar": { "title": true, "buttons": false }
   },
 
   //> ===================================
