@@ -6,9 +6,10 @@
       name = "PATH";
       prefix =
         let
-          shellscript = "$PRJ_ROOT" + "/Bin/shellscript";
-          dots = "$PRJ_ROOT" + "/Scripts";
-          flake = "$PRJ_ROOT" + "/Modules/nixos/scripts";
+          inherit (paths.parts) bin;
+          shellscript = "$PRJ_ROOT" + bin.shellscript;
+          dots = "$PRJ_ROOT" + bin.dots;
+          flake = "$PRJ_ROOT" + bin.flake;
         in
         ''
           ${shellscript}:${dots}:${flake}
