@@ -150,7 +150,7 @@
       # mkConfig = import paths.libraries.mkConf {
       #   inherit inputs paths;
       # };
-      # 
+      #
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -175,13 +175,13 @@
           devshells =
             let
               shells = with paths.devshells; {
-                dots = import dots.nix;
-                env = import env.nix { inherit pkgs paths; };
+                dots = import dots.nix { inherit pkgs paths; };
+                media = import media.nix { inherit pkgs paths; };
               };
             in
             with shells;
             {
-              default = env;
+              default = dots;
               inherit dots env;
             };
 

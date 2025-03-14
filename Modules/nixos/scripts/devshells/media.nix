@@ -1,6 +1,7 @@
 { pkgs, paths, ... }:
+#TODO: Update to match the toml
 {
-  name = "dotDots";
+  name = "Media";
   env = [
     {
       name = "PATH";
@@ -26,30 +27,6 @@
   ];
 
   commands = [
-    {
-      name = "rebuild";
-      category = "Project Management";
-      command = ''sudo nixos-rebuild --flake $DOTS switch $@'';
-      help = "Rebuild NixOS with the changes made to the flake";
-    }
-    {
-      name = "clean";
-      category = "Project Management";
-      command = ''nix-collect-garbage --delete-old'';
-      help = "Remove old nixos and home-manager generations";
-    }
-    {
-      name = "repo";
-      category = "Project Management";
-      command = ''sync-repo.sh'';
-      help = "Sync git repository";
-    }
-    {
-      name = "flake";
-      category = "Project Management";
-      command = ''sync-flake.sh'';
-      help = "Update flake inputs and sync git repository";
-    }
     {
       category = "File/Environment Management";
       package = "bat";

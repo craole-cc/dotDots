@@ -38,12 +38,10 @@ let
       nix = default + "/dots.nix";
       toml = default + "/dots.toml";
     };
-    env = {
-      nix = default + "/env.nix";
-      toml = default + "/env.toml";
+    media = {
+      nix = default + "/media.nix";
+      toml = default + "/media.toml";
     };
-    dev = default + "/dev.toml";
-    media = default + "/media.toml";
   };
   core = rec {
     default = modules.store;
