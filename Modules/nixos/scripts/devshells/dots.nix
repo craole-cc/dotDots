@@ -151,7 +151,6 @@
     jq
     thefuck
     nixd
-    gitoxide
     fish-lsp
   ];
 }
