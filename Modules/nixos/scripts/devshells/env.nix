@@ -4,7 +4,15 @@
   env = [
     {
       name = "PATH";
-      prefix = with paths.scripts.local; ''"${flake}":"${shellscript}"'';
+      prefix =
+        let
+          shellscript = "$PRJ_ROOT" + "/Bin/shellscript";
+          dots = "$PRJ_ROOT" + "/Scripts";
+          flake = "$PRJ_ROOT" + "/Modules/nixos/scripts";
+        in
+        ''
+          ${shellscript}:${dots}:${flake}
+        '';
     }
     {
       name = "XDG_CACHE_DIR";

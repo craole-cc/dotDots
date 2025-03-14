@@ -28,7 +28,7 @@ let
       rust = parts.bin.default + "/rust";
       shellscript = parts.bin.default + "/shellscript";
       flake = "/scripts";
-      root="/Scripts";
+      dots="/Scripts";
       devshells = parts.bin.flake + "/devshells";
     };
   };
@@ -72,7 +72,7 @@ let
     local = {
       shellscript = flake.local + parts.bin.shellscript;
       flake = modules.local + parts.bin.flake;
-      dots =  flake.local + parts.bin.default;
+      dots =  flake.local + parts.bin.dots;
     };
     store = {
       shellscript = flake.store + parts.bin.shellscript;
