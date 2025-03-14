@@ -11,7 +11,7 @@
   },
   {
     "label": "Update Flake",
-    "command": "sync.sh && update.sh",
+    "command": "sync-flake.sh",
     "env": { "PATH": "$PATH:Scripts" },
     "use_new_terminal": false,
     "allow_concurrent_runs": false,

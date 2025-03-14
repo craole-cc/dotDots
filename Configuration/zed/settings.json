@@ -27,7 +27,7 @@
             "zero": true,
             "onum": true
         },
-        "buffer_font_size": 18,
+        "buffer_font_size": 20,
         "buffer_font_weight": 400,
         "buffer_line_height": "comfortable",
         "ui_font_family": ".SystemUIFont",
@@ -137,100 +137,55 @@
             "button": true,
             "default_width": 240,
             "dock": "left",
-            // Whether to show file icons in the project panel.
             "file_icons": true,
-            // Whether to show folder icons or chevrons for directories in the project panel.
             "folder_icons": true,
-            // Whether to show the git status in the project panel.
             "git_status": true,
-            // Amount of indentation for nested items.
             "indent_size": 20,
-            // Whether to reveal it in the project panel automatically,
-            // when a corresponding project entry becomes active.
-            // Gitignored entries are never auto revealed.
             "auto_reveal_entries": true,
-            // Whether to fold directories automatically and show compact folders
-            // (e.g. "a/b/c" ) when a directory has only one subdirectory inside.
             "auto_fold_dirs": true,
-            /// Scrollbar-related settings
             "scrollbar": {
-                /// When to show the scrollbar in the project panel.
-                ///
-                /// Default: always
                 "show": "always"
             }
         },
         "outline_panel": {
-            // Whether to show the outline panel button in the status bar
             "button": true,
-            // Default width of the outline panel.
             "default_width": 300,
-            // Where to dock the outline panel. Can be 'left' or 'right'.
             "dock": "left",
-            // Whether to show file icons in the outline panel.
             "file_icons": true,
-            // Whether to show folder icons or chevrons for directories in the outline panel.
             "folder_icons": true,
-            // Whether to show the git status in the outline panel.
             "git_status": true,
-            // Amount of indentation for nested items.
             "indent_size": 20,
-            // Whether to reveal it in the outline panel automatically,
-            // when a corresponding outline entry becomes active.
-            // Gitignored entries are never auto revealed.
             "auto_reveal_entries": true,
-            /// Whether to fold directories automatically
-            /// when a directory has only one directory inside.
             "auto_fold_dirs": true
         },
         "collaboration_panel": {
-            // Whether to show the collaboration panel button in the status bar.
             "button": true,
-            // Where to dock the collaboration panel. Can be 'left' or 'right'.
             "dock": "left",
-            // Default width of the collaboration panel.
             "default_width": 240
         },
         "chat_panel": {
-            // Whether to show the chat panel button in the status bar.
             "button": "always",
-            // Where to the chat panel. Can be 'left' or 'right'.
             "dock": "right",
-            // Default width of the chat panel.
             "default_width": 240
         },
         "message_editor": {
-            // Whether to automatically replace emoji shortcodes with emoji characters.
-            // For example: typing `:wave:` gets replaced with `👋`.
             "auto_replace_emoji_shortcode": true
         },
         "notification_panel": {
-            // Whether to show the notification panel button in the status bar.
             "button": true,
-            // Where to dock the notification panel. Can be 'left' or 'right'.
             "dock": "right",
-            // Default width of the notification panel.
             "default_width": 380
         },
         "assistant": {
-            // Version of this setting.
             "version": "2",
-            // Whether the assistant is enabled.
             "enabled": true,
-            // Whether to show the assistant panel button in the status bar.
             "button": true,
-            // Where to dock the assistant panel. Can be 'left', 'right' or 'bottom'.
             "dock": "right",
-            // Default width when the assistant is docked to the left or right.
             "default_width": 640,
-            // Default height when the assistant is docked to the bottom.
             "default_height": 320,
-            // The default model to use when creating new contexts.
             "default_model": {
-                // The provider to use.
                 "provider": "ollama",
-                // The model to use.
-                "model": "qwen2.5-coder:7b"
+                "model": "qwen2.5-coder:latest"
             }
         },
         "slash_commands": {
@@ -276,29 +231,16 @@
         "formatter": "auto",
         "soft_wrap": "editor_width",
         "preferred_line_length": 80,
-        // Whether to indent lines using tab characters, as opposed to multiple
-        // spaces.
         "hard_tabs": false,
-        // How many columns a tab should occupy.
         "tab_size": 4,
-        // Control what info is collected by Zed.
         "telemetry": {
-            // Send debug info like crash reports.
             "diagnostics": true,
-            // Send anonymized usage data like what languages you're using Zed with.
             "metrics": true
         },
-        // Automatically update Zed. This setting may be ignored on Linux if
-        // installed through a package manager.
         "auto_update": true,
-        // Diagnostics configuration.
         "diagnostics": {
-            // Whether to show warnings or not by default.
             "include_warnings": true
         },
-        // Add files or globs of files that will be excluded by Zed entirely:
-        // they will be skipped during FS scan(s), file tree and file search
-        // will lack the corresponding file entries.
         "file_scan_exclusions": [
             "**/.git",
             "**/.svn",
@@ -309,177 +251,56 @@
             "**/.classpath",
             "**/.settings"
         ],
-        // Git gutter behavior configuration.
         "git": {
-            // Control whether the git gutter is shown. May take 2 values:
-            // 1. Show the gutter
-            //      "git_gutter": "tracked_files"
-            // 2. Hide the gutter
-            //      "git_gutter": "hide"
             "git_gutter": "tracked_files",
-            // Control whether the git blame information is shown inline,
-            // in the currently focused line.
             "inline_blame": {
-                "enabled": true
-                // Sets a delay after which the inline blame information is shown.
-                // Delay is restarted with every cursor movement.
+                "enabled": true,
                 // "delay_ms": 600
             }
         },
-        // Configuration for how direnv configuration should be loaded. May take 2 values:
-        // 1. Load direnv configuration through the shell hook, works for POSIX shells and fish.
-        //      "load_direnv": "shell_hook"
-        // 2. Load direnv configuration using `direnv export json` directly.
-        //    This can help with some shells that otherwise would not detect
-        //    the direnv environment, such as nushell or elvish.
-        //      "load_direnv": "direct"
         "load_direnv": "shell_hook",
         "edit_predictions": {
-            // A list of globs representing files that inline completions should be disabled for.
             "disabled_globs": [
                 ".env"
             ]
         },
-        // Settings specific to journaling
         "journal": {
-            // The path of the directory where journal entries are stored
             "path": "~",
-            // What format to display the hours in
-            // May take 2 values:
-            // 1. hour12
-            // 2. hour24
             "hour_format": "hour12"
         },
-        // Settings specific to the terminal
         "terminal": {
-            // What shell to use when opening a terminal. May take 3 values:
-            // 1. Use the system's default terminal configuration in /etc/passwd
-            //      "shell": "system"
-            // 2. A program:
-            //      "shell": {
-            //        "program": "sh"
-            //      }
-            // 3. A program with arguments:
-            //     "shell": {
-            //         "with_arguments": {
-            //           "program": "/bin/bash",
-            //           "args": ["--login"]
-            //         }
-            //     }
             "shell": "system",
-            // Where to dock terminals panel. Can be `left`, `right`, `bottom`.
             "dock": "bottom",
-            // Default width when the terminal is docked to the left or right.
             "default_width": 640,
-            // Default height when the terminal is docked to the bottom.
-            "default_height": 320,
-            // What working directory to use when launching the terminal.
-            // May take 4 values:
-            // 1. Use the current file's project directory.  Will Fallback to the
-            //    first project directory strategy if unsuccessful
-            //      "working_directory": "current_project_directory"
-            // 2. Use the first project in this workspace's directory
-            //      "working_directory": "first_project_directory"
-            // 3. Always use this platform's home directory (if we can find it)
-            //     "working_directory": "always_home"
-            // 4. Always use a specific directory. This value will be shell expanded.
-            //    If this path is not a valid directory the terminal will default to
-            //    this platform's home directory  (if we can find it)
-            //      "working_directory": {
-            //        "always": {
-            //          "directory": "~/zed/projects/"
-            //        }
-            //      }
+            "default_height": 240,
+            "font_size": 16,
+            // "font_family": "Zed Plex Mono",
+            // "font_fallbacks": ["FiraCode Nerd Fonts"],
+            // "max_scroll_history_lines": 10000,
             "working_directory": "current_project_directory",
-            // Set the cursor blinking behavior in the terminal.
-            // May take 3 values:
-            //  1. Never blink the cursor, ignoring the terminal mode
-            //         "blinking": "off",
-            //  2. Default the cursor blink to off, but allow the terminal to
-            //     set blinking
-            //         "blinking": "terminal_controlled",
-            //  3. Always blink the cursor, ignoring the terminal mode
-            //         "blinking": "on",
             "blinking": "terminal_controlled",
-            // Set whether Alternate Scroll mode (code: ?1007) is active by default.
-            // Alternate Scroll mode converts mouse scroll events into up / down key
-            // presses when in the alternate screen (e.g. when running applications
-            // like vim or  less). The terminal can still set and unset this mode.
-            // May take 2 values:
-            //  1. Default alternate scroll mode to on
-            //         "alternate_scroll": "on",
-            //  2. Default alternate scroll mode to off
-            //         "alternate_scroll": "off",
             "alternate_scroll": "off",
-            // Set whether the option key behaves as the meta key.
-            // May take 2 values:
-            //  1. Rely on default platform handling of option key, on macOS
-            //     this means generating certain unicode characters
-            //         "option_to_meta": false,
-            //  2. Make the option keys behave as a 'meta' key, e.g. for emacs
-            //         "option_to_meta": true,
             "option_as_meta": true,
-            // Whether or not selecting text in the terminal will automatically
-            // copy to the system clipboard.
-            "copy_on_select": false,
-            // Whether to show the terminal button in the status bar
+            "copy_on_select": true,
             "button": true,
-            // Any key-value pairs added to this list will be added to the terminal's
-            // environment. Use `:` to separate multiple values.
-            "env": {
-                // "KEY": "value1:value2"
-            },
-            // Set the terminal's line height.
-            // May take 3 values:
-            //  1. Use a line height that's comfortable for reading, 1.618
-            //         "line_height": "comfortable"
-            //  2. Use a standard line height, 1.3. This option is useful for TUIs,
-            //      particularly if they use box characters
-            //         "line_height": "standard",
-            //  3. Use a custom line height.
-            //         "line_height": {
-            //           "custom": 2
-            //         },
-            "line_height": "comfortable",
-            // Activate the python virtual environment, if one is found, in the
-            // terminal's working directory (as resolved by the working_directory
-            // setting). Set this to "off" to disable this behavior.
+            "env": {},
+            "line_height": "standard",
             "detect_venv": {
                 "on": {
-                    // Default directories to search for virtual environments, relative
-                    // to the current working directory. We recommend overriding this
-                    // in your project's settings, rather than globally.
                     "directories": [
                         ".env",
                         "env",
                         ".venv",
                         "venv"
                     ],
-                    // Can also be `csh`, `fish`, `nushell` and `power_shell`
                     "activate_script": "default"
                 }
             },
             "toolbar": {
-                // Whether to display the terminal title in its toolbar.
-                "title": true
+                "title": false
             }
-            // Set the terminal's font size. If this option is not included,
-            // the terminal will default to matching the buffer's font size.
-            // "font_size": 15,
-            // Set the terminal's font family. If this option is not included,
-            // the terminal will default to matching the buffer's font family.
-            // "font_family": "Zed Plex Mono",
-            // Set the terminal's font fallbacks. If this option is not included,
-            // the terminal will default to matching the buffer's font fallbacks.
-            // This will be merged with the platform's default font fallbacks
-            // "font_fallbacks": ["FiraCode Nerd Fonts"],
-            // Sets the maximum number of lines in the terminal's scrollback buffer.
-            // Default: 10_000, maximum: 100_000 (all bigger values set will be treated as 100_000), 0 disables the scrolling.
-            // Existing terminals will not pick up this change until they are recreated.
-            // "max_scroll_history_lines": 10000,
         },
         "code_actions_on_format": {},
-        /// Settings related to running tasks.
         "tasks": {
             "variables": {}
         },
