@@ -4,7 +4,7 @@ main() {
     set -eu
     parse_arguments "$@"
     update_repo
-    # update_flake
+    update_flake
     update_repo
 }
 
