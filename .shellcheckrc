@@ -22,4 +22,4 @@ source-path=SCRIPTDIR
 # source-path=SCRIPTDIR
 # source-path=/etc
 # source-path=$HOME
-# source-path=$DOTS_BASH
+# source-path=$PRJ_ROOT/Bin
