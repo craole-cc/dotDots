@@ -4,12 +4,12 @@ main() {
     set -eu
     parse_arguments "$@"
     update_repo
-    update_flake
+    # update_flake
     update_repo
 }
 
 update_repo(){
-    command -v sync-repo.sh && sync-repo.sh "Flake Update"
+    command -v sync-repo.sh && sync-repo.sh --quiet "Flake Update"
 }
 
 parse_arguments() {
