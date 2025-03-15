@@ -1,18 +1,17 @@
 {
   //> ===================================
-  //> THEME & APPEARANCE
+  //> THEMES
   //> ===================================
   "theme": {
-    "mode": "system",
+    "mode": "dark",
     "light": "Catppuccin Latte",
     "dark": "Catppuccin Frappé"
   },
   "icon_theme": {
-    "mode": "system",
+    "mode": "dark",
     "light": "Catppuccin Latte",
     "dark": "Catppuccin Frappé"
   },
-  "unnecessary_code_fade": 0.3,
 
   //> ===================================
   //> EDITOR APPEARANCE
