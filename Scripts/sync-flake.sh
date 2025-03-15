@@ -34,13 +34,14 @@ parse_arguments() {
 
 update_flake() {
     #@ Proceed only if nix flake is available
-    nix_flake="$(nix flake update --help 2>/dev/null)"
+    nix_flake="$(nix flake --help 2>/dev/null)"
     [ -z "${nix_flake}" ] && {
         printf "Nix flake doesn't seem to be available\n"
         return 1
     }
 
-    eval nix flake update "${args}"
+    exal nix flake update "${args}"
+    exal nix flake archive 
     return 0
 }
 
