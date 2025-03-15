@@ -152,5 +152,6 @@
     thefuck
     nixd
     fish-lsp
-  ];
+    nerd-fonts.victor-mono
+    ];
 }

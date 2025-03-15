@@ -9,7 +9,7 @@ main() {
 }
 
 update_repo(){
-    command -v sync-repo.sh && sync-repo.sh
+    command -v sync-repo.sh && sync-repo.sh "Flake Update"
 }
 
 parse_arguments() {

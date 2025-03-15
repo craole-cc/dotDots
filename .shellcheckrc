@@ -1,13 +1,5 @@
 #> Enable Warnings
 enable=all
-#enable=avoid-nullary-conditions   #? Suggest explicitly using -n in `[ $var ]`
-#enable=check-extra-masked-returns #? Check for additional cases where exit codes are masked
-#enable=check-set-e-suppressed     #? Notify when set -e is suppressed during function invocation
-#enable=check-unassigned-uppercase #? Warn when uppercase variables are unassigned
-#enable=deprecate-which            #? Suggest 'command -v' instead of 'which'
-#enable=quote-safe-variables       #? Suggest quoting variables without meta-characters
-# enable=add-default-case #? Suggest adding a default case in `case` statements
-# enable=require-double-brackets #? Require [[ and warn about [ in Bash/Ksh
 
 # #> Disable Warnings
 disable=SC2154        #? Variable is referenced but not assigned
