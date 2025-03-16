@@ -3,12 +3,7 @@
   projectRootFile = "flake.nix";
 
   programs = {
-    nixfmt = {
-      enabled = true;
-      package = pkgs.nixfmt-rfc-style;
-    };
-
-    shellcheck.enabled = true;
+    nixfmt-rfc-style.enabled = true;    shellcheck.enabled = true;
     shfmt.enabled = true;
   };
 

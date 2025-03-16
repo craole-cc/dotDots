@@ -46,92 +46,13 @@
     stylix.url = "github:danth/stylix";
   };
 
-  # outputs =
-  #   inputs:
-  #   with inputs;
-  #   flakeParts.lib.mkFlake { inherit inputs; } {
-  #     debug = true;
-  #     systems = nixpkgs.lib.systems.flakeExposed;
-  #     imports = [
-  #       flakeProcess.flakeModule
-  #     ];
-  #     perSystem =
-  #       { ... }:
-  #       {
-  #         process-compose."myservices" = {
-  #           imports = [
-  #             flakeService.processComposeModules.default
-  #           ];
-  #         };
-  #       };
-  #   };
-
-  # outputs =
-  #   {
-  #     self,
-  #     nixpkgs,
-  #     ...
-  #   }@inputs:
-  # inputs.flakeUtils.lib.eachDefaultSystem (
-  #   system:
-  #   let
-  #     flake = rec {
-  #       store = ./.;
-  #       local = "/home/craole/.dots"; # TODO: Not portable
-  #       nixos = "/Modules/nixos";
-  #       modules = {
-  #         store = store + nixos;
-  #         local = local + nixos;
-  #       };
-  #     };
-  #     paths = import (flake.modules.store + "/paths.nix") { inherit flake; };
-
-  #     mkConfig = import paths.libraries.mkConf {
-  #       inherit self inputs paths;
-  #     };
-  #   in
-  #   {
-  #     devShells.default =
-  #       let
-  #         pkgs = import nixpkgs {
-  #           inherit system;
-  #           config.allowUnfree = true;
-  #           overlays = with inputs; [ flakeShell.overlays.default ];
-  #         };
-  #         inherit (pkgs.devshell) mkShell importTOML;
-  #       in
-  #       mkShell {
-  #         imports = with paths.devShells; [
-  #           (importTOML dots)
-  #           # (importTOML dev)
-  #           # (importTOML media)
-  #           # (importTOML env)
-  #         ];
-  #       };
-
-  #     nixosConfigurations = {
-  #       QBX = mkConfig "QBX" { };
-  #       Preci = mkConfig "Preci" { };
-  #       dbOOK = mkConfig "dbOOK" { };
-  #     };
-
-  #     #TODO: Create separate config directory for nix darwin systems since the config is drastically different
-  #     # darwinConfigurations = {
-  #     #   MBPoNine = mkDarwinConfig "MBPoNine" { };
-  #     # };
-
-  #     # TODO create mkHome for standalone home manager configs
-  #     # homeConfigurations = mkHomeConfig "craole" { };
-  #   }
-  # );
-
   outputs =
     inputs@{ self, ... }:
     let
       flakePaths = rec {
         flake = {
           store = ./.;
-          local = ./.; #TODO: Implement local flake support, we need to know the local path to the flake script, not the store path.
+          local = ./.; # TODO: Implement local flake support, we need to know the local path to the flake script, not the store path.
         };
         parts = {
           modules = "/Modules/nixos";
@@ -150,11 +71,11 @@
       # mkConfig = import paths.libraries.mkConf {
       #   inherit inputs paths;
       # };
-      #
+
       systems = [
         "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
+        # "aarch64-linux"
+        # "aarch64-darwin"
       ];
     in
     inputs.flakeParts.lib.mkFlake { inherit inputs; } {
@@ -162,6 +83,8 @@
       inherit systems;
       imports = with inputs; [
         flakeShell.flakeModule
+        flakeFormatter.flakeModule
+        paths.devshells
       ];
 
       perSystem =
@@ -172,19 +95,6 @@
           ...
         }:
         {
-          devshells =
-            let
-              shells = with paths.devshells; {
-                dots = import dots.nix { inherit pkgs paths; };
-                media = import media.nix { inherit pkgs paths; };
-              };
-            in
-            with shells;
-            {
-              default = dots;
-              inherit dots env;
-            };
-
           # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
           # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
           _module.args.pkgs = import inputs.nixpkgs {
@@ -192,6 +102,19 @@
             overlays = lib.attrValues self.overlays;
             config.allowUnfree = true;
           };
+          # devshells =
+          #   let
+          #     shells = with paths.devshells; {
+          #       dots = import dots.nix { inherit pkgs paths; };
+          #       media = import media.nix { inherit pkgs paths; };
+          #     };
+          #   in
+          #   with shells;
+          #   {
+          #     default = dots;
+          #     inherit dots media;
+          #   };
+          # treefmt = import ./Modules/nixos/modules/treefmt.nix { inherit pkgs; };
         };
 
       # https://omnix.page/om/ci.html
@@ -201,4 +124,5 @@
       #   steps.custom = { };
       # };
     };
+
 }
