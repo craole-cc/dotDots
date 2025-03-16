@@ -4,7 +4,7 @@ let
     QBX = /home/craole/.dots;
     dbook = /home/craole/Documents/dotfiles;
   };
-  parts = {
+  names = {
     args = "/args";
     cfgs = "/configurations";
     env = "/environment";
@@ -14,32 +14,33 @@ let
     shells = "/dev";
     nixos = "/Modules/nixos";
     mods = "/modules";
+    parts = "/components";
     opts = "/options";
     pkgs = "/packages";
     svcs = "/services";
     ui = "/ui";
     uiCore = "/ui/core";
     uiHome = "/ui/home";
-    hosts = parts.cfgs + "/hosts";
-    users = parts.cfgs + "/users";
+    hosts = names.cfgs + "/hosts";
+    users = names.cfgs + "/users";
     scripts = {
       default = "/Bin";
-      cmd = parts.scripts.default + "/cmd";
-      nix = parts.scripts.default + "/nix";
-      rust = parts.scripts.default + "/rust";
-      shellscript = parts.scripts.default + "/shellscript";
+      cmd = names.scripts.default + "/cmd";
+      nix = names.scripts.default + "/nix";
+      rust = names.scripts.default + "/rust";
+      shellscript = names.scripts.default + "/shellscript";
       flake = "/scripts";
       dots = "/Scripts";
-      devshells = parts.mods + "/devshells";
+      devshells = names.mods + "/devshells";
     };
   };
   modules = {
-    store = flake.store + parts.nixos;
-    QBX = flake.QBX + parts.nixos;
-    dbook = flake.dbook + parts.nixos;
+    store = flake.store + names.nixos;
+    QBX = flake.QBX + names.nixos;
+    dbook = flake.dbook + names.nixos;
   };
   devshells = {
-    default = modules.store + parts.scripts.devshells;
+    default = modules.store + names.scripts.devshells;
     dots = {
       nix = devshells.default + "/dots.nix";
       toml = devshells.default + "/dots.toml";
@@ -52,44 +53,45 @@ let
   core = {
     default = modules.store;
     configurations = {
-      hosts = core.default + parts.hosts;
-      users = core.default + parts.users;
+      hosts = core.default + names.hosts;
+      users = core.default + names.users;
     };
-    environment = core.default + parts.env;
-    libraries = core.default + parts.libs;
-    modules = core.default + parts.mods;
-    options = core.default + parts.opts;
-    packages = core.default + parts.pkgs;
-    services = core.default + parts.svcs;
+    environment = core.default + names.env;
+    libraries = core.default + names.libs;
+    modules = core.default + names.mods;
+    options = core.default + names.opts;
+    packages = core.default + names.pkgs;
+    services = core.default + names.svcs;
   };
   home = {
     default = modules.store + "/home";
-    configurations = home.default + parts.cfgs;
-    environment = home.default + parts.env;
-    libraries = home.default + parts.libs;
-    modules = home.default + parts.mods;
-    options = home.default + parts.opts;
-    packages = home.default + parts.pkgs;
-    services = home.default + parts.svcs;
+    configurations = home.default + names.cfgs;
+    environment = home.default + names.env;
+    libraries = home.default + names.libs;
+    modules = home.default + names.mods;
+    options = home.default + names.opts;
+    packages = home.default + names.pkgs;
+    services = home.default + names.svcs;
   };
   scripts = {
     store = {
-      shellscript = flake.store + parts.scripts.shellscript;
-      flake = modules.store + parts.scripts.flake;
-      # dots = modules.store + parts.scripts + "/init_dots";
+      shellscript = flake.store + names.scripts.shellscript;
+      flake = modules.store + names.scripts.flake;
+      # dots = modules.store + names.scripts + "/init_dots";
     };
     QBX = {
-      shellscript = flake.QBX + parts.scripts.shellscript;
-      flake = modules.QBX + parts.scripts.flake;
-      # dots = flake.QBX + parts.scripts.dots;
+      shellscript = flake.QBX + names.scripts.shellscript;
+      flake = modules.QBX + names.scripts.flake;
+      # dots = flake.QBX + names.scripts.dots;
     };
   };
-  # libraries = {
-  #   # local = modules.local + parts.libs;
-  #   store = modules.store + parts.libs;
-  #   mkCore = core.libraries + parts.mkCore;
-  #   mkConf = core.libraries + parts.mkConf;
-  # };
+  libraries = {
+    # local = modules.local + names.libs;
+    store = modules.store + names.libs;
+    mkCore = core.libraries + names.mkCore;
+    mkConf = core.libraries + names.mkConf;
+  };
+  parts = modules.store + names.parts;
 in
 {
   inherit
@@ -99,7 +101,8 @@ in
     core
     home
     scripts
+    names
     parts
-    # libraries
+    libraries
     ;
 }

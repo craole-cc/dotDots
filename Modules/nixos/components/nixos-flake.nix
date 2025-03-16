@@ -11,14 +11,14 @@
     # Run: `nix run .#update`.
     nixos-unified = {
       primary-inputs = [
-        "nixpkgs"
-        "home-manager"
-        "nix-darwin"
-        "nixos-unified"
-        "nix-index-database"
-        "nixvim"
-        "omnix"
-        "nix-doom-emacs-unstraightened"
+        # "nixpkgs"
+        # "home-manager"
+        # "nix-darwin"
+        # "nixos-unified"
+        # "nix-index-database"
+        # "nixvim"
+        # "omnix"
+        # "nix-doom-emacs-unstraightened"
       ];
     };
   };
