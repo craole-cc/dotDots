@@ -94,15 +94,30 @@ let
   parts = modules.store + names.parts;
 in
 {
-  inherit
-    flake
-    modules
-    devshells
-    core
-    home
-    scripts
-    names
-    parts
-    libraries
-    ;
+  users = {
+    craole = {
+       username = "craole";
+       fullname = "Craig 'Craole' Cole";
+       email = "info@craole.cc";
+       sshKey = "";
+     };
+  };
+  hosts={
+    QBX.paths.flake.local=/home/craole/.dots;
+    dbook.paths.flake.local = /home/craole/Documents/dotfiles;
+  };
+  
+  paths = {
+    inherit
+      flake
+      modules
+      devshells
+      core
+      home
+      scripts
+      names
+      parts
+      libraries
+      ;
+  };
 }

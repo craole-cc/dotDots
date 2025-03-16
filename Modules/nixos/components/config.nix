@@ -1,35 +1,59 @@
-# Top-level configuration for everything in this repo.
-#
-# Values are set in 'config.nix' in repo root.
 { lib, ... }:
 let
-  userSubmodule = lib.types.submodule {
+  inherit (lib.options) mkOption;
+  inherit (lib.types)
+    attrsOf
+    path
+    str
+    submodule
+    attrs
+    ;
+
+  userSubmodule = submodule {
     options = {
-      username = lib.mkOption {
-        type = lib.types.str;
+      username = mkOption {
+        type = str;
       };
-      fullname = lib.mkOption {
-        type = lib.types.str;
+      fullname = mkOption {
+        type = str;
       };
-      email = lib.mkOption {
-        type = lib.types.str;
+      email = mkOption {
+        type = str;
       };
-      sshKey = lib.mkOption {
-        type = lib.types.str;
+      sshKey = mkOption {
+        type = str;
         description = ''
           SSH public key
         '';
       };
     };
   };
+
+  hostSubmodule = submodule {
+    options = {
+      localPath = mkOption {
+        type = path;
+        description = "Local dotfiles path for this host";
+      };
+    };
+  };
 in
 {
-  imports = [
-    # ../../config.nix
-  ];
+  # imports = [ ../../config.nix ];
   options = {
-    me = lib.mkOption {
-      type = userSubmodule;
+    users = mkOption {
+      type = attrsOf userSubmodule;
+      description = "User configurations";
+    };
+
+    hosts = mkOption {
+      type = attrsOf hostSubmodule;
+      description = "Host-specific configurations";
+    };
+
+    paths = mkOption {
+      type = attrs;
+      description = "System paths calculated from host configurations";
     };
   };
 }

@@ -1,8 +1,9 @@
 { inputs, ... }:
 {
-  imports = [
-    inputs.nixos-unified.flakeModules.default
-    inputs.nixos-unified.flakeModules.autoWire
+  imports = with inputs.nixos-unified.flakeModules;
+  [
+    default
+    autoWire
   ];
   perSystem = { self', ... }: {
     packages.default = self'.packages.activate;
@@ -11,14 +12,13 @@
     # Run: `nix run .#update`.
     nixos-unified = {
       primary-inputs = [
-        # "nixpkgs"
-        # "home-manager"
-        # "nix-darwin"
-        # "nixos-unified"
-        # "nix-index-database"
-        # "nixvim"
-        # "omnix"
-        # "nix-doom-emacs-unstraightened"
+        "nixpkgs"
+        "home-manager"
+        "nix-darwin"
+        "nixos-unified"
+        "nix-index-database"
+        "nixvim"
+        "omnix"
       ];
     };
   };
