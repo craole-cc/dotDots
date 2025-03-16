@@ -55,12 +55,7 @@
   };
 
   outputs =
-    inputs@{
-      self,
-      flake-parts,
-      nixpkgs,
-      ...
-    }:
+    inputs@{ ... }:
     let
       flakePaths = rec {
         flake = {
@@ -85,20 +80,21 @@
       #   inherit inputs paths;
       # };
 
+      # systems = nixpkgs.lib.systems.flakeExposed;
       systems = [
         "x86_64-linux"
-        # "aarch64-linux"
-        # "aarch64-darwin"
+        "aarch64-linux"
+        "aarch64-darwin"
       ];
     in
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = nixpkgs.lib.systems.flakeExposed;
+    inputs.flakeParts.lib.mkFlake { inherit inputs; } {
+      inherit systems;
       debug = true;
       # inherit systems;
       imports =
         with inputs;
         [
-          flakeDocs.flakeModule
+          # flakeDocs.flakeModule
           flakeShell.flakeModule
           flakeFormatter.flakeModule
         ]
@@ -107,18 +103,6 @@
           # ./Modules/nixos/modules/devshells/default.nix
         ]);
 
-      # hercules-ci.flake-update = {
-      #   enable = true;
-      #   autoMergeMethod = "merge";
-      #   baseMerge.enable = true;
-      #   createPullRequest = true;
-      #   when = {
-      #     hour = [
-      #       8
-      #       20
-      #     ];
-      #   };
-      # };
       # perSystem =
       #   {
       #     pkgs,
