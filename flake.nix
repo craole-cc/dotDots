@@ -14,7 +14,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
+
     # Flake Parts: https://flake.parts/
     flakeParts = {
       url = "github:hercules-ci/flake-parts";
@@ -49,27 +49,10 @@
   };
 
   outputs =
-    inputs@{ ... }:
+    inputs@{ self,... }:
     let
-      flakePaths = rec {
-        flake = {
-          store = ./.;
-          local = ./.; # TODO: Implement local flake support, we need to know the local path to the flake script, not the store path.
-        };
-        parts = {
-          modules = "/Modules/nixos";
-        };
-        modules = {
-          store = flake.store + parts.modules;
-          local = flake.local + parts.modules;
-        };
-        self = modules.store + "/paths.nix";
-      };
-
-      paths = import (flakePaths.modules.store + "/modules/paths.nix") {
-        inherit (flakePaths) flake modules;
-      };
-
+      paths = import ./paths.nix;
+      flakePaths = paths;
       # mkConfig = import paths.libraries.mkConf {
       #   inherit inputs paths;
       # };
@@ -81,7 +64,7 @@
         "aarch64-darwin"
       ];
     in
-    inputs.flakeParts.lib.mkFlake { inherit inputs; } {
+    inputs.flakeParts.lib.mkFlake { inherit self inputs; } {
       inherit systems;
       debug = true;
       # inherit systems;
@@ -92,11 +75,21 @@
           flakeShell.flakeModule
           flakeFormatter.flakeModule
         ]
-        ++ (with paths; [
+        ++ (with flakePaths; [
           # paths.devshells
           # ./Modules/nixos/modules/devshells/default.nix
         ]);
 
+      perSystem = {self, lib, system, ...}: {
+        _module = {
+          args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = lib.attrValues self.overlays;
+            config.allowUnfree = true;
+          };
+          specialArgs = {inherit self flakePaths; };
+        };
+      };
       # perSystem =
       #   {
       #     pkgs,

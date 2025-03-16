@@ -1,9 +1,11 @@
-{
-  flake,
-  modules,
-  ...
-}:
 let
+  flake = {
+    store = ./.;
+    local = {
+      QBX = /home/craole/.dots;
+      dbook = /home/craole/Documents/dotfiles;
+    };
+  };
   parts = {
     args = "/args";
     cfgs = "/configurations";
@@ -12,6 +14,7 @@ let
     mkCore = "/helpers/mkCoreConfig.nix";
     mkConf = "/helpers/mkConfig.nix";
     shells = "/dev";
+    nixos = "/Modules/nixos";
     mods = "/modules";
     opts = "/options";
     pkgs = "/packages";
@@ -28,9 +31,13 @@ let
       rust = parts.bin.default + "/rust";
       shellscript = parts.bin.default + "/shellscript";
       flake = "/scripts";
-      dots="/Scripts";
-      devshells = parts.mods+ "/devshells";
+      dots = "/Scripts";
+      devshells = parts.mods + "/devshells";
     };
+  };
+  modules = {
+    store = flake.store + parts.nixos;
+    local = flake.local + parts.nixos;
   };
   devshells = rec {
     default = modules.store + parts.bin.devshells;
@@ -70,7 +77,7 @@ let
     local = {
       shellscript = flake.local + parts.bin.shellscript;
       flake = modules.local + parts.bin.flake;
-      dots =  flake.local + parts.bin.dots;
+      dots = flake.local + parts.bin.dots;
     };
     store = {
       shellscript = flake.store + parts.bin.shellscript;
