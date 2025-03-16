@@ -293,6 +293,22 @@
         "type": "github"
       }
     },
+    "flakeHooks": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1742058297,
+        "narHash": "sha256-b4SZc6TkKw8WQQssbN5O2DaCEzmFfvSTPYHlx/SFW9Y=",
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "rev": "59f17850021620cd348ad2e9c0c64f4e6325ce2a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "type": "github"
+      }
+    },
     "flakeParts": {
       "inputs": {
         "nixpkgs-lib": [
@@ -722,6 +738,7 @@
         "flakeCI": "flakeCI",
         "flakeDocs": "flakeDocs",
         "flakeFormatter": "flakeFormatter",
+        "flakeHooks": "flakeHooks",
         "flakeParts": "flakeParts",
         "flakeProcess": "flakeProcess",
         "flakeService": "flakeService",
