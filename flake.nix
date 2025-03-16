@@ -26,6 +26,10 @@
     flakeProcess.url = "github:Platonic-Systems/process-compose-flake";
     flakeService.url = "github:juspay/services-flake";
     flakeCI.url = "github:juspay/omnix";
+    flakeHooks = {
+      url = "github:cachix/git-hooks.nix";
+      flake=false;
+    };
 
     # flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     # flakeUtils.url = "github:numtide/flake-utils";
@@ -49,21 +53,21 @@
   };
 
   outputs =
-    inputs@{ self,... }:
+    inputs@{ self, ... }:
     let
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
       paths = import ./paths.nix;
       flakePaths = paths;
       # mkConfig = import paths.libraries.mkConf {
       #   inherit inputs paths;
       # };
 
-      # systems = nixpkgs.lib.systems.flakeExposed;
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
     in
+    # systems = nixpkgs.lib.systems.flakeExposed;
     inputs.flakeParts.lib.mkFlake { inherit self inputs; } {
       inherit systems;
       debug = true;
@@ -79,17 +83,26 @@
           # paths.devshells
           # ./Modules/nixos/modules/devshells/default.nix
         ]);
-
-      perSystem = {self, lib, system, ...}: {
-        _module = {
-          args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = lib.attrValues self.overlays;
-            config.allowUnfree = true;
-          };
-          specialArgs = {inherit self flakePaths; };
-        };
-      };
+      flake = { inherit flakePaths; };
+      # perSystem =
+      #   {
+      #     self,
+      #     lib,
+      #     system,
+      #     ...
+      #   }:
+      #   {
+      #     _module = {
+      #       args = {
+      #         pkgs = import inputs.nixpkgs {
+      #           inherit system;
+      #           overlays = lib.attrValues self.overlays;
+      #           config.allowUnfree = true;
+      #         };
+      #       };
+      #       # inherit flakePaths;
+      #     };
+      #   };
       # perSystem =
       #   {
       #     pkgs,
