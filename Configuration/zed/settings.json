@@ -3,20 +3,30 @@
   //> THEMES
   //> ===================================
   "theme": {
-    "mode": "dark",
+    "mode": "system",
     "light": "Catppuccin Latte",
     "dark": "Catppuccin Frappé"
   },
   "icon_theme": {
-    "mode": "dark",
+    "mode": "system",
     "light": "Catppuccin Latte",
-    "dark": "Catppuccin Frappé"
+    "dark":  "Catppuccin Frappé"
   },
 
   //> ===================================
   //> EDITOR APPEARANCE
   //> ===================================
-  "buffer_font_family": "Zed Plex Mono",
+  "buffer_font_family": "VictorMono Nerd Font",
+  "buffer_font_fallbacks": [
+    "monospace",
+    "Operator Mono Book",
+    // "VictorMono Nerd Font",
+    "Victor Mono",
+    "Operator Mono Lig",
+    "JetBrainsMono Nerd Font",
+    "Cascadia Code",
+    "Zed Plex Mono"
+  ],
   "buffer_font_features": {
     "calt": true,
     "ss01": true,
@@ -34,7 +44,7 @@
   "buffer_font_weight": 400,
   "buffer_line_height": "comfortable",
   "cursor_blink": true,
-  // "cursor_shape": "hollow",
+  "cursor_shape": "block",
   "current_line_highlight": "all",
   "show_whitespaces": "selection",
   "centered_layout": {
@@ -58,7 +68,8 @@
     "calt": false
   },
   "ui_font_weight": 400,
-  "ui_font_size": 16,
+  "ui_font_size": 16,  
+  "unnecessary_code_fade": 0.5,
   "toolbar": {
     "breadcrumbs": true,
     "quick_actions": true,
