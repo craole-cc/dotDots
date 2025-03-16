@@ -44,7 +44,7 @@
   "buffer_font_weight": 400,
   "buffer_line_height": "comfortable",
   "cursor_blink": true,
-  "cursor_shape": "block",
+  // "cursor_shape": "block",
   "current_line_highlight": "all",
   "show_whitespaces": "selection",
   "centered_layout": {

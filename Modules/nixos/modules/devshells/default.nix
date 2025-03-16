@@ -1,11 +1,10 @@
-{
-  perSystem =
-    {
-      pkgs,
-      lib,
-      system,
-      ...
-    }:
+{self, ...}: {
+  perSystem = perSystem @ {
+    config,
+    lib,
+    pkgs,
+    ...
+  }:
     {
       devshells =
         let

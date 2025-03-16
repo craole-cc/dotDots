@@ -2,7 +2,15 @@
   description = "NixOS Configuration Flake";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    
+    emanote.url = "github:srid/emanote";
+    nixpkgs.follows = "emanote/nixpkgs";
+    flake-parts.follows = "emanote/flake-parts";
+    hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
+    # nixpkgs = {
+    #   url = "nixpkgs/nixos-unstable";
+    #   follows = flakeDocs/nixpkgs;
+    # };
     nixosUnstable.url = "nixpkgs/nixos-unstable";
     nixosStable.url = "nixpkgs/nixos-24.11";
     nixosHardware.url = "github:NixOS/nixos-hardware";
@@ -18,6 +26,7 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
+    flakeDocs.url = "github:srid/emanote";
     flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
@@ -46,8 +55,7 @@
     stylix.url = "github:danth/stylix";
   };
 
-  outputs =
-    inputs@{ self, ... }:
+  outputs = inputs@{ self, flake-parts, nixpkgs, ... }:
     let
       flakePaths = rec {
         flake = {
@@ -78,44 +86,62 @@
         # "aarch64-darwin"
       ];
     in
-    inputs.flakeParts.lib.mkFlake { inherit inputs; } {
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = nixpkgs.lib.systems.flakeExposed;
       debug = true;
-      inherit systems;
-      imports = with inputs; [
-        flakeShell.flakeModule
-        flakeFormatter.flakeModule
-        paths.devshells
-      ];
+      # inherit systems;
+      imports =
+        with inputs;
+        [
+          flakeShell.flakeModule
+          flakeFormatter.flakeModule
+        ]
+        ++ (with paths; [
+          # paths.devshells
+          # ./Modules/nixos/modules/devshells/default.nix
+        ]);
 
-      perSystem =
-        {
-          pkgs,
-          lib,
-          system,
-          ...
-        }:
-        {
-          # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
-          # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = lib.attrValues self.overlays;
-            config.allowUnfree = true;
-          };
-          # devshells =
-          #   let
-          #     shells = with paths.devshells; {
-          #       dots = import dots.nix { inherit pkgs paths; };
-          #       media = import media.nix { inherit pkgs paths; };
-          #     };
-          #   in
-          #   with shells;
-          #   {
-          #     default = dots;
-          #     inherit dots media;
-          #   };
-          # treefmt = import ./Modules/nixos/modules/treefmt.nix { inherit pkgs; };
-        };
+      # hercules-ci.flake-update = {
+      #   enable = true;
+      #   autoMergeMethod = "merge";
+      #   baseMerge.enable = true;
+      #   createPullRequest = true;
+      #   when = {
+      #     hour = [
+      #       8
+      #       20
+      #     ];
+      #   };
+      # };
+      # perSystem =
+      #   {
+      #     pkgs,
+      #     lib,
+      #     system,
+      #     ...
+      #   }:
+      #   {
+      #     # "Flake parts does not yet come with an endorsed module that initializes the pkgs argument.""
+      #     # So we must do this manually; https://flake.parts/overlays#consuming-an-overlay
+      #     _module.args.pkgs = import inputs.nixpkgs {
+      #       inherit system;
+      #       overlays = lib.attrValues self.overlays;
+      #       config.allowUnfree = true;
+      #     };
+      #     # devshells =
+      #     #   let
+      #     #     shells = with paths.devshells; {
+      #     #       dots = import dots.nix { inherit pkgs paths; };
+      #     #       media = import media.nix { inherit pkgs paths; };
+      #     #     };
+      #     #   in
+      #     #   with shells;
+      #     #   {
+      #     #     default = dots;
+      #     #     inherit dots media;
+      #     #   };
+      #     # treefmt = import ./Modules/nixos/modules/treefmt.nix { inherit pkgs; };
+      #   };
 
       # https://omnix.page/om/ci.html
       # flake.om.ci.default.ROOT = {
