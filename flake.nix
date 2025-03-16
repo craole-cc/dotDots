@@ -2,15 +2,7 @@
   description = "NixOS Configuration Flake";
 
   inputs = {
-
-    # emanote.url = "github:srid/emanote";
-    # nixpkgs.follows = "emanote/nixpkgs";
-    # flake-parts.follows = "emanote/flake-parts";
-    # hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
-    nixpkgs = {
-      url = "nixpkgs/nixos-unstable";
-      # follows = flakeDocs/nixpkgs;
-    };
+    nixpkgs.url = "nixpkgs/nixos-unstable";
     nixosUnstable.url = "nixpkgs/nixos-unstable";
     nixosStable.url = "nixpkgs/nixos-24.11";
     nixosHardware.url = "github:NixOS/nixos-hardware";
@@ -22,20 +14,22 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    
+    # Flake Parts: https://flake.parts/
     flakeParts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     flakeDocs.url = "github:srid/emanote";
-    # flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
-    flakeUtils.url = "github:numtide/flake-utils";
-    # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
     flakeShell.url = "github:numtide/devshell";
     flakeFormatter.url = "github:numtide/treefmt-nix";
     flakeProcess.url = "github:Platonic-Systems/process-compose-flake";
     flakeService.url = "github:juspay/services-flake";
     flakeCI.url = "github:juspay/omnix";
 
+    # flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
+    # flakeUtils.url = "github:numtide/flake-utils";
+    # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
     # dotsDev.url = "path:./Templates/dev";
     # dotsMedia.url = "path:./Templates/media";
     nixed.url = "github:Craole/nixed";
