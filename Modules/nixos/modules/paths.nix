@@ -29,7 +29,7 @@ let
       shellscript = parts.bin.default + "/shellscript";
       flake = "/scripts";
       dots="/Scripts";
-      devshells = parts.bin.flake + "/devshells";
+      devshells = parts.mods+ "/devshells";
     };
   };
   devshells = rec {
