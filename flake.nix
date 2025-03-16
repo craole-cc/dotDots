@@ -131,7 +131,7 @@
       flakePaths = rec {
         flake = {
           store = ./.;
-          local = "/home/craole/.dots"; # TODO: Not portable
+          local = ./.; #TODO: Implement local flake support, we need to know the local path to the flake script, not the store path.
         };
         parts = {
           modules = "/Modules/nixos";
@@ -143,7 +143,7 @@
         self = modules.store + "/paths.nix";
       };
 
-      paths = import (flakePaths.modules.store + "/paths.nix") {
+      paths = import (flakePaths.modules.store + "/modules/paths.nix") {
         inherit (flakePaths) flake modules;
       };
 

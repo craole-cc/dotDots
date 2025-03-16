@@ -23,6 +23,10 @@
       name = "XDG_CONFIG_HOME";
       eval = "$PRJ_ROOT/.config";
     }
+    {
+      name = "FLAKE";
+      eval = paths.flake.local;
+    }
   ];
 
   commands = [
