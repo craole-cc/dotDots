@@ -2,7 +2,7 @@
   description = "NixOS Configuration Flake";
 
   inputs = {
-    
+
     emanote.url = "github:srid/emanote";
     nixpkgs.follows = "emanote/nixpkgs";
     flake-parts.follows = "emanote/flake-parts";
@@ -55,7 +55,13 @@
     stylix.url = "github:danth/stylix";
   };
 
-  outputs = inputs@{ self, flake-parts, nixpkgs, ... }:
+  outputs =
+    inputs@{
+      self,
+      flake-parts,
+      nixpkgs,
+      ...
+    }:
     let
       flakePaths = rec {
         flake = {
@@ -151,4 +157,8 @@
       # };
     };
 
+  nixConfig = {
+    extra-substituters = "https://cache.garnix.io";
+    extra-trusted-public-keys = "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=";
+  };
 }
