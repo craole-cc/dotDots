@@ -99,14 +99,6 @@
 
   outputs =
     inputs@{ self, ... }:
-    let
-      paths = import ./paths.nix;
-      flakePaths = paths;
-      # mkConfig = import paths.libraries.mkConf {
-      #   inherit inputs paths;
-      # };
-
-    in
     # systems = nixpkgs.lib.systems.flakeExposed;
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       debug = true;
@@ -115,9 +107,17 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      imports = (
-        with builtins; map (fn: flakePaths.parts/${fn}) (attrNames (readDir ./modules/flake-parts))
-      );
+      imports =
+        let
+          paths = import ./paths.nix;
+          flakePaths = paths;
+          inherit (flakePaths) parts;
+          # mkConfig = import paths.libraries.mkConf {
+          #   inherit inputs paths;
+          # };
+          # parts = ./Modules/nixos/components;
+        in
+        (with builtins; map (fn: parts/${fn}) (attrNames (readDir parts)));
 
       perSystem =
         { lib, system, ... }:
