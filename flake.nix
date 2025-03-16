@@ -27,32 +27,31 @@
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     flakeDocs.url = "github:srid/emanote";
-    flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
+    # flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
     flakeUtils.url = "github:numtide/flake-utils";
     # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
     flakeShell.url = "github:numtide/devshell";
     flakeFormatter.url = "github:numtide/treefmt-nix";
-
     flakeProcess.url = "github:Platonic-Systems/process-compose-flake";
     flakeService.url = "github:juspay/services-flake";
     flakeCI.url = "github:juspay/omnix";
 
-    dotsDev.url = "path:./Templates/dev";
-    dotsMedia.url = "path:./Templates/media";
+    # dotsDev.url = "path:./Templates/dev";
+    # dotsMedia.url = "path:./Templates/media";
     nixed.url = "github:Craole/nixed";
 
     nid = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    plasmaManager = {
-      url = "github:pjones/plasma-manager";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "homeManager";
-      };
-    };
-    stylix.url = "github:danth/stylix";
+    # plasmaManager = {
+    #   url = "github:pjones/plasma-manager";
+    #   inputs = {
+    #     nixpkgs.follows = "nixpkgs";
+    #     home-manager.follows = "homeManager";
+    #   };
+    # };
+    # stylix.url = "github:danth/stylix";
   };
 
   outputs =
