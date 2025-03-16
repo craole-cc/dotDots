@@ -3,14 +3,14 @@
 
   inputs = {
 
-    emanote.url = "github:srid/emanote";
-    nixpkgs.follows = "emanote/nixpkgs";
-    flake-parts.follows = "emanote/flake-parts";
-    hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
-    # nixpkgs = {
-    #   url = "nixpkgs/nixos-unstable";
-    #   follows = flakeDocs/nixpkgs;
-    # };
+    # emanote.url = "github:srid/emanote";
+    # nixpkgs.follows = "emanote/nixpkgs";
+    # flake-parts.follows = "emanote/flake-parts";
+    # hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
+    nixpkgs = {
+      url = "nixpkgs/nixos-unstable";
+      # follows = flakeDocs/nixpkgs;
+    };
     nixosUnstable.url = "nixpkgs/nixos-unstable";
     nixosStable.url = "nixpkgs/nixos-24.11";
     nixosHardware.url = "github:NixOS/nixos-hardware";
@@ -99,6 +99,7 @@
       imports =
         with inputs;
         [
+          flakeDocs.flakeModule
           flakeShell.flakeModule
           flakeFormatter.flakeModule
         ]
