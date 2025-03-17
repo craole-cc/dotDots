@@ -41,14 +41,14 @@
     # };
     # omnix.url = "github:juspay/omnix";
     # hyprland.url = "github:hyprwm/Hyprland/v0.46.2";
-    # plasmaManager = {
-    #   url = "github:pjones/plasma-manager";
-    #   inputs = {
-    #     nixpkgs.follows = "nixpkgs";
-    #     home-manager.follows = "homeManager";
-    #   };
-    # };
-    # stylix.url = "github:danth/stylix";
+    plasmaManager = {
+      url = "github:pjones/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "homeManager";
+      };
+    };
+    stylix.url = "github:danth/stylix";
 
     #| Neovim
     # nixvim = {

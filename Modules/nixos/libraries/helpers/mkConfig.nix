@@ -30,14 +30,16 @@
         options
       ])
       ++ (with inputs; [
+        nixPackages.nixosModules.nix-index
         stylix.nixosModules.stylix
-        nid.nixosModules.nix-index
       ]);
     home = with inputs;
       if desktop == "hyprland"
       then []
       else if desktop == "plasma"
-      then [plasmaManager.homeManagerModules.plasma-manager]
+      then [
+        plasmaManager.homeManagerModules.plasma-manager
+        ]
       else if desktop == "xfce"
       then []
       else [];
