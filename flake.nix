@@ -34,6 +34,14 @@
     };
     omnix.url = "github:juspay/omnix";
     hyprland.url = "github:hyprwm/Hyprland/v0.46.2";
+    # plasmaManager = {
+    #   url = "github:pjones/plasma-manager";
+    #   inputs = {
+    #     nixpkgs.follows = "nixpkgs";
+    #     home-manager.follows = "homeManager";
+    #   };
+    # };
+    # stylix.url = "github:danth/stylix";
 
     #| Neovim
     nixvim.url = "github:nix-community/nixvim";
@@ -48,58 +56,10 @@
     #| Templates
     nixed.url = "github:Craole/nixed";
 
-    # nixpkgs.url = "nixpkgs/nixos-unstable";
-    # nixosUnstable.url = "nixpkgs/nixos-unstable";
-    # nixosStable.url = "nixpkgs/nixos-24.11";
-    # nixosHardware.url = "github:NixOS/nixos-hardware";
-    # nixDarwin = {
-    #   url = "github:LnL7/nix-darwin";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-    # homeManager = {
-    #   url = "github:nix-community/home-manager";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-
-    # Flake Parts: https://flake.parts/
-    # flakeParts = {
-    #   url = "github:hercules-ci/flake-parts";
-    #   inputs.nixpkgs-lib.follows = "nixpkgs";
-    # };
-    # flakeUpdate.url = "github:srid/nixos-unified";
-    # flakeDocs.url = "github:srid/emanote";
-    # flakeShell.url = "github:numtide/devshell";
-    # flakeFormatter.url = "github:numtide/treefmt-nix";
-    # flakeProcess.url = "github:Platonic-Systems/process-compose-flake";
-    # flakeService.url = "github:juspay/services-flake";
-    # flakeCI.url = "github:juspay/omnix";
-    # flakeHooks = {
-    #   url = "github:cachix/git-hooks.nix";
-    #   flake = false;
-    # };
-
-    # flakeCompat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
-    # flakeUtils.url = "github:numtide/flake-utils";
-    # flakeUtilsPlus.url = "github:gytis-ivaskevicius/flake-utils-plus";
-    # dotsDev.url = "path:./Templates/dev";
-    # dotsMedia.url = "path:./Templates/media";
-    # nid = {
-    #   url = "github:nix-community/nix-index-database";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-    # plasmaManager = {
-    #   url = "github:pjones/plasma-manager";
-    #   inputs = {
-    #     nixpkgs.follows = "nixpkgs";
-    #     home-manager.follows = "homeManager";
-    #   };
-    # };
-    # stylix.url = "github:danth/stylix";
   };
 
   outputs =
     inputs@{ self, ... }:
-    # systems = nixpkgs.lib.systems.flakeExposed;
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       debug = true;
       systems = [
@@ -107,9 +67,7 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      imports = [
-        ./Modules/nixos
-      ];
+      imports = [ ./Modules/nixos ];
         # let
         #   paths = import ./paths.nix;
         #   flakePaths = paths;
