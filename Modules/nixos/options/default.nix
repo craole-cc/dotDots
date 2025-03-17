@@ -1,11 +1,8 @@
 {
   imports = [
-    # ./base.nix
-    # ./enums.nix
-    # ./sources.nix
-    # ./modules.nix
-    ./users.nix
-    ./hosts.nix
+    ./enums.nix
+    # ./desktop.nix
     ./paths.nix
+    ./fmt.nix
   ];
 }

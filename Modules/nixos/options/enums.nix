@@ -3,96 +3,67 @@
   lib,
   ...
 }: let
-  #| Native Imports
+  dom = "dots";
+  mod = "enums";
+
   inherit (lib.options) mkOption;
   inherit (lib.types) listOf str;
-
-  #| Extended Imports
-  inherit (config) DOTS;
-  base = "enums";
-  mod = "host";
-  src = DOTS.sources.${mod};
-  cfg = DOTS.${base}.${mod};
+  inherit (lib.attrsets) attrNames;
 in {
-  options.DOTS.${base}.${mod} = {
-    configurations = mkOption {
-      description = "List of host configurations";
-      default = src.configuration.names;
-    };
-
-    base = mkOption {
-      description = "List of host types;";
-      default = src.base.names;
+  options.${dom}.${mod} = {
+    displayProtocols = mkOption {
+      description = "Desktop Protocols";
+      default = [
+        "wayland"
+        "xserver"
+      ];
       type = listOf str;
     };
 
-    context = mkOption {
-      description = "List of host types;";
-      default = src.context.names;
+    loginManagers = mkOption {
+      description = "Login Managers";
+      default = [
+        "sddm"
+        "gdm"
+        "lightdm"
+        "kmscon"
+      ];
       type = listOf str;
     };
 
-    processor = {
-      cpu = mkOption {
-        description = "List of CPU types";
-        default = [
-          "intel"
-          "amd"
-        ];
-        type = listOf str;
-      };
-
-      arch = mkOption {
-        description = "List of platform types";
-        default = [
-          "x86_64-linux"
-          "aarch64-linux"
-          "x86_64-darwin"
-          "aarch64-darwin"
-        ];
-        type = listOf str;
-      };
-
-      mode = mkOption {
-        description = "List of platform types";
-        default = [
-          "powersave"
-          "ondemand"
-          "performance"
-        ];
-        type = listOf str;
-      };
-
-      gpu = mkOption {
-        description = "List of GPU types";
-        example = "intel";
-        default = cfg.processor.cpu ++ ["nvidia"];
-        type = listOf str;
-      };
+    windowManagers = mkOption {
+      description = "Window Managers";
+      default = [
+        "hyprland"
+        "qtile"
+      ];
+      type = listOf str;
     };
 
-    manager = {
-      boot = mkOption {
-        description = "List of boot manager types";
-        example = "systemd";
-        default = [
-          "systemd"
-          "grub"
-        ];
-        type = listOf str;
-      };
-      display = mkOption {
-        description = "List of login managers";
-        example = "systemd";
-        default = [
-          "sddm"
-          "kmscon"
-          "greetd"
-          "lightdm"
-          "gdm"
-        ]; # TODO: get from source
-        type = listOf str;
-      };
+    desktopEnvironments = mkOption {
+      description = "Desktop Environments";
+      default = [
+        "gnome"
+        "plasma"
+        "xfce"
+        "budgie"
+      ];
+      type = listOf str;
+    };
+
+    waylandReadyDEs = mkOption {
+      description = "Wayland Ready Desktop Environments";
+      default = [
+        "gnome"
+        "plasma"
+      ];
+      type = listOf str;
+    };
+
+    users = mkOption {
+      description = "Users";
+      default = attrNames config.${dom}.users;
+      type = listOf str;
     };
   };
 }
