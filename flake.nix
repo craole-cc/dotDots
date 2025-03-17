@@ -67,17 +67,20 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      imports = [ ./Modules/nixos ];
-        # let
-        #   paths = import ./paths.nix;
-        #   flakePaths = paths;
-        #   inherit (flakePaths) parts;
-        # in
-        # mkConfig = import paths.libraries.mkConf {
-        #   inherit inputs paths;
-        # };
-        # parts = ./Modules/nixos/components;
-        # (with builtins; map (fn: parts/${fn}) (attrNames (readDir parts)));
+      imports = [
+        ./Modules/nixos
+        ./Modules/nixos/modules/devshell.nix
+      ];
+      # let
+      #   paths = import ./paths.nix;
+      #   flakePaths = paths;
+      #   inherit (flakePaths) parts;
+      # in
+      # mkConfig = import paths.libraries.mkConf {
+      #   inherit inputs paths;
+      # };
+      # parts = ./Modules/nixos/components;
+      # (with builtins; map (fn: parts/${fn}) (attrNames (readDir parts)));
 
       perSystem =
         { lib, system, ... }:
