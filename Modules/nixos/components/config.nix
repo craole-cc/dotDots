@@ -39,7 +39,7 @@ let
   };
 in
 {
-  # imports = [ ../../config.nix ];
+  imports = [ ../../../config.nix ];
   options = {
     users = mkOption {
       type = attrsOf userSubmodule;
