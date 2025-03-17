@@ -1,8 +1,8 @@
+#PATH: paths.nix
 let
   flake = {
     store = ./.;
-    QBX = /home/craole/.dots;
-    dbook = /home/craole/Documents/dotfiles;
+    local = ./.; #TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles;
   };
   names = {
     args = "/args";
@@ -94,30 +94,15 @@ let
   parts = modules.store + names.parts;
 in
 {
-  users = {
-    craole = {
-       username = "craole";
-       fullname = "Craig 'Craole' Cole";
-       email = "info@craole.cc";
-       sshKey = "";
-     };
-  };
-  hosts={
-    QBX.paths.flake.local=/home/craole/.dots;
-    dbook.paths.flake.local = /home/craole/Documents/dotfiles;
-  };
-  
-  paths = {
-    inherit
-      flake
-      modules
-      devshells
-      core
-      home
-      scripts
-      names
-      parts
-      libraries
-      ;
-  };
+  inherit
+    flake
+    modules
+    devshells
+    core
+    home
+    scripts
+    names
+    parts
+    libraries
+    ;
 }
