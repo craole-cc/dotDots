@@ -67,10 +67,7 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
-      imports = [
-        ./Modules/nixos
-        ./Modules/nixos/modules/devshell.nix
-      ];
+      imports = [ ./Modules/nixos ];
       # let
       #   paths = import ./paths.nix;
       #   flakePaths = paths;

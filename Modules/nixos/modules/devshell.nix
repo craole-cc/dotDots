@@ -13,7 +13,7 @@
     {
       devShells.default = pkgs.mkShell {
         name = "dotDots";
-        meta.description = "Dev environment for dotDots";
+        meta.description = "Development environment for dotDots";
         inputsFrom = [ config.pre-commit.devShell ];
         packages = with pkgs; [
           just
@@ -27,7 +27,6 @@
 
       pre-commit.settings = {
         hooks.nixfmt-rfc-style.enable = true;
-        # hooks.nixpkgs-fmt.enable = true;
       };
     };
 }
