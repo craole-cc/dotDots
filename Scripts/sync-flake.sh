@@ -1,7 +1,7 @@
 #!/bin/sh
 
 main() {
-    set -eu
+    # set -eu
     parse_arguments "$@"
     update_repo
     update_flake
@@ -41,7 +41,7 @@ update_flake() {
     }
 
     eval nix flake update "${args}"
-    eval nix flake archive 
+    eval nix flake archive
     return 0
 }
 

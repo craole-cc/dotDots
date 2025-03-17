@@ -1,8 +1,7 @@
 let
   flake = {
-    local = "/home/craole/.dots";
-    root = "/dots";
-    store = ./.;
+    local = "/home/craole/.dots"; # FIXME: This must be set in the host configuration
+    store = ../../..;
   };
   parts = {
     args = "/args";
@@ -23,6 +22,10 @@ let
     hosts = parts.cfgs + "/hosts";
     users = parts.cfgs + "/users";
     scripts = "/scripts";
+  };
+  modules = {
+    local = flake.local + parts.modules;
+    store = flake.store + parts.modules;
   };
   core = {
     default = modules.store;
@@ -53,17 +56,14 @@ let
     store = flake.store + parts.scripts;
     dots = modules.store + parts.scripts + "/init_dots";
   };
-  modules = {
-    local = flake.local + parts.modules;
-    store = flake.store;
-  };
   libraries = {
     local = modules.local + parts.libs;
     store = modules.store + parts.libs;
     mkCore = core.libraries + parts.mkCore;
     mkConf = core.libraries + parts.mkConf;
   };
-in {
+in
+{
   inherit
     flake
     core
