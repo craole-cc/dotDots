@@ -354,7 +354,15 @@
     #   repo = "nixed";
     # };
 
-    #| Utilities
+    #| Home
+    plasmaManager = {
+      url = "github:pjones/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "homeManager";
+      };
+    };
+    stylix.url = "github:danth/stylix";
     # flake-parts.url = "github:hercules-ci/flake-parts";
     # nixos-unified.url = "github:srid/nixos-unified";
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
