@@ -1,9 +1,42 @@
 {
   description = "NixOS Configuration Flake";
 
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      ...
+    }:
+    let
+      eachSystem = nixpkgs.lib.genAttrs (import inputs.systems);
+      paths = import ./Modules/nixos/base/paths.nix;
+      mkConfig = import paths.libraries.mkConf {
+        inherit self inputs paths;
+      };
+    in
+    {
+      imports = [ ./Modules/nixos ];
+      packages = eachSystem (system: rec {
+        inherit self;
+        default = hello;
+        hello = nixpkgs.legacyPackages.${system}.hello;
+      });
+
+      nixosConfigurations = {
+        # inherit paths;
+        # flake = ./.;
+        QBX = mkConfig "QBX" { };
+        # Preci = mkConfig "Preci" { };
+        # dbook = mkConfig "dbook" { };
+      };
+      # /nix/store/nsv6f087zz15xjvgm41x2zcyimdz1jsi-source/Modules/nixos/libraries/helpers/mkConfig.nix
+    };
+
   inputs = {
     #| Core
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs = {
+      url = "nixpkgs/nixos-unstable";
+    };
     nixosUnstable.url = "nixpkgs/nixos-unstable";
     nixosStable.url = "nixpkgs/nixos-24.11";
     nixosHardware.url = "github:NixOS/nixos-hardware";
@@ -66,35 +99,4 @@
     nixed.url = "github:Craole/nixed";
 
   };
-
-  outputs =
-    inputs@{
-      self,
-      nixpkgs,
-      ...
-    }:
-    let
-      eachSystem = nixpkgs.lib.genAttrs (import inputs.systems);
-      paths = import ./Modules/nixos/base/paths.nix;
-      mkConfig = import paths.libraries.mkConf {
-        inherit self inputs paths;
-      };
-    in
-    {
-      imports = [ ./Modules/nixos ];
-      packages = eachSystem (system: rec {
-        inherit self;
-        default = hello;
-        hello = nixpkgs.legacyPackages.${system}.hello;
-      });
-
-      nixosConfigurations = {
-        # inherit paths;
-        # flake = ./.;
-        QBX = mkConfig "QBX" { };
-        # Preci = mkConfig "Preci" { };
-        # dbook = mkConfig "dbook" { };
-      };
-      # /nix/store/nsv6f087zz15xjvgm41x2zcyimdz1jsi-source/Modules/nixos/libraries/helpers/mkConfig.nix
-    };
 }
