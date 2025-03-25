@@ -127,7 +127,7 @@
       repo = "nix-darwin";
       inputs.nixpkgs.follows = "nixosUnstable";
     };
-
+#TODO: Add vscode ext
     #| Nix Community Utilities
     nixCache = {
       type = "github";
@@ -145,6 +145,11 @@
       repo = "disko";
       inputs.nixpkgs.follows = "nixosUnstable";
     };
+    # impermanence = {
+    #   type = "github";
+    #   owner = "nix-community";
+    #   repo = "impermanence";
+    # };
     githubActions = {
       type = "github";
       owner = "nix-community";
@@ -176,14 +181,6 @@
         nix-github-actions.follows = "githubActions";
       };
     };
-    # nixDeploy = {
-    #   type = "github";
-    #   owner = "serokell";
-    #   repo = "deploy-rs";
-    #   inputs = {
-    #     nixpkgs.follows = "nixosUnstable";
-    #   };
-    # };
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -242,14 +239,24 @@
         flake-parts.follows="flakeParts";
       };
     };
+    #TODO: Add agenix
 
-    
+
+#| Other Utilities
     flakeCompat = {
       type = "github";
       owner = "edolstra";
       repo = "flake-compat";
       flake = false;
     };
+    # nixDeploy = {
+    #   type = "github";
+    #   owner = "serokell";
+    #   repo = "deploy-rs";
+    #   inputs = {
+    #     nixpkgs.follows = "nixosUnstable";
+    #   };
+    # };
 
     #| Templates
     # nixed = {
@@ -271,60 +278,7 @@
     #   repo = "haumea";
     # };
 
-    # easy-hosts = {
-    #   type = "github";
-    #   owner = "tgirlcloud";
-    #   repo = "easy-hosts";
-    # };
 
-    # deploy-rs = {
-    #   type = "github";
-    #   owner = "serokell";
-    #   repo = "deploy-rs";
-    #   inputs = {
-    #     nixpkgs.follows ="nixosUnstable";
-    #   };
-    # };
-
-    # git-hooks = {
-    #   type = "github";
-    #   owner = "cachix";
-    #   repo = "git-hooks.nix";
-    #   inputs.nixpkgs.follows ="nixosUnstable";
-    # };
-
-    # nix-github-actions = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "nix-github-actions";
-    #   inputs.nixpkgs.follows ="nixosUnstable";
-    # };
-
-    # nixos-hardware = {
-    #   type = "github";
-    #   owner = "NixOS";
-    #   repo = "nixos-hardware";
-    # };
-
-    # disko = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "disko";
-    #   inputs.nixpkgs.follows ="nixosUnstable";
-    # };
-
-    # impermanence = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "impermanence";
-    # };
-
-    # hyprland = {
-    #   type = "github";
-    #   owner = "cachix";
-    #   repo = "git-hooks.nix";
-    #   inputs.nixpkgs.follows ="nixosUnstable";
-    # };
 
     #| Core
     # nixpkgs = {
