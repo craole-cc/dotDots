@@ -56,27 +56,22 @@
         "type": "github"
       }
     },
-    "gitIgnore": {
-      "inputs": {
-        "nixpkgs": [
-          "nixosUnstable"
-        ]
-      },
+    "flakeRoot": {
       "locked": {
-        "lastModified": 1709087332,
-        "narHash": "sha256-HG2cCnktfHsKV0s4XW83gU3F57gaTljL9KNSuG6bnQs=",
-        "owner": "hercules-ci",
-        "repo": "gitignore.nix",
-        "rev": "637db329424fd7e46cf4185293b9cc8c88c95394",
+        "lastModified": 1723604017,
+        "narHash": "sha256-rBtQ8gg+Dn4Sx/s+pvjdq3CB2wQNzx9XGFq/JVGCB6k=",
+        "owner": "srid",
+        "repo": "flake-root",
+        "rev": "b759a56851e10cb13f6b8e5698af7b59c44be26e",
         "type": "github"
       },
       "original": {
-        "owner": "hercules-ci",
-        "repo": "gitignore.nix",
+        "owner": "srid",
+        "repo": "flake-root",
         "type": "github"
       }
     },
-    "gitPreCommit": {
+    "gitHooks": {
       "inputs": {
         "flake-compat": [
           "flakeCompat"
@@ -102,6 +97,26 @@
         "type": "github"
       }
     },
+    "gitIgnore": {
+      "inputs": {
+        "nixpkgs": [
+          "nixosUnstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1709087332,
+        "narHash": "sha256-HG2cCnktfHsKV0s4XW83gU3F57gaTljL9KNSuG6bnQs=",
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "rev": "637db329424fd7e46cf4185293b9cc8c88c95394",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "type": "github"
+      }
+    },
     "githubActions": {
       "inputs": {
         "nixpkgs": [
@@ -119,75 +134,6 @@
       "original": {
         "owner": "nix-community",
         "repo": "nix-github-actions",
-        "type": "github"
-      }
-    },
-    "nixCache": {
-      "inputs": {
-        "flake-parts": [
-          "flakeParts"
-        ],
-        "nixpkgs": [
-          "nixosUnstable"
-        ],
-        "treefmt-nix": [
-          "treeFormatter"
-        ]
-      },
-      "locked": {
-        "lastModified": 1742837882,
-        "narHash": "sha256-AW1WWqE69APbGhwhr6WKdYYeffc0GpB2CeMZz8B3Sf0=",
-        "owner": "nix-community",
-        "repo": "harmonia",
-        "rev": "1dd77f7fb40d373e84d6fdc301a86e97965852ef",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "harmonia",
-        "type": "github"
-      }
-    },
-    "nixDisk": {
-      "inputs": {
-        "nixpkgs": [
-          "nixosUnstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1741786315,
-        "narHash": "sha256-VT65AE2syHVj6v/DGB496bqBnu1PXrrzwlw07/Zpllc=",
-        "owner": "nix-community",
-        "repo": "disko",
-        "rev": "0d8c6ad4a43906d14abd5c60e0ffe7b587b213de",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "disko",
-        "type": "github"
-      }
-    },
-    "nixIndex": {
-      "inputs": {
-        "flake-compat": [
-          "flakeCompat"
-        ],
-        "nixpkgs": [
-          "nixosUnstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1742833817,
-        "narHash": "sha256-HuZVkVH7NCbI1KgQlS67Jq0FcUBc29DQz7n9CqHJEvc=",
-        "owner": "nix-community",
-        "repo": "nix-index",
-        "rev": "03b861752c32141db8c3f923f51f733ad1f42e43",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nix-index",
         "type": "github"
       }
     },
@@ -344,6 +290,21 @@
         "type": "github"
       }
     },
+    "nixosSystems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
     "nixosUnstable": {
       "locked": {
         "lastModified": 1742669843,
@@ -388,12 +349,10 @@
         "developmentShell": "developmentShell",
         "flakeCompat": "flakeCompat",
         "flakeParts": "flakeParts",
+        "flakeRoot": "flakeRoot",
+        "gitHooks": "gitHooks",
         "gitIgnore": "gitIgnore",
-        "gitPreCommit": "gitPreCommit",
         "githubActions": "githubActions",
-        "nixCache": "nixCache",
-        "nixDisk": "nixDisk",
-        "nixIndex": "nixIndex",
         "nixLib": "nixLib",
         "nixUnitTesting": "nixUnitTesting",
         "nixosConfig": "nixosConfig",
@@ -402,9 +361,146 @@
         "nixosHome": "nixosHome",
         "nixosHost": "nixosHost",
         "nixosStable": "nixosStable",
+        "nixosSystems": "nixosSystems",
         "nixosUnstable": "nixosUnstable",
         "nixosWSL": "nixosWSL",
+        "secretKey": "secretKey",
+        "secretManager": "secretManager",
+        "secretShell": "secretShell",
+        "templatesNixOS": "templatesNixOS",
+        "templatesTheNixWay": "templatesTheNixWay",
         "treeFormatter": "treeFormatter"
+      }
+    },
+    "secretKey": {
+      "inputs": {
+        "devshell": [
+          "developmentShell"
+        ],
+        "flake-parts": [
+          "flakeParts"
+        ],
+        "nixpkgs": [
+          "nixosUnstable"
+        ],
+        "pre-commit-hooks": [
+          "gitHooks"
+        ],
+        "treefmt-nix": [
+          "treeFormatter"
+        ]
+      },
+      "locked": {
+        "lastModified": 1742656338,
+        "narHash": "sha256-Vkg5dyXKwoAfEVlKPxbCbdTCF9sXmTySZBSL28Kcdmo=",
+        "owner": "oddlama",
+        "repo": "agenix-rekey",
+        "rev": "b677dbe0d675c68a19dedbc771aff22de76b11ea",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oddlama",
+        "repo": "agenix-rekey",
+        "type": "github"
+      }
+    },
+    "secretManager": {
+      "inputs": {
+        "darwin": [
+          "nixosDarwin"
+        ],
+        "home-manager": [
+          "nixosHome"
+        ],
+        "nixpkgs": [
+          "nixosUnstable"
+        ],
+        "systems": [
+          "nixosSystems"
+        ]
+      },
+      "locked": {
+        "lastModified": 1736955230,
+        "narHash": "sha256-uenf8fv2eG5bKM8C/UvFaiJMZ4IpUFaQxk9OH5t/1gA=",
+        "owner": "ryantm",
+        "repo": "agenix",
+        "rev": "e600439ec4c273cf11e06fe4d9d906fb98fa097c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ryantm",
+        "repo": "agenix",
+        "type": "github"
+      }
+    },
+    "secretShell": {
+      "inputs": {
+        "flake-parts": [
+          "flakeParts"
+        ],
+        "flake-root": [
+          "flakeRoot"
+        ],
+        "git-hooks-nix": [
+          "gitHooks"
+        ],
+        "nix-github-actions": [
+          "githubActions"
+        ],
+        "nixpkgs": [
+          "nixosUnstable"
+        ],
+        "treefmt-nix": [
+          "treeFormatter"
+        ]
+      },
+      "locked": {
+        "lastModified": 1742915571,
+        "narHash": "sha256-Kg2MSJ+SeW/lerEuJAbFRs9NsA9l4kYzbmulXvpoedo=",
+        "owner": "aciceri",
+        "repo": "agenix-shell",
+        "rev": "1b9373c105f6928be81858e97eb9754283dd574e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aciceri",
+        "repo": "agenix-shell",
+        "type": "github"
+      }
+    },
+    "templatesNixOS": {
+      "locked": {
+        "lastModified": 1725249436,
+        "narHash": "sha256-qqKaxlPv+6Fyj+NUuOLPOlD82caqDkmpw63qOQkIzzc=",
+        "owner": "NixOS",
+        "repo": "templates",
+        "rev": "ad0e221dda33c4b564fad976281130ce34a20cb9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "templates",
+        "type": "github"
+      }
+    },
+    "templatesTheNixWay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixosUnstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1740648445,
+        "narHash": "sha256-jmtCIKpHYlGEzJ1xQWEjpSAPk0uGrGi7kjC/oTiP+HU=",
+        "owner": "the-nix-way",
+        "repo": "dev-templates",
+        "rev": "54c112d5640d910ac7d5bc4ab30b3ef06ba6b5b0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "the-nix-way",
+        "repo": "dev-templates",
+        "type": "github"
       }
     },
     "treeFormatter": {
