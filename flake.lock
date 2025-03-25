@@ -235,7 +235,7 @@
         "type": "github"
       }
     },
-    "nixosConf": {
+    "nixosConfig": {
       "inputs": {
         "flake-parts": [
           "flakeParts"
@@ -396,7 +396,7 @@
         "nixIndex": "nixIndex",
         "nixLib": "nixLib",
         "nixUnitTesting": "nixUnitTesting",
-        "nixosConf": "nixosConf",
+        "nixosConfig": "nixosConfig",
         "nixosDarwin": "nixosDarwin",
         "nixosHardware": "nixosHardware",
         "nixosHome": "nixosHome",

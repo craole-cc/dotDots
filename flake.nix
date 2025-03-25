@@ -8,7 +8,7 @@
         imports = with inputs; [
           nixosHome.flakeModules.home-manager
           nixosHost.flakeModule
-          nixosConf.flakeModule
+          nixosConfig.flakeModule
           developmentShell.flakeModule
           treeFormatter.flakeModule
           gitPreCommit.flakeModule
@@ -232,11 +232,8 @@
       type = "github";
       owner = "tgirlcloud";
       repo = "easy-hosts";
-      inputs = {
-        # nixpkgs.follows = "nixosUnstable";
-      };
     };
-    nixosConf = {
+    nixosConfig = {
       type = "github";
       owner = "ehllie";
       repo = "ez-configs";
@@ -245,6 +242,8 @@
         flake-parts.follows="flakeParts";
       };
     };
+
+    
     flakeCompat = {
       type = "github";
       owner = "edolstra";
