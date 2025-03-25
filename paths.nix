@@ -2,9 +2,12 @@
 let
   flake = {
     store = ./.;
-    local = "$HOME/.dots"; #TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles;
+    local = {
+      #TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles; This needs to be an optional
+      QBX = "$HOME/.dots";
+    };
   };
-  names = {
+  parts = {
     args = "/args";
     cfgs = "/configurations";
     env = "/environment";
@@ -14,33 +17,32 @@ let
     shells = "/dev";
     nixos = "/Modules/nixos";
     mods = "/modules";
-    parts = "/components";
     opts = "/options";
     pkgs = "/packages";
     svcs = "/services";
     ui = "/ui";
     uiCore = "/ui/core";
     uiHome = "/ui/home";
-    hosts = names.cfgs + "/hosts";
-    users = names.cfgs + "/users";
+    hosts = parts.cfgs + "/hosts";
+    users = parts.cfgs + "/users";
     scripts = {
       default = "/Bin";
-      cmd = names.scripts.default + "/cmd";
-      nix = names.scripts.default + "/nix";
-      rust = names.scripts.default + "/rust";
-      shellscript = names.scripts.default + "/shellscript";
+      cmd = parts.scripts.default + "/cmd";
+      nix = parts.scripts.default + "/nix";
+      rust = parts.scripts.default + "/rust";
+      shellscript = parts.scripts.default + "/shellscript";
       flake = "/scripts";
       dots = "/Scripts";
-      devshells = names.mods + "/devshells";
+      devshells = parts.mods + "/devshells";
     };
   };
   modules = {
-    store = flake.store + names.nixos;
-    QBX = flake.QBX + names.nixos;
-    dbook = flake.dbook + names.nixos;
+    store = flake.store + parts.nixos;
+    QBX = flake.QBX + parts.nixos;
+    dbook = flake.dbook + parts.nixos;
   };
   devshells = {
-    default = modules.store + names.scripts.devshells;
+    default = modules.store + parts.scripts.devshells;
     dots = {
       nix = devshells.default + "/dots.nix";
       toml = devshells.default + "/dots.toml";
@@ -53,46 +55,46 @@ let
   core = {
     default = modules.store;
     configurations = {
-      hosts = core.default + names.hosts;
-      users = core.default + names.users;
+      hosts = core.default + parts.hosts;
+      users = core.default + parts.users;
     };
-    environment = core.default + names.env;
-    libraries = core.default + names.libs;
-    modules = core.default + names.mods;
-    options = core.default + names.opts;
-    packages = core.default + names.pkgs;
-    services = core.default + names.svcs;
+    environment = core.default + parts.env;
+    libraries = core.default + parts.libs;
+    modules = core.default + parts.mods;
+    options = core.default + parts.opts;
+    packages = core.default + parts.pkgs;
+    services = core.default + parts.svcs;
   };
   home = {
     default = modules.store + "/home";
-    configurations = home.default + names.cfgs;
-    environment = home.default + names.env;
-    libraries = home.default + names.libs;
-    modules = home.default + names.mods;
-    options = home.default + names.opts;
-    packages = home.default + names.pkgs;
-    services = home.default + names.svcs;
+    configurations = home.default + parts.cfgs;
+    environment = home.default + parts.env;
+    libraries = home.default + parts.libs;
+    modules = home.default + parts.mods;
+    options = home.default + parts.opts;
+    packages = home.default + parts.pkgs;
+    services = home.default + parts.svcs;
   };
   scripts = {
     store = {
-      shellscript = flake.store + names.scripts.shellscript;
-      flake = modules.store + names.scripts.flake;
-      # dots = modules.store + names.scripts + "/init_dots";
+      shellscript = flake.store + parts.scripts.shellscript;
+      flake = modules.store + parts.scripts.flake;
+      # dots = modules.store + parts.scripts + "/init_dots";
     };
     QBX = {
-      shellscript = flake.QBX + names.scripts.shellscript;
-      flake = modules.QBX + names.scripts.flake;
-      # dots = flake.QBX + names.scripts.dots;
+      shellscript = flake.QBX + parts.scripts.shellscript;
+      flake = modules.QBX + parts.scripts.flake;
+      # dots = flake.QBX + parts.scripts.dots;
     };
   };
   libraries = {
-    # local = modules.local + names.libs;
-    store = modules.store + names.libs;
-    mkCore = core.libraries + names.mkCore;
-    mkConf = core.libraries + names.mkConf;
+    # local = modules.local + parts.libs;
+    store = modules.store + parts.libs;
+    mkCore = core.libraries + parts.mkCore;
+    mkConf = core.libraries + parts.mkConf;
   };
-  parts = modules.store + names.parts;
-in {
+in
+{
   inherit
     flake
     modules
@@ -100,7 +102,6 @@ in {
     core
     home
     scripts
-    names
     parts
     libraries
     ;
