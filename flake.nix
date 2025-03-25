@@ -12,11 +12,12 @@
 
           developmentShell.flakeModule
           gitHooks.flakeModule
-          gitIgnore.flakeModule
+          # gitIgnore.flakeModule
           secretKey.flakeModule
-          secretShell.flakeModule
+          # secretShell.flakeModule
           treeFormatter.flakeModule
         ];
+        debug = true;
         systems = [
           "x86_64-linux"
           # "x86_64-darwin"
@@ -34,9 +35,9 @@
             ...
           }:
           {
-            _module.args = {
-              pkgs = inputs'.nixpkgs.legacyPackages;
-            };
+            # _module.args = {
+            #   pkgs = inputs'.nixpkgs.legacyPackages;
+            # };
 
             devshells.default = {
               env = [
