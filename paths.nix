@@ -2,7 +2,7 @@
 let
   flake = {
     store = ./.;
-    local = ./.; #TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles;
+    local = "$HOME/.dots"; #TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles;
   };
   names = {
     args = "/args";

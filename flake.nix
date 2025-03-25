@@ -2,121 +2,81 @@
   description = "NixOS Configuration Flake";
   outputs =
     inputs@{ flakeParts, ... }:
-    flakeParts.lib.mkFlake { inherit inputs; } (
-      { self, ... }:
-      {
-        imports = with inputs; [
-          nixosHome.flakeModules.home-manager
-          nixosHost.flakeModule
-          nixosConfig.flakeModule
+    let
+      paths = import ./paths.nix;
+    in
+    flakeParts.lib.mkFlake { inherit inputs; } {
+      imports = with inputs; [
+        nixosHome.flakeModules.home-manager
+        nixosHost.flakeModule
+        nixosConfig.flakeModule
 
-          developmentShell.flakeModule
-          gitHooks.flakeModule
-          # gitIgnore.flakeModule
-          secretKey.flakeModule
-          # secretShell.flakeModule
-          treeFormatter.flakeModule
-        ];
-        debug = true;
-        systems = [
-          "x86_64-linux"
-          # "x86_64-darwin"
-          # "aarch64-linux"
-          # "aarch64-darwin"
-        ];
+        developmentShell.flakeModule
+        gitHooks.flakeModule
+        # gitIgnore.flakeModule
+        secretKey.flakeModule
+        # secretShell.flakeModule
+        treeFormatter.flakeModule
 
-        perSystem =
-          {
-            inputs',
-            pkgs,
-            self',
-            lib,
-            system,
-            ...
-          }:
-          {
-            # _module.args = {
-            #   pkgs = inputs'.nixpkgs.legacyPackages;
-            # };
+        ./Modules/nixos/modules/paths.nix
+        ./Modules/nixos/modules/devshells/dots.nix
+      ];
+      debug = true;
+      systems = [
+        "x86_64-linux"
+        # "x86_64-darwin"
+        # "aarch64-linux"
+        # "aarch64-darwin"
+      ];
 
-            devshells.default = {
-              env = [
-                {
-                  name = "HTTP_PORT";
-                  value = 8080;
-                }
-              ];
-              commands = [
-                {
-                  help = "print hello";
-                  name = "hello";
-                  command = "echo hello";
-                }
-              ];
-              packages = with pkgs; [
-                cowsay
-              ];
-            };
-            # devShells =
-            #   let
-            #     inherit (pkgs.devshell) mkShell importTOML;
-            #     inherit (paths.devShells)
-            #       dots
-            #       dev
-            #       media
-            #       env
-            #       ;
-            #   in
-            #   {
-            #     default = mkShell {
-            #       imports = [
-            #         (importTOML dots)
-            #         # (importTOML dev)
-            #         # (importTOML media)
-            #         # (importTOML env)
-            #       ];
-            #     };
-            #   };
-            #   checks =
-            #     let
-            #       machinesPerSystem = {
-            #         aarch64-linux = [
-            #           "Raspi"
-            #         ];
-            #         x86_64-linux = [
-            #           "QBX"
-            #           "dbook"
-            #           "Preci"
-            #         ];
-            #       };
-
-            #       nixosMachines = lib.mapAttrs' (n: lib.nameValuePair "nixos-${n}") (
-            #         lib.genAttrs (machinesPerSystem.${system} or [ ]) (
-            #           name: self.nixosConfigurations.${name}.config.system.build.toplevel
-            #         )
-            #       );
-
-            #       blacklistPackages = [
-            #         "install-iso"
-            #         "nspawn-template"
-            #         "netboot-pixie-core"
-            #         "netboot"
-            #       ];
-
-            #       packages = lib.mapAttrs' (n: lib.nameValuePair "package-${n}") (
-            #         lib.filterAttrs (n: _v: !(builtins.elem n blacklistPackages)) self'.packages
-            #       );
-
-            #       devShells = lib.mapAttrs' (n: lib.nameValuePair "devShell-${n}") self'.devShells;
-
-            #       homeConfigurations = lib.mapAttrs' (
-            #         name: config: lib.nameValuePair "home-manager-${name}" config.activation-script
-            #       ) (self'.legacyPackages.homeConfigurations or { });
-            #     in
-            #     nixosMachines // packages // devShells // homeConfigurations;
+      perSystem =
+        { inputs', ... }:
+        {
+          _module.args = {
+            pkgs = inputs'.nixosUnstable.legacyPackages;
+            pkgsStable = inputs'.nixosStable.legacyPackages;
+            pkgsUnstable = inputs'.nixosUnstable.legacyPackages;
+            inherit paths;
           };
-      }
-    );
+          #   checks =
+          #     let
+          #       machinesPerSystem = {
+          #         aarch64-linux = [
+          #           "Raspi"
+          #         ];
+          #         x86_64-linux = [
+          #           "QBX"
+          #           "dbook"
+          #           "Preci"
+          #         ];
+          #       };
+
+          #       nixosMachines = lib.mapAttrs' (n: lib.nameValuePair "nixos-${n}") (
+          #         lib.genAttrs (machinesPerSystem.${system} or [ ]) (
+          #           name: self.nixosConfigurations.${name}.config.system.build.toplevel
+          #         )
+          #       );
+
+          #       blacklistPackages = [
+          #         "install-iso"
+          #         "nspawn-template"
+          #         "netboot-pixie-core"
+          #         "netboot"
+          #       ];
+
+          #       packages = lib.mapAttrs' (n: lib.nameValuePair "package-${n}") (
+          #         lib.filterAttrs (n: _v: !(builtins.elem n blacklistPackages)) self'.packages
+          #       );
+
+          #       devShells = lib.mapAttrs' (n: lib.nameValuePair "devShell-${n}") self'.devShells;
+
+          #       homeConfigurations = lib.mapAttrs' (
+          #         name: config: lib.nameValuePair "home-manager-${name}" config.activation-script
+          #       ) (self'.legacyPackages.homeConfigurations or { });
+          #     in
+          #     nixosMachines // packages // devShells // homeConfigurations;
+        };
+    };
 
   inputs = {
     #| NixOS Packages
