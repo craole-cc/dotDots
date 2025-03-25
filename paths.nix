@@ -1,3 +1,4 @@
+# TODO: Figure out how to make flake.local an option to be set on each system
 let
   flake =
     let
@@ -17,7 +18,8 @@ let
     libs = "/libraries";
     mkCore = "/helpers/mkCoreConfig.nix";
     mkConf = "/helpers/mkConfig.nix";
-    modules = "/Modules/nixos";
+    shells = "/dev";
+    nixos = "/Modules/nixos";
     mods = "/modules";
     opts = "/options";
     pkgs = "/packages";
@@ -55,6 +57,8 @@ let
       nix = devshells.default + "/media.nix";
       toml = devshells.default + "/media.toml";
     };
+    # local = flake.local + parts.nixos;
+    store = flake.store + parts.nixos;
   };
   core = {
     default = modules.store;
@@ -101,6 +105,7 @@ in
 {
   inherit
     flake
+    devshells
     core
     home
     bin

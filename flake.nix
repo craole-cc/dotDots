@@ -8,8 +8,8 @@
     flakeParts.lib.mkFlake { inherit inputs; } {
       imports = with inputs; [
         nixosHome.flakeModules.home-manager
-        nixosHost.flakeModule
-        nixosConfig.flakeModule
+        configHosts.flakeModule
+        configNixos.flakeModule
 
         developmentShell.flakeModule
         gitHooks.flakeModule
@@ -92,12 +92,12 @@
         nixpkgs.follows = "nixosUnstable";
       };
     };
-    nixosHost = {
+    configHosts = {
       type = "github";
       owner = "tgirlcloud";
       repo = "easy-hosts";
     };
-    nixosConfig = {
+    configNixos = {
       type = "github";
       owner = "ehllie";
       repo = "ez-configs";
