@@ -1,4 +1,3 @@
-#PATH: paths.nix
 let
   flake =
     let
@@ -18,8 +17,7 @@ let
     libs = "/libraries";
     mkCore = "/helpers/mkCoreConfig.nix";
     mkConf = "/helpers/mkConfig.nix";
-    shells = "/dev";
-    nixos = "/Modules/nixos";
+    modules = "/Modules/nixos";
     mods = "/modules";
     opts = "/options";
     pkgs = "/packages";
@@ -103,12 +101,11 @@ in
 {
   inherit
     flake
-    modules
-    devshells
     core
     home
     bin
     parts
+    modules
     libraries
     ;
 }
