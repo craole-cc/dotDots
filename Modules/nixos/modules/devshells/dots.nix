@@ -1,19 +1,20 @@
-{ pkgs, paths, ... }:
 {
+  pkgs,
+  paths,
+  ...
+}: {
   name = "dotDots";
   env = [
     {
       name = "PATH";
-      prefix =
-        let
-          inherit (paths.parts) bin;
-          shellscript = "$PRJ_ROOT" + bin.shellscript;
-          dots = "$PRJ_ROOT" + bin.dots;
-          flake = "$PRJ_ROOT" + bin.flake;
-        in
-        ''
-          ${shellscript}:${dots}:${flake}
-        '';
+      prefix = let
+        inherit (paths.parts) bin;
+        shellscript = "$PRJ_ROOT" + bin.shellscript;
+        dots = "$PRJ_ROOT" + bin.dots;
+        flake = "$PRJ_ROOT" + bin.flake;
+      in ''
+        ${shellscript}:${dots}:${flake}
+      '';
     }
     {
       name = "XDG_CACHE_DIR";
@@ -136,7 +137,7 @@
           zeditor "$PRJ_ROOT"
         fi
       '';
-      help = '' High-performance Integrated Development Environment (IDE)'';
+      help = ''High-performance Integrated Development Environment (IDE)'';
     }
     {
       category = "File/Environment Management";
@@ -157,5 +158,5 @@
     nixd
     fish-lsp
     nerd-fonts.victor-mono
-    ];
+  ];
 }

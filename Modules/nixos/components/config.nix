@@ -1,7 +1,7 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   inherit (lib.options) mkOption;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     attrsOf
     path
     str
@@ -37,9 +37,8 @@ let
       };
     };
   };
-in
-{
-  imports = [ ../../../config.nix ];
+in {
+  imports = [../../../config.nix];
   options = {
     users = mkOption {
       type = attrsOf userSubmodule;

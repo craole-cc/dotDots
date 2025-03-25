@@ -39,7 +39,7 @@
       else if desktop == "plasma"
       then [
         plasmaManager.homeManagerModules.plasma-manager
-        ]
+      ]
       else if desktop == "xfce"
       then []
       else [];

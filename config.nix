@@ -8,8 +8,9 @@
       sshKey = "";
     };
   };
-  
+
   hosts = {
-    QBX.paths.local = /home/craole/.dots;    
-    dbook.paths.local = /home/craole/Documents/dotfiles;  };
+    QBX.paths.local = /home/craole/.dots;
+    dbook.paths.local = /home/craole/Documents/dotfiles;
+  };
 }

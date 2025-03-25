@@ -56,27 +56,23 @@
 
     #| Templates
     nixed.url = "github:Craole/nixed";
-
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      systems,
-      ...
-    }:
-    let
-      eachSystem = nixpkgs.lib.genAttrs (import systems);
-    in
-    {
-      imports = [ ./Modules/nixos ];
-      packages = eachSystem (system: rec {
-        inherit self;
-        default = hello;
-        hello = nixpkgs.legacyPackages.${system}.hello;
-      });
-    };
+  outputs = {
+    self,
+    nixpkgs,
+    systems,
+    ...
+  }: let
+    eachSystem = nixpkgs.lib.genAttrs (import systems);
+  in {
+    imports = [./Modules/nixos];
+    packages = eachSystem (system: rec {
+      inherit self;
+      default = hello;
+      hello = nixpkgs.legacyPackages.${system}.hello;
+    });
+  };
   # inputs@{ self, ... }:
   # inputs.flake-parts.lib.mkFlake { inherit inputs; } {
   #   debug = true;

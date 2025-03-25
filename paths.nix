@@ -92,8 +92,7 @@ let
     mkConf = core.libraries + names.mkConf;
   };
   parts = modules.store + names.parts;
-in
-{
+in {
   inherit
     flake
     modules

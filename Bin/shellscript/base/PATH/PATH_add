@@ -10,44 +10,46 @@ __append__() {
 
 __perpend__() {
   case ":${PATH}:" in
-    *:"$path":*) ;;
-    *)
-      PATH="${PATH:+$PATH:}$path"
-      [ "$verbose" ] \
-        && printf "Appended to PATH: %s\n" "${path}"
-      ;;
+  *:"${path}":*) ;;
+  *)
+    PATH="${PATH:+${PATH}:}${path}"
+    [ -n "${verbose}" ] &&
+      printf "Appended to PATH: %s\n" "${path}"
+    ;;
   esac
 }
 
 __process__() {
-  [ -d "$path" ] && {
-    case "$action" in
-      append) __append__ ;;
-      perpend) __perpend__ ;;
+  if [ -d "${path}" ]; then
+    case "${action}" in
+    append) __append__ ;;
+    perpend | *) __perpend__ ;;
     esac
-  }
+  else
+    printf "Path not found: %s\n" "${path}"
+  fi
 }
 
 main() {
   #| User options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -a | --append)
-        action="append"
-        shift
-        ;;
-      -p | --perpend)
-        action="perpend"
-        shift
-        ;;
-      *) ;;
+    -a | --append)
+      action="append"
+      shift
+      ;;
+    -p | --perpend)
+      action="perpend"
+      shift
+      ;;
+    *) ;;
     esac
 
     #| Activate default behaviour
     __defaults__
 
     #| Process valid directories
-    path="$1" && __process__ "$path"
+    path="$1" && __process__ "${path}"
 
     #| Loop through arguments
     shift

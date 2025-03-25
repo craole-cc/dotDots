@@ -1,11 +1,9 @@
-{ inputs, ... }:
-{
-  imports = with inputs.nixos-unified.flakeModules;
-  [
+{inputs, ...}: {
+  imports = with inputs.nixos-unified.flakeModules; [
     default
     autoWire
   ];
-  perSystem = { self', ... }: {
+  perSystem = {self', ...}: {
     packages.default = self'.packages.activate;
 
     # Flake inputs we want to update periodically

@@ -1,9 +1,7 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   inherit (lib.types) attrsOf path submodule;
   inherit (lib.options) mkOption;
-in
-{
+in {
   options.hosts = mkOption {
     type = attrsOf (submodule {
       options = {

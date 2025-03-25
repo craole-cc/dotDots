@@ -1,5 +1,9 @@
-{ inputs, ... }: {
-  perSystem = { pkgs, system, ... }: {
+{inputs, ...}: {
+  perSystem = {
+    pkgs,
+    system,
+    ...
+  }: {
     apps = {
       incus-image-vm-import.program = pkgs.writeShellApplication {
         name = "incus-image-vm-import";

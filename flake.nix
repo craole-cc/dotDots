@@ -1,40 +1,88 @@
 {
   description = "NixOS Configuration Flake";
+  outputs =
+    inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } (
+      { self, ... }:
+      {
+        imports = [
+          ./darwin/flake-module.nix
+          ./machines/flake-module.nix
+          ./home-manager/flake-module.nix
+          ./terraform/flake-module.nix
+          ./devshell/flake-module.nix
+          ./pkgs/images/flake-module.nix
+          ./pkgs/flake-module.nix
+          inputs.hercules-ci-effects.flakeModule
+          inputs.clan-core.flakeModules.default
+        ];
+        systems = [
+          "x86_64-linux"
+          # "x86_64-darwin"
+          # "aarch64-linux"
+          # "aarch64-darwin"
+        ];
 
-  outputs = inputs @ {
-    self,
-    nixpkgs,
-    ...
-  }: let
-    eachSystem = nixpkgs.lib.genAttrs (import inputs.systems);
-    paths = import ./Modules/nixos/base/paths.nix;
-    mkConfig = import paths.libraries.mkConf {
-      inherit self inputs paths;
-    };
-  in {
-    # imports = [./Modules/nixos];
-    packages = eachSystem (system: rec {
-      inherit self;
-      default = hello;
-      hello = nixpkgs.legacyPackages.${system}.hello;
-    });
+        perSystem =
+          {
+            inputs',
+            self',
+            lib,
+            system,
+            ...
+          }:
+          {
+            _module.args = {
+              pkgs = inputs'.nixpkgs.legacyPackages;
+            };
 
-    nixosConfigurations = {
-      # inherit paths;
-      # flake = ./.;
-      QBX = mkConfig "QBX" {};
-      # Preci = mkConfig "Preci" { };
-      # dbook = mkConfig "dbook" { };
-    };
-    # /nix/store/nsv6f087zz15xjvgm41x2zcyimdz1jsi-source/Modules/nixos/libraries/helpers/mkConfig.nix
-  };
+            checks =
+              let
+                machinesPerSystem = {
+                  aarch64-linux = [
+                    "Raspi"
+                  ];
+                  x86_64-linux = [
+                    "QBX"
+                    "dbook"
+                    "Preci"
+                  ];
+                };
+
+                nixosMachines = lib.mapAttrs' (n: lib.nameValuePair "nixos-${n}") (
+                  lib.genAttrs (machinesPerSystem.${system} or [ ]) (
+                    name: self.nixosConfigurations.${name}.config.system.build.toplevel
+                  )
+                );
+
+                blacklistPackages = [
+                  "install-iso"
+                  "nspawn-template"
+                  "netboot-pixie-core"
+                  "netboot"
+                ];
+
+                packages = lib.mapAttrs' (n: lib.nameValuePair "package-${n}") (
+                  lib.filterAttrs (n: _v: !(builtins.elem n blacklistPackages)) self'.packages
+                );
+
+                devShells = lib.mapAttrs' (n: lib.nameValuePair "devShell-${n}") self'.devShells;
+
+                homeConfigurations = lib.mapAttrs' (
+                  name: config: lib.nameValuePair "home-manager-${name}" config.activation-script
+                ) (self'.legacyPackages.homeConfigurations or { });
+              in
+              nixosMachines // packages // devShells // homeConfigurations;
+          };
+      }
+    );
 
   inputs = {
     #| Core
     nixpkgs.url = "nixpkgs/nixos-unstable";
     nixStable.url = "nixpkgs/nixos-24.11";
     nixUnstable.url = "nixpkgs/nixos-unstable";
-
+    # nixPackages= "nixpkgs/nixos-unstable";
     nixSystems = {
       type = "github";
       owner = "nix-systems";
@@ -44,6 +92,16 @@
       type = "github";
       owner = "NixOS";
       repo = "nixos-hardware";
+    };
+    nixCache = {
+      type = "github";
+      owner = "nix-community";
+      repo = "harmonia";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+        treefmt-nix.follows = "treefmt-nix";
+      };
     };
     nixHome = {
       type = "github";
@@ -81,6 +139,15 @@
       type = "github";
       owner = "hercules-ci";
       repo = "flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+
+    #| Templates
+    nixed = {
+      # url = "github:Craole/nixed";
+      type = "github";
+      owner = "Craole";
+      repo = "nixed";
     };
 
     # haumea = {
@@ -104,12 +171,12 @@
     #   };
     # };
 
-    # devshell = {
-    #   type = "github";
-    #   owner = "numtide";
-    #   repo = "devshell";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    devshell = {
+      type = "github";
+      owner = "numtide";
+      repo = "devshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # git-hooks = {
     #   type = "github";
@@ -125,12 +192,12 @@
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
 
-    # treefmt-nix = {
-    #   type = "github";
-    #   owner = "numtide";
-    #   repo = "treefmt-nix";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    treefmt-nix = {
+      type = "github";
+      owner = "numtide";
+      repo = "treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # nixos-hardware = {
     #   type = "github";
@@ -207,8 +274,5 @@
     #   url = "github:cachix/git-hooks.nix";
     #   flake = false;
     # };
-
-    #| Templates
-    nixed.url = "github:Craole/nixed";
   };
 }

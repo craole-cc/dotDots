@@ -6,15 +6,13 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
+      system: let
         paths = rec {
           home = "/home/craole/.dots/Flakes/media";
           # mod = ./modules;
@@ -77,8 +75,7 @@
           dls = paths.dls;
           fmt = "1080p";
         };
-      in
-      {
+      in {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             #| Image
@@ -155,3 +152,4 @@
 # cp -f ${mpvCommand} ${flakeBin}/mpv
 # cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
 # cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
+
