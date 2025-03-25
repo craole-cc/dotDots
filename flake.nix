@@ -27,6 +27,7 @@
         perSystem =
           {
             inputs',
+            pkgs,
             self',
             lib,
             system,
@@ -37,6 +38,44 @@
               pkgs = inputs'.nixpkgs.legacyPackages;
             };
 
+            devshells.default = {
+              env = [
+                {
+                  name = "HTTP_PORT";
+                  value = 8080;
+                }
+              ];
+              commands = [
+                {
+                  help = "print hello";
+                  name = "hello";
+                  command = "echo hello";
+                }
+              ];
+              packages = with pkgs; [
+                cowsay
+              ];
+            };
+            # devShells =
+            #   let
+            #     inherit (pkgs.devshell) mkShell importTOML;
+            #     inherit (paths.devShells)
+            #       dots
+            #       dev
+            #       media
+            #       env
+            #       ;
+            #   in
+            #   {
+            #     default = mkShell {
+            #       imports = [
+            #         (importTOML dots)
+            #         # (importTOML dev)
+            #         # (importTOML media)
+            #         # (importTOML env)
+            #       ];
+            #     };
+            #   };
             #   checks =
             #     let
             #       machinesPerSystem = {
