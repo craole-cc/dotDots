@@ -1,9 +1,11 @@
 {
   perSystem._module.args.paths =
     let
+      local = {
+        QBX = "$HOME/.dots";
+      };
       flake = {
         store = ./.;
-        local = "$HOME/.dots"; # TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles;
       };
       names = {
         args = "/args";
@@ -37,8 +39,8 @@
       };
       modules = {
         store = flake.store + names.nixos;
-        QBX = flake.QBX + names.nixos;
-        dbook = flake.dbook + names.nixos;
+        # QBX = flake.QBX + names.nixos;
+        # dbook = flake.dbook + names.nixos;
       };
       devshells = {
         default = modules.store + names.scripts.devshells;

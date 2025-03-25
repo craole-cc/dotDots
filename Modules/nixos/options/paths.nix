@@ -16,7 +16,6 @@ let
 
   dom = "dots";
   mod = "paths";
-  sub = "qbx";
   cfg = config.${dom}.${mod};
 in
 {
@@ -71,51 +70,51 @@ in
       };
       type = attrsOf (either str path);
     };
-    "${sub}" = mkOption {
-      description = "Path to the ${sub} nixos configuration.";
-      default = rec {
-        base = "${cfg.nixos.hosts}/${sub}";
-        link = ../.;
-        core = "${base}/core";
-        desktop = "${base}/desktop";
-        libraries = "${base}/libraries";
-        # options = "${base}/options";
-        modules = "${base}/modules";
-        # bin = "${libraries}/bin";
-        # lib = "${libraries}/nix";
-        # pathman = "${bin}/utilities/pathman";
+    # "${sub}" = mkOption {
+    #   description = "Path to the ${sub} nixos configuration.";
+    #   default = rec {
+    #     base = "${cfg.nixos.hosts}/${sub}";
+    #     link = ../.;
+    #     core = "${base}/core";
+    #     desktop = "${base}/desktop";
+    #     libraries = "${base}/libraries";
+    #     # options = "${base}/options";
+    #     modules = "${base}/modules";
+    #     # bin = "${libraries}/bin";
+    #     # lib = "${libraries}/nix";
+    #     # pathman = "${bin}/utilities/pathman";
 
-        # home = {
-        #   base = "${cfg.base}/home";
-        #   store = "${cfg.link}/home";
-        # };
-        # conf = rec {
-        #   base = "${cfg.base}/.config";
-        #   dunst = "${base}/dunst";
-        #   eww = "${base}/eww";
-        #   ghostty = "${base}/ghostty";
-        # };
-      };
-    };
+    #     # home = {
+    #     #   base = "${cfg.base}/home";
+    #     #   store = "${cfg.link}/home";
+    #     # };
+    #     # conf = rec {
+    #     #   base = "${cfg.base}/.config";
+    #     #   dunst = "${base}/dunst";
+    #     #   eww = "${base}/eww";
+    #     #   ghostty = "${base}/ghostty";
+    #     # };
+    #   };
+    # };
   };
 
-  config.environment = {
-    variables = {
-      DOTS = cfg.dots;
-      DOTS_BIN = cfg.dotsBin;
-      DOTS_CFG = cfg.dotsCFG;
-      "DOTS_${toUpper sub}" = cfg.${sub}.base;
-      "DOTS_${toUpper sub}_BIN" = "${cfg.core.${sub}.bin}";
-    };
-    shellAliases = {
-      qbx = ''cd ${cfg.base}'';
-      dots = ''cd ${cfg.dots}'';
-      binit =
-        with cfg.core.${sub};
-        ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
-    };
-    shellInit =
-      with cfg.core.${sub};
-      ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
-  };
+  # config.environment = {
+  #   variables = {
+  #     DOTS = cfg.dots;
+  #     DOTS_BIN = cfg.dotsBin;
+  #     DOTS_CFG = cfg.dotsCFG;
+  #     "DOTS_${toUpper sub}" = cfg.${sub}.base;
+  #     "DOTS_${toUpper sub}_BIN" = "${cfg.core.${sub}.bin}";
+  #   };
+  #   shellAliases = {
+  #     qbx = ''cd ${cfg.base}'';
+  #     dots = ''cd ${cfg.dots}'';
+  #     binit =
+  #       with cfg.core.${sub};
+  #       ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
+  #   };
+  #   shellInit =
+  #     with cfg.core.${sub};
+  #     ''[ -f ${pathman} ] && . ${pathman} --action append --dir ${bin} --dir ${dotsBin}'';
+  # };
 }
