@@ -7,7 +7,9 @@
       {
         imports = with inputs; [
           nixosHome.flakeModules.home-manager
-          developShell.flakeModule
+          nixosHost.flakeModule
+          nixosConf.flakeModule
+          developmentShell.flakeModule
           treeFormatter.flakeModule
           gitPreCommit.flakeModule
 
@@ -182,11 +184,6 @@
     #     nixpkgs.follows = "nixosUnstable";
     #   };
     # };
-    # nixHardware = {
-    #   type = "github";
-    #   owner = "NixOS";
-    #   repo = "nixos-hardware";
-    # };
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -205,7 +202,7 @@
         nixpkgs.follows = "nixosUnstable";
       };
     };
-    developShell = {
+    developmentShell = {
       type = "github";
       owner = "numtide";
       repo = "devshell";
@@ -231,7 +228,23 @@
         flake-compat.follows = "flakeCompat";
       };
     };
-
+    nixosHost = {
+      type = "github";
+      owner = "tgirlcloud";
+      repo = "easy-hosts";
+      inputs = {
+        # nixpkgs.follows = "nixosUnstable";
+      };
+    };
+    nixosConf = {
+      type = "github";
+      owner = "ehllie";
+      repo = "ez-configs";
+      inputs = {
+        nixpkgs.follows = "nixosUnstable";
+        flake-parts.follows="flakeParts";
+      };
+    };
     flakeCompat = {
       type = "github";
       owner = "edolstra";

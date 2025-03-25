@@ -1,6 +1,6 @@
 {
   "nodes": {
-    "developShell": {
+    "developmentShell": {
       "inputs": {
         "nixpkgs": [
           "nixosUnstable"
@@ -235,6 +235,29 @@
         "type": "github"
       }
     },
+    "nixosConf": {
+      "inputs": {
+        "flake-parts": [
+          "flakeParts"
+        ],
+        "nixpkgs": [
+          "nixosUnstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1737976685,
+        "narHash": "sha256-YGDoq5mHjaUiv79oICntM3nybdzvvBRZGe5cZ6kY73w=",
+        "owner": "ehllie",
+        "repo": "ez-configs",
+        "rev": "84cce474cc25b451e77fc05a1a3d32c47706ea3a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ehllie",
+        "repo": "ez-configs",
+        "type": "github"
+      }
+    },
     "nixosDarwin": {
       "inputs": {
         "nixpkgs": [
@@ -287,6 +310,21 @@
       "original": {
         "owner": "nix-community",
         "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixosHost": {
+      "locked": {
+        "lastModified": 1742736765,
+        "narHash": "sha256-840idRti6HSFsTywPkku4ak8KtwiPw+XiFFRdaT4CWk=",
+        "owner": "tgirlcloud",
+        "repo": "easy-hosts",
+        "rev": "7acbedf9c7e5ee1981647d0917dee3c8db52ccb5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tgirlcloud",
+        "repo": "easy-hosts",
         "type": "github"
       }
     },
@@ -347,7 +385,7 @@
     },
     "root": {
       "inputs": {
-        "developShell": "developShell",
+        "developmentShell": "developmentShell",
         "flakeCompat": "flakeCompat",
         "flakeParts": "flakeParts",
         "gitIgnore": "gitIgnore",
@@ -358,9 +396,11 @@
         "nixIndex": "nixIndex",
         "nixLib": "nixLib",
         "nixUnitTesting": "nixUnitTesting",
+        "nixosConf": "nixosConf",
         "nixosDarwin": "nixosDarwin",
         "nixosHardware": "nixosHardware",
         "nixosHome": "nixosHome",
+        "nixosHost": "nixosHost",
         "nixosStable": "nixosStable",
         "nixosUnstable": "nixosUnstable",
         "nixosWSL": "nixosWSL",
