@@ -3,7 +3,7 @@
   outputs =
     inputs@{ flakeParts, ... }:
     let
-      paths = import ./paths.nix;
+      flakePaths = import ./paths.nix;
     in
     flakeParts.lib.mkFlake { inherit inputs; } {
       imports = with inputs; [
@@ -18,8 +18,7 @@
         # secretShell.flakeModule
         treeFormatter.flakeModule
 
-        paths.devshells.default
-        # ./Modules/nixos/modules/devshells/dots.nix
+        flakePaths.devshells.default
       ];
       debug = true;
       systems = [
@@ -36,7 +35,7 @@
             pkgs = inputs'.nixosUnstable.legacyPackages;
             pkgsStable = inputs'.nixosStable.legacyPackages;
             pkgsUnstable = inputs'.nixosUnstable.legacyPackages;
-            inherit paths;
+            inherit flakePaths;
           };
         };
     };

@@ -29,12 +29,12 @@ let
     uiHome = "/ui/home";
     hosts = parts.cfgs + "/hosts";
     users = parts.cfgs + "/users";
-    scripts = {
+    bin = {
       default = "/Bin";
-      cmd = parts.scripts.default + "/cmd";
-      nix = parts.scripts.default + "/nix";
-      rust = parts.scripts.default + "/rust";
-      shellscript = parts.scripts.default + "/shellscript";
+      cmd = parts.bin.default + "/cmd";
+      nix = parts.bin.default + "/nix";
+      rust = parts.bin.default + "/rust";
+      shellscript = parts.bin.default + "/shellscript";
       flake = "/scripts";
       dots = "/Scripts";
       devshells = parts.mods + "/devshells";
@@ -46,7 +46,7 @@ let
     # dbook = flake.dbook + parts.nixos;
   };
   devshells = {
-    default = modules.store + parts.scripts.devshells;
+    default = modules.store + parts.bin.devshells;
     dots = {
       nix = devshells.default + "/dots.nix";
       toml = devshells.default + "/dots.toml";
@@ -79,16 +79,16 @@ let
     packages = home.default + parts.pkgs;
     services = home.default + parts.svcs;
   };
-  scripts = {
+  bin = {
     # store = {
-    shellscript = flake.store + parts.scripts.shellscript;
-    flake = modules.store + parts.scripts.flake;
-    # dots = modules.store + parts.scripts + "/init_dots";
+    shellscript = flake.store + parts.bin.shellscript;
+    flake = modules.store + parts.bin.flake;
+    # dots = modules.store + parts.bin + "/init_dots";
     # };
     # QBX = {
-    #   shellscript = flake.QBX + parts.scripts.shellscript;
-    #   flake = modules.QBX + parts.scripts.flake;
-    #   # dots = flake.QBX + parts.scripts.dots;
+    #   shellscript = flake.QBX + parts.bin.shellscript;
+    #   flake = modules.QBX + parts.bin.flake;
+    #   # dots = flake.QBX + parts.bin.dots;
     # };
   };
   libraries = {
@@ -105,7 +105,7 @@ in
     devshells
     core
     home
-    scripts
+    bin
     parts
     libraries
     ;
