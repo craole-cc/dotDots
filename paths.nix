@@ -35,8 +35,10 @@ let
       nix = parts.bin.default + "/nix";
       rust = parts.bin.default + "/rust";
       shellscript = parts.bin.default + "/shellscript";
-      flake = "/scripts";
-      dots = "/Scripts";
+      scripts = {
+        dots = "/Scripts";
+        mods = parts.nixos + "/scripts";
+      };
       devshells = parts.mods + "/devshells";
     };
   };
