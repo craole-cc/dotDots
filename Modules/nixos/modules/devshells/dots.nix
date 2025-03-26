@@ -78,27 +78,27 @@
           }
           {
             category = "Flake Management";
-            name = "Flush";
-            command = ''nix-collect-garbage --delete-old'';
             help = "Remove old nixos and home-manager generations";
+            command = ''nix-collect-garbage --delete-old'';
+            name = "Flush";
           }
           {
             category = "Flake Management";
-            name = "Flux";
-            command = ''sync-repo.sh'';
             help = "Sync git repository";
+            command = ''sync-repo.sh'';
+            name = "Flux";
           }
           {
             category = "Flake Management";
-            name = "Fly";
-            command = ''sync-flake.sh'';
             help = "Update flake inputs and sync git repository";
+            command = ''sync-flake.sh'';
+            name = "Fly";
           }
           {
             category = "Flake Management";
-            name = "Format";
-            command = ''nix fmt "$@'';
             help = "Lint and format the entire project tree";
+            command = ''nix fmt "$@"'';
+            name = "Format";
           }
           {
             category = "File/Environment Management";
