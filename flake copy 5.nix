@@ -18,8 +18,7 @@
         # secretShell.flakeModule
         treeFormatter.flakeModule
 
-        paths.devshells.default
-        # ./Modules/nixos/modules/devshells/dots.nix
+        ./Modules/nixos/modules/devshells/dots.nix
       ];
       debug = true;
       systems = [
@@ -29,6 +28,17 @@
         # "aarch64-darwin"
       ];
 
+      options = {
+        flake = {
+          local = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+            description = "Local path to the flake repository";
+            example = "/home/user/dotfiles";
+          };
+        };
+      };
+      
       perSystem =
         { inputs', ... }:
         {
@@ -38,6 +48,43 @@
             pkgsUnstable = inputs'.nixosUnstable.legacyPackages;
             inherit paths;
           };
+          #   checks =
+          #     let
+          #       machinesPerSystem = {
+          #         aarch64-linux = [
+          #           "Raspi"
+          #         ];
+          #         x86_64-linux = [
+          #           "QBX"
+          #           "dbook"
+          #           "Preci"
+          #         ];
+          #       };
+
+          #       nixosMachines = lib.mapAttrs' (n: lib.nameValuePair "nixos-${n}") (
+          #         lib.genAttrs (machinesPerSystem.${system} or [ ]) (
+          #           name: self.nixosConfigurations.${name}.config.system.build.toplevel
+          #         )
+          #       );
+
+          #       blacklistPackages = [
+          #         "install-iso"
+          #         "nspawn-template"
+          #         "netboot-pixie-core"
+          #         "netboot"
+          #       ];
+
+          #       packages = lib.mapAttrs' (n: lib.nameValuePair "package-${n}") (
+          #         lib.filterAttrs (n: _v: !(builtins.elem n blacklistPackages)) self'.packages
+          #       );
+
+          #       devShells = lib.mapAttrs' (n: lib.nameValuePair "devShell-${n}") self'.devShells;
+
+          #       homeConfigurations = lib.mapAttrs' (
+          #         name: config: lib.nameValuePair "home-manager-${name}" config.activation-script
+          #       ) (self'.legacyPackages.homeConfigurations or { });
+          #     in
+          #     nixosMachines // packages // devShells // homeConfigurations;
         };
     };
 

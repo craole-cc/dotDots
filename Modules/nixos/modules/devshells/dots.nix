@@ -191,6 +191,7 @@
     {
       devshells = {
         default = dots;
+        inherit dots;
       };
     };
 }
