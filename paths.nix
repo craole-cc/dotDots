@@ -1,12 +1,16 @@
 #PATH: paths.nix
 let
-  flake = {
-    store = ./.;
-    local = {
-      #TODO: This is supposed to be the absolute path to the actual flake config, not the store path. It has to be set on the host machine. for example, /home/craole/.dots; or /home/craole/Documents/dotfiles; This needs to be an optional
-      QBX = "$HOME/.dots";
+  flake =
+    let
+      QBX = "/home/craole/.dots";
+      Preci = "/home/craole/Projects/dotDots";
+      dbook = "/home/craole/Documents/dotfiles";
+    in
+    {
+      store = ./.;
+      local = QBX; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
+      inherit dbook Preci QBX;
     };
-  };
   parts = {
     args = "/args";
     cfgs = "/configurations";
@@ -38,8 +42,8 @@ let
   };
   modules = {
     store = flake.store + parts.nixos;
-    QBX = flake.QBX + parts.nixos;
-    dbook = flake.dbook + parts.nixos;
+    # QBX = flake.QBX + parts.nixos;
+    # dbook = flake.dbook + parts.nixos;
   };
   devshells = {
     default = modules.store + parts.scripts.devshells;
@@ -76,16 +80,16 @@ let
     services = home.default + parts.svcs;
   };
   scripts = {
-    store = {
-      shellscript = flake.store + parts.scripts.shellscript;
-      flake = modules.store + parts.scripts.flake;
-      # dots = modules.store + parts.scripts + "/init_dots";
-    };
-    QBX = {
-      shellscript = flake.QBX + parts.scripts.shellscript;
-      flake = modules.QBX + parts.scripts.flake;
-      # dots = flake.QBX + parts.scripts.dots;
-    };
+    # store = {
+    shellscript = flake.store + parts.scripts.shellscript;
+    flake = modules.store + parts.scripts.flake;
+    # dots = modules.store + parts.scripts + "/init_dots";
+    # };
+    # QBX = {
+    #   shellscript = flake.QBX + parts.scripts.shellscript;
+    #   flake = modules.QBX + parts.scripts.flake;
+    #   # dots = flake.QBX + parts.scripts.dots;
+    # };
   };
   libraries = {
     # local = modules.local + parts.libs;
