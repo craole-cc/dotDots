@@ -127,12 +127,24 @@
           }
           {
             category = "Flake Management";
-            help = ''Edit the flake'';
+            help = ''Edit the flake the default editor'';
             command = ''
               if [ "$#" -gt 0 ]; then
                 "$EDITOR" "$@"
               else
                 "$EDITOR" "$PRJ_ROOT"
+              fi
+            '';
+            name = "Flow";
+          }
+          {
+            category = "Flake Management";
+            help = ''Edit the flake in the default GUI editor'';
+            command = ''
+              if [ "$#" -gt 0 ]; then
+                "$VISUAL" "$@"
+              else
+                "$VISUAL" "$PRJ_ROOT"
               fi
             '';
             name = "Flare";
