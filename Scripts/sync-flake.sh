@@ -41,9 +41,9 @@ update_flake() {
     return 1
   }
 
-  eval nix flake update "${args}"
-  eval nix flake archive
-  return 0
+  eval nix flake update "${args}" --commit-lock-file
+  # eval nix flake archive
+  # return 0
 }
 
 main "$@"

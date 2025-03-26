@@ -6,7 +6,7 @@
       ...
     }:
     let
-      pkgs = pkgsUnstable;
+      # pkgs = pkgsUnstable;
       dots = {
         name = "dotDots";
         env = [
@@ -65,43 +65,53 @@
           tokei
           undollar
           wget
+          yazi
+          # zed-editor-fhs
         ];
         commands = [
           {
-            category = "Project Management";
-            name = "rebuild";
-            command = ''sudo nixos-rebuild --flake $PRJ_ROOT switch $@'';
+            category = "Flake Management";
+            name = "Flick";
+            #TODO: Update sync-fkake to rebuid
+            command = ''gitui; sudo nixos-rebuild switch --flake "$PRJ_ROOT" "$@"'';
             help = "Rebuild NixOS with the changes made to the flake";
           }
           {
-            category = "Project Management";
-            name = "clean";
+            category = "Flake Management";
+            name = "Flush";
             command = ''nix-collect-garbage --delete-old'';
             help = "Remove old nixos and home-manager generations";
           }
           {
-            category = "Project Management";
-            name = "repo";
+            category = "Flake Management";
+            name = "Flux";
             command = ''sync-repo.sh'';
             help = "Sync git repository";
           }
           {
-            category = "Project Management";
-            name = "flake";
+            category = "Flake Management";
+            name = "Fly";
             command = ''sync-flake.sh'';
             help = "Update flake inputs and sync git repository";
           }
           {
-            category = "File/Environment Management";
-            name = "fl";
-            command = ''list-files.sh'';
-            help = "List files in the current directory";
+            category = "Flake Management";
+            name = "Format";
+            command = ''nix fmt "$@'';
+            help = "Lint and format the entire project tree";
           }
           {
             category = "File/Environment Management";
-            name = "ft";
-            command = ''list-files.sh --tree --git-ignore "$@"'';
             help = "List files in the current directory";
+            command = ''list-files.sh'';
+            name = "fl";
+          }
+          {
+            category = "File/Environment Management";
+            help = "Navigate the file tree";
+            # command = ''list-files.sh --tree --git-ignore "$@"'';
+            command=''yazi'';
+            name = "ft";
           }
           {
             category = "File/Environment Management";
@@ -110,60 +120,20 @@
             name = "ff";
           }
           {
-            category = "Interactive Shell & Scripting";
-            package = "devenv";
+            category="Flake Management";
+            help = "Manage development environments";
+            command=''devenv'';
+            name = "Flex";
           }
           {
-            category = "Interactive Shell & Scripting";
-            package = "direnv";
-          }
-          {
-            category = "Interactive Shell & Scripting";
-            package = "fish";
-          }
-          {
-            category = "File/Environment Management";
-            package = "fzf";
-          }
-          {
-            category = "Project Management";
-            package = "gitui";
-          }
-          {
-            category = "Interactive Shell & Scripting";
-            package = "just";
-          }
-          {
-            category = "Interactive Shell & Scripting";
-            name = "nu";
-            package = "nushell";
-          }
-          {
-            category = "Interactive Shell & Scripting";
-            name = "pwsh";
-            package = "powershell";
-          }
-          {
-            category = "File/Environment Management";
-            package = "rbw";
-          }
-          {
-            category = "File/Environment Management";
-            name = "rg";
-            package = "ripgrep";
-          }
-          {
-            category = "Project Management";
-            package = "treefmt";
-          }
-          {
-            category = "File/Environment Management";
-            package = "yazi";
+            category = "Flake Management";
+            help =  ''Edit the flake'' ;
+            name = "Flare";
+            command = ''hx .'';
           }
           # {
           #   category = "Interactive Shell & Scripting";
-          #   name = "zeditor";
-          #   package = "zed-editor-fhs";
+          #   name = "Flare";
           #   command = ''
           #     if [ "$#" -gt 0 ]; then
           #       zeditor "$@"
@@ -173,14 +143,6 @@
           #   '';
           #   help = ''High-performance Integrated Development Environment (IDE)'';
           # }
-          {
-            category = "File/Environment Management";
-            package = "zoxide";
-          }
-          {
-            category = "Interactive Shell & Scripting";
-            package = "zsh";
-          }
         ];
       };
     in
