@@ -26,17 +26,6 @@
           }
           {
             name = "PATH";
-            #   prefix =
-            #     let
-            #       inherit (flakePaths.parts) bin;
-            #       shellscript = "$PRJ_ROOT" + bin.shellscript;
-            #       rust = "$PRJ_ROOT" + bin.rust;
-            #       dots = "$PRJ_ROOT" + bin.dots;
-            #       flake = "$PRJ_ROOT" + bin.flake;
-            #     in
-            #     ''
-            #       ${shellscript}:${rust}:${dots}:${flake}
-            #     '';
             prefix = "$PRJ_BIN";
           }
           {
@@ -51,6 +40,28 @@
             name = "FLAKE";
             eval = "$PRJ_ROOT";
           }
+        ];
+        packages = with pkgs; [
+          curl
+          devenv
+          fd
+          fzf
+          gitui
+          helix
+          jq
+          nerd-fonts.victor-mono
+          nil
+          nixd
+          nix-index
+          nixfmt-rfc-style
+          ripgrep
+          sd
+          shfmt
+          shellcheck
+          tldr
+          tokei
+          undollar
+          wget
         ];
         commands = [
           {
@@ -96,6 +107,16 @@
           {
             category = "File/Environment Management";
             package = "eza";
+            command = ''
+              eza \
+                --icons=always\
+                --group-directories-first\
+                --color=always \
+                --color-scale \
+                --all \
+                --long \
+                $@
+            '';
           }
           {
             category = "File/Environment Management";
@@ -108,7 +129,7 @@
           {
             category = "File/Environment Management";
             package = "fastfetch";
-
+            help = "Display system information";
           }
           {
             category = "File/Environment Management";
@@ -170,35 +191,6 @@
             category = "Interactive Shell & Scripting";
             package = "zsh";
           }
-        ];
-        packages = with pkgs; [
-          atuin
-          bash-language-server
-          jq
-          nixd
-          nerd-fonts.victor-mono
-
-          alejandra
-          curl
-          devenv
-          fd
-          fzf
-          gitui
-          helix
-          jq
-          nil
-          nixd
-          nix-index
-          nixfmt-rfc-style
-          # nixfmt-tree
-          ripgrep
-          sd
-          shfmt
-          shellcheck
-          tldr
-          tokei
-          undollar
-          wget
         ];
       };
     in
