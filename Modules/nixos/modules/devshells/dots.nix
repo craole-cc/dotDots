@@ -91,7 +91,13 @@
           {
             category = "File/Environment Management";
             name = "fl";
-            command = ''list-file.sh'';
+            command = ''list-files.sh'';
+            help = "List files in the current directory";
+          }
+          {
+            category = "File/Environment Management";
+            name = "flt";
+            command = ''list-files.sh --tree --git-ignore "$@"'';
             help = "List files in the current directory";
           }
           {

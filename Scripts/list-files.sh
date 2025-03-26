@@ -6,6 +6,7 @@ if command -v eza >/dev/null 2>&1; then
     --color-scale \
     --all \
     --long \
+    --git \
     "$@"
 elif command -v lsd >/dev/null 2>&1; then
   lsd \
