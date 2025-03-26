@@ -1,5 +1,6 @@
 # treefmt.nix
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   projectRootFile = "flake.nix";
 
   programs = {

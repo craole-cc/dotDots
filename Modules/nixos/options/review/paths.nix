@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib) mapAttrs;
   inherit (lib.lists) head;
   inherit (lib.attrsets) attrNames;
@@ -40,82 +41,86 @@
   };
 
   #@ Function to calculate paths for a specific host
-  mkHostPaths = hostName: hostConfig: let
-    modules = {
-      store = hostConfig.paths.store + names.nixos;
-      local = hostConfig.paths.local + names.nixos;
-    };
-
-    devshells = {
-      default = modules.store + names.scripts.devshells;
-      dots = {
-        nix = devshells.default + "/dots.nix";
-        toml = devshells.default + "/dots.toml";
+  mkHostPaths =
+    hostName: hostConfig:
+    let
+      modules = {
+        store = hostConfig.paths.store + names.nixos;
+        local = hostConfig.paths.local + names.nixos;
       };
-      media = {
-        nix = devshells.default + "/media.nix";
-        toml = devshells.default + "/media.toml";
+
+      devshells = {
+        default = modules.store + names.scripts.devshells;
+        dots = {
+          nix = devshells.default + "/dots.nix";
+          toml = devshells.default + "/dots.toml";
+        };
+        media = {
+          nix = devshells.default + "/media.nix";
+          toml = devshells.default + "/media.toml";
+        };
       };
-    };
 
-    core = {
-      default = modules.store;
-      configurations = {
-        hosts = core.default + names.hosts;
-        users = core.default + names.users;
+      core = {
+        default = modules.store;
+        configurations = {
+          hosts = core.default + names.hosts;
+          users = core.default + names.users;
+        };
+        environment = core.default + names.env;
+        libraries = core.default + names.libs;
+        modules = core.default + names.mods;
+        options = core.default + names.opts;
+        packages = core.default + names.pkgs;
+        services = core.default + names.svcs;
       };
-      environment = core.default + names.env;
-      libraries = core.default + names.libs;
-      modules = core.default + names.mods;
-      options = core.default + names.opts;
-      packages = core.default + names.pkgs;
-      services = core.default + names.svcs;
-    };
 
-    home = {
-      default = modules.store + "/home";
-      configurations = home.default + names.cfgs;
-      environment = home.default + names.env;
-      libraries = home.default + names.libs;
-      modules = home.default + names.mods;
-      options = home.default + names.opts;
-      packages = home.default + names.pkgs;
-      services = home.default + names.svcs;
-    };
-
-    scripts = {
-      store = {
-        shellscript = hostConfig.paths.store + names.scripts.shellscript;
-        flake = modules.store + names.scripts.flake;
+      home = {
+        default = modules.store + "/home";
+        configurations = home.default + names.cfgs;
+        environment = home.default + names.env;
+        libraries = home.default + names.libs;
+        modules = home.default + names.mods;
+        options = home.default + names.opts;
+        packages = home.default + names.pkgs;
+        services = home.default + names.svcs;
       };
-      local = {
-        shellscript = hostConfig.paths.local + names.scripts.shellscript;
-        flake = modules.local + names.scripts.flake;
+
+      scripts = {
+        store = {
+          shellscript = hostConfig.paths.store + names.scripts.shellscript;
+          flake = modules.store + names.scripts.flake;
+        };
+        local = {
+          shellscript = hostConfig.paths.local + names.scripts.shellscript;
+          flake = modules.local + names.scripts.flake;
+        };
       };
-    };
 
-    libraries = {
-      store = modules.store + names.libs;
-      mkCore = core.libraries + names.mkCore;
-      mkConf = core.libraries + names.mkConf;
-    };
+      libraries = {
+        store = modules.store + names.libs;
+        mkCore = core.libraries + names.mkCore;
+        mkConf = core.libraries + names.mkConf;
+      };
 
-    parts = modules.store + names.parts;
-  in {
-    inherit
-      modules
-      devshells
-      core
-      home
-      scripts
-      libraries
-      parts
-      ;
-  };
+      parts = modules.store + names.parts;
+    in
+    {
+      inherit
+        modules
+        devshells
+        core
+        home
+        scripts
+        libraries
+        parts
+        ;
+    };
 
   # Generate paths for all hosts
   hostPaths = mapAttrs mkHostPaths config.hosts;
-in {
+in
+{
   # Set up paths based on hosts
   paths = {
     # Basic common paths
@@ -125,8 +130,6 @@ in {
     hosts = hostPaths;
 
     # Current host paths
-    current =
-      hostPaths.${config.networking.hostName}
-      or (hostPaths.${head (attrNames hostPaths)});
+    current = hostPaths.${config.networking.hostName} or (hostPaths.${head (attrNames hostPaths)});
   };
 }

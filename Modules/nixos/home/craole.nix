@@ -2,12 +2,12 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   #| Native Imports
   inherit (lib.options) mkOption mkEnableOption;
   inherit (lib.modules) mkIf;
-  inherit
-    (lib.types)
+  inherit (lib.types)
     listOf
     nullOr
     int
@@ -22,7 +22,8 @@
   base = "users";
   mod = "craole";
   cfg = DOTS.${base}.${mod};
-in {
+in
+{
   options.DOTS.${base}.${mod} = {
     enable = mkEnableOption "Initialize the user account for {{mod}}";
 
@@ -41,12 +42,13 @@ in {
       description = "The name of the user account.";
       default = mod;
       type = passwdEntry str;
-      apply = x:
+      apply =
+        x:
         assert (
-          builtins.stringLength x
-          < 32
+          builtins.stringLength x < 32
           || abort "Username '${x}' is longer than 31 characters which is not allowed!"
-        ); x;
+        );
+        x;
     };
 
     uid = mkOption {
@@ -108,7 +110,7 @@ in {
       default = rec {
         config = ./. + "/${mod}.nix";
         homeDirectory = "/home/${mod}";
-        toLink = [];
+        toLink = [ ];
         media = rec {
           default = homeDirectory;
           pictures = default + "/Pictures";
@@ -138,8 +140,7 @@ in {
 
   config = mkIf cfg.enable {
     users.users.${cfg.name} = {
-      inherit
-        (cfg)
+      inherit (cfg)
         description
         uid
         isNormalUser

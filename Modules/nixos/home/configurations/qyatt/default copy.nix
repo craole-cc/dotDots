@@ -5,13 +5,15 @@
   ...
 }:
 with lib;
-with types; let
+with types;
+let
   inherit (config) dots;
 
   user = "craole";
   cfg = dots.users."${user}";
   inherit (dots.hosts.${dib.currentHost}) admin;
-in {
+in
+{
   options.dots.users."${user}" = {
     enable = mkEnableOption "Initialize the user account for {{user}}";
 
@@ -30,12 +32,13 @@ in {
     name = mkOption {
       type = passwdEntry str;
       default = user;
-      apply = x:
+      apply =
+        x:
         assert (
-          builtins.stringLength x
-          < 32
+          builtins.stringLength x < 32
           || abort "Username '${x}' is longer than 31 characters which is not allowed!"
-        ); x;
+        );
+        x;
       description = "The name of the user account.";
     };
 
@@ -68,41 +71,41 @@ in {
 
     variables = mkOption {
       type = attrs;
-      default = let
-        inherit
-          (cfg)
-          paths
-          browser
-          editor
-          terminal
-          ;
-        inherit (paths) media downloads projects;
-        inherit
-          (media)
-          music
-          pictures
-          wallpaper
-          videos
-          ;
-        inherit (downloads) books research tutorials;
-        inherit (videos) movies tv;
-      in {
-        PROJECTS = projects.default;
-        PICTURES = pictures;
-        WALLPAPER = wallpaper;
-        MUSIC = music;
-        DOWNLOADS = downloads.default;
-        TUTORIALS = tutorials;
-        BOOKS = books;
-        RESEARCH = research;
-        VIDEOS = videos.default;
-        MOVIES = movies;
-        TV = tv;
-        BROWSER = browser.primary;
-        EDITOR = editor.tui;
-        VISUAL = editor.gui;
-        TERMINAL = terminal.primary;
-      };
+      default =
+        let
+          inherit (cfg)
+            paths
+            browser
+            editor
+            terminal
+            ;
+          inherit (paths) media downloads projects;
+          inherit (media)
+            music
+            pictures
+            wallpaper
+            videos
+            ;
+          inherit (downloads) books research tutorials;
+          inherit (videos) movies tv;
+        in
+        {
+          PROJECTS = projects.default;
+          PICTURES = pictures;
+          WALLPAPER = wallpaper;
+          MUSIC = music;
+          DOWNLOADS = downloads.default;
+          TUTORIALS = tutorials;
+          BOOKS = books;
+          RESEARCH = research;
+          VIDEOS = videos.default;
+          MOVIES = movies;
+          TV = tv;
+          BROWSER = browser.primary;
+          EDITOR = editor.tui;
+          VISUAL = editor.gui;
+          TERMINAL = terminal.primary;
+        };
       description = "User's environment variables";
     };
 
@@ -148,7 +151,7 @@ in {
       default = rec {
         config = ./. + "/${user}.nix";
         homeDirectory = "/home/${user}";
-        toLink = [];
+        toLink = [ ];
         media = rec {
           default = homeDirectory;
           pictures = default + "/Pictures";
@@ -279,38 +282,39 @@ in {
           default = mkOption {
             type = str;
             default =
-              if cfg.theme.color.mode == "dark"
-              then cfg.theme.color.scheme.dark
-              else cfg.theme.color.scheme.light;
+              if cfg.theme.color.mode == "dark" then
+                cfg.theme.color.scheme.dark
+              else
+                cfg.theme.color.scheme.light;
             description = "The default color scheme to use.";
           };
         };
       };
 
-      wallpaper = let
-        inherit (cfg.paths.media) wallpaper;
-      in {
-        light = mkOption {
-          type = path;
-          default = wallpaper + "/04199_lonelyisland_1920x1080.jpg";
-          description = "The light wallpaper to use.";
-        };
+      wallpaper =
+        let
+          inherit (cfg.paths.media) wallpaper;
+        in
+        {
+          light = mkOption {
+            type = path;
+            default = wallpaper + "/04199_lonelyisland_1920x1080.jpg";
+            description = "The light wallpaper to use.";
+          };
 
-        dark = mkOption {
-          type = path;
-          default = wallpaper + "/04114_intotheforest_1920x1080.jpg";
-          description = "The dark wallpaper to use.";
-        };
+          dark = mkOption {
+            type = path;
+            default = wallpaper + "/04114_intotheforest_1920x1080.jpg";
+            description = "The dark wallpaper to use.";
+          };
 
-        default = mkOption {
-          type = path;
-          default =
-            if cfg.theme.color.mode == "dark"
-            then cfg.theme.wallpaper.dark
-            else cfg.theme.wallpaper.light;
-          description = "The default wallpaper to use.";
+          default = mkOption {
+            type = path;
+            default =
+              if cfg.theme.color.mode == "dark" then cfg.theme.wallpaper.dark else cfg.theme.wallpaper.light;
+            description = "The default wallpaper to use.";
+          };
         };
-      };
 
       icons = {
         vscode = {
@@ -371,15 +375,16 @@ in {
       };
 
       fonts = {
-        packages = let
-          nerdfonts = pkgs.nerdfonts.override {fonts = ["JetBrainsMono"];};
-          awesomeFonts = fetchFromGitHub {
-            owner = "rng70";
-            repo = "Awesome-Fonts";
-            rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
-            sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
-          };
-        in
+        packages =
+          let
+            nerdfonts = pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; };
+            awesomeFonts = fetchFromGitHub {
+              owner = "rng70";
+              repo = "Awesome-Fonts";
+              rev = "3733f56e431608878d6cbbf2d70d8bf36ab2c226";
+              sha256 = "0m41gdgp06l5ymwvy0jkz6qfilcz3czx416ywkq76z844y5xahd0";
+            };
+          in
           mkOption {
             type = listOf package;
             default = with pkgs; [
@@ -426,7 +431,7 @@ in {
 
         emoji = mkOption {
           type = listOf str;
-          default = ["Noto Color Emoji"];
+          default = [ "Noto Color Emoji" ];
           description = "The emoji fonts to use.";
         };
 
@@ -540,8 +545,8 @@ in {
 
     firefox = rec {
       options = {
-        package = mkOption {type = package;};
-        command = mkOption {type = str;};
+        package = mkOption { type = package; };
+        command = mkOption { type = str; };
         edition = mkOption {
           type = enum [
             "main"
@@ -563,8 +568,8 @@ in {
 
     chromium = rec {
       options = {
-        package = mkOption {type = package;};
-        command = mkOption {type = str;};
+        package = mkOption { type = package; };
+        command = mkOption { type = str; };
         edition = mkOption {
           type = enum [
             "main"
@@ -588,11 +593,12 @@ in {
         options = {
           primary = mkOption {
             type = submodule (
-              {config, ...}: {
+              { config, ... }:
+              {
                 options = {
-                  package = mkOption {type = package;};
-                  command = mkOption {type = str;};
-                  name = mkOption {type = str;};
+                  package = mkOption { type = package; };
+                  command = mkOption { type = str; };
+                  name = mkOption { type = str; };
                 };
                 config = {
                   name = "Display-aware Editor";
@@ -602,11 +608,12 @@ in {
           };
           secondary = mkOption {
             type = submodule (
-              {config, ...}: {
+              { config, ... }:
+              {
                 options = {
-                  package = mkOption {type = package;};
-                  command = mkOption {type = str;};
-                  name = mkOption {type = str;};
+                  package = mkOption { type = package; };
+                  command = mkOption { type = str; };
+                  name = mkOption { type = str; };
                 };
                 config = {
                   name = "VSCode";
@@ -616,11 +623,12 @@ in {
           };
           tertiary = mkOption {
             type = submodule (
-              {config, ...}: {
+              { config, ... }:
+              {
                 options = {
-                  package = mkOption {type = package;};
-                  command = mkOption {type = str;};
-                  name = mkOption {type = str;};
+                  package = mkOption { type = package; };
+                  command = mkOption { type = str; };
+                  name = mkOption { type = str; };
                 };
                 config = {
                   name = "Helix";
@@ -651,8 +659,7 @@ in {
 
   config = mkIf (cfg.enable || cfg.isAdmin) {
     users.users.${user} = {
-      inherit
-        (cfg)
+      inherit (cfg)
         description
         uid
         isNormalUser
@@ -662,19 +669,21 @@ in {
     };
 
     home-manager.users.${user} = {
-      imports = let
-        inherit (dots.paths) pkgs;
-      in [
-        # (programs + "/brave")
-        # (programs + "/eza")
-        # (programs + "/firefox")
-        # (programs + "/git")
-        # (programs + "/foot")
-        # (programs + "/hyprland")
-        (pkgs + "/helix")
-        # (programs + "/utilities")
-        # (programs + "/vscode")
-      ];
+      imports =
+        let
+          inherit (dots.paths) pkgs;
+        in
+        [
+          # (programs + "/brave")
+          # (programs + "/eza")
+          # (programs + "/firefox")
+          # (programs + "/git")
+          # (programs + "/foot")
+          # (programs + "/hyprland")
+          (pkgs + "/helix")
+          # (programs + "/utilities")
+          # (programs + "/vscode")
+        ];
     };
   };
 }

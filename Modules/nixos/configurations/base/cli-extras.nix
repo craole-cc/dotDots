@@ -2,7 +2,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   programs.adb.enable = true;
 
   environment.systemPackages = with pkgs; [

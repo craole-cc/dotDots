@@ -2,7 +2,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   #services.tailscale.enable = true;
   services.zerotierone.enable = false;
   services.zerotierone.joinNetworks = [
@@ -10,7 +11,7 @@
     "12ac4a1e710088c5"
   ];
 
-  nix.settings.trusted-users = ["gytis"];
+  nix.settings.trusted-users = [ "gytis" ];
 
   users.extraUsers.gytis = {
     shell = pkgs.zsh;
@@ -36,9 +37,9 @@
     shell = pkgs.zsh;
     isNormalUser = true;
     description = "Guest user";
-    extraGroups = ["wheel"];
+    extraGroups = [ "wheel" ];
     initialPassword = "toor";
   };
 
-  environment.systemPackages = with pkgs; [];
+  environment.systemPackages = with pkgs; [ ];
 }

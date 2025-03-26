@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   #| Module Parts
   top = "DOTS";
   dom = "lib";
@@ -29,42 +30,46 @@
   listNixPackagesRecursively = mkOption {
     description = "List all nix paths in a directory.";
     example = ''listRecursively "path/to/directory"'';
-    default = path: let
-      packages = packagesFromDirectoryRecursive path;
-    in
+    default =
+      path:
+      let
+        packages = packagesFromDirectoryRecursive path;
+      in
       pkgs.callPackages packages;
   };
 
   listNixModules = mkOption {
     description = "List all nix paths in a directory.";
     example = ''listNix "path/to/directory"'';
-    default = path: let
-      filesToExclude = [
-        "default.nix"
-        "flake.nix"
-        "shell.nix"
-        "paths.nix"
-      ];
+    default =
+      path:
+      let
+        filesToExclude = [
+          "default.nix"
+          "flake.nix"
+          "shell.nix"
+          "paths.nix"
+        ];
 
-      foldersToExclude = [
-        "review"
-        "tmp"
-        "temp"
-      ];
+        foldersToExclude = [
+          "review"
+          "tmp"
+          "temp"
+        ];
 
-      #> File Types
-      isNixFile = file: hasSuffix ".nix" (baseNameOf file);
-      isExcludedFile = file: elem (baseNameOf file) filesToExclude;
-      isExcludedFolder = file: elem (dirOf file) foldersToExclude;
+        #> File Types
+        isNixFile = file: hasSuffix ".nix" (baseNameOf file);
+        isExcludedFile = file: elem (baseNameOf file) filesToExclude;
+        isExcludedFolder = file: elem (dirOf file) foldersToExclude;
 
-      #> Files
-      files = listFilesRecursive path;
-      sansNonNix = filter isNixFile files;
-      sansExcludedFiles = filter (file: !isExcludedFile file) sansNonNix;
-      sansExcludedFolders = filter (folder: !isExcludedFolder folder) sansExcludedFiles;
+        #> Files
+        files = listFilesRecursive path;
+        sansNonNix = filter isNixFile files;
+        sansExcludedFiles = filter (file: !isExcludedFile file) sansNonNix;
+        sansExcludedFolders = filter (folder: !isExcludedFolder folder) sansExcludedFiles;
 
-      modules = sansExcludedFolders;
-    in
+        modules = sansExcludedFolders;
+      in
       modules;
   };
 
@@ -77,9 +82,11 @@
   importNixModules = mkOption {
     description = "List all nix paths in a directory.";
     example = ''listNix "path/to/directory"'';
-    default = path: let
-      modules = cfg.listNixModules path;
-    in
+    default =
+      path:
+      let
+        modules = cfg.listNixModules path;
+      in
       map (module: import module) modules;
   };
 
@@ -93,7 +100,8 @@
       importNixModules
       ;
   };
-in {
+in
+{
   options = {
     ${top}.${dom}.${mod} = exports;
     ${alt} = exports;

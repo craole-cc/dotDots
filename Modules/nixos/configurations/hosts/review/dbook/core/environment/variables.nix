@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib.options) mkOption;
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.types) attrsOf attrs;
@@ -13,7 +14,8 @@
   base = "environment";
   mod = "variables";
   cfg = DOTS.${base}.${mod};
-in {
+in
+{
   options.DOTS.${base}.${mod} = mkOption {
     description = "The {{base}} {{mod}}at the system level";
     default = {

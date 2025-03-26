@@ -3,10 +3,12 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   cfgEnabled = config.dots.interface.desktop.environment == "gnome";
-in {
+in
+{
   config = mkIf cfgEnabled {
     services.xserver = {
       #@ Enable GNOME desktop environment
@@ -16,7 +18,7 @@ in {
       displayManager.gdm.enable = true;
 
       #@ Xterm is unnecessary since console is enabled automatically
-      excludePackages = [pkgs.xterm];
+      excludePackages = [ pkgs.xterm ];
     };
 
     #@ Exclude packages [optional]

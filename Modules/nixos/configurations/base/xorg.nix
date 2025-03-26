@@ -3,9 +3,10 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   xdg.mime.enable = true;
-  environment.systemPackages = with pkgs; [xclip];
+  environment.systemPackages = with pkgs; [ xclip ];
 
   fonts.fonts = with pkgs; [
     nerdfonts

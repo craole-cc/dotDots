@@ -62,7 +62,8 @@ let
     mkCore = core.libraries + parts.mkCore;
     mkConf = core.libraries + parts.mkConf;
   };
-in {
+in
+{
   inherit
     flake
     core

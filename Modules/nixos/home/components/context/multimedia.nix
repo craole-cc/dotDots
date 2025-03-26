@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   ctx = "multimedia";
 
   inherit (lib.options) mkOption mkDefault;
@@ -11,20 +12,18 @@
   inherit (config.dots.active.user) context;
 
   packages = {
-    tui = with pkgs; [];
-    gui = with pkgs; [];
+    tui = with pkgs; [ ];
+    gui = with pkgs; [ ];
   };
-in {
+in
+{
   # options.dot
   config = lib.mkIf (lib.elem ctx context) {
     users = {
-      systemPackages = with packages;
-        if isMinimal
-        then tui
-        else tui ++ gui;
+      systemPackages = with packages; if isMinimal then tui else tui ++ gui;
     };
 
-    programs = {};
+    programs = { };
 
     services = {
       tailscale.enable = mkDefault true;

@@ -110,7 +110,7 @@
             category = "File/Environment Management";
             help = "Navigate the file tree";
             # command = ''list-files.sh --tree --git-ignore "$@"'';
-            command=''yazi'';
+            command = ''yazi'';
             name = "ft";
           }
           {
@@ -120,29 +120,23 @@
             name = "ff";
           }
           {
-            category="Flake Management";
+            category = "Flake Management";
             help = "Manage development environments";
-            command=''devenv'';
+            command = ''devenv'';
             name = "Flex";
           }
           {
             category = "Flake Management";
-            help =  ''Edit the flake'' ;
+            help = ''Edit the flake'';
+            command = ''
+              if [ "$#" -gt 0 ]; then
+                "$EDITOR" "$@"
+              else
+                "$EDITOR" "$PRJ_ROOT"
+              fi
+            '';
             name = "Flare";
-            command = ''hx .'';
           }
-          # {
-          #   category = "Interactive Shell & Scripting";
-          #   name = "Flare";
-          #   command = ''
-          #     if [ "$#" -gt 0 ]; then
-          #       zeditor "$@"
-          #     else
-          #       zeditor "$PRJ_ROOT"
-          #     fi
-          #   '';
-          #   help = ''High-performance Integrated Development Environment (IDE)'';
-          # }
         ];
       };
     in

@@ -3,10 +3,12 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkIf;
   enable = config.services.xserver.desktopManager.xfce.enable;
-in {
+in
+{
   config = mkIf enable {
     programs = {
       thunar = {
@@ -20,7 +22,8 @@ in {
     };
 
     environment = {
-      systemPackages = with pkgs;
+      systemPackages =
+        with pkgs;
         [
           orca
           file-roller
@@ -47,7 +50,7 @@ in {
           xfce4-xkb-plugin
           # xfdashboard
         ]);
-      xfce.excludePackages = with pkgs; [xterm];
+      xfce.excludePackages = with pkgs; [ xterm ];
     };
   };
 }

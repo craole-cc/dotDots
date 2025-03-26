@@ -1,7 +1,7 @@
 {
-  imports = [];
+  imports = [ ];
   programs.hyprlock = {
     enable = true;
-    settings = {};
+    settings = { };
   };
 }

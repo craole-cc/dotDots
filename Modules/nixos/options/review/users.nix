@@ -1,7 +1,9 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.types) attrsOf str submodule;
   inherit (lib.options) mkOption;
-in {
+in
+{
   options.users = mkOption {
     description = "User configurations";
     type = attrsOf (submodule {

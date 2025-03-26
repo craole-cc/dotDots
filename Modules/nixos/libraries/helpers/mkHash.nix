@@ -1,7 +1,8 @@
 {
   num ? 8,
   string,
-}: let
+}:
+let
   inherit (builtins) hashString substring;
 in
-  substring 0 num (hashString "md5" string)
+substring 0 num (hashString "md5" string)

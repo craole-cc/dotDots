@@ -4,7 +4,8 @@
   lib,
   inputs,
   ...
-}: {
+}:
+{
   environment.variables = {
     EDITOR = "nvim";
     LC_ALL = "en_US.UTF-8";

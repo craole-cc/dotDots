@@ -2,7 +2,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   environment.systemPackages = with pkgs; [
     bc
     freerdp3
@@ -25,7 +26,7 @@
     spiceUSBRedirection.enable = true;
   };
 
-  users.groups.libvirt = {};
+  users.groups.libvirt = { };
 
   virtualisation.oci-containers = {
     backend = "docker";
