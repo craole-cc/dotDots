@@ -41,9 +41,12 @@
             eval = "$PRJ_ROOT";
           }
         ];
-        packages = with pkgs; [
+        packages = with pkgsUnstable; [
+          bat
+          btop
           curl
           devenv
+          fastfetch
           fd
           fzf
           gitui
@@ -96,17 +99,15 @@
           }
           {
             category = "File/Environment Management";
-            name = "flt";
+            name = "ft";
             command = ''list-files.sh --tree --git-ignore "$@"'';
             help = "List files in the current directory";
           }
           {
             category = "File/Environment Management";
-            package = "bat";
-          }
-          {
-            category = "File/Environment Management";
-            package = "btop";
+            help = "Display system information";
+            command = ''fastfetch.sh "$@"'';
+            name = "ff";
           }
           {
             category = "Interactive Shell & Scripting";
@@ -117,21 +118,8 @@
             package = "direnv";
           }
           {
-            category = "File/Environment Management";
-            package = "eza";
-          }
-          {
-            category = "File/Environment Management";
-            package = "fd";
-          }
-          {
             category = "Interactive Shell & Scripting";
             package = "fish";
-          }
-          {
-            category = "File/Environment Management";
-            package = "fastfetch";
-            help = "Display system information";
           }
           {
             category = "File/Environment Management";
