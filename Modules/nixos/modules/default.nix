@@ -14,6 +14,8 @@
 
     # ./dots
     # ./test.nix
-    ./paths.nix
+    # ./paths.nix
+    ./devshell
+    ./formatter
   ];
 }

@@ -18,7 +18,7 @@
         # secretShell.flakeModule
         treeFormatter.flakeModule
 
-        flakePaths.devshells.default
+        flakePaths.modules.store
         # ./Modules/nixos
         # ./Modules/nixos/modules/devshells/dots.nix
       ];

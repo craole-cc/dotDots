@@ -5,7 +5,7 @@
 }:
 let
   inherit (lib.options) mkOption;
-  inherit (lib.strings) toUpper;
+  # inherit (lib.strings) toUpper;
   inherit (lib.types)
     # attrs
     attrsOf

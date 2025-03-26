@@ -44,25 +44,36 @@
         packages = with pkgsUnstable; [
           bat
           btop
+          coreutils
           curl
           devenv
+          diffutils
+          eza
           fastfetch
           fd
+          fd
+          findutils
           fzf
+          gawk
+          getent
           gitui
+          gnused
           helix
           jq
           nerd-fonts.victor-mono
           nil
-          nixd
           nix-index
+          nixd
           nixfmt-rfc-style
+          onefetch
           ripgrep
+          rsync
           sd
-          shfmt
           shellcheck
+          shfmt
           tldr
           tokei
+          trashy
           undollar
           wget
           yazi
