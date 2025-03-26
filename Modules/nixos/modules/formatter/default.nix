@@ -36,10 +36,10 @@
             package = pkgs.nixfmt-rfc-style;
             priority = 2;
           };
-          deadnix = {
-            enable = true;
-            priority = 1;
-          };
+          # deadnix = {
+          #   enable = true;
+          #   priority = 1;
+          # };
 
           #| Shellscript
           shellcheck = {
@@ -76,6 +76,10 @@
           deno = {
             enable = true;
             priority = 2;
+          };
+          prettier = {
+            enable = true;
+            priority = 3;
           };
         };
         settings = {
