@@ -65,28 +65,34 @@
         ];
         commands = [
           {
-            name = "rebuild";
             category = "Project Management";
+            name = "rebuild";
             command = ''sudo nixos-rebuild --flake $PRJ_ROOT switch $@'';
             help = "Rebuild NixOS with the changes made to the flake";
           }
           {
-            name = "clean";
             category = "Project Management";
+            name = "clean";
             command = ''nix-collect-garbage --delete-old'';
             help = "Remove old nixos and home-manager generations";
           }
           {
-            name = "repo";
             category = "Project Management";
+            name = "repo";
             command = ''sync-repo.sh'';
             help = "Sync git repository";
           }
           {
-            name = "flake";
             category = "Project Management";
+            name = "flake";
             command = ''sync-flake.sh'';
             help = "Update flake inputs and sync git repository";
+          }
+          {
+            category = "File/Environment Management";
+            name = "fl";
+            command = ''list-file.sh'';
+            help = "List files in the current directory";
           }
           {
             category = "File/Environment Management";
@@ -107,16 +113,6 @@
           {
             category = "File/Environment Management";
             package = "eza";
-            command = ''
-              eza \
-                --icons=always\
-                --group-directories-first\
-                --color=always \
-                --color-scale \
-                --all \
-                --long \
-                $@
-            '';
           }
           {
             category = "File/Environment Management";
