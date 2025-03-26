@@ -1,6 +1,7 @@
 # pathof
 
-The absolute script normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..'.
+The absolute script normalizes a given target path by resolving symbolic links
+and removing redundant elements such as '.' and '..'.
 
 ## Usage
 
@@ -41,8 +42,12 @@ Invalid path: /var//log/syslog
 
 ## Dependencies
 
-The script uses [`realpath`](https://www.gnu.org/software/coreutils/manual/html_node/realpath-invocation.html#realpath-invocation) if available, which is a part of the coreutils package. If realpath is not available, the script falls back to pure POSIX utilities implementation.
+The script uses
+[`realpath`](https://www.gnu.org/software/coreutils/manual/html_node/realpath-invocation.html#realpath-invocation)
+if available, which is a part of the coreutils package. If realpath is not
+available, the script falls back to pure POSIX utilities implementation.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for
+details.

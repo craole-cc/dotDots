@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC1091
 weHave() { #@ Check if the command exists
-  type "$1" > /dev/null 2>&1
+  type "$1" >/dev/null 2>&1
 }
 
 __init__() {

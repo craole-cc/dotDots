@@ -3,7 +3,7 @@
 excludes = ["treefmt.toml", "generated.nix"]
 
 [formatter.nixfmt]
-command  = "nixfmt"
+command = "nixfmt"
 includes = ["*.nix"]
 priority = 1
 
@@ -25,36 +25,36 @@ priority = 1
 # priority = 3
 
 [formatter.rust]
-command  = "rustfmt"
+command = "rustfmt"
 includes = ["*.rs"]
 
 [formatter.shellcheck]
-command  = "shellcheck"
+command = "shellcheck"
 includes = ["*.sh"]
-options  = ["-i", "2", "-s"]
+options = ["-i", "2", "-s"]
 priority = 2
 
 [formatter.shfmt]
-command  = "shfmt"
+command = "shfmt"
 includes = ["*.sh"]
-options  = ["-i", "2", "-s"]
+options = ["-i", "2", "-s"]
 
 [formatter.python]
-command  = "ruff"
+command = "ruff"
 includes = ["*.py"]
-options  = ["format", "--quiet"]
+options = ["format", "--quiet"]
 
 [formatter.json]
-command  = "jq"
+command = "jq"
 includes = ["*.json", "*.jsonc"]
-options  = ["--indent", "2", "--sort-keys"]
+options = ["--indent", "2", "--sort-keys"]
 
 [formatter.toml]
-command  = "taplo"
+command = "taplo"
 includes = ["*.toml"]
-options  = ["fmt"]
+options = ["fmt"]
 
 [formatter.markdown]
-command  = "markdownlint"
+command = "markdownlint"
 includes = ["*.md"]
-options  = ["--prose-wrap", "always", "--write"]
+options = ["--prose-wrap", "always", "--write"]

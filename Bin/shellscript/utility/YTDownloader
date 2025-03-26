@@ -4,14 +4,14 @@
 __opts__() {
   for flag in "$@"; do
     case "$flag" in
-      -h | --help) __help__ ;;
-      -v | --version) __version__ ;;
-      -d | --verbose) verbose=true ;;
-      -q | --quiet) unset verbose ;;
-      -f | --overwrite) force=true ;;
-      --audio) audio=true ;;
-      --hd) resolution=1080 ;;
-      --sd) resolution=360 ;;
+    -h | --help) __help__ ;;
+    -v | --version) __version__ ;;
+    -d | --verbose) verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -f | --overwrite) force=true ;;
+    --audio) audio=true ;;
+    --hd) resolution=1080 ;;
+    --sd) resolution=360 ;;
     esac
   done
 
@@ -67,8 +67,8 @@ __audio__() {
 }
 
 __opts__ "$@"
-[ "$audio" ] \
-  && printf \
+[ "$audio" ] &&
+  printf \
     "yt-dlp -f 'ba' -x --audio-format '%s' \"%s\" -o '%s'\n" \
     "$format" "$link" "$file"
 

@@ -1,9 +1,9 @@
 #!/bin/sh
 
 case $1 in
-  -[uU] | --up | --increase) sign="+" ;;
-  -[dD] | --down | --decrease) sign="-" ;;
-    #TODO:: add more control (similar to Volcono)
+-[uU] | --up | --increase) sign="+" ;;
+-[dD] | --down | --decrease) sign="-" ;;
+  #TODO:: add more control (similar to Volcono)
 esac
 
 __defaults__() {
@@ -19,8 +19,8 @@ if weHave brightnessctl; then
   brightnessctl "${action}" "${value}${unit}${sign}"
 elif weHave light; then
   case $sign in
-    "+") sudo light -A "${value}${unit}" ;;
-    "-") sudo light -U "${value}${unit}" ;;
+  "+") sudo light -A "${value}${unit}" ;;
+  "-") sudo light -U "${value}${unit}" ;;
   esac
 else
   echo "no known backlight control tool available"

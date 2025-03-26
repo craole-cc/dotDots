@@ -1,14 +1,14 @@
 #!/bin/sh
 
 we_have() { #@ Check if the command exists
-  type "$1" > /dev/null 2>&1
+  type "$1" >/dev/null 2>&1
 }
 
 process_core() {
   # [ "$content" ]; || return 1
   case "$action" in
-    -p | --paste) paste "$content" ;;
-    *) copy "$content" ;;
+  -p | --paste) paste "$content" ;;
+  *) copy "$content" ;;
   esac
   #     shift
   #     if we_have copyq; then
@@ -69,15 +69,15 @@ paste_from_clipboard() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -c | --copy | -p | --paste)
-        action="$1"
-        shift
-        content="$*"
-        ;;
-      *)
-        # action="copy"
-        content="$*"
-        ;;
+    -c | --copy | -p | --paste)
+      action="$1"
+      shift
+      content="$*"
+      ;;
+    *)
+      # action="copy"
+      content="$*"
+      ;;
     esac
     shift
   done

@@ -43,11 +43,11 @@
 
           #| Shellscript
           shellcheck = {
-            enable = true;
+            # enable = true;
             priority = 1;
           };
           shfmt = {
-            enable = true;
+            # enable = true;
             priority = 2;
           };
 

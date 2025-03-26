@@ -11,7 +11,7 @@ establish_metadata() {
   _cmd_DESCRIPTION="Manages the local NixOS Configurations"
   _cmd_DEPENDENCIES="geet"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 ::------------------------------------------------------------::
                           $_cmd_NAME ($_cmd_VERSION)
 ::------------------------------------------------------------::
@@ -66,49 +66,49 @@ USAGE_GUIDE
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --home)
-        home=true
-        ;;
-      --core)
-        core=true
-        ;;
-      -dd | --dots)
-        dots="$2"
-        ;;
-      -bd | --bin)
-        bin="$2"
-        ;;
-      -f | --lint | --fmt | --format)
-        lint=true
-        ;;
-      -d | --dbg | --debug)
-        debug=true
-        ;;
-      -c | -chk | --check)
-        check=true
-        ;;
-      -p | --pkg) package_remote="$2" ;;
-      -l | --local) package_local="$2" ;;
-      -e | --ede | --edit)
-        edit=true
-        editor="$2"
-        ;;
-      -x | --clean)
-        clean=true
-        ;;
-      -u | --update)
-        update=true
-        ;;
-      --hostname) hostname="$2" ;;
-      -h | --help) display_info --usage ;;
-      -v | --version) display_info --version ;;
-      -*)
-        printf "Invalid Option: %s" "$1"
-        return 1
-        ;;
-      *)
-        msg="$1"
-        ;;
+    --home)
+      home=true
+      ;;
+    --core)
+      core=true
+      ;;
+    -dd | --dots)
+      dots="$2"
+      ;;
+    -bd | --bin)
+      bin="$2"
+      ;;
+    -f | --lint | --fmt | --format)
+      lint=true
+      ;;
+    -d | --dbg | --debug)
+      debug=true
+      ;;
+    -c | -chk | --check)
+      check=true
+      ;;
+    -p | --pkg) package_remote="$2" ;;
+    -l | --local) package_local="$2" ;;
+    -e | --ede | --edit)
+      edit=true
+      editor="$2"
+      ;;
+    -x | --clean)
+      clean=true
+      ;;
+    -u | --update)
+      update=true
+      ;;
+    --hostname) hostname="$2" ;;
+    -h | --help) display_info --usage ;;
+    -v | --version) display_info --version ;;
+    -*)
+      printf "Invalid Option: %s" "$1"
+      return 1
+      ;;
+    *)
+      msg="$1"
+      ;;
     esac
     shift
   done
@@ -136,7 +136,7 @@ establish_defaults() {
 establish_environment() {
   establish_defaults
 
-  cd "$dots" > /dev/null 2>&1 || {
+  cd "$dots" >/dev/null 2>&1 || {
     printf "Error: Unable to access the DOTS directory: %s\n" "$dots" >&2
     return 1
   }
@@ -156,11 +156,11 @@ establish_environment() {
 }
 
 lint_dots() {
-  type lint_sh > /dev/null 2>&1 \
-    && type find_exec > /dev/null 2>&1 \
-    && find_exec "$bin" lint_sh
+  type lint_sh >/dev/null 2>&1 &&
+    type find_exec >/dev/null 2>&1 &&
+    find_exec "$bin" lint_sh
 
-  type treefmt > /dev/null 2>&1 && treefmt "$dots"
+  type treefmt >/dev/null 2>&1 && treefmt "$dots"
 }
 
 edit_dots() {
@@ -181,8 +181,8 @@ collect_garbage() {
 
   #@ Extract the date of the most recent home-manager generation
   last_gen_date=$(
-    printf "%s" "$(home-manager generations)" \
-      | awk 'NR==1 {print $1, $2}'
+    printf "%s" "$(home-manager generations)" |
+      awk 'NR==1 {print $1, $2}'
   )
 
   #@ Remove old home-manager generations
@@ -196,8 +196,8 @@ process_core() {
 
   #@  Check the config and return, if requested
   [ "$check" ] && {
-    nix flake check --all-systems --show-trace --impure 2>&1 \
-      | grep -v '^warning:'
+    nix flake check --all-systems --show-trace --impure 2>&1 |
+      grep -v '^warning:'
     return
   }
 
@@ -211,8 +211,8 @@ process_core() {
   else
     console_log --code 1 --error \
       "Core Configuration" \
-      "Review the flake for errors." \
-      && return "$?"
+      "Review the flake for errors." &&
+      return "$?"
   fi
 }
 
@@ -246,7 +246,7 @@ process_home() {
 }
 
 command_exists() {
-  command -v "$1" > /dev/null
+  command -v "$1" >/dev/null
 }
 
 #@ ============================================================= @ #
@@ -267,98 +267,98 @@ display_info() {
   #@ Parse options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --usage) info="$_cmd_USAGEGUIDE" exit=true ;;
-      --version) info="$SCRIPT_VERSION" exit=true ;;
-      --info)
-        [ "$#" -eq 2 ] && info="$2"
-        [ "$#" -gt 2 ] && {
-          label="$2"
-          info="${padding}${label}${delimiter}${3}"
+    --usage) info="$_cmd_USAGEGUIDE" exit=true ;;
+    --version) info="$SCRIPT_VERSION" exit=true ;;
+    --info)
+      [ "$#" -eq 2 ] && info="$2"
+      [ "$#" -gt 2 ] && {
+        label="$2"
+        info="${padding}${label}${delimiter}${3}"
 
-          # | Generate padding to place before each info
-          len_label="${#label}"
-          len_delim="${#delimiter}"
-          len_pad="${#padding}"
-          padding_length=$((len_label + len_delim + len_pad))
-          info_padding="$(printf "%-${padding_length}s")"
+        # | Generate padding to place before each info
+        len_label="${#label}"
+        len_delim="${#delimiter}"
+        len_pad="${#padding}"
+        padding_length=$((len_label + len_delim + len_pad))
+        info_padding="$(printf "%-${padding_length}s")"
 
-          # | Append additional info with leading padding and new line
-          shift 2 && [ "$2" ] && shift
-          while [ "$#" -gt 1 ]; do
-            info="$info $(printf "\n%s%s" "$info_padding" "$1")"
-            shift
-          done
-        }
-        ;;
-      --error)
-        label="ERR: "
-        exit=true
-        code="${code:-1}"
-
-        [ "$#" -eq 2 ] && info="${label}${2}"
-        [ "$#" -gt 2 ] && {
-          label="${label}${2}"
-          info="${label}${delimiter}${3}"
-
-          # | Generate padding to place before each info
-          len_label="${#label}"
-          len_delim="${#delimiter}"
-          padding_length=$((len_label + len_delim))
-          info_padding="$(printf "%-${padding_length}s")"
-
-          # | Append additional info with leading padding and new line
-          while [ "$#" -gt 3 ]; do
-            case "$4" in -*) break ;; esac
-            info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
-            shift
-          done
-        }
-        ;;
-      --warning)
-        label="WARN: "
-        exit=
-        code="${code:-2}"
-
-        [ "$#" -eq 2 ] && info="${label}${2}"
-        [ "$#" -gt 2 ] && {
-          label="${label}${2}"
-          info="${label}${delimiter}${3}"
-
-          # | Generate padding to place before each info
-          len_label="${#label}"
-          len_delim="${#delimiter}"
-          padding_length=$((len_label + len_delim))
-          info_padding="$(printf "%-${padding_length}s")"
-
-          # | Append additional info with leading padding and new line
-          while [ "$#" -gt 3 ]; do
-            case "$4" in -*) break ;; esac
-            info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
-            shift
-          done
-        }
-        ;;
-      --code)
-        exit=true
-        code=1
-        case "$2" in '' | *[!0-9]*) ;; *) code="$2" ;; esac
-        ;;
-      --note)
-        info="Note: "
+        # | Append additional info with leading padding and new line
+        shift 2 && [ "$2" ] && shift
         while [ "$#" -gt 1 ]; do
-          case "$2" in -*) break ;; esac
-          info="${info}${2}"
+          info="$info $(printf "\n%s%s" "$info_padding" "$1")"
           shift
         done
-        ;;
-      --line)
-        print_a_line "$2"
-        return
-        ;;
-      *)
-        # | Update local variables
-        info="${info:-$*}"
-        ;;
+      }
+      ;;
+    --error)
+      label="ERR: "
+      exit=true
+      code="${code:-1}"
+
+      [ "$#" -eq 2 ] && info="${label}${2}"
+      [ "$#" -gt 2 ] && {
+        label="${label}${2}"
+        info="${label}${delimiter}${3}"
+
+        # | Generate padding to place before each info
+        len_label="${#label}"
+        len_delim="${#delimiter}"
+        padding_length=$((len_label + len_delim))
+        info_padding="$(printf "%-${padding_length}s")"
+
+        # | Append additional info with leading padding and new line
+        while [ "$#" -gt 3 ]; do
+          case "$4" in -*) break ;; esac
+          info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+          shift
+        done
+      }
+      ;;
+    --warning)
+      label="WARN: "
+      exit=
+      code="${code:-2}"
+
+      [ "$#" -eq 2 ] && info="${label}${2}"
+      [ "$#" -gt 2 ] && {
+        label="${label}${2}"
+        info="${label}${delimiter}${3}"
+
+        # | Generate padding to place before each info
+        len_label="${#label}"
+        len_delim="${#delimiter}"
+        padding_length=$((len_label + len_delim))
+        info_padding="$(printf "%-${padding_length}s")"
+
+        # | Append additional info with leading padding and new line
+        while [ "$#" -gt 3 ]; do
+          case "$4" in -*) break ;; esac
+          info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+          shift
+        done
+      }
+      ;;
+    --code)
+      exit=true
+      code=1
+      case "$2" in '' | *[!0-9]*) ;; *) code="$2" ;; esac
+      ;;
+    --note)
+      info="Note: "
+      while [ "$#" -gt 1 ]; do
+        case "$2" in -*) break ;; esac
+        info="${info}${2}"
+        shift
+      done
+      ;;
+    --line)
+      print_a_line "$2"
+      return
+      ;;
+    *)
+      # | Update local variables
+      info="${info:-$*}"
+      ;;
     esac
     shift
   done
@@ -384,7 +384,7 @@ display_info() {
 }
 
 print_a_line() {
-  if command -v tput > /dev/null; then
+  if command -v tput >/dev/null; then
     cols=$(tput cols)
     char="${1:-"="}"
     printf "%${cols}s\n" | tr ' ' "$char"
@@ -417,8 +417,8 @@ execute_process() {
 
   #@ Search for packages remotely with mixpkgs
   [ "$package_remote" ] && {
-    nix search nixpkgs "${package_remote}" \
-      | bat --style "grid" --force-colorization
+    nix search nixpkgs "${package_remote}" |
+      bat --style "grid" --force-colorization
     return
   }
 
@@ -454,9 +454,9 @@ main() {
   establish_metadata
 
   {
-    parse_arguments "$@" \
-      && establish_environment \
-      && execute_process
+    parse_arguments "$@" &&
+      establish_environment &&
+      execute_process
   } || exit "$?"
 }
 

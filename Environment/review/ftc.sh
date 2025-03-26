@@ -34,8 +34,8 @@ ftcZSH="$DIR/ftc.zsh"
 # __________________________________________ EXEC<|
 
 if [ -d "$DIR" ]; then
-    [ "$Shell" = bash ] &&
-        . "$ftcBASH"
-    [ "$Shell" = zsh ] &&
-        . "$ftcZSH"
+  [ "$Shell" = bash ] &&
+    . "$ftcBASH"
+  [ "$Shell" = zsh ] &&
+    . "$ftcZSH"
 fi

@@ -14,7 +14,7 @@ __info__() {
   _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
   _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, __weHave__"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
     #> ------------------------------------------------------ <#
         $_cmd_NAME
     #> ------------------------------------------------------ <#
@@ -55,19 +55,19 @@ __version__() {
 }
 
 __weHave__() { #@ Check if the command exists
-  type "$1" > /dev/null 2>&1
+  type "$1" >/dev/null 2>&1
 }
 
 #@ Lowercase
 __lower__() {
-  printf "%s" "$@" \
-    | tr '[:upper:]' '[:lower:]'
+  printf "%s" "$@" |
+    tr '[:upper:]' '[:lower:]'
 }
 
 #@ Trim leading/trailing whitespaces
 __trim__() {
-  printf "%s" "$@" \
-    | tr -d '[:space:]'
+  printf "%s" "$@" |
+    tr -d '[:space:]'
 }
 
 # ===================================================================
@@ -104,21 +104,21 @@ eval "$(getoptions parser_definition) exit 1"
 
 __defaults__() {
   {
-    [ "$_flag_OS" ] \
-      || [ "$_flag_TYPE" ] \
-      || [ "$_flag_KERNEL" ] \
-      || [ "$_flag_ARCH" ] \
-      || [ "$_flag_HOST" ] \
-      || [ "$_flag_USER" ] \
-      || [ "$_flag_SHELL" ] \
-      || [ "$_flag_WM" ] \
-      || [ "$_flag_POWER" ] \
-      || [ "$_flag_PACMAN" ] \
-      || [ "$_flag_WIDTH" ] \
-      || [ "$_flag_INF" ] \
-      || [ "$_flag_LABEL" ]
-  } \
-    || _flag_FETCH=true
+    [ "$_flag_OS" ] ||
+      [ "$_flag_TYPE" ] ||
+      [ "$_flag_KERNEL" ] ||
+      [ "$_flag_ARCH" ] ||
+      [ "$_flag_HOST" ] ||
+      [ "$_flag_USER" ] ||
+      [ "$_flag_SHELL" ] ||
+      [ "$_flag_WM" ] ||
+      [ "$_flag_POWER" ] ||
+      [ "$_flag_PACMAN" ] ||
+      [ "$_flag_WIDTH" ] ||
+      [ "$_flag_INF" ] ||
+      [ "$_flag_LABEL" ]
+  } ||
+    _flag_FETCH=true
 }
 
 # ===================================================================
@@ -138,9 +138,9 @@ __os__() {
   # hostnamectl | rg "Operating System" | sd "^.*:\s" ''
   # hostnamectl | rg '.*'"Operating System: " --replace "" --trim
   if __weHave__ hostnamectl; then
-    inf_OS_cmd="
-      filtrate \"hostnamectl\" --filter \"Operating System\" --delimiter \": \"
-    "
+    inf_OS_cmd='
+      filtrate "hostnamectl" --filter "Operating System" --delimiter ": "
+    '
   elif __weHave__ lsb_release; then
     inf_OS_cmd="
         filtrate \"$(lsb_release --description)\" --delimiter \":\"
@@ -181,13 +181,13 @@ __type__() {
     # _TYPE="$(eko --case lower "$_TYPE")"
     _TYPE="$(printf "%s" "$_TYPE" | tr '[:upper:]' '[:lower:]')"
     case "$_TYPE" in
-      *linux*) _TYPE="Linux" ;;
-      *bsd*) _TYPE="FreeBSD" ;;
-      *nt*) _TYPE="Windows" ;;
-      *windows*) _TYPE="WSL" ;;
-      *darwin*) _TYPE="Mac" ;;
-      *sunos*) _TYPE="Solaris" ;;
-      *aix* | *) ;;
+    *linux*) _TYPE="Linux" ;;
+    *bsd*) _TYPE="FreeBSD" ;;
+    *nt*) _TYPE="Windows" ;;
+    *windows*) _TYPE="WSL" ;;
+    *darwin*) _TYPE="Mac" ;;
+    *sunos*) _TYPE="Solaris" ;;
+    *aix* | *) ;;
     esac
 
     [ "$_TYPE" ] && printf "%s\n" "$_TYPE"
@@ -219,24 +219,24 @@ __user__() {
 
 __shell__() {
   case "$(__type__)" in
-    Windows)
-      case $SHELL in
-        *bash*) _SHELL="gitBaSH" ;;
-        *nu*) _SHELL="nuSHell" ;;
-        *) ;;
-      esac
-      ;;
-    Linux | *WSL)
-      case $SHELL in
-        *bash*) _SHELL="Bourne Again SHell" ;;
-        *zsh*) _SHELL="Z SHell" ;;
-        *dash*) _SHELL="Debian Almquist SHell" ;;
-        *fish*) _SHELL="Friendly Interactive SHell" ;;
-        *nu*) _SHELL="nuSHell" ;;
-        *) _SHELL="Undefined Linux Shell" ;;
-      esac
-      ;;
+  Windows)
+    case $SHELL in
+    *bash*) _SHELL="gitBaSH" ;;
+    *nu*) _SHELL="nuSHell" ;;
     *) ;;
+    esac
+    ;;
+  Linux | *WSL)
+    case $SHELL in
+    *bash*) _SHELL="Bourne Again SHell" ;;
+    *zsh*) _SHELL="Z SHell" ;;
+    *dash*) _SHELL="Debian Almquist SHell" ;;
+    *fish*) _SHELL="Friendly Interactive SHell" ;;
+    *nu*) _SHELL="nuSHell" ;;
+    *) _SHELL="Undefined Linux Shell" ;;
+    esac
+    ;;
+  *) ;;
   esac
 
   printf "%s\n" "$_SHELL"
@@ -277,26 +277,26 @@ __ip__() {
 __fetch__() {
   printf "\n%s\n" "            Host |  | $(__user__)@$(__host__)"
 
-  [ "$(__type__)" ] \
-    && printf "%s\n" "            Type |  | $(__type__)"
+  [ "$(__type__)" ] &&
+    printf "%s\n" "            Type |  | $(__type__)"
 
-  [ "$(__kernel__)" ] \
-    && printf "%s\n" "          Kernel |  | $(__kernel__)"
+  [ "$(__kernel__)" ] &&
+    printf "%s\n" "          Kernel |  | $(__kernel__)"
 
-  [ "$(__os__)" ] \
-    && printf "%s\n" "    Distribution |  | $(__os__)"
+  [ "$(__os__)" ] &&
+    printf "%s\n" "    Distribution |  | $(__os__)"
 
-  [ "$(__wm__)" ] \
-    && printf "%s\n" "  Window Manager | 拓 | $(__wm__)"
+  [ "$(__wm__)" ] &&
+    printf "%s\n" "  Window Manager | 拓 | $(__wm__)"
 
-  [ "$(__ip__)" ] \
-    && printf "%s\n" "      IP Address |  | $(__ip__)"
+  [ "$(__ip__)" ] &&
+    printf "%s\n" "      IP Address |  | $(__ip__)"
 
-  [ "$(__shell__)" ] \
-    && printf "%s\n" "           Shell |  | $(__shell__)"
+  [ "$(__shell__)" ] &&
+    printf "%s\n" "           Shell |  | $(__shell__)"
 
-  [ "$(__power__)" ] \
-    && printf "%s\n" "         Battery |  | $(__power__)"
+  [ "$(__power__)" ] &&
+    printf "%s\n" "         Battery |  | $(__power__)"
 }
 
 __inf__() {

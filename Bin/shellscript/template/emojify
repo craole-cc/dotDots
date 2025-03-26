@@ -2814,9 +2814,9 @@ emojify_line() {
   current_token=""
   emojified_line=""
   for ((i = 0; i < ${#line}; i++)); do
-    current_char="${line:$i:1}"
+    current_char="${line:i:1}"
 
-    if [[ -z "$current_token" ]]; then
+    if [[ -z $current_token ]]; then
       # starting a new token.
       if [[ $current_char =~ ^:$ ]]; then
         current_token+=$current_char
@@ -2831,7 +2831,7 @@ emojify_line() {
 
         # nothing changed. we still need the ending ':' as it might
         # serve for an upcoming emoji 😁😁🎉🎉
-        if [[ "$emojified_token" == "$current_token$current_char" ]]; then
+        if [[ $emojified_token == "$current_token$current_char" ]]; then
           emojified_line+=$current_token
           current_token=$current_char
         else
@@ -2855,7 +2855,7 @@ emojify_line() {
 
 # Function to print help info.
 help() {
-  cat << EOF
+  cat <<EOF
     emojify - emoji on the command line 😱
 
     USAGE: emojify [-h|--help] [-l|--list] TEXT
@@ -2873,21 +2873,21 @@ EOF
 # options or process the arguments as emoji names.
 if [[ -n $1 ]]; then
   case $1 in
-    '-h' | '--help')
-      help
-      ;;
+  '-h' | '--help')
+    help
+    ;;
 
-    '-l' | '--list')
-      help list
-      ;;
+  '-l' | '--list')
+    help list
+    ;;
 
-    '-v' | '--version')
-      echo $emojify_version
-      ;;
+  '-v' | '--version')
+    echo $emojify_version
+    ;;
 
-    *)
-      emojify_line "$*"
-      ;;
+  *)
+    emojify_line "$*"
+    ;;
   esac
 else
   while

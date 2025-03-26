@@ -13,7 +13,7 @@ __info__() {
   _cmd_DESCRIPTION="Theme (rofi) window switcher and application launcher"
   _cmd_DEPENDENCIES="rofi, weHave"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
             $_cmd_NAME <[options]> <[arguments]>
@@ -46,8 +46,8 @@ USAGE_GUIDE
     weHave "$_cmd_APP" || __error__ --app
 
     #@ Confirm active desktop environment
-    { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } \
-      || __error__ --protocol
+    { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } ||
+      __error__ --protocol
 
     #@ Load context variables
     context="$DOTS_ENV_CTX/rofi"
@@ -69,21 +69,21 @@ USAGE_GUIDE
 __opts__() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h | --help)
-        __help__
-        exit
-        ;;
-      -v | --version)
-        __version__
-        exit
-        ;;
-      -d | --verbose) verbose=true ;;
-      -q | --quiet) unset verbose ;;
-      -m | --menu) menu="$2" ;;
-      -t | --type) type="$2" ;;
-      -s | --style) style="$2" ;;
-      -T | --theme) theme="$2" ;;
-      *) ;;
+    -h | --help)
+      __help__
+      exit
+      ;;
+    -v | --version)
+      __version__
+      exit
+      ;;
+    -d | --verbose) verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -m | --menu) menu="$2" ;;
+    -t | --type) type="$2" ;;
+    -s | --style) style="$2" ;;
+    -T | --theme) theme="$2" ;;
+    *) ;;
     esac
     shift
   done
@@ -116,15 +116,15 @@ __validate__() {
 
 __error__() {
   case $* in
-    --app) msg="'$_cmd_APP' not found in PATH" ;;
-    --protocol) msg="Display not accessible" ;;
-    --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
-    --context) msg="Missing context file [$NIXOS_CONFIG]" ;;
-    --extension) msg="Missing the '$ext' ext
+  --app) msg="'$_cmd_APP' not found in PATH" ;;
+  --protocol) msg="Display not accessible" ;;
+  --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
+  --context) msg="Missing context file [$NIXOS_CONFIG]" ;;
+  --extension) msg="Missing the '$ext' ext
    CONFIG: $NIXOS_CONFIG" ;;
-    --type) msg="Invalid type '$type'" ;;
-    --style) msg="Invalid style '$style'" ;;
-    *) ;;
+  --type) msg="Invalid type '$type'" ;;
+  --style) msg="Invalid style '$style'" ;;
+  *) ;;
   esac
 
   printf "\n🟥 %s\n" "$msg"

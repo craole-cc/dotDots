@@ -35,28 +35,24 @@ alias um="mirror"
 
 # >>= Search Repositiries =<< #
 
-
 # >>= Add and Remove =<< #
-alias pa="paru -S"                                      # Add
-alias fa="flatpak install"                              # Add
+alias pa="paru -S"         # Add
+alias fa="flatpak install" # Add
 
-alias fr="flatpak uninstall"                            # Remove
+alias fr="flatpak uninstall" # Remove
 
-alias fcl="flatpak uninstall --unused; flatpak repair"  # Remove Orphans
-
-
-
+alias fcl="flatpak uninstall --unused; flatpak repair" # Remove Orphans
 
 alias cin='cargoInstall'
 
 # >>= Update =<< #
-alias UP="pacUpdate"                                          # All
+alias UP="pacUpdate" # All
 
-alias pL="type "                                                                          # Active location
+alias pL="type " # Active location
 
 alias has="curl -sL https://git.io/_has | bash -s"
 
-alias pV="HAS_ALLOW_UNSAFE=y has"                                                         #Installed Version
+alias pV="HAS_ALLOW_UNSAFE=y has" #Installed Version
 
 alias fR="flatpak remotes"
 alias fRD="flatpak remote-delete"

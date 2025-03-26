@@ -58,18 +58,18 @@ main() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      -H | --host*) git_host="$2" shift ;;
-      -U | --user*) git_user="$2" shift ;;
-      -R | --repo*) git_repo="$2" shift ;;
-      -L | --url | --link) git_url="$2" shift ;;
-      -B | --branch) git_branch="$2" shift ;;
-      -P | --path | --dir*) git_dir="$2" shift ;;
-      -t | --simulate | --test) simulate=true ;;
-      -*)
-        display_info "$1"
-        exit
-        ;;
-      *) git_url="$1" ;;
+    -H | --host*) git_host="$2" shift ;;
+    -U | --user*) git_user="$2" shift ;;
+    -R | --repo*) git_repo="$2" shift ;;
+    -L | --url | --link) git_url="$2" shift ;;
+    -B | --branch) git_branch="$2" shift ;;
+    -P | --path | --dir*) git_dir="$2" shift ;;
+    -t | --simulate | --test) simulate=true ;;
+    -*)
+      display_info "$1"
+      exit
+      ;;
+    *) git_url="$1" ;;
     esac
     shift
   done
@@ -125,15 +125,15 @@ establish_env() {
       "$git_dir"
     read -r response
     case "$response" in
-      [Yy]*)
-        git_cmd="
+    [Yy]*)
+      git_cmd="
         rm --recursive --force \"$git_dir\"
         git clone \"$git_url\" \"$git_dir\"
       "
-        ;;
-      *)
-        git_cmd="cd \"$git_dir\" && git pull"
-        ;;
+      ;;
+    *)
+      git_cmd="cd \"$git_dir\" && git pull"
+      ;;
     esac
   else
     git_cmd="git clone \"$git_url\" \"$git_dir\""
@@ -153,9 +153,9 @@ execute() {
 
 display_info() {
   case $1 in
-    -h | --help) printf "%s\n" "$scr_usage" ;;
-    -v | --version) printf "%s\n" "$scr_version" ;;
-    *) printf "%s\n" "$1" ;;
+  -h | --help) printf "%s\n" "$scr_usage" ;;
+  -v | --version) printf "%s\n" "$scr_version" ;;
+  *) printf "%s\n" "$1" ;;
   esac
 }
 

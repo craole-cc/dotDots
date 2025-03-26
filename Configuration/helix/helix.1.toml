@@ -12,11 +12,11 @@ theme = "rose_pine_moon"
 # theme = "tokyonight_storm"
 
 [editor]
-bufferline  = "multiple"
+bufferline = "multiple"
 color-modes = true
-cursorline  = true
+cursorline = true
 line-number = "relative"
-mouse       = true
+mouse = true
 # auto-save = true
 
 [editor.cursor-shape]
@@ -25,20 +25,20 @@ normal = "block"
 select = "underline"
 
 [editor.file-picker]
-hidden  = false
+hidden = false
 parents = false
 
 [editor.indent-guides]
-character   = "╎"  # Some characters that work well: "▏", "╎", "┆", "┊", "⸽"
-render      = true
+character = "╎" # Some characters that work well: "▏", "╎", "┆", "┊", "⸽"
+render = true
 skip-levels = 1
 
 [editor.lsp]
-auto-signature-help         = true
-display-inlay-hints         = true
-display-messages            = true
+auto-signature-help = true
+display-inlay-hints = true
+display-messages = true
 display-signature-help-docs = true
-snippets                    = true
+snippets = true
 
 [editor.statusline]
 center = ["file-name"]
@@ -61,9 +61,9 @@ separator = "│"
 
 
 [editor.whitespace.characters]
-nbsp  = "⍽"
+nbsp = "⍽"
 space = " "
-tab   = "→"
+tab = "→"
 # newline = "⏎"
 tabpad = "·" # Tabs will look like "→···" (depending on tab width)
 
@@ -71,15 +71,15 @@ tabpad = "·" # Tabs will look like "→···" (depending on tab width)
 [keys.normal]
 "C-]" = "indent"
 
-"C-S-esc" = "extend_line"                                    # Maps Ctrl-Shift-Escape to extend_line
-C-S-o     = ":config-open"                                   # Maps the Ctrl-o to opening of the helix config file
-C-S-r     = ":config-reload"                                 # Maps the Ctrl-o to opening of the helix config file
-C-s       = ":w"                                             # Maps the Ctrl-s to the typable command :w which is an alias for :write (save file)
-a         = "move_char_left"                                 # Maps the 'a' key to the move_char_left command
-esc       = ["collapse_selection", "keep_primary_selection"]
-"ret"     = ["open_below", "normal_mode"]
-tab       = ["collapse_selection", "keep_primary_selection"]
-w         = "move_line_up"                                   # Maps the 'w' key move_line_up
+"C-S-esc" = "extend_line"                              # Maps Ctrl-Shift-Escape to extend_line
+C-S-o = ":config-open"                                 # Maps the Ctrl-o to opening of the helix config file
+C-S-r = ":config-reload"                               # Maps the Ctrl-o to opening of the helix config file
+C-s = ":w"                                             # Maps the Ctrl-s to the typable command :w which is an alias for :write (save file)
+a = "move_char_left"                                   # Maps the 'a' key to the move_char_left command
+esc = ["collapse_selection", "keep_primary_selection"]
+"ret" = ["open_below", "normal_mode"]
+tab = ["collapse_selection", "keep_primary_selection"]
+w = "move_line_up"                                     # Maps the 'w' key move_line_up
 [keys.normal.space]
 m = ":format"
 o = ":config-open"
@@ -91,5 +91,5 @@ s = ":write"
 a = ":format"
 
 [keys.insert]
-"A-x" = "normal_mode"         # Maps Alt-X to enter normal mode
-j     = { k = "normal_mode" } # Maps `jk` to exit insert mode
+"A-x" = "normal_mode"     # Maps Alt-X to enter normal mode
+j = { k = "normal_mode" } # Maps `jk` to exit insert mode

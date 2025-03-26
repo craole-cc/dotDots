@@ -23,7 +23,7 @@ quiet=false
 
 # Check if a command exists
 cmd_exists() {
-  command -v "$1" > /dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 # Install jq using available package manager
@@ -75,11 +75,11 @@ check_dependencies() {
 find_files() {
   base_path="$1"
   if cmd_exists "fd"; then
-    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2> /dev/null
+    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2>/dev/null
   else
     find "$base_path" \
       -name "Microsoft.WindowsTerminal*" \
-      -type d 2> /dev/null
+      -type d 2>/dev/null
   fi
 }
 
@@ -87,8 +87,8 @@ find_settings_paths() {
   #@ Find both regular and preview settings
   find "$LOCALAPPDATA/Packages" \
     -name "Microsoft.WindowsTerminal*" \
-    -type d 2> /dev/null \
-    | while read -r dir; do
+    -type d 2>/dev/null |
+    while read -r dir; do
       settings_path="$dir/LocalState/settings.json"
       if [ -f "$settings_path" ]; then
         printf "%s\n" "$settings_path"
@@ -118,7 +118,7 @@ toggle_wt_theme() {
   #@ Update the theme
   if ! jq --arg theme "$new_theme" \
     '.profiles.defaults.colorScheme = $theme' \
-    "$settings_file" > "${settings_file}.tmp"; then
+    "$settings_file" >"${settings_file}.tmp"; then
     printf "Error: Failed to update theme in: %s\n" "$settings_file" >&2
     mv "${settings_file}.bac" "$settings_file"
     rm -f "${settings_file}.tmp"
@@ -146,16 +146,16 @@ toggle_plasma_theme() {
   current_scheme=$(plasma-apply-colorscheme --list-schemes | grep " (current color scheme)" | sed "s/^ \* //; s/ (current color scheme)//")
 
   case "$current_scheme" in
-    "$DARK_SCHEME" | "$DARK_SCHEME_FALLBACK")
-      new_scheme="$LIGHT_SCHEME"
-      ;;
-    "$LIGHT_SCHEME" | "$LIGHT_SCHEME_FALLBACK")
-      new_scheme="$DARK_SCHEME"
-      ;;
-    *)
-      printf "Unable to determine the current color scheme. Defaulting to the dark scheme.\n"
-      new_scheme="$DARK_SCHEME"
-      ;;
+  "$DARK_SCHEME" | "$DARK_SCHEME_FALLBACK")
+    new_scheme="$LIGHT_SCHEME"
+    ;;
+  "$LIGHT_SCHEME" | "$LIGHT_SCHEME_FALLBACK")
+    new_scheme="$DARK_SCHEME"
+    ;;
+  *)
+    printf "Unable to determine the current color scheme. Defaulting to the dark scheme.\n"
+    new_scheme="$DARK_SCHEME"
+    ;;
   esac
 
   apply_plasma_theme "$new_scheme"
@@ -180,14 +180,14 @@ main() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h | --help) show_help && exit ;;
-      -v | --version) show_version && exit ;;
-      -d | --verbose) verbose=true ;;
-      -q | --quiet) quiet=true ;;
-      -g | --get | --current) get_current=true ;;
-      light) light=true ;;
-      dark) dark=true ;;
-      -s | --scheme | --theme) [ "$2" ] && scheme="$2" && shift ;;
+    -h | --help) show_help && exit ;;
+    -v | --version) show_version && exit ;;
+    -d | --verbose) verbose=true ;;
+    -q | --quiet) quiet=true ;;
+    -g | --get | --current) get_current=true ;;
+    light) light=true ;;
+    dark) dark=true ;;
+    -s | --scheme | --theme) [ "$2" ] && scheme="$2" && shift ;;
     esac
     shift
   done
@@ -200,8 +200,8 @@ for_plasma() {
   apply_theme() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        --fallback) [ "$2" ] && fallback="$2" && shift ;;
-        --preferred) [ "$2" ] && preferred="$2" && shift ;;
+      --fallback) [ "$2" ] && fallback="$2" && shift ;;
+      --preferred) [ "$2" ] && preferred="$2" && shift ;;
       esac
       shift
     done
@@ -218,8 +218,8 @@ for_plasma() {
     fi
 
     case "$scheme" in
-      "$preferred") selected="preferred" ;;
-      "$fallback") selected="fallback" ;;
+    "$preferred") selected="preferred" ;;
+    "$fallback") selected="fallback" ;;
     esac
 
     if [ "$scheme" = "$current_scheme" ]; then
@@ -242,7 +242,7 @@ for_plasma() {
     fi
 
     if [ "$quiet" ]; then
-      plasma-apply-colorscheme "$scheme" > /dev/null
+      plasma-apply-colorscheme "$scheme" >/dev/null
     else
       plasma-apply-colorscheme "$scheme"
     fi
@@ -284,7 +284,7 @@ execute() {
     fi
     if cmd_exists "wt.exe" || cmd_exists "wtpreview.exe"; then
       settings_file=$(find_settings_paths | head -n 1)
-      jq --arg theme "$scheme" '.profiles.defaults.colorScheme = $theme' "$settings_file" > "${settings_file}.tmp"
+      jq --arg theme "$scheme" '.profiles.defaults.colorScheme = $theme' "$settings_file" >"${settings_file}.tmp"
       mv "${settings_file}.tmp" "$settings_file"
       printf "Successfully updated Windows Terminal theme to '%s'\n" "$scheme"
     fi
@@ -294,7 +294,7 @@ execute() {
     fi
     if cmd_exists "wt.exe" || cmd_exists "wtpreview.exe"; then
       settings_file=$(find_settings_paths | head -n 1)
-      jq --arg theme "$LIGHT_THEME" '.profiles.defaults.colorScheme = $theme' "$settings_file" > "${settings_file}.tmp"
+      jq --arg theme "$LIGHT_THEME" '.profiles.defaults.colorScheme = $theme' "$settings_file" >"${settings_file}.tmp"
       mv "${settings_file}.tmp" "$settings_file"
       printf "Successfully updated Windows Terminal theme to '%s'\n" "$LIGHT_THEME"
     fi
@@ -304,7 +304,7 @@ execute() {
     fi
     if cmd_exists "wt.exe" || cmd_exists "wtpreview.exe"; then
       settings_file=$(find_settings_paths | head -n 1)
-      jq --arg theme "$DARK_THEME" '.profiles.defaults.colorScheme = $theme' "$settings_file" > "${settings_file}.tmp"
+      jq --arg theme "$DARK_THEME" '.profiles.defaults.colorScheme = $theme' "$settings_file" >"${settings_file}.tmp"
       mv "${settings_file}.tmp" "$settings_file"
       printf "Successfully updated Windows Terminal theme to '%s'\n" "$DARK_THEME"
     fi
@@ -324,7 +324,7 @@ show_version() {
 }
 
 show_help() {
-  cat << 'EOF'
+  cat <<'EOF'
 Usage: theme-switcher [OPTIONS] [COMMAND]
 
 Toggle or set KDE Plasma color schemes and Windows Terminal themes

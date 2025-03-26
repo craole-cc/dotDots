@@ -14,20 +14,20 @@
 
 #* Install *#
 if weHave pacman; then
-	if ! weHave paru; then
-		__updateGitUtils__
-		sudo pacman -S --needed base-devel
-		cd "$DOTS_DOWN/paru-bin" || return 1
-		makepkg -si
-		cd "$OLDPWD" || return
-	fi
+  if ! weHave paru; then
+    __updateGitUtils__
+    sudo pacman -S --needed base-devel
+    cd "$DOTS_DOWN/paru-bin" || return 1
+    makepkg -si
+    cd "$OLDPWD" || return
+  fi
 fi
 
 #> Verify Instalation <#
 if weHave paru; then
-	weHave --report version paru >>"$DOTS_loaded_apps"
+  weHave --report version paru >>"$DOTS_loaded_apps"
 else
-	return
+  return
 fi
 
 # _______________________________________ EXPORT<|
@@ -38,21 +38,21 @@ alias P="paru" p="paru"
 #
 #>>= Query =<<#
 Ps() {
-	paru "$@" \
-		--sync \
-		--color always \
-		--search |
-		less
+  paru "$@" \
+    --sync \
+    --color always \
+    --search |
+    less
 } #TODO: Search remote repositories for matching strings
 
 Psl() {
-	for app in "$@"; do
-		printf "%s\n {|> $app <|}\n"
-		paru "$app" \
-			--query \
-			--color always \
-			--search
-	done
+  for app in "$@"; do
+    printf "%s\n {|> $app <|}\n"
+    paru "$app" \
+      --query \
+      --color always \
+      --search
+  done
 } #TODO: Search installed applications for matching strings
 
 alias Pi="paru -Si"   #TODO: Info
@@ -61,19 +61,19 @@ alias Pid="paru -Sii" #TODO: Include more info
 #>>= Install =<<#
 
 Pin() {
-	paru "$@" \
-		--sync \
-		--sudoloop \
-		--disable-download-timeout \
-		--quiet
+  paru "$@" \
+    --sync \
+    --sudoloop \
+    --disable-download-timeout \
+    --quiet
 } # TODO: Reduce timeout risk during installation
 
 #>>= Uninstall =<<#
 Prm() {
-	paru "$@" \
-		--remove \
-		--recursive \
-		--unneeded
+  paru "$@" \
+    --remove \
+    --recursive \
+    --unneeded
 }
 
 alias Prm="paru -Rsu" #TODO: Remove
@@ -81,11 +81,11 @@ alias Prd="paru -Rsc" #TODO: Include Dependencies
 
 #>>= Update =<<#
 Pup() {
-	Pin \
-		--refresh \
-		--sysupgrade \
-		--needed \
-		--noconfirm
+  Pin \
+    --refresh \
+    --sysupgrade \
+    --needed \
+    --noconfirm
 }
 
 alias Pul="paru -Qu"              #TODO: List Updates

@@ -50,23 +50,23 @@ set_defaults() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -d | --debug | --verbose)
-        debug=true
-        ;;
-      -i | --*in*)
-        shift
-        input_delimiter="$1"
-        ;;
-      -o | --*out*)
-        shift
-        output_delimiter="$1"
-        ;;
-      --)
-        shift
-        [ "$#" -gt 0 ] && input_list="$*"
-        break
-        ;;
-      *) input_list=$1 ;;
+    -d | --debug | --verbose)
+      debug=true
+      ;;
+    -i | --*in*)
+      shift
+      input_delimiter="$1"
+      ;;
+    -o | --*out*)
+      shift
+      output_delimiter="$1"
+      ;;
+    --)
+      shift
+      [ "$#" -gt 0 ] && input_list="$*"
+      break
+      ;;
+    *) input_list=$1 ;;
     esac
     shift
   done
@@ -123,7 +123,7 @@ set_delimiter() {
   }
   [ "$newline_count" -gt "$max_count" ] && {
     max_count=$newline_count
-    detected_delimiter="\\n"
+    detected_delimiter='\n'
   }
   [ "$tilde_count" -gt "$max_count" ] && {
     max_count=$tilde_count
@@ -226,8 +226,8 @@ execute_process() {
 
   #@ Split the list based on the input and output delimiters
   output_list="$(
-    printf '%s' "$delimited_list" \
-      | sed "s/$detected_delimiter/$output_delimiter/g"
+    printf '%s' "$delimited_list" |
+      sed "s/$detected_delimiter/$output_delimiter/g"
   )"
 
   #@ Output the result

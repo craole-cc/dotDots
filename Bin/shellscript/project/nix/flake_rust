@@ -11,11 +11,11 @@ parse_arguments() {
   #@ Parse options from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -r* | --r*) repository="$2" ;;
-      -t* | --t*) template="$2" ;;
-      -p* | --p*) project="$2" ;;
-      -i* | --i*) init_dir=true ;;
-      *) ;;
+    -r* | --r*) repository="$2" ;;
+    -t* | --t*) template="$2" ;;
+    -p* | --p*) project="$2" ;;
+    -i* | --i*) init_dir=true ;;
+    *) ;;
     esac
     shift
   done

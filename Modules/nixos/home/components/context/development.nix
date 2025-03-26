@@ -5,9 +5,7 @@
   ...
 }:
 let
-  inherit (config) dot;
   # inherit (dots.info.host) context isMinimal;
-  inherit (config.dot.active) ;
 
   packages = {
     tui = with pkgs; [ helix ];

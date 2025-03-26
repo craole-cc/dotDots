@@ -13,23 +13,23 @@ establish_environment() {
   verbosity=info
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h) show_usage ;;
-      --help) show_help ;;
-      -v | --version) show_version ;;
-      --verbose=*) verbosity="${1#*=}" ;;
-      --verbose) if [ -n "$2" ]; then
-        verbosity="$2"
-        shift
-      else verbosity=debug; fi ;;
-      --error) verbosity=error ;;
-      --warn) verbosity=warn ;;
-      --info) verbosity=info ;;
-      --debug) verbosity=debug ;;
-      --trace) verbosity=trace ;;
-      --quiet) verbosity=quiet ;;
-      --)
-        shift
-        ;;
+    -h) show_usage ;;
+    --help) show_help ;;
+    -v | --version) show_version ;;
+    --verbose=*) verbosity="${1#*=}" ;;
+    --verbose) if [ -n "$2" ]; then
+      verbosity="$2"
+      shift
+    else verbosity=debug; fi ;;
+    --error) verbosity=error ;;
+    --warn) verbosity=warn ;;
+    --info) verbosity=info ;;
+    --debug) verbosity=debug ;;
+    --trace) verbosity=trace ;;
+    --quiet) verbosity=quiet ;;
+    --)
+      shift
+      ;;
     esac
     shift
   done

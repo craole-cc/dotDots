@@ -10,7 +10,7 @@
   "icon_theme": {
     "mode": "system",
     "light": "Catppuccin Latte",
-    "dark":  "Catppuccin Frappé"
+    "dark": "Catppuccin Frappé"
   },
 
   //> ===================================
@@ -68,7 +68,7 @@
     "calt": false
   },
   "ui_font_weight": 400,
-  "ui_font_size": 16,  
+  "ui_font_size": 16,
   "unnecessary_code_fade": 0.5,
   "toolbar": {
     "breadcrumbs": true,

@@ -2,15 +2,15 @@
 
 #> Install <#
 if ! weHave lf; then
-    if weHave paru; then
-        Pin lf
-    elif weHave choco; then
-        choco install lf
-    elif weHave winget; then
-        winget install lf
-    else
-        cargo install lf
-    fi
+  if weHave paru; then
+    Pin lf
+  elif weHave choco; then
+    choco install lf
+  elif weHave winget; then
+    winget install lf
+  else
+    cargo install lf
+  fi
 fi
 
 #> Verify Instalation <#
@@ -19,19 +19,19 @@ weHave lf || return
 
 # --> Open Dir in LF
 lfcd() {
-    tmp="$(mktemp)"
-    lf -last-dir-path="$tmp" "$@"
-    if [ -f "$tmp" ]; then
-        dir="$(cat "$tmp")"
-        rm -f "$tmp" >/dev/null
-        [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir" || exit
-    fi
+  tmp="$(mktemp)"
+  lf -last-dir-path="$tmp" "$@"
+  if [ -f "$tmp" ]; then
+    dir="$(cat "$tmp")"
+    rm -f "$tmp" >/dev/null
+    [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir" || exit
+  fi
 }
 
 [ "$Shell" = zsh ] &&
-    bindkey -s '^o' 'lfcd\n' # >>= ctrl + o
+  bindkey -s '^o' 'lfcd\n' # >>= ctrl + o
 [ "$Shell" = bash ] &&
-    bind "\C-o":lfcd # >>= ctrl + o
+  bind "\C-o":lfcd # >>= ctrl + o
 
 # _________________________________________ ICONS<|
 

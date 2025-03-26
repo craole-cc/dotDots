@@ -1,7 +1,7 @@
 #!/bin/sh
 
 weHave() { #@ Check if the command exists
-  type "$1" > /dev/null 2>&1
+  type "$1" >/dev/null 2>&1
 }
 
 get_app() {
@@ -27,7 +27,7 @@ get_app() {
 process_core() {
   if
     #@ Check if the application is already running
-    pgrep "$(get_app)" > /dev/null
+    pgrep "$(get_app)" >/dev/null
   then
     #@ Activate the window (switch to its desktop and raise it)
     wmctrl -a "$(get_app)"

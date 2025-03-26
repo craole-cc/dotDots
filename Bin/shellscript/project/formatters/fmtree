@@ -34,38 +34,38 @@ drop_env() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --config)
-        [ "$2" ] || {
-          printf "Error: Config file not specified." >&2
-          exit 1
-        }
+    --config)
+      [ "$2" ] || {
+        printf "Error: Config file not specified." >&2
+        exit 1
+      }
 
-        FMTREE_CFG="$2"
-        shift
-        ;;
-      --root)
-        [ "$2" ] || {
-          printf "Error: Root directory not specified." >&2
-          exit 1
-        }
+      FMTREE_CFG="$2"
+      shift
+      ;;
+    --root)
+      [ "$2" ] || {
+        printf "Error: Root directory not specified." >&2
+        exit 1
+      }
 
-        [ -d "$2" ] || {
-          printf "Error: Root directory not found." >&2
-          exit 1
-        }
+      [ -d "$2" ] || {
+        printf "Error: Root directory not found." >&2
+        exit 1
+      }
 
-        FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--tree-root $2"
-        shift
-        ;;
-      --debug | --dry*)
-        FMTREE_DRY=1
-        ;;
-      -d | --verbose)
-        VERBOSITY=4
-        ;;
-      *)
-        FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}$1"
-        ;;
+      FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--tree-root $2"
+      shift
+      ;;
+    --debug | --dry*)
+      FMTREE_DRY=1
+      ;;
+    -d | --verbose)
+      VERBOSITY=4
+      ;;
+    *)
+      FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}$1"
+      ;;
     esac
     shift
   done
@@ -111,8 +111,8 @@ execute_process() {
     "$(printf "%s" "$FMTREE_ARG" | tr "$DELIMITER" " ")")"
 
   #@ Print command
-  [ "$VERBOSITY" -ge 4 ] \
-    && printf '\033[1;36m[ INFO ]\033[0m Executing command => %s\n' "$FMTREE_CMD"
+  [ "$VERBOSITY" -ge 4 ] &&
+    printf '\033[1;36m[ INFO ]\033[0m Executing command => %s\n' "$FMTREE_CMD"
 
   #@ Run command
   [ "$FMTREE_DRY" -eq 0 ] && eval "$FMTREE_CMD"

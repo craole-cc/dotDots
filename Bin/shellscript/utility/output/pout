@@ -53,7 +53,7 @@ set_defaults() {
 
 is_number() {
   # validate --integer "$2" >/dev/null 2>&1
-  [ "$1" -eq "$1" ] 2> /dev/null
+  [ "$1" -eq "$1" ] 2>/dev/null
 }
 # sep="${__sep:-": "}"
 # padding="${__pad:-36}"
@@ -63,98 +63,98 @@ parse_arguments() {
   #@ Parse arguments
   while [ "$#" -gt 0 ]; do
     case $1 in
-      -h) show_info --usage ;;
-      --help) show_info --help ;;
-      -v | --version) show_info --version ;;
-      --quiet | --error | --warn | --info | --debug | --trace)
-        lvl=${1#--}
-        ln_trail=1
-        ;;
-      --hide-l*) hide_lvl=true ;;
-      --hide-t*) hide_time=true ;;
-      --hide-console | --log-only | --no-output | --no-print) target="log" ;;
-      --no-log | --print | --console-only) target="console" ;;
-      -L | --log)
-        [ "$2" ] && {
-          validate_file --parent "$2" || return 1
-          log="$2"
-          shift
-        }
-        ;;
-      -b | -ll | --line-l* | --lead*l*)
-        if [ "$2" ] && is_number "$2"; then
-          ln_lead="$2"
-          shift
-        else
-          ln_lead=1
-        fi
-        ;;
-      -n | -lt | --line-t* | --lead*t*)
-        if is_number "$2"; then
-          ln_trail="$2"
-          shift
-        else
-          ln_trail=1
-        fi
-        ;;
-      --key)
-        if [ "$2" ]; then
-          key="$2"
-          shift
-        else
-          pout --error "No key provided to --key"
-          return 1
-        fi
-        ;;
-      --val)
-        if [ "$2" ]; then
-          val="$2"
-          shift
-        else
-          val="{ Missing Value }"
-          val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
-        fi
-        ;;
-      --sep*)
-        if [ "$2" ]; then
-          sep="$2"
-          shift
-        else
-          pout --error "No separator provided to --sep"
-          return 1
-        fi
-        ;;
-      -z | --end | --last*)
-        end=true
-        ;;
-      --pad)
-        pad=true
-        [ "$2" ] && valid_number "$2" && {
-          pad="$2"
-          shift
-        }
-        ;;
-      --delimiter)
-        list_delimiter="$2"
+    -h) show_info --usage ;;
+    --help) show_info --help ;;
+    -v | --version) show_info --version ;;
+    --quiet | --error | --warn | --info | --debug | --trace)
+      lvl=${1#--}
+      ln_trail=1
+      ;;
+    --hide-l*) hide_lvl=true ;;
+    --hide-t*) hide_time=true ;;
+    --hide-console | --log-only | --no-output | --no-print) target="log" ;;
+    --no-log | --print | --console-only) target="console" ;;
+    -L | --log)
+      [ "$2" ] && {
+        validate_file --parent "$2" || return 1
+        log="$2"
         shift
-        ;;
-      -m | --msg | --message)
-        [ "$2" ] && {
-          if [ "$msg" ]; then
-            msg="${msg}${delimiter}${2}"
-          else
-            msg="$2"
-          fi
-          shift
-        }
-        ;;
-      *)
+      }
+      ;;
+    -b | -ll | --line-l* | --lead*l*)
+      if [ "$2" ] && is_number "$2"; then
+        ln_lead="$2"
+        shift
+      else
+        ln_lead=1
+      fi
+      ;;
+    -n | -lt | --line-t* | --lead*t*)
+      if is_number "$2"; then
+        ln_trail="$2"
+        shift
+      else
+        ln_trail=1
+      fi
+      ;;
+    --key)
+      if [ "$2" ]; then
+        key="$2"
+        shift
+      else
+        pout --error "No key provided to --key"
+        return 1
+      fi
+      ;;
+    --val)
+      if [ "$2" ]; then
+        val="$2"
+        shift
+      else
+        val="{ Missing Value }"
+        val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
+      fi
+      ;;
+    --sep*)
+      if [ "$2" ]; then
+        sep="$2"
+        shift
+      else
+        pout --error "No separator provided to --sep"
+        return 1
+      fi
+      ;;
+    -z | --end | --last*)
+      end=true
+      ;;
+    --pad)
+      pad=true
+      [ "$2" ] && valid_number "$2" && {
+        pad="$2"
+        shift
+      }
+      ;;
+    --delimiter)
+      list_delimiter="$2"
+      shift
+      ;;
+    -m | --msg | --message)
+      [ "$2" ] && {
         if [ "$msg" ]; then
-          msg="$msg $1"
+          msg="${msg}${delimiter}${2}"
         else
-          msg="$1"
+          msg="$2"
         fi
-        ;;
+        shift
+      }
+      ;;
+    *)
+      if [ "$msg" ]; then
+        msg="$msg $1"
+      else
+        msg="$1"
+      fi
+      ;;
     esac
     shift
   done
@@ -174,27 +174,27 @@ set_pair() {
 set_level() {
   #@ Append the level to the message.
   case "$lvl" in
-    error)
-      lvl_log="[ERROR] "
-      lvl_fmt="${FMT_ERROR}${lvl_log}${FMT_NORMAL}"
-      ;;
-    warn)
-      lvl_log="[ WARN] "
-      lvl_fmt="${FMT_WARN}${lvl_log}${FMT_NORMAL}"
-      ;;
-    info)
-      lvl_log="[ INFO] "
-      lvl_fmt="${FMT_INFO}${lvl_log}${FMT_NORMAL}"
-      ;;
-    debug)
-      lvl_log="[DEBUG] "
-      lvl_fmt="${FMT_DEBUG}${lvl_log}${FMT_NORMAL}"
-      ;;
-    trace)
-      lvl_log="[TRACE] "
-      lvl_fmt="${FMT_TRACE}${lvl_log}${FMT_NORMAL}"
-      ;;
-    *) unset lvl ;;
+  error)
+    lvl_log="[ERROR] "
+    lvl_fmt="${FMT_ERROR}${lvl_log}${FMT_NORMAL}"
+    ;;
+  warn)
+    lvl_log="[ WARN] "
+    lvl_fmt="${FMT_WARN}${lvl_log}${FMT_NORMAL}"
+    ;;
+  info)
+    lvl_log="[ INFO] "
+    lvl_fmt="${FMT_INFO}${lvl_log}${FMT_NORMAL}"
+    ;;
+  debug)
+    lvl_log="[DEBUG] "
+    lvl_fmt="${FMT_DEBUG}${lvl_log}${FMT_NORMAL}"
+    ;;
+  trace)
+    lvl_log="[TRACE] "
+    lvl_fmt="${FMT_TRACE}${lvl_log}${FMT_NORMAL}"
+    ;;
+  *) unset lvl ;;
   esac
 
   [ -n "$hide_lvl" ] && unset lvl
@@ -220,7 +220,7 @@ pout_repeat() {
   }
 
   is_valid_num() {
-    validate --positive "$1" > /dev/null 2>&1
+    validate --positive "$1" >/dev/null 2>&1
   }
 
   pout_repeat__print_guide() {
@@ -245,23 +245,23 @@ pout_repeat() {
   print_usage() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
-        --args)
-          msg="$(
-            printf "Incorrect number of arguments. " >&2
-            printf "Expected at least %s but got %s\n" "$expected_args" "$2" >&2
-          )"
-          ;;
-        --pos)
-          msg="$(
-            printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
-          )"
-          ;;
-        --reps)
-          msg="$(printf "Number of repetitions not defined\n" >&2)"
-          ;;
-        *)
-          exit_code="${1:-1}"
-          ;;
+      --args)
+        msg="$(
+          printf "Incorrect number of arguments. " >&2
+          printf "Expected at least %s but got %s\n" "$expected_args" "$2" >&2
+        )"
+        ;;
+      --pos)
+        msg="$(
+          printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+        )"
+        ;;
+      --reps)
+        msg="$(printf "Number of repetitions not defined\n" >&2)"
+        ;;
+      *)
+        exit_code="${1:-1}"
+        ;;
       esac
       shift
     done
@@ -288,8 +288,8 @@ pout_repeat() {
     #@ Script Options
     for arg in "$@"; do
       case "$arg" in
-        -h) print_usage 0 ;;
-        --help) print_guide ;;
+      -h) print_usage 0 ;;
+      --help) print_guide ;;
       esac
     done
 
@@ -299,41 +299,41 @@ pout_repeat() {
     #@ Process Options
     while [ "$#" -ge 1 ]; do
       case "$1" in
-        -d | --verbose | --debug)
-          debug=1
-          ;;
-        -n | -*num* | -r | -*rep*)
-          is_valid_num "$2" || print_usage --reps
-          repetitions="$2"
-          shift
-          ;;
-        -p | -*pat* | -c | -*char*)
-          [ -n "$2" ] || print_usage --args
-          pattern="$2"
-          shift
-          ;;
-        -l | --line)
-          pattern="\n"
-          repetitions="${2:-1}"
-          break
-          ;;
-        -s | --space)
-          pattern=" "
-          repetitions="${2:-1}"
-          break
-          ;;
-        *)
-          #@ Handle positional arguments
-          if [ -z "$repetitions" ] && [ -z "$pattern" ]; then
-            if is_valid_num "$1"; then
-              pattern="$2"
-              repetitions="$1"
-            elif is_valid_num "$2"; then
-              pattern="$1"
-              repetitions="$2"
-            fi
+      -d | --verbose | --debug)
+        debug=1
+        ;;
+      -n | -*num* | -r | -*rep*)
+        is_valid_num "$2" || print_usage --reps
+        repetitions="$2"
+        shift
+        ;;
+      -p | -*pat* | -c | -*char*)
+        [ -n "$2" ] || print_usage --args
+        pattern="$2"
+        shift
+        ;;
+      -l | --line)
+        pattern="\n"
+        repetitions="${2:-1}"
+        break
+        ;;
+      -s | --space)
+        pattern=" "
+        repetitions="${2:-1}"
+        break
+        ;;
+      *)
+        #@ Handle positional arguments
+        if [ -z "$repetitions" ] && [ -z "$pattern" ]; then
+          if is_valid_num "$1"; then
+            pattern="$2"
+            repetitions="$1"
+          elif is_valid_num "$2"; then
+            pattern="$1"
+            repetitions="$2"
           fi
-          ;;
+        fi
+        ;;
       esac
       shift
     done

@@ -1,6 +1,7 @@
 # [Qtile](http://www.qtile.org/) setup
 
-Qtile is a very nice, hackable tiling window manager written and configured in Python.
+Qtile is a very nice, hackable tiling window manager written and configured in
+Python.
 
 ![ScreenShot](screenshot.jpg)
 
@@ -29,7 +30,7 @@ Below is a list of some of the packages that I use for my current setup.
 ### **File Manager** --- [Ranger](https://aur.archlinux.org/packages/ranger-git)
 
 ### **Editor** --- [Neovim](https://aur.archlinux.org/packages/neovim-git)
-  
+
 - Plugins
   - [gruvbox](https://github.com/morhetz/gruvbox)
   - [coc.nvim](https://github.com/neoclide/coc.nvim)
@@ -60,12 +61,12 @@ Below is a list of some of the packages that I use for my current setup.
 
 ### **Window manager controls
 
-| Keys                      | Action                    |
-|-------------------------- |-------------------------- |
-| ```CTRL + MOD + r```      | restart Qtile             |
-| ```CTRL + MOD + q```      | shutdown Qtile            |
-| ```MOD + w```             | kill window               |
-| ```MOD + r```             | spawn program             |
-| ```MOD + RETURN```        | spawn terminal            |
-| ```CTRL + SPACE```        | Rofi menu                 |
-| ```CTRL + MOD + p```      | Rofi power menu           |
+| Keys             | Action          |
+| ---------------- | --------------- |
+| `CTRL + MOD + r` | restart Qtile   |
+| `CTRL + MOD + q` | shutdown Qtile  |
+| `MOD + w`        | kill window     |
+| `MOD + r`        | spawn program   |
+| `MOD + RETURN`   | spawn terminal  |
+| `CTRL + SPACE`   | Rofi menu       |
+| `CTRL + MOD + p` | Rofi power menu |

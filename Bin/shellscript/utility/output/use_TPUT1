@@ -111,8 +111,8 @@
 
 #@ Declare colors for supported terminals
 case $TERM in
-  *-m) return ;;
-  *) ;;
+*-m) return ;;
+*) ;;
 esac
 
 # #@ Foreground Colors

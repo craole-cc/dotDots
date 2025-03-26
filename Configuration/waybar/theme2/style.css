@@ -2,7 +2,6 @@
   font-family: "JetBrainsMono Nerd Font", Roboto, Helvetica, Arial, sans-serif;
   padding: 1px 5px;
   color: white;
-  
 }
 
 window#waybar {
@@ -11,7 +10,6 @@ window#waybar {
   font-weight: 600;
   background: transparent;
   border-radius: 40px;
-  
 }
 
 window#waybar.hidden {
@@ -19,7 +17,7 @@ window#waybar.hidden {
 }
 
 #battery,
-#clock, 
+#clock,
 #cpu,
 #disk,
 #memory,
@@ -74,10 +72,10 @@ label:focus {
   background-color: white;
 }
 
-#tags button.urgent{
+#tags button.urgent {
   color: red;
   margin: 0 3px;
-  background-color:white;
+  background-color: white;
 }
 
 @keyframes blink {
@@ -96,34 +94,33 @@ label:focus {
 }
 /*ANIMATIONS*/
 @keyframes animate {
-	0% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-	100% {
-		background-position: 0% 50%;
-	}
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
-
 
 /*BORDER RADIUS*/
 #custom-launcher,
 #cpu,
 #disk,
-#memory{
+#memory {
   border-radius: 3px 10px 3px 10px;
 }
 
-#clock, 
+#clock,
 #network,
 #pulseaudio,
-#custom-power{
+#custom-power {
   border-radius: 10px 3px 10px 3px;
 }
 
-#custom-launcher{
+#custom-launcher {
   color: red;
   font-size: 11px;
 }
@@ -176,10 +173,10 @@ label:focus {
 }
 
 #tray > .passive {
-    -gtk-icon-effect: dim;
+  -gtk-icon-effect: dim;
 }
 
 #tray > .needs-attention {
-    -gtk-icon-effect: highlight;
-    background-color: #009acb;
+  -gtk-icon-effect: highlight;
+  background-color: #009acb;
 }

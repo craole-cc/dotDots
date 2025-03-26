@@ -1,64 +1,64 @@
 # Nix
 [[language]]
-auto-format     = true
-comment-token   = "#"
-file-types      = ["nix"]
-formatter       = { command = "nixpkgs-fmt" }
-indent          = { tab-width = 2, unit = "  " }
+auto-format = true
+comment-token = "#"
+file-types = ["nix"]
+formatter = { command = "nixpkgs-fmt" }
+indent = { tab-width = 2, unit = "  " }
 injection-regex = "nix"
-name            = "nix"
-roots           = ["flake.nix"]
-scope           = "source.nix"
+name = "nix"
+roots = ["flake.nix"]
+scope = "source.nix"
 
 # Shell
 [[language]]
-auto-format     = true
-comment-token   = "#"
-file-types      = ["sh", "bash", "zsh"]
-formatter       = { command = "shfmt", args = ["-i", "2", "-ci"] }
-indent          = { tab-width = 2, unit = "  " }
+auto-format = true
+comment-token = "#"
+file-types = ["sh", "bash", "zsh"]
+formatter = { command = "shfmt", args = ["-i", "2", "-ci"] }
+indent = { tab-width = 2, unit = "  " }
 injection-regex = "(ba|z|)sh"
-name            = "bash"
-roots           = [".bashrc", ".bash_profile", ".zshrc"]
-scope           = "source.bash"
-shebangs        = ["sh", "bash", "zsh"]
+name = "bash"
+roots = [".bashrc", ".bash_profile", ".zshrc"]
+scope = "source.bash"
+shebangs = ["sh", "bash", "zsh"]
 
 # TOML
 [[language]]
-auto-format     = true
-comment-token   = "#"
-file-types      = ["toml"]
-formatter       = { command = "taplo", args = ["fmt", "-"] }
-indent          = { tab-width = 2, unit = "  " }
+auto-format = true
+comment-token = "#"
+file-types = ["toml"]
+formatter = { command = "taplo", args = ["fmt", "-"] }
+indent = { tab-width = 2, unit = "  " }
 injection-regex = "toml"
-name            = "toml"
-roots           = ["Cargo.toml"]
-scope           = "source.toml"
+name = "toml"
+roots = ["Cargo.toml"]
+scope = "source.toml"
 
 # Markdown
 [[language]]
-auto-format      = true
-file-types       = ["md", "markdown"]
-formatter        = { command = "prettier", args = ["--parser", "markdown"] }
-indent           = { tab-width = 2, unit = "  " }
-injection-regex  = "md|markdown"
+auto-format = true
+file-types = ["md", "markdown"]
+formatter = { command = "prettier", args = ["--parser", "markdown"] }
+indent = { tab-width = 2, unit = "  " }
+injection-regex = "md|markdown"
 language-servers = [{ name = "marksman" }]
-name             = "markdown"
-roots            = []
-scope            = "source.markdown"
+name = "markdown"
+roots = []
+scope = "source.markdown"
 
 # Rust
 [[language]]
-auto-format      = true
-comment-token    = "//"
-file-types       = ["rs"]
-formatter        = { command = "rustfmt" }
-indent           = { tab-width = 4, unit = "    " }
-injection-regex  = "rust"
+auto-format = true
+comment-token = "//"
+file-types = ["rs"]
+formatter = { command = "rustfmt" }
+indent = { tab-width = 4, unit = "    " }
+injection-regex = "rust"
 language-servers = [{ name = "rust-analyzer" }]
-name             = "rust"
-roots            = ["Cargo.toml", "Cargo.lock"]
-scope            = "source.rust"
+name = "rust"
+roots = ["Cargo.toml", "Cargo.lock"]
+scope = "source.rust"
 
 [language.config]
 checkOnSave = { command = "clippy" }
@@ -66,29 +66,29 @@ checkOnSave = { command = "clippy" }
 # Language servers
 [[language-server]]
 command = "marksman"
-name    = "marksman"
+name = "marksman"
 
 [[language-server]]
 command = "rust-analyzer"
-name    = "rust-analyzer"
+name = "rust-analyzer"
 
 # Language injections
 [[grammar]]
-name   = "rust"
+name = "rust"
 source = { git = "https://github.com/tree-sitter/tree-sitter-rust", rev = "0431a2c60828731f27491ee9fdefe25e250ce9c9" }
 
 [[grammar]]
-name   = "toml"
+name = "toml"
 source = { git = "https://github.com/ikatyang/tree-sitter-toml", rev = "7cff70bbcbbc62001b465603ca1ea88edd668704" }
 
 [[grammar]]
-name   = "nix"
+name = "nix"
 source = { git = "https://github.com/nix-community/tree-sitter-nix", rev = "1b69cf1d0cb25e5dae3d6fa70977ea8b55f6d824" }
 
 [[grammar]]
-name   = "bash"
+name = "bash"
 source = { git = "https://github.com/tree-sitter/tree-sitter-bash", rev = "275effdfc0edce774acf7d481f9ea195c6c403cd" }
 
 [[grammar]]
-name   = "markdown"
+name = "markdown"
 source = { git = "https://github.com/MDeiml/tree-sitter-markdown", rev = "fa6bfd51727e4bfd8f7a7e13f9d1dfc053386706" }

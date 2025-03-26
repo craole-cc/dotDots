@@ -27,11 +27,11 @@ _vim_PLUG="$_vim_PLUG_DIR/plug.vim"
 
 #> Install <#
 if ! weHave nvim; then
-    if weHave paru; then
-        Pin neovim
-    elif weHave choco; then
-        choco install neovim
-    fi
+  if weHave paru; then
+    Pin neovim
+  elif weHave choco; then
+    choco install neovim
+  fi
 fi
 
 #> Verify Instalation <#
@@ -40,23 +40,23 @@ weHave nvim || return
 
 #> Establish Link in HOME
 if [ ! -L "$_nvim_LOCAL" ]; then
-    rm -rf "$_nvim_LOCAL"
-    ln \
-        --symbolic \
-        --force \
-        "$_nvim_DOTS" \
-        "$_nvim_LOCAL"
+  rm -rf "$_nvim_LOCAL"
+  ln \
+    --symbolic \
+    --force \
+    "$_nvim_DOTS" \
+    "$_nvim_LOCAL"
 fi
 
 #> Plugin Manager <#
 if [ ! -f "$_vim_PLUG" ]; then
-    curl \
-        --fail \
-        --location \
-        --output "${_vim_PLUG}" \
-        --create-dirs \
-        'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-    sudo chmod +rwx "$_vim_PLUG_DIR"
+  curl \
+    --fail \
+    --location \
+    --output "${_vim_PLUG}" \
+    --create-dirs \
+    'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  sudo chmod +rwx "$_vim_PLUG_DIR"
 fi
 
 alias vim='nvim'
@@ -65,7 +65,7 @@ alias V='sudo vim'
 
 # --> Edit Config
 CFG_nvim() {
-    nvim "$_nvim_CONFIG"
+  nvim "$_nvim_CONFIG"
 }
 
 # __________________________________________ EXEC<|

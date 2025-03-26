@@ -49,57 +49,57 @@ set_defaults() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -h | --help)
-        printf "%s\n" "$scr_HELP"
-        exit 0
-        ;;
-      -v | --version)
-        printf "%s\n" "$scr_VERSION"
-        exit 0
-        ;;
-      -q | --quiet) unset debug ;;
-      -d | --debug) debug=1 ;;
-      -t | --tui)
-        [ "$2" ] || {
-          printf "Error: '%s' requires an argument\n" "$1"
-          exit 2
-        }
-        while [ "$#" -ge 2 ]; do
-          case "$2" in
-            --*) break ;;
-            *) preferred_tui="${preferred_tui:+$preferred_tui${DELIMITER}}$2" ;;
-          esac
-          shift
-        done
-        ;;
-      -g | --gui)
-        [ "$2" ] || {
-          printf "Error: '%s' requires an argument\n" "$1"
-          exit 2
-        }
-        while [ "$#" -ge 2 ]; do
-          case "$2" in
-            --*) break ;;
-            *) preferred_gui="${preferred_gui:+$preferred_gui${DELIMITER}}$2" ;;
-          esac
-          shift
-        done
-        ;;
-      -e | --editor | --ede)
-        [ "$2" ] || {
-          printf "Error: '%s' requires an argument\n" "$1"
-          exit 2
-        }
-        while [ "$#" -ge 2 ]; do
-          case "$2" in
-            --*) break ;;
-            *) preferred_ede="${preferred_ede:+$preferred_ede${DELIMITER}}$2" ;;
-          esac
-          shift
-        done
-        ;;
-      --) ;;
-      *) args="${args:+$args${DELIMITER}}$2" ;;
+    -h | --help)
+      printf "%s\n" "$scr_HELP"
+      exit 0
+      ;;
+    -v | --version)
+      printf "%s\n" "$scr_VERSION"
+      exit 0
+      ;;
+    -q | --quiet) unset debug ;;
+    -d | --debug) debug=1 ;;
+    -t | --tui)
+      [ "$2" ] || {
+        printf "Error: '%s' requires an argument\n" "$1"
+        exit 2
+      }
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        --*) break ;;
+        *) preferred_tui="${preferred_tui:+$preferred_tui${DELIMITER}}$2" ;;
+        esac
+        shift
+      done
+      ;;
+    -g | --gui)
+      [ "$2" ] || {
+        printf "Error: '%s' requires an argument\n" "$1"
+        exit 2
+      }
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        --*) break ;;
+        *) preferred_gui="${preferred_gui:+$preferred_gui${DELIMITER}}$2" ;;
+        esac
+        shift
+      done
+      ;;
+    -e | --editor | --ede)
+      [ "$2" ] || {
+        printf "Error: '%s' requires an argument\n" "$1"
+        exit 2
+      }
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        --*) break ;;
+        *) preferred_ede="${preferred_ede:+$preferred_ede${DELIMITER}}$2" ;;
+        esac
+        shift
+      done
+      ;;
+    --) ;;
+    *) args="${args:+$args${DELIMITER}}$2" ;;
     esac
     shift
   done
@@ -141,9 +141,9 @@ initialize_utilities() {
     input_delimiter="$1"
     output_delimiter="$2"
     shift 2
-    printf "%s" "$*" \
-      | sed "s/^$input_delimiter//" \
-      | sed "s/$input_delimiter/$output_delimiter/g"
+    printf "%s" "$*" |
+      sed "s/^$input_delimiter//" |
+      sed "s/$input_delimiter/$output_delimiter/g"
   }
 
   pout_highlight() {
@@ -174,31 +174,31 @@ initialize_utilities() {
     highlight_item="$3"
     input_list="$4"
 
-    pout_split "$input_delimiter" "$output_delimiter" "$input_list" \
-      | sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${FMT_HIGHLIGHT}${highlight_item}${FMT_NORMAL}\3/"
+    pout_split "$input_delimiter" "$output_delimiter" "$input_list" |
+      sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${FMT_HIGHLIGHT}${highlight_item}${FMT_NORMAL}\3/"
   }
 
   weHave() {
     [ "$#" -eq 0 ] && return 1
 
     case "$1" in
-      --first)
-        [ "$#" -ge 2 ] || {
-          printf "Error: --first requires an argument\n"
-          return 3
+    --first)
+      [ "$#" -ge 2 ] || {
+        printf "Error: --first requires an argument\n"
+        return 3
+      }
+      shift
+
+      for i in $(printf "%s" "$@" | tr " " "\n"); do
+        command -v "$i" >/dev/null 2>&1 && {
+          printf "%s" "$i"
+          return 0
         }
-        shift
+      done
 
-        for i in $(printf "%s" "$@" | tr " " "\n"); do
-          command -v "$i" > /dev/null 2>&1 && {
-            printf "%s" "$i"
-            return 0
-          }
-        done
-
-        return 1
-        ;;
-      *) command -v "$i" > /dev/null 2>&1 ;;
+      return 1
+      ;;
+    *) command -v "$i" >/dev/null 2>&1 ;;
     esac
   }
 }

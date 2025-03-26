@@ -1,20 +1,20 @@
 # Confirmation
 dir="~/.config/rofi/powermenu"
 confirm_exit() {
-	rofi -dmenu -i -no-fixed-num-lines -p "Are You Sure? : " \
-		-theme $dir/confirm.rasi
+  rofi -dmenu -i -no-fixed-num-lines -p "Are You Sure? : " \
+    -theme $dir/confirm.rasi
 }
 
 # Message
 msg() {
-	rofi -theme "$dir/message.rasi" -e "Available Options  -  yes / y / no / n"
+  rofi -theme "$dir/message.rasi" -e "Available Options  -  yes / y / no / n"
 }
 
 ans=$(confirm_exit &)
 if [[ $ans == "yes" || $ans == "YES" || $ans == "y" || $ans == "Y" ]]; then
-	doas poweroff
+  doas poweroff
 elif [[ $ans == "no" || $ans == "NO" || $ans == "n" || $ans == "N" ]]; then
-	exit 0
+  exit 0
 else
-	msg
+  msg
 fi

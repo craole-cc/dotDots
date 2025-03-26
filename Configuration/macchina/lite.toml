@@ -1,10 +1,10 @@
-current_shell  = false
-interface      = "wlan0"
-long_kernel    = true
-long_shell     = false
-long_uptime    = false
+current_shell = false
+interface = "wlan0"
+long_kernel = true
+long_shell = false
+long_uptime = false
 physical_cores = true
-theme          = "Craole_Lite"
+theme = "Craole_Lite"
 # theme = "/storage/DOTS/Config/cli/macchina/themes/Craole_Lite.toml"
 show = [
   # "Host",

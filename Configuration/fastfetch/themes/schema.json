@@ -61,18 +61,9 @@
           "type": "array",
           "description": "array of string flags",
           "items": {
-            "enum": [
-              "num",
-              "bar",
-              "hide-others",
-              "num-color",
-              "bar-monochrome"
-            ]
+            "enum": ["num", "bar", "hide-others", "num-color", "bar-monochrome"]
           },
-          "default": [
-            "num",
-            "num-color"
-          ]
+          "default": ["num", "num-color"]
         }
       ]
     },
@@ -552,11 +543,7 @@
             "position": {
               "type": "string",
               "description": "Set the position of the logo should be displayed",
-              "enum": [
-                "left",
-                "top",
-                "right"
-              ],
+              "enum": ["left", "top", "right"],
               "default": "left"
             },
             "chafa": {
@@ -590,19 +577,12 @@
                 "colorSpace": {
                   "type": "string",
                   "description": "Set color space used for quantization. This value maps the value of enum ChafaColorSpace.",
-                  "enum": [
-                    "RGB",
-                    "DIN99D"
-                  ]
+                  "enum": ["RGB", "DIN99D"]
                 },
                 "ditherMode": {
                   "type": "string",
                   "description": "Set output dither mode (No effect with 24-bit color). This value maps the value of enum ChafaDitherMode.",
-                  "enum": [
-                    "NONE",
-                    "ORDERED",
-                    "DIFFUSION"
-                  ]
+                  "enum": ["NONE", "ORDERED", "DIFFUSION"]
                 }
               }
             }
@@ -770,12 +750,7 @@
             "type": {
               "type": "string",
               "description": "Set whether to show icon before string keys",
-              "enum": [
-                "none",
-                "string",
-                "icon",
-                "both"
-              ],
+              "enum": ["none", "string", "icon", "both"],
               "default": "string"
             },
             "paddingLeft": {
@@ -812,17 +787,7 @@
             "maxPrefix": {
               "type": "string",
               "description": "Set the largest binary prefix to use when formatting sizes",
-              "enum": [
-                "B",
-                "kB",
-                "MB",
-                "GB",
-                "TB",
-                "PB",
-                "EB",
-                "ZB",
-                "YB"
-              ],
+              "enum": ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
               "default": "YB"
             },
             "ndigits": {
@@ -842,14 +807,7 @@
             "unit": {
               "type": "string",
               "description": "Set the unit of the temperature",
-              "enum": [
-                "CELSIUS",
-                "C",
-                "FAHRENHEIT",
-                "F",
-                "KELVIN",
-                "K"
-              ],
+              "enum": ["CELSIUS", "C", "FAHRENHEIT", "F", "KELVIN", "K"],
               "default": "C"
             },
             "ndigits": {
@@ -1061,9 +1019,7 @@
           {
             "type": "object",
             "description": "Run module with custom configurations",
-            "required": [
-              "type"
-            ],
+            "required": ["type"],
             "properties": {
               "type": {
                 "type": "string"
@@ -1744,11 +1700,7 @@
                   },
                   "order": {
                     "description": "Set the order should be used when printing",
-                    "enum": [
-                      "none",
-                      "asc",
-                      "desc"
-                    ],
+                    "enum": ["none", "asc", "desc"],
                     "default": "none"
                   },
                   "key": {
@@ -1925,11 +1877,7 @@
                     "description": "Print DNS servers"
                   },
                   "showType": {
-                    "enum": [
-                      "ipv4",
-                      "ipv6",
-                      "both"
-                    ],
+                    "enum": ["ipv4", "ipv6", "both"],
                     "default": "both",
                     "description": "Specify the type of DNS servers should be detected"
                   },
@@ -2069,22 +2017,12 @@
                   "detectionMethod": {
                     "description": "Force using a specified method to detect GPUs",
                     "type": "string",
-                    "enum": [
-                      "auto",
-                      "pci",
-                      "vulkan",
-                      "opencl",
-                      "opengl"
-                    ],
+                    "enum": ["auto", "pci", "vulkan", "opencl", "opengl"],
                     "default": "auto"
                   },
                   "hideType": {
                     "description": "Specify the type of GPUs should not be printed",
-                    "enum": [
-                      "integrated",
-                      "discrete",
-                      "none"
-                    ],
+                    "enum": ["integrated", "discrete", "none"],
                     "default": "none"
                   },
                   "key": {
@@ -2592,12 +2530,7 @@
                   },
                   "library": {
                     "description": "Set the OpenGL context creation library to use",
-                    "enum": [
-                      "auto",
-                      "egl",
-                      "glx",
-                      "osmesa"
-                    ],
+                    "enum": ["auto", "egl", "glx", "osmesa"],
                     "default": "auto"
                   },
                   "key": {
@@ -2695,9 +2628,7 @@
                       ],
                       "uniqueItems": true
                     },
-                    "default": [
-                      "winget"
-                    ]
+                    "default": ["winget"]
                   },
                   "key": {
                     "$ref": "#/$defs/key"
@@ -2984,11 +2915,7 @@
                   "soundType": {
                     "description": "Set what type of sound devices should be printed",
                     "type": "string",
-                    "enum": [
-                      "main",
-                      "active",
-                      "all"
-                    ],
+                    "enum": ["main", "active", "all"],
                     "default": "main"
                   },
                   "percent": {

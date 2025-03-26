@@ -4,8 +4,8 @@
 
 window {
   background-color: #121212;
-/*  background-color: #000000; */
-	color: #ffd5cd;
+  /*  background-color: #000000; */
+  color: #ffd5cd;
   font-family: Museo Sans;
 }
 
@@ -40,23 +40,23 @@ button {
 }
 
 .musicbtn button:hover {
-  color: #D35D6E;
+  color: #d35d6e;
 }
 
 .volume scale trough {
-	all: unset;
-	background-color: #4e4e4e;
-	border-radius: 50px;
-	min-height: 5px;
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 5px;
   min-width: 240px;
   margin-bottom: 20px;
 }
 
 .volume scale trough highlight {
-	all: unset;
-	background-color: #ffd5cd;
-	color: #000000;
-	border-radius: 10px;
+  all: unset;
+  background-color: #ffd5cd;
+  color: #000000;
+  border-radius: 10px;
 }
 
 .volume slider {
@@ -67,7 +67,7 @@ button {
 .number_day {
   padding-top: 10px;
   font-size: 35px;
-  color: #D35D6E;
+  color: #d35d6e;
 }
 
 .month {
@@ -85,7 +85,7 @@ button {
   padding-top: 10px;
   padding-bottom: 5px;
   font-weight: bold;
-  color: #D35D6E;
+  color: #d35d6e;
 }
 
 .temperature-side {
@@ -125,10 +125,10 @@ button {
 }
 
 .musicbtn-side button:hover {
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .pause-play-side {
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .pause-play-side:hover {
   color: #ffd5cd;
@@ -139,16 +139,13 @@ button {
   font-size: 60px;
 }
 .minute-side {
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .day-side {
   font-size: 16px;
   font-weight: bold;
   color: #90c861;
 }
-
-
-
 
 .sliders-side slider {
   all: unset;
@@ -158,67 +155,67 @@ button {
   margin-top: 10px;
 }
 .slider-vol-side scale trough highlight {
-	all: unset;
-	background-color: #c47eb7;
-	color: #000000;
-	border-radius: 10px;
+  all: unset;
+  background-color: #c47eb7;
+  color: #000000;
+  border-radius: 10px;
 }
 .slider-bright-side scale trough highlight {
   all: unset;
-	background-color: #84afdb;
-	color: #000000;
-	border-radius: 10px;
+  background-color: #84afdb;
+  color: #000000;
+  border-radius: 10px;
 }
 .slider-ram-side scale trough highlight {
   all: unset;
-	background-color: #D35D6E;;
-	color: #000000;
-	border-radius: 10px;
+  background-color: #d35d6e;
+  color: #000000;
+  border-radius: 10px;
 }
 .slider-battery-side scale trough highlight {
   all: unset;
-	background-color: #90c861;
-	color: #000000;
-	border-radius: 10px;
+  background-color: #90c861;
+  color: #000000;
+  border-radius: 10px;
 }
 .slider-vol-side scale trough {
-	all: unset;
-	background-color: #4e4e4e;
-	border-radius: 50px;
-	min-height: 5px;
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 5px;
   min-width: 170px;
   margin-top: 10px;
   margin-left: 20px;
 }
 .slider-bright-side scale trough {
-	all: unset;
-	background-color: #4e4e4e;
-	border-radius: 50px;
-	min-height: 5px;
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 5px;
   min-width: 170px;
   margin-top: 10px;
   margin-left: 16px;
 }
 .slider-ram-side scale trough {
-	all: unset;
-	background-color: #4e4e4e;
-	border-radius: 50px;
-	min-height: 5px;
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 5px;
   min-width: 170px;
   margin-top: 10px;
   margin-left: 17px;
 }
 .slider-battery-side scale trough {
-	all: unset;
-	background-color: #4e4e4e;
-	border-radius: 50px;
-	min-height: 5px;
+  all: unset;
+  background-color: #4e4e4e;
+  border-radius: 50px;
+  min-height: 5px;
   min-width: 170px;
   margin-top: 10px;
   margin-left: 13px;
 }
 
-.label-battery-side, .label-bright-side, .label-ram-side, .label-vol-side{
+.label-battery-side, .label-bright-side, .label-ram-side, .label-vol-side {
   margin-top: 10px;
   font-family: Iosevka;
   margin-left: 35px;
@@ -229,7 +226,7 @@ button {
 }
 .label-ram-side {
   font-size: 30px;
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .label-battery-side {
   font-size: 18px;
@@ -245,33 +242,32 @@ button {
   margin: 20px 30px 20px 30px;
 }
 .search-side:hover {
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .sysbtn button {
   font-size: 30px;
 }
 .shutdown-side ~ button:hover {
-  color: #D35D6E;
+  color: #d35d6e;
 }
-.shutdown-side{
-  color: #D35D6E;
+.shutdown-side {
+  color: #d35d6e;
 }
-.shutdown-side:hover{
+.shutdown-side:hover {
   color: #ffd5cd;
 }
-.reboot-side{
+.reboot-side {
   color: #84afdb;
 }
-.lock-side{
+.lock-side {
   color: #ffd5cd;
 }
-.suspend-side{
+.suspend-side {
   color: #c47eb7;
 }
-.logout-side{
+.logout-side {
   color: #90c861;
 }
-
 
 // .calendar {
 //   margin: 20px;
@@ -287,42 +283,42 @@ button {
   margin-right: 20px;
 }
 .search-full:hover {
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .power-full {
   font-size: 45px;
-  color: #D35D6E;
+  color: #d35d6e;
 }
 .power-full:hover {
   color: #ffd5cd;
 }
 .reboot-full {
   font-size: 45px;
-  color: #84afdb
+  color: #84afdb;
 }
 .reboot-full:hover {
-  color: #D35D6E
+  color: #d35d6e;
 }
 .lock-full {
   font-size: 45px;
-  color: #ffd5cd
+  color: #ffd5cd;
 }
 .lock-full:hover {
-  color: #D35D6E
+  color: #d35d6e;
 }
 .suspend-full {
   font-size: 45px;
-  color: #c47eb7
+  color: #c47eb7;
 }
 .suspend-full:hover {
-  color: #D35D6E
+  color: #d35d6e;
 }
 .logout-full {
   font-size: 45px;
-  color: #90c861
+  color: #90c861;
 }
 .logout-full:hover {
-  color: #D35D6E
+  color: #d35d6e;
 }
 
 .pfp {
@@ -336,7 +332,7 @@ button {
 }
 .pfptxt {
   margin-top: 30px;
-  color: #D35D6E;
+  color: #d35d6e;
   font-size: 32px;
 }
 .subpfptxt {
@@ -354,7 +350,7 @@ button {
   padding-top: 20px;
   padding-bottom: 5px;
   font-weight: bold;
-  color: #D35D6E;
+  color: #d35d6e;
 }
 
 .temperature {
@@ -382,22 +378,22 @@ button {
   color: #ffd5cd;
 }
 .l1 {
- color: #84afdb;
+  color: #84afdb;
 }
 .l2 {
-//  color: #90c861;
+  //  color: #90c861;
 }
 .l3 {
- color: #c47eb7;
+  color: #c47eb7;
 }
 .l4 {
- color: #D35D6E;
+  color: #d35d6e;
 }
 .l5 {
   // color: #90c861;
 }
 .l6 {
-color: #84afdb;
+  color: #84afdb;
 }
 
 .quote-main {
@@ -406,7 +402,7 @@ color: #84afdb;
   margin-top: 20px;
   // margin-bottom: 20px;
   margin-left: 20px;
-  color: #A5b3c0;
+  color: #a5b3c0;
 }
 .quote-author {
   font-size: 14px;
@@ -420,7 +416,7 @@ color: #84afdb;
   // margin-top: 20px;
   margin-bottom: 10px;
   margin-left: 20px;
-  color: #A5b3c0;
+  color: #a5b3c0;
 }
 
 .screenshot-icon {

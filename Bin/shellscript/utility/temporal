@@ -1,11 +1,11 @@
 #!/bin/sh
 
-if type hyperfine > /dev/null 2>&1; then
+if type hyperfine >/dev/null 2>&1; then
   hyperfine \
     --ignore-failure \
     --warmup 50 \
     --min-runs 200 \
-    "$@" 2> /dev/null
+    "$@" 2>/dev/null
 else
   counter=0
   while [ $# -gt 0 ]; do

@@ -3,7 +3,7 @@ overrideCommand = ["leptosfmt", "--stdin", "--rustfmt"]
 
 [cargo]
 buildScripts = { enable = true }
-allFeatures = true  # Enable all features during analysis
+allFeatures = true               # Enable all features during analysis
 
 [check]
 command = "clippy"

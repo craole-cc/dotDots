@@ -5,14 +5,16 @@
     neovim.url = "github:nix-community/neovim-nightly-overlay";
   };
 
-  outputs = {
-    nixpkgs,
-    flake-utils,
-    neovim,
-    ...
-  }:
+  outputs =
+    {
+      nixpkgs,
+      flake-utils,
+      neovim,
+      ...
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
+      system:
+      let
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
@@ -20,7 +22,8 @@
             neovim.overlays.default
           ];
         };
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             vscodium-fhs

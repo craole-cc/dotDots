@@ -16,6 +16,6 @@ init_guix_home() {
 update_guix_home() { guix home reconfigure "${targetFILE}"; }
 
 case "$1" in
-  -r | -f | --reset) init_guix_home ;;
-  *) update_guix_home ;;
+-r | -f | --reset) init_guix_home ;;
+*) update_guix_home ;;
 esac

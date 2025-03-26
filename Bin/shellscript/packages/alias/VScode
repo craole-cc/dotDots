@@ -18,7 +18,7 @@ set -eu
 : "${codeNIX:=--extension some-nix-extension}"
 
 usage() {
-  cat << EOF >&2
+  cat <<EOF >&2
 Usage: $0 [option] [arguments...]
 
 Options:
@@ -38,32 +38,32 @@ parse_arguments() {
   fi
 
   case "$1" in
-    -D | --dots)
-      #@ Expand the DOTS configuration and pass remaining args.
-      shift
-      process_core "$codeDOTS" "$@"
-      ;;
-    -R | --rust)
-      shift
-      process_core "$codeRUST" "$@"
-      ;;
-    -N | --nix)
-      shift
-      process_core "$codeNIX" "$@"
-      ;;
-    -h | --help)
-      usage
-      ;;
-    *)
-      process_core "$@"
-      ;;
+  -D | --dots)
+    #@ Expand the DOTS configuration and pass remaining args.
+    shift
+    process_core "$codeDOTS" "$@"
+    ;;
+  -R | --rust)
+    shift
+    process_core "$codeRUST" "$@"
+    ;;
+  -N | --nix)
+    shift
+    process_core "$codeNIX" "$@"
+    ;;
+  -h | --help)
+    usage
+    ;;
+  *)
+    process_core "$@"
+    ;;
   esac
 }
 
 process_core() {
   #@ List Visual Studio Code variants in order of preference.
   for cmd in code-insiders code code-oss codium; do
-    if command -v "$cmd" > /dev/null 2>&1; then
+    if command -v "$cmd" >/dev/null 2>&1; then
       "$cmd" "$@" &
       printf "Launched %s with arguments: %s\n" "$cmd" "$*"
       return 0
@@ -71,7 +71,7 @@ process_core() {
   done
 
   #@ Fallback: Try Flatpak if available.
-  if command -v flatpak > /dev/null 2>&1 && flatpak info visualstudio.code > /dev/null 2>&1; then
+  if command -v flatpak >/dev/null 2>&1 && flatpak info visualstudio.code >/dev/null 2>&1; then
     flatpak run visualstudio.code "$@" &
     printf "Launched Flatpak version of Visual Studio Code with arguments: %s\n" "$*"
     return 0

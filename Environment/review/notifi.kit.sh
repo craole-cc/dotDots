@@ -13,14 +13,14 @@
 
 # __________________________________________ TPUT<|
 # TPUT() {
-  set -a
-  tp_red=$(tput setaf 1)
-  tp_green=$(tput setaf 2)
-  tp_blue=$(tput setaf 4)
-  tp_magenta=$(tput setaf 5)
-  tp_cyan=$(tput setaf 6)
-  tp_reset=$(tput sgr0)
-  set +a
+set -a
+tp_red=$(tput setaf 1)
+tp_green=$(tput setaf 2)
+tp_blue=$(tput setaf 4)
+tp_magenta=$(tput setaf 5)
+tp_cyan=$(tput setaf 6)
+tp_reset=$(tput sgr0)
+set +a
 # }
 # __________________________________________ ECHO<|
 

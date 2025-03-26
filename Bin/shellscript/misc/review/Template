@@ -4,8 +4,8 @@ echo "Test"
 # author: @theBuzzyCoder
 
 showHelp() {
-# `cat << EOF` This means that cat should stop reading when EOF is detected
-cat << EOF
+  # `cat << EOF` This means that cat should stop reading when EOF is detected
+  cat <<EOF
 Usage: ./installer -v <espo-version> [-hrV]
 Install Pre-requisites for EspoCRM with docker in Development mode
 
@@ -18,9 +18,8 @@ Install Pre-requisites for EspoCRM with docker in Development mode
 -V, -verbose,       --verbose               Run script in verbose mode. Will print out each step of execution.
 
 EOF
-# EOF is found above and hence cat command stops reading. This is equivalent to echo but much neater when printing out.
+  # EOF is found above and hence cat command stops reading. This is equivalent to echo but much neater when printing out.
 }
-
 
 export version=0
 export verbose=0
@@ -38,27 +37,27 @@ options=$(getopt -l "help,version:,verbose,rebuild,dryrun" -o "hv:Vrd" -a -- "$@
 # are set to the arguments, even if some of them begin with a ‘-’.
 eval set -- "$options"
 
-while true
-do
-case $1 in
--h|--help)
+while true; do
+  case $1 in
+  -h | --help)
     showHelp
     exit 0
     ;;
--v|--version)
+  -v | --version)
     shift
     export version=$1
     ;;
--V|--verbose)
+  -V | --verbose)
     export verbose=1
-    set -xv  # Set xtrace and verbose mode.
+    set -xv # Set xtrace and verbose mode.
     ;;
--r|--rebuild)
+  -r | --rebuild)
     export rebuild=1
     ;;
---)
+  --)
     shift
-    break;;
-esac
-shift
+    break
+    ;;
+  esac
+  shift
 done

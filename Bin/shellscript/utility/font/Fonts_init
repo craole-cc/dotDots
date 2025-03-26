@@ -15,8 +15,8 @@ conf_des="$CONFIG_HOME/fontconfig/conf.d"
 
 __new__() {
   LANG=C
-  diff --brief --recursive "$conf_src" "$conf_des" \
-    | grep "$conf_src*"
+  diff --brief --recursive "$conf_src" "$conf_des" |
+    grep "$conf_src*"
 }
 
 __link__() {

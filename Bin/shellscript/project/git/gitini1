@@ -70,15 +70,15 @@ get_dir() {
   #   git rev-parse --show-toplevel 2>/dev/null
   #   ;;
   # esac
-  git rev-parse --show-toplevel 2> /dev/null
+  git rev-parse --show-toplevel 2>/dev/null
 }
 
 get_config() {
-  git config --list --"${scope}" 2> /dev/null
+  git config --list --"${scope}" 2>/dev/null
 }
 
 get_remote_url() {
-  git config --get remote.origin.url 2> /dev/null
+  git config --get remote.origin.url 2>/dev/null
 }
 
 get_platform() {
@@ -113,7 +113,7 @@ get_user_name() {
 }
 
 get_user_email() {
-  git config --get user.email 2> /dev/null
+  git config --get user.email 2>/dev/null
   # TODO: as a fallback, fetch the public one if possible based on the user.name or repo url
 }
 
@@ -127,20 +127,20 @@ get_pat() {
 }
 
 get_branch() {
-  git rev-parse --abbrev-ref HEAD 2> /dev/null | grep -v HEAD \
-    || git describe --exact-match HEAD 2> /dev/null \
-    || git branch --show-current 2> /dev/null \
-    || git branch 2> /dev/null | sed --quiet 's/^\* //p' 2> /dev/null \
-    || printf "%s" "$default_branch"
+  git rev-parse --abbrev-ref HEAD 2>/dev/null | grep -v HEAD ||
+    git describe --exact-match HEAD 2>/dev/null ||
+    git branch --show-current 2>/dev/null ||
+    git branch 2>/dev/null | sed --quiet 's/^\* //p' 2>/dev/null ||
+    printf "%s" "$default_branch"
 }
 
 get_commit_message() {
-  if git log > /dev/null 2>&1; then
+  if git log >/dev/null 2>&1; then
     previous_message="$(git log -1 --pretty=%B)"
 
-    [ "$(git log --oneline | wc -l)" -eq 1 ] \
-      && [ "$previous_message" = "$icon_for_init" ] \
-      && previous_message="$icon_for_update"
+    [ "$(git log --oneline | wc -l)" -eq 1 ] &&
+      [ "$previous_message" = "$icon_for_init" ] &&
+      previous_message="$icon_for_update"
   else
     previous_message="$icon_for_init"
   fi
@@ -161,42 +161,42 @@ parse_arguments() {
 
   while [ "$#" -ge 1 ]; do
     case $1 in
-      -h | --help)
-        console_log "$(define_usage)" --ll
-        exit 0
-        ;;
-      -v | --version)
-        console_log "$_cmd_VERSION" --ll
-        exit 0
-        ;;
-      -d | --verbose | --debug) verbose=true ;;
-      -i | --info) info=true ;;
-      -n | --name)
-        if [ -z "$2" ]; then
-          console_log --error "No name provided for -n or --name option." --ll
-          exit 1
-        else
-          GEET_NAME="$2"
-        fi
-        ;;
-      -e | --email)
-        if [ -z "$2" ]; then
-          console_log --error "No email provided for -e or --email option." --ll
-          exit 1
-        else
-          GEET_EMAIL="$2"
-        fi
-        ;;
-      -b | --branch) GEET_BRANCH="$2" ;;
-      -m | --message) GEET_MESSAGE="$2" ;;
-      -s | --scope) GEET_SCOPE="$2" ;;
-      -c | --store-creds) GEET_STORE_CREDENTIALS=true ;;
-      -*)
-        console_log --error "Unknown Option:" "$1"
-        console_log "Use -h or --help to display the usage guide." --ll
+    -h | --help)
+      console_log "$(define_usage)" --ll
+      exit 0
+      ;;
+    -v | --version)
+      console_log "$_cmd_VERSION" --ll
+      exit 0
+      ;;
+    -d | --verbose | --debug) verbose=true ;;
+    -i | --info) info=true ;;
+    -n | --name)
+      if [ -z "$2" ]; then
+        console_log --error "No name provided for -n or --name option." --ll
         exit 1
-        ;;
-      *) message="$message $1" ;;
+      else
+        GEET_NAME="$2"
+      fi
+      ;;
+    -e | --email)
+      if [ -z "$2" ]; then
+        console_log --error "No email provided for -e or --email option." --ll
+        exit 1
+      else
+        GEET_EMAIL="$2"
+      fi
+      ;;
+    -b | --branch) GEET_BRANCH="$2" ;;
+    -m | --message) GEET_MESSAGE="$2" ;;
+    -s | --scope) GEET_SCOPE="$2" ;;
+    -c | --store-creds) GEET_STORE_CREDENTIALS=true ;;
+    -*)
+      console_log --error "Unknown Option:" "$1"
+      console_log "Use -h or --help to display the usage guide." --ll
+      exit 1
+      ;;
+    *) message="$message $1" ;;
     esac
     shift
   done
@@ -215,8 +215,8 @@ validate_dependencies() {
 
   # | Validate dependencies as executable files
   for dependency in $(parse_list "$_cmd_DEPENDENCIES"); do
-    pathof "$dependency" --is-executable \
-      || if [ -n "$missing_deps" ]; then
+    pathof "$dependency" --is-executable ||
+      if [ -n "$missing_deps" ]; then
         missing_deps="$missing_deps, $dependency"
       else
         missing_deps="$dependency"
@@ -228,8 +228,8 @@ validate_dependencies() {
 
   # | Count the number of missing dependencies
   missing_deps_count="$(
-    console_log "$missing_deps" \
-      | tr ',' '\n' | wc -l
+    console_log "$missing_deps" |
+      tr ',' '\n' | wc -l
   )"
 
   # | Update the error message based on the count
@@ -288,18 +288,18 @@ updates_pending() {
 set_config() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --key) key="$2" ;;
-      --val) val="$2" ;;
+    --key) key="$2" ;;
+    --val) val="$2" ;;
     esac
     shift
   done
 
-  [ "$key" ] && [ "$val" ] \
-    && eval "git config --${scope}" "$key" "$val"
+  [ "$key" ] && [ "$val" ] &&
+    eval "git config --${scope}" "$key" "$val"
 }
 
 set_dir() {
-  if git init --initial-branch="$branch" > /dev/null 2>&1; then
+  if git init --initial-branch="$branch" >/dev/null 2>&1; then
     [ "$verbose" ] && console_log --info "GIT_DIR" "$(get_dir)"
   else
     console_log --error "Failed to rename branch."
@@ -308,7 +308,7 @@ set_dir() {
 }
 
 set_branch() {
-  if git branch --move --force "$branch" > /dev/null 2>&1; then
+  if git branch --move --force "$branch" >/dev/null 2>&1; then
     [ "$verbose" ] && console_log --info "Branch" "$(get_branch)"
   else
     console_log --error "Failed to initialize the repository."
@@ -317,8 +317,8 @@ set_branch() {
 }
 
 set_credential_store() {
-  [ "$store_creds" ] \
-    && eval "git config --${scope} credential.helper store" 2> /dev/null
+  [ "$store_creds" ] &&
+    eval "git config --${scope} credential.helper store" 2>/dev/null
 }
 
 # set_remote_origin() {
@@ -356,8 +356,8 @@ execute_info() {
     console_log --info "EMAIL         " "$GEET_EMAIL"
     console_log --info "BRANCH        " "$GEET_BRANCH"
     console_log --info "URL           " "$GEET_URL"
-    [ "$GEET_PAT" ] \
-      && console_log --info "PAT           " "$GEET_PAT"
+    [ "$GEET_PAT" ] &&
+      console_log --info "PAT           " "$GEET_PAT"
     # console_log --info "SUBMODULES    " "$(get_submodules)"
     # set_message
     console_log --info "MESSAGE       " "$GEET_MESSAGE" --ll
@@ -368,8 +368,8 @@ execute_info() {
 
 execute_process() {
   if get_dir --quiet; then
-    [ "$branch" ] && [ "$(get_branch)" = "$branch" ] \
-      && set_branch
+    [ "$branch" ] && [ "$(get_branch)" = "$branch" ] &&
+      set_branch
   else
     branch="${branch:-"$default_branch"}"
     set_dir
@@ -382,9 +382,9 @@ execute_process() {
 
   # | Validate && Update
   if
-    get_user_name > /dev/null 2>&1 \
-      && get_user_email > /dev/null 2>&1 \
-      && get_branch > /dev/null 2>&1
+    get_user_name >/dev/null 2>&1 &&
+      get_user_email >/dev/null 2>&1 &&
+      get_branch >/dev/null 2>&1
   then
     updates_pending && {
       git add --all
@@ -407,7 +407,7 @@ define_usage() {
   padding=$(((${#border} - ${#title}) / 2))
   heading="$(printf "%*s\n" $((padding + ${#title})) "$title")"
   note="$(
-    fold -s -w $((${#border} - 6)) << 'NOTE' | sed 's/^/    /'
+    fold -s -w $((${#border} - 6)) <<'NOTE' | sed 's/^/    /'
  can be run with or without options. If options are not provided, it will attempt to perform a commit with the current repository state and default configurations.
 
 If the repository is not initialized, the script will initialize it with the specified branch. If both local and global configurations exist, the local configurations take precedence.
@@ -416,7 +416,7 @@ Also, if both an option and its corresponding environment variable are set, the 
 NOTE
   )"
 
-  cat << USAGE_GUIDE
+  cat <<USAGE_GUIDE
 $border
 $heading
 $border

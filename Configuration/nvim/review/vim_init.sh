@@ -21,36 +21,36 @@ set +o # ENV Export <End>
 # Validate dependencies
 Dependencies="p7zip neovim git curl ripgrep alacritty lf bat exa"
 for Dependency in $Dependencies; do
-    pacman --query --quiet | rg --quiet --word-regexp "$Dependency" ||
+  pacman --query --quiet | rg --quiet --word-regexp "$Dependency" ||
     sudo pacman \
-    --sync \
-    --refresh \
-    --sysupgrade \
-    --noconfirm \
-    --quiet \
-    --needed "$Dependency"
+      --sync \
+      --refresh \
+      --sysupgrade \
+      --noconfirm \
+      --quiet \
+      --needed "$Dependency"
 done
 
 # Establish Plugins Environment
-if [ -d "$nvim_autoload" ] ;then
-    mkDIR --parents "$nvim_archive"
-    tar -czvf "$archive_NameFmt"_autoload.tar.gz "$nvim_DIR"
-    cd "$nvim_DIR/.." && rm --force --recursive "$nvim_autoload"
+if [ -d "$nvim_autoload" ]; then
+  mkDIR --parents "$nvim_archive"
+  tar -czvf "$archive_NameFmt"_autoload.tar.gz "$nvim_DIR"
+  cd "$nvim_DIR/.." && rm --force --recursive "$nvim_autoload"
 fi
-    curl \
-        --fail \
-        --location \
-        --output "$plugINIT" \
-        --create-DIRs \
-        "$vim_plug"
+curl \
+  --fail \
+  --location \
+  --output "$plugINIT" \
+  --create-DIRs \
+  "$vim_plug"
 
 # Deploy NVIM Config Files
-if [ -d "$nvim_DIR" ] ;then
-    mkDIR --parents "$nvim_archive"
-    tar -czvf "$archive_NameFmt".tar.gz "$nvim_DIR"
-    cd "$nvim_DIR/.." && rm --force --recursive "$nvim_DIR"
+if [ -d "$nvim_DIR" ]; then
+  mkDIR --parents "$nvim_archive"
+  tar -czvf "$archive_NameFmt".tar.gz "$nvim_DIR"
+  cd "$nvim_DIR/.." && rm --force --recursive "$nvim_DIR"
 fi
-    mkDIR --parents "$nvim_DIR"
+mkDIR --parents "$nvim_DIR"
 
 cat <<\EOF >>"$nvim_plugRC"
 if empty(glob('~/.vim/autoload/plug.vim'))

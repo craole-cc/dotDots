@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Check if the value is a valid number"
   _cmd_DEPENDENCIES="ripgrep, weHave"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
               $_cmd_NAME <[options]> <[arguments]>
@@ -44,18 +44,18 @@ parse_args() {
   #@ Declare user options
   for arg in "$@"; do
     case "$arg" in
-      -h | --help) __help__ ;;
-      -v | --version) __version__ ;;
-      -d | --verbose) verbose=true ;;
-      -f | --float) allow_floats=true ;;
+    -h | --help) __help__ ;;
+    -v | --version) __version__ ;;
+    -d | --verbose) verbose=true ;;
+    -f | --float) allow_floats=true ;;
     esac
   done
 
   #@ Validate each number entered via a loop
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --* | -*) ;;
-      *) num="$1" ;;
+    --* | -*) ;;
+    *) num="$1" ;;
     esac
 
     __process__
@@ -86,9 +86,9 @@ __defaults__() {
 __msg__() {
   [ "$verbose" ] || return
   case "$1" in
-    --integer) printf "%s is an integer\n" "$num" ;;
-    --float) printf "%s is a floating-point number\n" "$num" ;;
-    --invalid) printf "%s is not a valid number\n" "$num" ;;
+  --integer) printf "%s is an integer\n" "$num" ;;
+  --float) printf "%s is a floating-point number\n" "$num" ;;
+  --invalid) printf "%s is not a valid number\n" "$num" ;;
   esac
 
 }
@@ -96,8 +96,8 @@ __msg__() {
 __process__() {
 
   #@ Float
-  if [ "$allow_floats" ] \
-    && echo "$num" | regrep "$regex_float"; then
+  if [ "$allow_floats" ] &&
+    echo "$num" | regrep "$regex_float"; then
     __msg__ --float
 
   #@ Integer

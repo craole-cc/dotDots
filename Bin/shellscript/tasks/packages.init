@@ -5,35 +5,35 @@
 installRust() {
   printf "%s\n" "Installing Rust via Rustup"
   case "${sys_INFO:-$(uname --all)}" in
-    *git*)
-      echo "Install Rust for Windows"
-      rustupHTTP="https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe"
-      rustupEXE="$DOTS_DOWN/tmp/rustup-init.exe"
+  *git*)
+    echo "Install Rust for Windows"
+    rustupHTTP="https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe"
+    rustupEXE="$DOTS_DOWN/tmp/rustup-init.exe"
 
-      #| Download EXE
-      curl "$rustupHTTP" \
-        --create-dirs \
-        --silent \
-        --output "$rustupEXE"
+    #| Download EXE
+    curl "$rustupHTTP" \
+      --create-dirs \
+      --silent \
+      --output "$rustupEXE"
 
-      #| Insatall
-      "$rustupEXE"
-      rm "$rustupEXE"
-      unset rustupHTTP rustupEXE
-      ;;
-    *)
-      # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-      curl https://sh.rustup.rs -sSf | sh -s -- \
-        --profile=default \
-        --default-toolchain nightly
-      ;;
+    #| Insatall
+    "$rustupEXE"
+    rm "$rustupEXE"
+    unset rustupHTTP rustupEXE
+    ;;
+  *)
+    # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    curl https://sh.rustup.rs -sSf | sh -s -- \
+      --profile=default \
+      --default-toolchain nightly
+    ;;
   esac
 }
 
 weHave rustc || installRust
 weHave cargo || installRust
-cargo-binstall -h > /dev/null 2>&1 || cargo install cargo-binstall
-cargo update -h > /dev/null 2>&1 || CargoInstall cargo-update
+cargo-binstall -h >/dev/null 2>&1 || cargo install cargo-binstall
+cargo update -h >/dev/null 2>&1 || CargoInstall cargo-update
 weHave cargo-watch || CargoInstall cargo-watch
 weHave cargo-add || CargoInstall cargo-add
 

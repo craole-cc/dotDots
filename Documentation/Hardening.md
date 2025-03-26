@@ -160,13 +160,12 @@ systemctl restart sshd
  ```
 
 ## UFW
-
 ---
 
 ```sh
 sudo pacman -Syu ufw;
 sudo systemctl enable ufw;
- ```
+```
 
 ## Fail2Ban
 
@@ -179,15 +178,15 @@ sudo pacman -Syu fail2ban;
 sudo systemctl enable fail2ban;
 sudo systemctl start fail2ban;
 sudo systemctl status fail2ban
- ```
+```
 
 ### Configure for SSH
 
-> *`sshd.local`*
+> _`sshd.local`_
 
- ```sh
- sudo vim /etc/fail2ban/jail.d/sshd.local
- ```
+```sh
+sudo vim /etc/fail2ban/jail.d/sshd.local
+```
 
 ```sh
 [sshd]
@@ -203,7 +202,7 @@ bantime   = 2w
 
 ### Refresh
 
- ```bash
+```bash
 sudo systemctl daemon-reload
 sudo systemctl restart fail2ban;
 ```

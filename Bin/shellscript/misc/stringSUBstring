@@ -9,8 +9,8 @@ __main__() {
   STRING="$1"
   SUBSTRING="$2"
   CHECK="$(
-    echo "$STRING" \
-      | grep --color='always' "$SUBSTRING"
+    echo "$STRING" |
+      grep --color='always' "$SUBSTRING"
   )"
 
   # # Test
@@ -19,9 +19,9 @@ __main__() {
   # echo "3 $3"
   # echo "4 $4"
 
-  [ ! "$_VERBOSE" ] \
-    && [ ! "$_ignoreCASE" ] && [ "$CHECK" ] \
-    && return 0
+  [ ! "$_VERBOSE" ] &&
+    [ ! "$_ignoreCASE" ] && [ "$CHECK" ] &&
+    return 0
 
   if [ "$_VERBOSE" ]; then
     if [ "$CHECK" ]; then
@@ -34,15 +34,15 @@ __main__() {
 }
 
 case $1 in
-  -i | --case)
-    shift
-    _ignoreCASE=true
-    ;;
-  -v | --verbose)
-    shift
-    _VERBOSE=true
-    ;;
-  -c | --check | *) ;;
+-i | --case)
+  shift
+  _ignoreCASE=true
+  ;;
+-v | --verbose)
+  shift
+  _VERBOSE=true
+  ;;
+-c | --check | *) ;;
 esac
 
 __main__ "$@"

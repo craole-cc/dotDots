@@ -7,24 +7,24 @@
 
 case "$sys_INFO" in
 *Windows*)
-    alacrittyCFG="$DOTS_APP/alacritty/win/alacritty.yml"
-    ;;
+  alacrittyCFG="$DOTS_APP/alacritty/win/alacritty.yml"
+  ;;
 *Linux*)
-    alacrittyCFG="$DOTS_APP/alacritty/alacritty.yml"
-    ;;
+  alacrittyCFG="$DOTS_APP/alacritty/alacritty.yml"
+  ;;
 esac
 
 #> Install <#
 if ! weHave alacritty; then
-    if weHave paru; then
-        Pin alacritty
-    elif weHave choco; then
-        cup alacritty -y
-    elif weHave winget; then
-        winget install alacritty
-    else
-        CargoInstall alacritty
-    fi
+  if weHave paru; then
+    Pin alacritty
+  elif weHave choco; then
+    cup alacritty -y
+  elif weHave winget; then
+    winget install alacritty
+  else
+    CargoInstall alacritty
+  fi
 fi
 
 #> Verify Instalation <#

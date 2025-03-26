@@ -17,18 +17,18 @@ ytChapSRC="${DOTS_DOWN:?}/yt_chapters/yt_chapters"
 ytChapLNK="${DOTS_BIN_IMPORT:?}/yt_chapters"
 
 if [ ! -d "$ytChapDIR" ]; then
-    updateGitUtils
+  updateGitUtils
 fi
 
 #> Establish Link in BIN
 if [ -f "$ytChapSRC" ]; then
-    ln \
-        --symbolic \
-        --force \
-        "$ytChapSRC" \
-        "$ytChapLNK"
+  ln \
+    --symbolic \
+    --force \
+    "$ytChapSRC" \
+    "$ytChapLNK"
 else
-    echo "$ytChapSRC" not found
+  echo "$ytChapSRC" not found
 fi
 
 #> Install <#

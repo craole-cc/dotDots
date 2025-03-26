@@ -26,10 +26,7 @@
     },
     "CSSLengthPercentage": {
       "pattern": "^[+-]?\\d+(?:\\.\\d+)?(?:%|ch|pt|px)?$",
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "DynamicProfileSource": {
       "enum": [
@@ -49,22 +46,12 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "audible",
-              "window",
-              "taskbar"
-            ]
+            "enum": ["audible", "window", "taskbar"]
           }
         },
         {
           "type": "string",
-          "enum": [
-            "audible",
-            "taskbar",
-            "window",
-            "all",
-            "none"
-          ]
+          "enum": ["audible", "taskbar", "window", "all", "none"]
         }
       ]
     },
@@ -73,10 +60,7 @@
       "description": "Sets the file location of the sound played when the application emits a BEL character. If the path is invalid no sound will be played. This property also accepts an array of sounds and the terminal will pick one at random.",
       "oneOf": [
         {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         {
           "type": "array",
@@ -93,11 +77,7 @@
           "type": "string"
         },
         {
-          "enum": [
-            "commandHistory",
-            "tasks",
-            "all"
-          ]
+          "enum": ["commandHistory", "tasks", "all"]
         }
       ]
     },
@@ -138,19 +118,13 @@
           "$ref": "#/$defs/Color",
           "default": "#cccccc",
           "description": "Sets the text color when unfocused. Overrides \"foreground\" from the color scheme. Uses hex color format: \"#rrggbb\".",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "background": {
           "$ref": "#/$defs/Color",
           "default": "#0c0c0c",
           "description": "Sets the background color of the text when unfocused. Overrides \"background\" from the color scheme. Uses hex color format: \"#rrggbb\".",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "selectionBackground": {
           "oneOf": [
@@ -191,25 +165,17 @@
           "description": "Sets the percentage height of the cursor (when unfocused) starting from the bottom. Only works when cursorShape is set to \"vintage\". Accepts values from 1-100.",
           "maximum": 100,
           "minimum": 1,
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "default": 25
         },
         "backgroundImage": {
           "description": "Sets the file location of the image to draw over the window background when unfocused.",
           "oneOf": [
             {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             {
-              "enum": [
-                "desktopWallpaper"
-              ]
+              "enum": ["desktopWallpaper"]
             }
           ]
         },
@@ -223,12 +189,7 @@
         "backgroundImageStretchMode": {
           "default": "uniformToFill",
           "description": "Sets how the background image is resized to fill the window when unfocused.",
-          "enum": [
-            "fill",
-            "none",
-            "uniform",
-            "uniformToFill"
-          ],
+          "enum": ["fill", "none", "uniform", "uniformToFill"],
           "type": "string"
         },
         "backgroundImageAlignment": {
@@ -250,22 +211,13 @@
         "intenseTextStyle": {
           "default": "bright",
           "description": "Controls how 'intense' text is rendered when unfocused. Values are \"bold\", \"bright\", \"all\" and \"none\"",
-          "enum": [
-            "none",
-            "bold",
-            "bright",
-            "all"
-          ],
+          "enum": ["none", "bold", "bright", "all"],
           "type": "string"
         },
         "adjustIndistinguishableColors": {
           "default": "never",
           "description": "Setting to adjust the foreground color to make it more visible, based on the background color. When set to \"indexed\", we will only adjust the colors if they came from the color scheme. Other possible values are \"never\" and \"always\".",
-          "enum": [
-            "never",
-            "indexed",
-            "always"
-          ],
+          "enum": ["never", "indexed", "always"],
           "type": "string"
         },
         "experimental.retroTerminalEffect": {
@@ -384,10 +336,7 @@
     },
     "Icon": {
       "description": "Image file location or an emoji to be used as an icon. Displays within the tab, the dropdown menu, and jumplist.",
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "ShortcutActionName": {
       "enum": [
@@ -489,45 +438,23 @@
       "type": "string"
     },
     "ScrollToMarkDirection": {
-      "enum": [
-        "previous",
-        "next",
-        "first",
-        "last"
-      ],
+      "enum": ["previous", "next", "first", "last"],
       "type": "string"
     },
     "ResizeDirection": {
-      "enum": [
-        "left",
-        "right",
-        "up",
-        "down"
-      ],
+      "enum": ["left", "right", "up", "down"],
       "type": "string"
     },
     "MoveTabDirection": {
-      "enum": [
-        "forward",
-        "backward"
-      ],
+      "enum": ["forward", "backward"],
       "type": "string"
     },
     "FindMatchDirection": {
-      "enum": [
-        "next",
-        "prev"
-      ],
+      "enum": ["next", "prev"],
       "type": "string"
     },
     "SplitDirection": {
-      "enum": [
-        "auto",
-        "up",
-        "right",
-        "down",
-        "left"
-      ],
+      "enum": ["auto", "up", "right", "down", "left"],
       "type": "string"
     },
     "CopyFormat": {
@@ -539,44 +466,25 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "html",
-              "rtf"
-            ]
+            "enum": ["html", "rtf"]
           }
         },
         {
           "type": "string",
-          "enum": [
-            "html",
-            "rtf",
-            "all",
-            "none"
-          ]
+          "enum": ["html", "rtf", "all", "none"]
         }
       ]
     },
     "AnchorKey": {
-      "enum": [
-        "ctrl",
-        "alt",
-        "shift"
-      ],
+      "enum": ["ctrl", "alt", "shift"],
       "type": "string"
     },
     "CommandPaletteLaunchMode": {
-      "enum": [
-        "action",
-        "commandLine"
-      ],
+      "enum": ["action", "commandLine"],
       "type": "string"
     },
     "ClearBufferType": {
-      "enum": [
-        "all",
-        "screen",
-        "scrollback"
-      ],
+      "enum": ["all", "screen", "scrollback"],
       "type": "string"
     },
     "NewTerminalArgs": {
@@ -646,16 +554,11 @@
           "$ref": "#/$defs/NewTabMenuEntryType"
         }
       },
-      "required": [
-        "type"
-      ],
+      "required": ["type"],
       "type": "object"
     },
     "FolderEntryInlining": {
-      "enum": [
-        "never",
-        "auto"
-      ]
+      "enum": ["never", "auto"]
     },
     "FolderEntry": {
       "description": "A folder entry in the new tab dropdown",
@@ -816,11 +719,7 @@
           "type": "null"
         },
         {
-          "enum": [
-            "mru",
-            "inOrder",
-            "disabled"
-          ],
+          "enum": ["mru", "inOrder", "disabled"],
           "type": "string"
         }
       ]
@@ -833,9 +732,7 @@
           "$ref": "#/$defs/ShortcutActionName"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     },
     "AdjustFontSizeAction": {
       "description": "Arguments corresponding to an Adjust Font Size Action",
@@ -858,9 +755,7 @@
           }
         }
       ],
-      "required": [
-        "delta"
-      ]
+      "required": ["delta"]
     },
     "CopyAction": {
       "description": "Arguments corresponding to a Copy Text Action",
@@ -942,9 +837,7 @@
           }
         }
       ],
-      "required": [
-        "index"
-      ]
+      "required": ["index"]
     },
     "MovePaneAction": {
       "description": "Arguments corresponding to a Move Pane Action",
@@ -967,9 +860,7 @@
           }
         }
       ],
-      "required": [
-        "index"
-      ]
+      "required": ["index"]
     },
     "MoveFocusAction": {
       "description": "Arguments corresponding to a Move Focus Action",
@@ -992,9 +883,7 @@
           }
         }
       ],
-      "required": [
-        "direction"
-      ]
+      "required": ["direction"]
     },
     "SwapPaneAction": {
       "description": "Arguments corresponding to a Swap Pane Action",
@@ -1017,9 +906,7 @@
           }
         }
       ],
-      "required": [
-        "direction"
-      ]
+      "required": ["direction"]
     },
     "ResizePaneAction": {
       "description": "Arguments corresponding to a Resize Pane Action",
@@ -1042,9 +929,7 @@
           }
         }
       ],
-      "required": [
-        "direction"
-      ]
+      "required": ["direction"]
     },
     "ScrollToMarkAction": {
       "description": "Arguments corresponding to a Scroll to Mark Action",
@@ -1067,9 +952,7 @@
           }
         }
       ],
-      "required": [
-        "direction"
-      ]
+      "required": ["direction"]
     },
     "SendInputAction": {
       "description": "Arguments corresponding to a Send Input Action",
@@ -1092,9 +975,7 @@
           }
         }
       ],
-      "required": [
-        "input"
-      ]
+      "required": ["input"]
     },
     "SplitPaneAction": {
       "description": "Arguments corresponding to a Split Pane Action",
@@ -1149,10 +1030,7 @@
               "type": "string",
               "default": "none",
               "description": "Specifies if only the selected text should be colored (0), or all instances of selected text (case-insensitive) (1).",
-              "enum": [
-                "none",
-                "all"
-              ]
+              "enum": ["none", "all"]
             },
             "foreground": {
               "$ref": "#/$defs/ColorOrIndex",
@@ -1187,12 +1065,7 @@
               "type": "string",
               "default": "settingsUI",
               "description": "Opens Settings UI or settings file.",
-              "enum": [
-                "settingsFile",
-                "defaultsFile",
-                "allFiles",
-                "settingsUI"
-              ]
+              "enum": ["settingsFile", "defaultsFile", "allFiles", "settingsUI"]
             }
           }
         }
@@ -1263,9 +1136,7 @@
           }
         }
       ],
-      "required": [
-        "colorScheme"
-      ]
+      "required": ["colorScheme"]
     },
     "SetFocusModeAction": {
       "description": "Arguments for a setFocusMode action",
@@ -1351,9 +1222,7 @@
           }
         }
       ],
-      "required": [
-        "commandline"
-      ]
+      "required": ["commandline"]
     },
     "CloseOtherTabsAction": {
       "description": "Arguments for a closeOtherTabs action",
@@ -1456,10 +1325,7 @@
               "const": "scrollUp"
             },
             "rowsToScroll": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": ["integer", "null"],
               "default": null,
               "description": "Scroll up rowsToScroll lines. If no value is provided, use the system-level defaults."
             }
@@ -1481,10 +1347,7 @@
               "const": "scrollDown"
             },
             "rowsToScroll": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": ["integer", "null"],
               "default": null,
               "description": "Scroll down rowsToScroll lines. If no value is provided, use the system-level defaults."
             }
@@ -1512,9 +1375,7 @@
           }
         }
       ],
-      "required": [
-        "direction"
-      ]
+      "required": ["direction"]
     },
     "MultipleActionsAction": {
       "description": "Arguments for the multiple actions command",
@@ -1540,9 +1401,7 @@
           }
         }
       ],
-      "required": [
-        "actions"
-      ]
+      "required": ["actions"]
     },
     "CommandPaletteAction": {
       "description": "Arguments for a commandPalette action",
@@ -1587,9 +1446,7 @@
           }
         }
       ],
-      "required": [
-        "direction"
-      ]
+      "required": ["direction"]
     },
     "NewWindowAction": {
       "description": "Arguments corresponding to a New Window Action",
@@ -1783,21 +1640,13 @@
               "type": "string",
               "default": "toCurrent",
               "description": "This controls how the terminal should interact with virtual desktops.\n- \"any\": Leave the window on whichever desktop it's already on - will switch to that desktop as the window is activated.\n- \"toCurrent\" (default): Move the window to the current virtual desktop.\n- \"onCurrent\": Only summon the window if it's already on the current virtual desktop. ",
-              "enum": [
-                "any",
-                "toCurrent",
-                "onCurrent"
-              ]
+              "enum": ["any", "toCurrent", "onCurrent"]
             },
             "monitor": {
               "type": "string",
               "default": "toMouse",
               "description": "This controls the monitor that the window will be summoned from/to.\n- \"any\": Summon the most recently used window, regardless of which monitor it's currently on.\n- \"toCurrent\": Summon the most recently used window to the monitor with the current foreground window.\n- \"toMouse\" (default): Summon the most recently used window to the monitor where the mouse cursor is.",
-              "enum": [
-                "any",
-                "toCurrent",
-                "toMouse"
-              ]
+              "enum": ["any", "toCurrent", "toMouse"]
             },
             "name": {
               "type": "string",
@@ -1855,9 +1704,7 @@
           }
         }
       ],
-      "required": [
-        "queryUrl"
-      ]
+      "required": ["queryUrl"]
     },
     "AdjustOpacityAction": {
       "description": "Changes the opacity of the active Terminal window. If `relative` is specified, then this action will increase/decrease relative to the current opacity.",
@@ -1914,20 +1761,11 @@
       ]
     },
     "ShowCloseButton": {
-      "enum": [
-        "always",
-        "hover",
-        "never",
-        "activeOnly"
-      ],
+      "enum": ["always", "hover", "never", "activeOnly"],
       "type": "string"
     },
     "IconStyle": {
-      "enum": [
-        "default",
-        "hidden",
-        "monochrome"
-      ],
+      "enum": ["default", "hidden", "monochrome"],
       "type": "string"
     },
     "ThemeColor": {
@@ -1994,11 +1832,7 @@
       "properties": {
         "applicationTheme": {
           "description": "Which UI theme the Terminal should use for controls",
-          "enum": [
-            "light",
-            "dark",
-            "system"
-          ],
+          "enum": ["light", "dark", "system"],
           "type": "string"
         },
         "useMica": {
@@ -2029,11 +1863,7 @@
           "type": "string",
           "description": "The name of the theme. This will be displayed in the settings UI.",
           "not": {
-            "enum": [
-              "light",
-              "dark",
-              "system"
-            ]
+            "enum": ["light", "dark", "system"]
           }
         },
         "tab": {
@@ -2223,11 +2053,7 @@
         },
         "name": {
           "description": "The name that will appear in the command palette. If one isn't provided, the terminal will attempt to automatically generate a name.\nIf name is a string, it will be the name of the command.\nIf name is a object, the key property of the object will be used to lookup a localized string resource for the command",
-          "type": [
-            "string",
-            "object",
-            "null"
-          ],
+          "type": ["string", "object", "null"],
           "properties": {
             "key": {
               "type": "string"
@@ -2241,10 +2067,7 @@
         "iterateOn": {
           "type": "string",
           "description": "Used to create iterable commands based on other objects in your settings. Possible values:\n- \"profiles\" \n- \"schemes\"",
-          "enum": [
-            "profiles",
-            "schemes"
-          ]
+          "enum": ["profiles", "schemes"]
         },
         "commands": {
           "description": "List of commands to execute",
@@ -2265,15 +2088,10 @@
       },
       "anyOf": [
         {
-          "required": [
-            "name",
-            "commands"
-          ]
+          "required": ["name", "commands"]
         },
         {
-          "required": [
-            "command"
-          ]
+          "required": ["command"]
         }
       ],
       "type": "object"
@@ -2303,15 +2121,10 @@
       },
       "anyOf": [
         {
-          "required": [
-            "keys",
-            "id"
-          ]
+          "required": ["keys", "id"]
         },
         {
-          "required": [
-            "keys"
-          ]
+          "required": ["keys"]
         }
       ],
       "type": "object"
@@ -2364,11 +2177,7 @@
         "compatibility.textMeasurement": {
           "default": "graphemes",
           "description": "This changes the way incoming text is grouped into cells. The \"graphemes\" option is the most modern and Unicode-correct way to do so, while \"wcswidth\" is a common approach on UNIX, and \"console\" replicates the way it used to work on Windows.",
-          "enum": [
-            "graphemes",
-            "wcswidth",
-            "console"
-          ]
+          "enum": ["graphemes", "wcswidth", "console"]
         },
         "copyFormatting": {
           "default": true,
@@ -2428,10 +2237,7 @@
         "rendering.graphicsAPI": {
           "description": "Direct3D 11 provides a more performant and feature-rich experience, whereas Direct2D is more stable. The default option \"Automatic\" will pick the API that best fits your graphics hardware. If you experience significant issues, consider using Direct2D.",
           "type": "string",
-          "enum": [
-            "direct2d",
-            "direct3d11"
-          ]
+          "enum": ["direct2d", "direct3d11"]
         },
         "rendering.disablePartialInvalidation": {
           "description": "By default, the text renderer uses a FLIP_SEQUENTIAL Swap Chain and declares dirty rectangles via the Present1 API. When this setting is enabled, a FLIP_DISCARD Swap Chain will be used instead, and no dirty rectangles will be declared. Whether one or the other is better depends on your hardware and various other factors.",
@@ -2476,10 +2282,7 @@
         "firstWindowPreference": {
           "default": "defaultProfile",
           "description": "Defines what behavior the terminal takes when it starts. \"defaultProfile\" will have the terminal launch with one tab of the default profile, and \"persistedWindowLayout\" will cause the terminal to save its layout on close and reload it on open.",
-          "enum": [
-            "defaultProfile",
-            "persistedWindowLayout"
-          ],
+          "enum": ["defaultProfile", "persistedWindowLayout"],
           "type": "string"
         },
         "launchMode": {
@@ -2499,10 +2302,7 @@
           "description": "This parameter once allowed you to override the systemwide \"choose how many lines to scroll at one time\" setting. It no longer does so. However, you can customize the number of lines to scroll in \"scrollUp\" and \"scrollDown\" bindings.",
           "maximum": 999,
           "minimum": 0,
-          "type": [
-            "integer",
-            "string"
-          ],
+          "type": ["integer", "string"],
           "deprecated": true
         },
         "minimizeToNotificationArea": {
@@ -2555,11 +2355,7 @@
               "type": "string"
             },
             {
-              "enum": [
-                "dark",
-                "light",
-                "system"
-              ]
+              "enum": ["dark", "light", "system"]
             },
             {
               "$ref": "#/$defs/ThemePair"
@@ -2591,11 +2387,7 @@
         "tabWidthMode": {
           "default": "equal",
           "description": "Sets the width of the tabs. Possible values include:\n -\"equal\" sizes each tab to the same width\n -\"titleLength\" sizes each tab to the length of its title\n -\"compact\" sizes each tab to the length of its title when focused, and shrinks to the size of only the icon when the tab is unfocused.",
-          "enum": [
-            "compact",
-            "equal",
-            "titleLength"
-          ],
+          "enum": ["compact", "equal", "titleLength"],
           "type": "string"
         },
         "wordDelimiters": {
@@ -2616,11 +2408,7 @@
               "type": "boolean"
             },
             {
-              "enum": [
-                "mru",
-                "inOrder",
-                "disabled"
-              ],
+              "enum": ["mru", "inOrder", "disabled"],
               "type": "string"
             }
           ],
@@ -2634,11 +2422,7 @@
               "type": "boolean"
             },
             {
-              "enum": [
-                "mru",
-                "inOrder",
-                "disabled"
-              ],
+              "enum": ["mru", "inOrder", "disabled"],
               "type": "string"
             }
           ]
@@ -2646,20 +2430,13 @@
         "windowingBehavior": {
           "default": "useNew",
           "description": "Controls how new terminal instances attach to existing windows. \"useNew\" will always create a new window. \"useExisting\" will create new tabs in the most recently used window on this virtual desktop, and \"useAnyExisting\" will create tabs in the most recent window on any desktop.",
-          "enum": [
-            "useNew",
-            "useExisting",
-            "useAnyExisting"
-          ],
+          "enum": ["useNew", "useExisting", "useAnyExisting"],
           "type": "string"
         },
         "newTabPosition": {
           "default": "afterLastTab",
           "description": "Position of newly created tabs. Possible values are \"afterLastTab\" and \"afterCurrentTab\".",
-          "enum": [
-            "afterLastTab",
-            "afterCurrentTab"
-          ],
+          "enum": ["afterLastTab", "afterCurrentTab"],
           "type": "string"
         },
         "autoHideWindow": {
@@ -2668,9 +2445,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "defaultProfile"
-      ]
+      "required": ["defaultProfile"]
     },
     "Profile": {
       "description": "Properties specific to a unique profile.",
@@ -2688,21 +2463,14 @@
         "antialiasingMode": {
           "default": "grayscale",
           "description": "Controls how text is antialiased in the renderer. Possible values are \"grayscale\", \"cleartype\" and \"aliased\". Note that changing this setting will require starting a new terminal instance.",
-          "enum": [
-            "grayscale",
-            "cleartype",
-            "aliased"
-          ],
+          "enum": ["grayscale", "cleartype", "aliased"],
           "type": "string"
         },
         "background": {
           "$ref": "#/$defs/Color",
           "default": "#0c0c0c",
           "description": "Sets the background color of the text. Overrides \"background\" from the color scheme. Uses hex color format: \"#rrggbb\".",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "compatibility.reloadEnvironmentVariables": {
           "default": true,
@@ -2712,32 +2480,21 @@
         "unfocusedAppearance": {
           "$ref": "#/$defs/AppearanceConfig",
           "description": "Sets the appearance of the terminal when it is unfocused.",
-          "type": [
-            "object",
-            "null"
-          ]
+          "type": ["object", "null"]
         },
         "font": {
           "$ref": "#/$defs/FontConfig",
           "description": "Sets the font options of the terminal.",
-          "type": [
-            "object",
-            "null"
-          ]
+          "type": ["object", "null"]
         },
         "backgroundImage": {
           "description": "Sets the file location of the image to draw over the window background.",
           "anyOf": [
             {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             {
-              "enum": [
-                "desktopWallpaper"
-              ]
+              "enum": ["desktopWallpaper"]
             }
           ]
         },
@@ -2767,12 +2524,7 @@
         "backgroundImageStretchMode": {
           "default": "uniformToFill",
           "description": "Sets how the background image is resized to fill the window.",
-          "enum": [
-            "fill",
-            "none",
-            "uniform",
-            "uniformToFill"
-          ],
+          "enum": ["fill", "none", "uniform", "uniformToFill"],
           "type": "string"
         },
         "bellStyle": {
@@ -2789,12 +2541,7 @@
           "description": "Sets how the profile reacts to termination or failure to launch. Possible values:\n -\"graceful\" (close when exit is typed or the process exits normally)\n -\"always\" (always close)\n -\"automatic\" (behave as \"graceful\" only for processes launched by terminal, behave as \"always\" otherwise)\n -\"never\" (never close).\ntrue and false are accepted as synonyms for \"graceful\" and \"never\" respectively.",
           "oneOf": [
             {
-              "enum": [
-                "never",
-                "graceful",
-                "always",
-                "automatic"
-              ],
+              "enum": ["never", "graceful", "always", "automatic"],
               "type": "string"
             },
             {
@@ -2833,10 +2580,7 @@
           "description": "Sets the percentage height of the cursor starting from the bottom. Only works when cursorShape is set to \"vintage\". Accepts values from 1-100.",
           "maximum": 100,
           "minimum": 1,
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "default": 25
         },
         "cursorShape": {
@@ -2946,22 +2690,14 @@
         "intenseTextStyle": {
           "default": "bright",
           "description": "Controls how 'intense' text is rendered. Values are \"bold\", \"bright\", \"all\" and \"none\"",
-          "enum": [
-            "none",
-            "bold",
-            "bright",
-            "all"
-          ],
+          "enum": ["none", "bold", "bright", "all"],
           "type": "string"
         },
         "foreground": {
           "$ref": "#/$defs/Color",
           "default": "#cccccc",
           "description": "Sets the text color. Overrides \"foreground\" from the color scheme. Uses hex color format: \"#rrggbb\".",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "guid": {
           "$ref": "#/$defs/ProfileGuid",
@@ -3009,21 +2745,13 @@
         "adjustIndistinguishableColors": {
           "default": "never",
           "description": "Setting to adjust the foreground color to make it more visible, based on the background color. When set to \"indexed\", we will only adjust the colors if they came from the color scheme. Other possible values are \"never\" and \"always\".",
-          "enum": [
-            "never",
-            "indexed",
-            "always"
-          ],
+          "enum": ["never", "indexed", "always"],
           "type": "string"
         },
         "scrollbarState": {
           "default": "visible",
           "description": "Defines the visibility of the scrollbar.",
-          "enum": [
-            "visible",
-            "hidden",
-            "always"
-          ],
+          "enum": ["visible", "hidden", "always"],
           "type": "string"
         },
         "selectionBackground": {
@@ -3053,17 +2781,11 @@
         },
         "source": {
           "description": "Stores the name of the profile generator that originated this profile.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "startingDirectory": {
           "description": "The directory the shell starts in when it is loaded.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "suppressApplicationTitle": {
           "description": "When set to true, tabTitle overrides the default title of the tab and any title change messages from the application will be suppressed. When set to false, tabTitle behaves as normal.",
@@ -3073,17 +2795,11 @@
         "tabColor": {
           "$ref": "#/$defs/Color",
           "description": "Sets the color of the profile's tab. Using the tab color picker will override this color.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "tabTitle": {
           "description": "If set, will replace the name as the title to pass to the shell on startup. Some shells (like bash) may choose to ignore this initial value, while others (cmd, powershell) may use this value over the lifetime of the application.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "useAcrylic": {
           "default": false,
@@ -3096,10 +2812,7 @@
       "description": "A list of profiles and the properties specific to each.",
       "items": {
         "$ref": "#/$defs/Profile",
-        "required": [
-          "guid",
-          "name"
-        ]
+        "required": ["guid", "name"]
       },
       "type": "array"
     },
@@ -3235,11 +2948,7 @@
           "$ref": "#/$defs/SchemeList"
         }
       },
-      "required": [
-        "profiles",
-        "schemes",
-        "defaultProfile"
-      ]
+      "required": ["profiles", "schemes", "defaultProfile"]
     }
   ]
 }

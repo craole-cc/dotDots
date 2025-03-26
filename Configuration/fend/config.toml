@@ -34,9 +34,9 @@ unknown-settings = 'warn'
 #
 [colors]
 built-in-function = { foreground = 'blue', bold = true }
-date              = {}
-identifier        = { foreground = 'white' }
-keyword           = { foreground = 'blue', bold = true }
-number            = {}
-other             = {}
-string            = {}
+date = {}
+identifier = { foreground = 'white' }
+keyword = { foreground = 'blue', bold = true }
+number = {}
+other = {}
+string = {}

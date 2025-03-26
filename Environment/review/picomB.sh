@@ -6,14 +6,14 @@ _picom_CFG="$_picom_DOTS/picom.conf"
 
 #> Install <#
 if ! weHave picom; then
-    OS=$(mango --lower "$sys_NAME")
-    case $OS in
-    *arch*) Pin picom ;;
-    *) ;;
-    esac
-    # if weHave paru; then
-    #     Pin picom
-    # fi
+  OS=$(mango --lower "$sys_NAME")
+  case $OS in
+  *arch*) Pin picom ;;
+  *) ;;
+  esac
+  # if weHave paru; then
+  #     Pin picom
+  # fi
 fi
 
 #> Verify Instalation <#

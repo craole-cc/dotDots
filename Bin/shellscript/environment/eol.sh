@@ -31,7 +31,7 @@ scr_AUTHORS="Authors:
     Craole <iamcraole@gmail.com>
 "
 scr_HELP="$(
-  cat << HELP
+  cat <<HELP
   $scr_NAME [v.$scr_VERSION] $scr_DESCRIPTION.
 
   $scr_USAGE
@@ -77,27 +77,27 @@ parse_arguments() {
   #@ Accept user options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -h | --help)
-        printf "%s\n" "$scr_HELP"
-        exit 0
-        ;;
-      -v | --version)
-        printf "%s\n" "$scr_VERSION"
-        exit 0
-        ;;
-      # -d | --verbose) verbose=true ;;e
-      -q | --quiet) unset verbose ;;
-      -c | --cr) target_eol="cr" ;;
-      -l | --lf) target_eol="lf" ;;
+    -h | --help)
+      printf "%s\n" "$scr_HELP"
+      exit 0
+      ;;
+    -v | --version)
+      printf "%s\n" "$scr_VERSION"
+      exit 0
+      ;;
+    # -d | --verbose) verbose=true ;;e
+    -q | --quiet) unset verbose ;;
+    -c | --cr) target_eol="cr" ;;
+    -l | --lf) target_eol="lf" ;;
     esac
     shift
   done
 
   #@ If unset, set default eol based on Operating System
-  [ "$target_eol" ] \
-    || case $(os.type.fetch) in
-      Windows) target_eol="cr" ;;
-      *) target_eol="lf" ;;
+  [ "$target_eol" ] ||
+    case $(os.type.fetch) in
+    Windows) target_eol="cr" ;;
+    *) target_eol="lf" ;;
     esac
 
   echo "$target_eol"
@@ -117,14 +117,14 @@ process_core() {
       fi
 
       case "$target_eol" in
-        "cr")
-          convert_to_cr "$file"
-          printf "| %s | LF to CRLF |\n" "$file"
-          ;;
-        "lf")
-          convert_to_lf "$file"
-          printf "| %s | CRLF to LF |\n" "$file"
-          ;;
+      "cr")
+        convert_to_cr "$file"
+        printf "| %s | LF to CRLF |\n" "$file"
+        ;;
+      "lf")
+        convert_to_lf "$file"
+        printf "| %s | CRLF to LF |\n" "$file"
+        ;;
       esac
 
       files_processed=$((files_processed + 1))
@@ -162,11 +162,11 @@ display_info() { #@ Display information to via Stdout or Notification
   [ "$*" ] || return 1
 
   case "$1" in
-    -l | -n | --new-line)
-      shift
-      printf '%s\n' "$*"
-      ;;
-    *) printf '%s' "$*" ;;
+  -l | -n | --new-line)
+    shift
+    printf '%s\n' "$*"
+    ;;
+  *) printf '%s' "$*" ;;
   esac
 }
 

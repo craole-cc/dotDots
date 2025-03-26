@@ -36,65 +36,65 @@ set_defaults() {
 
   #| Attributes
   __normal=$(
-    tput sgr0 2> /dev/null \
-      || tput me 2> /dev/null \
-      || printf '%b' '\033[0m'
+    tput sgr0 2>/dev/null ||
+      tput me 2>/dev/null ||
+      printf '%b' '\033[0m'
   )
   __bold=$(
-    tput bold 2> /dev/null \
-      || tput md 2> /dev/null \
-      || printf '%b' '\033[1m'
+    tput bold 2>/dev/null ||
+      tput md 2>/dev/null ||
+      printf '%b' '\033[1m'
   )
   __underline=$(
-    tput smul 2> /dev/null \
-      || tput um 2> /dev/null \
-      || tput us 2> /dev/null \
-      || printf '%b' '\033[4m'
+    tput smul 2>/dev/null ||
+      tput um 2>/dev/null ||
+      tput us 2>/dev/null ||
+      printf '%b' '\033[4m'
   )
   __italic=$(
-    tput sitm 2> /dev/null \
-      || tput it 2> /dev/null \
-      || tput ti 2> /dev/null \
-      || printf '%b' '\033[3m'
+    tput sitm 2>/dev/null ||
+      tput it 2>/dev/null ||
+      tput ti 2>/dev/null ||
+      printf '%b' '\033[3m'
   )
   __blink=$(
-    tput blink 2> /dev/null \
-      || tput mb 2> /dev/null \
-      || printf '%b' '\033[5m'
+    tput blink 2>/dev/null ||
+      tput mb 2>/dev/null ||
+      printf '%b' '\033[5m'
   )
 
   #| Colors
   __black=$(
-    tput setaf 0 2> /dev/null \
-      || printf '%b' '\033[30m'
+    tput setaf 0 2>/dev/null ||
+      printf '%b' '\033[30m'
   )
   __red=$(
-    tput setaf 1 2> /dev/null \
-      || printf '%b' '\033[31m'
+    tput setaf 1 2>/dev/null ||
+      printf '%b' '\033[31m'
   )
   __green=$(
-    tput setaf 2 2> /dev/null \
-      || printf '%b' '\033[32m'
+    tput setaf 2 2>/dev/null ||
+      printf '%b' '\033[32m'
   )
   __yellow=$(
-    tput setaf 3 2> /dev/null \
-      || printf '%b' '\033[33m'
+    tput setaf 3 2>/dev/null ||
+      printf '%b' '\033[33m'
   )
   __blue=$(
-    tput setaf 4 2> /dev/null \
-      || printf '%b' '\033[34m'
+    tput setaf 4 2>/dev/null ||
+      printf '%b' '\033[34m'
   )
   __magenta=$(
-    tput setaf 5 2> /dev/null \
-      || printf '%b' '\033[35m'
+    tput setaf 5 2>/dev/null ||
+      printf '%b' '\033[35m'
   )
   __cyan=$(
-    tput setaf 6 2> /dev/null \
-      || printf '%b' '\033[36m'
+    tput setaf 6 2>/dev/null ||
+      printf '%b' '\033[36m'
   )
   __white=$(
-    tput setaf 7 2> /dev/null \
-      || printf '%b' '\033[37m'
+    tput setaf 7 2>/dev/null ||
+      printf '%b' '\033[37m'
   )
 
   #| Templates with overrides
@@ -152,25 +152,25 @@ set_verbosity() {
 
   #@ Set verbosity based on arguments or defaults
   case "${1:-"$verbosity"}" in
-    0 | quiet | false | off) verbosity=0 ;;
-    1 | error | fail*) verbosity=1 ;;
-    2 | warn*) verbosity=2 ;;
-    3 | info | normal) verbosity=3 ;;
-    4 | verbose | true | debug | on) verbosity=4 ;;
-    5 | trace) verbosity=5 ;;
-    *[0-9]* | *[0-9][0-9]*) verbosity="$1" ;;
-    *) verbosity=3 ;;
+  0 | quiet | false | off) verbosity=0 ;;
+  1 | error | fail*) verbosity=1 ;;
+  2 | warn*) verbosity=2 ;;
+  3 | info | normal) verbosity=3 ;;
+  4 | verbose | true | debug | on) verbosity=4 ;;
+  5 | trace) verbosity=5 ;;
+  *[0-9]* | *[0-9][0-9]*) verbosity="$1" ;;
+  *) verbosity=3 ;;
   esac
 
   #@ Parse arguments
   for arg in "$@"; do
     case "$arg" in
-      -q | --quiet) verbosity=0 ;;
-      -qe | --error) verbosity=1 ;;
-      -qw | --warn*) verbosity=2 ;;
-      -i | --info | --normal) verbosity=3 ;;
-      -vv | --verbose | -d | --debug*) verbosity=4 ;;
-      -V | -[dD][dD] | -[tT] | --trace*) verbosity=5 ;;
+    -q | --quiet) verbosity=0 ;;
+    -qe | --error) verbosity=1 ;;
+    -qw | --warn*) verbosity=2 ;;
+    -i | --info | --normal) verbosity=3 ;;
+    -vv | --verbose | -d | --debug*) verbosity=4 ;;
+    -V | -[dD][dD] | -[tT] | --trace*) verbosity=5 ;;
     esac
   done
 
@@ -184,31 +184,31 @@ set_verbosity() {
 
 set_format() {
   case "$1" in
-    black) printf "%s" "$__black" ;;
-    red) printf "%s" "$__red" ;;
-    green) printf "%s" "$__green" ;;
-    yellow) printf "%s" "$__yellow" ;;
-    blue) printf "%s" "$__blue" ;;
-    magenta) printf "%s" "$__magenta" ;;
-    cyan) printf "%s" "$__cyan" ;;
-    white) printf "%s" "$__white" ;;
-    bold) printf "%s" "$__bold" ;;
-    italic) printf "%s" "$__italic" ;;
-    underline) printf "%s" "$__underline" ;;
-    blink) printf "%s" "$__blink" ;;
-    success) printf "%s" "${__green}${__bold}" ;;
-    failure) printf "%s" "${__red}${__bold}" ;;
-    info) printf "%s" "${__blue}${__bold}" ;;
-    information) printf "%s" "${__blue}${__bold}" ;;
-    warn) printf "%s" "${__yellow}${__bold}" ;;
-    warning) printf "%s" "${__yellow}${__bold}" ;;
-    error) printf "%s" "${__red}${__bold}" ;;
-    debug) printf "%s" "${__magenta}${__bold}" ;;
-    trace) printf "%s" "${__cyan}${__bold}" ;;
-    highlight) printf "%s" "${__underline}${__bold}" ;;
-    emphasis) printf "%s" "${__italic}${__bold}" ;;
-    normal | reset) printf "%s" "$__normal" ;;
-    *) printf "%s" "$__normal" ;;
+  black) printf "%s" "$__black" ;;
+  red) printf "%s" "$__red" ;;
+  green) printf "%s" "$__green" ;;
+  yellow) printf "%s" "$__yellow" ;;
+  blue) printf "%s" "$__blue" ;;
+  magenta) printf "%s" "$__magenta" ;;
+  cyan) printf "%s" "$__cyan" ;;
+  white) printf "%s" "$__white" ;;
+  bold) printf "%s" "$__bold" ;;
+  italic) printf "%s" "$__italic" ;;
+  underline) printf "%s" "$__underline" ;;
+  blink) printf "%s" "$__blink" ;;
+  success) printf "%s" "${__green}${__bold}" ;;
+  failure) printf "%s" "${__red}${__bold}" ;;
+  info) printf "%s" "${__blue}${__bold}" ;;
+  information) printf "%s" "${__blue}${__bold}" ;;
+  warn) printf "%s" "${__yellow}${__bold}" ;;
+  warning) printf "%s" "${__yellow}${__bold}" ;;
+  error) printf "%s" "${__red}${__bold}" ;;
+  debug) printf "%s" "${__magenta}${__bold}" ;;
+  trace) printf "%s" "${__cyan}${__bold}" ;;
+  highlight) printf "%s" "${__underline}${__bold}" ;;
+  emphasis) printf "%s" "${__italic}${__bold}" ;;
+  normal | reset) printf "%s" "$__normal" ;;
+  *) printf "%s" "$__normal" ;;
   esac
 }
 
@@ -219,10 +219,10 @@ list_options() {
   _list_delimiter="${3:- }"
   _list_separator="${4:-, }"
 
-  printf "%s\n" "$_list_options" \
-    | tr "$_list_delimiter" '\n' \
-    | sort -u \
-    | awk -v def="$_list_default" -v sep="$_list_separator" '
+  printf "%s\n" "$_list_options" |
+    tr "$_list_delimiter" '\n' |
+    sort -u |
+    awk -v def="$_list_default" -v sep="$_list_separator" '
         BEGIN {first=1} {
           # Tag default option
           if ($0 == def) $0 = $0 " [default]"
@@ -246,10 +246,10 @@ list_options() {
   _list_delimiter="${3:- }"
   _list_separator="${4:-, }"
 
-  printf "%s" "$_list_options" \
-    | tr "$_list_delimiter" '\n' \
-    | sort -u \
-    | awk -v def="$_list_default" -v sep="$_list_separator" '
+  printf "%s" "$_list_options" |
+    tr "$_list_delimiter" '\n' |
+    sort -u |
+    awk -v def="$_list_default" -v sep="$_list_separator" '
     BEGIN { count = 0 }
     {
         # Tag the default option
@@ -277,24 +277,24 @@ list_options() {
 templates() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --invalid)
-        shift
+    --invalid)
+      shift
 
-        __msg_type="error"
-        __tag="$1"
-        _field="$2"
-        _option="$3"
-        _options="$4"
-        __msg="An invalid ${_field}, \"${__bold}${_option}${__normal},\" was provided. Instead, try one of the following: ${__italic}$(list_options "$_options")${__normal}."
+      __msg_type="error"
+      __tag="$1"
+      _field="$2"
+      _option="$3"
+      _options="$4"
+      __msg="An invalid ${_field}, \"${__bold}${_option}${__normal},\" was provided. Instead, try one of the following: ${__italic}$(list_options "$_options")${__normal}."
 
-        # pout --name "$fn_name" --type "$log_type" --msg \
-        #   "An invalid ${field}," \
-        #   "\"${__bold}${given_option}\"${__normal}," \
-        #   "was provided. Instead, try any of the following:" \
-        #   "$__italic$(
-        #     list_options "$valid_options"
-        #   )$__normal."
-        ;;
+      # pout --name "$fn_name" --type "$log_type" --msg \
+      #   "An invalid ${field}," \
+      #   "\"${__bold}${given_option}\"${__normal}," \
+      #   "was provided. Instead, try any of the following:" \
+      #   "$__italic$(
+      #     list_options "$valid_options"
+      #   )$__normal."
+      ;;
     esac
     shift
   done
@@ -331,114 +331,114 @@ tests() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      -h)
-        printf '%s' "$scr_usage"
-        exit "$__code"
-        ;;
-      --help)
-        printf '%s' "$scr_guide"
-        exit "$__code"
-        ;;
-      -v)
-        printf '%s' "$scr_version"
-        exit "$__code"
-        ;;
-      --version)
-        printf "%s [ v.%s ]\n" "$scr_name" "$scr_version"
-        exit "$__code"
-        ;;
-      --quiet | --error | --warn | --info | --debug | --trace)
-        __msg_type=${1#--}
-        ;;
-      -*level | -*verb*)
-        if [ "$2" ]; then
-          set_verbosity "$2"
-          shift
-        else
-          set_verbosity
-        fi
-        ;;
-      -t | --tag | -N | --name)
-        if [ "$2" ]; then
-          __tag="$2"
-          shift
-        else
-          printf "ERROR: Tag not specified.\n"
-          __code=1
-          exit "$__code"
-        fi
-        ;;
-      -*type)
-        if [ "$2" ]; then
-          __msg_type="$(validate "$2" "$__msg_types")"
-          #@ Throw error if message type is invalid
-          [ -n "$__msg_type" ] || {
-            templates --invalid "parse_arguments" "message type" "$2" "$__msg_types"
-            __code=1
-            exit "$__code"
-          }
-          shift
-        else
-          #@ Throw error if message type is not specified
-          pout --name "parse_arguments" --type error --msg "Message type not specified"
-          __code=1
-          exit "$__code"
-        fi
-        ;;
-      -*lead*l* | --ll)
-        __lead_lines=1
-        [ -n "$2" ] && {
-          __lead_lines="$(validate --integer "$2" || {
-            printf "ERROR: Invalid leading line count: %s\n" "$2"
-            exit "$__code"
-          })"
-          shift
-        }
-        ;;
-      -*trail*l* | --tl)
-        __trail_lines=1
-        [ -n "$2" ] && {
-          __trail_lines="$(validate --integer "$2" || {
-            printf "ERROR: Invalid trailing line count: %s\n" "$2"
-            exit "$__code"
-          })"
-          shift
-        }
-        ;;
-      -*trail*s | --ts)
-        [ "$2" ] && {
-          __trail_sep="$2"
-          shift
-        }
-        ;;
-      -m | -*message | -*msg)
-        while [ "$#" -gt 1 ]; do
-          case "$2" in
-            -*) break ;;
-            *)
-              __msg="${__msg:+$__msg }$2"
-              shift
-              ;;
-          esac
-        done
-        ;;
-      -c | -*code)
-        if [ "$2" ]; then
-          __code="$2"
-          shift
-        else
-          __code=1
-        fi
-        ;;
-      --) ;;
-      -*)
-        printf 'ERROR: Unknown option '%s'\n' "$1" >&2
+    -h)
+      printf '%s' "$scr_usage"
+      exit "$__code"
+      ;;
+    --help)
+      printf '%s' "$scr_guide"
+      exit "$__code"
+      ;;
+    -v)
+      printf '%s' "$scr_version"
+      exit "$__code"
+      ;;
+    --version)
+      printf "%s [ v.%s ]\n" "$scr_name" "$scr_version"
+      exit "$__code"
+      ;;
+    --quiet | --error | --warn | --info | --debug | --trace)
+      __msg_type=${1#--}
+      ;;
+    -*level | -*verb*)
+      if [ "$2" ]; then
+        set_verbosity "$2"
+        shift
+      else
+        set_verbosity
+      fi
+      ;;
+    -t | --tag | -N | --name)
+      if [ "$2" ]; then
+        __tag="$2"
+        shift
+      else
+        printf "ERROR: Tag not specified.\n"
         __code=1
         exit "$__code"
-        ;;
-      *)
-        __msg="${__msg:+$__msg }$1"
-        ;;
+      fi
+      ;;
+    -*type)
+      if [ "$2" ]; then
+        __msg_type="$(validate "$2" "$__msg_types")"
+        #@ Throw error if message type is invalid
+        [ -n "$__msg_type" ] || {
+          templates --invalid "parse_arguments" "message type" "$2" "$__msg_types"
+          __code=1
+          exit "$__code"
+        }
+        shift
+      else
+        #@ Throw error if message type is not specified
+        pout --name "parse_arguments" --type error --msg "Message type not specified"
+        __code=1
+        exit "$__code"
+      fi
+      ;;
+    -*lead*l* | --ll)
+      __lead_lines=1
+      [ -n "$2" ] && {
+        __lead_lines="$(validate --integer "$2" || {
+          printf "ERROR: Invalid leading line count: %s\n" "$2"
+          exit "$__code"
+        })"
+        shift
+      }
+      ;;
+    -*trail*l* | --tl)
+      __trail_lines=1
+      [ -n "$2" ] && {
+        __trail_lines="$(validate --integer "$2" || {
+          printf "ERROR: Invalid trailing line count: %s\n" "$2"
+          exit "$__code"
+        })"
+        shift
+      }
+      ;;
+    -*trail*s | --ts)
+      [ "$2" ] && {
+        __trail_sep="$2"
+        shift
+      }
+      ;;
+    -m | -*message | -*msg)
+      while [ "$#" -gt 1 ]; do
+        case "$2" in
+        -*) break ;;
+        *)
+          __msg="${__msg:+$__msg }$2"
+          shift
+          ;;
+        esac
+      done
+      ;;
+    -c | -*code)
+      if [ "$2" ]; then
+        __code="$2"
+        shift
+      else
+        __code=1
+      fi
+      ;;
+    --) ;;
+    -*)
+      printf 'ERROR: Unknown option '%s'\n' "$1" >&2
+      __code=1
+      exit "$__code"
+      ;;
+    *)
+      __msg="${__msg:+$__msg }$1"
+      ;;
     esac
     shift
   done
@@ -468,35 +468,35 @@ print_out() {
 
   #@ Format the title with consistent spacing and color handling
   case "$__msg_type" in
-    err*)
-      [ "$__level" -ge "$__level_error" ] || exit "$__code"
-      __title="$(printf '%b[ERROR]%b' "$__error" "$__normal")"
-      ;;
-    warn*)
-      [ "$__level" -ge "$__level_warn" ] || exit "$__code"
-      __title="$(printf '%b[ WARN]%b' "$__warn" "$__normal")"
-      ;;
-    info*)
-      [ "$__level" -ge "$__level_info" ] || exit "$__code"
-      __title="$(printf '%b[ INFO]%b' "$__info" "$__normal")"
-      ;;
-    debug*)
-      [ "$__level" -ge "$__level_debug" ] || exit "$__code"
-      __title="$(printf '%b[DEBUG]%b' "$__debug" "$__normal")"
-      ;;
-    trace*)
-      [ "$__level" -ge "$__level_trace" ] || exit "$__code"
-      __title="$(printf '%b[TRACE]%b' "$__trace" "$__normal")"
-      ;;
-    succ*)
-      [ "$__level" -gt "$__level_quiet" ] || exit "$__code"
-      __title="$(printf '%b[SUCCESS]%b' "$__success" "$__normal")"
-      ;;
-    fail*)
-      [ "$__level" -gt "$__level_quiet" ] || exit "$__code"
-      __title="$(printf '%b[FAILURE]%b' "$__failure" "$__normal")"
-      ;;
-    normal | simple | *) unset __title __tag __color ;;
+  err*)
+    [ "$__level" -ge "$__level_error" ] || exit "$__code"
+    __title="$(printf '%b[ERROR]%b' "$__error" "$__normal")"
+    ;;
+  warn*)
+    [ "$__level" -ge "$__level_warn" ] || exit "$__code"
+    __title="$(printf '%b[ WARN]%b' "$__warn" "$__normal")"
+    ;;
+  info*)
+    [ "$__level" -ge "$__level_info" ] || exit "$__code"
+    __title="$(printf '%b[ INFO]%b' "$__info" "$__normal")"
+    ;;
+  debug*)
+    [ "$__level" -ge "$__level_debug" ] || exit "$__code"
+    __title="$(printf '%b[DEBUG]%b' "$__debug" "$__normal")"
+    ;;
+  trace*)
+    [ "$__level" -ge "$__level_trace" ] || exit "$__code"
+    __title="$(printf '%b[TRACE]%b' "$__trace" "$__normal")"
+    ;;
+  succ*)
+    [ "$__level" -gt "$__level_quiet" ] || exit "$__code"
+    __title="$(printf '%b[SUCCESS]%b' "$__success" "$__normal")"
+    ;;
+  fail*)
+    [ "$__level" -gt "$__level_quiet" ] || exit "$__code"
+    __title="$(printf '%b[FAILURE]%b' "$__failure" "$__normal")"
+    ;;
+  normal | simple | *) unset __title __tag __color ;;
   esac
 
   #@ Format the tag with proper color handling
@@ -506,16 +506,16 @@ print_out() {
 
   #@ Define the output stream and exit "$__code" code
   case "$__msg_type" in
-    err* | fail*)
-      __code="${__code:-1}"
-      __stream=2
-      ;;
-    warn*)
-      __stream=2
-      ;;
-    *)
-      __stream=1
-      ;;
+  err* | fail*)
+    __code="${__code:-1}"
+    __stream=2
+    ;;
+  warn*)
+    __stream=2
+    ;;
+  *)
+    __stream=1
+    ;;
   esac
 
   #@ Print leading lines, if requested

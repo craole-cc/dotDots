@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Allow the use of decimals in arithmetic equations"
   _cmd_DEPENDENCIES="(python or bc), printf, echo, __cmd_exists__"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
                       USAGE: $_cmd_NAME
@@ -51,8 +51,8 @@ __version__() {
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" > /dev/null 2>&1
-  command -v "$@" > /dev/null 2>&1
+  unalias "$@" >/dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -69,21 +69,21 @@ __opts__() {
     _NEWLINE="$3"
 
     case "$_OPT" in
-      '-d' | '--verbose')
-        _VERBOSE=true
-        shift
-        ;;
-      '-l' | '--lower')
-        _CASE="lower"
-        __process__ "$_STRING" "$_NEWLINE"
-        ;;
-      '-u' | '--upper')
-        _CASE="upper"
-        __process__ "$_STRING"
-        ;;
-      '-v' | '--version') __version__ ;;
-      '-h' | '--help') __help__ ;;
-      *) ;;
+    '-d' | '--verbose')
+      _VERBOSE=true
+      shift
+      ;;
+    '-l' | '--lower')
+      _CASE="lower"
+      __process__ "$_STRING" "$_NEWLINE"
+      ;;
+    '-u' | '--upper')
+      _CASE="upper"
+      __process__ "$_STRING"
+      ;;
+    '-v' | '--version') __version__ ;;
+    '-h' | '--help') __help__ ;;
+    *) ;;
     esac
     shift
   done

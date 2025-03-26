@@ -39,14 +39,14 @@ $DIR/speedtest-linux/fasttest
 # app1=
 if weHave speedtest; then
 
-    alias speedtest='speedtest --simple'
+  alias speedtest='speedtest --simple'
 fi
 
 __fasttest__() {
-    app=fasttest
-    if weHave "$app"; then
-        echo "$app"
-    fi
+  app=fasttest
+  if weHave "$app"; then
+    echo "$app"
+  fi
 }
 
 # app=fasttest

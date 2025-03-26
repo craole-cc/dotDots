@@ -2,10 +2,10 @@
 
 __opts__() {
   case "$1" in
-    -l | --ls | --list) __list__ ;;
-    -i | --ignore) __ignore__ "$@" ;;
-    -e | --env) env=$2 ;;
-    *) __config__ ;;
+  -l | --ls | --list) __list__ ;;
+  -i | --ignore) __ignore__ "$@" ;;
+  -e | --env) env=$2 ;;
+  *) __config__ ;;
   esac
 }
 

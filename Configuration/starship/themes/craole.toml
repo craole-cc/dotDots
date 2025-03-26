@@ -1,38 +1,38 @@
 
 # Wait x milliseconds for starship to check files under the current directory.
 command_timeout = 1111
-scan_timeout    = 1000
+scan_timeout = 1000
 
 [line_break]
 disabled = false
 
 [directory]
-format            = "[$path]($style)[$read_only]($read_only_style) "
-truncate_to_repo  = false
+format = "[$path]($style)[$read_only]($read_only_style) "
+truncate_to_repo = false
 truncation_length = 4
 truncation_symbol = "…/"
 
 [directory.substitutions]
 "Documents" = " "
 "Downloads" = " "
-"Music"     = " "
-"Pictures"  = " "
-"global"    = "🌐"
-"nixos"     = "❄️ "
-"~/.dots"   = "°°°"
+"Music" = " "
+"Pictures" = " "
+"global" = "🌐"
+"nixos" = "❄️ "
+"~/.dots" = "°°°"
 
 [package]
 disabled = true
 
 [cmd_duration]
-min_time           = 1000
+min_time = 1000
 show_notifications = true
 
 [time]
 # disabled = true
-format          = '🕙[ $time ]($style)'
-time_format     = "%H:%M"
-time_range      = '22:00:00-07:00:00'
+format = '🕙[ $time ]($style)'
+time_format = "%H:%M"
+time_range = '22:00:00-07:00:00'
 utc_time_offset = "-5"
 
 [shell]
@@ -40,35 +40,35 @@ disabled = true
 
 [status]
 # disabled = true
-format     = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
+format = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
 map_symbol = true
-symbol     = "🔴"
+symbol = "🔴"
 
 [character]
-error_symbol   = "🚩"
+error_symbol = "🚩"
 success_symbol = "🚀"
 
 [battery]
-charging_symbol    = "⚡️ "
+charging_symbol = "⚡️ "
 discharging_symbol = "💀 "
-full_symbol        = "🔋 "
+full_symbol = "🔋 "
 
 [sudo]
 allow_windows = true
-style         = "bold green"
-symbol        = "👩‍💻 "
+style = "bold green"
+symbol = "👩‍💻 "
 # disabled = true
 
 [git_status]
 # disabled = true
-ahead      = "🏎💨"
-behind     = "😰"
+ahead = "🏎💨"
+behind = "😰"
 conflicted = "🏳"
-deleted    = "🗑"
-diverged   = "😵"
-modified   = "📝"
-renamed    = "👅"
-staged     = '[++\($count\)](green)'
-stashed    = "📦"
-untracked  = "🤷‍"
+deleted = "🗑"
+diverged = "😵"
+modified = "📝"
+renamed = "👅"
+staged = '[++\($count\)](green)'
+stashed = "📦"
+untracked = "🤷‍"
 up_to_date = "✓"

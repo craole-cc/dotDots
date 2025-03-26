@@ -9,25 +9,25 @@ skip=false
 
 while [ "$1" != "" ]; do
   case $1 in
-    -m | --media)
-      shift
-      media=$1
-      ;;
-    -q | --quality)
-      shift
-      quality=$1
-      ;;
-    -l | --url)
-      shift
-      link=$1
-      ;;
-    -s | --skip)
-      skip=true
-      ;;
-    *)
-      echo "Invalid option: $1"
-      exit 1
-      ;;
+  -m | --media)
+    shift
+    media=$1
+    ;;
+  -q | --quality)
+    shift
+    quality=$1
+    ;;
+  -l | --url)
+    shift
+    link=$1
+    ;;
+  -s | --skip)
+    skip=true
+    ;;
+  *)
+    echo "Invalid option: $1"
+    exit 1
+    ;;
   esac
   shift
 done
@@ -69,20 +69,20 @@ handle_existing_file() {
     echo "3. Rename"
     read -r choice
     case $choice in
-      1) echo "Overwriting file..." ;;
-      2)
-        echo "Skipping file..."
-        return 1
-        ;;
-      3)
-        echo "Enter new file name:"
-        read -r new_file_name
-        file_name=$new_file_name
-        ;;
-      *)
-        echo "Invalid input. Skipping file..."
-        return 1
-        ;;
+    1) echo "Overwriting file..." ;;
+    2)
+      echo "Skipping file..."
+      return 1
+      ;;
+    3)
+      echo "Enter new file name:"
+      read -r new_file_name
+      file_name=$new_file_name
+      ;;
+    *)
+      echo "Invalid input. Skipping file..."
+      return 1
+      ;;
     esac
   fi
 }
@@ -99,7 +99,7 @@ download() {
     if [ "$quality" = "hd" ]; then
       yt-dlp -f bestaudio -o "$file_name" "$link"
     else
-      yt-dlp -f bestaudio[abr -o "$file_name" "$link" < =128]
+      yt-dlp -f bestaudio[abr -o "$file_name" "$link" <=128]
     fi
   fi
 }

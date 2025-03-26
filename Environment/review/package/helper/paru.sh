@@ -18,93 +18,93 @@ DOTS_loaded_apps="${DOTS_loaded_apps:-$DOTS/Log/loaded_apps}"
 
 #* Install *#
 if weHave pacman; then
-	if ! weHave paru; then
-		CargoInstall paru
-		# __updateGitUtils__
-		# sudo pacman -S --needed base-devel
-		# cd "$DOTS_DOWN/paru-bin" || return 1
-		# makepkg -si
-		# cd "$OLDPWD" || return
-	fi
+  if ! weHave paru; then
+    CargoInstall paru
+    # __updateGitUtils__
+    # sudo pacman -S --needed base-devel
+    # cd "$DOTS_DOWN/paru-bin" || return 1
+    # makepkg -si
+    # cd "$OLDPWD" || return
+  fi
 fi
 
 #> Verify Instalation <#
 if weHave paru; then
-	weHave --report version paru >>"$DOTS_loaded_apps"
+  weHave --report version paru >>"$DOTS_loaded_apps"
 else
-	return
+  return
 fi
 
 # _______________________________________ EXPORT<|
 
 paru_install() {
-	paru "$@" \
-		--sync \
-		--sudoloop \
-		--disable-download-timeout \
-		--quiet
+  paru "$@" \
+    --sync \
+    --sudoloop \
+    --disable-download-timeout \
+    --quiet
 }
 
 paru_remove() {
-	paru "$@" \
-		--remove \
-		--nosave \
-		--cascade \
-		--recursive \
-		--unneeded
+  paru "$@" \
+    --remove \
+    --nosave \
+    --cascade \
+    --recursive \
+    --unneeded
 }
 
 paru_update() {
-	#| Sys & AUR
-	paru_install \
-		--refresh \
-		--sysupgrade \
-		--needed
+  #| Sys & AUR
+  paru_install \
+    --refresh \
+    --sysupgrade \
+    --needed
 }
 
 paru_update_unattended() {
-	#| Sys & AUR
-	paru_install \
-		--refresh \
-		--sysupgrade \
-		--needed \
-		--noconfirm
+  #| Sys & AUR
+  paru_install \
+    --refresh \
+    --sysupgrade \
+    --needed \
+    --noconfirm
 }
 
 paru_remote_search() { #| Search remote repositories
-	paru "$@" \
-		--sync \
-		--color always \
-		--search |
-		less
+  paru "$@" \
+    --sync \
+    --color always \
+    --search |
+    less
 }
 
 paru_local_search() { #| Search installed applications
-	for app in "$@"; do
-		printf "%s\n {|> $app <|}\n"
-		paru "$app" \
-			--query \
-			--color always \
-			--search
-	done
+  for app in "$@"; do
+    printf "%s\n {|> $app <|}\n"
+    paru "$app" \
+      --query \
+      --color always \
+      --search
+  done
 }
 
 paru_query_upgrades() {
-	paru "$@" \
-		--query \
-		--upgrades
+  paru "$@" \
+    --query \
+    --upgrades
 }
 
 paru_info() {
-	paru "$@" \
-		--sync \
-		--info
+  paru "$@" \
+    --sync \
+    --info
 }
 
 paru_info_extended() {
-	paru "$@" \
-		--sync \
-		--info
+  paru "$@" \
+    --sync \
+    --info
 }
 
 alias pin="paru_install"

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 usage() {
-  cat <<- USAGE
+  cat <<-USAGE
 		  Usage: $(basename "$0") [OPTS] [arg1 arg2 ...]
 		  Options:
 		    -h, --help      Show this help message and exit
@@ -16,11 +16,11 @@ usage() {
 set_delimiter() { #@ Accept user-defined delimiter
   while [ $# -ge 1 ]; do
     case $1 in
-      -d | --delim)
-        delimiter=$2
-        shift 2
-        ;;
-      *) break ;;
+    -d | --delim)
+      delimiter=$2
+      shift 2
+      ;;
+    *) break ;;
     esac
   done
 
@@ -58,31 +58,31 @@ main() {
   #@ Handle remaining flags and arguments
   while [ $# -ge 1 ]; do
     case $1 in
-      -h | --help)
-        usage
-        exit 0
-        ;;
-      -e | --expand)
-        shift
-        expand_array "$@"
-        ;;
-      -s | --save)
-        shift
-        save_array "$@"
-        ;;
-      -c | --count)
-        shift
-        count_arguments "$@"
-        ;;
-      -l | --last)
-        shift
-        last_argument "$@"
-        ;;
-      -*)
-        echo "Unknown option: $1" >&2
-        exit 1
-        ;;
-      *) ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -e | --expand)
+      shift
+      expand_array "$@"
+      ;;
+    -s | --save)
+      shift
+      save_array "$@"
+      ;;
+    -c | --count)
+      shift
+      count_arguments "$@"
+      ;;
+    -l | --last)
+      shift
+      last_argument "$@"
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+    *) ;;
     esac
     shift
   done

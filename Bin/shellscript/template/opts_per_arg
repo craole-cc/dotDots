@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Description"
   _cmd_DEPENDENCIES="printf, echo, command, unalias"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
                       USAGE: $_cmd_NAME
@@ -53,8 +53,8 @@ __version__() {
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" > /dev/null 2>&1
-  command -v "$@" > /dev/null 2>&1
+  unalias "$@" >/dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -64,29 +64,29 @@ __cmd_exists__() {
 __opts__() {
 
   case "$1" in
-    '-h' | '--help') __help__ ;;
-    '-v' | '--version') __version__ ;;
-    '-d' | '--verbose')
-      VERBOSE=true
-      shift
-      ;;
-    *) ;;
+  '-h' | '--help') __help__ ;;
+  '-v' | '--version') __version__ ;;
+  '-d' | '--verbose')
+    VERBOSE=true
+    shift
+    ;;
+  *) ;;
   esac
 
   #@ Declare user options (One flag per command)
   COUNTER=0
   while [ $# -gt 1 ]; do
     case "$1" in
-      '-a' | '--flaga')
-        OPTION="A"
-        ;;
-      '-b' | '--flagb')
-        OPTION="B"
-        ;;
-      '-c' | '--flagc')
-        OPTION="C"
-        ;;
-      *) ;;
+    '-a' | '--flaga')
+      OPTION="A"
+      ;;
+    '-b' | '--flagb')
+      OPTION="B"
+      ;;
+    '-c' | '--flagc')
+      OPTION="C"
+      ;;
+    *) ;;
     esac
 
     COUNTER=$((COUNTER + 1))
@@ -110,13 +110,13 @@ __defaults__() { [ "$OPTION" ] || OPTION="A"; }
 
 __error__() {
   case $* in
-    --arg)
-      msg="🟥 Please ensure that a valid equation is entered."
-      printf "\n%s\n" "$msg"
-      __help__
-      exit 1
-      ;;
-    *) ;;
+  --arg)
+    msg="🟥 Please ensure that a valid equation is entered."
+    printf "\n%s\n" "$msg"
+    __help__
+    exit 1
+    ;;
+  *) ;;
   esac
 }
 
@@ -130,8 +130,8 @@ __process__() {
   __defaults__
 
   #@ Display details
-  [ "$VERBOSE" ] \
-    && printf "%s <| %s |> %s\n" "$COUNTER" "$OPTION" "$ARG"
+  [ "$VERBOSE" ] &&
+    printf "%s <| %s |> %s\n" "$COUNTER" "$OPTION" "$ARG"
 
   #@ Process
   # { ... }

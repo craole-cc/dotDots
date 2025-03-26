@@ -1,4 +1,4 @@
-mode    = "project" # "aware" or "project"
+mode = "project" # "aware" or "project"
 project = ""
 
 [shell]
@@ -7,10 +7,10 @@ name = "bash"
 
 
 [dirs]
-cache   = "C:\\Users\\Administrator\\AppData\\Local\\hatch\\Cache"
-data    = "C:\\Users\\Administrator\\AppData\\Local\\hatch"
+cache = "C:\\Users\\Administrator\\AppData\\Local\\hatch\\Cache"
+data = "C:\\Users\\Administrator\\AppData\\Local\\hatch"
 project = []
-python  = "isolated"
+python = "isolated"
 
 [dirs.env]
 virtual = ".hatch"
@@ -22,21 +22,21 @@ repo = "main"
 
 [template]
 email = "craole@tuta.io"
-name  = "Craig 'Craole' Cole"
+name = "Craig 'Craole' Cole"
 
 [template.licenses]
 default = ["MIT"]
 headers = true
 
 [template.plugins.default]
-ci         = false
+ci = false
 src-layout = true
-tests      = true
+tests = true
 
 [terminal.styles]
-debug   = "bold"
-error   = "bold red"
-info    = "bold"
+debug = "bold"
+error = "bold red"
+info = "bold"
 spinner = "simpleDotsScrolling"
 success = "bold cyan"
 waiting = "bold magenta"

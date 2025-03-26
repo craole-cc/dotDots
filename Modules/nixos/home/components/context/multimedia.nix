@@ -7,8 +7,7 @@
 let
   ctx = "multimedia";
 
-  inherit (lib.options) mkOption mkDefault;
-  inherit (config) dot;
+  inherit (lib.options) mkDefault;
   inherit (config.dots.active.user) context;
 
   packages = {

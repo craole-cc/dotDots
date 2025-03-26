@@ -9,7 +9,7 @@ make_dir() {
 }
 
 enter_dir() {
-  cd pop > /dev/null 2>&1 || {
+  cd pop >/dev/null 2>&1 || {
     pout \
       --var "$path" \
       --msg "Unable to enter folder" \
@@ -25,22 +25,22 @@ execute_operation() {
 main() {
   while [ $# -ge 1 ]; do
     case "$1" in
-      --cd)
-        [ "$2" ] && {
-          shift && path="$1"
-          make_dir
-        }
+    --cd)
+      [ "$2" ] && {
+        shift && path="$1"
+        make_dir
+      }
 
-        [ "$2" ] && {
-          shift && operation="$1"
-          enter_dir
-          execute_operation
-        }
-        ;;
-      *)
-        path="$1"
-        make_dir "$1"
-        ;;
+      [ "$2" ] && {
+        shift && operation="$1"
+        enter_dir
+        execute_operation
+      }
+      ;;
+    *)
+      path="$1"
+      make_dir "$1"
+      ;;
     esac
 
     shift

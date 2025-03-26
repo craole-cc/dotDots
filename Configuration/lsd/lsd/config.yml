@@ -4,7 +4,6 @@
 # and "icons"->"when" options.
 # Possible values: false, true
 classic: false
-
 # == Blocks ==
 # This specifies the columns and their order when using the long and the tree
 # layout.
@@ -16,7 +15,6 @@ blocks:
   - size
   - date
   - name
-
 # == Color ==
 # This has various color options. (Will be expanded in the future.)
 color:
@@ -31,7 +29,6 @@ color:
   # XDG Base Directory if relative, e.g. ~/.config/lsd/themes/<theme-file-name>.yaml,
   # The file path if absolute
   theme: default
-
 # == Date ==
 # This specifies the date format for the date column. The freeform format
 # accepts an strftime like string.
@@ -39,12 +36,10 @@ color:
 # Possible values: date, relative, '+<date_format>'
 # `date_format` will be a `strftime` formatted value. e.g. `date: '+%d %b %y %X'` will give you a date like this: 17 Jun 21 20:14:55
 date: date
-
 # == Dereference ==
 # Whether to dereference symbolic links.
 # Possible values: false, true
 dereference: false
-
 # == Display ==
 # What items to display. Do not specify this for the default behavior.
 # Possible values: all, almost-all, directory-only
@@ -62,7 +57,6 @@ icons:
   # Separator between icon and the name
   # Default to 1 space
   separator: " "
-
 # == Ignore Globs ==
 # A list of globs to ignore when listing.
 # ignore-globs:
@@ -72,13 +66,11 @@ icons:
 # Whether to add indicator characters to certain listed files.
 # Possible values: false, true
 indicators: false
-
 # == Layout ==
 # Which layout to use. "oneline" might be a bit confusing here and should be
 # called "one-per-line". It might be changed in the future.
 # Possible values: grid, tree, oneline
 layout: grid
-
 # == Recursion ==
 recursion:
   # Whether to enable recursion.
@@ -87,12 +79,10 @@ recursion:
   # How deep the recursion should go. This has to be a positive integer. Leave
   # it unspecified for (virtually) infinite.
   # depth: 3
-
 # == Size ==
 # Specifies the format of the size column.
 # Possible values: default, short, bytes
 size: default
-
 # == Sorting ==
 sorting:
   # Specify what to sort by.
@@ -105,17 +95,14 @@ sorting:
   # When "classic" is set, this is set to "none".
   # Possible values: first, last, none
   dir-grouping: none
-
 # == No Symlink ==
 # Whether to omit showing symlink targets
 # Possible values: false, true
 no-symlink: false
-
 # == Total size ==
 # Whether to display the total size of directories.
 # Possible values: false, true
 total-size: false
-
 # == Symlink arrow ==
 # Specifies how the symlink arrow display, chars in both ascii and utf8
 symlink-arrow: ⇒

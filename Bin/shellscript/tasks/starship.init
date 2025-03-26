@@ -3,7 +3,7 @@
 SCR_NAME="starship.init"
 SCR_DESCRIPTION="Script to set Starship theme and environment"
 SCR_USAGE_GUIDE=$(
-  cat << EOF
+  cat <<EOF
 Usage: $SCR_NAME [theme]
 $SCR_DESCRIPTION
 
@@ -36,14 +36,14 @@ init_shell() {
   # shell.init "$shell"
   #shellcheck disable=SC3040
   case "$shell" in
-    *fish) ;;
-    *nu) ;;
-    *zsh) ;;
-    *bash)
-      set +o posix
-      eval "$(starship init bash)"
-      set -o posix
-      ;;
+  *fish) ;;
+  *nu) ;;
+  *zsh) ;;
+  *bash)
+    set +o posix
+    eval "$(starship init bash)"
+    set -o posix
+    ;;
   esac
 }
 
@@ -51,16 +51,16 @@ parse_arguments() {
   #@ Parse the command-line arguments
   while [ "$#" -ge 1 ]; do
     case $1 in
-      -h | --help)
-        show_usage_guide
-        exit
-        ;;
-      -s | --shell) shell=$2 ;;
-      -t | --theme) theme=$2 ;;
-      *)
-        #@ Set the default theme to "craole" if no theme is specified
-        # theme="$1"
-        ;;
+    -h | --help)
+      show_usage_guide
+      exit
+      ;;
+    -s | --shell) shell=$2 ;;
+    -t | --theme) theme=$2 ;;
+    *)
+      #@ Set the default theme to "craole" if no theme is specified
+      # theme="$1"
+      ;;
     esac
     shift
   done

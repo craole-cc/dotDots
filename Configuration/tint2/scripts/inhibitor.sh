@@ -1,8 +1,8 @@
 #!/bin/sh
 printf "%s" "$SEP1"
 if [ -z "$(pgrep xautolock)" ]; then
-	printf ""
+  printf ""
 else
-	printf ""
+  printf ""
 fi
 printf "%s" " "

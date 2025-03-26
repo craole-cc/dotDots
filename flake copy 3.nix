@@ -45,13 +45,15 @@
     stylix.url = "github:danth/stylix";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    ...
-  } @ inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      ...
+    }@inputs:
     inputs.flakeUtils.lib.eachDefaultSystem (
-      system: let
+      system:
+      let
         flake = rec {
           store = ./.;
           local = "/home/craole/.dots"; # TODO: Not portable
@@ -61,20 +63,22 @@
             local = local + nixos;
           };
         };
-        paths = import (flake.modules.store + "/paths.nix") {inherit flake;};
+        paths = import (flake.modules.store + "/paths.nix") { inherit flake; };
 
         mkConfig = import paths.libraries.mkConf {
           inherit self inputs paths;
         };
-      in {
-        devShells.default = let
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-            overlays = with inputs; [flakeShell.overlays.default];
-          };
-          inherit (pkgs.devshell) mkShell importTOML;
-        in
+      in
+      {
+        devShells.default =
+          let
+            pkgs = import nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
+              overlays = with inputs; [ flakeShell.overlays.default ];
+            };
+            inherit (pkgs.devshell) mkShell importTOML;
+          in
           mkShell {
             imports = with paths.devShells; [
               (importTOML dots)
@@ -85,9 +89,9 @@
           };
 
         nixosConfigurations = {
-          QBX = mkConfig "QBX" {};
-          Preci = mkConfig "Preci" {};
-          dbOOK = mkConfig "dbOOK" {};
+          QBX = mkConfig "QBX" { };
+          Preci = mkConfig "Preci" { };
+          dbOOK = mkConfig "dbOOK" { };
         };
 
         #TODO: Create separate config directory for nix darwin systems since the config is drastically different

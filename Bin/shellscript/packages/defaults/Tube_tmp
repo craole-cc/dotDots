@@ -41,8 +41,8 @@ __init__() {
   fi
 
   # @ Exit if app not installed or checking
-  { [ "$_CHECK" ] || [ "$_ERR" ]; } \
-    && __cleanup__
+  { [ "$_CHECK" ] || [ "$_ERR" ]; } &&
+    __cleanup__
 }
 
 __cfg__() {
@@ -71,13 +71,13 @@ __env__() {
 }
 
 __msg__() {
-  [ "$_VERBOSE" -gt 0 ] \
-    && case "$1" in
-      --missing) printf "Confirm that '%s' is installed and in \$PATH.\n" "$_APP" ;;
-      --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
-      --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
-      --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
-      --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
+  [ "$_VERBOSE" -gt 0 ] &&
+    case "$1" in
+    --missing) printf "Confirm that '%s' is installed and in \$PATH.\n" "$_APP" ;;
+    --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
+    --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
+    --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
+    --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
     esac
 }
 

@@ -21,7 +21,7 @@
 # --> Config Files
 # Example: < function Command > => cfB vim
 shck() {
-	shellcheck -x "$1"
+  shellcheck -x "$1"
 }
 
 # _________________________________________ ALIAS<|

@@ -69,96 +69,96 @@ parse_arguments() {
   #> Parse command-line arguments from stdin
   while [ "$#" -gt 0 ]; do
     case $1 in
-      -h | --help)
-        display_usage_guide
-        exit 0
-        ;;
-      -W | --watch)
-        watch=true
-        ;;
-      -Q | --quiet)
-        verbosity="quiet"
-        ;;
-      -V | --verbose)
-        verbosity="verbose"
-        ;;
-      -R | --release)
-        release=true
-        ;;
-      -C | --clean)
-        clean=true
-        ;;
-      -c | --check)
-        check=true
-        last_cmd="check"
-        ;;
-      -b | --build)
-        build=true
-        ;;
-      -r | --run)
-        run=true
-        last_cmd="run"
-        ;;
-      -t | --test)
-        test=true
-        last_cmd="test"
-        ;;
-      -0 | --rx)
-        clean=true
-        build=true
-        run=true
-        release=true
-        # watch=true
-        # last_cmd="run"
-        verbosity="verbose"
-        ;;
-      -1 | --rw)
-        # clean=true
-        # build=true
-        # check=true
-        # test=true
-        run=true
-        release=true
-        watch=true
-        last_cmd="run"
-        verbosity="quiet"
-        ;;
-      -2 | --tw)
-        # clean=true
-        # build=true
-        # check=true
-        test=true
-        release=true
-        watch=true
-        last_cmd="test"
-        verbosity="quiet"
-        ;;
-      -3 | --all)
-        # clean=true
-        build=true
-        test=true
-        run=true
-        release=true
-        # watch=true
-        # last_cmd="run"
-        verbosity="verbose"
-        ;;
+    -h | --help)
+      display_usage_guide
+      exit 0
+      ;;
+    -W | --watch)
+      watch=true
+      ;;
+    -Q | --quiet)
+      verbosity="quiet"
+      ;;
+    -V | --verbose)
+      verbosity="verbose"
+      ;;
+    -R | --release)
+      release=true
+      ;;
+    -C | --clean)
+      clean=true
+      ;;
+    -c | --check)
+      check=true
+      last_cmd="check"
+      ;;
+    -b | --build)
+      build=true
+      ;;
+    -r | --run)
+      run=true
+      last_cmd="run"
+      ;;
+    -t | --test)
+      test=true
+      last_cmd="test"
+      ;;
+    -0 | --rx)
+      clean=true
+      build=true
+      run=true
+      release=true
+      # watch=true
+      # last_cmd="run"
+      verbosity="verbose"
+      ;;
+    -1 | --rw)
+      # clean=true
+      # build=true
+      # check=true
+      # test=true
+      run=true
+      release=true
+      watch=true
+      last_cmd="run"
+      verbosity="quiet"
+      ;;
+    -2 | --tw)
+      # clean=true
+      # build=true
+      # check=true
+      test=true
+      release=true
+      watch=true
+      last_cmd="test"
+      verbosity="quiet"
+      ;;
+    -3 | --all)
+      # clean=true
+      build=true
+      test=true
+      run=true
+      release=true
+      # watch=true
+      # last_cmd="run"
+      verbosity="verbose"
+      ;;
 
-      *)
-        package="$1"
-        ;;
+    *)
+      package="$1"
+      ;;
     esac
     shift
   done
 
   #> Set default values, if none specified
   {
-    : \
-      && [ "$clean" ] \
-      || [ "$check" ] \
-      || [ "$build" ] \
-      || [ "$run" ] \
-      || [ "$test" ]
+    : &&
+      [ "$clean" ] ||
+      [ "$check" ] ||
+      [ "$build" ] ||
+      [ "$run" ] ||
+      [ "$test" ]
   } || {
     last_cmd="run"
     watch=true
@@ -166,9 +166,9 @@ parse_arguments() {
     [ "$verbosity" ] || verbosity="verbose"
 
     case "$last_cmd" in
-      check) check=true ;;
-      test) test=true ;;
-      run) run=true ;;
+    check) check=true ;;
+    test) test=true ;;
+    run) run=true ;;
     esac
   }
 }
@@ -188,7 +188,7 @@ process_commands() {
 
 execute_command() {
   #> Ensure 'cargo' is installed
-  if cargo --help > /dev/null 2>&1; then
+  if cargo --help >/dev/null 2>&1; then
     cmd="$1"
   else
     printf "%s\n%s" \
@@ -199,9 +199,9 @@ execute_command() {
 
   #> Append the verbosity flag, if applicable
   case "$verbosity" in
-    quiet) cmd="$cmd --quiet" ;;
-    verbose) cmd="$cmd --verbose" ;;
-    *) ;;
+  quiet) cmd="$cmd --quiet" ;;
+  verbose) cmd="$cmd --verbose" ;;
+  *) ;;
   esac
 
   #> Append the release flag, if applicable
@@ -216,7 +216,7 @@ execute_command() {
       case "$cmd" in "$last_cmd"*)
         cmd="$(
           printf \
-            "cargo watch --quiet --clear --exec \"%s\"" \
+            'cargo watch --quiet --clear --exec "%s"' \
             "$cmd"
         )"
         ;;

@@ -3,8 +3,8 @@
 msg="$(kwote -d "${@:-Updating}")"
 
 gitup_from_config() {
-  git config --get-regexp ^alias.up > /dev/null 2>&1 \
-    && git up "$@"
+  git config --get-regexp ^alias.up >/dev/null 2>&1 &&
+    git up "$@"
 }
 
 gitup_from_bin() {

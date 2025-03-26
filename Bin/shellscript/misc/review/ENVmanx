@@ -17,7 +17,7 @@
 # Note: Forces path into the first position, if already present.
 #       Duplicates are removed too, unless they're directly adjacent.
 __usage__() {
-cat << EOF
+  cat <<EOF
 # EXAMPLE: path_prepend PATH /usr/local/bin
 
 # >>= Example =<< #
@@ -28,7 +28,7 @@ cat << EOF
 # _path -l                      |> List
 
 EOF
-# EOF is found above and hence cat command stops reading. This is equivalent to echo but much neater when printing out.
+  # EOF is found above and hence cat command stops reading. This is equivalent to echo but much neater when printing out.
 }
 # ________________________________________ SOURCE<|
 
@@ -41,7 +41,7 @@ __dir__() {
 
 __pendP__() {
   # PATH="$1${PATH:+:${PATH}}"
-    echo "PATH Appended: $SOURCE"
+  echo "PATH Appended: $SOURCE"
 }
 
 __Ppend__() {
@@ -123,7 +123,6 @@ Extract() {
 
 IFS=$SAVEIFS
 
-
 # $@ is all command line parameters passed to the script.
 # -o is for short options like -v
 # -l is for long options with double dash like --version
@@ -136,30 +135,30 @@ options=$(getopt -l "help,version:,verbose,rebuild,dryrun,append" -o "hv:Vrda" -
 # are set to the arguments, even if some of them begin with a ‘-’.
 eval set -- "$options"
 
-while true
-do
-case $1 in
--a | --append )
-  __dir__ "$1"
-  ;;
--h|--help)
+while true; do
+  case $1 in
+  -a | --append)
+    __dir__ "$1"
+    ;;
+  -h | --help)
     __usage__
     exit 0
     ;;
--v|--version)
+  -v | --version)
     shift
     export version=$1
     ;;
--V|--verbose)
+  -V | --verbose)
     export verbose=1
-    set -xv  # Set xtrace and verbose mode.
+    set -xv # Set xtrace and verbose mode.
     ;;
--r|--rebuild)
+  -r | --rebuild)
     export rebuild=1
     ;;
---)
+  --)
     shift
-    break;;
-esac
-shift
+    break
+    ;;
+  esac
+  shift
 done

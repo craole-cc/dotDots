@@ -27,7 +27,7 @@ HISTIGNORE="[ ]*"
 
 #@ Increase the history file size limit
 if [ -z "$PROMPT_COMMAND" ]; then
-	PROMPT_COMMAND="history -a; history -n"
+  PROMPT_COMMAND="history -a; history -n"
 else
-	PROMPT_COMMAND="${PROMPT_COMMAND}; history -a; history -n"
+  PROMPT_COMMAND="${PROMPT_COMMAND}; history -a; history -n"
 fi

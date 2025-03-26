@@ -1,7 +1,7 @@
 #!/bin/sh
 
-type rust-script > /dev/null 2>&1 \
-  && rust-script "$(pathof eol.rs)" -- "$@"
+type rust-script >/dev/null 2>&1 &&
+  rust-script "$(pathof eol.rs)" -- "$@"
 
 # type sh >/dev/null 2>&1 &&
 #   sh "$(pathof eol.sh)" -- "$@"

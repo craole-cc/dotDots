@@ -19,66 +19,66 @@ initialize_env() {
   #@ Cache command checks at startup
   HAS_REALPATH=0
   HAS_FD=0
-  command -v realpath > /dev/null 2>&1 && HAS_REALPATH=1
-  command -v fd > /dev/null 2>&1 && HAS_FD=1
-  command -v bat > /dev/null 2>&1 && HAS_BAT=1
+  command -v realpath >/dev/null 2>&1 && HAS_REALPATH=1
+  command -v fd >/dev/null 2>&1 && HAS_FD=1
+  command -v bat >/dev/null 2>&1 && HAS_BAT=1
 }
 
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --debug)
-        debug="debug"
-        ;;
-      --error) verbosity=1 ;;
-      --quiet) verbosity=0 ;;
-      --show)
-        action="show"
-        ;;
-      --clean)
-        action="clean"
-        ;;
-      --action)
-        if [ "$2" ]; then
-          action="$2"
-          shift
-        else
-          printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
-          return 1
-        fi
-        ;;
-      --append)
-        action="append"
-        ;;
-      --prepend)
-        action="prepend"
-        ;;
-      --print)
-        PRINT_RAW=1
-        ;;
-      --dir*)
-        if [ "$2" ]; then
-          shift
-          if [ "$PATHS" ]; then
-            PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
-          else
-            PATHS="$(resolved_path "$1")"
-          fi
-        else
-          printf "'%s' requires an argument\n" "$1"
-          return 1
-        fi
-        ;;
-      *)
-        if [ -f "$1" ]; then
-          make_exec "$1"
-          return 0
-        elif [ "$PATHS" ]; then
+    --debug)
+      debug="debug"
+      ;;
+    --error) verbosity=1 ;;
+    --quiet) verbosity=0 ;;
+    --show)
+      action="show"
+      ;;
+    --clean)
+      action="clean"
+      ;;
+    --action)
+      if [ "$2" ]; then
+        action="$2"
+        shift
+      else
+        printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
+        return 1
+      fi
+      ;;
+    --append)
+      action="append"
+      ;;
+    --prepend)
+      action="prepend"
+      ;;
+    --print)
+      PRINT_RAW=1
+      ;;
+    --dir*)
+      if [ "$2" ]; then
+        shift
+        if [ "$PATHS" ]; then
           PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
         else
           PATHS="$(resolved_path "$1")"
         fi
-        ;;
+      else
+        printf "'%s' requires an argument\n" "$1"
+        return 1
+      fi
+      ;;
+    *)
+      if [ -f "$1" ]; then
+        make_exec "$1"
+        return 0
+      elif [ "$PATHS" ]; then
+        PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
+      else
+        PATHS="$(resolved_path "$1")"
+      fi
+      ;;
     esac
     shift
   done
@@ -86,26 +86,26 @@ parse_arguments() {
 
 perform_action() {
   case "$action" in
-    append | prepend)
-      #@ Validate that a directory was provided
-      if [ -z "$PATHS" ]; then
-        printf "ERROR: No path provided\n"
-        return 1
-      fi
+  append | prepend)
+    #@ Validate that a directory was provided
+    if [ -z "$PATHS" ]; then
+      printf "ERROR: No path provided\n"
+      return 1
+    fi
 
-      #@ Define the directories [DIRES] and files [FILES] to process
-      set_paths
+    #@ Define the directories [DIRES] and files [FILES] to process
+    set_paths
 
-      #@ Perform the actions
-      update_path
-      # update_exec "$PATHS"
-      ;;
-    clean)
-      clean_path
-      ;;
-    show)
-      show_bins "$PATH"
-      ;;
+    #@ Perform the actions
+    update_path
+    # update_exec "$PATHS"
+    ;;
+  clean)
+    clean_path
+    ;;
+  show)
+    show_bins "$PATH"
+    ;;
   esac
 }
 
@@ -154,23 +154,23 @@ set_paths() {
 
         if [ -d "$find_path" ]; then
           #@ Include the lookup path
-          printf "%s\n" "$find_path" | tee -a "$DIRES" > /dev/null
+          printf "%s\n" "$find_path" | tee -a "$DIRES" >/dev/null
 
           #@ Define the find options
           find_files="--type file $find_omit"
           find_dires="--type directory $find_omit"
         else
           #@ Include the lookup path
-          printf "%s\n" "$find_path" | tee -a "$FILES" > /dev/null
+          printf "%s\n" "$find_path" | tee -a "$FILES" >/dev/null
         fi
 
         #@ Update the directories file
-        eval "$find_cmd" "$find_path" "$find_dires" \
-          | tee -a "$DIRES" > /dev/null
+        eval "$find_cmd" "$find_path" "$find_dires" |
+          tee -a "$DIRES" >/dev/null
 
         #@ Update the files file
-        eval "$find_cmd" "$find_path" "$find_files" \
-          | tee -a "$FILES" > /dev/null
+        eval "$find_cmd" "$find_path" "$find_files" |
+          tee -a "$FILES" >/dev/null
       else
         #@ Define the base command
         find_cmd="find"
@@ -187,10 +187,10 @@ set_paths() {
       fi
 
       #@ Update the directories file
-      eval "$find_cmd" "$find_path" "$find_dires" | tee -a "$DIRES" > /dev/null
+      eval "$find_cmd" "$find_path" "$find_dires" | tee -a "$DIRES" >/dev/null
 
       #@ Update the files file
-      eval "$find_cmd $find_path $find_files" | tee -a "$FILES" > /dev/null
+      eval "$find_cmd $find_path $find_files" | tee -a "$FILES" >/dev/null
     done
 
     cat "$FILES"
@@ -209,9 +209,9 @@ set_paths() {
 
 os_type() {
   case "$(uname -a | tr '[:upper:]' '[:lower:]')" in
-    *linux*) os_type="linux" ;;
-    *darwin*) os_type="mac" ;;
-    *) os_type="windows" ;;
+  *linux*) os_type="linux" ;;
+  *darwin*) os_type="mac" ;;
+  *) os_type="windows" ;;
   esac
 
   #TODO This is utterly inadequete, just temporary
@@ -223,8 +223,8 @@ show_bins() {
     printf "%s\n" "${1:-"$PATH"}"
     return
   else
-    printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' \
-      | eval "$(
+    printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' |
+      eval "$(
         if [ "$HAS_BAT" ]; then
           printf "bat --color=always --style=grid --plain --number"
         else
@@ -236,8 +236,8 @@ show_bins() {
 
 is_absolute_path() {
   case "$1" in
-    /*) return 0 ;; # Path starts with /, so it's absolute
-    *) return 1 ;;  # Otherwise, it's not absolute
+  /*) return 0 ;; # Path starts with /, so it's absolute
+  *) return 1 ;;  # Otherwise, it's not absolute
   esac
 }
 
@@ -266,7 +266,7 @@ clean_path() {
 make_exec() {
   _file=$1
   chmod_status=0
-  chmod +x "$_file" > /dev/null 2>&1
+  chmod +x "$_file" >/dev/null 2>&1
   chmod_status=$?
   [ "$verbosity" -gt 1 ] && {
     if [ "$chmod_status" -eq 0 ]; then
@@ -290,32 +290,32 @@ add_to_path_ORIG() {
 
   #@ Update PATH directories recursively
   recursive_paths "$PATHS" | while IFS= read -r bin_path; do
-    [ -d "$bin_path" ] \
-      && case ":${PATH}:" in
-        *:"$bin_path":*) ;;
-        *)
-          case "$action" in
-            prepend)
-              PATH="${bin_path}${PATH:+:$PATH}"
-              _action="Appended"
-              ;;
-            append)
-              PATH="${PATH:+$PATH:}${bin_path}"
-              _action="Perpended"
-              ;;
-          esac
-
-          [ "$verbosity" -gt 1 ] \
-            && printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+    [ -d "$bin_path" ] &&
+      case ":${PATH}:" in
+      *:"$bin_path":*) ;;
+      *)
+        case "$action" in
+        prepend)
+          PATH="${bin_path}${PATH:+:$PATH}"
+          _action="Appended"
           ;;
+        append)
+          PATH="${PATH:+$PATH:}${bin_path}"
+          _action="Perpended"
+          ;;
+        esac
+
+        [ "$verbosity" -gt 1 ] &&
+          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+        ;;
       esac
 
     #@ Make scripts executable
-    [ -f "$bin_path" ] \
-      && case "$(os_type)" in windows) ;;
+    [ -f "$bin_path" ] &&
+      case "$(os_type)" in windows) ;;
       *)
         chmod_status=0
-        chmod +x "$bin_path" > /dev/null 2>&1
+        chmod +x "$bin_path" >/dev/null 2>&1
         chmod_status=$?
 
         [ "$verbosity" -gt 1 ] && {
@@ -336,44 +336,44 @@ add_to_path_ORIG() {
 
 add_to_path() {
   tmp_path=$(mktemp) || return 1
-  recursive_paths "$PATHS" > "$tmp_path"
+  recursive_paths "$PATHS" >"$tmp_path"
 
   if [ "$debug" ]; then
     counter=1
     while IFS= read -r bin_path; do
       printf "  %4d %s\n" "$counter" "$bin_path"
       counter=$((counter + 1))
-    done < "$tmp_path"
+    done <"$tmp_path"
     rm "$tmp_path"
     return 0
   fi
 
   while IFS= read -r bin_path; do
-    [ -d "$bin_path" ] \
-      && case ":${PATH}:" in
-        *:"$bin_path":*) ;;
-        *)
-          case "$action" in
-            prepend)
-              PATH="${bin_path}${PATH:+:$PATH}"
-              _action="Appended"
-              ;;
-            append)
-              PATH="${PATH:+$PATH:}${bin_path}"
-              _action="Perpended"
-              ;;
-          esac
-          [ -d "$bin_path" ] && umask 022 && chmod 755 "$bin_path" #TODO: This is not working. Files created after running the script are not automatically executable.
-          [ "$verbosity" -gt 1 ] \
-            && printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+    [ -d "$bin_path" ] &&
+      case ":${PATH}:" in
+      *:"$bin_path":*) ;;
+      *)
+        case "$action" in
+        prepend)
+          PATH="${bin_path}${PATH:+:$PATH}"
+          _action="Appended"
           ;;
+        append)
+          PATH="${PATH:+$PATH:}${bin_path}"
+          _action="Perpended"
+          ;;
+        esac
+        [ -d "$bin_path" ] && umask 022 && chmod 755 "$bin_path" #TODO: This is not working. Files created after running the script are not automatically executable.
+        [ "$verbosity" -gt 1 ] &&
+          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+        ;;
       esac
 
-    [ -f "$bin_path" ] \
-      && case "$(os_type)" in windows) ;;
+    [ -f "$bin_path" ] &&
+      case "$(os_type)" in windows) ;;
       *) make_exec "$bin_path" ;;
       esac
-  done < "$tmp_path"
+  done <"$tmp_path"
 
   rm "$tmp_path"
   [ "$verbosity" -gt 1 ] && show_bins
@@ -387,15 +387,15 @@ update_path() {
   #@ Build updated path
   while IFS= read -r dir; do
     case "$TMP_PATH" in
-      *":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
-      *)
-        case "$action" in
-          prepend) TMP_PATH="$dir${TMP_PATH:+:$TMP_PATH}" ;;
-          append) TMP_PATH="${TMP_PATH:+$TMP_PATH:}$dir" ;;
-        esac
-        ;;
+    *":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
+    *)
+      case "$action" in
+      prepend) TMP_PATH="$dir${TMP_PATH:+:$TMP_PATH}" ;;
+      append) TMP_PATH="${TMP_PATH:+$TMP_PATH:}$dir" ;;
+      esac
+      ;;
     esac
-  done < "$DIRES"
+  done <"$DIRES"
   unset IFS
 
   #@ Print or export the PATH variable

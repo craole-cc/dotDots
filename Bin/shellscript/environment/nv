@@ -25,7 +25,7 @@ scr_AUTHORS="Authors:
     Craole <iamcraole@gmail.com>
 "
 scr_HELP="$(
-  cat << HELP
+  cat <<HELP
   $scr_NAME [v.$scr_VERSION] $scr_DESCRIPTION.
 
   $scr_USAGE
@@ -75,36 +75,36 @@ parse_arguments() { #@ Initialize
   #@ Parse flags and arguments
   while [ $# -ge 1 ]; do
     case $1 in
-      -h | --help) end_process "$scr_HELP" ;;
-      -v | --version) end_process "$scr_VERSION" ;;
-      -q | --quiet) verbosity="quiet" ;;
-      -d=* | --verbose=*) verbosity="${1#*=}" ;;
-      -d | --verbose)
-        case "$2" in
-          quiet | info | debug | 0 | 1 | 2) verbosity="$2" ;;
-          *)
-            verbosity="debug"
-            ;;
-        esac
-        ;;
-      -*)
-        # display_info "Unknown option:" "$1"
-        end_process --error-exit "Unknown option:" "$1"
-        ;;
+    -h | --help) end_process "$scr_HELP" ;;
+    -v | --version) end_process "$scr_VERSION" ;;
+    -q | --quiet) verbosity="quiet" ;;
+    -d=* | --verbose=*) verbosity="${1#*=}" ;;
+    -d | --verbose)
+      case "$2" in
+      quiet | info | debug | 0 | 1 | 2) verbosity="$2" ;;
       *)
-        #@ Store arguments in an array
-        vars="$(are --save "$vars" "$1")"
+        verbosity="debug"
         ;;
+      esac
+      ;;
+    -*)
+      # display_info "Unknown option:" "$1"
+      end_process --error-exit "Unknown option:" "$1"
+      ;;
+    *)
+      #@ Store arguments in an array
+      vars="$(are --save "$vars" "$1")"
+      ;;
     esac
     shift
   done
 
   #@ Set verbosity level
   case "$verbosity" in
-    0 | quiet) verbosity=0 ;;
-    1 | error | debug) verbosity=1 ;;
-    2 | info) verbosity=2 ;;
-    *) verbosity=0 ;;
+  0 | quiet) verbosity=0 ;;
+  1 | error | debug) verbosity=1 ;;
+  2 | info) verbosity=2 ;;
+  *) verbosity=0 ;;
   esac
 
   #@ Extract variables
@@ -121,7 +121,7 @@ run_process() { #@ Display information about each variable
 
     #@ Extract the value of a variable
     var_LABEL="$var"
-    var_VALUE="$(eval printf '%s' "\"\${$var_LABEL?}\"" 2> /dev/null)"
+    var_VALUE="$(eval printf '%s' "\"\${$var_LABEL?}\"" 2>/dev/null)"
     msg="$var_LABEL => $var_VALUE"
 
     #@ Set output message based on verbosity level
@@ -138,10 +138,10 @@ run_process() { #@ Display information about each variable
 
     #@ Generate message based on verbosity eg. "$msg2"
     unset msg
-    msg="$(eval printf '%s' "\"\$msg$verbosity\"" 2> /dev/null)"
+    msg="$(eval printf '%s' "\"\$msg$verbosity\"" 2>/dev/null)"
     #@ Send informtion to display where applicable
-    [ "$msg" ] \
-      && if [ "$var" != "$last_var" ]; then
+    [ "$msg" ] &&
+      if [ "$var" != "$last_var" ]; then
         display_info -n "$msg"
       else
         display_info "$msg"
@@ -157,31 +157,31 @@ display_info() { #@ Display information to via Stdout or Notification
   [ "$*" ] || return 1
 
   case "$1" in
-    -l | -n | --new-line)
-      shift
-      printf '%s\n' "$*"
-      ;;
-    *) printf '%s' "$*" ;;
+  -l | -n | --new-line)
+    shift
+    printf '%s\n' "$*"
+    ;;
+  *) printf '%s' "$*" ;;
   esac
 }
 
 end_process() {
   case "$1" in
-    --err*)
-      failure=true
-      case "$1" in
-        *exit)
-          shift
-          display_info -n "$*"
-          display_info "$scr_USAGE"
-          collect_garbage
-          ;;
-      esac
-      ;;
-    *)
-      display_info "$*"
+  --err*)
+    failure=true
+    case "$1" in
+    *exit)
+      shift
+      display_info -n "$*"
+      display_info "$scr_USAGE"
       collect_garbage
       ;;
+    esac
+    ;;
+  *)
+    display_info "$*"
+    collect_garbage
+    ;;
   esac
 }
 

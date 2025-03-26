@@ -28,22 +28,22 @@ parse_arguments() { #@ Parse command-line arguments
 
   while [ "$#" -gt 0 ]; do
     case $1 in
-      -h | --help)
-        display_info --usage
-        exit 0
-        ;;
-      -v | --version)
-        display_info --version
-        exit 0
-        ;;
-      -b | --bin | -p | --path)
-        binary="$2"
-        shift
-        ;;
-      --suggest | --syntax | --transform | --check | --replace)
-        shellharden_opt="$1"
-        ;;
-      *) binary="$1" ;;
+    -h | --help)
+      display_info --usage
+      exit 0
+      ;;
+    -v | --version)
+      display_info --version
+      exit 0
+      ;;
+    -b | --bin | -p | --path)
+      binary="$2"
+      shift
+      ;;
+    --suggest | --syntax | --transform | --check | --replace)
+      shellharden_opt="$1"
+      ;;
+    *) binary="$1" ;;
     esac
     shift
   done
@@ -66,8 +66,8 @@ validate_environment() { #@ Run various validation checks
 run_process() { #@ Lint with Shellharden
 
   if
-    ! shellharden --check "$binary" \
-      && [ "$shellharden_opt" = "--replace" ]
+    ! shellharden --check "$binary" &&
+      [ "$shellharden_opt" = "--replace" ]
   then
     cp --backup=numbered "$binary" "$binary".bac || {
       display_info --error-bac "$binary"
@@ -88,27 +88,27 @@ run_process() { #@ Lint with Shellharden
 #/> Output Management                               <\
 display_info() { #@ Display infoirmation
   case "$1" in
-    --error-arg)
-      printf "%s required \nUsage: %s\n" \
-        "$required_arg" "$SCRIPT_USAGE"
-      ;;
-    --error-bac)
-      printf "Failed to archive file\n"
-      ;;
-    --output)
-      # if [ "$shellharden_opt" ]; then
-      #   printf "%s via %s\n" "$binary" "$shellharden_opt"
-      # else
-      #   printf "%s\n" "$binary"
-      # fi
-      printf "%s\n" "$binary_harden"
+  --error-arg)
+    printf "%s required \nUsage: %s\n" \
+      "$required_arg" "$SCRIPT_USAGE"
+    ;;
+  --error-bac)
+    printf "Failed to archive file\n"
+    ;;
+  --output)
+    # if [ "$shellharden_opt" ]; then
+    #   printf "%s via %s\n" "$binary" "$shellharden_opt"
+    # else
+    #   printf "%s\n" "$binary"
+    # fi
+    printf "%s\n" "$binary_harden"
 
-      ;;
-    --version)
-      printf "%s" "$SCRIPT_VERSION"
-      ;;
-    --usage)
-      cat << USAGE
+    ;;
+  --version)
+    printf "%s" "$SCRIPT_VERSION"
+    ;;
+  --usage)
+    cat <<USAGE
 Debin_nameion:
 '$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
 
@@ -139,8 +139,8 @@ Examples:
 
 For more information on the available options, see the shellharden documentation.
 USAGE
-      ;;
-    *) printf "%s\n" "$*" ;;
+    ;;
+  *) printf "%s\n" "$*" ;;
   esac
 }
 

@@ -47,56 +47,56 @@ main() {
 parse_arguments() {
   while [ $# -ge 1 ]; do
     case "$1" in
-      -h | --help)
-        printf "%s" "$scr_usage"
-        exit
-        ;;
-      -v | --version)
-        printf "%s" "$scr_version"
-        exit
-        ;;
-      -d | --verbose)
-        verbosity=2
-        ;;
-      -q | --quiet)
-        verbosity=0
-        ;;
-      --type)
-        [ "$2" ] && {
-          case "$(printf "%s" "$2" | tr '[:upper:]' '[:lower:]')" in
-            int*) type="integer" ;;
-            char*) type="character" ;;
-            fl*) type="float" ;;
-            num*) type="number" ;;
-            str*) type="string" ;;
-            a*) type="array" ;;
-            f*) type="file" ;;
-            d*) type="directory" ;;
-            i*) type="ip_address" ;;
-            u*) type="url" ;;
-            r*)
-              [ "$3" ] && {
-                type="regex"
-                regex="$3"
-                shift
-              }
-              ;;
-            g*) type="git_repo" ;;
-            *)
-              printf "Error: Invalid type specified.\n\n%s\n" "$scr_usage"
-              exit 1
-              ;;
-          esac
-          shift
-        }
-        ;;
-      --var)
-        [ "$2" ] && {
-          var="$2"
-          shift
-        }
-        ;;
-      *) var="$1" ;;
+    -h | --help)
+      printf "%s" "$scr_usage"
+      exit
+      ;;
+    -v | --version)
+      printf "%s" "$scr_version"
+      exit
+      ;;
+    -d | --verbose)
+      verbosity=2
+      ;;
+    -q | --quiet)
+      verbosity=0
+      ;;
+    --type)
+      [ "$2" ] && {
+        case "$(printf "%s" "$2" | tr '[:upper:]' '[:lower:]')" in
+        int*) type="integer" ;;
+        char*) type="character" ;;
+        fl*) type="float" ;;
+        num*) type="number" ;;
+        str*) type="string" ;;
+        a*) type="array" ;;
+        f*) type="file" ;;
+        d*) type="directory" ;;
+        i*) type="ip_address" ;;
+        u*) type="url" ;;
+        r*)
+          [ "$3" ] && {
+            type="regex"
+            regex="$3"
+            shift
+          }
+          ;;
+        g*) type="git_repo" ;;
+        *)
+          printf "Error: Invalid type specified.\n\n%s\n" "$scr_usage"
+          exit 1
+          ;;
+        esac
+        shift
+      }
+      ;;
+    --var)
+      [ "$2" ] && {
+        var="$2"
+        shift
+      }
+      ;;
+    *) var="$1" ;;
     esac
     shift
   done
@@ -123,7 +123,7 @@ execute() {
   }
 
   is_integer() {
-    if [ "$1" -eq "$1" ] 2> /dev/null; then
+    if [ "$1" -eq "$1" ] 2>/dev/null; then
       return 0
     else
       return 1
@@ -131,7 +131,7 @@ execute() {
   }
 
   is_float() {
-    if type python > /dev/null 2>&1; then
+    if type python >/dev/null 2>&1; then
       python -c "import sys; value = sys.argv[1]; exit(1) if not (value.replace('.', '', 1).isdigit() or (value.startswith('-') and value[1:].replace('.', '', 1).isdigit())) else exit(0)" "$1"
     fi
   }
@@ -165,8 +165,8 @@ execute() {
   }
 
   is_url() {
-    printf "%s" "$1" \
-      | grep --extended-regexp --quiet '^(http|https|ftp|sftp)://'
+    printf "%s" "$1" |
+      grep --extended-regexp --quiet '^(http|https|ftp|sftp)://'
   }
 
   is_regex() {
@@ -174,45 +174,45 @@ execute() {
   }
 
   is_git_repo() {
-    [ -d "$1/.git" ] && git -C "$1" rev-parse --is-inside-work-tree > /dev/null 2>&1
+    [ -d "$1/.git" ] && git -C "$1" rev-parse --is-inside-work-tree >/dev/null 2>&1
   }
 
   #@ Validate the specified variable based on the chosen type
   case "$type" in
-    regex)
-      if is_regex "$var" "$regex" s; then
-        msg="Success - $var matches the regex pattern."
-      else
-        msg="Failed - $var does not match the regex pattern."
-        exit_code=1
-      fi
-      ;;
-    *)
-      if eval "is_${type} \"$var\""; then
-        msg="Success - $var is a valid $type."
-      else
-        msg="Failed - $var is not a valid $type."
-        exit_code=1
-      fi
-      ;;
+  regex)
+    if is_regex "$var" "$regex" s; then
+      msg="Success - $var matches the regex pattern."
+    else
+      msg="Failed - $var does not match the regex pattern."
+      exit_code=1
+    fi
+    ;;
+  *)
+    if eval "is_${type} \"$var\""; then
+      msg="Success - $var is a valid $type."
+    else
+      msg="Failed - $var is not a valid $type."
+      exit_code=1
+    fi
+    ;;
   esac
 }
 
 terminate() {
   #@ Display output based on verbosity level
   case "$verbosity" in
-    0) ;;
-    1)
-      printf "%s\n" "$var"
-      ;;
-    *)
-      printf "  VAR: %s\n" "$var"
-      [ "$regex" ] \
-        && printf "REGEX: %s\n" "$regex"
-      printf " TYPE: %s\n" "$type"
-      printf " CODE: %s\n" "$exit_code"
-      printf "  MSG: %s\n" "$msg"
-      ;;
+  0) ;;
+  1)
+    printf "%s\n" "$var"
+    ;;
+  *)
+    printf "  VAR: %s\n" "$var"
+    [ "$regex" ] &&
+      printf "REGEX: %s\n" "$regex"
+    printf " TYPE: %s\n" "$type"
+    printf " CODE: %s\n" "$exit_code"
+    printf "  MSG: %s\n" "$msg"
+    ;;
   esac
 
   #@ Exit with the specified exit code

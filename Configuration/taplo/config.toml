@@ -12,7 +12,7 @@ exclude = [
 
 [rule.formatting]
 include = ["taplo.toml"]
-keys    = ["exclude"]
+keys = ["exclude"]
 
 array_auto_collapse = false
 
@@ -21,7 +21,7 @@ array_auto_collapse = false
 [rule.formatting]
 include = ["**/Cargo.toml"]
 
-array_auto_expand   = false
+array_auto_expand = false
 inline_table_expand = false
 
 [[rule]]
@@ -31,16 +31,16 @@ align_entries = true
 
 [[rule]]
 include = ["**/Cargo.toml"]
-keys    = ["dependencies", "*-dependencies", "workspace"]
+keys = ["dependencies", "*-dependencies", "workspace"]
 
 [rule.formatting]
-reorder_keys   = true
+reorder_keys = true
 align_comments = true
 
 [[rule]]
 include = ["**/Cargo.toml"]
-keys    = ["package", "workspace.package"]
+keys = ["package", "workspace.package"]
 
 [rule.formatting]
-reorder_keys   = false
+reorder_keys = false
 align_comments = true

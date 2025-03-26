@@ -2,7 +2,12 @@
   min-height: 0;
   font-size: 14px;
   /* `otf-font-awesome` is required to be installed for icons */
-  font-family: "Font Awesome 5 Free", "Iosevka", Roboto, Helvetica, Arial,
+  font-family:
+    "Font Awesome 5 Free",
+    "Iosevka",
+    Roboto,
+    Helvetica,
+    Arial,
     sans-serif;
   border: none;
   border-radius: 0;
@@ -98,7 +103,6 @@ window#waybar.hidden {
 label:focus {
   background-color: #2e3440;
 }
-
 
 #backlight.icon {
   color: #2e3440;

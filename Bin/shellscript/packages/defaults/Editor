@@ -78,9 +78,9 @@ prepare_environment() {
     }
 
     { #? Presence of a Windows graphical envronment
-      [ "$TERM" = "cygwin" ] \
-        || [ "$(uname)" = "MINGW64_NT" ] \
-        || [ "$(uname)" = "MINGW32_NT" ]
+      [ "$TERM" = "cygwin" ] ||
+        [ "$(uname)" = "MINGW64_NT" ] ||
+        [ "$(uname)" = "MINGW32_NT" ]
     } && {
       present_information --disp Graphical Windows
       return 0
@@ -97,22 +97,22 @@ prepare_environment() {
   #@ Establish default app per type
   #TODO# Ensure that a gui app will not be allowed in tty
   case "$_APP_type" in
-    t*) _APP=${_APP:-helix} ;;
-    *) _APP=${_APP:-vscode} ;;
+  t*) _APP=${_APP:-helix} ;;
+  *) _APP=${_APP:-vscode} ;;
   esac
 
   #@ Declare the editor to use
   case "$_APP_type" in
-    [tT]*)
-      case "|$_APPS_tty|" in
-        *"|$_APP|"*) ;;
-        *)
-          present_information --env-tty "$_APP" "$_APP_tty"
-          _APP="$_APP_tty"
-          ;;
-      esac
+  [tT]*)
+    case "|$_APPS_tty|" in
+    *"|$_APP|"*) ;;
+    *)
+      present_information --env-tty "$_APP" "$_APP_tty"
+      _APP="$_APP_tty"
       ;;
-    *) ;;
+    esac
+    ;;
+  *) ;;
   esac
 
   #@ Load Environment Variables from context file
@@ -141,16 +141,16 @@ present_information() {
   [ "$flag_VERBOSE" -eq 0 ] && return
 
   case "$1" in
-    --missing) printf "Please confirm that '%s' is installed and in \$PATH.\n" "$_APP" ;;
-    --env-tty)
-      printf "%s is not available in a non-graphical session" "$2"
-      printf "Switching to %s\n" "$3"
-      ;;
-    --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
-    --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
-    --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
-    --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
-    --disp) printf "%s session on %s\n" "$2" "$3" ;;
+  --missing) printf "Please confirm that '%s' is installed and in \$PATH.\n" "$_APP" ;;
+  --env-tty)
+    printf "%s is not available in a non-graphical session" "$2"
+    printf "Switching to %s\n" "$3"
+    ;;
+  --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
+  --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
+  --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
+  --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
+  --disp) printf "%s session on %s\n" "$2" "$3" ;;
   esac
 }
 

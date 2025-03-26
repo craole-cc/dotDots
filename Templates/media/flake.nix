@@ -6,13 +6,14 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-  }:
+  outputs =
+    {
+      nixpkgs,
+      flake-utils,
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
+      system:
+      let
         paths = rec {
           home = "/home/craole/.dots/Flakes/media";
           # mod = ./modules;
@@ -26,46 +27,6 @@
           config.allowUnfree = true;
         };
 
-        mpvEnhanced = pkgs.mpv.override {
-          scripts = with pkgs.mpvScripts; [
-            uosc
-            memo
-            quack
-            mpris
-            reload
-            cutter
-            evafast
-            autosub
-            smartskip
-            skipsilence
-            chapterskip
-            sponsorblock
-            quality-menu
-            inhibit-gnome
-            mpv-notify-send
-            webtorrent-mpv-hook
-            mpv-playlistmanager
-          ];
-        };
-
-        mpvConfig = pkgs.substituteAll {
-          src = paths.mod + "/mpv/settings.conf";
-          ytdlp = pkgs.yt-dlp;
-        };
-
-        mpvCommand = pkgs.substituteAll {
-          src = ./modules/mpv/cmd.sh;
-          isExecutable = true;
-          mpv = pkgs.mpv.override {
-            scripts = mpvEnhanced;
-          };
-        };
-
-        ytdConfig = pkgs.substituteAll {
-          src = paths.mod + "/ytd/settings.conf";
-          ytdlp = pkgs.yt-dlp;
-        };
-
         ytdCommand = pkgs.substituteAll {
           isExecutable = true;
           src = ./modules/ytd/cmd.sh;
@@ -75,7 +36,8 @@
           dls = paths.dls;
           fmt = "1080p";
         };
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             #| Image
@@ -152,4 +114,3 @@
 # cp -f ${mpvCommand} ${flakeBin}/mpv
 # cp -f ${mpvConfig} ${paths.cfg}/mpv/mpv.conf
 # cp -f ${ytdConfig} ${paths.cfg}/ytd/yt-dlp.conf
-

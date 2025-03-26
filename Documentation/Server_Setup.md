@@ -8,7 +8,7 @@
 nano /etc/ufw/applications.d/openssh-server
 ```
 
-``` bash
+```bash
 ufw app update openssh
 ufw allow openssh
 ```

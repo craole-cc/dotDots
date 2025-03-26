@@ -19,8 +19,7 @@ validate_path() {
 access_directory() {
   {
     #@ Change to the target directory
-    cd "$1" \
-      &&
+    cd "$1" &&
       #@ verify the current directory is the same as the target
       [ "$PWD" = "$1" ]
   } || {
@@ -51,13 +50,13 @@ main() {
 
   #@ Process each argument
   case "$1" in
-    -h | --help)
-      display_usage_guide
-      ;;
-    *)
-      #@ Execute the script
-      execute_script "$@"
-      ;;
+  -h | --help)
+    display_usage_guide
+    ;;
+  *)
+    #@ Execute the script
+    execute_script "$@"
+    ;;
   esac
 }
 

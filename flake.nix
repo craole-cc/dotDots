@@ -19,8 +19,6 @@
         treeFormatter.flakeModule
 
         flakePaths.modules.store
-        # ./Modules/nixos
-        # ./Modules/nixos/modules/devshells/dots.nix
       ];
       debug = true;
       systems = [

@@ -14,7 +14,7 @@ __info__() {
   _cmd_DEPENDENCIES="printf, awk, sort, tr, head"
   _cmd_DEPENDENCIES_optional="getoptions, calk, emojify, weHave"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
     #>----------------------------------------------------<#
                                                 $_cmd_NAME
     #>----------------------------------------------------<#
@@ -53,7 +53,7 @@ __version__() {
 }
 
 weHave() { #@ Check if the command exists
-  type "$1" > /dev/null 2>&1
+  type "$1" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -91,9 +91,9 @@ __defaults__() {
   [ "$_flag_RIGHT" ] && _ALIGNMENT="right"
   [ "$_flag_LEFT" ] && _ALIGNMENT="left"
 
-  [ ! "$_ALIGNMENT" = "center" ] \
-    && [ ! "$_ALIGNMENT" = "right" ] \
-    && _ALIGNMENT="left"
+  [ ! "$_ALIGNMENT" = "center" ] &&
+    [ ! "$_ALIGNMENT" = "right" ] &&
+    _ALIGNMENT="left"
 
   { #@ String manipulation tool
     if weHave perl; then
@@ -137,8 +137,8 @@ __notify__() {
 
   while [ "$#" -ge 1 ]; do
     case $1 in
-      launched) launched=true ;;
-      *) msg="$1" ;;
+    launched) launched=true ;;
+    *) msg="$1" ;;
     esac
 
     [ "$launched" ] && msg="🚀 $1"
@@ -154,11 +154,11 @@ __notify__() {
 # ===================================================================
 
 __print__() {
-  if command -v emojify > /dev/null 2>&1; then
+  if command -v emojify >/dev/null 2>&1; then
     emojify "$*"
   else
-    printf "%s" "$*" \
-      | sed \
+    printf "%s" "$*" |
+      sed \
         -e 's/:arrow_forward:/▶/g' \
         -e 's/:arrow_backward:/◀/g' \
         -e 's/:rocket:/🚀/g' \

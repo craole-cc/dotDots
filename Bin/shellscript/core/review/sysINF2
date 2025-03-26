@@ -86,8 +86,8 @@ __extract_info__() {
   parse "$@"
   eval "set -- $REST"
 
-  [ "$_DELIM" ] || echo "Data separator \`\$_DELIM\` not defined"
-  [ "$_CMD" ] || echo "Data retriever \`\$_CMD\` not defined"
+  [ "$_DELIM" ] || echo 'Data separator `$_DELIM` not defined'
+  [ "$_CMD" ] || echo 'Data retriever `$_CMD` not defined'
 
   _check_for_() {
     if weHave rg; then

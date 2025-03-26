@@ -14,13 +14,13 @@
 
 #> Install <#
 if ! weHave yarn; then
-	if weHave npm; then
-		case $sys_TYPE in
-		Linux) sudo npm install -g yarn ;;
-		Windows) npm install -g yarn ;;
-		*) ;;
-		esac
-	fi
+  if weHave npm; then
+    case $sys_TYPE in
+    Linux) sudo npm install -g yarn ;;
+    Windows) npm install -g yarn ;;
+    *) ;;
+    esac
+  fi
 fi
 
 #> Verify Instalation <#
@@ -46,29 +46,29 @@ alias Yvs='yarn dlx @yarnpkg/sdks vscode'
 
 yNext() {
 
-	#> Add to JavaScript Projects <#
-	mcd "$prJS/$*"
+  #> Add to JavaScript Projects <#
+  mcd "$prJS/$*"
 
-	#> Create NextJS App with Typescript <#
-	yarn create next-app --typescript .
+  #> Create NextJS App with Typescript <#
+  yarn create next-app --typescript .
 
-	#> Initialize Yarn <#
-	yarn init -2
+  #> Initialize Yarn <#
+  yarn init -2
 
-	#> Add Modules <#
-	yarn add next
-	yarn add react
-	yarn add react-dom
-	yarn add --dev @types/node
-	yarn add --dev @types/react
-	yarn add --dev eslint
-	yarn add --dev eslint-config-next
-	yarn add --dev typescript
-	yarn dlx @yarnpkg/sdks vscode
-	yarn plugin import typescript
+  #> Add Modules <#
+  yarn add next
+  yarn add react
+  yarn add react-dom
+  yarn add --dev @types/node
+  yarn add --dev @types/react
+  yarn add --dev eslint
+  yarn add --dev eslint-config-next
+  yarn add --dev typescript
+  yarn dlx @yarnpkg/sdks vscode
+  yarn plugin import typescript
 
-	#> Enable Debug Scripts <#
-	ex package.json <<EOF
+  #> Enable Debug Scripts <#
+  ex package.json <<EOF
 4 insert
   "scripts": {
     "dev": "next dev",
@@ -80,23 +80,23 @@ yNext() {
 xit
 EOF
 
-	#> Load Templates <#
+  #> Load Templates <#
 
-	rm \
-		--recursive --force \
-		components/ \
-		pages/ \
-		styles/ \
-		test/
+  rm \
+    --recursive --force \
+    components/ \
+    pages/ \
+    styles/ \
+    test/
 
-	templates="$prJS/templates/NEXTts"
-	cp \
-		--archive \
-		"$templates/." \
-		.
+  templates="$prJS/templates/NEXTts"
+  cp \
+    --archive \
+    "$templates/." \
+    .
 
-	#> Develop in VSCode <#
-	code .
-	yarn dev
+  #> Develop in VSCode <#
+  code .
+  yarn dev
 
 }

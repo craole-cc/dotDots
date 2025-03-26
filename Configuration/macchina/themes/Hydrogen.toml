@@ -1,25 +1,25 @@
 # Hydrogen
 
-hide_ascii      = true
-key_color       = "Cyan"
-padding         = 0
-separator       = ">"
+hide_ascii = true
+key_color = "Cyan"
+padding = 0
+separator = ">"
 separator_color = "White"
-spacing         = 2
+spacing = 2
 
 [palette]
-type    = "Full"
+type = "Full"
 visible = false
 
 [bar]
-glyph           = "ߋ"
+glyph = "ߋ"
 hide_delimiters = true
-symbol_close    = ']'
-symbol_open     = '['
-visible         = true
+symbol_close = ']'
+symbol_open = '['
+visible = true
 
 [box]
-border  = "plain"
+border = "plain"
 visible = true
 
 [box.inner_margin]
@@ -27,25 +27,25 @@ x = 1
 y = 0
 
 [randomize]
-key_color       = false
+key_color = false
 separator_color = false
 
 [keys]
-backlight  = "Brightness"
-battery    = "Battery"
-cpu        = "CPU"
-cpu_load   = "CPU Load"
-de         = "DE"
-distro     = "Distro"
-host       = "Host"
-kernel     = "Kernel"
-local_ip   = "Local IP"
-machine    = "Machine"
-memory     = "Memory"
-os         = "OS"
-packages   = "Packages"
+backlight = "Brightness"
+battery = "Battery"
+cpu = "CPU"
+cpu_load = "CPU Load"
+de = "DE"
+distro = "Distro"
+host = "Host"
+kernel = "Kernel"
+local_ip = "Local IP"
+machine = "Machine"
+memory = "Memory"
+os = "OS"
+packages = "Packages"
 resolution = "Resolution"
-shell      = "Shell"
-terminal   = "Terminal"
-uptime     = "Uptime"
-wm         = "WM"
+shell = "Shell"
+terminal = "Terminal"
+uptime = "Uptime"
+wm = "WM"

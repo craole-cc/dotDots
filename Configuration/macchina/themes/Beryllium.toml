@@ -1,22 +1,22 @@
 # Beryllium
 
 hide_ascii = true
-key_color  = "#7067CF"
-separator  = ""
-spacing    = 3
+key_color = "#7067CF"
+separator = ""
+spacing = 3
 
 [box]
-border  = "plain"
+border = "plain"
 visible = true
 
 [palette]
-glyph   = "○  "
+glyph = "○  "
 visible = true
 
 [bar]
-glyph           = "○"
+glyph = "○"
 hide_delimiters = true
-visible         = true
+visible = true
 
 [box.inner_margin]
 x = 2

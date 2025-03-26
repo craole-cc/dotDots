@@ -38,10 +38,10 @@ __error__() {
 __info__() {
   if [ "$isFILE" ] || [ "$isDIR" ]; then
     msg="\"$TARGET_NAME\" -> $ROOT_PATH"
-    [ "$isFILE" ] \
-      && eko ":notebook: $msg"
-    [ "$isDIR" ] \
-      && eko ":file_folder: $msg"
+    [ "$isFILE" ] &&
+      eko ":notebook: $msg"
+    [ "$isDIR" ] &&
+      eko ":file_folder: $msg"
   else
     eko ":x: Invalid Target"
   fi
@@ -85,11 +85,11 @@ elif [ "$#" -eq 1 ]; then
 else
   __path__ "$2"
   case $1 in
-    -i | --info) __info__ "$2" ;;
-    -r | --read) __read__ "$2" ;;
-    -l | --list) __list__ "$2" ;;
-    -c | --cd) __cd__ "$2" ;;
-    *) ;;
+  -i | --info) __info__ "$2" ;;
+  -r | --read) __read__ "$2" ;;
+  -l | --list) __list__ "$2" ;;
+  -c | --cd) __cd__ "$2" ;;
+  *) ;;
   esac
 fi
 

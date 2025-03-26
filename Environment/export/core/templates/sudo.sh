@@ -10,29 +10,29 @@
 # _________________________________ DOCUMENTATION<|
 
 for x in \
-	mount \
-	umount \
-	sv \
-	pacman \
-	updatedb \
-	su \
-	shutdown \
-	halt \
-	poweroff \
-	reboot \
-	fc-cache \
-	df \
-	du \
-	rm \
-	reflector \
-	powerpill \
-	chsh \
-	chmod \
-	featherpad \
-	notepadqq; do
-	#/// shellcheck disable=SC2139
-	alias $x='sudo $x'
-	# x="sudo $x"
+  mount \
+  umount \
+  sv \
+  pacman \
+  updatedb \
+  su \
+  shutdown \
+  halt \
+  poweroff \
+  reboot \
+  fc-cache \
+  df \
+  du \
+  rm \
+  reflector \
+  powerpill \
+  chsh \
+  chmod \
+  featherpad \
+  notepadqq; do
+  #/// shellcheck disable=SC2139
+  alias $x='sudo $x'
+  # x="sudo $x"
 done
 
 alias update="pacman -Syu"

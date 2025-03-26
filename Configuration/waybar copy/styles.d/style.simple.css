@@ -1,7 +1,12 @@
 * {
   min-height: 0;
   font-size: 15px;
-  font-family: "Font Awesome 5 Free", "Iosevka", Roboto, Helvetica, Arial,
+  font-family:
+    "Font Awesome 5 Free",
+    "Iosevka",
+    Roboto,
+    Helvetica,
+    Arial,
     sans-serif;
   border: none;
   border-radius: 0;
@@ -55,15 +60,13 @@ window#waybar {
   font-weight: bold;
 }
 
-#battery {
-}
+#battery {}
 
 #battery icon {
   color: red;
 }
 
-#battery.charging {
-}
+#battery.charging {}
 
 @keyframes blink {
   to {
@@ -81,28 +84,22 @@ window#waybar {
   animation-direction: alternate;
 }
 
-#cpu {
-}
+#cpu {}
 
-#memory {
-}
+#memory {}
 
-#network {
-}
+#network {}
 
 #network.disconnected {
   background: #f53c3c;
 }
 
-#pulseaudio {
-}
+#pulseaudio {}
 
-#pulseaudio.muted {
-}
+#pulseaudio.muted {}
 
 #custom-spotify {
   color: rgb(102, 220, 105);
 }
 
-#tray {
-}
+#tray {}

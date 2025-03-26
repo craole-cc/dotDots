@@ -27,5 +27,5 @@ input_list="$4"
 fmt_highlight="${FMT_HIGHLIGHT:-"$5"}"
 fmt_normal="${FMT_NORMAL:-"$6"}"
 
-pout-split "$input_delimiter" "$output_delimiter" "$input_list" \
-  | sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${fmt_highlight}${highlight_item}${fmt_normal}\3/"
+pout-split "$input_delimiter" "$output_delimiter" "$input_list" |
+  sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${fmt_highlight}${highlight_item}${fmt_normal}\3/"

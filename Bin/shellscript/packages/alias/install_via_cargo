@@ -9,9 +9,9 @@ main() {
 
 initialize_tools() {
   weHave() {
-    command -v "$1" > /dev/null 2>&1 \
-      || cargo install --list | grep --quiet "$1" \
-      || return 1
+    command -v "$1" >/dev/null 2>&1 ||
+      cargo install --list | grep --quiet "$1" ||
+      return 1
   }
 
   four1one() {
@@ -41,22 +41,22 @@ initialize_tools() {
 parse_core_arguments() {
   while [ "$#" -ge 1 ]; do
     case $1 in
-      -h | --help)
-        printf "Help"
-        exit 0
-        ;;
-      -v | --version)
-        printf "Version"
-        exit 0
-        ;;
-      -d | --verbose) verbose=true ;;
-      -t | --simulate | --test | --dry-run) simulate=true verbose=true ;;
-      -q | --quiet) unset verbose ;;
-      -u | --un* | --up* | -x | -r | -i | --in* | -l | -c | --check) ;;
-      -*)
-        printf "Unknown option: %s" "$1"
-        exit 1
-        ;;
+    -h | --help)
+      printf "Help"
+      exit 0
+      ;;
+    -v | --version)
+      printf "Version"
+      exit 0
+      ;;
+    -d | --verbose) verbose=true ;;
+    -t | --simulate | --test | --dry-run) simulate=true verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -u | --un* | --up* | -x | -r | -i | --in* | -l | -c | --check) ;;
+    -*)
+      printf "Unknown option: %s" "$1"
+      exit 1
+      ;;
     esac
     shift
   done
@@ -67,23 +67,23 @@ parse_proc_arguments() {
   action=update
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -*)
-        case "$1" in
-          -i | --in*) action=install ;;
-          -u | --up*) action=update ;;
-          -x | -r | --uninstall) action=uninstall ;;
-          -l | -c | --check) action=check ;;
-        esac
-        ;;
-      *)
-        app_id=$((app_id + 1))
+    -*)
+      case "$1" in
+      -i | --in*) action=install ;;
+      -u | --up*) action=update ;;
+      -x | -r | --uninstall) action=uninstall ;;
+      -l | -c | --check) action=check ;;
+      esac
+      ;;
+    *)
+      app_id=$((app_id + 1))
 
-        [ "$verbose" ] && {
-          [ "$app_id" -gt 1 ] && printf "\n"
-        }
-        app="$1"
-        manage_application
-        ;;
+      [ "$verbose" ] && {
+        [ "$app_id" -gt 1 ] && printf "\n"
+      }
+      app="$1"
+      manage_application
+      ;;
     esac
     unset app
     shift
@@ -92,50 +92,50 @@ parse_proc_arguments() {
 
 manage_application() {
   case "$action" in
-    install)
-      if weHave "$app"; then
-        four1one "'$app' is already installed."
-        return 1
-      else
-        four1one "'$app' is being installed."
-        [ "$simulate" ] || install_application "$app"
-      fi
-      ;;
-    update)
-      if weHave "$app"; then
-        four1one "'%s' is being updated."
-        [ "$simulate" ] || update_application "$app"
-      else
-        four1one "'$app' is being installed."
-        [ "$simulate" ] || install_application "$app"
-      fi
-      ;;
-    uninstall)
-      if weHave "$app"; then
-        four1one "'$app' is being uninstalled."
-        [ "$simulate" ] || uninstall_application "$app"
-      else
-        four1one "'$app' was not found"
-        return 1
-      fi
-      ;;
-    check)
-      if weHave "$app"; then
-        check_application "$app"
+  install)
+    if weHave "$app"; then
+      four1one "'$app' is already installed."
+      return 1
+    else
+      four1one "'$app' is being installed."
+      [ "$simulate" ] || install_application "$app"
+    fi
+    ;;
+  update)
+    if weHave "$app"; then
+      four1one "'%s' is being updated."
+      [ "$simulate" ] || update_application "$app"
+    else
+      four1one "'$app' is being installed."
+      [ "$simulate" ] || install_application "$app"
+    fi
+    ;;
+  uninstall)
+    if weHave "$app"; then
+      four1one "'$app' is being uninstalled."
+      [ "$simulate" ] || uninstall_application "$app"
+    else
+      four1one "'$app' was not found"
+      return 1
+    fi
+    ;;
+  check)
+    if weHave "$app"; then
+      check_application "$app"
 
-        four1one "We have '$app' [$app_version]" || {
-          [ "$app_id" -gt 1 ] && printf "\n"
-          printf "%s = %s" "$app" "$app_version"
-        }
-      else
-        four1one "'$app' was not found"
-        return 1
-      fi
-      ;;
-    *)
-      printf "Usage: validate_operation <OPERATION> <APP>\n"
-      exit 1
-      ;;
+      four1one "We have '$app' [$app_version]" || {
+        [ "$app_id" -gt 1 ] && printf "\n"
+        printf "%s = %s" "$app" "$app_version"
+      }
+    else
+      four1one "'$app' was not found"
+      return 1
+    fi
+    ;;
+  *)
+    printf "Usage: validate_operation <OPERATION> <APP>\n"
+    exit 1
+    ;;
   esac
 }
 
@@ -177,9 +177,9 @@ check_application() {
   # app_version="${app_version%%:}" #@ Remove the trailing colon
 
   app_version="$(
-    cargo install --list \
-      | awk --assign app="$app" '$1 == app {print $2}' \
-      | sed 's/[:v]//g'
+    cargo install --list |
+      awk --assign app="$app" '$1 == app {print $2}' |
+      sed 's/[:v]//g'
   )"
 }
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if type rust-script > /dev/null 2>&1; then
+if type rust-script >/dev/null 2>&1; then
   rust-script "$(pathof eol.rs)" -- "$@"
 else
   sh "$(pathof eol.sh)" -- "$@"

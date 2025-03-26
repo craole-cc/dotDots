@@ -7,7 +7,7 @@
 
 # _________________________________ DOCUMENTATION<|
 
-command -v rustc > /dev/null 2>&1 || return
+command -v rustc >/dev/null 2>&1 || return
 
 # _________________________________________ LOCAL<|
 
@@ -16,8 +16,8 @@ RUST_HOME="$DOTS_CFG/rust"
 RUSTUP_HOME="$HOME/.rustup"
 RUSTUP_BASH_COMPLETION="$BDOTDIR/functions/rustup"
 case "$sys_INFO" in
-	*Windows*) RUSTUP_CONFIG="$RUST_HOME/rustup_win.toml" ;;
-	*) RUSTUP_CONFIG="$RUST_HOME/rustup_unix.toml" ;;
+*Windows*) RUSTUP_CONFIG="$RUST_HOME/rustup_win.toml" ;;
+*) RUSTUP_CONFIG="$RUST_HOME/rustup_unix.toml" ;;
 esac
 
 # --> Cargo
@@ -32,12 +32,12 @@ RUSTFMT_CONFIG="$RUST_HOME/rustfmt.toml"
 [ -f "$CARGO_ENV" ] && . "$CARGO_ENV"
 
 [ -d "$CARGO_HOME" ] && [ -f "$CARGO_CONFIG" ] && {
-	ln --symbolic --force "$CARGO_CONFIG" "$CARGO_HOME/config.toml"
+  ln --symbolic --force "$CARGO_CONFIG" "$CARGO_HOME/config.toml"
 }
 
 [ -f "$RUSTFMT_CONFIG" ] && {
-	[ -d "$CONFIG_HOME/rustfmt" ] || mkdir --parents "$DATA_HOME/rustfmt"
-	ln --symbolic --force "$RUSTFMT_CONFIG" "$DATA_HOME/rustfmt"
+  [ -d "$CONFIG_HOME/rustfmt" ] || mkdir --parents "$DATA_HOME/rustfmt"
+  ln --symbolic --force "$RUSTFMT_CONFIG" "$DATA_HOME/rustfmt"
 }
 
 # _________________________________________ ALIAS<|

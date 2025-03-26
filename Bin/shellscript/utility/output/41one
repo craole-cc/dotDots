@@ -12,11 +12,11 @@ main() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      -d | --verbose) proceed=true ;;
-      -*)
-        display_info "$1"
-        exit
-        ;;
+    -d | --verbose) proceed=true ;;
+    -*)
+      display_info "$1"
+      exit
+      ;;
       # *)
       #   contents="$*"
       #   # display_info --help
@@ -30,34 +30,34 @@ parse_arguments() {
 proceed_if_verbose() {
   #@ Check for the verbosiy level greater than 0
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
-    [1-9] | true) ;;
-    *) exit 2 ;;
+  [1-9] | true) ;;
+  *) exit 2 ;;
   esac
 }
 
 display_info() {
   while [ $# -ge 1 ]; do
     case $1 in
-      -h | --help)
-        printf "Usage: %s [ TEXT|FILE ]\n" "$scr_name"
-        printf "Description: %s %s.\n" "$scr_name" "$scr_description"
-        ;;
-      -v | --version) printf "%s\n" "$scr_version" ;;
-      -*) ;;
-      *)
-        if [ -f "$1" ]; then
-          if type bat > /dev/null 2>&1; then
-            bat "$1"
-          else
-            embellish \
-              --bold --cyan-bg --cyan "$(align --center "$1")" \
-              --reset --new-line "$(cat "$1")" \
-              --new-line
-          fi
+    -h | --help)
+      printf "Usage: %s [ TEXT|FILE ]\n" "$scr_name"
+      printf "Description: %s %s.\n" "$scr_name" "$scr_description"
+      ;;
+    -v | --version) printf "%s\n" "$scr_version" ;;
+    -*) ;;
+    *)
+      if [ -f "$1" ]; then
+        if type bat >/dev/null 2>&1; then
+          bat "$1"
         else
-          printf "%s\n" "$1"
+          embellish \
+            --bold --cyan-bg --cyan "$(align --center "$1")" \
+            --reset --new-line "$(cat "$1")" \
+            --new-line
         fi
-        ;;
+      else
+        printf "%s\n" "$1"
+      fi
+      ;;
     esac
     shift
   done

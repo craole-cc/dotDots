@@ -17,17 +17,17 @@ weHave kitty || return
 #> Establish Link in HOME
 case $sys_TYPE in
 Windows)
-	if [ ! -L "$kittyWIN" ]; then
-		rm --recursive --force "$kittyWIN"
-		ln --symbolic --force "$kittyDOTS/win" "$kittyWIN"
-	fi
-	;;
+  if [ ! -L "$kittyWIN" ]; then
+    rm --recursive --force "$kittyWIN"
+    ln --symbolic --force "$kittyDOTS/win" "$kittyWIN"
+  fi
+  ;;
 Linux)
-	if [ ! -L "$kittyTUX" ]; then
-		rm --recursive --force "$kittyTUX"
-		ln --symbolic --force "$kittyDOTS/tux" "$kittyTUX"
-	fi
-	;;
+  if [ ! -L "$kittyTUX" ]; then
+    rm --recursive --force "$kittyTUX"
+    ln --symbolic --force "$kittyDOTS/tux" "$kittyTUX"
+  fi
+  ;;
 
 *) ;;
 esac
@@ -36,29 +36,29 @@ esac
 
 #* Activate Aliases *#
 kitty_fonts() {
-	if weHave vmore; then
-		pager='vmore'
-	elif weHave most; then
-		pager='most'
-	elif weHave bat; then
-		pager='bat'
-	elif weHave less; then
-		pager='less'
-	fi
+  if weHave vmore; then
+    pager='vmore'
+  elif weHave most; then
+    pager='most'
+  elif weHave bat; then
+    pager='bat'
+  elif weHave less; then
+    pager='less'
+  fi
 
-	if [ "$#" = 0 ]; then
-		if [ $pager ]; then
-			kitty + list-fonts --psnames | $pager
-		else
-			kitty + list-fonts --psnames
-		fi
-	elif weHave rg; then
-		kitty + list-fonts --psnames |
-			rg --smart-case "$@"
-	elif weHave grep; then
-		kitty + list-fonts --psnames |
-			grep --ignore-case "$@"
-	fi
+  if [ "$#" = 0 ]; then
+    if [ $pager ]; then
+      kitty + list-fonts --psnames | $pager
+    else
+      kitty + list-fonts --psnames
+    fi
+  elif weHave rg; then
+    kitty + list-fonts --psnames |
+      rg --smart-case "$@"
+  elif weHave grep; then
+    kitty + list-fonts --psnames |
+      grep --ignore-case "$@"
+  fi
 }
 
 alias KF='kitty_fonts'

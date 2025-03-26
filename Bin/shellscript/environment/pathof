@@ -21,36 +21,36 @@ parse_arguments() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --cwd) cwd="$2" ;;
-      --include-hidden | --hidden) hidden=true ;;
-      --limit) limit="$2" ;;
-      --closest)
-        sort_type="closest"
-        limit=1
-        depth="any"
-        direction="both"
-        ;;
-      --first)
-        sort_type="alnum"
-        limit=1
-        depth="any"
-        direction="both"
-        ;;
-      -n | --basename | --get-name | --name)
-        get_name=true
-        sort_type="alnum"
-        limit=1
-        depth="any"
-        direction="both"
-        ;;
-      -d | --dir | --dirname | --get-home | --home)
-        get_home=true
-        sort_type="alnum"
-        limit=1
-        depth="any"
-        direction="both"
-        ;;
-      *) pattern="$1" ;;
+    --cwd) cwd="$2" ;;
+    --include-hidden | --hidden) hidden=true ;;
+    --limit) limit="$2" ;;
+    --closest)
+      sort_type="closest"
+      limit=1
+      depth="any"
+      direction="both"
+      ;;
+    --first)
+      sort_type="alnum"
+      limit=1
+      depth="any"
+      direction="both"
+      ;;
+    -n | --basename | --get-name | --name)
+      get_name=true
+      sort_type="alnum"
+      limit=1
+      depth="any"
+      direction="both"
+      ;;
+    -d | --dir | --dirname | --get-home | --home)
+      get_home=true
+      sort_type="alnum"
+      limit=1
+      depth="any"
+      direction="both"
+      ;;
+    *) pattern="$1" ;;
     esac
     shift
   done
@@ -64,9 +64,9 @@ parse_arguments() {
   [ "$sort_type" ] || sort_type="depth" # depth, alphanumeric, natural, unsorted
 
   case $depth in
-    ![0-9]* | '' | any) unset depth ;;
-    least | closest) depth=0 ;;
-    one*) depth="1" ;;
+  ![0-9]* | '' | any) unset depth ;;
+  least | closest) depth=0 ;;
+  one*) depth="1" ;;
   esac
 
   # direction="both"
@@ -137,8 +137,8 @@ prep_lookup() {
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case $1 in
-      -c | --cwd) cwd="$2" ;;
-      *) pattern="$1" ;;
+    -c | --cwd) cwd="$2" ;;
+    *) pattern="$1" ;;
     esac
     shift
   done
@@ -146,17 +146,17 @@ prep_lookup() {
   #@ Resolve the pattern to an absolute path if it is relative
   #@ Otherwise, return the original pattern
   case "$pattern" in
-    ./*)
-      #@ Remove the leading './' from the pattern if present
-      pattern="${pattern#./}"
+  ./*)
+    #@ Remove the leading './' from the pattern if present
+    pattern="${pattern#./}"
 
-      #@ Return the prep_lookupd path
-      printf "%s" "${cwd:-$(pwd)}/${pattern}"
-      ;;
-    *)
-      #@ Return the original pattern
-      printf "%s" "$pattern"
-      ;;
+    #@ Return the prep_lookupd path
+    printf "%s" "${cwd:-$(pwd)}/${pattern}"
+    ;;
+  *)
+    #@ Return the original pattern
+    printf "%s" "$pattern"
+    ;;
   esac
 }
 
@@ -170,24 +170,24 @@ search_exe() {
   #DOC   using the 'command -v' utility. If the command is found, the function returns
   #DOC   the path to the executable. Otherwise, it returns nothing.
 
-  command -v "$pattern" > /dev/null 2>&1 \
-    && command -v "$pattern"
+  command -v "$pattern" >/dev/null 2>&1 &&
+    command -v "$pattern"
 }
 
 sort_list() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --type | -t) sort_type="$2" ;;
-      --list) sort_list="$2" ;;
-      *) sort_list="$1" ;;
+    --type | -t) sort_type="$2" ;;
+    --list) sort_list="$2" ;;
+    *) sort_list="$1" ;;
     esac
     shift
   done
 
   case "$sort_type" in
-    depth | d*)
-      printf "%s" "$sort_list" \
-        | awk -v ORS="\n" -v tab="$(printf '\t')" '
+  depth | d*)
+    printf "%s" "$sort_list" |
+      awk -v ORS="\n" -v tab="$(printf '\t')" '
         BEGIN { FS = "/" }
 
         function get_sort_priority(str) {
@@ -259,37 +259,37 @@ sort_list() {
 
           #@ Output format: depth<tab>sort_key<tab>original_path
           printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
-        }' \
-        | sort | cut -f3 | grep --invert-match '^$'
-      ;;
-    lexical | l* | alphanumeric | alnum | a*)
-      sort_cmd="sort --numeric-sort"
-      with_punctuation() {
-        printf "%s" "$1" \
-          | while IFS= read -r line; do
-            case "$line" in
-              */[[:punct:]]*) printf "%s\n" "$line" ;;
-            esac
-          done | eval "$2"
-      }
-      without_punctuation() {
-        printf "%s" "$1" \
-          | while IFS= read -r line; do
-            case "$line" in
-              */[[:punct:]]*) ;;
-              *) printf "%s\n" "$line" ;;
-            esac
-          done | eval "$2"
-      }
+        }' |
+      sort | cut -f3 | grep --invert-match '^$'
+    ;;
+  lexical | l* | alphanumeric | alnum | a*)
+    sort_cmd="sort --numeric-sort"
+    with_punctuation() {
+      printf "%s" "$1" |
+        while IFS= read -r line; do
+          case "$line" in
+          */[[:punct:]]*) printf "%s\n" "$line" ;;
+          esac
+        done | eval "$2"
+    }
+    without_punctuation() {
+      printf "%s" "$1" |
+        while IFS= read -r line; do
+          case "$line" in
+          */[[:punct:]]*) ;;
+          *) printf "%s\n" "$line" ;;
+          esac
+        done | eval "$2"
+    }
 
-      printf "%s" "$(
-        with_punctuation "$sort_list" "$sort_cmd"
-        without_punctuation "$sort_list" "$sort_cmd"
-      )" | grep --invert-match '^$'
-      ;;
-    natural | n*)
-      printf "%s" "$sort_list" \
-        | awk -v ORS="\n" -v tab="$(printf '\t')" '
+    printf "%s" "$(
+      with_punctuation "$sort_list" "$sort_cmd"
+      without_punctuation "$sort_list" "$sort_cmd"
+    )" | grep --invert-match '^$'
+    ;;
+  natural | n*)
+    printf "%s" "$sort_list" |
+      awk -v ORS="\n" -v tab="$(printf '\t')" '
             BEGIN { FS = "/" }
 
             function get_sort_priority(str) {
@@ -358,29 +358,29 @@ sort_list() {
 
               #@ Output format: depth<tab>sort_key<tab>original_path
               printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
-            }' \
-        | sort | cut -f3 | grep --invert-match '^$'
-      ;;
-    *)
-      printf "%s" "$sort_list"
-      ;;
+            }' |
+      sort | cut -f3 | grep --invert-match '^$'
+    ;;
+  *)
+    printf "%s" "$sort_list"
+    ;;
   esac
 }
 
 limit_list() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --limit) limit="$2" ;;
-      --list) list="$2" ;;
-      *) list="$1" ;;
+    --limit) limit="$2" ;;
+    --list) list="$2" ;;
+    *) list="$1" ;;
     esac
     shift
   done
 
   case "$limit" in
-    '') printf "%s" "$list" ;;
-    ![0-9]*) printf "%s" "$list" | head -n 1 ;;
-    *) printf "%s" "$list" | head -n "$limit" ;;
+  '') printf "%s" "$list" ;;
+  ![0-9]*) printf "%s" "$list" | head -n 1 ;;
+  *) printf "%s" "$list" | head -n "$limit" ;;
   esac
 }
 
@@ -401,9 +401,9 @@ search_fs() {
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --cwd) cwd="$2" ;;
-      --first | --closest) closest=true ;;
-      *) pattern="$1" ;;
+    --cwd) cwd="$2" ;;
+    --first | --closest) closest=true ;;
+    *) pattern="$1" ;;
     esac
     shift
   done
@@ -429,7 +429,7 @@ search_fs() {
     dir="$1"
     target="$2"
 
-    if type fd > /dev/null 2>&1; then
+    if type fd >/dev/null 2>&1; then
       cmd="fd --base-directory \"$dir\""
       opt="$opt --absolute-path --glob"
       [ "$hidden" ] && opt="$opt --hidden"
@@ -440,7 +440,7 @@ search_fs() {
       # else
       #   fd --base-directory "$dir" "$target"
       # fi
-    elif type find > /dev/null 2>&1; then
+    elif type find >/dev/null 2>&1; then
       cmd="find \"$dir\""
       # opt="$opt -type f"
       pat="-wholename \"*/$target\""
@@ -487,15 +487,12 @@ search_fs() {
 
     #@ Extract the desired path from the list
     path="$(
-      printf "%s" "$pathlist" \
-        | awk -F'/' '{print NF-1, $0}' \
-        |
+      printf "%s" "$pathlist" |
+        awk -F'/' '{print NF-1, $0}' |
         # 1
-        sort -n \
-        |
+        sort -n |
         # 2
-        cut -d' ' -f2- \
-        |
+        cut -d' ' -f2- |
         # 3
         head -n 1 # 4
     )"
@@ -512,8 +509,8 @@ search_fs() {
 
   #@ Search the filesystem in both directions
   pathlist="$(search_fs__downwards "$cwd" "$pattern")"
-  [ "$pathlist" ] \
-    || pathlist="$(search_fs__upwards "$cwd" "$pattern")"
+  [ "$pathlist" ] ||
+    pathlist="$(search_fs__upwards "$cwd" "$pattern")"
 
   # if [ "$closest" ]; then
   #   path="$(search_fs__closest "$pathlist")"
@@ -546,8 +543,8 @@ search_all() {
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --cwd) cwd="$2" ;;
-      *) pattern="$1" ;;
+    --cwd) cwd="$2" ;;
+    *) pattern="$1" ;;
     esac
     shift
   done

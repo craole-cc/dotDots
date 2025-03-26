@@ -47,9 +47,9 @@ __test__() {
 }
 
 case $1 in
-  --test)
-    shift
-    __test__ "$@"
-    ;;
-  *) __run__ "$@" ;;
+--test)
+  shift
+  __test__ "$@"
+  ;;
+*) __run__ "$@" ;;
 esac

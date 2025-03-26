@@ -47,7 +47,7 @@ package = "lsd"
 
 [[commands]]
 category = "Interactive Shell & Scripting"
-name="nu"
+name = "nu"
 package = "nushell"
 
 [[commands]]

@@ -42,7 +42,7 @@ let
 
   #@ Function to calculate paths for a specific host
   mkHostPaths =
-    hostName: hostConfig:
+    _hostName: hostConfig:
     let
       modules = {
         store = hostConfig.paths.store + names.nixos;

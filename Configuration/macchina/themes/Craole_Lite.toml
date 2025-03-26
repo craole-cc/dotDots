@@ -1,30 +1,30 @@
 # Craole_Lite
 
-key_color       = "green"
-padding         = 0
-separator       = ""
+key_color = "green"
+padding = 0
+separator = ""
 separator_color = "gray"
-spacing         = 2
+spacing = 2
 
 [custom_ascii]
 color = "green"
-path  = "~/.config/macchina/images/smile.ascii"
+path = "~/.config/macchina/images/smile.ascii"
 
 [palette]
-glyph   = " ● "
-type    = "Light"
+glyph = " ● "
+type = "Light"
 visible = false
 
 [bar]
-glyph           = "ߋ"
+glyph = "ߋ"
 hide_delimiters = true
-symbol_close    = ']'
-symbol_open     = '['
-visible         = true
+symbol_close = ']'
+symbol_open = '['
+visible = true
 
 [box]
-border  = "rounded"
-title   = " Craole "
+border = "rounded"
+title = " Craole "
 visible = false
 
 [box.inner_margin]
@@ -33,26 +33,26 @@ y = 0
 
 [randomize]
 # key_color       = true
-pool            = "indexed"
+pool = "indexed"
 separator_color = true
 
 
 [keys]
-backlight  = "  "
-battery    = "  "
-cpu        = "  "
-cpu_load   = "  "
-de         = "  "
-distro     = "  "
-host       = "  "
-kernel     = "  "
-local_ip   = "  "
-machine    = "  "
-memory     = "  "
-os         = "  "
-packages   = "  "
+backlight = "  "
+battery = "  "
+cpu = "  "
+cpu_load = "  "
+de = "  "
+distro = "  "
+host = "  "
+kernel = "  "
+local_ip = "  "
+machine = "  "
+memory = "  "
+os = "  "
+packages = "  "
 resolution = "  "
-shell      = "  "
-terminal   = "  "
-uptime     = "  "
-wm         = " 拓 "
+shell = "  "
+terminal = "  "
+uptime = "  "
+wm = " 拓 "

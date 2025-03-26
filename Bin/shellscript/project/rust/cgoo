@@ -3,7 +3,7 @@
 main() {
   scr_name="$(basename "$0")"
   scr_guide="$(
-    cat << EOF
+    cat <<EOF
 Usage:
   $(basename "$0") <MODES> [COMMAND/OPTION] -- <ARGUMENTS>
 
@@ -60,7 +60,7 @@ display_usage() {
     #@ No arguments
     exit_code=0
   else
-    if [ "$1" -eq "$1" ] 2> /dev/null; then
+    if [ "$1" -eq "$1" ] 2>/dev/null; then
       #@ The first argument is a number
       exit_code="$1"
       shift
@@ -70,8 +70,8 @@ display_usage() {
     fi
   fi
   #@ Display the error or custom message
-  [ "$*" ] \
-    && if [ "$exit_code" -ne 0 ]; then
+  [ "$*" ] &&
+    if [ "$exit_code" -ne 0 ]; then
       printf "Error: %s\n\n" "$*"
     else
       printf "%s\n\n" "$*"
@@ -86,7 +86,7 @@ display_usage() {
 
 cargo_cmd() {
   #@ Check if cargo is installed
-  cargo --help > /dev/null 2>&1 || {
+  cargo --help >/dev/null 2>&1 || {
     printf "%s\n%s" \
       "Please ensure 'cargo' is installed and in your PATH." \
       "See https://www.rust-lang.org/tools/install for more information."
@@ -94,7 +94,7 @@ cargo_cmd() {
   }
 
   if [ "$2" ]; then
-    printf "cargo watch --quiet --clear --exec \"%s\"" "$1"
+    printf 'cargo watch --quiet --clear --exec "%s"' "$1"
   else
     printf "cargo %s" "$1"
   fi
@@ -103,28 +103,28 @@ cargo_cmd() {
 get_option() {
   while [ $# -gt 0 ]; do
     case $1 in
-      -p* | --p*)
-        [ "$2" ] \
-          && if [ "$2" -eq "$2" ] 2> /dev/null; then
-            position="$2"
-            shift
-          else
-            printf "Error: Position not a number\n"
-            printf "Invalid position: %s\n" "$2"
-            exit 66 #? Developer Error - Script Logic Error
-          fi
-
-        ;;
-      -o* | --o*)
-        [ "$2" ] && {
-          options="$2"
+    -p* | --p*)
+      [ "$2" ] &&
+        if [ "$2" -eq "$2" ] 2>/dev/null; then
+          position="$2"
           shift
-        }
-        ;;
-      *)
-        options="${options:-$1}"
-        position="${position:-$2}"
-        ;;
+        else
+          printf "Error: Position not a number\n"
+          printf "Invalid position: %s\n" "$2"
+          exit 66 #? Developer Error - Script Logic Error
+        fi
+
+      ;;
+    -o* | --o*)
+      [ "$2" ] && {
+        options="$2"
+        shift
+      }
+      ;;
+    *)
+      options="${options:-$1}"
+      position="${position:-$2}"
+      ;;
     esac
     shift
   done
@@ -177,177 +177,177 @@ parse_arguments() {
   external() {
     while [ $# -gt 0 ]; do
       case "$1" in
-        -a*)
-          #> Command
-          cmd="add"
+      -a*)
+        #> Command
+        cmd="add"
 
-          #> Option
-          case "$(get_option "$1")" in
-            h)
-              opt="--help"
-              ;;
-          esac
-
-          #> Argument
-          unset arg
+        #> Option
+        case "$(get_option "$1")" in
+        h)
+          opt="--help"
           ;;
-        -b*)
-          cmd="build"
+        esac
 
-          case "$(get_option --opt "$1" --pos 2)" in
-            h)
-              opt="--help"
-              ;;
-            b)
-              if [ "$2" ]; then
-                opt="--bin"
-              else
-                opt="--bins"
-              fi
-              ;;
-            e)
-              if [ "$2" ]; then
-                opt="--example"
-              else
-                opt="--examples"
-              fi
-              ;;
-            l)
-              opt="--lib"
-              ;;
-            n)
-              if [ "$2" ]; then
-                opt="--bench"
-              else
-                opt="--benches"
-              fi
-              ;;
-            t)
-              if [ "$2" ]; then
-                opt="--test"
-              else
-                opt="--test $(basename "$PWD")"
-              fi
-              ;;
-            r | a) opt="--all-targets --all-features --release" ;;
-            w)
-              opt="--workspace"
-              ;;
-            x)
-              opt="--exclude"
-              ;;
-          esac
+        #> Argument
+        unset arg
+        ;;
+      -b*)
+        cmd="build"
 
-          while [ $# -gt 1 ]; do
-            case "$2" in --) break ;; -*) ;; *) opt="$opt $2" ;; esac
-            shift
-          done
+        case "$(get_option --opt "$1" --pos 2)" in
+        h)
+          opt="--help"
           ;;
-        -c*)
-          #@ Command
-          cmd="clean"
-
-          #@ Options
-          case "$(get_option "$1")" in
-            h) opt="--help" ;;
-            p)
-              shift
-              opt="$opt $*"
-              ;;
-          esac
-
-          #@ Arguments
-          unset arg
+        b)
+          if [ "$2" ]; then
+            opt="--bin"
+          else
+            opt="--bins"
+          fi
           ;;
-        -r*)
-          cmd="run"
-
-          case "$(get_option --opt "$1" --pos 2)" in
-            h) opt="--help" ;;
-            b) opt="--bin" ;;
-            e) opt="--example" ;;
-            j) opt="--jobs" ;;
-            p) opt="--package" ;;
-            o) opt="--profile" ;;
-            t) opt="--target" ;;
-            d) opt="--target-dir" ;;
-            r | a) opt="--all-features --release" ;;
-            u | g) opt="--unit-graph" ;;
-          esac
-
-          while [ $# -gt 1 ]; do
-            case "$2" in -*) ;; *) opt="$opt $2" ;; esac
-            shift
-          done
+        e)
+          if [ "$2" ]; then
+            opt="--example"
+          else
+            opt="--examples"
+          fi
           ;;
-        -t*)
-          cmd="test"
-
-          case "$(get_option --opt "$1" --pos 2)" in
-            h)
-              opt="--help"
-              ;;
-            b)
-              if [ "$2" ]; then
-                opt="--bin"
-              else
-                opt="--bins"
-              fi
-              ;;
-            e)
-              if [ "$2" ]; then
-                opt="--example"
-              else
-                opt="--examples"
-              fi
-              ;;
-            l)
-              opt="--lib"
-              ;;
-            n)
-              if [ "$2" ]; then
-                opt="--bench"
-              else
-                opt="--benches"
-              fi
-              ;;
-            t)
-              if [ "$2" ]; then
-                opt="--test"
-              else
-                opt="--test $(basename "$PWD")"
-              fi
-              ;;
-            a)
-              opt="--all-targets --all-features"
-              ;;
-            w)
-              opt="--workspace"
-              ;;
-            x)
-              opt="--exclude"
-              ;;
-          esac
-
-          while [ $# -gt 1 ]; do
-            case "$2" in --) break ;; -*) ;; *) opt="$opt $2" ;; esac
-            shift
-          done
-
-          [ "$3" ] && shift
-
-          arg="--nocapture --exact"
-          while [ $# -gt 1 ]; do
-            case "$2" in --) break ;; -*) ;; *) arg="$arg $2" ;; esac
-            shift
-          done
+        l)
+          opt="--lib"
           ;;
-        *)
-          case $1 in
-            -*D* | -*Q* | -*R* | -*W* | -H | --debug) ;;
-            *) cmd="$cmd $1" ;;
-          esac
+        n)
+          if [ "$2" ]; then
+            opt="--bench"
+          else
+            opt="--benches"
+          fi
           ;;
+        t)
+          if [ "$2" ]; then
+            opt="--test"
+          else
+            opt="--test $(basename "$PWD")"
+          fi
+          ;;
+        r | a) opt="--all-targets --all-features --release" ;;
+        w)
+          opt="--workspace"
+          ;;
+        x)
+          opt="--exclude"
+          ;;
+        esac
+
+        while [ $# -gt 1 ]; do
+          case "$2" in --) break ;; -*) ;; *) opt="$opt $2" ;; esac
+          shift
+        done
+        ;;
+      -c*)
+        #@ Command
+        cmd="clean"
+
+        #@ Options
+        case "$(get_option "$1")" in
+        h) opt="--help" ;;
+        p)
+          shift
+          opt="$opt $*"
+          ;;
+        esac
+
+        #@ Arguments
+        unset arg
+        ;;
+      -r*)
+        cmd="run"
+
+        case "$(get_option --opt "$1" --pos 2)" in
+        h) opt="--help" ;;
+        b) opt="--bin" ;;
+        e) opt="--example" ;;
+        j) opt="--jobs" ;;
+        p) opt="--package" ;;
+        o) opt="--profile" ;;
+        t) opt="--target" ;;
+        d) opt="--target-dir" ;;
+        r | a) opt="--all-features --release" ;;
+        u | g) opt="--unit-graph" ;;
+        esac
+
+        while [ $# -gt 1 ]; do
+          case "$2" in -*) ;; *) opt="$opt $2" ;; esac
+          shift
+        done
+        ;;
+      -t*)
+        cmd="test"
+
+        case "$(get_option --opt "$1" --pos 2)" in
+        h)
+          opt="--help"
+          ;;
+        b)
+          if [ "$2" ]; then
+            opt="--bin"
+          else
+            opt="--bins"
+          fi
+          ;;
+        e)
+          if [ "$2" ]; then
+            opt="--example"
+          else
+            opt="--examples"
+          fi
+          ;;
+        l)
+          opt="--lib"
+          ;;
+        n)
+          if [ "$2" ]; then
+            opt="--bench"
+          else
+            opt="--benches"
+          fi
+          ;;
+        t)
+          if [ "$2" ]; then
+            opt="--test"
+          else
+            opt="--test $(basename "$PWD")"
+          fi
+          ;;
+        a)
+          opt="--all-targets --all-features"
+          ;;
+        w)
+          opt="--workspace"
+          ;;
+        x)
+          opt="--exclude"
+          ;;
+        esac
+
+        while [ $# -gt 1 ]; do
+          case "$2" in --) break ;; -*) ;; *) opt="$opt $2" ;; esac
+          shift
+        done
+
+        [ "$3" ] && shift
+
+        arg="--nocapture --exact"
+        while [ $# -gt 1 ]; do
+          case "$2" in --) break ;; -*) ;; *) arg="$arg $2" ;; esac
+          shift
+        done
+        ;;
+      *)
+        case $1 in
+        -*D* | -*Q* | -*R* | -*W* | -H | --debug) ;;
+        *) cmd="$cmd $1" ;;
+        esac
+        ;;
       esac
       shift
     done

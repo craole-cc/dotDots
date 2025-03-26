@@ -18,34 +18,34 @@ __install__() {
   printf '%s\n' "$_msg_success"
 
   case "$_man" in
-    paru)
-      paru \
-        --sync --needed --quiet --noconfirm \
-        git xorg-server xorg-apps xorg-xinit xorg-xmessage libx11 libxft libxinerama libxrandr libxss pkgconf
-      ;;
-    yay)
-      yay \
-        --sync --needed --quiet --noconfirm \
-        git xorg-server xorg-apps xorg-xinit xorg-xmessage libx11 libxft libxinerama libxrandr libxss pkgconf
-      ;;
-    pacman)
-      sudo pacman \
-        --sync --needed --quiet --noconfirm \
-        git xorg-server xorg-apps xorg-xinit xorg-xmessage libx11 libxft libxinerama libxrandr libxss pkgconf
-      ;;
-    dnf)
-      sudo dnf install \
-        git \
-        libX11-devel libXft-devel libXinerama-devel libXrandr-devel libXScrnSaver-devel
-      ;;
-    xbps-install)
-      sudo xbps-install \
-        git \
-        ncurses-libtinfo-libs ncurses-libtinfo-devel \
-        libX11-devel libXft-devel libXinerama-devel libXrandr-devel libXScrnSaver-devel \
-        pkg-config
-      ;;
-    *) ;;
+  paru)
+    paru \
+      --sync --needed --quiet --noconfirm \
+      git xorg-server xorg-apps xorg-xinit xorg-xmessage libx11 libxft libxinerama libxrandr libxss pkgconf
+    ;;
+  yay)
+    yay \
+      --sync --needed --quiet --noconfirm \
+      git xorg-server xorg-apps xorg-xinit xorg-xmessage libx11 libxft libxinerama libxrandr libxss pkgconf
+    ;;
+  pacman)
+    sudo pacman \
+      --sync --needed --quiet --noconfirm \
+      git xorg-server xorg-apps xorg-xinit xorg-xmessage libx11 libxft libxinerama libxrandr libxss pkgconf
+    ;;
+  dnf)
+    sudo dnf install \
+      git \
+      libX11-devel libXft-devel libXinerama-devel libXrandr-devel libXScrnSaver-devel
+    ;;
+  xbps-install)
+    sudo xbps-install \
+      git \
+      ncurses-libtinfo-libs ncurses-libtinfo-devel \
+      libX11-devel libXft-devel libXinerama-devel libXrandr-devel libXScrnSaver-devel \
+      pkg-config
+    ;;
+  *) ;;
   esac
 }
 

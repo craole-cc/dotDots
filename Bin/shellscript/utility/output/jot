@@ -16,59 +16,59 @@ jot_init() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --backup=*)
-        backup_type="${1#*=}"
-        case "$backup_type" in
-          none | off | numbered | t | exiting | nil | simple | never) ;;
-          *)
-            pout \
-              --lbl "Invalid Backup Type" \
-              --var "$backup_type" \
-              --usage "$func_usage" \
-              --fatal
-            ;;
-        esac
-        ;;
-      --backup)
-        while [ "$#" -ge 2 ]; do
-          case "$2" in
-            none | off | numbered | t | exiting | nil | simple | never)
-              backup_type="$2"
-              ;;
-            *)
-              if [ ! "$2" ] || [ "$2" = "-*" ]; then
-                pout "Backup file name is missing after '--backup' option."
-              else
-                backup_file_path="$2"
-              fi
-              break
-              ;;
-          esac
-          shift
-        done
-        ;;
-      -f | --file)
-        [ "$2" ] && {
-          target_file_path="$2"
-          shift
-        }
-        ;;
-      -c | --contents)
-        [ "$2" ] && {
-          txt_to_jot="$(__txtBarber "$2")"
-          shift
-        }
-        ;;
-      -*)
+    --backup=*)
+      backup_type="${1#*=}"
+      case "$backup_type" in
+      none | off | numbered | t | exiting | nil | simple | never) ;;
+      *)
         pout \
-          --lbl "Invalid Option" \
-          --var "$1" \
+          --lbl "Invalid Backup Type" \
+          --var "$backup_type" \
           --usage "$func_usage" \
           --fatal
         ;;
-      *)
-        txt_to_jot="$(__txtBarber "$1")"
-        ;;
+      esac
+      ;;
+    --backup)
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        none | off | numbered | t | exiting | nil | simple | never)
+          backup_type="$2"
+          ;;
+        *)
+          if [ ! "$2" ] || [ "$2" = "-*" ]; then
+            pout "Backup file name is missing after '--backup' option."
+          else
+            backup_file_path="$2"
+          fi
+          break
+          ;;
+        esac
+        shift
+      done
+      ;;
+    -f | --file)
+      [ "$2" ] && {
+        target_file_path="$2"
+        shift
+      }
+      ;;
+    -c | --contents)
+      [ "$2" ] && {
+        txt_to_jot="$(__txtBarber "$2")"
+        shift
+      }
+      ;;
+    -*)
+      pout \
+        --lbl "Invalid Option" \
+        --var "$1" \
+        --usage "$func_usage" \
+        --fatal
+      ;;
+    *)
+      txt_to_jot="$(__txtBarber "$1")"
+      ;;
     esac
     shift
   done

@@ -14,7 +14,8 @@
 
 ### Added
 
-- Option to allow usernames with mixed case lettering. This is highly discouraged!
+- Option to allow usernames with mixed case lettering. This is highly
+  discouraged!
 - Option to allow login without password. Makes the login button always enabled.
 
 ### Changed
@@ -25,7 +26,8 @@
 
 ### Fixed
 
-- Username now gets automatically converted to lowercase at login to prevent errors
+- Username now gets automatically converted to lowercase at login to prevent
+  errors
 
 ## [1.3] - 2019-10-04
 
@@ -36,7 +38,8 @@
 ### Added
 
 - Up/Down arrow keys now intuitively navigate through the whole interface
-- Enter/Return keys can be used to login directly from within the username and password fields
+- Enter/Return keys can be used to login directly from within the username and
+  password fields
 
 ## [1.2] - 2019-07-15
 
@@ -52,4 +55,5 @@
 
 ### Changed
 
-- "Show Password" check box label now the same size as rest of secondary UI elements
+- "Show Password" check box label now the same size as rest of secondary UI
+  elements

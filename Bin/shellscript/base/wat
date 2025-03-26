@@ -7,7 +7,7 @@ __info__() {
   _cmd_DESCRIPTION="Verifies that a command is installed/available."
   _cmd_DEPENDENCIES="unalias, command, printf, getoptions"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
     ::----------------------------------------------------::
                         USAGE: $_cmd_NAME
         $_cmd_DESCRIPTION
@@ -33,11 +33,11 @@ __opts__() {
   #@ Parse user options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -V | --verbose) verbose=true ;;
-      -q | --quiet) unset verbose ;;
-      -t | --tool) tool=$2 ;;
-      -*) __cleanup__ ;;
-      *) file="$1" && __tool__ ;;
+    -V | --verbose) verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -t | --tool) tool=$2 ;;
+    -*) __cleanup__ ;;
+    *) file="$1" && __tool__ ;;
     esac
     shift
   done
@@ -61,7 +61,7 @@ __version__() {
 }
 
 weHave() { #@ Check if the command exists
-  type "$1" > /dev/null 2>&1
+  type "$1" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -71,17 +71,17 @@ __tool__() {
 
   #@ Enable tool-specific options
   case "$tool" in
-    bat)
-      BAT_THEME="${BAT_THEME:-TwoDark}"
-      BAT_STYLE="${BAT_STYLE:-'grid,numbers,changes'}"
+  bat)
+    BAT_THEME="${BAT_THEME:-TwoDark}"
+    BAT_STYLE="${BAT_STYLE:-'grid,numbers,changes'}"
 
-      tool_opts="\
+    tool_opts="\
     --style=$BAT_STYLE \
     --theme=$BAT_THEME \
     --force-colorization \
     "
-      ;;
-    *) ;;
+    ;;
+  *) ;;
   esac
 
   #@ Push the tool command
@@ -96,8 +96,8 @@ __tool__() {
 
 __rdr__() {
   case "${file##*\.}" in
-    pdf) reader() { rdr__pdf; } ;;
-    *) reader() { rdr__txt; } ;;
+  pdf) reader() { rdr__pdf; } ;;
+  *) reader() { rdr__txt; } ;;
   esac
 
   if [ "$verbose" ]; then
@@ -111,8 +111,8 @@ __rdr__() {
 __process__() {
   __read__() {
     case "${file##*\.}" in
-      pdf) reader() { rdr__pdf; } ;;
-      *) reader() { rdr__txt; } ;;
+    pdf) reader() { rdr__pdf; } ;;
+    *) reader() { rdr__txt; } ;;
     esac
 
     if [ "$verbose" ]; then

@@ -1,11 +1,11 @@
 #!/bin/sh
 
 case "$1" in
-  -x | --exe)
-    shift
-    _EXE=true
-    ;;
-  *) ;;
+-x | --exe)
+  shift
+  _EXE=true
+  ;;
+*) ;;
 esac
 
 for file in "$@"; do

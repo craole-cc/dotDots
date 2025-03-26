@@ -5,18 +5,18 @@ appName="sshIt"
 appVersion="0.10"
 
 case "$1" in
-  -h | --help)
-    _HELP=true
-    ;;
-  -v | --version)
-    _VER=true
-    ;;
-  -e | --src | --env)
-    _SRC=true
-    shift
-    _ENV="$*"
-    ;;
-  *) ;;
+-h | --help)
+  _HELP=true
+  ;;
+-v | --version)
+  _VER=true
+  ;;
+-e | --src | --env)
+  _SRC=true
+  shift
+  _ENV="$*"
+  ;;
+*) ;;
 esac
 
 __help__() {
@@ -37,53 +37,53 @@ __main__() {
 __error__() {
   args=$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')
   case "$args" in
-    --required)
-      printf "%s" "🚩 This is ${error}required${reset}
+  --required)
+    printf "%s" "🚩 This is ${error}required${reset}
             "
-      exit 1
-      ;;
-    --naked)
-      printf "%s" "🚩 Invalid character(s): ${error}$_invalid${reset}
+    exit 1
+    ;;
+  --naked)
+    printf "%s" "🚩 Invalid character(s): ${error}$_invalid${reset}
             "
-      exit 1
-      ;;
-    --character)
-      printf "%s" "🚩 Invalid characters were removed:
+    exit 1
+    ;;
+  --character)
+    printf "%s" "🚩 Invalid characters were removed:
     🟥 $_invalid
     ✅ $_valid
             "
-      ;;
-    --selection)
-      printf "%s" "🚩 Invalid Selection
+    ;;
+  --selection)
+    printf "%s" "🚩 Invalid Selection
             "
-      ;;
-    --env)
-      shift
-      printf "%s" "🚩 The ${error}ENV file${reset} path is invalid: \"$_ENV\""
-      __ui__ --file
-      ;;
-    --id_exists)
-      shift
-      printf "%s" "
+    ;;
+  --env)
+    shift
+    printf "%s" "🚩 The ${error}ENV file${reset} path is invalid: \"$_ENV\""
+    __ui__ --file
+    ;;
+  --id_exists)
+    shift
+    printf "%s" "
 🚩 This ${error}identity file${reset} already exists:
 \"$*\"
             "
-      __ui__ --id_exists
-      ;;
-    --file)
-      shift
-      printf "%s
+    __ui__ --id_exists
+    ;;
+  --file)
+    shift
+    printf "%s
 🚩 Invalid File:
 \"$*\""
-      __ui__ --file
-      ;;
-    --path)
-      shift
-      printf "%s" "
+    __ui__ --file
+    ;;
+  --path)
+    shift
+    printf "%s" "
             🚩 Invalid Path:
             \"$*\""
-      __ui__ --path
-      ;;
+    __ui__ --path
+    ;;
   esac
 }
 
@@ -95,109 +95,109 @@ __ui__() {
 
   opts=$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')
   case "$opts" in
-    --host)
-      printf "%s " "${italic}Who is the ${success}host${reset}?"
-      read -r _INPUT
-      __valid_name__ "$_INPUT"
-      sshHost="$_valid"
-      ;;
-    --user)
-      printf "%s " "${italic}Who is the ${info}user${reset}?"
-      read -r _INPUT
-      __valid_name__ "$_INPUT"
-      sshName="$_valid"
-      ;;
-    --hostname)
-      printf "%s " "${italic}What is the ${info}hostname${reset}?"
-      read -r _INPUT
-      __valid_name__ "$_INPUT"
-      sshHostName="$_valid"
-      ;;
-    --id_new)
-      printf "%s " "${italic}Where should the ${info}Identity File${reset} be saved?"
-      read -r _INPUT
-      __valid_id__ "$_INPUT"
-      __valid_pathname__ "$_INPUT"
-      sshID="$_valid"
-      ;;
-    --id_default)
-      printf "%s " "${italic}Save the ${info}Identity File${reset} to the default location? [Y|n]
+  --host)
+    printf "%s " "${italic}Who is the ${success}host${reset}?"
+    read -r _INPUT
+    __valid_name__ "$_INPUT"
+    sshHost="$_valid"
+    ;;
+  --user)
+    printf "%s " "${italic}Who is the ${info}user${reset}?"
+    read -r _INPUT
+    __valid_name__ "$_INPUT"
+    sshName="$_valid"
+    ;;
+  --hostname)
+    printf "%s " "${italic}What is the ${info}hostname${reset}?"
+    read -r _INPUT
+    __valid_name__ "$_INPUT"
+    sshHostName="$_valid"
+    ;;
+  --id_new)
+    printf "%s " "${italic}Where should the ${info}Identity File${reset} be saved?"
+    read -r _INPUT
+    __valid_id__ "$_INPUT"
+    __valid_pathname__ "$_INPUT"
+    sshID="$_valid"
+    ;;
+  --id_default)
+    printf "%s " "${italic}Save the ${info}Identity File${reset} to the default location? [Y|n]
             ${defaultID}"
-      read -r OPT
-      case $OPT in
-        n* | N*)
-          __ui__ --id_new
-          ;;
-        y* | Y* | *)
-          _INPUT="${defaultID}"
-          ;;
-      esac
+    read -r OPT
+    case $OPT in
+    n* | N*)
+      __ui__ --id_new
       ;;
-    --id_exists)
-      printf "%s " "${italic}Overwrite the current ${bold}identity${reset} file [${bold}N${reset}|y]?"
-      read -r OPT
-      case $OPT in
-        y* | Y*)
-          _RESET=true
-          printf "%s" "Existing identity file archived"
-          ;;
-        n* | N*)
-          __ui__ --id_new
-          ;;
-        *)
-          __error__ --selection
-          __ui__ --id_exists
-          ;;
-      esac
+    y* | Y* | *)
+      _INPUT="${defaultID}"
       ;;
-    --env)
-      printf "%s " "${italic}What is the path to the ${info}ENV${reset} file?"
-      read -r _INPUT
-      __valid_env__ "$_INPUT"
+    esac
+    ;;
+  --id_exists)
+    printf "%s " "${italic}Overwrite the current ${bold}identity${reset} file [${bold}N${reset}|y]?"
+    read -r OPT
+    case $OPT in
+    y* | Y*)
+      _RESET=true
+      printf "%s" "Existing identity file archived"
       ;;
-    --file)
-      printf "%s " "${italic}Please enter a valid path to the ${bold}file${reset}."
-      read -r _INPUT
-      __valid_file__ "$_INPUT"
+    n* | N*)
+      __ui__ --id_new
       ;;
-    --path)
-      printf "%s " "${italic}Please enter a valid ${bold}path${reset}."
-      read -r _INPUT
-      __valid_pathname__ "$_INPUT"
+    *)
+      __error__ --selection
+      __ui__ --id_exists
       ;;
-    --confirm)
-      #| Print content before the ID
-      printf "%s
+    esac
+    ;;
+  --env)
+    printf "%s " "${italic}What is the path to the ${info}ENV${reset} file?"
+    read -r _INPUT
+    __valid_env__ "$_INPUT"
+    ;;
+  --file)
+    printf "%s " "${italic}Please enter a valid path to the ${bold}file${reset}."
+    read -r _INPUT
+    __valid_file__ "$_INPUT"
+    ;;
+  --path)
+    printf "%s " "${italic}Please enter a valid ${bold}path${reset}."
+    read -r _INPUT
+    __valid_pathname__ "$_INPUT"
+    ;;
+  --confirm)
+    #| Print content before the ID
+    printf "%s
         Continue with this SSH config? [Y|n]?
   |> ---------------------------------------- <|
               Host | $sshHost
           Hostname | $sshHostName
               User | $sshName\n"
 
-      #| Wrap if ID length exceeds 22 characters"
-      ID_len="${#sshID}"
-      if [ "$ID_len" -gt 22 ]; then
-        printf "%-15s ID | ⤵ \n %-5s $sshID \n"
-      else
-        printf "%-15s ID | $sshID \n"
-      fi
+    #| Wrap if ID length exceeds 22 characters"
+    ID_len="${#sshID}"
+    if [ "$ID_len" -gt 22 ]; then
+      printf "%-15s ID | ⤵ \n %-5s $sshID \n"
+    else
+      printf "%-15s ID | $sshID \n"
+    fi
 
-      read -r OPT
-      case $OPT in
-        n* | N*)
-          __ui__ --change
-          ;;
-        y* | Y* | *)
-          return
-          ;;
-          # *)
-          #   __error__ --selection
-          #   __ui__ --confirm
-          # ;;
-      esac
+    read -r OPT
+    case $OPT in
+    n* | N*)
+      __ui__ --change
       ;;
-    --change)
-      printf "
+    y* | Y* | *)
+      return
+      ;;
+      # *)
+      #   __error__ --selection
+      #   __ui__ --confirm
+      # ;;
+    esac
+    ;;
+  --change)
+    printf "
               Select Change Option
   |> ---------------------------------------- <|
                 1. ENV Key File
@@ -207,21 +207,21 @@ __ui__() {
                 5. Identity File
                 6. Cancel
             "
-      read -r n
-      case $n in
-        1) __ui__ --env ;;
-        2) __ui__ --host ;;
-        3) __ui__ --hostname ;;
-        4) __ui__ --user ;;
-        5) __ui__ --id_new ;;
-        6)
-          printf "%s" "Exiting $appName"
-          exit
-          ;;
-        *) __error__ --selection ;;
-      esac
-      __ui__ --confirm
+    read -r n
+    case $n in
+    1) __ui__ --env ;;
+    2) __ui__ --host ;;
+    3) __ui__ --hostname ;;
+    4) __ui__ --user ;;
+    5) __ui__ --id_new ;;
+    6)
+      printf "%s" "Exiting $appName"
+      exit
       ;;
+    *) __error__ --selection ;;
+    esac
+    __ui__ --confirm
+    ;;
   esac
 
   #| Enable user input display
@@ -257,9 +257,9 @@ __variables__() {
       fi
 
       case "$(printf "%s" "$sshHost" | tr '[:upper:]' '[:lower:]')" in
-        *github*) sshHostLabel="$GitHub" ;;
-        *gitlab*) sshHostLabel="$GitLab" ;;
-        *) ;;
+      *github*) sshHostLabel="$GitHub" ;;
+      *gitlab*) sshHostLabel="$GitLab" ;;
+      *) ;;
       esac
     }
 
@@ -324,8 +324,8 @@ __variables__() {
         )"
 
         #| Archive exixting files
-        [ -f "$sshID" ] \
-          && for file in $FILEStoArchive; do
+        [ -f "$sshID" ] &&
+          for file in $FILEStoArchive; do
             bakDIR="${sshIDdir}/archive"
             mkdir --parents "$bakDIR"
             mv "$file" --backup=numbered --target-directory="$bakDIR"
@@ -368,15 +368,15 @@ __init__() {
 
   #| Generate public/private algorithm key pair, respectively.
   ssh-keygen -t ed25519 -a 100 -f "${sshID}" -C "$(INFor --label)"
-  ssh-keygen -y -f "${sshID}" > "${sshID}.pub"
+  ssh-keygen -y -f "${sshID}" >"${sshID}.pub"
 
   #| Start the ssh-agent and add the private key to it.
   eval "$(ssh-agent)" && ssh-add "${sshID}"
 
   printf \
     "Host %s\n  \tUser %s\n  \tHostName %s\n  \tIdentityFile %s\n" \
-    "$sshHost" "$sshName" "$sshHostName" "$sshID" \
-    | tee --append "${sshDIR}/config"
+    "$sshHost" "$sshName" "$sshHostName" "$sshID" |
+    tee --append "${sshDIR}/config"
 
   #| Send the contents of the public key to the clipboard
   clip-c "$(cat "$sshID.pub")"

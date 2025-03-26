@@ -9,7 +9,7 @@ esac
 YAMBAR_HOME="$DOTS_TOOL/widgets/yambar"
 YAMBAR_CONF="$YAMBAR_HOME/config.yaml"
 
-yambar_stop() { app_kill yambar;}
+yambar_stop() { app_kill yambar; }
 yambabr_start() { yambar --config="$YAMBAR_CONF"; }
 Yam() {
   yambar_stop

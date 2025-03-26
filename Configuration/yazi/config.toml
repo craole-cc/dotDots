@@ -1,12 +1,12 @@
 [manager]
-linemode       = "mtime"
-ratio          = [1, 2, 2]
-sort_by        = "natural"
+linemode = "mtime"
+ratio = [1, 2, 2]
+sort_by = "natural"
 sort_dir_first = true
 
 [preview]
 max_height = 1024
-max_width  = 1024
+max_width = 1024
 
 [plugin]
 prepend_previewers = [
@@ -19,9 +19,9 @@ prepend_previewers = [
 ]
 
 [opener]
-display      = [{ run = 'zathura "$@"', desc = "Show in Zathura" }]
-edit         = [{ run = 'nvim "$@"', block = true }]
-extract      = [{ run = 'ouch d -y "$@"', desc = "Extract here with ouch" }]
+display = [{ run = 'zathura "$@"', desc = "Show in Zathura" }]
+edit = [{ run = 'nvim "$@"', block = true }]
+extract = [{ run = 'ouch d -y "$@"', desc = "Extract here with ouch" }]
 generic_open = [{ run = 'xdg-open "$@"', desc = "Open" }]
 
 [open]

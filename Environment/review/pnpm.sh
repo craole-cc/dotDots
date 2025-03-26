@@ -14,23 +14,23 @@
 
 #> Install <#
 if ! weHave pnpm; then
-	if weHave npm; then #? Use NPM
-		case $sys_TYPE in
-		Linux) sudo npm install --global pnpm ;;
-		Windows) npm install --global pnpm ;;
-		*) ;;
-		esac
-	elif weHave curl; then #? Use CURL
-		if weHave node; then
-			curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
-		else
-			curl -fsSL https://get.pnpm.io/install.sh | sh -
-			pnpm env use --global latest
-		fi
-	elif weHave wget; then #? Use WGET
-		wget -qO- https://get.pnpm.io/install.sh | sh -
-		pnpm env use --global latest
-	fi
+  if weHave npm; then #? Use NPM
+    case $sys_TYPE in
+    Linux) sudo npm install --global pnpm ;;
+    Windows) npm install --global pnpm ;;
+    *) ;;
+    esac
+  elif weHave curl; then #? Use CURL
+    if weHave node; then
+      curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
+    else
+      curl -fsSL https://get.pnpm.io/install.sh | sh -
+      pnpm env use --global latest
+    fi
+  elif weHave wget; then #? Use WGET
+    wget -qO- https://get.pnpm.io/install.sh | sh -
+    pnpm env use --global latest
+  fi
 fi
 
 #> Verify Instalation <#
@@ -120,58 +120,58 @@ alias PMenvNG='pnpm env use --global nightly' #| Node.js Nightly, globally
 
 #> Utils <#
 Rr() { #| Install and Upgrade to the latest packages
-	#? Move to root directory
-	cd "$(git rev-parse --show-toplevel)" || return
+  #? Move to root directory
+  cd "$(git rev-parse --show-toplevel)" || return
 
-	#? Remove all node_modules
-	find . -name node_modules -prune -exec rm -rf {} \;
-	find . -name .turbo -prune -exec rm -rf {} \;
-	rm --recursive --force pnpm-lock.yaml
+  #? Remove all node_modules
+  find . -name node_modules -prune -exec rm -rf {} \;
+  find . -name .turbo -prune -exec rm -rf {} \;
+  rm --recursive --force pnpm-lock.yaml
 
-	#? Reintall packages based on package.json
-	pnpm install
+  #? Reintall packages based on package.json
+  pnpm install
 
-	#? Update out-dated packages
-	pnpm up --latest
+  #? Update out-dated packages
+  pnpm up --latest
 
-	#? Return to previous directory
-	cd "$OLDPWD" || return
+  #? Return to previous directory
+  cd "$OLDPWD" || return
 }
 
 Rb() { #| Run Build
-	#? Move to root directory
-	cd "$(git rev-parse --show-toplevel)" || return
+  #? Move to root directory
+  cd "$(git rev-parse --show-toplevel)" || return
 
-	# Build
-	pnpm build
-	pnpm prepare
+  # Build
+  pnpm build
+  pnpm prepare
 
-	#? Return to previous directory
-	cd "$OLDPWD" || return
+  #? Return to previous directory
+  cd "$OLDPWD" || return
 }
 
 Rl() { #| Run Lint
-	#? Move to root directory
-	cd "$(git rev-parse --show-toplevel)" || return
+  #? Move to root directory
+  cd "$(git rev-parse --show-toplevel)" || return
 
-	# Lint
-	pnpm lint
+  # Lint
+  pnpm lint
 
-	#? Return to previous directory
-	cd "$OLDPWD" || return
+  #? Return to previous directory
+  cd "$OLDPWD" || return
 }
 
 Rlb() { #| Lint and build
-	#? Move to root directory
-	cd "$(git rev-parse --show-toplevel)" || return
+  #? Move to root directory
+  cd "$(git rev-parse --show-toplevel)" || return
 
-	clear
-	pnpm prepare
-	pnpm lint
-	pnpm build
+  clear
+  pnpm prepare
+  pnpm lint
+  pnpm build
 
-	#? Return to previous directory
-	cd "$OLDPWD" || return
+  #? Return to previous directory
+  cd "$OLDPWD" || return
 }
 
 alias Rd='pnpm dev'     #| Run Dev
@@ -182,29 +182,29 @@ alias rrb='Rr && Rb'    #| Reinstall packages and build
 alias riu='pnpm install && pnpm up --latest'
 
 PMtailwind() {
-	#? Move to config directory
-	cd "$(git rev-parse --show-toplevel)/packages/tailwind" || return
+  #? Move to config directory
+  cd "$(git rev-parse --show-toplevel)/packages/tailwind" || return
 
-	#? Add Tailwindand plugins
-	pnpm add --save-dev \
-		tailwindcss@latest \
-		@tailwindcss/typography@latest \
-		@tailwindcss/forms@latest \
-		@tailwindcss/aspect-ratio@latest \
-		@tailwindcss/line-clamp@latest \
-		postcss@latest \
-		autoprefixer@latest
+  #? Add Tailwindand plugins
+  pnpm add --save-dev \
+    tailwindcss@latest \
+    @tailwindcss/typography@latest \
+    @tailwindcss/forms@latest \
+    @tailwindcss/aspect-ratio@latest \
+    @tailwindcss/line-clamp@latest \
+    postcss@latest \
+    autoprefixer@latest
 
-	#? Initialize Tailwindand
-	pnpm dlx tailwindcss init -p
+  #? Initialize Tailwindand
+  pnpm dlx tailwindcss init -p
 }
 
 PMnext() { #| Inside a monorepo
-	#? Move to apps directory
-	cd "$(git rev-parse --show-toplevel)/apps" || return
+  #? Move to apps directory
+  cd "$(git rev-parse --show-toplevel)/apps" || return
 
-	#? Instal Next.js with Typescript
-	# pnpm dlx create-next-app@latest --typescript "$@"
-	pnpm dlx create-next-app@latest --typescript --example with-tailwindcss "$@"
+  #? Instal Next.js with Typescript
+  # pnpm dlx create-next-app@latest --typescript "$@"
+  pnpm dlx create-next-app@latest --typescript --example with-tailwindcss "$@"
 
 }

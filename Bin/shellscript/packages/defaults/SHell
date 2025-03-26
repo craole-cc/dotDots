@@ -38,7 +38,7 @@ __shell__() {
   }
   export PATH
 
-  type lsof 1> /dev/null 2>&1 || {
+  type lsof 1>/dev/null 2>&1 || {
     echo "lsof is required for this operation"
     exit 1
   }
@@ -52,21 +52,21 @@ __shell__() {
   }
 
   # shellcheck disable=SC2086
-  lsofstr="$(lsof -p $ppid)" \
-    || {
-      printf "%s\n" "lsof failed" "try: sudo lsof -p \`ps -p \$\$ -o ppid=\`"
+  lsofstr="$(lsof -p $ppid)" ||
+    {
+      printf "%s\n" "lsof failed" 'try: sudo lsof -p `ps -p $$ -o ppid=`'
       exit 1
     }
 
-  printf "%s\n" "${lsofstr}" \
-    | LC_ALL=C awk -v var="${awkstr}" '$NF ~ var {print $NF}'
+  printf "%s\n" "${lsofstr}" |
+    LC_ALL=C awk -v var="${awkstr}" '$NF ~ var {print $NF}'
 
 }
 
 # SHell
 case "$(__shell__)" in
-  *ash) neofetch ;;
-  *zsh) . "$RC_zsh" ;;
-  *fish) . "$RC_fish" ;;
-  *nu) . "$RC_nush" ;;
+*ash) neofetch ;;
+*zsh) . "$RC_zsh" ;;
+*fish) . "$RC_fish" ;;
+*nu) . "$RC_nush" ;;
 esac

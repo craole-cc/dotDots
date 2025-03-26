@@ -1,19 +1,19 @@
 #!/bin/sh
 
 __uptime__() {
-	# echo "remember SED"
-	wmic os get LastBootUpTime |
-		sed -e "/L/ d" \
-			-e "s/\..*//" \
-			-e "s/.\{2\}$//"
+  # echo "remember SED"
+  wmic os get LastBootUpTime |
+    sed -e "/L/ d" \
+      -e "s/\..*//" \
+      -e "s/.\{2\}$//"
 }
 
 __timeBoot__() {
-	wmic os get LastBootUpTime | sed -e "/L/ d"
+  wmic os get LastBootUpTime | sed -e "/L/ d"
 }
 
 __timeNow__() {
-	date +"%Y%m%d%H%M%s"
+  date +"%Y%m%d%H%M%s"
 }
 
 onFor=$(dtdiff "$(__timeNow__)" "$(__timeBoot__)")

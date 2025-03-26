@@ -3,7 +3,7 @@
 __run__() {
   # | Run APP if not already running
   if ! app_is_active "$@"; then
-    "$@" > /dev/null 2>&1 &
+    "$@" >/dev/null 2>&1 &
     printf "🚀 %s\n" "$@"
   fi
 }

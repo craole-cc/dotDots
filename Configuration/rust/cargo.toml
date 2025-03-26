@@ -1,8 +1,8 @@
 [alias]
-r  = "run"
+r = "run"
 rq = "run --quiet"
 rr = "run --release"
-w  = "watch --quiet --clear --exec r"
+w = "watch --quiet --clear --exec r"
 wc = "watch --quiet --clear --watch crates --exec run"
 wq = "watch --quiet --clear --exec rq"
 wr = "watch --quiet --clear --exec rr"
@@ -14,7 +14,7 @@ wr = "watch --quiet --clear --exec rr"
 browser = "firefox"
 
 [unstable]
-gc         = true
+gc = true
 trim-paths = true
 
 [gc.auto]

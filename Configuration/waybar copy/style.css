@@ -3,7 +3,7 @@
   font-size: 12px;
   /* `otf-font-awesome` is required to be installed for icons */
   /* font-family: 'Rec Mono Casual','Font Awesome 5 Free', */
-  font-family: 
+  font-family:
     "Rec Mono Casual",
     "Font Awesome 5 Free",
     "Hack Nerd Font",
@@ -107,7 +107,6 @@ window#waybar.hidden {
 label:focus {
   background-color: #2e3440;
 }
-
 
 #backlight.icon {
   color: #2e3440;

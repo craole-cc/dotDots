@@ -2,22 +2,22 @@
 
 #> Install <#
 if ! weHave firewalld; then
-    if weHave paru; then
-        paru -S firewalld
-    elif weHave choco; then
-        choco install firewalld
-    elif weHave winget; then
-        winget install firewalld
-    else
-        cargo install firewalld
-    fi
+  if weHave paru; then
+    paru -S firewalld
+  elif weHave choco; then
+    choco install firewalld
+  elif weHave winget; then
+    winget install firewalld
+  else
+    cargo install firewalld
+  fi
 fi
 
 #> Verify Instalation <#
 if ! weHave firewalld; then
-    #     ver firewalld >>"$DOTS_loaded_apps"
-    # else
-    return
+  #     ver firewalld >>"$DOTS_loaded_apps"
+  # else
+  return
 fi
 
 alias fwup='sudo systemctl start firewalld'

@@ -1,4 +1,5 @@
-Workflows for [my lxd/incus configuration](https://github.com/srid/nixos-config/blob/master/modules/nixos/linux/lxd.nix).
+Workflows for
+[my lxd/incus configuration](https://github.com/srid/nixos-config/blob/master/modules/nixos/linux/lxd.nix).
 
 To build the image,
 
@@ -12,7 +13,8 @@ To launch a container using it,
 incus launch srid/public-container --ephemeral test
 ```
 
-`public-container` runs nginx serving Hello world, which can test if the container is working.
+`public-container` runs nginx serving Hello world, which can test if the
+container is working.
 
 ```sh
 # Find the IP

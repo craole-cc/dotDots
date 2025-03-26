@@ -6,7 +6,7 @@ scr_VERSION="1.0"
 scr_DESCRIPTION="finds active LAN hosts on the specified interface"
 scr_DEPENDENCIES="unalias, command, printf, getoptions"
 scr_USAGE="$(
-  cat << USAGE_GUIDE
+  cat <<USAGE_GUIDE
     ::----------------------------------------------------::
                         USAGE: $scr_NAME
         $scr_DESCRIPTION
@@ -39,16 +39,16 @@ parse_arguments() {
   #@ Check for flag
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -h | --help)
-        printf "%s" "$scr_USAGE"
-        exit 0
-        ;;
-      -t | --test | --dry-run)
-        #@ Print the range of hosts and exit if the test flag is set
-        printf "Hosts to ping: %s\n" "$network_id"
-        printf "%s" "$hosts"
-        exit 0
-        ;;
+    -h | --help)
+      printf "%s" "$scr_USAGE"
+      exit 0
+      ;;
+    -t | --test | --dry-run)
+      #@ Print the range of hosts and exit if the test flag is set
+      printf "Hosts to ping: %s\n" "$network_id"
+      printf "%s" "$hosts"
+      exit 0
+      ;;
     esac
     shift
   done
@@ -56,7 +56,7 @@ parse_arguments() {
 
 validate_connectivity() {
   #@ Ping the specified host once with a timeout of 1 second
-  if ping "$1" -c1 -W1 > /dev/null 2>&1; then
+  if ping "$1" -c1 -W1 >/dev/null 2>&1; then
     #@ Print the IP address on a successful ping
     printf "%s\n" "$1"
   fi

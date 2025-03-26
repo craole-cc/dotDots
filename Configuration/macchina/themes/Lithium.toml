@@ -1,27 +1,27 @@
 # Lithium
 
-hide_ascii      = true
-key_color       = "Yellow"
-padding         = 0
-separator       = " "
+hide_ascii = true
+key_color = "Yellow"
+padding = 0
+separator = " "
 separator_color = "Yellow"
-spacing         = 1
+spacing = 1
 
 [palette]
-glyph   = " ● "
-type    = "Light"
+glyph = " ● "
+type = "Light"
 visible = true
 
 [bar]
-glyph           = "●"
+glyph = "●"
 hide_delimiters = true
-symbol_close    = ')'
-symbol_open     = '('
-visible         = false
+symbol_close = ')'
+symbol_open = '('
+visible = false
 
 [box]
-border  = "plain"
-title   = " "
+border = "plain"
+title = " "
 visible = false
 
 [box.inner_margin]
@@ -32,26 +32,26 @@ y = 1
 color = "Yellow"
 
 [randomize]
-key_color       = false
-pool            = "base"
+key_color = false
+pool = "base"
 separator_color = false
 
 [keys]
-backlight  = "Brightness"
-battery    = "Battery"
-cpu        = "CPU"
-cpu_load   = "CPU Load"
-de         = "DE"
-distro     = "Distro"
-host       = "Host"
-kernel     = "Kernel"
-local_ip   = "IP"
-machine    = "Machine"
-memory     = "Memory"
-os         = "OS"
-packages   = "Packages"
+backlight = "Brightness"
+battery = "Battery"
+cpu = "CPU"
+cpu_load = "CPU Load"
+de = "DE"
+distro = "Distro"
+host = "Host"
+kernel = "Kernel"
+local_ip = "IP"
+machine = "Machine"
+memory = "Memory"
+os = "OS"
+packages = "Packages"
 resolution = "Resolution"
-shell      = "Shell"
-terminal   = "Terminal"
-uptime     = "Uptime"
-wm         = "WM"
+shell = "Shell"
+terminal = "Terminal"
+uptime = "Uptime"
+wm = "WM"

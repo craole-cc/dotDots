@@ -4,7 +4,7 @@ scr_VERSION="1.0"
 scr_DESCRIPTION="verifies that a program is installed and available"
 scr_DEPENDENCIES="unalias, param_CMD, printf, getoptions"
 scr_USAGE="$(
-  cat << USAGE_GUIDE
+  cat <<USAGE_GUIDE
     ::------------------------------------------------------------::
                                 $scr_NAME
           $scr_DESCRIPTION
@@ -45,35 +45,35 @@ parse_arguments() { #@ Establish the script environment
   #@ Establish user options
   while [ "$#" -ge 1 ]; do
     case $1 in
-      -h | --help) punctuate_exit "$scr_USAGE" ;;
-      -v | --version) punctuate_exit "$scr_VERSION" ;;
-      -q | --quiet) unset flag_VERBOSE ;;
-      -d | --verbose) flag_VERBOSE=true ;;
-      -c | --check) flag_existence=true ;;
-      -V | --ver3n) flag_version=true ;;
-      -t | --type) flag_type=true ;;
-      -l | --location | -p | --path) flag_location=true ;;
-      -r=* | --report=*) param_REPORT="${1#*=}" ;;
-      -r | --report)
-        param_REPORT="$2"
-        shift
-        ;;
-      *) array_CMD="$(are --save "$array_CMD" "$1")" ;;
+    -h | --help) punctuate_exit "$scr_USAGE" ;;
+    -v | --version) punctuate_exit "$scr_VERSION" ;;
+    -q | --quiet) unset flag_VERBOSE ;;
+    -d | --verbose) flag_VERBOSE=true ;;
+    -c | --check) flag_existence=true ;;
+    -V | --ver3n) flag_version=true ;;
+    -t | --type) flag_type=true ;;
+    -l | --location | -p | --path) flag_location=true ;;
+    -r=* | --report=*) param_REPORT="${1#*=}" ;;
+    -r | --report)
+      param_REPORT="$2"
+      shift
+      ;;
+    *) array_CMD="$(are --save "$array_CMD" "$1")" ;;
     esac
     shift
   done
 
   #@ Establish defaults
   case "$param_REPORT" in
-    [aA]*) flag_location=true flag_version=true ;;
-    [pP]* | [lL]*) flag_location=true ;;
-    [vV]*) flag_version=true ;;
-    [tT]*) flag_type=true ;;
-    [eE]*) flag_existence=true ;;
+  [aA]*) flag_location=true flag_version=true ;;
+  [pP]* | [lL]*) flag_location=true ;;
+  [vV]*) flag_version=true ;;
+  [tT]*) flag_type=true ;;
+  [eE]*) flag_existence=true ;;
   esac
 
-  if { [ "$flag_version" ] || [ "$flag_type" ]; } \
-    && [ "$flag_location" ]; then
+  if { [ "$flag_version" ] || [ "$flag_type" ]; } &&
+    [ "$flag_location" ]; then
     param_REPORT="all"
   elif [ "$flag_location" ]; then
     param_REPORT="location"
@@ -93,73 +93,73 @@ parse_arguments() { #@ Establish the script environment
 
 probe_availability() { #@ Check if the command exists
   # type "$1" >/dev/null 2>&1
-  command -v "$1" > /dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 parse_type() { #@ Return the type of command
   # case "$(type -t -- "$1")" in
   case "$(command -V -- "$1")" in
-    *"special shell builtin") present_info --oneline "a special shell builtin" ;;
-    *builtin*) present_info --oneline "a shell builtin" ;;
-    *function*) present_info --oneline "a function" ;;
-    */*) present_info --oneline "a PATH binary" ;;
-    *aliased*) present_info --oneline "an alias" ;;
-    *) present_info --oneline "may be an alias" ;;
+  *"special shell builtin") present_info --oneline "a special shell builtin" ;;
+  *builtin*) present_info --oneline "a shell builtin" ;;
+  *function*) present_info --oneline "a function" ;;
+  */*) present_info --oneline "a PATH binary" ;;
+  *aliased*) present_info --oneline "an alias" ;;
+  *) present_info --oneline "may be an alias" ;;
   esac
 }
 
 parse_version() { #@ Return the version of the command
   #TODO# Handle add more edge cases that have too much info
-  if "$1" --version type > /dev/null 2>&1; then
+  if "$1" --version type >/dev/null 2>&1; then
     case "$("$1" --version)" in
-      *nvim*)
-        "$1" --version \
-          | awk '/NVIM/ {
+    *nvim*)
+      "$1" --version |
+        awk '/NVIM/ {
             gsub(/v/, "");
             print $2
         }'
-        ;;
-      *vim*)
-        "$1" --version \
-          | awk '/VIM/ {
+      ;;
+    *vim*)
+      "$1" --version |
+        awk '/VIM/ {
             gsub(/v/, "");
             print $2
         }'
-        ;;
-      ps*)
-        ps --version | awk 'NR==1 {print $NF}'
-        ;;
-      exa*) #| exa
-        "$1" --version \
-          | awk '/v/ {
+      ;;
+    ps*)
+      ps --version | awk 'NR==1 {print $NF}'
+      ;;
+    exa*) #| exa
+      "$1" --version |
+        awk '/v/ {
             gsub(/v/, "");
             print $1
         }'
-        ;;
-      rust*) #| rustc
-        "$1" --version \
-          | cut -d' ' -f2-
-        ;;
-      *version*) #| Version
-        "$1" --version \
-          | awk '{for(i=1;i<=NF;i++){
+      ;;
+    rust*) #| rustc
+      "$1" --version |
+        cut -d' ' -f2-
+      ;;
+    *version*) #| Version
+      "$1" --version |
+        awk '{for(i=1;i<=NF;i++){
                 if($i ~ /^version/ )
                 print $(i+1)
             }}'
-        ;;
-      *"("*) #| Bracket
-        "$1" --version \
-          | awk '{for(i=1;i<=NF;i++){
+      ;;
+    *"("*) #| Bracket
+      "$1" --version |
+        awk '{for(i=1;i<=NF;i++){
                 if($i ~ /^\(/ )
                 print $(i-1)
             }}'
-        ;;
-      *) #| Plain
-        "$1" --version | awk 'NR==1 {print $NF}'
-        # awk '{print $NF}'
-        ;;
+      ;;
+    *) #| Plain
+      "$1" --version | awk 'NR==1 {print $NF}'
+      # awk '{print $NF}'
+      ;;
     esac
-  elif "$1" -v type > /dev/null 2>&1; then
+  elif "$1" -v type >/dev/null 2>&1; then
     "$1" -v
   else
     #TODO# manage apps that dont have --version or -v
@@ -193,39 +193,39 @@ process_core() { #@ Provide command info based on user requirements
       if [ "$flag_VERBOSE" ]; then
         icon="✅"
         case "$param_REPORT" in
-          version) msg="We have version $msg_VER of $param_CMD installed" ;;
-          location) msg="We have $param_CMD installed at $msg_PATH" ;;
-          type) msg="We have $param_CMD installed at $msg_PATH" ;;
-          existence) purge_leftovers --message ;;
-          all | *)
-            case "$msg_TYPE" in
-              *binary*)
-                msg="We have $param_CMD [$msg_VER], $msg_TYPE located at $msg_PATH"
-                ;;
-              *special* | *builtin* | *function*) msg="$param_CMD is $msg_TYPE we have" ;;
-              *alias*)
-                param_CMD_ALIAS="$param_CMD"
-                #TODO# Handle alias
-                # param_CMD="$
-                msg="We have $param_CMD_ALIAS as $msg_TYPE of $param_CMD located at $msg_PATH"
-                ;;
-              *) ;;
-            esac
+        version) msg="We have version $msg_VER of $param_CMD installed" ;;
+        location) msg="We have $param_CMD installed at $msg_PATH" ;;
+        type) msg="We have $param_CMD installed at $msg_PATH" ;;
+        existence) purge_leftovers --message ;;
+        all | *)
+          case "$msg_TYPE" in
+          *binary*)
+            msg="We have $param_CMD [$msg_VER], $msg_TYPE located at $msg_PATH"
             ;;
+          *special* | *builtin* | *function*) msg="$param_CMD is $msg_TYPE we have" ;;
+          *alias*)
+            param_CMD_ALIAS="$param_CMD"
+            #TODO# Handle alias
+            # param_CMD="$
+            msg="We have $param_CMD_ALIAS as $msg_TYPE of $param_CMD located at $msg_PATH"
+            ;;
+          *) ;;
+          esac
+          ;;
         esac
       else
         case "$param_REPORT" in
-          version) msg="$msg_VER" ;;
-          location) msg="$msg_PATH" ;;
-          existence | *) purge_leftovers --message ;;
+        version) msg="$msg_VER" ;;
+        location) msg="$msg_PATH" ;;
+        existence | *) purge_leftovers --message ;;
         esac
       fi
     else
       [ "$flag_VERBOSE" ] && {
         icon="🟥"
         case "$param_REPORT" in
-          existence) msg="Consider installing '$param_CMD'" ;;
-          *) msg="We don't seem to have '$param_CMD' installed" ;;
+        existence) msg="Consider installing '$param_CMD'" ;;
+        *) msg="We don't seem to have '$param_CMD' installed" ;;
         esac
       }
 
@@ -233,8 +233,8 @@ process_core() { #@ Provide command info based on user requirements
     fi
 
     #@ Display information about the param_CMD
-    [ "$msg" ] \
-      && if [ "$icon" ]; then
+    [ "$msg" ] &&
+      if [ "$icon" ]; then
         present_info "$icon $msg"
       else
         present_info "$msg"
@@ -248,11 +248,11 @@ present_info() { #@ Display information via necessary framework[s]
 
   #@ Send output to Stdout
   case $1 in
-    --oneline)
-      shift
-      printf "%s" "$*"
-      ;;
-    *) printf "%s\n" "$*" ;;
+  --oneline)
+    shift
+    printf "%s" "$*"
+    ;;
+  *) printf "%s\n" "$*" ;;
   esac
 }
 
@@ -284,13 +284,13 @@ purge_leftovers() { #@ Remove variables
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --msg) unset_messages ;;
-      --env) unset_env ;;
-      *)
-        unset_script_variables
-        unset_messages
-        unset_env
-        ;;
+    --msg) unset_messages ;;
+    --env) unset_env ;;
+    *)
+      unset_script_variables
+      unset_messages
+      unset_env
+      ;;
     esac
     shift
   done
@@ -302,21 +302,21 @@ purge_leftovers() { #@ Remove variables
 
 punctuate_exit() {
   case "$1" in
-    --err*)
-      flag_failure=true
-      case "$1" in
-        *exit)
-          shift
-          present_info "Error: $*"
-          present_info "$scr_USAGE"
-          point_of_exit
-          ;;
-      esac
-      ;;
-    *)
-      present_info "$*"
+  --err*)
+    flag_failure=true
+    case "$1" in
+    *exit)
+      shift
+      present_info "Error: $*"
+      present_info "$scr_USAGE"
       point_of_exit
       ;;
+    esac
+    ;;
+  *)
+    present_info "$*"
+    point_of_exit
+    ;;
   esac
 }
 

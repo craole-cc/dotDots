@@ -9,15 +9,15 @@ host="$(hostname)"
 #@ Parse arguments
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --flake) dots="$1" ;;
-    --host) host=$1 ;;
-    *)
-      if [ -d "$dots" ]; then
-        msg="$1"
-      else
-        dots="$1"
-      fi
-      ;;
+  --flake) dots="$1" ;;
+  --host) host=$1 ;;
+  *)
+    if [ -d "$dots" ]; then
+      msg="$1"
+    else
+      dots="$1"
+    fi
+    ;;
   esac
   shift
 done

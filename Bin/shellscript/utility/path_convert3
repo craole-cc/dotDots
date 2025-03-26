@@ -3,7 +3,7 @@
 
 scr_name="path_convert"
 scr_usage=$(
-  cat << HELP
+  cat <<HELP
 USAGE:
   $scr_name [OPTIONS] [STRING]
 
@@ -54,33 +54,33 @@ parse_input() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-      -h | --help)
-        print_help
-        exit
-        ;;
-      -d | --verbose)
-        verbosity=2
-        ;;
-      -p | --prefix)
-        prefix="$2"
-        shift
-        ;;
-      -c | --clip)
-        clip=true
-        ;;
-      -q | --quiet)
-        verbosity=0
-        ;;
-      *)
-        if [ "$1" ]; then
-          input_path="$(clean_path "$1")"
-          # input_path="$(validate_path "$1")"
-          input_path_type="$(validate_path --type "$1")"
-        else
-          printf "%s\n" "$scr_usage"
-          exit 1
-        fi
-        ;;
+    -h | --help)
+      print_help
+      exit
+      ;;
+    -d | --verbose)
+      verbosity=2
+      ;;
+    -p | --prefix)
+      prefix="$2"
+      shift
+      ;;
+    -c | --clip)
+      clip=true
+      ;;
+    -q | --quiet)
+      verbosity=0
+      ;;
+    *)
+      if [ "$1" ]; then
+        input_path="$(clean_path "$1")"
+        # input_path="$(validate_path "$1")"
+        input_path_type="$(validate_path --type "$1")"
+      else
+        printf "%s\n" "$scr_usage"
+        exit 1
+      fi
+      ;;
     esac
     shift
   done
@@ -104,19 +104,19 @@ clean_path() {
 
   #@ Check for Widsows path then default to Unix
   case "$clean_path" in
-    *:*)
-      #@ Remove the leading slash, if one exists (eg. /C:/ = C:/)
-      clean_path="${clean_path#/}"
+  *:*)
+    #@ Remove the leading slash, if one exists (eg. /C:/ = C:/)
+    clean_path="${clean_path#/}"
 
-      #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
-      [ "${clean_path#"${clean_path%?}"}" = ":" ] \
-        && clean_path="${clean_path}/"
-      ;;
-    *)
-      # Add a leading slash, if missing (eg. mnt/... = /mnt/...)
-      [ "${clean_path#/}" = "$clean_path" ] \
-        && clean_path="/$clean_path"
-      ;;
+    #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
+    [ "${clean_path#"${clean_path%?}"}" = ":" ] &&
+      clean_path="${clean_path}/"
+    ;;
+  *)
+    # Add a leading slash, if missing (eg. mnt/... = /mnt/...)
+    [ "${clean_path#/}" = "$clean_path" ] &&
+      clean_path="/$clean_path"
+    ;;
   esac
 
   printf "%s" "$clean_path"
@@ -127,18 +127,18 @@ validate_path() {
   #@ Parse the path input
   while [ $# -gt 0 ]; do
     case "$1" in
-      --type) check_type=true ;;
-      -w | --win*) path_type="Windows" ;;
-      -u | --unix) path_type="Unix" ;;
-      *)
-        #@ Check if the path is empty
-        if [ "$1" ]; then
-          path="$1"
-        else
-          printf "Missing path string"
-          return 1
-        fi
-        ;;
+    --type) check_type=true ;;
+    -w | --win*) path_type="Windows" ;;
+    -u | --unix) path_type="Unix" ;;
+    *)
+      #@ Check if the path is empty
+      if [ "$1" ]; then
+        path="$1"
+      else
+        printf "Missing path string"
+        return 1
+      fi
+      ;;
     esac
     shift
   done
@@ -162,38 +162,38 @@ validate_path() {
 
     #@ Check for Widsows path then default to Unix
     case "$path" in
-      *:*)
-        #@ Validate the Windows path
-        case "$path" in
-          [A-Za-z]:/*)
-            #@ Set Path Type
-            path_type="Windows"
-            ;;
-          *)
-            #@ Extract the drive letter (e.g., C)
-            drive=${path%%:*}
-
-            if [ -z "$drive" ]; then
-              msg="Missing Windowsdrive letter: $drive"
-            elif [ "${#drive}" -ne 1 ]; then
-              msg="Invalid Windows drive letter length: $drive"
-            elif ! printf "%s" "$drive" \
-              | grep --extended-regexp --quiet '^[A-Za-z]$'; then
-              msg="Invalid Windows drive letter character: $drive"
-            fi
-            printf "%s" "$msg"
-            return 1
-            ;;
-        esac
+    *:*)
+      #@ Validate the Windows path
+      case "$path" in
+      [A-Za-z]:/*)
+        #@ Set Path Type
+        path_type="Windows"
         ;;
       *)
-        # Add a leading slash, if missing (eg. mnt/... = /mnt/...)
-        [ "${path#/}" = "$path" ] \
-          && path="/$path"
+        #@ Extract the drive letter (e.g., C)
+        drive=${path%%:*}
 
-        #@ Set Path Type
-        path_type="Unix"
+        if [ -z "$drive" ]; then
+          msg="Missing Windowsdrive letter: $drive"
+        elif [ "${#drive}" -ne 1 ]; then
+          msg="Invalid Windows drive letter length: $drive"
+        elif ! printf "%s" "$drive" |
+          grep --extended-regexp --quiet '^[A-Za-z]$'; then
+          msg="Invalid Windows drive letter character: $drive"
+        fi
+        printf "%s" "$msg"
+        return 1
         ;;
+      esac
+      ;;
+    *)
+      # Add a leading slash, if missing (eg. mnt/... = /mnt/...)
+      [ "${path#/}" = "$path" ] &&
+        path="/$path"
+
+      #@ Set Path Type
+      path_type="Unix"
+      ;;
     esac
 
     if [ "$proc_type_check" ]; then
@@ -257,10 +257,10 @@ convert_to_linux_path() {
   path="$1"
 
   case "$path" in
-    *:/*)
-      printf "Invalid windows path (%s) missing :/" "$path"
-      return 1
-      ;;
+  *:/*)
+    printf "Invalid windows path (%s) missing :/" "$path"
+    return 1
+    ;;
   esac
 
   # Replace backslashes with forward slashes
@@ -282,8 +282,8 @@ convert_to_linux_path() {
 
   # Check if the drive letter contains only one letter and has a length of 1
   if
-    [ "${#drive}" -eq 1 ] \
-      && printf "%s" "$drive" | grep -Eq '^[A-Za-z]$'
+    [ "${#drive}" -eq 1 ] &&
+      printf "%s" "$drive" | grep -Eq '^[A-Za-z]$'
   then
     # Remove the colon from the drive letter
     drive=${drive%:}
@@ -316,16 +316,16 @@ convert_to_linux_path() {
 
 parse_output() {
   case "$verbosity" in
-    0) ;;
-    1) ;;
-    *)
-      printf "Path Input: %s\n" "$input_path"
-      printf "Path Input Type: %s\n" "$input_path_type"
-      printf "Path Output: %s\n" "$output_path"
-      printf "Path Output Type: %s\n" "$output_path_type"
-      echo "EXIT CODE: $exit_code"
-      echo "Check Type: $check_type"
-      ;;
+  0) ;;
+  1) ;;
+  *)
+    printf "Path Input: %s\n" "$input_path"
+    printf "Path Input Type: %s\n" "$input_path_type"
+    printf "Path Output: %s\n" "$output_path"
+    printf "Path Output Type: %s\n" "$output_path_type"
+    echo "EXIT CODE: $exit_code"
+    echo "Check Type: $check_type"
+    ;;
   esac
 
   [ "$clip" ] && send_to_clipboard "$path"

@@ -24,17 +24,17 @@ esac
 
 #> Install <#
 if ! weHave rg; then
-	if weHave paru; then
-		Pin ripgrep
-	elif weHave dnf; then
-		sudo dnf ripgrep -y
-	elif weHave choco; then
-		cup ripgrep -y
-	elif weHave winget; then
-		winget install ripgrep
-	else
-		CargoInstall ripgrep
-	fi
+  if weHave paru; then
+    Pin ripgrep
+  elif weHave dnf; then
+    sudo dnf ripgrep -y
+  elif weHave choco; then
+    cup ripgrep -y
+  elif weHave winget; then
+    winget install ripgrep
+  else
+    CargoInstall ripgrep
+  fi
 fi
 
 #> Verify Instalation <#

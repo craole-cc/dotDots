@@ -22,6 +22,6 @@
 input_delimiter="$1"
 output_delimiter="$2"
 shift 2
-printf "%s" "$*" \
-  | sed "s/^$input_delimiter//" \
-  | sed "s/$input_delimiter/$output_delimiter/g"
+printf "%s" "$*" |
+  sed "s/^$input_delimiter//" |
+  sed "s/$input_delimiter/$output_delimiter/g"
