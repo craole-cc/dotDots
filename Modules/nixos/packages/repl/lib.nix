@@ -24,8 +24,7 @@ let
   # Robust path resolution
   resolveFlakePath =
     if flakePath != null then
-      if isPath flakePath then toString flakePath
-      else flakePath
+      if isPath flakePath then toString flakePath else flakePath
     else
       "/etc/nixos";
 
@@ -36,18 +35,10 @@ let
     else
       [ ];
 
-  flakePath' =
-    if selfFlake != [ ] then
-      (head selfFlake).to.path
-    else
-      resolveFlakePath;
+  flakePath' = if selfFlake != [ ] then (head selfFlake).to.path else resolveFlakePath;
 
   # Ensure flake is a valid path or empty string
-  flake =
-    if pathExists flakePath' then
-      flakePath'
-    else
-      "";
+  flake = if pathExists flakePath' then flakePath' else "";
 
   hostname =
     if pathExists hostnamePath then
@@ -104,11 +95,23 @@ let
     "config"
   ];
 in
+# {
+#   inherit hostname nixpkgsOutput;
+
+#   # Ensure flake is always a string
+#   flake = if flake == "" then "/" else flake;
+
+#   getFlake = path: lib.evalModules { modules = [ (toString path) ]; };
+# }
+
 {
-  inherit hostname nixpkgsOutput;
-
-  # Ensure flake is always a string
-  flake = if flake == "" then "/" else flake;
-
-  getFlake = path: lib.evalModules { modules = [ (toString path) ]; };
+  inherit flake;
+}
+// flake
+// builtins
+// (flake.nixosConfigurations or { })
+// flake.nixosConfigurations.${hostname} or { }
+// nixpkgsOutput
+// {
+  getFlake = path: builtins.getFlake (toString path);
 }
