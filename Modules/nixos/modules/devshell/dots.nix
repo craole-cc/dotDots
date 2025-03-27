@@ -79,6 +79,8 @@
           undollar
           wget
           yazi
+
+          config.packages.repl
           # zed-editor-fhs
         ];
         commands = [
@@ -117,7 +119,7 @@
             category = "Flake Management";
             name = "Repl";
             help = "Loads the system flake if available, or a specified one";
-            command = ''${config.packages.repl} "$@"'';
+            command = ''${config.packages.repl}/bin/repl "$@"'';
           }
           {
             category = "File/Environment Management";

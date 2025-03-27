@@ -10,7 +10,7 @@ let
   replScript = ./repl.sh;
 in
 writeShellScriptBin "repl" ''
-  #!/usr/bin/env bash
+  #!/bin/sh
 
   #@ Define necessary binaries explicitly
   export CMD_READLINK="${coreutils}/bin/readlink"
@@ -19,7 +19,6 @@ writeShellScriptBin "repl" ''
   #@ Ensure FLAKE is a valid path
   export FLAKE="${escapeShellArg (flakeEval.flake or "/")}"
 
-  #@ Source the external script
-  # shellcheck source=./repl.sh
-  . "${replScript}"
+  #@ Use the script from the repl package's bin directory
+  "${replScript}" "$@"
 ''
