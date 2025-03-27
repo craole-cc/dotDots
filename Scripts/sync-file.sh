@@ -23,10 +23,10 @@ sync_files() {
     src_time=$(date -r "$1" +%s 2>/dev/null || stat -c %Y "$1")
     dst_time=$(date -r "$2" +%s 2>/dev/null || stat -c %Y "$2")
 
-    if [ "$src_time" -gt "$dst_time" ]; then
+    if [ "${src_time}" -gt "${dst_time}" ]; then
       cp "$1" "$2"
       echo "Updated: $2 (source newer)"
-    elif [ "$dst_time" -gt "$src_time" ]; then
+    elif [ "${dst_time}" -gt "${src_time}" ]; then
       cp "$2" "$1"
       echo "Updated: $1 (destination newer)"
     fi
@@ -34,7 +34,14 @@ sync_files() {
 }
 
 # Navigate to git root
-cd "$(git rev-parse --show-toplevel)"
+root_dir=$(git rev-parse --show-toplevel)
+if [ -d "${root_dir}" ]; then
+  cd "${root_dir}"
+else
+  echo "This directory is not part of a git repository."
+  echo "Please navigate to a valid git repository and try again."
+  exit 1
+fi
 
 #| List of files to sync
 sync_files ".dotsrc" "Configuration/Modules/init"
