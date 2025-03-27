@@ -30,7 +30,7 @@ parse_arguments() {
 
 update_repo() {
   command -v sync-repo.sh &&
-    sync-repo.sh --quiet "Flake Update"
+    sync-repo.sh "${args:-Flake Update}"
 }
 
 update_flake() {
