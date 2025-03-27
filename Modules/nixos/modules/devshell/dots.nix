@@ -78,7 +78,6 @@
           trashy
           undollar
           wget
-          writeShellScriptBin
           yazi
           # zed-editor-fhs
         ];
