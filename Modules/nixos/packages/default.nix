@@ -1,6 +1,6 @@
 {
   imports = [
-    # ./repl
+    ./repl
     ./repl_by_fufexan
   ];
 }

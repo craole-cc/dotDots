@@ -81,6 +81,7 @@
           yazi
 
           config.packages.repl
+          config.packages.frepl
           # zed-editor-fhs
         ];
         commands = [

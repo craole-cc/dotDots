@@ -9,7 +9,7 @@ let
   flakeEval = import ./lib.nix { inherit lib; };
   replScript = ./repl.sh;
 in
-writeShellScriptBin "repl" ''
+writeShellScriptBin "frepl" ''
   #!/bin/sh
 
   #@ Define necessary binaries explicitly
