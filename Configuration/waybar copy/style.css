@@ -4,14 +4,8 @@
   /* `otf-font-awesome` is required to be installed for icons */
   /* font-family: 'Rec Mono Casual','Font Awesome 5 Free', */
   font-family:
-    "Rec Mono Casual",
-    "Font Awesome 5 Free",
-    "Hack Nerd Font",
-    "Iosevka",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+    "Rec Mono Casual", "Font Awesome 5 Free", "Hack Nerd Font", "Iosevka",
+    Roboto, Helvetica, Arial, sans-serif;
 
   border: none;
   border-radius: 0;

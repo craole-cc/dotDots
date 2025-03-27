@@ -37,7 +37,8 @@ label:focus {
   background-color: #000;
 }
 
-#battery.charging, #battery.plugged {
+#battery.charging,
+#battery.plugged {
   color: #00ffaa;
 }
 

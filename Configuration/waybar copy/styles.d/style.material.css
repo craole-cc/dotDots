@@ -3,12 +3,7 @@
   font-size: 14px;
   /* `otf-font-awesome` is required to be installed for icons */
   font-family:
-    "Font Awesome 5 Free",
-    "Iosevka",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+    "Font Awesome 5 Free", "Iosevka", Roboto, Helvetica, Arial, sans-serif;
   border: none;
   border-radius: 0;
   /*font-weight: bold;*/

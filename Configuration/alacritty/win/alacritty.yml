@@ -166,8 +166,8 @@ schemes:
       cyan: "#59dffc"
       white: "#e6e6d1"
   ### Gruvbox dark ###
-  GruvboxDark: &GruvboxDark # Default colors
-    primary:
+  GruvboxDark: &GruvboxDark
+    primary: # Default colors
       # hard contrast: background = '0x1d2021'
       background: "#282828"
       # soft contrast: background = '0x32302f'
@@ -193,8 +193,8 @@ schemes:
       cyan: "#8ec07c"
       white: "#ebdbb2"
   ### Monokai ###
-  MonokaiPro: &MonokaiPro # Default colors
-    primary:
+  MonokaiPro: &MonokaiPro
+    primary: # Default colors
       background: "#2D2A2E"
       foreground: "#FCFCFA"
     # Normal colors
@@ -218,8 +218,8 @@ schemes:
       cyan: "#78DCE8"
       white: "#FCFCFA"
   ### Nord ###
-  Nord: &Nord # Default colors
-    primary:
+  Nord: &Nord
+    primary: # Default colors
       background: "#2E3440"
       foreground: "#D8DEE9"
     # Normal colors
@@ -243,8 +243,8 @@ schemes:
       cyan: "#8FBCBB"
       white: "#ECEFF4"
   ### Oceanic Next ###
-  OceanicNext: &OceanicNext # Default colors
-    primary:
+  OceanicNext: &OceanicNext
+    primary: # Default colors
       background: "#1b2b34"
       foreground: "#d8dee9"
     # Colors the cursor will use if `custom_cursor_colors` is true
@@ -272,8 +272,8 @@ schemes:
       cyan: "#5fb3b3"
       white: "#d8dee9"
   ### Palenight ###
-  Palenight: &Palenight # Default colors
-    primary:
+  Palenight: &Palenight
+    primary: # Default colors
       background: "#292d3e"
       foreground: "#d0d0d0"
     # Normal colors
@@ -297,8 +297,8 @@ schemes:
       cyan: "#a3f7ff"
       white: "#ffffff"
   ### Solarized Dark ###
-  SolarizedDark: &SolarizedDark # Default colors
-    primary:
+  SolarizedDark: &SolarizedDark
+    primary: # Default colors
       background: "#002b36" # base03
       foreground: "#839496" # base0
     # Cursor colors
@@ -326,8 +326,8 @@ schemes:
       cyan: "#93a1a1" # base1
       white: "#fdf6e3" # base3
   ### Solarized Light ###
-  SolarizedLight: &SolarizedLight # Default colors
-    primary:
+  SolarizedLight: &SolarizedLight
+    primary: # Default colors
       background: "#fdf6e3" # base3
       foreground: "#657b83" # base00
     # Cursor colors
@@ -355,8 +355,8 @@ schemes:
       cyan: "#93a1a1" # base1
       white: "#fdf6e3" # base3
   ### Tomorrow Night ###
-  TomorrowNight: &TomorrowNight # Default colors
-    primary:
+  TomorrowNight: &TomorrowNight
+    primary: # Default colors
       background: "#1d1f21"
       foreground: "#c5c8c6"
     # Colors the cursor will use if `custom_cursor_colors` is true
@@ -398,7 +398,6 @@ schemes:
 # *SolarizedDark
 # *TomorrowNight
 colors: *OceanicNext
-
 #######################################
 ##       END OF COLOR SCHEMES        ##
 #######################################

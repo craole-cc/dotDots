@@ -215,7 +215,10 @@ button {
   margin-left: 13px;
 }
 
-.label-battery-side, .label-bright-side, .label-ram-side, .label-vol-side {
+.label-battery-side,
+.label-bright-side,
+.label-ram-side,
+.label-vol-side {
   margin-top: 10px;
   font-family: Iosevka;
   margin-left: 35px;
@@ -361,13 +364,19 @@ button {
   margin: 5px 10px 10px 10px;
   font-size: 16px;
 }
-.weather-quote-head, .weather-quote-tail {
+.weather-quote-head,
+.weather-quote-tail {
   font-size: 16px;
   // font-weight: bold;
   // color: #90c861
 }
 
-.l1, .l2, .l3, .l4, .l5, .l6 {
+.l1,
+.l2,
+.l3,
+.l4,
+.l5,
+.l6 {
   font-size: 25px;
   font-weight: 600;
 }

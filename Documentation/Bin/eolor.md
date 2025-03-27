@@ -97,6 +97,7 @@ EOLor [OPTIONS] <PATH>
 
 - POSIX shell utilities (usually pre-installed on Unix-like systems).
 - Optional dependencies for more efficient conversion:
+
   - `dos2unix`: For converting to LF (Unix to DOS).
   - `unix2dos`: For converting to CRLF (DOS to Unix).
 

@@ -140,19 +140,13 @@
     },
     "Git Bash": {
       "source": "Git Bash",
-      "path": [
-        "C:\\Program Files\\Git\\git-bash.exe"
-      ],
+      "path": ["C:\\Program Files\\Git\\git-bash.exe"],
       "icon": "terminal-bash",
-      "args": [
-        "-l"
-      ]
+      "args": ["-l"]
     },
     "Cmder": {
       "source": "Cmder",
-      "path": [
-        "%CMDER_ROOT%\\vendor\\init.bat"
-      ],
+      "path": ["%CMDER_ROOT%\\vendor\\init.bat"],
       "icon": "terminal-bash"
     },
     "Windows PowerShell": {
@@ -579,9 +573,7 @@
     }
   },
   "editor.unicodeHighlight.invisibleCharacters": false,
-  "shellcheck.exclude": [
-    "1091"
-  ],
+  "shellcheck.exclude": ["1091"],
   "terminal.external.linuxExec": "kitty",
   "rust-analyzer.server.extraEnv": {
     "RUSTUP_TOOLCHAIN": "stable"

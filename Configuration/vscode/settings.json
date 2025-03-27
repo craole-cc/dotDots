@@ -120,53 +120,34 @@
       "base": "rust",
       "color": "amber-300",
       "lightColor": "amber-600",
-      "fileNames": [
-        "lib.rs",
-        "main.rs",
-        "mod.rs"
-      ]
+      "fileNames": ["lib.rs", "main.rs", "mod.rs"]
     },
     {
       "name": "nix-entrypoint",
       "base": "nix",
       "color": "indigo-300",
       "lightColor": "indigo-600",
-      "fileNames": [
-        "default.nix",
-        "flake.nix",
-        "configuration.nix"
-      ]
+      "fileNames": ["default.nix", "flake.nix", "configuration.nix"]
     },
     {
       "name": "users",
       "base": "admin",
       "color": "light-green-300",
       "lightColor": "light-green-700",
-      "folderNames": [
-        "users",
-        "user",
-        "people"
-      ]
+      "folderNames": ["users", "user", "people"]
     },
     {
       "name": "hosts",
       "base": "client",
       "color": "orange-300",
       "lightColor": "orange-700",
-      "folderNames": [
-        "hosts",
-        "host",
-        "machine",
-        "machines"
-      ]
+      "folderNames": ["hosts", "host", "machine", "machines"]
     },
     {
       "name": "roles-admin",
       "base": "admin",
       "color": "purple-400",
-      "folderNames": [
-        "roles"
-      ]
+      "folderNames": ["roles"]
     }
   ],
   //> ===================================
@@ -210,10 +191,7 @@
     },
     "NixOS (WSL)": {
       "path": "C:\\WINDOWS\\System32\\wsl.exe",
-      "args": [
-        "-d",
-        "NixOS"
-      ]
+      "args": ["-d", "NixOS"]
     }
   },
   //> ===================================
@@ -309,9 +287,7 @@
     "editor.defaultFormatter": "LoranKloeze.ruby-rubocop-revived",
     "editor.letterSpacing": 1.0,
     "editor.lineHeight": 1.4,
-    "editor.rulers": [
-      120
-    ]
+    "editor.rulers": [120]
   },
   "[shellscript]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"
@@ -364,12 +340,7 @@
     "style.css"
   ],
   "cssvar.ignore": [],
-  "cssvar.extensions": [
-    "css",
-    "postcss",
-    "jsx",
-    "tsx"
-  ],
+  "cssvar.extensions": ["css", "postcss", "jsx", "tsx"],
   //> ===================================
   //> INTELLISENSE & CODE ASSISTANCE
   //> ===================================

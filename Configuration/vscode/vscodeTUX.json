@@ -209,11 +209,7 @@
   "terminal.external.linuxExec": "alacritty",
   "terminal.explorerKind": "external",
   "git.enableSmartCommit": true,
-  "cSpell.userWords": [
-    "alacritty",
-    "picom",
-    "qutebrowser"
-  ],
+  "cSpell.userWords": ["alacritty", "picom", "qutebrowser"],
 
   //@ Files
   "files.autoSave": "afterDelay",

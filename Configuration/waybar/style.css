@@ -23,7 +23,8 @@
   padding: 0 4px;
 }
 
-#workspaces button.visible {}
+#workspaces button.visible {
+}
 
 #workspaces button.focused {
   border-radius: 10px;
@@ -91,7 +92,8 @@
   min-width: 15px;
 }
 
-#custom-recorder, #custom-audiorec {
+#custom-recorder,
+#custom-audiorec {
   margin: 4px 2px;
   padding: 0 6px;
   background-color: rgba(175, 65, 84, 0.8);

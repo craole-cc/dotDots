@@ -36,6 +36,7 @@ sed '10q' filename > output_file
   ```
 
 - Double space a file which already has blank lines in it.
+
   > _Output file should contain no more than one blank line between lines of
   > text._
 
@@ -44,6 +45,7 @@ sed '10q' filename > output_file
   ```
 
 - Undo double-spacing
+
   > _assumes even-numbered lines are always blank)_
 
   ```sh
@@ -81,6 +83,7 @@ sed '10q' filename > output_file
 ## NUMBERING
 
 - Number each line of a file (simple left alignment using a tab)
+
   > _To preserve margins '\t' is used. See note on '\t' at end of file_
 
   ```sh
@@ -113,7 +116,9 @@ DOS uses carriage return and line feed ("\r\n") as a line ending, while Unix
 uses just line feed ("\n").
 
 - In Unix Environment
+
   > Unix uses just line feed ("\n")
+
   - Convert DOS newlines (CR/LF) to Unix format
 
     ```sh
@@ -132,8 +137,11 @@ uses just line feed ("\n").
     ```
 
 - DOS Environment
+
   > DOS uses carriage return and line feed ("\r\n")
+
   - Convert Unix newlines (LF) to DOS format.
+
     - Method 1
 
       ```sh
@@ -147,10 +155,12 @@ uses just line feed ("\n").
       ```
 
   - Convert DOS newlines (CR/LF) to Unix format.
+
     > _Can only be done with UnxUtils sed, version 4.0.7 or higher. The UnxUtils
     > version can be identified by the custom "--text" switch which appears when
     > you use the "--help" switch. Otherwise, changing DOS newlines to Unix
     > newlines cannot be done with sed in a DOS environment. Use "tr" instead._
+
     - UnxUtils sed v4.0.7 or higher
 
       ```sh
@@ -194,6 +204,7 @@ uses just line feed ("\n").
 ### Alignment
 
 - Align right with a column width of 79 characters
+
   > _Set colum width at 78 plus 1 space_
 
   ```sh
@@ -201,6 +212,7 @@ uses just line feed ("\n").
   ```
 
 - Align center in a 79-character column.
+
   > **Method 1**
 
   Spaces at the beginning of the line are significant, and trailing spaces are
@@ -282,7 +294,9 @@ uses just line feed ("\n").
 ### Reverse
 
 - Reverse order of lines (emulates "tac").
+
   > **NOTE:** _A Bug/feature in HHsed v1.5 causes blank lines to be deleted_
+
   - Method 1
 
     ```sh
@@ -383,6 +397,7 @@ uses just line feed ("\n").
   ```
 
 - Last line of a file (emulates "tail -1")
+
   - Method 1
 
     ```sh
@@ -416,6 +431,7 @@ uses just line feed ("\n").
     ```
 
 - Lines which match regular expression (emulates "grep")
+
   - Method 1
 
     ```sh
@@ -429,6 +445,7 @@ uses just line feed ("\n").
     ```
 
 - Lines which do NOT match regexp (emulates "grep -v")
+
   - Method 1, corresponds to above
 
     ```sh
@@ -473,6 +490,7 @@ uses just line feed ("\n").
   ```
 
 - Lines containing AAA or BBB or CCC (emulates "egrep")
+
   - Standard
 
     ```sh
@@ -486,6 +504,7 @@ uses just line feed ("\n").
     ```
 
 - Paragraph if it contains AAA (blank lines separate paragraphs
+
   > _HHsed v1.5 must insert a 'G;' after 'x;' in the next 3 scripts below_
 
   ```sed
@@ -499,6 +518,7 @@ uses just line feed ("\n").
   ```
 
 - Paragraph if it contains AAA or BBB or CCC
+
   - Standard
 
     ```sh
@@ -518,6 +538,7 @@ uses just line feed ("\n").
   ```
 
 - Lines of less than 65 characters
+
   - Method 1, corresponds to above
 
     ```sh
@@ -537,6 +558,7 @@ uses just line feed ("\n").
   ```
 
 - Section based on line numbers (lines 8-12, inclusive)
+
   - Method 1
 
     ```sh
@@ -550,6 +572,7 @@ uses just line feed ("\n").
     ```
 
 - Line number 52
+
   - Method 1
 
     ```sh
@@ -569,6 +592,7 @@ uses just line feed ("\n").
     ```
 
 - Beginning at line 3, print every 7th line
+
   - Standard
 
     ```sh
@@ -649,6 +673,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Last 10 lines
+
   - Method 1
 
     ```sh
@@ -662,6 +687,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - Every 8th line
+
   - Standard
 
     ```sh
@@ -681,6 +707,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Blank lines from a file (same as "grep '.' ")
+
   - Method 1
 
     ```sh
@@ -694,6 +721,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - Consecutive blank lines except the first (emulates "cat -s")
+
   - Method 1, allows 0 blanks at top, 1 at EOF
 
     ```sh
@@ -719,6 +747,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Trailing blank lines at end of file
+
   - Standard
 
     ```sh
@@ -796,6 +825,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Quotes
+
   - Add a leading angle bracket and space to each line (quote a message)
 
     ```sh
@@ -809,6 +839,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - HTML
+
   - Remove most HTML tags (accommodates multiple-line tags)
 
   ```sh
@@ -818,6 +849,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   - Extract multi-part uuencoded binaries, removing extraneous header info, so
     that only the uuencoded portion remains. Files passed to sed must be passed
     in the proper order.
+
     - Version 1, can be entered from the command line;
 
       ```sh
@@ -832,7 +864,9 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
       ```
 
 - Sort
+
   - Sort paragraphs alphabetically. Paragraphs are separated by blank lines.
+
     - Standard
 
       ```sh
@@ -846,8 +880,10 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
       ```
 
 - Archive
+
   - Zip each .txt file individually, deleting the source file and setting the
     name of each .ZIP file to the basename of file.
+
     > _Under DOS: the "dir /b" switch returns bare filenames in all caps_
 
     ```sh

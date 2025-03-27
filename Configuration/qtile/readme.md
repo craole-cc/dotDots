@@ -59,7 +59,7 @@ Below is a list of some of the packages that I use for my current setup.
 
 ## Keybindings
 
-### **Window manager controls
+### **Window manager controls**
 
 | Keys             | Action          |
 | ---------------- | --------------- |

@@ -3,12 +3,7 @@
   border-radius: 0;
   /* `otf-font-awesome` is required to be installed for icons */
   font-family:
-    "Noto Sans",
-    "Font Awesome 5 Free",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+    "Noto Sans", "Font Awesome 5 Free", Roboto, Helvetica, Arial, sans-serif;
   font-size: 13px;
   min-height: 0;
   /* font-weight: bold; */

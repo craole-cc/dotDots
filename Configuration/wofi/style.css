@@ -36,7 +36,8 @@
   color: #888888; /* Sway palette: unfocused/text */
 }
 /* Box containing all entries (not sure what's the difference to #inner-box) */
-#entry {}
+#entry {
+}
 
 /* A single entry */
 .entry {

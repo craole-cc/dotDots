@@ -95,6 +95,7 @@ echo $_file
 ## SSHD
 
 ---
+
 Restrict SSH access to encrypted key login
 
 ```sh
@@ -157,9 +158,10 @@ AcceptEnv LANG LC_*
 Subsystem       sftp    /usr/lib/openssh/sftp-server
 EOF
 systemctl restart sshd
- ```
+```
 
 ## UFW
+
 ---
 
 ```sh

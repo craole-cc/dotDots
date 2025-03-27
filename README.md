@@ -31,14 +31,15 @@ cd "$DOTS"
 > Dependencies |> `bash/sh` `coreutils`
 
 1. Set `bash` as the default shell:
+
    - Unix-based
      - In the terminal execute the command: `chsh -s /bin/bash`
    - Windows
      - Install Git for Windows if you haven't done so already.
      - Open Git Bash.
      - Git Bash uses bash by default, no extra steps needed.
-     > For an enhanced developer experience on Windows, consider using
-     > [Windows Terminal](https://apps.microsoft.com/detail/9n8g5rfz9xk3?ocid=webpdpshare).
+       > For an enhanced developer experience on Windows, consider using
+       > [Windows Terminal](https://apps.microsoft.com/detail/9n8g5rfz9xk3?ocid=webpdpshare).
 
 2. Ensure the following lines are in your user profile: `$HOME/.profile`
 
