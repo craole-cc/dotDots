@@ -17,8 +17,7 @@
         secretKey.flakeModule
         # secretShell.flakeModule
         treeFormatter.flakeModule
-
-        flakePaths.modules.store
+        ./Modules/nixos
       ];
       debug = true;
       systems = [
@@ -41,7 +40,8 @@
     };
 
   inputs = {
-    #| NixOS Packages
+    #| NixOS
+    nixPackages.url = "nixpkgs/nixos-unstable";
     nixosStable = {
       # url = "nixpkgs/nixos-24-11";
       type = "github";

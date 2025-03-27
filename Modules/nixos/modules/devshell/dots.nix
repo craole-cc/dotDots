@@ -112,6 +112,12 @@
             name = "Format";
           }
           {
+            category = "Flake Management";
+            name = "Repl";
+            help = "Loads the system flake if available, or a specified one";
+            command = ''repl "$@"'';
+          }
+          {
             category = "File/Environment Management";
             help = "List files in the current directory";
             command = ''list-files.sh'';
