@@ -129,7 +129,7 @@ parse_arguments() {
     printf "DEBUG: garbage_list: [%s]\n" "$(
       counter=0
       for item in ${garbage_list}; do
-       [ "${counter:-0}" -eq 1 ]
+        [ "${counter:-0}" -eq 1 ]
         if [ "${counter:-0}" -eq 1 ]; then
           printf "%s" "${item}"
         else

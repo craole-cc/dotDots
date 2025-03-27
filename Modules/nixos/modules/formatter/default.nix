@@ -43,7 +43,7 @@
 
           #| Shellscript
           shellcheck = {
-            enable = true;
+            # enable = true;
             priority = 1;
           };
           shfmt = {
