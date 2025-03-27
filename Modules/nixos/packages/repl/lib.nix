@@ -5,7 +5,7 @@
   registryPath ? "/etc/nix/registry.json",
 }:
 let
-  inherit (lib.attrsets) removeAttrs;
+  inherit (lib.attrsets) removeAttrs isAttrs;
   inherit (lib.strings) match;
   inherit (lib.lists)
     head
@@ -19,6 +19,7 @@ let
     toString
     isPath
     currentSystem
+    getFlake
     ;
 
   # Robust path resolution
@@ -38,7 +39,8 @@ let
   flakePath' = if selfFlake != [ ] then (head selfFlake).to.path else resolveFlakePath;
 
   # Ensure flake is a valid path or empty string
-  flake = if pathExists flakePath' then flakePath' else "";
+  # flake = if pathExists flakePath' then flakePath' else "";
+  flake = if pathExists flakePath' then builtins.getFlake flakePath' else null;
 
   hostname =
     if pathExists hostnamePath then
@@ -107,11 +109,14 @@ in
 {
   inherit flake;
 }
-// flake
 // builtins
-// (flake.nixosConfigurations or { })
-// flake.nixosConfigurations.${hostname} or { }
+// (
+  if isAttrs flake && flake ? nixosConfigurations && flake.nixosConfigurations ? "${hostname}" then
+    flake.nixosConfigurations."${hostname}"
+  else
+    { }
+)
 // nixpkgsOutput
 // {
-  getFlake = path: builtins.getFlake (toString path);
+  getFlake = path: getFlake (toString path);
 }

@@ -120,7 +120,8 @@
             category = "Flake Management";
             name = "Repl";
             help = "Loads the system flake if available, or a specified one";
-            command = ''${config.packages.repl}/bin/repl "$@"'';
+            # command = ''${config.packages.repl}/bin/repl "$@"'';
+            command=''nix repl "$PRJ_ROOT" "$@"'';
           }
           {
             category = "File/Environment Management";
