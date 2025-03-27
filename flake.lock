@@ -190,6 +190,21 @@
         "type": "github"
       }
     },
+    "nixPackages": {
+      "locked": {
+        "lastModified": 1742889210,
+        "narHash": "sha256-hw63HnwnqU3ZQfsMclLhMvOezpM7RSB0dMAtD5/sOiw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "698214a32beb4f4c8e3942372c694f40848b360d",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "ref": "nixos-unstable",
+        "type": "indirect"
+      }
+    },
     "nixUnitTesting": {
       "inputs": {
         "flake-parts": [
@@ -356,6 +371,7 @@
         "gitIgnore": "gitIgnore",
         "githubActions": "githubActions",
         "nixLib": "nixLib",
+        "nixPackages": "nixPackages",
         "nixUnitTesting": "nixUnitTesting",
         "nixosDarwin": "nixosDarwin",
         "nixosHardware": "nixosHardware",

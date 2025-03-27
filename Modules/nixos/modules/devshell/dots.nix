@@ -3,6 +3,7 @@
     {
       pkgsUnstable,
       flakePaths,
+      config,
       ...
     }:
     let
@@ -45,6 +46,7 @@
           bat
           btop
           coreutils
+          gnused
           curl
           devenv
           diffutils
@@ -76,6 +78,7 @@
           trashy
           undollar
           wget
+          writeShellScriptBin
           yazi
           # zed-editor-fhs
         ];
@@ -115,7 +118,7 @@
             category = "Flake Management";
             name = "Repl";
             help = "Loads the system flake if available, or a specified one";
-            command = ''repl "$@"'';
+            command = ''${config.packages.repl} "$@"'';
           }
           {
             category = "File/Environment Management";

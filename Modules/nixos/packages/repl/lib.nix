@@ -13,25 +13,41 @@ let
     length
     filter
     ;
-  inherit (lib.filesystem) pathExists readFile;
-  inherit (lib.systems) currentSystem;
+  inherit (builtins)
+    pathExists
+    readFile
+    toString
+    isPath
+    currentSystem
+    ;
 
+  # Robust path resolution
+  resolveFlakePath =
+    if flakePath != null then
+      if isPath flakePath then toString flakePath
+      else flakePath
+    else
+      "/etc/nixos";
+
+  # Fallback registry-based path detection
   selfFlake =
     if pathExists registryPath then
       filter (f: f.from.id == "self") (lib.json.fromFile registryPath).flakes
     else
       [ ];
 
-  flakePath' = toString (
-    if flakePath != null then
-      flakePath
-    else if selfFlake != [ ] then
+  flakePath' =
+    if selfFlake != [ ] then
       (head selfFlake).to.path
     else
-      "/etc/nixos"
-  );
+      resolveFlakePath;
 
-  flake = if pathExists flakePath' then flakePath' else { };
+  # Ensure flake is a valid path or empty string
+  flake =
+    if pathExists flakePath' then
+      flakePath'
+    else
+      "";
 
   hostname =
     if pathExists hostnamePath then
@@ -89,7 +105,10 @@ let
   ];
 in
 {
-  inherit flake hostname nixpkgsOutput;
+  inherit hostname nixpkgsOutput;
+
+  # Ensure flake is always a string
+  flake = if flake == "" then "/" else flake;
 
   getFlake = path: lib.evalModules { modules = [ (toString path) ]; };
 }
