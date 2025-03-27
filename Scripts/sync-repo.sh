@@ -1,4 +1,4 @@
-Streming m#!/bin/sh
+#!/bin/sh
 
 #TODO: WARN and ERROR should display errors when operations fail
 #TODO: Pout should default to no new line. Add line managemnt
