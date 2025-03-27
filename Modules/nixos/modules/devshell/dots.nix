@@ -118,9 +118,9 @@
           }
           {
             category = "Flake Management";
-            name = "Flake";
             help = "Load the flake in the REPL";
             command = ''repl-flake.sh'';
+            name = "Flake";
           }
           {
             category = "File/Environment Management";
