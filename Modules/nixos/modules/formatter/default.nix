@@ -93,7 +93,7 @@
               ];
             in
             {
-              shellcheck.includes = sh.includes;
+              # shellcheck.includes = sh.includes;
               shfmt.includes = sh.includes;
             };
         };

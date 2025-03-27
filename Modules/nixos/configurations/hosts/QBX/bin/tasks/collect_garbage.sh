@@ -11,7 +11,7 @@ main() {
   #@ Parse arguments
   parse_arguments "$@"
 
-  case "$environment" in
+  case "${environment}" in
   test)
     listman__test
     return 0
@@ -23,7 +23,7 @@ main() {
       --base "validate_cmd" \
       --item "fd" \
       --item "cargo" \
-      --list "$command_list"
+      --list "${command_list}"
     return 0
     ;;
   esac
@@ -118,22 +118,22 @@ parse_arguments() {
 
       listman --include --list garbage_list --item "home-manager"
       ;;
+    *) ;;
     esac
     shift
   done
 
-  [ "$debug" ] && {
-    printf "DEBUG: verbosity: %s\n" "$verbosity"
-    printf "DEBUG: gen_date_or_count: %s\n" "$gen_date_or_count"
+  [ -n "${debug}" ] && {
+    printf "DEBUG: verbosity: %s\n" "${verbosity}"
+    printf "DEBUG: gen_date_or_count: %s\n" "${gen_date_or_count}"
     printf "DEBUG: garbage_list: [%s]\n" "$(
       counter=0
-      for item in $garbage_list; do
-        counter=$((counter + 1))
-        if [ "$counter" -eq 1 ]; then
-          printf "%s" "$item"
-          unset first_item
+      for item in ${garbage_list}; do
+       [ "${counter:-0}" -eq 1 ]
+        if [ "${counter:-0}" -eq 1 ]; then
+          printf "%s" "${item}"
         else
-          printf ", %s" "$item"
+          printf ", %s" "${item}"
         fi
       done
     )"
@@ -1050,22 +1050,23 @@ set_expiry_date() {
 
 gc_nix() {
   #@ Skip if 'nix' is not specified or installed
-  [ "$nix" ] ||
+  [ -n "${nix}" ] ||
     validate_tool nix ||
     return 0
 
   #@ Delete old Nix profiles and generations
   validate_tool "nix-collect-garbage" && {
-    expiry_date=$(set_expiry_date "$generations")
+    expiry_date=$(set_expiry_date "${generations}")
 
-    if [ "$expiry_date" ]; then
-      opt="--delete-older-than $expiry_date"
+    if [ "${expiry_date}" ]; then
+      opt="--delete-older-than ${expiry_date}"
     else
       opt="--delete-old"
     fi
+
     nix-collect-garbage \
       --delete-older-than "$(set_expiry_date)" \
-      --verbose "$verbosity"
+      --verbose "${verbosity:-0}"
   }
 
   nix-store --optimise
@@ -1073,16 +1074,17 @@ gc_nix() {
 
 gc_home_manager() {
   #@ Skip if 'home-manager' is not specified or installed
-  [ "$home_manager" ] || return 0
+  [ -n "${home_manager}" ] || return 0
 
   #@ Set generation expiry date to the current minute, if not specified
-  [ "$generations" ] || {
+  [ -n "${generations}" ] || {
     # date --iso-8601=minutes
     # 2025-01-19 22:56:33
     date "+%Y-%m-%d %H:%M:%S"
     return 0
   }
-  home-manager expire-generations "$(get_expiry_date)"
+  expiry_date=$(set_expiry_date "${generations}")
+  home-manager expire-generations "${expiry_date}"
 
   #@ Remove old home-manager generations
 
@@ -1093,7 +1095,7 @@ gc_home_manager() {
 
 gc_rust() {
   #@ Skip if Rust is not specified of installed
-  [ "$rust" ] || weHave cargo || return 0
+  [ "${rust}" ] || weHave cargo || return 0
 
 }
 
