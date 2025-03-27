@@ -83,7 +83,7 @@
           };
         };
         settings = {
-          global.on-unmatched = "info";
+          global.on-unmatched = "error";
           formatter =
             let
               sh.includes = [
