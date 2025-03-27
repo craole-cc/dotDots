@@ -83,18 +83,31 @@
           };
         };
         settings = {
-          global.on-unmatched = "error";
+          global = {
+            on-unmatched = "error";
+            excludes = [
+              "**/node_modules/**"
+              "**/target/**"
+              "**/review/**"
+              "**/temp/**"
+            ];
+          };
           formatter =
             let
-              sh.includes = [
-                "**/sh/**"
-                # "**/shellscript/**"
-                "**/bash/**"
-              ];
+              sh = {
+                includes = [
+                  "**/sh/**"
+                  # "**/shellscript/**"
+                  "**/bash/**"
+                ];
+                excludes = [
+                  "*.nix"
+                ];
+              };
             in
             {
-              # shellcheck.includes = sh.includes;
-              shfmt.includes = sh.includes;
+              # shellcheck = { inherit (sh) includes excludes; };
+              shfmt = { inherit (sh) includes excludes; };
             };
         };
       };
