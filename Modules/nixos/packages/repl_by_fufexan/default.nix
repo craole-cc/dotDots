@@ -6,7 +6,7 @@
     {
       packages = {
         # instant repl with automatic flake loading
-        repl = pkgs.callPackage ./pkg { };
+        repl = pkgs.callPackage ./pkg.nix { };
       };
     };
 }
