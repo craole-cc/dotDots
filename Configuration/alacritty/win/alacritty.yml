@@ -50,7 +50,9 @@ selection:
 cursor:
   # style: Block
   # style: Beam
-  style: Underline
+  style:
+    shape: Block
+    blinking: On
   unfocused_hollow: true
 mouse:
   hide_when_typing: true
@@ -254,9 +256,9 @@ schemes:
     # Normal colors
     normal:
       black: "#343d46"
-      red: "#EC5f67"
-      green: "#99C794"
-      yellow: "#FAC863"
+      red: "#ec5f67"
+      green: "#99c794"
+      yellow: "#fac863"
       blue: "#6699cc"
       magenta: "#c594c5"
       cyan: "#5fb3b3"
@@ -264,9 +266,9 @@ schemes:
     # Bright colors
     bright:
       black: "#343d46"
-      red: "#EC5f67"
-      green: "#99C794"
-      yellow: "#FAC863"
+      red: "#ec5f67"
+      green: "#99c794"
+      yellow: "#fac863"
       blue: "#6699cc"
       magenta: "#c594c5"
       cyan: "#5fb3b3"

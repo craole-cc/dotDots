@@ -69,10 +69,10 @@
           };
 
           #| Web & Fallback
-          biome = {
-            enable = true;
-            priority = 1;
-          };
+          # biome = {
+          #   enable = true;
+          #   priority = 1;
+          # };
           deno = {
             enable = true;
             priority = 2;

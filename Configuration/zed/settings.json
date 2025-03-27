@@ -42,7 +42,6 @@
   // },
   "buffer_font_size": 20,
   "buffer_font_weight": 400,
-  "buffer_line_height": "comfortable",
   "cursor_blink": true,
   // "cursor_shape": "block",
   "current_line_highlight": "all",
