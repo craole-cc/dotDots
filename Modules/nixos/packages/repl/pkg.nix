@@ -20,5 +20,6 @@ writeShellScriptBin "frepl" ''
   export FLAKE="${escapeShellArg (flakeEval.flake or "/")}"
 
   #@ Use the script from the repl package's bin directory
+  chmod +x "${replScript}"
   "${replScript}" "$@"
 ''
