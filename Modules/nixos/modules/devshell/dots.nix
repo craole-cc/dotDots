@@ -102,7 +102,7 @@
             category = "Flake Management";
             help = "Sync git repository";
             command = ''sync-repo.sh'';
-            name = "Flux";
+            name = "onefetch && Flux";
           }
           {
             category = "Flake Management";
