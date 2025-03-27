@@ -114,7 +114,7 @@
             category = "Flake Management";
             help = "Lint and format the entire project tree";
             command = ''nix fmt "$@"'';
-            name = "Format";
+            name = "Fmt";
           }
           {
             category = "Flake Management";
