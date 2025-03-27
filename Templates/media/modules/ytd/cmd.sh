@@ -75,29 +75,29 @@ parse_arguments() {
 
 execute_command() {
   #@ Skip if no arguments are provided
-  [ -n "$URL" ] || usage >&2
+  [ -n "${URL}" ] || usage >&2
 
   #@ Create directories
-  mkdir -p "$DIR"
-  mkdir -p "$(dirname "$CFG")"
+  mkdir -p "${DIR}"
+  mkdir -p "$(dirname "${CFG}")"
 
   #@ Create config if it doesn't exist or is out of date
-  cmp "$MOD" "$CFG" || cp -f "$MOD" "$CFG"
+  cmp "${MOD}" "${CFG}" || cp -f "${MOD}" "${CFG}"
 
   #@ Execute the command
-  case "$FMT" in
+  case "${FMT}" in
   "best")
-    "$CMD" "$URL"
+    "${CMD}" "${URL}"
     ;;
   "audio")
-    "$CMD" --extract-audio --audio-format mp3 "$URL"
+    "${CMD}" --extract-audio --audio-format mp3 "${URL}"
     ;;
   *)
-    "$CMD" \
+    "${CMD}" \
       --format "bestvideo[height<=${FMT%p}]+bestaudio/best[height<=${FMT%p}]" \
       --output "${DIR}/%(title)s.%(ext)s" \
-      --config-location "$CFG" \
-      "$URL"
+      --config-location "${CFG}" \
+      "${URL}"
     ;;
   esac
 }
