@@ -43,11 +43,11 @@
 
           #| Shellscript
           shellcheck = {
-            # enable = true;
+            enable = true;
             priority = 1;
           };
           shfmt = {
-            # enable = true;
+            enable = true;
             priority = 2;
           };
 
@@ -88,7 +88,7 @@
             let
               sh.includes = [
                 "**/sh/**"
-                "**/shellscript/**"
+                # "**/shellscript/**"
                 "**/bash/**"
               ];
             in

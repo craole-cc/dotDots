@@ -113,7 +113,7 @@
           {
             category = "Flake Management";
             help = "Lint and format the entire project tree";
-            command = ''nix fmt "$@"'';
+            command = ''Flux && nix fmt "$@"'';
             name = "Fmt";
           }
           {
