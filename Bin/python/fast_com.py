@@ -56,8 +56,10 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     url = 'https://fast.com/'
     try:
         urlresult = urllib.urlopen(url)
-    except:
+    except (urllib.error.URLError, socket.error) as e:
         # no connection at all?
+        if verbose:
+            print("Connection error: {}".format(e))
         return 0
 
     response = urlresult.read()
@@ -77,7 +79,13 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     if verbose:
         print("javascript url is", url)
 
-    urlresult = urllib.urlopen(url)
+    try:
+        urlresult = urllib.urlopen(url)
+    except (urllib.error.URLError, socket.error) as e:
+        if verbose:
+            print("Error opening javascript URL: {}".format(e))
+        return 0
+
     allJSstuff = urlresult.read()  # this is an obfuscated Javascript file
 
     # We're searching for the "token:" in this string
@@ -112,10 +120,10 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 
     try:
         urlresult = urllib2.urlopen(url, None, 2)  # 2 second time-out
-    except:
+    except (urllib2.URLError, socket.error) as e:
         # not good
         if verbose:
-            print("No connection possible")  # probably IPv6, or just no network
+            print("No connection possible: {}".format(e))  # probably IPv6, or just no network
         return 0  # no connection, thus no speed
 
     jsonresult = urlresult.read()
@@ -142,7 +150,7 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
             socket.getaddrinfo(fqdn, None, socket.AF_INET6)
             if verbose:
                 print("IPv6")
-        except:
+        except socket.error:
             pass
 
     # Now start the threads
@@ -156,7 +164,6 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     sleepseconds = 3  # 3 seconds sleep
     lasttotal = 0
     highestspeedkBps = 0
-    maxdownload = 60  # MB
     nrloops = maxtime / sleepseconds
 
     for loop in range(nrloops):
