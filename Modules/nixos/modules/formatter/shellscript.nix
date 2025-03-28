@@ -11,7 +11,7 @@
       sh = {
         includes = [
           "**/sh/**"
-          # "**/shellscript/**"
+          "**/shellscript/**"
           "Modules/global/**"
           "Modules/nixos/configurations/hosts/QBX/bin/**"
           "**/bash/**"
