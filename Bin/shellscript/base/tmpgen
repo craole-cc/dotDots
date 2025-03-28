@@ -17,7 +17,7 @@ set_defaults() {
   #DOC   - `scr_head`: uppercased name of the script
   #DOC
   #DOC Operation modes:
-  #DOC   - `mode_strict`: strict mode (enabled by default)
+  #DOC   - `mode_error`: strict mode (enabled by default)
   #DOC   - `mode_debug`: debug mode (enabled by default)
   #DOC
   #DOC Operational variables:
@@ -49,9 +49,9 @@ set_defaults() {
 }
 
 set_error_mode() {
-  #DOC Configure shell options based on the `mode_strict` variable.
+  #DOC Configure shell options based on the `mode_error` variable.
   #DOC
-  #DOC If `mode_strict` is enabled (1, on, true, or unspecified),
+  #DOC If `mode_error` is enabled (1, on, true, or unspecified),
   #DOC the shell is set to exit immediately on error and treat unset
   #DOC variables as an error (using `set -eu`).
 
@@ -59,56 +59,6 @@ set_error_mode() {
   0 | off | false) ;;
   1 | on | true | *) set -eu ;;
   esac
-}
-
-parse_arguments() {
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    -h | --help)
-      pout --usage
-      exit 0
-      ;;
-    -d | --dry-run | --debug)
-      mode_debug=true
-      ;;
-    -D | --directory)
-      path_type="directory"
-      ;;
-    -F | --file)
-      path_type="file"
-      ;;
-    -p | --path)
-      path_parent_dir="$2"
-      shift
-      ;;
-    -*)
-      printf 'Unknown option: %s\n' "$1" >&2
-      exit 1
-      ;;
-    *)
-      if [ -z "${path_prefix}" ]; then
-        path_prefix="$1"
-      else
-        printf 'Too many arguments\n' >&2
-        exit 1
-      fi
-      ;;
-    esac
-    shift
-  done
-
-  #@ Debug arguments
-  pout --head "DEFAULT & PARSED ARGUMENTS"
-  pout --debug "Script Path:" "${scr_path}"
-  pout --debug "Script Name:" "${scr_name}"
-  pout --debug "Script Head:" "${scr_head}"
-  pout --debug "Strict Mode:" "${mode_strict}"
-  pout --debug " Debug Mode:" "${mode_debug}"
-  pout --debug " Process ID:" "${proc_id}"
-  pout --debug "    Path ID:" "${path_id}"
-  pout --debug "  Path Type:" "${path_type}"
-  pout --debug "Path Prefix:" "${path_prefix}"
-  pout --debug "Path Parent:" "${path_parent_dir}"
 }
 
 execute_process() {
@@ -121,12 +71,12 @@ execute_process() {
   #DOC   false), the script will not output any information and will only return the
   #DOC   generated path.
   #DOC
-  #DOC   The `mode_strict` flag is used to toggle strict mode. If `mode_strict` is
+  #DOC   The `mode_error` flag is used to toggle strict mode. If `mode_error` is
   #DOC   enabled (1, on, true, or unspecified), the script will exit if any of the
   #DOC   following conditions are not met:
   #DOC     - The parent directory exists and is writable.
   #DOC     - The temporary file or directory is created successfully.
-  #DOC   If `mode_strict` is disabled (0, off, false), the script will not exit on
+  #DOC   If `mode_error` is disabled (0, off, false), the script will not exit on
   #DOC   error and will instead return an error code.
   #DOC
   #DOC   The `path_type` variable is used to specify whether to generate a file or
@@ -198,7 +148,7 @@ cleanup() {
   #DOC   when it exits. It is not intended to be called directly.
 
   unset scr_path scr_name scr_head
-  unset mode_strict mode_debug
+  unset mode_error mode_debug
   unset path_type path_prefix path_parent_dir path_id proc_id
   unset prepped_prefix prepped_path
 }
@@ -297,6 +247,56 @@ pout() {
     printf '\n'
     _i=$((_i + 1))
   done
+}
+
+parse_arguments() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+      pout --usage
+      exit 0
+      ;;
+    -d | --dry-run | --debug)
+      mode_debug=true
+      ;;
+    -D | --directory)
+      path_type="directory"
+      ;;
+    -F | --file)
+      path_type="file"
+      ;;
+    -p | --path)
+      path_parent_dir="$2"
+      shift
+      ;;
+    -*)
+      printf 'Unknown option: %s\n' "$1" >&2
+      exit 1
+      ;;
+    *)
+      if [ -z "${path_prefix}" ]; then
+        path_prefix="$1"
+      else
+        printf 'Too many arguments\n' >&2
+        exit 1
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  #@ Debug arguments
+  pout --head "DEFAULT & PARSED ARGUMENTS"
+  pout --debug "Script Path:" "${scr_path}"
+  pout --debug "Script Name:" "${scr_name}"
+  pout --debug "Script Head:" "${scr_head}"
+  pout --debug "Strict Mode:" "${mode_error}"
+  pout --debug " Debug Mode:" "${mode_debug}"
+  pout --debug " Process ID:" "${proc_id}"
+  pout --debug "    Path ID:" "${path_id}"
+  pout --debug "  Path Type:" "${path_type}"
+  pout --debug "Path Prefix:" "${path_prefix}"
+  pout --debug "Path Parent:" "${path_parent_dir}"
 }
 
 usage_guide() {

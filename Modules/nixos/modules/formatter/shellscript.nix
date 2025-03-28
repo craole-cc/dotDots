@@ -47,7 +47,12 @@
           };
         };
         settings.formatter = {
-          shellcheck = { inherit includes excludes; };
+          shellcheck = {
+            inherit includes excludes;
+            options = [
+              "--exclude=all"
+            ];
+          };
           shfmt = {
             inherit includes excludes;
             # indent_size = 4; #TODO: this doesn't seem to workFf
