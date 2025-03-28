@@ -102,7 +102,7 @@
             category = "Flake Management";
             help = "Sync git repository";
             command = ''sync-repo.sh'';
-            name = "onefetch && Flux";
+            name = "Flux";
           }
           {
             category = "Flake Management";
@@ -134,6 +134,12 @@
             # command = ''list-files.sh --tree --git-ignore "$@"'';
             command = ''yazi'';
             name = "ft";
+          }
+          {
+            category = "File/Environment Management";
+            help = "Display git information";
+            command = ''tokei && onefetch --no-title --no-color-palette --disabled-fields url'';
+            name = "fo";
           }
           {
             category = "File/Environment Management";
