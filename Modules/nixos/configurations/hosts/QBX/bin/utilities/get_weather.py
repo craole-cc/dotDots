@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import argparse
 from datetime import datetime
 from urllib.error import URLError

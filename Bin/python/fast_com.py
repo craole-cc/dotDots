@@ -2,221 +2,198 @@
 
 '''
 Python CLI-tool (without need for a GUI) to measure Internet speed with fast.com
-
 '''
-
 
 import os
 import json
 import urllib
 import urllib2
 import sys
-#import jsbeautifier
 import time
-#import threading
 from threading import Thread
+import socket
 
-
-def gethtmlresult(url,result,index):
-	'''
-	get the stuff from url in chunks of size CHUNK, and keep writing the number of bytes retrieved into result[index]
-	'''
-	#print url, index, result[index]
-	req = urllib2.urlopen(url)
-	CHUNK = 100 * 1024
-	i=1
-	while True:
-	    chunk = req.read(CHUNK)
-	    if not chunk: break
-	    result[index] = i*CHUNK
-	    i=i+1
+def gethtmlresult(url, result, index):
+    '''
+    get the stuff from url in chunks of size CHUNK, and keep writing the number of bytes retrieved into result[index]
+    '''
+    req = urllib2.urlopen(url)
+    CHUNK = 100 * 1024
+    i = 1
+    while True:
+        chunk = req.read(CHUNK)
+        if not chunk:
+            break
+        result[index] = i * CHUNK
+        i += 1
 
 def application_bytes_to_networkbits(bytes):
-	# convert bytes (at application layer) to bits (at network layer)
-	return bytes * 8 * 1.0415
-	# 8 for bits versus bytes
-	# 1.0416 for application versus network layers
-
+    # convert bytes (at application layer) to bits (at network layer)
+    return bytes * 8 * 1.0415
+    # 8 for bits versus bytes
+    # 1.0416 for application versus network layers
 
 def findipv4(fqdn):
-	'''
-		find IPv4 address of fqdn
-	'''
-	import socket
-	ipv4 = socket.getaddrinfo(fqdn, 80, socket.AF_INET)[0][4][0]
-	return ipv4
+    '''
+    find IPv4 address of fqdn
+    '''
+    return socket.getaddrinfo(fqdn, 80, socket.AF_INET)[0][4][0]
 
 def findipv6(fqdn):
-	'''
-		find IPv6 address of fqdn
-	'''
-	import socket
-	ipv6 = socket.getaddrinfo(fqdn, 80, socket.AF_INET6)[0][4][0]
-	return ipv6
-
+    '''
+    find IPv6 address of fqdn
+    '''
+    return socket.getaddrinfo(fqdn, 80, socket.AF_INET6)[0][4][0]
 
 def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
-	'''
-		verbose: print debug output
-		maxtime: max time in seconds to monitor speedtest 
-		forceipv4: force speed test over IPv4
-		forceipv6: force speed test over IPv6
- 	'''
-	# go to fast.com to get the javascript file
-	url = 'https://fast.com/'
-	try:
-		urlresult = urllib.urlopen(url)
-	except:
-		# no connection at all?
-		return 0
-	response = urlresult.read()
-	for line in response.split('\n'):
-		# We're looking for a line like
-		#           <script src="/app-40647a.js"></script> 
-		if line.find('script src') >= 0:
-			#print line
-			jsname = line.split('"')[1]	# At time of writing: '/app-40647a.js'
+    '''
+    verbose: print debug output
+    maxtime: max time in seconds to monitor speedtest
+    forceipv4: force speed test over IPv4
+    forceipv6: force speed test over IPv6
+    '''
+    # go to fast.com to get the javascript file
+    url = 'https://fast.com/'
+    try:
+        urlresult = urllib.urlopen(url)
+    except:
+        # no connection at all?
+        return 0
 
+    response = urlresult.read()
+    jsname = None
+    for line in response.split('\n'):
+        # We're looking for a line like
+        #           <script src="/app-40647a.js"></script>
+        if 'script src' in line:
+            jsname = line.split('"')[1]  # At time of writing: '/app-40647a.js'
+            break
 
-	# From that javascript file, get the token:
-	url = 'https://fast.com' + jsname
-	if verbose: print "javascript url is", url
-	urlresult = urllib.urlopen(url)
-	allJSstuff = urlresult.read()	# this is a obfuscated Javascript file 
-	'''
-	# OLD STUFF ... beautiful, but needs the js-beautifier module, which was a non-standard requirement
-	res = jsbeautifier.beautify(allJSstuff)	# ... so un-obfuscate it
-	for line in res.split('\n'):
-		if line.find('token:') >= 0:
-			token = line.split('"')[1]
-	if verbose: print "token is", token
-	'''
+    if not jsname:
+        return 0
 
-	'''
-	We're searching for the "token:" in this string:
-	.dummy,DEFAULT_PARAMS={https:!0,token:"YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm",urlCount:3,e
-	'''
-	for line in allJSstuff.split(','):
-		if line.find('token:') >= 0:
-			if verbose: print "line is", line
-			token = line.split('"')[1]
-			if verbose: print "token is", token
-			if token:
-				break
+    # From that javascript file, get the token:
+    url = 'https://fast.com' + jsname
+    if verbose:
+        print("javascript url is", url)
 
-	# https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3
-	# https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3
-	# lynx --dump  'https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3'  | python -mjson.tool
-	#url = 'https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3'
+    urlresult = urllib.urlopen(url)
+    allJSstuff = urlresult.read()  # this is an obfuscated Javascript file
 
+    # We're searching for the "token:" in this string
+    token = None
+    for line in allJSstuff.split(','):
+        if 'token:' in line:
+            if verbose:
+                print("line is", line)
+            token = line.split('"')[1]
+            if verbose:
+                print("token is", token)
+            if token:
+                break
 
-	# With the token, get the (3) speed-test-URLS from api.fast.com (which will be in JSON format):
-	baseurl = 'https://api.fast.com/'
-	if forceipv4:
-		# force IPv4 by connecting to an IPv4 address of api.fast.com (over ... HTTP)
-		ipv4 = findipv4('api.fast.com')
-		baseurl = 'http://' + ipv4 + '/'	# HTTPS does not work IPv4 addresses, thus use HTTP
-	elif forceipv6:
-		# force IPv6 
-		ipv6 = findipv6('api.fast.com')
-		baseurl = 'http://[' + ipv6 + ']/'
+    if not token:
+        return 0
 
-	url = baseurl + 'netflix/speedtest?https=true&token=' + token + '&urlCount=3'	# Not more than 3 possible
-	if verbose: print "API url is", url
-	try:
-		urlresult = urllib2.urlopen(url, None, 2)	# 2 second time-out
-	except:
-		# not good
-		if verbose: print "No connection possible"	# probably IPv6, or just no network
-		return 0	# no connection, thus no speed
+    # Prepare base URL for API
+    baseurl = 'https://api.fast.com/'
+    if forceipv4:
+        # force IPv4 by connecting to an IPv4 address of api.fast.com (over HTTP)
+        ipv4 = findipv4('api.fast.com')
+        baseurl = 'http://' + ipv4 + '/'  # HTTPS does not work with IPv4 addresses, thus use HTTP
+    elif forceipv6:
+        # force IPv6
+        ipv6 = findipv6('api.fast.com')
+        baseurl = 'http://[' + ipv6 + ']/'
 
-	jsonresult = urlresult.read()
-	parsedjson = json.loads(jsonresult)
+    url = baseurl + 'netflix/speedtest?https=true&token=' + token + '&urlCount=3'  # Not more than 3 possible
+    if verbose:
+        print("API url is", url)
 
-	# Prepare for getting those URLs in a threaded way:
-	amount = len(parsedjson)
-	if verbose: print "Number of URLs:", amount
-	threads = [None] * amount
-	results = [0] * amount
-	urls = [None] * amount
-	i = 0
-	for jsonelement in parsedjson:
-	    urls[i] = jsonelement['url']	# fill out speed test url from the json format
-            if verbose: print jsonelement['url']
-	    i = i+1
+    try:
+        urlresult = urllib2.urlopen(url, None, 2)  # 2 second time-out
+    except:
+        # not good
+        if verbose:
+            print("No connection possible")  # probably IPv6, or just no network
+        return 0  # no connection, thus no speed
 
-	# Let's check whether it's IPv6:
-	for url in urls:
-		fqdn = url.split('/')[2]
-		try:
-			socket.getaddrinfo(fqdn, None, socket.AF_INET6)
-			if verbose: print "IPv6"
-		except:
-			pass
+    jsonresult = urlresult.read()
+    parsedjson = json.loads(jsonresult)
 
+    # Prepare for getting those URLs in a threaded way:
+    amount = len(parsedjson)
+    if verbose:
+        print("Number of URLs:", amount)
 
-	# Now start the threads
-	for i in range(len(threads)):
-	    #print "Thread: i is", i
-	    threads[i] = Thread(target=gethtmlresult, args=(urls[i], results, i))
-	    threads[i].daemon=True
-	    threads[i].start()
+    threads = [None] * amount
+    results = [0] * amount
+    urls = [None] * amount
 
-	# Monitor the amount of bytes (and speed) of the threads 
-	time.sleep(1)
-	sleepseconds = 3	# 3 seconds sleep
-	lasttotal = 0
-	highestspeedkBps = 0
-	maxdownload = 60 #MB
-	nrloops = maxtime / sleepseconds
-	for loop in range(nrloops):
-		total = 0
-		for i in range(len(threads)):
-			#print i, results[i]
-			total += results[i]
-		delta = total-lasttotal
-		speedkBps = (delta/sleepseconds)/(1024)
-		if verbose:
-			print "Loop", loop, "Total MB", total/(1024*1024), "Delta MB", delta/(1024*1024), "Speed kB/s:", speedkBps, "aka Mbps %.1f" % (application_bytes_to_networkbits(speedkBps)/1024)
-		'''
-		if total/(1024*1024) > maxdownload:
-			break
-		'''
-		lasttotal = total
-		if speedkBps > highestspeedkBps:
-			highestspeedkBps = speedkBps
-		time.sleep(sleepseconds)
-	'''
-	print "Now wait for threads to end:"
-	for i in range(len(threads)):
-	    threads[i].join()
-	'''
+    for i, jsonelement in enumerate(parsedjson):
+        urls[i] = jsonelement['url']  # fill out speed test url from the json format
+        if verbose:
+            print(jsonelement['url'])
 
-	Mbps = (application_bytes_to_networkbits(highestspeedkBps)/1024)
-	Mbps = float("%.1f" % Mbps)
-	if verbose: print "Highest Speed (kB/s):", highestspeedkBps,  "aka Mbps ", Mbps
+    # Let's check whether it's IPv6:
+    for url in urls:
+        fqdn = url.split('/')[2]
+        try:
+            socket.getaddrinfo(fqdn, None, socket.AF_INET6)
+            if verbose:
+                print("IPv6")
+        except:
+            pass
 
-	#print "Debug: total in bytes", total
+    # Now start the threads
+    for i in range(len(threads)):
+        threads[i] = Thread(target=gethtmlresult, args=(urls[i], results, i))
+        threads[i].daemon = True
+        threads[i].start()
 
-	return Mbps
+    # Monitor the amount of bytes (and speed) of the threads
+    time.sleep(1)
+    sleepseconds = 3  # 3 seconds sleep
+    lasttotal = 0
+    highestspeedkBps = 0
+    maxdownload = 60  # MB
+    nrloops = maxtime / sleepseconds
 
+    for loop in range(nrloops):
+        total = sum(results)
+        delta = total - lasttotal
+        speedkBps = (delta / sleepseconds) / 1024
 
-######## MAIN #################
+        if verbose:
+            print("Loop", loop, "Total MB", total/(1024*1024), "Delta MB", delta/(1024*1024),
+                  "Speed kB/s:", speedkBps, "aka Mbps %.1f" % (application_bytes_to_networkbits(speedkBps)/1024))
 
+        lasttotal = total
+        if speedkBps > highestspeedkBps:
+            highestspeedkBps = speedkBps
+        time.sleep(sleepseconds)
 
-if __name__ == "__main__": 
-	print "let's speed test:"
-	print "\nSpeed test, without logging:"
-	print fast_com()
-	print "\nSpeed test, with logging:"
-	print fast_com(verbose=True)
-	print "\nSpeed test, IPv4, with verbose logging:"
-	print fast_com(verbose=True, maxtime=18, forceipv4=True)
-	print "\nSpeed test, IPv6:"
-	print fast_com(maxtime=12, forceipv6=True)
-	print "\n30 second speed test:"
-	fast_com(verbose=True, maxtime=30)
+    Mbps = application_bytes_to_networkbits(highestspeedkBps) / 1024
+    Mbps = float("%.1f" % Mbps)
 
-	print "\ndone"
+    if verbose:
+        print("Highest Speed (kB/s):", highestspeedkBps, "aka Mbps ", Mbps)
 
+    return Mbps
 
+def main():
+    print("let's speed test:")
+    print("\nSpeed test, without logging:")
+    print(fast_com())
+    print("\nSpeed test, with logging:")
+    print(fast_com(verbose=True))
+    print("\nSpeed test, IPv4, with verbose logging:")
+    print(fast_com(verbose=True, maxtime=18, forceipv4=True))
+    print("\nSpeed test, IPv6:")
+    print(fast_com(maxtime=12, forceipv6=True))
+    print("\n30 second speed test:")
+    fast_com(verbose=True, maxtime=30)
+    print("\ndone")
+
+if __name__ == "__main__":
+    main()
