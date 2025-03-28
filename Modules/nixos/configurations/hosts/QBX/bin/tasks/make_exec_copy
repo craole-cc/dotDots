@@ -611,7 +611,7 @@ pout() {
       printf '%s\n' "$usage"
       printf '%s\n' "$help"
     fi
-  }
+        }
 
   pout__blank() {
     #DOC Prints blank lines to separate output messages.
