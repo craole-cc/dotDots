@@ -3,10 +3,13 @@
     {
       pkgsUnstable,
       flakePaths,
+      config,
+      lib,
       ...
     }:
     let
-      # pkgs = pkgsUnstable;
+      inherit (lib.attrsets) attrValues;
+      treefmt = config.treefmt.build;
       dots = {
         name = "dotDots";
         env = [
@@ -41,48 +44,48 @@
             eval = "$PRJ_ROOT";
           }
         ];
-        packages = with pkgsUnstable; [
-          bat
-          btop
-          coreutils
-          gnused
-          curl
-          devenv
-          diffutils
-          eza
-          fastfetch
-          fd
-          fd
-          findutils
-          fzf
-          gawk
-          getent
-          gitui
-          gnused
-          helix
-          jq
-          nerd-fonts.victor-mono
-          nil
-          nix-index
-          nixd
-          nixfmt-rfc-style
-          onefetch
-          ripgrep
-          rsync
-          sd
-          shellcheck
-          shfmt
-          tldr
-          tokei
-          trashy
-          undollar
-          wget
-          yazi
-
-          # config.packages.repl
-          # config.packages.frepl
-          # zed-editor-fhs
-        ];
+        packages =
+          with pkgsUnstable;
+          [
+            bat
+            btop
+            coreutils
+            gnused
+            curl
+            devenv
+            diffutils
+            eza
+            fastfetch
+            fd
+            fd
+            findutils
+            fzf
+            gawk
+            getent
+            gitui
+            gnused
+            helix
+            jq
+            nerd-fonts.victor-mono
+            nil
+            nix-index
+            nixd
+            nixfmt-rfc-style
+            onefetch
+            ripgrep
+            rsync
+            sd
+            shellcheck
+            shfmt
+            tldr
+            tokei
+            trashy
+            undollar
+            wget
+            yazi
+            treefmt.wrapper
+          ]
+          ++ (attrValues treefmt.programs);
         commands = [
           {
             category = "Flake Management";

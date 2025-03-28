@@ -1,4 +1,3 @@
 # Arch Linux dep[endencies
 
-xclip
-xsel
+xclip xsel
