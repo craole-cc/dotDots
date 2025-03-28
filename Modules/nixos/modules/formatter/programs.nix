@@ -46,17 +46,17 @@
           };
 
           #| Web & Fallback
-          biome = {
+          # biome = {
+          #   enable = true;
+          #   priority = 1;
+          # };
+          deno = {
             enable = true;
             priority = 1;
           };
-          deno = {
-            enable = true;
-            priority = 2;
-          };
           prettier = {
             enable = true;
-            priority = 3;
+            priority = 2;
           };
         };
       };
