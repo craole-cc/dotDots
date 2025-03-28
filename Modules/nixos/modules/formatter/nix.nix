@@ -20,7 +20,6 @@
       _module.args = { inherit fmt; };
       treefmt = {
         programs = {
-          #| Nix
           nixfmt = {
             enable = true;
             package = pkgsUnstable.nixfmt-rfc-style;

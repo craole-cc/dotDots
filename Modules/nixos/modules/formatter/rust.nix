@@ -1,7 +1,6 @@
 {
   perSystem.treefmt = {
     programs = {
-      #| Nix
       rustfmt = {
         enable = true;
         priority = 1;
