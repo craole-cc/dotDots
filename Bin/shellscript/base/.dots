@@ -1,13 +1,13 @@
 #!/bin/sh
 
 #@ Ensure the DOTS variable is set
-[ -n "$DOTS" ] || {
+[ -n "${DOTS}" ] || {
   printf "ERROR: The path to DOTS directory must be set.\n" >&2
   exit 1
 }
 
 #@ Go to the DOTS directory
-\cd "$DOTS" || {
+\cd "${DOTS}" || {
   printf "ERROR: Failed to change directory.\n" >&2
   exit 1
 }
@@ -17,15 +17,16 @@ command -v nix-shell > /dev/null 2>&1 && weHave_nix=1
 nix develop --help > /dev/null 2>&1 && weHave_flakes=1
 
 #@ Initialize the development environment
-if [ "$weHave_flakes" -eq 1 ] && [ -f "flake.nix" ]; then
+if [ "${weHave_flakes}" -eq 1 ] && [ -f "flake.nix" ]; then
   nix develop
-elif [ "$weHave_nix" -eq 1 ] && [ -f "$shell.nix" ]; then
+elif [ "${weHave_nix}" -eq 1 ] && [ -f "${shell}.nix" ]; then
   nix-shell
 else
   #@ Open the DOTS directory in the editor
-  if [ -n "$DISPLAY" ]; then
-    "$VISUAL" "$DOTS"
+  if [ -n "${DISPLAY}" ]; then
+    "${VISUAL}" "${DOTS}"
   else
-    "$EDITOR" "$DOTS"
+    "${EDITOR}" "${DOTS}"
   fi
 fi
+ 
