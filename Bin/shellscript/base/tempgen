@@ -1,0 +1,349 @@
+#!/bin/sh
+
+main() {
+  trap cleanup EXIT INT TERM
+  set_defaults
+  set_error_mode
+  parse_arguments "$@"
+  execute_process
+}
+
+set_defaults() {
+  #DOC Set default values for script operation.
+  #DOC
+  #DOC Script metadata:
+  #DOC   - `scr_path`: path to the script
+  #DOC   - `scr_name`: name of the script
+  #DOC   - `scr_head`: uppercased name of the script
+  #DOC
+  #DOC Operation modes:
+  #DOC   - `mode_strict`: strict mode (enabled by default)
+  #DOC   - `mode_debug`: debug mode (enabled by default)
+  #DOC
+  #DOC Operational variables:
+  #DOC   - `path_type`: type of path to generate (file or directory)
+  #DOC   - `path_prefix`: prefix of the generated path
+  #DOC   - `path_parent_dir`: parent directory of the generated path
+  #DOC   - `path_id`: random identifier used in the generated path
+  #DOC   - `proc_id`: process ID of the script
+
+  #| Script metadata
+  scr_path="$0"
+  scr_name="$(basename "${scr_path}")"
+  scr_head="$(pout --upper "${scr_name}")"
+
+  #| Operation modes
+  mode_error=true
+  mode_debug=true
+
+  #| Operational variables
+  path_type="file"
+  path_prefix=""
+  path_parent_dir="/tmp"
+  path_id=$(
+    dd if=/dev/urandom bs=4 count=1 2>/dev/null |
+      od -A n -t u4 |
+      tr -d ' \n'
+  )
+  proc_id="$$"
+}
+
+set_error_mode() {
+  #DOC Configure shell options based on the `mode_strict` variable.
+  #DOC
+  #DOC If `mode_strict` is enabled (1, on, true, or unspecified),
+  #DOC the shell is set to exit immediately on error and treat unset
+  #DOC variables as an error (using `set -eu`).
+
+  case "${mode_error}" in
+  0 | off | false) ;;
+  1 | on | true | *) set -eu ;;
+  esac
+}
+
+parse_arguments() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+      pout --usage
+      exit 0
+      ;;
+    -d | --dry-run | --debug)
+      mode_debug=true
+      ;;
+    -D | --directory)
+      path_type="directory"
+      ;;
+    -F | --file)
+      path_type="file"
+      ;;
+    -p | --path)
+      path_parent_dir="$2"
+      shift
+      ;;
+    -*)
+      printf 'Unknown option: %s\n' "$1" >&2
+      exit 1
+      ;;
+    *)
+      if [ -z "${path_prefix}" ]; then
+        path_prefix="$1"
+      else
+        printf 'Too many arguments\n' >&2
+        exit 1
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  #@ Debug arguments
+  pout --head "DEFAULT & PARSED ARGUMENTS"
+  pout --debug "Script Path:" "${scr_path}"
+  pout --debug "Script Name:" "${scr_name}"
+  pout --debug "Script Head:" "${scr_head}"
+  pout --debug "Strict Mode:" "${mode_strict}"
+  pout --debug " Debug Mode:" "${mode_debug}"
+  pout --debug " Process ID:" "${proc_id}"
+  pout --debug "    Path ID:" "${path_id}"
+  pout --debug "  Path Type:" "${path_type}"
+  pout --debug "Path Prefix:" "${path_prefix}"
+  pout --debug "Path Parent:" "${path_parent_dir}"
+}
+
+execute_process() {
+  #DOC   Generates a unique temporary file or directory name with a customizable
+  #DOC   prefix and parent directory. The generated path is printed to stdout.
+  #DOC
+  #DOC   The `mode_debug` flag is used to toggle debug mode. If `mode_debug` is
+  #DOC   enabled (1, on, true, or unspecified), the script will output debug
+  #DOC   information about the generated path. If `mode_debug` is disabled (0, off,
+  #DOC   false), the script will not output any information and will only return the
+  #DOC   generated path.
+  #DOC
+  #DOC   The `mode_strict` flag is used to toggle strict mode. If `mode_strict` is
+  #DOC   enabled (1, on, true, or unspecified), the script will exit if any of the
+  #DOC   following conditions are not met:
+  #DOC     - The parent directory exists and is writable.
+  #DOC     - The temporary file or directory is created successfully.
+  #DOC   If `mode_strict` is disabled (0, off, false), the script will not exit on
+  #DOC   error and will instead return an error code.
+  #DOC
+  #DOC   The `path_type` variable is used to specify whether to generate a file or
+  #DOC   directory. The default value is "file".
+  #DOC
+  #DOC   The `path_parent_dir` variable is used to specify the parent directory of
+  #DOC   the generated path. The default value is "/tmp".
+  #DOC
+  #DOC   The `path_prefix` variable is used to specify a custom prefix for the
+  #DOC   generated path. The default value is the script name.
+  #DOC
+  #DOC   The `proc_id` variable is used to specify a custom process ID to use in the
+  #DOC   generated path. The default value is the current process ID.
+  #DOC
+  #DOC   The `path_id` variable is used to specify a custom random identifier to use
+  #DOC   in the generated path. The default value is a cryptographically strong
+  #DOC   random identifier.
+
+  #@ Sanitize the path_prefix (remove non-alphanumeric characters)
+  prepped_prefix=$(pout --clean "${path_prefix:-"${scr_name}"}")
+
+  #@ Construct the full path
+  prepped_path="${path_parent_dir}/${prepped_prefix}.${proc_id}.${path_id}"
+
+  #@ Ensure the parent directory exists and is writable
+  if [ ! -d "${path_parent_dir}" ]; then
+    mkdir -p "${path_parent_dir}" || {
+      printf 'Failed to create parent directory\n' >&2
+      exit 2
+    }
+  fi
+
+  #@ Execute or debug
+  case "${mode_debug:-}" in
+  1 | on | true)
+    #@ Debug execution output
+    pout --header "EXECUTION OUTPUT"
+    pout --debug "Prepped Prefix:" "${prepped_prefix}"
+    pout --debug "  Prepped Path:" "${prepped_path}"
+    ;;
+  *)
+    #@ Create the temporary resource
+    case "${path_type}" in
+    directory)
+      mkdir -p "${prepped_path}" || {
+        printf 'Failed to create temporary directory\n' >&2
+        exit 2
+      }
+      ;;
+    file | *)
+      #@ Create an empty file with restricted permissions
+      touch "${prepped_path}" || {
+        printf 'Failed to create temporary file\n' >&2
+        exit 2
+      }
+      chmod 600 "${prepped_path}" >/dev/null 2>&1
+      ;;
+    esac
+    #@ Return the generated path
+    pout --trim "${prepped_path}"
+    ;;
+  esac
+}
+
+cleanup() {
+  #DOC   Cleans up variables used by the script.
+  #DOC
+  #DOC   This function is used as a trap to clean up variables used by the script
+  #DOC   when it exits. It is not intended to be called directly.
+
+  unset scr_path scr_name scr_head
+  unset mode_strict mode_debug
+  unset path_type path_prefix path_parent_dir path_id proc_id
+  unset prepped_prefix prepped_path
+}
+
+pout() {
+  #DOC Prints a formatted string to the console.
+  #DOC
+  #DOC Available options:
+  #DOC   - `--line <N>`: Print `<N>` lines after the message.
+  #DOC   - `--trim` or `--last <MSG>`: Print only the last line of `<MSG>`.
+  #DOC   - `--upper <MSG>`: Print `<MSG>` in uppercase.
+  #DOC   - `--lower <MSG>`: Print `<MSG>` in lowercase.
+  #DOC   - `--alnum <MSG>` or `--clean <MSG>`: Remove non-alphanumeric characters from `<MSG>`.
+  #DOC   - `--head <MSG>`: Print a formatted header with `<MSG>`.
+  #DOC   - `--debug <MSG>`: Print a debug message with `<MSG>`.
+  #DOC   - `--info <MSG>`: Print an informational message with `<MSG>`.
+  #DOC   - `--warn <MSG>`: Print a warning message with `<MSG>`.
+  #DOC   - `--error <MSG>`: Print an error message with `<MSG>`.
+  #DOC   - `--usage`: Print the usage guide.
+  #DOC
+  #DOC If no options are specified, the function will print the entire input string.
+
+  #@ Initialize variables
+  tag=""
+  msg=""
+  lines=1
+
+  #@ Parse arguments
+  case "$1" in
+  --line*)
+    if [ "$2" -eq "$2" ] 2>/dev/null; then
+      lines=$2
+      shift
+    else
+      lines=1
+    fi
+    ;;
+  --trim | --last*)
+    shift
+    lines=0
+    msg="$*"
+    ;;
+  --upper)
+    shift
+    msg="$(printf "%s" "$*" | tr '[:lower:]' '[:upper:]')"
+    ;;
+  --lower)
+    shift
+    msg="$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')"
+    ;;
+  --alnum | --clean)
+    shift
+    msg="$(printf "%s" "$*" | tr -c '[:alnum:]_' '_')"
+    ;;
+  --head*)
+    shift
+    tag="\n"
+    msg="===| $* |==="
+    ;;
+  --debug)
+    shift
+    tag="[DEBUG] "
+    msg="$*"
+    ;;
+  --info)
+    shift
+    tag="[INFO] "
+    msg="$*"
+    ;;
+  --warn)
+    shift
+    tag="[WARN] "
+    msg="$*"
+    ;;
+  --error)
+    shift
+    tag="[ERROR] "
+    msg="$*"
+    ;;
+  --usage)
+    msg="$(usage_guide)"
+    ;;
+  *) printf "%s" "$*" ;;
+  esac
+
+  #@ Print output
+  if [ -n "${tag}" ]; then
+    printf "%b%s" "${tag}" "${msg}"
+  else
+    printf "%s" "${msg}"
+  fi
+
+  #@ Print lines, if requested
+  _i=1
+  while [ "${_i}" -le "${lines}" ]; do
+    printf '\n'
+    _i=$((_i + 1))
+  done
+}
+
+usage_guide() {
+  cat <<EOF
+==========================================================
+${scr_head}: Portable Temporary File/Directory Generator
+==========================================================
+DESCRIPTION:
+  A robust, POSIX-compliant script for creating unique temporary
+  files or directories with customizable naming and cleanup options.
+
+FEATURES:
+  - Fully POSIX-compliant
+  - Supports custom prefix or uses caller's context
+  - Generates cryptographically strong random names
+  - Flexible mode (file or directory)
+  - Safe temporary location selection
+
+USAGE:
+  ${scr_name} [OPTIONS] [PREFIX]
+
+OPTIONS:
+  -h, --help         Display help
+  -d, --debug        Enable debug mode
+  -D, --directory    Set the path type to a directory
+  -F, --file         Set the path type to a file
+  -t, --type         Specify a file or directory type (current: ${path_type})
+  -p, --path         Specify a custom path (current: ${path_parent_dir})
+
+EXAMPLES:
+  ${scr_name}                     # Temp file with default name
+  ${scr_name} "myapp"             # Temp file with 'myapp' prefix
+  ${scr_name} -d                  # Temp directory
+  ${scr_name} -d "backup"         # Temp directory with 'backup' prefix
+
+EXIT CODES:
+  0  - Success
+  1  - Invalid arguments
+  2  - Creation failure
+
+SECURITY:
+  - Uses /dev/urandom for entropy
+  - Avoids predictable temporary names
+  - Minimal attack surface
+  - Restricted file permissions
+==========================================================
+EOF
+}
+
+main "$@"

@@ -9,13 +9,13 @@ directory_exists() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --dir)
-        [ "$2" ] && {
-          directory_exists "$2" && workspace="$2"
-          shift
-        }
-        ;;
-      *) directory_exists "$1" && workspace="${1:-$PWD}" ;;
+    --dir)
+      [ -n "$2" ] && {
+        directory_exists "$2" && workspace="$2"
+        shift
+      }
+      ;;
+    *) directory_exists "$1" && workspace="${1:-${PWD}}" ;;
     esac
     shift
   done
@@ -23,9 +23,9 @@ parse_arguments() {
 
 #@ Access development workspace
 access_workspace() {
-  if directory_exists "$workspace"; then
-    cd "$workspace" || {
-      printf "Failed to access %s\n" "$workspace"
+  if directory_exists "${workspace}"; then
+    cd "${workspace}" || {
+      printf "Failed to access %s\n" "${workspace}"
       exit 1
     }
   fi
