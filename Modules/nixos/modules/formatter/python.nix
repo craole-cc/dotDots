@@ -3,7 +3,6 @@
     programs = {
       ruff = {
         enable = true;
-        priority = 1;
       };
     };
   };
