@@ -50,7 +50,7 @@
           shellcheck = {
             inherit includes excludes;
             options = [
-              "--exclude=all"
+              "--enable=all"
             ];
           };
           shfmt = {

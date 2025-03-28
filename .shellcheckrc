@@ -1,5 +1,5 @@
 #> Enable Warnings
-enable=all
+# enable=all
 
 #> Disable Warnings
 disable=SC2154        #? Variable is referenced but not assigned

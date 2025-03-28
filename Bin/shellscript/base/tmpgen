@@ -41,9 +41,9 @@ set_defaults() {
   path_prefix=""
   path_parent_dir="/tmp"
   path_id=$(
-    dd if=/dev/urandom bs=4 count=1 2>/dev/null |
-      od -A n -t u4 |
-      tr -d ' \n'
+    dd if=/dev/urandom bs=4 count=1 2> /dev/null \
+      | od -A n -t u4 \
+      | tr -d ' \n'
   )
   proc_id="$$"
 }
@@ -56,8 +56,8 @@ set_error_mode() {
   #DOC variables as an error (using `set -eu`).
 
   case "${mode_error}" in
-  0 | off | false) ;;
-  1 | on | true | *) set -eu ;;
+    0 | off | false) ;;
+    1 | on | true | *) set -eu ;;
   esac
 }
 
@@ -111,33 +111,33 @@ execute_process() {
 
   #@ Execute or debug
   case "${mode_debug:-}" in
-  1 | on | true)
-    #@ Debug execution output
-    pout --header "EXECUTION OUTPUT"
-    pout --debug "Prepped Prefix:" "${prepped_prefix}"
-    pout --debug "  Prepped Path:" "${prepped_path}"
-    ;;
-  *)
-    #@ Create the temporary resource
-    case "${path_type}" in
-    directory)
-      mkdir -p "${prepped_path}" || {
-        printf 'Failed to create temporary directory\n' >&2
-        exit 2
-      }
+    1 | on | true)
+      #@ Debug execution output
+      pout --header "EXECUTION OUTPUT"
+      pout --debug "Prepped Prefix:" "${prepped_prefix}"
+      pout --debug "  Prepped Path:" "${prepped_path}"
       ;;
-    file | *)
-      #@ Create an empty file with restricted permissions
-      touch "${prepped_path}" || {
-        printf 'Failed to create temporary file\n' >&2
-        exit 2
-      }
-      chmod 600 "${prepped_path}" >/dev/null 2>&1
+    *)
+      #@ Create the temporary resource
+      case "${path_type}" in
+        directory)
+          mkdir -p "${prepped_path}" || {
+            printf 'Failed to create temporary directory\n' >&2
+            exit 2
+          }
+          ;;
+        file | *)
+          #@ Create an empty file with restricted permissions
+          touch "${prepped_path}" || {
+            printf 'Failed to create temporary file\n' >&2
+            exit 2
+          }
+          chmod 600 "${prepped_path}" > /dev/null 2>&1
+          ;;
+      esac
+      #@ Return the generated path
+      pout --trim "${prepped_path}"
       ;;
-    esac
-    #@ Return the generated path
-    pout --trim "${prepped_path}"
-    ;;
   esac
 }
 
@@ -178,60 +178,60 @@ pout() {
 
   #@ Parse arguments
   case "$1" in
-  --line*)
-    if [ "$2" -eq "$2" ] 2>/dev/null; then
-      lines=$2
+    --line*)
+      if [ "$2" -eq "$2" ] 2> /dev/null; then
+        lines=$2
+        shift
+      else
+        lines=1
+      fi
+      ;;
+    --trim | --last*)
       shift
-    else
-      lines=1
-    fi
-    ;;
-  --trim | --last*)
-    shift
-    lines=0
-    msg="$*"
-    ;;
-  --upper)
-    shift
-    msg="$(printf "%s" "$*" | tr '[:lower:]' '[:upper:]')"
-    ;;
-  --lower)
-    shift
-    msg="$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')"
-    ;;
-  --alnum | --clean)
-    shift
-    msg="$(printf "%s" "$*" | tr -c '[:alnum:]_' '_')"
-    ;;
-  --head*)
-    shift
-    tag="\n"
-    msg="===| $* |==="
-    ;;
-  --debug)
-    shift
-    tag="[DEBUG] "
-    msg="$*"
-    ;;
-  --info)
-    shift
-    tag="[INFO] "
-    msg="$*"
-    ;;
-  --warn)
-    shift
-    tag="[WARN] "
-    msg="$*"
-    ;;
-  --error)
-    shift
-    tag="[ERROR] "
-    msg="$*"
-    ;;
-  --usage)
-    msg="$(usage_guide)"
-    ;;
-  *) printf "%s" "$*" ;;
+      lines=0
+      msg="$*"
+      ;;
+    --upper)
+      shift
+      msg="$(printf "%s" "$*" | tr '[:lower:]' '[:upper:]')"
+      ;;
+    --lower)
+      shift
+      msg="$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')"
+      ;;
+    --alnum | --clean)
+      shift
+      msg="$(printf "%s" "$*" | tr -c '[:alnum:]_' '_')"
+      ;;
+    --head*)
+      shift
+      tag="\n"
+      msg="===| $* |==="
+      ;;
+    --debug)
+      shift
+      tag="[DEBUG] "
+      msg="$*"
+      ;;
+    --info)
+      shift
+      tag="[INFO] "
+      msg="$*"
+      ;;
+    --warn)
+      shift
+      tag="[WARN] "
+      msg="$*"
+      ;;
+    --error)
+      shift
+      tag="[ERROR] "
+      msg="$*"
+      ;;
+    --usage)
+      msg="$(usage_guide)"
+      ;;
+    *) printf "%s" "$*" ;;
   esac
 
   #@ Print output
@@ -252,35 +252,35 @@ pout() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help)
-      pout --usage
-      exit 0
-      ;;
-    -d | --dry-run | --debug)
-      mode_debug=true
-      ;;
-    -D | --directory)
-      path_type="directory"
-      ;;
-    -F | --file)
-      path_type="file"
-      ;;
-    -p | --path)
-      path_parent_dir="$2"
-      shift
-      ;;
-    -*)
-      printf 'Unknown option: %s\n' "$1" >&2
-      exit 1
-      ;;
-    *)
-      if [ -z "${path_prefix}" ]; then
-        path_prefix="$1"
-      else
-        printf 'Too many arguments\n' >&2
+      -h | --help)
+        pout --usage
+        exit 0
+        ;;
+      -d | --dry-run | --debug)
+        mode_debug=true
+        ;;
+      -D | --directory)
+        path_type="directory"
+        ;;
+      -F | --file)
+        path_type="file"
+        ;;
+      -p | --path)
+        path_parent_dir="$2"
+        shift
+        ;;
+      -*)
+        printf 'Unknown option: %s\n' "$1" >&2
         exit 1
-      fi
-      ;;
+        ;;
+      *)
+        if [ -z "${path_prefix}" ]; then
+          path_prefix="$1"
+        else
+          printf 'Too many arguments\n' >&2
+          exit 1
+        fi
+        ;;
     esac
     shift
   done
@@ -300,7 +300,7 @@ parse_arguments() {
 }
 
 usage_guide() {
-  cat <<EOF
+  cat << EOF
 ==========================================================
 ${scr_head}: Portable Temporary File/Directory Generator
 ==========================================================
