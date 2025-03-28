@@ -1,15 +1,14 @@
 #!/bin/sh
 main() {
   set_defaults
-
   parse_arguments "$@"
   validate_env
-  # execute_process
+  execute_process
 }
 
 set_defaults() {
   #@ Define modes of operation
-  debug=1
+  debug=0
   strict=1
   set_modes
 

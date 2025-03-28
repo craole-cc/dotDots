@@ -2,13 +2,13 @@
   perSystem =
     {
       config,
-      pkgs,
+      pkgsUnstable,
       ...
     }:
     let
       fmt = {
         config = config.treefmt.build.configFile;
-        packages = with pkgs; [
+        packages = with pkgsUnstable; [
           #TODO: These should not be necessary since the wrapper is actuall a package of the entire treefmt config.
           treefmt
           biome

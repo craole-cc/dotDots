@@ -21,19 +21,14 @@
       treefmt = {
         programs = {
           #| Nix
-          nixfmt = {
+          nixfmt-rfc-style = {
             enable = true;
-            package = pkgsUnstable.nixfmt-rfc-style;
             priority = 2;
           };
           # deadnix = {
           #   enable = true;
           #   priority = 1;
           # };
-          taplo = {
-            enable = true;
-            priority = 1;
-          };
         };
       };
     };

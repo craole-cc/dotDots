@@ -26,7 +26,6 @@
     in
     {
       _module.args = { inherit fmt; };
-      formatter = fmt.wrapper;
       treefmt = {
         programs = {
           #| Documentation & Configuration
@@ -47,10 +46,10 @@
           };
 
           #| Web & Fallback
-          # biome = {
-          #   enable = true;
-          #   priority = 1;
-          # };
+          biome = {
+            enable = true;
+            priority = 1;
+          };
           deno = {
             enable = true;
             priority = 2;

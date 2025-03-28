@@ -21,7 +21,6 @@
     in
     {
       _module.args = { inherit fmt; };
-      formatter = fmt.wrapper;
       treefmt = {
         programs = {
           shellcheck = {
@@ -33,7 +32,7 @@
             priority = 2;
           };
         };
-        settingsformatter = {
+        settings.formatter = {
           # shellcheck = { inherit (sh) includes excludes; };
           shfmt = { inherit (sh) includes excludes; };
         };
