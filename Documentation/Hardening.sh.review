@@ -22,41 +22,40 @@ LOCAL_sh
 }
 
 ## Backup Files
-  {
-    TIMESTAMP="${TIMESTAMP:-"$(date --utc +"%Y%m%dT%H%M%S_%Z")"}"
-    export TIMESTAMP
-    ARCHIVE="${HOME}/.archive"
-    export ARCHIVE
+{
+  TIMESTAMP="${TIMESTAMP:-"$(date --utc +"%Y%m%dT%H%M%S_%Z")"}"
+  export TIMESTAMP
+  ARCHIVE="${HOME}/.archive"
+  export ARCHIVE
 
-    cpx() {
-      cp \
-        --parents \
-        --backup \
-        --suffix="${TIMESTAMP}" \
-        --target-directory="${ARCHIVE}" \
-        --preserve=all \
-        --verbose \
-        "$@"
-    }
-
-    touch testcopy
-    cpx testcopy
-
-    _DATE_=$(date --utc  +"%Y%m%dT%H%M%S_%Z")
-    _FILE_="${HOME}/.bashrc"
-    [ -f "${_FILE_}" ] &&
-      cp "${_FILE_}" "${_ARCHIVE_}"
-
-    _FILE_=/etc/ssh/sshd_config
-    [ -f "${_FILE_}" ] &&
-      cp "${_FILE_}" "${_FILE_}"_"${_DATE_}"
+  cpx() {
+    cp \
+      --parents \
+      --backup \
+      --suffix="${TIMESTAMP}" \
+      --target-directory="${ARCHIVE}" \
+      --preserve=all \
+      --verbose \
+      "$@"
   }
 
+  touch testcopy
+  cpx testcopy
+
+  _DATE_=$(date --utc +"%Y%m%dT%H%M%S_%Z")
+  _FILE_="${HOME}/.bashrc"
+  [ -f "${_FILE_}" ] &&
+    cp "${_FILE_}" "${_ARCHIVE_}"
+
+  _FILE_=/etc/ssh/sshd_config
+  [ -f "${_FILE_}" ] &&
+    cp "${_FILE_}" "${_FILE_}"_"${_DATE_}"
+}
 
 ## Display OS Information
 {
   _FILE_=~/.shell/test.sh
-  cat <<- 'shellscript' | tee --append "${_FILE_}"
+  cat <<-'shellscript' | tee --append "${_FILE_}"
 
   #!/bin/sh
   # |> OS Information <|
@@ -113,40 +112,43 @@ LOCAL_sh
     OS_VERSION \
     OS_ARCH
 shellscript
-bat "${_FILE_}"
-# bash
-# echo "$OS_LABEL"
+  bat "${_FILE_}"
+  # bash
+  # echo "$OS_LABEL"
 }
 
 ## Update Packages & Prompt
-  {
-    # |> Install Updates <|
-      if
-        echo "${OS_NAME} ${OS_VERSION} x${BITS}" | grep -q "Ubuntu" ;then
-        # shellcheck disable=SC2117
-        su -
-        apt update
-        apt -y full-upgrade
-        apt -y autoremove
-      elif
-        echo "${OS_NAME} ${OS_VERSION} x${BITS}" | grep -q "Arch" ;then
-        sudo pacman \
-          --sync \
-          --refresh \
-          --sysupgrade \
-          --noconfirm \
-          --quiet
-      fi
-    # |> Install Packages <|
-      # Starship Prompt
-      sh -c "$(curl -fsSL https://starship.rs/install.sh||true)"
-      sh -c "$(curl https://raw.githubusercontent.com/anhsirk0/fetch-master-6000/master/install.sh||true)" > "${HOME}/.config/fm6000"
-  }
+{
+  # |> Install Updates <|
+  if
+    echo "${OS_NAME} ${OS_VERSION} x${BITS}" | grep -q "Ubuntu"
+  then
+    # shellcheck disable=SC2117
+    su -
+    apt update
+    apt -y full-upgrade
+    apt -y autoremove
+  elif
+    echo "${OS_NAME} ${OS_VERSION} x${BITS}" | grep -q "Arch"
+  then
+    sudo pacman \
+      --sync \
+      --refresh \
+      --sysupgrade \
+      --noconfirm \
+      --quiet
+  fi
+  # |> Install Packages <|
+  # Starship Prompt
+  sh -c "$(curl -fsSL https://starship.rs/install.sh || true)"
+  sh -c "$(curl https://raw.githubusercontent.com/anhsirk0/fetch-master-6000/master/install.sh || true)" >"${HOME}/.config/fm6000"
+}
 
 ## Establish GateKeeper
-  {
-    adduser gatekeeper
-  }
-    Install Dependencies
-    apt install exa
-  }
+{
+  adduser gatekeeper
+}
+{
+  Install Dependencies
+  apt install exa
+}
