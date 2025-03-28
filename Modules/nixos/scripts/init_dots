@@ -9,7 +9,7 @@ initialize_script() {
   SCR_VERSION="0.1"
   SCR_USAGE_BASIC="Usage: $SCR_NAME --source [SOURCE_DIR] --target [TARGET_DIR]"
   SCR_USAGE_GUIDE=$(
-    cat << EOF
+    cat <<EOF
 $SCR_USAGE_BASIC
 
 Options:
@@ -30,48 +30,48 @@ initialize_environment() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h)
-        printf "%s\n" "$SCR_USAGE_BASIC"
-        return 0
-        ;;
-      --help)
-        printf "%s\n" "$SCR_USAGE_GUIDE"
-        return 0
-        ;;
-      --version)
-        printf "%s\n" "$SCR_VERSION"
-        return 0
-        ;;
-      -s | --source)
-        [ -n "$2" ] || {
-          log "$LOG_ERROR" "Missing source directory path"
-          return 1
-        }
-        SOURCE_PATH="$2"
-        shift
-        ;;
-      -t | --target)
-        [ "$2" ] || {
-          log "$LOG_ERROR" "Missing target directory path"
-          return 1
-        }
-        TARGET_PATH="$2"
-        shift
-        ;;
-      -d | --verbose | --debug)
-        VERBOSE=true
-        ;;
-      --dry-run | --simulate)
-        DRY_RUN=true
-        VERBOSE=true
-        ;;
-      -x | --strict)
-        STRICT_MODE=true
-        ;;
-      *)
-        log "$LOG_ERROR" "Unknown option: $1"
+    -h)
+      printf "%s\n" "$SCR_USAGE_BASIC"
+      return 0
+      ;;
+    --help)
+      printf "%s\n" "$SCR_USAGE_GUIDE"
+      return 0
+      ;;
+    --version)
+      printf "%s\n" "$SCR_VERSION"
+      return 0
+      ;;
+    -s | --source)
+      [ -n "$2" ] || {
+        log "$LOG_ERROR" "Missing source directory path"
         return 1
-        ;;
+      }
+      SOURCE_PATH="$2"
+      shift
+      ;;
+    -t | --target)
+      [ "$2" ] || {
+        log "$LOG_ERROR" "Missing target directory path"
+        return 1
+      }
+      TARGET_PATH="$2"
+      shift
+      ;;
+    -d | --verbose | --debug)
+      VERBOSE=true
+      ;;
+    --dry-run | --simulate)
+      DRY_RUN=true
+      VERBOSE=true
+      ;;
+    -x | --strict)
+      STRICT_MODE=true
+      ;;
+    *)
+      log "$LOG_ERROR" "Unknown option: $1"
+      return 1
+      ;;
     esac
     shift
   done
@@ -101,7 +101,7 @@ initialize_utilities() {
   #? Returns 0 if all commands are available, 1 otherwise.
   wehave() {
     for _cmd in "$@"; do
-      command -v "$_cmd" > /dev/null 2>&1
+      command -v "$_cmd" >/dev/null 2>&1
     done
   }
 
@@ -116,97 +116,97 @@ initialize_utilities() {
     unset _validated _type _var
 
     case "$1" in
-      --root-user)
-        [ "$(id -u)" -eq 0 ] || {
-          printf "🔴 This script must be run as root\n"
-          return 1
-        }
-        ;;
-      --arg | --var)
-        [ -n "$(get_var "$2")" ] || {
-          printf "🔴 Missing required argument/variable: %s\n" "$2"
-          return 1
-        }
-        return 0
-        ;;
-      --dir)
-        _type="Directory"
-        _var="$(get_var "$2")"
-        [ -d "$_var" ] && _validated=true
-        ;;
-      --file)
-        _type="File"
-        _var="$(get_var "$2")"
-        [ -f "$_var" ] && _validated=true
-        ;;
-      --diff)
-        _source="$(get_var "$2")"
-        _target="$(get_var "$3")"
+    --root-user)
+      [ "$(id -u)" -eq 0 ] || {
+        printf "🔴 This script must be run as root\n"
+        return 1
+      }
+      ;;
+    --arg | --var)
+      [ -n "$(get_var "$2")" ] || {
+        printf "🔴 Missing required argument/variable: %s\n" "$2"
+        return 1
+      }
+      return 0
+      ;;
+    --dir)
+      _type="Directory"
+      _var="$(get_var "$2")"
+      [ -d "$_var" ] && _validated=true
+      ;;
+    --file)
+      _type="File"
+      _var="$(get_var "$2")"
+      [ -f "$_var" ] && _validated=true
+      ;;
+    --diff)
+      _source="$(get_var "$2")"
+      _target="$(get_var "$3")"
 
-        [ -d "$_source" ] || {
-          log "$LOG_WARN" "Source directory does not exist"
+      [ -d "$_source" ] || {
+        log "$LOG_WARN" "Source directory does not exist"
+        return 1
+      }
+
+      [ "$_target" ] || {
+        log "$LOG_ERROR" "Target directory not defined"
+        return 1
+      }
+
+      [ "$(resolve_path "$_source")" = "$(resolve_path "$_target")" ] && {
+        log "$LOG_ERROR" "Source and target paths cannot be the same"
+        return 1
+      }
+
+      return 0
+      ;;
+    --link)
+      _type="Symbolic link"
+      _var="$(get_var "$2")"
+      _target="$(get_var "$3")"
+      _resolved="$(resolve_path "$_var")"
+
+      [ -L "$_var" ] && [ -n "$_resolved" ] && {
+        if [ "$_resolved" = "$_target" ]; then
+          _validated=true
+        elif diff_dir "$_var" "$_target"; then
+          _validated=true
+        else
+          log "$LOG_ERROR" "Symbolic link does not point to target path"
           return 1
-        }
-
-        [ "$_target" ] || {
-          log "$LOG_ERROR" "Target directory not defined"
-          return 1
-        }
-
-        [ "$(resolve_path "$_source")" = "$(resolve_path "$_target")" ] && {
-          log "$LOG_ERROR" "Source and target paths cannot be the same"
-          return 1
-        }
-
-        return 0
-        ;;
-      --link)
-        _type="Symbolic link"
-        _var="$(get_var "$2")"
-        _target="$(get_var "$3")"
-        _resolved="$(resolve_path "$_var")"
-
-        [ -L "$_var" ] && [ -n "$_resolved" ] && {
-          if [ "$_resolved" = "$_target" ]; then
-            _validated=true
-          elif diff_dir "$_var" "$_target"; then
-            _validated=true
-          else
-            log "$LOG_ERROR" "Symbolic link does not point to target path"
-            return 1
-          fi
-        }
-        ;;
+        fi
+      }
+      ;;
     esac
 
     case "$_type" in
-      "Directory" | "File")
+    "Directory" | "File")
 
-        #@ Check path lengths
-        [ "${#_var}" -gt 4096 ] && {
-          log "$LOG_ERROR" "Path exceeds maximum length: $_var"
-          return 1
-        }
+      #@ Check path lengths
+      [ "${#_var}" -gt 4096 ] && {
+        log "$LOG_ERROR" "Path exceeds maximum length: $_var"
+        return 1
+      }
 
-        #@ Prevent relative path traversal
-        case "$_var" in
-          */../* | ../* | */.. | \.\.)
-            log "$LOG_ERROR" "Path contains invalid parent directory references: $_var"
-            return 1
-            ;;
-        esac
-
-        #@ Prevent traversal of root directory
-        [ "$_var" = "/" ] && {
-          log "$LOG_ERROR" "Root directory cannot be used as source"
-          return 1
-        }
+      #@ Prevent relative path traversal
+      case "$_var" in
+      */../* | ../* | */.. | \.\.)
+        log "$LOG_ERROR" "Path contains invalid parent directory references: $_var"
+        return 1
         ;;
+      esac
+
+      #@ Prevent traversal of root directory
+      [ "$_var" = "/" ] && {
+        log "$LOG_ERROR" "Root directory cannot be used as source"
+        return 1
+      }
+      ;;
     esac
 
     if [ "$_validated" ]; then
-      [ "$VERBOSE" ] \
-        && log "$LOG_INFO" "$_type validated: $(fs_info "$_var")"
+      [ "$VERBOSE" ] &&
+        log "$LOG_INFO" "$_type validated: $(fs_info "$_var")"
       return 0
     else
       log "$LOG_ERROR" "$_type does not exist: $_var"
@@ -273,9 +273,9 @@ initialize_utilities() {
 
     #@ Treat value as variable ref if starts with $ or is a valid name
     case "$value" in
-      '$'*) value="${value#$}" ;;            #? Strip leading $
-      [a-zA-Z_]*[a-zA-Z0-9_]*) ;;            #? Valid variable name
-      *) printf '%s' "$value" && return 0 ;; #? Direct value
+    '$'*) value="${value#$}" ;;            #? Strip leading $
+    [a-zA-Z_]*[a-zA-Z0-9_]*) ;;            #? Valid variable name
+    *) printf '%s' "$value" && return 0 ;; #? Direct value
     esac
 
     #@ Get the variable value
@@ -327,9 +327,9 @@ initialize_utilities() {
     _dir1="$1"
     _dir2="$2"
 
-    if diff --recursive --brief "$_dir1" "$_dir2" > /dev/null; then
-      [ "$VERBOSE" ] \
-        && log "$LOG_INFO" "Contents of '$_dir1' and '$_dir2' match"
+    if diff --recursive --brief "$_dir1" "$_dir2" >/dev/null; then
+      [ "$VERBOSE" ] &&
+        log "$LOG_INFO" "Contents of '$_dir1' and '$_dir2' match"
       return 0
     else
       log "$LOG_WARN" "Contents of '$_dir1' and '$_dir2' differ"
@@ -432,10 +432,10 @@ initialize_utilities() {
     unset _source _target _backup
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        --source) _source=$2 ;;
-        --target) _target=$2 ;;
-        --backup) _backup=$2 ;;
-        *) break ;;
+      --source) _source=$2 ;;
+      --target) _target=$2 ;;
+      --backup) _backup=$2 ;;
+      *) break ;;
       esac
       shift
     done
@@ -568,18 +568,18 @@ initialize_utilities() {
       read -r _choice
 
       case "$_choice" in
-        [Yy]*)
-          log "$LOG_INFO" "Overwriting $_path"
-          rm -rf "$_path"
-          return 0
-          ;;
-        [Nn]*)
-          log "$LOG_WARN" "Skipping $_path"
-          return 1
-          ;;
-        *)
-          log "$LOG_WARN" "Invalid choice. Please enter 'Y' or 'N'"
-          ;;
+      [Yy]*)
+        log "$LOG_INFO" "Overwriting $_path"
+        rm -rf "$_path"
+        return 0
+        ;;
+      [Nn]*)
+        log "$LOG_WARN" "Skipping $_path"
+        return 1
+        ;;
+      *)
+        log "$LOG_WARN" "Invalid choice. Please enter 'Y' or 'N'"
+        ;;
       esac
     done
   }
@@ -588,7 +588,7 @@ initialize_utilities() {
 execute_process() {
   for _user in $(get_users_per_group "wheel"); do
     case "$_user" in
-      "root") continue ;;
+    "root") continue ;;
     esac
 
     _link_path="/home/$_user/.dots"

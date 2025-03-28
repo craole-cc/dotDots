@@ -45,7 +45,7 @@
               "Assets/**"
               "*.bat"
               "*.cmd"
-
+              "*.ps1"
               # "*.ascii"
               # "*.webp"
               # "*.png"
