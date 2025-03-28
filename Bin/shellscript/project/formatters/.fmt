@@ -1,9 +1,9 @@
 #!/bin/sh
 
-wehave_fd="$(command -v fd 2>/dev/null)"
-wehave_treefmt="$(command -v treefmt 2>/dev/null)"
-wehave_taplo="$(command -v taplo 2>/dev/null)"
-wehave_fmt_editorconfig="$(command -v fmt_editorconfig 2>/dev/null)"
+wehave_fd="$(command -v fd 2> /dev/null)"
+wehave_treefmt="$(command -v treefmt 2> /dev/null)"
+wehave_taplo="$(command -v taplo 2> /dev/null)"
+wehave_fmt_editorconfig="$(command -v fmt_editorconfig 2> /dev/null)"
 
 use_treefmt() {
   [ -n "$wehave_treefmt" ] || return

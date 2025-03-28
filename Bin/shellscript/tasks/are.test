@@ -19,11 +19,11 @@ looper() {
     set +o noglob
     unset IFS
     case "$1" in
-    -*) ;;
-    *) # restore globbing and field splitting at all whitespace
-      args="$(are --save "$args" "$1")"
-      echo "$counter: $1"
-      ;;
+      -*) ;;
+      *) # restore globbing and field splitting at all whitespace
+        args="$(are --save "$args" "$1")"
+        echo "$counter: $1"
+        ;;
     esac
     shift
   done

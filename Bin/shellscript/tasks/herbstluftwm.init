@@ -18,14 +18,14 @@ hc() { herbstclient "$@"; }
 #@ Initialize modules
 for module in "${_MODS}"/*; do
   case "$(basename "$module")" in
-  panel*) #| Panels for each monitor
-    for monitor in $(hc list_monitors | cut -d: -f1); do
-      "$panel" "$monitor" &
-    done
-    ;;
-  *) #| Other modules
-    . "$module"
-    ;;
+    panel*) #| Panels for each monitor
+      for monitor in $(hc list_monitors | cut -d: -f1); do
+        "$panel" "$monitor" &
+      done
+      ;;
+    *) #| Other modules
+      . "$module"
+      ;;
   esac
 done
 

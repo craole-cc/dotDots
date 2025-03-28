@@ -6,5 +6,5 @@ PATH_add \
   /store/DOTS/Test/bin/1 \
   --append /store/DOTS/Test/bin/2 \
   /store/DOTS/Test/bin/3 \
-  -a /store/DOTS/Test/bin/4 &&
-  PATH_ls
+  -a /store/DOTS/Test/bin/4 \
+  && PATH_ls

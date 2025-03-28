@@ -1,11 +1,11 @@
 #!/bin/sh
 
-: <<'DOCUMENTATION'
+: << 'DOCUMENTATION'
   Initialization of a new remote server. Brackets are used to allow inserting blocks of code to the terminal.
 DOCUMENTATION
 
 ## Access Host from Local Machine
-: <<'LOCAL_sh'
+: << 'LOCAL_sh'
   {
     # |> Establish variables <|
     _USER_="root"
@@ -44,18 +44,18 @@ LOCAL_sh
 
   _DATE_=$(date --utc +"%Y%m%dT%H%M%S_%Z")
   _FILE_="${HOME}/.bashrc"
-  [ -f "${_FILE_}" ] &&
-    cp "${_FILE_}" "${_ARCHIVE_}"
+  [ -f "${_FILE_}" ] \
+    && cp "${_FILE_}" "${_ARCHIVE_}"
 
   _FILE_=/etc/ssh/sshd_config
-  [ -f "${_FILE_}" ] &&
-    cp "${_FILE_}" "${_FILE_}"_"${_DATE_}"
+  [ -f "${_FILE_}" ] \
+    && cp "${_FILE_}" "${_FILE_}"_"${_DATE_}"
 }
 
 ## Display OS Information
 {
   _FILE_=~/.shell/test.sh
-  cat <<-'shellscript' | tee --append "${_FILE_}"
+  cat <<- 'shellscript' | tee --append "${_FILE_}"
 
   #!/bin/sh
   # |> OS Information <|
@@ -141,7 +141,7 @@ shellscript
   # |> Install Packages <|
   # Starship Prompt
   sh -c "$(curl -fsSL https://starship.rs/install.sh || true)"
-  sh -c "$(curl https://raw.githubusercontent.com/anhsirk0/fetch-master-6000/master/install.sh || true)" >"${HOME}/.config/fm6000"
+  sh -c "$(curl https://raw.githubusercontent.com/anhsirk0/fetch-master-6000/master/install.sh || true)" > "${HOME}/.config/fm6000"
 }
 
 ## Establish GateKeeper

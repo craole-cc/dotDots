@@ -4,7 +4,7 @@ scr_VERSION="1.0"
 scr_DESCRIPTION="Verifies that a command is installed/available."
 scr_DEPENDENCIES="unalias, command, printf, getoptions"
 scr_USAGE="$(
-  cat <<USAGE_GUIDE
+  cat << USAGE_GUIDE
     ::----------------------------------------------------::
                         USAGE: $scr_NAME
         $scr_DESCRIPTION
@@ -36,21 +36,21 @@ parse_arguments() { #@ Declare user options (One flag per command)
 
   while [ "$#" -ge 1 ]; do
     case $1 in
-    -h | --help) punctuate_exit "$scr_USAGE" ;;
-    -v | --version) punctuate_exit "$scr_VERSION" ;;
-    -q | --quiet | -c | --check) unset verbosity ;;
-    -d | --verbose) verbosity=true ;;
-    -V | --ver3n) report="version" ;;
-    -l | --location | -p | --path) report="location" ;;
-    -r | --report) report="$2" ;;
-    *) commands="$(are --save "$commands" "$1")" ;;
+      -h | --help) punctuate_exit "$scr_USAGE" ;;
+      -v | --version) punctuate_exit "$scr_VERSION" ;;
+      -q | --quiet | -c | --check) unset verbosity ;;
+      -d | --verbose) verbosity=true ;;
+      -V | --ver3n) report="version" ;;
+      -l | --location | -p | --path) report="location" ;;
+      -r | --report) report="$2" ;;
+      *) commands="$(are --save "$commands" "$1")" ;;
     esac
     shift
   done
 }
 
 probe_for_binary() { #@ Check if the command is installed
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 parse_type_info() { #@ Return the type of command
@@ -60,48 +60,48 @@ parse_type_info() { #@ Return the type of command
 
 parse_version_info() { #@ Return the version of the command
   case "$("$1" --version)" in
-  *nvim*)
-    "$1" --version |
-      awk '/NVIM/ {
+    *nvim*)
+      "$1" --version \
+        | awk '/NVIM/ {
             gsub(/v/, "");
             print $2
         }'
-    ;;
-  *vim*)
-    "$1" --version |
-      awk '/VIM/ {
+      ;;
+    *vim*)
+      "$1" --version \
+        | awk '/VIM/ {
             gsub(/v/, "");
             print $2
         }'
-    ;;
-  *exa*) #| exa
-    "$1" --version |
-      awk '/v/ {
+      ;;
+    *exa*) #| exa
+      "$1" --version \
+        | awk '/v/ {
             gsub(/v/, "");
             print $1
         }'
-    ;;
-  *rust*) #| rustc
-    "$1" --version |
-      cut -d' ' -f2-
-    ;;
-  *version*) #| Version
-    "$1" --version |
-      awk '{for(i=1;i<=NF;i++){
+      ;;
+    *rust*) #| rustc
+      "$1" --version \
+        | cut -d' ' -f2-
+      ;;
+    *version*) #| Version
+      "$1" --version \
+        | awk '{for(i=1;i<=NF;i++){
                 if($i ~ /^version/ )
                 print $(i+1)
             }}'
-    ;;
-  *"("*) #| Bracket
-    "$1" --version |
-      awk '{for(i=1;i<=NF;i++){
+      ;;
+    *"("*) #| Bracket
+      "$1" --version \
+        | awk '{for(i=1;i<=NF;i++){
                 if($i ~ /^\(/ )
                 print $(i-1)
             }}'
-    ;;
-  *) #| Plain
-    "$1" --version | awk '{print $NF}'
-    ;;
+      ;;
+    *) #| Plain
+      "$1" --version | awk '{print $NF}'
+      ;;
   esac
 }
 
@@ -134,8 +134,8 @@ process_core() {
     fi
 
     #@ Display information about the command
-    [ "$msg" ] &&
-      if [ "$icon" ]; then
+    [ "$msg" ] \
+      && if [ "$icon" ]; then
         present_info "$icon $msg"
       else
         present_info "$msg"
@@ -154,20 +154,20 @@ present_info() {
 
 punctuate_exit() {
   case "$1" in
-  --err*)
-    failure=true
-    case "$1" in
-    *exit)
-      shift
-      present_info "Error: $*"
+    --err*)
+      failure=true
+      case "$1" in
+        *exit)
+          shift
+          present_info "Error: $*"
+          purge_leftovers
+          ;;
+      esac
+      ;;
+    *)
+      present_info "$*"
       purge_leftovers
       ;;
-    esac
-    ;;
-  *)
-    present_info "$*"
-    purge_leftovers
-    ;;
   esac
 }
 

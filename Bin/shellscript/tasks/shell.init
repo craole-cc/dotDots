@@ -11,7 +11,7 @@ establish_environment() {
 
   #@ Verbosity
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
-  [1-9] | true) verbose_flag=true ;; esac
+    [1-9] | true) verbose_flag=true ;; esac
 
   parse_arguments() {
     SHELL_INTERACTIVE="$(
@@ -19,30 +19,30 @@ establish_environment() {
     )"
 
     case "$SHELL_INTERACTIVE" in
-    *z*) SHELL_INTERACTIVE="zsh" ;;
-    *f*) SHELL_INTERACTIVE="fish" ;;
-    *n*) SHELL_INTERACTIVE="nu" ;;
-    *p*) SHELL_INTERACTIVE="powershell" ;;
-    *k*) SHELL_INTERACTIVE="ksh" ;;
-    *t*) SHELL_INTERACTIVE="tcsh" ;;
-    *b* | *s* | *d*) SHELL_INTERACTIVE="bash" ;;
-    *)
-      SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"$default_shell"}"
-      ;;
+      *z*) SHELL_INTERACTIVE="zsh" ;;
+      *f*) SHELL_INTERACTIVE="fish" ;;
+      *n*) SHELL_INTERACTIVE="nu" ;;
+      *p*) SHELL_INTERACTIVE="powershell" ;;
+      *k*) SHELL_INTERACTIVE="ksh" ;;
+      *t*) SHELL_INTERACTIVE="tcsh" ;;
+      *b* | *s* | *d*) SHELL_INTERACTIVE="bash" ;;
+      *)
+        SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"$default_shell"}"
+        ;;
     esac
   } && parse_arguments "$@"
 
   case "$SHELL_INTERACTIVE" in
-  nu)
-    install_script_available=true
-    ;;
+    nu)
+      install_script_available=true
+      ;;
   esac
 
 }
 
 establish_utilities() {
   weHave() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" > /dev/null 2>&1
   }
 
   install_starship() {
@@ -102,8 +102,8 @@ initialize_shell() {
   }
 
   #@ Load Environment Variables, if available
-  [ -f "$DOTS_ENV_CTX/$SHELL_INTERACTIVE" ] &&
-    . "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+  [ -f "$DOTS_ENV_CTX/$SHELL_INTERACTIVE" ] \
+    && . "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
 }
 
 launch_shell() {
@@ -121,25 +121,25 @@ launch_shell() {
 
 execute() {
   case "$SHELL_INTERACTIVE" in
-  bash)
-    # bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
-    rc="$HOME/.bashrc"
-    [ -f "$rc" ] || touch "$rc"
-    grep --quiet --fixed-strings \
-      ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" "$rc" ||
-      printf "%s\n" ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" >>"$rc"
-    ;;
-  nu | fish | zsh | ksh | pwsh | powershell | tcsh) ;;
-  *)
-    printf "%s\n" "Unknown shell: $SHELL_INTERACTIVE"
-    exit 1
-    ;;
+    bash)
+      # bash --init-file "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
+      rc="$HOME/.bashrc"
+      [ -f "$rc" ] || touch "$rc"
+      grep --quiet --fixed-strings \
+        ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" "$rc" \
+        || printf "%s\n" ". $DOTS_ENV_CTX/$SHELL_INTERACTIVE" >> "$rc"
+      ;;
+    nu | fish | zsh | ksh | pwsh | powershell | tcsh) ;;
+    *)
+      printf "%s\n" "Unknown shell: $SHELL_INTERACTIVE"
+      exit 1
+      ;;
   esac
 
   #@ Launch the shell
   launch_shell "$SHELL_INTERACTIVE" || return 1
-  [ "$verbose" = true ] &&
-    printf "Launched %s\n" "$SHELL_INTERACTIVE"
+  [ "$verbose" = true ] \
+    && printf "Launched %s\n" "$SHELL_INTERACTIVE"
 }
 
 main() {

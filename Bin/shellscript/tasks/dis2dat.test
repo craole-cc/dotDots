@@ -5,14 +5,14 @@ scr_NAME="$(basename "$scr_PATH")"
 scr_VERSION="1.0"
 scr_TEST="${scr_DIR}/${scr_NAME}.txt"
 
-: <<'DOCUMENTATION'
+: << 'DOCUMENTATION'
   This test script tests various scenarios such as replacing the first or all occurrences of a pattern, replacing a pattern at the beginning or end of a line, replacing a pattern in all lines or a specific line, etc. It also sets up a test file `dis2dat.txt` with some sample text to run the tests on.
 DOCUMENTATION
 
 cleanup() { [ -f "$1" ] && rm "$1"; }
 
 init_scr_TEST() { #@ Set up test file
-  cat >"$scr_TEST" <<EOF
+  cat > "$scr_TEST" << EOF
 This is a test file
 that contains some text.
 It has multiple lines,
