@@ -38,7 +38,7 @@
       treefmt = {
         programs = {
           shellcheck = {
-            # enable = true;
+            enable = true;
             priority = 1;
           };
           shfmt = {
@@ -47,12 +47,12 @@
           };
         };
         settings.formatter = {
-          # shellcheck = { inherit includes excludes; };
+          shellcheck = { inherit includes excludes; };
           shfmt = {
             inherit includes excludes;
-            # indent_size = 4;
+            # indent_size = 4; #TODO: this doesn't seem to workFf
             options = [
-              "--apply-ignore"
+              "--apply-ignore" #TODO: this doesn't seem to workFf
               "--binary-next-line"
               "--space-redirects"
               "--case-indent"
