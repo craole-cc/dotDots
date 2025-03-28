@@ -1,38 +1,30 @@
 {
   perSystem =
-    { pkgs, ... }:
     let
-      fmt = {
-        packages = with pkgs; [
-          shellcheck
-          shfmt
-        ];
-      };
-      sh = {
-        includes = [
-          "**/sh/**"
-          "**/shellscript/**"
-          "Modules/global/**"
-          "Modules/nixos/configurations/hosts/QBX/bin/**"
-          "**/bash/**"
-          ".dotsrc"
-          "*.shellcheckrc"
-          "*.gitignore"
-        ];
-        excludes = [
-          "*.nix"
-          "*.md"
-          "*.json"
-          "*.yml"
-          "*.yaml"
-          "*.toml"
-          "*.py"
-          "*.rs"
-        ];
-      };
+
+      includes = [
+        "**/sh/**"
+        "**/shellscript/**"
+        "Modules/global/**"
+        "Modules/nixos/configurations/hosts/QBX/bin/**"
+        "**/bash/**"
+        ".dotsrc"
+        "*.shellcheckrc"
+        "*.gitignore"
+        "*.sh.*"
+      ];
+      excludes = [
+        "*.nix"
+        "*.md"
+        "*.json"
+        "*.yml"
+        "*.yaml"
+        "*.toml"
+        "*.py"
+        "*.rs"
+      ];
     in
     {
-      _module.args = { inherit fmt; };
       treefmt = {
         programs = {
           shellcheck = {
@@ -45,8 +37,8 @@
           };
         };
         settings.formatter = {
-          # shellcheck = { inherit (sh) includes excludes; };
-          shfmt = { inherit (sh) includes excludes; };
+          # shellcheck = { inherit includes excludes; };
+          shfmt = { inherit includes excludes; };
         };
       };
     };
