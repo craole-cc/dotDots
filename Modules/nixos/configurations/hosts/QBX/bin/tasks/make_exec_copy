@@ -4,7 +4,7 @@ scr_name="make_exec"
 scr_version="1.0.0"
 
 main() {
-  set_defaults
+      set_defaults
 
   echo "Verbosity: ${verbosity:-0}"
 
@@ -523,6 +523,7 @@ pout() {
       shift
     done
   }
+
   pout__help() {
     #@ Reset variables
     unset tag print_usage
@@ -611,7 +612,7 @@ pout() {
       printf '%s\n' "$usage"
       printf '%s\n' "$help"
     fi
-        }
+  }
 
   pout__blank() {
     #DOC Prints blank lines to separate output messages.
