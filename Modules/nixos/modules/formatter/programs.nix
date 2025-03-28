@@ -28,7 +28,6 @@
       _module.args = { inherit fmt; };
       treefmt = {
         programs = {
-          #| Documentation & Configuration
           actionlint = {
             enable = true;
           };
@@ -44,8 +43,6 @@
             enable = true;
             priority = 1;
           };
-
-          #| Web & Fallback
           # biome = {
           #   enable = true;
           #   priority = 1;
@@ -57,6 +54,9 @@
           prettier = {
             enable = true;
             priority = 2;
+          };
+          nufmt = {
+            enable = true;
           };
         };
       };
