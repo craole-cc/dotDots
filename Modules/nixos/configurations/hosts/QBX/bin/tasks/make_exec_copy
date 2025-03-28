@@ -4,7 +4,7 @@ scr_name="make_exec"
 scr_version="1.0.0"
 
 main() {
-      set_defaults
+  set_defaults
 
   echo "Verbosity: ${verbosity:-0}"
 
