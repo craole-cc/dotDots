@@ -30,6 +30,8 @@
         "*.cpp"
         "*.bat"
         "*.ps1"
+        "LICENSE"
+        ".editorconfig" #TODO: We should be able to format this with ini
       ];
     in
     {
