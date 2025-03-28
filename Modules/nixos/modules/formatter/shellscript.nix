@@ -48,7 +48,11 @@
         };
         settings.formatter = {
           # shellcheck = { inherit includes excludes; };
-          shfmt = { inherit includes excludes; };
+          shfmt = {
+            inherit includes excludes;
+            # indent_size = 2;
+            options = "--indent 2";
+          };
         };
       };
     };
