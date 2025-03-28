@@ -1,11 +1,12 @@
 #!/bin/sh
+# shellcheck disable=all
 scr_name="make_exec"
 scr_version="1.0.0"
 
 main() {
   set_defaults
 
-  echo "Verbosity: $verbosity"
+  echo "Verbosity: ${verbosity:-0}"
 
   # set_defaults
   # initialize_script "$@" || return 1
@@ -30,7 +31,7 @@ set_defaults() {
 
   #| User
   user="$(detect_user)"
-  group="$(detect_group "$user")"
+  group="$(detect_group "${user}")"
 
   #| Target
   default_target="$(pwd)"
@@ -415,21 +416,20 @@ detect_group() {
 }
 
 pout() {
-  #@ Set default values for log parameters
-  output_code=1
-  log_color="$fmt_normal"
-  log_title=""
-  msg=""
-  usage_msg=""
-  sep_lead=" >>> "
-  sep_last=" <<< "
-  tag="$scr_name"
-  blank_line=0
+  pout__set_defaults() {
+    #@ Set default values for log parameters
+    output_code=1
+    log_color="$fmt_normal"
+    log_title=""
+    msg=""
+    usage_msg=""
+    sep_lead=" >>> "
+    sep_last=" <<< "
+    tag="$scr_name"
+    blank_line=0
+  }
 
-  #@ Return early if verbosity is 0/quiet
-  [ "${verbosity:-0}" -gt 0 ] || return
-
-#@ Parse 
+  pout__parse_arguments() {
     while [ $# -gt 0 ]; do
       case "$1" in
       --set-level | -level | -*verb*)
@@ -523,7 +523,6 @@ pout() {
       shift
     done
   }
-
   pout__help() {
     #@ Reset variables
     unset tag print_usage
@@ -634,7 +633,6 @@ pout() {
   }
 
   pout__print() {
-
     if [ "$msg" ]; then
       [ "$usage_msg" ] &&
         msg="$(printf "%s\n%s" "$msg" "$usage_msg")"
@@ -659,8 +657,10 @@ pout() {
     else
       printf "%s" "$msg"
     fi
-
   }
+
+  #@ Return early if verbosity is 0/quiet
+  [ "${verbosity:-0}" -gt 0 ] || return
 
   #@ Initialize the options
   pout__set_defaults || return
@@ -668,7 +668,7 @@ pout() {
 
   #@ Print the message
   pout__print
-  pout__blank "$blank_line"
+  pout__blank "${blank_line}"
 }
 
 get_absolute_path() {
