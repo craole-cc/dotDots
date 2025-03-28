@@ -52,7 +52,7 @@
             inherit includes excludes;
             # indent_size = 4; #TODO: this doesn't seem to workFf
             options = [
-              "--apply-ignore" #TODO: this doesn't seem to workFf
+              "--apply-ignore" # TODO: this doesn't seem to workFf
               "--binary-next-line"
               "--space-redirects"
               "--case-indent"

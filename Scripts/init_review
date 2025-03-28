@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2034,SC2154,SC2164,SC2181,SC2213,SC2230,SC2291,SC2317,SC2320,SC2039
+# shellcheck disable=all
 
 main() {
   set_defaults
