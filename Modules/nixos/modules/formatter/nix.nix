@@ -24,7 +24,7 @@
           #| Nix
           nixfmt = {
             enable = true;
-            pkgs = nixfmtRfcStyle;
+            package = nixfmtRfcStyle;
             priority = 2;
           };
           # deadnix = {
