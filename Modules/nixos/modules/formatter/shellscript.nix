@@ -6,6 +6,7 @@
         "**/sh/**"
         "**/shellscript/**"
         "**/Scripts/**"
+        "Scripts/**"
         "**/scripts/**"
         "Modules/global/**"
         "Modules/nixos/configurations/hosts/QBX/bin/**"
