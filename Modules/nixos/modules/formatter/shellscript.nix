@@ -50,9 +50,9 @@
           # shellcheck = { inherit includes excludes; };
           shfmt = {
             inherit includes excludes;
-            indent_size = 8;
+            # indent_size = 8;
             options = [
-              "--apply-ignore"
+              # "--apply-ignore"
               "--binary-next-line"
               "--space-redirects"
               "--case-indent"
