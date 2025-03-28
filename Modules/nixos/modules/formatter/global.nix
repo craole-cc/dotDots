@@ -40,6 +40,16 @@
               "Configuration/**" # TODO: This is temporary
               "Environment/**" # TODO: This is temporary
               "**/.config/**"
+              "Assets/**"
+              # "*.ascii"
+              # "*.webp"
+              # "*.png"
+              # "*.jpg"
+              # "*.jpeg"
+              # "*.gif"
+              # "*.svg"
+              # "*.ico"
+
             ];
           };
         };
