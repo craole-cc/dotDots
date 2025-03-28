@@ -12,10 +12,19 @@
         includes = [
           "**/sh/**"
           # "**/shellscript/**"
+          "Modules/global/**"
+          "Modules/nixos/configurations/hosts/QBX/bin/**"
           "**/bash/**"
         ];
         excludes = [
           "*.nix"
+          "*.md"
+          "*.json"
+          "*.yml"
+          "*.yaml"
+          "*.toml"
+          "*.py"
+          "*.rs"
         ];
       };
     in

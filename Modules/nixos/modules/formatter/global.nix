@@ -37,6 +37,9 @@
               "**/target/**"
               "**/review/**"
               "**/temp/**"
+              "Configuration/**" # TODO: This is temporary
+              "Environment/**" # TODO: This is temporary
+              "**/.config/**"
             ];
           };
         };
