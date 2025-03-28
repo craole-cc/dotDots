@@ -41,6 +41,9 @@
               "Environment/**" # TODO: This is temporary
               "**/.config/**"
               "Assets/**"
+              "*.bat"
+              "*.cmd"
+
               # "*.ascii"
               # "*.webp"
               # "*.png"
