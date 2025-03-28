@@ -35,56 +35,56 @@ initialize_variables() {
   #@ Parse arguments
   while [ $# -gt 0 ]; do
     case "$1" in
-      --location | --coordinates)
-        if [ -n "$2" ]; then
-          location="$2"
-          shift
-        else
-          printf "Error: --location requires a value.\n" >&2
-          usage
-          return 1
-        fi
-        ;;
-      --latitude)
-        if [ -n "$2" ]; then
-          latitude="$2"
-          shift 2
-        else
-          printf "Error: --latitude requires a value.\n" >&2
-          usage
-          return 1
-        fi
-        ;;
-      --longitude)
-        if [ -n "$2" ]; then
-          longitude="$2"
-          shift
-        else
-          printf "Error: --longitude requires a value.\n" >&2
-          usage
-          return 1
-        fi
-        ;;
-      -V | --verbose)
-        verbose=true
-        # debug=true
-        ;;
-      -d | --debug)
-        debug=true
-        ;;
-      -x | --test)
-        test=true
-        ;;
-      --show-gps)
-        show_gps=true
-        ;;
-      *)
-        if [ "$location" ]; then
-          location="${location} $1"
-        else
-          location="$1"
-        fi
-        ;;
+    --location | --coordinates)
+      if [ -n "$2" ]; then
+        location="$2"
+        shift
+      else
+        printf "Error: --location requires a value.\n" >&2
+        usage
+        return 1
+      fi
+      ;;
+    --latitude)
+      if [ -n "$2" ]; then
+        latitude="$2"
+        shift 2
+      else
+        printf "Error: --latitude requires a value.\n" >&2
+        usage
+        return 1
+      fi
+      ;;
+    --longitude)
+      if [ -n "$2" ]; then
+        longitude="$2"
+        shift
+      else
+        printf "Error: --longitude requires a value.\n" >&2
+        usage
+        return 1
+      fi
+      ;;
+    -V | --verbose)
+      verbose=true
+      # debug=true
+      ;;
+    -d | --debug)
+      debug=true
+      ;;
+    -x | --test)
+      test=true
+      ;;
+    --show-gps)
+      show_gps=true
+      ;;
+    *)
+      if [ "$location" ]; then
+        location="${location} $1"
+      else
+        location="$1"
+      fi
+      ;;
     esac
     shift
   done
@@ -123,12 +123,10 @@ initialize_utilities() {
     #DOC
     #DOC Example:
     #DOC   cleanup_location "Mandeville , Jamaica" => "Mandeville,Jamaica"
-    printf "%s" "$1" \
-      | tr -s ' ' '+' \
-      |
+    printf "%s" "$1" |
+      tr -s ' ' '+' |
       #? Convert spaces to plus
-      sed 's/,+/,/g' \
-      |
+      sed 's/,+/,/g' |
       #? Convert comma plus combination to a single comma
       sed 's/+,/,/g' #? Convert plus comma combination to a single comma
   }
@@ -180,10 +178,10 @@ initialize_utilities() {
 
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        -h) show_usage ;;
-        --help) show_help ;;
-        --detailed) detailed=true ;;
-        *) _location="$1" ;;
+      -h) show_usage ;;
+      --help) show_help ;;
+      --detailed) detailed=true ;;
+      *) _location="$1" ;;
       esac
       shift
     done
@@ -262,20 +260,20 @@ Location: Warszawa, mazowieckie, RP [52.2318,21.0058]'
     #@ Parse the data into variables
     while IFS='=' read -r key value; do
       case "$key" in
-        condition_icon) condition_icon="$value" ;;
-        condition_name) condition_name="$value" ;;
-        condition_symbol) condition_symbol="$value" ;;
-        temperature_actual) temperature_actual="$value" ;;
-        temperature_feel) temperature_feel="$value" ;;
-        wind) wind="$value" ;;
-        humidity) humidity="$value" ;;
-        moon_phase) moon_phase="$value" ;;
-        moon_day) moon_day="$value" ;;
-        precipitation) precipitation="$value" ;;
-        pressure) pressure="$value" ;;
-        uv_index) uv_index="$value" ;;
+      condition_icon) condition_icon="$value" ;;
+      condition_name) condition_name="$value" ;;
+      condition_symbol) condition_symbol="$value" ;;
+      temperature_actual) temperature_actual="$value" ;;
+      temperature_feel) temperature_feel="$value" ;;
+      wind) wind="$value" ;;
+      humidity) humidity="$value" ;;
+      moon_phase) moon_phase="$value" ;;
+      moon_day) moon_day="$value" ;;
+      precipitation) precipitation="$value" ;;
+      pressure) pressure="$value" ;;
+      uv_index) uv_index="$value" ;;
       esac
-    done << EOF
+    done <<EOF
 $(printf '%s' "$_response_simple" | tr ' ' '\n')
 EOF
 
@@ -326,8 +324,8 @@ EOF
     # info="$(curl -s "$url_formatted")"
     return
     case "$verbose" in
-      '' | 0) curl -s "$url_formatted" ;;
-      *) curl -s "https://wttr.in/${1}" ;;
+    '' | 0) curl -s "$url_formatted" ;;
+    *) curl -s "https://wttr.in/${1}" ;;
     esac
 
     #TODO: Handle response errors
@@ -354,8 +352,8 @@ EOF
     _location=$(cleanup_location "$1")
 
     #@ Skip if coordinates are already provided
-    printf "%s" "$_location" \
-      | grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$' && {
+    printf "%s" "$_location" |
+      grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$' && {
       printf "%s" "$_location"
       return 0
     }
@@ -376,15 +374,15 @@ EOF
     }
 
     #@ Extract coordinates, latitude and longitude
-    if command -v jq > /dev/null 2>&1; then
+    if command -v jq >/dev/null 2>&1; then
       _coordinates=$(printf "%s" "$_response" | jq -r '.features[].geometry.coordinates')
       _longitude=$(printf "%s" "$_coordinates" | jq -r '.[0]')
       _latitude=$(printf "%s" "$_coordinates" | jq -r '.[1]')
     else
       #@ Extract coordinates using grep and sed in a POSIX-friendly way
       _coordinates="$(
-        printf '%s' "$_response" \
-          | sed -n 's/.*"coordinates":\s*\[\s*\([^,]*\)\s*,\s*\([^]]*\)\s*\].*/\1,\2/p'
+        printf '%s' "$_response" |
+          sed -n 's/.*"coordinates":\s*\[\s*\([^,]*\)\s*,\s*\([^]]*\)\s*\].*/\1,\2/p'
       )"
 
       #@ Use sed to extract longitude and latitude, handling potential spaces
@@ -511,52 +509,52 @@ initialize_tests() {
   test_cleanup_location() {
     assert \
       "Mandeville,Jamaica" \
-      cleanup_location "\"Mandeville, Jamaica\""
+      cleanup_location '"Mandeville, Jamaica"'
     assert \
       "Mandeville+Jamaica" \
-      cleanup_location "\"Mandeville + Jamaica\""
+      cleanup_location '"Mandeville + Jamaica"'
     assert \
       "Mandeville,Manchester,Jamaica" \
-      cleanup_location "\"Mandeville, Manchester, Jamaica\""
+      cleanup_location '"Mandeville, Manchester, Jamaica"'
     assert \
       "Hanbury+District,Manchester,Jamaica" \
-      cleanup_location "\"Hanbury District, Manchester, Jamaica\""
+      cleanup_location '"Hanbury District, Manchester, Jamaica"'
     assert \
       "Hanbury+District,Manchester,Jamaica" \
-      cleanup_location "\"Hanbury      District, Manchester, Jamaica\""
+      cleanup_location '"Hanbury      District, Manchester, Jamaica"'
     assert \
       "18.0431254,-77.50741" \
-      cleanup_location "\"18.0431254,-77.50741\""
+      cleanup_location '"18.0431254,-77.50741"'
     assert \
       "18,-77" \
-      cleanup_location "\"18,-77\""
+      cleanup_location '"18,-77"'
     assert \
       "18.0431254,-77.50741" \
-      cleanup_location "\"18.0431254, -77.50741\""
+      cleanup_location '"18.0431254, -77.50741"'
     assert \
       "18.0431254,-77.50741" \
-      cleanup_location "\"18.0431254, -77.50741\""
+      cleanup_location '"18.0431254, -77.50741"'
   }
 
   test_fetch_coordinates() {
     assert \
       "18.0431254,-77.50741" \
-      fetch_coordinates "\"Mandeville, Jamaica\""
+      fetch_coordinates '"Mandeville, Jamaica"'
     assert \
       "18.053470063746403,-77.49528810165127" \
       fetch_coordinates \"Hanbury Road,Jamaica\"
     assert \
       "37.7792588,-122.4193286" \
-      fetch_coordinates "\"San Francisco, USA\""
+      fetch_coordinates '"San Francisco, USA"'
     assert \
       "18.053470063746403,-77.49528810165127" \
       fetch_coordinates \"Hanbury Road,Jamaica\"
     assert \
       "18.0431254,-77.50741" \
-      fetch_coordinates "\"18.0431254  ,  -77.50741\""
+      fetch_coordinates '"18.0431254  ,  -77.50741"'
     assert \
       "18,-77" \
-      fetch_coordinates "\"18,-77\""
+      fetch_coordinates '"18,-77"'
   }
 
   test_fetch_weather() {

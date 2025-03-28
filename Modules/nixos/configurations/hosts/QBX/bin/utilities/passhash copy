@@ -19,16 +19,16 @@ main() {
   #@ Parse command-line options
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h)
-        printf "%s" "$usage"
-        return 0
-        ;;
-      --help)
-        printf "%s" "$usage"
-        return 0
-        ;;
-      -i | --insecure | --simple) insecure=1 ;;
-      *) username="$1" ;;
+    -h)
+      printf "%s" "$usage"
+      return 0
+      ;;
+    --help)
+      printf "%s" "$usage"
+      return 0
+      ;;
+    -i | --insecure | --simple) insecure=1 ;;
+    *) username="$1" ;;
     esac
     shift
   done
@@ -77,16 +77,16 @@ initialize_environment() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h)
-        printf "%s" "$usage"
-        return 0
-        ;;
-      --help)
-        printf "%s" "$usage"
-        return 0
-        ;;
-      -i | --insecure | --simple) insecure=1 ;;
-      *) username="$1" ;;
+    -h)
+      printf "%s" "$usage"
+      return 0
+      ;;
+    --help)
+      printf "%s" "$usage"
+      return 0
+      ;;
+    -i | --insecure | --simple) insecure=1 ;;
+    *) username="$1" ;;
     esac
     shift
   done
@@ -94,7 +94,7 @@ initialize_environment() {
 
 print_error() {
   _msg="$*"
-  if command -v tput > /dev/null 2>&1; then
+  if command -v tput >/dev/null 2>&1; then
     _red=$(tput setaf 1)
     _normal=$(tput sgr0)
   else
@@ -133,9 +133,9 @@ validate_password() {
 }
 
 get_user() {
-  if command -v id > /dev/null 2>&1; then
+  if command -v id >/dev/null 2>&1; then
     user="$(id -un)"
-  elif command -v whoami > /dev/null 2>&1; then
+  elif command -v whoami >/dev/null 2>&1; then
     user="$(whoami)"
   else
     user="${USERNAME:-"$USER"}"
@@ -172,9 +172,9 @@ get_pass() {
 }
 
 get_hash() {
-  salt=$(dd if=/dev/urandom bs=16 count=1 2> /dev/null | base64)
+  salt=$(dd if=/dev/urandom bs=16 count=1 2>/dev/null | base64)
 
-  if command -v argon2 > /dev/null 2>&1; then
+  if command -v argon2 >/dev/null 2>&1; then
     hash=$(printf "%s" "$1" | argon2 "$salt" -id -t 3 -m 16 -p 4 -l 32 -r)
   else
     hash=$(printf '%s' "$1" | sha512sum | awk '{print $1}')

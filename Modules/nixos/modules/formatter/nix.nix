@@ -6,11 +6,12 @@
       ...
     }:
     let
+      nixfmtRfcStyle = pkgsUnstable.nixfmt-rfc-style;
       fmt = {
         config = config.treefmt.build.configFile;
         packages = with pkgsUnstable; [
           alejandra
-          nixfmt-rfc-style
+          nixfmtRfcStyle
           deadnix
         ];
         wrapper = config.treefmt.build.wrapper;
@@ -21,8 +22,9 @@
       treefmt = {
         programs = {
           #| Nix
-          nixfmt-rfc-style = {
+          nixfmt = {
             enable = true;
+            pkgs = nixfmtRfcStyle;
             priority = 2;
           };
           # deadnix = {

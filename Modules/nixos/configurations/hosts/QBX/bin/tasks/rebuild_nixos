@@ -15,13 +15,13 @@ main() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --help)
-        help
-        return 0
-        ;;
-      --trace)
-        verbosity=5
-        ;;
+    --help)
+      help
+      return 0
+      ;;
+    --trace)
+      verbosity=5
+      ;;
     esac
     shift
   done
@@ -37,8 +37,8 @@ establish_env() {
 
   #@ Options
   case "$verbosity" in
-    0) ;;
-    *) nixos_opt="--show-trace" ;;
+  0) ;;
+  *) nixos_opt="--show-trace" ;;
   esac
 }
 

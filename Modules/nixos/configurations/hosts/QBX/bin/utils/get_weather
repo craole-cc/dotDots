@@ -19,19 +19,19 @@ usage() {
 # Parse arguments
 while test $# -gt 0; do
   case "$1" in
-    --format)
-      shift
-      FORMAT="$1"
-      ;;
-    --debug)
-      DEBUG=1
-      ;;
-    --help)
-      usage
-      ;;
-    *)
-      LOCATION="$1"
-      ;;
+  --format)
+    shift
+    FORMAT="$1"
+    ;;
+  --debug)
+    DEBUG=1
+    ;;
+  --help)
+    usage
+    ;;
+  *)
+    LOCATION="$1"
+    ;;
   esac
   shift
 done
