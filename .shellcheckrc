@@ -8,7 +8,7 @@ disable=SC2034        #? Unused variables.
 # disable=SC2317 #?  Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
 
 #> Project Sources
-external-sources=true 
+external-sources=true
 source-path=SCRIPTDIR
 # source-path=SCRIPTDIR/Configuration
 # source-path=SCRIPTDIR

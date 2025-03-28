@@ -16,7 +16,7 @@
           "Modules/nixos/configurations/hosts/QBX/bin/**"
           "**/bash/**"
           ".dotsrc"
-          ".shellcheckrc"
+          "*.shellcheckrc"
           "*.gitignore"
         ];
         excludes = [
