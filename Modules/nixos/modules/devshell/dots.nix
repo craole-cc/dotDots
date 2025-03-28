@@ -3,7 +3,6 @@
     {
       pkgsUnstable,
       flakePaths,
-      config,
       ...
     }:
     let
@@ -137,7 +136,7 @@
           }
           {
             category = "File/Environment Management";
-            help = "Display git information";
+            help = "Display flake information";
             command = ''tokei && onefetch --no-title --no-color-palette --disabled-fields url'';
             name = "fo";
           }
