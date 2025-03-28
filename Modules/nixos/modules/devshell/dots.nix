@@ -43,6 +43,10 @@
             name = "FLAKE";
             eval = "$PRJ_ROOT";
           }
+          # {
+          #   name = "TREEFMT_CONFIG";
+          #   eval = treefmt.configFile;
+          # }
         ];
         packages =
           with pkgsUnstable;
