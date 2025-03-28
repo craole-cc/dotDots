@@ -4,11 +4,9 @@
 Python CLI-tool (without need for a GUI) to measure Internet speed with fast.com
 '''
 
-import os
 import json
 import urllib
 import urllib2
-import sys
 import time
 from threading import Thread
 import socket
