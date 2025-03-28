@@ -51,7 +51,13 @@
           shfmt = {
             inherit includes excludes;
             # indent_size = 2;
-            options = "--indent 2";
+            options = [
+              "--apply-ignore"
+              "--binary-next-line"
+              "--space-redirects"
+              "--case-indent"
+              "--indent 2"
+            ];
           };
         };
       };

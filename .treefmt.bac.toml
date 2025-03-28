@@ -100,7 +100,7 @@ priority = 1
 [formatter.shfmt]
 command = "shfmt"
 options = [
-  # "--apply-ignore",
+  "--apply-ignore",
   "--binary-next-line",
   "--space-redirects",
   "--case-indent",
