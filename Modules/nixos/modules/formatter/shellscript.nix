@@ -56,7 +56,7 @@
               "--binary-next-line"
               "--space-redirects"
               "--case-indent"
-              "--indent 2"
+              # "--indent" "2"
             ];
           };
         };
