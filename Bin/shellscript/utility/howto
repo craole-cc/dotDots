@@ -38,30 +38,30 @@ parse_arguments() {
   exit_code=0
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --label | --usage | --short)
-      #@ Remove the leading hyphens from the option
-      variable_name=${1#--}
+      --label | --usage | --short)
+        #@ Remove the leading hyphens from the option
+        variable_name=${1#--}
 
-      #@ Assign the value of $2 to the extracted variable name
-      [ "$2" ] && {
-        eval "$variable_name=\"\$2\""
-        shift
-      }
-      ;;
-    -x | --fatal)
-      if [ "$2" ]; then
-        case "$2" in
-        *[!0-9]* | "") ;;
-        *)
-          exit_code="$2"
+        #@ Assign the value of $2 to the extracted variable name
+        [ "$2" ] && {
+          eval "$variable_name=\"\$2\""
           shift
-          ;;
-        esac
-      else
-        exit_code=1
-      fi
-      ;;
-    *) ;;
+        }
+        ;;
+      -x | --fatal)
+        if [ "$2" ]; then
+          case "$2" in
+            *[!0-9]* | "") ;;
+            *)
+              exit_code="$2"
+              shift
+              ;;
+          esac
+        else
+          exit_code=1
+        fi
+        ;;
+      *) ;;
     esac
     shift
   done
@@ -99,8 +99,8 @@ establish_environment() {
 execute() {
 
   #/> Label
-  [ "$label" ] &&
-    embellish \
+  [ "$label" ] \
+    && embellish \
       --reset --bold --bg-"$pri" --fg-"$sec" \
       "$(align --center "$label")" \
       --reset --new-line

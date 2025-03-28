@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Desrription"
   _cmd_DEPENDENCIES="printf, echo, __cmd_exists__"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
                       USAGE: $_cmd_NAME
@@ -53,8 +53,8 @@ __version__() {
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 # ===================================================================
@@ -81,25 +81,25 @@ else
 
   #@ Declare user options (One flag per command)
   case "$1" in
-  '-h' | '--help') __help__ ;;
-  '-v' | '--version') __version__ ;;
-  '-d' | '--verbose')
-    VERBOSE=true
-    shift
-    ;;
-  '-a' | '--flaga')
-    FLAG_A=true
-    shift
-    ;;
-  '-b' | '--flagb')
-    FLAG_B=true
-    shift
-    ;;
-  '-c' | '--flagc')
-    FLAG_C=true
-    shift
-    ;;
-  *) ;;
+    '-h' | '--help') __help__ ;;
+    '-v' | '--version') __version__ ;;
+    '-d' | '--verbose')
+      VERBOSE=true
+      shift
+      ;;
+    '-a' | '--flaga')
+      FLAG_A=true
+      shift
+      ;;
+    '-b' | '--flagb')
+      FLAG_B=true
+      shift
+      ;;
+    '-c' | '--flagc')
+      FLAG_C=true
+      shift
+      ;;
+    *) ;;
   esac
 fi
 
@@ -126,13 +126,13 @@ __defaults__() {
 
 __error__() {
   case $* in
-  -s | --arg)
-    msg="🟥 Please ensure that a valid equation is entered."
-    printf "\n%s\n" "$msg"
-    __help__
-    exit 1
-    ;;
-  *) ;;
+    -s | --arg)
+      msg="🟥 Please ensure that a valid equation is entered."
+      printf "\n%s\n" "$msg"
+      __help__
+      exit 1
+      ;;
+    *) ;;
   esac
 }
 

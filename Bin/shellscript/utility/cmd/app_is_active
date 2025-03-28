@@ -1,11 +1,11 @@
 #!/bin/sh
 
 case $1 in
--d | --verbose)
-  VERBOSE=true
-  shift
-  ;;
-*) ;;
+  -d | --verbose)
+    VERBOSE=true
+    shift
+    ;;
+  *) ;;
 esac
 
 __instances__() {
@@ -41,11 +41,11 @@ __msg_missing__() {
 
 __msg__() {
   case $1 in
-  --missing)
-    printf "ℹ️  \`%s\` is not installed.\n" "$@"
-    return 1
-    ;;
-  *) ;;
+    --missing)
+      printf "ℹ️  \`%s\` is not installed.\n" "$@"
+      return 1
+      ;;
+    *) ;;
   esac
 }
 

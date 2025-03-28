@@ -8,7 +8,7 @@ _cmd_DESCRIPTION="$(printf "creates symbolic links for application configuration
 _cmd_DEPENDENCIES="weHave, symbiolink, pout"
 _cmd_USAGE="$_cmd_NAME [OPTIONS] [APP|SRC|CTX]"
 _cmd_GUIDE="$(
-  cat <<USAGE_GUIDE
+  cat << USAGE_GUIDE
 $_cmd_NAME [$_cmd_VERSION] creates symbolic links for application configurations.
 It uses variables set in the context file to deploy links.
 
@@ -62,23 +62,23 @@ parse_arguments() {
 
   for arg in "$@"; do
     case "$arg" in
-    -d | --verbose) verbose=true ;;
-    -f | --force) force=true ;;
-    -q | --quiet) unset verbose ;;
+      -d | --verbose) verbose=true ;;
+      -f | --force) force=true ;;
+      -q | --quiet) unset verbose ;;
     esac
   done
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h) pout --usage ;;
-    --help) pout --help ;;
-    -v | --version) pout --version ;;
-    -a | --app) APP="$2" ;;
-    -s | --src) SRC="$2" ;;
-    -l | --lnk) LNK="$2" ;;
-    -c | --ctx) CTX="$2" ;;
-    -*) pout --error --invalid-opt "$1" ;;
-    *) CTX="$1" ;;
+      -h) pout --usage ;;
+      --help) pout --help ;;
+      -v | --version) pout --version ;;
+      -a | --app) APP="$2" ;;
+      -s | --src) SRC="$2" ;;
+      -l | --lnk) LNK="$2" ;;
+      -c | --ctx) CTX="$2" ;;
+      -*) pout --error --invalid-opt "$1" ;;
+      *) CTX="$1" ;;
     esac
     shift
   done
@@ -110,37 +110,37 @@ validate_arguments() {
 
 pout() { #@ Print out to the terminal
   case $1 in
-  --usage) printf "Usage: %s\n" "$_cmd_USAGE" ;;
-  --help) printf "%s\n" "$_cmd_GUIDE" ;;
-  --warning)
-    #> Print the warning heading with space before and after
-    printf "%*sINFO [%s]:%*s" 3 "" "$_cmd_NAME" 1 ""
+    --usage) printf "Usage: %s\n" "$_cmd_USAGE" ;;
+    --help) printf "%s\n" "$_cmd_GUIDE" ;;
+    --warning)
+      #> Print the warning heading with space before and after
+      printf "%*sINFO [%s]:%*s" 3 "" "$_cmd_NAME" 1 ""
 
-    #> Print the warning message
-    case $2 in
-    --name) printf "Consider defining the '_NAME' variable in '%s', defaulting to '%s'\n" "$ctx" "$_NAME" ;;
-    esac
-    ;;
-  --error)
-    #> Print the error heading with space before and after
-    printf "%*sERROR [%s]:%*s" 3 "" "$_cmd_NAME" 1 ""
+      #> Print the warning message
+      case $2 in
+        --name) printf "Consider defining the '_NAME' variable in '%s', defaulting to '%s'\n" "$ctx" "$_NAME" ;;
+      esac
+      ;;
+    --error)
+      #> Print the error heading with space before and after
+      printf "%*sERROR [%s]:%*s" 3 "" "$_cmd_NAME" 1 ""
 
-    #> Print the error message
-    case $2 in
-    --ctx) printf "The config file '%s' is missing" "$3" ;;
-    --src) printf "Ensure the '_HOME' variable is set for '%s'" "$3" ;;
-    --app) printf "Please ensure '%s' is installed and in PATH" "$3" ;;
-    --arg) printf "The name/conf of the app was not provided\n%*s%s" 18 "" "$(pout --usage)" ;;
-    esac
+      #> Print the error message
+      case $2 in
+        --ctx) printf "The config file '%s' is missing" "$3" ;;
+        --src) printf "Ensure the '_HOME' variable is set for '%s'" "$3" ;;
+        --app) printf "Please ensure '%s' is installed and in PATH" "$3" ;;
+        --arg) printf "The name/conf of the app was not provided\n%*s%s" 18 "" "$(pout --usage)" ;;
+      esac
 
-    #> Terminate the script
-    exit 1
-    ;;
+      #> Terminate the script
+      exit 1
+      ;;
   esac
 }
 
 weHave() { #@ Check if a command exists
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 collect_vars() { #@ Read the variables from the context file or arguments
@@ -163,21 +163,21 @@ collect_vars() { #@ Read the variables from the context file or arguments
 
 validate() {
   case $1 in
-  --home)
-    [ "$_HOME" ] || pout --error --src "$app"
-    ;;
-  --name)
-    [ "$_NAME" ] || _NAME="$app"
-    pout --warning --name
-    ;;
-  --app)
-    weHave "$_CMD" || pout --error --app "$_NAME"
-    ;;
-  --all)
-    validate --home
-    validate --app
-    validate --name
-    ;;
+    --home)
+      [ "$_HOME" ] || pout --error --src "$app"
+      ;;
+    --name)
+      [ "$_NAME" ] || _NAME="$app"
+      pout --warning --name
+      ;;
+    --app)
+      weHave "$_CMD" || pout --error --app "$_NAME"
+      ;;
+    --all)
+      validate --home
+      validate --app
+      validate --name
+      ;;
   esac
 
 }

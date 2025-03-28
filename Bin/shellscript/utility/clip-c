@@ -1,18 +1,18 @@
 #!/bin/sh
 
 __weHave() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 __launch() { #@ Launch the application if it's not already running
-  if ! pgrep "$1" >/dev/null; then
+  if ! pgrep "$1" > /dev/null; then
     exec "$@" &
   fi
 }
 
 __target_text() {
   if [ -f "$*" ]; then
-    cat <"$*"
+    cat < "$*"
   else
     printf "%s" "$*"
   fi
@@ -34,7 +34,7 @@ process_core() {
   elif __weHave copyq; then
     __launch copyq --start-server
     copyq disable
-    copyq copy -- "$(__target_text "$@")" >/dev/null 2>&1
+    copyq copy -- "$(__target_text "$@")" > /dev/null 2>&1
     copyq enable
   else
     printf "No clipboard tool found"

@@ -1,8 +1,8 @@
 #!/bin/sh
 
 __valid__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 __msg_true__() {

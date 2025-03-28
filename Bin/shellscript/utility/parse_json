@@ -11,13 +11,13 @@ main() {
 }
 
 via_jq() {
-  command -v jq >/dev/null 2>&1 || return 1
+  command -v jq > /dev/null 2>&1 || return 1
   printf "%s" "$json" | jq -r ".[0].$key"
 }
 
 via_awk() {
   #@ Fallback to POSIX-compliant parsing with awk. Howeever it doersn't handle lists well and only returns the first item.
-  command -v awk >/dev/null 2>&1 || return 1
+  command -v awk > /dev/null 2>&1 || return 1
 
   printf "%s" "$json" | awk -v key="$key" '
     BEGIN { RS="[{},]" }

@@ -18,25 +18,25 @@ parse_arguments() {
 
   #@ Set the first argument as the project directory
   case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')" in
-  -*dd | -*.dots | -*dotdots)
-    validate_arguments --project "${cc}"/dotDOTS
-    ;;
-  -*data | -*say)
-    validate_arguments --project "${cc}"/say_data
-    ;;
-  -*dots)
-    validate_arguments --project "${DOTS:-$HOME/.dots}"
-    ;;
-  -*)
-    handle_error \
-      --msg "Unknown option" \
-      --var "$1" \
-      --code 1 \
-      --fatal
-    ;;
-  *)
-    validate_arguments --project "$1"
-    ;;
+    -*dd | -*.dots | -*dotdots)
+      validate_arguments --project "${cc}"/dotDOTS
+      ;;
+    -*data | -*say)
+      validate_arguments --project "${cc}"/say_data
+      ;;
+    -*dots)
+      validate_arguments --project "${DOTS:-$HOME/.dots}"
+      ;;
+    -*)
+      handle_error \
+        --msg "Unknown option" \
+        --var "$1" \
+        --code 1 \
+        --fatal
+      ;;
+    *)
+      validate_arguments --project "$1"
+      ;;
   esac
 
   #@ Set the remaining arguments as the command
@@ -46,34 +46,34 @@ parse_arguments() {
 
 validate_arguments() {
   case "$1" in
-  --project)
-    [ "$2" ] || handle_error \
-      --msg "Project directory not specified" \
-      --code 1 \
-      --fatal
-
-    case "$2" in
-    *\\* | */*) project="$2" ;;
-    *)
-      if command -v realpath >/dev/null 2>&1; then
-        project=$(realpath "$2")
-      else
-        project="${PWD}/${2}"
-      fi
-      ;;
-    esac
-
-    validate_directory "$project"
-    ;;
-  --command)
-    [ "$2" ] ||
-      handle_error \
-        --msg "Command not specified" \
+    --project)
+      [ "$2" ] || handle_error \
+        --msg "Project directory not specified" \
         --code 1 \
         --fatal
 
-    command="$2"
-    ;;
+      case "$2" in
+        *\\* | */*) project="$2" ;;
+        *)
+          if command -v realpath > /dev/null 2>&1; then
+            project=$(realpath "$2")
+          else
+            project="${PWD}/${2}"
+          fi
+          ;;
+      esac
+
+      validate_directory "$project"
+      ;;
+    --command)
+      [ "$2" ] \
+        || handle_error \
+          --msg "Command not specified" \
+          --code 1 \
+          --fatal
+
+      command="$2"
+      ;;
   esac
 }
 
@@ -96,7 +96,7 @@ validate_directory() {
 }
 
 access_directory() {
-  cd "$1" >/dev/null 2>&1 || {
+  cd "$1" > /dev/null 2>&1 || {
     handle_error \
       --msg "Failed to change to directory" \
       --var "$1" \
@@ -113,10 +113,10 @@ execute_command() {
 handle_error() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    --msg) msg="$2" ;;
-    --var) var="$2" ;;
-    --code) code="$2" ;;
-    --fatal) fatal=true ;;
+      --msg) msg="$2" ;;
+      --var) var="$2" ;;
+      --code) code="$2" ;;
+      --fatal) fatal=true ;;
     esac
     shift
   done

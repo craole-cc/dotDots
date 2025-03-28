@@ -14,7 +14,7 @@ get_directory() {
 get_name() { basename "$(get_path)"; }
 display_info() {
   case "$1" in
-  name | path | dir) printf "%s: %s\n" "$1" "$2" ;;
+    name | path | dir) printf "%s: %s\n" "$1" "$2" ;;
   esac
 }
 
@@ -25,7 +25,7 @@ display_info dir "$(get_directory)"
 # case "$1"
 # in
 
-: <<'TODO'
+: << 'TODO'
   1. Add options for:
     -p, --path    --  Return the path of the given directory
     -d, --dirname --  Return the directory path

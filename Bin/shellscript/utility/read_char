@@ -1,7 +1,7 @@
 #!/bin/sh
 
 __usage__() {
-  cat <<End-of-message
+  cat << End-of-message
 -------------------------------------
 read_char [timer]
 -h | --help => Usage
@@ -28,19 +28,19 @@ __char__() {
     stty raw -echo
   fi
 
-  dd count=1 2>/dev/null
+  dd count=1 2> /dev/null
   stty "$_c"
 
 }
 
 case $1 in
--h | --help) __usage__ ;;
--t | --timer)
-  [ -n "$2" ] && _time="$2"
-  shift 2
-  _timer=true
-  ;;
-*) ;;
+  -h | --help) __usage__ ;;
+  -t | --timer)
+    [ -n "$2" ] && _time="$2"
+    shift 2
+    _timer=true
+    ;;
+  *) ;;
 esac
 
 __char__

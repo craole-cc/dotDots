@@ -6,7 +6,7 @@ SCR_DESCRIPTION="Install NixOS on a single disk using the ZFS file system for im
 SCR_DISCLAIMER="DISCLAIMER: This script will delete all data from your disk. Refer to the documentation for more details."
 
 show_usage_guide() {
-  cat <<EOF
+  cat << EOF
 Usage: ${SCR_NAME} [OPTIONS]
 Options:
   -d, --disk       DISK      Disk ID (e.g., /dev/disk/by-id/DISK_ID_HERE)
@@ -36,37 +36,37 @@ validate_envirnment() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -d | --disk)
-      if [ -n "${2}" ] && [ -f "$2" ]; then
-        DISK="$2"
-      else
-        pout "Disk ID"
-      fi
-      ;;
-    -e | --email)
-      [ -n "${2}" ] && case "${2}" in *@*.*) GIT_EMAIL="$2" ;; *) ;; esac
-      [ -n "${GIT_EMAIL}" ] || pout "email address"
+      -d | --disk)
+        if [ -n "${2}" ] && [ -f "$2" ]; then
+          DISK="$2"
+        else
+          pout "Disk ID"
+        fi
+        ;;
+      -e | --email)
+        [ -n "${2}" ] && case "${2}" in *@*.*) GIT_EMAIL="$2" ;; *) ;; esac
+        [ -n "${GIT_EMAIL}" ] || pout "email address"
 
-      ;;
-    -u | --user)
-      if [ -n "${2}" ] && [ ${#2} -gt 1 ]; then
-        GIT_USER="$2"
-      else
-        pout "username"
-      fi
-      ;;
-    -s | --swap)
-      if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then SWAPSIZE="${2}"; fi
-      ;;
-    -r | --reserve)
-      if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then RESERVE="${2}"; fi
-      ;;
-    -p | --encrypt) ENCRYPT=true ;;
-    -h | --help)
-      show_usage_guide
-      exit 0
-      ;;
-    *) pout --option "${1}" ;;
+        ;;
+      -u | --user)
+        if [ -n "${2}" ] && [ ${#2} -gt 1 ]; then
+          GIT_USER="$2"
+        else
+          pout "username"
+        fi
+        ;;
+      -s | --swap)
+        if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then SWAPSIZE="${2}"; fi
+        ;;
+      -r | --reserve)
+        if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then RESERVE="${2}"; fi
+        ;;
+      -p | --encrypt) ENCRYPT=true ;;
+      -h | --help)
+        show_usage_guide
+        exit 0
+        ;;
+      *) pout --option "${1}" ;;
     esac
     shift
   done
@@ -76,11 +76,11 @@ validate_erasure() {
   printf "%s\n" "${SCR_DISCLAIMER}"
   choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
   case "${choice}" in
-  [Yy]*) printf "%s\n" "Proceeding with prep" ;;
-  *)
-    printf "%s\n" "Exiting..."
-    exit 0
-    ;;
+    [Yy]*) printf "%s\n" "Proceeding with prep" ;;
+    *)
+      printf "%s\n" "Exiting..."
+      exit 0
+      ;;
   esac
 }
 
@@ -244,7 +244,7 @@ prep_flake() {
 
   chmod a+rw ./nixos-generate-config
 
-  echo 'print STDOUT $initrdAvailableKernelModules' >>./nixos-generate-config
+  echo 'print STDOUT $initrdAvailableKernelModules' >> ./nixos-generate-config
 
   kernelModules="$(./nixos-generate-config --show-hardware-config --no-filesystems | tail -n1 || true)"
 
@@ -270,29 +270,29 @@ deploy_flake() {
 
 prevent_reboot() {
   #@ Allow the user some time to cancel the reboot
-  timer=10 &&
-    printf "Rebooting in %s seconds. Is that OK? [Y/n] \n" "${timer}"
-  choice="" &&
-    IFS= read -r -t "${timer}" choice
+  timer=10 \
+    && printf "Rebooting in %s seconds. Is that OK? [Y/n] \n" "${timer}"
+  choice="" \
+    && IFS= read -r -t "${timer}" choice
 
   #@ Exit the script
   case "${choice}" in
-  [nN]*) printf "%s\n" "Reboot canceled" ;;
-  *) printf "%s\n" "Rebooting..." ;;
+    [nN]*) printf "%s\n" "Reboot canceled" ;;
+    *) printf "%s\n" "Rebooting..." ;;
   esac
 }
 
 pout() {
   #@ Print appropriate error message
   case "${1}" in
-  --option)
-    shift
-    printf "Invalid option: %s\n" "${1}"
-    ;;
-  *)
-    shift
-    printf "A valid %s is required \n" "${*}"
-    ;;
+    --option)
+      shift
+      printf "Invalid option: %s\n" "${1}"
+      ;;
+    *)
+      shift
+      printf "A valid %s is required \n" "${*}"
+      ;;
   esac
 
   #@ Print usage and exit with an error code

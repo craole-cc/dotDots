@@ -46,19 +46,19 @@ parser_definition() {
 
 error() {
   case $2 in
-  unknown) echo "$1" ;;
-  number:*) echo "Not a number: $3" ;;
-  range:1) echo "Not a number: $3" ;;
-  range:2)
-    echo "Out of range ($5 - $6): $3"
-    return 2
-    ;;
-  pattern:"$BLOOD_TYPES")
-    echo "Invalid blood type: $3"
-    return 2
-    ;;
-  regex:*) echo "Not match regex ($4): $3" ;;
-  *) return 0 ;; # Display default error
+    unknown) echo "$1" ;;
+    number:*) echo "Not a number: $3" ;;
+    range:1) echo "Not a number: $3" ;;
+    range:2)
+      echo "Out of range ($5 - $6): $3"
+      return 2
+      ;;
+    pattern:"$BLOOD_TYPES")
+      echo "Invalid blood type: $3"
+      return 2
+      ;;
+    regex:*) echo "Not match regex ($4): $3" ;;
+    *) return 0 ;; # Display default error
   esac
   return 1
 }
@@ -70,10 +70,10 @@ number() {
 blood_type() {
   # Normalization only
   case $OPTARG in
-  a) OPTARG="A" ;;
-  b) OPTARG="B" ;;
-  [aA][bB]) OPTARG="AB" ;;
-  o) OPTARG="O" ;;
+    a) OPTARG="A" ;;
+    b) OPTARG="B" ;;
+    [aA][bB]) OPTARG="AB" ;;
+    o) OPTARG="O" ;;
   esac
 }
 

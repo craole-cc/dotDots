@@ -19,19 +19,19 @@ __help__() {
 
 __error__() {
   case $1 in
-  -o | --opt)
-    emojify ":dizzy_face: Please double-check the attachment, it's missing." >&2
-    echo ""
-    __help__
-    exit 1
-    ;;
-  -f | --file)
-    shift
-    emojify ":scream: \"$*\" is not a file. " >&2
-    ;;
-  *)
-    echo nest
-    ;;
+    -o | --opt)
+      emojify ":dizzy_face: Please double-check the attachment, it's missing." >&2
+      echo ""
+      __help__
+      exit 1
+      ;;
+    -f | --file)
+      shift
+      emojify ":scream: \"$*\" is not a file. " >&2
+      ;;
+    *)
+      echo nest
+      ;;
   esac
 }
 
@@ -80,17 +80,17 @@ __main__() {
 
   #> Options <#
   case $1 in
-  '-h' | '--help') HELP=true ;;
-  '-v' | '--version') VER=true ;;
-  '-r' | '--row')
-    ROW=true
-    shift
-    ;;
-  '-c' | '--col')
-    COL=true
-    shift
-    ;;
-  *) ;;
+    '-h' | '--help') HELP=true ;;
+    '-v' | '--version') VER=true ;;
+    '-r' | '--row')
+      ROW=true
+      shift
+      ;;
+    '-c' | '--col')
+      COL=true
+      shift
+      ;;
+    *) ;;
   esac
 
   #> Test <#

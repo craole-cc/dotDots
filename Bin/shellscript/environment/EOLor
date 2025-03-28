@@ -19,8 +19,8 @@ define_defaults() {
   #@ Verbosity
   # shellcheck disable=SC2153
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
-  [1-9] | true) verbose_flag=true ;;
-  *) unset verbose_flag ;;
+    [1-9] | true) verbose_flag=true ;;
+    *) unset verbose_flag ;;
   esac
 
   list_exclude=".git"
@@ -39,64 +39,64 @@ establish_environment() {
 
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      -h)
-        print_scr_info --usage
-        return 0
-        ;;
-      --help)
-        print_scr_info --help
-        return 0
-        ;;
-      -v | --version)
-        print_scr_info --version
-        return 0
-        ;;
-      -d | --verbose) verbose_flag=true ;;
-      -q | --quiet) unset verbose_flag ;;
-      -t | --test | --simulate | --dry-run)
-        test_flag=true
-        verbose_flag=true
-        ;;
-      -c | --cr | --crlf | crlf)
-        eol_target="crlf"
-        ;;
-      -l | --lf | lf)
-        eol_target="lf"
-        ;;
-      -e | --exclude)
-        [ "$2" ] && {
-          list_exclude="$(
-            listman \
-              --list "$list_exclude" \
-              --item "$2" \
-              --action "add"
-          )"
-          shift
-        }
-        ;;
-      -i | --include)
-        [ "$2" ] && {
+        -h)
+          print_scr_info --usage
+          return 0
+          ;;
+        --help)
+          print_scr_info --help
+          return 0
+          ;;
+        -v | --version)
+          print_scr_info --version
+          return 0
+          ;;
+        -d | --verbose) verbose_flag=true ;;
+        -q | --quiet) unset verbose_flag ;;
+        -t | --test | --simulate | --dry-run)
+          test_flag=true
+          verbose_flag=true
+          ;;
+        -c | --cr | --crlf | crlf)
+          eol_target="crlf"
+          ;;
+        -l | --lf | lf)
+          eol_target="lf"
+          ;;
+        -e | --exclude)
+          [ "$2" ] && {
+            list_exclude="$(
+              listman \
+                --list "$list_exclude" \
+                --item "$2" \
+                --action "add"
+            )"
+            shift
+          }
+          ;;
+        -i | --include)
+          [ "$2" ] && {
+            list_include="$(
+              listman \
+                --list "$list_include" \
+                --item "$2" \
+                --action "add"
+            )"
+            shift
+          }
+          ;;
+        -*)
+          printf "Invalid argument: %s\n" "$1"
+          exit 1
+          ;;
+        *)
           list_include="$(
             listman \
               --list "$list_include" \
               --item "$2" \
               --action "add"
           )"
-          shift
-        }
-        ;;
-      -*)
-        printf "Invalid argument: %s\n" "$1"
-        exit 1
-        ;;
-      *)
-        list_include="$(
-          listman \
-            --list "$list_include" \
-            --item "$2" \
-            --action "add"
-        )"
-        ;;
+          ;;
       esac
       shift
     done
@@ -105,60 +105,60 @@ establish_environment() {
   validate_arguments() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --eol)
-        case "$2" in
-        "crlf") validate_arguments --converter dos2unix ;;
-        "lf") validate_arguments --converter unix2dos ;;
-        esac
-        ;;
-      -c | --converter)
-        if ! weHave "$2"; then
-          converter_cmd="$2"
-        else
+        --eol)
           case "$2" in
-          dos2unix) converter_cmd="convert_crlf_to_lf" ;;
-          unix2dos) converter_cmd="convert_lf_to_crlf" ;;
-          *)
-            printf "Converter not found: %s\n" "$1"
-            print_scr_info --help
-            return 1
-            ;;
+            "crlf") validate_arguments --converter dos2unix ;;
+            "lf") validate_arguments --converter unix2dos ;;
           esac
-        fi
-        ;;
-      -p | --path)
-        [ "$2" ] || {
-          printf "Error: Missing path argument.\n"
-          print_scr_info -h
-          return 1
-        }
+          ;;
+        -c | --converter)
+          if ! weHave "$2"; then
+            converter_cmd="$2"
+          else
+            case "$2" in
+              dos2unix) converter_cmd="convert_crlf_to_lf" ;;
+              unix2dos) converter_cmd="convert_lf_to_crlf" ;;
+              *)
+                printf "Converter not found: %s\n" "$1"
+                print_scr_info --help
+                return 1
+                ;;
+            esac
+          fi
+          ;;
+        -p | --path)
+          [ "$2" ] || {
+            printf "Error: Missing path argument.\n"
+            print_scr_info -h
+            return 1
+          }
 
-        [ -x "$2" ] || {
-          printf "File not found: %s\n" "$2"
-          print_scr_info -h
-          return 1
-        }
+          [ -x "$2" ] || {
+            printf "File not found: %s\n" "$2"
+            print_scr_info -h
+            return 1
+          }
 
-        path="$2"
-        ;;
-      -e | --exclude | -s | --skip)
-        [ "$2" ] || {
-          printf "Error: Missing pattern argument.\n"
-          print_scr_info -h
-          return 1
-        }
+          path="$2"
+          ;;
+        -e | --exclude | -s | --skip)
+          [ "$2" ] || {
+            printf "Error: Missing pattern argument.\n"
+            print_scr_info -h
+            return 1
+          }
 
-        # Add the pattern to the list of patterns to skip
-        patterns_to_skip="$patterns_to_skip $2"
-        # shift
+          # Add the pattern to the list of patterns to skip
+          patterns_to_skip="$patterns_to_skip $2"
+          # shift
 
-        # Convert the patterns_to_skip into find-compatible conditions
-        prune_conditions=""
-        for pattern in $patterns_to_skip; do
-          prune_conditions="$prune_conditions -name \"$pattern\" -o"
-        done
-        prune_conditions="${prune_conditions% -o}"
-        ;;
+          # Convert the patterns_to_skip into find-compatible conditions
+          prune_conditions=""
+          for pattern in $patterns_to_skip; do
+            prune_conditions="$prune_conditions -name \"$pattern\" -o"
+          done
+          prune_conditions="${prune_conditions% -o}"
+          ;;
       esac
       shift
     done
@@ -176,8 +176,8 @@ establish_environment() {
 
     #| Fallback to the scripted converter
     case "$converter_cmd" in
-    dos2unix) converter_cmd="convert_crlf_to_lf" ;;
-    unix2dos) converter_cmd="convert_lf_to_crlf" ;;
+      dos2unix) converter_cmd="convert_crlf_to_lf" ;;
+      unix2dos) converter_cmd="convert_lf_to_crlf" ;;
     esac
 
     #| Display the converter command
@@ -205,8 +205,8 @@ establish_environment() {
 
         # Display valid paths
         [ "$valid_paths" ] && {
-          if [ "$valid_paths_count" -eq 1 ] &&
-            [ "$invalid_paths_count" -eq 0 ]; then
+          if [ "$valid_paths_count" -eq 1 ] \
+            && [ "$invalid_paths_count" -eq 0 ]; then
             printf ":%s\n" "$valid_paths"
           else
             i=1
@@ -270,33 +270,33 @@ initialize_utilities() {
   #@ Display script usage and version information
   print_scr_info() {
     case "$1" in
-    --usage) printf "%s [OPTIONS] <PATH>" "$scr_NAME" ;;
-    --version) printf "%s" "$scr_VERSION" ;;
-    --help)
-      printf "%s [v.%s]\n" "$scr_NAME" "$scr_VERSION"
-      printf "Usage: %s" "$scr_USAGE"
-      printf "\n\nDescription: \n%s %s" "$scr_NAME" "$scr_DESCRIPTION"
-      printf "\n\nOptions:"
-      printf "\n  -h                    Display the condensed usage guide"
-      printf "\n      --help            Display this help message"
-      printf "\n  -v, --version         Display the current version number"
-      printf "\n  -d, --verbose         Enable verbose mode (Default)"
-      printf "\n  -q, --quiet           Suppress all output including errors"
-      printf "\n  -c, --win, --crlf     Convert to CRLF line endings"
-      printf "\n  -l, --nix, --lf       Convert to LF line endings"
-      printf "\n  -t, --test            Test mode"
-      printf "\n\nOptional Dependencies:"
-      printf "\n  %s" "$scr_OPTIONAL_DEPENDENCIES"
-      printf "\n\nLicense: MIT"
-      printf "\nCopyright: (c) 2023 %s" "$scr_AUTHORS"
-      ;;
-    *) printf "%s\n" "$1" ;;
+      --usage) printf "%s [OPTIONS] <PATH>" "$scr_NAME" ;;
+      --version) printf "%s" "$scr_VERSION" ;;
+      --help)
+        printf "%s [v.%s]\n" "$scr_NAME" "$scr_VERSION"
+        printf "Usage: %s" "$scr_USAGE"
+        printf "\n\nDescription: \n%s %s" "$scr_NAME" "$scr_DESCRIPTION"
+        printf "\n\nOptions:"
+        printf "\n  -h                    Display the condensed usage guide"
+        printf "\n      --help            Display this help message"
+        printf "\n  -v, --version         Display the current version number"
+        printf "\n  -d, --verbose         Enable verbose mode (Default)"
+        printf "\n  -q, --quiet           Suppress all output including errors"
+        printf "\n  -c, --win, --crlf     Convert to CRLF line endings"
+        printf "\n  -l, --nix, --lf       Convert to LF line endings"
+        printf "\n  -t, --test            Test mode"
+        printf "\n\nOptional Dependencies:"
+        printf "\n  %s" "$scr_OPTIONAL_DEPENDENCIES"
+        printf "\n\nLicense: MIT"
+        printf "\nCopyright: (c) 2023 %s" "$scr_AUTHORS"
+        ;;
+      *) printf "%s\n" "$1" ;;
     esac
   }
 
   #@ Validate the existence of a command
   weHave() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" > /dev/null 2>&1
   }
 
   listman() {
@@ -304,35 +304,35 @@ initialize_utilities() {
       #| Parse list information
       while [ "$#" -gt 0 ]; do
         case "$1" in
-        --delim) delimiter="$2" ;;
-        --delim=*) delimiter="${1#*=}" ;;
-        --list) list="$2" ;;
-        --list=*) list="${1#*=}" ;;
-        --item) item="$2" ;;
-        --item=*) item="${1#*=}" ;;
-        --action) action="$2" ;;
-        --action=*) action="${1#*=}" ;;
-        --add) action="add" ;;
-        --remove) action="remove" ;;
-        --count) action="count" ;;
-        --print) action="print" ;;
-        --split) action="split" ;;
-        *)
-          [ "$list" ] || list="${1:-}"
-          [ "$item" ] || item="${2:-}"
-          [ "$delimiter" ] || delimiter="${3:-|}"
-          [ "$action" ] || action="${4:-"add"}"
-          ;;
+          --delim) delimiter="$2" ;;
+          --delim=*) delimiter="${1#*=}" ;;
+          --list) list="$2" ;;
+          --list=*) list="${1#*=}" ;;
+          --item) item="$2" ;;
+          --item=*) item="${1#*=}" ;;
+          --action) action="$2" ;;
+          --action=*) action="${1#*=}" ;;
+          --add) action="add" ;;
+          --remove) action="remove" ;;
+          --count) action="count" ;;
+          --print) action="print" ;;
+          --split) action="split" ;;
+          *)
+            [ "$list" ] || list="${1:-}"
+            [ "$item" ] || item="${2:-}"
+            [ "$delimiter" ] || delimiter="${3:-|}"
+            [ "$action" ] || action="${4:-"add"}"
+            ;;
         esac
         shift
       done
 
       case "$action" in
-      count) listman__count ;;
-      drop | remove) listman__drop ;;
-      print) listman__print ;;
-      split) listman__split ;;
-      add | *) listman__add ;;
+        count) listman__count ;;
+        drop | remove) listman__drop ;;
+        print) listman__print ;;
+        split) listman__split ;;
+        add | *) listman__add ;;
       esac
     }
 
@@ -355,10 +355,10 @@ initialize_utilities() {
     listman__drop() {
       #| Return the updated list with each item separated by the delimiter
       printf "%s" "$(
-        printf "%s" "$list" |
-          tr "$delimiter" '\n' |
-          grep -v "$item" |
-          tr '\n' "$delimiter"
+        printf "%s" "$list" \
+          | tr "$delimiter" '\n' \
+          | grep -v "$item" \
+          | tr '\n' "$delimiter"
       )"
     }
 
@@ -400,18 +400,18 @@ initialize_utilities() {
       if weHave os.type.fetch; then
         os.type.fetch
       else
-        weHave uname &&
-          case "$(uname)" in
-          msys* | cygwin* | mingw* | win*)
-            printf "%s" "Windows"
-            ;;
+        weHave uname \
+          && case "$(uname)" in
+            msys* | cygwin* | mingw* | win*)
+              printf "%s" "Windows"
+              ;;
           esac
       fi
     }
 
     case "$(os_type)" in
-    Windows) printf "%s" "unix2dos" ;;
-    *) printf "%s" "unix2dos" ;;
+      Windows) printf "%s" "unix2dos" ;;
+      *) printf "%s" "unix2dos" ;;
     esac
   }
 
@@ -440,10 +440,10 @@ initialize_utilities() {
 
     #@ Check for and remove the Byte Order Mark (BOM)
     if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
-      tail -c +4 "$input_file" | tr '\n' '\r\n' >"$input_file.tmp"
+      tail -c +4 "$input_file" | tr '\n' '\r\n' > "$input_file.tmp"
       mv "$input_file.tmp" "$input_file"
     else
-      tr <"$input_file" '\n' '\r\n' >"$input_file.tmp"
+      tr < "$input_file" '\n' '\r\n' > "$input_file.tmp"
       mv "$input_file.tmp" "$input_file"
     fi
 
@@ -469,10 +469,10 @@ initialize_utilities() {
 
     #@ Check for and remove the Byte Order Mark (BOM)
     if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
-      tail -c +4 "$input_file" | tr -d '\r' >"$input_file.tmp"
+      tail -c +4 "$input_file" | tr -d '\r' > "$input_file.tmp"
       mv "$input_file.tmp" "$input_file"
     else
-      tr <"$input_file" -d '\r' >"$input_file.tmp"
+      tr < "$input_file" -d '\r' > "$input_file.tmp"
       mv "$input_file.tmp" "$input_file"
     fi
 
@@ -495,16 +495,17 @@ execute_core_process() {
   listman --list "$list_include" --print
   listman --count "$list_include"
 
-  [ "$test_flag" ] ||
+  [ "$test_flag" ] \
+    ||
     # find "$path" -type f | while IFS= read -r file; do
     #   [ "$verbose_flag" ] && printf "%s: %s\n" "$converter_cmd" "$file"
     #   "$converter_cmd" "$file" >/dev/null 2>&1
     # done
     # Build and execute the find command
-    eval "find \"$path\" \( $prune_conditions \) -prune -o -type f -print" |
-    while IFS= read -r file; do
+    eval "find \"$path\" \( $prune_conditions \) -prune -o -type f -print" \
+    | while IFS= read -r file; do
       [ "$verbose_flag" ] && printf "%s: %s\n" "$converter_cmd" "$file"
-      "$converter_cmd" "$file" >/dev/null 2>&1
+      "$converter_cmd" "$file" > /dev/null 2>&1
     done
 
 }

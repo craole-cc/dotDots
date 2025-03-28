@@ -1,11 +1,11 @@
 #!/bin/sh
 
 weHave() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 launch() { #@ Launch the application if it's not already running
-  if ! pgrep "$1" >/dev/null; then
+  if ! pgrep "$1" > /dev/null; then
     exec "$@" &
   fi
 }

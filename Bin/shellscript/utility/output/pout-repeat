@@ -18,7 +18,7 @@ set_defaults() {
 }
 
 is_valid_num() {
-  validate --positive "$1" >/dev/null 2>&1
+  validate --positive "$1" > /dev/null 2>&1
 }
 
 print_guide() {
@@ -43,23 +43,23 @@ print_guide() {
 print_usage() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --args)
-      msg="$(
-        printf "Incorrect number of arguments. " >&2
-        printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
-      )"
-      ;;
-    --pos)
-      msg="$(
-        printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
-      )"
-      ;;
-    --reps)
-      msg="$(printf "Number of repetitions not defined\n" >&2)"
-      ;;
-    *)
-      exit_code="${1:-1}"
-      ;;
+      --args)
+        msg="$(
+          printf "Incorrect number of arguments. " >&2
+          printf "Expected at least %s but got %s\n" "${expected_args}" "$2" >&2
+        )"
+        ;;
+      --pos)
+        msg="$(
+          printf "Unable to distinguih the pattern from the number of repetitions\n" >&2
+        )"
+        ;;
+      --reps)
+        msg="$(printf "Number of repetitions not defined\n" >&2)"
+        ;;
+      *)
+        exit_code="${1:-1}"
+        ;;
     esac
     shift
   done
@@ -86,9 +86,9 @@ parse_arguments() {
   #@ Script Options
   for arg in "$@"; do
     case "${arg}" in
-    -h) print_usage 0 ;;
-    --help) print_guide ;;
-    *) ;;
+      -h) print_usage 0 ;;
+      --help) print_guide ;;
+      *) ;;
     esac
   done
 
@@ -98,41 +98,41 @@ parse_arguments() {
   #@ Process Options
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -d | --verbose | --debug)
-      debug=1
-      ;;
-    -n | --num* | -r | --rep*)
-      is_valid_num "$2" || print_usage --reps
-      repetitions="$2"
-      shift
-      ;;
-    -p | --pat* | -c | --char* | --str*)
-      [ -n "$2" ] || print_usage --args
-      pattern="$2"
-      shift
-      ;;
-    -l | --line)
-      pattern="\n"
-      repetitions="${2:-1}"
-      break
-      ;;
-    -s | --space)
-      pattern=" "
-      repetitions="${2:-1}"
-      break
-      ;;
-    *)
-      #@ Handle positional arguments
-      if [ -z "${repetitions}" ] && [ -z "${pattern}" ]; then
-        if is_valid_num "$1"; then
-          pattern="$2"
-          repetitions="$1"
-        elif is_valid_num "$2"; then
-          pattern="$1"
-          repetitions="$2"
+      -d | --verbose | --debug)
+        debug=1
+        ;;
+      -n | --num* | -r | --rep*)
+        is_valid_num "$2" || print_usage --reps
+        repetitions="$2"
+        shift
+        ;;
+      -p | --pat* | -c | --char* | --str*)
+        [ -n "$2" ] || print_usage --args
+        pattern="$2"
+        shift
+        ;;
+      -l | --line)
+        pattern="\n"
+        repetitions="${2:-1}"
+        break
+        ;;
+      -s | --space)
+        pattern=" "
+        repetitions="${2:-1}"
+        break
+        ;;
+      *)
+        #@ Handle positional arguments
+        if [ -z "${repetitions}" ] && [ -z "${pattern}" ]; then
+          if is_valid_num "$1"; then
+            pattern="$2"
+            repetitions="$1"
+          elif is_valid_num "$2"; then
+            pattern="$1"
+            repetitions="$2"
+          fi
         fi
-      fi
-      ;;
+        ;;
     esac
     shift
   done

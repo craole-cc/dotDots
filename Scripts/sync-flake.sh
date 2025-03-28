@@ -16,26 +16,26 @@ parse_arguments() {
   #@ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1}" in
-    -a | --arg*)
-      args="${args}${args:+${delimiter}}${2}"
-      shift
-      ;;
-    *)
-      args="${args}${args:+${delimiter}}${1}"
-      ;;
+      -a | --arg*)
+        args="${args}${args:+${delimiter}}${2}"
+        shift
+        ;;
+      *)
+        args="${args}${args:+${delimiter}}${1}"
+        ;;
     esac
     shift
   done
 }
 
 update_repo() {
-  command -v sync-repo.sh &&
-    sync-repo.sh "${args:-Flake Update}"
+  command -v sync-repo.sh \
+    && sync-repo.sh "${args:-Flake Update}"
 }
 
 update_flake() {
   #@ Proceed only if nix flake is available
-  nix_flake="$(nix flake --help 2>/dev/null)"
+  nix_flake="$(nix flake --help 2> /dev/null)"
   [ -z "${nix_flake}" ] && {
     printf "Nix flake doesn't seem to be available\n"
     return 1

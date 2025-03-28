@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ -z "$DISPLAY" ] &&
-  [ "$(tty)" = /dev/tty1 ]; then
+if [ -z "$DISPLAY" ] \
+  && [ "$(tty)" = /dev/tty1 ]; then
   _TTY=TRUE
 else
   unset _TTY
@@ -9,10 +9,10 @@ fi
 
 __default__() {
   case $OS_TYPE in
-  Windows) start "$@" ;;
-  Mac) open "$@" ;;
-  Linux) xdg-open "$@" ;;
-  *) ;;
+    Windows) start "$@" ;;
+    Mac) open "$@" ;;
+    Linux) xdg-open "$@" ;;
+    *) ;;
   esac
 }
 
@@ -68,8 +68,8 @@ __gui__() {
 
 __root__() {
   case $OS_TYPE in
-  Linux) sudo $FM "$@" ;;
-  *) sudo open "$@" ;;
+    Linux) sudo $FM "$@" ;;
+    *) sudo open "$@" ;;
   esac
 }
 
@@ -91,15 +91,15 @@ __main__() {
 # allow
 
 case $1 in
--t | --term)
-  shift
-  __tty__
-  ;;
--g | --gui)
-  shift
-  __gui__
-  ;;
-*) DEFAULT=true ;;
+  -t | --term)
+    shift
+    __tty__
+    ;;
+  -g | --gui)
+    shift
+    __gui__
+    ;;
+  *) DEFAULT=true ;;
 esac
 
 __main__ "$@"

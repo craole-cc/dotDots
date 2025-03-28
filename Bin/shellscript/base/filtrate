@@ -13,7 +13,7 @@ __info__() {
   _cmd_DESCRIPTION="Transform strings, particularly case and space."
   _cmd_DEPENDENCIES="perl, sed, tr, printf, getoptions, __cmd_exists__"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
     #>----------------------------------------------------<#
                                                 $_cmd_NAME
     #>----------------------------------------------------<#
@@ -56,8 +56,8 @@ __version__() {
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 # ===================================================================
@@ -117,11 +117,11 @@ __defaults__() {
       __check__() { grep --quiet "$*"; }
       __info_after__() {
         if [ "$_opt_ALL" ]; then
-          grep --only-matching "$*"'.*' |
-            sed "s/$*.*\s//"
+          grep --only-matching "$*"'.*' \
+            | sed "s/$*.*\s//"
         else
-          grep --only-matching "$*"'.*' --max-count=1 |
-            sed "s/.*$*[ \t]*//"
+          grep --only-matching "$*"'.*' --max-count=1 \
+            | sed "s/.*$*[ \t]*//"
         fi
       }
     fi
@@ -141,12 +141,12 @@ __defaults__() {
 
 __process__() {
   if [ "$_DELIMITER" ]; then
-    printf "%s" "$_DATA" |
-      __filter_by__ "$_FILTER" |
-      __info_after__ "$_DELIMITER"
+    printf "%s" "$_DATA" \
+      | __filter_by__ "$_FILTER" \
+      | __info_after__ "$_DELIMITER"
   else
-    printf "%s" "$_DATA" |
-      __filter_by__ "$_FILTER"
+    printf "%s" "$_DATA" \
+      | __filter_by__ "$_FILTER"
   fi
 }
 
@@ -156,12 +156,12 @@ __process__() {
 
 __error__() {
   case $* in
-  -s | --string)
-    printf "🟥 Please ensure that a valid string is entered.\n"
-    __help__
-    exit 1
-    ;;
-  *) ;;
+    -s | --string)
+      printf "🟥 Please ensure that a valid string is entered.\n"
+      __help__
+      exit 1
+      ;;
+    *) ;;
   esac
 }
 

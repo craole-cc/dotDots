@@ -2,7 +2,7 @@
 # |> _______________________________________________ <|
 
 __usageUpdate__() {
-  cat <<EOF
+  cat << EOF
             UGAGE:= update <[options]>
 |> ----------------------------------------------- <|
         -A  --all        Update all installed
@@ -21,7 +21,7 @@ EOF
 }
 
 weHave() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 # >>= Mirrors =<< #
@@ -29,36 +29,36 @@ __mirrorUpdate__() {
   while true; do
     read -p "Should we update the package mirrors, this may take some time? [y/N]?" yn
     case $yn in
-    [Yy]*)
-      mirror
+      [Yy]*)
+        mirror
 
-      # >>= Dependencies =<< #
-      # Required: https://xyne.archlinux.ca/projects/reflector
-      # edit /etc/xdg/reflector/reflector.conf
+        # >>= Dependencies =<< #
+        # Required: https://xyne.archlinux.ca/projects/reflector
+        # edit /etc/xdg/reflector/reflector.conf
 
-      # >>= Notification =<<
+        # >>= Notification =<<
 
-      OUTPUT() {
-        echo "${blue}::${reset} $msg"
-        notify-send "$msg"
-      }
-      clear
+        OUTPUT() {
+          echo "${blue}::${reset} $msg"
+          notify-send "$msg"
+        }
+        clear
 
-      # >>= Service =<< #
-      # systemctl enable reflector.timer
-      # systemctl start reflector.timer
-      msg="🕓 Mirrorlist weekly update timer set"
-      OUTPUT "$msg"
+        # >>= Service =<< #
+        # systemctl enable reflector.timer
+        # systemctl start reflector.timer
+        msg="🕓 Mirrorlist weekly update timer set"
+        OUTPUT "$msg"
 
-      # >>= Update =<<
-      msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)"
-      OUTPUT "$msg"
-      # systemctl start reflector.service # Update mirrors immediately
-      msg="⌛ The package mirrorlist has been updated"
-      OUTPUT "$msg"
-      ;;
-    [Nn]*) break ;;
-    *) break ;;
+        # >>= Update =<<
+        msg="🔃 Syncing mirrors based on $(tput smul)/etc/xdg/reflector/reflector.conf$(tput rmul)"
+        OUTPUT "$msg"
+        # systemctl start reflector.service # Update mirrors immediately
+        msg="⌛ The package mirrorlist has been updated"
+        OUTPUT "$msg"
+        ;;
+      [Nn]*) break ;;
+      *) break ;;
     esac
   done
 }
@@ -172,39 +172,39 @@ eval set -- "$options"
 
 while true; do
   case $1 in
-  -A | --all)
-    __pacmanUpdate__
-    __paruUpdate__
-    __yayUpdate__
-    __chocolateyUpdate__
-    __wingetUpdate__
-    __rustupUpdate__
-    __gitutilsUpdate__
-    __flatpakUpdate__
-    __snapUpdate__
-    ;;
+    -A | --all)
+      __pacmanUpdate__
+      __paruUpdate__
+      __yayUpdate__
+      __chocolateyUpdate__
+      __wingetUpdate__
+      __rustupUpdate__
+      __gitutilsUpdate__
+      __flatpakUpdate__
+      __snapUpdate__
+      ;;
 
-  -r | --rustup) __rustupUpdate__ "$@" ;;
-  -P | --pacman) __pacmanUpdate__ "$@" ;;
-  -p | --paru) __paruUpdate__ "$@" ;;
-  -y | --yay) __yayUpdate__ "$@" ;;
-  -f | --flatpak) __flatpakUpdate__ "$@" ;;
-  -s | --snap) __snapUpdate__ "$@" ;;
-  -w | --winget) __wingetUpdate__ "$@" ;;
-  -c | --choco) __chocolateyUpdate__ "$@" ;;
-  -g | --gits) __gitutilsUpdate__ ;;
-  --)
-    shift
-    break
-    ;;
-  -h | --help)
-    __usage__
-    exit 0
-    ;;
-  *)
-    echo "Internal error!"
-    exit 1
-    ;;
+    -r | --rustup) __rustupUpdate__ "$@" ;;
+    -P | --pacman) __pacmanUpdate__ "$@" ;;
+    -p | --paru) __paruUpdate__ "$@" ;;
+    -y | --yay) __yayUpdate__ "$@" ;;
+    -f | --flatpak) __flatpakUpdate__ "$@" ;;
+    -s | --snap) __snapUpdate__ "$@" ;;
+    -w | --winget) __wingetUpdate__ "$@" ;;
+    -c | --choco) __chocolateyUpdate__ "$@" ;;
+    -g | --gits) __gitutilsUpdate__ ;;
+    --)
+      shift
+      break
+      ;;
+    -h | --help)
+      __usage__
+      exit 0
+      ;;
+    *)
+      echo "Internal error!"
+      exit 1
+      ;;
   esac
   shift
 done

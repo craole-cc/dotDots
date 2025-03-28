@@ -19,27 +19,27 @@ Options:
   # Parse options
   while [ $# -gt 0 ]; do
     case $1 in
-    -l | --logout)
-      action="logout"
-      ;;
-    -r | --reboot)
-      action="reboot"
-      ;;
-    -x | -s | --shutdown)
-      action="shutdown"
-      ;;
-    -q | -t | --terminal | --exit)
-      action="exit"
-      ;;
-    -h | --help)
-      show_usage
-      exit 0
-      ;;
-    *)
-      console_log --error "Unknown option" "$1"
-      show_usage
-      exit 1
-      ;;
+      -l | --logout)
+        action="logout"
+        ;;
+      -r | --reboot)
+        action="reboot"
+        ;;
+      -x | -s | --shutdown)
+        action="shutdown"
+        ;;
+      -q | -t | --terminal | --exit)
+        action="exit"
+        ;;
+      -h | --help)
+        show_usage
+        exit 0
+        ;;
+      *)
+        console_log --error "Unknown option" "$1"
+        show_usage
+        exit 1
+        ;;
     esac
     shift
   done
@@ -103,10 +103,10 @@ exit_terminal() {
 
 execute_process() {
   case "$action" in
-  "logout") logout_user ;;
-  "reboot") reboot_system ;;
-  "exit") exit_terminal ;;
-  "shutdown") shutdown_system ;;
+    "logout") logout_user ;;
+    "reboot") reboot_system ;;
+    "exit") exit_terminal ;;
+    "shutdown") shutdown_system ;;
   esac
 
 }

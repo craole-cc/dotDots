@@ -1,6 +1,6 @@
 #!/bin/sh
 
-: <<'Documentation'
+: << 'Documentation'
 # Calculate the duration two timespamps
 ::USAGE::
 dtdiff "$(__timeNow__)" "$(__timeBoot__)"
@@ -19,8 +19,8 @@ __toDate__() {
   # shellcheck disable=SC3057
 
   # |===>> using AWK <<===|
-  echo "$*" |
-    awk 'BEGIN \
+  echo "$*" \
+    | awk 'BEGIN \
     { FIELDWIDTHS = "4 2 2 2 2 2" }
     { printf "%s-%s-%s %s:%s:%s\n", $1, $2, $3, $4, $5, $6 }'
 
@@ -43,7 +43,7 @@ __Duration__() {
 }
 
 pyFormat() {
-  python - <<CODE
+  python - << CODE
 # print ($*)
 days, remainder = divmod($*, (60*60*24))
 hours, remainder = divmod(remainder, (60*60))
@@ -54,7 +54,7 @@ CODE
 
 pyFormat "$(__Duration__)"
 
-: <<Comment
+: << Comment
   _usage() {
     ###### U S A G E : Help and ERROR ######
     cat <<EOF

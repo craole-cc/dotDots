@@ -11,29 +11,29 @@ qm="'"
 # Parse the command-line options
 while [ $# -gt 0 ]; do
   case "$1" in
-  -s | --single) qm="'" ;;
-  -d | --double) qm='"' ;;
-  -b | --backtick) qm='`' ;;
-  -c | --code) qm='```' ;;
-  -t | --tilde) qm="~" ;;
-  -a | --at) qm="@" ;;
-  -H | --hash) qm="#" ;;
-  -h | --help)
-    usage
-    exit 0
-    ;;
-  --) # End of options
-    shift
-    break
-    ;;
-  -*)
-    printf "%s: invalid option -- '%s'\n" "$0" "${1#-}" >&2
-    usage >&2
-    exit 1
-    ;;
-  *)
-    break
-    ;;
+    -s | --single) qm="'" ;;
+    -d | --double) qm='"' ;;
+    -b | --backtick) qm='`' ;;
+    -c | --code) qm='```' ;;
+    -t | --tilde) qm="~" ;;
+    -a | --at) qm="@" ;;
+    -H | --hash) qm="#" ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --) # End of options
+      shift
+      break
+      ;;
+    -*)
+      printf "%s: invalid option -- '%s'\n" "$0" "${1#-}" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
   esac
   shift
 done

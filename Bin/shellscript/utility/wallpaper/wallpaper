@@ -7,8 +7,8 @@ get_kde_wallpaper() {
 
     #@ Extract the wallpaper directory
     wallpaper_dir=$(
-      grep 'Image=' "$config_file" |
-        head -n 1 | cut -d'=' -f2 | sed 's|file://||'
+      grep 'Image=' "$config_file" \
+        | head -n 1 | cut -d'=' -f2 | sed 's|file://||'
     )
 
     #@ Check if contents/images exists and list files
@@ -25,7 +25,7 @@ get_kde_wallpaper() {
 
 #| Function to get wallpaper from GNOME
 get_gnome_wallpaper() {
-  gsettings get org.gnome.desktop.background picture-uri 2>/dev/null | sed 's|file://||;s|"||g'
+  gsettings get org.gnome.desktop.background picture-uri 2> /dev/null | sed 's|file://||;s|"||g'
 }
 
 #| Function to get wallpaper from XFCE

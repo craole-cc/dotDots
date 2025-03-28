@@ -8,7 +8,7 @@ LIGHT_THEME="Solarized Light"
 
 # Check if a command exists
 cmd_exists() {
-  command -v "$1" >/dev/null 2>&1
+  command -v "$1" > /dev/null 2>&1
 }
 
 # Install jq using available package manager
@@ -60,11 +60,11 @@ check_dependencies() {
 find_files() {
   base_path="$1"
   if cmd_exists "fd"; then
-    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2>/dev/null
+    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2> /dev/null
   else
     find "$base_path" \
       -name "Microsoft.WindowsTerminal*" \
-      -type d 2>/dev/null
+      -type d 2> /dev/null
   fi
 }
 
@@ -72,8 +72,8 @@ find_settings_paths() {
   #@ Find both regular and preview settings
   find "$LOCALAPPDATA/Packages" \
     -name "Microsoft.WindowsTerminal*" \
-    -type d 2>/dev/null |
-    while read -r dir; do
+    -type d 2> /dev/null \
+    | while read -r dir; do
       settings_path="$dir/LocalState/settings.json"
       if [ -f "$settings_path" ]; then
         printf "%s" "$settings_path"
@@ -103,7 +103,7 @@ toggle_theme() {
   #@ Update the theme
   if ! jq --arg theme "$new_theme" \
     '.profiles.defaults.colorScheme = $theme' \
-    "$settings_file" >"${settings_file}.tmp"; then
+    "$settings_file" > "${settings_file}.tmp"; then
     printf "Error: Failed to update theme in: %s\n" "$settings_file" >&2
     mv "${settings_file}.bac" "$settings_file"
     rm -f "${settings_file}.tmp"

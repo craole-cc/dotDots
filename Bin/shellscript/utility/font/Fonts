@@ -4,10 +4,10 @@ __list__() {
   while [ "$#" -ge 1 ]; do
     printf "Font type: %s\n" "$1"
 
-    fc-list :"$1" |
-      awk --field-separator=: '{print $2}' |
-      sort --unique |
-      bat --style 'numbers,grid'
+    fc-list :"$1" \
+      | awk --field-separator=: '{print $2}' \
+      | sort --unique \
+      | bat --style 'numbers,grid'
     shift
   done
 }
@@ -28,16 +28,16 @@ __refresh__() {
 
 while [ "$#" -gt 1 ]; do
   case "$1" in
-  -d | --verbose) verbose=true ;;
-  -t | --type)
-    shift
-    __type__ "$1"
-    ;;
-  -r | reset | refresh)
-    shift
-    __refresh__
-    ;;
-  *) __list__ "$@" ;;
+    -d | --verbose) verbose=true ;;
+    -t | --type)
+      shift
+      __type__ "$1"
+      ;;
+    -r | reset | refresh)
+      shift
+      __refresh__
+      ;;
+    *) __list__ "$@" ;;
   esac
   shift
 done

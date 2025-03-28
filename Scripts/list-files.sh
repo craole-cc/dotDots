@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if command -v eza >/dev/null 2>&1; then
+if command -v eza > /dev/null 2>&1; then
   eza \
     --icons=always --group-directories-first --color=always \
     --color-scale \
@@ -8,7 +8,7 @@ if command -v eza >/dev/null 2>&1; then
     --long \
     --git \
     "$@"
-elif command -v lsd >/dev/null 2>&1; then
+elif command -v lsd > /dev/null 2>&1; then
   lsd \
     --color=always \
     --all \

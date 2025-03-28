@@ -21,7 +21,7 @@ establish_environment() {
 
   #@ Establish utility functions
   initialize_utilities
-  get_os_type >/dev/null 2>&1
+  get_os_type > /dev/null 2>&1
 }
 
 initialize_utilities() {
@@ -29,7 +29,7 @@ initialize_utilities() {
     #@ Check if the info_source is available
     info_source="$1"
 
-    if command -v "$info_source" >/dev/null 2>&1; then
+    if command -v "$info_source" > /dev/null 2>&1; then
       return 0
     elif [ -f "$info_source" ]; then
       return 0
@@ -42,18 +42,18 @@ initialize_utilities() {
   present_info() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      -h | --help)
-        if [ "$2" ]; then
-          output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
-          shift
-        else
-          output="$scr_usage"
-        fi
-        ;;
-      -v | --version)
-        output="$scr_version"
-        ;;
-      *) output="$1" ;;
+        -h | --help)
+          if [ "$2" ]; then
+            output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
+            shift
+          else
+            output="$scr_usage"
+          fi
+          ;;
+        -v | --version)
+          output="$scr_version"
+          ;;
+        *) output="$1" ;;
       esac
 
       #@ Print the output
@@ -79,8 +79,8 @@ initialize_utilities() {
 
     extract_process_name() {
       #@ Use awk to extract the process name
-      printf "%s" "$1" |
-        awk '/bash|dash|nu|zsh|fish|tcsh|ksh|sh/ {print $NF}'
+      printf "%s" "$1" \
+        | awk '/bash|dash|nu|zsh|fish|tcsh|ksh|sh/ {print $NF}'
     }
 
     extract_linux_process_name() {
@@ -131,8 +131,8 @@ initialize_utilities() {
     }
 
     case $(get_os_type | tr '[:upper:]' '[:lower:]') in
-    *linux*) extract_linux_process_name ;;
-    *windows*) extract_windows_process_name ;;
+      *linux*) extract_linux_process_name ;;
+      *windows*) extract_windows_process_name ;;
     esac
 
     if [ "$info" ]; then
@@ -156,17 +156,17 @@ main() {
   #@ Parse the arguments
   while [ "$#" -gt 0 ]; do
     case $1 in
-    -d | --verbose)
-      verbosity=1
-      ;;
-    -h | --help | -v | --version)
-      present_info "$1"
-      return 0
-      ;;
-    *)
-      present_info --help "Unknown option: $1"
-      return 1
-      ;;
+      -d | --verbose)
+        verbosity=1
+        ;;
+      -h | --help | -v | --version)
+        present_info "$1"
+        return 0
+        ;;
+      *)
+        present_info --help "Unknown option: $1"
+        return 1
+        ;;
     esac
     shift
   done

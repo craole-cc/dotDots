@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Manage NixOS"
   _cmd_DEPENDENCIES="weHave"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
               $_cmd_NAME <[options]> <[arguments]>
@@ -80,8 +80,8 @@ __opts__() {
   }
 
   #@ Load options
-  weHave getoptions &&
-    eval "$(getoptions parser_definition) exit 1"
+  weHave getoptions \
+    && eval "$(getoptions parser_definition) exit 1"
 
   #@ Establish defaults
   # __defaults__ "$@"
@@ -122,11 +122,11 @@ __init__() {
 
 __error__() {
   case $* in
-  --app) msg="Application not found in PATH" ;;
-  --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
-  --extension) msg="Missing the .nix extension
+    --app) msg="Application not found in PATH" ;;
+    --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
+    --extension) msg="Missing the .nix extension
    CONFIG: $NIXOS_CONFIG" ;;
-  *) ;;
+    *) ;;
   esac
 
   printf "\n🟥 %s\n" "$msg"
@@ -140,10 +140,10 @@ __error__() {
 
 __test__() {
   case $1 in
-  --flake) echo "NixOS_FLAKE: $NixOS_FLAKE" ;;
-  --config) echo "NIXOS_CONFIG: $NIXOS_CONFIG" ;;
-  --rebuild) echo "REBUILD: $rebuild" ;;
-  --clean) echo "GC: $clean" ;;
+    --flake) echo "NixOS_FLAKE: $NixOS_FLAKE" ;;
+    --config) echo "NIXOS_CONFIG: $NIXOS_CONFIG" ;;
+    --rebuild) echo "REBUILD: $rebuild" ;;
+    --clean) echo "GC: $clean" ;;
   esac
 
   echo "OPTS REBUILD: $rebuild"

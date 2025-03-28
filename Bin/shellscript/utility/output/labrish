@@ -11,10 +11,10 @@ line_break=true
 
 for arg in "$@"; do
   case "$arg" in
-  -n | --noline)
-    shift
-    unset line_break
-    ;;
+    -n | --noline)
+      shift
+      unset line_break
+      ;;
   esac
 
   if [ "$line_break" ]; then

@@ -4,7 +4,7 @@
 scr_name="path_convert"
 scr_description="Determine the given path and convert it to work on the next OS between Windows and Unix."
 scr_usage=$(
-  cat <<'HELP'
+  cat << 'HELP'
 Usage: $scr_name [OPTIONS] [PATH to CONVERT]
 
 DESCRIPTION:
@@ -52,61 +52,61 @@ parse_input() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-    -h | --help)
-      print_help
-      exit
-      ;;
-    -d | --verbose)
-      verbosity=2
-      ;;
-    -p | --prefix)
-      prefix="$2"
-      shift
-      ;;
-    -c | --clip)
-      clip=true
-      ;;
-    -q | --quiet)
-      verbosity=0
-      ;;
-    *)
-      validate_path --quiet "$1" || exit 1
+      -h | --help)
+        print_help
+        exit
+        ;;
+      -d | --verbose)
+        verbosity=2
+        ;;
+      -p | --prefix)
+        prefix="$2"
+        shift
+        ;;
+      -c | --clip)
+        clip=true
+        ;;
+      -q | --quiet)
+        verbosity=0
+        ;;
+      *)
+        validate_path --quiet "$1" || exit 1
 
-      input_path="$(validate_path "$1")"
-      # input_path_type="$(validate_path --type "$input_path")"
+        input_path="$(validate_path "$1")"
+        # input_path_type="$(validate_path --type "$input_path")"
 
-      # # Check for path argument
-      # if [ "$1" ]; then
-      #   validate_path "$1" || exit 1
-      # else
-      #   error="Missing Path Argument"
-      #   label="Input Path"
-      #   sample="C:\\Users\\John\\.bashrc or /home/John/.bashrc"
-      #   exit_type="exit"
-      #   exit_code=1
-      #   message="$(
-      #     printf "%s Error: %s\n" "$label" "$error"
-      #     printf "Expected: Path (eg. %s )\n" "$sample"
-      #   )"
-      # Check for path argument
-      # if validate_path "$1"; then
-      #   input_path="$1"
-      #   input_path_type="$(validate_path --type "$input_path")"
-      # else
-      #   error="Missing Path Argument"
-      #   label="Input Path"
-      #   sample="C:\\Users\\John\\.bashrc or /home/John/.bashrc"
-      #   exit_type="exit"
-      #   exit_code=1
-      #   message="$(
-      #     printf "%s Error: %s\n" "$label" "$error"
-      #     printf "Expected: Path (eg. %s )\n" "$sample"
-      #   )"
+        # # Check for path argument
+        # if [ "$1" ]; then
+        #   validate_path "$1" || exit 1
+        # else
+        #   error="Missing Path Argument"
+        #   label="Input Path"
+        #   sample="C:\\Users\\John\\.bashrc or /home/John/.bashrc"
+        #   exit_type="exit"
+        #   exit_code=1
+        #   message="$(
+        #     printf "%s Error: %s\n" "$label" "$error"
+        #     printf "Expected: Path (eg. %s )\n" "$sample"
+        #   )"
+        # Check for path argument
+        # if validate_path "$1"; then
+        #   input_path="$1"
+        #   input_path_type="$(validate_path --type "$input_path")"
+        # else
+        #   error="Missing Path Argument"
+        #   label="Input Path"
+        #   sample="C:\\Users\\John\\.bashrc or /home/John/.bashrc"
+        #   exit_type="exit"
+        #   exit_code=1
+        #   message="$(
+        #     printf "%s Error: %s\n" "$label" "$error"
+        #     printf "Expected: Path (eg. %s )\n" "$sample"
+        #   )"
 
-      #   printf "%s\n" "$message"
-      #   eval "$exit_type" "$exit_code"
-      # fi
-      ;;
+        #   printf "%s\n" "$message"
+        #   eval "$exit_type" "$exit_code"
+        # fi
+        ;;
     esac
     shift
   done
@@ -122,45 +122,45 @@ validate_path() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-    --quiet) check_path=true ;;
-    --type) check_type=true ;;
-    -w | --win*) path_type="Windows" ;;
-    -u | --unix) path_type="Unix" ;;
-    *)
-      # Check for path argument
-      if [ "$1" ]; then
-        # path="$1"
-        case "$path" in
-        *\\*) path="$(printf "%s" "$1" | tr '\\' '/')" ;;
-        *//*) path="$(printf "%s" "$1" | tr -s "/")" ;;
-        !*/*)
-          printf "Slash missing in path: %s\n" "$1"
+      --quiet) check_path=true ;;
+      --type) check_type=true ;;
+      -w | --win*) path_type="Windows" ;;
+      -u | --unix) path_type="Unix" ;;
+      *)
+        # Check for path argument
+        if [ "$1" ]; then
+          # path="$1"
+          case "$path" in
+            *\\*) path="$(printf "%s" "$1" | tr '\\' '/')" ;;
+            *//*) path="$(printf "%s" "$1" | tr -s "/")" ;;
+            !*/*)
+              printf "Slash missing in path: %s\n" "$1"
+              return 1
+              ;;
+              # {
+              #   regex='^(\.|/)?[a-zA-Z0-9_-]+(/[a-zA-Z0-9_:./-]+)*$'
+              #   [ "$path" = "/" ] ||
+              #     printf "%s" "$path" |
+              #     grep --extended-regexp --quiet "$regex"
+              # } || {
+              # regex='[^a-zA-Z0-9_.:/-]'
+              # printf \
+              #   "Invalid characters found in the path: '%s'\nPath: %s\n\n" \
+              #   "$(
+              #     printf "%s" "$path" |
+              #       grep --extended-regexp --only-matching "$regex" |
+              #       uniq | tr '\n' ' '
+              #   )" \
+              #   "$path"
+              # return 1
+              # }
+              # ;;
+          esac
+        else
+          printf "Missing Path Argument"
           return 1
-          ;;
-          # {
-          #   regex='^(\.|/)?[a-zA-Z0-9_-]+(/[a-zA-Z0-9_:./-]+)*$'
-          #   [ "$path" = "/" ] ||
-          #     printf "%s" "$path" |
-          #     grep --extended-regexp --quiet "$regex"
-          # } || {
-          # regex='[^a-zA-Z0-9_.:/-]'
-          # printf \
-          #   "Invalid characters found in the path: '%s'\nPath: %s\n\n" \
-          #   "$(
-          #     printf "%s" "$path" |
-          #       grep --extended-regexp --only-matching "$regex" |
-          #       uniq | tr '\n' ' '
-          #   )" \
-          #   "$path"
-          # return 1
-          # }
-          # ;;
-        esac
-      else
-        printf "Missing Path Argument"
-        return 1
-      fi
-      ;;
+        fi
+        ;;
     esac
     shift
   done
@@ -188,17 +188,17 @@ validate_path() {
 
 parse_output() {
   case "$verbosity" in
-  0) ;;
-  1)
-    printf "%s\n" "$output_path"
-    ;;
-  *)
-    printf "Path Input: %s\n" "$input_path"
-    printf "Path Input Type: %s\n" "$input_path_type"
-    printf "Path Output: %s\n" "$output_path"
-    echo "EXIT CODE: $exit_code"
-    echo "Check Type: $check_type"
-    ;;
+    0) ;;
+    1)
+      printf "%s\n" "$output_path"
+      ;;
+    *)
+      printf "Path Input: %s\n" "$input_path"
+      printf "Path Input Type: %s\n" "$input_path_type"
+      printf "Path Output: %s\n" "$output_path"
+      echo "EXIT CODE: $exit_code"
+      echo "Check Type: $check_type"
+      ;;
   esac
 
   [ "$clip" ] && send_to_clipboard "$path"
@@ -213,10 +213,10 @@ convert_to_linux_path() {
   path="$1"
 
   case "$path" in
-  *:/*)
-    printf "Invalid windows path (%s) missing :/" "$path"
-    return 1
-    ;;
+    *:/*)
+      printf "Invalid windows path (%s) missing :/" "$path"
+      return 1
+      ;;
   esac
 
   # Replace backslashes with forward slashes
@@ -237,8 +237,8 @@ convert_to_linux_path() {
 
   # Check if the drive letter contains only one letter and has a length of 1
   if
-    [ "${#drive}" -eq 1 ] &&
-      printf "%s" "$drive" | grep -Eq '^[A-Za-z]$'
+    [ "${#drive}" -eq 1 ] \
+      && printf "%s" "$drive" | grep -Eq '^[A-Za-z]$'
   then
     # Remove the colon from the drive letter
     drive=${drive%:}
@@ -322,8 +322,9 @@ validate_nix_path() {
   path=${path%/} # Remove trailing slash
   path=/${path}  # Re-add leading slash
   path=$(
-    printf "%s" "$path" |
-      tr '\\' '/' |
+    printf "%s" "$path" \
+      | tr '\\' '/' \
+      |
       # Convert backslashes to forward slashes
       tr -s "/" # Remove repeated slashes
   )
@@ -334,9 +335,9 @@ validate_nix_path() {
   regex='^(\.|/)?[a-zA-Z0-9_-]+(/[a-zA-Z0-9_./-]+)*$'
 
   if
-    [ "$path" = "/" ] ||
-      printf "%s" "$path" |
-      grep --extended-regexp --quiet "$regex"
+    [ "$path" = "/" ] \
+      || printf "%s" "$path" \
+      | grep --extended-regexp --quiet "$regex"
   then
     # Return the valid path
     printf "%s\n" "$path"
@@ -345,9 +346,9 @@ validate_nix_path() {
     regex='[^a-zA-Z0-9_./-]'
 
     invalid_chars=$(
-      printf "%s" "$path" |
-        grep --extended-regexp --only-matching "$regex" |
-        uniq | tr '\n' ' '
+      printf "%s" "$path" \
+        | grep --extended-regexp --only-matching "$regex" \
+        | uniq | tr '\n' ' '
     )
     printf \
       "Invalid characters found in the path: '%s'\nPath: %s\n" \
@@ -373,8 +374,9 @@ validate_win_path() {
   if printf "%s" "$path" | grep --quiet '\\//'; then
     #@ Manage problematic slashes
     path=$(
-      printf "%s" "$path" |
-        tr '\\' '/' |
+      printf "%s" "$path" \
+        | tr '\\' '/' \
+        |
         # Convert backslashes to forward slashes
         tr -s "/" # Remove repeated slashes
     )
@@ -420,9 +422,9 @@ validate_win_path() {
   regex='^/[A-Za-z]:/'
 
   if
-    [ "$path" = "/" ] ||
-      printf "%s" "$path" |
-      grep --extended-regexp --quiet "$regex"
+    [ "$path" = "/" ] \
+      || printf "%s" "$path" \
+      | grep --extended-regexp --quiet "$regex"
   then
     # Return the valid path
     printf "%s\n" "$path"
@@ -433,9 +435,9 @@ validate_win_path() {
     printf \
       "Invalid characters found in the path: '%s'\nPath: %s\n\n" \
       "$(
-        printf "%s" "$path" |
-          grep --extended-regexp --only-matching "$regex" |
-          uniq | tr '\n' ' '
+        printf "%s" "$path" \
+          | grep --extended-regexp --only-matching "$regex" \
+          | uniq | tr '\n' ' '
       )" \
       "$path"
     return 1

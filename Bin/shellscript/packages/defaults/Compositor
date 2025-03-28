@@ -5,8 +5,8 @@ _APP="picom"
 _ARGS="--config $DOTS_CFG/utilities/picom/picom.conf"
 
 #@ Validate app availability
-[ "${WAYLAND_DISPLAY}" ] &&
-  weHave --check --verbose "$_APP"
+[ "${WAYLAND_DISPLAY}" ] \
+  && weHave --check --verbose "$_APP"
 
 #@ Kill all active instances of the app
 murda "$_APP"

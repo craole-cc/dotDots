@@ -10,12 +10,12 @@ __info__() {
 __opts__() {
   while [ "$#" -ge 1 ]; do
     case $1 in
-    -j | --cd) origDIR="$2" ;;
-    -d | --workdir | --dir) workDIR="$2" ;;
-    -m | --message) message="$2" ;;
-    -c | --command) command="$2" ;;
-    -h | --help) __help__ ;;
-    *) ;;
+      -j | --cd) origDIR="$2" ;;
+      -d | --workdir | --dir) workDIR="$2" ;;
+      -m | --message) message="$2" ;;
+      -c | --command) command="$2" ;;
+      -h | --help) __help__ ;;
+      *) ;;
     esac
     shift
   done
@@ -60,9 +60,9 @@ __err__() {
 
   #@ Handle errors and exit with an error flag
   case "$1" in
-  --dir) __msg__ --err-dir "$2" ;;
-  --cd) __msg__ --err-cd "$2" ;;
-  *) ;;
+    --dir) __msg__ --err-dir "$2" ;;
+    --cd) __msg__ --err-cd "$2" ;;
+    *) ;;
   esac
 
   #@ Exit with an error
@@ -72,11 +72,11 @@ __err__() {
 __msg__() {
   [ "$verbose" ] || return
   case "$1" in
-  --cd) printf "Current Directory: '%s'\n" "$2" ;;
-  --err-dir) printf "%s is not a valid directory" "$2" ;;
-  --usage) printf "::USAGE:: %s [directory] [commands...]\n %s %s %s\n" \
-    "$_cmd_NAME" "$_cmd_NAME" "$DOTS" "touch file.test" ;;
-  *) ;;
+    --cd) printf "Current Directory: '%s'\n" "$2" ;;
+    --err-dir) printf "%s is not a valid directory" "$2" ;;
+    --usage) printf "::USAGE:: %s [directory] [commands...]\n %s %s %s\n" \
+      "$_cmd_NAME" "$_cmd_NAME" "$DOTS" "touch file.test" ;;
+    *) ;;
   esac
 }
 
@@ -90,20 +90,20 @@ __cd__() {
 
 __process__() {
   case "$origDIR" in
-  "$workDIR"/*)
-    #@ Execute the command
-    eval "$command"
-    ;;
-  *)
-    #@ Enter the target/work directory
-    __cd__ "$workDIR"
+    "$workDIR"/*)
+      #@ Execute the command
+      eval "$command"
+      ;;
+    *)
+      #@ Enter the target/work directory
+      __cd__ "$workDIR"
 
-    #@ Execute the command
-    eval "$command"
+      #@ Execute the command
+      eval "$command"
 
-    #@ Return to initial directory
-    __cd__ "$origDIR"
-    ;;
+      #@ Return to initial directory
+      __cd__ "$origDIR"
+      ;;
   esac
 }
 
@@ -119,8 +119,8 @@ __test__() {
 
 __exit__() {
   case "$1" in
-  --error) exit 1 ;;
-  *) exit 0 ;;
+    --error) exit 1 ;;
+    *) exit 0 ;;
   esac
 }
 

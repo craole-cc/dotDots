@@ -1,7 +1,7 @@
 #!/bin/sh
 
 weHave() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 get_app() {
@@ -26,11 +26,11 @@ get_app() {
 
 get_cmd() {
   case "$(get_app)" in
-  flameshot)
-    ss_full() { flameshot full; }
-    ss_screen() { flameshot screen; }
-    ss_section() { flameshot gui; }
-    ;;
+    flameshot)
+      ss_full() { flameshot full; }
+      ss_screen() { flameshot screen; }
+      ss_section() { flameshot gui; }
+      ;;
   esac
 }
 process_core() {
@@ -48,10 +48,10 @@ parse_arguments() {
   #@ Accept user options
   while [ $# -ge 1 ]; do
     case "$1" in
-    --screen) area="screen" ;;
-    --snip | --section | --gui) area="section" ;;
-    --full) area="full" ;;
-    *) [ -f "$1" ] && dir="$(dirname "$1")" ;;
+      --screen) area="screen" ;;
+      --snip | --section | --gui) area="section" ;;
+      --full) area="full" ;;
+      *) [ -f "$1" ] && dir="$(dirname "$1")" ;;
     esac
     shift
   done

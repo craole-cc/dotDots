@@ -14,8 +14,8 @@ __opts__() {
 
 __env__() {
   case "${bar_to_use}" in
-  waybar) bar_rc="/storage/DOTS/Config/tools/widgets/waybar/config" ;;
-  *) ;;
+    waybar) bar_rc="/storage/DOTS/Config/tools/widgets/waybar/config" ;;
+    *) ;;
   esac
   # . "${DOTS_ENV_CTX}/${bar_to_use}" &&
   #     [ -f "$BAR_CONF" ] && bar_rc="$BAR_CONF"

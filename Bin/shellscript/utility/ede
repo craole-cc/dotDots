@@ -7,8 +7,8 @@ Should we use the system's default editor [Y|n]?
   "
   read -r OPT
   case $OPT in
-  n | N) __opt__ "$@" ;;
-  ^y* | ^Y* | *) "$EDITOR" "$@" ;;
+    n | N) __opt__ "$@" ;;
+    ^y* | ^Y* | *) "$EDITOR" "$@" ;;
   esac
 }
 
@@ -38,25 +38,25 @@ __sel__() {
   eko "Enter the name of the editor we should use?"
   read -r INPUT
   eddor="$(
-    echo "$INPUT" |
-      awk '{ gsub(/ /,""); print tolower($0) }'
+    echo "$INPUT" \
+      | awk '{ gsub(/ /,""); print tolower($0) }'
   )"
 
   case "$eddor" in
-  *code*)
-    __vsc__ "$@"
-    ;;
-  *vim*)
-    __vim__ "$@"
-    ;;
-  *)
-    if weHave "$eddor"; then
-      "$eddor" "$@"
-    else
-      eko ":x: Editor not found."
-      __sys__ "$@"
-    fi
-    ;;
+    *code*)
+      __vsc__ "$@"
+      ;;
+    *vim*)
+      __vim__ "$@"
+      ;;
+    *)
+      if weHave "$eddor"; then
+        "$eddor" "$@"
+      else
+        eko ":x: Editor not found."
+        __sys__ "$@"
+      fi
+      ;;
   esac
 }
 
@@ -72,31 +72,31 @@ __opt__() {
 
   read -r n
   case $n in
-  1) "$EDITOR" "$@" ;;
-  2) __vsc__ "$@" ;;
-  3) __vim__ "$@" ;;
-  4) __sel__ "$@" ;;
-  5) wat "$@" ;;
-  6) ;;
-  *) eo ":x: Invalid Selection" ;;
+    1) "$EDITOR" "$@" ;;
+    2) __vsc__ "$@" ;;
+    3) __vim__ "$@" ;;
+    4) __sel__ "$@" ;;
+    5) wat "$@" ;;
+    6) ;;
+    *) eo ":x: Invalid Selection" ;;
   esac
 }
 
 for file in "$@"; do
   case "$file" in
-  -c | --code)
-    __vsc__ "$file"
-    ;;
-  -v | --vim)
-    shift
-    __vim__ "$file"
-    ;;
-  -R | --root)
-    __sys__ "$file"
-    ;;
-  *)
-    __sys__ "$file"
-    ;;
+    -c | --code)
+      __vsc__ "$file"
+      ;;
+    -v | --vim)
+      shift
+      __vim__ "$file"
+      ;;
+    -R | --root)
+      __sys__ "$file"
+      ;;
+    *)
+      __sys__ "$file"
+      ;;
   esac
 done
 

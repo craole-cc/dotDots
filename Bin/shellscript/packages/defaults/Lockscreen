@@ -9,6 +9,6 @@ if weHave betterlockscreen; then
 fi
 
 case $1 in
--u | --update) __update__ ;;
-*) __lock__ ;;
+  -u | --update) __update__ ;;
+  *) __lock__ ;;
 esac

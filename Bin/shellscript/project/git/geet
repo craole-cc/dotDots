@@ -16,7 +16,7 @@ establish_metadata() {
   _cmd_DEPENDENCIES="git, cd, pwd, dirname, basename, command, printf, tr"
   _cmd_USAGE="$_cmd_NAME [OPTIONS] <MESSAGE>"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 ::------------------------------------------------------------::
                           $_cmd_NAME ($_cmd_VERSION)
 ::------------------------------------------------------------::
@@ -92,14 +92,14 @@ establish_defaults() {
 
   #| Paths
   #TODO: this doesn't wor because it need eval
-  git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
-    git_dir_super="$(git rev-parse --show-superproject-working-tree)"
+  git rev-parse --show-superproject-working-tree > /dev/null 2>&1 \
+    && git_dir_super="$(git rev-parse --show-superproject-working-tree)"
 
-  git rev-parse --show-toplevel >/dev/null 2>&1 &&
-    git_dir="$(git rev-parse --show-toplevel)"
+  git rev-parse --show-toplevel > /dev/null 2>&1 \
+    && git_dir="$(git rev-parse --show-toplevel)"
 
-  git remote get-url origin >/dev/null 2>&1 &&
-    actual_repo="$(git remote get-url origin)"
+  git remote get-url origin > /dev/null 2>&1 \
+    && actual_repo="$(git remote get-url origin)"
 
   target_repo="${target_repo:-$actual_repo}"
   geet_dir="${git_dir_super:-$git_dir}"
@@ -124,100 +124,100 @@ establish_environment() {
   #@ Parse arguments from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -P | --path)
-      [ -d "$2" ] && {
-        geet_dir="$2"
-        shift
-      }
-      ;;
-    -p | --pull)
-      pull=1
-      ;;
-    -i | --ignore)
-      ignore=1
-      ;;
-    -D | --diff)
-      diff=1
-      ;;
-    -s | --status)
-      status=1
-      ;;
-    -a | --add)
-      add=1
-      ;;
-    -c | --commit)
-      commit=1
-      [ "$2" ] && {
+      -P | --path)
+        [ -d "$2" ] && {
+          geet_dir="$2"
+          shift
+        }
+        ;;
+      -p | --pull)
+        pull=1
+        ;;
+      -i | --ignore)
+        ignore=1
+        ;;
+      -D | --diff)
+        diff=1
+        ;;
+      -s | --status)
+        status=1
+        ;;
+      -a | --add)
+        add=1
+        ;;
+      -c | --commit)
+        commit=1
+        [ "$2" ] && {
+          msg="$2"
+          shift
+        }
+        ;;
+      -u | --push)
+        push=1
+        ;;
+      -R | --sub* | --recurse)
+        recurse=1
+        [ "$2" ] && {
+          submodule="$2"
+          shift
+        }
+        ;;
+      -q | --quiet)
+        unset verbose
+        ;;
+      --gitisuper | --git-dir-super)
+        get_geet_dir=1
+        ;;
+      --gitis | --git-dir)
+        get_git_dir=1
+        ;;
+      -h | --help)
+        display_info --usage
+        ;;
+      -v | --version)
+        display_info --version
+        ;;
+      -vv | --verbose)
+        verbose=1
+        ;;
+      -d | --debug)
+        debug=1
+        ;;
+      -m | --m*)
         msg="$2"
-        shift
-      }
-      ;;
-    -u | --push)
-      push=1
-      ;;
-    -R | --sub* | --recurse)
-      recurse=1
-      [ "$2" ] && {
-        submodule="$2"
-        shift
-      }
-      ;;
-    -q | --quiet)
-      unset verbose
-      ;;
-    --gitisuper | --git-dir-super)
-      get_geet_dir=1
-      ;;
-    --gitis | --git-dir)
-      get_git_dir=1
-      ;;
-    -h | --help)
-      display_info --usage
-      ;;
-    -v | --version)
-      display_info --version
-      ;;
-    -vv | --verbose)
-      verbose=1
-      ;;
-    -d | --debug)
-      debug=1
-      ;;
-    -m | --m*)
-      msg="$2"
-      ;;
-    --ci) ci=1 ;;
-    -*) ;;
-      # TODO: Add support for initalization
-      # --key)
-      # 	[ "$2" ] || display_info --error "SSH Key required"
-      # 	key="$2"
-      # 	;;
-      # -r | --repo)
-      # 	[ "$2" ] || display_info --error \
-      # 		"Git repository required"
-      # 	target_repo="$2"
-      # 	;;
-      # --user)
-      # 	[ "$2" ] ||
-      # 		display_info --error \
-      # 			"A git repository url is required"
-      # 	user="$2"
-      # 	;;
-      # --email)
-      # 	[ "$2" ] ||
-      # 		display_info --error \
-      # 			Aye"A git repository url is required"
-      # 	email="$2"
-      # 	;;
-      # --dir)
-      # 	[ "$2" ] || display_info --error \
-      # 		"A local git directory is required"
-      # 	dir="$2"
-      # ;;
-    *)
-      msg="$1"
-      ;;
+        ;;
+      --ci) ci=1 ;;
+      -*) ;;
+        # TODO: Add support for initalization
+        # --key)
+        # 	[ "$2" ] || display_info --error "SSH Key required"
+        # 	key="$2"
+        # 	;;
+        # -r | --repo)
+        # 	[ "$2" ] || display_info --error \
+        # 		"Git repository required"
+        # 	target_repo="$2"
+        # 	;;
+        # --user)
+        # 	[ "$2" ] ||
+        # 		display_info --error \
+        # 			"A git repository url is required"
+        # 	user="$2"
+        # 	;;
+        # --email)
+        # 	[ "$2" ] ||
+        # 		display_info --error \
+        # 			Aye"A git repository url is required"
+        # 	email="$2"
+        # 	;;
+        # --dir)
+        # 	[ "$2" ] || display_info --error \
+        # 		"A local git directory is required"
+        # 	dir="$2"
+        # ;;
+      *)
+        msg="$1"
+        ;;
     esac
 
     shift
@@ -235,8 +235,8 @@ establish_validators() {
 
     #@ Validate dependencies as executable files
     for dependency in $(parse_alnum "$_cmd_DEPENDENCIES"); do
-      command -v "$dependency" >/dev/null 2>&1 ||
-        if [ "$missing_deps" ]; then
+      command -v "$dependency" > /dev/null 2>&1 \
+        || if [ "$missing_deps" ]; then
           missing_deps="$missing_deps, $dependency"
         else
           missing_deps="$dependency"
@@ -248,8 +248,8 @@ establish_validators() {
 
     #@ Count the number of missing dependencies
     missing_deps_count="$(
-      printf "%s\n" "$missing_deps" |
-        tr ',' '\n' | wc -l
+      printf "%s\n" "$missing_deps" \
+        | tr ',' '\n' | wc -l
     )"
 
     #@ Update the error message based on the count
@@ -335,14 +335,14 @@ establish_validators() {
       read -r response
 
       case "$response" in
-      [yY])
-        return 0
-        ;;
-      *)
-        logline --error \
-          "Invalid Submodule. See valid submodules" "$@"
-        exit 1
-        ;;
+        [yY])
+          return 0
+          ;;
+        *)
+          logline --error \
+            "Invalid Submodule. See valid submodules" "$@"
+          exit 1
+          ;;
       esac
     fi
 
@@ -364,7 +364,7 @@ establish_utilities() {
     paragraph=""
     delimiter=" |> "
 
-    if type notify-send >/dev/null 2>&1; then
+    if type notify-send > /dev/null 2>&1; then
       notifier="notify-send"
     fi
 
@@ -373,110 +373,110 @@ establish_utilities() {
 
     #@ Tag the last line to prevent printing a blank line
     case "$@" in
-    *"-last"* | *"-l"* | *"-fatal"*)
-      last_line=1
-      ;;
-    *"--new"* | *"-n"*)
-      unset last_line
-      ;;
+      *"-last"* | *"-l"* | *"-fatal"*)
+        last_line=1
+        ;;
+      *"--new"* | *"-n"*)
+        unset last_line
+        ;;
     esac
 
     #@ Parse options
     while [ "$#" -ge 1 ]; do
       case "$1" in
-      --info | --error | --warn*)
-        special=1
-        case "$1" in
-        --info)
-          [ "$verbose" ] && label="INFO: "
-          code="${code:-0}"
-          ;;
-        --warn*)
-          label="WARN: "
-          code="${code:-1}"
-          ;;
-        --error)
-          label="ERROR: "
-          code="${code:-1}"
-          ;;
-        esac
+        --info | --error | --warn*)
+          special=1
+          case "$1" in
+            --info)
+              [ "$verbose" ] && label="INFO: "
+              code="${code:-0}"
+              ;;
+            --warn*)
+              label="WARN: "
+              code="${code:-1}"
+              ;;
+            --error)
+              label="ERROR: "
+              code="${code:-1}"
+              ;;
+          esac
 
-        [ "$#" -eq 2 ] && info="${label}${2}"
-        [ "$#" -gt 2 ] && {
-          label="${label}${2}"
-          info="${label}${delimiter}${3}"
+          [ "$#" -eq 2 ] && info="${label}${2}"
+          [ "$#" -gt 2 ] && {
+            label="${label}${2}"
+            info="${label}${delimiter}${3}"
 
-          #@ Generate padding to place before each info
-          len_label="${#label}"
-          len_delim="${#delimiter}"
-          padding_length=$((len_label + len_delim))
-          info_padding="$(printf "%-${padding_length}s")"
+            #@ Generate padding to place before each info
+            len_label="${#label}"
+            len_delim="${#delimiter}"
+            padding_length=$((len_label + len_delim))
+            info_padding="$(printf "%-${padding_length}s")"
 
-          #@ Append additional info with leading padding and new line
-          while [ "$#" -gt 3 ]; do
-            case "$4" in -*) break ;; esac
-            info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+            #@ Append additional info with leading padding and new line
+            while [ "$#" -gt 3 ]; do
+              case "$4" in -*) break ;; esac
+              info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
+              shift
+            done
+          }
+          ;;
+        --code)
+          special=1
+          case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
+          ;;
+        --fatal)
+          special=1
+          fatal=1
+          case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
+          ;;
+        --note)
+          special=1
+          info="Note: "
+          while [ "$#" -gt 1 ]; do
+            case "$2" in -*) break ;; esac
+            info="${info}${2}"
             shift
           done
-        }
-        ;;
-      --code)
-        special=1
-        case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
-        ;;
-      --fatal)
-        special=1
-        fatal=1
-        case "$2" in '' | *[!0-9]*) code=1 ;; *) code="$2" ;; esac
-        ;;
-      --note)
-        special=1
-        info="Note: "
-        while [ "$#" -gt 1 ]; do
-          case "$2" in -*) break ;; esac
-          info="${info}${2}"
-          shift
-        done
-        ;;
-      --notify) notify=1 ;;
-      --delim*)
-        delimiter="$(printf "%s" "$2")"
-        ;;
-      -l | --last | --line-last) ;;
-      -n | --line | --line-new)
-        [ "$2" ] && {
-          info="$(printf "%s\n%s" "$info" "$2")"
-          shift
-        }
-        ;;
-      -p | --paragraph)
-        [ "$2" ] && {
-          info="$(printf "%s\n%s" "$info" "$2")"
-          shift
-        }
-        paragraph=1
-        ;;
-      -s | --space)
-        [ "$2" ] && {
-          info="$(printf "%s %s" "$info" "$2")"
-          shift
-        }
-        ;;
-      -j | --join)
-        [ "$2" ] && {
-          info="$(printf "%s%s" "$info" "$2")"
-          shift
-        }
-        ;;
-      -*) ;;
-      *)
-        [ "$special" ] ||
-          if [ "$info" ]; then
-            info="${info} ${1}"
-          else
-            info="$1"
-          fi
-        ;;
+          ;;
+        --notify) notify=1 ;;
+        --delim*)
+          delimiter="$(printf "%s" "$2")"
+          ;;
+        -l | --last | --line-last) ;;
+        -n | --line | --line-new)
+          [ "$2" ] && {
+            info="$(printf "%s\n%s" "$info" "$2")"
+            shift
+          }
+          ;;
+        -p | --paragraph)
+          [ "$2" ] && {
+            info="$(printf "%s\n%s" "$info" "$2")"
+            shift
+          }
+          paragraph=1
+          ;;
+        -s | --space)
+          [ "$2" ] && {
+            info="$(printf "%s %s" "$info" "$2")"
+            shift
+          }
+          ;;
+        -j | --join)
+          [ "$2" ] && {
+            info="$(printf "%s%s" "$info" "$2")"
+            shift
+          }
+          ;;
+        -*) ;;
+        *)
+          [ "$special" ] \
+            || if [ "$info" ]; then
+              info="${info} ${1}"
+            else
+              info="$1"
+            fi
+          ;;
       esac
       shift
     done
@@ -496,33 +496,33 @@ establish_utilities() {
   display_info() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
-      --usage)
-        logline "$_cmd_USAGEGUIDE"
-        exit=1
-        ;;
-      --version)
-        logline "$_cmd_VERSION"
-        exit=1
-        ;;
-      --error*)
-        exit=1
-        [ "$verbose" ] && return
-        case "$1" in
-        *path) printf "Invalid path: %s" "$2" ;;
-        *sym) printf "Circular symbolic link: %s" "$2" ;;
-        *info) printf "Invalid verbosity level: %s" "$2" ;;
-        *arg) printf "<target_path> required \nUsage: %s\n" "$_cmd_USAGE" ;;
-        *opt) printf "Unrecognized option: %s" "$2" ;;
-        *cd) printf "Change directory operation failed" ;;
-        esac
-        ;;
-      # --error)
-      #   code="$2" && shift 2
-      #   logline --error "$@" -ll
-      #   exit=1
-      #   ;;
-      --code) code="$2" ;;
-      *) logline --info "$@" -ll ;;
+        --usage)
+          logline "$_cmd_USAGEGUIDE"
+          exit=1
+          ;;
+        --version)
+          logline "$_cmd_VERSION"
+          exit=1
+          ;;
+        --error*)
+          exit=1
+          [ "$verbose" ] && return
+          case "$1" in
+            *path) printf "Invalid path: %s" "$2" ;;
+            *sym) printf "Circular symbolic link: %s" "$2" ;;
+            *info) printf "Invalid verbosity level: %s" "$2" ;;
+            *arg) printf "<target_path> required \nUsage: %s\n" "$_cmd_USAGE" ;;
+            *opt) printf "Unrecognized option: %s" "$2" ;;
+            *cd) printf "Change directory operation failed" ;;
+          esac
+          ;;
+        # --error)
+        #   code="$2" && shift 2
+        #   logline --error "$@" -ll
+        #   exit=1
+        #   ;;
+        --code) code="$2" ;;
+        *) logline --info "$@" -ll ;;
       esac
       shift
     done
@@ -537,10 +537,10 @@ establish_utilities() {
     #@ Input validation
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --get-home) get_home=1 ;;
-      --get-name) get_name=1 ;;
-      --path | --target) _path="$2" ;;
-      *) _path="$1" ;;
+        --get-home) get_home=1 ;;
+        --get-name) get_name=1 ;;
+        --path | --target) _path="$2" ;;
+        *) _path="$1" ;;
       esac
       shift
     done
@@ -550,7 +550,7 @@ establish_utilities() {
 
     #@ Change to directory containing the link/file
     #@ Get absolute path of the directory
-    _dir="$(cd "$_dir" 2>/dev/null && pwd)" || return 1
+    _dir="$(cd "$_dir" 2> /dev/null && pwd)" || return 1
 
     #@ Resolve symbolic links recursively
     while [ -L "$_dir/$_name" ]; do
@@ -560,20 +560,20 @@ establish_utilities() {
           -maxdepth 1 \
           -name "$_name" \
           -printf "%l\n" \
-          2>/dev/null
+          2> /dev/null
       )"
       [ "$_target" ] || break
 
       #@ Handle relative vs absolute paths in symlink target
       case "$_target" in
-      /*) #@ Absolute path
-        _dir="$(dirname "$_target")"
-        _name="$(basename "$_target")"
-        ;;
-      *) #@ Relative path
-        _dir="$(cd "$_dir" && cd "$(dirname "$_target")" && pwd)"
-        _name="$(basename "$_target")"
-        ;;
+        /*) #@ Absolute path
+          _dir="$(dirname "$_target")"
+          _name="$(basename "$_target")"
+          ;;
+        *) #@ Relative path
+          _dir="$(cd "$_dir" && cd "$(dirname "$_target")" && pwd)"
+          _name="$(basename "$_target")"
+          ;;
       esac
     done
 
@@ -596,20 +596,20 @@ establish_utilities() {
     url="$1"
 
     case "$url" in
-    *://*:*@*) # URLs with credentials like https://user:pass@host
-      printf '%s' "${url}" | sed -E 's/(.*:)[^@]*(@.*)/\1*****\2/'
-      ;;
-    *@*) # SSH URLs like git@github.com:user/repo.git
-      #TODO: This is not working
-      printf '%s' "${url}" | sed -E 's/(@[^:]*):(.*)/@\1:\2/'
-      ;;
-    *) # Plain URLs like https://github.com/user/repo.git or relative paths
-      printf '%s' "${url}"
-      ;;
+      *://*:*@*) # URLs with credentials like https://user:pass@host
+        printf '%s' "${url}" | sed -E 's/(.*:)[^@]*(@.*)/\1*****\2/'
+        ;;
+      *@*) # SSH URLs like git@github.com:user/repo.git
+        #TODO: This is not working
+        printf '%s' "${url}" | sed -E 's/(@[^:]*):(.*)/@\1:\2/'
+        ;;
+      *) # Plain URLs like https://github.com/user/repo.git or relative paths
+        printf '%s' "${url}"
+        ;;
     esac
   }
   work_in() {
-    cd "$1" >/dev/null 2>&1 || {
+    cd "$1" > /dev/null 2>&1 || {
       logline --error \
         "Failed to access the directory" \
         "$1"
@@ -620,15 +620,15 @@ establish_utilities() {
   run_in_dir() {
     while [ "$#" -ge 1 ]; do
       case "$1" in
-      --return) return_dir="$2" ;;
-      --target) target_dir="$2" ;;
-      --command) cmd="$2" ;;
+        --return) return_dir="$2" ;;
+        --target) target_dir="$2" ;;
+        --command) cmd="$2" ;;
       esac
       shift
     done
 
     cd_to() {
-      cd "$1" >/dev/null 2>&1 || {
+      cd "$1" > /dev/null 2>&1 || {
         logline --error \
           "Failed to access the directory" \
           "$1"
@@ -655,7 +655,7 @@ execute_git_actions() {
   [ -n "$ignore" ] && git rm -r --force --cached .
 
   #@ Skip if there are no changes
-  git status --porcelain >/dev/null 2>&1 || return 0
+  git status --porcelain > /dev/null 2>&1 || return 0
 
   #@ Lint
   # treefmt_wrapper || return 1
@@ -681,10 +681,10 @@ execute_git_actions() {
 }
 
 update_message() {
-  last_msg="$(git log >/dev/null 2>&1 && eval git log "$log_fmt")"
+  last_msg="$(git log > /dev/null 2>&1 && eval git log "$log_fmt")"
   default_msg="${last_msg:-"$default_msg"}"
-  [ "$msg" ] ||
-    if [ "$debug" ]; then
+  [ "$msg" ] \
+    || if [ "$debug" ]; then
       msg="$default_msg"
     else
       printf "Enter a commit message [Default: %s ]: " "$default_msg" && read -r msg

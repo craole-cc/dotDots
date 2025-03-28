@@ -12,7 +12,7 @@ establish_env() {
 
   #@ Verbosity
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
-  [1-9] | true) verbose_flag=true ;; esac
+    [1-9] | true) verbose_flag=true ;; esac
 
   #@ OS Type for chmod and chown
   os_type_script="$DOTS/Bin/base/inf/get_os_type"
@@ -47,8 +47,8 @@ get_sources() {
 
   prep_ignore() { #? Update .ignore file
     if [ "$ignore_action" = "EXCLUDE" ]; then
-      grep --line-regexp --quiet "$1" "$ignore_file" ||
-        printf "\n%s" "$1" >>"$ignore_file"
+      grep --line-regexp --quiet "$1" "$ignore_file" \
+        || printf "\n%s" "$1" >> "$ignore_file"
     elif [ "$ignore_action" = "INCLUDE" ]; then
       sed --in-place "/$1/d" "$ignore_file"
     else
@@ -65,8 +65,8 @@ get_sources() {
 
     #? Prep for use with `grep`
     # sed -e 's/^/\//g' -e 's/$/*/g' "$ignore_file" |
-    sed -e 's/^/\//g' "$ignore_file" |
-      tr '\n' '|' | sed '$s/|$/\n/'
+    sed -e 's/^/\//g' "$ignore_file" \
+      | tr '\n' '|' | sed '$s/|$/\n/'
   }
 
   src_include() {
@@ -75,8 +75,8 @@ get_sources() {
         --extended-regexp \
         --invert-match \
         --ignore-case \
-        "$(src_exclude)" |
-        sort
+        "$(src_exclude)" \
+        | sort
     else
       sort
     fi
@@ -101,27 +101,28 @@ process_sources() {
 
   #| Process sources recursively
   for src_path in $(get_sources "$1"); do
-    [ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
-      case ":${XDG_DATA_DIRS}:" in
-      *:"$src_path":*) ;;
-      *)
-        XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
-        [ "$verbose_flag" = true ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
-        ;;
+    [ -d "$src_path" ] && [ "$src_type" = "XDG" ] \
+      && case ":${XDG_DATA_DIRS}:" in
+        *:"$src_path":*) ;;
+        *)
+          XDG_DATA_DIRS="${src_path}${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}"
+          [ "$verbose_flag" = true ] && printf "Appended to XDG_DATA_DIRS: %s\n" "${src_path}"
+          ;;
       esac
 
     #| Update PATH directories
-    [ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
-      case ":${PATH}:" in
-      *:"$src_path":*) ;;
-      *)
-        PATH="${PATH:+$PATH:}$src_path"
-        [ "$verbose_flag" = true ] && printf "Appended to PATH: %s\n" "${src_path}"
-        ;;
+    [ -d "$src_path" ] && [ "$src_type" = "BIN" ] \
+      && case ":${PATH}:" in
+        *:"$src_path":*) ;;
+        *)
+          PATH="${PATH:+$PATH:}$src_path"
+          [ "$verbose_flag" = true ] && printf "Appended to PATH: %s\n" "${src_path}"
+          ;;
       esac
 
     #| Activate Scripts and Variables
-    [ -f "$src_path" ] &&
+    [ -f "$src_path" ] \
+      &&
       #| Make scripts executable
       if [ "$src_type" = "BIN" ]; then
         if [ "$verbose_flag" = true ]; then
@@ -146,62 +147,62 @@ process_sources() {
 initialize_source() {
   #| Core Arguments
   case "$1" in
-  -h | --help)
-    exit_code=0
-    print_usage_guide
-    ;;
-  -v | --version)
-    printf "%s\n" "$version"
-    exit 0
-    ;;
-  -d | --verbose)
-    verbose_flag=true
-    shift
-    ;;
-  -t | --simulate | --test)
-    test_flag=true
-    shift
-    ;;
-  -q | --quiet)
-    unset verbose_flag
-    shift
-    ;;
-  --ignore-file)
-    ignore_file="$2"
-    shift 2
-    ;;
-  *) ;;
+    -h | --help)
+      exit_code=0
+      print_usage_guide
+      ;;
+    -v | --version)
+      printf "%s\n" "$version"
+      exit 0
+      ;;
+    -d | --verbose)
+      verbose_flag=true
+      shift
+      ;;
+    -t | --simulate | --test)
+      test_flag=true
+      shift
+      ;;
+    -q | --quiet)
+      unset verbose_flag
+      shift
+      ;;
+    --ignore-file)
+      ignore_file="$2"
+      shift 2
+      ;;
+    *) ;;
   esac
 
   #| Process Arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --bin) #| Expects a file/directory
-      src_type="BIN"
-      shift
-      ;;
-    --env) #| Expects a file/directory
-      src_type="ENV"
-      shift
-      ;;
-    --xdg) #| Expects a directory
-      src_type="XDG"
-      shift
-      ;;
-    --exclude) #| Expects a string
-      ignore_action="EXCLUDE"
-      shift
-      ;;
-    -I | --include) #| Expects a string
-      ignore_action="INCLUDE"
-      shift
-      ;;
-    -*)
-      printf "Invalid Option: %s\n" "$1"
-      exit_code=1
-      print_usage_guide
-      ;;
-    *) ;;
+      --bin) #| Expects a file/directory
+        src_type="BIN"
+        shift
+        ;;
+      --env) #| Expects a file/directory
+        src_type="ENV"
+        shift
+        ;;
+      --xdg) #| Expects a directory
+        src_type="XDG"
+        shift
+        ;;
+      --exclude) #| Expects a string
+        ignore_action="EXCLUDE"
+        shift
+        ;;
+      -I | --include) #| Expects a string
+        ignore_action="INCLUDE"
+        shift
+        ;;
+      -*)
+        printf "Invalid Option: %s\n" "$1"
+        exit_code=1
+        print_usage_guide
+        ;;
+      *) ;;
     esac
 
     if [ "$test_flag" = true ]; then
@@ -223,8 +224,8 @@ simulate_initialization() {
 }
 
 cleanup() {
-  [ "$reset_flag" = true ] &&
-    rm -rf "$ignore_file"
+  [ "$reset_flag" = true ] \
+    && rm -rf "$ignore_file"
 
   unset -v \
     BIN_ \

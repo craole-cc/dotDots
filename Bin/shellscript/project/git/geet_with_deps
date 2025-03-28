@@ -15,7 +15,7 @@ establish_metadata() {
   _cmd_DESCRIPTION="Simplifies the git update process"
   _cmd_DEPENDENCIES="git"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 ::------------------------------------------------------------::
                           $_cmd_NAME ($_cmd_VERSION)
 ::------------------------------------------------------------::
@@ -87,14 +87,14 @@ establish_defaults() {
   verbose="${verbose:-true}"
 
   # | Paths
-  git rev-parse --show-superproject-working-tree >/dev/null 2>&1 &&
-    git_dir_super="$(git rev-parse --show-superproject-working-tree)"
+  git rev-parse --show-superproject-working-tree > /dev/null 2>&1 \
+    && git_dir_super="$(git rev-parse --show-superproject-working-tree)"
 
-  git rev-parse --show-toplevel >/dev/null 2>&1 &&
-    git_dir="$(git rev-parse --show-toplevel)"
+  git rev-parse --show-toplevel > /dev/null 2>&1 \
+    && git_dir="$(git rev-parse --show-toplevel)"
 
-  git remote get-url origin >/dev/null 2>&1 &&
-    actual_repo="$(git remote get-url origin)"
+  git remote get-url origin > /dev/null 2>&1 \
+    && actual_repo="$(git remote get-url origin)"
 
   target_repo="${target_repo:-$actual_repo}"
   geet_dir="${git_dir_super:-$git_dir}"
@@ -116,94 +116,94 @@ establish_environment() {
   # | Parse arguments from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -p | --pull)
-      pull=true
-      ;;
-    -i | --ignore)
-      ignore=true
-      ;;
-    -D | --diff)
-      diff=true
-      ;;
-    -s | --status)
-      status=true
-      ;;
-    -a | --add)
-      add=true
-      ;;
-    -c | --commit)
-      commit=true
-      [ "$2" ] && {
+      -p | --pull)
+        pull=true
+        ;;
+      -i | --ignore)
+        ignore=true
+        ;;
+      -D | --diff)
+        diff=true
+        ;;
+      -s | --status)
+        status=true
+        ;;
+      -a | --add)
+        add=true
+        ;;
+      -c | --commit)
+        commit=true
+        [ "$2" ] && {
+          msg="$2"
+          shift
+        }
+        ;;
+      -u | --push)
+        push=true
+        ;;
+      -R | --sub* | --recurse)
+        recurse=true
+        [ "$2" ] && {
+          submodule="$2"
+          shift
+        }
+        ;;
+      -q | --quiet)
+        unset verbose
+        ;;
+      --gitisuper)
+        get_geet_dir=true
+        ;;
+      --gitis)
+        get_git_dir=true
+        ;;
+      -h | --help)
+        display_info --usage
+        ;;
+      -v | --version)
+        display_info --version
+        ;;
+      -vv | --verbose)
+        verbose=true
+        ;;
+      -d | --debug)
+        debug=true
+        ;;
+      -m | --m*)
         msg="$2"
-        shift
-      }
-      ;;
-    -u | --push)
-      push=true
-      ;;
-    -R | --sub* | --recurse)
-      recurse=true
-      [ "$2" ] && {
-        submodule="$2"
-        shift
-      }
-      ;;
-    -q | --quiet)
-      unset verbose
-      ;;
-    --gitisuper)
-      get_geet_dir=true
-      ;;
-    --gitis)
-      get_git_dir=true
-      ;;
-    -h | --help)
-      display_info --usage
-      ;;
-    -v | --version)
-      display_info --version
-      ;;
-    -vv | --verbose)
-      verbose=true
-      ;;
-    -d | --debug)
-      debug=true
-      ;;
-    -m | --m*)
-      msg="$2"
-      ;;
-    --ci) ci=true ;;
-    -*) ;;
-      # TODO: Add support for initalization
-      # --key)
-      # 	[ "$2" ] || display_info --error "SSH Key required"
-      # 	key="$2"
-      # 	;;
-      # -r | --repo)
-      # 	[ "$2" ] || display_info --error \
-      # 		"Git repository required"
-      # 	target_repo="$2"
-      # 	;;
-      # --user)
-      # 	[ "$2" ] ||
-      # 		display_info --error \
-      # 			"A git repository url is required"
-      # 	user="$2"
-      # 	;;
-      # --email)
-      # 	[ "$2" ] ||
-      # 		display_info --error \
-      # 			Aye"A git repository url is required"
-      # 	email="$2"
-      # 	;;
-      # --dir)
-      # 	[ "$2" ] || display_info --error \
-      # 		"A local git directory is required"
-      # 	dir="$2"
-      # ;;
-    *)
-      msg="$1"
-      ;;
+        ;;
+      --ci) ci=true ;;
+      -*) ;;
+        # TODO: Add support for initalization
+        # --key)
+        # 	[ "$2" ] || display_info --error "SSH Key required"
+        # 	key="$2"
+        # 	;;
+        # -r | --repo)
+        # 	[ "$2" ] || display_info --error \
+        # 		"Git repository required"
+        # 	target_repo="$2"
+        # 	;;
+        # --user)
+        # 	[ "$2" ] ||
+        # 		display_info --error \
+        # 			"A git repository url is required"
+        # 	user="$2"
+        # 	;;
+        # --email)
+        # 	[ "$2" ] ||
+        # 		display_info --error \
+        # 			Aye"A git repository url is required"
+        # 	email="$2"
+        # 	;;
+        # --dir)
+        # 	[ "$2" ] || display_info --error \
+        # 		"A local git directory is required"
+        # 	dir="$2"
+        # ;;
+      *)
+        msg="$1"
+        ;;
     esac
 
     shift
@@ -224,8 +224,8 @@ validate_dependencies() {
 
   # | Validate dependencies as executable files
   for dependency in $_cmd_DEPENDENCIES; do
-    pathof "$dependency" --is-executable ||
-      if [ -n "$missing_deps" ]; then
+    pathof "$dependency" --is-executable \
+      || if [ -n "$missing_deps" ]; then
         missing_deps="$missing_deps, $dependency"
       else
         missing_deps="$dependency"
@@ -237,8 +237,8 @@ validate_dependencies() {
 
   # | Count the number of missing dependencies
   missing_deps_count="$(
-    printf "%s\n" "$missing_deps" |
-      tr ',' '\n' | wc -l
+    printf "%s\n" "$missing_deps" \
+      | tr ',' '\n' | wc -l
   )"
 
   # | Update the error message based on the count
@@ -325,14 +325,14 @@ validate_submodules() {
     read -r response
 
     case "$response" in
-    [yY])
-      return 0
-      ;;
-    *)
-      console_log --error \
-        "Invalid Submodule. See valid submodules" "$@"
-      exit 1
-      ;;
+      [yY])
+        return 0
+        ;;
+      *)
+        console_log --error \
+          "Invalid Submodule. See valid submodules" "$@"
+        exit 1
+        ;;
     esac
   fi
 
@@ -344,20 +344,20 @@ validate_submodules() {
 display_info() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --usage)
-      console_log --ll "$_cmd_USAGEGUIDE"
-      exit=true
-      ;;
-    --version)
-      console_log --ll "$_cmd_VERSION"
-      exit=true
-      ;;
-    --error)
-      code="$2" && shift 2
-      console_log --error "$@" -ll
-      exit=true
-      ;;
-    --code) code="$2" ;;
+      --usage)
+        console_log --ll "$_cmd_USAGEGUIDE"
+        exit=true
+        ;;
+      --version)
+        console_log --ll "$_cmd_VERSION"
+        exit=true
+        ;;
+      --error)
+        code="$2" && shift 2
+        console_log --error "$@" -ll
+        exit=true
+        ;;
+      --code) code="$2" ;;
     esac
     shift
   done
@@ -366,7 +366,7 @@ display_info() {
 }
 
 work_in() {
-  cd "$1" >/dev/null 2>&1 || {
+  cd "$1" > /dev/null 2>&1 || {
     console_log --error \
       "Failed to access the directory" \
       "$1"
@@ -388,8 +388,8 @@ execute_git_actions() {
   [ "$(git status --porcelain)" ] || return 0
 
   # | Lint
-  type treefmt >/dev/null 2>&1 &&
-    if [ "$ci" ]; then
+  type treefmt > /dev/null 2>&1 \
+    && if [ "$ci" ]; then
       treefmt --no-cache --fail-on-change || return 1
       # TODO: There is a --ci flag in treefmt that simplifies this, check and use it
     else

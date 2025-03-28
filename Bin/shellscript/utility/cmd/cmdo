@@ -6,7 +6,7 @@ scr_VERSION="1.0"
 scr_DESCRIPTION="manages application status"
 scr_DEPENDENCIES="coreutils"
 scr_USAGE="$(
-  cat <<USAGE_GUIDE
+  cat << USAGE_GUIDE
     ::------------------------------------------------------------::
                     $scr_NAME $scr_DESCRIPTION
     ::------------------------------------------------------------::
@@ -57,33 +57,33 @@ parse_arguments() { #@ Establish the script environment
   #@ Establish user options
   while [ "$#" -ge 1 ]; do
     case $1 in
-    -h | --help) punctuate_exit "$scr_USAGE" ;;
-    -v | --version) punctuate_exit "$scr_VERSION" ;;
-    -q | --quiet) unset flag_VERBOSE ;;
-    -d | --verbose) flag_VERBOSE=true ;;
-    -t | --dry-run | --test) flag_TEST=true ;;
-    -i | --installed | --available) param_ACTION="check availability" ;;
-    -a | --active) param_ACTION="check status" ;;
-    -l | --launch | --start | --run) param_ACTION="launch" ;;
-    -r | --relaunch | --reload) param_ACTION="relaunch" ;;
-    -x | --terminate | --stop | --kill) param_ACTION="terminate" ;;
-    --action=*) param_ACTION="${1#*=}" ;;
-    --action)
-      param_ACTION="$2"
-      shift
-      ;;
-    *) array_CMD="$(are --save "$array_CMD" "$1")" ;;
+      -h | --help) punctuate_exit "$scr_USAGE" ;;
+      -v | --version) punctuate_exit "$scr_VERSION" ;;
+      -q | --quiet) unset flag_VERBOSE ;;
+      -d | --verbose) flag_VERBOSE=true ;;
+      -t | --dry-run | --test) flag_TEST=true ;;
+      -i | --installed | --available) param_ACTION="check availability" ;;
+      -a | --active) param_ACTION="check status" ;;
+      -l | --launch | --start | --run) param_ACTION="launch" ;;
+      -r | --relaunch | --reload) param_ACTION="relaunch" ;;
+      -x | --terminate | --stop | --kill) param_ACTION="terminate" ;;
+      --action=*) param_ACTION="${1#*=}" ;;
+      --action)
+        param_ACTION="$2"
+        shift
+        ;;
+      *) array_CMD="$(are --save "$array_CMD" "$1")" ;;
     esac
     shift
   done
 
   #@ Establish default action
   case "$param_ACTION" in
-  [iI]*) param_ACTION="check availability" ;;
-  [aA]*) param_ACTION="check status" ;;
-  [rR]*) param_ACTION="relaunch" ;;
-  [tT]* | stop | kill | close) param_ACTION="terminate" ;;
-  [lL]* | *) param_ACTION="launch" ;;
+    [iI]*) param_ACTION="check availability" ;;
+    [aA]*) param_ACTION="check status" ;;
+    [rR]*) param_ACTION="relaunch" ;;
+    [tT]* | stop | kill | close) param_ACTION="terminate" ;;
+    [lL]* | *) param_ACTION="launch" ;;
   esac
 
   #@ Ensure there are commands to process
@@ -120,13 +120,13 @@ purge_environment() { #@ Remove internal variables
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --msg) unset_messages ;;
-    --env) unset_env ;;
-    *)
-      unset_script_variables
-      unset_messages
-      unset_env
-      ;;
+      --msg) unset_messages ;;
+      --env) unset_env ;;
+      *)
+        unset_script_variables
+        unset_messages
+        unset_env
+        ;;
     esac
     shift
   done
@@ -138,21 +138,21 @@ purge_environment() { #@ Remove internal variables
 
 punctuate_exit() { #@ Trigger exit actions
   case "$1" in
-  --err*)
-    flag_FAILURE=true
-    case "$1" in
-    *exit)
-      shift
-      publish_informtion "Error: $*"
-      publish_informtion "$scr_USAGE"
+    --err*)
+      flag_FAILURE=true
+      case "$1" in
+        *exit)
+          shift
+          publish_informtion "Error: $*"
+          publish_informtion "$scr_USAGE"
+          point_of_exit
+          ;;
+      esac
+      ;;
+    *)
+      publish_informtion "$*"
       point_of_exit
       ;;
-    esac
-    ;;
-  *)
-    publish_informtion "$*"
-    point_of_exit
-    ;;
   esac
 }
 
@@ -213,8 +213,8 @@ process_core() { #@ Provide command info based on user requirements
 
     msg="$param_CMD"
     #@ Display information about the param_CMD
-    [ "$msg" ] &&
-      if [ "$icon" ]; then
+    [ "$msg" ] \
+      && if [ "$icon" ]; then
         publish_informtion "$icon $msg"
       else
         publish_informtion "$msg"
@@ -242,30 +242,30 @@ prepare_messaging() { #@ Display verbose information
 
   #@ Send output to Stdout
   case $1 in
-  --input)
-    if [ "$tag_CMD" -eq 1 ]; then
-      publish_informtion --oneline " | $tag_CMD"
-    else
-      publish_informtion " | $tag_CMD"
-    fi
+    --input)
+      if [ "$tag_CMD" -eq 1 ]; then
+        publish_informtion --oneline " | $tag_CMD"
+      else
+        publish_informtion " | $tag_CMD"
+      fi
 
-    if
-      [ "$param_ACTION" = "installed" ] ||
-        [ "$param_ACTION" = "active" ]
-    then
-      publish_informtion "Verify if $fmt_CMD is $fmt_ACTION"
-    else
-      publish_informtion "Please $fmt_ACTION $fmt_CMD"
-    fi
-    ;;
-  --found) publish_informtion "✅ %s is installed $fmt_CMD" ;;
-  --missing) publish_informtion "🟥 %s is not installed. $fmt_CMD" ;;
-  --active) publish_informtion "👟 %s is running $fmt_CMD" ;;
-  --inactive) publish_informtion "💤 %s is inactive. $fmt_CMD" ;;
-  --terminated) publish_informtion "💀 %s $fmt_CMD" ;;
-  --launched) publish_informtion "🚀 %s $fmt_CMD" ;;
-  --relaunched) publish_informtion "🔃 %s $fmt_CMD" ;;
-  *) ;;
+      if
+        [ "$param_ACTION" = "installed" ] \
+          || [ "$param_ACTION" = "active" ]
+      then
+        publish_informtion "Verify if $fmt_CMD is $fmt_ACTION"
+      else
+        publish_informtion "Please $fmt_ACTION $fmt_CMD"
+      fi
+      ;;
+    --found) publish_informtion "✅ %s is installed $fmt_CMD" ;;
+    --missing) publish_informtion "🟥 %s is not installed. $fmt_CMD" ;;
+    --active) publish_informtion "👟 %s is running $fmt_CMD" ;;
+    --inactive) publish_informtion "💤 %s is inactive. $fmt_CMD" ;;
+    --terminated) publish_informtion "💀 %s $fmt_CMD" ;;
+    --launched) publish_informtion "🚀 %s $fmt_CMD" ;;
+    --relaunched) publish_informtion "🔃 %s $fmt_CMD" ;;
+    *) ;;
   esac
 }
 
@@ -274,11 +274,11 @@ publish_informtion() { #@ Display information via necessary framework[s]
   [ "$*" ] || return
 
   case $1 in
-  --oneline)
-    shift
-    printf "%s" "$*"
-    ;;
-  *) printf "%s\n" "$*" ;;
+    --oneline)
+      shift
+      printf "%s" "$*"
+      ;;
+    *) printf "%s\n" "$*" ;;
   esac
 }
 
@@ -287,7 +287,7 @@ publish_informtion() { #@ Display information via necessary framework[s]
 # ================================================================= #
 
 cmd_is_available() { #@ Verify installation/availability
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 cmd_is_active() { #@ Check activity status
@@ -295,7 +295,7 @@ cmd_is_active() { #@ Check activity status
 }
 
 cmd_launch() { #@ Launch the command
-  "$1" >/dev/null 2>&1 &
+  "$1" > /dev/null 2>&1 &
 }
 
 cmd_terminate() {

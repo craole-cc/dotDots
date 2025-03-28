@@ -2855,7 +2855,7 @@ emojify_line() {
 
 # Function to print help info.
 help() {
-  cat <<EOF
+  cat << EOF
     emojify - emoji on the command line 😱
 
     USAGE: emojify [-h|--help] [-l|--list] TEXT
@@ -2873,21 +2873,21 @@ EOF
 # options or process the arguments as emoji names.
 if [[ -n $1 ]]; then
   case $1 in
-  '-h' | '--help')
-    help
-    ;;
+    '-h' | '--help')
+      help
+      ;;
 
-  '-l' | '--list')
-    help list
-    ;;
+    '-l' | '--list')
+      help list
+      ;;
 
-  '-v' | '--version')
-    echo $emojify_version
-    ;;
+    '-v' | '--version')
+      echo $emojify_version
+      ;;
 
-  *)
-    emojify_line "$*"
-    ;;
+    *)
+      emojify_line "$*"
+      ;;
   esac
 else
   while

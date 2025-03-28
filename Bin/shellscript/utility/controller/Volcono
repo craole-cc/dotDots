@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Adjust audio volume levels"
   _cmd_DEPENDENCIES="coreutils, pamixer"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------<#
                   USAGE: $_cmd_NAME
@@ -58,8 +58,8 @@ __version__() {
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" >/dev/null 2>&1
-  command -v "$@" >/dev/null 2>&1
+  unalias "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 # ===================================================================
@@ -69,19 +69,19 @@ __cmd_exists__() {
 __opts__() {
   while [ "$#" -gt 0 ]; do
     case $1 in
-    --help | -h) __help__ ;;
-    --verbose | -d) verbose=true ;;
-    --quiet | -q) quiet=true ;;
-    --test | --dry-run) dry_run=true ;;
-    --set | -S) action="set" ;;
-    --toggle* | -T) action="toggle" ;;
-    --increase | --up | -I) action="increase" ;;
-    --decrease | --down | -D) action="decrease" ;;
-    --unmute | -U) action="unmute" ;;
-    --mute | -M) action="mute" ;;
-    --status | -s) action="get-status" ;;
-    --level | -l | --step) level="$2" ;;
-    *) level="$1" ;;
+      --help | -h) __help__ ;;
+      --verbose | -d) verbose=true ;;
+      --quiet | -q) quiet=true ;;
+      --test | --dry-run) dry_run=true ;;
+      --set | -S) action="set" ;;
+      --toggle* | -T) action="toggle" ;;
+      --increase | --up | -I) action="increase" ;;
+      --decrease | --down | -D) action="decrease" ;;
+      --unmute | -U) action="unmute" ;;
+      --mute | -M) action="mute" ;;
+      --status | -s) action="get-status" ;;
+      --level | -l | --step) level="$2" ;;
+      *) level="$1" ;;
     esac
     shift
   done
@@ -98,13 +98,13 @@ __defaults__() {
 
   #| Level/Step
   case $level in
-  *[0-9]*)
-    [ "$action" ] || {
-      action="set"
-      level=50
-    }
-    ;;
-  *) level=10 ;;
+    *[0-9]*)
+      [ "$action" ] || {
+        action="set"
+        level=50
+      }
+      ;;
+    *) level=10 ;;
   esac
 
   #| Action
@@ -131,27 +131,27 @@ __defaults__() {
 
 __process__() {
   case "$action" in
-  set) __unmute__ && __set__ ;;
-  toggle) __toggle__ ;;
-  increase) __unmute__ && __increase__ ;;
-  decrease) __unmute__ && __decrease__ ;;
-  unmute) __unmute__ ;;
-  mute) __mute__ ;;
-  status) __status__ ;;
-  *) ;;
+    set) __unmute__ && __set__ ;;
+    toggle) __toggle__ ;;
+    increase) __unmute__ && __increase__ ;;
+    decrease) __unmute__ && __decrease__ ;;
+    unmute) __unmute__ ;;
+    mute) __mute__ ;;
+    status) __status__ ;;
+    *) ;;
   esac
 }
 
 __display__() {
   case "$action" in
-  *crease) printf "Volume %sd by %sdb to %s" "$action" "$level" "$(__status__)" ;;
-  set) printf "Volume %s to %s\n" "$action" "$(__status__)" ;;
-  *)
-    case "$(__status__)" in
-    *"%") printf "Audio level is at %s\n" "$(__status__)" ;;
-    *) printf "Audio stream disabled\n" ;;
-    esac
-    ;;
+    *crease) printf "Volume %sd by %sdb to %s" "$action" "$level" "$(__status__)" ;;
+    set) printf "Volume %s to %s\n" "$action" "$(__status__)" ;;
+    *)
+      case "$(__status__)" in
+        *"%") printf "Audio level is at %s\n" "$(__status__)" ;;
+        *) printf "Audio stream disabled\n" ;;
+      esac
+      ;;
   esac
 }
 

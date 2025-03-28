@@ -13,7 +13,7 @@ __info__() {
   _cmd_DESCRIPTION="Initialize a Desktop Environmnt or Window Manager"
   _cmd_DEPENDENCIES="weHave"
   _cmd_USAGEGUIDE="$(
-    cat <<USAGE_GUIDE
+    cat << USAGE_GUIDE
 
 #>----------------------------------------------------<#
                     	USAGE: $_cmd_NAME
@@ -53,7 +53,7 @@ __version__() {
 }
 
 weHave() { #@ Check if the command exists
-  type "$1" >/dev/null 2>&1
+  type "$1" > /dev/null 2>&1
 }
 
 #@ Lowercase
@@ -109,21 +109,21 @@ __opts__() {
 
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --dry-run | --test) DRYRUN=true ;;
-      --edit) EDITRC=true ;;
-      -b | --bar | --panel)
-        [ "$2" ] && WMDE_BAR="$2"
-        shift
-        ;;
-      -s | --server)
-        [ "$2" ] && WMDE_SERVER="$2"
-        shift
-        ;;
-      -w | -wm | --desktop)
-        [ "$2" ] && WMDE_DESKTOP="$2"
-        shift
-        ;;
-      *) WMDE_DESKTOP="$1" ;;
+        --dry-run | --test) DRYRUN=true ;;
+        --edit) EDITRC=true ;;
+        -b | --bar | --panel)
+          [ "$2" ] && WMDE_BAR="$2"
+          shift
+          ;;
+        -s | --server)
+          [ "$2" ] && WMDE_SERVER="$2"
+          shift
+          ;;
+        -w | -wm | --desktop)
+          [ "$2" ] && WMDE_DESKTOP="$2"
+          shift
+          ;;
+        *) WMDE_DESKTOP="$1" ;;
       esac
       shift
     done
@@ -147,8 +147,8 @@ __env__() {
     )"
 
     #? Serialize Name
-    [ -f "${DOTS_ENV_CTX}/${WMDE_DESKTOP}" ] &&
-      . "${DOTS_ENV_CTX}/${WMDE_DESKTOP}"
+    [ -f "${DOTS_ENV_CTX}/${WMDE_DESKTOP}" ] \
+      && . "${DOTS_ENV_CTX}/${WMDE_DESKTOP}"
 
     #?  Load Variables
     [ -d "$DESKTOP_HOME" ] || {
@@ -165,17 +165,17 @@ __env__() {
   _server_() {
     #? Accept user input or use default
     [ "$WMDE_SERVER" ] || {
-      [ "$DESKTOP_TYPE" ] &&
-        WMDE_SERVER="$DESKTOP_TYPE"
+      [ "$DESKTOP_TYPE" ] \
+        && WMDE_SERVER="$DESKTOP_TYPE"
     }
 
     #? Serialize Name
     WMDE_SERVER="$(__lower__ "$WMDE_SERVER")"
 
     #?  Load Variables
-    [ "$WMDE_SERVER" ] &&
-      [ -f "${DOTS_ENV_CTX}/${WMDE_SERVER}" ] &&
-      . "${DOTS_ENV_CTX}/${WMDE_SERVER}"
+    [ "$WMDE_SERVER" ] \
+      && [ -f "${DOTS_ENV_CTX}/${WMDE_SERVER}" ] \
+      && . "${DOTS_ENV_CTX}/${WMDE_SERVER}"
 
     #? Set Additional Variables
     [ "$WMDE_SERVER" = "wayland" ] && {
@@ -189,11 +189,11 @@ __env__() {
 
     WMDE_BAR="$(__lower__ "$WMDE_BAR")"
 
-    [ -f "${DOTS_ENV_CTX}/${WMDE_BAR}" ] &&
-      . "${DOTS_ENV_CTX}/${WMDE_BAR}"
+    [ -f "${DOTS_ENV_CTX}/${WMDE_BAR}" ] \
+      && . "${DOTS_ENV_CTX}/${WMDE_BAR}"
 
-    [ -d "$BAR_HOME" ] ||
-      {
+    [ -d "$BAR_HOME" ] \
+      || {
         printf "Missing ENV: %s\n" "$WMDE_BAR"
         return 1
       }
@@ -239,16 +239,16 @@ __deploy__() {
 
   _link_() {
     case "$sys_INFO" in
-    *Linux*)
-      __link__ "$WMDE_HOME" "$WMDE_LINK"
-      __link__ "$BAR_HOME" "$BAR_LINK"
-      ;;
-    *) ;;
+      *Linux*)
+        __link__ "$WMDE_HOME" "$WMDE_LINK"
+        __link__ "$BAR_HOME" "$BAR_LINK"
+        ;;
+      *) ;;
     esac
   }
 
   _log_() {
-    "$WMDE_DESKTOP" --config "$WMDE_CONF" --log-level debug >"$WMDE_LOG" 2>&1
+    "$WMDE_DESKTOP" --config "$WMDE_CONF" --log-level debug > "$WMDE_LOG" 2>&1
     # "$WMDE_DESKTOP" --config "$WMDE_CONF"
   }
 
@@ -278,8 +278,8 @@ __test__() {
   [ "$WMDE_SERVER" ] && printf "\nSERVER ENV: \n%s\n" "$(cat "$DOTS_ENV_CTX/$WMDE_SERVER")"
   [ "$WMDE_BAR" ] && printf "\nBAR ENV: \n%s\n" "$(cat "$DOTS_ENV_CTX/$WMDE_BAR")"
   echo "-----------------------------------------------------"
-  [ "$WMDE_CONF" ] && printf "WMDE Config: %s lines\n" "$(cat <"$WMDE_CONF" | wc -l)"
-  [ "$WMDE_BAR_CONF" ] && printf "BAR Config: %s lines\n" "$(cat <"$WMDE_BAR_CONF" | wc -l)"
+  [ "$WMDE_CONF" ] && printf "WMDE Config: %s lines\n" "$(cat < "$WMDE_CONF" | wc -l)"
+  [ "$WMDE_BAR_CONF" ] && printf "BAR Config: %s lines\n" "$(cat < "$WMDE_BAR_CONF" | wc -l)"
   echo "-----------------------------------------------------"
   echo "RUNTIME_DIR: $WMDE_RUNTIMEDIR"
   echo "FOOT_SERVER: $WMDE_FOOTSERVER"

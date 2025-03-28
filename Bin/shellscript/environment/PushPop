@@ -6,7 +6,7 @@ scr_VERSION="1.0"
 scr_DESCRIPTION="jumps into a directory, runs a command and returns to the original directory or one specified by the user"
 scr_DEPENDENCIES="coreutils"
 scr_USAGE="$(
-  cat <<USAGE
+  cat << USAGE
   $scr_NAME ($scr_VERSION)
   $scr_AUTHOR
 
@@ -45,23 +45,23 @@ parse_arguments() {
   #@ Parse command-line arguments
   while [ $# -gt 0 ]; do
     case $1 in
-    -h | --help) end_process --usage ;;
-    -v | --version) end_process --version ;;
-    -q | --quiet) verbosity="quiet" ;;
-    -d=* | --verbose=*) verbosity="${1#*=}" ;;
-    -d | --verbose)
-      case "$2" in
-      */*) ;;
-      *)
-        if [ "$2" ]; then
-          verbosity="$2"
-          shift
-        fi
+      -h | --help) end_process --usage ;;
+      -v | --version) end_process --version ;;
+      -q | --quiet) verbosity="quiet" ;;
+      -d=* | --verbose=*) verbosity="${1#*=}" ;;
+      -d | --verbose)
+        case "$2" in
+          */*) ;;
+          *)
+            if [ "$2" ]; then
+              verbosity="$2"
+              shift
+            fi
+            ;;
+        esac
         ;;
-      esac
-      ;;
-    -*) end_process --error opt "$1" ;;
-    *) ;;
+      -*) end_process --error opt "$1" ;;
+      *) ;;
     esac
     shift
   done
@@ -77,14 +77,14 @@ parse_arguments() {
   icon="${icon:-$icon_success}"
 
   case "$verbosity" in
-  0 | quiet) verbosity=0 ;;
-  1 | error | debug) verbosity=1 ;;
-  2 | info | *) verbosity=2 ;;
+    0 | quiet) verbosity=0 ;;
+    1 | error | debug) verbosity=1 ;;
+    2 | info | *) verbosity=2 ;;
   esac
 }
 
 usage() {
-  cat <<-EOF
+  cat <<- EOF
 		Usage: $scr_NAME [options]
 
 		Options:
@@ -110,56 +110,56 @@ error() {
 # Parse command line options
 while [ $# -gt 0 ]; do
   case "$1" in
-  -v | --version)
-    version
-    exit 0
-    ;;
-  -h | --help)
-    usage
-    exit 0
-    ;;
-  -q | --quiet) verbosity=0 ;;
-  -d | --debug | --verbose)
-    case "$2" in
-    "")
-      verbosity=2
+    -v | --version)
+      version
+      exit 0
       ;;
-    info)
-      verbosity=1
+    -h | --help)
+      usage
+      exit 0
       ;;
-    error)
-      verbosity=3
+    -q | --quiet) verbosity=0 ;;
+    -d | --debug | --verbose)
+      case "$2" in
+        "")
+          verbosity=2
+          ;;
+        info)
+          verbosity=1
+          ;;
+        error)
+          verbosity=3
+          ;;
+        quiet)
+          verbosity=0
+          ;;
+        *)
+          error "Invalid verbosity level: $2"
+          ;;
+      esac
+      shift
       ;;
-    quiet)
-      verbosity=0
+    -R | --rd | --cd)
+      returnDIR="$2"
+      shift
+      ;;
+    -W | --wd)
+      WorkDIR="$2"
+      shift
+      ;;
+    -c | --command)
+      Command="$2"
+      shift
       ;;
     *)
-      error "Invalid verbosity level: $2"
+      if [ "$WorkDIR" = "" ]; then
+        WorkDIR="$1"
+      elif [ "$Command" = "" ]; then
+        Command="$1"
+      else
+        error "Invalid option: $1"
+      fi
       ;;
-    esac
-    shift
-    ;;
-  -R | --rd | --cd)
-    returnDIR="$2"
-    shift
-    ;;
-  -W | --wd)
-    WorkDIR="$2"
-    shift
-    ;;
-  -c | --command)
-    Command="$2"
-    shift
-    ;;
-  *)
-    if [ "$WorkDIR" = "" ]; then
-      WorkDIR="$1"
-    elif [ "$Command" = "" ]; then
-      Command="$1"
-    else
-      error "Invalid option: $1"
-    fi
-    ;;
   esac
   shift
 done
@@ -174,7 +174,7 @@ if [ "$Command" = "" ]; then
 fi
 
 # Change to work directory
-if ! cd "$WorkDIR" >/dev/null; then
+if ! cd "$WorkDIR" > /dev/null; then
   error "Could not change to directory $WorkDIR"
 fi
 
@@ -188,6 +188,6 @@ if ! eval "$Command"; then
 fi
 
 # Change back to return directory
-if ! cd "$returnDIR" >/dev/null; then
+if ! cd "$returnDIR" > /dev/null; then
   error "Could not change back to directory $returnDIR"
 fi

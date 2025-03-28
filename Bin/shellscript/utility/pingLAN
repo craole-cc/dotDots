@@ -6,7 +6,7 @@ scr_VERSION="1.0"
 scr_DESCRIPTION="finds active LAN hosts on the specified interface"
 scr_DEPENDENCIES="coreutils (printf, grep, awk, sed, ping), ifconfig"
 scr_USAGE="$(
-  cat <<USAGE_GUIDE
+  cat << USAGE_GUIDE
     ::----------------------------------------------------::
                         USAGE: $scr_NAME
         $scr_DESCRIPTION
@@ -35,11 +35,14 @@ parse_arguments() {
   #@ Parse the network ID using ifconfig and grep
   network_id="$(
     #@ Get network configuration
-    ifconfig |
+    ifconfig \
+      |
       #@ Filter the network configuration for the specified interface
-      grep "$1" |
+      grep "$1" \
+      |
       #@ Extract the IP address from the filtered network configuration
-      awk '{print $2}' |
+      awk '{print $2}' \
+      |
       #@ Extract the first three octets of the IP address
       awk -F. '{print $1"."$2"."$3}'
   )"
@@ -67,7 +70,8 @@ parse_arguments() {
   #@ Parse a sequence of hosts
   hosts="$(
     #@ Generate a sequence of numbers from first_host to last_host
-    seq "$first_host" "$last_host" |
+    seq "$first_host" "$last_host" \
+      |
       #@ Prefix each number with the network ID and a dot
       sed "s|^|${network_id}.|"
   )"
@@ -75,18 +79,18 @@ parse_arguments() {
   #@ Check for flag
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -h | --help)
-      printf "%s" "$scr_USAGE"
-      exit 0
-      ;;
-    -t | --test | --dry-run)
-      #@ Print the range of hosts and exit if the test flag is set
-      printf "Hosts to ping: %s.%s -> %s.%s" \
-        "${network_id}" "${first_host}" \
-        "${network_id}" "${last_host}"
-      # printf "%s" "$hosts"
-      exit 0
-      ;;
+      -h | --help)
+        printf "%s" "$scr_USAGE"
+        exit 0
+        ;;
+      -t | --test | --dry-run)
+        #@ Print the range of hosts and exit if the test flag is set
+        printf "Hosts to ping: %s.%s -> %s.%s" \
+          "${network_id}" "${first_host}" \
+          "${network_id}" "${last_host}"
+        # printf "%s" "$hosts"
+        exit 0
+        ;;
     esac
     shift
   done
@@ -95,18 +99,18 @@ parse_arguments() {
 validate_host_range() {
   #@ Reject empty or non-numeric characters
   case $1 in
-  '' | *[!0-9]*)
-    return 1
-    ;;
-  *) #@ Reject if the argument is out of range
-    { [ "$1" -ge 1 ] && [ "$1" -le 254 ]; } ||
-      return 1 ;;
+    '' | *[!0-9]*)
+      return 1
+      ;;
+    *) #@ Reject if the argument is out of range
+      { [ "$1" -ge 1 ] && [ "$1" -le 254 ]; } \
+        || return 1 ;;
   esac
 }
 
 validate_connectivity() {
   #@ Ping the specified host once with a timeout of 1 second
-  if ping "$1" -c1 -W1 >/dev/null 2>&1; then
+  if ping "$1" -c1 -W1 > /dev/null 2>&1; then
     #@ Print the IP address on a successful ping
     printf "%s\n" "$1"
   fi

@@ -2,8 +2,8 @@
 
 __uptime__() {
   # echo "remember SED"
-  wmic os get LastBootUpTime |
-    sed -e "/L/ d" \
+  wmic os get LastBootUpTime \
+    | sed -e "/L/ d" \
       -e "s/\..*//" \
       -e "s/.\{2\}$//"
 }

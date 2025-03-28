@@ -9,14 +9,14 @@ __help__() {
 
 __opts__() {
   case "$1" in
-  '-h' | '--help') __help__ ;;
-  *)
-    if [ "$#" -eq 0 ]; then
-      __help__
-    else
-      __process__ "$@"
-    fi
-    ;;
+    '-h' | '--help') __help__ ;;
+    *)
+      if [ "$#" -eq 0 ]; then
+        __help__
+      else
+        __process__ "$@"
+      fi
+      ;;
   esac
 }
 
@@ -45,14 +45,14 @@ __process__() {
   weHave foot-client && _EMULATOR="footclient"
 
   case "$(tty)" in
-  *"/dev/tty"*) [ "$_TTY" ] && _EDITOR="$_TTY" ;;
-  *)
-    if [ "$_VISUAL" ]; then
-      _EDITOR="$_VISUAL"
-    elif [ "$_TTY" ]; then
-      _EDITOR="$_EMULATOR" "$_TTY"
-    fi
-    ;;
+    *"/dev/tty"*) [ "$_TTY" ] && _EDITOR="$_TTY" ;;
+    *)
+      if [ "$_VISUAL" ]; then
+        _EDITOR="$_VISUAL"
+      elif [ "$_TTY" ]; then
+        _EDITOR="$_EMULATOR" "$_TTY"
+      fi
+      ;;
   esac
 
   #| Process

@@ -3,17 +3,17 @@
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -d | --verbose) VERBOSITY=1 ;;
-    *) ;;
+      -d | --verbose) VERBOSITY=1 ;;
+      *) ;;
     esac
     shift
   done
 }
 
 execute() {
-  if command -v tasklist >/dev/null 2>&1; then
+  if command -v tasklist > /dev/null 2>&1; then
     launch_on_windows "$@"
-  elif command -v pgrep >/dev/null 2>&1; then
+  elif command -v pgrep > /dev/null 2>&1; then
     launch_on_unix "$@"
   fi
 }
@@ -21,7 +21,7 @@ execute() {
 launch_on_unix() {
   if
     #@ Check if the application is already running
-    pgrep "$1" >/dev/null
+    pgrep "$1" > /dev/null
   then
     #@ Activate the window (switch to its desktop and raise it)
     wmctrl -a "$@"
@@ -34,7 +34,7 @@ launch_on_unix() {
 process_core() {
   if
     #@ Check if the application is already running
-    pgrep "$1" >/dev/null
+    pgrep "$1" > /dev/null
   then
     #@ Activate the window (switch to its desktop and raise it)
     wmctrl -a "$@"
@@ -52,15 +52,15 @@ process_core() {
 
 present_info() {
   case "$1" in
-  --active)
-    [ "$VERBOSITY" -gt 0 ] &&
-      msg="$_APP is already running."
-    ;;
-  --launched)
-    [ "$VERBOSITY" -gt 0 ] &&
-      msg="$_APP has been started"
-    ;;
-  *) printf "%s\n" "${msg:-$*}" ;;
+    --active)
+      [ "$VERBOSITY" -gt 0 ] \
+        && msg="$_APP is already running."
+      ;;
+    --launched)
+      [ "$VERBOSITY" -gt 0 ] \
+        && msg="$_APP has been started"
+      ;;
+    *) printf "%s\n" "${msg:-$*}" ;;
   esac
 }
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 usage() {
-  cat <<EOF
+  cat << EOF
 Usage: first [OPTIONS] FILENAME
 Search for a file in directory tree, default is upward search
 
@@ -35,41 +35,41 @@ parse_arguments() {
   #@ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --up)
-      direction="up"
-      shift
-      ;;
-    --down)
-      direction="down"
-      shift
-      ;;
-    --both)
-      direction="both"
-      shift
-      ;;
-    --direction)
-      shift
-      case "$1" in
-      up | down | both)
-        direction="$1"
+      --up)
+        direction="up"
+        shift
         ;;
-      *)
-        printf "%s" "Error: Invalid direction '$1'" >&2
+      --down)
+        direction="down"
+        shift
+        ;;
+      --both)
+        direction="both"
+        shift
+        ;;
+      --direction)
+        shift
+        case "$1" in
+          up | down | both)
+            direction="$1"
+            ;;
+          *)
+            printf "%s" "Error: Invalid direction '$1'" >&2
+            usage 1
+            ;;
+        esac
+        shift
+        ;;
+      -h | --help)
+        usage
+        ;;
+      -*)
+        printf "%s" "Error: Unknown option '$1'" >&2
         usage 1
         ;;
-      esac
-      shift
-      ;;
-    -h | --help)
-      usage
-      ;;
-    -*)
-      printf "%s" "Error: Unknown option '$1'" >&2
-      usage 1
-      ;;
-    *)
-      break
-      ;;
+      *)
+        break
+        ;;
     esac
   done
 
@@ -104,27 +104,27 @@ find_down() {
   dir="${1:-.}"
   path="$2"
 
-  if command -v fd >/dev/null 2>&1; then
+  if command -v fd > /dev/null 2>&1; then
     fd "$path" "$dir"
     return $?
   else
-    find "$dir" -name "$path" 2>/dev/null
+    find "$dir" -name "$path" 2> /dev/null
     return $?
   fi
 }
 
 perform_search() {
   case "$direction" in
-  up)
-    find_up "$PWD" "$pattern"
-    ;;
-  down)
-    find_down "$PWD" "$pattern"
-    ;;
-  both | *)
-    find_up "$PWD" "$pattern" ||
+    up)
+      find_up "$PWD" "$pattern"
+      ;;
+    down)
       find_down "$PWD" "$pattern"
-    ;;
+      ;;
+    both | *)
+      find_up "$PWD" "$pattern" \
+        || find_down "$PWD" "$pattern"
+      ;;
   esac
 }
 

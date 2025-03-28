@@ -12,20 +12,20 @@ main() {
   parse_arguments "$@"
 
   case "${environment}" in
-  test)
-    listman__test
-    return 0
-    ;;
-  *)
-    #@ Perform the requested action
-    execute \
-      --item "nix" \
-      --base "validate_cmd" \
-      --item "fd" \
-      --item "cargo" \
-      --list "${command_list}"
-    return 0
-    ;;
+    test)
+      listman__test
+      return 0
+      ;;
+    *)
+      #@ Perform the requested action
+      execute \
+        --item "nix" \
+        --base "validate_cmd" \
+        --item "fd" \
+        --item "cargo" \
+        --list "${command_list}"
+      return 0
+      ;;
   esac
 
 }
@@ -55,70 +55,70 @@ set_defaults() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --help)
-      help
-      return 0
-      ;;
-    -v | --version) ;;
-    -Q | --quiet)
-      verbosity=0
-      ;;
-    -E | --error)
-      verbosity=1
-      ;;
-    -W | --warn)
-      verbosity=2
-      ;;
-    -I | --info)
-      verbosity=3
-      ;;
-    -D | --debug | --dry-run)
-      debug=true
-      environment="test"
-      verbosity=4
-      ;;
-    -T | --trace)
-      verbosity=5
-      ;;
-    -V*)
-      verbosity="${1#-V}"
-      if [ "$verbosity" ]; then
-        verbosity="${#verbosity}"
-      else
-        verbosity=3
-      fi
-      ;;
-    --verbose)
-      if [ "$2" ]; then
-        shift
-        verbosity="$1"
-      else
-        verbosity=3
-      fi
-      ;;
-    --nix)
-      case "$2" in
-      [0-9]*)
-        shift
-        gen_date_or_count="$1"
+      --help)
+        help
+        return 0
         ;;
-      '' | *) ;;
-      esac
-      listman --include --list garbage_list --item "nix"
-      listman --include --list garbage_list --item "home-manager"
-      ;;
-    --home* | --hm)
-      case "$2" in
-      [0-9]*)
-        shift
-        gen_date_or_count="$1"
+      -v | --version) ;;
+      -Q | --quiet)
+        verbosity=0
         ;;
-      '' | *) ;;
-      esac
+      -E | --error)
+        verbosity=1
+        ;;
+      -W | --warn)
+        verbosity=2
+        ;;
+      -I | --info)
+        verbosity=3
+        ;;
+      -D | --debug | --dry-run)
+        debug=true
+        environment="test"
+        verbosity=4
+        ;;
+      -T | --trace)
+        verbosity=5
+        ;;
+      -V*)
+        verbosity="${1#-V}"
+        if [ "$verbosity" ]; then
+          verbosity="${#verbosity}"
+        else
+          verbosity=3
+        fi
+        ;;
+      --verbose)
+        if [ "$2" ]; then
+          shift
+          verbosity="$1"
+        else
+          verbosity=3
+        fi
+        ;;
+      --nix)
+        case "$2" in
+          [0-9]*)
+            shift
+            gen_date_or_count="$1"
+            ;;
+          '' | *) ;;
+        esac
+        listman --include --list garbage_list --item "nix"
+        listman --include --list garbage_list --item "home-manager"
+        ;;
+      --home* | --hm)
+        case "$2" in
+          [0-9]*)
+            shift
+            gen_date_or_count="$1"
+            ;;
+          '' | *) ;;
+        esac
 
-      listman --include --list garbage_list --item "home-manager"
-      ;;
-    *) ;;
+        listman --include --list garbage_list --item "home-manager"
+        ;;
+      *) ;;
     esac
     shift
   done
@@ -153,168 +153,168 @@ listman() {
 
   listman__usage() {
     case "$1" in
-    --list) printf "ERROR: A list variable name is required.\n" ;;
-    --item) printf "ERROR: An item is required.\n" ;;
-    --arg) printf "ERROR: An argument is required for '%s'.\n" "$2" ;;
-    --var) printf "ERROR: Missing variable: '%s'.\n" "$2" ;;
-    '') printf "ERROR: No options provided.\n" ;;
-    *) printf "ERROR: Invalid option: '%s'.\n" "$1" ;;
+      --list) printf "ERROR: A list variable name is required.\n" ;;
+      --item) printf "ERROR: An item is required.\n" ;;
+      --arg) printf "ERROR: An argument is required for '%s'.\n" "$2" ;;
+      --var) printf "ERROR: Missing variable: '%s'.\n" "$2" ;;
+      '') printf "ERROR: No options provided.\n" ;;
+      *) printf "ERROR: Invalid option: '%s'.\n" "$1" ;;
     esac
   }
 
   listman__parse_arguments() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --test) listman__test && return 0 ;;
-      --include)
-        [ "$2" ] || { listman__usage --arg "$1" && return 1; }
-        shift
-        while [ "$#" -gt 1 ]; do
-          case "$1" in
-          --list)
-            if [ "$2" ]; then
-              list_to_include="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --item)
-            if [ "$2" ]; then
-              item_to_include="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          esac
+        --test) listman__test && return 0 ;;
+        --include)
+          [ "$2" ] || { listman__usage --arg "$1" && return 1; }
           shift
-        done
+          while [ "$#" -gt 1 ]; do
+            case "$1" in
+              --list)
+                if [ "$2" ]; then
+                  list_to_include="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --item)
+                if [ "$2" ]; then
+                  item_to_include="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+            esac
+            shift
+          done
 
-        #@ Validate variables
-        [ "$list_to_include" ] || { listman__usage --var "list" && return 1; }
-        [ "$item_to_include" ] || { listman__usage --var "item" && return 1; }
-        [ "$delimiter" ] || { listman__usage --var "delimiter" && return 1; }
+          #@ Validate variables
+          [ "$list_to_include" ] || { listman__usage --var "list" && return 1; }
+          [ "$item_to_include" ] || { listman__usage --var "item" && return 1; }
+          [ "$delimiter" ] || { listman__usage --var "delimiter" && return 1; }
 
-        listman__include "$@"
-        ;;
-      --normalize)
-        [ "$2" ] || { listman__usage --arg "$1" && return 1; }
-        shift
-        while [ "$#" -gt 1 ]; do
-          case "$1" in
-          --list)
-            if [ "$2" ]; then
-              list_to_normalize="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --delimiter)
-            if [ "$2" ]; then
-              actual_delimiter="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          *)
-            [ "$list_to_normalize" ] || list_to_normalize="$1"
-            ;;
-          esac
+          listman__include "$@"
+          ;;
+        --normalize)
+          [ "$2" ] || { listman__usage --arg "$1" && return 1; }
           shift
-        done
+          while [ "$#" -gt 1 ]; do
+            case "$1" in
+              --list)
+                if [ "$2" ]; then
+                  list_to_normalize="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --delimiter)
+                if [ "$2" ]; then
+                  actual_delimiter="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              *)
+                [ "$list_to_normalize" ] || list_to_normalize="$1"
+                ;;
+            esac
+            shift
+          done
 
-        #@ Validate variables
-        [ "$list_to_normalize" ] || { listman__usage --var "list" && return 1; }
-        [ "$actual_delimiter" ] || { listman__usage --var "delimiter" && return 1; }
-        [ "$unique_delimiter" ] || { listman__usage --var "unique_delimiter" && return 1; }
+          #@ Validate variables
+          [ "$list_to_normalize" ] || { listman__usage --var "list" && return 1; }
+          [ "$actual_delimiter" ] || { listman__usage --var "delimiter" && return 1; }
+          [ "$unique_delimiter" ] || { listman__usage --var "unique_delimiter" && return 1; }
 
-        #@ Normalize the list
-        listman__normalize "$list_to_normalize" "$actual_delimiter" "$unique_delimiter"
-        ;;
-      --parse)
-        [ "$2" ] || { listman__usage --arg "$1" && return 1; }
-        shift
-
-        #@ Parse arguments
-        parse__list=""
-        parse__operation="print"
-        parse__command=""
-
-        while [ "$#" -gt 1 ]; do
-          case "$1" in
-          --list)
-            if [ "$2" ]; then
-              parse__list="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --delimiter)
-            if [ "$2" ]; then
-              actual_delimiter="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --border | --outline | --frame)
-            if [ "$2" ]; then
-              parse__border="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --seperator)
-            if [ "$2" ]; then
-              parse__seperator="$2"
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --operation)
-            if [ "$2" ]; then
-              parse__operation="$2"
-              case "$2" in
-              comma) comma=true ;;
-              square) square=true ;;
-              count) count=true ;;
-              print) print=true ;;
-              index | number) index=true ;;
-              exec) exec=true ;;
-              *) ;;
-              esac
-
-              # listman --include --list parse__operation --item "$2"
-              # if [ "$parse__operation" ]; then
-              #     parse__operation="$(printf '%s%s%s' "$parse__operation" " " "$2")"
-              #     # parse__operation="$parse__operation $2"
-              # else
-              #     parse__operation="$2"
-              # fi
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          --command)
-            if [ "$2" ]; then
-              parse__command="$2"
-              parse__operation="exec"
-              exec=true
-              # if [ "$parse__operation" ]; then
-              #     parse__operation="$(printf '%s%s%s' "$parse__operation" " " "exec")"
-              #     # parse__operation="$(printf '%s%s%s' "$parse__operation" "$unique_delimiter" "exec")"
-              # else
-              #     parse__operation="exec"
-              # fi
-            else
-              listman__usage --arg "$1" && return 1
-            fi
-            ;;
-          esac
+          #@ Normalize the list
+          listman__normalize "$list_to_normalize" "$actual_delimiter" "$unique_delimiter"
+          ;;
+        --parse)
+          [ "$2" ] || { listman__usage --arg "$1" && return 1; }
           shift
 
-        done
-        #@ Execute the parse function
-        listman__parse "$@"
-        ;;
+          #@ Parse arguments
+          parse__list=""
+          parse__operation="print"
+          parse__command=""
+
+          while [ "$#" -gt 1 ]; do
+            case "$1" in
+              --list)
+                if [ "$2" ]; then
+                  parse__list="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --delimiter)
+                if [ "$2" ]; then
+                  actual_delimiter="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --border | --outline | --frame)
+                if [ "$2" ]; then
+                  parse__border="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --seperator)
+                if [ "$2" ]; then
+                  parse__seperator="$2"
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --operation)
+                if [ "$2" ]; then
+                  parse__operation="$2"
+                  case "$2" in
+                    comma) comma=true ;;
+                    square) square=true ;;
+                    count) count=true ;;
+                    print) print=true ;;
+                    index | number) index=true ;;
+                    exec) exec=true ;;
+                    *) ;;
+                  esac
+
+                  # listman --include --list parse__operation --item "$2"
+                  # if [ "$parse__operation" ]; then
+                  #     parse__operation="$(printf '%s%s%s' "$parse__operation" " " "$2")"
+                  #     # parse__operation="$parse__operation $2"
+                  # else
+                  #     parse__operation="$2"
+                  # fi
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+              --command)
+                if [ "$2" ]; then
+                  parse__command="$2"
+                  parse__operation="exec"
+                  exec=true
+                  # if [ "$parse__operation" ]; then
+                  #     parse__operation="$(printf '%s%s%s' "$parse__operation" " " "exec")"
+                  #     # parse__operation="$(printf '%s%s%s' "$parse__operation" "$unique_delimiter" "exec")"
+                  # else
+                  #     parse__operation="exec"
+                  # fi
+                else
+                  listman__usage --arg "$1" && return 1
+                fi
+                ;;
+            esac
+            shift
+
+          done
+          #@ Execute the parse function
+          listman__parse "$@"
+          ;;
       esac
       shift
 
@@ -324,8 +324,8 @@ listman() {
   listman__include() {
     include__usage() {
       case "$1" in
-      --list) printf "ERROR: A list variable name is required.\n" ;;
-      --item) printf "ERROR: An item is required.\n" ;;
+        --list) printf "ERROR: A list variable name is required.\n" ;;
+        --item) printf "ERROR: An item is required.\n" ;;
       esac
       printf "\nUSAGE:  listman --include --list <VARIABLE> --item <ITEM>\n"
       printf "    VARIABLE    Variable for the list of items\n"
@@ -375,15 +375,15 @@ listman() {
 
     #@ First normalize the delimiters and whitespace
     normalized=$(
-      printf '%s' "${list}" |
-        tr -s "${current_delim}" "${global_delim}" |
-        tr -s '[:space:]'
+      printf '%s' "${list}" \
+        | tr -s "${current_delim}" "${global_delim}" \
+        | tr -s '[:space:]'
     )
 
     #@ Trim leading and trailing delimiters and whitespace
     normalized=$(
-      printf '%s' "${normalized}" |
-        sed -e "s/^[${global_delim}[:space:]]*//g" \
+      printf '%s' "${normalized}" \
+        | sed -e "s/^[${global_delim}[:space:]]*//g" \
           -e "s/[${global_delim}[:space:]]*$//g"
     )
 
@@ -418,8 +418,8 @@ listman() {
       parse__list=$(
         listman --normalize \
           --list "$parse__list" \
-          --delimiter "$actual_delimiter" |
-          tr "$unique_delimiter" ' '
+          --delimiter "$actual_delimiter" \
+          | tr "$unique_delimiter" ' '
       )
     else
       listman__usage --var "list" && return 1
@@ -432,84 +432,84 @@ listman() {
     }
 
     case "$parse__operation" in
-    number | index)
-      counter=0
-      result="$(
-        for item in $parse__list; do
-          counter=$((counter + 1))
-          printf '%d. %s\n' "$counter" "$item"
-        done
-      )"
-      ;;
-    count)
-      counter=0
-      result="$(
-        for item in $parse__list; do
-          counter=$((counter + 1))
-        done
-        printf '%d' "$counter"
-      )"
-      ;;
-    exec)
-      counter=0
-      result="$(
-        for item in $parse__list; do
-          eval "$(printf '%s' "$parse__command" | sed "s|{}|$item|g")"
-        done
-      )"
-      ;;
+      number | index)
+        counter=0
+        result="$(
+          for item in $parse__list; do
+            counter=$((counter + 1))
+            printf '%d. %s\n' "$counter" "$item"
+          done
+        )"
+        ;;
+      count)
+        counter=0
+        result="$(
+          for item in $parse__list; do
+            counter=$((counter + 1))
+          done
+          printf '%d' "$counter"
+        )"
+        ;;
+      exec)
+        counter=0
+        result="$(
+          for item in $parse__list; do
+            eval "$(printf '%s' "$parse__command" | sed "s|{}|$item|g")"
+          done
+        )"
+        ;;
     esac
     printf "%s" "$result"
 
     case "$parse__seperator" in
-    comma)
-      first=true=
-      result="$(
-        for item in $parse__list; do
-          [ "$item" ] || continue
-          if [ "$first" ]; then
-            unset first
-            printf '%s' "$item"
-          else
-            printf ', %s' "$item"
-          fi
-        done
-      )"
-      ;;
-    space)
-      first=true
-      result="$(
-        for item in $parse__list; do
-          [ "$item" ] || continue
-          if [ "$first" ]; then
-            unset first
-            printf '%s' "$item"
-          else
-            printf ' %s' "$item"
-          fi
-        done
-      )"
-      ;;
-    newline)
-      first=true
-      result="$(
-        for item in $parse__list; do
-          [ "$item" ] || continue
-          if [ "$first" ]; then
-            unset first
-            printf '%s' "$item"
-          else
-            printf '\n%s' "$item"
-          fi
-        done
-      )"
-      ;;
+      comma)
+        first=true=
+        result="$(
+          for item in $parse__list; do
+            [ "$item" ] || continue
+            if [ "$first" ]; then
+              unset first
+              printf '%s' "$item"
+            else
+              printf ', %s' "$item"
+            fi
+          done
+        )"
+        ;;
+      space)
+        first=true
+        result="$(
+          for item in $parse__list; do
+            [ "$item" ] || continue
+            if [ "$first" ]; then
+              unset first
+              printf '%s' "$item"
+            else
+              printf ' %s' "$item"
+            fi
+          done
+        )"
+        ;;
+      newline)
+        first=true
+        result="$(
+          for item in $parse__list; do
+            [ "$item" ] || continue
+            if [ "$first" ]; then
+              unset first
+              printf '%s' "$item"
+            else
+              printf '\n%s' "$item"
+            fi
+          done
+        )"
+        ;;
     esac
 
     case "$parse__border" in
-    square*) result="[$result]" ;;
-    bracket*) result="($result)" ;;
-    curly*) result="{$result}" ;;
+      square*) result="[$result]" ;;
+      bracket*) result="($result)" ;;
+      curly*) result="{$result}" ;;
     esac
 
     #@ Return the parsed list
@@ -588,12 +588,12 @@ execute() {
 
   execute__usage() {
     case "$1" in
-    --list) printf "ERROR: A list variable name is required.\n" ;;
-    --item) printf "ERROR: An item is required.\n" ;;
-    --arg) printf "ERROR: An argument is required for '%s'.\n" "$2" ;;
-    --delim) printf "ERROR: A delimiter is required for '%s'.\n" "$2" ;;
-    '') printf "ERROR: No options provided.\n" ;;
-    *) printf "ERROR: Invalid option: '%s'.\n" "$1" ;;
+      --list) printf "ERROR: A list variable name is required.\n" ;;
+      --item) printf "ERROR: An item is required.\n" ;;
+      --arg) printf "ERROR: An argument is required for '%s'.\n" "$2" ;;
+      --delim) printf "ERROR: A delimiter is required for '%s'.\n" "$2" ;;
+      '') printf "ERROR: No options provided.\n" ;;
+      *) printf "ERROR: Invalid option: '%s'.\n" "$1" ;;
     esac
 
     printf "\nUSAGE: execute %s %s\n" \
@@ -622,36 +622,36 @@ execute() {
     #@ Parse arguments
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      -l | --list)
-        [ "$2" ] || { execute__usage --arg "$1" && return 1; }
-        shift
-        execute__list="$1"
-        ;;
-      -i | --item)
-        [ "$2" ] || { execute__usage --arg "$1" && return 1; }
-        shift
-        listman --include --list execute__item --item "$1"
-        ;;
-      -c | --base | --cmd)
-        [ "$2" ] || { execute__usage --arg "$1" && return 1; }
-        shift
-        listman --include --list execute__base --item "$1"
-        ;;
-      -b | --before)
-        [ "$2" ] || { execute__usage --arg "$1" && return 1; }
-        shift
-        listman --include --list execute__next --item "$1"
-        ;;
-      -a | --after)
-        [ "$2" ] || { execute__usage --arg "$1" && return 1; }
-        shift
-        listman --include --list execute__last --item "$1"
-        ;;
-      -d | --delim*)
-        [ "$2" ] || { execute__usage --arg "$1" && return 1; }
-        shift
-        execute__delimiter="$1"
-        ;;
+        -l | --list)
+          [ "$2" ] || { execute__usage --arg "$1" && return 1; }
+          shift
+          execute__list="$1"
+          ;;
+        -i | --item)
+          [ "$2" ] || { execute__usage --arg "$1" && return 1; }
+          shift
+          listman --include --list execute__item --item "$1"
+          ;;
+        -c | --base | --cmd)
+          [ "$2" ] || { execute__usage --arg "$1" && return 1; }
+          shift
+          listman --include --list execute__base --item "$1"
+          ;;
+        -b | --before)
+          [ "$2" ] || { execute__usage --arg "$1" && return 1; }
+          shift
+          listman --include --list execute__next --item "$1"
+          ;;
+        -a | --after)
+          [ "$2" ] || { execute__usage --arg "$1" && return 1; }
+          shift
+          listman --include --list execute__last --item "$1"
+          ;;
+        -d | --delim*)
+          [ "$2" ] || { execute__usage --arg "$1" && return 1; }
+          shift
+          execute__delimiter="$1"
+          ;;
       esac
       shift
     done
@@ -765,43 +765,43 @@ execute() {
     #@ Check if the item is in the list
     # case " $execute__list " in
     case $(seperate_by_space "$execute__list") in
-    *" $execute__item "*)
+      *" $execute__item "*)
 
-      #@ Construct the full command
-      execute__exec="$(
-        seperate_by_space "$(
-          printf "%s %s %s %s\n" \
-            "$(seperate_by_space "$execute__base")" \
-            "$(seperate_by_space "$execute__next")" \
-            "$(seperate_by_space "$execute__item")" \
-            "$(seperate_by_space "$execute__last")"
+        #@ Construct the full command
+        execute__exec="$(
+          seperate_by_space "$(
+            printf "%s %s %s %s\n" \
+              "$(seperate_by_space "$execute__base")" \
+              "$(seperate_by_space "$execute__next")" \
+              "$(seperate_by_space "$execute__item")" \
+              "$(seperate_by_space "$execute__last")"
+          )"
         )"
-      )"
 
-      #@ Debug print and skip execution if specified
-      [ "$debug" ] && {
-        printf "DEBUG: EXECUTE_CMD__EXEC: %s\n" "$execute__exec"
-        return 0
-      }
+        #@ Debug print and skip execution if specified
+        [ "$debug" ] && {
+          printf "DEBUG: EXECUTE_CMD__EXEC: %s\n" "$execute__exec"
+          return 0
+        }
 
-      #@ Execute the command
-      eval "$execute__exec"
-      ;;
-    *)
-      #@ Skip error messaging if debug and verbosity are disabled
-      { [ "$debug" ] || [ "${verbosity:-0}" -gt 3 ]; } || return 1
+        #@ Execute the command
+        eval "$execute__exec"
+        ;;
+      *)
+        #@ Skip error messaging if debug and verbosity are disabled
+        { [ "$debug" ] || [ "${verbosity:-0}" -gt 3 ]; } || return 1
 
-      #@ Print error message
-      if [ "$execute__list" ]; then
-        printf "Error: '%s' is not a member of [%s]\n" \
-          "$execute__item" \
-          "$(echo "$execute__list" | tr ' ' ',')"
-      else
-        printf "Error: The list of items to execute is empty\n"
-      fi
+        #@ Print error message
+        if [ "$execute__list" ]; then
+          printf "Error: '%s' is not a member of [%s]\n" \
+            "$execute__item" \
+            "$(echo "$execute__list" | tr ' ' ',')"
+        else
+          printf "Error: The list of items to execute is empty\n"
+        fi
 
-      return 1
-      ;;
+        return 1
+        ;;
     esac
 
     # if
@@ -853,8 +853,8 @@ execute() {
 
 seperate_by_space() {
   printf "%s" "$(
-    printf "%s" "$1" |
-      tr '\n' ' '
+    printf "%s" "$1" \
+      | tr '\n' ' '
   )" | awk '{$1=$1};1'
 }
 
@@ -863,13 +863,13 @@ convert_to_seconds() {
   unit=$2
 
   case "$unit" in
-  #TODO: expr is antiquated. Consider rewriting this using $((..)), ${} or [[ ]].shellcheckSC2003
-  h | hour | hours) expr "$value" \* 3600 ;;
-  d | day | days) expr "$value" \* 86400 ;;
-  w | week | weeks) expr "$value" \* 604800 ;;
-  m | month | months) expr "$value" \* 2592000 ;; # 30 days
-  y | year | years) expr "$value" \* 31536000 ;;
-  *) printf "%s" "$value" ;;
+    #TODO: expr is antiquated. Consider rewriting this using $((..)), ${} or [[ ]].shellcheckSC2003
+    h | hour | hours) expr "$value" \* 3600 ;;
+    d | day | days) expr "$value" \* 86400 ;;
+    w | week | weeks) expr "$value" \* 604800 ;;
+    m | month | months) expr "$value" \* 2592000 ;; # 30 days
+    y | year | years) expr "$value" \* 31536000 ;;
+    *) printf "%s" "$value" ;;
   esac
 }
 
@@ -896,64 +896,64 @@ validate_expiry_date() {
 
   #@ Check if it starts with a number
   case "$first_char" in
-  [0-9])
-    #@ Check various formats
-    case "$date_to_validate" in
-    #@ If the first char is a number, check if it's pure number
-    *[!0-9]*)
-      #@ Contains non-digits, check for valid time formats
+    [0-9])
+      #@ Check various formats
       case "$date_to_validate" in
-      *[hdwmy])
-        #@ Check if everything except last char is number
-        without_unit=$(printf "%s" "$date_to_validate" | sed 's/[hdwmy]$//')
-        case "$without_unit" in
+        #@ If the first char is a number, check if it's pure number
         *[!0-9]*)
-          _print_error
-          return 1
+          #@ Contains non-digits, check for valid time formats
+          case "$date_to_validate" in
+            *[hdwmy])
+              #@ Check if everything except last char is number
+              without_unit=$(printf "%s" "$date_to_validate" | sed 's/[hdwmy]$//')
+              case "$without_unit" in
+                *[!0-9]*)
+                  _print_error
+                  return 1
+                  ;;
+              esac
+              ;;
+            *" days" | *" day" | *" hours" | *" hour" | \
+              *" weeks" | *" week" | *" months" | *" month" | \
+              *" years" | *" year")
+              #@ Check if everything before space is number
+              num_part=$(printf "%s" "$date_to_validate" | cut -d' ' -f1)
+              case "$num_part" in
+                *[!0-9]*)
+                  _print_error
+                  return 1
+                  ;;
+              esac
+              ;;
+            *)
+              _print_error
+              return 1
+              ;;
+          esac
           ;;
-        esac
-        ;;
-      *" days" | *" day" | *" hours" | *" hour" | \
-        *" weeks" | *" week" | *" months" | *" month" | \
-        *" years" | *" year")
-        #@ Check if everything before space is number
-        num_part=$(printf "%s" "$date_to_validate" | cut -d' ' -f1)
-        case "$num_part" in
-        *[!0-9]*)
-          _print_error
-          return 1
-          ;;
-        esac
-        ;;
-      *)
-        _print_error
-        return 1
-        ;;
       esac
       ;;
-    esac
-    ;;
-  *)
-    #@ Check if it's a valid date format YYYY-MM-DD
-    case "$date_to_validate" in
-    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])
-      if ! date -d "$date_to_validate" >/dev/null 2>&1; then
-        printf "ERROR: Invalid date format. Use YYYY-MM-DD.\n"
-        return 1
-      fi
-      ;;
     *)
-      _print_error
-      return 1
+      #@ Check if it's a valid date format YYYY-MM-DD
+      case "$date_to_validate" in
+        [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])
+          if ! date -d "$date_to_validate" > /dev/null 2>&1; then
+            printf "ERROR: Invalid date format. Use YYYY-MM-DD.\n"
+            return 1
+          fi
+          ;;
+        *)
+          _print_error
+          return 1
+          ;;
+      esac
       ;;
-    esac
-    ;;
   esac
   return 0
 }
 
 validate_cmd() {
-  if command -v "$1" >/dev/null 2>&1; then
+  if command -v "$1" > /dev/null 2>&1; then
     printf "Command found: %s\n" "$1"
     return 0
   else
@@ -968,13 +968,13 @@ set_expiry_date() {
   #@ Parse arguments
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --tool) tool="$2" ;;
-    --date)
-      [ "$2" ] && {
-        date="$2"
-        shift
-      }
-      ;;
+      --tool) tool="$2" ;;
+      --date)
+        [ "$2" ] && {
+          date="$2"
+          shift
+        }
+        ;;
     esac
     shift
   done
@@ -985,74 +985,74 @@ set_expiry_date() {
 
   #@ Set generations based on tool
   case "$tool" in
-  nix)
-    #@ Handle different formats
-    case "$generations" in
-    *[hdwmy])
-      value=$(printf "%s" "$generations" | sed 's/[hdwmy]$//')
-      unit=$(printf "%s" "$generations" | sed 's/.*\(.\)$/\1/')
-      seconds=$(convert_to_seconds "$value" "$unit")
-      cutoff_date=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
-      num_generations=$(nix-env --list-generations |
-        awk -v cutoff="$cutoff_date" '$1 > cutoff {count++} END {print count}')
+    nix)
+      #@ Handle different formats
+      case "$generations" in
+        *[hdwmy])
+          value=$(printf "%s" "$generations" | sed 's/[hdwmy]$//')
+          unit=$(printf "%s" "$generations" | sed 's/.*\(.\)$/\1/')
+          seconds=$(convert_to_seconds "$value" "$unit")
+          cutoff_date=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
+          num_generations=$(nix-env --list-generations \
+            | awk -v cutoff="$cutoff_date" '$1 > cutoff {count++} END {print count}')
+          ;;
+        *" "*)
+          value=$(printf "%s" "$generations" | cut -d' ' -f1)
+          unit=$(printf "%s" "$generations" | cut -d' ' -f2 | sed 's/s$//')
+          seconds=$(convert_to_seconds "$value" "$unit")
+          cutoff_date=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
+          num_generations=$(nix-env --list-generations \
+            | awk -v cutoff="$cutoff_date" '$1 > cutoff {count++} END {print count}')
+          ;;
+        *[!0-9]*)
+          # Timestamp
+          num_generations=$(nix-env --list-generations \
+            | awk -v cutoff="$generations" '$1 > cutoff {count++} END {print count}')
+          ;;
+        *)
+          # Pure number
+          num_generations="$generations"
+          ;;
+      esac
+      printf "%s" "$num_generations"
       ;;
-    *" "*)
-      value=$(printf "%s" "$generations" | cut -d' ' -f1)
-      unit=$(printf "%s" "$generations" | cut -d' ' -f2 | sed 's/s$//')
-      seconds=$(convert_to_seconds "$value" "$unit")
-      cutoff_date=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
-      num_generations=$(nix-env --list-generations |
-        awk -v cutoff="$cutoff_date" '$1 > cutoff {count++} END {print count}')
-      ;;
-    *[!0-9]*)
-      # Timestamp
-      num_generations=$(nix-env --list-generations |
-        awk -v cutoff="$generations" '$1 > cutoff {count++} END {print count}')
-      ;;
-    *)
-      # Pure number
-      num_generations="$generations"
-      ;;
-    esac
-    printf "%s" "$num_generations"
-    ;;
 
-  hm)
-    case "$generations" in
-    *[!0-9]*)
-      if printf "%s" "$generations" | grep -q "[hdwmy]$"; then
-        value=$(printf "%s" "$generations" | sed 's/[hdwmy]$//')
-        unit=$(printf "%s" "$generations" | sed 's/.*\(.\)$/\1/')
-        seconds=$(convert_to_seconds "$value" "$unit")
-        target_timestamp=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
-      elif printf "%s" "$generations" | grep -q " "; then
-        value=$(printf "%s" "$generations" | cut -d' ' -f1)
-        unit=$(printf "%s" "$generations" | cut -d' ' -f2 | sed 's/s$//')
-        seconds=$(convert_to_seconds "$value" "$unit")
-        target_timestamp=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
-      else
-        target_timestamp="$generations"
-      fi
+    hm)
+      case "$generations" in
+        *[!0-9]*)
+          if printf "%s" "$generations" | grep -q "[hdwmy]$"; then
+            value=$(printf "%s" "$generations" | sed 's/[hdwmy]$//')
+            unit=$(printf "%s" "$generations" | sed 's/.*\(.\)$/\1/')
+            seconds=$(convert_to_seconds "$value" "$unit")
+            target_timestamp=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
+          elif printf "%s" "$generations" | grep -q " "; then
+            value=$(printf "%s" "$generations" | cut -d' ' -f1)
+            unit=$(printf "%s" "$generations" | cut -d' ' -f2 | sed 's/s$//')
+            seconds=$(convert_to_seconds "$value" "$unit")
+            target_timestamp=$(date -d "@$(expr "$(date +%s)" - $seconds)" +%Y-%m-%d)
+          else
+            target_timestamp="$generations"
+          fi
+          ;;
+        *)
+          # Get the timestamp of the Nth oldest generation
+          target_timestamp=$(home-manager generations \
+            | sort -k2,2 \
+            | head -n "$generations" \
+            | tail -n 1 \
+            | awk '{print $2}')
+          ;;
+      esac
+      printf "%s" "$target_timestamp"
       ;;
-    *)
-      # Get the timestamp of the Nth oldest generation
-      target_timestamp=$(home-manager generations |
-        sort -k2,2 |
-        head -n "$generations" |
-        tail -n 1 |
-        awk '{print $2}')
-      ;;
-    esac
-    printf "%s" "$target_timestamp"
-    ;;
   esac
 }
 
 gc_nix() {
   #@ Skip if 'nix' is not specified or installed
-  [ -n "${nix}" ] ||
-    validate_tool nix ||
-    return 0
+  [ -n "${nix}" ] \
+    || validate_tool nix \
+    || return 0
 
   #@ Delete old Nix profiles and generations
   validate_tool "nix-collect-garbage" && {

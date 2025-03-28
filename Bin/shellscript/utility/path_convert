@@ -3,7 +3,7 @@
 
 scr_name="path_convert"
 scr_usage=$(
-  cat <<HELP
+  cat << HELP
 USAGE:
   $scr_name [OPTIONS] [STRING]
 
@@ -53,32 +53,32 @@ parse_input() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-    -h | --help)
-      print_help
-      exit
-      ;;
-    -d | --verbose)
-      verbosity=2
-      ;;
-    -p | --prefix)
-      input_prefix="$2"
-      shift
-      ;;
-    -c | --clip)
-      clip=true
-      ;;
-    -q | --quiet)
-      verbosity=0
-      ;;
-    *)
-      if [ "$1" ]; then
-        input_path="$1"
-        input_path_type="$(get_path_type "$input_path")"
-      else
-        printf "%s\n" "$scr_usage"
-        exit 1
-      fi
-      ;;
+      -h | --help)
+        print_help
+        exit
+        ;;
+      -d | --verbose)
+        verbosity=2
+        ;;
+      -p | --prefix)
+        input_prefix="$2"
+        shift
+        ;;
+      -c | --clip)
+        clip=true
+        ;;
+      -q | --quiet)
+        verbosity=0
+        ;;
+      *)
+        if [ "$1" ]; then
+          input_path="$1"
+          input_path_type="$(get_path_type "$input_path")"
+        else
+          printf "%s\n" "$scr_usage"
+          exit 1
+        fi
+        ;;
     esac
     shift
   done
@@ -127,8 +127,8 @@ get_clean_path() {
 
 get_path_type() {
   case $1 in
-  *:*) printf "Windows" ;;
-  *) printf "Unix" ;;
+    *:*) printf "Windows" ;;
+    *) printf "Unix" ;;
   esac
 }
 
@@ -143,31 +143,31 @@ parse_path() {
 
     printf "SOURCE: %s\n" "$source_path"
     printf "FORMAT: %s\n" "$source_path_format"
-    [ "$parsed_root" ] &&
-      printf "ROOT: %s\n" "$(get_to_the_root)"
+    [ "$parsed_root" ] \
+      && printf "ROOT: %s\n" "$(get_to_the_root)"
 
   }
 
   parse_path__env() {
     while [ $# -gt 0 ]; do
       case $1 in
-      --root) parsed_root=true ;;
-      *)
-        if [ "$1" ]; then
-          source_path="$(get_clean_path "$1")"
-        else
-          printf "Missing path to parse\n"
-          return 1
-        fi
-        ;;
+        --root) parsed_root=true ;;
+        *)
+          if [ "$1" ]; then
+            source_path="$(get_clean_path "$1")"
+          else
+            printf "Missing path to parse\n"
+            return 1
+          fi
+          ;;
       esac
       shift
     done
 
     #@ Set the path format
     case "$source_path" in
-    [a-zA-Z]:*) source_path_format="Windows" ;;
-    *) source_path_format="Unix" ;;
+      [a-zA-Z]:*) source_path_format="Windows" ;;
+      *) source_path_format="Unix" ;;
     esac
 
     #@ Split the path by separators "/"
@@ -264,17 +264,17 @@ parse_path() {
 
 get_path_root() {
   case $1 in
-  --win)
-    if cd "$2" >/dev/null 2>&1; then
-      [ "$(get_path_type "$(pwd -W)")" = Windows ] &&
-        pwd -W
-    else
-      echo "Invalid path"
-      return 1
-    fi
-    ;;
-  --unix) cd "$2" && pwd ;;
-  *) cd "$1" && pwd -W ;;
+    --win)
+      if cd "$2" > /dev/null 2>&1; then
+        [ "$(get_path_type "$(pwd -W)")" = Windows ] \
+          && pwd -W
+      else
+        echo "Invalid path"
+        return 1
+      fi
+      ;;
+    --unix) cd "$2" && pwd ;;
+    *) cd "$1" && pwd -W ;;
   esac
 }
 
@@ -285,62 +285,62 @@ validate_path() {
   #@ Parse the path input
   while [ $# -gt 0 ]; do
     case "$1" in
-    -q | --quiet) quiet=true ;;
-    -w | --win*) path_type="Windows" ;;
-    -u | --unix) path_type="Unix" ;;
-    *)
-      #@ Check if the path is empty
-      if [ "$1" ]; then
-        path="$(get_clean_path "$1")"
-      else
-        msg="Missing path string"
-        exit_code=1
-        return "$exit_code"
-      fi
-      ;;
+      -q | --quiet) quiet=true ;;
+      -w | --win*) path_type="Windows" ;;
+      -u | --unix) path_type="Unix" ;;
+      *)
+        #@ Check if the path is empty
+        if [ "$1" ]; then
+          path="$(get_clean_path "$1")"
+        else
+          msg="Missing path string"
+          exit_code=1
+          return "$exit_code"
+        fi
+        ;;
     esac
     shift
   done
 
   #@ Check for Windows path then default to Unix
   case "${path_type:-$(get_path_type "$path")}" in
-  Windows)
-    #@ Validate the Windows path
-    case "$path" in
-    [A-Za-z]:*)
-      #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
-      [ "${path#"${path%?}"}" = ":" ] && path="${path}/"
-      ;;
-    *)
-      #@ Extract the drive letter (e.g., C)
-      drive=${path%%:*}
+    Windows)
+      #@ Validate the Windows path
+      case "$path" in
+        [A-Za-z]:*)
+          #@ Add a trailing slash if the path ends with colon (eg. C: = C:/)
+          [ "${path#"${path%?}"}" = ":" ] && path="${path}/"
+          ;;
+        *)
+          #@ Extract the drive letter (e.g., C)
+          drive=${path%%:*}
 
-      #@ Validate the drive letter (e.g., C)
-      if [ "$drive" ]; then
-        if [ "${#drive}" -ne 1 ]; then
-          err="Invalid drive letter length"
-        elif ! printf "%s" "$drive" |
-          grep --extended-regexp --quiet "'^[A-Za-z]$'"; then
-          err="Invalid drive letter"
-        fi
-        msg="$(printf "%s |> %s" "$err" "$path" | grep --color=always "$drive")"
-      else
-        msg="$(printf "Missing drive letter |> %s" "$path")"
-      fi
+          #@ Validate the drive letter (e.g., C)
+          if [ "$drive" ]; then
+            if [ "${#drive}" -ne 1 ]; then
+              err="Invalid drive letter length"
+            elif ! printf "%s" "$drive" \
+              | grep --extended-regexp --quiet "'^[A-Za-z]$'"; then
+              err="Invalid drive letter"
+            fi
+            msg="$(printf "%s |> %s" "$err" "$path" | grep --color=always "$drive")"
+          else
+            msg="$(printf "Missing drive letter |> %s" "$path")"
+          fi
 
-      # #@ Return an error message and exit code
-      # [ "$quiet" ] || printf "%s" "$msg"
-      exit_code=1
+          # #@ Return an error message and exit code
+          # [ "$quiet" ] || printf "%s" "$msg"
+          exit_code=1
+          ;;
+      esac
       ;;
-    esac
-    ;;
-  Unix)
-    #@ Validate the Windows path
-    #TODO Implement error checking logic.
-    # err="Unix path"
-    # printf "%s" "$err"
-    # return 1
-    ;;
+    Unix)
+      #@ Validate the Windows path
+      #TODO Implement error checking logic.
+      # err="Unix path"
+      # printf "%s" "$err"
+      # return 1
+      ;;
   esac
 
   #@ Return an error message or valid path
@@ -355,8 +355,8 @@ convert_path() {
 
   based_on_type() {
     case "$path_type" in
-    Windows) to_unix ;;
-    Unix) to_windows ;;
+      Windows) to_unix ;;
+      Unix) to_windows ;;
     esac
   }
 
@@ -375,20 +375,20 @@ convert_path() {
         fi
       done
 
-      [ "$path_root" ] ||
-        case "$(get_clean_path "$path")" in
-        home/*)
-          path_root="$(
-            get_path_root --win "$(dirname "$HOME")"
-          )"
-          # get_path_root --win "$HOME" && {
-          #   path_root="$(dirname "$HOME")"
-          #   drive_letter="$(get_path_tld "$win_home_dir")"
-          # }
+      [ "$path_root" ] \
+        || case "$(get_clean_path "$path")" in
+          home/*)
+            path_root="$(
+              get_path_root --win "$(dirname "$HOME")"
+            )"
+            # get_path_root --win "$HOME" && {
+            #   path_root="$(dirname "$HOME")"
+            #   drive_letter="$(get_path_tld "$win_home_dir")"
+            # }
 
-          # drive_letter="$path_root/${path#*home/}"
-          ;;
-          # *) drive_letter="$path" ;;
+            # drive_letter="$path_root/${path#*home/}"
+            ;;
+            # *) drive_letter="$path" ;;
         esac
     }
 
@@ -423,8 +423,8 @@ convert_path() {
     done
 
     drive="$(
-      printf "%s:" "$drive_letter" |
-        tr '[:lower:]' '[:upper:]'
+      printf "%s:" "$drive_letter" \
+        | tr '[:lower:]' '[:upper:]'
     )"
     path="${drive}${remaining_path}"
   }
@@ -440,30 +440,30 @@ convert_path() {
     else
       #@ Set the path root as the user's home directory
       case "$path" in
-      home/* | *:/home/*)
-        path_root="$(get_path_root "$HOME")"
-        path="$path_root/${path#*home/}"
-        ;;
-      *)
-        # # path="$path_root${path}"
-        # path="C:/${path}"
-        path="$(get_clean_path "$path")"
+        home/* | *:/home/*)
+          path_root="$(get_path_root "$HOME")"
+          path="$path_root/${path#*home/}"
+          ;;
+        *)
+          # # path="$path_root${path}"
+          # path="C:/${path}"
+          path="$(get_clean_path "$path")"
 
-        # Extract the drive (e.g. c: from /c:/)
-        drive="$(get_path_tld "$path")"
+          # Extract the drive (e.g. c: from /c:/)
+          drive="$(get_path_tld "$path")"
 
-        # Extract the drive letter (e.g. c from c:)
-        drive_letter="$(
-          printf "%s" "${drive%:}" | tr '[:upper:]' '[:lower:]'
-        )"
+          # Extract the drive letter (e.g. c from c:)
+          drive_letter="$(
+            printf "%s" "${drive%:}" | tr '[:upper:]' '[:lower:]'
+          )"
 
-        # Update the path and include a leading slash
-        path="${drive_letter}${path#"${drive}"}"
+          # Update the path and include a leading slash
+          path="${drive_letter}${path#"${drive}"}"
 
-        # Update the path with the prefix
-        prefix="/$(get_clean_path "${prefix:-mnt}")"
-        path="${prefix}/${path}"
-        ;;
+          # Update the path with the prefix
+          prefix="/$(get_clean_path "${prefix:-mnt}")"
+          path="${prefix}/${path}"
+          ;;
       esac
     fi
   }
@@ -485,17 +485,17 @@ parse_output() {
   fi
 
   case "$verbosity" in
-  0) ;;
-  1) ;;
-  *)
-    printf "Input Path   |> %s\n" "$input_path"
-    printf "Input Type   |> %s\n" "$input_path_type"
-    [ "$input_prefix" ] && printf "Input Prefix |> %s\n" "$input_prefix"
-    printf "Output Path  |> %s\n" "$output_path"
-    printf "Output Type  |> %s\n" "$output_path_type"
-    [ "$exit_code" -gt 0 ] && printf "Exit Code    |> %s\n" "$exit_code"
-    [ "$check_type" ] && printf "Check Type   |> %s\n" "$check_type"
-    ;;
+    0) ;;
+    1) ;;
+    *)
+      printf "Input Path   |> %s\n" "$input_path"
+      printf "Input Type   |> %s\n" "$input_path_type"
+      [ "$input_prefix" ] && printf "Input Prefix |> %s\n" "$input_prefix"
+      printf "Output Path  |> %s\n" "$output_path"
+      printf "Output Type  |> %s\n" "$output_path_type"
+      [ "$exit_code" -gt 0 ] && printf "Exit Code    |> %s\n" "$exit_code"
+      [ "$check_type" ] && printf "Check Type   |> %s\n" "$check_type"
+      ;;
   esac
 
   [ "$clip" ] && send_to_clipboard "$path"

@@ -5,11 +5,11 @@
 # shellcheck disable=SC3000-SC4000
 
 case $1 in
--d | --verbose)
-  VERBOSE=true
-  shift
-  ;;
-*) ;;
+  -d | --verbose)
+    VERBOSE=true
+    shift
+    ;;
+  *) ;;
 esac
 
 # is_user_root () { [ "$(id -u)" -eq 0 ]; }

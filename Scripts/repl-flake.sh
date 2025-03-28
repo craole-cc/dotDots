@@ -16,32 +16,32 @@ set_defaults() {
   SCR_NAME="$(basename "$0")"
 
   #@ Define commands
-  CMD_NIX="$(command -v nix 2>/dev/null)"
-  CMD_REALPATH="$(command -v realpath 2>/dev/null)"
-  CMD_READLINK="$(command -v readlink 2>/dev/null)"
+  CMD_NIX="$(command -v nix 2> /dev/null)"
+  CMD_REALPATH="$(command -v realpath 2> /dev/null)"
+  CMD_READLINK="$(command -v readlink 2> /dev/null)"
 
   #@ Attempt to retrieve the path to the flake
-  GIT_DIR=$(git rev-parse --show-toplevel 2>/dev/null)
+  GIT_DIR=$(git rev-parse --show-toplevel 2> /dev/null)
   TARGET_FLAKE="${FLAKE:-"${PRJ_ROOT:-"${GIT_DIR}"}"}"
 }
 
 set_modes() {
   case "${strict:-}" in
-  '' | off | false | 0) ;;
-  on | true | 1) set -eu ;;
-  *) ;;
+    '' | off | false | 0) ;;
+    on | true | 1) set -eu ;;
+    *) ;;
   esac
 
   case "${debug:-}" in
-  '' | off | false | 0) debug=0 ;;
-  on | true | 1) debug=1 ;;
-  trace) debug=2 ;;
-  *)
-    if ! [ "${debug}" -eq "${debug}" ] 2>/dev/null; then
-      printf "❌ Unknown debug value: %s" "${debug}"
-      exit 1
-    fi
-    ;;
+    '' | off | false | 0) debug=0 ;;
+    on | true | 1) debug=1 ;;
+    trace) debug=2 ;;
+    *)
+      if ! [ "${debug}" -eq "${debug}" ] 2> /dev/null; then
+        printf "❌ Unknown debug value: %s" "${debug}"
+        exit 1
+      fi
+      ;;
   esac
 
   if [ "${debug:-}" -gt 1 ]; then
@@ -95,17 +95,17 @@ validate_env() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help | help | "/?")
-      show_help
-      exit 0
-      ;;
-    -d | --debug | debug | trace | "/d")
-      debug=1
-      ;;
-    -f | --flake | flake | "/f")
-      [ -n "${2}" ] && SPECIFIED_FLAKE="$2" && shift
-      ;;
-    *) SPECIFIED_FLAKE="$1" ;;
+      -h | --help | help | "/?")
+        show_help
+        exit 0
+        ;;
+      -d | --debug | debug | trace | "/d")
+        debug=1
+        ;;
+      -f | --flake | flake | "/f")
+        [ -n "${2}" ] && SPECIFIED_FLAKE="$2" && shift
+        ;;
+      *) SPECIFIED_FLAKE="$1" ;;
     esac
     shift
   done
@@ -120,7 +120,7 @@ execute_process() {
 }
 
 show_help() {
-  cat <<EOF
+  cat << EOF
 Usage: ${SCR_NAME} [OPTIONS] [PATH_TO_FLAKE]
 
 Options:

@@ -40,14 +40,14 @@ parse_arguments() {
   #@ Parse main cli arguments
   while [ $# -ge 1 ]; do
     case "$1" in
-    -h | --help) display_help ;;
-    -v | --version) display_version ;;
-    -r | --rust)
-      ducta="rust-script"
-      ;;
-    -s | --shell) ;;
-    -*) handle_error "Invalid option: $1" ;;
-    *) ;;
+      -h | --help) display_help ;;
+      -v | --version) display_version ;;
+      -r | --rust)
+        ducta="rust-script"
+        ;;
+      -s | --shell) ;;
+      -*) handle_error "Invalid option: $1" ;;
+      *) ;;
     esac
     shift
   done
@@ -61,11 +61,11 @@ display_messaging() {
   #@ Parse arguments
   while [ $# -ge 1 ]; do
     case "$1" in
-    -t | --trim) trim=true ;;
-    -n | --new-line) newline=true ;;
-    -m | --msg) msg="$2" ;;
-    -*) shift ;;
-    *) msg="$*" ;;
+      -t | --trim) trim=true ;;
+      -n | --new-line) newline=true ;;
+      -m | --msg) msg="$2" ;;
+      -*) shift ;;
+      *) msg="$*" ;;
     esac
     shift
   done
@@ -98,15 +98,15 @@ transport_cargo() {
   #@ Execute scripts
   while [ "$#" -ge 1 ]; do
     case $1 in
-    -*) ;;
-    *)
-      "$ducta" -- "$1"
-      # if [ -f "$1" ]; then
-      #   "$ducta" -- "$1"
-      # else
-      #   handle_error "Illegal item for transport:" "$1"
-      # fi
-      ;;
+      -*) ;;
+      *)
+        "$ducta" -- "$1"
+        # if [ -f "$1" ]; then
+        #   "$ducta" -- "$1"
+        # else
+        #   handle_error "Illegal item for transport:" "$1"
+        # fi
+        ;;
     esac
     shift
   done

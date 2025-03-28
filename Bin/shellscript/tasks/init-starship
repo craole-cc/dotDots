@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #@ Check if starship exists, return if not
-command -v starship >/dev/null 2>&1 || return
+command -v starship > /dev/null 2>&1 || return
 
 #@ Set config path with POSIX-compliant parameter expansion
 if [ -n "$1" ]; then

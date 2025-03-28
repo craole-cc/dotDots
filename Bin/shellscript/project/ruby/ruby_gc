@@ -7,21 +7,21 @@ gem=""
 # Parse options
 while [ "$#" -gt 0 ]; do
   case $2 in
-  -f | --force)
-    force=true
-    ;;
-  -A | --all)
-    uninstall_all=true
-    ;;
-  -g | --gem)
-    gem="$2"
-    uninstall_all=false
-    ;;
-  -*)
-    printf "Invalid option: %s\n" "$2" >&2
-    exit 1
-    ;;
-  *) gem="$1" ;;
+    -f | --force)
+      force=true
+      ;;
+    -A | --all)
+      uninstall_all=true
+      ;;
+    -g | --gem)
+      gem="$2"
+      uninstall_all=false
+      ;;
+    -*)
+      printf "Invalid option: %s\n" "$2" >&2
+      exit 1
+      ;;
+    *) gem="$1" ;;
   esac
 done
 
