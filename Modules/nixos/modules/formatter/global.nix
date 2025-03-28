@@ -45,7 +45,9 @@
               "Assets/**"
               "*.bat"
               "*.cmd"
-              "*.ps1"
+              "*.ps1" # TODO: Find a way to format these
+              "*.editorconfig"
+              "LICENSE"
               # "*.ascii"
               # "*.webp"
               # "*.png"
