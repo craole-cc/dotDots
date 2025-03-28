@@ -16,6 +16,7 @@
               "**/target/**"
               "**/review/**"
               "**/temp/**"
+              "Review/**"
               "Configuration/**" # TODO: This is temporary
               "Environment/**" # TODO: This is temporary
               "Tasks/**" # TODO: This is temporary
