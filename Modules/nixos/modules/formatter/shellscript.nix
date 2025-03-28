@@ -5,6 +5,8 @@
       includes = [
         "**/sh/**"
         "**/shellscript/**"
+        "**/Scripts/**"
+        "**/scripts/**"
         "Modules/global/**"
         "Modules/nixos/configurations/hosts/QBX/bin/**"
         "**/bash/**"

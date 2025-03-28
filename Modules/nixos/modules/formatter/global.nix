@@ -39,6 +39,8 @@
               "**/temp/**"
               "Configuration/**" # TODO: This is temporary
               "Environment/**" # TODO: This is temporary
+              "Tasks/**" # TODO: This is temporary
+              "Templates/**" # TODO: This is temporary
               "**/.config/**"
               "Assets/**"
               "*.bat"
