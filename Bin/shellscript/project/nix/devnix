@@ -21,11 +21,21 @@ set_defaults() {
 
   weHave_nix="$(command -v nix-shell 2>/dev/null || true)"
   weHave_flakes="$(nix config show | grep '^experimental-features.*flakes*' 2>/dev/null || true)"
-
   tui_editor="${EDITOR:-"$(command -v nano 2>/dev/null || true)"}"
   gui_editor="${VISUAL:-"${tui_editor}"}"
+
+  check_nix
 }
 
+check_nix() {
+  if nix config show | grep '^experimental-features.*flakes*' 2>/dev/null; then
+    devnix="flake"
+  elif command -v nix-shell 2>/dev/null; then
+    devnix="shell"
+  else
+    devnix=""
+  fi
+}
 pout_error() {
   printf "[ERROR] %s ===" "${src_name}"
   case "$1" in
@@ -109,22 +119,36 @@ access_workspace() {
 }
 
 initialize_environment() {
-  if [ -n "${weHave_flakes}" ] && [ -f "flake.nix" ]; then
-    pout_debug "Flake" "${weHave_flakes}"
-    pout_debug "Devfs ${workspace}/flake.nix"
-    pout_debug "PWD ${PWD}"
+  case "${devnix}" in
+  flake)
+    [ -f "flake.nix" ] && nix develop
+    ;;
+  shell)
+    [ -f "shell.nix" ] && nix-shell
+    ;;
+  *)
+    if [ -n "${DISPLAY}" ]; then
+      [ -n "${gui_editor}" ] &&
+        pout_debug "${gui_editor}" "${PWD}"
+    else
+      [ -n "${tui_editor}" ] &&
+        pout_debug "${tui_editor}" "${PWD}"
+    fi
+    ;;
+  esac
+
+  if [ "${devnix}" = "flake" ] && [ -f "flake.nix" ]; then
+    pout_debug "Initializing the nix" "${devnix}" "${PWD}"
     nix develop
   # nix develop --command bash -c "Terminal -- bash -c 'eval $editor $workspace; exec bash'"
   # nix develop --command bash -c "eval $editor $workspace"
-  elif [ -n "${weHave_nix}" ] && [ -f "shell.nix" ]; then
-    pout_debug "shell" "${weHave_nix}"
-    pout_debug "Devfs ${workspace}/shell.nix"
-    pout_debug "PWD ${PWD}"
+  elif [ "${devnix}" = "shell" ] && [ -f "shell.nix" ]; then
+    pout_debug "Initializing the nix" "${devnix}" "${PWD}"
     nix shell
   else
-    pout_debug "PWD ${PWD}"
+    pout_debug "${PWD}" "cannot be initialized via nix. Defaulting to the editor."
 
-    if [ -n "${DISPLAY}" ]; then
+    if [ -n "${DISPLAY}" ]; then #TODO: does the work for wayland too
       [ -n "${gui_editor}" ] &&
         pout_debug "${gui_editor}" "${PWD}"
     else
