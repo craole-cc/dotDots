@@ -15,7 +15,9 @@ pout_error() {
 pout_debug() {
   case "${debug:-}" in
   '' | off | no | false) return ;;
-  1 | on | true | *) printf "[DEBUG] %s === %s\n" "${src_name}" "$*" ;;
+  1 | on | true | *)
+    printf "[DEBUG] %s === %s\n" "${src_name}" "$*"
+    ;;
   esac
 }
 
