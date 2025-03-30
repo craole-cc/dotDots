@@ -1,84 +1,143 @@
 #!/bin/sh
+# shellcheck enable=all
 # shellcheck disable=SC2031
 
 main() {
-  initialize_env
-  parse_arguments "$@" || return 1
-  perform_action
+  set_defaults
+  parse_arguments "$@"
+  # perform_action
 }
 
-initialize_env() {
-  #@ set defaults
-  verbosity=0
-  action="show"
-  PRINT_RAW=0
-  PATHS=""
-  debug=""
-  delimiter="$(printf '\003')"
+set_defaults() {
+  #| Script Metadata
+  cmd_PATH="$0"
+  cmd_NAME="$(basename "${cmd_PATH}")"
+  # cmd_HOME="$(dirname "${cmd_PATH}")"
+  cmd_VERSION=0.1
 
-  #@ Cache command checks at startup
-  HAS_REALPATH=0
-  HAS_FD=0
-  command -v realpath > /dev/null 2>&1 && HAS_REALPATH=1
-  command -v fd > /dev/null 2>&1 && HAS_FD=1
-  command -v bat > /dev/null 2>&1 && HAS_BAT=1
+  #| Operational Modes
+  verbosity=debug #? [quiet|error|warn|info|debug|trace]
+  strict=no       #? [true|false]
+  set_modes
+
+  #| Operational Variables
+  debug_pad=20 #? Positive integer
+  delimiter="$(printf '\037')"
+  IFS="${delimiter}"
+
+  #| Process Variables
+  action="show"
+  print_raw=0
+  paths=""
+
+  #| Commands
+  cache_commands pathof bat fd realpath readlink
+}
+
+set_modes() {
+  #| Verbosity
+  case "${verbosity:-}" in
+  0 | off | false | quiet) verbosity=0 ;;
+  1 | err*) verbosity=1 ;;
+  2 | warn*) verbosity=2 ;;
+  3 | info*) verbosity=3 ;;
+  4 | debug) verbosity=4 ;;
+  5 | trace) verbosity=5 ;;
+  *) verbosity=3 ;;
+  esac
+
+  #| Error Strictness
+  case "${strict:-}" in
+  1 | on | yes | true)
+    set -e
+    set -u
+    ;;
+  0 | off | no | false) return ;;
+  *)
+    pout --error "Invalid 'strict' mode" ": [${strict}]" \
+      "\nAvailable modes are: 0, true, 1, false"
+    exit 1
+    ;;
+  esac
+
+}
+
+cache_commands() {
+  for cmd in $(list --build "$@"); do
+    #@ Initialize variables
+    cmd_key="" cmd_val="" cmd_env=""
+
+    #@ Define the key in uppercase, prefixed with "CMD_"
+    cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]' '[:upper:]')"
+    pout --debug --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+
+    #@ Retrieve the path, otherwise return empty string
+    cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+    pout --debug --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+
+    #@ Create the environment variable of the command's location
+    eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
+    cmd_env="$(env | grep --color "${cmd_key}")"
+    pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+  done
 }
 
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --debug)
-        debug="debug"
-        ;;
-      --error) verbosity=1 ;;
-      --quiet) verbosity=0 ;;
-      --show)
-        action="show"
-        ;;
-      --clean)
-        action="clean"
-        ;;
-      --action)
-        if [ "$2" ]; then
-          action="$2"
-          shift
+    --debug)
+      debug="debug"
+      ;;
+    --error) verbosity=1 ;;
+    --quiet) verbosity=0 ;;
+    --show)
+      action="show"
+      ;;
+    --clean)
+      action="clean"
+      ;;
+    --action)
+      if [ -n "$2" ]; then
+        action="$2"
+        shift
+      else
+        pout --error "Missing argument for '$1'" \
+          "\nAvailable modes are: append, prepend, show"
+        return 1
+      fi
+      ;;
+    --append)
+      action="append"
+      ;;
+    --prepend)
+      action="prepend"
+      ;;
+    --print)
+      print_raw=1
+      ;;
+    --dir*)
+      if [ -n "${2:-}" ]; then
+        shift
+        if [ -n "${paths}" ]; then
+          paths="$(printf '%s%s%s' "${paths}" "${delimiter}" "$(resolved_path "$1")")"
         else
-          printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
-          return 1
+          paths="$(resolved_path "$1")"
         fi
-        ;;
-      --append)
-        action="append"
-        ;;
-      --prepend)
-        action="prepend"
-        ;;
-      --print)
-        PRINT_RAW=1
-        ;;
-      --dir*)
-        if [ "$2" ]; then
-          shift
-          if [ "$PATHS" ]; then
-            PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
-          else
-            PATHS="$(resolved_path "$1")"
-          fi
-        else
-          printf "'%s' requires an argument\n" "$1"
-          return 1
-        fi
-        ;;
-      *)
-        if [ -f "$1" ]; then
-          make_exec "$1"
-          return 0
-        elif [ "$PATHS" ]; then
-          PATHS="$(printf '%s%s%s' "$PATHS" "$delimiter" "$(resolved_path "$1")")"
-        else
-          PATHS="$(resolved_path "$1")"
-        fi
-        ;;
+      else
+        printf "'%s' requires an argument\n" "$1"
+        return 1
+      fi
+      ;;
+    *)
+      if [ -f "$1" ]; then
+        make_exec "$1"
+        return 0
+      elif [ -n "${paths}" ]; then
+        paths="$(printf '%s%s%s' "${paths}" "${delimiter}" "$(resolved_path "$1")")"
+      else
+        paths="$(resolved_path "$1")"
+      fi
+      ;;
     esac
     shift
   done
@@ -86,37 +145,44 @@ parse_arguments() {
 
 perform_action() {
   case "$action" in
-    append | prepend)
-      #@ Validate that a directory was provided
-      if [ -z "$PATHS" ]; then
-        printf "ERROR: No path provided\n"
-        return 1
-      fi
+  append | prepend)
+    #@ Validate that a directory was provided
+    if [ -z "$paths" ]; then
+      printf "ERROR: No path provided\n"
+      return 1
+    fi
 
-      #@ Define the directories [DIRES] and files [FILES] to process
-      set_paths
+    #@ Define the directories [DIRES] and files [FILES] to process
+    set_paths
 
-      #@ Perform the actions
-      update_path
-      # update_exec "$PATHS"
-      ;;
-    clean)
-      clean_path
-      ;;
-    show)
-      show_bins "$PATH"
-      ;;
+    #@ Perform the actions
+    update_path
+    # update_exec "$paths"
+    ;;
+  clean)
+    clean_path
+    ;;
+  show)
+    show_bins "$PATH"
+    ;;
   esac
 }
 
 resolved_path() {
-  [ "$HAS_REALPATH" = 1 ] && realpath "$1" && return
+  #@ Initialize variables
+  _path="$1"
+  _dir=""
 
-  if [ -d "$1" ]; then
-    (cd -- "$1" && pwd)
+  #@ Retrieve the absolute path location
+  if [ -z "${_path:-}" ]; then
+    return 2
+  elif [ -n "${CMD_REALPATH}" ]; then
+    "${CMD_REALPATH}" "${_path}"
+  elif [ -d "${_path}" ]; then
+    (cd -- "${_path}" && pwd)
   else
-    dir="$(cd "$(dirname "$1")" && pwd)"
-    printf '%s/%s\n' "$dir" "$(basename "$1")"
+    _dir="$(cd "$(dirname "${_path}")" && pwd)"
+    printf '%s/%s\n' "${_dir}" "$(basename "${_path}")"
   fi
 }
 
@@ -129,14 +195,14 @@ set_paths() {
 
   set_paths__process() {
     #@ Define exclusion patterns and temporary files
-    PATHS="$(printf '%s' "$PATHS" | tr "$delimiter" '\n')"
+    paths="$(printf '%s' "$paths" | tr "$delimiter" '\n')"
     DIRES="$(mktemp)" FILES="$(mktemp)"
 
     #@ Define exclusion patterns at the top level for reusability
     EXCLUDE_PATTERNS="review temp tmp archive backup"
 
     #@ Collect paths
-    for find_path in $PATHS; do
+    for find_path in $paths; do
 
       #@ Skip non-existent paths
       [ -e "$find_path" ] || continue
@@ -154,23 +220,23 @@ set_paths() {
 
         if [ -d "$find_path" ]; then
           #@ Include the lookup path
-          printf "%s\n" "$find_path" | tee -a "$DIRES" > /dev/null
+          printf "%s\n" "$find_path" | tee -a "$DIRES" >/dev/null
 
           #@ Define the find options
           find_files="--type file $find_omit"
           find_dires="--type directory $find_omit"
         else
           #@ Include the lookup path
-          printf "%s\n" "$find_path" | tee -a "$FILES" > /dev/null
+          printf "%s\n" "$find_path" | tee -a "$FILES" >/dev/null
         fi
 
         #@ Update the directories file
-        eval "$find_cmd" "$find_path" "$find_dires" \
-          | tee -a "$DIRES" > /dev/null
+        eval "$find_cmd" "$find_path" "$find_dires" |
+          tee -a "$DIRES" >/dev/null
 
         #@ Update the files file
-        eval "$find_cmd" "$find_path" "$find_files" \
-          | tee -a "$FILES" > /dev/null
+        eval "$find_cmd" "$find_path" "$find_files" |
+          tee -a "$FILES" >/dev/null
       else
         #@ Define the base command
         find_cmd="find"
@@ -187,10 +253,10 @@ set_paths() {
       fi
 
       #@ Update the directories file
-      eval "$find_cmd" "$find_path" "$find_dires" | tee -a "$DIRES" > /dev/null
+      eval "$find_cmd" "$find_path" "$find_dires" | tee -a "$DIRES" >/dev/null
 
       #@ Update the files file
-      eval "$find_cmd $find_path $find_files" | tee -a "$FILES" > /dev/null
+      eval "$find_cmd $find_path $find_files" | tee -a "$FILES" >/dev/null
     done
 
     cat "$FILES"
@@ -209,9 +275,9 @@ set_paths() {
 
 os_type() {
   case "$(uname -a | tr '[:upper:]' '[:lower:]')" in
-    *linux*) os_type="linux" ;;
-    *darwin*) os_type="mac" ;;
-    *) os_type="windows" ;;
+  *linux*) os_type="linux" ;;
+  *darwin*) os_type="mac" ;;
+  *) os_type="windows" ;;
   esac
 
   #TODO This is utterly inadequete, just temporary
@@ -219,12 +285,12 @@ os_type() {
 }
 
 show_bins() {
-  if [ "$PRINT_RAW" -eq 1 ]; then
+  if [ "$print_raw" -eq 1 ]; then
     printf "%s\n" "${1:-"$PATH"}"
     return
   else
-    printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' \
-      | eval "$(
+    printf "%s\n" "${1:-"$PATH"}" | tr ':' '\n' |
+      eval "$(
         if [ "$HAS_BAT" ]; then
           printf "bat --color=always --style=grid --plain --number"
         else
@@ -236,8 +302,8 @@ show_bins() {
 
 is_absolute_path() {
   case "$1" in
-    /*) return 0 ;; # Path starts with /, so it's absolute
-    *) return 1 ;;  # Otherwise, it's not absolute
+  /*) return 0 ;; # Path starts with /, so it's absolute
+  *) return 1 ;;  # Otherwise, it's not absolute
   esac
 }
 
@@ -266,7 +332,7 @@ clean_path() {
 make_exec() {
   _file=$1
   chmod_status=0
-  chmod +x "$_file" > /dev/null 2>&1
+  chmod +x "$_file" >/dev/null 2>&1
   chmod_status=$?
   [ "$verbosity" -gt 1 ] && {
     if [ "$chmod_status" -eq 0 ]; then
@@ -280,7 +346,7 @@ make_exec() {
 add_to_path_ORIG() {
   [ "$debug" ] && {
     counter=1
-    recursive_paths "$PATHS" | while IFS= read -r bin_path; do
+    recursive_paths "$paths" | while IFS= read -r bin_path; do
       printf "  %4d %s\n" "$counter" "$bin_path"
       #@ Increment the counter
       counter=$((counter + 1))
@@ -289,33 +355,33 @@ add_to_path_ORIG() {
   }
 
   #@ Update PATH directories recursively
-  recursive_paths "$PATHS" | while IFS= read -r bin_path; do
-    [ -d "$bin_path" ] \
-      && case ":${PATH}:" in
-        *:"$bin_path":*) ;;
-        *)
-          case "$action" in
-            prepend)
-              PATH="${bin_path}${PATH:+:$PATH}"
-              _action="Appended"
-              ;;
-            append)
-              PATH="${PATH:+$PATH:}${bin_path}"
-              _action="Perpended"
-              ;;
-          esac
-
-          [ "$verbosity" -gt 1 ] \
-            && printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+  recursive_paths "$paths" | while IFS= read -r bin_path; do
+    [ -d "$bin_path" ] &&
+      case ":${PATH}:" in
+      *:"$bin_path":*) ;;
+      *)
+        case "$action" in
+        prepend)
+          PATH="${bin_path}${PATH:+:$PATH}"
+          _action="Appended"
           ;;
+        append)
+          PATH="${PATH:+$PATH:}${bin_path}"
+          _action="Perpended"
+          ;;
+        esac
+
+        [ "$verbosity" -gt 1 ] &&
+          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+        ;;
       esac
 
     #@ Make scripts executable
-    [ -f "$bin_path" ] \
-      && case "$(os_type)" in windows) ;;
+    [ -f "$bin_path" ] &&
+      case "$(os_type)" in windows) ;;
       *)
         chmod_status=0
-        chmod +x "$bin_path" > /dev/null 2>&1
+        chmod +x "$bin_path" >/dev/null 2>&1
         chmod_status=$?
 
         [ "$verbosity" -gt 1 ] && {
@@ -336,44 +402,44 @@ add_to_path_ORIG() {
 
 add_to_path() {
   tmp_path=$(mktemp) || return 1
-  recursive_paths "$PATHS" > "$tmp_path"
+  recursive_paths "$paths" >"$tmp_path"
 
   if [ "$debug" ]; then
     counter=1
     while IFS= read -r bin_path; do
       printf "  %4d %s\n" "$counter" "$bin_path"
       counter=$((counter + 1))
-    done < "$tmp_path"
+    done <"$tmp_path"
     rm "$tmp_path"
     return 0
   fi
 
   while IFS= read -r bin_path; do
-    [ -d "$bin_path" ] \
-      && case ":${PATH}:" in
-        *:"$bin_path":*) ;;
-        *)
-          case "$action" in
-            prepend)
-              PATH="${bin_path}${PATH:+:$PATH}"
-              _action="Appended"
-              ;;
-            append)
-              PATH="${PATH:+$PATH:}${bin_path}"
-              _action="Perpended"
-              ;;
-          esac
-          [ -d "$bin_path" ] && umask 022 && chmod 755 "$bin_path" #TODO: This is not working. Files created after running the script are not automatically executable.
-          [ "$verbosity" -gt 1 ] \
-            && printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+    [ -d "$bin_path" ] &&
+      case ":${PATH}:" in
+      *:"$bin_path":*) ;;
+      *)
+        case "$action" in
+        prepend)
+          PATH="${bin_path}${PATH:+:$PATH}"
+          _action="Appended"
           ;;
+        append)
+          PATH="${PATH:+$PATH:}${bin_path}"
+          _action="Perpended"
+          ;;
+        esac
+        [ -d "$bin_path" ] && umask 022 && chmod 755 "$bin_path" #TODO: This is not working. Files created after running the script are not automatically executable.
+        [ "$verbosity" -gt 1 ] &&
+          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+        ;;
       esac
 
-    [ -f "$bin_path" ] \
-      && case "$(os_type)" in windows) ;;
+    [ -f "$bin_path" ] &&
+      case "$(os_type)" in windows) ;;
       *) make_exec "$bin_path" ;;
       esac
-  done < "$tmp_path"
+  done <"$tmp_path"
 
   rm "$tmp_path"
   [ "$verbosity" -gt 1 ] && show_bins
@@ -387,25 +453,138 @@ update_path() {
   #@ Build updated path
   while IFS= read -r dir; do
     case "$TMP_PATH" in
-      *":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
-      *)
-        case "$action" in
-          prepend) TMP_PATH="$dir${TMP_PATH:+:$TMP_PATH}" ;;
-          append) TMP_PATH="${TMP_PATH:+$TMP_PATH:}$dir" ;;
-        esac
-        ;;
+    *":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
+    *)
+      case "$action" in
+      prepend) TMP_PATH="$dir${TMP_PATH:+:$TMP_PATH}" ;;
+      append) TMP_PATH="${TMP_PATH:+$TMP_PATH:}$dir" ;;
+      esac
+      ;;
     esac
-  done < "$DIRES"
+  done <"$DIRES"
   unset IFS
 
   #@ Print or export the PATH variable
-  if [ "$PRINT_RAW" -eq 1 ]; then
+  if [ "$print_raw" -eq 1 ]; then
     printf "%s" "$TMP_PATH"
   else
     #@ Update and make the PATH persistent
     PATH="$TMP_PATH"
     export PATH
   fi
+}
+
+list() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --create | --make | --build)
+      action=build
+      ;;
+    *) item="${item:+${item}${delimiter}}$1" ;;
+    esac
+    shift
+  done
+
+  case "${action}" in
+  build) printf "%s" "${item}" ;;
+  parse) ;;
+  *) ;;
+  esac
+}
+
+trim() {
+  printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+
+pout() {
+  #@ Initialize variables
+  key="" val="" tag="" pad="" msg="" trim=true
+
+  #@ Parse message type and content
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -k | --key) key="$2" shift ;;
+    -v | --val) val="$2" shift ;;
+    -d | --debug)
+      if [ "${verbosity:-0}" -ge 4 ]; then
+        tag="DEBUG"
+      else
+        return
+      fi
+      ;;
+    -e | --error) tag="ERROR" ;;
+    -w | --warn) tag=" WARN" ;;
+    --no-trim) unset trim ;;
+    --usage)
+      usage_guide
+      exit 0
+      ;;
+    --version)
+      printf "%s\n" "${cmd_VERSION}"
+      exit 0
+      ;;
+    *)
+      msg="${msg:-}${msg:+${delimiter}}${1}"
+      ;;
+    esac
+    shift
+  done
+
+  #@ Format the message
+  if [ -n "${key}" ]; then
+
+    #@ Tag missing values
+    val="${val:-"${msg:-"{undefined}"}"}"
+
+    #@ Trim leading and trailing whitespace
+    if [ -n "${trim:-}" ]; then
+      key="$(trim "${key}")"
+      val="$(trim "${val}")"
+    fi
+
+    case "${tag}" in
+    *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Define the separator
+      sep=" | "
+
+      #@ Calculate padding for label alignment
+      debug_pad="${debug_pad:-18}"
+      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+      #@ Format the tagged key-value pair
+      msg="$(
+        printf "[%s] /> %s <\ %s%s%s%s\n" \
+          "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    *)
+      #@ Define the separator
+      sep=": "
+
+      #@ Print the key-value pair
+      msg="$(
+        printf "%s%s%s\n" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    esac
+  else
+    case "${tag}" in
+    *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Format the tagged message
+      msg="$(
+        printf "[%s] /> %s <\ %b\n" \
+          "${tag}" "${cmd_NAME}" "${msg}"
+      )"
+      ;;
+    *) msg="$(trim "${msg}")" ;;
+    esac
+  fi
+
+  #@ Print the message
+  case "${tag}" in
+  ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
+  *) printf "%s\n" "${msg}" ;;
+  esac
 }
 
 #@ Execute the main function with the provided argument
