@@ -247,6 +247,8 @@ pout() {
     printf '\n'
     _i=$((_i + 1))
   done
+
+  
 }
 
 parse_arguments() {

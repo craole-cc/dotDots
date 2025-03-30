@@ -19,8 +19,6 @@ set_defaults() {
   args=""
   debug=""
 
-  weHave_nix="$(command -v nix-shell 2>/dev/null || true)"
-  weHave_flakes="$(nix config show | grep '^experimental-features.*flakes*' 2>/dev/null || true)"
   tui_editor="${EDITOR:-"$(command -v nano 2>/dev/null || true)"}"
   gui_editor="${VISUAL:-"${tui_editor}"}"
 

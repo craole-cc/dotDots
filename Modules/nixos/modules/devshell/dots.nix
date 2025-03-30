@@ -87,6 +87,7 @@
             undollar
             wget
             yazi
+            zig
             treefmt.wrapper
           ]
           ++ (attrValues treefmt.programs);

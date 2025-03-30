@@ -51,7 +51,6 @@
             inherit includes excludes;
             options = [
               # "--enable=all"
-              
             ];
           };
           shfmt = {
