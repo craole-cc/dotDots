@@ -15,7 +15,8 @@ set_defaults() {
   prj_root="${PRJ_ROOT:-${DOTS:="$(dirname "${scr_path}/..")"}}"
   delimiter=" "
   args=""
-debug=1
+  debug=0
+
   CMD_GYTO="$(command -v gyto 2>/dev/null || printf "")"
   CMD_GYTO="${CMD_GYTO:-"${prj_root}/Bin/shellscript/project/git/gyto"}"
 }
@@ -33,7 +34,7 @@ pout() {
     --debug)
       shift
       case "${debug:-}" in
-      '' | off | no | false) ;;
+      '' | 0 | off | no | false) ;;
       1 | on | true | *)
         tag="[DEBUG]"
         msg="$*"
