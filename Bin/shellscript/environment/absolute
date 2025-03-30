@@ -68,66 +68,128 @@ validate_environment() {
     terminate_process --error path "${target_path}"
 }
 
-execute_process() {
-  #@ Initalize variables
+normalize_path() {
+  #@ Initialize variables
+  input_path="$1"
+  abs_path=""
+  result=""
 
+  #@ Handle absolute vs. relative paths
+  case "${input_path}" in
+  /*) abs_path="${input_path}" ;;
+  *) abs_path="$(pwd)/${input_path}" ;;
+  esac
+
+  #@ Set initial slash for absolute paths
+  case "${abs_path}" in
+  /*) result="/" ;;
+  *) ;;
+  esac
+
+  #@ Save IFS and set new one for path splitting
+  OLDIFS="${IFS}"
+  IFS="/"
+
+  #@ Process each component
+  for component in ${abs_path}; do
+    #@ Skip empty components and current directory
+    if [ -z "${component}" ] || [ "${component}" = "." ]; then
+      continue
+    fi
+
+    if [ "${component}" = ".." ]; then
+      #@ Go up one directory level
+      if [ "${result}" = "/" ]; then
+        #@ Stay at root if already there
+        continue
+      elif [ -z "${result}" ]; then
+        #@ For relative paths starting with ..
+        result="../"
+      else
+        #@ Remove trailing slash if present
+        result="${result%/}"
+
+        #@ Go up one level
+        result="$(dirname "${result}")"
+
+        #@ Handle empty result (happens when we're at the top of a relative path)
+        [ "${result}" = "." ] && result=""
+      fi
+    else
+      #@ Add component to result
+      if [ "${result}" = "/" ]; then
+        result="/${component}"
+      elif [ -z "${result}" ]; then
+        result="${component}"
+      else
+        result="${result}/${component}"
+      fi
+    fi
+  done
+
+  #@ Restore IFS
+  IFS="${OLDIFS}"
+
+  #@ Ensure we return at least "/" for root directory or "." for empty
+  if [ -z "${result}" ]; then
+    result="."
+  fi
+
+  #@ Return the normalized path
+  printf "%s" "${result}"
+}
+
+resolve_path() {
+  [ -n "${1:-}" ] || {
+    terminate_process --error "resolve_path" "missing target path to resolve"
+    exit 2
+  }
+
+  target="$1"
+  max_depth=50 # Prevent infinite recursion with deeply nested symlinks
+  current_depth=${2:-0}
+
+  #@ Check recursion depth to prevent infinite loops
+  if [ "${current_depth}" -ge "${max_depth}" ]; then
+    printf "Error: Maximum symlink recursion depth reached (%s)\n" "${max_depth}" >&2
+    return 1
+  fi
+
+  #@ Resolve the target directory and get its physical path
+  if ! physical_dir="$(cd -P "$(dirname "${target}")" 2>/dev/null && pwd -P)"; then
+    #@ Return original if directory doesn't exist
+    printf "%s" "${target}"
+    return 1
+  fi
+
+  physical_base="$(basename "${target}")"
+  physical_path="${physical_dir}/${physical_base}"
+
+  #@ Check if the basename is a symlink and resolve it
+  if [ -L "${physical_path}" ]; then
+    link_target="$(readlink "${physical_path}")"
+
+    #@ Handle relative vs. absolute links
+    case "${link_target}" in
+    /*) resolved_link="${link_target}" ;;
+    *) resolved_link="${physical_dir}/${link_target}" ;;
+    esac
+
+    #@ Recursively resolve the link target with incremented depth
+    next_depth=$((current_depth + 1))
+    resolve_path "${resolved_link}" "${next_depth}"
+  else
+    #@ Return the fully normalized physical path
+    printf "%s" "${physical_path}"
+  fi
+}
+
+execute_process() {
   #@ Use realpath if available as it is more efficient
   if command -v realpathf >/dev/null 2>&1; then
     normalized_path="$(realpath -- "${target_path}")"
   else
-    #@ Initialize path parts variables
-    normalized_path=""
-    path_dir="$(pwd -P)"
-    path_name="$(basename -- "${target_path}")"
-    path_part=""
-
-    #@ Update the target path to respect symbolic links
-    path_part="$(
-
-      #@ Follow the symbolic link recursively until it points to an actual file or directory
-      cd -P -- "$(dirname -- "${target_path}")" ||
-        terminate_process --error cd "${target_path}"
-
-      #@  Print value of symbolic link normalized path
-      case "${path_name}" in
-      .) printf "%s""${path_dir}" ;;
-      *) printf '%s/%s\n' "${path_dir}" "${path_name}" ;;
-      esac
-    )"
-
-    #@ Split the path into components
-    while [ -n "${path_part}" ]; do
-
-      #@ Remove leading slashes
-      path_part="${path_part#/}"
-
-      #@ Extract the next path component
-      next_path_part="${path_part%%/*}"
-
-      #@ Remove the extracted component from the remaining path
-      path_part="${path_part#"${next_path_part}"}"
-
-      #@ Remove trailing slashes
-      path_part="${path_part#/}"
-
-      #@ Replace any occurrence of '..' or '../' with its corresponding directory
-      case "${next_path_part}" in
-      ../*)
-        echo dotdotslash
-        normalized_path="$(dirname "${normalized_path}")/${next_path_part#../}"
-        ;;
-      ..)
-        echo dotdot
-        normalized_path="$(dirname "${normalized_path}")"
-        ;;
-      *)
-        echo other
-        normalized_path="${normalized_path}/${next_path_part}"
-        ;;
-      esac
-    done
-
-    printf "%s" "${normalized_path}"
+    normalized_path="$(resolve_path "${target_path}")"
   fi
 
   terminate_process --output "${normalized_path}"
@@ -135,8 +197,8 @@ execute_process() {
 
 terminate_process() {
   case "$1" in
-  --error) display_info "$1-$2" "$3" ;;
-  --output) display_info "$1" "$2" ;;
+  --error) display_info "${1:-}-${2:-}" "${3:-}" ;;
+  --output) display_info "${1:-}" "${2:-}" ;;
   *) ;;
   esac
 }
@@ -156,13 +218,16 @@ display_info() {
   --error*)
     [ "${verbosity}" -eq 0 ] && return
     case "$1" in
-    *path) printf "Invalid path: %s" "$2" ;;
-    *circ) printf "Circular symbolic link: %s" "$2" ;;
-    *info) printf "Invalid verbosity level: %s" "$2" ;;
-    *arg) printf "<target_path> required \nUsage: %s\n" "${cmd_USAGE}" ;;
-    *opt) printf "Unrecognized option: %s" "$2" ;;
-    *cd) printf "Change directory operation failed" ;;
-    *) ;;
+    path) printf "Invalid path: %s" "$2" ;;
+    circ) printf "Circular symbolic link: %s" "$2" ;;
+    info) printf "Invalid verbosity level: %s" "$2" ;;
+    arg) printf "<target_path> required \nUsage: %s\n" "${cmd_USAGE}" ;;
+    opt) printf "Unrecognized option: %s" "$2" ;;
+    cd) printf "Change directory operation failed" ;;
+    *)
+      shift
+      printf "%b" "$*"
+      ;;
     esac
     ;;
   --output)

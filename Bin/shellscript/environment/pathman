@@ -178,11 +178,13 @@ resolved_path() {
     return 2
   elif [ -n "${CMD_REALPATH}" ]; then
     "${CMD_REALPATH}" "${_path}"
-  elif [ -d "${_path}" ]; then
-    (cd -- "${_path}" && pwd)
   else
-    _dir="$(cd "$(dirname "${_path}")" && pwd)"
-    printf '%s/%s\n' "${_dir}" "$(basename "${_path}")"
+    real_path "${_path}"
+  # elif [ -d "${_path}" ]; then
+  #   (cd -- "${_path}" && pwd)
+  # else
+  #   _dir="$(cd "$(dirname "${_path}")" && pwd)"
+  #   printf '%s/%s\n' "${_dir}" "$(basename "${_path}")"
   fi
 }
 
