@@ -1,4 +1,6 @@
 #!/bin/sh
+# shellcheck enable=all
+# shellcheck disable=SC2034
 
 #TODO: WARN and ERROR should display errors when operations fail
 #TODO: Pout should default to no new line. Add line managemnt
@@ -235,9 +237,9 @@ create_cmd_output_file() {
 
     #@ Parse arguments
     while [ $# -ge 1 ]; do
-      case "${1}" in
+      case "$1" in
         --cmd | --command)
-          CMD="${2}"
+          CMD="$2"
           ;;
         --header-only | --no-exec)
           header_print=only
@@ -245,14 +247,14 @@ create_cmd_output_file() {
         --no-header)
           header_print=off
           ;;
-        --success) CMD_SUCCESS="${2}" ;;
-        --failure) CMD_FAILURE="${2}" ;;
+        --success) CMD_SUCCESS="$2" ;;
+        --failure) CMD_FAILURE="$2" ;;
         --error | --info | --warn | --debug | quiet | --trace)
-          CMD_TAG="${1}"
-          CMD_MSG="${2}"
+          CMD_TAG="$1"
+          CMD_MSG="$2"
           ;;
         --label)
-          CMD_LABEL="${2}"
+          CMD_LABEL="$2"
           ;;
         --no-tag)
           CMD_TAG=""
