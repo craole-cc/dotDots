@@ -33,7 +33,7 @@ __pycache__/
 .svn/
 .hg/
 .cache/
-*cache/
+.zig-cache
 .eggs/
 .pybuilder/
 .gradle/
