@@ -15,7 +15,7 @@ set_defaults() {
   prj_root="${PRJ_ROOT:-${DOTS:="$(dirname "${scr_path}/..")"}}"
   delimiter=" "
   args=""
-
+debug=1
   CMD_GYTO="$(command -v gyto 2>/dev/null || printf "")"
   CMD_GYTO="${CMD_GYTO:-"${prj_root}/Bin/shellscript/project/git/gyto"}"
 }
