@@ -9,7 +9,8 @@
     }:
     let
       inherit (lib.attrsets) attrValues;
-      treefmt = config.treefmt.build;
+      treefmt = config.treefmt.build.wrapper;
+      formatters = config.treefmt.build.programs;
       dots = {
         name = "dotDots";
         env = [
@@ -84,18 +85,19 @@
             tldr
             tokei
             trashy
+            treefmt
             undollar
             wget
             yazi
+            zed-editor-fhs
             zig
-            treefmt.wrapper
           ]
-          ++ (attrValues treefmt.programs);
+          ++ (attrValues formatters);
         commands = [
           {
             category = "Flake Management";
             name = "Flick";
-            #TODO: Update sync-fkake to rebuid
+            #TODO: Update sync-fkake to rebuild
             command = ''gitui; sudo nixos-rebuild switch --flake "$PRJ_ROOT" "$@"'';
             help = "Rebuild NixOS with the changes made to the flake";
           }

@@ -1,33 +1,133 @@
 #!/bin/sh
 # shellcheck enable=all
-set -eu
 
 main() {
   #| Initialization
   trap sanitize_environment EXIT INT TERM
-  init_metadata
-  parse_arguments "$@"
+  set_defaults
+  # parse_arguments "$@"
+  # cache_commands
+  # verbosity=4
+  pout --debug --key "Output Mode" --val "${verbosity}"
+  pout --debug --key "Script Mode" --val "${fail_on_error}"
 
+  echo pop
+  exit 0
   #| Validation
   validate_environment
 
   #| Termination
-  execute_process
+  # execute_process
 }
 
-init_metadata() {
+set_defaults() {
+  #| Script Metadata
+  # cmd_PATH="$0"
   cmd_NAME="absolute"
+  # cmd_NAME="$(basename "${cmd_PATH}")"
+  # cmd_HOME="$(dirname "${cmd_PATH}")"
   cmd_VERSION="1.1.0"
   cmd_AUTHOR="Craole"
   cmd_USAGE="${cmd_NAME} [OPTIONS] <target_path>"
-  cmd_DESCRIPTION="normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..'."
+  cmd_DESCRIPTION="normalizes a given target path by resolving symbolic links and removing redundant elements such as '.' and '..', essentially returning the absolute path."
+
+  #| Operational Variables
+  debug_pad=20 #? Positive integer
+  delimiter="$(printf '\037')"
+  # delimiter="|"
+  IFS="${delimiter}"
+
+  #| Operational Modes
+  set_modes --verbosity debuga
+  set_modes --fail-on-error true
+
+  #| Process Variables
+  action="show"
+  print_raw=0
+  paths=""
+
+  #| Commands
+  cmd_list="$(list --build realpath readlink)"
+}
+
+set_modes() {
+  case "$1" in
+  --verbosity)
+    options="$(
+      list \
+        0 quiet off false \
+        1 error \
+        2 warn \
+        3 info on true \
+        4 debug \
+        5 trace \
+        --delimiter '|' \
+        --build
+    )"
+    default=3
+
+    #| Verbosity Level
+    case "${2:-}" in
+    0 | off | false | quiet | " ") verbosity=0 ;;
+    1 | err*) verbosity=1 ;;
+    2 | warn*) verbosity=2 ;;
+    3 | info*) verbosity=3 ;;
+    4 | debug) verbosity=4 ;;
+    5 | trace) verbosity=5 ;;
+    *)
+      pout --warn --key "Invalid verbosity level" "${2}"
+      pout "Valid options: " "${options}"
+      pout "Default option: " "${default}"
+      ;;
+    esac
+    ;;
+  --fail-on-error)
+    #| Script Operation Mode
+    options="$(
+      list \
+        --build 1 on true enabled 0 off false disabled \
+        --delimiter ', '
+    )"
+    default=1
+
+    case "${2:-}" in
+    1 | true | on | enabled) fail_on_error=1 ;;
+    0 | false | off | disabled) fail_on_error=0 ;;
+    *)
+      pout --error "Invalid 'fail_on_error' mode" ": [${2}]" \
+        "\nValid options: " "${options}"
+      exit 1
+      ;;
+    esac
+    ;;
+  esac
+}
+
+cache_commands() {
+  for cmd in $(list --build "$@"); do
+    #@ Initialize variables
+    cmd_key="" cmd_val="" cmd_env=""
+
+    #@ Define the key in uppercase, prefixed with "CMD_"
+    cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]' '[:upper:]')"
+    pout --debug --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+
+    #@ Retrieve the path, otherwise return empty string
+    cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+    pout --debug --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+
+    #@ Create the environment variable of the command's location
+    eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
+    cmd_env="$(env | grep --color "${cmd_key}")"
+    pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+  done
 }
 
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case $1 in
-    -h | --help) terminate_process --usage ;;
-    -v | --version) terminate_process --version ;;
+    -h | --help) display_info --usage ;;
+    -v | --version) display_info --version ;;
     -q | --quiet) verbosity=quiet ;;
     -d=* | --verbose=*) verbosity="${1#*=}" ;;
     -d | --verbose)
@@ -49,6 +149,7 @@ parse_arguments() {
     shift
   done
 
+  #@ Normalize the verbosity level
   case "${verbosity:-}" in
   0 | quiet | off | false) verbosity=0 ;;
   1 | error) verbosity=1 ;;
@@ -57,15 +158,9 @@ parse_arguments() {
   4 | debug) verbosity=4 ;;
   3 | info | on | *) verbosity=3'' ;;
   esac
-}
 
-validate_environment() {
-  #@ Check if target path is provided as an argument
-  [ -n "${target_path}" ] || terminate_process --error arg
-
-  #@ Check if target path exists and is accessible
-  [ -e "${target_path}" ] ||
-    terminate_process --error path "${target_path}"
+  #@Set the current directory as the default path
+  target_path="${target_path:-"$(pwd -P)"}"
 }
 
 normalize_path() {
@@ -146,7 +241,7 @@ resolve_path() {
   }
 
   target="$1"
-  max_depth=50 # Prevent infinite recursion with deeply nested symlinks
+  max_depth=50 #? Prevent infinite recursion
   current_depth=${2:-0}
 
   #@ Check recursion depth to prevent infinite loops
@@ -203,6 +298,132 @@ terminate_process() {
   esac
 }
 
+list() {
+  #@ Initialize variables
+  list=""
+  action="build"
+  separator="${delimiter:-" "}"
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --create | --make | --build) action=build ;;
+    --delim* | --sep*) separator="${2:-}" shift ;;
+    *) list="${list:+${list}${delimiter}}$1" ;;
+
+    esac
+    shift
+  done
+
+  #@ Add the defined separator, if necessary
+  [ -n "${separator:-}" ] &&
+    list=$(
+      printf "%s" "${list:-}" |
+        sed "s/${delimiter}/${separator}/g"
+    )
+
+  case "${action:-}" in
+  build) printf "%s" "${list:-}" ;;
+  parse) ;;
+  *) ;;
+  esac
+}
+
+trim() {
+  printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+
+pout() {
+  #@ Initialize variables
+  key="" val="" tag="" pad="" msg="" trim=true
+
+  #@ Parse message type and content
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -k | --key) key="$2" shift ;;
+    -v | --val) val="$2" shift ;;
+    -d | --debug)
+      if [ "${verbosity:-0}" -ge 4 ]; then
+        tag="DEBUG"
+      else
+        return
+      fi
+      ;;
+    -e | --error) tag="ERROR" ;;
+    -w | --warn) tag=" WARN" ;;
+    -i | --info) tag=" INFO" ;;
+    -t | --trace) tag="TRACE" ;;
+    --no-trim) unset trim ;;
+    --usage)
+      usage_guide
+      exit 0
+      ;;
+    --version)
+      printf "%s\n" "${cmd_VERSION}"
+      exit 0
+      ;;
+    *) msg="${msg:+${msg}${delimiter}}$1" ;;
+    esac
+    shift
+  done
+
+  #@ Format the message
+  if [ -n "${key}" ]; then
+
+    #@ Tag missing values
+    val="${val:-"${msg:-"{undefined}"}"}"
+
+    #@ Trim leading and trailing whitespace
+    if [ -n "${trim:-}" ]; then
+      key="$(trim "${key}")"
+      val="$(trim "${val}")"
+    fi
+
+    case "${tag}" in
+    *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Define the separator
+      sep=" | "
+
+      #@ Calculate padding for label alignment
+      debug_pad="${debug_pad:-18}"
+      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+      #@ Format the tagged key-value pair
+      msg="$(
+        printf "[%s] /> %s <\ %s%s%s%s\n" \
+          "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    *)
+      #@ Define the separator
+      sep=": "
+
+      #@ Print the key-value pair
+      msg="$(
+        printf "%s%s%s\n" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    esac
+  else
+    case "${tag}" in
+    *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Format the tagged message
+      msg="$(
+        printf "[%s] /> %s <\ %b\n" \
+          "${tag}" "${cmd_NAME}" "${msg}"
+      )"
+      ;;
+    *) msg="$(trim "${msg}")" ;;
+    esac
+  fi
+
+  #@ Print the message
+  case "${tag}" in
+  ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
+  *) printf "%s\n" "${msg}" ;;
+  esac
+}
+
 sanitize_environment() {
   #@ Remove varibles
   unset verbosity
@@ -246,20 +467,23 @@ display_info() {
     ;;
   --usage)
     cat <<USAGE
-Description:
-'${cmd_NAME}' by ${cmd_AUTHOR} ${cmd_DESCRIPTION}
+${cmd_NAME} [v.${cmd_VERSION}]
 
-Usage:
-${cmd_USAGE}
+DESCRIPTION:
+${cmd_NAME} [v.${cmd_VERSION}] by ${cmd_AUTHOR}, ${cmd_DESCRIPTION}
 
-Options:
+USAGE:
+  ${cmd_USAGE}
+
+OPTIONS:
   -h, --help       Show detailed help information and exit.
   -v, --version    Show the script version number and exit.
-  -d, --verbose    Display additional information during execution: quiet, info (default), debug.
+  -d, --verbose    Display additional information during execution: [current: "${verbosity}"].
   -q, --quiet      Supress all output. Error flag will still work.
 
-Arguments:
-  <target_path>       The path to normalize.
+ARGUMENTS:
+  target_path      The path to normalize.
+  verbosity        The verbosity level
 
 Exit status:
   0                   The path was successfully normalized.
@@ -269,6 +493,7 @@ Examples:
   ${cmd_NAME} -d=debug ~/../../usr/bin
   ${cmd_NAME} /var/log/../lib --verbose info
   ${cmd_NAME} /var/run
+
 USAGE
     ;;
   *) printf "%s\n" "$*" ;;
