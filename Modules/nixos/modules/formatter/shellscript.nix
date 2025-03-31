@@ -51,21 +51,22 @@
           shellcheck = {
             includes = [
               "Bin/shellscript/environment/enviro"
-            ] ++ global.includes;
-            excludes =
-              [
-                "**/QBX/bin/**"
-              ]
-              ++ global.excludes
-              ++ global.includes;
+            ];
+            excludes = [
+              "**/QBX/bin/**"
+            ] ++ global.excludes;
+            #   ++ global.includes;
             options = [
-              # "--enable=all"
+              "--extended-analysis=false"
+              "--wiki-link-count=0"
 
-              #> Disable Warnings
-              # "disable=SC2154" # ? Variable is referenced but not assigned
-              # "disable=SC1090-SC1091" # ? Can't follow non-constant source. Use a directive to specify location.
-              # "disable=SC2034" # ? Unused variables.
-              # "disable=SC2317" # ? Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+              # "--enable=all"
+              "--exclude=1090"
+              "--exclude=1091"
+              "--exclude=2003"
+              "--exclude=2031"
+              "--exclude=2034"
+              "--exclude=2317"
             ];
           };
           shfmt = {

@@ -13,6 +13,8 @@ show_help() {
   printf "repl /path/to/flake.nix - Loads specified flake\n"
 }
 
+flake_path_dir="${1:-"${FLAKE:-"${PRJ_ROOT:-"$(pwd -P)"}"}"}"
+
 # Main script logic
 case "$1" in
   "-h" | "--help" | "help")
@@ -22,7 +24,7 @@ case "$1" in
   *)
     if [ -z "$1" ]; then
       #@ Use the detected flake path
-      nix repl "${FLAKE}"
+      nix repl "${flake_path_dir}"
     else
       #@ Validate and process provided path
       flake_path="$("${CMD_READLINK}" -f "$1")"
