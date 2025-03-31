@@ -3,7 +3,7 @@
     programs = {
       zig = {
         enable = true;
-        priority = 1;
+        # priority = 1;
       };
     };
   };

@@ -9,7 +9,7 @@ main() {
   cache_commands "${cmd_list}"
 
   #| Execution
-  execute_process "${target_path}"
+  execute_process "$target_path"
 }
 
 set_defaults() {

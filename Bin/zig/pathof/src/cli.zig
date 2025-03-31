@@ -238,8 +238,7 @@ pub fn printHelp() !void {
         \\  # Search for multiple items
         \\  pathof --item "*.js" --item "*.ts"
         \\
-        , .{}
-    );
+    , .{});
 }
 
 pub fn printVersion() !void {

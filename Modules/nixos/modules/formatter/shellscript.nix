@@ -1,37 +1,39 @@
 {
   perSystem =
     let
-      includes = [
-        "**/sh/**"
-        "**/shellscript/**"
-        "**/Scripts/**"
-        "Scripts/**"
-        "**/scripts/**"
-        "Modules/global/**"
-        "Modules/nixos/configurations/hosts/QBX/bin/**"
-        "**/bash/**"
-        ".dotsrc"
-        "*.shellcheckrc"
-        "*.gitignore"
-        "*.sh.*"
-      ];
-      excludes = [
-        "*.nix"
-        "*.md"
-        "*.json"
-        "*.yml"
-        "*.yaml"
-        "*.toml"
-        "*.py"
-        "*.rs"
-        "*.go"
-        "*.c"
-        "*.cpp"
-        "*.bat"
-        "*.ps1"
-        "LICENSE"
-        ".editorconfig" # TODO: We should be able to format this with ini
-      ];
+      global = {
+        includes = [
+          "**/sh/**"
+          "**/shellscript/**"
+          "**/Scripts/**"
+          "Scripts/**"
+          "**/scripts/**"
+          "Modules/global/**"
+          "Modules/nixos/configurations/hosts/QBX/bin/**"
+          "**/bash/**"
+          ".dotsrc"
+          "*.shellcheckrc"
+          "*.gitignore"
+          "*.sh.*"
+        ];
+        excludes = [
+          "*.nix"
+          "*.md"
+          "*.json"
+          "*.yml"
+          "*.yaml"
+          "*.toml"
+          "*.py"
+          "*.rs"
+          "*.go"
+          "*.c"
+          "*.cpp"
+          "*.bat"
+          "*.ps1"
+          "LICENSE"
+          ".editorconfig" # TODO: We should be able to format this with ini
+        ];
+      };
     in
     {
       treefmt = {
@@ -47,9 +49,15 @@
         };
         settings.formatter = {
           shellcheck = {
-            excludes = includes;
-            # inherit includes;
-            # excludes = excludes ++ [ "**/QBX/bin/**" ];
+            includes = [
+              "Bin/shellscript/environment/enviro"
+            ] ++ global.includes;
+            excludes =
+              [
+                "**/QBX/bin/**"
+              ]
+              ++ global.excludes
+              ++ global.includes;
             options = [
               # "--enable=all"
 
@@ -61,7 +69,8 @@
             ];
           };
           shfmt = {
-            inherit includes excludes;
+            includes = global.includes ++ [ ];
+            excludes = global.excludes ++ [ ];
             # indent_size = 4; #TODO: this doesn't seem to work
             options = [
               "--apply-ignore" # TODO: this doesn't seem to work
