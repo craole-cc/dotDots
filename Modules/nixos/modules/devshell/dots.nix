@@ -89,7 +89,7 @@
             undollar
             wget
             yazi
-            zed-editor-fhs
+            # zed-editor-fhs
             zig
           ]
           ++ (attrValues formatters);
