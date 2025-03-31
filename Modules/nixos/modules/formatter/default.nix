@@ -6,5 +6,6 @@
     ./python.nix
     ./rust.nix
     ./shellscript.nix
+    ./zig.nix
   ];
 }

@@ -8,7 +8,7 @@
         "Scripts/**"
         "**/scripts/**"
         "Modules/global/**"
-        # "Modules/nixos/configurations/hosts/QBX/bin/**"
+        "Modules/nixos/configurations/hosts/QBX/bin/**"
         "**/bash/**"
         ".dotsrc"
         "*.shellcheckrc"
@@ -47,17 +47,24 @@
         };
         settings.formatter = {
           shellcheck = {
-            inherit includes;
-            excludes = excludes ++ [ ];
+            excludes = includes;
+            # inherit includes;
+            # excludes = excludes ++ [ "**/QBX/bin/**" ];
             options = [
               # "--enable=all"
+
+              #> Disable Warnings
+              # "disable=SC2154" # ? Variable is referenced but not assigned
+              # "disable=SC1090-SC1091" # ? Can't follow non-constant source. Use a directive to specify location.
+              # "disable=SC2034" # ? Unused variables.
+              # "disable=SC2317" # ? Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
             ];
           };
           shfmt = {
             inherit includes excludes;
-            # indent_size = 4; #TODO: this doesn't seem to workFf
+            # indent_size = 4; #TODO: this doesn't seem to work
             options = [
-              "--apply-ignore" # TODO: this doesn't seem to workFf
+              "--apply-ignore" # TODO: this doesn't seem to work
               "--binary-next-line"
               "--space-redirects"
               "--case-indent"
