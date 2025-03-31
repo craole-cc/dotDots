@@ -3,7 +3,7 @@
 # shellcheck disable=SC2034
 
 #TODO: WARN and ERROR should display errors when operations fail
-#TODO: Pout should default to no new line. Add line managemnt
+#TODO: Pout should default to no new line. Add line management
 
 main() {
   #| Initialize the script
@@ -560,8 +560,8 @@ commit_changes() {
   "${VERBOSITY_LEVEL_QUIET}") cmd="${cmd} --quiet" ;;
   *) ;;
   esac
-  # cmd="${cmd} --message='${msg_commit}'"
 
+  #@ Escape the single quotes in the commit message
   escaped_msg=$(printf "%s" "${msg_commit}" | sed "s/'/'\\\\''/g")
   cmd="${cmd} --message='${escaped_msg}'"
 

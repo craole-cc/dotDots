@@ -5,19 +5,11 @@ main() {
   #| Initialization
   trap sanitize_environment EXIT INT TERM
   set_defaults
-  # parse_arguments "$@"
-  # cache_commands
-  # verbosity=4
-  pout --debug --key "Output Mode" --val "${verbosity}"
-  pout --debug --key "Script Mode" --val "${fail_on_error}"
+  parse_arguments "$@"
+  cache_commands "${cmd_list}"
 
-  echo pop
-  exit 0
-  #| Validation
-  validate_environment
-
-  #| Termination
-  # execute_process
+  #| Execution
+  execute_process "${target_path}"
 }
 
 set_defaults() {
@@ -34,38 +26,44 @@ set_defaults() {
   #| Operational Variables
   debug_pad=20 #? Positive integer
   delimiter="$(printf '\037')"
-  # delimiter="|"
   IFS="${delimiter}"
 
   #| Operational Modes
-  set_modes --verbosity debuga
+  set_modes --verbosity info
   set_modes --fail-on-error true
 
   #| Process Variables
   action="show"
-  print_raw=0
-  paths=""
+  target_path="$(pwd -P)"
 
   #| Commands
   cmd_list="$(list --build realpath readlink)"
 }
 
 set_modes() {
+  #@ Initialize variables
+  verbosity_options="$(
+    list \
+      0 quiet off false \
+      1 error \
+      2 warn \
+      3 info on true \
+      4 debug \
+      5 trace \
+      --delimiter '|' \
+      --build
+  )"
+  verbosity="${verbosity:-3}"
+  fail_on_error_options="$(
+    list \
+      --build 1 on true enabled 0 off false disabled \
+      --delimiter ', '
+  )"
+  fail_on_error="${fail_on_error:-1}"
+
+  #@ Parse arguments
   case "$1" in
   --verbosity)
-    options="$(
-      list \
-        0 quiet off false \
-        1 error \
-        2 warn \
-        3 info on true \
-        4 debug \
-        5 trace \
-        --delimiter '|' \
-        --build
-    )"
-    default=3
-
     #| Verbosity Level
     case "${2:-}" in
     0 | off | false | quiet | " ") verbosity=0 ;;
@@ -76,34 +74,38 @@ set_modes() {
     5 | trace) verbosity=5 ;;
     *)
       pout --warn --key "Invalid verbosity level" "${2}"
-      pout "Valid options: " "${options}"
-      pout "Default option: " "${default}"
+      pout "Valid options: " "${verbosity_options}"
+      pout "Default option: " "${verbosity}"
       ;;
     esac
     ;;
   --fail-on-error)
     #| Script Operation Mode
-    options="$(
-      list \
-        --build 1 on true enabled 0 off false disabled \
-        --delimiter ', '
-    )"
-    default=1
 
     case "${2:-}" in
     1 | true | on | enabled) fail_on_error=1 ;;
     0 | false | off | disabled) fail_on_error=0 ;;
     *)
-      pout --error "Invalid 'fail_on_error' mode" ": [${2}]" \
-        "\nValid options: " "${options}"
-      exit 1
+      pout --warn "Invalid 'fail_on_error' mode" ": ($2)" \
+        "\nValid options: " "${fail_on_error_options}" \
+        "\nDefault option: " "${fail_on_error}"
       ;;
     esac
     ;;
+  *) ;;
+  esac
+
+  case "${fail_on_error:-}" in
+  1 | true | on | enabled) set -e ;;
+  *) ;;
   esac
 }
 
 cache_commands() {
+  #@ Initialize variables
+  cmd_list="${cmd_list:-"$@"}"
+
+  #@ Loop through each command
   for cmd in $(list --build "$@"); do
     #@ Initialize variables
     cmd_key="" cmd_val="" cmd_env=""
@@ -118,7 +120,7 @@ cache_commands() {
 
     #@ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
-    cmd_env="$(env | grep --color "${cmd_key}")"
+    cmd_env="$(env | grep "${cmd_key}")"
     pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
   done
 }
@@ -163,6 +165,24 @@ parse_arguments() {
   target_path="${target_path:-"$(pwd -P)"}"
 }
 
+execute_process() {
+  #@ Initialize variables
+  _path="${1:-"${target_path:-}"}"
+  pout --debug --key "Execute Process" --val "${_path}"
+
+  #@ Resolve the path
+  if [ -n "${CMD_REALPATH:-}" ]; then
+    normalized_path="$(realpath -- "${_path}")"
+  elif [ -n "${CMD_READLINK:-}" ]; then
+    normalized_path="$(readlink -f "${_path}")"
+  else
+    normalized_path="$(resolve_path "${_path}")"
+  fi
+
+  pout --debug --key "Resolved Path" --val "${normalized_path}"
+  printf "%s" "${normalized_path}"
+}
+
 normalize_path() {
   #@ Initialize variables
   input_path="$1"
@@ -204,8 +224,9 @@ normalize_path() {
         #@ Remove trailing slash if present
         result="${result%/}"
 
-        #@ Go up one level
-        result="$(dirname "${result}")"
+        #@ Remove the last path component
+        result="${result%/*}"
+        [ -z "${result}" ] && result="/"
 
         #@ Handle empty result (happens when we're at the top of a relative path)
         [ "${result}" = "." ] && result=""
@@ -235,14 +256,17 @@ normalize_path() {
 }
 
 resolve_path() {
+  #@ Check for target path
   [ -n "${1:-}" ] || {
-    terminate_process --error "resolve_path" "missing target path to resolve"
-    exit 2
+    pout --error "Function 'resolve_path' requires a target path."
+    return 2
   }
 
+  #@ Initialize variables
   target="$1"
   max_depth=50 #? Prevent infinite recursion
   current_depth=${2:-0}
+  physical_dir="$(pwd -P)"
 
   #@ Check recursion depth to prevent infinite loops
   if [ "${current_depth}" -ge "${max_depth}" ]; then
@@ -257,6 +281,7 @@ resolve_path() {
     return 1
   fi
 
+  #@ Resolve the target base and get its physical path
   physical_base="$(basename "${target}")"
   physical_path="${physical_dir}/${physical_base}"
 
@@ -279,17 +304,6 @@ resolve_path() {
   fi
 }
 
-execute_process() {
-  #@ Use realpath if available as it is more efficient
-  if command -v realpathf >/dev/null 2>&1; then
-    normalized_path="$(realpath -- "${target_path}")"
-  else
-    normalized_path="$(resolve_path "${target_path}")"
-  fi
-
-  terminate_process --output "${normalized_path}"
-}
-
 terminate_process() {
   case "$1" in
   --error) display_info "${1:-}-${2:-}" "${3:-}" ;;
@@ -308,23 +322,38 @@ list() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --create | --make | --build) action=build ;;
+    --parse) action=parse ;;
     --delim* | --sep*) separator="${2:-}" shift ;;
     *) list="${list:+${list}${delimiter}}$1" ;;
-
     esac
     shift
   done
 
   #@ Add the defined separator, if necessary
-  [ -n "${separator:-}" ] &&
-    list=$(
-      printf "%s" "${list:-}" |
-        sed "s/${delimiter}/${separator}/g"
-    )
+  if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
+    old_IFS="${IFS}"
+    IFS="${delimiter}"
+    result=""
+    for item in ${list}; do
+      result="${result:+${result}${separator}}${item}"
+    done
+    IFS="${old_IFS}"
+    list="${result}"
+  fi
 
   case "${action:-}" in
-  build) printf "%s" "${list:-}" ;;
-  parse) ;;
+  build)
+    printf "%s" "${list:-}"
+    ;;
+  parse)
+    #@ Parse the input string into an array-like output
+    old_IFS="${IFS}"
+    IFS="${delimiter}"
+    for item in ${list}; do
+      printf "%s\n" "${item}"
+    done
+    IFS="${old_IFS}"
+    ;;
   *) ;;
   esac
 }
@@ -345,15 +374,15 @@ pout() {
     -d | --debug)
       if [ "${verbosity:-0}" -ge 4 ]; then
         tag="DEBUG"
-      else
-        return
+      # else
+      #   return
       fi
       ;;
     -e | --error) tag="ERROR" ;;
     -w | --warn) tag=" WARN" ;;
     -i | --info) tag=" INFO" ;;
     -t | --trace) tag="TRACE" ;;
-    --no-trim) unset trim ;;
+    --no-trim) trim="" ;;
     --usage)
       usage_guide
       exit 0
