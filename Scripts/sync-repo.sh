@@ -17,50 +17,50 @@ set_defaults() {
   args=""
   debug=0
 
-  CMD_GYTO="$(command -v gyto 2>/dev/null || printf "")"
+  CMD_GYTO="$(command -v gyto 2> /dev/null || printf "")"
   CMD_GYTO="${CMD_GYTO:-"${prj_root}/Bin/shellscript/project/git/gyto"}"
 }
 
 pout() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --error)
-      shift
-      tag="[ERROR]"
-      msg="$*"
-      code=1
-      break
-      ;;
-    --debug)
-      shift
-      case "${debug:-}" in
-      '' | 0 | off | no | false) ;;
-      1 | on | true | *)
-        tag="[DEBUG]"
+      --error)
+        shift
+        tag="[ERROR]"
         msg="$*"
+        code=1
         break
         ;;
-      esac
-      ;;
-    --help)
-      msg="HELP"
-      break
-      ;;
-    *)
-      msg="${msg}${msg:+${delimiter}}${1}"
-      ;;
+      --debug)
+        shift
+        case "${debug:-}" in
+          '' | 0 | off | no | false) ;;
+          1 | on | true | *)
+            tag="[DEBUG]"
+            msg="$*"
+            break
+            ;;
+        esac
+        ;;
+      --help)
+        msg="HELP"
+        break
+        ;;
+      *)
+        msg="${msg}${msg:+${delimiter}}${1}"
+        ;;
     esac
     shift
   done
 
   #@ Update the tagged message
-  [ -n "${tag}" ] &&
-    msg="$(printf "%s /> %s <\ %s\n" "${tag}" "${src_name}" "${msg}")"
+  [ -n "${tag}" ] \
+    && msg="$(printf "%s /> %s <\ %s\n" "${tag}" "${src_name}" "${msg}")"
 
   #@ Print to stdout or stderr
   case "${tag}" in
-  *"ERR"* | *"WARN"*) printf "%s" "${msg}" >&2 ;;
-  *) printf "%s" "${msg}" ;;
+    *"ERR"* | *"WARN"*) printf "%s" "${msg}" >&2 ;;
+    *) printf "%s" "${msg}" ;;
   esac
 
   #@ Terminate on errors
@@ -71,24 +71,24 @@ pout() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help | help | "/?")
-      pout --help
-      ;;
-    -d | --debug | debug | dry-run | "/d")
-      debug=1
-      ;;
-    *) args="${args}${args:+${delimiter}}${1}" ;;
+      -h | --help | help | "/?")
+        pout --help
+        ;;
+      -d | --debug | debug | dry-run | "/d")
+        debug=1
+        ;;
+      *) args="${args}${args:+${delimiter}}${1}" ;;
     esac
     shift
   done
 }
 
 validate_env() {
-  [ -d "${prj_root}" ] ||
-    pout --error "Unable to determine the project root directory"
+  [ -d "${prj_root}" ] \
+    || pout --error "Unable to determine the project root directory"
 
-  [ -x "${CMD_GYTO}" ] ||
-    pout --error "Failed to locate dependency:" "${CMD_GYTO}"
+  [ -x "${CMD_GYTO}" ] \
+    || pout --error "Failed to locate dependency:" "${CMD_GYTO}"
 }
 
 execute_process() {

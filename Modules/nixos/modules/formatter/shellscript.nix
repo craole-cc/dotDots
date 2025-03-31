@@ -1,7 +1,6 @@
 {
   perSystem =
     let
-
       includes = [
         "**/sh/**"
         "**/shellscript/**"
@@ -9,7 +8,7 @@
         "Scripts/**"
         "**/scripts/**"
         "Modules/global/**"
-        "Modules/nixos/configurations/hosts/QBX/bin/**"
+        # "Modules/nixos/configurations/hosts/QBX/bin/**"
         "**/bash/**"
         ".dotsrc"
         "*.shellcheckrc"
@@ -48,7 +47,8 @@
         };
         settings.formatter = {
           shellcheck = {
-            inherit includes excludes;
+            inherit includes;
+            excludes = excludes ++ [ ];
             options = [
               # "--enable=all"
             ];

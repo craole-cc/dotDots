@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=all
 
 usage() {
   #DOC Displays usage information for the script

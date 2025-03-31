@@ -25,6 +25,8 @@ parse_arguments() {
       validate_arguments --project "${cc}"/say_data
       ;;
     -*dots)
+      # echo "DOTS: ${DOTS:-$HOME/.dots}"
+
       validate_arguments --project "${DOTS:-$HOME/.dots}"
       ;;
     -*)

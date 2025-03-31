@@ -28,7 +28,7 @@ set_defaults() {
   delimiter="$(printf '\037')"
   LF="$(printf '\n')"
   IFS="${delimiter}"
-  CMD_FD="${CMD_FD:-"$(command -v fd 2>/dev/null)"}"
+  CMD_FD="${CMD_FD:-"$(command -v fd 2> /dev/null)"}"
   delimiter=" "
   search_types="all downward upward exe path file dir"
   search_directions="up upwards down downwards both"
@@ -60,157 +60,157 @@ set_defaults() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    -h | --help)
-      pout --usage
-      ;;
-    -v | --version)
-      pout --version
-      ;;
-    -d | --debug | --dry-run)
-      debug=1
-      ;;
-    -t | --type | --search-type)
-      if [ -n "${2:-}" ]; then
-        case "$2" in
-        "${search_types}") search_type="$2" ;;
-        *)
-          printf "Invalid sort type: %s\n" "$2" >&2
-          exit 1
-          ;;
-        esac
-        shift
-      else
-        pout --debug "Proceeding with default sort type: ${sort_type}"
-      fi
-      ;;
-    --direction)
-      if [ -n "${2:-}" ]; then
-        case "$2" in
-        "${search_directions}") search_direction="$2" ;;
-        *)
-          printf "Invalid search direction: %s\n" "$2" >&2
-          exit 1
-          ;;
-        esac
-        shift
-      else
-        pout --debug "Proceeding with default search direction: ${search_direction}"
-      fi
-      ;;
-    -c | --cwd | -[bB] | --base)
-      if [ -z "$2" ]; then
-        printf "Missing argument for %s\n" "$1" >&2
-        exit 1
-      elif [ ! -d "$2" ]; then
-        printf "Invalid directory: %s\n" "$2" >&2
-        exit 1
-      else
-        cwd="$2"
-        shift
-      fi
-      ;;
-    -l | --*limit*)
-      if [ -n "${2:-}" ]; then
-        #@ Initialize variables
-        valid_type=false
-
-        #@ Check if the argument is in the predifined list
-        for lt in ${result_limit_types}; do
-          if [ "$2" = "${lt}" ]; then
-            valid_type=true
-            break
-          fi
-        done
-
-        #@ Check if the argument is 0 or a positive integer
-        if [ "${valid_type}" = false ]; then
+      -h | --help)
+        pout --usage
+        ;;
+      -v | --version)
+        pout --version
+        ;;
+      -d | --debug | --dry-run)
+        debug=1
+        ;;
+      -t | --type | --search-type)
+        if [ -n "${2:-}" ]; then
           case "$2" in
-          *[!0-9]* | '')
-            #? Contains non-digits or empty
-            printf "Invalid limit: %s. Must be one of: %s or 0/positive integer.\n" \
-              "$2" "${result_limit_types}" >&2
-            exit 1
-            ;;
-          0 | [1-9]* | *)
-            #? Valid non-negative integer
-            valid_type=true
-            ;;
+            "${search_types}") search_type="$2" ;;
+            *)
+              printf "Invalid sort type: %s\n" "$2" >&2
+              exit 1
+              ;;
           esac
+          shift
+        else
+          pout --debug "Proceeding with default sort type: ${sort_type}"
         fi
-
-        result_limit="$2"
-        shift
-      else
-        result_limit=1
-        pout --debug "Proceeding with default result limit: ${result_limit}"
-      fi
-      ;;
-    -s | --sort)
-      if [ -n "$2" ]; then
-        case "$2" in
-        "${sort_types}") sort_type="$2" ;;
-        *)
-          printf "Invalid sort type: %s\n" "$2" >&2
+        ;;
+      --direction)
+        if [ -n "${2:-}" ]; then
+          case "$2" in
+            "${search_directions}") search_direction="$2" ;;
+            *)
+              printf "Invalid search direction: %s\n" "$2" >&2
+              exit 1
+              ;;
+          esac
+          shift
+        else
+          pout --debug "Proceeding with default search direction: ${search_direction}"
+        fi
+        ;;
+      -c | --cwd | -[bB] | --base)
+        if [ -z "$2" ]; then
+          printf "Missing argument for %s\n" "$1" >&2
           exit 1
-          ;;
-        esac
+        elif [ ! -d "$2" ]; then
+          printf "Invalid directory: %s\n" "$2" >&2
+          exit 1
+        else
+          cwd="$2"
+          shift
+        fi
+        ;;
+      -l | --*limit*)
+        if [ -n "${2:-}" ]; then
+          #@ Initialize variables
+          valid_type=false
+
+          #@ Check if the argument is in the predifined list
+          for lt in ${result_limit_types}; do
+            if [ "$2" = "${lt}" ]; then
+              valid_type=true
+              break
+            fi
+          done
+
+          #@ Check if the argument is 0 or a positive integer
+          if [ "${valid_type}" = false ]; then
+            case "$2" in
+              *[!0-9]* | '')
+                #? Contains non-digits or empty
+                printf "Invalid limit: %s. Must be one of: %s or 0/positive integer.\n" \
+                  "$2" "${result_limit_types}" >&2
+                exit 1
+                ;;
+              0 | [1-9]* | *)
+                #? Valid non-negative integer
+                valid_type=true
+                ;;
+            esac
+          fi
+
+          result_limit="$2"
+          shift
+        else
+          result_limit=1
+          pout --debug "Proceeding with default result limit: ${result_limit}"
+        fi
+        ;;
+      -s | --sort)
+        if [ -n "$2" ]; then
+          case "$2" in
+            "${sort_types}") sort_type="$2" ;;
+            *)
+              printf "Invalid sort type: %s\n" "$2" >&2
+              exit 1
+              ;;
+          esac
+          shift
+        else
+          pout --debug "Proceeding with default sort type: ${sort_type}"
+        fi
+        ;;
+      --closest)
+        sort_type="closest"
+        result_limit=1
+        depth="any"
+        direction="both"
+        ;;
+      --first)
+        sort_type="alnum"
+        result_limit=1
+        depth="any"
+        direction="both"
+        ;;
+      -n | --basename | --*name | --tag)
+        get_tag=true
+        sort_type="alnum"
+        result_limit=1
+        depth="any"
+        direction="both"
+        ;;
+      -D | --dir* | --*home)
+        get_dir=true
+        sort_type="alnum"
+        result_limit=1
+        depth="any"
+        direction="both"
+        ;;
+      -p | --project | --prj)
+        get_prj=true
+        sort_type="alnum"
+        limit=1
+        depth="any"
+        direction="up"
+        ;;
+      --no-smart | --no-extensive | --no-deep)
+        smart_exec=0
+        ;;
+      --include-hidden | --hidden)
+        hidden=true
+        ;;
+      --no-hidden)
+        hidden=false
+        ;;
+      -[lL] | --list)
+        list_mode=1
+        ;;
+      -[iI] | --item | --pattern)
+        pattern="${pattern:+${pattern}${delimiter}}$2"
         shift
-      else
-        pout --debug "Proceeding with default sort type: ${sort_type}"
-      fi
-      ;;
-    --closest)
-      sort_type="closest"
-      result_limit=1
-      depth="any"
-      direction="both"
-      ;;
-    --first)
-      sort_type="alnum"
-      result_limit=1
-      depth="any"
-      direction="both"
-      ;;
-    -n | --basename | --*name | --tag)
-      get_tag=true
-      sort_type="alnum"
-      result_limit=1
-      depth="any"
-      direction="both"
-      ;;
-    -D | --dir* | --*home)
-      get_dir=true
-      sort_type="alnum"
-      result_limit=1
-      depth="any"
-      direction="both"
-      ;;
-    -p | --project | --prj)
-      get_prj=true
-      sort_type="alnum"
-      limit=1
-      depth="any"
-      direction="up"
-      ;;
-    --no-smart | --no-extensive | --no-deep)
-      smart_exec=0
-      ;;
-    --include-hidden | --hidden)
-      hidden=true
-      ;;
-    --no-hidden)
-      hidden=false
-      ;;
-    -[lL] | --list)
-      list_mode=1
-      ;;
-    -[iI] | --item | --pattern)
-      pattern="${pattern:+${pattern}${delimiter}}$2"
-      shift
-      ;;
-    *)
-      pattern="${pattern:+${pattern}${delimiter}}$1"
-      ;;
+        ;;
+      *)
+        pattern="${pattern:+${pattern}${delimiter}}$1"
+        ;;
     esac
     shift
   done
@@ -232,9 +232,9 @@ parse_arguments() {
   pout --debug --key "PATTERN (Prepped)" "${pattern}"
 
   case "${depth}" in
-  least | closest) depth=0 ;;
-  one*) depth="1" ;;
-  ![0-9]* | '' | any | *) depth="" ;;
+    least | closest) depth=0 ;;
+    one*) depth="1" ;;
+    ![0-9]* | '' | any | *) depth="" ;;
   esac
   pout --debug --key "DEPTH (Prepped)" "${depth}"
 }
@@ -297,8 +297,8 @@ prep_lookup() {
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case $1 in
-    -c | --cwd) cwd="$2" ;;
-    *) pattern="$1" ;;
+      -c | --cwd) cwd="$2" ;;
+      *) pattern="$1" ;;
     esac
     shift
   done
@@ -306,39 +306,39 @@ prep_lookup() {
   #@ Resolve the pattern to an absolute path if it is relative
   #@ Otherwise, return the original pattern
   case "${pattern}" in
-  .)
-    #@ Return the current working directory
-    printf "%s" "${cwd}"
-    exit 0
-    ;;
-  ./*)
-    #@ Remove the leading './' from the pattern if present
-    pattern="${pattern#./}"
+    .)
+      #@ Return the current working directory
+      printf "%s" "${cwd}"
+      exit 0
+      ;;
+    ./*)
+      #@ Remove the leading './' from the pattern if present
+      pattern="${pattern#./}"
 
-    #@ Return the prep_lookupd path
-    printf "%s" "${cwd}/${pattern}"
-    ;;
-  *)
-    #@ Return the original pattern
-    printf "%s" "${pattern}"
-    ;;
+      #@ Return the prep_lookupd path
+      printf "%s" "${cwd}/${pattern}"
+      ;;
+    *)
+      #@ Return the original pattern
+      printf "%s" "${pattern}"
+      ;;
   esac
 }
 
 sort_results() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --type | -t) sort_type="$2" ;;
-    --list) sort_results="$2" ;;
-    *) sort_results="$1" ;;
+      --type | -t) sort_type="$2" ;;
+      --list) sort_results="$2" ;;
+      *) sort_results="$1" ;;
     esac
     shift
   done
 
   case "$sort_type" in
-  depth | d*)
-    printf "%s" "$sort_results" |
-      awk -v ORS="\n" -v tab="$(printf '\t')" '
+    depth | d*)
+      printf "%s" "$sort_results" \
+        | awk -v ORS="\n" -v tab="$(printf '\t')" '
         BEGIN { FS = "/" }
 
         function get_sort_priority(str) {
@@ -410,37 +410,37 @@ sort_results() {
 
           #@ Output format: depth<tab>sort_key<tab>original_path
           printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
-        }' |
-      sort | cut -f3 | grep --invert-match '^$'
-    ;;
-  lexical | l* | alphanumeric | alnum | a*)
-    sort_cmd="sort --numeric-sort"
-    with_punctuation() {
-      printf "%s" "$1" |
-        while IFS= read -r line; do
-          case "$line" in
-          */[[:punct:]]*) printf "%s\n" "$line" ;;
-          esac
-        done | eval "$2"
-    }
-    without_punctuation() {
-      printf "%s" "$1" |
-        while IFS= read -r line; do
-          case "$line" in
-          */[[:punct:]]*) ;;
-          *) printf "%s\n" "$line" ;;
-          esac
-        done | eval "$2"
-    }
+        }' \
+        | sort | cut -f3 | grep --invert-match '^$'
+      ;;
+    lexical | l* | alphanumeric | alnum | a*)
+      sort_cmd="sort --numeric-sort"
+      with_punctuation() {
+        printf "%s" "$1" \
+          | while IFS= read -r line; do
+            case "$line" in
+              */[[:punct:]]*) printf "%s\n" "$line" ;;
+            esac
+          done | eval "$2"
+      }
+      without_punctuation() {
+        printf "%s" "$1" \
+          | while IFS= read -r line; do
+            case "$line" in
+              */[[:punct:]]*) ;;
+              *) printf "%s\n" "$line" ;;
+            esac
+          done | eval "$2"
+      }
 
-    printf "%s" "$(
-      with_punctuation "$sort_results" "$sort_cmd"
-      without_punctuation "$sort_results" "$sort_cmd"
-    )" | grep --invert-match '^$'
-    ;;
-  natural | n*)
-    printf "%s" "$sort_results" |
-      awk -v ORS="\n" -v tab="$(printf '\t')" '
+      printf "%s" "$(
+        with_punctuation "$sort_results" "$sort_cmd"
+        without_punctuation "$sort_results" "$sort_cmd"
+      )" | grep --invert-match '^$'
+      ;;
+    natural | n*)
+      printf "%s" "$sort_results" \
+        | awk -v ORS="\n" -v tab="$(printf '\t')" '
             BEGIN { FS = "/" }
 
             function get_sort_priority(str) {
@@ -509,29 +509,29 @@ sort_results() {
 
               #@ Output format: depth<tab>sort_key<tab>original_path
               printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
-            }' |
-      sort | cut -f3 | grep --invert-match '^$'
-    ;;
-  *)
-    printf "%s" "$sort_results"
-    ;;
+            }' \
+        | sort | cut -f3 | grep --invert-match '^$'
+      ;;
+    *)
+      printf "%s" "$sort_results"
+      ;;
   esac
 }
 
 limit_results() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --limit) limit="$2" ;;
-    --list) list="$2" ;;
-    *) list="$1" ;;
+      --limit) limit="$2" ;;
+      --list) list="$2" ;;
+      *) list="$1" ;;
     esac
     shift
   done
 
   case "$limit" in
-  '') printf "%s" "$list" ;;
-  ![0-9]*) printf "%s" "$list" | head -n 1 ;;
-  *) printf "%s" "$list" | head -n "$limit" ;;
+    '') printf "%s" "$list" ;;
+    ![0-9]*) printf "%s" "$list" | head -n 1 ;;
+    *) printf "%s" "$list" | head -n "$limit" ;;
   esac
 }
 
@@ -557,8 +557,8 @@ search_exe() {
   exe_pattern="${1:-}"
 
   #@ Search for executable in PATH
-  if command -v "${exe_pattern}" 2>/dev/null; then
-    exe_path="$(command -v "${exe_pattern}" 2>/dev/null)"
+  if command -v "${exe_pattern}" 2> /dev/null; then
+    exe_path="$(command -v "${exe_pattern}" 2> /dev/null)"
   else
     exe_path=""
   fi
@@ -566,25 +566,25 @@ search_exe() {
   #@ Extended search for executables with common extensions if not found
   if [ -z "${exe_path:-}" ]; then
     case "${smart_exec:-}" in
-    1 | on | true)
-      for ext in ${exe_types:-}; do
-        potential_exe="${exe_pattern}${ext}"
-        pout --debug "Trying ${potential_exe}"
+      1 | on | true)
+        for ext in ${exe_types:-}; do
+          potential_exe="${exe_pattern}${ext}"
+          pout --debug "Trying ${potential_exe}"
 
-        if command -v "${potential_exe}" 2>/dev/null; then
-          exe_path="$(command -v "${potential_exe}")"
-          break
-        else
-          exe_path="$(find_path --downwards --for "${potential_exe}")"
-          if [ -n "${exe_path}" ]; then
+          if command -v "${potential_exe}" 2> /dev/null; then
+            exe_path="$(command -v "${potential_exe}")"
             break
           else
-            pout --debug "No results for ${potential_exe}"
+            exe_path="$(find_path --downwards --for "${potential_exe}")"
+            if [ -n "${exe_path}" ]; then
+              break
+            else
+              pout --debug "No results for ${potential_exe}"
+            fi
           fi
-        fi
-      done
-      ;;
-    '' | off | no | false | *) ;;
+        done
+        ;;
+      '' | off | no | false | *) ;;
     esac
   else
     pout --debug "Unable to determine executable path for ${exe_pattern}"
@@ -606,21 +606,21 @@ find_path() {
   #@ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --down* | down*) search_type="downward" ;;
-    --up* | up*) search_type="upward" ;;
-    --from)
-      [ -n "$2" ] && {
-        search_path="$2"
-        shift
-      }
-      ;;
-    --for* | for*)
-      [ -n "$2" ] && {
-        search_item="$2"
-        shift
-      }
-      ;;
-    *) search_item="$1" ;;
+      --down* | down*) search_type="downward" ;;
+      --up* | up*) search_type="upward" ;;
+      --from)
+        [ -n "$2" ] && {
+          search_path="$2"
+          shift
+        }
+        ;;
+      --for* | for*)
+        [ -n "$2" ] && {
+          search_item="$2"
+          shift
+        }
+        ;;
+      *) search_item="$1" ;;
     esac
     shift
   done
@@ -652,12 +652,12 @@ find_path() {
         --max-depth "${depth}" \
         --glob "${search_pattern}" \
         "${search_path}" \
-        2>/dev/null
+        2> /dev/null
     else
       timeout 5 find "${search_path}" \
         -maxdepth "${depth}" \
         -iname "${search_pattern}" \
-        2>/dev/null || true
+        2> /dev/null || true
     fi
   }
 
@@ -683,10 +683,10 @@ find_path() {
             --glob "${search_pattern}" \
             --max-depth 1 \
             "${search_path}" \
-            2>/dev/null
+            2> /dev/null
         )" || true
       else
-        found="$(find "${search_path}" -maxdepth 1 -iname "${search_pattern}" 2>/dev/null)" || true
+        found="$(find "${search_path}" -maxdepth 1 -iname "${search_pattern}" 2> /dev/null)" || true
       fi
 
       if [ -n "${found}" ]; then
@@ -706,21 +706,21 @@ find_path() {
 
   #@ Fetch search results
   case "${search_type}" in
-  upward) search_results="$(search_upwards)" ;;
-  downward | *) search_results="$(search_downwards)" ;;
+    upward) search_results="$(search_upwards)" ;;
+    downward | *) search_results="$(search_downwards)" ;;
   esac
 
   #@ Debug results
   pout --debug "$(
     printf "Searching %s for '%s' from '%s'" "$(
-      printf "%s" "${search_type}" |
-        tr '[:upper:]' '[:lower:]' || true
+      printf "%s" "${search_type}" \
+        | tr '[:upper:]' '[:lower:]' || true
     )" "${search_item}" "${search_path}"
   )"
 
   if [ -n "${search_results}" ]; then
-    printf "%s" "${search_results}" |
-      while IFS= read -r line || [ -n "${line}" ]; do
+    printf "%s" "${search_results}" \
+      | while IFS= read -r line || [ -n "${line}" ]; do
         search_results_count=$((search_results_count + 1))
         pout --debug "$(
           printf "%s search yielded <\ %s /> %s" \
@@ -733,8 +733,8 @@ find_path() {
 
   #@ Process results by match quality
   if [ -n "${search_results}" ]; then
-    printf "%s" "${search_results}" |
-      awk -v target="${search_item}" '
+    printf "%s" "${search_results}" \
+      | awk -v target="${search_item}" '
         function basename(path) {
           sub(".*/", "", path)
           return path
@@ -754,8 +754,8 @@ find_path() {
             }
             print "1." score, $0
           }
-        }' |
-      sort -r | cut -d' ' -f2-
+        }' \
+      | sort -r | cut -d' ' -f2-
   fi
 
   #@ Return results
@@ -779,10 +779,10 @@ search_fs() {
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --cwd) cwd="$2" shift ;;
-    --first | --closest) closest=true ;;
-    --pattern) pattern="$2" shift ;;
-    *) pattern="$1" ;;
+      --cwd) cwd="$2" shift ;;
+      --first | --closest) closest=true ;;
+      --pattern) pattern="$2" shift ;;
+      *) pattern="$1" ;;
     esac
     shift
   done
@@ -805,7 +805,7 @@ search_fs() {
     dir="$1"
     target="$2"
 
-    if type fd >/dev/null 2>&1; then
+    if type fd > /dev/null 2>&1; then
       cmd="fd --base-directory \"$dir\""
       opt="${opt:-} --absolute-path --glob"
       [ "$hidden" ] && opt="$opt --hidden"
@@ -816,7 +816,7 @@ search_fs() {
       # else
       #   fd --base-directory "$dir" "$target"
       # fi
-    elif type find >/dev/null 2>&1; then
+    elif type find > /dev/null 2>&1; then
       cmd="find \"$dir\""
       # opt="$opt -type f"
       pat="-wholename \"*/$target\""
@@ -863,12 +863,15 @@ search_fs() {
 
     #@ Extract the desired path from the list
     path="$(
-      printf "%s" "$pathlist" |
-        awk -F'/' '{print NF-1, $0}' |
+      printf "%s" "$pathlist" \
+        | awk -F'/' '{print NF-1, $0}' \
+        |
         # 1
-        sort -n |
+        sort -n \
+        |
         # 2
-        cut -d' ' -f2- |
+        cut -d' ' -f2- \
+        |
         # 3
         head -n 1 # 4
     )"
@@ -884,25 +887,25 @@ search_fs() {
   }
 
   case "${search_direction}" in
-  both)
-    pathlist="$(search_fs__downwards "${cwd}" "${pattern}")"
-    [ -n "${pathlist}" ] ||
-      pathlist="$(search_fs__upwards "${cwd}" "${pattern}")"
-    ;;
-  up*)
-    pathlist="$(
-      search_fs__upwards "${cwd}" "${pattern}"
-    )"
-    ;;
-  down* | *) pathlist="$(
-    search_fs__downwards "${cwd}" "${pattern}"
-  )" ;;
+    both)
+      pathlist="$(search_fs__downwards "${cwd}" "${pattern}")"
+      [ -n "${pathlist}" ] \
+        || pathlist="$(search_fs__upwards "${cwd}" "${pattern}")"
+      ;;
+    up*)
+      pathlist="$(
+        search_fs__upwards "${cwd}" "${pattern}"
+      )"
+      ;;
+    down* | *) pathlist="$(
+      search_fs__downwards "${cwd}" "${pattern}"
+    )" ;;
   esac
 
   #@ Search the filesystem in both directions
   pathlist="$(search_fs__downwards "${cwd}" "${pattern}")"
-  [ -n "${pathlist}" ] ||
-    pathlist="$(search_fs__upwards "${cwd}" "${pattern}")"
+  [ -n "${pathlist}" ] \
+    || pathlist="$(search_fs__upwards "${cwd}" "${pattern}")"
 
   if [ -n "${closest}" ]; then
     path="$(search_fs__closest "${pathlist}")"
@@ -932,8 +935,8 @@ search_all() {
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
-    --cwd) cwd="$2" ;;
-    *) pattern="$1" ;;
+      --cwd) cwd="$2" ;;
+      *) pattern="$1" ;;
     esac
     shift
   done
@@ -1024,25 +1027,25 @@ pout() {
   #@ Parse message type and content
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -k | --key) key="$2" shift ;;
-    -v | --val) val="$2" shift ;;
-    -d | --debug)
-      case "${debug:-}" in off | false | 0 | '') return ;;
-      *) tag="DEBUG" ;; esac
-      ;;
-    -e | --error) tag="ERROR" ;;
-    --no-trim) unset trim ;;
-    --usage)
-      usage_guide
-      exit 0
-      ;;
-    --version)
-      printf "%s\n" "${cmd_VERSION}"
-      exit 0
-      ;;
-    *)
-      msg="${msg:-}${msg:+${delimiter}}${1}"
-      ;;
+      -k | --key) key="$2" shift ;;
+      -v | --val) val="$2" shift ;;
+      -d | --debug)
+        case "${debug:-}" in off | false | 0 | '') return ;;
+        *) tag="DEBUG" ;; esac
+        ;;
+      -e | --error) tag="ERROR" ;;
+      --no-trim) unset trim ;;
+      --usage)
+        usage_guide
+        exit 0
+        ;;
+      --version)
+        printf "%s\n" "${cmd_VERSION}"
+        exit 0
+        ;;
+      *)
+        msg="${msg:-}${msg:+${delimiter}}${1}"
+        ;;
     esac
     shift
   done
@@ -1060,27 +1063,27 @@ pout() {
     fi
 
     case "${tag}" in
-    DEBUG | ERROR | WARN | INFO)
-      #@ Define the separator
-      sep=" | "
+      DEBUG | ERROR | WARN | INFO)
+        #@ Define the separator
+        sep=" | "
 
-      #@ Calculate padding for label alignment
-      debug_pad="${debug_pad:-24}"
-      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+        #@ Calculate padding for label alignment
+        debug_pad="${debug_pad:-24}"
+        pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #@ Format the tagged key-value pair
-      msg="$(printf "[%s] /> %s <\ %s%s%s%s\n" \
-        "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}")"
-      ;;
-    *)
-      #@ Define the separator
-      sep=": "
+        #@ Format the tagged key-value pair
+        msg="$(printf "[%s] /> %s <\ %s%s%s%s\n" \
+          "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}")"
+        ;;
+      *)
+        #@ Define the separator
+        sep=": "
 
-      #@ Print the key-value pair
-      msg="$(
-        printf "%s%s%s\n" "${key}" "${sep}" "${val}"
-      )"
-      ;;
+        #@ Print the key-value pair
+        msg="$(
+          printf "%s%s%s\n" "${key}" "${sep}" "${val}"
+        )"
+        ;;
     esac
   else
     msg="$(trim "${msg}")"
@@ -1088,13 +1091,13 @@ pout() {
 
   #@ Print the message
   case "${tag}" in
-  ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
-  *) printf "%s\n" "${msg}" ;;
+    ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
+    *) printf "%s\n" "${msg}" ;;
   esac
 }
 
 usage_guide() {
-  cat <<EOF
+  cat << EOF
 ${cmd_NAME} [v.${cmd_VERSION}] - Intelligent Path Finder
 
 USAGE:

@@ -10,29 +10,29 @@ target="$(hostname)"
 #@ Parse arguments
 while [ "$#" -gt 0 ]; do
   case "$1" in
-  --flake)
-    if [ -n "$2" ]; then
-      dots="$2"
-      shift
-    else
-      exit 1
-    fi
-    ;;
-  --host)
-    if [ -n "$2" ]; then
-      target="$2"
-      shift
-    else
-      exit 1
-    fi
-    ;;
-  *)
-    if [ -d "${dots}" ]; then
-      msg="$1"
-    else
-      dots="$1"
-    fi
-    ;;
+    --flake)
+      if [ -n "$2" ]; then
+        dots="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    --host)
+      if [ -n "$2" ]; then
+        target="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    *)
+      if [ -d "${dots}" ]; then
+        msg="$1"
+      else
+        dots="$1"
+      fi
+      ;;
   esac
   shift
 done

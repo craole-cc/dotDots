@@ -13,7 +13,7 @@
 set -eu
 
 # Default configurations for code variants.
-: "${codeDOTS:=--extension some-dots-extension}"
+: "${codeDOTS:=}"
 : "${codeRUST:=--extension some-rust-extension}"
 : "${codeNIX:=--extension some-nix-extension}"
 
