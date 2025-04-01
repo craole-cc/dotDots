@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 let
   catppuccin = pkgs.fetchFromGitHub {
     owner = "catppuccin";
@@ -17,27 +13,25 @@ in
 # inherit (colors.${mode}) scheme;
 # theme = scheme.${app};
 {
-  config.dots.users.craole = {
-    programs.bat = {
-      enable = true;
-      config = {
-        # inherit theme;
-        theme = "Catppuccin-latte";
-        pager = "less -FR";
-      };
-
-      themes = {
-        Catppuccin-mocha = {
-          src = catppuccin;
-          file = "Catppuccin-mocha.tmTheme";
-        };
-        Catppuccin-latte = {
-          src = catppuccin;
-          file = "Catppuccin-latte.tmTheme";
-        };
-      };
+  programs.bat = {
+    enable = true;
+    config = {
+      # inherit theme;
+      theme = "Catppuccin-latte";
+      pager = "less -FR";
     };
 
-    variables.READER = "bat";
+    themes = {
+      Catppuccin-mocha = {
+        src = catppuccin;
+        file = "Catppuccin-mocha.tmTheme";
+      };
+      Catppuccin-latte = {
+        src = catppuccin;
+        file = "Catppuccin-latte.tmTheme";
+      };
+    };
   };
+
+  home.sessionVariables.READER = "bat";
 }
