@@ -2,26 +2,57 @@
   description = "QBB-WSL";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    home-manager.url = "github:nix-community/home-manager?ref=master";
-    nixos-wsl.url = "github:nix-community/NixOS-WSL?ref=main";
+    nixosPkgs = {
+      type = "github";
+      owner = "NixOS";
+      repo = "nixpkgs";
+      ref = "nixos-unstable";
+    };
+    nixosHome = {
+      type = "github";
+      owner = "nix-community";
+      repo = "home-manager";
+      inputs.nixpkgs.follows = "nixosPkgs";
+    };
+    nixosWSL = {
+      type = "github";
+      owner = "nix-community";
+      repo = "NixOS-WSL";
+      inputs = {
+        nixpkgs.follows = "nixosPkgs";
+        flake-compat.follows = "flakeCompat";
+      };
+    };
+    flakeCompat = {
+      type = "github";
+      owner = "edolstra";
+      repo = "flake-compat";
+      flake = false;
+    };
   };
 
   outputs =
     {
-      # self,
-      nixpkgs,
-      nixos-wsl,
+      nixosPkgs,
+      nixosWSL,
+      nixosHome,
       ...
     }:
     {
-      nixosConfigurations.QBXL = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          nixos-wsl.nixosModules.default
-          ./core
-          ./home
+          nixosWSL.nixosModules.default
+          nixosHome.nixosModules.home-manager
           ./options
+          ./core
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.craole = ./home;
+            };
+          }
         ];
       };
     };
