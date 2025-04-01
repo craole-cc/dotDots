@@ -7,7 +7,10 @@
 
   programs.helix = {
     enable = true;
-    settings = import ./settings.nix;
+    settings = {
+      editor = import ./editor.nix;
+      keys = import ./keybindings.nix;
+    };
     languages = import ./languages.nix;
   };
 }
