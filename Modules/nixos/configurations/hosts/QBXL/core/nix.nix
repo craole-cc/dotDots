@@ -3,6 +3,10 @@ let
   inherit (config.dots.alpha) name;
 in
 {
+  environment.systemPackages = with pkgs; [
+    nixd
+    nixfmt-rfc-style
+  ];
   networking = {
     hostId = with builtins; substring 0 8 (hashString "md5" config.networking.hostName);
   };
@@ -17,10 +21,6 @@ in
       name
     ];
   };
-  environment.systemPackages = with pkgs; [
-    nixd
-    nixfmt-rfc-style
-  ];
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "24.11";
   wsl = {

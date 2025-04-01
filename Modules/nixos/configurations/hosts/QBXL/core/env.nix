@@ -6,7 +6,7 @@ in
   environment = {
     variables = {
       EDITOR = "hx";
-      VISUAL = "code-insiders"; #TODO: Make this dynamic
+      VISUAL = "code-insiders"; # TODO: Make this dynamic
       DOTS = DOTS.flake;
       QBXL = QBXL.flake;
     };
@@ -17,19 +17,13 @@ in
       (writeShellScriptBin "QBXL" (
         with QBXL;
         ''
-          #@ Exit immediately if any command fails
           set -e
-
-          printf "NixOS WSL Flake for QBXL [%s]\n" "${flake}"
-
-          printf "/> Updating />\n"
-          nix flake update --flake "${flake}"
-
+          printf "NixOS WSL Flake for QBXL [%s]\n/> Updating />\n" "${flake}"
+            nix flake update --flake "${flake}"
           printf "/> Committing />\n"
-          gitui || true
-
+            gitui || true
           printf "/> Rebuilding />\n"
-          sudo nixos-rebuild switch --flake "${flake}" --show-trace --upgrade
+            sudo nixos-rebuild switch --flake "${flake}" --show-trace --upgrade
         ''
       ))
       gitui
