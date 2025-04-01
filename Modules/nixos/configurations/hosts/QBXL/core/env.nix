@@ -17,14 +17,17 @@ in
       (writeShellScriptBin "QBXL" (
         with QBXL;
         ''
-          # Exit immediately if any command fails
+          #@ Exit immediately if any command fails
           set -e
 
           printf "NixOS WSL Flake for QBXL\n"
           printf "Using flake at: %s\n" "${flake}"
 
           printf "Updating...\n"
-          nix flake update --commit-lock-file "${flake}"
+          nix flake update --flake "${flake}"
+
+          printf "Committing...\n"
+          gitui || true
 
           printf "Rebuilding...\n"
           sudo nixos-rebuild switch --flake "${flake}" --show-trace --upgrade
