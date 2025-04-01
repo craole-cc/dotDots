@@ -1,7 +1,6 @@
 { pkgs, config, ... }:
 let
   inherit (config.dots.paths) DOTS QBXL;
-  # inherit (config.dots.paths) QBXL;
 in
 {
   environment = {
@@ -9,6 +8,7 @@ in
       EDITOR = "hx";
       VISUAL = "code";
       DOTS = DOTS.flake;
+      QBXL = QBXL.flake;
     };
     systemPackages = with pkgs; [
       (writeScriptBin ".dots" ''
@@ -20,32 +20,18 @@ in
           #@ Exit immediately if any command fails
           set -e
 
-          printf "NixOS WSL Flake for QBXL\n"
-          printf "Using flake at: %s\n" "${flake}"
+          printf "NixOS WSL Flake for QBXL [%s]\n" "$QBXL"
 
-          printf "Updating...\n"
-          nix flake update --flake "${flake}"
+          printf "/> Updating />\n"
+          nix flake update --flake "$QBXL"
 
-          printf "Committing...\n"
+          printf "/> Committing />\n"
           gitui || true
 
-          printf "Rebuilding...\n"
-          sudo nixos-rebuild switch --flake "${flake}" --show-trace --upgrade
+          printf "/> Rebuilding />\n"
+          sudo nixos-rebuild switch --flake "$QBXL" --show-trace --upgrade
         ''
       ))
-      # (writeShellScriptBin "nixos-rebuild-QBXL" ''
-
-      #   #@ Exit immediately if any command fails
-      #   set -e
-
-      #   printf "NixOS WSL Flake for QBXL" #TODO, use the description of the flake
-
-      #   printf "Updating...\n"
-      #   nix flake update --commit-lock-file ${QBXL.flake}
-
-      #   printf "Rebuilding...\n"
-      #   sudo nixos-rebuild switch --flake ${QBXL.flake} --show-trace --upgrade
-      # '')
       alejandra
       curl
       devenv
