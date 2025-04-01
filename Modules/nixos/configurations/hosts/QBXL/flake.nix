@@ -38,13 +38,9 @@
       nixosHome,
       ...
     }:
-    let
-      system = "x86_64-linux";
-      # pkgs = nixosPkgs.legacyPackages.${system};
-    in
     {
       nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
-        inherit system;
+        system="x86_64-linux";
         modules = [
           nixosWSL.nixosModules.default
           nixosHome.nixosModules.home-manager
@@ -55,7 +51,7 @@
           {
             networking = {
               hostName = "QBXL";
-              hostId = with builtins; substring 0 8 (hashString "md5" "QBXL");
+              # hostId = with builtins; substring 0 8 (hashString "md5" "QBXL");
             };
           }
         ];

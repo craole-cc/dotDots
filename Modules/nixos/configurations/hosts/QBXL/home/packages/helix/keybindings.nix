@@ -6,7 +6,7 @@
     "C-]" = "indent";
     C-s = ":write";
     C-S-esc = "extend_line";
-    C-S-o = ":config-open";
+    # C-S-o = ":config-open";
     # C-S-r = ":config-reload";
     # a = "move_char_left";
     # w = "move_line_up";

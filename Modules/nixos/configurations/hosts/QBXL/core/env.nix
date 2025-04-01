@@ -37,7 +37,6 @@ in
   };
 
   programs = {
-    # bat.enable = true;
     direnv = {
       enable = true;
       silent = true;
