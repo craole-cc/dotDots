@@ -6,7 +6,7 @@ in
   environment = {
     variables = {
       EDITOR = "hx";
-      VISUAL = "code";
+      VISUAL = "code-insiders"; #TODO: Make this dynamic
       DOTS = DOTS.flake;
       QBXL = QBXL.flake;
     };

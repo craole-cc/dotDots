@@ -44,15 +44,9 @@
         modules = [
           nixosWSL.nixosModules.default
           nixosHome.nixosModules.home-manager
-          ./core
-          ./home
-          ./options
-
+          ./.
           {
-            networking = {
-              hostName = "QBXL";
-              # hostId = with builtins; substring 0 8 (hashString "md5" "QBXL");
-            };
+            networking.hostName = "QBXL";
           }
         ];
       };
