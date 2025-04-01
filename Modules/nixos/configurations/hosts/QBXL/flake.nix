@@ -33,7 +33,6 @@
 
   outputs =
     {
-      self,
       nixosPkgs,
       nixosWSL,
       nixosHome,
@@ -41,22 +40,11 @@
     }:
     let
       system = "x86_64-linux";
-      pkgs = nixosPkgs.legacyPackages.${system};
-      nixos-rebuild-QBXL = pkgs.writeShellScriptBin "QBXL" ''
-        # Exit immediately if any command fails
-        set -e
-        printf "NixOS WSL Flake for QBXL\n"
-
-        printf "Updating...\n"
-        nix flake update --commit-lock-file "${self}"
-
-        printf "Rebuilding...\n"
-        sudo nixos-rebuild switch --flake "${self}" --show-trace --upgrade
-      '';
+      # pkgs = nixosPkgs.legacyPackages.${system};
     in
     {
       nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
         modules = [
           nixosWSL.nixosModules.default
           nixosHome.nixosModules.home-manager
@@ -69,11 +57,8 @@
               hostName = "QBXL";
               hostId = with builtins; substring 0 8 (hashString "md5" "QBXL");
             };
-            environment.systemPackages = [ nixos-rebuild-QBXL ];
           }
         ];
       };
-
-      scripts.nixos-rebuild-QBXL = nixos-rebuild-QBXL;
     };
 }

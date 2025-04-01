@@ -1,6 +1,6 @@
 { pkgs, config, ... }:
 let
-  inherit (config.dots.paths) DOTS;
+  inherit (config.dots.paths) DOTS QBXL;
   # inherit (config.dots.paths) QBXL;
 in
 {
@@ -14,6 +14,22 @@ in
       (writeScriptBin ".dots" ''
         exec "${DOTS.flake}/Bin/shellscript/project/.dots" "$@"
       '')
+      (writeShellScriptBin "QBXL" (
+        with QBXL;
+        ''
+          # Exit immediately if any command fails
+          set -e
+
+          printf "NixOS WSL Flake for QBXL\n"
+          printf "Using flake at: %s\n" "${flake}"
+
+          printf "Updating...\n"
+          nix flake update --commit-lock-file "${flake}"
+
+          printf "Rebuilding...\n"
+          sudo nixos-rebuild switch --flake "${flake}" --show-trace --upgrade
+        ''
+      ))
       # (writeShellScriptBin "nixos-rebuild-QBXL" ''
 
       #   #@ Exit immediately if any command fails
