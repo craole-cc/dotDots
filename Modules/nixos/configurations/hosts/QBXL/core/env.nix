@@ -1,7 +1,7 @@
 { pkgs, config, ... }:
 let
   inherit (config.dots.paths) dots;
-  inherit (config.dots.paths) QBXL;
+  # inherit (config.dots.paths) QBXL;
 in
 {
   environment = {
@@ -14,19 +14,19 @@ in
       (writeScriptBin ".dots" ''
         exec "${dots}/Bin/shellscript/project/.dots" "$@"
       '')
-      (writeShellScriptBin "nixos-rebuild-QBXL" ''
+      # (writeShellScriptBin "nixos-rebuild-QBXL" ''
 
-        #@ Exit immediately if any command fails
-        set -e
+      #   #@ Exit immediately if any command fails
+      #   set -e
 
-        printf "NixOS WSL Flake for QBXL" #TODO, use the description of the flake
+      #   printf "NixOS WSL Flake for QBXL" #TODO, use the description of the flake
 
-        printf "Updating...\n"
-        nix flake update --commit-lock-file ${QBXL.flake}
+      #   printf "Updating...\n"
+      #   nix flake update --commit-lock-file ${QBXL.flake}
 
-        printf "Rebuilding...\n"
-        sudo nixos-rebuild switch --flake ${QBXL.flake} --show-trace --upgrade
-      '')
+      #   printf "Rebuilding...\n"
+      #   sudo nixos-rebuild switch --flake ${QBXL.flake} --show-trace --upgrade
+      # '')
       alejandra
       curl
       devenv
