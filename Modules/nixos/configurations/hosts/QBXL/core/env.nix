@@ -1,6 +1,6 @@
 { pkgs, config, ... }:
 let
-  inherit (config.dots.paths) dots;
+  inherit (config.dots.paths) DOTS;
   # inherit (config.dots.paths) QBXL;
 in
 {
@@ -8,11 +8,11 @@ in
     variables = {
       EDITOR = "hx";
       VISUAL = "code";
-      DOTS = dots;
+      DOTS = DOTS.flake;
     };
     systemPackages = with pkgs; [
       (writeScriptBin ".dots" ''
-        exec "${dots}/Bin/shellscript/project/.dots" "$@"
+        exec "${DOTS.flake}/Bin/shellscript/project/.dots" "$@"
       '')
       # (writeShellScriptBin "nixos-rebuild-QBXL" ''
 
