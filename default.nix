@@ -126,7 +126,12 @@ let
     DOTS = paths.flake.local;
     QBXL = paths.hosts.QBXL.local;
   };
+  wsl = {
+    enable = true;
+    defaultUser = alpha;
+    startMenuLaunchers = true;
+  };
 in
 {
-  inherit alpha paths variables;
+  inherit alpha paths variables wsl;
 }

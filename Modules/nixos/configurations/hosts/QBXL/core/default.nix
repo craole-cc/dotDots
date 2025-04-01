@@ -1,7 +1,8 @@
 {
   imports = [
     ./nix.nix
-    ./env.nix
+    # ./env.nix
+    ./pkg.nix
     ./wsl.nix
   ];
 }

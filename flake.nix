@@ -23,13 +23,7 @@
       wslModule = {
         imports = [
           inputs.nixosWSL.nixosModules.default
-          {
-            wsl = {
-              enable = true;
-              defaultUser = dots.alpha;
-              startMenuLaunchers = true;
-            };
-          }
+          { inherit (dots) wsl; }
         ];
       };
     in
@@ -45,8 +39,8 @@
         secretKey.flakeModule
         # secretShell.flakeModule
         treeFormatter.flakeModule
-        # flakePaths.modules.store
-        ./Modules/nixos
+        dots.paths.modules.store
+        # ./Modules/nixos
       ];
       debug = true;
       systems = [
@@ -87,7 +81,7 @@
                 system.stateVersion = "24.11";
                 environment = { inherit (dots) variables; };
               }
-              # (flakePaths.hosts.QBXL.store + "/core")
+              (dots.paths.hosts.QBXL.store + "/core")
               wslModule
               # inputs.nixosWSL.nixosModules.default
               # inputs.nixosHome.nixosModules.home-manager
