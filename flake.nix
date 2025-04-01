@@ -37,6 +37,18 @@
             inherit flakePaths;
           };
         };
+
+      flake = {
+        # nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
+        #   modules = [
+        #     { networking.hostName = "QBXL"; }
+        #     nixosWSL.nixosModules.default
+        #     nixosHome.nixosModules.home-manager
+        #     ./.
+        #   ];
+        #   system = "x86_64-linux";
+        # };
+      };
     };
 
   inputs = {

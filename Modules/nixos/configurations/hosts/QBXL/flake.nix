@@ -40,15 +40,13 @@
     }:
     {
       nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
-        system = "x86_64-linux";
         modules = [
+          { networking.hostName = "QBXL"; }
           nixosWSL.nixosModules.default
           nixosHome.nixosModules.home-manager
           ./.
-          {
-            networking.hostName = "QBXL";
-          }
         ];
+        system = "x86_64-linux";
       };
     };
 }
