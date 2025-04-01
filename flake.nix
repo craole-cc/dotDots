@@ -3,7 +3,35 @@
   outputs =
     inputs@{ flakeParts, ... }:
     let
-      flakePaths = import ./paths.nix;
+      dots = import ./default.nix;
+      # pkgModule =
+      #   { config, ... }:
+      #   {
+      #     nixpkgs.config = {
+      #       packageOverrides = pkgs: {
+      #         stable = import inputs.nixosStable {
+      #           system = pkgs.system;
+      #           config = config.nixpkgs.config;
+      #         };
+      #         unstable = import inputs.nixosUnstable {
+      #           system = pkgs.system;
+      #           config = config.nixpkgs.config;
+      #         };
+      #       };
+      #     };
+      #   };
+      wslModule = {
+        imports = [
+          inputs.nixosWSL.nixosModules.default
+          {
+            wsl = {
+              enable = true;
+              defaultUser = dots.alpha;
+              startMenuLaunchers = true;
+            };
+          }
+        ];
+      };
     in
     flakeParts.lib.mkFlake { inherit inputs; } {
       imports = with inputs; [
@@ -17,6 +45,7 @@
         secretKey.flakeModule
         # secretShell.flakeModule
         treeFormatter.flakeModule
+        # flakePaths.modules.store
         ./Modules/nixos
       ];
       debug = true;
@@ -34,56 +63,41 @@
             pkgs = inputs'.nixosUnstable.legacyPackages;
             pkgsStable = inputs'.nixosStable.legacyPackages;
             pkgsUnstable = inputs'.nixosUnstable.legacyPackages;
-            inherit flakePaths;
+            inherit dots;
           };
         };
 
       flake = {
-        nixosModules.pkgSets =
-          { config }:
-          {
-            nixpkgs.config = {
-              packageOverrides = pkgs: {
-                stable = import inputs.nixosStable {
-                  system = pkgs.system;
-                  config = config.nixpkgs.config;
-                };
-                unstable = import inputs.nixosUnstable {
-                  system = pkgs.system;
-                  config = config.nixpkgs.config;
-                };
-              };
-            };
+        overlays.default = final: prev: {
+          stable = import inputs.nixosStable {
+            system = prev.system;
+            config.allowUnfree = true;
           };
+          unstable = import inputs.nixosUnstable {
+            system = prev.system;
+            config.allowUnfree = true;
+          };
+        };
 
-        # nixosModules.default =
-        #   { config, ... }:
-        #   {
-        #     nixpkgs.config = {
-        #       packageOverrides = pkgs: {
-        #         stable = import inputs.nixosStable {
-        #           system = pkgs.system;
-        #           config = config.nixpkgs.config;
-        #         };
-        #         unstable = import inputs.nixosUnstable {
-        #           system = pkgs.system;
-        #           config = config.nixpkgs.config;
-        #         };
-        #       };
-        #     };
-        #   };
         nixosConfigurations = {
           QBXL = inputs.nixosUnstable.lib.nixosSystem {
             modules = [
-              { networking.hostName = "QBXL"; }
-              inputs.nixosWSL.nixosModules.default
-              inputs.nixosHome.nixosModules.home-manager
-              flakePaths.hosts.QBXL.store
-              # ./Modules/nixos/configurations/hosts/QBXL
+              {
+                networking.hostName = "QBXL";
+                system.stateVersion = "24.11";
+                environment = { inherit (dots) variables; };
+              }
+              # (flakePaths.hosts.QBXL.store + "/core")
+              wslModule
+              # inputs.nixosWSL.nixosModules.default
+              # inputs.nixosHome.nixosModules.home-manager
             ];
             system = "x86_64-linux";
           };
         };
+        # homeConfigurations = {
+        #   QBXL.modules = [ (flakePaths.hosts.QBXL.store + "/home") ];
+        # };
       };
     };
 
