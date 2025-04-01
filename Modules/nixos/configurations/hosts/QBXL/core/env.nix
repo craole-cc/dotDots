@@ -66,24 +66,4 @@ in
     vivid.enable = true;
     yazi.enable = true;
   };
-
-  home-manager = {
-    useGlobalPkgs = true;
-    users.${alpha} =
-      # { osConfig, ... }:
-      {
-        imports = [ ./home.nix ];
-        # home = {
-        # inherit (osConfig.system) stateVersion;
-        # };
-        # programs = {
-        # home-manager.enable = true;
-        # atuin = {
-        # enable = true;
-        # daemon.enable = true;
-        # enableBashIntegration = true;
-        # };
-        # };
-      };
-  };
 }

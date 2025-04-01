@@ -44,15 +44,9 @@
         modules = [
           nixosWSL.nixosModules.default
           nixosHome.nixosModules.home-manager
-          ./options
           ./core
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.craole = ./home;
-            };
-          }
+          ./home
+          ./options
         ];
       };
     };

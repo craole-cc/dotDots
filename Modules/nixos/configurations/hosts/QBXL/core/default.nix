@@ -1,3 +1,6 @@
 {
-  imports = [ <nixos-wsl/modules> ];
+  imports = [
+    ./nix.nix
+    ./env.nix
+  ];
 }
