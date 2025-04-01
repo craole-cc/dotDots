@@ -46,12 +46,12 @@
         # Exit immediately if any command fails
         set -e
         printf "NixOS WSL Flake for QBXL\n"
-        ls -lA "${self}"
+
         printf "Updating...\n"
-        # nix flake update --commit-lock-file "${self}"
+        nix flake update --commit-lock-file "${self}"
 
         printf "Rebuilding...\n"
-        # sudo nixos-rebuild switch --flake "${self}" --show-trace --upgrade
+        sudo nixos-rebuild switch --flake "${self}" --show-trace --upgrade
       '';
     in
     {
