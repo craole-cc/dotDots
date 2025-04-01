@@ -1,1 +1,6 @@
-{ imports = [ ./alpha.nix ./paths.nix ]; }
+{
+  imports = [
+    ./alpha.nix
+    ./paths.nix
+  ];
+}

@@ -1,4 +1,4 @@
-{ config, pkgs,... }:
+{ config, pkgs, ... }:
 let
   inherit (config.dots.alpha) name;
 in
@@ -17,11 +17,14 @@ in
       name
     ];
   };
-  environment.systemPackages=with pkgs;[nixd nixfmt-rfc-style];
+  environment.systemPackages = with pkgs; [
+    nixd
+    nixfmt-rfc-style
+  ];
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "24.11";
   wsl = {
     enable = true;
-      defaultUser = name;
+    defaultUser = name;
   };
 }

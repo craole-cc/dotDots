@@ -40,7 +40,7 @@
     }:
     {
       nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
-        system="x86_64-linux";
+        system = "x86_64-linux";
         modules = [
           nixosWSL.nixosModules.default
           nixosHome.nixosModules.home-manager
