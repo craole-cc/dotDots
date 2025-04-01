@@ -5,8 +5,7 @@
       timeout = 2500;
     };
   };
-
-  # cursorline = true; # [Default: false]
+  cursorline = true; # [Default: false]
   cursor-shape = {
     insert = "bar";
     normal = "block";

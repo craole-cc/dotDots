@@ -1,10 +1,5 @@
+{ pkgs, ... }:
 {
-  # imports = [
-  #   ./settings.nix
-  #   ./keybindings.nix
-  #   ./languages.nix
-  # ];
-
   programs.helix = {
     enable = true;
     settings = {
@@ -13,4 +8,10 @@
     };
     languages = import ./languages.nix;
   };
+  packages = with pkgs; [
+    bash-language-server
+    zls
+    shfmt
+    shellcheck
+  ];
 }
