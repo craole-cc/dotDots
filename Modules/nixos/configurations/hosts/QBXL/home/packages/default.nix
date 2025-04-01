@@ -4,6 +4,7 @@
     ./bat
     ./helix
   ];
+  programs.home-manager.enable = true;
   home = {
     sessionVariables = {
       EDITOR = "hx";
@@ -34,39 +35,9 @@
       wget
     ];
   };
-  programs = {
-    atuin = {
-      enable = true;
-      daemon.enable = true;
-      enableBashIntegration = true;
-    };
-    # bat.enable = true;
-    direnv = {
-      enable = true;
-      silent = true;
-    };
-    git = {
-      enable = true;
-      lfs.enable = true;
-      prompt.enable = true;
-      config = {
-        init = {
-          defaultBranch = "main";
-        };
-        url = {
-          "https://github.com/" = {
-            insteadOf = [
-              "gh:"
-              "github:"
-            ];
-          };
-        };
-      };
-    };
-    home-manager.enable = true;
-    nix-ld.enable = true;
-    starship.enable = true;
-    vivid.enable = true;
-    yazi.enable = true;
+  programs.atuin = {
+    enable = true;
+    daemon.enable = true;
+    enableBashIntegration = true;
   };
 }
