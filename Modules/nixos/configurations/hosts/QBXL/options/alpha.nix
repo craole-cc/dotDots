@@ -1,7 +1,7 @@
 { lib, ... }:
 let
   dom = "dots";
-  mod = "paths";
+  mod = "alpha";
 
   inherit (lib.options) mkOption;
   inherit (lib.types) str;

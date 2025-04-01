@@ -1,18 +1,31 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 let
-  alpha = "craole";
-  dots= "/home/${alpha}/.dots";
+  inherit (config.dots.paths) dots;
+  inherit (config.dots.paths) QBXL;
 in
 {
   environment = {
     variables = {
       EDITOR = "hx";
       VISUAL = "code";
-      DOTS =dots;
+      DOTS = dots;
     };
     systemPackages = with pkgs; [
       (writeScriptBin ".dots" ''
         exec "${dots}/Bin/shellscript/project/.dots" "$@"
+      '')
+      (writeShellScriptBin "nixos-rebuild-QBXL" ''
+
+        #@ Exit immediately if any command fails
+        set -e
+
+        printf "NixOS WSL Flake for QBXL" #TODO, use the description of the flake
+
+        printf "Updating...\n"
+        nix flake update --commit-lock-file ${QBXL.flake}
+
+        printf "Rebuilding...\n"
+        sudo nixos-rebuild switch --flake ${QBXL.flake} --show-trace --upgrade
       '')
       alejandra
       curl
@@ -23,13 +36,13 @@ in
       helix
       jq
       nil
+      # nix-index
       nixd
-      nix-index
       nixfmt-rfc-style
       ripgrep
       sd
-      shfmt
       shellcheck
+      shfmt
       tldr
       tokei
       undollar
@@ -60,7 +73,6 @@ in
         };
       };
     };
-    lazygit.enable = true;
     nix-ld.enable = true;
     starship.enable = true;
     vivid.enable = true;

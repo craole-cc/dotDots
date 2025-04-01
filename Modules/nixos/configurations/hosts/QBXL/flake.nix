@@ -1,5 +1,5 @@
 {
-  description = "QBB-WSL";
+  description = "NixOS WSL Flake for QBXL";
 
   inputs = {
     nixosPkgs = {
@@ -33,11 +33,27 @@
 
   outputs =
     {
+      self,
       nixosPkgs,
       nixosWSL,
       nixosHome,
       ...
     }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixosPkgs.legacyPackages.${system};
+      nixos-rebuild-QBXL = pkgs.writeShellScriptBin "QBXL" ''
+        # Exit immediately if any command fails
+        set -e
+        printf "NixOS WSL Flake for QBXL\n"
+        ls -lA "${self}"
+        printf "Updating...\n"
+        # nix flake update --commit-lock-file "${self}"
+
+        printf "Rebuilding...\n"
+        # sudo nixos-rebuild switch --flake "${self}" --show-trace --upgrade
+      '';
+    in
     {
       nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -47,7 +63,17 @@
           ./core
           ./home
           ./options
+
+          {
+            networking = {
+              hostName = "QBXL";
+              hostId = with builtins; substring 0 8 (hashString "md5" "QBXL");
+            };
+            environment.systemPackages = [ nixos-rebuild-QBXL ];
+          }
         ];
       };
+
+      scripts.nixos-rebuild-QBXL = nixos-rebuild-QBXL;
     };
 }
