@@ -39,15 +39,51 @@
         };
 
       flake = {
-        # nixosConfigurations.QBXL = nixosPkgs.lib.nixosSystem {
-        #   modules = [
-        #     { networking.hostName = "QBXL"; }
-        #     nixosWSL.nixosModules.default
-        #     nixosHome.nixosModules.home-manager
-        #     ./.
-        #   ];
-        #   system = "x86_64-linux";
-        # };
+        nixosModules.pkgSets =
+          { config }:
+          {
+            nixpkgs.config = {
+              packageOverrides = pkgs: {
+                stable = import inputs.nixosStable {
+                  system = pkgs.system;
+                  config = config.nixpkgs.config;
+                };
+                unstable = import inputs.nixosUnstable {
+                  system = pkgs.system;
+                  config = config.nixpkgs.config;
+                };
+              };
+            };
+          };
+
+        # nixosModules.default =
+        #   { config, ... }:
+        #   {
+        #     nixpkgs.config = {
+        #       packageOverrides = pkgs: {
+        #         stable = import inputs.nixosStable {
+        #           system = pkgs.system;
+        #           config = config.nixpkgs.config;
+        #         };
+        #         unstable = import inputs.nixosUnstable {
+        #           system = pkgs.system;
+        #           config = config.nixpkgs.config;
+        #         };
+        #       };
+        #     };
+        #   };
+        nixosConfigurations = {
+          QBXL = inputs.nixosUnstable.lib.nixosSystem {
+            modules = [
+              { networking.hostName = "QBXL"; }
+              inputs.nixosWSL.nixosModules.default
+              inputs.nixosHome.nixosModules.home-manager
+              flakePaths.hosts.QBXL.store
+              # ./Modules/nixos/configurations/hosts/QBXL
+            ];
+            system = "x86_64-linux";
+          };
+        };
       };
     };
 

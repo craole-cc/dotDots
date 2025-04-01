@@ -11,9 +11,10 @@ let
       local = QBX; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
       inherit dbook Preci QBX;
     };
+  base = flake;
   parts = {
     args = "/args";
-    cfgs = "/configurations";
+    cfg = "/configurations";
     env = "/environment";
     libs = "/libraries";
     mkCore = "/helpers/mkCoreConfig.nix";
@@ -27,8 +28,8 @@ let
     ui = "/ui";
     uiCore = "/ui/core";
     uiHome = "/ui/home";
-    hosts = parts.cfgs + "/hosts";
-    users = parts.cfgs + "/users";
+    hosts = parts.cfg + "/hosts";
+    users = parts.cfg + "/users";
     bin = {
       default = "/Bin";
       cmd = parts.bin.default + "/cmd";
@@ -44,6 +45,7 @@ let
   };
   modules = {
     store = flake.store + parts.nixos;
+    local = flake.local + parts.nixos;
     # QBX = flake.QBX + parts.nixos;
     # dbook = flake.dbook + parts.nixos;
   };
@@ -61,6 +63,10 @@ let
     store = flake.store + parts.nixos;
   };
   core = {
+    base = {
+      store = modules.store;
+      local = flake.local;
+    };
     default = modules.store;
     configurations = {
       hosts = core.default + parts.hosts;
@@ -101,9 +107,21 @@ let
     mkCore = core.libraries + parts.mkCore;
     mkConf = core.libraries + parts.mkConf;
   };
+  hosts = {
+    QBXL = {
+      store = modules.store + parts.hosts + "/QBXL";
+      local = modules.local + parts.hosts + "/QBXL";
+    };
+  };
+  users = {
+    craole = {
+      base = core.users + "/craole";
+    };
+  };
 in
 {
   inherit
+    base
     flake
     devshells
     core
@@ -112,5 +130,7 @@ in
     parts
     modules
     libraries
+    hosts
+    users
     ;
 }
