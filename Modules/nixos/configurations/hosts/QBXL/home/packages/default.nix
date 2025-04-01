@@ -18,7 +18,6 @@
       fd
       fzf
       gitui
-      # helix
       jq
       nil
       # nix-index
