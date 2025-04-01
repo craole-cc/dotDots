@@ -1,19 +1,22 @@
-{ config, lib, ... }:
+{
+  # config,
+  lib,
+  ...
+}:
 let
   dom = "dots";
   mod = "alpha";
   # cfg = config.${dom}.${mod};
 
   inherit (lib.options) mkOption;
-  inherit (lib.types) str;
+  inherit (lib.types) str either path;
 in
 {
-
   options.${dom}.${mod} = {
-    name = mkOption {
-      description = "The name of the primary user";
-      default = "craole";
-      type = str;
+    dots = mkOption {
+      description = "The path to the dotfiles flake";
+      default = "/home/craole/.dots";
+      type = either str path;
     };
   };
 }

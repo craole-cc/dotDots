@@ -2,7 +2,6 @@
 let
   dom = "dots";
   mod = "paths";
-  # cfg = config.${dom}.${mod};
 
   inherit (lib.options) mkOption;
   inherit (lib.types) str;

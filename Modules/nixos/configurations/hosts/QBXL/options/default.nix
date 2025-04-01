@@ -1,1 +1,1 @@
-{ imports = [ ./alpha.nix ]; }
+{ imports = [ ./alpha.nix ./paths.nix ]; }
