@@ -1,4 +1,5 @@
 {
+  auto-format = true; # [Default: true]
   auto-save = {
     after-delay = {
       enable = true;
