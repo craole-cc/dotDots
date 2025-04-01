@@ -54,10 +54,10 @@
       {
         name = "python";
         formatter = {
-          command = "black";
+          command = "ruff";
           args = [
-            "-"
-            "-q"
+            # "-"
+            # "-q"
           ];
         };
         auto-format = true;
