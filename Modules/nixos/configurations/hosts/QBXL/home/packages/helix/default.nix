@@ -8,7 +8,7 @@
     };
     languages = import ./languages.nix;
   };
-  packages = with pkgs; [
+  home.packages = with pkgs; [
     bash-language-server
     zls
     shfmt
