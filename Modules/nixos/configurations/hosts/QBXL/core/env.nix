@@ -2,20 +2,28 @@
   pkgs,
   paths,
   config,
-  dots,
   ...
 }:
 let
   inherit (pkgs) writeShellScriptBin;
   flake = paths.flake.${config.networking.hostName};
+  dotDots = flake + "/Bin/shellscript/project/.dots";
 in
 {
   environment = {
-    inherit (dots) variables;
+    variables = {
+      EDITOR = "hx";
+      VISUAL = "code-insiders"; # TODO: Make this dynamic
+      DOTS = flake;
+      DOTS_QBXL = flake;
+      DOT_DOTS = flake + "/Bin/shellscript/project/.dots";
+    };
 
     systemPackages = [
       (writeShellScriptBin ".dots" ''
-        exec "${flake}/Bin/shellscript/project/.dots" "$@"
+        set -e
+        chmod +x "${dotDots}"
+        "${dotDots}" "$@"
       '')
       # (writeShellScriptBin "QBXL" (
       #   with QBXL;
