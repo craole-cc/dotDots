@@ -52,6 +52,7 @@ pkgs.inputs.developmentShell.mkShell {
       devenv
       diffutils
       eza
+      dust
       fastfetch
       fd
       fd

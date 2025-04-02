@@ -1,7 +1,7 @@
 {
   imports = [
     ./core
-    # ./home
-    ./options
+    ./home
+    # ./options
   ];
 }

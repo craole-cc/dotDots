@@ -4,7 +4,7 @@
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "bac";
-    extraSpecialArgs = { inherit (config) dots; };
+    # extraSpecialArgs = { inherit (config) dots; };
     users.craole.imports = [
       ./packages
     ];

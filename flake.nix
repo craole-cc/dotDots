@@ -1,12 +1,11 @@
 {
   description = "NixOS Configuration Flake";
   outputs =
-    inputs@{ self, nixPackages, ... }:
+    inputs@{ nixPackages, ... }:
     let
       dots = import ./default.nix;
-      # inherit (self) outputs;
       inherit (nixPackages) lib;
-      inherit (lib) genAttrs;
+      inherit (lib.attrsets) genAttrs attrValues;
       inherit (dots) paths;
 
       systems = genAttrs (import inputs.nixosSystems);
@@ -15,20 +14,45 @@
         system:
         import nixPackages {
           inherit system;
-          overlays = builtins.attrValues packageOverlays ++ [ ];
+          overlays = attrValues packageOverlays;
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
+      modulesWSL = {
+        imports = [
+          inputs.nixosWSL.nixosModules.default
+          inputs.nixosHome.nixosModules.home-manager
+          { inherit (dots) wsl; }
+        ];
+      };
     in
     {
-      inherit (packageOverlays) overlays;
-      inherit packages;
+      inherit packages lib;
 
+      overlays = packageOverlays;
       devShells = perSystem (pkgs: {
         default = packages.${pkgs.system}.dotDots;
       });
-      formatter = perSystem (pkgs: pkgs.treefmt);
+      formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix
+
+      nixosConfigurations = {
+        QBXL = lib.nixosSystem {
+          modules = [
+            {
+              # networking.hostName = "QBXL";
+              # system.stateVersion = "24.11";
+              # environment = { inherit (dots) variables; };
+            }
+            modulesWSL
+            dots.paths.hosts.QBXL.store
+          ];
+          specialArgs = {
+            inherit inputs dots;
+          };
+          system = "x86_64-linux";
+        };
+      };
     };
 
   inputs = {
