@@ -10,47 +10,41 @@
       inherit (dots) paths;
 
       systems = genAttrs (import inputs.nixosSystems);
-      perSystem = x: systems (system: x perSystemPackages.${system});
-      # perSystemPackages = systems (system: import nixPackages { inherit system; });
+      allOverlays = import paths.packages.overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
         import nixPackages {
           inherit system;
-          overlays = [
-            inputs.developmentShell.overlays.default
-            # Add any other overlays you need
+          overlays = builtins.attrValues allOverlays ++ [
+            # Add any additional overlays not defined in your overlays file
           ];
         }
       );
-      overlays = import paths.packages.overlays { inherit inputs; };
-      # packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
-      packages = perSystem (
-        pkgs:
-        import paths.packages.custom {
-          inherit pkgs paths;
-        }
-      );
+      # overlays = import paths.packages.overlays { inherit inputs; };
+      perSystem = x: systems (system: x perSystemPackages.${system});
+      # perSystemPackages = systems (system: import nixPackages { inherit system; });
+      # perSystemPackages = systems (
+      #   system:
+      #   import nixPackages {
+      #     inherit system;
+      #     overlays = [
+      #       inputs.developmentShell.overlays.default
+      #     ];
+      #   }
+      # );
+      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
     in
     {
-      inherit overlays packages;
+      inherit (allOverlays) overlays;
+      inherit  packages;
+      
       devShells = perSystem (pkgs: {
         default = packages.${pkgs.system}.devshell;
       });
+      # devShells = perSystem (pkgs: {
+      #   default = packages.${pkgs.system}.devshell;
+      # });
       formatter = perSystem (pkgs: pkgs.treefmt);
-
-      # packages = perSystem (system: import paths.packages.custom nixPackages.legacyPackages.${system});
-
-      # devShells = perSystem (pkgs: import paths.devshells.dots { inherit pkgs; });
-      # devShells = systems (
-      #   system:
-      #   let
-      #     pkgs = import nixPackages {
-      #       inherit system;
-      #       overlays = [ inputs.developmentShell.overlays.default ];
-      #     };
-      #   in
-      #   import paths.devshells.dots { inherit pkgs paths; }
-      # );
     };
 
   inputs = {
