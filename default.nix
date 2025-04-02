@@ -51,7 +51,7 @@ let
       # dbook = flake.dbook + parts.nixos;
     };
     devshells = {
-      default = modules.store + parts.bin.devshells;
+      default = modules.store + parts.bin.devshell;
       dots = devshells.default + "/dots.nix";
       media = devshells.default + "/media.nix";
       # dots = {
