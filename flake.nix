@@ -10,19 +10,19 @@
       inherit (dots) paths;
 
       systems = genAttrs (import inputs.nixosSystems);
-      allOverlays = import paths.packages.overlays { inherit inputs; };
+      packageOverlays = import paths.packages.overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
         import nixPackages {
           inherit system;
-          overlays = builtins.attrValues allOverlays ++ [ ];
+          overlays = builtins.attrValues packageOverlays ++ [ ];
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
     in
     {
-      inherit (allOverlays) overlays;
+      inherit (packageOverlays) overlays;
       inherit packages;
 
       devShells = perSystem (pkgs: {
