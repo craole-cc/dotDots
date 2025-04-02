@@ -85,3 +85,10 @@ else
       specialArgs
       ;
   }
+
+# wslModule = {
+#   imports = [
+#     inputs.nixosWSL.nixosModules.default
+#     { inherit (dots) wsl; }
+#   ];
+# };

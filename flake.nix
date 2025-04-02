@@ -9,22 +9,9 @@
       inherit (lib) genAttrs;
       inherit (dots) paths;
 
-      # nixosSystems = [
-      #   "x86_64-linux"
-      #   # "x86_64-darwin"
-      #   # "aarch64-linux"
-      #   # "aarch64-darwin"
-      # ];
       systems = genAttrs (import inputs.nixosSystems);
       perSystem = x: systems (system: x perSystemPackages.${system});
       perSystemPackages = systems (system: import nixPackages { inherit system; });
-
-      # wslModule = {
-      #   imports = [
-      #     inputs.nixosWSL.nixosModules.default
-      #     { inherit (dots) wsl; }
-      #   ];
-      # };
     in
     {
       overlays = import paths.packages.overlays { inherit inputs; };
@@ -314,8 +301,8 @@
     # };
     # omnix.url = "github:juspay/omnix";
     # hyprland.url = "github:hyprwm/Hyprland/v0.46.2";
-    hyprpanel.url = "github:Jas-SinghFSU/HyprPanel";
-    rose-pine-hyprcursor.url = "github:ndom91/rose-pine-hyprcursor";
+    # hyprpanel.url = "github:Jas-SinghFSU/HyprPanel";
+    # rose-pine-hyprcursor.url = "github:ndom91/rose-pine-hyprcursor";
 
     # plasmaManager = {
     #   url = "github:pjones/plasma-manager";

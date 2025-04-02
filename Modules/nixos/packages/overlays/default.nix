@@ -16,7 +16,7 @@
   };
 
   #DOC Adds pkgs.stable == inputs.nixPackagesStable.legacyPackages.${pkgs.system}
-  fromStable = final: _prev: {
+  fromStable = final: _: {
     stable = import inputs.nixPackagesStable {
       system = final.system;
       config.allowUnfree = true;
@@ -30,12 +30,11 @@
     };
   };
 
-  #DOC Add custom packages
+  #DOC Add custom packages and plugins
   additions =
     final: prev:
-    (import ../custom { pkgs = final; })
-    // (inputs.hyprpanel.overlay final prev)
+    import ../custom { pkgs = final; }
     // {
-      rose-pine-hyprcursor = inputs.rose-pine-hyprcursor.packages.${prev.system}.default;
+      vimPlugins = (prev.vimPlugins or { }) // import ../plugins/vim { pkgs = final; };
     };
 }

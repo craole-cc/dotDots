@@ -63,6 +63,8 @@ cd "$DOTS"
 
 ### NixOS Systems
 
+[![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
+
 > Dependencies: `nixos-rebuild` `sudo`
 
 - In the flake.nix, update the DOTS path `paths.flake.local`
