@@ -18,7 +18,7 @@ excludes = [
   "Tasks/**",                                  #TODO Temporary
   "Templates/**",                              #TODO Temporary
   "Review/**",                                 #TODO Temporary
-  "**README.md",                                 #TODO Temporary
+  "**README.md",                               #TODO Temporary
   "Scripts/**",                                #TODO Temporary
   "**/.bin/**",
   "**/.config/**",
@@ -192,17 +192,17 @@ priority = 2
 #   "for file in \"$@\"; do biome format ci \"$file\"; done",
 # ]
 
-[formatter.json]
-command = "jq"
-includes = ["*.json", "*.jsonc"]
-options = ["--indent", "2", "--sort-keys", "-M"]
-priority = 2
+# [formatter.json]
+# command = "jq"
+# includes = ["*.json", "*.jsonc"]
+# options = ["--indent", "2", "--sort-keys", "-M"]
+# priority = 2
 
 #| TOML
-[formatter.toml]
-includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
-command = "taplo"
-options = ["format"]
+# [formatter.toml]
+# includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
+# command = "taplo"
+# options = ["format"]
 
 # #| Lua formatting
 # [formatter.stylua]
@@ -210,10 +210,10 @@ options = ["format"]
 # includes = ["*.lua"]
 
 #| YAML formatting
-[formatter.yamlfmt]
-includes = ["*.yaml", "*.yml"]
-command = "yamlfmt"
-options = ["-formatter", "retain_line_breaks=true"]
+# [formatter.yamlfmt]
+# includes = ["*.yaml", "*.yml"]
+# command = "yamlfmt"
+# options = ["-formatter", "retain_line_breaks=true"]
 
 # [formatter.actionlint]
 # command = "actionlint"
