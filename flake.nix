@@ -13,26 +13,28 @@
       perSystem = x: systems (system: x perSystemPackages.${system});
       perSystemPackages = systems (system: import nixPackages { inherit system; });
       overlays = import paths.packages.overlays { inherit inputs; };
+      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs; });
     in
     {
-      inherit overlays;
+      inherit overlays packages;
 
       # packages = perSystem (system: import paths.packages.custom nixPackages.legacyPackages.${system});
 
-      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs; });
       # devShells = perSystem (pkgs: import paths.devshells.dots { inherit pkgs; });
       formatter = perSystem (pkgs: pkgs.treefmt);
-
-      devShells = systems (
-        system:
-        let
-          pkgs = import nixPackages {
-            inherit system;
-            overlays = [ inputs.developmentShell.overlays.default ];
-          };
-        in
-        import paths.devshells.dots { inherit pkgs paths; }
-      );
+      devShells = perSystem (pkgs: {
+        default = packages.${pkgs.system}.devshell;
+      });
+      # devShells = systems (
+      #   system:
+      #   let
+      #     pkgs = import nixPackages {
+      #       inherit system;
+      #       overlays = [ inputs.developmentShell.overlays.default ];
+      #     };
+      #   in
+      #   import paths.devshells.dots { inherit pkgs paths; }
+      # );
     };
 
   inputs = {

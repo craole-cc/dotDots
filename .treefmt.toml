@@ -66,7 +66,8 @@ excludes = [
 
 #| Nix
 [formatter.nixfmt]
-includes = ["*.nix"]
+includes = ["**/nix/**", "*.nix.*", "*.nix"]
+excludes = ["*.sh", "*.json*", "*.yml", "*.yaml", "*.toml", "*.py", "*.rs"]
 priority = 2
 command = "nixfmt"
 
@@ -199,10 +200,10 @@ priority = 2
 # priority = 2
 
 #| TOML
-# [formatter.toml]
-# includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
-# command = "taplo"
-# options = ["format"]
+[formatter.toml]
+includes = ["*.toml", "rust-analyzer.toml", "rustfmt.toml"]
+command = "taplo"
+options = ["format"]
 
 # #| Lua formatting
 # [formatter.stylua]
