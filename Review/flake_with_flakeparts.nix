@@ -1,45 +1,123 @@
 {
   description = "NixOS Configuration Flake";
   outputs =
-    inputs@{ self, nixPackages, ... }:
+    inputs@{ flakeParts, ... }:
     let
       dots = import ./default.nix;
-      # inherit (self) outputs;
-      inherit (nixPackages) lib;
-      inherit (lib) genAttrs;
-      inherit (dots) paths;
-
-      # nixosSystems = [
-      #   "x86_64-linux"
-      #   # "x86_64-darwin"
-      #   # "aarch64-linux"
-      #   # "aarch64-darwin"
-      # ];
-      systems = genAttrs (import inputs.nixosSystems);
-      perSystem = x: systems (system: x perSystemPackages.${system});
-      perSystemPackages = systems (system: import nixPackages { inherit system; });
-
-      # wslModule = {
-      #   imports = [
-      #     inputs.nixosWSL.nixosModules.default
-      #     { inherit (dots) wsl; }
-      #   ];
-      # };
+      # pkgModule =
+      #   { config, ... }:
+      #   {
+      #     nixpkgs.config = {
+      #       packageOverrides = pkgs: {
+      #         stable = import inputs.nixosStable {
+      #           system = pkgs.system;
+      #           config = config.nixpkgs.config;
+      #         };
+      #         unstable = import inputs.nixosUnstable {
+      #           system = pkgs.system;
+      #           config = config.nixpkgs.config;
+      #         };
+      #       };
+      #     };
+      #   };
+      wslModule = {
+        imports = [
+          inputs.nixosWSL.nixosModules.default
+          { inherit (dots) wsl; }
+        ];
+      };
     in
-    {
-      overlays = import paths.packages.overlays { inherit inputs; };
-      packages = perSystem (system: import paths.packages.custom nixPackages.legacyPackages.${system});
+    flakeParts.lib.mkFlake { inherit inputs; } {
+      imports = with inputs; [
+        nixosHome.flakeModules.home-manager
+        configHosts.flakeModule
+        configNixos.flakeModule
+
+        developmentShell.flakeModule
+        gitHooks.flakeModule
+        # gitIgnore.flakeModule
+        secretKey.flakeModule
+        # secretShell.flakeModule
+        treeFormatter.flakeModule
+        dots.paths.modules.store
+        # ./Modules/nixos
+      ];
+      debug = true;
+      systems = [
+        "x86_64-linux"
+        # "x86_64-darwin"
+        # "aarch64-linux"
+        # "aarch64-darwin"
+      ];
+
+      perSystem =
+        { inputs', ... }:
+        {
+          _module.args = {
+            pkgs = inputs'.nixosUnstable.legacyPackages;
+            pkgsStable = inputs'.nixosStable.legacyPackages;
+            pkgsUnstable = inputs'.nixosUnstable.legacyPackages;
+            inherit dots;
+          };
+        };
+
+      flake = {
+        overlays.default = final: prev: {
+          stable = import inputs.nixosStable {
+            system = prev.system;
+            config.allowUnfree = true;
+          };
+          unstable = import inputs.nixosUnstable {
+            system = prev.system;
+            config.allowUnfree = true;
+          };
+        };
+
+        nixosConfigurations = {
+          QBXL = inputs.nixosUnstable.lib.nixosSystem {
+            modules = [
+              {
+                networking.hostName = "QBXL";
+                system.stateVersion = "24.11";
+                environment = { inherit (dots) variables; };
+              }
+              (dots.paths.hosts.QBXL.store + "/core")
+              wslModule
+              # inputs.nixosWSL.nixosModules.default
+              # inputs.nixosHome.nixosModules.home-manager
+            ];
+            system = "x86_64-linux";
+          };
+        };
+        # homeConfigurations = {
+        #   QBXL.modules = [ (flakePaths.hosts.QBXL.store + "/home") ];
+        # };
+      };
     };
 
   inputs = {
     #| NixOS
     nixPackages.url = "nixpkgs/nixos-unstable";
-    nixPackagesStable.url = "nixpkgs/nixos-24.11";
-
+    nixosStable = {
+      # url = "nixpkgs/nixos-24-11";
+      type = "github";
+      owner = "NixOS";
+      repo = "nixpkgs";
+      ref = "nixos-24.11";
+    };
+    nixosUnstable = {
+      # url = "nixpkgs/nixos-unstable";
+      type = "github";
+      owner = "NixOS";
+      repo = "nixpkgs";
+      ref = "nixos-unstable";
+    };
     # nixosRolling={
+
     #   type = "github";
     #   owner = "cachix";
     #   repo = "devenv";
+
     # };
     #TODO: Add vscode ext
 
@@ -57,7 +135,7 @@
       owner = "numtide";
       repo = "devshell";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
       };
     };
     gitIgnore = {
@@ -65,7 +143,7 @@
       repo = "gitignore.nix";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
       };
     };
     configHosts = {
@@ -79,7 +157,7 @@
       repo = "ez-configs";
       inputs = {
         flake-parts.follows = "flakeParts";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
       };
     };
     secretManager = {
@@ -89,7 +167,7 @@
       inputs = {
         darwin.follows = "nixosDarwin";
         home-manager.follows = "nixosHome";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
         systems.follows = "nixosSystems";
       };
     };
@@ -99,7 +177,7 @@
       repo = "agenix-rekey";
       inputs = {
         devshell.follows = "developmentShell";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
         flake-parts.follows = "flakeParts";
         pre-commit-hooks.follows = "gitHooks";
         treefmt-nix.follows = "treeFormatter";
@@ -114,7 +192,7 @@
         flake-root.follows = "flakeRoot";
         git-hooks-nix.follows = "gitHooks";
         nix-github-actions.follows = "githubActions";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
         treefmt-nix.follows = "treeFormatter";
       };
     };
@@ -123,7 +201,7 @@
       owner = "numtide";
       repo = "treefmt-nix";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
       };
     };
 
@@ -138,7 +216,7 @@
     #     flake-parts.follows = "flakeParts";
     #     flake-compat.follows = "flakeCompat";
     #     git-hooks.follows = "gitHooks";
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosUnstable";
     #   };
     # };
     gitHooks = {
@@ -146,7 +224,7 @@
       owner = "cachix";
       repo = "git-hooks.nix";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
         gitignore.follows = "gitIgnore";
         flake-compat.follows = "flakeCompat";
       };
@@ -156,7 +234,7 @@
     #   owner = "cachix";
     #   repo = "devenv";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosUnstable";
     #     flake-compat.follows = "flakeCompat";
     #     git-hooks.follows = "gitHooks";
     #     cachix.follows = "nixCache";
@@ -188,7 +266,7 @@
       type = "github";
       owner = "lnl7";
       repo = "nix-darwin";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosUnstable";
     };
     nixosSystems = {
       type = "github";
@@ -202,7 +280,7 @@
     #   owner = "nix-community";
     #   repo = "harmonia";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosUnstable";
     #     flake-parts.follows = "flakeParts";
     #     treefmt-nix.follows = "treeFormatter";
     #   };
@@ -211,13 +289,13 @@
     #   type = "github";
     #   owner = "nix-community";
     #   repo = "disko";
-    #   inputs.nixpkgs.follows = "nixPackages";
+    #   inputs.nixpkgs.follows = "nixosUnstable";
     # };
     nixosHome = {
       type = "github";
       owner = "nix-community";
       repo = "home-manager";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosUnstable";
     };
     # nixImpermanence = {
     #   type = "github";
@@ -228,14 +306,14 @@
       type = "github";
       owner = "nix-community";
       repo = "nix-github-actions";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosUnstable";
     };
     # nixLocate = {
     #   type = "github";
     #   owner = "nix-community";
     #   repo = "nix-index-database";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosUnstable";
     #   };
     # };
     # nixLocateLocal = {
@@ -243,7 +321,7 @@
     #   owner = "nix-community";
     #   repo = "nix-index";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosUnstable";
     #     flake-compat.follows = "flakeCompat";
     #   };
     # };
@@ -257,7 +335,7 @@
       owner = "nix-community";
       repo = "nix-unit";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
         flake-parts.follows = "flakeParts";
         treefmt-nix.follows = "treeFormatter";
         nix-github-actions.follows = "githubActions";
@@ -268,7 +346,7 @@
       owner = "nix-community";
       repo = "NixOS-WSL";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosUnstable";
         flake-compat.follows = "flakeCompat";
       };
     };
@@ -283,7 +361,7 @@
       type = "github";
       owner = "the-nix-way";
       repo = "dev-templates";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosUnstable";
     };
 
     #TODO: Add my templates, uncouple them from NixOS and TheNixWay
@@ -303,6 +381,7 @@
     #   };
     # };
     # stylix.url = "github:danth/stylix";
+    # flake-parts.url = "github:hercules-ci/flake-parts";
     # nixos-unified.url = "github:srid/nixos-unified";
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
 
@@ -314,13 +393,10 @@
     # };
     # omnix.url = "github:juspay/omnix";
     # hyprland.url = "github:hyprwm/Hyprland/v0.46.2";
-    hyprpanel.url = "github:Jas-SinghFSU/HyprPanel";
-    rose-pine-hyprcursor.url = "github:ndom91/rose-pine-hyprcursor";
-
     # plasmaManager = {
     #   url = "github:pjones/plasma-manager";
     #   inputs = {
-    #     nixpkgs.follows ="nixPackages";
+    #     nixpkgs.follows ="nixosUnstable";
     #     home-manager.follows = "homeManager";
     #   };
     # };

@@ -108,6 +108,11 @@ let
       mkCore = core.libraries + parts.mkCore;
       mkConf = core.libraries + parts.mkConf;
     };
+    packages = {
+      default = modules.store + parts.pkgs;
+      custom = packages.default + "/custom";
+      overlays = packages.default + "/overlays";
+    };
     hosts = {
       QBXL = {
         store = modules.store + parts.hosts + "/QBXL";
@@ -133,5 +138,10 @@ let
   };
 in
 {
-  inherit alpha paths variables wsl;
+  inherit
+    alpha
+    paths
+    variables
+    wsl
+    ;
 }
