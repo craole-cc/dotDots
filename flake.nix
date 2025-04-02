@@ -13,7 +13,14 @@
       perSystem = x: systems (system: x perSystemPackages.${system});
       perSystemPackages = systems (system: import nixPackages { inherit system; });
       overlays = import paths.packages.overlays { inherit inputs; };
-      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
+      # packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
+      packages = perSystem (
+        pkgs:
+        import paths.packages.custom {
+          inherit pkgs;
+          extraArgs = { inherit paths; };
+        }
+      );
     in
     {
       inherit overlays packages;
