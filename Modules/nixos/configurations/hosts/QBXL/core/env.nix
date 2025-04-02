@@ -1,12 +1,22 @@
-{ pkgs, dots, ... }:
+{
+  pkgs,
+  paths,
+  config,
+  dots,
+  ...
+}:
+let
+  inherit (pkgs) writeShellScriptBin;
+  flake = paths.flake.${config.networking.hostName};
+in
 {
   environment = {
     inherit (dots) variables;
 
-    systemPackages = with pkgs; [
-      # (writeScriptBin ".dots" ''
-      #   exec "${DOTS.flake}/Bin/shellscript/project/.dots" "$@"
-      # '')
+    systemPackages = [
+      (writeShellScriptBin ".dots" ''
+        exec "${flake}/Bin/shellscript/project/.dots" "$@"
+      '')
       # (writeShellScriptBin "QBXL" (
       #   with QBXL;
       #   ''
@@ -19,42 +29,6 @@
       #       sudo nixos-rebuild switch --flake "${flake}" --show-trace --upgrade
       #   ''
       # ))
-      gitui
-      nixd
-      nixfmt-rfc-style
     ];
-  };
-
-  programs = {
-    direnv = {
-      enable = true;
-      silent = true;
-    };
-    git = {
-      enable = true;
-      lfs.enable = true;
-      prompt.enable = true;
-      config = {
-        init = {
-          defaultBranch = "main";
-        };
-        url = {
-          "https://github.com/" = {
-            insteadOf = [
-              "gh:"
-              "github:"
-            ];
-          };
-        };
-      };
-    };
-    nix-ld.enable = true;
-    starship.enable = true;
-    vivid.enable = true;
-    yazi.enable = true;
-  };
-
-  services = {
-    atuin.enable = true;
   };
 }

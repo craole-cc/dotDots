@@ -1,16 +1,9 @@
-{
-  dots,
-  pkgs,
-  ...
-}:
+{ dots, ... }:
 let
   hostName = "QBXL";
+  stateVersion = "24.11";
 in
 {
-  environment.systemPackages = with pkgs; [
-    nixd
-    nixfmt-rfc-style
-  ];
   networking = {
     inherit hostName;
     hostId = with builtins; substring 0 8 (hashString "md5" hostName);
@@ -26,6 +19,8 @@ in
       dots.alpha
     ];
   };
-  nixpkgs.config.allowUnfree = true;
-  system.stateVersion = "24.11";
+  # nixpkgs.config.allowUnfree = true;
+  system = {
+    inherit stateVersion;
+  };
 }
