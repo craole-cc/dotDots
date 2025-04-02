@@ -11,7 +11,17 @@
 
       systems = genAttrs (import inputs.nixosSystems);
       perSystem = x: systems (system: x perSystemPackages.${system});
-      perSystemPackages = systems (system: import nixPackages { inherit system; });
+      # perSystemPackages = systems (system: import nixPackages { inherit system; });
+      perSystemPackages = systems (
+        system:
+        import nixPackages {
+          inherit system;
+          overlays = [
+            inputs.developmentShell.overlays.default
+            # Add any other overlays you need
+          ];
+        }
+      );
       overlays = import paths.packages.overlays { inherit inputs; };
       # packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
       packages = perSystem (
