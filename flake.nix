@@ -17,8 +17,7 @@
       packages = perSystem (
         pkgs:
         import paths.packages.custom {
-          inherit pkgs;
-          extraArgs = { inherit paths; };
+          inherit pkgs paths;
         }
       );
     in
