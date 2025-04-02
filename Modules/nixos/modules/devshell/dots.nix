@@ -84,8 +84,9 @@
         yazi
         # zed-editor-fhs
         zig
-      ]
-      ++ (attrValues formatters);
+
+        # TODO: add formatters
+      ];
     commands = [
       {
         category = "Flake Management";
