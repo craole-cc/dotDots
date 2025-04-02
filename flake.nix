@@ -15,29 +15,16 @@
         system:
         import nixPackages {
           inherit system;
-          overlays = builtins.attrValues allOverlays ++ [
-            # Add any additional overlays not defined in your overlays file
-          ];
+          overlays = builtins.attrValues allOverlays ++ [ ];
         }
       );
-      # overlays = import paths.packages.overlays { inherit inputs; };
       perSystem = x: systems (system: x perSystemPackages.${system});
-      # perSystemPackages = systems (system: import nixPackages { inherit system; });
-      # perSystemPackages = systems (
-      #   system:
-      #   import nixPackages {
-      #     inherit system;
-      #     overlays = [
-      #       inputs.developmentShell.overlays.default
-      #     ];
-      #   }
-      # );
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
     in
     {
       inherit (allOverlays) overlays;
-      inherit  packages;
-      
+      inherit packages;
+
       devShells = perSystem (pkgs: {
         default = packages.${pkgs.system}.devshell;
       });
