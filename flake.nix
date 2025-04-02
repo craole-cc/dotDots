@@ -24,14 +24,14 @@
     in
     {
       inherit overlays packages;
+      devShells = perSystem (pkgs: {
+        default = packages.${pkgs.system}.devshell;
+      });
+      formatter = perSystem (pkgs: pkgs.treefmt);
 
       # packages = perSystem (system: import paths.packages.custom nixPackages.legacyPackages.${system});
 
       # devShells = perSystem (pkgs: import paths.devshells.dots { inherit pkgs; });
-      formatter = perSystem (pkgs: pkgs.treefmt);
-      devShells = perSystem (pkgs: {
-        default = packages.${pkgs.system}.devshell;
-      });
       # devShells = systems (
       #   system:
       #   let
