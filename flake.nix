@@ -3,7 +3,7 @@
   outputs =
     inputs@{ nixPackages, ... }:
     let
-      dots = import ./default.nix;
+      dots = import ./. { inherit inputs; };
       inherit (nixPackages) lib;
       inherit (lib.attrsets) genAttrs attrValues;
       inherit (dots) paths;
@@ -19,12 +19,9 @@
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
-      modulesWSL = {
-        imports = [
-          inputs.nixosWSL.nixosModules.default
-          inputs.nixosHome.nixosModules.home-manager
-          { inherit (dots) wsl; }
-        ];
+      specialArgs = {
+        inherit inputs dots;
+        inherit (dots) paths alpha;
       };
     in
     {
@@ -34,23 +31,18 @@
       devShells = perSystem (pkgs: {
         default = packages.${pkgs.system}.dotDots;
       });
-      formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix
+
+      # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
+      formatter = perSystem (pkgs: pkgs.treefmt);
 
       nixosConfigurations = {
         QBXL = lib.nixosSystem {
-          modules = [
-            {
-              # networking.hostName = "QBXL";
-              # system.stateVersion = "24.11";
-              # environment = { inherit (dots) variables; };
-            }
-            modulesWSL
-            dots.paths.hosts.QBXL.store
-          ];
-          specialArgs = {
-            inherit inputs dots;
-          };
+          inherit specialArgs;
           system = "x86_64-linux";
+          modules = with dots; [
+            paths.hosts.QBXL.store
+            modules.WSL
+          ];
         };
       };
     };

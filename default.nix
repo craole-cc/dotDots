@@ -1,3 +1,4 @@
+{ inputs, ... }:
 let
   alpha = "craole";
   paths = rec {
@@ -133,10 +134,20 @@ let
     DOTS = paths.flake.local;
     QBXL = paths.hosts.QBXL.local;
   };
-  wsl = {
-    enable = true;
-    defaultUser = alpha;
-    startMenuLaunchers = true;
+  modules = {
+    WSL = {
+      imports = [
+        inputs.nixosWSL.nixosModules.default
+        inputs.nixosHome.nixosModules.home-manager
+        {
+          wsl = {
+            enable = true;
+            defaultUser = alpha;
+            startMenuLaunchers = true;
+          };
+        }
+      ];
+    };
   };
 in
 {
@@ -144,6 +155,6 @@ in
     alpha
     paths
     variables
-    wsl
+    modules
     ;
 }

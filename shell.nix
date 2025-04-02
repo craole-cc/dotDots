@@ -18,3 +18,5 @@
     ];
   };
 }
+
+#TODO: This should simply enable flakes then run nix develop

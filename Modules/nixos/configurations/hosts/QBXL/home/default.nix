@@ -1,10 +1,10 @@
-{ config, ... }:
+# { dots, paths, ... }:
 {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "bac";
-    # extraSpecialArgs = { inherit (config) dots; };
+    # extraSpecialArgs = { inherit dots paths; };
     users.craole.imports = [
       ./packages
     ];

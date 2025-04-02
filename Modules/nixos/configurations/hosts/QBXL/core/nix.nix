@@ -1,6 +1,10 @@
-{ config, pkgs, ... }:
+{
+  dots,
+  pkgs,
+  ...
+}:
 let
-  inherit (config.dots.alpha) name;
+  hostName = "QBXL";
 in
 {
   environment.systemPackages = with pkgs; [
@@ -8,7 +12,8 @@ in
     nixfmt-rfc-style
   ];
   networking = {
-    hostId = with builtins; substring 0 8 (hashString "md5" config.networking.hostName);
+    inherit hostName;
+    hostId = with builtins; substring 0 8 (hashString "md5" hostName);
   };
   nix.settings = {
     experimental-features = [
@@ -18,7 +23,7 @@ in
     trusted-users = [
       "root"
       "@wheel"
-      name
+      dots.alpha
     ];
   };
   nixpkgs.config.allowUnfree = true;

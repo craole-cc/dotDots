@@ -1,15 +1,8 @@
-{ pkgs, config, ... }:
-let
-  inherit (config.dots.paths) DOTS QBXL;
-in
+{ pkgs, dots, ... }:
 {
   environment = {
-    variables = {
-      EDITOR = "hx";
-      VISUAL = "code-insiders"; # TODO: Make this dynamic
-      DOTS = DOTS.flake;
-      QBXL = QBXL.flake;
-    };
+    inherit (dots) variables;
+
     systemPackages = with pkgs; [
       # (writeScriptBin ".dots" ''
       #   exec "${DOTS.flake}/Bin/shellscript/project/.dots" "$@"
