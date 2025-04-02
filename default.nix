@@ -41,7 +41,7 @@ let
           dots = "/Scripts";
           mods = parts.nixos + "/scripts";
         };
-        devshells = parts.mods + "/devshells";
+        devshells = parts.mods + "/devshell";
       };
     };
     modules = {
@@ -51,7 +51,7 @@ let
       # dbook = flake.dbook + parts.nixos;
     };
     devshells = {
-      default = modules.store + parts.bin.devshell;
+      default = modules.store + parts.bin.devshells;
       dots = devshells.default + "/dots.nix";
       media = devshells.default + "/media.nix";
       # dots = {
