@@ -1,11 +1,9 @@
 {
   pkgs,
-  mkShell,
   paths,
   ...
 }:
-# pkgs.inputs.developmentShell.mkShell {
-mkShell {
+pkgs.inputs.developmentShell.mkShell {
   name = "dotDots";
   env = [
     {
