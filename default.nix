@@ -52,14 +52,16 @@ let
     };
     devshells = {
       default = modules.store + parts.bin.devshells;
-      dots = {
-        nix = devshells.default + "/dots.nix";
-        toml = devshells.default + "/dots.toml";
-      };
-      media = {
-        nix = devshells.default + "/media.nix";
-        toml = devshells.default + "/media.toml";
-      };
+      dots = devshells.default + "/dots.nix";
+      media = devshells.default + "/media.nix";
+      # dots = {
+      #   nix = devshells.default + "/dots.nix";
+      #   toml = devshells.default + "/dots.toml";
+      # };
+      # media = {
+      #   nix = devshells.default + "/media.nix";
+      #   toml = devshells.default + "/media.toml";
+      # };
       # local = flake.local + parts.nixos;
       store = flake.store + parts.nixos;
     };

@@ -13,12 +13,12 @@ set_defaults() {
   set -eu
   scr_path="$0" #TODO: This is not safe. Need to find a way to get the script path if the script is symlinked or sourced
   scr_name="$(basename "${scr_path}")"
-  prj_root="${PRJ_ROOT:-${DOTS:="$(git rev-parse --show-toplevel 2>/dev/null || dirname "${scr_path}/..")"}}"
+  prj_root="${PRJ_ROOT:-${DOTS:="$(git rev-parse --show-toplevel 2> /dev/null || dirname "${scr_path}/..")"}}"
   delimiter=" "
   args=""
 
   #@ Define the pout command
-  CMD_POUT="$(command -v pout 2>/dev/null || printf "")"
+  CMD_POUT="$(command -v pout 2> /dev/null || printf "")"
   [ "${CMD_POUT}" = "${scr_path:-$0}" ] && CMD_POUT=""
   CMD_POUT="${CMD_POUT:-"${prj_root}/Bin/shellscript/utility/output/pout"}"
 }
@@ -38,17 +38,17 @@ pout() {
     #@ Check for error/code flags
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --error | --warn | --fatal) use_stderr=1 ;;
-      --code) code="$2" shift ;;
-      *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+        --error | --warn | --fatal) use_stderr=1 ;;
+        --code) code="$2" shift ;;
+        *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
       esac
       shift
     done
 
     #@ Output the message to the appropriate console stream
     case "${use_stderr:-}" in
-    1 | on | yes | true) printf "%s\n" "${msg:-}" >&2 ;;
-    *) printf "%s\n" "${msg:-}" ;;
+      1 | on | yes | true) printf "%s\n" "${msg:-}" >&2 ;;
+      *) printf "%s\n" "${msg:-}" ;;
     esac
 
     #@ Return with the specified code
@@ -57,7 +57,7 @@ pout() {
 }
 
 pout_CONCISE() {
-  CMD_POUT="$(command -v pout 2>/dev/null || printf "")"
+  CMD_POUT="$(command -v pout 2> /dev/null || printf "")"
   CMD_POUT="${CMD_POUT:-"${prj_root}/Bin/shellscript/utility/output/pout"}"
 
   if [ -x "${CMD_POUT}" ]; then
@@ -66,11 +66,11 @@ pout_CONCISE() {
   else
     while [ "$#" -gt 0 ]; do
       case "$1" in
-      --code)
-        shift
-        code="$1"
-        ;;
-      *) msg="${msg:-}${msg:+${delimiter}}${1}" ;;
+        --code)
+          shift
+          code="$1"
+          ;;
+        *) msg="${msg:-}${msg:+${delimiter}}${1}" ;;
       esac
       shift
     done
@@ -118,177 +118,177 @@ pout_VERBOSE() {
   # Parse arguments
   while [ $# -gt 0 ]; do
     case "$1" in
-    --context | --ctx)
-      if [ $# -lt 2 ]; then
-        pout --error "Missing argument for --context option"
-        return 1
-      fi
-      shift
-      context="$1"
-      ;;
-    --line)
-      if [ $# -lt 2 ]; then
-        pout --error "Missing argument for --line option"
-        return 1
-      fi
-      shift
-      if ! echo "$1" | grep -q '^[0-9]\+$'; then
-        pout --error "Invalid number of lines: $1"
-        return 1
-      fi
-      lines="$1"
-      ;;
-    --code)
-      if [ $# -lt 2 ]; then
-        pout --error "Missing argument for --code option"
-        return 1
-      fi
-      shift
-      if ! echo "$1" | grep -q '^[0-9]\+$'; then
-        pout --error "Invalid code: $1"
-        return 1
-      fi
-      code="$1"
-      ;;
-    --trim | --last)
-      shift
-      lines=0
-      msg="$*"
-      break
-      ;;
-    --upper)
-      shift
-      if [ $# -eq 0 ]; then
-        pout --error "Missing argument for --upper option"
-        return 1
-      fi
-      msg="$(printf "%s" "$*" | tr '[:lower:]' '[:upper:]')"
-      break
-      ;;
-    --lower)
-      shift
-      if [ $# -eq 0 ]; then
-        pout --error "Missing argument for --lower option"
-        return 1
-      fi
-      msg="$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')"
-      break
-      ;;
-    --alnum | --clean)
-      shift
-      if [ $# -eq 0 ]; then
-        pout --error "Missing argument for --alnum/--clean option"
-        return 1
-      fi
-      msg="$(printf "%s" "$*" | tr -cd '[:alnum:]_')"
-      break
-      ;;
-    --head)
-      shift
-      if [ $# -eq 0 ]; then
-        pout --error "Missing argument for --head option"
-        return 1
-      fi
-      tag=""
-      msg="===| $* |==="
-      printf "\n"
-      ;;
-    --debug)
-      shift
-      case "${debug:-}" in
-      '' | off | no | false | 0)
-        # Skip debug messages if debug is disabled
-        return 0
+      --context | --ctx)
+        if [ $# -lt 2 ]; then
+          pout --error "Missing argument for --context option"
+          return 1
+        fi
+        shift
+        context="$1"
         ;;
-      *)
-        tag="[DEBUG]"
+      --line)
+        if [ $# -lt 2 ]; then
+          pout --error "Missing argument for --line option"
+          return 1
+        fi
+        shift
+        if ! echo "$1" | grep -q '^[0-9]\+$'; then
+          pout --error "Invalid number of lines: $1"
+          return 1
+        fi
+        lines="$1"
+        ;;
+      --code)
+        if [ $# -lt 2 ]; then
+          pout --error "Missing argument for --code option"
+          return 1
+        fi
+        shift
+        if ! echo "$1" | grep -q '^[0-9]\+$'; then
+          pout --error "Invalid code: $1"
+          return 1
+        fi
+        code="$1"
+        ;;
+      --trim | --last)
+        shift
+        lines=0
+        msg="$*"
+        break
+        ;;
+      --upper)
+        shift
+        if [ $# -eq 0 ]; then
+          pout --error "Missing argument for --upper option"
+          return 1
+        fi
+        msg="$(printf "%s" "$*" | tr '[:lower:]' '[:upper:]')"
+        break
+        ;;
+      --lower)
+        shift
+        if [ $# -eq 0 ]; then
+          pout --error "Missing argument for --lower option"
+          return 1
+        fi
+        msg="$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')"
+        break
+        ;;
+      --alnum | --clean)
+        shift
+        if [ $# -eq 0 ]; then
+          pout --error "Missing argument for --alnum/--clean option"
+          return 1
+        fi
+        msg="$(printf "%s" "$*" | tr -cd '[:alnum:]_')"
+        break
+        ;;
+      --head)
+        shift
+        if [ $# -eq 0 ]; then
+          pout --error "Missing argument for --head option"
+          return 1
+        fi
+        tag=""
+        msg="===| $* |==="
+        printf "\n"
+        ;;
+      --debug)
+        shift
+        case "${debug:-}" in
+          '' | off | no | false | 0)
+            # Skip debug messages if debug is disabled
+            return 0
+            ;;
+          *)
+            tag="[DEBUG]"
+            output_stream=1
+            if [ $# -eq 0 ]; then
+              msg="Debug message (no content provided)"
+            else
+              msg="$*"
+            fi
+            break
+            ;;
+        esac
+        ;;
+      --info)
+        shift
+        tag="[INFO] "
         output_stream=1
         if [ $# -eq 0 ]; then
-          msg="Debug message (no content provided)"
+          msg="Info message (no content provided)"
         else
           msg="$*"
         fi
         break
         ;;
-      esac
-      ;;
-    --info)
-      shift
-      tag="[INFO] "
-      output_stream=1
-      if [ $# -eq 0 ]; then
-        msg="Info message (no content provided)"
-      else
+      --warn)
+        shift
+        tag="[WARN] "
+        output_stream=2 # stderr
+        if [ $# -eq 0 ]; then
+          msg="Warning message (no content provided)"
+        else
+          msg="$*"
+        fi
+        break
+        ;;
+      --error)
+        shift
+        tag="[ERROR] "
+        output_stream=2 # stderr
+        if [ $# -eq 0 ]; then
+          msg="Error occurred (no details provided)"
+        else
+          msg="$*"
+        fi
+        break
+        ;;
+      --fatal)
+        shift
+        tag="[FATAL] "
+        output_stream=2 # stderr
+        code=1
+        if [ $# -eq 0 ]; then
+          msg="Fatal error occurred (no details provided)"
+        else
+          msg="$*"
+        fi
+        break
+        ;;
+      --exit)
+        if [ $# -lt 2 ]; then
+          pout --error "Missing arguments for --exit option"
+          return 1
+        fi
+        shift
+        if ! echo "$1" | grep -q '^[0-9]\+$'; then
+          pout --error "Invalid exit code: $1"
+          return 1
+        fi
+        code="$1"
+        shift
+        tag="[ERROR] "
+        output_stream=2 # stderr
         msg="$*"
-      fi
-      break
-      ;;
-    --warn)
-      shift
-      tag="[WARN] "
-      output_stream=2 # stderr
-      if [ $# -eq 0 ]; then
-        msg="Warning message (no content provided)"
-      else
-        msg="$*"
-      fi
-      break
-      ;;
-    --error)
-      shift
-      tag="[ERROR] "
-      output_stream=2 # stderr
-      if [ $# -eq 0 ]; then
-        msg="Error occurred (no details provided)"
-      else
-        msg="$*"
-      fi
-      break
-      ;;
-    --fatal)
-      shift
-      tag="[FATAL] "
-      output_stream=2 # stderr
-      code=1
-      if [ $# -eq 0 ]; then
-        msg="Fatal error occurred (no details provided)"
-      else
-        msg="$*"
-      fi
-      break
-      ;;
-    --exit)
-      if [ $# -lt 2 ]; then
-        pout --error "Missing arguments for --exit option"
+        break
+        ;;
+      --usage)
+        msg="$(usage_guide 2> /dev/null || echo "Usage guide not available")"
+        ;;
+      -*)
+        pout --error "Unknown option: $1"
         return 1
-      fi
-      shift
-      if ! echo "$1" | grep -q '^[0-9]\+$'; then
-        pout --error "Invalid exit code: $1"
-        return 1
-      fi
-      code="$1"
-      shift
-      tag="[ERROR] "
-      output_stream=2 # stderr
-      msg="$*"
-      break
-      ;;
-    --usage)
-      msg="$(usage_guide 2>/dev/null || echo "Usage guide not available")"
-      ;;
-    -*)
-      pout --error "Unknown option: $1"
-      return 1
-      ;;
-    *)
-      # Handle regular message content
-      if [ -z "$msg" ]; then
-        msg="$1"
-      else
-        msg="${msg}${delimiter}${1}"
-      fi
-      ;;
+        ;;
+      *)
+        # Handle regular message content
+        if [ -z "$msg" ]; then
+          msg="$1"
+        else
+          msg="${msg}${delimiter}${1}"
+        fi
+        ;;
     esac
     shift
   done
@@ -336,43 +336,43 @@ pout_VERBOSE() {
 pout_OLD() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    --error)
-      shift
-      tag="[ERROR]"
-      msg="$*"
-      code=1
-      break
-      ;;
-    --debug)
-      shift
-      case "${debug:-}" in
-      '' | off | no | false) ;;
-      1 | on | true | *)
-        tag="[DEBUG]"
+      --error)
+        shift
+        tag="[ERROR]"
         msg="$*"
+        code=1
         break
         ;;
-      esac
-      ;;
-    --help)
-      msg="HELP"
-      break
-      ;;
-    *)
-      msg="${msg}${msg:+${delimiter}}${1}"
-      ;;
+      --debug)
+        shift
+        case "${debug:-}" in
+          '' | off | no | false) ;;
+          1 | on | true | *)
+            tag="[DEBUG]"
+            msg="$*"
+            break
+            ;;
+        esac
+        ;;
+      --help)
+        msg="HELP"
+        break
+        ;;
+      *)
+        msg="${msg}${msg:+${delimiter}}${1}"
+        ;;
     esac
     shift
   done
 
   #@ Update the tagged message
-  [ -n "${tag}" ] &&
-    msg="$(printf "%s /> %s <\ %s\n" "${tag}" "${scr_name}" "${msg}")"
+  [ -n "${tag}" ] \
+    && msg="$(printf "%s /> %s <\ %s\n" "${tag}" "${scr_name}" "${msg}")"
 
   #@ Print to stdout or stderr
   case "${tag}" in
-  *"ERR"* | *"WARN"*) printf "%s" "${msg}" >&2 ;;
-  *) printf "%s" "${msg}" ;;
+    *"ERR"* | *"WARN"*) printf "%s" "${msg}" >&2 ;;
+    *) printf "%s" "${msg}" ;;
   esac
 
   #@ Terminate on errors
@@ -382,24 +382,24 @@ pout_OLD() {
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help | help | "/?")
-      pout --help
-      ;;
-    -d | --debug | debug | dry-run | "/d")
-      debug=1
-      ;;
-    *) args="${args}${args:+${delimiter}}${1}" ;;
+      -h | --help | help | "/?")
+        pout --help
+        ;;
+      -d | --debug | debug | dry-run | "/d")
+        debug=1
+        ;;
+      *) args="${args}${args:+${delimiter}}${1}" ;;
     esac
     shift
   done
 }
 
 validate_env() {
-  [ -d "${prj_root}" ] ||
-    pout --error "Unable to determine the project root directory"
+  [ -d "${prj_root}" ] \
+    || pout --error "Unable to determine the project root directory"
 
-  [ -x "${CMD_NAME}" ] ||
-    pout --error "Failed to locate dependency:" "${CMD_NAME}"
+  [ -x "${CMD_NAME}" ] \
+    || pout --error "Failed to locate dependency:" "${CMD_NAME}"
 }
 
 execute_process() {

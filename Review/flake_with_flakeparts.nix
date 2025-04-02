@@ -62,17 +62,6 @@
         };
 
       flake = {
-        overlays.default = final: prev: {
-          stable = import inputs.nixosStable {
-            system = prev.system;
-            config.allowUnfree = true;
-          };
-          unstable = import inputs.nixosUnstable {
-            system = prev.system;
-            config.allowUnfree = true;
-          };
-        };
-
         nixosConfigurations = {
           QBXL = inputs.nixosUnstable.lib.nixosSystem {
             modules = [
@@ -84,7 +73,7 @@
               (dots.paths.hosts.QBXL.store + "/core")
               wslModule
               # inputs.nixosWSL.nixosModules.default
-              # inputs.nixosHome.nixosModules.home-manager
+              inputs.nixosHome.nixosModules.home-manager
             ];
             system = "x86_64-linux";
           };

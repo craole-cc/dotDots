@@ -1,8 +1,9 @@
-{pkgs,...}:{
+{ pkgs, ... }:
+{
   environment.systemPackages = with pkgs; [
-      gitui
-      nixd
-      nixfmt-rfc-style
+    gitui
+    nixd
+    nixfmt-rfc-style
   ];
 
   programs = {

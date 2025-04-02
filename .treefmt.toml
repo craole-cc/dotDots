@@ -7,24 +7,35 @@ excludes = [
   "**/dist/**",
   "**/.git/**",
   "**/review/**",
-  "Assets/**",          #TODO Temporary
-  "Configuration/**",   #TODO Temporary
-  "Environment/**",     #TODO Temporary
-  "Bin/**",             #TODO Temporary
-  "Documentation/**",   #TODO Temporary
+  "Assets/**",                                 #TODO Temporary
+  "Configuration/**",                          #TODO Temporary
+  "Environment/**",                            #TODO Temporary
+  "Bin/**",                                    #TODO Temporary
+  "Documentation/**",                          #TODO Temporary
+  "Modules/global/**",                         #TODO Temporary
+  "Modules/nixos/configurations/hosts/QBX/**", #TODO Temporary
+  "Modules/nixos/scripts/**",                  #TODO Temporary
+  "Tasks/**",                                  #TODO Temporary
+  "Templates/**",                              #TODO Temporary
+  "Review/**",                                 #TODO Temporary
+  "**README.md",                                 #TODO Temporary
+  "Scripts/**",                                #TODO Temporary
   "**/.bin/**",
   "**/.config/**",
   "*.lock",
   "LICENSE",
+  "*.diff",
+  "*.patch",
+  ".zed/**",                                   #TODO Temporary
 ]
 
 #| Documentation
-[formatter.markdown]
-command = "markdownlint-cli2"
-includes = ["*.md", "README"]
-options = ["--fix"]
-# options = ["--fix", "--config", ".markdownlint.yaml"]
-priority = 1
+# [formatter.markdown]
+# command = "markdownlint-cli2"
+# includes = ["*.md", "README"]
+# options = ["--fix"]
+# # options = ["--fix", "--config", ".markdownlint.yaml"]
+# priority = 1
 
 # [formatter.mdsh]
 # command = "mdsh"
@@ -64,17 +75,17 @@ command = "nixfmt"
 # priority = 1
 # command  = "alejandra"
 
-[formatter.deadnix]
-includes = ["*.nix"]
-priority = 1
-command = "deadnix"
-# options  = ["--edit"]
+# [formatter.deadnix]
+# includes = ["*.nix"]
+# priority = 1
+# command = "deadnix"
+# # options  = ["--edit"]
 
 # #| Rust formatting
-[formatter.rust]
-command = "rustfmt"
-includes = ["*.rs"]
-priority = 1
+# [formatter.rust]
+# command = "rustfmt"
+# includes = ["*.rs"]
+# priority = 1
 
 # [formatter.leptosfmt]
 # command = "leptosfmt"
@@ -130,61 +141,62 @@ priority = 2
 # includes = ["*.ps1"]
 # command  = "pwsh -Command Invoke-Formatter -ScriptDefinition (Get-Content {file} | Out-String) -SettingsFilePath ./PSScriptAnalyzerSettings.psd1"
 
-[formatter.justfile]
-command = "just"
-includes = [".justfile"]
-options = ["--unstable", "--fmt", "--justfile"]
+# [formatter.justfile]
+# command = "just"
+# includes = [".justfile"]
+# options = ["--unstable", "--fmt", "--justfile"]
 
 #| Python formatting
-[formatter.ruff]
-includes = ["*.py", "Bin/python/**"]
-# command = "ruff"
-# options = ["format", "--quiet"]
-command = "sh"
-options = [
-  "-euc",
-  "command -v ruff >/dev/null || exit 0",
-  "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
-]
+# [formatter.ruff]
+# includes = ["*.py", "Bin/python/**"]
+# # command = "ruff"
+# # options = ["format", "--quiet"]
+# command = "sh"
+# options = [
+#   "-euc",
+#   "command -v ruff >/dev/null || exit 0",
+#   "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
+# ]
 
 #| Data formats
-[formatter.biome]
-priority = 1
-includes = [
-  "*.ts",
-  "*.mts",
-  "*.cts",
-  "*.js",
-  "*.cjs",
-  "*.mjs",
-  "*.jsx",
-  "*.tsx",
-  "*.d.ts",
-  "*.d.mts",
-  "*.d.cts",
-  "*.vue",
-  "*.html",
-  "*.css",
-  "*.json",
-  "*.jsonc",
-  "*.astro",
-  "*.svelte",
-  "*.graphql",
-  "*.webmanifest",
-]
-# command = "biome"
-# options = ["format", "ci"]
-command = "sh"
-options = [
-  "-euc",
-  "command -v biome >/dev/null || exit 0",
-  "for file in \"$@\"; do biome format ci \"$file\"; done",
-]
-# [formatter.json]
-# command  = "jq"
-# includes = ["*.json", "*.jsonc"]
-# options  = ["--indent", "2", "--sort-keys", "-M"]
-# priority = 2
+# [formatter.biome]
+# priority = 1
+# includes = [
+#   "*.ts",
+#   "*.mts",
+#   "*.cts",
+#   "*.js",
+#   "*.cjs",
+#   "*.mjs",
+#   "*.jsx",
+#   "*.tsx",
+#   "*.d.ts",
+#   "*.d.mts",
+#   "*.d.cts",
+#   "*.vue",
+#   "*.html",
+#   "*.css",
+#   "*.json",
+#   "*.jsonc",
+#   "*.astro",
+#   "*.svelte",
+#   "*.graphql",
+#   "*.webmanifest",
+# ]
+# # command = "biome"
+# # options = ["format", "ci"]
+# command = "sh"
+# options = [
+#   "-euc",
+#   "command -v biome >/dev/null || exit 0",
+#   "for file in \"$@\"; do biome format ci \"$file\"; done",
+# ]
+
+[formatter.json]
+command = "jq"
+includes = ["*.json", "*.jsonc"]
+options = ["--indent", "2", "--sort-keys", "-M"]
+priority = 2
 
 #| TOML
 [formatter.toml]
