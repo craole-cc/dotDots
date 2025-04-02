@@ -26,11 +26,8 @@
       inherit packages;
 
       devShells = perSystem (pkgs: {
-        default = packages.${pkgs.system}.devshell;
+        default = packages.${pkgs.system}.dotDots;
       });
-      # devShells = perSystem (pkgs: {
-      #   default = packages.${pkgs.system}.devshell;
-      # });
       formatter = perSystem (pkgs: pkgs.treefmt);
     };
 

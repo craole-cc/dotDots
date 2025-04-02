@@ -4,9 +4,7 @@
   ...
 }:
 {
-  aider-chat-env = pkgs.callPackage ./aider { };
+  aider = pkgs.callPackage ./aider { };
   lyrics = pkgs.python3Packages.callPackage ./lyrics { };
-  devshell = pkgs.callPackage ./devshell {
-    # inherit paths;
-  };
+  dotDots = pkgs.callPackage ./dots { inherit paths; };
 }
