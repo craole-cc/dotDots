@@ -143,17 +143,19 @@ let
         home = default + "/home";
       };
     };
-    configurations = {
-      default = modules.store + "/configurations";
-      hosts = {
-        QBXL = {
-          store = modules.store + parts.hosts + "/QBXL";
-          local = modules.local + parts.hosts + "/QBXL";
-        };
+
+    hosts = {
+      QBXL = {
+        store = modules.store + parts.hosts + "/QBXL";
+        local = modules.local + parts.hosts + "/QBXL";
       };
-      users = rec {
-        default = configurations.default + "/users";
-        "${alpha}" = default + "/${alpha}";
+    };
+    users = {
+      default = modules.store + "/configurations/users";
+      "${alpha}" = rec {
+        default = paths.users.default + "/${alpha}";
+        home = default + "/home";
+        core = default + "/core";
       };
     };
   };
@@ -204,7 +206,7 @@ let
     core = {
       imports = with paths; [
         packages.core
-        packages.${alpha}.core
+        users.${alpha}.core
       ];
     };
     home = {
@@ -217,7 +219,7 @@ let
             backupFileExtension = "bac";
             sharedModules = with paths; [ packages.home ];
             users.${alpha}.imports = with paths; [
-              packages.${alpha}.core
+              users.${alpha}.home
             ];
           };
         }
