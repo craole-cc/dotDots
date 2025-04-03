@@ -204,7 +204,7 @@ let
     core = {
       imports = with paths; [
         packages.core
-        packages.defaultUser.core
+        packages.${alpha}.core
       ];
     };
     home = {
@@ -217,7 +217,7 @@ let
             backupFileExtension = "bac";
             sharedModules = with paths; [ packages.home ];
             users.${alpha}.imports = with paths; [
-              packages.defaultUser.core
+              packages.${alpha}.core
             ];
           };
         }
