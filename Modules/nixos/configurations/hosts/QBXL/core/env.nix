@@ -7,31 +7,31 @@
 }:
 let
   inherit (pkgs) writeShellScriptBin;
-  flake = paths.flake.${config.networking.hostName};
-  dotDots = flake + "/Bin/shellscript/project/.dots";
+  inherit (paths) flake parts;
+  inherit (parts.bin) shellscript;
+  local = flake.${config.networking.hostName};
+  dotsScript = local + shellscript + "/project/.dots";
+  edaScript = local + shellscript + "/packages/alias/edita";
 in
 {
   environment = {
-    # variables = {
-    #   EDITOR = "hx";
-    #   VISUAL = "code-insiders"; # TODO: Make this dynamic
-
-    # } // { DOTS = flake; };
     variables = dots.variables // {
       DOTS = flake;
       TEST = "test ${flake}";
+      VISUAL = "eda";
+      EDITOR = "eda --helix";
     };
 
     systemPackages = [
       (writeShellScriptBin ".dots" ''
         set -e
-        chmod +x "${dotDots}"
-        "${dotDots}" "$@"
+        chmod +x "${dotsScript}"
+        "${dotsScript}" "$@"
       '')
-      (writeShellScriptBin "vs" ''
+      (writeShellScriptBin "eda" ''
         set -e
-        chmod +x "${dotDots}"
-        "${dotDots}" "$@"
+        chmod +x "${edaScript}"
+        "${edaScript}" "$@"
       '')
       # (writeShellScriptBin "QBXL" (
       #   with QBXL;
