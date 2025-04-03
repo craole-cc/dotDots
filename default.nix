@@ -201,7 +201,7 @@ let
     core = {
       imports = with paths; [
         packages.core
-        modules.core
+        paths.modules.core
         users.${alpha}.core
       ];
     };
