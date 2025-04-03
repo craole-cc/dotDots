@@ -1,9 +1,10 @@
-{paths,...}:[
-{
+{ paths, ... }:
+[
+  {
     name = "DOTS";
     eval = "$PRJ_ROOT";
   }
-{
+  {
     name = "FLAKE";
     eval = "$PRJ_ROOT";
   }

@@ -1,10 +1,14 @@
 #!/bin/sh
 # shellcheck enable=all
 
+[ -n "${DOTS:-}" ] || {
+  printf "[ERROR] /> dotsrc < The path to DOTS directory must be set.\n" >&2
+  return 1
+}
 
-pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
-if [ -x "${pathman}" ]; then
-  ${pathman}
-else
-  printf "[ERROR] /> dotsrc <\ Missing Dependency: %s\n" "${pathman}"
-fi
+# pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
+# if [ -x "${pathman}" ]; then
+#   ${pathman}
+# else
+#   printf "[ERROR] /> dotsrc <\ Missing Dependency: %s\n" "${pathman}"
+# fi
