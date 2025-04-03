@@ -35,6 +35,26 @@
       formatter = perSystem (pkgs: pkgs.treefmt);
 
       nixosConfigurations = {
+        QBXv =
+          let
+            hostName = "QBXv";
+          in
+          lib.nixosSystem {
+            inherit specialArgs;
+            system = "x86_64-linux";
+            modules =
+              [
+                {
+                  networking = { inherit hostName; };
+                  system.stateVersion = "24.11";
+                }
+              ]
+              ++ (with dots.paths; [
+                (hosts + "/${hostName}")
+                modules.core
+                modules.home
+              ]);
+          };
         QBXl = lib.nixosSystem {
           inherit specialArgs;
           system = "x86_64-linux";

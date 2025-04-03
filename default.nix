@@ -144,12 +144,13 @@ let
       };
     };
 
-    hosts = {
-      QBXl = {
-        store = modules.store + parts.hosts + "/QBXl";
-        local = modules.local + parts.hosts + "/QBXl";
-      };
-    };
+    # hosts = {
+    #   QBXl = {
+    #     store = modules.store + parts.hosts + "/QBXl";
+    #     local = modules.local + parts.hosts + "/QBXl";
+    #   };
+    # };
+    hosts = modules.store + "/configurations/hosts";
     users = {
       default = modules.store + "/configurations/users";
       "${alpha}" = rec {
