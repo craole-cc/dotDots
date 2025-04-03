@@ -1,4 +1,12 @@
 {paths,...}:[
+{
+    name = "DOTS";
+    eval = "$PRJ_ROOT";
+  }
+{
+    name = "FLAKE";
+    eval = "$PRJ_ROOT";
+  }
   {
     name = "PRJ_BIN";
     prefix =
@@ -24,10 +32,6 @@
   {
     name = "PRJ_CONFIG";
     eval = "$PRJ_ROOT/.config";
-  }
-  {
-    name = "FLAKE";
-    eval = "$PRJ_ROOT";
   }
   # {
   #   name = "TREEFMT_CONFIG";
