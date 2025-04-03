@@ -1,45 +1,72 @@
-{ pkgs, ... }:
-with pkgs;
-[
-  bat
-  btop
-  coreutils
-  gnused
-  curl
-  devenv
-  diffutils
-  eza
-  dust
-  fastfetch
-  fd
-  fd
-  findutils
-  fzf
-  gawk
-  getent
-  gh
-  gitui
-  gnused
-  helix
-  jq
-  nerd-fonts.victor-mono
-  nil
-  nix-index
-  nixd
-  nixfmt-rfc-style
-  onefetch
-  ripgrep
-  rsync
-  sd
-  shellcheck
-  shfmt
-  tldr
-  tokei
-  trashy
-  treefmt
-  undollar
-  wget
-  yazi
-  # zed-editor-fhs
-  zig
-]
+{ pkgs, alpha, ... }:
+{
+  environment.systemPackages = with pkgs; [
+    bat
+    btop
+    coreutils
+    gnused
+    curl
+    lsd
+    dust
+    fastfetch
+    fd
+    findutils
+    fzf
+    gawk
+    getent
+    gh
+    gitui
+    gnused
+    helix
+    nil
+    nix-index
+    nixfmt-rfc-style
+    ripgrep
+    rsync
+    trashy
+    wget
+  ];
+
+  users.users.${alpha}.packages = with pkgs; [
+    # hello
+    bat
+    btop
+    coreutils
+    curl
+    devenv
+    diffutils
+    dust
+    eza
+    fastfetch
+    fd
+    findutils
+    fzf
+    gawk
+    getent
+    gh
+    gitui
+    gnused
+    gnused
+    helix
+    jq
+    nerd-fonts.victor-mono
+    nil
+    nix-index
+    nixd
+    nixfmt-rfc-style
+    onefetch
+    ripgrep
+    rsync
+    sd
+    shellcheck
+    shfmt
+    tldr
+    tokei
+    trashy
+    treefmt
+    undollar
+    wget
+    yazi
+    zig
+  ];
+}

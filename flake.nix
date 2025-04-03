@@ -42,6 +42,7 @@
           modules = with dots; [
             paths.hosts.QBXL.store
             modules.WSL
+            ./Modules/nixos/packages/core
           ];
         };
       };

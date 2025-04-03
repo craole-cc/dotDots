@@ -7,39 +7,22 @@ with pkgs;
   gnused
   curl
   devenv
-  diffutils
   eza
   dust
   fastfetch
   fd
-  fd
-  findutils
-  fzf
-  gawk
-  getent
   gh
   gitui
-  gnused
   helix
-  jq
-  nerd-fonts.victor-mono
   nil
-  nix-index
   nixd
   nixfmt-rfc-style
   onefetch
   ripgrep
-  rsync
-  sd
-  shellcheck
-  shfmt
-  tldr
+  # shellcheck
+  # shfmt
   tokei
-  trashy
   treefmt
   undollar
   wget
-  yazi
-  # zed-editor-fhs
-  zig
 ]
