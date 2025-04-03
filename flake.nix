@@ -20,9 +20,8 @@
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
       specialArgs = {
-        inherit inputs dots;
-        inherit (dots) paths alpha;
-      };
+        inherit inputs;
+      } // dots;
     in
     {
       inherit packages lib;
@@ -39,7 +38,7 @@
         QBXL = lib.nixosSystem {
           inherit specialArgs;
           system = "x86_64-linux";
-          modules = with dots; [
+          modules = [
             {
               networking.hostName = "QBXL";
               system.stateVersion = "24.11";

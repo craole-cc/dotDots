@@ -135,11 +135,12 @@ let
       default = modules.store + "/packages";
       custom = packages.default + "/custom";
       overlays = packages.default + "/overlays";
-      core = {
-        default = packages.default + "/core";
-        shared = packages.core.default + "/shared";
-        defaultUser = packages.core.default + "/${alpha}";
-      };
+      # core = {
+      #   default = packages.default + "/core";
+      #   shared = packages.core.default + "/shared";
+      #   defaultUser = packages.core.default + "/${alpha}";
+      # };
+      core = packages.default + "/core";
       home = packages.default + "/home";
     };
     configurations = {
@@ -151,7 +152,7 @@ let
         };
       };
       users = rec {
-        default = configurations.default + "/configurations/users";
+        default = configurations.default + "/users";
         "${alpha}" = default + "/${alpha}";
       };
     };
@@ -202,7 +203,7 @@ let
   modules = {
     core = {
       imports = with paths; [
-        packages.core.shared
+        packages.core
         configurations.users."${alpha}"
       ];
     };
@@ -214,7 +215,7 @@ let
             useGlobalPkgs = true;
             useUserPackages = true;
             backupFileExtension = "bac";
-            # sharedModules = with paths; [ packages.home ];
+            sharedModules = with paths; [ packages.home ];
             users.${alpha}.imports = [ ];
           };
         }

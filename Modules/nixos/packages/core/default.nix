@@ -1,1 +1,1 @@
-{ imports = [ ./shared ]; }
+{ imports = [ ./common.nix ]; }
