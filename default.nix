@@ -144,10 +144,6 @@ let
       EDITOR = "eda --helix";
       DOTS_RC = "$DOTS/.dotsrc";
     };
-    # aliases = {
-    #   #     devScript = local + shellscript + "/project/nix/devnix";
-    #   # edaScript = local + shellscript + "/packages/alias/edita";
-    # };
     shellAliases = {
       ".." = "cd .. || exit 1";
       "..." = "cd ../.. || exit 1";
@@ -177,7 +173,6 @@ let
       # q = ''leave --terminal'';
       h = "history";
     };
-
     extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
   };
   modules = {
