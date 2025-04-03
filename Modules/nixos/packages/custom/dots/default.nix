@@ -1,10 +1,13 @@
 { pkgs, paths, ... }:
+let
+  cmd = import ./cmd.nix;
+  env = import ./env.nix { inherit paths; };
+  fmt = import ./fmt.nix { inherit pkgs; };
+  pkg = import ./pkg.nix { inherit pkgs; };
+in
 pkgs.inputs.developmentShell.mkShell {
   name = "dotDots";
-  env = import ./env.nix { inherit paths; };
-  packages = [
-    (import ./pkg.nix { inherit pkgs; })
-    (import ./fmt.nix { inherit pkgs; })
-  ];
-  commands = import ./cmd.nix;
+  inherit env;
+  packages = pkg ++ fmt;
+  commands = cmd;
 }
