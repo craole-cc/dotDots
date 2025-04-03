@@ -30,6 +30,5 @@
         btop.enable = true;
       };
     };
-    # programs.git.lfs.skipSmudge = true;
   };
 }
