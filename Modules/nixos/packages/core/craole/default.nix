@@ -1,31 +1,8 @@
-{ pkgs, alpha, ... }:
+{ pkgs, ... }:
 {
-  environment.systemPackages = with pkgs; [
-    bat
-    btop
-    coreutils
-    gnused
-    curl
-    lsd
-    dust
-    fastfetch
-    fd
-    findutils
-    fzf
-    gawk
-    getent
-    gh
-    gitui
-    gnused
-    helix
-    nil
-    nix-index
-    nixfmt-rfc-style
-    ripgrep
-    rsync
-    trashy
-    wget
-  ];
+  imports = [ ];
+  programs = {
+  };
 
   programs = {
     direnv = {
@@ -61,7 +38,7 @@
     tailscale.enable = true;
   };
 
-  users.users.${alpha}.packages = with pkgs; [
+  users.users.craole.packages = with pkgs; [
     # hello
     bat
     btop

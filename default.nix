@@ -31,6 +31,9 @@ let
       mods = "/modules";
       opts = "/options";
       pkgs = "/packages";
+      shared = "/shared";
+      core = "/core";
+      defaultUser = "/${alpha}";
       svcs = "/services";
       ui = "/ui";
       uiCore = "/ui/core";
@@ -85,8 +88,14 @@ let
       libraries = core.default + parts.libs;
       modules = core.default + parts.mods;
       options = core.default + parts.opts;
-      packages = core.default + parts.pkgs;
+      packages = packages.core;
+      shared = {
+        packages = packages.core.shared;
+      };
       services = core.default + parts.svcs;
+      defaultUser = {
+        packages = core.packages + "/${alpha}";
+      };
     };
     home = {
       default = modules.store + "/home";
@@ -100,7 +109,7 @@ let
       shared = {
         packages = packages.home.shared;
       };
-      "${alpha}" = {
+      defaultUser = {
         packages = packages.home."${alpha}";
       };
     };
@@ -123,14 +132,18 @@ let
       mkConf = core.libraries + parts.mkConf;
     };
     packages = {
-      default = modules.store + parts.pkgs;
+      default = modules.store + "/packages";
       custom = packages.default + "/custom";
       overlays = packages.default + "/overlays";
-      core = packages.default + "/core";
+      core = {
+        default = packages.default + "/core";
+        shared = packages.core.default + "/shared";
+        defaultUser = packages.core.default + "/${alpha}";
+      };
       home = {
         default = packages.default + "/home";
         shared = packages.home.default + "/shared";
-        "${alpha}" = packages.home.default + "/${alpha}";
+        defaultUser = packages.home.default + "/${alpha}";
       };
     };
     hosts = {
@@ -190,9 +203,12 @@ let
   };
   modules = {
     core = {
-      imports = with paths; [
-        packages.core
-      ];
+      imports =
+        (with paths.packages.core; [
+          shared
+          defaultUser
+        ])
+        ++ [ ];
     };
     home = {
       imports = [
@@ -202,20 +218,17 @@ let
             useGlobalPkgs = true;
             useUserPackages = true;
             backupFileExtension = "bac";
-            sharedModules = with paths.home; [ shared ];
-            users.${alpha}.imports = with paths; [
-              packages.home.${alpha}
-            ];
+            sharedModules = with paths; [ packages.home.shared ];
+            users.${alpha}.imports = with paths; [ packages.home.defaultUser ];
           };
         }
       ];
     };
     wsl = {
-      imports = [
-        modules.core
-        modules.home
+      imports = with modules; [
         inputs.nixosWSL.nixosModules.default
-        # inputs.nixosHome.nixosModules.home-manager
+        core
+        home
         {
           wsl = {
             enable = true;

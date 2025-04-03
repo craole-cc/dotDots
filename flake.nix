@@ -44,11 +44,7 @@
               networking.hostName = "QBXL";
               system.stateVersion = "24.11";
             }
-            modules.wsl
-            # paths.hosts.QBXL.store
-            # modules.core
-            # ./Modules/nixos/packages/core
-
+            dots.modules.wsl
           ];
         };
       };
