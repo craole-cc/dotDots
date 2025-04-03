@@ -16,10 +16,12 @@ in
 {
   environment = {
     variables = dots.variables // {
-      DOTS = flake;
-      TEST = "test ${flake}";
+      DOTS = local;
+      TEST = "test ${local}";
       VISUAL = "eda";
       EDITOR = "eda --helix";
+      eda = edaScript;
+      dots = dotsScript;
     };
 
     systemPackages = [
