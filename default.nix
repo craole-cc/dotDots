@@ -135,8 +135,11 @@ let
     };
   };
   variables = {
-    EDITOR = "hx";
-    VISUAL = "code-insiders"; # TODO: Make this dynamic
+    VISUAL = "eda";
+    EDITOR = "eda --helix";
+  };
+  aliases = {
+    ".d" = ''cd "$DOTS" || exit 1'';
   };
   modules = {
     WSL = {
@@ -159,6 +162,7 @@ in
     alpha
     paths
     variables
+    aliases
     modules
     ;
 }
