@@ -2,6 +2,7 @@
   pkgs,
   paths,
   config,
+  dots,
   ...
 }:
 let
@@ -11,16 +12,23 @@ let
 in
 {
   environment = {
-    variables = {
-      EDITOR = "hx";
-      VISUAL = "code-insiders"; # TODO: Make this dynamic
+    # variables = {
+    #   EDITOR = "hx";
+    #   VISUAL = "code-insiders"; # TODO: Make this dynamic
+
+    # } // { DOTS = flake; };
+    variables = dots.variables // {
       DOTS = flake;
-      DOTS_QBXL = flake;
-      DOT_DOTS = flake + "/Bin/shellscript/project/.dots";
+      TEST = "test ${flake}";
     };
 
     systemPackages = [
       (writeShellScriptBin ".dots" ''
+        set -e
+        chmod +x "${dotDots}"
+        "${dotDots}" "$@"
+      '')
+      (writeShellScriptBin "vs" ''
         set -e
         chmod +x "${dotDots}"
         "${dotDots}" "$@"

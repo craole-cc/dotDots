@@ -12,7 +12,12 @@ let
       {
         store = ./.;
         local = QBX; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
-        inherit dbook Preci QBX QBXL;
+        inherit
+          dbook
+          Preci
+          QBX
+          QBXL
+          ;
       };
     base = flake;
     parts = {
@@ -132,8 +137,6 @@ let
   variables = {
     EDITOR = "hx";
     VISUAL = "code-insiders"; # TODO: Make this dynamic
-    DOTS = paths.flake.local;
-    QBXL = paths.hosts.QBXL.local;
   };
   modules = {
     WSL = {
