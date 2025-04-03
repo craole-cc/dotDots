@@ -1,0 +1,44 @@
+{ pkgs, ... }:
+with pkgs;
+[
+  bat
+  btop
+  coreutils
+  gnused
+  curl
+  devenv
+  diffutils
+  eza
+  dust
+  fastfetch
+  fd
+  fd
+  findutils
+  fzf
+  gawk
+  getent
+  gitui
+  gnused
+  helix
+  jq
+  nerd-fonts.victor-mono
+  nil
+  nix-index
+  nixd
+  nixfmt-rfc-style
+  onefetch
+  ripgrep
+  rsync
+  sd
+  shellcheck
+  shfmt
+  tldr
+  tokei
+  trashy
+  treefmt
+  undollar
+  wget
+  yazi
+  # zed-editor-fhs
+  zig
+]

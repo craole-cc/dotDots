@@ -6,5 +6,5 @@
 {
   aider = pkgs.callPackage ./aider { };
   lyrics = pkgs.python3Packages.callPackage ./lyrics { };
-  dotDots = pkgs.callPackage ./dots { inherit paths; };
+  dotshell = pkgs.callPackage ./dots { inherit paths; };
 }

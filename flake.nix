@@ -29,7 +29,7 @@
 
       overlays = packageOverlays;
       devShells = perSystem (pkgs: {
-        default = packages.${pkgs.system}.dotDots;
+        default = packages.${pkgs.system}.dotshell;
       });
 
       # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
