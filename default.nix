@@ -5,7 +5,7 @@ let
     flake =
       let
         QBX = "/home/craole/.dots";
-        QBXwsl = "/home/craole/.dots";
+        QBXl = "/home/craole/.dots";
         Preci = "/home/craole/Projects/dotDots";
         dbook = "/home/craole/Documents/dotfiles";
       in
@@ -16,7 +16,7 @@ let
           dbook
           Preci
           QBX
-          QBXwsl
+          QBXl
           ;
       };
     parts = {
@@ -145,9 +145,9 @@ let
     };
 
     hosts = {
-      QBXwsl = {
-        store = modules.store + parts.hosts + "/QBXwsl";
-        local = modules.local + parts.hosts + "/QBXwsl";
+      QBXl = {
+        store = modules.store + parts.hosts + "/QBXl";
+        local = modules.local + parts.hosts + "/QBXl";
       };
     };
     users = {

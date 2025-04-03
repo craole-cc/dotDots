@@ -35,12 +35,12 @@
       formatter = perSystem (pkgs: pkgs.treefmt);
 
       nixosConfigurations = {
-        QBXwsl = lib.nixosSystem {
+        QBXl = lib.nixosSystem {
           inherit specialArgs;
           system = "x86_64-linux";
           modules = [
             {
-              networking.hostName = "QBXwsl";
+              networking.hostName = "QBXl";
               system.stateVersion = "24.11";
             }
             dots.modules.wsl
