@@ -142,7 +142,6 @@ let
       };
       home = {
         default = packages.default + "/home";
-        shared = packages.home.default + "/shared";
         defaultUser = packages.home.default + "/${alpha}";
       };
     };
@@ -153,9 +152,8 @@ let
       };
     };
     users = {
-      craole = {
-        base = core.users + "/craole";
-      };
+      default = modules.store + "/configurations/users";
+      "${alpha}" = users.default + "/${alpha}";
     };
   };
   scripts = with paths.parts.bin; {
@@ -219,7 +217,7 @@ let
             useUserPackages = true;
             backupFileExtension = "bac";
             sharedModules = with paths; [ packages.home.shared ];
-            users.${alpha}.imports = with paths; [ packages.home.defaultUser ];
+            users.${alpha}.imports = with paths; [ users."${alpha}" ];
           };
         }
       ];

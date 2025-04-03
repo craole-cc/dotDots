@@ -15,7 +15,7 @@ in
 # theme = scheme.${app};
 {
   programs.bat = {
-    # enable = true;
+    enable = true;
     config = {
       inherit theme;
       pager = "less -FR";
