@@ -50,7 +50,7 @@
                 }
               ]
               ++ (with dots; [
-                (paths.hosts + "/${hostName}")
+                # (paths.hosts + "/${hostName}")
                 modules.core
                 modules.home
               ]);
