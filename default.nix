@@ -53,9 +53,10 @@ let
         devshells = parts.mods + "/devshell";
       };
     };
-    modules = {
+    modules = rec {
       store = flake.store + parts.nixos;
       local = flake.local + parts.nixos;
+      core = store + "/modules";
       # QBX = flake.QBX + parts.nixos;
       # dbook = flake.dbook + parts.nixos;
     };
@@ -143,13 +144,6 @@ let
         home = default + "/home";
       };
     };
-
-    # hosts = {
-    #   QBXl = {
-    #     store = modules.store + parts.hosts + "/QBXl";
-    #     local = modules.local + parts.hosts + "/QBXl";
-    #   };
-    # };
     hosts = modules.store + "/configurations/hosts";
     users = {
       default = modules.store + "/configurations/users";
@@ -207,6 +201,7 @@ let
     core = {
       imports = with paths; [
         packages.core
+        modules.core
         users.${alpha}.core
       ];
     };

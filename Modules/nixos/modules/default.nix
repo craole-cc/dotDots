@@ -9,13 +9,11 @@
     # ./fonts.nix
     # ./localization.nix
     # ./networking.nix
-    # ./nix.nix
+    ./nix.nix
     # ./users.nix
 
     # ./dots
     # ./test.nix
     # ./paths.nix
-    ./devshell
-    ./formatter
   ];
 }
