@@ -1,0 +1,9 @@
+#!/bin/sh
+# shellcheck enable=all
+
+pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
+if [ -x "${pathman}" ]; then
+  ${pathman}
+else
+  printf "[ERROR] /> dotsrc <\ Missing Dependency: %s\n" "${pathman}"
+fi

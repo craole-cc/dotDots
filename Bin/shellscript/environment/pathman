@@ -4,6 +4,7 @@
 #TODO: Remove unused variables and replace get_absolute_path
 
 main() {
+  echo pathman
   set_defaults
   parse_arguments "$@"
   perform_action
@@ -617,5 +618,4 @@ pout() {
   esac
 }
 
-#@ Execute the main function with the provided argument
 main "$@"
