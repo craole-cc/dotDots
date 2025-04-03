@@ -58,6 +58,7 @@
 
   services = {
     atuin.enable = true;
+    tailscale.enable = true;
   };
 
   users.users.${alpha}.packages = with pkgs; [

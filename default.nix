@@ -19,7 +19,6 @@ let
           QBXL
           ;
       };
-    base = flake;
     parts = {
       args = "/args";
       cfg = "/configurations";
@@ -121,6 +120,12 @@ let
       default = modules.store + parts.pkgs;
       custom = packages.default + "/custom";
       overlays = packages.default + "/overlays";
+      core = packages.default + "/core";
+      home = {
+        default = packages.default + "/home";
+        shared = packages.home.default + "/shared";
+        "${alpha}" = packages.home.default + "/${alpha}";
+      };
     };
     hosts = {
       QBXL = {
@@ -178,23 +183,40 @@ let
     shellInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
   };
   modules = {
-    WSL = {
+    core = {
+      imports = with paths; [
+        packages.core
+      ];
+    };
+    home = {
       imports = [
-        inputs.nixosWSL.nixosModules.default
         inputs.nixosHome.nixosModules.home-manager
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            backupFileExtension = "bac";
+            sharedModules = with paths; [
+              packages.home.shared
+            ];
+            users.${alpha}.imports = with paths; [
+              packages.${alpha}
+            ];
+          };
+        }
+      ];
+    };
+    wsl = {
+      imports = [
+        modules.core
+        modules.home
+        inputs.nixosWSL.nixosModules.default
+        # inputs.nixosHome.nixosModules.home-manager
         {
           wsl = {
             enable = true;
             defaultUser = alpha;
             startMenuLaunchers = true;
-          };
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            backupFileExtension = "bac";
-            users.${alpha}.imports = [
-              ./Modules/nixos/packages/home
-            ];
           };
         }
       ];
