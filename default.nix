@@ -97,6 +97,12 @@ let
       options = home.default + parts.opts;
       packages = home.default + parts.pkgs;
       services = home.default + parts.svcs;
+      shared = {
+        packages = packages.home.shared;
+      };
+      "${alpha}" = {
+        packages = packages.home."${alpha}";
+      };
     };
     bin = {
       # store = {
@@ -196,11 +202,9 @@ let
             useGlobalPkgs = true;
             useUserPackages = true;
             backupFileExtension = "bac";
-            sharedModules = with paths; [
-              packages.home.shared
-            ];
+            sharedModules = with paths.home; [ shared ];
             users.${alpha}.imports = with paths; [
-              packages.${alpha}
+              packages.home.${alpha}
             ];
           };
         }
