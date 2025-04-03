@@ -1,5 +1,5 @@
 {
-  description = "NixOS Configuration Flake";
+  description = "dotDots Flake Configuration";
   outputs =
     inputs@{ nixPackages, ... }:
     let
@@ -51,13 +51,6 @@
     #| NixOS
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-24.11";
-
-    # nixosRolling={
-    #   type = "github";
-    #   owner = "cachix";
-    #   repo = "devenv";
-    # };
-    #TODO: Add vscode ext
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -341,5 +334,6 @@
     #   };
     # };
     # stylix.url = "github:danth/stylix";
+    #TODO: Add vscode ext
   };
 }
