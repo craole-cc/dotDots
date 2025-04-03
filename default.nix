@@ -138,8 +138,43 @@ let
     VISUAL = "eda";
     EDITOR = "eda --helix";
   };
-  aliases = {
-    ".d" = ''cd "$DOTS" || exit 1'';
+  # aliases = {
+  #   #     devScript = local + shellscript + "/project/nix/devnix";
+  #   # edaScript = local + shellscript + "/packages/alias/edita";
+  # };
+  scripts = with paths.parts.bin; {
+    dev = "$DOTS" + shellscript + "/project/nix/devnix";
+    eda = "$DOTS" + shellscript + "/packages/alias/edita";
+  };
+  shellAliases = {
+    ".." = "cd .. || exit 1";
+    "..." = "cd ../.. || exit 1";
+    "...." = "cd ../../.. || exit 1";
+    "....." = "cd ../../../.. || exit 1";
+    ".dots" = ''cd "$DOTS" || exit 1'';
+    devdots = ''${scripts.dev} $DOTS'';
+    vsdots = ''${scripts.eda} --dots'';
+    hxdots = ''${scripts.eda} --dots --helix'';
+
+
+    # ".dots-root" = ''cd ${flake.root}'';
+    # ".dots-link" = ''cd ${flake.link}'';
+    # Flake = ''if command -v geet ; then geet ; else git add --all; git commit --message "Flake Update" ; fi ; sudo nixos-rebuild switch --flake . --show-trace'';
+    # Flash-local = ''geet --path ${flake.local} && sudo nixos-rebuild switch --flake ${flake.local} --show-trace'';
+    # Flash-root = ''geet --path ${flake.root} && sudo nixos-rebuild switch --flake ${flake.root} --show-trace'';
+    # Flash-link = ''geet --path ${flake.link} && sudo nixos-rebuild switch --flake ${flake.link} --show-trace'';
+    # Flash = ''Flash-local'';
+    # Flick = ''Flush && Flash && Reboot'';
+    # Flick-local = ''Flush && Flash-local && Reboot'';
+    # Flick-root = ''Flush && Flash-root && Reboot'';
+    # Flick-link = ''Flush && Flash-link && Reboot'';
+    Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
+    # Reboot = ''leave --reboot'';
+    # Reload = ''leave --logout'';
+    # Retire = ''leave --shutdown'';
+    Q = ''kill -KILL "$(ps -o ppid= -p $$)"'';
+    # q = ''leave --terminal'';
+    h = "history";
   };
   modules = {
     WSL = {
@@ -162,7 +197,7 @@ in
     alpha
     paths
     variables
-    aliases
+    shellAliases
     modules
     ;
 }

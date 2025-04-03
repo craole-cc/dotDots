@@ -16,14 +16,13 @@ let
 in
 {
   environment = {
+    inherit (dots) shellAliases;
     variables = dots.variables // {
       DOTS = local;
     };
-    shellAliases = dots.aliases;
+    # TODO: Add the bins to PATH
+
     systemPackages = [
-      (writeShellScriptBin ".dots" ''
-        cd "${local}" || exit 1
-      '')
       (writeShellScriptBin "dotshell" ''
         dev "${local}"
       '')
