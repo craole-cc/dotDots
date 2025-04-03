@@ -15,7 +15,7 @@ in
 # theme = scheme.${app};
 {
   programs.bat = {
-    enable = true;
+    # enable = true;
     config = {
       inherit theme;
       pager = "less -FR";
@@ -32,6 +32,4 @@ in
       };
     };
   };
-
-  home.sessionVariables.READER = "bat";
 }

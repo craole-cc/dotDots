@@ -140,10 +140,7 @@ let
         shared = packages.core.default + "/shared";
         defaultUser = packages.core.default + "/${alpha}";
       };
-      home = {
-        default = packages.default + "/home";
-        defaultUser = packages.home.default + "/${alpha}";
-      };
+      home = packages.default + "/home";
     };
     hosts = {
       QBXL = {
@@ -204,9 +201,9 @@ let
       imports =
         (with paths.packages.core; [
           shared
-          defaultUser
+          # defaultUser
         ])
-        ++ [ ];
+        ++ (with paths; [ users."${alpha}" ]);
     };
     home = {
       imports = [
@@ -216,7 +213,7 @@ let
             useGlobalPkgs = true;
             useUserPackages = true;
             backupFileExtension = "bac";
-            sharedModules = with paths; [ packages.home.shared ];
+            sharedModules = with paths; [ packages.home ];
             users.${alpha}.imports = with paths; [ users."${alpha}" ];
           };
         }

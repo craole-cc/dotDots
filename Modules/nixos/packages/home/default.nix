@@ -5,5 +5,6 @@
   imports = [
     ./bat
     ./helix
+    ./hyprland
   ];
 }
