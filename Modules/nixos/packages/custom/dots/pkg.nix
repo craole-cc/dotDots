@@ -19,10 +19,11 @@ with pkgs;
   nixfmt-rfc-style
   onefetch
   ripgrep
-  # shellcheck
-  # shfmt
+  shellcheck
+  shfmt
   tokei
   treefmt
   undollar
   wget
+  yazi
 ]

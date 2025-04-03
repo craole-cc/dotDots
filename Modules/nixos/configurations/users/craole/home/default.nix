@@ -1,10 +1,6 @@
 { pkgs, ... }:
 {
-  imports = [
-    # ./bat
-    # ./helix
-    # ./hyprland
-  ];
+  imports = [  ];
 
   programs = {
     bat.enable = true;
