@@ -40,9 +40,14 @@
           inherit specialArgs;
           system = "x86_64-linux";
           modules = with dots; [
-            paths.hosts.QBXL.store
+            {
+              networking.hostName = "QBXL";
+              system.stateVersion = "24.11";
+            }
+            # paths.hosts.QBXL.store
             modules.WSL
             ./Modules/nixos/packages/core
+
           ];
         };
       };

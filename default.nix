@@ -153,6 +153,8 @@ let
       devdots = ''${scripts.dev} $DOTS'';
       vsdots = ''${scripts.eda} --dots'';
       hxdots = ''${scripts.eda} --dots --helix'';
+      eda = ''${scripts.eda}'';
+      dev = ''${scripts.dev}'';
 
       # ".dots-root" = ''cd ${flake.root}'';
       # ".dots-link" = ''cd ${flake.link}'';
@@ -185,6 +187,14 @@ let
             enable = true;
             defaultUser = alpha;
             startMenuLaunchers = true;
+          };
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            backupFileExtension = "bac";
+            users.${alpha}.imports = [
+              ./Modules/nixos/packages/home
+            ];
           };
         }
       ];
