@@ -49,8 +49,8 @@
                   system.stateVersion = "24.11";
                 }
               ]
-              ++ (with dots.paths; [
-                (hosts + "/${hostName}")
+              ++ (with dots; [
+                (paths.hosts + "/${hostName}")
                 modules.core
                 modules.home
               ]);
