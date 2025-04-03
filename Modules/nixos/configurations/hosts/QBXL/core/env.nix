@@ -22,6 +22,9 @@ in
     shellAliases = dots.aliases;
     systemPackages = [
       (writeShellScriptBin ".dots" ''
+        cd "${local}" || exit 1
+      '')
+      (writeShellScriptBin "dotshell" ''
         dev "${local}"
       '')
       (writeShellScriptBin "dev" ''
