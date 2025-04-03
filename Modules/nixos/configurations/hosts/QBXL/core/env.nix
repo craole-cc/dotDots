@@ -6,7 +6,7 @@
 }:
 {
   environment = with dots.environment; {
-    inherit shellAliases extraInit;
+    inherit shellAliases shellInit;
     variables = variables // {
       DOTS = paths.flake.${config.networking.hostName};
     };

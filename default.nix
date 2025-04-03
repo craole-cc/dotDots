@@ -173,7 +173,7 @@ let
       # q = ''leave --terminal'';
       h = "history";
     };
-    extraInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
+    shellInit = ''[ -f "$DOTS_RC" ] && . "$DOTS_RC"'';
   };
   modules = {
     WSL = {
