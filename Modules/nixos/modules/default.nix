@@ -3,7 +3,7 @@
     # ./boot.nix
     # ./common.nix
     # ./dots
-    # ./environment
+    ./environment.nix
     # ./fonts.nix
     ./networking.nix
     # ./packages
