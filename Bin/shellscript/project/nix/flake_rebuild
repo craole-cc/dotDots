@@ -3,50 +3,47 @@
 
 #@ Set defaults
 msg="Flake Update"
-dots="${DOTS:-}"
-orig="$(pwd)"
-target="$(hostname)"
+flake_root="${DOTS:-"$(pwd -P)"}"
+build_target="$(hostname)"
 
 #@ Parse arguments
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --flake)
-      if [ -n "$2" ]; then
-        dots="$2"
-        shift
-      else
-        exit 1
-      fi
-      ;;
-    --host)
-      if [ -n "$2" ]; then
-        target="$2"
-        shift
-      else
-        exit 1
-      fi
-      ;;
-    *)
-      if [ -d "${dots}" ]; then
-        msg="$1"
-      else
-        dots="$1"
-      fi
-      ;;
+  --flake)
+    if [ -n "$2" ]; then
+      flake_root="$2"
+      shift
+    else
+      exit 1
+    fi
+    ;;
+  --host | --target)
+    if [ -n "$2" ]; then
+      build_target="$2"
+      shift
+    else
+      exit 1
+    fi
+    ;;
+  *)
+    if [ -d "${flake_root}" ]; then
+      msg="$1"
+    else
+      flake_root="$1"
+    fi
+    ;;
   esac
   shift
 done
 
 #@ Navigate to the directory where the flake is located
-[ -f "${dots}/flake.nix" ] || exit 1
-cd "${dots}" || exit 1
+[ -f "${flake_root}/flake.nix" ] || exit 1
+cd "${flake_root}" || exit 1
 
-#@ Add all changes and commit with the provided or default message
-git add --all
-git commit --message "${msg}"
+#@ Check git status and encourage commit, fail if there are changes
+# if git diff-index --quiet HEAD; then
+# git add --all
+# git commit --message "${msg}"
 
 #@ Rebuild NixOS configuration using flakes
-sudo nixos-rebuild switch --flake .#"${target}" --upgrade
-
-#@ Return to the previous directory
-cd "${orig}" || exit 1
+sudo nixos-rebuild switch --flake "${flake_root}"#"${build_target}" --upgrade --show-trace

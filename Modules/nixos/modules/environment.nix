@@ -35,12 +35,7 @@ in
       # ".dots-link" = ''cd ${flake.link}'';
       # Flake = ''if command -v geet ; then geet ; else git add --all; git commit --message "Flake Update" ; fi ; sudo nixos-rebuild switch --flake . --show-trace'';
       Flash = ''sudo nixos-rebuild switch --flake ${dots}--show-trace'';
-      Flux = ''
-        pushd ${dots} &&
-        gyt
-        popd /dev/null 2>&1
-        }
-      '';
+      Flux = ''${scripts.gyt} --dir ${dots}'';
 
       # Flick = ''Flush && Flash && Reboot'';
       # Flick-local = ''Flush && Flash-local && Reboot'';
