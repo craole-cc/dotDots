@@ -1,4 +1,3 @@
-
 {
   programs.fastfetch.settings = {
     logo = {
