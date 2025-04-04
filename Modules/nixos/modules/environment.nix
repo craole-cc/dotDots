@@ -8,6 +8,7 @@ let
   scripts = with paths.parts.bin; {
     dev = dots + shellscript + "/project/nix/devnix";
     eda = dots + shellscript + "/packages/alias/edita";
+    gyt = dots + shellscript + "/project/git/gyto";
   };
 in
 {
@@ -34,13 +35,18 @@ in
       # ".dots-link" = ''cd ${flake.link}'';
       # Flake = ''if command -v geet ; then geet ; else git add --all; git commit --message "Flake Update" ; fi ; sudo nixos-rebuild switch --flake . --show-trace'';
       Flash = ''sudo nixos-rebuild switch --flake ${dots}--show-trace'';
-      # Flux=''
-      # Flash = ''Flash-local'';
+      Flux = ''
+        pushd ${dots} &&
+        gyt
+        popd /dev/null 2>&1
+        }
+      '';
+
       # Flick = ''Flush && Flash && Reboot'';
       # Flick-local = ''Flush && Flash-local && Reboot'';
       # Flick-root = ''Flush && Flash-root && Reboot'';
       # Flick-link = ''Flush && Flash-link && Reboot'';
-      Flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
+      flush = ''sudo nix-collect-garbage --delete-old; sudo nix-store --gc'';
       # Reboot = ''leave --reboot'';
       # Reload = ''leave --logout'';
       # Retire = ''leave --shutdown'';

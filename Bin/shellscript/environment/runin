@@ -1,0 +1,258 @@
+#!/bin/sh
+# shellcheck enable=all
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  validate_arguments
+  execute_process
+}
+
+set_defaults() {
+  #| Script Metadata
+  scr_path="$0"
+  scr_name="$(basename -- "${scr_path:-}")"
+  scr_version="0.2.0"
+  scr_description="${scr_name} executes a command in a target directory."
+  scr_author="Craole <https://github.com/craole-cc>"
+
+  #| Operation mode
+  set -e
+
+  #| Operation Variables
+  verbosity_quiet=0
+  verbosity_error=1
+  verbosity_warn=2
+  verbosity_info=3
+  verbosity_debug=4
+  verbosity="${verbosity_info}"
+  target_dir=""
+  target_cmd=""
+  delimiter="$(printf '\037')"
+  IFS="${delimiter}"
+}
+
+parse_arguments() {
+  #@ Parse command-line arguments
+  while [ $# -gt 0 ]; do
+    case "${1:-}" in
+    -h | --help) pout --usage ;;
+    -v | --version) pout --version ;;
+    -d | --debug | --verbose) verbosity="${verbosity_debug}" ;;
+    --info) verbosity="${verbosity_info}" ;;
+    --warn) verbosity="${verbosity_warn}" ;;
+    --error) verbosity="${verbosity_error}" ;;
+    -q | --quiet) verbosity="${verbosity_quiet}" ;;
+    -[wW] | --dir* | --*wd)
+      [ -z "${2:-}" ] &&
+        pout --error "No path specified for" "$1"
+      target_dir="$2"
+      shift
+      ;;
+    -[cC] | --cmd | --command)
+      [ -z "${2:-}" ] &&
+        pout --error "No path specified for" "$1"
+      target_cmd="$2"
+      shift
+      ;;
+    *)
+      #@ Warn about positional arguments
+      if [ -z "${target_dir:-}" ] && [ -z "${target_cmd:-}" ]; then
+        pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
+      fi
+
+      #@ Parse positional arguments
+      if [ -z "${target_dir:-}" ] && [ -d "$1" ]; then
+        pout --warn "Work directory inferred from positional argument:" "$1"
+        target_dir="$1"
+      else
+        pout --warn "Command to run inferred from positional argument:" "$1"
+        target_cmd="${target_cmd:-}${target_cmd:+${delimiter:- }}${1}"
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  #@ Set verbosity
+  case "${verbosity:-}" in
+  "${verbosity_quiet:-0}" | quiet | off | false)
+    verbosity="${verbosity_quiet:-0}"
+    ;;
+  "${verbosity_error:-1}" | error)
+    verbosity="${verbosity_error:-1}"
+    ;;
+  "${verbosity_debug:-3}" | debug)
+    verbosity="${verbosity_debug:-3}"
+    ;;
+  "${verbosity_info:-2}" | info | on)
+    verbosity="${verbosity_info:-2}"
+    ;;
+  *) verbosity="${verbosity_error:-1}" ;;
+  esac
+}
+
+validate_arguments() {
+  if [ -z "${target_dir:-}" ]; then
+    pout --warn "No working directory specified, using current directory"
+    target_dir="$(pwd -P)"
+  fi
+
+  if [ -z "${target_cmd:-}" ]; then
+    pout --error "No command specified"
+  fi
+
+}
+
+execute_process() {
+  #@ Change to working directory
+  if ! \cd "${target_dir:-}" >/dev/null; then
+    pout --error "Could not change to directory:" "${target_dir:-}"
+  else
+    eval "${target_cmd:-}"
+    exit_code=$?
+    if [ "${exit_code:-}" -ne 0 ]; then
+      pout --error "Failed with exit code:" "${exit_code}"
+    else
+      pout --info "Command completed successfully"
+    fi
+  fi
+}
+
+pout() {
+  #@ Initialize variables
+  tag=""
+  msg=""
+
+  #@ Parse arguments
+  while [ $# -gt 0 ]; do
+    case "${1:-}" in
+    --usage)
+      usage_guide
+      exit_code="${exit_code:-0}"
+      ;;
+    --version)
+      msg="${scr_version}"
+      exit_code="${exit_code:-0}"
+      ;;
+    --debug) tag="DEBUG" ;;
+    --info) tag="INFO" ;;
+    --warn) tag="WARN" ;;
+    --error)
+      tag="ERROR"
+      exit_code="${exit_code:-1}"
+      ;;
+    *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+    esac
+    shift
+  done
+
+  #@ Compose the tagged message, if necessary
+  if [ -n "${tag:-}" ]; then
+    msg="$(printf "[%s] /> %s <\ %s\n" "${tag}" "${scr_name:-}" "${msg:-}")"
+  fi
+
+  #@ Update the message, replacing the delimiter with spaces
+  msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+
+  #@ Print the message
+  case "${tag:-}" in
+  DEBUG)
+    if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+      printf "%s\n" "${msg:-}"
+    else
+      :
+    fi
+    ;;
+  INFO)
+    if [ "${verbosity}" -ge "${verbosity_info}" ]; then
+      printf "%s\n" "${msg:-}"
+    else
+      :
+    fi
+    ;;
+  WARN)
+    if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+      printf "%s\n" "${msg:-}"
+    else
+      :
+    fi
+    ;;
+  ERROR)
+    if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+      printf "%s\n" "${msg:-}"
+    else
+      :
+    fi
+    ;;
+  *) printf "%s" "${msg:-}" ;;
+  esac
+
+  #@ Terminate, if requested
+  if [ -z "${exit_code:-}" ]; then
+    return 0
+  elif [ "${exit_code}" -eq 0 ]; then
+    exit 0
+  else
+    exit "${exit_code}"
+  fi
+}
+
+usage_guide() {
+  cat <<-USAGE_GUIDE
+  ${scr_name} (${scr_version})
+
+  DESCRIPTION
+    ${scr_description}
+
+  USAGE
+    ${scr_name} [OPTIONS] --dir <directory> --cmd <command>
+    ${scr_name} [OPTIONS] <directory> <command>
+
+  OPTIONS
+    -h, --help                Display this help message
+    -v, --version             Display version information
+
+    #| Verbosity Options
+    -q, --quiet               Suppress all output
+    --error                   Show only errors
+    --warn                    Show warnings and errors
+    --info                    Show informational messages (default)
+    -d, --debug, --verbose    Show debug messages
+
+    #| Directory Options
+    -w, --wd <path>           Specify working directory
+    --directory <path>        Same as --wd
+
+    #| Command Options
+    -c, --cmd <command>       Specify command to execute
+    --command <command>       Same as --cmd
+
+  EXAMPLES
+    # Run 'ls -la' in the /tmp directory (using flags)
+    ${scr_name} --wd /tmp --cmd "ls -la"
+
+    # Same command using positional arguments
+    ${scr_name} /tmp "ls -la"
+
+    # Run with debug output
+    ${scr_name} --debug --wd /tmp --cmd "ls -la"
+
+    # Run in current directory
+    ${scr_name} --cmd "echo 'Hello World'"
+
+  EXIT STATUS
+    0    Command executed successfully
+    1    Error occurred during execution
+
+  NOTES
+    - The current working directory is used by default
+    - Command argument is required
+    - Using flags is recommended over positional arguments
+
+  AUTHORS
+    ${scr_author}
+USAGE_GUIDE
+}
+
+main "${@:-}"
