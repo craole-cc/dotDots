@@ -43,7 +43,7 @@ set_defaults() {
   VERBOSITY_LEVEL="${VERBOSITY_LEVEL_INFO}"
 
   #| Operational variables
-  git_dir="$(pwd -P)"
+  git_dir=""
 }
 
 set_operation_mode() {
@@ -80,7 +80,11 @@ parse_arguments() {
       shift
       ;;
     *)
-      msg="${msg}${msg:+${delimiter:- }}${1}"
+      if [ -z "${git_dir:-}" ] && [ -d "${1:-}" ]; then
+        git_dir="$1"
+      else
+        msg="${msg}${msg:+${delimiter:- }}${1}"
+      fi
       ;;
     esac
     shift

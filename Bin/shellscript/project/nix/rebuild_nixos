@@ -1,0 +1,120 @@
+#! /bin/sh
+# shellcheck enable=all
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  validate_environment
+  execute_process
+}
+
+set_defaults() {
+  #@ Enable strict mode
+  set -e
+
+  #@ Set defaults
+  flake_root=""
+  CMD_GIT="${CMD_GIT:-"$(command -v git 2>/dev/null)"}"
+  action="switch"
+  upgrade=""
+  trace=""
+  args=""
+  build_target=""
+  debug=""
+}
+
+parse_arguments() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --debug | --dry-run)
+      action="dry-build"
+      debug=true
+      ;;
+    --flake)
+      if [ -n "$2" ]; then
+        flake_root="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    --host | --*target)
+      if [ -n "$2" ]; then
+        build_target="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    switch | boot | test | build | dry-build | dry-activate | edit | repl | build-vm | build-vm-with-bootloader | build-image | list-generations) action="$1" ;;
+    --upgrade) upgrade=true ;;
+    -u | --up*) upgrade=true ;;
+    -t | --trace) trace=true ;;
+    --no-trace) trace="" ;;
+    --no-up*) upgrade="" ;;
+    *)
+      if [ -d "$1" ]; then
+        flake_root="$1"
+      else
+        args="${args:-}${args:+${delimiter:- }}${1}"
+      fi
+      ;;
+    esac
+    shift
+  done
+}
+
+validate_environment() {
+  #@ Navigate to the directory where the flake is located
+  if [ -n "${flake_root}" ]; then
+    [ -f "${flake_root}/flake.nix" ] || exit 1
+    \cd "${flake_root}" || exit 1
+  else
+    return 0
+  fi
+
+  #@ Check git status and encourage commit, fail if there are changes
+  git_changes_to_commit="$(${CMD_GIT} status --porcelain 2>/dev/null)"
+
+  #@ Update the nothing_to_commit flag if there are no changes
+  if [ -n "${git_changes_to_commit}" ]; then
+    printf "Please commit the following changes first:\n"
+    git status --short
+    return 1
+  fi
+}
+
+execute_process() {
+  #@ Update the arguments
+  case "${upgrade}" in
+  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
+  *) ;;
+  esac
+  case "${trace}" in
+  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--show-trace" ;;
+  *) ;;
+  esac
+
+  #@ Update target
+  if [ -n "${flake_root}" ] && [ -n "${build_target}" ]; then
+    build_target="--flake ${flake_root}#${build_target}"
+  elif [ -n "${flake_root}" ]; then
+    build_target="--flake ${flake_root}"
+  else
+    :
+  fi
+
+  #@ Update the command
+  cmd="sudo nixos-rebuild ${action} ${build_target} ${args:-}"
+
+  #@ Print the command
+  case "${debug}" in
+  true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
+  esac
+
+  #@ Execute the command
+  eval "${cmd}" "${args:-}"
+  return "$?"
+}
+
+main "$@"
