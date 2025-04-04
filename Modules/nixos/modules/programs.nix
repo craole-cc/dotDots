@@ -1,5 +1,14 @@
 { pkgs, ... }:
 {
+  programs = {
+    direnv = {
+      enable = true;
+      silent = true;
+    };
+    git.enable = true;
+    nix-ld.enable = true;
+  };
+
   environment.systemPackages = with pkgs; [
     bat
     btop

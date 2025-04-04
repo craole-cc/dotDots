@@ -1,19 +1,19 @@
 {
   imports = [
-    # ./environment
-    # ./packages
-    # ./services
-
     # ./boot.nix
     # ./common.nix
-    # ./fonts.nix
-    # ./localization.nix
-    # ./networking.nix
-    ./nix.nix
-    # ./users.nix
-
     # ./dots
-    # ./test.nix
+    # ./environment
+    # ./fonts.nix
+    ./networking.nix
+    # ./packages
     # ./paths.nix
+    ./services.nix
+    # ./test.nix
+    # ./users.nix
+    ./localization.nix
+    ./nix.nix
+    ./programs.nix
+    ./security.nix
   ];
 }
