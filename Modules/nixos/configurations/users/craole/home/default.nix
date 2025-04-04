@@ -5,6 +5,7 @@
   programs = {
     bat.enable = true;
     btop.enable = true;
+    brave.enable = true;
     helix.enable = true;
     git = {
       enable = true;
