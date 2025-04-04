@@ -124,7 +124,7 @@ execute_process() {
   esac
 
   #@ Execute the command
-  echo $args
+  printf "%s" ${args:-}
   # eval "${cmd}"
   return "$?"
 }
