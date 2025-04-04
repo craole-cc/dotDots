@@ -1,12 +1,13 @@
 {
   programs.zed-editor.extensions = [
+    "basher"
+    "biome"
     "cargotoml"
     "catppuccin"
     "catppuccin-icons"
-    "material-icon-theme"
-    # "codebook"
-    # "gruvbox material"
+    "git-firefly"
     "marksman"
+    "material-icon-theme"
     "nix"
     "snippets"
     "toml"
