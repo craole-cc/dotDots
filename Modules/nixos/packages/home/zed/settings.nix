@@ -8,7 +8,7 @@
     icon_theme = {
       "mode" = "system";
       "light" = "Catppuccin Latte";
-      "dark" = "Charmed Icons";
+      "dark" = "Material Icon Theme";
     };
 
     features = {
