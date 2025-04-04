@@ -67,6 +67,15 @@ parse_arguments() {
 validate_environment() {
   #@ Navigate to the directory where the flake is located
   if [ -n "${flake_root}" ]; then
+    #@ Get the absolute path to the flake directory
+    if realpath --version /dev/null 2>&1; then
+      flake_root="$(realpath "${flake_root}")"
+    elif readlink --version /dev/null 2>&1; then
+      flake_root="$(readlink -f "${flake_root}")"
+    else
+      flake_root="$(cd "${flake_root}" 2>/dev/null && pwd)"
+    fi
+
     [ -f "${flake_root}/flake.nix" ] || exit 1
     if \cd "${flake_root}"; then
 
@@ -103,7 +112,7 @@ execute_process() {
   if [ -n "${flake_root}" ] && [ -n "${build_target}" ]; then
     build_target="--flake ${flake_root}#${build_target}"
   elif [ -n "${flake_root}" ]; then
-    build_target="--flake ${flake_root}"
+    build_target="--flake ${flake_root}#$(hostname)"
   else
     :
   fi
@@ -117,7 +126,8 @@ execute_process() {
   esac
 
   #@ Execute the command
- "${cmd}"
+  echo $args
+  # eval "${cmd}"
   return "$?"
 }
 
