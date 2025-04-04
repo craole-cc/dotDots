@@ -15,7 +15,7 @@
     };
 
     #| Editor Appearance
-    buffer_font_size = 20;
+    buffer_font_size = 18;
     buffer_font_weight = 400;
     # buffer_font_family="VictorMono Nerd Font";
     # buffer_font_fallbacks=[

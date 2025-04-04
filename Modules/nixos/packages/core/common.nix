@@ -11,6 +11,7 @@
     fastfetch
     fd
     findutils
+    figlet
     fzf
     gawk
     getent
@@ -18,6 +19,7 @@
     gitui
     gnused
     helix
+    lolcat
     nil
     nix-index
     nixfmt-rfc-style
