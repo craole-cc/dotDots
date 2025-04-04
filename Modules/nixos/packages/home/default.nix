@@ -12,7 +12,7 @@
     # ./freetube
     # ./fuzzel
     # ./ghostty
-    # ./git
+    ./git
     ./helix
     # ./hyprlock
     # ./hyprshot
@@ -34,6 +34,6 @@
     # ./whatsapp
     # ./wofi
     # ./yt-dlp
-    # ./zed
+    ./zed
   ];
 }

@@ -11,8 +11,8 @@
       enable = true;
       userName = "Craole";
       userEmail = "32288735+Craole@users.noreply.github.com";
-      lfs.enable = true;
     };
+    zed-editor.enable = true;
 
   };
   home = {

@@ -2,10 +2,7 @@
   imports = [ ];
 
   programs.git = {
-    enable = true;
     lfs.enable = true;
-    userName = "Craole";
-    userEmail = "32288735+Craole@users.noreply.github.com";
     extraConfig = {
       init = {
         defaultBranch = "main";
