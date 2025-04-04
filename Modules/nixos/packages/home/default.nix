@@ -6,34 +6,34 @@
     ./bat
     ./brave
     # ./eww
-    # ./fastfetch
-    # ./fd
+    ./fastfetch
+    ./fd
     # ./firefox
-    # ./freetube
+    ./freetube
     # ./fuzzel
-    # ./ghostty
+    ./ghostty
     ./git
     ./helix
     # ./hyprlock
     # ./hyprshot
-    # ./jq
+    ./jq
     # ./kitty
-    # ./mpv
+    ./mpv
     # ./nushell
     # ./powershell
-    # ./qbittorrent
-    # ./ripgrep
-    # ./rofi
-    # ./starship
-    # ./swww
-    # ./thunderbird
-    # ./via
-    # ./vscode
-    # ./warp
-    # ./waybar
-    # ./whatsapp
-    # ./wofi
-    # ./yt-dlp
+    ./qbittorrent
+    ./ripgrep
+    ./rofi
+    ./starship
+    ./swww
+    ./thunderbird
+    ./via
+    ./vscode
+    ./warp
+    ./waybar
+    ./whatsapp
+    ./wofi
+    ./yt-dlp
     ./zed
   ];
 }

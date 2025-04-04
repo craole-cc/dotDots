@@ -1,6 +1,5 @@
 {
   alpha,
-  lib,
   modulesPath,
   ...
 }:
@@ -25,11 +24,11 @@
       trusted-users = [
         "root"
         "@wheel"
-        "${alpha}"
+        alpha
       ];
     };
-    extraOptions = ''
-      download-buffer-size = 4096 #TODO: Doesn't work
-    '';
+    # extraOptions = ''
+    #   download-buffer-size = 4096 #TODO: Doesn't work
+    # '';
   };
 }
