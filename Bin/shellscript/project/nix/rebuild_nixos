@@ -65,10 +65,8 @@ parse_arguments() {
 }
 
 validate_environment() {
-
-  #@ Navigate to the directory where the flake is located
+  #@ Get the absolute path to the flake directory
   if [ -n "${flake_root}" ]; then
-    #@ Get the absolute path to the flake directory
     if command -v realpath >/dev/null 2>&1; then
       flake_root="$(realpath "${flake_root}")"
     elif readlink -f >/dev/null 2>&1; then
@@ -81,9 +79,7 @@ validate_environment() {
   fi
 
   #@ Check the repository status
-  # [ -f "${flake_root}/flake.nix" ] || exit 1
   if \cd "${flake_root}"; then
-
     #@ Check git status and encourage commit, fail if there are changes
     git_changes_to_commit="$(${CMD_GIT} status --porcelain 2>/dev/null)"
 
@@ -95,7 +91,7 @@ validate_environment() {
     fi
   else
     printf "Failed to navigate to flake directory: %s\n" "${flake_root}"
-    # exit 1
+    return 0
   fi
 }
 
