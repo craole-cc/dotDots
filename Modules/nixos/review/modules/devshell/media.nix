@@ -101,7 +101,7 @@
     {
       category = "Project Management";
       name = "treefmt";
-      package = "treefmt2";
+      package = "treefmt";
     }
     {
       category = "File/Environment Management";

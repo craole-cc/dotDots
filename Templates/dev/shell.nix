@@ -34,7 +34,7 @@ pkgs.mkShell {
     powershell
     bashInteractive
     glib
-    treefmt2
+    treefmt
 
     #| Image Tools
     viu

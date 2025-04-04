@@ -48,7 +48,7 @@ in
           kondo
           shellcheck
           shfmt
-          treefmt2
+          treefmt
 
           # | Network
           bandwhich

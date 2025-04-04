@@ -28,7 +28,7 @@
     rsync
     speedtest-go
     trashy
-    treefmt2
+    treefmt
     wget
   ];
 

@@ -1,6 +1,6 @@
 # https://numtide.github.io/devshell
 [[commands]]
-packages = ["treefmt2", "cowsay"]
+packages = ["treefmt", "cowsay"]
 
 [[env]]
 name = "CRAOLE"
@@ -37,7 +37,7 @@ packages = [
   "powershell",
   "bashInteractive",
   "glib",
-  "treefmt2",
+  "treefmt",
 
   #| Image Tools
   "viu",

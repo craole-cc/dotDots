@@ -110,7 +110,7 @@ in
       sd
       git
       helix
-      treefmt2
+      treefmt
       nil
       nixd
       alejandra

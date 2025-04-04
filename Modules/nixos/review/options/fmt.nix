@@ -1,7 +1,7 @@
 { pkgs, ... }:
 let
   formatterPackages = with pkgs; [
-    treefmt2
+    treefmt
     nixfmt-rfc-style
     biome
     ruff
