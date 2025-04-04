@@ -1,5 +1,5 @@
 {
-  programs.zed-editor = {
+  programs.zed-editor.userSettings = {
 
     #> Themes
     theme = {
@@ -17,6 +17,30 @@
     #> Editor Appearance
     buffer_font_size = 20;
     buffer_font_weight = 400;
+    # buffer_font_family="VictorMono Nerd Font";
+    # buffer_font_fallbacks=[
+    #   "monospace"
+    #   "Operator Mono Book"
+    #   "VictorMono Nerd Font"
+    #   "Victor Mono"
+    #   "Operator Mono Lig"
+    #   "JetBrainsMono Nerd Font"
+    #   "Cascadia Code"
+    #   "Zed Plex Mono"
+    # ];
+    # buffer_font_features={
+    #   "calt"=true;
+    #   "ss01"=true;
+    #   "ss02"=true;
+    #   "ss03"=true;
+    #   "ss04"=true;
+    #   "ss05"=true;
+    #   "ss06"=true;
+    #   "ss07"=true;
+    #   "ss08"=true;
+    #   "zero"=true;
+    #   "onum"=true;
+    # };
     cursor_blink = true;
     current_line_highlight = "all";
     show_whitespaces = "selection";
