@@ -19,13 +19,16 @@
     gitui
     gnused
     helix
+    imagemagick
     lolcat
     nil
     nix-index
     nixfmt-rfc-style
     ripgrep
     rsync
+    speedtest-go
     trashy
+    treefmt2
     wget
   ];
 
