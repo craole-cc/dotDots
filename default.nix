@@ -203,25 +203,6 @@ let
         packages.core
         paths.modules.core
         users.${alpha}.core
-        {
-          security.sudo = {
-            execWheelOnly = true;
-            extraRules = [
-              {
-                users = [ alpha ];
-                commands = [
-                  {
-                    command = "ALL";
-                    options = [
-                      "SETENV"
-                      "NOPASSWD"
-                    ];
-                  }
-                ];
-              }
-            ];
-          };
-        }
       ];
     };
     home = {

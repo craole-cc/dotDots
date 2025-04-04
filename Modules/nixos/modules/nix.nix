@@ -27,8 +27,8 @@
         alpha
       ];
     };
-    # extraOptions = ''
-    #   download-buffer-size = 4096 #TODO: Doesn't work
-    # '';
+    extraOptions = ''
+      download-buffer-size = 524288000 #TODO: Does this work now
+    '';
   };
 }
