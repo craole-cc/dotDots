@@ -1,7 +1,7 @@
 {
   programs.zed-editor.userSettings = {
 
-    #> Themes
+    #| Themes
     theme = {
       mode = "system";
       light = "Catppuccin Latte";
@@ -14,7 +14,7 @@
       dark = "Catppuccin Frappé";
     };
 
-    #> Editor Appearance
+    #| Editor Appearance
     buffer_font_size = 20;
     buffer_font_weight = 400;
     # buffer_font_family="VictorMono Nerd Font";
@@ -60,7 +60,7 @@
       120
     ];
 
-    #> UI Appearance
+    #| UI Appearance
     ui_font_family = ".SystemUIFont";
     ui_font_fallbacks = [ ];
     ui_font_features.calt = false;
@@ -88,7 +88,7 @@
       enable_preview_from_code_navigation = true;
     };
 
-    #> Editor Behavior
+    #| Editor Behavior
     base_keymap = "VSCode";
     pane_split_direction_horizontal = "up";
     pane_split_direction_vertical = "left";
@@ -121,7 +121,7 @@
     seed_search_query_from_cursor = "always";
     use_smartcase_search = false;
 
-    #> Code Editing
+    #| Code Editing
     use_autoclose = true;
     use_auto_surround = true;
     always_treat_brackets_as_autoclosed = false;
@@ -137,7 +137,7 @@
     features.edit_prediction_provider = "zed";
     edit_predictions.disabled_globs = [ ".env" ];
 
-    #> Gutter & Visualizations
+    #| Gutter & Visualizations
     gutter = {
       line_numbers = true;
       code_actions = true;
@@ -170,7 +170,7 @@
     };
     line_indicator_format = "long";
 
-    #> Panels & Sidebars
+    #| Panels & Sidebars
     project_panel = {
       button = true;
       default_width = 240;
@@ -214,7 +214,7 @@
       modal_max_width = "small";
     };
 
-    #> Terminal Settings
+    #| Terminal Settings
     terminal = {
       shell = "system";
       dock = "bottom";
@@ -235,7 +235,7 @@
       };
     };
 
-    #> AI & Assistant Features
+    #| AI & Assistant Features
     assistant = {
       version = "2";
       enabled = true;
@@ -268,7 +268,7 @@
     };
     message_editor.auto_replace_emoji_shortcode = true;
 
-    #> File Handling & Formatting
+    #| File Handling & Formatting
     remove_trailing_whitespace_on_save = true;
     ensure_final_newline_on_save = true;
     format_on_save = "on";
@@ -325,26 +325,26 @@
       ];
     };
 
-    #> Language Integrations
+    #| Language Integrations
     enable_language_server = true;
     language_servers = [ "..." ];
     languages = { };
     jupyter.enabled = true;
     code_actions_on_format = { };
 
-    #> Git Integration
+    #| Git Integration
     git = {
       git_gutter = "tracked_files";
       inline_blame.enabled = true;
     };
 
-    #> Collaboration & Communication
+    #| Collaboration & Communication
     calls = {
       mute_on_join = false;
       share_on_join = false;
     };
 
-    #> Vim Configuration
+    #| Vim Configuration
     vim_mode = false;
     vim = {
       toggle_relative_line_numbers = false;
@@ -354,7 +354,7 @@
       custom_digraphs = { };
     };
 
-    #> Misc Settings
+    #| Misc Settings
     diagnostics.include_warnings = true;
     load_direnv = "shell_hook";
     journal = {
