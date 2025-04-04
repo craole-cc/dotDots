@@ -68,19 +68,23 @@ validate_environment() {
   #@ Navigate to the directory where the flake is located
   if [ -n "${flake_root}" ]; then
     [ -f "${flake_root}/flake.nix" ] || exit 1
-    \cd "${flake_root}" || exit 1
+    if \cd "${flake_root}"; then
+
+      #@ Check git status and encourage commit, fail if there are changes
+      git_changes_to_commit="$(${CMD_GIT} status --porcelain 2>/dev/null)"
+
+      #@ Update the nothing_to_commit flag if there are no changes
+      if [ -n "${git_changes_to_commit}" ]; then
+        printf "Please commit the following changes first:\n"
+        git status --short
+        return 1
+      fi
+    else
+      printf "Failed to navigate to flake directory: %s\n" "${flake_root}"
+      exit 1
+    fi
   else
     return 0
-  fi
-
-  #@ Check git status and encourage commit, fail if there are changes
-  git_changes_to_commit="$(${CMD_GIT} status --porcelain 2>/dev/null)"
-
-  #@ Update the nothing_to_commit flag if there are no changes
-  if [ -n "${git_changes_to_commit}" ]; then
-    printf "Please commit the following changes first:\n"
-    git status --short
-    return 1
   fi
 }
 
