@@ -1,12 +1,14 @@
 {
   programs.zed-editor.extensions = [
     "cargotoml"
-    "codebook"
-    "gruvbox material"
+    "catppuccin"
+    # "codebook"
+    # "gruvbox material"
     "marksman"
     "nix"
     "snippets"
     "toml"
-    "xy-zed"
+    "typos"
+    "zig"
   ];
 }
