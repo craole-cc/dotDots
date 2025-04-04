@@ -8,7 +8,7 @@
     icon_theme = {
       "mode" = "system";
       "light" = "Catppuccin Latte";
-      "dark" = "Material Icon Theme";
+      "dark" = "Catppuccin Frappé";
     };
 
     features = {
@@ -19,6 +19,6 @@
     };
     vim_mode = false;
     ui_font_size = 16;
-    buffer_font_size = 16;
+    buffer_font_size = 20;
   };
 }
