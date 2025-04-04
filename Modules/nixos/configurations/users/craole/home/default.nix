@@ -26,6 +26,7 @@
     # jujutsu.enable = true;
     mangohud.enable = true;
     mods.enable = true;
+    nix-index.enable = true;
     rbw.enable = true;
     ripgrep.enable = true;
     ripgrep-all.enable = true;
@@ -53,11 +54,9 @@
       gawk
       getent
       gh
-      gitui
       gnused
       nerd-fonts.victor-mono
       nil
-      nix-index
       nixd
       nixfmt-rfc-style
       onefetch
