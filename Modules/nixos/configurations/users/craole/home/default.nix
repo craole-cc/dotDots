@@ -55,27 +55,22 @@
       gh
       gitui
       gnused
-      gnused
-      helix
-      jq
       nerd-fonts.victor-mono
       nil
       nix-index
       nixd
       nixfmt-rfc-style
       onefetch
-      ripgrep
+      # ripgrep
       rsync
       sd
       shellcheck
       shfmt
-      tldr
       tokei
       trashy
       treefmt
       undollar
       wget
-      yazi
       zig
     ];
   };
