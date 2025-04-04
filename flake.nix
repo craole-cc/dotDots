@@ -15,6 +15,7 @@
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
+          config.allowUnfree = true;
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
@@ -50,7 +51,7 @@
                 }
               ]
               ++ (with dots; [
-                # (paths.hosts + "/${hostName}")
+                (paths.hosts + "/${hostName}")
                 modules.core
                 modules.home
               ]);

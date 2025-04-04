@@ -1,9 +1,13 @@
 {
-  alpha,
+  specialArgs,
   lib,
   modulesPath,
   ...
 }:
+let
+  inherit (specialArgs.host) userConfigs stateVersion platform;
+  inherit (lib.attrsets) attrNames;
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -25,11 +29,18 @@
       trusted-users = [
         "root"
         "@wheel"
-        "${alpha}"
-      ];
+      ] ++ (attrNames userConfigs);
     };
     extraOptions = ''
       download-buffer-size = 4096 #TODO: Doesn't work
     '';
+  };
+
+  nixpkgs = {
+    hostPlatform = platform;
+  };
+
+  system = {
+    inherit stateVersion;
   };
 }
