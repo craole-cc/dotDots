@@ -1,4 +1,4 @@
-{ alpha }:
+{ alpha,... }:
 {
   services = {
     displayManager = {

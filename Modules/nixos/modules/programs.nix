@@ -7,6 +7,9 @@
     };
     git.enable = true;
     nix-ld.enable = true;
+    starship.enable = true;
+    vivid.enable = true;
+    yazi.enable = true;
   };
 
   environment.systemPackages = with pkgs; [

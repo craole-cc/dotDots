@@ -1,4 +1,4 @@
-{ alpha }:
+{ alpha, ... }:
 {
   security.sudo = {
     execWheelOnly = true;

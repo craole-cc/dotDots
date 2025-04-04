@@ -2,8 +2,11 @@
   location = {
     latitude = 18.015;
     longitude = 77.49;
+    provider = "manual";
   };
+
   time.timeZone = "America/Jamaica";
+  
   i18n.defaultLocale = "en_US.UTF-8";
 
   services.redshift = {
