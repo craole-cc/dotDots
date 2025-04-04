@@ -117,7 +117,7 @@ execute_process() {
   esac
 
   #@ Execute the command
-  eval "${cmd}"
+ "${cmd}"
   return "$?"
 }
 
