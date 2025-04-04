@@ -1,6 +1,6 @@
+{ osConfig, ... }:
 {
-  imports = [ ];
   programs.firefox = {
-    enable = true;
+    enableGnomeExtensions = osConfig.services.gnome.gnome-browser-connector.enable;
   };
 }

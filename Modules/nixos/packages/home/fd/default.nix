@@ -1,4 +1,10 @@
 {
   imports = [ ];
-  programs.fd.enable = true;
+  programs.fd={
+    hidden = true;
+    extraOptions=[
+      # "--no-ignore"
+      "--absolute-path"
+    ];
+  };
 }
