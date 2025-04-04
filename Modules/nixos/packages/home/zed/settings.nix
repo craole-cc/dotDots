@@ -13,6 +13,7 @@
       light = "Catppuccin Latte";
       dark = "Catppuccin Frappé";
     };
+<<<<<<< Updated upstream
 
     #> Editor Appearance
     buffer_font_size = 20;
@@ -344,5 +345,13 @@
       metrics = true;
     };
     auto_update = true;
+=======
+    telemetry = {
+      metrics = false;
+    };
+    vim_mode = false;
+    ui_font_size = 16;
+    buffer_font_size = 20   ;
+>>>>>>> Stashed changes
   };
 }
