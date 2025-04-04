@@ -10,17 +10,30 @@ main() {
 
 set_defaults() {
   #@ Enable strict mode
-  set -e
+  # set -e
 
   #@ Set defaults
   flake_root=""
-  CMD_GIT="${CMD_GIT:-"$(command -v git 2>/dev/null)"}"
   action="switch"
   upgrade=""
   trace=""
   args=""
   build_target=""
   debug=""
+
+  #| Command cache
+  CMD_GIT="${CMD_GIT:-"$(command -v git 2>/dev/null)"}"
+  cmd_gyt_path="$(command -v gyt 2>/dev/null)"
+  cmd_gyt_dots="${CMD_GYT:-"${DOTS:-"${HOME}/.dots"}/Bin/shellscript/project/git/gyt"}"
+  if [ -n "${cmd_gyt_path}" ]; then
+    CMD_GYT="${cmd_gyt_path}"
+  elif [ -x "${cmd_gyt_dots}" ]; then
+    CMD_GYT="${cmd_gyt_dots}"
+  else
+    CMD_GYT=""
+  fi
+
+  echo CMD_GYT="${CMD_GYT}"
 }
 
 parse_arguments() {
@@ -64,35 +77,75 @@ parse_arguments() {
   done
 }
 
-validate_environment() {
+check_flake_status() {
+  #@ Initialize variables
+  _flake=""
+
+  #@ Skip if the flake directory not specified
+  if [ -z "${1:-}" ]; then
+    return 1
+  fi
+
   #@ Get the absolute path to the flake directory
-  if [ -n "${flake_root}" ]; then
-    if command -v realpath >/dev/null 2>&1; then
-      flake_root="$(realpath "${flake_root}")"
-    elif readlink -f >/dev/null 2>&1; then
-      flake_root="$(readlink -f "${flake_root}")"
+  if command -v realpath >/dev/null 2>&1; then
+    _flake="$(realpath "${1}")"
+  elif readlink -f >/dev/null 2>&1; then
+    _flake="$(readlink -f "${1}")"
+  else
+    _flake="$(cd "${1}" 2>/dev/null && pwd)"
+  fi
+
+  #@ Return the flake directory, if the flake exists
+  if [ -f "${_flake}/flake.nix" ]; then
+    printf "%s" "${_flake}"
+    return 0
+  else
+    printf "Flake directory does not exist: %s\n" "${_flake}"
+    return 2
+  fi
+}
+
+check_git_status() {
+  #@ Initialize variables
+  _git_dir="${1:-}"
+
+  #@ Run git status check
+  if [ -n "${CMD_GYT}" ]; then
+    echo "git dir: ${_git_dir}"
+    #@ Use gyt
+    "${CMD_GYT}" --dir "${_git_dir}"
+    return "$?"
+  else
+    #@ Check the repository status
+    if \cd "${_git_dir}"; then
+      #@ Check git status and encourage commit, fail if there are changes
+      git_changes_to_commit="$(${CMD_GIT} status --porcelain 2>/dev/null)"
+
+      #@ Update the nothing_to_commit flag if there are no changes
+      if [ -n "${git_changes_to_commit}" ]; then
+        printf "Please commit the following changes first:\n"
+        git status --short
+        return 1
+      fi
     else
-      flake_root="$(cd "${flake_root}" 2>/dev/null && pwd)"
+      printf "Failed to navigate to flake directory: %s\n" "${_git_dir}"
+      return 0
     fi
-  else
-    return 0
   fi
+}
 
-  #@ Check the repository status
-  if \cd "${flake_root}"; then
-    #@ Check git status and encourage commit, fail if there are changes
-    git_changes_to_commit="$(${CMD_GIT} status --porcelain 2>/dev/null)"
+validate_environment() {
+  #@ Retrieve the absolute path to the flake, if it exists
+  flake_status_check="$(check_flake_status "${flake_root}")"
+  flake_status="$?"
+  case "${flake_status}" in
+  1) return 0 ;;
+  2) return 1 ;;
+  0 | *) flake_root="${flake_status_check}" ;;
+  esac
 
-    #@ Update the nothing_to_commit flag if there are no changes
-    if [ -n "${git_changes_to_commit}" ]; then
-      printf "Please commit the following changes first:\n"
-      git status --short
-      return 1
-    fi
-  else
-    printf "Failed to navigate to flake directory: %s\n" "${flake_root}"
-    return 0
-  fi
+  #@ Check the git status
+  check_git_status "${flake_root}"
 }
 
 execute_process() {
@@ -124,9 +177,9 @@ execute_process() {
   esac
 
   #@ Execute the command
-  printf "%s" ${args:-}
+  printf "%s" "${args:-}"
   # eval "${cmd}"
-  return "$?"
+  # return "$?"
 }
 
 main "$@"
