@@ -32,8 +32,6 @@ set_defaults() {
   else
     CMD_GYT=""
   fi
-
-  echo CMD_GYT="${CMD_GYT}"
 }
 
 parse_arguments() {
@@ -114,7 +112,14 @@ check_git_status() {
     echo "git dir: ${_git_dir}"
     #@ Use gyt
     "${CMD_GYT}" --dir "${_git_dir}"
-    return "$?"
+
+    #@ Return the git status
+    status="$?"
+    case "${status}" in
+    130) printf "Operation cancelleled but the user" ;;
+    *) ;;
+    esac
+    return "${status}"
   else
     #@ Check the repository status
     if \cd "${_git_dir}"; then
@@ -137,15 +142,32 @@ check_git_status() {
 validate_environment() {
   #@ Retrieve the absolute path to the flake, if it exists
   flake_status_check="$(check_flake_status "${flake_root}")"
-  flake_status="$?"
-  case "${flake_status}" in
-  1) return 0 ;;
-  2) return 1 ;;
-  0 | *) flake_root="${flake_status_check}" ;;
+  if ! flake_root="${flake_status_check}"; then
+    return "$?"
+  fi
+  echo "ROOT: ${flake_root}"
+
+  #@ Retrieve the absolute path to the flake, if it exists
+  check_git_status "${flake_root}"
+  git_status="$?"
+
+  case "${git_status}" in
+  0) ;;
+  *) return "${git_status}" ;;
   esac
 
-  #@ Check the git status
-  check_git_status "${flake_root}"
+  echo "STAT: $?"
+  exit 0
+  # if [ "${git_status}" -ne 0 ]; then return "${git_status}"; fi
+
+  #@ Check the flake status
+  echo "STATUS ${git_status}"
+  exit 0
+  # flake_status="$?"
+  # case "${flake_status}" in
+  # 0) flake_root="${flake_status_check}" ;;
+  # *) return "${flake_status}" ;;
+  # esac
 }
 
 execute_process() {
