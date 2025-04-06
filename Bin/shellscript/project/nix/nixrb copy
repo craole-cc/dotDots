@@ -1,0 +1,625 @@
+#! /bin/sh
+# shellcheck enable=all
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  validate_environment
+  # run_process
+}
+
+set_defaults() {
+  #| Script Metadata
+  scr_path="$0"
+  scr_name="$(basename -- "${scr_path:-}")"
+  scr_version="0.2.0"
+  scr_description="Provides a wrapper with sane defaults for the nixos-rebuild command."
+  scr_authors="Craole <https://github.com/craole-cc>"
+
+  #| Operation Variables
+  debug_pad=24
+  delimiter="$(printf '\037')"
+  IFS="${delimiter}"
+  set_modes --pout-suppress tag ctx
+  set_modes --verbosity debug
+  set_modes --fail-on-error true
+
+  #| Process Variables
+  flake_root=""
+  action="switch"
+  upgrade=""
+  trace=""
+  args=""
+  build_target=""
+  debug=""
+}
+
+set_modes() {
+  #| Verbosity variables
+  verbosity_quiet=0
+  verbosity_error=1
+  verbosity_warn=2
+  verbosity_info=3
+  verbosity_debug=4
+  verbosity_trace=5
+  verbosity_options="$(
+    manage_list \
+      "${verbosity_quiet}" quiet off false \
+      "${verbosity_error}" error \
+      "${verbosity_warn}" warn \
+      "${verbosity_info}" info on true \
+      "${verbosity_debug}" debug \
+      "${verbosity_trace}" trace \
+      --delimiter '|' \
+      --build
+  )"
+  verbosity="${verbosity:-3}"
+  fail_on_error_options="$(
+    manage_list \
+      --build 1 on true enabled 0 off false disabled \
+      --delimiter ', '
+  )"
+  fail_on_error="${fail_on_error:-1}"
+
+  #@ Parse arguments
+  case "$1" in
+  --pout-suppress | --pout*)
+    #| Pout Options
+    for arg in "$@"; do
+      case "${arg}" in
+      *tag*) pout_tag_suppress=1 ;;
+      *scr*) pout_scr_suppress=1 ;;
+      *ctx*) pout_ctx_suppress=1 ;;
+      *msg*) pout_msg_suppress=1 ;;
+      *) ;;
+      esac
+    done
+    ;;
+  --verbosity)
+    #| Verbosity Level
+    case "${2:-}" in
+    0 | off | false | quiet | " ") verbosity=0 ;;
+    1 | err*) verbosity=1 ;;
+    2 | warn*) verbosity=2 ;;
+    3 | info*) verbosity=3 ;;
+    4 | debug) verbosity=4 ;;
+    5 | trace) verbosity=5 ;;
+    *)
+      pout --warn --key "Invalid verbosity level" "${2}"
+      pout "Valid options: " "${verbosity_options}"
+      pout "Default option: " "${verbosity}"
+      ;;
+    esac
+    ;;
+  --fail-on-error)
+    #| Script Operation Mode
+    case "${2:-}" in
+    1 | true | on | enabled) fail_on_error=1 ;;
+    0 | false | off | disabled) fail_on_error=0 ;;
+    *)
+      pout --warn "Invalid 'fail_on_error' mode" ": ($2)" \
+        "\nValid options: " "${fail_on_error_options}" \
+        "\nDefault option: " "${fail_on_error}"
+      ;;
+    esac
+    ;;
+  *) ;;
+  esac
+
+  case "${fail_on_error:-}" in
+  1 | true | on | enabled) set -e ;;
+  *) ;;
+  esac
+
+  case "${verbosity}" in
+  0) set_modes --end msg ;;
+  *) ;;
+  esac
+}
+
+cache_commands() {
+  fn_name="cache_commands"
+  #@ Loop through each command
+  for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
+    #@ Initialize variables
+    cmd_key="" cmd_val="" cmd_env=""
+
+    #@ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
+    cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]-' '[:upper:]_')"
+    pout --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+
+    #@ Retrieve the path, otherwise return empty string
+    cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+    pout --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+
+    #@ Create the environment variable of the command's location
+    eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
+    cmd_env="$(env | grep "${cmd_key}")"
+    pout --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+
+    #@ Debug
+    pout --ctx "${fn_name}" --debug --key "${cmd_key}" --val "${cmd_val}"
+  done
+
+  #| Gyt
+  cmd_gyt="${DOTS:-"${HOME}/.dots"}/Bin/shellscript/project/git/gyt"
+  if [ -z "${CMD_GYT}" ] && [ -x "${cmd_gyt}" ]; then
+    CMD_GYT="${cmd_gyt}"
+  else
+    CMD_GYT=""
+  fi
+  pout --ctx "${fn_name}" --debug --key "CMD_GYT" --val "${CMD_GYT}"
+}
+
+parse_arguments() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h | --help) pout --usage ;;
+    -v | --version) pout --version ;;
+    -d | --debug | --verbose) set_modes --verbosity debug ;;
+    --info) set_modes --verbosity info ;;
+    --warn) set_modes --verbosity warn ;;
+    --error) set_modes --verbosity error ;;
+    -q | --quiet) set_modes --verbosity quiet ;;
+    --flake)
+      if [ -n "$2" ]; then
+        flake_root="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    --host | --*target)
+      if [ -n "$2" ]; then
+        build_target="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    switch | boot | test | build | dry-build | dry-activate | edit | repl | build-vm | build-vm-with-bootloader | build-image | list-generations) action="$1" ;;
+    --upgrade) upgrade=true ;;
+    -u | --up*) upgrade=true ;;
+    -t | --trace) trace=true ;;
+    --no-trace) trace="" ;;
+    --no-up*) upgrade="" ;;
+    *)
+      if [ -z "${flake_root:-}" ]; then
+        flake_root="$1"
+      else
+        args="${args:-}${args:+${delimiter:- }}${1}"
+      fi
+
+      ;;
+    esac
+    shift
+  done
+
+  echo "ROOT: ${flake_root:-}"
+}
+
+check_flake_status() {
+  #@ Initialize variables
+  output=""
+  status=0
+  _flake="${1:-}"
+
+  #@ Check if a flake directory was specified
+  if [ -z "${1:-}" ]; then
+    pout --warn "No flake directory specified, proceeding with rebuild"
+    return 0
+  else
+    pout --debug "Checking git status for directory: ${_flake}"
+  fi
+
+  #@ Get the absolute path to the flake directory
+  if [ -n "${CMD_REALPATH}" ]; then
+    _flake="$("${CMD_REALPATH}" "${_flake}")"
+    pout --debug "Using 'realpath' to get absolute path"
+  elif [ -n "${CMD_READLINK}" ]; then
+    _flake="$("${CMD_READLINK}" -f "${_flake}")"
+    pout --debug "Using 'readlink -f' to get absolute path"
+  else
+    _flake="$(cd "${_flake}" 2>/dev/null && pwd)"
+    pout --debug "Using 'cd/pwd' to get absolute path"
+  fi
+
+  #@ Return the flake directory, if the flake exists
+  if [ -f "${_flake:-}/flake.nix" ]; then
+    output="${_flake:-}"
+  else
+    pout --error "Flake directory does not exist: ${_flake:-}"
+    status=1
+  fi
+
+  return 0
+}
+
+check_git_status() {
+  #@ Initialize variables
+  if [ -z "${1:-}" ]; then
+    pout --error "No directory specified for git status check"
+    return 1
+  else
+    _git_dir="${1:-}"
+    pout --trace "Checking git status for directory: ${_git_dir}"
+  fi
+
+  #@ Run git status check
+  if [ -n "${CMD_GYT}" ]; then
+    pout --trace "Using gyt to check git status"
+    if "${CMD_GYT}" --dir "${_git_dir}"; then
+      pout --trace "Git status command returned successfully"
+    else
+      gyt_status="$?"
+      case "${gyt_status:-}" in
+      130)
+        pout --error "Operation cancelleled but the user"
+        ;;
+      *) pout --error "Git status command returned with an error" ;;
+      esac
+    fi
+  else
+    #@ Check the repository status
+    if \cd "${_git_dir}"; then
+      #@ Check git status and encourage commit, fail if there are changes
+      [ -z "${CMD_GIT:-}" ] && pout --error "The git command is not available."
+      git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2>/dev/null)"
+
+      #@ Update the nothing_to_commit flag if there are no changes
+      if [ -n "${git_changes_to_commit}" ]; then
+        git status --short
+        pout --error "Please commit those repository changes first:\n"
+      fi
+    else
+      pout --error "Failed to navigate to flake directory:" "${_git_dir}"
+    fi
+  fi
+}
+
+validate_environment() {
+  pout --trace --key "Verbosity Mode:" "${verbosity}"
+  pout --trace --key "Strict Mode:" "${fail_on_error}"
+  cache_commands
+
+  #@ Retrieve the absolute path to the flake, if it exists
+  check_flake_status "${flake_root}"
+  echo "FLAKE: ${flake_root:-}"
+  echo "STATUS: ${status:-}"
+  echo "OUTPUT: ${output:-}"
+  # flake_status_check="$(check_flake_status "${flake_root}")"
+  # if ! flake_root="${flake_status_check}"; then
+  #   #@ Handle the flake status
+  #   # flake_status="$?"
+  #   echo pop
+  #   case "${status:-}" in
+  #   0) pout --debug "Using flake directory:" "${flake_root}" ;;
+  #   *) return "${flake_status:-}" ;;
+  #   esac
+  # else
+  #   echo here
+  # fi
+
+  return
+  #@ Retrieve the absolute path to the flake, if it exists
+  check_git_status "${flake_root}"
+  git_status="$?"
+
+  case "${git_status}" in
+  0) ;;
+  *) return "${git_status}" ;;
+  esac
+}
+
+run_process() {
+  #@ Update the arguments
+  case "${upgrade}" in
+  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
+  *) ;;
+  esac
+  case "${trace}" in
+  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--show-trace" ;;
+  *) ;;
+  esac
+
+  #@ Update target
+  if [ -n "${flake_root}" ] && [ -n "${build_target}" ]; then
+    build_target="--flake ${flake_root}#${build_target}"
+  elif [ -n "${flake_root}" ]; then
+    build_target="--flake ${flake_root}#$(hostname)"
+  else
+    :
+  fi
+
+  #@ Update the command
+  cmd="sudo nixos-rebuild ${action} ${build_target} ${args:-}"
+
+  #@ Print the command
+  case "${debug}" in
+  true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
+  esac
+
+  #@ Execute the command
+  printf "%s" "${args:-}"
+  # eval "${cmd}"
+  # return "$?"
+}
+
+pout() {
+  #@ Initialize variables
+  tag=""
+  msg=""
+  ctx=""
+  scr="${scr_name}"
+  trim=true
+  lines=0
+  stream_code=1 #? [1|2]
+  exit_code=    #? [""|0|1-255]
+  dont_print=
+
+  #@ Parse arguments
+  while [ $# -gt 0 ]; do
+    case "${1:-}" in
+    --usage)
+      usage_guide
+      exit_code="${exit_code:-0}"
+      ;;
+    --version)
+      msg="${scr_version}"
+      exit_code="${exit_code:-0}"
+      ;;
+    -k | --key) key="$2" shift ;;
+    -v | --val) val="$2" shift ;;
+    --trace)
+      if [ "${verbosity}" -ge "${verbosity_trace}" ]; then
+        tag="TRACE"
+        lines=1
+        stream_code=2
+      else
+        dont_print=true
+      fi
+      ;;
+    --debug)
+      if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+        tag="DEBUG"
+        lines=1
+        stream_code=2
+      else
+        dont_print=true
+      fi
+      ;;
+    --info)
+      if [ "${verbosity}" -ge "${verbosity_info}" ]; then
+        tag=" INFO"
+        lines=1
+      else
+        dont_print=true
+      fi
+      ;;
+    --warn)
+      if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+        tag=" WARN"
+        lines=1
+        stream_code=2
+      else
+        dont_print=true
+      fi
+      ;;
+    --error)
+      if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+        lines=1
+      else
+        dont_print=true
+      fi
+
+      tag="ERROR"
+      stream_code=2
+      exit_code="${exit_code:-1}"
+      ;;
+    --ctx | --context)
+      if [ -n "${2:-}" ]; then
+        ctx="$2"
+        shift
+      else
+        pout --error "No context specified"
+      fi
+      ;;
+    --no-scr) scr="" ;;
+    --no-tag) tag="" ;;
+    --no-ctx) ctx="" ;;
+    --no-msg) msg="" ;;
+    --no-trim) trim="" ;;
+    *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+    esac
+    shift
+  done
+
+  #@ Delimit the message with spaces
+  [ -n "${msg:-}" ] &&
+    msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+
+  #@ Update the tag
+  if [ -n "${tag:-}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+    tag="[ ${tag}-|-${scr}-|-${ctx} ]"
+  elif [ -n "${tag:-}" ] && [ -n "${scr}" ]; then
+    tag="[ ${tag}-|-${scr} ]"
+  elif [ -n "${tag:-}" ] && [ -n "${ctx}" ]; then
+    tag="[ ${tag}-|-${ctx} ]"
+  fi
+
+  #@ Format the message
+  if [ -n "${key}" ]; then
+
+    #@ Tag missing values
+    val="${val:-"${msg:-"{undefined}"}"}"
+
+    #@ Trim leading and trailing whitespace
+    if [ -n "${trim:-}" ]; then
+      key="$(trim_whitespace "${key}")"
+      val="$(trim_whitespace "${val}")"
+    fi
+
+    case "${tag}" in
+    *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Define the separator
+      sep=" | "
+
+      #@ Calculate padding for label alignment
+      debug_pad="${debug_pad:-18}"
+      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+      #@ Format the tagged key-value pair
+      msg="$(
+        printf "%s%s%s%s%s\n" \
+          "${tag}" "${pad}" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    *)
+      #@ Define the separator
+      sep=": "
+
+      #@ Print the key-value pair
+      msg="$(
+        printf "%s%s%s\n" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    esac
+  else
+    case "${tag}" in
+    *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Format the tagged message
+      msg="$(
+        printf "%s %b\n" \
+          "${tag}" "${msg}"
+      )"
+      ;;
+    *) msg="$(trim_whitespace "${msg}")" ;;
+    esac
+  fi
+
+  #@ Print the message
+  case "${dont_print:-}" in true | on | 1) ;; *)
+    #TODO: The last message is repeated and tagged as warn when the stream is engaged
+    # [ -n "${msg:-}" ] && printf "%s\n" "${msg:-}" >&"${stream_code:-1}"
+    [ -n "${msg:-}" ] && printf "%s\n" "${msg:-}"
+    ;;
+  esac
+
+  #@ Terminate, if requested
+  if [ -z "${exit_code:-}" ]; then
+    return 0
+  elif [ "${exit_code}" -eq 0 ]; then
+    exit 0
+  else
+    exit "${exit_code}"
+  fi
+}
+
+manage_list() {
+  #@ Initialize variables
+  list=""
+  action="build"
+  separator="${delimiter:-" "}"
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --create | --make | --build) action=build ;;
+    --parse) action=parse ;;
+    --delim* | --sep*) separator="${2:-}" shift ;;
+    *) list="${list:+${list}${delimiter}}$1" ;;
+    esac
+    shift
+  done
+
+  #@ Add the defined separator, if necessary
+  if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
+    old_IFS="${IFS}"
+    IFS="${delimiter}"
+    result=""
+    for item in ${list}; do
+      result="${result:+${result}${separator}}${item}"
+    done
+    IFS="${old_IFS}"
+    list="${result}"
+  fi
+
+  case "${action:-}" in
+  build)
+    printf "%s" "${list:-}"
+    ;;
+  parse)
+    #@ Parse the input string into an array-like output
+    old_IFS="${IFS}"
+    IFS="${delimiter}"
+    for item in ${list}; do
+      printf "%s\n" "${item}"
+    done
+    IFS="${old_IFS}"
+    ;;
+  *) ;;
+  esac
+}
+
+trim_whitespace() {
+  printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+
+usage_guide() {
+  cat <<-USAGE_GUIDE
+  ${scr_name} (${scr_version})
+
+  DESCRIPTION
+    ${scr_description}
+
+  USAGE
+    ${scr_name} [OPTIONS] --dir <directory> --cmd <command>
+    ${scr_name} [OPTIONS] <directory> <command>
+
+  OPTIONS
+    -h, --help                Display this help message
+    -v, --version             Display version information
+
+    #| Verbosity Options
+    -q, --quiet               Suppress all output
+    --error                   Show only errors
+    --warn                    Show warnings and errors
+    --info                    Show informational messages (default)
+    -d, --debug, --verbose    Show debug messages
+
+    #| Directory Options
+    -w, --wd <path>           Specify working directory
+    --directory <path>        Same as --wd
+
+    #| Command Options
+    -c, --cmd <command>       Specify command to execute
+    --command <command>       Same as --cmd
+
+  EXAMPLES
+    # Run 'ls -la' in the /tmp directory (using flags)
+    ${scr_name} --wd /tmp --cmd "ls -la"
+
+    # Same command using positional arguments
+    ${scr_name} /tmp "ls -la"
+
+    # Run with debug output
+    ${scr_name} --debug --wd /tmp --cmd "ls -la"
+
+    # Run in current directory
+    ${scr_name} --cmd "echo 'Hello World from \$(pwd)'"
+
+  EXIT STATUS
+    0    Command executed successfully
+    1    Error occurred during execution
+
+  NOTES
+    - The current working directory is used by default
+    - Command argument is required
+    - Using flags is recommended over positional arguments
+
+  AUTHORS
+    ${scr_authors}
+USAGE_GUIDE
+}
+
+main "$@"

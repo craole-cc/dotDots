@@ -4,7 +4,7 @@
 main() {
   set_defaults
   parse_arguments "$@"
-  validate_arguments
+  validate_environment
   execute_process
 }
 
@@ -92,7 +92,7 @@ parse_arguments() {
   esac
 }
 
-validate_arguments() {
+validate_environment() {
   if [ -z "${target_dir:-}" ]; then
     pout --warn "No working directory specified, using current directory"
     target_dir="$(pwd -P)"
