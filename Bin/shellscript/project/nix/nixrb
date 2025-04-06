@@ -5,7 +5,8 @@ main() {
   trap cleanup EXIT INT TERM
   set_defaults
   parse_arguments "$@"
-  # validate_environment
+  validate_environment
+  echo
   echo "pout testing..."
   # run_process
   # echo "..pout tested"
@@ -192,9 +193,9 @@ parse_arguments() {
       ;;
     *)
       if [ -z "${flake_root:-}" ] && [ -f "${1}/flake.nix" ]; then
-        pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
-        pout --warn --no-tag "Inferred flake root: ${flake_root}"
         flake_root="$1"
+        pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
+        pout --info "Inferred flake root: ${flake_root}"
       else
         case "$(basename -- "$1")" in "$(basename -- "${cwd}")")
           #@ Check if the current directory is a flake
@@ -227,25 +228,25 @@ check_flake_status() {
   #@ Check if a flake directory was specified
   if [ -z "${1:-}" ]; then
     pout --warn "No flake directory specified, proceeding with rebuild"
+    status=2
     return 0
-  else
-    pout --debug "Checking git status for directory: ${_flake}"
   fi
 
   #@ Get the absolute path to the flake directory
   if [ -n "${CMD_REALPATH}" ]; then
     _flake="$("${CMD_REALPATH}" "${_flake}")"
-    pout --debug "Using 'realpath' to get absolute path"
+    pout --trace "Using 'realpath' to get absolute path"
   elif [ -n "${CMD_READLINK}" ]; then
     _flake="$("${CMD_READLINK}" -f "${_flake}")"
-    pout --debug "Using 'readlink -f' to get absolute path"
+    pout --trace "Using 'readlink -f' to get absolute path"
   else
     _flake="$(cd "${_flake}" 2>/dev/null && pwd)"
-    pout --debug "Using 'cd/pwd' to get absolute path"
+    pout --trace "Using 'cd/pwd' to get absolute path"
   fi
 
   #@ Return the flake directory, if the flake exists
   if [ -f "${_flake:-}/flake.nix" ]; then
+    pout --debug --key "Flake Root (Absolute)" "${_flake}"
     output="${_flake:-}"
   else
     pout --error "Flake directory does not exist: ${_flake:-}"
@@ -258,42 +259,53 @@ check_flake_status() {
 check_git_status() {
   #@ Initialize variables
   if [ -z "${1:-}" ]; then
-    pout --error "No directory specified for git status check"
-    return 1
+    output="No directory specified for git status check"
+    status="$?"
+    return 0
   else
+    output=""
+    status=0
     _git_dir="${1:-}"
     pout --trace "Checking git status for directory: ${_git_dir}"
   fi
 
   #@ Run git status check
-  if [ -n "${CMD_GYT}" ]; then
+  if [ -n "${CMD_GYT:-}" ]; then
     pout --trace "Using gyt to check git status"
     if "${CMD_GYT}" --dir "${_git_dir}"; then
       pout --trace "Git status command returned successfully"
     else
-      gyt_status="$?"
-      case "${gyt_status:-}" in
-      130)
-        pout --error "Operation cancelleled but the user"
-        ;;
-      *) pout --error "Git status command returned with an error" ;;
+      status="$?"
+      case "${status:-}" in
+      130) echo && output="gyt operation cancelleled by the user" ;;
+      *) output="gyt operation failed" ;;
       esac
+      return 0
     fi
   else
     #@ Check the repository status
     if \cd "${_git_dir}"; then
       #@ Check git status and encourage commit, fail if there are changes
-      [ -z "${CMD_GIT:-}" ] && pout --error "The git command is not available."
+      [ -z "${CMD_GIT:-}" ] && {
+        status=1
+        output="The git command is not available."
+        return 0
+      }
+
       git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2>/dev/null)"
 
       #@ Update the nothing_to_commit flag if there are no changes
       if [ -n "${git_changes_to_commit}" ]; then
         git status --short
-        pout --error "Please commit those repository changes first:\n"
+        output="Please commit those repository changes first"
+        return 0
       fi
     else
-      pout --error "Failed to navigate to flake directory:" "${_git_dir}"
+      status="$?"
+      output="Failed to navigate to the git directory: ${_git_dir}"
+      return 0
     fi
+    return 0
   fi
 }
 
@@ -303,31 +315,23 @@ validate_environment() {
   cache_commands
 
   #@ Retrieve the absolute path to the flake, if it exists
-  check_flake_status "${flake_root}"
-  echo "FLAKE: ${flake_root:-}"
-  echo "STATUS: ${status:-}"
-  echo "OUTPUT: ${output:-}"
-  # flake_status_check="$(check_flake_status "${flake_root}")"
-  # if ! flake_root="${flake_status_check}"; then
-  #   #@ Handle the flake status
-  #   # flake_status="$?"
-  #   echo pop
-  #   case "${status:-}" in
-  #   0) pout --debug "Using flake directory:" "${flake_root}" ;;
-  #   *) return "${flake_status:-}" ;;
-  #   esac
-  # else
-  #   echo here
-  # fi
+  check_flake_status "${flake_root:-}"
+  case "${status}" in
+  0) flake_root="${output}" ;;
+  2) return 0 ;;
+  *) return "${status}" ;;
+  esac
 
-  return
   #@ Retrieve the absolute path to the flake, if it exists
   check_git_status "${flake_root}"
-  git_status="$?"
-
-  case "${git_status}" in
+  case "${status}" in
   0) ;;
-  *) return "${git_status}" ;;
+  *)
+    pout --error \
+      --ctx "check_git_status" \
+      --code "${status:-}" \
+      "${output}"
+    ;;
   esac
 }
 
@@ -370,11 +374,11 @@ pout() {
     exit_code="$?"
     context="${ctx:-"pout"}"
 
-    if [ "${exit_code:-0}" -ne 0 ] &&
-      [ "${verbosity:-}" -ge "${verbosity_error:-}" ]; then
-      printf "\n%s.%s exited with a error code of %s" \
-        "${scr_name}" "${context}" "${exit_code:-}" >&2
-    fi
+    # if [ "${exit_code:-0}" -ne 0 ] &&
+    #   [ "${verbosity:-}" -ge "${verbosity_error:-}" ]; then
+    #   printf "\n%s.%s exited with a error code of %s" \
+    #     "${scr_name}" "${context}" "${exit_code:-}" >&2
+    # fi
   }
   trap pout_cleanup EXIT INT TERM
 
@@ -398,7 +402,7 @@ pout() {
   stream_code=1 #? [1|2]
   tag=""
   tail_char="\n" #? Character(s) to be printed repeatedly after the message
-  tail_reps=0    #? positive integer or zero
+  tail_reps=1    #? positive integer or zero
   val=""
 
   #@ Parse arguments
@@ -469,7 +473,9 @@ pout() {
         # shellcheck disable=SC2310
         if is_zero_or_int "$2"; then
           head_reps="$2"
+          shift
         else
+          head_reps=1
           pout --error \
             --ctx "${ctx:-"pout"}" \
             --code "${?}" \
@@ -482,10 +488,12 @@ pout() {
     --*tail* | --trail*)
       if [ -n "$2" ]; then
         # shellcheck disable=SC2310
-        if is_zero_or_int "${2}"; then
-          tail_reps="${2}"
+        if is_zero_or_int "$2"; then
+          tail_reps="$2"
+          shift
         else
-          pout --error \
+          tail_reps=1
+          pout --warn \
             --ctx "${ctx:-"pout"}" \
             --code "${?}" \
             "'$1' requires an integer but got:" "$2"
@@ -495,12 +503,21 @@ pout() {
       fi
       ;;
     --code) exit_code="$2" shift ;;
-    --ctx | --context)
+    --ctx | --context | --fn | --func*)
       if [ -n "${2:-}" ]; then
         ctx="$2"
         shift
       else
         pout --error "No context specified"
+      fi
+      ;;
+    --scr | --script)
+      if [ -n "${2:-}" ]; then
+        scr="$2"
+        ctx=""
+        shift
+      else
+        pout --error "No script specified"
       fi
       ;;
     --neat)
@@ -542,12 +559,12 @@ pout() {
     msg=""
   else
     [ -n "${msg:-}" ] && {
-      msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+      msg="$(printf "%b" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
     }
     [ -n "${key:-}" ] && {
-      key="$(printf "%s" "${key:-}" | sed "s/${delimiter:-}/ /g")"
+      key="$(printf "%b" "${key:-}" | sed "s/${delimiter:-}/ /g")"
       val="$(
-        printf "%s" "${val:-"${msg:-"{undefined}"}"}" |
+        printf "%b" "${val:-"${msg:-"{undefined}"}"}" |
           sed "s/${delimiter:-}/ /g"
       )"
     }
@@ -605,7 +622,7 @@ pout() {
 
       #@ Format the tagged key-value pair
       msg="$(
-        printf "%s%s%s%s%s" \
+        printf "%bin%bin%bin%bin%bin" \
           "${tag}" "${pad}" "${key}" "${sep}" "${val}"
       )"
       ;;
@@ -614,7 +631,7 @@ pout() {
       sep=": "
 
       #@ Print the key-value pair
-      msg="$(printf "%s%s%s" "${key}" "${sep}" "${val}")"
+      msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
       ;;
     esac
   else
@@ -639,8 +656,8 @@ pout() {
 
       #@ Append the error code to the message or trailing characters
       if [ -n "${exit_code:-}" ]; then
-        #? Handled by pout_cleanup
-        # printf "\nExit Code: %s" "${exit_code:-}" >&"${stream_code:-1}"
+        printf "\n%s exited with a error code of %s" \
+          "${scr_name}" "${exit_code:-}" >&2
         :
       else
         #@ Print trailing characters/lines
@@ -787,11 +804,8 @@ USAGE_GUIDE
 cleanup() {
   #@ Get the last exit code
   code=$?
-  [ "${verbosity:-}" -ge "${verbosity_debug:-}" ] &&
-    printf "/> %s /> %s" "${scr_name}" "${code}"
-
-  #@ Unset all variables to prevent leakage
-  unset pout_suppression
+  # [ "${verbosity:-}" -ge "${verbosity_debug:-}" ] &&
+  #   printf "/> %s /> %s" "${scr_name}" "${code}"
 }
 
 main "$@"
