@@ -18,7 +18,7 @@ set_defaults() {
   debug=0
 
   CMD_GYTO="$(command -v gyto 2> /dev/null || printf "")"
-  CMD_GYTO="${CMD_GYTO:-"${prj_root}/Bin/shellscript/project/git/gyto"}"
+  CMD_GYTO="${CMD_GYTO:-"${prj_root}/Bin/shellscript/project/git/gyt"}"
 }
 
 pout() {
