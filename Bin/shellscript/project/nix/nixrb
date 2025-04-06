@@ -6,10 +6,8 @@ main() {
   set_defaults
   parse_arguments "$@"
   validate_environment
-  echo
-  echo "pout testing..."
   # run_process
-  # echo "..pout tested"
+  echo "..pout tested"
 }
 
 set_defaults() {
@@ -372,13 +370,14 @@ run_process() {
 pout() {
   pout_cleanup() {
     exit_code="$?"
-    context="${ctx:-"pout"}"
-
-    # if [ "${exit_code:-0}" -ne 0 ] &&
-    #   [ "${verbosity:-}" -ge "${verbosity_error:-}" ]; then
-    #   printf "\n%s.%s exited with a error code of %s" \
-    #     "${scr_name}" "${context}" "${exit_code:-}" >&2
-    # fi
+    if
+      [ "${exit_code:-0}" -ne 0 ] &&
+        [ "${verbosity:-}" -ge "${verbosity_error:-}" ]
+    then
+      : #? This prints twice when there is an error
+      # printf "\n%s exited with a error code of %s" \
+      #   "${scr_name}" "${exit_code:-}" >&2
+    fi
   }
   trap pout_cleanup EXIT INT TERM
 
@@ -601,7 +600,7 @@ pout() {
     fi
 
     #@ Add special characters/seperators
-    tag="[ ${tag:-} ] "
+    tag="/> ${tag:-} <\\ "
 
     #@ Ensure there is a trailing line break
     tail_reps=1
@@ -656,8 +655,9 @@ pout() {
 
       #@ Append the error code to the message or trailing characters
       if [ -n "${exit_code:-}" ]; then
-        printf "\n%s exited with a error code of %s" \
-          "${scr_name}" "${exit_code:-}" >&2
+        #? Handled in pout_cleanup
+        # printf "\n%s exited with a error code of %s" \
+        #   "${scr_name}" "${exit_code:-}" >&2
         :
       else
         #@ Print trailing characters/lines
