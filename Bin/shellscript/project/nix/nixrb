@@ -358,7 +358,7 @@ run_process() {
   # eval "${cmd}"
   # return "$?"
 }
-end_process () {
+end_process() {
   pout_cleanup() {
     exit_code="$?"
     if
@@ -366,8 +366,8 @@ end_process () {
         [ "${verbosity:-}" -ge "${verbosity_error:-}" ]
     then
       : #? This prints twice when there is an error
-      printf "\n%s exited with a error code of %s" \
-        "${scr_name}" "${exit_code:-}" >&2
+      # printf "\n%s exited with a error code of %s" \
+      #   "${scr_name}" "${exit_code:-}" >&2
     fi
   }
   trap pout_cleanup EXIT INT TERM
@@ -575,24 +575,24 @@ end_process () {
   #@ Update the tag
   if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
     if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
-      tag="${tag}${lvl}-|-${scr}-|-${ctx}"
+      tag="${lvl}-|-${scr}-|-${ctx}"
     elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
-      tag="${tag}${scr}-|-${ctx}"
+      tag="${scr}-|-${ctx}"
     elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
-      tag="${tag}${lvl}-|-${ctx}"
+      tag="${lvl}-|-${ctx}"
     elif [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
-      tag="${tag}${lvl}-|-${scr}"
+      tag="${lvl}-|-${scr}"
     elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -z "${ctx}" ]; then
-      tag="${tag}${lvl}"
+      tag="${lvl}"
     elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
-      tag="${tag}${scr}"
+      tag="${scr}"
     elif [ -z "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
-      tag="${tag}${ctx}"
+      tag="${ctx}"
     fi
 
-    #@ Add code if exists
-    [ -n "${exit_code}" ]   && [ "${exit_code:-0}" -gt 0 ] &&
-    tag="${tag:-} (${exit_code})"
+    #@ Add the exit_code, if exists
+    [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
+      tag="${tag:-}-|-exit code: ${exit_code}"
 
     #@ Add special characters/seperators
     tag="/> ${tag:-} <\\ "
@@ -652,7 +652,8 @@ end_process () {
       if [ -n "${exit_code:-}" ]; then
         #? Handled in pout_cleanup
         # printf "\n%s exited with a error code of %s" \
-        #   "${scr_name}" "${exit_code:-}" >&2
+        #   "${scr_name}" "${exit_code}" >&2
+        #   exit "${exit_code}"
         :
       else
         #@ Print trailing characters/lines
