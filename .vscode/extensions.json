@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "bbenoist.nix",
+    "jnoortheen.nix-ide",
+    "mkhl.shfmt",
+    "timonwong.shellcheck",
+    "pkief.material-icon-theme",
+    "rafamel.subtle-brackets",
+    "tamasfe.even-better-toml",
+    "jaaxxx.multicursor-casepreserve",
+    "allemandinstable.colorful-comments-refreshed"
+  ]
+}

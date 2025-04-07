@@ -2,10 +2,10 @@
 # shellcheck enable=all
 
 main() {
-  trap cleanup EXIT INT TERM
+  trap exit_with_grace EXIT INT TERM
   set_defaults
-  parse_arguments "$@"
-  validate_environment
+  get_arguments "$@"
+  set_environment
   # run_process
   echo "..end_process tested"
 }
@@ -18,14 +18,10 @@ set_defaults() {
   scr_authors="Craole <https://github.com/craole-cc>"
 
   #| Operation Variables
+  ctx_sep="-|-"
   debug_pad=24
   delimiter="$(printf '\037')"
   IFS="${delimiter}"
-  # set_modes --pout-suppress tag
-  # set_modes --pout-suppress lvl
-  # set_modes --pout-suppress ctx
-  # set_modes --pout-suppress scr
-  # set_modes --pout-suppress tag ctx scr
   set_modes --verbosity trace
   set_modes --fail-on-error true
 
@@ -119,8 +115,14 @@ set_modes() {
   *) ;;
   esac
 }
-cache_commands() {
-  fn_name="cache_commands"
+set_commands() {
+  #| Function Metadata
+  fn_root="${fn_ctx}"
+  fn_name="set_commands"
+  fn_ctx="${fn_root}${ctx_sep}${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" RETURN EXIT INT TERM
+
   #@ Loop through each command
   for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
     #@ Initialize variables
@@ -128,19 +130,19 @@ cache_commands() {
 
     #@ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
     cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]-' '[:upper:]_')"
-    end_process --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+    end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
     #@ Retrieve the path, otherwise return empty string
     cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
-    end_process --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+    end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
     #@ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
     cmd_env="$(env | grep "${cmd_key}")"
-    end_process --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+    end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
 
     #@ Debug
-    end_process --ctx "${fn_name}" --debug --key "${cmd_key}" --val "${cmd_val}"
+    end_process --ctx "${fn_ctx}" --debug --key "${cmd_key}" --val "${cmd_val}"
   done
 
   #| Gyt
@@ -150,9 +152,13 @@ cache_commands() {
   else
     CMD_GYT=""
   fi
-  end_process --ctx "${fn_name}" --debug --key "CMD_GYT" --val "${CMD_GYT}"
+  end_process --ctx "${fn_ctx}" --debug --key "CMD_GYT" --val "${CMD_GYT}"
 }
-parse_arguments() {
+get_arguments() {
+  #| Function Metadata
+  fn_name="get_arguments"
+  fn_ctx="${fn_name}"
+
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -h | --help) end_process --usage ;;
@@ -174,7 +180,7 @@ parse_arguments() {
         flake_root="$2"
         shift
       else
-        end_process --error "The option '$1' requires an argument"
+        end_process --ctx "${fn_ctx}" --error "The option '$1' requires an argument"
       fi
       ;;
     --host | --*target)
@@ -188,14 +194,14 @@ parse_arguments() {
     *)
       if [ -z "${flake_root:-}" ] && [ -f "${1}/flake.nix" ]; then
         flake_root="$1"
-        end_process --warn "Avoid positional arguments for safer operation. For more information, use --help"
-        end_process --info "Inferred flake root: ${flake_root}"
+        end_process --ctx "${fn_ctx}" --warn "Avoid positional arguments for safer operation. For more information, use --help"
+        end_process --ctx "${fn_ctx}" --info "Inferred flake root: ${flake_root}"
       else
         case "$(basename -- "$1")" in "$(basename -- "${cwd}")")
           #@ Check if the current directory is a flake
           if [ -f "${cwd}/flake.nix" ]; then
             flake_root="${cwd}"
-            end_process --info --no-ctx \
+            end_process --info --ctx "${fn_name}" \
               "Proceeding with the current directory as the flake root."
           else
             args="${args:-}${args:+${delimiter:- }}${1}"
@@ -208,14 +214,25 @@ parse_arguments() {
     shift
   done
 
-  end_process --ctx "parse_arguments" --debug --key "Flake Root" --val "${flake_root}"
-  end_process --ctx "parse_arguments" --debug --key "Build Target" --val "${build_target}"
-  end_process --ctx "parse_arguments" --debug --key "Arguments" --val "${args}"
+  end_process --ctx "${fn_ctx}" --debug --key "Flake Root" --val "${flake_root}"
+  end_process --ctx "${fn_ctx}" --debug --key "Build Target" --val "${build_target}"
+  end_process --ctx "${fn_ctx}" --debug --key "Arguments" --val "${args}"
 }
-validate_environment() {
-  end_process --trace --key "Verbosity Mode:" "${verbosity}"
-  end_process --trace --key "Strict Mode:" "${fail_on_error}"
-  cache_commands
+set_environment() {
+  #| Function Metadata
+  fn_name="set_environment"
+  fn_ctx="${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" RETURN EXIT INT TERM
+
+  end_process --ctx "${fn_ctx}" --trace --key "cwd" --val "${cwd}"
+  end_process --ctx "${fn_ctx}" --trace --key "flake_root" --val "${flake_root}"
+  end_process --ctx "${fn_ctx}" --trace --key "action" --val "${action}"
+  end_process --ctx "${fn_ctx}" --trace --key "Verbosity Mode:" "${verbosity}"
+  end_process --ctx "${fn_ctx}" --trace --key "Strict Mode:" "${fail_on_error}"
+
+  #@ Cache the commands that will be used
+  set_commands
 
   #@ Retrieve the absolute path to the flake, if it exists
   check_flake_status "${flake_root:-}"
@@ -238,14 +255,21 @@ validate_environment() {
   esac
 }
 check_flake_status() {
-  #@ Initialize variables
+  #| Function Metadata
+  fn_root="${fn_ctx}"
+  fn_name="check_flake_status"
+  fn_ctx="${fn_root}${ctx_sep}${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" RETURN EXIT INT TERM
+
+  #| Defaults
   output=""
   status=0
   _flake="${1:-}"
 
   #@ Check if a flake directory was specified
   if [ -z "${1:-}" ]; then
-    end_process --warn "No flake directory specified, proceeding with rebuild"
+    end_process --ctx "${fn_ctx}" --warn "No flake directory specified, proceeding with rebuild"
     status=2
     return 0
   fi
@@ -253,28 +277,35 @@ check_flake_status() {
   #@ Get the absolute path to the flake directory
   if [ -n "${CMD_REALPATH}" ]; then
     _flake="$("${CMD_REALPATH}" "${_flake}")"
-    end_process --trace "Using 'realpath' to get absolute path"
+    end_process --ctx "${fn_ctx}" --trace "Using 'realpath' to get absolute path"
   elif [ -n "${CMD_READLINK}" ]; then
     _flake="$("${CMD_READLINK}" -f "${_flake}")"
-    end_process --trace "Using 'readlink -f' to get absolute path"
+    end_process --ctx "${fn_ctx}" --trace "Using 'readlink -f' to get absolute path"
   else
     _flake="$(cd "${_flake}" 2>/dev/null && pwd)"
-    end_process --trace "Using 'cd/pwd' to get absolute path"
+    end_process --ctx "${fn_ctx}" --trace "Using 'cd/pwd' to get absolute path"
   fi
 
   #@ Return the flake directory, if the flake exists
   if [ -f "${_flake:-}/flake.nix" ]; then
-    end_process --debug --key "Flake Root (Absolute)" "${_flake}"
+    end_process --ctx "${fn_ctx}" --debug --key "Flake Root (Absolute)" "${_flake}"
     output="${_flake:-}"
   else
-    end_process --error "Flake directory does not exist: ${_flake:-}"
+    end_process --ctx "${fn_ctx}" --error "Flake directory does not exist: ${_flake:-}"
     status=1
   fi
 
   return 0
 }
 check_git_status() {
-  #@ Initialize variables
+  #| Function Metadata
+  fn_root="${fn_ctx}"
+  fn_name="check_git_status"
+  fn_ctx="${fn_root}${ctx_sep}${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" RETURN EXIT INT TERM
+
+  #| Defaults
   if [ -z "${1:-}" ]; then
     output="No directory specified for git status check"
     status="$?"
@@ -283,18 +314,18 @@ check_git_status() {
     output=""
     status=0
     _git_dir="${1:-}"
-    end_process --trace "Checking git status for directory: ${_git_dir}"
+    end_process --ctx "${fn_ctx}" --trace "Checking git status for directory: ${_git_dir}"
   fi
 
   #@ Run git status check
   if [ -n "${CMD_GYT:-}" ]; then
-    end_process --trace "Using gyt to check git status"
+    end_process --ctx "${fn_ctx}" --trace "Using gyt to check git status"
     if "${CMD_GYT}" --dir "${_git_dir}"; then
-      end_process --trace "Git status command returned successfully"
+      end_process --ctx "${fn_ctx}" --trace "Git status command returned successfully"
     else
       status="$?"
       case "${status:-}" in
-      130) echo && output="gyt operation cancelleled by the user" ;;
+      130) printf "\n" && output="gyt operation cancelleled by the user" ;;
       *) output="gyt operation failed" ;;
       esac
       return 0
@@ -326,6 +357,12 @@ check_git_status() {
   fi
 }
 run_process() {
+  #| Function Metadata
+  fn_name="run_process"
+  fn_ctx="${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="" RETURN EXIT INT TERM
+
   #@ Update the arguments
   case "${upgrade}" in
   true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
@@ -365,7 +402,7 @@ end_process() {
       [ "${exit_code:-0}" -ne 0 ] &&
         [ "${verbosity:-}" -ge "${verbosity_error:-}" ]
     then
-      : #? This prints twice when there is an error
+      : #TODO: This prints twice when there is an error
       # printf "\n%s exited with a error code of %s" \
       #   "${scr_name}" "${exit_code:-}" >&2
     fi
@@ -399,7 +436,7 @@ end_process() {
   while [ $# -gt 0 ]; do
     case "${1:-}" in
     --usage)
-      usage_guide
+      display_usage_guide
       exit_code="${exit_code:-0}"
       ;;
     --version)
@@ -735,7 +772,14 @@ manage_list() {
 trim_whitespace() {
   printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
-usage_guide() {
+exit_with_grace() {
+  # code=$?
+  unset scr_path scr_name scr_version scr_description scr_authors
+  unset fn_name fn_root fn_ctx
+  unset debug_pad delimiter IFS
+  unset cwd flake_root action upgrade trace args build_target debug verbosity debug
+}
+display_usage_guide() {
   cat <<-USAGE_GUIDE
   ${scr_name} (${scr_version})
 
@@ -790,11 +834,5 @@ usage_guide() {
   AUTHORS
     ${scr_authors}
 USAGE_GUIDE
-}
-cleanup() {
-  # code=$?
-  unset scr_path scr_name scr_version scr_description scr_authors
-  unset debug_pad delimiter IFS
-  unset cwd flake_root action upgrade trace args build_target debug verbosity debug
 }
 main "$@"
