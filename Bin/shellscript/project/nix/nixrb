@@ -7,9 +7,8 @@ main() {
   parse_arguments "$@"
   validate_environment
   # run_process
-  echo "..pout tested"
+  echo "..end_process tested"
 }
-
 set_defaults() {
   #| Script Metadata
   scr_path="$0"
@@ -40,7 +39,6 @@ set_defaults() {
   build_target=""
   debug=""
 }
-
 set_modes() {
   #| Verbosity variables
   verbosity_quiet=0
@@ -95,9 +93,9 @@ set_modes() {
     4 | debug) verbosity=4 ;;
     5 | trace) verbosity=5 ;;
     *)
-      pout --warn --key "Invalid verbosity level" "${2}"
-      pout "Valid options: " "${verbosity_options}"
-      pout "Default option: " "${verbosity}"
+      end_process --warn --key "Invalid verbosity level" "${2}"
+      end_process "Valid options: " "${verbosity_options}"
+      end_process "Default option: " "${verbosity}"
       ;;
     esac
     ;;
@@ -107,7 +105,7 @@ set_modes() {
     1 | true | on | enabled) fail_on_error=1 ;;
     0 | false | off | disabled) fail_on_error=0 ;;
     *)
-      pout --warn "Invalid 'fail_on_error' mode" ": ($2)" \
+      end_process --warn "Invalid 'fail_on_error' mode" ": ($2)" \
         "\nValid options: " "${fail_on_error_options}" \
         "\nDefault option: " "${fail_on_error}"
       ;;
@@ -121,7 +119,6 @@ set_modes() {
   *) ;;
   esac
 }
-
 cache_commands() {
   fn_name="cache_commands"
   #@ Loop through each command
@@ -131,19 +128,19 @@ cache_commands() {
 
     #@ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
     cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]-' '[:upper:]_')"
-    pout --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+    end_process --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
     #@ Retrieve the path, otherwise return empty string
     cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
-    pout --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+    end_process --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
     #@ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
     cmd_env="$(env | grep "${cmd_key}")"
-    pout --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+    end_process --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
 
     #@ Debug
-    pout --ctx "${fn_name}" --debug --key "${cmd_key}" --val "${cmd_val}"
+    end_process --ctx "${fn_name}" --debug --key "${cmd_key}" --val "${cmd_val}"
   done
 
   #| Gyt
@@ -153,14 +150,13 @@ cache_commands() {
   else
     CMD_GYT=""
   fi
-  pout --ctx "${fn_name}" --debug --key "CMD_GYT" --val "${CMD_GYT}"
+  end_process --ctx "${fn_name}" --debug --key "CMD_GYT" --val "${CMD_GYT}"
 }
-
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -h | --help) pout --usage ;;
-    -v | --version) pout --version ;;
+    -h | --help) end_process --usage ;;
+    -v | --version) end_process --version ;;
     -q | --quiet) set_modes --verbosity quiet ;;
     --error) set_modes --verbosity error ;;
     --warn) set_modes --verbosity warn ;;
@@ -178,7 +174,7 @@ parse_arguments() {
         flake_root="$2"
         shift
       else
-        pout --error "The option '$1' requires an argument"
+        end_process --error "The option '$1' requires an argument"
       fi
       ;;
     --host | --*target)
@@ -192,14 +188,14 @@ parse_arguments() {
     *)
       if [ -z "${flake_root:-}" ] && [ -f "${1}/flake.nix" ]; then
         flake_root="$1"
-        pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
-        pout --info "Inferred flake root: ${flake_root}"
+        end_process --warn "Avoid positional arguments for safer operation. For more information, use --help"
+        end_process --info "Inferred flake root: ${flake_root}"
       else
         case "$(basename -- "$1")" in "$(basename -- "${cwd}")")
           #@ Check if the current directory is a flake
           if [ -f "${cwd}/flake.nix" ]; then
             flake_root="${cwd}"
-            pout --info --no-ctx \
+            end_process --info --no-ctx \
               "Proceeding with the current directory as the flake root."
           else
             args="${args:-}${args:+${delimiter:- }}${1}"
@@ -212,11 +208,35 @@ parse_arguments() {
     shift
   done
 
-  pout --ctx "parse_arguments" --debug --key "Flake Root" --val "${flake_root}"
-  pout --ctx "parse_arguments" --debug --key "Build Target" --val "${build_target}"
-  pout --ctx "parse_arguments" --debug --key "Arguments" --val "${args}"
+  end_process --ctx "parse_arguments" --debug --key "Flake Root" --val "${flake_root}"
+  end_process --ctx "parse_arguments" --debug --key "Build Target" --val "${build_target}"
+  end_process --ctx "parse_arguments" --debug --key "Arguments" --val "${args}"
 }
+validate_environment() {
+  end_process --trace --key "Verbosity Mode:" "${verbosity}"
+  end_process --trace --key "Strict Mode:" "${fail_on_error}"
+  cache_commands
 
+  #@ Retrieve the absolute path to the flake, if it exists
+  check_flake_status "${flake_root:-}"
+  case "${status}" in
+  0) flake_root="${output}" ;;
+  2) return 0 ;;
+  *) return "${status}" ;;
+  esac
+
+  #@ Retrieve the absolute path to the flake, if it exists
+  check_git_status "${flake_root}"
+  case "${status}" in
+  0) ;;
+  *)
+    end_process --error \
+      --ctx "check_git_status" \
+      --code "${status:-}" \
+      "${output}"
+    ;;
+  esac
+}
 check_flake_status() {
   #@ Initialize variables
   output=""
@@ -225,7 +245,7 @@ check_flake_status() {
 
   #@ Check if a flake directory was specified
   if [ -z "${1:-}" ]; then
-    pout --warn "No flake directory specified, proceeding with rebuild"
+    end_process --warn "No flake directory specified, proceeding with rebuild"
     status=2
     return 0
   fi
@@ -233,27 +253,26 @@ check_flake_status() {
   #@ Get the absolute path to the flake directory
   if [ -n "${CMD_REALPATH}" ]; then
     _flake="$("${CMD_REALPATH}" "${_flake}")"
-    pout --trace "Using 'realpath' to get absolute path"
+    end_process --trace "Using 'realpath' to get absolute path"
   elif [ -n "${CMD_READLINK}" ]; then
     _flake="$("${CMD_READLINK}" -f "${_flake}")"
-    pout --trace "Using 'readlink -f' to get absolute path"
+    end_process --trace "Using 'readlink -f' to get absolute path"
   else
     _flake="$(cd "${_flake}" 2>/dev/null && pwd)"
-    pout --trace "Using 'cd/pwd' to get absolute path"
+    end_process --trace "Using 'cd/pwd' to get absolute path"
   fi
 
   #@ Return the flake directory, if the flake exists
   if [ -f "${_flake:-}/flake.nix" ]; then
-    pout --debug --key "Flake Root (Absolute)" "${_flake}"
+    end_process --debug --key "Flake Root (Absolute)" "${_flake}"
     output="${_flake:-}"
   else
-    pout --error "Flake directory does not exist: ${_flake:-}"
+    end_process --error "Flake directory does not exist: ${_flake:-}"
     status=1
   fi
 
   return 0
 }
-
 check_git_status() {
   #@ Initialize variables
   if [ -z "${1:-}" ]; then
@@ -264,14 +283,14 @@ check_git_status() {
     output=""
     status=0
     _git_dir="${1:-}"
-    pout --trace "Checking git status for directory: ${_git_dir}"
+    end_process --trace "Checking git status for directory: ${_git_dir}"
   fi
 
   #@ Run git status check
   if [ -n "${CMD_GYT:-}" ]; then
-    pout --trace "Using gyt to check git status"
+    end_process --trace "Using gyt to check git status"
     if "${CMD_GYT}" --dir "${_git_dir}"; then
-      pout --trace "Git status command returned successfully"
+      end_process --trace "Git status command returned successfully"
     else
       status="$?"
       case "${status:-}" in
@@ -306,33 +325,6 @@ check_git_status() {
     return 0
   fi
 }
-
-validate_environment() {
-  pout --trace --key "Verbosity Mode:" "${verbosity}"
-  pout --trace --key "Strict Mode:" "${fail_on_error}"
-  cache_commands
-
-  #@ Retrieve the absolute path to the flake, if it exists
-  check_flake_status "${flake_root:-}"
-  case "${status}" in
-  0) flake_root="${output}" ;;
-  2) return 0 ;;
-  *) return "${status}" ;;
-  esac
-
-  #@ Retrieve the absolute path to the flake, if it exists
-  check_git_status "${flake_root}"
-  case "${status}" in
-  0) ;;
-  *)
-    pout --error \
-      --ctx "check_git_status" \
-      --code "${status:-}" \
-      "${output}"
-    ;;
-  esac
-}
-
 run_process() {
   #@ Update the arguments
   case "${upgrade}" in
@@ -366,8 +358,7 @@ run_process() {
   # eval "${cmd}"
   # return "$?"
 }
-
-pout() {
+end_process () {
   pout_cleanup() {
     exit_code="$?"
     if
@@ -375,8 +366,8 @@ pout() {
         [ "${verbosity:-}" -ge "${verbosity_error:-}" ]
     then
       : #? This prints twice when there is an error
-      # printf "\n%s exited with a error code of %s" \
-      #   "${scr_name}" "${exit_code:-}" >&2
+      printf "\n%s exited with a error code of %s" \
+        "${scr_name}" "${exit_code:-}" >&2
     fi
   }
   trap pout_cleanup EXIT INT TERM
@@ -453,7 +444,7 @@ pout() {
       fi
       ;;
     --error)
-      if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+      if [ "${verbosity:-0}" -ge "${verbosity_error:-1}" ]; then
         lvl="ERROR"
         stream_code=2
         exit_code="${exit_code:-1}"
@@ -475,7 +466,7 @@ pout() {
           shift
         else
           head_reps=1
-          pout --error \
+          end_process --error \
             --ctx "${ctx:-"pout"}" \
             --code "${?}" \
             "'$1' requires an integer but got:" "$2"
@@ -492,7 +483,7 @@ pout() {
           shift
         else
           tail_reps=1
-          pout --warn \
+          end_process --warn \
             --ctx "${ctx:-"pout"}" \
             --code "${?}" \
             "'$1' requires an integer but got:" "$2"
@@ -507,7 +498,7 @@ pout() {
         ctx="$2"
         shift
       else
-        pout --error "No context specified"
+        end_process --error "No context specified"
       fi
       ;;
     --scr | --script)
@@ -516,7 +507,7 @@ pout() {
         ctx=""
         shift
       else
-        pout --error "No script specified"
+        end_process --error "No script specified"
       fi
       ;;
     --neat)
@@ -599,6 +590,10 @@ pout() {
       tag="${tag}${ctx}"
     fi
 
+    #@ Add code if exists
+    [ -n "${exit_code}" ]   && [ "${exit_code:-0}" -gt 0 ] &&
+    tag="${tag:-} (${exit_code})"
+
     #@ Add special characters/seperators
     tag="/> ${tag:-} <\\ "
 
@@ -675,7 +670,6 @@ pout() {
     exit "${exit_code}"
   fi
 }
-
 pout_repeat() {
   rep="${1:-1}"
   pat="${2:-'\n'}"
@@ -686,14 +680,12 @@ pout_repeat() {
     i=$((i + 1))
   done
 }
-
 is_zero_or_int() {
   case "${1:-}" in
   '' | *[!0-9]*) return 3 ;;
   *) return 0 ;;
   esac
 }
-
 manage_list() {
   #@ Initialize variables
   list=""
@@ -739,11 +731,9 @@ manage_list() {
   *) ;;
   esac
 }
-
 trim_whitespace() {
   printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
-
 usage_guide() {
   cat <<-USAGE_GUIDE
   ${scr_name} (${scr_version})
@@ -800,12 +790,10 @@ usage_guide() {
     ${scr_authors}
 USAGE_GUIDE
 }
-
 cleanup() {
-  #@ Get the last exit code
-  code=$?
-  # [ "${verbosity:-}" -ge "${verbosity_debug:-}" ] &&
-  #   printf "/> %s /> %s" "${scr_name}" "${code}"
+  # code=$?
+  unset scr_path scr_name scr_version scr_description scr_authors
+  unset debug_pad delimiter IFS
+  unset cwd flake_root action upgrade trace args build_target debug verbosity debug
 }
-
 main "$@"
