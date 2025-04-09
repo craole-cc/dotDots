@@ -478,11 +478,11 @@ pout() {
     #@ Initialize variables
     tag_sep="${tag_sep:-"-|-"}"
     ctx=""
-    tag_ctx="${tag_ctx:-}"
+    fn_ctx="${fn_ctx:-}"
     toggle_scr=on
     toggle_tag=on
     lvl=""
-    # tag_lvl="${tag_lvl:-}"
+
     toggle_lvl=on
     toggle_ctx=on
     toggle_msg=on
