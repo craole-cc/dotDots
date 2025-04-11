@@ -36,9 +36,9 @@
       formatter = perSystem (pkgs: pkgs.treefmt);
 
       nixosConfigurations = {
-        QBXv =
+        QBXvm =
           let
-            hostName = "QBXv";
+            hostName = "QBXvm";
           in
           lib.nixosSystem {
             inherit specialArgs;

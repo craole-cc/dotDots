@@ -6,17 +6,19 @@ let
       let
         QBX = "/home/craole/.dots";
         QBXl = "/home/craole/.dots";
+        QBXvm = "/home/craole/.dots";
         Preci = "/home/craole/Projects/dotDots";
         dbook = "/home/craole/Documents/dotfiles";
       in
       {
         store = ./.;
-        local = QBX; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
+        local = QBXvm; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
         inherit
           dbook
           Preci
           QBX
           QBXl
+          QBXvm
           ;
       };
     parts = {
