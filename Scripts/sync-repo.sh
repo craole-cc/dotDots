@@ -17,7 +17,7 @@ set_defaults() {
   args=""
   debug=0
 
-  cmd_gyt_path="$(command -v gyto 2>/dev/null || printf '')"
+  cmd_gyt_path="$(command -v gyt 2>/dev/null || printf '')"
   cmd_gyt_dots="${prj_root}/Bin/shellscript/project/git/gyt"
   [ -x "${cmd_gyt_dots}" ] || cmd_gyt_dots="${cmd_gyt_path}"
   CMD_GYT="${CMD_GYT:-"${cmd_gyt_dots:-}"}"

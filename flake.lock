@@ -367,7 +367,8 @@
         "secretShell": "secretShell",
         "templatesNixOS": "templatesNixOS",
         "templatesTheNixWay": "templatesTheNixWay",
-        "treeFormatter": "treeFormatter"
+        "treeFormatter": "treeFormatter",
+        "zen-browser": "zen-browser"
       }
     },
     "secretKey": {
@@ -518,6 +519,29 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "zen-browser": {
+      "inputs": {
+        "home-manager": [
+          "nixosHome"
+        ],
+        "nixpkgs": [
+          "nixPackages"
+        ]
+      },
+      "locked": {
+        "lastModified": 1744345419,
+        "narHash": "sha256-wLozT8CpHvu04t0LKxJ9fzKAZ8AULpC7XfgIOLgtUbM=",
+        "owner": "0xc000022070",
+        "repo": "zen-browser-flake",
+        "rev": "ec5c1df02b5d7806dcfa89191e671ebdf00ee6b5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "0xc000022070",
+        "repo": "zen-browser-flake",
         "type": "github"
       }
     }

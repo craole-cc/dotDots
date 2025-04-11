@@ -339,6 +339,13 @@
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
 
     #| Software inputs
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixosHome";
+      };
+    };
     # github-nix-ci.url = "github:juspay/github-nix-ci";
     # nixos-vscode-server = {
     #   url = "github:nix-community/nixos-vscode-server";
