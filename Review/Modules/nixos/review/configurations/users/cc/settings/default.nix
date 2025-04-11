@@ -1,0 +1,7 @@
+{
+  imports = [
+    # ./bat
+    ./helix
+    # ./hyprland
+  ];
+}

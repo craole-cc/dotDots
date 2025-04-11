@@ -1,0 +1,131 @@
+#!/bin/sh
+
+usage() {
+  cat << EOF
+Usage: first [OPTIONS] FILENAME
+Search for a file in directory tree, default is upward search
+
+Options:
+    --up        Search upward (default)
+    --down      Search downward
+    --both      Search both directions
+    --direction up|down|both   Specify search direction
+    -h, --help  Show this help message
+EOF
+  return "${1:-0}"
+}
+
+main() {
+  #@ Parse arguments and get direction and filename
+  parse_arguments "$@"
+
+  #@ Perform the search
+  perform_search
+}
+parse_arguments() {
+  #@ Reset the variables
+  unset direction pattern
+
+  #@ Ensure that at least one argument is provided
+  if [ "$#" -eq 0 ]; then
+    printf "%s" "Error: No filename provided" >&2
+    usage 1
+  fi
+
+  #@ Parse options
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --up)
+        direction="up"
+        shift
+        ;;
+      --down)
+        direction="down"
+        shift
+        ;;
+      --both)
+        direction="both"
+        shift
+        ;;
+      --direction)
+        shift
+        case "$1" in
+          up | down | both)
+            direction="$1"
+            ;;
+          *)
+            printf "%s" "Error: Invalid direction '$1'" >&2
+            usage 1
+            ;;
+        esac
+        shift
+        ;;
+      -h | --help)
+        usage
+        ;;
+      -*)
+        printf "%s" "Error: Unknown option '$1'" >&2
+        usage 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  #@ Define the direction for the search
+  direction="${direction:-both}"
+
+  #@ Define the pattern to search for
+  pattern="$1"
+}
+
+find_up() {
+  dir="$1"
+  path="$2"
+
+  while [ "$dir" != "/" ]; do
+    if [ -e "$dir/$path" ]; then
+      printf '%s\n' "$dir/$path"
+      return 0
+    fi
+    dir=$(dirname "$dir")
+  done
+
+  #@ Check root directory as well
+  if [ -e "/$path" ]; then
+    printf '%s\n' "/$path"
+    return 0
+  fi
+  return 1
+}
+
+find_down() {
+  dir="${1:-.}"
+  path="$2"
+
+  if command -v fd > /dev/null 2>&1; then
+    fd "$path" "$dir"
+    return $?
+  else
+    find "$dir" -name "$path" 2> /dev/null
+    return $?
+  fi
+}
+
+perform_search() {
+  case "$direction" in
+    up)
+      find_up "$PWD" "$pattern"
+      ;;
+    down)
+      find_down "$PWD" "$pattern"
+      ;;
+    both | *)
+      find_up "$PWD" "$pattern" \
+        || find_down "$PWD" "$pattern"
+      ;;
+  esac
+}
+
+main "$@"

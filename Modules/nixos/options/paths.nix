@@ -14,7 +14,7 @@ let
     path
     ;
 
-  dom = "dots";
+  dom = "DOTS";
   mod = "paths";
   cfg = config.${dom}.${mod};
 in
@@ -27,7 +27,7 @@ in
     };
     bin = mkOption {
       description = "Path to the dots bin directory.";
-      default = "${cfg.base}/Utilities/bin";
+      default = "${cfg.base}/Bin";
       type = either str path;
     };
     conf = mkOption {
@@ -47,12 +47,22 @@ in
     };
     lib = mkOption {
       description = "Path to the dots lib directory.";
-      default = "${cfg.base}/Utilities/lib";
+      default = "${cfg.base}/Libraries";
       type = either str path;
     };
     mod = mkOption {
       description = "Path to the dots modules directory.";
       default = "${cfg.base}/Modules";
+      type = either str path;
+    };
+    hosts = mkOption {
+      description = "Path to the hosts configuration directory.";
+      default = "${cfg.conf}/hosts";
+      type = either str path;
+    };
+    users = mkOption {
+      description = "Path to the users configuration directory.";
+      default = "${cfg.conf}/users";
       type = either str path;
     };
     pass = mkOption {
