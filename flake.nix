@@ -63,7 +63,7 @@
                 );
               };
             }
-            baseModule
+            # baseModule
             {
               networking.hostName = hostName;
               system.stateVersion = stateVersion;
