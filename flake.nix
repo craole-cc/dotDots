@@ -32,7 +32,8 @@
 
       mkHost =
         name: extraArgs:
-        import (paths.libraries.mkHost) {
+        # import (paths.libraries.mkHost) {
+        import ./Libraries/admin/mkHost.nix {
           inherit inputs paths self;
         } name extraArgs;
     in

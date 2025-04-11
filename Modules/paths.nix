@@ -45,16 +45,21 @@ in
       default = "${cfg.base}/Environment";
       type = either str path;
     };
+    # libraries = mkOption {
+    #   description = "Path to the libraries directory.";
+    #   default = rec {
+    #     base = "${cfg.base}/Libraries";
+    #     core = "${cfg.libraries.base}/core";
+    #     #     # mkHost = "${core}/mkHost.nix";
+    #     #     # mkModules = "${core}/mkModules.nix";
+    #     #     # mkPackages = "${core}/mkPackages.nix";
+    #   };
+    #   type = attrsOf (either str path);
+    # };
     libraries = mkOption {
-      description = "Path to the libraries directory.";
-      default = rec {
-        base = "${cfg.base}/Libraries";
-        core = "${base}/core";
-        mkHost = "${core}/mkHost.nix";
-        mkModules = "${core}/mkModules.nix";
-        mkPackages = "${core}/mkPackages.nix";
-      };
-      type = attrsOf (either str path);
+      description = "Path to the dots libraries directory.";
+      default = "${cfg.base}/Libraries";
+      type = either str path;
     };
     modules = mkOption {
       description = "Path to the dots modules directory.";
@@ -63,12 +68,12 @@ in
     };
     hosts = mkOption {
       description = "Path to the hosts configuration directory.";
-      default = "${cfg.conf}/hosts";
+      default = "${cfg.configuration}/hosts";
       type = either str path;
     };
     users = mkOption {
       description = "Path to the users configuration directory.";
-      default = "${cfg.conf}/users";
+      default = "${cfg.configuration}/users";
       type = either str path;
     };
     passwords = mkOption {
@@ -81,7 +86,7 @@ in
       default = rec {
         base = "${cfg.base}/Packages";
         core = "${base}/core";
-        custom = "${base}/configurations";
+        custom = "${base}/custom";
         home = "${base}/home";
         overlays = "${base}/overlays";
         plugins = "${base}/plugins";

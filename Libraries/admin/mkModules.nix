@@ -29,10 +29,10 @@ let
   validatedDesktop = validateDesktop desktop;
 
   core =
-    (with paths.core; [
+    (with paths; [
       libraries
       modules
-      options
+      # options
     ])
     ++ (with inputs; [
       nixLocate.nixosModules.nix-index
