@@ -6,9 +6,11 @@
   allowAliases,
   extraConfig ? { },
   extraPkgAttrs ? { },
+  ...
 }:
 let
   isDarwin = builtins.match ".*darwin" system != null;
+  hasHomeManager = inputs ? nixosHome; # Check if nixosHome exists in inputs
 
   mkPkgs =
     pkgsInput:
@@ -25,7 +27,7 @@ let
   lib =
     nixpkgs.lib
     // (if isDarwin then inputs.nixosDarwin.lib else { })
-    // (if inputs.nixosHome or false then inputs.nixosHome.lib else { });
+    // (if hasHomeManager then inputs.nixosHome.lib else { }); # Use hasHomeManager
 
   defaultPkgs = mkPkgs nixpkgs;
 in

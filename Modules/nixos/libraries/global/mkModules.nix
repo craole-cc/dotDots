@@ -5,6 +5,7 @@
   host,
   backupFileExtension ? "backup",
   specialArgs ? { },
+  ...
 }:
 let
   isDarwin = builtins.match ".*darwin" host.platform != null;
@@ -31,10 +32,10 @@ let
     (with paths.core; [
       libraries
       modules
-      options
+      # options
     ])
     ++ (with inputs; [
-      nixPackages.nixosModules.nix-index
+      nixLocate.nixosModules.nix-index
       styleManager.nixosModules.stylix
     ]);
 
@@ -57,18 +58,22 @@ let
       { wsl = host.wslConfig or { }; }
     ];
   };
-
-  homeManagerModule = lib.optional (host.allowHomeManager or true) [
-    (with inputs.nixosHome; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
-    {
-      home-manager = {
-        inherit backupFileExtension;
-        useGlobalPkgs = true;
-        useUserPackages = true;
-        sharedModules = home;
-        extraSpecialArgs = specialArgs;
-      };
-    }
-  ];
+  
+  homeManagerModule =
+    if (host.allowHomeManager or true) then
+      [
+        (with inputs.nixosHome; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
+        {
+          home-manager = {
+            inherit backupFileExtension;
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            sharedModules = home;
+            extraSpecialArgs = specialArgs;
+          };
+        }
+      ]
+    else
+      [ ];
 in
 core ++ wslModule ++ homeManagerModule

@@ -1,7 +1,7 @@
 {
   description = "dotDots Flake Configuration";
   outputs =
-    inputs@{ nixPackages, ... }:
+    inputs@{ self, nixPackages, ... }:
     let
       dots = import ./. { inherit inputs; };
       inherit (nixPackages) lib;
@@ -24,7 +24,7 @@
       mkHost =
         name: extraArgs:
         import paths.libraries.mkHost {
-          inherit inputs paths;
+          inherit inputs paths self;
         } name extraArgs;
 
       mkHostOld =
@@ -307,14 +307,14 @@
       repo = "nix-github-actions";
       inputs.nixpkgs.follows = "nixPackages";
     };
-    # nixLocate = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "nix-index-database";
-    #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
-    #   };
-    # };
+    nixLocate = {
+      type = "github";
+      owner = "nix-community";
+      repo = "nix-index-database";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
     # nixLocateLocal = {
     #   type = "github";
     #   owner = "nix-community";
