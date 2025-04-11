@@ -20,9 +20,35 @@
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
+
       specialArgs = {
         inherit inputs;
       } // dots;
+
+      baseModule =
+        { config, ... }:
+        {
+          nixpkgs = {
+            pkgs = perSystemPackages.${config.nixpkgs.system};
+          };
+        };
+      mkHost =
+        {
+          hostName,
+          system ? "x86_64-linux",
+          stateVersion ? "24.11",
+          extraModules ? [ ],
+        }:
+        lib.nixosSystem {
+          inherit system specialArgs;
+          modules = [
+            baseModule
+            {
+              networking.hostName = hostName;
+              system.stateVersion = stateVersion;
+            }
+          ] ++ extraModules;
+        };
     in
     {
       inherit packages lib;
@@ -35,39 +61,20 @@
       # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
       formatter = perSystem (pkgs: pkgs.treefmt);
 
-      nixosConfigurations = {
-        QBXvm =
-          let
-            hostName = "QBXvm";
-            system = "x86_64-linux";
-          in
-          lib.nixosSystem {
-            inherit specialArgs system;
-            modules =
-              [
-                {
-                  networking = { inherit hostName; };
-                  system.stateVersion = "24.11";
-                  home-manager.extraSpecialArgs = { inherit inputs system; };
-                }
-              ]
-              ++ (with dots; [
-                (paths.hosts + "/${hostName}")
-                modules.core
-                modules.home
-              ]);
-          };
-        QBXl = lib.nixosSystem {
-          inherit specialArgs;
-          system = "x86_64-linux";
-          modules = [
-            {
-              networking.hostName = "QBXl";
-              system.stateVersion = "24.11";
-            }
-            dots.modules.wsl
-          ];
-        };
+      QBXvm = mkHost {
+        hostName = "QBXvm";
+        extraModules = with dots; [
+          (paths.hosts + "/QBXvm")
+          modules.core
+          modules.home
+        ];
+      };
+
+      QBXl = mkHost {
+        hostName = "QBXl";
+        extraModules = [
+          dots.modules.wsl
+        ];
       };
     };
 

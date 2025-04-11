@@ -1,8 +1,13 @@
 {
   alpha,
   modulesPath,
+  # packageOverlays,
+  # lib,
   ...
 }:
+# let
+#   inherit (lib.attrsets) attrValues;
+# in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -31,4 +36,6 @@
       download-buffer-size = 524288000 #TODO: Does this work now
     '';
   };
+
+  # nixpkgs.overlays = attrValues packageOverlays;
 }
