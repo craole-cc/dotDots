@@ -1,5 +1,8 @@
 # https://nixos.wiki/wiki/Overlays
 { inputs, ... }:
+let
+  inherit (inputs.nixPackages.lib) mkDefault;
+in
 {
   #DOC For every flake input, aliases 'pkgs.inputs.${flake}' to
   #DOC 'inputs.${flake}.packages.${pkgs.system}' or
@@ -15,18 +18,18 @@
     ) inputs;
   };
 
-  #DOC Adds pkgs.stable == inputs.nixPackagesStable.legacyPackages.${pkgs.system}
+  #DOC Adds pkgs.stable with default config
   fromStable = final: _: {
     stable = import inputs.nixPackagesStable {
       system = final.system;
-      config.allowUnfree = true;
+      config.allowUnfree = mkDefault true;
     };
   };
 
-  #DOC Include modifications to existing packages
+  #DOC Include modifications to existing packages with defaults
   modifications = final: prev: {
     brave = prev.brave.override {
-      commandLineArgs = "--password-store=gnome-libsecret";
+      commandLineArgs = mkDefault "--password-store=gnome-libsecret";
     };
   };
 
