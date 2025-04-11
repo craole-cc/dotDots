@@ -9,7 +9,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # networking.hostName = "QBXvm"; 
+  # networking.hostName = "QBXvm";
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -43,7 +43,6 @@
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -71,7 +70,7 @@
     ];
     packages = with pkgs; [
       vscode-fhs
-    gitui
+      gitui
     ];
   };
 
@@ -81,7 +80,6 @@
     user = "craole";
   };
 
-  # Install firefox.
   programs = {
     firefox.enable = true;
     git = {
