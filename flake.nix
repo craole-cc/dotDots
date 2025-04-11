@@ -3,10 +3,10 @@
   outputs =
     inputs@{ self, nixPackages, ... }:
     let
-      dots = import ./. { inherit inputs; };
+      # dots = import ./. { inherit inputs; };
       inherit (nixPackages) lib;
       inherit (lib.attrsets) genAttrs attrValues;
-      inherit (dots) paths;
+      # inherit (dots) paths;
 
       systems = genAttrs (import inputs.nixosSystems);
       packageOverlays = import paths.packages.overlays { inherit inputs; };

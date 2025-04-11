@@ -70,11 +70,6 @@ in
       default = "/var/lib/dots/passwords";
       type = either str path;
     };
-    packages = mkOption {
-      description = "Path to the packages directory.";
-      default = "${cfg.base}/Packages";
-      type = either str path;
-    };
     # nixos = mkOption {
     #   description = "Path to the nixos configuration.";
     #   default = rec {
