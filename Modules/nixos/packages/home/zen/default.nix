@@ -8,16 +8,17 @@
 }:
 
 let
+  # inherit (osConfig) inputs system;
   inherit (lib.options) mkEnableOption;
   inherit (lib.modules) mkIf;
-  cfg = config.programs.brave;
+  cfg = config.programs.zen-browser;
 in
 {
-  options.programs.brave = {
+  options.programs.zen-browser = {
     enable = mkEnableOption "Zen Browser";
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ inputs.zen-browser.packages."${system}".specific ];
+    home.packages = [ inputs.zen-browser.packages."${system}".twilight ];
   };
 }

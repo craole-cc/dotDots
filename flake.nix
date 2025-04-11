@@ -48,6 +48,7 @@
                 {
                   networking = { inherit hostName; };
                   system.stateVersion = "24.11";
+                  home-manager.extraSpecialArgs = { inherit inputs system; };
                 }
               ]
               ++ (with dots; [

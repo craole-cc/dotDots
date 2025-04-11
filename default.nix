@@ -215,6 +215,7 @@ let
             useGlobalPkgs = true;
             useUserPackages = true;
             backupFileExtension = "bac";
+            extraSpecialArgs = { inherit inputs; };
             sharedModules = with paths; [ packages.home ];
             users.${alpha}.imports = with paths; [
               users.${alpha}.home
