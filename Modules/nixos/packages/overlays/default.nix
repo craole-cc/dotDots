@@ -7,7 +7,7 @@ in
   #DOC Sets up base nixpkgs configuration and packages per system
   perSystemConfig = final: prev: {
     config = {
-      allowUnfree =  true;
+      allowUnfree =  true; 
       allowAliases =  true;
     };
 

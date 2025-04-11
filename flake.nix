@@ -37,6 +37,7 @@
         {
           nixpkgs = {
             pkgs = perSystemPackages.${config.nixpkgs.system};
+            config.allowUnfree = lib.mkDefault true;
           };
         };
       mkHost =
