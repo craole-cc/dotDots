@@ -70,10 +70,8 @@
       "wheel"
     ];
     packages = with pkgs; [
-      brave
-      ghostty
-      zed-editor
       vscode-fhs
+    gitui
     ];
   };
 
@@ -105,7 +103,6 @@
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
     helix
-    gitui
     nixd
     nixfmt-rfc-style
     nil
