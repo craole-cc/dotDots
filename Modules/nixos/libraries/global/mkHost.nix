@@ -6,7 +6,6 @@
 }:
 name: extraArgs:
 let
-  # Build host configuration
   host =
     let
       inherit (inputs.nixpkgs.lib.lists) foldl' filter;
@@ -24,11 +23,8 @@ let
     // confSystem
     // extraArgs;
 
-  # System setup
   system = host.platform;
   isDarwin = builtins.match ".*darwin" system != null;
-
-  # Create packages
   pkgs = import ./mkPackages.nix {
     inherit inputs system;
     preferredRepo = host.preferredRepo or "unstable";
@@ -38,7 +34,6 @@ let
     extraPkgAttrs = host.extraPkgAttrs or { };
   };
 
-  # Special arguments
   specialArgs = {
     inherit inputs paths host;
     flake = self;
@@ -57,7 +52,7 @@ let
   };
 
   inherit (pkgs) lib;
-  
+
   systemFunc = if isDarwin then lib.darwinSystem else lib.nixosSystem;
 in
 systemFunc {

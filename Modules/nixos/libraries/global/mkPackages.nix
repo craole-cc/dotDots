@@ -9,6 +9,12 @@
   ...
 }:
 let
+  inherit (inputs)
+    nixPackagesStable
+    nixPackagesUnstable
+    nixosHome
+    nixosDarwin
+    ;
   isDarwin = builtins.match ".*darwin" system != null;
   hasHomeManager = inputs ? nixosHome; # Check if nixosHome exists in inputs
 
@@ -21,21 +27,20 @@ let
       } // extraConfig;
     };
 
-  nixpkgs =
-    if preferredRepo == "stable" then inputs.nixPackagesStable else inputs.nixPackagesUnstable;
+  nixpkgs = if preferredRepo == "stable" then nixPackagesStable else nixPackagesUnstable;
 
   lib =
     nixpkgs.lib
-    // (if isDarwin then inputs.nixosDarwin.lib else { })
-    // (if hasHomeManager then inputs.nixosHome.lib else { }); # Use hasHomeManager
+    // (if isDarwin then nixosDarwin.lib else { })
+    // (if hasHomeManager then nixosHome.lib else { });
 
   defaultPkgs = mkPkgs nixpkgs;
 in
 defaultPkgs.extend (
   final: prev:
   {
-    stable = mkPkgs inputs.nixPackagesStable;
-    unstable = mkPkgs inputs.nixPackagesUnstable;
+    stable = mkPkgs nixPackagesStable;
+    unstable = mkPkgs nixPackagesUnstable;
     inherit lib;
   }
   // extraPkgAttrs

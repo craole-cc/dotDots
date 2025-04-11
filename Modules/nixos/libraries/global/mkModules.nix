@@ -32,7 +32,7 @@ let
     (with paths.core; [
       libraries
       modules
-      # options
+      options
     ])
     ++ (with inputs; [
       nixLocate.nixosModules.nix-index
@@ -58,7 +58,7 @@ let
       { wsl = host.wslConfig or { }; }
     ];
   };
-  
+
   homeManagerModule =
     if (host.allowHomeManager or true) then
       [

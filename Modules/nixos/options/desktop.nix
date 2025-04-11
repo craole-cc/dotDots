@@ -57,11 +57,11 @@ in
         #   name = "user";
         #   description =
         #     let
-        #       usersAvailabe = "[ ${concatMapStringsSep ", " (u: "\"${u}\"") users} ]";
+        #       usersAvailable = "[ ${concatMapStringsSep ", " (u: "\"${u}\"") users} ]";
         #       firstAvailable = if users == [ ] then "no defined users" else head users;
         #     in
         #     ''
-        #       defined users ${usersAvailabe}
+        #       defined users ${usersAvailable}
 
         #       To resolve this:
         #       1. Use an available user listed above:

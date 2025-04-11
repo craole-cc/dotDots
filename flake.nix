@@ -79,14 +79,14 @@
         # };
 
         QBXvm = mkHost "QBXvm" {
-          platform = "x86_64-linux";
-          preferredRepo = "unstable";
-          allowUnfree = true;
-          desktop = "plasma"; # or "hyprland", "xfce", or null
+          # platform = "x86_64-linux";
+          # preferredRepo = "unstable";
+          # allowUnfree = true;
+          # desktop = "plasma";
           extraModules = with dots; [
             (paths.hosts + "/QBXvm")
-            modules.core
-            modules.home
+          #   modules.core
+          #   modules.home
           ];
         };
 
