@@ -61,20 +61,22 @@
       # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
       formatter = perSystem (pkgs: pkgs.treefmt);
 
-      QBXvm = mkHost {
-        hostName = "QBXvm";
-        extraModules = with dots; [
-          (paths.hosts + "/QBXvm")
-          modules.core
-          modules.home
-        ];
-      };
+      nixosConfigurations = {
+        QBXvm = mkHost {
+          hostName = "QBXvm";
+          extraModules = with dots; [
+            (paths.hosts + "/QBXvm")
+            modules.core
+            modules.home
+          ];
+        };
 
-      QBXl = mkHost {
-        hostName = "QBXl";
-        extraModules = [
-          dots.modules.wsl
-        ];
+        QBXl = mkHost {
+          hostName = "QBXl";
+          extraModules = [
+            dots.modules.wsl
+          ];
+        };
       };
     };
 
