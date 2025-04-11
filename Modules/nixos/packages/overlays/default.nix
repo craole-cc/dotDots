@@ -1,7 +1,6 @@
 # https://nixos.wiki/wiki/Overlays
 { inputs, ... }:
 let
-  inherit (inputs.nixPackages.lib) mkDefault;
 in
 {
   #DOC Sets up base nixpkgs configuration and packages per system
@@ -10,10 +9,6 @@ in
       system:
       import inputs.nixPackages {
         inherit system;
-        # config = {
-        #   allowUnfree = true;
-        #   allowAliases = true;
-        # };
         overlays = [
           final.fromInputs
           final.fromStable

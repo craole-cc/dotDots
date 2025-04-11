@@ -131,6 +131,8 @@ let
     libraries = {
       # local = modules.local + parts.libs;
       store = modules.store + parts.libs;
+      global = libraries.store + "/global";
+      mkHost = libraries.global + "/mkHost.nix";
       mkCore = core.libraries + parts.mkCore;
       mkConf = core.libraries + parts.mkConf;
     };

@@ -15,33 +15,19 @@
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
-          # config.allowUnfree = lib.mkDefault true;
           config.allowUnfree = true;
         }
       );
-      # perSystemPackages = systems (
-      #   system:
-      #   import nixPackages {
-      #     inherit system;
-      #     overlays = attrValues packageOverlays;
-      #     # config.allowUnfree = lib.mkDefault true;
-      #   }
-      # );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
 
-      specialArgs = {
-        inherit inputs;
-      } // dots;
-
-      baseModule =
-        { config, ... }:
-        {
-          nixpkgs = {
-            pkgs = perSystemPackages.${config.nixpkgs.system};
-          };
-        };
       mkHost =
+        name: extraArgs:
+        import paths.libraries.mkHost {
+          inherit inputs paths;
+        } name extraArgs;
+
+      mkHostOld =
         {
           hostName,
           system ? "x86_64-linux",
@@ -50,7 +36,10 @@
           allowUnfree ? true,
         }:
         lib.nixosSystem {
-          inherit system specialArgs;
+          inherit system;
+          specialArgs = {
+            inherit inputs;
+          } // dots;
           modules = [
             {
               _module.args = {
@@ -62,9 +51,6 @@
                   }
                 );
               };
-            }
-            # baseModule
-            {
               networking.hostName = hostName;
               system.stateVersion = stateVersion;
             }
@@ -83,8 +69,20 @@
       formatter = perSystem (pkgs: pkgs.treefmt);
 
       nixosConfigurations = {
-        QBXvm = mkHost {
-          hostName = "QBXvm";
+        # QBXvm = mkHost {
+        #   hostName = "QBXvm";
+        #   extraModules = with dots; [
+        #     (paths.hosts + "/QBXvm")
+        #     modules.core
+        #     modules.home
+        #   ];
+        # };
+
+        QBXvm = mkHost "QBXvm" {
+          platform = "x86_64-linux";
+          preferredRepo = "unstable";
+          allowUnfree = true;
+          desktop = "plasma"; # or "hyprland", "xfce", or null
           extraModules = with dots; [
             (paths.hosts + "/QBXvm")
             modules.core
@@ -92,12 +90,12 @@
           ];
         };
 
-        QBXl = mkHost {
-          hostName = "QBXl";
-          extraModules = [
-            dots.modules.wsl
-          ];
-        };
+        # QBXl = mkHost {
+        #   hostName = "QBXl";
+        #   extraModules = [
+        #     dots.modules.wsl
+        #   ];
+        # };
       };
     };
 
@@ -105,6 +103,7 @@
     #| NixOS
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-24.11";
+    nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -242,6 +241,12 @@
       repo = "flake-compat";
       flake = false;
     };
+    flakeUtils = {
+      # url = "github:numtide/flake-utils";
+      owner = "numtide";
+      repo = "flake-utils";
+      type = "github";
+    };
     nixosHardware = {
       type = "github";
       owner = "NixOS";
@@ -260,6 +265,15 @@
     };
 
     #| Utilities by NixCommunity
+    nur = {
+      owner = "nix-community";
+      repo = "NixOS-WSL";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        flake-compat.follows = "flakeCompat";
+      };
+    };
     # nixCache = {
     #   type = "github";
     #   owner = "nix-community";
@@ -358,20 +372,37 @@
     # };
 
     #| Home
-    # plasmaManager = {
-    #   url = "github:pjones/plasma-manager";
-    #   inputs = {
-    #     nixpkgs.follows = "nixpkgs";
-    #     home-manager.follows = "homeManager";
-    #   };
-    # };
-    # stylix.url = "github:danth/stylix";
+    plasmaManager = {
+      url = "github:pjones/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixosHome";
+      };
+    };
+    styleManager = {
+      # url = "github:danth/stylix";
+      owner = "danth";
+      repo = "stylix";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        systems.follows = "nixosSystems";
+        flake-compat.follows = "flakeCompat";
+        flake-utils.follows = "flakeUtils";
+        git-hooks.follows = "gitHooks";
+        home-manager.follows = "nixosHome";
+        nur.follows = "nur";
+      };
+    };
     # nixos-unified.url = "github:srid/nixos-unified";
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
 
     #| Software inputs
     zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
+      # url = "github:0xc000022070/zen-browser-flake";
+      owner = "0xc000022070";
+      repo = "zen-browser-flake";
+      type = "github";
       inputs = {
         nixpkgs.follows = "nixPackages";
         home-manager.follows = "nixosHome";
