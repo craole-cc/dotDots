@@ -15,7 +15,7 @@
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
-          config.allowUnfree = true;
+          # config.allowUnfree = true;
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
