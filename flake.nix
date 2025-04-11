@@ -15,9 +15,16 @@
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
-          # config.allowUnfree = lib.mkDefault true;
         }
       );
+      # perSystemPackages = systems (
+      #   system:
+      #   import nixPackages {
+      #     inherit system;
+      #     overlays = attrValues packageOverlays;
+      #     # config.allowUnfree = lib.mkDefault true;
+      #   }
+      # );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
 
@@ -30,9 +37,6 @@
         {
           nixpkgs = {
             pkgs = perSystemPackages.${config.nixpkgs.system};
-            config = {
-              allowUnfree = lib.mkDefault true;
-            };
           };
         };
       mkHost =

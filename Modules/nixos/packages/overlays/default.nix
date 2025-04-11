@@ -4,6 +4,28 @@ let
   inherit (inputs.nixPackages.lib) mkDefault;
 in
 {
+  #DOC Sets up base nixpkgs configuration and packages per system
+  perSystemConfig = final: prev: {
+    config = {
+      allowUnfree =  true;
+      allowAliases =  true;
+    };
+
+    #DOC Per-system package setup
+    perSystem =
+      system:
+      import inputs.nixPackages {
+        inherit system;
+        inherit (final) config;
+        overlays = [
+          final.fromInputs
+          final.fromStable
+          final.modifications
+          final.additions
+        ];
+      };
+  };
+
   #DOC For every flake input, aliases 'pkgs.inputs.${flake}' to
   #DOC 'inputs.${flake}.packages.${pkgs.system}' or
   #DOC 'inputs.${flake}.legacyPackages.${pkgs.system}'
