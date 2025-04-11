@@ -94,6 +94,7 @@
       enable = true;
       silent = true;
     };
+    partition-manager.enable = true;
   };
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
