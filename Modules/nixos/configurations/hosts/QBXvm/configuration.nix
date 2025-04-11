@@ -81,7 +81,7 @@
   };
 
   programs = {
-    firefox.enable = true;
+    # firefox.enable = true;
     git = {
       enable = true;
       lfs.enable = true;
