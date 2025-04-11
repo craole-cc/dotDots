@@ -6,17 +6,14 @@ in
 {
   #DOC Sets up base nixpkgs configuration and packages per system
   perSystemConfig = final: prev: {
-    config = {
-      allowUnfree =  true; 
-      allowAliases =  true;
-    };
-
-    #DOC Per-system package setup
     perSystem =
       system:
       import inputs.nixPackages {
         inherit system;
-        inherit (final) config;
+        # config = {
+        #   allowUnfree = true;
+        #   allowAliases = true;
+        # };
         overlays = [
           final.fromInputs
           final.fromStable
@@ -44,14 +41,14 @@ in
   fromStable = final: _: {
     stable = import inputs.nixPackagesStable {
       system = final.system;
-      config.allowUnfree = mkDefault true;
+      config.allowUnfree = true;
     };
   };
 
   #DOC Include modifications to existing packages with defaults
   modifications = final: prev: {
     brave = prev.brave.override {
-      commandLineArgs = mkDefault "--password-store=gnome-libsecret";
+      commandLineArgs =  "--password-store=gnome-libsecret";
     };
   };
 

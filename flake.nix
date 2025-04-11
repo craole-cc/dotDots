@@ -15,6 +15,8 @@
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
+          # config.allowUnfree = lib.mkDefault true;
+          config.allowUnfree = true;
         }
       );
       # perSystemPackages = systems (
@@ -37,7 +39,6 @@
         {
           nixpkgs = {
             pkgs = perSystemPackages.${config.nixpkgs.system};
-            config.allowUnfree = lib.mkDefault true;
           };
         };
       mkHost =
@@ -46,10 +47,22 @@
           system ? "x86_64-linux",
           stateVersion ? "24.11",
           extraModules ? [ ],
+          allowUnfree ? true,
         }:
         lib.nixosSystem {
           inherit system specialArgs;
           modules = [
+            {
+              _module.args = {
+                pkgs = lib.mkForce (
+                  import nixPackages {
+                    inherit system;
+                    config.allowUnfree = allowUnfree;
+                    overlays = attrValues packageOverlays;
+                  }
+                );
+              };
+            }
             baseModule
             {
               networking.hostName = hostName;
