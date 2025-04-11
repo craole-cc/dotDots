@@ -3,18 +3,13 @@
   outputs =
     inputs@{ self, nixPackages, ... }:
     let
-      inherit (nixPackages) lib;
-      systems = genAttrs (import inputs.nixosSystems);
-      modules = import ./Modules {
-        inherit lib;
-        config.DOTS.paths.base = ./.;
-      };
       # dots = import ./. { inherit inputs; };
-      inherit (modules.DOTS) paths;
+      inherit (nixPackages) lib;
       inherit (lib.attrsets) genAttrs attrValues;
+      # inherit (dots) paths;
 
-
-      packageOverlays = import paths.pkgs.overlays { inherit inputs; };
+      systems = genAttrs (import inputs.nixosSystems);
+      packageOverlays = import ./Packages/overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
         import nixPackages {
@@ -24,13 +19,43 @@
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
-      packages = perSystem (pkgs: import paths.pkgs.custom { inherit pkgs paths; });
+      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
 
       mkHost =
         name: extraArgs:
-        import (paths.lib + "./global/mkHost.nix") {
+        import paths.libraries.mkHost {
           inherit inputs paths self;
         } name extraArgs;
+
+      mkHostOld =
+        {
+          hostName,
+          system ? "x86_64-linux",
+          stateVersion ? "24.11",
+          extraModules ? [ ],
+          allowUnfree ? true,
+        }:
+        lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit inputs;
+          } // dots;
+          modules = [
+            {
+              _module.args = {
+                pkgs = lib.mkForce (
+                  import nixPackages {
+                    inherit system;
+                    config.allowUnfree = allowUnfree;
+                    overlays = attrValues packageOverlays;
+                  }
+                );
+              };
+              networking.hostName = hostName;
+              system.stateVersion = stateVersion;
+            }
+          ] ++ extraModules;
+        };
     in
     {
       inherit packages lib;
@@ -60,8 +85,8 @@
           # desktop = "plasma";
           extraModules = with dots; [
             (paths.hosts + "/QBXvm")
-            #   modules.core
-            #   modules.home
+          #   modules.core
+          #   modules.home
           ];
         };
 
