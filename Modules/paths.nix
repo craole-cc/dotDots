@@ -25,32 +25,38 @@ in
       default = "/home/craole/.dots";
       type = either str path;
     };
-    bin = mkOption {
+    scripts = mkOption {
       description = "Path to the dots bin directory.";
       default = "${cfg.base}/Bin";
       type = either str path;
     };
-    conf = mkOption {
+    configuration = mkOption {
       description = "Path to the dots configuration directory.";
       default = "${cfg.base}/Configuration";
       type = either str path;
     };
-    doc = mkOption {
+    documentation = mkOption {
       description = "Path to the dots documentation.";
       default = "${cfg.base}/Documentation";
       type = either str path;
     };
-    env = mkOption {
+    environment = mkOption {
       description = "Path to the dots environment.";
       default = "${cfg.base}/Environment";
       type = either str path;
     };
-    lib = mkOption {
-      description = "Path to the dots lib directory.";
-      default = "${cfg.base}/Libraries";
-      type = either str path;
+    libraries = mkOption {
+      description = "Path to the libraries directory.";
+      default = rec {
+        base = "${cfg.base}/Libraries";
+        core = "${base}/core";
+        mkHost = "${core}/mkHost.nix";
+        mkModules = "${core}/mkModules.nix";
+        mkPackages = "${core}/mkPackages.nix";
+      };
+      type = attrsOf (either str path);
     };
-    mod = mkOption {
+    modules = mkOption {
       description = "Path to the dots modules directory.";
       default = "${cfg.base}/Modules";
       type = either str path;
@@ -65,11 +71,24 @@ in
       default = "${cfg.conf}/users";
       type = either str path;
     };
-    pass = mkOption {
+    passwords = mkOption {
       description = "Path to the password directory.";
       default = "/var/lib/dots/passwords";
       type = either str path;
     };
+    packages = mkOption {
+      description = "Path to the packages directory.";
+      default = rec {
+        base = "${cfg.base}/Packages";
+        core = "${base}/core";
+        custom = "${base}/configurations";
+        home = "${base}/home";
+        overlays = "${base}/overlays";
+        plugins = "${base}/plugins";
+      };
+      type = attrsOf (either str path);
+    };
+    #  + "/global/mkHost.nix"
     # nixos = mkOption {
     #   description = "Path to the nixos configuration.";
     #   default = rec {

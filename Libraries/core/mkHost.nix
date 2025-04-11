@@ -9,11 +9,11 @@ let
   host =
     let
       inherit (inputs.nixpkgs.lib.lists) foldl' filter;
-      confCommon = import (paths.core.configurations.hosts + "/common");
-      confSystem = import (paths.core.configurations.hosts + "/${name}");
+      confCommon = import (paths.hosts + "/common");
+      confSystem = import (paths.hosts + "/${name}");
       enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
       userConfigs = foldl' (
-        acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
+        acc: userFile: acc // import (paths.users + "/${userFile}")
       ) { } enabledUsers;
     in
     {

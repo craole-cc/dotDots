@@ -5,16 +5,20 @@
     let
       inherit (nixPackages) lib;
       systems = genAttrs (import inputs.nixosSystems);
-      modules = import ./Modules {
-        inherit lib;
-        config.DOTS.paths.base = ./.;
-      };
-      # dots = import ./. { inherit inputs; };
-      inherit (modules.DOTS) paths;
+      paths =
+        (lib.evalModules {
+          modules = [
+            {
+              _file = ./Modules/paths.nix;
+              imports = [ ./Modules/paths.nix ];
+              config.DOTS.paths.base = self.outPath;
+            }
+          ];
+        }).config.DOTS.paths;
+
       inherit (lib.attrsets) genAttrs attrValues;
 
-
-      packageOverlays = import paths.pkgs.overlays { inherit inputs; };
+      packageOverlays = import paths.packages.overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
         import nixPackages {
@@ -24,11 +28,11 @@
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
-      packages = perSystem (pkgs: import paths.pkgs.custom { inherit pkgs paths; });
+      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
 
       mkHost =
         name: extraArgs:
-        import (paths.lib + "./global/mkHost.nix") {
+        import (paths.libraries.mkHost) {
           inherit inputs paths self;
         } name extraArgs;
     in
@@ -58,11 +62,11 @@
           # preferredRepo = "unstable";
           # allowUnfree = true;
           # desktop = "plasma";
-          extraModules = with dots; [
-            (paths.hosts + "/QBXvm")
-            #   modules.core
-            #   modules.home
-          ];
+          # extraModules = with dots; [
+          # (paths.hosts + "/QBXvm")
+          #   modules.core
+          #   modules.home
+          # ];
         };
 
         # QBXl = mkHost {
