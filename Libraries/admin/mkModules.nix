@@ -32,7 +32,6 @@ let
     (with paths; [
       libraries
       modules
-      # options
     ])
     ++ (with inputs; [
       nixLocate.nixosModules.nix-index

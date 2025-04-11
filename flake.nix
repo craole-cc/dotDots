@@ -18,7 +18,7 @@
 
       inherit (lib.attrsets) genAttrs attrValues;
 
-      packageOverlays = import paths.packages.overlays { inherit inputs; };
+      packageOverlays = import paths.pkgs.overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
         import nixPackages {
@@ -28,25 +28,19 @@
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
-      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
-
-      mkHost =
-        name: extraArgs:
-        # import (paths.libraries.mkHost) {
-        import ./Libraries/admin/mkHost.nix {
-          inherit inputs paths self;
-        } name extraArgs;
+      packages = perSystem (pkgs: import paths.pkgs.custom { inherit pkgs paths; });
+      mkHost = name: args: import paths.lib.mkHost { inherit inputs paths self; } name args;
     in
     {
       inherit packages lib;
 
       overlays = packageOverlays;
+
       devShells = perSystem (pkgs: {
         default = packages.${pkgs.system}.dotshell;
       });
 
-      # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
-      formatter = perSystem (pkgs: pkgs.treefmt);
+      formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
 
       nixosConfigurations = {
         # QBXvm = mkHost {
