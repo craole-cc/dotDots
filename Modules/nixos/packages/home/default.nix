@@ -35,5 +35,6 @@
     ./wofi
     ./yt-dlp
     ./zed
+    ./zen
   ];
 }

@@ -39,10 +39,10 @@
         QBXvm =
           let
             hostName = "QBXvm";
+            system = "x86_64-linux";
           in
           lib.nixosSystem {
-            inherit specialArgs;
-            system = "x86_64-linux";
+            inherit specialArgs system;
             modules =
               [
                 {

@@ -38,6 +38,7 @@
     yt-dlp.enable = true;
     zoxide.enable = true;
     zed-editor.enable = true;
+    zen.enable=true;
   };
   home = {
     sessionVariables.READER = "bat";
