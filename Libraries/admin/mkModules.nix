@@ -31,7 +31,8 @@ let
   core =
     (with paths; [
       libs.base
-      modules
+      mods.base
+      # modules
     ])
     ++ (with inputs; [
       nixLocate.nixosModules.nix-index
