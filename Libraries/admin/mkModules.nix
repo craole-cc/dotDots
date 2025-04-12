@@ -30,7 +30,7 @@ let
 
   core =
     (with paths; [
-      libraries
+      libs.base
       modules
     ])
     ++ (with inputs; [

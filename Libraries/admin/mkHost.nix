@@ -2,18 +2,21 @@
   self,
   inputs,
   paths,
+  # lib,
   ...
 }:
 name: extraArgs:
 let
+  basePath = extraArgs.basePath or "/home/craole/.dots";
+
   host =
     let
-      inherit (inputs.nixpkgs.lib.lists) foldl' filter;
-      confCommon = import (paths.hosts + "/common");
-      confSystem = import (paths.hosts + "/${name}");
+      inherit (lib.lists) foldl' filter;
+      confCommon = import (paths.conf.hosts + "/common");
+      confSystem = import (paths.conf.hosts + "/${name}");
       enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
       userConfigs = foldl' (
-        acc: userFile: acc // import (paths.users + "/${userFile}")
+        acc: userFile: acc // import (paths.conf.users + "/${userFile}")
       ) { } enabledUsers;
     in
     {
@@ -27,6 +30,7 @@ let
   isDarwin = builtins.match ".*darwin" system != null;
   pkgs = import ./mkPackages.nix {
     inherit inputs system;
+    _module.specialArgs.DOTS.paths.base = basePath;
     preferredRepo = host.preferredRepo or "unstable";
     allowUnfree = host.allowUnfree or true;
     allowAliases = host.allowAliases or true;

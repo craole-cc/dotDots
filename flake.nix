@@ -5,17 +5,11 @@
     let
       inherit (nixPackages) lib;
       systems = genAttrs (import inputs.nixosSystems);
-      paths =
+      dots =
         (lib.evalModules {
-          modules = [
-            {
-              _file = ./Modules/paths.nix;
-              imports = [ ./Modules/paths.nix ];
-              config.DOTS.paths.base = self.outPath;
-            }
-          ];
-        }).config.DOTS.paths;
-
+          modules = [ { imports = [ ./Options ]; } ];
+        }).config.DOTS;
+      inherit (dots) paths;
       inherit (lib.attrsets) genAttrs attrValues;
 
       packageOverlays = import paths.pkgs.overlays { inherit inputs; };
@@ -29,7 +23,16 @@
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.pkgs.custom { inherit pkgs paths; });
-      mkHost = name: args: import paths.lib.mkHost { inherit inputs paths self; } name args;
+      mkHost =
+        name: args:
+        import paths.libs.mkHost {
+          inherit
+            inputs
+            paths
+            self
+            # lib
+            ;
+        } name args;
     in
     {
       inherit packages lib;
@@ -53,15 +56,12 @@
         # };
 
         QBXvm = mkHost "QBXvm" {
+          basePath = "/home/craole/.dots";
+
           # platform = "x86_64-linux";
           # preferredRepo = "unstable";
           # allowUnfree = true;
           # desktop = "plasma";
-          # extraModules = with dots; [
-          # (paths.hosts + "/QBXvm")
-          #   modules.core
-          #   modules.home
-          # ];
         };
 
         # QBXl = mkHost {
