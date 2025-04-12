@@ -7,7 +7,12 @@
       systems = genAttrs (import inputs.nixosSystems);
       dots =
         (lib.evalModules {
-          modules = [ { imports = [ ./Options ]; } ];
+          modules = [
+            {
+              imports = [ ./Options ];
+              DOTS.paths.base = ./.;
+            }
+          ];
         }).config.DOTS;
       inherit (dots) paths;
       inherit (lib.attrsets) genAttrs attrValues;
