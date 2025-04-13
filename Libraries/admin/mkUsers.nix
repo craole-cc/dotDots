@@ -6,8 +6,13 @@
   ...
 }:
 let
-  inherit (lib.modules) mkIf mkMerge;
-  inherit (lib.attrsets) removeAttrs mapAttrsToList attrValues;
+  inherit (lib.modules) mkIf mkForce mkMerge;
+  inherit (lib.attrsets)
+    removeAttrs
+    mapAttrsToList
+    attrValues
+    mapAttrs
+    ;
   inherit (lib.lists) any concatLists;
   inherit (host) userConfigs;
 
@@ -41,16 +46,16 @@ let
           [
             {
               imports = [ packagePath ];
-              config.programs.${name}.enable = cfg.enable;
+              config.programs.${name} = mapAttrs (key: value: mkForce value) (
+                { enable = cfg.enable; } // (removeAttrs cfg [ "enable" ])
+              );
             }
           ]
         else
           [ ];
-
-      # Create module for each enabled package
       mkPackageModule = name: cfg: importPackage name cfg;
     in
-    concatLists (attrValues (builtins.mapAttrs mkPackageModule (removeAttrs apps [ "home-manager" ])));
+    concatLists (attrValues (mapAttrs mkPackageModule (removeAttrs apps [ "home-manager" ])));
 
   mkUser = username: userConfig: {
     users.users.${username} = {

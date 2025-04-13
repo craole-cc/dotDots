@@ -8,16 +8,7 @@ let
   };
   theme = "Catppuccin-latte";
 in
-# inherit (config.dots.users.craole) name theme;
-# inherit (userArgs.theme) colors;
-# inherit (colors) mode;
-# inherit (colors.${mode}) scheme;
-# theme = scheme.${app};
 {
-  # options.${dom}.${mod} = {
-  #   enable = mkEnableOption "${mod}";
-  # };
-  # config.${dom}.${mod} = mkIf cfg.enable {
   programs.bat = {
     # enable = true;
     config = {

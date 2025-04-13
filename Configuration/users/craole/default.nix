@@ -16,6 +16,7 @@
       enable = true;
       userName = "Craole";
       userEmail = "32288735+Craole@users.noreply.github.com";
+      lfs.enable = false;
     };
     bat.enable = true;
     btop.enable = true;
