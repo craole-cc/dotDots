@@ -1,8 +1,4 @@
 {
-  # imports = [
-  #   ./configuration.nix
-  #   ./hardware-configuration.nix
-  # ];
   flake = "/home/craole/.dots";
   platform = "x86_64-linux";
   # id = "1d022da8";

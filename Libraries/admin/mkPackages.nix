@@ -16,7 +16,7 @@ let
     nixosDarwin
     ;
   isDarwin = builtins.match ".*darwin" system != null;
-  hasHomeManager = inputs ? nixosHome; # Check if nixosHome exists in inputs
+  hasHomeManager = inputs ? nixosHome;
 
   mkPkgs =
     pkgsInput:

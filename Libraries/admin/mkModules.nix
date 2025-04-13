@@ -32,14 +32,15 @@ let
   core =
     [
       ./mkUsers.nix
+      ./mkEnvironment.nix
       {
         system.stateVersion = stateVersion;
       }
     ]
     ++ (with paths; [
+      base
       packages
       modules
-      options
       libraries
     ])
     ++ (with inputs; [

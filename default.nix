@@ -59,7 +59,7 @@ in
     };
     base = mkOption {
       description = "Path to the dots repository.";
-      default = ../.;
+      default = ./.;
       type = either str path;
     };
     binaries = mkOption {
