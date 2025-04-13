@@ -1,23 +1,34 @@
 {
-  config,
   host,
+  flake,
+  paths,
   ...
 }:
+let
+  inherit (paths) bins;
+  local = host.flake or "/home/craole/.dots";
+  store = flake.outPath;
+  variables = {
+    DOTS = local;
+    DOTS_STORE = store;
+  };
+  aliases = {
+    ".." = ''cd .. || exit 1'';
+    "..." = ''cd ../.. || exit 1'';
+    "...." = ''cd ../../.. || exit 1'';
+    "....." = ''cd ../../../.. || exit 1'';
+    ".dots" = ''cd "$DOTS" || exit 1'';
+    devdots = ''${bins.dev} $DOTS'';
+    vscdots = ''${bins.eda} --dots'';
+    hxdots = ''${bins.eda} --dots --helix'';
+    eda = ''${bins.eda}'';
+    dev = ''${bins.dev}'';
+  };
+in
 {
-  config = {
-    environment = {
-      variables = {
-        DOTS = host.flake or "/home/craole/.dots";
-        DOTS_STORE = config.dots.outPath or null;
-      };
-
-      # Session variables (sourced by login shells)
-      sessionVariables = {
-        inherit (config.environment.variables)
-          DOTS
-          DOTS_STORE
-          ;
-      };
-    };
+  environment = {
+    inherit variables;
+    sessionVariables = variables;
+    shellAliases = aliases;
   };
 }

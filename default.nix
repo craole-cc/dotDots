@@ -7,8 +7,6 @@ let
   inherit (lib.options) mkOption;
   # inherit (lib.strings) toUpper;
   inherit (lib.types)
-    # attrs
-    # attrsOf
     either
     str
     path
@@ -81,6 +79,16 @@ in
       gyt = mkOption {
         description = "Path to the gyt binary.";
         default = cfg.bins.shellscript + "/project/git/gyt";
+        type = either str path;
+      };
+      dev = mkOption {
+        description = "Path to the devnix binary.";
+        default = cfg.bins.shellscript + "/project/nix/devnix";
+        type = either str path;
+      };
+      eda = mkOption {
+        description = "Path to the eda binary.";
+        default = cfg.bins.shellscript + "/packages/alias/edita";
         type = either str path;
       };
     };
