@@ -1,5 +1,16 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
+  dom = "programs";
+  mod = "bat";
+  cfg = config.${dom}.${mod};
+  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.modules) mkIf;
+
   catppuccin = pkgs.fetchFromGitHub {
     owner = "catppuccin";
     repo = "bat";
@@ -14,8 +25,12 @@ in
 # inherit (colors.${mode}) scheme;
 # theme = scheme.${app};
 {
-  programs.bat = {
+  options.${dom}.${mod} = {
+    enable = mkEnableOption "${mod}";
+  };
+  config.${dom}.${mod} = mkIf cfg.enable {
     # enable = true;
+    package = pkgs."${mod}";
     config = {
       inherit theme;
       pager = "less -FR";

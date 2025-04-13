@@ -1,7 +1,6 @@
 {
   description = "Craig 'CC' Cole";
   id = 1551;
-  isAdminUser = true;
   isNormalUser = true;
   hashedPassword = "$6$FoqL4RSvypLQSN6j$RvZp4NAkCNxz/nFUuAYWo8CAXrqqrpOL/LXCBPITCkzPTso2kJXcko8O61torGdCa5pJIq/hOv2rfSwcDbOSX1";
   desktop = {
@@ -14,11 +13,10 @@
   };
   applications = {
     git = {
-      userName = "Craole";
-      userEmail = "32288735+Craole@users.noreply.github.com";
+      # enable = true;
+      name = "Craole";
+      email = "32288735+Craole@users.noreply.github.com";
     };
-
-    home-manager.enable = true;
     bat.enable = true;
     btop.enable = true;
   };

@@ -9,6 +9,7 @@
 }:
 let
   isDarwin = builtins.match ".*darwin" host.platform != null;
+  stateVersion = host.stateVersion or "25.05";
 
   validateDesktop =
     desktop:
@@ -29,7 +30,12 @@ let
   validatedDesktop = validateDesktop desktop;
 
   core =
-    [ ./mkUsers.nix ]
+    [
+      ./mkUsers.nix
+      {
+        system.stateVersion = stateVersion;
+      }
+    ]
     ++ (with paths; [
       packages
       modules
@@ -72,6 +78,10 @@ let
             useUserPackages = true;
             sharedModules = home;
             extraSpecialArgs = specialArgs;
+            users = lib.genAttrs (builtins.attrNames host.userConfigs) (username: {
+              home.stateVersion = stateVersion;
+              programs.home-manager.enable = true;
+            });
           };
         }
       ]

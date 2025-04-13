@@ -2,25 +2,25 @@
   config,
   lib,
   host,
+  paths,
   ...
 }:
 let
-  inherit (lib) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.attrsets) removeAttrs mapAttrsToList attrValues;
+  inherit (lib.lists) any concatLists;
   inherit (host) userConfigs;
 
-  # Get host capabilities
   hasNetworking =
     builtins.elem "wired" host.capabilities || builtins.elem "wireless" host.capabilities;
   hasVideo = builtins.elem "video" host.capabilities;
   hasAudio = builtins.elem "audio" host.capabilities;
 
-  # Helper function to check if user is admin
   isAdmin =
     username: userConfig:
     (userConfig.isAdminUser or false)
-    || (lib.any (person: person.name == username && (person.admin or false)) host.people);
+    || (any (person: person.name == username && (person.admin or false)) host.people);
 
-  # Helper function to build group list based on host capabilities
   mkGroups =
     username: userConfig:
     (if (isAdmin username userConfig) then [ "wheel" ] else [ ])
@@ -28,19 +28,29 @@ let
     ++ (if hasVideo then [ "video" ] else [ ])
     ++ (if hasAudio then [ "audio" ] else [ ]);
 
-  # Helper function to build programs configuration
-  mkPrograms =
+  mkHomePackages =
     userConfig:
     let
-      apps = removeAttrs (userConfig.applications or { }) [ "home-manager" ];
+      apps = userConfig.applications or { };
+      importPackage =
+        name: cfg:
+        let
+          packagePath = "${paths.pkgs.home}/${name}";
+        in
+        if builtins.pathExists packagePath then
+          [
+            {
+              imports = [ packagePath ];
+              config.programs.${name}.enable = cfg.enable;
+            }
+          ]
+        else
+          [ ];
+
+      # Create module for each enabled package
+      mkPackageModule = name: cfg: importPackage name cfg;
     in
-    builtins.mapAttrs (
-      name: cfg:
-      {
-        enable = cfg.enable or false;
-      }
-      // (removeAttrs cfg [ "enable" ])
-    ) apps;
+    concatLists (attrValues (builtins.mapAttrs mkPackageModule (removeAttrs apps [ "home-manager" ])));
 
   mkUser = username: userConfig: {
     users.users.${username} = {
@@ -54,26 +64,13 @@ let
     };
 
     home-manager.users.${username} = mkIf (host.allowHomeManager or false) {
-      home = {
-        inherit username;
-        homeDirectory = "/home/${username}";
-        stateVersion = config.system.stateVersion;
-      };
-
-      # Desktop-specific configuration
+      imports = mkHomePackages userConfig;
+      home.stateVersion = config.system.stateVersion;
+      programs.home-manager.enable = true;
       wayland.windowManager.hyprland.enable = userConfig.desktop.manager or "" == "hyprland";
-
-      # Display manager auto-login
-      # services.greetd = mkIf (userConfig.display.autoLogin or false) {
-      #   enable = true;
-      #   settings.initial_session.user = username;
-      # };
-
-      # Programs configuration (including git and other applications)
-      programs = mkPrograms userConfig;
     };
   };
 in
 {
-  config = lib.mkMerge (lib.mapAttrsToList mkUser userConfigs);
+  config = mkMerge (mapAttrsToList mkUser userConfigs);
 }
