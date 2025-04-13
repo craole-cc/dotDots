@@ -31,8 +31,9 @@ let
 
   core =
     [
+      paths.store.modules.environment
       ./users.nix
-      ./environment.nix
+      # ./environment.nix
       {
         system.stateVersion = stateVersion;
       }

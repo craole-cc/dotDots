@@ -21,9 +21,9 @@ let
       nix = binaries.base + "/nix";
       rs = binaries.base + "/rust";
       sh = binaries.base + "/shellscript";
-      gyt = binaries.base.sh + "/projects/git/gyt";
-      eda = binaries.base.sh + "/packages/alias/edita";
-      dev = binaries.base.sh + "/projects/nix/devnix";
+      gyt = binaries.sh + "/projects/git/gyt";
+      eda = binaries.sh + "/packages/alias/edita";
+      dev = binaries.sh + "/projects/nix/devnix";
     };
     configuration = {
       base = "/Configuration";
@@ -42,6 +42,7 @@ let
     };
     modules = {
       base = "/Modules";
+      environment = modules.base + "/environment.nix";
     };
     packages = {
       base = "/Packages";

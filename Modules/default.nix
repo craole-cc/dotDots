@@ -2,7 +2,7 @@
   imports = [
     # ./enums.nix
     # ./desktop.nix
-    ./paths.nix
+    ./environment.nix
     # ./fmt.nix
   ];
 }
