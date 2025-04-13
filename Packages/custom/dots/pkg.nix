@@ -2,28 +2,23 @@
 with pkgs;
 [
   bat
-  btop
+  # btop
   coreutils
   gnused
   curl
-  devenv
-  eza
-  dust
-  fastfetch
+  # devenv
+  # eza
+  # dust
+  # fastfetch
   fd
-  gh
+  # gh
   gitui
-  helix
-  nil
-  nixd
-  nixfmt-rfc-style
-  onefetch
-  ripgrep
-  shellcheck
-  shfmt
-  tokei
-  treefmt
+  # helix
+  # onefetch
+  # ripgrep
+  # tokei
+  # treefmt
   undollar
-  wget
-  yazi
+  # wget
+  # yazi
 ]
