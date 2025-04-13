@@ -8,14 +8,7 @@
       inherit (lib.modules) evalModules;
 
       systems = genAttrs (import inputs.nixosSystems);
-      dots =
-        (evalModules {
-          modules = [
-            { imports = [ ./Options ]; }
-          ];
-        }).config.DOTS;
-      inherit (dots) paths;
-
+      paths = (evalModules { modules = [ { imports = [ ./. ]; } ]; }).config.DOTS.paths;
       packageOverlays = import paths.pkgs.overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
