@@ -2,7 +2,6 @@
   self,
   inputs,
   paths,
-  # lib,
   ...
 }:
 name: extraArgs:
@@ -38,7 +37,7 @@ let
     flake = self;
     paths = hostPaths;
   };
-  modules = [ paths.store.modules ];
+  modules = with paths.store.modules; [ base ];
   #   import ./modules.nix {
   #     inherit
   #       lib

@@ -2,9 +2,9 @@
   imports = [
     # ./enums.nix
     # ./desktop.nix
-    # ./environment.nix
-    # ./nix.nix
+    ./environment.nix
+    ./nix.nix
     # ./users.nix
-    # ./home-manager.nix
+    ./home-manager.nix
   ];
 }

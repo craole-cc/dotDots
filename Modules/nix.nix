@@ -22,9 +22,7 @@ in
         "@wheel"
       ];
     };
-    extraOptions = ''
-      download-buffer-size = 524288000 #TODO: Does this work now
-    '';
+    extraOptions = ''download-buffer-size = 524288000'';
   };
   system = { inherit stateVersion; };
 
