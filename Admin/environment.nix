@@ -22,9 +22,7 @@ let
   };
 in
 {
-  environment = {
-    inherit variables;
-    sessionVariables = variables;
-    shellAliases = aliases;
-  };
+  inherit variables;
+  sessionVariables = variables;
+  shellAliases = aliases;
 }

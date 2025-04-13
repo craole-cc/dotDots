@@ -33,20 +33,14 @@ let
     extraConfig = host.extraPkgConfig or { };
     extraPkgAttrs = host.extraPkgAttrs or { };
   };
+  # environment = import ./environment.nix {
+  #   inherit paths;
+  #   flake = self;
+  # };
   specialArgs = {
     inherit inputs host;
     flake = self;
     paths = hostPaths;
-    # paths =
-    #   (lib.evalModules {
-    #     modules = [
-    #       {
-    #         imports = [ paths.opts.paths ];
-    #         # config.DOTS.paths.base = host.flake or "/home/craole/.dots";-
-    #         _module.specialArgs.paths.base = host.flake or "/home/craole/.dots";
-    #       }
-    #     ];
-    #   }).config.DOTS.paths;
   };
   modules = import ./modules.nix {
     inherit
