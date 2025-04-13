@@ -13,9 +13,9 @@
   };
   applications = {
     git = {
-      # enable = true;
-      name = "Craole";
-      email = "32288735+Craole@users.noreply.github.com";
+      enable = true;
+      userName = "Craole";
+      userEmail = "32288735+Craole@users.noreply.github.com";
     };
     bat.enable = true;
     btop.enable = true;
