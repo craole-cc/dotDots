@@ -130,7 +130,7 @@
   ollama = {
     enable = true;
     models = [
-      "codegemma"
+      # "codegemma"
       # "qwen2.5-coder:32b"
       # "mistral-nemo"
       # "yi-coder:9b"

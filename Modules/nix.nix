@@ -1,12 +1,9 @@
-{ modulesPath, ... }:
-# let
-#   inherit (lib.attrsets) attrValues;
-# in
+{ modulesPath, host, ... }:
+let
+  stateVersion = host.stateVersion or "25.05";
+in
 {
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-  ];
-
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
   nix = {
     gc = {
       automatic = true;
@@ -29,6 +26,7 @@
       download-buffer-size = 524288000 #TODO: Does this work now
     '';
   };
+  system = { inherit stateVersion; };
 
   # nixpkgs.overlays = attrValues packageOverlays;
 }

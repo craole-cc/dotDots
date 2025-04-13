@@ -38,17 +38,19 @@ let
     flake = self;
     paths = hostPaths;
   };
-  modules = import ./modules.nix {
-    inherit
-      lib
-      inputs
-      paths
-      host
-      pkgs
-      specialArgs
-      ;
-    backupFileExtension = host.backupFileExtension or "backup";
-  };
+  modules = [ paths.store.modules ];
+  #   import ./modules.nix {
+  #     inherit
+  #       lib
+  #       inputs
+  #       paths
+  #       host
+  #       pkgs
+  #       specialArgs
+  #       ;
+  #     backupFileExtension = host.backupFileExtension or "backup";
+  #   }
+  #   // import ./desktop.nix { inherit inputs host; };
   inherit (pkgs) lib;
   mkSystem = with lib; if isDarwin then darwinSystem else nixosSystem;
 in
