@@ -10,7 +10,7 @@
       paths = import ./Admin/paths.nix;
       init = {
         host = paths.store.administration.host;
-        pkgs = paths.store.administration.packages;
+        pkgs = paths.store.packages;
       };
 
       packageOverlays = import init.pkgs.overlays { inherit inputs; };

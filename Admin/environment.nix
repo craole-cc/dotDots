@@ -22,12 +22,19 @@ let
     hxdots = ''${eda} --dots --helix'';
     inherit dev gyt eda;
   };
-in
-{
   environment = {
     inherit variables;
     sessionVariables = variables;
     shellAliases = aliases;
   };
+in
+{
+  _module.args.config = { inherit environment; };
+  config = { inherit environment; };
+  # environment = {
+  #   inherit variables;
+  #   sessionVariables = variables;
+  #   shellAliases = aliases;
+  # };
 
 }

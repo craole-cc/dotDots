@@ -12,14 +12,11 @@
     name = "PRJ_BIN";
     prefix =
       let
-        inherit (paths.parts) bin;
-        shellscript = "$PRJ_ROOT" + bin.shellscript;
-        rust = "$PRJ_ROOT" + bin.rust;
-        dots = "$PRJ_ROOT" + bin.scripts.dots;
-        mods = "$PRJ_ROOT" + bin.scripts.mods;
+        inherit (paths.local.binaries) sh rs;
+        dots = "$PRJ_ROOT" + "/Scripts";
       in
       ''
-        ${shellscript}:${rust}:${dots}:${mods}
+        ${sh}:${rs}:${dots}
       '';
   }
   {
