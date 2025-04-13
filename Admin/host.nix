@@ -33,10 +33,6 @@ let
     extraConfig = host.extraPkgConfig or { };
     extraPkgAttrs = host.extraPkgAttrs or { };
   };
-  # environment = import ./environment.nix {
-  #   inherit paths;
-  #   flake = self;
-  # };
   specialArgs = {
     inherit inputs host;
     flake = self;

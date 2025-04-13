@@ -1,12 +1,13 @@
 let
   inherit (builtins) mapAttrs isAttrs;
 
-  base = {
+  flake = {
     store = ../.;
     local = "/home/craole/.dots";
   };
 
   parts = rec {
+    flake = "";
     administration = {
       base = "/Admin";
       host = administration.base + "/host.nix";
@@ -15,11 +16,11 @@ let
       paths = administration.base + "/paths.nix";
     };
     binaries = {
-      base = "/Binaries";
+      base = "/Bin";
       cmd = binaries.base + "/cmd";
       nix = binaries.base + "/nix";
-      rs = binaries.base + "/rs";
-      sh = binaries.base + "/sh";
+      rs = binaries.base + "/rust";
+      sh = binaries.base + "/shellscript";
       gyt = binaries.base.sh + "/projects/git/gyt";
       eda = binaries.base.sh + "/packages/alias/edita";
       dev = binaries.base.sh + "/projects/nix/devnix";
@@ -55,8 +56,8 @@ let
     root: set: mapAttrs (name: value: if isAttrs value then mkPathSet root value else root + value) set;
 
   initialPaths = {
-    store = mkPathSet base.store parts;
-    local = mkPathSet base.local parts;
+    store = mkPathSet flake.store parts;
+    local = mkPathSet flake.local parts;
     passwords = "/var/lib/dots/passwords";
   };
 
@@ -64,7 +65,7 @@ let
     local:
     initialPaths
     // {
-      local = mkPathSet (if local == null then base.local else local) parts;
+      local = mkPathSet (if local == null then flake.local else local) parts;
     };
 in
 {
