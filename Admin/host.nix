@@ -25,7 +25,7 @@ let
 
   system = host.platform;
   isDarwin = builtins.match ".*darwin" system != null;
-  pkgs = import ./mkPackages.nix {
+  pkgs = import ./packages.nix {
     inherit inputs system;
     preferredRepo = host.preferredRepo or "unstable";
     allowUnfree = host.allowUnfree or true;
@@ -36,18 +36,21 @@ let
   specialArgs = {
     inherit inputs host;
     flake = self;
-    paths =
-      (lib.evalModules {
-        modules = [
-          {
-            imports = [ paths.opts.paths ];
-            config.DOTS.paths.base = host.flake or "/home/craole/.dots";
-            _module.specialArgs.paths.base = host.flake or "/home/craole/.dots";
-          }
-        ];
-      }).config.DOTS.paths;
+    paths = paths // {
+      base = host.flake or "/home/craole/.dots";
+    };
+    # paths =
+    #   (lib.evalModules {
+    #     modules = [
+    #       {
+    #         imports = [ paths.opts.paths ];
+    #         # config.DOTS.paths.base = host.flake or "/home/craole/.dots";-
+    #         _module.specialArgs.paths.base = host.flake or "/home/craole/.dots";
+    #       }
+    #     ];
+    #   }).config.DOTS.paths;
   };
-  modules = import ./mkModules.nix {
+  modules = import ./modules.nix {
     inherit
       lib
       inputs

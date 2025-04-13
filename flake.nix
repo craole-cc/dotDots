@@ -21,7 +21,7 @@
       perSystem = x: systems (system: x perSystemPackages.${system});
       packages = perSystem (pkgs: import paths.pkgs.custom { inherit pkgs paths; });
       # mkHost = name: args: import paths.libs.mkHost { inherit self paths inputs; } name args;
-      mkHost = name: args: import ./Admin/mkHost.nix { inherit self paths inputs; } name args;
+      mkHost = name: args: import ./Admin/host.nix { inherit self paths inputs; } name args;
     in
     {
       inherit packages lib;
