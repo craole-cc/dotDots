@@ -37,11 +37,11 @@ let
         system.stateVersion = stateVersion;
       }
     ]
-    ++ (with paths; [
-      base
-      packages
-      modules
-      libraries
+    ++ (with paths.store; [
+      # store
+      # packages
+      # modules
+      # libraries
     ])
     ++ (with inputs; [
       nixLocate.nixosModules.nix-index

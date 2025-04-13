@@ -10,19 +10,19 @@ let
   host =
     let
       inherit (lib.lists) foldl' filter;
-      confCommon = import (paths.conf.hosts + "/common");
-      confSystem = import (paths.conf.hosts + "/${name}");
+      confCommon = import (paths.store.configuration.hosts + "/common");
+      confSystem = import (paths.store.configuration.hosts + "/${name}");
       enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
       userConfigs = foldl' (
         acc: username:
         acc
         // {
-          ${username} = import (paths.conf.users + "/${username}");
+          ${username} = import (paths.store.configuration.users + "/${username}");
         }
       ) { } enabledUsers;
     in
     { inherit name userConfigs; } // confCommon // confSystem // extraArgs;
-
+  hostPaths = paths.updateLocalPaths (host.flake or null);
   system = host.platform;
   isDarwin = builtins.match ".*darwin" system != null;
   pkgs = import ./packages.nix {
@@ -36,9 +36,7 @@ let
   specialArgs = {
     inherit inputs host;
     flake = self;
-    paths = paths // {
-      base = host.flake or "/home/craole/.dots";
-    };
+    paths = hostPaths;
     # paths =
     #   (lib.evalModules {
     #     modules = [

@@ -1,84 +1,73 @@
 let
-  #@ Define the flake paths
-  store = ../.;
-  local = "/home/craole/.dots";
+  inherit (builtins) mapAttrs isAttrs;
 
-  #@ Create a function for creating paths
-  mkPaths = base: {
-    inherit base;
-    bin = base + "/Bin";
-    conf = base + "/Configuration";
-    docs = base + "/Documentation";
-    env = base + "/Environment";
-    libs = base + "/Libraries";
-    mods = base + "/Modules";
-    opts = base + "/Options";
-    pkgs = base + "/Packages";
+  base = {
+    store = ../.;
+    local = "/home/craole/.dots";
   };
 
-  #@ Generate flake paths
-  storePaths = mkPaths store;
-  localPaths = mkPaths local;
-
-  #@ Define all paths upfront to avoid recursive references
-  flakePaths = {
-    store = store;
-    local = local;
+  parts = rec {
+    administration = {
+      base = "/Admin";
+      host = administration.base + "/host.nix";
+      modules = administration.base + "/modules.nix";
+      packages = administration.base + "/packages.nix";
+      paths = administration.base + "/paths.nix";
+    };
+    binaries = {
+      base = "/Binaries";
+      cmd = binaries.base + "/cmd";
+      nix = binaries.base + "/nix";
+      rs = binaries.base + "/rs";
+      sh = binaries.base + "/sh";
+      gyt = binaries.base.sh + "/projects/git/gyt";
+      eda = binaries.base.sh + "/packages/alias/edita";
+      dev = binaries.base.sh + "/projects/nix/devnix";
+    };
+    configuration = {
+      base = "/Configuration";
+      hosts = configuration.base + "/hosts";
+      users = configuration.base + "/users";
+    };
+    documentation = {
+      base = "/Documentation";
+    };
+    environment = {
+      base = "/Environment";
+    };
+    libraries = {
+      base = "/Libraries";
+      core = libraries.base + "/core";
+    };
+    modules = {
+      base = "/Modules";
+    };
+    packages = {
+      base = "/Packages";
+      core = packages.base + "/core";
+      custom = packages.base + "/custom";
+      overlays = packages.base + "/overlays";
+      home = packages.base + "/home";
+    };
   };
 
-  confPaths = {
-    base = localPaths.conf;
-    hosts = localPaths.conf + "/hosts";
-    users = localPaths.conf + "/users";
+  mkPathSet =
+    root: set: mapAttrs (name: value: if isAttrs value then mkPathSet root value else root + value) set;
+
+  initialPaths = {
+    store = mkPathSet base.store parts;
+    local = mkPathSet base.local parts;
+    passwords = "/var/lib/dots/passwords";
   };
 
-  libPaths = {
-    base = storePaths.libs;
-    admin = storePaths.libs + "/admin";
-    core = storePaths.libs + "/core";
-    mkHost = storePaths.libs + "/admin/mkHost.nix";
-    mkModules = storePaths.libs + "/admin/mkModules.nix";
-    mkPackages = storePaths.libs + "/admin/mkPackages.nix";
-  };
-
-  pkgPaths = {
-    base = storePaths.pkgs;
-    core = storePaths.pkgs + "/core";
-    custom = storePaths.pkgs + "/custom";
-    home = storePaths.pkgs + "/home";
-    overlays = storePaths.pkgs + "/overlays";
-  };
-
-  binPaths = {
-    base = localPaths.bin;
-    cmd = localPaths.bin + "/cmd";
-    nix = localPaths.bin + "/nix";
-    rust = localPaths.bin + "/rust";
-    shellscript = localPaths.bin + "/shellscript";
-    gyt = localPaths.bin + "/projects/git/gyt";
-    eda = localPaths.bin + "/packages/alias/edita";
-    dev = localPaths.bin + "/projects/nix/devnix";
-  };
-
-  modPaths = {
-    base = storePaths.mods;
-    nixos = storePaths.mods + "/nixos";
-    home = storePaths.mods + "/home";
-  };
+  updateLocalPaths =
+    local:
+    initialPaths
+    // {
+      local = mkPathSet (if local == null then base.local else local) parts;
+    };
 in
 {
-  flake = flakePaths;
-  conf = confPaths;
-  libs = libPaths;
-  pkgs = pkgPaths;
-  bins = binPaths;
-  mods = modPaths;
-
-  # Other paths
-  documentation = storePaths.docs;
-  environment = storePaths.env;
-  modules = modPaths.base;
-  options = storePaths.opts;
-  binaries = binPaths.base;
-  passwords = "/var/lib/dots/passwords";
+  inherit updateLocalPaths;
 }
+// initialPaths

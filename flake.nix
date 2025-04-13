@@ -5,11 +5,15 @@
     let
       inherit (nixPackages) lib;
       inherit (lib.attrsets) genAttrs attrValues;
-      inherit (lib.modules) evalModules;
 
       systems = genAttrs (import inputs.nixosSystems);
-      paths = (evalModules { modules = [ { imports = [ ./. ]; } ]; }).config.DOTS.paths;
-      packageOverlays = import paths.pkgs.overlays { inherit inputs; };
+      paths = import ./Admin/paths.nix;
+      init = {
+        host = paths.store.administration.host;
+        pkgs = paths.store.administration.packages;
+      };
+
+      packageOverlays = import init.pkgs.overlays { inherit inputs; };
       perSystemPackages = systems (
         system:
         import nixPackages {
@@ -19,9 +23,8 @@
         }
       );
       perSystem = x: systems (system: x perSystemPackages.${system});
-      packages = perSystem (pkgs: import paths.pkgs.custom { inherit pkgs paths; });
-      # mkHost = name: args: import paths.libs.mkHost { inherit self paths inputs; } name args;
-      mkHost = name: args: import ./Admin/host.nix { inherit self paths inputs; } name args;
+      packages = perSystem (pkgs: import init.pkgs.custom { inherit pkgs paths; });
+      mkHost = name: args: import init.host { inherit self paths inputs; } name args;
     in
     {
       inherit packages lib;
