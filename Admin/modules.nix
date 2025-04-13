@@ -31,8 +31,8 @@ let
 
   core =
     [
-      ./mkUsers.nix
-      ./mkEnvironment.nix
+      ./users.nix
+      ./environment.nix
       {
         system.stateVersion = stateVersion;
       }

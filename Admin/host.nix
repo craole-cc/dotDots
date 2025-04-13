@@ -42,6 +42,7 @@ let
           {
             imports = [ paths.opts.paths ];
             config.DOTS.paths.base = host.flake or "/home/craole/.dots";
+            _module.specialArgs.paths.base = host.flake or "/home/craole/.dots";
           }
         ];
       }).config.DOTS.paths;
