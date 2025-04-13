@@ -14,21 +14,19 @@ let
       confSystem = import (paths.conf.hosts + "/${name}");
       enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
       userConfigs = foldl' (
-        acc: userFile: acc // import (paths.conf.users + "/${userFile}")
+        acc: username:
+        acc
+        // {
+          ${username} = import (paths.conf.users + "/${username}");
+        }
       ) { } enabledUsers;
     in
-    {
-      inherit name userConfigs;
-    }
-    // confCommon
-    // confSystem
-    // extraArgs;
+    { inherit name userConfigs; } // confCommon // confSystem // extraArgs;
 
   system = host.platform;
   isDarwin = builtins.match ".*darwin" system != null;
   pkgs = import ./mkPackages.nix {
     inherit inputs system;
-    # _module.specialArgs.DOTS.paths.base = extraArgs.paths.base or "/home/craole/.dots";
     preferredRepo = host.preferredRepo or "unstable";
     allowUnfree = host.allowUnfree or true;
     allowAliases = host.allowAliases or true;
@@ -36,8 +34,17 @@ let
     extraPkgAttrs = host.extraPkgAttrs or { };
   };
   specialArgs = {
-    inherit inputs paths host;
+    inherit inputs host;
     flake = self;
+    paths =
+      (lib.evalModules {
+        modules = [
+          {
+            imports = [ paths.opts.paths ];
+            config.DOTS.paths.base = host.flake or "/home/craole/.dots";
+          }
+        ];
+      }).config.DOTS.paths;
   };
   modules = import ./mkModules.nix {
     inherit

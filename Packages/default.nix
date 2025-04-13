@@ -1,6 +1,1 @@
-{
-  imports = [
-    ./core
-    ./overlays
-  ];
-}
+{ imports = [ ./core ]; }

@@ -8,7 +8,12 @@
       inherit (lib.modules) evalModules;
 
       systems = genAttrs (import inputs.nixosSystems);
-      dots = (evalModules { modules = [ { imports = [ ./Options ]; } ]; }).config.DOTS;
+      dots =
+        (evalModules {
+          modules = [
+            { imports = [ ./Options ]; }
+          ];
+        }).config.DOTS;
       inherit (dots) paths;
 
       packageOverlays = import paths.pkgs.overlays { inherit inputs; };
@@ -45,6 +50,7 @@
       formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
 
       nixosConfigurations = {
+        QBXvm = mkHost "QBXvm" { };
         # QBXvm = mkHost {
         #   hostName = "QBXvm";
         #   extraModules = with dots; [
@@ -53,15 +59,6 @@
         #     modules.home
         #   ];
         # };
-
-        QBXvm = mkHost "QBXvm" {
-          paths.base = "/home/craole/.dots";
-
-          # platform = "x86_64-linux";
-          # preferredRepo = "unstable";
-          # allowUnfree = true;
-          # desktop = "plasma";
-        };
 
         # QBXl = mkHost {
         #   hostName = "QBXl";

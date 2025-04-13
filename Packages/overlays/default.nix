@@ -40,10 +40,18 @@ in
     };
   };
 
+  #DOC Adds pkgs.unstable with default config
+  fromUnstable = final: _: {
+    unstable = import inputs.nixPackagesUntable {
+      system = final.system;
+      config.allowUnfree = true;
+    };
+  };
+
   #DOC Include modifications to existing packages with defaults
   modifications = final: prev: {
     brave = prev.brave.override {
-      commandLineArgs =  "--password-store=gnome-libsecret";
+      commandLineArgs = "--password-store=gnome-libsecret";
     };
   };
 

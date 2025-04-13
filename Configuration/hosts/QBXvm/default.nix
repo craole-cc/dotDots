@@ -3,7 +3,7 @@
   #   ./configuration.nix
   #   ./hardware-configuration.nix
   # ];
-  paths.base = "/home/craole/.dots";
+  flake = "/home/craole/.dots";
   platform = "x86_64-linux";
   # id = "1d022da8";
   stateVersion = "24.11";
@@ -121,15 +121,15 @@
       admin = true;
       autoLogin = true;
     }
-    {
-      name = "cc";
-      admin = true;
-    }
-    {
-      name = "qyatt";
-      # enable = false;
-      admin = false;
-    }
+    # {
+    #   name = "cc";
+    #   admin = true;
+    # }
+    # {
+    #   name = "qyatt";
+    #   # enable = false;
+    #   admin = false;
+    # }
   ];
   ollama = {
     enable = true;
