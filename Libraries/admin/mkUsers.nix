@@ -8,56 +8,72 @@ let
   inherit (lib) mkIf;
   inherit (host) userConfigs;
 
-  # Get allowHomeManager from host config
-  allowHomeManager = host.allowHomeManager or false;
+  # Get host capabilities
+  hasNetworking =
+    builtins.elem "wired" host.capabilities || builtins.elem "wireless" host.capabilities;
+  hasVideo = builtins.elem "video" host.capabilities;
+  hasAudio = builtins.elem "audio" host.capabilities;
+
+  # Helper function to check if user is admin
+  isAdmin =
+    username: userConfig:
+    (userConfig.isAdminUser or false)
+    || (lib.any (person: person.name == username && (person.admin or false)) host.people);
+
+  # Helper function to build group list based on host capabilities
+  mkGroups =
+    username: userConfig:
+    (if (isAdmin username userConfig) then [ "wheel" ] else [ ])
+    ++ (if hasNetworking then [ "networkmanager" ] else [ ])
+    ++ (if hasVideo then [ "video" ] else [ ])
+    ++ (if hasAudio then [ "audio" ] else [ ]);
+
+  # Helper function to build programs configuration
+  mkPrograms =
+    userConfig:
+    let
+      apps = removeAttrs (userConfig.applications or { }) [ "home-manager" ];
+    in
+    builtins.mapAttrs (
+      name: cfg:
+      {
+        enable = cfg.enable or false;
+      }
+      // (removeAttrs cfg [ "enable" ])
+    ) apps;
 
   mkUser = username: userConfig: {
     users.users.${username} = {
       inherit (userConfig)
         description
         hashedPassword
-        id
         isNormalUser
         ;
-      isAdminUser = userConfig.isAdminUser or false;
-      extraGroups = [
-        "wheel"
-        "networkmanager"
-        "video"
-        "audio"
-      ];
+      uid = userConfig.id or null;
+      extraGroups = mkGroups username userConfig;
     };
 
-    # Configure home-manager only if it's allowed at host level
-    home-manager.users.${username} =
-      mkIf (allowHomeManager && (userConfig.applications.home-manager.enable or false))
-        {
-          home = {
-            inherit username;
-            homeDirectory = "/home/${username}";
-            stateVersion = config.system.stateVersion;
-          };
+    home-manager.users.${username} = mkIf (host.allowHomeManager or false) {
+      home = {
+        inherit username;
+        homeDirectory = "/home/${username}";
+        stateVersion = config.system.stateVersion;
+      };
 
-          # Set up git if configured
-          # programs.git = mkIf (userConfig.applications.git or { } != { }) {
-          #   enable = true;
-          #   inherit (userConfig.applications.git) name email;
-          # };
+      # Desktop-specific configuration
+      wayland.windowManager.hyprland.enable = userConfig.desktop.manager or "" == "hyprland";
 
-          # Enable other requested applications
-          # programs = lib.mkMerge [
-          #   (builtins.mapAttrs (name: cfg: { enable = cfg.enable or false; }) (
-          #     removeAttrs userConfig.applications [
-          #       "git"
-          #       "home-manager"
-          #     ]
-          #   ))
-          #   { }
-          # ];
-        };
+      # Display manager auto-login
+      # services.greetd = mkIf (userConfig.display.autoLogin or false) {
+      #   enable = true;
+      #   settings.initial_session.user = username;
+      # };
+
+      # Programs configuration (including git and other applications)
+      programs = mkPrograms userConfig;
+    };
   };
 in
 {
-  # Apply configurations for all users
   config = lib.mkMerge (lib.mapAttrsToList mkUser userConfigs);
 }

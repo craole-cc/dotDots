@@ -29,7 +29,8 @@ let
   validatedDesktop = validateDesktop desktop;
 
   core =
-    (with paths; [
+    [ ./mkUsers.nix ]
+    ++ (with paths; [
       packages
       modules
       options
