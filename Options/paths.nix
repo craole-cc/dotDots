@@ -59,7 +59,7 @@ in
     };
     base = mkOption {
       description = "Path to the dots repository.";
-      default = "/home/craole/.dots";
+      default = ../.;
       type = either str path;
     };
     binaries = mkOption {
@@ -68,9 +68,14 @@ in
       type = either str path;
     };
     bins = {
+      base = mkOption {
+        description = "Path to the dots bin directory.";
+        default = cfg.binaries;
+        type = either str path;
+      };
       shellscript = mkOption {
         description = "Path to the shellscript directory.";
-        default = "${cfg.binaries}/shellscript";
+        default = cfg.bins.base + "/shellscript";
         type = either str path;
       };
       gyt = mkOption {
@@ -81,7 +86,7 @@ in
     };
     configuration = mkOption {
       description = "Path to the dots configuration directory.";
-      default = "${cfg.base}/Configuration";
+      default = cfg.base + "/Configuration";
       type = either str path;
     };
     conf = {
@@ -92,34 +97,34 @@ in
       };
       hosts = mkOption {
         description = "Path to the dots hosts configuration directory.";
-        default = "${cfg.conf.base}/hosts";
+        default = cfg.conf.base + "/hosts";
         type = either str path;
       };
       users = mkOption {
         description = "Path to the dots users configuration directory.";
-        default = "${cfg.conf.base}/users";
+        default = cfg.conf.base + "/users";
         type = either str path;
       };
     };
     documentation = mkOption {
       description = "Path to the dots documentation.";
-      default = "${cfg.base}/Documentation";
+      default = cfg.base + "/Documentation";
       type = either str path;
     };
     environment = mkOption {
       description = "Path to the dots environment.";
-      default = "${cfg.base}/Environment";
+      default = cfg.base + "/Environment";
       type = either str path;
     };
-    # libraries = mkOption {
-    #   description = "Path to the dots libraries directory.";
-    #   default = "${cfg.base}/Libraries";
-    #   type = either str path;
-    # };
+    libraries = mkOption {
+      description = "Path to the dots libraries directory.";
+      default = cfg.base + "/Libraries";
+      type = either str path;
+    };
     libs = {
       base = mkOption {
         description = "Path to the dots libraries directory.";
-        default = cfg.base + "/Libraries";
+        default = cfg.libraries;
         type = either str path;
       };
       admin = {
@@ -177,6 +182,23 @@ in
         type = either str path;
       };
     };
+    options = mkOption {
+      description = "Path to the dots options directory.";
+      default = cfg.base + "/Options";
+      type = either str path;
+    };
+    opts = {
+      base = mkOption {
+        description = "Path to the dots options directory.";
+        default = cfg.options;
+        type = either str path;
+      };
+      paths = mkOption {
+        description = "Path to the dots paths directory.";
+        default = cfg.opts.base + "/paths.nix";
+        type = either str path;
+      };
+    };
     passwords = mkOption {
       description = "Path to the password directory.";
       default = "/var/lib/dots/passwords";
@@ -184,7 +206,7 @@ in
     };
     packages = mkOption {
       description = "Path to the packages directory.";
-      default = "${cfg.base}/Packages";
+      default = cfg.base + "/Packages";
       type = either str path;
     };
     pkgs = {
@@ -195,22 +217,22 @@ in
       };
       core = mkOption {
         description = "Path to the core packages directory.";
-        default = "${cfg.pkgs.base}/core";
+        default = cfg.pkgs.base + "/core";
         type = either str path;
       };
       custom = mkOption {
         description = "Path to the custom packages directory.";
-        default = "${cfg.pkgs.base}/custom";
+        default = cfg.pkgs.base + "/custom";
         type = either str path;
       };
       overlays = mkOption {
         description = "Path to the overlays packages directory.";
-        default = "${cfg.pkgs.base}/overlays";
+        default = cfg.pkgs.base + "/overlays";
         type = either str path;
       };
       home = mkOption {
         description = "Path to the home packages directory.";
-        default = "${cfg.pkgs.base}/home";
+        default = cfg.pkgs.base + "/home";
         type = either str path;
       };
     };

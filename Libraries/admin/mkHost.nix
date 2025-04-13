@@ -7,8 +7,6 @@
 }:
 name: extraArgs:
 let
-  basePath = extraArgs.basePath or "/home/craole/.dots";
-
   host =
     let
       inherit (lib.lists) foldl' filter;
@@ -30,19 +28,17 @@ let
   isDarwin = builtins.match ".*darwin" system != null;
   pkgs = import ./mkPackages.nix {
     inherit inputs system;
-    _module.specialArgs.DOTS.paths.base = basePath;
+    # _module.specialArgs.DOTS.paths.base = extraArgs.paths.base or "/home/craole/.dots";
     preferredRepo = host.preferredRepo or "unstable";
     allowUnfree = host.allowUnfree or true;
     allowAliases = host.allowAliases or true;
     extraConfig = host.extraPkgConfig or { };
     extraPkgAttrs = host.extraPkgAttrs or { };
   };
-
   specialArgs = {
     inherit inputs paths host;
     flake = self;
   };
-
   modules = import ./mkModules.nix {
     inherit
       lib
@@ -54,12 +50,10 @@ let
       ;
     backupFileExtension = host.backupFileExtension or "backup";
   };
-
   inherit (pkgs) lib;
-
-  systemFunc = if isDarwin then lib.darwinSystem else lib.nixosSystem;
+  mkSystem = with lib; if isDarwin then darwinSystem else nixosSystem;
 in
-systemFunc {
+mkSystem {
   inherit
     system
     pkgs

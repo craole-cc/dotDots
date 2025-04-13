@@ -1,10 +1,9 @@
 {
-  imports = [
-    ./configuration.nix
-    ./hardware-configuration.nix
-  ];
-
-  paths.flake.local = "/home/craole/.dots";
+  # imports = [
+  #   ./configuration.nix
+  #   ./hardware-configuration.nix
+  # ];
+  paths.base = "/home/craole/.dots";
   platform = "x86_64-linux";
   # id = "1d022da8";
   stateVersion = "24.11";

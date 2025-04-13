@@ -4,18 +4,12 @@
     inputs@{ self, nixPackages, ... }:
     let
       inherit (nixPackages) lib;
-      systems = genAttrs (import inputs.nixosSystems);
-      dots =
-        (lib.evalModules {
-          modules = [
-            {
-              imports = [ ./Options ];
-              DOTS.paths.base = ./.;
-            }
-          ];
-        }).config.DOTS;
-      inherit (dots) paths;
       inherit (lib.attrsets) genAttrs attrValues;
+      inherit (lib.modules) evalModules;
+
+      systems = genAttrs (import inputs.nixosSystems);
+      dots = (evalModules { modules = [ { imports = [ ./Options ]; } ]; }).config.DOTS;
+      inherit (dots) paths;
 
       packageOverlays = import paths.pkgs.overlays { inherit inputs; };
       perSystemPackages = systems (
@@ -61,7 +55,7 @@
         # };
 
         QBXvm = mkHost "QBXvm" {
-          basePath = "/home/craole/.dots";
+          paths.base = "/home/craole/.dots";
 
           # platform = "x86_64-linux";
           # preferredRepo = "unstable";
