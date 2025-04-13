@@ -8,7 +8,7 @@ let
   dom = "programs";
   mod = "bat";
   cfg = config.${dom}.${mod};
-  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.options) mkEnableOption;
   inherit (lib.modules) mkIf;
 
   catppuccin = pkgs.fetchFromGitHub {
