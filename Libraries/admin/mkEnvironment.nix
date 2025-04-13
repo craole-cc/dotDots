@@ -1,12 +1,8 @@
-{
-  host,
-  flake,
-  paths,
-  ...
-}:
+{ paths, flake, ... }:
 let
-  inherit (paths.bins) dev eda;
-  local = host.flake or "/home/craole/.dots";
+  # inherit (paths.bins) dev eda;
+  # local = host.flake or "/home/craole/.dots";
+  local = paths.base;
   store = flake.outPath;
   variables = {
     DOTS = local;
@@ -17,10 +13,10 @@ let
     "..." = ''cd ../.. || exit 1'';
     "...." = ''cd ../../.. || exit 1'';
     "....." = ''cd ../../../.. || exit 1'';
-    ".dots" = ''cd "$DOTS" || exit 1'';
-    devdots = ''${dev} $DOTS'';
-    vscdots = ''${eda} --dots'';
-    hxdots = ''${eda} --dots --helix'';
+    ".dots" = ''cd ${local} || exit 1'';
+    # devdots = ''${dev} $DOTS'';
+    # vscdots = ''${eda} --dots'';
+    # hxdots = ''${eda} --dots --helix'';
     # eda = ''${eda}'';
     # dev = ''${dev}'';
   };
