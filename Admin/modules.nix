@@ -38,8 +38,9 @@ let
         system.stateVersion = stateVersion;
       }
     ]
-    ++ (with paths.store; [
-      # store
+    ++ (with paths.store.modules; [
+      env
+      nix
       # packages
       # modules
       # libraries

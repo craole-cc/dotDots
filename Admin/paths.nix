@@ -42,7 +42,8 @@ let
     };
     modules = {
       base = "/Modules";
-      environment = modules.base + "/environment.nix";
+      env = modules.base + "/environment.nix";
+      nix = modules.base + "/nix.nix";
     };
     packages = {
       base = "/Packages";
