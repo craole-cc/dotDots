@@ -1,14 +1,94 @@
 #!/bin/sh
 # shellcheck enable=all
+# shellcheck disable=SC2088,SC1090,SC2034
 
-[ -n "${DOTS:-}" ] || {
-  printf "[ERROR] /> dotsrc < The path to DOTS directory must be set.\n" >&2
-  return 1
+main() {
+  set_defaults
+  init_dots
+  init_blesh
+  init_atuin
+  init_starship
+  init_fastfetch
 }
 
-pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
-if [ -x "${pathman}" ]; then
-  ${pathman}
-else
-  printf "[ERROR] /> dotsrc <\ Missing Dependency: %s\n" "${pathman}"
-fi
+set_defaults() {
+  # debug=1
+  home="${HOME:-/home/craole}"
+}
+
+pout_debug() {
+  msg=""
+  case "${debug:-}" in
+  1 | true | on)
+    for arg in "$@"; do
+      msg="${msg:+${msg} }${arg:-}"
+    done
+    ;;
+  *) ;;
+  esac
+
+  if [ -n "${msg}" ]; then
+    printf "%s\n" "${msg}"
+  else
+    :
+  fi
+}
+
+init_dots() {
+  [ -d "${DOTS:-}" ] || {
+    printf "[FAILURE] /> dotsrc < The path to DOTS directory must be set.\n" >&2
+    return 1
+  }
+
+  pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
+  if [ -x "${pathman}" ]; then
+    # ${pathman}
+    pout_debug "[SUCCESS] /> dotsrc <\ Initialized dotDots"
+  else
+    pout_debug "[FAILURE] /> dotsrc <\ Missing Dependency: " "${pathman}"
+  fi
+}
+
+init_blesh() {
+  CMD_BLESH="${home}/.local/share/blesh/ble.sh"
+  if [ -f "${CMD_BLESH}" ]; then
+    "${CMD_BLESH}" >/dev/null 2>&1
+    pout_debug "[SUCCESS] /> dotsrc <\ Initialized Ble.sh"
+  else
+    pout_debug "[FAILURE] /> dotsrc <\ Missing Dependency: " "${CMD_BLESH}"
+  fi
+}
+
+init_atuin() {
+  CMD_ATUIN="$(command -v atuin 2>/dev/null || printf "")"
+  if [ -n "${CMD_ATUIN}" ]; then
+    eval "$(atuin init bash --disable-ctrl-r || true)"
+    pout_debug "[SUCCESS] /> dotsrc <\ Initialized Atuin"
+  else
+    pout_debug "[FAILURE] /> dotsrc <\ Missing Dependency: " "${CMD_ATUIN}"
+  fi
+}
+
+init_starship() {
+  CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")"
+  if [ -n "${CMD_STARSHIP}" ]; then
+    starship_config="${DOTS}/Configuration/starship/config.toml"
+    [ -f "${starship_config}" ] && STARSHIP_CONFIG="${starship_config}"
+    eval "$(starship init bash || true)"
+    pout_debug "[SUCCESS] /> dotsrc <\ Initialized Starship"
+  else
+    pout_debug "[FAILURE] /> dotsrc <\ Missing Dependency: " "${CMD_STARSHIP}"
+  fi
+}
+
+init_fastfetch() {
+  CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")"
+  if [ -n "${CMD_FASTFETCH}" ]; then
+    pout_debug "[SUCCESS] /> dotsrc <\ Initialized Fastfetch"
+    fastfetch
+  else
+    pout_debug "[FAILURE] /> dotsrc <\ Missing Dependency: " "${CMD_FASTFETCH}"
+  fi
+}
+
+main "$@"

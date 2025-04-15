@@ -13,13 +13,15 @@ truncation_length = 4
 truncation_symbol = "…/"
 
 [directory.substitutions]
-"Documents" = " "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
+"Documents" = "🗒️ "
+"Downloads" = "📥 "
+"Music" = "🎷 "
+"Pictures" = "📸 "
 "global" = "🌐"
 "nixos" = "❄️ "
-"~/.dots" = "°°°"
+"~/.dots" = "💠"
+"~/.config" = "⚙️ "
+"~/.local" = "📦 "
 
 [package]
 disabled = true
@@ -63,12 +65,12 @@ symbol = "👩‍💻 "
 # disabled = true
 ahead = "🏎💨"
 behind = "😰"
-conflicted = "🏳"
-deleted = "🗑"
+conflicted = "❓"
+deleted = "🗑️"
 diverged = "😵"
 modified = "📝"
 renamed = "👅"
 staged = '[++\($count\)](green)'
 stashed = "📦"
 untracked = "🤷‍"
-up_to_date = "✓"
+up_to_date = "📅"
