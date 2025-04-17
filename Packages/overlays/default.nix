@@ -1,7 +1,5 @@
 # https://nixos.wiki/wiki/Overlays
 { inputs, ... }:
-let
-in
 {
   #DOC Sets up base nixpkgs configuration and packages per system
   perSystemConfig = final: prev: {
@@ -12,6 +10,7 @@ in
         overlays = [
           final.fromInputs
           final.fromStable
+          final.fromUnstable
           final.modifications
           final.additions
         ];

@@ -1,14 +1,14 @@
 #!/bin/sh
 # shellcheck enable=all
-# shellcheck disable=SC2088,SC1090,SC2034
 
 main() {
   set_defaults
   init_dots
-  init_blesh
-  init_atuin
+  # init_blesh
+  # init_atuin
   init_starship
   init_fastfetch
+  init_aliases
 }
 
 set_defaults() {
@@ -70,10 +70,21 @@ init_atuin() {
 }
 
 init_starship() {
+  #@ Retrieve the path to the starship binary
   CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")"
+  export CMD_STARSHIP
+
   if [ -n "${CMD_STARSHIP}" ]; then
+
+    #@ Check if the starship configuration file exists
     starship_config="${DOTS}/Configuration/starship/config.toml"
-    [ -f "${starship_config}" ] && STARSHIP_CONFIG="${starship_config}"
+    [ -f "${starship_config}" ] && {
+      #@ Set the STARSHIP_CONFIG environment variable
+      STARSHIP_CONFIG="${starship_config}"
+      export STARSHIP_CONFIG
+    }
+
+    #@ Initialize starship
     eval "$(starship init bash || true)"
     pout_debug "[SUCCESS] /> dotsrc <\ Initialized Starship"
   else
@@ -82,13 +93,61 @@ init_starship() {
 }
 
 init_fastfetch() {
+  #@ Retrieve the path to the fastfetch binary
   CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")"
+  export CMD_FASTFETCH
+
   if [ -n "${CMD_FASTFETCH}" ]; then
+
+    #@ Check if the starship configuration file exists
+    fastfetch_config="${DOTS}/Configuration/fastfetch/config.jsonc"
+
+    #@ Initialize fastfetch
+    if [ -f "${fastfetch_config}" ]; then
+      #@ Set the FASTFETCH_CONFIG environment variable
+      FASTFETCH_CONFIG="${fastfetch_config}"
+      export FASTFETCH_CONFIG
+      fetch() { fastfetch --config "${FASTFETCH_CONFIG}"; }
+    else
+      fetch() { fastfetch; }
+    fi
+    fetch
+
     pout_debug "[SUCCESS] /> dotsrc <\ Initialized Fastfetch"
-    fastfetch
   else
     pout_debug "[FAILURE] /> dotsrc <\ Missing Dependency: " "${CMD_FASTFETCH}"
   fi
+}
+
+init_aliases() {
+  os() {
+    if command -v nix >/dev/null 2>&1; then
+      printf "nix"
+    else
+      case "$(uname | tr '[:upper:]' '[:lower:]')" in
+      *linux*) printf "linux" ;;
+      *msys*) printf "windows" ;;
+      *darwin*) printf "macos" ;;
+      *) printf "unknown" ;;
+      esac
+    fi
+  }
+
+  dev() {
+    case "$(os)" in
+    nix) nix develop "$@" ;;
+    *)
+      cwd="$(pwd -P || "${PWD:-.}")"
+      arg="${*:-"${cwd}"}"
+      cmd="${VISUAL:-${EDITOR:-code}} ${arg}"
+      eval "${cmd}" 2>/dev/null || {
+        pout_debug "[FAILURE] /> dotsrc <\ Failed to run ${cmd}"
+        return 1
+      }
+      pout_debug "[SUCCESS] /> dotsrc <\ Opened ${arg} in ${VISUAL:-${EDITOR:-code}}"
+      ;;
+    esac
+  }
 }
 
 main "$@"
