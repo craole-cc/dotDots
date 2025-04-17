@@ -14,6 +14,8 @@ main() {
 set_defaults() {
   # debug=1
   home="${HOME:-/home/craole}"
+  DELIMITER="$(printf "\037")"
+  export DELIMITER
 }
 
 pout_debug() {
@@ -148,6 +150,67 @@ init_aliases() {
       ;;
     esac
   }
+
+goto_dir() {
+  dir_name="$1"
+  target_dir=""
+  delimiter="${DELIMITER:-"$(printf "\037")"}"
+  OLDIFS="${IFS}"
+
+  # Convert to uppercase for environment variable name
+  dir_upper=$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]')
+    var_name="PRJ_${dir_upper}"
+
+  # Get the value of the variable using eval (POSIX-compliant approach)
+  eval var_value=\$"${var_name}"
+
+  # First check if a specific environment variable exists for this directory
+  if [ -n "${var_value:-}" ] && [ -d "${var_value}" ]; then
+    target_dir="${var_value}"
+  else
+    # Save original IFS and set new one to our custom delimiter
+    OLDIFS="$IFS"
+    IFS="|"
+
+    # Define possible paths with a custom delimiter for better folding
+    # Use the generic PROJECTS environment variable if set, otherwise HOME-based paths
+    possible_paths="${HOME}/Projects/${dir_name}|${HOME}/projects/${dir_name}|${HOME}/projects/Code/${dir_name}|${HOME}/code/${dir_name}|${PROJECTS:+${PROJECTS}/${dir_name}}"
+
+    # Loop through each path and use the first one that exists
+    for path in ${possible_paths}; do
+      # Skip empty paths
+      [ -z "$path" ] && continue
+      if [ -d "$path" ]; then
+        target_dir="$path"
+        break
+      fi
+    done
+
+    # Restore original IFS
+    IFS="$OLDIFS"
+  fi
+
+  # Now attempt to change to the directory if one was found
+  if [ -n "${target_dir}" ]; then
+    cd "${target_dir}" || return 1
+    pout_debug "[SUCCESS] /> goto_dir <\ Navigated to ${target_dir}"
+    return 0
+  else
+    pout_debug "[FAILURE] /> goto_dir <\ Could not find directory '${dir_name}'"
+    return 1
+  fi
+}
+  prj_rust() {
+    # possible_dirs=(
+    #   "${PRJ_RUST}"
+    #   "${PROJECTS}/rust"
+    #   "${HOME}/Projects/rust"
+    #   "${HOME}/projects/Code/Rust"
+    #   "${HOME}/projects/Code/rust"
+    # )
+    :
+  }
+
 }
 
 main "$@"
