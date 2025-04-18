@@ -646,16 +646,33 @@ init_scripts() {
         fi
         ;;
       *)
-        if [ -z "${key}" ]; then
-          key="$1"
-        else
-          [ -z "${val}" ] && [ "${action}" = "set" ]
-          val="${val:+${val}${delimiter}}$1"
-        fi
+                args="${args:+${args}${delimiter}}$1"
         ;;
       esac
       shift
     done
+
+if [ -z "${args}" ];then : ; else
+  for arg in "${args}"; do
+    case "${action}" in
+      set)
+        if [ -z "${key}" ]; then
+          key="${arg}"
+        else
+          val="${val:+${val}${delimiter}}${arg}"
+        fi
+      ;;
+      check)
+      ;;
+      get|unset|*)
+        if [ -n "${val}" ];then
+         key="${key:+${key}${delimiter}}${val}"
+         key="${key:+${key}${delimiter}}${arg}"
+        else
+         key="${key:+${key}${delimiter}}${arg}"
+        fi
+       ;; 
+      
 
     pout_debug "/> ${ctx} <\  FOCUS:" "$(
       printf "%s" "${focus:-"${order}"}" |
