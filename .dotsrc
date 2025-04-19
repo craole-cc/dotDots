@@ -6,6 +6,7 @@ main() {
   :
   set_environment
   set_defaults
+  init_aliases
   # init_scripts
   # init_sh
   # init_bash
@@ -101,6 +102,8 @@ set_environment() {
   CMD_GREP="$(command -v grep || printf "")"
   CMD_RG="$(command -v rg || printf "")"
   CMD_BAT="$(command -v bat || printf "")"
+  CMD_EZA="$(command -v eza || printf "")"
+  CMD_LSD="$(command -v lsd || printf "")"
 
   CMD_PATHMAN="$(command -v pathman || printf "")"
   pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
@@ -1952,6 +1955,80 @@ init_scripts() {
 
     enviro__main "$@"
   }
+
+}
+
+init_aliases() {
+  # [File List]
+  if [ -n "${CMD_EZA:-}" ]; then
+    alias l='\eza \
+        --long \
+        --almost-all \
+        --group-directories-first \
+        --show-symlinks \
+        --icons auto \
+        --colour auto \
+        --colour-scale \
+        --colour-scale-mode gradient \
+        --git \
+        --time-style relative \
+        --total-size \
+        --smart-group
+        '
+  elif [ -n "${CMD_LSD:-}" ]; then
+    alias l='\lsd \
+      --long \
+      --almost-all \
+      --group-directories-first \
+      --color=always \
+      --git \
+      --date=relative \
+      --versionsort \
+      --total-size \
+    '
+  else
+    alias l='\ls -lAhF \
+      --color=always \
+      --group-directories-first \
+    '
+  fi
+
+  if [ -n "${CMD_EZA:-}" ]; then
+    alias lt='\eza \
+        --long \
+        --almost-all \
+        --group-directories-first \
+        --show-symlinks \
+        --icons auto \
+        --colour auto \
+        --colour-scale \
+        --colour-scale-mode gradient \
+        --git \
+        --git-ignore \
+        --time-style relative \
+        --total-size \
+        --smart-group \
+        --tree | bat --style=plain --color=always
+        '
+  elif [ -n "${CMD_LSD:-}" ]; then
+    alias L='\lsd --tree'
+  else
+    alias L='\ls --recursive'
+  fi
+  # [/]
+  # [File Contents]
+  if [ -n "${CMD_BAT:-}" ]; then
+    alias r='bat --color=always'
+  else
+    alias r='\cat'
+  fi
+
+  if [ -n "${CMD_BAT:-}" ]; then
+    alias R='\bat --style=plain --color=always'
+  else
+    alias R='\cat'
+  fi
+  # [/]
 
 }
 
