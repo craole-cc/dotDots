@@ -3,9 +3,10 @@
 # set -e
 
 main() {
+  :
   set_environment
   set_defaults
-  init_scripts
+  # init_scripts
   # init_sh
   # init_bash
   # return
@@ -19,7 +20,7 @@ main() {
   # pout --path --head 50
   # echo "${PATH}" | tr ':' '\n'
   # pout_PATH
-  "${CMD_PATHMAN}"
+  # "${CMD_PATHMAN}"
 }
 
 set_defaults() {
