@@ -1,0 +1,14 @@
+[include]
+	path = core/core.gitconfig
+	path = core/alias.gitconfig
+	path = core/safe.gitconfig
+	path = core/sync.gitconfig
+
+[includeIf "gitdir:~/Projects/github/CC/"]
+	path = home/github_craole-cc.gitconfig
+
+[includeIf "gitdir:~/Projects/github/Craole/"]
+	path = home/github_craole.gitconfig
+
+[includeIf "gitdir:~/Projects/gitlab/Craole/"]
+	path = home/github_craole.gitconfig

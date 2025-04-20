@@ -1959,9 +1959,10 @@ init_scripts() {
 }
 
 init_aliases() {
-  # [File List]
-  if [ -n "${CMD_EZA:-}" ]; then
-    alias l='\eza \
+  # --- [File List]
+  fl() {
+    if [ -n "${CMD_EZA:-}" ]; then
+      \eza \
         --long \
         --almost-all \
         --group-directories-first \
@@ -1973,28 +1974,31 @@ init_aliases() {
         --git \
         --time-style relative \
         --total-size \
-        --smart-group
-        '
-  elif [ -n "${CMD_LSD:-}" ]; then
-    alias l='\lsd \
-      --long \
-      --almost-all \
-      --group-directories-first \
-      --color=always \
-      --git \
-      --date=relative \
-      --versionsort \
-      --total-size \
-    '
-  else
-    alias l='\ls -lAhF \
-      --color=always \
-      --group-directories-first \
-    '
-  fi
+        --smart-group \
+        "$@"
+    elif [ -n "${CMD_LSD:-}" ]; then
+      \lsd \
+        --long \
+        --almost-all \
+        --group-directories-first \
+        --color=always \
+        --git \
+        --date=relative \
+        --versionsort \
+        --total-size \
+        "$@"
+    else
+      \ls -lAhF \
+        --color=always \
+        --group-directories-first \
+        "$@"
+    fi
+  }
+  alias l='fl'
 
-  if [ -n "${CMD_EZA:-}" ]; then
-    alias lt='\eza \
+  ft() {
+    if [ -n "${CMD_EZA:-}" ]; then
+      \eza \
         --long \
         --almost-all \
         --group-directories-first \
@@ -2008,28 +2012,34 @@ init_aliases() {
         --time-style relative \
         --total-size \
         --smart-group \
-        --tree | bat --style=plain --color=always
-        '
-  elif [ -n "${CMD_LSD:-}" ]; then
-    alias L='\lsd --tree'
-  else
-    alias L='\ls --recursive'
-  fi
+        --tree
+      "$@"
+    elif [ -n "${CMD_LSD:-}" ]; then
+      \lsd --tree "$@"
+    else
+      \ls --recursive "$@"
+    fi
+  }
+  alias t='ft'
   # [/]
   # [File Contents]
-  if [ -n "${CMD_BAT:-}" ]; then
-    alias r='bat --color=always'
-  else
-    alias r='\cat'
-  fi
-
-  if [ -n "${CMD_BAT:-}" ]; then
-    alias R='\bat --style=plain --color=always'
-  else
-    alias R='\cat'
-  fi
+  wat() {
+    if [ -n "${CMD_BAT:-}" ]; then
+      bat --color=always "$@"
+    else
+      \cat "$@"
+    fi
+  }
+  red() {
+    if [ -n "${CMD_BAT:-}" ]; then
+      bat --color=always "$@" --style=plain
+    else
+      \cat "$@"
+    fi
+  }
+  alias r='wat'
+  alias R='red'
   # [/]
-
 }
 
 init_tests() {
