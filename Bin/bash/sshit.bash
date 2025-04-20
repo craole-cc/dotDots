@@ -301,6 +301,7 @@ validate_ssh_connection() {
   show_info "> ${ssh_check_cmd}"
 
   #@ Try the connection with auto-accepting host keys
+  #TODO test if this still works with the eval
   # if ssh -o StrictHostKeyChecking=accept-new -T -i "${key_path}" git@"${host}" 2>&1 |
   #   grep -i -q "success\|welcome\|authenticated"; then
   if eval "${ssh_check_cmd}" 2>&1 | grep -i -q "success\|welcome\|authenticated"; then

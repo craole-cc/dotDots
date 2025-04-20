@@ -65,16 +65,16 @@ excludes = [
 # priority = 2
 
 #| Nix
-[formatter.nixfmt]
-includes = ["**/nix/**", "*.nix.*", "*.nix"]
-excludes = ["*.sh", "*.json*", "*.yml", "*.yaml", "*.toml", "*.py", "*.rs"]
-priority = 2
-command = "nixfmt"
+# [formatter.nixfmt]
+# includes = ["**/nix/**", "*.nix.*", "*.nix"]
+# excludes = ["*.sh", "*.json*", "*.yml", "*.yaml", "*.toml", "*.py", "*.rs"]
+# priority = 2
+# command = "nixfmt"
 
-# [formatter.alejandra]
-# includes = ["*.nix"]
-# priority = 1
-# command  = "alejandra"
+[formatter.alejandra]
+includes = ["*.nix"]
+priority = 1
+command  = "alejandra"
 
 # [formatter.deadnix]
 # includes = ["*.nix"]
@@ -82,32 +82,26 @@ command = "nixfmt"
 # command = "deadnix"
 # # options  = ["--edit"]
 
-# #| Rust formatting
-# [formatter.rust]
-# command = "rustfmt"
-# includes = ["*.rs"]
-# priority = 1
-
-# [formatter.leptosfmt]
-# command = "leptosfmt"
-# includes = ["*.rs"]
-# priority = 2
+#| Rust formatting
+[formatter.rust]
+command = "rustfmt"
+includes = ["*.rs"]
+priority = 1
 
 #| Shell script formatting# Shell script formatting
-# [formatter.shellcheck]
-# command = "shellcheck"
-# # options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
-# includes = [
-#   "*.sh",
-#   ".dotsrc",
-#   ".env*",
-#   ".shellcheckrc",
-#   "*.bash",
-#   ".bash*",
-#   "Bin/shellscript/**",
-#   "Modules/**",
-# ]
-# priority = 1
+[formatter.shellcheck]
+command = "shellcheck"
+includes = [
+  "*.sh",
+  ".dotsrc",
+  ".env*",
+  ".shellcheckrc",
+  "*.bash",
+  ".bash*",
+  "Bin/shellscript/**",
+  "Modules/**",
+]
+priority = 1
 
 [formatter.shfmt]
 command = "shfmt"
@@ -118,8 +112,7 @@ options = [
   "--case-indent",
   "--indent",
   "2",
-  # "--diff",
-  # "--posix",
+  "--posix",
   "--write",
 ]
 includes = [
@@ -343,12 +336,12 @@ options = ["format"]
 # includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
 # options = ["fmt"]
 
-# [formatter.typos]
-# command = "typos"
-# excludes = []
-# includes = ["*"]
-# options = ["--diff"]
-# # options = ["--write-changes"]
+[formatter.typos]
+command = "typos"
+excludes = []
+includes = ["*"]
+options = ["--diff"]
+# options = ["--write-changes"]
 
 # [formatter.zig]
 # command = "zig"

@@ -3,10 +3,9 @@
 # set -e
 
 main() {
-  :
-  set_environment
   set_defaults
-  init_aliases
+  set_environment
+  # init_aliases
   # init_scripts
   # init_sh
   # init_bash
@@ -25,90 +24,13 @@ main() {
 }
 
 set_defaults() {
-  debug=0
-  ctx="dotsrc"
-  ctx_sep="-|-"
+  verbosity=1 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+  reset=1     #? 0=no, 1=yes
+
+  ctx=".dotsrc"
+  ctx_sep=" @ "
 
   home="${HOME:-/home/craole}"
-  verbosity="${VERBOSITY_ERROR}"
-}
-
-set_environment() {
-  #TODO This is temporary until I can get enviro working
-  DOTS="${DOTS:-"${home}/.dots"}" export DOTS
-  DOTS_RC="${DOTS_RC:-"${DOTS}/.dotrc"}" export DOTS_RC
-
-  #| Binaries
-  DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
-  DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}" export DOTS_BIN_BASH
-  DOTS_BIN_FISH="${DOTS_BIN_FISH:-"${DOTS_BIN}/fish"}" export DOTS_BIN_FISH
-  DOTS_BIN_IN="${DOTS_BIN_IN:-"${DOTS_BIN}/import"}" export DOTS_BIN_IN
-  DOTS_BIN_NU="${DOTS_BIN_NU:-"${DOTS_BIN}/nushell"}" export DOTS_BIN_NU
-  DOTS_BIN_PS="${DOTS_BIN_PS:-"${DOTS_BIN}/powershell"}" export DOTS_BIN_PS
-  DOTS_BIN_PY="${DOTS_BIN_PY:-"${DOTS_BIN}/python"}" export DOTS_BIN_PY
-  DOTS_BIN_RS="${DOTS_BIN_RS:-"${DOTS_BIN}/rust"}" export DOTS_BIN_RS
-  DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}" export DOTS_BIN_SH
-  DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}" export DOTS_BIN_ZIG
-
-  #| Configuration
-  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
-
-  #| Environment
-  DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
-  DOTS_ENV_CONTEXT="${DOTS_ENV_CONTEXT:-"${DOTS_ENV}/context"}" export DOTS_ENV_CONTEXT
-  DOTS_ENV_EXPORT="${DOTS_ENV_EXPORT:-"${DOTS_ENV}/export"}" export DOTS_ENV_EXPORT
-  DOTS_ENV_IMPORT="${DOTS_ENV_IMPORT:-"${DOTS_ENV}/export"}" export DOTS_ENV_IMPORT
-  DOTS_ENV_BASE="${DOTS_ENV_BASE:-"${DOTS_ENV_EXP}/base"}" export DOTS_ENV_BASE
-  DOTS_ENV_CORE="${DOTS_ENV_CORE:-"${DOTS_ENV_EXP}/core"}" export DOTS_ENV_CORE
-  DOTS_ENV_UTIL="${DOTS_ENV_UTIL:-"${DOTS_ENV_EXP}/utility"}" export DOTS_ENV_UTIL
-  DOTS_ENV_PKGS="${DOTS_ENV_APP:-"${DOTS_ENV_EXP}/package"}" export DOTS_ENV_PKGS
-  DOTS_ENV_PRJ="${DOTS_ENV_PRJ:-"${DOTS_ENV_EXP}/project"}" export DOTS_ENV_PRJ
-
-  #| Logs
-  DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}" export DOTS_LOG
-  DOTS_ACTIVE_APPS="${DOTS_LOG}/active_applications" export DOTS_ACTIVE_APPS
-
-  # | Other Directories
-  DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}" export DOTS_DOC
-  DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}" export DOTS_DLD
-  DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}" export DOTS_MOD
-  DOTS_RES="${DOTS_RES:-"${DOTS}/Resources"}" export DOTS_RES
-  DOTS_JOB="${DOTS_JOBS:-"${DOTS}/Tasks"}" export DOTS_JOB
-
-  #| Verbosity & Printing
-  DELIMITER="$(printf "\037")" export DELIMITER
-  VERBOSITY_QUIET=0 export VERBOSITY_QUIET
-  VERBOSITY_WARN=1 export VERBOSITY_WARN
-  VERBOSITY_ERROR=2 export VERBOSITY_ERROR
-  VERBOSITY_INFO=3 export VERBOSITY_INFO
-  VERBOSITY_DEBUG=4 export VERBOSITY_DEBUG
-  VERBOSITY_TRACE=5 export VERBOSITY_TRACE
-
-  #| Commands
-  OS_TYPE="$(fetch_info --os)"
-  CMD_NU="$(command -v nu || printf "")"
-  CMD_BASH="$(command -v bash || printf "")"
-  CMD_SH="$(command -v sh || printf "")"
-  CMD_FISH="$(command -v fish || printf "")"
-  CMD_PS="$(command -v pwsh || printf "")"
-  CMD_PY="$(command -v python3 || printf "")"
-  CMD_RUST="$(command -v rustc || printf "")"
-  CMD_ZIG="$(command -v zig || printf "")"
-  CMD_WATCH="$(command -v watch || printf "")"
-  CMD_CARGO="$(command -v cargo || printf "")"
-  CMD_BACON="$(command -v bacon || printf "")"
-  CMD_FIND="$(command -v find || printf "")"
-  CMD_FD="$(command -v fd || printf "")"
-  CMD_GREP="$(command -v grep || printf "")"
-  CMD_RG="$(command -v rg || printf "")"
-  CMD_BAT="$(command -v bat || printf "")"
-  CMD_EZA="$(command -v eza || printf "")"
-  CMD_LSD="$(command -v lsd || printf "")"
-
-  CMD_PATHMAN="$(command -v pathman || printf "")"
-  pathman="${DOTS:-/home/craole/.dots}/Bin/shellscript/environment/pathman"
-  [ -x "${pathman}" ] && CMD_PATHMAN="${CMD_PATHMAN:-${pathman}}"
-
 }
 
 fetch_info() {
@@ -358,8 +280,7 @@ init_atuin() {
 
 init_starship() {
   #@ Retrieve the path to the starship binary
-  CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")"
-  export CMD_STARSHIP
+  CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")" export CMD_STARSHIP
 
   if [ -n "${CMD_STARSHIP}" ]; then
 
@@ -381,8 +302,7 @@ init_starship() {
 
 init_fastfetch() {
   #@ Retrieve the path to the fastfetch binary
-  CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")"
-  export CMD_FASTFETCH
+  CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")" export CMD_FASTFETCH
 
   if [ -n "${CMD_FASTFETCH}" ]; then
 
@@ -1958,8 +1878,15 @@ init_scripts() {
 
 }
 
+init_projects() {
+  rc=".dotsrc"
+  [ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
+  [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+  [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+  unset rc
+}
+
 init_aliases() {
-  # --- [File List]
   fl() {
     if [ -n "${CMD_EZA:-}" ]; then
       \eza \
@@ -2021,8 +1948,7 @@ init_aliases() {
     fi
   }
   alias t='ft'
-  # [/]
-  # [File Contents]
+
   wat() {
     if [ -n "${CMD_BAT:-}" ]; then
       bat --color=always "$@"
@@ -2030,6 +1956,8 @@ init_aliases() {
       \cat "$@"
     fi
   }
+  alias r='wat'
+
   red() {
     if [ -n "${CMD_BAT:-}" ]; then
       bat --color=always "$@" --style=plain
@@ -2037,9 +1965,8 @@ init_aliases() {
       \cat "$@"
     fi
   }
-  alias r='wat'
   alias R='red'
-  # [/]
+
 }
 
 init_tests() {
@@ -2049,6 +1976,112 @@ init_tests() {
 
   # swap_DELIMITER pop lock --str lol --old "|" --new "*"
   pout --debug "\n/> dotsrc <\ Tests completed"
+}
+
+set_environment() {
+  DOTS="${DOTS:-"${home}/.dots"}" export DOTS
+  rc="${ctx:-".dotsrc"}" export rc
+  DOTS_RC="${DOTS_RC:-"${DOTS}/${rc}"}" export DOTS_RC
+
+  #| Cache
+  DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/.cache"}" export DOTS_CACHE
+  DOTS_CACHE_RC="${DOTS_CACHE_RC:-"${DOTS_CACHE}/${rc}"}" export DOTS_CACHE_RC
+  mkdir -p "${DOTS_CACHE}"
+
+  case "${reset}" in 1 | yes) rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1 ;; *) ;; esac
+  if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+    _bang="#!/bin/sh"
+    _head="# /> "
+    _tail=" <\\ "
+    _name="DOTS Cache"
+    _path="${DOTS_CACHE_RC}"
+    _date="$(date)"
+    _sep=" @ "
+    _ln_1="${_bang}"
+    _ln_2="${_head}${_name}${_sep}\"${_path}\"${_sep}${_date}${_tail}"
+
+    printf "%s\n%s\n\n" "${_ln_1}" "${_ln_2}" >"${_path}"
+  fi
+  . "${DOTS_CACHE_RC}"
+
+  #| Binaries
+  DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
+  [ -f "${DOTS_BIN}/${rc}" ] && . "${DOTS_BIN}/${rc}"
+
+  #| Configuration
+  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
+  mkdir -p "${DOTS_CFG}"
+
+  #| Environment
+  DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
+  mkdir -p "${DOTS_ENV}"
+
+  #| Logs
+  DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}" export DOTS_LOG
+  DOTS_ACTIVE_APPS="${DOTS_LOG}/active_applications" export DOTS_ACTIVE_APPS
+
+  # | Modules
+  DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}" export DOTS_DOC
+  DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}" export DOTS_DLD
+  DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}" export DOTS_MOD
+  DOTS_RES="${DOTS_RES:-"${DOTS}/Resources"}" export DOTS_RES
+  DOTS_JOB="${DOTS_JOBS:-"${DOTS}/Tasks"}" export DOTS_JOB
+
+  #| Projects
+  PRJ="${HOME}/Projects" export PRJ
+  PRJ_GH="${PRJ}/GitHub" export PRJ_GH
+  PRJ_GL="${PRJ}/GitLab" export PRJ_GL
+  PRJ_CC="${PRJ_GH}/CC" export PRJ_CC
+  alias cc='[ -d "${PRJ_CC}" ] && cd "${PRJ_CC}"'
+  [ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
+
+  PRJ_CRAOLE="${PRJ_GH}/Craole" export PRJ_CRAOLE
+  alias craole='[ -d "${PRJ_CRAOLE}" ] && cd "${PRJ_CRAOLE}"'
+  [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+
+  PRJ_CRAOLAB="${PRJ_GL}/Craole" export PRJ_CRAOLAB
+  alias craolab='[ -d "${PRJ_CRAOLAB}" ] && cd "${PRJ_CRAOLAB}"'
+  [ -f "${PRJ_CRAOLAB}/${rc}" ] && . "${PRJ_CRAOLAB}/${rc}"
+
+  #| Verbosity & Printing
+  DELIMITER="$(printf "\037")" export DELIMITER
+  VERBOSITY_QUIET=0 export VERBOSITY_QUIET
+  VERBOSITY_WARN=1 export VERBOSITY_WARN
+  VERBOSITY_ERROR=2 export VERBOSITY_ERROR
+  VERBOSITY_INFO=3 export VERBOSITY_INFO
+  VERBOSITY_DEBUG=4 export VERBOSITY_DEBUG
+  VERBOSITY_TRACE=5 export VERBOSITY_TRACE
+
+  #| Commands
+  OS_TYPE="$(fetch_info --os)"
+  CMD_NU="$(command -v nu || printf "")"
+  CMD_BASH="$(command -v bash || printf "")"
+  CMD_SH="$(command -v sh || printf "")"
+  CMD_FISH="$(command -v fish || printf "")"
+  CMD_PS="$(command -v pwsh || printf "")"
+  CMD_PY="$(command -v python3 || printf "")"
+  CMD_RUST="$(command -v rustc || printf "")"
+  CMD_ZIG="$(command -v zig || printf "")"
+  CMD_WATCH="$(command -v watch || printf "")"
+  CMD_CARGO="$(command -v cargo || printf "")"
+  CMD_BACON="$(command -v bacon || printf "")"
+  CMD_FIND="$(command -v find || printf "")"
+  CMD_FD="$(command -v fd || printf "")"
+  CMD_GREP="$(command -v grep || printf "")"
+  CMD_RG="$(command -v rg || printf "")"
+  CMD_BAT="$(command -v bat || printf "")"
+  CMD_EZA="$(command -v eza || printf "")"
+  CMD_LSD="$(command -v lsd || printf "")"
+  CMD_TOPGRADE="$(command -v topgrade || printf "")"
+
+  #| Scripts
+  CMD_PATHMAN="$(command -v pathman || printf "")"
+  pathman="${DOTS}/Bin/shellscript/environment/pathman"
+  [ -x "${pathman}" ] && CMD_PATHMAN="${CMD_PATHMAN:-${pathman}}" export CMD_PATHMAN
+
+  CMD_SSHIT="$(command -v sshit || printf "")"
+  sshit="${DOTS}/Bin/bash/sshit.bash"
+  [ -x "${sshit}" ] && CMD_SSHIT="${CMD_SSHIT:-${sshit}}" export CMD_SSHIT
 }
 
 main "$@"
