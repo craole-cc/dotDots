@@ -1,9 +1,6 @@
 [core]
   sshCommand = "ssh -i ~/.ssh/github.com/Craole"
 
-[credential]
-  helper = 
-
 [user]
   name = Craole
   email = 32288735+Craole@users.noreply.github.com

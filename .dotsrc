@@ -2012,8 +2012,8 @@ init_aliases() {
         --time-style relative \
         --total-size \
         --smart-group \
-        --tree
-      "$@"
+        --tree \
+        "$@"
     elif [ -n "${CMD_LSD:-}" ]; then
       \lsd --tree "$@"
     else

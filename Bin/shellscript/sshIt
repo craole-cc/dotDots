@@ -1,475 +1,280 @@
-#!/bin/sh
-# shellcheck disable=SC2034,SC1090,SC2154,SC1091
+#!/usr/bin/env bash
+# SSH Git Setup Script
+# Automatically configure SSH for Git profiles based on dotfiles
 
-appName="sshIt"
-appVersion="0.10"
+set -e
 
-init_scr_env() {
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-      -h | --help)
-        __help__
-        exit
-        ;;
-      -v | --version)
-        __version__
-        exit
-        ;;
-      *)
-        # echo "Var: $1"
-        __valid_env__ "$1"
-        ;;
-    esac
-    shift
-  done
+# Application info
+APP_NAME="ssh-git-setup"
+APP_VERSION="1.0"
+
+# Default paths
+DOTS="${DOTS:-$HOME/dotfiles}"
+GIT_PROFILES_DIR="${DOTS}/Configuration/git/home"
+SSH_DIR="$HOME/.ssh"
+SSH_CONFIG="$SSH_DIR/config"
+
+# Colors and formatting
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+BLUE="\033[0;34m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+# Function to display help information
+show_help() {
+  cat <<EOF
+${BOLD}${APP_NAME}${RESET} v${APP_VERSION}
+
+Usage: ${APP_NAME} [OPTIONS]
+
+Automatically configures SSH for Git based on your dotfiles.
+
+Options:
+  -h, --help      Show this help message and exit
+  -v, --version   Show version information and exit
+  -d, --dir DIR   Set custom dotfiles directory (default: $DOTS)
+  -f, --force     Force regeneration of existing keys
+  -l, --list      List available profiles
+
+Examples:
+  ${APP_NAME}
+  ${APP_NAME} --dir ~/my-dotfiles
+  ${APP_NAME} --force
+EOF
 }
 
-__help__() {
-  printf "%s\n" "$appName"
+# Function to display version information
+show_version() {
+  echo "${APP_NAME} v${APP_VERSION}"
 }
 
-__version__() {
-  printf "%s]n" "$appVersion"
+# Function to display error messages
+show_error() {
+  echo -e "${RED}🚩 Error:${RESET} $1" >&2
 }
 
-__error__() {
-  printf "🚩 "
-
-  args=$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')
-  case "$args" in
-    --required)
-      printf "This is %srequired%s" "$clr_error" "$tfx_reset"
-      exit 1
-      ;;
-    --selection)
-      printf "Invalid Selection"
-      ;;
-    --naked)
-      printf \
-        "Invalid character(s): %s%s%s" \
-        "$clr_error" "$_invalid" "$tfx_reset"
-      exit 1
-      ;;
-    --character)
-      printf \
-        "Invalid characters were removed: \n🟥 %s \n✅ %s" \
-        "$_invalid" "$_valid"
-      ;;
-    --env)
-      shift
-      printf \
-        "The %sENV file%s path is invalid: %s" \
-        "$clr_error" "$tfx_reset" "$1"
-      # __ui__ --file
-      ;;
-    --id_exists)
-      shift
-      printf \
-        "This %sidentity file%s already exists: %s" \
-        "$clr_error" "$tfx_reset" "$1"
-      __ui__ --id_exists
-      ;;
-    --file)
-      shift
-      printf "Invalid File: %s" "$1"
-      __ui__ --file
-      ;;
-    --path)
-      shift
-      printf "Invalid Path: %s" "$1"
-      __ui__ --path
-      ;;
-      # ;;
-  esac
-
-  printf "%s\n" "$tfx_reset"
+# Function to display success messages
+show_success() {
+  echo -e "${GREEN}✓ Success:${RESET} $1"
 }
 
-#@ User Input                                                                 #
-__ui__() {
-
-  #| Disable user input display
-  # stty -echo
-
-  opts=$(printf "%s" "$*" | tr '[:upper:]' '[:lower:]')
-  case "$opts" in
-    --host)
-      printf "%s " "${italic}Who is the ${success}host$tfx_reset?"
-      read -r _INPUT
-      __valid_name__ "$_INPUT"
-      sshHost="$_valid"
-      ;;
-    --user)
-      printf "%s " "${italic}Who is the ${info}user$tfx_reset?"
-      read -r _INPUT
-      __valid_name__ "$_INPUT"
-      sshName="$_valid"
-      ;;
-    --hostname)
-      printf "%s " "${italic}What is the ${info}hostname$tfx_reset?"
-      read -r _INPUT
-      __valid_name__ "$_INPUT"
-      sshHostName="$_valid"
-      ;;
-    --id_new)
-      printf "%s " "${italic}Where should the ${info}Identity File$tfx_reset be saved?"
-      read -r _INPUT
-      __valid_id__ "$_INPUT"
-      __valid_pathname__ "$_INPUT"
-      sshID="$_valid"
-      ;;
-    --id_default)
-      printf "%s " "${italic}Save the ${info}Identity File$tfx_reset to the default location? [Y|n]
-            ${defaultID}"
-      read -r OPT
-      case $OPT in
-        n* | N*)
-          __ui__ --id_new
-          ;;
-        y* | Y* | *)
-          _INPUT="${defaultID}"
-          ;;
-      esac
-      ;;
-    --id_exists)
-      printf "%s " "${italic}Overwrite the current ${bold}identity$tfx_reset file [${bold}N$tfx_reset|y]?"
-      read -r OPT
-      case $OPT in
-        y* | Y*)
-          _RESET=true
-          printf "%s" "Existing identity file archived"
-          ;;
-        n* | N*)
-          __ui__ --id_new
-          ;;
-        *)
-          __error__ --selection
-          __ui__ --id_exists
-          ;;
-      esac
-      ;;
-    --env)
-      printf "%s " "${italic}What is the path to the ${info}ENV$tfx_reset file?"
-      read -r _INPUT
-      __valid_env__ "$_INPUT"
-      ;;
-    --file)
-      printf "%s " "${italic}Please enter a valid path to the ${bold}file$tfx_reset."
-      read -r _INPUT
-      __valid_file__ "$_INPUT"
-      ;;
-    --path)
-      printf "%s " "${italic}Please enter a valid ${bold}path$tfx_reset."
-      read -r _INPUT
-      __valid_pathname__ "$_INPUT"
-      ;;
-    --confirm)
-      #| Print content before the ID
-      printf "%s
-        Continue with this SSH config? [Y|n]?
-  |> ---------------------------------------- <|
-              Host | $sshHost
-          Hostname | $sshHostName
-              User | $sshName\n"
-
-      #| Wrap if ID length exceeds 22 characters"
-      ID_len="${#sshID}"
-      if [ "$ID_len" -gt 22 ]; then
-        printf "%-15s ID | ⤵ \n %-5s $sshID \n"
-      else
-        printf "%-15s ID | $sshID \n"
-      fi
-
-      read -r OPT
-      case $OPT in
-        n* | N*)
-          __ui__ --change
-          ;;
-        y* | Y* | *)
-          return
-          ;;
-          # *)
-          #   __error__ --selection
-          #   __ui__ --confirm
-          # ;;
-      esac
-      ;;
-    --change)
-      printf "
-              Select Change Option
-  |> ---------------------------------------- <|
-                1. ENV Key File
-                2. Host
-                3. HostName
-                4. User
-                5. Identity File
-                6. Cancel
-            "
-      read -r n
-      case $n in
-        1) __ui__ --env ;;
-        2) __ui__ --host ;;
-        3) __ui__ --hostname ;;
-        4) __ui__ --user ;;
-        5) __ui__ --id_new ;;
-        6)
-          printf "%s" "Exiting $appName"
-          exit
-          ;;
-        *) __error__ --selection ;;
-      esac
-      __ui__ --confirm
-      ;;
-  esac
-
-  #| Enable user input display
-  stty echo
-
+# Function to display information messages
+show_info() {
+  echo -e "${BLUE}ℹ Info:${RESET} $1"
 }
 
-#@ Variables                                                                  #
-__variables__() {
+# Function to display warning messages
+show_warning() {
+  echo -e "${YELLOW}⚠ Warning:${RESET} $1"
+}
 
-  # #*** UserID ***#
-  # if [ -z "$userID" ]; then
-  #   [ -n "${USER+x}" ] && user="$USER"
-  #   [ -n "${USERNAME+x}" ] && user="$USERNAME"
-  #   userID="$(hostname)_$user"
-  # fi
+# Function to parse Git config file and extract SSH information
+parse_git_config() {
+  local config_file="$1"
+  local filename
+  filename=$(basename "$config_file")
 
-  #*** SSH Variables ***#
-  _ssh_() {
-    #*** Config ***#
-    sshDIR="$HOME/.ssh"
-    rcSSH="$sshDIR/config"
+  # Extract host and username from filename (format: host_username.gitconfig)
+  local parts
+  parts=(${filename//./ })  # Remove extension
+  parts=(${parts[0]//_/ })  # Split by underscore
 
-    #*** Host ***#
-    _host_() {
-      if [ -n "$Host" ]; then
-        sshHost="$(__valid_name__ "$Host")"
-      else
-        __ui__ --host
-      fi
+  local host="${parts[0]}"
+  local username="${parts[1]}"
 
-      case "$(printf "%s" "$sshHost" | tr '[:upper:]' '[:lower:]')" in
-        *github*) sshHostLabel="$GitHub" ;;
-        *gitlab*) sshHostLabel="$GitLab" ;;
-        *) ;;
-      esac
-      _key="$HostName"
-      if [ -n "$_key" ]; then
-        sshHostName="$_key"
-        unset _key
-      elif [ "$sshHostLabel" ]; then
-        sshHostName="$sshHost"
-      else
-        __ui__ --hostname
-        sshHostName="$_INPUT"
-      fi
+  # Read git user information from config
+  local git_name
+  local git_email
+  local ssh_path
 
-      __valid_name__ "$sshHostName"
-      sshHostName="$_valid"
-    }
+  git_name=$(grep -A 1 "\[user\]" "$config_file" | grep "name" | cut -d= -f2 | tr -d ' "')
+  git_email=$(grep -A 2 "\[user\]" "$config_file" | grep "email" | cut -d= -f2 | tr -d ' "')
+  ssh_path=$(grep "sshCommand" "$config_file" | grep -o '"ssh -i [^"]*"' | cut -d' ' -f3 | tr -d '"')
 
-    #*** User ***#
-    _user_() {
-      _key="$Name"
-      if [ -n "$_key" ]; then
-        sshName="$_key"
-        unset _key
-      else
-        __ui__ --user
-        sshName="$_INPUT"
-      fi
-      __valid_name__ "$sshName"
-      sshName="$_valid"
-    }
+  # Normalize host (add .com if missing)
+  if ! echo "$host" | grep -q '\.'; then
+    host="${host}.com"
+  fi
 
-    #*** Hostname ***#
-    _hostname_() {
-      _key="$HostName"
-      if [ -n "$_key" ]; then
-        sshHostName="$_key"
-        unset _key
-      elif [ "$sshHostLabel" ]; then
-        sshHostName="$sshHost"
-      else
-        __ui__ --hostname
-        sshHostName="$_INPUT"
-      fi
+  echo "HOST=$host"
+  echo "USERNAME=$username"
+  echo "GIT_NAME=$git_name"
+  echo "GIT_EMAIL=$git_email"
+  echo "SSH_PATH=$ssh_path"
+}
 
-      __valid_name__ "$sshHostName"
-      sshHostName="$_valid"
-    }
+# Function to generate SSH key
+generate_ssh_key() {
+  local host="$1"
+  local username="$2"
+  local email="$3"
+  local key_path="$4"
+  local force="$5"
 
-    #*** Identity File ***#
-    _id_() {
-      #| Set path
-      _key="$ID"
-      if [ -n "$_key" ]; then
-        sshID="$_key"
-        unset _key
-      else
-        sshID="${sshDIR}/${sshHostLabel:-$sshHost}/${sshName}"
-      fi
+  # Create directory for key if it doesn't exist
+  local key_dir
+  key_dir=$(dirname "$key_path")
+  mkdir -p "$key_dir"
 
-      #| Check if path exists
-      __valid_id__ "$sshID"
+  # Check if key already exists
+  if [[ -f "$key_path" && "$force" != "true" ]]; then
+    show_warning "SSH key already exists at $key_path. Use --force to regenerate."
+    return 0
+  elif [[ -f "$key_path" && "$force" == "true" ]]; then
+    # Archive existing key
+    local archive_dir="${key_dir}/archive"
+    mkdir -p "$archive_dir"
+    local timestamp
+    timestamp=$(date +"%Y%m%d%H%M%S")
+    mv "$key_path" "${archive_dir}/$(basename "$key_path").${timestamp}"
+    if [[ -f "${key_path}.pub" ]]; then
+      mv "${key_path}.pub" "${archive_dir}/$(basename "$key_path").pub.${timestamp}"
+    fi
+    show_info "Archived existing key to ${archive_dir}"
+  fi
 
-      #| Extract path variables
-      sshIDdir=$(dirname "$sshID")
-      sshIDname="$(basename "$sshID")"
+  # Generate SSH key
+  show_info "Generating SSH key for $username@$host"
+  ssh-keygen -t ed25519 -a 100 -f "$key_path" -C "$email" -N ""
 
-      #| Allow reinitialization
-      if [ "$_RESET" ]; then
+  # Add to SSH config
+  echo -e "\nHost $host\n  User $username\n  HostName $host\n  IdentityFile $key_path" >> "$SSH_CONFIG"
 
-        #| Declare files to archive
-        FILEStoArchive="$(
-          find "${sshIDdir}" \
-            -maxdepth 1 \
-            -type f -name "${sshName}" -o \
-            -type f -name "${sshName}.*"
-        )"
+  # Add key to SSH agent
+  eval "$(ssh-agent -s)" > /dev/null
+  ssh-add "$key_path" > /dev/null
 
-        #| Archive exixting files
-        [ -f "$sshID" ] \
-          && for file in $FILEStoArchive; do
-            bakDIR="${sshIDdir}/archive"
-            mkdir --parents "$bakDIR"
-            mv "$file" --backup=numbered --target-directory="$bakDIR"
-          done
-      fi
-    }
+  show_success "SSH key generated for $username@$host"
 
-    #*** Confirm Variables ***#
-    _host_ && _user_ && _hostname_ && _id_
-    __ui__ --confirm
-  }
-
-  #*** Environment Key File ***#
-  if [ "$_SRC" ]; then
-    for file in $_ENV; do
-      #| Ensure the ENV file is found.
-      __valid_env__ "$file"
-
-      #| Unset ENV Variables
-      # unset Host HostName Name Email
-
-      #| Source the ENV file
-      . "$file"
-
-      #| Load SSH Variables
-      _ssh_
-    done
+  # Copy public key to clipboard if available
+  if command -v xclip > /dev/null; then
+    xclip -selection clipboard < "${key_path}.pub"
+    show_info "Public key copied to clipboard"
+  elif command -v pbcopy > /dev/null; then
+    pbcopy < "${key_path}.pub"
+    show_info "Public key copied to clipboard"
   else
-    #| Load SSH Variables
-    _ssh_
+    show_info "Public key available at: ${key_path}.pub"
+  fi
+
+  # Display the public key
+  echo -e "${YELLOW}Public Key:${RESET}"
+  cat "${key_path}.pub"
+}
+
+# Function to list available profiles
+list_profiles() {
+  if [[ ! -d "$GIT_PROFILES_DIR" ]]; then
+    show_error "Git profiles directory not found: $GIT_PROFILES_DIR"
+    exit 1
+  fi
+
+  echo -e "${BOLD}Available Git Profiles:${RESET}"
+
+  local count=0
+  while IFS= read -r config_file; do
+    local filename
+    filename=$(basename "$config_file")
+    echo "  - $filename"
+    count=$((count + 1))
+  done < <(find "$GIT_PROFILES_DIR" -name "*.gitconfig" -type f)
+
+  if [[ $count -eq 0 ]]; then
+    echo "  No profiles found"
   fi
 }
 
-#@ SSH Initializer                                                            #
-__init__() {
+# Function to setup SSH for all profiles
+setup_ssh_for_profiles() {
+  local force="$1"
 
-  #| Create a directory for the host, if necessary.
-  [ -d "${sshIDdir}" ] || mkdir --parents "${sshIDdir}"
+  # Ensure SSH directory exists
+  mkdir -p "$SSH_DIR"
+  touch "$SSH_CONFIG"
 
-  #| Generate public/private algorithm key pair, respectively.
-  ssh-keygen -t ed25519 -a 100 -f "${sshID}" -C "$(INFor --label)"
-  ssh-keygen -y -f "${sshID}" > "${sshID}.pub"
+  # Check if git profiles directory exists
+  if [[ ! -d "$GIT_PROFILES_DIR" ]]; then
+    show_error "Git profiles directory not found: $GIT_PROFILES_DIR"
+    exit 1
+  fi
 
-  #| Start the ssh-agent and add the private key to it.
-  eval "$(ssh-agent)" && ssh-add "${sshID}"
+  # Find all gitconfig files
+  local configs
+  configs=$(find "$GIT_PROFILES_DIR" -name "*.gitconfig" -type f)
 
-  printf \
-    "Host %s\n  \tUser %s\n  \tHostName %s\n  \tIdentityFile %s\n" \
-    "$sshHost" "$sshName" "$sshHostName" "$sshID" \
-    | tee --append "${sshDIR}/config"
+  if [[ -z "$configs" ]]; then
+    show_error "No Git configurations found in $GIT_PROFILES_DIR"
+    exit 1
+  fi
 
-  #| Send the contents of the public key to the clipboard
-  clip-c "$(cat "$sshID.pub")"
+  # Process each gitconfig file
+  while IFS= read -r config_file; do
+    echo -e "\n${BOLD}Processing:${RESET} $(basename "$config_file")"
+
+    # Parse git config to get ssh information
+    local profile_info
+    profile_info=$(parse_git_config "$config_file")
+
+    # Source the profile info to create variables
+    eval "$profile_info"
+
+    # Use parsed SSH_PATH or generate one based on host and username
+    if [[ -z "$SSH_PATH" ]]; then
+      SSH_PATH="$SSH_DIR/$HOST/$USERNAME"
+    fi
+
+    # Generate SSH key
+    generate_ssh_key "$HOST" "$USERNAME" "$GIT_EMAIL" "$SSH_PATH" "$force"
+
+  done < <(echo "$configs")
+
+  show_success "SSH configuration complete. You may need to add the public keys to your Git provider."
 }
 
-#@ Utilities                                                                  #
-#| Validation
-__valid_chars__() {
-  while [ $# -ge 1 ]; do
+# Main function
+main() {
+  local force="false"
+
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
     case "$1" in
-      --chars)
-        _chars="$2"
+      -h|--help)
+        show_help
+        exit 0
         ;;
-      --text)
-        if [ "$2" = "" ]; then
-          __error__ --naked
-        else
-          _text="$2"
-        fi
+      -v|--version)
+        show_version
+        exit 0
+        ;;
+      -d|--dir)
+        DOTS="$2"
+        GIT_PROFILES_DIR="${DOTS}/Configuration/git/home"
+        shift 2
+        ;;
+      -f|--force)
+        force="true"
+        shift
+        ;;
+      -l|--list)
+        list_profiles
+        exit 0
         ;;
       *)
-        __error__ --required
+        show_error "Unknown option: $1"
+        show_help
+        exit 1
         ;;
     esac
-    shift
   done
 
-  _invalid="$(printf "%s" "$text" | highlight_text "$chars")"
-  _valid="$(printf "%s" "$text" | extract_text "$chars")"
+  # Display header
+  echo -e "${BOLD}${APP_NAME}${RESET} v${APP_VERSION}\n"
 
-  [ "$_valid" = "" ] && __error__ --naked
-  [ "$_text" != "$_valid" ] && __error__ --character
-
+  # Setup SSH for profiles
+  setup_ssh_for_profiles "$force"
 }
 
-__valid_name__() {
-  _validchars="[^A-Za-z0-9._-]"
-  __valid_chars__ "[^A-Za-z0-9._-]" "$@"
-}
-
-__valid_pathname__() {
-  _validchars="[^A-Za-z0-9\/._-]"
-  __valid_chars__ "$@"
-}
-
-#| Existing File Check
-__valid_env__() {
-  [ "$1" ] || echo "missing var"
-  [ -f "$1" ] || __error__ --env "$1"
-  # [ -f "$1" ] || echo "invalid env \"$1\""
-}
-__valid_id__() { [ -f "$*" ] && __error__ --id_exists "$*"; }
-__valid_file__() { [ -f "$*" ] || __error__ --file "$*"; }
-__valid_dir__() { [ -d "$*" ] || __error__ --path "$*"; }
-
-highlight_text() { grep --color=always "$@"; }
-extract_text() { sed "s!$*!!g"; }
-
-#| Run the script
-__main__() {
-  #| Terminal Characteristics
-  . "$(pathof term_output)"
-
-  # . sysINF
-  # mkfile() { install -m 644 -D /dev/null "$@"; }
-
-  # [ "$_HELP" ] && __help__
-  # [ "$_VER" ] && __version__
-  # __variables__
-  # __init__
-  # __valid_chars__ "[^A-Za-z0-9._-]" "pop"
-  echo "$clr_error casd"
-  init_scr_env "$@"
-
-} && __main__ "$@"
-
-# : <<'TODO'
-# - Allow options for Key, Host, Mame, ID and Port.
-
-# [ -n "$HostName" ] && sshHostname="$HostName"
-# [ -n "$Name" ] && sshName="$Name"
-# [ -n "$Email" ] && sshEMAIL="$Email"
-# [ -n "$Key" ] && sshID="$Key"
-
-# [ -n "$1" ] && sshHost="$1"
-# [ -n "$2" ] && sshName="$2"
-# # [ -n "$3" ] && sshID="$3"
-# # [ -n "$3" ] && sshPORT="$4"
-# TODO
+# Run the script
+main "$@"
