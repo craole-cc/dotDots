@@ -14,8 +14,8 @@
 [includeIf "gitdir:~/Projects/github/CC/"]
 	path = home/github_craole-cc.gitconfig
 
-[includeIf "gitdir:~/.dots"]
+[includeIf "gitdir:~/.dots/"]
 	path = home/dots.gitconfig
 
-[includeIf "gitdir:~/Documents/dotfiles"]
+[includeIf "gitdir:~/Documents/dotfiles/"]
 	path = home/dotfiles.gitconfig
