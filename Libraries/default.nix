@@ -1,3 +1,3 @@
 {
-  imports = [ ./core ];
+  imports = [./core];
 }

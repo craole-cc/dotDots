@@ -1,4 +1,3 @@
-{ pkgs, ... }:
-{
-  aider-chat-env = pkgs.callPackage ./env.nix { };
+{pkgs, ...}: {
+  aider-chat-env = pkgs.callPackage ./env.nix {};
 }

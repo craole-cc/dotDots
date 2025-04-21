@@ -1,8 +1,8 @@
 {
-  imports = [ ];
-  programs.fd={
+  imports = [];
+  programs.fd = {
     hidden = true;
-    extraOptions=[
+    extraOptions = [
       # "--no-ignore"
       "--absolute-path"
     ];

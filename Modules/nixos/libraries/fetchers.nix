@@ -2,8 +2,7 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   #| Native Imports
   inherit (builtins) getEnv;
   inherit (pkgs) runCommand;
@@ -20,12 +19,14 @@ let
   #| Module Options
   currentUser = mkOption {
     description = "Get the username of the current user.";
-    default =
-      let
-        viaEnvUSER = getEnv "USER";
-        viaUSERNAME = getEnv "USERNAME";
-        result = if viaEnvUSER != null then viaEnvUSER else viaUSERNAME;
-      in
+    default = let
+      viaEnvUSER = getEnv "USER";
+      viaUSERNAME = getEnv "USERNAME";
+      result =
+        if viaEnvUSER != null
+        then viaEnvUSER
+        else viaUSERNAME;
+    in
       result;
     type = str;
   };
@@ -34,14 +35,13 @@ let
     description = ''
       Formatted time
     '';
-    default =
-      let
-        viaDateCommand = fileContents (
-          runCommand "date" { } ''
-            date "+%Y-%m-%d %H:%M:%S %Z" > $out
-          ''
-        );
-      in
+    default = let
+      viaDateCommand = fileContents (
+        runCommand "date" {} ''
+          date "+%Y-%m-%d %H:%M:%S %Z" > $out
+        ''
+      );
+    in
       viaDateCommand;
   };
 
@@ -52,8 +52,7 @@ let
       currentTime
       ;
   };
-in
-{
+in {
   options = {
     DOTS.${dom}.${mod} = exports;
     dib = exports;

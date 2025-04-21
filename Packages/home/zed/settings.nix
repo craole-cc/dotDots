@@ -1,6 +1,5 @@
 {
   programs.zed-editor.userSettings = {
-
     #| Themes
     theme = {
       mode = "system";
@@ -62,7 +61,7 @@
 
     #| UI Appearance
     ui_font_family = ".SystemUIFont";
-    ui_font_fallbacks = [ ];
+    ui_font_fallbacks = [];
     ui_font_features.calt = false;
     ui_font_weight = 400;
     ui_font_size = 16;
@@ -135,7 +134,7 @@
     show_edit_predictions = true;
     linked_edits = true;
     features.edit_prediction_provider = "zed";
-    edit_predictions.disabled_globs = [ ".env" ];
+    edit_predictions.disabled_globs = [".env"];
 
     #| Gutter & Visualizations
     gutter = {
@@ -227,7 +226,7 @@
       option_as_meta = true;
       copy_on_select = true;
       button = false;
-      env = { };
+      env = {};
       line_height = "standard";
       toolbar = {
         title = true;
@@ -296,8 +295,8 @@
       "System Volume Information"
     ];
     file_types = {
-      "Plain Text" = [ "txt" ];
-      "JavaScript" = [ "*.gs" ];
+      "Plain Text" = ["txt"];
+      "JavaScript" = ["*.gs"];
       "JSON" = [
         "flake.lock"
         "package-lock.json"
@@ -327,10 +326,10 @@
 
     #| Language Integrations
     enable_language_server = true;
-    language_servers = [ "..." ];
-    languages = { };
+    language_servers = ["..."];
+    languages = {};
     jupyter.enabled = true;
-    code_actions_on_format = { };
+    code_actions_on_format = {};
 
     #| Git Integration
     git = {
@@ -351,7 +350,7 @@
       use_system_clipboard = "always";
       use_multiline_find = false;
       use_smartcase_find = false;
-      custom_digraphs = { };
+      custom_digraphs = {};
     };
 
     #| Misc Settings
@@ -362,7 +361,7 @@
       hour_format = "hour12";
     };
     task.show_status_indicator = true;
-    tasks.variables = { };
+    tasks.variables = {};
     telemetry = {
       diagnostics = true;
       metrics = true;

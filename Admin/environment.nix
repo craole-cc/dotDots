@@ -1,5 +1,8 @@
-{ lib, paths, ... }:
-let
+{
+  lib,
+  paths,
+  ...
+}: let
   # inherit (paths.bins) dev eda;
   # local = host.flake or "/home/craole/.dots";
   inherit (lib.modules) mkForce;
@@ -27,14 +30,12 @@ let
     sessionVariables = variables;
     shellAliases = aliases;
   };
-in
-{
-  _module.args.config = { inherit environment; };
-  config = { inherit environment; };
+in {
+  _module.args.config = {inherit environment;};
+  config = {inherit environment;};
   # environment = {
   #   inherit variables;
   #   sessionVariables = variables;
   #   shellAliases = aliases;
   # };
-
 }

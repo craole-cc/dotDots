@@ -1,10 +1,11 @@
 #!/bin/sh
 # shellcheck enable=all
+# shellcheck disable=SC1090
 # set -e
 
 main() {
-  set_defaults
-  set_environment
+  dots__set_local_env
+  dots__set_global_env
   # init_aliases
   # init_scripts
   # init_sh
@@ -23,14 +24,14 @@ main() {
   # "${CMD_PATHMAN}"
 }
 
-set_defaults() {
+dots__set_local_env() {
+  ctx=".dotsrc"
   verbosity=1 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
   reset=1     #? 0=no, 1=yes
+}
 
-  ctx=".dotsrc"
-  ctx_sep=" @ "
-
-  home="${HOME:-/home/craole}"
+dots__cleanup() {
+  unset ctx verbosity reset
 }
 
 fetch_info() {
@@ -48,6 +49,9 @@ fetch_info() {
         esac
       fi
       ;;
+    --user)
+      printf "%s" "${USER:-"${USERNAME:-""}"}"
+      ;;
     *) ;;
     esac
     shift
@@ -57,7 +61,7 @@ fetch_info() {
 init_sh() {
   #@ Skip if the command or binary directory are missing
   if [ -n "${CMD_SH}" ]; then :; else return; fi
-  if [ -d "${DOTS_BIN_SH}" ]; then :; else return; fi
+  if [ -d "${DOTS_BIN_SH:-}" ]; then :; else return; fi
 
   #@ Set defaults and initialize counters
   depth_limit=4 # Lower depth limit for better performance
@@ -216,7 +220,7 @@ init_sh_OLD() {
 init_bash() {
   #@ Skip if the command or binary directory are missing
   if [ -n "${CMD_BASH}" ]; then :; else return; fi
-  if [ -d "${DOTS_BIN_BASH}" ]; then :; else return; fi
+  if [ -d "${DOTS_BIN_BASH:-}" ]; then :; else return; fi
 
   #@ Check if the binary directory exists
   p="${PATH}"
@@ -259,7 +263,7 @@ init_nushell() {
 }
 
 init_blesh() {
-  CMD_BLESH="${home}/.local/share/blesh/ble.sh"
+  CMD_BLESH="${HOME:-}/.local/share/blesh/ble.sh"
   if [ -f "${CMD_BLESH}" ]; then
     "${CMD_BLESH}" >/dev/null 2>&1
     pout --debug "[INFO] /> dotsrc <\ Initialized Ble.sh"
@@ -330,12 +334,12 @@ init_scripts() {
 
   pout() {
     pout__main() {
-      pout__set_defaults
+      pout__set_local_env
       pout__parse_arguments "$@"
       pout__execute
     }
 
-    pout__set_defaults() {
+    pout__set_local_env() {
       ctx_sep="${ctx_sep:-"-|-"}"
       pout_tag=""
       pout_ctx=""
@@ -707,11 +711,11 @@ init_scripts() {
 
   #   pathman__main() {
   #     trap pathman__cleanup EXIT HUP INT TERM
-  #     pathman__set_defaults
+  #     pathman__set_local_env
   #     pathman__parse_args "$@"
   #   }
 
-  #   pathman__set_defaults() {
+  #   pathman__set_local_env() {
   #     pathman_action="print"
   #     pathman_cmd=""
   #     pathman_args=""
@@ -1228,11 +1232,11 @@ init_scripts() {
 
   enviro() {
     enviro__main() {
-      enviro__set_defaults
+      enviro__set_local_env
       enviro__parse_arguments "$@"
     }
 
-    enviro__set_defaults() {
+    enviro__set_local_env() {
       ctx="enviro" ctx_sep="${ctx_sep:-"-|-"}" _ctx=""
       DELIMITER="${DELIMITER:-"$(printf "\037")"}"
       separator="_"
@@ -1978,38 +1982,132 @@ init_tests() {
   pout --debug "\n/> dotsrc <\ Tests completed"
 }
 
-set_environment() {
-  DOTS="${DOTS:-"${home}/.dots"}" export DOTS
-  rc="${ctx:-".dotsrc"}" export rc
-  DOTS_RC="${DOTS_RC:-"${DOTS}/${rc}"}" export DOTS_RC
+dots__set_global_env() {
+  #| Core Info
+  OS_TYPE="$(fetch_info --os)"
+  USER="$(fetch_info --user)"
+
+  #| Verbosity & Printing
+  DELIMITER="$(printf "\037")"
+  VERBOSITY_QUIET=0
+  VERBOSITY_WARN=1
+  VERBOSITY_ERROR=2
+  VERBOSITY_INFO=3
+  VERBOSITY_DEBUG=4
+  VERBOSITY_TRACE=5
+
+  #| DOTS
+  DOTS="${DOTS:-"${HOME:-}/.dots"}"
+  if [ -d "${DOTS}" ]; then :; else
+    printf "Unable to initialize DOTS as the variable is not set.\nConsider setting it via ~/.profile or ~/.bashrc.\n"
+    return 1
+  fi
+
+  #| RC
+  rc="${rc:-".dotsrc"}"
+  DOTS_RC="${DOTS_RC:-"${DOTS}/${rc}"}"
 
   #| Cache
-  DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/.cache"}" export DOTS_CACHE
-  DOTS_CACHE_RC="${DOTS_CACHE_RC:-"${DOTS_CACHE}/${rc}"}" export DOTS_CACHE_RC
+  DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/.cache"}"
+  DOTS_CACHE_RC="${DOTS_CACHE_RC:-"${DOTS_CACHE}/${rc}"}"
+
+  #@ Ensure the cache exists
   mkdir -p "${DOTS_CACHE}"
 
+  #@ Reset the cache, if requested
   case "${reset}" in 1 | yes) rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1 ;; *) ;; esac
-  if [ -f "${DOTS_CACHE_RC}" ]; then :; else
-    _bang="#!/bin/sh"
-    _head="# /> "
-    _tail=" <\\ "
-    _name="DOTS Cache"
-    _path="${DOTS_CACHE_RC}"
-    _date="$(date)"
-    _sep=" @ "
-    _ln_1="${_bang}"
-    _ln_2="${_head}${_name}${_sep}\"${_path}\"${_sep}${_date}${_tail}"
 
-    printf "%s\n%s\n\n" "${_ln_1}" "${_ln_2}" >"${_path}"
-  fi
-  . "${DOTS_CACHE_RC}"
+  dots__cache() {
+    if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+      {
+        printf "%s\n" "#!/bin/sh"
+        printf "%s\n" "# /> DOTS Cache <\\"
+        printf "%s\n" "# Generated at: $(date)"
+
+        printf "\n%s=\"%s\" export %s" "OS_TYPE" "${OS_TYPE}" "OS_TYPE"
+        printf "\n%s=\"%s\" export %s" "USER" "${USER}" "USER"
+        printf "\n%s=\"%s\" export %s" "DELIMITER" "${DELIMITER}" "DELIMITER"
+        printf "\n%s=\"%s\" export %s" "VERBOSITY_TRACE" "${VERBOSITY_TRACE}" "VERBOSITY_TRACE"
+        printf "\n%s=\"%s\" export %s" "VERBOSITY_DEBUG" "${VERBOSITY_DEBUG}" "VERBOSITY_DEBUG"
+        printf "\n%s=\"%s\" export %s" "VERBOSITY_INFO" "${VERBOSITY_INFO}" "VERBOSITY_INFO"
+        printf "\n%s=\"%s\" export %s" "VERBOSITY_WARN" "${VERBOSITY_WARN}" "VERBOSITY_WARN"
+        printf "\n%s=\"%s\" export %s" "VERBOSITY_ERROR" "${VERBOSITY_ERROR}" "VERBOSITY_ERROR"
+        printf "\n%s=\"%s\" export %s" "VERBOSITY_QUIET" "${VERBOSITY_QUIET}" "VERBOSITY_QUIET"
+        printf "\n%s=\"%s\" export %s" "DOTS" "${DOTS}" "DOTS"
+        printf "\n%s=\"%s\" export %s" "DOTS_RC" "${DOTS_RC}" "DOTS_RC"
+        printf "\n%s=\"%s\" export %s" "DOTS_CACHE" "${DOTS_CACHE}" "DOTS_CACHE"
+        printf "\n%s=\"%s\" export %s" "DOTS_CACHE_RC" "${DOTS_CACHE_RC}" "DOTS_CACHE_RC"
+      } >"${DOTS_CACHE_RC}"
+    fi
+
+    [ "$#" -lt 0 ] && return
+
+    while [ "$#" -ge 1 ]; do
+      case "$1" in
+      --force) force=true ;;
+      *)
+        case "$(to_lower "${OS_TYPE}")" in
+        windows)
+            #@ Windows/MSYS needs different escaping
+            _escaped_arg="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+            _args="${_args:+${_args}${DELIMITER}}\"${_escaped_arg}\"";;
+       *)
+            #@ Unix-style escaping
+            _escaped_arg="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+            _args="${_args:+${_args}${DELIMITER}}'${_escaped_arg}'"
+          fi
+          ;;
+        esac
+        ;;
+      esac
+      shift
+    done
+
+    case "${force}" in true | 1)
+      printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+      ;;
+    *) ;; esac
+
+    # for var in "$@"; do
+    #   val="$(eval "${var}")"
+
+    #   if [ -n "${var:-}" ]; then continue; else
+    #     printf "\n%s=\"%s\" export %s" \
+    #       "${var}" "${val}" "${var}" >>"${DOTS_CACHE_RC}"
+    #   fi
+    # done
+    # printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+
+    # if [ ! -d "${PRJ}" ]; then :; else
+    #   alias cd.prj='cd "${PRJ}"'
+    #   export PRJ
+
+    #   PRJ_RC="${PRJ}/${rc}"
+    #   if [ ! -f "${PRJ_RC}" ]; then :; else
+    #     . "${PRJ_RC}"
+    #     export PRJ_RC
+    #   fi
+    # fi
+  }
+
+  #@ Initialize the cache
+  [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+  # dots__cache --force DOTS=\""${DOTS}"\"
+
+  return
+  # dots__cache --force DOTS=\""${DOTS}"\"
+  # dots__cache --force rc="\"${rc:-".dotsrc"}"\" export rc
+  # dots__cache --force DOTS_RC=\""${DOTS_RC}"\" export DOTS_RC
+  # dots__cache --force DOTS_CACHE=\""${DOTS_CACHE}"\" export DOTS_CACHE
+  # dots__cache --force DOTS_CACHE_RC=\""${DOTS_CACHE_RC}"\" export DOTS_CACHE_RC
 
   #| Binaries
-  DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
+  dots__cache DOTS_BIN=\""${DOTS_BIN:-"${DOTS}/Bin"}"\" export DOTS_BIN
   [ -f "${DOTS_BIN}/${rc}" ] && . "${DOTS_BIN}/${rc}"
 
   #| Configuration
-  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
+  dots__cache \
+    DOTS_CFG=\""${DOTS_CFG:-"${DOTS}/Configuration"}"\" export DOTS_CFG
   mkdir -p "${DOTS_CFG}"
 
   #| Environment
@@ -2028,20 +2126,34 @@ set_environment() {
   DOTS_JOB="${DOTS_JOBS:-"${DOTS}/Tasks"}" export DOTS_JOB
 
   #| Projects
-  PRJ="${HOME}/Projects" export PRJ
-  PRJ_GH="${PRJ}/GitHub" export PRJ_GH
-  PRJ_GL="${PRJ}/GitLab" export PRJ_GL
-  PRJ_CC="${PRJ_GH}/CC" export PRJ_CC
-  alias cc='[ -d "${PRJ_CC}" ] && cd "${PRJ_CC}"'
-  [ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
+  if [ -n "${PRJ}" ]; then
+    :
+  elif [ -d "${HOME}/Projects" ]; then
+    PRJ="${HOME}/Projects"
+  elif
+    : ||
+      [ -d "${HOME}/Documents/GitLab" ] ||
+      [ -d "${HOME}/Documents/Gitlab" ] ||
+      [ -d "${HOME}/Documents/gitlab" ] ||
+      [ -d "${HOME}/Documents/GitHub" ] ||
+      [ -d "${HOME}/Documents/Github" ] ||
+      [ -d "${HOME}/Documents/github" ]
+  then
+    PRJ="${HOME}/Documents"
+  else
+    PRJ="${PRJ:-"${DOTS}/../Projects"}"
+  fi
 
-  PRJ_CRAOLE="${PRJ_GH}/Craole" export PRJ_CRAOLE
-  alias craole='[ -d "${PRJ_CRAOLE}" ] && cd "${PRJ_CRAOLE}"'
-  [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+  if [ ! -d "${PRJ}" ]; then :; else
+    alias cd.prj='cd "${PRJ}"'
+    export PRJ
 
-  PRJ_CRAOLAB="${PRJ_GL}/Craole" export PRJ_CRAOLAB
-  alias craolab='[ -d "${PRJ_CRAOLAB}" ] && cd "${PRJ_CRAOLAB}"'
-  [ -f "${PRJ_CRAOLAB}/${rc}" ] && . "${PRJ_CRAOLAB}/${rc}"
+    PRJ_RC="${PRJ}/${rc}"
+    if [ ! -f "${PRJ_RC}" ]; then :; else
+      . "${PRJ_RC}"
+      export PRJ_RC
+    fi
+  fi
 
   #| Verbosity & Printing
   DELIMITER="$(printf "\037")" export DELIMITER
@@ -2053,7 +2165,6 @@ set_environment() {
   VERBOSITY_TRACE=5 export VERBOSITY_TRACE
 
   #| Commands
-  OS_TYPE="$(fetch_info --os)"
   CMD_NU="$(command -v nu || printf "")"
   CMD_BASH="$(command -v bash || printf "")"
   CMD_SH="$(command -v sh || printf "")"

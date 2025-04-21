@@ -1,9 +1,7 @@
-{ dots, ... }:
-let
+{dots, ...}: let
   hostName = "QBXL";
   stateVersion = "24.11";
-in
-{
+in {
   networking = {
     inherit hostName;
     hostId = with builtins; substring 0 8 (hashString "md5" hostName);

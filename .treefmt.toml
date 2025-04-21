@@ -74,7 +74,7 @@ excludes = [
 [formatter.alejandra]
 includes = ["*.nix"]
 priority = 1
-command  = "alejandra"
+command = "alejandra"
 
 # [formatter.deadnix]
 # includes = ["*.nix"]

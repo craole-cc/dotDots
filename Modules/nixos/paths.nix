@@ -2,11 +2,11 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   inherit (lib.options) mkOption;
   # inherit (lib.strings) toUpper;
-  inherit (lib.types)
+  inherit
+    (lib.types)
     # attrs
     # attrsOf
     either
@@ -17,8 +17,7 @@ let
   dom = "DOTS";
   mod = "paths";
   cfg = config.${dom}.${mod};
-in
-{
+in {
   options.${dom}.${mod} = {
     base = mkOption {
       description = "Path to the dots repository.";

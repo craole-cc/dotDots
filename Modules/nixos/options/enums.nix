@@ -2,16 +2,14 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   dom = "DOTS";
   mod = "enums";
 
   inherit (lib.options) mkOption;
   inherit (lib.types) listOf str;
   inherit (lib.attrsets) attrNames;
-in
-{
+in {
   options.${dom}.${mod} = {
     displayProtocols = mkOption {
       description = "Desktop Protocols";

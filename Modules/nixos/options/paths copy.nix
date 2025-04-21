@@ -1,5 +1,8 @@
-{ config, lib, ... }:
 {
+  config,
+  lib,
+  ...
+}: {
   options = {
     # Flake Paths
     paths = {
@@ -66,21 +69,21 @@
           };
           description = "Script-related paths";
         };
-        args = lib.mkOption { default = "/args"; };
-        cfgs = lib.mkOption { default = "/configurations"; };
-        env = lib.mkOption { default = "/environment"; };
-        libs = lib.mkOption { default = "/libraries"; };
-        mkCore = lib.mkOption { default = "/helpers/mkCoreConfig.nix"; };
-        mkConf = lib.mkOption { default = "/helpers/mkConfig.nix"; };
-        shells = lib.mkOption { default = "/dev"; };
-        nixos = lib.mkOption { default = "/Modules/nixos"; };
-        mods = lib.mkOption { default = "/modules"; };
-        opts = lib.mkOption { default = "/options"; };
-        pkgs = lib.mkOption { default = "/packages"; };
-        svcs = lib.mkOption { default = "/services"; };
-        ui = lib.mkOption { default = "/ui"; };
-        uiCore = lib.mkOption { default = "/ui/core"; };
-        uiHome = lib.mkOption { default = "/ui/home"; };
+        args = lib.mkOption {default = "/args";};
+        cfgs = lib.mkOption {default = "/configurations";};
+        env = lib.mkOption {default = "/environment";};
+        libs = lib.mkOption {default = "/libraries";};
+        mkCore = lib.mkOption {default = "/helpers/mkCoreConfig.nix";};
+        mkConf = lib.mkOption {default = "/helpers/mkConfig.nix";};
+        shells = lib.mkOption {default = "/dev";};
+        nixos = lib.mkOption {default = "/Modules/nixos";};
+        mods = lib.mkOption {default = "/modules";};
+        opts = lib.mkOption {default = "/options";};
+        pkgs = lib.mkOption {default = "/packages";};
+        svcs = lib.mkOption {default = "/services";};
+        ui = lib.mkOption {default = "/ui";};
+        uiCore = lib.mkOption {default = "/ui/core";};
+        uiHome = lib.mkOption {default = "/ui/home";};
       };
 
       modules = lib.mkOption {

@@ -4,10 +4,10 @@
   host,
   paths,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf mkForce mkMerge;
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     removeAttrs
     mapAttrsToList
     attrValues
@@ -16,33 +16,29 @@ let
   inherit (lib.lists) any concatLists;
   inherit (host) userConfigs;
 
-  mkHomePackages =
-    userConfig:
-    let
-      apps = userConfig.applications or { };
-      importPackage =
-        name: cfg:
-        let
-          packagePath = "${paths.pkgs.home}/${name}";
-        in
-        if builtins.pathExists packagePath then
-          [
-            {
-              imports = [ packagePath ];
-              config.programs.${name} = mapAttrs (key: value: mkForce value) (
-                { enable = cfg.enable; } // (removeAttrs cfg [ "enable" ])
-              );
-            }
-          ]
-        else
-          [ ];
-      mkPackageModule = name: cfg: importPackage name cfg;
+  mkHomePackages = userConfig: let
+    apps = userConfig.applications or {};
+    importPackage = name: cfg: let
+      packagePath = "${paths.pkgs.home}/${name}";
     in
-    concatLists (attrValues (mapAttrs mkPackageModule (removeAttrs apps [ "home-manager" ])));
+      if builtins.pathExists packagePath
+      then [
+        {
+          imports = [packagePath];
+          config.programs.${name} = mapAttrs (key: value: mkForce value) (
+            {enable = cfg.enable;} // (removeAttrs cfg ["enable"])
+          );
+        }
+      ]
+      else [];
+    mkPackageModule = name: cfg: importPackage name cfg;
+  in
+    concatLists (attrValues (mapAttrs mkPackageModule (removeAttrs apps ["home-manager"])));
 
   mkUser = username: userConfig: {
     users.users.${username} = {
-      inherit (userConfig)
+      inherit
+        (userConfig)
         description
         hashedPassword
         isNormalUser
@@ -58,7 +54,6 @@ let
       wayland.windowManager.hyprland.enable = userConfig.desktop.manager or "" == "hyprland";
     };
   };
-in
-{
+in {
   config = mkMerge (mapAttrsToList mkUser userConfigs);
 }

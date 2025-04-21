@@ -3,19 +3,18 @@
   inputs,
   paths,
   ...
-}:
-name: extraArgs:
-let
-  host =
-    let
-      inherit (inputs.nixpkgs.lib.lists) foldl' filter;
-      confCommon = import (paths.core.configurations.hosts + "/common");
-      confSystem = import (paths.core.configurations.hosts + "/${name}");
-      enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
-      userConfigs = foldl' (
+}: name: extraArgs: let
+  host = let
+    inherit (inputs.nixpkgs.lib.lists) foldl' filter;
+    confCommon = import (paths.core.configurations.hosts + "/common");
+    confSystem = import (paths.core.configurations.hosts + "/${name}");
+    enabledUsers = map (user: user.name) (filter (user: user.enable or true) confSystem.people);
+    userConfigs =
+      foldl' (
         acc: userFile: acc // import (paths.core.configurations.users + "/${userFile}")
-      ) { } enabledUsers;
-    in
+      ) {}
+      enabledUsers;
+  in
     {
       inherit name userConfigs;
     }
@@ -30,8 +29,8 @@ let
     preferredRepo = host.preferredRepo or "unstable";
     allowUnfree = host.allowUnfree or true;
     allowAliases = host.allowAliases or true;
-    extraConfig = host.extraPkgConfig or { };
-    extraPkgAttrs = host.extraPkgAttrs or { };
+    extraConfig = host.extraPkgConfig or {};
+    extraPkgAttrs = host.extraPkgAttrs or {};
   };
 
   specialArgs = {
@@ -53,14 +52,17 @@ let
 
   inherit (pkgs) lib;
 
-  systemFunc = if isDarwin then lib.darwinSystem else lib.nixosSystem;
+  systemFunc =
+    if isDarwin
+    then lib.darwinSystem
+    else lib.nixosSystem;
 in
-systemFunc {
-  inherit
-    system
-    pkgs
-    lib
-    modules
-    specialArgs
-    ;
-}
+  systemFunc {
+    inherit
+      system
+      pkgs
+      lib
+      modules
+      specialArgs
+      ;
+  }

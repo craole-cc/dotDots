@@ -1,42 +1,43 @@
 {
   description = "dotDots Flake Configuration";
-  outputs =
-    inputs@{ self, nixPackages, ... }:
-    let
-      inherit (nixPackages) lib;
-      inherit (lib.attrsets) genAttrs attrValues;
+  outputs = inputs @ {
+    self,
+    nixPackages,
+    ...
+  }: let
+    inherit (nixPackages) lib;
+    inherit (lib.attrsets) genAttrs attrValues;
 
-      systems = genAttrs (import inputs.nixosSystems);
-      paths = import ./Admin/paths.nix;
-      init = {
-        host = paths.store.administration.host;
-        pkgs = paths.store.packages;
-      };
+    systems = genAttrs (import inputs.nixosSystems);
+    paths = import ./Admin/paths.nix;
+    init = {
+      host = paths.store.administration.host;
+      pkgs = paths.store.packages;
+    };
 
-      packageOverlays = import init.pkgs.overlays { inherit inputs; };
-      perSystemPackages = systems (
-        system:
+    packageOverlays = import init.pkgs.overlays {inherit inputs;};
+    perSystemPackages = systems (
+      system:
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
           config.allowUnfree = true;
         }
-      );
-      perSystem = x: systems (system: x perSystemPackages.${system});
-      packages = perSystem (pkgs: import init.pkgs.custom { inherit pkgs paths; });
-      mkHost = name: args: import init.host { inherit self paths inputs; } name args;
-    in
-    {
-      inherit packages lib;
-      overlays = packageOverlays;
-      devShells = perSystem (pkgs: {
-        default = packages.${pkgs.system}.dotshell;
-      });
-      formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
-      nixosConfigurations = {
-        QBXvm = mkHost "QBXvm" { };
-      };
+    );
+    perSystem = x: systems (system: x perSystemPackages.${system});
+    packages = perSystem (pkgs: import init.pkgs.custom {inherit pkgs paths;});
+    mkHost = name: args: import init.host {inherit self paths inputs;} name args;
+  in {
+    inherit packages lib;
+    overlays = packageOverlays;
+    devShells = perSystem (pkgs: {
+      default = packages.${pkgs.system}.dotshell;
+    });
+    formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
+    nixosConfigurations = {
+      QBXvm = mkHost "QBXvm" {};
     };
+  };
 
   inputs = {
     #| NixOS

@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-let
+{pkgs, ...}: let
   catppuccin = pkgs.fetchFromGitHub {
     owner = "catppuccin";
     repo = "bat";
@@ -7,8 +6,7 @@ let
     hash = "sha256-6WVKQErGdaqb++oaXnY3i6/GuH2FhTgK0v4TN4Y0Wbw=";
   };
   theme = "Catppuccin-latte";
-in
-{
+in {
   programs.bat = {
     # enable = true;
     config = {

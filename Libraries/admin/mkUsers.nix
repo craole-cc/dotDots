@@ -4,10 +4,10 @@
   host,
   paths,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf mkForce mkMerge;
-  inherit (lib.attrsets)
+  inherit
+    (lib.attrsets)
     removeAttrs
     mapAttrsToList
     attrValues
@@ -21,45 +21,55 @@ let
   hasVideo = builtins.elem "video" host.capabilities;
   hasAudio = builtins.elem "audio" host.capabilities;
 
-  isAdmin =
-    username: userConfig:
+  isAdmin = username: userConfig:
     (userConfig.isAdminUser or false)
     || (any (person: person.name == username && (person.admin or false)) host.people);
 
-  mkGroups =
-    username: userConfig:
-    (if (isAdmin username userConfig) then [ "wheel" ] else [ ])
-    ++ (if hasNetworking then [ "networkmanager" ] else [ ])
-    ++ (if hasVideo then [ "video" ] else [ ])
-    ++ (if hasAudio then [ "audio" ] else [ ]);
+  mkGroups = username: userConfig:
+    (
+      if (isAdmin username userConfig)
+      then ["wheel"]
+      else []
+    )
+    ++ (
+      if hasNetworking
+      then ["networkmanager"]
+      else []
+    )
+    ++ (
+      if hasVideo
+      then ["video"]
+      else []
+    )
+    ++ (
+      if hasAudio
+      then ["audio"]
+      else []
+    );
 
-  mkHomePackages =
-    userConfig:
-    let
-      apps = userConfig.applications or { };
-      importPackage =
-        name: cfg:
-        let
-          packagePath = "${paths.pkgs.home}/${name}";
-        in
-        if builtins.pathExists packagePath then
-          [
-            {
-              imports = [ packagePath ];
-              config.programs.${name} = mapAttrs (key: value: mkForce value) (
-                { enable = cfg.enable; } // (removeAttrs cfg [ "enable" ])
-              );
-            }
-          ]
-        else
-          [ ];
-      mkPackageModule = name: cfg: importPackage name cfg;
+  mkHomePackages = userConfig: let
+    apps = userConfig.applications or {};
+    importPackage = name: cfg: let
+      packagePath = "${paths.pkgs.home}/${name}";
     in
-    concatLists (attrValues (mapAttrs mkPackageModule (removeAttrs apps [ "home-manager" ])));
+      if builtins.pathExists packagePath
+      then [
+        {
+          imports = [packagePath];
+          config.programs.${name} = mapAttrs (key: value: mkForce value) (
+            {enable = cfg.enable;} // (removeAttrs cfg ["enable"])
+          );
+        }
+      ]
+      else [];
+    mkPackageModule = name: cfg: importPackage name cfg;
+  in
+    concatLists (attrValues (mapAttrs mkPackageModule (removeAttrs apps ["home-manager"])));
 
   mkUser = username: userConfig: {
     users.users.${username} = {
-      inherit (userConfig)
+      inherit
+        (userConfig)
         description
         hashedPassword
         isNormalUser
@@ -75,7 +85,6 @@ let
       wayland.windowManager.hyprland.enable = userConfig.desktop.manager or "" == "hyprland";
     };
   };
-in
-{
+in {
   config = mkMerge (mapAttrsToList mkUser userConfigs);
 }

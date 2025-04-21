@@ -3,21 +3,21 @@
   inputs,
   host,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkIf;
   inherit (lib.attrsets) genAttrs attrNames;
   isDarwin = builtins.match ".*darwin" host.platform != null;
   allowHomeManager = host.allowHomeManager or true;
   homeModules =
-    if allowHomeManager then
-      [
-        (with inputs.nixosHome; if isDarwin then darwinModules.home-manager else nixosModules.home-manager)
-      ]
-    else
-      [ ];
-in
-{
+    if allowHomeManager
+    then [
+      (with inputs.nixosHome;
+        if isDarwin
+        then darwinModules.home-manager
+        else nixosModules.home-manager)
+    ]
+    else [];
+in {
   imports = homeModules;
   config = mkIf allowHomeManager {
     home-manager = {
@@ -26,14 +26,12 @@ in
       useGlobalPkgs = true;
       useUserPackages = true;
       users = genAttrs (attrNames host.userConfigs) (
-        username:
-        { osConfig, ... }:
-        {
-          home = { inherit (osConfig.system) stateVersion; };
+        username: {osConfig, ...}: {
+          home = {inherit (osConfig.system) stateVersion;};
           programs.home-manager.enable = true;
         }
       );
-      sharedModules = [ ];
+      sharedModules = [];
     };
   };
 }
@@ -60,3 +58,4 @@ in
 #   ]
 # else
 #   [ ]
+

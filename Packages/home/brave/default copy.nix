@@ -3,19 +3,16 @@
   lib,
   pkgs,
   ...
-}:
-
-let
+}: let
   inherit (lib.options) mkEnableOption;
   inherit (lib.modules) mkIf;
   cfg = config.programs.brave;
-in
-{
+in {
   options.programs.brave = {
     enable = mkEnableOption "Brave Browser";
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ pkgs.brave ];
+    home.packages = [pkgs.brave];
   };
 }

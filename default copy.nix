@@ -1,26 +1,23 @@
-{ inputs, ... }:
-let
+{inputs, ...}: let
   alpha = "craole";
   paths = rec {
-    flake =
-      let
-        QBX = "/home/craole/.dots";
-        QBXl = "/home/craole/.dots";
-        QBXvm = "/home/craole/.dots";
-        Preci = "/home/craole/Projects/dotDots";
-        dbook = "/home/craole/Documents/dotfiles";
-      in
-      {
-        store = ./.;
-        local = QBXvm; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
-        inherit
-          dbook
-          Preci
-          QBX
-          QBXl
-          QBXvm
-          ;
-      };
+    flake = let
+      QBX = "/home/craole/.dots";
+      QBXl = "/home/craole/.dots";
+      QBXvm = "/home/craole/.dots";
+      Preci = "/home/craole/Projects/dotDots";
+      dbook = "/home/craole/Documents/dotfiles";
+    in {
+      store = ./.;
+      local = QBXvm; # TODO: This is to be set based on the current system hostname. Maybe it should be an optional somewhere, but how.
+      inherit
+        dbook
+        Preci
+        QBX
+        QBXl
+        QBXvm
+        ;
+    };
     parts = {
       args = "/args";
       cfg = "/configurations";
@@ -217,8 +214,8 @@ let
             useGlobalPkgs = true;
             useUserPackages = true;
             backupFileExtension = "bac";
-            extraSpecialArgs = { inherit inputs; };
-            sharedModules = with paths; [ packages.home ];
+            extraSpecialArgs = {inherit inputs;};
+            sharedModules = with paths; [packages.home];
             users.${alpha}.imports = with paths; [
               users.${alpha}.home
             ];
@@ -241,8 +238,7 @@ let
       ];
     };
   };
-in
-{
+in {
   inherit
     alpha
     paths

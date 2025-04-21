@@ -1,5 +1,8 @@
-{ paths, flake, ... }:
-let
+{
+  paths,
+  flake,
+  ...
+}: let
   # inherit (paths.bins) dev eda;
   # local = host.flake or "/home/craole/.dots";
   local = paths.base;
@@ -20,8 +23,7 @@ let
     # eda = ''${eda}'';
     # dev = ''${dev}'';
   };
-in
-{
+in {
   environment = {
     inherit variables;
     sessionVariables = variables;

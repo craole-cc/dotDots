@@ -1,9 +1,10 @@
 {
-  language = # https://github-wiki-see.page/m/helix-editor/helix/wiki/External-formatter-configuration
+  language =
+    # https://github-wiki-see.page/m/helix-editor/helix/wiki/External-formatter-configuration
     [
       {
         name = "nix";
-        language-servers = [ "nixd" ];
+        language-servers = ["nixd"];
         formatter.command = "nixfmt";
         auto-format = true;
       }
@@ -21,7 +22,7 @@
       }
       {
         name = "rust";
-        language-servers = [ "rust-analyzer" ];
+        language-servers = ["rust-analyzer"];
         auto-format = true;
       }
       {

@@ -1,5 +1,4 @@
-{ paths, ... }:
-[
+{paths, ...}: [
   {
     name = "DOTS";
     eval = "$PRJ_ROOT";
@@ -10,14 +9,12 @@
   }
   {
     name = "PRJ_BIN";
-    prefix =
-      let
-        inherit (paths.local.binaries) sh rs;
-        dots = "$PRJ_ROOT" + "/Scripts";
-      in
-      ''
-        ${sh}:${rs}:${dots}
-      '';
+    prefix = let
+      inherit (paths.local.binaries) sh rs;
+      dots = "$PRJ_ROOT" + "/Scripts";
+    in ''
+      ${sh}:${rs}:${dots}
+    '';
   }
   {
     name = "PATH";

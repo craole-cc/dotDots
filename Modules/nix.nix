@@ -1,9 +1,11 @@
-{ modulesPath, host, ... }:
-let
-  stateVersion = host.stateVersion or "25.05";
-in
 {
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  modulesPath,
+  host,
+  ...
+}: let
+  stateVersion = host.stateVersion or "25.05";
+in {
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
   nix = {
     gc = {
       automatic = true;
@@ -24,7 +26,7 @@ in
     };
     extraOptions = ''download-buffer-size = 524288000'';
   };
-  system = { inherit stateVersion; };
+  system = {inherit stateVersion;};
 
   # nixpkgs.overlays = attrValues packageOverlays;
 }

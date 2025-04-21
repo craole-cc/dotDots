@@ -1,10 +1,9 @@
-{ alpha, ... }:
-{
+{alpha, ...}: {
   security.sudo = {
     execWheelOnly = true;
     extraRules = [
       {
-        users = [ alpha ];
+        users = [alpha];
         commands = [
           {
             command = "ALL";

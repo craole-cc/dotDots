@@ -1,1 +1,1 @@
-{ imports = [ ./pkg.nix ]; }
+{imports = [./pkg.nix];}

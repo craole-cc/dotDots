@@ -1,9 +1,4 @@
-{
-  pkgs,
-  ...
-}:
-{
-
+{pkgs, ...}: {
   # wayland.windowManager.hyprland.enable = true;
   home.packages = with pkgs; [
     dunst
@@ -28,7 +23,6 @@
   xdg.portal = {
     enable = true;
     config.common.default = "*";
-    extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
+    extraPortals = with pkgs; [xdg-desktop-portal-gtk];
   };
-
 }

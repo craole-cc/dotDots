@@ -54,8 +54,12 @@ let
     };
   };
 
-  mkPathSet =
-    root: set: mapAttrs (name: value: if isAttrs value then mkPathSet root value else root + value) set;
+  mkPathSet = root: set:
+    mapAttrs (name: value:
+      if isAttrs value
+      then mkPathSet root value
+      else root + value)
+    set;
 
   initialPaths = {
     store = mkPathSet flake.store parts;
@@ -63,14 +67,19 @@ let
     passwords = "/var/lib/dots/passwords";
   };
 
-  updateLocalPaths =
-    local:
+  updateLocalPaths = local:
     initialPaths
     // {
-      local = mkPathSet (if local == null then flake.local else local) parts;
+      local =
+        mkPathSet (
+          if local == null
+          then flake.local
+          else local
+        )
+        parts;
     };
 in
-{
-  inherit updateLocalPaths;
-}
-// initialPaths
+  {
+    inherit updateLocalPaths;
+  }
+  // initialPaths
