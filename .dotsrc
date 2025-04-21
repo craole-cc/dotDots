@@ -5,6 +5,7 @@
 
 main() {
   dots__set_local_env
+  dots__init_scripts
   dots__set_global_env
   # init_aliases
   # init_scripts
@@ -32,30 +33,6 @@ dots__set_local_env() {
 
 dots__cleanup() {
   unset ctx verbosity reset
-}
-
-fetch_info() {
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    --os)
-      if command -v nix >/dev/null 2>&1; then
-        printf "nix"
-      else
-        case "$(uname | tr '[:upper:]' '[:lower:]')" in
-        *linux*) printf "linux" ;;
-        *msys*) printf "windows" ;;
-        *darwin*) printf "macos" ;;
-        *) printf "unknown" ;;
-        esac
-      fi
-      ;;
-    --user)
-      printf "%s" "${USER:-"${USERNAME:-""}"}"
-      ;;
-    *) ;;
-    esac
-    shift
-  done
 }
 
 init_sh() {
@@ -330,7 +307,31 @@ init_fastfetch() {
   fi
 }
 
-init_scripts() {
+dots__init_scripts() {
+
+  fetch_info() {
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      --os)
+        if command -v nix >/dev/null 2>&1; then
+          printf "nix"
+        else
+          case "$(uname | tr '[:upper:]' '[:lower:]')" in
+          *linux*) printf "linux" ;;
+          *msys*) printf "windows" ;;
+          *darwin*) printf "macos" ;;
+          *) printf "unknown" ;;
+          esac
+        fi
+        ;;
+      --user)
+        printf "%s" "${USER:-"${USERNAME:-""}"}"
+        ;;
+      *) ;;
+      esac
+      shift
+    done
+  }
 
   pout() {
     pout__main() {
@@ -2004,8 +2005,8 @@ dots__set_global_env() {
   fi
 
   #| RC
-  rc="${rc:-".dotsrc"}"
-  DOTS_RC="${DOTS_RC:-"${DOTS}/${rc}"}"
+  RC="${RC:-".dotsrc"}"
+  DOTS_RC="${DOTS_RC:-"${DOTS}/${RC}"}"
 
   #| Cache
   DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/.cache"}"
@@ -2018,25 +2019,20 @@ dots__set_global_env() {
   case "${reset}" in 1 | yes) rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1 ;; *) ;; esac
 
   dots__cache() {
+    args=""
+    esc=""
+    arg=""
+    var="" _var=""
+    val="" _val=""
+    entry=""
+    force=""
+    rc="${RC:-".dotsrc"}"
+
     if [ -f "${DOTS_CACHE_RC}" ]; then :; else
       {
-        printf "%s\n" "#!/bin/sh"
-        printf "%s\n" "# /> DOTS Cache <\\"
-        printf "%s\n" "# Generated at: $(date)"
-
-        printf "\n%s=\"%s\" export %s" "OS_TYPE" "${OS_TYPE}" "OS_TYPE"
-        printf "\n%s=\"%s\" export %s" "USER" "${USER}" "USER"
-        printf "\n%s=\"%s\" export %s" "DELIMITER" "${DELIMITER}" "DELIMITER"
-        printf "\n%s=\"%s\" export %s" "VERBOSITY_TRACE" "${VERBOSITY_TRACE}" "VERBOSITY_TRACE"
-        printf "\n%s=\"%s\" export %s" "VERBOSITY_DEBUG" "${VERBOSITY_DEBUG}" "VERBOSITY_DEBUG"
-        printf "\n%s=\"%s\" export %s" "VERBOSITY_INFO" "${VERBOSITY_INFO}" "VERBOSITY_INFO"
-        printf "\n%s=\"%s\" export %s" "VERBOSITY_WARN" "${VERBOSITY_WARN}" "VERBOSITY_WARN"
-        printf "\n%s=\"%s\" export %s" "VERBOSITY_ERROR" "${VERBOSITY_ERROR}" "VERBOSITY_ERROR"
-        printf "\n%s=\"%s\" export %s" "VERBOSITY_QUIET" "${VERBOSITY_QUIET}" "VERBOSITY_QUIET"
-        printf "\n%s=\"%s\" export %s" "DOTS" "${DOTS}" "DOTS"
-        printf "\n%s=\"%s\" export %s" "DOTS_RC" "${DOTS_RC}" "DOTS_RC"
-        printf "\n%s=\"%s\" export %s" "DOTS_CACHE" "${DOTS_CACHE}" "DOTS_CACHE"
-        printf "\n%s=\"%s\" export %s" "DOTS_CACHE_RC" "${DOTS_CACHE_RC}" "DOTS_CACHE_RC"
+        printf "%s" "#!/bin/sh"
+        printf "\n\n%s" "# /> DOTS Cache <\\"
+        printf "\n%s\n" "# Generated at: $(date)"
       } >"${DOTS_CACHE_RC}"
     fi
 
@@ -2044,18 +2040,26 @@ dots__set_global_env() {
 
     while [ "$#" -ge 1 ]; do
       case "$1" in
-      --force) force=true ;;
+      --force) _force=true ;;
+      --dir)
+        env_type=dir
+        var="$2"
+        val="$3"
+        shift 2
+        ;;
+      --var) var="$2" ;;
+      --val) val="$2" ;;
       *)
-        case "$(to_lower "${OS_TYPE}")" in
+        case "${OS_TYPE:-"$(fetch_info --os)"}" in
         windows)
-            #@ Windows/MSYS needs different escaping
-            _escaped_arg="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-            _args="${_args:+${_args}${DELIMITER}}\"${_escaped_arg}\"";;
-       *)
-            #@ Unix-style escaping
-            _escaped_arg="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
-            _args="${_args:+${_args}${DELIMITER}}'${_escaped_arg}'"
-          fi
+          #@ Ensure proper character escaping
+          esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+          args="${args:+${args}${DELIMITER}}\"${esc}\""
+          ;;
+        *)
+          #@ Unix-style escaping
+          esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+          args="${args:+${args}${DELIMITER}}'${esc}'"
           ;;
         esac
         ;;
@@ -2064,9 +2068,106 @@ dots__set_global_env() {
     done
 
     case "${force}" in true | 1)
-      printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+      printf "%b\n" "$*" >>"${DOTS_CACHE_RC}"
+      return
       ;;
     *) ;; esac
+
+    if [ -n "${var}" ] && [ -n "${val}" ]; then
+      entry="$(
+        if [ -n "${CMD_RG:-}" ]; then
+          rg "^${var}=" "${DOTS_CACHE_RC}" | rg \""${val}"\" 2>/dev/null
+        else
+          grep "^${var}=" "${DOTS_CACHE_RC}" | grep \""${val}"\" 2>/dev/null
+        fi
+      )"
+      if [ -n "${entry}" ]; then :; else
+
+        case "${env_type}" in
+        dir)
+          var="$(to_upper "${var}")"
+          val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
+          var_rc="$(to_upper "$(printf "%s_RC" "${var}")")"
+          var_lcase="$(to_lower "${var}")"
+
+          ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
+          ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
+          ln_export="$(printf "export %s" "${var}")"
+          ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var_lcase}" "${val}")"
+          ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${EDITOR}" "${val}")"
+          ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
+          ln_check_rc="$(printf "if [ ! -d %s ]; then :; else" "${val_rc}")"
+          ln_source_rc="$(printf ". %s" "${val_rc}")"
+          ln_export_rc="$(printf "export %s%" "${var_rc}")"
+          ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${EDITOR}" "${val_rc}")"
+          ln_end="$(printf "fi\nfi")"
+
+          echo "${ln_env}"
+          echo "${ln_check}"
+          echo "${ln_alias_cd}"
+          echo "${ln_alias_edit}"
+          echo "${ln_export}"
+          echo "${ln_env_rc}"
+          echo "${ln_check_rc}"
+          echo "${ln_source_rc}"
+          echo "${ln_export_rc}"
+          echo "${ln_alias_edit_rc}"
+          echo "${ln_end}"
+
+          #  >>"${DOTS_CACHE_RC}"
+          # printf "%s\n"
+          # "
+          #         "if [ ! -d \"${val}\" ]; then :; else"
+          #           alias cd.prj='cd \"${val}\"'
+          #           export PRJ
+
+          #           PRJ_RC="${PRJ}/${RC}"
+          #           if [ ! -f "${PRJ_RC}" ]; then :; else
+          #             . "${PRJ_RC}"
+          #             export PRJ_RC
+          #           fi
+          #         fi
+          #         "
+          ;;
+        *) ;;
+        esac
+      fi
+    fi
+
+    echo "ARGS: $args"
+    # *)
+    #   old_ifs=IFS
+    #   IFS="${DELIMITER}"
+    #   arg_count=0
+    #   for arg in ${args}; do
+    #     arg_count=$((arg_count + 1))
+    #     eval "var=\$${arg}"
+    #     val="$(env | grep "^${var}=")"
+
+    #     if [ -n "${val}" ];then return;else
+
+    #     # val="$(printenv "$({val})" 2>/dev/null)"
+    #     echo "Here $val"
+    #     # if env | grep -q "^${arg}=";then
+
+    #     # _var="${_arg}"
+    #     #   if [ "${_arg:x}" ]; then
+    #     #   echo "Variable found: $_arg"
+    #     # else
+    #     #   echo "Variable unset: $_arg"
+    #     # fi
+    #     # echo "${_arg_count}" "${_arg}"
+
+    #     # if [ -z "${_val:-}" ]; then continue; else
+    #     #   printf "\n%s=\"%s\" export %s" \
+    #     #     "${_var}" "${_val}" "${_var}"
+    #     #   # >>"${DOTS_CACHE_RC}"
+    #     # fi
+    #     # echo "${_arg_count}" "${_arg}"
+    #     # printf "\n%s %s" "${_arg_count}" "${_arg}"
+    #   done
+    #   ;;
+    # esac
 
     # for var in "$@"; do
     #   val="$(eval "${var}")"
@@ -2092,9 +2193,10 @@ dots__set_global_env() {
 
   #@ Initialize the cache
   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  # dots__cache --force DOTS=\""${DOTS}"\"
-
-  return
+  dots__cache --dir DOTS "${DOTS}" pop
+  # dots__cache --var RC ".dotsrc"
+  # dots__cache --var DOTS_BIN --val "${DOTS}/Bin"
+  # dots__cache --var DOTS_BIN --val "${DOTS}/Bin"
   # dots__cache --force DOTS=\""${DOTS}"\"
   # dots__cache --force rc="\"${rc:-".dotsrc"}"\" export rc
   # dots__cache --force DOTS_RC=\""${DOTS_RC}"\" export DOTS_RC
@@ -2102,12 +2204,11 @@ dots__set_global_env() {
   # dots__cache --force DOTS_CACHE_RC=\""${DOTS_CACHE_RC}"\" export DOTS_CACHE_RC
 
   #| Binaries
-  dots__cache DOTS_BIN=\""${DOTS_BIN:-"${DOTS}/Bin"}"\" export DOTS_BIN
+  DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
   [ -f "${DOTS_BIN}/${rc}" ] && . "${DOTS_BIN}/${rc}"
 
   #| Configuration
-  dots__cache \
-    DOTS_CFG=\""${DOTS_CFG:-"${DOTS}/Configuration"}"\" export DOTS_CFG
+  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
   mkdir -p "${DOTS_CFG}"
 
   #| Environment
