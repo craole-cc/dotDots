@@ -218,9 +218,9 @@ get_absolute_path() {
   #@ Retrieve the absolute path location
   if [ -z "${_path:-}" ]; then
     return 2
-  elif [ -n "${CMD_REALPATH}" ]; then
+  elif [ -x "${CMD_REALPATH}" ]; then
     "${CMD_REALPATH}" -- "${_path}"
-  elif [ -n "${CMD_REALPATH}" ]; then
+  elif [ -x "${CMD_REALPATH}" ]; then
     "${CMD_REALPATH}" -- "${_path}"
   else
     real_path "${_path}"
@@ -337,7 +337,7 @@ show_bins() {
   else
     printf "%s\n" "${PATH}" | tr ':' '\n' |
       eval "$(
-        if [ -n "${CMD_BAT:-}" ]; then
+        if [ -x "${CMD_BAT:-}" ]; then
           printf "%s" "${CMD_BAT} --color=always --style=grid --plain --number"
         else
           printf "nl -s '  ' | less"

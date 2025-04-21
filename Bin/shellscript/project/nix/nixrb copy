@@ -213,10 +213,10 @@ check_flake_status() {
   fi
 
   #@ Get the absolute path to the flake directory
-  if [ -n "${CMD_REALPATH}" ]; then
+  if [ -x "${CMD_REALPATH}" ]; then
     _flake="$("${CMD_REALPATH}" "${_flake}")"
     pout --debug "Using 'realpath' to get absolute path"
-  elif [ -n "${CMD_READLINK}" ]; then
+  elif [ -x "${CMD_READLINK}" ]; then
     _flake="$("${CMD_READLINK}" -f "${_flake}")"
     pout --debug "Using 'readlink -f' to get absolute path"
   else
@@ -246,7 +246,7 @@ check_git_status() {
   fi
 
   #@ Run git status check
-  if [ -n "${CMD_GYT}" ]; then
+  if [ -x "${CMD_GYT}" ]; then
     pout --trace "Using gyt to check git status"
     if "${CMD_GYT}" --dir "${_git_dir}"; then
       pout --trace "Git status command returned successfully"

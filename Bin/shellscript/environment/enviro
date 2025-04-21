@@ -191,9 +191,9 @@ get_absolute_path() {
   pout --debug --key "Execute Process" --val "${_path}"
 
   #@ Resolve the path
-  if [ -n "${CMD_REALPATH:-}" ]; then
+  if [ -x "${CMD_REALPATH:-}" ]; then
     normalized_path="$(realpath -- "${_path}")"
-  elif [ -n "${CMD_READLINK:-}" ]; then
+  elif [ -x "${CMD_READLINK:-}" ]; then
     normalized_path="$(readlink -f "${_path}")"
   else
     normalized_path="$(resolve_path "${_path}")"

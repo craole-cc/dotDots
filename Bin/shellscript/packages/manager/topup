@@ -11,7 +11,7 @@ wehave() {
 
 install_topgrade() {
     #@ Ship if topgrade is already installed
-    [ -n "${CMD_TOPGRADE}" ] || wehave topgrade || return
+    [ -x "${CMD_TOPGRADE}" ] || wehave topgrade || return
 
     #| System package managers first
     if wehave pacman; then

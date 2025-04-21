@@ -6,8 +6,8 @@
 main() {
   dots__set_local_env
   dots__init_scripts
+  dots__init_aliases
   dots__set_global_env
-  # init_aliases
   # init_scripts
   # init_sh
   # init_bash
@@ -26,289 +26,303 @@ main() {
 }
 
 dots__set_local_env() {
-  ctx=".dotsrc"
-  verbosity=1 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+  ctx="DOTS"
+  ctx_sep="-"
+  ctx_head=">>-"
+  ctx_tail="->> "
+  verbosity=5 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
   reset=1     #? 0=no, 1=yes
+  editor="code"
 }
 
 dots__cleanup() {
   unset ctx verbosity reset
 }
 
-init_git() {
-  git config include.path "${GIT_CONFIG:-"${DOTS}/Configuration/git/main.gitconfig"}"
-}
-
-init_sh() {
-  #@ Skip if the command or binary directory are missing
-  if [ -n "${CMD_SH}" ]; then :; else return; fi
-  if [ -d "${DOTS_BIN_SH:-}" ]; then :; else return; fi
-
-  #@ Set defaults and initialize counters
-  depth_limit=4 # Lower depth limit for better performance
-  updated_count=0
-  skipped_count=0
-  new_path=""
-
-  #@ Define cleanup function
-  init_sh__cleanup() {
-    unset updated_count skipped_count new_path depth_limit
+dots__init_config() {
+  init_git() {
+    git config include.path "${GIT_CONFIG:-"${DOTS}/Configuration/git/main.gitconfig"}"
   }
 
-  #@ Set trap for proper cleanup
-  trap init_sh__cleanup EXIT HUP INT TERM
+  init_sh() {
+    #@ Skip if the command or binary directory are missing
+    if [ -x "${CMD_SH}" ]; then :; else return; fi
+    if [ -d "${DOTS_BIN_SH:-}" ]; then :; else return; fi
 
-  pout --ctx "init_sh" --debug "Processing directories (depth: ${depth_limit})"
+    #@ Set defaults and initialize counters
+    depth_limit=4 # Lower depth limit for better performance
+    updated_count=0
+    skipped_count=0
+    new_path=""
 
-  #@ Process directories with limited recursion using pure shell
-  process_dir() {
-    dir="$1"
-    current_depth="$2"
-
-    #@ Check if we've reached depth limit
-    [ "${current_depth}" -gt "${depth_limit}" ] && return
-
-    #@ Check if directory is in excluded patterns
-    case "${dir}" in
-    *archive* | *review* | *temp* | *tmp*) return ;;
-    *) ;;
-    esac
-
-    #@ Add directory to PATH if needed
-    case ":${PATH}:" in
-    *":${dir}:"*)
-      skipped_count=$((skipped_count + 1))
-      ;;
-    *)
-      new_path="${new_path:+${new_path}:}${dir}"
-      updated_count=$((updated_count + 1))
-      ;;
-    esac
-
-    #@ Only process subdirectories if we're not at max depth
-    [ "${current_depth}" -eq "${depth_limit}" ] && return
-
-    #@ Process subdirectories
-    for subdir in "${dir}"/*; do
-      [ -d "${subdir}" ] && process_dir "${subdir}" "$((current_depth + 1))"
-    done
-  }
-
-  #@ Start recursive processing at depth 1
-  process_dir "${DOTS_BIN_SH}" 1
-
-  #@ Update PATH if we found new directories
-  if [ -n "${new_path}" ]; then
-    PATH="${new_path}:${PATH}"
-    export PATH
-  fi
-
-  #@ Report the results
-  pout --ctx "init_sh" --info \
-    "Processed binary directories - " \
-    "Added: ${updated_count}" " | " \
-    "Skipped: ${skipped_count}"
-
-  #@ Cleanup
-  init_sh__cleanup
-
-  return 0
-}
-
-init_sh_OLD() {
-  #@ Skip if the command or binary directory are missing
-  if [ -n "${CMD_SH}" ]; then :; else return; fi
-  if [ -d "${DOTS_BIN_SH}" ]; then :; else return; fi
-
-  #@ Set defaults
-  search_depth=5
-  exclude_patterns="archive review temp tmp"
-  exclude_patterns="$(printf "%s" "${exclude_patterns}" | sed 's/ /|/g')"
-  bin_dirs="" bin_dir_count=0
-  include="" include_count=0
-  exclude="" exclude_count=0
-  skipped="" skipped_count=0
-  updated="" updated_count=0
-
-  #@ Identify valid binary subdirectories.
-  #TODO: we shouldn't have to perform find thrice
-  bin_dirs="$(
-    find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
-      tr '\n' "${DELIMITER}"
-  )"
-  include="$(
-    find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
-      grep -Ev "${exclude_patterns}" | tr '\n' "${DELIMITER}"
-  )"
-  exclude="$(
-    find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
-      grep -E "${exclude_patterns}" | tr '\n' "${DELIMITER}"
-  )"
-
-  #@ Update the print delimiter
-  old_ifs="${IFS}"
-  IFS="${DELIMITER}"
-
-  #@ Store the total number of directories in each category
-  bin_dir_count="$(printf "%s" "${bin_dirs}" | tr "${DELIMITER}" "\n" | wc -l)"
-  include_count="$(printf "%s" "${include}" | tr "${DELIMITER}" "\n" | wc -l)"
-  exclude_count="$(printf "%s" "${exclude}" | tr "${DELIMITER}" "\n" | wc -l)"
-
-  pout --ctx "init_sh" --trace "bin_dir_count:" "${bin_dir_count}"
-  pout --ctx "init_sh" --trace "include_count:" "${include_count}"
-  pout --ctx "init_sh" --trace "exclude_count:" "${exclude_count}"
-
-  # PATH="${PATH}:/c/Users/Administrator/.dots/Bin/shellscript/cmd"
-
-  #@ Identify the directories to be added to the PATH
-  i=0
-  for bin_dir in ${include}; do
-    i=$((i + 1))
-    pout --ctx "init_sh" --trace "${i}: ${bin_dir}"
-    case "${PATH}" in
-    "${bin_dir}"* | *":${bin_dir}:"* | ":${bin_dir}")
-      skipped_count=$((skipped_count + 1))
-      skipped="${skipped:+${skipped}${DELIMITER}}${bin_dir}"
-      pout --ctx "init_sh" --trace "Found in PATH:" "${i}>" "${bin_dir}"
-      ;;
-    *)
-      updated_count=$((updated_count + 1))
-      updated="${updated:+${updated}${DELIMITER}}${bin_dir}"
-      pout --ctx "init_sh" --trace "Added to PATH:" "${i}>" "${bin_dir}"
-      new_path="${new_path:+${new_path}":"}${bin_dir}"
-      ;;
-    esac
-  done
-
-  printf "PATH:\n%s" "${new_path:-}"
-
-  #@ Update the PATH variable, if necessary
-  PATH="${new_path}:${PATH}" export PATH
-
-  #@ Report the results
-  pout --ctx "init_sh" --info \
-    "Processed" "${bin_dir_count}" "binary directories\n" \
-    "Valid: ${include_count}" " | " \
-    "Invalid: ${exclude_count}" " | " \
-    "Skipped: ${skipped_count}" " | " \
-    "Added: ${updated_count}"
-
-  #@ Cleanup
-  IFS="${old_ifs}"
-  unset p b
-}
-
-init_bash() {
-  #@ Skip if the command or binary directory are missing
-  if [ -n "${CMD_BASH}" ]; then :; else return; fi
-  if [ -d "${DOTS_BIN_BASH:-}" ]; then :; else return; fi
-
-  #@ Check if the binary directory exists
-  p="${PATH}"
-  b="${DOTS_BIN_BASH}"
-  #@ Update the PATH variable, if necessary
-  case "${p}" in
-  "${b}:"* | *":${b}:"* | ":${b}")
-    pout --debug "PATH includes: ${DOTS_BIN_BASH}"
-    ;;
-  *)
-    PATH="${DOTS_BIN_BASH}:${PATH}" export PATH
-    pout --debug "PATH updated to include: ${DOTS_BIN_BASH}"
-    ;;
-  esac
-
-  #@ Cleanup
-  unset p b
-}
-
-init_nushell() {
-  if [ -z "${CMD_NU}" ]; then return; else
-
-    #@ Check if the nushell binary directory exists
-    if [ -d "${DOTS_BIN_NU}" ]; then
-      case "${PATH}" in
-      "${DOTS_BIN_NU}:"* | *":${DOTS_BIN_NU}:"* | ":${DOTS_BIN_NU}") ;;
-      *)
-        unset "${DOTS_BIN_NU}"
-        return
-        ;;
-      esac
-    fi
-  fi
-
-  #@ Prepend the nushell binary directory to the PATH
-  if [ -z "${DOTS_BIN_NU}" ]; then :; else
-    PATH="${DOTS_BIN_NU}:${PATH}" export PATH
-    pout --debug "Added to PATH: ${DOTS_BIN_SH}"
-  fi
-}
-
-init_blesh() {
-  CMD_BLESH="${HOME:-}/.local/share/blesh/ble.sh"
-  if [ -f "${CMD_BLESH}" ]; then
-    "${CMD_BLESH}" >/dev/null 2>&1
-    pout --debug "[INFO] /> dotsrc <\ Initialized Ble.sh"
-  else
-    pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_BLESH}"
-  fi
-}
-
-init_atuin() {
-  CMD_ATUIN="$(command -v atuin 2>/dev/null || printf "")"
-  if [ -n "${CMD_ATUIN}" ]; then
-    eval "$(atuin init bash --disable-ctrl-r || true)"
-    pout --debug "[INFO] /> dotsrc <\ Initialized Atuin"
-  else
-    pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_ATUIN}"
-  fi
-}
-
-init_starship() {
-  #@ Retrieve the path to the starship binary
-  CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")" export CMD_STARSHIP
-
-  if [ -n "${CMD_STARSHIP}" ]; then
-
-    #@ Check if the starship configuration file exists
-    starship_config="${DOTS}/Configuration/starship/config.toml"
-    [ -f "${starship_config}" ] && {
-      #@ Set the STARSHIP_CONFIG environment variable
-      STARSHIP_CONFIG="${starship_config}"
-      export STARSHIP_CONFIG
+    #@ Define cleanup function
+    init_sh__cleanup() {
+      unset updated_count skipped_count new_path depth_limit
     }
 
-    #@ Initialize starship
-    eval "$(starship init bash || true)"
-    pout --debug "[INFO] /> dotsrc <\ Initialized Starship"
-  else
-    pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_STARSHIP}"
-  fi
-}
+    #@ Set trap for proper cleanup
+    trap init_sh__cleanup EXIT HUP INT TERM
 
-init_fastfetch() {
-  #@ Retrieve the path to the fastfetch binary
-  CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")" export CMD_FASTFETCH
+    pout --ctx "init_sh" --debug "Processing directories (depth: ${depth_limit})"
 
-  if [ -n "${CMD_FASTFETCH}" ]; then
+    #@ Process directories with limited recursion using pure shell
+    process_dir() {
+      dir="$1"
+      current_depth="$2"
 
-    #@ Check if the starship configuration file exists
-    fastfetch_config="${DOTS}/Configuration/fastfetch/config.jsonc"
+      #@ Check if we've reached depth limit
+      [ "${current_depth}" -gt "${depth_limit}" ] && return
 
-    #@ Initialize fastfetch
-    if [ -f "${fastfetch_config}" ]; then
-      #@ Set the FASTFETCH_CONFIG environment variable
-      FASTFETCH_CONFIG="${fastfetch_config}"
-      export FASTFETCH_CONFIG
-      fetch() { fastfetch --config "${FASTFETCH_CONFIG}"; }
-    else
-      fetch() { fastfetch; }
+      #@ Check if directory is in excluded patterns
+      case "${dir}" in
+      *archive* | *review* | *temp* | *tmp*) return ;;
+      *) ;;
+      esac
+
+      #@ Add directory to PATH if needed
+      case ":${PATH}:" in
+      *":${dir}:"*)
+        skipped_count=$((skipped_count + 1))
+        ;;
+      *)
+        new_path="${new_path:+${new_path}:}${dir}"
+        updated_count=$((updated_count + 1))
+        ;;
+      esac
+
+      #@ Only process subdirectories if we're not at max depth
+      [ "${current_depth}" -eq "${depth_limit}" ] && return
+
+      #@ Process subdirectories
+      for subdir in "${dir}"/*; do
+        [ -d "${subdir}" ] && process_dir "${subdir}" "$((current_depth + 1))"
+      done
+    }
+
+    #@ Start recursive processing at depth 1
+    process_dir "${DOTS_BIN_SH}" 1
+
+    #@ Update PATH if we found new directories
+    if [ -n "${new_path}" ]; then
+      PATH="${new_path}:${PATH}"
+      export PATH
     fi
-    fetch
 
-    pout --debug "[INFO] /> dotsrc <\ Initialized Fastfetch"
-  else
-    pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_FASTFETCH}"
-  fi
+    #@ Report the results
+    pout --ctx "init_sh" --info \
+      "Processed binary directories - " \
+      "Added: ${updated_count}" " | " \
+      "Skipped: ${skipped_count}"
+
+    #@ Cleanup
+    init_sh__cleanup
+
+    return 0
+  }
+
+  init_sh_OLD() {
+    #@ Skip if the command or binary directory are missing
+    if [ -x "${CMD_SH}" ]; then :; else return; fi
+    if [ -d "${DOTS_BIN_SH}" ]; then :; else return; fi
+
+    #@ Set defaults
+    search_depth=5
+    exclude_patterns="archive review temp tmp"
+    exclude_patterns="$(printf "%s" "${exclude_patterns}" | sed 's/ /|/g')"
+    bin_dirs="" bin_dir_count=0
+    include="" include_count=0
+    exclude="" exclude_count=0
+    skipped="" skipped_count=0
+    updated="" updated_count=0
+
+    #@ Identify valid binary subdirectories.
+    #TODO: we shouldn't have to perform find thrice
+    bin_dirs="$(
+      find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
+        tr '\n' "${DELIMITER}"
+    )"
+    include="$(
+      find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
+        grep -Ev "${exclude_patterns}" | tr '\n' "${DELIMITER}"
+    )"
+    exclude="$(
+      find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
+        grep -E "${exclude_patterns}" | tr '\n' "${DELIMITER}"
+    )"
+
+    #@ Update the print delimiter
+    old_ifs="${IFS}"
+    IFS="${DELIMITER}"
+
+    #@ Store the total number of directories in each category
+    bin_dir_count="$(printf "%s" "${bin_dirs}" | tr "${DELIMITER}" "\n" | wc -l)"
+    include_count="$(printf "%s" "${include}" | tr "${DELIMITER}" "\n" | wc -l)"
+    exclude_count="$(printf "%s" "${exclude}" | tr "${DELIMITER}" "\n" | wc -l)"
+
+    pout --ctx "init_sh" --trace "bin_dir_count:" "${bin_dir_count}"
+    pout --ctx "init_sh" --trace "include_count:" "${include_count}"
+    pout --ctx "init_sh" --trace "exclude_count:" "${exclude_count}"
+
+    # PATH="${PATH}:/c/Users/Administrator/.dots/Bin/shellscript/cmd"
+
+    #@ Identify the directories to be added to the PATH
+    i=0
+    for bin_dir in ${include}; do
+      i=$((i + 1))
+      pout --ctx "init_sh" --trace "${i}: ${bin_dir}"
+      case "${PATH}" in
+      "${bin_dir}"* | *":${bin_dir}:"* | ":${bin_dir}")
+        skipped_count=$((skipped_count + 1))
+        skipped="${skipped:+${skipped}${DELIMITER}}${bin_dir}"
+        pout --ctx "init_sh" --trace "Found in PATH:" "${i}>" "${bin_dir}"
+        ;;
+      *)
+        updated_count=$((updated_count + 1))
+        updated="${updated:+${updated}${DELIMITER}}${bin_dir}"
+        pout --ctx "init_sh" --trace "Added to PATH:" "${i}>" "${bin_dir}"
+        new_path="${new_path:+${new_path}":"}${bin_dir}"
+        ;;
+      esac
+    done
+
+    printf "PATH:\n%s" "${new_path:-}"
+
+    #@ Update the PATH variable, if necessary
+    PATH="${new_path}:${PATH}" export PATH
+
+    #@ Report the results
+    pout --ctx "init_sh" --info \
+      "Processed" "${bin_dir_count}" "binary directories\n" \
+      "Valid: ${include_count}" " | " \
+      "Invalid: ${exclude_count}" " | " \
+      "Skipped: ${skipped_count}" " | " \
+      "Added: ${updated_count}"
+
+    #@ Cleanup
+    IFS="${old_ifs}"
+    unset p b
+  }
+
+  init_bash() {
+    #@ Skip if the command or binary directory are missing
+    if [ -x "${CMD_BASH}" ]; then :; else return; fi
+    if [ -d "${DOTS_BIN_BASH:-}" ]; then :; else return; fi
+
+    #@ Check if the binary directory exists
+    p="${PATH}"
+    b="${DOTS_BIN_BASH}"
+    #@ Update the PATH variable, if necessary
+    case "${p}" in
+    "${b}:"* | *":${b}:"* | ":${b}")
+      pout --debug "PATH includes: ${DOTS_BIN_BASH}"
+      ;;
+    *)
+      PATH="${DOTS_BIN_BASH}:${PATH}" export PATH
+      pout --debug "PATH updated to include: ${DOTS_BIN_BASH}"
+      ;;
+    esac
+
+    #@ Cleanup
+    unset p b
+  }
+
+  init_nushell() {
+    if [ -z "${CMD_NU}" ]; then return; else
+
+      #@ Check if the nushell binary directory exists
+      if [ -d "${DOTS_BIN_NU}" ]; then
+        case "${PATH}" in
+        "${DOTS_BIN_NU}:"* | *":${DOTS_BIN_NU}:"* | ":${DOTS_BIN_NU}") ;;
+        *)
+          unset "${DOTS_BIN_NU}"
+          return
+          ;;
+        esac
+      fi
+    fi
+
+    #@ Prepend the nushell binary directory to the PATH
+    if [ -z "${DOTS_BIN_NU}" ]; then :; else
+      PATH="${DOTS_BIN_NU}:${PATH}" export PATH
+      pout --debug "Added to PATH: ${DOTS_BIN_SH}"
+    fi
+  }
+
+  init_blesh() {
+    CMD_BLESH="${HOME:-}/.local/share/blesh/ble.sh"
+    if [ -f "${CMD_BLESH}" ]; then
+      "${CMD_BLESH}" >/dev/null 2>&1
+      pout --debug "[INFO] /> dotsrc <\ Initialized Ble.sh"
+    else
+      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_BLESH}"
+    fi
+  }
+
+  init_atuin() {
+    CMD_ATUIN="$(command -v atuin 2>/dev/null || printf "")"
+    if [ -x "${CMD_ATUIN}" ]; then
+      eval "$(atuin init bash --disable-ctrl-r || true)"
+      pout --debug "[INFO] /> dotsrc <\ Initialized Atuin"
+    else
+      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_ATUIN}"
+    fi
+  }
+
+  init_starship() {
+    #@ Retrieve the path to the starship binary
+    CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")" export CMD_STARSHIP
+
+    if [ -x "${CMD_STARSHIP}" ]; then
+
+      #@ Check if the starship configuration file exists
+      starship_config="${DOTS}/Configuration/starship/config.toml"
+      [ -f "${starship_config}" ] && {
+        #@ Set the STARSHIP_CONFIG environment variable
+        STARSHIP_CONFIG="${starship_config}"
+        export STARSHIP_CONFIG
+      }
+
+      #@ Initialize starship
+      eval "$(starship init bash || true)"
+      pout --debug "[INFO] /> dotsrc <\ Initialized Starship"
+    else
+      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_STARSHIP}"
+    fi
+  }
+
+  init_fastfetch() {
+    #@ Retrieve the path to the fastfetch binary
+    CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")" export CMD_FASTFETCH
+
+    if [ -x "${CMD_FASTFETCH}" ]; then
+
+      #@ Check if the starship configuration file exists
+      fastfetch_config="${DOTS}/Configuration/fastfetch/config.jsonc"
+
+      #@ Initialize fastfetch
+      if [ -f "${fastfetch_config}" ]; then
+        #@ Set the FASTFETCH_CONFIG environment variable
+        FASTFETCH_CONFIG="${fastfetch_config}"
+        export FASTFETCH_CONFIG
+        fetch() { fastfetch --config "${FASTFETCH_CONFIG}"; }
+      else
+        fetch() { fastfetch; }
+      fi
+      fetch
+
+      pout --debug "[INFO] /> dotsrc <\ Initialized Fastfetch"
+    else
+      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_FASTFETCH}"
+    fi
+  }
+
+  init_projects() {
+    rc=".dotsrc"
+    [ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
+    [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+    [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+    unset rc
+  }
 }
 
 dots__init_scripts() {
@@ -353,24 +367,6 @@ dots__init_scripts() {
       path_limit=""
       path_limit_start="head"
       path=""
-    }
-
-    pout__debug() {
-      msg=""
-      case "${debug:-}" in
-      1 | true | on)
-        for arg in "$@"; do
-          msg="${msg:+${msg} }${arg:-}"
-        done
-        ;;
-      *) ;;
-      esac
-
-      if [ -n "${msg}" ]; then
-        printf "%b\n" "${msg}"
-      else
-        :
-      fi
     }
 
     pout__parse_arguments() {
@@ -429,8 +425,8 @@ dots__init_scripts() {
       fi
 
       if [ -z "${pout_ctx_tag}" ]; then :; else
-        pout_ctx_tag_head="/> "
-        pout_ctx_tag_tail=" <\ "
+        pout_ctx_tag_head="${ctx_head:-"/> "}"
+        pout_ctx_tag_tail="${ctx_tail:-" <\ "}"
         pout_ctx_tag="${pout_ctx_tag_head}${pout_ctx_tag}${pout_ctx_tag_tail}"
       fi
 
@@ -451,7 +447,7 @@ dots__init_scripts() {
         ;;
       trace*)
         if [ "${verbosity}" -lt "${VERBOSITY_TRACE}" ]; then :; else
-          printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+          printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
         fi
         ;;
       debug*)
@@ -748,7 +744,7 @@ dots__init_scripts() {
   #     new_path=""
 
   #     #@ Skip if the command or binary directory are missing
-  #     if [ -n "${CMD_SH:-}" ]; then :; else return; fi
+  #     if [ -x "${CMD_SH:-}" ]; then :; else return; fi
   #     if [ -d "${starting_dir:-}" ]; then :; else return; fi
 
   #     #@ Define cleanup function
@@ -1887,17 +1883,9 @@ dots__init_scripts() {
 
 }
 
-init_projects() {
-  rc=".dotsrc"
-  [ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
-  [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
-  [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
-  unset rc
-}
-
-init_aliases() {
+dots__init_aliases() {
   fl() {
-    if [ -n "${CMD_EZA:-}" ]; then
+    if [ -x "${CMD_EZA:-}" ]; then
       \eza \
         --long \
         --almost-all \
@@ -1912,7 +1900,7 @@ init_aliases() {
         --total-size \
         --smart-group \
         "$@"
-    elif [ -n "${CMD_LSD:-}" ]; then
+    elif [ -x "${CMD_LSD:-}" ]; then
       \lsd \
         --long \
         --almost-all \
@@ -1933,7 +1921,7 @@ init_aliases() {
   alias l='fl'
 
   ft() {
-    if [ -n "${CMD_EZA:-}" ]; then
+    if [ -x "${CMD_EZA:-}" ]; then
       \eza \
         --long \
         --almost-all \
@@ -1950,7 +1938,7 @@ init_aliases() {
         --smart-group \
         --tree \
         "$@"
-    elif [ -n "${CMD_LSD:-}" ]; then
+    elif [ -x "${CMD_LSD:-}" ]; then
       \lsd --tree "$@"
     else
       \ls --recursive "$@"
@@ -1959,7 +1947,7 @@ init_aliases() {
   alias t='ft'
 
   wat() {
-    if [ -n "${CMD_BAT:-}" ]; then
+    if [ -x "${CMD_BAT:-}" ]; then
       bat --color=always "$@"
     else
       \cat "$@"
@@ -1968,7 +1956,7 @@ init_aliases() {
   alias r='wat'
 
   red() {
-    if [ -n "${CMD_BAT:-}" ]; then
+    if [ -x "${CMD_BAT:-}" ]; then
       bat --color=always "$@" --style=plain
     else
       \cat "$@"
@@ -2013,14 +2001,8 @@ dots__set_global_env() {
   DOTS_RC="${DOTS_RC:-"${DOTS}/${RC}"}"
 
   #| Cache
-  DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/.cache"}"
-  DOTS_CACHE_RC="${DOTS_CACHE_RC:-"${DOTS_CACHE}/${rc}"}"
-
-  #@ Ensure the cache exists
-  mkdir -p "${DOTS_CACHE}"
-
-  #@ Reset the cache, if requested
-  case "${reset}" in 1 | yes) rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1 ;; *) ;; esac
+  DOTS_CACHE="${DOTS}/.cache"
+  DOTS_CACHE_RC="${DOTS_CACHE}/${RC}"
 
   dots__cache() {
     args=""
@@ -2031,17 +2013,36 @@ dots__set_global_env() {
     entry=""
     force=""
     rc="${RC:-".dotsrc"}"
+    editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
 
+    #@ Reset the cache, if requested
+    case "${reset:-"${RESET:-0}"}" in 1 | yes)
+      pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
+      rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
+      ;;
+    *) ;; esac
+
+    #@ Ensure the cache directory exists
+    mkdir -p "${DOTS_CACHE}"
+
+    #@ Initialize the cache, if necessary
     if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+      pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
       {
         printf "%s" "#!/bin/sh"
+        printf "\n%s" "# shellcheck disable=SC1091"
         printf "\n\n%s" "# /> DOTS Cache <\\"
         printf "\n%s\n" "# Generated at: $(date)"
       } >"${DOTS_CACHE_RC}"
     fi
 
-    [ "$#" -lt 0 ] && return
+    #@ If no arguments are provided, simply load the cache
+    [ "$#" -lt 0 ] && {
+      . "${DOTS_CACHE_RC}"
+      return
+    }
 
+    #@ Parse arguments
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --force) _force=true ;;
@@ -2079,7 +2080,7 @@ dots__set_global_env() {
 
     if [ -n "${var}" ] && [ -n "${val}" ]; then
       entry="$(
-        if [ -n "${CMD_RG:-}" ]; then
+        if [ -x "${CMD_RG:-}" ]; then
           rg "^${var}=" "${DOTS_CACHE_RC}" | rg \""${val}"\" 2>/dev/null
         else
           grep "^${var}=" "${DOTS_CACHE_RC}" | grep \""${val}"\" 2>/dev/null
@@ -2098,27 +2099,26 @@ dots__set_global_env() {
           ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
           ln_export="$(printf "export %s" "${var}")"
           ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var_lcase}" "${val}")"
-          ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${EDITOR}" "${val}")"
+          ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${editor}" "${val}")"
           ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
-          ln_check_rc="$(printf "if [ ! -d %s ]; then :; else" "${val_rc}")"
+          ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
           ln_source_rc="$(printf ". %s" "${val_rc}")"
-          ln_export_rc="$(printf "export %s%" "${var_rc}")"
-          ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${EDITOR}" "${val_rc}")"
-          ln_end="$(printf "fi\nfi")"
-
-          echo "${ln_env}"
-          echo "${ln_check}"
-          echo "${ln_alias_cd}"
-          echo "${ln_alias_edit}"
-          echo "${ln_export}"
-          echo "${ln_env_rc}"
-          echo "${ln_check_rc}"
-          echo "${ln_source_rc}"
-          echo "${ln_export_rc}"
-          echo "${ln_alias_edit_rc}"
-          echo "${ln_end}"
-
-          #  >>"${DOTS_CACHE_RC}"
+          ln_export_rc="$(printf "export %s" "${var_rc}")"
+          ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${editor}" "${val_rc}")"
+          ln_end="$(printf "fi;fi")"
+          {
+            printf "\n%s\n" "${ln_env}"
+            printf "%s\n" "${ln_check}"
+            printf "  %s\n" "${ln_alias_cd}"
+            printf "  %s\n" "${ln_alias_edit}"
+            printf "  %s\n\n" "${ln_export}"
+            printf "  %s\n" "${ln_env_rc}"
+            printf "  %s\n" "${ln_check_rc}"
+            printf "    %s\n" "${ln_alias_edit_rc}"
+            printf "    %s\n" "${ln_export_rc}"
+            printf "    %s\n" "${ln_source_rc}"
+            printf "%s\n" "${ln_end}"
+          } >>"${DOTS_CACHE_RC}"
           # printf "%s\n"
           # "
           #         "if [ ! -d \"${val}\" ]; then :; else"
@@ -2193,6 +2193,15 @@ dots__set_global_env() {
     #     export PRJ_RC
     #   fi
     # fi
+
+    #@ Format the cache
+    if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
+      shfmt --write "${DOTS_CACHE_RC}"
+    else
+      printf "Unable to format the cache as shfmt is not installed.\n"
+    fi
+    pout --trace "Cache updated successfully\n" "$(wat "${DOTS_CACHE_RC}")"
+
   }
 
   #@ Initialize the cache
@@ -2289,6 +2298,7 @@ dots__set_global_env() {
   CMD_EZA="$(command -v eza || printf "")"
   CMD_LSD="$(command -v lsd || printf "")"
   CMD_TOPGRADE="$(command -v topgrade || printf "")"
+  CMD_SHFMT="$(command -v shfmt || printf "")"
 
   #| Scripts
   CMD_PATHMAN="$(command -v pathman || printf "")"
