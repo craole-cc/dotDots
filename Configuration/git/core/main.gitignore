@@ -2,14 +2,18 @@
 # --------- FOLDERS ----------
 # ----------------------------
 
-[Pp]rivate/
+
+[Aa]rchive/
+[Dd]ebug/
 [Dd]ownloads/
+[Ii]mport/
 [Ll]og/
+[Pp]rivate/
+[Tt]arget/
 [Tt]emp/
 [Tt]mp/
-[Aa]rchive/
-[Tt]arget/
-[Dd]ebug/
+.direnv/
+.cache/
 
 # ----------------------------
 # ---------- LINUX -----------

@@ -4,11 +4,19 @@
 	path = core/safe.gitconfig
 	path = core/sync.gitconfig
 
-[includeIf "gitdir:~/Projects/github/CC/"]
-	path = home/github_craole-cc.gitconfig
-
 [includeIf "gitdir:~/Projects/github/Craole/"]
 	path = home/github_craole.gitconfig
 
 [includeIf "gitdir:~/Projects/gitlab/Craole/"]
 	path = home/github_craole.gitconfig
+
+[includeIf "gitdir:~/Projects/github/CC/"]
+	path = home/github_craole-cc.gitconfig
+
+[includeIf "gitdir:~/.dots"]
+	path = home/github_craole-cc.gitconfig
+[core]
+	excludesFile = ~/.dots/Configuration/git/core/main.gitignore
+
+[includeIf "gitdir:~/Documents/dotfiles"]
+	path = home/github_craole-cc.gitconfig

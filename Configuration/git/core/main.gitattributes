@@ -1,9 +1,9 @@
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.zip binary
-*.exe binary
-*.pdf binary
-*.svg text eol=lf
-* text=auto eol=lf
+*.png      binary
+*.jpg      binary
+*.jpeg   binary
+*.gif      binary
+*.zip      binary
+*.exe      binary
+*.pdf      binary
+*.svg      text eol=lf
+*          text=auto eol=lf

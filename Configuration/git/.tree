@@ -1,0 +1,14 @@
+File Tree for "${DOTS}/Configuration/git":
+
+├── core
+│   ├── alias.gitconfig
+│   ├── core.gitconfig
+│   ├── main.gitattributes
+│   ├── main.gitignore
+│   ├── safe.gitconfig
+│   └── sync.gitconfig
+├── home
+│   ├── github_craole-cc.gitconfig
+│   ├── github_craole.gitconfig
+│   └── gitlab_craole.gitconfig
+└── main.gitconfig
