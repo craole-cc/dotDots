@@ -17,6 +17,7 @@
 .config/
 .devenv/
 .direnv/
+debug/
 
 # ----------------------------
 # ---------- LINUX -----------
@@ -35,10 +36,6 @@
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
-# DotFiles
-.vscode/
-debug/
-*cache/
 *.tmp
 *.bak
 *.bac
