@@ -35,6 +35,10 @@ dots__cleanup() {
   unset ctx verbosity reset
 }
 
+init_git() {
+  git config include.path "${GIT_CONFIG:-"${DOTS}/Configuration/git/main.gitconfig"}"
+}
+
 init_sh() {
   #@ Skip if the command or binary directory are missing
   if [ -n "${CMD_SH}" ]; then :; else return; fi

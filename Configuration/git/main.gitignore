@@ -13,8 +13,11 @@
 [Tt]emp/
 [Tt]mp/
 
-.direnv/
 .cache/
+.config/
+.devenv/
+.direnv/
+.vscode/
 
 # ----------------------------
 # ---------- LINUX -----------

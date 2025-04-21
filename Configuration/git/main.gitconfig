@@ -4,7 +4,6 @@
 	path = core/safe.gitconfig
 	path = core/sync.gitconfig
 
-
 [includeIf "gitdir:~/Projects/github/Craole/"]
 	path = home/github_craole.gitconfig
 
