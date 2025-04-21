@@ -3,12 +3,14 @@ File Tree for "${DOTS}/Configuration/git":
 ├── core
 │   ├── alias.gitconfig
 │   ├── core.gitconfig
-│   ├── main.gitattributes
-│   ├── main.gitignore
 │   ├── safe.gitconfig
 │   └── sync.gitconfig
 ├── home
+│   ├── dotfiles.gitconfig
+│   ├── dots.gitconfig
 │   ├── github_craole-cc.gitconfig
 │   ├── github_craole.gitconfig
 │   └── gitlab_craole.gitconfig
-└── main.gitconfig
+├── main.gitattributes
+├── main.gitconfig
+└── main.gitignore

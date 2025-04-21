@@ -1,0 +1,2 @@
+[core]
+  excludesFile =  ~/Documents/dotfiles/Configuration/git/core/main.gitignore

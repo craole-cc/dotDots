@@ -1,11 +1,11 @@
 [core]
-  attributesfile = main.gitattributes
+  # attributesfile = main.gitattributes
   autocrlf = false
   editor = hx
   # excludesFile = ~/.dots/Configuration/git/core/main.gitignore #TODO: this works
   # excludesFile = "${DOTS}/Configuration/git/core/main.gitignore" #TODO: this doesn't work
   # excludesFile = main.gitignore #TODO: this doesn't work
-  excludeFile = ../core/main.gitignore
+  # excludeFile = ../core/main.gitignore
   filemode = false
   whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
