@@ -15,7 +15,7 @@
 
 .cache/
 .config/
-.devenv/
+# .devenv/
 .direnv/
 .vscode/
 
