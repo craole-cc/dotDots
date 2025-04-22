@@ -2080,7 +2080,7 @@ dots__set_global_env() {
 
     if [ -n "${var}" ] && [ -n "${val}" ]; then
       entry="$(
-        if [ -x "${CMD_RG:-}" ]; then
+        if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
           rg "^${var}=" "${DOTS_CACHE_RC}" | rg \""${val}"\" 2>/dev/null
         else
           grep "^${var}=" "${DOTS_CACHE_RC}" | grep \""${val}"\" 2>/dev/null
@@ -2116,7 +2116,8 @@ dots__set_global_env() {
             printf "  %s\n" "${ln_check_rc}"
             printf "    %s\n" "${ln_alias_edit_rc}"
             printf "    %s\n" "${ln_export_rc}"
-            printf "    %s\n" "${ln_source_rc}"
+            [ "${var_rc}" = "DOTS_RC" ] ||
+              printf "    %s\n" "${ln_source_rc}"
             printf "%s\n" "${ln_end}"
           } >>"${DOTS_CACHE_RC}"
           # printf "%s\n"
@@ -2205,8 +2206,13 @@ dots__set_global_env() {
   }
 
   #@ Initialize the cache
-  [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  dots__cache --dir DOTS "${DOTS}" pop
+  # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+  dots__cache --dir DOTS "${DOTS}"
+  dots__cache --var RC --val "${RC}"
+
+  return
+  # dots__cache --dir DOTS "${DOTS}"
+  # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}" && unset reset
   # dots__cache --var RC ".dotsrc"
   # dots__cache --var DOTS_BIN --val "${DOTS}/Bin"
   # dots__cache --var DOTS_BIN --val "${DOTS}/Bin"
