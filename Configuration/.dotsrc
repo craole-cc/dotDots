@@ -1,8 +1,0 @@
-#!/bin/sh
-
-rc=".dotsrc"
-DOTS_CFG="${DOTS_CFG:-"$(pwd -P)"}" export DOTS_CFG
-pwd -P
-
-DOTS_CFG_BASH="${DOTS_CFG_BASH:-"${DOTS_CFG}/bash"}" export DOTS_CFG_BASH
-[ -f "${DOTS_CFG_BASH}/${rc}" ] && . "${DOTS_CFG_BASH}/${rc}"

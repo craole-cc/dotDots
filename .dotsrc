@@ -31,7 +31,7 @@ dots__set_local_env() {
   ctx_head=">>-"
   ctx_tail="->> "
   verbosity=5 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
-  reset=1     #? 0=no, 1=yes
+  # reset=1     #? 0=no, 1=yes
   editor="code"
 }
 
@@ -336,7 +336,7 @@ dots__init_scripts() {
         else
           case "$(uname | tr '[:upper:]' '[:lower:]')" in
           *linux*) printf "linux" ;;
-          *msys*) printf "windows" ;;
+          *msys* | *ming* | *cygwin*) printf "windows" ;;
           *darwin*) printf "macos" ;;
           *) printf "unknown" ;;
           esac
@@ -824,6 +824,48 @@ dots__init_scripts() {
 
   to_lower() {
     printf "%s" "$*" | tr '[:upper:]' '[:lower:]'
+  }
+
+  quote() {
+    os_type="${OS_TYPE:-"$(fetch_info --os)"}"
+
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      --single) quote__single "$2" ;;
+      --escape) ;;
+      --none) quote__remove "$2" ;;
+      --double | *) ;;
+      esac
+      shift
+    done
+
+    quote__remove() {
+      printf "%s" "$*" | tr -d "\"" | tr -d "\'"
+    }
+
+    quote__double() {
+      esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+    }
+
+    quote__single() {
+      case "${os_type:-}" in
+      windows)
+        esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+        printf "\"%s\"" "${esc}"
+        ;;
+      *)
+        esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+        printf "\'%s\'" "${esc}"
+        ;;
+      esac
+    }
+
+    quote__escape() {
+      :
+    }
+  }
+  to_unquoted() {
+    printf "%s" "$*" | tr -d "\"" | tr -d "\'"
   }
 
   swap_DELIMITER() {
@@ -1975,20 +2017,402 @@ init_tests() {
   pout --debug "\n/> dotsrc <\ Tests completed"
 }
 
+dotsenv_BAD() {
+  dotsenv__cleanup() {
+    #@ Remove variables from the environment
+    unset arg args esc var _var val _val entry
+    unset force reset env_type
+    unset rc
+    IFS="${old_ifs}"
+  }
+  trap dotsenv__cleanup EXIT HUP INT TERM
+
+  args=""
+  esc=""
+  arg=""
+  var="" _var=""
+  val="" _val=""
+  entry=""
+  force=""
+  rc="${RC:-".dotsrc"}"
+  editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
+  env_type=""
+  old_ifs="${IFS}"
+  IFS="${DELIMITER:-"$(printf "\037")"}"
+
+  #@ Reset the cache, if requested
+  case "${reset:-"${RESET:-0}"}" in 1 | yes)
+    pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
+    rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
+    ;;
+  *) ;; esac
+
+  #@ Ensure the cache directory exists
+  mkdir -p "${DOTS_CACHE}"
+
+  #@ Initialize the cache, if necessary
+  if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+    pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
+    {
+      printf "%s\n" "#!/bin/sh"
+      printf "%s\n" "# shellcheck enable=all"
+      printf "%s\n" "# shellcheck disable=SC1091"
+      printf "%s\n" "# >>-DOTS Cache->> ${DOTS_CACHE_RC} <\\"
+      printf "%s\n\n" "# Generated at: $(date)"
+    } >"${DOTS_CACHE_RC}"
+  fi
+
+  #@ If no arguments are provided, simply load the cache
+  [ "$#" -lt 0 ] && {
+    . "${DOTS_CACHE_RC}"
+    dotsenv__cleanup
+    return
+  }
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --force) _force=true ;;
+    --dir)
+      env_type=dir
+      var="$2"
+      val="$3"
+      shift 2
+      ;;
+    --var) var="$2" ;;
+    --val) val="$2" ;;
+    --cmd) env_type=cmd ;;
+    *)
+      case "${OS_TYPE:-"$(fetch_info --os)"}" in
+      windows)
+        #@ Ensure proper character escaping
+        esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+        args="${args:+${args}${DELIMITER}}\"${esc}\""
+        ;;
+      *)
+        #@ Unix-style escaping
+        esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+        args="${args:+${args}${DELIMITER}}'${esc}'"
+        ;;
+      esac
+      ;;
+    esac
+    shift
+  done
+
+  case "${force}" in true | 1)
+    printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+    dotsenv__cleanup
+    return
+    ;;
+  *) ;; esac
+
+  case "${env_type}" in
+  dir)
+    var="$(to_upper "${var}")"
+    val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
+    var_rc="$(to_upper "$(printf "%s_RC" "${var}")")"
+    var_lcase="$(to_lower "${var}")"
+    ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
+    ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
+    ln_export="$(printf "export %s" "${var}")"
+    ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var_lcase}" "${val}")"
+    ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${editor}" "${val}")"
+    ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
+    ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
+    ln_source_rc="$(printf ". %s" "${val_rc}")"
+    ln_export_rc="$(printf "export %s" "${var_rc}")"
+    ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${editor}" "${val_rc}")"
+    ln_end="$(printf "fi\nfi")"
+
+    entry="$(
+      printf "%s\n" "${ln_env}"
+      printf "%s\n" "${ln_check}"
+      printf "  %s\n" "${ln_alias_cd}"
+      printf "  %s\n" "${ln_alias_edit}"
+      printf "  %s\n\n" "${ln_export}"
+      printf "  %s\n" "${ln_env_rc}"
+      printf "  %s\n" "${ln_check_rc}"
+      printf "    %s\n" "${ln_alias_edit_rc}"
+      printf "    %s\n" "${ln_export_rc}"
+      [ "${var_rc}" = "DOTS_RC" ] ||
+        printf "    %s\n" "${ln_source_rc}"
+      printf "  %s" "${ln_end}"
+    )"
+
+    #@ Write entry to the cache
+    pout --trace "Entry:" "${entry}"
+    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+    ;;
+  cmd)
+    for arg in ${args}; do
+      cmd="$(to_unquoted "${arg}")"
+      pout --trace "cmd:" "${cmd}"
+
+      case "${cmd}" in
+      ":" | null | "") continue ;; *)
+        #@ Define the variable, value, and entry
+        var="$(to_upper "CMD_${cmd}")"
+        pout --trace "var:" "${var}"
+
+        val="$(command -v "${cmd}" 2>/dev/null || printf "")"
+        pout --trace "val:" "${val}"
+
+        entry="$(
+          printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}"
+        )"
+        ;;
+      esac
+
+      #@ Write entry to the cache
+      printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+    done
+    ;;
+  *)
+    #@ Define the entry
+    entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
+
+    #@ Write entry to the cache
+    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+    ;;
+  esac
+
+  #@ Format the cache
+  if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
+    shfmt --write "${DOTS_CACHE_RC}"
+  else
+    pout --error "Unable to format the cache as shfmt is not installed."
+  fi
+
+  #@ Reload the cache
+  . "${DOTS_CACHE_RC}"
+
+  #@ Cleanup
+  dotsenv__cleanup
+}
+
+dotsenv() {
+  dotsenv__cleanup() {
+    #@ Remove variables from the environment
+    unset arg args esc var _var val _val entry
+    unset force reset env_type
+    unset rc current_val
+    IFS="${old_ifs}"
+  }
+  trap dotsenv__cleanup EXIT HUP INT TERM
+
+  args=""
+  esc=""
+  arg=""
+  var="" _var=""
+  val="" _val=""
+  entry=""
+  force=""
+  rc="${RC:-".dotsrc"}"
+  editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
+  env_type=""
+  old_ifs="${IFS}"
+  current_val=""
+  reset="${reset:-"${RESET:-0}"}"
+  delimiter="${DELIMITER:-"$(printf "\037")"}"
+  IFS="${delimiter}"
+
+  #@ Reset the cache, if requested
+  case "${reset:-0}" in 1 | yes)
+    pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
+    rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
+    ;;
+  *) ;; esac
+
+  #@ Ensure the cache directory exists
+  mkdir -p "${DOTS_CACHE}"
+
+  #@ Initialize the cache, if necessary
+  if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+    pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
+    {
+      printf "%s\n" "#!/bin/sh"
+      printf "%s\n" "# shellcheck enable=all"
+      printf "%s\n" "# shellcheck disable=SC1091"
+      printf "%s\n" "# >>-DOTS Cache->> ${DOTS_CACHE_RC} <\\"
+      printf "%s\n\n" "# Generated at: $(date)"
+    } >"${DOTS_CACHE_RC}"
+  fi
+
+  #@ If no arguments are provided, simply load the cache
+  [ "$#" -ge 1 ] || {
+    . "${DOTS_CACHE_RC}"
+    dotsenv__cleanup
+    return
+  }
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --force) _force=true ;;
+    --dir)
+      env_type=dir
+      var="$2"
+      val="$3"
+      shift 2
+      ;;
+    --var) var="$2" ;;
+    --val) val="$2" ;;
+    --cmd) env_type=cmd ;;
+    *)
+      case "${OS_TYPE:-"$(fetch_info --os)"}" in
+      windows)
+        #@ Ensure proper character escaping
+        esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+        args="${args:+${args}${delimiter}}\"${esc}\""
+        ;;
+      *)
+        #@ Unix-style escaping
+        esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+        args="${args:+${args}${delimiter}}'${esc}'"
+        ;;
+      esac
+      ;;
+    esac
+    shift
+  done
+
+  case "${force}" in true | 1)
+    printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+    dotsenv__cleanup
+    return
+    ;;
+  *) ;; esac
+
+  case "${env_type}" in
+  dir)
+    #@ Check if the variable is already set with the same value
+    var_check="$(to_upper "${var}")"
+    if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
+      current_val="$(${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var_check}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo "")"
+    else
+      current_val="$(grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null | sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo "")"
+    fi
+
+    #@ Skip if the variable is already set with the same value
+    if [ "${current_val}" = "${val}" ]; then
+      pout --trace "Skipping ${var_check}: already set to \"${val}\""
+      dotsenv__cleanup
+      return
+    fi
+
+    var="$(to_upper "${var}")"
+    val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
+    var_rc="$(to_upper "${var}_RC")"
+    
+    ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
+    ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
+    ln_export="$(printf "export %s" "${var}")"
+    ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var}" "${val}")"
+    ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var}" "${editor}" "${val}")"
+    ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
+    ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
+    ln_source_rc="$(printf ". %s" "${val_rc}")"
+    ln_export_rc="$(printf "export %s" "${var_rc}")"
+    ln_alias_edit_rc="$(printf "alias edit.%s='%s %s'" "${var_rc}" "${editor}" "${val_rc}")"
+    ln_end="$(printf "fi\nfi")"
+
+    entry="$(
+      printf "%s\n" "${ln_env}"
+      printf "%s\n" "${ln_check}"
+      printf "  %s\n" "${ln_alias_cd}"
+      printf "  %s\n" "${ln_alias_edit}"
+      printf "  %s\n\n" "${ln_export}"
+      printf "  %s\n" "${ln_env_rc}"
+      printf "  %s\n" "${ln_check_rc}"
+      printf "    %s\n" "${ln_alias_edit_rc}"
+      printf "    %s\n" "${ln_export_rc}"
+      [ "${var_rc}" = "DOTS_RC" ] ||
+        printf "    %s\n" "${ln_source_rc}"
+      printf "  %s" "${ln_end}"
+    )"
+
+    #@ Write entry to the cache
+    pout --trace "Adding entry for ${var}: \"${val}\""
+    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+    ;;
+  cmd)
+    for arg in ${args}; do
+      cmd="$(to_unquoted "${arg}")"
+      pout --trace "cmd:" "${cmd}"
+
+      case "${cmd}" in
+      ":" | null | "") continue ;; *)
+        #@ Define the variable, value
+        var="$(to_upper "CMD_${cmd}")"
+        val="$(command -v "${cmd}" 2>/dev/null || printf "")"
+
+        #@ Check if the variable is already set with the same value
+        if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
+          current_val="$(${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo "")"
+        else
+          current_val="$(grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null | sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo "")"
+        fi
+
+        #@ Skip if the variable is already set with the same value
+        if [ "${current_val}" = "${val}" ]; then
+          pout --trace "Skipping ${var}: already set to \"${val}\""
+          continue
+        fi
+
+        pout --trace "var:" "${var}"
+        pout --trace "val:" "${val}"
+
+        entry="$(
+          printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}"
+        )"
+
+        #@ Write entry to the cache
+        pout --trace "Adding entry for ${var}: \"${val}\""
+        printf "\n%s\n" "${entry}" >>"${DOTS_CACHE_RC}"
+        ;;
+      esac
+    done
+    ;;
+  *)
+    #@ Check if the variable is already set with the same value
+    if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
+      current_val="$(${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo "")"
+    else
+      current_val="$(grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null | sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo "")"
+    fi
+
+    #@ Skip if the variable is already set with the same value
+    if [ "${current_val}" = "${val}" ]; then
+      pout --trace "Skipping ${var}: already set to \"${val}\""
+      dotsenv__cleanup
+      return
+    fi
+
+    #@ Define the entry
+    entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
+
+    #@ Write entry to the cache
+    pout --trace "Adding entry for ${var}: \"${val}\""
+    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+    ;;
+  esac
+
+  #@ Format the cache
+  if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
+    shfmt --write "${DOTS_CACHE_RC}"
+  else
+    pout --error "Unable to format the cache as shfmt is not installed."
+  fi
+
+  #@ Reload the cache
+  . "${DOTS_CACHE_RC}"
+
+  #@ Cleanup
+  dotsenv__cleanup
+}
+
 dots__set_global_env() {
-  #| Core Info
-  OS_TYPE="$(fetch_info --os)"
-  USER="$(fetch_info --user)"
-
-  #| Verbosity & Printing
-  DELIMITER="$(printf "\037")"
-  VERBOSITY_QUIET=0
-  VERBOSITY_WARN=1
-  VERBOSITY_ERROR=2
-  VERBOSITY_INFO=3
-  VERBOSITY_DEBUG=4
-  VERBOSITY_TRACE=5
-
   #| DOTS
   DOTS="${DOTS:-"${HOME:-}/.dots"}"
   if [ -d "${DOTS}" ]; then :; else
@@ -2004,252 +2428,69 @@ dots__set_global_env() {
   DOTS_CACHE="${DOTS}/.cache"
   DOTS_CACHE_RC="${DOTS_CACHE}/${RC}"
 
-  dots__cache() {
-    args=""
-    esc=""
-    arg=""
-    var="" _var=""
-    val="" _val=""
-    entry=""
-    force=""
-    rc="${RC:-".dotsrc"}"
-    editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
-
-    #@ Reset the cache, if requested
-    case "${reset:-"${RESET:-0}"}" in 1 | yes)
-      pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
-      rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
-      ;;
-    *) ;; esac
-
-    #@ Ensure the cache directory exists
-    mkdir -p "${DOTS_CACHE}"
-
-    #@ Initialize the cache, if necessary
-    if [ -f "${DOTS_CACHE_RC}" ]; then :; else
-      pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
-      {
-        printf "%s" "#!/bin/sh"
-        printf "\n%s" "# shellcheck disable=SC1091"
-        printf "\n\n%s" "# /> DOTS Cache <\\"
-        printf "\n%s\n" "# Generated at: $(date)"
-      } >"${DOTS_CACHE_RC}"
-    fi
-
-    #@ If no arguments are provided, simply load the cache
-    [ "$#" -lt 0 ] && {
-      . "${DOTS_CACHE_RC}"
-      return
-    }
-
-    #@ Parse arguments
-    while [ "$#" -ge 1 ]; do
-      case "$1" in
-      --force) _force=true ;;
-      --dir)
-        env_type=dir
-        var="$2"
-        val="$3"
-        shift 2
-        ;;
-      --var) var="$2" ;;
-      --val) val="$2" ;;
-      *)
-        case "${OS_TYPE:-"$(fetch_info --os)"}" in
-        windows)
-          #@ Ensure proper character escaping
-          esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-          args="${args:+${args}${DELIMITER}}\"${esc}\""
-          ;;
-        *)
-          #@ Unix-style escaping
-          esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
-          args="${args:+${args}${DELIMITER}}'${esc}'"
-          ;;
-        esac
-        ;;
-      esac
-      shift
-    done
-
-    case "${force}" in true | 1)
-      printf "%b\n" "$*" >>"${DOTS_CACHE_RC}"
-      return
-      ;;
-    *) ;; esac
-
-    if [ -n "${var}" ] && [ -n "${val}" ]; then
-      entry="$(
-        if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
-          rg "^${var}=" "${DOTS_CACHE_RC}" | rg \""${val}"\" 2>/dev/null
-        else
-          grep "^${var}=" "${DOTS_CACHE_RC}" | grep \""${val}"\" 2>/dev/null
-        fi
-      )"
-      if [ -n "${entry}" ]; then :; else
-
-        case "${env_type}" in
-        dir)
-          var="$(to_upper "${var}")"
-          val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
-          var_rc="$(to_upper "$(printf "%s_RC" "${var}")")"
-          var_lcase="$(to_lower "${var}")"
-
-          ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
-          ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
-          ln_export="$(printf "export %s" "${var}")"
-          ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var_lcase}" "${val}")"
-          ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${editor}" "${val}")"
-          ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
-          ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
-          ln_source_rc="$(printf ". %s" "${val_rc}")"
-          ln_export_rc="$(printf "export %s" "${var_rc}")"
-          ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${editor}" "${val_rc}")"
-          ln_end="$(printf "fi;fi")"
-          {
-            printf "\n%s\n" "${ln_env}"
-            printf "%s\n" "${ln_check}"
-            printf "  %s\n" "${ln_alias_cd}"
-            printf "  %s\n" "${ln_alias_edit}"
-            printf "  %s\n\n" "${ln_export}"
-            printf "  %s\n" "${ln_env_rc}"
-            printf "  %s\n" "${ln_check_rc}"
-            printf "    %s\n" "${ln_alias_edit_rc}"
-            printf "    %s\n" "${ln_export_rc}"
-            [ "${var_rc}" = "DOTS_RC" ] ||
-              printf "    %s\n" "${ln_source_rc}"
-            printf "%s\n" "${ln_end}"
-          } >>"${DOTS_CACHE_RC}"
-          # printf "%s\n"
-          # "
-          #         "if [ ! -d \"${val}\" ]; then :; else"
-          #           alias cd.prj='cd \"${val}\"'
-          #           export PRJ
-
-          #           PRJ_RC="${PRJ}/${RC}"
-          #           if [ ! -f "${PRJ_RC}" ]; then :; else
-          #             . "${PRJ_RC}"
-          #             export PRJ_RC
-          #           fi
-          #         fi
-          #         "
-          ;;
-        *) ;;
-        esac
-      fi
-    fi
-
-    echo "ARGS: $args"
-    # *)
-    #   old_ifs=IFS
-    #   IFS="${DELIMITER}"
-    #   arg_count=0
-    #   for arg in ${args}; do
-    #     arg_count=$((arg_count + 1))
-    #     eval "var=\$${arg}"
-    #     val="$(env | grep "^${var}=")"
-
-    #     if [ -n "${val}" ];then return;else
-
-    #     # val="$(printenv "$({val})" 2>/dev/null)"
-    #     echo "Here $val"
-    #     # if env | grep -q "^${arg}=";then
-
-    #     # _var="${_arg}"
-    #     #   if [ "${_arg:x}" ]; then
-    #     #   echo "Variable found: $_arg"
-    #     # else
-    #     #   echo "Variable unset: $_arg"
-    #     # fi
-    #     # echo "${_arg_count}" "${_arg}"
-
-    #     # if [ -z "${_val:-}" ]; then continue; else
-    #     #   printf "\n%s=\"%s\" export %s" \
-    #     #     "${_var}" "${_val}" "${_var}"
-    #     #   # >>"${DOTS_CACHE_RC}"
-    #     # fi
-    #     # echo "${_arg_count}" "${_arg}"
-    #     # printf "\n%s %s" "${_arg_count}" "${_arg}"
-    #   done
-    #   ;;
-    # esac
-
-    # for var in "$@"; do
-    #   val="$(eval "${var}")"
-
-    #   if [ -n "${var:-}" ]; then continue; else
-    #     printf "\n%s=\"%s\" export %s" \
-    #       "${var}" "${val}" "${var}" >>"${DOTS_CACHE_RC}"
-    #   fi
-    # done
-    # printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
-
-    # if [ ! -d "${PRJ}" ]; then :; else
-    #   alias cd.prj='cd "${PRJ}"'
-    #   export PRJ
-
-    #   PRJ_RC="${PRJ}/${rc}"
-    #   if [ ! -f "${PRJ_RC}" ]; then :; else
-    #     . "${PRJ_RC}"
-    #     export PRJ_RC
-    #   fi
-    # fi
-
-    #@ Format the cache
-    if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
-      shfmt --write "${DOTS_CACHE_RC}"
-    else
-      printf "Unable to format the cache as shfmt is not installed.\n"
-    fi
-    pout --trace "Cache updated successfully\n" "$(wat "${DOTS_CACHE_RC}")"
-
-  }
-
   #@ Initialize the cache
-  # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  dots__cache --dir DOTS "${DOTS}"
-  dots__cache --var RC --val "${RC}"
+  [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
 
-  return
-  # dots__cache --dir DOTS "${DOTS}"
-  # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}" && unset reset
-  # dots__cache --var RC ".dotsrc"
-  # dots__cache --var DOTS_BIN --val "${DOTS}/Bin"
-  # dots__cache --var DOTS_BIN --val "${DOTS}/Bin"
-  # dots__cache --force DOTS=\""${DOTS}"\"
-  # dots__cache --force rc="\"${rc:-".dotsrc"}"\" export rc
-  # dots__cache --force DOTS_RC=\""${DOTS_RC}"\" export DOTS_RC
-  # dots__cache --force DOTS_CACHE=\""${DOTS_CACHE}"\" export DOTS_CACHE
-  # dots__cache --force DOTS_CACHE_RC=\""${DOTS_CACHE_RC}"\" export DOTS_CACHE_RC
+  #| Core Info
+  dotsenv --var OS_TYPE --val "$(fetch_info --os)"
+  dotsenv --var USER --val "$(fetch_info --user)"
 
-  #| Binaries
-  DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
-  [ -f "${DOTS_BIN}/${rc}" ] && . "${DOTS_BIN}/${rc}"
+  #| Verbosity & Printing
+  dotsenv --var DELIMITER --val "$(printf "\037")"
+  dotsenv --var VERBOSITY_QUIET --val 0
+  dotsenv --var VERBOSITY_WARN --val 1
+  dotsenv --var VERBOSITY_ERROR --val 2
+  dotsenv --var VERBOSITY_INFO --val 3
+  dotsenv --var VERBOSITY_DEBUG --val 4
+  dotsenv --var VERBOSITY_TRACE --val 5
 
-  #| Configuration
-  DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
-  mkdir -p "${DOTS_CFG}"
+  #| Commands
+  # dotsenv --cmd \
+  #   bacon \
+  #   bash \
+  #   bat \
+  #   cargo \
+  #   code \
+  #   eza \
+  #   fd \
+  #   fish \
+  #   hx \
+  #   lsd \
+  #   nu \
+  #   pathman \
+  #   pwsh \
+  #   python3 \
+  #   rg \
+  #   rustc \
+  #   sh \
+  #   shfmt \
+  #   starship \
+  #   tldr \
+  #   tokei \
+  #   topgrade \
+  #   watch \
+  #   zig \
+  #   zoxide \
+  #   zsh \
+  #   :
 
-  #| Environment
-  DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
-  mkdir -p "${DOTS_ENV}"
-
-  #| Logs
-  DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}" export DOTS_LOG
-  DOTS_ACTIVE_APPS="${DOTS_LOG}/active_applications" export DOTS_ACTIVE_APPS
-
-  # | Modules
-  DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}" export DOTS_DOC
-  DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}" export DOTS_DLD
-  DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}" export DOTS_MOD
-  DOTS_RES="${DOTS_RES:-"${DOTS}/Resources"}" export DOTS_RES
-  DOTS_JOB="${DOTS_JOBS:-"${DOTS}/Tasks"}" export DOTS_JOB
+  #| DOTS
+  dotsenv --dir DOTS "${DOTS}"
+  dotsenv --dir DOTS_BIN "${DOTS}/Bin"
+  dotsenv --dir DOTS_CFG "${DOTS}/Configuration"
+  dotsenv --dir DOTS_ENV "${DOTS}/Environment"
+  dotsenv --dir DOTS_DOC "${DOTS}/Documentation"
+  dotsenv --dir DOTS_DLD "${DOTS}/Downloads"
+  dotsenv --dir DOTS_MOD "${DOTS}/Modules"
+  dotsenv --dir DOTS_RES "${DOTS}/Resources"
+  dotsenv --dir DOTS_JOB "${DOTS}/TODO"
+  dotsenv --var DOTS_ACTIVE_APPS --val "${DOTS_CACHE}/apps.log"
 
   #| Projects
   if [ -n "${PRJ}" ]; then
-    :
+    dotsenv --dir PRJ "${PRJ}"
   elif [ -d "${HOME}/Projects" ]; then
-    PRJ="${HOME}/Projects"
+    dotsenv --dir PRJ "${HOME}/Projects"
   elif
     : ||
       [ -d "${HOME}/Documents/GitLab" ] ||
@@ -2259,61 +2500,15 @@ dots__set_global_env() {
       [ -d "${HOME}/Documents/Github" ] ||
       [ -d "${HOME}/Documents/github" ]
   then
-    PRJ="${HOME}/Documents"
+    dotsenv --dir PRJ "${HOME}/Documents"
   else
-    PRJ="${PRJ:-"${DOTS}/../Projects"}"
+    dotsenv --dir PRJ "${DOTS}/../Projects"
   fi
-
-  if [ ! -d "${PRJ}" ]; then :; else
-    alias cd.prj='cd "${PRJ}"'
-    export PRJ
-
-    PRJ_RC="${PRJ}/${rc}"
-    if [ ! -f "${PRJ_RC}" ]; then :; else
-      . "${PRJ_RC}"
-      export PRJ_RC
-    fi
-  fi
-
-  #| Verbosity & Printing
-  DELIMITER="$(printf "\037")" export DELIMITER
-  VERBOSITY_QUIET=0 export VERBOSITY_QUIET
-  VERBOSITY_WARN=1 export VERBOSITY_WARN
-  VERBOSITY_ERROR=2 export VERBOSITY_ERROR
-  VERBOSITY_INFO=3 export VERBOSITY_INFO
-  VERBOSITY_DEBUG=4 export VERBOSITY_DEBUG
-  VERBOSITY_TRACE=5 export VERBOSITY_TRACE
-
-  #| Commands
-  CMD_NU="$(command -v nu || printf "")"
-  CMD_BASH="$(command -v bash || printf "")"
-  CMD_SH="$(command -v sh || printf "")"
-  CMD_FISH="$(command -v fish || printf "")"
-  CMD_PS="$(command -v pwsh || printf "")"
-  CMD_PY="$(command -v python3 || printf "")"
-  CMD_RUST="$(command -v rustc || printf "")"
-  CMD_ZIG="$(command -v zig || printf "")"
-  CMD_WATCH="$(command -v watch || printf "")"
-  CMD_CARGO="$(command -v cargo || printf "")"
-  CMD_BACON="$(command -v bacon || printf "")"
-  CMD_FIND="$(command -v find || printf "")"
-  CMD_FD="$(command -v fd || printf "")"
-  CMD_GREP="$(command -v grep || printf "")"
-  CMD_RG="$(command -v rg || printf "")"
-  CMD_BAT="$(command -v bat || printf "")"
-  CMD_EZA="$(command -v eza || printf "")"
-  CMD_LSD="$(command -v lsd || printf "")"
-  CMD_TOPGRADE="$(command -v topgrade || printf "")"
-  CMD_SHFMT="$(command -v shfmt || printf "")"
 
   #| Scripts
-  CMD_PATHMAN="$(command -v pathman || printf "")"
   pathman="${DOTS}/Bin/shellscript/environment/pathman"
-  [ -x "${pathman}" ] && CMD_PATHMAN="${CMD_PATHMAN:-${pathman}}" export CMD_PATHMAN
-
-  CMD_SSHIT="$(command -v sshit || printf "")"
-  sshit="${DOTS}/Bin/bash/sshit.bash"
-  [ -x "${sshit}" ] && CMD_SSHIT="${CMD_SSHIT:-${sshit}}" export CMD_SSHIT
+  [ -z "${CMD_PATHMAN}" ] && [ -x "${pathman}" ] &&
+    dotsenv --var CMD_PATHMAN --val "${pathman}"
 }
 
 main "$@"

@@ -1,37 +1,38 @@
 #!/bin/sh
 
-DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}"
-export DOTS_BIN_BASH
-mkdir -p "${DOTS_BIN_BASH}"
+a_test_var=1
+# DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}"
+# export DOTS_BIN_BASH
+# mkdir -p "${DOTS_BIN_BASH}"
 
-DOTS_BIN_FISH="${DOTS_BIN_FISH:-"${DOTS_BIN}/fish"}"
-export DOTS_BIN_FISH
-mkdir -p "${DOTS_BIN_FISH}"
+# DOTS_BIN_FISH="${DOTS_BIN_FISH:-"${DOTS_BIN}/fish"}"
+# export DOTS_BIN_FISH
+# mkdir -p "${DOTS_BIN_FISH}"
 
-DOTS_BIN_IN="${DOTS_BIN_IN:-"${DOTS_BIN}/import"}"
-export DOTS_BIN_IN
-mkdir -p "${DOTS_BIN_IN}"
+# DOTS_BIN_IN="${DOTS_BIN_IN:-"${DOTS_BIN}/import"}"
+# export DOTS_BIN_IN
+# mkdir -p "${DOTS_BIN_IN}"
 
-DOTS_BIN_NU="${DOTS_BIN_NU:-"${DOTS_BIN}/nushell"}"
-export DOTS_BIN_NU
-mkdir -p "${DOTS_BIN_NU}"
+# DOTS_BIN_NU="${DOTS_BIN_NU:-"${DOTS_BIN}/nushell"}"
+# export DOTS_BIN_NU
+# mkdir -p "${DOTS_BIN_NU}"
 
-DOTS_BIN_PS="${DOTS_BIN_PS:-"${DOTS_BIN}/powershell"}"
-export DOTS_BIN_PS
-mkdir -p "${DOTS_BIN_PS}"
+# DOTS_BIN_PS="${DOTS_BIN_PS:-"${DOTS_BIN}/powershell"}"
+# export DOTS_BIN_PS
+# mkdir -p "${DOTS_BIN_PS}"
 
-DOTS_BIN_PY="${DOTS_BIN_PY:-"${DOTS_BIN}/python"}"
-export DOTS_BIN_PY
-mkdir -p "${DOTS_BIN_PY}"
+# DOTS_BIN_PY="${DOTS_BIN_PY:-"${DOTS_BIN}/python"}"
+# export DOTS_BIN_PY
+# mkdir -p "${DOTS_BIN_PY}"
 
-DOTS_BIN_RS="${DOTS_BIN_RS:-"${DOTS_BIN}/rust"}"
-export DOTS_BIN_RS
-mkdir -p "${DOTS_BIN_RS}"
+# DOTS_BIN_RS="${DOTS_BIN_RS:-"${DOTS_BIN}/rust"}"
+# export DOTS_BIN_RS
+# mkdir -p "${DOTS_BIN_RS}"
 
-DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}"
-export DOTS_BIN_SH
-mkdir -p "${DOTS_BIN_SH}"
+# DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}"
+# export DOTS_BIN_SH
+# mkdir -p "${DOTS_BIN_SH}"
 
-DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}"
-export DOTS_BIN_ZIG
-mkdir -p "${DOTS_BIN_ZIG}"
+# DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}"
+# export DOTS_BIN_ZIG
+# mkdir -p "${DOTS_BIN_ZIG}"
