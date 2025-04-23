@@ -2293,9 +2293,18 @@ dotsenv() {
   var_found="$(rg "^${var}=" "${DOTS_CACHE_RC}")"
   var_empty="$(rg "^${var}=\"\"" "${DOTS_CACHE_RC}")"
 
-  if [ -n "${var_found}" ] &&; then
+  if [ -n "${var_found:-}" ]; then
+    echo "var found: ${var_found}"
+    if [ -z "${var_empty:-}" ]; then
+      echo "var_empty: ${var_empty}"
+    else
+      echo "not empty - skip: ${var}"
+    fi
   # rg "^${var}=" "${DOTS_CACHE_RC}"
-  return
+  else
+    echo "not found"
+  fi
+  # return
 
   case "${force}" in true | 1)
     printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
@@ -2658,7 +2667,7 @@ dots__set_global_env() {
     # dotsenv --dir DOTS "${DOTS}"
     dotsenv --dir DOTS_BIN "${DOTS}/Bin"
     dotsenv --dir CMD_RG "/c/Users/Administrator/AppData/Local/Microsoft/WinGet/Links/rg"
-    dotsenv --dir CMD_GR
+    dotsenv --dir CMD_GR ""
     # dotsenv --dir DOTS_CFG "${DOTS}/Configuration"
     # dotsenv --dir DOTS_ENV "${DOTS}/Environment"
     # dotsenv --dir DOTS_DOC "${DOTS}/Documentation"
