@@ -32,7 +32,6 @@
     "breadnaught.vscode-ignore",
     "shinazbinshajahan.fileinator",
     "ctc.vscode-tree-extension",
-    "bbenoist.nix",
-    "jnoortheen.nix-ide",
+    "bbenoist.nix"
   ]
 }

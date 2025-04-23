@@ -30,8 +30,8 @@ dots__set_local_env() {
   ctx_sep="-"
   ctx_head=">>-"
   ctx_tail="->> "
-  verbosity=5 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
-  # reset=1     #? 0=no, 1=yes
+  verbosity=5   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+  reset_cache=0 #? 0=no, 1=yes
   editor="code"
 }
 
@@ -367,6 +367,9 @@ dots__init_scripts() {
       path_limit=""
       path_limit_start="head"
       path=""
+      delimiter="${DELIMITER:-"$(printf "\037")"}"
+      old_ifs="${IFS}"
+      IFS="${delimiter}"
     }
 
     pout__parse_arguments() {
@@ -403,13 +406,13 @@ dots__init_scripts() {
           if [ "$#" -eq 1 ]; then :; else
             shift
             for arg in "$@"; do
-              pout_msg="${pout_msg:+"${pout_msg}${DELIMITER}"}${arg:-}"
+              pout_msg="${pout_msg:+"${pout_msg}${delimiter}"}${arg:-}"
             done
           fi
           break
           ;;
         *)
-          pout_msg="${pout_msg:+"${pout_msg}${DELIMITER}"}${1}"
+          pout_msg="${pout_msg:+"${pout_msg}${delimiter}"}${1}"
           ;;
         esac
         shift
@@ -430,9 +433,9 @@ dots__init_scripts() {
         pout_ctx_tag="${pout_ctx_tag_head}${pout_ctx_tag}${pout_ctx_tag_tail}"
       fi
 
-      #@ Replace the DELIMITER with a space
+      #@ Replace the delimiter with a space
       pout_msg="$(
-        printf "%b" "${pout_msg}" | tr "${DELIMITER}" " " || true
+        printf "%b" "${pout_msg}" | tr "${delimiter}" " " || true
       )"
     }
 
@@ -440,33 +443,33 @@ dots__init_scripts() {
       #@ Print the message
       case "$(to_lower "${pout_tag:-}")" in
       test*)
-        if [ "${verbosity}" -lt "${VERBOSITY_TRACE}" ]; then :; else
+        if [ "${verbosity:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then :; else
           printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
           eval "${pout_msg}"
         fi
         ;;
       trace*)
-        if [ "${verbosity}" -lt "${VERBOSITY_TRACE}" ]; then :; else
+        if [ "${verbosity:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then :; else
           printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
         fi
         ;;
       debug*)
-        if [ "${verbosity}" -lt "${VERBOSITY_DEBUG}" ]; then :; else
+        if [ "${verbosity:-0}" -lt "${VERBOSITY_DEBUG:-4}" ]; then :; else
           printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
         fi
         ;;
       info*)
-        if [ "${verbosity}" -lt "${VERBOSITY_INFO}" ]; then :; else
+        if [ "${verbosity:-0}" -lt "${VERBOSITY_INFO:-3}" ]; then :; else
           printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
         fi
         ;;
       warn*)
-        if [ "${verbosity}" -lt "${VERBOSITY_WARN}" ]; then :; else
+        if [ "${verbosity:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then :; else
           printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
         fi
         ;;
       error*)
-        if [ "${verbosity}" -lt "${VERBOSITY_ERROR}" ]; then :; else
+        if [ "${verbosity:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then :; else
           printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
         fi
         ;;
@@ -761,7 +764,7 @@ dots__init_scripts() {
   #     process_dir() {
   #       dir="$1"
   #       current_depth="$2"
-  #       #TODO: Depth is not working as depth but actially as limit so if it set the num to 10 it manages 9 dirs, if i set it to 100 it manages 99
+  #       #TODO: Depth is not working as depth but actually as limit so if it set the num to 10 it manages 9 dirs, if i set it to 100 it manages 99
 
   #       #@ Check if we've reached depth limit
   #       [ "${current_depth}" -gt "${depth_limit}" ] && return
@@ -2197,10 +2200,12 @@ dotsenv() {
     unset arg args esc var _var val _val entry
     unset force reset env_type
     unset rc current_val
+    unset DOTS_CACHE_RESET
     IFS="${old_ifs}"
   }
   trap dotsenv__cleanup EXIT HUP INT TERM
 
+  #@ Set defaults
   args=""
   esc=""
   arg=""
@@ -2213,22 +2218,26 @@ dotsenv() {
   env_type=""
   old_ifs="${IFS}"
   current_val=""
-  reset="${reset:-"${RESET:-0}"}"
+  # reset="${reset:-"${RESET:-0}"}"
   delimiter="${DELIMITER:-"$(printf "\037")"}"
   IFS="${delimiter}"
-
-  #@ Reset the cache, if requested
-  case "${reset:-0}" in 1 | yes)
-    pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
-    rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
-    ;;
-  *) ;; esac
+  CMD_GREP="${CMD_RG:-"$(
+    command -v rg 2>/dev/null ||
+      command -v grep 2>/dev/null ||
+      printf ""
+  )"}"
 
   #@ Ensure the cache directory exists
-  mkdir -p "${DOTS_CACHE}"
+  if [ -d "${DOTS_CACHE:-}" ]; then :; else
+    pout --trace "Creating the cache directory:" "${DOTS_CACHE}"
+    mkdir -p "${DOTS_CACHE}"
+  fi
 
   #@ Initialize the cache, if necessary
-  if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+  if [ -f "${DOTS_CACHE_RC:-}" ]; then
+    # pout --trace "Proceeding with existing cache:" "${DOTS_CACHE_RC}"
+    :
+  else
     pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
     {
       printf "%s\n" "#!/bin/sh"
@@ -2240,11 +2249,14 @@ dotsenv() {
   fi
 
   #@ If no arguments are provided, simply load the cache
-  [ "$#" -ge 1 ] || {
+  if [ "$#" -eq 0 ]; then
     . "${DOTS_CACHE_RC}"
     dotsenv__cleanup
     return
-  }
+  else
+    # pout --trace "Arguments:" "$*"
+    :
+  fi
 
   #@ Parse arguments
   while [ "$#" -ge 1 ]; do
@@ -2277,6 +2289,14 @@ dotsenv() {
     shift
   done
 
+  unset Var_empty Var_found
+  var_found="$(rg "^${var}=" "${DOTS_CACHE_RC}")"
+  var_empty="$(rg "^${var}=\"\"" "${DOTS_CACHE_RC}")"
+
+  if [ -n "${var_found}" ] &&; then
+  # rg "^${var}=" "${DOTS_CACHE_RC}"
+  return
+
   case "${force}" in true | 1)
     printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
     dotsenv__cleanup
@@ -2286,12 +2306,42 @@ dotsenv() {
 
   case "${env_type}" in
   dir)
+    #@ Check if the variable is already set
+    var_check="$(to_upper "${var}")"
+    if [ -x "${CMD_GREP}" ]; then
+      current_var="$(
+        # shellcheck disable=SC2016
+        ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+          "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+      )"
+    else
+      current_var="$(
+        grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+          sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+      )"
+    fi
+    [ current_var = "${var_check}" ] && {
+      pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
+      # dotsenv__cleanup
+      # return
+    }
+
+    pout --trace "Proceeding with var in dir:" "${var_check}"
+    # return
+
     #@ Check if the variable is already set with the same value
     var_check="$(to_upper "${var}")"
-    if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
-      current_val="$(${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var_check}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo "")"
+    if [ -x "${CMD_GREP}" ]; then
+      current_val="$(
+        # shellcheck disable=SC2016
+        ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+          "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+      )"
     else
-      current_val="$(grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null | sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo "")"
+      current_val="$(
+        grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+          sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+      )"
     fi
 
     #@ Skip if the variable is already set with the same value
@@ -2304,7 +2354,7 @@ dotsenv() {
     var="$(to_upper "${var}")"
     val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
     var_rc="$(to_upper "${var}_RC")"
-    
+
     ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
     ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
     ln_export="$(printf "export %s" "${var}")"
@@ -2327,8 +2377,12 @@ dotsenv() {
       printf "  %s\n" "${ln_check_rc}"
       printf "    %s\n" "${ln_alias_edit_rc}"
       printf "    %s\n" "${ln_export_rc}"
-      [ "${var_rc}" = "DOTS_RC" ] ||
+
+      case "${var_rc}" in DOTS_RC | DOTS_CACHE_RC) ;; *)
         printf "    %s\n" "${ln_source_rc}"
+        ;;
+      esac
+
       printf "  %s" "${ln_end}"
     )"
 
@@ -2345,13 +2399,54 @@ dotsenv() {
       ":" | null | "") continue ;; *)
         #@ Define the variable, value
         var="$(to_upper "CMD_${cmd}")"
+
+        #@ Check if the variable is already set
+        var_check="$(to_upper "${var}")"
+        if [ -x "${CMD_GREP}" ]; then
+          current_var="$(
+            # shellcheck disable=SC2016
+            ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+              "${DOTS_CACHE_RC}" 2>/dev/null ||
+              ${CMD_GREP} "^${var_check}=\"\"" -r '$1' \
+                "${DOTS_CACHE_RC}" 2>/dev/null ||
+              printf ""
+          )"
+        else
+          current_var="$(
+            grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+              sed -E 's/^([^=]*=)"?([^"]*)"?.*/\1\2/' ||
+              printf ""
+          )"
+
+          echo "VAR in cmd: ${var}"
+          return
+
+          [ -z "${current_var}" ] &&
+            current_var="${var_check}="
+        fi
+        [ current_var = "${var_check}" ] && {
+          pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
+          # dotsenv__cleanup
+          # return
+        }
+
+        pout --trace "Proceeding with var in cmd:" "${var_check}"
+        return
+
         val="$(command -v "${cmd}" 2>/dev/null || printf "")"
 
         #@ Check if the variable is already set with the same value
-        if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
-          current_val="$(${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo "")"
+        if [ -x "${CMD_GREP}" ]; then
+          current_val="$(
+            # shellcheck disable=SC2016
+            ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+              "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+          )"
         else
-          current_val="$(grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null | sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo "")"
+          current_val="$(
+            grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+              sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+          )"
         fi
 
         #@ Skip if the variable is already set with the same value
@@ -2368,19 +2463,45 @@ dotsenv() {
         )"
 
         #@ Write entry to the cache
-        pout --trace "Adding entry for ${var}: \"${val}\""
+        pout --debug "Adding entry for ${var}: \"${val}\""
         printf "\n%s\n" "${entry}" >>"${DOTS_CACHE_RC}"
         ;;
       esac
     done
     ;;
   *)
-    #@ Check if the variable is already set with the same value
-    if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
-      current_val="$(${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo "")"
+    #@ Check if the variable is already set
+    var_check="$(to_upper "${var}")"
+    if [ -x "${CMD_GREP}" ]; then
+      current_var="$(
+        # shellcheck disable=SC2016
+        ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+          "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+      )"
     else
-      current_val="$(grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null | sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo "")"
+      current_var="$(
+        grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+          sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+      )"
     fi
+    [ current_var = "${var_check}" ] && {
+      pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
+      # dotsenv__cleanup
+      # return
+    }
+
+    pout --trace "Proceeding with var:" "${var_check}"
+    return
+    # if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
+    #   current_val="$(
+    #     ${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo ""
+    #   )"
+    # else
+    #   current_val="$(
+    #     grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+    #       sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo ""
+    #   )"
+    # fi
 
     #@ Skip if the variable is already set with the same value
     if [ "${current_val}" = "${val}" ]; then
@@ -2393,7 +2514,7 @@ dotsenv() {
     entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
 
     #@ Write entry to the cache
-    pout --trace "Adding entry for ${var}: \"${val}\""
+    pout --debug "Adding entry for ${var}: \"${val}\""
     printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
     ;;
   esac
@@ -2405,110 +2526,176 @@ dotsenv() {
     pout --error "Unable to format the cache as shfmt is not installed."
   fi
 
-  #@ Reload the cache
-  . "${DOTS_CACHE_RC}"
-
   #@ Cleanup
   dotsenv__cleanup
 }
 
+dotsenv__check() {
+  ${CMD_GREP} "^${var}=" "${DOTS_CACHE_RC}" //dev/null 2>&1
+}
+
 dots__set_global_env() {
-  #| DOTS
+  #@ Ensure the integral DOTS variable are set
   DOTS="${DOTS:-"${HOME:-}/.dots"}"
   if [ -d "${DOTS}" ]; then :; else
-    printf "Unable to initialize DOTS as the variable is not set.\nConsider setting it via ~/.profile or ~/.bashrc.\n"
+    pout --error "DOTS directory is inaccessible:" "${DOTS}"
     return 1
   fi
-
-  #| RC
   RC="${RC:-".dotsrc"}"
   DOTS_RC="${DOTS_RC:-"${DOTS}/${RC}"}"
-
-  #| Cache
   DOTS_CACHE="${DOTS}/.cache"
   DOTS_CACHE_RC="${DOTS_CACHE}/${RC}"
 
-  #@ Initialize the cache
+  #@ Update the cache
+  # case "${reset_cache:-0}" in
+  # 1 | yes | true)
+  #   case "${DOTS_CACHE_STAGE:-"off"}" in
+  #   initialized)
+  #     pout --trace "DOTS_CACHE_STAGE [init]:" "${DOTS_CACHE_STAGE}"
+  #     pout --debug "Loading the cache."
+  #     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+
+  #     #@ Advance the cache stage
+  #     export DOTS_CACHE_STAGE="loaded"
+  #     ;;
+  #   loaded)
+  #     pout --trace "DOTS_CACHE_STAGE [loaded]:" "${DOTS_CACHE_STAGE}"
+  #     pout --debug "Cache already loaded."
+
+  #     #@ Reload the cache
+  #     # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+  #     # pout --debug "Cache reloaded."
+  #     ;;
+  #   off | *)
+  #     pout --trace "DOTS_CACHE_STAGE [off|*]:" "${DOTS_CACHE_STAGE}"
+  #     #@ Set the initial cache stage
+  #     export DOTS_CACHE_STAGE=off
+
+  #     #@ Ensure the cache directory exists
+  #     mkdir -p "${DOTS_CACHE}"
+
+  #     #@ Remove the cache
+  #     rm -f "${DOTS_CACHE_RC}" >/dev/null 2>&1
+
+  #     #@ Initialize the cache
+  #     pout --debug "Initializing the cache..."
+  #     dots__cache_init
+  #     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+
+  #     #@ Advance the cache stage
+  #     export DOTS_CACHE_STAGE="initialized"
+
+  #     pout --trace "DOTS_CACHE_STAGE [off|*]:" "${DOTS_CACHE_STAGE}"
+  #     pout --debug "Cache already loaded."
+
+  #     #@ Reload the cache
+  #     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+  #     pout --debug "Cache reloaded."
+  #     ;;
+  #   esac
+  #   ;;
+  # *)
+  #   pout --debug "Reset off. Loading the cache."
+  #   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+  #   dots__cache_init
+  #   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+
+  #   #@ Advance the cache stage
+  #   DOTS_CACHE_STAGE="loaded"
+  #   ;;
+  # esac
+
+  # pout --trace "DOTS_CACHE_STAGE [after]:" "${DOTS_CACHE_STAGE}"
+
+  # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+
+  dots__cache_init() {
+    #@ Define the global environment variables
+    #| Core Info
+    # dotsenv --var OS_TYPE --val "$(fetch_info --os)"
+    # dotsenv --var USER --val "$(fetch_info --user)"
+
+    # #| Verbosity & Printing
+    # dotsenv --var DELIMITER --val "$(printf "\037")"
+    # dotsenv --var VERBOSITY_QUIET --val 0
+    # dotsenv --var VERBOSITY_WARN --val 1
+    # dotsenv --var VERBOSITY_ERROR --val 2
+    # dotsenv --var VERBOSITY_INFO --val 3
+    # dotsenv --var VERBOSITY_DEBUG --val 4
+    # dotsenv --var VERBOSITY_TRACE --val 5
+
+    # #| Commands
+    # dotsenv --cmd \
+    #   bacon \
+    #   :
+    # bash \
+    # bat \
+    # cargo \
+    # code \
+    # eza \
+    # fd \
+    # fish \
+    # hx \
+    # lsd \
+    # nu \
+    # pathman \
+    # pwsh \
+    # python3 \
+    # rg \
+    # rustc \
+    # sh \
+    # shfmt \
+    # starship \
+    # tldr \
+    # tokei \
+    # topgrade \
+    # watch \
+    # zig \
+    # zoxide \
+    # zsh \
+
+    # #| DOTS
+    # dotsenv --dir DOTS "${DOTS}"
+    dotsenv --dir DOTS_BIN "${DOTS}/Bin"
+    dotsenv --dir CMD_RG "/c/Users/Administrator/AppData/Local/Microsoft/WinGet/Links/rg"
+    dotsenv --dir CMD_GR
+    # dotsenv --dir DOTS_CFG "${DOTS}/Configuration"
+    # dotsenv --dir DOTS_ENV "${DOTS}/Environment"
+    # dotsenv --dir DOTS_DOC "${DOTS}/Documentation"
+    # dotsenv --dir DOTS_DLD "${DOTS}/Downloads"
+    # dotsenv --dir DOTS_MOD "${DOTS}/Modules"
+    # dotsenv --dir DOTS_RES "${DOTS}/Resources"
+    # dotsenv --dir DOTS_JOB "${DOTS}/TODO"
+    # dotsenv --var DOTS_ACTIVE_APPS --val "${DOTS_CACHE}/apps.log"
+
+    # #| Projects
+    if [ -n "${PRJ}" ]; then
+      dotsenv --dir PRJ "${PRJ}"
+    elif [ -d "${HOME}/Projects" ]; then
+      dotsenv --dir PRJ "${HOME}/Projects"
+    elif
+      : ||
+        [ -d "${HOME}/Documents/GitLab" ] ||
+        [ -d "${HOME}/Documents/Gitlab" ] ||
+        [ -d "${HOME}/Documents/gitlab" ] ||
+        [ -d "${HOME}/Documents/GitHub" ] ||
+        [ -d "${HOME}/Documents/Github" ] ||
+        [ -d "${HOME}/Documents/github" ]
+    then
+      dotsenv --dir PRJ "${HOME}/Documents"
+    else
+      dotsenv --dir PRJ "${DOTS}/../Projects"
+    fi
+
+    #| Scripts
+    # pathman="${DOTS}/Bin/shellscript/environment/pathman"
+    # [ -z "${CMD_PATHMAN}" ] && [ -x "${pathman}" ] &&
+    #   dotsenv --var CMD_PATHMAN --val "${pathman}"
+  }
+  dots__cache_init
+  #@ Reload the cache
   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-
-  #| Core Info
-  dotsenv --var OS_TYPE --val "$(fetch_info --os)"
-  dotsenv --var USER --val "$(fetch_info --user)"
-
-  #| Verbosity & Printing
-  dotsenv --var DELIMITER --val "$(printf "\037")"
-  dotsenv --var VERBOSITY_QUIET --val 0
-  dotsenv --var VERBOSITY_WARN --val 1
-  dotsenv --var VERBOSITY_ERROR --val 2
-  dotsenv --var VERBOSITY_INFO --val 3
-  dotsenv --var VERBOSITY_DEBUG --val 4
-  dotsenv --var VERBOSITY_TRACE --val 5
-
-  #| Commands
-  # dotsenv --cmd \
-  #   bacon \
-  #   bash \
-  #   bat \
-  #   cargo \
-  #   code \
-  #   eza \
-  #   fd \
-  #   fish \
-  #   hx \
-  #   lsd \
-  #   nu \
-  #   pathman \
-  #   pwsh \
-  #   python3 \
-  #   rg \
-  #   rustc \
-  #   sh \
-  #   shfmt \
-  #   starship \
-  #   tldr \
-  #   tokei \
-  #   topgrade \
-  #   watch \
-  #   zig \
-  #   zoxide \
-  #   zsh \
-  #   :
-
-  #| DOTS
-  dotsenv --dir DOTS "${DOTS}"
-  dotsenv --dir DOTS_BIN "${DOTS}/Bin"
-  dotsenv --dir DOTS_CFG "${DOTS}/Configuration"
-  dotsenv --dir DOTS_ENV "${DOTS}/Environment"
-  dotsenv --dir DOTS_DOC "${DOTS}/Documentation"
-  dotsenv --dir DOTS_DLD "${DOTS}/Downloads"
-  dotsenv --dir DOTS_MOD "${DOTS}/Modules"
-  dotsenv --dir DOTS_RES "${DOTS}/Resources"
-  dotsenv --dir DOTS_JOB "${DOTS}/TODO"
-  dotsenv --var DOTS_ACTIVE_APPS --val "${DOTS_CACHE}/apps.log"
-
-  #| Projects
-  if [ -n "${PRJ}" ]; then
-    dotsenv --dir PRJ "${PRJ}"
-  elif [ -d "${HOME}/Projects" ]; then
-    dotsenv --dir PRJ "${HOME}/Projects"
-  elif
-    : ||
-      [ -d "${HOME}/Documents/GitLab" ] ||
-      [ -d "${HOME}/Documents/Gitlab" ] ||
-      [ -d "${HOME}/Documents/gitlab" ] ||
-      [ -d "${HOME}/Documents/GitHub" ] ||
-      [ -d "${HOME}/Documents/Github" ] ||
-      [ -d "${HOME}/Documents/github" ]
-  then
-    dotsenv --dir PRJ "${HOME}/Documents"
-  else
-    dotsenv --dir PRJ "${DOTS}/../Projects"
-  fi
-
-  #| Scripts
-  pathman="${DOTS}/Bin/shellscript/environment/pathman"
-  [ -z "${CMD_PATHMAN}" ] && [ -x "${pathman}" ] &&
-    dotsenv --var CMD_PATHMAN --val "${pathman}"
+  pout --debug "Cache reloaded."
 }
 
 main "$@"
