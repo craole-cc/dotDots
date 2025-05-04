@@ -4,2726 +4,2727 @@
 # set -e
 
 main() {
-  dots__set_local_env
-  dots__init_config
-  dots__init_scripts
-  dots__init_aliases
-  # dots__set_global_env
-  # init_scripts
-  # init_sh
-  # init_bash
-  # return
-  # init_nushell
-  # init_blesh
-  # init_atuin
-  init_starship
-  # init_tests || init_fastfetch || true
-  # pout --path --tail
+	dots__set_local_env
+	dots__init_config
+	dots__init_scripts
+	dots__init_aliases
+	fetch_info
+	# dots__set_global_env
+	# init_scripts
+	# init_sh
+	# init_bash
+	# return
+	# init_nushell
+	# init_blesh
+	# init_atuin
+	init_starship
+	# init_tests || init_fastfetch || true
+	# pout --path --tail
 
-  # pout --path --head 50
-  # echo "${PATH}" | tr ':' '\n'
-  # pout_PATH
-  # "${CMD_PATHMAN}"
+	# pout --path --head 50
+	# echo "${PATH}" | tr ':' '\n'
+	# pout_PATH
+	# "${CMD_PATHMAN}"
 }
 
 dots__set_local_env() {
-  ctx="DOTS"
-  ctx_sep="-"
-  ctx_head=">>-"
-  ctx_tail="->> "
-  verbosity=5   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
-  reset_cache=0 #? 0=no, 1=yes
-  editor="code"
+	ctx="DOTS"
+	ctx_sep="-"
+	ctx_head=">>-"
+	ctx_tail="->> "
+	verbosity=5   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+	reset_cache=0 #? 0=no, 1=yes
+	editor="code"
 }
 
 dots__cleanup() {
-  unset ctx verbosity reset
+	unset ctx verbosity reset
 }
 
 dots__init_config() {
-  init_git() {
-    git config include.path "${GIT_CONFIG:-"${DOTS}/Configuration/git/main.gitconfig"}"
-  }
+	init_git() {
+		git config include.path "${GIT_CONFIG:-"${DOTS}/Configuration/git/main.gitconfig"}"
+	}
 
-  init_sh() {
-    #@ Skip if the command or binary directory are missing
-    if [ -x "${CMD_SH}" ]; then :; else return; fi
-    if [ -d "${DOTS_BIN_SH:-}" ]; then :; else return; fi
+	init_sh() {
+		#@ Skip if the command or binary directory are missing
+		if [ -x "${CMD_SH}" ]; then :; else return; fi
+		if [ -d "${DOTS_BIN_SH:-}" ]; then :; else return; fi
 
-    #@ Set defaults and initialize counters
-    depth_limit=4 # Lower depth limit for better performance
-    updated_count=0
-    skipped_count=0
-    new_path=""
+		#@ Set defaults and initialize counters
+		depth_limit=4 # Lower depth limit for better performance
+		updated_count=0
+		skipped_count=0
+		new_path=""
 
-    #@ Define cleanup function
-    init_sh__cleanup() {
-      unset updated_count skipped_count new_path depth_limit
-    }
+		#@ Define cleanup function
+		init_sh__cleanup() {
+			unset updated_count skipped_count new_path depth_limit
+		}
 
-    #@ Set trap for proper cleanup
-    trap init_sh__cleanup EXIT HUP INT TERM
+		#@ Set trap for proper cleanup
+		trap init_sh__cleanup EXIT HUP INT TERM
 
-    pout --ctx "init_sh" --debug "Processing directories (depth: ${depth_limit})"
+		pout --ctx "init_sh" --debug "Processing directories (depth: ${depth_limit})"
 
-    #@ Process directories with limited recursion using pure shell
-    process_dir() {
-      dir="$1"
-      current_depth="$2"
+		#@ Process directories with limited recursion using pure shell
+		process_dir() {
+			dir="$1"
+			current_depth="$2"
 
-      #@ Check if we've reached depth limit
-      [ "${current_depth}" -gt "${depth_limit}" ] && return
+			#@ Check if we've reached depth limit
+			[ "${current_depth}" -gt "${depth_limit}" ] && return
 
-      #@ Check if directory is in excluded patterns
-      case "${dir}" in
-      *archive* | *review* | *temp* | *tmp*) return ;;
-      *) ;;
-      esac
+			#@ Check if directory is in excluded patterns
+			case "${dir}" in
+			*archive* | *review* | *temp* | *tmp*) return ;;
+			*) ;;
+			esac
 
-      #@ Add directory to PATH if needed
-      case ":${PATH}:" in
-      *":${dir}:"*)
-        skipped_count=$((skipped_count + 1))
-        ;;
-      *)
-        new_path="${new_path:+${new_path}:}${dir}"
-        updated_count=$((updated_count + 1))
-        ;;
-      esac
+			#@ Add directory to PATH if needed
+			case ":${PATH}:" in
+			*":${dir}:"*)
+				skipped_count=$((skipped_count + 1))
+				;;
+			*)
+				new_path="${new_path:+${new_path}:}${dir}"
+				updated_count=$((updated_count + 1))
+				;;
+			esac
 
-      #@ Only process subdirectories if we're not at max depth
-      [ "${current_depth}" -eq "${depth_limit}" ] && return
+			#@ Only process subdirectories if we're not at max depth
+			[ "${current_depth}" -eq "${depth_limit}" ] && return
 
-      #@ Process subdirectories
-      for subdir in "${dir}"/*; do
-        [ -d "${subdir}" ] && process_dir "${subdir}" "$((current_depth + 1))"
-      done
-    }
+			#@ Process subdirectories
+			for subdir in "${dir}"/*; do
+				[ -d "${subdir}" ] && process_dir "${subdir}" "$((current_depth + 1))"
+			done
+		}
 
-    #@ Start recursive processing at depth 1
-    process_dir "${DOTS_BIN_SH}" 1
+		#@ Start recursive processing at depth 1
+		process_dir "${DOTS_BIN_SH}" 1
 
-    #@ Update PATH if we found new directories
-    if [ -n "${new_path}" ]; then
-      PATH="${new_path}:${PATH}"
-      export PATH
-    fi
+		#@ Update PATH if we found new directories
+		if [ -n "${new_path}" ]; then
+			PATH="${new_path}:${PATH}"
+			export PATH
+		fi
 
-    #@ Report the results
-    pout --ctx "init_sh" --info \
-      "Processed binary directories - " \
-      "Added: ${updated_count}" " | " \
-      "Skipped: ${skipped_count}"
+		#@ Report the results
+		pout --ctx "init_sh" --info \
+			"Processed binary directories - " \
+			"Added: ${updated_count}" " | " \
+			"Skipped: ${skipped_count}"
 
-    #@ Cleanup
-    init_sh__cleanup
+		#@ Cleanup
+		init_sh__cleanup
 
-    return 0
-  }
+		return 0
+	}
 
-  init_sh_OLD() {
-    #@ Skip if the command or binary directory are missing
-    if [ -x "${CMD_SH}" ]; then :; else return; fi
-    if [ -d "${DOTS_BIN_SH}" ]; then :; else return; fi
+	init_sh_OLD() {
+		#@ Skip if the command or binary directory are missing
+		if [ -x "${CMD_SH}" ]; then :; else return; fi
+		if [ -d "${DOTS_BIN_SH}" ]; then :; else return; fi
 
-    #@ Set defaults
-    search_depth=5
-    exclude_patterns="archive review temp tmp"
-    exclude_patterns="$(printf "%s" "${exclude_patterns}" | sed 's/ /|/g')"
-    bin_dirs="" bin_dir_count=0
-    include="" include_count=0
-    exclude="" exclude_count=0
-    skipped="" skipped_count=0
-    updated="" updated_count=0
+		#@ Set defaults
+		search_depth=5
+		exclude_patterns="archive review temp tmp"
+		exclude_patterns="$(printf "%s" "${exclude_patterns}" | sed 's/ /|/g')"
+		bin_dirs="" bin_dir_count=0
+		include="" include_count=0
+		exclude="" exclude_count=0
+		skipped="" skipped_count=0
+		updated="" updated_count=0
 
-    #@ Identify valid binary subdirectories.
-    #TODO: we shouldn't have to perform find thrice
-    bin_dirs="$(
-      find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
-        tr '\n' "${DELIMITER}"
-    )"
-    include="$(
-      find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
-        grep -Ev "${exclude_patterns}" | tr '\n' "${DELIMITER}"
-    )"
-    exclude="$(
-      find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
-        grep -E "${exclude_patterns}" | tr '\n' "${DELIMITER}"
-    )"
+		#@ Identify valid binary subdirectories.
+		#TODO: we shouldn't have to perform find thrice
+		bin_dirs="$(
+			find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
+				tr '\n' "${DELIMITER}"
+		)"
+		include="$(
+			find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
+				grep -Ev "${exclude_patterns}" | tr '\n' "${DELIMITER}"
+		)"
+		exclude="$(
+			find "${DOTS_BIN_SH}" -maxdepth "${search_depth}" -type d |
+				grep -E "${exclude_patterns}" | tr '\n' "${DELIMITER}"
+		)"
 
-    #@ Update the print delimiter
-    old_ifs="${IFS}"
-    IFS="${DELIMITER}"
+		#@ Update the print delimiter
+		old_ifs="${IFS}"
+		IFS="${DELIMITER}"
 
-    #@ Store the total number of directories in each category
-    bin_dir_count="$(printf "%s" "${bin_dirs}" | tr "${DELIMITER}" "\n" | wc -l)"
-    include_count="$(printf "%s" "${include}" | tr "${DELIMITER}" "\n" | wc -l)"
-    exclude_count="$(printf "%s" "${exclude}" | tr "${DELIMITER}" "\n" | wc -l)"
+		#@ Store the total number of directories in each category
+		bin_dir_count="$(printf "%s" "${bin_dirs}" | tr "${DELIMITER}" "\n" | wc -l)"
+		include_count="$(printf "%s" "${include}" | tr "${DELIMITER}" "\n" | wc -l)"
+		exclude_count="$(printf "%s" "${exclude}" | tr "${DELIMITER}" "\n" | wc -l)"
 
-    pout --ctx "init_sh" --trace "bin_dir_count:" "${bin_dir_count}"
-    pout --ctx "init_sh" --trace "include_count:" "${include_count}"
-    pout --ctx "init_sh" --trace "exclude_count:" "${exclude_count}"
+		pout --ctx "init_sh" --trace "bin_dir_count:" "${bin_dir_count}"
+		pout --ctx "init_sh" --trace "include_count:" "${include_count}"
+		pout --ctx "init_sh" --trace "exclude_count:" "${exclude_count}"
 
-    # PATH="${PATH}:/c/Users/Administrator/.dots/Bin/shellscript/cmd"
+		# PATH="${PATH}:/c/Users/Administrator/.dots/Bin/shellscript/cmd"
 
-    #@ Identify the directories to be added to the PATH
-    i=0
-    for bin_dir in ${include}; do
-      i=$((i + 1))
-      pout --ctx "init_sh" --trace "${i}: ${bin_dir}"
-      case "${PATH}" in
-      "${bin_dir}"* | *":${bin_dir}:"* | ":${bin_dir}")
-        skipped_count=$((skipped_count + 1))
-        skipped="${skipped:+${skipped}${DELIMITER}}${bin_dir}"
-        pout --ctx "init_sh" --trace "Found in PATH:" "${i}>" "${bin_dir}"
-        ;;
-      *)
-        updated_count=$((updated_count + 1))
-        updated="${updated:+${updated}${DELIMITER}}${bin_dir}"
-        pout --ctx "init_sh" --trace "Added to PATH:" "${i}>" "${bin_dir}"
-        new_path="${new_path:+${new_path}":"}${bin_dir}"
-        ;;
-      esac
-    done
+		#@ Identify the directories to be added to the PATH
+		i=0
+		for bin_dir in ${include}; do
+			i=$((i + 1))
+			pout --ctx "init_sh" --trace "${i}: ${bin_dir}"
+			case "${PATH}" in
+			"${bin_dir}"* | *":${bin_dir}:"* | ":${bin_dir}")
+				skipped_count=$((skipped_count + 1))
+				skipped="${skipped:+${skipped}${DELIMITER}}${bin_dir}"
+				pout --ctx "init_sh" --trace "Found in PATH:" "${i}>" "${bin_dir}"
+				;;
+			*)
+				updated_count=$((updated_count + 1))
+				updated="${updated:+${updated}${DELIMITER}}${bin_dir}"
+				pout --ctx "init_sh" --trace "Added to PATH:" "${i}>" "${bin_dir}"
+				new_path="${new_path:+${new_path}":"}${bin_dir}"
+				;;
+			esac
+		done
 
-    printf "PATH:\n%s" "${new_path:-}"
+		printf "PATH:\n%s" "${new_path:-}"
 
-    #@ Update the PATH variable, if necessary
-    PATH="${new_path}:${PATH}" export PATH
+		#@ Update the PATH variable, if necessary
+		PATH="${new_path}:${PATH}" export PATH
 
-    #@ Report the results
-    pout --ctx "init_sh" --info \
-      "Processed" "${bin_dir_count}" "binary directories\n" \
-      "Valid: ${include_count}" " | " \
-      "Invalid: ${exclude_count}" " | " \
-      "Skipped: ${skipped_count}" " | " \
-      "Added: ${updated_count}"
+		#@ Report the results
+		pout --ctx "init_sh" --info \
+			"Processed" "${bin_dir_count}" "binary directories\n" \
+			"Valid: ${include_count}" " | " \
+			"Invalid: ${exclude_count}" " | " \
+			"Skipped: ${skipped_count}" " | " \
+			"Added: ${updated_count}"
 
-    #@ Cleanup
-    IFS="${old_ifs}"
-    unset p b
-  }
+		#@ Cleanup
+		IFS="${old_ifs}"
+		unset p b
+	}
 
-  init_bash() {
-    #@ Skip if the command or binary directory are missing
-    if [ -x "${CMD_BASH}" ]; then :; else return; fi
-    if [ -d "${DOTS_BIN_BASH:-}" ]; then :; else return; fi
+	init_bash() {
+		#@ Skip if the command or binary directory are missing
+		if [ -x "${CMD_BASH}" ]; then :; else return; fi
+		if [ -d "${DOTS_BIN_BASH:-}" ]; then :; else return; fi
 
-    #@ Check if the binary directory exists
-    p="${PATH}"
-    b="${DOTS_BIN_BASH}"
-    #@ Update the PATH variable, if necessary
-    case "${p}" in
-    "${b}:"* | *":${b}:"* | ":${b}")
-      pout --debug "PATH includes: ${DOTS_BIN_BASH}"
-      ;;
-    *)
-      PATH="${DOTS_BIN_BASH}:${PATH}" export PATH
-      pout --debug "PATH updated to include: ${DOTS_BIN_BASH}"
-      ;;
-    esac
+		#@ Check if the binary directory exists
+		p="${PATH}"
+		b="${DOTS_BIN_BASH}"
+		#@ Update the PATH variable, if necessary
+		case "${p}" in
+		"${b}:"* | *":${b}:"* | ":${b}")
+			pout --debug "PATH includes: ${DOTS_BIN_BASH}"
+			;;
+		*)
+			PATH="${DOTS_BIN_BASH}:${PATH}" export PATH
+			pout --debug "PATH updated to include: ${DOTS_BIN_BASH}"
+			;;
+		esac
 
-    #@ Cleanup
-    unset p b
-  }
+		#@ Cleanup
+		unset p b
+	}
 
-  init_nushell() {
-    if [ -z "${CMD_NU}" ]; then return; else
+	init_nushell() {
+		if [ -z "${CMD_NU}" ]; then return; else
 
-      #@ Check if the nushell binary directory exists
-      if [ -d "${DOTS_BIN_NU}" ]; then
-        case "${PATH}" in
-        "${DOTS_BIN_NU}:"* | *":${DOTS_BIN_NU}:"* | ":${DOTS_BIN_NU}") ;;
-        *)
-          unset "${DOTS_BIN_NU}"
-          return
-          ;;
-        esac
-      fi
-    fi
+			#@ Check if the nushell binary directory exists
+			if [ -d "${DOTS_BIN_NU}" ]; then
+				case "${PATH}" in
+				"${DOTS_BIN_NU}:"* | *":${DOTS_BIN_NU}:"* | ":${DOTS_BIN_NU}") ;;
+				*)
+					unset "${DOTS_BIN_NU}"
+					return
+					;;
+				esac
+			fi
+		fi
 
-    #@ Prepend the nushell binary directory to the PATH
-    if [ -z "${DOTS_BIN_NU}" ]; then :; else
-      PATH="${DOTS_BIN_NU}:${PATH}" export PATH
-      pout --debug "Added to PATH: ${DOTS_BIN_SH}"
-    fi
-  }
+		#@ Prepend the nushell binary directory to the PATH
+		if [ -z "${DOTS_BIN_NU}" ]; then :; else
+			PATH="${DOTS_BIN_NU}:${PATH}" export PATH
+			pout --debug "Added to PATH: ${DOTS_BIN_SH}"
+		fi
+	}
 
-  init_blesh() {
-    CMD_BLESH="${HOME:-}/.local/share/blesh/ble.sh"
-    if [ -f "${CMD_BLESH}" ]; then
-      "${CMD_BLESH}" >/dev/null 2>&1
-      pout --debug "[INFO] /> dotsrc <\ Initialized Ble.sh"
-    else
-      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_BLESH}"
-    fi
-  }
+	init_blesh() {
+		CMD_BLESH="${HOME:-}/.local/share/blesh/ble.sh"
+		if [ -f "${CMD_BLESH}" ]; then
+			"${CMD_BLESH}" >/dev/null 2>&1
+			pout --debug "[INFO] /> dotsrc <\ Initialized Ble.sh"
+		else
+			pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_BLESH}"
+		fi
+	}
 
-  init_atuin() {
-    CMD_ATUIN="$(command -v atuin 2>/dev/null || printf "")"
-    if [ -x "${CMD_ATUIN}" ]; then
-      eval "$(atuin init bash --disable-ctrl-r || true)"
-      pout --debug "[INFO] /> dotsrc <\ Initialized Atuin"
-    else
-      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_ATUIN}"
-    fi
-  }
+	init_atuin() {
+		CMD_ATUIN="$(command -v atuin 2>/dev/null || printf "")"
+		if [ -x "${CMD_ATUIN}" ]; then
+			eval "$(atuin init bash --disable-ctrl-r || true)"
+			pout --debug "[INFO] /> dotsrc <\ Initialized Atuin"
+		else
+			pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_ATUIN}"
+		fi
+	}
 
-  init_starship() {
-    [ -n "${STARSHIP_START_TIME}" ] || return
-    #@ Retrieve the path to the starship binary
-    CMD_STARSHIP="$(command -v starship 2>/dev/null || true)"
+	init_starship() {
+		[ -n "${STARSHIP_START_TIME}" ] || return
+		#@ Retrieve the path to the starship binary
+		CMD_STARSHIP="$(command -v starship 2>/dev/null || true)"
 
-    if [ -x "${CMD_STARSHIP}" ]; then
-      export CMD_STARSHIP
+		if [ -x "${CMD_STARSHIP}" ]; then
+			export CMD_STARSHIP
 
-      #@ Check if the starship configuration file exists
-      starship_config="${DOTS}/Configuration/starship/config.toml"
-      [ -f "${starship_config}" ] && {
-        #@ Set the STARSHIP_CONFIG environment variable
-        STARSHIP_CONFIG="${starship_config}"
-        export STARSHIP_CONFIG
-      }
+			#@ Check if the starship configuration file exists
+			starship_config="${DOTS}/Configuration/starship/config.toml"
+			[ -f "${starship_config}" ] && {
+				#@ Set the STARSHIP_CONFIG environment variable
+				STARSHIP_CONFIG="${starship_config}"
+				export STARSHIP_CONFIG
+			}
 
-      #@ Initialize starship
-      eval "$(starship init bash || true)"
-      pout --debug "[INFO] /> dotsrc <\ Initialized Starship"
-    else
-      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_STARSHIP}"
-    fi
-  }
+			#@ Initialize starship
+			eval "$(starship init bash || true)"
+			pout --debug "[INFO] /> dotsrc <\ Initialized Starship"
+		else
+			pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_STARSHIP}"
+		fi
+	}
 
-  init_fastfetch() {
-    #@ Retrieve the path to the fastfetch binary
-    CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")" export CMD_FASTFETCH
+	init_fastfetch() {
+		#@ Retrieve the path to the fastfetch binary
+		CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")" export CMD_FASTFETCH
 
-    if [ -x "${CMD_FASTFETCH}" ]; then
+		if [ -x "${CMD_FASTFETCH}" ]; then
 
-      #@ Check if the starship configuration file exists
-      fastfetch_config="${DOTS}/Configuration/fastfetch/config.jsonc"
+			#@ Check if the starship configuration file exists
+			fastfetch_config="${DOTS}/Configuration/fastfetch/config.jsonc"
 
-      #@ Initialize fastfetch
-      if [ -f "${fastfetch_config}" ]; then
-        #@ Set the FASTFETCH_CONFIG environment variable
-        FASTFETCH_CONFIG="${fastfetch_config}"
-        export FASTFETCH_CONFIG
-        fetch() { fastfetch --config "${FASTFETCH_CONFIG}"; }
-      else
-        fetch() { fastfetch; }
-      fi
-      fetch
+			#@ Initialize fastfetch
+			if [ -f "${fastfetch_config}" ]; then
+				#@ Set the FASTFETCH_CONFIG environment variable
+				FASTFETCH_CONFIG="${fastfetch_config}"
+				export FASTFETCH_CONFIG
+				fetch() { fastfetch --config "${FASTFETCH_CONFIG}"; }
+			else
+				fetch() { fastfetch; }
+			fi
+			fetch
 
-      pout --debug "[INFO] /> dotsrc <\ Initialized Fastfetch"
-    else
-      pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_FASTFETCH}"
-    fi
-  }
+			pout --debug "[INFO] /> dotsrc <\ Initialized Fastfetch"
+		else
+			pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_FASTFETCH}"
+		fi
+	}
 
-  init_projects() {
-    rc=".dotsrc"
-    [ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
-    [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
-    [ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
-    unset rc
-  }
+	init_projects() {
+		rc=".dotsrc"
+		[ -f "${PRJ_CC}/${rc}" ] && . "${PRJ_CC}/${rc}"
+		[ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+		[ -f "${PRJ_CRAOLE}/${rc}" ] && . "${PRJ_CRAOLE}/${rc}"
+		unset rc
+	}
 }
 
 dots__init_scripts() {
 
-  fetch_info() {
-    echo testr
-    fetch_info__os() {
-      CMD_NIXOS_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
-      CMD_NIXOS_WSL_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
-      CMD_POWERSHELL="$(command -v powershell >/dev/null 2>&1)"
-      if [ -x "${CMD_NIXOS_VERSION}" ]; then
-        nixos-version="$(nixos-version | awk '{print $1}')"
-        printf "%s" "NixOS"
-        [ -x "${CMD_NIXOS_WSL_VERSION}" ] && printf "_WSL"
-        printf "_%s" "${nixos-version}"
-      else
-        case "$(uname | tr '[:upper:]' '[:lower:]')" in
-        *linux*) printf "linux" ;;
-        *msys* | *ming* | *cygwin*) printf "Windows" ;;
-        *darwin*) printf "macos" ;;
-        *) printf "unknown" ;;
-        esac
-      fi
-    }
-    fetch_info__user() {
-      printf "%s" "${USER:-"${USERNAME:-""}"}"
-    }
-
-    if [ "$#" -lt 1 ]; then
-      fetch_info__os
-    else
-      while [ "$#" -ge 1 ]; do
-        case "$1" in
-        --os) fetch_info__os ;;
-        --user) fetch_info__user ;;
-        *)
-          fetch_info__os
-          ;;
-        esac
-        shift
-      done
-    fi
-  }
-
-  pout() {
-    pout__main() {
-      pout__set_local_env
-      pout__parse_arguments "$@"
-      pout__execute
-    }
-
-    pout__set_local_env() {
-      ctx_sep="${ctx_sep:-"-|-"}"
-      pout_tag=""
-      pout_ctx=""
-      pout_msg=""
-      pout_ctx_tag=""
-      path_limit=""
-      path_limit_start="head"
-      path=""
-      delimiter="${DELIMITER:-"$(printf "\037")"}"
-      old_ifs="${IFS}"
-      IFS="${delimiter}"
-    }
-
-    pout__parse_arguments() {
-      while [ "$#" -ge 1 ]; do
-        case "$1" in
-        --ctx)
-          pout_ctx="$2"
-          shift
-          ;;
-        --trace) pout_tag="TRACE" ;;
-        --test) pout_tag="TEST" ;;
-        --debug) pout_tag="DEBUG" ;;
-        --info) pout_tag="INFO" ;;
-        --warn) pout_tag="WARN" ;;
-        --err* | --fatal | --fail*]) pout_tag="ERROR" ;;
-        --path)
-          pout_tag="PATH"
-          while [ "$#" -ge 2 ]; do
-            case "$2" in
-            --tail | --head)
-              path_limit_start="${2#--}"
-              path_limit="${path_limit:-1}"
-              ;;
-            *)
-              path_limit="${2:-"all"}"
-              ;;
-            esac
-            shift
-          done
-          break
-          ;;
-        --) break ;;
-        --*)
-          if [ "$#" -eq 1 ]; then :; else
-            shift
-            for arg in "$@"; do
-              pout_msg="${pout_msg:+"${pout_msg}${delimiter}"}${arg:-}"
-            done
-          fi
-          break
-          ;;
-        *)
-          pout_msg="${pout_msg:+"${pout_msg}${delimiter}"}${1}"
-          ;;
-        esac
-        shift
-      done
-
-      #@ Build tag with flag and context
-      pout_ctx="${pout_ctx:-"${ctx}"}"
-      if [ -z "${pout_tag:-}" ]; then :; else
-        case "$(to_lower "${pout_tag:-}")" in
-        path) pout_ctx_tag="${pout_ctx}${ctx_sep}${pout_tag}" ;;
-        *) pout_ctx_tag="${pout_tag}${ctx_sep}${pout_ctx}" ;;
-        esac
-      fi
-
-      if [ -z "${pout_ctx_tag}" ]; then :; else
-        pout_ctx_tag_head="${ctx_head:-"/> "}"
-        pout_ctx_tag_tail="${ctx_tail:-" <\ "}"
-        pout_ctx_tag="${pout_ctx_tag_head}${pout_ctx_tag}${pout_ctx_tag_tail}"
-      fi
-
-      #@ Replace the delimiter with a space
-      pout_msg="$(
-        printf "%b" "${pout_msg}" | tr "${delimiter}" " " || true
-      )"
-    }
-
-    pout__execute() {
-      #@ Print the message
-      case "$(to_lower "${pout_tag:-}")" in
-      test*)
-        if [ "${verbosity:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then :; else
-          printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
-          eval "${pout_msg}"
-        fi
-        ;;
-      trace*)
-        if [ "${verbosity:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then :; else
-          printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
-        fi
-        ;;
-      debug*)
-        if [ "${verbosity:-0}" -lt "${VERBOSITY_DEBUG:-4}" ]; then :; else
-          printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
-        fi
-        ;;
-      info*)
-        if [ "${verbosity:-0}" -lt "${VERBOSITY_INFO:-3}" ]; then :; else
-          printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
-        fi
-        ;;
-      warn*)
-        if [ "${verbosity:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then :; else
-          printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
-        fi
-        ;;
-      error*)
-        if [ "${verbosity:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then :; else
-          printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
-        fi
-        ;;
-      path*)
-        #@ Print the tag
-        printf "%b\n" "${pout_ctx_tag}"
-
-        #@ Retrieve the paths from the PATH
-        path="$(printf "%s" "${PATH}" | tr ':' '\n')"
-        path_count="$(printf "%s" "${PATH}" | tr ':' '\n' | wc -l)"
-        [ "${path_count:-0}" -gt 0 ] || {
-          pout --debug "[ERROR] /> ${ctx} <\ PATH is empty"
-          return 1
-        }
-
-        #@ Limit the results, if necessary
-        if [ "${path_limit:-}" -eq "${path_limit:-}" ] >/dev/null 2>&1; then
-          #@ Calculate starting index based on limit
-          case "${path_limit_start}" in
-          tail)
-            start_idx=$((path_count - path_limit + 1))
-            [ "${start_idx}" -lt 1 ] && start_idx=1
-            path="$(printf "%s" "${path}" | tail -n "${path_limit}")"
-            ;;
-          *)
-            start_idx=1
-            path="$(printf "%s" "${path}" | head -n "${path_limit}")"
-            ;;
-          esac
-        else
-          start_idx=1
-        fi
-
-        #@ Print the path
-        i=$((start_idx - 1))
-        for p in ${path}; do
-          i=$((i + 1))
-          printf "%3d %s %s\n" "${i}" "${ctx_sep}" "${p}"
-        done
-
-        #@ Cleanup
-        unset path i p start_idx path_count path_limit path_limit_start
-        ;;
-      print | *) printf "%b" "${pout_msg}" ;;
-      esac
-
-      #@ Cleanup
-      IFS="${old_ifs}"
-    }
-
-    pout__main "$@"
-  }
-
-  watchsh() {
-    watchsh__cleanup() {
-      #@ Remove variables from the environment
-      unset _secs _args watch_cmd secs delimiter args args_file os_type
-
-      #@ Remove the temporary file
-      [ -n "${args_file}" ] && [ -f "${args_file}" ] &&
-        rm -f "${args_file}" 2>/dev/null
-    } && watchsh__cleanup
-
-    #@ Set initial exit trap
-    trap watchsh__cleanup EXIT HUP INT TERM
-
-    #@ Initialize variables
-    secs=10
-    args="${DOTS_RC}"
-    opts="--resetTerminal"
-    status=0
-    delimiter="${DELIMITER:-"$(printf "\037")"}"
-
-    #@ Determine OS type
-    os_type="${OS_TYPE:-"$(fetch_info --os)"}"
-    os_type="$(to_lower "${os_type}")"
-
-    #@ Create a secure temporary file for argument storage (cross-platform)
-    args_file=""
-    for _tmp_dir in "${TMPDIR:-/tmp}" /var/tmp /tmp; do
-      { [ -d "${_tmp_dir}" ] && [ -w "${_tmp_dir}" ]; } || continue
-
-      #@ Create unique filename using PID and timestamp (POSIX-compliant)
-      args_file="${_tmp_dir}/watchsh_args.$$.$(/bin/date +%s 2>/dev/null || printf "%s" $$)"
-      touch "${args_file}" 2>/dev/null || continue
-
-      #@ Restrict permissions if the OS allows
-      case "${os_type}" in
-      *linux* | *darwin* | *bsd*) chmod 600 "${args_file}" 2>/dev/null || true ;;
-      *) ;;
-      esac
-
-      [ -f "${args_file}" ] && [ -w "${args_file}" ] && break
-    done
-
-    #@ Check if the temporary file was created successfully
-    if [ ! -f "${args_file:-}" ] || [ ! -w "${args_file:-}" ]; then
-      pout --ctx "watchsh" --error "Failed to create the temporary file"
-
-      #@ Terminate the script with a non-zero status
-      watchsh__cleanup
-      return 1
-    fi
-
-    #@ Check if the watch command exists
-    if [ -z "${CMD_WATCH}" ]; then
-      pout --ctx "watchsh" --error \
-        "Missing dependency: watch" \
-        "\nCheck it out at https://github.com/echocat/watch/\n"
-
-      #@ Terminate the script with a non-zero status
-      watchsh__cleanup
-      return 1
-    fi
-
-    #@ Parse arguments
-    _args=""
-    while [ "$#" -gt 0 ]; do
-      #@ Check if argument is a number (for seconds)
-      if [ -z "${_secs}" ] && [ "$1" -eq "$1" ] 2>/dev/null; then
-        _secs="$1"
-      else
-        #@ Handle arguments differently based on OS
-        if [ "${os_type}" = "windows" ]; then
-          #@ Windows/MSYS needs different escaping
-          _escaped_arg="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-          _args="${_args:+${_args}${delimiter}}\"${_escaped_arg}\""
-        else
-          #@ Unix-style escaping
-          _escaped_arg="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
-          _args="${_args:+${_args}${delimiter}}'${_escaped_arg}'"
-        fi
-      fi
-      shift
-    done
-
-    #@ Store args in the temporary file if we have any
-    if [ -n "${_args}" ]; then
-      printf "%s" "${_args}" >"${args_file}"
-    fi
-
-    #@ Use provided args or default
-    if [ -s "${args_file}" ]; then
-      #@ Read arguments from file if it exists and is not empty
-      args="$(tr "${delimiter}" " " <"${args_file}")"
-    else
-      pout --ctx "watchsh" --debug \
-        "No arguments provided, using default:" "${args}"
-    fi
-
-    #@ Update the options to include the refresh interval
-    secs="${_secs:-${secs}}"
-    opts="${opts} --interval ${secs}s"
-
-    #@ Build and execute the command
-    watch_cmd="${CMD_WATCH} ${opts} sh -c ${args}"
-    pout --ctx "watchsh" --debug "Executing:" "${watch_cmd}"
-    eval "${watch_cmd}"
-    status=$?
-    #@ Handle exit status with more descriptive messages
-    case "${status}" in
-    0) pout --ctx "watchsh" --debug "Completed successfully" ;;
-    130) pout --ctx "watchsh" --debug "Terminated by user (Ctrl+C)" ;;
-    143) pout --ctx "watchsh" --warn "Terminated by external signal" ;;
-    *) pout --ctx "watchsh" --error "Exited with status: ${status}" ;;
-    esac
-
-    #@ Terminate the script with execution status
-    watchsh__cleanup
-    return "${status}"
-  }
-
-  manage_tempfile() {
-    #@ Handle temp file operations with proper cleanup
-    temp_action=""
-    temp_file=""
-
-    #@ Parse arguments
-    while [ $# -gt 0 ]; do
-      case "$1" in
-      --write)
-        temp_action="write"
-        shift
-        ;;
-      --read)
-        temp_action="read"
-        temp_file="$2"
-        shift 2
-        ;;
-      --cleanup)
-        temp_action="cleanup"
-        temp_file="$2"
-        shift 2
-        ;;
-      *) shift ;;
-      esac
-    done
-
-    #@ Handle actions based on the provided flag
-    case "${temp_action}" in
-    write)
-      #@ Try various temp directories
-      for _tmp_dir in "${TMPDIR:-/tmp}" /var/tmp /tmp; do
-        { [ -d "${_tmp_dir}" ] && [ -w "${_tmp_dir}" ]; } || continue
-        temp_file="${_tmp_dir}/${ctx}_temp.$$.$(/bin/date +%s 2>/dev/null || printf "%s" $$)"
-        touch "${temp_file}" 2>/dev/null || continue
-
-        #@ Restrict permissions if possible
-        case "${OS_TYPE:-}" in
-        *linux* | *darwin* | *bsd*) chmod 600 "${temp_file}" 2>/dev/null || true ;;
-        *) ;;
-        esac
-
-        [ -f "${temp_file}" ] && [ -w "${temp_file}" ] && break
-      done
-
-      #@ Return the temp file path
-      printf "%s" "${temp_file}"
-      return 0
-      ;;
-
-    read)
-      [ -f "${temp_file}" ] && cat "${temp_file}"
-      return $?
-      ;;
-
-    cleanup)
-      [ -f "${temp_file}" ] && rm -f "${temp_file}" 2>/dev/null
-      return $?
-      ;;
-
-    *)
-      return 1
-      ;;
-    esac
-  }
-
-  # pathman() {
-  #   pathman__cleanup() {
-  #     unset updated_count skipped_count new_path depth_limit
-  #   } && pathman__cleanup
-  #   #@ Set initial exit trap
-
-  #   pathman__main() {
-  #     trap pathman__cleanup EXIT HUP INT TERM
-  #     pathman__set_local_env
-  #     pathman__parse_args "$@"
-  #   }
-
-  #   pathman__set_local_env() {
-  #     pathman_action="print"
-  #     pathman_cmd=""
-  #     pathman_args=""
-  #   }
-
-  #   pathman__parse_args() {
-  #     while [ "$#" -gt 0 ]; do
-  #       case "$1" in
-  #       add)
-  #         shift
-  #         pathman__add "$@"
-  #         status="$?"
-  #         return "${status}"
-  #         ;;
-  #       *) shift ;;
-  #       esac
-  #     done
-  #   }
-  #   pathman__add() {
-  #     #@ Set defaults and initialize counters
-  #     starting_dir="$1"
-  #     depth_limit="${2:-4}"
-  #     updated_count=0
-  #     skipped_count=0
-  #     new_path=""
-
-  #     #@ Skip if the command or binary directory are missing
-  #     if [ -x "${CMD_SH:-}" ]; then :; else return; fi
-  #     if [ -d "${starting_dir:-}" ]; then :; else return; fi
-
-  #     #@ Define cleanup function
-  #     init_sh__cleanup() {
-  #       unset updated_count skipped_count new_path depth_limit
-  #     }
-
-  #     #@ Set trap for proper cleanup
-  #     trap init_sh__cleanup EXIT HUP INT TERM
-
-  #     pout --ctx "init_sh" --debug "Processing directories (depth: ${depth_limit})"
-
-  #     #@ Process directories with limited recursion using pure shell
-  #     process_dir() {
-  #       dir="$1"
-  #       current_depth="$2"
-  #       #TODO: Depth is not working as depth but actually as limit so if it set the num to 10 it manages 9 dirs, if i set it to 100 it manages 99
-
-  #       #@ Check if we've reached depth limit
-  #       [ "${current_depth}" -gt "${depth_limit}" ] && return
-
-  #       #@ Check if directory is in excluded patterns
-  #       #TODO: Allow definition via parser
-  #       case "${dir}" in
-  #       *archive* | *review* | *temp* | *tmp*) return ;;
-  #       *) ;;
-  #       esac
-
-  #       #@ Add directory to PATH if needed
-  #       case ":${PATH}:" in
-  #       *":${dir}:"*)
-  #         skipped_count=$((skipped_count + 1))
-  #         ;;
-  #       *)
-  #         new_path="${new_path:+${new_path}:}${dir}"
-  #         updated_count=$((updated_count + 1))
-  #         ;;
-  #       esac
-
-  #       #@ Only process subdirectories if we're not at max depth
-  #       [ "${current_depth}" -eq "${depth_limit}" ] && return
-
-  #       #@ Process subdirectories
-  #       for subdir in "${dir}"/*; do
-  #         [ -d "${subdir}" ] && process_dir "${subdir}" "$((current_depth + 1))"
-  #       done
-  #     }
-
-  #     #@ Start recursive processing at depth 1
-  #     process_dir "${starting_dir}" 1
-
-  #     #@ Update PATH if we found new directories
-  #     if [ -n "${new_path}" ]; then
-  #       PATH="${new_path}:${PATH}"
-  #       export PATH
-  #     fi
-
-  #     #@ Report the results
-  #     pout --ctx "init_sh" --info \
-  #       "Processed binary directories - " \
-  #       "Added: ${updated_count}" " | " \
-  #       "Skipped: ${skipped_count}"
-
-  #     #@ Cleanup
-  #     init_sh__cleanup
-
-  #     return 0
-  #   }
-
-  #   pathman__main "$@"
-  #   return $?
-  # }
-
-  to_upper() {
-    printf "%s" "$*" | tr '[:lower:]' '[:upper:]'
-  }
-
-  to_lower() {
-    printf "%s" "$*" | tr '[:upper:]' '[:lower:]'
-  }
-
-  quote() {
-    os_type="${OS_TYPE:-"$(fetch_info --os)"}"
-
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --single) quote__single "$2" ;;
-      --escape) ;;
-      --none) quote__remove "$2" ;;
-      --double | *) ;;
-      esac
-      shift
-    done
-
-    quote__remove() {
-      printf "%s" "$*" | tr -d "\"" | tr -d "\'"
-    }
-
-    quote__double() {
-      esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-    }
-
-    quote__single() {
-      case "${os_type:-}" in
-      windows)
-        esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-        printf "\"%s\"" "${esc}"
-        ;;
-      *)
-        esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
-        printf "\'%s\'" "${esc}"
-        ;;
-      esac
-    }
-
-    quote__escape() {
-      :
-    }
-  }
-  to_unquoted() {
-    printf "%s" "$*" | tr -d "\"" | tr -d "\'"
-  }
-
-  swap_DELIMITER() {
-    #@ Set defaults
-    _sep="${DELIMITER:-"${DELIMITER:- }"}"
-    _old="${_sep}" _new=" "
-    _str="" _res=""
-
-    #@ Parse arguments
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --old*)
-        _old="$2"
-        shift
-        ;;
-      --new*)
-        _new="$2"
-        shift
-        ;;
-      --str*)
-        _str="${_str:+${_str}${_sep}}$2"
-        shift
-        ;;
-      *) _str="${_str:+${_str}${_sep}}$1" ;;
-      esac
-      shift
-    done
-
-    #@ Build the string with the old DELIMITER
-    old_ifs="${IFS}"
-    IFS="${_sep}"
-    for val in ${_str:-}; do
-      _res="${_res:+${_res}${_old}}${val}"
-    done
-    IFS="${old_ifs}"
-
-    #@ Output
-    printf "%s" "${_res}" | tr "${_old}" "${_new}"
-  }
-
-  dev() {
-    case "$(fetch_os_type)" in
-    nix) nix develop "$@" ;;
-    *)
-      cwd="$(pwd -P || "${PWD:-.}")"
-      arg="${*:-"${cwd}"}"
-      cmd="${VISUAL:-${EDITOR:-code}} ${arg}"
-      eval "${cmd}" 2>/dev/null || {
-        pout --debug "[ERROR] /> dotsrc <\ Failed to run ${cmd}"
-        return 1
-      }
-      pout --debug "[INFO] /> dotsrc <\ Opened ${arg} in ${VISUAL:-${EDITOR:-code}}"
-      ;;
-    esac
-  }
-
-  enviro_OLD() {
-    #@ Set defaults
-    ctx="enviro"
-    DELIMITER="${DELIMITER:-"$(printf "\037")"}"
-    separator="_"
-    OLDIFS="${IFS}" IFS="${DELIMITER}"
-    dirs=""
-    type="env" shell="bash"
-    prefix="" suffix="" key="" val="" env=""
-    result=""
-
-    #@ Parse arguments
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --set | --name | --var)
-        if [ -n "$2" ]; then
-          key="${key:+${key}${DELIMITER}}$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
-          exit 1
-        fi
-        shift
-        ;;
-      --prefix)
-        if [ -n "$2" ]; then
-          prefix="${prefix:+${prefix}${DELIMITER}}$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
-          exit 1
-        fi
-        shift
-        ;;
-      --suffix)
-        if [ -n "$2" ]; then
-          suffix="${suffix:+${suffix}${DELIMITER}}$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
-          exit 1
-        fi
-        shift
-        ;;
-      --sh | --shell)
-        if [ -n "$2" ]; then
-          shell="$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
-          exit 1
-        fi
-        shift
-        ;;
-      --sep*)
-        if [ -n "$2" ]; then
-          separator="$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
-          exit 1
-        fi
-        shift
-        ;;
-      --cmd*)
-        type="cmd"
-        if [ -n "$2" ]; then
-          val="${val:+${val}${DELIMITER}}$2"
-          shift
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for --cmd"
-          exit 1
-        fi
-        ;;
-      --env*)
-        type="env"
-        if [ -n "$2" ]; then
-          val="${val:+${val}${DELIMITER}}$2"
-          shift
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing argument for --env"
-          exit 1
-        fi
-        ;;
-      --dir*)
-        type="dir"
-        if [ -n "$2" ]; then
-          val="${val:+${val}${DELIMITER}}$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing directory name"
-        fi
-        shift
-        ;;
-      --file*)
-        type="file"
-        if [ -n "$2" ]; then
-          val="${val:+${val}${DELIMITER}}$2"
-        else
-          pout --debug "[ERROR] /> ${ctx} <\ Missing directory name"
-        fi
-        shift
-        ;;
-      *)
-        val="${val:+${val}${DELIMITER}}$1"
-        ;;
-      esac
-      shift
-    done
-
-    #@ Define prefix
-    if [ -z "${prefix:-}" ]; then :; else
-      prefix="$(to_upper "${prefix}")"
-      prefix="$(
-        swap_DELIMITER "${prefix}" \
-          --old "${DELIMITER}" --new "${separator}"
-      )"
-      pout --debug "/> ${ctx} <\ prefix:" "${prefix}"
-    fi
-
-    #@ Define suffix
-    if [ -z "${suffix:-}" ]; then :; else
-      suffix="$(to_upper "${suffix}")"
-      suffix="$(
-        swap_DELIMITER "${suffix}" \
-          --old "${DELIMITER}" --new "${separator}"
-      )"
-      pout --debug "/> ${ctx} <\ suffix:" "${suffix}"
-    fi
-
-    #@ Define variable name
-    if [ -z "${key:-}" ]; then :; else
-      key="$(to_upper "${key}")"
-      key="$(
-        swap_DELIMITER "${key}" \
-          --old "${DELIMITER}" --new "${separator}"
-      )"
-      pout --debug "/> ${ctx} <\ key:" "${key}"
-    fi
-
-    #@ Define variable name
-    if [ -z "${key:-}" ]; then :; else
-
-      #@ Add prefix
-      if [ -z "${prefix:-}" ]; then :; else
-        key="${prefix}${separator}${key}"
-      fi
-
-      #@ Add suffix
-      if [ -z "${suffix:-}" ]; then :; else
-        key="${suffix}${separator}${key}"
-      fi
-      pout --debug "/> ${ctx} <\ key:" "${key}"
-    fi
-
-    #@ Define environment pair
-    for _val in ${val}; do
-      case "${type:-"env"}" in
-      cmd)
-        #@ Initialize variables
-        cmd="${_val}" cmd_key="" cmd_val="" cmd_env=""
-
-        #@ Define the key in uppercase, prefixed with "CMD_"
-        cmd_key="$(to_upper "CMD_${cmd}")"
-        pout --debug "/> ${ctx} <\ [${cmd}] CMD_KEY: ${cmd_key}"
-
-        #@ Retrieve the path, otherwise return empty string
-        cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
-        if [ -f "${cmd_val}" ]; then :; else
-          case "${cmd_val}" in
-          *alias*)
-            pout --debug "/> ${ctx} <\ [${cmd}] CMD_ALIAS: ${cmd_val}"
-            unalias "${cmd}" &&
-              cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
-            ;;
-          *function*)
-            #TODO: Add support for functions
-            ;;
-          *) ;;
-          esac
-        fi
-        pout --debug "/> ${ctx} <\ [${cmd}] CMD_VAL: ${cmd_val}"
-
-        #@ Create the export statement
-        case "${shell:-"bash"}" in
-        sh | bash | zsh)
-          cmd_env="$(
-            printf "%s=%s\nexport %s" \
-              "${cmd_key}" "${cmd_val}" "${cmd_key}"
-          )"
-          ;;
-        fish*)
-          cmd_env="$(
-            printf "set -x %s %s" \
-              "${cmd_key}" "${cmd_val}"
-          )"
-          ;;
-        nu*)
-          cmd_env="$(
-            printf "let-env %s = \"%s\"" \
-              "${cmd_key}" "${cmd_val}"
-          )"
-          ;;
-        pwsh | powershell)
-          cmd_env="$(
-            printf "\$env:%s = \"%s\"" \
-              "${cmd_key}" "${cmd_val}"
-          )"
-          ;;
-        *)
-          pout --debug "[ERROR] /> ${ctx} <\ Unsupported shell: ${shell}"
-          exit 1
-          ;;
-        esac
-
-        #@ Update the environment list
-        env="${env:+${env}${DELIMITER}}${cmd_env}"
-        ;;
-      dir)
-        #@ Initialize variables
-        dir="${_val}" dir_key="" dir_expr=""
-
-        #@ Check if directory exists
-        if [ -d "${dir}" ]; then
-          pout --debug "/> ${ctx} <\ Directory found: ${dir}"
-
-          #@ Define the key in uppercase, prefixed with "DIR_"
-          if [ -z "${key:-}" ]; then
-            dir_base="$(basename "${dir}")"
-            dir_key="$(to_upper "DIR_${dir_base}")"
-          else
-            dir_key="${key}"
-          fi
-
-          pout --debug "/> ${ctx} <\ [${dir}] DIR_KEY: ${dir_key}"
-
-          #@ Create the export statement
-          case "${shell:-"bash"}" in
-          sh | bash | zsh)
-            dir_expr="$(
-              printf "%s=%s\nexport %s" \
-                "${dir_key}" "${dir}" "${dir_key}"
-            )"
-            ;;
-          fish | f*)
-            dir_expr="$(
-              printf "set -x %s %s" \
-                "${dir_key}" "${dir}"
-            )"
-            ;;
-          nu*)
-            dir_expr="$(
-              printf "let-env %s = \"%s\"" \
-                "${dir_key}" "${dir}"
-            )"
-            ;;
-          pwsh | powershell | power*)
-            dir_expr="$(
-              printf "\$env:%s = \"%s\"" \
-                "${dir_key}" "${dir}"
-            )"
-            ;;
-          *)
-            pout --debug "[ERROR] /> ${ctx} <\ Unsupported shell: ${shell}"
-            exit 1
-            ;;
-          esac
-
-          #@ Update the environment list
-          env="${env:+${env}${DELIMITER}}${dir_expr}"
-          dirs="${dirs:+${dirs}${DELIMITER}}${dir}"
-        else
-          pout --debug "/> ${ctx} <\ Directory not found: ${dir}"
-        fi
-        ;;
-      env | *)
-        #@ Initialize variables
-        env_key="" env_val="${_val}" env_expr=""
-
-        #@ Parse key=value format
-        if [ -z "${key:-}" ]; then
-          case "${_val}" in
-          *=*)
-            env_key="${_val%%=*}"
-            env_val="${_val#*=}"
-            ;;
-          *)
-            env_key="$(to_upper "${_val}")"
-            env_val="$(eval printf "%s" "\${${_val}:-}")"
-            ;;
-          esac
-        else
-          env_key="${key}"
-        fi
-
-        pout --debug "/> ${ctx} <\ [${env_key}] ENV_VAL: ${env_val}"
-
-        #@ Create the export statement
-        case "${shell:-"bash"}" in
-        sh | bash | zsh)
-          env_expr="$(
-            printf "%s=%s\nexport %s" \
-              "${env_key}" "${env_val}" "${env_key}"
-          )"
-          ;;
-        fish | f*)
-          env_expr="$(
-            printf "set -x %s %s" \
-              "${env_key}" "${env_val}"
-          )"
-          ;;
-        nu*)
-          env_expr="$(
-            printf "let-env %s = \"%s\"" \
-              "${env_key}" "${env_val}"
-          )"
-          ;;
-        pwsh | powershell | power*)
-          env_expr="$(
-            printf "\$env:%s = \"%s\"" \
-              "${env_key}" "${env_val}"
-          )"
-          ;;
-        *)
-          pout --debug "[ERROR] /> ${ctx} <\ Unsupported shell: ${shell}"
-          exit 1
-          ;;
-        esac
-
-        #@ Update the environment list
-        env="${env:+${env}${DELIMITER}}${env_expr}"
-        ;;
-      esac
-    done
-
-    #@ Return the environment list
-    result="$(
-      for pair in ${env}; do
-        printf "%s\n" "${pair}"
-        case "${shell:-"bash"}" in
-        sh | bash | zsh) printf "\n" ;; *) ;; esac
-      done
-    )"
-    printf "%s" "${result}"
-    IFS="${OLDIFS}"
-  }
-  prj_rust() {
-    # possible_dirs=(
-    #   "${PRJ_RUST}"
-    #   "${PROJECTS}/rust"
-    #   "${HOME}/Projects/rust"
-    #   "${HOME}/projects/Code/Rust"
-    #   "${HOME}/projects/Code/rust"
-    # )
-    :
-  }
-
-  enviro() {
-    enviro__main() {
-      enviro__set_local_env
-      enviro__parse_arguments "$@"
-    }
-
-    enviro__set_local_env() {
-      ctx="enviro" ctx_sep="${ctx_sep:-"-|-"}" _ctx=""
-      DELIMITER="${DELIMITER:-"$(printf "\037")"}"
-      separator="_"
-      OLDIFS="${IFS}" IFS="${DELIMITER}"
-
-      #@ Default settings
-      action="get"
-      shell="$(basename "${SHELL:-"posix"}")"
-      order="$(printf "abs|cmd|env" | tr "|" "${DELIMITER}")"
-      focus="" _focus=""
-      vars=""
-      vals=""
-      args=""
-      result=""
-    }
-
-    enviro__parse_arguments() {
-      #@ Set context
-      ctx_parse="${ctx}${ctx_sep}parse_arguments"
-
-      #@ Parse arguments
-      while [ "$#" -ge 1 ]; do
-        case "$1" in
-        --test)
-          enviro__execute_test
-          return 0
-          ;;
-        --action)
-          if [ -n "$2" ]; then
-            action="$2"
-            shift
-          else
-            pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
-          fi
-          ;;
-        --get | --set | --unset | --check)
-          action="${1#--}"
-          ;;
-        --shell)
-          if [ -n "$2" ]; then
-            shell="$2"
-            shift
-          else
-            pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
-          fi
-          ;;
-        --sh | --bash | --zsh | --pwsh | --fish | --nu* | --powershell)
-          shell="${1#--}"
-          ;;
-        --type | --focus | --order)
-          _ctx="$1"
-
-          #@ Move to first argument after the flag
-          shift
-
-          #@ Store all arguments until next flag
-          while [ "$#" -ge 1 ]; do
-            case "$1" in
-            --*) break ;;
-            *) _focus="${_focus:+${_focus}${DELIMITER}}$1" ;;
-            esac
-            shift
-          done
-
-          #@ Process stored focus args
-          IFS="${DELIMITER}"
-          for item in ${_focus}; do
-            case "${item}" in
-            cmd | env | dir | path | file | link | abs)
-              focus="${focus:+${focus}${DELIMITER}}${item}"
-              ;;
-            *)
-              #@ Prepend invalid args to maintain original order
-              set -- "${item}" "$@"
-              ;;
-            esac
-          done
-
-          #@ Cleanup
-          IFS="${OLDIFS}"
-          _focus=""
-
-          #@ Skip the final shift
-          continue
-          ;;
-        --cmd | cmd | command | --env | env | --dir | dir | --path | path | --file | file | --link | link | --abs | abs)
-          focus="${focus:+${focus}${DELIMITER}}${1#--}"
-          ;;
-        --var* | --key*)
-          if [ -n "$2" ]; then
-            vars="$2"
-            shift 2
-          else
-            pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
-            return 1
-          fi
-          ;;
-        --val*)
-          if [ -n "$2" ]; then
-            vals="$2"
-            shift 2
-          else
-            pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
-            return 1
-          fi
-          ;;
-        *)
-          args="${args:+${args}${DELIMITER}}$1"
-          ;;
-        esac
-        shift
-      done
-
-      #@ Update the variables and values based on the action
-      case "${action}" in
-      set)
-        if [ -z "${args}" ]; then :; else
-          for arg in ${args}; do
-            if [ -z "${vars}" ]; then
-              vars="${arg}"
-            else
-              vals="${vals:+${vals}${DELIMITER}}${arg}"
-            fi
-          done
-        fi
-        ;;
-      check)
-        #TODO: Implement behavior for 'check'
-        ;;
-      get | unset | *)
-        #@ Convert vals to vars
-        vars="${vars:+${vars}${DELIMITER}}${vals}"
-
-        #@ Add args as vars
-        if [ -z "${args}" ]; then :; else
-          for arg in ${args}; do
-            vars="${vars:+${vars}${DELIMITER}}${arg}"
-          done
-        fi
-        ;;
-      esac
-
-      #@ Debug arguments
-      pout --debug "/> ${ctx_parse} <\  FOCUS:" "$(
-        printf "%s" "${focus:-"${order}"}" |
-          tr "${DELIMITER}" "|" || true
-      )"
-      pout --debug "/> ${ctx_parse} <\  SHELL:" "${shell}"
-      pout --debug "/> ${ctx_parse} <\ ACTION:" "${action}"
-      pout --debug "/> ${ctx_parse} <\   VARS:" "[$(
-        #@ Set the DELIMITER
-        old_ifs="${IFS}"
-        IFS="${DELIMITER}"
-
-        #@ Count the variables
-        count_tot=0
-        for item in ${vars}; do
-          count_tot=$((count_tot + 1))
-        done
-
-        #@ Print the variables
-        count_per=0
-        for item in ${vars}; do
-          count_per=$((count_per + 1))
-          printf " %s of %s: \"%s\" " "${count_per}" "${count_tot}" "${item}"
-        done
-
-        #@ Reset the DELIMITER
-        IFS="${old_ifs}"
-      )]"
-      pout --debug "/> ${ctx_parse} <\   VALS:" "$(
-        printf "\"%s\"" "${val:-}" |
-          tr "${DELIMITER}" " " || true
-      )"
-    }
-
-    enviro__execute_test() {
-      #@ Set context
-      ctx_test="${ctx}${ctx_sep}execute_test"
-
-      # pout --test --ctx "${ctx_test}" --cmd "enviro pop --type abs --val \"love\" --bash cmd \"jahjah city\" --key \"kez\" on --type cmd --nu lol"
-      pout --ctx "${ctx_test}" --test \
-        enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
-      pout --ctx "${ctx_test}" --test --
-      # enviro pop --type abs --val "love" --bash cmd "jahjah city" --key "kez" on --type cmd --nu lol
-      # enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
-
-      # enviro --cmd "cmd" command --type cmd file --env env --dir dir --path path --file file --link link --abs abs
-      return
-      # Get command path (all these do the same)
-      enviro --cmd fd
-      echo
-      enviro --get fd
-      echo
-      enviro fd
-      echo
-
-      # Get environment variable
-      enviro USER
-      echo
-      enviro --env USER
-
-      printf "\n\n%s\n" "SET COMMANDS"
-      enviro --cmd fd --shell bah --set
-      echo
-      enviro --cmd fd --shell pwsh --set
-      echo
-      enviro --cmd fd --shell fish --set
-      echo
-      enviro --cmd fd --shell nushell --set
-      # Output: CMD_FD=/path/to/fd\nexport CMD_FD
-
-      printf "\n\n%s\n" "GET VARIABLES"
-      #TODO: This should generate the necessary get command for the appropriate shell. It's not just about returning the command. Remember if the --shell flag is set it means it will be used in that situation
-      enviro --get --env USER --shell pwsh
-      # Output: C:\Users\Administrator
-
-      printf "\n\n%s\n" "SET VARIABLES"
-      # Set custom env var in PowerShell
-      enviro --env myvar --set craole --shell pwsh
-      # Output: $env:USER = "craole"
-
-      printf "\n\n%s\n" "UPDATE PATH"
-      enviro --path --set /usr/local/bin
-
-      printf "\n\n%s\n" "CHECK PATH"
-      enviro --path --check /usr/local/bin
-
-      printf "\n\n%s\n" "GET ABS PATH"
-      enviro --abs ~/.config
-      echo
-      enviro --abs "${HOME}"
-
-      printf "\n\n%s\n" "SET DIR"
-      enviro --dir /usr/local --set LOCAL_DIR
-      echo
-
-      # enviro --cmd rustc cargo fd pop ls --shell pwsh
-      # enviro --cmd fd --shell bash
-      # enviro --env USER --shell pwsh
-      # enviro \
-      #   "${HOME}/Projects/Code/Rust" \
-      #   --name rust \
-      #   "${PRJ_RUST:-}" \
-      #   --prefix prj \
-      #   --prefix for \
-      #   --prefix work \
-      #   "${HOME}/Projects/rust"
-    }
-
-    enviro__execute_core() {
-      # @Extract the shell basename without path
-      shell_name="$(basename "${shell}")"
-      case "${shell_name}" in
-      *fish*) shell_type="fish" ;;
-      *nu*) shell_type="nushell" ;;
-      *pwsh | *powershell) shell_type="powershell" ;;
-      *sh | *) shell_type="posix" ;;
-      esac
-
-      pout --debug "/> ${ctx} <\ Action: ${action}, Shell: ${shell_name} (${shell_type}), Type: ${type}, Key: ${key}, Val: ${val}"
-
-      # Process based on action
-      case "${action:-get}" in
-      set)
-        # Set requires a key and value
-        if [ -z "${key}" ]; then
-          pout --debug "[ERROR] /> ${ctx} <\ Missing key for --set"
-          return 1
-        fi
-
-        # If type is not specified but val is empty, try to autodetect
-        if [ -z "${type}" ] && [ -z "${val}" ]; then
-          # Try to find what key refers to
-          if command -v "${key}" >/dev/null 2>&1; then
-            type="cmd"
-            val="$(command -v "${key}")"
-          elif [ -d "${key}" ]; then
-            type="dir"
-            val="${key}"
-          elif [ -f "${key}" ]; then
-            type="file"
-            val="${key}"
-          elif [ -L "${key}" ]; then
-            type="link"
-            val="${key}"
-          else
-            # Default to env
-            type="env"
-            val="${key}"
-          fi
-        fi
-
-        # Default val to key if not specified
-        if [ -z "${val}" ]; then
-          val="${key}"
-        fi
-
-        # Generate appropriate export syntax
-        case "${type}" in
-        cmd)
-          # For commands, prefix with CMD_
-          cmd_path="$(command -v "${key}" 2>/dev/null || echo "${val}")"
-          env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-
-          case "${shell_type}" in
-          posix)
-            result="${env_key}=${cmd_path}\nexport ${env_key}"
-            ;;
-          fish)
-            result="set -x ${env_key} ${cmd_path}"
-            ;;
-          nushell)
-            result="let-env ${env_key} = \"${cmd_path}\""
-            ;;
-          powershell)
-            result="\$env:${env_key} = \"${cmd_path}\""
-            ;;
-          esac
-          ;;
-
-        dir)
-          # For directories, prefix with DIR_ if no custom key
-          if [ "${key}" = "${val}" ]; then
-            # Auto-generate key from directory name
-            dir_name="$(basename "${key}")"
-            env_key="DIR_$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]')"
-          else
-            env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-          fi
-
-          case "${shell_type}" in
-          posix)
-            result="${env_key}=${val}\nexport ${env_key}"
-            ;;
-          fish)
-            result="set -x ${env_key} ${val}"
-            ;;
-          nushell)
-            result="let-env ${env_key} = \"${val}\""
-            ;;
-          powershell)
-            result="\$env:${env_key} = \"${val}\""
-            ;;
-          esac
-          ;;
-
-        file)
-          # For files, prefix with FILE_ if no custom key
-          if [ "${key}" = "${val}" ]; then
-            # Auto-generate key from file name
-            file_name="$(basename "${key}")"
-            env_key="FILE_$(echo "${file_name}" | tr '[:lower:]' '[:upper:]')"
-          else
-            env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-          fi
-
-          case "${shell_type}" in
-          posix)
-            result="${env_key}=${val}\nexport ${env_key}"
-            ;;
-          fish)
-            result="set -x ${env_key} ${val}"
-            ;;
-          nushell)
-            result="let-env ${env_key} = \"${val}\""
-            ;;
-          powershell)
-            result="\$env:${env_key} = \"${val}\""
-            ;;
-          esac
-          ;;
-
-        path)
-          # Add to PATH variable
-          case "${shell_type}" in
-          posix)
-            result="PATH=${val}:\${PATH}\nexport PATH"
-            ;;
-          fish)
-            result="set -x PATH ${val} \$PATH"
-            ;;
-          nushell)
-            result="let-env PATH = \"${val}:\${env.PATH}\""
-            ;;
-          powershell)
-            result="\$env:Path = \"${val};\$env:Path\""
-            ;;
-          esac
-          ;;
-
-        env | *)
-          # For environment variables, use as is
-          env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-
-          case "${shell_type}" in
-          posix)
-            result="${env_key}=${val}\nexport ${env_key}"
-            ;;
-          fish)
-            result="set -x ${env_key} ${val}"
-            ;;
-          nushell)
-            result="let-env ${env_key} = \"${val}\""
-            ;;
-          powershell)
-            result="\$env:${env_key} = \"${val}\""
-            ;;
-          esac
-          ;;
-        esac
-        ;;
-
-      unset)
-        # Unset requires a key
-        if [ -z "${key}" ]; then
-          pout --debug "[ERROR] /> ${ctx} <\ Missing key for --unset"
-          return 1
-        fi
-
-        # If type is cmd, prepend CMD_
-        if [ "${type}" = "cmd" ]; then
-          env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-        elif [ "${type}" = "dir" ]; then
-          if [[ "${key}" != DIR_* ]]; then
-            env_key="DIR_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-          else
-            env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-          fi
-        elif [ "${type}" = "file" ]; then
-          if [[ "${key}" != FILE_* ]]; then
-            env_key="FILE_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-          else
-            env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-          fi
-        else
-          env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-        fi
-
-        # Generate unset command
-        case "${shell_type}" in
-        posix)
-          result="unset ${env_key}"
-          ;;
-        fish)
-          result="set -e ${env_key}"
-          ;;
-        nushell)
-          result="hide-env ${env_key}"
-          ;;
-        powershell)
-          result="Remove-Item env:${env_key} -ErrorAction SilentlyContinue"
-          ;;
-        esac
-        ;;
-
-      check)
-        # Check if a path exists in PATH
-        if [ -z "${key}" ]; then
-          pout --debug "[ERROR] /> ${ctx} <\ Missing path to check"
-          return 1
-        fi
-
-        # Get PATH and check
-        path_found="0"
-        IFS=":"
-        for path_item in ${PATH}; do
-          IFS="${OLDIFS}"
-          if [ "${path_item}" = "${key}" ]; then
-            path_found="1"
-            break
-          fi
-        done
-        IFS="${OLDIFS}"
-
-        if [ "${path_found}" = "1" ]; then
-          result="true"
-        else
-          result="false"
-        fi
-        ;;
-      get | *)
-        # If no type specified, try to detect using search_order
-        if [ -z "${type}" ]; then
-          IFS=":"
-          for search_type in ${search_order}; do
-            IFS="${OLDIFS}"
-            pout --debug "/> ${ctx} <\ Trying type: ${search_type} for ${key}"
-
-            case "${search_type}" in
-            cmd)
-              # Check if it's a command
-              cmd_val="$(command -v "${key}" 2>/dev/null || true)"
-              if [ -n "${cmd_val}" ]; then
-                result="${cmd_val}"
-                break
-              fi
-              ;;
-            abs)
-              # Check if it's an absolute path
-              if [ -e "${key}" ]; then
-                if [ -d "${key}" ]; then
-                  # It's a directory
-                  result="${key}"
-                  break
-                elif [ -f "${key}" ]; then
-                  # It's a file
-                  result="${key}"
-                  break
-                elif [ -L "${key}" ]; then
-                  # It's a symlink
-                  result="${key}"
-                  break
-                fi
-              fi
-              ;;
-            env)
-              # Check if it's an environment variable - try uppercase first
-              env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-              env_val="$(eval echo "\${${env_key_upper}:-}")"
-
-              if [ -n "${env_val}" ]; then
-                result="${env_val}"
-                break
-              fi
-
-              # Try original case
-              env_val="$(eval echo "\${${key}:-}")"
-              if [ -n "${env_val}" ]; then
-                result="${env_val}"
-                break
-              fi
-              ;;
-            path)
-              # TODO: use grep or case to check for the exact val in PATH. Remember it could be at the front, back or in the middle so user ":" appropriately
-              ;;
-            *)
-              #TODO: We need search type order as well, so if the search type is not defined the default order should be cmd:env:abs. Ourder can also be user-defined.
-              ;;
-            esac
-          done
-          IFS="${OLDIFS}"
-        else
-          # Specific type was requested
-          case "${type}" in
-          cmd)
-            result="$(command -v "${key}" 2>/dev/null || true)"
-            ;;
-          dir)
-            if [ -d "${key}" ]; then
-              result="${key}"
-            else
-              result=""
-            fi
-            ;;
-          file)
-            if [ -f "${key}" ]; then
-              result="${key}"
-            else
-              result=""
-            fi
-            ;;
-          link)
-            if [ -L "${key}" ]; then
-              result="${key}"
-            else
-              result=""
-            fi
-            ;;
-          abs)
-            # Return absolute path
-            if [ -e "${key}" ]; then
-              # Get absolute path
-              if command -v realpath >/dev/null 2>&1; then
-                result="$(realpath "${key}")"
-              elif command -v readlink >/dev/null 2>&1; then
-                result="$(readlink -f "${key}" 2>/dev/null || echo "${key}")"
-              else
-                # Fallback to a more portable but less reliable method
-                current_dir="$(pwd)"
-                cd "$(dirname "${key}")" 2>/dev/null || {
-                  result="${key}"
-                  return
-                }
-                dir_path="$(pwd)"
-                cd "${current_dir}" || true
-                result="${dir_path}/$(basename "${key}")"
-              fi
-            else
-              result=""
-            fi
-            ;;
-          path)
-            # Return PATH with each entry on a new line
-            if [ -z "${key}" ] || [ "${key}" = "PATH" ] || [ "${key}" = "Path" ]; then
-              case "${shell_type}" in
-              posix)
-                result="$(echo "${PATH}" | tr ':' '\n')"
-                ;;
-              fish)
-                result="$(echo "${PATH}" | tr ':' '\n')"
-                ;;
-              nushell)
-                result="$(echo "${PATH}" | tr ':' '\n')"
-                ;;
-              powershell)
-                # For PowerShell, we can't easily get the PATH here
-                # Just echo the POSIX PATH as a fallback
-                result="$(echo "${PATH}" | tr ':' '\n')"
-                ;;
-              esac
-            else
-              # Get a specific path variable
-              env_val="$(eval echo "\${${key}:-}")"
-              result="$(echo "${env_val}" | tr ':' '\n')"
-            fi
-            ;;
-          env)
-            # First try uppercase
-            env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-            env_val="$(eval echo "\${${env_key_upper}:-}")"
-
-            if [ -n "${env_val}" ]; then
-              result="${env_val}"
-            else
-              # Try original case
-              env_val="$(eval echo "\${${key}:-}")"
-              result="${env_val}"
-            fi
-            ;;
-          esac
-        fi
-        ;;
-      esac
-
-      # Output the result
-      printf "%s" "${result}"
-      return 0
-    }
-
-    enviro__main "$@"
-  }
+	fetch_info() {
+		fetch_info__os() {
+			CMD_NIXOS_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
+			CMD_NIXOS_WSL_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
+			CMD_POWERSHELL="$(command -v powershell >/dev/null 2>&1)"
+
+			if [ -x "${CMD_NIXOS_VERSION}" ]; then
+				nixos-version="$(nixos-version | awk '{print $1}')"
+				printf "%s" "NixOS"
+				[ -x "${CMD_NIXOS_WSL_VERSION}" ] && printf "_WSL"
+				printf "_%s" "${nixos-version}"
+			else
+				case "$(uname | tr '[:upper:]' '[:lower:]')" in
+				*linux*) printf "linux" ;;
+				*msys* | *ming* | *cygwin*) printf "Windows" ;;
+				*darwin*) printf "macos" ;;
+				*) printf "unknown" ;;
+				esac
+			fi
+		}
+		fetch_info__user() {
+			printf "%s" "${USER:-"${USERNAME:-""}"}"
+		}
+
+		if [ "$#" -lt 1 ]; then
+			fetch_info__os
+		else
+			while [ "$#" -ge 1 ]; do
+				case "$1" in
+				--os) fetch_info__os ;;
+				--user) fetch_info__user ;;
+				*)
+					fetch_info__os
+					;;
+				esac
+				shift
+			done
+		fi
+	}
+
+	pout() {
+		pout__main() {
+			pout__set_local_env
+			pout__parse_arguments "$@"
+			pout__execute
+		}
+
+		pout__set_local_env() {
+			ctx_sep="${ctx_sep:-"-|-"}"
+			pout_tag=""
+			pout_ctx=""
+			pout_msg=""
+			pout_ctx_tag=""
+			path_limit=""
+			path_limit_start="head"
+			path=""
+			delimiter="${DELIMITER:-"$(printf "\037")"}"
+			old_ifs="${IFS}"
+			IFS="${delimiter}"
+		}
+
+		pout__parse_arguments() {
+			while [ "$#" -ge 1 ]; do
+				case "$1" in
+				--ctx)
+					pout_ctx="$2"
+					shift
+					;;
+				--trace) pout_tag="TRACE" ;;
+				--test) pout_tag="TEST" ;;
+				--debug) pout_tag="DEBUG" ;;
+				--info) pout_tag="INFO" ;;
+				--warn) pout_tag="WARN" ;;
+				--err* | --fatal | --fail*]) pout_tag="ERROR" ;;
+				--path)
+					pout_tag="PATH"
+					while [ "$#" -ge 2 ]; do
+						case "$2" in
+						--tail | --head)
+							path_limit_start="${2#--}"
+							path_limit="${path_limit:-1}"
+							;;
+						*)
+							path_limit="${2:-"all"}"
+							;;
+						esac
+						shift
+					done
+					break
+					;;
+				--) break ;;
+				--*)
+					if [ "$#" -eq 1 ]; then :; else
+						shift
+						for arg in "$@"; do
+							pout_msg="${pout_msg:+"${pout_msg}${delimiter}"}${arg:-}"
+						done
+					fi
+					break
+					;;
+				*)
+					pout_msg="${pout_msg:+"${pout_msg}${delimiter}"}${1}"
+					;;
+				esac
+				shift
+			done
+
+			#@ Build tag with flag and context
+			pout_ctx="${pout_ctx:-"${ctx}"}"
+			if [ -z "${pout_tag:-}" ]; then :; else
+				case "$(to_lower "${pout_tag:-}")" in
+				path) pout_ctx_tag="${pout_ctx}${ctx_sep}${pout_tag}" ;;
+				*) pout_ctx_tag="${pout_tag}${ctx_sep}${pout_ctx}" ;;
+				esac
+			fi
+
+			if [ -z "${pout_ctx_tag}" ]; then :; else
+				pout_ctx_tag_head="${ctx_head:-"/> "}"
+				pout_ctx_tag_tail="${ctx_tail:-" <\ "}"
+				pout_ctx_tag="${pout_ctx_tag_head}${pout_ctx_tag}${pout_ctx_tag_tail}"
+			fi
+
+			#@ Replace the delimiter with a space
+			pout_msg="$(
+				printf "%b" "${pout_msg}" | tr "${delimiter}" " " || true
+			)"
+		}
+
+		pout__execute() {
+			#@ Print the message
+			case "$(to_lower "${pout_tag:-}")" in
+			test*)
+				if [ "${verbosity:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then :; else
+					printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+					eval "${pout_msg}"
+				fi
+				;;
+			trace*)
+				if [ "${verbosity:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then :; else
+					printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+				fi
+				;;
+			debug*)
+				if [ "${verbosity:-0}" -lt "${VERBOSITY_DEBUG:-4}" ]; then :; else
+					printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+				fi
+				;;
+			info*)
+				if [ "${verbosity:-0}" -lt "${VERBOSITY_INFO:-3}" ]; then :; else
+					printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+				fi
+				;;
+			warn*)
+				if [ "${verbosity:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then :; else
+					printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+				fi
+				;;
+			error*)
+				if [ "${verbosity:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then :; else
+					printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+				fi
+				;;
+			path*)
+				#@ Print the tag
+				printf "%b\n" "${pout_ctx_tag}"
+
+				#@ Retrieve the paths from the PATH
+				path="$(printf "%s" "${PATH}" | tr ':' '\n')"
+				path_count="$(printf "%s" "${PATH}" | tr ':' '\n' | wc -l)"
+				[ "${path_count:-0}" -gt 0 ] || {
+					pout --debug "[ERROR] /> ${ctx} <\ PATH is empty"
+					return 1
+				}
+
+				#@ Limit the results, if necessary
+				if [ "${path_limit:-}" -eq "${path_limit:-}" ] >/dev/null 2>&1; then
+					#@ Calculate starting index based on limit
+					case "${path_limit_start}" in
+					tail)
+						start_idx=$((path_count - path_limit + 1))
+						[ "${start_idx}" -lt 1 ] && start_idx=1
+						path="$(printf "%s" "${path}" | tail -n "${path_limit}")"
+						;;
+					*)
+						start_idx=1
+						path="$(printf "%s" "${path}" | head -n "${path_limit}")"
+						;;
+					esac
+				else
+					start_idx=1
+				fi
+
+				#@ Print the path
+				i=$((start_idx - 1))
+				for p in ${path}; do
+					i=$((i + 1))
+					printf "%3d %s %s\n" "${i}" "${ctx_sep}" "${p}"
+				done
+
+				#@ Cleanup
+				unset path i p start_idx path_count path_limit path_limit_start
+				;;
+			print | *) printf "%b" "${pout_msg}" ;;
+			esac
+
+			#@ Cleanup
+			IFS="${old_ifs}"
+		}
+
+		pout__main "$@"
+	}
+
+	watchsh() {
+		watchsh__cleanup() {
+			#@ Remove variables from the environment
+			unset _secs _args watch_cmd secs delimiter args args_file os_type
+
+			#@ Remove the temporary file
+			[ -n "${args_file}" ] && [ -f "${args_file}" ] &&
+				rm -f "${args_file}" 2>/dev/null
+		} && watchsh__cleanup
+
+		#@ Set initial exit trap
+		trap watchsh__cleanup EXIT HUP INT TERM
+
+		#@ Initialize variables
+		secs=10
+		args="${DOTS_RC}"
+		opts="--resetTerminal"
+		status=0
+		delimiter="${DELIMITER:-"$(printf "\037")"}"
+
+		#@ Determine OS type
+		os_type="${OS_TYPE:-"$(fetch_info --os)"}"
+		os_type="$(to_lower "${os_type}")"
+
+		#@ Create a secure temporary file for argument storage (cross-platform)
+		args_file=""
+		for _tmp_dir in "${TMPDIR:-/tmp}" /var/tmp /tmp; do
+			{ [ -d "${_tmp_dir}" ] && [ -w "${_tmp_dir}" ]; } || continue
+
+			#@ Create unique filename using PID and timestamp (POSIX-compliant)
+			args_file="${_tmp_dir}/watchsh_args.$$.$(/bin/date +%s 2>/dev/null || printf "%s" $$)"
+			touch "${args_file}" 2>/dev/null || continue
+
+			#@ Restrict permissions if the OS allows
+			case "${os_type}" in
+			*linux* | *darwin* | *bsd*) chmod 600 "${args_file}" 2>/dev/null || true ;;
+			*) ;;
+			esac
+
+			[ -f "${args_file}" ] && [ -w "${args_file}" ] && break
+		done
+
+		#@ Check if the temporary file was created successfully
+		if [ ! -f "${args_file:-}" ] || [ ! -w "${args_file:-}" ]; then
+			pout --ctx "watchsh" --error "Failed to create the temporary file"
+
+			#@ Terminate the script with a non-zero status
+			watchsh__cleanup
+			return 1
+		fi
+
+		#@ Check if the watch command exists
+		if [ -z "${CMD_WATCH}" ]; then
+			pout --ctx "watchsh" --error \
+				"Missing dependency: watch" \
+				"\nCheck it out at https://github.com/echocat/watch/\n"
+
+			#@ Terminate the script with a non-zero status
+			watchsh__cleanup
+			return 1
+		fi
+
+		#@ Parse arguments
+		_args=""
+		while [ "$#" -gt 0 ]; do
+			#@ Check if argument is a number (for seconds)
+			if [ -z "${_secs}" ] && [ "$1" -eq "$1" ] 2>/dev/null; then
+				_secs="$1"
+			else
+				#@ Handle arguments differently based on OS
+				if [ "${os_type}" = "windows" ]; then
+					#@ Windows/MSYS needs different escaping
+					_escaped_arg="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+					_args="${_args:+${_args}${delimiter}}\"${_escaped_arg}\""
+				else
+					#@ Unix-style escaping
+					_escaped_arg="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+					_args="${_args:+${_args}${delimiter}}'${_escaped_arg}'"
+				fi
+			fi
+			shift
+		done
+
+		#@ Store args in the temporary file if we have any
+		if [ -n "${_args}" ]; then
+			printf "%s" "${_args}" >"${args_file}"
+		fi
+
+		#@ Use provided args or default
+		if [ -s "${args_file}" ]; then
+			#@ Read arguments from file if it exists and is not empty
+			args="$(tr "${delimiter}" " " <"${args_file}")"
+		else
+			pout --ctx "watchsh" --debug \
+				"No arguments provided, using default:" "${args}"
+		fi
+
+		#@ Update the options to include the refresh interval
+		secs="${_secs:-${secs}}"
+		opts="${opts} --interval ${secs}s"
+
+		#@ Build and execute the command
+		watch_cmd="${CMD_WATCH} ${opts} sh -c ${args}"
+		pout --ctx "watchsh" --debug "Executing:" "${watch_cmd}"
+		eval "${watch_cmd}"
+		status=$?
+		#@ Handle exit status with more descriptive messages
+		case "${status}" in
+		0) pout --ctx "watchsh" --debug "Completed successfully" ;;
+		130) pout --ctx "watchsh" --debug "Terminated by user (Ctrl+C)" ;;
+		143) pout --ctx "watchsh" --warn "Terminated by external signal" ;;
+		*) pout --ctx "watchsh" --error "Exited with status: ${status}" ;;
+		esac
+
+		#@ Terminate the script with execution status
+		watchsh__cleanup
+		return "${status}"
+	}
+
+	manage_tempfile() {
+		#@ Handle temp file operations with proper cleanup
+		temp_action=""
+		temp_file=""
+
+		#@ Parse arguments
+		while [ $# -gt 0 ]; do
+			case "$1" in
+			--write)
+				temp_action="write"
+				shift
+				;;
+			--read)
+				temp_action="read"
+				temp_file="$2"
+				shift 2
+				;;
+			--cleanup)
+				temp_action="cleanup"
+				temp_file="$2"
+				shift 2
+				;;
+			*) shift ;;
+			esac
+		done
+
+		#@ Handle actions based on the provided flag
+		case "${temp_action}" in
+		write)
+			#@ Try various temp directories
+			for _tmp_dir in "${TMPDIR:-/tmp}" /var/tmp /tmp; do
+				{ [ -d "${_tmp_dir}" ] && [ -w "${_tmp_dir}" ]; } || continue
+				temp_file="${_tmp_dir}/${ctx}_temp.$$.$(/bin/date +%s 2>/dev/null || printf "%s" $$)"
+				touch "${temp_file}" 2>/dev/null || continue
+
+				#@ Restrict permissions if possible
+				case "${OS_TYPE:-}" in
+				*linux* | *darwin* | *bsd*) chmod 600 "${temp_file}" 2>/dev/null || true ;;
+				*) ;;
+				esac
+
+				[ -f "${temp_file}" ] && [ -w "${temp_file}" ] && break
+			done
+
+			#@ Return the temp file path
+			printf "%s" "${temp_file}"
+			return 0
+			;;
+
+		read)
+			[ -f "${temp_file}" ] && cat "${temp_file}"
+			return $?
+			;;
+
+		cleanup)
+			[ -f "${temp_file}" ] && rm -f "${temp_file}" 2>/dev/null
+			return $?
+			;;
+
+		*)
+			return 1
+			;;
+		esac
+	}
+
+	# pathman() {
+	#   pathman__cleanup() {
+	#     unset updated_count skipped_count new_path depth_limit
+	#   } && pathman__cleanup
+	#   #@ Set initial exit trap
+
+	#   pathman__main() {
+	#     trap pathman__cleanup EXIT HUP INT TERM
+	#     pathman__set_local_env
+	#     pathman__parse_args "$@"
+	#   }
+
+	#   pathman__set_local_env() {
+	#     pathman_action="print"
+	#     pathman_cmd=""
+	#     pathman_args=""
+	#   }
+
+	#   pathman__parse_args() {
+	#     while [ "$#" -gt 0 ]; do
+	#       case "$1" in
+	#       add)
+	#         shift
+	#         pathman__add "$@"
+	#         status="$?"
+	#         return "${status}"
+	#         ;;
+	#       *) shift ;;
+	#       esac
+	#     done
+	#   }
+	#   pathman__add() {
+	#     #@ Set defaults and initialize counters
+	#     starting_dir="$1"
+	#     depth_limit="${2:-4}"
+	#     updated_count=0
+	#     skipped_count=0
+	#     new_path=""
+
+	#     #@ Skip if the command or binary directory are missing
+	#     if [ -x "${CMD_SH:-}" ]; then :; else return; fi
+	#     if [ -d "${starting_dir:-}" ]; then :; else return; fi
+
+	#     #@ Define cleanup function
+	#     init_sh__cleanup() {
+	#       unset updated_count skipped_count new_path depth_limit
+	#     }
+
+	#     #@ Set trap for proper cleanup
+	#     trap init_sh__cleanup EXIT HUP INT TERM
+
+	#     pout --ctx "init_sh" --debug "Processing directories (depth: ${depth_limit})"
+
+	#     #@ Process directories with limited recursion using pure shell
+	#     process_dir() {
+	#       dir="$1"
+	#       current_depth="$2"
+	#       #TODO: Depth is not working as depth but actually as limit so if it set the num to 10 it manages 9 dirs, if i set it to 100 it manages 99
+
+	#       #@ Check if we've reached depth limit
+	#       [ "${current_depth}" -gt "${depth_limit}" ] && return
+
+	#       #@ Check if directory is in excluded patterns
+	#       #TODO: Allow definition via parser
+	#       case "${dir}" in
+	#       *archive* | *review* | *temp* | *tmp*) return ;;
+	#       *) ;;
+	#       esac
+
+	#       #@ Add directory to PATH if needed
+	#       case ":${PATH}:" in
+	#       *":${dir}:"*)
+	#         skipped_count=$((skipped_count + 1))
+	#         ;;
+	#       *)
+	#         new_path="${new_path:+${new_path}:}${dir}"
+	#         updated_count=$((updated_count + 1))
+	#         ;;
+	#       esac
+
+	#       #@ Only process subdirectories if we're not at max depth
+	#       [ "${current_depth}" -eq "${depth_limit}" ] && return
+
+	#       #@ Process subdirectories
+	#       for subdir in "${dir}"/*; do
+	#         [ -d "${subdir}" ] && process_dir "${subdir}" "$((current_depth + 1))"
+	#       done
+	#     }
+
+	#     #@ Start recursive processing at depth 1
+	#     process_dir "${starting_dir}" 1
+
+	#     #@ Update PATH if we found new directories
+	#     if [ -n "${new_path}" ]; then
+	#       PATH="${new_path}:${PATH}"
+	#       export PATH
+	#     fi
+
+	#     #@ Report the results
+	#     pout --ctx "init_sh" --info \
+	#       "Processed binary directories - " \
+	#       "Added: ${updated_count}" " | " \
+	#       "Skipped: ${skipped_count}"
+
+	#     #@ Cleanup
+	#     init_sh__cleanup
+
+	#     return 0
+	#   }
+
+	#   pathman__main "$@"
+	#   return $?
+	# }
+
+	to_upper() {
+		printf "%s" "$*" | tr '[:lower:]' '[:upper:]'
+	}
+
+	to_lower() {
+		printf "%s" "$*" | tr '[:upper:]' '[:lower:]'
+	}
+
+	quote() {
+		os_type="${OS_TYPE:-"$(fetch_info --os)"}"
+
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--single) quote__single "$2" ;;
+			--escape) ;;
+			--none) quote__remove "$2" ;;
+			--double | *) ;;
+			esac
+			shift
+		done
+
+		quote__remove() {
+			printf "%s" "$*" | tr -d "\"" | tr -d "\'"
+		}
+
+		quote__double() {
+			esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+		}
+
+		quote__single() {
+			case "${os_type:-}" in
+			windows)
+				esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+				printf "\"%s\"" "${esc}"
+				;;
+			*)
+				esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+				printf "\'%s\'" "${esc}"
+				;;
+			esac
+		}
+
+		quote__escape() {
+			:
+		}
+	}
+	to_unquoted() {
+		printf "%s" "$*" | tr -d "\"" | tr -d "\'"
+	}
+
+	swap_DELIMITER() {
+		#@ Set defaults
+		_sep="${DELIMITER:-"${DELIMITER:- }"}"
+		_old="${_sep}" _new=" "
+		_str="" _res=""
+
+		#@ Parse arguments
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--old*)
+				_old="$2"
+				shift
+				;;
+			--new*)
+				_new="$2"
+				shift
+				;;
+			--str*)
+				_str="${_str:+${_str}${_sep}}$2"
+				shift
+				;;
+			*) _str="${_str:+${_str}${_sep}}$1" ;;
+			esac
+			shift
+		done
+
+		#@ Build the string with the old DELIMITER
+		old_ifs="${IFS}"
+		IFS="${_sep}"
+		for val in ${_str:-}; do
+			_res="${_res:+${_res}${_old}}${val}"
+		done
+		IFS="${old_ifs}"
+
+		#@ Output
+		printf "%s" "${_res}" | tr "${_old}" "${_new}"
+	}
+
+	dev() {
+		case "$(fetch_os_type)" in
+		nix) nix develop "$@" ;;
+		*)
+			cwd="$(pwd -P || "${PWD:-.}")"
+			arg="${*:-"${cwd}"}"
+			cmd="${VISUAL:-${EDITOR:-code}} ${arg}"
+			eval "${cmd}" 2>/dev/null || {
+				pout --debug "[ERROR] /> dotsrc <\ Failed to run ${cmd}"
+				return 1
+			}
+			pout --debug "[INFO] /> dotsrc <\ Opened ${arg} in ${VISUAL:-${EDITOR:-code}}"
+			;;
+		esac
+	}
+
+	enviro_OLD() {
+		#@ Set defaults
+		ctx="enviro"
+		DELIMITER="${DELIMITER:-"$(printf "\037")"}"
+		separator="_"
+		OLDIFS="${IFS}" IFS="${DELIMITER}"
+		dirs=""
+		type="env" shell="bash"
+		prefix="" suffix="" key="" val="" env=""
+		result=""
+
+		#@ Parse arguments
+		while [ "$#" -gt 0 ]; do
+			case "$1" in
+			--set | --name | --var)
+				if [ -n "$2" ]; then
+					key="${key:+${key}${DELIMITER}}$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
+					exit 1
+				fi
+				shift
+				;;
+			--prefix)
+				if [ -n "$2" ]; then
+					prefix="${prefix:+${prefix}${DELIMITER}}$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
+					exit 1
+				fi
+				shift
+				;;
+			--suffix)
+				if [ -n "$2" ]; then
+					suffix="${suffix:+${suffix}${DELIMITER}}$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
+					exit 1
+				fi
+				shift
+				;;
+			--sh | --shell)
+				if [ -n "$2" ]; then
+					shell="$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
+					exit 1
+				fi
+				shift
+				;;
+			--sep*)
+				if [ -n "$2" ]; then
+					separator="$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for" "$1"
+					exit 1
+				fi
+				shift
+				;;
+			--cmd*)
+				type="cmd"
+				if [ -n "$2" ]; then
+					val="${val:+${val}${DELIMITER}}$2"
+					shift
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for --cmd"
+					exit 1
+				fi
+				;;
+			--env*)
+				type="env"
+				if [ -n "$2" ]; then
+					val="${val:+${val}${DELIMITER}}$2"
+					shift
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for --env"
+					exit 1
+				fi
+				;;
+			--dir*)
+				type="dir"
+				if [ -n "$2" ]; then
+					val="${val:+${val}${DELIMITER}}$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing directory name"
+				fi
+				shift
+				;;
+			--file*)
+				type="file"
+				if [ -n "$2" ]; then
+					val="${val:+${val}${DELIMITER}}$2"
+				else
+					pout --debug "[ERROR] /> ${ctx} <\ Missing directory name"
+				fi
+				shift
+				;;
+			*)
+				val="${val:+${val}${DELIMITER}}$1"
+				;;
+			esac
+			shift
+		done
+
+		#@ Define prefix
+		if [ -z "${prefix:-}" ]; then :; else
+			prefix="$(to_upper "${prefix}")"
+			prefix="$(
+				swap_DELIMITER "${prefix}" \
+					--old "${DELIMITER}" --new "${separator}"
+			)"
+			pout --debug "/> ${ctx} <\ prefix:" "${prefix}"
+		fi
+
+		#@ Define suffix
+		if [ -z "${suffix:-}" ]; then :; else
+			suffix="$(to_upper "${suffix}")"
+			suffix="$(
+				swap_DELIMITER "${suffix}" \
+					--old "${DELIMITER}" --new "${separator}"
+			)"
+			pout --debug "/> ${ctx} <\ suffix:" "${suffix}"
+		fi
+
+		#@ Define variable name
+		if [ -z "${key:-}" ]; then :; else
+			key="$(to_upper "${key}")"
+			key="$(
+				swap_DELIMITER "${key}" \
+					--old "${DELIMITER}" --new "${separator}"
+			)"
+			pout --debug "/> ${ctx} <\ key:" "${key}"
+		fi
+
+		#@ Define variable name
+		if [ -z "${key:-}" ]; then :; else
+
+			#@ Add prefix
+			if [ -z "${prefix:-}" ]; then :; else
+				key="${prefix}${separator}${key}"
+			fi
+
+			#@ Add suffix
+			if [ -z "${suffix:-}" ]; then :; else
+				key="${suffix}${separator}${key}"
+			fi
+			pout --debug "/> ${ctx} <\ key:" "${key}"
+		fi
+
+		#@ Define environment pair
+		for _val in ${val}; do
+			case "${type:-"env"}" in
+			cmd)
+				#@ Initialize variables
+				cmd="${_val}" cmd_key="" cmd_val="" cmd_env=""
+
+				#@ Define the key in uppercase, prefixed with "CMD_"
+				cmd_key="$(to_upper "CMD_${cmd}")"
+				pout --debug "/> ${ctx} <\ [${cmd}] CMD_KEY: ${cmd_key}"
+
+				#@ Retrieve the path, otherwise return empty string
+				cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+				if [ -f "${cmd_val}" ]; then :; else
+					case "${cmd_val}" in
+					*alias*)
+						pout --debug "/> ${ctx} <\ [${cmd}] CMD_ALIAS: ${cmd_val}"
+						unalias "${cmd}" &&
+							cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+						;;
+					*function*)
+						#TODO: Add support for functions
+						;;
+					*) ;;
+					esac
+				fi
+				pout --debug "/> ${ctx} <\ [${cmd}] CMD_VAL: ${cmd_val}"
+
+				#@ Create the export statement
+				case "${shell:-"bash"}" in
+				sh | bash | zsh)
+					cmd_env="$(
+						printf "%s=%s\nexport %s" \
+							"${cmd_key}" "${cmd_val}" "${cmd_key}"
+					)"
+					;;
+				fish*)
+					cmd_env="$(
+						printf "set -x %s %s" \
+							"${cmd_key}" "${cmd_val}"
+					)"
+					;;
+				nu*)
+					cmd_env="$(
+						printf "let-env %s = \"%s\"" \
+							"${cmd_key}" "${cmd_val}"
+					)"
+					;;
+				pwsh | powershell)
+					cmd_env="$(
+						printf "\$env:%s = \"%s\"" \
+							"${cmd_key}" "${cmd_val}"
+					)"
+					;;
+				*)
+					pout --debug "[ERROR] /> ${ctx} <\ Unsupported shell: ${shell}"
+					exit 1
+					;;
+				esac
+
+				#@ Update the environment list
+				env="${env:+${env}${DELIMITER}}${cmd_env}"
+				;;
+			dir)
+				#@ Initialize variables
+				dir="${_val}" dir_key="" dir_expr=""
+
+				#@ Check if directory exists
+				if [ -d "${dir}" ]; then
+					pout --debug "/> ${ctx} <\ Directory found: ${dir}"
+
+					#@ Define the key in uppercase, prefixed with "DIR_"
+					if [ -z "${key:-}" ]; then
+						dir_base="$(basename "${dir}")"
+						dir_key="$(to_upper "DIR_${dir_base}")"
+					else
+						dir_key="${key}"
+					fi
+
+					pout --debug "/> ${ctx} <\ [${dir}] DIR_KEY: ${dir_key}"
+
+					#@ Create the export statement
+					case "${shell:-"bash"}" in
+					sh | bash | zsh)
+						dir_expr="$(
+							printf "%s=%s\nexport %s" \
+								"${dir_key}" "${dir}" "${dir_key}"
+						)"
+						;;
+					fish | f*)
+						dir_expr="$(
+							printf "set -x %s %s" \
+								"${dir_key}" "${dir}"
+						)"
+						;;
+					nu*)
+						dir_expr="$(
+							printf "let-env %s = \"%s\"" \
+								"${dir_key}" "${dir}"
+						)"
+						;;
+					pwsh | powershell | power*)
+						dir_expr="$(
+							printf "\$env:%s = \"%s\"" \
+								"${dir_key}" "${dir}"
+						)"
+						;;
+					*)
+						pout --debug "[ERROR] /> ${ctx} <\ Unsupported shell: ${shell}"
+						exit 1
+						;;
+					esac
+
+					#@ Update the environment list
+					env="${env:+${env}${DELIMITER}}${dir_expr}"
+					dirs="${dirs:+${dirs}${DELIMITER}}${dir}"
+				else
+					pout --debug "/> ${ctx} <\ Directory not found: ${dir}"
+				fi
+				;;
+			env | *)
+				#@ Initialize variables
+				env_key="" env_val="${_val}" env_expr=""
+
+				#@ Parse key=value format
+				if [ -z "${key:-}" ]; then
+					case "${_val}" in
+					*=*)
+						env_key="${_val%%=*}"
+						env_val="${_val#*=}"
+						;;
+					*)
+						env_key="$(to_upper "${_val}")"
+						env_val="$(eval printf "%s" "\${${_val}:-}")"
+						;;
+					esac
+				else
+					env_key="${key}"
+				fi
+
+				pout --debug "/> ${ctx} <\ [${env_key}] ENV_VAL: ${env_val}"
+
+				#@ Create the export statement
+				case "${shell:-"bash"}" in
+				sh | bash | zsh)
+					env_expr="$(
+						printf "%s=%s\nexport %s" \
+							"${env_key}" "${env_val}" "${env_key}"
+					)"
+					;;
+				fish | f*)
+					env_expr="$(
+						printf "set -x %s %s" \
+							"${env_key}" "${env_val}"
+					)"
+					;;
+				nu*)
+					env_expr="$(
+						printf "let-env %s = \"%s\"" \
+							"${env_key}" "${env_val}"
+					)"
+					;;
+				pwsh | powershell | power*)
+					env_expr="$(
+						printf "\$env:%s = \"%s\"" \
+							"${env_key}" "${env_val}"
+					)"
+					;;
+				*)
+					pout --debug "[ERROR] /> ${ctx} <\ Unsupported shell: ${shell}"
+					exit 1
+					;;
+				esac
+
+				#@ Update the environment list
+				env="${env:+${env}${DELIMITER}}${env_expr}"
+				;;
+			esac
+		done
+
+		#@ Return the environment list
+		result="$(
+			for pair in ${env}; do
+				printf "%s\n" "${pair}"
+				case "${shell:-"bash"}" in
+				sh | bash | zsh) printf "\n" ;; *) ;; esac
+			done
+		)"
+		printf "%s" "${result}"
+		IFS="${OLDIFS}"
+	}
+	prj_rust() {
+		# possible_dirs=(
+		#   "${PRJ_RUST}"
+		#   "${PROJECTS}/rust"
+		#   "${HOME}/Projects/rust"
+		#   "${HOME}/projects/Code/Rust"
+		#   "${HOME}/projects/Code/rust"
+		# )
+		:
+	}
+
+	enviro() {
+		enviro__main() {
+			enviro__set_local_env
+			enviro__parse_arguments "$@"
+		}
+
+		enviro__set_local_env() {
+			ctx="enviro" ctx_sep="${ctx_sep:-"-|-"}" _ctx=""
+			DELIMITER="${DELIMITER:-"$(printf "\037")"}"
+			separator="_"
+			OLDIFS="${IFS}" IFS="${DELIMITER}"
+
+			#@ Default settings
+			action="get"
+			shell="$(basename "${SHELL:-"posix"}")"
+			order="$(printf "abs|cmd|env" | tr "|" "${DELIMITER}")"
+			focus="" _focus=""
+			vars=""
+			vals=""
+			args=""
+			result=""
+		}
+
+		enviro__parse_arguments() {
+			#@ Set context
+			ctx_parse="${ctx}${ctx_sep}parse_arguments"
+
+			#@ Parse arguments
+			while [ "$#" -ge 1 ]; do
+				case "$1" in
+				--test)
+					enviro__execute_test
+					return 0
+					;;
+				--action)
+					if [ -n "$2" ]; then
+						action="$2"
+						shift
+					else
+						pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
+					fi
+					;;
+				--get | --set | --unset | --check)
+					action="${1#--}"
+					;;
+				--shell)
+					if [ -n "$2" ]; then
+						shell="$2"
+						shift
+					else
+						pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
+					fi
+					;;
+				--sh | --bash | --zsh | --pwsh | --fish | --nu* | --powershell)
+					shell="${1#--}"
+					;;
+				--type | --focus | --order)
+					_ctx="$1"
+
+					#@ Move to first argument after the flag
+					shift
+
+					#@ Store all arguments until next flag
+					while [ "$#" -ge 1 ]; do
+						case "$1" in
+						--*) break ;;
+						*) _focus="${_focus:+${_focus}${DELIMITER}}$1" ;;
+						esac
+						shift
+					done
+
+					#@ Process stored focus args
+					IFS="${DELIMITER}"
+					for item in ${_focus}; do
+						case "${item}" in
+						cmd | env | dir | path | file | link | abs)
+							focus="${focus:+${focus}${DELIMITER}}${item}"
+							;;
+						*)
+							#@ Prepend invalid args to maintain original order
+							set -- "${item}" "$@"
+							;;
+						esac
+					done
+
+					#@ Cleanup
+					IFS="${OLDIFS}"
+					_focus=""
+
+					#@ Skip the final shift
+					continue
+					;;
+				--cmd | cmd | command | --env | env | --dir | dir | --path | path | --file | file | --link | link | --abs | abs)
+					focus="${focus:+${focus}${DELIMITER}}${1#--}"
+					;;
+				--var* | --key*)
+					if [ -n "$2" ]; then
+						vars="$2"
+						shift 2
+					else
+						pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
+						return 1
+					fi
+					;;
+				--val*)
+					if [ -n "$2" ]; then
+						vals="$2"
+						shift 2
+					else
+						pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
+						return 1
+					fi
+					;;
+				*)
+					args="${args:+${args}${DELIMITER}}$1"
+					;;
+				esac
+				shift
+			done
+
+			#@ Update the variables and values based on the action
+			case "${action}" in
+			set)
+				if [ -z "${args}" ]; then :; else
+					for arg in ${args}; do
+						if [ -z "${vars}" ]; then
+							vars="${arg}"
+						else
+							vals="${vals:+${vals}${DELIMITER}}${arg}"
+						fi
+					done
+				fi
+				;;
+			check)
+				#TODO: Implement behavior for 'check'
+				;;
+			get | unset | *)
+				#@ Convert vals to vars
+				vars="${vars:+${vars}${DELIMITER}}${vals}"
+
+				#@ Add args as vars
+				if [ -z "${args}" ]; then :; else
+					for arg in ${args}; do
+						vars="${vars:+${vars}${DELIMITER}}${arg}"
+					done
+				fi
+				;;
+			esac
+
+			#@ Debug arguments
+			pout --debug "/> ${ctx_parse} <\  FOCUS:" "$(
+				printf "%s" "${focus:-"${order}"}" |
+					tr "${DELIMITER}" "|" || true
+			)"
+			pout --debug "/> ${ctx_parse} <\  SHELL:" "${shell}"
+			pout --debug "/> ${ctx_parse} <\ ACTION:" "${action}"
+			pout --debug "/> ${ctx_parse} <\   VARS:" "[$(
+				#@ Set the DELIMITER
+				old_ifs="${IFS}"
+				IFS="${DELIMITER}"
+
+				#@ Count the variables
+				count_tot=0
+				for item in ${vars}; do
+					count_tot=$((count_tot + 1))
+				done
+
+				#@ Print the variables
+				count_per=0
+				for item in ${vars}; do
+					count_per=$((count_per + 1))
+					printf " %s of %s: \"%s\" " "${count_per}" "${count_tot}" "${item}"
+				done
+
+				#@ Reset the DELIMITER
+				IFS="${old_ifs}"
+			)]"
+			pout --debug "/> ${ctx_parse} <\   VALS:" "$(
+				printf "\"%s\"" "${val:-}" |
+					tr "${DELIMITER}" " " || true
+			)"
+		}
+
+		enviro__execute_test() {
+			#@ Set context
+			ctx_test="${ctx}${ctx_sep}execute_test"
+
+			# pout --test --ctx "${ctx_test}" --cmd "enviro pop --type abs --val \"love\" --bash cmd \"jahjah city\" --key \"kez\" on --type cmd --nu lol"
+			pout --ctx "${ctx_test}" --test \
+				enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
+			pout --ctx "${ctx_test}" --test --
+			# enviro pop --type abs --val "love" --bash cmd "jahjah city" --key "kez" on --type cmd --nu lol
+			# enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
+
+			# enviro --cmd "cmd" command --type cmd file --env env --dir dir --path path --file file --link link --abs abs
+			return
+			# Get command path (all these do the same)
+			enviro --cmd fd
+			echo
+			enviro --get fd
+			echo
+			enviro fd
+			echo
+
+			# Get environment variable
+			enviro USER
+			echo
+			enviro --env USER
+
+			printf "\n\n%s\n" "SET COMMANDS"
+			enviro --cmd fd --shell bah --set
+			echo
+			enviro --cmd fd --shell pwsh --set
+			echo
+			enviro --cmd fd --shell fish --set
+			echo
+			enviro --cmd fd --shell nushell --set
+			# Output: CMD_FD=/path/to/fd\nexport CMD_FD
+
+			printf "\n\n%s\n" "GET VARIABLES"
+			#TODO: This should generate the necessary get command for the appropriate shell. It's not just about returning the command. Remember if the --shell flag is set it means it will be used in that situation
+			enviro --get --env USER --shell pwsh
+			# Output: C:\Users\Administrator
+
+			printf "\n\n%s\n" "SET VARIABLES"
+			# Set custom env var in PowerShell
+			enviro --env myvar --set craole --shell pwsh
+			# Output: $env:USER = "craole"
+
+			printf "\n\n%s\n" "UPDATE PATH"
+			enviro --path --set /usr/local/bin
+
+			printf "\n\n%s\n" "CHECK PATH"
+			enviro --path --check /usr/local/bin
+
+			printf "\n\n%s\n" "GET ABS PATH"
+			enviro --abs ~/.config
+			echo
+			enviro --abs "${HOME}"
+
+			printf "\n\n%s\n" "SET DIR"
+			enviro --dir /usr/local --set LOCAL_DIR
+			echo
+
+			# enviro --cmd rustc cargo fd pop ls --shell pwsh
+			# enviro --cmd fd --shell bash
+			# enviro --env USER --shell pwsh
+			# enviro \
+			#   "${HOME}/Projects/Code/Rust" \
+			#   --name rust \
+			#   "${PRJ_RUST:-}" \
+			#   --prefix prj \
+			#   --prefix for \
+			#   --prefix work \
+			#   "${HOME}/Projects/rust"
+		}
+
+		enviro__execute_core() {
+			# @Extract the shell basename without path
+			shell_name="$(basename "${shell}")"
+			case "${shell_name}" in
+			*fish*) shell_type="fish" ;;
+			*nu*) shell_type="nushell" ;;
+			*pwsh | *powershell) shell_type="powershell" ;;
+			*sh | *) shell_type="posix" ;;
+			esac
+
+			pout --debug "/> ${ctx} <\ Action: ${action}, Shell: ${shell_name} (${shell_type}), Type: ${type}, Key: ${key}, Val: ${val}"
+
+			# Process based on action
+			case "${action:-get}" in
+			set)
+				# Set requires a key and value
+				if [ -z "${key}" ]; then
+					pout --debug "[ERROR] /> ${ctx} <\ Missing key for --set"
+					return 1
+				fi
+
+				# If type is not specified but val is empty, try to autodetect
+				if [ -z "${type}" ] && [ -z "${val}" ]; then
+					# Try to find what key refers to
+					if command -v "${key}" >/dev/null 2>&1; then
+						type="cmd"
+						val="$(command -v "${key}")"
+					elif [ -d "${key}" ]; then
+						type="dir"
+						val="${key}"
+					elif [ -f "${key}" ]; then
+						type="file"
+						val="${key}"
+					elif [ -L "${key}" ]; then
+						type="link"
+						val="${key}"
+					else
+						# Default to env
+						type="env"
+						val="${key}"
+					fi
+				fi
+
+				# Default val to key if not specified
+				if [ -z "${val}" ]; then
+					val="${key}"
+				fi
+
+				# Generate appropriate export syntax
+				case "${type}" in
+				cmd)
+					# For commands, prefix with CMD_
+					cmd_path="$(command -v "${key}" 2>/dev/null || echo "${val}")"
+					env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+
+					case "${shell_type}" in
+					posix)
+						result="${env_key}=${cmd_path}\nexport ${env_key}"
+						;;
+					fish)
+						result="set -x ${env_key} ${cmd_path}"
+						;;
+					nushell)
+						result="let-env ${env_key} = \"${cmd_path}\""
+						;;
+					powershell)
+						result="\$env:${env_key} = \"${cmd_path}\""
+						;;
+					esac
+					;;
+
+				dir)
+					# For directories, prefix with DIR_ if no custom key
+					if [ "${key}" = "${val}" ]; then
+						# Auto-generate key from directory name
+						dir_name="$(basename "${key}")"
+						env_key="DIR_$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]')"
+					else
+						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+					fi
+
+					case "${shell_type}" in
+					posix)
+						result="${env_key}=${val}\nexport ${env_key}"
+						;;
+					fish)
+						result="set -x ${env_key} ${val}"
+						;;
+					nushell)
+						result="let-env ${env_key} = \"${val}\""
+						;;
+					powershell)
+						result="\$env:${env_key} = \"${val}\""
+						;;
+					esac
+					;;
+
+				file)
+					# For files, prefix with FILE_ if no custom key
+					if [ "${key}" = "${val}" ]; then
+						# Auto-generate key from file name
+						file_name="$(basename "${key}")"
+						env_key="FILE_$(echo "${file_name}" | tr '[:lower:]' '[:upper:]')"
+					else
+						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+					fi
+
+					case "${shell_type}" in
+					posix)
+						result="${env_key}=${val}\nexport ${env_key}"
+						;;
+					fish)
+						result="set -x ${env_key} ${val}"
+						;;
+					nushell)
+						result="let-env ${env_key} = \"${val}\""
+						;;
+					powershell)
+						result="\$env:${env_key} = \"${val}\""
+						;;
+					esac
+					;;
+
+				path)
+					# Add to PATH variable
+					case "${shell_type}" in
+					posix)
+						result="PATH=${val}:\${PATH}\nexport PATH"
+						;;
+					fish)
+						result="set -x PATH ${val} \$PATH"
+						;;
+					nushell)
+						result="let-env PATH = \"${val}:\${env.PATH}\""
+						;;
+					powershell)
+						result="\$env:Path = \"${val};\$env:Path\""
+						;;
+					esac
+					;;
+
+				env | *)
+					# For environment variables, use as is
+					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+
+					case "${shell_type}" in
+					posix)
+						result="${env_key}=${val}\nexport ${env_key}"
+						;;
+					fish)
+						result="set -x ${env_key} ${val}"
+						;;
+					nushell)
+						result="let-env ${env_key} = \"${val}\""
+						;;
+					powershell)
+						result="\$env:${env_key} = \"${val}\""
+						;;
+					esac
+					;;
+				esac
+				;;
+
+			unset)
+				# Unset requires a key
+				if [ -z "${key}" ]; then
+					pout --debug "[ERROR] /> ${ctx} <\ Missing key for --unset"
+					return 1
+				fi
+
+				# If type is cmd, prepend CMD_
+				if [ "${type}" = "cmd" ]; then
+					env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+				elif [ "${type}" = "dir" ]; then
+					if [[ "${key}" != DIR_* ]]; then
+						env_key="DIR_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+					else
+						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+					fi
+				elif [ "${type}" = "file" ]; then
+					if [[ "${key}" != FILE_* ]]; then
+						env_key="FILE_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+					else
+						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+					fi
+				else
+					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+				fi
+
+				# Generate unset command
+				case "${shell_type}" in
+				posix)
+					result="unset ${env_key}"
+					;;
+				fish)
+					result="set -e ${env_key}"
+					;;
+				nushell)
+					result="hide-env ${env_key}"
+					;;
+				powershell)
+					result="Remove-Item env:${env_key} -ErrorAction SilentlyContinue"
+					;;
+				esac
+				;;
+
+			check)
+				# Check if a path exists in PATH
+				if [ -z "${key}" ]; then
+					pout --debug "[ERROR] /> ${ctx} <\ Missing path to check"
+					return 1
+				fi
+
+				# Get PATH and check
+				path_found="0"
+				IFS=":"
+				for path_item in ${PATH}; do
+					IFS="${OLDIFS}"
+					if [ "${path_item}" = "${key}" ]; then
+						path_found="1"
+						break
+					fi
+				done
+				IFS="${OLDIFS}"
+
+				if [ "${path_found}" = "1" ]; then
+					result="true"
+				else
+					result="false"
+				fi
+				;;
+			get | *)
+				# If no type specified, try to detect using search_order
+				if [ -z "${type}" ]; then
+					IFS=":"
+					for search_type in ${search_order}; do
+						IFS="${OLDIFS}"
+						pout --debug "/> ${ctx} <\ Trying type: ${search_type} for ${key}"
+
+						case "${search_type}" in
+						cmd)
+							# Check if it's a command
+							cmd_val="$(command -v "${key}" 2>/dev/null || true)"
+							if [ -n "${cmd_val}" ]; then
+								result="${cmd_val}"
+								break
+							fi
+							;;
+						abs)
+							# Check if it's an absolute path
+							if [ -e "${key}" ]; then
+								if [ -d "${key}" ]; then
+									# It's a directory
+									result="${key}"
+									break
+								elif [ -f "${key}" ]; then
+									# It's a file
+									result="${key}"
+									break
+								elif [ -L "${key}" ]; then
+									# It's a symlink
+									result="${key}"
+									break
+								fi
+							fi
+							;;
+						env)
+							# Check if it's an environment variable - try uppercase first
+							env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+							env_val="$(eval echo "\${${env_key_upper}:-}")"
+
+							if [ -n "${env_val}" ]; then
+								result="${env_val}"
+								break
+							fi
+
+							# Try original case
+							env_val="$(eval echo "\${${key}:-}")"
+							if [ -n "${env_val}" ]; then
+								result="${env_val}"
+								break
+							fi
+							;;
+						path)
+							# TODO: use grep or case to check for the exact val in PATH. Remember it could be at the front, back or in the middle so user ":" appropriately
+							;;
+						*)
+							#TODO: We need search type order as well, so if the search type is not defined the default order should be cmd:env:abs. Ourder can also be user-defined.
+							;;
+						esac
+					done
+					IFS="${OLDIFS}"
+				else
+					# Specific type was requested
+					case "${type}" in
+					cmd)
+						result="$(command -v "${key}" 2>/dev/null || true)"
+						;;
+					dir)
+						if [ -d "${key}" ]; then
+							result="${key}"
+						else
+							result=""
+						fi
+						;;
+					file)
+						if [ -f "${key}" ]; then
+							result="${key}"
+						else
+							result=""
+						fi
+						;;
+					link)
+						if [ -L "${key}" ]; then
+							result="${key}"
+						else
+							result=""
+						fi
+						;;
+					abs)
+						# Return absolute path
+						if [ -e "${key}" ]; then
+							# Get absolute path
+							if command -v realpath >/dev/null 2>&1; then
+								result="$(realpath "${key}")"
+							elif command -v readlink >/dev/null 2>&1; then
+								result="$(readlink -f "${key}" 2>/dev/null || echo "${key}")"
+							else
+								# Fallback to a more portable but less reliable method
+								current_dir="$(pwd)"
+								cd "$(dirname "${key}")" 2>/dev/null || {
+									result="${key}"
+									return
+								}
+								dir_path="$(pwd)"
+								cd "${current_dir}" || true
+								result="${dir_path}/$(basename "${key}")"
+							fi
+						else
+							result=""
+						fi
+						;;
+					path)
+						# Return PATH with each entry on a new line
+						if [ -z "${key}" ] || [ "${key}" = "PATH" ] || [ "${key}" = "Path" ]; then
+							case "${shell_type}" in
+							posix)
+								result="$(echo "${PATH}" | tr ':' '\n')"
+								;;
+							fish)
+								result="$(echo "${PATH}" | tr ':' '\n')"
+								;;
+							nushell)
+								result="$(echo "${PATH}" | tr ':' '\n')"
+								;;
+							powershell)
+								# For PowerShell, we can't easily get the PATH here
+								# Just echo the POSIX PATH as a fallback
+								result="$(echo "${PATH}" | tr ':' '\n')"
+								;;
+							esac
+						else
+							# Get a specific path variable
+							env_val="$(eval echo "\${${key}:-}")"
+							result="$(echo "${env_val}" | tr ':' '\n')"
+						fi
+						;;
+					env)
+						# First try uppercase
+						env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+						env_val="$(eval echo "\${${env_key_upper}:-}")"
+
+						if [ -n "${env_val}" ]; then
+							result="${env_val}"
+						else
+							# Try original case
+							env_val="$(eval echo "\${${key}:-}")"
+							result="${env_val}"
+						fi
+						;;
+					esac
+				fi
+				;;
+			esac
+
+			# Output the result
+			printf "%s" "${result}"
+			return 0
+		}
+
+		enviro__main "$@"
+	}
 
 }
 
 dots__init_aliases() {
-  fl() {
-    if [ -x "${CMD_EZA:-}" ]; then
-      \eza \
-        --long \
-        --almost-all \
-        --group-directories-first \
-        --show-symlinks \
-        --icons auto \
-        --colour auto \
-        --colour-scale \
-        --colour-scale-mode gradient \
-        --git \
-        --time-style relative \
-        --total-size \
-        --smart-group \
-        "$@"
-    elif [ -x "${CMD_LSD:-}" ]; then
-      \lsd \
-        --long \
-        --almost-all \
-        --group-directories-first \
-        --color=always \
-        --git \
-        --date=relative \
-        --versionsort \
-        --total-size \
-        "$@"
-    else
-      \ls -lAhF \
-        --color=always \
-        --group-directories-first \
-        "$@"
-    fi
-  }
-  alias l='fl'
+	fl() {
+		if [ -x "${CMD_EZA:-}" ]; then
+			\eza \
+				--long \
+				--almost-all \
+				--group-directories-first \
+				--show-symlinks \
+				--icons auto \
+				--colour auto \
+				--colour-scale \
+				--colour-scale-mode gradient \
+				--git \
+				--time-style relative \
+				--total-size \
+				--smart-group \
+				"$@"
+		elif [ -x "${CMD_LSD:-}" ]; then
+			\lsd \
+				--long \
+				--almost-all \
+				--group-directories-first \
+				--color=always \
+				--git \
+				--date=relative \
+				--versionsort \
+				--total-size \
+				"$@"
+		else
+			\ls -lAhF \
+				--color=always \
+				--group-directories-first \
+				"$@"
+		fi
+	}
+	alias l='fl'
 
-  ft() {
-    if [ -x "${CMD_EZA:-}" ]; then
-      \eza \
-        --long \
-        --almost-all \
-        --group-directories-first \
-        --show-symlinks \
-        --icons auto \
-        --colour auto \
-        --colour-scale \
-        --colour-scale-mode gradient \
-        --git \
-        --git-ignore \
-        --time-style relative \
-        --total-size \
-        --smart-group \
-        --tree \
-        "$@"
-    elif [ -x "${CMD_LSD:-}" ]; then
-      \lsd --tree "$@"
-    else
-      \ls --recursive "$@"
-    fi
-  }
-  alias t='ft'
+	ft() {
+		if [ -x "${CMD_EZA:-}" ]; then
+			\eza \
+				--long \
+				--almost-all \
+				--group-directories-first \
+				--show-symlinks \
+				--icons auto \
+				--colour auto \
+				--colour-scale \
+				--colour-scale-mode gradient \
+				--git \
+				--git-ignore \
+				--time-style relative \
+				--total-size \
+				--smart-group \
+				--tree \
+				"$@"
+		elif [ -x "${CMD_LSD:-}" ]; then
+			\lsd --tree "$@"
+		else
+			\ls --recursive "$@"
+		fi
+	}
+	alias t='ft'
 
-  wat() {
-    if [ -x "${CMD_BAT:-}" ]; then
-      bat --color=always "$@"
-    else
-      \cat "$@"
-    fi
-  }
-  alias r='wat'
+	wat() {
+		if [ -x "${CMD_BAT:-}" ]; then
+			bat --color=always "$@"
+		else
+			\cat "$@"
+		fi
+	}
+	alias r='wat'
 
-  red() {
-    if [ -x "${CMD_BAT:-}" ]; then
-      bat --color=always "$@" --style=plain
-    else
-      \cat "$@"
-    fi
-  }
-  alias R='red'
+	red() {
+		if [ -x "${CMD_BAT:-}" ]; then
+			bat --color=always "$@" --style=plain
+		else
+			\cat "$@"
+		fi
+	}
+	alias R='red'
 
 }
 
 init_tests() {
-  debug=1
-  pout --debug "/> dotsrc <\ Tests initialized"
-  # enviro --test
+	debug=1
+	pout --debug "/> dotsrc <\ Tests initialized"
+	# enviro --test
 
-  # swap_DELIMITER pop lock --str lol --old "|" --new "*"
-  pout --debug "\n/> dotsrc <\ Tests completed"
+	# swap_DELIMITER pop lock --str lol --old "|" --new "*"
+	pout --debug "\n/> dotsrc <\ Tests completed"
 }
 
 dotsenv_BAD() {
-  dotsenv__cleanup() {
-    #@ Remove variables from the environment
-    unset arg args esc var _var val _val entry
-    unset force reset env_type
-    unset rc
-    IFS="${old_ifs}"
-  }
-  trap dotsenv__cleanup EXIT HUP INT TERM
+	dotsenv__cleanup() {
+		#@ Remove variables from the environment
+		unset arg args esc var _var val _val entry
+		unset force reset env_type
+		unset rc
+		IFS="${old_ifs}"
+	}
+	trap dotsenv__cleanup EXIT HUP INT TERM
 
-  args=""
-  esc=""
-  arg=""
-  var="" _var=""
-  val="" _val=""
-  entry=""
-  force=""
-  rc="${RC:-".dotsrc"}"
-  editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
-  env_type=""
-  old_ifs="${IFS}"
-  IFS="${DELIMITER:-"$(printf "\037")"}"
+	args=""
+	esc=""
+	arg=""
+	var="" _var=""
+	val="" _val=""
+	entry=""
+	force=""
+	rc="${RC:-".dotsrc"}"
+	editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
+	env_type=""
+	old_ifs="${IFS}"
+	IFS="${DELIMITER:-"$(printf "\037")"}"
 
-  #@ Reset the cache, if requested
-  case "${reset:-"${RESET:-0}"}" in 1 | yes)
-    pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
-    rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
-    ;;
-  *) ;; esac
+	#@ Reset the cache, if requested
+	case "${reset:-"${RESET:-0}"}" in 1 | yes)
+		pout --debug "Resetting the cache:" "${DOTS_CACHE_RC}"
+		rm -rf "${DOTS_CACHE_RC}" >/dev/null 2>&1
+		;;
+	*) ;; esac
 
-  #@ Ensure the cache directory exists
-  mkdir -p "${DOTS_CACHE}"
+	#@ Ensure the cache directory exists
+	mkdir -p "${DOTS_CACHE}"
 
-  #@ Initialize the cache, if necessary
-  if [ -f "${DOTS_CACHE_RC}" ]; then :; else
-    pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
-    {
-      printf "%s\n" "#!/bin/sh"
-      printf "%s\n" "# shellcheck enable=all"
-      printf "%s\n" "# shellcheck disable=SC1091"
-      printf "%s\n" "# >>-DOTS Cache->> ${DOTS_CACHE_RC} <\\"
-      printf "%s\n\n" "# Generated at: $(date)"
-    } >"${DOTS_CACHE_RC}"
-  fi
+	#@ Initialize the cache, if necessary
+	if [ -f "${DOTS_CACHE_RC}" ]; then :; else
+		pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
+		{
+			printf "%s\n" "#!/bin/sh"
+			printf "%s\n" "# shellcheck enable=all"
+			printf "%s\n" "# shellcheck disable=SC1091"
+			printf "%s\n" "# >>-DOTS Cache->> ${DOTS_CACHE_RC} <\\"
+			printf "%s\n\n" "# Generated at: $(date)"
+		} >"${DOTS_CACHE_RC}"
+	fi
 
-  #@ If no arguments are provided, simply load the cache
-  [ "$#" -lt 0 ] && {
-    . "${DOTS_CACHE_RC}"
-    dotsenv__cleanup
-    return
-  }
+	#@ If no arguments are provided, simply load the cache
+	[ "$#" -lt 0 ] && {
+		. "${DOTS_CACHE_RC}"
+		dotsenv__cleanup
+		return
+	}
 
-  #@ Parse arguments
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --force) _force=true ;;
-    --dir)
-      env_type=dir
-      var="$2"
-      val="$3"
-      shift 2
-      ;;
-    --var) var="$2" ;;
-    --val) val="$2" ;;
-    --cmd) env_type=cmd ;;
-    *)
-      case "${OS_TYPE:-"$(fetch_info --os)"}" in
-      windows)
-        #@ Ensure proper character escaping
-        esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-        args="${args:+${args}${DELIMITER}}\"${esc}\""
-        ;;
-      *)
-        #@ Unix-style escaping
-        esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
-        args="${args:+${args}${DELIMITER}}'${esc}'"
-        ;;
-      esac
-      ;;
-    esac
-    shift
-  done
+	#@ Parse arguments
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+		--force) _force=true ;;
+		--dir)
+			env_type=dir
+			var="$2"
+			val="$3"
+			shift 2
+			;;
+		--var) var="$2" ;;
+		--val) val="$2" ;;
+		--cmd) env_type=cmd ;;
+		*)
+			case "${OS_TYPE:-"$(fetch_info --os)"}" in
+			windows)
+				#@ Ensure proper character escaping
+				esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+				args="${args:+${args}${DELIMITER}}\"${esc}\""
+				;;
+			*)
+				#@ Unix-style escaping
+				esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+				args="${args:+${args}${DELIMITER}}'${esc}'"
+				;;
+			esac
+			;;
+		esac
+		shift
+	done
 
-  case "${force}" in true | 1)
-    printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
-    dotsenv__cleanup
-    return
-    ;;
-  *) ;; esac
+	case "${force}" in true | 1)
+		printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+		dotsenv__cleanup
+		return
+		;;
+	*) ;; esac
 
-  case "${env_type}" in
-  dir)
-    var="$(to_upper "${var}")"
-    val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
-    var_rc="$(to_upper "$(printf "%s_RC" "${var}")")"
-    var_lcase="$(to_lower "${var}")"
-    ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
-    ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
-    ln_export="$(printf "export %s" "${var}")"
-    ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var_lcase}" "${val}")"
-    ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${editor}" "${val}")"
-    ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
-    ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
-    ln_source_rc="$(printf ". %s" "${val_rc}")"
-    ln_export_rc="$(printf "export %s" "${var_rc}")"
-    ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${editor}" "${val_rc}")"
-    ln_end="$(printf "fi\nfi")"
+	case "${env_type}" in
+	dir)
+		var="$(to_upper "${var}")"
+		val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
+		var_rc="$(to_upper "$(printf "%s_RC" "${var}")")"
+		var_lcase="$(to_lower "${var}")"
+		ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
+		ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
+		ln_export="$(printf "export %s" "${var}")"
+		ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var_lcase}" "${val}")"
+		ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var_lcase}" "${editor}" "${val}")"
+		ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
+		ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
+		ln_source_rc="$(printf ". %s" "${val_rc}")"
+		ln_export_rc="$(printf "export %s" "${var_rc}")"
+		ln_alias_edit_rc="$(printf "alias edit.%s.rc='%s %s'" "${var_lcase}" "${editor}" "${val_rc}")"
+		ln_end="$(printf "fi\nfi")"
 
-    entry="$(
-      printf "%s\n" "${ln_env}"
-      printf "%s\n" "${ln_check}"
-      printf "  %s\n" "${ln_alias_cd}"
-      printf "  %s\n" "${ln_alias_edit}"
-      printf "  %s\n\n" "${ln_export}"
-      printf "  %s\n" "${ln_env_rc}"
-      printf "  %s\n" "${ln_check_rc}"
-      printf "    %s\n" "${ln_alias_edit_rc}"
-      printf "    %s\n" "${ln_export_rc}"
-      [ "${var_rc}" = "DOTS_RC" ] ||
-        printf "    %s\n" "${ln_source_rc}"
-      printf "  %s" "${ln_end}"
-    )"
+		entry="$(
+			printf "%s\n" "${ln_env}"
+			printf "%s\n" "${ln_check}"
+			printf "  %s\n" "${ln_alias_cd}"
+			printf "  %s\n" "${ln_alias_edit}"
+			printf "  %s\n\n" "${ln_export}"
+			printf "  %s\n" "${ln_env_rc}"
+			printf "  %s\n" "${ln_check_rc}"
+			printf "    %s\n" "${ln_alias_edit_rc}"
+			printf "    %s\n" "${ln_export_rc}"
+			[ "${var_rc}" = "DOTS_RC" ] ||
+				printf "    %s\n" "${ln_source_rc}"
+			printf "  %s" "${ln_end}"
+		)"
 
-    #@ Write entry to the cache
-    pout --trace "Entry:" "${entry}"
-    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
-    ;;
-  cmd)
-    for arg in ${args}; do
-      cmd="$(to_unquoted "${arg}")"
-      pout --trace "cmd:" "${cmd}"
+		#@ Write entry to the cache
+		pout --trace "Entry:" "${entry}"
+		printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+		;;
+	cmd)
+		for arg in ${args}; do
+			cmd="$(to_unquoted "${arg}")"
+			pout --trace "cmd:" "${cmd}"
 
-      case "${cmd}" in
-      ":" | null | "") continue ;; *)
-        #@ Define the variable, value, and entry
-        var="$(to_upper "CMD_${cmd}")"
-        pout --trace "var:" "${var}"
+			case "${cmd}" in
+			":" | null | "") continue ;; *)
+				#@ Define the variable, value, and entry
+				var="$(to_upper "CMD_${cmd}")"
+				pout --trace "var:" "${var}"
 
-        val="$(command -v "${cmd}" 2>/dev/null || printf "")"
-        pout --trace "val:" "${val}"
+				val="$(command -v "${cmd}" 2>/dev/null || printf "")"
+				pout --trace "val:" "${val}"
 
-        entry="$(
-          printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}"
-        )"
-        ;;
-      esac
+				entry="$(
+					printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}"
+				)"
+				;;
+			esac
 
-      #@ Write entry to the cache
-      printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
-    done
-    ;;
-  *)
-    #@ Define the entry
-    entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
+			#@ Write entry to the cache
+			printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+		done
+		;;
+	*)
+		#@ Define the entry
+		entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
 
-    #@ Write entry to the cache
-    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
-    ;;
-  esac
+		#@ Write entry to the cache
+		printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+		;;
+	esac
 
-  #@ Format the cache
-  if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
-    shfmt --write "${DOTS_CACHE_RC}"
-  else
-    pout --error "Unable to format the cache as shfmt is not installed."
-  fi
+	#@ Format the cache
+	if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
+		shfmt --write "${DOTS_CACHE_RC}"
+	else
+		pout --error "Unable to format the cache as shfmt is not installed."
+	fi
 
-  #@ Reload the cache
-  . "${DOTS_CACHE_RC}"
+	#@ Reload the cache
+	. "${DOTS_CACHE_RC}"
 
-  #@ Cleanup
-  dotsenv__cleanup
+	#@ Cleanup
+	dotsenv__cleanup
 }
 
 dotsenv() {
-  dotsenv__cleanup() {
-    #@ Remove variables from the environment
-    unset arg args esc var _var val _val entry
-    unset force reset env_type
-    unset rc current_val
-    unset DOTS_CACHE_RESET
-    IFS="${old_ifs}"
-  }
-  trap dotsenv__cleanup EXIT HUP INT TERM
+	dotsenv__cleanup() {
+		#@ Remove variables from the environment
+		unset arg args esc var _var val _val entry
+		unset force reset env_type
+		unset rc current_val
+		unset DOTS_CACHE_RESET
+		IFS="${old_ifs}"
+	}
+	trap dotsenv__cleanup EXIT HUP INT TERM
 
-  #@ Set defaults
-  args=""
-  esc=""
-  arg=""
-  var="" _var=""
-  val="" _val=""
-  entry=""
-  force=""
-  rc="${RC:-".dotsrc"}"
-  editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
-  env_type=""
-  old_ifs="${IFS}"
-  current_val=""
-  # reset="${reset:-"${RESET:-0}"}"
-  delimiter="${DELIMITER:-"$(printf "\037")"}"
-  IFS="${delimiter}"
-  CMD_GREP="${CMD_RG:-"$(
-    command -v rg 2>/dev/null ||
-      command -v grep 2>/dev/null ||
-      printf ""
-  )"}"
+	#@ Set defaults
+	args=""
+	esc=""
+	arg=""
+	var="" _var=""
+	val="" _val=""
+	entry=""
+	force=""
+	rc="${RC:-".dotsrc"}"
+	editor="${editor:-"${VISUAL:-${EDITOR:-code}}"}"
+	env_type=""
+	old_ifs="${IFS}"
+	current_val=""
+	# reset="${reset:-"${RESET:-0}"}"
+	delimiter="${DELIMITER:-"$(printf "\037")"}"
+	IFS="${delimiter}"
+	CMD_GREP="${CMD_RG:-"$(
+		command -v rg 2>/dev/null ||
+			command -v grep 2>/dev/null ||
+			printf ""
+	)"}"
 
-  #@ Ensure the cache directory exists
-  if [ -d "${DOTS_CACHE:-}" ]; then :; else
-    pout --trace "Creating the cache directory:" "${DOTS_CACHE}"
-    mkdir -p "${DOTS_CACHE}"
-  fi
+	#@ Ensure the cache directory exists
+	if [ -d "${DOTS_CACHE:-}" ]; then :; else
+		pout --trace "Creating the cache directory:" "${DOTS_CACHE}"
+		mkdir -p "${DOTS_CACHE}"
+	fi
 
-  #@ Initialize the cache, if necessary
-  if [ -f "${DOTS_CACHE_RC:-}" ]; then
-    # pout --trace "Proceeding with existing cache:" "${DOTS_CACHE_RC}"
-    :
-  else
-    pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
-    {
-      printf "%s\n" "#!/bin/sh"
-      printf "%s\n" "# shellcheck enable=all"
-      printf "%s\n" "# shellcheck disable=SC1091"
-      printf "%s\n" "# >>-DOTS Cache->> ${DOTS_CACHE_RC} <\\"
-      printf "%s\n\n" "# Generated at: $(date)"
-    } >"${DOTS_CACHE_RC}"
-  fi
+	#@ Initialize the cache, if necessary
+	if [ -f "${DOTS_CACHE_RC:-}" ]; then
+		# pout --trace "Proceeding with existing cache:" "${DOTS_CACHE_RC}"
+		:
+	else
+		pout --debug "Creating the cache file:" "${DOTS_CACHE_RC}"
+		{
+			printf "%s\n" "#!/bin/sh"
+			printf "%s\n" "# shellcheck enable=all"
+			printf "%s\n" "# shellcheck disable=SC1091"
+			printf "%s\n" "# >>-DOTS Cache->> ${DOTS_CACHE_RC} <\\"
+			printf "%s\n\n" "# Generated at: $(date)"
+		} >"${DOTS_CACHE_RC}"
+	fi
 
-  #@ If no arguments are provided, simply load the cache
-  if [ "$#" -eq 0 ]; then
-    . "${DOTS_CACHE_RC}"
-    dotsenv__cleanup
-    return
-  else
-    # pout --trace "Arguments:" "$*"
-    :
-  fi
+	#@ If no arguments are provided, simply load the cache
+	if [ "$#" -eq 0 ]; then
+		. "${DOTS_CACHE_RC}"
+		dotsenv__cleanup
+		return
+	else
+		# pout --trace "Arguments:" "$*"
+		:
+	fi
 
-  #@ Parse arguments
-  while [ "$#" -ge 1 ]; do
-    case "$1" in
-    --force) _force=true ;;
-    --dir)
-      env_type=dir
-      var="$2"
-      val="$3"
-      shift 2
-      ;;
-    --var) var="$2" ;;
-    --val) val="$2" ;;
-    --cmd) env_type=cmd ;;
-    *)
-      case "${OS_TYPE:-"$(fetch_info --os)"}" in
-      windows)
-        #@ Ensure proper character escaping
-        esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
-        args="${args:+${args}${delimiter}}\"${esc}\""
-        ;;
-      *)
-        #@ Unix-style escaping
-        esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
-        args="${args:+${args}${delimiter}}'${esc}'"
-        ;;
-      esac
-      ;;
-    esac
-    shift
-  done
+	#@ Parse arguments
+	while [ "$#" -ge 1 ]; do
+		case "$1" in
+		--force) _force=true ;;
+		--dir)
+			env_type=dir
+			var="$2"
+			val="$3"
+			shift 2
+			;;
+		--var) var="$2" ;;
+		--val) val="$2" ;;
+		--cmd) env_type=cmd ;;
+		*)
+			case "${OS_TYPE:-"$(fetch_info --os)"}" in
+			windows)
+				#@ Ensure proper character escaping
+				esc="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+				args="${args:+${args}${delimiter}}\"${esc}\""
+				;;
+			*)
+				#@ Unix-style escaping
+				esc="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+				args="${args:+${args}${delimiter}}'${esc}'"
+				;;
+			esac
+			;;
+		esac
+		shift
+	done
 
-  unset Var_empty Var_found
-  var_found="$(rg "^${var}=" "${DOTS_CACHE_RC}")"
-  var_empty="$(rg "^${var}=\"\"" "${DOTS_CACHE_RC}")"
+	unset Var_empty Var_found
+	var_found="$(rg "^${var}=" "${DOTS_CACHE_RC}")"
+	var_empty="$(rg "^${var}=\"\"" "${DOTS_CACHE_RC}")"
 
-  if [ -n "${var_found:-}" ]; then
-    echo "var found: ${var_found}"
-    if [ -z "${var_empty:-}" ]; then
-      echo "var_empty: ${var_empty}"
-    else
-      echo "not empty - skip: ${var}"
-    fi
-  # rg "^${var}=" "${DOTS_CACHE_RC}"
-  else
-    echo "not found"
-  fi
-  # return
+	if [ -n "${var_found:-}" ]; then
+		echo "var found: ${var_found}"
+		if [ -z "${var_empty:-}" ]; then
+			echo "var_empty: ${var_empty}"
+		else
+			echo "not empty - skip: ${var}"
+		fi
+	# rg "^${var}=" "${DOTS_CACHE_RC}"
+	else
+		echo "not found"
+	fi
+	# return
 
-  case "${force}" in true | 1)
-    printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
-    dotsenv__cleanup
-    return
-    ;;
-  *) ;; esac
+	case "${force}" in true | 1)
+		printf "\n%b" "$*" >>"${DOTS_CACHE_RC}"
+		dotsenv__cleanup
+		return
+		;;
+	*) ;; esac
 
-  case "${env_type}" in
-  dir)
-    #@ Check if the variable is already set
-    var_check="$(to_upper "${var}")"
-    if [ -x "${CMD_GREP}" ]; then
-      current_var="$(
-        # shellcheck disable=SC2016
-        ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
-          "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
-      )"
-    else
-      current_var="$(
-        grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
-          sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
-      )"
-    fi
-    [ current_var = "${var_check}" ] && {
-      pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
-      # dotsenv__cleanup
-      # return
-    }
+	case "${env_type}" in
+	dir)
+		#@ Check if the variable is already set
+		var_check="$(to_upper "${var}")"
+		if [ -x "${CMD_GREP}" ]; then
+			current_var="$(
+				# shellcheck disable=SC2016
+				${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+					"${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+			)"
+		else
+			current_var="$(
+				grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+					sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+			)"
+		fi
+		[ current_var = "${var_check}" ] && {
+			pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
+			# dotsenv__cleanup
+			# return
+		}
 
-    pout --trace "Proceeding with var in dir:" "${var_check}"
-    # return
+		pout --trace "Proceeding with var in dir:" "${var_check}"
+		# return
 
-    #@ Check if the variable is already set with the same value
-    var_check="$(to_upper "${var}")"
-    if [ -x "${CMD_GREP}" ]; then
-      current_val="$(
-        # shellcheck disable=SC2016
-        ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
-          "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
-      )"
-    else
-      current_val="$(
-        grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
-          sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
-      )"
-    fi
+		#@ Check if the variable is already set with the same value
+		var_check="$(to_upper "${var}")"
+		if [ -x "${CMD_GREP}" ]; then
+			current_val="$(
+				# shellcheck disable=SC2016
+				${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+					"${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+			)"
+		else
+			current_val="$(
+				grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+					sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+			)"
+		fi
 
-    #@ Skip if the variable is already set with the same value
-    if [ "${current_val}" = "${val}" ]; then
-      pout --trace "Skipping ${var_check}: already set to \"${val}\""
-      dotsenv__cleanup
-      return
-    fi
+		#@ Skip if the variable is already set with the same value
+		if [ "${current_val}" = "${val}" ]; then
+			pout --trace "Skipping ${var_check}: already set to \"${val}\""
+			dotsenv__cleanup
+			return
+		fi
 
-    var="$(to_upper "${var}")"
-    val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
-    var_rc="$(to_upper "${var}_RC")"
+		var="$(to_upper "${var}")"
+		val_rc="$(printf "\"%s/%s\"" "${val}" "${rc}")"
+		var_rc="$(to_upper "${var}_RC")"
 
-    ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
-    ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
-    ln_export="$(printf "export %s" "${var}")"
-    ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var}" "${val}")"
-    ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var}" "${editor}" "${val}")"
-    ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
-    ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
-    ln_source_rc="$(printf ". %s" "${val_rc}")"
-    ln_export_rc="$(printf "export %s" "${var_rc}")"
-    ln_alias_edit_rc="$(printf "alias edit.%s='%s %s'" "${var_rc}" "${editor}" "${val_rc}")"
-    ln_end="$(printf "fi\nfi")"
+		ln_env="$(printf "%s=\"%s\"" "${var}" "${val}")"
+		ln_check="$(printf "if [ ! -d \"%s\" ]; then :; else" "${val}")"
+		ln_export="$(printf "export %s" "${var}")"
+		ln_alias_cd="$(printf "alias cd.%s='cd \"%s\"'" "${var}" "${val}")"
+		ln_alias_edit="$(printf "alias edit.%s='%s %s'" "${var}" "${editor}" "${val}")"
+		ln_env_rc="$(printf "%s=%s" "${var_rc}" "${val_rc}")"
+		ln_check_rc="$(printf "if [ ! -f %s ]; then :; else" "${val_rc}")"
+		ln_source_rc="$(printf ". %s" "${val_rc}")"
+		ln_export_rc="$(printf "export %s" "${var_rc}")"
+		ln_alias_edit_rc="$(printf "alias edit.%s='%s %s'" "${var_rc}" "${editor}" "${val_rc}")"
+		ln_end="$(printf "fi\nfi")"
 
-    entry="$(
-      printf "%s\n" "${ln_env}"
-      printf "%s\n" "${ln_check}"
-      printf "  %s\n" "${ln_alias_cd}"
-      printf "  %s\n" "${ln_alias_edit}"
-      printf "  %s\n\n" "${ln_export}"
-      printf "  %s\n" "${ln_env_rc}"
-      printf "  %s\n" "${ln_check_rc}"
-      printf "    %s\n" "${ln_alias_edit_rc}"
-      printf "    %s\n" "${ln_export_rc}"
+		entry="$(
+			printf "%s\n" "${ln_env}"
+			printf "%s\n" "${ln_check}"
+			printf "  %s\n" "${ln_alias_cd}"
+			printf "  %s\n" "${ln_alias_edit}"
+			printf "  %s\n\n" "${ln_export}"
+			printf "  %s\n" "${ln_env_rc}"
+			printf "  %s\n" "${ln_check_rc}"
+			printf "    %s\n" "${ln_alias_edit_rc}"
+			printf "    %s\n" "${ln_export_rc}"
 
-      case "${var_rc}" in DOTS_RC | DOTS_CACHE_RC) ;; *)
-        printf "    %s\n" "${ln_source_rc}"
-        ;;
-      esac
+			case "${var_rc}" in DOTS_RC | DOTS_CACHE_RC) ;; *)
+				printf "    %s\n" "${ln_source_rc}"
+				;;
+			esac
 
-      printf "  %s" "${ln_end}"
-    )"
+			printf "  %s" "${ln_end}"
+		)"
 
-    #@ Write entry to the cache
-    pout --trace "Adding entry for ${var}: \"${val}\""
-    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
-    ;;
-  cmd)
-    for arg in ${args}; do
-      cmd="$(to_unquoted "${arg}")"
-      pout --trace "cmd:" "${cmd}"
+		#@ Write entry to the cache
+		pout --trace "Adding entry for ${var}: \"${val}\""
+		printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+		;;
+	cmd)
+		for arg in ${args}; do
+			cmd="$(to_unquoted "${arg}")"
+			pout --trace "cmd:" "${cmd}"
 
-      case "${cmd}" in
-      ":" | null | "") continue ;; *)
-        #@ Define the variable, value
-        var="$(to_upper "CMD_${cmd}")"
+			case "${cmd}" in
+			":" | null | "") continue ;; *)
+				#@ Define the variable, value
+				var="$(to_upper "CMD_${cmd}")"
 
-        #@ Check if the variable is already set
-        var_check="$(to_upper "${var}")"
-        if [ -x "${CMD_GREP}" ]; then
-          current_var="$(
-            # shellcheck disable=SC2016
-            ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
-              "${DOTS_CACHE_RC}" 2>/dev/null ||
-              ${CMD_GREP} "^${var_check}=\"\"" -r '$1' \
-                "${DOTS_CACHE_RC}" 2>/dev/null ||
-              printf ""
-          )"
-        else
-          current_var="$(
-            grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
-              sed -E 's/^([^=]*=)"?([^"]*)"?.*/\1\2/' ||
-              printf ""
-          )"
+				#@ Check if the variable is already set
+				var_check="$(to_upper "${var}")"
+				if [ -x "${CMD_GREP}" ]; then
+					current_var="$(
+						# shellcheck disable=SC2016
+						${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+							"${DOTS_CACHE_RC}" 2>/dev/null ||
+							${CMD_GREP} "^${var_check}=\"\"" -r '$1' \
+								"${DOTS_CACHE_RC}" 2>/dev/null ||
+							printf ""
+					)"
+				else
+					current_var="$(
+						grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+							sed -E 's/^([^=]*=)"?([^"]*)"?.*/\1\2/' ||
+							printf ""
+					)"
 
-          echo "VAR in cmd: ${var}"
-          return
+					echo "VAR in cmd: ${var}"
+					return
 
-          [ -z "${current_var}" ] &&
-            current_var="${var_check}="
-        fi
-        [ current_var = "${var_check}" ] && {
-          pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
-          # dotsenv__cleanup
-          # return
-        }
+					[ -z "${current_var}" ] &&
+						current_var="${var_check}="
+				fi
+				[ current_var = "${var_check}" ] && {
+					pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
+					# dotsenv__cleanup
+					# return
+				}
 
-        pout --trace "Proceeding with var in cmd:" "${var_check}"
-        return
+				pout --trace "Proceeding with var in cmd:" "${var_check}"
+				return
 
-        val="$(command -v "${cmd}" 2>/dev/null || printf "")"
+				val="$(command -v "${cmd}" 2>/dev/null || printf "")"
 
-        #@ Check if the variable is already set with the same value
-        if [ -x "${CMD_GREP}" ]; then
-          current_val="$(
-            # shellcheck disable=SC2016
-            ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
-              "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
-          )"
-        else
-          current_val="$(
-            grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
-              sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
-          )"
-        fi
+				#@ Check if the variable is already set with the same value
+				if [ -x "${CMD_GREP}" ]; then
+					current_val="$(
+						# shellcheck disable=SC2016
+						${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+							"${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+					)"
+				else
+					current_val="$(
+						grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+							sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+					)"
+				fi
 
-        #@ Skip if the variable is already set with the same value
-        if [ "${current_val}" = "${val}" ]; then
-          pout --trace "Skipping ${var}: already set to \"${val}\""
-          continue
-        fi
+				#@ Skip if the variable is already set with the same value
+				if [ "${current_val}" = "${val}" ]; then
+					pout --trace "Skipping ${var}: already set to \"${val}\""
+					continue
+				fi
 
-        pout --trace "var:" "${var}"
-        pout --trace "val:" "${val}"
+				pout --trace "var:" "${var}"
+				pout --trace "val:" "${val}"
 
-        entry="$(
-          printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}"
-        )"
+				entry="$(
+					printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}"
+				)"
 
-        #@ Write entry to the cache
-        pout --debug "Adding entry for ${var}: \"${val}\""
-        printf "\n%s\n" "${entry}" >>"${DOTS_CACHE_RC}"
-        ;;
-      esac
-    done
-    ;;
-  *)
-    #@ Check if the variable is already set
-    var_check="$(to_upper "${var}")"
-    if [ -x "${CMD_GREP}" ]; then
-      current_var="$(
-        # shellcheck disable=SC2016
-        ${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
-          "${DOTS_CACHE_RC}" 2>/dev/null || printf ""
-      )"
-    else
-      current_var="$(
-        grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
-          sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
-      )"
-    fi
-    [ current_var = "${var_check}" ] && {
-      pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
-      # dotsenv__cleanup
-      # return
-    }
+				#@ Write entry to the cache
+				pout --debug "Adding entry for ${var}: \"${val}\""
+				printf "\n%s\n" "${entry}" >>"${DOTS_CACHE_RC}"
+				;;
+			esac
+		done
+		;;
+	*)
+		#@ Check if the variable is already set
+		var_check="$(to_upper "${var}")"
+		if [ -x "${CMD_GREP}" ]; then
+			current_var="$(
+				# shellcheck disable=SC2016
+				${CMD_GREP} "^${var_check}=\"(.*)\"" -r '$1' \
+					"${DOTS_CACHE_RC}" 2>/dev/null || printf ""
+			)"
+		else
+			current_var="$(
+				grep "^${var_check}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+					sed 's/^[^"]*"\([^"]*\)".*/\1/' || printf ""
+			)"
+		fi
+		[ current_var = "${var_check}" ] && {
+			pout --trace "Skipping ${var_check}: already set to \"${current_var}\""
+			# dotsenv__cleanup
+			# return
+		}
 
-    pout --trace "Proceeding with var:" "${var_check}"
-    return
-    # if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
-    #   current_val="$(
-    #     ${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo ""
-    #   )"
-    # else
-    #   current_val="$(
-    #     grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null |
-    #       sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo ""
-    #   )"
-    # fi
+		pout --trace "Proceeding with var:" "${var_check}"
+		return
+		# if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null)"}" ]; then
+		#   current_val="$(
+		#     ${CMD_RG:-"$(command -v rg 2>/dev/null)"} "^${var}=\"(.*)\"" -r '$1' "${DOTS_CACHE_RC}" 2>/dev/null || echo ""
+		#   )"
+		# else
+		#   current_val="$(
+		#     grep "^${var}=" "${DOTS_CACHE_RC}" 2>/dev/null |
+		#       sed 's/^[^"]*"\([^"]*\)".*/\1/' || echo ""
+		#   )"
+		# fi
 
-    #@ Skip if the variable is already set with the same value
-    if [ "${current_val}" = "${val}" ]; then
-      pout --trace "Skipping ${var}: already set to \"${val}\""
-      dotsenv__cleanup
-      return
-    fi
+		#@ Skip if the variable is already set with the same value
+		if [ "${current_val}" = "${val}" ]; then
+			pout --trace "Skipping ${var}: already set to \"${val}\""
+			dotsenv__cleanup
+			return
+		fi
 
-    #@ Define the entry
-    entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
+		#@ Define the entry
+		entry="$(printf "%s=\"%s\"\nexport %s" "${var}" "${val}" "${var}")"
 
-    #@ Write entry to the cache
-    pout --debug "Adding entry for ${var}: \"${val}\""
-    printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
-    ;;
-  esac
+		#@ Write entry to the cache
+		pout --debug "Adding entry for ${var}: \"${val}\""
+		printf "\n%s\n\n" "${entry}" >>"${DOTS_CACHE_RC}"
+		;;
+	esac
 
-  #@ Format the cache
-  if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
-    shfmt --write "${DOTS_CACHE_RC}"
-  else
-    pout --error "Unable to format the cache as shfmt is not installed."
-  fi
+	#@ Format the cache
+	if [ -x "${CMD_SHFMT:-"$(command -v shfmt 2>/dev/null)"}" ]; then
+		shfmt --write "${DOTS_CACHE_RC}"
+	else
+		pout --error "Unable to format the cache as shfmt is not installed."
+	fi
 
-  #@ Cleanup
-  dotsenv__cleanup
+	#@ Cleanup
+	dotsenv__cleanup
 }
 
 dotsenv__check() {
-  ${CMD_GREP} "^${var}=" "${DOTS_CACHE_RC}" //dev/null 2>&1
+	${CMD_GREP} "^${var}=" "${DOTS_CACHE_RC}" //dev/null 2>&1
 }
 
 dots__set_global_env() {
-  #@ Ensure the integral DOTS variable are set
-  DOTS="${DOTS:-"${HOME:-}/.dots"}"
-  if [ -d "${DOTS}" ]; then :; else
-    pout --error "DOTS directory is inaccessible:" "${DOTS}"
-    return 1
-  fi
-  RC="${RC:-".dotsrc"}"
-  DOTS_RC="${DOTS_RC:-"${DOTS}/${RC}"}"
-  DOTS_CACHE="${DOTS}/.cache"
-  DOTS_CACHE_RC="${DOTS_CACHE}/${RC}"
+	#@ Ensure the integral DOTS variable are set
+	DOTS="${DOTS:-"${HOME:-}/.dots"}"
+	if [ -d "${DOTS}" ]; then :; else
+		pout --error "DOTS directory is inaccessible:" "${DOTS}"
+		return 1
+	fi
+	RC="${RC:-".dotsrc"}"
+	DOTS_RC="${DOTS_RC:-"${DOTS}/${RC}"}"
+	DOTS_CACHE="${DOTS}/.cache"
+	DOTS_CACHE_RC="${DOTS_CACHE}/${RC}"
 
-  #@ Update the cache
-  # case "${reset_cache:-0}" in
-  # 1 | yes | true)
-  #   case "${DOTS_CACHE_STAGE:-"off"}" in
-  #   initialized)
-  #     pout --trace "DOTS_CACHE_STAGE [init]:" "${DOTS_CACHE_STAGE}"
-  #     pout --debug "Loading the cache."
-  #     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	#@ Update the cache
+	# case "${reset_cache:-0}" in
+	# 1 | yes | true)
+	#   case "${DOTS_CACHE_STAGE:-"off"}" in
+	#   initialized)
+	#     pout --trace "DOTS_CACHE_STAGE [init]:" "${DOTS_CACHE_STAGE}"
+	#     pout --debug "Loading the cache."
+	#     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
 
-  #     #@ Advance the cache stage
-  #     export DOTS_CACHE_STAGE="loaded"
-  #     ;;
-  #   loaded)
-  #     pout --trace "DOTS_CACHE_STAGE [loaded]:" "${DOTS_CACHE_STAGE}"
-  #     pout --debug "Cache already loaded."
+	#     #@ Advance the cache stage
+	#     export DOTS_CACHE_STAGE="loaded"
+	#     ;;
+	#   loaded)
+	#     pout --trace "DOTS_CACHE_STAGE [loaded]:" "${DOTS_CACHE_STAGE}"
+	#     pout --debug "Cache already loaded."
 
-  #     #@ Reload the cache
-  #     # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  #     # pout --debug "Cache reloaded."
-  #     ;;
-  #   off | *)
-  #     pout --trace "DOTS_CACHE_STAGE [off|*]:" "${DOTS_CACHE_STAGE}"
-  #     #@ Set the initial cache stage
-  #     export DOTS_CACHE_STAGE=off
+	#     #@ Reload the cache
+	#     # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	#     # pout --debug "Cache reloaded."
+	#     ;;
+	#   off | *)
+	#     pout --trace "DOTS_CACHE_STAGE [off|*]:" "${DOTS_CACHE_STAGE}"
+	#     #@ Set the initial cache stage
+	#     export DOTS_CACHE_STAGE=off
 
-  #     #@ Ensure the cache directory exists
-  #     mkdir -p "${DOTS_CACHE}"
+	#     #@ Ensure the cache directory exists
+	#     mkdir -p "${DOTS_CACHE}"
 
-  #     #@ Remove the cache
-  #     rm -f "${DOTS_CACHE_RC}" >/dev/null 2>&1
+	#     #@ Remove the cache
+	#     rm -f "${DOTS_CACHE_RC}" >/dev/null 2>&1
 
-  #     #@ Initialize the cache
-  #     pout --debug "Initializing the cache..."
-  #     dots__cache_init
-  #     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	#     #@ Initialize the cache
+	#     pout --debug "Initializing the cache..."
+	#     dots__cache_init
+	#     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
 
-  #     #@ Advance the cache stage
-  #     export DOTS_CACHE_STAGE="initialized"
+	#     #@ Advance the cache stage
+	#     export DOTS_CACHE_STAGE="initialized"
 
-  #     pout --trace "DOTS_CACHE_STAGE [off|*]:" "${DOTS_CACHE_STAGE}"
-  #     pout --debug "Cache already loaded."
+	#     pout --trace "DOTS_CACHE_STAGE [off|*]:" "${DOTS_CACHE_STAGE}"
+	#     pout --debug "Cache already loaded."
 
-  #     #@ Reload the cache
-  #     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  #     pout --debug "Cache reloaded."
-  #     ;;
-  #   esac
-  #   ;;
-  # *)
-  #   pout --debug "Reset off. Loading the cache."
-  #   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  #   dots__cache_init
-  #   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	#     #@ Reload the cache
+	#     [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	#     pout --debug "Cache reloaded."
+	#     ;;
+	#   esac
+	#   ;;
+	# *)
+	#   pout --debug "Reset off. Loading the cache."
+	#   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	#   dots__cache_init
+	#   [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
 
-  #   #@ Advance the cache stage
-  #   DOTS_CACHE_STAGE="loaded"
-  #   ;;
-  # esac
+	#   #@ Advance the cache stage
+	#   DOTS_CACHE_STAGE="loaded"
+	#   ;;
+	# esac
 
-  # pout --trace "DOTS_CACHE_STAGE [after]:" "${DOTS_CACHE_STAGE}"
+	# pout --trace "DOTS_CACHE_STAGE [after]:" "${DOTS_CACHE_STAGE}"
 
-  # [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	# [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
 
-  dots__cache_init() {
-    #@ Define the global environment variables
-    #| Core Info
-    # dotsenv --var OS_TYPE --val "$(fetch_info --os)"
-    # dotsenv --var USER --val "$(fetch_info --user)"
+	dots__cache_init() {
+		#@ Define the global environment variables
+		#| Core Info
+		# dotsenv --var OS_TYPE --val "$(fetch_info --os)"
+		# dotsenv --var USER --val "$(fetch_info --user)"
 
-    # #| Verbosity & Printing
-    # dotsenv --var DELIMITER --val "$(printf "\037")"
-    # dotsenv --var VERBOSITY_QUIET --val 0
-    # dotsenv --var VERBOSITY_WARN --val 1
-    # dotsenv --var VERBOSITY_ERROR --val 2
-    # dotsenv --var VERBOSITY_INFO --val 3
-    # dotsenv --var VERBOSITY_DEBUG --val 4
-    # dotsenv --var VERBOSITY_TRACE --val 5
+		# #| Verbosity & Printing
+		# dotsenv --var DELIMITER --val "$(printf "\037")"
+		# dotsenv --var VERBOSITY_QUIET --val 0
+		# dotsenv --var VERBOSITY_WARN --val 1
+		# dotsenv --var VERBOSITY_ERROR --val 2
+		# dotsenv --var VERBOSITY_INFO --val 3
+		# dotsenv --var VERBOSITY_DEBUG --val 4
+		# dotsenv --var VERBOSITY_TRACE --val 5
 
-    # #| Commands
-    # dotsenv --cmd \
-    #   bacon \
-    #   :
-    # bash \
-    # bat \
-    # cargo \
-    # code \
-    # eza \
-    # fd \
-    # fish \
-    # hx \
-    # lsd \
-    # nu \
-    # pathman \
-    # pwsh \
-    # python3 \
-    # rg \
-    # rustc \
-    # sh \
-    # shfmt \
-    # starship \
-    # tldr \
-    # tokei \
-    # topgrade \
-    # watch \
-    # zig \
-    # zoxide \
-    # zsh \
+		# #| Commands
+		# dotsenv --cmd \
+		#   bacon \
+		#   :
+		# bash \
+		# bat \
+		# cargo \
+		# code \
+		# eza \
+		# fd \
+		# fish \
+		# hx \
+		# lsd \
+		# nu \
+		# pathman \
+		# pwsh \
+		# python3 \
+		# rg \
+		# rustc \
+		# sh \
+		# shfmt \
+		# starship \
+		# tldr \
+		# tokei \
+		# topgrade \
+		# watch \
+		# zig \
+		# zoxide \
+		# zsh \
 
-    # #| DOTS
-    # dotsenv --dir DOTS "${DOTS}"
-    dotsenv --dir DOTS_BIN "${DOTS}/Bin"
-    dotsenv --dir CMD_RG "/c/Users/Administrator/AppData/Local/Microsoft/WinGet/Links/rg"
-    dotsenv --dir CMD_GR ""
-    # dotsenv --dir DOTS_CFG "${DOTS}/Configuration"
-    # dotsenv --dir DOTS_ENV "${DOTS}/Environment"
-    # dotsenv --dir DOTS_DOC "${DOTS}/Documentation"
-    # dotsenv --dir DOTS_DLD "${DOTS}/Downloads"
-    # dotsenv --dir DOTS_MOD "${DOTS}/Modules"
-    # dotsenv --dir DOTS_RES "${DOTS}/Resources"
-    # dotsenv --dir DOTS_JOB "${DOTS}/TODO"
-    # dotsenv --var DOTS_ACTIVE_APPS --val "${DOTS_CACHE}/apps.log"
+		# #| DOTS
+		# dotsenv --dir DOTS "${DOTS}"
+		dotsenv --dir DOTS_BIN "${DOTS}/Bin"
+		dotsenv --dir CMD_RG "/c/Users/Administrator/AppData/Local/Microsoft/WinGet/Links/rg"
+		dotsenv --dir CMD_GR ""
+		# dotsenv --dir DOTS_CFG "${DOTS}/Configuration"
+		# dotsenv --dir DOTS_ENV "${DOTS}/Environment"
+		# dotsenv --dir DOTS_DOC "${DOTS}/Documentation"
+		# dotsenv --dir DOTS_DLD "${DOTS}/Downloads"
+		# dotsenv --dir DOTS_MOD "${DOTS}/Modules"
+		# dotsenv --dir DOTS_RES "${DOTS}/Resources"
+		# dotsenv --dir DOTS_JOB "${DOTS}/TODO"
+		# dotsenv --var DOTS_ACTIVE_APPS --val "${DOTS_CACHE}/apps.log"
 
-    # #| Projects
-    if [ -n "${PRJ}" ]; then
-      dotsenv --dir PRJ "${PRJ}"
-    elif [ -d "${HOME}/Projects" ]; then
-      dotsenv --dir PRJ "${HOME}/Projects"
-    elif
-      : ||
-        [ -d "${HOME}/Documents/GitLab" ] ||
-        [ -d "${HOME}/Documents/Gitlab" ] ||
-        [ -d "${HOME}/Documents/gitlab" ] ||
-        [ -d "${HOME}/Documents/GitHub" ] ||
-        [ -d "${HOME}/Documents/Github" ] ||
-        [ -d "${HOME}/Documents/github" ]
-    then
-      dotsenv --dir PRJ "${HOME}/Documents"
-    else
-      dotsenv --dir PRJ "${DOTS}/../Projects"
-    fi
+		# #| Projects
+		if [ -n "${PRJ}" ]; then
+			dotsenv --dir PRJ "${PRJ}"
+		elif [ -d "${HOME}/Projects" ]; then
+			dotsenv --dir PRJ "${HOME}/Projects"
+		elif
+			: ||
+				[ -d "${HOME}/Documents/GitLab" ] ||
+				[ -d "${HOME}/Documents/Gitlab" ] ||
+				[ -d "${HOME}/Documents/gitlab" ] ||
+				[ -d "${HOME}/Documents/GitHub" ] ||
+				[ -d "${HOME}/Documents/Github" ] ||
+				[ -d "${HOME}/Documents/github" ]
+		then
+			dotsenv --dir PRJ "${HOME}/Documents"
+		else
+			dotsenv --dir PRJ "${DOTS}/../Projects"
+		fi
 
-    #| Scripts
-    # pathman="${DOTS}/Bin/shellscript/environment/pathman"
-    # [ -z "${CMD_PATHMAN}" ] && [ -x "${pathman}" ] &&
-    #   dotsenv --var CMD_PATHMAN --val "${pathman}"
-  }
-  dots__cache_init
-  #@ Reload the cache
-  [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-  pout --debug "Cache reloaded."
+		#| Scripts
+		# pathman="${DOTS}/Bin/shellscript/environment/pathman"
+		# [ -z "${CMD_PATHMAN}" ] && [ -x "${pathman}" ] &&
+		#   dotsenv --var CMD_PATHMAN --val "${pathman}"
+	}
+	dots__cache_init
+	#@ Reload the cache
+	[ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	pout --debug "Cache reloaded."
 }
 
 main "$@"
