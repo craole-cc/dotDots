@@ -5,9 +5,10 @@
 
 main() {
   dots__set_local_env
+  dots__init_config
   dots__init_scripts
   dots__init_aliases
-  dots__set_global_env
+  # dots__set_global_env
   # init_scripts
   # init_sh
   # init_bash
@@ -15,7 +16,7 @@ main() {
   # init_nushell
   # init_blesh
   # init_atuin
-  # init_starship
+  init_starship
   # init_tests || init_fastfetch || true
   # pout --path --tail
 
@@ -269,10 +270,12 @@ dots__init_config() {
   }
 
   init_starship() {
+    [ -n "${STARSHIP_START_TIME}" ] || return
     #@ Retrieve the path to the starship binary
-    CMD_STARSHIP="$(command -v starship 2>/dev/null || printf "")" export CMD_STARSHIP
+    CMD_STARSHIP="$(command -v starship 2>/dev/null || true)"
 
     if [ -x "${CMD_STARSHIP}" ]; then
+      export CMD_STARSHIP
 
       #@ Check if the starship configuration file exists
       starship_config="${DOTS}/Configuration/starship/config.toml"
@@ -328,27 +331,43 @@ dots__init_config() {
 dots__init_scripts() {
 
   fetch_info() {
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --os)
-        if command -v nix >/dev/null 2>&1; then
-          printf "nix"
-        else
-          case "$(uname | tr '[:upper:]' '[:lower:]')" in
-          *linux*) printf "linux" ;;
-          *msys* | *ming* | *cygwin*) printf "windows" ;;
-          *darwin*) printf "macos" ;;
-          *) printf "unknown" ;;
-          esac
-        fi
-        ;;
-      --user)
-        printf "%s" "${USER:-"${USERNAME:-""}"}"
-        ;;
-      *) ;;
-      esac
-      shift
-    done
+    echo testr
+    fetch_info__os() {
+      CMD_NIXOS_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
+      CMD_NIXOS_WSL_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
+      CMD_POWERSHELL="$(command -v powershell >/dev/null 2>&1)"
+      if [ -x "${CMD_NIXOS_VERSION}" ]; then
+        nixos-version="$(nixos-version | awk '{print $1}')"
+        printf "%s" "NixOS"
+        [ -x "${CMD_NIXOS_WSL_VERSION}" ] && printf "_WSL"
+        printf "_%s" "${nixos-version}"
+      else
+        case "$(uname | tr '[:upper:]' '[:lower:]')" in
+        *linux*) printf "linux" ;;
+        *msys* | *ming* | *cygwin*) printf "Windows" ;;
+        *darwin*) printf "macos" ;;
+        *) printf "unknown" ;;
+        esac
+      fi
+    }
+    fetch_info__user() {
+      printf "%s" "${USER:-"${USERNAME:-""}"}"
+    }
+
+    if [ "$#" -lt 1 ]; then
+      fetch_info__os
+    else
+      while [ "$#" -ge 1 ]; do
+        case "$1" in
+        --os) fetch_info__os ;;
+        --user) fetch_info__user ;;
+        *)
+          fetch_info__os
+          ;;
+        esac
+        shift
+      done
+    fi
   }
 
   pout() {
@@ -1865,7 +1884,7 @@ dots__init_scripts() {
                 current_dir="$(pwd)"
                 cd "$(dirname "${key}")" 2>/dev/null || {
                   result="${key}"
-                  break
+                  return
                 }
                 dir_path="$(pwd)"
                 cd "${current_dir}" || true

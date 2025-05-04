@@ -2,7 +2,11 @@
   "recommendations": [
     "adrianwilczynski.toggle-hidden",
     "allemandinstable.colorful-comments-refreshed",
+    "bbenoist.nix",
+    "breadnaught.vscode-ignore",
+    "cliffordfajardo.highlight-line-vscode",
     "constneo.vscode-nushell-format",
+    "ctc.vscode-tree-extension",
     "davidanson.vscode-markdownlint",
     "davidfreer.go-to-character-position",
     "editorconfig.editorconfig",
@@ -19,6 +23,7 @@
     "pkief.material-icon-theme",
     "rafamel.subtle-brackets",
     "royaction.color-manager",
+    "shinazbinshajahan.fileinator",
     "tamasfe.even-better-toml",
     "tekumara.typos-vscode",
     "thenuprojectcontributors.vscode-nushell-lang",
@@ -29,9 +34,5 @@
     "ultram4rine.vscode-choosealicense",
     "xshrim.txt-syntax",
     "yy0931.gitconfig-lsp",
-    "breadnaught.vscode-ignore",
-    "shinazbinshajahan.fileinator",
-    "ctc.vscode-tree-extension",
-    "bbenoist.nix"
   ]
 }

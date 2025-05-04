@@ -1,5 +1,71 @@
 #!/bin/sh
+# shellcheck enable=all
+# shellcheck disable=SC1090,SC1091
 
-#@ Initialize DOTS
-DOTS="/c/Users/Administrator/.dots"
-[ -f "${DOTS}/.dotsrc" ] && . "${DOTS}/.dotsrc"
+findinit_dots() {
+  #@ Initialize variables
+  DOTS=""
+  DOTS_RC=""
+  RC=""
+  VERBOSITY=""
+  names=""
+  homes=""
+
+  #@ Parse Arguments
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --name | --dir)
+      names="${names:+${names} }$2"
+      shift
+      ;;
+    --home | --parent)
+      homes="${homes:+${homes} }$2"
+      shift
+      ;;
+    -d | --debug | --dry-run)
+      VERBOSITY=4
+      ;;
+    *)
+      homes="${homes:+${homes} }$1"
+      ;;
+    esac
+    shift
+  done
+
+  #@ Set defaults
+  RC="${RC:-".dotsrc"}"
+  names="${names:-".dots dotDots dots dotfiles global config common"}"
+  homes="${homes:-"${HOME} /d/Projects/GitHub/CC /d/Configuration /d/Dotfiles /shared/Dotfiles"}"
+  VERBOSITY="${VERBOSITY:-3}"
+
+  #@ Locate the first ".dotsrc" in the specified directories
+  for parent in ${homes}; do
+    if [ -d "${parent}" ]; then
+      for dir in ${names}; do
+        target="${parent}/${dir}"
+        if [ -d "${target}" ]; then
+          DOTS_RC="$(find "${target}" -maxdepth 1 -type f -name "${RC}" | head -n 1)"
+          if [ -f "${DOTS_RC}" ]; then
+            DOTS="$(dirname "${DOTS_RC}")"
+            break 2
+          fi
+        fi
+      done
+    fi
+  done
+
+  #@ Print debug information
+  if [ "${VERBOSITY}" -ge 4 ]; then
+    printf "%s: %s\n" "       RC" "${RC}"
+    printf "%s: %s\n" "     DOTS" "${DOTS}"
+    printf "%s: %s\n" "  DOTS_RC" "${DOTS_RC}"
+    printf "%s: %s\n" "VERBOSITY" "${VERBOSITY}"
+  else
+    if [ -z "${DOTS}" ]; then echo nothing; else
+      export DOTS DOTS_RC RC VERBOSITY
+      . "${DOTS_RC}"
+    fi
+  fi
+}
+
+findinit_dots "${@:-}"
