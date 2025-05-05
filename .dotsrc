@@ -4,20 +4,23 @@
 # set -e
 
 main() {
+	echo dots
 	dots__set_local_env
 	dots__init_config
 	dots__init_scripts
-	dots__init_aliases
-	fetch_info
+	# dots__init_aliases
+	# fetch_info
 	# dots__set_global_env
 	# init_scripts
 	# init_sh
+	dots__init_bin
 	# init_bash
 	# return
 	# init_nushell
 	# init_blesh
 	# init_atuin
-	init_starship
+	# init_starship
+	# init_fastfetch
 	# init_tests || init_fastfetch || true
 	# pout --path --tail
 
@@ -32,7 +35,7 @@ dots__set_local_env() {
 	ctx_sep="-"
 	ctx_head=">>-"
 	ctx_tail="->> "
-	verbosity=5   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+	verbosity=3   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
 	reset_cache=0 #? 0=no, 1=yes
 	editor="code"
 }
@@ -41,18 +44,59 @@ dots__cleanup() {
 	unset ctx verbosity reset
 }
 
+dots__init_bin() {
+	#@ Define configuration
+	BIN_ROOT="${DOTS}/Bin"
+	BIN_DEPTH=10
+	BIN_IGNORE="review tmp temp archive"
+	DOTS_PATH=""
+	dir_count=0
+
+	#@ Filter binary directories
+	BIN_IGNORE_PATTERN=$(printf "%s" "$BIN_IGNORE" | tr ' ' '|')
+	BIN_DIRS="$(
+		find "${BIN_ROOT}" -maxdepth "${BIN_DEPTH}" -type d |
+			grep -v -E "/(${BIN_IGNORE_PATTERN})$" || true
+	)"
+
+	#@ Add all matching directories to PATH
+	for dir in ${BIN_DIRS:-}; do
+		#@ Skip if directory doesn't exist.
+		[ -d "${dir}" ] || continue
+
+		#@ Ensure all files are executable
+		chmod +x -c "${dir}"
+		find "${dir}" -type f -print0 | xargs -0 chmod +x -c
+
+		#@ Skip if already in PATH
+		case ":${PATH}:" in *"${dir}"*) ;; *)
+			DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
+			dir_count=$((dir_count + 1))
+			;;
+		esac
+	done
+
+	if [ -z "${DOTS_PATH:-}" ]; then :; else
+		pout --debug "%s\n" "${DOTS_PATH}" | tr ":" "\n"
+		pout --info "PATH updated with ${dir_count:-0} bin directories"
+		PATH="${DOTS_PATH}:${PATH}"
+	fi
+}
+
 dots__init_config() {
 	init_git() {
 		git config include.path "${GIT_CONFIG:-"${DOTS}/Configuration/git/main.gitconfig"}"
 	}
 
 	init_sh() {
+		CMD_SH="$(command -v sh 2>/dev/null || true)"
+
 		#@ Skip if the command or binary directory are missing
 		if [ -x "${CMD_SH}" ]; then :; else return; fi
-		if [ -d "${DOTS_BIN_SH:-}" ]; then :; else return; fi
+		if [ -d "${DOTS_BIN_SH:-"${DOTS}/Bin/shellscript"}" ]; then :; else return 1; fi
 
 		#@ Set defaults and initialize counters
-		depth_limit=4 # Lower depth limit for better performance
+		depth_limit=4
 		updated_count=0
 		skipped_count=0
 		new_path=""
@@ -102,7 +146,7 @@ dots__init_config() {
 		}
 
 		#@ Start recursive processing at depth 1
-		process_dir "${DOTS_BIN_SH}" 1
+		process_dir "${DOTS_BIN_SH}" 3
 
 		#@ Update PATH if we found new directories
 		if [ -n "${new_path}" ]; then
@@ -207,7 +251,7 @@ dots__init_config() {
 
 	init_bash() {
 		#@ Skip if the command or binary directory are missing
-		if [ -x "${CMD_BASH}" ]; then :; else return; fi
+		if [ -x "${CMD_BASH:-}" ]; then :; else return; fi
 		if [ -d "${DOTS_BIN_BASH:-}" ]; then :; else return; fi
 
 		#@ Check if the binary directory exists
@@ -271,41 +315,45 @@ dots__init_config() {
 	}
 
 	init_starship() {
-		[ -n "${STARSHIP_START_TIME}" ] || return
 		#@ Retrieve the path to the starship binary
 		CMD_STARSHIP="$(command -v starship 2>/dev/null || true)"
 
-		if [ -x "${CMD_STARSHIP}" ]; then
+		if [ -x "${CMD_STARSHIP:-}" ]; then
 			export CMD_STARSHIP
 
-			#@ Check if the starship configuration file exists
+			#@ Skip if starship already initiated
+			if [ -z "${STARSHIP_START_TIME:-}" ]; then :; else
+				pout --debug "[INFO] /> dotsrc <\ Starship already initiated"
+				return 0
+			fi
+
+			#@ Use the custom configuration file if it exists
 			starship_config="${DOTS}/Configuration/starship/config.toml"
-			[ -f "${starship_config}" ] && {
-				#@ Set the STARSHIP_CONFIG environment variable
+			if [ ! -f "${starship_config}" ]; then :; else
 				STARSHIP_CONFIG="${starship_config}"
 				export STARSHIP_CONFIG
-			}
+			fi
 
 			#@ Initialize starship
 			eval "$(starship init bash || true)"
 			pout --debug "[INFO] /> dotsrc <\ Initialized Starship"
 		else
-			pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: " "${CMD_STARSHIP}"
+			pout --debug "[ERROR] /> dotsrc <\ Missing Dependency: starship"
 		fi
 	}
 
 	init_fastfetch() {
 		#@ Retrieve the path to the fastfetch binary
-		CMD_FASTFETCH="$(command -v fastfetch 2>/dev/null || printf "")" export CMD_FASTFETCH
+		CMD_FASTFETCH="$(command -v starship 2>/dev/null || true)"
 
 		if [ -x "${CMD_FASTFETCH}" ]; then
+			export CMD_FASTFETCH
 
 			#@ Check if the starship configuration file exists
 			fastfetch_config="${DOTS}/Configuration/fastfetch/config.jsonc"
 
 			#@ Initialize fastfetch
 			if [ -f "${fastfetch_config}" ]; then
-				#@ Set the FASTFETCH_CONFIG environment variable
 				FASTFETCH_CONFIG="${fastfetch_config}"
 				export FASTFETCH_CONFIG
 				fetch() { fastfetch --config "${FASTFETCH_CONFIG}"; }
@@ -333,38 +381,114 @@ dots__init_scripts() {
 
 	fetch_info() {
 		fetch_info__os() {
-			CMD_NIXOS_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
-			CMD_NIXOS_WSL_VERSION="$(command -v nixos-version >/dev/null 2>&1)"
-			CMD_POWERSHELL="$(command -v powershell >/dev/null 2>&1)"
+			CMD_NIXOS_VERSION="$(command -v nixos-version 2>/dev/null)"
+			CMD_POWERSHELL="$(command -v powershell 2>/dev/null)"
+			CMD_PWSH="$(command -v pwsh 2>/dev/null)"
+			CMD_POWERSHELL="${CMD_PWSH:-"${CMD_POWERSHELL:-}"}"
+			CMD_CMD="$(command -v cmd.exe 2>/dev/null)"
 
-			if [ -x "${CMD_NIXOS_VERSION}" ]; then
-				nixos-version="$(nixos-version | awk '{print $1}')"
-				printf "%s" "NixOS"
-				[ -x "${CMD_NIXOS_WSL_VERSION}" ] && printf "_WSL"
-				printf "_%s" "${nixos-version}"
-			else
-				case "$(uname | tr '[:upper:]' '[:lower:]')" in
-				*linux*) printf "linux" ;;
-				*msys* | *ming* | *cygwin*) printf "Windows" ;;
-				*darwin*) printf "macos" ;;
-				*) printf "unknown" ;;
-				esac
-			fi
+			#@ Retrieve bulk system info (lowercase)
+			system_info() {
+				if uname -a >/dev/null 2>&1; then
+					uname -a
+				elif [ -f /proc/version ]; then
+					cat /proc/version 2>/dev/null || true
+				else
+					printf ""
+				fi | tr '[:upper:]' '[:lower:]' || true
+			}
+
+			is_wsl() {
+				system_info | grep -q "microsoft"
+			}
+
+			nixos_version() {
+				if [ -x "${CMD_NIXOS_VERSION:-}" ]; then
+					#@ Print the OS name
+					printf "%s" "NixOS"
+
+					#@ Extract the major and minor part of the version
+					_ver="$(nixos-version | cut -d. -f1,2)"
+
+					#@ Append the version
+					printf "_%s" "${_ver}"
+				else
+					return 1
+				fi
+			}
+
+			windows_version() {
+				#@ Print the OS name
+				printf "%s" "Windows"
+
+				#@ Append the version
+				if [ -x "${CMD_POWERSHELL:-}" ]; then
+					_ver="$(
+						"${CMD_POWERSHELL}" -NoProfile -Command "[System.Environment]::OSVersion.Version.ToString()" \
+							2>/dev/null | tr -d '\r\n'
+					)"
+					if [ -z "${_ver}" ]; then :; else printf "_%s" "${_ver}"; fi
+				elif [ -x "${CMD_CMD}" ]; then
+					"${CMD_CMD}" /c ver | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1
+				else
+					printf "11"
+				fi
+			}
+
+			macos_version() {
+				printf "MacOS_"
+				sw_vers -productVersion 2>/dev/null | cut -d. -f1,2
+			}
+
+			os_type() {
+				uname -s 2>/dev/null | tr '[:upper:]' '[:lower:]' || printf ""
+			}
+
+			os_ver() {
+				if uname -r >/dev/null 2>&1; then
+					printf "_%s" "$(uname -r)"
+				else
+					printf ""
+				fi
+			}
+
+			#@ Detect OS
+			case "$(system_info)" in
+			*nixos*) nixos_version ;;
+			*linux*) printf "%s%s" "Linux" "$(os_ver)" ;;
+			*msys* | *ming* | *cygwin*) windows_version ;;
+			*darwin*) macos_version ;;
+			*) printf "%s%s" "$(os_type)" "$(os_ver)" ;;
+			esac
+
+			#@ Detect WSL
+			case "$(system_info)" in *wsl*) printf "_WSL" ;; *) ;; esac
 		}
+
 		fetch_info__user() {
 			printf "%s" "${USER:-"${USERNAME:-""}"}"
 		}
 
+		fetch_info__host() {
+			uname -n || hostname || printf ""
+		}
+
+		fetch_info__all() {
+			printf "%s@%s on %s%s" \
+				"$(fetch_info__user)" \
+				"$(fetch_info__host)" \
+				"$(fetch_info__os)" \
+				""
+		}
+
 		if [ "$#" -lt 1 ]; then
-			fetch_info__os
+			fetch_info__all
 		else
 			while [ "$#" -ge 1 ]; do
 				case "$1" in
 				--os) fetch_info__os ;;
 				--user) fetch_info__user ;;
-				*)
-					fetch_info__os
-					;;
+				*) fetch_info__all ;;
 				esac
 				shift
 			done
@@ -1296,655 +1420,675 @@ dots__init_scripts() {
 		:
 	}
 
-	enviro() {
-		enviro__main() {
-			enviro__set_local_env
-			enviro__parse_arguments "$@"
-		}
+	# enviro() {
+	# 	enviro__main() {
+	# 		enviro__set_local_env
+	# 		enviro__parse_arguments "$@"
+	# 	}
 
-		enviro__set_local_env() {
-			ctx="enviro" ctx_sep="${ctx_sep:-"-|-"}" _ctx=""
-			DELIMITER="${DELIMITER:-"$(printf "\037")"}"
-			separator="_"
-			OLDIFS="${IFS}" IFS="${DELIMITER}"
+	# 	enviro__set_local_env() {
+	# 		ctx="enviro" ctx_sep="${ctx_sep:-"-|-"}" _ctx=""
+	# 		DELIMITER="${DELIMITER:-"$(printf "\037")"}"
+	# 		separator="_"
+	# 		OLDIFS="${IFS}" IFS="${DELIMITER}"
 
-			#@ Default settings
-			action="get"
-			shell="$(basename "${SHELL:-"posix"}")"
-			order="$(printf "abs|cmd|env" | tr "|" "${DELIMITER}")"
-			focus="" _focus=""
-			vars=""
-			vals=""
-			args=""
-			result=""
-		}
+	# 		#@ Default settings
+	# 		action="get"
+	# 		shell="$(basename "${SHELL:-"posix"}")"
+	# 		order="$(printf "abs|cmd|env" | tr "|" "${DELIMITER}")"
+	# 		focus="" _focus=""
+	# 		vars=""
+	# 		vals=""
+	# 		args=""
+	# 		result=""
+	# 	}
 
-		enviro__parse_arguments() {
-			#@ Set context
-			ctx_parse="${ctx}${ctx_sep}parse_arguments"
+	# 	enviro__parse_arguments() {
+	# 		#@ Set context
+	# 		ctx_parse="${ctx}${ctx_sep}parse_arguments"
 
-			#@ Parse arguments
-			while [ "$#" -ge 1 ]; do
-				case "$1" in
-				--test)
-					enviro__execute_test
-					return 0
-					;;
-				--action)
-					if [ -n "$2" ]; then
-						action="$2"
-						shift
-					else
-						pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
-					fi
-					;;
-				--get | --set | --unset | --check)
-					action="${1#--}"
-					;;
-				--shell)
-					if [ -n "$2" ]; then
-						shell="$2"
-						shift
-					else
-						pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
-					fi
-					;;
-				--sh | --bash | --zsh | --pwsh | --fish | --nu* | --powershell)
-					shell="${1#--}"
-					;;
-				--type | --focus | --order)
-					_ctx="$1"
+	# 		#@ Parse arguments
+	# 		while [ "$#" -ge 1 ]; do
+	# 			case "$1" in
+	# 			--test)
+	# 				enviro__execute_test
+	# 				return 0
+	# 				;;
+	# 			--action)
+	# 				if [ -n "$2" ]; then
+	# 					action="$2"
+	# 					shift
+	# 				else
+	# 					pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
+	# 				fi
+	# 				;;
+	# 			--get | --set | --unset | --check)
+	# 				action="${1#--}"
+	# 				;;
+	# 			--shell)
+	# 				if [ -n "$2" ]; then
+	# 					shell="$2"
+	# 					shift
+	# 				else
+	# 					pout --debug "[WARN] /> ${ctx} <\ Missing argument for '$1'. Using default: ${action}"
+	# 				fi
+	# 				;;
+	# 			--sh | --bash | --zsh | --pwsh | --fish | --nu* | --powershell)
+	# 				shell="${1#--}"
+	# 				;;
+	# 			--type | --focus | --order)
+	# 				_ctx="$1"
 
-					#@ Move to first argument after the flag
-					shift
+	# 				#@ Move to first argument after the flag
+	# 				shift
 
-					#@ Store all arguments until next flag
-					while [ "$#" -ge 1 ]; do
-						case "$1" in
-						--*) break ;;
-						*) _focus="${_focus:+${_focus}${DELIMITER}}$1" ;;
-						esac
-						shift
-					done
+	# 				#@ Store all arguments until next flag
+	# 				while [ "$#" -ge 1 ]; do
+	# 					case "$1" in
+	# 					--*) break ;;
+	# 					*) _focus="${_focus:+${_focus}${DELIMITER}}$1" ;;
+	# 					esac
+	# 					shift
+	# 				done
 
-					#@ Process stored focus args
-					IFS="${DELIMITER}"
-					for item in ${_focus}; do
-						case "${item}" in
-						cmd | env | dir | path | file | link | abs)
-							focus="${focus:+${focus}${DELIMITER}}${item}"
-							;;
-						*)
-							#@ Prepend invalid args to maintain original order
-							set -- "${item}" "$@"
-							;;
-						esac
-					done
+	# 				#@ Process stored focus args
+	# 				IFS="${DELIMITER}"
+	# 				for item in ${_focus}; do
+	# 					case "${item}" in
+	# 					cmd | env | dir | path | file | link | abs)
+	# 						focus="${focus:+${focus}${DELIMITER}}${item}"
+	# 						;;
+	# 					*)
+	# 						#@ Prepend invalid args to maintain original order
+	# 						set -- "${item}" "$@"
+	# 						;;
+	# 					esac
+	# 				done
 
-					#@ Cleanup
-					IFS="${OLDIFS}"
-					_focus=""
+	# 				#@ Cleanup
+	# 				IFS="${OLDIFS}"
+	# 				_focus=""
 
-					#@ Skip the final shift
-					continue
-					;;
-				--cmd | cmd | command | --env | env | --dir | dir | --path | path | --file | file | --link | link | --abs | abs)
-					focus="${focus:+${focus}${DELIMITER}}${1#--}"
-					;;
-				--var* | --key*)
-					if [ -n "$2" ]; then
-						vars="$2"
-						shift 2
-					else
-						pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
-						return 1
-					fi
-					;;
-				--val*)
-					if [ -n "$2" ]; then
-						vals="$2"
-						shift 2
-					else
-						pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
-						return 1
-					fi
-					;;
-				*)
-					args="${args:+${args}${DELIMITER}}$1"
-					;;
-				esac
-				shift
-			done
+	# 				#@ Skip the final shift
+	# 				continue
+	# 				;;
+	# 			--cmd | cmd | command | --env | env | --dir | dir | --path | path | --file | file | --link | link | --abs | abs)
+	# 				focus="${focus:+${focus}${DELIMITER}}${1#--}"
+	# 				;;
+	# 			--var* | --key*)
+	# 				if [ -n "$2" ]; then
+	# 					vars="$2"
+	# 					shift 2
+	# 				else
+	# 					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
+	# 					return 1
+	# 				fi
+	# 				;;
+	# 			--val*)
+	# 				if [ -n "$2" ]; then
+	# 					vals="$2"
+	# 					shift 2
+	# 				else
+	# 					pout --debug "[ERROR] /> ${ctx} <\ Missing argument for $1"
+	# 					return 1
+	# 				fi
+	# 				;;
+	# 			*)
+	# 				args="${args:+${args}${DELIMITER}}$1"
+	# 				;;
+	# 			esac
+	# 			shift
+	# 		done
 
-			#@ Update the variables and values based on the action
-			case "${action}" in
-			set)
-				if [ -z "${args}" ]; then :; else
-					for arg in ${args}; do
-						if [ -z "${vars}" ]; then
-							vars="${arg}"
-						else
-							vals="${vals:+${vals}${DELIMITER}}${arg}"
-						fi
-					done
-				fi
-				;;
-			check)
-				#TODO: Implement behavior for 'check'
-				;;
-			get | unset | *)
-				#@ Convert vals to vars
-				vars="${vars:+${vars}${DELIMITER}}${vals}"
+	# 		#@ Update the variables and values based on the action
+	# 		case "${action}" in
+	# 		set)
+	# 			if [ -z "${args}" ]; then :; else
+	# 				for arg in ${args}; do
+	# 					if [ -z "${vars}" ]; then
+	# 						vars="${arg}"
+	# 					else
+	# 						vals="${vals:+${vals}${DELIMITER}}${arg}"
+	# 					fi
+	# 				done
+	# 			fi
+	# 			;;
+	# 		check)
+	# 			#TODO: Implement behavior for 'check'
+	# 			;;
+	# 		get | unset | *)
+	# 			#@ Convert vals to vars
+	# 			vars="${vars:+${vars}${DELIMITER}}${vals}"
 
-				#@ Add args as vars
-				if [ -z "${args}" ]; then :; else
-					for arg in ${args}; do
-						vars="${vars:+${vars}${DELIMITER}}${arg}"
-					done
-				fi
-				;;
-			esac
+	# 			#@ Add args as vars
+	# 			if [ -z "${args}" ]; then :; else
+	# 				for arg in ${args}; do
+	# 					vars="${vars:+${vars}${DELIMITER}}${arg}"
+	# 				done
+	# 			fi
+	# 			;;
+	# 		esac
 
-			#@ Debug arguments
-			pout --debug "/> ${ctx_parse} <\  FOCUS:" "$(
-				printf "%s" "${focus:-"${order}"}" |
-					tr "${DELIMITER}" "|" || true
-			)"
-			pout --debug "/> ${ctx_parse} <\  SHELL:" "${shell}"
-			pout --debug "/> ${ctx_parse} <\ ACTION:" "${action}"
-			pout --debug "/> ${ctx_parse} <\   VARS:" "[$(
-				#@ Set the DELIMITER
-				old_ifs="${IFS}"
-				IFS="${DELIMITER}"
+	# 		#@ Debug arguments
+	# 		pout --debug "/> ${ctx_parse} <\  FOCUS:" "$(
+	# 			printf "%s" "${focus:-"${order}"}" |
+	# 				tr "${DELIMITER}" "|" || true
+	# 		)"
+	# 		pout --debug "/> ${ctx_parse} <\  SHELL:" "${shell}"
+	# 		pout --debug "/> ${ctx_parse} <\ ACTION:" "${action}"
+	# 		pout --debug "/> ${ctx_parse} <\   VARS:" "[$(
+	# 			#@ Set the DELIMITER
+	# 			old_ifs="${IFS}"
+	# 			IFS="${DELIMITER}"
 
-				#@ Count the variables
-				count_tot=0
-				for item in ${vars}; do
-					count_tot=$((count_tot + 1))
-				done
+	# 			#@ Count the variables
+	# 			count_tot=0
+	# 			for item in ${vars}; do
+	# 				count_tot=$((count_tot + 1))
+	# 			done
 
-				#@ Print the variables
-				count_per=0
-				for item in ${vars}; do
-					count_per=$((count_per + 1))
-					printf " %s of %s: \"%s\" " "${count_per}" "${count_tot}" "${item}"
-				done
+	# 			#@ Print the variables
+	# 			count_per=0
+	# 			for item in ${vars}; do
+	# 				count_per=$((count_per + 1))
+	# 				printf " %s of %s: \"%s\" " "${count_per}" "${count_tot}" "${item}"
+	# 			done
 
-				#@ Reset the DELIMITER
-				IFS="${old_ifs}"
-			)]"
-			pout --debug "/> ${ctx_parse} <\   VALS:" "$(
-				printf "\"%s\"" "${val:-}" |
-					tr "${DELIMITER}" " " || true
-			)"
-		}
+	# 			#@ Reset the DELIMITER
+	# 			IFS="${old_ifs}"
+	# 		)]"
+	# 		pout --debug "/> ${ctx_parse} <\   VALS:" "$(
+	# 			printf "\"%s\"" "${val:-}" |
+	# 				tr "${DELIMITER}" " " || true
+	# 		)"
+	# 	}
 
-		enviro__execute_test() {
-			#@ Set context
-			ctx_test="${ctx}${ctx_sep}execute_test"
+	# 	enviro__execute_test() {
+	# 		#@ Set context
+	# 		ctx_test="${ctx}${ctx_sep}execute_test"
 
-			# pout --test --ctx "${ctx_test}" --cmd "enviro pop --type abs --val \"love\" --bash cmd \"jahjah city\" --key \"kez\" on --type cmd --nu lol"
-			pout --ctx "${ctx_test}" --test \
-				enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
-			pout --ctx "${ctx_test}" --test --
-			# enviro pop --type abs --val "love" --bash cmd "jahjah city" --key "kez" on --type cmd --nu lol
-			# enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
+	# 		# pout --test --ctx "${ctx_test}" --cmd "enviro pop --type abs --val \"love\" --bash cmd \"jahjah city\" --key \"kez\" on --type cmd --nu lol"
+	# 		pout --ctx "${ctx_test}" --test \
+	# 			enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
+	# 		pout --ctx "${ctx_test}" --test --
+	# 		# enviro pop --type abs --val "love" --bash cmd "jahjah city" --key "kez" on --type cmd --nu lol
+	# 		# enviro --type env abs --val pop cmd --shell nu link --file --action set path --key lock
 
-			# enviro --cmd "cmd" command --type cmd file --env env --dir dir --path path --file file --link link --abs abs
-			return
-			# Get command path (all these do the same)
-			enviro --cmd fd
-			echo
-			enviro --get fd
-			echo
-			enviro fd
-			echo
+	# 		# enviro --cmd "cmd" command --type cmd file --env env --dir dir --path path --file file --link link --abs abs
+	# 		return
+	# 		# Get command path (all these do the same)
+	# 		enviro --cmd fd
+	# 		echo
+	# 		enviro --get fd
+	# 		echo
+	# 		enviro fd
+	# 		echo
 
-			# Get environment variable
-			enviro USER
-			echo
-			enviro --env USER
+	# 		# Get environment variable
+	# 		enviro USER
+	# 		echo
+	# 		enviro --env USER
 
-			printf "\n\n%s\n" "SET COMMANDS"
-			enviro --cmd fd --shell bah --set
-			echo
-			enviro --cmd fd --shell pwsh --set
-			echo
-			enviro --cmd fd --shell fish --set
-			echo
-			enviro --cmd fd --shell nushell --set
-			# Output: CMD_FD=/path/to/fd\nexport CMD_FD
+	# 		printf "\n\n%s\n" "SET COMMANDS"
+	# 		enviro --cmd fd --shell bah --set
+	# 		echo
+	# 		enviro --cmd fd --shell pwsh --set
+	# 		echo
+	# 		enviro --cmd fd --shell fish --set
+	# 		echo
+	# 		enviro --cmd fd --shell nushell --set
+	# 		# Output: CMD_FD=/path/to/fd\nexport CMD_FD
 
-			printf "\n\n%s\n" "GET VARIABLES"
-			#TODO: This should generate the necessary get command for the appropriate shell. It's not just about returning the command. Remember if the --shell flag is set it means it will be used in that situation
-			enviro --get --env USER --shell pwsh
-			# Output: C:\Users\Administrator
+	# 		printf "\n\n%s\n" "GET VARIABLES"
+	# 		#TODO: This should generate the necessary get command for the appropriate shell. It's not just about returning the command. Remember if the --shell flag is set it means it will be used in that situation
+	# 		enviro --get --env USER --shell pwsh
+	# 		# Output: C:\Users\Administrator
 
-			printf "\n\n%s\n" "SET VARIABLES"
-			# Set custom env var in PowerShell
-			enviro --env myvar --set craole --shell pwsh
-			# Output: $env:USER = "craole"
+	# 		printf "\n\n%s\n" "SET VARIABLES"
+	# 		# Set custom env var in PowerShell
+	# 		enviro --env myvar --set craole --shell pwsh
+	# 		# Output: $env:USER = "craole"
 
-			printf "\n\n%s\n" "UPDATE PATH"
-			enviro --path --set /usr/local/bin
+	# 		printf "\n\n%s\n" "UPDATE PATH"
+	# 		enviro --path --set /usr/local/bin
 
-			printf "\n\n%s\n" "CHECK PATH"
-			enviro --path --check /usr/local/bin
+	# 		printf "\n\n%s\n" "CHECK PATH"
+	# 		enviro --path --check /usr/local/bin
 
-			printf "\n\n%s\n" "GET ABS PATH"
-			enviro --abs ~/.config
-			echo
-			enviro --abs "${HOME}"
+	# 		printf "\n\n%s\n" "GET ABS PATH"
+	# 		enviro --abs ~/.config
+	# 		echo
+	# 		enviro --abs "${HOME}"
 
-			printf "\n\n%s\n" "SET DIR"
-			enviro --dir /usr/local --set LOCAL_DIR
-			echo
+	# 		printf "\n\n%s\n" "SET DIR"
+	# 		enviro --dir /usr/local --set LOCAL_DIR
+	# 		echo
 
-			# enviro --cmd rustc cargo fd pop ls --shell pwsh
-			# enviro --cmd fd --shell bash
-			# enviro --env USER --shell pwsh
-			# enviro \
-			#   "${HOME}/Projects/Code/Rust" \
-			#   --name rust \
-			#   "${PRJ_RUST:-}" \
-			#   --prefix prj \
-			#   --prefix for \
-			#   --prefix work \
-			#   "${HOME}/Projects/rust"
-		}
+	# 		# enviro --cmd rustc cargo fd pop ls --shell pwsh
+	# 		# enviro --cmd fd --shell bash
+	# 		# enviro --env USER --shell pwsh
+	# 		# enviro \
+	# 		#   "${HOME}/Projects/Code/Rust" \
+	# 		#   --name rust \
+	# 		#   "${PRJ_RUST:-}" \
+	# 		#   --prefix prj \
+	# 		#   --prefix for \
+	# 		#   --prefix work \
+	# 		#   "${HOME}/Projects/rust"
+	# 	}
 
-		enviro__execute_core() {
-			# @Extract the shell basename without path
-			shell_name="$(basename "${shell}")"
-			case "${shell_name}" in
-			*fish*) shell_type="fish" ;;
-			*nu*) shell_type="nushell" ;;
-			*pwsh | *powershell) shell_type="powershell" ;;
-			*sh | *) shell_type="posix" ;;
-			esac
+	# 	enviro__execute_core() {
+	# 		# @Extract the shell basename without path
+	# 		shell_name="$(basename "${shell}")"
+	# 		case "${shell_name}" in
+	# 		*fish*) shell_type="fish" ;;
+	# 		*nu*) shell_type="nushell" ;;
+	# 		*pwsh | *powershell) shell_type="powershell" ;;
+	# 		*sh | *) shell_type="posix" ;;
+	# 		esac
 
-			pout --debug "/> ${ctx} <\ Action: ${action}, Shell: ${shell_name} (${shell_type}), Type: ${type}, Key: ${key}, Val: ${val}"
+	# 		pout --debug "/> ${ctx} <\ Action: ${action}, Shell: ${shell_name} (${shell_type}), Type: ${type}, Key: ${key}, Val: ${val}"
 
-			# Process based on action
-			case "${action:-get}" in
-			set)
-				# Set requires a key and value
-				if [ -z "${key}" ]; then
-					pout --debug "[ERROR] /> ${ctx} <\ Missing key for --set"
-					return 1
-				fi
+	# 		# Process based on action
+	# 		case "${action:-get}" in
+	# 		set)
+	# 			# Set requires a key and value
+	# 			if [ -z "${key}" ]; then
+	# 				pout --debug "[ERROR] /> ${ctx} <\ Missing key for --set"
+	# 				return 1
+	# 			fi
 
-				# If type is not specified but val is empty, try to autodetect
-				if [ -z "${type}" ] && [ -z "${val}" ]; then
-					# Try to find what key refers to
-					if command -v "${key}" >/dev/null 2>&1; then
-						type="cmd"
-						val="$(command -v "${key}")"
-					elif [ -d "${key}" ]; then
-						type="dir"
-						val="${key}"
-					elif [ -f "${key}" ]; then
-						type="file"
-						val="${key}"
-					elif [ -L "${key}" ]; then
-						type="link"
-						val="${key}"
-					else
-						# Default to env
-						type="env"
-						val="${key}"
-					fi
-				fi
+	# 			# If type is not specified but val is empty, try to autodetect
+	# 			if [ -z "${type}" ] && [ -z "${val}" ]; then
+	# 				# Try to find what key refers to
+	# 				if command -v "${key}" >/dev/null 2>&1; then
+	# 					type="cmd"
+	# 					val="$(command -v "${key}")"
+	# 				elif [ -d "${key}" ]; then
+	# 					type="dir"
+	# 					val="${key}"
+	# 				elif [ -f "${key}" ]; then
+	# 					type="file"
+	# 					val="${key}"
+	# 				elif [ -L "${key}" ]; then
+	# 					type="link"
+	# 					val="${key}"
+	# 				else
+	# 					# Default to env
+	# 					type="env"
+	# 					val="${key}"
+	# 				fi
+	# 			fi
 
-				# Default val to key if not specified
-				if [ -z "${val}" ]; then
-					val="${key}"
-				fi
+	# 			# Default val to key if not specified
+	# 			if [ -z "${val}" ]; then
+	# 				val="${key}"
+	# 			fi
 
-				# Generate appropriate export syntax
-				case "${type}" in
-				cmd)
-					# For commands, prefix with CMD_
-					cmd_path="$(command -v "${key}" 2>/dev/null || echo "${val}")"
-					env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 			# Generate appropriate export syntax
+	# 			case "${type}" in
+	# 			cmd)
+	# 				# For commands, prefix with CMD_
+	# 				cmd_path="$(command -v "${key}" 2>/dev/null || echo "${val}")"
+	# 				env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
 
-					case "${shell_type}" in
-					posix)
-						result="${env_key}=${cmd_path}\nexport ${env_key}"
-						;;
-					fish)
-						result="set -x ${env_key} ${cmd_path}"
-						;;
-					nushell)
-						result="let-env ${env_key} = \"${cmd_path}\""
-						;;
-					powershell)
-						result="\$env:${env_key} = \"${cmd_path}\""
-						;;
-					esac
-					;;
+	# 				case "${shell_type}" in
+	# 				posix)
+	# 					result="${env_key}=${cmd_path}\nexport ${env_key}"
+	# 					;;
+	# 				fish)
+	# 					result="set -x ${env_key} ${cmd_path}"
+	# 					;;
+	# 				nushell)
+	# 					result="let-env ${env_key} = \"${cmd_path}\""
+	# 					;;
+	# 				powershell)
+	# 					result="\$env:${env_key} = \"${cmd_path}\""
+	# 					;;
+	# 				*) ;;
+	# 				esac
+	# 				;;
 
-				dir)
-					# For directories, prefix with DIR_ if no custom key
-					if [ "${key}" = "${val}" ]; then
-						# Auto-generate key from directory name
-						dir_name="$(basename "${key}")"
-						env_key="DIR_$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]')"
-					else
-						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-					fi
+	# 			dir)
+	# 				# For directories, prefix with DIR_ if no custom key
+	# 				if [ "${key}" = "${val}" ]; then
+	# 					# Auto-generate key from directory name
+	# 					dir_name="$(basename "${key}")"
+	# 					env_key="DIR_$(echo "${dir_name}" | tr '[:lower:]' '[:upper:]')"
+	# 				else
+	# 					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				fi
 
-					case "${shell_type}" in
-					posix)
-						result="${env_key}=${val}\nexport ${env_key}"
-						;;
-					fish)
-						result="set -x ${env_key} ${val}"
-						;;
-					nushell)
-						result="let-env ${env_key} = \"${val}\""
-						;;
-					powershell)
-						result="\$env:${env_key} = \"${val}\""
-						;;
-					esac
-					;;
+	# 				case "${shell_type}" in
+	# 				posix)
+	# 					result="${env_key}=${val}\nexport ${env_key}"
+	# 					;;
+	# 				fish)
+	# 					result="set -x ${env_key} ${val}"
+	# 					;;
+	# 				nushell)
+	# 					result="let-env ${env_key} = \"${val}\""
+	# 					;;
+	# 				powershell)
+	# 					result="\$env:${env_key} = \"${val}\""
+	# 					;;
+	# 				*) ;;
+	# 				esac
+	# 				;;
 
-				file)
-					# For files, prefix with FILE_ if no custom key
-					if [ "${key}" = "${val}" ]; then
-						# Auto-generate key from file name
-						file_name="$(basename "${key}")"
-						env_key="FILE_$(echo "${file_name}" | tr '[:lower:]' '[:upper:]')"
-					else
-						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-					fi
+	# 			file)
+	# 				# For files, prefix with FILE_ if no custom key
+	# 				if [ "${key}" = "${val}" ]; then
+	# 					# Auto-generate key from file name
+	# 					file_name="$(basename "${key}")"
+	# 					env_key="FILE_$(echo "${file_name}" | tr '[:lower:]' '[:upper:]')"
+	# 				else
+	# 					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				fi
 
-					case "${shell_type}" in
-					posix)
-						result="${env_key}=${val}\nexport ${env_key}"
-						;;
-					fish)
-						result="set -x ${env_key} ${val}"
-						;;
-					nushell)
-						result="let-env ${env_key} = \"${val}\""
-						;;
-					powershell)
-						result="\$env:${env_key} = \"${val}\""
-						;;
-					esac
-					;;
+	# 				case "${shell_type}" in
+	# 				posix)
+	# 					result="${env_key}=${val}\nexport ${env_key}"
+	# 					;;
+	# 				fish)
+	# 					result="set -x ${env_key} ${val}"
+	# 					;;
+	# 				nushell)
+	# 					result="let-env ${env_key} = \"${val}\""
+	# 					;;
+	# 				powershell)
+	# 					result="\$env:${env_key} = \"${val}\""
+	# 					;;
+	# 				*) ;;
+	# 				esac
+	# 				;;
 
-				path)
-					# Add to PATH variable
-					case "${shell_type}" in
-					posix)
-						result="PATH=${val}:\${PATH}\nexport PATH"
-						;;
-					fish)
-						result="set -x PATH ${val} \$PATH"
-						;;
-					nushell)
-						result="let-env PATH = \"${val}:\${env.PATH}\""
-						;;
-					powershell)
-						result="\$env:Path = \"${val};\$env:Path\""
-						;;
-					esac
-					;;
+	# 			path)
+	# 				# Add to PATH variable
+	# 				case "${shell_type}" in
+	# 				posix)
+	# 					result="PATH=${val}:\${PATH}\nexport PATH"
+	# 					;;
+	# 				fish)
+	# 					result="set -x PATH ${val} \$PATH"
+	# 					;;
+	# 				nushell)
+	# 					result="let-env PATH = \"${val}:\${env.PATH}\""
+	# 					;;
+	# 				powershell)
+	# 					result="\$env:Path = \"${val};\$env:Path\""
+	# 					;;
+	# 				*) ;;
+	# 				esac
+	# 				;;
 
-				env | *)
-					# For environment variables, use as is
-					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 			env | *)
+	# 				# For environment variables, use as is
+	# 				env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
 
-					case "${shell_type}" in
-					posix)
-						result="${env_key}=${val}\nexport ${env_key}"
-						;;
-					fish)
-						result="set -x ${env_key} ${val}"
-						;;
-					nushell)
-						result="let-env ${env_key} = \"${val}\""
-						;;
-					powershell)
-						result="\$env:${env_key} = \"${val}\""
-						;;
-					esac
-					;;
-				esac
-				;;
+	# 				case "${shell_type}" in
+	# 				posix)
+	# 					result="${env_key}=${val}\nexport ${env_key}"
+	# 					;;
+	# 				fish)
+	# 					result="set -x ${env_key} ${val}"
+	# 					;;
+	# 				nushell)
+	# 					result="let-env ${env_key} = \"${val}\""
+	# 					;;
+	# 				powershell)
+	# 					result="\$env:${env_key} = \"${val}\""
+	# 					;;
+	# 				*) ;;
+	# 				esac
+	# 				;;
+	# 			esac
+	# 			;;
 
-			unset)
-				# Unset requires a key
-				if [ -z "${key}" ]; then
-					pout --debug "[ERROR] /> ${ctx} <\ Missing key for --unset"
-					return 1
-				fi
+	# 		unset)
+	# 			# Unset requires a key
+	# 			if [ -z "${key}" ]; then
+	# 				pout --debug "[ERROR] /> ${ctx} <\ Missing key for --unset"
+	# 				return 1
+	# 			fi
 
-				# If type is cmd, prepend CMD_
-				if [ "${type}" = "cmd" ]; then
-					env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-				elif [ "${type}" = "dir" ]; then
-					if [[ "${key}" != DIR_* ]]; then
-						env_key="DIR_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-					else
-						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-					fi
-				elif [ "${type}" = "file" ]; then
-					if [[ "${key}" != FILE_* ]]; then
-						env_key="FILE_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-					else
-						env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-					fi
-				else
-					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-				fi
+	# 			case "${type}" in
+	# 			cmd)
+	# 				env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				;;
+	# 			dir)
+	# 				case "${key}" in DIR_*) ;; *) key="DIR_${key}" ;; esac
+	# 				env_key="DIR_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				;;
+	# 			file)
+	# 				env_key="FILE_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				;;
+	# 			*)
+	# 				env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				;;
+	# 			esac
+	# 			# If type is cmd, prepend CMD_
+	# 			if [ "${type}" = "cmd" ]; then
+	# 				env_key="CMD_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 			elif [ "${type}" = "dir" ]; then
+	# 				if [ "${key}" != DIR_* ]; then
+	# 					env_key="DIR_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				else
+	# 					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				fi
+	# 			elif [ "${type}" = "file" ]; then
+	# 				if [[ "${key}" != FILE_* ]]; then
+	# 					env_key="FILE_$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				else
+	# 					env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 				fi
+	# 			else
+	# 				env_key="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 			fi
 
-				# Generate unset command
-				case "${shell_type}" in
-				posix)
-					result="unset ${env_key}"
-					;;
-				fish)
-					result="set -e ${env_key}"
-					;;
-				nushell)
-					result="hide-env ${env_key}"
-					;;
-				powershell)
-					result="Remove-Item env:${env_key} -ErrorAction SilentlyContinue"
-					;;
-				esac
-				;;
+	# 			# Generate unset command
+	# 			case "${shell_type}" in
+	# 			posix)
+	# 				result="unset ${env_key}"
+	# 				;;
+	# 			fish)
+	# 				result="set -e ${env_key}"
+	# 				;;
+	# 			nushell)
+	# 				result="hide-env ${env_key}"
+	# 				;;
+	# 			powershell)
+	# 				result="Remove-Item env:${env_key} -ErrorAction SilentlyContinue"
+	# 				;;
+	# 			esac
+	# 			;;
 
-			check)
-				# Check if a path exists in PATH
-				if [ -z "${key}" ]; then
-					pout --debug "[ERROR] /> ${ctx} <\ Missing path to check"
-					return 1
-				fi
+	# 		check)
+	# 			# Check if a path exists in PATH
+	# 			if [ -z "${key}" ]; then
+	# 				pout --debug "[ERROR] /> ${ctx} <\ Missing path to check"
+	# 				return 1
+	# 			fi
 
-				# Get PATH and check
-				path_found="0"
-				IFS=":"
-				for path_item in ${PATH}; do
-					IFS="${OLDIFS}"
-					if [ "${path_item}" = "${key}" ]; then
-						path_found="1"
-						break
-					fi
-				done
-				IFS="${OLDIFS}"
+	# 			# Get PATH and check
+	# 			path_found="0"
+	# 			IFS=":"
+	# 			for path_item in ${PATH}; do
+	# 				IFS="${OLDIFS}"
+	# 				if [ "${path_item}" = "${key}" ]; then
+	# 					path_found="1"
+	# 					break
+	# 				fi
+	# 			done
+	# 			IFS="${OLDIFS}"
 
-				if [ "${path_found}" = "1" ]; then
-					result="true"
-				else
-					result="false"
-				fi
-				;;
-			get | *)
-				# If no type specified, try to detect using search_order
-				if [ -z "${type}" ]; then
-					IFS=":"
-					for search_type in ${search_order}; do
-						IFS="${OLDIFS}"
-						pout --debug "/> ${ctx} <\ Trying type: ${search_type} for ${key}"
+	# 			if [ "${path_found}" = "1" ]; then
+	# 				result="true"
+	# 			else
+	# 				result="false"
+	# 			fi
+	# 			;;
+	# 		get | *)
+	# 			# If no type specified, try to detect using search_order
+	# 			if [ -z "${type}" ]; then
+	# 				IFS=":"
+	# 				for search_type in ${search_order}; do
+	# 					IFS="${OLDIFS}"
+	# 					pout --debug "/> ${ctx} <\ Trying type: ${search_type} for ${key}"
 
-						case "${search_type}" in
-						cmd)
-							# Check if it's a command
-							cmd_val="$(command -v "${key}" 2>/dev/null || true)"
-							if [ -n "${cmd_val}" ]; then
-								result="${cmd_val}"
-								break
-							fi
-							;;
-						abs)
-							# Check if it's an absolute path
-							if [ -e "${key}" ]; then
-								if [ -d "${key}" ]; then
-									# It's a directory
-									result="${key}"
-									break
-								elif [ -f "${key}" ]; then
-									# It's a file
-									result="${key}"
-									break
-								elif [ -L "${key}" ]; then
-									# It's a symlink
-									result="${key}"
-									break
-								fi
-							fi
-							;;
-						env)
-							# Check if it's an environment variable - try uppercase first
-							env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-							env_val="$(eval echo "\${${env_key_upper}:-}")"
+	# 					case "${search_type}" in
+	# 					cmd)
+	# 						# Check if it's a command
+	# 						cmd_val="$(command -v "${key}" 2>/dev/null || true)"
+	# 						if [ -n "${cmd_val}" ]; then
+	# 							result="${cmd_val}"
+	# 							break
+	# 						fi
+	# 						;;
+	# 					abs)
+	# 						# Check if it's an absolute path
+	# 						if [ -e "${key}" ]; then
+	# 							if [ -d "${key}" ]; then
+	# 								# It's a directory
+	# 								result="${key}"
+	# 								break
+	# 							elif [ -f "${key}" ]; then
+	# 								# It's a file
+	# 								result="${key}"
+	# 								break
+	# 							elif [ -L "${key}" ]; then
+	# 								# It's a symlink
+	# 								result="${key}"
+	# 								break
+	# 							fi
+	# 						fi
+	# 						;;
+	# 					env)
+	# 						# Check if it's an environment variable - try uppercase first
+	# 						env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 						env_val="$(eval echo "\${${env_key_upper}:-}")"
 
-							if [ -n "${env_val}" ]; then
-								result="${env_val}"
-								break
-							fi
+	# 						if [ -n "${env_val}" ]; then
+	# 							result="${env_val}"
+	# 							break
+	# 						fi
 
-							# Try original case
-							env_val="$(eval echo "\${${key}:-}")"
-							if [ -n "${env_val}" ]; then
-								result="${env_val}"
-								break
-							fi
-							;;
-						path)
-							# TODO: use grep or case to check for the exact val in PATH. Remember it could be at the front, back or in the middle so user ":" appropriately
-							;;
-						*)
-							#TODO: We need search type order as well, so if the search type is not defined the default order should be cmd:env:abs. Ourder can also be user-defined.
-							;;
-						esac
-					done
-					IFS="${OLDIFS}"
-				else
-					# Specific type was requested
-					case "${type}" in
-					cmd)
-						result="$(command -v "${key}" 2>/dev/null || true)"
-						;;
-					dir)
-						if [ -d "${key}" ]; then
-							result="${key}"
-						else
-							result=""
-						fi
-						;;
-					file)
-						if [ -f "${key}" ]; then
-							result="${key}"
-						else
-							result=""
-						fi
-						;;
-					link)
-						if [ -L "${key}" ]; then
-							result="${key}"
-						else
-							result=""
-						fi
-						;;
-					abs)
-						# Return absolute path
-						if [ -e "${key}" ]; then
-							# Get absolute path
-							if command -v realpath >/dev/null 2>&1; then
-								result="$(realpath "${key}")"
-							elif command -v readlink >/dev/null 2>&1; then
-								result="$(readlink -f "${key}" 2>/dev/null || echo "${key}")"
-							else
-								# Fallback to a more portable but less reliable method
-								current_dir="$(pwd)"
-								cd "$(dirname "${key}")" 2>/dev/null || {
-									result="${key}"
-									return
-								}
-								dir_path="$(pwd)"
-								cd "${current_dir}" || true
-								result="${dir_path}/$(basename "${key}")"
-							fi
-						else
-							result=""
-						fi
-						;;
-					path)
-						# Return PATH with each entry on a new line
-						if [ -z "${key}" ] || [ "${key}" = "PATH" ] || [ "${key}" = "Path" ]; then
-							case "${shell_type}" in
-							posix)
-								result="$(echo "${PATH}" | tr ':' '\n')"
-								;;
-							fish)
-								result="$(echo "${PATH}" | tr ':' '\n')"
-								;;
-							nushell)
-								result="$(echo "${PATH}" | tr ':' '\n')"
-								;;
-							powershell)
-								# For PowerShell, we can't easily get the PATH here
-								# Just echo the POSIX PATH as a fallback
-								result="$(echo "${PATH}" | tr ':' '\n')"
-								;;
-							esac
-						else
-							# Get a specific path variable
-							env_val="$(eval echo "\${${key}:-}")"
-							result="$(echo "${env_val}" | tr ':' '\n')"
-						fi
-						;;
-					env)
-						# First try uppercase
-						env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
-						env_val="$(eval echo "\${${env_key_upper}:-}")"
+	# 						# Try original case
+	# 						env_val="$(eval echo "\${${key}:-}")"
+	# 						if [ -n "${env_val}" ]; then
+	# 							result="${env_val}"
+	# 							break
+	# 						fi
+	# 						;;
+	# 					path)
+	# 						# TODO: use grep or case to check for the exact val in PATH. Remember it could be at the front, back or in the middle so user ":" appropriately
+	# 						;;
+	# 					*)
+	# 						#TODO: We need search type order as well, so if the search type is not defined the default order should be cmd:env:abs. Ourder can also be user-defined.
+	# 						;;
+	# 					esac
+	# 				done
+	# 				IFS="${OLDIFS}"
+	# 			else
+	# 				# Specific type was requested
+	# 				case "${type}" in
+	# 				cmd)
+	# 					result="$(command -v "${key}" 2>/dev/null || true)"
+	# 					;;
+	# 				dir)
+	# 					if [ -d "${key}" ]; then
+	# 						result="${key}"
+	# 					else
+	# 						result=""
+	# 					fi
+	# 					;;
+	# 				file)
+	# 					if [ -f "${key}" ]; then
+	# 						result="${key}"
+	# 					else
+	# 						result=""
+	# 					fi
+	# 					;;
+	# 				link)
+	# 					if [ -L "${key}" ]; then
+	# 						result="${key}"
+	# 					else
+	# 						result=""
+	# 					fi
+	# 					;;
+	# 				abs)
+	# 					# Return absolute path
+	# 					if [ -e "${key}" ]; then
+	# 						# Get absolute path
+	# 						if command -v realpath >/dev/null 2>&1; then
+	# 							result="$(realpath "${key}")"
+	# 						elif command -v readlink >/dev/null 2>&1; then
+	# 							result="$(readlink -f "${key}" 2>/dev/null || echo "${key}")"
+	# 						else
+	# 							# Fallback to a more portable but less reliable method
+	# 							current_dir="$(pwd)"
+	# 							cd "$(dirname "${key}")" 2>/dev/null || {
+	# 								result="${key}"
+	# 								return
+	# 							}
+	# 							dir_path="$(pwd)"
+	# 							cd "${current_dir}" || true
+	# 							result="${dir_path}/$(basename "${key}")"
+	# 						fi
+	# 					else
+	# 						result=""
+	# 					fi
+	# 					;;
+	# 				path)
+	# 					# Return PATH with each entry on a new line
+	# 					if [ -z "${key}" ] || [ "${key}" = "PATH" ] || [ "${key}" = "Path" ]; then
+	# 						case "${shell_type}" in
+	# 						posix)
+	# 							result="$(echo "${PATH}" | tr ':' '\n')"
+	# 							;;
+	# 						fish)
+	# 							result="$(echo "${PATH}" | tr ':' '\n')"
+	# 							;;
+	# 						nushell)
+	# 							result="$(echo "${PATH}" | tr ':' '\n')"
+	# 							;;
+	# 						powershell)
+	# 							# For PowerShell, we can't easily get the PATH here
+	# 							# Just echo the POSIX PATH as a fallback
+	# 							result="$(echo "${PATH}" | tr ':' '\n')"
+	# 							;;
+	# 						esac
+	# 					else
+	# 						# Get a specific path variable
+	# 						env_val="$(eval echo "\${${key}:-}")"
+	# 						result="$(echo "${env_val}" | tr ':' '\n')"
+	# 					fi
+	# 					;;
+	# 				env)
+	# 					# First try uppercase
+	# 					env_key_upper="$(echo "${key}" | tr '[:lower:]' '[:upper:]')"
+	# 					env_val="$(eval echo "\${${env_key_upper}:-}")"
 
-						if [ -n "${env_val}" ]; then
-							result="${env_val}"
-						else
-							# Try original case
-							env_val="$(eval echo "\${${key}:-}")"
-							result="${env_val}"
-						fi
-						;;
-					esac
-				fi
-				;;
-			esac
+	# 					if [ -n "${env_val}" ]; then
+	# 						result="${env_val}"
+	# 					else
+	# 						# Try original case
+	# 						env_val="$(eval echo "\${${key}:-}")"
+	# 						result="${env_val}"
+	# 					fi
+	# 					;;
+	# 				esac
+	# 			fi
+	# 			;;
+	# 		esac
 
-			# Output the result
-			printf "%s" "${result}"
-			return 0
-		}
+	# 		# Output the result
+	# 		printf "%s" "${result}"
+	# 		return 0
+	# 	}
 
-		enviro__main "$@"
-	}
+	# 	enviro__main "$@"
+	# }
 
 }
 
