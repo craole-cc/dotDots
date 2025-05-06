@@ -1,12 +1,12 @@
 [global]
 excludes = [
   # "treefmt.toml",
-  "generated.nix",
   "**/node_modules/**",
   "**/target/**",
   "**/dist/**",
-  "**/.git/**",
   "**/review/**",
+  "**/archive/**",
+  "./git/**",
   "Assets/**",                                 #TODO Temporary
   "Configuration/**",                          #TODO Temporary
   "Environment/**",                            #TODO Temporary
@@ -44,30 +44,9 @@ includes = ["README.md"]
 options = ["--inputs"]
 priority = 2
 
-[formatter.texfmt]
-command = "tex-fmt"
-excludes = []
-includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
-options = []
-
-[formatter.typstfmt]
-command = "typstfmt"
-excludes = []
-includes = ["*.typ", "*.typst"]
-options = []
-priority = 1
-
-[formatter.typstyle]
-command = "typstyle"
-excludes = []
-includes = ["*.typ", "*.typst"]
-options = ["-i"]
-priority = 2
-
 #| Nix
 # [formatter.nixfmt]
-# includes = ["**/nix/**", "*.nix.*", "*.nix"]
-# excludes = ["*.sh", "*.json*", "*.yml", "*.yaml", "*.toml", "*.py", "*.rs"]
+# includes = ["*.nix"]
 # priority = 2
 # command = "nixfmt"
 
@@ -98,7 +77,7 @@ includes = [
   ".shellcheckrc",
   "*.bash",
   ".bash*",
-  "Bin/shellscript/**",
+  # "Bin/shellscript/**",
   "Modules/**",
 ]
 priority = 1
@@ -127,9 +106,9 @@ includes = [
 priority = 2
 
 [formatter.fish]
-command  = "fish_indent"
+command = "fish_indent"
 includes = ["*.fish"]
-options  = ["--write"]
+options = ["--write"]
 
 # [formatter.psscriptanalyzer]
 # includes = ["*.ps1"]
@@ -152,6 +131,12 @@ options = ["--unstable", "--fmt", "--justfile"]
 #   "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
 # ]
 
+#| Powershell
+[formatter.powershell]
+command = "pwsh"
+options = ["-NoProfile", "-File", "Bin/powershell/psfmt.ps1"]
+includes = ["*.ps1", "*.psm1"]
+
 #| Data formats
 
 # [formatter.json]
@@ -170,12 +155,6 @@ options = ["format"]
 # [formatter.stylua]
 # command  = "stylua"
 # includes = ["*.lua"]
-
-#| YAML formatting
-[formatter.yamlfmt]
-includes = ["*.yaml", "*.yml"]
-command = "yamlfmt"
-options = ["-formatter", "retain_line_breaks=true"]
 
 # [formatter.actionlint]
 # command = "actionlint"
@@ -271,10 +250,7 @@ options = ["--keepdate"]
 # options = []
 
 [formatter.nufmt]
-includes = [
-  "*.nu",
-  "Bin/nushell/**",
-]
+includes = ["*.nu", "Bin/nushell/**"]
 command = "nufmt"
 
 # #| Ruby
@@ -304,12 +280,38 @@ command = "nufmt"
 # includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
 # options = ["fmt"]
 
+[formatter.texfmt]
+command = "tex-fmt"
+excludes = []
+includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
+options = []
+
+[formatter.typstfmt]
+command = "typstfmt"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options = []
+priority = 1
+
+[formatter.typstyle]
+command = "typstyle"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options = ["-i"]
+priority = 2
+
 [formatter.typos]
 command = "typos"
 excludes = []
 includes = ["*"]
 options = ["--diff"]
 # options = ["--write-changes"]
+
+#| YAML formatting
+[formatter.yamlfmt]
+includes = ["*.yaml", "*.yml"]
+command = "yamlfmt"
+options = ["-formatter", "retain_line_breaks=true"]
 
 [formatter.zig]
 command = "zig"
