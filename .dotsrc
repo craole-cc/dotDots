@@ -10,6 +10,11 @@ main() {
 	dots__init_bin
 	dots__init_scripts #TODO: Move all to bin
 	# init_oh_my_posh atomic
+	# init_oh_my_posh clean-detailed
+	# init_oh_my_posh kushal
+	# init_oh_my_posh night-owl
+	init_oh_my_posh config
+	# init_starship
 
 	# dots__init_scripts
 	# dots__init_aliases
@@ -17,7 +22,7 @@ main() {
 	# dots__set_global_env
 	# init_scripts
 	# init_sh
-	init_oh_my_posh clean-detailed
+
 	# init_bash
 	# return
 	# init_nushell

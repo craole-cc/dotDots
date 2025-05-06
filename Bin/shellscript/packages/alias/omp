@@ -304,12 +304,12 @@ set_theme() {
   _theme="$1" theme=""
 
   #@ Look for the theme in the list of available themes using grep or awk
-  _config_json="${posh_config_dir}/${_theme}.omp.json"
   _config_toml="${posh_config_dir}/${_theme}.toml"
   _config_yaml="${posh_config_dir}/${_theme}.yaml"
-  _theme_json="${posh_themes_dir}/${_theme}.omp.json"
+  _config_json="${posh_config_dir}/${_theme}.omp.json"
   _theme_toml="${posh_themes_dir}/${_theme}.toml"
   _theme_yaml="${posh_themes_dir}/${_theme}.yaml"
+  _theme_json="${posh_themes_dir}/${_theme}.omp.json"
 
   if [ -f "${_config_json}" ]; then
     theme="${_config_json}"
