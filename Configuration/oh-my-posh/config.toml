@@ -397,7 +397,8 @@ trailing_diamond = "\ue0b4"
 
 [blocks.segments.properties]
 shell = "bash"
-command = "day --month-day-time"
+command = "day --at"
+# command = "/c/Users/Administrator/.dots/Bin/shellscript/system_tray/day --at"
 
 
 # [[blocks.segments]]
