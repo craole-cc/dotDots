@@ -1,0 +1,22 @@
+#!/bin/sh
+
+day=$(date +%-d)
+case "$day" in
+  11|12|13) suffix="th" ;;
+  *)
+    case "${day##*[!0-9]}" in
+      1) suffix="st" ;;
+      2) suffix="nd" ;;
+      3) suffix="rd" ;;
+      *) suffix="th" ;;
+    esac
+    ;;
+esac
+
+case "$1" in
+--month-day-time) printf "\uf073 %s)(%s \ue641 " "$(date +'%b') ${day}${suffix}" "$(date +'%H:%M')";;
+# --month-day-time) printf "\uf073 %s ┼ %s \ue641 " "$(date +'%b') ${day}${suffix}" "$(date +'%H:%M')";;
+--time) printf "%s" "$(date +'%H:%M')" ;;
+--month-day|*) printf "%s %s" "$(date +'%b')" "${day}${suffix}" ;;
+esac
+# printf "%s%s%s" "$(date +'%b')" "${day}${suffix}" "$(date +'%H:%M')"

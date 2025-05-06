@@ -388,19 +388,33 @@ trailing_diamond = "\ue0d6"
 template = "\ue755 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
 
 [[blocks.segments]]
-type = "time"
+type = "command"
 style = "diamond"
 background = "#234d70"
 foreground = "#d6deeb"
 leading_diamond = "\ue0b2"
 trailing_diamond = "\ue0b4"
-# template = "\ue641 {{ .CurrentDate | date .Format }} \uf073 "
-template = " \uf073 {{ .CurrentDate | date .Format }} \ue641 "
-# template = "\ue641 {{ .CurrentDate | date .Format }}"
 
 [blocks.segments.properties]
-# time_format = "15:04"
-time_format = "15:04 Jan-02"
+shell = "bash"
+command = "day --month-day-time"
+
+
+# [[blocks.segments]]
+# type = "time"
+# style = "diamond"
+# background = "#234d70"
+# foreground = "#d6deeb"
+# leading_diamond = "\ue0b2"
+# trailing_diamond = "\ue0b4"
+# # template = "\ue641 {{ .CurrentDate | date .Format }} \uf073 "
+# template = " \uf073 {{ .CurrentDate | date .Format }} \ue641 "
+# # template = "\ue641 {{ .CurrentDate | date .Format }}"
+
+# [blocks.segments.properties]
+# time_format = "Jan 02 ┼ 15:04"
+# # time_format = "15:04"
+# # time_format = "15:04 Jan-02"
 
 #| Third prompt block (left alignment with newline)
 [[blocks]]
