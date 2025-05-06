@@ -1,3 +1,0 @@
-[submodule "Configuration/nushell/libraries/topiary"]
-	path = Configuration/nushell/libraries/topiary
-	url = https://github.com/blindFS/topiary-nushell
