@@ -1,0 +1,351 @@
+#!/bin/sh
+# shellcheck enable=all
+
+main() {
+  trap cleanup EXIT HUP INT TERM
+  set_defaults
+  parse_arguments "$@"
+  establish_environment
+  execute_process
+}
+
+set_defaults() {
+  #| Modes
+  set -e
+  verbosity=1
+  delimiter="${DELIMITER:-"$(printf "\037")"}"
+  ifs="${IFS}"
+
+  #| Script variables
+  app_path="$0"
+  app_name="$(basename "${app_name:-${app_path}}")"
+  app_version="0.0.1"
+  app_description="Wrapper for oh-my-posh"
+  app_usage="$(
+    printf "%s v%s - %s" "${app_name}" "${app_version}" "${app_description}"
+    printf "\nUsage: %s [OPTIONS] [THEME]\n" "${app_name}"
+  )"
+  app_help="$(
+    printf "\n%s" "${app_usage}"
+    printf "\nOptions:"
+    printf "\n  -h, --help"
+    printf "\n  -v, --version"
+    printf "\n  -l, --list-themes"
+    printf "\n  -T, --get-theme"
+    printf "\n  -t, --set-theme"
+    printf "\n"
+    printf "\nExamples:"
+    printf "\n  oh-my-posh"
+    printf "\n  oh-my-posh --theme default"
+    printf "\n"
+  )"
+
+  #| Process variables
+  posh_config_dir="${POSH_HOME_DIR:-"${DOTS}/Configuration/oh-my-posh"}"
+  posh_themes_dir="${POSH_THEMES_DIR:-"${posh_config_dir}/themes"}"
+  default_theme="config"
+  default_action="get"
+}
+
+cleanup() {
+  code="$?"
+  case "$code" in
+  0) ;;
+  130) pout "Process cancelled by user." ;;
+  *) pout "Process exited with error. [Code: ${code}]" ;;
+  esac
+
+  exit "${code}"
+
+  unset app_name app_path app_description app_version app_usage
+  unset action target
+  unset omp_home_dir posh_themes_dir POSH_THEME_NAMES post_theme_ext
+}
+
+parse_arguments() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h)
+      printf "%s\n" "${app_usage}"
+      return 0
+      ;;
+    --help)
+      printf "%s\n" "${app_help}"
+      return 0
+      ;;
+    -v | --version)
+      action="get"
+      target="version"
+      ;;
+    -l | --list-themes)
+      action="get"
+      target="theme_names"
+      ;;
+    -P | --paths)
+      action="get"
+      target="theme_paths"
+      ;;
+    -p | --pretty)
+      action="get"
+      target="names_paged"
+      ;;
+    -g | --get)
+      action="get"
+      target="$2"
+      shift
+      ;;
+    -s | --set | -t | --theme)
+      action="set"
+      target="$2"
+      shift
+      ;;
+    *)
+      action="set"
+      target="$1"
+      ;;
+    esac
+    shift
+  done
+}
+
+pout() {
+  #@ Initialize variables
+  tag="" msg=""
+
+  #@ Set verbosity
+  case "${verbosity:-}" in
+  0 | quiet) return ;;
+  1 | error) verbosity=1 ;;
+  2 | warn*) verbosity=2 ;;
+  3 | info*) verbosity=3 ;;
+  4 | debug*) verbosity=4 ;;
+  5 | trace*) verbosity=5 ;;
+  *) verbosity=3 ;;
+  esac
+
+  #@ Parse arguments
+  case "$1" in
+  --page*)
+    shift
+    if [ -x "${CMD_PAGER:-}" ]; then
+      "${CMD_PAGER:-}" "$*"
+    else
+      printf "%s\n" "$*" | "${CMD_BAT:-less -N -R}"
+    fi
+    return 0
+    ;;
+  --error)
+    if [ "${verbosity:-}" -lt 1 ]; then return; else
+      tag="ERROR"
+      shift
+      msg="$*"
+    fi
+    ;;
+  --warn)
+    if [ "${verbosity:-}" -lt 2 ]; then return; else
+      tag=" WARN"
+      shift
+      msg="$*"
+    fi
+    ;;
+  --info)
+    if [ "${verbosity:-}" -lt 3 ]; then return; else
+      tag=" INFO"
+      shift
+      msg="$*"
+    fi
+    ;;
+  --debug)
+    if [ "${verbosity:-}" -lt 4 ]; then return; else
+      tag="DEBUG"
+      shift
+      msg="$*"
+    fi
+    ;;
+  --trace)
+    if [ "${verbosity:-}" -lt 5 ]; then return; else
+      tag="TRACE"
+      shift
+      msg="$*"
+    fi
+    ;;
+  *)
+    msg="$*"
+    ;;
+  esac
+
+  if [ -n "${tag}" ]; then
+    printf ">>- %s | %s ->> %b\n" "${tag}" "${app_name}" "${msg}"
+  else
+    printf "%b\n" "${msg}"
+  fi
+}
+
+set_dependencies() {
+  #@ Initialize variables
+  dependency_type="ammenity"
+  dependencies=""
+  val="" var=""
+  IFS="${delimiter}"
+
+  while [ "$#" -gt 0 ]; do
+    case $1 in
+    --needed | --main | --prod) dependency_type="necessity" ;;
+    --nice | --dev) dependency_type="amenity" ;;
+    *) dependencies="${dependencies:+${dependencies}"${delimiter:- }"}$1" ;;
+    esac
+    shift
+  done
+
+  for cmd in $dependencies; do
+    val="$(command -v "${cmd}" || true)"
+    var="$(printf "CMD_%s" "$cmd" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
+
+    if [ -x "${val:-}" ]; then
+      export "${var}=${val}"
+      pout --debug "${var}: ${val}"
+    else
+      case "${dependency_type:-}" in
+      necessity)
+        pout --error "Missing critical dependency: ${cmd}"
+        return 2
+        ;;
+      amenity | *)
+        pout --warn "Missing dependency: ${cmd}"
+        ;;
+      esac
+      unset "${var}"
+    fi
+  done
+
+  unset val var dependencies dependency_type
+  IFS="${ifs}"
+}
+
+establish_environment() {
+  #@ Define dependencies
+  set_dependencies --main oh-my-posh
+  set_dependencies pager
+
+  #@ Determine the shell and init command
+  POSH_SHELL="$(${CMD_OH_MY_POSH} get shell)"
+  case "${POSH_SHELL:-}" in
+  zsh) POSH_SHELL="zsh" ;;
+  fish) POSH_SHELL="fish" ;;
+  elvish) POSH_SHELL="elvish" ;;
+  sh | dash | bash) POSH_SHELL="bash" ;;
+  *)
+    pout --error "Unsupported shell: ${POSH_SHELL}"
+    return 3
+    ;;
+  esac
+
+  #@ Retrieve the themes from the oh-my-posh themes/config directory
+  _dir="" _depth=1
+  if [ -d "${posh_config_dir:-}" ]; then
+    _dir="${posh_config_dir}"
+    _depth=2
+  elif [ -d "${posh_themes_dir:-}" ]; then
+    _dir="${posh_themes_dir}"
+    _depth=1
+  else
+    pout --error "Error: posh_config_dir or posh_themes_dir not defined"
+    return 2
+  fi
+
+  POSH_THEMES="$(
+    #@ Fallback to coreutils find
+    find "${_dir}" \
+      -maxdepth "${_depth}" \
+      -type f \
+      \( \
+      -name '*.toml' -o \
+      -name '*.yaml' -o \
+      -name '*.omp.json' \
+      \) 2>/dev/null
+  )"
+
+  #@ Extract the theme names from the paths
+  POSH_THEME_NAMES="$(
+    [ -n "${POSH_THEMES}" ] &&
+      printf "%s\n" "${POSH_THEMES}" |
+      sed \
+        -e "s|^${posh_themes_dir}/||" -e "s|^${posh_config_dir}/||" \
+        -e "s|\.omp.json$||" -e "s|\.toml$||" -e "s|\.yaml$||" |
+        sort -u
+  )"
+}
+
+execute_process() {
+  action="${action:-"${default_action:-}"}"
+  target="${target:-"${default_theme:-}"}"
+  pout --debug "Current POSH_THEME:" "${POSH_THEME:-}"
+  pout --debug "Target POSH_THEME:" "${target:-${default_theme}}"
+  pout --debug "Action:" "${action}"
+
+  #@ Define actions
+  case "${action}" in
+  set) set_theme "${target}" ;;
+  get | *)
+    case "${target:-}" in
+    *names) pout "${POSH_THEME_NAMES}" ;;
+    *names*paged) pout --paged "${POSH_THEME_NAMES}" ;;
+    *paths) pout "${POSH_THEMES}" ;;
+    *paths*paged) pout --paged "${POSH_THEMES}" ;;
+    theme) pout "${POSH_THEME:-"Not set"}" ;;
+    version) "${CMD_OH_MY_POSH}" --version ;;
+    *) pout --paged "${POSH_THEME_NAMES}" ;;
+    esac
+    ;;
+  esac
+}
+
+set_theme() {
+  _theme="$1" theme=""
+
+  #@ Look for the theme in the list of available themes using grep or awk
+  _config_json="${posh_config_dir}/${_theme}.omp.json"
+  _config_toml="${posh_config_dir}/${_theme}.toml"
+  _config_yaml="${posh_config_dir}/${_theme}.yaml"
+  _theme_json="${posh_themes_dir}/${_theme}.omp.json"
+  _theme_toml="${posh_themes_dir}/${_theme}.toml"
+  _theme_yaml="${posh_themes_dir}/${_theme}.yaml"
+
+  if [ -f "${_config_json}" ]; then
+    theme="${_config_json}"
+  elif [ -f "${_config_toml}" ]; then
+    theme="${_config_toml}"
+  elif [ -f "${_config_yaml}" ]; then
+    theme="${_config_yaml}"
+  elif [ -f "${_theme_json}" ]; then
+    theme="${_theme_json}"
+  elif [ -f "${_theme_toml}" ]; then
+    theme="${_theme_toml}"
+  elif [ -f "${_theme_yaml}" ]; then
+    theme="${_theme_yaml}"
+  fi
+
+  #@ Update the theme
+  if [ -n "${theme:-}" ]; then
+    if [ "${POSH_THEME:-}" != "${theme:-}" ]; then
+      pout --info "Setting POSH_THEME to:" "${theme}"
+      POSH_THEME="${theme:-}" export POSH_THEME
+    else
+      pout --info "POSH_THEME already set to:" "${theme}"
+    fi
+  else
+    pout --warn "Theme not found: ${_theme:-}"
+  fi
+
+  #@ Build the command
+  POSH_INIT="$(oh-my-posh init "${POSH_SHELL}" --config "${POSH_THEME}" || true)"
+
+  #@ Initialize oh-my-posh
+  if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
+    printf "%s" "${POSH_INIT:-}"
+  else
+    pout --error "Unsupported terminal: ${TERM_PROGRAM}"
+    return 3
+  fi
+}
+main "$@"

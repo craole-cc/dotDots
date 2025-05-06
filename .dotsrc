@@ -4,16 +4,20 @@
 # set -e
 
 main() {
-	echo dots
+	# echo pop
 	dots__set_local_env
 	dots__init_config
-	dots__init_scripts
+	dots__init_bin
+	dots__init_scripts #TODO: Move all to bin
+	# init_oh_my_posh atomic
+
+	# dots__init_scripts
 	# dots__init_aliases
 	# fetch_info
 	# dots__set_global_env
 	# init_scripts
 	# init_sh
-	dots__init_bin
+	init_oh_my_posh clean-detailed
 	# init_bash
 	# return
 	# init_nushell
@@ -23,7 +27,6 @@ main() {
 	# init_fastfetch
 	# init_tests || init_fastfetch || true
 	# pout --path --tail
-
 	# pout --path --head 50
 	# echo "${PATH}" | tr ':' '\n'
 	# pout_PATH
@@ -35,7 +38,7 @@ dots__set_local_env() {
 	ctx_sep="-"
 	ctx_head=">>-"
 	ctx_tail="->> "
-	verbosity=3   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+	verbosity=1   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
 	reset_cache=0 #? 0=no, 1=yes
 	editor="code"
 }
@@ -65,8 +68,8 @@ dots__init_bin() {
 		[ -d "${dir}" ] || continue
 
 		#@ Ensure all files are executable
-		chmod +x -c "${dir}"
-		find "${dir}" -type f -print0 | xargs -0 chmod +x -c
+		# chmod +x -c "${dir}"
+		# find "${dir}" -type f -print0 | xargs -0 chmod +x -c
 
 		#@ Skip if already in PATH
 		case ":${PATH}:" in *"${dir}"*) ;; *)
@@ -342,6 +345,17 @@ dots__init_config() {
 		fi
 	}
 
+	init_oh_my_posh() {
+		CMD_OMP="$(
+			command -v omp 2>/dev/null ||
+				printf "%s" "${DOTS}/Bin/shellscript/packages/alias/omp"
+		)"
+
+		if [ -x "${CMD_OMP:-}" ]; then
+			eval "$(omp --set "${1:-}" || true)"
+		fi
+	}
+
 	init_fastfetch() {
 		#@ Retrieve the path to the fastfetch binary
 		CMD_FASTFETCH="$(command -v starship 2>/dev/null || true)"
@@ -609,12 +623,12 @@ dots__init_scripts() {
 				;;
 			warn*)
 				if [ "${verbosity:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then :; else
-					printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+					printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
 				fi
 				;;
 			error*)
 				if [ "${verbosity:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then :; else
-					printf "\n%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
+					printf "%b%b\n" "${pout_ctx_tag}" "${pout_msg}"
 				fi
 				;;
 			path*)
