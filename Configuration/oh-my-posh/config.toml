@@ -33,19 +33,21 @@ template = " {{ if .WSL }}WSL at {{ end }}{{.Icon}}  "
 windows = "\ue62a"
 macos = "\uf179"
 
-[[blocks.segments]]
-type = "root"
-style = "powerline"
-background = "#ef5350"
-foreground = "#ffeb95"
-powerline_symbol = "\ue0b0"
-template = " \uf292 "
+# [[blocks.segments]]
+# type = "root"
+# style = "powerline"
+# background = "#ef5350"
+# foreground = "#ffeb95"
+# powerline_symbol = "\ue0b0"
+# template = " \uf292 "
 
 [[blocks.segments]]
 type = "path"
 style = "powerline"
-background = "#82AAFF"
-foreground = "#011627"
+# background = "#82AAFF"
+# foreground = "#011627"
+background = "#ef5350"
+foreground = "#ffeb95"
 powerline_symbol = "\ue0b0"
 leading_powerline_symbol = "\ue0d7"
 template = "{{ path .Path .Location }}"
@@ -110,14 +112,14 @@ leading_diamond = "\ue0b6"
 trailing_diamond = "\ue0d6"
 template = "\uf489  {{ .Name }} "
 
-[[blocks.segments]]
-type = "sysinfo"
-style = "diamond"
-background = "#8f43f3"
-foreground = "#ffffff"
-leading_diamond = "\ue0b2"
-trailing_diamond = "\ue0d6"
-template = "\ue266 {{ round .PhysicalPercentUsed .Precision }}% "
+# [[blocks.segments]]
+# type = "sysinfo"
+# style = "diamond"
+# background = "#8f43f3"
+# foreground = "#ffffff"
+# leading_diamond = "\ue0b2"
+# trailing_diamond = "\ue0d6"
+# template = "\ue266 {{ round .PhysicalPercentUsed .Precision }}% "
 
 [[blocks.segments]]
 type = "angular"
@@ -392,12 +394,15 @@ background = "#234d70"
 foreground = "#d6deeb"
 leading_diamond = "\ue0b2"
 trailing_diamond = "\ue0b4"
-template = "\ue641 {{ .CurrentDate | date .Format }}"
+# template = "\ue641 {{ .CurrentDate | date .Format }} \uf073 "
+template = " \uf073 {{ .CurrentDate | date .Format }} \ue641 "
+# template = "\ue641 {{ .CurrentDate | date .Format }}"
 
 [blocks.segments.properties]
-time_format = "15:04:05"
+# time_format = "15:04"
+time_format = "15:04 Jan-02"
 
-# Third prompt block (left alignment with newline)
+#| Third prompt block (left alignment with newline)
 [[blocks]]
 type = "prompt"
 alignment = "left"
