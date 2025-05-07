@@ -16,20 +16,19 @@ background = "transparent"
 foreground = "#d6deeb"
 template = "\ue285 "
 
-#| First prompt block (left alignment)
-
-
 # =================================================
-# > Top Left Prompt
+#| Top Left Prompt
 # =================================================
+
 [[blocks]]
 type = "prompt"
 alignment = "left"
 newline = true
 
 # =================================================
-# > Operating System
+#| Operating System
 # =================================================
+
 [[blocks.segments]]
 type = "os"
 style = "diamond"
@@ -46,7 +45,7 @@ macos = "\uf179"
 
 
 # =================================================
-# > Root
+#| Root
 # =================================================
 
 # [[blocks.segments]]
@@ -60,8 +59,9 @@ macos = "\uf179"
 # template = " \uf292 "
 
 # =================================================
-# > Path
+#| Path
 # =================================================
+
 [[blocks.segments]]
 type = "path"
 style = "powerline"
@@ -78,15 +78,16 @@ home_icon = " \ueb06 "
 style = "agnoster"
 
 [blocks.segments.properties.mapped_locations]
-"~/.dots" = "\uf444 "
-# "~/.dots" = "\u27B2 "
+# "~/.dots" = "\uf4c3 "
+# "~/.dots" = "\uf444 "
+"~/.dots" = "\u27B2 "
 # "~/.dots" = "\u27bd "
 # \udb83\udf77
 # "~/.dots" = "\uf0ad "
 "~/.config" = "\uf013 "
 
 # =================================================
-# > Git
+#| Git
 # =================================================
 
 [[blocks.segments]]
@@ -115,30 +116,39 @@ fetch_worktree_count = true
 "bug/*" = "🐛 "
 
 # =================================================
-# > Execution Time
+#| Execution Time
 # =================================================
 
-[[blocks.segments]]
-type = "executiontime"
-style = "diamond"
-background = "#21c7a8"
-foreground = "#011627"
-# background = "#575656"
-# foreground = "#d6deeb"
-leading_diamond = "\ue0d7"
-trailing_diamond = "\ue0b4"
-template = " {{ .FormattedMs }}"
+# [[blocks.segments]]
+# type = "executiontime"
+# style = "diamond"
+# foreground = "#575656"
+# background = "#d6deeb"
+# leading_diamond = "\ue0d7"
+# trailing_diamond = "\ue0b4"
+# template = " {{ .FormattedMs }}"
 
-[blocks.segments.properties]
-style = "roundrock"
-threshold = 0
+# [blocks.segments.properties]
+# style = "roundrock"
+# threshold = 0
 
-#| Second prompt block (right alignment)
+# =================================================
+#| Top Right Prompt
+# =================================================
+
 [[blocks]]
 type = "prompt"
 alignment = "right"
 overflow = "break"
 newline = false
+
+# =================================================
+#| Execution Time
+# =================================================
+
+# =================================================
+#| Shell
+# =================================================
 
 [[blocks.segments]]
 type = "shell"
@@ -149,6 +159,27 @@ leading_diamond = "\ue0b6"
 trailing_diamond = "\ue0d6"
 template = "\uf489  {{ .Name }} "
 
+# =================================================
+#| Execution Time
+# =================================================
+
+[[blocks.segments]]
+type = "executiontime"
+style = "diamond"
+background = "#d6deeb"
+foreground = "#011627"
+leading_diamond = "\ue0b2"
+trailing_diamond = "\ue0d6"
+template = " {{ .FormattedMs }} "
+
+[blocks.segments.properties]
+style = "roundrock"
+threshold = 0
+
+# =================================================
+#| System Info
+# =================================================
+
 # [[blocks.segments]]
 # type = "sysinfo"
 # style = "diamond"
@@ -157,6 +188,10 @@ template = "\uf489  {{ .Name }} "
 # leading_diamond = "\ue0b2"
 # trailing_diamond = "\ue0d6"
 # template = "\ue266 {{ round .PhysicalPercentUsed .Precision }}% "
+
+# =================================================
+#| Languages
+# =================================================
 
 [[blocks.segments]]
 type = "angular"
@@ -424,35 +459,39 @@ leading_diamond = "\ue0b2"
 trailing_diamond = "\ue0d6"
 template = "\ue755 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
 
-[[blocks.segments]]
-type = "command"
-style = "diamond"
-background = "#234d70"
-foreground = "#d6deeb"
-leading_diamond = "\ue0b2"
-trailing_diamond = "\ue0b4"
-
-[blocks.segments.properties]
-shell = "bash"
-command = "day --at"
-# command = "/c/Users/Administrator/.dots/Bin/shellscript/system_tray/day --at"
-
+# =================================================
+#| Date & Time
+# =================================================
 
 # [[blocks.segments]]
-# type = "time"
+# type = "command"
 # style = "diamond"
 # background = "#234d70"
 # foreground = "#d6deeb"
 # leading_diamond = "\ue0b2"
 # trailing_diamond = "\ue0b4"
-# # template = "\ue641 {{ .CurrentDate | date .Format }} \uf073 "
-# template = " \uf073 {{ .CurrentDate | date .Format }} \ue641 "
-# # template = "\ue641 {{ .CurrentDate | date .Format }}"
 
 # [blocks.segments.properties]
-# time_format = "Jan 02 ┼ 15:04"
-# # time_format = "15:04"
-# # time_format = "15:04 Jan-02"
+# shell = "bash"
+# command = "day --at"
+
+
+[[blocks.segments]]
+type = "time"
+style = "diamond"
+background = "#234d70"
+foreground = "#d6deeb"
+leading_diamond = "\ue0b2"
+trailing_diamond = "\ue0b4"
+template = " \uf073 {{ .CurrentDate | date .Format }} \ue641 "
+# template = "\ue641 {{ .CurrentDate | date .Format }} \uf073 "
+# template = " \uf073 {{ .CurrentDate | date .Format }} \ue641 "
+# template = "\ue641 {{ .CurrentDate | date .Format }}"
+
+[blocks.segments.properties]
+time_format = "Jan 02 ┼ 15:04"
+# time_format = "15:04"
+# time_format = "15:04 Jan-02"
 
 #| Third prompt block (left alignment with newline)
 [[blocks]]
