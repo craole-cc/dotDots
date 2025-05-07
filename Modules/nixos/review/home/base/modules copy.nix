@@ -185,7 +185,7 @@ in
           };
 
           id = mkOption {
-            description = "The unique id number withing the range of `1000` to `59999`";
+            description = "The unique id number within the range of `1000` to `59999`";
             default = null;
             example = "1000";
             type = nullOr (ints.between 1000 59999);
@@ -650,7 +650,7 @@ in
                 name = mkOption {
                   type = str;
                   default = "anyrun";
-                  description = "SeconLauncher name";
+                  description = "SecondLauncher name";
                 };
                 command = mkOption {
                   type = str;

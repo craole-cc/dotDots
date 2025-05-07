@@ -77,8 +77,8 @@ includes = [
   ".shellcheckrc",
   "*.bash",
   ".bash*",
-  # "Bin/shellscript/**",
-  "Modules/**",
+  "Bin/shellscript/**",
+  # "Modules/**",
 ]
 priority = 1
 
@@ -301,11 +301,12 @@ options = ["-i"]
 priority = 2
 
 [formatter.typos]
-command = "typos"
 excludes = []
 includes = ["*"]
-options = ["--diff"]
+command = "typos"
+options = ["--color", "always", "--config", ".typos.toml"]
 # options = ["--write-changes"]
+# options = ["--diff"]
 
 #| YAML formatting
 [formatter.yamlfmt]

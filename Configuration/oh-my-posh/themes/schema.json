@@ -398,7 +398,7 @@
             "vala",
             "wakatime",
             "winreg",
-            "withings",
+            "withins",
             "xmake",
             "yarn",
             "ytm",
@@ -2295,7 +2295,7 @@
                     "description": "The HTTP URL you want to call, supports templates",
                     "default": ""
                   },
-                  "method" : {
+                  "method": {
                     "type": "string",
                     "title": "HTTP Method",
                     "description": "The HTTP method to use",
@@ -4939,13 +4939,13 @@
           "if": {
             "properties": {
               "type": {
-                "const": "withings"
+                "const": "withins"
               }
             }
           },
           "then": {
             "title": "Display activity data from Withings",
-            "description": "https://ohmyposh.dev/docs/segments/health/withings",
+            "description": "https://ohmyposh.dev/docs/segments/health/withins",
             "properties": {
               "properties": {
                 "properties": {

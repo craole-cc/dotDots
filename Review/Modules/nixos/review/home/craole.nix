@@ -52,7 +52,7 @@ in
     };
 
     uid = mkOption {
-      description = "The unique id number withing the range of `1000` to `59999`";
+      description = "The unique id number within the range of `1000` to `59999`";
       default = 1551;
       type = nullOr int;
     };

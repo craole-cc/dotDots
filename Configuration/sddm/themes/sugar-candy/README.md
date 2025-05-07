@@ -102,7 +102,7 @@ instead of theme.conf to prevent changes from being overwritten when I push an
 update.
 
 **Pro tip**: It's super annoying to log out and back in every time you want to
-see a change made to the `theme.conf` file. To preview your changes from withing
+see a change made to the `theme.conf` file. To preview your changes from within
 your running desktop environment session simply issue:\
 `sddm-greeter --test-mode --theme /usr/share/sddm/themes/sugar-candy`
 

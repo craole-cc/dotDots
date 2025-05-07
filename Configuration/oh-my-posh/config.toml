@@ -1,3 +1,5 @@
+# Configuration/oh-my-posh/config.toml
+
 final_space = true
 console_title_template = "{{ .Folder }}"
 version = 3
@@ -15,11 +17,19 @@ foreground = "#d6deeb"
 template = "\ue285 "
 
 #| First prompt block (left alignment)
+
+
+# =================================================
+# > Top Left Prompt
+# =================================================
 [[blocks]]
 type = "prompt"
 alignment = "left"
 newline = true
 
+# =================================================
+# > Operating System
+# =================================================
 [[blocks.segments]]
 type = "os"
 style = "diamond"
@@ -30,24 +40,33 @@ trailing_diamond = "\ue0b0"
 template = " {{ if .WSL }}WSL at {{ end }}{{.Icon}}  "
 
 [blocks.segments.properties]
-windows = "\ue62a"
+windows = "\uf17a"
+# windows = "\ue62a"
 macos = "\uf179"
+
+
+# =================================================
+# > Root
+# =================================================
 
 # [[blocks.segments]]
 # type = "root"
 # style = "powerline"
-# background = "#ef5350"
-# foreground = "#ffeb95"
+# background = "#82AAFF"
+# foreground = "#011627"
+# # background = "#ef5350"
+# # foreground = "#ffeb95"
 # powerline_symbol = "\ue0b0"
 # template = " \uf292 "
 
+# =================================================
+# > Path
+# =================================================
 [[blocks.segments]]
 type = "path"
 style = "powerline"
-# background = "#82AAFF"
-# foreground = "#011627"
 background = "#ef5350"
-foreground = "#ffeb95"
+foreground = "#011627"
 powerline_symbol = "\ue0b0"
 leading_powerline_symbol = "\ue0d7"
 template = "{{ path .Path .Location }}"
@@ -57,6 +76,18 @@ folder_icon = "\uf07c "
 folder_separator_icon = "<#011627>\ue0b1</> "
 home_icon = " \ueb06 "
 style = "agnoster"
+
+[blocks.segments.properties.mapped_locations]
+"~/.dots" = "\uf444 "
+# "~/.dots" = "\u27B2 "
+# "~/.dots" = "\u27bd "
+# \udb83\udf77
+# "~/.dots" = "\uf0ad "
+"~/.config" = "\uf013 "
+
+# =================================================
+# > Git
+# =================================================
 
 [[blocks.segments]]
 type = "git"
@@ -83,11 +114,17 @@ fetch_worktree_count = true
 "feat/*" = "🚀 "
 "bug/*" = "🐛 "
 
+# =================================================
+# > Execution Time
+# =================================================
+
 [[blocks.segments]]
 type = "executiontime"
 style = "diamond"
-background = "#575656"
-foreground = "#d6deeb"
+background = "#21c7a8"
+foreground = "#011627"
+# background = "#575656"
+# foreground = "#d6deeb"
 leading_diamond = "\ue0d7"
 trailing_diamond = "\ue0b4"
 template = " {{ .FormattedMs }}"

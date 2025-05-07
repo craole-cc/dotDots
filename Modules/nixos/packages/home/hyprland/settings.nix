@@ -175,7 +175,7 @@ in {
       };
 
       # dwindle = {
-      #   # keep floating dimentions while tiling
+      #   # keep floating dimensions while tiling
       #   pseudotile = true;
       #   preserve_split = true;
       # };

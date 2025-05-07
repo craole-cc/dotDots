@@ -1,71 +1,76 @@
 #!/bin/sh
+# shellcheck enable=all
+set -e
+trap cleanup EXIT INT HUP TERM
 
 main() {
-  trap drop_env EXIT
-  init_env
+  set_defaults
   parse_arguments "$@"
   execute_process
 }
 
-init_env() {
-  FMTREE_CMD="$(command -v treefmt 2>&1)"
-  FMTREE_CFG="$DOTS_CFG/treefmt/treefmt.toml"
-  FMTREE_DIR="$(pwd)"
-  FMTREE_ARG="--allow-missing-formatter"
-  FMTREE_DRY=0
-  FMTREE_CI=1
-  DELIMITER="$(printf '\003')"
-  IFS="$DELIMITER"
-  VERBOSITY="${VERBOSITY:-4}"
+set_defaults() {
+  CMD_TREEFMT="${CMD_TREEFMT:-"$(command -v treefmt 2>/dev/null || true)"}"
+  treefmt_cfg="${DOTS}/Configuration/treefmt/config.toml"
+  project_root="$(pwd -P)"
+  treefmt_args="--allow-missing-formatter"
+  treefmt_args_root=""
+  treefmt_args_conf=""
+  enable_simulation=0
+  enable_ci=1
+  delimiter="${DELIMITER:-"$(printf '\037')"}"
+  # ifs="$IFS"
+  # IFS="${delimiter}"
+  verbosity="${VERBOSITY:-3}"
+  cleaned=0
 }
 
-drop_env() {
-  unset FMTREE_CMD
-  unset FMTREE_CFG
-  unset FMTREE_DIR
-  unset FMTREE_ARG
-  unset FMTREE_DRY
-  unset FMTREE_CI
-  unset DELIMITER
-  unset IFS
-  unset VERBOSITY
+cleanup() {
+  #@ Prevent multiple executions
+  case "${cleaned:-}" in 0 | '' | false | no) cleaned=true ;; *) return ;; esac
+
+  #@ Unset all variables to prevent leakage
+  unset treefmt_args_cfg project_root treefmt_args
+  unset enable_simulation enable_ci
+  unset ifs
 }
 
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --config)
-        [ "$2" ] || {
-          printf "Error: Config file not specified." >&2
-          exit 1
-        }
-
-        FMTREE_CFG="$2"
+    -C | --config)
+      if [ -z "${2:-}" ]; then
+        printf "Error: Config file not specified." >&2
+        exit 1
+      else
+        treefmt_args_cfg="$2"
         shift
-        ;;
-      --root)
-        [ "$2" ] || {
-          printf "Error: Root directory not specified." >&2
-          exit 1
-        }
-
-        [ -d "$2" ] || {
-          printf "Error: Root directory not found." >&2
-          exit 1
-        }
-
-        FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--tree-root $2"
+      fi
+      ;;
+    -r | --*root)
+      if [ -z "${2:-}" ]; then
+        printf "Error: Root directory not specified." >&2
+        exit 1
+      elif [ ! -d "$2" ]; then
+        printf "Error: Root directory not found." >&2
+        exit 1
+      else
+        project_root="$2"
         shift
-        ;;
-      --debug | --dry*)
-        FMTREE_DRY=1
-        ;;
-      -d | --verbose)
-        VERBOSITY=4
-        ;;
-      *)
-        FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}$1"
-        ;;
+      fi
+      ;;
+    --ci) enable_ci=1 ;;
+    -d | --debug | --dry*)
+      enable_simulation=1
+      verbosity=4
+      ;;
+    -dd | --verbose | --trace)
+      verbosity=5
+      treefmt_args="${treefmt_args:+$treefmt_args${delimiter}}--verbose"
+      ;;
+    *)
+      treefmt_args="${treefmt_args:+$treefmt_args${delimiter}}\"$1\""
+      ;;
     esac
     shift
   done
@@ -73,49 +78,104 @@ parse_arguments() {
 
 execute_process() {
   #@ Validate command
-  [ "$FMTREE_CMD" ] || {
-    printf "Error: treefmt not found." >&2
+  if [ -x "${CMD_TREEFMT}" ]; then :; else
+    pout --error "treefmt not found/available for use."
     return 1
-  }
-
-  #@ Validate config
-  [ "$FMTREE_CFG" ] && {
-    if [ -f "$FMTREE_CFG" ]; then
-      FMTREE_CFG="--config-file $FMTREE_CFG"
-    else
-      printf "Error: Config file not found." >&2
-      return 1
-    fi
-  }
+  fi
 
   #@ Validate tree root
-  [ "$FMTREE_DIR" ] && {
-    if [ -d "$FMTREE_DIR" ]; then
-      FMTREE_DIR="--tree-root $FMTREE_DIR"
-    else
-      printf "Error: Root directory not found." >&2
-      return 1
-    fi
-  }
+  if [ -d "${project_root:-}" ]; then
+    treefmt_args_root="--tree-root ${project_root}"
+  else
+    pout --error "Root directory not found." "${project_root}"
+    return 1
+  fi
+
+  #@ Validate config file
+  if [ -f "${project_root}/treefmt.toml" ]; then
+    treefmt_cfg="${project_root}/treefmt.toml"
+  elif [ -f "${project_root}/.treefmt.toml" ]; then
+    treefmt_cfg="${project_root}/.treefmt.toml"
+  else :; fi
+  if [ -f "${treefmt_cfg:-}" ]; then
+    treefmt_args_cfg="--config-file ${treefmt_cfg}"
+  else
+    pout --warn "Config file not yet found." "${treefmt_conf}"
+  fi
 
   #@ Add the --ci flag if specified
-  case "$FMTREE_CI" in 0 | '' | false | no) ;; *)
-    FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--ci"
-    # FMTREE_ARG="${FMTREE_ARG:+$FMTREE_ARG${DELIMITER}}--no-cache --fail-on-change"
+  case "${enable_ci}" in 0 | '' | false | no | off) ;; *)
+    # treefmt_args="${treefmt_args:+$treefmt_args${delimiter}}--ci"
+    treefmt_args="${treefmt_args:+$treefmt_args${delimiter}}--no-cache --fail-on-change"
     ;;
   esac
 
-  #@ Build the final command
-  FMTREE_CMD="$(printf "%s %s %s %s" \
-    "$FMTREE_CMD" "$FMTREE_CFG" "$FMTREE_DIR" \
-    "$(printf "%s" "$FMTREE_ARG" | tr "$DELIMITER" " ")")"
+  #@ Substitute all instances of the delimiter with spaces
+  if [ -z "${treefmt_args}" ]; then :; else
+    treefmt_args="$(printf "%s" "${treefmt_args}" | tr "${delimiter:?}" " ")"
+  fi
 
-  #@ Print command
-  [ "$VERBOSITY" -ge 4 ] \
-    && printf '\033[1;36m[ INFO ]\033[0m Executing command => %s\n' "$FMTREE_CMD"
+  #@ Build the final command
+  treefmt_cmd="$(
+    printf "%s%s%s%s" \
+      "${CMD_TREEFMT:?}" \
+      "${treefmt_args_cfg:+ ${treefmt_args_cfg}}" \
+      "${treefmt_args_root:+ ${treefmt_args_root}}" \
+      "${treefmt_args:+ ${treefmt_args}}"
+  )"
+  pout --debug "treefmt_cmd => " "${treefmt_cmd:?}"
 
   #@ Run command
-  [ "$FMTREE_DRY" -eq 0 ] && eval "$FMTREE_CMD"
+  case "${enable_simulation}" in 0 | '' | false | no | off)
+    eval "${treefmt_cmd:?}"
+    ;;
+  *)
+    pout --info "Would run the following command:" "\n${treefmt_cmd:?}"
+    ;;
+  esac
+}
+
+pout() {
+  msg='' tag=''
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --trace)
+      if [ "${verbosity:-0}" -lt 5 ]; then return; else
+        tag="TRACE"
+      fi
+      ;;
+    --debug)
+      if [ "${verbosity:-0}" -lt 4 ]; then return; else
+        tag="DEBUG"
+      fi
+      ;;
+    --info)
+      if [ "${verbosity:-0}" -lt 3 ]; then return; else
+        tag="INFO"
+      fi
+      ;;
+    --warn)
+      if [ "${verbosity:-0}" -lt 2 ]; then return; else
+        tag="WARN"
+      fi
+      ;;
+    --error)
+      if [ "${verbosity:-0}" -lt 1 ]; then return; else
+        tag="ERROR"
+      fi
+      ;;
+    *) msg="${msg}${msg:+${delimiter:?}}$1" ;;
+    esac
+    shift
+  done
+
+  msg="$(printf "%s" "$msg" | tr "${delimiter:?}" " ")"
+
+  if [ -z "${tag:-}" ]; then
+    printf "%b\n" "$msg"
+  else
+    printf ">>-%s | fmtree->> %b\n" "$tag" "$msg"
+  fi
 }
 
 main "$@"

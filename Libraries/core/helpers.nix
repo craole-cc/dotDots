@@ -44,7 +44,7 @@
   };
 
   mkHash = mkOption {
-    description = "Generate a hashed value with a specified number od charactrs from a string";
+    description = "Generate a hashed value with a specified number of characters from a string";
     default = num: string: let
       inherit (builtins) hashString substring;
     in
