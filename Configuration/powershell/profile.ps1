@@ -57,7 +57,7 @@ function Convert-ToWindowsPath {
 function Find-DotsRC {
     [CmdletBinding()]
     param([string[]]$SearchPaths)
-    
+
     Write-VerboseMessage "Searching for .dotsrc in common locations..."
     $foundPaths = @()
     foreach ($location in $SearchPaths) {
@@ -73,13 +73,13 @@ function Find-DotsRC {
 function Search-FileSystem {
     [CmdletBinding()]
     param()
-    
+
     Write-VerboseMessage "Starting full filesystem search for .dotsrc..."
     $foundPaths = @()
     Write-Host "Searching for .dotsrc in all drives... (Press Ctrl+C to cancel)" # Keep this visible as it's important user feedback
     Get-PSDrive -PSProvider FileSystem | ForEach-Object {
         Write-VerboseMessage "Searching drive: $($_.Root)"
-        Get-ChildItem -Path "$($_.Root)" -Filter ".dotsrc" -File -Recurse -ErrorAction SilentlyContinue | 
+        Get-ChildItem -Path "$($_.Root)" -Filter ".dotsrc" -File -Recurse -ErrorAction SilentlyContinue |
         ForEach-Object {
             Write-VerboseMessage "Found .dotsrc at: $($_.FullName)"
             $foundPaths += (Split-Path -Parent $_.FullName)
@@ -96,7 +96,7 @@ function Update-ProfileFile {
         [Parameter(Mandatory)]
         [string]$DotsPath
     )
-    
+
     Write-VerboseMessage "Updating profile file at: $ProfilePath"
     if (-not (Test-Path -Path $ProfilePath)) {
         Write-VerboseMessage "Creating new profile file"
@@ -104,14 +104,14 @@ function Update-ProfileFile {
     }
 
     $profileContent = Get-Content -Path $ProfilePath -ErrorAction SilentlyContinue
-    if (-not $profileContent) { 
+    if (-not $profileContent) {
         Write-VerboseMessage "Profile file is empty"
-        $profileContent = @() 
+        $profileContent = @()
     }
-    
+
     $linuxPath = Convert-ToLinuxPath -WindowsPath $DotsPath
     $dotsLine = $profileContent | Where-Object { $_ -match '^DOTS=' }
-    
+
     $newContent = if ($dotsLine) {
         Write-VerboseMessage "Updating existing DOTS definition"
         $profileContent -replace '^DOTS=.*', "DOTS=`"$linuxPath`""
@@ -120,7 +120,7 @@ function Update-ProfileFile {
         Write-VerboseMessage "Adding new DOTS definition"
         @("DOTS=`"$linuxPath`"") + $profileContent
     }
-    
+
     Set-Content -Path $ProfilePath -Value $newContent -ErrorAction Stop
     Write-VerboseMessage "Successfully updated .profile with DOTS path: $linuxPath"
 }
@@ -128,9 +128,9 @@ function Update-ProfileFile {
 function Initialize-Shell {
     [CmdletBinding()]
     param()
-    
+
     Write-VerboseMessage "Checking for shell prompt customization tools..."
-    
+
     # Check for Starship
     $starshipExe = Get-Command starship -ErrorAction SilentlyContinue
     if ($starshipExe) {
@@ -144,7 +144,7 @@ function Initialize-Shell {
             Write-VerboseMessage "Failed to initialize Starship: $_"
         }
     }
-    
+
     # Check for Oh My Posh if Starship isn't available
     try {
         $ohMyPosh = Get-Command oh-my-posh -ErrorAction SilentlyContinue
@@ -156,7 +156,7 @@ function Initialize-Shell {
                 "$env:USERPROFILE\.config\oh-my-posh\theme.omp.json",
                 "$env:POSH_THEMES_PATH\paradox.omp.json" # Default theme if nothing else found
             )
-            
+
             $themeFile = $themePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
             if ($themeFile) {
                 Write-VerboseMessage "Using Oh My Posh theme: $themeFile"
@@ -173,17 +173,17 @@ function Initialize-Shell {
     catch {
         Write-VerboseMessage "Failed to initialize Oh My Posh: $_"
     }
-    
+
     Write-VerboseMessage "No shell customization tool found"
 }
 
 function Initialize-VSCodeProfile {
     [CmdletBinding()]
     param()
-    
+
     Write-VerboseMessage "Checking VSCode PowerShell profile..."
     $vscodePath = "$env:USERPROFILE\OneDrive\Documents\PowerShell\Microsoft.VSCode_profile.ps1"
-    
+
     if (-not (Test-Path -Path $vscodePath)) {
         Write-VerboseMessage "VSCode profile not found, creating..."
         try {
@@ -207,6 +207,9 @@ if (Test-Path $userProfile) {
     }
 }
 
+# ===================================================================
+# === MAIN EXECUTION
+# ===================================================================
 # Main execution
 try {
     Write-VerboseMessage "Starting DOTS configuration..."
@@ -224,7 +227,7 @@ try {
     }
     else {
         $foundPaths = Find-DotsRC -SearchPaths $Config.CommonLocations
-        
+
         if ($foundPaths.Count -eq 0) {
             Write-VerboseMessage "No .dotsrc found in common locations"
             $response = Read-Host "No .dotsrc found in common locations. Would you like to search the entire filesystem? (y/N)"
@@ -247,7 +250,7 @@ try {
                     $selection = Read-Host "`nEnter selection number"
                     $valid = $selection -match '^\d+$' -and [int]$selection -lt $foundPaths.Count
                 } while (-not $valid)
-                
+
                 $WindowsPath = $foundPaths[[int]$selection]
                 Write-VerboseMessage "User selected path: $WindowsPath"
             }
@@ -272,3 +275,9 @@ Initialize-Shell
 
 # Setup VSCode profile
 Initialize-VSCodeProfile
+
+
+Import-Module posh-git
+oh-my-posh init pwsh --config "$env:DOTS/Configuration/oh-my-posh/profile.ps1/config.toml" | Invoke-Expression
+Import-Module PSScriptAnalyzer
+Import-Module Terminal-Icons
