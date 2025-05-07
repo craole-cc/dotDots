@@ -1,6 +1,7 @@
 #!/bin/sh
 
-dotsenv --dir DOTS_BIN_BASH "${DOTS_BIN}/bash"
+echo bin
+# dotsenv --dir DOTS_BIN_BASH "${DOTS_BIN}/bash"
 # dotsenv --dir DOTS_BIN_ZSH "${DOTS_BIN}/zsh"
 # dotsenv --dir DOTS_BIN_PWSH "${DOTS_BIN}/powershell"
 # dotsenv --dir DOTS_BIN_FISH "${DOTS_BIN}/fish"

@@ -1,22 +1,26 @@
 #!/bin/sh
 # shellcheck enable=all
 # shellcheck disable=SC1090
-# set -e
+set -e
 
 main() {
 	# echo pop
 	dots__set_local_env
-	dots__init_config
 	dots__init_bin
 	dots__init_scripts #TODO: Move all to bin
-	
+	dots__set_editor
+	echo "EDITOR: ${EDITOR}"
+	return
+	dots__set_global_env
+
+	dots__init_config
+
 	init_oh_my_posh config
 	# init_starship
 
 	# dots__init_scripts
 	# dots__init_aliases
 	# fetch_info
-	# dots__set_global_env
 	# init_scripts
 	# init_sh
 
@@ -40,9 +44,26 @@ dots__set_local_env() {
 	ctx_sep="-"
 	ctx_head=">>-"
 	ctx_tail="->> "
-	verbosity=1   #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+	verbosity=1 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+	delimiter="${DELIMITER:-"$(printf "\037")"}"
 	reset_cache=0 #? 0=no, 1=yes
-	editor="code"
+	editors_tui="hx:nvim:nano"
+	editors_gui="code-insiders:code:zeditor:zed.exe"
+}
+
+dots__set_editor() {
+	CMD_EDITOR="$(
+		command -v editor 2>/dev/null ||
+			"${DOTS}/Bin/shellscript/packages/defaults/editor"
+	)"
+	if [ -x "${CMD_EDITOR}" ]; then
+		EDITOR_GUI="${editors_gui}"
+		EDITOR_TUI="${editors_tui}"
+		export EDITOR_GUI EDITOR_TUI
+
+		EDITOR="$(editor)"
+		export EDITOR
+	fi
 }
 
 dots__cleanup() {
@@ -2724,6 +2745,15 @@ dotsenv__check() {
 }
 
 dots__set_global_env() {
+	EDITOR="${editor_tui:-"${EDITOR:-}"}"
+	VISUAL="${editor_gui:-"${VISUAL:-"${EDITOR:-}"}"}"
+	# Check if we are in a visual mode or just a TTY
+	if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${XDG_SESSION_TYPE:-}" ]; then
+		echo "We are in a visual mode"
+	else
+		echo "We are in a TTY"
+	fi
+
 	#@ Ensure the integral DOTS variable are set
 	DOTS="${DOTS:-"${HOME:-}/.dots"}"
 	if [ -d "${DOTS}" ]; then :; else
@@ -2734,6 +2764,24 @@ dots__set_global_env() {
 	DOTS_RC="${DOTS_RC:-"${DOTS}/${RC}"}"
 	DOTS_CACHE="${DOTS}/.cache"
 	DOTS_CACHE_RC="${DOTS_CACHE}/${RC}"
+
+	#@ Load top-level directory variables
+	DOTS_BIN="${DOTS_BIN:-DOTS/Bin}"
+	if [ -d "${DOTS_BIN}" ]; then
+		#@ Define exports
+		alias "cd.dots_bin"='cd "${DOTS_BIN}"'
+		alias "ed.dots_bin"='ed "${DOTS_BIN}"'
+
+		#@ Load the rc if it exists
+		DOTS_BIN_RC="${DOTS_BIN_RC:-"${DOTS_BIN}/${RC}"}"
+		if [ -f "${DOTS_BIN_RC}" ]; then
+			. "${DOTS_BIN_RC}"
+		else
+			pout --warn "Missing run command file:" "${DOTS_BIN_RC}"
+		fi
+	else
+		pout --warn "Inaccessible directory:" "${DOTS_BIN}"
+	fi
 
 	#@ Update the cache
 	# case "${reset_cache:-0}" in
@@ -2881,10 +2929,11 @@ dots__set_global_env() {
 		# [ -z "${CMD_PATHMAN}" ] && [ -x "${pathman}" ] &&
 		#   dotsenv --var CMD_PATHMAN --val "${pathman}"
 	}
-	dots__cache_init
+
+	# dots__cache_init
 	#@ Reload the cache
-	[ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
-	pout --debug "Cache reloaded."
+	# [ -f "${DOTS_CACHE_RC}" ] && . "${DOTS_CACHE_RC}"
+	# pout --debug "Cache reloaded."
 }
 
 main "$@"

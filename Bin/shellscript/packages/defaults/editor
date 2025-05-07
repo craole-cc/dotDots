@@ -1,0 +1,121 @@
+#!/bin/sh
+# shellcheck enable=all
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  set_modes
+  set_environment
+  execute_process
+}
+
+set_defaults() {
+  #@ Set modes
+  strict=true
+  verbosity="${VERBOSITY:-3}"
+  delimiter="${DELIMITER:-"$(printf "\037")"}"
+
+  #@ Check environment variables before setting fallback
+  fallback_tui="${EDITOR_TUI:-"hx|nvim|nano"}"
+  fallback_gui="${EDITOR_GUI:-"code-insiders|code|zeditor|zed.exe"}"
+}
+
+parse_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -h | --help) usage && exit 0 ;;
+    -v | --version) version && exit 0 ;;
+    -d | --verbose) verbosity=4 ;;
+    -q | --quiet) verbosity=0 ;;
+    -t | --tui)
+      case "${2:-}" in
+      '' | none) default_tui="none" ;;
+      *)
+        default_tui="${default_tui:+$default_tui${DELIMITER}}$2"
+        ;;
+      esac
+      shift
+      ;;
+    -g | --gui)
+      case "${2:-}" in
+      '' | none) default_gui="none" ;;
+      *)
+        default_gui="${default_gui:+$default_gui${delimiter}}$2"
+        ;;
+      esac
+      shift
+      ;;
+    *) from_args="${from_args:+$from_args${delimiter}}$1" ;;
+    esac
+    shift
+  done
+}
+
+set_modes() {
+  case "${strict:-}" in 1 | true | yes) set -e ;; *) set +e ;; esac
+
+  case "${verbosity:-}" in
+  0 | quiet) verbosity=0 ;;
+  1 | error) verbosity=1 ;;
+  2 | warn) verbosity=2 ;;
+  3 | info) verbosity=3 ;;
+  4 | debug) verbosity=4 ;;
+  5 | trace) verbosity=5 ;;
+  *) verbosity=3 ;;
+  esac
+}
+set_environment() {
+  #@ Collect editor preferences
+  tui="${default_tui:-"${from_args:-$fallback_tui}"}"
+  gui="${default_gui:-"${from_args:-$fallback_gui}"}"
+
+  #@ Normalize variables
+  normalize_vars() {
+    if [ -z "${1:-}" ]; then return; else
+      vars="$(
+        printf "%s" "$1" | sed \
+          -e "s/, /${delimiter}/g" -e "s/,/${delimiter}/g" \
+          -e "s/ | /${delimiter}/g" -e "s/|/${delimiter}/g" \
+          -e "s/:/${delimiter}/g" \
+          -e "s/ /${delimiter}/g"
+      )"
+    fi
+
+    case "${delimiter}${vars:-}${delimiter}" in
+    *"none"*) return ;;
+    *) printf "%s" "${vars}" ;;
+    esac
+  }
+
+  tui="$(normalize_vars "$tui")"
+  gui="$(normalize_vars "$gui")"
+
+  #@ Determine environment
+  if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+    editors="${gui:-"${tui:-}"}"
+  else
+    editors="${tui:-}"
+  fi
+
+  #@ Check for the first available editor
+  i=0 editor="" ifs="${IFS}" IFS="${delimiter}"
+  for editor in ${editors:-}; do
+    if [ -z "${editor:-}" ]; then continue; else
+      i=$((i + 1))
+    fi
+
+    if [ -x "$(command -v "${editor}" 2>/dev/null)" ]; then
+      break
+    else
+      continue
+    fi
+  done
+  IFS="${ifs}"
+}
+
+execute_process() {
+  #@ Return the editor
+  printf "%s" "${editor:-}"
+}
+
+main "$@"
