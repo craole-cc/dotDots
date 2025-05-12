@@ -5,22 +5,22 @@
 # ===================================================================
 
 __info__() {
-  _cmd_PATH="$(pathof "$0")"
-  _cmd_NAME="$(basename "$_cmd_PATH")"
-  _cmd_HOME="$(dirname -- "$_cmd_PATH")"
+  _cmd_PATH="$(pathof "$0" 2>/dev/null || readlink -f "$0" 2>/dev/null || echo "$0")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
   _cmd_VERSION="1.0"
   _cmd_DESCRIPTION="Allow the use of decimals in arithmetic equations"
   _cmd_DEPENDENCIES="(python or bc), printf, echo, __cmd_exists__"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
-                      USAGE: $_cmd_NAME
+                      USAGE: ${_cmd_NAME}
 #>----------------------------------------------------<#
-    $_cmd_DESCRIPTION
+    ${_cmd_DESCRIPTION}
 #>----------------------------------------------------<#
             command <[options]> <[arguments]>
-          $_cmd_NAME --sentence "string to transform"
+          ${_cmd_NAME} --sentence "string to transform"
 #>----------------------------------------------------<#
       -h --help       |>     Usage guide
       -v --version    |>     Version
@@ -40,7 +40,7 @@ USAGE_GUIDE
 __main__() {
 
   #@ Confirm that a string was entered
-  [ "$#" -eq 0 ] && __error__ --string
+  # [ "$#" -eq 0 ] && __error__ --string
 
   #@ Load internal variables
   __info__
@@ -61,20 +61,20 @@ __main__() {
 
 #@ Usage display
 __help__() {
-  printf "%s\n" "$_cmd_USAGEGUIDE"
+  printf "%s\n" "${_cmd_USAGEGUIDE}"
   exit 0
 }
 
 #@ Version display
 __version__() {
-  printf "%s\n" "$_cmd_VERSION"
+  printf "%s\n" "${_cmd_VERSION}"
   exit 0
 }
 
 #@ Command validation
 __cmd_exists__() {
-  unalias "$@" > /dev/null 2>&1
-  command -v "$@" > /dev/null 2>&1
+  unalias "$@" >/dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
 }
 
 # ===================================================================
@@ -112,17 +112,17 @@ __opts__() {
 
   while [ $# -ge 1 ]; do
     case "$1" in
-      '-d' | '--verbose') _VERBOSE=true ;;
-      '-l' | '--lower') _CASE="lower" ;;
-      '-u' | '--upper') _CASE="upper" ;;
-      '-v' | '--version') __version__ ;;
-      '-h' | '--help') __help__ ;;
-      *) _STRING="$1" ;;
+    '-d' | '--verbose') _VERBOSE=true ;;
+    '-l' | '--lower') _CASE="lower" ;;
+    '-u' | '--upper') _CASE="upper" ;;
+    '-v' | '--version') __version__ ;;
+    '-h' | '--help') __help__ ;;
+    *) _STRING="$1" ;;
     esac
     shift
   done
 
-  [ "$_STRING" ] && __process__ "$_STRING"
+  [ -n "${_STRING}" ] && __process__ "${_STRING}"
 }
 
 # ===================================================================
@@ -131,13 +131,13 @@ __opts__() {
 
 __defaults__() {
 
-  __cmd_exists__ tr && _tool_tr=true
-  __cmd_exists__ tr && _tool_perl=true
+  [ -x "${CMD_TR:-}" ] || __cmd_exists__ tr && _tool_tr=true
+  [ -x "${CMD_PERL:-}" ] || __cmd_exists__ perl && _tool_perl=true
 
   __lower__() {
-    if [ "$_tool_tr" ]; then
+    if [ -n "${_tool_tr}" ]; then
       tr '[:upper:]' '[:lower:]'
-    elif [ "$_tool_perl" ]; then
+    elif [ -n "${_tool_perl}" ]; then
       perl -pe '$_=lc'
     else
       sed 's/[A-Z]/\L&/g'
@@ -202,14 +202,15 @@ __verbose__() {
   CALCULATOR_h1="*** Calculator ***"
   CALCULATOR_tab=$(((${#CALCULATOR_h1} - ${#CALCULATOR}) / 2))
 
-  printf "%s\n" "$CALCULATOR_h1"
+  printf "%s\n" "${CALCULATOR_h1}"
   printf "%${CALCULATOR_tab}s"
-  printf "%s\n\n" "$CALCULATOR"
+  printf "%s\n\n" "${CALCULATOR}"
 
   printf "%s\n" "*** Equations ***"
   i=0
   while [ $# -gt 0 ] && i=$((i + 1)); do
-    printf "%s | %s == %s\n\n" "$i" "$1" "$(__process__ "$1")"
+    result="$(__process__ "$1")"
+    printf "%s | %s == %s\n\n" "${i:-}" "$1" "${result:-}"
     shift
   done
 
@@ -220,20 +221,20 @@ __verbose__() {
 # ===================================================================
 
 __process__() {
-  if [ -n "$_STRING" ]; then
-    case "$_CASE" in
-      lower)
-        printf "%s" "$_STRING" | __lower__
-        ;;
-      upper)
-        printf "%s" "$_STRING" | __upper__
-        ;;
-      *)
-        printf "%s" "$_STRING"
-        ;;
+  if [ -n "${_STRING}" ]; then
+    case "${_CASE}" in
+    lower)
+      printf "%s" "${_STRING}" | __lower__
+      ;;
+    upper)
+      printf "%s" "${_STRING}" | __upper__
+      ;;
+    *)
+      printf "%s" "${_STRING}"
+      ;;
     esac
 
-    [ "$_NEWLINE" ] && printf "\n"
+    [ -n "${_NEWLINE}" ] && printf "\n"
   fi
 }
 

@@ -1,6 +1,8 @@
 #!/bin/sh
+# shellcheck enable=all
+# shellcheck disable=SC1091
 
-echo bin
+
 # dotsenv --dir DOTS_BIN_BASH "${DOTS_BIN}/bash"
 # dotsenv --dir DOTS_BIN_ZSH "${DOTS_BIN}/zsh"
 # dotsenv --dir DOTS_BIN_PWSH "${DOTS_BIN}/powershell"
