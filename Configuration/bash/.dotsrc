@@ -1,0 +1,4 @@
+#!/bin/sh
+
+BDOTDIR="$(pwd -P)" export BDOTDIR
+. "${BDOTDIR}/config.bash"

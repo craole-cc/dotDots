@@ -1,79 +1,49 @@
 {
   description = "dotDots Flake Configuration";
-  outputs =
-    inputs@{ nixPackages, ... }:
-    let
-      dots = import ./. { inherit inputs; };
-      inherit (nixPackages) lib;
-      inherit (lib.attrsets) genAttrs attrValues;
-      inherit (dots) paths;
+  outputs = inputs @ {
+    self,
+    nixPackages,
+    ...
+  }: let
+    inherit (nixPackages) lib;
+    inherit (lib.attrsets) genAttrs attrValues;
 
-      systems = genAttrs (import inputs.nixosSystems);
-      packageOverlays = import paths.packages.overlays { inherit inputs; };
-      perSystemPackages = systems (
-        system:
+    systems = genAttrs (import inputs.nixosSystems);
+    paths = import ./Admin/paths.nix;
+    init = {
+      host = paths.store.administration.host;
+      pkgs = paths.store.packages;
+    };
+
+    packageOverlays = import init.pkgs.overlays {inherit inputs;};
+    perSystemPackages = systems (
+      system:
         import nixPackages {
           inherit system;
           overlays = attrValues packageOverlays;
           config.allowUnfree = true;
         }
-      );
-      perSystem = x: systems (system: x perSystemPackages.${system});
-      packages = perSystem (pkgs: import paths.packages.custom { inherit pkgs paths; });
-      specialArgs = {
-        inherit inputs;
-      } // dots;
-    in
-    {
-      inherit packages lib;
-
-      overlays = packageOverlays;
-      devShells = perSystem (pkgs: {
-        default = packages.${pkgs.system}.dotshell;
-      });
-
-      # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
-      formatter = perSystem (pkgs: pkgs.treefmt);
-
-      nixosConfigurations = {
-        QBXv =
-          let
-            hostName = "QBXv";
-          in
-          lib.nixosSystem {
-            inherit specialArgs;
-            system = "x86_64-linux";
-            modules =
-              [
-                {
-                  networking = { inherit hostName; };
-                  system.stateVersion = "24.11";
-                }
-              ]
-              ++ (with dots; [
-                (paths.hosts + "/${hostName}")
-                modules.core
-                modules.home
-              ]);
-          };
-        QBXl = lib.nixosSystem {
-          inherit specialArgs;
-          system = "x86_64-linux";
-          modules = [
-            {
-              networking.hostName = "QBXl";
-              system.stateVersion = "24.11";
-            }
-            dots.modules.wsl
-          ];
-        };
-      };
+    );
+    perSystem = x: systems (system: x perSystemPackages.${system});
+    packages = perSystem (pkgs: import init.pkgs.custom {inherit pkgs paths;});
+    mkHost = name: args: import init.host {inherit self paths inputs;} name args;
+  in {
+    inherit packages lib;
+    overlays = packageOverlays;
+    devShells = perSystem (pkgs: {
+      default = packages.${pkgs.system}.dotshell;
+    });
+    formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
+    nixosConfigurations = {
+      QBXvm = mkHost "QBXvm" {};
     };
+  };
 
   inputs = {
     #| NixOS
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-24.11";
+    nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -211,6 +181,12 @@
       repo = "flake-compat";
       flake = false;
     };
+    flakeUtils = {
+      # url = "github:numtide/flake-utils";
+      owner = "numtide";
+      repo = "flake-utils";
+      type = "github";
+    };
     nixosHardware = {
       type = "github";
       owner = "NixOS";
@@ -229,6 +205,15 @@
     };
 
     #| Utilities by NixCommunity
+    nur = {
+      owner = "nix-community";
+      repo = "NixOS-WSL";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        flake-compat.follows = "flakeCompat";
+      };
+    };
     # nixCache = {
     #   type = "github";
     #   owner = "nix-community";
@@ -262,14 +247,14 @@
       repo = "nix-github-actions";
       inputs.nixpkgs.follows = "nixPackages";
     };
-    # nixLocate = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "nix-index-database";
-    #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
-    #   };
-    # };
+    nixLocate = {
+      type = "github";
+      owner = "nix-community";
+      repo = "nix-index-database";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
     # nixLocateLocal = {
     #   type = "github";
     #   owner = "nix-community";
@@ -327,18 +312,42 @@
     # };
 
     #| Home
-    # plasmaManager = {
-    #   url = "github:pjones/plasma-manager";
-    #   inputs = {
-    #     nixpkgs.follows = "nixpkgs";
-    #     home-manager.follows = "homeManager";
-    #   };
-    # };
-    # stylix.url = "github:danth/stylix";
+    plasmaManager = {
+      url = "github:pjones/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixosHome";
+      };
+    };
+    styleManager = {
+      # url = "github:danth/stylix";
+      owner = "danth";
+      repo = "stylix";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        systems.follows = "nixosSystems";
+        flake-compat.follows = "flakeCompat";
+        flake-utils.follows = "flakeUtils";
+        git-hooks.follows = "gitHooks";
+        home-manager.follows = "nixosHome";
+        nur.follows = "nur";
+      };
+    };
     # nixos-unified.url = "github:srid/nixos-unified";
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
 
     #| Software inputs
+    zen-browser = {
+      # url = "github:0xc000022070/zen-browser-flake";
+      owner = "0xc000022070";
+      repo = "zen-browser-flake";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixosHome";
+      };
+    };
     # github-nix-ci.url = "github:juspay/github-nix-ci";
     # nixos-vscode-server = {
     #   url = "github:nix-community/nixos-vscode-server";

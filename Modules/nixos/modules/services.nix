@@ -1,5 +1,4 @@
-{ alpha,... }:
-{
+{alpha, ...}: {
   services = {
     displayManager = {
       autoLogin = {

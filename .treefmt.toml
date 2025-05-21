@@ -1,12 +1,12 @@
 [global]
 excludes = [
   # "treefmt.toml",
-  "generated.nix",
   "**/node_modules/**",
   "**/target/**",
   "**/dist/**",
-  "**/.git/**",
   "**/review/**",
+  "**/archive/**",
+  "./git/**",
   "Assets/**",                                 #TODO Temporary
   "Configuration/**",                          #TODO Temporary
   "Environment/**",                            #TODO Temporary
@@ -30,51 +30,30 @@ excludes = [
 ]
 
 #| Documentation
-# [formatter.markdown]
-# command = "markdownlint-cli2"
-# includes = ["*.md", "README"]
-# options = ["--fix"]
-# # options = ["--fix", "--config", ".markdownlint.yaml"]
-# priority = 1
+[formatter.markdown]
+command = "markdownlint-cli2"
+includes = ["*.md", "README"]
+options = ["--fix"]
+# options = ["--fix", "--config", ".markdownlint.yaml"]
+priority = 1
 
-# [formatter.mdsh]
-# command = "mdsh"
-# excludes = []
-# includes = ["README.md"]
-# options = ["--inputs"]
-# priority = 2
-
-# [formatter.texfmt]
-# command = "tex-fmt"
-# excludes = []
-# includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
-# options = []
-
-# [formatter.typstfmt]
-# command = "typstfmt"
-# excludes = []
-# includes = ["*.typ", "*.typst"]
-# options = []
-# priority = 1
-
-# [formatter.typstyle]
-# command = "typstyle"
-# excludes = []
-# includes = ["*.typ", "*.typst"]
-# options = ["-i"]
-# priority = 2
+[formatter.mdsh]
+command = "mdsh"
+excludes = []
+includes = ["README.md"]
+options = ["--inputs"]
+priority = 2
 
 #| Nix
-[formatter.nixfmt]
-includes = ["**/nix/**", "*.nix.*", "*.nix"]
-excludes = ["*.sh", "*.json*", "*.yml", "*.yaml", "*.toml", "*.py", "*.rs"]
-priority = 2
-command = "nixfmt"
-
-# [formatter.alejandra]
+# [formatter.nixfmt]
 # includes = ["*.nix"]
-# priority = 1
-# command  = "alejandra"
+# priority = 2
+# command = "nixfmt"
+
+[formatter.alejandra]
+includes = ["*.nix"]
+priority = 1
+command = "alejandra"
 
 # [formatter.deadnix]
 # includes = ["*.nix"]
@@ -82,32 +61,26 @@ command = "nixfmt"
 # command = "deadnix"
 # # options  = ["--edit"]
 
-# #| Rust formatting
-# [formatter.rust]
-# command = "rustfmt"
-# includes = ["*.rs"]
-# priority = 1
-
-# [formatter.leptosfmt]
-# command = "leptosfmt"
-# includes = ["*.rs"]
-# priority = 2
+#| Rust formatting
+[formatter.rust]
+command = "rustfmt"
+includes = ["*.rs"]
+priority = 1
 
 #| Shell script formatting# Shell script formatting
-# [formatter.shellcheck]
-# command = "shellcheck"
-# # options  = ["--check-sourced", "--shell=sh", "*.bash", ".bash*"]
-# includes = [
-#   "*.sh",
-#   ".dotsrc",
-#   ".env*",
-#   ".shellcheckrc",
-#   "*.bash",
-#   ".bash*",
-#   "Bin/shellscript/**",
-#   "Modules/**",
-# ]
-# priority = 1
+[formatter.shellcheck]
+command = "shellcheck"
+includes = [
+  "*.sh",
+  ".dotsrc",
+  ".env*",
+  ".shellcheckrc",
+  "*.bash",
+  ".bash*",
+  "Bin/shellscript/**",
+  # "Modules/**",
+]
+priority = 1
 
 [formatter.shfmt]
 command = "shfmt"
@@ -118,8 +91,7 @@ options = [
   "--case-indent",
   "--indent",
   "2",
-  # "--diff",
-  # "--posix",
+  "--posix",
   "--write",
 ]
 includes = [
@@ -133,19 +105,19 @@ includes = [
 ]
 priority = 2
 
-# [formatter.fish]
-# command  = "fish_indent"
-# includes = ["*.fish"]
-# options  = ["--write"]
+[formatter.fish]
+command = "fish_indent"
+includes = ["*.fish"]
+options = ["--write"]
 
 # [formatter.psscriptanalyzer]
 # includes = ["*.ps1"]
 # command  = "pwsh -Command Invoke-Formatter -ScriptDefinition (Get-Content {file} | Out-String) -SettingsFilePath ./PSScriptAnalyzerSettings.psd1"
 
-# [formatter.justfile]
-# command = "just"
-# includes = [".justfile"]
-# options = ["--unstable", "--fmt", "--justfile"]
+[formatter.justfile]
+command = "just"
+includes = ["*.justfile", "*.Justfile"]
+options = ["--unstable", "--fmt", "--justfile"]
 
 #| Python formatting
 # [formatter.ruff]
@@ -159,39 +131,13 @@ priority = 2
 #   "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
 # ]
 
+#| Powershell
+[formatter.powershell]
+command = "pwsh"
+options = ["-NoProfile", "-File", "Bin/powershell/psfmt.ps1"]
+includes = ["*.ps1", "*.psm1"]
+
 #| Data formats
-# [formatter.biome]
-# priority = 1
-# includes = [
-#   "*.ts",
-#   "*.mts",
-#   "*.cts",
-#   "*.js",
-#   "*.cjs",
-#   "*.mjs",
-#   "*.jsx",
-#   "*.tsx",
-#   "*.d.ts",
-#   "*.d.mts",
-#   "*.d.cts",
-#   "*.vue",
-#   "*.html",
-#   "*.css",
-#   "*.json",
-#   "*.jsonc",
-#   "*.astro",
-#   "*.svelte",
-#   "*.graphql",
-#   "*.webmanifest",
-# ]
-# # command = "biome"
-# # options = ["format", "ci"]
-# command = "sh"
-# options = [
-#   "-euc",
-#   "command -v biome >/dev/null || exit 0",
-#   "for file in \"$@\"; do biome format ci \"$file\"; done",
-# ]
 
 # [formatter.json]
 # command = "jq"
@@ -209,12 +155,6 @@ options = ["format"]
 # [formatter.stylua]
 # command  = "stylua"
 # includes = ["*.lua"]
-
-#| YAML formatting
-# [formatter.yamlfmt]
-# includes = ["*.yaml", "*.yml"]
-# command = "yamlfmt"
-# options = ["-formatter", "retain_line_breaks=true"]
 
 # [formatter.actionlint]
 # command = "actionlint"
@@ -269,33 +209,33 @@ options = ["format"]
 # includes = ["*.dart"]
 # options = ["format"]
 
-# [formatter.deno]
-# command = "deno"
-# excludes = []
-# includes = [
-#   "*.css",
-#   "*.html",
-#   "*.js",
-#   "*.json",
-#   "*.jsonc",
-#   "*.jsx",
-#   "*.less",
-#   "*.markdown",
-#   "*.md",
-#   "*.sass",
-#   "*.scss",
-#   "*.ts",
-#   "*.tsx",
-#   "*.yaml",
-#   "*.yml",
-# ]
-# options = ["fmt"]
+[formatter.deno]
+command = "deno"
+excludes = []
+includes = [
+  "*.css",
+  "*.html",
+  "*.js",
+  "*.json",
+  "*.jsonc",
+  "*.jsx",
+  "*.less",
+  "*.markdown",
+  "*.md",
+  "*.sass",
+  "*.scss",
+  "*.ts",
+  "*.tsx",
+  "*.yaml",
+  "*.yml",
+]
+options = ["fmt"]
 
-# [formatter.dos2unix]
-# command = "dos2unix"
-# excludes = []
-# includes = ["*"]
-# options = ["--keepdate"]
+[formatter.dos2unix]
+command = "dos2unix"
+excludes = []
+includes = ["*"]
+options = ["--keepdate"]
 
 # [formatter.fish_indent]
 # command = "fish_indent-wrapper"
@@ -309,12 +249,9 @@ options = ["format"]
 # includes = ["*"]
 # options = []
 
-# [formatter.nufmt]
-# includes = [
-#   "*.nu",
-#   "Bin/nushell/**",
-# ]
-# command = "nufmt"
+[formatter.nufmt]
+includes = ["*.nu", "Bin/nushell/**"]
+command = "nufmt"
 
 # #| Ruby
 # [formatter.rufo]
@@ -343,15 +280,42 @@ options = ["format"]
 # includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
 # options = ["fmt"]
 
-# [formatter.typos]
-# command = "typos"
-# excludes = []
-# includes = ["*"]
-# options = ["--diff"]
-# # options = ["--write-changes"]
+[formatter.texfmt]
+command = "tex-fmt"
+excludes = []
+includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
+options = []
 
-# [formatter.zig]
-# command = "zig"
-# excludes = []
-# includes = ["*.zig", "*.zon"]
-# options = ["fmt"]
+[formatter.typstfmt]
+command = "typstfmt"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options = []
+priority = 1
+
+[formatter.typstyle]
+command = "typstyle"
+excludes = []
+includes = ["*.typ", "*.typst"]
+options = ["-i"]
+priority = 2
+
+[formatter.typos]
+excludes = []
+includes = ["*"]
+command = "typos"
+options = ["--color", "always", "--config", ".typos.toml"]
+# options = ["--write-changes"]
+# options = ["--diff"]
+
+#| YAML formatting
+[formatter.yamlfmt]
+includes = ["*.yaml", "*.yml"]
+command = "yamlfmt"
+options = ["-formatter", "retain_line_breaks=true"]
+
+[formatter.zig]
+command = "zig"
+excludes = []
+includes = ["*.zig", "*.zon"]
+options = ["fmt"]

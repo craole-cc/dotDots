@@ -1,0 +1,62 @@
+#!/bin/sh
+
+#@ Handle temp file operations with proper cleanup
+temp_action=""
+temp_file=""
+ctx="temper"
+
+#@ Parse arguments
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --write)
+    temp_action="write"
+    ;;
+  --read)
+    temp_action="read"
+    temp_file="$2"
+    shift
+    ;;
+  --cleanup)
+    temp_action="cleanup"
+    temp_file="$2"
+    shift
+    ;;
+  *) ctx="$1" ;;
+  esac
+  shift
+done
+
+#@ Handle actions based on the provided flag
+case "${temp_action}" in
+write)
+  #@ Try various temp directories
+  for _tmp_dir in "${TMPDIR:-/tmp}" /var/tmp /tmp; do
+    { [ -d "${_tmp_dir}" ] && [ -w "${_tmp_dir}" ]; } || continue
+    temp_file="${_tmp_dir}/${ctx}.$$.$(/bin/date +%s 2>/dev/null || printf "%s" $$)"
+    touch "${temp_file}" 2>/dev/null || continue
+
+    #@ Restrict permissions if possible
+    chmod 600 "${temp_file}" >/dev/null 2>&1
+
+    [ -f "${temp_file}" ] && [ -w "${temp_file}" ] && break
+  done
+
+  #@ Return the temp file path
+  printf "%s" "${temp_file}"
+  return 0
+  ;;
+
+read)
+  [ -f "${temp_file}" ] && cat "${temp_file}"
+  return $?
+  ;;
+
+cleanup)
+  [ -f "${temp_file}" ] && rm -f "${temp_file}" 2>/dev/null
+  return $?
+  ;;
+
+*)
+  return 1
+  ;;
+esac

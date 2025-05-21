@@ -1,0 +1,118 @@
+#!/bin/sh
+
+cleanup() {
+  #@ Remove variables from the environment
+  unset _secs _args watch_cmd secs delimiter args args_file os_type
+
+  #@ Remove the temporary file
+  [ -n "${args_file}" ] && [ -f "${args_file}" ] &&
+    rm -f "${args_file}" 2>/dev/null
+} && cleanup
+
+#@ Set initial exit trap
+trap cleanup EXIT HUP INT TERM
+
+#@ Initialize variables
+secs=10
+args=""
+opts="--resetTerminal"
+status=0
+delimiter="${DELIMITER:-"$(printf "\037")"}"
+
+#@ Determine OS type
+os_type="${OS_TYPE:-"$(fetch_info --os)"}"
+os_type="$(to_lower "${os_type}")"
+
+#@ Create a secure temporary file for argument storage (cross-platform)
+args_file=""
+for _tmp_dir in "${TMPDIR:-/tmp}" /var/tmp /tmp; do
+  { [ -d "${_tmp_dir}" ] && [ -w "${_tmp_dir}" ]; } || continue
+
+  #@ Create unique filename using PID and timestamp (POSIX-compliant)
+  args_file="${_tmp_dir}/watchsh_args.$$.$(/bin/date +%s 2>/dev/null || printf "%s" $$)"
+  touch "${args_file}" 2>/dev/null || continue
+
+  #@ Restrict permissions if the OS allows
+  case "${os_type}" in
+  *linux* | *darwin* | *bsd*) chmod 600 "${args_file}" 2>/dev/null || true ;;
+  *) ;;
+  esac
+
+  [ -f "${args_file}" ] && [ -w "${args_file}" ] && break
+done
+
+#@ Check if the temporary file was created successfully
+if [ ! -f "${args_file:-}" ] || [ ! -w "${args_file:-}" ]; then
+  pout --ctx "watchsh" --error "Failed to create the temporary file"
+
+  #@ Terminate the script with a non-zero status
+  cleanup
+  return 1
+fi
+
+#@ Check if the watch command exists
+if [ -z "${CMD_WATCH}" ]; then
+  pout --ctx "watchsh" --error \
+    "Missing dependency: watch" \
+    "\nCheck it out at https://github.com/echocat/watch/\n"
+
+  #@ Terminate the script with a non-zero status
+  cleanup
+  return 1
+fi
+
+#@ Parse arguments
+_args=""
+while [ "$#" -gt 0 ]; do
+  #@ Check if argument is a number (for seconds)
+  if [ -z "${_secs}" ] && [ "$1" -eq "$1" ] 2>/dev/null; then
+    _secs="$1"
+  else
+    #@ Handle arguments differently based on OS
+    if [ "${os_type}" = "windows" ]; then
+      #@ Windows/MSYS needs different escaping
+      _escaped_arg="$(printf "%s" "$1" | sed 's/"/\\"/g')"
+      _args="${_args:+${_args}${delimiter}}\"${_escaped_arg}\""
+    else
+      #@ Unix-style escaping
+      _escaped_arg="$(printf "%s" "$1" | sed "s/'/'\\\\''/g")"
+      _args="${_args:+${_args}${delimiter}}'${_escaped_arg}'"
+    fi
+  fi
+  shift
+done
+
+#@ Store args in the temporary file if we have any
+if [ -n "${_args}" ]; then
+  printf "%s" "${_args}" >"${args_file}"
+fi
+
+#@ Use provided args or default
+if [ -s "${args_file}" ]; then
+  #@ Read arguments from file if it exists and is not empty
+  args="$(tr "${delimiter}" " " <"${args_file}")"
+else
+  pout --ctx "watchsh" --debug \
+    "No arguments provided, using default:" "${args}"
+fi
+
+#@ Update the options to include the refresh interval
+secs="${_secs:-${secs}}"
+opts="${opts} --interval ${secs}s"
+
+#@ Build and execute the command
+watch_cmd="${CMD_WATCH} ${opts} sh -c ${args}"
+pout --ctx "watchsh" --debug "Executing:" "${watch_cmd}"
+eval "${watch_cmd}"
+status=$?
+#@ Handle exit status with more descriptive messages
+case "${status}" in
+0) pout --ctx "watchsh" --debug "Completed successfully" ;;
+130) pout --ctx "watchsh" --debug "Terminated by user (Ctrl+C)" ;;
+143) pout --ctx "watchsh" --warn "Terminated by external signal" ;;
+*) pout --ctx "watchsh" --error "Exited with status: ${status}" ;;
+esac
+
+#@ Terminate the script with execution status
+cleanup
+return "${status}"

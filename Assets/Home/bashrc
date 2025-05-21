@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 
-[ -f /home/craole/.dots/Configuration/bash/config.bash ] &&
-  . /home/craole/.dots/Configuration/bash/config.bash
+USER_RC="${HOME}/.profile"
+if [[ ! -f "${USER_RC}" ]]; then :; else
+  export USER_RC
+  source "${USER_RC}"
+fi

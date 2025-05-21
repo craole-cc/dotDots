@@ -1,2 +1,21 @@
+[default]
+extend-ignore-identifiers-re = []
+extend-ignore-words-re = []
+extend-ignore-re = []
+
+[default.extend-identifiers]
+
 [default.extend-words]
-fo = "fo"
+# nd = "nd"
+
+[type.nix]
+extend-glob = []
+extend-ignore-identifiers-re = []
+extend-ignore-words-re = []
+extend-ignore-re = ["ags", "BaC", "fo"]
+
+[type.sh]
+extend-glob = ["**/day"]
+extend-ignore-identifiers-re = []
+extend-ignore-words-re = []
+extend-ignore-re = ["nd"]

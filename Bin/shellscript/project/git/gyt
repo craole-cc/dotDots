@@ -285,7 +285,7 @@ create_cmd_output_file() {
     done
 
     #@ Ensure the arguments are valid
-    [ -n "${CMD}" ] || {
+    [ -x "${CMD}" ] || {
       pout --error "No command provided"
       return 1
     }
@@ -306,7 +306,7 @@ create_cmd_output_file() {
       return 0
     fi
 
-    if [ -n "${CMD_TAG}" ]; then
+    if [ -x "${CMD_TAG}" ]; then
       #@ Capturing the status command through redirection
       if eval "${CMD}" >"${CMD_OUTPUT}" 2>&1; then
         #TODO: <\ ERROR /> /home/craole/.dots/Scripts/sync-repo.sh: eval: line 285: unexpected EOF while looking for matching `''

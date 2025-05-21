@@ -1,5 +1,5 @@
 {
-  imports = [ ];
+  imports = [];
 
   programs.git = {
     lfs.enable = true;

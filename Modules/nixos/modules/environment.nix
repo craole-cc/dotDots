@@ -2,16 +2,14 @@
   paths,
   config,
   ...
-}:
-let
+}: let
   dots = paths.flake.${config.networking.hostName};
   scripts = with paths.parts.bin; {
     dev = dots + shellscript + "/project/nix/devnix";
     eda = dots + shellscript + "/packages/alias/edita";
-    gyt = dots + shellscript + "/project/git/gyto";
+    gyt = dots + shellscript + "/project/git/gyt";
   };
-in
-{
+in {
   environment = {
     variables = {
       VISUAL = "eda";
