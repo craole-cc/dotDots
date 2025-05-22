@@ -48,18 +48,18 @@ set_defaults() {
 }
 
 cleanup() {
-  code="$?"
-  case "$code" in
+  exit_code="$?"
+  case "${exit_code}" in
   0) ;;
   130) pout "Process cancelled by user." ;;
-  *) pout "Process exited with error. [Code: ${code}]" ;;
+  *) pout "Process exited with error. [Code: ${exit_code}]" ;;
   esac
-
-  exit "${code}"
 
   unset app_name app_path app_description app_version app_usage
   unset action target
   unset omp_home_dir posh_themes_dir POSH_THEME_NAMES post_theme_ext
+
+  exit "${exit_code}"
 }
 
 parse_arguments() {
@@ -197,9 +197,9 @@ set_dependencies() {
     shift
   done
 
-  for cmd in $dependencies; do
+  for cmd in ${dependencies}; do
     val="$(command -v "${cmd}" || true)"
-    var="$(printf "CMD_%s" "$cmd" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
+    var="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
 
     if [ -x "${val:-}" ]; then
       export "${var}=${val}"
@@ -228,7 +228,7 @@ establish_environment() {
   set_dependencies pager
 
   #@ Determine the shell and init command
-  POSH_SHELL="$(${CMD_OH_MY_POSH} get shell)"
+  POSH_SHELL="$("${CMD_OH_MY_POSH:?}" get shell)"
   case "${POSH_SHELL:-}" in
   zsh) POSH_SHELL="zsh" ;;
   fish) POSH_SHELL="fish" ;;

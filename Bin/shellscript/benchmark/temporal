@@ -10,7 +10,7 @@ else
   counter=0
   while [ $# -gt 0 ]; do
     counter=$((counter + 1))
-    printf "Benchmark %s: %s\n" "$counter" "$1"
+    printf "Benchmark %s: %s\n" "${counter}" "$1"
     time sh -c "$1"
     printf "\n"
     shift

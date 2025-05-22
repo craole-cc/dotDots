@@ -70,7 +70,7 @@ parse_arguments() {
       case "${2:-}" in
       '' | none) default_tuis="none" ;;
       *)
-        default_tuis="${default_tuis:+${default_tuis}${DELIMITER}}$2"
+        default_tuis="${default_tuis:+${default_tuis}${delimiter}}$2"
         ;;
       esac
       shift
@@ -114,13 +114,14 @@ establish_environment() {
   # echo "tuis: ${tuis}"
   # echo "guis: ${guis}"
 
-  #@ Determine environment
-  if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
-    editors="${guis:-"${tuis:-}"}"
+  #@ Set editors to GUI editors if available, else fallback to TUI editors
+  # shellcheck disable=SC2310
+  if check_gui_env; then
+    editors="${guis:-${tuis:-}}"
   else
     editors="${tuis:-}"
   fi
-  # echo "editors: ${editors}"
+  : "${editors:=}"
 
   #@ Ensure there is at least one editor
   if [ -n "${editors}" ]; then :; else
@@ -136,25 +137,23 @@ establish_environment() {
   fi
 
   #@ Check for the first available editor
-  i=0 editor="" ifs="${IFS}" IFS="${delimiter}"
+  i=0 editor="" old_IFS="${IFS}" IFS="${delimiter}"
   for editor in ${editors:-}; do
     if [ -z "${editor:-}" ]; then continue; else
       i=$((i + 1))
     fi
 
-    editor="$(command -v "${editor}" 2>/dev/null || true)"
-    if [ -x "${editor:-}" ]; then
+    editor_path="$(command -v "${editor}" 2>/dev/null || true)"
+    if [ -n "${editor_path}" ] && [ -x "${editor_path}" ]; then
       break
-    else
-      continue
     fi
   done
-  IFS="${ifs}"
+  IFS="${old_IFS}"
 
   #@ Define arguments based on action
   case "${action:-}" in set) ;; *)
     #@ Append a space and the arguments to the editor
-    editor="${editor:-} ${args:-"${fallback_args:-}"}"
+    editor_cmd="${editor:-} ${args:-"${fallback_args:-}"}"
     ;;
   esac
 }
@@ -165,17 +164,17 @@ execute_process() {
     case "${action:-}" in
     set)
       #@ Print the editor command
-      printf "%s" "${editor:-}"
+      printf "%s" "${editor_path:-}"
       ;;
     *)
       #@ Print the editor command, if verbosity is high enough
       if [ "${verbosity}" -lt "${verbosity_info}" ]; then :; else
-        printf "%s" "${editor:-}"
+        printf "%s" "${editor_cmd:-}"
       fi
 
       #@ Execute the editor command
       if [ "${verbosity}" -ge "${verbosity_debug}" ]; then :; else
-        eval "${editor:-}"
+        eval "${editor_cmd:-}"
       fi
       ;;
     esac
@@ -191,65 +190,94 @@ execute_process() {
 }
 
 normalize_vars() {
-  if [ -z "${1:-}" ]; then return; else
-    delimiter="${2:-"${delimiter}"}"
-    vars="$(
-      printf "%s" "$1" | sed \
-        -e "s/, /${delimiter}/g" -e "s/,/${delimiter}/g" \
-        -e "s/ | /${delimiter}/g" -e "s/|/${delimiter}/g" \
-        -e "s/:/${delimiter}/g" \
-        -e "s/ /${delimiter}/g"
-    )"
+#DOC normalize_vars - Normalize a string of variables by replacing common delimiters with a single delimiter.
+#DOC
+#DOC Usage:
+#DOC   normalize_vars <string> [delimiter]
+#DOC
+#DOC Description:
+#DOC   Takes a string containing variables separated by various delimiters such as commas, pipes,
+#DOC   colons, or spaces, and normalizes all delimiters to a single specified delimiter.
+#DOC
+#DOC Arguments:
+#DOC   $1 - The input string to normalize.
+#DOC   $2 - Optional. The delimiter to normalize to. Defaults to the global variable 'delimiter' if set.
+#DOC
+#DOC Returns:
+#DOC   Prints the normalized string to stdout. If the normalized string contains the word 'none',
+#DOC   the function returns without printing anything.
+#DOC
+#DOC Example:
+#DOC   normalized=$(normalize_vars "foo, bar|baz:qux" ",")
+
+  #@ Return early if input string is empty or unset
+  if [ -z "${1:-}" ]; then
+    return
   fi
 
-  case "${delimiter}${vars:-}${delimiter}" in
-  *"none"*) return ;;
-  *) printf "%s" "${vars}" ;;
+  #@ Use provided delimiter or fallback to global 'delimiter' variable
+  delimiter="${2:-${delimiter:-}}"
+  vars=""
+
+  #@ Normalize delimiters: commas, pipes, colons, spaces replaced by the delimiter
+  vars="$(
+    printf '%s' "$1" | sed \
+      -e "s/, */${delimiter}/g" \
+      -e "s/| */${delimiter}/g" \
+      -e "s/: */${delimiter}/g" \
+      -e "s/  */${delimiter}/g"
+  )"
+
+  #@ Surround with delimiter to simplify 'none' detection
+  case "${delimiter}${vars}${delimiter}" in
+  *"none"*) return ;; #? If 'none' is found, do not print anything
+  *) printf "%s" "${vars:-}" ;;
   esac
 }
 
-get_source_or() {
-  source="$(
-    git rev-parse --show-toplevel 2>/dev/null ||
-      printf "%s" "${1:-}"
-  )"
-  printf "%s" "${source:-}"
+#DOC git_source_or - Return the top-level directory of the current git repository, if it exists.
+#DOC
+#DOC Usage:
+#DOC   git_source_or [default_value]
+#DOC
+#DOC Description:
+#DOC   Attempts to determine the top-level directory of the current Git repository
+#DOC   by invoking `git rev-parse --show-toplevel`.
+#DOC
+#DOC   If the current working directory is not inside a Git repository, or if Git is
+#DOC   not available, the function returns the provided default value (first argument),
+#DOC   or an empty string if no default is given.
+#DOC
+#DOC Arguments:
+#DOC   $1 - Optional. Default value to return if not inside a Git repository.
+#DOC
+#DOC Returns:
+#DOC   Prints the resolved directory path or the default value to stdout.
+#DOC
+#DOC Example:
+#DOC   repo_root=$(git_source_or "/default/path")
+git_source_or() {
+  if src=$(git rev-parse --show-toplevel 2>/dev/null); then
+    #? Successfully found Git top-level directory
+    printf '%s' "${src:-}"
+  else
+    #? Not inside a Git repo or git command failed; print default or empty string
+    printf '%s' "${1:-}"
+  fi
 }
 
-# editor__pout_help() {
-#   editor__pout "${app_name} v.${app_version} - ${app_description}"
-#   editor__pout "${app_usage}"
-#   editor__pout --tab 1 "\n\n" "Options:"
-#   editor__pout --tab 2 "\n" "-h, --help       Usage guide"
-#   editor__pout --tab 2 "\n" "-v, --version    Version information"
-#   editor__pout --tab 2 "\n" "-V, --verbose    Verbose output"
-#   editor__pout --tab 2 "\n" "-q, --quiet      Suppress all output"
-#   editor__pout --tab 2 "\n" "-d, --debug      Debug output"
-#   editor__pout --tab 2 "\n" "-t, --tui        Define a terminal editor"
-#   editor__pout --tab 2 "\n" "-g, --gui        Define a graphical use interface editor"
-#   editor__pout --tab 2 "\n" "-x, --set        Print the editor path and exit"
-#   editor__pout --tab 1 "\n\n" "Arguments:"
-#   editor__pout --tab 2 "\n" "ARGS             Define a list of editor arguments"
-#   editor__pout --tab 1 "\n\n" "Environment:"
-#   editor__pout --tab 2 "\n" "Environment:"
-#   editor__pout --tab 2 "\n" "EDITOR_TUI       Editors for terminal use, in order of preference"
-#   editor__pout --tab 2 "\n" "EDITOR_GUI       Editors for graphical use, in order of preference"
-#   editor__pout --tab 1 "\n\n" "Examples:"
-#   editor__pout --tab 2 "\n" "${app_name} code nano hx nvim"
-#   editor__pout --tab 2 "\n" "${app_name} -t nvim -t hx"
-#   editor__pout --tab 2 "\n" "${app_name} -g code"
-#   editor__pout --tab 2 "\n" "${app_name} -g code -t nano"
-#   editor__pout --tab 1 "\n" "Notes:"
-#   editor__pout --tab 2 "\n" "If no editor is defined, the first available editor will be used from a list of candidates"
-#   editor__pout --tab 2 "\n" "If no editor is defined and no candidates are available, an error will be thrown"
-#   editor__pout --tab 2 "\n" "Use '--' to pass arguments to the editor"
-#   editor__pout --tab 1 "\n\n" "Authors: " "${app_authors}"
-#   editor__pout --tab 1 "\n" "Version: " "${app_version}"
-#   editor__pout --tab 1 "\n" "License: " "${app_license}"
-#   editor__pout --tab 1 "\n" "Source: "
-#   editor__pout --tab 2 "\n" "Remote => " "${app_source}"
-#   editor__pout --tab 2 "\n" " Local => " "${app_path}"
-# }
+#DOC Determine environment and GUI availability
+#DOC
+#DOC Details:
+#DOC - On Windows-like environments (Cygwin, MSYS, MinGW), assume GUI is available
+#DOC - On Unix/Linux, check if DISPLAY or WAYLAND_DISPLAY is set (X11 or Wayland GUI)
+check_gui_env() {
+  case "$(uname -s)" in
+  CYGWIN* | MSYS* | MINGW*) return 0 ;;
+  *) [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ] ;;
+  esac
+}
+
 editor__pout() {
   #@ Set defaults
   msg="" tag="" pad_lvl=0
@@ -297,14 +325,10 @@ editor__pout() {
         pad_size=${tab_size:-2}
       fi
       ;;
-    *) msg=${msg:+$msg${delimiter}}$1 ;;
+    *) msg=${msg:+${msg}${delimiter}}$1 ;;
     esac
     shift
   done
-
-  # echo "MSG: ${msg}"
-  # echo " PAD_SIZE" "$pad_size"
-  # echo "PAD_LEVEL" "$pad_lvl"
 
   pad_lvl=${pad_lvl:-0}
   pad_size=${pad_size:-0}

@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-USER_RC="${HOME}/.profile"
-if [[ ! -f "${USER_RC}" ]]; then :; else
-  export USER_RC
-  source "${USER_RC}"
-fi
