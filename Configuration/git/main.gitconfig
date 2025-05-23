@@ -4,19 +4,17 @@
 	path = core/safe.gitconfig
 	path = core/sync.gitconfig
 
-[includeIf "hasconfig:remote.*.url:**/gitlab.com/craole/**"]
-    path = home/gitlab_craole.gitconfig
-
-[includeIf "hasconfig:remote.*.url:**/github.com/Craole/**"]
-    path = home/github_craole.gitconfig
-
-[includeIf "hasconfig:remote.*.url:**/github.com/craole-cc/**"]
+[includeIf "hasconfig:remote.*.url:**github.com/craole-cc/**"]
+    path = home/github_craole-cc.gitconfig
+[includeIf "gitdir:**/Projects/GitHub/CC/**"]
     path = home/github_craole-cc.gitconfig
 
-# [includeIf "gitdir:**/Projects/GitHub/Craole/**"]
-#     path = home/github_craole.gitconfig
+[includeIf "hasconfig:remote.*.url:**github.com/Craole/**"]
+    path = home/github_craole.gitconfig
+[includeIf "gitdir:**/Projects/GitHub/Craole/**"]
+    path = home/github_craole.gitconfig
 
-# [includeIf "gitdir:**/Projects/GitHub/craole-cc/**"]
-#     path = home/github_craole-cc.gitconfig
-
-
+[includeIf "hasconfig:remote.*.url:**gitlab.com/craole/**"]
+    path = home/gitlab_craole.gitconfig
+[includeIf "gitdir:**/Projects/GitLab/Craole/**"]
+    path = home/gitlab_craole.gitconfig

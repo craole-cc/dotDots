@@ -3,6 +3,8 @@
 # shellcheck disable=SC1090
 # set -e #TODO: Use set -e temporarily for clean coding
 
+# TODO: Make this shell-agnostic
+
 main() {
 	if [ -z "${DOTS:-}" ]; then
 		printf "The required DOTS directory environment variable is not defined.\n"
@@ -16,7 +18,7 @@ main() {
 	dots__cleanup
 	dots__settings
 	dots__utilities
-	exec_and_time dots__environment
+	# exec_and_time dots__environment
 
 
 	# dots__environment
@@ -85,7 +87,7 @@ dots__settings() {
 	timestamp="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || true)"
 	ctx_sep=" | "
 	ctx_head=">>- "
-	ctx_tail=" ->> "
+	ctx_tail=" ->>"
 	verbosity=5 #? 0=quiet, 1=error, 2=warn, 3=info, 4=debug, 5=trace
 	verbosity_quiet=0
 	verbosity_error=1

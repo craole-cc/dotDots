@@ -87,6 +87,109 @@ _pout() {
   fi
 }
 
+#DOC Update local git configuration to include the main gitconfig from DOTS.
+#DOC
+#DOC Description:
+#DOC   This function manages the git configuration include paths to ensure
+#DOC   the main gitconfig from DOTS is properly included. It removes any
+#DOC   existing duplicate paths and adds the current DOTS path as the last
+#DOC   include entry.
+#DOC
+#DOC Arguments:
+#DOC   None (uses global DOTS variable)
+#DOC
+#DOC Returns:
+#DOC   0 - If gitconfig is updated successfully
+#DOC   1 - If DOTS is not set or main.gitconfig doesn't exist
+#DOC
+#DOC Example:
+#DOC   update_gitconfig
+update_gitconfig() {
+  main() {
+    trap 'cleanup' EXIT HUP INT TERM
+    set_defaults
+    execute_process
+  }
+
+  set_defaults() {
+    cleanup() {
+      unset fn_name gitconfig_path main_gitconfig_path temp_file
+      [ -f "${temp_file:-}" ] && rm -f "${temp_file}"
+    } && cleanup
+
+    fn_name="update_gitconfig"
+    gitconfig_path="${HOME}/.gitconfig"
+    main_gitconfig_path="${DOTS}/Configuration/git/main.gitconfig"
+    temp_file="${HOME}/.gitconfig.tmp.$(date +%Y%m%d_%H%M%S).$"
+  }
+
+  execute_process() {
+    #@ Check if DOTS is set and main.gitconfig exists
+    if [ -z "${DOTS:-}" ]; then
+      _pout --warn "DOTS variable not set, skipping git configuration update"
+      return 1
+    fi
+
+    if [ ! -f "${main_gitconfig_path}" ]; then
+      _pout --warn "Main gitconfig not found at: ${main_gitconfig_path}"
+      return 1
+    fi
+
+    _pout --debug "Updating git configuration to include: ${main_gitconfig_path}"
+
+    #@ Create .gitconfig if it doesn't exist
+    if [ ! -f "${gitconfig_path}" ]; then
+      _pout --info "Creating new .gitconfig at: ${gitconfig_path}"
+      touch "${gitconfig_path}"
+    fi
+
+    #@ Create temporary file for processing
+    true >"${temp_file}"
+
+    #@ Process the gitconfig file
+    {
+      #@ Copy everything except existing include paths to main.gitconfig
+      awk '
+        BEGIN { in_include = 0; skip_next = 0 }
+        /^\[include\]/ { in_include = 1; print; next }
+        /^\[/ && !/^\[include\]/ { in_include = 0; print; next }
+        in_include && /^[[:space:]]*path[[:space:]]*=/ {
+          #@ Extract the path value
+          gsub(/^[[:space:]]*path[[:space:]]*=[[:space:]]*/, "")
+          gsub(/[[:space:]]*$/, "")
+          #@ Skip if it points to main.gitconfig
+          if ($0 !~ /\/main\.gitconfig$/) {
+            print "\tpath = " $0
+          }
+          next
+        }
+        { print }
+      ' "${gitconfig_path}"
+
+      #@ Add the include section if it doesn't exist, or append to existing one
+      if ! grep -q "^\[include\]" "${gitconfig_path}"; then
+        printf "[include]\n"
+      fi
+
+      #@ Add the current DOTS path as the last include
+      printf "\tpath = %s\n" "${main_gitconfig_path}"
+
+    } >"${temp_file}"
+
+    #@ Replace the original file with the processed version
+    if mv "${temp_file}" "${gitconfig_path}"; then
+      _pout --info "Successfully updated git configuration"
+      _pout --debug "Added include path: ${main_gitconfig_path}"
+    else
+      _pout --error "Failed to update git configuration"
+      rm -f "${temp_file}"
+      return 1
+    fi
+  }
+
+  main
+}
+
 #DOC Finds and defines DOTS and DOTS_RC variables.
 #DOC
 #DOC Description:
@@ -286,8 +389,11 @@ findinit_dots() {
 
     if [ -f "${DOTS_RC:-}" ]; then
       export DOTS DOTS_RC RC
-      # shellcheck disable=SC1090   # Dynamic sourcing of user dotfiles
+      # shellcheck disable=SC1090   #? Dynamic sourcing of user dotfiles
       . "${DOTS_RC}"
+
+      #@ Update git configuration after DOTS is set
+      update_gitconfig
     else
       _pout --debug "Unable to locate ${rc}"
       return 1
