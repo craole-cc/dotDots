@@ -16,32 +16,23 @@
   //> ===================================
   //> EDITOR APPEARANCE
   //> ===================================
-  // "buffer_font_family": "VictorMono Nerd Font",
-  // "buffer_font_fallbacks": [
-  //   "monospace",
-  //   "Operator Mono Book",
-  //   "VictorMono Nerd Font",
-  //   "Victor Mono",
-  //   "Operator Mono Lig",
-  //   "JetBrainsMono Nerd Font",
-  //   "Cascadia Code",
-  //   "Zed Plex Mono"
-  // ],
-  // "buffer_font_features": {
-  //   "calt": true,
-  //   "ss01": true,
-  //   "ss02": true,
-  //   "ss03": true,
-  //   "ss04": true,
-  //   "ss05": true,
-  //   "ss06": true,
-  //   "ss07": true,
-  //   "ss08": true,
-  //   "zero": true,
-  //   "onum": true
-  // },
+  "buffer_font_family": "VictorMono Nerd Font",
+  // "buffer_font_family": "Operator Mono Lig",
+  "buffer_font_features": {
+    "calt": true,
+    "ss01": true,
+    "ss02": true,
+    "ss03": true,
+    "ss04": true,
+    "ss05": true,
+    "ss06": true,
+    "ss07": true,
+    "ss08": true,
+    "zero": true,
+    "onum": true
+  },
   "buffer_font_size": 20,
-  "buffer_font_weight": 400,
+  "buffer_font_weight": 500,
   "cursor_blink": true,
   // "cursor_shape": "block",
   "current_line_highlight": "all",
@@ -229,6 +220,7 @@
   //> ===================================
   "terminal": {
     "shell": "system",
+    // "shell": "NixOS",
     "dock": "bottom",
     "default_width": 640,
     "default_height": 240,
@@ -250,7 +242,7 @@
   //> ===================================
   //> AI & ASSISTANT FEATURES
   //> ===================================
-  "assistant": {
+  "agent": {
     "version": "2",
     "enabled": true,
     "button": true,
@@ -355,17 +347,31 @@
   //> LANGUAGE INTEGRATIONS
   //> ===================================
   "enable_language_server": true,
-  "language_servers": ["..."],
-  "languages": {},
+  // "language_servers": ["..."],
+  "languages": {
+    "PowerShell": {
+      "formatter": [
+        { "language_server": { "name": "powershell-es" } },
+        {
+          "external": {
+            "command": "pwsh",
+            "arguments": [
+              "-NoProfile",
+              "-File",
+              "D:\\Projects\\GitHub\\CC\\.dots\\Bin\\powershell\\psfmt.ps1",
+              "-stdin"
+            ]
+          }
+        }
+      ]
+    }
+  },
   "lsp": {
-    // "rust-analyzer": {
-    //     // These initialization options are merged into Zed's defaults
-    //     "initialization_options": {
-    //         "check": {
-    //             "command": "clippy" // rust-analyzer.check.command (default: "check")
-    //         }
-    //     }
-    // }s
+    "powershell-es": {
+      "binary": {
+        "path": "pwsh" // or "powershell" on NixOS
+      }
+    }
   },
   "jupyter": {
     "enabled": true
@@ -401,13 +407,15 @@
   //> ===================================
   "auto_install_extensions": {
     "basher": true,
-    "biome": true,
+    // "biome": true,
     "catppuccin": true,
     "catppuccin-icons": true,
     "cargotoml": true,
+    "deno": true,
     "git-firefly": true,
     "codebook": false,
     "html": true,
+    "powershell": true,
     "marksman": true,
     "nix": true,
     "snippets": true,

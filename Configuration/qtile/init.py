@@ -1,4 +1,4 @@
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path, PurePath, PureNormalizePath
 
 # import pathlib
 

@@ -1,145 +1,68 @@
+<#
+.SYNOPSIS
+    Locates and initializes the DOTS environment for PowerShell.
+.DESCRIPTION
+    This script searches for a DOTS directory (where dotfiles are stored) by looking in specified parent directories,
+    checking for target directory names, and validating with marker files. It sets global variables and environment variables
+    for the DOTS path and loads the default profile if found.
+.NOTES
+    File Name      : Profile.ps1
+    Author         : Craig 'Craole' Cole
+    Prerequisite   : PowerShell 5.1 or later
+    Copyright      : (c) Craig 'Craole' Cole, 2025
+#>
+
 #Requires -Version 5.1
-
-#region Settings
-
-#@ Global script variables - explicitly set in global scope
-$Global:VerbosityLevel = @{
-    'Quiet' = 0; 'Error' = 1; 'Warn' = 2; 'Info' = 3; 'Debug' = 4; 'Trace' = 5
-}['Trace']
-
-#endregion
 
 #region Utilities
 
-function Global:Exec {
+<#
+.SYNOPSIS
+    Normalizes a path by converting it to a full path and replacing backslashes with forward slashes.
+.DESCRIPTION
+    This function takes a path string, resolves it to its full path, and replaces all backslashes with forward slashes for consistency.
+.PARAMETER path
+    The path to normalize.
+.EXAMPLE
+    NormalizePath "C:\Users\Me\Documents"
+    Returns: "C:/Users/Me/Documents"
+#>
+function Global:NormalizePath {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true, Position = 0)]
-        [string]$Command,
-
-        [Parameter(ValueFromRemainingArguments)]
-        [string[]]$Arguments
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string]$path
     )
-
-    $startTime = Get-Date
-
-    Pout -Level "Trace" -Message "Execution started at $startTime" -Context $Command
-    if ($Arguments) {
-        Pout -Level "Trace" -Message "Arguments: $($Arguments -join ', ')"
-    }
 
     try {
-        #@ Execute the command with verbosity from global setting
-        $result = & $Command
-
-        if ($Global:VerbosityLevel -ge 4) {
-            $duration = (Get-Date) - $startTime
-            $durationMs = [math]::Round($duration.TotalMilliseconds)
-            Pout -Level "Trace" -Message "Command completed in ${durationMs}ms" -CustomContext $Command
-        }
-
-        return $result
+        $newPath = [System.IO.Path]::GetFullPath($path)
+        # Replace backslashes with forward slashes for consistency
+        $newPath = $newPath.Replace('\', '/')
+        return $newPath
     }
     catch {
-        $duration = (Get-Date) - $startTime
-        $durationMs = [math]::Round($duration.TotalMilliseconds)
-        Pout -Level "Error" -Message "Command failed after ${durationMs}ms: $($_.Exception.Message)" -CustomContext $Command
-        throw
+        Write-Error "Failed to normalize path: $_"
+        return $null
     }
 }
 
-function Global:Pout {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true, Position = 0)]
-        [Alias('msg')]
-        [string]$Message,
-
-        [Parameter()]
-        [ValidateSet('Trace', 'Debug', 'Info', 'Warn', 'Error')]
-        [Alias('tag', 'lvl', 'log')]
-        [string]$Level = $Global:VerbosityLevel,
-
-        [Parameter()]
-        [switch]$Timestamp,
-
-        [Parameter()]
-        [string]$Context,
-
-        [Parameter()]
-        [Alias('As', 'For', 'ctx')]
-        [string]$CustomContext,
-
-        [Parameter()]
-        [Alias('Time')]
-        [switch]$Measure
-    )
-
-    if ($Measure) {
-        $startTime = Get-Date
-    }
-
-    $levelMap = @{
-        'Trace' = @{ Number = 5; Color = 'Magenta'; Tag = 'TRACE' }
-        'Debug' = @{ Number = 4; Color = 'Cyan'; Tag = 'DEBUG' }
-        'Info'  = @{ Number = 3; Color = 'Blue'; Tag = ' INFO' }
-        'Warn'  = @{ Number = 2; Color = 'Yellow'; Tag = ' WARN' }
-        'Error' = @{ Number = 1; Color = 'Red'; Tag = 'ERROR' }
-    }
-    $currentLevel = $levelMap[$Level]
-
-
-
-    #@ Get context based on priority: CustomContext > Context > Auto-detected
-    $displayContext = if (-not [string]::IsNullOrEmpty($CustomContext)) {
-        $CustomContext
-    }
-    elseif (-not [string]::IsNullOrEmpty($Context)) {
-        $Context
-    }
-    else {
-        $callStack = Get-PSCallStack
-        if ($callStack.Count -gt 1) {
-            $caller = $callStack[1]
-            if (-not [string]::IsNullOrEmpty($caller.FunctionName)) {
-                $caller.FunctionName
-            }
-            else {
-                $caller.Command
-            }
-        }
-    }
-
-    #@ Build the message components
-    $components = @()
-
-    if ($Timestamp) {
-        $components += Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    }
-
-    $components += $currentLevel.Tag
-
-    if (-not [string]::IsNullOrEmpty($displayContext)) {
-        $tagHead = ">>-"
-        $tagTail = "->>"
-        $components += "$tagHead $displayContext $tagTail"
-    }
-
-    if ($Measure) {
-        $duration = (Get-Date) - $startTime
-        $durationMs = [math]::Round($duration.TotalMilliseconds)
-        $Message = "$Message (${durationMs}ms)"
-    }
-
-    $components += $Message
-
-    #@ Output the message
-    $fullMessage = $components -join ' '
-    Write-Host $fullMessage -ForegroundColor $currentLevel.Color
-}
-
-#region DOTS
-function locateDOTS {
+<#
+.SYNOPSIS
+    Locates the DOTS directory by searching parent directories for target folders with marker files.
+.DESCRIPTION
+    Searches through specified parent directories for target folder names (like '.dots', 'dotfiles', etc.) and checks for the presence
+    of marker files (like '.dotsrc', '.git', 'flake.nix') to identify the DOTS directory.
+.PARAMETER Parents
+    An array of parent directories to search. Defaults to common dotfiles locations.
+.PARAMETER Targets
+    An array of target directory names to look for within parent directories. Defaults to common dotfiles names.
+.PARAMETER Markers
+    An array of marker file names used to validate the DOTS directory. Defaults to common marker files.
+.EXAMPLE
+    LocateDOTS -Parents "D:/Projects/GitHub/CC", "D:/Dotfiles" -Targets ".dots", "dotfiles" -Markers ".dotsrc", ".git"
+    Returns the path to the first valid DOTS directory found.
+#>
+function Global:LocateDOTS {
     [CmdletBinding()]
     param(
         [Parameter()]
@@ -149,7 +72,6 @@ function locateDOTS {
             'D:/Dotfiles',
             $env:USERPROFILE
         ),
-
         [Parameter()]
         [string[]]$Targets = @(
             '.dots',
@@ -160,95 +82,107 @@ function locateDOTS {
             'config',
             'common'
         ),
-
         [Parameter()]
         [string[]]$Markers = @(
             '.dotsrc',
             '.git',
-            '.flake.nix',
             'flake.nix'
         )
     )
 
-    Pout -lvl Trace -msg "Starting DOTS directory search"
-
     #@ Ensure arrays for input parameters
-    $Parents = @($Parents)
-    $Targets = @($Targets)
-    $Markers = @($Markers)
+    $Parents = $Parents | ForEach-Object { NormalizePath $_ }
+    Write-Verbose "Possible DOTS Parents: $($Parents -join ', ')"
 
-    Pout -Level "Debug" -Message "Parents: $($Parents -join ', ')"
-    Pout -Level "Debug" -Message "Targets: $($Targets -join ', ')"
-    Pout -Level "Debug" -Message "Markers: $($Markers -join ', ')"
+    $Targets = @($Targets)
+    Write-Verbose "Possible DOTS Targets: $($Targets -join ', ')"
+
+    $Markers = @($Markers)
+    Write-Verbose "Possible DOTS Markers: $($Markers -join ', ')"
 
     foreach ($parent in $Parents) {
         if (-not (Test-Path -Path $parent -PathType Container)) { continue }
 
-        foreach ($dirName in $Targets) {
-            $dotsPath = Join-Path -Path $parent -ChildPath $dirName
-            if (-not (Test-Path -Path $dotsPath -PathType Container)) { continue }
+        foreach ($target in $Targets) {
+            $potentialDOTS = NormalizePath (Join-Path -Path $parent -ChildPath $target)
+            if (-not (Test-Path -Path $potentialDOTS -PathType Container)) { continue }
 
             #@ Check if any of the marker files exist
-            foreach ($child in $Markers) {
-                $markerPath = Join-Path -Path $dotsPath -ChildPath $child
+            foreach ($marker in $Markers) {
+                Write-Verbose "Searching for '$marker' in '$potentialDOTS'"
+                $markerPath = NormalizePath (Join-Path -Path $potentialDOTS -ChildPath $marker)
                 if (Test-Path -Path $markerPath -PathType Leaf) {
-                    Pout -Level "Debug" -Message "Found '$child' in: $dotsPath"
-
-                    #@ Set DOTS in all scopes
-                    [Environment]::SetEnvironmentVariable('DOTS', $dotsPath, 'Process')
-                    $Global:DOTS = $dotsPath
-                    Set-Item -Path 'env:DOTS' -Value $dotsPath
-
-                    Pout -Level "Info" -Message "DOTS environment set to: $Global:DOTS"
-                    return $true
+                    #@ Ensure DOTS variable is defined globally
+                    $Global:DOTS = $potentialDOTS
+                    [Environment]::SetEnvironmentVariable('DOTS', $potentialDOTS, 'Process')
+                    Set-Item -Path 'env:DOTS' -Value $potentialDOTS
+                    Write-Debug "DOTS: $Global:DOTS"
+                    return $Global:DOTS
                 }
             }
         }
     }
 
-    Pout -Level "Warn" -Message "No DOTS directory found"
-    return $false
+    Write-Warning "Unable to determine the DOTS directory from the potential locations"
+    return $null
 }
 
-function importDOTS {
+<#
+.SYNOPSIS
+    Initializes the DOTS environment by locating the DOTS directory and loading its default profile.
+.DESCRIPTION
+    Uses LocateDOTS to find the DOTS directory, sets global and environment variables, and loads the default profile if found.
+.EXAMPLE
+    InitializeDOTS
+    Locates the DOTS directory and loads its default profile.
+#>
+function Global:InitializeDOTS {
     [CmdletBinding()]
     param()
 
-    try {
-        if (-not $env:DOTS) {
-            #@ Locate the DOTS directory using the default parameters
-            $found = locateDOTS
-            if (-not $found) {
-                throw "Failed to locate DOTS directory"
-            }
-
-            if (-not $found) {
-                Pout -Level "Warn" -Message "Failed to locate DOTS directory"
-                return $false
-            }
-
-            Pout -Level "Trace" -Message "DOTS directory found: $env:DOTS"
-
-        }
-
-        #@ Load the PowerShell profile from the DOTS directory
-        $profilePath = Join-Path $env:DOTS 'Configuration/powershell/profile.ps1'
-        if (-not (Test-Path -Path $profilePath -PathType Leaf)) {
-            throw "PowerShell profile not found: $profilePath"
-        }
-
-        Pout -Level "Info" -Message "Loading profile"
-        . $profilePath
+    #@ Ensure DOTS variable is defined globally
+    $Global:DOTS = LocateDOTS
+    if (-not $Global:DOTS) {
+        Write-Warning "DOTS environment variable is not set"
+        return $null
     }
-    catch {
-        Pout -Level "Error" -Message $_.Exception.Message
-        return $false
+
+    #@ Ensure the default profile is defined globally
+    $dotsProfile = NormalizePath (Join-Path -Path $Global:DOTS -ChildPath 'default.ps1')
+    if ($dotsProfile -and (Test-Path -Path $dotsProfile -PathType Leaf)) {
+        $Global:DOTS_PROFILE_POWERSHELL = $dotsProfile
+        [Environment]::SetEnvironmentVariable('DOTS_PROFILE_POWERSHELL', $dotsProfile, 'Process')
+        Set-Item -Path 'env:DOTS_PROFILE_POWERSHELL' -Value $dotsProfile
+        Write-Debug "DOTS_PROFILE_POWERSHELL: $Global:DOTS_PROFILE_POWERSHELL"
+        Write-Verbose "Loading DOTS profile from '$dotsProfile'"
+        try {
+            . $dotsProfile
+        }
+        catch {
+            Write-Error "Failed to load DOTS profile: $_"
+            return $null
+        }
     }
 }
+
 #endregion
 
-#region Main Execution
+#region Main
 
-Exec importDOTS
+<#
+.SYNOPSIS
+    Main execution block for the DOTS initialization script.
+.DESCRIPTION
+    Sets output preferences and initializes the DOTS environment.
+#>
+
+#@ Set output preferences (optional, can be set by caller instead)
+$VerbosePreference = 'Continue'
+$DebugPreference = 'Continue'
+$InformationPreference = 'Continue'
+$WarningPreference = 'Continue'
+$ErrorActionPreference = 'Continue'
+
+InitializeDOTS
 
 #endregion

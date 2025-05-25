@@ -1,5 +1,5 @@
 
-function Initialize-VSCodeProfile {
+function InitializeVSCode {
     Write-Host "Setting up VSCode PowerShell profile..." -Color Cyan
 
     $vscodeProfilePath = "$env:USERPROFILE\OneDrive\Documents\PowerShell\Microsoft.VSCode_profile.ps1"
@@ -38,5 +38,4 @@ if (Test-Path `$userProfile) {
     }
 }
 
-# Setup VSCode profile
-Initialize-VSCodeProfile
+# InitializeVSCode

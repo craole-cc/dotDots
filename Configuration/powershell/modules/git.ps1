@@ -1,4 +1,4 @@
-# TODO: Simplify the replacement of \ with / since POSIXPath does it for us
+# TODO: Simplify the replacement of \ with / since NormalizePath does it for us
 function Update-GitConfig {
     [CmdletBinding()]
     param()
@@ -12,7 +12,7 @@ function Update-GitConfig {
     }
 
     $mainGitConfigPath = Join-Path -Path $env:DOTS -ChildPath 'Configuration/git/main.gitconfig'
-    $dotsGitConfig = & POSIXPath $mainGitConfigPath
+    $dotsGitConfig = & NormalizePath $mainGitConfigPath
 
     #@ Check if main gitconfig exists
     if (-not (Test-Path -Path $dotsGitConfig -PathType Leaf)) {
@@ -129,4 +129,4 @@ function Update-GitConfig {
     }
 }
 
-Update-GitConfig
+# Update-GitConfig
