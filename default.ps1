@@ -1,10 +1,14 @@
-# using module "D:\Projects\GitHub\CC\.dots\Modules\powershell\TestModule\TestModule.psm1"
+#region Configuration
 
-# $VerbosePreference = 'SilentlyContinue'
-# $DebugPreference = 'SilentlyContinue'
-# $InformationPreference = 'SilentlyContinue'
-# $WarningPreference = 'SilentlyContinue'
-# $ErrorActionPreference = 'SilentlyContinue'
+$Global:Verbosity = "Trace"
+$Global:VerbosePreference = 'SilentlyContinue'
+$Global:DebugPreference = 'SilentlyContinue'
+$Global:InformationPreference = 'SilentlyContinue'
+$Global:WarningPreference = 'SilentlyContinue'
+$Global:ErrorActionPreference = 'SilentlyContinue'
+
+#endregion
+#region Environment
 
 if (-not (Test-Path variable:DOTS_MOD)) {
     $Global:DOTS_MOD = NormalizePath (Join-Path $DOTS "Modules")
@@ -23,21 +27,9 @@ if (-not (Test-Path variable:DOTS_MOD_PS)) {
 
     #@ Import all modules
     Get-ChildItem -Path $DOTS_MOD_PS -Filter *.psm1 -Recurse | ForEach-Object {
-        Import-Module $_.FullName -Force
+        Import-Module $_.FullName -Force `
+        5>$null 4>$null 3>$null 2>$null 1>$null
     }
 }
 
-$Global:Verbosity = 100
-# checkVerbosityConfig
-# Get-Verbosity
-Test-GetContext
-Test-WriteOutput
-
-# We need to see what the max verbosity is as well as the current verbosity level
-# Pout -Verbosity 'Trace' -Messages 'This is a trace message'
-# Pout -Verbosity 'Debug' -Messages 'This is a debug message'
-# Pout -Verbosity 'Info' -Messages 'This is an informational message'
-# Pout -Verbosity 'Warn' -Messages 'This is a warning message'
-# Pout -Verbosity 'Error' -Messages 'This is an error message'
-
-# Pout -Level 'Blue' -Message 'Hello, World!'
+#endregion
