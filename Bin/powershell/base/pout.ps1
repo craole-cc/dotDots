@@ -36,7 +36,7 @@ function Write-Output {
     #>
     [CmdletBinding()]
     param(
-        [Alias('level', 'lvl')]
+        [Alias('level', 'lvl','tag')]
         [Parameter()]
         [ValidateScript({ Test-Verbosity $_ })]
         $Verbosity = (Get-VerbosityDefault),
@@ -66,7 +66,7 @@ function Write-Output {
         [Parameter()]
         [string]$Duration,
 
-        [Alias('noctx')]
+        [Alias('noctx','NoContext')]
         [Parameter()]
         [switch]$HideContext,
 
@@ -205,5 +205,7 @@ Export-ModuleMember -Function @(
     'Write-Output',
     'Test-WriteOutput'
 )
+
+Set-Alias -Name pout -Value Write-Output
 
 #endregion
