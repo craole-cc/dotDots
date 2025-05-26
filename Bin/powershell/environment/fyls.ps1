@@ -404,17 +404,8 @@ function Test-ToolAvailability {
             }
             $cmd = Get-Command 'lsd' -ErrorAction SilentlyContinue
             if ($cmd) {
-                return @{ Found = $true; Name = 'lsd'; Path = $cmd.Source }
-            }
-        }
-        'ls' {
-            $envPath = [Environment]::GetEnvironmentVariable('CMD_LS')
-            if ($envPath -and (Test-Path $envPath)) {
-                return @{ Found = $true; Name = 'ls'; Path = $envPath }
-            }
-            $cmd = Get-Command 'ls' -ErrorAction SilentlyContinue
-            if ($cmd) {
-                return @{ Found = $true; Name = 'ls'; Path = $cmd.Source }
+                # return @{ Found = $true; Name = 'lsd'; Path = $cmd.Source }
+                return @{ Found = $true; Name = 'lsd'; Path = $cmd }
             }
         }
         'powershell' {
@@ -691,16 +682,7 @@ function Test-Fyls {
     $bestTool = Get-BestAvailableTool
     $bestToolTest = if ($bestTool.Found) { Invoke-Fyls -Tool $bestTool.Name -Long -ShowCommand } else { Write-Host "No best tool found" }
     Write-Output -Tag "Debug" -Scope "Name" -Delimiter "`n  "`
-        "`n~> Tool Availability Tests <~" `
-        $(
-            $tools = @('eza', 'lsd', 'ls', 'powershell')
-            foreach ($tool in $tools) {
-                $result = Test-ToolAvailability -ToolName $tool
-                $status = if ($result.Found) { "✓" } else { "✗" }
-                "$status $tool" + $(if ($result.Found -and $result.Path) { " => $($result.Path)`n " } else { "" })
-            }
-        ) `
-        "~> Simple Parameter Tests <~" `
+        "`n~> Simple Parameter Tests <~" `
         "Test 1 | Basic directory listing" `
         "       | $(Invoke-Fyls -ShowCommand)" `
         "       |" `
@@ -723,7 +705,21 @@ function Test-Fyls {
         "       | $( Invoke-Fyls -Sort time -Permission octal -Long -ShowCommand)" `
         "       |" `
         "Test 8 | Pretty output with tree view" `
-        "       | $(Invoke-Fyls -NoColor -NoIcons -DirFirst -ShowCommand)`n"
+        "       | $(Invoke-Fyls -NoColor -NoIcons -DirFirst -ShowCommand)" `
+        "`n~> Tool Availability Tests <~" `
+        $(
+            $tools = @('eza', 'lsd')
+            foreach ($tool in $tools) {
+                $result = Test-ToolAvailability -ToolName $tool
+                $status = if ($result.Found) { "✓" } else { "✗" }
+                "$status $tool" + $(if ($result.Found -and $result.Path) {
+                    try {
+                        $result = $result.Path.Source.Replace('\\', '/').Replace('\', '/')
+                    } catch {  }
+                    " => $($result)`n "
+                } else { "`n" })
+            }
+        ) `
 
         return
 
