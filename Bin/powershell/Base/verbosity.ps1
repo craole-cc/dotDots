@@ -40,7 +40,7 @@ $script:VerbosityConfig = @{
     Debug       = @{
         Color   = 'Green'
         Tag     = 'DEBUG '
-        Aliases = @('D', 'Test', 'Dbg', 'Debug', 'Green', '4')
+        Aliases = @('D', 'Test', 'Dbg', 'Debug', 'Green', 'Success', '4')
     }
     Trace       = @{
         Color   = 'Magenta'
@@ -388,7 +388,7 @@ function Write-VerbosityMessage {
     $formattedMessage = Format-VerbosityMessage -Level $canonicalLevel -Message $Message
 
     $writeHostParams = @{
-        Object = $formattedMessage
+        Object          = $formattedMessage
         ForegroundColor = $color
     }
 

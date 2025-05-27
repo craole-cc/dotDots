@@ -49,7 +49,7 @@ fi
 
 # === POWERSHELL ===
 #@ Define output messaging preferences
-$Global:Verbosity = 'Info'
+$Global:Verbosity = 'Debug'
 # $Global:VerbosePreference = 'Continue'
 # $Global:DebugPreference = 'Continue'
 $Global:InformationPreference = 'Continue'
@@ -57,7 +57,7 @@ $Global:WarningPreference = 'Continue'
 $Global:ErrorActionPreference = 'Continue'
 
 #@ Capture the current time to measure duration
-$TimeInitiated = Get-Date
+$InitTime = Get-Date
 
 #@ Validate DOTS environment variable
 if (-not $env:DOTS) {
@@ -115,29 +115,9 @@ foreach ($path in $paths.GetEnumerator()) {
   }
 }
 
-#@ Calculate and display the duration
-# Start-Sleep -Seconds 61
-$TimeTerminated = Get-Date
-$Duration = New-TimeSpan -Start $TimeInitiated -End $TimeTerminated
-if ($Duration.TotalMinutes -ge 1) {
-  $DurationStr = "$([math]::Floor($Duration.TotalMinutes)) minute$(if ($Duration.TotalMinutes -ne 1) {'s'})"
-  if ($Duration.TotalSeconds % 60 -ne 0) {
-    $DurationStr += " and $([math]::Floor($Duration.TotalSeconds % 60)) seconds"
-  }
-}
-elseif ($Duration.TotalSeconds -ge 1) {
-  $DurationStr = "$([math]::Floor($Duration.TotalSeconds)) second$(if ($Duration.TotalSeconds -ne 1) {'s'})"
-  if ($Duration.TotalMilliseconds % 1000 -ne 0) {
-    $DurationStr += " and $([math]::Floor($Duration.TotalMilliseconds % 1000)) milliseconds"
-  }
-}
-else {
-  $DurationStr = "$([math]::Floor($Duration.TotalMilliseconds)) millisecond$(if ($Duration.TotalMilliseconds -ne 1) {'s'})"
-}
-
-Write-Pretty -Tag "Information" -As "DOTS" -OneLine `
-  "Initialization completed in $DurationStr."
-
+#@ Print initialization message
+Write-Pretty -Tag "Information" -As "DOTS" -Init $InitTime
+Exit
 
 # === NUSHELL ===
 # Nushell ignores lines starting with '#' except when they start with '#nu'

@@ -27,11 +27,10 @@ function Get-Context {
         [string]$Context,
         [string]$Scope,
         [string]$Verbosity = (Get-VerbosityDefault),
-        [string]$Duration,
         $Caller
     )
 
-    Write-Verbose "Get-Context: Called with Context='$Context', Scope='$Scope', Verbosity='$Verbosity', Duration='$Duration', TagHead='$TagHead', TagTail='$TagTail'"
+    Write-Verbose "Get-Context: Called with Context='$Context', Scope='$Scope', Verbosity='$Verbosity'"
     Write-Debug   "Get-Context: Caller: $($Caller | Out-String)"
 
     if (-not $Scope) {
@@ -79,12 +78,6 @@ function Get-Context {
     else {
         Write-Verbose "Get-Context: Using MyInvocation.MyCommand.Name: $($MyInvocation.MyCommand.Name)"
         $MyInvocation.MyCommand.Name
-    }
-
-    if ($Duration) {
-        Write-Verbose "Get-Context: Appending duration: $Duration"
-        $result += " 󱇻 $Duration"
-        # $result += "  $Duration"
     }
 
     Write-Verbose "Get-Context: Final context string: $result"

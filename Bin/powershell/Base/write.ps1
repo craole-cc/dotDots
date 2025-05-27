@@ -1,3 +1,5 @@
+#TODO: think of everyway to improve this. Try to maintain my style and tooling
+
 #region Main
 function Write-Pretty {
     <#
@@ -66,9 +68,17 @@ function Write-Pretty {
         [Parameter()]
         [switch]$NoNewLine,
 
-        [Alias('time' , 'runtime')]
+        [Alias('runtime')]
         [Parameter()]
         [string]$Duration,
+
+        [Parameter()]
+        [Alias('time', 'timeofinit', 'inittime', 'init', 'start', 'timein')]
+        [datetime]$StartTime,
+
+        [Parameter()]
+        [Alias('timeofexit', 'exittime', 'exit', 'stop', 'timeout')]
+        [datetime]$EndTime,
 
         [Alias('noctx', 'NoContext')]
         [Parameter()]
@@ -92,7 +102,7 @@ function Write-Pretty {
         [string]$TagTail = ' =<<',
 
         [Alias('msg')]
-        [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments)]
+        [Parameter(Position = 0, ValueFromRemainingArguments)]
         [string[]]$Messages
     )
 
@@ -110,42 +120,54 @@ function Write-Pretty {
         return
     }
 
-    #@ Timestamp
-    $timestamp = if ($ShowTimestamp) { Get-Date -Format '[yyyy-MM-dd HH:mm:ss] ' } else { '' }
+    #| Timestamp
+    $timestamp = if ($ShowTimestamp) { Get-Timestamp -Format Default } else { '' }
 
-    #@ Verbosity tag
+    #| Verbosity Tag
     $tag = if (-not $HideVerbosity) { Get-VerbosityTag $verbosityLevel } else { '' }
 
-    #@ Context
-    $context = ''
-    if (-not $HideContext) {
-        $callStack = Get-PSCallStack
-        $context = if ($ContextCustom) {
-            $ContextCustom
+    #| Duration
+    if (-not $Duration -and $StartTime) {
+        $durationMs = Get-DurationFromTimes -StartTime $StartTime -EndTime $(if ($EndTime) { $EndTime } else { Get-Date })
+
+        if (-not $Messages) {
+            $Messages = Get-DurationMessage -Duration $durationMs -Action "Initialization"
+            $Duration = ''
+            $NoNewLine = $true
         }
+        else {
+            $Duration = " $(Format-Duration -Duration $durationMs -Format Compact -IncludeIcon)"
+        }
+    }
+    elseif ($Duration -and $Duration -match '^\d+(\.\d+)?$') {
+        #@ If Duration is just a number, format it
+        $Duration = " $(Format-Duration -Duration $Duration -Format Compact -IncludeIcon)"
+    }
+    elseif ($Duration) {
+        #@ If Duration is already formatted, just add a space prefix
+        $Duration = " $Duration"
+    }
+
+    #| Context
+    $context =
+    if ($HideContext) { '' } else {
+        $callStack = Get-PSCallStack
+        $ctx = if ($ContextCustom) { $ContextCustom }
         elseif ($callStack.Count -gt 1) {
             Get-Context `
                 -Caller $callStack[1] `
                 -Context $Context `
                 -Scope $ContextScope `
-                -Verbosity $verbosityLevel `
-                -Duration $Duration `
-                -TagHead $TagHead `
-                -TagTail $TagTail
+                -Verbosity $verbosityLevel
         }
         else {
             Get-Context `
                 -Context $Context `
                 -Scope $ContextScope `
-                -Verbosity $verbosityLevel `
-                -Duration $Duration `
-                -TagHead $TagHead `
-                -TagTail $TagTail
+                -Verbosity $verbosityLevel
         }
-    }
 
-    if ($context) {
-        $context = "${TagHead}${context}${TagTail}"
+        "${TagHead}${ctx}${Duration}${TagTail}"
     }
 
     #@ Message formatting
@@ -162,7 +184,7 @@ function Write-Pretty {
     }
 
     #@ Output
-    $fullMessage = "$timestamp$tag$context$message" -join ' '
+    $fullMessage = "${timestamp}${tag}${context}${message}" -join ' '
     Write-Host $fullMessage -ForegroundColor $color
 }
 
@@ -202,10 +224,18 @@ function Test-WritePretty {
     Write-Pretty -Verbosity 'Error' -HideVerbosity -Messages 'Error occurred!'
 
     Write-Host "`nTest 4: Custom tag head/tail and duration"
-    Write-Pretty -Verbosity 'Information' -Context 'MyScript' -Duration '123ms' -TagHead '[[' -TagTail ']]' -Messages 'Info message with custom formatting'
+    Write-Pretty -Verbosity 'Information' -Context 'MyScript' -Duration '123' -TagHead '[[' -TagTail ']]' -Messages 'Info message with custom formatting'
 
     Write-Host "`nTest 5: Warning, no new line"
     Write-Pretty -Verbosity 'Warning' -NoNewLine 'Warning:' 'Check your config.'
+
+    Write-Host "`nTest 6: Duration from start/end times"
+    $startTime = (Get-Date).AddSeconds(-2)
+    Write-Pretty -Verbosity 'Info' -StartTime $startTime -Messages 'Operation with measured duration'
+
+    Write-Host "`nTest 7: Auto-generated duration message"
+    $startTime = (Get-Date).AddMilliseconds(-1500)
+    Write-Pretty -Verbosity 'Info' -StartTime $startTime
 }
 
 #endregion

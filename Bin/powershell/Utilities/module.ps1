@@ -35,7 +35,6 @@ function Invoke-Module {
         -Scope "Name" `
         -NoNewLine `
         "Parameter Set => $($PSCmdlet.ParameterSetName)"
-        # -HideContext `
 
         #@ Check if DOTS_MOD_PS environment variable exists when using -Local
         if ($Local -and -not $env:DOTS_MOD_PS) {

@@ -24,30 +24,7 @@
   PowerShellVersion = '5.1'
 
   # Functions to export from this module
-  FunctionsToExport = @(
-    'Invoke-Process',
-    'Test-InvokeProcess',
-    'Get-Context',
-    'Test-GetContext',
-    'Format-PathPOSIX',
-    'Resolve-PathPOSIX',
-    'Get-VerbosityDefault',
-    'Get-VerbosityLevel',
-    'Get-VerbosityNumeric',
-    'Get-VerbosityColor',
-    'Get-VerbosityTag',
-    'Get-Verbosity',
-    'Set-Verbosity',
-    'Test-Verbosity',
-    'Get-VerbosityAllAliases',
-    'Get-VerbosityAliasesFor',
-    'Format-VerbosityMessage',
-    'Write-VerbosityMessage',
-    'Compare-VerbosityLevel',
-    'Test-VerbosityLevelMeetsThreshold',
-    'Write-Pretty',
-    'Test-WritePretty'
-  )
+  FunctionsToExport = '*'
 
   # Cmdlets to export from this module
   CmdletsToExport   = @()
@@ -56,11 +33,7 @@
   VariablesToExport = @()
 
   # Aliases to export from this module
-  AliasesToExport   = @(
-    'posix',
-    'resolve-posix',
-    'pout'
-  )
+  AliasesToExport   = @()
 
   # Private data to pass to the module specified in RootModule/ModuleToProcess
   PrivateData       = @{
