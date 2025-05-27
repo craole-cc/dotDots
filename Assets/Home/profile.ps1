@@ -14,7 +14,7 @@
 
 #Requires -Version 5.1
 
-#region Utilities
+#region Path Utilities
 
 <#
 .SYNOPSIS
@@ -36,7 +36,8 @@ function Global:Format-PathPOSIX {
 
     try {
         $newPath = [System.IO.Path]::GetFullPath($path)
-        # Replace backslashes with forward slashes for consistency
+        #@ Replace backslashes with forward slashes for consistency
+        $newPath = $newPath.Replace('\\', '/')
         $newPath = $newPath.Replace('\', '/')
         return $newPath
     }
@@ -76,10 +77,6 @@ System.String
 
 .OUTPUTS
 System.String
-
-.NOTES
-Author: Craig 'Craole' Cole
-Date: 2025-05-25
 #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -105,15 +102,20 @@ Date: 2025-05-25
                     $POSIXpath = $POSIXpath -replace '([^:]/)/+', '$1'
                 }
 
-                Write-Output $posixPath
+                return $posixPath
             }
         }
         catch {
-            Write-Error "Failed to resolve and normalize path: $_"
+            # Throw "Failed to resolve and normalize path: $_"
+            Throw "$_"
             return $null
         }
     }
 }
+
+#endregion
+
+#region DOTS Manager
 
 <#
 .SYNOPSIS
@@ -199,18 +201,18 @@ function Global:Get-DOTS {
         }
     }
 
-    Write-Warning "Unable to determine the DOTS directory from the potential locations"
+    Write-Error "Unable to determine the DOTS directory from the potential locations"
     return $null
 }
 
 <#
 .SYNOPSIS
-    Initializes the DOTS environment by locating the DOTS directory and loading its default profile.
+    Initializes the DOTS environment by locating the DOTS directory and loading its polyglot RC file.
 .DESCRIPTION
-    Uses Get-DOTS to find the DOTS directory, sets global and environment variables, and loads the default profile if found.
+    Uses Get-DOTS to find the DOTS directory, sets global and environment variables, and loads the polyglot RC file.
 .EXAMPLE
     Invoke-DOTS
-    Locates the DOTS directory and loads its default profile.
+    Locates the DOTS directory and loads its polyglot RC file.
 #>
 function Global:Invoke-DOTS {
     [CmdletBinding()]
@@ -219,38 +221,122 @@ function Global:Invoke-DOTS {
     #@ Ensure DOTS and DOTS_RC variables are defined
     Get-DOTS
     if (-not $Global:DOTS -or -not $Global:DOTS_RC) {
-        Write-Warning "Invoke-DOTS: DOTS and DOTS_RC variables must be set to proceed."
+        Write-Error "Invoke-DOTS: DOTS and DOTS_RC variables must be set to proceed."
         return $null
     }
     else {
         try {
-            Write-Verbose "Attempting to invoke ${Global:DOTS_RC}"
-            #TODO: This is where i would want to source the polyglot rc file. HOW. When I do shouce it it tries to open it like a file in an editor
-            # . $DOTS_RC
+            Write-Verbose "Attempting to invoke polyglot RC: ${Global:DOTS_RC}"
+            Invoke-PolyglotRC -RcPath $Global:DOTS_RC
         }
         catch {
             Write-Error "Failed to load DOTS_RC: $_"
             return $null
         }
     }
+}
 
-    #TODO: Move this to the DOTS_RC
-    # #@ Ensure the default profile is defined globally
-    # $dotsProfile = Resolve-PathPOSIX (Join-Path -Path $Global:DOTS -ChildPath 'default.ps1')
-    # if ($dotsProfile -and (Test-Path -Path $dotsProfile -PathType Leaf)) {
-    #     $Global:DOTS_PROFILE_POWERSHELL = $dotsProfile
-    #     [Environment]::SetEnvironmentVariable('DOTS_PROFILE_POWERSHELL', $dotsProfile, 'Process')
-    #     Set-Item -Path 'env:DOTS_PROFILE_POWERSHELL' -Value $dotsProfile
-    #     Write-Debug "DOTS_PROFILE_POWERSHELL: $Global:DOTS_PROFILE_POWERSHELL"
-    #     Write-Verbose "Loading DOTS profile from '$dotsProfile'"
-    #     try {
-    #         . $dotsProfile
-    #     }
-    #     catch {
-    #         Write-Error "Failed to load DOTS profile: $_"
-    #         return $null
-    #     }
-    # }
+#endregion
+
+#region Polyglot RC Handler
+
+<#
+.SYNOPSIS
+    Executes PowerShell commands from a polyglot RC file using improved parsing.
+.DESCRIPTION
+    Parses the polyglot RC file and extracts the PowerShell section for execution as a complete block.
+.PARAMETER RcPath
+    Path to the polyglot RC file.
+#>
+function Global:Invoke-PolyglotRC {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RcPath
+    )
+
+    if (-not (Test-Path -Path $RcPath -PathType Leaf)) {
+        Write-Error "RC file not found: $RcPath"
+        return
+    }
+
+    try {
+        $content = Get-Content -Path $RcPath -Raw
+
+        #@ Extract the PowerShell section using regex
+        $powershellPattern = '(?s)# === POWERSHELL ===.*?(?=# === \w+ ===|\z)'
+
+        if ($content -match $powershellPattern) {
+            $powershellSection = $matches[0]
+            Write-Verbose "Found PowerShell section in polyglot RC"
+
+            #@ Clean up the section - remove the header comment and any trailing comments
+            $lines = $powershellSection -split "`n"
+            $cleanLines = @()
+            $inCommentBlock = $false
+            $foundFirstCode = $false
+
+            foreach ($line in $lines) {
+                #@ Skip the section header
+                if ($line -match '# === POWERSHELL ===') {
+                    continue
+                }
+
+                #@ Handle PowerShell comment blocks
+                if ($line -match '^\s*<#') {
+                    $inCommentBlock = $true
+                    continue
+                }
+                if ($line -match '^\s*#>') {
+                    $inCommentBlock = $false
+                    continue
+                }
+                if ($inCommentBlock) {
+                    continue
+                }
+
+                #@ Skip single-line comments and PowerShell help syntax at the beginning
+                if (-not $foundFirstCode -and ($line -match '^\s*#' -or
+                    $line -match '^\s*\.' -or  # PowerShell help syntax like .SYNOPSIS
+                    $line.Trim() -eq '')) {
+                    continue
+                }
+
+                #@ If we find actual code, start collecting everything
+                if ($line.Trim() -ne '' -and $line -notmatch '^\s*#' -and $line -notmatch '^\s*\.') {
+                    $foundFirstCode = $true
+                }
+
+                if ($foundFirstCode) {
+                    $cleanLines += $line
+                }
+            }
+
+            if ($cleanLines.Count -gt 0) {
+                $powershellCode = $cleanLines -join "`n"
+                Write-Verbose "Executing PowerShell section from polyglot RC"
+                Write-Verbose "PowerShell code:`n$powershellCode"
+
+                try {
+                    #@ Create and execute the script block
+                    $scriptBlock = [ScriptBlock]::Create($powershellCode)
+                    & $scriptBlock
+                }
+                catch {
+                    Write-Error "Failed to execute PowerShell section |> $_"
+                }
+            }
+            else {
+                Write-Error "No executable PowerShell code found in polyglot RC file"
+            }
+        }
+        else {
+            Write-Error "No PowerShell section found in polyglot RC file"
+        }
+    }
+    catch {
+        Write-Error "Failed to process polyglot RC file |> $_"
+    }
 }
 
 #endregion
@@ -264,12 +350,11 @@ function Global:Invoke-DOTS {
     Sets output preferences and initializes the DOTS environment.
 #>
 
-$Global:VerbosePreference = 'Continue'
-$Global:DebugPreference = 'Continue'
-$Global:InformationPreference = 'Continue'
-$Global:WarningPreference = 'Continue'
-$Global:ErrorActionPreference = 'Continue'
+# $Global:VerbosePreference = 'Continue'
+# $Global:DebugPreference = 'Continue'
+# $Global:InformationPreference = 'Continue'
+# $Global:WarningPreference = 'Continue'
+# $Global:ErrorActionPreference = 'Continue'
 Invoke-DOTS
 
 #endregion
-

@@ -39,7 +39,7 @@ if ($stdin) {
     #@ Read from stdin, format, and write to stdout (for editor integration)
     $code = [System.IO.StreamReader]::new([System.Console]::OpenStandardInput()).ReadToEnd()
     $formatted = Invoke-Formatter -ScriptDefinition $code
-    Write-Output $formatted
+    Write-Pretty $formatted
 }
 elseif ($FilePaths) {
     #@ Format each file in-place (for manual use)
@@ -70,4 +70,3 @@ else {
     Write-Host "  To format files in-place:"
     Write-Host "    pwsh -NoProfile -File psfmt.ps1 file1.ps1 file2.ps1"
 }
-

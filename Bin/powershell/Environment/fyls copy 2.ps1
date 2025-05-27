@@ -3,7 +3,7 @@
 # PowerShell port of fyls - ls wrapper that tries eza, then lsd, then falls back to ls/Get-ChildItem
 
 #region Main
-function Invoke-Fyls {
+function Get-Children {
     <#
     .SYNOPSIS
         A cross-platform ls wrapper that tries eza, then lsd, then falls back to native ls.
@@ -81,6 +81,7 @@ function Invoke-Fyls {
     #>
     [CmdletBinding()]
     param(
+        # [Alias('t')]
         [Parameter()]
         [ValidateSet('eza', 'lsd', 'ls', 'powershell')]
         [string]$Tool,
@@ -105,7 +106,7 @@ function Invoke-Fyls {
         [Parameter()]
         [switch]$NoGroup,
 
-        [Alias('n')]
+        # [Alias('d')]
         [Parameter()]
         [ValidateRange(1, 20)]
         [int]$Depth,
@@ -125,6 +126,7 @@ function Invoke-Fyls {
         [Parameter()]
         [switch]$GitIgnore,
 
+        # [Alias('G')]
         [Parameter()]
         [switch]$Header,
 
@@ -135,6 +137,7 @@ function Invoke-Fyls {
         [Parameter()]
         [switch]$NoHyperlink,
 
+        # [Alias('i')]
         [Parameter()]
         [switch]$Icons,
 
@@ -145,7 +148,7 @@ function Invoke-Fyls {
         [Parameter()]
         [switch]$Long,
 
-        [Alias('sym','symlink')]
+        [Alias('sym')]
         [Parameter()]
         [switch]$Link,
 
@@ -176,6 +179,7 @@ function Invoke-Fyls {
         [Parameter()]
         [switch]$SortSize,
 
+        [Alias('N')]
         [Parameter()]
         [switch]$SortNone,
 
@@ -236,11 +240,12 @@ function Invoke-Fyls {
 
     #@ Execute or show command
     if ($ShowCommand) {
-        # Write-Host "Command: $command" -ForegroundColor Yellow
-        return $command
+        Write-Host "Command: $command" -ForegroundColor Yellow
     }
     else {
-        Execute-Command -Command $command
+        Invoke-Expression -Command $command
+        # Invoke-Process $command
+        # $command
     }
 }
 
@@ -308,7 +313,6 @@ function Resolve-SortPreferences {
     )
 
     #@ Sort flags override the Sort parameter
-    if (-not $Config.Sort) { $Config.Sort = 'name' }
     if ($PSBoundParameters.ContainsKey('SortSize')) { $Config.Sort = 'size' }
     if ($PSBoundParameters.ContainsKey('SortTime')) { $Config.Sort = 'time' }
     if ($PSBoundParameters.ContainsKey('SortVersion')) { $Config.Sort = 'version' }
@@ -393,7 +397,11 @@ function Test-ToolAvailability {
             }
             $cmd = Get-Command 'eza' -ErrorAction SilentlyContinue
             if ($cmd) {
-                # return @{ Found = $true; Name = 'eza'; Path = $cmd.Source }
+
+                Write-Information "Fyls: Found eza at $($cmd)"
+                $Global:CMD_EZA = $cmd.Source
+                # [Environment]::SetEnvironmentVariable('CMD_EZA', $Global:CMD_EZA, 'Process')
+                Set-Item -Path 'env:CMD_EZA' -Value $Global:CMD_EZA
                 return @{ Found = $true; Name = 'eza'; Path = $cmd }
             }
         }
@@ -404,8 +412,17 @@ function Test-ToolAvailability {
             }
             $cmd = Get-Command 'lsd' -ErrorAction SilentlyContinue
             if ($cmd) {
-                # return @{ Found = $true; Name = 'lsd'; Path = $cmd.Source }
-                return @{ Found = $true; Name = 'lsd'; Path = $cmd }
+                return @{ Found = $true; Name = 'lsd'; Path = $cmd.Source }
+            }
+        }
+        'ls' {
+            $envPath = [Environment]::GetEnvironmentVariable('CMD_LS')
+            if ($envPath -and (Test-Path $envPath)) {
+                return @{ Found = $true; Name = 'ls'; Path = $envPath }
+            }
+            $cmd = Get-Command 'ls' -ErrorAction SilentlyContinue
+            if ($cmd) {
+                return @{ Found = $true; Name = 'ls'; Path = $cmd.Source }
             }
         }
         'powershell' {
@@ -449,11 +466,11 @@ function Build-EzaCommand {
         [string[]]$Paths
     )
 
-    $options = @($Tool.Path)
+    $options = @("`"$($Tool.Path)`"")
 
     if ($Config.All) { $options += '--almost-all' }
-    if ($Config.Color) { $options += '--color=always', '--color-scale' }
-    if ($Config.Icons) { $options += '--icons=always' }
+    if ($Config.Color) { $options += '--color', 'always', '--color-scale' }
+    if ($Config.Icons) { $options += '--icons', 'always' }
     if ($Config.Hyperlink) { $options += '--hyperlink' }
     if ($Config.Long) {
         $options += '--long'
@@ -483,17 +500,17 @@ function Build-EzaCommand {
     switch ($Config.RecursionMode) {
         'flat' {
             $options += '--recurse'
-            if ($Config.Depth -gt 0) { $options += "--level=$($Config.Depth)" }
+            if ($Config.Depth -gt 0) { $options += '--level', $Config.Depth }
         }
         'tree' {
             $options += '--tree'
-            if ($Config.Depth -gt 0) { $options += "--level=$($Config.Depth)" }
+            if ($Config.Depth -gt 0) { $options += '--level', $Config.Depth }
         }
     }
 
     #@ Sorting
     if ($Config.Sort -ne 'name') {
-        $options += "--sort=$($Config.Sort)"
+        $options += '--sort', $Config.Sort
     }
 
     $options += $Paths
@@ -512,12 +529,12 @@ function Build-LsdCommand {
         [string[]]$Paths
     )
 
-    $options = @($Tool.Path)
+    $options = @("`"$($Tool.Path)`"")
 
     if ($Config.All) { $options += '--almost-all' }
-    if ($Config.Color) { $options += '--color=always' }
-    if ($Config.Icons) { $options += '--icon=always' }
-    if ($Config.Hyperlink) { $options += '--hyperlink=always' }
+    if ($Config.Color) { $options += '--color', 'always' }
+    if ($Config.Icons) { $options += '--icon', 'always' }
+    if ($Config.Hyperlink) { $options += '--hyperlink', 'always' }
     if ($Config.Long) {
         $options += '--long'
         if ($Config.Git) { $options += '--git' }
@@ -525,14 +542,14 @@ function Build-LsdCommand {
 
     #@ Priority/grouping
     switch ($Config.Priority) {
-        'directories' { $options += '--group-dirs=first' }
-        'files' { $options += '--group-dirs=last' }
-        'none' { $options += '--group-dirs=none' }
+        'directories' { $options += '--group-dirs', 'first' }
+        'files' { $options += '--group-dirs', 'last' }
+        'none' { $options += '--group-dirs', 'none' }
     }
 
     #@ Permissions
     if ($Config.Permission -in @('rwx', 'octal', 'attributes')) {
-        $options += "--permission=$($Config.Permission)"
+        $options += '--permission', $Config.Permission
     }
 
     #@ Target filtering
@@ -544,12 +561,12 @@ function Build-LsdCommand {
     #@ Recursion
     if ($Config.RecursionMode -eq 'tree') { $options += '--tree' }
     if ($Config.Depth -gt 0 -and ($Config.Target -eq 'recursive' -or $Config.RecursionMode -eq 'tree')) {
-        $options += "--depth=$($Config.Depth)"
+        $options += '--depth', $Config.Depth
     }
 
     #@ Sorting
     if ($Config.Sort -ne 'name') {
-        $options += "--sort=$($Config.Sort)"
+        $options += '--sort', $Config.Sort
     }
 
     $options += $Paths
@@ -568,7 +585,7 @@ function Build-LsCommand {
         [string[]]$Paths
     )
 
-    $options = @($Tool.Path)
+    $options = @("`"$($Tool.Path)`"")
 
     if ($Config.All) {
         $options += '-la'
@@ -647,15 +664,7 @@ function Execute-Command {
     Write-Verbose "Fyls: Executing command - $Command"
 
     try {
-        # Use cmd.exe for external commands to handle argument parsing properly
-        if ($Command.StartsWith('Get-ChildItem')) {
-            Invoke-Expression $Command
-        }
-        else {
-            # For external commands, use cmd /c to handle argument parsing
-            $escapedCommand = $Command -replace '"', '""'
-            cmd /c $Command
-        }
+        Invoke-Expression $Command
     }
     catch {
         Write-Error "Fyls: Failed to execute command - $Command"
@@ -669,7 +678,7 @@ function Execute-Command {
 function Test-Fyls {
     <#
     .SYNOPSIS
-        Runs diagnostic and feature tests on the Invoke-Fyls function.
+        Runs diagnostic and feature tests on the Get-Children function.
     .DESCRIPTION
         Performs comprehensive testing of fyls functionality including tool detection,
         command building, and various parameter combinations.
@@ -679,49 +688,52 @@ function Test-Fyls {
     [CmdletBinding()]
     param()
 
-    $bestTool = Get-BestAvailableTool
-    $bestToolTest = if ($bestTool.Found) { Invoke-Fyls -Tool $bestTool.Name -Long -ShowCommand } else { Write-Host "No best tool found" }
-    Write-Pretty -Tag "Debug" -Scope "Name" -Delimiter "`n  "`
-        "`n~> Simple Parameter Tests <~" `
-        "Test 1 | Basic directory listing" `
-        "       | $(Invoke-Fyls -ShowCommand)" `
-        "       |" `
-        "Test 2 | Long format with all files" `
-        "       | $(Invoke-Fyls -Long -All -ShowCommand)" `
-        "       |" `
-        "Test 3 | Pretty output with tree view" `
-        "       | $(Invoke-Fyls -Pretty -Tree -Depth 2 -ShowCommand)" `
-        "       |" `
-        "Test 4 | Directories only, sorted by size <|" `
-        "       | $(Invoke-Fyls -DirectoryOnly -SortSize -ShowCommand)" `
-        "       |" `
-        "Test 5 | Recursive with git status <|" `
-        "       | $(Invoke-Fyls -Recursive -Git -ShowCommand)" `
-        "`n~> Advanced Parameter Tests <~" `
-        "Test 6 | Force specific tool (if available)" `
-        "       | $($bestToolTest)" `
-        "       |" `
-        "Test 7 | Long format with all files" `
-        "       | $( Invoke-Fyls -Sort time -Permission octal -Long -ShowCommand)" `
-        "       |" `
-        "Test 8 | Pretty output with tree view" `
-        "       | $(Invoke-Fyls -NoColor -NoIcons -DirFirst -ShowCommand)" `
-        "`n~> Tool Availability Tests <~" `
-        $(
-            $tools = @('eza', 'lsd')
-            foreach ($tool in $tools) {
-                $result = Test-ToolAvailability -ToolName $tool
-                $status = if ($result.Found) { "✓" } else { "✗" }
-                "$status $tool" + $(if ($result.Found -and $result.Path) {
-                    try {
-                        $result = $result.Path.Source.Replace('\\', '/').Replace('\', '/')
-                    } catch {  }
-                    " => $($result)`n "
-                } else { "`n" })
-            }
-        ) `
+    $VerbosePreference = 'Continue'
+    $DebugPreference = 'Continue'
 
-        return
+    Write-Host "`n=== Fyls Tool Detection Tests ==="
+    Write-Host "`nTesting tool availability:"
+
+    $tools = @('eza', 'lsd', 'ls', 'powershell')
+    foreach ($tool in $tools) {
+        $result = Test-ToolAvailability -ToolName $tool
+        $status = if ($result.Found) { "✓" } else { "✗" }
+        Write-Host "  $status $tool" -ForegroundColor $(if ($result.Found) { "Green" } else { "Red" })
+        if ($result.Found -and $result.Path) {
+            Write-Host "    Path: $($result.Path)" -ForegroundColor Gray
+        }
+    }
+
+    Write-Host "`n=== Basic Fyls Command Tests ==="
+
+    Write-Host "`nTest 1: Basic directory listing"
+    Get-Children -ShowCommand
+
+    Write-Host "`nTest 2: Long format with all files"
+    Get-Children -Long -All -ShowCommand
+
+    Write-Host "`nTest 3: Pretty output with tree view"
+    Get-Children -Pretty -Tree -Depth 2 -ShowCommand
+
+    Write-Host "`nTest 4: Directories only, sorted by size"
+    Get-Children -DirectoryOnly -SortSize -ShowCommand
+
+    Write-Host "`nTest 5: Recursive with git status"
+    Get-Children -Recursive -Git -ShowCommand
+
+    Write-Host "`n=== Advanced Parameter Tests ==="
+
+    Write-Host "`nTest 6: Force specific tool (if available)"
+    $bestTool = Get-BestAvailableTool
+    if ($bestTool.Found) {
+        Get-Children -Tool $bestTool.Name -Long -ShowCommand
+    }
+
+    Write-Host "`nTest 7: Custom sort and permission display"
+    Get-Children -Sort time -Permission octal -Long -ShowCommand
+
+    Write-Host "`nTest 8: No colors, no icons, directories first"
+    Get-Children -NoColor -NoIcons -DirFirst -ShowCommand
 
     Write-Host "`n=== Configuration Resolution Tests ==="
     Write-Host "`nTesting parameter resolution..."
@@ -749,13 +761,13 @@ function Test-Fyls {
 #region Export
 #@ Export all public functions
 Export-ModuleMember -Function @(
-    'Invoke-Fyls',
-    'Test-Fyls'
+    'Get-Children',
+    'Test-GetChildren'
 )
 
 #@ Set up aliases
-Set-Alias -Name fyls -Value Invoke-Fyls
-Set-Alias -Name ls -Value Invoke-Fyls -Force -Option AllScope
-Set-Alias -Name ll -Value Invoke-Fyls -Force -Option AllScope
+Set-Alias -Name fyls -Value Get-Children
+Set-Alias -Name ls -Value Get-Children -Force -Option AllScope
+Set-Alias -Name ll -Value Get-Children -Force -Option AllScope
 
 #endregion

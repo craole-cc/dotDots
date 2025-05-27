@@ -6,6 +6,6 @@ export alias lls = ls --du
 
 
 #| exa
-export alias exa	= exa --icons --all
-export alias exal	= exa --long
-export alias exat	= exa --tree
+export alias eza	= eza --icons --all
+export alias ezal	= eza --long
+export alias ezat	= eza --tree
