@@ -6,6 +6,7 @@ $scriptFiles = @(
   'filesystem.ps1',
   'time.ps1',
   'verbosity.ps1',
+  'types.ps1',
   'write.ps1'
 )
 

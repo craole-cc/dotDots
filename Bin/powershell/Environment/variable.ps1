@@ -170,11 +170,9 @@ function Global:Get-Env {
       Test-GetEnv
       Clear-EnvCache
   #>
+
   [CmdletBinding()]
   param(
-    [Parameter(Position = 0, HelpMessage = "Name of the environment variable to retrieve")]
-    [string]$Name,
-
     [Parameter(HelpMessage = "Default value to return if variable is not found")]
     [object]$Default = $null,
 
@@ -195,7 +193,14 @@ function Global:Get-Env {
     [string]$Pattern,
 
     [Parameter(HelpMessage = "Expand embedded environment variables")]
-    [switch]$ExpandVars
+    [switch]$ExpandVars,
+
+    [Parameter(HelpMessage = "Sort method for returned variables")]
+    [ValidateSet('None', 'Name', 'NameDescending', 'Value', 'ValueDescending', 'Length', 'LengthDescending', 'Priority', 'Alphanumeric', 'Type')]
+    [string]$Sort = 'None',
+
+    [Parameter(Position = 0, HelpMessage = "Name of the environment variable to retrieve")]
+    [string]$Name
   )
 
   $debugParams = @{
@@ -227,10 +232,10 @@ function Global:Get-Env {
   }
 
   if ([string]::IsNullOrEmpty($Name) -or $ListAll) {
-    # Return all environment variables based on scope
+    #@ Return all environment variables based on scope
     $allEnvVars = Get-EnvironmentVariablesByScope -Scope $Scope
 
-    # Apply pattern filtering if specified
+    #@ Apply pattern filtering if specified
     if (![string]::IsNullOrEmpty($Pattern)) {
       Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Applying pattern filter: '$Pattern'"
       $filteredVars = @{}
@@ -243,15 +248,18 @@ function Global:Get-Env {
       Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Pattern filtering resulted in $($allEnvVars.Count) variables"
     }
 
-    return $allEnvVars
+    #@ Apply sorting
+    $sortedEnvVars = Sort-EnvironmentVariables -Variables $allEnvVars -SortMethod $Sort -Scope $Scope
+
+    return $sortedEnvVars
   }
   else {
-    # Get specific environment variable
+    #@ Get specific environment variable
     $value = Get-SpecificEnvironmentVariable -Name $Name -Scope $Scope
 
-    # Handle the result
+    #@ Handle the result
     $result = if ($null -ne $value) {
-      # Expand variables if requested
+      #@ Expand variables if requested
       if ($ExpandVars) {
         try {
           $expandedValue = [System.Environment]::ExpandEnvironmentVariables($value)
@@ -268,7 +276,7 @@ function Global:Get-Env {
       }
     }
     else {
-      # Apply type conversion to default value if needed
+      #@ Apply type conversion to default value if needed
       if ($null -ne $Default) {
         Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Variable '$Name' not found, returning typed default value"
         $Default
@@ -279,12 +287,12 @@ function Global:Get-Env {
       }
     }
 
-    # Handle path conversion if requested
+    #@ Handle path conversion if requested
     if ($AsPath -and $null -ne $result) {
       $result = ConvertTo-PathObject -Path $result -VariableName $Name
     }
 
-    # Cache the result if caching is enabled
+    #@ Cache the result if caching is enabled
     if ($Cached -and $null -ne $result) {
       $cacheKey = "${Scope}:${Name}"
       $script:EnvCache[$cacheKey] = $result
@@ -359,13 +367,13 @@ function Global:Set-Env {
 
   Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Set-Env called: Name='$Name', Value='$Value', Type='$Type', Scope='$Scope'"
 
-  # Expand environment variables in the value
+  #@ Expand environment variables in the value
   $expandedValue = [System.Environment]::ExpandEnvironmentVariables($Value)
   if ($expandedValue -ne $Value) {
     Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Expanded value from '$Value' to '$expandedValue'"
   }
 
-  # Update the name based on type
+  #@ Update the name based on type
   $processedName = $Name
   if ($Type -eq 'cd') {
     $processedName = if (-not $Name.StartsWith('cd.', [System.StringComparison]::InvariantCultureIgnoreCase)) {
@@ -380,7 +388,7 @@ function Global:Set-Env {
     else { $Name }
   }
 
-  # Auto-detect type from name if not specified
+  #@ Auto-detect type from name if not specified
   if ([string]::IsNullOrEmpty($Type)) {
     if ($processedName -match '^cd\.') {
       $Type = 'cd'
@@ -392,7 +400,7 @@ function Global:Set-Env {
     }
   }
 
-  # Validation logic
+  #@ Validation logic
   if ($Validate -or $Type -in @('cd', 'path')) {
     if ($Type -eq 'cd' -or $Type -eq 'path') {
       if (![string]::IsNullOrEmpty($expandedValue) -and !(Test-Path $expandedValue -PathType Container -ErrorAction SilentlyContinue)) {
@@ -404,19 +412,19 @@ function Global:Set-Env {
     }
   }
 
-  # Handle special function creation for cd and edit types
+  #@ Handle special function creation for cd and edit types
   if ($Type -in @('cd', 'edit')) {
     if (-not (New-EnvironmentFunction -Name $processedName -Value $expandedValue -Type $Type)) {
       return $false
     }
   }
 
-  # Set the environment variable
+  #@ Set the environment variable
   if ($PSCmdlet.ShouldProcess("Environment Variable '$processedName'", "Set Value to '$expandedValue' in $Scope scope")) {
     try {
       [System.Environment]::SetEnvironmentVariable($processedName, $expandedValue, $Scope)
 
-      # Clear cache entry if it exists
+      #@ Clear cache entry if it exists
       $cacheKey = "${Scope}:${processedName}"
       if ($script:EnvCache.ContainsKey($cacheKey)) {
         $script:EnvCache.Remove($cacheKey)
@@ -460,7 +468,7 @@ function Global:Remove-Env {
     try {
       [System.Environment]::SetEnvironmentVariable($Name, $null, $Scope)
 
-      # Clear from cache
+      #@ Clear from cache
       $cacheKey = "${Scope}:${Name}"
       if ($script:EnvCache.ContainsKey($cacheKey)) {
         $script:EnvCache.Remove($cacheKey)
@@ -498,7 +506,7 @@ function Global:Clear-EnvCache {
   $initialCount = $script:EnvCache.Count
 
   if (![string]::IsNullOrEmpty($Pattern) -or ![string]::IsNullOrEmpty($Scope)) {
-    # Selective clearing
+    #@ Selective clearing
     $keysToRemove = @()
     foreach ($key in $script:EnvCache.Keys) {
       $shouldRemove = $true
@@ -525,7 +533,7 @@ function Global:Clear-EnvCache {
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Cleared $($keysToRemove.Count) cache entries matching criteria"
   }
   else {
-    # Clear all cache
+    #@ Clear all cache
     $script:EnvCache.Clear()
     $script:CacheExpiry.Clear()
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Cleared all $initialCount cache entries"
@@ -610,7 +618,7 @@ function Test-GetEnv {
 
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "=== Environment Variable Access Diagnostics ==="
 
-  # Test current user context
+  #@ Test current user context
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Current User Context:"
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "  User: $(Get-Env 'USERNAME' -Default 'Unknown')"
@@ -625,7 +633,7 @@ function Test-GetEnv {
   }
 
   if ($Quick) {
-    # Quick test - just verify basic functionality
+    #@ Quick test - just verify basic functionality
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Quick Test Results:"
 
@@ -641,7 +649,7 @@ function Test-GetEnv {
     return
   }
 
-  # Test each scope individually
+  #@ Test each scope individually
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Testing Environment Variable Scopes:"
 
@@ -657,11 +665,11 @@ function Test-GetEnv {
     }
   }
 
-  # Test enhanced features
+  #@ Test enhanced features
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Testing Enhanced Features:"
 
-  # Test caching
+  #@ Test caching
   try {
     Clear-EnvCache
     $start = Get-Date
@@ -686,7 +694,7 @@ function Test-GetEnv {
     Write-Pretty -Tag "Error" -ContextScope $script:ctxScope -OneLine -Message "  ✗ Caching test failed: $($_.Exception.Message)"
   }
 
-  # Test pattern matching
+  #@ Test pattern matching
   try {
     $patternResults = Get-Env -Pattern "USER*" -Scope Process
     if ($patternResults.Count -gt 0) {
@@ -700,7 +708,7 @@ function Test-GetEnv {
     Write-Pretty -Tag "Error" -ContextScope $script:ctxScope -OneLine -Message "  ✗ Pattern matching failed: $($_.Exception.Message)"
   }
 
-  # Test variable expansion
+  #@ Test variable expansion
   try {
     $testVar = "%USERNAME%_test"
     $expanded = Get-Env -Name "NON_EXISTENT_VAR" -Default $testVar -ExpandVars
@@ -977,6 +985,157 @@ function Get-EnvironmentVariableFromRegistry {
   }
 }
 
+function Sort-EnvironmentVariables {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory)]
+    [hashtable]$Variables,
+
+    [Parameter(Mandatory)]
+    [string]$SortMethod,
+
+    [Parameter()]
+    [string]$Scope = 'Process'
+  )
+
+  if ($SortMethod -eq 'None') {
+    return $Variables
+  }
+
+  Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Sorting $($Variables.Count) variables by: $SortMethod"
+
+  $sortedVars = [ordered]@{}
+
+  switch ($SortMethod) {
+    'Name' {
+      $Variables.GetEnumerator() | Sort-Object Key | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'NameDescending' {
+      $Variables.GetEnumerator() | Sort-Object Key -Descending | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'Value' {
+      $Variables.GetEnumerator() | Sort-Object Value | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'ValueDescending' {
+      $Variables.GetEnumerator() | Sort-Object Value -Descending | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'Length' {
+      $Variables.GetEnumerator() | Sort-Object { $_.Value.Length } | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'LengthDescending' {
+      $Variables.GetEnumerator() | Sort-Object { $_.Value.Length } -Descending | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'Alphanumeric' {
+      # Natural sort that handles numbers correctly (e.g., VAR1, VAR2, VAR10)
+      $Variables.GetEnumerator() | Sort-Object {
+        # Split name into parts and pad numbers for proper sorting
+        $parts = $_.Key -split '(\d+)'
+        for ($i = 0; $i -lt $parts.Length; $i++) {
+          if ($parts[$i] -match '^\d+$') {
+            $parts[$i] = $parts[$i].PadLeft(10, '0')
+          }
+        }
+        $parts -join ''
+      } | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'Priority' {
+      # Sort by common environment variable importance/priority
+      $priorityOrder = @{
+        # System critical
+        'PATH' = 1; 'PATHEXT' = 2; 'OS' = 3; 'PROCESSOR_ARCHITECTURE' = 4
+        'SYSTEMROOT' = 5; 'WINDIR' = 6; 'COMSPEC' = 7
+
+        # User context
+        'USERNAME' = 10; 'USERPROFILE' = 11; 'USERDOMAIN' = 12; 'USERDNSDOMAIN' = 13
+        'APPDATA' = 14; 'LOCALAPPDATA' = 15; 'TEMP' = 16; 'TMP' = 17
+
+        # Development common
+        'PYTHONPATH' = 20; 'JAVA_HOME' = 21; 'NODE_PATH' = 22; 'GOPATH' = 23
+        'ANDROID_HOME' = 24; 'GRADLE_HOME' = 25; 'MAVEN_HOME' = 26
+
+        # Shell/Terminal
+        'PSModulePath' = 30; 'PROMPT' = 31; 'TERM' = 32
+
+        # Common applications
+        'PROGRAMFILES' = 40; 'PROGRAMFILES(X86)' = 41; 'PROGRAMDATA' = 42
+        'ALLUSERSPROFILE' = 43
+      }
+
+      $Variables.GetEnumerator() | Sort-Object {
+        $priority = $priorityOrder[$_.Key]
+        if ($null -eq $priority) {
+          1000 + $_.Key  # Unknown variables go to end, sorted by name
+        }
+        else {
+          $priority
+        }
+      } | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    'Type' {
+      # Sort by inferred variable type/category
+      $Variables.GetEnumerator() | Sort-Object {
+        $name = $_.Key
+        $value = $_.Value
+
+        # Categorize variables
+        $category = switch -Regex ($name) {
+          '^(PATH|PATHEXT)$' { '1-Paths' }
+          '^(OS|PROCESSOR_|SYSTEM|WIN)' { '2-System' }
+          '^(USER|HOME|PROFILE)' { '3-User' }
+          '^(PROGRAM|APP)' { '4-Programs' }
+          '^(TEMP|TMP)$' { '5-Temporary' }
+          '^(PYTHON|JAVA|NODE|GO|ANDROID|MAVEN|GRADLE)' { '6-Development' }
+          '^(PS|PROMPT|TERM)' { '7-Shell' }
+          'cd\.' { '8-CDShortcuts' }
+          'edit\.' { '9-EditShortcuts' }
+          default {
+            # Try to categorize by value patterns
+            if ($value -match '^[A-Z]:\\') { '4-Programs' }
+            elseif ($value -match '^\d+$') { '10-Numeric' }
+            else { '11-Other' }
+          }
+        }
+
+        "$category-$name"
+      } | ForEach-Object {
+        $sortedVars[$_.Key] = $_.Value
+      }
+    }
+
+    default {
+      Write-Pretty -Tag "Warning" -ContextScope $script:ctxScope -OneLine -Message "Unknown sort method '$SortMethod', using no sorting"
+      return $Variables
+    }
+  }
+
+  Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Sorted $($sortedVars.Count) variables using $SortMethod method"
+  return $sortedVars
+}
+
 function ConvertTo-PathObject {
   [CmdletBinding()]
   param(
@@ -1164,4 +1323,5 @@ Export-ModuleMember -Function @(
   'Clear-EnvCache',
   'Set-EnvCacheTTL',
   'Test-GetEnv'
+  # 'Sort-EnvironmentVariables'
 )

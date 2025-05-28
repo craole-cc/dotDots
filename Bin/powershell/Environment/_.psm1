@@ -1,10 +1,23 @@
-#@ Load functions
-# . $PSScriptRoot/editor.ps1    # ← Load editor functions first
-. $PSScriptRoot/variable.ps1     # ← Then load aliases (uses editor functions)
-. $PSScriptRoot/alias.ps1     # ← Then load aliases (uses editor functions)
-# . $PSScriptRoot/fyls.ps1
+#| Editor
+. $PSScriptRoot/editor.ps1
 
-#@ Run tests
+# Get-PreferredEditor
+# Get-PreferredEditor
+# Set-PreferredEditor
+# Get-Editor
+# Set-Editor
+# Invoke-Editor
+# Show-EditorConfig
+# Set-EditorPreference
+# Test-GuiEnvironment
+
+#| Variable
+# . $PSScriptRoot/variable.ps1
 # Test-EnvVarAccess
-# Show-EditorConfig             # From editor.ps1
-# Show-PathAliases             # From alias.ps1
+
+#| Alias
+# . $PSScriptRoot/alias.ps1
+# Show-PathAliases
+
+#| Fyls
+# . $PSScriptRoot/fyls.ps1

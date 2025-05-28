@@ -6,7 +6,7 @@ extend-ignore-re = []
 [default.extend-identifiers]
 
 [default.extend-words]
-# nd = "nd"
+nd = "nd"
 
 [type.nix]
 extend-glob = []

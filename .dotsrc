@@ -49,12 +49,15 @@ fi
 
 # === POWERSHELL ===
 #@ Define output messaging preferences
-$Global:Verbosity = 'Debug'
+$Global:Verbosity = 'Trace'
 # $Global:VerbosePreference = 'Continue'
 # $Global:DebugPreference = 'Continue'
 $Global:InformationPreference = 'Continue'
 $Global:WarningPreference = 'Continue'
 $Global:ErrorActionPreference = 'Continue'
+
+#@ Enable experimental features
+Enable-ExperimentalFeature PSFeedbackProvider
 
 #@ Capture the current time to measure duration
 $InitTime = Get-Date

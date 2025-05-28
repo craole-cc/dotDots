@@ -13,7 +13,7 @@ function Set-Defaults {
   $Script:ctxScope = 'Name'
 
   #| Editor
-  if (-not (Get-Command Get-PreferredEditor -ErrorAction SilentlyContinue)) {
+  if (-not (Get-Command Get-Editor -ErrorAction SilentlyContinue)) {
     # Write-Warning "Editor functions not loaded. Please source editor.ps1 first."
     $Script:defaultEditor = $env:VISUAL ?? $env:EDITOR ?? 'code'
   }

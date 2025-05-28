@@ -1,7 +1,7 @@
 #region Main
 #TODO: Context Not working
 function Invoke-Process {
-<#
+    <#
 .SYNOPSIS
     Runs a command with arguments, reporting results with verbosity-aware output.
 .DESCRIPTION
@@ -83,7 +83,8 @@ function Invoke-Process {
     try {
         if ($Arguments) {
             & $Command @Arguments
-        } else {
+        }
+        else {
             & $Command
         }
         $Tag = 'Information'
@@ -101,16 +102,16 @@ function Invoke-Process {
     $Runtime = "${milliseconds}ms"
 
     # if ($DebugPreference -eq 'Continue') {
-        Write-Host "Invoke-Process: Command: $Command $($Arguments -join ', ')"
-        Write-Host "Invoke-Process: Verbosity: $(Get-VerbosityTag $Tag)[$(Get-VerbosityNumeric $Tag)]"
-        Write-Host "Invoke-Process: Context: ${ContextString}"
-        Write-Host "Invoke-Process: StartTime: ${startTime}"
-        Write-Host "Invoke-Process: EndTime: $endTime"
-        Write-Host "Invoke-Process: Duration: $duration"
-        Write-Host "Invoke-Process: Milliseconds: $milliseconds"
-        Write-Host "Invoke-Process: Runtime: $Runtime"
-        Write-Host "Invoke-Process: ResultTag: $Tag"
-        Write-Host "Invoke-Process: ResultMessage: $Message"
+    Write-Host "Invoke-Process: Command: $Command $($Arguments -join ', ')"
+    Write-Host "Invoke-Process: Verbosity: $(Get-VerbosityTag $Tag)[$(Get-VerbosityNumeric $Tag)]"
+    Write-Host "Invoke-Process: Context: ${ContextString}"
+    Write-Host "Invoke-Process: StartTime: ${startTime}"
+    Write-Host "Invoke-Process: EndTime: $endTime"
+    Write-Host "Invoke-Process: Duration: $duration"
+    Write-Host "Invoke-Process: Milliseconds: $milliseconds"
+    Write-Host "Invoke-Process: Runtime: $Runtime"
+    Write-Host "Invoke-Process: ResultTag: $Tag"
+    Write-Host "Invoke-Process: ResultMessage: $Message"
     # }
 
     #@ Output result using Write-Pretty
@@ -125,11 +126,67 @@ function Invoke-Process {
     $Global:Verbosity = $oldVerbosity
 }
 
+function Get-CommandFirst {
+    <#
+        .SYNOPSIS
+        Gets the first valid command object, optionally verifying executable path
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [switch]$VerifyExecutable
+    )
+
+    $command = Get-Command $Name -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $command) { return $null }
+
+    if ($VerifyExecutable) {
+        if (-not $command.Source -or -not (Test-Path $command.Source -PathType Leaf)) {
+            return $null
+        }
+    }
+
+    return $command
+}
+
+function Test-CommandAvailable {
+    <#
+        .SYNOPSIS
+        Returns $true if command exists and has valid executable path
+    #>
+    [CmdletBinding()]
+    param([string]$Name)
+
+    return [bool](Get-CommandFirst -Name $Name -VerifyExecutable)
+}
+
+
+function Test-CommandExists {
+    param([string]$Name)
+    return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Test-CommandExecutable {
+    <#
+    .SYNOPSIS
+    Returns $true if the given CommandInfo object has a valid, existing executable path.
+    .PARAMETER Command
+    The CommandInfo object to check (from Get-Command).
+    .OUTPUTS
+    [bool] True if the command is executable, otherwise false.
+    #>
+    param([Parameter(Mandatory)][object]$Command)
+
+    return $Command -and $Command.Source -and (Test-Path $Command.Source -PathType Leaf)
+}
+
 #endregion
 #region Test
 
 function Test-InvokeProcess {
-<#
+    <#
 .SYNOPSIS
     Runs diagnostic and sample tests for Invoke-Process.
 .DESCRIPTION
@@ -163,6 +220,8 @@ function Test-InvokeProcess {
 
 Export-ModuleMember -Function @(
     'Invoke-Process',
+    'Get-CommandFirst',
+    'Test-CommandExists',
     'Test-InvokeProcess'
 )
 
