@@ -1,128 +1,87 @@
+# shellcheck disable=SC2148,SC2292,SC1090
 # ===========================================================================
 # DOTS RC - Universal shell configuration loader for DOTS
 # Supports: bash, zsh, sh, fish, PowerShell, Nushell
 # ===========================================================================
 
-# === POSIX SHELLS (bash, zsh, sh) ===
-if [ -n "${BASH_VERSION:-}${ZSH_VERSION:-}${POSH_VERSION:-}" ]; then
-#@ Determine shell type for cleaner messaging
-if [ -n "${BASH_VERSION:-}" ]; then
-SHELL_NAME="bash"
-CONFIG_FILE="bashrc"
-elif [ -n "${ZSH_VERSION:-}" ]; then
-SHELL_NAME="zsh"
-CONFIG_FILE="zshrc"
-else
-SHELL_NAME="sh"
-CONFIG_FILE="shrc"
-fi
-
-printf "VERBOSE: Attempting to initialize DOTS for shell: %s...\n" "${SHELL_NAME}"
-
-#@ Validate DOTS environment variable
-if [ -z "${DOTS:-}" ]; then
-printf "ERROR: DOTS environment variable must be set\n" >&2
-return 1 2>/dev/null || exit 1
-fi
-
-#@ Validate DOTS directory exists
-if [ ! -d "$DOTS" ]; then
-printf "ERROR: DOTS directory '%s' does not exist\n" "$DOTS" >&2;
-return 1 2>/dev/null || exit 1
-fi
-
-#@ Load shell-specific configuration
-CONFIG_PATH="$DOTS/$CONFIG_FILE"
-if [ -f "$CONFIG_PATH" ]; then
-. "$CONFIG_PATH"
-printf "INFORMATION: Initialized DOTS using '%s'\n" "$CONFIG_FILE"
-else
-printf "WARNING: Configuration file '%s' not found\n" "$CONFIG_PATH" >&2
-fi
-
-return 0 2>/dev/null || exit 0
-fi
+# === NUSHELL ===
+# Nushell ignores lines starting with '#' except when they start with '#nu'
+#nu if ($env.DOTS == null) {
+#nu     print --error "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."
+#nu     exit 1
+#nu }
+#nu
+#nu if not ($env.DOTS | path exists) {
+#nu     print --error $"Missing DOTS directory: ($env.DOTS)"
+#nu     exit 1
+#nu }
+#nu
+#nu let dots_env = ($env.DOTS | path join "Environment" "_.nu")
+#nu if not ($dots_env | path exists) {
+#nu     print --error $"Missing required configuration module: ($dots_env)"
+#nu     exit 1
+#nu }
+#nu
+#nu source $dots_env
+#nu exit $env.LAST_EXIT_CODE
 
 # === FISH SHELL ===
 # Fish ignores lines starting with '#' except when they start with '#;'
-#; if not set -q DOTS; echo "ERROR: DOTS environment variable must be set" >&2; exit 1; end; if not test -d $DOTS; echo "ERROR: DOTS directory '$DOTS' does not exist" >&2; exit 1; end; echo "Loading fish configuration..."; set config_file $DOTS/fishrc; if test -f $config_file; source $config_file; echo "✓ Loaded fishrc"; else; echo "WARNING: Configuration file '$config_file' not found" >&2; end; exit 0
+#; if not set -q DOTS
+#;     echo "DOTS variable is unset. It must point to the DOTS (dotfiles) directory." >&2
+#;     exit 1
+#; end
+#;
+#; if not test -d "$DOTS"
+#;     echo "Missing DOTS directory: $DOTS" >&2
+#;     exit 1
+#; end
+#;
+#; set -l dots_env "$DOTS/Environment/_.fish"
+#; if not test -f "$dots_env"
+#;     echo "Missing required configuration module: $dots_env" >&2
+#;     exit 1
+#; end
+#;
+#; source "$dots_env"
+#; exit $status
+
+# === POSIX SHELLS (bash, zsh, sh) ===
+  if [ -z "${DOTS:-}" ]; then
+    printf "%s: %s\n%s" \
+      "Error: Missing required environment variable" "DOTS" \
+      "       It must point to the DOTS (dotfiles) directory path." >&2
+    return 1
+  elif [ ! -d "${DOTS:-}" ]; then
+    printf "ERROR: Invalid DOTS directory: '%s'" "${DOTS:-}" >&2
+    return 1
+  else
+    dots_env="${DOTS:-}/Environment/_.sh"
+    if [ ! -f "${dots_env:-}" ]; then
+      printf "ERROR: %s: %s" \
+        "Missing required configuration module" "${dots_env}" >&2
+      return 1
+    else
+      . "${dots_env}"
+      return $?
+    fi
+  fi
 
 # === POWERSHELL ===
-#@ Define output messaging preferences
-$Global:Verbosity = 'Trace'
-# $Global:VerbosePreference = 'Continue'
-# $Global:DebugPreference = 'Continue'
-$Global:InformationPreference = 'Continue'
-$Global:WarningPreference = 'Continue'
-$Global:ErrorActionPreference = 'Continue'
-
-#@ Enable experimental features
-Enable-ExperimentalFeature PSFeedbackProvider
-
-#@ Capture the current time to measure duration
-$InitTime = Get-Date
-
-#@ Validate DOTS environment variable
 if (-not $env:DOTS) {
-  Throw "Required environment variable undefined: DOTS (path of the dotfiles repository)"
-  exit 1
+  Throw "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."
 }
-
-#@ Define path structure
-$paths = [ordered]@{
-  'DOTS_DLD' = Join-Path $env:DOTS 'Import'
-  'DOTS_MOD' = Join-Path $env:DOTS 'Modules'
-  'DOTS_BIN' = Join-Path $env:DOTS 'Bin'
-  'DOTS_ENV' = Join-Path $env:DOTS 'Environment'
-  'DOTS_CFG' = Join-Path $env:DOTS 'Configuration'
+elseif (-not (Test-Path -Path $env:DOTS -PathType Container)) {
+  Throw "Missing DOTS directory: $env:DOTS"
 }
-
-#@ Define excluded folder patterns
-$excludedPatterns = @(
-  'review',
-  'tmp',
-  'temp',
-  'archive',
-  'backup'
-) -join '|'
-
-#@ Add valid paths and load modules
-foreach ($path in $paths.GetEnumerator()) {
-  if (Test-Path -Path $path.Value -PathType Container) {
-    #@ Export environment variable
-    [Environment]::SetEnvironmentVariable($path.Key, $path.Value, 'Process')
-    Set-Variable -Name $path.Key -Value $path.Value -Scope Global
-    Write-Verbose "Exported variable: $($path.Key) => $($path.Value)"
-
-    #@ Import modules recursively if the directory basename is powershell (excluding patterns)
-    $pathPSValue = Join-Path $path.Value 'powershell'
-    if (Test-Path -Path $pathPSValue -PathType Container) {
-      #@ Add to PSModulePath
-      $env:PSModulePath = $path.Value + [IO.Path]::PathSeparator + $env:PSModulePath
-
-      #@ Create environment variable with name ($path.Key)_PS
-      $pathPSKey = "$($path.Key)_PS"
-      [Environment]::SetEnvironmentVariable($pathPSKey, $pathPSValue, 'Process')
-      Set-Variable -Name $pathPSKey -Value $pathPSValue -Scope Global
-      Write-Verbose "Exported variable: $($pathPSKey) => $($pathPSValue)"
-
-      #@ Load Modules
-      $modules = Get-ChildItem -Path $path.Value -Recurse -Include "*.psm1" |
-      Where-Object { $_.FullName -notmatch $excludedPatterns }
-
-      if ($modules) {
-        Write-Debug "=== DOTS === Found $($modules.Count) module$(if($modules.Count -ne 1){'s'}) from $($path.Value)"
-        $modules | ForEach-Object { Import-Module $_.FullName -Force }
-      }
-    }
+else {
+  $dotsEnv = Join-Path $env:DOTS 'Environment' '_.ps1'
+  if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
+    Throw "Missing required configuration module: ${dotsEnv}"
+  }
+  else {  
+    Import-Module $dotsEnv -Force
+    return $LASTEXITCODE
   }
 }
-
-#@ Print initialization message
-Write-Pretty -Tag "Information" -As "DOTS" -Init $InitTime
-Exit
-
-# === NUSHELL ===
-# Nushell ignores lines starting with '#' except when they start with '#nu'
-# if ($env.DOTS != null) and ($env.DOTS | path exists) { let config_path = ($env.DOTS | path join "Configuration" "nushell" "config.nu"); let env_path = ($env.DOTS | path join "Configuration" "nushell" "env.nu"); if ($config_path | path exists) { source $config_path }; if ($env_path | path exists) { source $env_path } };
-#nu if ($env.DOTS != null) and ($env.DOTS | path exists) { let config_path = ($env.DOTS | path join "Configuration" "nushell" "config.nu"); let env_path = ($env.DOTS | path join "Configuration" "nushell" "env.nu"); if ($config_path | path exists) { source $config_path }; if ($env_path | path exists) { source $env_path } };
+  

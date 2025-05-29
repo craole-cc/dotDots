@@ -16,7 +16,7 @@ shopt -s checkwinsize
 shopt -s globstar
 
 # make less more friendly for non-text input files, see lesspipe(1)
-weHave lesspipe.sh && { eval "$(lesspipe.sh)" || true; }
+type lesspipe.sh >/dev/null 2>&1 && { eval "$(lesspipe.sh)" || true; }
 
 #| Colors
 CLICOLOR=1

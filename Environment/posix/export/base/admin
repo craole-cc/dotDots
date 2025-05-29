@@ -1,0 +1,134 @@
+#! /bin/sh
+# shellcheck disable=SC2034,SC2154
+# > Default Locations
+# @ ./Environment/core/dirs.sh
+
+#| Top-level DOTS Directories
+DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
+DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/Cache"}" export DOTS_CACHE
+DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
+DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}" export DOTS_DLD
+DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}" export DOTS_DOC
+DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
+DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}" export DOTS_LOG
+DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}" export DOTS_MOD
+DOTS_NIX="${DOTS_NIX:-"${DOTS}/Admin"}" export DOTS_NIX
+DOTS_RES="${DOTS_RES:-"${DOTS}/Assets"}" export DOTS_RES
+DOTS_TODO="${DOTS_TODO:-"${DOTS}/Tasks"}" export DOTS_TODO
+pout_env "DOTS_BIN"
+pout_env "DOTS_CACHE"
+pout_env "DOTS_CFG"
+pout_env "DOTS_DLD"
+pout_env "DOTS_ENV"
+pout_env "DOTS_LOG"
+pout_env "DOTS_MOD"
+pout_env "DOTS_RES"
+pout_env "DOTS_TODO"
+
+#| Nix Directories
+FLAKE="${FLAKE:-"${DOTS}"}" export FLAKE
+DOTS_NIX_TEMPLATES="${DOTS_NIX_TEMPLATES:-"${DOTS_NIX}/Templates"}" export DOTS_NIX_TEMPLATES
+DOTS_NIX_LIB="${DOTS_NIX_LIB:-"${DOTS_NIX}/Lib"}" export DOTS_NIX_LIB
+DOTS_NIX_MOD="${DOTS_NIX_MOD:-"${DOTS_NIX}/Mod"}" export DOTS_NIX_MOD
+DOTS_NIX_PKG="${DOTS_NIX_PKG:-"${DOTS_NIX}/Pkg"}" export DOTS_NIX_PKG
+DOTS_NIX_OPT="${DOTS_NIX_OPT:-"${DOTS_NIX}/Opt"}" export DOTS_NIX_OPT
+DOTS_NIX_SCR="${DOTS_NIX_SCR:-"${DOTS_NIX}/Scr"}" export DOTS_NIX_SCR
+pout_env "FLAKE"
+pout_env "DOTS_NIX_TEMPLATES"
+pout_env "DOTS_NIX_LIB"
+pout_env "DOTS_NIX_MOD"
+pout_env "DOTS_NIX_PKG"
+pout_env "DOTS_NIX_OPT"
+pout_env "DOTS_NIX_SCR"
+
+#| Environment Directories
+DOTS_ENV_POSIX="${DOTS_ENV_POSIX:-"${DOTS_ENV}/posix"}" export DOTS_ENV_POSIX
+DOTS_ENV_POSIX_CONTEXT="${DOTS_ENV_POSIX_CONTEXT:-"${DOTS_ENV_POSIX}/context"}" export DOTS_ENV_POSIX_CONTEXT
+DOTS_ENV_POSIX_EXPORT="${DOTS_ENV_POSIX_EXPORT:-"${DOTS_ENV_POSIX}/export"}" export DOTS_ENV_POSIX_EXPORT
+DOTS_ENV_POSIX_BASE="${DOTS_ENV_POSIX_BASE:-"${DOTS_ENV_POSIX_EXPORT}/base"}" export DOTS_ENV_POSIX_BASE
+DOTS_ENV_POSIX_CORE="${DOTS_ENV_POSIX_CORE:-"${DOTS_ENV_POSIX_EXPORT}/core"}" export DOTS_ENV_POSIX_CORE
+DOTS_ENV_POSIX_PKGS="${DOTS_ENV_POSIX_APP:-"${DOTS_ENV_POSIX_EXPORT}/package"}" export DOTS_ENV_POSIX_PKGS
+DOTS_ENV_POSIX_PRJ="${DOTS_ENV_POSIX_PRJ:-"${DOTS_ENV_POSIX_EXPORT}/project"}" export DOTS_ENV_POSIX_PRJ
+DOTS_ENV_POSIX_UTIL="${DOTS_ENV_POSIX_UTIL:-"${DOTS_ENV_POSIX_EXPORT}/utility"}" export DOTS_ENV_POSIX_UTIL
+pout_env "DOTS_ENV_POSIX"
+pout_env "DOTS_ENV_POSIX_CONTEXT"
+pout_env "DOTS_ENV_POSIX_EXPORT"
+pout_env "DOTS_ENV_POSIX_BASE"
+pout_env "DOTS_ENV_POSIX_CORE"
+pout_env "DOTS_ENV_POSIX_PKGS"
+pout_env "DOTS_ENV_POSIX_PRJ"
+pout_env "DOTS_ENV_POSIX_UTIL"
+
+#| Bin Directories
+DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}" export DOTS_BIN_BASH
+DOTS_BIN_CMD="${DOTS_BIN_CMD:-"${DOTS_BIN}/cmd"}" export DOTS_BIN_CMD
+DOTS_BIN_FISH="${DOTS_BIN_FISH:-"${DOTS_BIN}/fish"}" export DOTS_BIN_FISH
+DOTS_BIN_NUSHELL="${DOTS_BIN_NUSHELL:-"${DOTS_BIN}/nushell"}" export DOTS_BIN_NUSHELL
+DOTS_BIN_POWERSHELL="${DOTS_BIN_POWERSHELL:-"${DOTS_BIN}/powershell"}" export DOTS_BIN_POWERSHELL
+DOTS_BIN_PYTHON="${DOTS_BIN_PYTHON:-"${DOTS_BIN}/python"}" export DOTS_BIN_PYTHON
+DOTS_BIN_RUST="${DOTS_BIN_RUST:-"${DOTS_BIN}/rust"}" export DOTS_BIN_RUST
+DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}" export DOTS_BIN_SH
+DOTS_BIN_SQL="${DOTS_BIN_SQL:-"${DOTS_BIN}/sql"}" export DOTS_BIN_SQL
+DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}" export DOTS_BIN_ZIG
+DOTS_BIN_ZSH="${DOTS_BIN_ZSH:-"${DOTS_BIN}/zsh"}" export DOTS_BIN_ZSH
+pout_env "DOTS_BIN_BASH"
+pout_env "DOTS_BIN_CMD"
+pout_env "DOTS_BIN_FISH"
+pout_env "DOTS_BIN_NUSHELL"
+pout_env "DOTS_BIN_POWERSHELL"
+pout_env "DOTS_BIN_PYTHON"
+pout_env "DOTS_BIN_RUST"
+pout_env "DOTS_BIN_SH"
+pout_env "DOTS_BIN_SQL"
+pout_env "DOTS_BIN_ZIG"
+pout_env "DOTS_BIN_ZSH"
+
+#| Resource Directories
+DOTS_FONTS="${DOTS_FONTS:-"${DOTS_RES}/Fonts"}" export DOTS_FONTS
+DOTS_IMAGES="${DOTS_IMAGES:-"${DOTS_RES}/Images"}" export DOTS_IMAGES
+DOTS_SCRIPTS="${DOTS_SCRIPTS:-"${DOTS_RES}/Home"}" export DOTS_SCRIPTS
+DOTS_TEMPLATES="${DOTS_TEMPLATES:-"${DOTS_RES}/Templates"}" export DOTS_TEMPLATES
+pout_env "DOTS_FONTS"
+pout_env "DOTS_IMAGES"
+pout_env "DOTS_SCRIPTS"
+pout_env "DOTS_TEMPLATES"
+
+#| User Directories
+DOCUMENTS="${DOCUMENTS:-"${HOME}/Documents"}" export DOCUMENTS
+DOWNLOADS="${DOWNLOADS:-"${HOME}/Downloads"}" export DOWNLOADS
+MUSIC="${MUSIC:-"${HOME}/Music"}" export MUSIC
+PHOTOS="${PHOTOS:-"${HOME}/Pictures"}" export PHOTOS
+VIDEOS="${VIDEOS:-"${HOME}/Videos"}" export VIDEOS
+WALLPAPERS="$(
+  if [ -d "${PHOTOS}/Wallpapers" ]; then
+    printf "%s" "${PHOTOS}/Wallpapers"
+  elif [ -d "${HOME}/Pictures/wallpapers" ]; then
+    printf "%s" "${HOME}/Pictures/wallpapers"
+  else
+    printf "%s" "${DOTS_RES}/Images/wallpaper"
+  fi
+)"
+export WALLPAPERS
+pout_env "DOCUMENTS"
+pout_env "DOWNLOADS"
+pout_env "MUSIC"
+pout_env "PHOTOS"
+pout_env "VIDEOS"
+pout_env "WALLPAPERS"
+
+#| System Directories
+APPDATA="${APPDATA:-"${HOME}/AppData"}" export APPDATA
+
+#| Miscellaneous
+DELIMITER="$(printf "\037")"
+ifs=${IFS}
+TIMESTAMP="$(date +%F_%H-%M-%S)"
+DOTS_LOADED_APPS="${DOTS_LOG}/loaded_apps"
+FLAKE="${FLAKE:-"${DOTS}"}"
+
+# | General
+codeDOTS="${DOTS_CFG}/vscode/Dotfiles.code-workspace"
+codeRUST="${DOTS_CFG}/vscode/Rust.code-workspace"
+codeNIX="${DOTS_CFG}/vscode/Nix.code-workspace"
+KEYMAPS="${DOTS_CFG}/utilities/sxhkd"
+ASCII="${DOTS_RES}/Images/ascii"

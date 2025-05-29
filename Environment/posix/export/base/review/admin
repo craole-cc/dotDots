@@ -3,7 +3,30 @@
 # > Default Locations
 # @ ./Environment/core/dirs.sh
 
-# @___________________________________________________________________ GENERAL<|
+#| Top-level DOTS Directories
+DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
+DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/Cache"}" export DOTS_CACHE
+DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
+DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}" export DOTS_DLD
+DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}" export DOTS_DOC
+DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
+DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}" export DOTS_LOG
+DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}" export DOTS_MOD
+DOTS_RES="${DOTS_RES:-"${DOTS}/Assets"}" export DOTS_RES
+DOTS_TODO="${DOTS_TODO:-"${DOTS}/Tasks"}" export DOTS_TODO
+DOTS_TEMPLATES="${DOTS_TEMPLATES:-"${DOTS}/Templates"}" export DOTS_TEMPLATES
+
+#| User Directories
+DOCUMENTS="${DOCUMENTS:-"${HOME}/Documents"}" export DOCUMENTS
+DOWNLOADS="${DOWNLOADS:-"${HOME}/Downloads"}" export DOWNLOADS
+MUSIC="${MUSIC:-"${HOME}/Music"}" export MUSIC
+PHOTOS="${PHOTOS:-"${HOME}/Pictures"}" export PHOTOS
+VIDEOS="${VIDEOS:-"${HOME}/Videos"}" export VIDEOS
+
+#| System Directories
+APPDATA="${APPDATA:-"${HOME}/AppData"}" export APPDATA
+
+
 
 sys_INFO="$(
   printf "%s %s | %s@%s | %s" \
@@ -22,33 +45,18 @@ sys_LABEL="$(
     "$(os.distro.fetch)"
 )"
 
-DOTS="${DOTS:-"$HOME/.dots"}"
-DLS_DIR="$HOME/Downloads"
-VID_DIR="$HOME/Videos"
-MUS_DIR="$HOME/Music"
-PIC_DIR="$HOME/Pictures"
 TIMESTAMP="$(date +%F_%H-%M)"
 
-if [ -d "$PIC_DIR/Wallpapers" ]; then
-  WALLPAPERS="$PIC_DIR/Wallpapers"
-elif [ -d "$HOME/Pictures/wallpapers" ]; then
-  WALLPAPERS="$HOME/Pictures/wallpapers"
+if [ -d "${PIC_DIR}/Wallpapers" ]; then
+  WALLPAPERS="${PIC_DIR}/Wallpapers"
+elif [ -d "${HOME}/Pictures/wallpapers" ]; then
+  WALLPAPERS="${HOME}/Pictures/wallpapers"
 else
-  WALLPAPERS="$DOTS_RES/Images/wallpaper"
+  WALLPAPERS="${DOTS_RES}/Images/wallpaper"
 fi
 
-#|> ________________________________________ DOTFILES<|
 
-# | Dotfiles
-DOTS_DOC="$DOTS/Documentation"
-DOTS_DOWN="$DOTS/Downloads"
-DOTS_MOD="${DOTS_MOD:-"$DOTS/Modules"}"
-DOTS_RES="$DOTS/Resources"
-DOTS_LOG="$DOTS/Log"
-DOTS_TODO="$DOTS_DOC/Tasks"
-DOTS_TEST="$DOTS/Test"
-DOTS_RC="$DOTS/.dotrc"
-DOTS_loaded_apps="$DOTS_LOG/loaded_apps"
+
 
 # | BIN
 DOTS_BIN="$DOTS/Bin"
@@ -90,3 +98,4 @@ ASCII="$DOTS_RES/Images/ascii"
 DOTS_GUIX="$DOTS_CFG/utilities/guix"
 DOTS_NIX="$DOTS_CFG/nixos"
 DOTS_WSLnix="$DOTS_CFG/NixWSL"
+DOTS_loaded_apps="$DOTS_LOG/loaded_apps"

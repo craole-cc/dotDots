@@ -113,7 +113,7 @@ function Write-Pretty {
     $maxNum = Get-VerbosityNumeric $maxLevel
 
     Write-Verbose "Importing module Write-Pretty"
-    Write-Debug "Write-Pretty: Verbosity='$verbosityLevel' ($verbosityNum), Max='$maxLevel' ($maxNum)"
+    # Write-Debug "Write-Pretty: Verbosity='$verbosityLevel' ($verbosityNum), Max='$maxLevel' ($maxNum)"
 
     if ($verbosityNum -gt $maxNum) {
         Write-Verbose "Write-Pretty: Message suppressed (verbosity $verbosityNum > max $maxNum)"
