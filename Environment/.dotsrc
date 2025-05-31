@@ -1,4 +1,6 @@
 #! /bin/sh
+# shellcheck disable=SC2154
 
-echo "Environment"
-alias ".env"='cd "${DOTS_ENV}"'
+manage_env --force --init --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
+manage_env --force --init --var DOTS_ENV_EXPORT --val "${DOTS_ENV_POSIX}/export"
+manage_env --force --init --var DOTS_ENV_CONTEXT --val "${DOTS_ENV_POSIX}/context"

@@ -1,0 +1,67 @@
+#!/bin/sh
+
+source_recursive() {
+  if [ -z "${1:-}" ]; then
+    echo "Error: directory path required" >&2
+    return 1
+  elif [ ! -d "${1}" ]; then
+    echo "Error: '${1}' is not a valid directory" >&2
+    return 1
+  else
+    target_dir="${1}"
+    : "${DELIMITER:=|}"
+    : "${RC:=.rc}"
+    uid="${RC}_$$_$(date +%Y%m%d%H%M%S)"
+    temp_rc="${target_dir}/${uid}"
+  fi
+
+  echo "Source: ${temp_rc}"
+  return
+
+  #@ Create temp file for file list (avoid subshell performance hit)
+  if [ -d "${DOTS_TMP:-}" ] && [ -w "${DOTS_TMP}" ]; then
+    temp_file="${DOTS_TMP}/.source_recursive_$"
+  else
+    temp_file="${target_dir}/.source_recursive_$"
+  fi
+  trap 'rm -f "$temp_file"' EXIT
+
+  # Direct find to temp file (much faster than command substitution)
+  find "${target_dir}" -type f >"${temp_file}"
+
+  #@ Filter and source files efficiently
+  count=0
+  while IFS= read -r file; do
+    #@ Skip excluded patterns
+    case "${file}" in
+    *template* | *review* | *tmp* | *temp* | *archive* | *backup*) continue ;; *) ;;
+    esac
+
+    count=$((count + 1))
+    init_time_env="$(date +%s%3N)"
+
+    echo "Sourcing file #${count}: ${file}"
+    # Uncomment to actually source:
+    # shellcheck disable=SC1090
+    # . "${file}" 2>/dev/null || echo "Warning: Failed to source '${file}'" >&2
+
+    exit_time_env="$(date +%s%3N)"
+    duration_env=$((exit_time_env - init_time_env))
+    echo "Processed in ${duration_env}ms"
+  done <"${temp_file}"
+
+  rm -f "${temp_file}"
+  trap - EXIT
+
+  echo "Successfully processed ${count} files"
+}
+
+source_recursive "${DOTS_ENV_EXPORT:-}"
+# Usage examples:
+# source_recursive /path/to/directory
+# source_recursive "/path with spaces/to/directory"
+# source_recursive_efficient /path/to/directory
+# manage_env --force --init --var DOTS_ENV_EXPORT_BASE --val "${DOTS_ENV_EXPORT}/base"
+# manage_env --force --init --var DOTS_ENV_EXPORT_CORE --val "${DOTS_ENV_EXPORT}/core"
+# manage_env --force --init --var DOTS_ENV_EXPORT_PKGS --val "${DOTS_ENV_EXPORT}/package"
+# manage_env --force --init --var DOTS_ENV_EXPORT_UTIL --val "${DOTS_ENV_EXPORT}/utility"
