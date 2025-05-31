@@ -65,7 +65,7 @@
     manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
     manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
     manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
-    manage_env --force --init --var DOTS_TMP --val "${DOTS}.cache"
+    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
     return $?
   fi
 
