@@ -1,45 +1,100 @@
 #! /bin/sh
-# shellcheck disable=SC2034,SC2154
-# > Default Locations
-# @ ./Environment/core/dirs.sh
+# shellcheck disable=SC2034,SC2154,SC1091
+
+#| Output Control
+DELIMITER="${DELIMITER:-"$(printf "\037")"}" export DELIMITER
+LANG="$(locale -uU || printf "en_US.UTF-8")" export LANG
+VERBOSITY="${verbosity:-"${VERBOSITY:-3}"}"
+VERBOSITY_QUIET="${verbosity_quiet:-"${VERBOSITY_QUIET:-0}"}"
+VERBOSITY_ERROR="${verbosity_error:-"${VERBOSITY_ERROR:-1}"}"
+VERBOSITY_WARN="${verbosity_warn:-"${VERBOSITY_WARN:-2}"}"
+VERBOSITY_INFO="${verbosity_info:-"${VERBOSITY_INFO:-3}"}"
+VERBOSITY_DEBUG="${verbosity_debug:-"${VERBOSITY_DEBUG:-4}"}"
+VERBOSITY_TRACE="${verbosity_trace:-"${VERBOSITY_TRACE:-5}"}"
+export VERBOSITY VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE
 
 #| Top-level DOTS Directories
-DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}" export DOTS_BIN
-DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/Cache"}" export DOTS_CACHE
-DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
-DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}" export DOTS_DLD
-DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}" export DOTS_DOC
-DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
-DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}" export DOTS_LOG
-DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}" export DOTS_MOD
-DOTS_NIX="${DOTS_NIX:-"${DOTS}/Admin"}" export DOTS_NIX
-DOTS_RES="${DOTS_RES:-"${DOTS}/Assets"}" export DOTS_RES
-DOTS_TODO="${DOTS_TODO:-"${DOTS}/Tasks"}" export DOTS_TODO
-pout_env "DOTS_BIN"
-pout_env "DOTS_CACHE"
-pout_env "DOTS_CFG"
-pout_env "DOTS_DLD"
-pout_env "DOTS_ENV"
-pout_env "DOTS_LOG"
-pout_env "DOTS_MOD"
-pout_env "DOTS_RES"
-pout_env "DOTS_TODO"
+if [ -d "${DOTS}" ]; then
+  alias ".dots"='cd "${DOTS}"'
+  alias "cd.dots"='cd "${DOTS}"'
+  alias "ed.dots"='ed "${DOTS}"'
+fi
+
+DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}"
+export DOTS_BIN
+alias ".DOTS_BIN"='cd "${DOTS_BIN}"'
+alias "cd.DOTS_BIN"='cd "${DOTS_BIN}"'
+alias "ed.DOTS_BIN"='ed "${DOTS_BIN}"'
+
+DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/Cache"}"
+export DOTS_CACHE
+alias ".DOTS_CACHE"='cd "${DOTS_CACHE}"'
+alias "cd.DOTS_CACHE"='cd "${DOTS_CACHE}"'
+alias "ed.DOTS_CACHE"='ed "${DOTS_CACHE}"'
+
+DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}"
+export DOTS_CFG
+alias ".DOTS_CFG"='cd "${DOTS_CFG}"'
+alias "cd.DOTS_CFG"='cd "${DOTS_CFG}"'
+alias "ed.DOTS_CFG"='ed "${DOTS_CFG}"'
+
+DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}"
+export DOTS_DLD
+alias ".DOTS_DLD"='cd "${DOTS_DLD}"'
+alias "cd.DOTS_DLD"='cd "${DOTS_DLD}"'
+alias "ed.DOTS_DLD"='ed "${DOTS_DLD}"'
+
+DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}"
+export DOTS_DOC
+alias ".DOTS_DOC"='cd "${DOTS_DOC}"'
+alias "cd.DOTS_DOC"='cd "${DOTS_DOC}"'
+alias "ed.DOTS_DOC"='ed "${DOTS_DOC}"'
+
+DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}"
+export DOTS_ENV
+alias ".DOTS_ENV"='cd "${DOTS_ENV}"'
+alias "cd.DOTS_ENV"='cd "${DOTS_ENV}"'
+alias "ed.DOTS_ENV"='ed "${DOTS_ENV}"'
+
+DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}"
+export DOTS_LOG
+alias ".DOTS_LOG"='cd "${DOTS_LOG}"'
+alias "cd.DOTS_LOG"='cd "${DOTS_LOG}"'
+alias "ed.DOTS_LOG"='ed "${DOTS_LOG}"'
+
+DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}"
+export DOTS_MOD
+alias ".DOTS_MOD"='cd "${DOTS_MOD}"'
+alias "cd.DOTS_MOD"='cd "${DOTS_MOD}"'
+alias "ed.DOTS_MOD"='ed "${DOTS_MOD}"'
+
+DOTS_NIX="${DOTS_NIX:-"${DOTS}/Admin"}"
+[ -f "${DOTS_NIX}/_.sh" ] && . "${DOTS_NIX}/_.sh"
+# export DOTS_NIX
+# alias ".DOTS_NIX"='cd "${DOTS_NIX}"'
+# alias "cd.DOTS_NIX"='cd "${DOTS_NIX}"'
+# alias "ed.DOTS_NIX"='ed "${DOTS_NIX}"'
+
+DOTS_RES="${DOTS_RES:-"${DOTS}/Assets"}"
+export DOTS_RES
+alias ".DOTS_RES"='cd "${DOTS_RES}"'
+alias "cd.DOTS_RES"='cd "${DOTS_RES}"'
+alias "ed.DOTS_RES"='ed "${DOTS_RES}"'
+
+DOTS_TODO="${DOTS_TODO:-"${DOTS}/Tasks"}"
+export DOTS_TODO
+alias ".DOTS_TODO"='cd "${DOTS_TODO}"'
+alias "cd.DOTS_TODO"='cd "${DOTS_TODO}"'
+alias "ed.DOTS_TODO"='ed "${DOTS_TODO}"'
 
 #| Nix Directories
-FLAKE="${FLAKE:-"${DOTS}"}" export FLAKE
-DOTS_NIX_TEMPLATES="${DOTS_NIX_TEMPLATES:-"${DOTS_NIX}/Templates"}" export DOTS_NIX_TEMPLATES
-DOTS_NIX_LIB="${DOTS_NIX_LIB:-"${DOTS_NIX}/Lib"}" export DOTS_NIX_LIB
-DOTS_NIX_MOD="${DOTS_NIX_MOD:-"${DOTS_NIX}/Mod"}" export DOTS_NIX_MOD
-DOTS_NIX_PKG="${DOTS_NIX_PKG:-"${DOTS_NIX}/Pkg"}" export DOTS_NIX_PKG
-DOTS_NIX_OPT="${DOTS_NIX_OPT:-"${DOTS_NIX}/Opt"}" export DOTS_NIX_OPT
-DOTS_NIX_SCR="${DOTS_NIX_SCR:-"${DOTS_NIX}/Scr"}" export DOTS_NIX_SCR
-pout_env "FLAKE"
-pout_env "DOTS_NIX_TEMPLATES"
-pout_env "DOTS_NIX_LIB"
-pout_env "DOTS_NIX_MOD"
-pout_env "DOTS_NIX_PKG"
-pout_env "DOTS_NIX_OPT"
-pout_env "DOTS_NIX_SCR"
+# FLAKE="${FLAKE:-"${DOTS}"}" export FLAKE
+# DOTS_NIX_TEMPLATES="${DOTS_NIX_TEMPLATES:-"${DOTS_NIX}/Templates"}" export DOTS_NIX_TEMPLATES
+# DOTS_NIX_LIB="${DOTS_NIX_LIB:-"${DOTS_NIX}/Lib"}" export DOTS_NIX_LIB
+# DOTS_NIX_MOD="${DOTS_NIX_MOD:-"${DOTS_NIX}/Mod"}" export DOTS_NIX_MOD
+# DOTS_NIX_PKG="${DOTS_NIX_PKG:-"${DOTS_NIX}/Pkg"}" export DOTS_NIX_PKG
+# DOTS_NIX_OPT="${DOTS_NIX_OPT:-"${DOTS_NIX}/Opt"}" export DOTS_NIX_OPT
+# DOTS_NIX_SCR="${DOTS_NIX_SCR:-"${DOTS_NIX}/Scr"}" export DOTS_NIX_SCR
 
 #| Environment Directories
 DOTS_ENV_POSIX="${DOTS_ENV_POSIX:-"${DOTS_ENV}/posix"}" export DOTS_ENV_POSIX
@@ -50,14 +105,14 @@ DOTS_ENV_POSIX_CORE="${DOTS_ENV_POSIX_CORE:-"${DOTS_ENV_POSIX_EXPORT}/core"}" ex
 DOTS_ENV_POSIX_PKGS="${DOTS_ENV_POSIX_APP:-"${DOTS_ENV_POSIX_EXPORT}/package"}" export DOTS_ENV_POSIX_PKGS
 DOTS_ENV_POSIX_PRJ="${DOTS_ENV_POSIX_PRJ:-"${DOTS_ENV_POSIX_EXPORT}/project"}" export DOTS_ENV_POSIX_PRJ
 DOTS_ENV_POSIX_UTIL="${DOTS_ENV_POSIX_UTIL:-"${DOTS_ENV_POSIX_EXPORT}/utility"}" export DOTS_ENV_POSIX_UTIL
-pout_env "DOTS_ENV_POSIX"
-pout_env "DOTS_ENV_POSIX_CONTEXT"
-pout_env "DOTS_ENV_POSIX_EXPORT"
-pout_env "DOTS_ENV_POSIX_BASE"
-pout_env "DOTS_ENV_POSIX_CORE"
-pout_env "DOTS_ENV_POSIX_PKGS"
-pout_env "DOTS_ENV_POSIX_PRJ"
-pout_env "DOTS_ENV_POSIX_UTIL"
+# pout_env "DOTS_ENV_POSIX"
+# pout_env "DOTS_ENV_POSIX_CONTEXT"
+# pout_env "DOTS_ENV_POSIX_EXPORT"
+# pout_env "DOTS_ENV_POSIX_BASE"
+# pout_env "DOTS_ENV_POSIX_CORE"
+# pout_env "DOTS_ENV_POSIX_PKGS"
+# pout_env "DOTS_ENV_POSIX_PRJ"
+# pout_env "DOTS_ENV_POSIX_UTIL"
 
 #| Bin Directories
 DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}" export DOTS_BIN_BASH
@@ -71,27 +126,27 @@ DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}" export DOTS_BIN_SH
 DOTS_BIN_SQL="${DOTS_BIN_SQL:-"${DOTS_BIN}/sql"}" export DOTS_BIN_SQL
 DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}" export DOTS_BIN_ZIG
 DOTS_BIN_ZSH="${DOTS_BIN_ZSH:-"${DOTS_BIN}/zsh"}" export DOTS_BIN_ZSH
-pout_env "DOTS_BIN_BASH"
-pout_env "DOTS_BIN_CMD"
-pout_env "DOTS_BIN_FISH"
-pout_env "DOTS_BIN_NUSHELL"
-pout_env "DOTS_BIN_POWERSHELL"
-pout_env "DOTS_BIN_PYTHON"
-pout_env "DOTS_BIN_RUST"
-pout_env "DOTS_BIN_SH"
-pout_env "DOTS_BIN_SQL"
-pout_env "DOTS_BIN_ZIG"
-pout_env "DOTS_BIN_ZSH"
+# pout_env "DOTS_BIN_BASH"
+# pout_env "DOTS_BIN_CMD"
+# pout_env "DOTS_BIN_FISH"
+# pout_env "DOTS_BIN_NUSHELL"
+# pout_env "DOTS_BIN_POWERSHELL"
+# pout_env "DOTS_BIN_PYTHON"
+# pout_env "DOTS_BIN_RUST"
+# pout_env "DOTS_BIN_SH"
+# pout_env "DOTS_BIN_SQL"
+# pout_env "DOTS_BIN_ZIG"
+# pout_env "DOTS_BIN_ZSH"
 
 #| Resource Directories
 DOTS_FONTS="${DOTS_FONTS:-"${DOTS_RES}/Fonts"}" export DOTS_FONTS
 DOTS_IMAGES="${DOTS_IMAGES:-"${DOTS_RES}/Images"}" export DOTS_IMAGES
 DOTS_SCRIPTS="${DOTS_SCRIPTS:-"${DOTS_RES}/Home"}" export DOTS_SCRIPTS
 DOTS_TEMPLATES="${DOTS_TEMPLATES:-"${DOTS_RES}/Templates"}" export DOTS_TEMPLATES
-pout_env "DOTS_FONTS"
-pout_env "DOTS_IMAGES"
-pout_env "DOTS_SCRIPTS"
-pout_env "DOTS_TEMPLATES"
+# pout_env "DOTS_FONTS"
+# pout_env "DOTS_IMAGES"
+# pout_env "DOTS_SCRIPTS"
+# pout_env "DOTS_TEMPLATES"
 
 #| User Directories
 DOCUMENTS="${DOCUMENTS:-"${HOME}/Documents"}" export DOCUMENTS
@@ -109,24 +164,19 @@ WALLPAPERS="$(
   fi
 )"
 export WALLPAPERS
-pout_env "DOCUMENTS"
-pout_env "DOWNLOADS"
-pout_env "MUSIC"
-pout_env "PHOTOS"
-pout_env "VIDEOS"
-pout_env "WALLPAPERS"
+# pout_env "DOCUMENTS"
+# pout_env "DOWNLOADS"
+# pout_env "MUSIC"
+# pout_env "PHOTOS"
+# pout_env "VIDEOS"
+# pout_env "WALLPAPERS"
 
 #| System Directories
 APPDATA="${APPDATA:-"${HOME}/AppData"}" export APPDATA
 
-#| Miscellaneous
-DELIMITER="$(printf "\037")"
-ifs=${IFS}
+#| General
 TIMESTAMP="$(date +%F_%H-%M-%S)"
 DOTS_LOADED_APPS="${DOTS_LOG}/loaded_apps"
-FLAKE="${FLAKE:-"${DOTS}"}"
-
-# | General
 codeDOTS="${DOTS_CFG}/vscode/Dotfiles.code-workspace"
 codeRUST="${DOTS_CFG}/vscode/Rust.code-workspace"
 codeNIX="${DOTS_CFG}/vscode/Nix.code-workspace"

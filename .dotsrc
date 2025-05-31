@@ -51,20 +51,22 @@
     printf "%s: %s\n%s" \
       "Error: Missing required environment variable" "DOTS" \
       "       It must point to the DOTS (dotfiles) directory path." >&2
-    return 1
+    return 2
   elif [ ! -d "${DOTS:-}" ]; then
     printf "ERROR: Invalid DOTS directory: '%s'" "${DOTS:-}" >&2
-    return 1
+    return 2
+  elif ! command -v manage_env >/dev/null 2>&1 ;then
+      printf "ERROR: Missing required function: manage_env" >&2
+      return 2
   else
-    dots_env="${DOTS:-}/Environment/_.sh"
-    if [ ! -f "${dots_env:-}" ]; then
-      printf "ERROR: %s: %s" \
-        "Missing required configuration module" "${dots_env}" >&2
-      return 1
-    else
-      . "${dots_env}"
-      return $?
-    fi
+    manage_env --force --init --var DOTS_ENV --val "${DOTS}/Environment"
+    manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
+    manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
+    manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
+    manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
+    manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
+    manage_env --force --init --var DOTS_TMP --val "${DOTS}.cache"
+    return $?
   fi
 
 # === POWERSHELL ===
@@ -79,9 +81,8 @@ else {
   if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
     Throw "Missing required configuration module: ${dotsEnv}"
   }
-  else {  
+  else {
     Import-Module $dotsEnv -Force
     return $LASTEXITCODE
   }
 }
-  

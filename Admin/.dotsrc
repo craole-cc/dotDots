@@ -1,0 +1,37 @@
+#! /bin/sh
+# # shellcheck disable=SC2034,SC2154,SC2139,SC2163
+
+# # Function to create directory aliases
+# create_dir_aliases() {
+#   var_name="$1"
+#   var_value="$(eval "printf \"\${${var_name}}\"")"
+#   default_value="$2"
+
+#   #@ Set and export variable
+#   eval "${var_name}=\"\${${var_name}:-${default_value}}\""
+#   export "${var_name}"
+
+#   # Create aliases
+#   alias ".${var_name}"="cd \"\${${var_name}}\""
+#   alias "cd.${var_name}"="cd \"\${${var_name}}\""
+#   alias "ed.${var_name}"="ed \"\${${var_name}}\""
+# }
+
+# # Create aliases for FLAKE
+# create_dir_aliases "FLAKE" "${DOTS}"
+
+# # Create aliases for NIX directories
+# for dir_def in \
+#   "DOTS_NIX_TEMPLATES:Templates" \
+#   "DOTS_NIX_LIB:Libraries" \
+#   "DOTS_NIX_MOD:Modules" \
+#   "DOTS_NIX_PKG:Packages" \
+#   "DOTS_NIX_OPT:Options" \
+#   "DOTS_NIX_SCR:Scripts"; do
+#   var_name="${dir_def%%:*}"
+#   dir_name="${dir_def#*:}"
+#   create_dir_aliases "${var_name}" "${DOTS_NIX}/${dir_name}"
+# done
+
+echo "in nix"
+alias ".nix"='cd "${DOTS_NIX}"'

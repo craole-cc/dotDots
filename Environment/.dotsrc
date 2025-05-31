@@ -1,0 +1,4 @@
+#! /bin/sh
+
+echo "Environment"
+alias ".env"='cd "${DOTS_ENV}"'

@@ -1,99 +1,41 @@
 #!/bin/sh
-# shellcheck enable=all
-# shellcheck disable=SC1090
 
-#@ Set defaults
-debug=
-init_time="$(date +%s%3N)"
+# #@ Set default if not set
+# : "${RC:=_.sh}"
+# : "${EDITOR:=hx}"
 
-#@ Define debugging functions
-pout_with_tag() {
-  [ -z "${debug:-}" ] && return
-  msg=""
-  tag="DEBUG"
-  ctx="DOTS"
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    -t | --tag)
-      tag="$2"
-      shift
-      ;;
-    -c | --ctx)
-      ctx="${ctx:+"${ctx}"|}$2"
-      shift
-      ;;
-    *) msg="${msg:+"${msg}" }$1" ;;
-    esac
-    shift
-  done
+# # shellcheck disable=SC1090,SC2034,SC2139,SC2154,SC2163
+# register_path() {
+#   var=$1
+#   val=$2
 
-  printf "%s >>= %s =<< %s\n" "${tag}" "${ctx}" "${msg}"
-}
+#   #@ Set and export variable if not already set
+#   eval '[ -z "${'"${var}"'}" ] && '"${var}"'="$val"'
+#   eval 'export '"${var}"
 
-pout_env() {
-  [ -z "${debug:-}" ] && return
-  var="$1"
-  eval "val=\$${var}"
-  printf "%s => %s\n" "${var:?}" "${val:-}"
-}
+#   #@ Define the edit function for files and directories
+#   eval "ed_${var}() { \"\$EDITOR\" \"\${${var}}\"; }"
 
-#@ Define required paths
-DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}" export DOTS_CFG
-DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
-DOTS_ENV_POSIX="${DOTS_ENV_POSIX:-"${DOTS_ENV}/posix"}" export DOTS_ENV_POSIX
-DOTS_ENV_POSIX_EXPORT="${DOTS_ENV_POSIX_EXPORT:-"${DOTS_ENV_POSIX}/export"}" export DOTS_ENV_POSIX_EXPORT
+#   #@ Define the cd function for directories and entrypoint sourcing
+#   eval 'dir="${'"${var}"'}"'
+#   if [ -d "${dir}" ]; then
+#     eval "cd_${var}() { cd \"\${${var}}\"; }"
 
-#@ Define folder patterns to exclude
-DOTS_EXCLUDE_PATTERNS='review|tmp|temp|archive|backup|template' export DOTS_EXCLUDE_PATTERNS
+#     #@ Source entrypoint if it exists
+#     if [ -f "${dir}/${RC}" ]; then
+#       . "${dir}/${RC}"
+#     fi
+#   fi
+# }
 
-#@ Identify environment files to load
-DELIMITER="$(printf "\037")"
-ifs=${IFS}
-envs=$(
-  find "${DOTS_ENV_POSIX_EXPORT}" -type f |
-    while IFS= read -r file; do
-      case "${file}" in
-      *template* | *review* | *tmp* | *temp* | *archive* | *backup*) continue ;;
-      *) printf '%s%s' "${file}" "${DELIMITER}" ;;
-      esac
-    done
-)
-
-#@ Load environment files (excluding patterns)
-count=0
-IFS="${DELIMITER}"
-for file in ${envs}; do
-  [ -z "${file}" ] && continue
-  count=$((count + 1))
-  pout_with_tag  --tag "INFO " --ctx "ENV" "$(printf "%4d. %s\n" "${count}" "${file}")"
-  . "${file}"
-done
-IFS="${ifs}"
-
-#@ Launch shell-specific configuration
-if [ -n "${BASH_VERSION:-}" ]; then
-  SHELL_NAME="Bourne Again SHell"
-  SHELL_TAG="bash"
-elif [ -n "${ZSH_VERSION:-}" ]; then
-  SHELL_NAME="Z Shell"
-  SHELL_TAG="zsh"
-fi
-
-#@ Load shell-specific configuration
-SHELL_HOME="${DOTS_CFG}/${SHELL_TAG}" export SHELL_HOME
-SHELL_RC="${SHELL_HOME}/config.${SHELL_TAG}" export SHELL_RC
-if [ -f "${SHELL_RC}" ]; then
-  pout_with_tag --tag "TRACE" --ctx "${SHELL_TAG}" \
-    "Attempting to launch the configuration for the" "${SHELL_NAME}"
-  . "${SHELL_RC}"
-  pout_with_tag --tag "INFO " --ctx "${SHELL_TAG}" \
-    "Initialized the" "${SHELL_NAME}" "via" "${SHELL_RC}"
-else
-  pout_with_tag --tag "WARN " --ctx "${SHELL_TAG}" \
-    "Missing configuration file for" "${SHELL_NAME}"
-fi
-
-IFS="${ifs}"
-
-exit_time="$(date +%s%3N)"
-printf "DOTS initialized (%sms)\n" "$((exit_time - init_time))"
+# #@ Initialize top-level directories and files
+# register_path HOME "${HOME:?}"
+# register_path DOTS "${DOTS:?}"
+# register_path DOTS_ENV "${DOTS}/Environment"
+# register_path DOTS_BIN "${DOTS}/Bin"
+# register_path DOTS_CFG "${DOTS}/Configuration"
+# register_path DOTS_DLD "${DOTS}/Downloads"
+# register_path DOTS_DOC "${DOTS}/Documentation"
+# register_path DOTS_NIX "${DOTS}/Admin"
+# register_path DOTS_TMP "${DOTS}.cache"
+# register_path DOTS_BIN "${HOME}/dotfiles/Bin"
