@@ -1,0 +1,566 @@
+#!/bin/sh
+# shellcheck enable=all
+
+main() {
+  #| Initialization
+  trap sanitize_environment EXIT INT TERM
+  set_defaults
+  parse_arguments "$@"
+  cache_commands "${cmd_list}"
+
+  #| Execution
+  execute_process "${target_path}"
+}
+
+set_defaults() {
+  #| Script Metadata
+  cmd_NAME="enviro"
+  cmd_VERSION="1.1.0"
+  cmd_AUTHOR="Craole"
+  cmd_USAGE="${cmd_NAME} [OPTIONS] <target_path>"
+  cmd_DESCRIPTION="Handle paths"
+
+  #| Operational Variables
+  debug_pad=20 #? Positive integer
+  delimiter="$(printf '\037')"
+  IFS="${delimiter}"
+  verbosity_quiet=0
+  verbosity_error=1
+  verbosity_warn=2
+  verbosity_info=3
+  verbosity_debug=4
+  verbosity_trace=5
+
+  #| Operational Modes
+  set_modes --verbosity info
+  set_modes --fail-on-error true
+
+  #| Process Variables
+  action="show"
+  target_path="$(pwd -P)"
+  # print_raw=0
+  # paths=""
+
+  #| Commands
+  cmd_list="$(list --build bat fd realpath readlink rg)"
+}
+
+set_modes() {
+  #@ Initialize variables
+  verbosity_options="$(
+    list \
+      0 quiet off false \
+      1 error \
+      2 warn \
+      3 info on true \
+      4 debug \
+      5 trace \
+      --delimiter '|' \
+      --build
+  )"
+  verbosity="${verbosity:-3}"
+  fail_on_error_options="$(
+    list \
+      --build 1 on true enabled 0 off false disabled \
+      --delimiter ', '
+  )"
+  fail_on_error="${fail_on_error:-1}"
+
+  #@ Parse arguments
+  case "$1" in
+  --verbosity)
+    #| Verbosity Level
+    case "${2:-}" in
+    0 | off | false | quiet | " ") verbosity="${verbosity_quiet:-0}" ;;
+    1 | err*) verbosity="${verbosity_error:-1}" ;;
+    2 | warn*) verbosity="${verbosity_warn:-2}" ;;
+    3 | info*) verbosity="${verbosity_info:-3}" ;;
+    4 | debug) verbosity="${verbosity_debug:-4}" ;;
+    5 | trace) verbosity="${verbosity_trace:-5}" ;;
+    *)
+      pout --warn --key "Invalid verbosity level" "${2}"
+      pout "Valid options: " "${verbosity_options}"
+      pout "Default option: " "${verbosity}"
+      ;;
+    esac
+    ;;
+  --fail-on-error)
+    #| Script Operation Mode
+
+    case "${2:-}" in
+    1 | true | on | enabled) fail_on_error=1 ;;
+    0 | false | off | disabled) fail_on_error=0 ;;
+    *)
+      pout --warn "Invalid 'fail_on_error' mode" ": ($2)" \
+        "\nValid options: " "${fail_on_error_options}" \
+        "\nDefault option: " "${fail_on_error}"
+      ;;
+    esac
+    ;;
+  *) ;;
+  esac
+
+  case "${fail_on_error:-}" in
+  1 | true | on | enabled) set -e ;;
+  *) ;;
+  esac
+}
+
+cache_commands() {
+  #@ Initialize variables
+  cmd_list="${cmd_list:-"$@"}"
+
+  #@ Loop through each command
+  for cmd in $(list --build "$@"); do
+    #@ Initialize variables
+    cmd_key="" cmd_val="" cmd_env=""
+
+    #@ Define the key in uppercase, prefixed with "CMD_"
+    cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]' '[:upper:]')"
+    pout --debug --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+
+    #@ Retrieve the path, otherwise return empty string
+    cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+    pout --debug --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+
+    #@ Create the environment variable of the command's location
+    eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
+    cmd_env="$(env | grep "${cmd_key}")"
+    pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+  done
+}
+
+parse_arguments() {
+  while [ $# -gt 0 ]; do
+    case $1 in
+    -h | --help) display_info --usage ;;
+    -v | --version) display_info --version ;;
+    --quiet) verbosity=0 ;;
+    --error) verbosity=1 ;;
+    -d=* | --verbose=*) verbosity="${1#*=}" ;;
+    -d | --verbose)
+      case "$2" in
+      */* | .) verbosity="debug" ;;
+      *)
+        if [ -n "${2:-}" ]; then
+          verbosity="$2"
+          shift
+        else
+          verbosity="debug"
+        fi
+        ;;
+      esac
+      ;;
+    --path-show)
+      action="show"
+      ;;
+    --path-clean)
+      action="clean"
+      ;;
+    --path-check)
+      action="check"
+      ;;
+    --path-append)
+      action="append"
+      ;;
+    --path-prepend)
+      action="prepend"
+      ;;
+    --path-print)
+      # print_raw=1
+      ;;
+    -*) terminate_process --error opt "$1" ;;
+    *)
+      new_target_path="$(get_absolute_path "$1")"
+      target_path="${target_path:+${target_path}${delimiter}}${new_target_path}"
+      ;;
+    esac
+    shift
+  done
+
+  #@ Normalize the verbosity level
+  set_modes --verbosity "${verbosity:-}"
+
+  #@Set the current directory as the default path
+  target_path="${target_path:-"$(pwd -P)"}"
+}
+
+get_absolute_path() {
+  #@ Initialize variables
+  _path="${1:-"${target_path:-}"}"
+  pout --debug --key "Execute Process" --val "${_path}"
+
+  #@ Resolve the path
+  if [ -x "${CMD_REALPATH:-}" ]; then
+    normalized_path="$(realpath -- "${_path}")"
+  elif [ -x "${CMD_READLINK:-}" ]; then
+    normalized_path="$(readlink -f "${_path}")"
+  else
+    normalized_path="$(resolve_path "${_path}")"
+  fi
+
+  pout --debug --key "Resolved Path" --val "${normalized_path}"
+  printf "%s" "${normalized_path}"
+}
+
+normalize_path() {
+  #@ Initialize variables
+  input_path="$1"
+  abs_path=""
+  result=""
+
+  #@ Handle absolute vs. relative paths
+  case "${input_path}" in
+  /*) abs_path="${input_path}" ;;
+  *) abs_path="$(pwd)/${input_path}" ;;
+  esac
+
+  #@ Set initial slash for absolute paths
+  case "${abs_path}" in
+  /*) result="/" ;;
+  *) ;;
+  esac
+
+  #@ Save IFS and set new one for path splitting
+  OLDIFS="${IFS}"
+  IFS="/"
+
+  #@ Process each component
+  for component in ${abs_path}; do
+    #@ Skip empty components and current directory
+    if [ -z "${component}" ] || [ "${component}" = "." ]; then
+      continue
+    fi
+
+    if [ "${component}" = ".." ]; then
+      #@ Go up one directory level
+      if [ "${result}" = "/" ]; then
+        #@ Stay at root if already there
+        continue
+      elif [ -z "${result}" ]; then
+        #@ For relative paths starting with ..
+        result="../"
+      else
+        #@ Remove trailing slash if present
+        result="${result%/}"
+
+        #@ Remove the last path component
+        result="${result%/*}"
+        [ -z "${result}" ] && result="/"
+
+        #@ Handle empty result (happens when we're at the top of a relative path)
+        [ "${result}" = "." ] && result=""
+      fi
+    else
+      #@ Add component to result
+      if [ "${result}" = "/" ]; then
+        result="/${component}"
+      elif [ -z "${result}" ]; then
+        result="${component}"
+      else
+        result="${result}/${component}"
+      fi
+    fi
+  done
+
+  #@ Restore IFS
+  IFS="${OLDIFS}"
+
+  #@ Ensure we return at least "/" for root directory or "." for empty
+  if [ -z "${result}" ]; then
+    result="."
+  fi
+
+  #@ Return the normalized path
+  printf "%s" "${result}"
+}
+
+resolve_path() {
+  #@ Check for target path
+  [ -n "${1:-}" ] || {
+    pout --error "Function 'resolve_path' requires a target path."
+    return 2
+  }
+
+  #@ Initialize variables
+  target="$1"
+  max_depth=50 #? Prevent infinite recursion
+  current_depth=${2:-0}
+  physical_dir="$(pwd -P)"
+
+  #@ Check recursion depth to prevent infinite loops
+  if [ "${current_depth}" -ge "${max_depth}" ]; then
+    printf "Error: Maximum symlink recursion depth reached (%s)\n" "${max_depth}" >&2
+    return 1
+  fi
+
+  #@ Resolve the target directory and get its physical path
+  if ! physical_dir="$(cd -P "$(dirname "${target}")" 2>/dev/null && pwd -P)"; then
+    #@ Return original if directory doesn't exist
+    printf "%s" "${target}"
+    return 1
+  fi
+
+  #@ Resolve the target base and get its physical path
+  physical_base="$(basename "${target}")"
+  physical_path="${physical_dir}/${physical_base}"
+
+  #@ Check if the basename is a symlink and resolve it
+  if [ -L "${physical_path}" ]; then
+    link_target="$(readlink "${physical_path}")"
+
+    #@ Handle relative vs. absolute links
+    case "${link_target}" in
+    /*) resolved_link="${link_target}" ;;
+    *) resolved_link="${physical_dir}/${link_target}" ;;
+    esac
+
+    #@ Recursively resolve the link target with incremented depth
+    next_depth=$((current_depth + 1))
+    resolve_path "${resolved_link}" "${next_depth}"
+  else
+    #@ Return the fully normalized physical path
+    printf "%s" "${physical_path}"
+  fi
+}
+
+terminate_process() {
+  case "$1" in
+  --error) display_info "${1:-}-${2:-}" "${3:-}" ;;
+  --output) display_info "${1:-}" "${2:-}" ;;
+  *) ;;
+  esac
+}
+
+list() {
+  #@ Initialize variables
+  list=""
+  action="build"
+  separator="${delimiter:-" "}"
+
+  #@ Parse arguments
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --create | --make | --build) action=build ;;
+    --parse) action=parse ;;
+    --delim* | --sep*) separator="${2:-}" shift ;;
+    *) list="${list:+${list}${delimiter}}$1" ;;
+    esac
+    shift
+  done
+
+  #@ Add the defined separator, if necessary
+  if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
+    old_IFS="${IFS}"
+    IFS="${delimiter}"
+    result=""
+    for item in ${list}; do
+      result="${result:+${result}${separator}}${item}"
+    done
+    IFS="${old_IFS}"
+    list="${result}"
+  fi
+
+  case "${action:-}" in
+  build)
+    printf "%s" "${list:-}"
+    ;;
+  parse)
+    #@ Parse the input string into an array-like output
+    old_IFS="${IFS}"
+    IFS="${delimiter}"
+    for item in ${list}; do
+      printf "%s\n" "${item}"
+    done
+    IFS="${old_IFS}"
+    ;;
+  *) ;;
+  esac
+}
+
+trim() {
+  printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+
+pout() {
+  #@ Initialize variables
+  key="" val="" tag="" pad="" msg="" trim=true
+
+  #@ Parse message type and content
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -k | --key) key="$2" shift ;;
+    -v | --val) val="$2" shift ;;
+    -t | --trace)
+      if [ "${verbosity:-0}" -ge "${verbosity_trace:-5}" ]; then
+        tag="TRACE"
+      else return 0; fi
+      ;;
+    -d | --debug)
+      if [ "${verbosity:-0}" -ge "${verbosity_debug:-4}" ]; then
+        tag="DEBUG"
+      else return 0; fi
+      ;;
+    -i | --info)
+      if [ "${verbosity:-0}" -ge "${verbosity_info:-3}" ]; then
+        tag=" INFO"
+      else return 0; fi
+      ;;
+    -w | --warn)
+      if [ "${verbosity:-0}" -ge "${verbosity_warn:-2}" ]; then
+        tag=" WARN"
+      else return 0; fi
+      ;;
+    -e | --error)
+      if [ "${verbosity:-0}" -ge "${verbosity_error:-1}" ]; then
+        tag="ERROR"
+      else return 0; fi
+      ;;
+    --no-trim) trim="" ;;
+    --usage)
+      usage_guide
+      exit 0
+      ;;
+    --version)
+      printf "%s\n" "${cmd_VERSION}"
+      exit 0
+      ;;
+    *) msg="${msg:+${msg}${delimiter}}$1" ;;
+    esac
+    shift
+  done
+
+  #@ Format the message
+  if [ -n "${key}" ]; then
+
+    #@ Tag missing values
+    val="${val:-"${msg:-"{undefined}"}"}"
+
+    #@ Trim leading and trailing whitespace
+    if [ -n "${trim:-}" ]; then
+      key="$(trim "${key}")"
+      val="$(trim "${val}")"
+    fi
+
+    case "${tag}" in
+    *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Define the separator
+      sep=" | "
+
+      #@ Calculate padding for label alignment
+      debug_pad="${debug_pad:-18}"
+      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+      #@ Format the tagged key-value pair
+      msg="$(
+        printf "[%s] /> %s <\ %s%s%s%s\n" \
+          "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    *)
+      #@ Define the separator
+      sep=": "
+
+      #@ Print the key-value pair
+      msg="$(
+        printf "%s%s%s\n" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    esac
+  else
+    case "${tag}" in
+    *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #@ Format the tagged message
+      msg="$(
+        printf "[%s] /> %s <\ %b\n" \
+          "${tag}" "${cmd_NAME}" "${msg}"
+      )"
+      ;;
+    *) msg="$(trim "${msg}")" ;;
+    esac
+  fi
+
+  #@ Print the message
+  case "${tag}" in
+  ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
+  *) printf "%s\n" "${msg}" ;;
+  esac
+}
+
+sanitize_environment() {
+  #@ Remove variables
+  unset verbosity
+  unset target_path
+  unset normalized_path
+  unset target_path
+  unset next_target_path_component
+  unset error_generated
+}
+
+display_info() {
+  case "$1" in
+  --error*)
+    [ "${verbosity}" -eq 0 ] && return
+    case "$1" in
+    path) printf "Invalid path: %s" "$2" ;;
+    circ) printf "Circular symbolic link: %s" "$2" ;;
+    info) printf "Invalid verbosity level: %s" "$2" ;;
+    arg) printf "<target_path> required \nUsage: %s\n" "${cmd_USAGE}" ;;
+    opt) printf "Unrecognized option: %s" "$2" ;;
+    cd) printf "Change directory operation failed" ;;
+    *)
+      shift
+      printf "%b" "$*"
+      ;;
+    esac
+    ;;
+  --output)
+    case "${verbosity}" in
+    3 | on | info) printf "%s\n" "${normalized_path}" ;;
+    4 | debug | trace)
+      printf "    Verbosity: %s\n" "${verbosity}"
+      printf "  Target Path: %s\n" "${target_path}"
+      printf "Absolute Path: %s\n" "${normalized_path}"
+      ;;
+    0 | off | quiet | *) ;;
+    esac
+    ;;
+  --version)
+    printf "%s" "${cmd_VERSION}"
+    ;;
+  --usage)
+    cat <<USAGE
+${cmd_NAME} [v.${cmd_VERSION}]
+
+DESCRIPTION:
+${cmd_NAME} [v.${cmd_VERSION}] by ${cmd_AUTHOR}, ${cmd_DESCRIPTION}
+
+USAGE:
+  ${cmd_USAGE}
+
+OPTIONS:
+  -h, --help       Show detailed help information and exit.
+  -v, --version    Show the script version number and exit.
+  -d, --verbose    Display additional information during execution: [current: "${verbosity}"].
+  -q, --quiet      Suppress all output. Error flag will still work.
+
+ARGUMENTS:
+  target_path      The path to normalize.
+  verbosity        The verbosity level
+
+Exit status:
+  0                   The path was successfully normalized.
+  1                   An error occurred.
+
+Examples:
+  ${cmd_NAME} -d=debug ~/../../usr/bin
+  ${cmd_NAME} /var/log/../lib --verbose info
+  ${cmd_NAME} /var/run
+
+USAGE
+    ;;
+  *) printf "%s\n" "$*" ;;
+  esac
+}
+
+main "$@"

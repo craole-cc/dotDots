@@ -1,315 +1,31 @@
-#!/bin/sh
-# shellcheck enable=all
-scr_path="${HOME}/.profile"
+#! /bin/sh
+# shellcheck disable=SC2154
 
-#TODO: Move as many parts to bin as possible to simplify the default profile
+: "${DELIMITER:="$(printf "\037")"}"
+: "${RC:=".dotsrc"}"
+: "${VISUAL:=zed}"
+: "${EDITOR:=helix}"
+: "${pad:=12}"
+: "${sep:=" | "}"
+DIR_EXCLUDE_PATTERNS='review|tmp|temp|archive|backup|template'
+export DELIMITER RC EDITOR DIR_EXCLUDE_PATTERNS
 
-#@ Global configuration defaults
-set_global_defaults() {
-  : "${DELIMITER:="$(printf "\037")"}"
-  : "${RC:=".dotsrc"}"
-  : "${VISUAL:=zed}"
-  : "${EDITOR:=helix}"
-  : "${PWD:="$(pwd -P)"}"
-  : "${pad:=12}"
-  : "${sep:=" | "}"
-  DIR_EXCLUDE_PATTERNS='review|tmp|temp|archive|backup|template'
-  export DELIMITER RC EDITOR DIR_EXCLUDE_PATTERNS
-
-  #@ Normalize verbosity levels
-  : "${VERBOSITY:="ERROR"}"
-  : "${VERBOSITY_QUIET:="0"}"
-  : "${VERBOSITY_ERROR:="1"}"
-  : "${VERBOSITY_WARN:="2"}"
-  : "${VERBOSITY_INFO:="3"}"
-  : "${VERBOSITY_DEBUG:="4"}"
-  : "${VERBOSITY_TRACE:="5"}"
-  VERBOSITY="$(normalize_verbosity "${VERBOSITY}" 1)"
-  VERBOSITY_QUIET="$(normalize_verbosity "${VERBOSITY_QUIET}" 0)"
-  VERBOSITY_ERROR="$(normalize_verbosity "${VERBOSITY_ERROR}" 1)"
-  VERBOSITY_WARN="$(normalize_verbosity "${VERBOSITY_WARN}" 2)"
-  VERBOSITY_INFO="$(normalize_verbosity "${VERBOSITY_INFO}" 3)"
-  VERBOSITY_DEBUG="$(normalize_verbosity "${VERBOSITY_DEBUG}" 4)"
-  VERBOSITY_TRACE="$(normalize_verbosity "${VERBOSITY_TRACE}" 5)"
-  export VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE
-}
-
-main() {
-  set_global_defaults
-  manage_env --var HOME --val "${HOME:-}" --force
-  manage_env --var BASH_RC --val "${HOME}/.bashrc" --force
-  manage_env --var PROFILE --val "${HOME}/.profile" --force
-  register_dots "${@:-}"
-}
-
-register_dots() {
-  #DOC Finds and defines DOTS and DOTS_RC variables.
-  #DOC
-  #DOC Description:
-  #DOC   This function searches for the configuration file named by the global
-  #DOC   variable "RC" (".dotsrc" by default) in the directories specified by the
-  #DOC   global variable "homes" and "names". Directories are searched in priority
-  #DOC   order (most likely locations first). If found, it exports the directory
-  #DOC   containing the file as "DOTS", the full path to the file as "DOTS_RC",
-  #DOC   and the name of the file as "RC". It then sources the file.
-  #DOC
-  #DOC Arguments:
-  #DOC   --rc FILE       - The name of the file to search for (default: ".dotsrc")
-  #DOC   --home DIR      - Add DIR to the list of parent directories to search
-  #DOC   --name DIRNAME  - Add DIRNAME to the list of directory names to search
-  #DOC   -d, --debug     - Enable debug verbosity level
-  #DOC   -h, --help      - Display usage information and exit
-  #DOC
-  #DOC Returns:
-  #DOC   0 - If the configuration file is found and sourced successfully
-  #DOC   1 - If the configuration file is not found or invalid arguments
-  #DOC
-  #DOC Exports:
-  #DOC   DOTS      - The directory containing the configuration file
-  #DOC   DOTS_RC   - The full path to the configuration file
-  #DOC   RC        - The name of the configuration file
-  #DOC
-  #DOC Examples:
-  #DOC   # Basic usage - searches default locations
-  #DOC   register_dots
-  #DOC
-  #DOC   # Custom configuration file name
-  #DOC   register_dots --rc ".config"
-  #DOC
-  #DOC   # Add custom search locations
-  #DOC   register_dots --name "dotfiles" --home "/d/Projects/GitHub/CC"
-  #DOC
-  #DOC   # Multiple custom locations with debug output
-  #DOC   register_dots \
-  #DOC     --debug \
-  #DOC     --name "dotfiles" --name ".dots" \
-  #DOC     --home "/d/Projects/GitHub/CC" \
-  #DOC     --home "/cygdrive/d/Projects/GitHub/CC"
-  #DOC
-  #DOC   # After successful registration, use the exported variables
-  #DOC   cd_DOTS        # Changes to the DOTS directory
-  #DOC   ed_DOTS_RC     # Edits the DOTS_RC file
-
-  main() {
-    trap 'cleanup' EXIT HUP INT TERM
-    set_defaults
-    parse_arguments "$@"
-    execute_process
-  }
-
-  set_defaults() {
-    #DOC Initializes default configuration values for the script.
-    #DOC
-    #DOC Sets function-specific defaults and establishes search locations in
-    #DOC priority order (most likely locations first for performance).
-    #DOC Preserves the original IFS and configures cleanup behavior.
-
-    #@ Restore shell state to pre-function invocation
-    cleanup() {
-      IFS="${ifs}"
-      unset names homes ctx fn_name rc
-    } && cleanup
-
-    #@ Initialize function variables
-    set_global_defaults
-    : "${fn_name:="register_dots"}"
-
-    #@ Define search locations in priority order (most likely first)
-    : "${possible_homes:="$(
-      printf '%s\n' \
-        "${HOME}" \
-        "/d/Projects/GitHub/CC" \
-        "/d/Configuration" \
-        "/shared/Dotfiles" \
-        "/cygdrive/d/Projects/GitHub/CC" \
-        "/cygdrive/d/Configuration" \
-        "/cygdrive/d/Dotfiles"
-    )"}"
-    : "${possible_names:="$(
-      printf '%s\n' \
-        ".dots" \
-        "dotfiles" \
-        "dots" \
-        "config" \
-        "dotDots" \
-        "global" \
-        "common"
-    )"}"
-    : "${ifs:="${IFS}"}"
-  }
-
-  parse_arguments() {
-    #DOC Parse command-line arguments to set configuration options.
-    #DOC
-    #DOC Recognized options:
-    #DOC   -h, --help            Display usage information and exit
-    #DOC   -d, --debug, --dry-run
-    #DOC                        Enable debug verbosity level
-    #DOC   --name, --dir DIRNAME
-    #DOC                        Add DIRNAME to the list of directory names
-    #DOC   --home, --parent DIR  Add DIR to the list of parent directories
-    #DOC   --rc RCFILE          Specify the basename of the RC file to look for
-    #DOC
-    #DOC Arguments without options are added to the list of parent directories.
-    #DOC Returns 0 on success, 1 on errors such as missing arguments.
-
-    #@ Set defaults
-    homes="" names=""
-
-    #@ Parse Arguments
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      -h | --help)
-        show_usage
-        return 0
-        ;;
-      -d | --debug | --dry-run)
-        VERBOSITY="DEBUG"
-        ;;
-      --name | --dir)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        names="${names:+${names}${DELIMITER}}$2"
-        shift
-        ;;
-      --home | --parent)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        homes="${homes:+${homes}${DELIMITER}}$2"
-        shift
-        ;;
-      --rc)
-        if [ "$#" -lt 2 ]; then
-          show_usage_error "Missing argument for '$1'"
-          return 1
-        fi
-        RC="$2"
-        shift
-        ;;
-      *)
-        homes="${homes:+${homes}${DELIMITER}}$1"
-        ;;
-      esac
-      shift
-    done
-
-    #@ Export global configuration
-    export DELIMITER RC VERBOSITY EDITOR
-  }
-
-  execute_process() {
-    #DOC Locate the first directory containing the specified RC file.
-    #DOC
-    #DOC Searches through the specified directories in priority order to find
-    #DOC the first occurrence of the RC file. Uses direct file tests before
-    #DOC falling back to find for better performance.
-    #DOC
-    #DOC Sets the global variables "DOTS", "DOTS_RC" and "RC" upon success.
-
-    #@ Set search parameters
-    homes="$(
-      printf "%s\n" "${homes:-"${possible_homes}"}" |
-        tr '\n' "${DELIMITER}"
-    )"
-    names="$(
-      printf "%s\n" "${names:-"${possible_names}"}" |
-        tr '\n' "${DELIMITER}"
-    )"
-
-    if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout_tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
-        printf "\n  %${pad}s%s%s" "RC FILE" "${sep}" "${RC}"
-        printf "\n  %${pad}s%s%s" "HOMES" "${sep}" "$(
-          printf "%s" "${homes}" | tr "${DELIMITER}" ':' || true
-        )"
-        printf "\n  %${pad}s%s%s" "NAMES" "${sep}" "$(
-          printf "%s" "${names}" | tr "${DELIMITER}" ':' || true
-        )"
-      )"
-    fi
-
-    #@ Loop through parent directories in priority order
-    ifs="${IFS}"
-    IFS="${DELIMITER}"
-    for parent in ${homes}; do
-      [ -d "${parent}" ] || continue
-
-      #@ Loop through directory names
-      for dir in ${names}; do
-        dots="${parent}/${dir}"
-        [ -d "${dots}" ] || continue
-
-        #@ Direct test first (faster than find for simple cases)
-        if [ -f "${dots}/${RC}" ]; then
-          DOTS_RC="${dots}/${RC}"
-        else
-          #@ Fallback to find for more complex scenarios
-          DOTS_RC=$(
-            find "${dots}" \
-              -maxdepth 1 \
-              -type f -name "${RC}" \
-              -print -quit 2>/dev/null
-          ) || continue
-        fi
-
-        #@ Validate the found file
-        if [ -f "${DOTS_RC:-}" ]; then
-          DOTS="$(dirname "${DOTS_RC}")"
-          RC="$(basename "${DOTS_RC}")"
-
-          if [ "${VERBOSITY:-0}" -ge 4 ]; then
-            pout_tagged --ctx "${fn_name}" --tag "INFO " --msg "Found RC file: ${DOTS_RC}"
-          fi
-
-          break 2
-        fi
-      done
-    done
-    IFS="${ifs}"
-
-    #@ Register the found configuration
-    if [ -f "${DOTS_RC:-}" ]; then
-      manage_env --force --var DOTS --val "${DOTS:?}"
-      manage_env --force --var DOTS_RC --val "${DOTS_RC:?}" --init
-      return 0
-    else
-      if [ "${VERBOSITY:-0}" -ge 1 ]; then
-        pout_tagged --ctx "${fn_name}" --tag "ERROR" --msg "RC file '${RC}' not found in any specified location"
-      fi
-      return 1
-    fi
-  }
-
-  show_usage() {
-    printf 'Usage: %s [--name DIRNAME] [--home DIR] [--rc RCFILE] [-d|--debug] [-h|--help]\n' "${scr_path}/${fn_name}"
-    printf '\n'
-    printf 'Options:\n'
-    printf '  -h, --help            Display this usage information and exit\n'
-    printf '  -d, --debug           Enable debug verbosity level\n'
-    printf '  --name, --dir DIRNAME Add DIRNAME to the list of directory names to search\n'
-    printf '  --home, --parent DIR  Add DIR to the list of parent directories to search\n'
-    printf '  --rc RCFILE          Specify the basename of the RC file to look for\n'
-    printf '\n'
-    printf 'Examples:\n'
-    printf '  %s                    # Search default locations\n' "${fn_name}"
-    printf '  %s --debug            # Enable debug output\n' "${fn_name}"
-    printf '  %s --rc .config       # Look for .config instead of .dotsrc\n' "${fn_name}"
-    printf '  %s --name dotfiles --home /custom/path\n' "${fn_name}"
-  }
-
-  show_usage_error() {
-    pout_tagged --ctx "${fn_name}" --tag "ERROR" --msg "$1"
-    show_usage
-  }
-
-  main "$@"
-}
-
-
+#@ Normalize verbosity levels
+: "${VERBOSITY:="ERROR"}"
+: "${VERBOSITY_QUIET:="0"}"
+: "${VERBOSITY_ERROR:="1"}"
+: "${VERBOSITY_WARN:="2"}"
+: "${VERBOSITY_INFO:="3"}"
+: "${VERBOSITY_DEBUG:="4"}"
+: "${VERBOSITY_TRACE:="5"}"
+VERBOSITY="$(verbosity "${VERBOSITY}" 1)"
+VERBOSITY_QUIET="$(verbosity "${VERBOSITY_QUIET}" 0)"
+VERBOSITY_ERROR="$(verbosity "${VERBOSITY_ERROR}" 1)"
+VERBOSITY_WARN="$(verbosity "${VERBOSITY_WARN}" 2)"
+VERBOSITY_INFO="$(verbosity "${VERBOSITY_INFO}" 3)"
+VERBOSITY_DEBUG="$(verbosity "${VERBOSITY_DEBUG}" 4)"
+VERBOSITY_TRACE="$(verbosity "${VERBOSITY_TRACE}" 5)"
+export VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE
 
 manage_env() {
   #DOC Manage environment variables with various operations.
@@ -719,9 +435,9 @@ register_env() {
     fi
 
     #@ Source all RC files if initialization is requested
-    if [ "${_init}" -eq 1 ] ; then
+    if [ "${_init}" -eq 1 ]; then
 
-    #@ Loop over all matching RC files and source each if it exists
+      #@ Loop over all matching RC files and source each if it exists
       for rc_file in "${_val}/${RC}" "${_val}/${RC}.sh" "${_val}/${RC}.bash" "${_val}/${RC}.zsh"; do
         if [ -f "$rc_file" ]; then
           # shellcheck disable=SC1090
@@ -733,7 +449,6 @@ register_env() {
         fi
       done
     fi
-
 
     # #@ Source the RC file if initialization is requested
     # if [ "${_init}" -eq 1 ] ;then
@@ -830,214 +545,45 @@ resolve_env() {
   fi
 }
 
-helix() {
-  #@ Ensure DOTS environment variable is set
-  : "${DOTS:?Must set DOTS environment variable}"
-
-  #@ Set Helix config and archive directories
-  : "${HELIX_CONFIG_DIR:="${DOTS}/Configuration/helix"}"
-  : "${HELIX_ARCHIVE_DIR:="${HELIX_CONFIG_DIR}/archive"}"
-  : "${HELIX_CONFIG:="${HELIX_CONFIG_DIR}/config.toml"}"
-  : "${HELIX_LANGUAGES:="${HELIX_CONFIG_DIR}/languages.toml"}"
-
-  #@ Determine the default Helix config directory
-  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
-    HELIX_DEFAULT_DIR="${XDG_CONFIG_HOME}/helix"
-  elif [ -n "${APPDATA:-}" ]; then
-    HELIX_DEFAULT_DIR="${APPDATA}/helix"
+main() {
+  #@ Load the DOTS environment
+  if command -v manage_env >/dev/null 2>&1; then
+    manage_env --force --var HOME --val "${DOTS}"
+    manage_env --force --var HOME --val "${HOME}"
+    # shellcheck disable=SC2153
+    manage_env --force --var HOME --val "${DOTS_RC}"
+    manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
+    manage_env --force --var PROFILE --val "${HOME}/.profile"
+    manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
+    manage_env --force --init --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
+    manage_env --force --init --var DOTS_ENV_EXPORT --val "${DOTS_ENV_POSIX}/export"
+    manage_env --force  --var DOTS_ENV_CONTEXT --val "${DOTS_ENV_POSIX}/context"
+    manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
+    manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
+    manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
+    manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
+    manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
+    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
   else
-    HELIX_DEFAULT_DIR="${HOME}/.config/helix"
-  fi
+    DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
+    DOTS_BIN="${DOTS}/Bin" export DOTS_BIN
+    DOTS_CFG="${DOTS}/Configuration" export DOTS_CFG
+    DOTS_DLD="${DOTS}/Downloads" export DOTS_DLD
+    DOTS_DOC="${DOTS}/Documentation" export DOTS_DOC
+    DOTS_NIX="${DOTS}/Admin" export DOTS_NIX
+    DOTS_TMP="${DOTS}/.cache" export DOTS_TMP
 
-  #@ Set source files
-  SRC_CONFIG="${HELIX_DEFAULT_DIR}/config.toml"
-  SRC_LANGUAGES="${HELIX_DEFAULT_DIR}/languages.toml"
-
-  #@ Ensure the archive directory exists
-  mkdir -p "${HELIX_ARCHIVE_DIR}"
-
-  #@ Backup and sync config.toml
-  if [ -f "${SRC_CONFIG}" ]; then
-    if [ -f "${HELIX_CONFIG}" ]; then
-      #@ Create a timestamped backup
-      cp "${HELIX_CONFIG}" "${HELIX_ARCHIVE_DIR}/config.toml.$(date +%Y%m%d_%H%M%S)"
-    fi
-    cp -u "${SRC_CONFIG}" "${HELIX_CONFIG}"
-  fi
-
-  #@ Backup and sync languages.toml
-  if [ -f "${SRC_LANGUAGES}" ]; then
-    if [ -f "${HELIX_LANGUAGES}" ]; then
-      cp "${HELIX_LANGUAGES}" "${HELIX_ARCHIVE_DIR}/languages.toml.$(date +%Y%m%d_%H%M%S)"
-    fi
-    cp -u "${SRC_LANGUAGES}" "${HELIX_LANGUAGES}"
-  fi
-
-  #@ Notify user
-  printf "Sync complete. Backups (if any) are in %s\n" "${HELIX_ARCHIVE_DIR}"
-}
-
-
-edit() {
-  #@ Ensure the EDITOR is set
- : "${EDITOR:=helix}"
-
-  #@ Launch with the specified arguments or the current directory
-  if [ -n "${1:-}" ]; then
-    eval "${EDITOR} -- \"\${@}\""
-  else
-    eval "${EDITOR} -- \"\$(pwd -P)\""
+    # shellcheck disable=SC1090
+    for dir in "${DOTS_BIN}" "${DOTS_CFG}" "${DOTS_DLD}" "${DOTS_DOC}" "${DOTS_NIX}" "${DOTS_TMP}"; do
+      if [ -f "${dir}/${RC}.sh" ]; then
+        . "${dir}/${RC}.sh"
+      fi
+      if [ -n "${BASH_VERSION}" ] && [ -f "${dir}/${RC}.bash" ]; then
+        . "${dir}/${RC}.bash"
+      fi
+      if [ -n "${ZSH_VERSION}" ] && [ -f "${dir}/${RC}.zsh" ]; then
+        . "${dir}/${RC}.zsh"
+      fi
+    done
   fi
 }
-
-normalize_verbosity() {
-  input="${1:-${VERBOSITY:-3}}"
-  default="${2:-3}"
-
-  #@ Convert to lowercase using only shell builtins
-  case "${input}" in
-  *[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
-    #@ Convert manually on the most common patterns first
-    case "${input}" in
-    ERROR | ERR) input="error" ;;
-    WARN*) input="warn" ;;
-    INFO*) input="info" ;;
-    DEBUG) input="debug" ;;
-    TRACE) input="trace" ;;
-    QUIET | SILENT | OFF | FALSE) input="quiet" ;;
-    *) input="$(printf '%s' "${input}" | tr '[:upper:]' '[:lower:]')" ;;
-    esac
-    ;;
-  *) ;; esac
-
-  #@ Handle less common patterns
-  case "${input}" in
-  0 | none | off | quiet | silent | false) printf "0" ;;
-  1 | err* | low) printf "1" ;;
-  2 | warn* | medium) printf "2" ;;
-  3 | info* | normal) printf "3" ;;
-  4 | debug | verbose | on) printf "4" ;;
-  5 | trace | high) printf "5" ;;
-  -) printf "0" ;;
-  -[0-9]* | [0-9]*)
-    #@ Extract numeric part and validate
-    case "${input}" in
-    *[!0-9-]* | --*) printf "%d" "${default}" ;;
-    *)
-      if [ "${input}" -lt 0 ]; then
-        printf "0"
-      elif [ "${input}" -gt 5 ]; then
-        printf "5"
-      else
-        printf "%d" "${input}"
-      fi
-      ;;
-    esac
-    ;;
-  *) printf "%d" "${default}" ;;
-  esac
-}
-
-pout_tagged() {
-  #DOC Print tagged output with context, tag, and message formatting.
-  #DOC
-  #DOC Description:
-  #DOC   Outputs formatted messages with context and tag information.
-  #DOC   Handles multi-line messages and provides consistent formatting.
-  #DOC
-  #DOC Arguments:
-  #DOC   --ctx CONTEXT    The context/function name for the message
-  #DOC   --tag TAG        The message tag (ERROR, WARN, INFO, DEBUG, etc.)
-  #DOC   --msg MESSAGE    The message content to display
-  #DOC
-  #DOC Examples:
-  #DOC   pout_tagged --ctx "register_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
-  #DOC   pout_tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
-
-  #@ Set a safe delimiter (ASCII Unit Separator)
-  : "${DELIMITER:="$(printf "\037")"}"
-
-  #@ Initialize with defaults
-  ctx=""
-  tag=""
-  msg=""
-
-  #@ Parse named arguments
-  while [ $# -gt 0 ]; do
-    case "${1}" in
-    --ctx)
-      if [ $# -gt 1 ]; then
-        ctx="$2"
-        shift
-      else
-        printf "Error: Missing value for --ctx\n" >&2
-        return 1
-      fi
-      ;;
-    --tag)
-      if [ $# -gt 1 ]; then
-        tag="$2"
-        shift
-      else
-        printf "Error: Missing value for --tag\n" >&2
-        return 1
-      fi
-      ;;
-    --msg)
-      if [ $# -gt 1 ]; then
-        msg="$2"
-        shift
-      else
-        printf "Error: Missing value for --msg\n" >&2
-        return 1
-      fi
-      ;;
-    --ctx=*)
-      ctx="${1#--ctx=}"
-      ;;
-    --tag=*)
-      tag="${1#--tag=}"
-      ;;
-    --msg=*)
-      msg="${1#--msg=}"
-      ;;
-    --)
-      #@ End of options, remaining args become message
-      shift
-      msg="$*"
-      break
-      ;;
-    --*)
-      #@ Unknown option, ignore
-      ;;
-    *)
-      #@ If no explicit --msg flag, treat remaining args as message
-      if [ -z "${msg}" ]; then
-        msg="$*"
-        break
-      fi
-      ;;
-    esac
-    shift
-  done
-
-  #@ Return early if no message is provided
-  if [ -z "${msg}" ]; then
-    return 0
-  fi
-
-  #@ Fallback to context variables if not set
-  if [ -z "${ctx}" ]; then ctx="${fn_name:-}"; fi
-  if [ -z "${ctx}" ]; then ctx="${scr_name:-}"; fi
-  if [ -z "${ctx}" ]; then ctx="${scr_path:-}"; fi
-  if [ -z "${ctx}" ]; then ctx="script"; fi
-
-  #@ Default tag to DEBUG if not provided
-  if [ -z "${tag}" ]; then tag="DEBUG"; fi
-  tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
-
-  #@ Format and print the message
-  printf "\n%s >>= %s =<< %s\n" "${tag}" "${ctx}" "${msg}"
-}
-
-main "$@"

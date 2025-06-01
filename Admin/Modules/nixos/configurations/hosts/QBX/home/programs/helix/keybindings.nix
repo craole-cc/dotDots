@@ -1,5 +1,5 @@
 {
-  programs.helix.settings.heys = {
+  programs.helix.settings.keys = {
     normal = {
       space = {
         space = "file_picker_in_current_directory";

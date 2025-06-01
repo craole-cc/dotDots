@@ -2,8 +2,8 @@
 # theme = "catppuccin_latte"
 # theme = "kanagawa"
 #| Dark Theme
-theme = "catppuccin_frappe"
 # theme = "noctis"
+theme = "catppuccin_frappe"
 # theme = "rose_pine_moon"
 # theme = "noctis_bordo"
 # theme = "monokai_pro_machine"
@@ -33,7 +33,7 @@ hidden = false
 parents = false
 
 [editor.indent-guides]
-character = "╎"           #? ["▏", "╎", "┆", "┊", "⸽"]
+character = "╎" #? ["▏", "╎", "┆", "┊", "⸽"]
 render = true
 skip-levels = 1
 rainbow-option = "normal"

@@ -1,0 +1,243 @@
+#!/bin/sh
+
+#@ Main function
+main() {
+  set_defaults
+  parse_arguments "$@"
+  validate_default
+  set_input_default
+  convert_to_lowercase
+  handle_verbosity_patterns
+}
+
+#@ Set all defaults and initialize variables
+set_defaults() {
+  #@ Environment variable defaults
+  : "${VERBOSITY:="INFO"}"
+  : "${VERBOSITY_QUIET:="0"}"
+  : "${VERBOSITY_ERROR:="1"}"
+  : "${VERBOSITY_WARN:="2"}"
+  : "${VERBOSITY_INFO:="3"}"
+  : "${VERBOSITY_DEBUG:="4"}"
+  : "${VERBOSITY_TRACE:="5"}"
+
+  #@ Check for lowercase override (in-script override takes precedence)
+  if [ -n "${verbosity:-}" ]; then
+    VERBOSITY="${verbosity}"
+  fi
+
+  #@ Script variables
+  input=""
+  default="3"
+}
+
+#@ Parse command line arguments
+parse_arguments() {
+  while [ ${#} -gt 0 ]; do
+    case "${1}" in
+    -q | --quiet)
+      input="0"
+      shift
+      ;;
+    -1 | --dec | --decrement)
+      # Decrement current verbosity level
+      current_level="${VERBOSITY:-3}"
+      # Convert current level to numeric if it's named
+      case "${current_level}" in
+      [0-5])
+        input="$((current_level > 0 ? current_level - 1 : 0))"
+        ;;
+      *)
+        # Handle named levels
+        case "${current_level}" in
+        ERROR | ERR | RED | error | err | red) input="0" ;;
+        WARN* | ORANGE | YELLOW | warn* | orange | yellow) input="1" ;;
+        INFO* | BLUE | info* | blue) input="2" ;;
+        DEBUG | GREEN | debug | green) input="3" ;;
+        TRACE | MAGENTA | trace | magenta) input="4" ;;
+        *) input="0" ;; # Default to 0 for unknown
+        esac
+        ;;
+      esac
+      shift
+      ;;
+    -l | --level)
+      if [ -n "${2}" ] && [ "${2#-}" = "${2}" ]; then
+        input="${2}"
+        shift 2
+      else
+        printf "Error: --level requires a value\n" >&2
+        exit 1
+      fi
+      ;;
+    -d | --default)
+      if [ -n "${2}" ] && [ "${2#-}" = "${2}" ]; then
+        default="${2}"
+        shift 2
+      else
+        printf "Error: --default requires a value\n" >&2
+        exit 1
+      fi
+      ;;
+    -h | --help)
+      show_usage
+      exit 0
+      ;;
+    --version)
+      printf "verbosity 1.0.0\n"
+      exit 0
+      ;;
+    --level=*)
+      input="${1#*=}"
+      shift
+      ;;
+    --default=*)
+      default="${1#*=}"
+      shift
+      ;;
+    -*)
+      printf "Error: Unknown option %s\n" "${1}" >&2
+      exit 1
+      ;;
+    *)
+      # Positional arguments (backwards compatibility)
+      if [ -z "${input}" ]; then
+        input="${1}"
+      elif [ "${default}" = "3" ]; then
+        default="${1}"
+      fi
+      shift
+      ;;
+    esac
+  done
+}
+
+#@ Validate default parameter
+validate_default() {
+  case "${default}" in
+  '' | *[!0-9]*)
+    printf "Error: Default must be numeric (0-5), got: %s\n" "${default}" >&2
+    exit 1
+    ;;
+  *)
+    if [ "${default}" -lt 0 ]; then
+      default="0"
+    elif [ "${default}" -gt 5 ]; then
+      default="5"
+    fi
+    ;;
+  esac
+}
+
+#@ Set input default if not provided
+set_input_default() {
+  : "${input:=${VERBOSITY:-3}}"
+}
+
+#@ Convert input to lowercase using only shell builtins
+convert_to_lowercase() {
+  case "${input}" in
+  *[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
+    #@ Convert manually on the most common patterns first
+    case "${input}" in
+    ERROR | ERR | RED) input="error" ;;
+    WARN* | ORANGE | YELLOW) input="warn" ;;
+    INFO* | BLUE) input="info" ;;
+    DEBUG | GREEN) input="debug" ;;
+    TRACE | MAGENTA) input="trace" ;;
+    QUIET | SILENT | OFF | FALSE | GRAY | GREY) input="quiet" ;;
+    *) input="$(printf '%s' "${input}" | tr '[:upper:]' '[:lower:]')" ;;
+    esac
+    ;;
+  *) ;;
+  esac
+}
+
+#@ Handle verbosity patterns and output result
+handle_verbosity_patterns() {
+  case "${input}" in
+  0 | none | off | quiet | silent | false | gray | grey) printf "0" ;;
+  1 | err* | low | red) printf "1" ;;
+  2 | warn* | medium | orange | yellow) printf "2" ;;
+  3 | info* | normal | blue) printf "3" ;;
+  4 | debug | verbose | on | green) printf "4" ;;
+  5 | trace | high | magenta) printf "5" ;;
+  -) printf "0" ;;
+  -[0-9]* | [0-9]*)
+    #@ Extract numeric part and validate
+    case "${input}" in
+    *[!0-9-]* | --*) printf "%d" "${default}" ;;
+    *)
+      if [ "${input}" -lt 0 ]; then
+        printf "0"
+      elif [ "${input}" -gt 5 ]; then
+        printf "5"
+      else
+        printf "%d" "${input}"
+      fi
+      ;;
+    esac
+    ;;
+  *)
+    # Return default for any unrecognized input
+    printf "%d" "${default}"
+    ;;
+  esac
+}
+
+#@ Show usage information
+show_usage() {
+  cat <<'EOF'
+Usage: verbosity [OPTIONS] [LEVEL] [DEFAULT_LEVEL]
+
+Parse and normalize verbosity levels to numeric values (0-5).
+
+OPTIONS:
+  -l, --level LEVEL       Set verbosity level
+  -d, --default LEVEL     Set default level (default: 3)
+  -q, --quiet             Set level to quiet (0)
+  -1, --dec, --decrement  Decrement current verbosity level by 1
+  --version               Show version information
+  -h, --help             Show this help message
+
+LEVEL can be:
+  - Numeric: 0-5 (clamped to range)
+  - Named: quiet/silent/off, error/err, warn, info/normal, debug/verbose, trace/high
+  - Colors: gray/grey=quiet, red=error, orange/yellow=warn, blue=info, green=debug, magenta=trace
+  - Case insensitive
+
+ENVIRONMENT VARIABLES:
+  VERBOSITY           Global verbosity level (default: ERROR)
+  verbosity           In-script override (takes precedence over VERBOSITY)
+  VERBOSITY_*         Level definitions (QUIET=0, ERROR=1, etc.)
+
+EXAMPLES:
+  verbosity 4
+  verbosity --level debug --default 2
+  verbosity -l red -d blue
+  verbosity --level=green
+  verbosity -q              # Set to quiet
+  verbosity -1              # Decrement current level
+
+  # Environment variable examples:
+  VERBOSITY=debug verbosity -1    # Decrement from debug (4) to info (3)
+  verbosity=2 verbosity -1        # Decrement from 2 to 1 (lowercase override)
+
+EXIT CODES:
+  0 - Success
+  1 - Invalid argument or option
+EOF
+}
+
+#@ Execute main function with all arguments
+main "$@"
+
+#TODO:
+# 1. When no arguments ar provided, use the environment variables "${verbosity:-$VERBOSITY}"
+# 2. If the environment variable "${verbosity:-$VERBOSITY}" is not set, use "${VERBOSITY} = 3"
+# 3. Also check for the defaults as well, as usual prioritize the lowercase override
+# 4. If a minus or plus is provided decrement or increment bu 1, respectively. If an argument is provided with the sign, make the change base on the number +2 meand 2 steps up from the current level
+# 5 Clamp to a minimum of 0 and a maximum of 5
+# 6 Handle the possible existence of other variables that suggest verbosiuty (quiet, silent, error, err, warn, info, normal, debug, verbose, trace, high) For instance SILENT=1, QUIET=true, INFO=on etc.
+# 7. include a trithy utility to simplify parsing
+# 8. Maintain styling, shellcheck enable all. this meand use braces, explicity -n, case insted of if for string comparison, printf instead of echo etc. Also recognize my comment style. Action comments are #@, check comments ar #?, list comments asre #| function documention comments are #DOC

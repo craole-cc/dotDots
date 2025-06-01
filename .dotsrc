@@ -47,6 +47,7 @@
 #; exit $status
 
 # === POSIX SHELLS (bash, zsh, sh) ===
+  #@ Validate the DOTS directory
   if [ -z "${DOTS:-}" ]; then
     printf "%s: %s\n%s" \
       "Error: Missing required environment variable" "DOTS" \
@@ -55,19 +56,40 @@
   elif [ ! -d "${DOTS:-}" ]; then
     printf "ERROR: Invalid DOTS directory: '%s'" "${DOTS:-}" >&2
     return 2
-  elif ! command -v manage_env >/dev/null 2>&1 ;then
-      printf "ERROR: Missing required function: manage_env" >&2
-      return 2
-  else
-    manage_env --force --init --var DOTS_ENV --val "${DOTS}/Environment"
-    manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
-    manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
-    manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
-    manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
-    manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
-    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
-    return $?
   fi
+
+  #@ Initialize the DOTS scripts
+  if [ -d "${DOTS}/Bin" ]; then
+    DOTS_BIN="${DOTS}/Bin"
+    CMD_BUILDIR="${DOTS_BIN}/shellscript/environment/buildir"
+
+    #@ Build the DOTS_BIN_PATH, a colon-delimited string of valid DOTS_BIN directories
+    if command -v buildir >/dev/null 2>&1; then
+      CMD_BUILDIR="$(command -v buildir)"
+      DOTS_BIN_PATH="$(buildir --target "${DOTS_BIN}")"
+    elif [ -x "${CMD_BUILDIR}" ]; then
+      DOTS_BIN_PATH="$("${CMD_BUILDIR}" --target "${DOTS_BIN}")"
+    elif [ -f "${CMD_BUILDIR:-}" ]; then
+      chmod +x "${CMD_BUILDIR}"
+      BUILDIR_TARGET="${DOTS_BIN}"
+      DOTS_BIN_PATH="$(. "${buildir}")"
+    fi
+
+    #@ Prepend the DOTS_BIN_PATH to the PATH to exsure priority
+    if [ -n "${DOTS_BIN_PATH:-}" ]; then
+      PATH="${DOTS_BIN_PATH}:${PATH}"
+      export PATH DOTS_BIN_PATH DOTS_BIN
+    fi
+  fi
+
+  #@ Load the DOTS environment
+  DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
+  if [ -f "${DOTS_ENV}/${RC}.sh" ] ; then
+    . "${DOTS_ENV}/${RC}.sh"
+  fi
+
+  #@ Exit with the last exit code
+  return $?
 
 # === POWERSHELL ===
 if (-not $env:DOTS) {
