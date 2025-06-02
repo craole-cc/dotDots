@@ -61,7 +61,7 @@ set_modes() {
   )"
   fail_on_error="${fail_on_error:-1}"
 
-  #@ Parse arguments
+  #~@ Parse arguments
   case "$1" in
   --pout-suppress | --pout*)
     #| Pout Options
@@ -119,25 +119,25 @@ set_modes() {
 
 cache_commands() {
   fn_name="cache_commands"
-  #@ Loop through each command
+  #~@ Loop through each command
   for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
-    #@ Initialize variables
+    #~@ Initialize variables
     cmd_key="" cmd_val="" cmd_env=""
 
-    #@ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
+    #~@ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
     cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]-' '[:upper:]_')"
     pout --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
-    #@ Retrieve the path, otherwise return empty string
+    #~@ Retrieve the path, otherwise return empty string
     cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
     pout --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
-    #@ Create the environment variable of the command's location
+    #~@ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
     cmd_env="$(env | grep "${cmd_key}")"
     pout --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
 
-    #@ Debug
+    #~@ Debug
     pout --ctx "${fn_name}" --debug --key "${cmd_key}" --val "${cmd_val}"
   done
 
@@ -199,12 +199,12 @@ parse_arguments() {
 }
 
 check_flake_status() {
-  #@ Initialize variables
+  #~@ Initialize variables
   output=""
   status=0
   _flake="${1:-}"
 
-  #@ Check if a flake directory was specified
+  #~@ Check if a flake directory was specified
   if [ -z "${1:-}" ]; then
     pout --warn "No flake directory specified, proceeding with rebuild"
     return 0
@@ -212,7 +212,7 @@ check_flake_status() {
     pout --debug "Checking git status for directory: ${_flake}"
   fi
 
-  #@ Get the absolute path to the flake directory
+  #~@ Get the absolute path to the flake directory
   if [ -x "${CMD_REALPATH}" ]; then
     _flake="$("${CMD_REALPATH}" "${_flake}")"
     pout --debug "Using 'realpath' to get absolute path"
@@ -224,7 +224,7 @@ check_flake_status() {
     pout --debug "Using 'cd/pwd' to get absolute path"
   fi
 
-  #@ Return the flake directory, if the flake exists
+  #~@ Return the flake directory, if the flake exists
   if [ -f "${_flake:-}/flake.nix" ]; then
     output="${_flake:-}"
   else
@@ -236,7 +236,7 @@ check_flake_status() {
 }
 
 check_git_status() {
-  #@ Initialize variables
+  #~@ Initialize variables
   if [ -z "${1:-}" ]; then
     pout --error "No directory specified for git status check"
     return 1
@@ -245,7 +245,7 @@ check_git_status() {
     pout --trace "Checking git status for directory: ${_git_dir}"
   fi
 
-  #@ Run git status check
+  #~@ Run git status check
   if [ -x "${CMD_GYT}" ]; then
     pout --trace "Using gyt to check git status"
     if "${CMD_GYT}" --dir "${_git_dir}"; then
@@ -260,13 +260,13 @@ check_git_status() {
       esac
     fi
   else
-    #@ Check the repository status
+    #~@ Check the repository status
     if \cd "${_git_dir}"; then
-      #@ Check git status and encourage commit, fail if there are changes
+      #~@ Check git status and encourage commit, fail if there are changes
       [ -z "${CMD_GIT:-}" ] && pout --error "The git command is not available."
       git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2>/dev/null)"
 
-      #@ Update the nothing_to_commit flag if there are no changes
+      #~@ Update the nothing_to_commit flag if there are no changes
       if [ -n "${git_changes_to_commit}" ]; then
         git status --short
         pout --error "Please commit those repository changes first:\n"
@@ -282,14 +282,14 @@ validate_environment() {
   pout --trace --key "Strict Mode:" "${fail_on_error}"
   cache_commands
 
-  #@ Retrieve the absolute path to the flake, if it exists
+  #~@ Retrieve the absolute path to the flake, if it exists
   check_flake_status "${flake_root}"
   echo "FLAKE: ${flake_root:-}"
   echo "STATUS: ${status:-}"
   echo "OUTPUT: ${output:-}"
   # flake_status_check="$(check_flake_status "${flake_root}")"
   # if ! flake_root="${flake_status_check}"; then
-  #   #@ Handle the flake status
+  #   #~@ Handle the flake status
   #   # flake_status="$?"
   #   echo pop
   #   case "${status:-}" in
@@ -301,7 +301,7 @@ validate_environment() {
   # fi
 
   return
-  #@ Retrieve the absolute path to the flake, if it exists
+  #~@ Retrieve the absolute path to the flake, if it exists
   check_git_status "${flake_root}"
   git_status="$?"
 
@@ -312,7 +312,7 @@ validate_environment() {
 }
 
 run_process() {
-  #@ Update the arguments
+  #~@ Update the arguments
   case "${upgrade}" in
   true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
   *) ;;
@@ -322,7 +322,7 @@ run_process() {
   *) ;;
   esac
 
-  #@ Update target
+  #~@ Update target
   if [ -n "${flake_root}" ] && [ -n "${build_target}" ]; then
     build_target="--flake ${flake_root}#${build_target}"
   elif [ -n "${flake_root}" ]; then
@@ -331,22 +331,22 @@ run_process() {
     :
   fi
 
-  #@ Update the command
+  #~@ Update the command
   cmd="sudo nixos-rebuild ${action} ${build_target} ${args:-}"
 
-  #@ Print the command
+  #~@ Print the command
   case "${debug}" in
   true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
   esac
 
-  #@ Execute the command
+  #~@ Execute the command
   printf "%s" "${args:-}"
   # eval "${cmd}"
   # return "$?"
 }
 
 pout() {
-  #@ Initialize variables
+  #~@ Initialize variables
   tag=""
   msg=""
   ctx=""
@@ -357,7 +357,7 @@ pout() {
   exit_code=    #? [""|0|1-255]
   dont_print=
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
     --usage)
@@ -434,11 +434,11 @@ pout() {
     shift
   done
 
-  #@ Delimit the message with spaces
+  #~@ Delimit the message with spaces
   [ -n "${msg:-}" ] &&
     msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
 
-  #@ Update the tag
+  #~@ Update the tag
   if [ -n "${tag:-}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
     tag="[ ${tag}-|-${scr}-|-${ctx} ]"
   elif [ -n "${tag:-}" ] && [ -n "${scr}" ]; then
@@ -447,13 +447,13 @@ pout() {
     tag="[ ${tag}-|-${ctx} ]"
   fi
 
-  #@ Format the message
+  #~@ Format the message
   if [ -n "${key}" ]; then
 
-    #@ Tag missing values
+    #~@ Tag missing values
     val="${val:-"${msg:-"{undefined}"}"}"
 
-    #@ Trim leading and trailing whitespace
+    #~@ Trim leading and trailing whitespace
     if [ -n "${trim:-}" ]; then
       key="$(trim_whitespace "${key}")"
       val="$(trim_whitespace "${val}")"
@@ -461,24 +461,24 @@ pout() {
 
     case "${tag}" in
     *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #@ Define the separator
+      #~@ Define the separator
       sep=" | "
 
-      #@ Calculate padding for label alignment
+      #~@ Calculate padding for label alignment
       debug_pad="${debug_pad:-18}"
       pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #@ Format the tagged key-value pair
+      #~@ Format the tagged key-value pair
       msg="$(
         printf "%s%s%s%s%s\n" \
           "${tag}" "${pad}" "${key}" "${sep}" "${val}"
       )"
       ;;
     *)
-      #@ Define the separator
+      #~@ Define the separator
       sep=": "
 
-      #@ Print the key-value pair
+      #~@ Print the key-value pair
       msg="$(
         printf "%s%s%s\n" "${key}" "${sep}" "${val}"
       )"
@@ -487,7 +487,7 @@ pout() {
   else
     case "${tag}" in
     *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #@ Format the tagged message
+      #~@ Format the tagged message
       msg="$(
         printf "%s %b\n" \
           "${tag}" "${msg}"
@@ -497,7 +497,7 @@ pout() {
     esac
   fi
 
-  #@ Print the message
+  #~@ Print the message
   case "${dont_print:-}" in true | on | 1) ;; *)
     #TODO: The last message is repeated and tagged as warn when the stream is engaged
     # [ -n "${msg:-}" ] && printf "%s\n" "${msg:-}" >&"${stream_code:-1}"
@@ -505,7 +505,7 @@ pout() {
     ;;
   esac
 
-  #@ Terminate, if requested
+  #~@ Terminate, if requested
   if [ -z "${exit_code:-}" ]; then
     return 0
   elif [ "${exit_code}" -eq 0 ]; then
@@ -516,12 +516,12 @@ pout() {
 }
 
 manage_list() {
-  #@ Initialize variables
+  #~@ Initialize variables
   list=""
   action="build"
   separator="${delimiter:-" "}"
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --create | --make | --build) action=build ;;
@@ -532,7 +532,7 @@ manage_list() {
     shift
   done
 
-  #@ Add the defined separator, if necessary
+  #~@ Add the defined separator, if necessary
   if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
     old_IFS="${IFS}"
     IFS="${delimiter}"
@@ -549,7 +549,7 @@ manage_list() {
     printf "%s" "${list:-}"
     ;;
   parse)
-    #@ Parse the input string into an array-like output
+    #~@ Parse the input string into an array-like output
     old_IFS="${IFS}"
     IFS="${delimiter}"
     for item in ${list}; do

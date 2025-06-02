@@ -39,123 +39,123 @@ __default=""    # Default value if validation fails
 # Parse options
 while [ $# -gt 0 ]; do
   case "$1" in
-    --int* | -i)
-      __type="integer"
-      __pattern='^[0-9][0-9]*$'
-      ;;
-    --positive | -p)
-      __type="integer"
-      __pattern='^[1-9][0-9]*$'
-      ;;
-    --float | -f)
-      __type="float"
-      __pattern='^[0-9]+\.?[0-9]*$'
-      ;;
-    --string | -s)
-      __type="string"
-      __pattern='^.*$'
-      ;;
-    --min=*)
-      __min="${1#*=}"
-      ;;
-    --max=*)
-      __max="${1#*=}"
-      ;;
-    --pattern=*)
-      __pattern="${1#*=}"
-      ;;
-    --in* | -i*)
-      [ "$#" -lt 3 ] && {
-        printf "Usage: %s %s <value> <list>\n" "$scr_name" "$1"
-        exit 1
-      }
-      __type="list"
-      __value="$2"
-      __list="$3"
-      [ "$4" ] && {
-        __delim="$4"
-        shift
-      }
-      shift 2
-      ;;
-    -*)
-      exit 1 # Invalid option
-      ;;
-    *)
-      if [ -z "$__value" ]; then
-        __value="$1"
-      else
-        __default="$1"
-      fi
-      ;;
+  --int* | -i)
+    __type="integer"
+    __pattern='^[0-9][0-9]*$'
+    ;;
+  --positive | -p)
+    __type="integer"
+    __pattern='^[1-9][0-9]*$'
+    ;;
+  --float | -f)
+    __type="float"
+    __pattern='^[0-9]+\.?[0-9]*$'
+    ;;
+  --string | -s)
+    __type="string"
+    __pattern='^.*$'
+    ;;
+  --min=*)
+    __min="${1#*=}"
+    ;;
+  --max=*)
+    __max="${1#*=}"
+    ;;
+  --pattern=*)
+    __pattern="${1#*=}"
+    ;;
+  --in* | -i*)
+    [ "$#" -lt 3 ] && {
+      printf "Usage: %s %s <value> <list>\n" "$scr_name" "$1"
+      exit 1
+    }
+    __type="list"
+    __value="$2"
+    __list="$3"
+    [ "$4" ] && {
+      __delim="$4"
+      shift
+    }
+    shift 2
+    ;;
+  -*)
+    exit 1 # Invalid option
+    ;;
+  *)
+    if [ -z "$__value" ]; then
+      __value="$1"
+    else
+      __default="$1"
+    fi
+    ;;
   esac
   shift
 done
 
-#@ Validate based on type and constraints
+#~@ Validate based on type and constraints
 case "$__type" in
-  integer | positive)
-    # Check pattern match
-    expr "$__value" : "$__pattern" > /dev/null 2>&1 || {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
+integer | positive)
+  # Check pattern match
+  expr "$__value" : "$__pattern" >/dev/null 2>&1 || {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
 
-    #@ Check min/max if specified
-    [ -n "$__min" ] && [ "$__value" -lt "$__min" ] && {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
-    [ -n "$__max" ] && [ "$__value" -gt "$__max" ] && {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
-    ;;
+  #~@ Check min/max if specified
+  [ -n "$__min" ] && [ "$__value" -lt "$__min" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  [ -n "$__max" ] && [ "$__value" -gt "$__max" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  ;;
 
-  float)
-    #@ Check pattern match
-    expr "$__value" : "$__pattern" > /dev/null 2>&1 || {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
-    ;;
+float)
+  #~@ Check pattern match
+  expr "$__value" : "$__pattern" >/dev/null 2>&1 || {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  ;;
 
-  string)
-    #@ Check pattern match if specified
-    {
-      [ -n "$__pattern" ] \
-        && expr "$__value" : "$__pattern" > /dev/null 2>&1
-    } || {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
+string)
+  #~@ Check pattern match if specified
+  {
+    [ -n "$__pattern" ] &&
+      expr "$__value" : "$__pattern" >/dev/null 2>&1
+  } || {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
 
-    #@ Check length constraints if specified
-    [ -n "$__min" ] && [ "${#__value}" -lt "$__min" ] && {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
-    [ -n "$__max" ] && [ "${#__value}" -gt "$__max" ] && {
-      [ -n "$__default" ] && printf '%s\n' "$__default"
-      exit 1
-    }
-    ;;
+  #~@ Check length constraints if specified
+  [ -n "$__min" ] && [ "${#__value}" -lt "$__min" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  [ -n "$__max" ] && [ "${#__value}" -gt "$__max" ] && {
+    [ -n "$__default" ] && printf '%s\n' "$__default"
+    exit 1
+  }
+  ;;
 
-  list)
-    list_contains_set() {
-      old_IFS="$IFS"
-      IFS="${3:-' '}"
-      # shellcheck disable=SC2086
-      set -- $1
-      IFS="$old_IFS"
+list)
+  list_contains_set() {
+    old_IFS="$IFS"
+    IFS="${3:-' '}"
+    # shellcheck disable=SC2086
+    set -- $1
+    IFS="$old_IFS"
 
-      for word; do [ "$word" = "$2" ] && return 0; done
-      return 1
-    }
+    for word; do [ "$word" = "$2" ] && return 0; done
+    return 1
+  }
 
-    list_contains_set "$__list" "$__value" "$__delim" || exit 1
-    ;;
+  list_contains_set "$__list" "$__value" "$__delim" || exit 1
+  ;;
 esac
 
-#@ Return the value, validation passed
+#~@ Return the value, validation passed
 printf '%s' "$__value"

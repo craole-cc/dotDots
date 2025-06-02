@@ -66,7 +66,7 @@ let
   ];
 
   directions = {
-    #@ Map keys (arrows and hjkl) to hyprland directions (l, r, u, d)
+    #~@ Map keys (arrows and hjkl) to hyprland directions (l, r, u, d)
     left = "l";
     right = "r";
     up = "u";

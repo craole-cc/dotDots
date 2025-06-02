@@ -26,10 +26,10 @@ set_defaults() {
 }
 
 cleanup() {
-  #@ Prevent multiple executions
+  #~@ Prevent multiple executions
   case "${cleaned:-}" in 0 | '' | false | no) cleaned=true ;; *) return ;; esac
 
-  #@ Unset all variables to prevent leakage
+  #~@ Unset all variables to prevent leakage
   unset treefmt_args_cfg project_root treefmt_args
   unset enable_simulation enable_ci
   unset ifs
@@ -77,13 +77,13 @@ parse_arguments() {
 }
 
 execute_process() {
-  #@ Validate command
+  #~@ Validate command
   if [ -x "${CMD_TREEFMT}" ]; then :; else
     pout --error "treefmt not found/available for use."
     return 1
   fi
 
-  #@ Validate tree root
+  #~@ Validate tree root
   if [ -d "${project_root:-}" ]; then
     treefmt_args_root="--tree-root ${project_root}"
   else
@@ -91,7 +91,7 @@ execute_process() {
     return 1
   fi
 
-  #@ Validate config file
+  #~@ Validate config file
   if [ -f "${project_root}/treefmt.toml" ]; then
     treefmt_cfg="${project_root}/treefmt.toml"
   elif [ -f "${project_root}/.treefmt.toml" ]; then
@@ -103,19 +103,19 @@ execute_process() {
     pout --warn "Config file not yet found." "${treefmt_conf}"
   fi
 
-  #@ Add the --ci flag if specified
+  #~@ Add the --ci flag if specified
   case "${enable_ci}" in 0 | '' | false | no | off) ;; *)
     # treefmt_args="${treefmt_args:+$treefmt_args${delimiter}}--ci"
     treefmt_args="${treefmt_args:+$treefmt_args${delimiter}}--no-cache --fail-on-change"
     ;;
   esac
 
-  #@ Substitute all instances of the delimiter with spaces
+  #~@ Substitute all instances of the delimiter with spaces
   if [ -z "${treefmt_args}" ]; then :; else
     treefmt_args="$(printf "%s" "${treefmt_args}" | tr "${delimiter:?}" " ")"
   fi
 
-  #@ Build the final command
+  #~@ Build the final command
   treefmt_cmd="$(
     printf "%s%s%s%s" \
       "${CMD_TREEFMT:?}" \
@@ -125,7 +125,7 @@ execute_process() {
   )"
   pout --debug "treefmt_cmd => " "${treefmt_cmd:?}"
 
-  #@ Run command
+  #~@ Run command
   case "${enable_simulation}" in 0 | '' | false | no | off)
     eval "${treefmt_cmd:?}"
     ;;

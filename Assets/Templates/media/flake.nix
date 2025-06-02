@@ -79,17 +79,17 @@
           shellHook = ''
             printf "🎬 Comprehensive Media Environment Loaded!\n\n"
 
-            #@ Deploy scripts
+            #~@ Deploy scripts
             mkdir -p ${paths.bin}
             cp -f ${ytdCommand} ${paths.bin}/ytd
 
-            #@ Set up executable scripts
+            #~@ Set up executable scripts
             find "${paths.bin}" -type f -exec chmod +x {} +
             PATH="$PATH:${paths.bin}"
             export PATH
             unalias mpv ytd
 
-            #@ Show the usage guide
+            #~@ Show the usage guide
             printf "Video Tools:\n"
             printf "  mpv         - Enhanced MPV with custom config\n"
             printf "  ytd         - Download videos (usage: yt-download <url> [quality])\n\n"
@@ -106,7 +106,7 @@
       }
     );
 }
-#@ Initialize the apps
+#~@ Initialize the apps
 # init-ytd
 # init-mpv
 # cp -f ${ytdInit} ${flakeBin}/init-ytd

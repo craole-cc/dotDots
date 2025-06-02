@@ -1,7 +1,7 @@
 #!/bin/sh
 
 establish_environment() {
-  #@ Establish script information
+  #~@ Establish script information
   scr_name="shell.fetch"
   scr_version="1.0"
   scr_usage="$(
@@ -12,24 +12,24 @@ establish_environment() {
     printf "  -d, --verbose   Enable detailed messaging\n"
   )"
 
-  #@ Set default values
+  #~@ Set default values
   label="OS Shell"
   verbosity=1
   exit_code=0
   dud="Unknown"
   unset info_source output
 
-  #@ Establish utility functions
+  #~@ Establish utility functions
   establish_utilities
-  get_os_type > /dev/null 2>&1
+  get_os_type >/dev/null 2>&1
 }
 
 establish_utilities() {
   weHave() {
-    #@ Check if the info_source is available
+    #~@ Check if the info_source is available
     info_source="$1"
 
-    if command -v "$info_source" > /dev/null 2>&1; then
+    if command -v "$info_source" >/dev/null 2>&1; then
       return 0
     elif [ -f "$info_source" ]; then
       return 0
@@ -42,21 +42,21 @@ establish_utilities() {
   present_info() {
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        -h | --help)
-          if [ "$2" ]; then
-            output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
-            shift
-          else
-            output="$scr_usage"
-          fi
-          ;;
-        -v | --version)
-          output="$scr_version"
-          ;;
-        *) output="$1" ;;
+      -h | --help)
+        if [ "$2" ]; then
+          output="$(printf "%s\n%s\n" "$2" "$scr_usage")"
+          shift
+        else
+          output="$scr_usage"
+        fi
+        ;;
+      -v | --version)
+        output="$scr_version"
+        ;;
+      *) output="$1" ;;
       esac
 
-      #@ Print the output
+      #~@ Print the output
       if [ "$verbosity" -gt 0 ]; then
         if [ "$info_source" ]; then
           printf "%s via %s: %s\n" "$label" "$info_source" "$output"
@@ -67,7 +67,7 @@ establish_utilities() {
         printf "%s" "$output"
       fi
 
-      #@ Continue to the next argument
+      #~@ Continue to the next argument
       shift
     done
   }
@@ -78,9 +78,9 @@ establish_utilities() {
     ps_output="$(ps)"
 
     extract_process_name() {
-      #@ Use awk to extract the process name
-      printf "%s" "$1" \
-        | awk '/bash|dash|nu|zsh|fish|tcsh|ksh|sh/ {print $NF}'
+      #~@ Use awk to extract the process name
+      printf "%s" "$1" |
+        awk '/bash|dash|nu|zsh|fish|tcsh|ksh|sh/ {print $NF}'
     }
 
     extract_linux_process_name() {
@@ -93,7 +93,7 @@ establish_utilities() {
       if [ -n "$last_line_process_name" ]; then
         info="$last_line_process_name"
       else
-        #@ If not found in the last line, check the previous line
+        #~@ If not found in the last line, check the previous line
         prev_line_process_name=$(
           extract_process_name "$(
             printf "%s" "$ps_output" | tail -n 3 | head -n 1
@@ -107,7 +107,7 @@ establish_utilities() {
     }
 
     extract_windows_process_name() {
-      #@ Extract the process name from the first line
+      #~@ Extract the process name from the first line
       first_line_process_name=$(
         extract_process_name "$(
           printf "%s" "$ps_output" | head -n 1
@@ -131,8 +131,8 @@ establish_utilities() {
     }
 
     case $(get_os_type | tr '[:upper:]' '[:lower:]') in
-      *linux*) extract_linux_process_name ;;
-      *windows*) extract_windows_process_name ;;
+    *linux*) extract_linux_process_name ;;
+    *windows*) extract_windows_process_name ;;
     esac
 
     if [ "$info" ]; then
@@ -150,31 +150,31 @@ process_info() {
 }
 
 main() {
-  #@ Initialize the script environment
+  #~@ Initialize the script environment
   establish_environment
 
-  #@ Parse the arguments
+  #~@ Parse the arguments
   while [ "$#" -gt 0 ]; do
     case $1 in
-      -d | --verbose)
-        verbosity=1
-        ;;
-      -h | --help | -v | --version)
-        present_info "$1"
-        return 0
-        ;;
-      *)
-        present_info --help "Unknown option: $1"
-        return 1
-        ;;
+    -d | --verbose)
+      verbosity=1
+      ;;
+    -h | --help | -v | --version)
+      present_info "$1"
+      return 0
+      ;;
+    *)
+      present_info --help "Unknown option: $1"
+      return 1
+      ;;
     esac
     shift
   done
 
-  #@ Retrieve the requested information
+  #~@ Retrieve the requested information
   process_info
 
-  #@ Terminate the script with the appropriate exit code
+  #~@ Terminate the script with the appropriate exit code
   return "$exit_code"
 }
 

@@ -7,7 +7,7 @@ SCR_VERSION="1.0"
 
 display_help() {
 
-  #@ Print usage information
+  #~@ Print usage information
   display_messaging \
     --trim \
     --msg \
@@ -26,60 +26,60 @@ display_help() {
 
     Authors: $SCR_AUTHOR"
 
-  #@ Exit script with assigned exit code
+  #~@ Exit script with assigned exit code
   exit_gracefully
 }
 
 parse_arguments() {
-  #@ Set defaults
+  #~@ Set defaults
   ducta="sh"
 
-  #@ Ensure a script or binary is provided, unless for cargo
+  #~@ Ensure a script or binary is provided, unless for cargo
   [ "$#" -eq 0 ] && handle_error "Nothing to transport"
 
-  #@ Parse main cli arguments
+  #~@ Parse main cli arguments
   while [ $# -ge 1 ]; do
     case "$1" in
-      -h | --help) display_help ;;
-      -v | --version) display_version ;;
-      -r | --rust)
-        ducta="rust-script"
-        ;;
-      -s | --shell) ;;
-      -*) handle_error "Invalid option: $1" ;;
-      *) ;;
+    -h | --help) display_help ;;
+    -v | --version) display_version ;;
+    -r | --rust)
+      ducta="rust-script"
+      ;;
+    -s | --shell) ;;
+    -*) handle_error "Invalid option: $1" ;;
+    *) ;;
     esac
     shift
   done
 }
 
 display_messaging() {
-  #@ Initialize variables
+  #~@ Initialize variables
   msg="$*"
   unset newline trim
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ $# -ge 1 ]; do
     case "$1" in
-      -t | --trim) trim=true ;;
-      -n | --new-line) newline=true ;;
-      -m | --msg) msg="$2" ;;
-      -*) shift ;;
-      *) msg="$*" ;;
+    -t | --trim) trim=true ;;
+    -n | --new-line) newline=true ;;
+    -m | --msg) msg="$2" ;;
+    -*) shift ;;
+    *) msg="$*" ;;
     esac
     shift
   done
 
-  #@ Print message
+  #~@ Print message
   if [ "$trim" ]; then
-    #@ Trim whitespace at the start (3 spaces)
+    #~@ Trim whitespace at the start (3 spaces)
     printf "%s\n" "$msg" | sed 's/^   //'
   else
-    #@ Normal print
+    #~@ Normal print
     printf "%s\n" "$msg"
   fi
 
-  #@ Print a newline, if selected
+  #~@ Print a newline, if selected
   [ "$newline" ] && printf "\n"
 }
 
@@ -95,18 +95,18 @@ display_version() {
 }
 
 transport_cargo() {
-  #@ Execute scripts
+  #~@ Execute scripts
   while [ "$#" -ge 1 ]; do
     case $1 in
-      -*) ;;
-      *)
-        "$ducta" -- "$1"
-        # if [ -f "$1" ]; then
-        #   "$ducta" -- "$1"
-        # else
-        #   handle_error "Illegal item for transport:" "$1"
-        # fi
-        ;;
+    -*) ;;
+    *)
+      "$ducta" -- "$1"
+      # if [ -f "$1" ]; then
+      #   "$ducta" -- "$1"
+      # else
+      #   handle_error "Illegal item for transport:" "$1"
+      # fi
+      ;;
     esac
     shift
   done

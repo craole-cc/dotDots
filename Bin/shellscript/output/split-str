@@ -50,23 +50,23 @@ set_defaults() {
 parse_arguments() {
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      -d | --debug | --verbose)
-        debug=true
-        ;;
-      -i | --*in*)
-        shift
-        input_delimiter="$1"
-        ;;
-      -o | --*out*)
-        shift
-        output_delimiter="$1"
-        ;;
-      --)
-        shift
-        [ "$#" -gt 0 ] && input_list="$*"
-        break
-        ;;
-      *) input_list=$1 ;;
+    -d | --debug | --verbose)
+      debug=true
+      ;;
+    -i | --*in*)
+      shift
+      input_delimiter="$1"
+      ;;
+    -o | --*out*)
+      shift
+      output_delimiter="$1"
+      ;;
+    --)
+      shift
+      [ "$#" -gt 0 ] && input_list="$*"
+      break
+      ;;
+    *) input_list=$1 ;;
     esac
     shift
   done
@@ -74,7 +74,7 @@ parse_arguments() {
 
 set_delimiter() {
 
-  #@ Input validation
+  #~@ Input validation
   [ -n "$input_list" ] || {
     printf "ERROR: No list provided\n"
     return 1
@@ -84,12 +84,12 @@ set_delimiter() {
     return 0
   }
 
-  #@ Remove surrounding whitespace from commas
+  #~@ Remove surrounding whitespace from commas
   if [ "$(printf "%s" "$input_list" | grep -o , | wc -l)" -gt 1 ]; then
     delimited_list="$(printf "%s" "$input_list" | sed 's/ *, */,/g')"
   fi
 
-  #@ Count delimiters
+  #~@ Count delimiters
   env_count=$(printf "%s" "$delimited_list" | tr -cd "$env_delimiter" | wc -c)
   space_count=$(printf "%s" "$delimited_list" | tr -cd ' ' | wc -c)
   comma_count=$(printf "%s" "$delimited_list" | tr -cd ',' | wc -c)
@@ -100,7 +100,7 @@ set_delimiter() {
   tilde_count=$(printf "%s" "$delimited_list" | tr -cd '~' | wc -c)
   plus_count=$(printf "%s" "$delimited_list" | tr -cd '+' | wc -c)
 
-  #@ Find most frequent delimiter with priority weighting # Default
+  #~@ Find most frequent delimiter with priority weighting # Default
   [ "$env_count" -gt "$max_count" ] && {
     max_count=$env_count
     detected_delimiter="$env_delimiter"
@@ -210,7 +210,7 @@ execute_process() {
     printf "DEBUG: Delimited list: %s\n" "$delimited_list"
   }
 
-  # #@ Input validation
+  # #~@ Input validation
   # [ -n "$delimited_list" ] || {
   #   printf "ERROR: No list provided\n"
   #   return 1
@@ -224,13 +224,13 @@ execute_process() {
   #   return 1
   # }
 
-  #@ Split the list based on the input and output delimiters
+  #~@ Split the list based on the input and output delimiters
   output_list="$(
-    printf '%s' "$delimited_list" \
-      | sed "s/$detected_delimiter/$output_delimiter/g"
+    printf '%s' "$delimited_list" |
+      sed "s/$detected_delimiter/$output_delimiter/g"
   )"
 
-  #@ Output the result
+  #~@ Output the result
   if [ "$debug" ]; then
     printf "\nINPUT:\n%s\n" "$input_list"
     printf "\nOUTPUT:\n%s\n" "$output_list"

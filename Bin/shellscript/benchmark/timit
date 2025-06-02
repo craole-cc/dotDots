@@ -8,7 +8,7 @@ main() {
   execute_process
 }
 
-#@ Set up environment
+#~@ Set up environment
 cleanup() {
   unset fn_name start_time end_time duration
 }
@@ -69,23 +69,23 @@ parse_arguments() {
 }
 
 execute_process() {
-  #@ Record start time in nanoseconds
+  #~@ Record start time in nanoseconds
   start_time=$(date +%s%N)
 
-  #@ Execute the function with its arguments
+  #~@ Execute the function with its arguments
   eval "${cmd}"
   exit_code=$?
 
-  #@ Record end time and calculate duration in milliseconds
+  #~@ Record end time and calculate duration in milliseconds
   end_time=$(date +%s%N)
   duration=$(((end_time - start_time) / 1000000))
 
-  #@ Call the output function
+  #~@ Call the output function
   pout_info
 }
 
 pout_info() {
-  #@ Define the tag based on the verbosity level
+  #~@ Define the tag based on the verbosity level
   case "${verbosity}" in
   5) ctx_tag="TRACE" ;;
   4) ctx_tag="DEBUG" ;;
@@ -95,12 +95,12 @@ pout_info() {
   *) ctx_tag="" ;;
   esac
 
-  #@ Update the tag to include the target name
+  #~@ Update the tag to include the target name
   if [ -n "${ctx_tag}" ]; then
     ctx_tag="${ctx_head}${ctx_tag}${ctx_sep}${ctx_name}${ctx_tail}"
   fi
 
-  #@ Define the message based on the verbosity level
+  #~@ Define the message based on the verbosity level
   if [ "${verbosity}" -ge "${verbosity_trace}" ]; then
     msg="$(
       printf "%sExecution completed in %s milliseconds" \
@@ -128,7 +128,7 @@ pout_info() {
   #   msg=$(printf "%s ms" "${duration}")
   fi
 
-  #@ Print the complete message with newlines
+  #~@ Print the complete message with newlines
   printf "%s\n" "${msg}"
 }
 

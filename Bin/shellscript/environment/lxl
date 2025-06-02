@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#@ Detailed list
+#~@ Detailed list
 lx --all --long "$@"
 Exa \
   --long \

@@ -16,59 +16,59 @@ jot_init() {
 
   while [ "$#" -ge 1 ]; do
     case "$1" in
-      --backup=*)
-        backup_type="${1#*=}"
-        case "$backup_type" in
-          none | off | numbered | t | exiting | nil | simple | never) ;;
-          *)
-            pout \
-              --lbl "Invalid Backup Type" \
-              --var "$backup_type" \
-              --usage "$func_usage" \
-              --fatal
-            ;;
-        esac
-        ;;
-      --backup)
-        while [ "$#" -ge 2 ]; do
-          case "$2" in
-            none | off | numbered | t | exiting | nil | simple | never)
-              backup_type="$2"
-              ;;
-            *)
-              if [ ! "$2" ] || [ "$2" = "-*" ]; then
-                pout "Backup file name is missing after '--backup' option."
-              else
-                backup_file_path="$2"
-              fi
-              break
-              ;;
-          esac
-          shift
-        done
-        ;;
-      -f | --file)
-        [ "$2" ] && {
-          target_file_path="$2"
-          shift
-        }
-        ;;
-      -c | --contents)
-        [ "$2" ] && {
-          txt_to_jot="$(__txtBarber "$2")"
-          shift
-        }
-        ;;
-      -*)
+    --backup=*)
+      backup_type="${1#*=}"
+      case "$backup_type" in
+      none | off | numbered | t | exiting | nil | simple | never) ;;
+      *)
         pout \
-          --lbl "Invalid Option" \
-          --var "$1" \
+          --lbl "Invalid Backup Type" \
+          --var "$backup_type" \
           --usage "$func_usage" \
           --fatal
         ;;
-      *)
-        txt_to_jot="$(__txtBarber "$1")"
-        ;;
+      esac
+      ;;
+    --backup)
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        none | off | numbered | t | exiting | nil | simple | never)
+          backup_type="$2"
+          ;;
+        *)
+          if [ ! "$2" ] || [ "$2" = "-*" ]; then
+            pout "Backup file name is missing after '--backup' option."
+          else
+            backup_file_path="$2"
+          fi
+          break
+          ;;
+        esac
+        shift
+      done
+      ;;
+    -f | --file)
+      [ "$2" ] && {
+        target_file_path="$2"
+        shift
+      }
+      ;;
+    -c | --contents)
+      [ "$2" ] && {
+        txt_to_jot="$(__txtBarber "$2")"
+        shift
+      }
+      ;;
+    -*)
+      pout \
+        --lbl "Invalid Option" \
+        --var "$1" \
+        --usage "$func_usage" \
+        --fatal
+      ;;
+    *)
+      txt_to_jot="$(__txtBarber "$1")"
+      ;;
     esac
     shift
   done
@@ -79,26 +79,26 @@ jot_init() {
 } && __jot_init "$@"
 
 backup_file() {
-  #@ Set backup command
+  #~@ Set backup command
   if [ "$backup_type" ]; then
     backup_cmd="cp --backup=$backup_type"
   else
     backup_cmd="cp"
   fi
 
-  #@ All elevation if necessary
+  #~@ All elevation if necessary
   [ -w "$(dirname -- "$backup_file_path")" ] || {
     backup_cmd="sudo $backup_cmd"
   }
 
-  #@ Update the backup command
+  #~@ Update the backup command
   backup_cmd="$backup_cmd $target_file_path $backup_file_path"
 
-  #@ Generate the backup file
+  #~@ Generate the backup file
   echo "$backup_cmd"
   # eval "$backup_cmd"
 
-  #@ Cleanup
+  #~@ Cleanup
   unset backup_cmd
 }
 
@@ -114,13 +114,13 @@ prep_writer() {
   printf "%s %s %s" "$writer" "$arg" "$target_file_path"
 }
 
-#@ Backup the target file
+#~@ Backup the target file
 backup_file
 
-#@ Prepare the content
+#~@ Prepare the content
 
 # __txtBarber
 # prep_writer
 
-#@ Write the target file
+#~@ Write the target file
 # prep_writer

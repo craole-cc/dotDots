@@ -12,15 +12,15 @@ parse_arguments() {
 
   while [ "$#" -gt 0 ]; do
     case $1 in
-      -h | --help | -v | --version)
-        process_output "$1"
-        return
-        ;;
-      -d | --debug | --test) process_tests ;;
-      *) process_info "$1" ;;
+    -h | --help | -v | --version)
+      process_output "$1"
+      return
+      ;;
+    -d | --debug | --test) process_tests ;;
+    *) process_info "$1" ;;
     esac
 
-    #@ Continue to the next argument
+    #~@ Continue to the next argument
     shift
   done
 }
@@ -32,13 +32,13 @@ prepare_environment() {
   } && set_defaults
 
   weHave() {
-    #@ Check if a command exists
+    #~@ Check if a command exists
     # type "$1" >/dev/null 2>&1
-    command -v "$1" > /dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1
   }
 
   get_os_type() {
-    #@ Fetch the system type from the first available tool
+    #~@ Fetch the system type from the first available tool
     if [ "$info" ]; then
       :
     elif weHave uname; then
@@ -56,22 +56,22 @@ prepare_environment() {
     case "$(
       printf "%s" "$info" | tr '[:upper:]' '[:lower:]'
     )" in
-      *linux* | *gnu*) info="GNU/Linux" ;;
-      *darwin*) info="Mac" ;;
-      *cygwin* | *msys* | *mingw*) info="Windows" ;;
-      *freebsd*) info="FreeBSD" ;;
-      *netbsd*) info="NetBSD" ;;
-      *openbsd*) info="OpenBSD" ;;
-      *hp*) info="HP" ;;
-      *solaris* | *sunos*) info="Solaris" ;;
-      *aix*) info="AIX" ;;
-      *irix*) info="IRIX" ;;
-      *) return 1 ;;
+    *linux* | *gnu*) info="GNU/Linux" ;;
+    *darwin*) info="Mac" ;;
+    *cygwin* | *msys* | *mingw*) info="Windows" ;;
+    *freebsd*) info="FreeBSD" ;;
+    *netbsd*) info="NetBSD" ;;
+    *openbsd*) info="OpenBSD" ;;
+    *hp*) info="HP" ;;
+    *solaris* | *sunos*) info="Solaris" ;;
+    *aix*) info="AIX" ;;
+    *irix*) info="IRIX" ;;
+    *) return 1 ;;
     esac
 
-    #@ Update type for WSL Systems
-    [ -n "$WSL_DISTRO_NAME" ] \
-      && info="Windows Subsystem for Linux [WSL]"
+    #~@ Update type for WSL Systems
+    [ -n "$WSL_DISTRO_NAME" ] &&
+      info="Windows Subsystem for Linux [WSL]"
   }
 
   get_os_name() {
@@ -84,42 +84,42 @@ prepare_environment() {
     elif [ -f "/etc/os-release" ]; then
       info="$(awk -F '"' '/PRETTY_NAME/ {print $2}' /etc/os-release)"
     elif [ -f "/etc/issue" ]; then
-      #@ Extract the line containing "Welcome"
+      #~@ Extract the line containing "Welcome"
       welcome_line="$(awk '/Welcome/{print; exit}' /etc/issue)"
 
-      #@ Use parameter expansion to extract all columns after "Welcome to"
+      #~@ Use parameter expansion to extract all columns after "Welcome to"
       after_welcome="${welcome_line#*Welcome to }"
 
-      #@ Extract the first 2 columns
+      #~@ Extract the first 2 columns
       info="$(printf "%s\n" "$after_welcome" | awk '{print $1 " " $2}')"
     elif weHave hostnamectl; then
       info="$(hostnamectl | awk -F ': ' '/Operating System/ {print $2}')"
     elif weHave uname; then
-      #@ Extract the version number
+      #~@ Extract the version number
       info="$(uname --kernel-name)" # eg. MINGW64_NT-10.0-22621
       info="${info#*-}"             # eg. 'MINGW64_NT-10.0-22621' ->'10.0-22621'
       info="${info%%-*}"            # eg. '10.0-22621' -> '10.0'
     elif weHave python; then
       info="$(python -mplatform)" # Windows-10-10.0.22621-SP0
 
-      #@ Extract everything after the OS type
+      #~@ Extract everything after the OS type
       case "$info" in
-        Windows*)
-          # eg. 'Windows-10-10.0.22621-SP0' ->'10.0.22621-SP0'
-          info="${info#*-*-}"
-          ;;
-        *)
-          info="${info#*-}" # eg. '10.0-22621' from 'Darwin-20.6.0-x86_64-i386-64bit'
-          ;;
+      Windows*)
+        # eg. 'Windows-10-10.0.22621-SP0' ->'10.0.22621-SP0'
+        info="${info#*-*-}"
+        ;;
+      *)
+        info="${info#*-}" # eg. '10.0-22621' from 'Darwin-20.6.0-x86_64-i386-64bit'
+        ;;
       esac
 
-      #@ Extract the distro name
+      #~@ Extract the distro name
       info="${info%%-*}" # eg. '10.0-22621' -> '10.0'
     else
       return 1
     fi
 
-    #@ Extract integer if decimal is empty
+    #~@ Extract integer if decimal is empty
     info="${info%%.0}" # eg. '10.0' -> '10'
   }
 
@@ -165,67 +165,67 @@ prepare_environment() {
     weHave git || return 1
 
     case "$1" in
-      url | remote) info="$(git remote get-url origin 2> /dev/null)" ;;
-      platform)
-        regex="s#https://[^@]\+@##; s#git@\([^:]\+\):.*#\1#; s#https\?://##; s#/.*##"
-        info="$(
-          process_info --git-url | sed "$regex"
-        )"
-        ;;
-      # owner)
-      #   info
-      user)
-        echo "$regex"
-        from_url="$(
-          get_remote_url | sed --quiet 's#https://\([^:]\+\):.*@.*#\1#p'
-        )"
-        from_config="$(git config --get user.name)"
-        from_owner="$(process_info --git-owner)"
-        from_system="$(process_info --user)"
+    url | remote) info="$(git remote get-url origin 2>/dev/null)" ;;
+    platform)
+      regex="s#https://[^@]\+@##; s#git@\([^:]\+\):.*#\1#; s#https\?://##; s#/.*##"
+      info="$(
+        process_info --git-url | sed "$regex"
+      )"
+      ;;
+    # owner)
+    #   info
+    user)
+      echo "$regex"
+      from_url="$(
+        get_remote_url | sed --quiet 's#https://\([^:]\+\):.*@.*#\1#p'
+      )"
+      from_config="$(git config --get user.name)"
+      from_owner="$(process_info --git-owner)"
+      from_system="$(process_info --user)"
 
-        if [ "$info" ]; then
-          :
-        elif [ "$from_url" ]; then
-          info="$from_url"
-        elif [ "$from_config" ]; then
-          info="$from_config"
-        elif [ "$from_owner" ]; then
-          info="$from_owner"
-        elif [ "$from_system" ]; then
-          info="$from_system"
-        fi
-        ;;
-      email)
-        info="$(
-          git config --local user.email \
-            || git config --global user.email
-        )"
-        ;;
-      branch) info="$(git branch --show-current)" ;;
-      message) info="$(git log -1 --pretty=%B)" ;;
-      dir) info="$(git rev-parse --show-toplevel)" ;;
-      *)
-        info="$(
-          printf "%s | %s | %s | %s | %s | %s" \
-            "$(process_info --git-name)" \
-            "$(process_info --git-email)" \
-            "$(process_info --git-branch)" \
-            "$(process_info --git-dir)" \
-            "$(process_info --git-remote)" \
-            "$(process_info --git-message)"
-        )"
-        ;;
+      if [ "$info" ]; then
+        :
+      elif [ "$from_url" ]; then
+        info="$from_url"
+      elif [ "$from_config" ]; then
+        info="$from_config"
+      elif [ "$from_owner" ]; then
+        info="$from_owner"
+      elif [ "$from_system" ]; then
+        info="$from_system"
+      fi
+      ;;
+    email)
+      info="$(
+        git config --local user.email ||
+          git config --global user.email
+      )"
+      ;;
+    branch) info="$(git branch --show-current)" ;;
+    message) info="$(git log -1 --pretty=%B)" ;;
+    dir) info="$(git rev-parse --show-toplevel)" ;;
+    *)
+      info="$(
+        printf "%s | %s | %s | %s | %s | %s" \
+          "$(process_info --git-name)" \
+          "$(process_info --git-email)" \
+          "$(process_info --git-branch)" \
+          "$(process_info --git-dir)" \
+          "$(process_info --git-remote)" \
+          "$(process_info --git-message)"
+      )"
+      ;;
     esac
   }
 
   get_shell() {
     case $SHELL in
-      *bash*) info="Bourne Again SHell ${BASH_VERSION}" ;;
-      *zsh*) info="Z SHell" ;;
-      *dash*) info="Debian Almquist SHell" ;;
-      *fish*) info="Friendly Interactive SHell" ;;
-      *nu*) info="nuSHell" ;;
-      *) ;;
+    *bash*) info="Bourne Again SHell ${BASH_VERSION}" ;;
+    *zsh*) info="Z SHell" ;;
+    *dash*) info="Debian Almquist SHell" ;;
+    *fish*) info="Friendly Interactive SHell" ;;
+    *nu*) info="nuSHell" ;;
+    *) ;;
     esac
 
     [ "$info" ] && info="$info | $SHELL"
@@ -235,12 +235,12 @@ prepare_environment() {
     if [ "$info" ]; then
       :
     elif weHave powershell; then
-      #@ Create a helper script to store the hardware info
+      #~@ Create a helper script to store the hardware info
       hardware_info_script="/tmp/hardware_info_script.ps1"
       [ -f "$hardware_info_script" ] || {
         line1='$hwInfo = Get-WmiObject -Class Win32_ComputerSystem'
         line2='Write-Host $hwInfo.Manufacturer $hwInfo.Model'
-        printf "%s\n%s\n" "$line1" "$line2" > "$hardware_info_script"
+        printf "%s\n%s\n" "$line1" "$line2" >"$hardware_info_script"
       }
       info="$(
         powershell -ExecutionPolicy Bypass -File "$hardware_info_script"
@@ -250,7 +250,7 @@ prepare_environment() {
 
   get_package_manager() {
 
-    #@ Select the first package found manager from the list
+    #~@ Select the first package found manager from the list
     known_package_managers="
       nix
       apt
@@ -275,10 +275,10 @@ prepare_environment() {
       fi
     done
 
-    #@ Throw an error if the package manager is not found
+    #~@ Throw an error if the package manager is not found
     [ "$package_manager" ] || return 1
 
-    #@ Return the package manager
+    #~@ Return the package manager
     printf "%s\n" "$package_manager"
   }
 
@@ -303,26 +303,26 @@ prepare_environment() {
       info=$(xprop -root _NET_WM_NAME | awk -F '"' '{print $2}')
     elif [ "$XDG_CURRENT_DESKTOP" ] || [ "$DESKTOP_SESSION" ]; then
       de="$(
-        printf "%s" "${XDG_CURRENT_DESKTOP:-$DESKTOP_SESSION}" \
-          | tr '[:upper:]' '[:lower:]'
+        printf "%s" "${XDG_CURRENT_DESKTOP:-$DESKTOP_SESSION}" |
+          tr '[:upper:]' '[:lower:]'
       )"
 
       case "$de" in
-        *kde* | *plasma*) info="KDE Plasma" ;;
-        *xfce*) info="Xfce" ;;
-        *mate*) info="MATE" ;;
-        *cinnamon*) info="Cinnamon" ;;
-        *lxde*) info="LXDE" ;;
-        *lxqt*) info="LXQt" ;;
-        *deepin*) info="Deepin" ;;
-        *pantheon*) info="Pantheon" ;;
-        *budgie*) info="Budgie" ;;
-        *gnome*flashback*) info="GNOME Flashback" ;;
-        *gnome*classic*) info="GNOME Classic" ;;
-        *gnome*) info="GNOME" ;;
-        *enlightenment* | *e1* | *e2* | *e3*) info="Enlightenment" ;;
-        *unity*) info="Unity" ;;
-        *lumina*) info="Lumina" ;;
+      *kde* | *plasma*) info="KDE Plasma" ;;
+      *xfce*) info="Xfce" ;;
+      *mate*) info="MATE" ;;
+      *cinnamon*) info="Cinnamon" ;;
+      *lxde*) info="LXDE" ;;
+      *lxqt*) info="LXQt" ;;
+      *deepin*) info="Deepin" ;;
+      *pantheon*) info="Pantheon" ;;
+      *budgie*) info="Budgie" ;;
+      *gnome*flashback*) info="GNOME Flashback" ;;
+      *gnome*classic*) info="GNOME Classic" ;;
+      *gnome*) info="GNOME" ;;
+      *enlightenment* | *e1* | *e2* | *e3*) info="Enlightenment" ;;
+      *unity*) info="Unity" ;;
+      *lumina*) info="Lumina" ;;
       esac
     else
       get_os_type
@@ -346,8 +346,8 @@ prepare_environment() {
         "$(process_info --user)" \
         "$(process_info --host)" \
         "$(process_info --type)" \
-        "$(process_info --distro)" \
-        | tr ' ' '_'
+        "$(process_info --distro)" |
+        tr ' ' '_'
     )"
   }
 }
@@ -414,8 +414,8 @@ prepare_tests() {
       option="${option_lines%%"${IFS}"*}"
       option_lines="${option_lines#*"${IFS}"}"
 
-      [ "$label" ] && [ "$option" ] \
-        && printf "%s: %s\n" \
+      [ "$label" ] && [ "$option" ] &&
+        printf "%s: %s\n" \
           "$label" \
           "$(eval process_info "$option")"
     done
@@ -424,37 +424,37 @@ prepare_tests() {
 
 process_info() {
   case $1 in
-    -t | --type) get_os_type ;;
-    -o | --os | --distro) get_os_name ;;
-    -k | --kernel) get_os_kernel ;;
-    -a | --arch) get_os_architecture ;;
-    -n | --host | node) get_hostname ;;
-    -m | --model) get_hardware_model ;;
-    -u | --user) get_username ;;
-    -s | --shell) get_shell ;;
-    -p | --pacman) get_package_manager ;;
-    -w | --wm) get_window_manager ;;
-    -b | --browser) get_browser ;;
-    -l | --label) get_sys_label ;;
-    --git-dir) get_git dir ;;
-    --git-platform) get_git platform ;;
-    --git-owner) get_git owner ;;
-    --git-name) get_git name ;;
-    --git-user) get_git user ;;
-    --git-email) get_git email ;;
-    --git-url) get_git url ;;
-    --git-pat) get_git pat ;;
-    --git-branch) get_git branch ;;
-    --git-message) get_git message ;;
-    -g | --git) get_git ;;
-    -i | --info | *) get_sys_info ;;
+  -t | --type) get_os_type ;;
+  -o | --os | --distro) get_os_name ;;
+  -k | --kernel) get_os_kernel ;;
+  -a | --arch) get_os_architecture ;;
+  -n | --host | node) get_hostname ;;
+  -m | --model) get_hardware_model ;;
+  -u | --user) get_username ;;
+  -s | --shell) get_shell ;;
+  -p | --pacman) get_package_manager ;;
+  -w | --wm) get_window_manager ;;
+  -b | --browser) get_browser ;;
+  -l | --label) get_sys_label ;;
+  --git-dir) get_git dir ;;
+  --git-platform) get_git platform ;;
+  --git-owner) get_git owner ;;
+  --git-name) get_git name ;;
+  --git-user) get_git user ;;
+  --git-email) get_git email ;;
+  --git-url) get_git url ;;
+  --git-pat) get_git pat ;;
+  --git-branch) get_git branch ;;
+  --git-message) get_git message ;;
+  -g | --git) get_git ;;
+  -i | --info | *) get_sys_info ;;
   esac
 
   if [ "$info" ]; then
-    #@ Sent the information to the printer
+    #~@ Sent the information to the printer
     process_output "$info"
   else
-    #@ Failure to fill the variable should result in an error code
+    #~@ Failure to fill the variable should result in an error code
     exit_code=1
     return "$exit_code"
   fi
@@ -462,8 +462,8 @@ process_info() {
 
 process_output() {
   case "$1" in
-    -h | --help) output="HELP" ;;
-    -v | --version) output="VERSION" ;;
+  -h | --help) output="HELP" ;;
+  -v | --version) output="VERSION" ;;
   esac
 
   printf "%s" "${output:-"$*"}"

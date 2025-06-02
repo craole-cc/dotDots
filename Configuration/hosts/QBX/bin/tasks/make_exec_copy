@@ -39,19 +39,19 @@ set_defaults() {
   num=0
 
   #| Tools
-  command -v fd > /dev/null 2>&1 && cmd_fd="fd ."
-  command -v realpath > /dev/null 2>&1 && cmd_realpath="realpath"
+  command -v fd >/dev/null 2>&1 && cmd_fd="fd ."
+  command -v realpath >/dev/null 2>&1 && cmd_realpath="realpath"
 
-  if command -v lsd > /dev/null 2>&1; then
+  if command -v lsd >/dev/null 2>&1; then
     cmd_ls="lsd --almost-all --long"
-  elif command -v eza > /dev/null 2>&1; then
+  elif command -v eza >/dev/null 2>&1; then
     cmd_ls="eza --almost-all --long --icons --color-scale --color=always"
   else
     cmd_ls="ls -la"
   fi
 
   #| Formatting
-  if command -v tput > /dev/null 2>&1; then
+  if command -v tput >/dev/null 2>&1; then
     fmt_black=$(tput setaf 0)
     fmt_red=$(tput setaf 1)
     fmt_green=$(tput setaf 2)
@@ -96,44 +96,44 @@ set_verbosity() {
   #DOC     4: verbose
   #DOC     5: debug (trace)
 
-  #@ Take defaults from system variables
+  #~@ Take defaults from system variables
   _verbosity="${VERBOSITY:-"$VERBOSE"}"
   _quiet="${SILENT:-"$QUIET"}"
 
-  #@ Take defaults from local variables
+  #~@ Take defaults from local variables
   verbosity="${verbosity:-"$_verbosity"}"
   quiet="${quiet:-"$_quiet"}"
   case "${quiet:-"$_quiet"}" in true | 1 | on) verbosity=0 ;; esac
 
-  #@ Set verbosity based on arguments or defaults
+  #~@ Set verbosity based on arguments or defaults
   case "${1:-"$verbosity"}" in
-    0 | quiet | false | off) verbosity=0 ;;
-    1 | error | fail*) verbosity=1 ;;
-    2 | warn*) verbosity=2 ;;
-    3 | info | normal) verbosity=3 ;;
-    4 | verbose | true | debug | on) verbosity=4 ;;
-    5 | trace) verbosity=5 ;;
-    *[0-9]* | *[0-9][0-9]*) verbosity="$1" ;;
-    *) verbosity=3 ;;
+  0 | quiet | false | off) verbosity=0 ;;
+  1 | error | fail*) verbosity=1 ;;
+  2 | warn*) verbosity=2 ;;
+  3 | info | normal) verbosity=3 ;;
+  4 | verbose | true | debug | on) verbosity=4 ;;
+  5 | trace) verbosity=5 ;;
+  *[0-9]* | *[0-9][0-9]*) verbosity="$1" ;;
+  *) verbosity=3 ;;
   esac
 
-  #@ Parse arguments
+  #~@ Parse arguments
   for arg in "$@"; do
     case "$arg" in
-      -q | --quiet) verbosity=0 ;;
-      -qe | --error) verbosity=1 ;;
-      -qw | --warn*) verbosity=2 ;;
-      -i | --info | --normal) verbosity=3 ;;
-      -vv | --verbose | -d | --debug*) verbosity=4 ;;
-      -V | -[dD][dD] | -[tT] | --trace*) verbosity=5 ;;
+    -q | --quiet) verbosity=0 ;;
+    -qe | --error) verbosity=1 ;;
+    -qw | --warn*) verbosity=2 ;;
+    -i | --info | --normal) verbosity=3 ;;
+    -vv | --verbose | -d | --debug*) verbosity=4 ;;
+    -V | -[dD][dD] | -[tT] | --trace*) verbosity=5 ;;
     esac
   done
 
-  #@ Clamp values
+  #~@ Clamp values
   [ "$verbosity" -gt 5 ] && verbosity=5
   [ "$verbosity" -lt 0 ] && verbosity=0
 
-  #@ Return verbosity level
+  #~@ Return verbosity level
   printf "%s" "$verbosity"
 }
 
@@ -143,29 +143,29 @@ cleanup() {
 
 parse_arguments() {
 
-  #@ Parse base flags
+  #~@ Parse base flags
   for arg in "$@"; do
     case "$arg" in
-      -v | --version | -h | --help | --usage)
-        pout "$1"
-        return 0
-        ;;
-      -q | --quiet*) pout --set-level 0 ;;
-      -qe | --error*) pout --set-level 1 ;;
-      -qw | --warn*) pout --set-level 2 ;;
-      -i | --info | --normal) pout --set-level 3 ;;
-      -vv | --verbose | -d | --debug*) pout --set-level 4 ;;
-      -V | -[dD][dD] | -[tT] | --trace*) pout --set-level 5 ;;
-      -D | --simulate | --dry-run) simulate=true ;;
-      -R | --rec*) recursive=true ;;
-      +R | --no-rec*) recursive=false ;;
+    -v | --version | -h | --help | --usage)
+      pout "$1"
+      return 0
+      ;;
+    -q | --quiet*) pout --set-level 0 ;;
+    -qe | --error*) pout --set-level 1 ;;
+    -qw | --warn*) pout --set-level 2 ;;
+    -i | --info | --normal) pout --set-level 3 ;;
+    -vv | --verbose | -d | --debug*) pout --set-level 4 ;;
+    -V | -[dD][dD] | -[tT] | --trace*) pout --set-level 5 ;;
+    -D | --simulate | --dry-run) simulate=true ;;
+    -R | --rec*) recursive=true ;;
+    +R | --no-rec*) recursive=false ;;
     esac
   done
 
-  #@ Trace the entire command-line string
+  #~@ Trace the entire command-line string
   pout --trace "Arguments:" "${*:-"none provided"}"
 
-  #@ Handle default target if no arguments
+  #~@ Handle default target if no arguments
   [ "$#" -eq 0 ] && {
     num=$((num + 1))
     target="$(get_absolute_path "$default_target")"
@@ -173,69 +173,69 @@ parse_arguments() {
     targets="$default_target"
   }
 
-  #@ Main argument parsing loop
+  #~@ Main argument parsing loop
   while [ $# -gt 0 ]; do
     case $1 in
-      -u | --user | --owner)
-        if [ -n "$2" ]; then
-          owner="$2"
-          shift
-        else
-          pout --error "$1" "requires an argument"
-          return 1
-        fi
-        ;;
-      -g | --group)
-        if [ -n "$2" ]; then
-          group="$2"
-          shift
-        else
-          pout --error "$1" "requires an argument"
-          return 1
-        fi
-        ;;
-      -R | --rec*)
-        if [ -n "$2" ] && [ "$2" -eq "$2" ] 2> /dev/null; then
-          depth="$2"
-          shift
-        fi
-        ;;
-      --depth)
-        if [ -n "$2" ] && [ "$2" -eq "$2" ] 2> /dev/null; then
-          depth="$2"
-          shift
-        else
-          pout --error "$1" "requires a number"
-          return 1
-        fi
-        ;;
-      --target)
-        if [ -n "$2" ]; then
-          shift
-          validate_arguments --target "$1" && {
-            num=$((num + 1))
-            target="$(get_absolute_path "$1")"
-            pout --debug "Target" "[${num}]:" "$target"
-            targets="${targets}${targets:+${delimiter}}${target}"
-          }
-        else
-          pout --error "$1" "requires an argument"
-          return 1
-        fi
-        ;;
-      --)
+    -u | --user | --owner)
+      if [ -n "$2" ]; then
+        owner="$2"
         shift
-        ;;
-      -*) ;;
-      *)
-        pout --trace "Shifted Argument" "$1"
+      else
+        pout --error "$1" "requires an argument"
+        return 1
+      fi
+      ;;
+    -g | --group)
+      if [ -n "$2" ]; then
+        group="$2"
+        shift
+      else
+        pout --error "$1" "requires an argument"
+        return 1
+      fi
+      ;;
+    -R | --rec*)
+      if [ -n "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null; then
+        depth="$2"
+        shift
+      fi
+      ;;
+    --depth)
+      if [ -n "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null; then
+        depth="$2"
+        shift
+      else
+        pout --error "$1" "requires a number"
+        return 1
+      fi
+      ;;
+    --target)
+      if [ -n "$2" ]; then
+        shift
         validate_arguments --target "$1" && {
           num=$((num + 1))
           target="$(get_absolute_path "$1")"
           pout --debug "Target" "[${num}]:" "$target"
           targets="${targets}${targets:+${delimiter}}${target}"
         }
-        ;;
+      else
+        pout --error "$1" "requires an argument"
+        return 1
+      fi
+      ;;
+    --)
+      shift
+      ;;
+    -*) ;;
+    *)
+      pout --trace "Shifted Argument" "$1"
+      validate_arguments --target "$1" && {
+        num=$((num + 1))
+        target="$(get_absolute_path "$1")"
+        pout --debug "Target" "[${num}]:" "$target"
+        targets="${targets}${targets:+${delimiter}}${target}"
+      }
+      ;;
     esac
     shift
   done
@@ -248,7 +248,7 @@ parse_arguments() {
   # validate_arguments --owner || return 1
   # [ "$owner" ] || detect_group "$owner" || return 1
 
-  #@ Debug arguments
+  #~@ Debug arguments
   pout --debug "Recursive:" "$recursive"
   pout --debug "Depth:" "${depth:-"infinite"}"
   pout --debug "User:" "${owner:-"unspecified"}"
@@ -263,27 +263,27 @@ validate_arguments() {
   pout --trace "|- validate_arguments ->" "Arguments:" "${*:-"none provided"}"
 
   case "$1" in
-    --target)
-      [ -e "$2" ] || {
-        pout --warn "|- validate_arguments ->" "'$2'" "is not a valid path"
-        return 1
-      }
-      ;;
-    --owner)
-      [ -n "$owner" ] || {
-        pout --error "|- validate_arguments ->" "No user specified"
-        usage
-        return 1
-      }
-      ;;
-    --group)
-      [ -n "$group" ] || {
-        pout --error "|- validate_arguments ->" "No group specified"
-        usage
-        return 1
-      }
-      ;;
-    *) return 1 ;;
+  --target)
+    [ -e "$2" ] || {
+      pout --warn "|- validate_arguments ->" "'$2'" "is not a valid path"
+      return 1
+    }
+    ;;
+  --owner)
+    [ -n "$owner" ] || {
+      pout --error "|- validate_arguments ->" "No user specified"
+      usage
+      return 1
+    }
+    ;;
+  --group)
+    [ -n "$group" ] || {
+      pout --error "|- validate_arguments ->" "No group specified"
+      usage
+      return 1
+    }
+    ;;
+  *) return 1 ;;
   esac
 }
 
@@ -299,35 +299,35 @@ parse_targets() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -*i*)
-        _scope="Input"
-        unset _recursive
-        ;;
-      -*o*) ;;
-      -*r*)
-        if [ "$2" ]; then
-          _recursive="$2"
-          shift
-        else
-          _recursive=true
-        fi
-        ;;
-      -*t*)
-        if [ "$2" ]; then
-          _target="$2"
-          shift
-        else
-          pout --error "|- $fn_name ->" "Missing target"
-          return 2
-        fi
-        ;;
-      -*)
-        pout --error "|- $fn_name ->" "Unknown option: $1"
+    -*i*)
+      _scope="Input"
+      unset _recursive
+      ;;
+    -*o*) ;;
+    -*r*)
+      if [ "$2" ]; then
+        _recursive="$2"
+        shift
+      else
+        _recursive=true
+      fi
+      ;;
+    -*t*)
+      if [ "$2" ]; then
+        _target="$2"
+        shift
+      else
+        pout --error "|- $fn_name ->" "Missing target"
         return 2
-        ;;
-      *)
-        _target="$1"
-        ;;
+      fi
+      ;;
+    -*)
+      pout --error "|- $fn_name ->" "Unknown option: $1"
+      return 2
+      ;;
+    *)
+      _target="$1"
+      ;;
     esac
     shift
   done
@@ -364,7 +364,7 @@ parse_targets() {
 
 detect_user() {
   unset _user
-  _user="$(id -un 2> /dev/null || whoami 2> /dev/null)"
+  _user="$(id -un 2>/dev/null || whoami 2>/dev/null)"
   _user="${_user:-"${USER:-"$USERNAME"}"}"
 
   if [ "$_user" ]; then
@@ -392,7 +392,7 @@ detect_group() {
   # DOC   the username is returned.
 
   unset _group _user
-  _group="$(id -gn 2> /dev/null)"
+  _group="$(id -gn 2>/dev/null)"
   _user="$1"
   [ "$_user" ] || {
     pout --error detect_group "No user specified"
@@ -400,24 +400,24 @@ detect_group() {
   }
 
   [ "$_group" ] || {
-    #@ Fallback to system files
+    #~@ Fallback to system files
     _gid=$(
-      grep "^${_user}:" /etc/passwd \
-        | cut -d: -f4 2> /dev/null
-    ) || _gid=$(id -g 2> /dev/null)
+      grep "^${_user}:" /etc/passwd |
+        cut -d: -f4 2>/dev/null
+    ) || _gid=$(id -g 2>/dev/null)
 
     _group=$(
-      getent group "$_gid" | cut -d: -f1 2> /dev/null
+      getent group "$_gid" | cut -d: -f1 2>/dev/null
     )
   }
 
-  #@ Return the group or username
+  #~@ Return the group or username
   printf "%s\n" "${_group:-$_user}"
 }
 
 pout() {
   pout__set_defaults() {
-    #@ Set default values for log parameters
+    #~@ Set default values for log parameters
     output_code=1
     log_color="$fmt_normal"
     log_title=""
@@ -432,179 +432,179 @@ pout() {
   pout__parse_arguments() {
     while [ $# -gt 0 ]; do
       case "$1" in
-        --set-level | -level | -*verb*)
-          echo "verbo: $2"
-          if [ "$2" ]; then
-            pout__set_verbosity "$2"
-            shift
-          else
-            pout__set_verbosity
-          fi
-          ;;
-        -t | --tag | -N | --name)
-          [ "$2" ] || return 1
-          tag="$2"
+      --set-level | -level | -*verb*)
+        echo "verbo: $2"
+        if [ "$2" ]; then
+          pout__set_verbosity "$2"
           shift
-          ;;
-        -m | --message | --msg)
-          while [ "$#" -gt 1 ]; do
-            case "$2" in
-              -*) break ;;
-              *)
-                msg="${msg:+$msg }$2"
-                shift
-                ;;
-            esac
-          done
-          ;;
-        --success)
-          log_color="$fmt_green"
-          log_title="SUCCESS"
-          output_code=0
-          ;;
-        --fail)
-          log_color="$fmt_red"
-          log_title="FAILURE"
-          output_code=1
-          ;;
-        --error)
-          [ "${verbosity:-0}" -gt 1 ] || return
-          log_color="$fmt_red"
-          log_title="ERROR"
-          output_code=2
-          ;;
-        --warn)
-          log_color="$fmt_yellow"
-          log_title=" WARN"
-          output_code=2
-          [ "${verbosity:-0}" -ge 2 ] || return
-          ;;
-        --info)
-          log_color="$fmt_blue"
-          log_title=" INFO"
-          [ "${verbosity:-0}" -ge 3 ] || return
-          ;;
-        --debug)
-          log_color="$fmt_cyan"
-          log_title="DEBUG"
-          [ "${verbosity:-0}" -ge 4 ] || return
-          ;;
-        --trace)
-          log_color="$fmt_magenta"
-          log_title="TRACE"
-          [ "${verbosity:-0}" -ge 5 ] || return
-          ;;
-        -v)
-          printf '%s' "$scr_version"
-          return
-          ;;
-        --version)
-          printf "%s [ v.%s ]\n" "$scr_name" "$scr_version"
-          return
-          ;;
-        -h | --usage | --help)
-          if [ "$2" ]; then
-            pout__help "$1" "$2"
+        else
+          pout__set_verbosity
+        fi
+        ;;
+      -t | --tag | -N | --name)
+        [ "$2" ] || return 1
+        tag="$2"
+        shift
+        ;;
+      -m | --message | --msg)
+        while [ "$#" -gt 1 ]; do
+          case "$2" in
+          -*) break ;;
+          *)
+            msg="${msg:+$msg }$2"
             shift
-          else
-            pout__help "$1"
-          fi
-          return
-          ;;
-        -n | --new-line)
-          blank_line=1
-          return
-          ;;
-        -*) ;;
-        *)
-          msg="${msg:+$msg }$1"
-          ;;
+            ;;
+          esac
+        done
+        ;;
+      --success)
+        log_color="$fmt_green"
+        log_title="SUCCESS"
+        output_code=0
+        ;;
+      --fail)
+        log_color="$fmt_red"
+        log_title="FAILURE"
+        output_code=1
+        ;;
+      --error)
+        [ "${verbosity:-0}" -gt 1 ] || return
+        log_color="$fmt_red"
+        log_title="ERROR"
+        output_code=2
+        ;;
+      --warn)
+        log_color="$fmt_yellow"
+        log_title=" WARN"
+        output_code=2
+        [ "${verbosity:-0}" -ge 2 ] || return
+        ;;
+      --info)
+        log_color="$fmt_blue"
+        log_title=" INFO"
+        [ "${verbosity:-0}" -ge 3 ] || return
+        ;;
+      --debug)
+        log_color="$fmt_cyan"
+        log_title="DEBUG"
+        [ "${verbosity:-0}" -ge 4 ] || return
+        ;;
+      --trace)
+        log_color="$fmt_magenta"
+        log_title="TRACE"
+        [ "${verbosity:-0}" -ge 5 ] || return
+        ;;
+      -v)
+        printf '%s' "$scr_version"
+        return
+        ;;
+      --version)
+        printf "%s [ v.%s ]\n" "$scr_name" "$scr_version"
+        return
+        ;;
+      -h | --usage | --help)
+        if [ "$2" ]; then
+          pout__help "$1" "$2"
+          shift
+        else
+          pout__help "$1"
+        fi
+        return
+        ;;
+      -n | --new-line)
+        blank_line=1
+        return
+        ;;
+      -*) ;;
+      *)
+        msg="${msg:+$msg }$1"
+        ;;
       esac
       shift
     done
   }
 
   pout__help() {
-    #@ Reset variables
+    #~@ Reset variables
     unset tag print_usage
 
-    #@ Parse arguments
+    #~@ Parse arguments
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        -h | --usage) print_usage=true ;;
-        --tag) tag="$2" ;;
-        --*) ;;
-        *) tag="$1" ;;
+      -h | --usage) print_usage=true ;;
+      --tag) tag="$2" ;;
+      --*) ;;
+      *) tag="$1" ;;
       esac
       shift
     done
 
-    #@ Initialize variables
+    #~@ Initialize variables
     tag="${tag:-$scr_name}"
     usage="$(printf 'Usage: %s' "$tag")"
 
-    #@ Define help messages
+    #~@ Define help messages
     case "$tag" in
-      detect_user)
-        usage="${usage:+$usage }[USER]"
-        help="$(
-          printf "  Determine the primary group for a given user.\n"
-          printf "\n"
-          printf "Attempts to identify the primary group associated with the specified user.\n"
-          printf "Initially, it attempts to retrieve the group using the 'id' command\n"
-          printf "If unsuccessful, it resorts to extracting the group ID from /etc/passwd,\n"
-          printf "and subsequently resolves the group name using the 'getent' command.\n"
-          printf "\n"
-          printf "Arguments:\n"
-          printf "  USER: The username whose primary group is to be determined.\n"
-          printf "\n"
-          printf "Returns:\n"
-          printf "  Prints the group name associated with the user. If no group is found,\n"
-          printf "  the username is returned.\n"
-        )"
-        ;;
-      detect_group)
-        usage="${usage:+$usage }[USER]"
-        help="$(
-          printf "  Determine the primary group for a given user.\n"
-          printf "\n"
-          printf "Attempts to identify the primary group associated with the specified user.\n"
-          printf "Initially, it attempts to retrieve the group using the 'id' command\n"
-          printf "If unsuccessful, it resorts to extracting the group ID from /etc/passwd,\n"
-          printf "and subsequently resolves the group name using the 'getent' command.\n"
-          printf "\n"
-          printf "Arguments:\n"
-          printf "  USER: The username whose primary group is to be determined.\n"
-          printf "\n"
-          printf "Returns:\n"
-          printf "  Prints the group name associated with the user. If no group is found,\n"
-          printf "  the username is returned.\n"
-        )"
-        ;;
-      validate_arguments)
-        printf '%s' "$usage"
-        ;;
-      initialize_script | "$scr_name")
-        usage="$(printf 'Usage: %s [OPTIONS] TARGET...\n' "$tag")"
-        help="$(
-          printf "  Set permissions and ownership for files and directories\n"
-          printf "\n"
-          printf "Options:\n"
-          printf "  -u, --user USER     Set owner user (default: %s)\n" "$owner"
-          printf "  -g, --group GROUP   Set owner group (default: %s)\n" "$group"
-          printf "  -d, --dry-run       Show proposed changes without executing\n"
-          printf "  -h, --help          Show this help\n"
-          printf "\n"
-          printf "Notes:\n"
-          printf "  Targets can be specified anywhere in the command line\n"
-          printf "\n"
-          printf "Example:\n"
-          printf "  %s dir1 --user bob -d dir2 --group staff\n" "$scr_name"
-        )"
-        ;;
+    detect_user)
+      usage="${usage:+$usage }[USER]"
+      help="$(
+        printf "  Determine the primary group for a given user.\n"
+        printf "\n"
+        printf "Attempts to identify the primary group associated with the specified user.\n"
+        printf "Initially, it attempts to retrieve the group using the 'id' command\n"
+        printf "If unsuccessful, it resorts to extracting the group ID from /etc/passwd,\n"
+        printf "and subsequently resolves the group name using the 'getent' command.\n"
+        printf "\n"
+        printf "Arguments:\n"
+        printf "  USER: The username whose primary group is to be determined.\n"
+        printf "\n"
+        printf "Returns:\n"
+        printf "  Prints the group name associated with the user. If no group is found,\n"
+        printf "  the username is returned.\n"
+      )"
+      ;;
+    detect_group)
+      usage="${usage:+$usage }[USER]"
+      help="$(
+        printf "  Determine the primary group for a given user.\n"
+        printf "\n"
+        printf "Attempts to identify the primary group associated with the specified user.\n"
+        printf "Initially, it attempts to retrieve the group using the 'id' command\n"
+        printf "If unsuccessful, it resorts to extracting the group ID from /etc/passwd,\n"
+        printf "and subsequently resolves the group name using the 'getent' command.\n"
+        printf "\n"
+        printf "Arguments:\n"
+        printf "  USER: The username whose primary group is to be determined.\n"
+        printf "\n"
+        printf "Returns:\n"
+        printf "  Prints the group name associated with the user. If no group is found,\n"
+        printf "  the username is returned.\n"
+      )"
+      ;;
+    validate_arguments)
+      printf '%s' "$usage"
+      ;;
+    initialize_script | "$scr_name")
+      usage="$(printf 'Usage: %s [OPTIONS] TARGET...\n' "$tag")"
+      help="$(
+        printf "  Set permissions and ownership for files and directories\n"
+        printf "\n"
+        printf "Options:\n"
+        printf "  -u, --user USER     Set owner user (default: %s)\n" "$owner"
+        printf "  -g, --group GROUP   Set owner group (default: %s)\n" "$group"
+        printf "  -d, --dry-run       Show proposed changes without executing\n"
+        printf "  -h, --help          Show this help\n"
+        printf "\n"
+        printf "Notes:\n"
+        printf "  Targets can be specified anywhere in the command line\n"
+        printf "\n"
+        printf "Example:\n"
+        printf "  %s dir1 --user bob -d dir2 --group staff\n" "$scr_name"
+      )"
+      ;;
     esac
 
-    #@ Print the help
+    #~@ Print the help
 
     if [ "$print_usage" ]; then
       printf '%s\n' "$usage"
@@ -629,14 +629,14 @@ pout() {
     #DOC Notes:
     #DOC   The argument is optional and defaults to 1 if not provided.
 
-    [ "$blank_line" -gt 0 ] \
-      && printf "\n%.0s" $(seq "$blank_line")
+    [ "$blank_line" -gt 0 ] &&
+      printf "\n%.0s" $(seq "$blank_line")
   }
 
   pout__print() {
     if [ "$msg" ]; then
-      [ "$usage_msg" ] \
-        && msg="$(printf "%s\n%s" "$msg" "$usage_msg")"
+      [ "$usage_msg" ] &&
+        msg="$(printf "%s\n%s" "$msg" "$usage_msg")"
     elif [ "$usage_msg" ]; then
       tag="$usage_msg"
       sep_lead=" "
@@ -660,14 +660,14 @@ pout() {
     fi
   }
 
-  #@ Return early if verbosity is 0/quiet
+  #~@ Return early if verbosity is 0/quiet
   [ "${verbosity:-0}" -gt 0 ] || return
 
-  #@ Initialize the options
+  #~@ Initialize the options
   pout__set_defaults || return
   pout__parse_arguments "$@" || return
 
-  #@ Print the message
+  #~@ Print the message
   pout__print
   pout__blank "${blank_line}"
 }
@@ -681,20 +681,20 @@ get_absolute_path() {
   }
 
   if [ -n "$cmd_realpath" ]; then
-    #@ Resolve to absolute path
-    if abs_path=$(realpath -s "$_path" 2> /dev/null); then
+    #~@ Resolve to absolute path
+    if abs_path=$(realpath -s "$_path" 2>/dev/null); then
       printf "%s\n" "$abs_path"
     else
-      #@ Split into directory and basename
+      #~@ Split into directory and basename
       _dir=$(dirname -- "$_path")
       _base=$(basename -- "$_path")
 
-      #@ Get absolute path of parent directory
-      if abs_dir=$(cd -- "$_dir" && pwd -L 2> /dev/null); then
-        #@ Rebuild path with absolute directory and original basename
+      #~@ Get absolute path of parent directory
+      if abs_dir=$(cd -- "$_dir" && pwd -L 2>/dev/null); then
+        #~@ Rebuild path with absolute directory and original basename
         printf "%s/%s\n" "$abs_dir" "$_base"
       else
-        #@ Fallback to original path if resolution fails
+        #~@ Fallback to original path if resolution fails
         printf "%s\n" "$_path"
       fi
     fi
@@ -728,7 +728,7 @@ resolve_targets() {
     unset _all _abs _raw TARGET_PATHS TARGET_COUNT TARGET_DIRES TARGET_FILES _opt _depth
   } && resolve_targets_cleanup
 
-  #@ Initialize variables
+  #~@ Initialize variables
   fn_name="resolve_targets"
   OLDIFS="$IFS"
   IFS="$delimiter"
@@ -736,55 +736,55 @@ resolve_targets() {
   TARGET_FILES_COUNT=0
   _recursive="$recursive"
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -*r*)
-        if [ "$2" ]; then
-          _recursive="$2"
-          shift
-        else
-          _recursive=true
-        fi
-        ;;
-      -*t*)
-        if [ "$2" ]; then
-          _target="$2"
-          shift
-        else
-          pout --error "|- $fn_name ->" "Targets not provided"
-          return 1
-        fi
-        ;;
+    -*r*)
+      if [ "$2" ]; then
+        _recursive="$2"
+        shift
+      else
+        _recursive=true
+      fi
+      ;;
+    -*t*)
+      if [ "$2" ]; then
+        _target="$2"
+        shift
+      else
+        pout --error "|- $fn_name ->" "Targets not provided"
+        return 1
+      fi
+      ;;
     esac
     shift
   done
 
-  #@ Parse recursive options
+  #~@ Parse recursive options
   case "$_recursive" in
-    '' | false | 0) _recursive=false ;;
-    *) _recursive=true ;;
+  '' | false | 0) _recursive=false ;;
+  *) _recursive=true ;;
   esac
 
-  #@ Debug input
+  #~@ Debug input
   pout --trace "|- $fn_name ->" "Arguments:" "$*"
   pout --trace "|- $fn_name ->" "Raw Targets:" "$_target"
 
-  #@ Process targets and resolve paths recursively
+  #~@ Process targets and resolve paths recursively
   for _raw in $_target; do
 
-    #@ Get absolute path and skip invalid targets
+    #~@ Get absolute path and skip invalid targets
     _abs=$(get_absolute_path "$_raw") || {
       pout --warn "|- $fn_name ->" "Skipping invalid path: $_raw"
       continue
     }
 
-    #@ Skip duplicate paths
+    #~@ Skip duplicate paths
     case "$_all" in
-      "${_abs}${delimiter}"* | *"${delimiter}${_abs}" | *"${delimiter}${_abs}${delimiter}"*)
-        pout --warn "|- $fn_name ->" "Skipping duplicate path: $_abs"
-        continue
-        ;;
+    "${_abs}${delimiter}"* | *"${delimiter}${_abs}" | *"${delimiter}${_abs}${delimiter}"*)
+      pout --warn "|- $fn_name ->" "Skipping duplicate path: $_abs"
+      continue
+      ;;
     esac
 
     if [ -d "$_abs" ]; then
@@ -792,16 +792,16 @@ resolve_targets() {
       TARGET_DIRES="${TARGET_DIRES}${TARGET_DIRES:+$delimiter}$_abs"
       TARGET_DIRES_COUNT=$((TARGET_DIRES_COUNT + 1))
 
-      #@ Skip directories that are subdirectories of any directory in TARGET_DIRES
+      #~@ Skip directories that are subdirectories of any directory in TARGET_DIRES
       subdir_flag=false
       IFS="$delimiter"
       for target_dir in $TARGET_DIRES; do
         case "$_abs" in
-          "$target_dir"/*)
-            pout --warn "|- $fn_name ->" "Skipping subdirectory: $_abs"
-            subdir_flag=true
-            break
-            ;;
+        "$target_dir"/*)
+          pout --warn "|- $fn_name ->" "Skipping subdirectory: $_abs"
+          subdir_flag=true
+          break
+          ;;
         esac
       done
       IFS="$OLDIFS"
@@ -809,7 +809,7 @@ resolve_targets() {
       [ "$subdir_flag" = true ] && continue
       [ "$_recursive" ] || continue
 
-      #@ Use fd if available, otherwise fall back to find
+      #~@ Use fd if available, otherwise fall back to find
       if [ -n "$cmd_fds" ]; then
         [ "$depth" ] && _opt="--max-depth $depth"
         _opt="$opts --absolute-path"
@@ -831,24 +831,24 @@ resolve_targets() {
     fi
   done
 
-  #@ Restore IFS
+  #~@ Restore IFS
   IFS="$OLDIFS"
 
-  #@ Extract unique targets and set return values
+  #~@ Extract unique targets and set return values
   TARGET_FILES=$(
-    printf "%s" "$TARGET_FILES" \
-      | tr "$delimiter" '\n' \
-      | sort -u \
-      | tr '\n' "$delimiter" \
-      | sed "s/$delimiter\$//"
+    printf "%s" "$TARGET_FILES" |
+      tr "$delimiter" '\n' |
+      sort -u |
+      tr '\n' "$delimiter" |
+      sed "s/$delimiter\$//"
   )
 
   TARGET_DIRES=$(
-    printf "%s" "$TARGET_DIRES" \
-      | tr "$delimiter" '\n' \
-      | sort -u \
-      | tr '\n' "$delimiter" \
-      | sed "s/$delimiter\$//"
+    printf "%s" "$TARGET_DIRES" |
+      tr "$delimiter" '\n' |
+      sort -u |
+      tr '\n' "$delimiter" |
+      sed "s/$delimiter\$//"
   )
 
   pout --debug "|- $fn_name ->" "TARGET_DIRES: $TARGET_DIRES"
@@ -863,28 +863,28 @@ process_targets() {
 
   pout --debug "Process Targets -- Arguments: " "$*"
 
-  #@ Parse options
+  #~@ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -*d*)
-        if [ "$2" ]; then
-          _delim="$2"
-          shift
-        else
-          pout --error "$1" "requires an argument"
-          return 1
-        fi
-        ;;
-      -*t*)
-        if [ "$2" ]; then
-          _targets="$2"
-          shift
-        else
-          pout --error "$1" "requires an argument"
-          return 1
-        fi
-        ;;
-      *) _targets="$1" ;;
+    -*d*)
+      if [ "$2" ]; then
+        _delim="$2"
+        shift
+      else
+        pout --error "$1" "requires an argument"
+        return 1
+      fi
+      ;;
+    -*t*)
+      if [ "$2" ]; then
+        _targets="$2"
+        shift
+      else
+        pout --error "$1" "requires an argument"
+        return 1
+      fi
+      ;;
+    *) _targets="$1" ;;
     esac
     shift
   done
@@ -897,25 +897,25 @@ process_targets() {
   echo "$specified_targets_count"
   return
 
-  #@ Collect the absolute paths of the valid targets
+  #~@ Collect the absolute paths of the valid targets
   unset all_targets
   for raw_target in $_targets; do
     resolved_target=$(get_absolute_path "$raw_target") || continue
     all_targets="${all_targets}${all_targets:+$delimiter}${resolved_target}"
   done
 
-  #@ Extract and count the unique targets
+  #~@ Extract and count the unique targets
   specified_targets=$(
-    printf "%s" "$all_targets" \
-      | tr "$delimiter" '\n' \
-      | sort -u \
-      | tr '\n' "$delimiter" \
-      | sed "s/${delimiter}\$//"
+    printf "%s" "$all_targets" |
+      tr "$delimiter" '\n' |
+      sort -u |
+      tr '\n' "$delimiter" |
+      sed "s/${delimiter}\$//"
   )
   specified_targets_count="$(
-    printf "%s" "$specified_targets" \
-      | tr "$delimiter" '\n' \
-      | wc -l
+    printf "%s" "$specified_targets" |
+      tr "$delimiter" '\n' |
+      wc -l
   )"
 
   # if [ "$recursive" ]; then
@@ -924,24 +924,24 @@ process_targets() {
   #   process_targets_directly --delim "$delimiter" --targets "$specified_targets"
   # fi
 
-  #@ Report on the total number of processed paths
+  #~@ Report on the total number of processed paths
   [ "$simulate" ] && printf "\nProcessed %d unique paths\n" "$total"
 }
 
 process_targets_recursively() {
-  #@ Parse options
+  #~@ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --delim)
-        _delim="$2"
-        ;;
-      --targets) _targets="$2" ;;
-      *) _targets="$1" ;;
+    --delim)
+      _delim="$2"
+      ;;
+    --targets) _targets="$2" ;;
+    *) _targets="$1" ;;
     esac
     shift
   done
 
-  #@ Collect all targets, including those in subdirectories
+  #~@ Collect all targets, including those in subdirectories
   unset all_targets
   OLDIFS="$IFS"
   IFS="$_delim"
@@ -955,13 +955,13 @@ process_targets_recursively() {
   done
   IFS="$OLDIFS"
 
-  #@ Clean trailing _delim and extract unique paths
+  #~@ Clean trailing _delim and extract unique paths
   all_paths=$(printf "%s" "$all_paths" | sed "s/${_delim}\$//")
   unique_paths=$(
     printf "%s" "$all_paths" | tr "$_delim" '\n' | sort -u | tr '\n' "$_delim" | sed "s/${_delim}\$//"
   )
 
-  #@ Process paths
+  #~@ Process paths
   counter=0
   total=$(printf "%s" "$unique_paths" | tr "$_delim" '\n' | wc -l)
 
@@ -971,7 +971,7 @@ process_targets_recursively() {
     counter=$((counter + 1))
     [ -e "$path" ] || continue
 
-    #@ Progress header for directories
+    #~@ Progress header for directories
     #TODO: This is expensive. Printing the path every time is slow and unappealing
     if [ -d "$path" ]; then
       printf "\nProcessing directory: %s (%d/%d)\n" "$path" "$counter" "$total"
@@ -979,17 +979,17 @@ process_targets_recursively() {
       printf "Processing file: %s (%d/%d)\n" "$path" "$counter" "$total"
     fi
 
-    #@ Set permissions
+    #~@ Set permissions
     if [ -d "$path" ]; then
       execute chmod 755 "$path"
     else
       execute chmod 644 "$path"
       case "$path" in
-        *.sh | */*.) execute chmod +x "$path" ;; # Match .sh and extensionless files
+      *.sh | */*.) execute chmod +x "$path" ;; # Match .sh and extensionless files
       esac
     fi
 
-    #@ Set ownership
+    #~@ Set ownership
     execute chown "$owner:$group" "$path"
   done
   IFS="$OLDIFS"
@@ -998,30 +998,30 @@ process_targets_recursively() {
 execute() {
   if "$simulate"; then
     case "$1" in
-      chmod)
-        shift
-        printf "CHMOD %s on:\n" "$1"
-        shift
-        for f; do
-          [ "$f" = "{}" ] && continue # Skip find placeholder
-          printf "  - %s\n" "$f"
-        done
-        ;;
-      chown)
-        shift
-        printf "CHOWN %s on:\n" "$1"
-        shift
-        for f; do
-          [ "$f" = "{}" ] && continue
-          printf "  - %s\n" "$f"
-        done
-        ;;
-      find | fd)
-        "$@" -print # Just show files that would be processed
-        ;;
-      *)
-        printf "WOULD EXECUTE: %s\n" "$*"
-        ;;
+    chmod)
+      shift
+      printf "CHMOD %s on:\n" "$1"
+      shift
+      for f; do
+        [ "$f" = "{}" ] && continue # Skip find placeholder
+        printf "  - %s\n" "$f"
+      done
+      ;;
+    chown)
+      shift
+      printf "CHOWN %s on:\n" "$1"
+      shift
+      for f; do
+        [ "$f" = "{}" ] && continue
+        printf "  - %s\n" "$f"
+      done
+      ;;
+    find | fd)
+      "$@" -print # Just show files that would be processed
+      ;;
+    *)
+      printf "WOULD EXECUTE: %s\n" "$*"
+      ;;
     esac
   else
     # "$@"

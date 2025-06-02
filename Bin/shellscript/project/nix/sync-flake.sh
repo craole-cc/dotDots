@@ -8,28 +8,28 @@ main() {
 }
 
 set_defaults() {
-  #@ Enable strict mode
+  #~@ Enable strict mode
   set -eu
 
-  #@ Check if flakes enabled
+  #~@ Check if flakes enabled
   msg="Flake Update"
-  flakes="$(nix flake --help 2> /dev/null)"
+  flakes="$(nix flake --help 2>/dev/null)"
   delimiter=" "
   args=""
 }
 
 parse_arguments() {
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1}" in
-      -a | --arg*)
-        args="${args}${args:+${delimiter}}${2}"
-        shift
-        ;;
-      *)
-        args="${args}${args:+${delimiter}}${1}"
-        ;;
+    -a | --arg*)
+      args="${args}${args:+${delimiter}}${2}"
+      shift
+      ;;
+    *)
+      args="${args}${args:+${delimiter}}${1}"
+      ;;
     esac
     shift
   done

@@ -60,7 +60,7 @@ function Register-PathAliases {
   [CmdletBinding()]
   param()
 
-  #@ Generate aliases for all environment variables representing paths
+  #~@ Generate aliases for all environment variables representing paths
   foreach ($var in $Script:envVars.GetEnumerator()) {
     if ([string]::IsNullOrWhiteSpace($var.Value)) { continue }
     if ($script:excludedVars | Where-Object { $var.Key -like $_ }) { continue }
@@ -80,7 +80,7 @@ function Register-PathAliases {
     }
   }
 
-  #@ Register PowerShell-specific profile paths
+  #~@ Register PowerShell-specific profile paths
   foreach ($PSvar in $Script:specialVars.GetEnumerator()) {
     if (-not [string]::IsNullOrWhiteSpace($pSvar.Value)) {
       Set-Env -Name $PSvar.Key -Value $pSvar.Value -Type "edit"

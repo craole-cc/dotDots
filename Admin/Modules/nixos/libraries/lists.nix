@@ -242,9 +242,9 @@
       list' = cfg.prep list;
 
       #| Processing
-      #@ Function to remove leading zeros from numeric strings
+      #~@ Function to remove leading zeros from numeric strings
       removeLeadingZeros = str: let
-        #@ Match any number of leading zeros followed by remaining digits (or just "0")
+        #~@ Match any number of leading zeros followed by remaining digits (or just "0")
         result = match "^0+([1-9][0-9]*)$|^0$" str;
       in
         if result == null
@@ -253,22 +253,22 @@
         then "0" # ? This is just the string "0"
         else elemAt result 0; # ? The matched part without leading zeros
 
-      #@ Convert percentage to decimal representation for comparison
+      #~@ Convert percentage to decimal representation for comparison
       percentToDecimal = str: let
-        #@ Remove the % sign
+        #~@ Remove the % sign
         numStr = substring 0 (stringLength str - 1) str;
-        #@ Check if it already has a decimal point
+        #~@ Check if it already has a decimal point
         hasDecimal = match ".*\\.[0-9]*" numStr != null;
       in
-        #@ Handle both whole number and decimal percentages
+        #~@ Handle both whole number and decimal percentages
         if hasDecimal
         then let
-          #@ Split by decimal point
+          #~@ Split by decimal point
           parts = split "\\." numStr;
           intPart = elemAt parts 0;
           decPart = elemAt parts 2;
 
-          #@ Shift decimal point left by 2 places (e.g., 0.5% → 0.005)
+          #~@ Shift decimal point left by 2 places (e.g., 0.5% → 0.005)
           newDecPart = "${substring (stringLength intPart - 2) 2 intPart}${decPart}";
           newIntPart =
             if stringLength intPart <= 2
@@ -276,21 +276,21 @@
             else substring 0 (stringLength intPart - 2) intPart;
         in "${newIntPart}.${newDecPart}"
         else let
-          #@ For whole numbers, divide by 100 (e.g., 15% → 0.15)
+          #~@ For whole numbers, divide by 100 (e.g., 15% → 0.15)
           num = toInt numStr;
           whole = num / 100;
           fraction = num - (whole * 100);
 
-          #@ Ensure fractional part has leading zero if needed
+          #~@ Ensure fractional part has leading zero if needed
           fractionStr =
             if fraction < 10
             then "0${toString fraction}"
             else toString fraction;
         in "${toString whole}.${fractionStr}";
 
-      #@ Compare items for sorting
+      #~@ Compare items for sorting
       compareItems = a: b: let
-        #@ Check for different numeric formats
+        #~@ Check for different numeric formats
         isDecimalA = match "^[0-9]*\\.[0-9]+$" a != null;
         isDecimalB = match "^[0-9]*\\.[0-9]+$" b != null;
         isPercentA = match "^[0-9]+(\\.[0-9]+)?%$" a != null;
@@ -298,7 +298,7 @@
         isIntegerA = match "^[0-9]+$" a != null;
         isIntegerB = match "^[0-9]+$" b != null;
 
-        #@ Convert to comparable string values
+        #~@ Convert to comparable string values
         valueA =
           if isPercentA
           then percentToDecimal a # ? Converts percentage to decimal (15% → 0.15)
@@ -327,22 +327,22 @@
       in
         if isNumericA && isNumericB
         then
-          #@ Compare numeric values via their string representations
+          #~@ Compare numeric values via their string representations
           lessThan valueA valueB
         else if isNumericA
         then
-          #@ Numbers always come before non-numeric strings
+          #~@ Numbers always come before non-numeric strings
           true
         else if isNumericB
         then
-          #@ Non-numeric strings always come after numbers
+          #~@ Non-numeric strings always come after numbers
           false
         else if lowerA != lowerB
         then
-          #@ Case-insensitive comparison for different strings
+          #~@ Case-insensitive comparison for different strings
           lessThan lowerA lowerB
         else
-          #@ If lowercase versions are equal, uppercase comes first
+          #~@ If lowercase versions are equal, uppercase comes first
           lessThan a b;
 
       #| Output

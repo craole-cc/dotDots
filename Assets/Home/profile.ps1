@@ -36,7 +36,7 @@ function Global:Format-PathPOSIX {
 
     try {
         $newPath = [System.IO.Path]::GetFullPath($path)
-        #@ Replace backslashes with forward slashes for consistency
+        #~@ Replace backslashes with forward slashes for consistency
         $newPath = $newPath.Replace('\\', '/')
         $newPath = $newPath.Replace('\', '/')
         return $newPath
@@ -89,16 +89,16 @@ System.String
         try {
             $resolved = Resolve-Path -Path $Path -ErrorAction Stop
             foreach ($item in $resolved) {
-                #@ Replace backslashes with forward slashes
+                #~@ Replace backslashes with forward slashes
                 $POSIXpath = $item.Path -replace '\\', '/'
 
-                #@ Handle special UNC paths: preserve double slash at start
+                #~@ Handle special UNC paths: preserve double slash at start
                 if ($POSIXpath -match '^//') {
-                    #@ Collapse slashes after the initial double slash
+                    #~@ Collapse slashes after the initial double slash
                     $POSIXpath = ($POSIXpath.Substring(0, 2)) + ($POSIXpath.Substring(2) -replace '/+', '/')
                 }
                 else {
-                    #@ Collapse multiple consecutive slashes elsewhere
+                    #~@ Collapse multiple consecutive slashes elsewhere
                     $POSIXpath = $POSIXpath -replace '([^:]/)/+', '$1'
                 }
 
@@ -161,7 +161,7 @@ function Global:Get-DOTS {
         )
     )
 
-    #@ Ensure arrays for input parameters
+    #~@ Ensure arrays for input parameters
     $Parents = $Parents | ForEach-Object { Format-PathPOSIX $_ }
     Write-Verbose "Possible DOTS Parents: $($Parents -join ', ')"
 
@@ -178,18 +178,18 @@ function Global:Get-DOTS {
             $potentialDOTS = Resolve-PathPOSIX (Join-Path -Path $parent -ChildPath $target)
             if (-not (Test-Path -Path $potentialDOTS -PathType Container)) { continue }
 
-            #@ Check if any of the marker files exist
+            #~@ Check if any of the marker files exist
             foreach ($marker in $Markers) {
                 Write-Verbose "Searching for '$marker' in '$potentialDOTS'"
                 $markerPath = Resolve-PathPOSIX (Join-Path -Path $potentialDOTS -ChildPath $marker)
                 if (Test-Path -Path $markerPath -PathType Leaf) {
-                    #@ Ensure DOTS variable is defined globally
+                    #~@ Ensure DOTS variable is defined globally
                     $Global:DOTS = $potentialDOTS
                     [Environment]::SetEnvironmentVariable('DOTS', $potentialDOTS, 'Process')
                     Set-Item -Path 'env:DOTS' -Value $potentialDOTS
                     Write-Debug "DOTS => $Global:DOTS"
 
-                    #@ Ensure DOTS_RC variable is defined globally
+                    #~@ Ensure DOTS_RC variable is defined globally
                     $Global:DOTS_RC = $markerPath
                     [Environment]::SetEnvironmentVariable('DOTS_RC', $markerPath, 'Process')
                     Set-Item -Path 'env:DOTS_RC' -Value $markerPath
@@ -218,7 +218,7 @@ function Global:Invoke-DOTS {
     [CmdletBinding()]
     param()
 
-    #@ Ensure DOTS and DOTS_RC variables are defined
+    #~@ Ensure DOTS and DOTS_RC variables are defined
     Get-DOTS
     if (-not $Global:DOTS -or -not $Global:DOTS_RC) {
         Write-Error "Invoke-DOTS: DOTS and DOTS_RC variables must be set to proceed."
@@ -263,26 +263,26 @@ function Global:Invoke-PolyglotRC {
     try {
         $content = Get-Content -Path $RcPath -Raw
 
-        #@ Extract the PowerShell section using regex
+        #~@ Extract the PowerShell section using regex
         $powershellPattern = '(?s)# === POWERSHELL ===.*?(?=# === \w+ ===|\z)'
 
         if ($content -match $powershellPattern) {
             $powershellSection = $matches[0]
             Write-Verbose "Found PowerShell section in polyglot RC"
 
-            #@ Clean up the section - remove the header comment and any trailing comments
+            #~@ Clean up the section - remove the header comment and any trailing comments
             $lines = $powershellSection -split "`n"
             $cleanLines = @()
             $inCommentBlock = $false
             $foundFirstCode = $false
 
             foreach ($line in $lines) {
-                #@ Skip the section header
+                #~@ Skip the section header
                 if ($line -match '# === POWERSHELL ===') {
                     continue
                 }
 
-                #@ Handle PowerShell comment blocks
+                #~@ Handle PowerShell comment blocks
                 if ($line -match '^\s*<#') {
                     $inCommentBlock = $true
                     continue
@@ -295,14 +295,14 @@ function Global:Invoke-PolyglotRC {
                     continue
                 }
 
-                #@ Skip single-line comments and PowerShell help syntax at the beginning
+                #~@ Skip single-line comments and PowerShell help syntax at the beginning
                 if (-not $foundFirstCode -and ($line -match '^\s*#' -or
                     $line -match '^\s*\.' -or  # PowerShell help syntax like .SYNOPSIS
                     $line.Trim() -eq '')) {
                     continue
                 }
 
-                #@ If we find actual code, start collecting everything
+                #~@ If we find actual code, start collecting everything
                 if ($line.Trim() -ne '' -and $line -notmatch '^\s*#' -and $line -notmatch '^\s*\.') {
                     $foundFirstCode = $true
                 }
@@ -318,7 +318,7 @@ function Global:Invoke-PolyglotRC {
                 Write-Verbose "PowerShell code:`n$powershellCode"
 
                 try {
-                    #@ Create and execute the script block
+                    #~@ Create and execute the script block
                     $scriptBlock = [ScriptBlock]::Create($powershellCode)
                     & $scriptBlock
                 }

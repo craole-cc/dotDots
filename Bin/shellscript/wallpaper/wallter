@@ -3,33 +3,33 @@
 #TODO# Document usage information
 #TODO# Add an option to archive
 
-: << 'Documentation'
+: <<'Documentation'
 asd
 Documentation
 
 #/> Main                                            <\
 
 main() {
-  #@ Initialize script
+  #~@ Initialize script
   init_metadata
   init_arguments "$@"
   init_defaults
 
-  #@ Process
+  #~@ Process
   # if [ "$test_flag" ]; then
   dry_run "$@"
   # else
   #   run_process
   # fi
 
-  #@ Exit gracefully
+  #~@ Exit gracefully
   # __cleanup__
 
 }
 
 #/> Initialization                                  <\
 
-init_metadata() { #@ Initalize script metadata
+init_metadata() { #~@ Initalize script metadata
   scr_PATH="$(pathof "$0")"
   scr_NAME="$(basename "$scr_PATH")"
   scr_HOME="$(dirname -- "$scr_PATH")"
@@ -38,47 +38,47 @@ init_metadata() { #@ Initalize script metadata
   scr_DEPENDENCIES="coreutils, wallpaper setter {feh, swaybg}, file reader {bat,cat} alternatives {ripgrep, fd, sd}"
 }
 
-init_arguments() { #@ Parse command-line arguments
+init_arguments() { #~@ Parse command-line arguments
   while [ $# -gt 0 ]; do
     case $1 in
-      -h | --help) end_process --usage ;;
-      -v | --version) end_process --version ;;
-      -q | --quiet) verbosity=quiet ;;
-      -d=* | --verbose=*) verbosity="${1#*=}" ;;
-      -d | --verbose)
-        case "$2" in
-          */*) verbosity="debug" ;;
-          *)
-            if [ "$2" ]; then
-              verbosity="$2"
-              shift
-            else
-              verbosity="debug"
-            fi
-            ;;
-        esac
+    -h | --help) end_process --usage ;;
+    -v | --version) end_process --version ;;
+    -q | --quiet) verbosity=quiet ;;
+    -d=* | --verbose=*) verbosity="${1#*=}" ;;
+    -d | --verbose)
+      case "$2" in
+      */*) verbosity="debug" ;;
+      *)
+        if [ "$2" ]; then
+          verbosity="$2"
+          shift
+        else
+          verbosity="debug"
+        fi
         ;;
-      -U | --unique) unique=true ;;
-      -D | --allow-dups) unset unique ;;
-      -p | --previous) wallpaper_action="previous" ;;
-      -n | --next) wallpaper_action="next" ;;
-      -a | --archive) wallpaper_action="archive" ;;
-      -f | --love | --fav) wallpaper_action="favorite" ;;
-      -i | -t | --info | --dry-run) unset wallpaper_action ;;
-      -s | --sorted) sorted=true ;;
-      -L | --lockscreen) lockscreen=true ;;
-      -r | --reset) reset=true ;;
-      -l | --log*) wallpaper_log_path="$2" ;;
-      -[wW] | --wal*) wallpaper_src_path="$2" ;;
-      --timed) timed="$2" ;;
-      -*) end_process --error opt "$1" ;;
-      *) wallpaper_src_path="$1" ;;
+      esac
+      ;;
+    -U | --unique) unique=true ;;
+    -D | --allow-dups) unset unique ;;
+    -p | --previous) wallpaper_action="previous" ;;
+    -n | --next) wallpaper_action="next" ;;
+    -a | --archive) wallpaper_action="archive" ;;
+    -f | --love | --fav) wallpaper_action="favorite" ;;
+    -i | -t | --info | --dry-run) unset wallpaper_action ;;
+    -s | --sorted) sorted=true ;;
+    -L | --lockscreen) lockscreen=true ;;
+    -r | --reset) reset=true ;;
+    -l | --log*) wallpaper_log_path="$2" ;;
+    -[wW] | --wal*) wallpaper_src_path="$2" ;;
+    --timed) timed="$2" ;;
+    -*) end_process --error opt "$1" ;;
+    *) wallpaper_src_path="$1" ;;
     esac
     shift
   done
 }
 
-init_defaults() { #@ Initalize default variables
+init_defaults() { #~@ Initalize default variables
   unique="${unique:-true}"
   wallpaper_action="${wallpaper_action:-next}"
   wallpaper_log_path="${wallpaper_log_path:-$DOTS_LOG/wallpapers}"
@@ -91,20 +91,20 @@ init_defaults() { #@ Initalize default variables
   icon="${icon:-$icon_success}"
 
   case "$verbosity" in
-    error) verbosity=1 ;;
-    info) verbosity=2 ;;
-    debug) verbosity=3 ;;
-    *) unset verbosity ;;
+  error) verbosity=1 ;;
+  info) verbosity=2 ;;
+  debug) verbosity=3 ;;
+  *) unset verbosity ;;
   esac
 
 }
 
 #/> Utilities                                       <\
 
-find_images() { #@ Recursively search for image files
+find_images() { #~@ Recursively search for image files
   usage="Usage: find_images [IMAGE_PATH]"
 
-  #@ Ensure file is an image
+  #~@ Ensure file is an image
   [ -d "$1" ] || {
     [ "$verbosity" -ge 1 ] && printf "%s" "$usage"
     return 1
@@ -132,15 +132,15 @@ find_images() { #@ Recursively search for image files
       -name "*.png" -o \
       -name "*.svg" -o \
       -name "*.tiff" \
-      \) \
-      | sort --human-numeric-sort
+      \) |
+      sort --human-numeric-sort
   fi
 }
 
-validate_hd_image() { #@ Check of a file is an HD image
+validate_hd_image() { #~@ Check of a file is an HD image
   usage="Usage: validate_hd_image [IMAGE_FILE]"
 
-  #@ Ensure file is an image
+  #~@ Ensure file is an image
   { [ -f "$1" ] && ! file "$1" | grep -q "image"; } || {
     [ "$verbosity" -ge 1 ] && printf "%s" "$usage"
     return 1
@@ -148,37 +148,37 @@ validate_hd_image() { #@ Check of a file is an HD image
     # end_process --return-err "$usage"
   }
 
-  #@ Set the minimum width and height for an image to be considered HD
+  #~@ Set the minimum width and height for an image to be considered HD
   min_width=1280
   min_height=720
 
-  #@ Get the dimensions of the image
+  #~@ Get the dimensions of the image
   dimensions=$(identify -format "%wx%h" "$1")
   width=${dimensions%x*}
   height=${dimensions#*x}
 
-  #@ Return true if the image is HD
-  [ "$width" -ge "$min_width" ] && [ "$height" -ge "$min_height" ] \
-    && printf "%s" "$1"
+  #~@ Return true if the image is HD
+  [ "$width" -ge "$min_width" ] && [ "$height" -ge "$min_height" ] &&
+    printf "%s" "$1"
 }
 
-count_lines() { #@ Count lines in a given file
+count_lines() { #~@ Count lines in a given file
   usage="Usage: find_line [FILE]"
 
-  #@ Ensure the file exists
+  #~@ Ensure the file exists
   [ -f "$1" ] || {
     [ "$verbosity" -ge 1 ] && printf "%s" "$usage"
     return 1
   }
 
-  #@ Count the lines
+  #~@ Count the lines
   awk 'END{print NR}' "$1"
 }
 
-find_line() { #@ Return line number of wallpaper in log
+find_line() { #~@ Return line number of wallpaper in log
   usage="Usage: find_line [FILE] [LINE_SEARCH_STRING]"
 
-  #@ Ensure the file exists
+  #~@ Ensure the file exists
   { [ -f "$1" ] && [ "$2" ]; } || {
     [ "$verbosity" -ge 1 ] && printf "%s" "$usage"
     return 1
@@ -187,26 +187,26 @@ find_line() { #@ Return line number of wallpaper in log
   awk --assign text="$1" '$0 ~ text {print NR}' "$2"
 }
 
-add_line() { #@ Append text to a file
+add_line() { #~@ Append text to a file
   usage="add_line [FILE] [SEARCH_STRING]"
 
-  #@ Ensure the file exists
+  #~@ Ensure the file exists
   { [ -f "$1" ] && [ "$2" ]; } || {
     [ "$verbosity" -ge 1 ] && printf "%s" "$usage"
     return 1
   }
 
-  #@ Process
-  printf "%s\n" "$2" >> "$1"
+  #~@ Process
+  printf "%s\n" "$2" >>"$1"
 }
 
 #/> Execution                                       <\
 
-wipe_wallpaper_cache() { #@ Reset wallpaper management
-  #@ Delete wallpaper log
+wipe_wallpaper_cache() { #~@ Reset wallpaper management
+  #~@ Delete wallpaper log
   rm --force "$wallpaper_log_path" && __msg__ --reset-log
 
-  #@ Delete wallpaper
+  #~@ Delete wallpaper
   rm --force "$wallpaper_lnk_path" && __msg__ --reset-wp
 }
 
@@ -225,42 +225,42 @@ get_wallpaper() { #$
 
 log_wallpaper() {
 
-  log_entry() { #@ Return line number of wallpaper in log
+  log_entry() { #~@ Return line number of wallpaper in log
     find_line \
       --text "$wallpaper_src_path" \
       --file "$wallpaper_log_path"
   }
 
-  log_entries() { #@ Count the wallpapers listed
+  log_entries() { #~@ Count the wallpapers listed
     count_lines "$wallpaper_log_path"
   }
 
   init_log() {
-    #@ Skip if wallpaper file given
+    #~@ Skip if wallpaper file given
     [ -f "$wallpaper_src_path" ] && return
 
-    #@ Initialize wallpaper log if missing
+    #~@ Initialize wallpaper log if missing
     [ -f "$wallpaper_log_path" ] || touch "$wallpaper_log_path"
 
-    #@ Add default wallpaper, if valid but not in the log
+    #~@ Add default wallpaper, if valid but not in the log
     if
-      [ "$(pathof "$wallpaper_lnk_path")" != "$wallpaper_lnk_path" ] \
-        && [ -f "$wallpaper_lnk_path" ] && [ ! "$wallpaper_src_path" ]
+      [ "$(pathof "$wallpaper_lnk_path")" != "$wallpaper_lnk_path" ] &&
+        [ -f "$wallpaper_lnk_path" ] && [ ! "$wallpaper_src_path" ]
     then
-      #@ Set wallpaper as default
+      #~@ Set wallpaper as default
       wallpaper="$(pathof "$wallpaper_lnk_path")"
       # __msg__ --log-default
       update
-      #@ Update log if existing wallpaper not in it
+      #~@ Update log if existing wallpaper not in it
       [ "$(log_entry)" ] || log__new "$wallpaper_lnk_path"
     fi
   }
 
   log__new() {
-    #@ Exit if file already in log
+    #~@ Exit if file already in log
     [ "$unique" ] && [ "$(log_entry)" ] && return
 
-    #@ Add entry to log
+    #~@ Add entry to log
     add_line \
       --text "$wallpaper_src_path" \
       --file "$wallpaper_log_path"
@@ -268,15 +268,15 @@ log_wallpaper() {
   }
 
   log__change() {
-    #@ Update log
+    #~@ Update log
 
-    #@ Initialize log
+    #~@ Initialize log
     init_log
 
-    #@ Display info and exit
+    #~@ Display info and exit
     [ "$wallpaper_action" ] || __info__
 
-    #@ Change to previous wallpaper in the log
+    #~@ Change to previous wallpaper in the log
     [ "$wallpaper_action" = "previous" ] && {
       if [ ! "$(log_entry)" ] || [ "$(log_entries)" -eq 1 ]; then
         [ ! "$(log_entry)" ] && __msg__ --log-empty
@@ -289,11 +289,11 @@ log_wallpaper() {
       fi
     }
 
-    #@ Generate a new wallpaper or move up in the log
+    #~@ Generate a new wallpaper or move up in the log
     [ "$wallpaper_action" = "next" ] && {
       if
-        [ ! "$(log_entry)" ] \
-          || [ "$(log_entry)" -eq "$(log_entries)" ]
+        [ ! "$(log_entry)" ] ||
+          [ "$(log_entry)" -eq "$(log_entries)" ]
       then
         # wallpaper_src_path="$(get_wallpaper)" && log__new
         get_wallpaper "$wallpaper_src_path" && log__new
@@ -303,7 +303,7 @@ log_wallpaper() {
     }
   }
 
-  #@ Generate wallpaper log entry
+  #~@ Generate wallpaper log entry
   # log__change
   init_log
 
@@ -311,51 +311,51 @@ log_wallpaper() {
 
 set_wallpaper() {
   set_default() {
-    #@ Symlink wallpaper to the system default
+    #~@ Symlink wallpaper to the system default
     ln --symbolic --force "$wallpaper_src_path" "$wallpaper_lnk_path"
 
     # __msg__ --set-default
   }
 
   set_lockscreen() {
-    #@ Skip is lockscreen not selected
+    #~@ Skip is lockscreen not selected
     [ "$lockscreen" ] || return
 
-    #@ Use DOTS_BIN::Lockscreen
+    #~@ Use DOTS_BIN::Lockscreen
     Lockscreen --update
 
     # __msg__ --set-lockscreen
   }
 
   update_wallpaper() {
-    #@ Set wallpaper based on display protocal
+    #~@ Set wallpaper based on display protocal
     if [ "$WAYLAND_DISPLAY" ]; then
-      weHave swaybg \
-        && swaybg --image "$wallpaper_src_path" --mode fill &
+      weHave swaybg &&
+        swaybg --image "$wallpaper_src_path" --mode fill &
     elif [ "$DISPLAY" ]; then
-      weHave feh \
-        && feh --bg-fill "$wallpaper_src_path" &
+      weHave feh &&
+        feh --bg-fill "$wallpaper_src_path" &
     fi
 
     # __msg__ --set-wallpaper
   }
 
-  #@ Update system default wallpaper
+  #~@ Update system default wallpaper
   set_default
 
-  #@ Update locscreen default wallpaper
+  #~@ Update locscreen default wallpaper
   set_lockscreen
 
-  #@ Update display wallpaper
+  #~@ Update display wallpaper
   update_wallpaper
 }
 
 __info__() {
-  #@ Display information about the current wallpaper
+  #~@ Display information about the current wallpaper
   printf "      DIR: %s\nWallpaper: %s\nLog Entry: %s\n" \
     "$WALLPAPERS" "$(pathof "$wallpaper_lnk_path")" "$(log_entry)"
 
-  #@ Display wallpaper log
+  #~@ Display wallpaper log
   bat --style='numbers,changes,grid' "$wallpaper_log_path"
 
   __cleanup__ --success
@@ -369,41 +369,41 @@ __msg__() {
   icon="$success"c
 
   case "$1" in
-    --log) msg="Wallpaper logged: $(log_entry) => $wallpaper_src_path" ;;
-    --log-init) msg="Log initialized" ;;
-    --log-default) msg="Addind default wallpaper to log" ;;
-    --set-default) msg="Default wallpaper updated" ;;
-    --set-wallpaper) msg="Wallpaper updated" ;;
-    --log-empty) msg="Unable to set previous wallpaper from log" icon="$error" ;;
-    --reset-wp) msg="Default wallpaper deleted" icon="$dead" ;;
-    --reset-log) msg="Wallpaper log deleted" icon="$dead" ;;
-    *) ;;
+  --log) msg="Wallpaper logged: $(log_entry) => $wallpaper_src_path" ;;
+  --log-init) msg="Log initialized" ;;
+  --log-default) msg="Addind default wallpaper to log" ;;
+  --set-default) msg="Default wallpaper updated" ;;
+  --set-wallpaper) msg="Wallpaper updated" ;;
+  --log-empty) msg="Unable to set previous wallpaper from log" icon="$error" ;;
+  --reset-wp) msg="Default wallpaper deleted" icon="$dead" ;;
+  --reset-log) msg="Wallpaper log deleted" icon="$dead" ;;
+  *) ;;
   esac
 
   printf "%s %s\n" "$icon" "$msg"
 }
 
-run_process() { #@ Change the wallpaper
+run_process() { #~@ Change the wallpaper
 
-  #@ Delete links
+  #~@ Delete links
   [ "$reset" ] && wipe_wallpaper_cache
 
-  #@ Generate wallpaper
+  #~@ Generate wallpaper
   log_wallpaper
 
-  #@ Update wallpaper
+  #~@ Update wallpaper
   set_wallpaper
 
 }
 
 __cleanup__() {
   case "$1" in
-    --error) exit 1 ;;
-    *) exit 0 ;;
+  --error) exit 1 ;;
+  *) exit 0 ;;
   esac
 }
 
-dry_run() { #@ Test
+dry_run() { #~@ Test
   echo "verbosity: $verbosity"
   echo "unique: $unique"
   echo "reset: $reset"
@@ -421,21 +421,21 @@ dry_run() { #@ Test
 
 #/> Sanitization                                    <\
 
-end_process() { #@ Exit application gracefully
+end_process() { #~@ Exit application gracefully
   #TODO differentiate between main processes and subproceses. exit for main and return for sub
   case "$1" in
-    --error)
-      #@ Throw errors based on options
-      display_info "${1}"-"${2}" "${3}"
+  --error)
+    #~@ Throw errors based on options
+    display_info "${1}"-"${2}" "${3}"
 
-      #@ Set error status code
-      error_generated=true
-      ;;
-    --output) display_info "$1" "$2" ;;
-    *) ;;
+    #~@ Set error status code
+    error_generated=true
+    ;;
+  --output) display_info "$1" "$2" ;;
+  *) ;;
   esac
 
-  #@ Exit with an error status
+  #~@ Exit with an error status
   if [ "$error_generated" ]; then
     sanitize_environment && exit 1
   else
@@ -443,7 +443,7 @@ end_process() { #@ Exit application gracefully
   fi
 }
 
-sanitize_environment() { #@ Remove varibles
+sanitize_environment() { #~@ Remove varibles
   unset \
     verbosity \
     wallpaper_src_path \
@@ -453,37 +453,37 @@ sanitize_environment() { #@ Remove varibles
     error_generated
 }
 
-display_info() { #@ Display infoirmation
+display_info() { #~@ Display infoirmation
 
   case "$1" in
-    --error*)
-      [ "$verbosity" = "quiet" ] && return
-      case "$1" in
-        --error-path) printf "Invalid path: %s" "$2" ;;
-        --error-circ) printf "Circular symbolic link: %s" "$2" ;;
-        --error-info) printf "Invalid verbosity level: %s" "$2" ;;
-        --error-arg) printf "<wallpaper_src_path> required \nUsage: %s\n" "$SCRIPT_USAGE" ;;
-        --error-opt) printf "Unrecognized option: %s" "$2" ;;
-        --error-cd) printf "Change directory operation failed" ;;
-        --reset-log) printf "Change directory operation failed" ;;
-      esac
+  --error*)
+    [ "$verbosity" = "quiet" ] && return
+    case "$1" in
+    --error-path) printf "Invalid path: %s" "$2" ;;
+    --error-circ) printf "Circular symbolic link: %s" "$2" ;;
+    --error-info) printf "Invalid verbosity level: %s" "$2" ;;
+    --error-arg) printf "<wallpaper_src_path> required \nUsage: %s\n" "$SCRIPT_USAGE" ;;
+    --error-opt) printf "Unrecognized option: %s" "$2" ;;
+    --error-cd) printf "Change directory operation failed" ;;
+    --reset-log) printf "Change directory operation failed" ;;
+    esac
+    ;;
+  --output)
+    case "$verbosity" in
+    quiet) ;;
+    info) printf "%s\n" "$normalized_path" ;;
+    debug)
+      printf "    Verbosity: %s\n" "$verbosity"
+      printf "  Target Path: %s\n" "$wallpaper_src_path"
+      printf "Absolute Path: %s\n" "$normalized_path"
       ;;
-    --output)
-      case "$verbosity" in
-        quiet) ;;
-        info) printf "%s\n" "$normalized_path" ;;
-        debug)
-          printf "    Verbosity: %s\n" "$verbosity"
-          printf "  Target Path: %s\n" "$wallpaper_src_path"
-          printf "Absolute Path: %s\n" "$normalized_path"
-          ;;
-      esac
-      ;;
-    --version)
-      printf "%s" "$SCRIPT_VERSION"
-      ;;
-    --usage)
-      cat << USAGE
+    esac
+    ;;
+  --version)
+    printf "%s" "$SCRIPT_VERSION"
+    ;;
+  --usage)
+    cat <<USAGE
 Description:
 '$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
 
@@ -528,8 +528,8 @@ Examples:
   "$SCRIPT_NAME" /var/log/../lib --verbose info
   "$SCRIPT_NAME" /var/run
 USAGE
-      ;;
-    *) printf "%s\n" "$*" ;;
+    ;;
+  *) printf "%s\n" "$*" ;;
   esac
 }
 

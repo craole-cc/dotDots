@@ -3,7 +3,7 @@
 
 #> Documentation                                                               |
 # : <<"DOCUMENTATION"
-# #@ References
+# #~@ References
 #   https://invisible-island.net/ncurses/man/terminfo.5.html#h3-Highlighting_-Underlining_-and-Visible-Bells
 #   https://www.gnu.org/software/termutils/manual/termutils-2.0/html_chapter/tput_1.html
 #   https://linuxcommand.org/lc3_adv_tput.php
@@ -14,7 +14,7 @@
 #   https://funprojects.blog/tag/tput/
 #   https://martin-thoma.com/colorize-your-scripts-output
 
-# #@ Color
+# #~@ Color
 #   tput setab [1-7]  #> Set a background color using ANSI escape
 #   tput setb [1-7]   #> Set a background color
 #   tput setaf [1-7]  #> Set a foreground color using ANSI escape
@@ -31,7 +31,7 @@
 #     6    cyan      COLOR_CYAN      0,1,1
 #     7    white     COLOR_WHITE     1,1,1
 
-# #@ Attributes
+# #~@ Attributes
 #   tput bold   #> Bold
 #   tput dim    #> Half-bright
 #   tput smul   #> Underline
@@ -45,7 +45,7 @@
 
 #> Availability                                                               |
 
-#@ Confirm TPUT is available in terminal
+#~@ Confirm TPUT is available in terminal
 # [ -t 2 ] && ! command -v tput >/dev/null 2>&1 && return
 
 #> Cursor                                                                     |
@@ -109,13 +109,13 @@
 
 #> Colors                                                                     |
 
-#@ Declare colors for supported terminals
+#~@ Declare colors for supported terminals
 case $TERM in
-  *-m) return ;;
-  *) ;;
+*-m) return ;;
+*) ;;
 esac
 
-# #@ Foreground Colors
+# #~@ Foreground Colors
 # clr_fg_black="$(tput setaf 232 || tput setaf 0 || tput AF 0)"
 # clr_fg_red="$(tput setaf 196 || tput setaf 1 || tput AF 1)"
 # clr_fg_darkred="$(tput setaf 196 || tput setaf 1 || tput AF 1)"
@@ -155,7 +155,7 @@ esac
 # clr_fg_ivory="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
 # clr_fg_white="$(tput setaf 255 || tput setaf 7 || tput AF 7)"
 
-# #@ Background Colors
+# #~@ Background Colors
 # clr_bg_black="$(tput setab 232 || tput setab 0 || tput AF 0)"
 # clr_bg_red="$(tput setab 196 || tput setab 1 || tput AF 1)"
 # clr_bg_darkred="$(tput setab 196 || tput setab 1 || tput AF 1)"

@@ -7,17 +7,17 @@ set -e
 set -o pipefail
 shopt -s inherit_errexit #? Maintain set -e behavior in command substitutions
 
-#@ Application info
+#~@ Application info
 APP_NAME="sshit"
 APP_VERSION="1.2"
 
-#@ Default paths
+#~@ Default paths
 DOTS="${DOTS:-${HOME}/.dots}"
 GIT_PROFILES_DIR="${DOTS}/Configuration/git/home"
 SSH_DIR="${HOME}/.ssh"
 SSH_CONFIG="${SSH_DIR}/config"
 
-#@ Colors and formatting using tput
+#~@ Colors and formatting using tput
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -27,7 +27,7 @@ CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 
-#@ Function to display help information
+#~@ Function to display help information
 show_help() {
   cat <<EOF
 ${BOLD}${APP_NAME}${RESET} v${APP_VERSION}
@@ -52,42 +52,42 @@ Examples:
 EOF
 }
 
-#@ Function to display version information
+#~@ Function to display version information
 show_version() {
   printf "%s v%s\n" "${APP_NAME}" "${APP_VERSION}"
 }
 
-#@ Function to display error messages
+#~@ Function to display error messages
 show_error() {
   printf "%s🚩 Error:%s %s\n" "${RED}" "${RESET}" "$1" >&2
 }
 
-#@ Function to display success messages
+#~@ Function to display success messages
 show_success() {
   printf "%s✓ Success:%s %s\n" "${GREEN}" "${RESET}" "$1"
 }
 
-#@ Function to display information messages
+#~@ Function to display information messages
 show_info() {
   printf "%sℹ Info:%s %s\n" "${BLUE}" "${RESET}" "$1"
 }
 
-#@ Function to display warning messages
+#~@ Function to display warning messages
 show_warning() {
   printf "%s⚠ Warning:%s %s\n" "${YELLOW}" "${RESET}" "$1"
 }
 
-#@ Function to display a prompt message
+#~@ Function to display a prompt message
 show_prompt() {
   printf "%s> Prompt:%s %s\n" "${MAGENTA}" "${RESET}" "$1"
 }
 
-#@ Function to display instructions
+#~@ Function to display instructions
 show_instruction() {
   printf "%s📝 Instruction:%s %s\n" "${CYAN}" "${RESET}" "$1"
 }
 
-#@ Function to get system information for SSH key comment
+#~@ Function to get system information for SSH key comment
 get_system_info() {
   local hostname email
   hostname=$(hostname)
@@ -105,16 +105,16 @@ get_system_info() {
     os_info="Unknown"
   fi
 
-  #@ Combine hostname, OS, and email
+  #~@ Combine hostname, OS, and email
   printf "%s-%s-%s" "${hostname}" "${os_info}" "${email}"
 }
 
-#@ Function to copy text to clipboard
+#~@ Function to copy text to clipboard
 copy_to_clipboard() {
   local text="$1"
   local success=false
 
-  #@ Try different clipboard commands based on available tools
+  #~@ Try different clipboard commands based on available tools
   if command -v xclip &>/dev/null; then
     echo -n "${text}" | xclip -selection clipboard && success=true
   elif command -v xsel &>/dev/null; then
@@ -122,7 +122,7 @@ copy_to_clipboard() {
   elif command -v pbcopy &>/dev/null; then
     echo -n "${text}" | pbcopy && success=true
   elif command -v clip.exe &>/dev/null; then
-    #@ For Windows/WSL
+    #~@ For Windows/WSL
     echo -n "${text}" | clip.exe && success=true
   elif [[ -n ${WAYLAND_DISPLAY} ]] && command -v wl-copy &>/dev/null; then
     echo -n "${text}" | wl-copy && success=true
@@ -137,20 +137,20 @@ copy_to_clipboard() {
   fi
 }
 
-#@ Function to parse Git config file and extract SSH information
+#~@ Function to parse Git config file and extract SSH information
 parse_git_config() {
   local config_file="$1"
   local filename
   filename="$(basename "${config_file}")"
 
-  #@ Extract host and username from filename (format: host_username.gitconfig)
+  #~@ Extract host and username from filename (format: host_username.gitconfig)
   local host username
   IFS='_' read -r host username <<<"$(basename "${filename}" .gitconfig)"
 
-  #@ Read git user information from config - avoid command substitution masking
+  #~@ Read git user information from config - avoid command substitution masking
   local git_name git_email ssh_path
 
-  #@ Handle each command separately to avoid masking return values
+  #~@ Handle each command separately to avoid masking return values
   local name_line email_line ssh_line
   name_line=$(grep -A 1 "\[user\]" "${config_file}" | grep "name" || true)
   if [[ -n "${name_line}" ]]; then
@@ -178,12 +178,12 @@ parse_git_config() {
     ssh_path=""
   fi
 
-  #@ Normalize host (add .com if missing)
+  #~@ Normalize host (add .com if missing)
   if ! printf "%s" "${host}" | grep -q '\.'; then
     host="${host}.com"
   fi
 
-  #@ Only output the variable assignments - no debug info
+  #~@ Only output the variable assignments - no debug info
   printf "host=%q\n" "${host}"
   printf "username=%q\n" "${username}"
   printf "git_name=%q\n" "${git_name}"
@@ -191,7 +191,7 @@ parse_git_config() {
   printf "ssh_path=%q\n" "${ssh_path}"
 }
 
-#@ Function to generate SSH key
+#~@ Function to generate SSH key
 generate_ssh_key() {
   local host="$1"
   local username="$2"
@@ -200,25 +200,25 @@ generate_ssh_key() {
   local force="$5"
   local non_interactive="$6"
 
-  #@ Ensure any tildes in the path are expanded
+  #~@ Ensure any tildes in the path are expanded
   if [[ "${key_path}" == *"~"* ]]; then
     key_path="${key_path/#\~/${HOME}}"
     key_path="${key_path//\~/${HOME}}"
     show_info "Expanded tilde in key path: ${key_path}"
   fi
 
-  #@ Create directory for key if it doesn't exist
+  #~@ Create directory for key if it doesn't exist
   local key_dir
   key_dir="$(dirname "${key_path}")"
   mkdir -p "${key_dir}"
   show_info "Created directory: ${key_dir}"
 
-  #@ Check if key already exists
+  #~@ Check if key already exists
   if [[ -f "${key_path}" && "${force}" != "true" ]]; then
     show_warning "SSH key already exists at ${key_path}. Use --force to regenerate."
     return 0
   elif [[ -f "${key_path}" && "${force}" == "true" ]]; then
-    #@ Archive existing key
+    #~@ Archive existing key
     local archive_dir="${key_dir}/archive"
     mkdir -p "${archive_dir}"
     show_info "Created archive directory: ${archive_dir}"
@@ -235,45 +235,45 @@ generate_ssh_key() {
     show_info "Archived existing key to ${archive_dir}"
   fi
 
-  #@ Generate key comment with system information
+  #~@ Generate key comment with system information
   local key_comment
   key_comment=$(get_system_info "${email}")
   show_info "Using SSH key comment: ${key_comment}"
 
-  #@ Generate SSH key
+  #~@ Generate SSH key
   show_info "Generating SSH key for ${username}@${host}"
   ssh-keygen -t ed25519 -a 100 -f "${key_path}" -C "${key_comment}" -N ""
   show_info "Created key files: ${key_path} and ${key_path}.pub"
 
-  #@ Add to SSH config
+  #~@ Add to SSH config
   printf "\nHost %s\n  User %s\n  HostName %s\n  IdentityFile %s\n" \
     "${host}" "${username}" "${host}" "${key_path}" >>"${SSH_CONFIG}"
   show_info "Updated SSH config: ${SSH_CONFIG}"
 
-  #@ Add key to SSH agent - handle commands separately
-  #@ Start ssh-agent
+  #~@ Add key to SSH agent - handle commands separately
+  #~@ Start ssh-agent
   local agent_output
   agent_output=$(ssh-agent -s)
   eval "${agent_output}" >/dev/null
   show_info "Started SSH agent"
 
-  #@ Add key to agent
+  #~@ Add key to agent
   ssh-add "${key_path}" >/dev/null || true
   show_info "Added key to SSH agent"
 
   show_success "SSH key generated for ${username}@${host}"
 
-  #@ Explicitly copy public key to clipboard
+  #~@ Explicitly copy public key to clipboard
   local pub_key
   pub_key=$(cat "${key_path}.pub")
   copy_to_clipboard "${pub_key}"
 
-  #@ Display the public key
+  #~@ Display the public key
   printf "\n%sPublic Key:%s\n" "${YELLOW}" "${RESET}"
   cat "${key_path}.pub"
   printf "\n"
 
-  #@ Prompt user to add key to Git host if in interactive mode
+  #~@ Prompt user to add key to Git host if in interactive mode
   if [[ "${non_interactive}" != "true" ]]; then
     show_instruction "Please add this SSH key to your ${host} account:"
     show_instruction "1. Login to ${host}"
@@ -285,12 +285,12 @@ generate_ssh_key() {
     show_prompt "Press Enter when you've added the key to your ${host} account, or Ctrl+C to exit"
     read -r
 
-    #@ Validate the key by testing connection
+    #~@ Validate the key by testing connection
     validate_ssh_connection "${host}" "${username}" "${key_path}"
   fi
 }
 
-#@ Function to validate SSH connection
+#~@ Function to validate SSH connection
 validate_ssh_connection() {
   local host="$1"
   local username="$2"
@@ -300,7 +300,7 @@ validate_ssh_connection() {
   show_info "Validating SSH connection to ${host}..."
   show_info "> ${ssh_check_cmd}"
 
-  #@ Try the connection with auto-accepting host keys
+  #~@ Try the connection with auto-accepting host keys
   #TODO test if this still works with the eval
   # if ssh -o StrictHostKeyChecking=accept-new -T -i "${key_path}" git@"${host}" 2>&1 |
   #   grep -i -q "success\|welcome\|authenticated"; then
@@ -313,7 +313,7 @@ validate_ssh_connection() {
   fi
 }
 
-#@ Function to list available profiles
+#~@ Function to list available profiles
 list_profiles() {
   if [[ ! -d "${GIT_PROFILES_DIR}" ]]; then
     show_error "Git profiles directory not found: ${GIT_PROFILES_DIR}"
@@ -322,10 +322,10 @@ list_profiles() {
 
   printf "%s\n" "${BOLD}Available Git Profiles:${RESET}"
 
-  #@ Find gitconfig files
+  #~@ Find gitconfig files
   local configs=()
 
-  #@ Handle find separately to avoid masking return values
+  #~@ Handle find separately to avoid masking return values
   local find_output
   find_output=$(find "${GIT_PROFILES_DIR}" -name "*.gitconfig" -type f || true)
 
@@ -334,7 +334,7 @@ list_profiles() {
     return
   fi
 
-  #@ Read find output into array
+  #~@ Read find output into array
   mapfile -t configs <<<"${find_output}"
 
   for config_file in "${configs[@]}"; do
@@ -344,12 +344,12 @@ list_profiles() {
   done
 }
 
-#@ Function to setup SSH for all profiles
+#~@ Function to setup SSH for all profiles
 setup_ssh_for_profiles() {
   local force="$1"
   local non_interactive="$2"
 
-  #@ Ensure SSH directory exists
+  #~@ Ensure SSH directory exists
   mkdir -p "${SSH_DIR}"
   show_info "Created SSH directory: ${SSH_DIR}"
 
@@ -361,13 +361,13 @@ setup_ssh_for_profiles() {
   touch "${SSH_CONFIG}"
   show_info "Ensured SSH config exists: ${SSH_CONFIG}"
 
-  #@ Check if git profiles directory exists
+  #~@ Check if git profiles directory exists
   if [[ ! -d "${GIT_PROFILES_DIR}" ]]; then
     show_error "Git profiles directory not found: ${GIT_PROFILES_DIR}"
     exit 1
   fi
 
-  #@ Find all gitconfig files - handle separately to avoid masking
+  #~@ Find all gitconfig files - handle separately to avoid masking
   local find_output
   find_output=$(find "${GIT_PROFILES_DIR}" -name "*.gitconfig" -type f || true)
 
@@ -376,47 +376,47 @@ setup_ssh_for_profiles() {
     exit 1
   fi
 
-  #@ Read find output into array
+  #~@ Read find output into array
   local configs=()
   mapfile -t configs <<<"${find_output}"
 
-  #@ Process each gitconfig file
+  #~@ Process each gitconfig file
   for config_file in "${configs[@]}"; do
     printf "\n%sProcessing:%s %s\n" "${BOLD}" "${RESET}" "$(basename "${config_file}")"
 
-    #@ Extract filename info for logging, separate from the parsing function
+    #~@ Extract filename info for logging, separate from the parsing function
     local filename host username
     filename="$(basename "${config_file}")"
     IFS='_' read -r host username <<<"$(basename "${filename}" .gitconfig)"
     show_info "Extracted from filename: host='${host}', username='${username}'"
 
-    #@ Normalize host for logging
+    #~@ Normalize host for logging
     if ! printf "%s" "${host}" | grep -q '\.'; then
       host="${host}.com"
       show_info "Normalized host to: ${host}"
     fi
 
-    #@ Parse git config to get ssh information - handle separately
+    #~@ Parse git config to get ssh information - handle separately
     local profile_info
     profile_info=$(parse_git_config "${config_file}")
 
-    #@ Show debug info - AFTER capturing the output, not mixed with it
+    #~@ Show debug info - AFTER capturing the output, not mixed with it
     show_info "Debug - profile_info contains: ${profile_info}"
 
-    #@ Source the profile info to create variables
+    #~@ Source the profile info to create variables
     eval "${profile_info}" || {
       show_error "Failed to evaluate profile info: ${profile_info}"
       continue #? Skip this profile if it fails
     }
     show_info "Evaluated variables: host='${host}', username='${username}', git_email='${git_email}'"
 
-    #@ Use parsed SSH_PATH or generate one based on host and username
+    #~@ Use parsed SSH_PATH or generate one based on host and username
     if [[ -n "${ssh_path}" && "${ssh_path}" == *"~"* ]]; then
 
-      #@ Replace ~ with $HOME
+      #~@ Replace ~ with $HOME
       ssh_path="${ssh_path/#\~/${HOME}}"
 
-      #@ Also handle cases where ~ might be elsewhere in the path
+      #~@ Also handle cases where ~ might be elsewhere in the path
       ssh_path="${ssh_path//\~/${HOME}}"
 
       show_info "Expanded tilde in SSH path: ${ssh_path}"
@@ -427,13 +427,13 @@ setup_ssh_for_profiles() {
       show_info "Set ssh_path to: ${ssh_path}"
     fi
 
-    #@ Generate SSH key and handle interactive setup
+    #~@ Generate SSH key and handle interactive setup
     generate_ssh_key "${host}" "${username}" "${git_email}" "${ssh_path}" "${force}" "${non_interactive}"
   done
 
   show_success "SSH configuration complete."
 
-  #@ Final instructions
+  #~@ Final instructions
   if [[ "${non_interactive}" != "true" ]]; then
     printf "\n%sFinal Steps:%s\n" "${BOLD}" "${RESET}"
     show_instruction "Your SSH keys have been set up and tested."
@@ -442,12 +442,12 @@ setup_ssh_for_profiles() {
   fi
 }
 
-#@ Main function
+#~@ Main function
 main() {
   local force="false"
   local non_interactive="false"
 
-  #@ Parse command line arguments
+  #~@ Parse command line arguments
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
     -h | --help)
@@ -483,12 +483,12 @@ main() {
     esac
   done
 
-  #@ Display header
+  #~@ Display header
   printf "%s\n\n" "${BOLD}${APP_NAME}${RESET} v${APP_VERSION}"
 
-  #@ Setup SSH for profiles
+  #~@ Setup SSH for profiles
   setup_ssh_for_profiles "${force}" "${non_interactive}"
 }
 
-#@ Run the script
+#~@ Run the script
 main "$@"

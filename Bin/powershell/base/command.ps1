@@ -64,10 +64,10 @@ function Invoke-Process {
         [string[]]$Arguments
     )
 
-    #@ Capture the start time for calculating the duration
+    #~@ Capture the start time for calculating the duration
     $startTime = Get-Date
 
-    #@ Determine effective verbosity
+    #~@ Determine effective verbosity
     if ($Silent) { $Verbosity = 'Off' }
     elseif ($Detailed) { $Verbosity = 'Trace' }
     $oldVerbosity = $Global:Verbosity
@@ -76,7 +76,7 @@ function Invoke-Process {
     # Write-Pretty -Context $Context -Scope $Scope POP -Tag 'Trace'
     Write-Host "Invoke-Process: Context:  $ctx"
 
-    #@ Prepare context for output
+    #~@ Prepare context for output
     $ContextString = Get-Context -Context ($Context ?? $Command) -Scope $Scope
     Write-Debug "Invoke-Process: Context: $ContextString"
 
@@ -114,7 +114,7 @@ function Invoke-Process {
     Write-Host "Invoke-Process: ResultMessage: $Message"
     # }
 
-    #@ Output result using Write-Pretty
+    #~@ Output result using Write-Pretty
     Write-Pretty `
         -Verbosity $Tag `
         -Delimiter $Delimiter `
@@ -122,7 +122,7 @@ function Invoke-Process {
         -Messages $Message `
         # -Context $ContextString `
 
-    #@ Restore verbosity
+    #~@ Restore verbosity
     $Global:Verbosity = $oldVerbosity
 }
 

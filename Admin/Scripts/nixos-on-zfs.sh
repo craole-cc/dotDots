@@ -6,7 +6,7 @@ SCR_DESCRIPTION="Install NixOS on a single disk using the ZFS file system for im
 SCR_DISCLAIMER="DISCLAIMER: This script will delete all data from your disk. Refer to the documentation for more details."
 
 show_usage_guide() {
-  cat << EOF
+  cat <<EOF
 Usage: ${SCR_NAME} [OPTIONS]
 Options:
   -d, --disk       DISK      Disk ID (e.g., /dev/disk/by-id/DISK_ID_HERE)
@@ -36,37 +36,37 @@ validate_envirnment() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -d | --disk)
-        if [ -n "${2}" ] && [ -f "$2" ]; then
-          DISK="$2"
-        else
-          pout "Disk ID"
-        fi
-        ;;
-      -e | --email)
-        [ -n "${2}" ] && case "${2}" in *@*.*) GIT_EMAIL="$2" ;; *) ;; esac
-        [ -n "${GIT_EMAIL}" ] || pout "email address"
+    -d | --disk)
+      if [ -n "${2}" ] && [ -f "$2" ]; then
+        DISK="$2"
+      else
+        pout "Disk ID"
+      fi
+      ;;
+    -e | --email)
+      [ -n "${2}" ] && case "${2}" in *@*.*) GIT_EMAIL="$2" ;; *) ;; esac
+      [ -n "${GIT_EMAIL}" ] || pout "email address"
 
-        ;;
-      -u | --user)
-        if [ -n "${2}" ] && [ ${#2} -gt 1 ]; then
-          GIT_USER="$2"
-        else
-          pout "username"
-        fi
-        ;;
-      -s | --swap)
-        if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then SWAPSIZE="${2}"; fi
-        ;;
-      -r | --reserve)
-        if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then RESERVE="${2}"; fi
-        ;;
-      -p | --encrypt) ENCRYPT=true ;;
-      -h | --help)
-        show_usage_guide
-        exit 0
-        ;;
-      *) pout --option "${1}" ;;
+      ;;
+    -u | --user)
+      if [ -n "${2}" ] && [ ${#2} -gt 1 ]; then
+        GIT_USER="$2"
+      else
+        pout "username"
+      fi
+      ;;
+    -s | --swap)
+      if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then SWAPSIZE="${2}"; fi
+      ;;
+    -r | --reserve)
+      if [ -n "${2}" ] && [ "${2}" -ge 0 ]; then RESERVE="${2}"; fi
+      ;;
+    -p | --encrypt) ENCRYPT=true ;;
+    -h | --help)
+      show_usage_guide
+      exit 0
+      ;;
+    *) pout --option "${1}" ;;
     esac
     shift
   done
@@ -76,16 +76,16 @@ validate_erasure() {
   printf "%s\n" "${SCR_DISCLAIMER}"
   choice="" && read -r -p "Are you sure you want to continue? [y/N] " choice
   case "${choice}" in
-    [Yy]*) printf "%s\n" "Proceeding with prep" ;;
-    *)
-      printf "%s\n" "Exiting..."
-      exit 0
-      ;;
+  [Yy]*) printf "%s\n" "Proceeding with prep" ;;
+  *)
+    printf "%s\n" "Exiting..."
+    exit 0
+    ;;
   esac
 }
 
 validate_dependencies() {
-  #@ Install programs needed for system installation
+  #~@ Install programs needed for system installation
   if ! command -v git; then nix-env -f '<nixpkgs>' -iA git; fi
   if ! command -v jq; then nix-env -f '<nixpkgs>' -iA jq; fi
   if ! command -v helix; then nix-env -f '<nixpkgs>' -iA helix; fi
@@ -114,7 +114,7 @@ create_partitions() {
 }
 
 create_boot_containers() {
-  #@ Create a fail-safe boot pool for grub2
+  #~@ Create a fail-safe boot pool for grub2
   zpool create \
     -o compatibility=grub2 \
     -o ashift=12 \
@@ -131,7 +131,7 @@ create_boot_containers() {
     bpool \
     "$(printf '%s ' "${DISK}-part2")"
 
-  #@ Create root pool for EFI
+  #~@ Create root pool for EFI
   zpool create \
     -o ashift=12 \
     -o autotrim=on \
@@ -156,7 +156,7 @@ create_sys_container() {
       "WARNING: Please set a strong password and memorize it." \
       "See zfs-change-key(8) for more info"
 
-    #@ Creat and encrypt the root container
+    #~@ Creat and encrypt the root container
     zfs create \
       -o canmount=off \
       -o mountpoint=none \
@@ -165,7 +165,7 @@ create_sys_container() {
       -o keyformat=passphrase \
       rpool/nixos
   else
-    #@ Creat the root container
+    #~@ Creat the root container
     zfs create \
       -o canmount=off \
       -o mountpoint=none \
@@ -196,25 +196,25 @@ create_datasets() {
 }
 
 init_boot_container() {
-  #@ Format and iniyialize the boot partition
+  #~@ Format and iniyialize the boot partition
   mkfs.vfat -n EFI "${DISK}"-part1
   mkdir -p "${MNT}"/boot/efis/"${DISK##*/}"-part1
   mount -t vfat -o iocharset=iso8859-1 "${DISK}"-part1 "${MNT}"/boot/efis/"${DISK##*/}"-part1
 }
 
 init_flake() {
-  #@ Enable Nix Flakes functionality
+  #~@ Enable Nix Flakes functionality
   mkdir -p ~/.config/nix
   printf "%s\n" \
     "experimental-features = nix-command flakes" >> \
     ~/.config/nix/nix.conf
 
-  #@ Clone the template repository
+  #~@ Clone the template repository
   mkdir -p "${MNT}"/etc
   git clone --depth 1 --branch openzfs-guide \
     https://github.com/ne9z/dotfiles-flake.git "${MNT}"/etc/nixos
 
-  #@ Update the flake with the user's git credentials
+  #~@ Update the flake with the user's git credentials
   rm -rf "${MNT}"/etc/nixos/.git
   git -C "${MNT}"/etc/nixos/ init -b main
   git -C "${MNT}"/etc/nixos/ add "${MNT}"/etc/nixos/
@@ -224,7 +224,7 @@ init_flake() {
 }
 
 prep_flake() {
-  #@ Prepare configuration based on the system specifications
+  #~@ Prepare configuration based on the system specifications
   sed -i \
     "s|/dev/disk/by-id/|${DISK%/*}/|" \
     "${MNT}"/etc/nixos/hosts/exampleHost/default.nix
@@ -244,7 +244,7 @@ prep_flake() {
 
   chmod a+rw ./nixos-generate-config
 
-  echo 'print STDOUT $initrdAvailableKernelModules' >> ./nixos-generate-config
+  echo 'print STDOUT $initrdAvailableKernelModules' >>./nixos-generate-config
 
   kernelModules="$(./nixos-generate-config --show-hardware-config --no-filesystems | tail -n1 || true)"
 
@@ -269,33 +269,33 @@ deploy_flake() {
 }
 
 prevent_reboot() {
-  #@ Allow the user some time to cancel the reboot
-  timer=10 \
-    && printf "Rebooting in %s seconds. Is that OK? [Y/n] \n" "${timer}"
-  choice="" \
-    && IFS= read -r -t "${timer}" choice
+  #~@ Allow the user some time to cancel the reboot
+  timer=10 &&
+    printf "Rebooting in %s seconds. Is that OK? [Y/n] \n" "${timer}"
+  choice="" &&
+    IFS= read -r -t "${timer}" choice
 
-  #@ Exit the script
+  #~@ Exit the script
   case "${choice}" in
-    [nN]*) printf "%s\n" "Reboot canceled" ;;
-    *) printf "%s\n" "Rebooting..." ;;
+  [nN]*) printf "%s\n" "Reboot canceled" ;;
+  *) printf "%s\n" "Rebooting..." ;;
   esac
 }
 
 pout() {
-  #@ Print appropriate error message
+  #~@ Print appropriate error message
   case "${1}" in
-    --option)
-      shift
-      printf "Invalid option: %s\n" "${1}"
-      ;;
-    *)
-      shift
-      printf "A valid %s is required \n" "${*}"
-      ;;
+  --option)
+    shift
+    printf "Invalid option: %s\n" "${1}"
+    ;;
+  *)
+    shift
+    printf "A valid %s is required \n" "${*}"
+    ;;
   esac
 
-  #@ Print usage and exit with an error code
+  #~@ Print usage and exit with an error code
   show_usage_guide
   exit 1
 }

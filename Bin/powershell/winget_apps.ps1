@@ -34,10 +34,10 @@ function Install-Applications {
         [array]$apps,
         [switch]$WhatIf
     )
-    
+
     foreach ($app in $apps) {
         Write-Host ("-" * 80) -ForegroundColor Gray
-        
+
         if ($WhatIf) {
             Write-Host "Would install: $app" -ForegroundColor Cyan
         }
@@ -54,7 +54,7 @@ function Install-Applications {
             }
             catch {
                 Write-Host "Error installing $app`: $_" -ForegroundColor Red
-                #@ Log the error to a file
+                #~@ Log the error to a file
                 # $errorMessage = "Error installing $app`: $_"
                 # $errorMessage | Out-File -FilePath "install_errors.log" -Append
             }
@@ -213,7 +213,7 @@ $creativeApps = @(
     "Canva.Canva", # Design tool
     "darktable.darktable", # RAW photo editor
     "krita.krita", # Digital painting
-    "BlenderFoundation.Blender", # 3D modeling  
+    "BlenderFoundation.Blender", # 3D modeling
     "inkscape.inkscape", # Vector graphics
     "OBSProject.OBS" # Streaming/recording
 )

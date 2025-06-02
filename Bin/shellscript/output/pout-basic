@@ -24,7 +24,7 @@
 #DOC   0 - Success
 #DOC   1 - Failure (invalid arguments or options)
 
-#@ Establish defaults
+#~@ Establish defaults
 unset msg
 unset pad
 unset newline
@@ -44,118 +44,118 @@ unset hide_timestamp
 # hide_output="${__hide_output:-}"
 # show_timestamp="${__show_timestamp:-}"
 
-#@ Parse arguments
+#~@ Parse arguments
 while [ "$#" -gt 0 ]; do
   case $1 in
-    -h) show_info --usage ;;
-    --help) show_info --help ;;
-    -v | --version) show_info --version ;;
-    --quiet | --error | --warn | --info | --debug | --trace)
-      level=${1#--}
-      ;;
-    --hide-level) hide_level=true ;;
-    --hide-timestamp) hide_timestamp=true ;;
-    --hide-console | --log-only | --no-output | --no-print) hide_output=true ;;
-    --print) unset hide_output ;;
-    --no-log | --console-only) unset log ;;
-    -L | --log)
-      [ "$2" ] && {
-        validate_file --parent "$2" || return 1
-        log="$2"
-        shift
-      }
-      ;;
-    -b | -ll | --line-l* | --lead*l*)
-      if validate --integer "$2" > /dev/null 2>&1; then
-        leading_lines="$2"
-        shift
-      else
-        leading_lines=1
-      fi
-      ;;
-    -n | -lt | --line-t* | --lead*t*)
-      if validate --integer "$2" > /dev/null 2>&1; then
-        trailing_lines="$2"
-        shift
-      else
-        trailing_lines=1
-      fi
-      ;;
-    --key)
-      if [ "$2" ]; then
-        key="$2"
-        shift
-      else
-        pout --error "No key provided to --key"
-        return 1
-      fi
-      ;;
-    --val)
-      if [ "$2" ]; then
-        val="$2"
-        shift
-      else
-        val="{ Missing Value }"
-        val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
-      fi
-      ;;
-    --sep*)
-      if [ "$2" ]; then
-        sep="$2"
-        shift
-      else
-        pout --error "No separator provided to --sep"
-        return 1
-      fi
-      ;;
-      # -b | --lead* | --blank)
-      # 	leading_lines=1
-      # 	[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
-      # 		leading_lines="$2"
-      # 		shift
-      # 	}
-      # 	;;
-      # -n | --trail* | --newline)
-      # 	trailing_lines=2
-      # 	[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
-      # 		trailing_lines="$2"
-      # 		shift
-      # 	}
-      # ;;
-    --last*)
-      last_line=true
-      ;;
-    --pad)
-      pad=true
-      unset log
-      [ "$2" ] && [ "$2" -eq "$2" ] 2> /dev/null && {
-        pad="$2"
-        shift
-      }
-      ;;
-    -m | --msg | --message)
-      [ "$2" ] && {
-        if [ "$msg" ]; then
-          msg="$msg $2"
-        else
-          msg="$2"
-        fi
-        shift
-      }
-      ;;
-    *)
+  -h) show_info --usage ;;
+  --help) show_info --help ;;
+  -v | --version) show_info --version ;;
+  --quiet | --error | --warn | --info | --debug | --trace)
+    level=${1#--}
+    ;;
+  --hide-level) hide_level=true ;;
+  --hide-timestamp) hide_timestamp=true ;;
+  --hide-console | --log-only | --no-output | --no-print) hide_output=true ;;
+  --print) unset hide_output ;;
+  --no-log | --console-only) unset log ;;
+  -L | --log)
+    [ "$2" ] && {
+      validate_file --parent "$2" || return 1
+      log="$2"
+      shift
+    }
+    ;;
+  -b | -ll | --line-l* | --lead*l*)
+    if validate --integer "$2" >/dev/null 2>&1; then
+      leading_lines="$2"
+      shift
+    else
+      leading_lines=1
+    fi
+    ;;
+  -n | -lt | --line-t* | --lead*t*)
+    if validate --integer "$2" >/dev/null 2>&1; then
+      trailing_lines="$2"
+      shift
+    else
+      trailing_lines=1
+    fi
+    ;;
+  --key)
+    if [ "$2" ]; then
+      key="$2"
+      shift
+    else
+      pout --error "No key provided to --key"
+      return 1
+    fi
+    ;;
+  --val)
+    if [ "$2" ]; then
+      val="$2"
+      shift
+    else
+      val="{ Missing Value }"
+      val_fmt="${FMT_RED}${val}${FMT_NORMAL}"
+    fi
+    ;;
+  --sep*)
+    if [ "$2" ]; then
+      sep="$2"
+      shift
+    else
+      pout --error "No separator provided to --sep"
+      return 1
+    fi
+    ;;
+    # -b | --lead* | --blank)
+    # 	leading_lines=1
+    # 	[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+    # 		leading_lines="$2"
+    # 		shift
+    # 	}
+    # 	;;
+    # -n | --trail* | --newline)
+    # 	trailing_lines=2
+    # 	[ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+    # 		trailing_lines="$2"
+    # 		shift
+    # 	}
+    # ;;
+  --last*)
+    last_line=true
+    ;;
+  --pad)
+    pad=true
+    unset log
+    [ "$2" ] && [ "$2" -eq "$2" ] 2>/dev/null && {
+      pad="$2"
+      shift
+    }
+    ;;
+  -m | --msg | --message)
+    [ "$2" ] && {
       if [ "$msg" ]; then
-        msg="$msg $1"
+        msg="$msg $2"
       else
-        msg="$1"
+        msg="$2"
       fi
-      ;;
+      shift
+    }
+    ;;
+  *)
+    if [ "$msg" ]; then
+      msg="$msg $1"
+    else
+      msg="$1"
+    fi
+    ;;
   esac
   shift
 done
 
 set_pair() {
-  #@ Update message with key-value pair
+  #~@ Update message with key-value pair
   [ "$key" ] && [ "$val" ] && {
     #| Unformatted key-value pair
     pair_log="${key}${sep}${val}"
@@ -166,51 +166,51 @@ set_pair() {
 }
 
 set_level() {
-  #@ Append the level to the message.
+  #~@ Append the level to the message.
   case "$level" in
-    0 | "error")
-      level_log="[ERROR] "
-      level_fmt="${FMT_ERROR}${level_log}${FMT_NORMAL}"
-      ;;
-    1 | "warn")
-      level_log="[ WARN] "
-      level_fmt="${FMT_WARN}${level_log}${FMT_NORMAL}"
-      ;;
-    2 | "info")
-      level_log="[ INFO] "
-      level_fmt="${FMT_INFO}${level_log}${FMT_NORMAL}"
-      ;;
-    3 | "debug")
-      level_log="[DEBUG] "
-      level_fmt="${FMT_DEBUG}${level_log}${FMT_NORMAL}"
-      ;;
-    4 | "trace")
-      level_log="[TRACE] "
-      level_fmt="${FMT_TRACE}${level_log}${FMT_NORMAL}"
-      ;;
-    *) unset level ;;
+  0 | "error")
+    level_log="[ERROR] "
+    level_fmt="${FMT_ERROR}${level_log}${FMT_NORMAL}"
+    ;;
+  1 | "warn")
+    level_log="[ WARN] "
+    level_fmt="${FMT_WARN}${level_log}${FMT_NORMAL}"
+    ;;
+  2 | "info")
+    level_log="[ INFO] "
+    level_fmt="${FMT_INFO}${level_log}${FMT_NORMAL}"
+    ;;
+  3 | "debug")
+    level_log="[DEBUG] "
+    level_fmt="${FMT_DEBUG}${level_log}${FMT_NORMAL}"
+    ;;
+  4 | "trace")
+    level_log="[TRACE] "
+    level_fmt="${FMT_TRACE}${level_log}${FMT_NORMAL}"
+    ;;
+  *) unset level ;;
   esac
   [ -n "$hide_level" ] && unset level
 }
 
-#@ Get thetimestamp
+#~@ Get thetimestamp
 # timestamp="$(printf "[%s] " "$(fetch.time)")"
 
-# #@ Write message to the log
+# #~@ Write message to the log
 # [ "$log" ] && {
 
-# 	#@ Sanitize the message by removing all terminal formatting codes
+# 	#~@ Sanitize the message by removing all terminal formatting codes
 # 	msg_log="$(printf "%s" "${msg:-$pair_log}" |
 # 		sed 's/\x1B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B//g')"
 
-# 	#@ Create the log directory if it does not exist
+# 	#~@ Create the log directory if it does not exist
 # 	# printf "%s%s%s\n" "$timestamp" "$level_log" "$msg_log" |
 # 	# 	tee -a "$log" >/dev/null
 # }
 
-#@ Write message to the console
+#~@ Write message to the console
 # [ "${VERBOSITY_LEVEL:-0}" -eq "${VERBOSITY_LEVEL_QUIET:-0}" ] && exit 0
 
 # case "$VERBOSITY_LEVEL" in

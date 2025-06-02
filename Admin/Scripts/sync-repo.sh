@@ -55,17 +55,17 @@ pout() {
     shift
   done
 
-  #@ Update the tagged message
+  #~@ Update the tagged message
   [ -n "${tag}" ] &&
     msg="$(printf "%s /> %s <\ %s\n" "${tag}" "${src_name}" "${msg}")"
 
-  #@ Print to stdout or stderr
+  #~@ Print to stdout or stderr
   case "${tag}" in
   *"ERR"* | *"WARN"*) printf "%s" "${msg}" >&2 ;;
   *) printf "%s" "${msg}" ;;
   esac
 
-  #@ Terminate on errors
+  #~@ Terminate on errors
   [ "${code:-0}" -gt 0 ] && exit 1
 
 }

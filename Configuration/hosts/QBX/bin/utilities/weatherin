@@ -29,67 +29,67 @@ initialize_variables() {
   #DOC Returns: None
   #DOC Example: initialize_variables 37.7749 -122.4194 "San Francisco, USA" 0 0
 
-  #@ Reset arguments
+  #~@ Reset arguments
   unset latitude longitude location debug verbose test
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ $# -gt 0 ]; do
     case "$1" in
-      --location | --coordinates)
-        if [ -n "$2" ]; then
-          location="$2"
-          shift
-        else
-          printf "Error: --location requires a value.\n" >&2
-          usage
-          return 1
-        fi
-        ;;
-      --latitude)
-        if [ -n "$2" ]; then
-          latitude="$2"
-          shift 2
-        else
-          printf "Error: --latitude requires a value.\n" >&2
-          usage
-          return 1
-        fi
-        ;;
-      --longitude)
-        if [ -n "$2" ]; then
-          longitude="$2"
-          shift
-        else
-          printf "Error: --longitude requires a value.\n" >&2
-          usage
-          return 1
-        fi
-        ;;
-      -V | --verbose)
-        verbose=true
-        # debug=true
-        ;;
-      -d | --debug)
-        debug=true
-        ;;
-      -x | --test)
-        test=true
-        ;;
-      --show-gps)
-        show_gps=true
-        ;;
-      *)
-        if [ "$location" ]; then
-          location="${location} $1"
-        else
-          location="$1"
-        fi
-        ;;
+    --location | --coordinates)
+      if [ -n "$2" ]; then
+        location="$2"
+        shift
+      else
+        printf "Error: --location requires a value.\n" >&2
+        usage
+        return 1
+      fi
+      ;;
+    --latitude)
+      if [ -n "$2" ]; then
+        latitude="$2"
+        shift 2
+      else
+        printf "Error: --latitude requires a value.\n" >&2
+        usage
+        return 1
+      fi
+      ;;
+    --longitude)
+      if [ -n "$2" ]; then
+        longitude="$2"
+        shift
+      else
+        printf "Error: --longitude requires a value.\n" >&2
+        usage
+        return 1
+      fi
+      ;;
+    -V | --verbose)
+      verbose=true
+      # debug=true
+      ;;
+    -d | --debug)
+      debug=true
+      ;;
+    -x | --test)
+      test=true
+      ;;
+    --show-gps)
+      show_gps=true
+      ;;
+    *)
+      if [ "$location" ]; then
+        location="${location} $1"
+      else
+        location="$1"
+      fi
+      ;;
     esac
     shift
   done
 
-  #@ Validate input
+  #~@ Validate input
   if [ "$latitude" ] && [ "$longitude" ]; then
     location="${latitude},${longitude}"
   elif [ -z "$location" ]; then
@@ -100,7 +100,7 @@ initialize_variables() {
     }
   fi
 
-  #@ Debug the arguments
+  #~@ Debug the arguments
   [ "$debug" ] && {
     printf "DEBUG: Verbose = %s\n" "$verbose"
     printf "DEBUG: Latitude = %s\n" "$latitude"
@@ -123,12 +123,10 @@ initialize_utilities() {
     #DOC
     #DOC Example:
     #DOC   cleanup_location "Mandeville , Jamaica" => "Mandeville,Jamaica"
-    printf "%s" "$1" \
-      | tr -s ' ' '+' \
-      |
+    printf "%s" "$1" |
+      tr -s ' ' '+' |
       #? Convert spaces to plus
-      sed 's/,+/,/g' \
-      |
+      sed 's/,+/,/g' |
       #? Convert comma plus combination to a single comma
       sed 's/+,/,/g' #? Convert plus comma combination to a single comma
   }
@@ -170,7 +168,7 @@ initialize_utilities() {
     #DOC  Note:
     #DOC   * times are shown in the local timezone
 
-    # #@ Validate location format
+    # #~@ Validate location format
     # printf "%s" "$1" |
     #   grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$' || {
     #   printf "Error: Invalid location format." >&2 &&
@@ -180,10 +178,10 @@ initialize_utilities() {
 
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        -h) show_usage ;;
-        --help) show_help ;;
-        --detailed) detailed=true ;;
-        *) _location="$1" ;;
+      -h) show_usage ;;
+      --help) show_help ;;
+      --detailed) detailed=true ;;
+      *) _location="$1" ;;
       esac
       shift
     done
@@ -191,7 +189,7 @@ initialize_utilities() {
     # options='condition_icon,condition_name,condition_symbol,temperature_actual,temperature_feel,wind,location,humidity,moon_phase,moon_day,precipitation,pressure,uv_index,dawn,sunrise,zenith,sunset,dusk,time,timezone'
     detailed=true
 
-    #@ Use the external weather API
+    #~@ Use the external weather API
     _url="https://wttr.in"
 
     _format_json="j2"
@@ -205,7 +203,7 @@ initialize_utilities() {
     _response_simple="$(curl -s "$_api_url_simple")"
     _response_json="$(curl -s "$_api_url_json")"
 
-    #@ Print the parsed variables
+    #~@ Print the parsed variables
     printf '\nDEBUG: Structured\n\tURL: %s\n\tRES: %s\n' \
       "$_api_url_struct" "$_response_struct"
     printf '\nDEBUG:     Simple\n\tURL: %s\n\tRES: %s\n' \
@@ -258,27 +256,27 @@ Timezone: Europe/Warsaw
 Location: Warszawa, mazowieckie, RP [52.2318,21.0058]'
     _response_simple="condition_icon=☀️   condition_name=Sunny condition_symbol=o temperature_actual=+23°C temperature_feel=+26°C wind=↙7km/h humidity=90% moon_phase=🌘 moon_day=23 precipitation=0.0mm pressure=1018hPa uv_index=0"
 
-    #@ Parse the data into variables
+    #~@ Parse the data into variables
     while IFS='=' read -r key value; do
       case "$key" in
-        condition_icon) condition_icon="$value" ;;
-        condition_name) condition_name="$value" ;;
-        condition_symbol) condition_symbol="$value" ;;
-        temperature_actual) temperature_actual="$value" ;;
-        temperature_feel) temperature_feel="$value" ;;
-        wind) wind="$value" ;;
-        humidity) humidity="$value" ;;
-        moon_phase) moon_phase="$value" ;;
-        moon_day) moon_day="$value" ;;
-        precipitation) precipitation="$value" ;;
-        pressure) pressure="$value" ;;
-        uv_index) uv_index="$value" ;;
+      condition_icon) condition_icon="$value" ;;
+      condition_name) condition_name="$value" ;;
+      condition_symbol) condition_symbol="$value" ;;
+      temperature_actual) temperature_actual="$value" ;;
+      temperature_feel) temperature_feel="$value" ;;
+      wind) wind="$value" ;;
+      humidity) humidity="$value" ;;
+      moon_phase) moon_phase="$value" ;;
+      moon_day) moon_day="$value" ;;
+      precipitation) precipitation="$value" ;;
+      pressure) pressure="$value" ;;
+      uv_index) uv_index="$value" ;;
       esac
-    done << EOF
+    done <<EOF
 $(printf '%s' "$_response_simple" | tr ' ' '\n')
 EOF
 
-    #@ Extract weather details
+    #~@ Extract weather details
     weather_line=$(echo "$_response_struct" | grep 'Weather:')
     weather_condition=$(echo "$weather_line" | sed -n 's/.*Weather: \(.*\), +[0-9]*°C.*/\1/p')
     temperature=$(echo "$weather_line" | sed -n 's/.*, \(+[0-9]*°C\).*/\1/p')
@@ -286,15 +284,15 @@ EOF
     wind=$(echo "$weather_line" | sed -n 's/.*, \(↑[0-9]*km\/h\).*/\1/p')
     pressure=$(echo "$weather_line" | sed -n 's/.*, \([0-9]*hPa\).*/\1/p')
 
-    #@ Extract timezone
+    #~@ Extract timezone
     timezone=$(echo "$_response_struct" | grep 'Timezone:' | sed -n 's/Timezone: \(.*\)/\1/p')
 
-    #@ Extract location and coordinates
+    #~@ Extract location and coordinates
     location_line=$(echo "$_response_struct" | grep 'Location:')
     location=$(echo "$location_line" | sed -n 's/Location: \(.*\) \[.*/\1/p')
     coordinates=$(echo "$location_line" | sed -n 's/.*\[\(.*\)\]/\1/p')
 
-    #@ Extract time-related information
+    #~@ Extract time-related information
     now=$(echo "$_response_struct" | grep 'Now:' | sed -n 's/.*Now: *\(.*\) |.*/\1/p')
     sunrise=$(echo "$_response_struct" | grep 'Sunrise:' | sed -n 's/.*Sunrise: *\(.*\)/\1/p')
     sunset=$(echo "$_response_struct" | grep 'Sunset:' | sed -n 's/.*Sunset: *\(.*\)/\1/p')
@@ -325,8 +323,8 @@ EOF
     # info="$(curl -s "$url_formatted")"
 
     case "$verbose" in
-      '' | 0) curl -s "$url_formatted" ;;
-      *) curl -s "https://wttr.in/${1}" ;;
+    '' | 0) curl -s "$url_formatted" ;;
+    *) curl -s "https://wttr.in/${1}" ;;
     esac
 
     #TODO: Handle response errors
@@ -346,20 +344,20 @@ EOF
     #DOC Example:
     #DOC   fetch_coordinates "San Francisco, USA"
 
-    #@ Variables
+    #~@ Variables
     unset _location _response osm_api_url _data _latitude _longitude
 
-    #@ Use a geocoding API to resolve the location
+    #~@ Use a geocoding API to resolve the location
     _location=$(cleanup_location "$1")
 
-    #@ Skip if coordinates are already provided
-    printf "%s" "$_location" \
-      | grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$' && {
+    #~@ Skip if coordinates are already provided
+    printf "%s" "$_location" |
+      grep -qE '^-?[0-9]{1,3}(\.[0-9]+)?,-?[0-9]{1,3}(\.[0-9]+)?$' && {
       printf "%s" "$_location"
       return 0
     }
 
-    #@ Use a geocoding API to resolve the location
+    #~@ Use a geocoding API to resolve the location
     _url="https://nominatim.openstreetmap.org"
     _format="&format=geocodejson"
     _limit="&limit=1"
@@ -374,19 +372,19 @@ EOF
       printf "DEBUG: Response: %s\n" "$_response"
     }
 
-    #@ Extract coordinates, latitude and longitude
-    if command -v jq > /dev/null 2>&1; then
+    #~@ Extract coordinates, latitude and longitude
+    if command -v jq >/dev/null 2>&1; then
       _coordinates=$(printf "%s" "$_response" | jq -r '.features[].geometry.coordinates')
       _longitude=$(printf "%s" "$_coordinates" | jq -r '.[0]')
       _latitude=$(printf "%s" "$_coordinates" | jq -r '.[1]')
     else
-      #@ Extract coordinates using grep and sed in a POSIX-friendly way
+      #~@ Extract coordinates using grep and sed in a POSIX-friendly way
       _coordinates="$(
-        printf '%s' "$_response" \
-          | sed -n 's/.*"coordinates":\s*\[\s*\([^,]*\)\s*,\s*\([^]]*\)\s*\].*/\1,\2/p'
+        printf '%s' "$_response" |
+          sed -n 's/.*"coordinates":\s*\[\s*\([^,]*\)\s*,\s*\([^]]*\)\s*\].*/\1,\2/p'
       )"
 
-      #@ Use sed to extract longitude and latitude, handling potential spaces
+      #~@ Use sed to extract longitude and latitude, handling potential spaces
       _longitude=$(printf '%s' "$_coordinates" | cut -d',' -f1)
       _latitude=$(printf '%s' "$_coordinates" | cut -d',' -f2)
     fi
@@ -397,13 +395,13 @@ EOF
       printf "DEBUG: Latitude = %s\n" "$_latitude"
     }
 
-    #@ Ensure both latitude and longitude are set
+    #~@ Ensure both latitude and longitude are set
     { [ "$_latitude" ] && [ "$_longitude" ]; } || {
       printf "Error: Failed to resolve location '%s'." "$1" >&2
       return 1
     }
 
-    #@ Return the coordinates
+    #~@ Return the coordinates
     printf '%s,%s' "$_latitude" "$_longitude"
   }
 
@@ -468,12 +466,12 @@ EOF
     #DOC     Actual:   Goodbye, World!
     #DOC     Duration: 1.567 s
 
-    #@ Initialize the environment variabes
+    #~@ Initialize the environment variabes
     expected_value="$1"
     shift
     command_under_test="$*"
 
-    #@ Validate the variables
+    #~@ Validate the variables
     [ -z "$expected_value" ] && {
       echo "Error: 'expected_value' is missing." >&2
       return 1
@@ -483,16 +481,16 @@ EOF
       return 1
     }
 
-    #@ Evaluate the command to get the actual result and duration
+    #~@ Evaluate the command to get the actual result and duration
     start_time_in_nanoseconds=$(date +%s%N)
     actual_output=$(eval "$command_under_test")
     end_time_in_nanoseconds=$(date +%s%N)
     duration_in_nanoseconds=$((end_time_in_nanoseconds - start_time_in_nanoseconds))
 
-    #@ Format duration into a human-readable string
+    #~@ Format duration into a human-readable string
     formatted_duration=$(duration_from_nanoseconds "$duration_in_nanoseconds")
 
-    #@ Test and print the result
+    #~@ Test and print the result
     if [ "$actual_output" != "$expected_value" ]; then
       printf "\n\033[1;31m[FAIL]\033[0m %s\n" "$command_under_test"
       printf "  \033[1;34mExpected:\033[0m %s\n" "$expected_value"
@@ -577,12 +575,12 @@ initialize_tests() {
   }
 }
 main() {
-  #@ Establish the script environment
+  #~@ Establish the script environment
   initialize_variables "$@"
   initialize_utilities
   initialize_tests
 
-  #@ Perform tests
+  #~@ Perform tests
   [ -n "$test" ] && {
     # test_cleanup_location
     # test_fetch_coordinates
@@ -590,7 +588,7 @@ main() {
     return
   }
 
-  #@ Resolve the location to coordinates
+  #~@ Resolve the location to coordinates
   coordinates="$(fetch_coordinates "$location")"
   [ -n "$coordinates" ] || {
     [ -n "$verbose" ] && {
@@ -600,7 +598,7 @@ main() {
     return 1
   }
 
-  #@ Fetch and display weather
+  #~@ Fetch and display weather
   weather="$(fetch_weather "$coordinates")"
   [ -n "$weather" ] || {
     [ -n "$verbose" ] && {

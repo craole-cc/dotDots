@@ -1,5 +1,5 @@
 #region Modules
-#@ Load all component scripts with error handling
+#~@ Load all component scripts with error handling
 $scriptFiles = @(
   'command.ps1',
   'context.ps1',
@@ -32,7 +32,7 @@ Export-ModuleMember -Function * -Alias *
 #endregion
 
 #region Testing
-#@ Uncomment these lines to run tests when module loads
+#~@ Uncomment these lines to run tests when module loads
 # Test-GetContext
 # Test-WritePretty
 # Test-InvokeProcess

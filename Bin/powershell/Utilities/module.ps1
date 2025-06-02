@@ -36,7 +36,7 @@ function Invoke-Module {
         -NoNewLine `
         "Parameter Set => $($PSCmdlet.ParameterSetName)"
 
-        #@ Check if DOTS_MOD_PS environment variable exists when using -Local
+        #~@ Check if DOTS_MOD_PS environment variable exists when using -Local
         if ($Local -and -not $env:DOTS_MOD_PS) {
             Write-Warning "DOTS_MOD_PS environment variable is not set. -Local option will be ignored."
         }
@@ -51,34 +51,34 @@ function Invoke-Module {
             foreach ($basePath in $modulePaths) {
                 if (-not (Test-Path $basePath)) { continue }
 
-                #@ Look for exact match first
+                #~@ Look for exact match first
                 $moduleDir = Join-Path $basePath $ModuleName
                 if (Test-Path $moduleDir -PathType Container) {
                     $moduleFiles = @()
 
-                    #@ Look for module manifest first (.psd1)
+                    #~@ Look for module manifest first (.psd1)
                     $manifestPath = Join-Path $moduleDir "$ModuleName.psd1"
                     if (Test-Path $manifestPath) {
                         $moduleFiles += Get-Item $manifestPath
                     }
 
-                    #@ Look for module script (.psm1)
+                    #~@ Look for module script (.psm1)
                     $scriptPath = Join-Path $moduleDir "$ModuleName.psm1"
                     if (Test-Path $scriptPath) {
                         $moduleFiles += Get-Item $scriptPath
                     }
 
-                    #@ Look for any .psm1 files in the directory
+                    #~@ Look for any .psm1 files in the directory
                     $psmFiles = Get-ChildItem -Path $moduleDir -Filter "*.psm1" -ErrorAction SilentlyContinue
                     if ($psmFiles) {
                         $moduleFiles += $psmFiles
                     }
 
-                    #@ Create module info objects
+                    #~@ Create module info objects
                     foreach ($file in $moduleFiles) {
                         try {
                             if ($file.Extension -eq '.psd1') {
-                                #@ Try to parse manifest
+                                #~@ Try to parse manifest
                                 $manifest = Import-PowerShellDataFile -Path $file.FullName -ErrorAction SilentlyContinue
                                 if ($manifest) {
                                     $foundModules += [PSCustomObject]@{
@@ -114,7 +114,7 @@ function Invoke-Module {
                     }
                 }
 
-                #@ Also check for wildcard matches if ModuleName contains wildcards
+                #~@ Also check for wildcard matches if ModuleName contains wildcards
                 if ($ModuleName -like '*[*?]*') {
                     try {
                         $matchingDirs = Get-ChildItem -Path $basePath -Directory -Name $ModuleName -ErrorAction SilentlyContinue
@@ -171,7 +171,7 @@ function Invoke-Module {
 
     process {
         foreach ($moduleName in $InputObject) {
-            #@ Handle directory objects from Get-ChildItem
+            #~@ Handle directory objects from Get-ChildItem
             if ($moduleName -is [System.IO.DirectoryInfo]) {
                 $moduleName = $moduleName.Name
                 Write-Pretty -Tag "Verbose"  "Processing module: $moduleName"
@@ -181,7 +181,7 @@ function Invoke-Module {
                 'Install' {
                     Write-Pretty -Tag "Verbose"  "Installing for module: $moduleName"
 
-                    #@ Try local first if requested
+                    #~@ Try local first if requested
                     if ($Local -and $env:DOTS_MOD_PS) {
                         $localPath = Join-Path $env:DOTS_MOD_PS $moduleName
                         if (Test-Path -Path $localPath -PathType Container) {
@@ -201,7 +201,7 @@ function Invoke-Module {
                         }
                     }
 
-                    #@ Check if module is already available locally using both standard and custom search
+                    #~@ Check if module is already available locally using both standard and custom search
                     $existingModule = Get-Module -ListAvailable -Name $moduleName -ErrorAction SilentlyContinue |
                     Sort-Object @{Expression = { [version]$_.Version }; Descending = $true } |
                     Select-Object -First 1
@@ -218,7 +218,7 @@ function Invoke-Module {
                     if ($existingModule) {
                         Write-Pretty -Tag "Verbose"  "Module '$moduleName' (v$($existingModule.Version)) found locally, importing..."
                         try {
-                            #@ Use the full path if available for custom modules
+                            #~@ Use the full path if available for custom modules
                             if ($existingModule.FullPath -and $existingModule.ModuleType) {
                                 Import-Module $existingModule.Path -Force -ErrorAction Stop
                             }
@@ -234,7 +234,7 @@ function Invoke-Module {
                         }
                     }
 
-                    #@ Module not found locally, install from PSGallery
+                    #~@ Module not found locally, install from PSGallery
                     Write-Pretty -Tag "Verbose"  "Module '$moduleName' not found locally, installing from PSGallery..."
                     try {
                         Install-Module -Name $moduleName -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
@@ -245,7 +245,7 @@ function Invoke-Module {
                         continue
                     }
 
-                    #@ Import the newly installed module
+                    #~@ Import the newly installed module
                     try {
                         Import-Module $moduleName -Force -ErrorAction Stop
                         Write-Debug "Successfully imported newly installed module: $moduleName"
@@ -258,14 +258,14 @@ function Invoke-Module {
                 'Update' {
                     Write-Debug "Processing Update for module: $moduleName"
 
-                    #@ Check if module is currently installed
+                    #~@ Check if module is currently installed
                     $installedModule = Get-InstalledModule -Name $moduleName -ErrorAction SilentlyContinue
                     if (-not $installedModule) {
                         Write-Warning "Module '$moduleName' is not installed via PowerShellGet. Use -Install instead."
                         continue
                     }
 
-                    #@ Check for available updates
+                    #~@ Check for available updates
                     try {
                         $onlineModule = Find-Module -Name $moduleName -ErrorAction Stop
                         $currentVersion = [version]$installedModule.Version
@@ -274,20 +274,20 @@ function Invoke-Module {
                         if ($latestVersion -gt $currentVersion) {
                             Write-Pretty -Tag "Verbose"  "Updating '$moduleName' from v$currentVersion to v$latestVersion..."
 
-                            #@ Remove from current session first
+                            #~@ Remove from current session first
                             Remove-Module -Name $moduleName -Force -ErrorAction SilentlyContinue
 
-                            #@ Update the module
+                            #~@ Update the module
                             Update-Module -Name $moduleName -Force -ErrorAction Stop
                             Write-Pretty -Tag "Verbose"  "Updated: $moduleName"
 
-                            #@ Import the updated module
+                            #~@ Import the updated module
                             Import-Module $moduleName -Force -ErrorAction Stop
                         }
                         else {
                             Write-Pretty -Tag "Verbose" "Module '$moduleName' (v$currentVersion) is already up to date"
 
-                            #@ Still import it if not loaded
+                            #~@ Still import it if not loaded
                             if (-not (Get-Module -Name $moduleName)) {
                                 Import-Module $moduleName -Force -ErrorAction Stop
                             }
@@ -320,10 +320,10 @@ function Invoke-Module {
                 'Purge' {
                     Write-Pretty -Tag "Verbose" "Processing Purge for module: $moduleName"
 
-                    #@ First remove from current session
+                    #~@ First remove from current session
                     Remove-Module -Name $moduleName -Force -ErrorAction SilentlyContinue
 
-                    #@ Find and remove from all module paths
+                    #~@ Find and remove from all module paths
                     $removed = $false
                     $modulePaths = $env:PSModulePath -split [IO.Path]::PathSeparator
 
@@ -341,7 +341,7 @@ function Invoke-Module {
                         }
                     }
 
-                    #@ Try to uninstall via PowerShellGet
+                    #~@ Try to uninstall via PowerShellGet
                     try {
                         $installedModules = Get-InstalledModule -Name $moduleName -AllVersions -ErrorAction SilentlyContinue
                         if ($installedModules) {
@@ -363,10 +363,10 @@ function Invoke-Module {
                 }
 
                 'Info' {
-                    #@ Get module information with wildcard support - try both methods
+                    #~@ Get module information with wildcard support - try both methods
                     $modules = Get-Module -Name $moduleName -ListAvailable -ErrorAction SilentlyContinue
 
-                    #@ If no modules found via standard method, try custom search
+                    #~@ If no modules found via standard method, try custom search
                     if (-not $modules) {
                         $customModules = Find-AllModules -ModuleName $moduleName
                         if ($customModules) {
@@ -374,7 +374,7 @@ function Invoke-Module {
                         }
                     }
 
-                    #@ Sort and deduplicate
+                    #~@ Sort and deduplicate
                     $modules = $modules |
                     Sort-Object Name, @{Expression = { [version]$_.Version }; Descending = $true } |
                     Group-Object Name |
@@ -414,7 +414,7 @@ function Invoke-Module {
     }
 }
 
-#@ Create aliases for convenience
+#~@ Create aliases for convenience
 Set-Alias -Name imod -Value Invoke-Module
 Set-Alias -Name mod -Value Invoke-Module
 

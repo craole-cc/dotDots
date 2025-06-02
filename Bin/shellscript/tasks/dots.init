@@ -30,23 +30,23 @@ establish_environment() {
 parse_arguments() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      -h | --help)
-        printf "%s\n" "$scr_usage"
-        exit
-        ;;
-      -v | --version)
-        print_version
-        exit
-        ;;
-      -d | --verbose) verbose=true ;;
-      -s | -t | --simulate | --test) simulate=true ;;
-      *) DOTS="$1" ;; # Use the argument as the DOTS directory
+    -h | --help)
+      printf "%s\n" "$scr_usage"
+      exit
+      ;;
+    -v | --version)
+      print_version
+      exit
+      ;;
+    -d | --verbose) verbose=true ;;
+    -s | -t | --simulate | --test) simulate=true ;;
+    *) DOTS="$1" ;; # Use the argument as the DOTS directory
     esac
     shift
   done
 }
 
-#@ Function to validate file or directory existence
+#~@ Function to validate file or directory existence
 validate_file_or_directory() {
   path="$1"
   type="$2"

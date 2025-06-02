@@ -8,7 +8,7 @@ LIGHT_THEME="Solarized Light"
 
 # Check if a command exists
 cmd_exists() {
-  command -v "$1" > /dev/null 2>&1
+  command -v "$1" >/dev/null 2>&1
 }
 
 # Install jq using available package manager
@@ -45,7 +45,7 @@ check_dependencies() {
     return 1
   fi
 
-  #@ Only check for jq if Terminal exists
+  #~@ Only check for jq if Terminal exists
   if ! cmd_exists "jq"; then
     printf "jq is not installed. Attempting to install...\n"
     install_jq
@@ -60,20 +60,20 @@ check_dependencies() {
 find_files() {
   base_path="$1"
   if cmd_exists "fd"; then
-    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2> /dev/null
+    fd --no-ignore --absolute-path "^Microsoft\.WindowsTerminal.*$" "$base_path" --type d 2>/dev/null
   else
     find "$base_path" \
       -name "Microsoft.WindowsTerminal*" \
-      -type d 2> /dev/null
+      -type d 2>/dev/null
   fi
 }
 
 find_settings_paths() {
-  #@ Find both regular and preview settings
+  #~@ Find both regular and preview settings
   find "$LOCALAPPDATA/Packages" \
     -name "Microsoft.WindowsTerminal*" \
-    -type d 2> /dev/null \
-    | while read -r dir; do
+    -type d 2>/dev/null |
+    while read -r dir; do
       settings_path="$dir/LocalState/settings.json"
       if [ -f "$settings_path" ]; then
         printf "%s" "$settings_path"
@@ -84,26 +84,26 @@ find_settings_paths() {
 toggle_theme() {
   settings_file="$1"
 
-  #@ Check if file exists and is readable
+  #~@ Check if file exists and is readable
   if [ ! -r "$settings_file" ]; then
     printf "Error: Cannot read settings file: %s\n" "$settings_file" >&2
     return 1
   fi
 
-  #@ Create backup
+  #~@ Create backup
   cp "$settings_file" "${settings_file}.bac"
 
-  #@ Get current default theme
+  #~@ Get current default theme
   current_theme=$(jq --raw-output '.profiles.defaults.colorScheme // ""' "$settings_file")
 
-  #@ Determine new theme
+  #~@ Determine new theme
   new_theme="$DARK_THEME"
   [ "$current_theme" = "$DARK_THEME" ] && new_theme="$LIGHT_THEME"
 
-  #@ Update the theme
+  #~@ Update the theme
   if ! jq --arg theme "$new_theme" \
     '.profiles.defaults.colorScheme = $theme' \
-    "$settings_file" > "${settings_file}.tmp"; then
+    "$settings_file" >"${settings_file}.tmp"; then
     printf "Error: Failed to update theme in: %s\n" "$settings_file" >&2
     mv "${settings_file}.bac" "$settings_file"
     rm -f "${settings_file}.tmp"
@@ -117,14 +117,14 @@ toggle_theme() {
 main() {
   check_dependencies
 
-  #@ Find all settings files
+  #~@ Find all settings files
   settings_files=$(find_settings_paths "$1")
   [ "$settings_files" ] || {
     printf "Error: No Windows Terminal settings files found\n" >&2
     return 1
   }
 
-  #@ Process each settings file
+  #~@ Process each settings file
   printf "%s\n" "$settings_files" | while read -r settings_file; do
     toggle_theme "$settings_file"
   done

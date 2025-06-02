@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#@ Declare command information
+#~@ Declare command information
 if weHave --check volumeicon; then
   _APP="volumeicon"
 elif weHave --check pa-applet; then
@@ -10,10 +10,10 @@ else
   exit 1
 fi
 
-#@ Kill all active instances of the app
+#~@ Kill all active instances of the app
 murda "$_APP"
 
-#@ Launch with or without arguments
+#~@ Launch with or without arguments
 if [ "$_ARGS" ]; then
   eval "$_APP" "$_ARGS" &
 else

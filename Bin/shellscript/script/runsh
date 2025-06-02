@@ -9,7 +9,7 @@ display_usage_guide() {
 }
 
 validate_path() {
-  #@ Check if the target is a valid file
+  #~@ Check if the target is a valid file
   [ -f "$1" ] || {
     printf "Invalid or missing file: %s\n" "$1"
     exit 1
@@ -18,10 +18,9 @@ validate_path() {
 
 access_directory() {
   {
-    #@ Change to the target directory
-    cd "$1" \
-      &&
-      #@ verify the current directory is the same as the target
+    #~@ Change to the target directory
+    cd "$1" &&
+      #~@ verify the current directory is the same as the target
       [ "$PWD" = "$1" ]
   } || {
     printf "Failed to access target: %s\n" "$1"
@@ -30,36 +29,36 @@ access_directory() {
 }
 
 execute_script() {
-  #@ Validate the script file
+  #~@ Validate the script file
   validate_path "$1"
 
-  #@ Access the script's directory
+  #~@ Access the script's directory
   access_directory "$(dirname -- "$1")"
 
-  #@ Execute the script
+  #~@ Execute the script
   script_name=$(basename -- "$1")
   shift
   sh "$script_name" "$@"
 }
 
 main() {
-  #@ Check if any arguments are provided
+  #~@ Check if any arguments are provided
   [ "$#" -eq 0 ] && {
     display_usage_guide
     exit 1
   }
 
-  #@ Process each argument
+  #~@ Process each argument
   case "$1" in
-    -h | --help)
-      display_usage_guide
-      ;;
-    *)
-      #@ Execute the script
-      execute_script "$@"
-      ;;
+  -h | --help)
+    display_usage_guide
+    ;;
+  *)
+    #~@ Execute the script
+    execute_script "$@"
+    ;;
   esac
 }
 
-#@ Invoke the main function
+#~@ Invoke the main function
 main "$@"

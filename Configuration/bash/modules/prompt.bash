@@ -51,14 +51,14 @@ init_fasfetch() {
 }
 
 init_starship() {
-  #@ Check if starship exists, return if not
+  #~@ Check if starship exists, return if not
   command -v starship >/dev/null 2>&1 || return
 
-  #@ Set config path with POSIX-compliant parameter expansion
+  #~@ Set config path with POSIX-compliant parameter expansion
   : "${STARSHIP_CONFIG:=${DOTS_CFG}/starship/starship.toml}"
   export STARSHIP_CONFIG
 
-  #@ Initialize starship (no POSIX mode toggling)
+  #~@ Initialize starship (no POSIX mode toggling)
   eval "$(starship init bash)" || true
 }
 

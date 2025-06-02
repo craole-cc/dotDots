@@ -39,19 +39,19 @@ USAGE_GUIDE
 
 __main__() {
 
-  #@ Confirm that a string was entered
+  #~@ Confirm that a string was entered
   # [ "$#" -eq 0 ] && __error__ --string
 
-  #@ Load internal variables
+  #~@ Load internal variables
   __info__
 
-  #@ Establish defaults
+  #~@ Establish defaults
   __defaults__
 
-  #@ Load internal variables
+  #~@ Load internal variables
   __opts__ "$@"
 
-  #@ Remove any leftover variables
+  #~@ Remove any leftover variables
   __cleanup__
 }
 
@@ -59,19 +59,19 @@ __main__() {
 #@		                        GLOBAL TOOLS                         @#
 # ===================================================================
 
-#@ Usage display
+#~@ Usage display
 __help__() {
   printf "%s\n" "${_cmd_USAGEGUIDE}"
   exit 0
 }
 
-#@ Version display
+#~@ Version display
 __version__() {
   printf "%s\n" "${_cmd_VERSION}"
   exit 0
 }
 
-#@ Command validation
+#~@ Command validation
 __cmd_exists__() {
   unalias "$@" >/dev/null 2>&1
   command -v "$@" >/dev/null 2>&1

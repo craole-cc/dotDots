@@ -58,7 +58,7 @@ in
       settings.env = [
         "NIXPKGS_ALLOW_UNFREE, ${if nixpkgs.config.allowUnfree then "1" else "0"}"
 
-        #@ NVidia Settings
+        #~@ NVidia Settings
         "WLR_RENDERER_ALLOW_SOFTWARE, ${if nvidia || vm then "1" else "0"}"
         "WLR_NO_HARDWARE_CURSORS, ${if nvidia || vm then "1" else "0"}"
         "LIBVA_DRIVER_NAME, ${if nvidia || vm then "nvidia" else ""}"

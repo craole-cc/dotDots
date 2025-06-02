@@ -104,17 +104,17 @@ parse_arguments() {
 }
 
 establish_environment() {
-  #@ Collect editor preferences
+  #~@ Collect editor preferences
   tuis="${default_tuis:-"${from_args:-"${fallback_tuis}"}"}"
   guis="${default_guis:-"${from_args:-"${fallback_guis}"}"}"
 
-  #@ Normalize variables
+  #~@ Normalize variables
   tuis="$(normalize_vars "${tuis}")"
   guis="$(normalize_vars "${guis}")"
   # echo "tuis: ${tuis}"
   # echo "guis: ${guis}"
 
-  #@ Set editors to GUI editors if available, else fallback to TUI editors
+  #~@ Set editors to GUI editors if available, else fallback to TUI editors
   # shellcheck disable=SC2310
   if check_gui_env; then
     editors="${guis:-${tuis:-}}"
@@ -123,20 +123,20 @@ establish_environment() {
   fi
   : "${editors:=}"
 
-  #@ Ensure there is at least one editor
+  #~@ Ensure there is at least one editor
   if [ -n "${editors}" ]; then :; else
 
-    #@ Print an error message, if verbosity is high enough
+    #~@ Print an error message, if verbosity is high enough
     if [ "${verbosity}" -lt "${verbosity_error}" ]; then :; else
       printf "No editors were defined editor\n"
       editor__pout_help
     fi
 
-    #@ Exit with error
+    #~@ Exit with error
     return 1
   fi
 
-  #@ Check for the first available editor
+  #~@ Check for the first available editor
   i=0 editor="" old_IFS="${IFS}" IFS="${delimiter}"
   for editor in ${editors:-}; do
     if [ -z "${editor:-}" ]; then continue; else
@@ -150,76 +150,76 @@ establish_environment() {
   done
   IFS="${old_IFS}"
 
-  #@ Define arguments based on action
+  #~@ Define arguments based on action
   case "${action:-}" in set) ;; *)
-    #@ Append a space and the arguments to the editor
+    #~@ Append a space and the arguments to the editor
     editor_cmd="${editor:-} ${args:-"${fallback_args:-}"}"
     ;;
   esac
 }
 
 execute_process() {
-  #@ Return the editor
+  #~@ Return the editor
   if [ -n "${editor:-}" ]; then
     case "${action:-}" in
     set)
-      #@ Print the editor command
+      #~@ Print the editor command
       printf "%s" "${editor_path:-}"
       ;;
     *)
-      #@ Print the editor command, if verbosity is high enough
+      #~@ Print the editor command, if verbosity is high enough
       if [ "${verbosity}" -lt "${verbosity_info}" ]; then :; else
         printf "%s" "${editor_cmd:-}"
       fi
 
-      #@ Execute the editor command
+      #~@ Execute the editor command
       if [ "${verbosity}" -ge "${verbosity_debug}" ]; then :; else
         eval "${editor_cmd:-}"
       fi
       ;;
     esac
   else
-    #@ Print an error message, if verbosity is high enough
+    #~@ Print an error message, if verbosity is high enough
     if [ "${verbosity}" -lt "${verbosity_error}" ]; then :; else
       printf "Unable to determine the path to an available editor\n"
     fi
 
-    #@ Exit with error
+    #~@ Exit with error
     return 1
   fi
 }
 
 normalize_vars() {
-#DOC normalize_vars - Normalize a string of variables by replacing common delimiters with a single delimiter.
-#DOC
-#DOC Usage:
-#DOC   normalize_vars <string> [delimiter]
-#DOC
-#DOC Description:
-#DOC   Takes a string containing variables separated by various delimiters such as commas, pipes,
-#DOC   colons, or spaces, and normalizes all delimiters to a single specified delimiter.
-#DOC
-#DOC Arguments:
-#DOC   $1 - The input string to normalize.
-#DOC   $2 - Optional. The delimiter to normalize to. Defaults to the global variable 'delimiter' if set.
-#DOC
-#DOC Returns:
-#DOC   Prints the normalized string to stdout. If the normalized string contains the word 'none',
-#DOC   the function returns without printing anything.
-#DOC
-#DOC Example:
-#DOC   normalized=$(normalize_vars "foo, bar|baz:qux" ",")
+  #DOC normalize_vars - Normalize a string of variables by replacing common delimiters with a single delimiter.
+  #DOC
+  #DOC Usage:
+  #DOC   normalize_vars <string> [delimiter]
+  #DOC
+  #DOC Description:
+  #DOC   Takes a string containing variables separated by various delimiters such as commas, pipes,
+  #DOC   colons, or spaces, and normalizes all delimiters to a single specified delimiter.
+  #DOC
+  #DOC Arguments:
+  #DOC   $1 - The input string to normalize.
+  #DOC   $2 - Optional. The delimiter to normalize to. Defaults to the global variable 'delimiter' if set.
+  #DOC
+  #DOC Returns:
+  #DOC   Prints the normalized string to stdout. If the normalized string contains the word 'none',
+  #DOC   the function returns without printing anything.
+  #DOC
+  #DOC Example:
+  #DOC   normalized=$(normalize_vars "foo, bar|baz:qux" ",")
 
-  #@ Return early if input string is empty or unset
+  #~@ Return early if input string is empty or unset
   if [ -z "${1:-}" ]; then
     return
   fi
 
-  #@ Use provided delimiter or fallback to global 'delimiter' variable
+  #~@ Use provided delimiter or fallback to global 'delimiter' variable
   delimiter="${2:-${delimiter:-}}"
   vars=""
 
-  #@ Normalize delimiters: commas, pipes, colons, spaces replaced by the delimiter
+  #~@ Normalize delimiters: commas, pipes, colons, spaces replaced by the delimiter
   vars="$(
     printf '%s' "$1" | sed \
       -e "s/, */${delimiter}/g" \
@@ -228,7 +228,7 @@ normalize_vars() {
       -e "s/  */${delimiter}/g"
   )"
 
-  #@ Surround with delimiter to simplify 'none' detection
+  #~@ Surround with delimiter to simplify 'none' detection
   case "${delimiter}${vars}${delimiter}" in
   *"none"*) return ;; #? If 'none' is found, do not print anything
   *) printf "%s" "${vars:-}" ;;
@@ -279,11 +279,11 @@ check_gui_env() {
 }
 
 editor__pout() {
-  #@ Set defaults
+  #~@ Set defaults
   msg="" tag="" pad_lvl=0
   pad_size=${tab_size:-0}
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     -h | --help) editor__pout_help ;;
@@ -336,10 +336,10 @@ editor__pout() {
   pad="$(printf "%${pad_size}s" "")"
   # echo "LVL: $pad_lvl" "SIZE: $pad_size"
 
-  #@ Return if there is no message
+  #~@ Return if there is no message
   if [ -z "${msg:-}" ]; then return; fi
 
-  #@ Print the message
+  #~@ Print the message
   if [ -z "${tag:-}" ]; then
     printf "%s%b" "${pad}" "${msg}"
     :

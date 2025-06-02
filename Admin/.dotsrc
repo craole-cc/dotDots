@@ -7,7 +7,7 @@
 #   var_value="$(eval "printf \"\${${var_name}}\"")"
 #   default_value="$2"
 
-#   #@ Set and export variable
+#   #~@ Set and export variable
 #   eval "${var_name}=\"\${${var_name}:-${default_value}}\""
 #   export "${var_name}"
 

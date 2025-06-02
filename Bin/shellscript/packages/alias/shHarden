@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #/> Script Entry-point                              <\
-main() { #@ Run the application
+main() { #~@ Run the application
   #> Initialization
   init_metadata
   parse_arguments "$@"
@@ -14,7 +14,7 @@ main() { #@ Run the application
 }
 
 #/> Initialization                                  <\
-init_metadata() { #@ Initalize bin_name metadata
+init_metadata() { #~@ Initalize bin_name metadata
   required_arg="shellscript binary file"
   SCRIPT_NAME="$(basename "$0")"
   SCRIPT_VERSION="1.0.0"
@@ -23,36 +23,36 @@ init_metadata() { #@ Initalize bin_name metadata
   SCRIPT_DESCRIPTION="allows the user to specify a binary bin_name to check with shellharden"
 }
 
-parse_arguments() { #@ Parse command-line arguments
+parse_arguments() { #~@ Parse command-line arguments
   # echo "1: $1"
 
   while [ "$#" -gt 0 ]; do
     case $1 in
-      -h | --help)
-        display_info --usage
-        exit 0
-        ;;
-      -v | --version)
-        display_info --version
-        exit 0
-        ;;
-      -b | --bin | -p | --path)
-        binary="$2"
-        shift
-        ;;
-      --suggest | --syntax | --transform | --check | --replace)
-        shellharden_opt="$1"
-        ;;
-      *) binary="$1" ;;
+    -h | --help)
+      display_info --usage
+      exit 0
+      ;;
+    -v | --version)
+      display_info --version
+      exit 0
+      ;;
+    -b | --bin | -p | --path)
+      binary="$2"
+      shift
+      ;;
+    --suggest | --syntax | --transform | --check | --replace)
+      shellharden_opt="$1"
+      ;;
+    *) binary="$1" ;;
     esac
     shift
   done
 }
 
 #/> Validation                                      <\
-validate_environment() { #@ Run various validation checks
+validate_environment() { #~@ Run various validation checks
 
-  #@ Check if a path is provided as an argument
+  #~@ Check if a path is provided as an argument
   if [ "$binary" ]; then
     binary="$(pathof "$binary")"
   else
@@ -63,11 +63,11 @@ validate_environment() { #@ Run various validation checks
 }
 
 #/> Execution                                       <\
-run_process() { #@ Lint with Shellharden
+run_process() { #~@ Lint with Shellharden
 
   if
-    ! shellharden --check "$binary" \
-      && [ "$shellharden_opt" = "--replace" ]
+    ! shellharden --check "$binary" &&
+      [ "$shellharden_opt" = "--replace" ]
   then
     cp --backup=numbered "$binary" "$binary".bac || {
       display_info --error-bac "$binary"
@@ -86,29 +86,29 @@ run_process() { #@ Lint with Shellharden
 }
 
 #/> Output Management                               <\
-display_info() { #@ Display infoirmation
+display_info() { #~@ Display infoirmation
   case "$1" in
-    --error-arg)
-      printf "%s required \nUsage: %s\n" \
-        "$required_arg" "$SCRIPT_USAGE"
-      ;;
-    --error-bac)
-      printf "Failed to archive file\n"
-      ;;
-    --output)
-      # if [ "$shellharden_opt" ]; then
-      #   printf "%s via %s\n" "$binary" "$shellharden_opt"
-      # else
-      #   printf "%s\n" "$binary"
-      # fi
-      printf "%s\n" "$binary_harden"
+  --error-arg)
+    printf "%s required \nUsage: %s\n" \
+      "$required_arg" "$SCRIPT_USAGE"
+    ;;
+  --error-bac)
+    printf "Failed to archive file\n"
+    ;;
+  --output)
+    # if [ "$shellharden_opt" ]; then
+    #   printf "%s via %s\n" "$binary" "$shellharden_opt"
+    # else
+    #   printf "%s\n" "$binary"
+    # fi
+    printf "%s\n" "$binary_harden"
 
-      ;;
-    --version)
-      printf "%s" "$SCRIPT_VERSION"
-      ;;
-    --usage)
-      cat << USAGE
+    ;;
+  --version)
+    printf "%s" "$SCRIPT_VERSION"
+    ;;
+  --usage)
+    cat <<USAGE
 Debin_nameion:
 '$SCRIPT_NAME' by $SCRIPT_AUTHOR $SCRIPT_DESCRIPTION
 
@@ -139,8 +139,8 @@ Examples:
 
 For more information on the available options, see the shellharden documentation.
 USAGE
-      ;;
-    *) printf "%s\n" "$*" ;;
+    ;;
+  *) printf "%s\n" "$*" ;;
   esac
 }
 

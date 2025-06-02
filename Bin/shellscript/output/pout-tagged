@@ -1,0 +1,105 @@
+#!/bin/sh
+
+#DOC Print tagged output with context, tag, and message formatting.
+#DOC
+#DOC Description:
+#DOC   Outputs formatted messages with context and tag information.
+#DOC   Handles multi-line messages and provides consistent formatting.
+#DOC
+#DOC Arguments:
+#DOC   --ctx CONTEXT    The context/function name for the message
+#DOC   --tag TAG        The message tag (ERROR, WARN, INFO, DEBUG, etc.)
+#DOC   --msg MESSAGE    The message content to display
+#DOC
+#DOC Examples:
+#DOC   pout_tagged --ctx "locate_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
+#DOC   pout_tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
+
+#~@ Set a safe delimiter (ASCII Unit Separator)
+: "${DELIMITER:="$(printf "\037")"}"
+
+#~@ Initialize with defaults
+ctx=""
+tag=""
+msg=""
+
+#~@ Parse named arguments
+while [ $# -gt 0 ]; do
+  case "${1}" in
+  --ctx)
+    if [ $# -gt 1 ]; then
+      ctx="$2"
+      shift
+    else
+      printf "Error: Missing value for --ctx\n" >&2
+      return 1
+    fi
+    ;;
+  --tag)
+    if [ $# -gt 1 ]; then
+      tag="$2"
+      shift
+    else
+      printf "Error: Missing value for --tag\n" >&2
+      return 1
+    fi
+    ;;
+  --msg)
+    if [ $# -gt 1 ]; then
+      msg="$2"
+      shift
+    else
+      printf "Error: Missing value for --msg\n" >&2
+      return 1
+    fi
+    ;;
+  --ctx=*)
+    ctx="${1#--ctx=}"
+    ;;
+  --tag=*)
+    tag="${1#--tag=}"
+    ;;
+  --msg=*)
+    msg="${1#--msg=}"
+    ;;
+  --)
+    #~@ End of options, remaining args become message
+    shift
+    msg="$*"
+    break
+    ;;
+  --*)
+    #~@ Unknown option, ignore
+    ;;
+  *)
+    #~@ If no explicit --msg flag, treat remaining args as message
+    if [ -z "${msg}" ]; then
+      msg="$*"
+      break
+    fi
+    ;;
+  esac
+  shift
+done
+
+#~@ Return early if no message is provided
+if [ -z "${msg}" ]; then
+  return 0
+fi
+
+#~@ Fallback to context variables if not set
+if [ -z "${ctx}" ]; then ctx="${fn_name:-}"; fi
+if [ -z "${ctx}" ]; then ctx="${scr_name:-}"; fi
+if [ -z "${ctx}" ]; then ctx="${scr_path:-}"; fi
+if [ -z "${ctx}" ]; then ctx="script"; fi
+
+#~@ Default tag to DEBUG if not provided
+if [ -z "${tag}" ]; then tag="DEBUG"; fi
+tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
+
+#~@ Default separators
+: "${tag_head_sep:=" >>= "}"
+: "${tag_tail_sep:=" =<< "}"
+
+#~@ Format and print the message
+printf "\n%s%s%s%s%s\n" "${tag_head_sep}" "${tag}" "${tag_tail_sep}" "${ctx}" "${msg}"

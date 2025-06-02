@@ -15,13 +15,13 @@
 
 #region Configuration
 
-#@ Default path separators
+#~@ Default path separators
 $script:PathSeparators = @{
     Windows = '\'
     POSIX   = '/'
 }
 
-#@ Path normalization patterns
+#~@ Path normalization patterns
 $script:PathPatterns = @{
     UNCPrefix     = '^//'
     MultipleSlash = '/+'
@@ -50,19 +50,19 @@ function Format-PathPOSIX {
 
     process {
         try {
-            #@ Get full path and normalize slashes
+            #~@ Get full path and normalize slashes
             $fullPath = [System.IO.Path]::GetFullPath($Path)
             $posixPath = $fullPath.Replace(
                 $script:PathSeparators.Windows,
                 $script:PathSeparators.POSIX
             )
 
-            #@ Handle UNC paths specially
+            #~@ Handle UNC paths specially
             if ($posixPath -match $script:PathPatterns.UNCPrefix) {
                 return $posixPath -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX
             }
 
-            #@ Return normalized path
+            #~@ Return normalized path
             return $posixPath
         }
         catch {
@@ -95,12 +95,12 @@ function Resolve-PathPOSIX {
                 $posixPath = $item.Path -replace $script:PathPatterns.BackToForward, $script:PathSeparators.POSIX
 
                 if ($posixPath -match $script:PathPatterns.UNCPrefix) {
-                    #@ Preserve UNC prefix
+                    #~@ Preserve UNC prefix
                     $posixPath = ($posixPath.Substring(0, 2)) +
                                 ($posixPath.Substring(2) -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX)
                 }
                 else {
-                    #@ Normalize other paths
+                    #~@ Normalize other paths
                     $posixPath = $posixPath -replace "([^:]/)/+", '$1'
                 }
 

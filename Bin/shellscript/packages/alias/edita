@@ -14,7 +14,7 @@ main() {
 }
 
 set_defaults() {
-  #@ Enable strict error handling.
+  #~@ Enable strict error handling.
   set -eu
 
   debug=0
@@ -26,7 +26,7 @@ set_defaults() {
 }
 
 set_editor_cmd() {
-  #@ Define editor variables
+  #~@ Define editor variables
   case "${editor:-}" in
   zed*) ;;
   helix*)
@@ -45,7 +45,7 @@ set_editor_cmd() {
   esac
   pout_debug "Attempting to set editor command for" "${editor_name}"
 
-  #@ Check for the first available command
+  #~@ Check for the first available command
   for cmd in ${editor_cmds:-}; do
     pout_debug "Checking for" "${cmd:-}"
     if command -v "${cmd:-}" >/dev/null 2>&1; then
@@ -56,7 +56,7 @@ set_editor_cmd() {
       return 0
     fi
 
-    #@ Define nix package and command variables
+    #~@ Define nix package and command variables
     #TODO: Define flatpak packages and commands
     case "${cmd:-}" in
     hx) nix_pkg="helix" nix_cmd="${cmd}" ;;
@@ -65,15 +65,15 @@ set_editor_cmd() {
     *) nix_pkg="" nix_cmd="" ;;
     esac
 
-    #@ Try using nix to get the command
+    #~@ Try using nix to get the command
     case "$(nix_check)" in
     flake | develop | shell)
       echo "Pkgs: ${nix_pkg:-}"
       if [ -n "${nix_pkg:-}" ]; then
-        #@ Allow non-free packages
+        #~@ Allow non-free packages
         export NIXPKGS_ALLOW_UNFREE=1
 
-        #@ Define commands for develop vs shell
+        #~@ Define commands for develop vs shell
         case "$(nix_check)" in
         flake | develop)
           nix_pkg="nixpkgs#${nix_pkg}"
@@ -107,7 +107,7 @@ set_editor_cmd() {
       fi
       ;;
     *)
-      #@ Try Flatpak if available.
+      #~@ Try Flatpak if available.
       # pout_debug "Checking for VS Code in Flatpak"
       # if command -v flatpak >/dev/null 2>&1; then
       #   if flatpak info com.visualstudio.code >/dev/null 2>&1; then
@@ -187,7 +187,7 @@ initialize_pout() {
 }
 
 parse_arguments() {
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ "$#" -gt 0 ]; do
     case "${1:-}" in
     -h | --help)
@@ -221,17 +221,17 @@ parse_arguments() {
     shift
   done
 
-  #@ Set args to the current directory if no arguments are provided
+  #~@ Set args to the current directory if no arguments are provided
   if [ -z "${args:-}" ]; then
     args="$(pwd)"
   fi
 }
 
 execute_process() {
-  #@ Set the editor command
+  #~@ Set the editor command
   set_editor_cmd
 
-  #@ Launch the editor, if one was found
+  #~@ Launch the editor, if one was found
   if [ -n "${editor_cmd:-}" ]; then
     case "${debug:-0}" in
     0 | '' | off | false) eval "${editor_cmd}" ;;
@@ -244,7 +244,7 @@ execute_process() {
 }
 
 cleanup() {
-  #@ Unset all variables to prevent leakage
+  #~@ Unset all variables to prevent leakage
   unset editor editor_cmd args
 }
 

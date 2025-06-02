@@ -2,11 +2,11 @@
 # shellcheck enable=all
 # shellcheck disable=SC1090,SC2139,SC2163
 
-#@ Set defaults
+#~@ Set defaults
 debug=true
 init_time="$(date +%s%3N)"
 
-#@ Define debugging functions
+#~@ Define debugging functions
 timestamp() {
   date +%s%3N
 }
@@ -17,11 +17,11 @@ init_dir() {
   var_value="$(eval "printf \"\${${var_name}}\"")"
   default_value="$2"
 
-  #@ Set and export variable
+  #~@ Set and export variable
   eval "${var_name}=\"\${${var_name}:-${default_value}}\""
   export "${var_name}"
 
-  #@ Create aliases
+  #~@ Create aliases
   alias ".${var_name}"="cd \"\${${var_name}}\""
   alias "cd.${var_name}"="cd \"\${${var_name}}\""
   alias "ed.${var_name}"="ed \"\${${var_name}}\""
@@ -94,7 +94,7 @@ pout_env() {
   printf "%s => %s\n" "${var:?}" "${val:-}"
 }
 
-#@ Define top-level directories
+#~@ Define top-level directories
 for dir_def in \
   "DOTS_CFG:Configuration" \
   "DOTS_BIN:Bin" \
@@ -110,10 +110,10 @@ DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}" export DOTS_ENV
 DOTS_ENV_POSIX="${DOTS_ENV_POSIX:-"${DOTS_ENV}/posix"}" export DOTS_ENV_POSIX
 DOTS_ENV_POSIX_EXPORT="${DOTS_ENV_POSIX_EXPORT:-"${DOTS_ENV_POSIX}/export"}" export DOTS_ENV_POSIX_EXPORT
 
-#@ Define folder patterns to exclude
+#~@ Define folder patterns to exclude
 DOTS_EXCLUDE_PATTERNS='review|tmp|temp|archive|backup|template' export DOTS_EXCLUDE_PATTERNS
 
-#@ Identify environment files to load
+#~@ Identify environment files to load
 DELIMITER="$(printf "\037")"
 ifs=${IFS}
 envs=$(
@@ -126,7 +126,7 @@ envs=$(
     done
 )
 
-#@ Load environment files (excluding patterns)
+#~@ Load environment files (excluding patterns)
 count=0
 IFS="${DELIMITER}"
 for file in ${envs}; do
@@ -141,7 +141,7 @@ for file in ${envs}; do
 done
 IFS="${ifs}"
 
-#@ Launch shell-specific configuration
+#~@ Launch shell-specific configuration
 if [ -n "${BASH_VERSION:-}" ]; then
   SHELL_NAME="Bourne Again SHell"
   SHELL_TAG="bash"
@@ -150,7 +150,7 @@ elif [ -n "${ZSH_VERSION:-}" ]; then
   SHELL_TAG="zsh"
 fi
 
-#@ Load shell-specific configuration
+#~@ Load shell-specific configuration
 SHELL_HOME="${DOTS_CFG}/${SHELL_TAG}" export SHELL_HOME
 SHELL_RC="${SHELL_HOME}/config.${SHELL_TAG}" export SHELL_RC
 if [ -f "${SHELL_RC}" ]; then

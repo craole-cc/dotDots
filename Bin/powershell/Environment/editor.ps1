@@ -1,34 +1,34 @@
-#@ PowerShell Editor Selection Script
+#~@ PowerShell Editor Selection Script
 #@
-#@ DESCRIPTION:
-#@   Intelligent cross-platform editor selection and launching system for PowerShell.
-#@   Automatically detects GUI/TUI environments and selects the best available editor
-#@   from configurable preference lists.
+#~@ DESCRIPTION:
+#~@   Intelligent cross-platform editor selection and launching system for PowerShell.
+#~@   Automatically detects GUI/TUI environments and selects the best available editor
+#~@   from configurable preference lists.
 #@
-#@ DEPENDENCIES:
-#@   - Write-Pretty function (required for output formatting)
+#~@ DEPENDENCIES:
+#~@   - Write-Pretty function (required for output formatting)
 #@
-#@ USAGE:
-#@   . .\editor-script.ps1    # Dot-source to load functions and aliases
+#~@ USAGE:
+#~@   . .\editor-script.ps1    # Dot-source to load functions and aliases
 #@
-#@   Get-Editor               # Get current preferred editor
-#@   Set-Editor code          # Set specific editor
-#@   edit                      # Launch editor in current directory
-#@   edit myfile.txt           # Launch editor with specific file
-#@   Show-EditorConfig        # Display configuration and available editors
+#~@   Get-Editor               # Get current preferred editor
+#~@   Set-Editor code          # Set specific editor
+#~@   edit                      # Launch editor in current directory
+#~@   edit myfile.txt           # Launch editor with specific file
+#~@   Show-EditorConfig        # Display configuration and available editors
 #@
-#@ ENVIRONMENT VARIABLES (optional):
-#@   EDITOR_GUI     - Preferred GUI editors (e.g., "code|zed|sublime_text")
-#@   EDITOR_TUI     - Preferred TUI editors (e.g., "hx|nvim|vim")
-#@   VISUAL         - Standard *nix GUI editor variable
-#@   EDITOR         - Standard *nix TUI editor variable
+#~@ ENVIRONMENT VARIABLES (optional):
+#~@   EDITOR_GUI     - Preferred GUI editors (e.g., "code|zed|sublime_text")
+#~@   EDITOR_TUI     - Preferred TUI editors (e.g., "hx|nvim|vim")
+#~@   VISUAL         - Standard *nix GUI editor variable
+#~@   EDITOR         - Standard *nix TUI editor variable
 #@
-#@ EXPORTED FUNCTIONS:
-#@   Get-Editor, Set-Editor, Get-PreferredEditor, Set-PreferredEditor,
-#@   Invoke-Editor, Show-EditorConfig, Set-EditorPreference, Test-GuiEnvironment
+#~@ EXPORTED FUNCTIONS:
+#~@   Get-Editor, Set-Editor, Get-PreferredEditor, Set-PreferredEditor,
+#~@   Invoke-Editor, Show-EditorConfig, Set-EditorPreference, Test-GuiEnvironment
 #@
-#@ EXPORTED ALIASES:
-#@   edit -> Invoke-Editor
+#~@ EXPORTED ALIASES:
+#~@   edit -> Invoke-Editor
 
 #region Editor Configuration
 $EditorConfig = @{
@@ -136,7 +136,7 @@ function Get-AvailableEditor {
     [switch]$ReturnPath
   )
 
-  #@ Ensure we have something to check
+  #~@ Ensure we have something to check
   if (-not $EditorList -or $EditorList.Length -eq 0) {
     if (Test-GuiEnvironment) {
       $EditorList = $EditorConfig.DefaultGuiEditors + $EditorConfig.DefaultTuiEditors
@@ -149,28 +149,28 @@ function Get-AvailableEditor {
     "Checking for the first available of the following $($EditorList.Count) editors " `
     "$($EditorList -join ", ")"
 
-  #@ Try to find the first available editor
+  #~@ Try to find the first available editor
   foreach ($editor in $EditorList) {
-    #@ Skip empty strings
+    #~@ Skip empty strings
     if ([string]::IsNullOrWhiteSpace($editor)) { continue }
     $editorIndex = $EditorList.IndexOf($editor)
     $editorIndexStr = & Get-OrdinalString ($editorIndex + 1)
 
-    #@ Try to resolve the command of the editor
+    #~@ Try to resolve the command of the editor
     $command = Get-CommandFirst -Name $editor -VerifyExecutable
     if ($command) {
       Write-Pretty -Tag "Debug" -Scope "Name" `
         "Found the $editorIndexStr listed editor, '${editor}'." `
         "$($command.Name)" "$($command.Source)"
 
-      #@ Break the loop, returning the ediror path, if requested
+      #~@ Break the loop, returning the ediror path, if requested
       if ($ReturnPath) { return $command.Source } else { return $command.Name }
     }
     else {
       Write-Pretty -Tag "Verbose" -Scope "Name" -OneLine `
         "Failed to resolve editor: $editor"
 
-      #@ Check the next editor in the list
+      #~@ Check the next editor in the list
       continue
     }
   }
@@ -271,12 +271,12 @@ function Get-PreferredEditor {
     [switch]$Force
   )
 
-  #@ Return cached editor if available and not forcing re-evaluation
+  #~@ Return cached editor if available and not forcing re-evaluation
   if (-not $Force -and $EditorConfig.CurrentEditor -and -not $ReturnPath) {
     return $EditorConfig.CurrentEditor
   }
 
-  #@ Get TUI editors from various sources (priority order)
+  #~@ Get TUI editors from various sources (priority order)
   $tuiEditors = if ($CustomTuiEditors) {
     Split-EditorString $CustomTuiEditors
   }
@@ -290,7 +290,7 @@ function Get-PreferredEditor {
     $EditorConfig.DefaultTuiEditors
   }
 
-  #@ Get GUI editors from various sources (priority order)
+  #~@ Get GUI editors from various sources (priority order)
   $guiEditors = if ($CustomGuiEditors) {
     Split-EditorString $CustomGuiEditors
   }
@@ -769,7 +769,7 @@ function Export-EditorVariables {
         "VISUAL => $editorToUse "
     }
     else {
-      #@ Clear VISUAL in TUI-only environments
+      #~@ Clear VISUAL in TUI-only environments
       Write-Pretty -Tag "Verbose" -Scope "Name"  "Removed VISUAL (TUI-only environment)"
       if ($Scope -eq 'Process') {
         Remove-Item "env:VISUAL" -ErrorAction SilentlyContinue
@@ -787,10 +787,10 @@ function Export-EditorVariables {
   # $hasGui = Test-GuiEnvironment
 
   # if ($hasGui) {
-  #   #@ In GUI environment: Set both EDITOR and VISUAL to same GUI editor
+  #   #~@ In GUI environment: Set both EDITOR and VISUAL to same GUI editor
   #   if ($GuiEditor) { $editorToUse = $GuiEditor }
   #   else {
-  #     #@ Get best available GUI editor (only search once)
+  #     #~@ Get best available GUI editor (only search once)
   #     if ($env:EDITOR_GUI) {
   #       Split-EditorString $env:EDITOR_GUI
   #       $editorToUse = Get-AvailableEditor -EditorList $(Split-EditorString $env:EDITOR_GUI)
@@ -801,7 +801,7 @@ function Export-EditorVariables {
   #   }
 
   #   if ($editorToUse) {
-  #     #@ Set both to the same GUI editor
+  #     #~@ Set both to the same GUI editor
   #     if ($Scope -eq 'Process') {
   #       $env:EDITOR = $editorToUse
   #       $env:VISUAL = $editorToUse
@@ -819,10 +819,10 @@ function Export-EditorVariables {
   #   }
   # }
   # else {
-  #   #@ In TUI-only environment: Set only EDITOR to best TUI editor
+  #   #~@ In TUI-only environment: Set only EDITOR to best TUI editor
   #   $tuiEditorToUse = if ($TuiEditor) { $TuiEditor }
   #   else {
-  #     #@ Get best available TUI editor
+  #     #~@ Get best available TUI editor
   #     $tuiEditors = if ($env:EDITOR_TUI) {
   #       Split-EditorString $env:EDITOR_TUI
   #     }
@@ -843,7 +843,7 @@ function Export-EditorVariables {
   #     Write-Pretty -Tag "Debug" -Scope "Name"  "EDITOR => $editorToUse"
   #   }
   #   else {
-  #     #@ Fallback to universal editor
+  #     #~@ Fallback to universal editor
   #     $fallbackEditor = if ($IsWindows -or $env:OS -like "*Windows*") { 'notepad' } else { 'nano' }
   #     if ($Scope -eq 'Process') {
   #       $env:EDITOR = $fallbackEditor
@@ -891,10 +891,10 @@ function Initialize-EditorEnvironment {
     [switch]$Force
   )
 
-  #@ Initialize editor selection
+  #~@ Initialize editor selection
   $EditorConfig.CurrentEditor = Get-PreferredEditor -Force $Force
 
-  #@ Export standard environment variables
+  #~@ Export standard environment variables
   Export-EditorVariables -Scope $ExportScope
 
   Write-Pretty -Tag "Verbose" -Scope "Name" "Editor environment initialized successfully"

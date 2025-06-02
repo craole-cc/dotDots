@@ -17,7 +17,7 @@ fi
 rustup --version >/dev/null 2>&1 &&
   rustup completions bash >"${SHELL_HOME:?}/scripts/rustup.bash"
 
-#@ Use bash-completion, if available
+#~@ Use bash-completion, if available
 shopt -oq posix || {
   # shellcheck disable=SC1090
   [[ -n "${PS1}" ]] && [[ -f "${BASH_COMPLETION}" ]] && . "${BASH_COMPLETION}"

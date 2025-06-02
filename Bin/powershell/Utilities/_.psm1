@@ -1,7 +1,7 @@
-#@ Load functions
+#~@ Load functions
 . $PSScriptRoot/module.ps1
 
-#@ Run tests
+#~@ Run tests
 # Test-GetContext
 # Test-WriteOutput
 # Test-InvokeProcess

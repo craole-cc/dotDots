@@ -5,15 +5,15 @@ get_kde_wallpaper() {
   config_file="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
   if [ -f "$config_file" ]; then
 
-    #@ Extract the wallpaper directory
+    #~@ Extract the wallpaper directory
     wallpaper_dir=$(
-      grep 'Image=' "$config_file" \
-        | head -n 1 | cut -d'=' -f2 | sed 's|file://||'
+      grep 'Image=' "$config_file" |
+        head -n 1 | cut -d'=' -f2 | sed 's|file://||'
     )
 
-    #@ Check if contents/images exists and list files
+    #~@ Check if contents/images exists and list files
     if [ -d "$wallpaper_dir/contents/images" ]; then
-      #@ Find the highest resolution image file
+      #~@ Find the highest resolution image file
       find "$wallpaper_dir/contents/images" -type f | sort -V | tail -n 1
     else
       printf "Wallpaper directory does not contain 'contents/images'."
@@ -25,7 +25,7 @@ get_kde_wallpaper() {
 
 #| Function to get wallpaper from GNOME
 get_gnome_wallpaper() {
-  gsettings get org.gnome.desktop.background picture-uri 2> /dev/null | sed 's|file://||;s|"||g'
+  gsettings get org.gnome.desktop.background picture-uri 2>/dev/null | sed 's|file://||;s|"||g'
 }
 
 #| Function to get wallpaper from XFCE
@@ -55,35 +55,35 @@ get_i3_wallpaper() {
 main() {
   wallpaper=""
 
-  #@ Check KDE Plasma
+  #~@ Check KDE Plasma
   wallpaper=$(get_kde_wallpaper)
   [ -n "$wallpaper" ] && {
     echo "KDE Plasma Wallpaper: $wallpaper"
     exit 0
   }
 
-  #@ Check GNOME
+  #~@ Check GNOME
   wallpaper=$(get_gnome_wallpaper)
   [ -n "$wallpaper" ] && {
     echo "GNOME Wallpaper: $wallpaper"
     exit 0
   }
 
-  #@ Check XFCE
+  #~@ Check XFCE
   wallpaper=$(get_xfce_wallpaper)
   [ -n "$wallpaper" ] && {
     echo "XFCE Wallpaper: $wallpaper"
     exit 0
   }
 
-  #@ Check LXDE
+  #~@ Check LXDE
   wallpaper=$(get_lxde_wallpaper)
   [ -n "$wallpaper" ] && {
     echo "LXDE Wallpaper: $wallpaper"
     exit 0
   }
 
-  #@ Check i3 (Regolith)
+  #~@ Check i3 (Regolith)
   wallpaper=$(get_i3_wallpaper)
   [ -n "$wallpaper" ] && {
     echo "i3/Regolith Wallpaper: $wallpaper"

@@ -25,7 +25,7 @@ main() {
 }
 
 set_defaults() {
-  #@ Enable strict error handling.
+  #~@ Enable strict error handling.
   set -eu
 
   debug=0
@@ -45,7 +45,7 @@ pout_debug() {
 }
 
 parse_arguments() {
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ "$#" -gt 0 ]; do
     case "${1:-}" in
     -h | --help)
@@ -80,12 +80,12 @@ parse_arguments() {
     shift
   done
 
-  #@ Add the path to the argumments
+  #~@ Add the path to the argumments
   args="${args}${args:+${delimiter}}${project}"
 }
 
 execute_process() {
-  #@ Set the editor command
+  #~@ Set the editor command
   case "${editor:-}" in
   zed*) build_zed_cmd ;;
   helix*) build_helix_cmd ;;
@@ -99,7 +99,7 @@ execute_process() {
     fi
     ;;
   esac
-  #@ Launch the editor, if one was found
+  #~@ Launch the editor, if one was found
   if [ -n "${editor_cmd:-}" ]; then
     case "${debug:-0}" in
     0 | '' | off | false) eval "${editor_cmd}" ;;
@@ -152,7 +152,7 @@ nix_run() {
 }
 
 build_vscode_ext() {
-  #@ Get extension list based on language
+  #~@ Get extension list based on language
   case "${1:-}" in
   "dots")
     extensions="${dots_vscode_ext:-"
@@ -182,15 +182,15 @@ build_vscode_ext() {
     ;;
   esac
 
-  #@ Initialize empty string for extension arguments
+  #~@ Initialize empty string for extension arguments
   ext_string=""
 
-  #@ Convert extension list to command arguments
+  #~@ Convert extension list to command arguments
   for ext in ${extensions}; do
     [ -n "${ext}" ] && ext_string="${ext_string:+${ext_string} }--update-extensions ${ext}"
   done
 
-  #@ Return the built string
+  #~@ Return the built string
   printf "%s" "${ext_string}"
 }
 
@@ -198,7 +198,7 @@ build_vscode_cmd() {
   editor_cmd="Visual Studio Code"
   pout_debug "Building command for ${editor_cmd}"
 
-  #@ Collect language extensions
+  #~@ Collect language extensions
   if [ -n "${language:-}" ]; then
     pout_debug "Language: ${language}"
     # lang_args="$(build_vscode_ext "${language}")"
@@ -207,10 +207,10 @@ build_vscode_cmd() {
     lang_args=""
   fi
 
-  #@ Add language extensions to the arguments
+  #~@ Add language extensions to the arguments
   args="${lang_args:-}${lang_args:+ }${args}"
 
-  #@ Check for the first available command
+  #~@ Check for the first available command
   for cmd in code-insiders code code-oss codium; do
     pout_debug "Checking for" "${cmd:-}"
     if command -v "${cmd:-}" >/dev/null 2>&1; then
@@ -221,22 +221,22 @@ build_vscode_cmd() {
       return 0
     fi
 
-    #@ Define nix package and command variables
+    #~@ Define nix package and command variables
     case "${cmd:-}" in
     code) nix_pkg="vscode-fhs" nix_cmd="${cmd}" ;;
     codium) nix_pkg="vscodium-fhs" nix_cmd="${cmd}" ;;
     *) nix_pkg="" nix_cmd="" ;;
     esac
 
-    #@ Try using nix to get the command
+    #~@ Try using nix to get the command
     case "$(nix_check)" in
     flake | develop | shell)
       echo "Pkgs: ${nix_pkg:-}"
       if [ -n "${nix_pkg:-}" ]; then
-        #@ Allow non-free packages
+        #~@ Allow non-free packages
         export NIXPKGS_ALLOW_UNFREE=1
 
-        #@ Define commands for develop vs shell
+        #~@ Define commands for develop vs shell
         case "$(nix_check)" in
         flake | develop)
           nix_pkg="nixpkgs#${nix_pkg}"
@@ -270,7 +270,7 @@ build_vscode_cmd() {
       fi
       ;;
     *)
-      #@ Try Flatpak if available.
+      #~@ Try Flatpak if available.
       # pout_debug "Checking for VS Code in Flatpak"
       # if command -v flatpak >/dev/null 2>&1; then
       #   if flatpak info com.visualstudio.code >/dev/null 2>&1; then
@@ -301,7 +301,7 @@ build_helix_cmd() {
   nix_pkg="helix"
   nix_cmd="hx"
 
-  #@ Check if the command is available locally
+  #~@ Check if the command is available locally
   if command -v "${cmd:-}" >/dev/null 2>&1; then
     editor_cmd="${cmd} ${args:-}"
     pout_debug "$(
@@ -310,12 +310,12 @@ build_helix_cmd() {
     return 0
   fi
 
-  #@ Try using nix to get the command
+  #~@ Try using nix to get the command
   case "$(nix_check)" in
   flake | develop | shell)
     echo "Pkgs: ${nix_pkg:-}"
     if [ -n "${nix_pkg:-}" ]; then
-      #@ Define commands for develop vs shell
+      #~@ Define commands for develop vs shell
       case "$(nix_check)" in
       flake | develop)
         nix_pkg="nixpkgs#${nix_pkg}"
@@ -347,7 +347,7 @@ build_helix_cmd() {
     fi
     ;;
   *)
-    #@ Try Flatpak if available.
+    #~@ Try Flatpak if available.
     # pout_debug "Checking for VS Code in Flatpak"
     # if command -v flatpak >/dev/null 2>&1; then
     #   if flatpak info com.visualstudio.code >/dev/null 2>&1; then
@@ -384,12 +384,12 @@ launch_zed() {
     fi
   done
 
-  #@ Try nix-shell if available and we're on a Nix system
+  #~@ Try nix-shell if available and we're on a Nix system
   #TODO: This function is invoked in an 'if' condition so set -e will be disabled. Invoke separately if failures should cause the script to exit.shellcheckSC2310
   if is_nix_system; then
     pout_debug "Checking for Zed in nix"
 
-    #@ Try zed-editor-fhs with zeditor command
+    #~@ Try zed-editor-fhs with zeditor command
     if nix-shell -p zed-editor-fhs --run "command -v zeditor" >/dev/null 2>&1; then
       pout_debug "Found zed-editor-fhs in nix"
       printf "Launching Zed through nix-shell\n"
@@ -397,7 +397,7 @@ launch_zed() {
       return 0
     fi
 
-    #@ Try zed package with zed command
+    #~@ Try zed package with zed command
     if nix-shell -p zed --run "command -v zed" >/dev/null 2>&1; then
       pout_debug "Found zed in nix"
       printf "Launching Zed through nix-shell\n"
@@ -406,11 +406,11 @@ launch_zed() {
     fi
   fi
 
-  #@ Try Flatpak if available.
+  #~@ Try Flatpak if available.
   pout_debug "Checking for Zed in Flatpak"
   if command -v flatpak >/dev/null 2>&1; then
 
-    #@ Try both potential Zed Flatpak IDs
+    #~@ Try both potential Zed Flatpak IDs
     for flat_id in dev.zed.Zed io.zed.Zed; do
       if flatpak info "${flat_id}" >/dev/null 2>&1; then
         pout_debug "Found Zed in Flatpak as ${flat_id}"
@@ -434,7 +434,7 @@ launch_helix() {
     return 0
   fi
 
-  #@ Try nix-shell if available and we're on a Nix system
+  #~@ Try nix-shell if available and we're on a Nix system
   if is_nix_system; then
     pout_debug "Checking for Helix in nix"
     if nix-shell -p helix --run "command -v hx" >/dev/null 2>&1; then
@@ -445,7 +445,7 @@ launch_helix() {
     fi
   fi
 
-  #@ Try Flatpak if available.
+  #~@ Try Flatpak if available.
   pout_debug "Checking for Helix in Flatpak"
   if command -v flatpak >/dev/null 2>&1 && flatpak info com.helix_editor.Helix >/dev/null 2>&1; then
     pout_debug "Found Helix in Flatpak"
@@ -469,7 +469,7 @@ launch_neovim() {
     return 0
   fi
 
-  #@ Try nix-shell if available and we're on a Nix system
+  #~@ Try nix-shell if available and we're on a Nix system
   if is_nix_system; then
     pout_debug "Checking for Neovim in nix"
     if nix-shell -p neovim --run "command -v nvim" >/dev/null 2>&1; then
@@ -480,7 +480,7 @@ launch_neovim() {
     fi
   fi
 
-  #@ Try Flatpak if available.
+  #~@ Try Flatpak if available.
   pout_debug "Checking for Neovim in Flatpak"
   if command -v flatpak >/dev/null 2>&1 && flatpak info io.neovim.nvim >/dev/null 2>&1; then
     pout_debug "Found Neovim in Flatpak"

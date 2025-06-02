@@ -5,25 +5,25 @@ main() {
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -s | -*s*) fetch=seconds ;;
-      -d | -*d*)
-        [ -n "$3" ] || {
-          printf "Error: Missing start and stop time\n" >&2
-          return 1
-        }
-        start_time="$2"
-        stop_time="$3"
-        fetch=duration
-        ;;
-      *) fetch=timestamp ;;
+    -s | -*s*) fetch=seconds ;;
+    -d | -*d*)
+      [ -n "$3" ] || {
+        printf "Error: Missing start and stop time\n" >&2
+        return 1
+      }
+      start_time="$2"
+      stop_time="$3"
+      fetch=duration
+      ;;
+    *) fetch=timestamp ;;
     esac
     shift
   done
 
   case "$fetch" in
-    seconds) fetch_seconds ;;
-    duration) fetch_duration --start "$start_time" --stop "$stop_time" ;;
-    *) fetch_timestamp ;;
+  seconds) fetch_seconds ;;
+  duration) fetch_duration --start "$start_time" --stop "$stop_time" ;;
+  *) fetch_timestamp ;;
   esac
 }
 
@@ -42,7 +42,7 @@ cache_time_commands() {
   #DOC   weHave_python
   #DOC   weHave_php
   #DOC   weHave_node
-  date +"%T.%N" > /dev/null 2>&1 && weHave_date=true
+  date +"%T.%N" >/dev/null 2>&1 && weHave_date=true
   weHave gdate && weHave_gdate=true
   weHave perl && weHave_perl=true
   weHave pwsh && weHave_pwsh=true
@@ -64,11 +64,11 @@ fetch_timestamp() {
   #DOC Example:
   #DOC   timestamp=$(fetch_timestamp)
 
-  #@ Ensure the timestamp is unset
+  #~@ Ensure the timestamp is unset
   unset timestamp
 
-  #@ Attempt to capture the timestamp
-  if command -v date > /dev/null 2>&1; then
+  #~@ Attempt to capture the timestamp
+  if command -v date >/dev/null 2>&1; then
     timestamp="$(date "+%Y-%m-%d %H:%M:%S")"
   elif [ "$weHave_date" ]; then
     timestamp="$(date "+%Y-%m-%d %H:%M:%S")"
@@ -94,10 +94,10 @@ fetch_timestamp() {
     timestamp="$(php -r 'echo date("Y-m-d H:i:s");')"
   fi
 
-  #@ Validate and return the timestamp
+  #~@ Validate and return the timestamp
   if
-    printf "%s" "$timestamp" \
-      | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$'
+    printf "%s" "$timestamp" |
+      grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$'
   then
     printf "%s" "$timestamp"
   else
@@ -137,19 +137,19 @@ fetch_seconds() {
   elif [ "$weHave_node" ]; then
     seconds="$(node -e 'console.log(Date.now()/1000)')"
   else
-    #@ Fallback to basic second precision BSD/macOS with
+    #~@ Fallback to basic second precision BSD/macOS with
     seconds="$(date +%s)"
   fi
 
-  #@ Validate output is numeric and non-empty
+  #~@ Validate output is numeric and non-empty
   case "$seconds" in
-    '' | *[!0-9.]*)
-      printf "Error: Failed to get valid timestamp\n" >&2
-      return 1
-      ;;
-    *)
-      printf "%s" "$seconds"
-      ;;
+  '' | *[!0-9.]*)
+    printf "Error: Failed to get valid timestamp\n" >&2
+    return 1
+    ;;
+  *)
+    printf "%s" "$seconds"
+    ;;
   esac
 
 }
@@ -179,38 +179,38 @@ fetch_duration() {
 
   unset start stop duration
 
-  #@ Parse arguments for start and stop times
+  #~@ Parse arguments for start and stop times
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --start) [ "$2" ] && {
-        start="$2"
-        shift
-      } ;;
-      --stop) [ "$2" ] && {
-        stop="$2"
-        shift
-      } ;;
+    --start) [ "$2" ] && {
+      start="$2"
+      shift
+    } ;;
+    --stop) [ "$2" ] && {
+      stop="$2"
+      shift
+    } ;;
     esac
     shift
   done
 
-  #@ Validate inputs exist
+  #~@ Validate inputs exist
   if [ -z "$start" ] || [ -z "$stop" ]; then
     printf "ERROR: Both --start and --stop times are required\n" >&2
     return 1
   fi
 
-  #@ Calculate the duration
+  #~@ Calculate the duration
   duration=$(awk "BEGIN {print $stop - $start}")
 
-  #@ Validate duration calculation
+  #~@ Validate duration calculation
   [ "$duration" ] || {
-    [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] \
-      && printf "Error: Failed to calculate duration\n" >&2
+    [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
+      printf "Error: Failed to calculate duration\n" >&2
     return 1
   }
 
-  #@ Format the duration using awk for floating point comparisons
+  #~@ Format the duration using awk for floating point comparisons
   if [ "$(awk "BEGIN {print ($duration < 1)}")" -eq 1 ]; then
     milliseconds=$(awk "BEGIN {print $duration * 1000}")
     printf "%.3f milliseconds\n" "$milliseconds"

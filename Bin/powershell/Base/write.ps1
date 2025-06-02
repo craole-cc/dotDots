@@ -106,7 +106,7 @@ function Write-Pretty {
         [string[]]$Messages
     )
 
-    #@ Normalize and compare verbosity levels
+    #~@ Normalize and compare verbosity levels
     $verbosityLevel = Set-Verbosity $Verbosity
     $maxLevel = Set-Verbosity $MaxVerbosity
     $verbosityNum = Get-VerbosityNumeric $verbosityLevel
@@ -140,11 +140,11 @@ function Write-Pretty {
         }
     }
     elseif ($Duration -and $Duration -match '^\d+(\.\d+)?$') {
-        #@ If Duration is just a number, format it
+        #~@ If Duration is just a number, format it
         $Duration = " $(Format-Duration -Duration $Duration -Format Compact -IncludeIcon)"
     }
     elseif ($Duration) {
-        #@ If Duration is already formatted, just add a space prefix
+        #~@ If Duration is already formatted, just add a space prefix
         $Duration = " $Duration"
     }
 
@@ -170,12 +170,12 @@ function Write-Pretty {
         "${TagHead}${ctx}${Duration}${TagTail}"
     }
 
-    #@ Message formatting
+    #~@ Message formatting
     if ($NoNewLine) { $Delimiter = ' ' }
     $message = $Delimiter + ($Messages -join $Delimiter)
     if ($Delimiter -match '\r?\n') { $message += "`n" }
 
-    #@ Color selection
+    #~@ Color selection
     $color = if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
         $ForegroundColor
     }
@@ -183,7 +183,7 @@ function Write-Pretty {
         Get-VerbosityColor $verbosityLevel
     }
 
-    #@ Output
+    #~@ Output
     $fullMessage = "${timestamp}${tag}${context}${message}" -join ' '
     Write-Host $fullMessage -ForegroundColor $color
 }
@@ -241,7 +241,7 @@ function Test-WritePretty {
 #endregion
 #region Export
 
-#@ Export all public functions
+#~@ Export all public functions
 Export-ModuleMember -Function @(
     'Write-Pretty',
     'Test-WritePretty'

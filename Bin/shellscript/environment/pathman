@@ -65,18 +65,18 @@ set_modes() {
 
 cache_commands() {
   for cmd in $(list --build "$@"); do
-    #@ Initialize variables
+    #~@ Initialize variables
     cmd_key="" cmd_val="" cmd_env=""
 
-    #@ Define the key in uppercase, prefixed with "CMD_"
+    #~@ Define the key in uppercase, prefixed with "CMD_"
     cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]' '[:upper:]')"
     pout --debug --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
-    #@ Retrieve the path, otherwise return empty string
+    #~@ Retrieve the path, otherwise return empty string
     cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
     pout --debug --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
-    #@ Create the environment variable of the command's location
+    #~@ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
     cmd_env="$(env | grep --color "${cmd_key}")"
     pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
@@ -165,16 +165,16 @@ perform_action() {
     for path in ${paths}; do
       case "${action:-}" in
       append | prepend)
-        #@ Validate that a directory was provided
+        #~@ Validate that a directory was provided
         if [ -z "${paths}" ]; then
           printf "ERROR: No path provided\n"
           return 1
         fi
 
-        #@ Define the directories [DIRES] and files [FILES] to process
+        #~@ Define the directories [DIRES] and files [FILES] to process
         set_paths
 
-        #@ Perform the actions
+        #~@ Perform the actions
         update_path
         # update_exec "$paths"
         ;;
@@ -203,7 +203,7 @@ perform_action() {
     done
     ;;
   show | *)
-    #@ Default action
+    #~@ Default action
     show_bins
     return 1
     ;;
@@ -211,11 +211,11 @@ perform_action() {
 }
 
 get_absolute_path() {
-  #@ Initialize variables
+  #~@ Initialize variables
   _path="$1"
   _dir=""
 
-  #@ Retrieve the absolute path location
+  #~@ Retrieve the absolute path location
   if [ -z "${_path:-}" ]; then
     return 2
   elif [ -x "${CMD_REALPATH}" ]; then
@@ -240,68 +240,68 @@ set_paths() {
   }
 
   set_paths__process() {
-    #@ Define exclusion patterns and temporary files
+    #~@ Define exclusion patterns and temporary files
     paths="$(printf '%s' "${paths}" | tr "${delimiter}" '\n')"
     DIRES="$(mktemp)" FILES="$(mktemp)"
 
-    #@ Define exclusion patterns at the top level for reusability
+    #~@ Define exclusion patterns at the top level for reusability
     EXCLUDE_PATTERNS="review temp tmp archive backup"
 
-    #@ Collect paths
+    #~@ Collect paths
     for find_path in ${paths}; do
 
-      #@ Skip non-existent paths
+      #~@ Skip non-existent paths
       [ -e "${find_path}" ] || continue
 
-      #@ Define the find command, prioritizing fd
+      #~@ Define the find command, prioritizing fd
       if [ -z "${CMD_FD}" ]; then #TODO: Testing find. Reset to 1 when fixed
 
-        #@ Define the base command
+        #~@ Define the base command
         find_cmd="fd ."
 
-        #@ Convert patterns to fd --exclude args
+        #~@ Convert patterns to fd --exclude args
         for pattern in ${EXCLUDE_PATTERNS}; do
           find_omit="${find_omit} --exclude '${pattern}'"
         done
 
         if [ -d "${find_path}" ]; then
-          #@ Include the lookup path
+          #~@ Include the lookup path
           printf "%s\n" "${find_path}" | tee -a "${DIRES}" >/dev/null
 
-          #@ Define the find options
+          #~@ Define the find options
           find_files="--type file ${find_omit}"
           find_dires="--type directory ${find_omit}"
         else
-          #@ Include the lookup path
+          #~@ Include the lookup path
           printf "%s\n" "${find_path}" | tee -a "${FILES}" >/dev/null
         fi
 
-        #@ Update the directories file
+        #~@ Update the directories file
         eval "${find_cmd}" "${find_path}" "${find_dires}" |
           tee -a "${DIRES}" >/dev/null
 
-        #@ Update the files file
+        #~@ Update the files file
         eval "${find_cmd}" "${find_path}" "${find_files}" |
           tee -a "${FILES}" >/dev/null
       else
-        #@ Define the base command
+        #~@ Define the base command
         find_cmd="find"
 
-        #@ Convert patterns to find -iname args
+        #~@ Convert patterns to find -iname args
         for pattern in ${EXCLUDE_PATTERNS}; do
           [ -n "${find_omit}" ] && find_omit="${find_omit} -o"
           find_omit="${find_omit} -iname '${pattern}'"
         done
 
-        #@ Define the find options
+        #~@ Define the find options
         find_dires="\( ${find_omit} \) -prune -o -type d -print"
         find_files="\( ${find_omit} \) -prune -o -type f -print"
       fi
 
-      #@ Update the directories file
+      #~@ Update the directories file
       eval "${find_cmd}" "${find_path}" "${find_dires}" | tee -a "${DIRES}" >/dev/null
 
-      #@ Update the files file
+      #~@ Update the files file
       eval "${find_cmd} ${find_path} ${find_files}" | tee -a "${FILES}" >/dev/null
     done
 
@@ -394,13 +394,13 @@ add_to_path_ORIG() {
     counter=1
     recursive_paths "$paths" | while IFS= read -r bin_path; do
       printf "  %4d %s\n" "$counter" "$bin_path"
-      #@ Increment the counter
+      #~@ Increment the counter
       counter=$((counter + 1))
     done
     return 0
   }
 
-  #@ Update PATH directories recursively
+  #~@ Update PATH directories recursively
   recursive_paths "${paths}" | while IFS= read -r bin_path; do
     [ -d "${bin_path}" ] &&
       case ":${PATH}:" in
@@ -422,7 +422,7 @@ add_to_path_ORIG() {
         ;;
       esac
 
-    #@ Make scripts executable
+    #~@ Make scripts executable
     [ -f "${bin_path}" ] &&
       case "$(os_type)" in windows) ;;
       *)
@@ -442,7 +442,7 @@ add_to_path_ORIG() {
 
   done
 
-  #@ Return the new PATH
+  #~@ Return the new PATH
   printf "%s\n" "${NEW_PATH}"
 }
 
@@ -493,10 +493,10 @@ add_to_path() {
 }
 
 update_path() {
-  #@ Copy the PATH variable
+  #~@ Copy the PATH variable
   TMP_PATH="${PATH}"
 
-  #@ Build updated path
+  #~@ Build updated path
   while IFS= read -r dir; do
     case "$TMP_PATH" in
     *":$dir:"* | *":$dir:"* | *"$dir:"* | *"$dir"*) ;;
@@ -510,11 +510,11 @@ update_path() {
   done <"$DIRES"
   unset IFS
 
-  #@ Print or export the PATH variable
+  #~@ Print or export the PATH variable
   if [ "$print_raw" -eq 1 ]; then
     printf "%s" "$TMP_PATH"
   else
-    #@ Update and make the PATH persistent
+    #~@ Update and make the PATH persistent
     PATH="$TMP_PATH"
     export PATH
   fi
@@ -543,10 +543,10 @@ trim() {
 }
 
 pout() {
-  #@ Initialize variables
+  #~@ Initialize variables
   key="" val="" tag="" pad="" msg="" trim=true
 
-  #@ Parse message type and content
+  #~@ Parse message type and content
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -k | --key) key="$2" shift ;;
@@ -576,13 +576,13 @@ pout() {
     shift
   done
 
-  #@ Format the message
+  #~@ Format the message
   if [ -n "${key}" ]; then
 
-    #@ Tag missing values
+    #~@ Tag missing values
     val="${val:-"${msg:-"{undefined}"}"}"
 
-    #@ Trim leading and trailing whitespace
+    #~@ Trim leading and trailing whitespace
     if [ -n "${trim:-}" ]; then
       key="$(trim "${key}")"
       val="$(trim "${val}")"
@@ -590,24 +590,24 @@ pout() {
 
     case "${tag}" in
     *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #@ Define the separator
+      #~@ Define the separator
       sep=" | "
 
-      #@ Calculate padding for label alignment
+      #~@ Calculate padding for label alignment
       debug_pad="${debug_pad:-18}"
       pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #@ Format the tagged key-value pair
+      #~@ Format the tagged key-value pair
       msg="$(
         printf "[%s] /> %s <\ %s%s%s%s\n" \
           "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}"
       )"
       ;;
     *)
-      #@ Define the separator
+      #~@ Define the separator
       sep=": "
 
-      #@ Print the key-value pair
+      #~@ Print the key-value pair
       msg="$(
         printf "%s%s%s\n" "${key}" "${sep}" "${val}"
       )"
@@ -616,7 +616,7 @@ pout() {
   else
     case "${tag}" in
     *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #@ Format the tagged message
+      #~@ Format the tagged message
       msg="$(
         printf "[%s] /> %s <\ %b\n" \
           "${tag}" "${cmd_NAME}" "${msg}"
@@ -626,7 +626,7 @@ pout() {
     esac
   fi
 
-  #@ Print the message
+  #~@ Print the message
   case "${tag}" in
   ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
   *) printf "%s\n" "${msg}" ;;

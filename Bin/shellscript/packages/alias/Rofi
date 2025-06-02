@@ -13,7 +13,7 @@ __info__() {
   _cmd_DESCRIPTION="Theme (rofi) window switcher and application launcher"
   _cmd_DEPENDENCIES="rofi, weHave"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
             $_cmd_NAME <[options]> <[arguments]>
@@ -33,23 +33,23 @@ __info__() {
 USAGE_GUIDE
   )"
 
-  #@ Usage display
+  #~@ Usage display
   __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
 
-  #@ Version display
+  #~@ Version display
   __version__() { printf "%s\n" "$_cmd_VERSION"; }
 
-  #@ App
+  #~@ App
   __init__() {
 
-    #@ Ensure dependencies are met
+    #~@ Ensure dependencies are met
     weHave "$_cmd_APP" || __error__ --app
 
-    #@ Confirm active desktop environment
-    { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } \
-      || __error__ --protocol
+    #~@ Confirm active desktop environment
+    { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } ||
+      __error__ --protocol
 
-    #@ Load context variables
+    #~@ Load context variables
     context="$DOTS_ENV_CTX/rofi"
 
     for file in $context; do
@@ -69,21 +69,21 @@ USAGE_GUIDE
 __opts__() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -h | --help)
-        __help__
-        exit
-        ;;
-      -v | --version)
-        __version__
-        exit
-        ;;
-      -d | --verbose) verbose=true ;;
-      -q | --quiet) unset verbose ;;
-      -m | --menu) menu="$2" ;;
-      -t | --type) type="$2" ;;
-      -s | --style) style="$2" ;;
-      -T | --theme) theme="$2" ;;
-      *) ;;
+    -h | --help)
+      __help__
+      exit
+      ;;
+    -v | --version)
+      __version__
+      exit
+      ;;
+    -d | --verbose) verbose=true ;;
+    -q | --quiet) unset verbose ;;
+    -m | --menu) menu="$2" ;;
+    -t | --type) type="$2" ;;
+    -s | --style) style="$2" ;;
+    -T | --theme) theme="$2" ;;
+    *) ;;
     esac
     shift
   done
@@ -94,7 +94,7 @@ __opts__() {
 # ===================================================================
 
 __validate__() {
-  #@ Set default parameters
+  #~@ Set default parameters
   [ "$theme" ] || {
     [ "$menu" ] || menu=launcher
     [ "$type" ] || type=1
@@ -103,7 +103,7 @@ __validate__() {
     theme="${ROFI_HOME}/${menu}/type-${type}/style-${style}.${ext}"
   }
 
-  #@ Validation
+  #~@ Validation
   is_number "$type" || __error__ --type
   is_number "$style" || __error__ --style
   [ "${theme##*.}" = "$ext" ] || __error__ --ext
@@ -116,15 +116,15 @@ __validate__() {
 
 __error__() {
   case $* in
-    --app) msg="'$_cmd_APP' not found in PATH" ;;
-    --protocol) msg="Display not accessible" ;;
-    --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
-    --context) msg="Missing context file [$NIXOS_CONFIG]" ;;
-    --extension) msg="Missing the '$ext' ext
+  --app) msg="'$_cmd_APP' not found in PATH" ;;
+  --protocol) msg="Display not accessible" ;;
+  --config) msg="Missing config file [$NIXOS_CONFIG]" ;;
+  --context) msg="Missing context file [$NIXOS_CONFIG]" ;;
+  --extension) msg="Missing the '$ext' ext
    CONFIG: $NIXOS_CONFIG" ;;
-    --type) msg="Invalid type '$type'" ;;
-    --style) msg="Invalid style '$style'" ;;
-    *) ;;
+  --type) msg="Invalid type '$type'" ;;
+  --style) msg="Invalid style '$style'" ;;
+  *) ;;
   esac
 
   printf "\n🟥 %s\n" "$msg"
@@ -169,19 +169,19 @@ __cleanup__() {
 
 __main__() {
 
-  #@ Load app info
+  #~@ Load app info
   __info__
 
-  #@ Load internal variables
+  #~@ Load internal variables
   __init__
   __opts__ "$@"
   __validate__
 
-  #@ Run
+  #~@ Run
   # __test__
   __process__
 
-  #@ Exit
+  #~@ Exit
   __cleanup__
 }
 

@@ -12,7 +12,7 @@ __info__() {
   _cmd_DESCRIPTION="Check if the value is a valid number"
   _cmd_DEPENDENCIES="ripgrep, weHave"
   _cmd_USAGEGUIDE="$(
-    cat << USAGE_GUIDE
+    cat <<USAGE_GUIDE
 
 #>----------------------------------------------------<#
               $_cmd_NAME <[options]> <[arguments]>
@@ -32,10 +32,10 @@ __info__() {
 USAGE_GUIDE
   )"
 
-  #@ Usage display
+  #~@ Usage display
   __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
 
-  #@ Version display
+  #~@ Version display
   __version__() { printf "%s\n" "$_cmd_VERSION"; }
 
 }
@@ -46,10 +46,10 @@ USAGE_GUIDE
 
 __opts__() {
 
-  #@ Default to 'getoptions' to allow chained options eg. -df
+  #~@ Default to 'getoptions' to allow chained options eg. -df
   if weHave getoptions; then
 
-    #@ Declare user options (Allow multiple flags)
+    #~@ Declare user options (Allow multiple flags)
     parser_definition() {
       setup REST
       disp _cmd_USAGEGUIDE -h --help
@@ -58,27 +58,27 @@ __opts__() {
       flag allow_floats -f --float -- "takes no arguments"
     }
 
-    #@ Load options
+    #~@ Load options
     eval "$(getoptions parser_definition) exit 1"
 
   else
 
-    #@ Declare user options
+    #~@ Declare user options
     for arg in "$@"; do
       case "$arg" in
-        -h | --help) __help__ ;;
-        -v | --version) __version__ ;;
-        -d | --verbose) verbose=true ;;
-        -f | --float) allow_floats=true ;;
+      -h | --help) __help__ ;;
+      -v | --version) __version__ ;;
+      -d | --verbose) verbose=true ;;
+      -f | --float) allow_floats=true ;;
       esac
     done
   fi
 
-  #@ Validate each number entered via a loop
+  #~@ Validate each number entered via a loop
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --* | -*) ;;
-      *) num="$1" ;;
+    --* | -*) ;;
+    *) num="$1" ;;
     esac
 
     __process__
@@ -91,14 +91,14 @@ __opts__() {
 # ===================================================================
 
 __defaults__() {
-  #@ GREP
+  #~@ GREP
   if weHave rg; then
     regrep() { rg -q "$@"; }
   else
     regrep() { grep -Eq "$@"; }
   fi
 
-  #@ Regex
+  #~@ Regex
   regex_integer='^[+-]?[0-9]+$'
   regex_float='^[+-]?[0-9]*\.[0-9]+$|^[+-]?[0-9]+\.[0-9]*$'
 
@@ -109,25 +109,25 @@ __defaults__() {
 __msg__() {
   [ "$verbose" ] || return
   case "$1" in
-    --integer) printf "%s is an integer\n" "$num" ;;
-    --float) printf "%s is a floating-point number\n" "$num" ;;
-    --invalid) printf "%s is not a valid number\n" "$num" ;;
+  --integer) printf "%s is an integer\n" "$num" ;;
+  --float) printf "%s is a floating-point number\n" "$num" ;;
+  --invalid) printf "%s is not a valid number\n" "$num" ;;
   esac
 
 }
 
 __process__() {
 
-  #@ Float
-  if [ "$allow_floats" ] \
-    && echo "$num" | regrep "$regex_float"; then
+  #~@ Float
+  if [ "$allow_floats" ] &&
+    echo "$num" | regrep "$regex_float"; then
     __msg__ --float
 
-  #@ Integer
+  #~@ Integer
   elif echo "$num" | regrep "$regex_integer"; then
     __msg__ --integer
 
-  #@ Invalid
+  #~@ Invalid
   else
     __msg__ --invalid
     invalid=1

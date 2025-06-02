@@ -144,7 +144,7 @@ distro_base() {
       _distribution="slackware"
       ;;
     *)
-      #@ Check ID_LIKE if the Distribution is still not determined
+      #~@ Check ID_LIKE if the Distribution is still not determined
       if [ -n "$ID_LIKE" ]; then
         case $ID_LIKE in
         *fedora* | *rhel* | *centos*)
@@ -371,7 +371,7 @@ open() {
     return 1
   }
 
-  #@ Get MIME type using 'file' (POSIX-compliant)
+  #~@ Get MIME type using 'file' (POSIX-compliant)
   mime_type=$(file -bi "$file" | cut -d';' -f1)
 
   case "$mime_type" in

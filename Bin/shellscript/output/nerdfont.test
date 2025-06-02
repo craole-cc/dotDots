@@ -38,10 +38,10 @@ set_defaults() {
     fmt_reset="$(printf "\e[0m")"
   fi
 
-  #@ Get terminal width or fallback to 80
+  #~@ Get terminal width or fallback to 80
   term_width="$(tput cols 2>/dev/null || printf 80)"
 
-  #@ Calculate padding based on terminal width
+  #~@ Calculate padding based on terminal width
   pad="$(awk -v width="${term_width}" 'BEGIN {printf "%.0f", width/3.5}')"
 
   : "${TERM_WIDTH:="${term_width}"}"
@@ -78,10 +78,10 @@ pout_char() {
 }
 
 pout_test() {
-  #@ Parse options
+  #~@ Parse options
   while [ $# -gt 0 ]; do
     case "$1" in
-    --trail-line | --newline) trailing_newline=1 ;;
+    --trail-line | --newline | -l | -n | --nl) trailing_newline=1 ;;
     --lead-line) leading_newline=1 ;;
     --title)
       shift
@@ -107,12 +107,12 @@ pout_test() {
     shift
   done
 
-  #@ Print leading newline if requested
+  #~@ Print leading newline if requested
   if [ "${leading_newline:-0}" -gt 0 ]; then
     pout_char "\n" "${leading_newline}"
   fi
 
-  #@ Print header if title provided
+  #~@ Print header if title provided
   if [ -n "${TITLE:-}" ]; then
     title_length="${#TITLE}"
     pad_length="$(((TERM_WIDTH - title_length) / 2 + title_length))"
@@ -124,17 +124,17 @@ pout_test() {
     printf "%s" "${head_line}"
   fi
 
-  #@ Print label, if provided
+  #~@ Print label, if provided
   if [ -n "${LABEL:-}" ]; then
     printf "\n%${PAD}s%s ~@ " "${BOLD}${ITALIC}${LABEL}${RESET}"
   fi
 
-  #@ Print label, if provided
+  #~@ Print label, if provided
   if [ -n "${ICON:-}" ]; then
     printf "%b%s" "${ICON}" "${ICON_SEP}"
   fi
 
-  #@ Print arguments
+  #~@ Print arguments
   ifs="${IFS}"
   IFS="${DELIMITER}"
   # shellcheck disable=SC2086
@@ -142,12 +142,12 @@ pout_test() {
   printf "%s" "${@}"
   IFS="${ifs}"
 
-  #@ Print trailing newline if requested
+  #~@ Print trailing newline if requested
   if [ "${trailing_newline:-0}" -gt 0 ]; then
     pout_char "\n" "${trailing_newline}"
   fi
 
-  #@ Reset the environment
+  #~@ Reset the environment
   printf "%s" "${RESET}"
   unset title_length pad_length head_line
   unset leading_newline trailing_newline
@@ -290,10 +290,10 @@ test_italics() {
 }
 
 test_filesystem() {
-  #@ Print the title
+  #~@ Print the title
   pout_test --title "Directory Listing" --newline
 
-  #@ Retrieve the directory contents with the fist available lister
+  #~@ Retrieve the directory contents with the fist available lister
   if false; then
     :
   elif command -v lsd >/dev/null 2>&1; then
@@ -310,20 +310,20 @@ test_filesystem() {
 
 test_completion_message() {
   pout_test --title "Font Compatibility Test Results" --newline
-  pout_test --newline "  ${BOLD}${RESET} ${ITALIC}Nerd Font Glyphs${RESET}"
-  pout_test --newline "    • All icons should be visible (no missing squares or questions marks)"
-  pout_test --newline "    • Icons should be properly aligned and sized"
-  pout_test --newline
-  pout_test --newline "  ${BOLD}${RESET} ${ITALIC}Programming Ligatures${RESET}"
-  pout_test --newline "    • Arrow combinations should form single symbols: => -> <-"
-  pout_test --newline "    • Comparison operators should be aligned: == === !="
-  pout_test --newline
-  pout_test --newline "  ${BOLD}${RESET} ${ITALIC}Font Styling${RESET}"
-  pout_test --newline "    • This text should be in italics"
-  pout_test --newline "    • Icons and text should have consistent weights"
-  pout_test --newline
-  pout_test --newline "  ${ITALIC}If any tests failed, verify the terminal is using a Nerd Font${RESET}"
-  pout_test --newline "  ${ITALIC}Recommended fonts: Maple Mono NF, VictorMono Nerd Font${RESET}"
+  pout_test -n "  ${BOLD} ${RESET}${ITALIC}Nerd Font Glyphs${RESET}"
+  pout_test -n "    • All icons should be visible (no missing squares or questions marks)"
+  pout_test -n "    • Icons should be properly aligned and sized"
+  pout_test -n
+  pout_test -n "  ${BOLD} ${RESET}${ITALIC}Programming Ligatures${RESET}"
+  pout_test -n "    • Arrow combinations should form single symbols: => -> <-"
+  pout_test -n "    • Comparison operators should be aligned: == === !="
+  pout_test -n
+  pout_test -n "  ${BOLD} ${RESET}${ITALIC}Font Styling${RESET}"
+  pout_test -n "    • This text should be in italics"
+  pout_test -n "    • Icons and text should have consistent weights"
+  pout_test -n
+  pout_test -n "  ${ITALIC}If any tests failed, verify the terminal is using a Nerd Font${RESET}"
+  pout_test -n "  ${ITALIC}Recommended fonts: Maple Mono NF, VictorMono Nerd Font${RESET}"
 }
 
 execute_basic() {

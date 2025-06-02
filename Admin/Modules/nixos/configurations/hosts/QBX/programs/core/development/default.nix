@@ -1,6 +1,6 @@
 { pkgs, ... }:
 let
-  #@ Define the content of treefmt.toml
+  #~@ Define the content of treefmt.toml
   treefmtConfig = ''
     [global]
     excludes = ["treefmt.toml", "generated.nix"]
@@ -63,10 +63,10 @@ let
     options = ["--prose-wrap", "always", "--write"]
   '';
 
-  #@ Write the treefmt.toml file to a temporary location
+  #~@ Write the treefmt.toml file to a temporary location
   treefmtConfigFile = pkgs.writeText "treefmt.toml" treefmtConfig;
 
-  # #@ Create a script to deploy treefmt.toml and run treefmt
+  # #~@ Create a script to deploy treefmt.toml and run treefmt
   # treefmtScript = pkgs.writeShellScriptBin "tfmt" ''
   #   rm -rf ./treefmt.toml
   #   cp ${treefmtConfigFile} ./treefmt.toml

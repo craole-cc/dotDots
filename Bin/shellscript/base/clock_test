@@ -46,10 +46,10 @@ main() {
   fi
   printf "\n"
 
-  #@ Setup
+  #~@ Setup
   setup_test_environment
 
-  #@ Run all tests
+  #~@ Run all tests
   # run_test "help_option" test_help_option
   # run_test "help_short_option" test_help_short_option
   # run_test "timestamp_default" test_timestamp_default
@@ -89,10 +89,10 @@ main() {
   run_test "real_world_scenario_2" test_real_world_scenario_2
   run_test "real_world_scenario_3" test_real_world_scenario_3
 
-  #@ Cleanup
+  #~@ Cleanup
   cleanup_test_environment
 
-  #@ Print summary and exit with appropriate code
+  #~@ Print summary and exit with appropriate code
   print_test_summary
 }
 
@@ -136,7 +136,7 @@ run_test() {
   test_name="$1"
   test_func="$2"
 
-  #@ Check if test matches pattern
+  #~@ Check if test matches pattern
   if ! printf "%s" "${test_name}" | grep -E "${TEST_PATTERN}" >/dev/null 2>&1; then
     print_status "SKIP" "${test_name}" "doesn't match pattern"
     return 0
@@ -148,7 +148,7 @@ run_test() {
     print_status "INFO" "Running ${test_name}"
   fi
 
-  #@ Run the test function
+  #~@ Run the test function
   if "${test_func}"; then
     print_status "PASS" "${test_name}"
   else
@@ -249,17 +249,17 @@ setup_test_environment() {
     exit 1
   fi
 
-  #@ Make sure it's executable
+  #~@ Make sure it's executable
   if [ ! -x "${TEST_TARGET}" ]; then
     printf "%sERROR:%s Clock script is not executable: %s\n" "${RED}" "${RESET}" "${TEST_TARGET}" >&2
     exit 1
   fi
 
-  #@ Create temporary directory for test files
+  #~@ Create temporary directory for test files
   TEST_TEMP_DIR="$(mktemp -d)"
   export TEST_TEMP_DIR
 
-  #@ Export clean environment for tests
+  #~@ Export clean environment for tests
   unset DURATION_COMPACT_MINUTES DURATION_COMPACT_SECONDS DURATION_COMPACT_MILLISECONDS
   unset DURATION_COMPACT_SEPARATOR DURATION_COMPACT_ICON
   unset DURATION_VERBOSE_MINUTE_SINGULAR DURATION_VERBOSE_MINUTE_PLURAL
@@ -271,7 +271,7 @@ setup_test_environment() {
 }
 
 cleanup_test_environment() {
-  #@ Clean up temporary directory
+  #~@ Clean up temporary directory
   if [ -n "${TEST_TEMP_DIR}" ] && [ -d "${TEST_TEMP_DIR}" ]; then
     rm -rf "${TEST_TEMP_DIR}"
   fi
@@ -303,21 +303,21 @@ test_help_short_option() {
 test_timestamp_default() {
   output=$("${TEST_TARGET}" --timestamp 2>&1)
 
-  #@ Should match format: [YYYY-MM-DD HH:MM:SS]
+  #~@ Should match format: [YYYY-MM-DD HH:MM:SS]
   assert_matches "${output}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$'
 }
 
 test_timestamp_iso() {
   output=$("${TEST_TARGET}" --iso 2>&1)
 
-  #@ Should match ISO format: YYYY-MM-DDTHH:MM:SS
+  #~@ Should match ISO format: YYYY-MM-DDTHH:MM:SS
   assert_matches "${output}" '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$'
 }
 
 test_timestamp_custom_format() {
   output=$("${TEST_TARGET}" --format "%Y-%m-%d" 2>&1)
 
-  #@ Should match YYYY-MM-DD
+  #~@ Should match YYYY-MM-DD
   assert_matches "${output}" '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
 }
 
@@ -328,21 +328,21 @@ test_timestamp_custom_format() {
 test_duration_simple_command() {
   output=$("${TEST_TARGET}" --duration echo "hello" 2>&1)
 
-  #@ Should contain some duration format (ms, s, etc.)
+  #~@ Should contain some duration format (ms, s, etc.)
   assert_matches "${output}" '[0-9]+ms|[0-9]+s'
 }
 
 test_duration_compact_format() {
   output=$("${TEST_TARGET}" --duration --compact sleep 0.1 2>&1)
 
-  #@ Should be in compact format (numbers followed by units)
+  #~@ Should be in compact format (numbers followed by units)
   assert_matches "${output}" '[0-9]+(ms|s|m)'
 }
 
 test_duration_verbose_format() {
   output=$("${TEST_TARGET}" --duration --verbose sleep 0.1 2>&1)
 
-  #@ Should contain "completed in" and words like "milliseconds" or "seconds"
+  #~@ Should contain "completed in" and words like "milliseconds" or "seconds"
   assert_contains "${output}" "completed in" &&
     assert_matches "${output}" '(millisecond|second|minute)'
 }
@@ -354,11 +354,11 @@ test_duration_with_label() {
 }
 
 test_duration_command_exit_code() {
-  #@ Test that clock preserves the exit code of the command
+  #~@ Test that clock preserves the exit code of the command
   "${TEST_TARGET}" --duration false >/dev/null 2>&1
   exit_code=$?
 
-  #@ 'false' command should return exit code 1
+  #~@ 'false' command should return exit code 1
   assert_equals 1 "${exit_code}" "Should preserve command exit code"
 }
 
@@ -422,8 +422,8 @@ test_custom_duration_units() {
   DURATION_COMPACT_MINUTES="min" DURATION_COMPACT_SECONDS="sec" \
     output=$("${TEST_TARGET}" --duration --compact sleep 0.1 2>&1)
 
-  #@ Should use custom units if duration is long enough
-  #@ For short durations, we'll just check it doesn't error
+  #~@ Should use custom units if duration is long enough
+  #~@ For short durations, we'll just check it doesn't error
   [ $? -eq 0 ]
 }
 
@@ -433,21 +433,21 @@ test_custom_verbose_language() {
     DURATION_VERBOSE_CONNECTOR="y" \
     output=$("${TEST_TARGET}" --duration --verbose sleep 0.1 2>&1)
 
-  #@ Should work without error (actual language test would need longer duration)
+  #~@ Should work without error (actual language test would need longer duration)
   [ $? -eq 0 ]
 }
 
 test_custom_timestamp_format() {
   output=$("${TEST_TARGET}" --timestamp --format "%Y" 2>&1)
 
-  #@ Should output just the year
+  #~@ Should output just the year
   assert_matches "${output}" '^[0-9]{4}$'
 }
 
 test_show_icon_env() {
   output=$("${TEST_TARGET}" --show-icon --icon '⏰' 2>&1)
 
-  #@ Should include the icon character
+  #~@ Should include the icon character
   assert_matches "${output}" '⏰'
 }
 
@@ -473,7 +473,7 @@ test_icon_option() {
 test_show_icon_option() {
   output=$("${TEST_TARGET}" --show-icon echo "test" 2>&1)
 
-  #@ Should contain the default icon
+  #~@ Should contain the default icon
   assert_matches "${output}" '󱇻'
 }
 
@@ -481,14 +481,14 @@ test_command_with_arguments() {
   output=$("${TEST_TARGET}" --duration ls /nonexistent 2>/dev/null)
   exit_code=$?
 
-  #@ Should preserve the exit code from ls (should be non-zero for nonexistent path)
+  #~@ Should preserve the exit code from ls (should be non-zero for nonexistent path)
   [ "${exit_code}" -ne 0 ]
 }
 
 test_command_with_pipes() {
   output=$("${TEST_TARGET}" --duration "echo hello | wc -c" 2>&1)
 
-  #@ Should work with shell constructs
+  #~@ Should work with shell constructs
   assert_matches "${output}" '[0-9]+(ms|s)'
 }
 
@@ -499,33 +499,33 @@ test_command_with_pipes() {
 test_very_fast_command() {
   output=$("${TEST_TARGET}" --duration true 2>&1)
 
-  #@ Even very fast commands should show some duration
+  #~@ Even very fast commands should show some duration
   assert_matches "${output}" '[0-9]+(ms|s)'
 }
 
 test_command_with_spaces() {
   output=$("${TEST_TARGET}" --duration echo "hello world" 2>&1)
 
-  #@ Should handle commands with spaces properly
+  #~@ Should handle commands with spaces properly
   assert_matches "${output}" '[0-9]+(ms|s)'
 }
 
 test_empty_command_argument() {
-  #@ Test with just -- (empty command)
+  #~@ Test with just -- (empty command)
   output=$("${TEST_TARGET}" --duration -- 2>&1)
   exit_code=$?
 
-  #@ Should fail gracefully
+  #~@ Should fail gracefully
   [ "${exit_code}" -ne 0 ]
 }
 
 test_multiple_timestamp_calls() {
-  #@ Test that multiple calls produce valid timestamps
+  #~@ Test that multiple calls produce valid timestamps
   output1=$("${TEST_TARGET}" --timestamp 2>&1)
   sleep 1
   output2=$("${TEST_TARGET}" --timestamp 2>&1)
 
-  #@ Both should be valid timestamps and different
+  #~@ Both should be valid timestamps and different
   assert_matches "${output1}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$' &&
     assert_matches "${output2}" '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]$' &&
     [ "${output1}" != "${output2}" ]
@@ -536,7 +536,7 @@ test_multiple_timestamp_calls() {
 #region Integration Tests
 
 test_real_world_scenario_1() {
-  #@ Test timing a directory listing with custom label
+  #~@ Test timing a directory listing with custom label
   output=$("${TEST_TARGET}" --duration --verbose --label "Directory Scan" ls . 2>&1)
 
   assert_contains "${output}" "Directory Scan completed in" &&
@@ -544,18 +544,18 @@ test_real_world_scenario_1() {
 }
 
 test_real_world_scenario_2() {
-  #@ Test compact timing of a sleep command
+  #~@ Test compact timing of a sleep command
   output=$("${TEST_TARGET}" --duration --compact sleep 0.5 2>&1)
 
-  #@ Should show around 500ms
+  #~@ Should show around 500ms
   assert_matches "${output}" '[4-6][0-9][0-9]ms|1s'
 }
 
 test_real_world_scenario_3() {
-  #@ Test ISO timestamp for logging
+  #~@ Test ISO timestamp for logging
   output=$("${TEST_TARGET}" --iso 2>&1)
 
-  #@ Should be valid ISO format
+  #~@ Should be valid ISO format
   assert_matches "${output}" '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$'
 }
 
@@ -587,7 +587,7 @@ print_test_summary() {
   fi
 }
 
-#@ Run tests only if the script is executed directly
+#~@ Run tests only if the script is executed directly
 case "${0}" in *${TEST_SCRIPT}) main "$@" ;; *) ;; esac
 
 #endregion

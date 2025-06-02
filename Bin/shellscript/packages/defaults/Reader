@@ -33,19 +33,19 @@ __opts__() {
 }
 
 __init__() {
-  #@ Enable verbose if test flag set
+  #~@ Enable verbose if test flag set
   [ "$_TEST" ] && _VERBOSE=true
 
-  #@ Defaults
+  #~@ Defaults
   if [ "$_TYPE" = "tty" ] || [ "$_TYPE" = "terminal" ]; then
     _TYPE="tty"
     _CMD="$_TTY"
   fi
 
-  #@ Load Context Variables
+  #~@ Load Context Variables
   __env__
 
-  #@ Throw an error if app not found
+  #~@ Throw an error if app not found
   # weHave "$_CMD" || _ERR=true && __msg__ --missing
 
   # @ Exit if app not installed or checking
@@ -53,7 +53,7 @@ __init__() {
 }
 
 __env__() {
-  #@ Load Environment Variables
+  #~@ Load Environment Variables
   _CTX="$DOTS_ENV_CTX/${_CMD}"
   if [ -f "$_CTX" ]; then
     . "$_CTX"
@@ -65,21 +65,21 @@ __env__() {
 }
 
 __msg__() {
-  [ "$_VERBOSE" -gt 0 ] \
-    && case "$1" in
-      --missing) printf "Please confirm that '%s' is installed and in \$PATH.\n" "$_CMD" ;;
-      --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
-      --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
-      --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
-      --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
+  [ "$_VERBOSE" -gt 0 ] &&
+    case "$1" in
+    --missing) printf "Please confirm that '%s' is installed and in \$PATH.\n" "$_CMD" ;;
+    --env-missing) printf "Environment missing: %s\n" "$_CTX" ;;
+    --env-loaded) printf "Environment established: %s\n" "$_CTX" ;;
+    --cfg-missing) printf "Config missing: %s\n" "$_CFG" ;;
+    --cfg-found) printf "Config found: %s\n" "$_CFG" ;;
     esac
 }
 
 __cleanup__() {
-  #@ Release variables
+  #~@ Release variables
   unset _CMD _CFG check verbose
 
-  #@ Exit with error code, if necessary
+  #~@ Exit with error code, if necessary
   if [ "$_ERR" ]; then
     unset _ERR && exit 1
   else
@@ -107,20 +107,20 @@ __run__() {
 
 __main__() {
 
-  #@ Accept user options
+  #~@ Accept user options
   eval "$(getoptions __opts__) exit 1"
 
-  #@ Initialialize defaults
+  #~@ Initialialize defaults
   __init__
   echo "NAME: $_NAME"
   echo "APP: $_CMD"
   echo "TYPE: $_TYPE"
   echo "CONF: $_CONF"
 
-  #@ Process
+  #~@ Process
   [ "$_TEST" ] || __run__ "$@"
 
-  #@ Exit gracefully
+  #~@ Exit gracefully
   __cleanup__
 
 } && __main__ "$@"

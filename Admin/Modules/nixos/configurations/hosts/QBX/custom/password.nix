@@ -37,15 +37,15 @@ in
           null
         else if validatePassword password then
           let
-            #@ Create secure temporary files
+            #~@ Create secure temporary files
             passwordFile = pkgs.writeText "password" password;
 
-            #@ Generate unique salt per user using high-entropy source
+            #~@ Generate unique salt per user using high-entropy source
             salt = pkgs.runCommand "generate-salt" { } ''
               dd if=/dev/urandom bs=16 count=1 status=none > $out
             '';
 
-            #@ Hash using Argon2id with secure parameters
+            #~@ Hash using Argon2id with secure parameters
             hashedPassword =
               pkgs.runCommand "hash-password"
                 {

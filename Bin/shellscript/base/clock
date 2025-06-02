@@ -68,18 +68,18 @@ cmd_end_time=0
 cmd_formatted_duration=""
 
 main() {
-  #@ Parse and validate options
+  #~@ Parse and validate options
   parse_arguments "$@"
   validate_options || return 1
   normalize_options
 
-  #@ Show help if requested
+  #~@ Show help if requested
   if [ "${opt_help}" -eq 1 ]; then
     show_usage
     return 0
   fi
 
-  #@ Handle dry-run simulation
+  #~@ Handle dry-run simulation
   if [ "${opt_simulate}" -eq 1 ]; then
     printf "Would execute: %s\n" "${CLOCK_COMMAND_EXPR:-[no command]}"
     printf "Duration format: %s\n" "${CLOCK_FORMAT}"
@@ -88,7 +88,7 @@ main() {
     return 0
   fi
 
-  #@ Execute based on mode
+  #~@ Execute based on mode
   if [ "${opt_duration}" -eq 1 ]; then
     get_duration
   else
@@ -110,28 +110,28 @@ is_numeric() {
 
 #DOC Retrieve the current time in milliseconds since epoch
 get_current_time_ms() {
-  #@ Try GNU/BSD date (nanoseconds support)
+  #~@ Try GNU/BSD date (nanoseconds support)
   if time_ms=$(date +%s%3N 2>/dev/null) && printf "%s" "${time_ms}" | grep -E '^[0-9]+$' >/dev/null 2>&1; then
     printf "%s\n" "${time_ms}"
     return 0
   fi
 
-  #@ Try Python3
+  #~@ Try Python3
   if command -v python3 >/dev/null 2>&1; then
     python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null && return 0
   fi
 
-  #@ Try Python2
+  #~@ Try Python2
   if command -v python >/dev/null 2>&1; then
     python -c "import time; print(int(time.time() * 1000))" 2>/dev/null && return 0
   fi
 
-  #@ Try Perl
+  #~@ Try Perl
   if command -v perl >/dev/null 2>&1; then
     perl -MTime::HiRes=time -E 'say int(time*1000)' 2>/dev/null && return 0
   fi
 
-  #@ Fallback: seconds precision
+  #~@ Fallback: seconds precision
   date_sec="$(date +%s)"
   printf "%s000\n" "${date_sec}"
 }
@@ -164,7 +164,7 @@ format_duration_compact() {
   duration_ms=$(convert_to_milliseconds "${duration_ms}")
   duration_ms_int=$(printf "%.0f\n" "${duration_ms}")
 
-  #@ Calculate components
+  #~@ Calculate components
   total_seconds=$((duration_ms_int / 1000))
   milliseconds=$((duration_ms_int % 1000))
   minutes=$((total_seconds / 60))
@@ -172,12 +172,12 @@ format_duration_compact() {
 
   parts=""
 
-  #@ Add minutes if >= 1
+  #~@ Add minutes if >= 1
   if [ "${minutes}" -ge 1 ]; then
     parts="${minutes}${DURATION_COMPACT_MINUTES}"
   fi
 
-  #@ Add seconds if > 0
+  #~@ Add seconds if > 0
   if [ "${seconds}" -gt 0 ]; then
     if [ -n "${parts}" ]; then
       parts="${parts}${DURATION_COMPACT_SEPARATOR}${seconds}${DURATION_COMPACT_SECONDS}"
@@ -186,7 +186,7 @@ format_duration_compact() {
     fi
   fi
 
-  #@ Add milliseconds if > 0 or if no other parts
+  #~@ Add milliseconds if > 0 or if no other parts
   if [ "${milliseconds}" -gt 0 ] || [ -z "${parts}" ]; then
     if [ -n "${parts}" ]; then
       parts="${parts}${DURATION_COMPACT_SEPARATOR}${milliseconds}${DURATION_COMPACT_MILLISECONDS}"
@@ -195,7 +195,7 @@ format_duration_compact() {
     fi
   fi
 
-  #@ Return formatted duration
+  #~@ Return formatted duration
   printf "%s\n" "${parts}"
 }
 
@@ -214,7 +214,7 @@ get_unit_form() {
 
 #DOC Join duration parts with proper English grammar
 join_duration_parts() {
-  #@ Count arguments
+  #~@ Count arguments
   argc=0
   for _ in "$@"; do
     argc=$((argc + 1))
@@ -225,7 +225,7 @@ join_duration_parts() {
   1) printf "%s\n" "$1" ;;
   2) printf "%s %s %s\n" "$1" "${DURATION_VERBOSE_CONNECTOR}" "$2" ;;
   *)
-    #@ More than 2 parts - need comma separation
+    #~@ More than 2 parts - need comma separation
     result=""
     i=1
     for part in "$@"; do
@@ -249,7 +249,7 @@ format_duration_verbose() {
   duration_ms=$(convert_to_milliseconds "${duration_ms}")
   duration_ms_int=$(printf "%.0f\n" "${duration_ms}")
 
-  #@ Calculate components
+  #~@ Calculate components
   total_seconds=$((duration_ms_int / 1000))
   milliseconds=$((duration_ms_int % 1000))
   minutes=$((total_seconds / 60))
@@ -278,7 +278,7 @@ format_duration_verbose() {
     parts="${milliseconds} ${unit}"
   fi
 
-  #@ Convert pipe-separated parts back to arguments for join_duration_parts
+  #~@ Convert pipe-separated parts back to arguments for join_duration_parts
   case "${parts}" in
   *\|*)
     part1=$(printf "%s\n" "${parts}" | cut -d'|' -f1)
@@ -303,7 +303,7 @@ format_duration_verbose() {
 get_timestamp() {
   format="${1:-Default}"
 
-  #@ Determine format string
+  #~@ Determine format string
   case "${format}" in
   Default) format_string="${TIMESTAMP_DEFAULT}" ;;
   Short) format_string="${TIMESTAMP_SHORT}" ;;
@@ -313,7 +313,7 @@ get_timestamp() {
   *) format_string="${format}" ;;
   esac
 
-  #@ Return formatted timestamp
+  #~@ Return formatted timestamp
   date +"${format_string}"
 }
 
@@ -328,7 +328,7 @@ format_duration() {
   *compact* | *) duration="$(format_duration_compact "${duration}")" ;;
   esac
 
-  #@ Append icon if provided
+  #~@ Append icon if provided
   if [ -n "${icon}" ]; then
     printf "%s %s" "${icon}" "${duration}"
   else
@@ -474,27 +474,27 @@ validate_options() {
 }
 
 get_duration() {
-  #@ Validate command expression
+  #~@ Validate command expression
   if [ -z "${CLOCK_COMMAND_EXPR}" ]; then
     printf "ERROR: --duration requires a command to execute\n" >&2
     return 1
   fi
 
-  #@ Record the time prior to the command execution
+  #~@ Record the time prior to the command execution
   cmd_start_time=$(get_current_time_ms)
 
-  #@ Execute the command using eval to handle complexities
+  #~@ Execute the command using eval to handle complexities
   eval "${CLOCK_COMMAND_EXPR}"
   cmd_code=$?
 
-  #@ Calculate the duration of the command execution
+  #~@ Calculate the duration of the command execution
   cmd_end_time=$(get_current_time_ms)
   cmd_duration=$((cmd_end_time - cmd_start_time))
 
-  #@ Format and display duration
+  #~@ Format and display duration
   cmd_formatted_duration="$(format_duration "${cmd_duration}" "${CLOCK_FORMAT}")"
 
-  #@ Display the formatted duration
+  #~@ Display the formatted duration
   case "$(printf "%s" "${CLOCK_FORMAT}" | tr '[:upper:]' '[:lower:]')" in
   *verbose*)
     printf "%s completed in %s%s\n" \

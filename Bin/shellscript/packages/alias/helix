@@ -8,22 +8,22 @@ main() {
 }
 
 set_defaults() {
-  #@ Ensure DOTS environment variable is set
+  #~@ Ensure DOTS environment variable is set
   : "${DOTS:?Must set DOTS environment variable}"
 
-  #@ Check if DOTS directory exists
+  #~@ Check if DOTS directory exists
   if [ ! -d "${DOTS}" ]; then
     printf "Error: DOTS directory does not exist: %s\n" "${DOTS}" >&2
     return 1
   fi
 
-  #@ Set Helix config and archive directories
+  #~@ Set Helix config and archive directories
   : "${HELIX_CONFIG_DIR:="${DOTS}/Configuration/helix"}"
   : "${HELIX_ARCHIVE_DIR:="${HELIX_CONFIG_DIR}/archive"}"
   : "${HELIX_CONFIG:="${HELIX_CONFIG_DIR}/config.toml"}"
   : "${HELIX_LANGUAGES:="${HELIX_CONFIG_DIR}/languages.toml"}"
 
-  #@ Determine the default Helix config directory
+  #~@ Determine the default Helix config directory
   if [ -n "${XDG_CONFIG_HOME:-}" ]; then
     HELIX_DEFAULT_DIR="${XDG_CONFIG_HOME}/helix"
   elif [ -n "${APPDATA:-}" ]; then
@@ -32,20 +32,20 @@ set_defaults() {
     HELIX_DEFAULT_DIR="${HOME}/.config/helix"
   fi
 
-  #@ Set local files
+  #~@ Set local files
   LOCAL_CONFIG="${HELIX_DEFAULT_DIR}/config.toml"
   LOCAL_LANGUAGES="${HELIX_DEFAULT_DIR}/languages.toml"
 
-  #@ Set timestamp for backups
+  #~@ Set timestamp for backups
   : "${TIMESTAMP_FORMAT:="%Y%m%d_%H%M%S"}"
   TIMESTAMP="$(date +"${TIMESTAMP_FORMAT}")"
 
-  #@ Set default delimiter for arguments
+  #~@ Set default delimiter for arguments
   : "${DELIMITER:="$(printf "\037")"}"
 }
 
 parse_arguments() {
-  #@ Initialize variables
+  #~@ Initialize variables
   dry_run=false
   args=""
 
@@ -64,7 +64,7 @@ parse_arguments() {
     shift
   done
 
-  #@ Normalize options
+  #~@ Normalize options
   case "${dry_run}" in 1 | true | on | yes) dry_run=1 ;; *) dry_run=0 ;; esac
 }
 
@@ -113,12 +113,12 @@ smart_sync_file() {
   local_file="$2"
   name="$3"
 
-  #@ If neither file exists, nothing to do
+  #~@ If neither file exists, nothing to do
   if [ ! -f "${dots_file}" ] && [ ! -f "${local_file}" ]; then
     return 0
   fi
 
-  #@ If only one file exists, copy it to the other location
+  #~@ If only one file exists, copy it to the other location
   if [ ! -f "${dots_file}" ] && [ -f "${local_file}" ]; then
     # Local exists, DOTS doesn't - copy local to DOTS
     if [ "${dry_run}" -eq 1 ]; then
@@ -151,7 +151,7 @@ smart_sync_file() {
     return 0
   fi
 
-  #@ Both files exist - check if they're identical
+  #~@ Both files exist - check if they're identical
   if cmp -s "${dots_file}" "${local_file}"; then
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       printf "%s is already synchronized\n" "${name}"
@@ -159,7 +159,7 @@ smart_sync_file() {
     return 0
   fi
 
-  #@ Files are different - sync from newer to older
+  #~@ Files are different - sync from newer to older
   if is_newer_file "${dots_file}" "${local_file}"; then
     # DOTS is newer - sync DOTS to local
     src="${dots_file}"
@@ -180,16 +180,16 @@ smart_sync_file() {
     return 0
   fi
 
-  #@ Create archive directory
+  #~@ Create archive directory
   mkdir -p "${HELIX_ARCHIVE_DIR}"
 
-  #@ Backup the file being overwritten
+  #~@ Backup the file being overwritten
   if ! cp "${dest}" "${HELIX_ARCHIVE_DIR}/${backup_name}.${TIMESTAMP}"; then
     printf "Error: Failed to backup %s\n" "${name}" >&2
     return 1
   fi
 
-  #@ Perform the sync
+  #~@ Perform the sync
   if ! cp "${src}" "${dest}"; then
     printf "Error: Failed to sync %s\n" "${name}" >&2
     return 1
@@ -200,12 +200,12 @@ smart_sync_file() {
 }
 
 execute_process() {
-  #@ Ensure the archive directory exists (unless dry run)
+  #~@ Ensure the archive directory exists (unless dry run)
   if [ "${dry_run}" -eq 0 ]; then
     mkdir -p "${HELIX_ARCHIVE_DIR}"
   fi
 
-  #@ Perform smart sync operations
+  #~@ Perform smart sync operations
   if ! smart_sync_file "${HELIX_CONFIG}" "${LOCAL_CONFIG}" "config.toml"; then
     return 1
   fi
@@ -214,23 +214,23 @@ execute_process() {
     return 1
   fi
 
-  #@ Check if helix is available
+  #~@ Check if helix is available
   if ! command -v hx >/dev/null 2>&1; then
     printf "Error: helix (hx) not found in PATH\n" >&2
     return 1
   fi
 
-  #@ Launch Helix with DOTS config and provided arguments (or current directory)
+  #~@ Launch Helix with DOTS config and provided arguments (or current directory)
   if [ -n "${args}" ]; then
-    #@ Save IFS to restore after parsing
+    #~@ Save IFS to restore after parsing
     ifs="${IFS}"
     IFS="${DELIMITER}"
 
-    #@ Parse arguments
+    #~@ Parse arguments
     # shellcheck disable=SC2086
     set -- ${args}
 
-    #@ Launch helix with the specified arguments
+    #~@ Launch helix with the specified arguments
     if [ "${dry_run}" -eq 0 ]; then
       exec hx -c "${HELIX_CONFIG}" "$@"
       exit_code="$?"
@@ -239,13 +239,13 @@ execute_process() {
         "${HELIX_CONFIG}" "$*"
     fi
 
-    #@ Restore IFS
+    #~@ Restore IFS
     IFS="${ifs}"
   else
-    #@ Get the current working directory
+    #~@ Get the current working directory
     cwd="$(pwd -P || echo ".")"
 
-    #@ Launch helix in the current working directory
+    #~@ Launch helix in the current working directory
     if [ "${dry_run}" -eq 0 ]; then
       exec hx -c "${HELIX_CONFIG}" "${cwd}"
       exit_code="$?"

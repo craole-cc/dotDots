@@ -15,70 +15,70 @@
 #DOC Example:
 #DOC   is_non-empty-dir /path/to/directory
 
-#@ Set defaults
+#~@ Set defaults
 unset verbose quiet non_empty msg
 code=0
 
-#@ Parse arguments
+#~@ Parse arguments
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -d | --verbose)
-      verbose=true
-      ;;
-    -q | --quiet)
-      quiet=true
-      ;;
-    -*)
-      printf "Unknown option: %s\n" "$1" >&2
-      exit 2
-      ;;
-    *)
-      dir="$1"
-      ;;
+  -d | --verbose)
+    verbose=true
+    ;;
+  -q | --quiet)
+    quiet=true
+    ;;
+  -*)
+    printf "Unknown option: %s\n" "$1" >&2
+    exit 2
+    ;;
+  *)
+    dir="$1"
+    ;;
   esac
   shift
 done
 
-#@ Ensure a directory argument is provided
+#~@ Ensure a directory argument is provided
 if [ -z "$dir" ]; then
-  [ "$quiet" ] \
-    || printf "%s\n" "Usage: non_empty_dir <directory>" >&2
+  [ "$quiet" ] ||
+    printf "%s\n" "Usage: non_empty_dir <directory>" >&2
   exit 2
 fi
 
-#@ Check if the directory exists
+#~@ Check if the directory exists
 [ -d "$dir" ] || {
-  [ "$verbose" ] \
-    && printf "Error: '%s' is not a valid directory\n" "$dir"
+  [ "$verbose" ] &&
+    printf "Error: '%s' is not a valid directory\n" "$dir"
   exit 1
 }
 
-#@ Get the absolute path of the directory
+#~@ Get the absolute path of the directory
 abs="$(
-  realpath "$dir" 2> /dev/null \
-    || { cd "$dir" 2> /dev/null && pwd; } \
-    || "$dir"
+  realpath "$dir" 2>/dev/null ||
+    { cd "$dir" 2>/dev/null && pwd; } ||
+    "$dir"
 )"
 
-#@ Loop and check for any entry other than . or ..
+#~@ Loop and check for any entry other than . or ..
 for file in "$abs"/* "$abs"/.[!.]* "$abs"/..?*; do
   case "$file" in
-    "$abs/." | "$abs/..") ;; #? Skip "." and ".."
-    "$abs") ;;               #? Skip the directory itself
-    *)
-      non_empty=true
-      break
-      ;; #? Found a non-empty entry, so exit the loop
+  "$abs/." | "$abs/..") ;; #? Skip "." and ".."
+  "$abs") ;;               #? Skip the directory itself
+  *)
+    non_empty=true
+    break
+    ;; #? Found a non-empty entry, so exit the loop
   esac
 done
 
-#@ Set exit status
+#~@ Set exit status
 if [ -n "$non_empty" ]; then
-  [ "$verbose" ] \
-    && printf "Non-empty directory: %s\n" "$abs"
+  [ "$verbose" ] &&
+    printf "Non-empty directory: %s\n" "$abs"
   exit 0
 else
-  [ "$verbose" ] \
-    && printf "Empty directory: %s\n" "$abs"
+  [ "$verbose" ] &&
+    printf "Empty directory: %s\n" "$abs"
   exit 1
 fi

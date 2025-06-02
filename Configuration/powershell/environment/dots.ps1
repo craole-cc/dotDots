@@ -17,7 +17,7 @@ function Global:Set-LocationDots {
 #>
 function Global:Edit-DotsDirectory {
     if ($env:DOTS -and (Test-Path $env:DOTS)) {
-        #@ Try common editors in order of preference
+        #~@ Try common editors in order of preference
         $editors = @(
             @{ Name = 'code'; Args = @($env:DOTS) },                    #? VS Code
             @{ Name = 'code-insiders'; Args = @($env:DOTS) },           #? VS Code Insiders
@@ -65,7 +65,7 @@ function Set-DotsAliases {
         return
     }
 
-    #@ Create aliases with explicit global scope
+    #~@ Create aliases with explicit global scope
     Set-Alias -Name 'cd.dots' -Value Set-LocationDots -Scope Global -Force
     Set-Alias -Name 'edit.dots' -Value Edit-DotsDirectory -Scope Global -Force
     Set-Alias -Name 'dots' -Value Set-LocationDots -Scope Global -Force

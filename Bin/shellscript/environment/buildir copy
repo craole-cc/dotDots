@@ -159,7 +159,7 @@ parse_arguments() {
 
 #DOC: Validate parsed arguments
 validate_arguments() {
-  #@ Validate required arguments
+  #~@ Validate required arguments
   case "${target_root}" in
   "")
     printf "Error: --target is required\n" >&2
@@ -169,13 +169,13 @@ validate_arguments() {
   *) ;;
   esac
 
-  #@ Check if target directory exists
+  #~@ Check if target directory exists
   [ ! -d "${target_root}" ] && {
     printf "Error: Target directory does not exist: %s\n" "${target_root}" >&2
     exit 3
   }
 
-  #@ Validate sort type
+  #~@ Validate sort type
   case "${sort_type}" in
   alphabetical | alphabetical-reverse | size | size-reverse | modified | modified-reverse | depth | depth-reverse | none) ;;
   *)
@@ -185,7 +185,7 @@ validate_arguments() {
     ;;
   esac
 
-  #@ Validate output format
+  #~@ Validate output format
   case "${output_format}" in
   colon | newline | json) ;;
   *)
@@ -195,7 +195,7 @@ validate_arguments() {
     ;;
   esac
 
-  #@ Validate depth if specified
+  #~@ Validate depth if specified
   case "${max_depth}" in
   "" | *[!0-9]*)
     case "${max_depth}" in
@@ -210,10 +210,10 @@ validate_arguments() {
   *) ;;
   esac
 
-  #@ Convert target to absolute path if needed
+  #~@ Convert target to absolute path if needed
   case "${relative_paths}" in
   "")
-    #@ Make target_root absolute
+    #~@ Make target_root absolute
     case "${target_root}" in
     /*) ;;
     *) target_root="$(cd "${target_root}" && pwd)" ;; *) ;;
@@ -237,11 +237,11 @@ read_single_ignore_file() {
     [ -n "${verbose}" ] && printf "Reading ignore file: %s\n" "${ignore_file_path}" >&2
 
     while IFS= read -r line || [ -n "${line}" ]; do
-      #@ Skip empty lines and comments
+      #~@ Skip empty lines and comments
       case "${line}" in
       "" | \#*) continue ;;
       *)
-        #@ Store pattern with its directory context
+        #~@ Store pattern with its directory context
         case "${ignore_patterns}" in
         "") ignore_patterns="${ignore_dir}:${line}" ;;
         *) ignore_patterns="${ignore_patterns}|${ignore_dir}:${line}" ;;
@@ -256,7 +256,7 @@ read_single_ignore_file() {
 read_ignore_files() {
   ignore_patterns=""
 
-  #@ Read from explicitly specified ignore file (affects entire tree)
+  #~@ Read from explicitly specified ignore file (affects entire tree)
   [ -n "${ignore_file}" ] && {
     [ -f "${ignore_file}" ] || {
       printf "Warning: Ignore file not found: %s\n" "${ignore_file}" >&2
@@ -276,7 +276,7 @@ read_ignore_files() {
     }
   }
 
-  #@ Find and read all .ignore files in the directory tree
+  #~@ Find and read all .ignore files in the directory tree
   find "${target_root}" -name ".ignore" -type f 2>/dev/null | while IFS= read -r ignore_path; do
     read_single_ignore_file "${ignore_path}"
   done
@@ -285,19 +285,19 @@ read_ignore_files() {
 #DOC: Update ignore file with CLI exclude patterns if specified
 update_ignore_file() {
   [ -n "${ignore_file}" ] && {
-    #@ Create ignore file directory if it doesn't exist
+    #~@ Create ignore file directory if it doesn't exist
     ignore_dir="${ignore_file%/*}"
     case "${ignore_dir}" in
     "${ignore_file}") ignore_dir="." ;; *) ;;
     esac
     [ ! -d "${ignore_dir}" ] && mkdir -p "${ignore_dir}"
 
-    #@ Get CLI-only patterns (exclude patterns that came from CLI args)
+    #~@ Get CLI-only patterns (exclude patterns that came from CLI args)
     cli_patterns=""
-    #@ This is a simplified approach - in practice, you might want to track
-    #@ which patterns came from CLI vs files more precisely
+    #~@ This is a simplified approach - in practice, you might want to track
+    #~@ which patterns came from CLI vs files more precisely
     for pattern in ${exclude_patterns}; do
-      #@ Add pattern to ignore file if not already present
+      #~@ Add pattern to ignore file if not already present
       if [ -f "${ignore_file}" ]; then
         grep -Fxq "${pattern}" "${ignore_file}" || {
           case "${cli_patterns}" in
@@ -313,7 +313,7 @@ update_ignore_file() {
       fi
     done
 
-    #@ Write new patterns to ignore file
+    #~@ Write new patterns to ignore file
     for pattern in ${cli_patterns}; do
       [ -n "${verbose}" ] && printf "Adding pattern to ignore file: %s\n" "${pattern}" >&2
       printf "%s\n" "${pattern}" >>"${ignore_file}"
@@ -325,7 +325,7 @@ update_ignore_file() {
 should_exclude_directory() {
   dir_to_check="${1}"
 
-  #@ Check CLI exclude patterns (apply globally)
+  #~@ Check CLI exclude patterns (apply globally)
   for pattern in ${exclude_patterns}; do
     case "${dir_to_check}" in
     *"${pattern}"*)
@@ -336,12 +336,12 @@ should_exclude_directory() {
     esac
   done
 
-  #@ Check hierarchical ignore patterns
+  #~@ Check hierarchical ignore patterns
   case "${ignore_patterns}" in
   "") return 1 ;; *) ;;
   esac
 
-  #@ Parse ignore patterns (format: dir:pattern|dir:pattern|...)
+  #~@ Parse ignore patterns (format: dir:pattern|dir:pattern|...)
   old_ifs="${IFS}"
   IFS="|"
   for ignore_entry in ${ignore_patterns}; do
@@ -352,7 +352,7 @@ should_exclude_directory() {
     pattern="${2}"
     IFS="${old_ifs}"
 
-    #@ Check if directory is under the ignore file's influence
+    #~@ Check if directory is under the ignore file's influence
     case "${dir_to_check}" in
     "${ignore_dir}"/* | "${ignore_dir}")
       case "${dir_to_check}" in
@@ -375,12 +375,12 @@ should_exclude_directory() {
 #DOC: Get directory depth relative to target root
 get_directory_depth() {
   dir_path="${1}"
-  #@ Remove target root from path and count remaining slashes
+  #~@ Remove target root from path and count remaining slashes
   relative_path="${dir_path#"${target_root}"}"
   case "${relative_path}" in
   "") printf "0\n" ;;
   /*)
-    #@ Count slashes in relative path
+    #~@ Count slashes in relative path
     depth=0
     remaining="${relative_path#/}"
     while [ "${remaining}" != "${remaining%/*}" ]; do
@@ -425,7 +425,7 @@ sort_directories() {
     cat
     ;;
   size | size-reverse | modified | modified-reverse | depth | depth-reverse)
-    #@ Create temporary file with sort keys
+    #~@ Create temporary file with sort keys
     while IFS= read -r dir; do
       case "${sort_method}" in
       size | size-reverse)
@@ -443,7 +443,7 @@ sort_directories() {
       esac
     done >"${temp_file}"
 
-    #@ Sort and extract directory paths
+    #~@ Sort and extract directory paths
     case "${sort_method}" in
     *-reverse) sort_flags="-rn" ;;
     *) sort_flags="-n" ;;
@@ -466,13 +466,13 @@ build_fd_excludes() {
     fd_excludes="${fd_excludes} --exclude ${pattern}"
   done
 
-  #@ Add depth limit if specified
+  #~@ Add depth limit if specified
   case "${max_depth}" in
   "") ;;
   *) fd_excludes="${fd_excludes} --max-depth ${max_depth}" ;;
   esac
 
-  #@ Add symlink handling
+  #~@ Add symlink handling
   case "${follow_symlinks}" in
   "1") fd_excludes="${fd_excludes} --follow" ;; *) ;;
   esac
@@ -488,13 +488,13 @@ build_find_excludes() {
     esac
   done
 
-  #@ Add depth limit if specified
+  #~@ Add depth limit if specified
   case "${max_depth}" in
   "") find_depth="" ;;
   *) find_depth="-maxdepth ${max_depth}" ;;
   esac
 
-  #@ Add symlink handling
+  #~@ Add symlink handling
   case "${follow_symlinks}" in
   "1") find_symlinks="-follow" ;;
   *) find_symlinks="" ;;
@@ -569,32 +569,32 @@ execute_process() {
   read_ignore_files
   update_ignore_file
 
-  #@ Create temporary file for directory list
+  #~@ Create temporary file for directory list
   temp_dirs="/tmp/pathbuilder_dirs_$$"
 
   if [ -n "${use_fd}" ]; then
-    #@ Use fd for initial directory discovery (CLI excludes only)
+    #~@ Use fd for initial directory discovery (CLI excludes only)
     build_fd_excludes
     case "${fd_excludes}" in
     "") eval "fd --type d . '${target_root}'" >"${temp_dirs}" ;;
     *) eval "fd --type d ${fd_excludes} . '${target_root}'" >"${temp_dirs}" ;;
     esac
   else
-    #@ Use find as fallback (CLI excludes only)
+    #~@ Use find as fallback (CLI excludes only)
     build_find_excludes
     case "${find_excludes}" in
     "")
-      #@ No CLI excludes, simple find
+      #~@ No CLI excludes, simple find
       eval "find '${target_root}' ${find_symlinks} ${find_depth} -type d" >"${temp_dirs}"
       ;;
     *)
-      #@ With CLI excludes
+      #~@ With CLI excludes
       eval "find '${target_root}' ${find_symlinks} ${find_depth} ${find_excludes} -type d -print" >"${temp_dirs}"
       ;;
     esac
   fi
 
-  #@ Process results
+  #~@ Process results
   if [ -n "${dry_run}" ]; then
     printf "Dry run mode - showing what would be excluded:\n" >&2
     while IFS= read -r dir; do
@@ -607,7 +607,7 @@ execute_process() {
       fi
     done <"${temp_dirs}"
   else
-    #@ Filter and collect results
+    #~@ Filter and collect results
     final_dirs="/tmp/pathbuilder_final_$$"
 
     while IFS= read -r dir; do
@@ -619,7 +619,7 @@ execute_process() {
       fi
     done <"${temp_dirs}"
 
-    #@ Sort and output results
+    #~@ Sort and output results
     [ -f "${final_dirs}" ] && {
       sort_directories "${sort_type}" <"${final_dirs}" | output_results
     }
@@ -629,7 +629,7 @@ execute_process() {
 
   rm -f "${temp_dirs}"
 
-  #@ Show statistics if requested
+  #~@ Show statistics if requested
   if [ -n "${show_stats}" ]; then
     end_time=$(date +%s 2>/dev/null || echo "0")
     duration=$((end_time - start_time))
@@ -647,5 +647,5 @@ execute_process() {
   fi
 }
 
-#@ Execute main function with all arguments
+#~@ Execute main function with all arguments
 main "${@}"

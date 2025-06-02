@@ -1,17 +1,17 @@
 #!/bin/sh
 
-#@ Declare command information
+#~@ Declare command information
 _APP="picom"
 _ARGS="--config $DOTS_CFG/utilities/picom/picom.conf"
 
-#@ Validate app availability
-[ "${WAYLAND_DISPLAY}" ] \
-  && weHave --check --verbose "$_APP"
+#~@ Validate app availability
+[ "${WAYLAND_DISPLAY}" ] &&
+  weHave --check --verbose "$_APP"
 
-#@ Kill all active instances of the app
+#~@ Kill all active instances of the app
 murda "$_APP"
 
-#@ Launch with or without arguments
+#~@ Launch with or without arguments
 if [ "$_ARGS" ]; then
   eval "$_APP" "$_ARGS"
 else

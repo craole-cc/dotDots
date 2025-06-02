@@ -4,7 +4,7 @@ scr_path="${HOME}/.profile"
 
 #TODO: Move as many parts to bin as possible to simplify the default profile
 
-#@ Global configuration defaults
+#~@ Global configuration defaults
 set_global_defaults() {
   : "${DELIMITER:="$(printf "\037")"}"
   : "${RC:=".dotsrc"}"
@@ -16,7 +16,7 @@ set_global_defaults() {
   DIR_EXCLUDE_PATTERNS='review|tmp|temp|archive|backup|template'
   export DELIMITER RC EDITOR DIR_EXCLUDE_PATTERNS
 
-  #@ Normalize verbosity levels
+  #~@ Normalize verbosity levels
   : "${VERBOSITY:="ERROR"}"
   : "${VERBOSITY_QUIET:="0"}"
   : "${VERBOSITY_ERROR:="1"}"
@@ -104,17 +104,17 @@ register_dots() {
     #DOC priority order (most likely locations first for performance).
     #DOC Preserves the original IFS and configures cleanup behavior.
 
-    #@ Restore shell state to pre-function invocation
+    #~@ Restore shell state to pre-function invocation
     cleanup() {
       IFS="${ifs}"
       unset names homes ctx fn_name rc
     } && cleanup
 
-    #@ Initialize function variables
+    #~@ Initialize function variables
     set_global_defaults
     : "${fn_name:="register_dots"}"
 
-    #@ Define search locations in priority order (most likely first)
+    #~@ Define search locations in priority order (most likely first)
     : "${possible_homes:="$(
       printf '%s\n' \
         "${HOME}" \
@@ -153,10 +153,10 @@ register_dots() {
     #DOC Arguments without options are added to the list of parent directories.
     #DOC Returns 0 on success, 1 on errors such as missing arguments.
 
-    #@ Set defaults
+    #~@ Set defaults
     homes="" names=""
 
-    #@ Parse Arguments
+    #~@ Parse Arguments
     while [ "$#" -gt 0 ]; do
       case "$1" in
       -h | --help)
@@ -197,7 +197,7 @@ register_dots() {
       shift
     done
 
-    #@ Export global configuration
+    #~@ Export global configuration
     export DELIMITER RC VERBOSITY EDITOR
   }
 
@@ -210,7 +210,7 @@ register_dots() {
     #DOC
     #DOC Sets the global variables "DOTS", "DOTS_RC" and "RC" upon success.
 
-    #@ Set search parameters
+    #~@ Set search parameters
     homes="$(
       printf "%s\n" "${homes:-"${possible_homes}"}" |
         tr '\n' "${DELIMITER}"
@@ -232,22 +232,22 @@ register_dots() {
       )"
     fi
 
-    #@ Loop through parent directories in priority order
+    #~@ Loop through parent directories in priority order
     ifs="${IFS}"
     IFS="${DELIMITER}"
     for parent in ${homes}; do
       [ -d "${parent}" ] || continue
 
-      #@ Loop through directory names
+      #~@ Loop through directory names
       for dir in ${names}; do
         dots="${parent}/${dir}"
         [ -d "${dots}" ] || continue
 
-        #@ Direct test first (faster than find for simple cases)
+        #~@ Direct test first (faster than find for simple cases)
         if [ -f "${dots}/${RC}" ]; then
           DOTS_RC="${dots}/${RC}"
         else
-          #@ Fallback to find for more complex scenarios
+          #~@ Fallback to find for more complex scenarios
           DOTS_RC=$(
             find "${dots}" \
               -maxdepth 1 \
@@ -256,7 +256,7 @@ register_dots() {
           ) || continue
         fi
 
-        #@ Validate the found file
+        #~@ Validate the found file
         if [ -f "${DOTS_RC:-}" ]; then
           DOTS="$(dirname "${DOTS_RC}")"
           RC="$(basename "${DOTS_RC}")"
@@ -271,7 +271,7 @@ register_dots() {
     done
     IFS="${ifs}"
 
-    #@ Register the found configuration
+    #~@ Register the found configuration
     if [ -f "${DOTS_RC:-}" ]; then
       manage_env --force --var DOTS --val "${DOTS:?}"
       manage_env --force --var DOTS_RC --val "${DOTS_RC:?}" --init
@@ -308,8 +308,6 @@ register_dots() {
 
   main "$@"
 }
-
-
 
 manage_env() {
   #DOC Manage environment variables with various operations.
@@ -447,7 +445,7 @@ manage_env() {
       shift
     done
 
-    #@ Parse positional arguments if necessary
+    #~@ Parse positional arguments if necessary
     if [ -n "${args}" ]; then
       ifs="${IFS}"
       IFS="${DELIMITER}"
@@ -461,7 +459,7 @@ manage_env() {
       [ -z "${val:-}" ] && val=$*
     fi
 
-    #@ Validate required arguments based on action
+    #~@ Validate required arguments based on action
     case "${action}" in
     register | set | init | initialize)
       if [ -z "${var:-}" ]; then
@@ -481,7 +479,7 @@ manage_env() {
     *) ;;
     esac
 
-    #@ Print debug information
+    #~@ Print debug information
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
       pout_tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
         printf "\n  %${pad}s%s%s" "ACTION" "${sep}" "${action}"
@@ -568,11 +566,11 @@ register_env() {
   #DOC   - Sources RC files in directories when --init is used
   #DOC   - Sources files directly when --init is used
 
-  #@ Set defaults
+  #~@ Set defaults
   _val="" _var="" _args="" _init=0 _force=0
   set_global_defaults
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ $# -ge 1 ]; do
     case "$1" in
     -[iI] | --init | --initialize) _init=1 ;;
@@ -607,13 +605,13 @@ register_env() {
     shift
   done
 
-  #@ Handle remaining arguments after -- separator
+  #~@ Handle remaining arguments after -- separator
   while [ $# -ge 1 ]; do
     _args="${_args:+${_args}${DELIMITER}}$1"
     shift
   done
 
-  #@ Parse positional arguments if necessary
+  #~@ Parse positional arguments if necessary
   if [ -n "${_args}" ]; then
     ifs="${IFS}"
     IFS="${DELIMITER}"
@@ -628,7 +626,7 @@ register_env() {
     [ -z "${_val:-}" ] && _val="$*"
   fi
 
-  #@ Validate required arguments
+  #~@ Validate required arguments
   if [ -z "${_var:-}" ]; then
     show_usage_error "Variable name is required"
     return 1
@@ -646,7 +644,7 @@ register_env() {
     )"
   fi
 
-  #@ Handle existing variable values
+  #~@ Handle existing variable values
   var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
   case "${var_val:-}" in
   "")
@@ -668,12 +666,12 @@ register_env() {
         pout_tagged --ctx "register_env" --tag "WARN " --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
       fi
     else
-      #@ Interactive prompt for overwrite
+      #~@ Interactive prompt for overwrite
       printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
       printf "New value would be: '%s'\n" "${_val}"
       printf "Overwrite with new value? [y/N] (default: N): "
 
-      #@ Handle CTRL-C during read
+      #~@ Handle CTRL-C during read
       trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
       read -r response
       trap - INT
@@ -695,7 +693,7 @@ register_env() {
     ;;
   esac
 
-  #@ Register the variable globally
+  #~@ Register the variable globally
   eval "${_var}=\"\${_val}\""
   eval "export ${_var}"
 
@@ -703,7 +701,7 @@ register_env() {
     pout_tagged --ctx "register_env" --tag "DEBUG" --msg "Exported ${_var}=${_val}"
   fi
 
-  #@ Create helper functions for existing paths
+  #~@ Create helper functions for existing paths
   if [ -e "${_val}" ]; then
     eval "ed_${_var}() { edit \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
@@ -711,17 +709,17 @@ register_env() {
     fi
   fi
 
-  #@ Handle directory-specific functionality
+  #~@ Handle directory-specific functionality
   if [ -d "${_val}" ]; then
     eval "cd_${_var}() { cd \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
       pout_tagged --ctx "register_env" --tag "DEBUG" --msg "Created function cd_${_var}()"
     fi
 
-    #@ Source all RC files if initialization is requested
-    if [ "${_init}" -eq 1 ] ; then
+    #~@ Source all RC files if initialization is requested
+    if [ "${_init}" -eq 1 ]; then
 
-    #@ Loop over all matching RC files and source each if it exists
+      #~@ Loop over all matching RC files and source each if it exists
       for rc_file in "${_val}/${RC}" "${_val}/${RC}.sh" "${_val}/${RC}.bash" "${_val}/${RC}.zsh"; do
         if [ -f "$rc_file" ]; then
           # shellcheck disable=SC1090
@@ -734,8 +732,7 @@ register_env() {
       done
     fi
 
-
-    # #@ Source the RC file if initialization is requested
+    # #~@ Source the RC file if initialization is requested
     # if [ "${_init}" -eq 1 ] ;then
     #   if [ -f "${_val}/${RC}" ]; then
     #   # shellcheck disable=SC1090
@@ -747,7 +744,7 @@ register_env() {
     # fi
   fi
 
-  #@ Handle file-specific initialization
+  #~@ Handle file-specific initialization
   if [ -f "${_val}" ] && [ "${_init}" -eq 1 ]; then
     # shellcheck disable=SC1090
     . "${_val}"
@@ -801,12 +798,12 @@ resolve_env() {
   #DOC Output:
   #DOC   The resolved absolute path or variable value
 
-  #@ Validate arguments
+  #~@ Validate arguments
   if [ -z "${1:-}" ]; then
     return 1
   fi
 
-  #@ Get the current value of the variable
+  #~@ Get the current value of the variable
   eval 'env="${'"${1}"'}"'
 
   if [ -z "${env:-}" ]; then
@@ -814,33 +811,33 @@ resolve_env() {
   fi
 
   if [ -e "${env}" ]; then
-    #@ Retrieve the absolute path (if possible)
+    #~@ Retrieve the absolute path (if possible)
     if [ -d "${env}" ]; then
       (cd "${env}" 2>/dev/null && pwd)
     elif [ -f "${env}" ]; then
 
-      #@ For files: cd to dirname, then print full path
+      #~@ For files: cd to dirname, then print full path
       dir=$(dirname "${env}")
       file=$(basename "${env}")
       (cd "${dir}" 2>/dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")
     fi
   else
-    #@ Return the value of the variable
+    #~@ Return the value of the variable
     printf '%s\n' "${env}"
   fi
 }
 
 helix() {
-  #@ Ensure DOTS environment variable is set
+  #~@ Ensure DOTS environment variable is set
   : "${DOTS:?Must set DOTS environment variable}"
 
-  #@ Set Helix config and archive directories
+  #~@ Set Helix config and archive directories
   : "${HELIX_CONFIG_DIR:="${DOTS}/Configuration/helix"}"
   : "${HELIX_ARCHIVE_DIR:="${HELIX_CONFIG_DIR}/archive"}"
   : "${HELIX_CONFIG:="${HELIX_CONFIG_DIR}/config.toml"}"
   : "${HELIX_LANGUAGES:="${HELIX_CONFIG_DIR}/languages.toml"}"
 
-  #@ Determine the default Helix config directory
+  #~@ Determine the default Helix config directory
   if [ -n "${XDG_CONFIG_HOME:-}" ]; then
     HELIX_DEFAULT_DIR="${XDG_CONFIG_HOME}/helix"
   elif [ -n "${APPDATA:-}" ]; then
@@ -849,23 +846,23 @@ helix() {
     HELIX_DEFAULT_DIR="${HOME}/.config/helix"
   fi
 
-  #@ Set source files
+  #~@ Set source files
   SRC_CONFIG="${HELIX_DEFAULT_DIR}/config.toml"
   SRC_LANGUAGES="${HELIX_DEFAULT_DIR}/languages.toml"
 
-  #@ Ensure the archive directory exists
+  #~@ Ensure the archive directory exists
   mkdir -p "${HELIX_ARCHIVE_DIR}"
 
-  #@ Backup and sync config.toml
+  #~@ Backup and sync config.toml
   if [ -f "${SRC_CONFIG}" ]; then
     if [ -f "${HELIX_CONFIG}" ]; then
-      #@ Create a timestamped backup
+      #~@ Create a timestamped backup
       cp "${HELIX_CONFIG}" "${HELIX_ARCHIVE_DIR}/config.toml.$(date +%Y%m%d_%H%M%S)"
     fi
     cp -u "${SRC_CONFIG}" "${HELIX_CONFIG}"
   fi
 
-  #@ Backup and sync languages.toml
+  #~@ Backup and sync languages.toml
   if [ -f "${SRC_LANGUAGES}" ]; then
     if [ -f "${HELIX_LANGUAGES}" ]; then
       cp "${HELIX_LANGUAGES}" "${HELIX_ARCHIVE_DIR}/languages.toml.$(date +%Y%m%d_%H%M%S)"
@@ -873,16 +870,15 @@ helix() {
     cp -u "${SRC_LANGUAGES}" "${HELIX_LANGUAGES}"
   fi
 
-  #@ Notify user
+  #~@ Notify user
   printf "Sync complete. Backups (if any) are in %s\n" "${HELIX_ARCHIVE_DIR}"
 }
 
-
 edit() {
-  #@ Ensure the EDITOR is set
- : "${EDITOR:=helix}"
+  #~@ Ensure the EDITOR is set
+  : "${EDITOR:=helix}"
 
-  #@ Launch with the specified arguments or the current directory
+  #~@ Launch with the specified arguments or the current directory
   if [ -n "${1:-}" ]; then
     eval "${EDITOR} -- \"\${@}\""
   else
@@ -894,10 +890,10 @@ normalize_verbosity() {
   input="${1:-${VERBOSITY:-3}}"
   default="${2:-3}"
 
-  #@ Convert to lowercase using only shell builtins
+  #~@ Convert to lowercase using only shell builtins
   case "${input}" in
   *[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
-    #@ Convert manually on the most common patterns first
+    #~@ Convert manually on the most common patterns first
     case "${input}" in
     ERROR | ERR) input="error" ;;
     WARN*) input="warn" ;;
@@ -910,7 +906,7 @@ normalize_verbosity() {
     ;;
   *) ;; esac
 
-  #@ Handle less common patterns
+  #~@ Handle less common patterns
   case "${input}" in
   0 | none | off | quiet | silent | false) printf "0" ;;
   1 | err* | low) printf "1" ;;
@@ -920,7 +916,7 @@ normalize_verbosity() {
   5 | trace | high) printf "5" ;;
   -) printf "0" ;;
   -[0-9]* | [0-9]*)
-    #@ Extract numeric part and validate
+    #~@ Extract numeric part and validate
     case "${input}" in
     *[!0-9-]* | --*) printf "%d" "${default}" ;;
     *)
@@ -954,15 +950,15 @@ pout_tagged() {
   #DOC   pout_tagged --ctx "register_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
   #DOC   pout_tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
 
-  #@ Set a safe delimiter (ASCII Unit Separator)
+  #~@ Set a safe delimiter (ASCII Unit Separator)
   : "${DELIMITER:="$(printf "\037")"}"
 
-  #@ Initialize with defaults
+  #~@ Initialize with defaults
   ctx=""
   tag=""
   msg=""
 
-  #@ Parse named arguments
+  #~@ Parse named arguments
   while [ $# -gt 0 ]; do
     case "${1}" in
     --ctx)
@@ -1002,16 +998,16 @@ pout_tagged() {
       msg="${1#--msg=}"
       ;;
     --)
-      #@ End of options, remaining args become message
+      #~@ End of options, remaining args become message
       shift
       msg="$*"
       break
       ;;
     --*)
-      #@ Unknown option, ignore
+      #~@ Unknown option, ignore
       ;;
     *)
-      #@ If no explicit --msg flag, treat remaining args as message
+      #~@ If no explicit --msg flag, treat remaining args as message
       if [ -z "${msg}" ]; then
         msg="$*"
         break
@@ -1021,22 +1017,22 @@ pout_tagged() {
     shift
   done
 
-  #@ Return early if no message is provided
+  #~@ Return early if no message is provided
   if [ -z "${msg}" ]; then
     return 0
   fi
 
-  #@ Fallback to context variables if not set
+  #~@ Fallback to context variables if not set
   if [ -z "${ctx}" ]; then ctx="${fn_name:-}"; fi
   if [ -z "${ctx}" ]; then ctx="${scr_name:-}"; fi
   if [ -z "${ctx}" ]; then ctx="${scr_path:-}"; fi
   if [ -z "${ctx}" ]; then ctx="script"; fi
 
-  #@ Default tag to DEBUG if not provided
+  #~@ Default tag to DEBUG if not provided
   if [ -z "${tag}" ]; then tag="DEBUG"; fi
   tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
 
-  #@ Format and print the message
+  #~@ Format and print the message
   printf "\n%s >>= %s =<< %s\n" "${tag}" "${ctx}" "${msg}"
 }
 

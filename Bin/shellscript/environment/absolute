@@ -41,7 +41,7 @@ set_defaults() {
 }
 
 set_modes() {
-  #@ Initialize variables
+  #~@ Initialize variables
   verbosity_options="$(
     list \
       0 quiet off false \
@@ -61,7 +61,7 @@ set_modes() {
   )"
   fail_on_error="${fail_on_error:-1}"
 
-  #@ Parse arguments
+  #~@ Parse arguments
   case "$1" in
   --verbosity)
     #| Verbosity Level
@@ -102,23 +102,23 @@ set_modes() {
 }
 
 cache_commands() {
-  #@ Initialize variables
+  #~@ Initialize variables
   cmd_list="${cmd_list:-"$@"}"
 
-  #@ Loop through each command
+  #~@ Loop through each command
   for cmd in $(list --build "$@"); do
-    #@ Initialize variables
+    #~@ Initialize variables
     cmd_key="" cmd_val="" cmd_env=""
 
-    #@ Define the key in uppercase, prefixed with "CMD_"
+    #~@ Define the key in uppercase, prefixed with "CMD_"
     cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]' '[:upper:]')"
     pout --debug --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
-    #@ Retrieve the path, otherwise return empty string
+    #~@ Retrieve the path, otherwise return empty string
     cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
     pout --debug --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
-    #@ Create the environment variable of the command's location
+    #~@ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
     cmd_env="$(env | grep "${cmd_key}")"
     pout --debug --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
@@ -151,7 +151,7 @@ parse_arguments() {
     shift
   done
 
-  #@ Normalize the verbosity level
+  #~@ Normalize the verbosity level
   case "${verbosity:-}" in
   0 | quiet | off | false) verbosity=0 ;;
   1 | error) verbosity=1 ;;
@@ -166,11 +166,11 @@ parse_arguments() {
 }
 
 execute_process() {
-  #@ Initialize variables
+  #~@ Initialize variables
   _path="${1:-"${target_path:-}"}"
   pout --debug --key "Execute Process" --val "${_path}"
 
-  #@ Resolve the path
+  #~@ Resolve the path
   if [ -x "${CMD_REALPATH:-}" ]; then
     normalized_path="$(realpath -- "${_path}")"
   elif [ -x "${CMD_READLINK:-}" ]; then
@@ -184,55 +184,55 @@ execute_process() {
 }
 
 normalize_path() {
-  #@ Initialize variables
+  #~@ Initialize variables
   input_path="$1"
   abs_path=""
   result=""
 
-  #@ Handle absolute vs. relative paths
+  #~@ Handle absolute vs. relative paths
   case "${input_path}" in
   /*) abs_path="${input_path}" ;;
   *) abs_path="$(pwd)/${input_path}" ;;
   esac
 
-  #@ Set initial slash for absolute paths
+  #~@ Set initial slash for absolute paths
   case "${abs_path}" in
   /*) result="/" ;;
   *) ;;
   esac
 
-  #@ Save IFS and set new one for path splitting
+  #~@ Save IFS and set new one for path splitting
   OLDIFS="${IFS}"
   IFS="/"
 
-  #@ Process each component
+  #~@ Process each component
   for component in ${abs_path}; do
-    #@ Skip empty components and current directory
+    #~@ Skip empty components and current directory
     if [ -z "${component}" ] || [ "${component}" = "." ]; then
       continue
     fi
 
     if [ "${component}" = ".." ]; then
-      #@ Go up one directory level
+      #~@ Go up one directory level
       if [ "${result}" = "/" ]; then
-        #@ Stay at root if already there
+        #~@ Stay at root if already there
         continue
       elif [ -z "${result}" ]; then
-        #@ For relative paths starting with ..
+        #~@ For relative paths starting with ..
         result="../"
       else
-        #@ Remove trailing slash if present
+        #~@ Remove trailing slash if present
         result="${result%/}"
 
-        #@ Remove the last path component
+        #~@ Remove the last path component
         result="${result%/*}"
         [ -z "${result}" ] && result="/"
 
-        #@ Handle empty result (happens when we're at the top of a relative path)
+        #~@ Handle empty result (happens when we're at the top of a relative path)
         [ "${result}" = "." ] && result=""
       fi
     else
-      #@ Add component to result
+      #~@ Add component to result
       if [ "${result}" = "/" ]; then
         result="/${component}"
       elif [ -z "${result}" ]; then
@@ -243,63 +243,63 @@ normalize_path() {
     fi
   done
 
-  #@ Restore IFS
+  #~@ Restore IFS
   IFS="${OLDIFS}"
 
-  #@ Ensure we return at least "/" for root directory or "." for empty
+  #~@ Ensure we return at least "/" for root directory or "." for empty
   if [ -z "${result}" ]; then
     result="."
   fi
 
-  #@ Return the normalized path
+  #~@ Return the normalized path
   printf "%s" "${result}"
 }
 
 resolve_path() {
-  #@ Check for target path
+  #~@ Check for target path
   [ -n "${1:-}" ] || {
     pout --error "Function 'resolve_path' requires a target path."
     return 2
   }
 
-  #@ Initialize variables
+  #~@ Initialize variables
   target="$1"
   max_depth=50 #? Prevent infinite recursion
   current_depth=${2:-0}
   physical_dir="$(pwd -P)"
 
-  #@ Check recursion depth to prevent infinite loops
+  #~@ Check recursion depth to prevent infinite loops
   if [ "${current_depth}" -ge "${max_depth}" ]; then
     printf "Error: Maximum symlink recursion depth reached (%s)\n" "${max_depth}" >&2
     return 1
   fi
 
-  #@ Resolve the target directory and get its physical path
+  #~@ Resolve the target directory and get its physical path
   if ! physical_dir="$(cd -P "$(dirname "${target}")" 2>/dev/null && pwd -P)"; then
-    #@ Return original if directory doesn't exist
+    #~@ Return original if directory doesn't exist
     printf "%s" "${target}"
     return 1
   fi
 
-  #@ Resolve the target base and get its physical path
+  #~@ Resolve the target base and get its physical path
   physical_base="$(basename "${target}")"
   physical_path="${physical_dir}/${physical_base}"
 
-  #@ Check if the basename is a symlink and resolve it
+  #~@ Check if the basename is a symlink and resolve it
   if [ -L "${physical_path}" ]; then
     link_target="$(readlink "${physical_path}")"
 
-    #@ Handle relative vs. absolute links
+    #~@ Handle relative vs. absolute links
     case "${link_target}" in
     /*) resolved_link="${link_target}" ;;
     *) resolved_link="${physical_dir}/${link_target}" ;;
     esac
 
-    #@ Recursively resolve the link target with incremented depth
+    #~@ Recursively resolve the link target with incremented depth
     next_depth=$((current_depth + 1))
     resolve_path "${resolved_link}" "${next_depth}"
   else
-    #@ Return the fully normalized physical path
+    #~@ Return the fully normalized physical path
     printf "%s" "${physical_path}"
   fi
 }
@@ -313,12 +313,12 @@ terminate_process() {
 }
 
 list() {
-  #@ Initialize variables
+  #~@ Initialize variables
   list=""
   action="build"
   separator="${delimiter:-" "}"
 
-  #@ Parse arguments
+  #~@ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --create | --make | --build) action=build ;;
@@ -329,7 +329,7 @@ list() {
     shift
   done
 
-  #@ Add the defined separator, if necessary
+  #~@ Add the defined separator, if necessary
   if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
     old_IFS="${IFS}"
     IFS="${delimiter}"
@@ -346,7 +346,7 @@ list() {
     printf "%s" "${list:-}"
     ;;
   parse)
-    #@ Parse the input string into an array-like output
+    #~@ Parse the input string into an array-like output
     old_IFS="${IFS}"
     IFS="${delimiter}"
     for item in ${list}; do
@@ -363,10 +363,10 @@ trim() {
 }
 
 pout() {
-  #@ Initialize variables
+  #~@ Initialize variables
   key="" val="" tag="" pad="" msg="" trim=true
 
-  #@ Parse message type and content
+  #~@ Parse message type and content
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -k | --key) key="$2" shift ;;
@@ -410,13 +410,13 @@ pout() {
     shift
   done
 
-  #@ Format the message
+  #~@ Format the message
   if [ -n "${key}" ]; then
 
-    #@ Tag missing values
+    #~@ Tag missing values
     val="${val:-"${msg:-"{undefined}"}"}"
 
-    #@ Trim leading and trailing whitespace
+    #~@ Trim leading and trailing whitespace
     if [ -n "${trim:-}" ]; then
       key="$(trim "${key}")"
       val="$(trim "${val}")"
@@ -424,24 +424,24 @@ pout() {
 
     case "${tag}" in
     *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #@ Define the separator
+      #~@ Define the separator
       sep=" | "
 
-      #@ Calculate padding for label alignment
+      #~@ Calculate padding for label alignment
       debug_pad="${debug_pad:-18}"
       pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #@ Format the tagged key-value pair
+      #~@ Format the tagged key-value pair
       msg="$(
         printf "[%s] /> %s <\ %s%s%s%s\n" \
           "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}"
       )"
       ;;
     *)
-      #@ Define the separator
+      #~@ Define the separator
       sep=": "
 
-      #@ Print the key-value pair
+      #~@ Print the key-value pair
       msg="$(
         printf "%s%s%s\n" "${key}" "${sep}" "${val}"
       )"
@@ -450,7 +450,7 @@ pout() {
   else
     case "${tag}" in
     *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #@ Format the tagged message
+      #~@ Format the tagged message
       msg="$(
         printf "[%s] /> %s <\ %b\n" \
           "${tag}" "${cmd_NAME}" "${msg}"
@@ -460,7 +460,7 @@ pout() {
     esac
   fi
 
-  #@ Print the message
+  #~@ Print the message
   case "${tag}" in
   ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
   *) printf "%s\n" "${msg}" ;;
@@ -468,7 +468,7 @@ pout() {
 }
 
 sanitize_environment() {
-  #@ Remove varibles
+  #~@ Remove varibles
   unset verbosity
   unset target_path
   unset normalized_path

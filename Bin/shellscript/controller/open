@@ -1,0 +1,229 @@
+#!/bin/sh
+
+#region Error handling functions
+error_msg() {
+  printf 'Error: %s\n' "$*" >&2
+}
+
+usage() {
+  cat >&2 <<EOF
+Usage: ${0##*/} [OPTIONS] [PATH]
+
+Options:
+    -e, --explorer    Open file manager instead of default opener
+    -h, --help       Show this help message
+
+PATH defaults to current directory (.) if not specified
+
+Environment Variables:
+    FILE_MANAGER     Override default file manager
+EOF
+  exit 1
+}
+
+#endregion
+#region Configuration
+
+parse_args() {
+  explorer_mode=0
+  path=
+  while [ $# -gt 0 ]; do
+    case "${1}" in
+    -h | --help) usage ;;
+    -e | --explorer) explorer_mode=1 ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      error_msg "Unknown option: ${1}"
+      usage
+      ;;
+    *)
+      path="${1}"
+      break
+      ;;
+    esac
+    shift
+  done
+
+  #{Set default path and validate
+  [ -z "${path}" ] && path="."
+  if [ ! -e "${path}" ]; then
+    error_msg "Path does not exist: ${path}"
+    exit 2
+  fi
+}
+
+#endregion
+#region Utilities
+
+get_default_file_manager() {
+  #DOC Attempt to get the system's default file manager via xdg-mime
+  #~@ Only attempt if xdg-mime is available
+  if command -v xdg-mime >/dev/null 2>&1; then
+    desktop_file=$(
+      xdg-mime query default inode/directory 2>/dev/null
+    )
+    if [ -n "${desktop_file}" ]; then
+      #~@ Try to extract the Exec line from the .desktop file
+      desktop_path=
+      for dir in \
+        "${HOME}/.local/share/applications" \
+        "/usr/share/applications"; do
+        if [ -f "${dir}/${desktop_file}" ]; then
+          desktop_path="${dir}/${desktop_file}"
+          break
+        fi
+      done
+      if [ -n "${desktop_path}" ]; then
+        exec_line=$(
+          grep -i '^Exec=' "${desktop_path}" |
+            head -1 | cut -d= -f2- | cut -d' ' -f1
+        )
+        #~@ Remove any trailing % or arguments, just get the command
+        exec_cmd=$(
+          printf '%s\n' "${exec_line}" |
+            cut -d'%' -f1 | awk '{print $1}'
+        )
+        if
+          [ -n "${exec_cmd}" ] &&
+            command -v "${exec_cmd}" >/dev/null 2>&1
+        then
+          file_manager_cmd="${exec_cmd}"
+          return 0
+        fi
+      fi
+    fi
+  fi
+  return 1
+}
+
+detect_opener() {
+  #~@ List of openers to try, in order of preference
+  openers="
+      xdg-open
+      gio
+      open
+      gnome-open
+      kde-open
+      kioclient5
+      exo-open
+      see
+    "
+  opener_cmd=
+  for opener in ${openers}; do
+    #~@ Skip empty or whitespace-only lines
+    [ -z "${opener##*[!\ ]*}" ] || continue
+
+    #~@ Try to retrieve the command path
+    command -v "${opener}" >/dev/null 2>&1 &&
+      opener_cmd="${opener}" && break
+  done
+
+  [ -z "${opener_cmd}" ] && {
+    printf 'No suitable opener found. Tried:\n%s\n' "${openers}"
+    exit 2
+  }
+}
+
+detect_file_manager() {
+  #DOC Detection priority:
+  #DOC 1. User override (FILE_MANAGER env var)
+  #DOC 2. System default via xdg-mime
+  #DOC 3. Known file managers list
+  #DOC 4. Fallback to opener
+
+  #~@ Initialize variables
+  file_manager_cmd=
+
+  #~@ Check user override first
+  if [ -n "${FILE_MANAGER}" ] && command -v "${FILE_MANAGER}" >/dev/null 2>&1; then
+    file_manager_cmd="${FILE_MANAGER}"
+    return 0
+  fi
+
+  #~@ Try system default
+  get_default_file_manager && return 0
+
+  #~@ Try known file managers
+  file_managers="
+    nautilus    # GNOME
+    dolphin     # KDE
+    thunar      # XFCE
+    pcmanfm     # LXDE
+    caja        # MATE
+    nemo        # Cinnamon
+    yazi        # Terminal
+    nnn         # Terminal
+    ranger      # Terminal
+    lf          # Terminal
+  "
+
+  for fm in ${file_managers}; do
+    case "${fm}" in
+    \#*) continue ;;
+    "") continue ;;
+    *)
+      command -v "${fm}" >/dev/null 2>&1 &&
+        file_manager_cmd="${fm}" && return 0
+      ;;
+    esac
+  done
+
+  #~@ Fallback to opener
+  detect_opener
+  file_manager_cmd="${opener_cmd}"
+}
+
+convert_windows_path() {
+  #~@ Convert path to Windows format if cygpath is available
+  if command -v cygpath >/dev/null 2>&1; then
+    path=$(cygpath -w "${path}")
+  fi
+}
+
+#endregion
+#region Main Execution
+
+main() {
+  parse_args "$@"
+
+  os=$(uname | tr '[:upper:]' '[:lower:]')
+  cmd=
+
+  case "${os}" in
+  linux*)
+    detect_opener
+    detect_file_manager
+    cmd=${explorer_mode:+"${file_manager_cmd}"}
+    cmd=${cmd:-"${opener_cmd}"}
+    ;;
+  darwin*)
+    cmd="open"
+    ;;
+  msys* | mingw* | cygwin*)
+    cmd="explorer"
+    convert_windows_path
+    ;;
+  *)
+    error_msg "Unsupported OS: ${os}"
+    exit 2
+    ;;
+  esac
+
+  exec "${cmd}" "${path}"
+}
+
+main "$@"
+
+#endregion
+#region Cleanup
+cleanup() {
+  #~@ Unset all variables to prevent leakage
+  unset opener_cmd file_manager_cmd
+}
+
+cleanup
+
+#endregion

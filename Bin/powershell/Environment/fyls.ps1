@@ -205,16 +205,16 @@ function Invoke-Fyls {
     Write-Verbose "Fyls: Starting directory listing operation"
     Write-Debug "Fyls: Parameters - Tool='$Tool', Pretty=$Pretty, Long=$Long, All=$All"
 
-    #@ Initialize configuration
+    #~@ Initialize configuration
     $config = Initialize-FylsConfig -Parameters $PSBoundParameters
 
-    #@ Resolve sort preferences
+    #~@ Resolve sort preferences
     $config = Resolve-SortPreferences -Config $config
 
-    #@ Resolve display preferences
+    #~@ Resolve display preferences
     $config = Resolve-DisplayPreferences -Config $config
 
-    #@ Determine which tool to use
+    #~@ Determine which tool to use
     $toolCommand = Get-BestAvailableTool -ForcedTool $Tool
 
     if (-not $toolCommand.Found) {
@@ -224,17 +224,17 @@ function Invoke-Fyls {
 
     Write-Verbose "Fyls: Using tool '$($toolCommand.Name)' at '$($toolCommand.Path)'"
 
-    #@ Build command based on selected tool
+    #~@ Build command based on selected tool
     $command = Build-Command -Tool $toolCommand -Config $config -Paths $Path
 
-    #@ Add pagination if requested
+    #~@ Add pagination if requested
     if ($config.Pagination) {
         $command = Add-Pagination -Command $command
     }
 
     Write-Debug "Fyls: Final command - $command"
 
-    #@ Execute or show command
+    #~@ Execute or show command
     if ($ShowCommand) {
         # Write-Host "Command: $command" -ForegroundColor Yellow
         return $command
@@ -275,22 +275,22 @@ function Initialize-FylsConfig {
         Sort = $Parameters.Sort
     }
 
-    #@ Handle Pretty flag
+    #~@ Handle Pretty flag
     if ($Parameters.Pretty) {
         $config.Color = $true
         $config.Icons = $true
     }
 
-    #@ Handle directory grouping
+    #~@ Handle directory grouping
     if ($Parameters.DirFirst) { $config.Priority = 'directories' }
     if ($Parameters.DirLast) { $config.Priority = 'files' }
     if ($Parameters.NoGroup) { $config.Priority = 'none' }
 
-    #@ Handle target filtering
+    #~@ Handle target filtering
     if ($Parameters.DirectoryOnly) { $config.Target = 'directory' }
     if ($Parameters.Link) { $config.Target = 'link' }
 
-    #@ Handle recursion mode
+    #~@ Handle recursion mode
     if ($Parameters.Recursive) { $config.RecursionMode = 'flat' }
     if ($Parameters.Tree) { $config.RecursionMode = 'tree' }
 
@@ -307,7 +307,7 @@ function Resolve-SortPreferences {
         [hashtable]$Config
     )
 
-    #@ Sort flags override the Sort parameter
+    #~@ Sort flags override the Sort parameter
     if (-not $Config.Sort) { $Config.Sort = 'name' }
     if ($PSBoundParameters.ContainsKey('SortSize')) { $Config.Sort = 'size' }
     if ($PSBoundParameters.ContainsKey('SortTime')) { $Config.Sort = 'time' }
@@ -328,13 +328,13 @@ function Resolve-DisplayPreferences {
         [hashtable]$Config
     )
 
-    #@ Auto-enable recursion if depth is specified
+    #~@ Auto-enable recursion if depth is specified
     if ($Config.Depth -gt 0 -and $Config.RecursionMode -eq 'none') {
         $Config.RecursionMode = 'tree'
         Write-Verbose "Fyls: Auto-enabled tree mode due to depth specification"
     }
 
-    #@ Handle octal permission preference
+    #~@ Handle octal permission preference
     if ($Config.Octal) {
         $Config.Permission = 'octal'
     }
@@ -362,7 +362,7 @@ function Get-BestAvailableTool {
         }
     }
 
-    #@ Try tools in order of preference
+    #~@ Try tools in order of preference
     $toolsToTry = @('eza', 'lsd', 'ls', 'powershell')
 
     foreach ($toolName in $toolsToTry) {
@@ -461,25 +461,25 @@ function Build-EzaCommand {
     }
     if ($Config.GitIgnore) { $options += '--git-ignore' }
 
-    #@ Priority/grouping
+    #~@ Priority/grouping
     switch ($Config.Priority) {
         'directories' { $options += '--group-directories-first' }
         'files' { $options += '--group-directories-last' }
     }
 
-    #@ Permissions
+    #~@ Permissions
     switch ($Config.Permission) {
         'none' { $options += '--no-permissions' }
         default { $options += '--octal-permissions' }
     }
 
-    #@ Target filtering
+    #~@ Target filtering
     switch ($Config.Target) {
         'file' { $options += '--only-files' }
         'directory' { $options += '--only-dirs' }
     }
 
-    #@ Recursion
+    #~@ Recursion
     switch ($Config.RecursionMode) {
         'flat' {
             $options += '--recurse'
@@ -491,7 +491,7 @@ function Build-EzaCommand {
         }
     }
 
-    #@ Sorting
+    #~@ Sorting
     if ($Config.Sort -ne 'name') {
         $options += "--sort=$($Config.Sort)"
     }
@@ -523,31 +523,31 @@ function Build-LsdCommand {
         if ($Config.Git) { $options += '--git' }
     }
 
-    #@ Priority/grouping
+    #~@ Priority/grouping
     switch ($Config.Priority) {
         'directories' { $options += '--group-dirs=first' }
         'files' { $options += '--group-dirs=last' }
         'none' { $options += '--group-dirs=none' }
     }
 
-    #@ Permissions
+    #~@ Permissions
     if ($Config.Permission -in @('rwx', 'octal', 'attributes')) {
         $options += "--permission=$($Config.Permission)"
     }
 
-    #@ Target filtering
+    #~@ Target filtering
     switch ($Config.Target) {
         'directory' { $options += '--directory-only' }
         'recursive' { $options += '--recursive' }
     }
 
-    #@ Recursion
+    #~@ Recursion
     if ($Config.RecursionMode -eq 'tree') { $options += '--tree' }
     if ($Config.Depth -gt 0 -and ($Config.Target -eq 'recursive' -or $Config.RecursionMode -eq 'tree')) {
         $options += "--depth=$($Config.Depth)"
     }
 
-    #@ Sorting
+    #~@ Sorting
     if ($Config.Sort -ne 'name') {
         $options += "--sort=$($Config.Sort)"
     }
@@ -580,7 +580,7 @@ function Build-LsCommand {
     if ($Config.RecursionMode -eq 'flat') { $options += '-R' }
     if ($Config.Target -eq 'directory') { $options += '-d' }
 
-    #@ Sorting
+    #~@ Sorting
     switch ($Config.Sort) {
         'size' { $options += '-S' }
         'time' { $options += '-t' }
@@ -747,13 +747,13 @@ function Test-Fyls {
 #endregion
 
 #region Export
-#@ Export all public functions
+#~@ Export all public functions
 Export-ModuleMember -Function @(
     'Invoke-Fyls',
     'Test-Fyls'
 )
 
-#@ Set up aliases
+#~@ Set up aliases
 Set-Alias -Name fyls -Value Invoke-Fyls
 Set-Alias -Name ls -Value Invoke-Fyls -Force -Option AllScope
 Set-Alias -Name ll -Value Invoke-Fyls -Force -Option AllScope

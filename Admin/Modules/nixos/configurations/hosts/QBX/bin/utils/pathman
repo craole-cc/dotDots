@@ -8,68 +8,68 @@ main() {
 }
 
 initialize_env() {
-  #@ set defaults
+  #~@ set defaults
   verbosity=3
   action="show"
   bins=""
   debug=""
 
-  #@ Cache command checks at startup
+  #~@ Cache command checks at startup
   HAS_REALPATH=0
   HAS_FD=0
-  command -v realpath > /dev/null 2>&1 && HAS_REALPATH=1
-  command -v fd > /dev/null 2>&1 && HAS_FD=1
+  command -v realpath >/dev/null 2>&1 && HAS_REALPATH=1
+  command -v fd >/dev/null 2>&1 && HAS_FD=1
 }
 parse_arguments() {
   delimiter="|"
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --debug)
-        debug="debug"
-        ;;
-      --error) verbosity=1 ;;
-      --quiet) verbosity=0 ;;
-      --show)
-        action="show"
-        ;;
-      --clean)
-        action="clean"
-        ;;
-      --action)
-        if [ "$2" ]; then
-          action="$2"
-          shift
-        else
-          printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
-          return 1
-        fi
-        ;;
-      --append)
-        action="append"
-        ;;
-      --prepend)
-        action="prepend"
-        ;;
-      --dir*)
-        if [ "$2" ]; then
-          shift
-          if [ "$bins" ]; then
-            bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
-          else
-            bins="$(resolved_path "$1")"
-          fi
-        else
-          printf "'%s' requires an argument\n" "$1"
-          return 1
-        fi
-        ;;
-      *)
+    --debug)
+      debug="debug"
+      ;;
+    --error) verbosity=1 ;;
+    --quiet) verbosity=0 ;;
+    --show)
+      action="show"
+      ;;
+    --clean)
+      action="clean"
+      ;;
+    --action)
+      if [ "$2" ]; then
+        action="$2"
+        shift
+      else
+        printf "'%s' requires an argument [ append | prepend | show ]\n" "$1"
+        return 1
+      fi
+      ;;
+    --append)
+      action="append"
+      ;;
+    --prepend)
+      action="prepend"
+      ;;
+    --dir*)
+      if [ "$2" ]; then
+        shift
         if [ "$bins" ]; then
           bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
         else
           bins="$(resolved_path "$1")"
         fi
-        ;;
+      else
+        printf "'%s' requires an argument\n" "$1"
+        return 1
+      fi
+      ;;
+    *)
+      if [ "$bins" ]; then
+        bins="$(printf '%s%s%s' "$bins" "$delimiter" "$(resolved_path "$1")")"
+      else
+        bins="$(resolved_path "$1")"
+      fi
+      ;;
     esac
     shift
   done
@@ -77,21 +77,21 @@ parse_arguments() {
 
 perform_action() {
   case "$action" in
-    append | prepend)
-      #@ Validate that a directory was provided
-      if [ -z "$bins" ]; then
-        printf "ERROR: No path provided\n"
-        return 1
-      fi
+  append | prepend)
+    #~@ Validate that a directory was provided
+    if [ -z "$bins" ]; then
+      printf "ERROR: No path provided\n"
+      return 1
+    fi
 
-      add_to_path
-      ;;
-    clean)
-      clean_path
-      ;;
-    show)
-      show_bins "$PATH"
-      ;;
+    add_to_path
+    ;;
+  clean)
+    clean_path
+    ;;
+  show)
+    show_bins "$PATH"
+    ;;
   esac
 }
 
@@ -111,13 +111,13 @@ recursive_paths() {
 
   for dir in $dirs; do
     if [ "$HAS_FD" = 1 ]; then
-      #@ Add the results from fd
+      #~@ Add the results from fd
       fd . "$dir"
 
-      #@ Include the lookup directory
+      #~@ Include the lookup directory
       printf "%s\n" "$dir"
     else
-      #@ Fallback to find
+      #~@ Fallback to find
       find "$dir"
     fi
   done | sort
@@ -142,9 +142,9 @@ recursive_paths() {
 
 os_type() {
   case "$(uname -a | tr '[:upper:]' '[:lower:]')" in
-    *linux*) os_type="linux" ;;
-    *darwin*) os_type="mac" ;;
-    *) os_type="windows" ;;
+  *linux*) os_type="linux" ;;
+  *darwin*) os_type="mac" ;;
+  *) os_type="windows" ;;
   esac
 
   #TODO This is utterly inadequete, just temporary
@@ -155,40 +155,40 @@ add_to_path() {
     counter=1
     recursive_paths "$bins" | while IFS= read -r bin_path; do
       printf "  %4d %s\n" "$counter" "$bin_path"
-      #@ Increment the counter
+      #~@ Increment the counter
       counter=$((counter + 1))
     done
     return 0
   }
 
-  #@ Update PATH directories recursively
+  #~@ Update PATH directories recursively
   recursive_paths "$bins" | while IFS= read -r bin_path; do
-    [ -d "$bin_path" ] \
-      && case ":${PATH}:" in
-        *:"$bin_path":*) ;;
-        *)
-          case "$action" in
-            prepend)
-              PATH="${bin_path}${PATH:+:$PATH}"
-              _action="Appended"
-              ;;
-            append)
-              PATH="${PATH:+$PATH:}${bin_path}"
-              _action="Perpended"
-              ;;
-          esac
-
-          [ "$verbosity" -gt 1 ] \
-            && printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+    [ -d "$bin_path" ] &&
+      case ":${PATH}:" in
+      *:"$bin_path":*) ;;
+      *)
+        case "$action" in
+        prepend)
+          PATH="${bin_path}${PATH:+:$PATH}"
+          _action="Appended"
           ;;
+        append)
+          PATH="${PATH:+$PATH:}${bin_path}"
+          _action="Perpended"
+          ;;
+        esac
+
+        [ "$verbosity" -gt 1 ] &&
+          printf "    %s to PATH: %s\n" "$_action" "${bin_path}"
+        ;;
       esac
 
-    #@ Make scripts executable
-    [ -f "$bin_path" ] \
-      && case "$(os_type)" in windows) ;;
+    #~@ Make scripts executable
+    [ -f "$bin_path" ] &&
+      case "$(os_type)" in windows) ;;
       *)
         chmod_status=0
-        chmod +x "$bin_path" > /dev/null 2>&1
+        chmod +x "$bin_path" >/dev/null 2>&1
         chmod_status=$?
 
         [ "$verbosity" -gt 1 ] && {
@@ -209,8 +209,8 @@ show_bins() {
 
 is_absolute_path() {
   case "$1" in
-    /*) return 0 ;; # Path starts with /, so it's absolute
-    *) return 1 ;;  # Otherwise, it's not absolute
+  /*) return 0 ;; # Path starts with /, so it's absolute
+  *) return 1 ;;  # Otherwise, it's not absolute
   esac
 }
 
@@ -236,5 +236,5 @@ clean_path() {
   printf '%s\n' "${PATH-}" | tr ':' '\n' | grep '^/' | paste -s -d ':'
 }
 
-#@ Execute the main function with the provided argument
+#~@ Execute the main function with the provided argument
 main "$@"

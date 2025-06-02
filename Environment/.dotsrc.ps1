@@ -1,4 +1,4 @@
-#@ Define output messaging preferences
+#~@ Define output messaging preferences
 $Global:Verbosity = 'Quiet'
 # $Global:VerbosePreference = 'Continue'
 $Global:DebugPreference = 'Continue'
@@ -7,7 +7,7 @@ $Global:WarningPreference = 'Continue'
 $Global:ErrorActionPreference = 'Continue'
 $InitTime = Get-Date
 
-#@ Define path structure
+#~@ Define path structure
 $paths = [ordered]@{
   'DOTS_ENV' = Join-Path $env:DOTS 'Environment'
   'DOTS_DLD' = Join-Path $env:DOTS 'Import'
@@ -16,7 +16,7 @@ $paths = [ordered]@{
   'DOTS_CFG' = Join-Path $env:DOTS 'Configuration'
 }
 
-#@ Define excluded folder patterns
+#~@ Define excluded folder patterns
 $excludedPatterns = @(
   'review',
   'tmp',
@@ -25,32 +25,32 @@ $excludedPatterns = @(
   'backup'
 ) -join '|'
 
-#@ Add valid paths and load modules
+#~@ Add valid paths and load modules
 foreach ($path in $paths.GetEnumerator()) {
   Write-Information "Processing path: $($path.Value)"
   if (Test-Path -Path $path.Value -PathType Container) {
-    #@ Export environment variable
+    #~@ Export environment variable
     [Environment]::SetEnvironmentVariable($path.Key, $path.Value, 'Process')
     Set-Variable -Name $path.Key -Value $path.Value -Scope Global
     Write-Debug "$($path.Key) => $($path.Value)"
 
-    #@ Import modules recursively if the directory basename is powershell (excluding patterns)
+    #~@ Import modules recursively if the directory basename is powershell (excluding patterns)
     $pathPSValue = Join-Path $path.Value 'powershell'
     if (Test-Path -Path $pathPSValue -PathType Container) {
-      #@ Add to PSModulePath
+      #~@ Add to PSModulePath
       $env:PSModulePath = $path.Value + [IO.Path]::PathSeparator + $env:PSModulePath
 
-      #@ Create environment variable with name ($path.Key)_PS
+      #~@ Create environment variable with name ($path.Key)_PS
       $pathPSKey = "$($path.Key)_PS"
       [Environment]::SetEnvironmentVariable($pathPSKey, $pathPSValue, 'Process')
       Set-Variable -Name $pathPSKey -Value $pathPSValue -Scope Global
       Write-Debug "$($pathPSKey) => $($pathPSValue)"
 
-      #@ Configure PowerShell experimental features if this is the config directory
+      #~@ Configure PowerShell experimental features if this is the config directory
       if ($path.Key -eq 'DOTS_CFG') {
         $configPath = Join-Path $pathPSValue 'config.json'
 
-        #@ Create config if it doesn't exist
+        #~@ Create config if it doesn't exist
         if (-not (Test-Path -Path $configPath -PathType Leaf)) {
           @'
 {
@@ -62,7 +62,7 @@ foreach ($path in $paths.GetEnumerator()) {
           Write-Warning "=== DOTS === Created PowerShell experimental features at: $configPath"
         }
 
-        #@ Verify features are enabled
+        #~@ Verify features are enabled
         $experimentalFeatures = Get-ExperimentalFeature | Where-Object Enabled
         if ($experimentalFeatures) {
           Write-Warning "=== DOTS === Active experimental features:"
@@ -74,8 +74,8 @@ foreach ($path in $paths.GetEnumerator()) {
           Write-Warning "=== DOTS === No experimental features active. Restart PowerShell to apply changes."
         }
       }
-      
-      #@ Load all PowerShell modules recursively (excluding patterns)
+
+      #~@ Load all PowerShell modules recursively (excluding patterns)
       $modules = Get-ChildItem -Path $path.Value -Recurse -Include "*.psm1" |
       Where-Object { $_.FullName -notmatch $excludedPatterns }
 
@@ -87,5 +87,5 @@ foreach ($path in $paths.GetEnumerator()) {
   }
 }
 
-#@ Print initialization message
+#~@ Print initialization message
 Write-Pretty -Tag "Information" -As "DOTS" -Init $InitTime

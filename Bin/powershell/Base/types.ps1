@@ -23,7 +23,7 @@ function Get-OrdinalString {
     [int]$Number
   )
 
-  #@ Handle negative or zero input gracefully
+  #~@ Handle negative or zero input gracefully
   if ($Number -le 0) {
     return "$Number"
   }

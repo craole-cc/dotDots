@@ -23,12 +23,12 @@ function Global:Write-Message {
 
     $currentLevel = $levelMap[$Level]
 
-    #@ Return early if verbosity level is too low
+    #~@ Return early if verbosity level is too low
     if ($Global:VerbosityLevel -lt $currentLevel.Number) {
         return
     }
 
-    #@ Build the message components
+    #~@ Build the message components
     $components = @()
 
     if ($Timestamp) {
@@ -45,7 +45,7 @@ function Global:Write-Message {
 
     $components += $Message
 
-    #@ Output the message
+    #~@ Output the message
     $fullMessage = $components -join ' '
     Write-Host $fullMessage -ForegroundColor $currentLevel.Color
 }

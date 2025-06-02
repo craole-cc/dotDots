@@ -25,29 +25,8 @@
 #nu source $dots_env
 #nu exit $env.LAST_EXIT_CODE
 
-# === FISH SHELL ===
-# Fish ignores lines starting with '#' except when they start with '#;'
-#; if not set -q DOTS
-#;     echo "DOTS variable is unset. It must point to the DOTS (dotfiles) directory." >&2
-#;     exit 1
-#; end
-#;
-#; if not test -d "$DOTS"
-#;     echo "Missing DOTS directory: $DOTS" >&2
-#;     exit 1
-#; end
-#;
-#; set -l dots_env "$DOTS/Environment/_.fish"
-#; if not test -f "$dots_env"
-#;     echo "Missing required configuration module: $dots_env" >&2
-#;     exit 1
-#; end
-#;
-#; source "$dots_env"
-#; exit $status
-
 # === POSIX SHELLS (bash, zsh, sh) ===
-  #@ Validate the DOTS directory
+  #~@ Validate the DOTS directory
   if [ -z "${DOTS:-}" ]; then
     printf "%s: %s\n%s" \
       "Error: Missing required environment variable" "DOTS" \
@@ -58,12 +37,12 @@
     return 2
   fi
 
-  #@ Initialize the DOTS scripts
+  #~@ Initialize the DOTS scripts
   if [ -d "${DOTS}/Bin" ]; then
     DOTS_BIN="${DOTS}/Bin"
     CMD_BUILDIR="${DOTS_BIN}/shellscript/environment/buildir"
 
-    #@ Build the DOTS_PATH, a colon-delimited string of valid DOTS_BIN directories
+    #~@ Build the DOTS_PATH, a colon-delimited string of valid DOTS_BIN directories
     if command -v buildir >/dev/null 2>&1; then
       CMD_BUILDIR="$(command -v buildir)"
       DOTS_PATH="$(buildir --target "${DOTS_BIN}")"
@@ -75,20 +54,20 @@
       DOTS_PATH="$(. "${buildir}")"
     fi
 
-    #@ Prepend the DOTS_PATH to the PATH to exsure priority
+    #~@ Prepend the DOTS_PATH to the PATH to exsure priority
     if [ -n "${DOTS_PATH:-}" ]; then
       PATH="${DOTS_PATH}:${PATH}"
       export PATH DOTS_PATH DOTS_BIN
     fi
   fi
 
-  #@ Load the DOTS environment
+  #~@ Load the DOTS environment
   DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
   if [ -f "${DOTS_ENV}/${RC}.sh" ] ; then
     . "${DOTS_ENV}/${RC}.sh"
   fi
 
-  #@ Exit with the last exit code
+  #~@ Exit with the last exit code
   return $?
 
 # === POWERSHELL ===
@@ -99,7 +78,7 @@ elseif (-not (Test-Path -Path $env:DOTS -PathType Container)) {
   Throw "Missing DOTS directory: $env:DOTS"
 }
 else {
-  $dotsEnv = Join-Path $env:DOTS 'Environment' '_.ps1'
+  $dotsEnv = Join-Path $env:DOTS 'Environment' '.dotsrc.ps1'
   if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
     Throw "Missing required configuration module: ${dotsEnv}"
   }

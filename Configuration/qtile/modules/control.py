@@ -115,7 +115,7 @@ keys = [
     #     "Move up a section in treetab",
     # ),
     # === Session ===#
-    # Key([], "XF86RFKill", lazy.spawn()), #@ This breaks the config
+    # Key([], "XF86RFKill", lazy.spawn()), #~@ This breaks the config
     # === Backlight ===#
     Key([], "XF86MonBrightnessDown", lazy.spawn(backlight_ctl[0])),
     Key([], "XF86MonBrightnessUp", lazy.spawn(backlight_ctl[1])),

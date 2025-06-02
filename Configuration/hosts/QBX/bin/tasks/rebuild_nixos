@@ -1,49 +1,49 @@
 #!/bin/sh
 
 main() {
-  #@ Parse arguments
+  #~@ Parse arguments
   parse_arguments "$@" || return 1
 
-  #@ Establish environment
+  #~@ Establish environment
   establish_env || return 1
 
-  #@ Perform the requested action
+  #~@ Perform the requested action
   perform_action || return 1
 }
 
-#@ Parse arguments
+#~@ Parse arguments
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --help)
-        help
-        return 0
-        ;;
-      --trace)
-        verbosity=5
-        ;;
+    --help)
+      help
+      return 0
+      ;;
+    --trace)
+      verbosity=5
+      ;;
     esac
     shift
   done
 }
 
 establish_env() {
-  #@ Set the default verbosity level
+  #~@ Set the default verbosity level
   [ "$verbosity" ] || verbosity=0
 
-  #@ Initialize/Reset variables
+  #~@ Initialize/Reset variables
   unset nixos_cmd nixos_opt
   nixos_cmd="sudo nixos-rebuild switch"
 
-  #@ Options
+  #~@ Options
   case "$verbosity" in
-    0) ;;
-    *) nixos_opt="--show-trace" ;;
+  0) ;;
+  *) nixos_opt="--show-trace" ;;
   esac
 }
 
 perform_action() {
-  #@ Rebuild NixOS
+  #~@ Rebuild NixOS
   eval "$nixos_cmd" "$nixos_opt"
 }
 
