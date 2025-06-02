@@ -2,7 +2,7 @@
 # theme = "catppuccin_latte"
 # theme = "kanagawa"
 #| Dark Theme
-# theme = "catppuccin_frappe"
+theme = "catppuccin_frappe"
 # theme = "noctis"
 # theme = "rose_pine_moon"
 # theme = "noctis_bordo"
@@ -12,7 +12,6 @@
 # theme = "monokai_pro_ristretto"
 # theme = "monokai_pro_spectrum"
 # theme = "tokyonight_storm"
-theme = "base16_transparent"
 
 [editor]
 auto-format = true
@@ -55,8 +54,8 @@ right = [
   "selections",
   "position",
   "file-encoding",
-  "file-line-ending",
-  "file-type",
+  # "file-line-ending",
+  # "file-type",
 ]
 separator = "│"
 

@@ -63,22 +63,22 @@
     DOTS_BIN="${DOTS}/Bin"
     CMD_BUILDIR="${DOTS_BIN}/shellscript/environment/buildir"
 
-    #@ Build the DOTS_BIN_PATH, a colon-delimited string of valid DOTS_BIN directories
+    #@ Build the DOTS_PATH, a colon-delimited string of valid DOTS_BIN directories
     if command -v buildir >/dev/null 2>&1; then
       CMD_BUILDIR="$(command -v buildir)"
-      DOTS_BIN_PATH="$(buildir --target "${DOTS_BIN}")"
+      DOTS_PATH="$(buildir --target "${DOTS_BIN}")"
     elif [ -x "${CMD_BUILDIR}" ]; then
-      DOTS_BIN_PATH="$("${CMD_BUILDIR}" --target "${DOTS_BIN}")"
+      DOTS_PATH="$("${CMD_BUILDIR}" --target "${DOTS_BIN}")"
     elif [ -f "${CMD_BUILDIR:-}" ]; then
       chmod +x "${CMD_BUILDIR}"
       BUILDIR_TARGET="${DOTS_BIN}"
-      DOTS_BIN_PATH="$(. "${buildir}")"
+      DOTS_PATH="$(. "${buildir}")"
     fi
 
-    #@ Prepend the DOTS_BIN_PATH to the PATH to exsure priority
-    if [ -n "${DOTS_BIN_PATH:-}" ]; then
-      PATH="${DOTS_BIN_PATH}:${PATH}"
-      export PATH DOTS_BIN_PATH DOTS_BIN
+    #@ Prepend the DOTS_PATH to the PATH to exsure priority
+    if [ -n "${DOTS_PATH:-}" ]; then
+      PATH="${DOTS_PATH}:${PATH}"
+      export PATH DOTS_PATH DOTS_BIN
     fi
   fi
 
