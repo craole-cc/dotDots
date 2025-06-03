@@ -10,14 +10,14 @@ let
 in
 {
   config = mkIf cfg.enable {
-    #~@ Enable Plasma 6 desktop environment
+    #{ Enable Plasma 6 desktop environment
     services.desktopManager.plasma6.enable = true;
 
     environment = {
-      #~@ Include packages
+      #{ Include packages
       systemPackages = with pkgs; [ yakuake ];
 
-      #~@ Exclude packages
+      #{ Exclude packages
       plasma6.excludePackages = with pkgs; [ kate ];
     };
   };

@@ -177,7 +177,7 @@ execute() {
     [ -d "$1/.git" ] && git -C "$1" rev-parse --is-inside-work-tree >/dev/null 2>&1
   }
 
-  #~@ Validate the specified variable based on the chosen type
+  #{ Validate the specified variable based on the chosen type
   case "$type" in
   regex)
     if is_regex "$var" "$regex" s; then
@@ -199,7 +199,7 @@ execute() {
 }
 
 terminate() {
-  #~@ Display output based on verbosity level
+  #{ Display output based on verbosity level
   case "$verbosity" in
   0) ;;
   1)
@@ -215,7 +215,7 @@ terminate() {
     ;;
   esac
 
-  #~@ Exit with the specified exit code
+  #{ Exit with the specified exit code
   exit "$exit_code"
 }
 

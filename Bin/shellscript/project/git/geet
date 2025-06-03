@@ -4,9 +4,9 @@
 #TODO: Create a function to build the command
 #TODO: Use ssh key, url and email for advanced operation
 
-#~@ ============================================= @#
+#{ ============================================= @#
 #@	INFORMATION         			                @#
-#~@ ============================================= @#
+#{ ============================================= @#
 establish_metadata() {
   _cmd_PATH="$(pathof)"
   _cmd_NAME="$(pathof --get-name)"
@@ -72,9 +72,9 @@ USAGE_GUIDE
   )"
 }
 
-#~@ ============================================= @#
+#{ ============================================= @#
 #@	ENVIRONMENT         			                @#
-#~@ ============================================= @#
+#{ ============================================= @#
 establish_defaults() {
   #| Actions
   pull=1
@@ -112,16 +112,16 @@ establish_defaults() {
 
 establish_environment() {
 
-  #~@ Initialize the tools
+  #{ Initialize the tools
   establish_utilities
   establish_defaults
   establish_metadata
   establish_validators
 
-  #~@ Ensure dependencies are present
+  #{ Ensure dependencies are present
   [ "$debug" ] || validate_dependencies
 
-  #~@ Parse arguments from CLI arguments
+  #{ Parse arguments from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     -P | --path)
@@ -224,16 +224,16 @@ establish_environment() {
   done
 }
 
-#~@ ============================================= @#
+#{ ============================================= @#
 #@	VALIDATION             	                  @#
-#~@ ============================================= @#
+#{ ============================================= @#
 establish_validators() {
   validate_dependencies() {
-    #~@ Set default values for local variables
+    #{ Set default values for local variables
     missing_deps=""
     missing_deps_count=0
 
-    #~@ Validate dependencies as executable files
+    #{ Validate dependencies as executable files
     for dependency in $(parse_alnum "$_cmd_DEPENDENCIES"); do
       command -v "$dependency" >/dev/null 2>&1 ||
         if [ "$missing_deps" ]; then
@@ -243,26 +243,26 @@ establish_validators() {
         fi
     done
 
-    #~@ Continue the program if dependency paths are validated
+    #{ Continue the program if dependency paths are validated
     [ "$missing_deps" ] || return
 
-    #~@ Count the number of missing dependencies
+    #{ Count the number of missing dependencies
     missing_deps_count="$(
       printf "%s\n" "$missing_deps" |
         tr ',' '\n' | wc -l
     )"
 
-    #~@ Update the error message based on the count
+    #{ Update the error message based on the count
     msg="Missing dependency"
     [ "$missing_deps_count" -gt 1 ] && msg="Missing dependencies"
 
-    #~@ Halt the program and report missing dependencies
+    #{ Halt the program and report missing dependencies
     logline --error "$msg" "$missing_deps"
     exit 2
   }
 
   validate_local_repo() {
-    #~@ Check if the folder is part of a valid git repository
+    #{ Check if the folder is part of a valid git repository
     [ "$geet_dir" ] || {
       logline --error \
         "Invalid Directory" \
@@ -277,7 +277,7 @@ establish_validators() {
     #   exit 2
     # }
 
-    #~@ Check if the remote origin URL matches the expected repository URL
+    #{ Check if the remote origin URL matches the expected repository URL
     [ "$actual_repo" = "$target_repo" ] || {
       logline --error \
         "invalid local repository" \
@@ -288,7 +288,7 @@ establish_validators() {
   }
 
   validate_submodules() {
-    #~@ Ensure we are running our commands from the topmost git_dir
+    #{ Ensure we are running our commands from the topmost git_dir
     # work_in "$geet_dir"
 
     #| Ensure the project has submodules
@@ -307,7 +307,7 @@ establish_validators() {
       exit 2
     fi
 
-    #~@ Exit early if submodule is unspecified
+    #{ Exit early if submodule is unspecified
     [ "$submodule" ] || {
       logline --info \
         "Including submodule(s)" \
@@ -330,7 +330,7 @@ establish_validators() {
     if [ "$valid" = false ]; then
       logline --warn "'$submodule' is not a valid submodule"
 
-      #~@ Prompt the user for confirmation
+      #{ Prompt the user for confirmation
       printf "Did you intend this as the commit message? [y/N]: "
       read -r response
 
@@ -349,13 +349,13 @@ establish_validators() {
   }
 }
 
-#~@ ============================================= @#
+#{ ============================================= @#
 #@	UTILITIES			                            @#
-#~@ ============================================= @#
+#{ ============================================= @#
 establish_utilities() {
 
   logline() {
-    #~@ Set default values for local variables
+    #{ Set default values for local variables
     code=0
     notify=""
     info=""
@@ -368,10 +368,10 @@ establish_utilities() {
       notifier="notify-send"
     fi
 
-    #~@ Quit function early if no arguments provided, print a blank line like echo
+    #{ Quit function early if no arguments provided, print a blank line like echo
     [ $# -eq 0 ] && return 0
 
-    #~@ Tag the last line to prevent printing a blank line
+    #{ Tag the last line to prevent printing a blank line
     case "$@" in
     *"-last"* | *"-l"* | *"-fatal"*)
       last_line=1
@@ -381,7 +381,7 @@ establish_utilities() {
       ;;
     esac
 
-    #~@ Parse options
+    #{ Parse options
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --info | --error | --warn*)
@@ -406,13 +406,13 @@ establish_utilities() {
           label="${label}${2}"
           info="${label}${delimiter}${3}"
 
-          #~@ Generate padding to place before each info
+          #{ Generate padding to place before each info
           len_label="${#label}"
           len_delim="${#delimiter}"
           padding_length=$((len_label + len_delim))
           info_padding="$(printf "%-${padding_length}s")"
 
-          #~@ Append additional info with leading padding and new line
+          #{ Append additional info with leading padding and new line
           while [ "$#" -gt 3 ]; do
             case "$4" in -*) break ;; esac
             info="$(printf "%s\n%s%s" "$info" "$info_padding" "$4")"
@@ -531,10 +531,10 @@ establish_utilities() {
   }
 
   pathof() {
-    #~@ Set defaults
+    #{ Set defaults
     _path="$0"
 
-    #~@ Input validation
+    #{ Input validation
     while [ "$#" -gt 0 ]; do
       case "$1" in
       --get-home) get_home=1 ;;
@@ -548,13 +548,13 @@ establish_utilities() {
     _dir="$(dirname "$_path")"
     _name="$(basename "$_path")"
 
-    #~@ Change to directory containing the link/file
-    #~@ Get absolute path of the directory
+    #{ Change to directory containing the link/file
+    #{ Get absolute path of the directory
     _dir="$(cd "$_dir" 2>/dev/null && pwd)" || return 1
 
-    #~@ Resolve symbolic links recursively
+    #{ Resolve symbolic links recursively
     while [ -L "$_dir/$_name" ]; do
-      #~@ Read the target of the symbolic link using find
+      #{ Read the target of the symbolic link using find
       _target="$(
         find "$_dir" \
           -maxdepth 1 \
@@ -564,20 +564,20 @@ establish_utilities() {
       )"
       [ "$_target" ] || break
 
-      #~@ Handle relative vs absolute paths in symlink target
+      #{ Handle relative vs absolute paths in symlink target
       case "$_target" in
-      /*) #~@ Absolute path
+      /*) #{ Absolute path
         _dir="$(dirname "$_target")"
         _name="$(basename "$_target")"
         ;;
-      *) #~@ Relative path
+      *) #{ Relative path
         _dir="$(cd "$_dir" && cd "$(dirname "$_target")" && pwd)"
         _name="$(basename "$_target")"
         ;;
       esac
     done
 
-    #~@ Return the absolute path
+    #{ Return the absolute path
     if [ "$get_home" ]; then
       printf '%s' "$_dir"
     elif [ "$get_name" ]; then
@@ -644,39 +644,39 @@ establish_utilities() {
   }
 }
 
-#~@ ============================================= @#
+#{ ============================================= @#
 #@	EXECUTE  	                                @#
-#~@ ============================================= @#
+#{ ============================================= @#
 execute_git_actions() {
-  #~@ Ensure we are running our commands from the target git_dir
+  #{ Ensure we are running our commands from the target git_dir
   # work_in "$1"
 
-  #~@ Honor changes to gitignore
+  #{ Honor changes to gitignore
   [ -n "$ignore" ] && git rm -r --force --cached .
 
-  #~@ Skip if there are no changes
+  #{ Skip if there are no changes
   git status --porcelain >/dev/null 2>&1 || return 0
 
-  #~@ Lint
+  #{ Lint
   # treefmt_wrapper || return 1
 
-  #~@ Update the local repository
+  #{ Update the local repository
   [ -n "$pull" ] && git pull --quiet
 
-  #~@ Display changes
+  #{ Display changes
   if [ -n "$diff" ]; then
     git diff
   elif [ -n "$status" ]; then
     git status --short
   fi
 
-  #~@ Add untracked files
+  #{ Add untracked files
   [ -n "$add" ] && git add --all
 
-  #~@ Commit changes
+  #{ Commit changes
   [ -n "$commit" ] && git commit --quiet --message="${msg:-"$default_msg"}"
 
-  #~@ Update the remote repository
+  #{ Update the remote repository
   [ "$push" ] && git push --recurse-submodules=check --quiet
 }
 
@@ -692,10 +692,10 @@ update_message() {
 }
 
 execute_process() {
-  #~@ Ensure the directory is a valid git project
+  #{ Ensure the directory is a valid git project
   [ "$debug" ] || validate_local_repo
 
-  #~@ Return GIT_DIR if requested
+  #{ Return GIT_DIR if requested
   if [ "$get_geet_dir" ]; then
     logline --last-line "$geet_dir"
     exit 0
@@ -704,7 +704,7 @@ execute_process() {
     exit 0
   fi
 
-  #~@ Execute the git actions
+  #{ Execute the git actions
   if [ "$recurse" ]; then
     validate_submodules
 
@@ -767,14 +767,14 @@ execute() {
   fi
 
 }
-#~@ ============================================= @#
+#{ ============================================= @#
 #@	ENTRY-POINT                               @#
-#~@ ============================================= @#
+#{ ============================================= @#
 main() {
-  #~@ Initialize the script
+  #{ Initialize the script
   establish_environment "$@"
 
-  #~@ Run the necessary process
+  #{ Run the necessary process
   run_in_dir \
     --target "$geet_dir" \
     --command "execute"

@@ -1,8 +1,8 @@
 #! /bin/sh
 # shellcheck disable=SC2154
 
-#~@ Set global output levels
-VERBOSITY="$(verbosity "Warn")"
+#{ Set global output levels
+VERBOSITY="$(verbosity "Error")"
 VERBOSITY_QUIET="$(verbosity "${VERBOSITY_QUIET}" 0)"
 VERBOSITY_ERROR="$(verbosity "${VERBOSITY_ERROR}" 1)"
 VERBOSITY_WARN="$(verbosity "${VERBOSITY_WARN}" 2)"
@@ -12,13 +12,13 @@ VERBOSITY_TRACE="$(verbosity "${VERBOSITY_TRACE}" 5)"
 DELIMITER="$(printf "\037")"
 export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE
 
-#~@ Set common global variables
+#{ Set common global variables
 export RC=".dotsrc"
 export EDITOR_TUI="helix, nvim, vim, nano"
 export EDITOR_GUI="trae,code, zed, zeditor, trae, notepad++, notepad"
 EDITOR="$(editor --set)" export EDITOR
 
-#~@ Set local variables
+#{ Set local variables
 pad=12
 sep=" | "
 
@@ -85,17 +85,16 @@ manage_env() {
   set_defaults() {
     cleanup
     fn_name="manage_env"
-    tag=">>= ${fn_name} =<<"
     action="register"
     actions="edit | env | init | initialize | resolve | register | set | unregister | unset"
     var="" val="" args=""
   }
 
   parse_arguments() {
-    #~@ Skip if no arguments are provided.
+    #{ Skip if no arguments are provided.
     [ $# -eq 0 ] && return 1
 
-    #~@ Parse command-line options
+    #{ Parse command-line options
     while [ $# -ge 1 ]; do
       case "$1" in
       --help | -h)
@@ -161,7 +160,7 @@ manage_env() {
       shift
     done
 
-    #~@ Parse positional arguments if necessary
+    #{ Parse positional arguments if necessary
     if [ -n "${args}" ]; then
       ifs="${IFS}"
       IFS="${DELIMITER}"
@@ -175,14 +174,11 @@ manage_env() {
       [ -z "${val:-}" ] && val=$*
     fi
 
-    #~@ Validate required arguments based on action
+    #{ Validate required arguments based on action
     case "${action}" in
     register | set | init | initialize)
-      if [ -z "${var:-}" ]; then
-        # show_usage_error "Variable name is required for action '${action}'"
-        return 1
-      elif [ -z "${val:-}" ]; then
-        # show_usage_error "Variable value is required for action '${action}'"
+      # show_usage_error "Variable name is required for action '${action}'"
+      if [ -z "${var:-}" ] && [ -z "${val:-}" ]; then
         return 1
       fi
       ;;
@@ -195,9 +191,26 @@ manage_env() {
     *) ;;
     esac
 
-    #~@ Print debug information
-    if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout_tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
+    pad="$(printf "%${pad}s" "")"
+    pout-tagged --ctx "${fn_name}" --tag "DEBUG" \
+      --msg "\n  ${pad}ACTION${sep}${action}" \
+      --msg "\n  ${pad}ENV_var${sep}${var}" \
+      --msg "\n  ${pad}ENV_val${sep}${val}" \
+      --msg "\n  ${pad}EDITOR${sep}${EDITOR}" \
+      --msg "\n  ${pad}RC${sep}${RC}" \
+      --msg "\n  ${pad}FORCE${sep}${force}" \
+      --msg "\n  ${pad}INIT${sep}${init}"
+
+    #   printf "\n  %${pad}s%s%s" "ACTION" "${sep}" "${action}"
+    #   printf "\n  %${pad}s%s%s" "ENV_var" "${sep}" "${var}"
+    #   printf "\n  %${pad}s%s%s" "ENV_val" "${sep}" "${val}"
+    #   printf "\n  %${pad}s%s%s" "EDITOR" "${sep}" "${EDITOR}"
+    #   printf "\n  %${pad}s%s%s" "RC" "${sep}" "${RC}"
+    #   printf "\n  %${pad}s%s%s" "FORCE" "${sep}" "${force}"
+
+    #{ Print debug information
+    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
+      pout-tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
         printf "\n  %${pad}s%s%s" "ACTION" "${sep}" "${action}"
         printf "\n  %${pad}s%s%s" "ENV_var" "${sep}" "${var}"
         printf "\n  %${pad}s%s%s" "ENV_val" "${sep}" "${val}"
@@ -254,7 +267,7 @@ manage_env() {
   }
 
   show_usage_error() {
-    pout_tagged --ctx "${fn_name}" --tag "ERROR" --msg "$1"
+    pout-tagged --ctx "${fn_name}" --tag "ERROR" --msg "$1"
     show_usage
   }
 
@@ -282,10 +295,10 @@ register_env() {
   #DOC   - Sources RC files in directories when --init is used
   #DOC   - Sources files directly when --init is used
 
-  #~@ Set defaults
+  #{ Set defaults
   _val="" _var="" _args="" _init=0 _force=0
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ $# -ge 1 ]; do
     case "$1" in
     -[iI] | --init | --initialize) _init=1 ;;
@@ -310,23 +323,19 @@ register_env() {
       shift
       break
       ;;
-    -*)
-      #? Unknown option, skip
-      ;;
-    *)
-      _args="${_args:+${_args}${DELIMITER}}$1"
-      ;;
+    -*) ;; #? Unknown option, skip
+    *) _args="${_args:+${_args}${DELIMITER}}$1" ;;
     esac
     shift
   done
 
-  #~@ Handle remaining arguments after -- separator
+  #{ Handle remaining arguments after -- separator
   while [ $# -ge 1 ]; do
     _args="${_args:+${_args}${DELIMITER}}$1"
     shift
   done
 
-  #~@ Parse positional arguments if necessary
+  #{ Parse positional arguments if necessary
   if [ -n "${_args}" ]; then
     ifs="${IFS}"
     IFS="${DELIMITER}"
@@ -341,17 +350,14 @@ register_env() {
     [ -z "${_val:-}" ] && _val="$*"
   fi
 
-  #~@ Validate required arguments
-  if [ -z "${_var:-}" ]; then
-    # show_usage_error "Variable name is required"
-    return 1
-  elif [ -z "${_val:-}" ]; then
+  #{ Validate required arguments
+  if [ -z "${_var:-}" ] || [ -z "${_val:-}" ]; then
     # show_usage_error "Variable value is required"
     return 1
   fi
 
   if [ "${VERBOSITY:-0}" -ge 4 ]; then
-    pout_tagged --ctx "register_env" --tag "DEBUG" --msg "$(
+    pout-tagged --ctx "register_env" --tag "DEBUG" --msg "$(
       printf "\n  %${pad}s%s%s" "INIT" "${sep}" "${_init}"
       printf "\n  %${pad}s%s%s" "FORCE" "${sep}" "${_force}"
       printf "\n  %${pad}s%s%s" "VAR" "${sep}" "${_var}"
@@ -359,34 +365,34 @@ register_env() {
     )"
   fi
 
-  #~@ Handle existing variable values
+  #{ Handle existing variable values
   var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
   case "${var_val:-}" in
   "")
     #? Variable doesn't exist, use argument value
-    if [ "${VERBOSITY:-0}" -ge 3 ]; then
-      pout_tagged --ctx "register_env" --tag "INFO " --msg "Registering new variable ${_var}=${_val}"
+    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_INFO:-3}" ]; then
+      pout-tagged --ctx "register_env" --tag "INFO " --msg "Registering new variable ${_var}=${_val}"
     fi
     ;;
   "${_val}")
     #? System value matches argument value - no change needed
-    if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout_tagged --ctx "register_env" --tag "DEBUG" --msg "Variable ${_var} already set to correct value"
+    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_TRACE:-5}" ]; then
+      pout-tagged --ctx "register_env" --tag "TRACE" --msg "Variable ${_var} already set to correct value"
     fi
     ;;
   *)
     #? System value differs from argument value
     if [ "${_force}" -eq 1 ]; then
-      if [ "${VERBOSITY:-0}" -ge 2 ]; then
-        pout_tagged --ctx "register_env" --tag "WARN " --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
+      if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_WARN:-2}" ]; then
+        pout-tagged --ctx "register_env" --tag "WARN " --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
       fi
     else
-      #~@ Interactive prompt for overwrite
+      #{ Interactive prompt for overwrite
       printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
       printf "New value would be: '%s'\n" "${_val}"
       printf "Overwrite with new value? [y/N] (default: N): "
 
-      #~@ Handle CTRL-C during read
+      #{ Handle CTRL-C during read
       trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
       read -r response
       trap - INT
@@ -394,13 +400,13 @@ register_env() {
       case "${response}" in
       [Yy]*)
         if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout_tagged --ctx "register_env" --tag "INFO " --msg "User confirmed overwrite of ${_var}"
+          pout-tagged --ctx "register_env" --tag "INFO " --msg "User confirmed overwrite of ${_var}"
         fi
         ;;
       *)
         _val="${var_val}"
         if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout_tagged --ctx "register_env" --tag "INFO " --msg "User declined overwrite, keeping existing value"
+          pout-tagged --ctx "register_env" --tag "INFO " --msg "User declined overwrite, keeping existing value"
         fi
         ;;
       esac
@@ -408,63 +414,55 @@ register_env() {
     ;;
   esac
 
-  #~@ Register the variable globally
+  #{ Register the variable globally
   eval "${_var}=\"\${_val}\""
   eval "export ${_var}"
 
   if [ "${VERBOSITY:-0}" -ge 4 ]; then
-    pout_tagged --ctx "register_env" --tag "DEBUG" --msg "Exported ${_var}=${_val}"
+    pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Exported ${_var}=${_val}"
   fi
 
-  #~@ Create helper functions for existing paths
+  #{ Create helper functions for existing paths
   if [ -e "${_val}" ]; then
     eval "ed_${_var}() { edit \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout_tagged --ctx "register_env" --tag "DEBUG" --msg "Created function ed_${_var}()"
+      pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function ed_${_var}()"
     fi
   fi
 
-  #~@ Handle directory-specific functionality
+  #{ Handle directory-specific functionality
   if [ -d "${_val}" ]; then
     eval "cd_${_var}() { cd \"\${${_var}}\"; }"
-    if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout_tagged --ctx "register_env" --tag "DEBUG" --msg "Created function cd_${_var}()"
+    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
+      pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function cd_${_var}"
     fi
 
-    #~@ Source all RC files if initialization is requested
+    #{ Source all RC files if initialization is requested
     if [ "${_init}" -eq 1 ]; then
 
-      #~@ Loop over all matching RC files and source each if it exists
+      #{ Loop over all matching RC files and source each if it exists
       for rc_file in "${_val}/${RC}" "${_val}/${RC}.sh" "${_val}/${RC}.bash" "${_val}/${RC}.zsh"; do
-        if [ -f "$rc_file" ]; then
-          # shellcheck disable=SC1090
-          echo "Sourcing $rc_file"
-          . "$rc_file"
+        if [ -f "${rc_file}" ]; then
+
           if [ "${VERBOSITY:-0}" -ge 3 ]; then
-            pout_tagged --ctx "register_env" --tag "INFO " --msg "Sourced $rc_file"
+            pout-tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${rc_file}"
           fi
+
+          # #{ Source the RC file if initialization is requested
+          # shellcheck disable=SC2250,SC1090 #? We already validated this file
+          . "${rc_file}"
+          return $?
         fi
       done
     fi
-
-    # #~@ Source the RC file if initialization is requested
-    # if [ "${_init}" -eq 1 ] ;then
-    #   if [ -f "${_val}/${RC}" ]; then
-    #   # shellcheck disable=SC1090
-    #   . "${_val}/${RC}"
-    #   if [ "${VERBOSITY:-0}" -ge 3 ]; then
-    #     pout_tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${_val}/${RC}"
-    #   fi
-    #   return $?
-    # fi
   fi
 
-  #~@ Handle file-specific initialization
+  #{ Handle file-specific initialization
   if [ -f "${_val}" ] && [ "${_init}" -eq 1 ]; then
     # shellcheck disable=SC1090
     . "${_val}"
     if [ "${VERBOSITY:-0}" -ge 3 ]; then
-      pout_tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${_val}"
+      pout-tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${_val}"
     fi
     return $?
   fi
@@ -486,12 +484,12 @@ unregister_env() {
 
   env="$1"
   if [ -z "${env:-}" ]; then
-    pout_tagged --ctx "unregister_env" --tag "ERROR" --msg "Variable name is required"
+    pout-tagged --ctx "unregister_env" --tag "ERROR" --msg "Variable name is required"
     return 1
   fi
 
   if [ "${VERBOSITY:-0}" -ge 3 ]; then
-    pout_tagged --ctx "unregister_env" --tag "INFO " --msg "Unregistering ${env}"
+    pout-tagged --ctx "unregister_env" --tag "INFO " --msg "Unregistering ${env}"
   fi
 
   unset "${env}" 2>/dev/null
@@ -513,12 +511,12 @@ resolve_env() {
   #DOC Output:
   #DOC   The resolved absolute path or variable value
 
-  #~@ Validate arguments
+  #{ Validate arguments
   if [ -z "${1:-}" ]; then
     return 1
   fi
 
-  #~@ Get the current value of the variable
+  #{ Get the current value of the variable
   eval 'env="${'"${1}"'}"'
 
   if [ -z "${env:-}" ]; then
@@ -526,18 +524,18 @@ resolve_env() {
   fi
 
   if [ -e "${env}" ]; then
-    #~@ Retrieve the absolute path (if possible)
+    #{ Retrieve the absolute path (if possible)
     if [ -d "${env}" ]; then
       (cd "${env}" 2>/dev/null && pwd)
     elif [ -f "${env}" ]; then
 
-      #~@ For files: cd to dirname, then print full path
+      #{ For files: cd to dirname, then print full path
       dir=$(dirname "${env}")
       file=$(basename "${env}")
       (cd "${dir}" 2>/dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")
     fi
   else
-    #~@ Return the value of the variable
+    #{ Return the value of the variable
     printf '%s\n' "${env}"
   fi
 }
@@ -561,7 +559,7 @@ parse_list() {
 }
 
 init_rc() {
-  #~@ Get the uncommented items from the list
+  #{ Get the uncommented items from the list
   items=$(parse_list "${1:?"Missing list of rc files"}")
 
   OLD_IFS="${IFS}"
@@ -576,7 +574,7 @@ init_rc() {
   IFS="${OLD_IFS}"
 }
 
-#~@ Load the DOTS environment
+#{ Load the DOTS environment
 # shellcheck disable=SC2153
 if command -v manage_env >/dev/null 2>&1; then
   manage_env --force --var DOTS --val "${DOTS}"

@@ -20,7 +20,7 @@ y() {
     [ -n "${tmp_file}" ] && rm -f -- "${tmp_file}"
   }
 
-  #~@ Set up cleanup trap
+  #{ Set up cleanup trap
   trap cleanup EXIT INT TERM HUP
 
   cd_to_cwd() {
@@ -28,10 +28,10 @@ y() {
       tmp_file="$(create_tmp_file yazi-cwd)"
       yazi "$@" --cwd-file="${tmp_file}"
       if [ -f "${tmp_file}" ]; then
-        #~@ Read path preserving whitespace
+        #{ Read path preserving whitespace
         IFS= read -r cwd <"${tmp_file}"
 
-        #~@ If the cwd is a valid directory
+        #{ If the cwd is a valid directory
         if [ -n "${cwd}" ] && [ -d "${cwd}" ]; then
           [ -n "${cwd}" ] && [ "${cwd}" != "${PWD}" ] && {
             # printf "Entering directory: %s\n" "${cwd}"

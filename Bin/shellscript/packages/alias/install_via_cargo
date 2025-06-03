@@ -173,8 +173,8 @@ check_application() {
   #     grep "$app v" |
   #     awk '{print $2}'
   # )"
-  # app_version="${app_version##v}" #~@ Remove the leading letter
-  # app_version="${app_version%%:}" #~@ Remove the trailing colon
+  # app_version="${app_version##v}" #{ Remove the leading letter
+  # app_version="${app_version%%:}" #{ Remove the trailing colon
 
   app_version="$(
     cargo install --list |

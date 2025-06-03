@@ -6,10 +6,10 @@
 
 set -e
 
-#~@ Default: no target yet
+#{ Default: no target yet
 TARGET_DIR=""
 
-#~@ Parse options
+#{ Parse options
 while [ $# -gt 0 ]; do
   case "$1" in
   --target)
@@ -39,7 +39,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-#~@ Accept input from BUILDIR_TARGET env var (for sourcing)
+#{ Accept input from BUILDIR_TARGET env var (for sourcing)
 if [ -z "${TARGET_DIR}" ]; then
   if [ -n "${BUILDIR_TARGET:-}" ]; then
     TARGET_DIR="${BUILDIR_TARGET}"
@@ -50,18 +50,18 @@ if [ -z "${TARGET_DIR}" ]; then
   fi
 fi
 
-#~@ Remove trailing slash from TARGET_DIR if present
+#{ Remove trailing slash from TARGET_DIR if present
 case "${TARGET_DIR}" in
 */) TARGET_DIR=${TARGET_DIR%/} ;;
 *) : ;;
 esac
 
-#~@ Function: Convert Windows path to Unix style using POSIX tools
+#{ Function: Convert Windows path to Unix style using POSIX tools
 win2unix_posix() {
   sed -e 's#^\([A-Za-z]\):/#/\1/#' | awk '{print tolower($0)}'
 }
 
-#~@ Function: Collect all .ignore files from TARGET_DIR up to /
+#{ Function: Collect all .ignore files from TARGET_DIR up to /
 collect_ignore_files() {
   dir="$1"
   while [ "${dir}" != "/" ] && [ -n "${dir}" ]; do
@@ -72,7 +72,7 @@ collect_ignore_files() {
   done
 }
 
-#~@ Use fd if available for .ignore support and performance
+#{ Use fd if available for .ignore support and performance
 if command -v fd >/dev/null 2>&1; then
   fd . "${TARGET_DIR}" --type d --absolute-path |
     win2unix_posix |
@@ -84,12 +84,12 @@ if command -v fd >/dev/null 2>&1; then
   return 0 2>/dev/null || exit 0
 fi
 
-#~@ ---- POSIX fallback using find and .ignore (from all parent dirs) ----
+#{ ---- POSIX fallback using find and .ignore (from all parent dirs) ----
 
 TMP_PRUNE_FILE=$(mktemp "${TMPDIR:-/tmp}/buildir_prune.XXXXXX")
 trap 'rm -f "${TMP_PRUNE_FILE}"' EXIT HUP INT TERM
 
-#~@ Gather all ignore patterns from .ignore files up the directory tree
+#{ Gather all ignore patterns from .ignore files up the directory tree
 for ignore in $(collect_ignore_files "${TARGET_DIR}"); do
   # shellcheck disable=SC2013
   while IFS= read -r pattern; do
@@ -114,10 +114,10 @@ fi
 rm -f "${TMP_PRUNE_FILE}"
 trap - EXIT HUP INT TERM
 
-#~@ Build the find command as a string
+#{ Build the find command as a string
 FIND_CMD="find '${TARGET_DIR}'${PRUNE_ARGS} -type d -print"
 
-#~@ Evaluate the find command, convert Windows paths, and join with colons
+#{ Evaluate the find command, convert Windows paths, and join with colons
 eval "${FIND_CMD}" |
   win2unix_posix |
   awk -v t="$(printf '%s' "${TARGET_DIR}" | win2unix_posix || true)" '
@@ -126,5 +126,5 @@ eval "${FIND_CMD}" |
         END { printf "%s\n", paths }
     '
 
-#~@ If sourced, do not exit the shell
+#{ If sourced, do not exit the shell
 return 0 2>/dev/null || exit 0

@@ -12,12 +12,12 @@ main() {
 }
 
 set_defaults() {
-  #~@ Initialize global variables/flags
+  #{ Initialize global variables/flags
   debug=0
   verbose=0
   delimiter="${DELIMITER:-"$(printf '\037')"}"
 
-  #~@ Initialize flags
+  #{ Initialize flags
   all=false
   color=true
   depth=0
@@ -139,7 +139,7 @@ parse_arguments() {
 }
 
 set_environment() {
-  #~@ Normalize & valedate options
+  #{ Normalize & valedate options
   if [ -z "${args:-}" ]; then :; else
     args="$(printf "%s" "${args}" | tr "${delimiter}" " ")"
   fi
@@ -208,7 +208,7 @@ set_environment() {
     printf "Depth must be an integer.\n"
     return 1
   else
-    #~@ Set the default recursion option to tree if depth is set and recurse is unset
+    #{ Set the default recursion option to tree if depth is set and recurse is unset
     case "${recursion:-}" in "" | none) recursion="tree" ;; *) ;; esac
   fi
 
@@ -237,7 +237,7 @@ check_command() {
     return 1
   fi
 
-  #~@ Get the path to the command
+  #{ Get the path to the command
   _env="$(eval "printf '%s' \$${1:?}")"
   _bin="$(
     unalias "${2:?}" 2>/dev/null || true
@@ -461,12 +461,12 @@ execute_process() {
   case "${debug:-0}" in
   1 | true | yes | on) printf "%s\n" "${cmd}" ;;
   *)
-    #~@ Print the command if in verbose mode
+    #{ Print the command if in verbose mode
     case "${verbose:-0}" in
     1 | true | yes | on) printf "%s\n" "${cmd}" ;;
     *) ;; esac
 
-    #~@ Execute the command
+    #{ Execute the command
     eval "${cmd}"
     ;;
   esac

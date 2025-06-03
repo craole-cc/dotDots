@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#~@ Shellscript
+#{ Shellscript
 printf "%s\n" "#/> Shellscript <\#"
 ducta --shell "$DOTS/Bin/tests/hello.sh"
 

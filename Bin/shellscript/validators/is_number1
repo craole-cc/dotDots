@@ -27,10 +27,10 @@ __info__() {
 USAGE_GUIDE
   )"
 
-  #~@ Usage display
+  #{ Usage display
   __help__() { printf "%s\n" "${_cmd_USAGEGUIDE}"; }
 
-  #~@ Version display
+  #{ Version display
   __version__() { printf "%s\n" "${_cmd_VERSION}"; }
 
 }
@@ -41,7 +41,7 @@ USAGE_GUIDE
 
 parse_args() {
 
-  #~@ Declare user options
+  #{ Declare user options
   for arg in "$@"; do
     case "${arg:-}" in
     -h | --help) __help__ ;;
@@ -53,7 +53,7 @@ parse_args() {
     esac
   done
 
-  #~@ Validate each number entered via a loop
+  #{ Validate each number entered via a loop
   while [ "$#" -gt 0 ]; do
     case "$1" in
     --* | -*) ;;
@@ -70,7 +70,7 @@ parse_args() {
 # ===================================================================
 
 __defaults__() {
-  #~@ GREP
+  #{ GREP
 
   if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null || true)"}" ]; then
     _grep() { rg -q "$@"; }
@@ -78,7 +78,7 @@ __defaults__() {
     _grep() { grep -Eq "$@"; }
   fi
 
-  #~@ Regex
+  #{ Regex
   regex_integer='^[+-]?[0-9]+$'
   regex_float='^[+-]?[0-9]*\.[0-9]+$|^[+-]?[0-9]+\.[0-9]*$'
   num_type=integer
@@ -113,17 +113,17 @@ __process__() {
     ;;
   esac
 
-  #~@ Float
+  #{ Float
   case "${allow_floats}" in true | 1 | y*) ;; *) return ;; esac
   if [ -n "${allow_floats}" ] &&
     echo "${num}" | _grep "${regex_float}"; then
     __msg__ --float
 
-  #~@ Integer
+  #{ Integer
   elif echo "${num}" | _grep "${regex_integer}"; then
     __msg__ --integer
 
-  #~@ Invalid
+  #{ Invalid
   else
     __msg__ --invalid
     invalid=1

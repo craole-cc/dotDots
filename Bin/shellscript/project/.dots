@@ -1,7 +1,7 @@
 #!/bin/sh
 #shellcheck enable=all
 
-#~@ Set defaults
+#{ Set defaults
 set -eu
 scr_path="$0"
 src_name="$(basename "${scr_path}")"
@@ -21,14 +21,14 @@ pout_debug() {
   esac
 }
 
-#~@ Ensure the DOTS variable is defined
+#{ Ensure the DOTS variable is defined
 if [ -n "${workspace:-}" ]; then
   pout_debug "Workspace:" "${workspace}"
 else
   pout_error "The path to DOTS directory must be set.\n" >&2
 fi
 
-#~@ Use devnix from here on
+#{ Use devnix from here on
 CMD_DEVNIX="$(command -v devnix 2>/dev/null || true)"
 CMD_DEVNIX="${CMD_DEVNIX:-"${workspace}/Bin/shellscript/project/nix/devnix"}"
 if [ -x "${CMD_DEVNIX}" ]; then

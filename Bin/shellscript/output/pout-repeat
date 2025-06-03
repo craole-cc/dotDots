@@ -24,7 +24,7 @@ set_defaults() {
 }
 
 parse_arguments() {
-  #~@ Script Options
+  #{ Script Options
   for arg in "$@"; do
     case "${arg}" in
     -h) pout_usage 0 ;;
@@ -33,7 +33,7 @@ parse_arguments() {
     esac
   done
 
-  #~@ Process Options
+  #{ Process Options
   while [ "$#" -ge "${expected_args:-1}" ]; do
     case "$1" in
     -d | --verbose | --debug)
@@ -64,16 +64,16 @@ parse_arguments() {
     shift
   done
 
-  #~@ Debugging
+  #{ Debugging
   pout_debug "REPS:" "${repetitions}"
   pout_debug "CHAR:" "${pattern}"
 
-  #~@ Ensure repetitions are provided and valid
+  #{ Ensure repetitions are provided and valid
   if [ -n "${repetitions}" ] && is_positive_int "${repetitions}"; then :; else
     pout_usage --reps
   fi
 
-  #~@ Ensure pattern is provided
+  #{ Ensure pattern is provided
   if [ -n "${pattern}" ]; then :; else
     pout_usage --reps
   fi
@@ -106,7 +106,7 @@ init_utilities() {
     char="$2"
     i=0
     while [ "${i}" -lt "${reps}" ]; do
-      #~@ Use %b to interpret escape sequences
+      #{ Use %b to interpret escape sequences
       printf "%b" "${char}"
       i=$((i + 1))
     done

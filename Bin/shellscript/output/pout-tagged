@@ -12,94 +12,110 @@
 #DOC   --msg MESSAGE    The message content to display
 #DOC
 #DOC Examples:
-#DOC   pout_tagged --ctx "locate_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
-#DOC   pout_tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
+#DOC   pout-tagged --ctx "locate_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
+#DOC   pout-tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
 
-#~@ Set a safe delimiter (ASCII Unit Separator)
-: "${DELIMITER:="$(printf "\037")"}"
+#{ Set a safe delimiter (ASCII Unit Separator)
 
-#~@ Initialize with defaults
+#{ Initialize with defaults
+scr_path="${0##*/}"
+scr_name="${scr_path##*/}"
 ctx=""
 tag=""
 msg=""
+delimiter="$(printf "\037")"
 
-#~@ Parse named arguments
+#{ Parse named arguments
 while [ $# -gt 0 ]; do
   case "${1}" in
+  --ctx=*) ctx="${1#--ctx=}" ;;
   --ctx)
-    if [ $# -gt 1 ]; then
+    if [ "$#" -gt 1 ]; then
       ctx="$2"
       shift
     else
-      printf "Error: Missing value for --ctx\n" >&2
+      printf "Error: Missing value for %s\n" "$1" >&2
       return 1
     fi
     ;;
+  --tag=*) tag="${1#--tag=}" ;;
   --tag)
-    if [ $# -gt 1 ]; then
+    if [ "$#" -gt 1 ]; then
       tag="$2"
       shift
     else
-      printf "Error: Missing value for --tag\n" >&2
+      printf "Error: Missing value for %s\n" "$1" >&2
       return 1
     fi
     ;;
+  --tag-head-sep=*) ctx_head_sep="${1#--ctx_head_sep=}" ;;
+  --tag-head-sep)
+    if [ $# -gt 1 ]; then
+      ctx_head_sep="$2"
+      shift
+    else
+      printf "Error: Missing value for %s\n" "$1" >&2
+      return 1
+    fi
+    ;;
+  --tag-tail-sep=*) ctx_tail_sep="${1#--ctx_tail_sep=}" ;;
+  --tag-tail-sep)
+    if [ $# -gt 1 ]; then
+      ctx_tail_sep="$2"
+      shift
+    else
+      printf "Error: Missing value for %s\n" "$1" >&2
+      return 1
+    fi
+    ;;
+  --msg=*) msg="${1#--msg=}" ;;
   --msg)
     if [ $# -gt 1 ]; then
-      msg="$2"
+      msg="$(printf "%b" "$2")"
       shift
     else
       printf "Error: Missing value for --msg\n" >&2
       return 1
     fi
     ;;
-  --ctx=*)
-    ctx="${1#--ctx=}"
-    ;;
-  --tag=*)
-    tag="${1#--tag=}"
-    ;;
-  --msg=*)
-    msg="${1#--msg=}"
-    ;;
   --)
-    #~@ End of options, remaining args become message
+    #{ End of options, remaining args become message
     shift
     msg="$*"
     break
     ;;
-  --*)
-    #~@ Unknown option, ignore
-    ;;
+  --*) ;; #? Unknown option, ignore
   *)
-    #~@ If no explicit --msg flag, treat remaining args as message
-    if [ -z "${msg}" ]; then
-      msg="$*"
-      break
-    fi
+    # msg="${msg}${msg:+${delimiter}}${1}"
+    msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
     ;;
   esac
   shift
 done
 
-#~@ Return early if no message is provided
+echo "${msg}"
+exit 0
+
+#{ Return early if no message is provided
 if [ -z "${msg}" ]; then
   return 0
 fi
 
-#~@ Fallback to context variables if not set
-if [ -z "${ctx}" ]; then ctx="${fn_name:-}"; fi
-if [ -z "${ctx}" ]; then ctx="${scr_name:-}"; fi
-if [ -z "${ctx}" ]; then ctx="${scr_path:-}"; fi
-if [ -z "${ctx}" ]; then ctx="script"; fi
+#{ Update the context
+: "${ctx_head_sep:=" >>= "}"
+: "${ctx_tail_sep:=" =<< "}"
+if [ -n "${ctx:-}" ]; then
+  ctx="${ctx_head_sep}${ctx}${ctx_tail_sep}"
+fi
 
-#~@ Default tag to DEBUG if not provided
+#{ Update the tag
 if [ -z "${tag}" ]; then tag="DEBUG"; fi
 tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
 
-#~@ Default separators
-: "${tag_head_sep:=" >>= "}"
-: "${tag_tail_sep:=" =<< "}"
-
-#~@ Format and print the message
-printf "\n%s%s%s%s%s\n" "${tag_head_sep}" "${tag}" "${tag_tail_sep}" "${ctx}" "${msg}"
+#{ Format and print the message
+ifs="${IFS}"
+IFS="${delimiter}"
+# shellcheck disable=SC2086
+set -- ${msg}
+printf "%s%s%s\n" "${tag}" "${ctx}" "$@"
+IFS="${ifs}"

@@ -247,7 +247,7 @@ done
 #   ;;
 # esac
 
-#~@ Validate the path of the source file/folder
+#{ Validate the path of the source file/folder
 if [ ! "$backup_src" ]; then
   pout \
     --lbl "Missing source" \
@@ -261,7 +261,7 @@ elif [ ! -e "$backup_src" ]; then
     --fatal
 fi
 
-#~@ Define the backup destination path
+#{ Define the backup destination path
 case "$backup_dest" in
 -*)
   pout \
@@ -282,20 +282,20 @@ case "$backup_dest" in
     [ "$backup_dest" ] || backup_dest="${backup_src}.bak"
   fi
 
-  #~@ Allow elevation, if necessary
+  #{ Allow elevation, if necessary
   [ -w "$(dirname -- "$backup_dest")" ] || {
     backup_cmd="sudo $backup_cmd"
   }
   ;;
 esac
 
-#~@ Update the backup command
+#{ Update the backup command
 backup_cmd="$backup_cmd $backup_opt $backup_src $backup_dest"
 
-#~@ Generate the backup file
+#{ Generate the backup file
 echo "$backup_cmd"
 # eval "$backup_cmd"
 
-#~@ Cleanup
+#{ Cleanup
 unset func_name func_usage
 unset backup_cmd backup_src backup_dest

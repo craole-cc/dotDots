@@ -46,7 +46,7 @@ parse_arguments() {
   done
 }
 
-#~@ Function to validate file or directory existence
+#{ Function to validate file or directory existence
 validate_file_or_directory() {
   path="$1"
   type="$2"

@@ -32,7 +32,7 @@ main() {
 }
 
 purge_environment() {
-  #~@ Establish defaults
+  #{ Establish defaults
   unset msg key val
   unset lvl hide_lvl
   unset ln_lead ln_trail
@@ -60,7 +60,7 @@ is_number() {
 # log="$DOTS_LOG_DOTS"
 parse_arguments() {
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ "$#" -gt 0 ]; do
     case $1 in
     -h) show_info --usage ;;
@@ -161,7 +161,7 @@ parse_arguments() {
 }
 
 set_pair() {
-  #~@ Update message with key-value pair
+  #{ Update message with key-value pair
   [ "$key" ] && [ "$val" ] && {
     #| Unformatted key-value pair
     pair_log="${key}${sep}${val}"
@@ -172,7 +172,7 @@ set_pair() {
 }
 
 set_level() {
-  #~@ Append the level to the message.
+  #{ Append the level to the message.
   case "$lvl" in
   error)
     lvl_log="[ERROR] "
@@ -280,14 +280,14 @@ pout_repeat() {
   execute_process() {
     i=0
     while [ "${i:-0}" -lt "${repetitions:-0}" ]; do
-      #~@ Use %b to interpret escape sequences
+      #{ Use %b to interpret escape sequences
       printf "%b" "${pattern}"
       i=$((i + 1))
     done
   }
 
   pout_repeat__parse_arguments() {
-    #~@ Function Options
+    #{ Function Options
     for arg in "$@"; do
       case "${arg:-}" in
       -h) print_usage 0 ;;
@@ -296,7 +296,7 @@ pout_repeat() {
       esac
     done
 
-    #~@ Process Options
+    #{ Process Options
     while [ "$#" -ge 1 ]; do
       case "$1" in
       -d | --verbose | --debug)
@@ -327,7 +327,7 @@ pout_repeat() {
       shift
     done
 
-    #~@ Handle positional arguments
+    #{ Handle positional arguments
     if [ -z "${repetitions}" ] && [ -z "${pattern}" ]; then
       for arg in ${args}; do
         if printf "%s" "${arg}" | grep -qE '^[+-]?[0-9]+$'; then
@@ -338,13 +338,13 @@ pout_repeat() {
       done
     fi
 
-    #~@ Debugging
+    #{ Debugging
     case "${debug:-}" in "" | off | false | 0) ;; *)
       printf "REPS: %s CHAR: %s\n" "${repetitions}" "${pattern}"
       ;;
     esac
 
-    #~@ Ensure both arguments are provided
+    #{ Ensure both arguments are provided
     if [ -n "${repetitions}" ] && validate_num "${repetitions}"; then :; else
       print_usage --reps
     fi
@@ -356,24 +356,24 @@ pout_repeat() {
 
   pout_repeat__main "$@"
 }
-#~@ Get thetimestamp
+#{ Get thetimestamp
 # timestamp="$(printf "[%s] " "$(fetch.time)")"
 
-# #~@ Write message to the log
+# #{ Write message to the log
 # [ "$log" ] && {
 
-# 	#~@ Sanitize the message by removing all terminal formatting codes
+# 	#{ Sanitize the message by removing all terminal formatting codes
 # 	msg_log="$(printf "%s" "${msg:-$pair_log}" |
 # 		sed 's/\x1B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B//g')"
 
-# 	#~@ Create the log directory if it does not exist
+# 	#{ Create the log directory if it does not exist
 # 	# printf "%s%s%s\n" "$timestamp" "$lvl_log" "$msg_log" |
 # 	# 	tee -a "$log" >/dev/null
 # }
 
-#~@ Write message to the console
+#{ Write message to the console
 # [ "${VERBOSITY_LEVEL:-0}" -eq "${VERBOSITY_LEVEL_QUIET:-0}" ] && exit 0
 
 # case "$VERBOSITY_LEVEL" in

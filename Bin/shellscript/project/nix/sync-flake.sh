@@ -8,10 +8,10 @@ main() {
 }
 
 set_defaults() {
-  #~@ Enable strict mode
+  #{ Enable strict mode
   set -eu
 
-  #~@ Check if flakes enabled
+  #{ Check if flakes enabled
   msg="Flake Update"
   flakes="$(nix flake --help 2>/dev/null)"
   delimiter=" "
@@ -20,7 +20,7 @@ set_defaults() {
 
 parse_arguments() {
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1}" in
     -a | --arg*)

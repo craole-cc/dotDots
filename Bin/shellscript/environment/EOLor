@@ -16,7 +16,7 @@ main() {
 }
 
 define_defaults() {
-  #~@ Verbosity
+  #{ Verbosity
   # shellcheck disable=SC2153
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
   [1-9] | true) verbose_flag=true ;;
@@ -267,7 +267,7 @@ establish_environment() {
 }
 
 initialize_utilities() {
-  #~@ Display script usage and version information
+  #{ Display script usage and version information
   print_scr_info() {
     case "$1" in
     --usage) printf "%s [OPTIONS] <PATH>" "$scr_NAME" ;;
@@ -294,7 +294,7 @@ initialize_utilities() {
     esac
   }
 
-  #~@ Validate the existence of a command
+  #{ Validate the existence of a command
   weHave() {
     command -v "$1" >/dev/null 2>&1
   }
@@ -394,7 +394,7 @@ initialize_utilities() {
     printf "%s\n" $1 | sort --unique
   }
 
-  #~@ Set the converter based ont he operating system
+  #{ Set the converter based ont he operating system
   get_converter_per_os() {
     os_type() {
       if weHave os.type.fetch; then
@@ -415,30 +415,30 @@ initialize_utilities() {
     esac
   }
 
-  #~@ Check if a file is binary
+  #{ Check if a file is binary
   is_binary_file() {
-    #~@ Use the 'file' command to determine if the file is binary
+    #{ Use the 'file' command to determine if the file is binary
     file --brief --mime-encoding "$1" | grep --quiet "binary"
   }
 
-  #~@ Convert LF to CRLF (Unix to DOS)
+  #{ Convert LF to CRLF (Unix to DOS)
   convert_lf_to_crlf() {
     func_name="convert_lf_to_crlf"
     input_file="$1"
 
-    #~@ Check if the file is regular file and skip conversion
+    #{ Check if the file is regular file and skip conversion
     [ -f "$input_file" ] || {
       printf "Skipping %s, not a regular file\n" "$input_file"
       return 1
     }
 
-    #~@ Check if the file is binary and skip conversion
+    #{ Check if the file is binary and skip conversion
     is_binary_file "$input_file" && {
       printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
       return 0
     }
 
-    #~@ Check for and remove the Byte Order Mark (BOM)
+    #{ Check for and remove the Byte Order Mark (BOM)
     if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
       tail -c +4 "$input_file" | tr '\n' '\r\n' >"$input_file.tmp"
       mv "$input_file.tmp" "$input_file"
@@ -450,24 +450,24 @@ initialize_utilities() {
     printf "Converting %s to DOS format\n" "$input_file"
   }
 
-  #~@ Convert CRLF to LF (DOS to Unix)
+  #{ Convert CRLF to LF (DOS to Unix)
   convert_crlf_to_lf() {
     func_name="convert_crlf_to_lf"
     input_file="$1"
 
-    #~@ Check if the file is regular file and skip conversion
+    #{ Check if the file is regular file and skip conversion
     [ -f "$input_file" ] || {
       printf "Skipping %s, not a regular file\n" "$input_file"
       return 1
     }
 
-    #~@ Check if the file is binary and skip conversion
+    #{ Check if the file is binary and skip conversion
     is_binary_file "$input_file" && {
       printf "%s: Skipping binary file %s\n" "$func_name" "$input_file"
       return 0
     }
 
-    #~@ Check for and remove the Byte Order Mark (BOM)
+    #{ Check for and remove the Byte Order Mark (BOM)
     if [ "$(head -c 3 "$input_file")" = "$(printf '\xef\xbb\xbf')" ]; then
       tail -c +4 "$input_file" | tr -d '\r' >"$input_file.tmp"
       mv "$input_file.tmp" "$input_file"

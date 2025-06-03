@@ -3,13 +3,13 @@
 
 #TODO: So far, only nu and bash are supported
 establish_environment() {
-  #~@ Contextual Config Files
+  #{ Contextual Config Files
   DOTS_ENV_CTX="${DOTS_ENV_CTX:-$DOTS/Environment/context}"
   [ -d "$DOTS_ENV_CTX" ] || return 1
   profile="$HOME/.profile"
   default_shell="bash"
 
-  #~@ Verbosity
+  #{ Verbosity
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
   [1-9] | true) verbose_flag=true ;; esac
 
@@ -67,7 +67,7 @@ establish_utilities() {
     . "$DOTS_ENV_CTX/starship"
   }
 
-  #~@ Nushell
+  #{ Nushell
   launch_nu() {
     nu \
       --config "${NUSHDIR}/config.nu" \
@@ -93,7 +93,7 @@ establish_utilities() {
 }
 
 initialize_shell() {
-  #~@ Ensure that the shell is available
+  #{ Ensure that the shell is available
   weHave "$1" || {
     printf "We don't seem to have %s installed\n" "$SHELL_INTERACTIVE"
     #TODO: Offer to install if there is a script to do so
@@ -101,13 +101,13 @@ initialize_shell() {
     return 1
   }
 
-  #~@ Load Environment Variables, if available
+  #{ Load Environment Variables, if available
   [ -f "$DOTS_ENV_CTX/$SHELL_INTERACTIVE" ] &&
     . "$DOTS_ENV_CTX/$SHELL_INTERACTIVE"
 }
 
 launch_shell() {
-  #~@ Ensure that the shell is available
+  #{ Ensure that the shell is available
   weHave "$1" || {
     printf "We don't seem to have %s installed\n" "$1"
     #TODO: Offer to install if there is a script to do so
@@ -136,7 +136,7 @@ execute() {
     ;;
   esac
 
-  #~@ Launch the shell
+  #{ Launch the shell
   launch_shell "$SHELL_INTERACTIVE" || return 1
   [ "$verbose" = true ] &&
     printf "Launched %s\n" "$SHELL_INTERACTIVE"

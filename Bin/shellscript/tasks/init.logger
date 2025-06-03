@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#~@ Parse process arguments
+#{ Parse process arguments
 while [ "$#" -ge 1 ]; do
   case "$1" in
   --mode)
@@ -24,10 +24,10 @@ while [ "$#" -ge 1 ]; do
   shift
 done
 
-#~@ Create the log directory, if it doesn't exist
+#{ Create the log directory, if it doesn't exist
 mkdir -p "$(dirname "$__log_path")"
 
-#~@ Handle reset mode with backup
+#{ Handle reset mode with backup
 case "$(stralt --lower "$__log_mode")" in reset)
   __log_path_name="${__log_path%.*}"
   __log_path_ext="${__log_path##*.}"
@@ -54,7 +54,7 @@ case "$(stralt --lower "$__log_mode")" in reset)
   ;;
 esac
 
-#~@ Insert the title if file doesn't exist or title is missing
+#{ Insert the title if file doesn't exist or title is missing
 __log_title="${__log_title:-"$(printf "***-->>> THE %s LOG <<<--***" "$__log_name")"}"
 if [ -f "$__log_path" ]; then
   grep -q "^$__log_title$" "$__log_path" ||
@@ -64,5 +64,5 @@ else
   printf "%s\n\n" "$__log_title" >"$__log_path"
 fi
 
-#~@ Cleanup
+#{ Cleanup
 unset __log_mode __log_path __log_title

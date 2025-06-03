@@ -16,23 +16,23 @@ EOF
 }
 
 main() {
-  #~@ Parse arguments and get direction and filename
+  #{ Parse arguments and get direction and filename
   parse_arguments "$@"
 
-  #~@ Perform the search
+  #{ Perform the search
   perform_search
 }
 parse_arguments() {
-  #~@ Reset the variables
+  #{ Reset the variables
   unset direction pattern
 
-  #~@ Ensure that at least one argument is provided
+  #{ Ensure that at least one argument is provided
   if [ "$#" -eq 0 ]; then
     printf "%s" "Error: No filename provided" >&2
     usage 1
   fi
 
-  #~@ Parse options
+  #{ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
     --up)
@@ -73,10 +73,10 @@ parse_arguments() {
     esac
   done
 
-  #~@ Define the direction for the search
+  #{ Define the direction for the search
   direction="${direction:-both}"
 
-  #~@ Define the pattern to search for
+  #{ Define the pattern to search for
   pattern="$1"
 }
 
@@ -92,7 +92,7 @@ find_up() {
     dir=$(dirname "$dir")
   done
 
-  #~@ Check root directory as well
+  #{ Check root directory as well
   if [ -e "/$path" ]; then
     printf '%s\n' "/$path"
     return 0

@@ -57,19 +57,19 @@ EOF
 }
 display_usage() {
   if [ "$#" -eq 0 ]; then
-    #~@ No arguments
+    #{ No arguments
     exit_code=0
   else
     if [ "$1" -eq "$1" ] 2>/dev/null; then
-      #~@ The first argument is a number
+      #{ The first argument is a number
       exit_code="$1"
       shift
     else
-      #~@ The first argument is not a number
+      #{ The first argument is not a number
       exit_code=1
     fi
   fi
-  #~@ Display the error or custom message
+  #{ Display the error or custom message
   [ "$*" ] &&
     if [ "$exit_code" -ne 0 ]; then
       printf "Error: %s\n\n" "$*"
@@ -77,15 +77,15 @@ display_usage() {
       printf "%s\n\n" "$*"
     fi
 
-  #~@ Display the usage guide
+  #{ Display the usage guide
   printf "%s\n" "$scr_guide"
 
-  #~@ Terminate
+  #{ Terminate
   exit "${exit_code:-0}"
 }
 
 cargo_cmd() {
-  #~@ Check if cargo is installed
+  #{ Check if cargo is installed
   cargo --help >/dev/null 2>&1 || {
     printf "%s\n%s" \
       "Please ensure 'cargo' is installed and in your PATH." \
@@ -129,14 +129,14 @@ get_option() {
     shift
   done
 
-  #~@ Update position
+  #{ Update position
   case "$options" in --*) offset=2 ;; -*) offset=1 ;; esac
   position="$(("${position:-1}" + offset))"
 
-  #~@ Debug
+  #{ Debug
   # echo "Options: ${#options} [$options] | Position: $position | Offset: $offset"
 
-  #~@ Return the option
+  #{ Return the option
   if [ "$position" -gt "${#options}" ]; then
     printf "Error: Position out of range\n"
     printf "Invalid Position: %s | Max Position: %s | Actual Option: %s\n" \
@@ -156,7 +156,7 @@ parse_arguments() {
     case "$1" in -h | --help) display_usage ;; esac
 
     for argument in "$@"; do
-      #~@ Modes
+      #{ Modes
       case "$argument" in --debug)
         debug=true
         verbose=true
@@ -244,10 +244,10 @@ parse_arguments() {
         done
         ;;
       -c*)
-        #~@ Command
+        #{ Command
         cmd="clean"
 
-        #~@ Options
+        #{ Options
         case "$(get_option "$1")" in
         h) opt="--help" ;;
         p)
@@ -256,7 +256,7 @@ parse_arguments() {
           ;;
         esac
 
-        #~@ Arguments
+        #{ Arguments
         unset arg
         ;;
       -r*)
@@ -355,22 +355,22 @@ parse_arguments() {
 }
 
 process() {
-  #~@ Join the command parts
+  #{ Join the command parts
   [ "$opt" ] || opt="$verbosity $opt"
   [ "$release" ] && opt="$opt --release"
   [ "$arg" ] && arg=" -- $arg"
   cmd="$cmd $opt $arg"
 
-  #~@ Ensure watch is used only on test and run commands
+  #{ Ensure watch is used only on test and run commands
   case "$cmd" in "test "* | "run "*) ;; *) unset watch ;; esac
 
-  #~@ Update the command according to the mode
+  #{ Update the command according to the mode
   cmd="$(cargo_cmd "$cmd" "$watch")"
 
-  #~@ Display the command
+  #{ Display the command
   [ "$verbose" ] && printf "/> %s\n" "$cmd"
 
-  #~@ Execute the command
+  #{ Execute the command
   [ "$debug" ] || eval "$cmd"
 }
 

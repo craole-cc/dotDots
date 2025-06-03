@@ -68,13 +68,13 @@ convert_to_cr() {
 }
 
 parse_arguments() {
-  #~@ Ensure there is an argument to parse
+  #{ Ensure there is an argument to parse
   [ "$#" -eq 0 ] && {
     echo "we need something to process"
     exit 1
   }
 
-  #~@ Accept user options
+  #{ Accept user options
   while [ "$#" -ge 1 ]; do
     case "$1" in
     -h | --help)
@@ -93,7 +93,7 @@ parse_arguments() {
     shift
   done
 
-  #~@ If unset, set default eol based on Operating System
+  #{ If unset, set default eol based on Operating System
   [ "$target_eol" ] ||
     case $(os.type.fetch) in
     Windows) target_eol="cr" ;;
@@ -138,7 +138,7 @@ process_core() {
   printf "\nConversion of %s file(s) completed.\n" "$files_processed"
 }
 
-#~@ __________________________________________________ INFO<|
+#{ __________________________________________________ INFO<|
 
 __ver__() {
   echo "1.0"
@@ -155,10 +155,10 @@ __help__() {
 "
 }
 
-display_info() { #~@ Display information to via Stdout or Notification
+display_info() { #{ Display information to via Stdout or Notification
   #? USAGE: display_info --noline $arg
 
-  #~@ Ensure there is something to print
+  #{ Ensure there is something to print
   [ "$*" ] || return 1
 
   case "$1" in

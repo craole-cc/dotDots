@@ -74,7 +74,7 @@ parse_arguments() {
     shift
   done
 
-  #~@ Ensure the URL is provided if the host, user or repo are not.
+  #{ Ensure the URL is provided if the host, user or repo are not.
   if [ -z "$git_host" ] || [ -z "$git_user" ] || [ -z "$git_repo" ]; then
     [ "$git_url" ] || {
       display_info --help
@@ -84,22 +84,22 @@ parse_arguments() {
 }
 
 establish_env() {
-  #~@ Parse the user input
+  #{ Parse the user input
   parse_arguments "$@"
 
-  #~@ If host is not provided, extract it from the original URL.
+  #{ If host is not provided, extract it from the original URL.
   [ "$git_host" ] || {
     git_host="${git_url#*@}"   # After the at sign
     git_host="${git_host%%:*}" # Before the first slash
   }
 
-  #~@ If username is not provided, extract it from the original URL.
+  #{ If username is not provided, extract it from the original URL.
   [ "$git_user" ] || {
     git_user="${git_url#*[:/]}" # After the first colon or slash
     git_user="${git_user%%/*}"  # Before the next slash
   }
 
-  #~@ Extract the repository name and branch from the original URL
+  #{ Extract the repository name and branch from the original URL
   git_repo="${git_url#*[:/]/}" # After the second colon or slash
   git_repo="${git_repo#*/}"    # After the first slash
 
@@ -111,14 +111,14 @@ establish_env() {
 
   git_repo="${git_repo%.git}" # Remove '.git' extension
 
-  #~@ Prioritize the user provided destination name
+  #{ Prioritize the user provided destination name
   git_dir="${git_dir:-$git_repo}"
 
-  #~@ Generate the updated URL, prioritizing the user provided host, user and repo
+  #{ Generate the updated URL, prioritizing the user provided host, user and repo
   git_url="git@$git_host:${git_user}/${git_repo}.git"
   [ "$git_branch" ] && git_url="$git_url#$git_branch"
 
-  #~@ Generate the applicable git command
+  #{ Generate the applicable git command
   if [ -d "$git_dir" ]; then
     printf \
       "Directory '%s' already exists. \nDo you want to delete it? [y|N]: " \

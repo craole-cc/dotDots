@@ -7,16 +7,16 @@ main() {
 }
 
 parse_arguments() {
-  #~@ Clear variables
+  #{ Clear variables
   unset project command
 
-  #~@ Declare directories
+  #{ Declare directories
   projects="${PROJECTS:-$HOME/Documents}"
   craole=$projects/github_craole
   cc=$projects/github_craole-cc
   gitlab=$projects/gitlab_craole
 
-  #~@ Set the first argument as the project directory
+  #{ Set the first argument as the project directory
   case "$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')" in
   -*dd | -*.dots | -*dotdots)
     validate_arguments --project "${cc}"/dotDOTS
@@ -41,7 +41,7 @@ parse_arguments() {
     ;;
   esac
 
-  #~@ Set the remaining arguments as the command
+  #{ Set the remaining arguments as the command
   shift
   validate_arguments --command "$*"
 }
@@ -123,13 +123,13 @@ handle_error() {
     shift
   done
 
-  #~@ Output Error Information
+  #{ Output Error Information
   printf "ERROR"
   [ "$msg" ] && printf ": %s" "$msg"
   [ "$var" ] && printf " => %s" "$var"
   unset msg var
 
-  #~@ Terminate with Error
+  #{ Terminate with Error
   if [ "$fatal" = true ]; then
     exit "${code:-1}"
   fi

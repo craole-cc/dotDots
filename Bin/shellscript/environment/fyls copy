@@ -8,7 +8,7 @@ main() {
 }
 
 set_defaults() {
-  #~@ Retrieve command paths
+  #{ Retrieve command paths
   CMD_EZA="${CMD_EZA:-"$(command -v eza 2>/dev/null)"}"
   CMD_LSD="${CMD_LSD:-"$(command -v lsd 2>/dev/null)"}"
   CMD_PLS="${CMD_PLS:-"$(command -v pls 2>/dev/null)"}"
@@ -16,7 +16,7 @@ set_defaults() {
   CMD_PWSH="${CMD_PWSH:-"$(command -v pwsh 2>/dev/null)"}"
   CMD_POWERSHELL="${CMD_PWSH:-"${CMD_POWERSHELL:-"$(command -v powershell 2>/dev/null)"}"}"
 
-  #~@ Define default command
+  #{ Define default command
   if [ -x "${CMD_EZAs:-}" ]; then
     cmd="eza"
   elif [ -x "${CMD_LSD:-}" ]; then
@@ -74,16 +74,16 @@ parse_arguments() {
 }
 
 set_environment() {
-  #~@ Initialize the options variable
+  #{ Initialize the options variable
   opts=""
 
-  #~@ Ensure the tool is installed
+  #{ Ensure the tool is installed
   if [ -x "${cmd}" ]; then
     printf "Command '%s' is not installed or not in PATH.\n" "${cmd}"
     return 1
   fi
 
-  #~@ Define options
+  #{ Define options
   case "${cmd}" in
   eza)
     [ -n "${all}" ] && opts="$opts --all"

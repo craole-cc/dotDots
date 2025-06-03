@@ -1,6 +1,6 @@
 #!/bin/sh
 
-weHave() { #~@ Check if the command exists
+weHave() { #{ Check if the command exists
   type "$1" >/dev/null 2>&1
 }
 
@@ -26,13 +26,13 @@ get_app() {
 
 process_core() {
   if
-    #~@ Check if the application is already running
+    #{ Check if the application is already running
     pgrep "$(get_app)" >/dev/null
   then
-    #~@ Activate the window (switch to its desktop and raise it)
+    #{ Activate the window (switch to its desktop and raise it)
     wmctrl -a "$(get_app)"
   else
-    #~@ Launch the application if it's not already running
+    #{ Launch the application if it's not already running
     Terminal "$(get_app)" &
   fi
 }

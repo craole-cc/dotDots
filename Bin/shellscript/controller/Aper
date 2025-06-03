@@ -1,6 +1,6 @@
 #!/bin/sh
 
-we_have() { #~@ Check if the command exists
+we_have() { #{ Check if the command exists
   type "$1" >/dev/null 2>&1
 }
 

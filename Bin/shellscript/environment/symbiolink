@@ -23,16 +23,16 @@ USAGE_GUIDE
 )"
 
 # ===================================================================
-#~@                               INIT                              @#
+#{                               INIT                              @#
 # ===================================================================
 
-#~@ Display usage guide
+#{ Display usage guide
 __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
 
-#~@ Display app version
+#{ Display app version
 __version__() { printf "%s\n" "$_cmd_VERSION"; }
 
-#~@ Accept user options/flags
+#{ Accept user options/flags
 __opts__() {
   case "$1" in
   -h | --help)
@@ -62,69 +62,69 @@ __opts__() {
 __init__() {
 
   #| Arguments
-  #~@ Skip arguments if source and link paths provided
+  #{ Skip arguments if source and link paths provided
   if [ ! "$src_path" ] || [ ! "$lnk_path" ]; then
 
-    #~@ Expect arguments
+    #{ Expect arguments
     [ "$#" -gt 0 ] || __error__ --args "$#"
 
-    #~@ Loop through arguments
+    #{ Loop through arguments
     while [ "$#" -gt 0 ]; do
       __opts__ "$@"
       shift
     done
 
-    #~@ Source and Link
+    #{ Source and Link
     [ "$src_path" ] || __error__ --args-source
     [ "$lnk_path" ] || __error__ --args-link
   fi
 
   #| Source
-  #~@ Ensure source is valid
+  #{ Ensure source is valid
   [ -e "$src_path" ] || __error__ --source "$src_path"
 
   #| Link
-  #~@ Declare the destination directory
+  #{ Declare the destination directory
   lnk_parent="$(dirname "$lnk_path")"
   lnk_lineage="$lnk_parent"
 
-  #~@ Find the first valid parent directory
+  #{ Find the first valid parent directory
   while [ ! -d "$lnk_lineage" ]; do
     lnk_lineage="$(dirname "$lnk_lineage")"
   done
 
-  #~@ Check destination ownership
+  #{ Check destination ownership
   [ -O "$lnk_lineage" ] && owned=true
 }
 
 # ===================================================================
-#~@                              TOOLS                              @#
+#{                              TOOLS                              @#
 # ===================================================================
 
 __archive__() {
 
-  #~@ Skip unless user requested
+  #{ Skip unless user requested
   { [ "$force" ] && [ -e "$lnk_path" ]; } || return
 
-  #~@ Store archive path in a variable
+  #{ Store archive path in a variable
   link_archive="${lnk_path}.bac"
 
-  #~@ Use sudo if necessary to move the link
+  #{ Use sudo if necessary to move the link
   if [ "$owned" ]; then
     mv --force "$lnk_path" "$link_archive"
   else
     sudo mv --force "$lnk_path" "$link_archive"
   fi
 
-  #~@ Show detailed information
+  #{ Show detailed information
   __msg__ --archived
 }
 
 __mkdir__() {
-  #~@ Skip if destination directory found
+  #{ Skip if destination directory found
   [ -d "$lnk_parent" ] && return
 
-  #~@ Create directory if missing
+  #{ Create directory if missing
   while [ ! -d "$lnk_parent" ]; do
     printf \
       "The destination directory doesnt exist: %s\nShould we create it? [y|N]\n" \
@@ -132,7 +132,7 @@ __mkdir__() {
 
     case "$(read_char)" in
     [Yy])
-      #~@ Make directory
+      #{ Make directory
       if [ "$owned" ]; then
         mkdir --parents "$lnk_parent"
       else
@@ -146,28 +146,28 @@ __mkdir__() {
     esac
   done
 
-  #~@ Show detailed information
+  #{ Show detailed information
   __msg__ --dired
 }
 
 __link__() {
-  #~@ Exit if the target/link resolves to the source
+  #{ Exit if the target/link resolves to the source
   [ "$(pathof "$lnk_path")" = "$(pathof "$src_path")" ] && {
     __msg__ --valid
     __exit__ --success
   }
 
-  #~@ Ensure the is nested if the source is a file
+  #{ Ensure the is nested if the source is a file
   [ -f "$src_path" ] && lnk_lineage="$lnk_parent"
 
-  #~@ Create link using sudo, if necessay
+  #{ Create link using sudo, if necessay
   if [ "$owned" ]; then
     ln --symbolic "$src_path" "$lnk_path"
   else
     sudo ln --symbolic "$src_path" "$lnk_path"
   fi
 
-  #~@ Show detailed information
+  #{ Show detailed information
   [ -e "$lnk_path" ] && {
     __msg__ --linked
     __exit__ --success
@@ -175,10 +175,10 @@ __link__() {
 }
 
 # ===================================================================
-#~@                             OUTPUT                              @#
+#{                             OUTPUT                              @#
 # ===================================================================
 __msg__() {
-  #~@ Display messages based on verbosity
+  #{ Display messages based on verbosity
   [ "$verbose" ] || return
 
   linked="$lnk_path ==> $src_path"
@@ -240,17 +240,17 @@ __exit__() {
 }
 
 # ===================================================================
-#~@                               RUN                               @#
+#{                               RUN                               @#
 # ===================================================================
 
 __process__() {
-  #~@ Archive
+  #{ Archive
   __archive__
 
-  #~@ Create destination parent directories
+  #{ Create destination parent directories
   __mkdir__
 
-  #~@ Link
+  #{ Link
   [ -e "$lnk_path" ] || __link__
 }
 

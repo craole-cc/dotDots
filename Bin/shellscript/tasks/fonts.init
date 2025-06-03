@@ -1,15 +1,15 @@
 #!/bin/sh
 
 establish_environment() {
-  #~@ Ensure fontconfig is available
+  #{ Ensure fontconfig is available
   type fc-list >/dev/null 2>&1 || exit
 
-  #~@ Set environment file
+  #{ Set environment file
   env="$DOTS_ENV_CTX/fonts"
 }
 
 execute() {
-  #~@ Load Environment Variables from file
+  #{ Load Environment Variables from file
   if [ -f "$env" ]; then
     . "$env"
   else
@@ -17,11 +17,11 @@ execute() {
     exit 1
   fi
 
-  #~@ Ensure Fontconfig Directory exists
+  #{ Ensure Fontconfig Directory exists
   mkdir --parents --verbose "$FONTCONFIG_USER"
   mkdir --parents --verbose "$LOCAL_SHARE"
 
-  #~@ Deploy Link
+  #{ Deploy Link
   symbiolink \
     --src "$FONT_CONFIG_HOME" \
     --lnk "$FONT_CONFIG_LINK"

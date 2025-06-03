@@ -14,23 +14,23 @@ Options:
 EOF
 )
 
-#~@ Define a function to display the usage guide
+#{ Define a function to display the usage guide
 show_usage_guide() {
   printf "%s\n\n" "$SCR_USAGE_GUIDE"
 }
 
 init_theme() {
-  #~@ Set the default theme to "craole" if no theme is specified
+  #{ Set the default theme to "craole" if no theme is specified
   theme="${theme:-craole}"
   echo "THEME: $theme"
 
-  #~@ Load the Starship environment
+  #{ Load the Starship environment
   starship_env="${DOTS}/Environment/export/package/starship.sh"
   [ -f "$starship_env" ] && . "$starship_env"
 }
 
 init_shell() {
-  #~@ Set the default shell to "bash" if no shell is specified
+  #{ Set the default shell to "bash" if no shell is specified
   shell="${SHELL_TYPE:-bash}"
   echo "SHELL: $shell"
   # shell.init "$shell"
@@ -48,7 +48,7 @@ init_shell() {
 }
 
 parse_arguments() {
-  #~@ Parse the command-line arguments
+  #{ Parse the command-line arguments
   while [ "$#" -ge 1 ]; do
     case $1 in
     -h | --help)
@@ -58,7 +58,7 @@ parse_arguments() {
     -s | --shell) shell=$2 ;;
     -t | --theme) theme=$2 ;;
     *)
-      #~@ Set the default theme to "craole" if no theme is specified
+      #{ Set the default theme to "craole" if no theme is specified
       # theme="$1"
       ;;
     esac

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 establish_environment() {
-  #~@ Establish script information
+  #{ Establish script information
   scr_name="get_distro_name"
   scr_version="1.0"
   scr_usage="$(
@@ -12,20 +12,20 @@ establish_environment() {
     printf "  -d, --verbose   Enable detailed messaging\n"
   )"
 
-  #~@ Set default values
+  #{ Set default values
   label="OS Kernel"
   verbosity=0
   exit_code=0
   dud="Unknown"
   unset info_source output
 
-  #~@ Establish utility functions
+  #{ Establish utility functions
   initialize_utilities
 }
 
 initialize_utilities() {
   weHave() {
-    #~@ Check if the info_source is available
+    #{ Check if the info_source is available
     info_source="$1"
 
     if command -v "$info_source" >/dev/null 2>&1; then
@@ -47,10 +47,10 @@ initialize_utilities() {
   }
 
   get_via_hostnamectl() {
-    #~@ Check if hostnamectl is installed
+    #{ Check if hostnamectl is installed
     weHave hostnamectl || return 1
 
-    #~@ Return the distro name
+    #{ Return the distro name
     info="$(
       hostnamectl |
         awk -F ': ' '/Kernel/ {print $2}' |
@@ -59,10 +59,10 @@ initialize_utilities() {
   }
 
   get_via_uname() {
-    #~@ Check if uname is installed
+    #{ Check if uname is installed
     weHave uname || return 1
 
-    #~@ Extract the version number
+    #{ Extract the version number
     info="$(uname --release)" # eg. 3.4.7-ea781829.x86_64
   }
 }
@@ -94,7 +94,7 @@ present_info() {
     *) output="$1" ;;
     esac
 
-    #~@ Print the output
+    #{ Print the output
     if [ "$verbosity" -gt 0 ]; then
       if [ "$info_source" ]; then
         printf "%s via %s: %s" "$label" "$info_source" "$output"
@@ -105,16 +105,16 @@ present_info() {
       printf "%s" "$output"
     fi
 
-    #~@ Continue to the next argument
+    #{ Continue to the next argument
     shift
   done
 }
 
 main() {
-  #~@ Initialize the script environment
+  #{ Initialize the script environment
   establish_environment
 
-  #~@ Parse the arguments
+  #{ Parse the arguments
   while [ "$#" -gt 0 ]; do
     case $1 in
     -d | --verbose)
@@ -132,9 +132,9 @@ main() {
     shift
   done
 
-  #~@ Retrieve the requested information
+  #{ Retrieve the requested information
   process_info
 
-  #~@ Terminate the script with the appropriate exit code
+  #{ Terminate the script with the appropriate exit code
   return "$exit_code"
 } && main "$@"

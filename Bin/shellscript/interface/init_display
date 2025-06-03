@@ -42,28 +42,28 @@ USAGE_GUIDE
   #@		                        GLOBAL TOOLS                         @#
   # ===================================================================
 
-  #~@ Usage display
+  #{ Usage display
   __help__() {
     printf "%s\n" "$_cmd_USAGEGUIDE"
     exit 0
   }
 
-  #~@ Version display
+  #{ Version display
   __version__() {
     printf "%s\n" "$_cmd_VERSION"
     exit 0
   }
 
-  weHave() { #~@ Check if the command exists
+  weHave() { #{ Check if the command exists
     type "$1" >/dev/null 2>&1
   }
 
-  #~@ Lowercase
+  #{ Lowercase
   __lower__() {
     echo "$*" | tr '[:upper:]' '[:lower:]'
   }
 
-  #~@ Remove variables from environment
+  #{ Remove variables from environment
   __cleanup__() {
     unset \
       DRYRUN \
@@ -89,7 +89,7 @@ USAGE_GUIDE
 
   __opts__() {
     useGETOPTIONS() {
-      #~@ Declare user options (Allow multiple flags)
+      #{ Declare user options (Allow multiple flags)
       parser_definition() {
         setup REST
         disp _cmd_USAGEGUIDE -h --help
@@ -102,7 +102,7 @@ USAGE_GUIDE
         param WMDE_BAR -b --bar --panel -- "takes one argument"
       }
 
-      #~@ Load options
+      #{ Load options
       eval "$(getoptions parser_definition) exit 1"
     }
 

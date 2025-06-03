@@ -1,4 +1,4 @@
-#~@ App
+#{ App
 _APP="foot"
 _HOME="${DOTS_CFG}/${_APP}"
 

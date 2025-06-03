@@ -6,13 +6,13 @@ main() {
   establish_environment
   initialize_sources
   establish__shell
-  #~@ Initialization the script environment
+  #{ Initialization the script environment
   # manage_script --init || return $?
 
-  #~@ Initialize the DOTS environment
+  #{ Initialize the DOTS environment
   # manage_script --process || return $?
 
-  #~@ Reset the environment
+  #{ Reset the environment
   # manage_script --exit || return $?
 }
 
@@ -21,7 +21,7 @@ set_defaults() {
 }
 
 establish_environment() {
-  #~@ Ensure the DOTS variable is set
+  #{ Ensure the DOTS variable is set
   [ -n "$DOTS" ] || {
     if
       command -v git >/dev/null 2>&1 &&
@@ -49,7 +49,7 @@ establish_environment() {
     return 1
   fi
 
-  #~@ Set dots variables
+  #{ Set dots variables
   set -o allexport
   DOTS_BIN="$DOTS/Bin"
   DOTS_CFG="$DOTS/Configuration"
@@ -103,14 +103,14 @@ initialize_sources() {
 }
 
 establish__shell() {
-  #~@ Define Target Shell Type
+  #{ Define Target Shell Type
   __shell_current="$(printf "%s" "$SHELL" | awk -F/ '{print $NF}')"
   __shell_type="$(
     printf "%s" "${__shell:-"$__shell_current"}" |
       tr '[:upper:]' '[:lower:]'
   )"
 
-  #~@ Define supported shells
+  #{ Define supported shells
   case "$__shell_type" in
   bash)
     __shell_name="Bourne Again SHell"
@@ -159,7 +159,7 @@ establish__shell() {
   readonly SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL_INIT SHELL_TYPE
   export SHELL_NAME SHELL_PATH SHELL_HOME SHELL_CONF SHELL_INIT SHELL_TYPE
 
-  #~@ Initialize the shell
+  #{ Initialize the shell
   eval "$SHELL_INIT" || true
 }
 
@@ -185,7 +185,7 @@ manage_script() {
 
   manage_script__env() {
     env__dot() {
-      #~@ Ensure the DOTS variable is set
+      #{ Ensure the DOTS variable is set
       [ -n "$DOTS" ] || {
         if
           command -v git >/dev/null 2>&1 &&
@@ -213,7 +213,7 @@ manage_script() {
         return 1
       fi
 
-      #~@ Set dots variables
+      #{ Set dots variables
       set -o allexport
       DOTS_BIN="$DOTS/Bin"
       DOTS_CFG="$DOTS/Configuration"
@@ -253,13 +253,13 @@ manage_script() {
     }
 
     env__app() {
-      #~@ Add the bin directory to the path
+      #{ Add the bin directory to the path
       PATH="$(
         eval "$DOTS_BIN_SH/utility/files/pathman" \
           --append "$DOTS_BIN" "$DOTS_NIX_QBX/bin" --print
       )"
 
-      #~@ App Config
+      #{ App Config
       weHave fastfetch && FASTFETCH_CONFIG="$DOTS_CFG/fastfetch/config.jsonc"
       weHave starship && STARSHIP_CONFIG="$DOTS_CFG/starship/config.toml"
 
@@ -412,19 +412,19 @@ manage_script() {
   }
 
   manage_script__process() {
-    #~@ Initialize the logger
+    #{ Initialize the logger
     init.logger \
       --mode "$__dots_log_mode" \
       --path "$__dots_log_path" \
       --name "$__dots_log_name"
 
-    #~@ Get relevant system information
+    #{ Get relevant system information
     # fetch.os.type
     # fetch.os --type
 
     case "$(stralt --lower "$__mode")" in
     simulation)
-      #~@ Display environment variables
+      #{ Display environment variables
       pout --pad --key "Operation Mode" --val "$(stralt --lower "$__mode")" --lead
       pout --pad --key "Verbosity Level" --val "$VERBOSITY"
       pout --pad --key "Operating System" --val "$OS_TYPE"
@@ -443,13 +443,13 @@ manage_script() {
   }
 
   manage_script__exit() {
-    #~@ Tag the end and duration of the initialization
+    #{ Tag the end and duration of the initialization
     __dots_stoptime=$(fetch.time --secs)
     __dots_duration=$(fetch.time --duration --start "$__dots_inittime" --stop "$__dots_stoptime")
     pout --trace --key "DOTS Initialization Stopped" --val "$(fetch.time "$__dots_stoptime")"
     pout --trace --key "DOTS Initialization Duration" --val "$__dots_duration"
 
-    #~@ Exit gracefully
+    #{ Exit gracefully
     manage_script__cleanup
   }
 
@@ -478,14 +478,14 @@ manage_script() {
 manage_dots() {
   case $1 in
   --sources)
-    #~@ Load binary and environment sources
+    #{ Load binary and environment sources
     initialize_source \
       --exclude "archive" "review" "template" "temp" "tmp" \
       --bin "$DOTS/Bin"
     # --env "$DOTS/Environment/export"
     ;;
   --profile)
-    #~@ Update user profile
+    #{ Update user profile
     # initialize_profile \
     #   --file "${__profile:-"$HOME/.profile"}" \
     #   --key "DOTS" \
@@ -501,17 +501,17 @@ manage_dots() {
     # update_user_profile
     ;;
   --shell)
-    #~@ Load interactive shell
+    #{ Load interactive shell
     # shell.init "$SHELL_INTERACTIVE"
     initialize_shell
     ;;
   --fonts)
-    #~@ Load Fonts
+    #{ Load Fonts
     #TODO: This needs to be made portable to work on Windows
     # fonts.init
     ;;
   --config)
-    #~@ Load additional configs
+    #{ Load additional configs
     DeployConfig git
     DeployConfig zed
     ;;
@@ -623,7 +623,7 @@ create_file() {
     return 1
   }
 
-  #~@ Check if parent directory exists and is writable
+  #{ Check if parent directory exists and is writable
   dir=$(dirname "$1")
   { [ -d "$dir" ] && [ -w "$dir" ]; } || {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
@@ -631,14 +631,14 @@ create_file() {
     return 1
   }
 
-  #~@ Create the file
+  #{ Create the file
   touch "$1" 2>/dev/null || {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: Failed to create file '%s'\n" "$1" >&2
     return 1
   }
 
-  #~@ Modify the file size to 1 byte so it passes the non-empty test
+  #{ Modify the file size to 1 byte so it passes the non-empty test
   truncate -s 1 "$1" 2>/dev/null || {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: Failed to truncate file '%s'\n" "$1" >&2
@@ -689,7 +689,7 @@ read_file() {
 }
 
 get_list_from_file() {
-  #~@ Validate arguments
+  #{ Validate arguments
   if [ $# -lt 2 ]; then
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: Invalid arguments\nUsage: get_list_from_file [--update|--read] <file_path>\n" >&2
@@ -700,22 +700,22 @@ get_list_from_file() {
   file_path="$2"
   output=""
 
-  #~@ Validate file exists and is readable
+  #{ Validate file exists and is readable
   if [ ! -f "$file_path" ]; then
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: File '%s' does not exist\n" "$file_path" >&2
     return 1
   fi
 
-  #~@ Process file based on action
+  #{ Process file based on action
   case "$action" in
   --update)
-    #~@ Remove empty lines and comments, then sort and update the file
+    #{ Remove empty lines and comments, then sort and update the file
     sed -i '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$file_path"
     sort --human-numeric-sort --output "$file_path" "$file_path"
     ;;
   --read)
-    #~@ Return processed list without modifying the file
+    #{ Return processed list without modifying the file
     output=$(
       grep \
         --invert-match \
@@ -747,7 +747,7 @@ delete_line_from_file() {
   #DOC Example:
   #DOC   delete_line_from_file "pattern" "/path/to/file"
 
-  #~@ Validate arguments
+  #{ Validate arguments
   [ -z "$1" ] && {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: No pattern provided\n" >&2
@@ -766,7 +766,7 @@ delete_line_from_file() {
     return 1
   }
 
-  #~@ Setup backup directory
+  #{ Setup backup directory
   backup_dir="$(dirname "$2")/.archive"
   mkdir -p "$backup_dir" 2>/dev/null || {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
@@ -774,17 +774,17 @@ delete_line_from_file() {
     return 1
   }
 
-  #~@ Generate timestamped backup filename
+  #{ Generate timestamped backup filename
   backup_file="$backup_dir/$(basename "$2").$(date +%Y%m%d_%H%M%S).bak"
 
-  #~@ Create backup with timestamp
+  #{ Create backup with timestamp
   cp "$2" "$backup_file" 2>/dev/null || {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: Failed to create backup of '%s'\n" "$2" >&2
     return 1
   }
 
-  #~@ Clean up old backups (keep last 5)
+  #{ Clean up old backups (keep last 5)
   list_cmd=""
   if weHave fd; then
     list_cmd="fd -t f '$(basename "$2").*' '$backup_dir' -x stat -f '%m %n' {} \;"
@@ -798,7 +798,7 @@ delete_line_from_file() {
     tail -n +6 |
     xargs -r rm --
 
-  #~@ Delete the target line
+  #{ Delete the target line
   sed --in-place --expression "/$1/d" "$2" 2>/dev/null || {
     [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
       printf "ERROR: Failed to delete lines matching pattern '%s' from '%s'\n" "$1" "$2" >&2
@@ -833,7 +833,7 @@ pout_dots() {
   #DOC   0 - Success
   #DOC   1 - Failure (invalid arguments or options)
 
-  #~@ Establish defaults
+  #{ Establish defaults
   unset msg
   unset pad
   unset newline
@@ -853,10 +853,10 @@ pout_dots() {
   hide_output="${__hide_output:-}"
   show_timestamp="${__show_timestamp:-}"
 
-  #~@ Validate input
+  #{ Validate input
   [ $# -eq 0 ] && return 1
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ "$#" -gt 0 ]; do
     case $1 in
     -h) show_info --usage ;;
@@ -950,7 +950,7 @@ pout_dots() {
     shift
   done
 
-  #~@ Update message with key-value pair
+  #{ Update message with key-value pair
   [ "$key" ] && [ "$val" ] && {
     #| Unformatted key-value pair
     pair_log="${key}${sep}${val}"
@@ -959,10 +959,10 @@ pout_dots() {
     pair_fmt="${key}${sep}${val_fmt:-$val}"
   }
 
-  #~@ Validate message
+  #{ Validate message
   [ "${msg:-"${pair_log:-pair_fmt}"}" ] || return 1
 
-  #~@ Append the level to the message.
+  #{ Append the level to the message.
   case "$level" in
   0 | "error")
     level_log="[ERROR] "
@@ -988,24 +988,24 @@ pout_dots() {
   esac
   [ -n "$hide_level" ] && unset level
 
-  #~@ Get thetimestamp
+  #{ Get thetimestamp
   timestamp="$(printf "[%s] " "$(get_timestamp)")"
 
-  #~@ Write message to the log
+  #{ Write message to the log
   [ "$log" ] && {
 
-    #~@ Sanitize the message by removing all terminal formatting codes
+    #{ Sanitize the message by removing all terminal formatting codes
     msg_log="$(printf "%s" "${msg:-$pair_log}" |
       sed 's/\x1B\[[0-9;]*[mGK]//g' |
       sed 's/(B\[[0-9;]*[mGK]//g' |
       sed 's/(B//g')"
 
-    #~@ Create the log directory if it does not exist
+    #{ Create the log directory if it does not exist
     printf "%s%s%s\n" "$timestamp" "$level_log" "$msg_log" |
       tee -a "$log" >/dev/null
   }
 
-  #~@ Write message to the console
+  #{ Write message to the console
   [ "$VERBOSITY_LEVEL" -eq "$VERBOSITY_LEVEL_QUIET" ] && return 0
 
   # case "$VERBOSITY_LEVEL" in
@@ -1122,14 +1122,14 @@ core_functions() {
   set_prompt() {
 
     init_starship() {
-      #~@ Check if starship exists, return if not
+      #{ Check if starship exists, return if not
       command -v starship >/dev/null 2>&1 || return
 
-      #~@ Set config path with POSIX-compliant parameter expansion
+      #{ Set config path with POSIX-compliant parameter expansion
       : "${STARSHIP_CONFIG:=${DOTS_CFG}/starship/starship.toml}"
       export STARSHIP_CONFIG
 
-      #~@ Initialize starship (no POSIX mode toggling)
+      #{ Initialize starship (no POSIX mode toggling)
       case "$(stralt --lower "$SHELL_NAME")" in
       bash)
         eval "$(starship init bash)"
@@ -1142,7 +1142,7 @@ core_functions() {
 
   set_messaging() {
     set_verbosity_level() {
-      #~@ Set default values for quiet, verbosity, and log level
+      #{ Set default values for quiet, verbosity, and log level
       __quiet="${__quiet:-0}"
       __error="${__error:-1}"
       __warn="${__warn:-2}"
@@ -1150,16 +1150,16 @@ core_functions() {
       __debug="${__debug:-4}"
       __trace="${__trace:-5}"
 
-      #~@ Check for global verbosity settings from various environment variables
+      #{ Check for global verbosity settings from various environment variables
       __quiet=$(stralt --lower "${__quiet:-$QUIET}")
       __verbosity=$(stralt --lower "${__verbosity:-${VERBOSITY:-$VERBOSE}}")
 
-      #~@ Handle quiet flags first
+      #{ Handle quiet flags first
       case "$(stralt --lower "$VERBOSITY_LEVEL_QUIET")" in
       true | 1 | on) __verbosity="quiet" ;;
       esac
 
-      #~@ Map verbal levels to numerical values
+      #{ Map verbal levels to numerical values
       case "$__verbosity" in
       none | off | quiet | false | 0) __verbosity="$__quiet" ;;
       error | fatal | 1) __verbosity="$__error" ;;
@@ -1169,7 +1169,7 @@ core_functions() {
       trace | all | true | 5) __verbosity="$__trace" ;;
       '' | *[!0-9]*) __verbosity="$__info" ;; #? Set default to INFO
       *)
-        #~@ Ensure verbosity is set to a valid integer
+        #{ Ensure verbosity is set to a valid integer
         if [ "$__verbosity" -le "$__quiet" ]; then
           __verbosity="$__quiet" #? Set minimum to QUIET
         elif [ "$__verbosity" -ge "$__trace" ]; then
@@ -1178,19 +1178,19 @@ core_functions() {
         ;;
       esac
 
-      #~@ Set and export the final level
+      #{ Set and export the final level
       VERBOSITY="$__verbosity"
       export VERBOSITY
     }
 
     set_log_level() {
-      #~@ Remove the log file if requested
+      #{ Remove the log file if requested
       case "$(stralt --lower "$__mode")" in reset) rm -rf "$__log_path" ;; esac
 
-      #~@ Check for global log level settings
+      #{ Check for global log level settings
       __log_level=$(stralt --lower "${__log_level:-$LOG_LEVEL}")
 
-      #~@ Map log levels to numerical values
+      #{ Map log levels to numerical values
       case "$(stralt --lower "$__log_level")" in
       none | off | quiet | false) __log_level="$VERBOSITY_LEVEL_QUIET" ;;
       error | fatal | 0) __log_level="$VERBOSITY_LEVEL_ERROR" ;;
@@ -1200,7 +1200,7 @@ core_functions() {
       trace | all | true | 4) __log_level="$__trace" ;;
       '' | *[!0-9]*) __log_level="${__log_level:-"$VERBOSITY_LEVEL_INFO"}" ;;
       *)
-        #~@ Check if number is in valid range (0-4)
+        #{ Check if number is in valid range (0-4)
         if [ "$__log_level" -lt 0 ]; then
           __log_level="$VERBOSITY_LEVEL_QUIET" #? Set minimum to QUIET
         elif [ "$__log_level" -gt 4 ]; then
@@ -1219,22 +1219,22 @@ core_functions() {
   }
 
   set_interactive_shell() {
-    #~@ Get the active interactive shell prompt
+    #{ Get the active interactive shell prompt
     SHELL_INTERACTIVE="${SHELL_INTERACTIVE:-"${SHELL##*/}"}"
     defined_shell="$(stralt --lower "$__shell")"
 
-    #~@ Set the preferred interactive shell prompt
+    #{ Set the preferred interactive shell prompt
     [ -n "$defined_shell" ] &&
       [ "$defined_shell" != "$SHELL_INTERACTIVE" ] &&
       SHELL_INTERACTIVE="$defined_shell"
 
-    #~@ Ensure the variable is available globally
+    #{ Ensure the variable is available globally
     export SHELL_INTERACTIVE
   }
 
   manage_ignore_list() {
     create_ignore_file() {
-      #~@ Skip if the mode is set to simulation
+      #{ Skip if the mode is set to simulation
       case "$(stralt --lower "$__mode")" in simulation)
         printf \
           "DEBUG: Would create the ignore file at %s\n" \
@@ -1243,7 +1243,7 @@ core_functions() {
         ;;
       esac
 
-      #~@ Create the DOTS_IGNORE file, if necessary
+      #{ Create the DOTS_IGNORE file, if necessary
       validate_file "$DOTS_IGNORE" ||
         {
           if [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ]; then
@@ -1261,7 +1261,7 @@ core_functions() {
           fi
         }
 
-      #~@ Check if the ignore file was created
+      #{ Check if the ignore file was created
       validate_file "$DOTS_IGNORE" || {
         if [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ]; then
           printf "ERROR: Unable to create ignore file at %s\n" "$DOTS_IGNORE"
@@ -1273,10 +1273,10 @@ core_functions() {
     }
 
     remove_ignore_file() {
-      #~@ Skip if the ignore file if it doesn't exist
+      #{ Skip if the ignore file if it doesn't exist
       validate_file "$DOTS_IGNORE" || return 0
 
-      #~@ Skip if the mode is not set to reset
+      #{ Skip if the mode is not set to reset
       case "$(stralt --lower "$__mode")" in
       simulation)
         printf "DEBUG: Would delete the ignore file."
@@ -1314,17 +1314,17 @@ core_functions() {
     }
 
     update_patterns() {
-      #~@ Check if ignore file is writable first
+      #{ Check if ignore file is writable first
       validate_file --writable "$DOTS_IGNORE" || {
         [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
           printf "ERROR: %s is not writable\n" "$DOTS_IGNORE" >&2
         return 1
       }
 
-      #~@ Handle ignore file actions based on the ignore_action setting
+      #{ Handle ignore file actions based on the ignore_action setting
       case "$(stralt --lower "$__filter")" in
       exclude)
-        #~@ Add pattern to ignore file if it doesn't already exist
+        #{ Add pattern to ignore file if it doesn't already exist
         if ! grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
           printf "\n%s" "$1" >>"$DOTS_IGNORE" || {
             [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
@@ -1337,7 +1337,7 @@ core_functions() {
         fi
         ;;
       include)
-        #~@ Remove pattern from ignore file if it exists
+        #{ Remove pattern from ignore file if it exists
         if grep --line-regexp --quiet "$1" "$DOTS_IGNORE"; then
           sed --in-place "/$1/d" "$DOTS_IGNORE" || {
             [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
@@ -1359,35 +1359,35 @@ core_functions() {
 
   update_user_profile() {
     #TODO: This function is not yet complete
-    #~@ Create the profile file if it doesn't exist
+    #{ Create the profile file if it doesn't exist
     [ -f "$rc_profile" ] || touch "$rc_profile"
 
-    #~@ Define the lines with and without quotes
+    #{ Define the lines with and without quotes
     dots_unquoted="DOTS=$DOTS"
     dots_quoted="DOTS=\"$DOTS\""
     dots_init='[ -f "$DOTS/.dotsrc" ] && . "$DOTS/.dotsrc"'
 
-    #~@ Check if the DOTS line exists and if it's different or if dots_init is missing
+    #{ Check if the DOTS line exists and if it's different or if dots_init is missing
     if grep --quiet --regexp "^DOTS=" "$profile"; then
       {
-        #~@ Check if the DOTS line matches the current DOTS variable or is quoted
+        #{ Check if the DOTS line matches the current DOTS variable or is quoted
         grep --quiet --regexp "^DOTS=$DOTS" --regexp "^DOTS=\"$DOTS\"" "$profile" ||
-          #~@ Check if dots_init is missing
+          #{ Check if dots_init is missing
           grep --quiet --fixed-strings "$dots_init" "$profile"
       } ||
         {
-          #~@ If either condition is false, remove both lines
+          #{ If either condition is false, remove both lines
           delete_line_from_file "^DOTS="
           delete_line_from_file "$(printf "%s" "$dots_init" | sed 's/[\/&]/\\&/g')"
         }
     fi
 
-    #~@ Append the new lines to the profile file only if they are missing
+    #{ Append the new lines to the profile file only if they are missing
     if
       ! grep --quiet --regexp "^DOTS=" "$profile" ||
         ! grep --quiet --fixed-strings "$dots_init" "$profile"
     then
-      #~@ If either line is missing, append both lines
+      #{ If either line is missing, append both lines
       temp_file=$(mktemp)
       grep --invert-match "^DOTS=" "$profile" |
         grep --invert-match "$dots_init" >"$temp_file"
@@ -1396,7 +1396,7 @@ core_functions() {
       [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_ERROR" ] &&
         printf "WARN: Path to DOTS in updated in %s.\n" "$profile"
     else
-      #~@ If both lines are present and the DOTS line is the same, no need to update
+      #{ If both lines are present and the DOTS line is the same, no need to update
       [ "$VERBOSITY_LEVEL" -ge "$VERBOSITY_LEVEL_DEBUG" ] && printf "DEBUG: DOTS in profile is already up to date.\n"
     fi
   }
@@ -1404,7 +1404,7 @@ core_functions() {
   get_sources() {
 
     get_excluded_sources() {
-      #~@ Remove blank lines and sort the ignore file
+      #{ Remove blank lines and sort the ignore file
       sed -i '/^[[:space:]]*$/d' "$DOTS_IGNORE"
       sort --human-numeric-sort --output "$DOTS_IGNORE" "$DOTS_IGNORE"
 
@@ -1474,10 +1474,10 @@ core_functions() {
   }
 
   process_sources() {
-    #~@ Enable global variable export
+    #{ Enable global variable export
     set -o allexport #TODO: This is risky. So through each script and set the exports manually
 
-    #~@ Process sources recursively
+    #{ Process sources recursively
     for src_path in $(get_sources "$1"); do
       [ -d "$src_path" ] && [ "$src_type" = "XDG" ] &&
         case ":${XDG_DATA_DIRS}:" in
@@ -1488,7 +1488,7 @@ core_functions() {
           ;;
         esac
 
-      #~@ Update PATH directories
+      #{ Update PATH directories
       [ -d "$src_path" ] && [ "$src_type" = "BIN" ] &&
         case ":${PATH}:" in
         *:"$src_path":*) ;;
@@ -1498,7 +1498,7 @@ core_functions() {
           ;;
         esac
 
-      #~@ Activate Scripts and Variables
+      #{ Activate Scripts and Variables
       [ -f "$src_path" ] &&
         #| Make scripts executable
         if [ "$src_type" = "BIN" ]; then
@@ -1513,7 +1513,7 @@ core_functions() {
             ;;
           esac
 
-        #~@ Load environmental variables from files
+        #{ Load environmental variables from files
         elif [ "$src_type" = "ENV" ]; then
           # shellcheck disable=SC1090
           # EOLor --lf "$src_path"
@@ -1523,12 +1523,12 @@ core_functions() {
 
     done
 
-    #~@ Disable global export
+    #{ Disable global export
     set +o allexport
   }
 
   initialize_logger() {
-    #~@ Parse process arguments
+    #{ Parse process arguments
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --mode)
@@ -1552,10 +1552,10 @@ core_functions() {
       shift
     done
 
-    #~@ Create the log directory, if it doesn't exist
+    #{ Create the log directory, if it doesn't exist
     mkdir -p "$(dirname "$__log_path")"
 
-    #~@ Handle reset mode with backup
+    #{ Handle reset mode with backup
     case "$(stralt --lower "$__log_mode")" in reset)
       __log_path_name="${__log_path%.*}"
       __log_path_ext="${__log_path##*.}"
@@ -1582,7 +1582,7 @@ core_functions() {
       ;;
     esac
 
-    #~@ Insert the title if file doesn't exist or title is missing
+    #{ Insert the title if file doesn't exist or title is missing
     __log_title="${__log_title:-"$(printf "***-->>> THE %s LOG <<<--***" "$__log_name")"}"
     if [ -f "$__log_path" ]; then
       grep -q "^$__log_title$" "$__log_path" ||
@@ -1592,12 +1592,12 @@ core_functions() {
       printf "%s\n\n" "$__log_title" >"$__log_path"
     fi
 
-    #~@ Cleanup
+    #{ Cleanup
     unset __log_mode __log_path __log_title
   }
 
   initialize_source() {
-    #~@ Parse core arguments
+    #{ Parse core arguments
     case "$1" in
     -h | --help)
       exit_code=0
@@ -1626,7 +1626,7 @@ core_functions() {
     *) ;;
     esac
 
-    #~@ Parse process arguments
+    #{ Parse process arguments
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --bin)
@@ -1676,7 +1676,7 @@ core_functions() {
   }
 
   initialize_profile() {
-    #~@ Parse arguments
+    #{ Parse arguments
     while [ "$#" -gt 0 ]; do
       case "$1" in
       --file | --profile) profile="$2" ;;
@@ -1720,10 +1720,10 @@ core_functions() {
     }
 
     update_profile() {
-      #~@ Create the profile if it doesn't exist
+      #{ Create the profile if it doesn't exist
       [ -f "$profile" ] || touch "$profile"
 
-      #~@ Check if the key/value declaration exists
+      #{ Check if the key/value declaration exists
 
       # grep --quiet \
       #   --regexp "^$key=$val" \
@@ -1742,44 +1742,44 @@ core_functions() {
       # { &&
       #     grep --quiet --fixed-strings "$initrc" "$profile"
       # } || {
-      #   #~@ If either condition is false, remove both lines
+      #   #{ If either condition is false, remove both lines
       #   delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
       #   printf "\n%s=\"%s\"\n%s\n" "$key" "$val" "$initrc" >>"$profile"
       # }
 
-      #~@ Check if the initrc declaration exists
+      #{ Check if the initrc declaration exists
       # printf "\n%s=\"%s\"" "$key" "$val" >>"$profile"
       # printf "\n%s\n" "$initrc" >>"$profile"
 
-      #~@ Check if the key declaration exists and if it's different
+      #{ Check if the key declaration exists and if it's different
       # {
       #   grep --quiet \
       #     --regexp "^$key=$val" \
       #     --regexp "^$key=\"$val\"" "$profile" ||
 
-      #     #~@  Check if the rc initialization declaration exists
+      #     #{  Check if the rc initialization declaration exists
       #     grep --quiet --fixed-strings "$initrc" "$profile"
       # } || {
-      #   #~@ If either condition is false, remove both lines
+      #   #{ If either condition is false, remove both lines
       #   delete_line_from_file "^$key=" "$profile"
       #   delete_line_from_file "^[ -f \"$key/$rc\" ]*" "$profile"
       #   # delete_line_from_file "$(printf "%s" "$initrc" | sed 's/[\/&]/\\&/g')" "$profile"
       # }
       # delete_line_from_file "^[ -f \"$key/$rc\" ]" "$profile"
 
-      # #~@ Append the new lines to the file only if they are missing
+      # #{ Append the new lines to the file only if they are missing
       # if
       #   ! grep --quiet --regexp "^$key=" "$profile" ||
       #     ! grep --quiet --fixed-strings "$initrc" "$profile"
       # then
-      #   #~@ If either line is missing, append both lines
+      #   #{ If either line is missing, append both lines
       #   # append_lines_to_file "$profile" "$initrc"
       # printf "\n%s=\"%s\"\n%s\n" \
       #   "$key" "$val" \
       #   "[ -f \"\$$key/$rc\" ] && . \"\$$key/$rc\"" \
       #   >>"$profile"
       # else
-      #   #~@ If both lines are present and the DOTS line is the same, no need to update
+      #   #{ If both lines are present and the DOTS line is the same, no need to update
       #   [ "$verbose_flag" ] &&
       #     printf "%s in %s is already up to date.\n" "$key" "$profile"
       # fi
@@ -1791,7 +1791,7 @@ core_functions() {
 }
 
 set_shell() {
-  #~@ Define supported shells
+  #{ Define supported shells
   __shell="$(stralt --lower "${__shell:-"$(
     printf "%s" "$SHELL" | awk -F/ '{print $NF}'
   )"}")"
@@ -1947,7 +1947,7 @@ set_app_defaults() {
     VIEWER="imgcat"
     VIEWER_VERSION="$("$VIEWER" --version | head -n1 | awk '{print $NF}')"
   else
-    #~@ Fallback to echo (will just print the filename)
+    #{ Fallback to echo (will just print the filename)
     VIEWER="${OS_HANDLER:-echo}"
     VIEWER_VERSION="${OS_HANDLER_VERSION:-N/A}"
   fi
@@ -1980,7 +1980,7 @@ set_app_defaults() {
         head -n1 | awk '{print $2}'
     )"
   else
-    #~@ Fallback to TTY viewer if no GUI viewer found
+    #{ Fallback to TTY viewer if no GUI viewer found
     VIEWER_GUI="${OS_HANDLER:-"$VIEWER"}"
     VIEWER_GUI_VERSION="${OS_HANDLER_VERSION:-"$VIEWER_VERSION"}"
   fi
@@ -2051,11 +2051,11 @@ set_app_defaults() {
 }
 
 initialize_shell() {
-  #~@ Log the start of the shell initialization
+  #{ Log the start of the shell initialization
   __shell_inittime=$(fetch.time --secs)
   pout --trace "SHELL initialization started"
 
-  #~@ Load resources and functions
+  #{ Load resources and functions
   set_app_defaults
 
   set_shell
@@ -2064,10 +2064,10 @@ initialize_shell() {
   pout --trace --key "SHELL_PATH" --val "$SHELL_PATH"
   pout --trace --key "SHELL_INIT" --val "$SHELL_INIT"
 
-  #~@ Initialize the shell
+  #{ Initialize the shell
   eval "$SHELL_INIT" || true
 
-  #~@ Log the end and duration of the shell initialization
+  #{ Log the end and duration of the shell initialization
   __shell_stoptime=$(fetch.time --secs)
   __shell_duration=$(fetch.time --duration --start "$__shell_inittime" --stop "$__shell_stoptime")
   pout --trace --key "SHELL Initialization Stopped" --val "$(fetch.time "$__shell_stoptime") ($__shell_duration)"

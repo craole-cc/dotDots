@@ -33,23 +33,23 @@ __info__() {
 USAGE_GUIDE
   )"
 
-  #~@ Usage display
+  #{ Usage display
   __help__() { printf "%s\n" "$_cmd_USAGEGUIDE"; }
 
-  #~@ Version display
+  #{ Version display
   __version__() { printf "%s\n" "$_cmd_VERSION"; }
 
-  #~@ App
+  #{ App
   __init__() {
 
-    #~@ Ensure dependencies are met
+    #{ Ensure dependencies are met
     weHave "$_cmd_APP" || __error__ --app
 
-    #~@ Confirm active desktop environment
+    #{ Confirm active desktop environment
     { [ "${WAYLAND_DISPLAY}" ] || [ "${DISPLAY}" ]; } ||
       __error__ --protocol
 
-    #~@ Load context variables
+    #{ Load context variables
     context="$DOTS_ENV_CTX/rofi"
 
     for file in $context; do
@@ -94,7 +94,7 @@ __opts__() {
 # ===================================================================
 
 __validate__() {
-  #~@ Set default parameters
+  #{ Set default parameters
   [ "$theme" ] || {
     [ "$menu" ] || menu=launcher
     [ "$type" ] || type=1
@@ -103,7 +103,7 @@ __validate__() {
     theme="${ROFI_HOME}/${menu}/type-${type}/style-${style}.${ext}"
   }
 
-  #~@ Validation
+  #{ Validation
   is_number "$type" || __error__ --type
   is_number "$style" || __error__ --style
   [ "${theme##*.}" = "$ext" ] || __error__ --ext
@@ -169,19 +169,19 @@ __cleanup__() {
 
 __main__() {
 
-  #~@ Load app info
+  #{ Load app info
   __info__
 
-  #~@ Load internal variables
+  #{ Load internal variables
   __init__
   __opts__ "$@"
   __validate__
 
-  #~@ Run
+  #{ Run
   # __test__
   __process__
 
-  #~@ Exit
+  #{ Exit
   __cleanup__
 }
 

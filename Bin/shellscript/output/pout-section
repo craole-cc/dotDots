@@ -23,7 +23,7 @@ set_defaults() {
 }
 
 parse_arguments() {
-  #~@ Script Options
+  #{ Script Options
   for arg in "$@"; do
     case "${arg}" in
     -h) print_usage 0 ;;
@@ -34,10 +34,10 @@ parse_arguments() {
     esac
   done
 
-  #~@ Ensure a valid number of args is providied
+  #{ Ensure a valid number of args is providied
   [ "$#" -ge "${expected_args}" ] || print_usage --args "$#"
 
-  #~@ Process Options
+  #{ Process Options
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --head*)
@@ -87,7 +87,7 @@ init_utilities() {
       pattern="$2"
       i=0
       while [ "${i}" -lt "${repetitions}" ]; do
-        #~@ Use %b to interpret escape sequences
+        #{ Use %b to interpret escape sequences
         printf "%b" "${pattern}"
         i=$((i + 1))
       done

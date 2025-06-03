@@ -1,4 +1,4 @@
 #!/bin/sh
 
-#~@ Detailed tree
+#{ Detailed tree
 lx --all --long --tree "$@"

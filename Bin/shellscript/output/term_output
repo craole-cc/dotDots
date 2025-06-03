@@ -2,10 +2,10 @@
 # shellcheck disable=SC2034
 
 __tput__() {
-  #~@ Ensure `tput` is available
+  #{ Ensure `tput` is available
   type tput >/dev/null 2>&1 || return
 
-  #~@ Declare colors for supported terminals
+  #{ Declare colors for supported terminals
   case "$TERM" in *-m) return ;; esac
 
   #| Text Effects

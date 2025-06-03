@@ -10,7 +10,7 @@ wehave() {
 }
 
 install_topgrade() {
-  #~@ Ship if topgrade is already installed
+  #{ Ship if topgrade is already installed
   [ -x "${CMD_TOPGRADE}" ] || wehave topgrade || return
 
   #| System package managers first

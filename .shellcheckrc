@@ -1,13 +1,13 @@
 # shellcheck disable=all
 
-#~@ Define core settings
+#{ Define core settings
 external-sources=true #? Follow arbitrary file paths in source statements
 severity=style        #? Report even style recommendations
 
-#~@ Enable all checks by default
+#{ Enable all checks by default
 enable=all
 
-#~@ Disable specific warnings (ie: disable=SC#### #? Description of the warning)
+#{ Disable specific warnings (ie: disable=SC#### #? Description of the warning)
 # disable=SC1003        #? Bad single quote escaping
 # disable=SC1016        # ShellCheck directive should be on its own line.
 # disable=SC1090-SC1091 #? Don't follow source statements
@@ -20,6 +20,6 @@ enable=all
 # disable=SC2312        #? Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
 # disable=SC2317        #? Command appears to be unreachable. Check usage (or ignore if invoked indirectly)
 
-#~@ Define source paths
+#{ Define source paths
 source-path=SCRIPTDIR                 # Look for sourced files relative to script directory
 source-path=SCRIPTDIR/Bin/shellscript # Also look in a bin dirs

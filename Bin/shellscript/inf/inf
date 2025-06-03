@@ -20,7 +20,7 @@ parse_arguments() {
     *) process_info "$1" ;;
     esac
 
-    #~@ Continue to the next argument
+    #{ Continue to the next argument
     shift
   done
 }
@@ -32,13 +32,13 @@ prepare_environment() {
   } && set_defaults
 
   weHave() {
-    #~@ Check if a command exists
+    #{ Check if a command exists
     # type "$1" >/dev/null 2>&1
     command -v "$1" >/dev/null 2>&1
   }
 
   get_os_type() {
-    #~@ Fetch the system type from the first available tool
+    #{ Fetch the system type from the first available tool
     if [ "$info" ]; then
       :
     elif weHave uname; then
@@ -69,7 +69,7 @@ prepare_environment() {
     *) return 1 ;;
     esac
 
-    #~@ Update type for WSL Systems
+    #{ Update type for WSL Systems
     [ -n "$WSL_DISTRO_NAME" ] &&
       info="Windows Subsystem for Linux [WSL]"
   }
@@ -84,25 +84,25 @@ prepare_environment() {
     elif [ -f "/etc/os-release" ]; then
       info="$(awk -F '"' '/PRETTY_NAME/ {print $2}' /etc/os-release)"
     elif [ -f "/etc/issue" ]; then
-      #~@ Extract the line containing "Welcome"
+      #{ Extract the line containing "Welcome"
       welcome_line="$(awk '/Welcome/{print; exit}' /etc/issue)"
 
-      #~@ Use parameter expansion to extract all columns after "Welcome to"
+      #{ Use parameter expansion to extract all columns after "Welcome to"
       after_welcome="${welcome_line#*Welcome to }"
 
-      #~@ Extract the first 2 columns
+      #{ Extract the first 2 columns
       info="$(printf "%s\n" "$after_welcome" | awk '{print $1 " " $2}')"
     elif weHave hostnamectl; then
       info="$(hostnamectl | awk -F ': ' '/Operating System/ {print $2}')"
     elif weHave uname; then
-      #~@ Extract the version number
+      #{ Extract the version number
       info="$(uname --kernel-name)" # eg. MINGW64_NT-10.0-22621
       info="${info#*-}"             # eg. 'MINGW64_NT-10.0-22621' ->'10.0-22621'
       info="${info%%-*}"            # eg. '10.0-22621' -> '10.0'
     elif weHave python; then
       info="$(python -mplatform)" # Windows-10-10.0.22621-SP0
 
-      #~@ Extract everything after the OS type
+      #{ Extract everything after the OS type
       case "$info" in
       Windows*)
         # eg. 'Windows-10-10.0.22621-SP0' ->'10.0.22621-SP0'
@@ -113,13 +113,13 @@ prepare_environment() {
         ;;
       esac
 
-      #~@ Extract the distro name
+      #{ Extract the distro name
       info="${info%%-*}" # eg. '10.0-22621' -> '10.0'
     else
       return 1
     fi
 
-    #~@ Extract integer if decimal is empty
+    #{ Extract integer if decimal is empty
     info="${info%%.0}" # eg. '10.0' -> '10'
   }
 
@@ -235,7 +235,7 @@ prepare_environment() {
     if [ "$info" ]; then
       :
     elif weHave powershell; then
-      #~@ Create a helper script to store the hardware info
+      #{ Create a helper script to store the hardware info
       hardware_info_script="/tmp/hardware_info_script.ps1"
       [ -f "$hardware_info_script" ] || {
         line1='$hwInfo = Get-WmiObject -Class Win32_ComputerSystem'
@@ -250,7 +250,7 @@ prepare_environment() {
 
   get_package_manager() {
 
-    #~@ Select the first package found manager from the list
+    #{ Select the first package found manager from the list
     known_package_managers="
       nix
       apt
@@ -275,10 +275,10 @@ prepare_environment() {
       fi
     done
 
-    #~@ Throw an error if the package manager is not found
+    #{ Throw an error if the package manager is not found
     [ "$package_manager" ] || return 1
 
-    #~@ Return the package manager
+    #{ Return the package manager
     printf "%s\n" "$package_manager"
   }
 
@@ -451,10 +451,10 @@ process_info() {
   esac
 
   if [ "$info" ]; then
-    #~@ Sent the information to the printer
+    #{ Sent the information to the printer
     process_output "$info"
   else
-    #~@ Failure to fill the variable should result in an error code
+    #{ Failure to fill the variable should result in an error code
     exit_code=1
     return "$exit_code"
   fi

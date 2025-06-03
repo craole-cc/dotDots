@@ -21,7 +21,7 @@ usage() {
 }
 
 set_defaults() {
-  #~@ Set defaults
+  #{ Set defaults
   URL=""
   FMT="1080p"
   DIR=/home/craole/.dots/Flakes/media/downloads
@@ -30,7 +30,7 @@ set_defaults() {
   CMD=/nix/store/8bk9vw8bk10x3g0r60mp1yxinfbwx4gd-yt-dlp-2025.1.26/bin/yt-dlp
 }
 
-#~@ Parse arguments
+#{ Parse arguments
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -66,16 +66,16 @@ parse_arguments() {
     shift
   done
 
-  #~@ Skip if no arguments are provided
+  #{ Skip if no arguments are provided
   [ -n "$URL" ] || usage >&2
 }
 
 execute_command() {
-  #~@ Create config if it doesn't exist or is out of date
+  #{ Create config if it doesn't exist or is out of date
   mkdir -p {"$DIR","$(dirname "$CFG")"}
   cmp "$MOD" "$CFG" || cp -f "$MOD" "$CFG"
 
-  #~@ Execute the command
+  #{ Execute the command
   case $FMT in
   "best")
     "$CMD" "$URL"

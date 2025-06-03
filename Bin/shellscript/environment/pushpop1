@@ -22,30 +22,30 @@ __opts__() {
 }
 
 __help__() {
-  #~@ Enable information display for usage
+  #{ Enable information display for usage
   verbose=true
 
-  #~@ Display usage info
+  #{ Display usage info
   __msg__ --usage
 
-  #~@ Exit gracefully
+  #{ Exit gracefully
   __exit__
 
 }
 
 __defaults__() {
-  #~@ Set the default directories
+  #{ Set the default directories
   [ "$origDIR" ] || origDIR="$PWD"
   [ "$workDIR" ] || workDIR="$DOTS"
 
-  #~@ Store the absolute paths
+  #{ Store the absolute paths
   origDIR="$(pathof "$origDIR")"
   workDIR="$(pathof "$workDIR")"
 
-  #~@ Declare the default message
+  #{ Declare the default message
   message="${message:-"General Update"}"
 
-  #~@ Declare the default command
+  #{ Declare the default command
   [ "$command" ] || command="ls $workDIR"
 }
 
@@ -55,17 +55,17 @@ __validate__() {
 }
 
 __err__() {
-  #~@ Enable information display for errors
+  #{ Enable information display for errors
   verbose=true
 
-  #~@ Handle errors and exit with an error flag
+  #{ Handle errors and exit with an error flag
   case "$1" in
   --dir) __msg__ --err-dir "$2" ;;
   --cd) __msg__ --err-cd "$2" ;;
   *) ;;
   esac
 
-  #~@ Exit with an error
+  #{ Exit with an error
   __exit__ --error
 }
 
@@ -91,17 +91,17 @@ __cd__() {
 __process__() {
   case "$origDIR" in
   "$workDIR"/*)
-    #~@ Execute the command
+    #{ Execute the command
     eval "$command"
     ;;
   *)
-    #~@ Enter the target/work directory
+    #{ Enter the target/work directory
     __cd__ "$workDIR"
 
-    #~@ Execute the command
+    #{ Execute the command
     eval "$command"
 
-    #~@ Return to initial directory
+    #{ Return to initial directory
     __cd__ "$origDIR"
     ;;
   esac

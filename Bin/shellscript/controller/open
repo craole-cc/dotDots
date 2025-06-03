@@ -60,13 +60,13 @@ parse_args() {
 
 get_default_file_manager() {
   #DOC Attempt to get the system's default file manager via xdg-mime
-  #~@ Only attempt if xdg-mime is available
+  #{ Only attempt if xdg-mime is available
   if command -v xdg-mime >/dev/null 2>&1; then
     desktop_file=$(
       xdg-mime query default inode/directory 2>/dev/null
     )
     if [ -n "${desktop_file}" ]; then
-      #~@ Try to extract the Exec line from the .desktop file
+      #{ Try to extract the Exec line from the .desktop file
       desktop_path=
       for dir in \
         "${HOME}/.local/share/applications" \
@@ -81,7 +81,7 @@ get_default_file_manager() {
           grep -i '^Exec=' "${desktop_path}" |
             head -1 | cut -d= -f2- | cut -d' ' -f1
         )
-        #~@ Remove any trailing % or arguments, just get the command
+        #{ Remove any trailing % or arguments, just get the command
         exec_cmd=$(
           printf '%s\n' "${exec_line}" |
             cut -d'%' -f1 | awk '{print $1}'
@@ -100,7 +100,7 @@ get_default_file_manager() {
 }
 
 detect_opener() {
-  #~@ List of openers to try, in order of preference
+  #{ List of openers to try, in order of preference
   openers="
       xdg-open
       gio
@@ -113,10 +113,10 @@ detect_opener() {
     "
   opener_cmd=
   for opener in ${openers}; do
-    #~@ Skip empty or whitespace-only lines
+    #{ Skip empty or whitespace-only lines
     [ -z "${opener##*[!\ ]*}" ] || continue
 
-    #~@ Try to retrieve the command path
+    #{ Try to retrieve the command path
     command -v "${opener}" >/dev/null 2>&1 &&
       opener_cmd="${opener}" && break
   done
@@ -134,19 +134,19 @@ detect_file_manager() {
   #DOC 3. Known file managers list
   #DOC 4. Fallback to opener
 
-  #~@ Initialize variables
+  #{ Initialize variables
   file_manager_cmd=
 
-  #~@ Check user override first
+  #{ Check user override first
   if [ -n "${FILE_MANAGER}" ] && command -v "${FILE_MANAGER}" >/dev/null 2>&1; then
     file_manager_cmd="${FILE_MANAGER}"
     return 0
   fi
 
-  #~@ Try system default
+  #{ Try system default
   get_default_file_manager && return 0
 
-  #~@ Try known file managers
+  #{ Try known file managers
   file_managers="
     nautilus    # GNOME
     dolphin     # KDE
@@ -171,13 +171,13 @@ detect_file_manager() {
     esac
   done
 
-  #~@ Fallback to opener
+  #{ Fallback to opener
   detect_opener
   file_manager_cmd="${opener_cmd}"
 }
 
 convert_windows_path() {
-  #~@ Convert path to Windows format if cygpath is available
+  #{ Convert path to Windows format if cygpath is available
   if command -v cygpath >/dev/null 2>&1; then
     path=$(cygpath -w "${path}")
   fi
@@ -220,7 +220,7 @@ main "$@"
 #endregion
 #region Cleanup
 cleanup() {
-  #~@ Unset all variables to prevent leakage
+  #{ Unset all variables to prevent leakage
   unset opener_cmd file_manager_cmd
 }
 

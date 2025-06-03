@@ -1,9 +1,9 @@
 #!/bin/sh
 
-#~@ Check if starship exists, return if not
+#{ Check if starship exists, return if not
 command -v starship >/dev/null 2>&1 || return
 
-#~@ Set config path with POSIX-compliant parameter expansion
+#{ Set config path with POSIX-compliant parameter expansion
 if [ -n "$1" ]; then
   STARSHIP_CONFIG="$1"
 elif [ -n "$STARSHIP_CONFIG" ]; then
@@ -13,5 +13,5 @@ else
 fi
 export STARSHIP_CONFIG
 
-#~@ Initialize starship (no POSIX mode toggling)
+#{ Initialize starship (no POSIX mode toggling)
 eval "$(starship init bash)" || true

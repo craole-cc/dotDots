@@ -23,10 +23,10 @@ case "$1" in
   ;;
 *)
   if [ -z "$1" ]; then
-    #~@ Use the detected flake path
+    #{ Use the detected flake path
     nix repl "${flake_path_dir}"
   else
-    #~@ Validate and process provided path
+    #{ Validate and process provided path
     flake_path="$("${CMD_READLINK}" -f "$1")"
     flake_path_dir="$(printf "%s" "${flake_path}" | "${CMD_SED}" 's|/flake.nix||')"
 

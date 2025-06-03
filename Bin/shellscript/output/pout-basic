@@ -24,7 +24,7 @@
 #DOC   0 - Success
 #DOC   1 - Failure (invalid arguments or options)
 
-#~@ Establish defaults
+#{ Establish defaults
 unset msg
 unset pad
 unset newline
@@ -44,7 +44,7 @@ unset hide_timestamp
 # hide_output="${__hide_output:-}"
 # show_timestamp="${__show_timestamp:-}"
 
-#~@ Parse arguments
+#{ Parse arguments
 while [ "$#" -gt 0 ]; do
   case $1 in
   -h) show_info --usage ;;
@@ -155,7 +155,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 set_pair() {
-  #~@ Update message with key-value pair
+  #{ Update message with key-value pair
   [ "$key" ] && [ "$val" ] && {
     #| Unformatted key-value pair
     pair_log="${key}${sep}${val}"
@@ -166,7 +166,7 @@ set_pair() {
 }
 
 set_level() {
-  #~@ Append the level to the message.
+  #{ Append the level to the message.
   case "$level" in
   0 | "error")
     level_log="[ERROR] "
@@ -193,24 +193,24 @@ set_level() {
   [ -n "$hide_level" ] && unset level
 }
 
-#~@ Get thetimestamp
+#{ Get thetimestamp
 # timestamp="$(printf "[%s] " "$(fetch.time)")"
 
-# #~@ Write message to the log
+# #{ Write message to the log
 # [ "$log" ] && {
 
-# 	#~@ Sanitize the message by removing all terminal formatting codes
+# 	#{ Sanitize the message by removing all terminal formatting codes
 # 	msg_log="$(printf "%s" "${msg:-$pair_log}" |
 # 		sed 's/\x1B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B\[[0-9;]*[mGK]//g' |
 # 		sed 's/(B//g')"
 
-# 	#~@ Create the log directory if it does not exist
+# 	#{ Create the log directory if it does not exist
 # 	# printf "%s%s%s\n" "$timestamp" "$level_log" "$msg_log" |
 # 	# 	tee -a "$log" >/dev/null
 # }
 
-#~@ Write message to the console
+#{ Write message to the console
 # [ "${VERBOSITY_LEVEL:-0}" -eq "${VERBOSITY_LEVEL_QUIET:-0}" ] && exit 0
 
 # case "$VERBOSITY_LEVEL" in

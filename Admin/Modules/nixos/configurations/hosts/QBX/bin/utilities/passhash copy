@@ -16,7 +16,7 @@ usage="
 "
 
 main() {
-  #~@ Parse command-line options
+  #{ Parse command-line options
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -h)
@@ -33,7 +33,7 @@ main() {
     shift
   done
 
-  #~@ Get the name of the user for which the password is being set
+  #{ Get the name of the user for which the password is being set
   [ -n "${username:-"$(get_user)"}" ] || {
     print_error "Unable to determine username"
     return 1
@@ -42,7 +42,7 @@ main() {
   # [ "$username" ] || return 1
   # username="${username:-$(get_user)}"
 
-  #~@ Get the password
+  #{ Get the password
   # password="$(get_pass "$username")" || {
   #   get_pass "$username"
   #   print_error "Failed to get password"
@@ -54,7 +54,7 @@ main() {
     return 1
   fi
 
-  #~@ Generate the hashed version of the password
+  #{ Generate the hashed version of the password
   hashed_password="$(get_hash "$password")" || {
     print_error "Failed to generate hash"
     return 1
@@ -66,7 +66,7 @@ main() {
   #   return 1
   # fi
 
-  #~@ Print the result
+  #{ Print the result
   printf 'Hashed Password for %s: %s -> %s' "$username" "$password" "$hashed_password"
 
   cleanup

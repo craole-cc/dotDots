@@ -111,10 +111,10 @@ parse_arguments() {
       ;;
     -l | --*limit*)
       if [ -n "${2:-}" ]; then
-        #~@ Initialize variables
+        #{ Initialize variables
         valid_type=false
 
-        #~@ Check if the argument is in the predifined list
+        #{ Check if the argument is in the predifined list
         for lt in ${result_limit_types}; do
           if [ "$2" = "${lt}" ]; then
             valid_type=true
@@ -122,7 +122,7 @@ parse_arguments() {
           fi
         done
 
-        #~@ Check if the argument is 0 or a positive integer
+        #{ Check if the argument is 0 or a positive integer
         if [ "${valid_type}" = false ]; then
           case "$2" in
           *[!0-9]* | '')
@@ -240,7 +240,7 @@ parse_arguments() {
 }
 
 execute_process() {
-  #~@ Exit if the target path is the current working directory
+  #{ Exit if the target path is the current working directory
   # [ "${cwd}" = "${pattern}" ] && {
   #   printf "%s" "${cwd}"
   #   exit 0
@@ -257,7 +257,7 @@ execute_process() {
 
   printf "%s" "${result}"
 
-  #~@ Check if the target path is a known binary
+  #{ Check if the target path is a known binary
   # if [ -e "$path" ]; then
   #   printf "%s" "$path"
   # elif [ "$path" ]; then
@@ -294,7 +294,7 @@ prep_lookup() {
   #DOC    prep_lookup ./usr/share/icons/foo.png
   #DOC    /usr/share/icons/foo.png${reset}
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ "$#" -ge 1 ]; do
     case $1 in
     -c | --cwd) cwd="$2" ;;
@@ -303,23 +303,23 @@ prep_lookup() {
     shift
   done
 
-  #~@ Resolve the pattern to an absolute path if it is relative
-  #~@ Otherwise, return the original pattern
+  #{ Resolve the pattern to an absolute path if it is relative
+  #{ Otherwise, return the original pattern
   case "${pattern}" in
   .)
-    #~@ Return the current working directory
+    #{ Return the current working directory
     printf "%s" "${cwd}"
     exit 0
     ;;
   ./*)
-    #~@ Remove the leading './' from the pattern if present
+    #{ Remove the leading './' from the pattern if present
     pattern="${pattern#./}"
 
-    #~@ Return the prep_lookupd path
+    #{ Return the prep_lookupd path
     printf "%s" "${cwd}/${pattern}"
     ;;
   *)
-    #~@ Return the original pattern
+    #{ Return the original pattern
     printf "%s" "${pattern}"
     ;;
   esac
@@ -343,35 +343,35 @@ sort_results() {
 
         function get_sort_priority(str) {
           first = substr(str, 1, 1)
-          #~@ Return "1" for punctuation (highest priority)
+          #{ Return "1" for punctuation (highest priority)
           if (first ~ /^[[:punct:]]/) return "1"
 
-          #~@ Return "2" for numbers (second priority)
+          #{ Return "2" for numbers (second priority)
           if (first ~ /^[0-9]/) return "2"
 
-          #~@ Return "3" for everything else (lowest priority)
+          #{ Return "3" for everything else (lowest priority)
           return "3"
         }
 
-        #~@ Pad numbers in string while preserving non-numeric characters
+        #{ Pad numbers in string while preserving non-numeric characters
         function pad_numbers(str) {
           result = ""
           pos = 1
           len = length(str)
 
           while (pos <= len) {
-            #~@ Process numeric sequences
+            #{ Process numeric sequences
             if (substr(str, pos, 1) ~ /^[0-9]/) {
                 num = ""
-                #~@ Accumulate consecutive digits
+                #{ Accumulate consecutive digits
                 while (pos <= len && substr(str, pos, 1) ~ /^[0-9]/) {
                     num = num substr(str, pos, 1)
                     pos++
                 }
-                #~@ Zero-pad number to 10 digits for correct sorting
+                #{ Zero-pad number to 10 digits for correct sorting
                 result = result sprintf("%010d", num)
             } else {
-                #~@ Preserve non-numeric character
+                #{ Preserve non-numeric character
                 result = result substr(str, pos, 1)
                 pos++
             }
@@ -380,35 +380,35 @@ sort_results() {
         }
 
         {
-          #~@ Calculate directory depth
+          #{ Calculate directory depth
           depth = NF - 1
 
-          #~@ Initialize empty sort key
+          #{ Initialize empty sort key
           sort_key = ""
 
-          #~@ Process each path component
+          #{ Process each path component
           for (i = 1; i <= NF; i++) {
             if ($i != "") {
-              #~@ Normalize case
+              #{ Normalize case
               part = tolower($i)
 
-              #~@ Get sort category (1=punct, 2=num, 3=other)
+              #{ Get sort category (1=punct, 2=num, 3=other)
               priority = get_sort_priority(part)
 
-              #~@ Convert numbers to padded form
+              #{ Convert numbers to padded form
               padded = pad_numbers(part)
 
-              #~@ Append to sort key with comma separator
+              #{ Append to sort key with comma separator
               sort_key = sort_key priority padded ","
             }
           }
 
-          #~@ Clean up trailing delimiter
+          #{ Clean up trailing delimiter
           if (sort_key != "") {
             sort_key = substr(sort_key, 1, length(sort_key) - 1)
           }
 
-          #~@ Output format: depth<tab>sort_key<tab>original_path
+          #{ Output format: depth<tab>sort_key<tab>original_path
           printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
         }' |
       sort | cut -f3 | grep --invert-match '^$'
@@ -445,35 +445,35 @@ sort_results() {
 
             function get_sort_priority(str) {
               first = substr(str, 1, 1)
-              #~@ Return "1" for punctuation (highest priority)
+              #{ Return "1" for punctuation (highest priority)
               if (first ~ /^[[:punct:]]/) return "1"
 
-              #~@ Return "2" for numbers (second priority)
+              #{ Return "2" for numbers (second priority)
               if (first ~ /^[0-9]/) return "2"
 
-              #~@ Return "3" for everything else (lowest priority)
+              #{ Return "3" for everything else (lowest priority)
               return "3"
             }
 
-            #~@ Pad numbers in string while preserving non-numeric characters
+            #{ Pad numbers in string while preserving non-numeric characters
             function pad_numbers(str) {
               result = ""
               pos = 1
               len = length(str)
 
               while (pos <= len) {
-                #~@ Process numeric sequences
+                #{ Process numeric sequences
                 if (substr(str, pos, 1) ~ /^[0-9]/) {
                     num = ""
-                    #~@ Accumulate consecutive digits
+                    #{ Accumulate consecutive digits
                     while (pos <= len && substr(str, pos, 1) ~ /^[0-9]/) {
                         num = num substr(str, pos, 1)
                         pos++
                     }
-                    #~@ Zero-pad number to 10 digits for correct sorting
+                    #{ Zero-pad number to 10 digits for correct sorting
                     result = result sprintf("%010d", num)
                 } else {
-                    #~@ Preserve non-numeric character
+                    #{ Preserve non-numeric character
                     result = result substr(str, pos, 1)
                     pos++
                 }
@@ -482,32 +482,32 @@ sort_results() {
             }
 
             {
-              #~@ Initialize empty sort key
+              #{ Initialize empty sort key
               sort_key = ""
 
-              #~@ Process each path component
+              #{ Process each path component
               for (i = 1; i <= NF; i++) {
                 if ($i != "") {
-                  #~@ Normalize case
+                  #{ Normalize case
                   part = tolower($i)
 
-                  #~@ Get sort category (1=punct, 2=num, 3=other)
+                  #{ Get sort category (1=punct, 2=num, 3=other)
                   priority = get_sort_priority(part)
 
-                  #~@ Convert numbers to padded form
+                  #{ Convert numbers to padded form
                   padded = pad_numbers(part)
 
-                  #~@ Append to sort key with comma separator
+                  #{ Append to sort key with comma separator
                   sort_key = sort_key priority padded ","
                 }
               }
 
-              #~@ Clean up trailing delimiter
+              #{ Clean up trailing delimiter
               if (sort_key != "") {
                 sort_key = substr(sort_key, 1, length(sort_key) - 1)
               }
 
-              #~@ Output format: depth<tab>sort_key<tab>original_path
+              #{ Output format: depth<tab>sort_key<tab>original_path
               printf "%d%s%s%s%s\n", depth, tab, sort_key, tab, $0
             }' |
       sort | cut -f3 | grep --invert-match '^$'
@@ -553,17 +553,17 @@ search_exe() {
   #DOC     with common extensions.
   #DOC   - Debugging information is printed if 'debug' is enabled.
 
-  #~@ Parse arguments
+  #{ Parse arguments
   exe_pattern="${1:-}"
 
-  #~@ Search for executable in PATH
+  #{ Search for executable in PATH
   if command -v "${exe_pattern}" 2>/dev/null; then
     exe_path="$(command -v "${exe_pattern}" 2>/dev/null)"
   else
     exe_path=""
   fi
 
-  #~@ Extended search for executables with common extensions if not found
+  #{ Extended search for executables with common extensions if not found
   if [ -z "${exe_path:-}" ]; then
     case "${smart_exec:-}" in
     1 | on | true)
@@ -590,12 +590,12 @@ search_exe() {
     pout --debug "Unable to determine executable path for ${exe_pattern}"
   fi
 
-  #~@ Return search result
+  #{ Return search result
   printf "%s" "${exe_path:-}"
 }
 
 find_path() {
-  #~@ Initialize variables
+  #{ Initialize variables
   search_path="${cwd}"
   search_pattern=""
   search_type=""
@@ -603,7 +603,7 @@ find_path() {
   search_results=""
   search_results_count=0
 
-  #~@ Parse options
+  #{ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
     --down* | down*) search_type="downward" ;;
@@ -625,7 +625,7 @@ find_path() {
     shift
   done
 
-  #~@ Validate required parameters
+  #{ Validate required parameters
   if [ -z "${search_type:-}" ]; then
     printf "%s\n" "<\ ERROR /> Missing argument: direction" >&2
     printf "%s\n" "${cmd_USAGE}" >&2
@@ -662,12 +662,12 @@ find_path() {
   }
 
   search_upwards() {
-    #~@ Initialize variables
+    #{ Initialize variables
     res=""
     found=""
     loop_guard=0
 
-    #~@ Collect search results from parent directories
+    #{ Collect search results from parent directories
     while [ "${search_path}" != "/" ]; do
 
       loop_guard=$((loop_guard + 1))
@@ -693,24 +693,24 @@ find_path() {
         res="${res}${res:+${LF}}${found}"
       fi
 
-      #~@ Move up to parent directory, with proper error checking
+      #{ Move up to parent directory, with proper error checking
       if ! search_path="$(dirname "${search_path}")"; then
         pout --debug "dirname failed for ${search_path}, stopping upward search"
         break
       fi
     done
 
-    #~@ Return results
+    #{ Return results
     printf "%s" "${res:-}"
   }
 
-  #~@ Fetch search results
+  #{ Fetch search results
   case "${search_type}" in
   upward) search_results="$(search_upwards)" ;;
   downward | *) search_results="$(search_downwards)" ;;
   esac
 
-  #~@ Debug results
+  #{ Debug results
   pout --debug "$(
     printf "Searching %s for '%s' from '%s'" "$(
       printf "%s" "${search_type}" |
@@ -731,7 +731,7 @@ find_path() {
     pout --debug "${search_type_proper} search yielded no results"
   fi
 
-  #~@ Process results by match quality
+  #{ Process results by match quality
   if [ -n "${search_results}" ]; then
     printf "%s" "${search_results}" |
       awk -v target="${search_item}" '
@@ -758,7 +758,7 @@ find_path() {
       sort -r | cut -d' ' -f2-
   fi
 
-  #~@ Return results
+  #{ Return results
   printf "%s" "${search_results}"
 }
 
@@ -776,7 +776,7 @@ search_fs() {
   #DOC   search_fs --cwd /home/user test.txt
   #DOC   search_fs test.txt
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --cwd) cwd="$2" shift ;;
@@ -861,7 +861,7 @@ search_fs() {
     #DOC   The closest file is defined as the file with the lowest nesting level. If two files have
     #DOC   the same nesting level, the first one is returned.
 
-    #~@ Extract the desired path from the list
+    #{ Extract the desired path from the list
     path="$(
       printf "%s" "$pathlist" |
         awk -F'/' '{print NF-1, $0}' |
@@ -873,13 +873,13 @@ search_fs() {
         head -n 1 # 4
     )"
 
-    #~@ Remove trailing backslash on Windows
+    #{ Remove trailing backslash on Windows
     path="${path%\\}"
 
-    #~@ Remove trailing slash, if any
+    #{ Remove trailing slash, if any
     path="${path%/}"
 
-    #~@ Return the path
+    #{ Return the path
     printf "%s" "${path}"
   }
 
@@ -899,7 +899,7 @@ search_fs() {
   )" ;;
   esac
 
-  #~@ Search the filesystem in both directions
+  #{ Search the filesystem in both directions
   pathlist="$(search_fs__downwards "${cwd}" "${pattern}")"
   [ -n "${pathlist}" ] ||
     pathlist="$(search_fs__upwards "${cwd}" "${pattern}")"
@@ -913,7 +913,7 @@ search_fs() {
   pathlist="$(sort_results --type "${sort_type}" "${pathlist}")"
   pathlist="$(limit_results --limit "${result_limit}" --list "${pathlist}")"
 
-  #~@ Return the list of paths
+  #{ Return the list of paths
   printf "%s" "${pathlist}"
 }
 
@@ -929,7 +929,7 @@ search_all() {
   #DOC   search_all --cwd /home/user --first test.txt
   #DOC   search_all --cwd /home/user --closest test.txt
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     --cwd) cwd="$2" ;;
@@ -938,20 +938,20 @@ search_all() {
     shift
   done
 
-  #~@ Define the pattern as the initial path return
+  #{ Define the pattern as the initial path return
   result="${pattern}"
 
   if [ -z "${pattern}" ]; then
     return
   else
 
-    #~@ Check for the path among the known executables
+    #{ Check for the path among the known executables
     result="$(search_exe "${pattern}")"
 
-    #~@ Check for the path in the filesystem
+    #{ Check for the path in the filesystem
     [ -n "${result}" ] || result="$(search_fs --cwd "${cwd}" "${pattern}")"
   fi
-  #~@ Return the path or an empty string
+  #{ Return the path or an empty string
   printf "%s" "${result}"
 }
 
@@ -1018,10 +1018,10 @@ trim() {
 }
 
 pout() {
-  #~@ Initialize variables
+  #{ Initialize variables
   key="" val="" tag="" pad="" msg="" trim=true
 
-  #~@ Parse message type and content
+  #{ Parse message type and content
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -k | --key) key="$2" shift ;;
@@ -1047,13 +1047,13 @@ pout() {
     shift
   done
 
-  #~@ Format the message
+  #{ Format the message
   if [ -n "${key}" ]; then
 
-    #~@ Tag missing values
+    #{ Tag missing values
     val="${val:-"${msg:-"{undefined}"}"}"
 
-    #~@ Trim leading and trailing whitespace
+    #{ Trim leading and trailing whitespace
     if [ -n "${trim:-}" ]; then
       key="$(trim "${key}")"
       val="$(trim "${val}")"
@@ -1061,22 +1061,22 @@ pout() {
 
     case "${tag}" in
     DEBUG | ERROR | WARN | INFO)
-      #~@ Define the separator
+      #{ Define the separator
       sep=" | "
 
-      #~@ Calculate padding for label alignment
+      #{ Calculate padding for label alignment
       debug_pad="${debug_pad:-24}"
       pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #~@ Format the tagged key-value pair
+      #{ Format the tagged key-value pair
       msg="$(printf "[%s] /> %s <\ %s%s%s%s\n" \
         "${tag}" "${cmd_NAME}" "${pad}" "${key}" "${sep}" "${val}")"
       ;;
     *)
-      #~@ Define the separator
+      #{ Define the separator
       sep=": "
 
-      #~@ Print the key-value pair
+      #{ Print the key-value pair
       msg="$(
         printf "%s%s%s\n" "${key}" "${sep}" "${val}"
       )"
@@ -1086,7 +1086,7 @@ pout() {
     msg="$(trim "${msg}")"
   fi
 
-  #~@ Print the message
+  #{ Print the message
   case "${tag}" in
   ERROR | WARN) printf "%s\n" "${msg}" >&2 ;;
   *) printf "%s\n" "${msg}" ;;

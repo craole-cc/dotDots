@@ -17,25 +17,25 @@ set_defaults() {
   delimiter=" "
   args=""
 
-  #~@ Define the pout command
+  #{ Define the pout command
   CMD_POUT="$(command -v pout 2>/dev/null || printf "")"
   [ "${CMD_POUT}" = "${scr_path:-$0}" ] && CMD_POUT=""
   CMD_POUT="${CMD_POUT:-"${prj_root}/Bin/shellscript/utility/output/pout"}"
 }
 
 pout() {
-  #~@ Use the pout command if it exists and is executable, otherwise use the default
+  #{ Use the pout command if it exists and is executable, otherwise use the default
   if [ -x "${CMD_POUT}" ]; then
     "${CMD_POUT}" "$@"
     return "$?"
   else
-    #~@ Show warning once if not previously shown
+    #{ Show warning once if not previously shown
     if [ -z "${POUT_FALLBACK_WARNING_SHOWN:-}" ]; then
       printf "[WARN] /> %s <\ Using simplified pout(). Advanced options not fully supported.\n" "${scr_path}" >&2
       export POUT_FALLBACK_WARNING_SHOWN=1
     fi
 
-    #~@ Check for error/code flags
+    #{ Check for error/code flags
     while [ "$#" -gt 0 ]; do
       case "$1" in
       --error | --warn | --fatal) use_stderr=1 ;;
@@ -45,13 +45,13 @@ pout() {
       shift
     done
 
-    #~@ Output the message to the appropriate console stream
+    #{ Output the message to the appropriate console stream
     case "${use_stderr:-}" in
     1 | on | yes | true) printf "%s\n" "${msg:-}" >&2 ;;
     *) printf "%s\n" "${msg:-}" ;;
     esac
 
-    #~@ Return with the specified code
+    #{ Return with the specified code
     return "${code:-0}"
   fi
 }
@@ -365,17 +365,17 @@ pout_OLD() {
     shift
   done
 
-  #~@ Update the tagged message
+  #{ Update the tagged message
   [ -n "${tag}" ] &&
     msg="$(printf "%s /> %s <\ %s\n" "${tag}" "${scr_name}" "${msg}")"
 
-  #~@ Print to stdout or stderr
+  #{ Print to stdout or stderr
   case "${tag}" in
   *"ERR"* | *"WARN"*) printf "%s" "${msg}" >&2 ;;
   *) printf "%s" "${msg}" ;;
   esac
 
-  #~@ Terminate on errors
+  #{ Terminate on errors
   [ "${code:-0}" -gt 0 ] && exit 1
 }
 

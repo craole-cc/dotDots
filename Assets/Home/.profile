@@ -70,7 +70,7 @@ register_dots() {
       unset names homes ctx fn_name rc
     } && cleanup
 
-    #~@ Initialize integral variables
+    #{ Initialize integral variables
     : "${fn_name:="register_dots"}"
     : "${RC:=".dotsrc"}"
     : "${EDITOR:=hx}"
@@ -114,10 +114,10 @@ register_dots() {
     #DOC Arguments without options are added to the list of parent directories.
     #DOC Returns 0 on success, 1 on errors such as missing arguments.
 
-    #~@ Set defaults
+    #{ Set defaults
     homes="" names=""
 
-    #~@ Parse Arguments
+    #{ Parse Arguments
     while [ $# -gt 0 ]; do
       case "$1" in
       -h | --help)
@@ -158,7 +158,7 @@ register_dots() {
       shift
     done
 
-    #~@ Declare constants at the global level
+    #{ Declare constants at the global level
     export DELIMITER RC VERBOSITY EDITOR
   }
 
@@ -171,7 +171,7 @@ register_dots() {
     #DOC
     #DOC @returns {none} Sets the global variables "DOTS", "DOTS_RC" and "RC"
 
-    #~@ Set defaults
+    #{ Set defaults
     homes="$(
       printf "%s\n" "${homes:-"${possible_homes}"}" |
         tr '\n' "${DELIMITER}"
@@ -182,21 +182,21 @@ register_dots() {
     )"
     p=0
 
-    #~@ Loop through the specified parent directories
+    #{ Loop through the specified parent directories
     ifs="${IFS}"
     IFS="${DELIMITER}"
     for parent in ${homes}; do
       [ -d "${parent}" ] || continue
       p="$((p + 1))"
 
-      #~@ Loop through the specified directory names appended to the parent
+      #{ Loop through the specified directory names appended to the parent
       d=0
       for dir in ${names}; do
         dots="${parent}/${dir}"
         [ -d "${dots}" ] || continue
         d="$((d + 1))"
 
-        #~@ Use find to locate the first ".dotsrc" in the specified directory
+        #{ Use find to locate the first ".dotsrc" in the specified directory
         DOTS_RC=$(
           find "${dots}" \
             -maxdepth 1 \
@@ -318,7 +318,7 @@ manage_env() {
       shift
     done
 
-    #~@ Parse positional arguments, if necessary
+    #{ Parse positional arguments, if necessary
     ifs="${IFS}"
     IFS="${DELIMITER}"
     # shellcheck disable=SC2086
@@ -330,13 +330,13 @@ manage_env() {
     }
     [ -z "${val:-}" ] && val=$*
 
-    #~@ Validate arguments
+    #{ Validate arguments
     if [ -z "${var:-}" ] || [ -z "${val:-}" ]; then
       show_usage arguments
       return 1
     fi
 
-    #~@ Print debug information
+    #{ Print debug information
     verbosity="$(get_verbosity "${verbosity}")"
     if [ "${verbosity:-0}" -ge 4 ]; then
       pout_tagged --ctx manage_env --tag DEBUG --msg "$(
@@ -367,7 +367,7 @@ manage_env() {
       ;;
     esac
 
-    #~@ Return the result of the last command
+    #{ Return the result of the last command
     return $?
   }
 
@@ -416,7 +416,7 @@ manage_env() {
 }
 
 register_env() {
-  #~@ Set defaults
+  #{ Set defaults
   _val="" _var="" _env="" _args="" _init=0 _force=0
   action="resolve"
   actions="edit | env | init | initialize | resolve | register | set | unregister | unset"
@@ -425,7 +425,7 @@ register_env() {
   : "${RC:=.dotsrc}"
   : "${EDITOR:=hx}"
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ $# -ge 1 ]; do
     case "$1" in
     -[iI] | --init | --initialize) _init=1 ;;
@@ -439,28 +439,28 @@ register_env() {
       shift
       ;;
     --)
-      #~@ End of options, everything after is positional
+      #{ End of options, everything after is positional
       shift
       break
       ;;
     -*)
-      #~@ Unknown option, skip
+      #{ Unknown option, skip
       ;;
     *)
-      #~@ Positional argument
+      #{ Positional argument
       _args="${_args:+${_args}${DELIMITER}}$1"
       ;;
     esac
     shift
   done
 
-  #~@ Handle remaining arguments after -- separator
+  #{ Handle remaining arguments after -- separator
   while [ $# -ge 1 ]; do
     _args="${_args:+${_args}${DELIMITER}}$1"
     shift
   done
 
-  #~@ Parse positional arguments, if necessary
+  #{ Parse positional arguments, if necessary
   if [ -n "${_args}" ]; then
     ifs="${IFS}"
     IFS="${DELIMITER}"
@@ -475,13 +475,13 @@ register_env() {
     [ -z "${_val:-}" ] && _val="$*"
   fi
 
-  #~@ Validate arguments
+  #{ Validate arguments
   if [ -z "${_var:-}" ] || [ -z "${_val:-}" ]; then
     show_usage arguments
     return 1
   fi
 
-  #~@ Print debug information
+  #{ Print debug information
   if [ "${verbosity:-0}" -ge 4 ]; then
     pout_tagged --ctx register_env --msg "$(
       printf "\n  %${pad}s%s%s" "INIT" "${sep}" "${_init}"
@@ -491,7 +491,7 @@ register_env() {
     )"
   fi
 
-  #~@ Check the value of the variable
+  #{ Check the value of the variable
   var_val=""
   var_val="$(resolve_env "${_var}")"
   case "${var_val:-}" in
@@ -504,30 +504,30 @@ register_env() {
   *)
     #? System value differs from argument value
     if [ "${_force}" -eq 1 ]; then
-      #~@ Force overwrite - use argument value without prompting
+      #{ Force overwrite - use argument value without prompting
       if [ "${verbosity:-0}" -ge 2 ]; then
         pout_tagged --ctx register_env --tag "WARN " --msg "$(
           printf "Forcing overwrite of %s: %s -> %s\n" "${_var}" "${var_val}" "${_val}"
         )"
       fi
     else
-      #~@ Offer the option to overwrite
+      #{ Offer the option to overwrite
       printf "%s is already set to: %s\nNew value would be: %s\n%s" \
         "${_var}" "${var_val}" "${_val}" \
         "Overwrite? [y/N] (default: N): "
 
-      #~@ Set a trap for CTRL-C during read
+      #{ Set a trap for CTRL-C during read
       trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
       read -r response
       trap - INT #? Clear trap after read
 
-      #~@ Handle the user response
+      #{ Handle the user response
       case "${response}" in
       [Yy]*)
-        #~@ Update the env to the argument value
+        #{ Update the env to the argument value
         ;;
       *)
-        #~@ Keep the existing system value
+        #{ Keep the existing system value
         _val="${var_val}"
         ;;
       esac
@@ -535,7 +535,7 @@ register_env() {
     ;;
   esac
 
-  #~@ Register the variable globally
+  #{ Register the variable globally
   eval "${_var}=\"\${_val}\""
   eval "export ${_var}"
 
@@ -545,35 +545,35 @@ register_env() {
     )"
   fi
 
-  #~@ Handle path-specific variables
+  #{ Handle path-specific variables
   if [ -e "${_val}" ]; then
-    #~@ Define relational functions
+    #{ Define relational functions
     eval "ed_${_var}() { edit \"\${${_var}}\"; }"
   fi
 
-  #~@ Handle directory-specific variables
+  #{ Handle directory-specific variables
   if [ -d "${_val}" ]; then
-    #~@ Define relational functions
+    #{ Define relational functions
     eval "cd_${_var}() { cd \"\${${_var}}\"; }"
 
-    #~@ Source the entrypoint, if it exists and the initialization flag is set
+    #{ Source the entrypoint, if it exists and the initialization flag is set
     if [ "${_init}" -eq 1 ] && [ -f "${_val}/${RC}" ]; then
       # shellcheck disable=SC1090  #? The file has been validated to exist
       . "${_val}/${RC}"
 
-      #~@ Return the result of the sourced command
+      #{ Return the result of the sourced command
       return $?
     fi
   fi
 
-  #~@ Handle file-specific variables
+  #{ Handle file-specific variables
   if [ -f "${_val}" ]; then
     if [ "${_init}" -eq 1 ]; then
-      #~@ Source the file if the initialization flag is set
+      #{ Source the file if the initialization flag is set
       # shellcheck disable=SC1090  #? The file has been validated to exist
       . "${_val}"
 
-      #~@ Return the result of the sourced command
+      #{ Return the result of the sourced command
       return $?
     fi
   fi
@@ -588,12 +588,12 @@ unregister_env() {
 }
 
 resolve_env() {
-  #~@ Validate arguments
+  #{ Validate arguments
   if [ -z "${1:-}" ]; then
     return 1
   fi
 
-  #~@ Get the current value of the variable
+  #{ Get the current value of the variable
   eval 'env="${'"${1}"'}"'
 
   if [ -z "${env:-}" ]; then
@@ -601,27 +601,27 @@ resolve_env() {
   fi
 
   if [ -e "${env}" ]; then
-    #~@ Retrieve the absolute path (if possible)
+    #{ Retrieve the absolute path (if possible)
     if [ -d "${env}" ]; then
       (cd "${env}" 2>/dev/null && pwd)
     elif [ -f "${env}" ]; then
 
-      #~@ For files: cd to dirname, then print full path
+      #{ For files: cd to dirname, then print full path
       dir=$(dirname "${env}")
       file=$(basename "${env}")
       (cd "${dir}" 2>/dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")
     fi
   else
-    #~@ Return the value of the variable
+    #{ Return the value of the variable
     printf '%s\n' "${env}"
   fi
 }
 
 edit() {
-  #~@ Ensure the EDITOR is set
+  #{ Ensure the EDITOR is set
   : "${EDITOR:=hx}"
 
-  #~@ Launch with the specified arguments or the current directory
+  #{ Launch with the specified arguments or the current directory
   if [ -n "${1:-}" ]; then
     eval "${EDITOR} -- \"\${@}\""
   else
@@ -630,7 +630,7 @@ edit() {
 }
 
 get_verbosity() {
-  #~@ Set defaults
+  #{ Set defaults
   : "${verbosity:=$1}"
   : "${verbosity:=${VERBOSITY}}"
   : "${verbosity:=1}"
@@ -639,7 +639,7 @@ get_verbosity() {
     printf "%s" "${verbosity}" | tr '[:upper:]' '[:lower:]' || true
   )"
 
-  #~@ Set verbosity based on current verbosity
+  #{ Set verbosity based on current verbosity
   case "${current_verbosity}" in
   0 | none | off | quiet | silent | false) verbosity=0 ;;
   1 | err* | low) verbosity=1 ;;
@@ -648,21 +648,21 @@ get_verbosity() {
   4 | debug | verbose | on) verbosity=4 ;;
   5 | trace | high) verbosity=5 ;;
   *)
-    #~@ Handle edge cases
+    #{ Handle edge cases
     case "${current_verbosity}" in
     -)
-      #~@ Assume that a minus sign means to turn off verbosity
+      #{ Assume that a minus sign means to turn off verbosity
       verbosity=0
       ;;
     -[0-9]* | [0-9]*)
-      #~@ Handle possible integer
+      #{ Handle possible integer
       case "${current_verbosity}" in
       *[!0-9-]* | --*)
-        #~@ Fallback as invalid characters exist in the string
+        #{ Fallback as invalid characters exist in the string
         verbosity="${default_verbosity}"
         ;;
       *)
-        #~@ Clamp integer to 0 and 5
+        #{ Clamp integer to 0 and 5
         if [ "${current_verbosity}" -lt 0 ]; then
           verbosity=0
         elif [ "${current_verbosity}" -gt 5 ]; then
@@ -674,27 +674,27 @@ get_verbosity() {
       esac
       ;;
     *)
-      #~@ Fallbase as the current value is unknown
+      #{ Fallbase as the current value is unknown
       verbosity="${default_verbosity}"
       ;;
     esac
     ;;
   esac
 
-  #~@ Print the final verbosity level
+  #{ Print the final verbosity level
   printf "%s" "${verbosity}"
 }
 
 pout_tagged() {
-  #~@ Set a safe delimiter (ASCII Unit Separator)
+  #{ Set a safe delimiter (ASCII Unit Separator)
   : "${DELIMITER:="$(printf "\037")"}"
 
-  #~@ Initialize with defaults
+  #{ Initialize with defaults
   ctx=""
   tag=""
   msg=""
 
-  #~@ Parse named arguments
+  #{ Parse named arguments
   while [ $# -gt 0 ]; do
     case "${1}" in
     --ctx)
@@ -731,42 +731,42 @@ pout_tagged() {
       tag="${1#--tag=}"
       ;;
     --)
-      #~@ End of options
+      #{ End of options
       shift
       ;;
     --*)
-      #~@ Unknown option, ignore or warn
+      #{ Unknown option, ignore or warn
       ;;
     *)
-      #~@ Collect message arguments, separated by DELIMITER
+      #{ Collect message arguments, separated by DELIMITER
       msg="${msg:+${msg}${DELIMITER}}$1"
       ;;
     esac
     shift
   done
 
-  #~@ Return early if no message is provided
+  #{ Return early if no message is provided
   if [ -z "${msg}" ]; then
     return
   fi
 
-  #~@ Fallback to context variables if not set
+  #{ Fallback to context variables if not set
   if [ -z "${ctx}" ]; then ctx="${fn_name:-}"; fi
   if [ -z "${ctx}" ]; then ctx="${scr_name:-}"; fi
   if [ -z "${ctx}" ]; then ctx="${scr_path:-}"; fi
   if [ -z "${ctx}" ]; then ctx="Untitled"; fi
 
-  #~@ Default tag to DEBUG if not provided
+  #{ Default tag to DEBUG if not provided
   if [ -z "${tag}" ]; then tag="DEBUG"; fi
   tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
 
-  #~@ Add aleading newline for separation
+  #{ Add aleading newline for separation
   printf "\n"
 
-  #~@ Print the tag and context
+  #{ Print the tag and context
   printf "%s >>= %s =<<" "${tag}" "${ctx}"
 
-  #~@ Print all message arguments, split by DELIMITER
+  #{ Print all message arguments, split by DELIMITER
   if [ -n "${msg}" ]; then
     old_ifs=${IFS}
     IFS="${DELIMITER}"
@@ -777,7 +777,7 @@ pout_tagged() {
       printf "%s" "${arg}"
     done
 
-    #~@ Add a trailing newline for separation
+    #{ Add a trailing newline for separation
     printf "\n"
   fi
 }

@@ -109,10 +109,10 @@ parse_arguments() {
 }
 
 pout() {
-  #~@ Initialize variables
+  #{ Initialize variables
   tag="" msg=""
 
-  #~@ Set verbosity
+  #{ Set verbosity
   case "${verbosity:-}" in
   0 | quiet) return ;;
   1 | error) verbosity=1 ;;
@@ -123,7 +123,7 @@ pout() {
   *) verbosity=3 ;;
   esac
 
-  #~@ Parse arguments
+  #{ Parse arguments
   case "$1" in
   --page*)
     shift
@@ -182,7 +182,7 @@ pout() {
 }
 
 set_dependencies() {
-  #~@ Initialize variables
+  #{ Initialize variables
   dependency_type="ammenity"
   dependencies=""
   val="" var=""
@@ -223,11 +223,11 @@ set_dependencies() {
 }
 
 establish_environment() {
-  #~@ Define dependencies
+  #{ Define dependencies
   set_dependencies --main oh-my-posh
   set_dependencies pager
 
-  #~@ Determine the shell and init command
+  #{ Determine the shell and init command
   POSH_SHELL="$("${CMD_OH_MY_POSH:?}" get shell)"
   case "${POSH_SHELL:-}" in
   zsh) POSH_SHELL="zsh" ;;
@@ -240,7 +240,7 @@ establish_environment() {
     ;;
   esac
 
-  #~@ Retrieve the themes from the oh-my-posh themes/config directory
+  #{ Retrieve the themes from the oh-my-posh themes/config directory
   _dir="" _depth=1
   if [ -d "${posh_config_dir:-}" ]; then
     _dir="${posh_config_dir}"
@@ -254,7 +254,7 @@ establish_environment() {
   fi
 
   POSH_THEMES="$(
-    #~@ Fallback to coreutils find
+    #{ Fallback to coreutils find
     find "${_dir}" \
       -maxdepth "${_depth}" \
       -type f \
@@ -265,7 +265,7 @@ establish_environment() {
       \) 2>/dev/null
   )"
 
-  #~@ Extract the theme names from the paths
+  #{ Extract the theme names from the paths
   POSH_THEME_NAMES="$(
     [ -n "${POSH_THEMES}" ] &&
       printf "%s\n" "${POSH_THEMES}" |
@@ -283,7 +283,7 @@ execute_process() {
   pout --debug "Target POSH_THEME:" "${target:-${default_theme}}"
   pout --debug "Action:" "${action}"
 
-  #~@ Define actions
+  #{ Define actions
   case "${action}" in
   set) set_theme "${target}" ;;
   get | *)
@@ -303,7 +303,7 @@ execute_process() {
 set_theme() {
   _theme="$1" theme=""
 
-  #~@ Look for the theme in the list of available themes using grep or awk
+  #{ Look for the theme in the list of available themes using grep or awk
   _config_toml="${posh_config_dir}/${_theme}.toml"
   _config_yaml="${posh_config_dir}/${_theme}.yaml"
   _config_json="${posh_config_dir}/${_theme}.omp.json"
@@ -325,7 +325,7 @@ set_theme() {
     theme="${_theme_yaml}"
   fi
 
-  #~@ Update the theme
+  #{ Update the theme
   if [ -n "${theme:-}" ]; then
     if [ "${POSH_THEME:-}" != "${theme:-}" ]; then
       pout --info "Setting POSH_THEME to:" "${theme}"
@@ -337,10 +337,10 @@ set_theme() {
     pout --warn "Theme not found: ${_theme:-}"
   fi
 
-  #~@ Build the command
+  #{ Build the command
   POSH_INIT="$(oh-my-posh init "${POSH_SHELL}" --config "${POSH_THEME}" || true)"
 
-  #~@ Initialize oh-my-posh
+  #{ Initialize oh-my-posh
   if [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
     printf "%s" "${POSH_INIT:-}"
   else

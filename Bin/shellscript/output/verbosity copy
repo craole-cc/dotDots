@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#~@ Main function
+#{ Main function
 main() {
   set_defaults
   parse_arguments "$@"
@@ -10,9 +10,9 @@ main() {
   handle_verbosity_patterns
 }
 
-#~@ Set all defaults and initialize variables
+#{ Set all defaults and initialize variables
 set_defaults() {
-  #~@ Environment variable defaults
+  #{ Environment variable defaults
   : "${VERBOSITY:="INFO"}"
   : "${VERBOSITY_QUIET:="0"}"
   : "${VERBOSITY_ERROR:="1"}"
@@ -21,17 +21,17 @@ set_defaults() {
   : "${VERBOSITY_DEBUG:="4"}"
   : "${VERBOSITY_TRACE:="5"}"
 
-  #~@ Check for lowercase override (in-script override takes precedence)
+  #{ Check for lowercase override (in-script override takes precedence)
   if [ -n "${verbosity:-}" ]; then
     VERBOSITY="${verbosity}"
   fi
 
-  #~@ Script variables
+  #{ Script variables
   input=""
   default="3"
 }
 
-#~@ Parse command line arguments
+#{ Parse command line arguments
 parse_arguments() {
   while [ ${#} -gt 0 ]; do
     case "${1}" in
@@ -112,7 +112,7 @@ parse_arguments() {
   done
 }
 
-#~@ Validate default parameter
+#{ Validate default parameter
 validate_default() {
   case "${default}" in
   '' | *[!0-9]*)
@@ -129,16 +129,16 @@ validate_default() {
   esac
 }
 
-#~@ Set input default if not provided
+#{ Set input default if not provided
 set_input_default() {
   : "${input:=${VERBOSITY:-3}}"
 }
 
-#~@ Convert input to lowercase using only shell builtins
+#{ Convert input to lowercase using only shell builtins
 convert_to_lowercase() {
   case "${input}" in
   *[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*)
-    #~@ Convert manually on the most common patterns first
+    #{ Convert manually on the most common patterns first
     case "${input}" in
     ERROR | ERR | RED) input="error" ;;
     WARN* | ORANGE | YELLOW) input="warn" ;;
@@ -153,7 +153,7 @@ convert_to_lowercase() {
   esac
 }
 
-#~@ Handle verbosity patterns and output result
+#{ Handle verbosity patterns and output result
 handle_verbosity_patterns() {
   case "${input}" in
   0 | none | off | quiet | silent | false | gray | grey) printf "0" ;;
@@ -164,7 +164,7 @@ handle_verbosity_patterns() {
   5 | trace | high | magenta) printf "5" ;;
   -) printf "0" ;;
   -[0-9]* | [0-9]*)
-    #~@ Extract numeric part and validate
+    #{ Extract numeric part and validate
     case "${input}" in
     *[!0-9-]* | --*) printf "%d" "${default}" ;;
     *)
@@ -185,7 +185,7 @@ handle_verbosity_patterns() {
   esac
 }
 
-#~@ Show usage information
+#{ Show usage information
 show_usage() {
   cat <<'EOF'
 Usage: verbosity [OPTIONS] [LEVEL] [DEFAULT_LEVEL]
@@ -229,7 +229,7 @@ EXIT CODES:
 EOF
 }
 
-#~@ Execute main function with all arguments
+#{ Execute main function with all arguments
 main "$@"
 
 #TODO:

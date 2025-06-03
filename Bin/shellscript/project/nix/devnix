@@ -160,5 +160,5 @@ cleanup() {
   cdto "${initial_dir}"
 }
 
-#~@ Execute the final command
+#{ Execute the final command
 main "$@"

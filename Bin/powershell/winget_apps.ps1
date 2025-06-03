@@ -54,7 +54,7 @@ function Install-Applications {
             }
             catch {
                 Write-Host "Error installing $app`: $_" -ForegroundColor Red
-                #~@ Log the error to a file
+                #{ Log the error to a file
                 # $errorMessage = "Error installing $app`: $_"
                 # $errorMessage | Out-File -FilePath "install_errors.log" -Append
             }

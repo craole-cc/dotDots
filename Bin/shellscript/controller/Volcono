@@ -44,19 +44,19 @@ USAGE_GUIDE
 #@		                        GLOBAL TOOLS                         @#
 # ===================================================================
 
-#~@ Usage display
+#{ Usage display
 __help__() {
   printf "%s\n" "$_cmd_USAGEGUIDE"
   exit 0
 }
 
-#~@ Version display
+#{ Version display
 __version__() {
   printf "%s\n" "$_cmd_VERSION"
   exit 0
 }
 
-#~@ Command validation
+#{ Command validation
 __cmd_exists__() {
   unalias "$@" >/dev/null 2>&1
   command -v "$@" >/dev/null 2>&1

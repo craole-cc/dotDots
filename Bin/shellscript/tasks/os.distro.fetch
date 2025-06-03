@@ -1,21 +1,21 @@
 #!/bin/sh
 
 main() {
-  #~@ Initialize the script environment
+  #{ Initialize the script environment
   establish_environment
 
-  #~@ Parse the arguments
+  #{ Parse the arguments
   parse_arguments "$@"
 
-  #~@ Retrieve the requested information
+  #{ Retrieve the requested information
   process_info
 
-  #~@ Terminate the script with the appropriate exit code
+  #{ Terminate the script with the appropriate exit code
   return "${exit_code}"
 }
 
 establish_environment() {
-  #~@ Establish script information
+  #{ Establish script information
   scr_name="get_distro_name"
   scr_version="1.0"
   scr_usage="$(
@@ -26,14 +26,14 @@ establish_environment() {
     printf "  -d, --verbose   Enable detailed messaging\n"
   )"
 
-  #~@ Set default values
+  #{ Set default values
   label="OS Distribution Name"
   verbosity=0
   exit_code=0
   dud="Unknown"
   unset info_source output
 
-  #~@ Establish utility functions
+  #{ Establish utility functions
   initialize_utilities
 }
 
@@ -58,7 +58,7 @@ parse_arguments() {
 
 initialize_utilities() {
   check_cmd() {
-    #~@ Check if the info_source is available
+    #{ Check if the info_source is available
     info_source="$1"
 
     if command -v "${info_source}" >/dev/null 2>&1; then
@@ -86,46 +86,46 @@ initialize_utilities() {
   }
 
   get_via_issue() {
-    #~@ Check if issue exists
+    #{ Check if issue exists
     check_cmd "/etc/issue" || return 1
 
-    #~@ Extract the line containing "Welcome"
+    #{ Extract the line containing "Welcome"
     info="$(awk '/Welcome/{print; exit}' /etc/issue)"
 
-    #~@ Extract everything after "Welcome to "
+    #{ Extract everything after "Welcome to "
     info="${info#*Welcome to }"
 
-    #~@ Extract the first 2 columns
+    #{ Extract the first 2 columns
     info="$(
       printf "%s" "${info}" | awk '{print $1 " " $2}'
     )"
   }
 
   get_via_hostnamectl() {
-    #~@ Check if hostnamectl is installed
+    #{ Check if hostnamectl is installed
     check_cmd hostnamectl || return 1
 
-    #~@ Return the distro name
+    #{ Return the distro name
     info="$(
       hostnamectl | awk -F ': ' '/Operating System/ {print $2}'
     )"
   }
 
   get_via_uname() {
-    #~@ Check if uname is installed
+    #{ Check if uname is installed
     check_cmd uname || return 1
 
-    #~@ Extract the version number
+    #{ Extract the version number
     info="$(uname --kernel-name)" # eg. MINGW64_NT-10.0-22621
     info="${info#*-}"             # eg. 'MINGW64_NT-10.0-22621' ->'10.0-22621'
     # info="${info%%-*}"            # eg. '10.0-22621' -> '10.0'
   }
 
   get_via_python() {
-    #~@ Check if python is installed
+    #{ Check if python is installed
     check_cmd python || return 1
 
-    #~@ Get the OS release/version (e.g., "10.0.19043" for Windows)
+    #{ Get the OS release/version (e.g., "10.0.19043" for Windows)
     info="$(
       python -c 'import platform; print(platform.version())'
     )"
@@ -149,7 +149,7 @@ present_info() {
     *) output="$1" ;;
     esac
 
-    #~@ Print the output
+    #{ Print the output
     if [ "${verbosity}" -gt 0 ]; then
       if [ -n "${info_source}" ]; then
         printf "%s via %s: %s" "${label}" "${info_source}" "${output}"
@@ -160,7 +160,7 @@ present_info() {
       printf "%s" "${output}"
     fi
 
-    #~@ Continue to the next argument
+    #{ Continue to the next argument
     shift
   done
 }

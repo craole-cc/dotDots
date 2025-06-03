@@ -39,19 +39,19 @@ USAGE_GUIDE
 #@		                        GLOBAL TOOLS                         @#
 # ===================================================================
 
-#~@ Usage display
+#{ Usage display
 __help__() {
   printf "%s\n" "$_cmd_USAGEGUIDE"
   exit 0
 }
 
-#~@ Version display
+#{ Version display
 __version__() {
   printf "%s\n" "$_cmd_VERSION"
   exit 0
 }
 
-#~@ Command validation
+#{ Command validation
 __cmd_exists__() {
   unalias "$@" >/dev/null 2>&1
   command -v "$@" >/dev/null 2>&1
@@ -73,7 +73,7 @@ __opts__() {
   *) ;;
   esac
 
-  #~@ Declare user options (One flag per command)
+  #{ Declare user options (One flag per command)
   COUNTER=0
   while [ $# -gt 1 ]; do
     case "$1" in
@@ -126,14 +126,14 @@ __error__() {
 
 __process__() {
 
-  #~@ Establish defaults
+  #{ Establish defaults
   __defaults__
 
-  #~@ Display details
+  #{ Display details
   [ "$VERBOSE" ] &&
     printf "%s <| %s |> %s\n" "$COUNTER" "$OPTION" "$ARG"
 
-  #~@ Process
+  #{ Process
   # { ... }
 
 }
@@ -150,11 +150,11 @@ __cleanup__() {
 #@		                            RUN	  		                       @#
 # ===================================================================
 
-#~@ Load internal variables
+#{ Load internal variables
 __info__
 
-#~@ Run
+#{ Run
 __opts__ "$@"
 
-#~@ Remove any leftover variables
+#{ Remove any leftover variables
 __cleanup__

@@ -64,15 +64,15 @@ test_stuff() {
   # done
 }
 
-parse_arguments() { #~@ Initialize
+parse_arguments() { #{ Initialize
 
-  #~@ Ensure arguments are supplied
+  #{ Ensure arguments are supplied
   [ "$#" -ge 1 ] || {
     failure=true
     end_process --error-exit "No arguments provided"
   }
 
-  #~@ Parse flags and arguments
+  #{ Parse flags and arguments
   while [ $# -ge 1 ]; do
     case $1 in
     -h | --help) end_process "$scr_HELP" ;;
@@ -92,14 +92,14 @@ parse_arguments() { #~@ Initialize
       end_process --error-exit "Unknown option:" "$1"
       ;;
     *)
-      #~@ Store arguments in an array
+      #{ Store arguments in an array
       vars="$(are --save "$vars" "$1")"
       ;;
     esac
     shift
   done
 
-  #~@ Set verbosity level
+  #{ Set verbosity level
   case "$verbosity" in
   0 | quiet) verbosity=0 ;;
   1 | error | debug) verbosity=1 ;;
@@ -107,24 +107,24 @@ parse_arguments() { #~@ Initialize
   *) verbosity=0 ;;
   esac
 
-  #~@ Extract variables
+  #{ Extract variables
   vars="$(are --expand "$vars")"
   total_vars="$(are --count "$vars")"
   last_var="$(are --last "$vars")"
 }
 
 #/> Core                                            <\
-run_process() { #~@ Display information about each variable
+run_process() { #{ Display information about each variable
 
-  #~@ Loop through all arguments
+  #{ Loop through all arguments
   for var in $vars; do
 
-    #~@ Extract the value of a variable
+    #{ Extract the value of a variable
     var_LABEL="$var"
     var_VALUE="$(eval printf '%s' "\"\${$var_LABEL?}\"" 2>/dev/null)"
     msg="$var_LABEL => $var_VALUE"
 
-    #~@ Set output message based on verbosity level
+    #{ Set output message based on verbosity level
     if [ "$var_VALUE" ]; then
       msg0="$var_VALUE"
       msg1="✅ $msg"
@@ -136,10 +136,10 @@ run_process() { #~@ Display information about each variable
       failure=true
     fi
 
-    #~@ Generate message based on verbosity eg. "$msg2"
+    #{ Generate message based on verbosity eg. "$msg2"
     unset msg
     msg="$(eval printf '%s' "\"\$msg$verbosity\"" 2>/dev/null)"
-    #~@ Send informtion to display where applicable
+    #{ Send informtion to display where applicable
     [ "$msg" ] &&
       if [ "$var" != "$last_var" ]; then
         display_info -n "$msg"
@@ -150,10 +150,10 @@ run_process() { #~@ Display information about each variable
 }
 
 #/> Utilities                                       <\
-display_info() { #~@ Display information to via Stdout or Notification
+display_info() { #{ Display information to via Stdout or Notification
   #? USAGE: display_info --noline $arg
 
-  #~@ Ensure there is something to print
+  #{ Ensure there is something to print
   [ "$*" ] || return 1
 
   case "$1" in
@@ -185,7 +185,7 @@ end_process() {
   esac
 }
 
-collect_garbage() { #~@ Remove variables
+collect_garbage() { #{ Remove variables
   unset \
     scr_PATH \
     scr_NAME \

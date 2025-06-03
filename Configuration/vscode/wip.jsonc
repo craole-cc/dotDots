@@ -4,17 +4,17 @@
   //> ===================================
   //> TYPOGRAPHY
   //> ===================================
-  // "custom-ui-style.font.sansSerif": "'Dank Mono','Maple Mono NF','Operator-caska','VictorMono Nerd Font','Operator Mono Lig','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
-  // "custom-ui-style.font.monospace": "'Operator-caska','VictorMono Nerd Font','Maple Mono NF','Operator Mono Lig','VictorMono Nerd Font','Dank Mono','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
-  // "editor.fontFamily": "'Operator-caska','VictorMono Nerd Font','Maple Mono Hd NF','Maple Mono NF','Operator Mono Lig','VictorMono Nerd Font','Dank Mono','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
-  "editor.fontFamily": "'Maple Mono NF'",
+  // "editor.fontFamily": "'Operator Mono Light','Maple Mono Hd NF','Maple Mono NF','Monaspace Neon','Monaspace Argon','Monaspace Radon','Operator-caska','VictorMono Nerd Font','Maple Mono NF','Operator Mono Lig','VictorMono Nerd Font','Dank Mono','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
+  "editor.fontFamily": "'Maple Mono NF','Monaspace Argon','Monaspace Radon','Monaspace Neon','Monaspace Krypton','Operator-caska','VictorMono Nerd Font','Maple Mono NF','Operator Mono Lig','VictorMono Nerd Font','Dank Mono','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
   "editor.fontLigatures": true,
-  "editor.fontSize": 18,
+  // "editor.fontLigatures": "'calt', 'liga', 'ss01', 'cv01' 2, 'cv31' 1",
+  // "editor.fontLigatures": "'calt', 'liga', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'ss09','cv01' 2, 'cv31' 1",
+  "editor.fontSize": 16,
   "editor.fontWeight": 400,
-  "editor.letterSpacing": 1,
-  "editor.lineHeight": 1.8,
+  // "editor.letterSpacing": 1,
+  "editor.lineHeight": 2,
   "editor.tabSize": 2,
-  "terminal.integrated.fontFamily": "Maple Mono Hd NF,'Maple Mono NF'",
+  "terminal.integrated.fontFamily": "'Operator Mono Light','Maple Mono Hd NF','Maple Mono NF'",
   "terminal.integrated.fontLigatures.enabled": true,
   "terminal.integrated.fontSize": 24,
   "terminal.integrated.fontWeight": 300,
@@ -23,9 +23,9 @@
   //> =================================== ===
   //> THEME & VISUAL CUSTOMIZATION
   //> ===================================
-  // "animations.CursorAnimation": true,
-  // "animations.Install-Method": "Custom UI Style",
-  // "animations.UseCursorColorForCursorAnimation": true,
+  "animations.CursorAnimation": true,
+  "animations.Install-Method": "Custom UI Style",
+  "animations.UseCursorColorForCursorAnimation": true,
   // "custom-ui-style.background.url": "",
   // "custom-ui-style.background.syncURL": "${env:USERPROFILE/wallpaper.jpg}",
   // "custom-ui-style.background.size": "cover",
@@ -156,10 +156,10 @@
   "editor.insertSpaces": true,
   "editor.lineNumbers": "relative",
   "editor.linkedEditing": true,
-  "editor.matchBrackets": "always",
+  "editor.matchBrackets": false,
   "editor.minimap.enabled": true,
   "editor.minimap.size": "fill",
-  "editor.mouseWheelZoom": true,
+  // "editor.mouseWheelZoom": true,
   "editor.occurrencesHighlight": "off",
   "editor.quickSuggestions": {
     "strings": "on"
@@ -664,6 +664,12 @@
       "color": "#2aaaa2"
     },
     {
+      "tag": "{",
+      "italic": true,
+      "backgroundColor": "#2aaaa222",
+      "color": "#2aaaa2"
+    },
+    {
       "tag": "!",
       "backgroundColor": "transparent",
       "color": "#ff0000"
@@ -798,5 +804,5 @@
     "mkhl.direnv",
     "ms-edgedevtools.vscode-edge-devtools",
     "ms-vscode-remote.remote-wsl"
-  ]
+  ],
 }

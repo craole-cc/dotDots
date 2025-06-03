@@ -154,7 +154,7 @@ parse_arguments() {
 }
 
 validate_arguments() {
-  #~@ Validate required arguments
+  #{ Validate required arguments
   check_required() {
     [ -z "$1" ] || return 0
     printf "%s\n" "<\ ERROR /> Missing argument: $2" >&2
@@ -164,7 +164,7 @@ validate_arguments() {
   check_required "${base:-}" "base"
   check_required "${items:-}" "item"
 
-  #~@ Validate direction
+  #{ Validate direction
   case "${direction}" in
   up | down | both | exe) ;;
   *)
@@ -191,7 +191,7 @@ pout_debug() {
 get_base() {
   root_dir=""
 
-  #~@ Find Git repository root first
+  #{ Find Git repository root first
   if git rev-parse --show-toplevel >/dev/null 2>&1; then
     root_dir="$(git rev-parse --show-toplevel)"
   else
@@ -202,12 +202,12 @@ get_base() {
         if [ -e "${dir}/${item}" ]; then
           root_dir="${dir}"
           pout_debug "Found root directory: ${root_dir} using children: ${root_items}"
-          #~@ Break out of both loops when a root item is found
+          #{ Break out of both loops when a root item is found
           break 2
         fi
       done
 
-      #~@ Move up to parent directory
+      #{ Move up to parent directory
       if ! dir="$(dirname "${dir}")"; then
         pout_debug "dirname command failed for ${dir}"
         break
@@ -215,7 +215,7 @@ get_base() {
     done
   fi
 
-  #~@ Return the root directory only if it's absolute
+  #{ Return the root directory only if it's absolute
   if [ "${root_dir:-}" = "." ] || [ -z "${root_dir:-}" ]; then
     pout_debug "Could not determine project root, using current directory"
     current_dir="$(pwd)" || current_dir="."
@@ -223,12 +223,12 @@ get_base() {
     return 0
   fi
 
-  #~@ Return the root directory
+  #{ Return the root directory
   printf "%s" "${root_dir}"
 }
 
 find_path() {
-  #~@ Initialize variables
+  #{ Initialize variables
   search_path="${base}"
   search_pattern=""
   search_type=""
@@ -236,7 +236,7 @@ find_path() {
   search_results=""
   search_results_count=0
 
-  #~@ Parse options
+  #{ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
     --down* | down*) search_type="downward" ;;
@@ -258,7 +258,7 @@ find_path() {
     shift
   done
 
-  #~@ Validate required parameters
+  #{ Validate required parameters
   if [ -z "${search_type:-}" ]; then
     printf "%s\n" "<\ ERROR /> Missing argument: direction" >&2
     printf "%s\n" "${scr_usage}" >&2
@@ -295,12 +295,12 @@ find_path() {
   }
 
   search_upwards() {
-    #~@ Initialize variables
+    #{ Initialize variables
     res=""
     found=""
     loop_guard=0
 
-    #~@ Collect search results from parent directories
+    #{ Collect search results from parent directories
     while [ "${search_path}" != "/" ]; do
 
       loop_guard=$((loop_guard + 1))
@@ -326,24 +326,24 @@ find_path() {
         res="${res}${res:+${LF}}${found}"
       fi
 
-      #~@ Move up to parent directory, with proper error checking
+      #{ Move up to parent directory, with proper error checking
       if ! search_path="$(dirname "${search_path}")"; then
         pout_debug "dirname failed for ${search_path}, stopping upward search"
         break
       fi
     done
 
-    #~@ Return results
+    #{ Return results
     printf "%s" "${res:-}"
   }
 
-  #~@ Fetch search results
+  #{ Fetch search results
   case "${search_type}" in
   upward) search_results="$(search_upwards)" ;;
   downward | *) search_results="$(search_downwards)" ;;
   esac
 
-  #~@ Debug results
+  #{ Debug results
   pout_debug "$(
     printf "Searching %s for '%s' from '%s'" "$(
       printf "%s" "${search_type}" |
@@ -364,7 +364,7 @@ find_path() {
     pout_debug "${search_type_proper} search yielded no results"
   fi
 
-  #~@ Process results by match quality
+  #{ Process results by match quality
   if [ -n "${search_results}" ]; then
     printf "%s" "${search_results}" |
       awk -v target="${search_item}" '
@@ -391,19 +391,19 @@ find_path() {
       sort -r | cut -d' ' -f2-
   fi
 
-  #~@ Return results
+  #{ Return results
   printf "%s" "${search_results}"
 }
 
 find_exe() {
-  #~@ Search for executable in PATH
+  #{ Search for executable in PATH
   if command -v "${1}" 2>/dev/null; then
     search_result="$(command -v "${1}" 2>/dev/null)"
   else
     search_result=""
   fi
 
-  #~@ Extended search for executables with common extensions if not found
+  #{ Extended search for executables with common extensions if not found
   if [ -z "${search_result}" ] && [ "${smart_exec:-0}" -eq 1 ]; then
     for ext in ".sh" ".exe" ".cmd" ".bat" ".rs" ".py" ".rb"; do
       potential_exe="${1}${ext}"
@@ -424,82 +424,82 @@ find_exe() {
     done
   fi
 
-  #~@ Return search result
+  #{ Return search result
   printf "%s" "${search_result}"
 }
 
 execute_process_OLD() {
-  #~@ Initialize variables
+  #{ Initialize variables
   process_item=""
   process_results=""
   process_result=""
 
-  #~@ Define helper functions
+  #{ Define helper functions
   for_exe() {
-    #~@ Initialize search result
+    #{ Initialize search result
     search_result=""
 
-    #~@ Search for executable in PATH
+    #{ Search for executable in PATH
     search_result="$(find_exe "${1}")"
 
-    #~@ Return search result
+    #{ Return search result
     printf "%s" "${search_result}"
   }
 
   for_path() {
-    #~@ Initialize search result
+    #{ Initialize search result
     search_result=""
 
-    #~@ Perform search based on direction
+    #{ Perform search based on direction
     case "${2}" in
     up)
-      #~@ Search only in parent directories
+      #{ Search only in parent directories
       search_result="$(find_path --upwards --for "${1}")"
       ;;
-    down) #~@ Search only in child directories
+    down) #{ Search only in child directories
       search_result="$(
         find_path --downwards --for "${1}"
       )"
       ;;
     both | *)
-      #~@ Try downward search first (typically faster)
+      #{ Try downward search first (typically faster)
       search_result="$(find_path --downwards --for "${1}")"
 
-      #~@ If nothing found, try upward search
+      #{ If nothing found, try upward search
       if [ -z "${search_result}" ]; then
         search_result="$(find_path --upwards --for "${1}")"
       fi
       ;;
     esac
 
-    #~@ Return search result
+    #{ Return search result
     printf "%s" "${search_result}"
   }
 
   for_all() {
-    #~@ Initialize search result
+    #{ Initialize search result
     search_result=""
 
-    #~@ Try paths search first
+    #{ Try paths search first
     search_result="$(for_exe "${1}")"
 
-    #~@ If nothing found, try path search
+    #{ If nothing found, try path search
     [ -n "${search_result}" ] || {
       search_result="$(for_path "${1}" "${2}")"
     }
 
-    #~@ Return search result
+    #{ Return search result
     printf "%s" "${search_result}"
   }
 
-  #~@ Process each item
+  #{ Process each item
   for process_item in ${items}; do
     pout_debug "ITEM: ${process_item}"
 
-    #~@ Process based on requested types
+    #{ Process based on requested types
     case "${type:-all}" in
     exe)
-      #~@ Only search for executables
+      #{ Only search for executables
       process_result="$(find_exe "${process_item}")"
       ;;
     path)
@@ -514,7 +514,7 @@ execute_process_OLD() {
       ;;
     esac
 
-    #~@ Skip if no result was found
+    #{ Skip if no result was found
     if [ -n "${process_result}" ]; then
       process_results="${process_results}${process_results:+${LF}}${process_result}"
       break
@@ -523,13 +523,13 @@ execute_process_OLD() {
     fi
   done
 
-  #~@ Display all results in debug mode
+  #{ Display all results in debug mode
   [ -n "${process_results}" ] || {
     pout_debug "No results found"
     return 1
   }
 
-  #~@ Retrieve the result located closest to the base directory
+  #{ Retrieve the result located closest to the base directory
   process_result="$(
     printf "%s" "${process_results}" |
       awk '{
@@ -540,25 +540,25 @@ execute_process_OLD() {
       sort -n | cut -d' ' -f2- | head -n1
   )"
 
-  #~@ Return result
+  #{ Return result
   printf "%s" "${process_result}"
 }
 
 execute_output() {
-  #~@ Initialize variables
+  #{ Initialize variables
   results="$1"
   formatted_output=""
 
-  #~@ If no results found, exit with error
+  #{ If no results found, exit with error
   if [ -z "${results}" ]; then
     pout_debug "No results to output"
     return 1
   fi
 
-  #~@ Format results based on output format
+  #{ Format results based on output format
   case "${output_format:-plain}" in
   json)
-    #~@ Format as JSON array
+    #{ Format as JSON array
     formatted_output="["
     first=true
     echo "${results}" | while IFS= read -r line || [ -n "${line}" ]; do
@@ -650,78 +650,78 @@ execute_output() {
 }
 
 execute_process() {
-  #~@ Initialize variables
+  #{ Initialize variables
   process_item=""
   process_results=""
   process_result=""
   all_results=""
 
-  #~@ Define helper functions
+  #{ Define helper functions
   for_exe() {
-    #~@ Initialize search result
+    #{ Initialize search result
     search_result=""
 
-    #~@ Search for executable in PATH
+    #{ Search for executable in PATH
     search_result="$(find_exe "${1}")"
 
-    #~@ Return search result
+    #{ Return search result
     printf "%s" "${search_result}"
   }
 
   for_path() {
-    #~@ Initialize search result
+    #{ Initialize search result
     search_result=""
 
-    #~@ Perform search based on direction
+    #{ Perform search based on direction
     case "${2}" in
     up)
-      #~@ Search only in parent directories
+      #{ Search only in parent directories
       search_result="$(find_path --upwards --for "${1}")"
       ;;
-    down) #~@ Search only in child directories
+    down) #{ Search only in child directories
       search_result="$(
         find_path --downwards --for "${1}"
       )"
       ;;
     both | *)
-      #~@ Try downward search first (typically faster)
+      #{ Try downward search first (typically faster)
       search_result="$(find_path --downwards --for "${1}")"
 
-      #~@ If nothing found, try upward search
+      #{ If nothing found, try upward search
       if [ -z "${search_result}" ]; then
         search_result="$(find_path --upwards --for "${1}")"
       fi
       ;;
     esac
 
-    #~@ Return search result
+    #{ Return search result
     printf "%s" "${search_result}"
   }
 
   for_all() {
-    #~@ Initialize search result
+    #{ Initialize search result
     search_result=""
 
-    #~@ Try paths search first
+    #{ Try paths search first
     search_result="$(for_exe "${1}")"
 
-    #~@ If nothing found, try path search
+    #{ If nothing found, try path search
     [ -n "${search_result}" ] || {
       search_result="$(for_path "${1}" "${2}")"
     }
 
-    #~@ Return search result
+    #{ Return search result
     printf "%s" "${search_result}"
   }
 
-  #~@ Process each item
+  #{ Process each item
   for process_item in ${items}; do
     pout_debug "ITEM: ${process_item}"
 
-    #~@ Process based on requested types
+    #{ Process based on requested types
     case "${type:-all}" in
     exe)
-      #~@ Only search for executables
+      #{ Only search for executables
       process_result="$(find_exe "${process_item}")"
       ;;
     path)
@@ -736,11 +736,11 @@ execute_process() {
       ;;
     esac
 
-    #~@ Collect all results for list mode
+    #{ Collect all results for list mode
     if [ "${list_mode:-0}" -eq 1 ] && [ -n "${process_result}" ]; then
       all_results="${all_results}${all_results:+${LF}}${process_result}"
     else
-      #~@ Skip if no result was found in single result mode
+      #{ Skip if no result was found in single result mode
       if [ -n "${process_result}" ]; then
         process_results="${process_results}${process_results:+${LF}}${process_result}"
         break
@@ -750,12 +750,12 @@ execute_process() {
     fi
   done
 
-  #~@ Handle list mode
+  #{ Handle list mode
   if [ "${list_mode:-0}" -eq 1 ]; then
-    #~@ Use all collected results
+    #{ Use all collected results
     process_results="${all_results}"
   else
-    #~@ Retrieve the result located closest to the base directory
+    #{ Retrieve the result located closest to the base directory
     process_result="$(
       printf "%s" "${process_results}" |
         awk '{
@@ -766,22 +766,22 @@ execute_process() {
         sort -n | cut -d' ' -f2- | head -n1
     )"
 
-    #~@ Use single result for output
+    #{ Use single result for output
     process_results="${process_result}"
   fi
 
-  #~@ Display all results in debug mode
+  #{ Display all results in debug mode
   [ -n "${process_results}" ] || {
     pout_debug "No results found"
     return 1
   }
 
-  #~@ Process and output the results
+  #{ Process and output the results
   execute_output "${process_results}"
 }
 
 cleanup() {
-  #~@ Unset all variables to prevent leakage
+  #{ Unset all variables to prevent leakage
   unset base items direction debug delimiter IFS CMD_FD
   unset scr_name scr_desc scr_usage scr_version scr_guide
   unset search_base search_item search_direction LF

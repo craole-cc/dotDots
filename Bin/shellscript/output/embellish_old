@@ -9,12 +9,12 @@ parse_arguments() {
     -h | --help) printf "%s" "USAGE" ;;
     -v | --version) printf "%s" "VERSION" ;;
     *)
-      #~@ Reset variables
+      #{ Reset variables
       unset \
         attribute attribute_cmd \
         color_name color_type color_cmd color_code
 
-      #~@ Set default alignment
+      #{ Set default alignment
       alignment="left"
       ;;
     esac
@@ -77,7 +77,7 @@ parse_arguments() {
     -*black* | -*red* | -*green* | -*yellow* | -*blue* | -*magenta* | -*cyan* | -*white*)
       attribute="color"
 
-      #~@ Set the color name and code
+      #{ Set the color name and code
       case "$1" in
       *black*) color_name="black" color_code=0 ;;
       *red*) color_name="red" color_code=1 ;;
@@ -89,7 +89,7 @@ parse_arguments() {
       *white*) color_name="white" color_code=7 ;;
       esac
 
-      #~@ Set the color class
+      #{ Set the color class
       case "$1" in
       *bg*)
         class="background"
@@ -180,7 +180,7 @@ align() {
 }
 
 stylize() {
-  #~@ Set the styling system [TPUT vs ANSI]
+  #{ Set the styling system [TPUT vs ANSI]
   if type tput >/dev/null 2>&1 && [ "$tput_code" ]; then
     attribute_cmd="tput ${tput_code}"
   else
@@ -189,13 +189,13 @@ stylize() {
   fi
 
   if [ "$verbosity" -gt 0 ]; then
-    #~@ Print a line of repeated characters
+    #{ Print a line of repeated characters
     terminal_width=$(tput cols)
     line_character="~"
     printf "%-${terminal_width}s\n" |
       tr ' ' "$line_character"
 
-    #~@ Print the attribute information
+    #{ Print the attribute information
     case "$attribute" in '') ;; *)
       printf "Attribute: %s \nCode: %s\n" \
         "$attribute" "$attribute_cmd"

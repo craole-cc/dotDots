@@ -39,19 +39,19 @@ USAGE_GUIDE
 #@		                        GLOBAL TOOLS                         @#
 # ===================================================================
 
-#~@ Usage display
+#{ Usage display
 __help__() {
   printf "%s\n" "$_cmd_USAGEGUIDE"
   exit 0
 }
 
-#~@ Version display
+#{ Version display
 __version__() {
   printf "%s\n" "$_cmd_VERSION"
   exit 0
 }
 
-#~@ Command validation
+#{ Command validation
 __cmd_exists__() {
   unalias "$@" >/dev/null 2>&1
   command -v "$@" >/dev/null 2>&1
@@ -63,7 +63,7 @@ __cmd_exists__() {
 
 if __cmd_exists__ getoptions; then
 
-  #~@ Declare user options (Allow multiple flags)
+  #{ Declare user options (Allow multiple flags)
   parser_definition() {
     setup REST
     disp _cmd_USAGEGUIDE -h --help
@@ -74,12 +74,12 @@ if __cmd_exists__ getoptions; then
 
   }
 
-  #~@ Load options
+  #{ Load options
   eval "$(getoptions parser_definition) exit 1"
 
 else
 
-  #~@ Declare user options (One flag per command)
+  #{ Declare user options (One flag per command)
   case "$1" in
   '-h' | '--help') __help__ ;;
   '-v' | '--version') __version__ ;;
@@ -109,13 +109,13 @@ fi
 
 __defaults__() {
 
-  #~@ Set FLAG as the default
+  #{ Set FLAG as the default
   OPTION="$FLAG_A"
 
-  #~@ Change calculator to python is requested
+  #{ Change calculator to python is requested
   [ "$FLAG_B" ] && OPTION="$FLAG_B"
 
-  #~@ Change calculator to bc is requested
+  #{ Change calculator to bc is requested
   [ "$FLAG_C" ] && OPTION="$FLAG_C"
 
 }
@@ -153,10 +153,10 @@ __process__() {
 
 __main__() {
 
-  #~@ Confirm that a arg was entered
+  #{ Confirm that a arg was entered
   [ "$#" -eq 0 ] && __error__ --arg
 
-  #~@ Process all stings
+  #{ Process all stings
   while [ $# -gt 0 ]; do
     __process__ "$1"
     shift
@@ -176,18 +176,18 @@ __cleanup__() {
 #@		                            RUN	  		                       @#
 # ===================================================================
 
-#~@ Load internal variables
+#{ Load internal variables
 __info__
 
-#~@ Establish defaults
+#{ Establish defaults
 __defaults__
 
-#~@ Allow verbose option if requested
+#{ Allow verbose option if requested
 # if [ "$VERBOSE" ]; then
 #   __verbose__ "$@"
 # else
 #   __main__ "$@"
 # fi
 
-#~@ Remove any leftover variables
+#{ Remove any leftover variables
 # __cleanup__

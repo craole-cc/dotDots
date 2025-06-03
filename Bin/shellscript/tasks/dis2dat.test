@@ -11,7 +11,7 @@ DOCUMENTATION
 
 cleanup() { [ -f "$1" ] && rm "$1"; }
 
-init_scr_TEST() { #~@ Set up test file
+init_scr_TEST() { #{ Set up test file
   cat >"$scr_TEST" <<EOF
 This is a test file
 that contains some text.

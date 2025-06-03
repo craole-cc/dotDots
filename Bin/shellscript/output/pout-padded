@@ -76,14 +76,14 @@ print_usage() {
 execute_process() {
   i=0
   while [ "$i" -lt "$reps" ]; do
-    #~@ Use %b to interpret escape sequences
+    #{ Use %b to interpret escape sequences
     printf "%b" "$char"
     i=$((i + 1))
   done
 }
 
 parse_arguments() {
-  #~@ Script Options
+  #{ Script Options
   for arg in "$@"; do
     case "$arg" in
     -h) print_usage 0 ;;
@@ -91,10 +91,10 @@ parse_arguments() {
     esac
   done
 
-  #~@ Ensure a valid number of args is providied
+  #{ Ensure a valid number of args is providied
   [ "$#" -ge "$expected_args" ] || print_usage --args "$#"
 
-  #~@ Process Options
+  #{ Process Options
   while [ "$#" -ge "$expected_args" ]; do
     case "$1" in
     -n | -*num | -r | -*rep*)
@@ -120,7 +120,7 @@ parse_arguments() {
       return
       ;;
     *)
-      #~@ Handle positional arguments
+      #{ Handle positional arguments
       if [ -z "$reps" ] && [ -z "$char" ]; then
         if is_valid_num "$1"; then
           char="$2"

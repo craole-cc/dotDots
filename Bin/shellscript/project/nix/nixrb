@@ -46,7 +46,7 @@ get_utilities() {
     pat="${2:-'\n'}"
     i=0
     while [ "${i}" -lt "${rep}" ]; do
-      #~@ Use %b to interpret escape sequences
+      #{ Use %b to interpret escape sequences
       printf "%b" "${pat}"
       i=$((i + 1))
     done
@@ -58,12 +58,12 @@ get_utilities() {
     esac
   }
   manage_list() {
-    #~@ Initialize variables
+    #{ Initialize variables
     list=""
     action="build"
     separator="${delimiter:-" "}"
 
-    #~@ Parse arguments
+    #{ Parse arguments
     while [ "$#" -ge 1 ]; do
       case "$1" in
       --create | --make | --build) action=build ;;
@@ -74,7 +74,7 @@ get_utilities() {
       shift
     done
 
-    #~@ Add the defined separator, if necessary
+    #{ Add the defined separator, if necessary
     if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
       old_IFS="${IFS}"
       IFS="${delimiter}"
@@ -91,7 +91,7 @@ get_utilities() {
       printf "%s" "${list:-}"
       ;;
     parse)
-      #~@ Parse the input string into an array-like output
+      #{ Parse the input string into an array-like output
       old_IFS="${IFS}"
       IFS="${delimiter}"
       for item in ${list}; do
@@ -133,7 +133,7 @@ set_modes() {
   )"
   fail_on_error="${fail_on_error:-1}"
 
-  #~@ Parse arguments
+  #{ Parse arguments
   case "$1" in
   --pout-suppress | --pout* | --end* | --term*)
     #| Pout Options
@@ -193,25 +193,25 @@ set_commands() {
   fn_ctx="${fn_root}${tag_sep}${fn_name}"
   trap fn_ctx="${fn_root}" EXIT INT TERM
 
-  #~@ Loop through each command
+  #{ Loop through each command
   for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
-    #~@ Initialize variables
+    #{ Initialize variables
     cmd_key="" cmd_val="" cmd_env=""
 
-    #~@ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
+    #{ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
     cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]-' '[:upper:]_')"
     end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
 
-    #~@ Retrieve the path, otherwise return empty string
+    #{ Retrieve the path, otherwise return empty string
     cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
     end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
 
-    #~@ Create the environment variable of the command's location
+    #{ Create the environment variable of the command's location
     eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
     cmd_env="$(env | grep "${cmd_key}")"
     end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
 
-    #~@ Debug
+    #{ Debug
     end_process --ctx "${fn_ctx}" --debug --key "${cmd_key}" --val "${cmd_val}"
   done
 
@@ -267,7 +267,7 @@ parse_arguments() {
         end_process --info "Inferred flake root: ${flake_root}"
       else
         case "$(basename -- "$1")" in "$(basename -- "${cwd}")")
-          #~@ Check if the current directory is a flake
+          #{ Check if the current directory is a flake
           if [ -f "${cwd}/flake.nix" ]; then
             flake_root="${cwd}"
             pout --info \
@@ -300,10 +300,10 @@ validate_config() {
   end_process --ctx "${fn_ctx}" --trace --key "Verbosity Mode:" "${verbosity}"
   end_process --ctx "${fn_ctx}" --trace --key "Strict Mode:" "${fail_on_error}"
 
-  #~@ Cache the commands that will be used
+  #{ Cache the commands that will be used
   set_commands
 
-  #~@ Retrieve the absolute path to the flake, if it exists
+  #{ Retrieve the absolute path to the flake, if it exists
   check_flake_status "${flake_root:-}"
   case "${status}" in
   0) flake_root="${output}" ;;
@@ -311,7 +311,7 @@ validate_config() {
   *) return "${status}" ;;
   esac
 
-  #~@ Retrieve the absolute path to the flake, if it exists
+  #{ Retrieve the absolute path to the flake, if it exists
   check_git_status "${flake_root}"
   case "${status}" in
   0) ;;
@@ -336,14 +336,14 @@ check_flake_status() {
   status=0
   _flake="${1:-}"
 
-  #~@ Check if a flake directory was specified
+  #{ Check if a flake directory was specified
   if [ -z "${1:-}" ]; then
     end_process --ctx "${fn_ctx}" --warn "No flake directory specified, proceeding with rebuild"
     status=2
     return 0
   fi
 
-  #~@ Get the absolute path to the flake directory
+  #{ Get the absolute path to the flake directory
   if [ -x "${CMD_REALPATH}" ]; then
     _flake="$("${CMD_REALPATH}" "${_flake}")"
     end_process --ctx "${fn_ctx}" --trace "Using 'realpath' to get absolute path"
@@ -355,7 +355,7 @@ check_flake_status() {
     end_process --ctx "${fn_ctx}" --trace "Using 'cd/pwd' to get absolute path"
   fi
 
-  #~@ Return the flake directory, if the flake exists
+  #{ Return the flake directory, if the flake exists
   if [ -f "${_flake:-}/flake.nix" ]; then
     end_process --ctx "${fn_ctx}" --debug --key "Flake Root (Absolute)" "${_flake}"
     output="${_flake:-}"
@@ -386,7 +386,7 @@ check_git_status() {
     end_process --ctx "${fn_ctx}" --trace "Checking git status for directory: ${_git_dir}"
   fi
 
-  #~@ Run git status check
+  #{ Run git status check
   if [ -x "${CMD_GYT:-}" ]; then
     end_process --ctx "${fn_ctx}" --trace "Using gyt to check git status"
     if "${CMD_GYT}" --dir "${_git_dir}"; then
@@ -400,9 +400,9 @@ check_git_status() {
       return 0
     fi
   else
-    #~@ Check the repository status
+    #{ Check the repository status
     if \cd "${_git_dir}"; then
-      #~@ Check git status and encourage commit, fail if there are changes
+      #{ Check git status and encourage commit, fail if there are changes
       [ -z "${CMD_GIT:-}" ] && {
         status=1
         output="The git command is not available."
@@ -411,7 +411,7 @@ check_git_status() {
 
       git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2>/dev/null)"
 
-      #~@ Update the nothing_to_commit flag if there are no changes
+      #{ Update the nothing_to_commit flag if there are no changes
       if [ -n "${git_changes_to_commit}" ]; then
         git status --short
         output="Please commit those repository changes first"
@@ -432,7 +432,7 @@ run_process_REV0() {
   #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
   trap fn_ctx="" EXIT INT TERM
 
-  #~@ Update the arguments
+  #{ Update the arguments
   case "${upgrade}" in
   true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
   *) ;;
@@ -442,7 +442,7 @@ run_process_REV0() {
   *) ;;
   esac
 
-  #~@ Update target
+  #{ Update target
   if [ -n "${flake_root}" ] && [ -n "${build_target}" ]; then
     build_target="--flake ${flake_root}#${build_target}"
   elif [ -n "${flake_root}" ]; then
@@ -451,15 +451,15 @@ run_process_REV0() {
     :
   fi
 
-  #~@ Update the command
+  #{ Update the command
   cmd="sudo nixos-rebuild ${action} ${build_target} ${args:-}"
 
-  #~@ Print the command
+  #{ Print the command
   case "${debug}" in
   true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
   esac
 
-  #~@ Execute the command
+  #{ Execute the command
   printf "%s" "${args:-}"
   # eval "${cmd}"
   # return "$?"
@@ -475,7 +475,7 @@ pout() {
   }
 
   pout_init() {
-    #~@ Initialize variables
+    #{ Initialize variables
     tag_sep="${tag_sep:-"-|-"}"
     ctx=""
     fn_ctx="${fn_ctx:-}"
@@ -516,7 +516,7 @@ pout() {
       --fn*)
         case "${1}" in
         *-sub)
-          #~@ Handle sub-function context
+          #{ Handle sub-function context
           if [ -n "${2:-}" ]; then
             tag_ctx="${tag_ctx:+${tag_ctx}${tag_sep}}${2}"
             shift
@@ -525,7 +525,7 @@ pout() {
           fi
           ;;
         *)
-          #~@ Handle main function context
+          #{ Handle main function context
           if [ -n "${2:-}" ]; then
             tag_ctx="${2}"
             shift
@@ -650,7 +650,7 @@ pout() {
   }
 
   pout_prep() {
-    #~@ Format tag
+    #{ Format tag
     case "${toggle_tag}" in off) lvl="" scr="" ctx="" ;; *)
       case "${toggle_lvl}" in off) lvl="" ;; *)
         case "${toggle_scr}" in off) scr="" ;; *)
@@ -661,10 +661,10 @@ pout() {
         ;;
       esac
 
-      #~@ Update the tag
+      #{ Update the tag
       if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
 
-        #~@ Concatenate the tag elements in order (level->script->context)
+        #{ Concatenate the tag elements in order (level->script->context)
         if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
           tag="${lvl}${tag_sep}${scr}${tag_sep}${ctx}"
         elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
@@ -681,22 +681,22 @@ pout() {
           tag="${ctx}"
         fi
 
-        #~@ Add the exit_code, if exists
+        #{ Add the exit_code, if exists
         [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
           tag="${tag:-}-|-exit code: ${exit_code}"
 
-        #~@ Add special characters/seperators
+        #{ Add special characters/seperators
         tag="/> ${tag:-} <\\ "
 
-        #~@ Ensure there is a trailing line break
+        #{ Ensure there is a trailing line break
         tail_reps=1
       fi
       ;;
     esac
 
-    #~@ Format message
+    #{ Format message
     case "${toggle_msg}" in off) msg="" lvl="" scr="" ctx="" ;; *)
-      #~@ Delimit the message with spaces
+      #{ Delimit the message with spaces
       [ -n "${msg:-}" ] && {
         msg="$(printf "%b" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
       }
@@ -707,7 +707,7 @@ pout() {
             sed "s/${delimiter:-}/ /g"
         )"
       }
-      #~@ Trim the message
+      #{ Trim the message
       case "${toggle_trim:-}" in off) ;; on | *)
         [ -n "${msg:-}" ] &&
           msg="$(trim_whitespace "${msg:-}")"
@@ -717,35 +717,35 @@ pout() {
         }
         ;;
       esac
-      #~@ Honor tag toggle
+      #{ Honor tag toggle
 
       ;;
     esac
 
-    #~@ Format the message
+    #{ Format the message
     if [ -z "${msg:-}" ]; then
       :
     elif [ -n "${key}" ]; then
       case "${tag}" in
       *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-        #~@ Define the separator
+        #{ Define the separator
         sep=" | "
 
-        #~@ Calculate padding for label alignment
+        #{ Calculate padding for label alignment
         debug_pad="${debug_pad:-24}"
         pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-        #~@ Format the tagged key-value pair
+        #{ Format the tagged key-value pair
         msg="$(
           printf "%b%b%b%b%b" \
             "${tag}" "${pad}" "${key}" "${sep}" "${val}"
         )"
         ;;
       *)
-        #~@ Define the separator
+        #{ Define the separator
         sep=": "
 
-        #~@ Print the key-value pair
+        #{ Print the key-value pair
         msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
         ;;
       esac
@@ -760,19 +760,19 @@ pout() {
   }
 
   pout_execute() {
-    #~@ Print leading characters/lines
+    #{ Print leading characters/lines
     [ "${head_reps}" -gt 0 ] &&
       pout_repeat "${head_reps}" "${head_char}"
 
-    #~@ Print the message
+    #{ Print the message
     [ -n "${msg:-}" ] &&
       case "${verbosity:-}" in
       "${verbosity_quiet:-}") ;;
       *)
-        #~@ Print the message to the defined stream
+        #{ Print the message to the defined stream
         printf "%b" "${msg:-}" >&"${stream_code:-1}"
 
-        #~@ Append the error code to the message or trailing characters
+        #{ Append the error code to the message or trailing characters
         if [ -n "${exit_code:-}" ]; then
           #? Handled in pout_cleanup
           # printf "\n%s exited with a error code of %s" \
@@ -780,7 +780,7 @@ pout() {
           #   exit "${exit_code}"
           pout_exit
         else
-          #~@ Print trailing characters/lines
+          #{ Print trailing characters/lines
           [ -n "${tail_reps}" ] && pout_repeat "${tail_reps}" "${tail_char}"
         fi
         ;;
@@ -789,7 +789,7 @@ pout() {
   }
 
   pout_exit() {
-    #~@ Terminate, if requested
+    #{ Terminate, if requested
     if [ -z "${exit_code:-}" ]; then
       return 0
     elif [ "${exit_code:-0}" -eq 0 ]; then
@@ -801,7 +801,7 @@ pout() {
   pout_main "$@"
 }
 end_process() {
-  #~@ Initialize variables
+  #{ Initialize variables
   ctx="${ctx:-pout}" #? Function name
   exit_code=         #? [""|0|1-255]
   head_char="\n"     #? Character(s) to be printed repeatedly before the message
@@ -824,7 +824,7 @@ end_process() {
   tail_reps=1    #? positive integer or zero
   val=""
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
     --usage)
@@ -954,7 +954,7 @@ end_process() {
     shift
   done
 
-  #~@ Honor overrides
+  #{ Honor overrides
   if [ -n "${no_msg:-}" ]; then
     lvl=""
     ctx=""
@@ -973,7 +973,7 @@ end_process() {
     lvl=""
   fi
 
-  #~@ Delimit the message with spaces
+  #{ Delimit the message with spaces
   if [ -n "${no_msg:-}" ]; then
     msg=""
   else
@@ -989,7 +989,7 @@ end_process() {
     }
   fi
 
-  #~@ Trim the message
+  #{ Trim the message
   if [ -z "${no_trim}" ]; then
     [ -n "${msg:-}" ] &&
       msg="$(trim_whitespace "${msg:-}")"
@@ -1001,7 +1001,7 @@ end_process() {
     :
   fi
 
-  #~@ Update the tag
+  #{ Update the tag
   if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
     if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
       tag="${lvl}-|-${scr}-|-${ctx}"
@@ -1019,41 +1019,41 @@ end_process() {
       tag="${ctx}"
     fi
 
-    #~@ Add the exit_code, if exists
+    #{ Add the exit_code, if exists
     [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
       tag="${tag:-}-|-exit code: ${exit_code}"
 
-    #~@ Add special characters/seperators
+    #{ Add special characters/seperators
     tag="/> ${tag:-} <\\ "
 
-    #~@ Ensure there is a trailing line break
+    #{ Ensure there is a trailing line break
     tail_reps=1
   fi
 
-  #~@ Format the message
+  #{ Format the message
   if [ -n "${no_msg:-}" ]; then
     msg=""
   elif [ -n "${key}" ]; then
     case "${tag}" in
     *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #~@ Define the separator
+      #{ Define the separator
       sep=" | "
 
-      #~@ Calculate padding for label alignment
+      #{ Calculate padding for label alignment
       debug_pad="${debug_pad:-24}"
       pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #~@ Format the tagged key-value pair
+      #{ Format the tagged key-value pair
       msg="$(
         printf "%bin%bin%bin%bin%bin" \
           "${tag}" "${pad}" "${key}" "${sep}" "${val}"
       )"
       ;;
     *)
-      #~@ Define the separator
+      #{ Define the separator
       sep=": "
 
-      #~@ Print the key-value pair
+      #{ Print the key-value pair
       msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
       ;;
     esac
@@ -1065,19 +1065,19 @@ end_process() {
     fi
   fi
 
-  #~@ Print leading characters/lines
+  #{ Print leading characters/lines
   [ "${head_reps}" -gt 0 ] &&
     pout_repeat "${head_reps}" "${head_char}"
 
-  #~@ Print the message
+  #{ Print the message
   [ -n "${msg:-}" ] &&
     case "${verbosity:-}" in
     "${verbosity_quiet:-}") ;;
     *)
-      #~@ Print the message to the defined stream
+      #{ Print the message to the defined stream
       printf "%b" "${msg:-}" >&"${stream_code:-1}"
 
-      #~@ Append the error code to the message or trailing characters
+      #{ Append the error code to the message or trailing characters
       if [ -n "${exit_code:-}" ]; then
         #? Handled in pout_cleanup
         # printf "\n%s exited with a error code of %s" \
@@ -1085,13 +1085,13 @@ end_process() {
         #   exit "${exit_code}"
         :
       else
-        #~@ Print trailing characters/lines
+        #{ Print trailing characters/lines
         [ -n "${tail_reps}" ] && pout_repeat "${tail_reps}" "${tail_char}"
       fi
       ;;
     esac
 
-  #~@ Terminate, if requested
+  #{ Terminate, if requested
   if [ -z "${exit_code:-}" ]; then
     return 0
   elif [ "${exit_code:-0}" -eq 0 ]; then
@@ -1101,12 +1101,12 @@ end_process() {
   fi
 }
 tag_process() {
-  #~@ Initialize variables
+  #{ Initialize variables
   tag_ctx="${tag_ctx:-""}"
   tag_sep="${tag_sep:-"-|-"}"
   tag_code="${tag_code:-0}"
 
-  #~@ Validate input
+  #{ Validate input
   case "${1}" in
   "")
     printf "ERROR: run_process requires a function name\n" >&2
@@ -1127,7 +1127,7 @@ tag_process() {
   return "${tag_code:-0}"
 }
 end_process_CLAUDE() {
-  #~@ Initialize variables
+  #{ Initialize variables
   _status=0
   _msg=""
   _fatal=0
@@ -1155,7 +1155,7 @@ end_process_CLAUDE() {
   tail_reps=1    #? positive integer or zero
   val=""
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ ${#} -gt 0 ]; do
     case "${1:-}" in
     --usage)
@@ -1364,7 +1364,7 @@ end_process_CLAUDE() {
     shift
   done
 
-  #~@ Honor overrides
+  #{ Honor overrides
   if [ -n "${no_msg:-}" ]; then
     lvl=""
     ctx=""
@@ -1383,7 +1383,7 @@ end_process_CLAUDE() {
     lvl=""
   fi
 
-  #~@ Delimit the message with spaces
+  #{ Delimit the message with spaces
   if [ -n "${no_msg:-}" ]; then
     msg=""
   else
@@ -1399,7 +1399,7 @@ end_process_CLAUDE() {
     }
   fi
 
-  #~@ Trim the message
+  #{ Trim the message
   if [ -z "${no_trim:-}" ]; then
     [ -n "${msg:-}" ] &&
       msg="$(trim_whitespace "${msg:-}")"
@@ -1409,7 +1409,7 @@ end_process_CLAUDE() {
     }
   fi
 
-  #~@ Update the tag
+  #{ Update the tag
   if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
     if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
       tag="${lvl}${tag_sep}${scr}${tag_sep}${ctx}"
@@ -1427,41 +1427,41 @@ end_process_CLAUDE() {
       tag="${ctx}"
     fi
 
-    #~@ Add the exit_code, if exists
+    #{ Add the exit_code, if exists
     [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
       tag="${tag:-}${tag_sep}exit code: ${exit_code}"
 
-    #~@ Add special characters/separators
+    #{ Add special characters/separators
     tag="/> ${tag:-} <\\ "
 
-    #~@ Ensure there is a trailing line break
+    #{ Ensure there is a trailing line break
     tail_reps=1
   fi
 
-  #~@ Format the message
+  #{ Format the message
   if [ -n "${no_msg:-}" ]; then
     msg=""
   elif [ -n "${key:-}" ]; then
     case "${tag}" in
     *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
-      #~@ Define the separator
+      #{ Define the separator
       sep=" | "
 
-      #~@ Calculate padding for label alignment
+      #{ Calculate padding for label alignment
       debug_pad="${debug_pad:-18}"
       pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
 
-      #~@ Format the tagged key-value pair
+      #{ Format the tagged key-value pair
       msg="$(
         printf "%bin%bin%bin%bin%bin" \
           "${tag}" "${pad}" "${key}" "${sep}" "${val}"
       )"
       ;;
     *)
-      #~@ Define the separator
+      #{ Define the separator
       sep=": "
 
-      #~@ Print the key-value pair
+      #{ Print the key-value pair
       msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
       ;;
     esac
@@ -1471,24 +1471,24 @@ end_process_CLAUDE() {
     fi
   fi
 
-  #~@ Print leading characters/lines
+  #{ Print leading characters/lines
   [ "${head_reps:-0}" -gt 0 ] &&
     pout_repeat "${head_reps}" "${head_char}"
 
-  #~@ Print the message
+  #{ Print the message
   [ -n "${msg:-}" ] &&
     case "${verbosity:-}" in
     "${verbosity_quiet:-}") ;;
     *)
-      #~@ Print the message to the defined stream
+      #{ Print the message to the defined stream
       printf "%b" "${msg:-}" >&"${stream_code:-1}"
 
-      #~@ Print trailing characters/lines
+      #{ Print trailing characters/lines
       [ "${tail_reps:-0}" -gt 0 ] && pout_repeat "${tail_reps}" "${tail_char}"
       ;;
     esac
 
-  #~@ Restore function context if requested
+  #{ Restore function context if requested
   if [ "${restore_ctx=0}" -eq 1 ]; then
     case "${fn_ctx}" in
     *"${tag_sep}"*)
@@ -1502,12 +1502,12 @@ end_process_CLAUDE() {
     esac
   fi
 
-  #~@ Override context if specified
+  #{ Override context if specified
   if [ -n "${_ctx}" ]; then
     init_fn "${_ctx}" || :
   fi
 
-  #~@ Handle fatal flag
+  #{ Handle fatal flag
   case "${_fatal}" in
   1)
     exit "${exit_code:-0}"
@@ -1518,7 +1518,7 @@ end_process_CLAUDE() {
     ;;
   esac
 
-  #~@ Terminate or return as requested
+  #{ Terminate or return as requested
   if [ -z "${exit_code:-}" ]; then
     return 0
   elif [ "${exit_code:-0}" -eq 0 ]; then

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#~@ Rust
+#{ Rust
 
 installRust() {
   printf "%s\n" "Installing Rust via Rustup"
@@ -37,7 +37,7 @@ cargo update -h >/dev/null 2>&1 || CargoInstall cargo-update
 weHave cargo-watch || CargoInstall cargo-watch
 weHave cargo-add || CargoInstall cargo-add
 
-#~@ Emacs
+#{ Emacs
 # weHave emacs || Install emacs
 # weHave doom ||
 #   {

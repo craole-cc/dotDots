@@ -10,7 +10,7 @@ flag_VERBOSE=0
 padding="  "
 
 parse_cli() {
-  #~@ Parse command-line options
+  #{ Parse command-line options
   case "$1" in
   -h | --help) post_info --help ;;
   -v | --version) post_info --version ;;
@@ -50,7 +50,7 @@ post_info() {
 }
 
 pout() {
-  #~@ Print errors and Usage info
+  #{ Print errors and Usage info
   case $1 in
   --option)
     shift
@@ -59,7 +59,7 @@ pout() {
     ;;
   esac
 
-  #~@ Trigger early exit
+  #{ Trigger early exit
   pull_out 1
 }
 
@@ -100,12 +100,12 @@ process() {
 }
 
 main() {
-  #~@ Parse command-line arguments
+  #{ Parse command-line arguments
   parse_cli "$@"
 
-  #~@ Check for the presence of a graphical environment
+  #{ Check for the presence of a graphical environment
   process
 
-  #~@ Exit gracefully with an error code, if necessary
+  #{ Exit gracefully with an error code, if necessary
   pull_out
 } && main "$@"

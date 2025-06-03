@@ -33,7 +33,7 @@ set_defaults() {
 }
 
 parse_arguments() {
-  #~@ Parse command-line arguments
+  #{ Parse command-line arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
     -h | --help) pout --usage ;;
@@ -56,12 +56,12 @@ parse_arguments() {
       shift
       ;;
     *)
-      #~@ Warn about positional arguments
+      #{ Warn about positional arguments
       if [ -z "${target_dir:-}" ] && [ -z "${target_cmd:-}" ]; then
         pout --warn "Avoid positional arguments for safer operation. For more information, use --help"
       fi
 
-      #~@ Parse positional arguments
+      #{ Parse positional arguments
       if [ -z "${target_dir:-}" ] && [ -d "$1" ]; then
         pout --warn "Work directory inferred from positional argument:" "$1"
         target_dir="$1"
@@ -74,7 +74,7 @@ parse_arguments() {
     shift
   done
 
-  #~@ Set verbosity
+  #{ Set verbosity
   case "${verbosity:-}" in
   "${verbosity_quiet:-0}" | quiet | off | false)
     verbosity="${verbosity_quiet:-0}"
@@ -105,7 +105,7 @@ validate_environment() {
 }
 
 execute_process() {
-  #~@ Change to working directory
+  #{ Change to working directory
   if ! \cd "${target_dir:-}" >/dev/null; then
     pout --error "Could not change to directory:" "${target_dir:-}"
   else
@@ -120,11 +120,11 @@ execute_process() {
 }
 
 pout() {
-  #~@ Initialize variables
+  #{ Initialize variables
   tag=""
   msg=""
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ $# -gt 0 ]; do
     case "${1:-}" in
     --usage)
@@ -147,15 +147,15 @@ pout() {
     shift
   done
 
-  #~@ Compose the tagged message, if necessary
+  #{ Compose the tagged message, if necessary
   if [ -n "${tag:-}" ]; then
     msg="$(printf "[%s] /> %s <\ %s\n" "${tag}" "${scr_name:-}" "${msg:-}")"
   fi
 
-  #~@ Update the message, replacing the delimiter with spaces
+  #{ Update the message, replacing the delimiter with spaces
   msg="$(printf "%s" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
 
-  #~@ Print the message
+  #{ Print the message
   case "${tag:-}" in
   DEBUG)
     if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
@@ -188,7 +188,7 @@ pout() {
   *) printf "%s" "${msg:-}" ;;
   esac
 
-  #~@ Terminate, if requested
+  #{ Terminate, if requested
   if [ -z "${exit_code:-}" ]; then
     return 0
   elif [ "${exit_code}" -eq 0 ]; then

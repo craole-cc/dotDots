@@ -1,10 +1,10 @@
 #!/bin/sh
 
 main() {
-  #~@ Parse the arguments
+  #{ Parse the arguments
   parse_arguments "$@"
 
-  #~@ Apply the schemes per the current system, if possible.
+  #{ Apply the schemes per the current system, if possible.
   for_plasma
 
   execute

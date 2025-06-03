@@ -141,16 +141,16 @@ set_verbosity() {
   #DOC     4: debug (verbose)
   #DOC     5: trace
 
-  #~@ Take defaults from system variables
+  #{ Take defaults from system variables
   _verbosity="${VERBOSITY:-"$VERBOSE"}"
   _quiet="${SILENT:-"$QUIET"}"
 
-  #~@ Take defaults from local variables
+  #{ Take defaults from local variables
   verbosity="${verbosity:-"$_verbosity"}"
   quiet="${quiet:-"$_quiet"}"
   case "${quiet:-"$_quiet"}" in true | 1 | on) verbosity=0 ;; esac
 
-  #~@ Set verbosity based on arguments or defaults
+  #{ Set verbosity based on arguments or defaults
   case "${1:-"$verbosity"}" in
   0 | quiet | false | off) verbosity=0 ;;
   1 | error | fail*) verbosity=1 ;;
@@ -162,7 +162,7 @@ set_verbosity() {
   *) verbosity=3 ;;
   esac
 
-  #~@ Parse arguments
+  #{ Parse arguments
   for arg in "$@"; do
     case "$arg" in
     -q | --quiet) verbosity=0 ;;
@@ -174,11 +174,11 @@ set_verbosity() {
     esac
   done
 
-  #~@ Clamp values
+  #{ Clamp values
   [ "$verbosity" -gt 5 ] && verbosity=5
   [ "$verbosity" -lt 0 ] && verbosity=0
 
-  #~@ Return verbosity level
+  #{ Return verbosity level
   printf "%s" "$verbosity"
 }
 
@@ -371,7 +371,7 @@ parse_arguments() {
     -*type)
       if [ "$2" ]; then
         __msg_type="$(validate "$2" "$__msg_types")"
-        #~@ Throw error if message type is invalid
+        #{ Throw error if message type is invalid
         [ -n "$__msg_type" ] || {
           templates --invalid "parse_arguments" "message type" "$2" "$__msg_types"
           __code=1
@@ -379,7 +379,7 @@ parse_arguments() {
         }
         shift
       else
-        #~@ Throw error if message type is not specified
+        #{ Throw error if message type is not specified
         pout --name "parse_arguments" --type error --msg "Message type not specified"
         __code=1
         exit "$__code"
@@ -463,10 +463,10 @@ print_blank() {
 }
 
 print_out() {
-  #~@ Return early if verbosity is set to 0/quiet
+  #{ Return early if verbosity is set to 0/quiet
   [ "$__level" -eq "$__level_quiet" ] && exit "$__code"
 
-  #~@ Format the title with consistent spacing and color handling
+  #{ Format the title with consistent spacing and color handling
   case "$__msg_type" in
   err*)
     [ "$__level" -ge "$__level_error" ] || exit "$__code"
@@ -499,12 +499,12 @@ print_out() {
   normal | simple | *) unset __title __tag __color ;;
   esac
 
-  #~@ Format the tag with proper color handling
+  #{ Format the tag with proper color handling
   [ "$__tag" ] && __tag="$(
     printf '%b%s%b' "$__highlight" " $__tag /> " "$__normal"
   )"
 
-  #~@ Define the output stream and exit "$__code" code
+  #{ Define the output stream and exit "$__code" code
   case "$__msg_type" in
   err* | fail*)
     __code="${__code:-1}"
@@ -518,20 +518,20 @@ print_out() {
     ;;
   esac
 
-  #~@ Print leading lines, if requested
+  #{ Print leading lines, if requested
   print_blank "$__lead_lines"
 
-  #~@ Print the message with proper formatting
+  #{ Print the message with proper formatting
   if [ "$__title" ] || [ "$__tag" ]; then
     printf '%s%s%s' "$__title" "$__tag" "$__msg" >&"$__stream"
   else
     printf '%s' "$__msg" >&"$__stream"
   fi
 
-  #~@ Print trailing lines, if requested
+  #{ Print trailing lines, if requested
   print_blank "$__trail_lines"
 
-  #~@ Return the exit code
+  #{ Return the exit code
   exit "$__code"
 }
 

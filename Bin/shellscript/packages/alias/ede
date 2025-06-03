@@ -205,16 +205,16 @@ initialize_utilities() {
 
 initialize_environment() {
 
-  #~@ Define the preferred GUI and TUI editors
+  #{ Define the preferred GUI and TUI editors
   tui="$(weHave --first "$(pout-split "$DELIMITER" " " "${preferred_tui:-$default_tuis}")")"
   gui="$(weHave --first "$(pout-split "$DELIMITER" " " "${preferred_gui:-$default_guis}")")"
 
-  # #~@ Check if we are in a graphical environment
+  # #{ Check if we are in a graphical environment
   # if [ -n "$DISPLAY" ]; then
-  # 	#~@ If yes, get the preferred GUI editor
+  # 	#{ If yes, get the preferred GUI editor
   # 	ede="${gui:-"$tui"}"
   # else
-  # 	#~@ If not, get the preferred TUI editor
+  # 	#{ If not, get the preferred TUI editor
   # 	ede="${ede:-"$tui"}"
   # fi
 

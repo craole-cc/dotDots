@@ -35,7 +35,7 @@ volicon
 
 for module in $_HOME/modules; do
   case "$(basename "$module")" in
-  panel) #~@ Launch the panel on each monitor
+  panel) #{ Launch the panel on each monitor
     for monitor in $(hc list_monitors | cut -d: -f1); do
       "$panel" "$monitor" &
     done

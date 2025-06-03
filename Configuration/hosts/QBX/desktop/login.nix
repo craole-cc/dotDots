@@ -66,13 +66,13 @@ in
       };
     };
 
-    #~@ Workaround for GNOME autologin
+    #{ Workaround for GNOME autologin
     systemd.services = mkIf (cfg.environment == "gnome") {
       "getty@tty1".enable = false;
       "autovt@tty1".enable = false;
     };
 
-    #~@ Automatically enable the autologin user's profile
+    #{ Automatically enable the autologin user's profile
     dots.users.${cfg.login.user}.enable = true;
   };
 }

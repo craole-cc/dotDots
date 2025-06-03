@@ -28,7 +28,7 @@ parse_arguments() {
 }
 
 proceed_if_verbose() {
-  #~@ Check for the verbosiy level greater than 0
+  #{ Check for the verbosiy level greater than 0
   case "$verbose$verbosity$VERBOSE$VERBOSITY" in
   [1-9] | true) ;;
   *) exit 2 ;;

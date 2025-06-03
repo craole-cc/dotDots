@@ -8,13 +8,13 @@ main() {
 }
 
 initialize_env() {
-  #~@ set defaults
+  #{ set defaults
   verbosity=3
   action="show"
   bins=""
   debug=""
 
-  #~@ Cache command checks at startup
+  #{ Cache command checks at startup
   HAS_REALPATH=0
   HAS_FD=0
   command -v realpath >/dev/null 2>&1 && HAS_REALPATH=1
@@ -78,7 +78,7 @@ parse_arguments() {
 perform_action() {
   case "$action" in
   append | prepend)
-    #~@ Validate that a directory was provided
+    #{ Validate that a directory was provided
     if [ -z "$bins" ]; then
       printf "ERROR: No path provided\n"
       return 1
@@ -111,13 +111,13 @@ recursive_paths() {
 
   for dir in $dirs; do
     if [ "$HAS_FD" = 1 ]; then
-      #~@ Add the results from fd
+      #{ Add the results from fd
       fd . "$dir"
 
-      #~@ Include the lookup directory
+      #{ Include the lookup directory
       printf "%s\n" "$dir"
     else
-      #~@ Fallback to find
+      #{ Fallback to find
       find "$dir"
     fi
   done | sort
@@ -155,13 +155,13 @@ add_to_path() {
     counter=1
     recursive_paths "$bins" | while IFS= read -r bin_path; do
       printf "  %4d %s\n" "$counter" "$bin_path"
-      #~@ Increment the counter
+      #{ Increment the counter
       counter=$((counter + 1))
     done
     return 0
   }
 
-  #~@ Update PATH directories recursively
+  #{ Update PATH directories recursively
   recursive_paths "$bins" | while IFS= read -r bin_path; do
     [ -d "$bin_path" ] &&
       case ":${PATH}:" in
@@ -183,7 +183,7 @@ add_to_path() {
         ;;
       esac
 
-    #~@ Make scripts executable
+    #{ Make scripts executable
     [ -f "$bin_path" ] &&
       case "$(os_type)" in windows) ;;
       *)
@@ -236,5 +236,5 @@ clean_path() {
   printf '%s\n' "${PATH-}" | tr ':' '\n' | grep '^/' | paste -s -d ':'
 }
 
-#~@ Execute the main function with the provided argument
+#{ Execute the main function with the provided argument
 main "$@"

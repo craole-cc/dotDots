@@ -12,15 +12,15 @@ send_notification() {
     notify-send "$1"
 }
 
-parse_arguments() { #~@ Initialize User Options via CLI
+parse_arguments() { #{ Initialize User Options via CLI
 
-  #~@ Ensure arguments are supplied
+  #{ Ensure arguments are supplied
   [ "$#" -ge 1 ] || {
     failure=true
     end_process --error-exit "No arguments provided"
   }
 
-  #~@ Parse flags and arguments
+  #{ Parse flags and arguments
   while [ $# -ge 1 ]; do
     case $1 in
     -h | --help) end_process "$scr_HELP" ;;
@@ -39,7 +39,7 @@ parse_arguments() { #~@ Initialize User Options via CLI
     -n | --no-break) unset line_break ;;
     -*) end_process --error-exit "Unknown option:" "$1" ;;
     *)
-      #~@ Store arguments in an array
+      #{ Store arguments in an array
       message="$1"
       args="$(are --save "$args" "$message")"
       ;;
@@ -47,7 +47,7 @@ parse_arguments() { #~@ Initialize User Options via CLI
     shift
   done
 
-  #~@ Set verbosity level
+  #{ Set verbosity level
   case "$verbosity" in
   0 | quiet) verbosity=0 ;;
   1 | error | debug) verbosity=1 ;;
@@ -55,7 +55,7 @@ parse_arguments() { #~@ Initialize User Options via CLI
   *) verbosity=0 ;;
   esac
 
-  #~@ Set line break count
+  #{ Set line break count
   [ "$line_break" ] && {
     #TODO add an error verbosity level to is_number to allow one run
     #TODO is_number --verbose "$line_break"
@@ -65,7 +65,7 @@ parse_arguments() { #~@ Initialize User Options via CLI
     }
   }
 
-  #~@ Extract other arguments
+  #{ Extract other arguments
   args="$(are --expand "$args")"
   total_args="$(are --count "$args")"
   last_arg="$(are --last "$args")"

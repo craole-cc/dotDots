@@ -40,7 +40,7 @@ case $TERM in
 *) ;;
 esac
 
-#~@ ANSI
+#{ ANSI
 
 #| Foreground Colors
 black="$(printf "\033[0;30m")"

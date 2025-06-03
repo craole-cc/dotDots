@@ -134,7 +134,7 @@ function Test-GetContext {
 #endregion
 #region Export
 
-#~@ Export all public functions
+#{ Export all public functions
 Export-ModuleMember -Function @(
     'Get-Context',
     'Test-GetContext'

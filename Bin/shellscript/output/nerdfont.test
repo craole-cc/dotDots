@@ -38,10 +38,10 @@ set_defaults() {
     fmt_reset="$(printf "\e[0m")"
   fi
 
-  #~@ Get terminal width or fallback to 80
+  #{ Get terminal width or fallback to 80
   term_width="$(tput cols 2>/dev/null || printf 80)"
 
-  #~@ Calculate padding based on terminal width
+  #{ Calculate padding based on terminal width
   pad="$(awk -v width="${term_width}" 'BEGIN {printf "%.0f", width/3.5}')"
 
   : "${TERM_WIDTH:="${term_width}"}"
@@ -78,7 +78,7 @@ pout_char() {
 }
 
 pout_test() {
-  #~@ Parse options
+  #{ Parse options
   while [ $# -gt 0 ]; do
     case "$1" in
     --trail-line | --newline | -l | -n | --nl) trailing_newline=1 ;;
@@ -107,12 +107,12 @@ pout_test() {
     shift
   done
 
-  #~@ Print leading newline if requested
+  #{ Print leading newline if requested
   if [ "${leading_newline:-0}" -gt 0 ]; then
     pout_char "\n" "${leading_newline}"
   fi
 
-  #~@ Print header if title provided
+  #{ Print header if title provided
   if [ -n "${TITLE:-}" ]; then
     title_length="${#TITLE}"
     pad_length="$(((TERM_WIDTH - title_length) / 2 + title_length))"
@@ -124,17 +124,17 @@ pout_test() {
     printf "%s" "${head_line}"
   fi
 
-  #~@ Print label, if provided
+  #{ Print label, if provided
   if [ -n "${LABEL:-}" ]; then
     printf "\n%${PAD}s%s ~@ " "${BOLD}${ITALIC}${LABEL}${RESET}"
   fi
 
-  #~@ Print label, if provided
+  #{ Print label, if provided
   if [ -n "${ICON:-}" ]; then
     printf "%b%s" "${ICON}" "${ICON_SEP}"
   fi
 
-  #~@ Print arguments
+  #{ Print arguments
   ifs="${IFS}"
   IFS="${DELIMITER}"
   # shellcheck disable=SC2086
@@ -142,12 +142,12 @@ pout_test() {
   printf "%s" "${@}"
   IFS="${ifs}"
 
-  #~@ Print trailing newline if requested
+  #{ Print trailing newline if requested
   if [ "${trailing_newline:-0}" -gt 0 ]; then
     pout_char "\n" "${trailing_newline}"
   fi
 
-  #~@ Reset the environment
+  #{ Reset the environment
   printf "%s" "${RESET}"
   unset title_length pad_length head_line
   unset leading_newline trailing_newline
@@ -273,7 +273,7 @@ test_ligatures() {
   pout_test --label "Comparison" "<= >= < >"
   pout_test --label "Logic" "|| && |> <| <|| ||> <&&> &&>"
   pout_test --label "Math" "++ -- ** // /* */"
-  pout_test --label "Special" ":= :: ;; =>= >>> <<= >>="
+  pout_test --label "Special" ":= :: ;; =>= >>> <<= >>= #{"
   pout_test --label "Arrows" "-> => <- <= |=> ==>"
   pout_test --label "Arrows Ext" "<== ==> <=> <--> <~~> <~> <==>"
   pout_test --label "Labels" "[INFO] todo)) fixme))"
@@ -290,10 +290,10 @@ test_italics() {
 }
 
 test_filesystem() {
-  #~@ Print the title
+  #{ Print the title
   pout_test --title "Directory Listing" --newline
 
-  #~@ Retrieve the directory contents with the fist available lister
+  #{ Retrieve the directory contents with the fist available lister
   if false; then
     :
   elif command -v lsd >/dev/null 2>&1; then

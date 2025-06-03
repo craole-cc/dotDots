@@ -20,18 +20,18 @@ scr_USAGE="$(
 USAGE_GUIDE
 )"
 
-point_of_entry() { #~@ Launch the script
-  #~@ Initialize application
+point_of_entry() { #{ Launch the script
+  #{ Initialize application
   parse_arguments "$@"
 
-  #~@ Run main process
+  #{ Run main process
   process_core
 
-  #~@ Remove any leftover variables
+  #{ Remove any leftover variables
   punctuate_exit
 }
 
-parse_arguments() { #~@ Declare user options (One flag per command)
+parse_arguments() { #{ Declare user options (One flag per command)
   [ "$#" -eq 0 ] && punctuate_exit --error-exit "Missing arguments"
 
   while [ "$#" -ge 1 ]; do
@@ -49,16 +49,16 @@ parse_arguments() { #~@ Declare user options (One flag per command)
   done
 }
 
-probe_for_binary() { #~@ Check if the command is installed
+probe_for_binary() { #{ Check if the command is installed
   type "$1" >/dev/null 2>&1
 }
 
-parse_type_info() { #~@ Return the type of command
+parse_type_info() { #{ Return the type of command
   #TODO# Figure out how to check type.
   true
 }
 
-parse_version_info() { #~@ Return the version of the command
+parse_version_info() { #{ Return the version of the command
   case "$("$1" --version)" in
   *nvim*)
     "$1" --version |
@@ -105,15 +105,15 @@ parse_version_info() { #~@ Return the version of the command
   esac
 }
 
-parse_location_info() { #~@ Return the location of command
+parse_location_info() { #{ Return the location of command
   type "$1" | awk '{print $NF}'
 }
 
 process_core() {
-  #~@ Process all the commands given via a loop
+  #{ Process all the commands given via a loop
   for command in $(are --expand "$commands"); do
 
-    #~@ Reset output message
+    #{ Reset output message
     unset icon msg
 
     if probe_for_binary "$command"; then
@@ -133,7 +133,7 @@ process_core() {
       punctuate_exit --error
     fi
 
-    #~@ Display information about the command
+    #{ Display information about the command
     [ "$msg" ] &&
       if [ "$icon" ]; then
         present_info "$icon $msg"
@@ -144,10 +144,10 @@ process_core() {
 }
 
 present_info() {
-  #~@ Enable printing only there is something to print
+  #{ Enable printing only there is something to print
   [ "$*" ] || return
 
-  #~@ Send output to Stdout
+  #{ Send output to Stdout
   printf "%s\n" "$*"
 
 }
@@ -171,7 +171,7 @@ punctuate_exit() {
   esac
 }
 
-purge_leftovers() { #~@ Remove variables
+purge_leftovers() { #{ Remove variables
   purge_variables() {
     unset \
       scr_PATH \

@@ -7,20 +7,20 @@ main() {
 }
 
 set_defaults() {
-  #~@ Define modes of operation
+  #{ Define modes of operation
   debug=0
   strict=1
   set_modes
 
-  #~@ Define script information
+  #{ Define script information
   SCR_NAME="$(basename "$0")"
 
-  #~@ Define commands
+  #{ Define commands
   CMD_NIX="$(command -v nix 2>/dev/null)"
   CMD_REALPATH="$(command -v realpath 2>/dev/null)"
   CMD_READLINK="$(command -v readlink 2>/dev/null)"
 
-  #~@ Attempt to retrieve the path to the flake
+  #{ Attempt to retrieve the path to the flake
   GIT_DIR=$(git rev-parse --show-toplevel 2>/dev/null)
   TARGET_FLAKE="${FLAKE:-"${PRJ_ROOT:-"${GIT_DIR}"}"}"
 }

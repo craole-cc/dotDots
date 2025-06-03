@@ -228,10 +228,10 @@ validate_var() {
   while [ $# -gt 0 ]; do
     case $1 in
     --lbl | --opt | --var | --type)
-      #~@ Remove the leading hyphens from the option
+      #{ Remove the leading hyphens from the option
       variable_name=${1#--}
 
-      #~@ Assign the value of $2 to the extracted variable name
+      #{ Assign the value of $2 to the extracted variable name
       if [ "$2" ]; then
         eval "$variable_name=\"\$2\""
         shift
@@ -357,7 +357,7 @@ show_usage_guide() {
       case $1 in
       -x | --fatal) exit_code="${2:-1}" ;;
       --*)
-        #~@ Assign the value of $2 to the extracted variable name
+        #{ Assign the value of $2 to the extracted variable name
         if [ "$2" ]; then
           eval "$variable_name=\"\$2\""
           shift

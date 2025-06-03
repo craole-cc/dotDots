@@ -232,10 +232,10 @@ function Global:Get-Env {
   }
 
   if ([string]::IsNullOrEmpty($Name) -or $ListAll) {
-    #~@ Return all environment variables based on scope
+    #{ Return all environment variables based on scope
     $allEnvVars = Get-EnvironmentVariablesByScope -Scope $Scope
 
-    #~@ Apply pattern filtering if specified
+    #{ Apply pattern filtering if specified
     if (![string]::IsNullOrEmpty($Pattern)) {
       Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Applying pattern filter: '$Pattern'"
       $filteredVars = @{}
@@ -248,18 +248,18 @@ function Global:Get-Env {
       Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Pattern filtering resulted in $($allEnvVars.Count) variables"
     }
 
-    #~@ Apply sorting
+    #{ Apply sorting
     $sortedEnvVars = Sort-EnvironmentVariables -Variables $allEnvVars -SortMethod $Sort -Scope $Scope
 
     return $sortedEnvVars
   }
   else {
-    #~@ Get specific environment variable
+    #{ Get specific environment variable
     $value = Get-SpecificEnvironmentVariable -Name $Name -Scope $Scope
 
-    #~@ Handle the result
+    #{ Handle the result
     $result = if ($null -ne $value) {
-      #~@ Expand variables if requested
+      #{ Expand variables if requested
       if ($ExpandVars) {
         try {
           $expandedValue = [System.Environment]::ExpandEnvironmentVariables($value)
@@ -276,7 +276,7 @@ function Global:Get-Env {
       }
     }
     else {
-      #~@ Apply type conversion to default value if needed
+      #{ Apply type conversion to default value if needed
       if ($null -ne $Default) {
         Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Variable '$Name' not found, returning typed default value"
         $Default
@@ -287,12 +287,12 @@ function Global:Get-Env {
       }
     }
 
-    #~@ Handle path conversion if requested
+    #{ Handle path conversion if requested
     if ($AsPath -and $null -ne $result) {
       $result = ConvertTo-PathObject -Path $result -VariableName $Name
     }
 
-    #~@ Cache the result if caching is enabled
+    #{ Cache the result if caching is enabled
     if ($Cached -and $null -ne $result) {
       $cacheKey = "${Scope}:${Name}"
       $script:EnvCache[$cacheKey] = $result
@@ -367,13 +367,13 @@ function Global:Set-Env {
 
   Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Set-Env called: Name='$Name', Value='$Value', Type='$Type', Scope='$Scope'"
 
-  #~@ Expand environment variables in the value
+  #{ Expand environment variables in the value
   $expandedValue = [System.Environment]::ExpandEnvironmentVariables($Value)
   if ($expandedValue -ne $Value) {
     Write-Pretty -Tag "Debug" -ContextScope $script:ctxScope -OneLine -Message "Expanded value from '$Value' to '$expandedValue'"
   }
 
-  #~@ Update the name based on type
+  #{ Update the name based on type
   $processedName = $Name
   if ($Type -eq 'cd') {
     $processedName = if (-not $Name.StartsWith('cd.', [System.StringComparison]::InvariantCultureIgnoreCase)) {
@@ -388,7 +388,7 @@ function Global:Set-Env {
     else { $Name }
   }
 
-  #~@ Auto-detect type from name if not specified
+  #{ Auto-detect type from name if not specified
   if ([string]::IsNullOrEmpty($Type)) {
     if ($processedName -match '^cd\.') {
       $Type = 'cd'
@@ -400,7 +400,7 @@ function Global:Set-Env {
     }
   }
 
-  #~@ Validation logic
+  #{ Validation logic
   if ($Validate -or $Type -in @('cd', 'path')) {
     if ($Type -eq 'cd' -or $Type -eq 'path') {
       if (![string]::IsNullOrEmpty($expandedValue) -and !(Test-Path $expandedValue -PathType Container -ErrorAction SilentlyContinue)) {
@@ -412,19 +412,19 @@ function Global:Set-Env {
     }
   }
 
-  #~@ Handle special function creation for cd and edit types
+  #{ Handle special function creation for cd and edit types
   if ($Type -in @('cd', 'edit')) {
     if (-not (New-EnvironmentFunction -Name $processedName -Value $expandedValue -Type $Type)) {
       return $false
     }
   }
 
-  #~@ Set the environment variable
+  #{ Set the environment variable
   if ($PSCmdlet.ShouldProcess("Environment Variable '$processedName'", "Set Value to '$expandedValue' in $Scope scope")) {
     try {
       [System.Environment]::SetEnvironmentVariable($processedName, $expandedValue, $Scope)
 
-      #~@ Clear cache entry if it exists
+      #{ Clear cache entry if it exists
       $cacheKey = "${Scope}:${processedName}"
       if ($script:EnvCache.ContainsKey($cacheKey)) {
         $script:EnvCache.Remove($cacheKey)
@@ -468,7 +468,7 @@ function Global:Remove-Env {
     try {
       [System.Environment]::SetEnvironmentVariable($Name, $null, $Scope)
 
-      #~@ Clear from cache
+      #{ Clear from cache
       $cacheKey = "${Scope}:${Name}"
       if ($script:EnvCache.ContainsKey($cacheKey)) {
         $script:EnvCache.Remove($cacheKey)
@@ -506,7 +506,7 @@ function Global:Clear-EnvCache {
   $initialCount = $script:EnvCache.Count
 
   if (![string]::IsNullOrEmpty($Pattern) -or ![string]::IsNullOrEmpty($Scope)) {
-    #~@ Selective clearing
+    #{ Selective clearing
     $keysToRemove = @()
     foreach ($key in $script:EnvCache.Keys) {
       $shouldRemove = $true
@@ -533,7 +533,7 @@ function Global:Clear-EnvCache {
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Cleared $($keysToRemove.Count) cache entries matching criteria"
   }
   else {
-    #~@ Clear all cache
+    #{ Clear all cache
     $script:EnvCache.Clear()
     $script:CacheExpiry.Clear()
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Cleared all $initialCount cache entries"
@@ -618,7 +618,7 @@ function Test-GetEnv {
 
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "=== Environment Variable Access Diagnostics ==="
 
-  #~@ Test current user context
+  #{ Test current user context
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Current User Context:"
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "  User: $(Get-Env 'USERNAME' -Default 'Unknown')"
@@ -633,7 +633,7 @@ function Test-GetEnv {
   }
 
   if ($Quick) {
-    #~@ Quick test - just verify basic functionality
+    #{ Quick test - just verify basic functionality
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
     Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Quick Test Results:"
 
@@ -649,7 +649,7 @@ function Test-GetEnv {
     return
   }
 
-  #~@ Test each scope individually
+  #{ Test each scope individually
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Testing Environment Variable Scopes:"
 
@@ -665,11 +665,11 @@ function Test-GetEnv {
     }
   }
 
-  #~@ Test enhanced features
+  #{ Test enhanced features
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message ""
   Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Testing Enhanced Features:"
 
-  #~@ Test caching
+  #{ Test caching
   try {
     Clear-EnvCache
     $start = Get-Date
@@ -694,7 +694,7 @@ function Test-GetEnv {
     Write-Pretty -Tag "Error" -ContextScope $script:ctxScope -OneLine -Message "  ✗ Caching test failed: $($_.Exception.Message)"
   }
 
-  #~@ Test pattern matching
+  #{ Test pattern matching
   try {
     $patternResults = Get-Env -Pattern "USER*" -Scope Process
     if ($patternResults.Count -gt 0) {
@@ -708,7 +708,7 @@ function Test-GetEnv {
     Write-Pretty -Tag "Error" -ContextScope $script:ctxScope -OneLine -Message "  ✗ Pattern matching failed: $($_.Exception.Message)"
   }
 
-  #~@ Test variable expansion
+  #{ Test variable expansion
   try {
     $testVar = "%USERNAME%_test"
     $expanded = Get-Env -Name "NON_EXISTENT_VAR" -Default $testVar -ExpandVars
@@ -1311,7 +1311,7 @@ function Test-EnvironmentScope {
   return $results
 }
 
-#~@ Initialize context scope if not already set
+#{ Initialize context scope if not already set
 if (-not $script:ctxScope) {
   $script:ctxScope = "EnvModule"
 }

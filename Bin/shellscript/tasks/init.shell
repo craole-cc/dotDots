@@ -9,7 +9,7 @@ main() {
 
 establish_environment() {
 
-  #~@ Parse Arguments
+  #{ Parse Arguments
   verbosity=info
   while [ "$#" -gt 0 ]; do
     case "$1" in

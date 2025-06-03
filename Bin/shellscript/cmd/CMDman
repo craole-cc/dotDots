@@ -38,7 +38,7 @@ USAGE_GUIDE
 }
 
 # ===================================================================
-#~@   		                   GLOBAL TOOLS                            @#
+#{   		                   GLOBAL TOOLS                            @#
 # ===================================================================
 
 #| Usage display
@@ -93,7 +93,7 @@ __opts__() {
   *) ;;
   esac
 
-  #~@ Declare user options (One flag per command)
+  #{ Declare user options (One flag per command)
   COUNTER=0
 
   while [ $# -gt 1 ]; do
@@ -388,11 +388,11 @@ __cleanup__() {
 #@		                            RUN	  		                       @#
 # ===================================================================
 
-#~@ Load internal variables
+#{ Load internal variables
 __info__
 
-#~@ Run
+#{ Run
 __opts__ "$@"
 
-#~@ Remove any leftover variables
+#{ Remove any leftover variables
 __cleanup__

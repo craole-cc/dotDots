@@ -9,16 +9,16 @@
 # Core Readline Settings
 # ==============================================
 
-#~@ Enable 8-bit input/output for international characters and symbols
+#{ Enable 8-bit input/output for international characters and symbols
 set meta-flag on     #? Allow meta key (Alt) to work properly
 set convert-meta off #? Don't convert 8-bit chars to ASCII equivalents
 set input-meta on    #? Allow 8-bit input characters
 set output-meta on   #? Display 8-bit characters directly
 
-#~@ Disable terminal bell (audible beeps) - use visual bell instead
+#{ Disable terminal bell (audible beeps) - use visual bell instead
 set bell-style visible
 
-#~@ Enable colored output for completions and listings
+#{ Enable colored output for completions and listings
 set colored-stats on             # Color filenames by type in completion lists
 set colored-completion-prefix on # Highlight the common prefix in completions
 
@@ -26,54 +26,54 @@ set colored-completion-prefix on # Highlight the common prefix in completions
 # Completion Behavior
 # ==============================================
 
-#~@ Case-insensitive filename completion
+#{ Case-insensitive filename completion
 set completion-ignore-case on
 
-#~@ Show all possible completions immediately if multiple matches exist
+#{ Show all possible completions immediately if multiple matches exist
 set show-all-if-ambiguous on
 
-#~@ Show completions immediately if prefix is ambiguous after minimum characters
+#{ Show completions immediately if prefix is ambiguous after minimum characters
 set show-all-if-unmodified on
 
-#~@ Don't paginate completion lists - show them all at once
+#{ Don't paginate completion lists - show them all at once
 set page-completions off
 
-#~@ Add a slash to completed directory names
+#{ Add a slash to completed directory names
 set mark-directories on
 set mark-symlinked-directories on
 
-#~@ Include hidden files (dotfiles) in completion
+#{ Include hidden files (dotfiles) in completion
 set match-hidden-files on
 
-#~@ Expand ~ to home directory in completions
+#{ Expand ~ to home directory in completions
 set expand-tilde on
 
-#~@ Complete only directories when completing after 'cd'
+#{ Complete only directories when completing after 'cd'
 set completion-map-case on
 
-#~@ Show extra file information in completions (like ls -F)
+#{ Show extra file information in completions (like ls -F)
 set visible-stats on
 
-#~@ Append file type indicators to completed filenames
+#{ Append file type indicators to completed filenames
 set mark-directories on
 
 # ==============================================
 # History Settings
 # ==============================================
 
-#~@ Enable history expansion with space (e.g., "!!" + space expands to last command)
+#{ Enable history expansion with space (e.g., "!!" + space expands to last command)
 $if Bash
 Space: magic-space
 $endif
 
-#~@ Don't add duplicate lines to history
+#{ Don't add duplicate lines to history
 set history-preserve-point on
 
 # ==============================================
 # Key Bindings - Navigation
 # ==============================================
 
-#~@ Allow the Delete key to remove character at cursor instead of backspace
+#{ Allow the Delete key to remove character at cursor instead of backspace
 # "\e[3~": delete-char
 
 # Home/End key bindings for different terminal types
@@ -158,10 +158,10 @@ set history-preserve-point on
 # ==============================================
 
 $if Bash
-#~@ Enable programmable completion
+#{ Enable programmable completion
 set completion-query-items 200 #? Ask before showing more than 200 completions
 
-#~@ Enable filename completion after these commands
+#{ Enable filename completion after these commands
 set completion-prefix-display-length 2
 
 $endif

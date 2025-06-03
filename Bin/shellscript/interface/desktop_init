@@ -38,19 +38,19 @@ USAGE_GUIDE
 #@		                        GLOBAL TOOLS                         @#
 # ===================================================================
 
-#~@ Usage display
+#{ Usage display
 __help__() {
   printf "%s\n" "$_cmd_USAGEGUIDE"
   exit 0
 }
 
-#~@ Version display
+#{ Version display
 __version__() {
   printf "%s\n" "$_cmd_VERSION"
   exit 0
 }
 
-#~@ Command validation
+#{ Command validation
 __cmd_exists__() {
   unalias "$@" >/dev/null 2>&1
   command -v "$@" >/dev/null 2>&1
@@ -62,7 +62,7 @@ __cmd_exists__() {
 
 __opts__() {
 
-  #~@ Declare user options (Allow multiple flags)
+  #{ Declare user options (Allow multiple flags)
   parser_definition() {
     setup REST
     disp _cmd_USAGEGUIDE -h --help
@@ -73,7 +73,7 @@ __opts__() {
     param PROTOCOL -p --protocol -- "takes one argument"
   }
 
-  #~@ Load options
+  #{ Load options
   eval "$(getoptions parser_definition) exit 1"
 }
 
@@ -138,10 +138,10 @@ __cleanup__() {
 
 __main__() {
 
-  #~@ Confirm that a string was entered
+  #{ Confirm that a string was entered
   [ "$#" -eq 0 ] && __error__ --string
 
-  #~@ Process all stings
+  #{ Process all stings
   while [ $# -gt 0 ]; do
     __process__ "$1"
     shift
@@ -153,13 +153,13 @@ __main__() {
 #@		                            RUN	  		                       @#
 # ===================================================================
 
-#~@ Load internal variables
+#{ Load internal variables
 __info__
 
-#~@ Read input arguments
+#{ Read input arguments
 __opts__ "$@"
 
-#~@ Establish defaults
+#{ Establish defaults
 __defaults__ "$@"
 
 echo "DESKTOP: $DESKTOP"
@@ -167,12 +167,12 @@ echo "PROTOCOL: $PROTOCOL"
 echo "TEST: $TEST"
 echo "ALL: $*"
 
-#~@ Allow verbose option if requested
+#{ Allow verbose option if requested
 # if [ "$VERBOSE" ]; then
 #   __verbose__ "$@"
 # else
 #   __main__ "$@"
 # fi
 
-#~@ Remove any leftover variables
+#{ Remove any leftover variables
 # __cleanup__

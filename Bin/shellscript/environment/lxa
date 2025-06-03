@@ -1,4 +1,4 @@
 #!/bin/sh
 
-#~@ Include hidden and system files
+#{ Include hidden and system files
 Exa --all "$@"

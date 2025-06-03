@@ -11,17 +11,17 @@ in
 {
   config = mkIf cfgEnabled {
     services.xserver = {
-      #~@ Enable GNOME desktop environment
+      #{ Enable GNOME desktop environment
       desktopManager.gnome.enable = true;
 
-      #~@ Enable GDM (GNOME Display Manager)
+      #{ Enable GDM (GNOME Display Manager)
       displayManager.gdm.enable = true;
 
-      #~@ Xterm is unnecessary since console is enabled automatically
+      #{ Xterm is unnecessary since console is enabled automatically
       excludePackages = [ pkgs.xterm ];
     };
 
-    #~@ Exclude packages [optional]
+    #{ Exclude packages [optional]
     environment.gnome.excludePackages = with pkgs; [
       # baobab
       epiphany

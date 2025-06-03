@@ -26,7 +26,7 @@ usage() {
 }
 
 set_defaults() {
-  #~@ Set defaults
+  #{ Set defaults
   URL=""
   FMT=@fmt@
   DIR=@dls@
@@ -35,7 +35,7 @@ set_defaults() {
   CMD=@cmd@
 }
 
-#~@ Parse arguments
+#{ Parse arguments
 parse_arguments() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -74,17 +74,17 @@ parse_arguments() {
 }
 
 execute_command() {
-  #~@ Skip if no arguments are provided
+  #{ Skip if no arguments are provided
   [ -n "${URL}" ] || usage >&2
 
-  #~@ Create directories
+  #{ Create directories
   mkdir -p "${DIR}"
   mkdir -p "$(dirname "${CFG}")"
 
-  #~@ Create config if it doesn't exist or is out of date
+  #{ Create config if it doesn't exist or is out of date
   cmp "${MOD}" "${CFG}" || cp -f "${MOD}" "${CFG}"
 
-  #~@ Execute the command
+  #{ Execute the command
   case "${FMT}" in
   "best")
     "${CMD}" "${URL}"

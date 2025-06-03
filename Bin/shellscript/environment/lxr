@@ -1,4 +1,4 @@
 #!/bin/sh
 
-#~@ Detailed list reverse order
+#{ Detailed list reverse order
 lx --all --long --recurse "$@"

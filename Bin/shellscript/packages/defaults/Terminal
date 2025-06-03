@@ -28,19 +28,19 @@ __opts__() {
 }
 
 __init__() {
-  #~@ Enable verbose if test flag set
+  #{ Enable verbose if test flag set
   [ "$_TEST" ] && _VERBOSE=true
 
-  weHave() { #~@ Check if the command exists
+  weHave() { #{ Check if the command exists
     type "$1" >/dev/null 2>&1
   }
 
-  #~@ Check if app installed
+  #{ Check if app installed
   if weHave "$_APP"; then
-    #~@ Load config
+    #{ Load config
     __cfg__
   else
-    #~@ Throw an error
+    #{ Throw an error
     _ERR=true && __msg__ --missing
   fi
 
@@ -50,10 +50,10 @@ __init__() {
 }
 
 __cfg__() {
-  #~@ Try to load context variables if no config supplied
+  #{ Try to load context variables if no config supplied
   [ "$_CFG" ] || __env__
 
-  #~@ Confirm config file existence
+  #{ Confirm config file existence
   if [ -f "$_CFG" ]; then
     __msg__ --cfg-found
   else
@@ -63,7 +63,7 @@ __cfg__() {
 }
 
 __env__() {
-  #~@ Load Environment Variables
+  #{ Load Environment Variables
   _CTX="$DOTS_ENV_CTX/${_APP}"
   if [ -f "$_CTX" ]; then
     . "$_CTX"
@@ -86,10 +86,10 @@ __msg__() {
 }
 
 __cleanup__() {
-  #~@ Release variables
+  #{ Release variables
   unset app _CFG check verbose
 
-  #~@ Exit with error code, if necessary
+  #{ Exit with error code, if necessary
   if [ "$_exit" ]; then
     unset _exit && exit 1
   else
@@ -103,7 +103,7 @@ process_core() {
     return 0
   }
 
-  #~@ Set class as the first argument (no config)
+  #{ Set class as the first argument (no config)
   [ "$_APP" = "kitty" ] && $_CMD --name "$1" --detach "$@"
   [ "$_APP" = "alacritty" ] && $_CMD --class "$1" --command "$@" &
   [ "$_APP" = "foot" ] && $_CMD --class "$1" -command "$@"
@@ -114,7 +114,7 @@ process_core() {
 __run__() {
   if [ "$_CFG" ]; then
 
-    #~@ Load config file and detach the terminal (no arguments)
+    #{ Load config file and detach the terminal (no arguments)
     [ "$#" -eq 0 ] && {
       [ "$_APP" = "kitty" ] && $_APP --config "$_CFG" &
       [ "$_APP" = "alacritty" ] && $_APP --config-file "$_CFG" &
@@ -122,7 +122,7 @@ __run__() {
       return 0
     }
 
-    #~@ Set class as the first argument
+    #{ Set class as the first argument
     # [ "$_APP" = "kitty" ] && $_APP \
     #   --config "$_CFG" \
     #   --class "$1" \
@@ -136,13 +136,13 @@ __run__() {
       --command "$@" &
     #TODO# Complete logic to ensure an exhaustive list
   else
-    #~@ Launch terminal (no arguments or config)
+    #{ Launch terminal (no arguments or config)
     [ "$#" -eq 0 ] && {
       $_APP &
       return 0
     }
 
-    #~@ Set class as the first argument (no config)
+    #{ Set class as the first argument (no config)
     [ "$_APP" = "kitty" ] && $_APP --class "$1" --detach "$@"
     [ "$_APP" = "alacritty" ] && $_APP --class "$1" --command "$@" &
     [ "$_APP" = "foot" ] && $_APP --class "$1" -command "$@"
@@ -153,16 +153,16 @@ __run__() {
 
 __main__() {
 
-  #~@ Accept user options
+  #{ Accept user options
   eval "$(getoptions __opts__) exit 1"
 
-  #~@ Initialialize defaults
+  #{ Initialialize defaults
   __init__
 
-  #~@ Process
+  #{ Process
   [ "$_TEST" ] || process_core "$@"
 
-  #~@ Exit gracefully
+  #{ Exit gracefully
   __cleanup__
 
 } && __main__ "$@"

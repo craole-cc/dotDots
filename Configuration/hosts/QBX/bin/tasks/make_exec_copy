@@ -96,16 +96,16 @@ set_verbosity() {
   #DOC     4: verbose
   #DOC     5: debug (trace)
 
-  #~@ Take defaults from system variables
+  #{ Take defaults from system variables
   _verbosity="${VERBOSITY:-"$VERBOSE"}"
   _quiet="${SILENT:-"$QUIET"}"
 
-  #~@ Take defaults from local variables
+  #{ Take defaults from local variables
   verbosity="${verbosity:-"$_verbosity"}"
   quiet="${quiet:-"$_quiet"}"
   case "${quiet:-"$_quiet"}" in true | 1 | on) verbosity=0 ;; esac
 
-  #~@ Set verbosity based on arguments or defaults
+  #{ Set verbosity based on arguments or defaults
   case "${1:-"$verbosity"}" in
   0 | quiet | false | off) verbosity=0 ;;
   1 | error | fail*) verbosity=1 ;;
@@ -117,7 +117,7 @@ set_verbosity() {
   *) verbosity=3 ;;
   esac
 
-  #~@ Parse arguments
+  #{ Parse arguments
   for arg in "$@"; do
     case "$arg" in
     -q | --quiet) verbosity=0 ;;
@@ -129,11 +129,11 @@ set_verbosity() {
     esac
   done
 
-  #~@ Clamp values
+  #{ Clamp values
   [ "$verbosity" -gt 5 ] && verbosity=5
   [ "$verbosity" -lt 0 ] && verbosity=0
 
-  #~@ Return verbosity level
+  #{ Return verbosity level
   printf "%s" "$verbosity"
 }
 
@@ -143,7 +143,7 @@ cleanup() {
 
 parse_arguments() {
 
-  #~@ Parse base flags
+  #{ Parse base flags
   for arg in "$@"; do
     case "$arg" in
     -v | --version | -h | --help | --usage)
@@ -162,10 +162,10 @@ parse_arguments() {
     esac
   done
 
-  #~@ Trace the entire command-line string
+  #{ Trace the entire command-line string
   pout --trace "Arguments:" "${*:-"none provided"}"
 
-  #~@ Handle default target if no arguments
+  #{ Handle default target if no arguments
   [ "$#" -eq 0 ] && {
     num=$((num + 1))
     target="$(get_absolute_path "$default_target")"
@@ -173,7 +173,7 @@ parse_arguments() {
     targets="$default_target"
   }
 
-  #~@ Main argument parsing loop
+  #{ Main argument parsing loop
   while [ $# -gt 0 ]; do
     case $1 in
     -u | --user | --owner)
@@ -248,7 +248,7 @@ parse_arguments() {
   # validate_arguments --owner || return 1
   # [ "$owner" ] || detect_group "$owner" || return 1
 
-  #~@ Debug arguments
+  #{ Debug arguments
   pout --debug "Recursive:" "$recursive"
   pout --debug "Depth:" "${depth:-"infinite"}"
   pout --debug "User:" "${owner:-"unspecified"}"
@@ -400,7 +400,7 @@ detect_group() {
   }
 
   [ "$_group" ] || {
-    #~@ Fallback to system files
+    #{ Fallback to system files
     _gid=$(
       grep "^${_user}:" /etc/passwd |
         cut -d: -f4 2>/dev/null
@@ -411,13 +411,13 @@ detect_group() {
     )
   }
 
-  #~@ Return the group or username
+  #{ Return the group or username
   printf "%s\n" "${_group:-$_user}"
 }
 
 pout() {
   pout__set_defaults() {
-    #~@ Set default values for log parameters
+    #{ Set default values for log parameters
     output_code=1
     log_color="$fmt_normal"
     log_title=""
@@ -525,10 +525,10 @@ pout() {
   }
 
   pout__help() {
-    #~@ Reset variables
+    #{ Reset variables
     unset tag print_usage
 
-    #~@ Parse arguments
+    #{ Parse arguments
     while [ "$#" -gt 0 ]; do
       case "$1" in
       -h | --usage) print_usage=true ;;
@@ -539,11 +539,11 @@ pout() {
       shift
     done
 
-    #~@ Initialize variables
+    #{ Initialize variables
     tag="${tag:-$scr_name}"
     usage="$(printf 'Usage: %s' "$tag")"
 
-    #~@ Define help messages
+    #{ Define help messages
     case "$tag" in
     detect_user)
       usage="${usage:+$usage }[USER]"
@@ -604,7 +604,7 @@ pout() {
       ;;
     esac
 
-    #~@ Print the help
+    #{ Print the help
 
     if [ "$print_usage" ]; then
       printf '%s\n' "$usage"
@@ -660,14 +660,14 @@ pout() {
     fi
   }
 
-  #~@ Return early if verbosity is 0/quiet
+  #{ Return early if verbosity is 0/quiet
   [ "${verbosity:-0}" -gt 0 ] || return
 
-  #~@ Initialize the options
+  #{ Initialize the options
   pout__set_defaults || return
   pout__parse_arguments "$@" || return
 
-  #~@ Print the message
+  #{ Print the message
   pout__print
   pout__blank "${blank_line}"
 }
@@ -681,20 +681,20 @@ get_absolute_path() {
   }
 
   if [ -n "$cmd_realpath" ]; then
-    #~@ Resolve to absolute path
+    #{ Resolve to absolute path
     if abs_path=$(realpath -s "$_path" 2>/dev/null); then
       printf "%s\n" "$abs_path"
     else
-      #~@ Split into directory and basename
+      #{ Split into directory and basename
       _dir=$(dirname -- "$_path")
       _base=$(basename -- "$_path")
 
-      #~@ Get absolute path of parent directory
+      #{ Get absolute path of parent directory
       if abs_dir=$(cd -- "$_dir" && pwd -L 2>/dev/null); then
-        #~@ Rebuild path with absolute directory and original basename
+        #{ Rebuild path with absolute directory and original basename
         printf "%s/%s\n" "$abs_dir" "$_base"
       else
-        #~@ Fallback to original path if resolution fails
+        #{ Fallback to original path if resolution fails
         printf "%s\n" "$_path"
       fi
     fi
@@ -728,7 +728,7 @@ resolve_targets() {
     unset _all _abs _raw TARGET_PATHS TARGET_COUNT TARGET_DIRES TARGET_FILES _opt _depth
   } && resolve_targets_cleanup
 
-  #~@ Initialize variables
+  #{ Initialize variables
   fn_name="resolve_targets"
   OLDIFS="$IFS"
   IFS="$delimiter"
@@ -736,7 +736,7 @@ resolve_targets() {
   TARGET_FILES_COUNT=0
   _recursive="$recursive"
 
-  #~@ Parse arguments
+  #{ Parse arguments
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -*r*)
@@ -760,26 +760,26 @@ resolve_targets() {
     shift
   done
 
-  #~@ Parse recursive options
+  #{ Parse recursive options
   case "$_recursive" in
   '' | false | 0) _recursive=false ;;
   *) _recursive=true ;;
   esac
 
-  #~@ Debug input
+  #{ Debug input
   pout --trace "|- $fn_name ->" "Arguments:" "$*"
   pout --trace "|- $fn_name ->" "Raw Targets:" "$_target"
 
-  #~@ Process targets and resolve paths recursively
+  #{ Process targets and resolve paths recursively
   for _raw in $_target; do
 
-    #~@ Get absolute path and skip invalid targets
+    #{ Get absolute path and skip invalid targets
     _abs=$(get_absolute_path "$_raw") || {
       pout --warn "|- $fn_name ->" "Skipping invalid path: $_raw"
       continue
     }
 
-    #~@ Skip duplicate paths
+    #{ Skip duplicate paths
     case "$_all" in
     "${_abs}${delimiter}"* | *"${delimiter}${_abs}" | *"${delimiter}${_abs}${delimiter}"*)
       pout --warn "|- $fn_name ->" "Skipping duplicate path: $_abs"
@@ -792,7 +792,7 @@ resolve_targets() {
       TARGET_DIRES="${TARGET_DIRES}${TARGET_DIRES:+$delimiter}$_abs"
       TARGET_DIRES_COUNT=$((TARGET_DIRES_COUNT + 1))
 
-      #~@ Skip directories that are subdirectories of any directory in TARGET_DIRES
+      #{ Skip directories that are subdirectories of any directory in TARGET_DIRES
       subdir_flag=false
       IFS="$delimiter"
       for target_dir in $TARGET_DIRES; do
@@ -809,7 +809,7 @@ resolve_targets() {
       [ "$subdir_flag" = true ] && continue
       [ "$_recursive" ] || continue
 
-      #~@ Use fd if available, otherwise fall back to find
+      #{ Use fd if available, otherwise fall back to find
       if [ -n "$cmd_fds" ]; then
         [ "$depth" ] && _opt="--max-depth $depth"
         _opt="$opts --absolute-path"
@@ -831,10 +831,10 @@ resolve_targets() {
     fi
   done
 
-  #~@ Restore IFS
+  #{ Restore IFS
   IFS="$OLDIFS"
 
-  #~@ Extract unique targets and set return values
+  #{ Extract unique targets and set return values
   TARGET_FILES=$(
     printf "%s" "$TARGET_FILES" |
       tr "$delimiter" '\n' |
@@ -863,7 +863,7 @@ process_targets() {
 
   pout --debug "Process Targets -- Arguments: " "$*"
 
-  #~@ Parse options
+  #{ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
     -*d*)
@@ -897,14 +897,14 @@ process_targets() {
   echo "$specified_targets_count"
   return
 
-  #~@ Collect the absolute paths of the valid targets
+  #{ Collect the absolute paths of the valid targets
   unset all_targets
   for raw_target in $_targets; do
     resolved_target=$(get_absolute_path "$raw_target") || continue
     all_targets="${all_targets}${all_targets:+$delimiter}${resolved_target}"
   done
 
-  #~@ Extract and count the unique targets
+  #{ Extract and count the unique targets
   specified_targets=$(
     printf "%s" "$all_targets" |
       tr "$delimiter" '\n' |
@@ -924,12 +924,12 @@ process_targets() {
   #   process_targets_directly --delim "$delimiter" --targets "$specified_targets"
   # fi
 
-  #~@ Report on the total number of processed paths
+  #{ Report on the total number of processed paths
   [ "$simulate" ] && printf "\nProcessed %d unique paths\n" "$total"
 }
 
 process_targets_recursively() {
-  #~@ Parse options
+  #{ Parse options
   while [ "$#" -gt 0 ]; do
     case "$1" in
     --delim)
@@ -941,7 +941,7 @@ process_targets_recursively() {
     shift
   done
 
-  #~@ Collect all targets, including those in subdirectories
+  #{ Collect all targets, including those in subdirectories
   unset all_targets
   OLDIFS="$IFS"
   IFS="$_delim"
@@ -955,13 +955,13 @@ process_targets_recursively() {
   done
   IFS="$OLDIFS"
 
-  #~@ Clean trailing _delim and extract unique paths
+  #{ Clean trailing _delim and extract unique paths
   all_paths=$(printf "%s" "$all_paths" | sed "s/${_delim}\$//")
   unique_paths=$(
     printf "%s" "$all_paths" | tr "$_delim" '\n' | sort -u | tr '\n' "$_delim" | sed "s/${_delim}\$//"
   )
 
-  #~@ Process paths
+  #{ Process paths
   counter=0
   total=$(printf "%s" "$unique_paths" | tr "$_delim" '\n' | wc -l)
 
@@ -971,7 +971,7 @@ process_targets_recursively() {
     counter=$((counter + 1))
     [ -e "$path" ] || continue
 
-    #~@ Progress header for directories
+    #{ Progress header for directories
     #TODO: This is expensive. Printing the path every time is slow and unappealing
     if [ -d "$path" ]; then
       printf "\nProcessing directory: %s (%d/%d)\n" "$path" "$counter" "$total"
@@ -979,7 +979,7 @@ process_targets_recursively() {
       printf "Processing file: %s (%d/%d)\n" "$path" "$counter" "$total"
     fi
 
-    #~@ Set permissions
+    #{ Set permissions
     if [ -d "$path" ]; then
       execute chmod 755 "$path"
     else
@@ -989,7 +989,7 @@ process_targets_recursively() {
       esac
     fi
 
-    #~@ Set ownership
+    #{ Set ownership
     execute chown "$owner:$group" "$path"
   done
   IFS="$OLDIFS"

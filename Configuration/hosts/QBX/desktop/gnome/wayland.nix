@@ -11,16 +11,16 @@ in
 {
   config = mkIf cfgEnabled {
     environment.sessionVariables = {
-      #~@ Enable Wayland for Firefox
+      #{ Enable Wayland for Firefox
       MOZ_ENABLE_WAYLAND = "1";
 
-      #~@ Use Wayland for QT applications
+      #{ Use Wayland for QT applications
       QT_QPA_PLATFORM = "wayland";
 
-      #~@ Use Wayland for SDL applications
+      #{ Use Wayland for SDL applications
       SDL_VIDEODRIVER = "wayland";
 
-      #~@ Disable reparenting for Java applications (e.g. Eclipse)
+      #{ Disable reparenting for Java applications (e.g. Eclipse)
       # This is required for Java applications to work with Wayland
       _JAVA_AWT_WM_NONREPARENTING = "1";
 

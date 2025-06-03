@@ -11,17 +11,17 @@ in
 {
   config = mkIf cfgEnabled {
     services.xserver = {
-      #~@ Enable XFCE desktop environment
+      #{ Enable XFCE desktop environment
       desktopManager.xfce.enable = true;
 
-      #~@ Enable LightDM (Lightweight Display Manager)
+      #{ Enable LightDM (Lightweight Display Manager)
       displayManager.lightdm.enable = true;
 
-      #~@ Xterm is unnecessary since console is enabled automatically
+      #{ Xterm is unnecessary since console is enabled automatically
       excludePackages = [ pkgs.xterm ];
     };
 
-    #~@ Exclude packages [optional]
+    #{ Exclude packages [optional]
     environment.xfce.excludePackages = with pkgs; [
       # xfce4-notifyd
       # xfce4-power-manager

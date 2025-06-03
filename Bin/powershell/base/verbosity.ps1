@@ -49,7 +49,7 @@ $script:VerbosityConfig = @{
     }
 }
 
-#~@ Build case-insensitive alias map
+#{ Build case-insensitive alias map
 $script:VerbosityAliasMap = @{}
 foreach ($level in $script:VerbosityConfig.Keys) {
     $script:VerbosityAliasMap[$level.ToLower()] = $level
@@ -58,7 +58,7 @@ foreach ($level in $script:VerbosityConfig.Keys) {
     }
 }
 
-#~@ Level to numeric mapping for performance
+#{ Level to numeric mapping for performance
 $script:VerbosityNumericMap = @{
     'Off'         = 0
     'Error'       = 1
@@ -68,7 +68,7 @@ $script:VerbosityNumericMap = @{
     'Trace'       = 5
 }
 
-#~@ Numeric to level mapping
+#{ Numeric to level mapping
 $script:NumericToLevelMap = @('Off', 'Error', 'Warning', 'Information', 'Debug', 'Trace')
 
 #endregion
@@ -91,7 +91,7 @@ function Set-Verbosity {
         [object]$Value
     )
 
-    #~@ Handle null or empty
+    #{ Handle null or empty
     if ($null -eq $Value -or $Value -eq '') {
         Write-Verbose "Input is null/empty, using default"
         return Get-VerbosityDefault
@@ -99,7 +99,7 @@ function Set-Verbosity {
 
     Write-Verbose "Converting value: $($Value.GetType().Name) = '$Value'"
 
-    #~@ Handle numeric types (including [int], [long], [double], etc.)
+    #{ Handle numeric types (including [int], [long], [double], etc.)
     if ($Value -is [System.ValueType] -and $Value.GetType().IsPrimitive -and
         $Value.GetType() -ne [bool] -and $Value.GetType() -ne [char]) {
 
@@ -114,14 +114,14 @@ function Set-Verbosity {
         }
     }
 
-    #~@ Handle string-like inputs
+    #{ Handle string-like inputs
     $stringValue = $Value.ToString().Trim()
     if ([string]::IsNullOrWhiteSpace($stringValue)) {
         Write-Verbose "  Empty string, using default"
         return Get-VerbosityDefault
     }
 
-    #~@ Try direct alias lookup (case-insensitive)
+    #{ Try direct alias lookup (case-insensitive)
     $lowerStringValue = $stringValue.ToLower()
     if ($script:VerbosityAliasMap.ContainsKey($lowerStringValue)) {
         $result = $script:VerbosityAliasMap[$lowerStringValue]
@@ -129,7 +129,7 @@ function Set-Verbosity {
         return $result
     }
 
-    #~@ Try parsing as number (to handle string numbers with clamping)
+    #{ Try parsing as number (to handle string numbers with clamping)
     $numResult = 0
     if ([int]::TryParse($stringValue, [ref]$numResult)) {
         $clampedValue = [Math]::Max(0, [Math]::Min(5, $numResult))
@@ -137,7 +137,7 @@ function Set-Verbosity {
         return $script:NumericToLevelMap[$clampedValue]
     }
 
-    #~@ Fallback to default
+    #{ Fallback to default
     Write-Verbose "  No match found for '$stringValue', using default"
     return Get-VerbosityDefault
 }
@@ -198,7 +198,7 @@ function Get-VerbosityDefault {
     [OutputType([string])]
     param()
 
-    #~@ If $Global:Verbosity is set, use it; otherwise, use the configured default.
+    #{ If $Global:Verbosity is set, use it; otherwise, use the configured default.
     return Get-VerbosityLevel -Value ($Global:Verbosity ?? $script:VerbosityDefault)
 }
 
@@ -456,7 +456,7 @@ function Test-VerbosityLevelMeetsThreshold {
 #endregion
 #region Export
 
-#~@ Export all public functions
+#{ Export all public functions
 Export-ModuleMember -Function @(
     'Get-VerbosityDefault',
     'Get-VerbosityLevel',

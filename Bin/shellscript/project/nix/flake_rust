@@ -8,7 +8,7 @@ point_of_entry() {
 }
 
 parse_arguments() {
-  #~@ Parse options from CLI arguments
+  #{ Parse options from CLI arguments
   while [ "$#" -ge 1 ]; do
     case "$1" in
     -r* | --r*) repository="$2" ;;
@@ -20,14 +20,14 @@ parse_arguments() {
     shift
   done
 
-  #~@ Set defaults
+  #{ Set defaults
   repository="${repository:-"github:Craole/nixed"}"
   template="${template:-"rustly"}"
   project="${project:-"$template"}"
 }
 
 process_core() {
-  #~@ Initialize flake and extablish development environment
+  #{ Initialize flake and extablish development environment
   if [ "$init_dir" ]; then
     nix flake init --template "$repository#$template"
     # nix develop

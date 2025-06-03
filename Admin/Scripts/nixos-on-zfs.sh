@@ -85,7 +85,7 @@ validate_erasure() {
 }
 
 validate_dependencies() {
-  #~@ Install programs needed for system installation
+  #{ Install programs needed for system installation
   if ! command -v git; then nix-env -f '<nixpkgs>' -iA git; fi
   if ! command -v jq; then nix-env -f '<nixpkgs>' -iA jq; fi
   if ! command -v helix; then nix-env -f '<nixpkgs>' -iA helix; fi
@@ -114,7 +114,7 @@ create_partitions() {
 }
 
 create_boot_containers() {
-  #~@ Create a fail-safe boot pool for grub2
+  #{ Create a fail-safe boot pool for grub2
   zpool create \
     -o compatibility=grub2 \
     -o ashift=12 \
@@ -131,7 +131,7 @@ create_boot_containers() {
     bpool \
     "$(printf '%s ' "${DISK}-part2")"
 
-  #~@ Create root pool for EFI
+  #{ Create root pool for EFI
   zpool create \
     -o ashift=12 \
     -o autotrim=on \
@@ -156,7 +156,7 @@ create_sys_container() {
       "WARNING: Please set a strong password and memorize it." \
       "See zfs-change-key(8) for more info"
 
-    #~@ Creat and encrypt the root container
+    #{ Creat and encrypt the root container
     zfs create \
       -o canmount=off \
       -o mountpoint=none \
@@ -165,7 +165,7 @@ create_sys_container() {
       -o keyformat=passphrase \
       rpool/nixos
   else
-    #~@ Creat the root container
+    #{ Creat the root container
     zfs create \
       -o canmount=off \
       -o mountpoint=none \
@@ -196,25 +196,25 @@ create_datasets() {
 }
 
 init_boot_container() {
-  #~@ Format and iniyialize the boot partition
+  #{ Format and iniyialize the boot partition
   mkfs.vfat -n EFI "${DISK}"-part1
   mkdir -p "${MNT}"/boot/efis/"${DISK##*/}"-part1
   mount -t vfat -o iocharset=iso8859-1 "${DISK}"-part1 "${MNT}"/boot/efis/"${DISK##*/}"-part1
 }
 
 init_flake() {
-  #~@ Enable Nix Flakes functionality
+  #{ Enable Nix Flakes functionality
   mkdir -p ~/.config/nix
   printf "%s\n" \
     "experimental-features = nix-command flakes" >> \
     ~/.config/nix/nix.conf
 
-  #~@ Clone the template repository
+  #{ Clone the template repository
   mkdir -p "${MNT}"/etc
   git clone --depth 1 --branch openzfs-guide \
     https://github.com/ne9z/dotfiles-flake.git "${MNT}"/etc/nixos
 
-  #~@ Update the flake with the user's git credentials
+  #{ Update the flake with the user's git credentials
   rm -rf "${MNT}"/etc/nixos/.git
   git -C "${MNT}"/etc/nixos/ init -b main
   git -C "${MNT}"/etc/nixos/ add "${MNT}"/etc/nixos/
@@ -224,7 +224,7 @@ init_flake() {
 }
 
 prep_flake() {
-  #~@ Prepare configuration based on the system specifications
+  #{ Prepare configuration based on the system specifications
   sed -i \
     "s|/dev/disk/by-id/|${DISK%/*}/|" \
     "${MNT}"/etc/nixos/hosts/exampleHost/default.nix
@@ -269,13 +269,13 @@ deploy_flake() {
 }
 
 prevent_reboot() {
-  #~@ Allow the user some time to cancel the reboot
+  #{ Allow the user some time to cancel the reboot
   timer=10 &&
     printf "Rebooting in %s seconds. Is that OK? [Y/n] \n" "${timer}"
   choice="" &&
     IFS= read -r -t "${timer}" choice
 
-  #~@ Exit the script
+  #{ Exit the script
   case "${choice}" in
   [nN]*) printf "%s\n" "Reboot canceled" ;;
   *) printf "%s\n" "Rebooting..." ;;
@@ -283,7 +283,7 @@ prevent_reboot() {
 }
 
 pout() {
-  #~@ Print appropriate error message
+  #{ Print appropriate error message
   case "${1}" in
   --option)
     shift
@@ -295,7 +295,7 @@ pout() {
     ;;
   esac
 
-  #~@ Print usage and exit with an error code
+  #{ Print usage and exit with an error code
   show_usage_guide
   exit 1
 }

@@ -3,19 +3,19 @@
 
 _APP=herbstluftwm
 
-#~@ Exit if not installed
+#{ Exit if not installed
 # weHave "$_APP" || {
 #     printf "🚫 %s not found in PATH\n" "$_APP"
 #     exit 1
 # }
 
-#~@ Load Environment Variables
+#{ Load Environment Variables
 . "$DOTS_ENV_CTX/herbstluftwm"
 
-#~@ Initialize alias
+#{ Initialize alias
 hc() { herbstclient "$@"; }
 
-#~@ Initialize modules
+#{ Initialize modules
 for module in "${_MODS}"/*; do
   case "$(basename "$module")" in
   panel*) #| Panels for each monitor

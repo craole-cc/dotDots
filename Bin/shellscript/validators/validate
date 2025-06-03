@@ -92,7 +92,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-#~@ Validate based on type and constraints
+#{ Validate based on type and constraints
 case "$__type" in
 integer | positive)
   # Check pattern match
@@ -101,7 +101,7 @@ integer | positive)
     exit 1
   }
 
-  #~@ Check min/max if specified
+  #{ Check min/max if specified
   [ -n "$__min" ] && [ "$__value" -lt "$__min" ] && {
     [ -n "$__default" ] && printf '%s\n' "$__default"
     exit 1
@@ -113,7 +113,7 @@ integer | positive)
   ;;
 
 float)
-  #~@ Check pattern match
+  #{ Check pattern match
   expr "$__value" : "$__pattern" >/dev/null 2>&1 || {
     [ -n "$__default" ] && printf '%s\n' "$__default"
     exit 1
@@ -121,7 +121,7 @@ float)
   ;;
 
 string)
-  #~@ Check pattern match if specified
+  #{ Check pattern match if specified
   {
     [ -n "$__pattern" ] &&
       expr "$__value" : "$__pattern" >/dev/null 2>&1
@@ -130,7 +130,7 @@ string)
     exit 1
   }
 
-  #~@ Check length constraints if specified
+  #{ Check length constraints if specified
   [ -n "$__min" ] && [ "${#__value}" -lt "$__min" ] && {
     [ -n "$__default" ] && printf '%s\n' "$__default"
     exit 1
@@ -157,5 +157,5 @@ list)
   ;;
 esac
 
-#~@ Return the value, validation passed
+#{ Return the value, validation passed
 printf '%s' "$__value"

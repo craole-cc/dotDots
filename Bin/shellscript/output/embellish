@@ -18,7 +18,7 @@ set_defaults() {
 }
 
 set_attribute() {
-  #~@ Parse the attribute options
+  #{ Parse the attribute options
   while [ "$#" -ge 2 ]; do
     case "$1" in
     -a | --attribute) attribute="$2" ;;
@@ -34,7 +34,7 @@ set_attribute() {
     shift 2
   done
 
-  #~@ Stylize per the options
+  #{ Stylize per the options
   stylize
 }
 
@@ -59,10 +59,10 @@ set_color() {
 }
 
 init_terminal() {
-  #~@ Cache terminal capability checks
+  #{ Cache terminal capability checks
   command -v tput >/dev/null 2>&1 && HAS_TPUT=1
 
-  #~@ Check if terminal supports color and is interactive
+  #{ Check if terminal supports color and is interactive
   [ -t 1 ] && IS_TERMINAL=1
   case "$TERM" in
   *color* | xterm* | rxvt* | vt100) HAS_COLOR=1 ;;
@@ -75,7 +75,7 @@ init_terminal() {
 }
 
 stylize() {
-  #~@ Return early if no attribute is set
+  #{ Return early if no attribute is set
   [ "$attribute" ] || return 0
 
   if [ "$HAS_TPUT" = 1 ] && [ "$tput_code" ]; then
@@ -111,7 +111,7 @@ align() {
     shift
   done
 
-  #~@ Get visible text length by stripping ANSI sequences
+  #{ Get visible text length by stripping ANSI sequences
   text_length=$(printf '%s' "$text" | sed 's/\033\[[0-9;]*[mGKHf]//g' | wc -m)
   space_buffer=$(((TERM_WIDTH - text_length - 2) / 2))
 
@@ -160,13 +160,13 @@ pout_char() {
     #DOC Notes:
     #DOC   The argument is optional and defaults to 0 if not provided.
 
-    #~@ Ensure the input is a valid number
+    #{ Ensure the input is a valid number
     validate --integer "$1" || {
       printf 'Usage: pout_char__lines [NUM]\n'
       return 1
     }
 
-    #~@ Print the blank lines
+    #{ Print the blank lines
     printf "\n%.0s" $(seq "$1")
 
   }
@@ -187,13 +187,13 @@ pout_char() {
     #DOC Notes:
     #DOC   The argument is optional and defaults to 0 if not provided.
 
-    #~@ Ensure the input is a valid number
+    #{ Ensure the input is a valid number
     validate --integer "$1" || {
       printf 'Usage: pout_char__spaces [NUM]\n'
       return 1
     }
 
-    #~@ Print the whitespace
+    #{ Print the whitespace
     printf "%.0s " $(seq "$1")
   }
 
@@ -217,7 +217,7 @@ pout_char() {
     __num="$1"
     __char="$2"
 
-    #~@ Ensure the input is a valid number
+    #{ Ensure the input is a valid number
     validate --integer "$num" || {
       printf 'ERROR: %s\n%s\n' \
         "" \
@@ -225,13 +225,13 @@ pout_char() {
       return 1
     }
 
-    #~@ Ensure the input is a valid number
+    #{ Ensure the input is a valid number
     validate --string "$__num" || {
       printf 'Usage: pout_char__patterns [NUM] [PATTERN]\n'
       return 1
     }
 
-    #~@ Print the pattern
+    #{ Print the pattern
     printf "%.0s$__char" $(seq "$__num")
   }
 
@@ -288,10 +288,10 @@ pout_char() {
   pout_char__main "$@"
 }
 parse_arguments() {
-  #~@ Execute only if run directly
+  #{ Execute only if run directly
   case "$0" in */sh | -sh | sh) return ;; *) ;; esac
 
-  #~@ Parse
+  #{ Parse
   while [ "$#" -gt 0 ]; do
     case "$1" in
     #| Script Settings
