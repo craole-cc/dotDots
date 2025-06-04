@@ -74,7 +74,7 @@ while [ $# -gt 0 ]; do
       msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
       shift
     else
-      printf "Error: Missing value for --msg\n" >&2
+      printf "[Error] Missing value for --msg\n" >&2
       return 1
     fi
     ;;
@@ -104,11 +104,12 @@ fi
 ctx="${ctx_head_sep}${ctx-"${scr_name}"}${ctx_tail_sep}"
 
 #{ Update the tag
-if [ -z "${tag}" ]; then tag="DEBUG"; fi
+if [ -z "${tag}" ]; then tag="[DEBUG]"; fi
+
+#{ Bound the tag in square brackets, if not already }
+case "${tag}" in \[*\]) ;; *) tag="[${tag}]" ;; esac
 tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
 
-# echo MSG: ${msg}
-# exit
 #{ Format and print the message
 ifs="${IFS}"
 IFS="${delimiter}"

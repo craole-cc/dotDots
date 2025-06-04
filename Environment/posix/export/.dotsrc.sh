@@ -1,7 +1,11 @@
 #!/bin/sh
 
 init_rc "
-  ${DOTS_ENV_POSIX_EXP:?}/base/admin
-  ${DOTS_ENV_POSIX_EXP:?}/package/yazi.sh
-  # ${DOTS_ENV_POSIX_EXP:?}/package/admin/review/ruby.sh
+  #| Environment
+  ${DOTS_ENV_POSIX_EXP:?}/admin.sh
+  ${DOTS_ENV_POSIX_EXP:?}/history.sh
+  ${DOTS_ENV_POSIX_EXP:?}/locale.sh
+
+  #| Packages
+  ${DOTS_ENV_POSIX_EXP:?}/yazi.sh
 "

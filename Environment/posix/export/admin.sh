@@ -11,14 +11,7 @@ manage_env force --var VERBOSITY_INFO --val "$(verbosity "${VERBOSITY_INFO:-"Inf
 manage_env force --var VERBOSITY_DEBUG --val "$(verbosity "${VERBOSITY_DEBUG:-"Debug"}" 4 || true)"
 manage_env force --var VERBOSITY_TRACE --val "$(verbosity "${VERBOSITY_TRACE:-"Trace"}" 5 || true)"
 
-#{ Editors }
-manage_env force --var EDITOR_TUI --val "helix, nvim, vim, nano"
-manage_env force --var EDITOR_GUI --val "code, zed, zeditor, trae, notepad++, notepad"
-EDITOR="$(editor --set)" export EDITOR
-
 #{ System Information }
-locale="$(locale -uU 2>/dev/null || printf 'en_US.UTF-8')"
-manage_env force --var USER_LANG --val "${locale}"
 manage_env force --var USER_NAME --val "$(get_os_user || true)"
 manage_env force --var USER --val "${USER_NAME}"
 manage_env force --var SHELL --val "${SHELL:-"$(get_os_shell || true)"}"

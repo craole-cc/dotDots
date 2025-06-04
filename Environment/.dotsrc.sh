@@ -14,6 +14,12 @@ PAD=12
 SEP=" | "
 export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE PAD SEP
 
+#{ Editors }
+: "${EDITORS_TUI:="helix, nvim, vim, nano"}"
+: "${EDITORS_GUI:="code, zed, zeditor, trae, notepad++, notepad"}"
+export EDITORS_TUI EDITORS_GUI
+EDITOR="$(editor --set)" export EDITOR
+
 #{ Set common global variables
 export RC=".dotsrc"
 
@@ -402,9 +408,9 @@ register_env() {
 
   #{ Create helper functions for existing paths
   if [ -e "${_val}" ]; then
-    eval "ed_${_var}() { edit \"\${${_var}}\"; }"
+    eval "ed_${_var}() { editor \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function ed_${_var}()"
+      pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function ed_${_var}"
     fi
   fi
 
@@ -566,6 +572,7 @@ main() {
     manage_env --force --var DOTS_RC --val "${DOTS_RC}"
     manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
     manage_env --force --var PROFILE --val "${HOME}/.profile"
+    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
     manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
     manage_env --force --init --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
     manage_env --force --init --var DOTS_ENV_EXPORT --val "${DOTS_ENV_POSIX}/export"
@@ -576,7 +583,6 @@ main() {
     manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
     manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
     manage_env --force --init --var DOTS_RES --val "${DOTS}/Assets"
-    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
   else
     DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
     DOTS_BIN="${DOTS}/Bin" export DOTS_BIN

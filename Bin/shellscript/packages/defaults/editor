@@ -30,8 +30,8 @@ set_defaults() {
   action="launch"
 
   #| Check environment variables before setting fallback
-  fallback_tuis="${EDITOR_TUI:-"hx|nvim|nano"}"
-  fallback_guis="${EDITOR_GUI:-"code|code-insiders|zeditor|zed.exe"}"
+  fallback_tuis="${EDITORS_TUI:-"hx|nvim|nano"}"
+  fallback_guis="${EDITORS_GUI:-"code|code-insiders|zeditor|zed.exe"}"
   fallback_args="$(pwd -P || printf ".")"
 }
 
@@ -63,40 +63,51 @@ parse_arguments() {
       editor__pout "$1"
       exit 0
       ;;
-    -V | --info | --verbose) verbosity="${verbosity_info}" ;;
-    -d | --dry-run | --debug | --trace) verbosity="${verbosity_debug}" ;;
+    -V | --info) verbosity="${verbosity_info}" ;;
+    -D | --dry-run | --simulate) dry_run=true ;;
+    -d | --debug | --verbose) verbosity="${verbosity_debug}" ;;
+    --trace) verbosity="${verbosity_trace}" ;;
     -q | --quiet) verbosity="${verbosity_quiet}" ;;
     -t | --tui)
-      case "${2:-}" in
-      '' | none) default_tuis="none" ;;
-      *)
-        default_tuis="${default_tuis:+${default_tuis}${delimiter}}$2"
-        ;;
+      if [ -z "${2:-}" ]; then
+        pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Missing argument for: $1 "
+        return 1
+      fi
+      case "$2" in
+      none) default_tuis="none" ;;
+      *) default_tuis="${default_tuis:+${default_tuis}${delimiter}}$2" ;;
       esac
       shift
       ;;
     -g | --gui)
-      case "${2:-}" in
-      '' | none) default_guis="none" ;;
-      *)
-        default_guis="${default_guis:+${default_guis}${delimiter}}$2"
-        ;;
+      if [ -z "${2:-}" ]; then
+        pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Missing argument for: $1 "
+        return 1
+      fi
+      case "$2" in
+      none) default_guis="none" ;;
+      *) default_guis="${default_guis:+${default_guis}${delimiter}}$2" ;;
       esac
       shift
       ;;
     -x | --set)
       action="set"
       ;;
-    --*)
-      unset fallback_args
-      if [ "$#" -eq 1 ]; then :; else
+    --)
+      #? Remaining arguments are meant for the editor
+      shift
+      while [ "$#" -ge 1 ]; do
+        from_args="${from_args:+${from_args}${delimiter}}$1"
         shift
-        args="$*"
-        break
-      fi
+      done
+      break
+      ;;
+    --*)
+      pout-tagged --ctx "editor" --tag "[ERROR]" --msg "Unknown option: $1"
+      return 1
       ;;
     *)
-      from_args="${from_args:+${from_args}"${delimiter}"}$1"
+      from_args="${from_args:+${from_args}${delimiter}}$1"
       ;;
     esac
     shift
@@ -105,14 +116,12 @@ parse_arguments() {
 
 establish_environment() {
   #{ Collect editor preferences
-  tuis="${default_tuis:-"${from_args:-"${fallback_tuis}"}"}"
-  guis="${default_guis:-"${from_args:-"${fallback_guis}"}"}"
+  tuis="${default_tuis:-"${fallback_tuis}"}"
+  guis="${default_guis:-"${fallback_guis}"}"
 
   #{ Normalize variables
   tuis="$(normalize_vars "${tuis}")"
   guis="$(normalize_vars "${guis}")"
-  # echo "tuis: ${tuis}"
-  # echo "guis: ${guis}"
 
   #{ Set editors to GUI editors if available, else fallback to TUI editors
   # shellcheck disable=SC2310
@@ -121,14 +130,12 @@ establish_environment() {
   else
     editors="${tuis:-}"
   fi
-  : "${editors:=}"
 
   #{ Ensure there is at least one editor
-  if [ -n "${editors}" ]; then :; else
-
+  if [ -z "${editors:-}" ]; then
     #{ Print an error message, if verbosity is high enough
-    if [ "${verbosity}" -lt "${verbosity_error}" ]; then :; else
-      printf "No editors were defined editor\n"
+    if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+      pout-tagged --ctx "editor" --tag "[ERROR]" "No editors were defined"
       editor__pout_help
     fi
 
@@ -143,50 +150,96 @@ establish_environment() {
       i=$((i + 1))
     fi
 
-    editor_path="$(command -v "${editor}" 2>/dev/null || true)"
+    editor_path="$(command -v "${editor:-}" 2>/dev/null || true)"
     if [ -n "${editor_path}" ] && [ -x "${editor_path}" ]; then
       break
     fi
   done
   IFS="${old_IFS}"
-
-  #{ Define arguments based on action
-  case "${action:-}" in set) ;; *)
-    #{ Append a space and the arguments to the editor
-    editor_cmd="${editor:-} ${args:-"${fallback_args:-}"}"
-    ;;
-  esac
 }
 
 execute_process() {
-  #{ Return the editor
-  if [ -n "${editor:-}" ]; then
-    case "${action:-}" in
-    set)
-      #{ Print the editor command
-      printf "%s" "${editor_path:-}"
-      ;;
-    *)
-      #{ Print the editor command, if verbosity is high enough
-      if [ "${verbosity}" -lt "${verbosity_info}" ]; then :; else
-        printf "%s" "${editor_cmd:-}"
-      fi
-
-      #{ Execute the editor command
-      if [ "${verbosity}" -ge "${verbosity_debug}" ]; then :; else
-        eval "${editor_cmd:-}"
-      fi
-      ;;
-    esac
-  else
-    #{ Print an error message, if verbosity is high enough
-    if [ "${verbosity}" -lt "${verbosity_error}" ]; then :; else
-      printf "Unable to determine the path to an available editor\n"
+  #{ Ensure there is an available editor
+  if [ -z "${editor:-}" ] || [ -z "${editor_path:-}" ]; then
+    #{ Print an error message, if verbosity is high enough }
+    if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+      pout-tagged --ctx "editor" --tag "[ERROR]" \
+        "Unable to determine the path to an available editor"
     fi
-
-    #{ Exit with error
     return 1
   fi
+
+  #{ Ensure the editor is executable }
+  if [ ! -x "${editor_path}" ]; then
+    if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+      pout-tagged --ctx "editor" --tag "[ERROR]" \
+        "Editor not executable =>" "${editor_path}"
+    fi
+    return 1
+  fi
+
+  case "${action:-}" in
+  set)
+    #{ Print the editor command
+    printf "%s" "${editor_path:-}"
+    ;;
+  *)
+    #{ Ensure there is an arguments passed to the editor }
+    if [ -n "${from_args:-}" ]; then
+      #{ Convert delimiter-separated string back to arguments }
+      old_IFS="${IFS}"
+      IFS="${delimiter}"
+      # shellcheck disable=SC2086
+      set -- ${from_args}
+      IFS="${old_IFS}"
+    else
+      set -- "${fallback_args}"
+    fi
+
+    #{ Include debug flags based, if necessary }
+    if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+      case "${editor:-}" in
+      *code*)
+        #? Visual Studio Code: --verbose
+        set -- "--verbose" "$@"
+        ;;
+      *emacs*)
+        #? Emacs: --debug-init for init file debug, --debug-on-error for runtime errors
+        #? No numeric verbosity, use --debug-init at debug level, else empty
+        set -- "--debug-init" "$@"
+        ;;
+      *nvim* | *vim*)
+        #? Vim/Neovim: -V[N] where N is verbosity level (1-15)
+        if [ "${verbosity}" -eq "${verbosity_debug}" ]; then
+          set -- "-V10" "$@"
+        else
+          set -- "-V15" "$@"
+        fi
+        ;;
+      *) ;;
+      esac
+    fi
+
+    #{ Execute the final command or print it}
+    case "${dry_run:-}" in
+    true | 1 | yes | on)
+      i=0
+      pout-tagged --ctx "editor" --tag "[INFO]" "$(
+        printf "Would execute per these parameters \n"
+        printf "  NAME |=> %s\n" "${editor:-}"
+        printf "  PATH |=> %s\n" "${editor_path:-}"
+        for arg in "$@"; do
+          i=$((i + 1))
+          printf "  ARG%s |=> %s\n" "${i}" "${arg}"
+        done
+      )"
+      ;;
+    *)
+      exec "${editor_path}" "$@"
+      ;;
+    esac
+    ;;
+  esac
 }
 
 normalize_vars() {
@@ -212,7 +265,7 @@ normalize_vars() {
 
   #{ Return early if input string is empty or unset
   if [ -z "${1:-}" ]; then
-    return
+    return 0
   fi
 
   #{ Use provided delimiter or fallback to global 'delimiter' variable
@@ -230,48 +283,49 @@ normalize_vars() {
 
   #{ Surround with delimiter to simplify 'none' detection
   case "${delimiter}${vars}${delimiter}" in
-  *"none"*) return ;; #? If 'none' is found, do not print anything
+  *"${delimiter}none${delimiter}"*) return 0 ;; #? If 'none' is found, do not print anything
   *) printf "%s" "${vars:-}" ;;
   esac
 }
 
-#DOC git_source_or - Return the top-level directory of the current git repository, if it exists.
-#DOC
-#DOC Usage:
-#DOC   git_source_or [default_value]
-#DOC
-#DOC Description:
-#DOC   Attempts to determine the top-level directory of the current Git repository
-#DOC   by invoking `git rev-parse --show-toplevel`.
-#DOC
-#DOC   If the current working directory is not inside a Git repository, or if Git is
-#DOC   not available, the function returns the provided default value (first argument),
-#DOC   or an empty string if no default is given.
-#DOC
-#DOC Arguments:
-#DOC   $1 - Optional. Default value to return if not inside a Git repository.
-#DOC
-#DOC Returns:
-#DOC   Prints the resolved directory path or the default value to stdout.
-#DOC
-#DOC Example:
-#DOC   repo_root=$(git_source_or "/default/path")
 git_source_or() {
-  if src=$(git rev-parse --show-toplevel 2>/dev/null); then
+  #DOC git_source_or - Return the top-level directory of the current git repository, if it exists.
+  #DOC
+  #DOC Usage:
+  #DOC   git_source_or [default_value]
+  #DOC
+  #DOC Description:
+  #DOC   Attempts to determine the top-level directory of the current Git repository
+  #DOC   by invoking `git rev-parse --show-toplevel`.
+  #DOC
+  #DOC   If the current working directory is not inside a Git repository, or if Git is
+  #DOC   not available, the function returns the provided default value (first argument),
+  #DOC   or an empty string if no default is given.
+  #DOC
+  #DOC Arguments:
+  #DOC   $1 - Optional. Default value to return if not inside a Git repository.
+  #DOC
+  #DOC Returns:
+  #DOC   Prints the resolved directory path or the default value to stdout.
+  #DOC
+  #DOC Example:
+  #DOC   repo_root=$(git_source_or "/default/path")
+  src=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [ -n "${src:-}" ]; then
     #? Successfully found Git top-level directory
-    printf '%s' "${src:-}"
+    printf '%s' "${src}"
   else
     #? Not inside a Git repo or git command failed; print default or empty string
     printf '%s' "${1:-}"
   fi
 }
 
-#DOC Determine environment and GUI availability
-#DOC
-#DOC Details:
-#DOC - On Windows-like environments (Cygwin, MSYS, MinGW), assume GUI is available
-#DOC - On Unix/Linux, check if DISPLAY or WAYLAND_DISPLAY is set (X11 or Wayland GUI)
 check_gui_env() {
+  #DOC Determine environment and GUI availability
+  #DOC
+  #DOC Details:
+  #DOC - On Windows-like environments (Cygwin, MSYS, MinGW), assume GUI is available
+  #DOC - On Unix/Linux, check if DISPLAY or WAYLAND_DISPLAY is set (X11 or Wayland GUI)
   case "$(uname -s)" in
   CYGWIN* | MSYS* | MINGW*) return 0 ;;
   *) [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ] ;;
@@ -288,11 +342,11 @@ editor__pout() {
     case "$1" in
     -h | --help) editor__pout_help ;;
     -v | --version) msg="${2:-"${app_version}"}" ;;
-    --error) tag="ERROR" ;;
-    --warn) tag=" WARN" ;;
-    --info) tag=" INFO" ;;
-    --debug) tag="DEBUG" ;;
-    --trace) tag="TRACE" ;;
+    --error) tag="[ERROR]" ;;
+    --warn) tag=" [WARN]" ;;
+    --info) tag=" [INFO]" ;;
+    --debug) tag="[DEBUG]" ;;
+    --trace) tag="[TRACE]" ;;
     --tab)
       if [ -n "${2:-}" ] && [ "${2:-}" -eq "${2:-}" ] >/dev/null 2>&1; then
         pad_lvl="$2"

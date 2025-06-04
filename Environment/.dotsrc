@@ -1,4 +1,3 @@
-echo start
 manage_env --force --var DOTS --val "${DOTS}"
 manage_env --force --var HOME --val "${HOME}"
 manage_env --force --var DOTS_RC --val "${DOTS_RC}"
@@ -15,4 +14,3 @@ manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
 manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
 manage_env --force --init --var DOTS_RES --val "${DOTS}/Assets"
 manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
-echo done
