@@ -14,13 +14,13 @@ export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN
 
 #{ Set common global variables
 export RC=".dotsrc"
-export EDITOR_TUI="helix, nvim, vim, nano"
-export EDITOR_GUI="code, zed, zeditor, trae, notepad++, notepad"
-EDITOR="$(editor --set)" export EDITOR
+# export EDITOR_TUI="helix, nvim, vim, nano"
+# export EDITOR_GUI="code, zed, zeditor, trae, notepad++, notepad"
+# EDITOR="$(editor --set)" export EDITOR
 
 #{ Set local variables
-pad=12
-sep=" | "
+PAD=12
+SEP=" | "
 
 manage_env() {
   #DOC Manage environment variables with various operations.
@@ -194,12 +194,12 @@ manage_env() {
     #{ Print debug information
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       pout-tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
-        printf "\n%${pad}s%s%s" "ACTION" "${sep}" "${action}"
-        printf "\n%${pad}s%s%s" "ENV_var" "${sep}" "${var}"
-        printf "\n%${pad}s%s%s" "ENV_val" "${sep}" "${val}"
-        # printf "\n%${pad}s%s%s" "EDITOR" "${sep}" "${EDITOR}"
-        # printf "\n%${pad}s%s%s" "RC" "${sep}" "${RC}"
-        printf "\n%${pad}s%s%s" "FORCE" "${sep}" "${force}"
+        printf "\n%${PAD}s%s%s" "ACTION" "${SEP}" "${action}"
+        printf "\n%${PAD}s%s%s" "ENV_var" "${SEP}" "${var}"
+        printf "\n%${PAD}s%s%s" "ENV_val" "${SEP}" "${val}"
+        # printf "\n%${PAD}s%s%s" "EDITOR" "${SEP}" "${EDITOR}"
+        # printf "\n%${PAD}s%s%s" "RC" "${SEP}" "${RC}"
+        printf "\n%${PAD}s%s%s" "FORCE" "${SEP}" "${force}"
       )"
     fi
   }
@@ -341,10 +341,10 @@ register_env() {
 
   if [ "${VERBOSITY:-0}" -ge 4 ]; then
     pout-tagged --ctx "register_env" --tag "DEBUG" --msg "$(
-      printf "\n  %${pad}s%s%s" "INIT" "${sep}" "${_init}"
-      printf "\n  %${pad}s%s%s" "FORCE" "${sep}" "${_force}"
-      printf "\n  %${pad}s%s%s" "VAR" "${sep}" "${_var}"
-      printf "\n  %${pad}s%s%s" "VAL" "${sep}" "${_val}"
+      printf "\n  %${PAD}s%s%s" "INIT" "${SEP}" "${_init}"
+      printf "\n  %${PAD}s%s%s" "FORCE" "${SEP}" "${_force}"
+      printf "\n  %${PAD}s%s%s" "VAR" "${SEP}" "${_var}"
+      printf "\n  %${PAD}s%s%s" "VAL" "${SEP}" "${_val}"
     )"
   fi
 
@@ -553,7 +553,7 @@ init_rc() {
   for item in ${items}; do
     [ -z "${item}" ] && continue
     count=$((count + 1))
-    path="${DOTS_ENV_EXPORT}/${item}"
+    path="${item}"
     [ "${VERBOSITY}" -ge "${VERBOSITY_DEBUG:-3}" ] &&
       printf "Sourcing '%s.%s'\n" "${count}" "${path}"
     # shellcheck disable=SC1090
@@ -606,4 +606,8 @@ main() {
   fi
 }
 
-main "$@"
+# main "$@"
+if [ -f "${DOTS_ENV}/${RC}" ]; then
+  # shellcheck disable=SC1090
+  . "${DOTS_ENV}/${RC}"
+fi

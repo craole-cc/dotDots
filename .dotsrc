@@ -37,6 +37,8 @@
     return 2
   fi
 
+  DOTS_INIT_START="$(date +%s)"
+
   #{ Initialize the DOTS scripts
   if [ -d "${DOTS}/Bin" ]; then
     DOTS_BIN="${DOTS}/Bin"
@@ -64,7 +66,15 @@
   #{ Load the DOTS environment
   DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
   if [ -f "${DOTS_ENV}/${RC}.sh" ] ; then
+    # shellcheck disable=SC1090
     . "${DOTS_ENV}/${RC}.sh"
+  fi
+
+  #{ Calculate the duration }
+  if [ "${DOTS_INIT_START:-}" ]; then
+    DOTS_INIT_END="$(date +%s)"
+    DOTS_INIT_DURATION=$((DOTS_INIT_END - DOTS_INIT_START))
+    export DOTS_INIT_DURATION
   fi
 
   #{ Exit with the last exit code

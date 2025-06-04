@@ -1,59 +1,10 @@
-#!/bin/sh
-# shellcheck enable=all
-# shellcheck disable=SC1091
-
-
-# dotsenv --dir DOTS_BIN_BASH "${DOTS_BIN}/bash"
-# dotsenv --dir DOTS_BIN_ZSH "${DOTS_BIN}/zsh"
-# dotsenv --dir DOTS_BIN_PWSH "${DOTS_BIN}/powershell"
-# dotsenv --dir DOTS_BIN_FISH "${DOTS_BIN}/fish"
-# dotsenv --dir DOTS_BIN_NU "${DOTS_BIN}/nushell"
-# dotsenv --dir DOTS_BIN_PY "${DOTS_BIN}/python"
-# dotsenv --dir DOTS_BIN_RS "${DOTS_BIN}/rust"
-# dotsenv --dir DOTS_BIN_RUBY "${DOTS_BIN}/ruby"
-# dotsenv --dir DOTS_BIN_SH "${DOTS_BIN}/shellscript"
-# dotsenv --dir DOTS_BIN_IN "${DOTS_BIN}/import"
-# dotsenv --dir DOTS_BIN_ZIG "${DOTS_BIN}/zig"
-# case "${DOTS_CACHE_STAGE:-}" in off)
-#   pout --trace "DOTS_CACHE_STAGE [in_bin_off]:" "${DOTS_CACHE_STAGE}"
-#   ;;
-# *)
-#   pout --trace "DOTS_CACHE_STAGE [in_bin_*]:" "${DOTS_CACHE_STAGE}"
-#   ;;
-# esac
-
-# DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}"
-# export DOTS_BIN_BASH
-# mkdir -p "${DOTS_BIN_BASH}"
-
-# DOTS_BIN_FISH="${DOTS_BIN_FISH:-"${DOTS_BIN}/fish"}"
-# export DOTS_BIN_FISH
-# mkdir -p "${DOTS_BIN_FISH}"
-
-# DOTS_BIN_IN="${DOTS_BIN_IN:-"${DOTS_BIN}/import"}"
-# export DOTS_BIN_IN
-# mkdir -p "${DOTS_BIN_IN}"
-
-# DOTS_BIN_NU="${DOTS_BIN_NU:-"${DOTS_BIN}/nushell"}"
-# export DOTS_BIN_NU
-# mkdir -p "${DOTS_BIN_NU}"
-
-# DOTS_BIN_PS="${DOTS_BIN_PS:-"${DOTS_BIN}/powershell"}"
-# export DOTS_BIN_PS
-# mkdir -p "${DOTS_BIN_PS}"
-
-# DOTS_BIN_PY="${DOTS_BIN_PY:-"${DOTS_BIN}/python"}"
-# export DOTS_BIN_PY
-# mkdir -p "${DOTS_BIN_PY}"
-
-# DOTS_BIN_RS="${DOTS_BIN_RS:-"${DOTS_BIN}/rust"}"
-# export DOTS_BIN_RS
-# mkdir -p "${DOTS_BIN_RS}"
-
-# DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}"
-# export DOTS_BIN_SH
-# mkdir -p "${DOTS_BIN_SH}"
-
-# DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}"
-# export DOTS_BIN_ZIG
-# mkdir -p "${DOTS_BIN_ZIG}"
+manage_env --force --var DOTS_BIN_BASH --val "${DOTS_BIN}/bash}"
+manage_env --force --var DOTS_BIN_CMD --val "${DOTS_BIN}/cmd}"
+manage_env --force --var DOTS_BIN_NU --val "${DOTS_BIN}/nushell}"
+manage_env --force --var DOTS_BIN_PS --val "${DOTS_BIN}/powershell}"
+manage_env --force --var DOTS_BIN_PY --val "${DOTS_BIN}/python}"
+manage_env --force --var DOTS_BIN_RUST --val "${DOTS_BIN}/rust}"
+manage_env --force --var DOTS_BIN_SH --val "${DOTS_BIN}/shellscript}"
+manage_env --force --var DOTS_BIN_SQL --val "${DOTS_BIN}/sql}"
+manage_env --force --var DOTS_BIN_ZIG --val "${DOTS_BIN}/zig}"
+manage_env --force --var DOTS_BIN_ZSH --val "${DOTS_BIN}/zsh}"
