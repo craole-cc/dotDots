@@ -3,24 +3,19 @@
 
 #{ Set global output levels
 VERBOSITY="$(verbosity "Error")"
-VERBOSITY_QUIET="$(verbosity "${VERBOSITY_QUIET}" 0)"
-VERBOSITY_ERROR="$(verbosity "${VERBOSITY_ERROR}" 1)"
-VERBOSITY_WARN="$(verbosity "${VERBOSITY_WARN}" 2)"
-VERBOSITY_INFO="$(verbosity "${VERBOSITY_INFO}" 3)"
-VERBOSITY_DEBUG="$(verbosity "${VERBOSITY_DEBUG}" 4)"
-VERBOSITY_TRACE="$(verbosity "${VERBOSITY_TRACE}" 5)"
+VERBOSITY_QUIET=0
+VERBOSITY_ERROR=1
+VERBOSITY_WARN=2
+VERBOSITY_INFO=3
+VERBOSITY_DEBUG=4
+VERBOSITY_TRACE=5
 DELIMITER="$(printf "\037")"
-export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE
+PAD=12
+SEP=" | "
+export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE PAD SEP
 
 #{ Set common global variables
 export RC=".dotsrc"
-# export EDITOR_TUI="helix, nvim, vim, nano"
-# export EDITOR_GUI="code, zed, zeditor, trae, notepad++, notepad"
-# EDITOR="$(editor --set)" export EDITOR
-
-#{ Set local variables
-PAD=12
-SEP=" | "
 
 manage_env() {
   #DOC Manage environment variables with various operations.
