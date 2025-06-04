@@ -20,7 +20,7 @@ prepend_previewers = [
 
 [opener]
 display = [{ run = 'zathura "$@"', desc = "Show in Zathura" }]
-edit = [{ run = 'nvim "$@"', block = true }]
+edit = [{ run = '$EDITOR "$@"', block = true }]
 extract = [{ run = 'ouch d -y "$@"', desc = "Extract here with ouch" }]
 generic_open = [{ run = 'xdg-open "$@"', desc = "Open" }]
 

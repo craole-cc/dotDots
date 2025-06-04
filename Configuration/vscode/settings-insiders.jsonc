@@ -124,7 +124,7 @@
     "files.autoGuessEncoding": true,
     "editor.tabCompletion": "on"
   },
-  //@ /*Integrated Terminal */
+  //~@ /*Integrated Terminal */
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
       "source": "PowerShell",

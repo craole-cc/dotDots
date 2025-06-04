@@ -71,7 +71,7 @@ while [ $# -gt 0 ]; do
   --msg=*) msg="${1#--msg=}" ;;
   --msg)
     if [ $# -gt 1 ]; then
-      msg="$(printf "%b" "$2")"
+      msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
       shift
     else
       printf "Error: Missing value for --msg\n" >&2
@@ -93,9 +93,6 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-echo "${msg}"
-exit 0
-
 #{ Return early if no message is provided
 if [ -z "${msg}" ]; then
   return 0
@@ -104,14 +101,14 @@ fi
 #{ Update the context
 : "${ctx_head_sep:=" >>= "}"
 : "${ctx_tail_sep:=" =<< "}"
-if [ -n "${ctx:-}" ]; then
-  ctx="${ctx_head_sep}${ctx}${ctx_tail_sep}"
-fi
+ctx="${ctx_head_sep}${ctx-"${scr_name}"}${ctx_tail_sep}"
 
 #{ Update the tag
 if [ -z "${tag}" ]; then tag="DEBUG"; fi
 tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
 
+# echo MSG: ${msg}
+# exit
 #{ Format and print the message
 ifs="${IFS}"
 IFS="${delimiter}"

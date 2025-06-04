@@ -269,15 +269,61 @@ test_media() {
 
 test_ligatures() {
   pout_test --title "Programming Ligatures"
-  pout_test --label "Equality" "== === != !== ="
+  pout_test --label "Equality" "== === != !== = =~ !~"
   pout_test --label "Comparison" "<= >= < >"
   pout_test --label "Logic" "|| && |> <| <|| ||> <&&> &&>"
-  pout_test --label "Math" "++ -- ** // /* */"
-  pout_test --label "Special" ":= :: ;; =>= >>> <<= >>= #{"
-  pout_test --label "Arrows" "-> => <- <= |=> ==>"
+  pout_test --label "Math" "++ -- ** /* */ </ />"
+  pout_test --label "Special" ":= :: ;; =>= >>> <<= >>= __ \\ \\\\"
+  pout_test --label "Arrows" "-> => <- <= |=> ==> |="
   pout_test --label "Arrows Ext" "<== ==> <=> <--> <~~> <~> <==>"
-  pout_test --label "Labels" "[INFO] todo)) fixme))"
+  pout_test --label "Labels" "[FATAL] [TODO] [NOTE] [MARK] [FIXME]"
+  pout_test --label "Levels" "[TRACE] [DEBUG] [INFO] [WARN] [ERROR]"
   pout_test --newline
+
+  #DOC { Character Variants }
+  #DOC   cv01: Normalize special symbols (@ $ & % Q => ->)
+  #DOC   cv02: Alternative a with top arm, no effect in italic style
+  #DOC   cv03: Alternative i without left bottom bar (i1l)
+  #DOC   cv04: Alternative l with left bottom bar, like consolas, will be overridden by cv35 in italic style
+  #DOC   cv05: Alternative g in double story style, no effect in italic style
+  #DOC   cv06: Alternative i without bottom bar, no effect in italic style
+  #DOC   cv07: Alternative J without top bar, no effect in italic style
+  #DOC   cv08: Alternative r with bottom bar, no effect in italic style
+  #DOC   cv61: Alternative , and ; with straight tail
+  #DOC   cv62: Alternative ? with larger openings
+  #DOC   cv63: Alternative <= in arrow style
+  #DOC   cv64: Alternative <= and >= with horizen bottom bar
+  #DOC   cv65: Alternative & in handwriting style
+  #DOC   zero: Dot style 0
+  #DOC { Italic Only }
+  #DOC   cv31: Alternative italic a with top arm
+  #DOC   cv32: Alternative Italic f without bottom tail
+  #DOC   cv33: Alternative Italic i and j with left bottom bar and horizen top bar
+  #DOC   cv34: Alternative Italic k without center circle
+  #DOC   cv35: Alternative Italic l without center tail
+  #DOC   cv36: Alternative Italic x without top and bottom tails
+  #DOC   cv37: Alternative Italic y with straight intersection
+  #DOC   cv38: Alternative italic g in double story style
+  #DOC   cv39: Alternative Italic i without bottom bar
+  #DOC   cv40: Alternative italic J without top bar
+  #DOC   cv41: Alternative italic r with bottom bar
+  #DOC { CN Only }
+  #DOC   cv96: Full width quotes (“ / ” / ‘ / ’)
+  #DOC   cv97: Full width ellipsis (…)
+  #DOC   cv98: Full width emdash (—)
+  #DOC   cv99: Traditional centered punctuations
+  #DOC Stylistic Sets (ssXX)
+  #DOC   ss01: Broken multiple equals ligatures (==, ===, !=, !== ...)
+  #DOC   ss02: Broken compare and equal ligatures (<=, >=)
+  #DOC   ss03: Allow to use any case in all tags
+  #DOC   ss04: Broken multiple underscores ligatures (__, #__)
+  #DOC   ss05: Revert thin backslash in escape symbols (\\, \", \. ...)
+  #DOC   ss06: Break connected strokes between italic letters (al, il, ull ...)
+  #DOC   ss07: Relax the conditions for multiple greaters ligatures (>> or >>>)
+  #DOC   ss08: Double headed arrows and reverse arrows ligatures (>>=, -<<, ->>, >>- ...)
+  #DOC   ss09: Asciitilde equal as not equal to ligature (~=)
+  #DOC   ss10: Approximately equal to and approximately not equal to ligatures (=~, !~)
+  #DOC   ss11: Equal and extra punctuation ligatures (|=, /=, ?=, &=, ...)
 }
 
 test_italics() {
@@ -286,7 +332,7 @@ test_italics() {
   printf "\e[3mFull italic sentence to check rendering\e[0m\n"
   printf "Mixed \e[3mitalic\e[0m and \e[1mbold\e[0m text\n"
   printf "\e[3mItalic \e[1;3mbold-italic\e[0m\e[3m back to italic\e[0m\n"
-  printf "Code comments: \e[3m// This is an italic comment\e[0m\n"
+  printf "Code comments: \e[3m#This is an italic comment\e[0m\n"
 }
 
 test_filesystem() {
@@ -337,7 +383,7 @@ oO08 iIlL1 g9qCGQ 8%%& <([{}])> .,;: -_=
 == === != !== = <= >= < > ~= =~ |=
 -> => <- <= |=> ==> /> </
 || && |> <| <|| ||> <&&> &&>
-++ -- ** // /* */
+++ -- ** #/* */
 := :: ;; =>= >>> <<= >>= >>>
 <== ==> <=> <--> <~~> <~> <==>
 ~!@#$%^&* {} [] () I1l O0o

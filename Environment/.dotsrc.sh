@@ -15,7 +15,7 @@ export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN
 #{ Set common global variables
 export RC=".dotsrc"
 export EDITOR_TUI="helix, nvim, vim, nano"
-export EDITOR_GUI="trae,code, zed, zeditor, trae, notepad++, notepad"
+export EDITOR_GUI="code, zed, zeditor, trae, notepad++, notepad"
 EDITOR="$(editor --set)" export EDITOR
 
 #{ Set local variables
@@ -191,32 +191,15 @@ manage_env() {
     *) ;;
     esac
 
-    pad="$(printf "%${pad}s" "")"
-    pout-tagged --ctx "${fn_name}" --tag "DEBUG" \
-      --msg "\n  ${pad}ACTION${sep}${action}" \
-      --msg "\n  ${pad}ENV_var${sep}${var}" \
-      --msg "\n  ${pad}ENV_val${sep}${val}" \
-      --msg "\n  ${pad}EDITOR${sep}${EDITOR}" \
-      --msg "\n  ${pad}RC${sep}${RC}" \
-      --msg "\n  ${pad}FORCE${sep}${force}" \
-      --msg "\n  ${pad}INIT${sep}${init}"
-
-    #   printf "\n  %${pad}s%s%s" "ACTION" "${sep}" "${action}"
-    #   printf "\n  %${pad}s%s%s" "ENV_var" "${sep}" "${var}"
-    #   printf "\n  %${pad}s%s%s" "ENV_val" "${sep}" "${val}"
-    #   printf "\n  %${pad}s%s%s" "EDITOR" "${sep}" "${EDITOR}"
-    #   printf "\n  %${pad}s%s%s" "RC" "${sep}" "${RC}"
-    #   printf "\n  %${pad}s%s%s" "FORCE" "${sep}" "${force}"
-
     #{ Print debug information
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       pout-tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
-        printf "\n  %${pad}s%s%s" "ACTION" "${sep}" "${action}"
-        printf "\n  %${pad}s%s%s" "ENV_var" "${sep}" "${var}"
-        printf "\n  %${pad}s%s%s" "ENV_val" "${sep}" "${val}"
-        printf "\n  %${pad}s%s%s" "EDITOR" "${sep}" "${EDITOR}"
-        printf "\n  %${pad}s%s%s" "RC" "${sep}" "${RC}"
-        printf "\n  %${pad}s%s%s" "FORCE" "${sep}" "${force}"
+        printf "\n%${pad}s%s%s" "ACTION" "${sep}" "${action}"
+        printf "\n%${pad}s%s%s" "ENV_var" "${sep}" "${var}"
+        printf "\n%${pad}s%s%s" "ENV_val" "${sep}" "${val}"
+        # printf "\n%${pad}s%s%s" "EDITOR" "${sep}" "${EDITOR}"
+        # printf "\n%${pad}s%s%s" "RC" "${sep}" "${RC}"
+        printf "\n%${pad}s%s%s" "FORCE" "${sep}" "${force}"
       )"
     fi
   }
@@ -544,17 +527,19 @@ parse_list() {
   # Usage: parse_list "list_of_items"
   list="${1}"
 
-  # Store processed items in a variable
-  processed_items=$(printf '%s' "${list}" | sed '
-        /^[[:space:]]*#/d;                 # Remove comment lines
-        s/#.*$//;                          # Remove inline comments
-        s/^[[:space:]]*//;                 # Remove leading whitespace
-        s/[[:space:]]*$//;                 # Remove trailing whitespace
-        s/[[:space:]]\+/'"${DELIMITER}"'/g; # Convert whitespace to delimiters
-        /^$/d;                             # Remove empty lines
-    ')
+  #{ Store processed items in a variable }
+  processed_items="$(
+    printf '%s' "${list}" | sed '
+      /^[[:space:]]*#/d;                 # Remove comment lines
+      s/#.*$//;                          # Remove inline comments
+      s/^[[:space:]]*//;                 # Remove leading whitespace
+      s/[[:space:]]*$//;                 # Remove trailing whitespace
+      s/[[:space:]]\+/'"${DELIMITER}"'/g; # Convert whitespace to delimiters
+      /^$/d                              # Remove empty lines
+    ' | tr '\n' "${DELIMITER}"
+  )" # Convert newlines to delimiter
 
-  # Return the processed list
+  #{ Return the processed list }
   printf '%s' "${processed_items}"
 }
 
@@ -564,55 +549,61 @@ init_rc() {
 
   OLD_IFS="${IFS}"
   IFS="${DELIMITER}"
+  count=0
   for item in ${items}; do
     [ -z "${item}" ] && continue
+    count=$((count + 1))
     path="${DOTS_ENV_EXPORT}/${item}"
-    # printf "Sourcing '%s'\n" "${path}"
+    [ "${VERBOSITY}" -ge "${VERBOSITY_DEBUG:-3}" ] &&
+      printf "Sourcing '%s.%s'\n" "${count}" "${path}"
     # shellcheck disable=SC1090
     . "${path}"
   done
   IFS="${OLD_IFS}"
 }
 
-#{ Load the DOTS environment
-# shellcheck disable=SC2153
-if command -v manage_env >/dev/null 2>&1; then
-  manage_env --force --var DOTS --val "${DOTS}"
-  manage_env --force --var HOME --val "${HOME}"
-  manage_env --force --var DOTS_RC --val "${DOTS_RC}"
-  # manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
-  # manage_env --force --var PROFILE --val "${HOME}/.profile"
-  # manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
-  # manage_env --force --init --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
-  # manage_env --force --init --var DOTS_ENV_EXPORT --val "${DOTS_ENV_POSIX}/export"
-  # manage_env --force --var DOTS_ENV_CONTEXT --val "${DOTS_ENV_POSIX}/context"
-  # manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
-  # manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
-  # manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
-  # manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
-  # manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
-  # manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
-else
-  DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
-  DOTS_BIN="${DOTS}/Bin" export DOTS_BIN
-  DOTS_CFG="${DOTS}/Configuration" export DOTS_CFG
-  DOTS_DLD="${DOTS}/Downloads" export DOTS_DLD
-  DOTS_DOC="${DOTS}/Documentation" export DOTS_DOC
-  DOTS_NIX="${DOTS}/Admin" export DOTS_NIX
-  DOTS_TMP="${DOTS}/.cache" export DOTS_TMP
+main() {
+  #{ Load the DOTS environment
+  # shellcheck disable=SC2153
+  if command -v manage_env >/dev/null 2>&1; then
+    manage_env --force --var DOTS --val "${DOTS}"
+    manage_env --force --var HOME --val "${HOME}"
+    manage_env --force --var DOTS_RC --val "${DOTS_RC}"
+    manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
+    manage_env --force --var PROFILE --val "${HOME}/.profile"
+    manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
+    manage_env --force --init --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
+    manage_env --force --init --var DOTS_ENV_EXPORT --val "${DOTS_ENV_POSIX}/export"
+    manage_env --force --var DOTS_ENV_CONTEXT --val "${DOTS_ENV_POSIX}/context"
+    manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
+    manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
+    manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
+    manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
+    manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
+    manage_env --force --init --var DOTS_RES --val "${DOTS}/Assets"
+    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
+  else
+    DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
+    DOTS_BIN="${DOTS}/Bin" export DOTS_BIN
+    DOTS_CFG="${DOTS}/Configuration" export DOTS_CFG
+    DOTS_DLD="${DOTS}/Downloads" export DOTS_DLD
+    DOTS_DOC="${DOTS}/Documentation" export DOTS_DOC
+    DOTS_NIX="${DOTS}/Admin" export DOTS_NIX
+    DOTS_TMP="${DOTS}/.cache" export DOTS_TMP
 
-  # shellcheck disable=SC1090
-  for dir in "${DOTS_BIN}" "${DOTS_CFG}" "${DOTS_DLD}" "${DOTS_DOC}" "${DOTS_NIX}" "${DOTS_TMP}"; do
-    if [ -f "${dir}/${RC}.sh" ]; then
-      . "${dir}/${RC}.sh"
-    fi
-    if [ -n "${BASH_VERSION}" ] && [ -f "${dir}/${RC}.bash" ]; then
-      . "${dir}/${RC}.bash"
-    fi
-    if [ -n "${ZSH_VERSION}" ] && [ -f "${dir}/${RC}.zsh" ]; then
-      . "${dir}/${RC}.zsh"
-    fi
-  done
-fi
+    # shellcheck disable=SC1090
+    for dir in "${DOTS_BIN}" "${DOTS_CFG}" "${DOTS_DLD}" "${DOTS_DOC}" "${DOTS_NIX}" "${DOTS_TMP}"; do
+      if [ -f "${dir}/${RC}.sh" ]; then
+        . "${dir}/${RC}.sh"
+      fi
+      if [ -n "${BASH_VERSION}" ] && [ -f "${dir}/${RC}.bash" ]; then
+        . "${dir}/${RC}.bash"
+      fi
+      if [ -n "${ZSH_VERSION}" ] && [ -f "${dir}/${RC}.zsh" ]; then
+        . "${dir}/${RC}.zsh"
+      fi
+    done
+  fi
+}
 
 main "$@"

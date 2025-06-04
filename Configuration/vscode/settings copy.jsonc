@@ -1,28 +1,29 @@
 {
   "license.author": "Craig 'Craole' Cole",
   "license.default": "mit",
-  //> ===================================
+  //> ====================================================
   //> TYPOGRAPHY
-  //> ===================================
-  // "editor.fontFamily": "'Operator Mono Light','Maple Mono Hd NF','Maple Mono NF','Monaspace Neon','Monaspace Argon','Monaspace Radon','Operator-caska','VictorMono Nerd Font','Maple Mono NF','Operator Mono Lig','VictorMono Nerd Font','Dank Mono','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
-  "editor.fontFamily": "'Maple Mono NF','Monaspace Argon','Monaspace Radon','Monaspace Neon','Monaspace Krypton','Operator-caska','VictorMono Nerd Font','Maple Mono NF','Operator Mono Lig','VictorMono Nerd Font','Dank Mono','JetBrainsMono Nerd Font','Cascadia Code','monospace',monospace",
-  "editor.fontLigatures": true,
-  // "editor.fontLigatures": "'calt', 'liga', 'ss01', 'cv01' 2, 'cv31' 1",
-  // "editor.fontLigatures": "'calt', 'liga', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'ss09','cv01' 2, 'cv31' 1",
-  "editor.fontSize": 16,
-  "editor.fontWeight": 400,
-  // "editor.letterSpacing": 1,
+  //> ====================================================
+  "custom-ui-style.font.sansSerif": "'Maple Mono NF', 'Monaspace Radon', 'Dank Mono'",
+  "custom-ui-style.font.monospace": "'Maple Mono NF', 'Operator-caska', 'Operator Mono Lig','VictorMono Nerd Font','Dank Mono','Hack Nerd Font', monospace",
+  "editor.fontFamily": "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace",
+  // "editor.fontLigatures": "'calt' 1, 'cv01' 0, 'cv02' 1, 'cv03' 1, 'cv04' 0, 'cv05' 1, 'cv06' 1, 'cv07' 0, 'cv08' 1, 'cv31' 0, 'cv32' 0, 'cv33' 0, 'cv34' 0, 'cv35' 0, 'cv36' 0, 'cv37' 0, 'cv38' 0, 'cv39' 0, 'cv40' 0, 'cv41' 0, 'cv61' 0, 'cv62' 0, 'cv63' 0, 'cv64' 0, 'cv65' 0, 'cv96' 0, 'cv97' 0, 'cv98' 0, 'cv99' 0, 'liga' 1, 'ss01' 0, 'ss02' 0, 'ss03' 1, 'ss04' 0, 'ss05' 0, 'ss06' 0, 'ss07' 1, 'ss08' 1, 'ss09' 1, 'ss10' 1, 'ss11' 1, 'zero' 1",
+  "editor.fontSize": 18,
+  "editor.fontWeight": 500,
+  "editor.letterSpacing": 0,
   "editor.lineHeight": 2,
   "editor.tabSize": 2,
-  "terminal.integrated.fontFamily": "'Operator Mono Light','Maple Mono Hd NF','Maple Mono NF'",
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 120,
   "terminal.integrated.fontLigatures.enabled": true,
-  "terminal.integrated.fontSize": 24,
-  "terminal.integrated.fontWeight": 300,
-  // "terminal.integrated.letterSpacing": 0.9,
+  // "terminal.integrated.fontLigatures.featureSettings":  "'calt' 1, 'cv01' 0, 'cv02' 1, 'cv03' 1, 'cv04' 0, 'cv05' 1, 'cv06' 1, 'cv07' 0, 'cv08' 1, 'cv31' 0, 'cv32' 0, 'cv33' 0, 'cv34' 0, 'cv35' 0, 'cv36' 0, 'cv37' 0, 'cv38' 0, 'cv39' 0, 'cv40' 0, 'cv41' 0, 'cv61' 0, 'cv62' 0, 'cv63' 0, 'cv64' 0, 'cv65' 0, 'cv96' 0, 'cv97' 0, 'cv98' 0, 'cv99' 0, 'liga' 1, 'ss01' 0, 'ss02' 0, 'ss03' 1, 'ss04' 0, 'ss05' 1, 'ss06' 0, 'ss07' 1, 'ss08' 1, 'ss09' 1, 'ss10' 1, 'ss11' 1, 'zero' 1",
+  "terminal.integrated.fontSize": 18,
+  "terminal.integrated.fontWeight": 500,
+  "terminal.integrated.letterSpacing": 0,
   "terminal.integrated.lineHeight": 1.2,
-  //> =================================== ===
+  //> ====================================================
   //> THEME & VISUAL CUSTOMIZATION
-  //> ===================================
+  //> ====================================================
   "animations.CursorAnimation": true,
   "animations.Install-Method": "Custom UI Style",
   "animations.UseCursorColorForCursorAnimation": true,
@@ -141,9 +142,9 @@
   "workbench.panel.defaultLocation": "bottom",
   "workbench.productIconTheme": "el-vsc-v1-icons",
   "window.zoomLevel": 0.015,
-  //> ===================================
+  //> ====================================================
   //> EDITOR FEATURES
-  //> ===================================
+  //> ====================================================
   "editor.accessibilitySupport": "off",
   "editor.cursorBlinking": "expand",
   "editor.cursorSmoothCaretAnimation": "on",
@@ -156,7 +157,7 @@
   "editor.insertSpaces": true,
   "editor.lineNumbers": "relative",
   "editor.linkedEditing": true,
-  "editor.matchBrackets": false,
+  "editor.matchBrackets": "never",
   "editor.minimap.enabled": true,
   "editor.minimap.size": "fill",
   // "editor.mouseWheelZoom": true,
@@ -168,20 +169,19 @@
   "editor.selectionHighlight": false,
   "editor.semanticHighlighting.enabled": true,
   "editor.stickyScroll.enabled": false,
-  "editor.wordWrap": "on",
   "explorer.compactFolders": false,
-  //> ===================================
+  //> ====================================================
   //> GLOBAL FEATURES
-  //> ===================================
+  //> ====================================================
   "extensions.ignoreRecommendations": true,
   "update.mode": "manual",
   "workbench.editor.revealIfOpen": true,
   "workbench.startupEditor": "none",
   "workbench.quickOpen.preserveInput": true,
   "workbench.settings.openDefaultKeybindings": true,
-  //> ===================================
+  //> ====================================================
   //> TERMINAL CONFIGURATION
-  //> ===================================
+  //> ====================================================
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.commandsToSkipShell": [
     "workbench.action.terminal.copySelection"
@@ -221,9 +221,9 @@
   "terminal.integrated.mouseWheelZoom": false,
   "terminal.integrated.rightClickBehavior": "copyPaste",
   "terminal.integrated.smoothScrolling": true,
-  //> ===================================
+  //> ====================================================
   //> FILE HANDLING
-  //> ===================================
+  //> ====================================================
   "files.associations": {
     "**/*.conf": "ini",
     "**/conf*/{fuzzel,ghostty,mpv,hyprland}/*": "ini",
@@ -301,9 +301,9 @@
     "**/.trunk/*out/": true,
     "**/.trunk/*plugins/": true
   },
-  //> ===================================
+  //> ====================================================
   //> GIT CONFIGURATION
-  //> ===================================
+  //> ====================================================
   "git.allowForcePush": true,
   "git.autofetch": true,
   "git.confirmForcePush": false,
@@ -312,9 +312,9 @@
   "git.ignoreRebaseWarning": true,
   "git.openRepositoryInParentFolders": "always",
   "git.rebaseWhenSync": true,
-  //> ===================================
+  //> ====================================================
   //> LANGUAGE-SPECIFIC SETTINGS
-  //> ===================================
+  //> ====================================================
   "editor.defaultFormatter": "ibecker.treefmt-vscode",
   "[astro]": {
     // "editor.defaultFormatter": "astro-build.astro-vscode"
@@ -414,9 +414,9 @@
     // "editor.defaultFormatter": "redhat.vscode-yaml"
     // "editor.defaultFormatter": "bluebrown.yamlfmt"
   },
-  //> ===================================
+  //> ====================================================
   //> MINIMAP AND LINE INDICATORS
-  //> ===================================
+  //> ====================================================
   "LWI.breakpoints": [
     {
       "color": "rgb(0, 255, 0, 0.6)",
@@ -433,9 +433,9 @@
   ],
   "LWI.style.fontStyle": "italic",
   "LWI.style.fontWeight": "100",
-  //> ===================================
+  //> ====================================================
   //> MATERIAL ICON THEME
-  //> ===================================
+  //> ====================================================
   "material-icon-theme.activeIconPack": "react",
   "material-icon-theme.files.associations": {
     // ".dotsrc": "teal",
@@ -592,9 +592,9 @@
     }
   ],
   "material-icon-theme.hidesExplorerArrows": true,
-  //> ===================================
+  //> ====================================================
   //> CSS CONFIGURATION
-  //> ===================================
+  //> ====================================================
   "cssvar.files": [
     "./node_modules/open-props/open-props.min.css",
     "assets/styles/variables.css",
@@ -607,9 +607,9 @@
     "jsx",
     "tsx"
   ],
-  //> ===================================
+  //> ====================================================
   //> INTELLISENSE & CODE ASSISTANCE
-  //> ===================================
+  //> ====================================================
   "codeium.enableConfig": {
     "*": true,
     "nix": true,
@@ -634,9 +634,9 @@
   "lldb.showDisassembly": "auto",
   "lldb.dereferencePointers": true,
   "lldb.consoleMode": "commands",
-  //> ===================================
+  //> ====================================================
   //> MARKDOWN & DOCUMENTATION
-  //> ===================================
+  //> ====================================================
   "markdown.marp.enableHtml": true,
   "markdown.marp.pdf.noteAnnotations": true,
   "markdown.marp.pdf.outlines": "both",
@@ -647,9 +647,9 @@
   "markdown-pdf.format": "Letter",
   "markdown.marp.exportType": "html",
   "markdown.marp.strictPathResolutionDuringExport": true,
-  //> ===================================
+  //> ====================================================
   //> COMMENTS
-  //> ===================================
+  //> ====================================================
   "colorful-comments-refreshed.tags": [
     {
       "tag": "@",
@@ -753,14 +753,20 @@
       "color": "#FF8C00"
     },
     {
+      "tag": ">",
+      "italic": true,
+      "backgroundColor": "transparent",
+      "color": "#FF8C00"
+    },
+    {
       "tag": "?",
       "backgroundColor": "transparent",
       "color": "#ff7d5280"
     }
   ],
-  //> ===================================
+  //> ====================================================
   //> REMOTE & WORKSPACE
-  //> ===================================
+  //> ====================================================
   "remote.autoForwardPortsSource": "hybrid",
   "remote.SSH.remotePlatform": {
     "delle.deer-iguana.ts.net": "linux",
@@ -777,9 +783,9 @@
   "security.allowedUNCHosts": [
     "wsl.localhost"
   ],
-  //> ===================================
+  //> ====================================================
   //> Undefined
-  //> ===================================
+  //> ====================================================
   "docwriter.hotkey.windows": "Alt + .",
   "direnv.restart.automatic": true,
   "diffEditor.ignoreTrimWhitespace": false,
@@ -804,5 +810,5 @@
     "mkhl.direnv",
     "ms-edgedevtools.vscode-edge-devtools",
     "ms-vscode-remote.remote-wsl"
-  ],
+  ]
 }

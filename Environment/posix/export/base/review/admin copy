@@ -1,184 +1,114 @@
 #! /bin/sh
 # shellcheck disable=SC2034,SC2154,SC1091
 
-#| Output Control
-DELIMITER="${DELIMITER:-"$(printf "\037")"}" export DELIMITER
-LANG="$(locale -uU || printf "en_US.UTF-8")" export LANG
-VERBOSITY="${verbosity:-"${VERBOSITY:-3}"}"
-VERBOSITY_QUIET="${verbosity_quiet:-"${VERBOSITY_QUIET:-0}"}"
-VERBOSITY_ERROR="${verbosity_error:-"${VERBOSITY_ERROR:-1}"}"
-VERBOSITY_WARN="${verbosity_warn:-"${VERBOSITY_WARN:-2}"}"
-VERBOSITY_INFO="${verbosity_info:-"${VERBOSITY_INFO:-3}"}"
-VERBOSITY_DEBUG="${verbosity_debug:-"${VERBOSITY_DEBUG:-4}"}"
-VERBOSITY_TRACE="${verbosity_trace:-"${VERBOSITY_TRACE:-5}"}"
+#{ Output Control }
+: "${DELIMITER:="$(printf "\037")"}" export DELIMITER
+: "${VERBOSITY:="$(verbosity "Error" || true)"}"
+: "${VERBOSITY_QUIET:="$(verbosity "${VERBOSITY_QUIET}" 0 || true)"}"
+: "${VERBOSITY_ERROR:="$(verbosity "${VERBOSITY_ERROR}" 1 || true)"}"
+: "${VERBOSITY_WARN:="$(verbosity "${VERBOSITY_WARN}" 2 || true)"}"
+: "${VERBOSITY_INFO:="$(verbosity "${VERBOSITY_INFO}" 3 || true)"}"
+: "${VERBOSITY_DEBUG:="$(verbosity "${VERBOSITY_DEBUG}" 4 || true)"}"
+: "${VERBOSITY_TRACE:="$(verbosity "${VERBOSITY_TRACE}" 5 || true)"}"
 export VERBOSITY VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE
 
-#| Top-level DOTS Directories
-if [ -d "${DOTS}" ]; then
-  alias ".dots"='cd "${DOTS}"'
-  alias "cd.dots"='cd "${DOTS}"'
-  alias "ed.dots"='ed "${DOTS}"'
+#{ System Information }
+locale="$(locale -uU 2>/dev/null || printf 'en_US.UTF-8')"
+: "${SYS_TYPE:="$(os.type.fetch || true)"}"
+: "${SYS_NAME:="$(os.distro.fetch || true)"}"
+: "${SYS_KERN:="$(os.kernel.fetch || true)"}"
+: "${SYS_ARCH:="$(os.arch.fetch || true)"}"
+: "${SYS_HOST:="$(hostname.fetch || true)"}"
+: "${USER_NAME:="$(get_os_user || true)"}"
+: "${USER_LANG="${locale}"}"
+: "${USER_SHELL:="$(get_os_shell || true)"}"
+: "${SYS_INFO:="${SYS_TYPE} ${SYS_NAME} | ${SYS_KERN} | ${SYS_ARCH} | ${USER_NAME}@${SYS_HOST}"}"
+export SYS_TYPE SYS_NAME SYS_KERN SYS_ARCH SYS_HOST SYS_INFO USER_NAME USER_LANG USER_SHELL
+USER="${USER_NAME}"
+SHELL="${USER_SHELL}"
+LOCALE="${USER_LANG}"
+export USER SHELL LOCALE
+
+#{ Bin Directories }
+: "${DOTS_BIN_BASH:="${DOTS_BIN}/bash"}"
+: "${DOTS_BIN_CMD:="${DOTS_BIN}/cmd"}"
+: "${DOTS_BIN_NU:="${DOTS_BIN}/nushell"}"
+: "${DOTS_BIN_PS:="${DOTS_BIN}/powershell"}"
+: "${DOTS_BIN_PY:="${DOTS_BIN}/python"}"
+: "${DOTS_BIN_RUST:="${DOTS_BIN}/rust"}"
+: "${DOTS_BIN_SH:="${DOTS_BIN}/shellscript"}"
+: "${DOTS_BIN_SQL:="${DOTS_BIN}/sql"}"
+: "${DOTS_BIN_ZIG:="${DOTS_BIN}/zig"}"
+: "${DOTS_BIN_ZSH:="${DOTS_BIN}/zsh"}"
+export DOTS_BIN_BASH DOTS_BIN_CMD DOTS_BIN_NU DOTS_BIN_PS DOTS_BIN_PY DOTS_BIN_RUST DOTS_BIN_SH DOTS_BIN_SQL DOTS_BIN_ZIG DOTS_BIN_ZSH
+
+#{ Resource Directories }
+: "${DOTS_FONTS:="${DOTS_RES}/Fonts"}"
+: "${DOTS_IMAGES:="${DOTS_RES}/Images"}"
+: "${DOTS_SCRIPTS:="${DOTS_RES}/Home"}"
+: "${DOTS_TEMPLATES:="${DOTS_RES}/Templates"}"
+export DOTS_FONTS DOTS_IMAGES DOTS_SCRIPTS DOTS_TEMPLATES
+
+#{ User Directories }
+manage_env --init --var DOCUMENTS --val "${HOME}/Documents"
+: "${DOCUMENTS:="${HOME}/Documents"}"
+: "${DOWNLOADS:="${HOME}/Downloads"}"
+: "${MUSIC:="${HOME}/Music"}"
+: "${PHOTOS:="${HOME}/Pictures"}"
+: "${VIDEOS:="${HOME}/Videos"}"
+if [ -d "${PHOTOS}/Wallpapers" ]; then
+  WALLPAPERS="$(printf "%s" "${PHOTOS}/Wallpapers")"
+elif [ -d "${HOME}/Pictures/wallpapers" ]; then
+  WALLPAPERS="$(printf "%s" "${HOME}/Pictures/wallpapers")"
+else
+  WALLPAPERS="$(printf "%s" "${DOTS_RES}/Images/wallpaper")"
 fi
+export DOCUMENTS DOWNLOADS MUSIC PHOTOS VIDEOS WALLPAPERS
 
-DOTS_BIN="${DOTS_BIN:-"${DOTS}/Bin"}"
-export DOTS_BIN
-alias ".DOTS_BIN"='cd "${DOTS_BIN}"'
-alias "cd.DOTS_BIN"='cd "${DOTS_BIN}"'
-alias "ed.DOTS_BIN"='ed "${DOTS_BIN}"'
+#{ System Directories }
+: "${APPDATA:="${HOME}/AppData"}"
+export APPDATA
 
-DOTS_CACHE="${DOTS_CACHE:-"${DOTS}/Cache"}"
-export DOTS_CACHE
-alias ".DOTS_CACHE"='cd "${DOTS_CACHE}"'
-alias "cd.DOTS_CACHE"='cd "${DOTS_CACHE}"'
-alias "ed.DOTS_CACHE"='ed "${DOTS_CACHE}"'
+#{ General }
+: "${TIMESTAMP:="$(date +%F_%H-%M-%S)"}"
+: "${DOTS_LOADED_APPS:="${DOTS_LOG}/loaded_apps"}"
+: "${codeDOTS:="${DOTS_CFG}/vscode/Dotfiles.code-workspace"}"
+: "${codeRUST:="${DOTS_CFG}/vscode/Rust.code-workspace"}"
+: "${codeNIX:="${DOTS_CFG}/vscode/Nix.code-workspace"}"
+: "${KEYMAPS:="${DOTS_CFG}/utilities/sxhkd"}"
+: "${ASCII:="${DOTS_RES}/Images/ascii"}"
+export TIMESTAMP DOTS_LOADED_APPS codeDOTS codeRUST codeNIX KEYMAPS ASCII
 
-DOTS_CFG="${DOTS_CFG:-"${DOTS}/Configuration"}"
-export DOTS_CFG
-alias ".DOTS_CFG"='cd "${DOTS_CFG}"'
-alias "cd.DOTS_CFG"='cd "${DOTS_CFG}"'
-alias "ed.DOTS_CFG"='ed "${DOTS_CFG}"'
-
-DOTS_DLD="${DOTS_DLD:-"${DOTS}/Downloads"}"
-export DOTS_DLD
-alias ".DOTS_DLD"='cd "${DOTS_DLD}"'
-alias "cd.DOTS_DLD"='cd "${DOTS_DLD}"'
-alias "ed.DOTS_DLD"='ed "${DOTS_DLD}"'
-
-DOTS_DOC="${DOTS_DOC:-"${DOTS}/Documentation"}"
-export DOTS_DOC
-alias ".DOTS_DOC"='cd "${DOTS_DOC}"'
-alias "cd.DOTS_DOC"='cd "${DOTS_DOC}"'
-alias "ed.DOTS_DOC"='ed "${DOTS_DOC}"'
-
-DOTS_ENV="${DOTS_ENV:-"${DOTS}/Environment"}"
-export DOTS_ENV
-alias ".DOTS_ENV"='cd "${DOTS_ENV}"'
-alias "cd.DOTS_ENV"='cd "${DOTS_ENV}"'
-alias "ed.DOTS_ENV"='ed "${DOTS_ENV}"'
-
-DOTS_LOG="${DOTS_LOG:-"${DOTS}/Log"}"
-export DOTS_LOG
-alias ".DOTS_LOG"='cd "${DOTS_LOG}"'
-alias "cd.DOTS_LOG"='cd "${DOTS_LOG}"'
-alias "ed.DOTS_LOG"='ed "${DOTS_LOG}"'
-
-DOTS_MOD="${DOTS_MOD:-"${DOTS}/Modules"}"
-export DOTS_MOD
-alias ".DOTS_MOD"='cd "${DOTS_MOD}"'
-alias "cd.DOTS_MOD"='cd "${DOTS_MOD}"'
-alias "ed.DOTS_MOD"='ed "${DOTS_MOD}"'
-
-DOTS_NIX="${DOTS_NIX:-"${DOTS}/Admin"}"
-[ -f "${DOTS_NIX}/_.sh" ] && . "${DOTS_NIX}/_.sh"
-# export DOTS_NIX
-# alias ".DOTS_NIX"='cd "${DOTS_NIX}"'
-# alias "cd.DOTS_NIX"='cd "${DOTS_NIX}"'
-# alias "ed.DOTS_NIX"='ed "${DOTS_NIX}"'
-
-DOTS_RES="${DOTS_RES:-"${DOTS}/Assets"}"
-export DOTS_RES
-alias ".DOTS_RES"='cd "${DOTS_RES}"'
-alias "cd.DOTS_RES"='cd "${DOTS_RES}"'
-alias "ed.DOTS_RES"='ed "${DOTS_RES}"'
-
-DOTS_TODO="${DOTS_TODO:-"${DOTS}/Tasks"}"
-export DOTS_TODO
-alias ".DOTS_TODO"='cd "${DOTS_TODO}"'
-alias "cd.DOTS_TODO"='cd "${DOTS_TODO}"'
-alias "ed.DOTS_TODO"='ed "${DOTS_TODO}"'
-
-#| Nix Directories
-# FLAKE="${FLAKE:-"${DOTS}"}" export FLAKE
-# DOTS_NIX_TEMPLATES="${DOTS_NIX_TEMPLATES:-"${DOTS_NIX}/Templates"}" export DOTS_NIX_TEMPLATES
-# DOTS_NIX_LIB="${DOTS_NIX_LIB:-"${DOTS_NIX}/Lib"}" export DOTS_NIX_LIB
-# DOTS_NIX_MOD="${DOTS_NIX_MOD:-"${DOTS_NIX}/Mod"}" export DOTS_NIX_MOD
-# DOTS_NIX_PKG="${DOTS_NIX_PKG:-"${DOTS_NIX}/Pkg"}" export DOTS_NIX_PKG
-# DOTS_NIX_OPT="${DOTS_NIX_OPT:-"${DOTS_NIX}/Opt"}" export DOTS_NIX_OPT
-# DOTS_NIX_SCR="${DOTS_NIX_SCR:-"${DOTS_NIX}/Scr"}" export DOTS_NIX_SCR
-
-#| Environment Directories
-DOTS_ENV_POSIX="${DOTS_ENV_POSIX:-"${DOTS_ENV}/posix"}" export DOTS_ENV_POSIX
-DOTS_ENV_POSIX_CONTEXT="${DOTS_ENV_POSIX_CONTEXT:-"${DOTS_ENV_POSIX}/context"}" export DOTS_ENV_POSIX_CONTEXT
-DOTS_ENV_POSIX_EXPORT="${DOTS_ENV_POSIX_EXPORT:-"${DOTS_ENV_POSIX}/export"}" export DOTS_ENV_POSIX_EXPORT
-DOTS_ENV_POSIX_BASE="${DOTS_ENV_POSIX_BASE:-"${DOTS_ENV_POSIX_EXPORT}/base"}" export DOTS_ENV_POSIX_BASE
-DOTS_ENV_POSIX_CORE="${DOTS_ENV_POSIX_CORE:-"${DOTS_ENV_POSIX_EXPORT}/core"}" export DOTS_ENV_POSIX_CORE
-DOTS_ENV_POSIX_PKGS="${DOTS_ENV_POSIX_APP:-"${DOTS_ENV_POSIX_EXPORT}/package"}" export DOTS_ENV_POSIX_PKGS
-DOTS_ENV_POSIX_PRJ="${DOTS_ENV_POSIX_PRJ:-"${DOTS_ENV_POSIX_EXPORT}/project"}" export DOTS_ENV_POSIX_PRJ
-DOTS_ENV_POSIX_UTIL="${DOTS_ENV_POSIX_UTIL:-"${DOTS_ENV_POSIX_EXPORT}/utility"}" export DOTS_ENV_POSIX_UTIL
-# pout_env "DOTS_ENV_POSIX"
-# pout_env "DOTS_ENV_POSIX_CONTEXT"
-# pout_env "DOTS_ENV_POSIX_EXPORT"
-# pout_env "DOTS_ENV_POSIX_BASE"
-# pout_env "DOTS_ENV_POSIX_CORE"
-# pout_env "DOTS_ENV_POSIX_PKGS"
-# pout_env "DOTS_ENV_POSIX_PRJ"
-# pout_env "DOTS_ENV_POSIX_UTIL"
-
-#| Bin Directories
-DOTS_BIN_BASH="${DOTS_BIN_BASH:-"${DOTS_BIN}/bash"}" export DOTS_BIN_BASH
-DOTS_BIN_CMD="${DOTS_BIN_CMD:-"${DOTS_BIN}/cmd"}" export DOTS_BIN_CMD
-DOTS_BIN_FISH="${DOTS_BIN_FISH:-"${DOTS_BIN}/fish"}" export DOTS_BIN_FISH
-DOTS_BIN_NUSHELL="${DOTS_BIN_NUSHELL:-"${DOTS_BIN}/nushell"}" export DOTS_BIN_NUSHELL
-DOTS_BIN_POWERSHELL="${DOTS_BIN_POWERSHELL:-"${DOTS_BIN}/powershell"}" export DOTS_BIN_POWERSHELL
-DOTS_BIN_PYTHON="${DOTS_BIN_PYTHON:-"${DOTS_BIN}/python"}" export DOTS_BIN_PYTHON
-DOTS_BIN_RUST="${DOTS_BIN_RUST:-"${DOTS_BIN}/rust"}" export DOTS_BIN_RUST
-DOTS_BIN_SH="${DOTS_BIN_SH:-"${DOTS_BIN}/shellscript"}" export DOTS_BIN_SH
-DOTS_BIN_SQL="${DOTS_BIN_SQL:-"${DOTS_BIN}/sql"}" export DOTS_BIN_SQL
-DOTS_BIN_ZIG="${DOTS_BIN_ZIG:-"${DOTS_BIN}/zig"}" export DOTS_BIN_ZIG
-DOTS_BIN_ZSH="${DOTS_BIN_ZSH:-"${DOTS_BIN}/zsh"}" export DOTS_BIN_ZSH
-# pout_env "DOTS_BIN_BASH"
-# pout_env "DOTS_BIN_CMD"
-# pout_env "DOTS_BIN_FISH"
-# pout_env "DOTS_BIN_NUSHELL"
-# pout_env "DOTS_BIN_POWERSHELL"
-# pout_env "DOTS_BIN_PYTHON"
-# pout_env "DOTS_BIN_RUST"
-# pout_env "DOTS_BIN_SH"
-# pout_env "DOTS_BIN_SQL"
-# pout_env "DOTS_BIN_ZIG"
-# pout_env "DOTS_BIN_ZSH"
-
-#| Resource Directories
-DOTS_FONTS="${DOTS_FONTS:-"${DOTS_RES}/Fonts"}" export DOTS_FONTS
-DOTS_IMAGES="${DOTS_IMAGES:-"${DOTS_RES}/Images"}" export DOTS_IMAGES
-DOTS_SCRIPTS="${DOTS_SCRIPTS:-"${DOTS_RES}/Home"}" export DOTS_SCRIPTS
-DOTS_TEMPLATES="${DOTS_TEMPLATES:-"${DOTS_RES}/Templates"}" export DOTS_TEMPLATES
-# pout_env "DOTS_FONTS"
-# pout_env "DOTS_IMAGES"
-# pout_env "DOTS_SCRIPTS"
-# pout_env "DOTS_TEMPLATES"
-
-#| User Directories
-DOCUMENTS="${DOCUMENTS:-"${HOME}/Documents"}" export DOCUMENTS
-DOWNLOADS="${DOWNLOADS:-"${HOME}/Downloads"}" export DOWNLOADS
-MUSIC="${MUSIC:-"${HOME}/Music"}" export MUSIC
-PHOTOS="${PHOTOS:-"${HOME}/Pictures"}" export PHOTOS
-VIDEOS="${VIDEOS:-"${HOME}/Videos"}" export VIDEOS
-WALLPAPERS="$(
-  if [ -d "${PHOTOS}/Wallpapers" ]; then
-    printf "%s" "${PHOTOS}/Wallpapers"
-  elif [ -d "${HOME}/Pictures/wallpapers" ]; then
-    printf "%s" "${HOME}/Pictures/wallpapers"
-  else
-    printf "%s" "${DOTS_RES}/Images/wallpaper"
-  fi
-)"
-export WALLPAPERS
-# pout_env "DOCUMENTS"
-# pout_env "DOWNLOADS"
-# pout_env "MUSIC"
-# pout_env "PHOTOS"
-# pout_env "VIDEOS"
-# pout_env "WALLPAPERS"
-
-#| System Directories
-APPDATA="${APPDATA:-"${HOME}/AppData"}" export APPDATA
-
-#| General
-TIMESTAMP="$(date +%F_%H-%M-%S)"
-DOTS_LOADED_APPS="${DOTS_LOG}/loaded_apps"
-codeDOTS="${DOTS_CFG}/vscode/Dotfiles.code-workspace"
-codeRUST="${DOTS_CFG}/vscode/Rust.code-workspace"
-codeNIX="${DOTS_CFG}/vscode/Nix.code-workspace"
-KEYMAPS="${DOTS_CFG}/utilities/sxhkd"
-ASCII="${DOTS_RES}/Images/ascii"
+# Optional debug output
+if [ "${VERBOSITY}" -ge "${VERBOSITY_DEBUG}" ]; then
+  pout-tagged --ctx "Environment Admin" --tag "DEBUG" --msg "$(
+    printf "\n%${pad}s%s%s" "DOTS_BIN_BASH" "${sep}" "${DOTS_BIN_BASH}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_CMD" "${sep}" "${DOTS_BIN_CMD}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_NU" "${sep}" "${DOTS_BIN_NU}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_PS" "${sep}" "${DOTS_BIN_PS}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_PY" "${sep}" "${DOTS_BIN_PY}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_RUST" "${sep}" "${DOTS_BIN_RUST}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_SH" "${sep}" "${DOTS_BIN_SH}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_SQL" "${sep}" "${DOTS_BIN_SQL}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_ZIG" "${sep}" "${DOTS_BIN_ZIG}"
+    printf "\n%${pad}s%s%s" "DOTS_BIN_ZSH" "${sep}" "${DOTS_BIN_ZSH}"
+    printf "\n%${pad}s%s%s" "DOTS_FONTS" "${sep}" "${DOTS_FONTS}"
+    printf "\n%${pad}s%s%s" "DOTS_IMAGES" "${sep}" "${DOTS_IMAGES}"
+    printf "\n%${pad}s%s%s" "DOTS_SCRIPTS" "${sep}" "${DOTS_SCRIPTS}"
+    printf "\n%${pad}s%s%s" "DOTS_TEMPLATES" "${sep}" "${DOTS_TEMPLATES}"
+    printf "\n%${pad}s%s%s" "DOCUMENTS" "${sep}" "${DOCUMENTS}"
+    printf "\n%${pad}s%s%s" "DOWNLOADS" "${sep}" "${DOWNLOADS}"
+    printf "\n%${pad}s%s%s" "MUSIC" "${sep}" "${MUSIC}"
+    printf "\n%${pad}s%s%s" "PHOTOS" "${sep}" "${PHOTOS}"
+    printf "\n%${pad}s%s%s" "VIDEOS" "${sep}" "${VIDEOS}"
+    printf "\n%${pad}s%s%s" "WALLPAPERS" "${sep}" "${WALLPAPERS}"
+    printf "\n%${pad}s%s%s" "APPDATA" "${sep}" "${APPDATA}"
+    printf "\n%${pad}s%s%s" "TIMESTAMP" "${sep}" "${TIMESTAMP}"
+    printf "\n%${pad}s%s%s" "DOTS_LOADED_APPS" "${sep}" "${DOTS_LOADED_APPS}"
+    printf "\n%${pad}s%s%s" "codeDOTS" "${sep}" "${codeDOTS}"
+    printf "\n%${pad}s%s%s" "codeRUST" "${sep}" "${codeRUST}"
+    printf "\n%${pad}s%s%s" "codeNIX" "${sep}" "${codeNIX}"
+    printf "\n%${pad}s%s%s" "KEYMAPS" "${sep}" "${KEYMAPS}"
+    printf "\n%${pad}s%s%s" "ASCII" "${sep}" "${ASCII}"
+  )"
+fi
