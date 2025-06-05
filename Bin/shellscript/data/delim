@@ -1,0 +1,256 @@
+#!/bin/sh
+
+#DOC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>-
+#DOC delim - Standardize delimiter-separated strings
+#DOC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>-
+#DOC
+#DOC Description:
+#DOC   A POSIX-compliant utility that normalizes strings containing mixed delimiters
+#DOC   into a consistently formatted string with a single delimiter. It handles
+#DOC   various input formats, removes comments, and cleans whitespace.
+#DOC
+#DOC Usage:
+#DOC   delim [OPTIONS] <INPUT_STRING>
+#DOC
+#DOC Options:
+#DOC   -h, --help           Show this help message
+#DOC   -i, --in-delimiter   Set input delimiter for parsing (auto-detected if omitted)
+#DOC   -o, --out-delimiter  Set output delimiter (default: ASCII Unit Separator \037)
+#DOC   -t, --trim           Remove leading/trailing delimiters from output
+#DOC   -n, --no-empty       Remove empty elements from output
+#DOC
+#DOC Arguments:
+#DOC   INPUT_STRING         The string to normalize and delimit
+#DOC
+#DOC Input Format Support:
+#DOC   - Space-separated:   "item1 item2  item3"
+#DOC   - Comma-separated:   "item1,item2, item3"
+#DOC   - Pipe-separated:    "item1|item2 | item3"
+#DOC   - Colon-separated:   "item1:item2 : item3"
+#DOC   - Mixed delimiters:  "item1,item2|item3:item4 item5"
+#DOC   - Multi-line:        "item1\nitem2\nitem3"
+#DOC
+#DOC Comment Handling:
+#DOC   - Full-line comments:     "# This is ignored"
+#DOC   - Inline comments:        "item1 #comment"
+#DOC   - Documentation comments: "#? This is ignored"
+#DOC
+#DOC Examples:
+#DOC   # Basic usage with auto-detection
+#DOC   delim "a, b | c:d"                   # Output: a${delimiter}b${delimiter}c${delimiter}d
+#DOC
+#DOC   # Custom output delimiter
+#DOC   delim -o "," "a b c"                 # Output: a,b,c
+#DOC
+#DOC   # Specify input and output delimiters
+#DOC   delim -i "|" -o ";" "a|b|c"          # Output: a;b;c
+#DOC
+#DOC   # Multi-line with comments
+#DOC   delim "
+#DOC     item1
+#DOC     item2 #? Comment
+#DOC     # Ignored line
+#DOC     item3
+#DOC   "                                    # Output: item1${delimiter}item2${delimiter}item3
+#DOC
+#DOC   # Remove empty elements and trim
+#DOC   delim -n -t -o "|" "|a||b|c|"        # Output: a|b|c
+#DOC
+#DOC Environment Variables:
+#DOC   IN_DELIMITER         Default input delimiter (auto-detected if unset)
+#DOC   OUT_DELIMITER        Default output delimiter (falls back to \037)
+#DOC
+#DOC Exit Status:
+#DOC   0  Success
+#DOC   1  Invalid arguments or processing error
+#DOC
+#DOC Notes:
+#DOC   - The default output delimiter is ASCII Unit Separator (037) which is rarely
+#DOC     used in normal text, making it ideal for safe separation
+#DOC   - Input delimiter is auto-detected in order: newlines, spaces, commas, default
+#DOC   - Empty elements are preserved by default (use -n to remove)
+#DOC   - Leading/trailing whitespace is always removed from individual elements
+#DOC   - All forms of whitespace (spaces, tabs) are normalized to single spaces
+#DOC   - Comments are completely removed from processing
+#DOC
+#DOC Authors:
+#DOC   Craig 'Craole' Cole <cc@craole.com>
+#DOC
+#DOC License:
+#DOC   MIT License
+#DOC
+#DOC Repository:
+#DOC   https://github.com/craole-cc/dotfiles
+#DOC
+#DOC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>-
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  execute_process
+}
+
+set_defaults() {
+  : "${IN_DELIMITER:=""}"
+  : "${OUT_DELIMITER:="$(printf '\037')"}"
+  trim=false
+  no_empty=false
+  input=""
+}
+
+parse_arguments() {
+  input=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    -h | --help) usage ;;
+    -i | --in-delimiter)
+      IN_DELIMITER=$2
+      shift
+      ;;
+    -o | --out-delimiter)
+      OUT_DELIMITER=$2
+      shift
+      ;;
+    -t | --trim) trim=true ;;
+    -n | --no-empty) no_empty=true ;;
+    *) input="${input}${input:+ }$1" ;;
+    esac
+    shift
+  done
+
+  # Auto-detect delimiter
+  if [ -z "${IN_DELIMITER}" ]; then
+    case "${input}" in
+    *"
+  "*) IN_DELIMITER="$(printf '\n')" ;;
+    *[![:space:]][[:space:]][![:space:]]*) IN_DELIMITER=" " ;;
+    *,*) IN_DELIMITER="," ;;
+    *\|*) IN_DELIMITER="|" ;;
+    *:*) IN_DELIMITER=":" ;;
+    *) IN_DELIMITER="${OUT_DELIMITER}" ;;
+    esac
+  fi
+}
+
+execute_process() {
+  #{ Define an intermediate delimiter }
+  tmp_delim="$(printf '\034')" #? ASCII FS (File Separator)
+
+  #{ Clean comments, normalize whitespace, convert all delimiters to tmp_delim }
+  cleaned=$(printf '%s\n' "${input}" |
+    sed -e '/^[[:space:]]*#/d' \
+      -e 's/#.*$//' \
+      -e 's/^[[:space:]]*//' \
+      -e 's/[[:space:]]*$//' \
+      -e 's/[[:space:],|:][[:space:]]*/'"${tmp_delim}"'/g')
+
+  #{ Convert to final output delimiter }
+  result=$(
+    printf '%s' "${cleaned}" | tr "${tmp_delim}" "${OUT_DELIMITER}"
+  )
+
+  #{ Trim delimiters }
+  case "${trim:-}" in
+  true | 1 | yes | on)
+    result="$(
+      printf '%s' "${result}" |
+        sed 's/^'"${OUT_DELIMITER}"'\+//; s/'"${OUT_DELIMITER}"'\+$//'
+    )" || return 1
+    ;;
+  *) ;;
+  esac
+
+  #{ Remove empty elements }
+  case "${no_empty:-}" in
+  true | 1 | yes | on)
+    result="$(
+      printf '%s' "${result}" |
+        sed 's/'"${OUT_DELIMITER}"'\{2,\}/'"${OUT_DELIMITER}"'/g'
+    )" || return 1
+    ;;
+  *) ;;
+  esac
+
+  #{ Return the processed list }
+  printf '%s\n' "${result}"
+}
+
+execute_tests() {
+
+  print_result() {
+    #{ Save original delimiter and set a visible one }
+    orig_out_delim="${OUT_DELIMITER}"
+    OUT_DELIMITER="$(printf '+')" #? Show output visibly
+    result=$(main "$@")
+    printf "Result: %s\n" "${result}"
+    OUT_DELIMITER="${orig_out_delim}"
+  }
+
+  #{ Test basic space-delimited input }
+  printf "%s\n" "Test 1: Basic space-delimited input"
+  print_result "a b c" #? Expected: a+b+c
+
+  #{ Test comma-separated input with custom output delimiter }
+  printf "\n\n%s\n" "Test 2: Comma to pipe conversion"
+  print_result -i "," -o "|" "a,b,c" #? Expected: a|b|c
+
+  #{ Test with comments }
+  printf "\n\n%s\n" "Test 3: Handle comments"
+  print_result "item1 # comment
+# Full line comment
+item2 #? Documentation comment
+item3" #? Expected: item1 item2 item3
+
+  #{ Test multiple spaces and tabs }
+  printf "\n\n%s\n" "Test 4: Normalize whitespace"
+  print_result "item1    item2		item3" #? Expected: item1+item2+item3
+
+  #{ Test mixed delimiters }
+  printf "\n\n%s\n" "Test 5: Mixed delimiters to single type"
+  print_result -o ";" "a,b|c:d e" #? Expected: a;b;c;d;e
+
+  #{ Test empty elements with --no-empty }
+  printf "\n\n%s\n" "Test 6: Remove empty elements"
+  print_result -n -o "|" "a,,b||c" #? Expected: a|b|c
+
+  #{ Test trim option }
+  printf "\n\n%s\n" "Test 7: Trim delimiters"
+  print_result -t -o "|" "|a|b|c|" #? Expected: a|b|c
+
+  #{ Test multiline input }
+  printf "\n\n%s\n" "Test 8: Multiline input"
+  print_result "
+item1
+# item2
+item3
+item4
+" #? Expected: item1 item2 item3
+
+  #{ Test with ASCII Unit Separator (default) }
+  printf "\n\n%s\n" "Test 9: Default delimiter (ASCII Unit Separator)"
+  print_result "a b c" #? Expected: a<US>b<US>c
+
+  #{ Test complex scenario }
+  printf "\n\n%s\n" "Test 10: Complex scenario"
+  print_result -i " " -o "|" -t -n "  item1  item2 # comment   item3  " #? Expected: item1|item2|item3
+}
+
+#{ Allow script to be sourced without executing it }
+case "${0##*/}" in
+delim)
+  # shellcheck disable=SC2249
+  case "${1:-}" in
+  -h | --help)
+    sed -n 's/^#DOC[[:space:]]*//p' "$0"
+    exit 0
+    ;;
+  esac
+
+  #{ Run the main function }
+  case "${TEST:-}" in
+  1 | true | yes | on) execute_tests ;;
+  *) main "$@" ;;
+  esac
+  ;;
+*) return 0 ;;
+esac

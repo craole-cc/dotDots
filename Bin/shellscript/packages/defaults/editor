@@ -1,6 +1,5 @@
 #!/bin/sh
-# shellcheck enable=all
-
+# TODO: Either use editor_pout or remove it
 main() {
   set_defaults
   set_modes
@@ -30,7 +29,7 @@ set_defaults() {
   action="launch"
 
   #| Check environment variables before setting fallback
-  fallback_tuis="${EDITORS_TUI:-"hx|nvim|nano"}"
+  fallback_tuis="${EDITORS_TUI:-"hx|nvim|vim|nano"}"
   fallback_guis="${EDITORS_GUI:-"code|code-insiders|zeditor|zed.exe"}"
   fallback_args="$(pwd -P || printf ".")"
 }
@@ -65,8 +64,8 @@ parse_arguments() {
       ;;
     -V | --info) verbosity="${verbosity_info}" ;;
     -D | --dry-run | --simulate) dry_run=true ;;
-    -d | --debug | --verbose) verbosity="${verbosity_debug}" ;;
-    --trace) verbosity="${verbosity_trace}" ;;
+    -d | --debug) verbosity="${verbosity_debug}" ;;
+    --trace | --verbose) verbosity="${verbosity_trace}" ;;
     -q | --quiet) verbosity="${verbosity_quiet}" ;;
     -t | --tui)
       if [ -z "${2:-}" ]; then
@@ -120,15 +119,32 @@ establish_environment() {
   guis="${default_guis:-"${fallback_guis}"}"
 
   #{ Normalize variables
-  tuis="$(normalize_vars "${tuis}")"
-  guis="$(normalize_vars "${guis}")"
+  if command -v delim >/dev/null; then
+    tuis="$(delim --out-delimiter "${delimiter}" "${tuis}")"
+    guis="$(delim --out-delimiter "${delimiter}" "${guis}")"
+  else
+    if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+      pout-tagged --ctx "editor" --tag "[WARN]" \
+        "The 'delim' utility is not available. String normalization may be inconsistent."
+    fi
+
+    #{ Employ basic fallback normalization }
+    tuis="$(printf '%s' "${tuis}" | tr -s ' ,|:' ' ')" || tuis=""
+    guis="$(printf '%s' "${guis}" | tr -s ' ,|:' ' ')" || guis=""
+  fi
 
   #{ Set editors to GUI editors if available, else fallback to TUI editors
   # shellcheck disable=SC2310
-  if check_gui_env; then
-    editors="${guis:-${tuis:-}}"
+  if check_gui_env 2>/dev/null; then
+    case "${tuis:-}" in
+    none) editors="${tuis:-}" ;;
+    *) editors="${guis:-${tuis:-}}" ;;
+    esac
   else
-    editors="${tuis:-}"
+    case "${tuis:-}" in
+    none) editors="" ;;
+    *) editors="${tuis:-}" ;;
+    esac
   fi
 
   #{ Ensure there is at least one editor
@@ -159,15 +175,26 @@ establish_environment() {
 }
 
 execute_process() {
-  #{ Ensure there is an available editor
-  if [ -z "${editor:-}" ] || [ -z "${editor_path:-}" ]; then
-    #{ Print an error message, if verbosity is high enough }
+  #{ Return early, based on certain conditions of the defined editor }
+  case "${editor:-}" in none)
     if [ "${verbosity}" -ge "${verbosity_error}" ]; then
       pout-tagged --ctx "editor" --tag "[ERROR]" \
-        "Unable to determine the path to an available editor"
+        "Editor is set to none. Exiting."
     fi
     return 1
-  fi
+    ;;
+  *)
+    #{ Ensure there is an available editor
+    if [ -z "${editor:-}" ] || [ -z "${editor_path:-}" ]; then
+      #{ Print an error message, if verbosity is high enough }
+      if [ "${verbosity}" -ge "${verbosity_error}" ]; then
+        pout-tagged --ctx "editor" --tag "[ERROR]" \
+          "Unable to determine the path to an available editor"
+      fi
+      return 1
+    fi
+    ;;
+  esac
 
   #{ Ensure the editor is executable }
   if [ ! -x "${editor_path}" ]; then
@@ -184,7 +211,7 @@ execute_process() {
     printf "%s" "${editor_path:-}"
     ;;
   *)
-    #{ Ensure there is an arguments passed to the editor }
+    #{ Ensure there is an argument to pass to the editor }
     if [ -n "${from_args:-}" ]; then
       #{ Convert delimiter-separated string back to arguments }
       old_IFS="${IFS}"
@@ -220,23 +247,37 @@ execute_process() {
       esac
     fi
 
-    #{ Execute the final command or print it}
-    case "${dry_run:-}" in
-    true | 1 | yes | on)
+    #{ Define a helper function to print debug info}
+    pout_debug() {
+      printf "  NAME |=> %s\n  PATH |=> %s\n" "${editor:-}" "${editor_path:-}"
       i=0
-      pout-tagged --ctx "editor" --tag "[INFO]" "$(
-        printf "Would execute per these parameters \n"
-        printf "  NAME |=> %s\n" "${editor:-}"
-        printf "  PATH |=> %s\n" "${editor_path:-}"
-        for arg in "$@"; do
-          i=$((i + 1))
-          printf "  ARG%s |=> %s\n" "${i}" "${arg}"
-        done
-      )"
+      for arg; do printf "  ARG%d |=> %s\n" "$((i + 1))" "${arg}"; done
+    }
+
+    #{ Determine action message and normalize dry_run }
+    case ${dry_run:-} in
+    true | 1 | yes | on)
+      action="Would execute"
       ;;
     *)
-      exec "${editor_path}" "$@"
+      action="Executing"
+      unset dry_run #? Simplifies subsequent checks
       ;;
+    esac
+
+    #{ Show debug info if dry run or verbose mode }
+    if [ "${verbosity:-0}" -ge "${verbosity_info:-0}" ] ||
+      [ -n "${dry_run:-}" ]; then
+      debug_info=$(pout_debug "$@") #? Using a variable prevents set -e conflict
+      pout-tagged --ctx "editor" --tag "[INFO]" \
+        "${action} per these parameters " \
+        "${debug_info}"
+    fi
+
+    #{ Execute only if simulation mode is off }
+    case ${dry_run:-} in
+    true | 1 | yes | on) return 0 ;;
+    *) exec "${editor_path}" "$@" ;;
     esac
     ;;
   esac
@@ -264,27 +305,37 @@ normalize_vars() {
   #DOC   normalized=$(normalize_vars "foo, bar|baz:qux" ",")
 
   #{ Return early if input string is empty or unset
-  if [ -z "${1:-}" ]; then
-    return 0
-  fi
+  if [ -z "${1:-}" ]; then return 0; fi
 
   #{ Use provided delimiter or fallback to global 'delimiter' variable
   delimiter="${2:-${delimiter:-}}"
-  vars=""
 
-  #{ Normalize delimiters: commas, pipes, colons, spaces replaced by the delimiter
-  vars="$(
-    printf '%s' "$1" | sed \
-      -e "s/, */${delimiter}/g" \
-      -e "s/| */${delimiter}/g" \
-      -e "s/: */${delimiter}/g" \
-      -e "s/  */${delimiter}/g"
-  )"
+  #{ Normalize delimiters and handle comments
+  vars="$(printf '%s\n' "$1" | sed -e '
+    # Remove comment lines
+    /^[[:space:]]*#/d
 
-  #{ Surround with delimiter to simplify 'none' detection
+    # Remove inline comments
+    s/#.*$//
+
+    # Remove leading/trailing whitespace
+    s/^[[:space:]]*//
+    s/[[:space:]]*$//
+
+    # Convert delimiters
+    s/[[:space:]]\+/'"${delimiter}"'/g
+    s/,[[:space:]]*/'"${delimiter}"'/g
+    s/|[[:space:]]*/'"${delimiter}"'/g
+    s/:[[:space:]]*/'"${delimiter}"'/g
+
+    # Remove empty lines
+    /^$/d
+  ' | tr '\n' "${delimiter}")"
+
+  #{ Check for 'none' and output
   case "${delimiter}${vars}${delimiter}" in
-  *"${delimiter}none${delimiter}"*) return 0 ;; #? If 'none' is found, do not print anything
-  *) printf "%s" "${vars:-}" ;;
+  *"${delimiter}none${delimiter}"*) return 0 ;;
+  *) printf '%s' "${vars:-}" ;;
   esac
 }
 
