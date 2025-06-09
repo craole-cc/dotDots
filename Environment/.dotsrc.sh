@@ -89,6 +89,8 @@ manage_env() {
     action="register"
     actions="edit | env | init | initialize | resolve | register | set | unregister | unset"
     var="" val="" args=""
+    force=true
+    init=false
   }
 
   parse_arguments() {
@@ -104,6 +106,7 @@ manage_env() {
         ;;
       -[dD] | --debug | --verbose | -V) VERBOSITY="DEBUG" ;;
       -[fF] | -[yY] | --force | --yes) force=true ;;
+      --ask | --interactive) force=false ;;
       -[iI] | --init | --initialize) action="init" ;;
       -R | --register | --set | -s) action="register" ;;
       -U | --unregister | -unset | -u) action="unregister" ;;
@@ -355,20 +358,20 @@ register_env() {
   "")
     #? Variable doesn't exist, use argument value
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_INFO:-3}" ]; then
-      pout-tagged --ctx "register_env" --tag "INFO " --msg "Registering new variable ${_var}=${_val}"
+      pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Registering new variable ${_var}=${_val}"
     fi
     ;;
   "${_val}")
     #? System value matches argument value - no change needed
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_TRACE:-5}" ]; then
-      pout-tagged --ctx "register_env" --tag "TRACE" --msg "Variable ${_var} already set to correct value"
+      pout-tagged --ctx "register_env" --tag "[TRACE]" --msg "Variable ${_var} already set to correct value"
     fi
     ;;
   *)
     #? System value differs from argument value
     if [ "${_force}" -eq 1 ]; then
       if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_WARN:-2}" ]; then
-        pout-tagged --ctx "register_env" --tag "WARN " --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
+        pout-tagged --ctx "register_env" --tag "[WARN]" --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
       fi
     else
       #{ Interactive prompt for overwrite }
@@ -384,13 +387,13 @@ register_env() {
       case "${response}" in
       [Yy]*)
         if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout-tagged --ctx "register_env" --tag "INFO " --msg "User confirmed overwrite of ${_var}"
+          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User confirmed overwrite of ${_var}"
         fi
         ;;
       *)
         _val="${var_val}"
         if [ "${VERBOSITY:-0}" -ge 3 ]; then
-          pout-tagged --ctx "register_env" --tag "INFO " --msg "User declined overwrite, keeping existing value"
+          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User declined overwrite, keeping existing value"
         fi
         ;;
       esac
@@ -403,14 +406,14 @@ register_env() {
   eval "export ${_var}"
 
   if [ "${VERBOSITY:-0}" -ge 4 ]; then
-    pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Exported ${_var}=${_val}"
+    pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Exported ${_var}=${_val}"
   fi
 
   #{ Create helper functions for existing paths }
   if [ -e "${_val}" ]; then
     eval "ed_${_var}() { editor \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function ed_${_var}"
+      pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function ed_${_var}"
     fi
   fi
 
@@ -418,7 +421,7 @@ register_env() {
   if [ -d "${_val}" ]; then
     eval "cd_${_var}() { cd \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
-      pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function cd_${_var}"
+      pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function cd_${_var}"
     fi
 
     #{ Source all RC files if initialization is requested }
@@ -429,7 +432,7 @@ register_env() {
         if [ -f "${rc_file}" ]; then
 
           if [ "${VERBOSITY:-0}" -ge 3 ]; then
-            pout-tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${rc_file}"
+            pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${rc_file}"
           fi
 
           #{ Source the RC file if initialization is requested }
@@ -446,7 +449,7 @@ register_env() {
     # shellcheck disable=SC1090
     . "${_val}"
     if [ "${VERBOSITY:-0}" -ge 3 ]; then
-      pout-tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${_val}"
+      pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${_val}"
     fi
     return $?
   fi
@@ -468,12 +471,12 @@ unregister_env() {
 
   env="$1"
   if [ -z "${env:-}" ]; then
-    pout-tagged --ctx "unregister_env" --tag "ERROR" --msg "Variable name is required"
+    pout-tagged --ctx "unregister_env" --tag "[ERROR]" --msg "Variable name is required"
     return 1
   fi
 
   if [ "${VERBOSITY:-0}" -ge 3 ]; then
-    pout-tagged --ctx "unregister_env" --tag "INFO " --msg "Unregistering ${env}"
+    pout-tagged --ctx "unregister_env" --tag "[INFO] " --msg "Unregistering ${env}"
   fi
 
   unset "${env}" 2>/dev/null
@@ -538,10 +541,55 @@ parse_list() {
       s/[[:space:]]\+/'"${DELIMITER}"'/g; # Convert whitespace to delimiters
       /^$/d                              # Remove empty lines
     ' | tr '\n' "${DELIMITER}"
-  )" # Convert newlines to delimiter
+  )" #? Convert newlines to delimiter
 
   #{ Return the processed list }
   printf '%s' "${processed_items}"
+}
+
+copy_config() {
+  src_cfg="${1}"
+  des_cfg="${2}"
+
+  #{ Validate source }
+  if [ ! -f "${src_cfg}" ]; then
+    pout-tagged --ctx "copy_config" --tag "[ERROR]" \
+      "Missing source config: '${src_cfg}'"
+    return 1
+  fi
+
+  #{ Skip if the destination already exists and is the same }
+  if
+    [ -f "${des_cfg}" ] && cmp -s "${src_cfg}" "${des_cfg}"
+  then
+    pout-tagged --ctx "copy_config" --tag "[INFO]" \
+      "Skipping existing config: '${des_cfg}'"
+    return 0
+  fi
+
+  #{ Create the destination directory }
+  config_dir=$(dirname "${des_cfg}")
+  if ! mkdir -p "${config_dir}"; then
+    pout-tagged --ctx "copy_config" --tag "[ERROR]" \
+      "Failed to create config directory: '${config_dir}'"
+    return 1
+  fi
+
+  #{ Create a temporary copy of the source file }
+  config_tmpfile="${des_cfg}.tmp_$$"
+  if ! cp -f "${src_cfg}" "${config_tmpfile}"; then
+    pout-tagged --ctx "copy_config" --tag "[ERROR]" \
+      "Failed to create temporary file: '${config_tmpfile}'"
+    return 1
+  fi
+
+  if ! mv -f "${config_tmpfile}" "${des_cfg}"; then
+    pout-tagged --ctx "copy_config" --tag "[ERROR]" \
+      "Failed to atomically update config: '${des_cfg}'"
+    return 1
+  fi
+
+  unset config_dir config_tmpfile src dest
 }
 
 init_rc() {
@@ -564,37 +612,33 @@ init_rc() {
 }
 
 #{ Load the DOTS environment }
-manage_env --force --var DOTS --val "${DOTS}"
-manage_env --force --var HOME --val "${HOME}"
-manage_env --force --var DOTS_RC --val "${DOTS_RC}"
-manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
-manage_env --force --var PROFILE --val "${HOME}/.profile"
-manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
-manage_env --force --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
-manage_env --force --var DOTS_ENV_POSIX_CTX --val "${DOTS_ENV_POSIX}/context"
-manage_env --force --init --var DOTS_ENV_POSIX_EXP --val "${DOTS_ENV_POSIX}/export"
-manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
-manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
-manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
-manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
-manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
-manage_env --force --init --var DOTS_RES --val "${DOTS}/Assets"
-manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
+manage_env --var DOTS --val "${DOTS}"
+manage_env --var HOME --val "${HOME}"
+manage_env --var DOTS_RC --val "${DOTS_RC}"
+manage_env --var BASH_RC --val "${HOME}/.bashrc"
+manage_env --var PROFILE --val "${HOME}/.profile"
+manage_env --var DOTS_ENV --val "${DOTS}/Environment"
+manage_env --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
+manage_env --var DOTS_ENV_POSIX_CTX --val "${DOTS_ENV_POSIX}/context"
+manage_env --var DOTS_ENV_POSIX_EXP --val "${DOTS_ENV_POSIX}/export"
+manage_env --init --var DOTS_BIN --val "${DOTS}/Bin"
+manage_env --init --var DOTS_CFG --val "${DOTS}/Configuration"
+manage_env --init --var DOTS_DLD --val "${DOTS}/Downloads"
+manage_env --init --var DOTS_DOC --val "${DOTS}/Documentation"
+manage_env --init --var DOTS_NIX --val "${DOTS}/Admin"
+manage_env --init --var DOTS_RES --val "${DOTS}/Assets"
+manage_env --init --var DOTS_TMP --val "${DOTS}/.cache"
 
-# # shellcheck disable=SC1090
-# # for dir in "${DOTS_BIN}" "${DOTS_CFG}" "${DOTS_DLD}" "${DOTS_DOC}" "${DOTS_NIX}" "${DOTS_TMP}"; do
-# #   if [ -f "${dir}/${RC}.sh" ]; then
-# #     . "${dir}/${RC}.sh"
-# #   fi
-# #   if [ -n "${BASH_VERSION}" ] && [ -f "${dir}/${RC}.bash" ]; then
-# #     . "${dir}/${RC}.bash"
-# #   fi
-# #   if [ -n "${ZSH_VERSION}" ] && [ -f "${dir}/${RC}.zsh" ]; then
-# #     . "${dir}/${RC}.zsh"
-# #   fi
-# # done
+#{ Load the environment RC files }
+rc_to_init="$(delim --out-delimiter "\n" "
+  #| Environment
+  ${DOTS_ENV_POSIX_EXP}/admin.sh
+  ${DOTS_ENV_POSIX_EXP}/history.sh
+  ${DOTS_ENV_POSIX_EXP}/locale.sh
 
-# if [ -f "${DOTS_ENV}/${RC}" ]; then
-#   # shellcheck disable=SC1090
-#   . "${DOTS_ENV}/${RC}"
-# fi
+  #| Packages
+  ${DOTS_ENV_POSIX_EXP}/rustup.sh
+  ${DOTS_ENV_POSIX_EXP}/yazi.sh
+")"
+
+init_rc "${rc_to_init}"

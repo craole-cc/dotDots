@@ -71,7 +71,8 @@ while [ $# -gt 0 ]; do
   --msg=*) msg="${1#--msg=}" ;;
   --msg)
     if [ $# -gt 1 ]; then
-      msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
+      msg="${msg}${msg:+${delimiter}}$2"
+      # msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
       shift
     else
       printf "[Error] Missing value for --msg\n" >&2
@@ -105,6 +106,16 @@ ctx="${ctx_head_sep}${ctx-"${scr_name}"}${ctx_tail_sep}"
 
 #{ Update the tag
 if [ -z "${tag}" ]; then tag="[DEBUG]"; fi
+
+#{ Return early if verbosity is too low }
+case "${tag}" in
+*TRACE*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_TRACE:-5}" ]; then exit 0; fi ;;
+*DEBUG*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_DEBUG:-4}" ]; then exit 0; fi ;;
+*INFO*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_INFO:-3}" ]; then exit 0; fi ;;
+*WARN*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_WARN:-2}" ]; then exit 0; fi ;;
+*ERROR*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_ERROR:-1}" ]; then exit 0; fi ;;
+*) if [ "${VERBOSITY:-0}" -lt "${VERBOSITY_QUIET:-0}" ]; then exit 0; fi ;;
+esac
 
 #{ Bound the tag in square brackets, if not already }
 case "${tag}" in \[*\]) ;; *) tag="[${tag}]" ;; esac

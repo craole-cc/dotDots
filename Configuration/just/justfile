@@ -1,0 +1,149 @@
+set windows-shell := ["C:\\Program Files\\Git\\bin\\sh.exe", "-c"]
+set positional-arguments := true
+set unstable := true
+set export := true
+set quiet := true
+set dotenv-load := true
+
+export LOG_LEVEL := "warn"
+export PRJ_ROOT := justfile_directory()
+export RUST_BACKTRACE := "0"
+export TREEFMT_TREE_ROOT_FILE := ".git/config"
+export TREEFMT_QUIET := "true"
+export VERBOSITY := "trace"
+
+alias b := build
+alias c := clean
+alias d := dependencies
+alias f := format
+alias fmt := format-ci
+alias i := info
+alias in := install
+alias l := recipes
+alias lf := files
+alias ll := files
+alias lr := recipes
+alias lt := tree
+alias r := run
+alias rr := run-release
+alias t := test
+alias w := watch
+alias wb := watch-bacon
+alias wr := watch-release
+
+[doc('Aliases for the most common recipe (current: watch)')]
+default:
+    @just watch
+
+[doc('Build the project in release mode')]
+build:
+    cargo build --release
+
+[doc('Remove the target directory and artifacts')]
+clean:
+    cargo clean
+
+[doc('Display the cargo dependencies')]
+[private]
+deps *args:
+    cargo tree {{ args }} \
+    | sed '1s/(.*)//' \
+    | sed 's/^/    /' \
+    | sed 's/^    ├/    ├──/;s/^    └/    └──/'
+
+[doc('Display the main cargo dependencies')]
+dependencies:
+    @just deps --depth 1
+
+[doc('Display the all cargo dependencies, with options')]
+dependency-tree *args:
+    @just deps {{ args }} \
+    | bat --style="numbers" --language ddl
+
+format *args:
+    TREEFMT_QUIET=true \
+    TREEFMT_ON_UNMATCHED=warn \
+    treefmt \
+        --allow-missing-formatter \
+        {{ args }}
+
+format-ci *args:
+    @just format --fail-on-change --no-cache {{ args }}
+
+[doc('Make the project available system-wide')]
+install:
+    cargo install --path .
+    dotsrus
+
+[doc('Run in quiet mode')]
+run:
+    cargo run --quiet
+
+[doc('Run in release mode')]
+run-release:
+    cargo run --release
+
+[doc('Run tests')]
+test:
+    cargo test
+
+[doc('Watch in quiet mode')]
+watch:
+    cargo watch --quiet --clear --exec 'run --quiet'
+
+[doc('Watch in release mode')]
+watch-release:
+    cargo watch --quiet --clear --exec 'run --release'
+
+[doc('Watch in quiet mode with bacon')]
+watch-bacon:
+    bacon run -- --quiet
+
+[doc('Default eza with args')]
+[private]
+list-files *args:
+    eza \
+        --long \
+        --almost-all \
+        --group-directories-first \
+        --colour=always \
+        --colour-scale \
+        --icons=auto \
+        --git \
+        --time-style relative \
+        --total-size \
+        --smart-group \
+        {{ args }}
+
+[doc('List files using eza')]
+files *args:
+    @just list-files {{ args }}
+
+[doc('List files in tree mode using eza')]
+tree *args:
+    @just list-files \
+        --git-ignore \
+        --tree \
+        {{ args }} | bat --plain
+
+[doc('List available commands/recipes')]
+recipes:
+    @just --list --list-heading ''
+
+[doc('Display information about the project')]
+info:
+    printf "\n->> %s [%s]\n"  "Dependencies" "$(cargo metadata --format-version 1 | jq '.packages[0].dependencies | length' || echo 'Unknown')"
+    just dependencies
+    printf "\n->> %s\n" "Just Recipes"
+    just recipes
+    printf "\n->> %s\n" "Environment Variables & Toolchain Information"
+    printf "    %s: %s\n" "CARGO" "$(cargo --version | cut -d ' ' -f 2- || printf 'Not available')"
+    printf "    %s: %s\n" "RUSTC" "$(rustc --version | cut -d ' ' -f 2-|| printf 'Not available')"
+    printf "    %s: %s\n" " LLVM" "$(rustc -vV | awk '$1 == "LLVM" {print $NF}'|| printf 'Not available')"
+    printf "    %s: %s\n" "RUSTFLAGS" "${RUSTFLAGS:-unset}"
+    printf "    %s: %s\n" "RUST_BACKTRACE" "${RUST_BACKTRACE:-unset}"
+    printf "    %s: %s\n" "LOG_LEVEL" "${LOG_LEVEL:-unset}"
+    printf "    %s: %s\n" "VERBOSITY" "${VERBOSITY:-unset}"
+    printf "\n->> %s\n" "Project Information"
+    printf "    %s: %s\n" "PRJ_ROOT" "${PRJ_ROOT:-unset}"
+    printf "    %s: %s\n" "PRJ_NAME" "${PRJ_NAME:-unset}"

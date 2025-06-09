@@ -5,7 +5,7 @@ establish_environment() {
   scr_name="get_distro_name"
   scr_version="1.0"
   scr_usage="$(
-    printf "Usage: %s [OPTIONS]\n" "$scr_name"
+    printf "Usage: %s [OPTIONS]\n" "${scr_name}"
     printf "Options:\n"
     printf "  -h, --help      Display this help message\n"
     printf "  -v, --version   Display script version\n"
@@ -28,9 +28,9 @@ initialize_utilities() {
     #{ Check if the info_source is available
     info_source="$1"
 
-    if command -v "$info_source" >/dev/null 2>&1; then
+    if command -v "${info_source}" >/dev/null 2>&1; then
       return 0
-    elif [ -f "$info_source" ]; then
+    elif [ -f "${info_source}" ]; then
       return 0
     else
       unset info_source
@@ -83,9 +83,9 @@ process_info() {
     get_via_python ||
     exit_code=1
 
-  case "$(printf "%s" "$info" | tr '[:upper:]' '[:lower:]')" in
+  case "$(printf "%s" "${info}" | tr '[:upper:]' '[:lower:]')" in
   *cygwin* | *msys* | *mingw* | *windows*) info="Windows" ;;
-  *linux* | *gnu*) info="GNU/Linux" ;;
+  *linux* | *gnu*) info="Linux" ;;
   *darwin*) info="Mac" ;;
   *freebsd*) info="FreeBSD" ;;
   *netbsd*) info="NetBSD" ;;
@@ -94,13 +94,14 @@ process_info() {
   *solaris* | *sunos*) info="Solaris" ;;
   *aix*) info="AIX" ;;
   *irix*) info="IRIX" ;;
+  *) info="Unknown" ;;
   esac
 
   #{ Update type for WSL Systems
-  [ -n "$WSL_DISTRO_NAME" ] &&
+  [ -n "${WSL_DISTRO_NAME}" ] &&
     info="Windows Subsystem for Linux [WSL]"
 
-  present_info "${info:-$dud}"
+  present_info "${info:-${dud}}"
 }
 
 present_info() {

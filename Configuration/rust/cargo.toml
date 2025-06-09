@@ -1,17 +1,25 @@
 [alias]
+a = "add"
+b = "build --release"
+bi = "install --path ."
+c = "clean"
+i = "info"
+in = "install"
 r = "run"
 rq = "run --quiet"
 rr = "run --release"
+t = "test"
 w = "watch --quiet --clear --exec r"
 wc = "watch --quiet --clear --watch crates --exec run"
 wq = "watch --quiet --clear --exec rq"
+wqr = "watch --quiet --clear --exec 'run --quiet --release'"
 wr = "watch --quiet --clear --exec rr"
 
 [term]
 # quiet = true
 
 [doc]
-browser = "firefox"
+# browser = "firefox"
 
 [unstable]
 gc = true
