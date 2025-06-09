@@ -194,7 +194,7 @@ manage_env() {
 
     #{ Print debug information
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
-      pout-tagged --ctx "${fn_name}" --tag "DEBUG" --msg "$(
+      pout-tagged --ctx "${fn_name}" --tag "[DEBUG]" --msg "$(
         printf "\n%${PAD}s%s%s" "ACTION" "${SEP}" "${action}"
         printf "\n%${PAD}s%s%s" "ENV_var" "${SEP}" "${var}"
         printf "\n%${PAD}s%s%s" "ENV_val" "${SEP}" "${val}"
@@ -251,7 +251,7 @@ manage_env() {
   }
 
   show_usage_error() {
-    pout-tagged --ctx "${fn_name}" --tag "ERROR" --msg "$1"
+    pout-tagged --ctx "${fn_name}" --tag "[ERROR]" --msg "$1"
     show_usage
   }
 
@@ -279,10 +279,10 @@ register_env() {
   #DOC   - Sources RC files in directories when --init is used
   #DOC   - Sources files directly when --init is used
 
-  #{ Set defaults
+  #{ Set defaults }
   _val="" _var="" _args="" _init=0 _force=0
 
-  #{ Parse arguments
+  #{ Parse arguments }
   while [ $# -ge 1 ]; do
     case "$1" in
     -[iI] | --init | --initialize) _init=1 ;;
@@ -313,13 +313,13 @@ register_env() {
     shift
   done
 
-  #{ Handle remaining arguments after -- separator
+  #{ Handle remaining arguments after -- separator }
   while [ $# -ge 1 ]; do
     _args="${_args:+${_args}${DELIMITER}}$1"
     shift
   done
 
-  #{ Parse positional arguments if necessary
+  #{ Parse positional arguments if necessary }
   if [ -n "${_args}" ]; then
     ifs="${IFS}"
     IFS="${DELIMITER}"
@@ -334,7 +334,7 @@ register_env() {
     [ -z "${_val:-}" ] && _val="$*"
   fi
 
-  #{ Validate required arguments
+  #{ Validate required arguments }
   if [ -z "${_var:-}" ] || [ -z "${_val:-}" ]; then
     # show_usage_error "Variable value is required"
     return 1
@@ -349,7 +349,7 @@ register_env() {
     )"
   fi
 
-  #{ Handle existing variable values
+  #{ Handle existing variable values }
   var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
   case "${var_val:-}" in
   "")
@@ -371,12 +371,12 @@ register_env() {
         pout-tagged --ctx "register_env" --tag "WARN " --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
       fi
     else
-      #{ Interactive prompt for overwrite
+      #{ Interactive prompt for overwrite }
       printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
       printf "New value would be: '%s'\n" "${_val}"
       printf "Overwrite with new value? [y/N] (default: N): "
 
-      #{ Handle CTRL-C during read
+      #{ Handle CTRL-C during read }
       trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
       read -r response
       trap - INT
@@ -398,7 +398,7 @@ register_env() {
     ;;
   esac
 
-  #{ Register the variable globally
+  #{ Register the variable globally }
   eval "${_var}=\"\${_val}\""
   eval "export ${_var}"
 
@@ -406,7 +406,7 @@ register_env() {
     pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Exported ${_var}=${_val}"
   fi
 
-  #{ Create helper functions for existing paths
+  #{ Create helper functions for existing paths }
   if [ -e "${_val}" ]; then
     eval "ed_${_var}() { editor \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge 4 ]; then
@@ -414,17 +414,17 @@ register_env() {
     fi
   fi
 
-  #{ Handle directory-specific functionality
+  #{ Handle directory-specific functionality }
   if [ -d "${_val}" ]; then
     eval "cd_${_var}() { cd \"\${${_var}}\"; }"
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       pout-tagged --ctx "register_env" --tag "DEBUG" --msg "Created function cd_${_var}"
     fi
 
-    #{ Source all RC files if initialization is requested
+    #{ Source all RC files if initialization is requested }
     if [ "${_init}" -eq 1 ]; then
 
-      #{ Loop over all matching RC files and source each if it exists
+      #{ Loop over all matching RC files and source each if it exists }
       for rc_file in "${_val}/${RC}" "${_val}/${RC}.sh" "${_val}/${RC}.bash" "${_val}/${RC}.zsh"; do
         if [ -f "${rc_file}" ]; then
 
@@ -432,7 +432,7 @@ register_env() {
             pout-tagged --ctx "register_env" --tag "INFO " --msg "Sourced ${rc_file}"
           fi
 
-          # #{ Source the RC file if initialization is requested
+          #{ Source the RC file if initialization is requested }
           # shellcheck disable=SC2250,SC1090 #? We already validated this file
           . "${rc_file}"
           return $?
@@ -441,7 +441,7 @@ register_env() {
     fi
   fi
 
-  #{ Handle file-specific initialization
+  #{ Handle file-specific initialization }
   if [ -f "${_val}" ] && [ "${_init}" -eq 1 ]; then
     # shellcheck disable=SC1090
     . "${_val}"
@@ -563,52 +563,38 @@ init_rc() {
   IFS="${OLD_IFS}"
 }
 
-main() {
-  #{ Load the DOTS environment
-  # shellcheck disable=SC2153
-  if command -v manage_env >/dev/null 2>&1; then
-    manage_env --force --var DOTS --val "${DOTS}"
-    manage_env --force --var HOME --val "${HOME}"
-    manage_env --force --var DOTS_RC --val "${DOTS_RC}"
-    manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
-    manage_env --force --var PROFILE --val "${HOME}/.profile"
-    manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
-    manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
-    manage_env --force --init --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
-    manage_env --force --init --var DOTS_ENV_EXPORT --val "${DOTS_ENV_POSIX}/export"
-    manage_env --force --var DOTS_ENV_CONTEXT --val "${DOTS_ENV_POSIX}/context"
-    manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
-    manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
-    manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
-    manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
-    manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
-    manage_env --force --init --var DOTS_RES --val "${DOTS}/Assets"
-  else
-    DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
-    DOTS_BIN="${DOTS}/Bin" export DOTS_BIN
-    DOTS_CFG="${DOTS}/Configuration" export DOTS_CFG
-    DOTS_DLD="${DOTS}/Downloads" export DOTS_DLD
-    DOTS_DOC="${DOTS}/Documentation" export DOTS_DOC
-    DOTS_NIX="${DOTS}/Admin" export DOTS_NIX
-    DOTS_TMP="${DOTS}/.cache" export DOTS_TMP
+#{ Load the DOTS environment }
+manage_env --force --var DOTS --val "${DOTS}"
+manage_env --force --var HOME --val "${HOME}"
+manage_env --force --var DOTS_RC --val "${DOTS_RC}"
+manage_env --force --var BASH_RC --val "${HOME}/.bashrc"
+manage_env --force --var PROFILE --val "${HOME}/.profile"
+manage_env --force --var DOTS_ENV --val "${DOTS}/Environment"
+manage_env --force --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
+manage_env --force --var DOTS_ENV_POSIX_CTX --val "${DOTS_ENV_POSIX}/context"
+manage_env --force --init --var DOTS_ENV_POSIX_EXP --val "${DOTS_ENV_POSIX}/export"
+manage_env --force --init --var DOTS_BIN --val "${DOTS}/Bin"
+manage_env --force --init --var DOTS_CFG --val "${DOTS}/Configuration"
+manage_env --force --init --var DOTS_DLD --val "${DOTS}/Downloads"
+manage_env --force --init --var DOTS_DOC --val "${DOTS}/Documentation"
+manage_env --force --init --var DOTS_NIX --val "${DOTS}/Admin"
+manage_env --force --init --var DOTS_RES --val "${DOTS}/Assets"
+manage_env --force --init --var DOTS_TMP --val "${DOTS}/.cache"
 
-    # shellcheck disable=SC1090
-    for dir in "${DOTS_BIN}" "${DOTS_CFG}" "${DOTS_DLD}" "${DOTS_DOC}" "${DOTS_NIX}" "${DOTS_TMP}"; do
-      if [ -f "${dir}/${RC}.sh" ]; then
-        . "${dir}/${RC}.sh"
-      fi
-      if [ -n "${BASH_VERSION}" ] && [ -f "${dir}/${RC}.bash" ]; then
-        . "${dir}/${RC}.bash"
-      fi
-      if [ -n "${ZSH_VERSION}" ] && [ -f "${dir}/${RC}.zsh" ]; then
-        . "${dir}/${RC}.zsh"
-      fi
-    done
-  fi
-}
+# # shellcheck disable=SC1090
+# # for dir in "${DOTS_BIN}" "${DOTS_CFG}" "${DOTS_DLD}" "${DOTS_DOC}" "${DOTS_NIX}" "${DOTS_TMP}"; do
+# #   if [ -f "${dir}/${RC}.sh" ]; then
+# #     . "${dir}/${RC}.sh"
+# #   fi
+# #   if [ -n "${BASH_VERSION}" ] && [ -f "${dir}/${RC}.bash" ]; then
+# #     . "${dir}/${RC}.bash"
+# #   fi
+# #   if [ -n "${ZSH_VERSION}" ] && [ -f "${dir}/${RC}.zsh" ]; then
+# #     . "${dir}/${RC}.zsh"
+# #   fi
+# # done
 
-# main "$@"
-if [ -f "${DOTS_ENV}/${RC}" ]; then
-  # shellcheck disable=SC1090
-  . "${DOTS_ENV}/${RC}"
-fi
+# if [ -f "${DOTS_ENV}/${RC}" ]; then
+#   # shellcheck disable=SC1090
+#   . "${DOTS_ENV}/${RC}"
+# fi

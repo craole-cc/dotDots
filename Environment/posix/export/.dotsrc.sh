@@ -1,11 +1,17 @@
 #!/bin/sh
 
-init_rc "
+if [ ! -d "${DOTS_ENV_POSIX_EXP:-}" ]; then return 0; else
+  env_home="${DOTS_ENV_POSIX_EXP:-}"
+fi
+
+ordered_env="$(delim --out-delimiter "\n" "
   #| Environment
-  ${DOTS_ENV_POSIX_EXP:?}/admin.sh
-  ${DOTS_ENV_POSIX_EXP:?}/history.sh
-  ${DOTS_ENV_POSIX_EXP:?}/locale.sh
+  ${env_home}/admin.sh
+  ${env_home}/history.sh
+  ${env_home}/locale.sh
 
   #| Packages
-  ${DOTS_ENV_POSIX_EXP:?}/yazi.sh
-"
+  ${env_home}/yazi.sh
+")"
+
+init_rc "${ordered_env}"

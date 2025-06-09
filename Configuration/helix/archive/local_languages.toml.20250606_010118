@@ -1,0 +1,15 @@
+[[language]]
+name = "json"
+language-servers = ["vscode-json-language-server"]
+auto-format = true
+
+
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer"]
+auto-format = true
+comment-tokens = ["//"]
+file-types = ["rs"]
+formatter = { command = "rustfmt" }
+indent = { tab-width = 4, unit = "    " }
+injection-regex = "rust"

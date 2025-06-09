@@ -1,34 +1,34 @@
-#{ PowerShell Editor Selection Script
-#@
-#{ DESCRIPTION:
-#{   Intelligent cross-platform editor selection and launching system for PowerShell.
-#{   Automatically detects GUI/TUI environments and selects the best available editor
-#{   from configurable preference lists.
-#@
-#{ DEPENDENCIES:
-#{   - Write-Pretty function (required for output formatting)
-#@
-#{ USAGE:
-#{   . .\editor-script.ps1    # Dot-source to load functions and aliases
-#@
-#{   Get-Editor               # Get current preferred editor
-#{   Set-Editor code          # Set specific editor
-#{   edit                      # Launch editor in current directory
-#{   edit myfile.txt           # Launch editor with specific file
-#{   Show-EditorConfig        # Display configuration and available editors
-#@
-#{ ENVIRONMENT VARIABLES (optional):
-#{   EDITOR_GUI     - Preferred GUI editors (e.g., "code|zed|sublime_text")
-#{   EDITOR_TUI     - Preferred TUI editors (e.g., "hx|nvim|vim")
-#{   VISUAL         - Standard *nix GUI editor variable
-#{   EDITOR         - Standard *nix TUI editor variable
-#@
-#{ EXPORTED FUNCTIONS:
-#{   Get-Editor, Set-Editor, Get-PreferredEditor, Set-PreferredEditor,
-#{   Invoke-Editor, Show-EditorConfig, Set-EditorPreference, Test-GuiEnvironment
-#@
-#{ EXPORTED ALIASES:
-#{   edit -> Invoke-Editor
+#DOC PowerShell Editor Selection Script
+#DOC
+#DOC DESCRIPTION:
+#DOC   Intelligent cross-platform editor selection and launching system for PowerShell.
+#DOC   Automatically detects GUI/TUI environments and selects the best available editor
+#DOC   from configurable preference lists.
+#DOC
+#DOC DEPENDENCIES:
+#DOC   - Write-Pretty function (required for output formatting)
+#DOC
+#DOC USAGE:
+#DOC   . .\editor-script.ps1    # Dot-source to load functions and aliases
+#DOC
+#DOC   Get-Editor               # Get current preferred editor
+#DOC   Set-Editor code          # Set specific editor
+#DOC   edit                      # Launch editor in current directory
+#DOC   edit myfile.txt           # Launch editor with specific file
+#DOC   Show-EditorConfig        # Display configuration and available editors
+#DOC
+#DOC ENVIRONMENT VARIABLES (optional):
+#DOC   EDITOR_GUI     - Preferred GUI editors (e.g., "code|zed|sublime_text")
+#DOC   EDITOR_TUI     - Preferred TUI editors (e.g., "hx|nvim|vim")
+#DOC   VISUAL         - Standard *nix GUI editor variable
+#DOC   EDITOR         - Standard *nix TUI editor variable
+#DOC
+#DOC EXPORTED FUNCTIONS:
+#DOC   Get-Editor, Set-Editor, Get-PreferredEditor, Set-PreferredEditor,
+#DOC   Invoke-Editor, Show-EditorConfig, Set-EditorPreference, Test-GuiEnvironment
+#DOC
+#DOC EXPORTED ALIASES:
+#DOC   edit -> Invoke-Editor
 
 #region Editor Configuration
 $EditorConfig = @{

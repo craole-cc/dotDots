@@ -265,7 +265,7 @@ execute_process() {
       ;;
     esac
 
-    #{ Show debug info if dry run or verbose mode }
+    #\\ Show debug info if dry run or verbose mode
     if [ "${verbosity:-0}" -ge "${verbosity_info:-0}" ] ||
       [ -n "${dry_run:-}" ]; then
       debug_info=$(pout_debug "$@") #? Using a variable prevents set -e conflict

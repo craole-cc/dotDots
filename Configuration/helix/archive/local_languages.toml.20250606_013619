@@ -1,0 +1,22 @@
+[[language]]
+name = "json"
+language-servers = ["vscode-json-language-server"]
+auto-format = true
+
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer", "tailwind-ls"]
+# language-servers = ["rust-analyzer"]
+auto-format = true
+comment-tokens = ["//"]
+file-types = ["rs"]
+formatter = { command = "rustfmt" }
+indent = { tab-width = 2, unit = "  " }
+injection-regex = "rust"
+
+[language.config]
+checkOnSave = { command = "clippy" }
+
+[[language-server]]
+command = "rust-analyzer"
+name = "rust-analyzer"

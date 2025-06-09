@@ -259,7 +259,7 @@ process_git_profiles() {
       return
     fi
 
-    #@Attempt to parse the host from the filename
+    #{ Attempt to parse the host from the filename
     case "$(printf "%s" "${_path}" | tr '[:upper:]' '[:lower:]')" in
     *github*) host="github.com" ;;
     *gitlab*) host="gitlab.com" ;;
@@ -375,7 +375,7 @@ parse_gitconfig() {
     return
   fi
 
-  #@Attempt to parse the host from the filename
+  #{ Attempt to parse the host from the filename
   case "$(printf "%s" "${_path}" | tr '[:upper:]' '[:lower:]')" in
   *github*) host="github.com" ;;
   *gitlab*) host="gitlab.com" ;;

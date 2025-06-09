@@ -5,5 +5,6 @@
     "**/.hg": false,
     "**/.DS_Store": false,
     "**/Thumbs.db": false
-  }
+  },
+  "git.enabled": false
 }

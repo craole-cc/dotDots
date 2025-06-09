@@ -8,7 +8,7 @@
 # theme = "rose_pine_dawn"
 
 #| Dark Theme
-# theme = "catppuccin_frappe"
+theme = "catppuccin_frappe"
 # theme = "everforest_dark"
 # theme = "monokai_pro_machine"
 # theme = "monokai_pro_octagon"
@@ -19,7 +19,7 @@
 # theme = "noctis_bordo"
 # theme = "rose_pine_moon"
 # theme = "tokyonight_storm"
-theme = "base16_transparent"
+# theme = "base16_transparent"
 
 [editor]
 auto-format = true
