@@ -15,17 +15,15 @@
 #DOC   pout-tagged --ctx "locate_dots" --tag "DEBUG" --msg "Found RC file: /path/to/file"
 #DOC   pout-tagged --ctx "manage_env" --tag "ERROR" --msg "Variable name is required"
 
-#{ Set a safe delimiter (ASCII Unit Separator)
+#{ Initialize with defaults }
+scr_path="$0"                #? Script path
+scr_name="${scr_path##*/}"   #? Filename without path
+delimiter="$(printf "\037")" #? ASCII Unit Separator
+tag="[DEBUG]" msg="" ctx=""
+: "${ctx_head_sep:=" >>= "}"
+: "${ctx_tail_sep:=" =<< "}"
 
-#{ Initialize with defaults
-scr_path="${0##*/}"
-scr_name="${scr_path##*/}"
-ctx=""
-tag=""
-msg=""
-delimiter="$(printf "\037")"
-
-#{ Parse named arguments
+#{ Parse named arguments }
 while [ $# -gt 0 ]; do
   case "${1}" in
   --ctx=*) ctx="${1#--ctx=}" ;;
@@ -80,15 +78,15 @@ while [ $# -gt 0 ]; do
     fi
     ;;
   --)
-    #{ End of options, remaining args become message
+    #{ End of options, remaining args become message }
     shift
     msg="$*"
     break
     ;;
   --*) ;; #? Unknown option, ignore
   *)
-    # msg="${msg}${msg:+${delimiter}}${1}"
-    msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
+    msg="${msg}${msg:+${delimiter}}${1}"
+    # msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
     ;;
   esac
   shift
@@ -100,12 +98,7 @@ if [ -z "${msg}" ]; then
 fi
 
 #{ Update the context
-: "${ctx_head_sep:=" >>= "}"
-: "${ctx_tail_sep:=" =<< "}"
 ctx="${ctx_head_sep}${ctx-"${scr_name}"}${ctx_tail_sep}"
-
-#{ Update the tag
-if [ -z "${tag}" ]; then tag="[DEBUG]"; fi
 
 #{ Return early if verbosity is too low }
 case "${tag}" in
@@ -121,7 +114,7 @@ esac
 case "${tag}" in \[*\]) ;; *) tag="[${tag}]" ;; esac
 tag="$(printf "%s" "${tag}" | tr '[:lower:]' '[:upper:]')"
 
-#{ Format and print the message
+#{ Format and print the message }
 ifs="${IFS}"
 IFS="${delimiter}"
 # shellcheck disable=SC2086

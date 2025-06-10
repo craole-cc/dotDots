@@ -1,8 +1,8 @@
 #! /bin/sh
-# shellcheck disable=SC2154
+# shellcheck disable=SC2154,SC1090
 
-#{ Set global output levels
-VERBOSITY="$(verbosity "Error")"
+#|-> Output Configuration
+VERBOSITY="$(verbosity "Debug")"
 VERBOSITY_QUIET=0
 VERBOSITY_ERROR=1
 VERBOSITY_WARN=2
@@ -14,14 +14,50 @@ PAD=12
 SEP=" | "
 export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE PAD SEP
 
-#{ Editors }
+#|-> Editor Configuration
 : "${EDITORS_TUI:="helix, nvim, vim, nano"}"
 : "${EDITORS_GUI:="code, zed, zeditor, trae, notepad++, notepad"}"
 export EDITORS_TUI EDITORS_GUI
 EDITOR="$(editor --set)" export EDITOR
 
-#{ Set common global variables
-export RC=".dotsrc"
+#|-> DOTS Environment Entrypoint
+RC=".dotsrc" export RC
+DOTS_CACHE_RC="${DOTS:?}/.cache/.dotsrc" export DOTS_CACHE_RC
+#{ Load the cached rc file }
+if [ -f "${DOTS_CACHE_RC}" ]; then
+  # shellcheck disable=SC1090
+  . "${DOTS_CACHE_RC}"
+fi
+
+#|-> Commands
+CMD_RG="$(command -v rg 2>/dev/null || command -v grep 2>/dev/null)" export CMD_RG
+
+env__main() {
+  #{ Load the DOTS environment }
+  manage_env --set --var DOTS --val "${DOTS}"
+  manage_env --set --var HOME --val "${HOME}"
+  manage_env --set --var DOTS_RC --val "${DOTS_RC}"
+  manage_env --set --var BASH_RC --val "${HOME}/.bashrc"
+  manage_env --set --var PROFILE --val "${HOME}/.profile"
+  manage_env --init --var DOTS_RES --val "${DOTS}/Assets" #? Resources don't depend on the environment
+  manage_env --set --var DOTS_ENV --val "${DOTS}/Environment"
+  manage_env --set --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix" #? This file, so no need to init
+  manage_env --init --var DOTS_ENV_POSIX_CTX --val "${DOTS_ENV_POSIX:?}/context"
+  manage_env --init --var DOTS_ENV_POSIX_PKG --val "${DOTS_ENV_POSIX:?}/packages"
+  manage_env --init --var DOTS_ENV_OUTPUTCTRL --val "${DOTS_ENV_POSIX_CTX:?}/output.sh"
+  manage_env --init --var DOTS_ENV_SYSTEMINFO --val "${DOTS_ENV_POSIX_CTX:?}/system.sh"
+  manage_env --init --var DOTS_ENV_DIRECTORY --val "${DOTS_ENV_POSIX_CTX:?}/dirs.sh"
+  # manage_env --init --var DOTS_ENV_HISTORY --val "${DOTS_ENV_POSIX_CTX:?}/history.sh"
+  # manage_env --init --var DOTS_ENV_LOCALE --val "${DOTS_ENV_POSIX_CTX:?}/locale.sh"
+
+  #{ Load other environment variables }
+  # manage_env --init --var DOTS_BIN --val "${DOTS}/Bin"
+  # manage_env --init --var DOTS_CFG --val "${DOTS}/Configuration"
+  # manage_env --init --var DOTS_DLD --val "${DOTS}/Downloads"
+  # manage_env --init --var DOTS_DOC --val "${DOTS}/Documentation"
+  # manage_env --init --var DOTS_NIX --val "${DOTS}/Admin"
+  # manage_env --init --var DOTS_TMP --val "${DOTS}/.cache"
+}
 
 manage_env() {
   #DOC Manage environment variables with various operations.
@@ -86,11 +122,11 @@ manage_env() {
   set_defaults() {
     cleanup
     fn_name="manage_env"
-    action="register"
+    action="init"
     actions="edit | env | init | initialize | resolve | register | set | unregister | unset"
     var="" val="" args=""
-    force=true
-    init=false
+    force=false
+    # init=true
   }
 
   parse_arguments() {
@@ -196,16 +232,14 @@ manage_env() {
     esac
 
     #{ Print debug information
-    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
-      pout-tagged --ctx "${fn_name}" --tag "[DEBUG]" --msg "$(
-        printf "\n%${PAD}s%s%s" "ACTION" "${SEP}" "${action}"
-        printf "\n%${PAD}s%s%s" "ENV_var" "${SEP}" "${var}"
-        printf "\n%${PAD}s%s%s" "ENV_val" "${SEP}" "${val}"
-        # printf "\n%${PAD}s%s%s" "EDITOR" "${SEP}" "${EDITOR}"
-        # printf "\n%${PAD}s%s%s" "RC" "${SEP}" "${RC}"
-        printf "\n%${PAD}s%s%s" "FORCE" "${SEP}" "${force}"
-      )"
-    fi
+    pout-tagged --ctx "${fn_name}" --tag "[DEBUG]" --msg "$(
+      printf "\n%${PAD}s%s%s" "ACTION" "${SEP}" "${action}"
+      printf "\n%${PAD}s%s%s" "ENV_var" "${SEP}" "${var}"
+      printf "\n%${PAD}s%s%s" "ENV_val" "${SEP}" "${val}"
+      # printf "\n%${PAD}s%s%s" "EDITOR" "${SEP}" "${EDITOR}"
+      # printf "\n%${PAD}s%s%s" "RC" "${SEP}" "${RC}"
+      printf "\n%${PAD}s%s%s" "FORCE" "${SEP}" "${force}"
+    )"
   }
 
   execute_process() {
@@ -290,6 +324,7 @@ register_env() {
     case "$1" in
     -[iI] | --init | --initialize) _init=1 ;;
     -[fF] | --force) _force=1 ;;
+    --env-file) _env_file="$2" ;;
     --var)
       if [ $# -lt 2 ]; then
         show_usage_error "Missing argument for '$1'"
@@ -357,23 +392,25 @@ register_env() {
   case "${var_val:-}" in
   "")
     #? Variable doesn't exist, use argument value
-    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_INFO:-3}" ]; then
-      pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Registering new variable ${_var}=${_val}"
-    fi
+    pout-tagged --ctx "register_env" --tag "[INFO]" \
+      "Registering new variable ${_var}=${_val}"
     ;;
   "${_val}")
     #? System value matches argument value - no change needed
-    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_TRACE:-5}" ]; then
-      pout-tagged --ctx "register_env" --tag "[TRACE]" --msg "Variable ${_var} already set to correct value"
+    if grep -q "${_var}=" "${DOTS_CACHE_RC}" 2>/dev/null; then
+      pout-tagged --ctx "register_env" --tag "[TRACE]" \
+        "Variable ${_var} already set to correct value"
+      return 0
     fi
     ;;
   *)
     #? System value differs from argument value
-    if [ "${_force}" -eq 1 ]; then
-      if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_WARN:-2}" ]; then
-        pout-tagged --ctx "register_env" --tag "[WARN]" --msg "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
-      fi
-    else
+    case "${_force}" in 1 | true | yes | on)
+      pout-tagged --ctx "register_env" --tag "[WARN]" \
+        "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
+      ;;
+    *)
+      #? Interactive overwrite
       #{ Interactive prompt for overwrite }
       printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
       printf "New value would be: '%s'\n" "${_val}"
@@ -397,29 +434,28 @@ register_env() {
         fi
         ;;
       esac
-    fi
+      ;;
+    esac
     ;;
   esac
 
   #{ Register the variable globally }
-  eval "${_var}=\"\${_val}\""
-  eval "export ${_var}"
-
-  if [ "${VERBOSITY:-0}" -ge 4 ]; then
-    pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Exported ${_var}=${_val}"
-  fi
+  printf "\nexport %s=\"%s\"" "${_var}" "${_val}" >>"${DOTS_CACHE_RC}"
+  . "${DOTS_CACHE_RC}"
+  pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Exported ${_var}=${_val}"
 
   #{ Create helper functions for existing paths }
   if [ -e "${_val}" ]; then
-    eval "ed_${_var}() { editor \"\${${_var}}\"; }"
-    if [ "${VERBOSITY:-0}" -ge 4 ]; then
-      pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function ed_${_var}"
-    fi
+    printf "\ned_%s(){ editor \"%s\" || exit 1 ;}" \
+      "${_var}" "${_val}" >>"${DOTS_CACHE_RC}"
+    pout-tagged --ctx "register_env" --tag "[DEBUG]" \
+      "Created function ed_${_var}"
   fi
 
   #{ Handle directory-specific functionality }
   if [ -d "${_val}" ]; then
-    eval "cd_${_var}() { cd \"\${${_var}}\"; }"
+    printf "\ncd_%s(){ cd \"%s\" || exit 1 ;}" \
+      "${_var}" "${_val}" >>"${DOTS_CACHE_RC}"
     if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
       pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function cd_${_var}"
     fi
@@ -430,10 +466,7 @@ register_env() {
       #{ Loop over all matching RC files and source each if it exists }
       for rc_file in "${_val}/${RC}" "${_val}/${RC}.sh" "${_val}/${RC}.bash" "${_val}/${RC}.zsh"; do
         if [ -f "${rc_file}" ]; then
-
-          if [ "${VERBOSITY:-0}" -ge 3 ]; then
-            pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${rc_file}"
-          fi
+          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${rc_file}"
 
           #{ Source the RC file if initialization is requested }
           # shellcheck disable=SC2250,SC1090 #? We already validated this file
@@ -448,10 +481,7 @@ register_env() {
   if [ -f "${_val}" ] && [ "${_init}" -eq 1 ]; then
     # shellcheck disable=SC1090
     . "${_val}"
-    if [ "${VERBOSITY:-0}" -ge 3 ]; then
-      pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${_val}"
-    fi
-    return $?
+    pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${_val}"
   fi
 
   return 0
@@ -464,25 +494,32 @@ unregister_env() {
   #DOC   $1 - The variable name to unregister
   #DOC
   #DOC Side Effects:
+  #DOC   - Removes export and functions if they exist in ${DOTS_CACHE_RC}
   #DOC   - Unsets the specified environment variable
-  #DOC   - Removes ed_VARNAME() function if it exists
-  #DOC   - Removes cd_VARNAME() function if it exists
   #DOC   - Removes any aliases with the variable name
 
   env="$1"
   if [ -z "${env:-}" ]; then
     pout-tagged --ctx "unregister_env" --tag "[ERROR]" --msg "Variable name is required"
     return 1
+  else
+    pout-tagged --ctx "unregister_env" --tag "[INFO]" --msg "Unregistering ${env}"
   fi
 
-  if [ "${VERBOSITY:-0}" -ge 3 ]; then
-    pout-tagged --ctx "unregister_env" --tag "[INFO] " --msg "Unregistering ${env}"
-  fi
+  #{ Remove environment export, aliases, and helper functions (ending with _${env}) }
+  sed -i \
+    -e "/^alias ${env}=/d" \
+    -e "/^export ${env}=/d" \
+    -e "/^[a-zA-Z0-9_]*_${env}(){.*}/d" \
+    "${DOTS_CACHE_RC}"
 
+  #{ Remove aliases with the variable name from the current shell }
   unset "${env}" 2>/dev/null
-  unset -f "ed_${env}" 2>/dev/null
-  unset -f "cd_${env}" 2>/dev/null
+  for prefix in ed cd ls mv; do #? add more as needed
+    unset -f "${prefix}_${env}" 2>/dev/null
+  done
   unalias "${env}" 2>/dev/null
+  unset "${env}" 2>/dev/null
 }
 
 resolve_env() {
@@ -603,42 +640,18 @@ init_rc() {
     [ -z "${item}" ] && continue
     count=$((count + 1))
     path="${item}"
-    [ "${VERBOSITY}" -ge "${VERBOSITY_DEBUG:-3}" ] &&
-      printf "Sourcing '%s.%s'\n" "${count}" "${path}"
-    # shellcheck disable=SC1090
-    . "${path}"
+
+    if [ ! -f "${path}" ]; then
+      pout-tagged --ctx "init_rc" --tag "[ERROR]" \
+        "Missing rc file: '${path}'"
+      continue
+    else
+      pout-tagged --ctx "init_rc" --tag "[TRACE]" "Sourcing '${path}'"
+      # shellcheck disable=SC1090
+      . "${path}"
+    fi
   done
   IFS="${OLD_IFS}"
 }
 
-#{ Load the DOTS environment }
-manage_env --var DOTS --val "${DOTS}"
-manage_env --var HOME --val "${HOME}"
-manage_env --var DOTS_RC --val "${DOTS_RC}"
-manage_env --var BASH_RC --val "${HOME}/.bashrc"
-manage_env --var PROFILE --val "${HOME}/.profile"
-manage_env --var DOTS_ENV --val "${DOTS}/Environment"
-manage_env --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix"
-manage_env --var DOTS_ENV_POSIX_CTX --val "${DOTS_ENV_POSIX}/context"
-manage_env --var DOTS_ENV_POSIX_EXP --val "${DOTS_ENV_POSIX}/export"
-manage_env --init --var DOTS_BIN --val "${DOTS}/Bin"
-manage_env --init --var DOTS_CFG --val "${DOTS}/Configuration"
-manage_env --init --var DOTS_DLD --val "${DOTS}/Downloads"
-manage_env --init --var DOTS_DOC --val "${DOTS}/Documentation"
-manage_env --init --var DOTS_NIX --val "${DOTS}/Admin"
-manage_env --init --var DOTS_RES --val "${DOTS}/Assets"
-manage_env --init --var DOTS_TMP --val "${DOTS}/.cache"
-
-#{ Load the environment RC files }
-rc_to_init="$(delim --out-delimiter "\n" "
-  #| Environment
-  ${DOTS_ENV_POSIX_EXP}/admin.sh
-  ${DOTS_ENV_POSIX_EXP}/history.sh
-  ${DOTS_ENV_POSIX_EXP}/locale.sh
-
-  #| Packages
-  ${DOTS_ENV_POSIX_EXP}/rustup.sh
-  ${DOTS_ENV_POSIX_EXP}/yazi.sh
-")"
-
-init_rc "${rc_to_init}"
+env__main

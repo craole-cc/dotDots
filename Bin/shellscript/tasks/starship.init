@@ -4,8 +4,8 @@ SCR_NAME="starship.init"
 SCR_DESCRIPTION="Script to set Starship theme and environment"
 SCR_USAGE_GUIDE=$(
   cat <<EOF
-Usage: $SCR_NAME [theme]
-$SCR_DESCRIPTION
+Usage: ${SCR_NAME} [theme]
+${SCR_DESCRIPTION}
 
 Options:
   [theme]     Specify the desired Starship theme (default: craole).
@@ -14,37 +14,16 @@ Options:
 EOF
 )
 
-#{ Define a function to display the usage guide
-show_usage_guide() {
-  printf "%s\n\n" "$SCR_USAGE_GUIDE"
+main() {
+  set_defaults
+  parse_arguments "$@"
+  init_theme
+  init_shell
 }
 
-init_theme() {
-  #{ Set the default theme to "craole" if no theme is specified
-  theme="${theme:-craole}"
-  echo "THEME: $theme"
-
-  #{ Load the Starship environment
-  starship_env="${DOTS}/Environment/export/package/starship.sh"
-  [ -f "$starship_env" ] && . "$starship_env"
-}
-
-init_shell() {
-  #{ Set the default shell to "bash" if no shell is specified
-  shell="${SHELL_TYPE:-bash}"
-  echo "SHELL: $shell"
-  # shell.init "$shell"
-  #shellcheck disable=SC3040
-  case "$shell" in
-  *fish) ;;
-  *nu) ;;
-  *zsh) ;;
-  *bash)
-    set +o posix
-    eval "$(starship init bash)"
-    set -o posix
-    ;;
-  esac
+set_defaults() {
+  : "${theme:="craole"}"
+  : "${SHELL_TYPE:="bash"}"
 }
 
 parse_arguments() {
@@ -55,19 +34,54 @@ parse_arguments() {
       show_usage_guide
       exit
       ;;
-    -s | --shell) shell=$2 ;;
+    -s | --shell) SHELL_TYPE=$2 ;;
     -t | --theme) theme=$2 ;;
-    *)
-      #{ Set the default theme to "craole" if no theme is specified
-      # theme="$1"
-      ;;
+    *) ;;
     esac
     shift
   done
 }
 
-main() {
-  parse_arguments "$@"
-  init_theme
-  init_shell
-} && main "$@"
+#{ Define a function to display the usage guide }
+show_usage_guide() {
+  printf "%s\n\n" "${SCR_USAGE_GUIDE}"
+}
+
+init_theme() {
+  #{ Set the default theme to "craole" if no theme is specified }
+  STARSHIP_HOME="${DOTS_CFG:?}/starship" export STARSHIP_HOME
+  STARSHIP_CACHE="${CACHE_HOME:?}/starship" export STARSHIP_CACHE
+  STARSHIP_CONFIG="${STARSHIP_HOME}/config.toml" export STARSHIP_CONFIG
+  STARSHIP_THEME="${STARSHIP_HOME}/themes/${theme}.toml"
+
+  #{ Update the theme }
+  if [ -f "${STARSHIP_THEME}" ]; then
+    export STARSHIP_THEME
+    if cmp -s "${STARSHIP_THEME}" "${STARSHIP_CONFIG}"; then
+      symbiolink --force --src "${STARSHIP_THEME}" --lnk "${STARSHIP_CONFIG}"
+    else
+      : #? The default starship theme will be used
+    fi
+  fi
+}
+
+#{ Set the default shell to 'bash' if no shell is specified }
+init_shell() {
+  #shellcheck disable=SC3040
+  case "${SHELL_TYPE}" in
+  fish) ;;
+  nu) ;;
+  zsh) eval "$(starship init zsh)" || true ;;
+  bash)
+    set +o posix
+    eval "$(starship init bash)" || true
+    set -o posix
+    ;;
+  *)
+    pout_tagged "[ERROR]" "Unknown shell type: ${SHELL_TYPE}"
+    exit 1
+    ;;
+  esac
+}
+
+main "$@"

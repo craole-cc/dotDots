@@ -51,7 +51,8 @@ get_current_time_ms() {
     perl -MTime::HiRes=time -E 'say int(time*1000)'
   else
     # Fallback to seconds precision
-    printf "%s000\n" "$(date +%s)"
+    secs=$(date +%s)
+    printf "%s000\n" "${secs:-0}"
   fi
 }
 

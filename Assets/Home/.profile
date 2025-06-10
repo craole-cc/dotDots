@@ -8,9 +8,9 @@ main() {
   : "${EDITOR:=hx}"
   : "${pad:=12}"
   : "${sep:=" | "}"
-  manage_env --var HOME --val "${HOME:-}" --force
-  manage_env --var BASH_RC --val "${HOME}/.bashrc" --force
-  manage_env --var PROFILE --val "${HOME}/.profile" --force
+  manage_env --force --set --var HOME --val "${HOME:-}"
+  manage_env --force --set --var BASH_RC --val "${HOME}/.bashrc"
+  manage_env --force --set --var PROFILE --val "${HOME}/.profile"
   register_dots "${@:-}"
 }
 
@@ -214,8 +214,8 @@ register_dots() {
     IFS="${ifs}"
 
     if [ -f "${DOTS_RC:-}" ]; then
-      manage_env --force --var DOTS --val "${DOTS:?}" --init
-      manage_env --force --var DOTS_RC --val "${DOTS_RC:?}"
+      manage_env --force --set --var DOTS --val "${DOTS:?}"
+      manage_env --force --init --var DOTS_RC --val "${DOTS_RC:?}"
     else
       return 1
     fi

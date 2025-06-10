@@ -1,11 +1,11 @@
 #!/bin/sh
 # shellcheck disable=SC2034,SC1090,SC2154
 
-#>-> Rust
+#|->  Rust
 if ! command -v rustc >/dev/null 2>&1; then return; fi
 manage_env --var RUST_HOME --val "${DOTS_CFG:?}/rust"
 
-#>-> Rustup
+#|->  Rustup
 manage_env --var RUSTUP_HOME --val "${HOME:?}/.rustup"
 case "${SYS_TYPE}" in
 Windows) RUSTUP_CONFIG="${RUST_HOME}/rustup_win.toml" ;;
@@ -13,7 +13,7 @@ Windows) RUSTUP_CONFIG="${RUST_HOME}/rustup_win.toml" ;;
 esac
 manage_env --var RUSTUP_CONFIG --val "${RUSTUP_CONFIG}"
 
-#>-> Cargo
+#|->  Cargo
 manage_env --var CARGO_HOME --val "${HOME}/.cargo"
 manage_env --init --var CARGO_ENV --val "${RUST_HOME}/cargo.env"
 manage_env --var CARGO_CONFIG --val "${RUST_HOME}/cargo.toml"
@@ -30,12 +30,12 @@ alias Cr='cargo run --quiet --'
 alias Cw='cargo watch --quiet --clear --exec'
 alias Cwrh='cw "run --quiet -- --help"'
 
-#>-> Rustfmt
+#|->  Rustfmt
 manage_env --var RUSTFMT_CONFIG --val "${RUST_HOME}/rustfmt.toml"
 manage_env --var RUSTFMT_CONFIG_USER --val "${HOME}/.rustfmt.toml"
 copy_config "${RUSTFMT_CONFIG:-}" "${RUSTFMT_CONFIG_USER:-}"
 
-#>-> Shell Completions
+#|->  Shell Completions
 case "${SHELL_TYPE}" in
 bash)
   COMPLETIONS_RUSTUP="${RUST_HOME}/rustup_completions.bash"

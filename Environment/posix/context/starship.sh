@@ -11,12 +11,12 @@
 
 # _________________________________________ LOCAL<|
 
-#@ Verify Instalation
+#@ Verify Installation
 command -v starship >/dev/null 2>&1 || return
 
 #@ Set Environment Variables
-STARSHIP_HOME="${DOTS_CFG}/starship"
-STARSHIP_CACHE="${CACHE_HOME}/starship"
+STARSHIP_HOME="${DOTS_CFG:?}/starship"
+STARSHIP_CACHE="${CACHE_HOME:?}/starship"
 STARSHIP_CONFIG="${STARSHIP_HOME}/config.toml"
 
 #> THEME
@@ -32,17 +32,17 @@ THEMES
 starship_theme="${starship_theme:-craole}"
 STARSHIP_THEME="${STARSHIP_HOME}/themes/${starship_theme}.toml"
 
-#@ Update the theme
-if [ -f "$STARSHIP_THEME" ]; then
-  cmp -s "$STARSHIP_THEME" "$STARSHIP_CONFIG" ||
+#{ Update the theme }
+if [ -f "${STARSHIP_THEME}" ]; then
+  cmp -s "${STARSHIP_THEME}" "${STARSHIP_CONFIG}" ||
     symbiolink --force \
-      --src "$STARSHIP_THEME" \
-      --lnk "$STARSHIP_CONFIG"
+      --src "${STARSHIP_THEME}" \
+      --lnk "${STARSHIP_CONFIG}"
 else
-  prinf "Invalid Starship Theme: %s\n" "$STARSHIP_THEME"
+  printf "Invalid Starship Theme: %s\n" "${STARSHIP_THEME}"
 fi
 
-# case "$sys_INFO" in
+# case "${SHELL_TYPE}" in
 # *fish) ;;
 # *nu) ;;
 # *zsh) ;;

@@ -65,20 +65,20 @@
 
   #{ Load the DOTS environment
   DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
-  if [ -f "${DOTS_ENV}/${RC}.sh" ] ; then
-    # shellcheck disable=SC1090
-    . "${DOTS_ENV}/${RC}.sh"
-  fi
+  posix_env="${DOTS_ENV}/posix/${RC}.sh"
+  # shellcheck disable=SC1090
+  if [ -f "${posix_env}" ]; then . "${posix_env}"; fi
 
   #{ Calculate the duration }
   if [ "${DOTS_INIT_START:-}" ]; then
     DOTS_INIT_END="$(date +%s)"
     DOTS_INIT_DURATION=$((DOTS_INIT_END - DOTS_INIT_START))
     export DOTS_INIT_DURATION
+    printf "DOTS initialization took approximately %d seconds" "${DOTS_INIT_DURATION}"
   fi
 
-  #{ Exit with the last exit code
-  return $?
+  #{ Exit with the last exit code }
+  return "$?"
 
 # === POWERSHELL ===
 if (-not $env:DOTS) {

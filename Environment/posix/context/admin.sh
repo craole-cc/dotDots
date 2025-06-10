@@ -1,29 +1,29 @@
 #! /bin/sh
 # shellcheck disable=SC2034,SC2154,SC1091
 
-#>-| Output Control
-manage_env force --var DELIMITER --val "${DELIMITER:-"$(printf "\037")"}"
-manage_env force --var VERBOSITY --val "$(verbosity "${VERBOSITY:-"Error"}" || true)"
-manage_env force --var VERBOSITY_QUIET --val "$(verbosity "${VERBOSITY_QUIET:-"Quiet"}" 0 || true)"
-manage_env force --var VERBOSITY_ERROR --val "$(verbosity "${VERBOSITY_ERROR:-"Error"}" 1 || true)"
-manage_env force --var VERBOSITY_WARN --val "$(verbosity "${VERBOSITY_WARN:-"Warn"}" 2 || true)"
-manage_env force --var VERBOSITY_INFO --val "$(verbosity "${VERBOSITY_INFO:-"Info"}" 3 || true)"
-manage_env force --var VERBOSITY_DEBUG --val "$(verbosity "${VERBOSITY_DEBUG:-"Debug"}" 4 || true)"
-manage_env force --var VERBOSITY_TRACE --val "$(verbosity "${VERBOSITY_TRACE:-"Trace"}" 5 || true)"
+#|->  Output Control
+manage_env --set --var DELIMITER --val "${DELIMITER:-"$(printf "\037")"}"
+manage_env --set --var VERBOSITY --val "$(verbosity "${VERBOSITY:-"Error"}" || true)"
+manage_env --set --var VERBOSITY_QUIET --val "$(verbosity "${VERBOSITY_QUIET:-"Quiet"}" 0 || true)"
+manage_env --set --var VERBOSITY_ERROR --val "$(verbosity "${VERBOSITY_ERROR:-"Error"}" 1 || true)"
+manage_env --set --var VERBOSITY_WARN --val "$(verbosity "${VERBOSITY_WARN:-"Warn"}" 2 || true)"
+manage_env --set --var VERBOSITY_INFO --val "$(verbosity "${VERBOSITY_INFO:-"Info"}" 3 || true)"
+manage_env --set --var VERBOSITY_DEBUG --val "$(verbosity "${VERBOSITY_DEBUG:-"Debug"}" 4 || true)"
+manage_env --set --var VERBOSITY_TRACE --val "$(verbosity "${VERBOSITY_TRACE:-"Trace"}" 5 || true)"
 
-#>-| System Information
-manage_env force --var USER --val "$(get_os_user || true)"
-manage_env force --var SHELL --val "${SHELL:-"$(get_os_shell || true)"}"
-manage_env force --var SHELL_TYPE --val "$(basename "${SHELL}")"
-manage_env force --var SYS_TYPE --val "$(os.type.fetch || true)"
-manage_env force --var SYS_NAME --val "$(os.distro.fetch || true)"
-manage_env force --var SYS_KERN --val "$(os.kernel.fetch || true)"
-manage_env force --var SYS_ARCH --val "$(os.arch.fetch || true)"
-manage_env force --var SYS_HOST --val "$(hostname.fetch || true)"
-manage_env force --var SYS_INFO \
+#|->  System Information
+manage_env --set --var USER --val "$(get_os_user || true)"
+manage_env --set --var SHELL --val "${SHELL:-"$(get_os_shell || true)"}"
+manage_env --set --var SHELL_TYPE --val "$(basename "${SHELL}")"
+manage_env --set --var SYS_TYPE --val "$(os.type.fetch || true)"
+manage_env --set --var SYS_NAME --val "$(os.distro.fetch || true)"
+manage_env --set --var SYS_KERN --val "$(os.kernel.fetch || true)"
+manage_env --set --var SYS_ARCH --val "$(os.arch.fetch || true)"
+manage_env --set --var SYS_HOST --val "$(hostname.fetch || true)"
+manage_env --set --var SYS_INFO \
   --val "${SYS_TYPE:?} ${SYS_NAME:?} | ${SYS_KERN:?} | ${SYS_ARCH:?} | ${USER:?}@${SYS_HOST:?}"
 
-#>-| User Directories
+#|->  User Directories
 case "${SYS_TYPE:-}" in
 Windows)
   DATA_HOME="${APPDATA:-"${HOME}/AppData/Roaming"}"     #? powershell \$env:APPDATA
@@ -70,20 +70,20 @@ Windows)
   TRASH="${DATA_HOME}/Trash/files"
   ;;
 esac
-manage_env --var DATA_HOME --val "${DATA_HOME}"
-manage_env --var CACHE_HOME --val "${CACHE_HOME}"
-manage_env --var CONFIG_HOME --val "${CONFIG_HOME}"
-manage_env --var STATE_HOME --val "${STATE_HOME}"
-manage_env --var RUNTIME_DIR --val "${RUNTIME_DIR}"
-manage_env --var TRASH --val "${TRASH}"
-manage_env --var USER_UID --val "${USER_UID}"
+manage_env --set --var DATA_HOME --val "${DATA_HOME}"
+manage_env --set --var CACHE_HOME --val "${CACHE_HOME}"
+manage_env --set --var CONFIG_HOME --val "${CONFIG_HOME}"
+manage_env --set --var STATE_HOME --val "${STATE_HOME}"
+manage_env --set --var RUNTIME_DIR --val "${RUNTIME_DIR}"
+manage_env --set --var TRASH --val "${TRASH}"
+manage_env --set --var USER_UID --val "${USER_UID}"
 
-#>-| Home Directories
-manage_env --var DOCUMENTS --val "${HOME}/Documents"
-manage_env --var DOWNLOADS --val "${HOME}/Downloads"
-manage_env --var PICTURES --val "${HOME}/Pictures"
-manage_env --var MUSIC --val "${HOME}/Music"
-manage_env --var VIDEOS --val "${HOME}/Videos"
+#|->  Home Directories
+manage_env --set --var DOCUMENTS --val "${HOME}/Documents"
+manage_env --set --var DOWNLOADS --val "${HOME}/Downloads"
+manage_env --set --var PICTURES --val "${HOME}/Pictures"
+manage_env --set --var MUSIC --val "${HOME}/Music"
+manage_env --set --var VIDEOS --val "${HOME}/Videos"
 if [ -d "${PHOTOS}/Wallpapers" ]; then
   WALLPAPERS="$(printf "%s" "${PHOTOS}/Wallpapers")"
 elif [ -d "${HOME}/Pictures/wallpapers" ]; then
@@ -91,9 +91,9 @@ elif [ -d "${HOME}/Pictures/wallpapers" ]; then
 else
   WALLPAPERS="$(printf "%s" "${DOTS_RES}/Images/wallpaper")"
 fi
-manage_env --var WALLPAPERS --val "${WALLPAPERS}"
+manage_env --set --var WALLPAPERS --val "${WALLPAPERS}"
 
-#>-| Browser
+#|->  Browser
 case "${SYS_TYPE}" in
 Windows)
   browser_id=$(
@@ -108,7 +108,7 @@ Windows)
   browser_path="xdg-open"
   ;;
 esac
-manage_env --var BROWSER --val "${browser_path:-"firefox"}"
+manage_env --set --var BROWSER --val "${browser_path:-"firefox"}"
 
 #{ General }
-manage_env --var TIMESTAMP_FMT --val "%Y-%m-%d_%H-%M-%S"
+manage_env --set --var TIMESTAMP_FMT --val "%Y-%m-%d_%H-%M-%S"
