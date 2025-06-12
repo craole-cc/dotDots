@@ -1,0 +1,15 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[user]
+name = "Craole"
+email = "32288735+Craole@users.noreply.github.com"
+
+[[--scope]]
+--when.repositories = ["/d/Project/GitHub/CC"]
+[--scope.name]
+name = "craole-cc"
+[--scope.user]
+email = "134658831+craole-cc@users.noreply.github.com"
+
+[ui]
+diff-editor = "hx"
