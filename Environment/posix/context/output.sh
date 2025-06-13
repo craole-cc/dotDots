@@ -2,6 +2,8 @@
 
 #|->  Output Control
 manage_env --set --var DELIMITER --val "${DELIMITER:-"$(printf "\037")"}"
+
+echo "Verbosity: ${VERBOSITY:-"Not set"}"
 manage_env --set --var VERBOSITY --val "$(verbosity "${VERBOSITY:-"Error"}" || true)"
 manage_env --set --var VERBOSITY_QUIET --val "$(verbosity "${VERBOSITY_QUIET:-"Quiet"}" 0 || true)"
 manage_env --set --var VERBOSITY_ERROR --val "$(verbosity "${VERBOSITY_ERROR:-"Error"}" 1 || true)"

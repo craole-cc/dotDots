@@ -21,6 +21,10 @@ Examples:
 EOF
 }
 
+echo "Usage: ${0##*/} [OPTIONS] NAME"
+# shellcheck disable=SC2317
+return >/dev/null 2>&1 || exit
+
 mode="all"
 name=""
 

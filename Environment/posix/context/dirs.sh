@@ -44,8 +44,16 @@ Windows)
   CACHE_HOME="${XDG_CACHE_HOME:-"${HOME}/.cache"}"
   CONFIG_HOME="${XDG_CONFIG_HOME:-"${HOME}/.config"}"
   STATE_HOME="${XDG_STATE_HOME:-"${HOME}/.local/state"}"
-  RUNTIME_DIR="${XDG_RUNTIME_DIR:-"/run/user/${USER_UID}"}"
   TRASH="${DATA_HOME}/Trash/files"
+  if [ -n "${XDG_RUNTIME_DIR}" ]; then
+    RUNTIME_DIR="${XDG_RUNTIME_DIR}"
+  elif [ -d "/run/user/${USER_UID}" ]; then
+    RUNTIME_DIR="/run/user/${USER_UID}"
+  else
+    RUNTIME_DIR="/tmp/user/${USER_UID}"
+    mkdir -p "${RUNTIME_DIR}"
+    chmod 700 "${RUNTIME_DIR}"
+  fi
   ;;
 esac
 manage_env --force --set --var DATA_HOME --val "${DATA_HOME}"

@@ -1,44 +1,17 @@
 #! /bin/sh
 # shellcheck disable=SC2154,SC1090
 
-#|-> Output Configuration
-VERBOSITY="$(verbosity "Debug")"
-VERBOSITY_QUIET=0
-VERBOSITY_ERROR=1
-VERBOSITY_WARN=2
-VERBOSITY_INFO=3
-VERBOSITY_DEBUG=4
-VERBOSITY_TRACE=5
-DELIMITER="$(printf "\037")"
-PAD=12
-SEP=" | "
-export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE PAD SEP
+main() {
+  set_defaults
 
-#|-> Editor Configuration
-: "${EDITORS_TUI:="helix, nvim, vim, nano"}"
-: "${EDITORS_GUI:="code, zed, zeditor, trae, notepad++, notepad"}"
-export EDITORS_TUI EDITORS_GUI
-EDITOR="$(editor --set)" export EDITOR
-
-#|-> DOTS Environment Entrypoint
-RC=".dotsrc" export RC
-DOTS_CACHE_RC="${DOTS:?}/.cache/.dotsrc" export DOTS_CACHE_RC
-#{ Load the cached rc file }
-if [ -f "${DOTS_CACHE_RC}" ]; then
-  # shellcheck disable=SC1090
-  . "${DOTS_CACHE_RC}"
-fi
-
-#|-> Commands
-CMD_RG="$(command -v rg 2>/dev/null || command -v grep 2>/dev/null)" export CMD_RG
-
-env__main() {
   #{ Load the DOTS environment }
   manage_env --set --var DOTS --val "${DOTS}"
   manage_env --set --var HOME --val "${HOME}"
   manage_env --set --var DOTS_RC --val "${DOTS_RC}"
   manage_env --set --var BASH_RC --val "${HOME}/.bashrc"
   manage_env --set --var PROFILE --val "${HOME}/.profile"
+  manage_env --var DOTS_TMP --val "${DOTS}/.cache"
+  manage_env --init --var DOTS_CACHE --val "${DOTS_TMP}"  #? Alias to DOTS_TMP
   manage_env --init --var DOTS_RES --val "${DOTS}/Assets" #? Resources don't depend on the environment
   manage_env --set --var DOTS_ENV --val "${DOTS}/Environment"
   manage_env --set --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix" #? This file, so no need to init
@@ -56,7 +29,39 @@ env__main() {
   # manage_env --init --var DOTS_DLD --val "${DOTS}/Downloads"
   # manage_env --init --var DOTS_DOC --val "${DOTS}/Documentation"
   # manage_env --init --var DOTS_NIX --val "${DOTS}/Admin"
-  # manage_env --init --var DOTS_TMP --val "${DOTS}/.cache"
+}
+
+set_defaults() {
+  #|-> Output Configuration
+  VERBOSITY="$(verbosity "Error")"
+  VERBOSITY_QUIET=0
+  VERBOSITY_ERROR=1
+  VERBOSITY_WARN=2
+  VERBOSITY_INFO=3
+  VERBOSITY_DEBUG=4
+  VERBOSITY_TRACE=5
+  DELIMITER="$(printf "\037")"
+  PAD=12
+  SEP=" | "
+  export DELIMITER VERBOSITY EDITOR VERBOSITY_QUIET VERBOSITY_ERROR VERBOSITY_WARN VERBOSITY_INFO VERBOSITY_DEBUG VERBOSITY_TRACE PAD SEP
+
+  #|-> Editor Configuration
+  : "${EDITORS_TUI:="helix, nvim, vim, nano"}"
+  : "${EDITORS_GUI:="code, zed, zeditor, trae, notepad++, notepad"}"
+  export EDITORS_TUI EDITORS_GUI
+  EDITOR="$(editor --set)" export EDITOR
+
+  #|-> DOTS Environment Entrypoint
+  RC=".dotsrc" export RC
+  DOTS_CACHE_RC="${DOTS:?}/.cache/.dotsrc" export DOTS_CACHE_RC
+  #{ Load the cached rc file }
+  if [ -f "${DOTS_CACHE_RC}" ]; then
+    # shellcheck disable=SC1090
+    . "${DOTS_CACHE_RC}"
+  fi
+
+  #|-> Commands
+  CMD_RG="$(command -v rg 2>/dev/null || command -v grep 2>/dev/null)" export CMD_RG
 }
 
 manage_env() {
@@ -295,7 +300,259 @@ manage_env() {
   main "$@"
 }
 
+resolve_env() {
+  #DOC Resolve and return the absolute path of an environment variable.
+  #DOC
+  #DOC Arguments:
+  #DOC   $1 - The variable name to resolve
+  #DOC
+  #DOC Returns:
+  #DOC   0 - Variable exists and path was resolved
+  #DOC   1 - Variable doesn't exist or is empty
+  #DOC
+  #DOC Output:
+  #DOC   The resolved absolute path or variable value
+
+  #{ Validate arguments
+  if [ -z "${1:-}" ]; then
+    return 1
+  fi
+
+  #{ Get the current value of the variable or quit }
+  eval 'env="${'"${1}"'}"'
+  if [ -z "${env:-}" ]; then return 1; fi
+
+  #{ Convert Windows drive letter paths to Unix-style }
+  case "${env}" in
+  [a-zA-Z]:[\\/]*)
+    drive_letter=$(
+      printf '%s\n' "${env%%[\\/:]*}" |
+        tr '[:upper:]' '[:lower:]'
+    )                                                #? C:\path or C:/path to /c/path
+    normalized_path=$(printf '%s\n' "${env#*[\\/]}") #? [\, \\] to  [/]
+    env="/${drive_letter}/${normalized_path}"
+    ;;
+  *) ;;
+  esac
+
+  #{ Process the value }
+  if [ -e "${env}" ]; then
+    #{ Retrieve the absolute path (if possible)
+    if [ -d "${env}" ]; then
+      resolved="$(cd "${env}" 2>/dev/null && pwd)"
+    elif [ -f "${env}" ]; then
+
+      #{ For files: cd to dirname, then print full path
+      dir="$(dirname "${env}")"
+      file="$(basename "${env}")"
+      resolved="$(cd "${dir}" 2>/dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")"
+    fi
+  else
+    #{ Return the value of the variable
+    resolved="$(printf '%s\n' "${env}")"
+  fi
+
+  #{ Escape all $ to \$ }
+  printf '%s\n' "${resolved}" | sed 's/\$/\\\$/g'
+  unset resolved
+}
+
 register_env() {
+  #DOC Register an environment variable with optional initialization.
+  #DOC
+  #DOC Description:
+  #DOC   Registers a variable in the environment, with interactive prompting
+  #DOC   for overwrites unless forced. Creates helper functions for paths and
+  #DOC   directories, and can optionally source/initialize the target.
+  #DOC
+  #DOC Arguments:
+  #DOC   --force              Force overwrite without prompting
+  #DOC   --init               Initialize/source the target after registration
+  #DOC   --var VARIABLE       The variable name to register
+  #DOC   --val VALUE          The value to assign to the variable
+  #DOC
+  #DOC Outputs:
+  #DOC   - Exports the variable globally
+  #DOC   - Creates ed_VARNAME() function for existing paths
+  #DOC   - Creates cd_VARNAME() function for directories
+  #DOC   - Sources RC files in directories when --init is used
+  #DOC   - Sources files directly when --init is used
+
+  #{ Set defaults }
+  _val="" _var="" _args="" _init=0 _force=0
+
+  #{ Parse arguments }
+  while [ $# -ge 1 ]; do
+    case "$1" in
+    -[iI] | --init | --initialize) _init=1 ;;
+    -[fF] | --force) _force=1 ;;
+    --env-file)
+      _env_file="$2"
+      shift
+      ;;
+    --var)
+      if [ $# -lt 2 ]; then
+        show_usage_error "Missing argument for '$1'"
+        return 1
+      fi
+      _var="$2"
+      shift
+      ;;
+    --val)
+      if [ $# -lt 2 ]; then
+        show_usage_error "Missing argument for '$1'"
+        return 1
+      fi
+      _val="$2"
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*) ;; #? Unknown option, skip
+    *) _args="${_args:+${_args}${DELIMITER}}$1" ;;
+    esac
+    shift
+  done
+
+  #{ Handle remaining arguments after -- separator }
+  while [ $# -ge 1 ]; do
+    _args="${_args:+${_args}${DELIMITER}}$1"
+    shift
+  done
+
+  #{ Parse positional arguments if necessary }
+  if [ -n "${_args}" ]; then
+    ifs="${IFS}"
+    IFS="${DELIMITER}"
+    # shellcheck disable=SC2086
+    set -- ${_args}
+    IFS="${ifs}"
+
+    [ -z "${_var:-}" ] && {
+      _var="$1"
+      shift
+    }
+    [ -z "${_val:-}" ] && _val="$*"
+  fi
+
+  #{ Validate required arguments }
+  if [ -z "${_var:-}" ] || [ -z "${_val:-}" ]; then
+    # show_usage_error "Variable value is required"
+    return 1
+  fi
+
+  #{ Debug arguments }
+  pout-tagged --ctx "register_env" --tag "DEBUG" --msg "$(
+    printf "\n  %${PAD}s%s%s" "INIT" "${SEP}" "${_init}"
+    printf "\n  %${PAD}s%s%s" "FORCE" "${SEP}" "${_force}"
+    printf "\n  %${PAD}s%s%s" "VAR" "${SEP}" "${_var}"
+    printf "\n  %${PAD}s%s%s" "VAL" "${SEP}" "${_val}"
+  )"
+
+  #{ Handle existing variable values }
+  var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
+  case "${var_val:-}" in
+  "")
+    #? Variable doesn't exist, use argument value
+    pout-tagged --ctx "register_env" --tag "[INFO]" \
+      "Registering new variable ${_var}=${_val}"
+    ;;
+  "${_val}")
+    #? System value matches argument value - no change needed
+    if grep -q "${_var}=" "${DOTS_CACHE_RC}" 2>/dev/null; then
+      pout-tagged --ctx "register_env" --tag "[TRACE]" \
+        "Variable ${_var} already set to correct value"
+      return 0
+    fi
+    ;;
+  *)
+    #? System value differs from argument value
+    case "${_force}" in 1 | true | yes | on)
+      pout-tagged --ctx "register_env" --tag "[WARN]" \
+        "Forcing overwrite of ${_var}: '${var_val}' -> '${_val}'"
+      ;;
+    *)
+      #? Interactive overwrite
+      #{ Interactive prompt for overwrite }
+      printf "Variable '%s' is already set to: '%s'\n" "${_var}" "${var_val}"
+      printf "New value would be: '%s'\n" "${_val}"
+      printf "Overwrite with new value? [y/N] (default: N): "
+
+      #{ Handle CTRL-C during read }
+      trap 'echo "\nCancelled by user"; _val="${var_val}"; trap - INT' INT
+      read -r response
+      trap - INT
+
+      case "${response}" in
+      [Yy]*)
+        if [ "${VERBOSITY:-0}" -ge 3 ]; then
+          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User confirmed overwrite of ${_var}"
+        fi
+        ;;
+      *)
+        _val="${var_val}"
+        if [ "${VERBOSITY:-0}" -ge 3 ]; then
+          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "User declined overwrite, keeping existing value"
+        fi
+        ;;
+      esac
+      ;;
+    esac
+    ;;
+  esac
+
+  #{ Escape all $ in _val to ensure literal $ in paths when RC is sourced }
+  _escaped_val=$(printf '%s\n' "${_val}" | sed 's/\$/\\\$/g')
+
+  #{ Register the variable globally }
+  printf "\nexport %s=\"%s\"" "${_var}" "${_escaped_val}" >>"${DOTS_CACHE_RC}"
+  . "${DOTS_CACHE_RC}"
+  pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Exported ${_var}=${_escaped_val}"
+
+  #{ Create helper functions for existing paths }
+  if [ -e "${_val}" ]; then
+    printf "\ned_%s(){ editor \"%s\" || exit 1 ;}" \
+      "${_var}" "${_escaped_val}" >>"${DOTS_CACHE_RC}"
+    pout-tagged --ctx "register_env" --tag "[DEBUG]" \
+      "Created function ed_${_var}"
+  fi
+
+  #{ Handle directory-specific functionality }
+  if [ -d "${_val}" ]; then
+    printf "\ncd_%s(){ cd \"%s\" || exit 1 ;}" \
+      "${_var}" "${_escaped_val}" >>"${DOTS_CACHE_RC}"
+    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
+      pout-tagged --ctx "register_env" --tag "[DEBUG]" --msg "Created function cd_${_var}"
+    fi
+
+    #{ Source all RC files if initialization is requested }
+    if [ "${_init}" -eq 1 ]; then
+      #{ Loop over all matching RC files and source each if it exists }
+      for rc_file in "${_val}/${RC}" "${_val}/${RC}.sh" "${_val}/${RC}.bash" "${_val}/${RC}.zsh"; do
+        if [ -f "${rc_file}" ]; then
+          pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${rc_file}"
+          #{ Source the RC file if initialization is requested }
+          # shellcheck disable=SC2250,SC1090 #? We already validated this file
+          . "${rc_file}"
+          return $?
+        fi
+      done
+    fi
+  fi
+
+  #{ Handle file-specific initialization }
+  if [ -f "${_val}" ] && [ "${_init}" -eq 1 ]; then
+    # shellcheck disable=SC1090
+    . "${_val}"
+    pout-tagged --ctx "register_env" --tag "[INFO]" --msg "Sourced ${_val}"
+  fi
+
+  return 0
+}
+
+register_env_OLD() {
   #DOC Register an environment variable with optional initialization.
   #DOC
   #DOC Description:
@@ -378,14 +635,24 @@ register_env() {
     return 1
   fi
 
-  if [ "${VERBOSITY:-0}" -ge 4 ]; then
-    pout-tagged --ctx "register_env" --tag "DEBUG" --msg "$(
-      printf "\n  %${PAD}s%s%s" "INIT" "${SEP}" "${_init}"
-      printf "\n  %${PAD}s%s%s" "FORCE" "${SEP}" "${_force}"
-      printf "\n  %${PAD}s%s%s" "VAR" "${SEP}" "${_var}"
-      printf "\n  %${PAD}s%s%s" "VAL" "${SEP}" "${_val}"
-    )"
-  fi
+  #{ Debug arguments }
+  pout-tagged --ctx "register_env" --tag "DEBUG" --msg "$(
+    printf "\n  %${PAD}s%s%s" "INIT" "${SEP}" "${_init}"
+    printf "\n  %${PAD}s%s%s" "FORCE" "${SEP}" "${_force}"
+    printf "\n  %${PAD}s%s%s" "VAR" "${SEP}" "${_var}"
+    printf "\n  %${PAD}s%s%s" "VAL" "${SEP}" "${_val}"
+  )"
+
+  #{ Convert Windows paths to POSIX-compliant format }
+  # case "${_val}" in
+  #     [A-Za-z]:[\\/]*)  # Match drive letters (e.g., C:\ or D:/)
+  #         # Extract drive letter and convert to lowercase
+  #         _drive="/$(echo "${_val%%[\\/]*}" | tr '[:upper:]' '[:lower:]' | tr -d ':')"
+  #         # Convert backslashes to forward slashes and prepend drive letter
+  #         _val="/${_drive}${_val#*[\\/]}" | tr '\\' '/'
+  #         ;;
+  #     *) ;;  # Leave non-Windows paths unchanged
+  # esac
 
   #{ Handle existing variable values }
   var_val="$(resolve_env "${_var}" 2>/dev/null || true)"
@@ -522,48 +789,6 @@ unregister_env() {
   unset "${env}" 2>/dev/null
 }
 
-resolve_env() {
-  #DOC Resolve and return the absolute path of an environment variable.
-  #DOC
-  #DOC Arguments:
-  #DOC   $1 - The variable name to resolve
-  #DOC
-  #DOC Returns:
-  #DOC   0 - Variable exists and path was resolved
-  #DOC   1 - Variable doesn't exist or is empty
-  #DOC
-  #DOC Output:
-  #DOC   The resolved absolute path or variable value
-
-  #{ Validate arguments
-  if [ -z "${1:-}" ]; then
-    return 1
-  fi
-
-  #{ Get the current value of the variable
-  eval 'env="${'"${1}"'}"'
-
-  if [ -z "${env:-}" ]; then
-    return 1
-  fi
-
-  if [ -e "${env}" ]; then
-    #{ Retrieve the absolute path (if possible)
-    if [ -d "${env}" ]; then
-      (cd "${env}" 2>/dev/null && pwd)
-    elif [ -f "${env}" ]; then
-
-      #{ For files: cd to dirname, then print full path
-      dir=$(dirname "${env}")
-      file=$(basename "${env}")
-      (cd "${dir}" 2>/dev/null && printf "%s/%s\n" "$(pwd -P || true)" "${file}")
-    fi
-  else
-    #{ Return the value of the variable
-    printf '%s\n' "${env}"
-  fi
-}
-
 parse_list() {
   # Usage: parse_list "list_of_items"
   list="${1}"
@@ -654,4 +879,5 @@ init_rc() {
   IFS="${OLD_IFS}"
 }
 
-env__main
+main
+enviro.bash

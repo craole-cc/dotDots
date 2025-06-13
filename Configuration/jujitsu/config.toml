@@ -13,3 +13,4 @@ email = "134658831+craole-cc@users.noreply.github.com"
 
 [ui]
 diff-editor = "hx"
+editor = "hx"
