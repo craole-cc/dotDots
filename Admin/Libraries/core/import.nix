@@ -1,5 +1,5 @@
 {lib, ...}: let
-  umport = {
+  import = {
     path ? null,
     paths ? [],
     include ? [],
@@ -52,5 +52,5 @@
         )
       );
 in {
-  inherit umport;
+  inherit import;
 }
