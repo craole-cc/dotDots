@@ -83,3 +83,36 @@ fi
 if [ -n "${WALLPAPERS}" ]; then
   manage_env --set --var WALLPAPERS --val "${WALLPAPERS}"
 fi
+
+find_upwards() {
+  dir="${PWD}"
+  while case "${dir}" in "/"*) false ;; *) true ;; esac do
+    if [ -d "${dir}/$1" ]; then
+      printf "%s" "${dir}/$1"
+      return
+    fi
+    dir="$(dirname "${dir}")"
+  done
+  return 1
+}
+
+#| Projects
+if [ -n "${PRJ}" ]; then
+  :
+elif [ -d "${HOME}/Projects" ]; then
+  PRJ="${HOME}/Projects"
+elif
+  : ||
+    [ -d "${HOME}/Documents/GitLab" ] ||
+    [ -d "${HOME}/Documents/Gitlab" ] ||
+    [ -d "${HOME}/Documents/gitlab" ] ||
+    [ -d "${HOME}/Documents/GitHub" ] ||
+    [ -d "${HOME}/Documents/Github" ] ||
+    [ -d "${HOME}/Documents/github" ]
+then
+  PRJ="${HOME}/Documents"
+else
+  PRJ="$(find_upwards -i 'project[s]?' | head -n 1)"
+fi
+
+manage_env --init --var PRJ --val "${PRJ}"

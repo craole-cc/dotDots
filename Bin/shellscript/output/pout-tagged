@@ -69,8 +69,7 @@ while [ $# -gt 0 ]; do
   --msg=*) msg="${1#--msg=}" ;;
   --msg)
     if [ $# -gt 1 ]; then
-      msg="${msg}${msg:+${delimiter}}$2"
-      # msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
+      msg="${msg}${msg:+${delimiter}}$(printf "%b" "$2")"
       shift
     else
       printf "[Error] Missing value for --msg\n" >&2
@@ -85,8 +84,7 @@ while [ $# -gt 0 ]; do
     ;;
   --*) ;; #? Unknown option, ignore
   *)
-    msg="${msg}${msg:+${delimiter}}${1}"
-    # msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
+    msg="${msg}${msg:+${delimiter}}$(printf "%b" "$1")"
     ;;
   esac
   shift
@@ -94,7 +92,7 @@ done
 
 #{ Return early if no message is provided
 if [ -z "${msg}" ]; then
-  return 0
+  exit 1
 fi
 
 #{ Update the context
@@ -119,5 +117,5 @@ ifs="${IFS}"
 IFS="${delimiter}"
 # shellcheck disable=SC2086
 set -- ${msg}
-printf "%s%s%s\n" "${tag}" "${ctx}" "$@"
+printf "%s%s%b\n" "${tag}" "${ctx}" "$@"
 IFS="${ifs}"
