@@ -1,0 +1,522 @@
+#!/bin/sh
+
+main() {
+  set_defaults
+  parse_arguments "${@:-}"
+  execute_process
+  exit "${exit_code}"
+}
+
+set_defaults() {
+  app_path="$0"
+  app_name="${app_path##*/}"
+  app_version="0.1.0"
+
+  VERBOSITY="$(verbosity "Info")"
+  SEP=' ~@ '
+  PAD=15
+  if command -v tput >/dev/null 2>&1; then
+    BOLD=$(tput bold)
+    RESET=$(tput sgr0)
+  elif command -v printf >/dev/null 2>&1; then
+    BOLD=$(printf '\033[1m')
+    RESET=$(printf '\033[0m')
+  else
+    BOLD=""
+    RESET=""
+  fi
+
+  DIRECTION="both"
+  ANCHOR="$(pwd -P)"
+  TARGET=""
+  exit_code=0
+  CASE_SENSITIVE=false
+}
+
+parse_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    -v | --version)
+      show_version
+      exit 0
+      ;;
+    -x | --error)
+      VERBOSITY="$(verbosity "Error")"
+      ;;
+    -V | --verbose | -d | --debug)
+      VERBOSITY="$(verbosity "Debug")"
+      ;;
+    -q | --quiet | --silent | --check)
+      VERBOSITY="$(verbosity "Quiet")"
+      ;;
+    -i | --info | --normal)
+      VERBOSITY="$(verbosity "Info")"
+      ;;
+    --direction)
+      DIRECTION="$2"
+      shift
+      ;;
+    -U | --up)
+      DIRECTION="up"
+      ;;
+    -D | --down)
+      DIRECTION="down"
+      ;;
+    -B | --both)
+      DIRECTION="both"
+      ;;
+    -t | --target)
+      TARGET="$2"
+      shift
+      ;;
+    -a | --anchor)
+      ANCHOR="$2"
+      shift
+      ;;
+    -c | --case-sensitive)
+      CASE_SENSITIVE=true
+      shift
+      ;;
+    *)
+      if [ -z "${TARGET:-}" ]; then
+        #{ Define the target if not already defined }
+        TARGET="$1"
+      elif [ -z "${ANCHOR:-}" ]; then
+        #{ Define the starting directory }
+        ANCHOR="$1"
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  #{ Normalize the anchor path }
+  ANCHOR="$(normalize_path "${ANCHOR}")"
+
+  #{ Validate required arguments }
+  if [ -z "${TARGET:-}" ]; then
+    printf "%s" "${ANCHOR}"
+    exit 0
+  fi
+
+  #{ Remove leading and trailing whitespace from the target path }
+  TARGET="$(trim_whitespace "${TARGET}")"
+
+  pout_tagged --ctx "parse_arguments" --tag "[DEBUG]" \
+    "Anchor" "${ANCHOR}" \
+    "Target" "${TARGET}" \
+    "Direction" "${DIRECTION}" \
+    "Case-sensitive" "${CASE_SENSITIVE}" \
+    "Verbosity" "${VERBOSITY}" \
+    ""
+}
+
+execute_process() {
+  case "${DIRECTION}" in
+  up)
+    result="$(find_up "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
+    ;;
+  down)
+    if [ -z "${target_lower}" ] || [ "${target}" = "${target_lower}" ]; then
+      path="$(find_down "${ANCHOR}" "${target}")"
+    else
+      path="$(find_down "${ANCHOR}" "${target}" "${target_lower}")"
+    fi
+    ;;
+  both)
+    result="$(find_down "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
+    if [ -z "${result:-}" ]; then
+      result="$(find_up "${ANCHOR}" "${TARGET}" "${CASE_SENSITIVE}")"
+    fi
+    ;;
+  *)
+    pout_tagged --ctx "execute_process" --tag "[ERROR]" "Invalid direction:" "${DIRECTION}"
+    return 1
+    ;;
+  esac
+
+  #{ Process the result and return the exit code }
+  if [ -n "${result:-}" ]; then
+    printf "%s" "${result}"
+  else
+    pout_info 2 "No matching file found.\n"
+    exit_code=1
+  fi
+}
+
+find_up() {
+  #DOC Search for a file or directory in the parent directories of the given
+  #DOC directory. The search is case-sensitive by default, but can be made
+  #DOC case-insensitive by passing 0 as the third argument.
+  #DOC
+  #DOC The function returns the first matching path, or an error if no matching file
+  #DOC is found.
+  #DOC
+  #DOC Parameters:
+  #DOC   $1: The directory to start searching from. If not provided, defaults to
+  #DOC       the value of the ANCHOR variable or the current working directory.
+  #DOC   $2: The file or directory name to search for. If not provided, defaults to
+  #DOC       the value of the TARGET variable.
+  #DOC   $3: If set to 0, the search is case-insensitive. Otherwise, it is
+  #DOC       case-sensitive. If not provided, defaults to the value of the
+  #DOC       CASE_SENSITIVE variable.
+
+  #{ Initialize variables }
+  base_dir="${1:-"${ANCHOR:-.}"}"
+  pattern="${2:-"${TARGET:-}"}"
+  keep_case=${3:-${CASE_SENSITIVE:-1}}
+  result=""
+
+  #{ Normalize base_dir to absolute path }
+  original_dir="$(pwd -P)"
+  if cd "${base_dir}" 2>/dev/null; then
+    current_dir="$(pwd -P)"
+    base_dir="$(normalize_path "${current_dir}")"
+  else
+    return 1
+  fi
+  if ! cd "${original_dir}"; then return 1; fi
+
+  #{ Pre-process pattern once }
+  case "${keep_case}" in
+  0 | false | off | no | none)
+    search_pattern=$(printf '%s' "${pattern}" | tr '[:upper:]' '[:lower:]')
+    ;;
+  *)
+    search_pattern="${pattern}"
+    ;;
+  esac
+
+  #{ Iterate directories }
+  while
+    case "${base_dir}" in "/") false ;; *) [ -n "${base_dir}" ] ;; esac
+  do
+    #{ Preprocess all entries in current directory }
+    entries=$(
+      for entry in "${base_dir}"/* "${base_dir}"/.*; do
+        [ -e "${entry}" ] || continue
+        entry_name="${entry##*/}"
+        case "${entry_name}" in '.' | '..') continue ;; *) ;; esac
+        printf '%s\n' "${entry}"
+      done
+    )
+
+    #{ Case-sensitive vs insensitive matching }
+    case "${keep_case}" in
+    0 | false | off | no | none)
+      matches=$(printf '%s\n' "${entries}" |
+        awk -v pat="${search_pattern}" 'BEGIN{IGNORECASE=1} match(tolower($0), pat) {print}')
+      ;;
+    *)
+      matches=$(printf '%s\n' "${entries}" |
+        awk -v pat="${search_pattern}" '$0 ~ pat {print}')
+      ;;
+    esac
+
+    #{ Return first match }
+    if [ -n "${matches}" ]; then
+      printf '%s' "${matches}" | head -n1
+      return 0
+    fi
+
+    #{ Continue the search in the parent directory }
+    case "${base_dir}" in
+    */*) base_dir=${base_dir%/*} ;;
+    *) base_dir="/" ;;
+    esac
+  done
+
+  return 1 #? No match found
+}
+
+find_down() {
+  #DOC Search for a file or directory in the given directory and its subdirectories.
+  #DOC The search is case-sensitive by default, but can be made case-insensitive
+  #DOC by passing 0 as the third argument.
+  #DOC
+  #DOC The function returns the closest (shortest path) matching result, or nothing if
+  #DOC no match is found.
+  #DOC
+  #DOC Parameters:
+  #DOC   $1: The directory to start searching from. If not provided, defaults to ANCHOR.
+  #DOC   $2: The file or directory name to search for. If not provided, defaults to TARGET.
+  #DOC   $3: If set to 0, the search is case-insensitive. Otherwise, it is case-sensitive.
+  #DOC       If not provided, defaults to CASE_SENSITIVE.
+
+  #{ Initialize variables }
+  base_dir="${1:-"${ANCHOR:-.}"}"
+  pattern="${2:-"${TARGET:-}"}"
+  keep_case=${3:-${CASE_SENSITIVE:-1}}
+  result=""
+
+  #{ Pre-process pattern once }
+  case "${keep_case}" in
+  0 | false | off | no | none)
+    search_pattern=$(printf '%s' "${pattern}" | tr '[:upper:]' '[:lower:]')
+    ;;
+  *)
+    search_pattern="${pattern}"
+    ;;
+  esac
+
+  #{ Use find to get all files and directories }
+  all_entries=$(
+    find "${base_dir}" -print 2>/dev/null
+  )
+
+  #{ Filter entries for case sensitivity }
+  case "${keep_case}" in
+  0 | false | off | no | none)
+    matches=$(printf '%s\n' "${all_entries}" |
+      awk -F/ -v pat="${search_pattern}" '
+          {
+            n=split($0, a, "/");
+            name=a[n];
+            if (tolower(name) == pat) print $0;
+          }
+        ')
+    ;;
+  *)
+    matches=$(printf '%s\n' "${all_entries}" |
+      awk -F/ -v pat="${search_pattern}" '
+          {
+            n=split($0, a, "/");
+            name=a[n];
+            if (name == pat) print $0;
+          }
+        ')
+    ;;
+  esac
+
+  #{ Return the closest match (shortest path) }
+  if [ -n "${matches}" ]; then
+    printf '%s\n' "${matches}" |
+      awk '{ print length, $0 }' |
+      sort -n |
+      cut -d" " -f2- |
+      head -n1
+    return 0
+  fi
+
+  return 1 #? No match found
+}
+
+find_down_old() {
+  #{ Initialize variables }
+  find_cmd="find"
+  find_res=""
+  find_total=0
+  find_count=0
+
+  #{ Append the starting directory to the find command }
+  find_cmd="${find_cmd:+${find_cmd} }\"${1:-"${ANCHOR}"}\""
+  shift
+
+  #{ Append the first target to the find command }
+  find_cmd="${find_cmd:+${find_cmd} } -name \"${1:-"${target}"}\""
+  shift
+
+  #{ Include additional targets to search for }
+  for t in "${@:-}"; do
+    find_cmd="${find_cmd:+${find_cmd} }-o -name \"${t}\""
+  done
+
+  #{ Append the additional parameters to the find command }
+  find_cmd="${find_cmd:+${find_cmd} }-print"
+
+  #{ Execute the find command }
+  find_res="$(eval "${find_cmd}")"
+  find_total="$(printf "%s" "${find_res}" | wc -l)"
+  if [ "${verbosity:-0}" -ge 2 ]; then
+    pout_info 2 "Results [${find_total}]: ${find_cmd}\n$(
+      for t in ${find_res}; do
+        find_count=$((find_count + 1))
+        printf "  %2d: %s\n" "${find_count}" "${t}"
+      done
+    )"
+  fi
+
+  #{ Try to find the closest matching target in or below the current directory }
+  printf "%s" "${find_res}" |
+    awk '{ print length, $0 }' | #? Sort by length of path
+    sort -n |                    #? Sort numerically
+    cut -d" " -f2- |             #? Extract the path
+    head -n 1                    #? Get the first matching path
+
+  return
+}
+
+pout_info() {
+  if [ "$#" -eq 1 ]; then
+    msg="$1"
+  else
+    level=$1
+    shift
+    msg=$*
+  fi
+
+  if [ "${verbosity:-0}" -ge "${level}" ]; then
+    printf "%b" "${msg}"
+  fi
+}
+
+normalize_path() {
+  #DOC Converts a given Windows-style path to a Unix-style path.
+  #DOC
+  #DOC If `cygpath` is available, it uses it to perform the conversion.
+  #DOC Otherwise, it replaces backslashes with slashes and converts
+  #DOC drive letters (e.g., C:\) to a Unix-style path (e.g., /c/).
+  #DOC
+  #DOC Arguments:
+  #DOC   $1 - The input path to be normalized.
+  #DOC
+  #DOC Returns:
+  #DOC   The normalized Unix-style path.
+  #DOC
+
+  #{ Use cygpath if available }
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -u "$1"
+  else
+    #{ Replace backslashes with slashes }
+    p=$(printf '%s' "$1" | sed 's|\\|/|g')
+
+    #{ Convert drive letter (C:/...) to /c/... }
+    printf '%s' "${p}" | sed 's|^\([A-Za-z]\):|/\L\1|'
+  fi
+}
+
+trim_whitespace() {
+  #DOC Trim leading and trailing whitespace from a given string.
+  #DOC
+  #DOC Usage: trim_whitespace "   string with spaces   "
+  #DOC
+  #DOC Returns:
+  #DOC   The input string with leading and trailing whitespace removed.
+
+  printf '%s' "$1" | sed 's|^[[:space:]]*||; s|[[:space:]]*$||'
+}
+
+normalize_case() {
+  #DOC Normalize the case of a given string.
+  #DOC
+  #DOC If the second argument is:
+  #DOC   - 0, false, off, no, or none, the input string is not modified.
+  #DOC   - any other value, the input string is converted to lowercase.
+  #DOC
+  #DOC Arguments:
+  #DOC   $1 - The input string to be normalized.
+  #DOC   $2 - An optional flag to disable case normalization.
+  #DOC
+  #DOC Returns:
+  #DOC   The normalized string.
+  case ${2:-${CASE_SENSITIVE}} in
+  0 | false | off | no | none)
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+    ;;
+  *)
+    printf '%s' "$1"
+    ;;
+  esac
+}
+
+pout_tagged() {
+  #TODO: Add this feature to pout-tagged
+  export VERBOSITY #? For pout-tagged
+  ctx="" tag="" msg="" args="" pairs=""
+
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    --ctx)
+      ctx="${app_name} | $2"
+      shift
+      ;;
+    --tag)
+      tag="$2"
+      shift
+      ;;
+    --msg)
+      msg="$2"
+      shift
+      ;;
+    *) args="${args:+${args}"${DELIMITER}"}$1" ;; esac
+    shift
+  done
+
+  OLD_IFS="${IFS}"
+  IFS="${DELIMITER}"
+  # shellcheck disable=SC2086
+  set -- ${args:-}
+  if [ "$#" -le 2 ]; then
+    for arg in "$@"; do
+      msg="${msg:+${msg} }${arg}"
+    done
+  fi
+  while [ "$#" -ge 2 ]; do
+    pairs="${pairs:+${pairs} }$(
+      printf "\n%*s%s%s" "${PAD}" "$1" "${SEP}" "$2"
+      printf "\n"
+    )"
+    shift 2
+  done
+  IFS="${OLD_IFS}"
+
+  pout-tagged --ctx "${ctx}" --tag "${tag}" "${msg:-}" "${pairs:-}"
+  unset OLD_IFS tag msg args pairs ctx
+}
+
+show_version() {
+  printf "%s v%s\n" "${app_name}" "${app_version}"
+}
+
+show_help() {
+  # sed -n '/^#DOC/,/^$/p' "$0" |
+  #   sed -e '1d;$d' -e 's?#DOC ??g' -e 's?#DOC??g'
+
+  cat <<-EOF
+	${BOLD}${app_name} v${app_version}${RESET} - Seek a path within the filesystem
+	Usage: ${app_name} [OPTIONS] [TARGET] [ANCHOR]
+
+	This script allows you to search for a path within the filesystem.
+	It provides a user-friendly interface to navigate through directories.
+
+	Options:
+    -h, --help                 Display this help message
+    -v, --version              Display version information
+    --verbosity <VERBOSITY>    Set verbosity level
+    -q, --quiet                Suppress output
+    -d, --debug, --verbose     Set verbosity to debug
+    -i, --info                 Set verbosity to info
+    -x, --error                Set verbosity to error
+    --target <TARGET>          Specify the target path to search for
+    --anchor <ANCHOR>          Specify the starting directory
+    -c, --case                 Enable case-sensitive search
+    --direction <DIRECTION>    Specify the direction to search in
+    -D, --down                 Search in the downward direction
+    -U, --up                   Search in the upward direction
+    -B, --both                 Search in both directions
+
+	Environment Variables:
+    ANCHOR: The starting directory (default: ${ANCHOR})
+    TARGET: The target path to search for (default: $(basename "${ANCHOR}"))
+    DIRECTION: The direction to search in [up | down | ${BOLD}both = down -> up ${RESET}])
+    CASE_SENSITIVE: Enable case-sensitive search
+    VERBOSITY: Output verbosity [0, quiet | ${BOLD}1, info${RESET} | 2, error | 3, warn | 4, debug | 5, trace]
+
+	Outputs:
+    The absolute path to the target (or anchor if not provided).
+
+	Returns:
+    0 - Success
+    1 - Failure
+
+	Example:
+    seek --direction down target_pattern /path/to/anchor
+EOF
+}
+
+main "${@:-}"
