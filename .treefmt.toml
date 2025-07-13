@@ -231,11 +231,11 @@ includes = [
 ]
 options = ["fmt"]
 
-[formatter.dos2unix]
-command = "dos2unix"
-excludes = []
-includes = ["*"]
-options = ["--keepdate"]
+# [formatter.dos2unix]
+# command = "dos2unix"
+# excludes = []
+# includes = ["*"]
+# options = ["--keepdate"]
 
 # [formatter.fish_indent]
 # command = "fish_indent-wrapper"
@@ -300,12 +300,12 @@ includes = ["*.typ", "*.typst"]
 options = ["-i"]
 priority = 2
 
-[formatter.typos]
-excludes = []
-includes = ["*"]
-command = "typos"
-options = ["--color", "always", "--config", ".typos.toml"]
-# options = ["--write-changes"]
+# [formatter.typos]
+# excludes = []
+# includes = ["*"]
+# command = "typos"
+# # options = ["--color", "always", "--config", ".typos.toml"]
+# # options = ["--write-changes"]
 # options = ["--diff"]
 
 #| YAML formatting

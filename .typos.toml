@@ -1,12 +1,11 @@
 [default]
 extend-ignore-identifiers-re = []
 extend-ignore-words-re = []
-extend-ignore-re = []
+extend-ignore-re = ["typ", "nd"]
 
 [default.extend-identifiers]
 
 [default.extend-words]
-nd = "nd"
 
 [type.nix]
 extend-glob = []
