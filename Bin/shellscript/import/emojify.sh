@@ -29,8 +29,8 @@ emo() {
 }
 
 emos() {
-  emojify --list |
-    bat \
+  emojify --list \
+    | bat \
       --theme="Solarized (dark)" \
       --line-range 4: \
       --plain

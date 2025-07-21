@@ -1,12 +1,12 @@
-﻿# This needs to be in the same directory as setwallaper.bat (on system PATH ideally)
+# This needs to be in the same directory as setwallaper.bat (on system PATH ideally)
 param (
-  [string]$path
+    [string]$path
 )
 
 #{ Check if the provided file exists}
 if (-not (Test-Path $path)) {
-  Write-Host "The file does not exist: $path"
-  exit
+    Write-Host "The file does not exist: $path"
+    exit
 }
 
 #{ Check if the file is a valid image type (e.g., .jpg, .png)}
@@ -14,8 +14,8 @@ $allowedExtensions = @('.jpg', '.jpeg', '.png', '.bmp')
 $extension = [System.IO.Path]::GetExtension($path).ToLower()
 
 if (-not ($allowedExtensions -contains $extension)) {
-  Write-Host 'Invalid file type. Please use .jpg, .jpeg, .png, or .bmp files.'
-  exit
+    Write-Host 'Invalid file type. Please use .jpg, .jpeg, .png, or .bmp files.'
+    exit
 }
 
 #{ Define the DllImport method for SystemParametersInfo }
@@ -27,8 +27,9 @@ $result = $method::SystemParametersInfo(0x0014, 0, $path, 0x0001 -bor 0x0002)
 
 #{ Check if it was successful }
 if ($result -eq 0) {
-  Write-Host 'Failed to set the wallpaper.'
+    Write-Host 'Failed to set the wallpaper.'
 }
 else {
-  Write-Host 'Wallpaper set successfully!'
+    Write-Host 'Wallpaper set successfully!'
 }
+

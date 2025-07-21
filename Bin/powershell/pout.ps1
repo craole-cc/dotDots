@@ -39,7 +39,8 @@ function Global:Write-Message {
 
     if (-not [string]::IsNullOrEmpty($Context)) {
         $components += "|> $Global:ScriptName | $Context <|"
-    } else {
+    }
+    else {
         $components += "|> $Global:ScriptName <|"
     }
 
@@ -49,3 +50,4 @@ function Global:Write-Message {
     $fullMessage = $components -join ' '
     Write-Host $fullMessage -ForegroundColor $currentLevel.Color
 }
+

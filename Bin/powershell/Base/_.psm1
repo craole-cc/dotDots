@@ -8,6 +8,7 @@ $scriptFiles = @(
   'verbosity.ps1',
   'types.ps1',
   'write.ps1'
+  'utils.ps1'
 )
 
 foreach ($scriptFile in $scriptFiles) {

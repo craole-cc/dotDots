@@ -27,7 +27,7 @@
 #>
 param(
     # Specifies the path to the test script.
-    [Parameter(Position=0, Mandatory)]
+    [Parameter(Position = 0, Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]
     $ScriptPath,
@@ -143,9 +143,9 @@ if ($All) {
 
         if ($OutputPath) {
             $configuration.Add('TestResult', @{
-                Enabled = $true
-                OutputPath = $OutputPath
-            })
+                    Enabled    = $true
+                    OutputPath = $OutputPath
+                })
         }
         Pester\Invoke-Pester -Configuration $configuration | Out-Null
     }
@@ -157,7 +157,7 @@ if ($All) {
 elseif (($LineNumber -match '\d+') -and ($pesterModule.Version -ge '4.6.0')) {
     if ($pesterModule.Version -ge '5.0.0') {
         $configuration = @{
-            Run = @{
+            Run    = @{
                 Path = $ScriptPath
             }
             Filter = @{
@@ -170,21 +170,22 @@ elseif (($LineNumber -match '\d+') -and ($pesterModule.Version -ge '4.6.0')) {
 
         if ($OutputPath) {
             $configuration.Add('TestResult', @{
-                Enabled = $true
-                OutputPath = $OutputPath
-            })
+                    Enabled    = $true
+                    OutputPath = $OutputPath
+                })
         }
 
         Pester\Invoke-Pester -Configuration $configuration | Out-Null
     }
     else {
         Pester\Invoke-Pester -Script $ScriptPath -PesterOption (New-PesterOption -ScriptBlockFilter @{
-            IncludeVSCodeMarker=$true; Line=$LineNumber; Path=$ScriptPath}) -Show $pester4Output
+                IncludeVSCodeMarker=$true; Line=$LineNumber; Path=$ScriptPath
+            }) -Show $pester4Output
     }
 }
 elseif ($TestName) {
     if ($pesterModule.Version -ge '5.0.0') {
-       throw "Running tests by test name is unsafe. This should not trigger for Pester 5."
+        throw "Running tests by test name is unsafe. This should not trigger for Pester 5."
     }
     else {
         $invokePesterParams = Get-InvokePesterParams
@@ -193,7 +194,7 @@ elseif ($TestName) {
 }
 else {
     if ($pesterModule.Version -ge '5.0.0') {
-       throw "Running tests by expandable string is unsafe. This should not trigger for Pester 5."
+        throw "Running tests by expandable string is unsafe. This should not trigger for Pester 5."
     }
 
     # We get here when the TestName expression is of type ExpandableStringExpressionAst.
@@ -422,3 +423,4 @@ else {
 # UFqcyQ3dNLJNMsWOd8gAB+UmdNNVYqs59xZdWfVmSwNIfs/Z8u+4k1VVqeZiQ/4k
 # iqUAWQjpt1Vh9fZETnc=
 # SIG # End signature block
+

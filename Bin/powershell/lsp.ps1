@@ -11,7 +11,7 @@ if ($IsWindows) {
     else {
         $ps5 = Get-Command powershell.exe -ErrorAction SilentlyContinue
         if ($ps5) {
-              $pwsh = $ps5.Source
+            $pwsh = $ps5.Source
         }
     }
 }
@@ -37,4 +37,5 @@ if (-not $pwsh) {
 $sessionPath = if ($IsWindows) { "$env:TEMP\pses_session.json" } else { "$HOME/.pses_session.json" }
 
 & $pwsh -NoProfile -Command "Import-Module PowerShellEditorServices; Start-EditorServices -HostName 'zed' -HostProfileId 'zed' -HostVersion '1.0.0' -SessionDetailsPath '$sessionPath'"
+
 

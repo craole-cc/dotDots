@@ -1,4 +1,4 @@
-﻿# Copyright (c) Microsoft Corporation.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 <#
@@ -7,50 +7,45 @@
 function Register-EditorCommand {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$DisplayName,
 
         [Parameter(
-            Mandatory=$true,
-            ParameterSetName="Function")]
+            Mandatory = $true,
+            ParameterSetName = "Function")]
         [ValidateNotNullOrEmpty()]
         [string]$Function,
 
         [Parameter(
-            Mandatory=$true,
-            ParameterSetName="ScriptBlock")]
+            Mandatory = $true,
+            ParameterSetName = "ScriptBlock")]
         [ValidateNotNullOrEmpty()]
         [ScriptBlock]$ScriptBlock,
 
         [switch]$SuppressOutput
     )
 
-    Process
-    {
+    process {
         $commandArgs = @($Name, $DisplayName, $SuppressOutput.IsPresent)
 
-        $editorCommand = if ($ScriptBlock -ne $null)
-        {
+        $editorCommand = if ($ScriptBlock -ne $null) {
             Write-Verbose "Registering command '$Name' which executes a ScriptBlock"
             [Microsoft.PowerShell.EditorServices.Extensions.EditorCommand, Microsoft.PowerShell.EditorServices]::new($Name, $DisplayName, $SuppressOutput, $ScriptBlock)
         }
-        else
-        {
+        else {
             Write-Verbose "Registering command '$Name' which executes a function"
             [Microsoft.PowerShell.EditorServices.Extensions.EditorCommand, Microsoft.PowerShell.EditorServices]::new($Name, $DisplayName, $SuppressOutput, $Function)
         }
 
-        if ($psEditor.RegisterCommand($editorCommand))
-        {
+        if ($psEditor.RegisterCommand($editorCommand)) {
             Write-Verbose "Registered new command '$Name'"
         }
-        else
-        {
+        else {
             Write-Verbose "Updated existing command '$Name'"
         }
     }
@@ -62,13 +57,12 @@ function Register-EditorCommand {
 function Unregister-EditorCommand {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$Name
     )
 
-    Process
-    {
+    process {
         Write-Verbose "Unregistering command '$Name'"
         $psEditor.UnregisterCommand($Name);
     }
@@ -104,7 +98,7 @@ function New-EditorFile {
         [ValidateNotNullOrEmpty()]
         $Path,
 
-        [Parameter(ValueFromPipeline=$true)]
+        [Parameter(ValueFromPipeline = $true)]
         $Value,
 
         [Parameter()]
@@ -138,14 +132,14 @@ function New-EditorFile {
         }
 
         if ($Path) {
-            foreach ($fileName in $Path)
-            {
+            foreach ($fileName in $Path) {
                 if (-not (Test-Path $fileName) -or $Force) {
                     New-Item -Path $fileName -ItemType File | Out-Null
 
                     if ($Path.Count -gt 1) {
                         $preview = $false
-                    } else {
+                    }
+                    else {
                         $preview = $true
                     }
 
@@ -156,16 +150,18 @@ function New-EditorFile {
 
                     $psEditor.Workspace.OpenFile($fileName, $preview)
                     $psEditor.GetEditorContext().CurrentFile.InsertText(($valueList | Out-String))
-                } else {
+                }
+                else {
                     $PSCmdlet.WriteError( (
-                        New-Object -TypeName System.Management.Automation.ErrorRecord -ArgumentList @(
-                            [System.IO.IOException]"The file '$fileName' already exists.",
-                            'NewEditorFileIOError',
-                            [System.Management.Automation.ErrorCategory]::WriteError,
-                            $fileName) ) )
+                            New-Object -TypeName System.Management.Automation.ErrorRecord -ArgumentList @(
+                                [System.IO.IOException]"The file '$fileName' already exists.",
+                                'NewEditorFileIOError',
+                                [System.Management.Automation.ErrorCategory]::WriteError,
+                                $fileName) ) )
                 }
             }
-        } else {
+        }
+        else {
             $psEditor.Workspace.NewFile()
             $psEditor.GetEditorContext().CurrentFile.InsertText(($valueList | Out-String))
         }
@@ -175,7 +171,7 @@ function New-EditorFile {
 function Open-EditorFile {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNullOrEmpty()]
         $Path
     )
@@ -191,7 +187,8 @@ function Open-EditorFile {
     end {
         if ($Paths.Count -gt 1) {
             $preview = $false
-        } else {
+        }
+        else {
             $preview = $true
         }
 
@@ -202,7 +199,7 @@ function Open-EditorFile {
 }
 Set-Alias psedit Open-EditorFile -Scope Global
 
-Export-ModuleMember -Function Open-EditorFile,New-EditorFile
+Export-ModuleMember -Function Open-EditorFile, New-EditorFile
 
 # SIG # Begin signature block
 # MIIoLQYJKoZIhvcNAQcCoIIoHjCCKBoCAQExDzANBglghkgBZQMEAgEFADB5Bgor
@@ -421,3 +418,4 @@ Export-ModuleMember -Function Open-EditorFile,New-EditorFile
 # 0T5F3K9/yId3WbIRcXcEEFDsKjiBU9kstgqeonCaGfz0I2w6A8RNg/zzwSffreX5
 # NA/2LrYTZ27Hntl0+P/pIG4=
 # SIG # End signature block
+

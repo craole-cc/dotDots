@@ -29,40 +29,49 @@ param(
 )
 
 #{ Ensure PSScriptAnalyzer is installed
-if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer))
+{
     Write-Debug "PSScriptAnalyzer not found. Installing..."
     Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber
 }
 Import-Module PSScriptAnalyzer -Force
 
-if ($stdin) {
+if ($stdin)
+{
     #{ Read from stdin, format, and write to stdout (for editor integration)
     $code = [System.IO.StreamReader]::new([System.Console]::OpenStandardInput()).ReadToEnd()
     $formatted = Invoke-Formatter -ScriptDefinition $code
     Write-Pretty $formatted
 }
-elseif ($FilePaths) {
+elseif ($FilePaths)
+{
     #{ Format each file in-place (for manual use)
-    foreach ($file in $FilePaths) {
+    foreach ($file in $FilePaths)
+    {
         Write-Debug "Processing file: $file"
-        try {
+        try
+        {
             $content = Get-Content -Path $file -Raw -ErrorAction Stop
             $formatted = Invoke-Formatter -ScriptDefinition $content
-            if ($content -ne $formatted) {
+            if ($content -ne $formatted)
+            {
                 $formatted | Set-Content -Path $file
                 Write-Debug "  Updated file: $file"
             }
-            else {
+            else
+            {
                 Write-Debug "  No changes needed for file: $file"
             }
         }
-        catch {
+        catch
+        {
             Write-Host "  Error processing file: $file"
             Write-Host "  $_"
         }
     }
 }
-else {
+else
+{
     #{ Display usage instructions if no parameters are provided
     Write-Host "Usage:"
     Write-Host "  To format stdin for editors (e.g., Zed):"
@@ -70,3 +79,4 @@ else {
     Write-Host "  To format files in-place:"
     Write-Host "    pwsh -NoProfile -File psfmt.ps1 file1.ps1 file2.ps1"
 }
+

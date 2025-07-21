@@ -13,16 +13,16 @@ function Out-CurrentFile {
         $InputObject
     )
 
-    Begin { $objectsToWrite = @() }
-    Process { $objectsToWrite += $InputObject }
-    End {
+    begin { $objectsToWrite = @() }
+    process { $objectsToWrite += $InputObject }
+    end {
 
         # If requested, create a new file
         if ($AsNewFile) {
             $psEditor.Workspace.NewFile()
         }
 
-        $outputString = "@`"`r`n{0}`r`n`"@" -f ($objectsToWrite|out-string).Trim()
+        $outputString = "@`"`r`n{0}`r`n`"@" -f ($objectsToWrite | Out-String).Trim()
 
         try {
             # If there is no file open
@@ -254,3 +254,4 @@ function Out-CurrentFile {
 # CooRRLf8mbDvEheRPMrNCLhwKPR1R7L6XCH3bOSk0Gq0pbvJMDUot+lrEHG2IoAd
 # gqwkkPkc+IzacY70X0onyQ==
 # SIG # End signature block
+

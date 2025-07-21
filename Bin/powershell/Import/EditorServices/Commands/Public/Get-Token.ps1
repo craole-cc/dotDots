@@ -7,9 +7,9 @@ function Get-Token {
     #>
     [CmdletBinding()]
     [OutputType([System.Management.Automation.Language.Token])]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseOutputTypeCorrectly', '', Justification='Issue #676')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseOutputTypeCorrectly', '', Justification = 'Issue #676')]
     param(
-        [Parameter(Position=0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.Language.IScriptExtent]
         $Extent
@@ -23,14 +23,14 @@ function Get-Token {
             return
         }
 
-        $tokens    = $psEditor.GetEditorContext().CurrentFile.Tokens
-        $predicate = [Func[System.Management.Automation.Language.Token, bool]]{
+        $tokens = $psEditor.GetEditorContext().CurrentFile.Tokens
+        $predicate = [Func[System.Management.Automation.Language.Token, bool]] {
             param($Token)
 
             ($Token.Extent.StartOffset -ge $Extent.StartOffset -and
-             $Token.Extent.EndOffset   -le $Extent.EndOffset)
+            $Token.Extent.EndOffset -le $Extent.EndOffset)
         }
-        if ($tokens){
+        if ($tokens) {
             $result = [Linq.Enumerable]::Where($tokens, $predicate)
         }
         # yield
@@ -255,3 +255,4 @@ function Get-Token {
 # 46KZcsmVxClYKbrIvdgwwEBmgDCyJHhNGTyIp/zVw82VKuSVRcyGxnaO2pu3NGzn
 # MH+pQxB67LuzspSZvakI38o=
 # SIG # End signature block
+

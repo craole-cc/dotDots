@@ -7,7 +7,7 @@ indent = { tab-width = 2, unit = "  " }
 # Shell
 [[language]]
 auto-format = true
-file-types = ["sh", "bash", "zsh",".dotsrc"]
+file-types = ["sh", "bash", "zsh", ".dotsrc"]
 formatter = { command = "shfmt", args = ["-i", "2", "-ci"] }
 
 # TOML

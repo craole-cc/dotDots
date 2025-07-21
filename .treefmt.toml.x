@@ -7,10 +7,10 @@ excludes = [
   "**/review/**",
   "**/archive/**",
   "./git/**",
-  "Assets/**",                                 #TODO Temporary
-  "Configuration/**",                          #TODO Temporary
-  "Environment/**",                            #TODO Temporary
-  "Bin/**",                                    #TODO Temporary
+  "Assets/**",          #TODO Temporary
+  "Configuration/**",   #TODO Temporary
+  "Environment/**",     #TODO Temporary
+  # "Bin/**",                                    #TODO Temporary
   "Documentation/**",                          #TODO Temporary
   "Modules/global/**",                         #TODO Temporary
   "Modules/nixos/configurations/hosts/QBX/**", #TODO Temporary
@@ -68,51 +68,53 @@ includes = ["*.rs"]
 priority = 1
 
 #| Shell script formatting# Shell script formatting
-[formatter.shellcheck]
-command = "shellcheck"
-includes = [
-  "*.sh",
-  ".dotsrc",
-  ".env*",
-  ".shellcheckrc",
-  "*.bash",
-  ".bash*",
-  "Bin/shellscript/**",
-  # "Modules/**",
-]
-priority = 1
+# [formatter.shellcheck]
+# includes = [
+#   "*.sh",
+#   ".dotsrc",
+#   ".env*",
+#   ".shellcheckrc",
+#   "*.bash",
+#   ".bash*",
+#   "Bin/shellscript/**",
+#   # "Modules/**",
+# ]
+# command = "shellcheck"
+# priority = 1
 
-[formatter.shfmt]
-command = "shfmt"
-options = [
-  "--apply-ignore",
-  "--binary-next-line",
-  "--space-redirects",
-  "--case-indent",
-  "--indent",
-  "2",
-  "--posix",
-  "--write",
-]
-includes = [
-  "*.sh",
-  "*.dotsrc",
-  "*.env*",
-  "*.shellcheckrc",
-  "*.bash*",
-  "*.gitignore",
-  "*.ignore",
-]
-priority = 2
+# [formatter.shfmt]
+# includes = [
+#   "*.sh",
+#   "*.dotsrc",
+#   "*.env*",
+#   "*.shellcheckrc",
+#   "*.bash*",
+#   "*.gitignore",
+#   "*.ignore",
+# ]
+# command = "shfmt"
+# options = [
+#   "--apply-ignore",
+#   "--binary-next-line",
+#   "--space-redirects",
+#   "--case-indent",
+#   "--indent",
+#   "2",
+#   "--posix",
+#   "--write",
+# ]
+# priority = 2
 
 # [formatter.fish]
 # command = "fish_indent"
 # includes = ["*.fish"]
 # options = ["--write"]
 
-# [formatter.psscriptanalyzer]
-# includes = ["*.ps1"]
-# command  = "pwsh -Command Invoke-Formatter -ScriptDefinition (Get-Content {file} | Out-String) -SettingsFilePath ./PSScriptAnalyzerSettings.psd1"
+#| Powershell
+# [formatter.powershell]
+# includes = ["*.ps1", "*.psm1, *.psd1"]
+# command = "powershell"
+# options = ["-NoProfile", "-File", "Bin/powershell/psfmt.ps1"]
 
 [formatter.justfile]
 command = "just"
@@ -131,11 +133,6 @@ options = ["--unstable", "--fmt", "--justfile"]
 #   "for file in \"$@\"; do ruff format --quiet \"$file\"; done",
 # ]
 
-#| Powershell
-[formatter.powershell]
-command = "pwsh"
-options = ["-NoProfile", "-File", "Bin/powershell/psfmt.ps1"]
-includes = ["*.ps1", "*.psm1"]
 
 #| Data formats
 

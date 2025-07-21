@@ -6,31 +6,31 @@ Register-EditorCommand `
     -DisplayName 'Open Editor Profile' `
     -SuppressOutput `
     -ScriptBlock {
-        param([Microsoft.PowerShell.EditorServices.Extensions.EditorContext, Microsoft.PowerShell.EditorServices]$context)
-        If (!(Test-Path -Path $Profile)) { New-Item -Path $Profile -ItemType File }
-        $psEditor.Workspace.OpenFile($Profile)
-    }
+    param([Microsoft.PowerShell.EditorServices.Extensions.EditorContext, Microsoft.PowerShell.EditorServices]$context)
+    if (!(Test-Path -Path $Profile)) { New-Item -Path $Profile -ItemType File }
+    $psEditor.Workspace.OpenFile($Profile)
+}
 
 Register-EditorCommand `
     -Name 'PowerShellEditorServices.OpenProfileList' `
     -DisplayName 'Open Profile from List (Current User)' `
     -SuppressOutput `
     -ScriptBlock {
-        param([Microsoft.PowerShell.EditorServices.Extensions.EditorContext, Microsoft.PowerShell.EditorServices]$context)
+    param([Microsoft.PowerShell.EditorServices.Extensions.EditorContext, Microsoft.PowerShell.EditorServices]$context)
 
-        $Current = Split-Path -Path $profile -Leaf
-        $List = @($Current,'Microsoft.VSCode_profile.ps1','Microsoft.PowerShell_profile.ps1','Microsoft.PowerShellISE_profile.ps1','Profile.ps1') | Select-Object -Unique
-        $Choices = [System.Management.Automation.Host.ChoiceDescription[]] @($List)
-        $Selection = $host.ui.PromptForChoice('Please Select a Profile', '(Current User)', $choices,'0')
-        $Name = $List[$Selection]
+    $Current = Split-Path -Path $profile -Leaf
+    $List = @($Current, 'Microsoft.VSCode_profile.ps1', 'Microsoft.PowerShell_profile.ps1', 'Microsoft.PowerShellISE_profile.ps1', 'Profile.ps1') | Select-Object -Unique
+    $Choices = [System.Management.Automation.Host.ChoiceDescription[]] @($List)
+    $Selection = $host.ui.PromptForChoice('Please Select a Profile', '(Current User)', $choices, '0')
+    $Name = $List[$Selection]
 
-        $ProfileDir = Split-Path $Profile -Parent
-        $ProfileName = Join-Path -Path $ProfileDir -ChildPath $Name
+    $ProfileDir = Split-Path $Profile -Parent
+    $ProfileName = Join-Path -Path $ProfileDir -ChildPath $Name
 
-        If (!(Test-Path -Path $ProfileName)) { New-Item -Path $ProfileName -ItemType File }
+    if (!(Test-Path -Path $ProfileName)) { New-Item -Path $ProfileName -ItemType File }
 
-        $psEditor.Workspace.OpenFile($ProfileName)
-    }
+    $psEditor.Workspace.OpenFile($ProfileName)
+}
 
 # SIG # Begin signature block
 # MIIoKgYJKoZIhvcNAQcCoIIoGzCCKBcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
@@ -249,3 +249,4 @@ Register-EditorCommand `
 # Cco3fI5+LE1vbaEqPnIyYn910uCYt7vzK98gIvVIb0slzD5jTrWvYWVc+g/TDtt2
 # IUfsP0VoWsq8HCxbVt4=
 # SIG # End signature block
+

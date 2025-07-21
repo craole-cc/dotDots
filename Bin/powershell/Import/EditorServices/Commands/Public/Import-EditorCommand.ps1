@@ -6,18 +6,18 @@ function Import-EditorCommand {
     .EXTERNALHELP ..\PowerShellEditorServices.Commands-help.xml
     #>
     [OutputType([Microsoft.PowerShell.EditorServices.Extensions.EditorCommand, Microsoft.PowerShell.EditorServices])]
-    [CmdletBinding(DefaultParameterSetName='ByCommand')]
+    [CmdletBinding(DefaultParameterSetName = 'ByCommand')]
     param(
-        [Parameter(Position=0,
-                   Mandatory,
-                   ValueFromPipeline,
-                   ValueFromPipelineByPropertyName,
-                   ParameterSetName='ByCommand')]
+        [Parameter(Position = 0,
+            Mandatory,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName,
+            ParameterSetName = 'ByCommand')]
         [ValidateNotNullOrEmpty()]
         [string[]]
         $Command,
 
-        [Parameter(Position=0, Mandatory, ParameterSetName='ByModule')]
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'ByModule')]
         [ValidateNotNullOrEmpty()]
         [string[]]
         $Module,
@@ -46,7 +46,7 @@ function Import-EditorCommand {
                     return $moduleInfo.Invoke(
                         {
                             $ExecutionContext.SessionState.InvokeProvider.Item.Get('function:\*') |
-                                Where-Object ModuleName -eq $args[0]
+                                Where-Object ModuleName -EQ $args[0]
                         },
                         $ModuleToSearch)
                 }
@@ -73,7 +73,7 @@ function Import-EditorCommand {
         $attributeType = [Microsoft.PowerShell.EditorServices.Extensions.EditorCommandAttribute, Microsoft.PowerShell.EditorServices]
         foreach ($aCommand in $commands) {
             # Get the attribute from our command to get name info.
-            $details = $aCommand.ScriptBlock.Attributes | Where-Object TypeId -eq $attributeType
+            $details = $aCommand.ScriptBlock.Attributes | Where-Object TypeId -EQ $attributeType
 
             if ($details) {
                 # TODO: Add module name to this?
@@ -87,20 +87,22 @@ function Import-EditorCommand {
                 if ($editorCommands.ContainsKey($details.Name)) {
                     if ($Force.IsPresent) {
                         $null = $psEditor.UnregisterCommand($details.Name)
-                    } else {
+                    }
+                    else {
                         $PSCmdlet.WriteVerbose($Strings.EditorCommandExists -f $details.Name)
                         continue
                     }
                 }
                 # Check for a context parameter.
                 $contextParameter = $aCommand.Parameters.Values |
-                    Where-Object ParameterType -eq ([Microsoft.PowerShell.EditorServices.Extensions.EditorContext, Microsoft.PowerShell.EditorServices])
+                    Where-Object ParameterType -EQ ([Microsoft.PowerShell.EditorServices.Extensions.EditorContext, Microsoft.PowerShell.EditorServices])
 
                 # If one is found then add a named argument. Otherwise call the command directly.
                 if ($contextParameter) {
                     $sbText = '{0} -{1} $args[0]' -f $aCommand.Name, $contextParameter.Name
                     $scriptBlock = [scriptblock]::Create($sbText)
-                } else {
+                }
+                else {
                     $scriptBlock = [scriptblock]::Create($aCommand.Name)
                 }
 
@@ -355,3 +357,4 @@ if ($PSVersionTable.PSVersion.Major -ge 5) {
 # FvKIfQOxKz1IHAmXgLDD6FWIq2C86/xp3/NXP1t+P1fU8T/BKGMm1RucgzFo6e9Y
 # Imvz0CYqpT28anOJDTg=
 # SIG # End signature block
+

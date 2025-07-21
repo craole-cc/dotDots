@@ -97,7 +97,7 @@ function Resolve-PathPOSIX {
                 if ($posixPath -match $script:PathPatterns.UNCPrefix) {
                     #{ Preserve UNC prefix
                     $posixPath = ($posixPath.Substring(0, 2)) +
-                                ($posixPath.Substring(2) -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX)
+                    ($posixPath.Substring(2) -replace $script:PathPatterns.MultipleSlash, $script:PathSeparators.POSIX)
                 }
                 else {
                     #{ Normalize other paths
@@ -126,3 +126,4 @@ Set-Alias -Name posix -Value Format-PathPOSIX
 Set-Alias -Name resolve-posix -Value Resolve-PathPOSIX
 
 #endregion
+

@@ -7,18 +7,21 @@ if ($IsWindows) {
     $pwsh7 = Get-Command pwsh.exe -ErrorAction SilentlyContinue
     if ($pwsh7) {
         $pwsh = $pwsh7.Source
-    } else {
+    }
+    else {
         $ps5 = Get-Command powershell.exe -ErrorAction SilentlyContinue
         if ($ps5) {
             $pwsh = $ps5.Source
         }
     }
-} else {
+}
+else {
     # On NixOS, the package is called 'powershell'
     $nixps = Get-Command powershell -ErrorAction SilentlyContinue
     if ($nixps) {
         $pwsh = $nixps.Source
-    } else {
+    }
+    else {
         $pwsh7 = Get-Command pwsh -ErrorAction SilentlyContinue
         if ($pwsh7) {
             $pwsh = $pwsh7.Source

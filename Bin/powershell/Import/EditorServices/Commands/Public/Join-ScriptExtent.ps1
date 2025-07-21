@@ -24,7 +24,7 @@ function Join-ScriptExtent {
         if (-not $extentList) { return }
 
         $startOffset = [Linq.Enumerable]::Min($extentList.StartOffset -as [int[]])
-        $endOffset   = [Linq.Enumerable]::Max($extentList.EndOffset -as [int[]])
+        $endOffset = [Linq.Enumerable]::Max($extentList.EndOffset -as [int[]])
 
         return New-Object Microsoft.PowerShell.EditorServices.FullScriptExtent @(
             $psEditor.GetEditorContext().CurrentFile,
@@ -250,3 +250,4 @@ function Join-ScriptExtent {
 # miJAQu0DsLorihsTfj7+444n+znxP45b3bh6cVKDRcMt7qDKY5UA0feOgJD+NgOO
 # RVc11xl/5renOQdmNOE=
 # SIG # End signature block
+

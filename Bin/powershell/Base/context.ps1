@@ -1,7 +1,7 @@
 #region Main
 
 function Get-Context {
-<#
+    <#
 .SYNOPSIS
     Resolves and formats a context string for logging/output, with scope and verbosity awareness.
 .DESCRIPTION
@@ -68,7 +68,8 @@ function Get-Context {
         else {
             $functionName = if ($Caller.FunctionName -and -not ($Caller.FunctionName -match '^<.*>$')) {
                 $Caller.FunctionName -replace '^Global:', ''
-            } else {
+            }
+            else {
                 $Caller.FunctionName
             }
             Write-Verbose "Get-Context: Using caller's function name: $functionName"
@@ -87,7 +88,7 @@ function Get-Context {
 #endregion
 #region Test
 function Test-GetContext {
-<#
+    <#
 .SYNOPSIS
     Runs diagnostic tests on Get-Context function.
 .DESCRIPTION
@@ -103,10 +104,10 @@ function Test-GetContext {
 
     $callStack = @(
         [PSCustomObject]@{
-            ScriptName = 'D:\Scripts\MyScript.ps1'
+            ScriptName   = 'D:\Scripts\MyScript.ps1'
             FunctionName = 'Global:Test-Function'
-            Position = [PSCustomObject]@{
-                StartLineNumber = 42
+            Position     = [PSCustomObject]@{
+                StartLineNumber   = 42
                 StartColumnNumber = 3
             }
         }
@@ -141,3 +142,4 @@ Export-ModuleMember -Function @(
 )
 
 #endregion
+

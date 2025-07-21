@@ -36,13 +36,6 @@ PRJ_ENV = "{{config_root}}\\environment"
 MISE_PROJECT_ROOT = "{{env.PRJ_ROOT}}"
 PRJ_NAME = "{{ cwd | basename }}"
 DATETIME = "{{ now() | date(format='%Y-%m-%d_%H:%M:%S') }}"
-MSSQL_CONTAINER = "mssql"
-MSSQL_COMPOSE = "{{env.PRJ_ENV}}\\mssql.compose.yml"
-MSSQL_VOLUME = "{{env.MSSQL_CONTAINER}}_data"
-MSSQL_PASSWORD = "P@ssw0rd"
-MSSQL_USER = "sa"
-MSSQL_DB = "master"
-MSSQL_PORT = "14330"
 
 [hooks]
 enter = "{{mise_bin}} install --quiet"

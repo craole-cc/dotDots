@@ -5,46 +5,46 @@ function Find-Ast {
     <#
     .EXTERNALHELP ..\PowerShellEditorServices.Commands-help.xml
     #>
-    [CmdletBinding(PositionalBinding=$false, DefaultParameterSetName='FilterScript')]
+    [CmdletBinding(PositionalBinding = $false, DefaultParameterSetName = 'FilterScript')]
     param(
-        [Parameter(Position=0, ParameterSetName='FilterScript')]
+        [Parameter(Position = 0, ParameterSetName = 'FilterScript')]
         [ValidateNotNullOrEmpty()]
         [scriptblock]
         $FilterScript = { $true },
 
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName='FilterScript')]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'FilterScript')]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.Language.Ast]
         $Ast,
 
-        [Parameter(ParameterSetName='FilterScript')]
+        [Parameter(ParameterSetName = 'FilterScript')]
         [switch]
         $Before,
 
-        [Parameter(ParameterSetName='FilterScript')]
+        [Parameter(ParameterSetName = 'FilterScript')]
         [switch]
         $Family,
 
-        [Parameter(ParameterSetName='FilterScript')]
+        [Parameter(ParameterSetName = 'FilterScript')]
         [Alias('Closest', 'F')]
         [switch]
         $First,
 
-        [Parameter(ParameterSetName='FilterScript')]
+        [Parameter(ParameterSetName = 'FilterScript')]
         [Alias('Furthest')]
         [switch]
         $Last,
 
-        [Parameter(ParameterSetName='FilterScript')]
+        [Parameter(ParameterSetName = 'FilterScript')]
         [Alias('Parent')]
         [switch]
         $Ancestor,
 
-        [Parameter(ParameterSetName='FilterScript')]
+        [Parameter(ParameterSetName = 'FilterScript')]
         [switch]
         $IncludeStartingAst,
 
-        [Parameter(ParameterSetName='AtCursor')]
+        [Parameter(ParameterSetName = 'AtCursor')]
         [switch]
         $AtCursor
     )
@@ -57,11 +57,12 @@ function Find-Ast {
                 param([scriptblock]$Filter, [System.Management.Automation.Language.Ast]$DollarUnder)
 
                 return $Filter.InvokeWithContext(
-                        <# functionsToDefine: #> $null,
-                        <# variablesToDefine: #> [Activator]::CreateInstance($variableType, @('_', $DollarUnder)),
-                        <# args:              #> $aAst)
+                    <# functionsToDefine: #> $null,
+                    <# variablesToDefine: #> [Activator]::CreateInstance($variableType, @('_', $DollarUnder)),
+                    <# args:              #> $aAst)
             }
-        } else {
+        }
+        else {
             $FilterScript = [scriptblock]::Create($FilterScript.ToString())
             function InvokeWithContext {
                 param([scriptblock]$Filter, [System.Management.Automation.Language.Ast]$DollarUnder)
@@ -84,7 +85,7 @@ function Find-Ast {
         function GetAllAsts {
             param($Start)
 
-            $predicate = [Func[System.Management.Automation.Language.Ast,bool]]{
+            $predicate = [Func[System.Management.Automation.Language.Ast, bool]] {
                 $args[0] -ne $Ast
             }
 
@@ -116,9 +117,9 @@ function Find-Ast {
         }
         switch ($PSCmdlet.ParameterSetName) {
             AtCursor {
-                $cursorLine     = $context.CursorPosition.Line - 1
-                $cursorColumn   = $context.CursorPosition.Column - 1
-                $cursorOffset   = $Ast.Extent.Text |
+                $cursorLine = $context.CursorPosition.Line - 1
+                $cursorColumn = $context.CursorPosition.Column - 1
+                $cursorOffset = $Ast.Extent.Text |
                     Select-String "(.*\r?\n){$cursorLine}.{$cursorColumn}" |
                     ForEach-Object { $PSItem.Matches.Value.Length }
 
@@ -134,14 +135,15 @@ function Find-Ast {
                 # Check if we're trying to get the top level ancestor when we're already there.
                 if ($Before.IsPresent -and
                     $Family.IsPresent -and
-                    $Last.IsPresent   -and -not
-                    $Ast.Parent       -and
+                    $Last.IsPresent -and -not
+                    $Ast.Parent -and
                     $Ast -is [System.Management.Automation.Language.ScriptBlockAst])
-                    { return $Ast }
+                { return $Ast }
 
                 if ($Family.IsPresent) {
                     $asts = GetAllFamily $Ast
-                } else {
+                }
+                else {
                     $asts = GetAllAsts $Ast
                 }
                 # Check the first ast to see if it's our starting ast, unless
@@ -161,7 +163,8 @@ function Find-Ast {
                     if (-not $Last.IsPresent) {
                         $aAst # yield
                         if ($First.IsPresent) { break }
-                    } else {
+                    }
+                    else {
                         $lastMatch = $aAst
                         if ($First.IsPresent) {
                             $aAst # yield
@@ -393,3 +396,4 @@ function Find-Ast {
 # nY3afc0ZkeWyyub7tr++CqkiG4NgbAqofQ8KI1cvfvKKIjtUPs+mf6dmKt0dxMFl
 # /YEeUIS62ivFVJBwoF3ZfQ==
 # SIG # End signature block
+

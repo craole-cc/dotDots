@@ -25,7 +25,7 @@
     at the PowerShell Editor Services GitHub repository:
     https://github.com/PowerShell/PowerShellEditorServices/blob/main/module/PowerShellEditorServices/Start-EditorServices.ps1'
 #>
-[CmdletBinding(DefaultParameterSetName="NamedPipe")]
+[CmdletBinding(DefaultParameterSetName = "NamedPipe")]
 param(
     [ValidateNotNullOrEmpty()]
     [string]
@@ -49,9 +49,9 @@ param(
     [ValidateSet("Diagnostic", "Verbose", "Normal", "Warning", "Error")]
     $LogLevel,
 
-	[ValidateNotNullOrEmpty()]
-	[string]
-	$SessionDetailsPath,
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $SessionDetailsPath,
 
     [switch]
     $EnableConsoleRepl,
@@ -74,35 +74,35 @@ param(
     [switch]
     $WaitForDebugger,
 
-    [Parameter(ParameterSetName="Stdio", Mandatory)]
+    [Parameter(ParameterSetName = "Stdio", Mandatory)]
     [switch]
     $Stdio,
 
-    [Parameter(ParameterSetName="NamedPipe")]
+    [Parameter(ParameterSetName = "NamedPipe")]
     [string]
     $LanguageServicePipeName,
 
-    [Parameter(ParameterSetName="NamedPipe")]
+    [Parameter(ParameterSetName = "NamedPipe")]
     [string]
     $DebugServicePipeName,
 
-    [Parameter(ParameterSetName="NamedPipeSimplex")]
+    [Parameter(ParameterSetName = "NamedPipeSimplex")]
     [switch]
     $SplitInOutPipes,
 
-    [Parameter(ParameterSetName="NamedPipeSimplex")]
+    [Parameter(ParameterSetName = "NamedPipeSimplex")]
     [string]
     $LanguageServiceInPipeName,
 
-    [Parameter(ParameterSetName="NamedPipeSimplex")]
+    [Parameter(ParameterSetName = "NamedPipeSimplex")]
     [string]
     $LanguageServiceOutPipeName,
 
-    [Parameter(ParameterSetName="NamedPipeSimplex")]
+    [Parameter(ParameterSetName = "NamedPipeSimplex")]
     [string]
     $DebugServiceInPipeName,
 
-    [Parameter(ParameterSetName="NamedPipeSimplex")]
+    [Parameter(ParameterSetName = "NamedPipeSimplex")]
     [string]
     $DebugServiceOutPipeName
 )
@@ -327,3 +327,4 @@ Start-EditorServices @PSBoundParameters
 # qmLbcNvZj+LOR4HG+DtE6pIW8C4n1OVq/5FtnWZ1BtB0jUZjpAXCU7J/m5gIRvIn
 # QqCmOQ2S5OGTR8JmPrTVgQ==
 # SIG # End signature block
+

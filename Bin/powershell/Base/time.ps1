@@ -17,35 +17,35 @@
 #region Configuration
 
 $script:DurationFormats = @{
-  Compact = @{
-    Minutes      = 'm'
-    Seconds      = 's'
-    Milliseconds = 'ms'
-    Separator    = ' '
-    Icon         = '󱇻'
-  }
-  Verbose = @{
-    Minutes       = @{ Singular = 'minute'; Plural = 'minutes' }
-    Seconds       = @{ Singular = 'second'; Plural = 'seconds' }
-    Milliseconds  = @{ Singular = 'millisecond'; Plural = 'milliseconds' }
-    Connector     = 'and'
-    ListSeparator = ', '
-  }
+    Compact = @{
+        Minutes      = 'm'
+        Seconds      = 's'
+        Milliseconds = 'ms'
+        Separator    = ' '
+        Icon         = '󱇻'
+    }
+    Verbose = @{
+        Minutes       = @{ Singular = 'minute'; Plural = 'minutes' }
+        Seconds       = @{ Singular = 'second'; Plural = 'seconds' }
+        Milliseconds  = @{ Singular = 'millisecond'; Plural = 'milliseconds' }
+        Connector     = 'and'
+        ListSeparator = ', '
+    }
 }
 
 $script:TimestampFormats = @{
-  Default  = '[yyyy-MM-dd HH:mm:ss]'
-  Short    = '[HH:mm:ss]'
-  ISO      = 'yyyy-MM-ddTHH:mm:ss.fffZ'
-  Compact  = 'yyyyMMdd-HHmmss'
-  Filename = 'yyyy-MM-dd_HH-mm-ss'
+    Default  = '[yyyy-MM-dd HH:mm:ss]'
+    Short    = '[HH:mm:ss]'
+    ISO      = 'yyyy-MM-ddTHH:mm:ss.fffZ'
+    Compact  = 'yyyyMMdd-HHmmss'
+    Filename = 'yyyy-MM-dd_HH-mm-ss'
 }
 
 #endregion
 #region Core Functions
 
 function ConvertTo-TimeSpan {
-  <#
+    <#
     .SYNOPSIS
         Converts various duration inputs to a TimeSpan object.
     .PARAMETER Duration
@@ -56,36 +56,36 @@ function ConvertTo-TimeSpan {
         ConvertTo-TimeSpan "1500"     # 1.5 seconds
         ConvertTo-TimeSpan 2500       # 2.5 seconds
     #>
-  [CmdletBinding()]
-  [OutputType([TimeSpan])]
-  param(
-    [Parameter(Mandatory, ValueFromPipeline)]
-    [AllowNull()]
-    $Duration
-  )
+    [CmdletBinding()]
+    [OutputType([TimeSpan])]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [AllowNull()]
+        $Duration
+    )
 
-  process {
-    if ($null -eq $Duration) {
-      return [TimeSpan]::Zero
-    }
+    process {
+        if ($null -eq $Duration) {
+            return [TimeSpan]::Zero
+        }
 
-    if ($Duration -is [TimeSpan]) {
-      return $Duration
-    }
+        if ($Duration -is [TimeSpan]) {
+            return $Duration
+        }
 
-    try {
-      $milliseconds = [double]::Parse($Duration.ToString())
-      return [TimeSpan]::FromMilliseconds($milliseconds)
+        try {
+            $milliseconds = [double]::Parse($Duration.ToString())
+            return [TimeSpan]::FromMilliseconds($milliseconds)
+        }
+        catch {
+            Write-Error "Invalid duration format: $Duration"
+            return [TimeSpan]::Zero
+        }
     }
-    catch {
-      Write-Error "Invalid duration format: $Duration"
-      return [TimeSpan]::Zero
-    }
-  }
 }
 
 function Format-DurationCompact {
-  <#
+    <#
     .SYNOPSIS
         Formats a TimeSpan as a compact string (e.g., "2m 30s 500ms").
     .PARAMETER TimeSpan
@@ -98,45 +98,45 @@ function Format-DurationCompact {
         Format-DurationCompact -TimeSpan ([TimeSpan]::FromSeconds(150.5))
         # Returns: "2m 30s 500ms"
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory, ValueFromPipeline)]
-    [TimeSpan]$TimeSpan,
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [TimeSpan]$TimeSpan,
 
-    [switch]$IncludeIcon
-  )
+        [switch]$IncludeIcon
+    )
 
-  process {
-    $parts = @()
-    $config = $script:DurationFormats.Compact
+    process {
+        $parts = @()
+        $config = $script:DurationFormats.Compact
 
-    if ($TimeSpan.TotalMinutes -ge 1) {
-      $minutes = [math]::Floor($TimeSpan.TotalMinutes)
-      $parts += "$minutes$($config.Minutes)"
+        if ($TimeSpan.TotalMinutes -ge 1) {
+            $minutes = [math]::Floor($TimeSpan.TotalMinutes)
+            $parts += "$minutes$($config.Minutes)"
+        }
+
+        if ($TimeSpan.Seconds -gt 0) {
+            $parts += "$($TimeSpan.Seconds)$($config.Seconds)"
+        }
+
+        # Always show milliseconds if no other units or if there are remaining milliseconds
+        if ($TimeSpan.Milliseconds -gt 0 -or $parts.Count -eq 0) {
+            $parts += "$($TimeSpan.Milliseconds)$($config.Milliseconds)"
+        }
+
+        $result = $parts -join $config.Separator
+
+        if ($IncludeIcon) {
+            $result = "$($config.Icon) $result"
+        }
+
+        return $result
     }
-
-    if ($TimeSpan.Seconds -gt 0) {
-      $parts += "$($TimeSpan.Seconds)$($config.Seconds)"
-    }
-
-    # Always show milliseconds if no other units or if there are remaining milliseconds
-    if ($TimeSpan.Milliseconds -gt 0 -or $parts.Count -eq 0) {
-      $parts += "$($TimeSpan.Milliseconds)$($config.Milliseconds)"
-    }
-
-    $result = $parts -join $config.Separator
-
-    if ($IncludeIcon) {
-      $result = "$($config.Icon) $result"
-    }
-
-    return $result
-  }
 }
 
 function Format-DurationVerbose {
-  <#
+    <#
     .SYNOPSIS
         Formats a TimeSpan as a verbose, human-readable string.
     .PARAMETER TimeSpan
@@ -147,52 +147,52 @@ function Format-DurationVerbose {
         Format-DurationVerbose -TimeSpan ([TimeSpan]::FromSeconds(150.5))
         # Returns: "2 minutes and 30 seconds"
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory, ValueFromPipeline)]
-    [TimeSpan]$TimeSpan
-  )
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [TimeSpan]$TimeSpan
+    )
 
-  process {
-    $parts = @()
-    $config = $script:DurationFormats.Verbose
+    process {
+        $parts = @()
+        $config = $script:DurationFormats.Verbose
 
-    if ($TimeSpan.TotalMinutes -ge 1) {
-      $minutes = [math]::Floor($TimeSpan.TotalMinutes)
-      $unit = if ($minutes -eq 1) { $config.Minutes.Singular } else { $config.Minutes.Plural }
-      $parts += "$minutes $unit"
+        if ($TimeSpan.TotalMinutes -ge 1) {
+            $minutes = [math]::Floor($TimeSpan.TotalMinutes)
+            $unit = if ($minutes -eq 1) { $config.Minutes.Singular } else { $config.Minutes.Plural }
+            $parts += "$minutes $unit"
 
-      $remainingSeconds = [math]::Floor($TimeSpan.TotalSeconds % 60)
-      if ($remainingSeconds -gt 0) {
-        $unit = if ($remainingSeconds -eq 1) { $config.Seconds.Singular } else { $config.Seconds.Plural }
-        $parts += "$remainingSeconds $unit"
-      }
+            $remainingSeconds = [math]::Floor($TimeSpan.TotalSeconds % 60)
+            if ($remainingSeconds -gt 0) {
+                $unit = if ($remainingSeconds -eq 1) { $config.Seconds.Singular } else { $config.Seconds.Plural }
+                $parts += "$remainingSeconds $unit"
+            }
+        }
+        elseif ($TimeSpan.TotalSeconds -ge 1) {
+            $seconds = [math]::Floor($TimeSpan.TotalSeconds)
+            $unit = if ($seconds -eq 1) { $config.Seconds.Singular } else { $config.Seconds.Plural }
+            $parts += "$seconds $unit"
+
+            $remainingMs = [math]::Floor($TimeSpan.TotalMilliseconds % 1000)
+            if ($remainingMs -gt 0) {
+                $unit = if ($remainingMs -eq 1) { $config.Milliseconds.Singular } else { $config.Milliseconds.Plural }
+                $parts += "$remainingMs $unit"
+            }
+        }
+        else {
+            $milliseconds = [math]::Floor($TimeSpan.TotalMilliseconds)
+            $unit = if ($milliseconds -eq 1) { $config.Milliseconds.Singular } else { $config.Milliseconds.Plural }
+            $parts += "$milliseconds $unit"
+        }
+
+        # Join parts with proper grammar
+        return Join-DurationParts -Parts $parts
     }
-    elseif ($TimeSpan.TotalSeconds -ge 1) {
-      $seconds = [math]::Floor($TimeSpan.TotalSeconds)
-      $unit = if ($seconds -eq 1) { $config.Seconds.Singular } else { $config.Seconds.Plural }
-      $parts += "$seconds $unit"
-
-      $remainingMs = [math]::Floor($TimeSpan.TotalMilliseconds % 1000)
-      if ($remainingMs -gt 0) {
-        $unit = if ($remainingMs -eq 1) { $config.Milliseconds.Singular } else { $config.Milliseconds.Plural }
-        $parts += "$remainingMs $unit"
-      }
-    }
-    else {
-      $milliseconds = [math]::Floor($TimeSpan.TotalMilliseconds)
-      $unit = if ($milliseconds -eq 1) { $config.Milliseconds.Singular } else { $config.Milliseconds.Plural }
-      $parts += "$milliseconds $unit"
-    }
-
-    # Join parts with proper grammar
-    return Join-DurationParts -Parts $parts
-  }
 }
 
 function Join-DurationParts {
-  <#
+    <#
     .SYNOPSIS
         Joins duration parts with proper English grammar.
     .PARAMETER Parts
@@ -203,29 +203,29 @@ function Join-DurationParts {
         Join-DurationParts @("2 minutes", "30 seconds")
         # Returns: "2 minutes and 30 seconds"
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory)]
-    [string[]]$Parts
-  )
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Parts
+    )
 
-  $config = $script:DurationFormats.Verbose
+    $config = $script:DurationFormats.Verbose
 
-  switch ($Parts.Count) {
-    0 { return '' }
-    1 { return $Parts[0] }
-    2 { return "$($Parts[0]) $($config.Connector) $($Parts[1])" }
-    default {
-      $lastIndex = $Parts.Count - 1
-      $firstParts = $Parts[0..($lastIndex - 1)] -join $config.ListSeparator
-      return "$firstParts$($config.ListSeparator)$($config.Connector) $($Parts[$lastIndex])"
+    switch ($Parts.Count) {
+        0 { return '' }
+        1 { return $Parts[0] }
+        2 { return "$($Parts[0]) $($config.Connector) $($Parts[1])" }
+        default {
+            $lastIndex = $Parts.Count - 1
+            $firstParts = $Parts[0..($lastIndex - 1)] -join $config.ListSeparator
+            return "$firstParts$($config.ListSeparator)$($config.Connector) $($Parts[$lastIndex])"
+        }
     }
-  }
 }
 
 function Get-DurationFromTimes {
-  <#
+    <#
     .SYNOPSIS
         Calculates duration between start and end times.
     .PARAMETER StartTime
@@ -238,25 +238,25 @@ function Get-DurationFromTimes {
         Get-DurationFromTimes -StartTime (Get-Date).AddSeconds(-30)
         # Returns duration from 30 seconds ago to now
     #>
-  [CmdletBinding()]
-  [OutputType([double])]
-  param(
-    [Parameter(Mandatory)]
-    [datetime]$StartTime,
+    [CmdletBinding()]
+    [OutputType([double])]
+    param(
+        [Parameter(Mandatory)]
+        [datetime]$StartTime,
 
-    [Parameter()]
-    [datetime]$EndTime = (Get-Date)
-  )
+        [Parameter()]
+        [datetime]$EndTime = (Get-Date)
+    )
 
-  $timespan = New-TimeSpan -Start $StartTime -End $EndTime
-  return $timespan.TotalMilliseconds
+    $timespan = New-TimeSpan -Start $StartTime -End $EndTime
+    return $timespan.TotalMilliseconds
 }
 
 #endregion
 #region Timestamp Functions
 
 function Get-Timestamp {
-  <#
+    <#
     .SYNOPSIS
         Generates formatted timestamps for various use cases.
     .PARAMETER Format
@@ -280,43 +280,43 @@ function Get-Timestamp {
         Get-Timestamp -Format "yyyy-MM-dd"
         # Returns: "2025-05-27"
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter()]
-    [string]$Format = 'Default',
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter()]
+        [string]$Format = 'Default',
 
-    [Parameter()]
-    [datetime]$DateTime = (Get-Date),
+        [Parameter()]
+        [datetime]$DateTime = (Get-Date),
 
-    [Parameter()]
-    [switch]$IncludeBrackets
-  )
+        [Parameter()]
+        [switch]$IncludeBrackets
+    )
 
-  # Determine the format string to use
-  $formatString = if ($script:TimestampFormats.ContainsKey($Format)) {
-    $script:TimestampFormats[$Format]
-  }
-  else {
-    # Treat as custom format string
-    $Format
-  }
+    # Determine the format string to use
+    $formatString = if ($script:TimestampFormats.ContainsKey($Format)) {
+        $script:TimestampFormats[$Format]
+    }
+    else {
+        # Treat as custom format string
+        $Format
+    }
 
-  # Handle bracket inclusion for Default and Short formats
-  if ($IncludeBrackets -and $Format -in @('Default', 'Short')) {
-    $formatString = "[$($formatString.Trim('[]'))]"
-  }
-  elseif (-not $IncludeBrackets -and $Format -in @('Default', 'Short')) {
-    $formatString = $formatString.Trim('[]')
-  }
+    # Handle bracket inclusion for Default and Short formats
+    if ($IncludeBrackets -and $Format -in @('Default', 'Short')) {
+        $formatString = "[$($formatString.Trim('[]'))]"
+    }
+    elseif (-not $IncludeBrackets -and $Format -in @('Default', 'Short')) {
+        $formatString = $formatString.Trim('[]')
+    }
 
-  try {
-    return $DateTime.ToString($formatString)
-  }
-  catch {
-    Write-Error "Invalid timestamp format: $formatString"
-    return $DateTime.ToString()
-  }
+    try {
+        return $DateTime.ToString($formatString)
+    }
+    catch {
+        Write-Error "Invalid timestamp format: $formatString"
+        return $DateTime.ToString()
+    }
 }
 
 Set-Alias -Name 'timestamp' -Value 'Get-Timestamp'
@@ -325,7 +325,7 @@ Set-Alias -Name 'timestamp' -Value 'Get-Timestamp'
 #region High-Level Functions
 
 function Format-Duration {
-  <#
+    <#
     .SYNOPSIS
         Formats a duration in the specified format (compact or verbose).
     .PARAMETER Duration
@@ -343,35 +343,35 @@ function Format-Duration {
         Format-Duration -Duration 90500 -Format Verbose
         # Returns: "1 minute and 30 seconds"
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory, ValueFromPipeline)]
-    $Duration,
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        $Duration,
 
-    [Parameter()]
-    [ValidateSet('Compact', 'Verbose')]
-    [string]$Format = 'Compact',
+        [Parameter()]
+        [ValidateSet('Compact', 'Verbose')]
+        [string]$Format = 'Compact',
 
-    [switch]$IncludeIcon
-  )
+        [switch]$IncludeIcon
+    )
 
-  process {
-    $timeSpan = ConvertTo-TimeSpan -Duration $Duration
+    process {
+        $timeSpan = ConvertTo-TimeSpan -Duration $Duration
 
-    switch ($Format) {
-      'Compact' {
-        Format-DurationCompact -TimeSpan $timeSpan -IncludeIcon:$IncludeIcon
-      }
-      'Verbose' {
-        Format-DurationVerbose -TimeSpan $timeSpan
-      }
+        switch ($Format) {
+            'Compact' {
+                Format-DurationCompact -TimeSpan $timeSpan -IncludeIcon:$IncludeIcon
+            }
+            'Verbose' {
+                Format-DurationVerbose -TimeSpan $timeSpan
+            }
+        }
     }
-  }
 }
 
 function Get-DurationMessage {
-  <#
+    <#
     .SYNOPSIS
         Creates completion messages with duration information.
     .PARAMETER Duration
@@ -386,26 +386,26 @@ function Get-DurationMessage {
         Get-DurationMessage -Duration 1500 -Action "Initialization"
         # Returns: "Initialization completed in 1 second and 500 milliseconds."
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory)]
-    $Duration,
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        $Duration,
 
-    [Parameter()]
-    [string]$Action = "Operation",
+        [Parameter()]
+        [string]$Action = "Operation",
 
-    [Parameter()]
-    [ValidateSet('Compact', 'Verbose')]
-    [string]$Format = 'Verbose'
-  )
+        [Parameter()]
+        [ValidateSet('Compact', 'Verbose')]
+        [string]$Format = 'Verbose'
+    )
 
-  $formattedDuration = Format-Duration -Duration $Duration -Format $Format
-  return "$Action completed in $formattedDuration."
+    $formattedDuration = Format-Duration -Duration $Duration -Format $Format
+    return "$Action completed in $formattedDuration."
 }
 
 function Measure-ScriptBlock {
-  <#
+    <#
     .SYNOPSIS
         Measures the execution time of a script block and optionally formats the result.
     .PARAMETER ScriptBlock
@@ -425,114 +425,115 @@ function Measure-ScriptBlock {
         Measure-ScriptBlock { Get-Process } -Action "Process enumeration" -ReturnMessage
         # Returns: "Process enumeration completed in 245 milliseconds."
     #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory)]
-    [scriptblock]$ScriptBlock,
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [scriptblock]$ScriptBlock,
 
-    [Parameter()]
-    [ValidateSet('Compact', 'Verbose')]
-    [string]$Format = 'Compact',
+        [Parameter()]
+        [ValidateSet('Compact', 'Verbose')]
+        [string]$Format = 'Compact',
 
-    [Parameter()]
-    [string]$Action,
+        [Parameter()]
+        [string]$Action,
 
-    [Parameter()]
-    [switch]$ReturnMessage
-  )
+        [Parameter()]
+        [switch]$ReturnMessage
+    )
 
-  $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-  try {
-    & $ScriptBlock
-  }
-  finally {
-    $stopwatch.Stop()
-  }
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    try {
+        & $ScriptBlock
+    }
+    finally {
+        $stopwatch.Stop()
+    }
 
-  $duration = $stopwatch.ElapsedMilliseconds
+    $duration = $stopwatch.ElapsedMilliseconds
 
-  if ($ReturnMessage -and $Action) {
-    return Get-DurationMessage -Duration $duration -Action $Action -Format $Format
-  }
-  else {
-    return Format-Duration -Duration $duration -Format $Format
-  }
+    if ($ReturnMessage -and $Action) {
+        return Get-DurationMessage -Duration $duration -Action $Action -Format $Format
+    }
+    else {
+        return Format-Duration -Duration $duration -Format $Format
+    }
 }
 
 #endregion
 #region Testing
 
 function Test-Duration {
-  <#
+    <#
     .SYNOPSIS
         Tests the duration formatting functions with various inputs.
     .EXAMPLE
         Test-Duration
     #>
-  [CmdletBinding()]
-  param()
+    [CmdletBinding()]
+    param()
 
-  Write-Host "`n=== Duration Module Tests ==="
+    Write-Host "`n=== Duration Module Tests ==="
 
-  $testCases = @(
-    @{ Duration = 500; Description = "500ms" }
-    @{ Duration = 1500; Description = "1.5 seconds" }
-    @{ Duration = 65000; Description = "1 minute 5 seconds" }
-    @{ Duration = 125500; Description = "2 minutes 5.5 seconds" }
-    @{ Duration = 3661500; Description = "1 hour 1 minute 1.5 seconds" }
-  )
+    $testCases = @(
+        @{ Duration = 500; Description = "500ms" }
+        @{ Duration = 1500; Description = "1.5 seconds" }
+        @{ Duration = 65000; Description = "1 minute 5 seconds" }
+        @{ Duration = 125500; Description = "2 minutes 5.5 seconds" }
+        @{ Duration = 3661500; Description = "1 hour 1 minute 1.5 seconds" }
+    )
 
-  foreach ($test in $testCases) {
-    Write-Host "`nTesting: $($test.Description) ($($test.Duration)ms)"
-    Write-Host "  Compact: $(Format-Duration -Duration $test.Duration -Format Compact)"
-    Write-Host "  Compact with icon: $(Format-Duration -Duration $test.Duration -Format Compact -IncludeIcon)"
-    Write-Host "  Verbose: $(Format-Duration -Duration $test.Duration -Format Verbose)"
-    Write-Host "  Message: $(Get-DurationMessage -Duration $test.Duration -Action 'Test operation')"
-  }
+    foreach ($test in $testCases) {
+        Write-Host "`nTesting: $($test.Description) ($($test.Duration)ms)"
+        Write-Host "  Compact: $(Format-Duration -Duration $test.Duration -Format Compact)"
+        Write-Host "  Compact with icon: $(Format-Duration -Duration $test.Duration -Format Compact -IncludeIcon)"
+        Write-Host "  Verbose: $(Format-Duration -Duration $test.Duration -Format Verbose)"
+        Write-Host "  Message: $(Get-DurationMessage -Duration $test.Duration -Action 'Test operation')"
+    }
 
-  Write-Host "`n=== Edge Cases ==="
-  Write-Host "Zero duration: $(Format-Duration -Duration 0 -Format Verbose)"
-  Write-Host "Null duration: $(Format-Duration -Duration $null -Format Compact)"
+    Write-Host "`n=== Edge Cases ==="
+    Write-Host "Zero duration: $(Format-Duration -Duration 0 -Format Verbose)"
+    Write-Host "Null duration: $(Format-Duration -Duration $null -Format Compact)"
 
-  Write-Host "`n=== TimeSpan Input ==="
-  $timeSpan = [TimeSpan]::FromSeconds(75.25)
-  Write-Host "TimeSpan input: $(Format-Duration -Duration $timeSpan -Format Verbose)"
+    Write-Host "`n=== TimeSpan Input ==="
+    $timeSpan = [TimeSpan]::FromSeconds(75.25)
+    Write-Host "TimeSpan input: $(Format-Duration -Duration $timeSpan -Format Verbose)"
 
-  Write-Host "`n=== Timestamp Tests ==="
-  Write-Host "Default: $(Get-Timestamp)"
-  Write-Host "Short: $(Get-Timestamp -Format Short)"
-  Write-Host "ISO: $(Get-Timestamp -Format ISO)"
-  Write-Host "Compact: $(Get-Timestamp -Format Compact)"
-  Write-Host "Filename: $(Get-Timestamp -Format Filename)"
-  Write-Host "Custom: $(Get-Timestamp -Format 'yyyy-MM-dd')"
-  Write-Host "No brackets: $(Get-Timestamp -Format Default -IncludeBrackets:$false)"
+    Write-Host "`n=== Timestamp Tests ==="
+    Write-Host "Default: $(Get-Timestamp)"
+    Write-Host "Short: $(Get-Timestamp -Format Short)"
+    Write-Host "ISO: $(Get-Timestamp -Format ISO)"
+    Write-Host "Compact: $(Get-Timestamp -Format Compact)"
+    Write-Host "Filename: $(Get-Timestamp -Format Filename)"
+    Write-Host "Custom: $(Get-Timestamp -Format 'yyyy-MM-dd')"
+    Write-Host "No brackets: $(Get-Timestamp -Format Default -IncludeBrackets:$false)"
 
-  Write-Host "`n=== Measure-ScriptBlock Test ==="
-  $duration = Measure-ScriptBlock { Start-Sleep -Milliseconds 100 } -Format Compact
-  Write-Host "Sleep test duration: $duration"
+    Write-Host "`n=== Measure-ScriptBlock Test ==="
+    $duration = Measure-ScriptBlock { Start-Sleep -Milliseconds 100 } -Format Compact
+    Write-Host "Sleep test duration: $duration"
 
-  $message = Measure-ScriptBlock { Get-Date } -Action "Date retrieval" -ReturnMessage
-  Write-Host $message
+    $message = Measure-ScriptBlock { Get-Date } -Action "Date retrieval" -ReturnMessage
+    Write-Host $message
 }
 
 #endregion
 #region Export
 
 Export-ModuleMember -Function @(
-  'ConvertTo-TimeSpan',
-  'Format-Duration',
-  'Format-DurationCompact',
-  'Format-DurationVerbose',
-  'Get-DurationMessage',
-  'Get-DurationFromTimes',
-  'Get-Timestamp',
-  'Measure-ScriptBlock',
-  'Test-Duration'
+    'ConvertTo-TimeSpan',
+    'Format-Duration',
+    'Format-DurationCompact',
+    'Format-DurationVerbose',
+    'Get-DurationMessage',
+    'Get-DurationFromTimes',
+    'Get-Timestamp',
+    'Measure-ScriptBlock',
+    'Test-Duration'
 )
 
 Export-ModuleMember -Alias @(
-  'timestamp'
+    'timestamp'
 )
 
 #endregion
+

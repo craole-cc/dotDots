@@ -1,3 +1,18 @@
+#| Info
+. $PSScriptRoot/checks.ps1
+
+#| Paths
+. $PSScriptRoot/paths.ps1
+# Test-PathResolution
+
+#| Variables
+. $PSScriptRoot/variable.ps1
+# Test-EnvVarAccess
+
+#| Variables Aliases
+. $PSScriptRoot/alias.ps1
+# Show-PathAliases
+
 #| Editor
 . $PSScriptRoot/editor.ps1
 # Get-AvailableEditor
@@ -10,16 +25,8 @@
 # Set-EditorPreference
 # Test-GuiEnvironment
 
-#| Variable
-. $PSScriptRoot/variable.ps1
-# Test-EnvVarAccess
-
-#| Alias
-# . $PSScriptRoot/alias.ps1
-# Show-PathAliases
-
-#| Fyls
+#| File Lister
 . $PSScriptRoot/fyls.ps1
 
-#| Mise
-. $PSScriptRoot/mise.ps1
+#| Wrappers
+# . $PSScriptRoot/wrappers.ps1

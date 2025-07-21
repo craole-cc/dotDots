@@ -56,7 +56,7 @@ function ConvertTo-ScriptExtent {
     process {
         # Already a InternalScriptExtent, FileScriptExtent or is empty.
         $returnAsIs = $Extent -and
-            ($Extent.StartOffset -or $Extent.EndOffset -or $Extent -eq $emptyExtent)
+        ($Extent.StartOffset -or $Extent.EndOffset -or $Extent -eq $emptyExtent)
 
         if ($returnAsIs) {
             return $Extent
@@ -342,3 +342,4 @@ function ConvertTo-ScriptExtent {
 # uWRtQ26J6ddP/0OKVIvRg+5ibje4hsOY7zc8X5n2LhNmH/RCeoh+7JyYCV9RWcfJ
 # FquVxD7o4YKGhGRo/EI=
 # SIG # End signature block
+

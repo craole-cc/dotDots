@@ -33,7 +33,7 @@ hidden = false
 parents = false
 
 [editor.indent-guides]
-character = "╎" #? ["▏", "╎", "┆", "┊", "⸽"]
+character = "╎"           #? ["▏", "╎", "┆", "┊", "⸽"]
 render = true
 skip-levels = 1
 rainbow-option = "normal"
