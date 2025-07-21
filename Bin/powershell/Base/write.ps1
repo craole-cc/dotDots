@@ -2,7 +2,7 @@
 
 #region Main
 function Write-Pretty {
-    <#
+  <#
     .SYNOPSIS
         Flexible, verbosity-aware output with context, timestamp, and color.
     .DESCRIPTION
@@ -36,163 +36,187 @@ function Write-Pretty {
     .PARAMETER Messages
         The message(s) to output.
     #>
-    [CmdletBinding()]
-    param(
-        [Alias('level', 'lvl', 'tag')]
-        [Parameter()]
-        [ValidateScript({ Test-Verbosity $_ })]
-        $Verbosity = (Get-VerbosityDefault),
+  [CmdletBinding()]
+  param(
+    [Alias('level', 'lvl')]
+    [Parameter()]
+    [ValidateScript({ Test-Verbosity $_ })]
+    # $Verbosity = (Get-VerbosityDefault),
+    [String]$Tag,
 
-        [Alias('maxlevel', 'max', 'display')]
-        [Parameter()]
-        [ValidateScript({ Test-Verbosity $_ })]
-        $MaxVerbosity = (Get-VerbosityDefault),
+    [Alias('maxlevel', 'max', 'display')]
+    [Parameter()]
+    [ValidateScript({ Test-Verbosity $_ })]
+    $MaxVerbosity = (Get-VerbosityDefault),
 
-        [Alias('ctx')]
-        [Parameter()]
-        [string]$Context,
+    [Alias('ctx')]
+    [Parameter()]
+    [string]$Context,
 
-        [Alias('as', 'for', 'of')]
-        [Parameter()]
-        [string]$ContextCustom,
+    [Alias('as', 'for', 'of')]
+    [Parameter()]
+    [string]$ContextCustom,
 
-        [Alias('scope')]
-        [Parameter()]
-        [string]$ContextScope,
+    [Alias('scope')]
+    [Parameter()]
+    [string]$ContextScope,
 
-        [Alias('log')]
-        [Parameter()]
-        [switch]$ShowTimestamp,
+    [Alias('log')]
+    [Parameter()]
+    [switch]$ShowTimestamp,
 
-        [Alias('noline', 'oneline')]
-        [Parameter()]
-        [switch]$NoNewLine,
+    [Alias('noline', 'oneline')]
+    [Parameter()]
+    [switch]$NoNewLine,
 
-        [Alias('runtime')]
-        [Parameter()]
-        [string]$Duration,
+    [Alias('runtime')]
+    [Parameter()]
+    [string]$Duration,
 
-        [Parameter()]
-        [Alias('time', 'timeofinit', 'inittime', 'init', 'start', 'timein')]
-        [datetime]$StartTime,
+    [Parameter()]
+    [Alias('time', 'timeofinit', 'inittime', 'init', 'start', 'timein')]
+    [datetime]$StartTime,
 
-        [Parameter()]
-        [Alias('timeofexit', 'exittime', 'exit', 'stop', 'timeout')]
-        [datetime]$EndTime,
+    [Parameter()]
+    [Alias('timeofexit', 'exittime', 'exit', 'stop', 'timeout')]
+    [datetime]$EndTime,
 
-        [Alias('noctx', 'NoContext')]
-        [Parameter()]
-        [switch]$HideContext,
+    [Alias('noctx', 'NoContext')]
+    [Parameter()]
+    [switch]$HideContext,
 
-        [Alias('noverb')]
-        [Parameter()]
-        [switch]$HideVerbosity,
+    [Parameter()]
+    [switch]$DebugEnv,
 
-        [Parameter()]
-        [string]$ForegroundColor,
+    [Alias('noverb')]
+    [Parameter()]
+    [switch]$HideVerbosity,
 
-        [Alias('delim', 'separator', 'sep')]
-        [Parameter()]
-        [string]$Delimiter = "`n === ",
+    [Parameter()]
+    [string]$ForegroundColor,
 
-        [Parameter()]
-        [string]$TagHead = '>>= ',
+    [Alias('delim', 'separator', 'sep')]
+    [Parameter()]
+    [string]$Delimiter = "`n === ",
 
-        [Parameter()]
-        [string]$TagTail = ' =<<',
+    [Parameter()]
+    [string]$TagHead = '>>= ',
 
-        [Alias('msg')]
-        [Parameter(Position = 0, ValueFromRemainingArguments)]
-        [string[]]$Messages
-    )
+    [Parameter()]
+    [string]$TagTail = ' =<<',
 
-    #{ Normalize and compare verbosity levels
-    $verbosityLevel = Set-Verbosity $Verbosity
-    $maxLevel = Set-Verbosity $MaxVerbosity
-    $verbosityNum = Get-VerbosityNumeric $verbosityLevel
-    $maxNum = Get-VerbosityNumeric $maxLevel
+    [Alias('msg')]
+    [Parameter(Position = 0, ValueFromRemainingArguments)]
+    [string[]]$Messages
+  )
+  Write-Verbose 'Importing module Write-Pretty'
 
-    Write-Verbose "Importing module Write-Pretty"
-    # Write-Debug "Write-Pretty: Verbosity='$verbosityLevel' ($verbosityNum), Max='$maxLevel' ($maxNum)"
+  #~@ Normalize and compare verbosity levels
+  if ($Tag) {
+    $verbosityLevel = Get-VerbosityLevel $Tag
+  }
+  $maxLevel = Set-Verbosity $MaxVerbosity
+  $verbosityNum = Get-VerbosityNumeric $verbosityLevel
+  $maxNum = Get-VerbosityNumeric $maxLevel
 
-    if ($verbosityNum -gt $maxNum) {
-        Write-Verbose "Write-Pretty: Message suppressed (verbosity $verbosityNum > max $maxNum)"
+  if ($verbosityNum -gt $maxNum) {
+    Write-Verbose "Write-Pretty: Message suppressed (verbosity $verbosityNum > max $maxNum)"
+    return
+  }
+
+  #| Debug Environment Variables
+  if ($DebugEnv) {
+    # if ($verbosityLevel -and $verbosityLevel -lt (Get-VerbosityNumeric 'Debug')) { return }
+    if (-not $verbosityLevel) {
+      if ($maxNum -lt (Get-VerbosityNumeric 'Debug')) {
+        Write-Verbose "Debugging environment variables is disabled for verbosity level: $maxLevel"
         return
+      }
     }
 
-    #| Timestamp
-    $timestamp = if ($ShowTimestamp) { Get-Timestamp -Format Default } else { '' }
-
-    #| Verbosity Tag
-    $tag = if (-not $HideVerbosity) { Get-VerbosityTag $verbosityLevel } else { '' }
-
-    #| Duration
-    if (-not $Duration -and $StartTime) {
-        $durationMs = Get-DurationFromTimes -StartTime $StartTime -EndTime $(if ($EndTime) { $EndTime } else { Get-Date })
-
-        if (-not $Messages) {
-            $Messages = Get-DurationMessage -Duration $durationMs -Action "Initialization"
-            $Duration = ''
-            $NoNewLine = $true
-        }
-        else {
-            $Duration = " $(Format-Duration -Duration $durationMs -Format Compact -IncludeIcon)"
-        }
+    if (-not $Tag) {
+      $verbosityLevel = Get-VerbosityLevel 'Debug'
     }
-    elseif ($Duration -and $Duration -match '^\d+(\.\d+)?$') {
-        #{ If Duration is just a number, format it
-        $Duration = " $(Format-Duration -Duration $Duration -Format Compact -IncludeIcon)"
+    $HideContext = $true
+    $NoNewLine = $true
+    if ($Messages.Length -gt 1) {
+      $Messages = @("$($Messages[0]) => $($Messages[1..($Messages.Length - 1)] -join ' ')")
     }
-    elseif ($Duration) {
-        #{ If Duration is already formatted, just add a space prefix
-        $Duration = " $Duration"
-    }
+  }
 
-    #| Context
-    $context =
-    if ($HideContext) { '' } else {
-        $callStack = Get-PSCallStack
-        $ctx = if ($ContextCustom) { $ContextCustom }
-        elseif ($callStack.Count -gt 1) {
-            Get-Context `
-                -Caller $callStack[1] `
-                -Context $Context `
-                -Scope $ContextScope `
-                -Verbosity $verbosityLevel
-        }
-        else {
-            Get-Context `
-                -Context $Context `
-                -Scope $ContextScope `
-                -Verbosity $verbosityLevel
-        }
+  #| Timestamp
+  $timestamp = if ($ShowTimestamp) { Get-Timestamp -Format Default } else { '' }
 
-        "${TagHead}${ctx}${Duration}${TagTail}"
-    }
+  #| Verbosity Tag
+  $tag = if (-not $HideVerbosity) { Get-VerbosityTag $verbosityLevel } else { '' }
 
-    #{ Message formatting
-    if ($NoNewLine) { $Delimiter = ' ' }
-    $message = $Delimiter + ($Messages -join $Delimiter)
-    if ($Delimiter -match '\r?\n') { $message += "`n" }
+  #| Duration
+  if (-not $Duration -and $StartTime) {
+    $durationMs = Get-DurationFromTimes -StartTime $StartTime -EndTime $(if ($EndTime) { $EndTime } else { Get-Date })
 
-    #{ Color selection
-    $color = if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
-        $ForegroundColor
+    if (-not $Messages) {
+      $Messages = Get-DurationMessage -Duration $durationMs -Action 'Initialization'
+      $Duration = ''
+      $NoNewLine = $true
     }
     else {
-        Get-VerbosityColor $verbosityLevel
+      $Duration = " $(Format-Duration -Duration $durationMs -Format Compact -IncludeIcon)"
+    }
+  }
+  elseif ($Duration -and $Duration -match '^\d+(\.\d+)?$') {
+    #~@ If Duration is just a number, format it
+    $Duration = " $(Format-Duration -Duration $Duration -Format Compact -IncludeIcon)"
+  }
+  elseif ($Duration) {
+    #~@ If Duration is already formatted, just add a space prefix
+    $Duration = " $Duration"
+  }
+
+  #| Context
+  $context =
+  if ($HideContext) { '' } else {
+    $callStack = Get-PSCallStack
+    $ctx = if ($ContextCustom) { $ContextCustom }
+    elseif ($callStack.Count -gt 1) {
+      Get-Context `
+        -Caller $callStack[1] `
+        -Context $Context `
+        -Scope $ContextScope `
+        -Verbosity $verbosityLevel
+    }
+    else {
+      Get-Context `
+        -Context $Context `
+        -Scope $ContextScope `
+        -Verbosity $verbosityLevel
     }
 
-    #{ Output
-    $fullMessage = "${timestamp}${tag}${context}${message}" -join ' '
-    Write-Host $fullMessage -ForegroundColor $color
+    "${TagHead}${ctx}${Duration}${TagTail}"
+  }
+
+  #~@ Message formatting
+  if ($NoNewLine) { $Delimiter = ' ' }
+  $message = $Delimiter + ($Messages -join $Delimiter)
+  if ($Delimiter -match '\r?\n') { $message += "`n" }
+
+  #~@ Color selection
+  $color = if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
+    $ForegroundColor
+  }
+  else {
+    Get-VerbosityColor $verbosityLevel
+  }
+
+  #~@ Output
+  $fullMessage = "${timestamp}${tag}${context}${message}" -join ' '
+  Write-Host $fullMessage -ForegroundColor $color
 }
 
 #endregion
 #region Test
 
 function Test-WritePretty {
-    <#
+  <#
     .SYNOPSIS
         Runs diagnostic and simple output tests on the Write-Pretty function.
     .DESCRIPTION
@@ -200,51 +224,51 @@ function Test-WritePretty {
     .EXAMPLE
         Test-WritePretty
     #>
-    [CmdletBinding()]
-    param()
+  [CmdletBinding()]
+  param()
 
-    $VerbosePreference = 'Continue'
-    $DebugPreference = 'Continue'
+  $VerbosePreference = 'Continue'
+  $DebugPreference = 'Continue'
 
-    Write-Host "`n=== Simple Examples ==="
-    Write-Pretty -Verbosity 'Trace' -Messages 'This is a trace message'
-    Write-Pretty -Verbosity 'Debug' -Messages 'This is a debug message'
-    Write-Pretty -Verbosity 'Info'  -Messages 'This is an informational message'
-    Write-Pretty -Verbosity 'Warn'  -Messages 'This is a warning message'
-    Write-Pretty -Verbosity 'Error' -Messages 'This is an error message'
+  Write-Host "`n=== Simple Examples ==="
+  Write-Pretty -Verbosity 'Trace' -Messages 'This is a trace message'
+  Write-Pretty -Verbosity 'Debug' -Messages 'This is a debug message'
+  Write-Pretty -Verbosity 'Info' -Messages 'This is an informational message'
+  Write-Pretty -Verbosity 'Warn' -Messages 'This is a warning message'
+  Write-Pretty -Verbosity 'Error' -Messages 'This is an error message'
 
-    Write-Host "`n=== Advanced/Diagnostic Examples ==="
-    Write-Host "`nTest 1: Basic debug message"
-    Write-Pretty -Verbosity 'Debug' -Messages 'Debug message'
+  Write-Host "`n=== Advanced/Diagnostic Examples ==="
+  Write-Host "`nTest 1: Basic debug message"
+  Write-Pretty -Verbosity 'Debug' -Messages 'Debug message'
 
-    Write-Host "`nTest 2: Trace with context and timestamp"
-    Write-Pretty -Verbosity 'Trace' -Context 'MyFunction' -ShowTimestamp -Messages 'Tracing...'
+  Write-Host "`nTest 2: Trace with context and timestamp"
+  Write-Pretty -Verbosity 'Trace' -Context 'MyFunction' -ShowTimestamp -Messages 'Tracing...'
 
-    Write-Host "`nTest 3: Error, hide verbosity tag"
-    Write-Pretty -Verbosity 'Error' -HideVerbosity -Messages 'Error occurred!'
+  Write-Host "`nTest 3: Error, hide verbosity tag"
+  Write-Pretty -Verbosity 'Error' -HideVerbosity -Messages 'Error occurred!'
 
-    Write-Host "`nTest 4: Custom tag head/tail and duration"
-    Write-Pretty -Verbosity 'Information' -Context 'MyScript' -Duration '123' -TagHead '[[' -TagTail ']]' -Messages 'Info message with custom formatting'
+  Write-Host "`nTest 4: Custom tag head/tail and duration"
+  Write-Pretty -Verbosity 'Information' -Context 'MyScript' -Duration '123' -TagHead '[[' -TagTail ']]' -Messages 'Info message with custom formatting'
 
-    Write-Host "`nTest 5: Warning, no new line"
-    Write-Pretty -Verbosity 'Warning' -NoNewLine 'Warning:' 'Check your config.'
+  Write-Host "`nTest 5: Warning, no new line"
+  Write-Pretty -Verbosity 'Warning' -NoNewLine 'Warning:' 'Check your config.'
 
-    Write-Host "`nTest 6: Duration from start/end times"
-    $startTime = (Get-Date).AddSeconds(-2)
-    Write-Pretty -Verbosity 'Info' -StartTime $startTime -Messages 'Operation with measured duration'
+  Write-Host "`nTest 6: Duration from start/end times"
+  $startTime = (Get-Date).AddSeconds(-2)
+  Write-Pretty -Verbosity 'Info' -StartTime $startTime -Messages 'Operation with measured duration'
 
-    Write-Host "`nTest 7: Auto-generated duration message"
-    $startTime = (Get-Date).AddMilliseconds(-1500)
-    Write-Pretty -Verbosity 'Info' -StartTime $startTime
+  Write-Host "`nTest 7: Auto-generated duration message"
+  $startTime = (Get-Date).AddMilliseconds(-1500)
+  Write-Pretty -Verbosity 'Info' -StartTime $startTime
 }
 
 #endregion
 #region Export
 
-#{ Export all public functions
+#~@ Export all public functions
 Export-ModuleMember -Function @(
-    'Write-Pretty',
-    'Test-WritePretty'
+  'Write-Pretty',
+  'Test-WritePretty'
 )
 
 Set-Alias -Name pout -Value Write-Pretty

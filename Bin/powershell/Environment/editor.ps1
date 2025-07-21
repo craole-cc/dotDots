@@ -33,7 +33,7 @@
 #region Editor Configuration
 $EditorConfig = @{
   DefaultTuiEditors = @('hx', 'nvim', 'vim', 'nano')
-  DefaultGuiEditors = @('code-insiders', 'code', 'zed', 'zeditor', 'notepad++', 'sublime_text', 'atom')
+  DefaultGuiEditors = @('trae', 'code-insiders', 'code', 'zed', 'zeditor', 'notepad++', 'sublime_text', 'atom')
   CurrentEditor     = $null
   Delimiter         = '|'
 }
@@ -70,7 +70,7 @@ function Test-GuiEnvironment {
   param()
 
   # Windows typically has GUI available
-  if ($IsWindows -or $env:OS -like "*Windows*") {
+  if ($IsWindows -or $env:OS -like '*Windows*') {
     return $true
   }
 
@@ -145,9 +145,9 @@ function Get-AvailableEditor {
       $EditorList = $EditorConfig.DefaultTuiEditors
     }
   }
-  Write-Pretty -Tag "Verbose"  -Scope "Name"`
+  Write-Pretty -Tag 'Verbose' -Scope 'Name'`
     "Checking for the first available of the following $($EditorList.Count) editors " `
-    "$($EditorList -join ", ")"
+    "$($EditorList -join ', ')"
 
   #{ Try to find the first available editor
   foreach ($editor in $EditorList) {
@@ -159,7 +159,7 @@ function Get-AvailableEditor {
     #{ Try to resolve the command of the editor
     $command = Get-CommandFirst -Name $editor -VerifyExecutable
     if ($command) {
-      Write-Pretty -Tag "Debug" -Scope "Name" `
+      Write-Pretty -Tag 'Trace' -Scope 'Name' `
         "Found the $editorIndexStr listed editor, '${editor}'." `
         "$($command.Name)" "$($command.Source)"
 
@@ -167,7 +167,7 @@ function Get-AvailableEditor {
       if ($ReturnPath) { return $command.Source } else { return $command.Name }
     }
     else {
-      Write-Pretty -Tag "Verbose" -Scope "Name" -OneLine `
+      Write-Pretty -Tag 'Verbose' -Scope 'Name' -OneLine `
         "Failed to resolve editor: $editor"
 
       #{ Check the next editor in the list
@@ -175,7 +175,7 @@ function Get-AvailableEditor {
     }
   }
 
-  Write-Pretty -Tag "Verbose" "No available editors found"
+  Write-Pretty -Tag 'Verbose' 'No available editors found'
   return $null
 }
 
@@ -323,7 +323,7 @@ function Get-PreferredEditor {
   }
 
   # Ultimate fallbacks
-  $fallback = if ($IsWindows -or $env:OS -like "*Windows*") { 'notepad' } else { 'vi' }
+  $fallback = if ($IsWindows -or $env:OS -like '*Windows*') { 'notepad' } else { 'vi' }
 
   if (-not $ReturnPath) {
     $EditorConfig.CurrentEditor = $fallback
@@ -355,8 +355,8 @@ function Set-PreferredEditor {
   # Get new preferred editor
   $newEditor = Get-PreferredEditor -CustomTuiEditors $TuiEditors -CustomGuiEditors $GuiEditors
 
-  Write-Pretty -Tag "Verbose" "Editor preference updated: " -NoNewline
-  Write-Pretty -Tag "Verbose" $newEditor -ForegroundColor Green
+  Write-Pretty -Tag 'Verbose' 'Editor preference updated: ' -NoNewline
+  Write-Pretty -Tag 'Verbose' $newEditor -ForegroundColor Green
 
   return $newEditor
 }
@@ -553,7 +553,7 @@ function Invoke-Editor {
   $editorPath = Get-PreferredEditor -ReturnPath
 
   if (-not $editorToUse) {
-    Write-Error "No suitable editor found"
+    Write-Error 'No suitable editor found'
     return
   }
 
@@ -617,30 +617,30 @@ function Show-EditorConfig {
   $currentPath = Get-PreferredEditor -ReturnPath
   $hasGui = Test-GuiEnvironment
 
-  Write-Pretty -Tag "Editor" "Current Editor: " -NoNewline
-  Write-Pretty -Tag "Editor" $currentEditor -ForegroundColor Green
-  Write-Pretty -Tag "Editor" "Editor Path: " -NoNewline
-  Write-Pretty -Tag "Editor" $currentPath -ForegroundColor Green
-  Write-Pretty -Tag "Editor" "Environment: " -NoNewline
-  Write-Pretty -Tag "Editor" $(if ($hasGui) { "GUI Available" } else { "TUI Only" }) -ForegroundColor Green
+  Write-Pretty -Tag 'Editor' 'Current Editor: ' -NoNewline
+  Write-Pretty -Tag 'Editor' $currentEditor -ForegroundColor Green
+  Write-Pretty -Tag 'Editor' 'Editor Path: ' -NoNewline
+  Write-Pretty -Tag 'Editor' $currentPath -ForegroundColor Green
+  Write-Pretty -Tag 'Editor' 'Environment: ' -NoNewline
+  Write-Pretty -Tag 'Editor' $(if ($hasGui) { 'GUI Available' } else { 'TUI Only' }) -ForegroundColor Green
 
   # Environment variables
-  Write-Pretty -Tag "Editor" "`nEnvironment Variables:"
+  Write-Pretty -Tag 'Editor' "`nEnvironment Variables:"
   @('EDITOR_GUI', 'EDITOR_TUI', 'VISUAL', 'EDITOR') | ForEach-Object {
     $value = Get-Item "env:$_" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
-    Write-Pretty -Tag "Editor" "  ${_}: " -NoNewline
-    Write-Pretty -Tag "Editor" $(if ($value) { $value } else { "(not set)" }) -ForegroundColor $(if ($value) { "Green" } else { "Gray" })
+    Write-Pretty -Tag 'Editor' "  ${_}: " -NoNewline
+    Write-Pretty -Tag 'Editor' $(if ($value) { $value } else { '(not set)' }) -ForegroundColor $(if ($value) { 'Green' } else { 'Gray' })
   }
 
   # Available editors
-  Write-Pretty -Tag "Editor" "`nAvailable Editors:"
+  Write-Pretty -Tag 'Editor' "`nAvailable Editors:"
   $allEditors = ($EditorConfig.DefaultGuiEditors + $EditorConfig.DefaultTuiEditors) | Sort-Object -Unique
 
   foreach ($editor in $allEditors) {
     $available = Get-Command $editor -ErrorAction SilentlyContinue
-    $status = if ($available) { "✓" } else { "✗" }
-    $color = if ($available) { "Green" } else { "Red" }
-    Write-Pretty -Tag "Editor" "  $status $editor" -ForegroundColor $color
+    $status = if ($available) { '✓' } else { '✗' }
+    $color = if ($available) { 'Green' } else { 'Red' }
+    Write-Pretty -Tag 'Editor' "  $status $editor" -ForegroundColor $color
   }
 }
 
@@ -759,20 +759,19 @@ function Export-EditorVariables {
   if ($availableEditor) {
     $editorToUse = if ($TuiEditor) { $TuiEditor } else { $availableEditor }
     [System.Environment]::SetEnvironmentVariable('EDITOR', $editorToUse, $Scope)
-    Write-Pretty -Tag "Debug" -Scope "Name"  "EDITOR => $availableEditor"
+    Write-Pretty -DebugEnv 'EDITOR' "$availableEditor"
 
     $hasGui = Test-GuiEnvironment
     if ($hasGui) {
       $editorToUse = if ($GuiEditor) { $GuiEditor } else { $availableEditor }
       [System.Environment]::SetEnvironmentVariable('VISUAL', $availableEditor, $Scope)
-      Write-Pretty -Tag "Debug" -Scope "Name" `
-        "VISUAL => $editorToUse "
+      Write-Pretty -DebugEnv 'VISUAL' "$editorToUse"
     }
     else {
       #{ Clear VISUAL in TUI-only environments
-      Write-Pretty -Tag "Verbose" -Scope "Name"  "Removed VISUAL (TUI-only environment)"
+      Write-Pretty -Tag 'Verbose' -Scope 'Name' 'Removed VISUAL (TUI-only environment)'
       if ($Scope -eq 'Process') {
-        Remove-Item "env:VISUAL" -ErrorAction SilentlyContinue
+        Remove-Item 'env:VISUAL' -ErrorAction SilentlyContinue
       }
       else {
         [System.Environment]::SetEnvironmentVariable('VISUAL', $null, $Scope)
@@ -780,7 +779,7 @@ function Export-EditorVariables {
     }
   }
   else {
-    Write-Pretty -Tag "Warning" -Scope "Name"  "No available editor found"
+    Write-Pretty -Tag 'Warning' -Scope 'Name' 'No available editor found'
   }
 
 
@@ -811,10 +810,10 @@ function Export-EditorVariables {
   #       [System.Environment]::SetEnvironmentVariable('VISUAL', $editorToUse, $Scope)
   #     }
   #     Write-Pretty -Tag "Debug" -Scope "Name" `
-  #       "VISUAL|EDITOR => $editorToUse "
+  #       "VISUAL| EDITOR => $editorToUse '
   #   }
   #   else {
-  #     Write-Pretty -Tag "Warning" -Scope "Name" `
+  #     Write-Pretty -Tag 'Warning" -Scope "Name" `
   #       "No suitable GUI editor found"
   #   }
   # }
@@ -851,11 +850,11 @@ function Export-EditorVariables {
   #     else {
   #       [System.Environment]::SetEnvironmentVariable('EDITOR', $fallbackEditor, $Scope)
   #     }
-  #     Write-Pretty -Tag "Debug" -Scope "Name" "EDITOR => $fallbackEditor (fallback)"
+  #     Write-Pretty -Tag "Debug" -Scope "Name" "EDITOR => $fallbackEditor (fallback)'
   #   }
 
   #   # Clear VISUAL in TUI-only environments
-  #   Write-Pretty -Tag "Export" "VISUAL not set (TUI-only environment)"
+  #   Write-Pretty -Tag 'Export" "VISUAL not set (TUI-only environment)"
   #   if ($Scope -eq 'Process') {
   #     Remove-Item "env:VISUAL" -ErrorAction SilentlyContinue
   #   }
@@ -897,7 +896,7 @@ function Initialize-EditorEnvironment {
   #{ Export standard environment variables
   Export-EditorVariables -Scope $ExportScope
 
-  Write-Pretty -Tag "Verbose" -Scope "Name" "Editor environment initialized successfully"
+  Write-Pretty -Tag 'Verbose' -Scope 'Name' 'Editor environment initialized successfully'
 }
 
 #endregion

@@ -6,5 +6,6 @@
     "**/.DS_Store": false,
     "**/Thumbs.db": false
   },
-  "git.enabled": false
+  "git.enabled": false,
+  "deno.path": "c:\\users\\administrator\\appdata\\local\\mise\\shims\\deno"
 }

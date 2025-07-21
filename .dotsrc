@@ -81,26 +81,21 @@
   return "$?"
 
 # === POWERSHELL ===
+$InitTime = Get-Date
 if (-not $env:DOTS) {
-  Write-Host "DEBUG: DOTS variable is not set."
   Throw "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."
 }
 elseif (-not (Test-Path -Path $env:DOTS -PathType Container)) {
-  Write-Host "DEBUG: DOTS directory does not exist or is not a container: $($env:DOTS)"
   Throw "Missing DOTS directory: $env:DOTS"
 }
 else {
-  # Write-Host "DEBUG: DOTS variable is set to $($env:DOTS)"
   $dotsEnv = Join-Path $env:DOTS 'Environment' 'powershell' '.dotsrc.ps1'
-  # Write-Host "DEBUG: Attempting to load PowerShell environment from $($dotsEnv)"
   if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
-    # Write-Host "DEBUG: Required configuration module not found: $($dotsEnv)"
     Throw "Missing required configuration module: ${dotsEnv}"
   }
   else {
-    # Write-Host "DEBUG: Importing module: $($dotsEnv)"
     Import-Module $dotsEnv -Force
-    # Write-Host "DEBUG: Module imported. Exiting with LASTEXITCODE: $($LASTEXITCODE)"
-    return $LASTEXITCODE
+    Write-Pretty -Tag 'Info' -HideContext -Init $InitTime
+    # return $LASTEXITCODE
   }
 }

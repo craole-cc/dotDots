@@ -1,0 +1,78 @@
+
+[settings]
+experimental = true
+lockfile = true
+# quiet = true
+windows_shim_mode = "symlink"
+
+[tools]
+"bat" = "latest"
+"deno" = "latest"
+"cargo-binstall" = "latest"
+"cargo:eza" = "latest"
+"cargo:treefmt" = "latest"
+"docker-cli" = "latest"
+"docker-compose" = "latest"
+"jujutsu" = "latest"
+"ripgrep" = "latest"
+"taplo" = "latest"
+"tokei" = "latest"
+"usage" = "latest"
+"uv" = "latest"
+"watchexec" = "latest"
+
+[env]
+PRJ_ROOT = "{{config_root}}"
+PRJ_ENV = "{{config_root}}\\environment"
+MISE_PROJECT_ROOT = "{{env.PRJ_ROOT}}"
+PRJ_NAME = "{{ cwd | basename }}"
+DATETIME = "{{ now() | date(format='%Y-%m-%d_%H:%M:%S') }}"
+MSSQL_CONTAINER = "mssql"
+MSSQL_COMPOSE = "{{env.PRJ_ENV}}\\mssql.compose.yml"
+MSSQL_VOLUME = "{{env.MSSQL_CONTAINER}}_data"
+MSSQL_PASSWORD = "P@ssw0rd"
+MSSQL_USER = "sa"
+MSSQL_DB = "master"
+MSSQL_PORT = "14330"
+
+[hooks]
+enter = "{{mise_bin}} install" #TODO: This doesn't seem to do anything
+
+[tasks.info]
+description = "Show the information about the project"
+alias = "inf"
+run = [
+  "eza --version",
+  "cargo --version",
+  "jj --version",
+  "python --version",
+  "rustc --version",
+  "tokei --version",
+  "treefmt --version",
+  "uv --version",
+  "tokei",
+  "{{mise_bin}} files",
+]
+
+[tasks.lint]
+description = "Format the project tree"
+alias = "f"
+run = [
+  "{{mise_bin}} fmt",
+  "treefmt --clear-cache --fail-on-change --allow-missing-formatter",
+]
+
+[tasks.push]
+description = "Push the changes to the main branch"
+alias = "up"
+run = ["jj describe", "jj bookmark set main --revision=@", "jj git push"]
+
+[tasks.files]
+description = "List the files in the current directory"
+alias = "fl"
+run = "eza --icons --long --group-directories-first --git"
+
+[tasks.tree]
+description = "List the files recursively from the current directory"
+alias = "ft"
+run = "eza --icons --long --group-directories-first --git --tree"
