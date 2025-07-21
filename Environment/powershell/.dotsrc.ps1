@@ -1,5 +1,5 @@
 #~@ Define output messaging preferences
-$Global:Verbosity = 'Trace' # Quiet, Error, Warn, Info, Debug, Trace
+$Global:Verbosity = 'Info' # Quiet, Error, Warn, Info, Debug, Trace
 $Global:VerbosePreference = 'SilentlyContinue' #SilentlyContinue (default), Continue, Inquire, Stop
 $Global:DebugPreference = 'SilentlyContinue'
 $Global:InformationPreference = 'SilentlyContinue'

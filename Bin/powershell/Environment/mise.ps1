@@ -26,6 +26,9 @@ function Initialize-Mise {
   [CmdletBinding()]
   param()
 
+
+  $InitTime = Get-Date
+
   if (-not (Get-Command -Name 'mise' -ErrorAction SilentlyContinue)) {
     if (-not (Install-Mise)) {
       Write-Pretty -Tag 'Error' 'Mise installation failed. Cannot initialize.'
@@ -35,7 +38,7 @@ function Initialize-Mise {
 
   try {
     mise activate pwsh | Out-String | Invoke-Expression
-    Write-Pretty -Tag 'Info' -NoNewLine 'Successfully activated mise.'
+    Write-Pretty -Tag 'Info' -NoNewLine -As 'mise-en-place' -Init $InitTime
   }
   catch {
     Write-Pretty -Tag 'Error' `
@@ -46,12 +49,12 @@ function Initialize-Mise {
 function Global:Install-Mise {
   <#
   .SYNOPSIS
-    Installs mise if it is not already present.
+  Installs mise if it is not already present.
   .DESCRIPTION
-    Checks for mise and installs it using scoop or winget if not found.
-    It then runs `mise install` to set up configured tools.
+  Checks for mise and installs it using scoop or winget if not found.
+  It then runs `mise install` to set up configured tools.
   .OUTPUTS
-    [bool] Returns $true on success, $false on failure.
+  [bool] Returns $true on success, $false on failure.
   #>
   [CmdletBinding()]
   param()
@@ -90,23 +93,38 @@ function Global:Install-Mise {
     return $true
   }
 }
-function Global:Push-via-mise {
+function Global:Push-Mise {
   mise push
 
+  $ctx = 'mise push'
   if ($LASTEXITCODE -eq 0) {
-    Write-Pretty -Tag 'Success' 'Pushed changes via mise successfully.'
-    return $true
+    Write-Pretty -Tag 'Info' -NoNewLine -As $ctx `
+      'Successfully committed changes to the remote repository.'
   }
   else {
-    Write-Pretty -Tag 'Error' 'Failed to push changes via mise.'
-    return $false
+    Write-Pretty -Tag 'Error' -NoNewLine -As $ctx `
+      'Failed to push changes to the remote repository.'
+  }
+}
+function Global:Format-Mise {
+  mise lint
+
+  $ctx = 'mise lint'
+  if ($LASTEXITCODE -eq 0) {
+    Write-Pretty -Tag 'Info' -NoNewLine -As $ctx `
+      'Linting completed without any issues.'
+  }
+  else {
+    Write-Pretty -Tag 'Error' -NoNewLine -As $ctx `
+      'Issues encountered during linting.'
   }
 }
 #endregion
 
 #region Aliases
 Set-Alias -Name m -Value Invoke-Mise -Scope Global -Force
-Set-Alias -Name push -Value Push-via-mise -Scope Global -Force
+Set-Alias -Name push -Value Push-Mise -Scope Global -Force
+Set-Alias -Name lint -Value Format-Mise -Scope Global -Force
 #endregion
 
 Initialize-Mise

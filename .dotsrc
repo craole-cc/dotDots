@@ -95,7 +95,7 @@ else {
   }
   else {
     Import-Module $dotsEnv -Force
-    Write-Pretty -Tag 'Info' -HideContext -Init $InitTime
+    Write-Pretty -Tag 'Info' -As 'DOTS Environment' -Init $InitTime
     # return $LASTEXITCODE
   }
 }
