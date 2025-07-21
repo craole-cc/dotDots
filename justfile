@@ -17,13 +17,13 @@ fmt:
     fi
 
 # ~@ Quick commit with message
-commit MESSAGE:
+push MESSAGE:
     jj describe --message "{{ MESSAGE }}"
     jj bookmark set main --revision=@
     jj git push
 
 # ~@ Interactive describe commit
-commit-interactive:
+push-interactive:
     jj describe
     jj bookmark set main --revision=@
     jj git push

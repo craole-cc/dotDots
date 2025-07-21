@@ -1,0 +1,128 @@
+[tools.bat]
+version = "0.25.0"
+backend = "aqua:sharkdp/bat"
+
+[tools.cargo-binstall]
+version = "1.14.1"
+backend = "aqua:cargo-bins/cargo-binstall"
+
+[tools."cargo:treefmt"]
+version = "0.6.1"
+backend = "cargo:treefmt"
+
+[tools.cosign]
+version = "2.5.2"
+backend = "aqua:sigstore/cosign"
+
+[tools.cosign.platforms.windows-x64]
+checksum = "sha256:fef1c4731da9112d4cf2f6d93ae2a1551c73116a4f73fab7b0c15b38e95ff688"
+size = 223542878
+url = "https://github.com/sigstore/cosign/releases/download/v2.5.2/cosign-windows-amd64.exe"
+
+[tools.deno]
+version = "2.4.2"
+backend = "core:deno"
+
+[tools.docker-cli]
+version = "28.3.2"
+backend = "aqua:docker/cli"
+
+[tools.docker-compose]
+version = "2.38.2"
+backend = "aqua:docker/compose"
+
+[tools.dust]
+version = "1.2.2"
+backend = "aqua:bootandy/dust"
+
+[tools.dust.platforms.windows-x64]
+checksum = "blake3:5c35ef18ec9e6c7914ac24038cfbed5dac8bc3b17ab25c4c540d6b7ba3e2e24f"
+size = 1130410
+url = "https://github.com/bootandy/dust/releases/download/v1.2.2/dust-v1.2.2-x86_64-pc-windows-msvc.zip"
+
+[tools.eza]
+version = "0.23.0"
+backend = "cargo:eza"
+
+[tools.fastfetch]
+version = "2.48.1"
+backend = "aqua:fastfetch-cli/fastfetch"
+
+[tools.fastfetch.platforms.windows-x64]
+checksum = "blake3:f075c00bbef9147733391bd4e7f37ca64d3ad64927d9a71c07e26a8d9d58fa80"
+size = 5438847
+url = "https://github.com/fastfetch-cli/fastfetch/releases/download/2.48.1/fastfetch-windows-amd64.zip"
+
+[tools.jujutsu]
+version = "0.31.0"
+backend = "aqua:jj-vcs/jj"
+
+[tools.just]
+version = "1.42.2"
+backend = "aqua:casey/just"
+
+[tools.just.platforms.windows-x64]
+checksum = "blake3:cee9211a75b0091dea42cc9a9bfe35ce57e41f70aa3ce5c971d9dd5dfe63aaf2"
+size = 1753503
+url = "https://github.com/casey/just/releases/download/1.42.2/just-1.42.2-x86_64-pc-windows-msvc.zip"
+
+[tools.ripgrep]
+version = "14.1.1"
+backend = "aqua:BurntSushi/ripgrep"
+
+[tools.taplo]
+version = "0.10.0"
+backend = "aqua:tamasfe/taplo"
+
+[tools.tokei]
+version = "12.1.2"
+backend = "aqua:XAMPPRocky/tokei"
+
+[tools.typos]
+version = "1.34.0"
+backend = "aqua:crate-ci/typos"
+
+[tools.typos.platforms.windows-x64]
+checksum = "blake3:b0c9f0954b617e35c4ed0c48968682abd5d639355a67e6509f14ac95fc091f02"
+size = 2915289
+url = "https://github.com/crate-ci/typos/releases/download/v1.34.0/typos-v1.34.0-x86_64-pc-windows-msvc.zip"
+
+[tools.typst]
+version = "0.13.1"
+backend = "aqua:typst/typst"
+
+[tools.typst.platforms.windows-x64]
+checksum = "blake3:26ed4a6f8d250aad712652d66620da0b200326f4a4ab4d2619d980691fe794ea"
+size = 17259573
+url = "https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-pc-windows-msvc.zip"
+
+[tools.typstyle]
+version = "0.13.16"
+backend = "aqua:Enter-tainer/typstyle"
+
+[tools.typstyle.platforms.windows-x64]
+checksum = "blake3:d3000412716a2687b67a7b2e6b9048050886a9f1290c6a87321bdb863b3d75bf"
+size = 1937408
+url = "https://github.com/typstyle-rs/typstyle/releases/download/v0.13.16/typstyle-x86_64-pc-windows-msvc.exe"
+
+[tools.uv]
+version = "0.8.0"
+backend = "aqua:astral-sh/uv"
+
+[tools.uv.platforms.windows-x64]
+checksum = "sha256:bad5afed0c18bd7f6c5125f5c7ab89ac830a3db7340c96d50a50527e9880cdfe"
+size = 18904597
+url = "https://github.com/astral-sh/uv/releases/download/0.8.0/uv-x86_64-pc-windows-msvc.zip"
+
+[tools.watchexec]
+version = "2.3.2"
+backend = "aqua:watchexec/watchexec"
+
+[tools.yamlfmt]
+version = "0.17.2"
+backend = "aqua:google/yamlfmt"
+
+[tools.yamlfmt.platforms.windows-x64]
+checksum = "sha256:fc6fd9328f62d7880c1eda1889f9eba39f42c6317761c23c27771349ba601513"
+size = 1860846
+url = "https://github.com/google/yamlfmt/releases/download/v0.17.2/yamlfmt_0.17.2_Windows_x86_64.tar.gz"

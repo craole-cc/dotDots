@@ -87,7 +87,6 @@ foreach ($path in $paths.GetEnumerator()) {
         $loc = $path.Value
 
         Write-Debug "$ctx_tag Processing $idx $idx_tag from $loc"
-        # Write-Pretty -Tag 'Debug' Found $idx $idx_tag from $loc #TODO: This terminates the script, figure out a better way to handle this. It has to do with the fact that Write-Pretty is defined in Bin which is being loaded in this loop.
         $modules | ForEach-Object { Import-Module $_.FullName -Force }
       }
     }

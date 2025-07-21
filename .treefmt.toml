@@ -30,19 +30,19 @@ excludes = [
 ]
 
 #| Documentation
-[formatter.markdown]
-command = "markdownlint-cli2"
-includes = ["*.md", "README"]
-options = ["--fix"]
-# options = ["--fix", "--config", ".markdownlint.yaml"]
-priority = 1
+# [formatter.markdown]
+# command = "markdownlint-cli2"
+# includes = ["*.md", "README"]
+# options = ["--fix"]
+# # options = ["--fix", "--config", ".markdownlint.yaml"]
+# priority = 1
 
-[formatter.mdsh]
-command = "mdsh"
-excludes = []
-includes = ["README.md"]
-options = ["--inputs"]
-priority = 2
+# [formatter.mdsh]
+# command = "mdsh"
+# excludes = []
+# includes = ["README.md"]
+# options = ["--inputs"]
+# priority = 2
 
 #| Nix
 # [formatter.nixfmt]
@@ -50,10 +50,10 @@ priority = 2
 # priority = 2
 # command = "nixfmt"
 
-[formatter.alejandra]
-includes = ["*.nix"]
-priority = 1
-command = "alejandra"
+# [formatter.alejandra]
+# includes = ["*.nix"]
+# priority = 1
+# command = "alejandra"
 
 # [formatter.deadnix]
 # includes = ["*.nix"]
@@ -105,10 +105,10 @@ includes = [
 ]
 priority = 2
 
-[formatter.fish]
-command = "fish_indent"
-includes = ["*.fish"]
-options = ["--write"]
+# [formatter.fish]
+# command = "fish_indent"
+# includes = ["*.fish"]
+# options = ["--write"]
 
 # [formatter.psscriptanalyzer]
 # includes = ["*.ps1"]
@@ -249,9 +249,9 @@ options = ["fmt"]
 # includes = ["*"]
 # options = []
 
-[formatter.nufmt]
-includes = ["*.nu", "Bin/nushell/**"]
-command = "nufmt"
+# [formatter.nufmt]
+# includes = ["*.nu", "Bin/nushell/**"]
+# command = "nufmt"
 
 # #| Ruby
 # [formatter.rufo]
@@ -280,33 +280,40 @@ command = "nufmt"
 # includes = ["*.tf", "*.tfvars", "*.tftest.hcl"]
 # options = ["fmt"]
 
-[formatter.texfmt]
-command = "tex-fmt"
-excludes = []
-includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
-options = []
-
-[formatter.typstfmt]
-command = "typstfmt"
-excludes = []
-includes = ["*.typ", "*.typst"]
-options = []
-priority = 1
+# [formatter.texfmt]
+# command = "tex-fmt"
+# excludes = []
+# includes = ["*.tex", "*.sty", "*.cls", "*.bib", "*.cmh"]
+# options = []
 
 [formatter.typstyle]
 command = "typstyle"
 excludes = []
 includes = ["*.typ", "*.typst"]
 options = ["-i"]
-priority = 2
+priority = 1
 
-# [formatter.typos]
-# excludes = []
-# includes = ["*"]
-# command = "typos"
-# # options = ["--color", "always", "--config", ".typos.toml"]
-# # options = ["--write-changes"]
-# options = ["--diff"]
+[formatter.typos]
+excludes = []
+includes = [
+  "*.typ",
+  "*.typst",
+  "*.md",
+  "*.txt",
+  "*.rst",
+  "*.html",
+  "*.css",
+  "*.js",
+  "*.json",
+  "*.jsonc",
+  "*.yaml",
+  "*.yml",
+  "*.toml",
+]
+command = "typos"
+# options = ["--color", "always", "--config", ".typos.toml"]
+# options = ["--write-changes"]
+options = ["--diff"]
 
 #| YAML formatting
 [formatter.yamlfmt]
