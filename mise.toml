@@ -45,7 +45,7 @@ MSSQL_DB = "master"
 MSSQL_PORT = "14330"
 
 [hooks]
-enter = "{{mise_bin}} install" #TODO: This doesn't seem to do anything
+enter = "{{mise_bin}} install --quiet"
 
 [tasks.info]
 description = "Show the information about the project"

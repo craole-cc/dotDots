@@ -549,8 +549,8 @@ function Invoke-Editor {
     $Path = (Get-Location).Path
   }
 
-  $editorToUse = if ($Editor) { $Editor } else { Get-PreferredEditor }
-  $editorPath = Get-PreferredEditor -ReturnPath
+  $editorToUse = if ($Editor) { $Editor } else { Get-AvailableEditor }
+  $editorPath = Get-AvailableEditor -ReturnPath
 
   if (-not $editorToUse) {
     Write-Error 'No suitable editor found'

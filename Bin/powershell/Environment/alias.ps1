@@ -69,11 +69,11 @@ function Register-PathAliases {
     $envVal = [System.Environment]::ExpandEnvironmentVariables($var.Value)
 
     if (Test-Path $envVal -PathType Container) {
-      Set-Env -Name $envVar -Value $envVal -Type "cd"
-      Set-Env -Name $envVar -Value $envVal -Type "edit"
+      Set-Env -Name $envVar -Value $envVal -Type 'cd'
+      Set-Env -Name $envVar -Value $envVal -Type 'edit'
     }
     elseif (Test-Path $envVal) {
-      Set-Env -Name $envVar -Value $envVal -Type "edit"
+      Set-Env -Name $envVar -Value $envVal -Type 'edit'
     }
     else {
       continue
@@ -83,18 +83,18 @@ function Register-PathAliases {
   #{ Register PowerShell-specific profile paths
   foreach ($PSvar in $Script:specialVars.GetEnumerator()) {
     if (-not [string]::IsNullOrWhiteSpace($pSvar.Value)) {
-      Set-Env -Name $PSvar.Key -Value $pSvar.Value -Type "edit"
+      Set-Env -Name $PSvar.Key -Value $pSvar.Value -Type 'edit'
     }
   }
 
-  Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Use 'Show-PathAliases' to see available aliases."
+  Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message "Use 'Show-PathAliases' to see available aliases."
 }
 
 function Update-PathAliases {
   [CmdletBinding()]
   param()
 
-  Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Refreshing path aliases..."
+  Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message 'Refreshing path aliases...'
 
   @('cd.*', 'edit.*') | ForEach-Object {
     Get-Command -Name $_ -CommandType Function -ErrorAction SilentlyContinue |
@@ -109,18 +109,19 @@ function Global:Show-PathAliases {
   [CmdletBinding()]
   param()
 
-  Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Available cd.* aliases:"
-  Get-Command -Name "cd.*" -CommandType Function |
+  Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message 'Available cd.* aliases:'
+  Get-Command -Name 'cd.*' -CommandType Function |
   ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Green }
 
-  Write-Pretty -Tag "Info" -ContextScope $script:ctxScope -OneLine -Message "Available edit.* aliases:"
-  Get-Command -Name "edit.*" -CommandType Function |
+  Write-Pretty -Tag 'Info' -ContextScope $script:ctxScope -OneLine -Message 'Available edit.* aliases:'
+  Get-Command -Name 'edit.*' -CommandType Function |
   ForEach-Object { Write-Host "  $($_.Name)" -ForegroundColor Green }
 }
 
 #endregion
 
 #region Main
-Set-Defaults
-Register-PathAliases
+
+# 'Set-Defaults'
+# 'Register-PathAliases'
 #endregion

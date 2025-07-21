@@ -1,7 +1,6 @@
 #| Editor
 . $PSScriptRoot/editor.ps1
-
-# Get-PreferredEditor
+# Get-AvailableEditor
 # Get-PreferredEditor
 # Set-PreferredEditor
 # Get-Editor
@@ -12,7 +11,7 @@
 # Test-GuiEnvironment
 
 #| Variable
-# . $PSScriptRoot/variable.ps1
+. $PSScriptRoot/variable.ps1
 # Test-EnvVarAccess
 
 #| Alias
@@ -20,4 +19,7 @@
 # Show-PathAliases
 
 #| Fyls
-# . $PSScriptRoot/fyls.ps1
+. $PSScriptRoot/fyls.ps1
+
+#| Mise
+. $PSScriptRoot/mise.ps1
