@@ -1,0 +1,8 @@
+{
+  "loadOrder": [
+    "verbosity.ps1",
+    "pattern.ps1",
+    "test.ps1",
+    "pretty.ps1"
+  ]
+}

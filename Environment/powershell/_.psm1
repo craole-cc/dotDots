@@ -1,1 +1,0 @@
-. $PSScriptRoot/test.ps1

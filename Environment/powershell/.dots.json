@@ -1,0 +1,58 @@
+{
+  "Options": {
+    "Tag": ">>= DOTS =<<",
+    "Verbosity": "Info",
+    "VerbosePreference": "SilentlyContinue",
+    "DebugPreference": "SilentlyContinue",
+    "InformationPreference": "SilentlyContinue",
+    "WarningPreference": "Continue",
+    "ErrorActionPreference": "Continue"
+  },
+  "ExperimentalFeatures": [
+    "PSFeedbackProvider"
+  ],
+  "Excludes": [
+    "review",
+    "tmp",
+    "temp",
+    "archive",
+    "backup",
+    "*.bac",
+    "*.bak",
+    "* copy*",
+    "*.old",
+    "Tests",
+    "Test"
+  ],
+  "OrderFiles": [
+    ".dots.conf",
+    ".dots.json",
+    ".dots.toml",
+    ".dotsrc",
+    "config.json",
+    "config.toml",
+    "dots.json",
+    "dots.toml"
+  ],
+  "Includes": [
+    {
+      "path": "Bin\\powershell",
+      "modules": [
+        "components",
+        "types",
+        "output",
+        "utilities"
+      ]
+    },
+    {
+      "path": "Configuration",
+      "modules": [
+        "oh-my-posh"
+      ]
+    },
+    {
+      "path": "Tests\\powershell",
+      "modules": []
+    }
+  ]
+}
