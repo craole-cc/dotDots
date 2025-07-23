@@ -1,6 +1,4 @@
-
-#region Environment Setup
-function Global:Set-Env {
+function Set-Env {
   param(
     [ValidateSet('variable', 'alias')]
     [string]$Type = 'variable',
@@ -86,4 +84,5 @@ function Global:Set-Env {
     }
   }
 }
-#endregion
+
+Expo

@@ -1,64 +1,6 @@
-#region Mise PowerShell Integration
-
-<#
-.SYNOPSIS
-    PowerShell integration for the mise toolchain manager.
-.DESCRIPTION
-    Provides functions to initialize, install, and interact with mise from PowerShell.
-    Sets up environment variables and aliases for convenience.
-#>
-
-#region Core Functions
-
-function Global:Invoke-Mise {
-  <#
-    .SYNOPSIS
-        Invokes the mise command with provided arguments.
-    .PARAMETER Arguments
-        Arguments to pass to the mise command.
-    #>
-  param (
-    [Parameter(ValueFromRemainingArguments = $true, Position = 0)]
-    [string[]]$Arguments = @()
-  )
-  & mise @Arguments
-}
-
-function Global:Push-Mise {
-  <#
-    .SYNOPSIS
-        Pushes changes to the remote repository using mise.
-    #>
-  mise push
-  $ctx = 'mise push'
-  if ($LASTEXITCODE -eq 0) {
-    Write-Pretty -Tag 'Info' -NoNewLine -As $ctx 'Successfully committed changes to the remote repository.'
-  }
-  else {
-    Write-Pretty -Tag 'Error' -NoNewLine -As $ctx 'Failed to push changes to the remote repository.'
-  }
-}
-
-function Global:Format-Mise {
-  <#
-    .SYNOPSIS
-        Lints the mise configuration.
-    #>
-  mise lint
-  $ctx = 'mise lint'
-  if ($LASTEXITCODE -eq 0) {
-    Write-Pretty -Tag 'Info' -NoNewLine -As $ctx 'Linting completed without any issues.'
-  }
-  else {
-    Write-Pretty -Tag 'Error' -NoNewLine -As $ctx 'Issues encountered during linting.'
-  }
-}
-
-#endregion
-
 #region Installation and Initialization
 
-function Global:Install-Mise {
+function Install-Mise {
   <#
     .SYNOPSIS
         Installs mise if not already present.
@@ -135,7 +77,6 @@ function Initialize-Mise {
   }
 }
 
-#endregion
 function Set-MiseEnv {
   <#
     .SYNOPSIS
@@ -176,6 +117,56 @@ function Set-MiseEnv {
   # Set-Alias -Name push -Value Push-Mise -Scope Global -Force
   # Set-Alias -Name lint -Value Format-Mise -Scope Global -Force
 }
+
 #endregion
+
+#region Wrappers
+
+function Invoke-Mise {
+  <#
+    .SYNOPSIS
+        Invokes the mise command with provided arguments.
+    .PARAMETER Arguments
+        Arguments to pass to the mise command.
+    #>
+  param (
+    [Parameter(ValueFromRemainingArguments = $true, Position = 0)]
+    [string[]]$Arguments = @()
+  )
+  & mise @Arguments
+}
+
+function Push-Mise {
+  <#
+    .SYNOPSIS
+        Pushes changes to the remote repository using mise.
+    #>
+  mise push
+  $ctx = 'mise push'
+  if ($LASTEXITCODE -eq 0) {
+    Write-Pretty -Tag 'Info' -NoNewLine -As $ctx 'Successfully committed changes to the remote repository.'
+  }
+  else {
+    Write-Pretty -Tag 'Error' -NoNewLine -As $ctx 'Failed to push changes to the remote repository.'
+  }
+}
+
+function Format-Mise {
+  <#
+    .SYNOPSIS
+        Lints the mise configuration.
+    #>
+  mise lint
+  $ctx = 'mise lint'
+  if ($LASTEXITCODE -eq 0) {
+    Write-Pretty -Tag 'Info' -NoNewLine -As $ctx 'Linting completed without any issues.'
+  }
+  else {
+    Write-Pretty -Tag 'Error' -NoNewLine -As $ctx 'Issues encountered during linting.'
+  }
+}
+
+#endregion
+
 #~@ Initialize mise environment on script import
 Initialize-Mise

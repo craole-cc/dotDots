@@ -32,14 +32,26 @@
 
 #region Editor Configuration
 $EditorConfig = @{
-    DefaultTuiEditors = @('hx', 'nvim', 'vim', 'nano')
-    DefaultGuiEditors = @('trae', 'code-insiders', 'code', 'zed', 'zeditor', 'notepad++', 'sublime_text', 'atom')
-    CurrentEditor     = $null
-    Delimiter         = '|'
+  DefaultTuiEditors = @('helix','hx', 'nvim', 'vim', 'nano')
+  DefaultGuiEditors = @(
+    'code-insiders',
+    'code',
+    'zed',
+    'zeditor',
+    'trae',
+    'windsurf',
+    'cursor',
+    'notepad++',
+    'sublime_text',
+    'atom',
+    'notepad'
+  )
+  CurrentEditor     = $null
+  Delimiter         = '|'
 }
 
 function Test-GuiEnvironment {
-    <#
+  <#
     .SYNOPSIS
     Determines if a GUI environment is available for launching graphical editors
 
@@ -66,31 +78,31 @@ function Test-GuiEnvironment {
         Write-Host "TUI editors only"
     }
     #>
-    [CmdletBinding()]
-    param()
+  [CmdletBinding()]
+  param()
 
-    # Windows typically has GUI available
-    if ($IsWindows -or $env:OS -like '*Windows*') {
-        return $true
-    }
+  # Windows typically has GUI available
+  if ($IsWindows -or $env:OS -like '*Windows*') {
+    return $true
+  }
 
-    # Check for X11 or Wayland on Unix/Linux
-    if ($env:DISPLAY -or $env:WAYLAND_DISPLAY) {
-        return $true
-    }
+  # Check for X11 or Wayland on Unix/Linux
+  if ($env:DISPLAY -or $env:WAYLAND_DISPLAY) {
+    return $true
+  }
 
-    # Check WSL with GUI support
-    if ($env:WSL_DISTRO_NAME -and $env:DISPLAY) {
-        return $true
-    }
+  # Check WSL with GUI support
+  if ($env:WSL_DISTRO_NAME -and $env:DISPLAY) {
+    return $true
+  }
 
-    return $false
+  return $false
 }
 #endregion
 
 #region Editor Discovery
 function Get-AvailableEditor {
-    <#
+  <#
     .SYNOPSIS
     Searches for the first available editor from a prioritized list
 
@@ -127,60 +139,60 @@ function Get-AvailableEditor {
     Get-AvailableEditor -EditorList @('nonexistent', 'vim') -ReturnPath
     # Returns: "/usr/bin/vim" (full path to vim)
     #>
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter()]
-        [string[]]$EditorList,
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter()]
+    [string[]]$EditorList,
 
-        [switch]$ReturnPath
-    )
+    [switch]$ReturnPath
+  )
 
-    #{ Ensure we have something to check
-    if (-not $EditorList -or $EditorList.Length -eq 0) {
-        if (Test-GuiEnvironment) {
-            $EditorList = $EditorConfig.DefaultGuiEditors + $EditorConfig.DefaultTuiEditors
-        }
-        else {
-            $EditorList = $EditorConfig.DefaultTuiEditors
-        }
+  #{ Ensure we have something to check
+  if (-not $EditorList -or $EditorList.Length -eq 0) {
+    if (Test-GuiEnvironment) {
+      $EditorList = $EditorConfig.DefaultGuiEditors + $EditorConfig.DefaultTuiEditors
     }
-    Write-Pretty -Tag 'Verbose' -Scope 'Name'`
-        "Checking for the first available of the following $($EditorList.Count) editors " `
-        "$($EditorList -join ', ')"
-
-    #{ Try to find the first available editor
-    foreach ($editor in $EditorList) {
-        #{ Skip empty strings
-        if ([string]::IsNullOrWhiteSpace($editor)) { continue }
-        $editorIndex = $EditorList.IndexOf($editor)
-        $editorIndexStr = & Get-OrdinalString ($editorIndex + 1)
-
-        #{ Try to resolve the command of the editor
-        $command = Get-CommandFirst -Name $editor -VerifyExecutable
-        if ($command) {
-            Write-Pretty -Tag 'Trace' -Scope 'Name' `
-                "Found the $editorIndexStr listed editor, '${editor}'." `
-                "$($command.Name)" "$($command.Source)"
-
-            #{ Break the loop, returning the ediror path, if requested
-            if ($ReturnPath) { return $command.Source } else { return $command.Name }
-        }
-        else {
-            Write-Pretty -Tag 'Verbose' -Scope 'Name' -OneLine `
-                "Failed to resolve editor: $editor"
-
-            #{ Check the next editor in the list
-            continue
-        }
+    else {
+      $EditorList = $EditorConfig.DefaultTuiEditors
     }
+  }
+  Write-Pretty -Tag 'Verbose' -Scope 'Name'`
+    "Checking for the first available of the following $($EditorList.Count) editors " `
+    "$($EditorList -join ', ')"
 
-    Write-Pretty -Tag 'Verbose' 'No available editors found'
-    return $null
+  #{ Try to find the first available editor
+  foreach ($editor in $EditorList) {
+    #{ Skip empty strings
+    if ([string]::IsNullOrWhiteSpace($editor)) { continue }
+    $editorIndex = $EditorList.IndexOf($editor)
+    $editorIndexStr = & Get-OrdinalString ($editorIndex + 1)
+
+    #{ Try to resolve the command of the editor
+    $command = Get-CommandFirst -Name $editor -VerifyExecutable
+    if ($command) {
+      Write-Pretty -Tag 'Trace' -Scope 'Name' `
+        "Found the $editorIndexStr listed editor, '${editor}'." `
+        "$($command.Name)" "$($command.Source)"
+
+      #{ Break the loop, returning the ediror path, if requested
+      if ($ReturnPath) { return $command.Source } else { return $command.Name }
+    }
+    else {
+      Write-Pretty -Tag 'Verbose' -Scope 'Name' -OneLine `
+        "Failed to resolve editor: $editor"
+
+      #{ Check the next editor in the list
+      continue
+    }
+  }
+
+  Write-Pretty -Tag 'Verbose' 'No available editors found'
+  return $null
 }
 
 function Split-EditorString {
-    <#
+  <#
     .SYNOPSIS
     Parses editor preference strings with flexible delimiter support
 
@@ -217,37 +229,37 @@ function Split-EditorString {
     Split-EditorString "  code  ,  , none,   hx  "
     # Returns: @('code', 'hx')
     #>
-    [CmdletBinding()]
-    param(
-        [string]$EditorString,
-        [string]$Delimiter = $EditorConfig.Delimiter
-    )
+  [CmdletBinding()]
+  param(
+    [string]$EditorString,
+    [string]$Delimiter = $EditorConfig.Delimiter
+  )
 
-    if ([string]::IsNullOrWhiteSpace($EditorString)) {
-        return @()
-    }
+  if ([string]::IsNullOrWhiteSpace($EditorString)) {
+    return @()
+  }
 
-    # Normalize multiple delimiters: comma, pipe, colon, multiple spaces
-    $normalized = $EditorString `
-        -replace ',\s*', $Delimiter `
-        -replace '\|\s*', $Delimiter `
-        -replace ':\s*', $Delimiter `
-        -replace '\s{2,}', $Delimiter `
-        -replace '\s+', $Delimiter
+  # Normalize multiple delimiters: comma, pipe, colon, multiple spaces
+  $normalized = $EditorString `
+    -replace ',\s*', $Delimiter `
+    -replace '\|\s*', $Delimiter `
+    -replace ':\s*', $Delimiter `
+    -replace '\s{2,}', $Delimiter `
+    -replace '\s+', $Delimiter
 
-    # Split and filter out empty/none values
-    $editors = $normalized -split [regex]::Escape($Delimiter) | Where-Object {
-        -not [string]::IsNullOrWhiteSpace($_) -and $_ -ne 'none'
-    }
+  # Split and filter out empty/none values
+  $editors = $normalized -split [regex]::Escape($Delimiter) | Where-Object {
+    -not [string]::IsNullOrWhiteSpace($_) -and $_ -ne 'none'
+  }
 
-    return $editors
+  return $editors
 }
 
 #endregion
 
 #region Editor Selection
 function Get-PreferredEditor {
-    <#
+  <#
     .SYNOPSIS
     Gets the preferred editor based on environment and configuration
 
@@ -263,77 +275,77 @@ function Get-PreferredEditor {
     .PARAMETER Force
     Force re-evaluation even if editor is already cached
     #>
-    [CmdletBinding()]
-    param(
-        [string]$CustomTuiEditors,
-        [string]$CustomGuiEditors,
-        [switch]$ReturnPath,
-        [switch]$Force
-    )
+  [CmdletBinding()]
+  param(
+    [string]$CustomTuiEditors,
+    [string]$CustomGuiEditors,
+    [switch]$ReturnPath,
+    [switch]$Force
+  )
 
-    #{ Return cached editor if available and not forcing re-evaluation
-    if (-not $Force -and $EditorConfig.CurrentEditor -and -not $ReturnPath) {
-        return $EditorConfig.CurrentEditor
-    }
+  #{ Return cached editor if available and not forcing re-evaluation
+  if (-not $Force -and $EditorConfig.CurrentEditor -and -not $ReturnPath) {
+    return $EditorConfig.CurrentEditor
+  }
 
-    #{ Get TUI editors from various sources (priority order)
-    $tuiEditors = if ($CustomTuiEditors) {
-        Split-EditorString $CustomTuiEditors
-    }
-    elseif ($env:EDITOR_TUI) {
-        Split-EditorString $env:EDITOR_TUI
-    }
-    elseif ($env:EDITOR) {
-        Split-EditorString $env:EDITOR
-    }
-    else {
-        $EditorConfig.DefaultTuiEditors
-    }
+  #{ Get TUI editors from various sources (priority order)
+  $tuiEditors = if ($CustomTuiEditors) {
+    Split-EditorString $CustomTuiEditors
+  }
+  elseif ($env:EDITOR_TUI) {
+    Split-EditorString $env:EDITOR_TUI
+  }
+  elseif ($env:EDITOR) {
+    Split-EditorString $env:EDITOR
+  }
+  else {
+    $EditorConfig.DefaultTuiEditors
+  }
 
-    #{ Get GUI editors from various sources (priority order)
-    $guiEditors = if ($CustomGuiEditors) {
-        Split-EditorString $CustomGuiEditors
-    }
-    elseif ($env:EDITOR_GUI) {
-        Split-EditorString $env:EDITOR_GUI
-    }
-    elseif ($env:VISUAL) {
-        Split-EditorString $env:VISUAL
-    }
-    else {
-        $EditorConfig.DefaultGuiEditors
-    }
+  #{ Get GUI editors from various sources (priority order)
+  $guiEditors = if ($CustomGuiEditors) {
+    Split-EditorString $CustomGuiEditors
+  }
+  elseif ($env:EDITOR_GUI) {
+    Split-EditorString $env:EDITOR_GUI
+  }
+  elseif ($env:VISUAL) {
+    Split-EditorString $env:VISUAL
+  }
+  else {
+    $EditorConfig.DefaultGuiEditors
+  }
 
-    # Determine editor priority based on environment
-    $editorList = if (Test-GuiEnvironment) {
-        $guiEditors + $tuiEditors  # GUI first, TUI fallback
-    }
-    else {
-        $tuiEditors  # TUI only in non-GUI environments
-    }
+  # Determine editor priority based on environment
+  $editorList = if (Test-GuiEnvironment) {
+    $guiEditors + $tuiEditors  # GUI first, TUI fallback
+  }
+  else {
+    $tuiEditors  # TUI only in non-GUI environments
+  }
 
-    # Find first available editor
-    $selectedEditor = Get-AvailableEditor -EditorList $editorList -ReturnPath:$ReturnPath
+  # Find first available editor
+  $selectedEditor = Get-AvailableEditor -EditorList $editorList -ReturnPath:$ReturnPath
 
-    if ($selectedEditor) {
-        if (-not $ReturnPath) {
-            $EditorConfig.CurrentEditor = $selectedEditor
-        }
-        return $selectedEditor
-    }
-
-    # Ultimate fallbacks
-    $fallback = if ($IsWindows -or $env:OS -like '*Windows*') { 'notepad' } else { 'vi' }
-
+  if ($selectedEditor) {
     if (-not $ReturnPath) {
-        $EditorConfig.CurrentEditor = $fallback
+      $EditorConfig.CurrentEditor = $selectedEditor
     }
+    return $selectedEditor
+  }
 
-    return $fallback
+  # Ultimate fallbacks
+  $fallback = if ($IsWindows -or $env:OS -like '*Windows*') { 'notepad' } else { 'vi' }
+
+  if (-not $ReturnPath) {
+    $EditorConfig.CurrentEditor = $fallback
+  }
+
+  return $fallback
 }
 
 function Set-PreferredEditor {
-    <#
+  <#
     .SYNOPSIS
     Sets the preferred editor configuration
 
@@ -343,28 +355,28 @@ function Set-PreferredEditor {
     .PARAMETER GuiEditors
     String of GUI editors in preference order
     #>
-    [CmdletBinding()]
-    param(
-        [string]$TuiEditors,
-        [string]$GuiEditors
-    )
+  [CmdletBinding()]
+  param(
+    [string]$TuiEditors,
+    [string]$GuiEditors
+  )
 
-    # Clear cached editor to force re-evaluation
-    $EditorConfig.CurrentEditor = $null
+  # Clear cached editor to force re-evaluation
+  $EditorConfig.CurrentEditor = $null
 
-    # Get new preferred editor
-    $newEditor = Get-PreferredEditor -CustomTuiEditors $TuiEditors -CustomGuiEditors $GuiEditors
+  # Get new preferred editor
+  $newEditor = Get-PreferredEditor -CustomTuiEditors $TuiEditors -CustomGuiEditors $GuiEditors
 
-    Write-Pretty -Tag 'Verbose' 'Editor preference updated: ' -NoNewline
-    Write-Pretty -Tag 'Verbose' $newEditor -ForegroundColor Green
+  Write-Pretty -Tag 'Verbose' 'Editor preference updated: ' -NoNewline
+  Write-Pretty -Tag 'Verbose' $newEditor -ForegroundColor Green
 
-    return $newEditor
+  return $newEditor
 }
 #endregion
 
 #region New Required Functions
 function Get-Editor {
-    <#
+  <#
     .SYNOPSIS
     Gets the current preferred editor (simplified interface)
 
@@ -395,16 +407,16 @@ function Get-Editor {
     and reused until explicitly changed with Set-Editor or cleared with -Force
     on the underlying Get-PreferredEditor function.
     #>
-    [CmdletBinding()]
-    param(
-        [switch]$ReturnPath
-    )
+  [CmdletBinding()]
+  param(
+    [switch]$ReturnPath
+  )
 
-    return Get-PreferredEditor -ReturnPath:$ReturnPath
+  return Get-PreferredEditor -ReturnPath:$ReturnPath
 }
 
 function Set-Editor {
-    <#
+  <#
     .SYNOPSIS
     Sets the preferred editor (simplified interface)
 
@@ -450,34 +462,34 @@ function Set-Editor {
     choice regardless of GUI/TUI environment detection. When using preference
     mode, the system intelligently selects based on environment and availability.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'Single')]
-    param(
-        [Parameter(ParameterSetName = 'Single', Position = 0)]
-        [string]$Editor,
+  [CmdletBinding(DefaultParameterSetName = 'Single')]
+  param(
+    [Parameter(ParameterSetName = 'Single', Position = 0)]
+    [string]$Editor,
 
-        [Parameter(ParameterSetName = 'Separate')]
-        [string]$TuiEditors,
+    [Parameter(ParameterSetName = 'Separate')]
+    [string]$TuiEditors,
 
-        [Parameter(ParameterSetName = 'Separate')]
-        [string]$GuiEditors
-    )
+    [Parameter(ParameterSetName = 'Separate')]
+    [string]$GuiEditors
+  )
 
-    if ($Editor) {
-        # Set single editor
-        $EditorConfig.CurrentEditor = $Editor
-        Write-Verbose "Editor set to: $Editor"
-        return $Editor
-    }
-    else {
-        # Use intelligent selection with custom preferences
-        return Set-PreferredEditor -TuiEditors $TuiEditors -GuiEditors $GuiEditors
-    }
+  if ($Editor) {
+    # Set single editor
+    $EditorConfig.CurrentEditor = $Editor
+    Write-Verbose "Editor set to: $Editor"
+    return $Editor
+  }
+  else {
+    # Use intelligent selection with custom preferences
+    return Set-PreferredEditor -TuiEditors $TuiEditors -GuiEditors $GuiEditors
+  }
 }
 #endregion
 
 #region Public Interface
 function Invoke-Editor {
-    <#
+  <#
     .SYNOPSIS
     Launches the preferred editor with intelligent argument handling
 
@@ -537,49 +549,49 @@ function Invoke-Editor {
     This approach handles edge cases where PATH resolution or shell integration
     might cause issues with certain editors.
     #>
-    [CmdletBinding()]
-    param(
-        [string]$Path,
-        [string[]]$Arguments = @(),
-        [string]$Editor
-    )
+  [CmdletBinding()]
+  param(
+    [string]$Path,
+    [string[]]$Arguments = @(),
+    [string]$Editor
+  )
 
-    # Default to current directory if no path provided
-    if ([string]::IsNullOrWhiteSpace($Path)) {
-        $Path = (Get-Location).Path
+  # Default to current directory if no path provided
+  if ([string]::IsNullOrWhiteSpace($Path)) {
+    $Path = (Get-Location).Path
+  }
+
+  $editorToUse = if ($Editor) { $Editor } else { Get-AvailableEditor }
+  $editorPath = Get-AvailableEditor -ReturnPath
+
+  if (-not $editorToUse) {
+    Write-Error 'No suitable editor found'
+    return
+  }
+
+  try {
+    $allArgs = @($Path) + $Arguments
+    Write-Verbose "Opening '$Path' with $editorToUse"
+
+    & $editorToUse @allArgs
+  }
+  catch {
+    Write-Warning "Failed to launch $editorToUse with path '$Path'. Error: $($_.Exception.Message)"
+
+    # Try with full path if command name failed
+    if ($editorPath -and $editorPath -ne $editorToUse) {
+      try {
+        & $editorPath @allArgs
+      }
+      catch {
+        Write-Error "Failed to launch editor: $($_.Exception.Message)"
+      }
     }
-
-    $editorToUse = if ($Editor) { $Editor } else { Get-AvailableEditor }
-    $editorPath = Get-AvailableEditor -ReturnPath
-
-    if (-not $editorToUse) {
-        Write-Error 'No suitable editor found'
-        return
-    }
-
-    try {
-        $allArgs = @($Path) + $Arguments
-        Write-Verbose "Opening '$Path' with $editorToUse"
-
-        & $editorToUse @allArgs
-    }
-    catch {
-        Write-Warning "Failed to launch $editorToUse with path '$Path'. Error: $($_.Exception.Message)"
-
-        # Try with full path if command name failed
-        if ($editorPath -and $editorPath -ne $editorToUse) {
-            try {
-                & $editorPath @allArgs
-            }
-            catch {
-                Write-Error "Failed to launch editor: $($_.Exception.Message)"
-            }
-        }
-    }
+  }
 }
 
 function Show-EditorConfig {
-    <#
+  <#
     .SYNOPSIS
     Displays comprehensive editor configuration and system analysis
 
@@ -607,45 +619,45 @@ function Show-EditorConfig {
     - All relevant environment variables and their values
     - Complete list of editors with availability status
     #>
-    [CmdletBinding()]
-    param()
+  [CmdletBinding()]
+  param()
 
-    Write-Host "`n=== Editor Configuration ===" -ForegroundColor Cyan
+  Write-Host "`n=== Editor Configuration ===" -ForegroundColor Cyan
 
-    # Current editor
-    $currentEditor = Get-PreferredEditor
-    $currentPath = Get-PreferredEditor -ReturnPath
-    $hasGui = Test-GuiEnvironment
+  # Current editor
+  $currentEditor = Get-PreferredEditor
+  $currentPath = Get-PreferredEditor -ReturnPath
+  $hasGui = Test-GuiEnvironment
 
-    Write-Pretty -Tag 'Editor' 'Current Editor: ' -NoNewline
-    Write-Pretty -Tag 'Editor' $currentEditor -ForegroundColor Green
-    Write-Pretty -Tag 'Editor' 'Editor Path: ' -NoNewline
-    Write-Pretty -Tag 'Editor' $currentPath -ForegroundColor Green
-    Write-Pretty -Tag 'Editor' 'Environment: ' -NoNewline
-    Write-Pretty -Tag 'Editor' $(if ($hasGui) { 'GUI Available' } else { 'TUI Only' }) -ForegroundColor Green
+  Write-Pretty -Tag 'Editor' 'Current Editor: ' -NoNewline
+  Write-Pretty -Tag 'Editor' $currentEditor -ForegroundColor Green
+  Write-Pretty -Tag 'Editor' 'Editor Path: ' -NoNewline
+  Write-Pretty -Tag 'Editor' $currentPath -ForegroundColor Green
+  Write-Pretty -Tag 'Editor' 'Environment: ' -NoNewline
+  Write-Pretty -Tag 'Editor' $(if ($hasGui) { 'GUI Available' } else { 'TUI Only' }) -ForegroundColor Green
 
-    # Environment variables
-    Write-Pretty -Tag 'Editor' "`nEnvironment Variables:"
-    @('EDITOR_GUI', 'EDITOR_TUI', 'VISUAL', 'EDITOR') | ForEach-Object {
-        $value = Get-Item "env:$_" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
-        Write-Pretty -Tag 'Editor' "  ${_}: " -NoNewline
-        Write-Pretty -Tag 'Editor' $(if ($value) { $value } else { '(not set)' }) -ForegroundColor $(if ($value) { 'Green' } else { 'Gray' })
-    }
+  # Environment variables
+  Write-Pretty -Tag 'Editor' "`nEnvironment Variables:"
+  @('EDITOR_GUI', 'EDITOR_TUI', 'VISUAL', 'EDITOR') | ForEach-Object {
+    $value = Get-Item "env:$_" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
+    Write-Pretty -Tag 'Editor' "  ${_}: " -NoNewline
+    Write-Pretty -Tag 'Editor' $(if ($value) { $value } else { '(not set)' }) -ForegroundColor $(if ($value) { 'Green' } else { 'Gray' })
+  }
 
-    # Available editors
-    Write-Pretty -Tag 'Editor' "`nAvailable Editors:"
-    $allEditors = ($EditorConfig.DefaultGuiEditors + $EditorConfig.DefaultTuiEditors) | Sort-Object -Unique
+  # Available editors
+  Write-Pretty -Tag 'Editor' "`nAvailable Editors:"
+  $allEditors = ($EditorConfig.DefaultGuiEditors + $EditorConfig.DefaultTuiEditors) | Sort-Object -Unique
 
-    foreach ($editor in $allEditors) {
-        $available = Get-Command $editor -ErrorAction SilentlyContinue
-        $status = if ($available) { '✓' } else { '✗' }
-        $color = if ($available) { 'Green' } else { 'Red' }
-        Write-Pretty -Tag 'Editor' "  $status $editor" -ForegroundColor $color
-    }
+  foreach ($editor in $allEditors) {
+    $available = Get-Command $editor -ErrorAction SilentlyContinue
+    $status = if ($available) { '✓' } else { '✗' }
+    $color = if ($available) { 'Green' } else { 'Red' }
+    Write-Pretty -Tag 'Editor' "  $status $editor" -ForegroundColor $color
+  }
 }
 
 function Set-EditorPreference {
-    <#
+  <#
     .SYNOPSIS
     Interactive editor preference configuration
 
@@ -661,40 +673,40 @@ function Set-EditorPreference {
     .PARAMETER Show
     Show current configuration
     #>
-    [CmdletBinding()]
-    param(
-        [Parameter(ParameterSetName = 'Single')]
-        [string]$Editor,
+  [CmdletBinding()]
+  param(
+    [Parameter(ParameterSetName = 'Single')]
+    [string]$Editor,
 
-        [Parameter(ParameterSetName = 'Separate')]
-        [string]$TuiEditors,
+    [Parameter(ParameterSetName = 'Separate')]
+    [string]$TuiEditors,
 
-        [Parameter(ParameterSetName = 'Separate')]
-        [string]$GuiEditors,
+    [Parameter(ParameterSetName = 'Separate')]
+    [string]$GuiEditors,
 
-        [Parameter(ParameterSetName = 'Show')]
-        [switch]$Show
-    )
+    [Parameter(ParameterSetName = 'Show')]
+    [switch]$Show
+  )
 
-    if ($Show -or (-not $Editor -and -not $TuiEditors -and -not $GuiEditors)) {
-        Show-EditorConfig
-        return
-    }
+  if ($Show -or (-not $Editor -and -not $TuiEditors -and -not $GuiEditors)) {
+    Show-EditorConfig
+    return
+  }
 
-    if ($Editor) {
-        # Force single editor
-        Set-Editor -Editor $Editor
-    }
-    else {
-        # Use intelligent selection with custom preferences
-        Set-Editor -TuiEditors $TuiEditors -GuiEditors $GuiEditors
-    }
+  if ($Editor) {
+    # Force single editor
+    Set-Editor -Editor $Editor
+  }
+  else {
+    # Use intelligent selection with custom preferences
+    Set-Editor -TuiEditors $TuiEditors -GuiEditors $GuiEditors
+  }
 }
 #endregion
 
 #region Export-EditorVariables
 function Export-EditorVariables {
-    <#
+  <#
     .SYNOPSIS
     Sets and exports EDITOR and VISUAL environment variables based on detected environment
 
@@ -739,133 +751,133 @@ function Export-EditorVariables {
     In GUI environments, both EDITOR and VISUAL are set to the same GUI editor
     for consistency and performance. In TUI-only environments, only EDITOR is set.
     #>
-    [CmdletBinding()]
-    param(
-        [string]$TuiEditor,
-        [string]$GuiEditor,
-        [ValidateSet('Process', 'User', 'Machine')]
-        [string]$Scope = 'Process'
-    )
+  [CmdletBinding()]
+  param(
+    [string]$TuiEditor,
+    [string]$GuiEditor,
+    [ValidateSet('Process', 'User', 'Machine')]
+    [string]$Scope = 'Process'
+  )
 
-    if ($TuiEditor) {
-        $TuiEditor = Get-AvailableEditor -EditorList ($TuiEditor + $EditorConfig.DefaultTuiEditors)
-    }
+  if ($TuiEditor) {
+    $TuiEditor = Get-AvailableEditor -EditorList ($TuiEditor + $EditorConfig.DefaultTuiEditors)
+  }
 
-    if ($GuiEditor) {
-        $GuiEditor = Get-AvailableEditor -EditorList ($GuiEditor + $EditorConfig.DefaultGuiEditors)
-    }
+  if ($GuiEditor) {
+    $GuiEditor = Get-AvailableEditor -EditorList ($GuiEditor + $EditorConfig.DefaultGuiEditors)
+  }
 
-    $availableEditor = Get-AvailableEditor
-    if ($availableEditor) {
-        $editorToUse = if ($TuiEditor) { $TuiEditor } else { $availableEditor }
-        [System.Environment]::SetEnvironmentVariable('EDITOR', $editorToUse, $Scope)
-        Write-Pretty -DebugEnv 'EDITOR' "$availableEditor"
+  $availableEditor = Get-AvailableEditor
+  if ($availableEditor) {
+    $editorToUse = if ($TuiEditor) { $TuiEditor } else { $availableEditor }
+    [System.Environment]::SetEnvironmentVariable('EDITOR', $editorToUse, $Scope)
+    Write-Pretty -DebugEnv 'EDITOR' "$availableEditor"
 
-        $hasGui = Test-GuiEnvironment
-        if ($hasGui) {
-            $editorToUse = if ($GuiEditor) { $GuiEditor } else { $availableEditor }
-            [System.Environment]::SetEnvironmentVariable('VISUAL', $availableEditor, $Scope)
-            Write-Pretty -DebugEnv 'VISUAL' "$editorToUse"
-        }
-        else {
-            #{ Clear VISUAL in TUI-only environments
-            Write-Pretty -Tag 'Verbose' -Scope 'Name' 'Removed VISUAL (TUI-only environment)'
-            if ($Scope -eq 'Process') {
-                Remove-Item 'env:VISUAL' -ErrorAction SilentlyContinue
-            }
-            else {
-                [System.Environment]::SetEnvironmentVariable('VISUAL', $null, $Scope)
-            }
-        }
+    $hasGui = Test-GuiEnvironment
+    if ($hasGui) {
+      $editorToUse = if ($GuiEditor) { $GuiEditor } else { $availableEditor }
+      [System.Environment]::SetEnvironmentVariable('VISUAL', $availableEditor, $Scope)
+      Write-Pretty -DebugEnv 'VISUAL' "$editorToUse"
     }
     else {
-        Write-Pretty -Tag 'Warning' -Scope 'Name' 'No available editor found'
+      #{ Clear VISUAL in TUI-only environments
+      Write-Pretty -Tag 'Verbose' -Scope 'Name' 'Removed VISUAL (TUI-only environment)'
+      if ($Scope -eq 'Process') {
+        Remove-Item 'env:VISUAL' -ErrorAction SilentlyContinue
+      }
+      else {
+        [System.Environment]::SetEnvironmentVariable('VISUAL', $null, $Scope)
+      }
     }
+  }
+  else {
+    Write-Pretty -Tag 'Warning' -Scope 'Name' 'No available editor found'
+  }
 
 
-    # $hasGui = Test-GuiEnvironment
+  # $hasGui = Test-GuiEnvironment
 
-    # if ($hasGui) {
-    #   #{ In GUI environment: Set both EDITOR and VISUAL to same GUI editor
-    #   if ($GuiEditor) { $editorToUse = $GuiEditor }
-    #   else {
-    #     #{ Get best available GUI editor (only search once)
-    #     if ($env:EDITOR_GUI) {
-    #       Split-EditorString $env:EDITOR_GUI
-    #       $editorToUse = Get-AvailableEditor -EditorList $(Split-EditorString $env:EDITOR_GUI)
-    #     }
-    #     else {
-    #       $editorToUse = Get-AvailableEditor
-    #     }
-    #   }
+  # if ($hasGui) {
+  #   #{ In GUI environment: Set both EDITOR and VISUAL to same GUI editor
+  #   if ($GuiEditor) { $editorToUse = $GuiEditor }
+  #   else {
+  #     #{ Get best available GUI editor (only search once)
+  #     if ($env:EDITOR_GUI) {
+  #       Split-EditorString $env:EDITOR_GUI
+  #       $editorToUse = Get-AvailableEditor -EditorList $(Split-EditorString $env:EDITOR_GUI)
+  #     }
+  #     else {
+  #       $editorToUse = Get-AvailableEditor
+  #     }
+  #   }
 
-    #   if ($editorToUse) {
-    #     #{ Set both to the same GUI editor
-    #     if ($Scope -eq 'Process') {
-    #       $env:EDITOR = $editorToUse
-    #       $env:VISUAL = $editorToUse
-    #     }
-    #     else {
-    #       [System.Environment]::SetEnvironmentVariable('EDITOR', $editorToUse, $Scope)
-    #       [System.Environment]::SetEnvironmentVariable('VISUAL', $editorToUse, $Scope)
-    #     }
-    #     Write-Pretty -Tag "Debug" -Scope "Name" `
-    #       "VISUAL| EDITOR => $editorToUse '
-    #   }
-    #   else {
-    #     Write-Pretty -Tag 'Warning" -Scope "Name" `
-    #       "No suitable GUI editor found"
-    #   }
-    # }
-    # else {
-    #   #{ In TUI-only environment: Set only EDITOR to best TUI editor
-    #   $tuiEditorToUse = if ($TuiEditor) { $TuiEditor }
-    #   else {
-    #     #{ Get best available TUI editor
-    #     $tuiEditors = if ($env:EDITOR_TUI) {
-    #       Split-EditorString $env:EDITOR_TUI
-    #     }
-    #     else {
-    #       $EditorConfig.DefaultTuiEditors
-    #     }
-    #     Get-AvailableEditor -EditorList $tuiEditors
-    #   }
+  #   if ($editorToUse) {
+  #     #{ Set both to the same GUI editor
+  #     if ($Scope -eq 'Process') {
+  #       $env:EDITOR = $editorToUse
+  #       $env:VISUAL = $editorToUse
+  #     }
+  #     else {
+  #       [System.Environment]::SetEnvironmentVariable('EDITOR', $editorToUse, $Scope)
+  #       [System.Environment]::SetEnvironmentVariable('VISUAL', $editorToUse, $Scope)
+  #     }
+  #     Write-Pretty -Tag "Debug" -Scope "Name" `
+  #       "VISUAL| EDITOR => $editorToUse '
+  #   }
+  #   else {
+  #     Write-Pretty -Tag 'Warning" -Scope "Name" `
+  #       "No suitable GUI editor found"
+  #   }
+  # }
+  # else {
+  #   #{ In TUI-only environment: Set only EDITOR to best TUI editor
+  #   $tuiEditorToUse = if ($TuiEditor) { $TuiEditor }
+  #   else {
+  #     #{ Get best available TUI editor
+  #     $tuiEditors = if ($env:EDITOR_TUI) {
+  #       Split-EditorString $env:EDITOR_TUI
+  #     }
+  #     else {
+  #       $EditorConfig.DefaultTuiEditors
+  #     }
+  #     Get-AvailableEditor -EditorList $tuiEditors
+  #   }
 
-    #   if ($tuiEditorToUse) {
-    #     if ($Scope -eq 'Process') {
-    #       $env:EDITOR = $tuiEditorToUse
-    #     }
-    #     else {
-    #       [System.Environment]::SetEnvironmentVariable('EDITOR', $tuiEditorToUse, $Scope)
-    #     }
+  #   if ($tuiEditorToUse) {
+  #     if ($Scope -eq 'Process') {
+  #       $env:EDITOR = $tuiEditorToUse
+  #     }
+  #     else {
+  #       [System.Environment]::SetEnvironmentVariable('EDITOR', $tuiEditorToUse, $Scope)
+  #     }
 
-    #     Write-Pretty -Tag "Debug" -Scope "Name"  "EDITOR => $editorToUse"
-    #   }
-    #   else {
-    #     #{ Fallback to universal editor
-    #     $fallbackEditor = if ($IsWindows -or $env:OS -like "*Windows*") { 'notepad' } else { 'nano' }
-    #     if ($Scope -eq 'Process') {
-    #       $env:EDITOR = $fallbackEditor
-    #     }
-    #     else {
-    #       [System.Environment]::SetEnvironmentVariable('EDITOR', $fallbackEditor, $Scope)
-    #     }
-    #     Write-Pretty -Tag "Debug" -Scope "Name" "EDITOR => $fallbackEditor (fallback)'
-    #   }
+  #     Write-Pretty -Tag "Debug" -Scope "Name"  "EDITOR => $editorToUse"
+  #   }
+  #   else {
+  #     #{ Fallback to universal editor
+  #     $fallbackEditor = if ($IsWindows -or $env:OS -like "*Windows*") { 'notepad' } else { 'nano' }
+  #     if ($Scope -eq 'Process') {
+  #       $env:EDITOR = $fallbackEditor
+  #     }
+  #     else {
+  #       [System.Environment]::SetEnvironmentVariable('EDITOR', $fallbackEditor, $Scope)
+  #     }
+  #     Write-Pretty -Tag "Debug" -Scope "Name" "EDITOR => $fallbackEditor (fallback)'
+  #   }
 
-    #   # Clear VISUAL in TUI-only environments
-    #   Write-Pretty -Tag 'Export" "VISUAL not set (TUI-only environment)"
-    #   if ($Scope -eq 'Process') {
-    #     Remove-Item "env:VISUAL" -ErrorAction SilentlyContinue
-    #   }
-    #   else {
-    #     [System.Environment]::SetEnvironmentVariable('VISUAL', $null, $Scope)
-    #   }
-    # }
+  #   # Clear VISUAL in TUI-only environments
+  #   Write-Pretty -Tag 'Export" "VISUAL not set (TUI-only environment)"
+  #   if ($Scope -eq 'Process') {
+  #     Remove-Item "env:VISUAL" -ErrorAction SilentlyContinue
+  #   }
+  #   else {
+  #     [System.Environment]::SetEnvironmentVariable('VISUAL', $null, $Scope)
+  #   }
+  # }
 }
 
 function Initialize-EditorEnvironment {
-    <#
+  <#
     .SYNOPSIS
     Complete editor environment initialization
 
@@ -883,20 +895,20 @@ function Initialize-EditorEnvironment {
     .PARAMETER Force
     Force re-initialization even if already configured
     #>
-    [CmdletBinding()]
-    param(
-        [ValidateSet('Process', 'User', 'Machine')]
-        [string]$ExportScope = 'Process',
-        [switch]$Force
-    )
+  [CmdletBinding()]
+  param(
+    [ValidateSet('Process', 'User', 'Machine')]
+    [string]$ExportScope = 'Process',
+    [switch]$Force
+  )
 
-    #{ Initialize editor selection
-    $EditorConfig.CurrentEditor = Get-PreferredEditor -Force $Force
+  #{ Initialize editor selection
+  $EditorConfig.CurrentEditor = Get-PreferredEditor -Force $Force
 
-    #{ Export standard environment variables
-    Export-EditorVariables -Scope $ExportScope
+  #{ Export standard environment variables
+  Export-EditorVariables -Scope $ExportScope
 
-    Write-Pretty -Tag 'Verbose' -Scope 'Name' 'Editor environment initialized successfully'
+  Write-Pretty -Tag 'Verbose' -Scope 'Name' 'Editor environment initialized successfully'
 }
 
 #endregion
@@ -911,18 +923,17 @@ Set-Alias -Name 'edit' -Value 'Invoke-Editor' -Description 'Quick editor launche
 
 # Export main functions for use in other scripts
 Export-ModuleMember -Function @(
-    'Get-PreferredEditor',
-    'Get-AvailableEditor',
-    'Set-PreferredEditor',
-    'Get-Editor',
-    'Set-Editor',
-    'Invoke-Editor',
-    'Show-EditorConfig',
-    'Set-EditorPreference',
-    'Test-GuiEnvironment',
-    'Export-EditorVariables',
-    'Initialize-EditorEnvironment'
+  'Get-PreferredEditor',
+  'Get-AvailableEditor',
+  'Set-PreferredEditor',
+  'Get-Editor',
+  'Set-Editor',
+  'Invoke-Editor',
+  'Show-EditorConfig',
+  'Set-EditorPreference',
+  'Test-GuiEnvironment',
+  'Export-EditorVariables',
+  'Initialize-EditorEnvironment'
 ) -Alias @('edit')
 
 #endregion
-

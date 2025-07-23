@@ -1,293 +1,330 @@
 ﻿# Method 1: Using quotes (simplest and most reliable)
-function Global:Format-WindowsPathQuoted {
-    param([string]$Path)
-    # Escape internal quotes, then wrap in double quotes
-    $escaped = $Path -replace '"', '`"'
-    return "`"$escaped`""
+function Format-WindowsPathQuoted {
+  param([string]$Path)
+  # Escape internal quotes, then wrap in double quotes
+  $escaped = $Path -replace '"', '`"'
+  return "`"$escaped`""
 }
 
 # Method 2: Alternative escaping method
-function Global:Format-WindowsPathEscaped {
-    param([string]$Path)
-    # Escape quotes and backticks, then wrap in quotes
-    $escaped = $Path -replace '`', '``' -replace '"', '`"'
-    return "`"$escaped`""
+function Format-WindowsPathEscaped {
+  param([string]$Path)
+  # Escape quotes and backticks, then wrap in quotes
+  $escaped = $Path -replace '`', '``' -replace '"', '`"'
+  return "`"$escaped`""
 }
 
 # Method 3: Manual escaping (if you need fine control)
-function Global:Format-WindowsPathManual {
-    param([string]$Path)
-    # Escape double quotes and backticks, then wrap in quotes
-    $escaped = $Path -replace '"', '`"' -replace '`', '``'
-    return "`"$escaped`""
+function Format-WindowsPathManual {
+  param([string]$Path)
+  # Escape double quotes and backticks, then wrap in quotes
+  $escaped = $Path -replace '"', '`"' -replace '`', '``'
+  return "`"$escaped`""
 }
 
 # Method 4: For use with external processes (cmd.exe style)
-function Global:Format-WindowsPathForCmd {
-    param([string]$Path)
-    # For passing to cmd.exe or external executables
-    if ($Path -match '[ &()^!"]') {
-        # Contains special chars, wrap in quotes and escape internal quotes
-        $escaped = $Path -replace '"', '""'
-        return "`"$escaped`""
-    }
-    return $Path
+function Format-WindowsPathForCmd {
+  param([string]$Path)
+  # For passing to cmd.exe or external executables
+  if ($Path -match '[ &()^!"]') {
+    # Contains special chars, wrap in quotes and escape internal quotes
+    $escaped = $Path -replace '"', '""'
+    return "`"$escaped`""
+  }
+  return $Path
 }
 
 # Improved cross-platform function
-function Global:Format-PathSafe {
-    param([string]$Path)
+function Format-PathSafe {
+  param([string]$Path)
 
-    if ($IsWindows -or ($PSVersionTable.PSVersion.Major -le 5)) {
-        # Windows - escape quotes and wrap in quotes
-        $escaped = $Path -replace '"', '`"'
-        return "`"$escaped`""
+  if ($IsWindows -or ($PSVersionTable.PSVersion.Major -le 5)) {
+    # Windows - escape quotes and wrap in quotes
+    $escaped = $Path -replace '"', '`"'
+    return "`"$escaped`""
+  }
+  else {
+    # Unix-like - escape special characters
+    if ($Path -match '[ !#^$%&*?()={}[\]`~|;<>"\\]') {
+      # Contains special chars, use single quotes (safest on Unix)
+      # To escape single quotes: close quote, add escaped quote, open quote
+      $escaped = $Path -replace "'", "'`''"
+      return "'$escaped'"
     }
-    else {
-        # Unix-like - escape special characters
-        if ($Path -match '[ !#^$%&*?()={}[\]`~|;<>"\\]') {
-            # Contains special chars, use single quotes (safest on Unix)
-            # To escape single quotes: close quote, add escaped quote, open quote
-            $escaped = $Path -replace "'", "'`''"
-            return "'$escaped'"
-        }
-        return $Path
-    }
+    return $Path
+  }
 }
 
 # Examples of usage:
 function Test-PathFormatting {
-    $testPaths = @(
-        'C:\Program Files\Test App\file.txt',
-        'C:\Users\test user\Documents\file with spaces.txt',
-        'C:\path\with"quotes\file.txt',
-        'C:\normal\path\file.txt'
-    )
+  $testPaths = @(
+    'C:\Program Files\Test App\file.txt',
+    'C:\Users\test user\Documents\file with spaces.txt',
+    'C:\path\with"quotes\file.txt',
+    'C:\normal\path\file.txt'
+  )
 
-    Write-Host "Testing path formatting methods:`n"
+  Write-Host "Testing path formatting methods:`n"
 
-    foreach ($path in $testPaths) {
-        Write-Host "Original: $path"
-        Write-Host "Quoted:   $(Format-WindowsPathQuoted $path)"
-        Write-Host "Escaped:  $(Format-WindowsPathEscaped $path)"
-        Write-Host "Safe:     $(Format-PathSafe $path)"
-        Write-Host ""
-    }
+  foreach ($path in $testPaths) {
+    Write-Host "Original: $path"
+    Write-Host "Quoted:   $(Format-WindowsPathQuoted $path)"
+    Write-Host "Escaped:  $(Format-WindowsPathEscaped $path)"
+    Write-Host "Safe:     $(Format-PathSafe $path)"
+    Write-Host ''
+  }
 }
 
 # Advanced path resolution with optional creation
-function Global:Get-SafeResolvedPath {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Path,
+function Resolve-PathSafely {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
 
-        [Parameter(Mandatory=$false)]
-        [string]$Target,
+    [Parameter(Mandatory = $false)]
+    [string]$Target,
 
-        [switch]$CreateIfMissing,
 
-        [switch]$Force,
+    [Alias ('SkipMissing', 'DontCreateIfMissing' , 'No')]
+    [switch]$NoClobber,
 
-        [switch]$Yes,
+    [Alias ('Create', 'CreateIfMissing' , 'Yes')]
+    [switch]$Force,
 
-        [ValidateSet('File', 'Directory', 'Symlink', 'Auto')]
-        [string]$ItemType = 'Auto'
-    )
+    [ValidateSet('File', 'Directory', 'Symlink', 'Auto')]
+    [string]$ItemType = 'Auto'
+  )
 
-    try {
-        # First try to resolve the path if it exists
-        if (Test-Path -Path $Path) {
-            $resolved = Resolve-Path -Path $Path -ErrorAction Stop
-            return Format-PathSafe -Path $resolved.Path
+  try {
+    #~@ First try to resolve the path if it exists
+    if (Test-Path -Path $Path) {
+      if (Resolve-Path -Path $Path -ErrorAction SilentlyContinue) {
+        $resolvedPath = $(Resolve-Path $Path).Path
+        if ($resolvedPath -ne $Path) {
+          Write-Pretty -Force -Tag 'Trace' -ContextScope Name `
+            "Provided: $Path" "Resolved: $resolvedPath"
+        }
+        return Format-PathSafe -Path $resolvedPath
+      }
+    }
+    else {
+      #~@ Get the absolute path despite it being missing
+      $unresolvedPath =  $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+      if ($unresolvedPath -ne $Path) {
+        Write-Pretty -Force -Tag 'Trace' -ContextScope Name `
+          "Provided: $Path" "Resolved: $unresolvedPath"
+      }
+    }
+    #~@ If explicitly asked not to create, just return the formatted absolute path
+    if ($NoClobber) { return $unresolvedPath }
+
+    #~@ Determine what type of item to create
+    $pathType = $ItemType
+    if ($pathType -eq 'Auto') {
+      #~@ Auto-detect based on whether path has an extension
+      $pathType = if (
+        [System.IO.Path]::HasExtension($unresolvedPath)
+      ) { 'file' } else { 'directory' }
+
+      Write-Pretty -Force -Tag 'Trace' -ContextScope Name -NoNewLine `
+        "The provided path string may be for a $pathType"
+    }
+
+    #~@ For symlinks, we need a target
+    if ($pathType -eq 'Symlink' -and -not $Target) {
+      Write-Pretty -Force -Tag 'Error' -ContextScope Name -NoNewLine`
+      "Target parameter is required for 'Symlink'"
+      return $null
+    }
+
+    #~@ Check if we should prompt or auto-create
+    $shouldCreate = $Force
+
+    if (-not $shouldCreate) {
+      $promptText = @("Missing path: $unresolvedPath`nWould you like to create it as a")
+      if ($pathType -eq 'File') {
+        $promptText += 'file?'
+      }
+      elseif ($pathType -eq 'Directory') {
+        $promptText += 'directory?'
+      }
+      else {
+        $promptText += "symlink to '$Target'?"
+      }
+      $promptText += '[y|N]'
+
+      $response = Read-Host $promptText
+      $shouldCreate = $response -match '^[Yy]'
+    }
+
+    if ($shouldCreate) {
+      if ($pathType -eq 'File') {
+        #~@ Create the directory first if it doesn't exist
+        $parentDir = Split-Path -Path $unresolvedPath -Parent
+        if (-not (Test-Path -Path $parentDir)) {
+          Write-Verbose "Creating parent directory: $parentDir"
+          New-Item -Path $parentDir -ItemType Directory -Force | Out-Null
         }
 
-        # Path doesn't exist, get the absolute path anyway
-        $absolute = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+        #~@ Create empty file
+        Write-Verbose "Creating file: $unresolvedPath"
+        New-Item -Path $unresolvedPath -ItemType File -Force | Out-Null
+      }
+      elseif ($pathType -eq 'Directory') {
+        #~@ Create directory
+        Write-Verbose "Creating directory: $unresolvedPath"
+        New-Item -Path $unresolvedPath -ItemType Directory -Force | Out-Null
+      }
+      elseif ($pathType -eq 'Symlink') {
+        #TODO: Check the symlink functionality
+        #~@ Create symlink using OS-specific commands for reliability
+        Write-Verbose "Creating symlink: $unresolvedPath -> $Target"
 
-        # If not asked to create, just return the formatted absolute path
-        if (-not $CreateIfMissing) {
-            return Format-PathSafe -Path $absolute
+        $parentDir = Split-Path -Path $unresolvedPath -Parent
+        if (-not (Test-Path -Path $parentDir)) {
+          Write-Verbose "Creating parent directory: $parentDir"
+          New-Item -Path $parentDir -ItemType Directory -Force | Out-Null
         }
 
-        # Determine what type of item to create
-        $createType = $ItemType
-        if ($createType -eq 'Auto') {
-            # Auto-detect based on whether path has an extension
-            $createType = if ([System.IO.Path]::HasExtension($absolute)) { 'File' } else { 'Directory' }
-        }
+        if (Test-IsWindows -or -not Test-IsPowerShellCore) {
+          #~@ Windows - use mklink via cmd
+          $linkName = Split-Path -Path $unresolvedPath -Leaf
+          $parentPath = Split-Path -Path $unresolvedPath -Parent
 
-        # For symlinks, we need a target
-        if ($createType -eq 'Symlink' -and -not $Target) {
-            Write-Error "Target parameter is required when ItemType is 'Symlink'"
-            return $null
-        }
+          #~@ Determine if target is directory or file for mklink flags
+          $isTargetDir = if (Test-Path -Path $Target) {
+            (Get-Item -Path $Target).PSIsContainer
+          }
+          else {
+            #~@ If target doesn't exist, guess based on extension
+            -not [System.IO.Path]::HasExtension($Target)
+          }
 
-        # Check if we should prompt or auto-create
-        $shouldCreate = $Force -or $Yes
+          $mklinkArgs = if ($isTargetDir) { "/D `"$linkName`" `"$Target`"" } else { "`"$linkName`" `"$Target`"" }
 
-        if (-not $shouldCreate) {
-            $promptText = if ($createType -eq 'File') {
-                "Path '$absolute' does not exist. Create file? (y/N)"
-            } elseif ($createType -eq 'Directory') {
-                "Path '$absolute' does not exist. Create directory? (y/N)"
-            } else {
-                "Path '$absolute' does not exist. Create symlink to '$Target'? (y/N)"
+          Push-Location $parentPath
+          try {
+            $result = cmd /c "mklink $mklinkArgs" 2>&1
+            if ($LASTEXITCODE -ne 0) {
+              throw "mklink failed: $result"
             }
-            $response = Read-Host $promptText
-            $shouldCreate = $response -match '^[Yy]'
-        }
-
-        if ($shouldCreate) {
-            if ($createType -eq 'File') {
-                # Create the directory first if it doesn't exist
-                $parentDir = Split-Path -Path $absolute -Parent
-                if (-not (Test-Path -Path $parentDir)) {
-                    Write-Verbose "Creating parent directory: $parentDir"
-                    New-Item -Path $parentDir -ItemType Directory -Force | Out-Null
-                }
-
-                # Create empty file
-                Write-Verbose "Creating file: $absolute"
-                New-Item -Path $absolute -ItemType File -Force | Out-Null
-            }
-            elseif ($createType -eq 'Directory') {
-                # Create directory
-                Write-Verbose "Creating directory: $absolute"
-                New-Item -Path $absolute -ItemType Directory -Force | Out-Null
-            }
-            elseif ($createType -eq 'Symlink') {
-                # Create symlink using OS-specific commands for reliability
-                Write-Verbose "Creating symlink: $absolute -> $Target"
-
-                $parentDir = Split-Path -Path $absolute -Parent
-                if (-not (Test-Path -Path $parentDir)) {
-                    Write-Verbose "Creating parent directory: $parentDir"
-                    New-Item -Path $parentDir -ItemType Directory -Force | Out-Null
-                }
-
-                if ($IsWindows -or ($PSVersionTable.PSVersion.Major -le 5)) {
-                    # Windows - use mklink via cmd
-                    $linkName = Split-Path -Path $absolute -Leaf
-                    $parentPath = Split-Path -Path $absolute -Parent
-
-                    # Determine if target is directory or file for mklink flags
-                    $isTargetDir = if (Test-Path -Path $Target) {
-                        (Get-Item -Path $Target).PSIsContainer
-                    } else {
-                        # If target doesn't exist, guess based on extension
-                        -not [System.IO.Path]::HasExtension($Target)
-                    }
-
-                    $mklinkArgs = if ($isTargetDir) { "/D `"$linkName`" `"$Target`"" } else { "`"$linkName`" `"$Target`"" }
-
-                    Push-Location $parentPath
-                    try {
-                        $result = cmd /c "mklink $mklinkArgs" 2>&1
-                        if ($LASTEXITCODE -ne 0) {
-                            throw "mklink failed: $result"
-                        }
-                    }
-                    finally {
-                        Pop-Location
-                    }
-                }
-                else {
-                    # Unix-like - use ln -s
-                    $result = & ln -sf $Target $absolute 2>&1
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "ln failed: $result"
-                    }
-                }
-            }
-
-            # Now resolve the newly created path
-            $resolved = Resolve-Path -Path $absolute -ErrorAction Stop
-            return Format-PathSafe -Path $resolved.Path
+          }
+          finally {
+            Pop-Location
+          }
         }
         else {
-            # User chose not to create, return the unresolved but formatted path
-            return Format-PathSafe -Path $absolute
+          # Unix-like - use ln -s
+          $result = & ln -sf $Target $unresolvedPath 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            throw "ln failed: $result"
+          }
         }
+      }
+
+      # Now resolve the newly created path
+      $resolved = Resolve-Path -Path $unresolvedPath -ErrorAction Stop
+      return Format-PathSafe -Path $resolved.Path
     }
-    catch {
-        Write-Error "Failed to process path '$Path': $($_.Exception.Message)"
-        return $null
+    else {
+      # User chose not to create, return the unresolved but formatted path
+      return Format-PathSafe -Path $unresolvedPath
     }
+  }
+  catch {
+    Write-Error "Failed to process path '$Path': $($_.Exception.Message)"
+    return $null
+  }
 }
 
 # Convenience aliases for common scenarios
-function Global:Get-SafeConfigPath {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Path,
+function Get-SafeConfigPath {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
 
-        [ValidateSet('File', 'Directory', 'Symlink', 'Auto')]
-        [string]$ItemType = 'Auto',
+    [ValidateSet('File', 'Directory', 'Symlink', 'Auto')]
+    [string]$ItemType = 'Auto',
 
-        [switch]$Force,
-        [switch]$Yes
-    )
-    # Auto-detect if it's a config file or directory based on extension, unless overridden
-    Get-SafeResolvedPath -Path $Path -CreateIfMissing -ItemType $ItemType -Force:$Force -Yes:$Yes
+    [switch]$Force,
+    [switch]$Yes
+  )
+  # Auto-detect if it's a config file or directory based on extension, unless overridden
+  Resolve-PathSafely -Path $Path -CreateIfMissing -ItemType $ItemType -Force:$Force -Yes:$Yes
 }
 
-function Global:Get-SafeFilePath {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Path,
-        [switch]$Force,
-        [switch]$Yes
-    )
-    Get-SafeResolvedPath -Path $Path -CreateIfMissing -ItemType File -Force:$Force -Yes:$Yes
+function Get-SafeFilePath {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+    [switch]$Force,
+    [switch]$Yes
+  )
+  Resolve-PathSafely -Path $Path -CreateIfMissing -ItemType File -Force:$Force -Yes:$Yes
 }
 
-function Global:Get-SafeDirectoryPath {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Path,
-        [switch]$Force,
-        [switch]$Yes
-    )
-    Get-SafeResolvedPath -Path $Path -CreateIfMissing -ItemType Directory -Force:$Force -Yes:$Yes
+function Get-SafeDirectoryPath {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+    [switch]$Force,
+    [switch]$Yes
+  )
+  Resolve-PathSafely -Path $Path -CreateIfMissing -ItemType Directory -Force:$Force -Yes:$Yes
 }
 
-function Global:New-SafeSymlink {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Path,
+function New-Symlink {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
 
-        [Parameter(Mandatory=$true)]
-        [string]$Target,
+    [Parameter(Mandatory = $true)]
+    [string]$Target,
 
-        [switch]$Force,
-        [switch]$Yes
-    )
-    Get-SafeResolvedPath -Path $Path -Target $Target -CreateIfMissing -ItemType Symlink -Force:$Force -Yes:$Yes
+    [switch]$Force,
+    [switch]$Yes
+  )
+  Resolve-PathSafely -Path $Path -Target $Target -CreateIfMissing -ItemType Symlink -Force:$Force -Yes:$Yes
 }
 
 # Example usage function
 function Test-PathResolution {
-    Write-Host "Testing path resolution with creation options:`n"
+  Write-Host "Testing path resolution with creation options:`n"
 
-    $testPaths = @(
-        'C:\temp\test-config',
-        'C:\temp\test-config\settings.json',
-        '.\relative\path\file.txt',
-        '~\Documents\MyApp\config'
-    )
+  $testPaths = @(
+    'C:\temp\test-config',
+    'C:\temp\test-config\settings.json',
+    '.\relative\path\file.txt',
+    '~\Documents\MyApp\config'
+  )
 
-    foreach ($path in $testPaths) {
-        Write-Host "Testing: $path"
+  foreach ($path in $testPaths) {
+    Write-Host "Testing: $path"
 
-        # Test without creation
-        $result1 = Get-SafeResolvedPath -Path $path
-        Write-Host "  No create: $result1"
+    # Test without creation
+    $result1 = Resolve-PathSafely -Path $path
+    Write-Host "  No create: $result1"
 
-        # Test what auto-detection would choose
-        $absolute = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
-        $hasExtension = [System.IO.Path]::HasExtension($absolute)
-        $autoType = if ($hasExtension) { 'File' } else { 'Directory' }
-        Write-Host "  Auto-detect: $autoType"
-        Write-Host ""
-    }
+    # Test what auto-detection would choose
+    $absolute = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
+    $hasExtension = [System.IO.Path]::HasExtension($absolute)
+    $autoType = if ($hasExtension) { 'File' } else { 'Directory' }
+    Write-Host "  Auto-detect: $autoType"
+    Write-Host ''
+  }
 }
+
+Export-ModuleMember -Function @(
+  'Format-PathSafe',
+  'Format-WindowsPathEscaped',
+  'Format-WindowsPathForCmd',
+  'Format-WindowsPathManual',
+  'Format-WindowsPathQuoted',
+  'Get-SafeConfigPath',
+  'Get-SafeDirectoryPath',
+  'Get-SafeFilePath',
+  'Resolve-PathSafely',
+  'New-Symlink'
+  # 'Test-PathFormatting',
+  # 'Test-PathResolution'
+)
