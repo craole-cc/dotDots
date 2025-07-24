@@ -1,4 +1,4 @@
-function Initialize-OhMyPosh {
+function Global:Invoke-OhMyPosh {
   [CmdletBinding()]
   param()
 
@@ -30,5 +30,4 @@ function Initialize-OhMyPosh {
   }
 }
 
-#{ Export module members
-Export-ModuleMember -Function Initialize-OhMyPosh
+Invoke-OhMyPosh

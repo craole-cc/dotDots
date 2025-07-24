@@ -22,15 +22,14 @@
     "* copy*",
     "*.old",
     "Tests",
-    "Test"
+    "Test",
+    "Configuration\\powershell"
   ],
   "OrderFiles": [
+    ".dotsrc",
     ".dots.conf",
     ".dots.json",
     ".dots.toml",
-    ".dotsrc",
-    "config.json",
-    "config.toml",
     "dots.json",
     "dots.toml"
   ],
@@ -41,12 +40,14 @@
         "components",
         "types",
         "output",
-        "utilities"
+        "environment",
+        "applications"
       ]
     },
     {
       "path": "Configuration",
       "modules": [
+        "mise",
         "oh-my-posh"
       ]
     },
