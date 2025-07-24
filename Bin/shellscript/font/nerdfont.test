@@ -1,0 +1,403 @@
+#!/bin/sh
+
+#region Main
+
+main() {
+  #DOC Comprehensive Nerd Fonts, Ligatures, and Iconic Directory Listing Test Script
+  #DOC
+  #DOC This script provides a comprehensive test of Nerd Fonts, ligatures, and icons in
+  #DOC the terminal. It includes various tests such as basic font rendering, development
+  #DOC icons, file and folder icons, status notifications, programming language icons,
+  #DOC editor tools, system hardware icons, media communication icons, ligature rendering,
+  #DOC italic text rendering, and directory listing with icons.
+  #DOC
+  #DOC The script checks for the presence of tools like 'lsd' or 'eza' for enhanced
+  #DOC directory listings and falls back to standard 'ls' if they are unavailable.
+  #DOC
+  #DOC It uses 'tput' for terminal formatting where possible, and has default settings
+  #DOC for terminal width and text styles. The script is modular and allows selective
+  #DOC execution of individual tests for targeted troubleshooting.
+
+  set_defaults
+  parse_arguments "$@"
+  execute_process
+}
+
+set_defaults() {
+  if command -v tput >/dev/null 2>&1; then
+    term_width="$(tput cols)"
+    fmt_bold="$(tput bold)"
+    fmt_italic="$(tput sitm)"
+    fmt_underline="$(tput smul)"
+    fmt_reset="$(tput sgr0)"
+  else
+    term_width=80
+    fmt_bold="$(printf "\e[1m")"
+    fmt_italic="$(printf "\e[3m")"
+    fmt_underline="$(printf "\e[4m")"
+    fmt_reset="$(printf "\e[0m")"
+  fi
+
+  #{ Get terminal width or fallback to 80
+  term_width="$(tput cols 2>/dev/null || printf 80)"
+
+  #{ Calculate padding based on terminal width
+  pad="$(awk -v width="${term_width}" 'BEGIN {printf "%.0f", width/3.5}')"
+
+  : "${TERM_WIDTH:="${term_width}"}"
+  : "${DELIMITER:="$(printf "\037")"}"
+  : "${BOLD:="${fmt_bold}"}"
+  : "${ITALIC:="${fmt_italic}"}"
+  : "${UNDERLINE:="${fmt_underline}"}"
+  : "${RESET:="${fmt_reset}"}"
+  : "${PAD:="${pad}"}"
+  : "${HEADER_SEP="="}"
+  : "${ICON_SEP="  "}"
+  : "${STYLE:="detailed"}"
+}
+
+parse_arguments() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --detailed | --icons) STYLE="detailed" ;;
+    --basic | --simple | --no-icons) STYLE="basic" ;;
+    *) ;;
+    esac
+    shift
+  done
+}
+#endregion
+#region Utilities
+
+pout_char() {
+  pattern="${1:?"Missing pattern to print"}"
+  repetitions="${2:-1}"
+  for _ in $(seq "${repetitions}"); do
+    printf "%b" "${pattern}"
+  done
+}
+
+pout_test() {
+  #{ Parse options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --trail-line | --newline | -l | -n | --nl) trailing_newline=1 ;;
+    --lead-line) leading_newline=1 ;;
+    --title)
+      shift
+      TITLE="$1"
+      ;;
+    --label)
+      shift
+      LABEL="$1"
+      ;;
+    --icon)
+      shift
+      ICON="${ICON:+${ICON}${ICON_SEP}}$1"
+      ;;
+    --arg)
+      shift
+      ARGS="${ARGS}${ARGS:+${DELIMITER}}$1"
+      ;;
+    --title=*) TITLE="${1#*=}" ;;
+    --label=*) LABEL="${1#*=}" ;;
+    --icon=*) ICON="${1#*=}" ;;
+    *) ARGS="${ARGS}${ARGS:+${DELIMITER}}${1}" ;;
+    esac
+    shift
+  done
+
+  #{ Print leading newline if requested
+  if [ "${leading_newline:-0}" -gt 0 ]; then
+    pout_char "\n" "${leading_newline}"
+  fi
+
+  #{ Print header if title provided
+  if [ -n "${TITLE:-}" ]; then
+    title_length="${#TITLE}"
+    pad_length="$(((TERM_WIDTH - title_length) / 2 + title_length))"
+    head_line="$(
+      seq -s "${HEADER_SEP}" "${TERM_WIDTH}" | tr -d '[:digit:]'
+    )"
+    printf "%s" "${head_line}"
+    printf "\n%*s\n" "${pad_length}" "${TITLE}"
+    printf "%s" "${head_line}"
+  fi
+
+  #{ Print label, if provided
+  if [ -n "${LABEL:-}" ]; then
+    printf "\n%${PAD}s%s ~@ " "${BOLD}${ITALIC}${LABEL}${RESET}"
+  fi
+
+  #{ Print label, if provided
+  if [ -n "${ICON:-}" ]; then
+    printf "%b%s" "${ICON}" "${ICON_SEP}"
+  fi
+
+  #{ Print arguments
+  ifs="${IFS}"
+  IFS="${DELIMITER}"
+  # shellcheck disable=SC2086
+  set -- ${ARGS:-}
+  printf "%s" "${@}"
+  IFS="${ifs}"
+
+  #{ Print trailing newline if requested
+  if [ "${trailing_newline:-0}" -gt 0 ]; then
+    pout_char "\n" "${trailing_newline}"
+  fi
+
+  #{ Reset the environment
+  printf "%s" "${RESET}"
+  unset title_length pad_length head_line
+  unset leading_newline trailing_newline
+  unset TITLE LABEL ICON ARGS
+}
+
+#endregion
+#region Tests
+
+execute_process() {
+  case "${STYLE}" in
+  detailed) execute_tests ;;
+  basic) execute_basic ;;
+  *) ;;
+  esac
+}
+
+execute_tests() {
+  test_basic
+  # test_files
+  # test_status
+  test_development
+  # test_editors
+  # test_system
+  # test_media
+  test_ligatures
+  # test_italics
+  # test_filesystem
+  test_completion_message
+}
+
+test_basic() {
+  pout_test --title "Basic Symbols"
+  pout_test --label "Letters" "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  pout_test --label "Numbers" "0123456789"
+  pout_test --label "Characters" "!@#$%^&*()_+-=[]{}|;:,.></?"
+  pout_test --label "Diacritics" "âéùïøçÃĒÆœ"
+  pout_test --label "Similar" "oO08 iIlL1 g9qCGQ 8%%& <([{}])> .,;: -_="
+  pout_test --newline
+}
+
+test_files() {
+  #| Files & Folders
+  printf "\nFiles & Folders:\n"
+  printf "folder:  \uf114"
+  printf "  | file:    \uf15b"
+  printf "  | config:  \ue615"
+  printf "  | lock:    \uf023\n"
+}
+
+test_status() {
+  #| Status & Notifications
+  printf "\nStatus & Notifications:\n"
+  printf "info: \uf05a \uf449 \udb81\ude4e"
+  printf "  | success: \uf058 \uf05d \uf00c"
+  printf "  | failure: \uf057 \uf52f \uf467"
+  printf "  | warning: \uf071 \uea6c \ue009 \n"
+}
+
+test_development() {
+  pout_test --title "Development"
+  pout_test --label "Bash" --icon "\udb84\udd83" --icon "\ue760" --icon "\uf489" --icon "\ue691" #? 󱆃   
+  pout_test --label "C" --icon "\ue771" --icon "\ue648"                                          #?  
+  pout_test --label "Go" --icon "\ue627" --icon "\ue626" --icon "\udb81\udfd3" --icon "\ue7ef"   #?   󰟓 
+  pout_test --label "JavaScript" --icon "\uf2ee" --icon "\ued0d" --icon "\ue60c"                 #? JavaScript   
+  pout_test --icon "\ue69d" --icon "\ue628"                                                      #? TypeScript  
+  pout_test --icon "\ue7ba" --icon "\ue753" --icon "\ue6a0" --icon "\ue8b7"                      #? React , Angular , Vue , Svelte 
+  pout_test --label "Nix" --icon "\ue843" --icon "\udb84\udd05" --icon "\uf313"                  #? 󱄅  
+  pout_test --label "Powershell" --icon "\udb82\ude0a" --icon "\uebc7" --icon "\ue683"           #? 󰨊  
+  pout_test --label "Python" --icon "\ue73c" --icon "\ue606"                                     #?  
+  pout_test --icon "\ue85d" --icon "\ue84a" --icon "\ue82b"                                      #? Pandas , Numpy , Matplotlib 
+  pout_test --label "Ruby" --icon "\ue739" --icon "\ue73b" --icon "\ueb48" --icon "\ue896"       #?    
+  pout_test --label "Rust" --icon "\ue7a8" --icon "\ue68b" --icon "\udb85\ude17"                 #?   󱘗
+  pout_test --label "Markup"
+  pout_test --icon "\ue736"                                                 #? HTML 
+  pout_test --icon "\ue749" --icon "\uf13c"                                 #? CSS  
+  pout_test --icon "\ueeab" --icon "\ue73e" --icon "\ueb1d" --icon "\ue609" #? Markdown     
+  pout_test --icon "\udb84\udfff"                                           #? Tailwind 󱏿
+  pout_test --icon "\uf37f"                                                 #? Typst 
+  pout_test --label "Version Control"
+  pout_test --icon "\uf1d3" --icon "\ue702" --icon "\ue725"       #? Git   
+  pout_test --icon "\ue709" --icon "\uea84" --icon "\ue7ea"       #? GitHub   
+  pout_test --icon "\uf296" --icon "\ue65c" --icon "\udb82\udfa0" #? GitLab   󰮠
+  pout_test --label "Editor Tools"
+  pout_test --icon "\ue8da" --icon "\ueac4" #? VSCode  
+  pout_test --icon "\ue808"                 #? JetBrains 
+  pout_test --icon "\ue62b"                 #? Sublime
+  pout_test --icon "\ue62b" --icon "\ue7c5" #? Vim  
+  pout_char "\n"
+}
+
+test_editors() {
+  #| Editors & Tools
+  printf "\nEditors & Tools:\n"
+  printf "vscode: \ue70c"
+  printf "  | vim: \ue62b"
+  printf "  | terminal: \uf120"
+  printf "  | powershell: \ue795  \n"
+}
+
+test_system() {
+  #| System & Hardware
+  printf "\nSystem & Hardware:\n"
+  printf "windows: \ue70f"
+  printf "  | linux: \uf31a"
+  printf "  | apple: \uf302"
+  printf "  | cpu: \uf4bc"
+  printf "  | ram: \uefc5  \n"
+}
+
+test_media() {
+  #| Media & Communication
+  printf "\nMedia & Communication:\n"
+  printf "music:  \uf001"
+  printf "  | video:  \uf03d"
+  printf "  | email:  \uf0e0"
+  printf "  | wifi:   \uf1eb  \n"
+}
+
+test_ligatures() {
+  pout_test --title "Programming Ligatures"
+  pout_test --label "Equality" "== === != !== = =~ !~"
+  pout_test --label "Comparison" "<= >= < >"
+  pout_test --label "Logic" "|| && |> <| <|| ||> <&&> &&>"
+  pout_test --label "Math" "++ -- ** /* */ </ />"
+  pout_test --label "Special" ":= :: ;; =>= >>> <<= >>= __ \\ \\\\"
+  pout_test --label "Arrows" "-> => <- <= |=> ==> |="
+  pout_test --label "Arrows Ext" "<== ==> <=> <--> <~~> <~> <==>"
+  pout_test --label "Labels" "[FATAL] [TODO] [NOTE] [MARK] [FIXME]"
+  pout_test --label "Levels" "[TRACE] [DEBUG] [INFO] [WARN] [ERROR]"
+  pout_test --newline
+
+  #DOC { Character Variants }
+  #DOC   cv01: Normalize special symbols (@ $ & % Q => ->)
+  #DOC   cv02: Alternative a with top arm, no effect in italic style
+  #DOC   cv03: Alternative i without left bottom bar (i1l)
+  #DOC   cv04: Alternative l with left bottom bar, like consolas, will be overridden by cv35 in italic style
+  #DOC   cv05: Alternative g in double story style, no effect in italic style
+  #DOC   cv06: Alternative i without bottom bar, no effect in italic style
+  #DOC   cv07: Alternative J without top bar, no effect in italic style
+  #DOC   cv08: Alternative r with bottom bar, no effect in italic style
+  #DOC   cv61: Alternative , and ; with straight tail
+  #DOC   cv62: Alternative ? with larger openings
+  #DOC   cv63: Alternative <= in arrow style
+  #DOC   cv64: Alternative <= and >= with horizen bottom bar
+  #DOC   cv65: Alternative & in handwriting style
+  #DOC   zero: Dot style 0
+  #DOC { Italic Only }
+  #DOC   cv31: Alternative italic a with top arm
+  #DOC   cv32: Alternative Italic f without bottom tail
+  #DOC   cv33: Alternative Italic i and j with left bottom bar and horizen top bar
+  #DOC   cv34: Alternative Italic k without center circle
+  #DOC   cv35: Alternative Italic l without center tail
+  #DOC   cv36: Alternative Italic x without top and bottom tails
+  #DOC   cv37: Alternative Italic y with straight intersection
+  #DOC   cv38: Alternative italic g in double story style
+  #DOC   cv39: Alternative Italic i without bottom bar
+  #DOC   cv40: Alternative italic J without top bar
+  #DOC   cv41: Alternative italic r with bottom bar
+  #DOC { CN Only }
+  #DOC   cv96: Full width quotes (“ / ” / ‘ / ’)
+  #DOC   cv97: Full width ellipsis (…)
+  #DOC   cv98: Full width emdash (—)
+  #DOC   cv99: Traditional centered punctuations
+  #DOC Stylistic Sets (ssXX)
+  #DOC   ss01: Broken multiple equals ligatures (==, ===, !=, !== ...)
+  #DOC   ss02: Broken compare and equal ligatures (<=, >=)
+  #DOC   ss03: Allow to use any case in all tags
+  #DOC   ss04: Broken multiple underscores ligatures (__, #__)
+  #DOC   ss05: Revert thin backslash in escape symbols (\\, \", \. ...)
+  #DOC   ss06: Break connected strokes between italic letters (al, il, ull ...)
+  #DOC   ss07: Relax the conditions for multiple greaters ligatures (>> or >>>)
+  #DOC   ss08: Double headed arrows and reverse arrows ligatures (>>=, -<<, ->>, >>- ...)
+  #DOC   ss09: Asciitilde equal as not equal to ligature (~=)
+  #DOC   ss10: Approximately equal to and approximately not equal to ligatures (=~, !~)
+  #DOC   ss11: Equal and extra punctuation ligatures (|=, /=, ?=, &=, ...)
+}
+
+test_italics() {
+  print_header "Italic Text Test"
+  printf "Normal vs \e[3mItalic\e[0m text\n"
+  printf "\e[3mFull italic sentence to check rendering\e[0m\n"
+  printf "Mixed \e[3mitalic\e[0m and \e[1mbold\e[0m text\n"
+  printf "\e[3mItalic \e[1;3mbold-italic\e[0m\e[3m back to italic\e[0m\n"
+  printf "Code comments: \e[3m#This is an italic comment\e[0m\n"
+}
+
+test_filesystem() {
+  #{ Print the title
+  pout_test --title "Directory Listing" --newline
+
+  #{ Retrieve the directory contents with the fist available lister
+  if false; then
+    :
+  elif command -v lsd >/dev/null 2>&1; then
+    printf "Using lsd for directory listing with icons:\n"
+    lsd --almost-all --group-directories-first
+  elif command -v eza >/dev/null 2>&1; then
+    printf "Using eza for directory listing with icons:\n"
+    eza --icons --group-directories-first
+  else
+    printf "Neither lsd nor eza found. Falling back to ls (no icons):\n"
+    ls -lA --color=always --group-directories-first
+  fi
+}
+
+test_completion_message() {
+  pout_test --title "Font Compatibility Test Results" --newline
+  pout_test -n "  ${BOLD} ${RESET}${ITALIC}Nerd Font Glyphs${RESET}"
+  pout_test -n "    • All icons should be visible (no missing squares or questions marks)"
+  pout_test -n "    • Icons should be properly aligned and sized"
+  pout_test -n
+  pout_test -n "  ${BOLD} ${RESET}${ITALIC}Programming Ligatures${RESET}"
+  pout_test -n "    • Arrow combinations should form single symbols: => -> <-"
+  pout_test -n "    • Comparison operators should be aligned: == === !="
+  pout_test -n
+  pout_test -n "  ${BOLD} ${RESET}${ITALIC}Font Styling${RESET}"
+  pout_test -n "    • This text should be in italics"
+  pout_test -n "    • Icons and text should have consistent weights"
+  pout_test -n
+  pout_test -n "  ${ITALIC}If any tests failed, verify the terminal is using a Nerd Font${RESET}"
+  pout_test -n "  ${ITALIC}Recommended fonts: Maple Mono NF, VictorMono Nerd Font${RESET}"
+}
+
+execute_basic() {
+  cat <<-'EOF'
+abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+0123456789
+!@#$%^&*()_+-=[]{}|;:,.><?
+âéùïøçÃĒÆœ
+oO08 iIlL1 g9qCGQ 8%%& <([{}])> .,;: -_=
+== === != !== = <= >= < > ~= =~ |=
+-> => <- <= |=> ==> /> </
+|| && |> <| <|| ||> <&&> &&>
+++ -- ** #/* */
+:= :: ;; =>= >>> <<= >>= >>>
+<== ==> <=> <--> <~~> <~> <==>
+~!@#$%^&* {} [] () I1l O0o
+!== \\ <= #{ -> ~@ |> 0x12
+|=>==<==>=|======|===|===>
+<---|--|--------|-<->--<-|
+[INFO] todo)) fixme))
+
+Font supports Nerd Fonts and ligatures properly if:
+  1. Nerd Font glyphs rendered properly above
+  2. Ligatures combined into single symbols
+  3. Icons displayed correctly
+EOF
+}
+#endregion
+
+main "$@"

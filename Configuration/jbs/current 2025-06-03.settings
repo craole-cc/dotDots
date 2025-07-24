@@ -1,0 +1,325 @@
+<?xml version="1.0"?>
+<backgroundswitchersettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <schema>52</schema>
+  <language_override />
+  <check_for_updates>true</check_for_updates>
+  <display_mode>overscale</display_mode>
+  <multi_monitor_mode>DifferentPictureForEachScreen</multi_monitor_mode>
+  <monitor_to_draw_on>1</monitor_to_draw_on>
+  <multi_monitor_respect_auto_colour>true</multi_monitor_respect_auto_colour>
+  <desktop_colour>-16777216</desktop_colour>
+  <switch_at_midnight>true</switch_at_midnight>
+  <refresh_background_after_display_changes>true</refresh_background_after_display_changes>
+  <switch_even_if_screensaver_is_active>false</switch_even_if_screensaver_is_active>
+  <refresh_background_on_application_startup>true</refresh_background_on_application_startup>
+  <stop_if_over_remote_desktop>true</stop_if_over_remote_desktop>
+  <disable_popup_messages>false</disable_popup_messages>
+  <hotkeys_enabled>false</hotkeys_enabled>
+  <next_hotkey>N</next_hotkey>
+  <settings_hotkey>S</settings_hotkey>
+  <clear_screen_hotkey>C</clear_screen_hotkey>
+  <view_current_hotkey>V</view_current_hotkey>
+  <view_previous_hotkey>P</view_previous_hotkey>
+  <auto_rotate_images>true</auto_rotate_images>
+  <draw_calendar>false</draw_calendar>
+  <calendar_on_primary_only>true</calendar_on_primary_only>
+  <calendar_display_mode>ThisMonthBigNextTwoSmall</calendar_display_mode>
+  <calendar_position>TopRight</calendar_position>
+  <calendar_one_letter_day_header>false</calendar_one_letter_day_header>
+  <use_external_web_connection_file>false</use_external_web_connection_file>
+  <web_connection>
+    <use_custom_proxy>false</use_custom_proxy>
+    <proxy_address />
+    <proxy_port />
+    <proxy_username />
+    <proxy_password />
+    <proxy_domain />
+    <http_compression>true</http_compression>
+  </web_connection>
+  <smallest_dimension_must_be_wider_than>2000</smallest_dimension_must_be_wider_than>
+  <only_switch_when_idle>true</only_switch_when_idle>
+  <idle_time_in_seconds>15</idle_time_in_seconds>
+  <make_desktop_icon_text_transparent>true</make_desktop_icon_text_transparent>
+  <minutes_between_icon_text_transparent_repaint>2</minutes_between_icon_text_transparent_repaint>
+  <wait_before_starting_switching>false</wait_before_starting_switching>
+  <seconds_to_wait_before_starting_switching>60</seconds_to_wait_before_starting_switching>
+  <run_on_startup>true</run_on_startup>
+  <auto_start_switch_and_exit>false</auto_start_switch_and_exit>
+  <switch_on_startup>false</switch_on_startup>
+  <show_picture_info>false</show_picture_info>
+  <picture_info_position>TopRight</picture_info_position>
+  <picture_orientation>ChoosePerMonitor</picture_orientation>
+  <post_process_effect>None</post_process_effect>
+  <download_thumbnail_concurrent_threads>4</download_thumbnail_concurrent_threads>
+  <snapshot_scrapbook_background_mode>Random</snapshot_scrapbook_background_mode>
+  <snapshot_scrapbook_supress_captions>true</snapshot_scrapbook_supress_captions>
+  <snapshot_postcard_captions>false</snapshot_postcard_captions>
+  <snapshot_postcard_max_overage>1.5</snapshot_postcard_max_overage>
+  <snapshot_background_effect>Random</snapshot_background_effect>
+  <snapshot_photo_size>250</snapshot_photo_size>
+  <snapshot_pixels_to_add_to_min_distance_apart>0</snapshot_pixels_to_add_to_min_distance_apart>
+  <snapshot_rotate>true</snapshot_rotate>
+  <snapshot_background_mode>overscale</snapshot_background_mode>
+  <collage_tile_width>600</collage_tile_width>
+  <collage_border>8</collage_border>
+  <default_desktop_display_mode>tile</default_desktop_display_mode>
+  <log_all_popup_messages>false</log_all_popup_messages>
+  <already_running_behaviour>AlwaysShowSettings</already_running_behaviour>
+  <gdiplus_workaround>true</gdiplus_workaround>
+  <auto_background_colour>true</auto_background_colour>
+  <recount_monitors_every_time>false</recount_monitors_every_time>
+  <force_leftmost_monitor_to_zero_zero>false</force_leftmost_monitor_to_zero_zero>
+  <auto_choose_snapshot_border_colour>false</auto_choose_snapshot_border_colour>
+  <all_stop_when_paused>true</all_stop_when_paused>
+  <stop_switching_when_running_on_battery>true</stop_switching_when_running_on_battery>
+  <set_background_to_none_before_switching>false</set_background_to_none_before_switching>
+  <show_tray_icon>true</show_tray_icon>
+  <desktop_transition>true</desktop_transition>
+  <desktop_transition_timeout_in_seconds>20</desktop_transition_timeout_in_seconds>
+  <smart_size_centre_single_screen_images>false</smart_size_centre_single_screen_images>
+  <smart_size_centre_threshold_percentage>30</smart_size_centre_threshold_percentage>
+  <dont_let_centred_images_overflow_the_screen>true</dont_let_centred_images_overflow_the_screen>
+  <show_taken_date_when_available>true</show_taken_date_when_available>
+  <switching_interval>Hours8</switching_interval>
+  <use_no_draw_zones>false</use_no_draw_zones>
+  <transition_increment>0.03</transition_increment>
+  <transition_interval>40</transition_interval>
+  <show_edit_boxes_on_folder_browsers>true</show_edit_boxes_on_folder_browsers>
+  <check_if_parent_folders_are_hidden>false</check_if_parent_folders_are_hidden>
+  <refresh_if_time_changes>false</refresh_if_time_changes>
+  <refresh_with_transition_on_win7_and_above>true</refresh_with_transition_on_win7_and_above>
+  <picture_info_font Name="Microsoft Sans Serif" Size="11" Style="Regular" Unit="Pixel" />
+  <calendar_font Name="Microsoft Sans Serif" Size="11" Style="Regular" Unit="Pixel" />
+  <polaroid_font Name="Courier New" Size="11" Style="Regular" Unit="Pixel" />
+  <postcard_font Name="Microsoft Sans Serif" Size="11" Style="Regular" Unit="Pixel" />
+  <set_logon_background>true</set_logon_background>
+  <logon_background_jpg_compression>50</logon_background_jpg_compression>
+  <logon_background_display_mode>overscale</logon_background_display_mode>
+  <never_show_again_alternate_folder />
+  <four_pic_montage_display_mode>overscale</four_pic_montage_display_mode>
+  <use_high_dpi_tray_icon>true</use_high_dpi_tray_icon>
+  <sort_folders_in_the_settings>true</sort_folders_in_the_settings>
+  <hard_wire_security_protocols>false</hard_wire_security_protocols>
+  <exclude_invert_from_random_effects>true</exclude_invert_from_random_effects>
+  <draw_calendar_background>false</draw_calendar_background>
+  <dng_brightness>20</dng_brightness>
+  <dng_contrast>40</dng_contrast>
+  <view_local_pictures_in_explorer>true</view_local_pictures_in_explorer>
+  <exclude_scale_from_random_display_mode>false</exclude_scale_from_random_display_mode>
+  <exclude_overscale_from_random_display_mode>false</exclude_overscale_from_random_display_mode>
+  <exclude_scaleblur_from_random_display_mode>false</exclude_scaleblur_from_random_display_mode>
+  <exclude_fourpicmontage_from_random_display_mode>false</exclude_fourpicmontage_from_random_display_mode>
+  <exclude_collage_from_random_display_mode>false</exclude_collage_from_random_display_mode>
+  <exclude_polaroidpile_from_random_display_mode>false</exclude_polaroidpile_from_random_display_mode>
+  <exclude_postcardpile_from_random_display_mode>false</exclude_postcardpile_from_random_display_mode>
+  <run_command_after_switching>false</run_command_after_switching>
+  <application_to_run_after_switching />
+  <arguments_for_run_after_switching />
+  <photo_list_cache_timeout_in_minutes>120</photo_list_cache_timeout_in_minutes>
+  <photo_cache_timeout_in_hours>120</photo_cache_timeout_in_hours>
+  <watch_max_montage_photo_size>900</watch_max_montage_photo_size>
+  <watch_ignore_folders_active>false</watch_ignore_folders_active>
+  <watch_traverse_subdirectories>true</watch_traverse_subdirectories>
+  <watch_use_regex_exclusion>false</watch_use_regex_exclusion>
+  <watch_regex_exclusion_expression />
+  <watch_cache_folder_picture_count_threshold>1000</watch_cache_folder_picture_count_threshold>
+  <include_local_webshots_pictures>true</include_local_webshots_pictures>
+  <watch_folder_title>FileName</watch_folder_title>
+  <flickr_big_is_best>false</flickr_big_is_best>
+  <flickr_ignore_certain_tags>false</flickr_ignore_certain_tags>
+  <flickr_ignore_untagged>false</flickr_ignore_untagged>
+  <flickr_oauth_info />
+  <flickr_days_between_download_folder_cleanups>7</flickr_days_between_download_folder_cleanups>
+  <flickr_max_photos_per_call>5000</flickr_max_photos_per_call>
+  <flickr_choose_photos_from_all_active_photo_sets>true</flickr_choose_photos_from_all_active_photo_sets>
+  <flickr_sort_sets_alphabetically>false</flickr_sort_sets_alphabetically>
+  <flickr_cache_user_lookups>true</flickr_cache_user_lookups>
+  <flickr_sort_mode>Interestingness</flickr_sort_mode>
+  <smugmug_auth_info />
+  <rss_this_dimension_is_big_enough>1200</rss_this_dimension_is_big_enough>
+  <rss_when_unsure_pick_first_image_in_feed>false</rss_when_unsure_pick_first_image_in_feed>
+  <vladstudio_premium>false</vladstudio_premium>
+  <vladstudio_pass_primary_monitor_resolution_to_api>false</vladstudio_pass_primary_monitor_resolution_to_api>
+  <lastfm_access_token />
+  <wallhaven_api_key />
+  <programs_to_stop_switching_for />
+  <watch_folders_to_ignore />
+  <picture_lists />
+  <watch_folders>
+    <folder enabled="true">C:\Users\Administrator\Pictures\Wallpapers</folder>
+    <folder enabled="false">C:\Users\Administrator\Pictures\Wallpapers\from_dharmx</folder>
+    <folder enabled="false">C:\Users\Administrator\Pictures\Wallpapers\from_makcrr</folder>
+    <folder enabled="false">C:\Users\Administrator\Pictures\Wallpapers\from_michaelScopic</folder>
+  </watch_folders>
+  <flickr_profiles>
+    <FlickrProfile>
+      <flickr_mode>ASpecificDay</flickr_mode>
+      <flickr_everyone_tag />
+      <flickr_everyone_text />
+      <flickr_everyone_mode>All</flickr_everyone_mode>
+      <flickr_user_tag />
+      <flickr_user_text />
+      <flickr_user_name />
+      <flickr_landscape_only>false</flickr_landscape_only>
+      <flickr_pictures_to_grab>250</flickr_pictures_to_grab>
+      <flickr_user_search_mode>All</flickr_user_search_mode>
+      <flickr_user_set_id />
+      <flickr_user_set_title />
+      <flickr_user_collection_id />
+      <flickr_user_collection_title />
+      <flickr_user_gallery_id />
+      <flickr_user_gallery_title />
+      <flickr_group_url />
+      <flickr_day>LastSevenDays</flickr_day>
+      <flickr_custom_interesting_day>2023-07-09T00:00:00.0000000-05:00</flickr_custom_interesting_day>
+      <flickr_me_search_mode>All</flickr_me_search_mode>
+      <flickr_me_tag />
+      <flickr_me_set_id />
+      <flickr_me_set_title />
+      <flickr_me_collection_id />
+      <flickr_me_collection_title />
+      <flickr_me_gallery_id />
+      <flickr_me_gallery_title />
+      <flickr_me_text />
+      <flickr_tag_mode>Any</flickr_tag_mode>
+      <Enabled>false</Enabled>
+    </FlickrProfile>
+    <FlickrProfile>
+      <flickr_mode>User</flickr_mode>
+      <flickr_everyone_tag />
+      <flickr_everyone_text />
+      <flickr_everyone_mode>All</flickr_everyone_mode>
+      <flickr_user_tag />
+      <flickr_user_text />
+      <flickr_user_name>John Conners</flickr_user_name>
+      <flickr_landscape_only>false</flickr_landscape_only>
+      <flickr_pictures_to_grab>250</flickr_pictures_to_grab>
+      <flickr_user_search_mode>All</flickr_user_search_mode>
+      <flickr_user_set_id>225176</flickr_user_set_id>
+      <flickr_user_set_title>Landscapes and Scenes</flickr_user_set_title>
+      <flickr_user_collection_id />
+      <flickr_user_collection_title />
+      <flickr_user_gallery_id />
+      <flickr_user_gallery_title />
+      <flickr_group_url />
+      <flickr_day>LastSevenDays</flickr_day>
+      <flickr_custom_interesting_day>2023-07-09T00:00:00.0000000-05:00</flickr_custom_interesting_day>
+      <flickr_me_search_mode>All</flickr_me_search_mode>
+      <flickr_me_tag />
+      <flickr_me_set_id />
+      <flickr_me_set_title />
+      <flickr_me_collection_id />
+      <flickr_me_collection_title />
+      <flickr_me_gallery_id />
+      <flickr_me_gallery_title />
+      <flickr_me_text />
+      <flickr_tag_mode>Any</flickr_tag_mode>
+      <Enabled>false</Enabled>
+    </FlickrProfile>
+    <FlickrProfile>
+      <flickr_mode>Group</flickr_mode>
+      <flickr_everyone_tag />
+      <flickr_everyone_text />
+      <flickr_everyone_mode>All</flickr_everyone_mode>
+      <flickr_user_tag />
+      <flickr_user_text />
+      <flickr_user_name />
+      <flickr_landscape_only>false</flickr_landscape_only>
+      <flickr_pictures_to_grab>250</flickr_pictures_to_grab>
+      <flickr_user_search_mode>All</flickr_user_search_mode>
+      <flickr_user_set_id />
+      <flickr_user_set_title />
+      <flickr_user_collection_id />
+      <flickr_user_collection_title />
+      <flickr_user_gallery_id />
+      <flickr_user_gallery_title />
+      <flickr_group_url>ngmanimallovers</flickr_group_url>
+      <flickr_day>LastSevenDays</flickr_day>
+      <flickr_custom_interesting_day>2023-07-09T00:00:00.0000000-05:00</flickr_custom_interesting_day>
+      <flickr_me_search_mode>All</flickr_me_search_mode>
+      <flickr_me_tag />
+      <flickr_me_set_id />
+      <flickr_me_set_title />
+      <flickr_me_collection_id />
+      <flickr_me_collection_title />
+      <flickr_me_gallery_id />
+      <flickr_me_gallery_title />
+      <flickr_me_text />
+      <flickr_tag_mode>Any</flickr_tag_mode>
+      <Enabled>false</Enabled>
+    </FlickrProfile>
+  </flickr_profiles>
+  <smugmug_photo_sets />
+  <pixabay_photo_sets>
+    <PixabayPhotoSet>
+      <SearchType>Editors</SearchType>
+      <AdultMode>Off</AdultMode>
+      <Enabled>true</Enabled>
+    </PixabayPhotoSet>
+  </pixabay_photo_sets>
+  <lastfm_photo_sets />
+  <dropbox_photo_sets />
+  <rss_feeds>
+    <url enabled="true">http://bit.ly/BingPhotoOfTheDay</url>
+    <url enabled="true">https://www.reddit.com/r/ImaginaryLandscapes/.rss</url>
+    <url enabled="true">https://www.reddit.com/r/wallpaper/.rss</url>
+    <url enabled="true">https://www.reddit.com/r/wallpapers/.rss</url>
+  </rss_feeds>
+  <vladstudio_sets />
+  <no_draw_zones />
+  <unsplash_photo_sets>
+    <UnsplashPhotoSet>
+      <SearchType>Newest</SearchType>
+      <SearchColour>Any</SearchColour>
+      <FeaturedCollection>
+        <PhotoCount>0</PhotoCount>
+      </FeaturedCollection>
+      <Enabled>true</Enabled>
+    </UnsplashPhotoSet>
+  </unsplash_photo_sets>
+  <onedrive_photo_sets />
+  <wallhaven_photo_sets>
+    <WallhavenSet>
+      <SortOrder>Relevance</SortOrder>
+      <General>true</General>
+      <Anime>true</Anime>
+      <People>true</People>
+      <SFW>true</SFW>
+      <Sketchy>true</Sketchy>
+      <NSFW>true</NSFW>
+      <SearchTerms>car</SearchTerms>
+      <Enabled>true</Enabled>
+    </WallhavenSet>
+    <WallhavenSet>
+      <SortOrder>Toplist</SortOrder>
+      <General>true</General>
+      <Anime>false</Anime>
+      <People>false</People>
+      <SFW>true</SFW>
+      <Sketchy>false</Sketchy>
+      <NSFW>false</NSFW>
+      <SearchTerms>landscape</SearchTerms>
+      <Enabled>true</Enabled>
+    </WallhavenSet>
+    <WallhavenSet>
+      <SortOrder>Hot</SortOrder>
+      <General>true</General>
+      <Anime>true</Anime>
+      <People>false</People>
+      <SFW>true</SFW>
+      <Sketchy>true</Sketchy>
+      <NSFW>true</NSFW>
+      <SearchTerms>dark</SearchTerms>
+      <Enabled>true</Enabled>
+    </WallhavenSet>
+  </wallhaven_photo_sets>
+  <pexels_photo_sets>
+    <PexelsPhotoSet>
+      <SearchType>Curated</SearchType>
+      <FeaturedCollection>
+        <PhotoCount>0</PhotoCount>
+      </FeaturedCollection>
+      <Enabled>true</Enabled>
+    </PexelsPhotoSet>
+  </pexels_photo_sets>
+</backgroundswitchersettings>

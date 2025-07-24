@@ -1,0 +1,7 @@
+SHELL_HOME="$DOTS_CFG/nushell"
+SHELL_CONF="config.nu"
+SHELL_ENV="env.nu"
+
+src="$SHELL_HOME"
+lnk=""
+app="nu"

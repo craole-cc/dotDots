@@ -1,0 +1,807 @@
+#!/bin/sh
+# shellcheck enable=all
+set -e
+
+#TODO: Add pout for tagging errors and warnings
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  set_environment
+  execute_process
+}
+
+set_defaults() {
+  #{ Initialize global variables/flags
+  debug=0
+  verbose=0
+  delimiter="${DELIMITER:-"$(printf '\037')"}"
+
+  #{ Initialize flags
+  all=false
+  color=true
+  depth=0
+  git=true
+  git_ignore=false
+  header=false
+  hyperlink=true
+  icons=true
+  long=false
+  pagination=false
+  permission="none"
+  permission_options="attributes|rwx|octal|none"
+  priority="directories"
+  priority_options="directories|files|none"
+  recursion=none
+  recursion_options="flat|none|tree"
+  sort="name"
+  sort_options="size|time|version|extension|none|name|git"
+  target="all"
+  target_options="all|directory|symlink|recursive"
+  tree=false
+}
+
+parse_arguments() {
+  #TODO: Define the options and set the help messages
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h)
+      printf "%s\n" "${SCR_USAGE_BASIC:?}"
+      return 0
+      ;;
+    --help)
+      printf "%s\n" "${SCR_USAGE_GUIDE:?}"
+      return 0
+      ;;
+    --version)
+      printf "%s\n" "${SCR_VERSION:?}"
+      return 0
+      ;;
+    -d | --verbose) verbose=1 ;;
+    --cmd | --tool)
+      [ -n "${2:-}" ] || {
+        printf \
+          "Option '%s' requires an argument: %s (Default: %s)\n" \
+          "$1" "[ls, eza, lsd, pls]" "$cmd"
+        return 1
+      }
+      cmd="$2"
+      shift
+      ;;
+    -a | --all) all=true ;;
+    -c | --color) color=true ;;
+    --no-color) color=false ;;
+    --*dir*first) priority="directories" ;;
+    --*dir*last) priority="files" ;;
+    --no-group) priority="none" ;;
+    --depth)
+      if [ -z "${2:-}" ] || [ "${2:-}" -ne "${2:-}" ] >/dev/null 2>&1; then
+        printf "Option '%s' requires an integer argument.\n" "$1" >&2
+        return 1
+      else
+        depth="$2"
+        shift
+      fi
+      ;;
+    -D | --dir-only | --directories | --directory) target="directory" ;;
+    # -e | --exclude) exclude=true ;; #TODO: This goes into the realm of find
+    -g | --git) git=true ;;
+    --no-git) git=false ;;
+    -I | --git-ignore) git_ignore=true ;;
+    -G | --header) header=true ;;
+    -H | --hyperlink) hyperlink=true ;;
+    --no-hyperlink) hyperlink=false ;;
+    -i | --icons) icons=true ;;
+    --no-icons) icons=false ;;
+    -l | --long) long=true ;;
+    -L | --link | --sym*) target="link" ;;
+    -o | --octal) octal=true ;;
+    --pag*) pagination=true ;;
+    -P | --pretty) color=true icons=true ;;
+    -p | --permission)
+      case "${2:-}" in "") ;;
+      attributes | rwx | octal | none)
+        permission="$2"
+        shift
+        ;;
+      -*) ;;
+      *)
+        printf "Available permission options (%s): %s\n" "$1" \
+          "$(printf '%s\n' "${permission_options}" | sed 's/|/, /g')"
+        return 1
+        ;;
+      esac
+      ;;
+    -R | --recurs*) recursion="flat" ;;
+    -s | --sort)
+      case "${2:-}" in
+      size | time | version | extension | git | none)
+        sort="$2"
+        shift
+        ;;
+      *)
+        printf "Available sort options (%s): [ %s ]\n" "$1" \
+          "$(printf '%s\n' "${sort_options}" | sed 's/|/, /g')"
+        return 1
+        ;;
+      esac
+      ;;
+    -S | --sort-size) sort="size" ;;
+    -N | --sort-none) sort="none" ;;
+    -T | --sort-time) sort="time" ;;
+    -V | --sort-version) sort="version" ;;
+    -X | --sort-extension) sort="extension" ;;
+    -t | --tree) recursion="tree" ;;
+    *) args="${args:+${args}"${delimiter:?}"}\"$1\"" ;;
+    esac
+    shift
+  done
+}
+
+set_environment() {
+  #{ Normalize & valedate options
+  if [ -z "${args:-}" ]; then :; else
+    args="$(printf "%s" "${args}" | tr "${delimiter}" " ")"
+  fi
+
+  case "${all}" in true | 1 | on | yes) ;; *) all="" ;; esac
+  case "${color}" in true | 1 | on | yes) ;; *) color="" ;; esac
+
+  case "${git}" in true | 1 | on | yes) ;; *) git="" ;; esac
+  case "${git_ignore}" in true | 1 | on | yes) ;; *) git_ignore="" ;; esac
+  case "${header}" in true | 1 | on | yes) ;; *) header="" ;; esac
+  case "${hyperlink}" in true | 1 | on | yes) ;; *) hyperlink="" ;; esac
+  case "${icons}" in true | 1 | on | yes) ;; *) icons="" ;; esac
+  case "${long}" in true | 1 | on | yes) ;; *) long="" ;; esac
+  case "${pagination}" in true | 1 | on | yes)
+    icons=""
+    pager="$(check_command CMD_BAT bat)"
+    if [ -n "${pager:-}" ]; then
+      pager="${pager} --color=always --style=plain"
+    else
+      pager="less -R"
+    fi
+    ;;
+  *) pagination="" ;; esac
+
+  case "${permission:-}" in "" | rwx | octal | attributes | none) ;; *)
+    printf "Invalid permission option: %s\n" "${permission:-}"
+    show_help
+    return 1
+    ;;
+  esac
+
+  case "${sort:-}" in "" | size | time | version | extension | git | none | name) ;; *)
+    printf "Invalid sort option: %s\n" "${sort:-}"
+    show_help
+    return 1
+    ;;
+  esac
+
+  case "${recursion:-}" in "" | none | flat | tree) ;; *)
+    printf "Invalid recursion option: %s\n" "${recursion:-}"
+    show_help
+    return 1
+    ;;
+  esac
+
+  case "${target}" in "" | all | directory | symlink | files)
+    if [ "${target}" = "recursive" ] && [ -n "${tree}" ]; then
+      printf "Options 'recursive' and 'tree' are mutually exclusive.\n"
+      return 1
+    fi
+    ;;
+  *)
+    printf "Invalid target option: %s\n" "${target}"
+    show_help
+    return 1
+    ;;
+  esac
+
+  if [ -z "${depth:-}" ]; then
+    :
+  elif [ "${depth:-0}" -le 0 ] >/dev/null 2>&1; then
+    depth=$((depth * -1))
+  elif [ "${depth:-0}" -eq 0 ] >/dev/null 2>&1; then
+    unset depth
+  elif [ "${depth:-0}" -ne "${depth:-}" ] >/dev/null 2>&1; then
+    printf "Depth must be an integer.\n"
+    return 1
+  else
+    #{ Set the default recursion option to tree if depth is set and recurse is unset
+    case "${recursion:-}" in "" | none) recursion="tree" ;; *) ;; esac
+  fi
+
+  #TODO: add a way to prioritize command
+
+  cmd=""
+  [ -z "${cmd:-}" ] && use_eza
+  [ -z "${cmd:-}" ] && use_lsd
+  # [ -z "${cmd:-}" ] && use_powershell
+  [ -z "${cmd:-}" ] && use_ls
+
+  if [ -n "${pagination:-}" ]; then
+    cmd="$(printf "%s | %s" "${cmd}" "$pager")"
+  fi
+  # 	opts="Get-ChildItem"
+  # 	[ -n "${all}" ] && opts="${opts} -Force"
+  # 	[ -n "${recurse}" ] && opts="${opts} -Recurse"
+  # 	[ -n "${dirs_only}" ] && opts="${opts} -Directory"
+
+}
+
+check_command() {
+
+  if [ "$#" -eq 2 ]; then :; else
+    printf "Usage: check_command <var> <cmd>\n" >&2
+    return 1
+  fi
+
+  #{ Get the path to the command
+  _env="$(eval "printf '%s' \$${1:?}")"
+  _bin="$(
+    unalias "${2:?}" 2>/dev/null || true
+    command -v "${2:?}" 2>/dev/null || true
+  )"
+  _val="${_env:-"${_bin}"}"
+
+  if [ -x "${_val:-}" ]; then
+    printf "%s" "${_val}"
+  else
+    printf ""
+  fi
+
+}
+
+use_eza() {
+  _cmd="$(check_command "CMD_EZA" eza)"
+  if [ -z "${_cmd:-}" ]; then return; fi
+
+  if [ -z "${all:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--almost-all"
+  fi
+
+  if [ -z "${color:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--color always --color-scale"
+  fi
+
+  case "${priority}" in
+  dir*) _cmd="${_cmd:+${_cmd}${delimiter}}--group-directories-first" ;;
+  file*) _cmd="${_cmd:+${_cmd}${delimiter}}--group-directories-last" ;;
+  *) ;;
+  esac
+
+  if [ -z "${icons:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--icons always"
+  fi
+
+  if [ -z "${hyperlink:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--hyperlink"
+  fi
+
+  if [ -z "${long:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--long"
+
+    if [ -z "${git:-}" ]; then :; else
+      _cmd="${_cmd:+${_cmd}${delimiter}}--git"
+    fi
+  fi
+
+  if [ -z "${git_ignore:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--git-ignore"
+  fi
+
+  case "${permission:-}" in
+  none)
+    _cmd="${_cmd:+${_cmd}${delimiter}}--no-permissions"
+    ;;
+  *)
+    _cmd="${_cmd:+${_cmd}${delimiter}}--octal-permissions"
+    ;;
+  esac
+
+  case "${target}" in
+  file) _cmd="${_cmd:+${_cmd}${delimiter}}--only-files" ;;
+  dir) _cmd="${_cmd:+${_cmd}${delimiter}}--only-dirs" ;;
+  all | *) ;;
+  esac
+
+  case "${recursion}" in
+  flat | tree)
+    case "${recursion}" in
+    flat) _cmd="${_cmd:+${_cmd}${delimiter}}--recurse" ;;
+    tree | *) _cmd="${_cmd:+${_cmd}${delimiter}}--tree" ;;
+    esac
+
+    if [ -z "${depth:-}" ]; then :; else
+      _cmd="${_cmd:+${_cmd}${delimiter}}--level ${depth}"
+    fi
+    ;;
+  *) ;;
+  esac
+
+  case "${sort:-}" in size | time | version | extension | git | none)
+    _cmd="${_cmd:+${_cmd}${delimiter}}--sort ${sort:-}"
+    #TODO: define the sort options
+    ;;
+  *) ;;
+  esac
+
+  cmd="$(printf "%s" "${_cmd}" "${args}" | tr "${delimiter}" " ")"
+}
+
+use_lsd() {
+  _cmd="$(check_command "CMD_LSD" lsd)"
+  if [ -z "${_cmd:-}" ]; then return; fi
+
+  if [ -z "${all:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--almost-all"
+  fi
+
+  if [ -z "${color:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--color always"
+  fi
+
+  case "${priority}" in
+  dir*) _cmd="${_cmd:+${_cmd}${delimiter}}--group-dirs first" ;;
+  file*) _cmd="${_cmd:+${_cmd}${delimiter}}--group-dirs last" ;;
+  *) _cmd="${_cmd:+${_cmd}${delimiter}}--group-dirs none" ;;
+  esac
+
+  if [ -z "${icons:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--icon always"
+  fi
+
+  if [ -z "${hyperlink:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--hyperlink always"
+  fi
+
+  if [ -z "${long:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--long"
+
+    if [ -z "${git:-}" ]; then :; else
+      _cmd="${_cmd:+${_cmd}${delimiter}}--git"
+    fi
+  fi
+
+  case "${permission:-}" in rwx | octal | attributes)
+    _cmd="${_cmd:+${_cmd}${delimiter}}--permission ${permission:-}"
+    ;;
+  *) ;;
+  esac
+
+  case "${target}" in
+  dir) _cmd="${_cmd:+${_cmd}${delimiter}}--directory-only" ;;
+  recursive) _cmd="${_cmd:+${_cmd}${delimiter}}--recursive" ;;
+  all | *) ;;
+  esac
+
+  if [ -z "${tree:-}" ]; then :; else
+    _cmd="${_cmd:+${_cmd}${delimiter}}--tree"
+  fi
+
+  if [ -z "${depth:-}" ]; then :; elif
+    [ "${target:-}" = "recursive" ] || [ -n "${tree:-}" ]
+  then
+    _cmd="${_cmd:+${_cmd}${delimiter}}--depth ${depth}"
+  else :; fi
+
+  case "${sort:-}" in size | time | version | extension | git | none)
+    _cmd="${_cmd:+${_cmd}${delimiter}}--sort ${sort:-}"
+    ;;
+  *) ;;
+  esac
+
+  cmd="$(printf "%s" "${_cmd}" "${args}" | tr "${delimiter}" " ")"
+}
+
+get_options_lsd_old() {
+  if [ -x "${CMD_LSD:-}" ]; then :; else return 0; fi
+
+  if [ -z "${all:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--almost-all"
+  fi
+
+  if [ -z "${color:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--color always"
+  fi
+
+  case "${priority}" in
+  dir*) opts="${opts:+${opts}${delimiter}}--group-dirs first" ;;
+  file*) opts="${opts:+${opts}${delimiter}}--group-dirs last" ;;
+  *) opts="${opts:+${opts}${delimiter}}--group-dirs none" ;;
+  esac
+
+  if [ -z "${icons:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--icon always"
+  fi
+
+  if [ -z "${hyperlink:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--hyperlink always"
+  fi
+
+  if [ -z "${long:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--long"
+
+    if [ -z "${git:-}" ]; then :; else
+      opts="${opts:+${opts}${delimiter}}--git"
+    fi
+  fi
+
+  case "${permission:-}" in rwx | octal | attributes)
+    opts="${opts:+${opts}${delimiter}}--permission ${permission:-}"
+    ;;
+  *) ;;
+  esac
+
+  case "${target}" in
+  dir) opts="${opts:+${opts}${delimiter}}--directory-only" ;;
+  recursive) opts="${opts:+${opts}${delimiter}}--recursive" ;;
+  all | *) ;;
+  esac
+
+  if [ -z "${tree:-}" ]; then :; else
+    opts="${opts:+${opts}${delimiter}}--tree"
+  fi
+
+  if [ -z "${depth:-}" ]; then :; elif
+    [ "${target:-}" = "recursive" ] || [ -n "${tree:-}" ]
+  then
+    opts="${opts:+${opts}${delimiter}}--depth ${depth}"
+  else :; fi
+
+  case "${sort:-}" in size | time | version | extension | git | none)
+    opts="${opts:+${opts}${delimiter}}--sort ${sort:-}"
+    ;;
+  *) ;;
+  esac
+}
+
+execute_process() {
+  case "${debug:-0}" in
+  1 | true | yes | on) printf "%s\n" "${cmd}" ;;
+  *)
+    #{ Print the command if in verbose mode
+    case "${verbose:-0}" in
+    1 | true | yes | on) printf "%s\n" "${cmd}" ;;
+    *) ;; esac
+
+    #{ Execute the command
+    eval "${cmd}"
+    ;;
+  esac
+}
+
+: <<LSD
+	DESCRIPTION:
+		An ls command with a lot of pretty colors and some other stuff.
+
+	USAGE:
+		lsd [FLAGS] [OPTIONS] [--] [FILE]...
+
+	FLAGS:
+		-a, --all                        Do not ignore entries starting with .
+		-A, --almost-all                 Do not list implied . and ..
+				--classic                    Enable classic mode (display output similar to ls)
+		-Z, --context                    Print security context (label) of each file
+		-L, --dereference                When showing file information for a symbolic link, show information for the file the link references rather than for the
+																			link itself
+		-d, --directory-only             Display directories themselves, and not their contents (recursively when used with --tree)
+		-X, --extensionsort              Sort by file extension
+				--group-directories-first    Groups the directories at the top before the files. Same as --group-dirs=first
+				--help                       Prints help information
+				--header                     Display block headers
+		-h, --human-readable             For ls compatibility purposes ONLY, currently set by default
+				--ignore-config              Ignore the configuration file
+		-F, --classify                   Append indicator (one of */=>@|) at the end of the file names
+		-i, --inode                      Display the index number of each file
+		-l, --long                       Display extended file metadata as a table
+		-U, --no-sort                    Do not sort. List entries in directory order
+				--no-symlink                 Do not display symlink target
+		-1, --oneline                    Display one entry per line
+		-R, --recursive                  Recurse into directories
+		-r, --reverse                    Reverse the order of the sort
+		-S, --sizesort                   Sort by size
+		-t, --timesort                   Sort by time modified
+				--total-size                 Display the total size of directories
+				--tree                       Recurse into directories and present the result as a tree
+		-V, --version                    Prints version information
+		-v, --versionsort                Natural sort of (version) numbers within text
+
+	OPTIONS:
+		--blocks <blocks>...            Specify the blocks that will be displayed and in what order [possible values: permission, user, group, context, size,
+																		date, name, inode, links]
+		--color <color>...              When to use terminal colours [default: auto]  [possible values: always, auto, never]
+		--config-file <config-file>     Provide a custom lsd configuration file
+		--date <date>...                How to display date [possible values: date, relative, +date-time-format] [default: date]
+		--depth <num>...                Stop recursing into directories after reaching specified depth
+		--group-dirs <group-dirs>...    Sort the directories then the files [possible values: none, first, last]
+		--hyperlink <hyperlink>...      Attach hyperlink to filenames [default: never]  [possible values: always, auto, never]
+		--icon <icon>...                When to print the icons [default: auto]  [possible values: always, auto, never]
+		--icon-theme <icon-theme>...    Whether to use fancy or unicode icons [default: fancy]  [possible values: fancy, unicode]
+		-I, --ignore-glob <pattern>...  Do not display files/directories with names matching the glob pattern(s). More than one can be specified by repeating
+																		the argument [default: ]
+		--permission <permission>...    How to display permissions [default: rwx]  [possible values: rwx, octal]
+		--size <size>...                How to display size [default: default]  [possible values: default, short, bytes]
+		--sort <WORD>...                sort by WORD instead of name [possible values: size, time, version, extension, none]
+
+	ARGS:
+			<FILE>...     [default: .]
+LSD
+
+: <<EZA
+	DESCRIPTION:
+		An improved file lister with more features and better defaults.
+
+	USAGE:
+		eza [options] [files...]
+
+	META OPTIONS
+		-?, --help         show list of command-line options
+		-v, --version      show version of eza
+
+	DISPLAY OPTIONS
+		-1, --oneline      display one entry per line
+		-l, --long         display extended file metadata as a table
+		-G, --grid         display entries as a grid (default)
+		-x, --across       sort the grid across, rather than downwards
+		-R, --recurse      recurse into directories
+		-T, --tree         recurse into directories as a tree
+		-F, --classify     display type indicator by file names
+		--colo[u]r=WHEN    when to use terminal colours (always, auto, never)
+		--colo[u]r-scale   highlight levels of file sizes distinctly
+		--icons            display icons
+		--no-icons         don't display icons (always overrides --icons)
+
+	FILTERING AND SORTING OPTIONS
+		-a, --all                  show hidden and 'dot' files
+		-d, --list-dirs            list directories as files; don't list their contents
+		-L, --level DEPTH          limit the depth of recursion
+		-r, --reverse              reverse the sort order
+		-s, --sort SORT_FIELD      which field to sort by
+		--group-directories-first  list directories before other files
+		-D, --only-dirs            list only directories
+		-I, --ignore-glob GLOBS    glob patterns (pipe-separated) of files to ignore
+		--git-ignore               ignore files mentioned in '.gitignore'
+		Valid sort fields:         name, Name, extension, Extension, size, type,
+																modified, accessed, created, inode, and none.
+																date, time, old, and new all refer to modified.
+
+	LONG VIEW OPTIONS
+		-b, --binary         list file sizes with binary prefixes
+		-B, --bytes          list file sizes in bytes, without any prefixes
+		-g, --group          list each file's group
+		-h, --header         add a header row to each column
+		-H, --links          list each file's number of hard links
+		-i, --inode          list each file's inode number
+		-m, --modified       use the modified timestamp field
+		-n, --numeric        list numeric user and group IDs
+		-S, --blocks         show number of file system blocks
+		-t, --time FIELD     which timestamp field to list (modified, accessed, created)
+		-u, --accessed       use the accessed timestamp field
+		-U, --created        use the created timestamp field
+		--changed            use the changed timestamp field
+		--time-style         how to format timestamps (default, iso, long-iso, full-iso)
+		--no-permissions     suppress the permissions field
+		--octal-permissions  list each file's permission in octal format
+		--no-filesize        suppress the filesize field
+		--no-user            suppress the user field
+		--no-time            suppress the time field
+		--git                list each file's Git status, if tracked or ignored
+		-@, --extended       list each file's extended attributes and sizes
+EZA
+
+: <<PLS
+	DESCRIPTION:
+		A powerful 'ls' for the pros.
+
+	USAGE:
+		pls [options] [files...]
+
+	META OPTIONS
+		-h, --help         show list of command-line options
+		-v, --version      show version of eza
+
+	DISPLAY OPTIONS
+    -d, --det <DETAILS> - Th
+    dev           display the device number of a device file
+    ino           display the inode
+    nlink         Display
+
+
+    -d,
+		-1, --oneline      display one entry per line
+		-l, --long         display extended file metadata as a table
+		-G, --grid         display entries as a grid (default)
+		-x, --across       sort the grid across, rather than downwards
+		-R, --recurse      recurse into directories
+		-T, --tree         recurse into directories as a tree
+		-F, --classify     display type indicator by file names
+		--colo[u]r=WHEN    when to use terminal colours (always, auto, never)
+		--colo[u]r-scale   highlight levels of file sizes distinctly
+		--icons            display icons
+		--no-icons         don't display icons (always overrides --icons)
+
+	FILTERING AND SORTING OPTIONS
+		-a, --all                  show hidden and 'dot' files
+		-d, --list-dirs            list directories as files; don't list their contents
+		-L, --level DEPTH          limit the depth of recursion
+		-r, --reverse              reverse the sort order
+		-s, --sort SORT_FIELD      which field to sort by
+		--group-directories-first  list directories before other files
+		-D, --only-dirs            list only directories
+		-I, --ignore-glob GLOBS    glob patterns (pipe-separated) of files to ignore
+		--git-ignore               ignore files mentioned in '.gitignore'
+		Valid sort fields:         name, Name, extension, Extension, size, type,
+																modified, accessed, created, inode, and none.
+																date, time, old, and new all refer to modified.
+
+	LONG VIEW OPTIONS
+		-b, --binary         list file sizes with binary prefixes
+		-B, --bytes          list file sizes in bytes, without any prefixes
+		-g, --group          list each file's group
+		-h, --header         add a header row to each column
+		-H, --links          list each file's number of hard links
+		-i, --inode          list each file's inode number
+		-m, --modified       use the modified timestamp field
+		-n, --numeric        list numeric user and group IDs
+		-S, --blocks         show number of file system blocks
+		-t, --time FIELD     which timestamp field to list (modified, accessed, created)
+		-u, --accessed       use the accessed timestamp field
+		-U, --created        use the created timestamp field
+		--changed            use the changed timestamp field
+		--time-style         how to format timestamps (default, iso, long-iso, full-iso)
+		--no-permissions     suppress the permissions field
+		--octal-permissions  list each file's permission in octal format
+		--no-filesize        suppress the filesize field
+		--no-user            suppress the user field
+		--no-time            suppress the time field
+		--git                list each file's Git status, if tracked or ignored
+		-@, --extended       list each file's extended attributes and sizes
+PLS
+
+: <<LS
+	DESCRIPTION:
+		List information about the FILEs (the current directory by default).
+		Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.
+
+	USAGE:
+		ls [OPTION]... [FILE]...
+
+
+	FLAGS:
+		-a, --all                  do not ignore entries starting with .
+		-A, --almost-all           do not list implied . and ..
+				--author               with -l, print the author of each file
+		-b, --escape               print C-style escapes for nongraphic characters
+				--block-size=SIZE      with -l, scale sizes by SIZE when printing them;
+															e.g., '--block-size=M'; see SIZE format below
+
+		-B, --ignore-backups       do not list implied entries ending with ~
+		-c                         with -lt: sort by, and show, ctime (time of last
+															modification of file status information);
+															with -l: show ctime and sort by name;
+															otherwise: sort by ctime, newest first
+
+		-C                         list entries by columns
+				--color[=WHEN]         color the output WHEN; more info below
+		-d, --directory            list directories themselves, not their contents
+		-D, --dired                generate output designed for Emacs' dired mode
+		-f                         list all entries in directory order
+		-F, --classify[=WHEN]      append indicator (one of */=>@|) to entries WHEN
+				--file-type            likewise, except do not append '*'
+				--format=WORD          across -x, commas -m, horizontal -x, long -l,
+															single-column -1, verbose -l, vertical -C
+
+				--full-time            like -l --time-style=full-iso
+		-g                         like -l, but do not list owner
+				--group-directories-first
+															group directories before files;
+															can be augmented with a --sort option, but any
+															use of --sort=none (-U) disables grouping
+
+		-G, --no-group             in a long listing, don't print group names
+		-h, --human-readable       with -l and -s, print sizes like 1K 234M 2G etc.
+				--si                   likewise, but use powers of 1000 not 1024
+		-H, --dereference-command-line
+															follow symbolic links listed on the command line
+				--dereference-command-line-symlink-to-dir
+															follow each command line symbolic link
+															that points to a directory
+
+				--hide=PATTERN         do not list implied entries matching shell PATTERN
+															(overridden by -a or -A)
+
+				--hyperlink[=WHEN]     hyperlink file names WHEN
+				--indicator-style=WORD
+															append indicator with style WORD to entry names:
+															none (default), slash (-p),
+															file-type (--file-type), classify (-F)
+
+		-i, --inode                print the index number of each file
+		-I, --ignore=PATTERN       do not list implied entries matching shell PATTERN
+		-k, --kibibytes            default to 1024-byte blocks for file system usage;
+															used only with -s and per directory totals
+
+		-l                         use a long listing format
+		-L, --dereference          when showing file information for a symbolic
+															link, show information for the file the link
+															references rather than for the link itself
+
+		-m                         fill width with a comma separated list of entries
+		-n, --numeric-uid-gid      like -l, but list numeric user and group IDs
+		-N, --literal              print entry names without quoting
+		-o                         like -l, but do not list group information
+		-p, --indicator-style=slash
+															append / indicator to directories
+		-q, --hide-control-chars   print ? instead of nongraphic characters
+				--show-control-chars   show nongraphic characters as-is (the default,
+															unless program is 'ls' and output is a terminal)
+
+		-Q, --quote-name           enclose entry names in double quotes
+				--quoting-style=WORD   use quoting style WORD for entry names:
+															literal, locale, shell, shell-always,
+															shell-escape, shell-escape-always, c, escape
+															(overrides QUOTING_STYLE environment variable)
+
+		-r, --reverse              reverse order while sorting
+		-R, --recursive            list subdirectories recursively
+		-s, --size                 print the allocated size of each file, in blocks
+		-S                         sort by file size, largest first
+				--sort=WORD            sort by WORD instead of name: none (-U), size (-S),
+															time (-t), version (-v), extension (-X), width
+
+				--time=WORD            change the default of using modification times;
+																access time (-u): atime, access, use;
+																change time (-c): ctime, status;
+																birth time: birth, creation;
+															with -l, WORD determines which time to show;
+															with --sort=time, sort by WORD (newest first)
+
+				--time-style=TIME_STYLE
+															time/date format with -l; see TIME_STYLE below
+		-t                         sort by time, newest first; see --time
+		-T, --tabsize=COLS         assume tab stops at each COLS instead of 8
+		-u                         with -lt: sort by, and show, access time;
+															with -l: show access time and sort by name;
+															otherwise: sort by access time, newest first
+
+		-U                         do not sort; list entries in directory order
+		-v                         natural sort of (version) numbers within text
+		-w, --width=COLS           set output width to COLS.  0 means no limit
+		-x                         list entries by lines instead of by columns
+		-X                         sort alphabetically by entry extension
+		-Z, --context              print any security context of each file
+				--zero                 end each output line with NUL, not newline
+		-1                         list one file per line
+				--help        display this help and exit
+				--version     output version information and exit
+
+	The SIZE argument is an integer and optional unit (example: 10K is 10*1024).
+	Units are K,M,G,T,P,E,Z,Y (powers of 1024) or KB,MB,... (powers of 1000).
+	Binary prefixes can be used, too: KiB=K, MiB=M, and so on.
+
+	The TIME_STYLE argument can be full-iso, long-iso, iso, locale, or +FORMAT.
+	FORMAT is interpreted like in date(1).  If FORMAT is FORMAT1<newline>FORMAT2,
+	then FORMAT1 applies to non-recent files and FORMAT2 to recent files.
+	TIME_STYLE prefixed with 'posix-' takes effect only outside the POSIX locale.
+	Also the TIME_STYLE environment variable sets the default style to use.
+
+	The WHEN argument defaults to 'always' and can also be 'auto' or 'never'.
+
+	Using color to distinguish file types is disabled both by default and
+	with --color=never.  With --color=auto, ls emits color codes only when
+	standard output is connected to a terminal.  The LS_COLORS environment
+	variable can change the settings.  Use the dircolors(1) command to set it.
+
+	Exit status:
+	0  if OK,
+	1  if minor problems (e.g., cannot access subdirectory),
+	2  if serious trouble (e.g., cannot access command-line argument).
+
+	GNU coreutils online help: <https://www.gnu.org/software/coreutils/>
+	Full documentation <https://www.gnu.org/software/coreutils/ls>
+	or available locally via: info '(coreutils) ls invocation'
+LS
+
+main "$@"

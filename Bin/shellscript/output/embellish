@@ -1,0 +1,374 @@
+#!/bin/sh
+
+main() {
+  set_defaults
+  init_terminal
+  parse_arguments "$@" && {
+    echo "TODO"
+  }
+}
+
+set_defaults() {
+  HAS_TPUT=0
+  HAS_COLOR=0
+  IS_TERMINAL=0
+  TERM_WIDTH=80
+  VERBOSITY="${VERBOSITY:-0}"
+  __debug=0
+}
+
+set_attribute() {
+  #{ Parse the attribute options
+  while [ "$#" -ge 2 ]; do
+    case "$1" in
+    -a | --attribute) attribute="$2" ;;
+    -t | --tput) tput_code="$2" ;;
+    -p | --ansi) ansi_code="$2" ;;
+    -ll | --line-l*) line_lead="$2" ;;
+    -lt | --line-t*) line_trail="$2" ;;
+    -sl | --space-l*) space_lead="$2" ;;
+    -st | --space-t*) space_trail="$2" ;;
+    -F | -*sep*l) seperator_lead="$2" ;;
+    -St | --sep*t) seperator_trail="$2" ;;
+    esac
+    shift 2
+  done
+
+  #{ Stylize per the options
+  stylize
+}
+
+set_color() {
+  attribute="color"
+  color_name="$1"
+  color_code="$2"
+
+  case "$3" in
+  *bg*)
+    class="background"
+    tput_code="setab $color_code"
+    ansi_code="4$color_code"
+    ;;
+  *)
+    class="foreground"
+    tput_code="setaf $color_code"
+    ansi_code="3$color_code"
+    ;;
+  esac
+  stylize
+}
+
+init_terminal() {
+  #{ Cache terminal capability checks
+  command -v tput >/dev/null 2>&1 && HAS_TPUT=1
+
+  #{ Check if terminal supports color and is interactive
+  [ -t 1 ] && IS_TERMINAL=1
+  case "$TERM" in
+  *color* | xterm* | rxvt* | vt100) HAS_COLOR=1 ;;
+  esac
+
+  # Cache terminal width with fallback
+  if [ "$HAS_TPUT" = 1 ] && [ "$IS_TERMINAL" = 1 ]; then
+    TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
+  fi
+}
+
+stylize() {
+  #{ Return early if no attribute is set
+  [ "$attribute" ] || return 0
+
+  if [ "$HAS_TPUT" = 1 ] && [ "$tput_code" ]; then
+    printf '%b' "$(tput "$tput_code" 2>/dev/null)" ||
+      printf '\033[%sm' "$ansi_code"
+  else
+    printf '\033[%sm' "$ansi_code"
+  fi
+}
+
+align() {
+  text=""
+  spacer=" "
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -t | --text)
+      [ "$2" ] || return 1
+      text="$2"
+      shift
+      ;;
+    -s | --spacer)
+      [ "$2" ] || return 1
+      [ "${#2}" -eq 1 ] || {
+        printf 'Error: Spacer must be a single character.\n' >&2
+        return 1
+      }
+      spacer="$2"
+      shift
+      ;;
+    *) text="${text:-"$1"}" ;;
+    esac
+    shift
+  done
+
+  #{ Get visible text length by stripping ANSI sequences
+  text_length=$(printf '%s' "$text" | sed 's/\033\[[0-9;]*[mGKHf]//g' | wc -m)
+  space_buffer=$(((TERM_WIDTH - text_length - 2) / 2))
+
+  if [ "$space_buffer" -gt 0 ]; then
+    buffer=""
+    i=0
+    while [ "$i" -lt "$space_buffer" ]; do
+      buffer="$buffer$spacer"
+      i=$((i + 1))
+    done
+    printf '%s %s %s\n' "$buffer" "$text" "$buffer"
+  else
+    printf '%s\n' "$text"
+  fi
+}
+
+pout_char() {
+  pout_char__main() {
+    pout_char__set_defaults
+    pout_char__parse_arguments "$@" && {
+      pout_char__execute_process
+    }
+  }
+
+  pout_char__usage() {
+    printf 'Usage: pout_char -n|--num [NUM] -c|--char <CHAR|PATT|"line"|"space">\n'
+  }
+
+  pout_char__set_defaults() {
+    unset line char space
+    num=0
+  }
+
+  pout_char__lines() {
+    #DOC Prints blank lines to separate output messages.
+    #
+    #DOC Parameters:
+    #DOC   NUM: The number of blank lines to print.
+    #
+    #DOC Returns:
+    #DOC   None
+    #
+    #DOC Example:
+    #DOC   pout_char__lines 2
+    #
+    #DOC Notes:
+    #DOC   The argument is optional and defaults to 0 if not provided.
+
+    #{ Ensure the input is a valid number
+    validate --integer "$1" || {
+      printf 'Usage: pout_char__lines [NUM]\n'
+      return 1
+    }
+
+    #{ Print the blank lines
+    printf "\n%.0s" $(seq "$1")
+
+  }
+
+  pout_char__spaces() {
+    #DOC Prints blank spaces to separate output messages.
+    #
+    #DOC Parameters:
+    #DOC   NUM: The number of blank spaces to print.
+    #
+    #DOC Returns:
+    #DOC   None
+    #
+    #DOC Example:
+    #DOC   > printf "%s%s%s" "Some leading text" "$(pout_char__spaces 2)""
+    #DOC
+    #
+    #DOC Notes:
+    #DOC   The argument is optional and defaults to 0 if not provided.
+
+    #{ Ensure the input is a valid number
+    validate --integer "$1" || {
+      printf 'Usage: pout_char__spaces [NUM]\n'
+      return 1
+    }
+
+    #{ Print the whitespace
+    printf "%.0s " $(seq "$1")
+  }
+
+  pout_char__patterns() {
+    #DOC Prints patterns to separate output messages.
+    #
+    #DOC Parameters:
+    #DOC   NUM: The number of blank spaces to print.
+    #
+    #DOC Returns:
+    #DOC   None
+    #
+    #DOC Example:
+    #DOC   > printf "%s%s%s" "Some leading text" "$(pout_char__spaces 2)""
+    #DOC
+    #
+    #DOC Notes:
+    #DOC   The argument is optional and defaults to 0 if not provided.
+
+    __usage="Usage: pout_char__patterns [NUM] [PATTERN]"
+    __num="$1"
+    __char="$2"
+
+    #{ Ensure the input is a valid number
+    validate --integer "$num" || {
+      printf 'ERROR: %s\n%s\n' \
+        "" \
+        "$__usage"
+      return 1
+    }
+
+    #{ Ensure the input is a valid number
+    validate --string "$__num" || {
+      printf 'Usage: pout_char__patterns [NUM] [PATTERN]\n'
+      return 1
+    }
+
+    #{ Print the pattern
+    printf "%.0s$__char" $(seq "$__num")
+  }
+
+  pout_char__parse_arguments() {
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      -n | --num)
+        [ "$2" ] || {
+          pout_char__usage
+          return 1
+        }
+        num="$2"
+        shift
+        ;;
+      -c | --char)
+        [ "$2" ] || {
+          pout_char__usage
+          return 1
+        }
+        case "$2" in
+        line) line=1 ;;
+        space) space=1 ;;
+        *) char="$2" ;;
+        esac
+        shift
+        ;;
+      *)
+        pout_char__usage
+        return 1
+        ;;
+      esac
+      shift
+    done
+  }
+
+  pout_char__execute_process() {
+    [ -z "$num" ] && {
+      pout_char__usage
+      return 1
+    }
+
+    if [ "$line" ]; then
+      pout_char__lines "$num"
+    elif [ "$space" ]; then
+      pout_char__spaces "$num"
+    elif [ "$char" ]; then
+      printf "%s" "$(printf "%.0s$char" $(seq "$num"))"
+    else
+      pout_char__usage
+      return 1
+    fi
+  }
+
+  pout_char__main "$@"
+}
+parse_arguments() {
+  #{ Execute only if run directly
+  case "$0" in */sh | -sh | sh) return ;; *) ;; esac
+
+  #{ Parse
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    #| Script Settings
+    -h | --help)
+      printf 'Usage: %s [options] [text]\n' "$0"
+      exit 0
+      ;;
+    -v | --version)
+      printf 'Version: 1.0.0\n'
+      exit 0
+      ;;
+    -d | --verbose)
+      __debug=1
+      ;;
+
+    #| Attributes
+    -X | --normal | --reset | -*res*) set_attribute "reset" "sgr0" "0" ;;
+    -B | --bold | -*bol*) set_attribute "bold" "bold" "1" ;;
+    -D | --dim | -*dim*) set_attribute "dim" "dim" "2" ;;
+    -I | --italic | -*ita*) set_attribute "italic" "sitm" "3" ;;
+    -UU | --double-underline | -*dou*) set_attribute "double-underline" "" "6" ;;
+    -U | --underline | -*und*) set_attribute "underline" "smul" "4" ;;
+    -F | --blink | --flash | -*bli*) set_attribute "blink" "blink" "5" ;;
+    -V | --invert | -*inv*) set_attribute "invert" "rev" "7" ;;
+    -H | --hidden | -*hid*) set_attribute "hidden" "invis" "8" ;;
+    -S | --strikethrough | --strike | -*str*) set_attribute "strikethrough" "" "9" ;;
+
+    #| Colors
+    --dark | --black | -*bla*) set_color "black" 0 "$1" ;;
+    -r | --red | -*red*) set_color "red" 1 "$1" ;;
+    -g | --green | -*gre*) set_color "green" 2 "$1" ;;
+    -y | --yellow | -*yel*) set_color "yellow" 3 "$1" ;;
+    -b | --blue | -*blu*) set_color "blue" 4 "$1" ;;
+    -m | --magenta | -*mag*) set_color "magenta" 5 "$1" ;;
+    -c | --cyan | -*cya*) set_color "cyan" 6 "$1" ;;
+    --light | --white | -*whi*) set_color "white" 7 "$1" ;;
+
+    #| Positioning
+    -ll | -*lead*l*)
+      __lead_lines=1
+      [ -n "$2" ] && {
+        __lead_lines="$(validate --integer "$2" || {
+          printf "ERROR: Invalid leading line count: %s\n" "$2"
+          exit "$__code"
+        })"
+        shift
+      }
+      ;;
+    -tl | -*trail*l*)
+      __trail_lines=1
+      [ -n "$2" ] && {
+        __trail_lines="$(validate --integer "$2" || {
+          printf "ERROR: Invalid trailing line count: %s\n" "$2"
+          exit "$__code"
+        })"
+        shift
+      }
+      ;;
+    -n | --line* | -*new*) printf '\n' ;;
+    -s | --space | -*sp*) printf ' ' ;;
+    -C | --center)
+      printf#TODO
+      ;;
+
+    #| Unknown options
+    --* | -*)
+      printf 'Error: Unknown option %s\n' "$1" >&2
+      exit 1
+      ;;
+    #| Content
+    *)
+      #TODO: Build the content into an array (maybe)
+      printf '%s' "$1"
+      ;;
+    esac
+    shift
+  done
+}
+
+main "$@"

@@ -1,0 +1,25 @@
+#!/bin/sh
+
+#==================================================
+#
+# DASH RC
+# /CLI/config/.dashrc
+#
+#==================================================
+
+# _________________________________________ SHELL<|
+
+export shDASH=true
+unset shZSH
+unset shFISH
+unset shBASH
+unset shGIT
+
+# ___________________________________________ ENV<|
+
+# --> Load Shell Environment Variables
+. "$cliENV"
+
+# __________________________________________ EXEC<|
+
+echo "Dashing to bash"

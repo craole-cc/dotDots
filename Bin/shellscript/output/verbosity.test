@@ -1,0 +1,266 @@
+#!/bin/sh
+
+#DOC Comprehensive test suite for the verbosity script
+#{ Tests all functionality including environment variables, arguments, and edge cases
+
+#{ Test configuration
+TESTER="$0"
+SCRIPT_PATH="${TESTER%/*}/verbosity"
+TEST_COUNT=0
+PASS_COUNT=0
+FAIL_COUNT=0
+
+#{ Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+#DOC Print formatted test results
+print_result() {
+  test_name="${1}"
+  expected="${2}"
+  actual="${3}"
+  status="${4}"
+
+  TEST_COUNT=$((TEST_COUNT + 1))
+
+  if [ "${status}" = "PASS" ]; then
+    PASS_COUNT=$((PASS_COUNT + 1))
+    printf "${GREEN}✓${NC} %-50s Expected: %-3s Got: %-3s ${GREEN}[PASS]${NC}\n" \
+      "${test_name}" "${expected}" "${actual}"
+  else
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    printf "${RED}✗${NC} %-50s Expected: %-3s Got: %-3s ${RED}[FAIL]${NC}\n" \
+      "${test_name}" "${expected}" "${actual}"
+  fi
+}
+
+#DOC Run a single test case
+run_test() {
+  test_name="${1}"
+  expected="${2}"
+  shift 2
+  cmd="${*}"
+
+  #{ Clear environment variables that might interfere
+  unset verbosity VERBOSITY silent SILENT quiet QUIET error ERROR err ERR
+  unset warn WARN warning WARNING info INFO normal NORMAL debug DEBUG
+  unset verbose VERBOSE trace TRACE high HIGH
+
+  #{ Run the command and capture output
+  actual=$(eval "${cmd}" 2>/dev/null)
+  exit_code=${?}
+
+  #{ Check if test passed
+  if [ "${actual}" = "${expected}" ] && [ "${exit_code}" -eq 0 ]; then
+    print_result "${test_name}" "${expected}" "${actual}" "PASS"
+  else
+    print_result "${test_name}" "${expected}" "${actual}" "FAIL"
+  fi
+}
+
+#DOC Print test section header
+print_section() {
+  printf "\n${CYAN}=== %s ===${NC}\n" "${1}"
+}
+
+#DOC Print test summary
+print_summary() {
+  printf "\n%s=== TEST SUMMARY ===%s\n" "${BLUE}" "${NC}"
+  printf "Total Tests: %d\n" "${TEST_COUNT}"
+  printf "${GREEN}Passed: %d${NC}\n" "${PASS_COUNT}"
+  printf "${RED}Failed: %d${NC}\n" "${FAIL_COUNT}"
+
+  if [ "${FAIL_COUNT}" -eq 0 ]; then
+    printf "\n%s🎉 All tests passed!%s\n" "${GREEN}" "${NC}"
+    exit 0
+  else
+    printf "\n%s❌ Some tests failed!%s\n" "${RED}" "${NC}"
+    exit 1
+  fi
+}
+
+#DOC Main test execution
+main() {
+  printf "%sVerbosity Script Test Suite%s\n" "${YELLOW}" "${NC}"
+  printf "%sTesting script: %s%s\n" "${YELLOW}" "${SCRIPT_PATH}" "${NC}"
+
+  #{ Verify script exists
+  if [ ! -f "${SCRIPT_PATH}" ]; then
+    printf "${RED}Error: Script not found at %s${NC}\n" "${SCRIPT_PATH}"
+    exit 1
+  fi
+
+  #{ Make script executable
+  chmod +x "${SCRIPT_PATH}"
+
+  #{ Test 1: Basic numeric inputs
+  print_section "Basic Numeric Inputs"
+  run_test "Numeric 0" "0" "${SCRIPT_PATH} 0"
+  run_test "Numeric 1" "1" "${SCRIPT_PATH} 1"
+  run_test "Numeric 2" "2" "${SCRIPT_PATH} 2"
+  run_test "Numeric 3" "3" "${SCRIPT_PATH} 3"
+  run_test "Numeric 4" "4" "${SCRIPT_PATH} 4"
+  run_test "Numeric 5" "5" "${SCRIPT_PATH} 5"
+
+  #{ Test 2: Numeric clamping
+  print_section "Numeric Clamping"
+  run_test "Negative number" "0" "${SCRIPT_PATH} -10"
+  run_test "Large number" "5" "${SCRIPT_PATH} 10"
+  run_test "Very large number" "5" "${SCRIPT_PATH} 999"
+
+  #{ Test 3: Named levels (lowercase)
+  print_section "Named Levels (Lowercase)"
+  run_test "quiet" "0" "${SCRIPT_PATH} quiet"
+  run_test "silent" "0" "${SCRIPT_PATH} silent"
+  run_test "off" "0" "${SCRIPT_PATH} off"
+  run_test "error" "1" "${SCRIPT_PATH} error"
+  run_test "err" "1" "${SCRIPT_PATH} err"
+  run_test "warn" "2" "${SCRIPT_PATH} warn"
+  run_test "warning" "2" "${SCRIPT_PATH} warning"
+  run_test "info" "3" "${SCRIPT_PATH} info"
+  run_test "normal" "3" "${SCRIPT_PATH} normal"
+  run_test "debug" "4" "${SCRIPT_PATH} debug"
+  run_test "verbose" "4" "${SCRIPT_PATH} verbose"
+  run_test "trace" "5" "${SCRIPT_PATH} trace"
+  run_test "high" "5" "${SCRIPT_PATH} high"
+
+  #{ Test 4: Named levels (uppercase)
+  print_section "Named Levels (Uppercase)"
+  run_test "QUIET" "0" "${SCRIPT_PATH} QUIET"
+  run_test "ERROR" "1" "${SCRIPT_PATH} ERROR"
+  run_test "WARN" "2" "${SCRIPT_PATH} WARN"
+  run_test "INFO" "3" "${SCRIPT_PATH} INFO"
+  run_test "DEBUG" "4" "${SCRIPT_PATH} DEBUG"
+  run_test "TRACE" "5" "${SCRIPT_PATH} TRACE"
+
+  #{ Test 5: Color names
+  print_section "Color Names"
+  run_test "gray" "0" "${SCRIPT_PATH} gray"
+  run_test "grey" "0" "${SCRIPT_PATH} grey"
+  run_test "red" "1" "${SCRIPT_PATH} red"
+  run_test "orange" "2" "${SCRIPT_PATH} orange"
+  run_test "yellow" "2" "${SCRIPT_PATH} yellow"
+  run_test "blue" "3" "${SCRIPT_PATH} blue"
+  run_test "green" "4" "${SCRIPT_PATH} green"
+  run_test "magenta" "5" "${SCRIPT_PATH} magenta"
+
+  #{ Test 6: Command line options
+  print_section "Command Line Options"
+  run_test "--quiet flag" "0" "${SCRIPT_PATH} --quiet"
+  run_test "-q flag" "0" "${SCRIPT_PATH} -q"
+  run_test "--level numeric" "4" "${SCRIPT_PATH} --level 4"
+  run_test "--level named" "2" "${SCRIPT_PATH} --level warn"
+  run_test "--level=value" "3" "${SCRIPT_PATH} --level=info"
+  run_test "-l shorthand" "1" "${SCRIPT_PATH} -l error"
+
+  #{ Test 7: Default values
+  print_section "Default Values"
+  run_test "Custom default" "2" "${SCRIPT_PATH} unknown_value --default 2"
+  run_test "--default flag" "1" "${SCRIPT_PATH} invalid --default 1"
+  run_test "--default=value" "4" "${SCRIPT_PATH} badvalue --default=4"
+  run_test "-d shorthand" "0" "${SCRIPT_PATH} xyz -d 0"
+
+  #{ Test 8: Environment variables (uppercase)
+  print_section "Environment Variables (Uppercase)"
+  run_test "VERBOSITY=0" "0" "VERBOSITY=0 ${SCRIPT_PATH}"
+  run_test "VERBOSITY=1" "1" "VERBOSITY=1 ${SCRIPT_PATH}"
+  run_test "VERBOSITY=debug" "4" "VERBOSITY=debug ${SCRIPT_PATH}"
+  run_test "VERBOSITY=trace" "5" "VERBOSITY=trace ${SCRIPT_PATH}"
+
+  #{ Test 9: Environment variables (lowercase override)
+  print_section "Environment Variables (Lowercase Override)"
+  run_test "verbosity override" "2" "VERBOSITY=4 verbosity=2 ${SCRIPT_PATH}"
+  run_test "verbosity named" "1" "VERBOSITY=debug verbosity=error ${SCRIPT_PATH}"
+  run_test "verbosity numeric" "0" "VERBOSITY=5 verbosity=0 ${SCRIPT_PATH}"
+
+  #{ Test 10: Implicit environment variables (uppercase)
+  print_section "Implicit Environment Variables (Uppercase)"
+  run_test "QUIET=1" "0" "QUIET=1 ${SCRIPT_PATH}"
+  run_test "SILENT=true" "0" "SILENT=true ${SCRIPT_PATH}"
+  run_test "ERROR=on" "1" "ERROR=on ${SCRIPT_PATH}"
+  run_test "WARN=yes" "2" "WARN=yes ${SCRIPT_PATH}"
+  run_test "INFO=enabled" "3" "INFO=enabled ${SCRIPT_PATH}"
+  run_test "DEBUG=1" "4" "DEBUG=1 ${SCRIPT_PATH}"
+  run_test "TRACE=true" "5" "TRACE=true ${SCRIPT_PATH}"
+
+  #{ Test 11: Implicit environment variables (lowercase override)
+  print_section "Implicit Environment Variables (Lowercase Override)"
+  run_test "quiet overrides QUIET" "3" "QUIET=1 quiet=0 ${SCRIPT_PATH}"
+  run_test "debug overrides DEBUG" "0" "DEBUG=1 debug=0 ${SCRIPT_PATH}"
+  run_test "trace overrides TRACE" "3" "TRACE=1 trace=false ${SCRIPT_PATH}"
+
+  #{ Test 12: Increment/Decrement operations
+  print_section "Increment/Decrement Operations"
+  run_test "Decrement -1" "2" "VERBOSITY=3 ${SCRIPT_PATH} -1"
+  run_test "Decrement --dec" "1" "VERBOSITY=2 ${SCRIPT_PATH} --dec"
+  run_test "Decrement --decrement" "0" "VERBOSITY=1 ${SCRIPT_PATH} --decrement"
+  run_test "Increment +1" "4" "VERBOSITY=3 ${SCRIPT_PATH} +1"
+  run_test "Increment --inc" "3" "VERBOSITY=2 ${SCRIPT_PATH} --inc"
+  run_test "Increment --increment" "5" "VERBOSITY=4 ${SCRIPT_PATH} --increment"
+
+  #{ Test 13: Multi-step increment/decrement
+  print_section "Multi-step Operations"
+  run_test "Decrement by 2" "1" "VERBOSITY=3 ${SCRIPT_PATH} -2"
+  run_test "Increment by 3" "5" "VERBOSITY=2 ${SCRIPT_PATH} +3"
+  run_test "Large decrement (clamped)" "0" "VERBOSITY=2 ${SCRIPT_PATH} -5"
+  run_test "Large increment (clamped)" "5" "VERBOSITY=2 ${SCRIPT_PATH} +10"
+
+  #{ Test 14: Operations with named levels
+  print_section "Operations with Named Levels"
+  run_test "Decrement from debug" "3" "VERBOSITY=debug ${SCRIPT_PATH} -1"
+  run_test "Increment from warn" "3" "VERBOSITY=warn ${SCRIPT_PATH} +1"
+  run_test "Decrement from error" "0" "VERBOSITY=error ${SCRIPT_PATH} -1"
+  run_test "Increment from trace" "5" "VERBOSITY=trace ${SCRIPT_PATH} +1"
+
+  #{ Test 15: Complex scenarios
+  print_section "Complex Scenarios"
+  run_test "Multiple env vars" "0" "DEBUG=1 quiet=1 ${SCRIPT_PATH}"
+  run_test "Env + argument override" "2" "VERBOSITY=debug ${SCRIPT_PATH} warn"
+  run_test "Lowercase + operation" "1" "verbosity=2 ${SCRIPT_PATH} -1"
+  run_test "Named + operation" "4" "VERBOSITY=info ${SCRIPT_PATH} +1"
+
+  #{ Test 16: Edge cases
+  print_section "Edge Cases"
+  run_test "Empty string" "3" "${SCRIPT_PATH} ''"
+  run_test "Whitespace" "3" "${SCRIPT_PATH} ' '"
+  run_test "Dash only" "0" "${SCRIPT_PATH} -"
+  run_test "No arguments (default)" "3" "${SCRIPT_PATH}"
+  run_test "No args with VERBOSITY" "4" "VERBOSITY=4 ${SCRIPT_PATH}"
+  run_test "No args with verbosity" "1" "verbosity=1 ${SCRIPT_PATH}"
+
+  #{ Test 17: Falsy implicit variables
+  print_section "Falsy Implicit Variables"
+  run_test "QUIET=0 (falsy)" "3" "QUIET=0 ${SCRIPT_PATH}"
+  run_test "DEBUG=false (falsy)" "3" "DEBUG=false ${SCRIPT_PATH}"
+  run_test "quiet=no (falsy)" "3" "quiet=no ${SCRIPT_PATH}"
+  run_test "silent=off (falsy)" "3" "silent=off ${SCRIPT_PATH}"
+
+  #{ Test 18: Precedence testing
+  print_section "Precedence Testing"
+  run_test "Arg beats env" "1" "VERBOSITY=5 ${SCRIPT_PATH} 1"
+  run_test "lowercase beats uppercase" "2" "VERBOSITY=5 verbosity=2 ${SCRIPT_PATH}"
+  run_test "Explicit beats implicit" "4" "QUIET=1 VERBOSITY=4 ${SCRIPT_PATH}"
+  run_test "Implicit lowercase beats uppercase" "3" "DEBUG=1 debug=0 INFO=1 ${SCRIPT_PATH}"
+
+  #{ Test 19: Invalid inputs
+  print_section "Invalid Inputs"
+  run_test "Invalid string" "3" "${SCRIPT_PATH} xyz"
+  run_test "Invalid with custom default" "1" "${SCRIPT_PATH} abc --default 1"
+  run_test "Mixed invalid" "2" "${SCRIPT_PATH} bad123 -d 2"
+
+  #{ Test 20: Boundary conditions
+  print_section "Boundary Conditions"
+  run_test "Decrement from 0" "0" "VERBOSITY=0 ${SCRIPT_PATH} -1"
+  run_test "Increment from 5" "5" "VERBOSITY=5 ${SCRIPT_PATH} +1"
+  run_test "Large negative operation" "0" "VERBOSITY=3 ${SCRIPT_PATH} -100"
+  run_test "Large positive operation" "5" "VERBOSITY=2 ${SCRIPT_PATH} +100"
+
+  print_summary
+}
+
+#{ Execute main function
+main "$@"

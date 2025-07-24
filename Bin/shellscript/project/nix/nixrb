@@ -1,0 +1,1594 @@
+#! /bin/sh
+# shellcheck enable=all
+
+main() {
+  trap exit_with_grace EXIT INT TERM
+  initialize_script
+  parse_arguments "$@"
+  # validate_config
+  # run_process
+  echo "..end_process tested"
+}
+initialize_script() {
+  #| Script Metadata
+  scr_path="$0"
+  scr_name="$(basename -- "${scr_path:-}")"
+  scr_version="0.2.0"
+  scr_description="Provides a wrapper with sane defaults for the nixos-rebuild command."
+  scr_authors="Craole <https://github.com/craole-cc>"
+
+  #| General Variables
+  tag_ctx=""
+  tag_sep="-|-"
+  tag_code=0
+  debug_pad=24
+  delimiter="$(printf '\037')"
+  IFS="${delimiter}"
+
+  #| Process Variables
+  cwd="$(pwd -P)"
+  flake_root=""
+  action="switch"
+  upgrade=""
+  trace=""
+  args=""
+  build_target=""
+  debug=""
+
+  #| Utility Functions & Modes
+  get_utilities
+  set_modes --verbosity trace
+  set_modes --fail-on-error true
+}
+get_utilities() {
+  pout_repeat() {
+    rep="${1:-1}"
+    pat="${2:-'\n'}"
+    i=0
+    while [ "${i}" -lt "${rep}" ]; do
+      #{ Use %b to interpret escape sequences
+      printf "%b" "${pat}"
+      i=$((i + 1))
+    done
+  }
+  is_zero_or_int() {
+    case "${1:-}" in
+    '' | *[!0-9]*) return 3 ;;
+    *) return 0 ;;
+    esac
+  }
+  manage_list() {
+    #{ Initialize variables
+    list=""
+    action="build"
+    separator="${delimiter:-" "}"
+
+    #{ Parse arguments
+    while [ "$#" -ge 1 ]; do
+      case "$1" in
+      --create | --make | --build) action=build ;;
+      --parse) action=parse ;;
+      --delim* | --sep*) separator="${2:-}" shift ;;
+      *) list="${list:+${list}${delimiter}}$1" ;;
+      esac
+      shift
+    done
+
+    #{ Add the defined separator, if necessary
+    if [ -n "${separator:-}" ] && [ "${separator}" != "${delimiter}" ]; then
+      old_IFS="${IFS}"
+      IFS="${delimiter}"
+      result=""
+      for item in ${list}; do
+        result="${result:+${result}${separator}}${item}"
+      done
+      IFS="${old_IFS}"
+      list="${result}"
+    fi
+
+    case "${action:-}" in
+    build)
+      printf "%s" "${list:-}"
+      ;;
+    parse)
+      #{ Parse the input string into an array-like output
+      old_IFS="${IFS}"
+      IFS="${delimiter}"
+      for item in ${list}; do
+        printf "%s\n" "${item}"
+      done
+      IFS="${old_IFS}"
+      ;;
+    *) ;;
+    esac
+  }
+  trim_whitespace() {
+    printf "%s" "${1}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+  }
+}
+set_modes() {
+  #| Verbosity variables
+  verbosity_quiet=0
+  verbosity_error=1
+  verbosity_warn=2
+  verbosity_info=3
+  verbosity_debug=4
+  verbosity_trace=5
+  verbosity_options="$(
+    manage_list \
+      "${verbosity_quiet}" quiet off false \
+      "${verbosity_error}" error \
+      "${verbosity_warn}" warn \
+      "${verbosity_info}" info on true \
+      "${verbosity_debug}" debug \
+      "${verbosity_trace}" trace \
+      --delimiter '|' \
+      --build
+  )"
+  verbosity="${verbosity:-3}"
+  fail_on_error_options="$(
+    manage_list \
+      --build 1 on true enabled 0 off false disabled \
+      --delimiter ', '
+  )"
+  fail_on_error="${fail_on_error:-1}"
+
+  #{ Parse arguments
+  case "$1" in
+  --pout-suppress | --pout* | --end* | --term*)
+    #| Pout Options
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+      all) pout_suppression="${pout_suppression:-${pout_suppression:+,}}all" ;;
+      msg) pout_suppression="${pout_suppression:-${pout_suppression:+,}}msg" ;;
+      tag) pout_suppression="${pout_suppression:-${pout_suppression:+,}}tag" ;;
+      lvl) pout_suppression="${pout_suppression:-${pout_suppression:+,}}lvl" ;;
+      scr) pout_suppression="${pout_suppression:-${pout_suppression:+,}}scr" ;;
+      ctx) pout_suppression="${pout_suppression:-${pout_suppression:+,}}ctx" ;;
+      *) ;;
+      esac
+      shift
+    done
+    ;;
+  --verbosity)
+    #| Verbosity Level
+    case "${2:-}" in
+    0 | off | false | quiet | " ") verbosity=0 ;;
+    1 | err*) verbosity=1 ;;
+    2 | warn*) verbosity=2 ;;
+    3 | info*) verbosity=3 ;;
+    4 | debug) verbosity=4 ;;
+    5 | trace) verbosity=5 ;;
+    *)
+      end_process --warn --key "Invalid verbosity level" "${2}"
+      end_process "Valid options: " "${verbosity_options}"
+      end_process "Default option: " "${verbosity}"
+      ;;
+    esac
+    ;;
+  --fail-on-error)
+    #| Script Operation Mode
+    case "${2:-}" in
+    1 | true | on | enabled) fail_on_error=1 ;;
+    0 | false | off | disabled) fail_on_error=0 ;;
+    *)
+      end_process --warn "Invalid 'fail_on_error' mode" ": ($2)" \
+        "\nValid options: " "${fail_on_error_options}" \
+        "\nDefault option: " "${fail_on_error}"
+      ;;
+    esac
+    ;;
+  *) ;;
+  esac
+
+  case "${fail_on_error:-}" in
+  1 | true | on | enabled) set -e ;;
+  *) ;;
+  esac
+}
+set_commands() {
+  #| Function Metadata
+  fn_root="${fn_ctx}"
+  fn_name="set_commands"
+  fn_ctx="${fn_root}${tag_sep}${fn_name}"
+  trap fn_ctx="${fn_root}" EXIT INT TERM
+
+  #{ Loop through each command
+  for cmd in $(manage_list --build nixos-rebuild realpath readlink git); do
+    #{ Initialize variables
+    cmd_key="" cmd_val="" cmd_env=""
+
+    #{ Define the key in uppercase, prefixed with "CMD_", replacing hyphens with underscores
+    cmd_key="$(printf "CMD_%s" "${cmd}" | tr '[:lower:]-' '[:upper:]_')"
+    end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_KEY" --val "${cmd_key}"
+
+    #{ Retrieve the path, otherwise return empty string
+    cmd_val="$(command -v "${cmd}" 2>/dev/null || printf '')"
+    end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_VAL" --val "${cmd_val}"
+
+    #{ Create the environment variable of the command's location
+    eval export "$(printf "%s=%s" "${cmd_key}" "${cmd_val}")"
+    cmd_env="$(env | grep "${cmd_key}")"
+    end_process --ctx "${fn_ctx}" --trace --key "[${cmd}] CMD_ENV" --val "${cmd_env}"
+
+    #{ Debug
+    end_process --ctx "${fn_ctx}" --debug --key "${cmd_key}" --val "${cmd_val}"
+  done
+
+  #| Gyt
+  cmd_gyt="${DOTS:-"${HOME}/.dots"}/Bin/shellscript/project/git/gyt"
+  if [ -z "${CMD_GYT}" ] && [ -x "${cmd_gyt}" ]; then
+    CMD_GYT="${cmd_gyt}"
+  else
+    CMD_GYT=""
+  fi
+  end_process --ctx "${fn_ctx}" --debug --key "CMD_GYT" --val "${CMD_GYT}"
+}
+parse_arguments() {
+  pout --fn "parse_arguments"
+  # pout --error "The option '$1' requires an argument"
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h | --help) end_process --usage ;;
+    -v | --version) end_process --version ;;
+    -q | --quiet) set_modes --verbosity quiet ;;
+    --error) set_modes --verbosity error ;;
+    --warn) set_modes --verbosity warn ;;
+    --info) set_modes --verbosity info ;;
+    -d | --debug | --verbose) set_modes --verbosity debug ;;
+    -t | --trace) set_modes --verbosity trace ;;
+    -T | trace) trace=true ;;
+    --no-trace) trace="" ;;
+    -U | upgrade | --up*) upgrade=true ;;
+    --no-up*) upgrade="" ;;
+    --action) action="$2" shift ;;
+    switch | boot | test | build | dry-build | dry-activate | edit | repl | build-vm | build-vm-with-bootloader | build-image | list-generations) action="$1" ;;
+    --flake)
+      if [ -n "$2" ]; then
+        flake_root="$2"
+        shift
+      else
+        end_process --error "The option '$1' requires an argument"
+      fi
+      ;;
+    --host | --*target)
+      if [ -n "$2" ]; then
+        build_target="$2"
+        shift
+      else
+        exit 1
+      fi
+      ;;
+    *)
+      if [ -z "${flake_root:-}" ] && [ -f "${1}/flake.nix" ]; then
+        flake_root="$1"
+        end_process --warn "Avoid positional arguments for safer operation. For more information, use --help"
+        end_process --info "Inferred flake root: ${flake_root}"
+      else
+        case "$(basename -- "$1")" in "$(basename -- "${cwd}")")
+          #{ Check if the current directory is a flake
+          if [ -f "${cwd}/flake.nix" ]; then
+            flake_root="${cwd}"
+            pout --info \
+              "Proceeding with the current directory as the flake root."
+          else
+            args="${args:-}${args:+${delimiter:- }}${1}"
+          fi
+          ;;
+        *) args="${args:-}${args:+${delimiter:- }}${1}" ;; esac
+      fi
+      ;;
+    esac
+    shift
+  done
+
+  # end_process --ctx "${fn_ctx}" --debug --key "Flake Root" --val "${flake_root}"
+  # end_process --ctx "${fn_ctx}" --debug --key "Build Target" --val "${build_target}"
+  # end_process --ctx "${fn_ctx}" --debug --key "Arguments" --val "${args}"
+}
+validate_config() {
+  #| Function Metadata
+  fn_name="validate_config"
+  fn_ctx="${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" EXIT INT TERM
+
+  end_process --ctx "${fn_ctx}" --trace --key "cwd" --val "${cwd}"
+  end_process --ctx "${fn_ctx}" --trace --key "flake_root" --val "${flake_root}"
+  end_process --ctx "${fn_ctx}" --trace --key "action" --val "${action}"
+  end_process --ctx "${fn_ctx}" --trace --key "Verbosity Mode:" "${verbosity}"
+  end_process --ctx "${fn_ctx}" --trace --key "Strict Mode:" "${fail_on_error}"
+
+  #{ Cache the commands that will be used
+  set_commands
+
+  #{ Retrieve the absolute path to the flake, if it exists
+  check_flake_status "${flake_root:-}"
+  case "${status}" in
+  0) flake_root="${output}" ;;
+  2) return 0 ;;
+  *) return "${status}" ;;
+  esac
+
+  #{ Retrieve the absolute path to the flake, if it exists
+  check_git_status "${flake_root}"
+  case "${status}" in
+  0) ;;
+  *)
+    end_process --error \
+      --ctx "check_git_status" \
+      --code "${status:-}" \
+      "${output}"
+    ;;
+  esac
+}
+check_flake_status() {
+  #| Function Metadata
+  fn_root="${fn_ctx}"
+  fn_name="check_flake_status"
+  fn_ctx="${fn_root}${tag_sep}${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" EXIT INT TERM
+
+  #| Defaults
+  output=""
+  status=0
+  _flake="${1:-}"
+
+  #{ Check if a flake directory was specified
+  if [ -z "${1:-}" ]; then
+    end_process --ctx "${fn_ctx}" --warn "No flake directory specified, proceeding with rebuild"
+    status=2
+    return 0
+  fi
+
+  #{ Get the absolute path to the flake directory
+  if [ -x "${CMD_REALPATH}" ]; then
+    _flake="$("${CMD_REALPATH}" "${_flake}")"
+    end_process --ctx "${fn_ctx}" --trace "Using 'realpath' to get absolute path"
+  elif [ -x "${CMD_READLINK}" ]; then
+    _flake="$("${CMD_READLINK}" -f "${_flake}")"
+    end_process --ctx "${fn_ctx}" --trace "Using 'readlink -f' to get absolute path"
+  else
+    _flake="$(cd "${_flake}" 2>/dev/null && pwd)"
+    end_process --ctx "${fn_ctx}" --trace "Using 'cd/pwd' to get absolute path"
+  fi
+
+  #{ Return the flake directory, if the flake exists
+  if [ -f "${_flake:-}/flake.nix" ]; then
+    end_process --ctx "${fn_ctx}" --debug --key "Flake Root (Absolute)" "${_flake}"
+    output="${_flake:-}"
+  else
+    end_process --ctx "${fn_ctx}" --error "Flake directory does not exist: ${_flake:-}"
+    status=1
+  fi
+
+  return 0
+}
+check_git_status() {
+  #| Function Metadata
+  fn_root="${fn_ctx}"
+  fn_name="check_git_status"
+  fn_ctx="${fn_root}${tag_sep}${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="${fn_root}" EXIT INT TERM
+
+  #| Defaults
+  if [ -z "${1:-}" ]; then
+    output="No directory specified for git status check"
+    status="$?"
+    return 0
+  else
+    output=""
+    status=0
+    _git_dir="${1:-}"
+    end_process --ctx "${fn_ctx}" --trace "Checking git status for directory: ${_git_dir}"
+  fi
+
+  #{ Run git status check
+  if [ -x "${CMD_GYT:-}" ]; then
+    end_process --ctx "${fn_ctx}" --trace "Using gyt to check git status"
+    if "${CMD_GYT}" --dir "${_git_dir}"; then
+      end_process --ctx "${fn_ctx}" --trace "Git status command returned successfully"
+    else
+      status="$?"
+      case "${status:-}" in
+      130) printf "\n" && output="gyt operation cancelleled by the user" ;;
+      *) output="gyt operation failed" ;;
+      esac
+      return 0
+    fi
+  else
+    #{ Check the repository status
+    if \cd "${_git_dir}"; then
+      #{ Check git status and encourage commit, fail if there are changes
+      [ -z "${CMD_GIT:-}" ] && {
+        status=1
+        output="The git command is not available."
+        return 0
+      }
+
+      git_changes_to_commit="$("${CMD_GIT}" status --porcelain 2>/dev/null)"
+
+      #{ Update the nothing_to_commit flag if there are no changes
+      if [ -n "${git_changes_to_commit}" ]; then
+        git status --short
+        output="Please commit those repository changes first"
+        return 0
+      fi
+    else
+      status="$?"
+      output="Failed to navigate to the git directory: ${_git_dir}"
+      return 0
+    fi
+    return 0
+  fi
+}
+run_process_REV0() {
+  #| Function Metadata
+  fn_name="run_process"
+  fn_ctx="${fn_name}"
+  #TODO: Add a trap to reset fn_ctx to fn_root on any return, How can it be don POSIX-compliantly
+  trap fn_ctx="" EXIT INT TERM
+
+  #{ Update the arguments
+  case "${upgrade}" in
+  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--upgrade" ;;
+  *) ;;
+  esac
+  case "${trace}" in
+  true | 1 | yes | on) args="${args:-}${args:+${delimiter:- }}--show-trace" ;;
+  *) ;;
+  esac
+
+  #{ Update target
+  if [ -n "${flake_root}" ] && [ -n "${build_target}" ]; then
+    build_target="--flake ${flake_root}#${build_target}"
+  elif [ -n "${flake_root}" ]; then
+    build_target="--flake ${flake_root}#$(hostname)"
+  else
+    :
+  fi
+
+  #{ Update the command
+  cmd="sudo nixos-rebuild ${action} ${build_target} ${args:-}"
+
+  #{ Print the command
+  case "${debug}" in
+  true | 1 | yes | on) printf "%s\n" "${cmd}" ;; *) ;;
+  esac
+
+  #{ Execute the command
+  printf "%s" "${args:-}"
+  # eval "${cmd}"
+  # return "$?"
+}
+pout() {
+  pout_main() {
+    trap pout_exit EXIT INT TERM
+    pout_init
+    pout_parse "$@"
+    pout_prep
+    pout_execute
+    pout_exit
+  }
+
+  pout_init() {
+    #{ Initialize variables
+    tag_sep="${tag_sep:-"-|-"}"
+    ctx=""
+    fn_ctx="${fn_ctx:-}"
+    toggle_scr=on
+    toggle_tag=on
+    lvl=""
+
+    toggle_lvl=on
+    toggle_ctx=on
+    toggle_msg=on
+    msg=""
+    toggle_trim=on
+
+    # ctx="${ctx:-pout}" #? Function name
+    exit_code=     #? [""|0|1-255]
+    head_char="\n" #? Character(s) to be printed repeatedly before the message
+    head_reps=0    #? positive integer or zero
+    key=""
+    no_ctx=""
+    no_lvl=""
+    no_msg=""
+    no_msg=""
+    no_scr=""
+    no_tag=""
+    no_trim=""
+    scr="${scr_name:-}" #? Script name
+    sep=""
+    stream_code=1 #? [1|2]
+    tag=""
+    tail_char="\n" #? Character(s) to be printed repeatedly after the message
+    tail_reps=1    #? positive integer or zero
+    val=""
+  }
+
+  pout_parse() {
+    while [ $# -gt 0 ]; do
+      case "${1:-}" in
+      --fn*)
+        case "${1}" in
+        *-sub)
+          #{ Handle sub-function context
+          if [ -n "${2:-}" ]; then
+            tag_ctx="${tag_ctx:+${tag_ctx}${tag_sep}}${2}"
+            shift
+          else
+            end_process --error "No sub-context specified"
+          fi
+          ;;
+        *)
+          #{ Handle main function context
+          if [ -n "${2:-}" ]; then
+            tag_ctx="${2}"
+            shift
+          else
+            end_process --error "No context specified"
+          fi
+          ;;
+        esac
+        ;;
+      --usage)
+        display_usage_guide
+        exit_code="${exit_code:-0}"
+        ;;
+      --version)
+        msg="${scr_version}"
+        exit_code="${exit_code:-0}"
+        ;;
+      -k | --key) key="$2" shift ;;
+      -v | --val) val="$2" shift ;;
+      --trace)
+        if [ "${verbosity}" -ge "${verbosity_trace}" ]; then
+          lvl="TRACE"
+          stream_code=2
+        else
+          toggle_msg=off
+        fi
+        ;;
+      --debug)
+        if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+          lvl="DEBUG"
+          stream_code=2
+        else
+          toggle_msg=off
+        fi
+        ;;
+      --info)
+        if [ "${verbosity}" -ge "${verbosity_info}" ]; then
+          lvl=" INFO"
+        else
+          toggle_msg=off
+        fi
+        ;;
+      --warn)
+        if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+          lvl=" WARN"
+          stream_code=2
+        else
+          toggle_msg=off
+        fi
+        ;;
+      --error)
+        if [ "${verbosity:-0}" -ge "${verbosity_error:-1}" ]; then
+          lvl="ERROR"
+          stream_code=2
+          exit_code="${exit_code:-1}"
+        else
+          toggle_msg=off
+        fi
+        ;;
+      --quiet | --silent)
+        lvl="QUIET"
+        toggle_msg=off
+        ;;
+      --blank | --*lead*)
+        if [ -n "${2:-}" ]; then
+          # shellcheck disable=SC2310
+          if is_zero_or_int "$2"; then
+            head_reps="$2"
+            shift
+          else
+            head_reps=1
+            end_process --error \
+              --ctx "${ctx:-"pout"}" \
+              --code "${?}" \
+              "'$1' requires an integer but got:" "$2"
+          fi
+        else
+          head_reps=1
+        fi
+        ;;
+      --*tail* | --trail*)
+        if [ -n "$2" ]; then
+          # shellcheck disable=SC2310
+          if is_zero_or_int "$2"; then
+            tail_reps="$2"
+            shift
+          else
+            tail_reps=1
+            end_process --warn \
+              --ctx "${ctx:-"pout"}" \
+              --code "${?}" \
+              "'$1' requires an integer but got:" "$2"
+          fi
+        else
+          tail_reps=1
+        fi
+        ;;
+      --code) exit_code="$2" shift ;;
+      --scr | --script)
+        if [ -n "${2:-}" ]; then
+          scr="$2"
+          ctx=""
+          shift
+        else
+          end_process --error "No script specified"
+        fi
+        ;;
+      --neat)
+        toggle_tag=off
+        toggle_trim=off
+        ;;
+      --no-scr) toggle_scr=off ;;
+      --no-tag) toggle_tag=off ;;
+      --no-lvl) toggle_lvl=off ;;
+      --no-ctx) toggle_ctx=off ;;
+      --no-msg) toggle_msg=off ;;
+      --no-trim) toggle_trim=off ;;
+      *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+      esac
+      shift
+    done
+  }
+
+  pout_prep() {
+    #{ Format tag
+    case "${toggle_tag}" in off) lvl="" scr="" ctx="" ;; *)
+      case "${toggle_lvl}" in off) lvl="" ;; *)
+        case "${toggle_scr}" in off) scr="" ;; *)
+          case "${toggle_ctx}" in off) scr="" ctx="" ;; *) ;;
+          esac
+          ;;
+        esac
+        ;;
+      esac
+
+      #{ Update the tag
+      if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
+
+        #{ Concatenate the tag elements in order (level->script->context)
+        if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+          tag="${lvl}${tag_sep}${scr}${tag_sep}${ctx}"
+        elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+          tag="${scr}${tag_sep}${ctx}"
+        elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
+          tag="${lvl}${tag_sep}${ctx}"
+        elif [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
+          tag="${lvl}${tag_sep}${scr}"
+        elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -z "${ctx}" ]; then
+          tag="${lvl}"
+        elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
+          tag="${scr}"
+        elif [ -z "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
+          tag="${ctx}"
+        fi
+
+        #{ Add the exit_code, if exists
+        [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
+          tag="${tag:-}-|-exit code: ${exit_code}"
+
+        #{ Add special characters/seperators
+        tag="/> ${tag:-} <\\ "
+
+        #{ Ensure there is a trailing line break
+        tail_reps=1
+      fi
+      ;;
+    esac
+
+    #{ Format message
+    case "${toggle_msg}" in off) msg="" lvl="" scr="" ctx="" ;; *)
+      #{ Delimit the message with spaces
+      [ -n "${msg:-}" ] && {
+        msg="$(printf "%b" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+      }
+      [ -n "${key:-}" ] && {
+        key="$(printf "%b" "${key:-}" | sed "s/${delimiter:-}/ /g")"
+        val="$(
+          printf "%b" "${val:-"${msg:-"{undefined}"}"}" |
+            sed "s/${delimiter:-}/ /g"
+        )"
+      }
+      #{ Trim the message
+      case "${toggle_trim:-}" in off) ;; on | *)
+        [ -n "${msg:-}" ] &&
+          msg="$(trim_whitespace "${msg:-}")"
+        [ -n "${key:-}" ] && {
+          key="$(trim_whitespace "${key}")"
+          val="$(trim_whitespace "${val}")"
+        }
+        ;;
+      esac
+      #{ Honor tag toggle
+
+      ;;
+    esac
+
+    #{ Format the message
+    if [ -z "${msg:-}" ]; then
+      :
+    elif [ -n "${key}" ]; then
+      case "${tag}" in
+      *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+        #{ Define the separator
+        sep=" | "
+
+        #{ Calculate padding for label alignment
+        debug_pad="${debug_pad:-24}"
+        pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+        #{ Format the tagged key-value pair
+        msg="$(
+          printf "%b%b%b%b%b" \
+            "${tag}" "${pad}" "${key}" "${sep}" "${val}"
+        )"
+        ;;
+      *)
+        #{ Define the separator
+        sep=": "
+
+        #{ Print the key-value pair
+        msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
+        ;;
+      esac
+    else
+      if [ -n "${tag:-}" ]; then
+        msg="$(printf "%b%b%b" "${tag}" "${sep}" "${msg}")"
+      else
+        :
+      fi
+    fi
+
+  }
+
+  pout_execute() {
+    #{ Print leading characters/lines
+    [ "${head_reps}" -gt 0 ] &&
+      pout_repeat "${head_reps}" "${head_char}"
+
+    #{ Print the message
+    [ -n "${msg:-}" ] &&
+      case "${verbosity:-}" in
+      "${verbosity_quiet:-}") ;;
+      *)
+        #{ Print the message to the defined stream
+        printf "%b" "${msg:-}" >&"${stream_code:-1}"
+
+        #{ Append the error code to the message or trailing characters
+        if [ -n "${exit_code:-}" ]; then
+          #? Handled in pout_cleanup
+          # printf "\n%s exited with a error code of %s" \
+          #   "${scr_name}" "${exit_code}" >&2
+          #   exit "${exit_code}"
+          pout_exit
+        else
+          #{ Print trailing characters/lines
+          [ -n "${tail_reps}" ] && pout_repeat "${tail_reps}" "${tail_char}"
+        fi
+        ;;
+      esac
+
+  }
+
+  pout_exit() {
+    #{ Terminate, if requested
+    if [ -z "${exit_code:-}" ]; then
+      return 0
+    elif [ "${exit_code:-0}" -eq 0 ]; then
+      exit 0
+    else
+      exit "${exit_code}"
+    fi
+  }
+  pout_main "$@"
+}
+end_process() {
+  #{ Initialize variables
+  ctx="${ctx:-pout}" #? Function name
+  exit_code=         #? [""|0|1-255]
+  head_char="\n"     #? Character(s) to be printed repeatedly before the message
+  head_reps=0        #? positive integer or zero
+  key=""
+  lvl=""
+  msg=""
+  no_ctx=""
+  no_lvl=""
+  no_msg=""
+  no_msg=""
+  no_scr=""
+  no_tag=""
+  no_trim=""
+  scr="${scr_name:-}" #? Script name
+  sep=""
+  stream_code=1 #? [1|2]
+  tag=""
+  tail_char="\n" #? Character(s) to be printed repeatedly after the message
+  tail_reps=1    #? positive integer or zero
+  val=""
+
+  #{ Parse arguments
+  while [ $# -gt 0 ]; do
+    case "${1:-}" in
+    --usage)
+      display_usage_guide
+      exit_code="${exit_code:-0}"
+      ;;
+    --version)
+      msg="${scr_version}"
+      exit_code="${exit_code:-0}"
+      ;;
+    -k | --key) key="$2" shift ;;
+    -v | --val) val="$2" shift ;;
+    --trace)
+      if [ "${verbosity}" -ge "${verbosity_trace}" ]; then
+        lvl="TRACE"
+        stream_code=2
+      else
+        # echo "trace"
+        no_msg=true
+      fi
+      ;;
+    --debug)
+      if [ "${verbosity}" -ge "${verbosity_debug}" ]; then
+        lvl="DEBUG"
+        stream_code=2
+      else
+        # echo "debug"
+        no_msg=true
+      fi
+      ;;
+    --info)
+      if [ "${verbosity}" -ge "${verbosity_info}" ]; then
+        lvl=" INFO"
+      else
+        # echo "info"
+        no_msg=true
+      fi
+      ;;
+    --warn)
+      if [ "${verbosity}" -ge "${verbosity_warn}" ]; then
+        lvl=" WARN"
+        stream_code=2
+      else
+        # echo "warn"
+        no_msg=true
+      fi
+      ;;
+    --error)
+      if [ "${verbosity:-0}" -ge "${verbosity_error:-1}" ]; then
+        lvl="ERROR"
+        stream_code=2
+        exit_code="${exit_code:-1}"
+      else
+        # echo "error"
+        no_msg=true
+      fi
+      ;;
+    --quiet | --silent)
+      # echo "quiet"
+      lvl="QUIET"
+      no_msg=true
+      ;;
+    --blank | --*lead*)
+      if [ -n "${2:-}" ]; then
+        # shellcheck disable=SC2310
+        if is_zero_or_int "$2"; then
+          head_reps="$2"
+          shift
+        else
+          head_reps=1
+          end_process --error \
+            --ctx "${ctx:-"pout"}" \
+            --code "${?}" \
+            "'$1' requires an integer but got:" "$2"
+        fi
+      else
+        head_reps=1
+      fi
+      ;;
+    --*tail* | --trail*)
+      if [ -n "$2" ]; then
+        # shellcheck disable=SC2310
+        if is_zero_or_int "$2"; then
+          tail_reps="$2"
+          shift
+        else
+          tail_reps=1
+          end_process --warn \
+            --ctx "${ctx:-"pout"}" \
+            --code "${?}" \
+            "'$1' requires an integer but got:" "$2"
+        fi
+      else
+        tail_reps=1
+      fi
+      ;;
+    --code) exit_code="$2" shift ;;
+    --ctx | --context | --fn | --func*)
+      if [ -n "${2:-}" ]; then
+        ctx="$2"
+        shift
+      else
+        end_process --error "No context specified"
+      fi
+      ;;
+    --scr | --script)
+      if [ -n "${2:-}" ]; then
+        scr="$2"
+        ctx=""
+        shift
+      else
+        end_process --error "No script specified"
+      fi
+      ;;
+    --neat)
+      no_tag=true
+      no_trim=true
+      ;;
+    --no-scr) no_scr=true ;;
+    --no-tag) no_tag=true ;;
+    --no-lvl) no_lvl=true ;;
+    --no-ctx) no_ctx=true ;;
+    --no-msg) no_msg=true ;;
+    --no-trim) no_trim=true ;;
+    *) msg="${msg:-}${msg:+${delimiter:- }}${1}" ;;
+    esac
+    shift
+  done
+
+  #{ Honor overrides
+  if [ -n "${no_msg:-}" ]; then
+    lvl=""
+    ctx=""
+    scr=""
+    msg=""
+  elif [ -n "${no_tag:-}" ]; then
+    lvl=""
+    ctx=""
+    scr=""
+  elif [ -n "${no_scr:-}" ]; then
+    scr=""
+  elif [ -n "${no_ctx:-}" ]; then
+    scr=""
+    ctx=""
+  elif [ -n "${no_lvl:-}" ]; then
+    lvl=""
+  fi
+
+  #{ Delimit the message with spaces
+  if [ -n "${no_msg:-}" ]; then
+    msg=""
+  else
+    [ -n "${msg:-}" ] && {
+      msg="$(printf "%b" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+    }
+    [ -n "${key:-}" ] && {
+      key="$(printf "%b" "${key:-}" | sed "s/${delimiter:-}/ /g")"
+      val="$(
+        printf "%b" "${val:-"${msg:-"{undefined}"}"}" |
+          sed "s/${delimiter:-}/ /g"
+      )"
+    }
+  fi
+
+  #{ Trim the message
+  if [ -z "${no_trim}" ]; then
+    [ -n "${msg:-}" ] &&
+      msg="$(trim_whitespace "${msg:-}")"
+    [ -n "${key:-}" ] && {
+      key="$(trim_whitespace "${key}")"
+      val="$(trim_whitespace "${val}")"
+    }
+  else
+    :
+  fi
+
+  #{ Update the tag
+  if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
+    if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${lvl}-|-${scr}-|-${ctx}"
+    elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${scr}-|-${ctx}"
+    elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${lvl}-|-${ctx}"
+    elif [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
+      tag="${lvl}-|-${scr}"
+    elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -z "${ctx}" ]; then
+      tag="${lvl}"
+    elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
+      tag="${scr}"
+    elif [ -z "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${ctx}"
+    fi
+
+    #{ Add the exit_code, if exists
+    [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
+      tag="${tag:-}-|-exit code: ${exit_code}"
+
+    #{ Add special characters/seperators
+    tag="/> ${tag:-} <\\ "
+
+    #{ Ensure there is a trailing line break
+    tail_reps=1
+  fi
+
+  #{ Format the message
+  if [ -n "${no_msg:-}" ]; then
+    msg=""
+  elif [ -n "${key}" ]; then
+    case "${tag}" in
+    *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #{ Define the separator
+      sep=" | "
+
+      #{ Calculate padding for label alignment
+      debug_pad="${debug_pad:-24}"
+      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+      #{ Format the tagged key-value pair
+      msg="$(
+        printf "%bin%bin%bin%bin%bin" \
+          "${tag}" "${pad}" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    *)
+      #{ Define the separator
+      sep=": "
+
+      #{ Print the key-value pair
+      msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
+      ;;
+    esac
+  else
+    if [ -n "${tag:-}" ]; then
+      msg="$(printf "%b%b%b" "${tag}" "${sep}" "${msg}")"
+    else
+      :
+    fi
+  fi
+
+  #{ Print leading characters/lines
+  [ "${head_reps}" -gt 0 ] &&
+    pout_repeat "${head_reps}" "${head_char}"
+
+  #{ Print the message
+  [ -n "${msg:-}" ] &&
+    case "${verbosity:-}" in
+    "${verbosity_quiet:-}") ;;
+    *)
+      #{ Print the message to the defined stream
+      printf "%b" "${msg:-}" >&"${stream_code:-1}"
+
+      #{ Append the error code to the message or trailing characters
+      if [ -n "${exit_code:-}" ]; then
+        #? Handled in pout_cleanup
+        # printf "\n%s exited with a error code of %s" \
+        #   "${scr_name}" "${exit_code}" >&2
+        #   exit "${exit_code}"
+        :
+      else
+        #{ Print trailing characters/lines
+        [ -n "${tail_reps}" ] && pout_repeat "${tail_reps}" "${tail_char}"
+      fi
+      ;;
+    esac
+
+  #{ Terminate, if requested
+  if [ -z "${exit_code:-}" ]; then
+    return 0
+  elif [ "${exit_code:-0}" -eq 0 ]; then
+    exit 0
+  else
+    exit "${exit_code}"
+  fi
+}
+tag_process() {
+  #{ Initialize variables
+  tag_ctx="${tag_ctx:-""}"
+  tag_sep="${tag_sep:-"-|-"}"
+  tag_code="${tag_code:-0}"
+
+  #{ Validate input
+  case "${1}" in
+  "")
+    printf "ERROR: run_process requires a function name\n" >&2
+    tag_code=1
+    ;;
+  *"${tag_sep}"*)
+    [ -n "${tag_sep}" ] &&
+      printf "ERROR: Function name cannot contain separator '%s'\n"" ${tag_sep}" >&2
+    tag_code=1
+    ;;
+  *)
+    tag_ctx="${tag_ctx:-}${tag_ctx:+${tag_sep:-"-|-"}}${1}"
+    tag_code=0
+    ;;
+  esac
+
+  echo "${tag_ctx}"
+  return "${tag_code:-0}"
+}
+end_process_CLAUDE() {
+  #{ Initialize variables
+  _status=0
+  _msg=""
+  _fatal=0
+  _ctx=""
+  restore_ctx=0=1
+
+  ctx="${ctx:-pout}" #? Function name
+  exit_code=""       #? [""|0|1-255]
+  head_char="\n"     #? Character(s) to be printed repeatedly before the message
+  head_reps=0        #? positive integer or zero
+  key=""
+  lvl=""
+  msg=""
+  no_ctx=""
+  no_lvl=""
+  no_msg=""
+  no_scr=""
+  no_tag=""
+  no_trim=""
+  scr="${scr_name:-}" #? Script name
+  sep=""
+  stream_code=1 #? [1|2]
+  tag=""
+  tail_char="\n" #? Character(s) to be printed repeatedly after the message
+  tail_reps=1    #? positive integer or zero
+  val=""
+
+  #{ Parse arguments
+  while [ ${#} -gt 0 ]; do
+    case "${1:-}" in
+    --usage)
+      display_usage_guide
+      exit_code="${exit_code:-0}"
+      ;;
+    --version)
+      msg="${scr_version}"
+      exit_code="${exit_code:-0}"
+      ;;
+    --status)
+      case "${2:-}" in
+      "")
+        printf "ERROR: --status requires a value\n" >&2
+        exit_code=1
+        ;;
+      *[!0-9]*)
+        printf "ERROR: --status value must be numeric, got '%s'\n" "${2}" >&2
+        exit_code=1
+        ;;
+      *)
+        exit_code="${2}"
+        ;;
+      esac
+      shift
+      ;;
+    --msg)
+      case "${2:-}" in
+      "")
+        printf "WARNING: Empty message provided\n" >&2
+        ;;
+      *)
+        msg="${2}"
+        ;;
+      esac
+      shift
+      ;;
+    --fatal)
+      case "${2:-}" in
+      0 | false | no)
+        _fatal=0
+        ;;
+      1 | true | yes)
+        _fatal=1
+        ;;
+      "")
+        printf "ERROR: --fatal requires a value\n" >&2
+        _fatal=0
+        ;;
+      *)
+        printf "ERROR: Invalid --fatal value '%s', using default\n" "${2}" >&2
+        _fatal=0
+        ;;
+      esac
+      shift
+      ;;
+    --no-restore)
+      restore_ctx=0=0
+      ;;
+    -k | --key)
+      key="${2}"
+      shift
+      ;;
+    -v | --val)
+      val="${2}"
+      shift
+      ;;
+    --code)
+      exit_code="${2}"
+      shift
+      ;;
+    --trace)
+      if [ "${verbosity:-0}" -ge "${verbosity_trace:-5}" ]; then
+        lvl="TRACE"
+        stream_code=2
+      else
+        no_msg=true
+      fi
+      ;;
+    --debug)
+      if [ "${verbosity:-0}" -ge "${verbosity_debug:-4}" ]; then
+        lvl="DEBUG"
+        stream_code=2
+      else
+        no_msg=true
+      fi
+      ;;
+    --info)
+      if [ "${verbosity:-0}" -ge "${verbosity_info:-3}" ]; then
+        lvl=" INFO"
+      else
+        no_msg=true
+      fi
+      ;;
+    --warn)
+      if [ "${verbosity:-0}" -ge "${verbosity_warn:-2}" ]; then
+        lvl=" WARN"
+        stream_code=2
+      else
+        no_msg=true
+      fi
+      ;;
+    --error)
+      if [ "${verbosity:-0}" -ge "${verbosity_error:-1}" ]; then
+        lvl="ERROR"
+        stream_code=2
+        exit_code="${exit_code:-1}"
+      else
+        no_msg=true
+      fi
+      ;;
+    --quiet | --silent)
+      lvl="QUIET"
+      no_msg=true
+      ;;
+    --blank | --*lead*)
+      if [ -n "${2:-}" ]; then
+        # shellcheck disable=SC2310
+        if is_zero_or_int "${2}"; then
+          head_reps="${2}"
+          shift
+        else
+          head_reps=1
+          end_process --error \
+            --ctx "${ctx:-"pout"}" \
+            --code "${?}" \
+            "'${1}' requires an integer but got:" "${2}"
+          return 1
+        fi
+      else
+        head_reps=1
+      fi
+      ;;
+    --*tail* | --trail*)
+      if [ -n "${2:-}" ]; then
+        # shellcheck disable=SC2310
+        if is_zero_or_int "${2}"; then
+          tail_reps="${2}"
+          shift
+        else
+          tail_reps=1
+          end_process --warn \
+            --ctx "${ctx:-"pout"}" \
+            --code "${?}" \
+            "'${1}' requires an integer but got:" "${2}"
+          return 1
+        fi
+      else
+        tail_reps=1
+      fi
+      ;;
+    --ctx | --context | --fn | --func*)
+      if [ -n "${2:-}" ]; then
+        _ctx="${2}"
+        shift
+      else
+        end_process --error "No context specified"
+        return 1
+      fi
+      ;;
+    --scr | --script)
+      if [ -n "${2:-}" ]; then
+        scr="${2}"
+        ctx=""
+        shift
+      else
+        end_process --error "No script specified"
+        return 1
+      fi
+      ;;
+    --neat)
+      no_tag=true
+      no_trim=true
+      ;;
+    --no-scr)
+      no_scr=true
+      ;;
+    --no-tag)
+      no_tag=true
+      ;;
+    --no-lvl)
+      no_lvl=true
+      ;;
+    --no-ctx)
+      no_ctx=true
+      ;;
+    --no-msg)
+      no_msg=true
+      ;;
+    --no-trim)
+      no_trim=true
+      ;;
+    *)
+      # If just a number is provided, treat it as status code
+      case "${1}" in
+      *[!0-9]*)
+        # Not a pure number, treat as message
+        msg="${msg:-}${msg:+${delimiter:- }}${1}"
+        ;;
+      *)
+        exit_code="${1}"
+        ;;
+      esac
+      ;;
+    esac
+    shift
+  done
+
+  #{ Honor overrides
+  if [ -n "${no_msg:-}" ]; then
+    lvl=""
+    ctx=""
+    scr=""
+    msg=""
+  elif [ -n "${no_tag:-}" ]; then
+    lvl=""
+    ctx=""
+    scr=""
+  elif [ -n "${no_scr:-}" ]; then
+    scr=""
+  elif [ -n "${no_ctx:-}" ]; then
+    scr=""
+    ctx=""
+  elif [ -n "${no_lvl:-}" ]; then
+    lvl=""
+  fi
+
+  #{ Delimit the message with spaces
+  if [ -n "${no_msg:-}" ]; then
+    msg=""
+  else
+    [ -n "${msg:-}" ] && {
+      msg="$(printf "%b" "${msg:-}" | sed "s/${delimiter:-}/ /g")"
+    }
+    [ -n "${key:-}" ] && {
+      key="$(printf "%b" "${key:-}" | sed "s/${delimiter:-}/ /g")"
+      val="$(
+        printf "%b" "${val:-"${msg:-"{undefined}"}"}" |
+          sed "s/${delimiter:-}/ /g"
+      )"
+    }
+  fi
+
+  #{ Trim the message
+  if [ -z "${no_trim:-}" ]; then
+    [ -n "${msg:-}" ] &&
+      msg="$(trim_whitespace "${msg:-}")"
+    [ -n "${key:-}" ] && {
+      key="$(trim_whitespace "${key}")"
+      val="$(trim_whitespace "${val}")"
+    }
+  fi
+
+  #{ Update the tag
+  if [ -n "${tag:-}" ] || [ -n "${lvl:-}${ctx:-}" ]; then
+    if [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${lvl}${tag_sep}${scr}${tag_sep}${ctx}"
+    elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${scr}${tag_sep}${ctx}"
+    elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${lvl}${tag_sep}${ctx}"
+    elif [ -n "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
+      tag="${lvl}${tag_sep}${scr}"
+    elif [ -n "${lvl}" ] && [ -z "${scr}" ] && [ -z "${ctx}" ]; then
+      tag="${lvl}"
+    elif [ -z "${lvl}" ] && [ -n "${scr}" ] && [ -z "${ctx}" ]; then
+      tag="${scr}"
+    elif [ -z "${lvl}" ] && [ -z "${scr}" ] && [ -n "${ctx}" ]; then
+      tag="${ctx}"
+    fi
+
+    #{ Add the exit_code, if exists
+    [ -n "${exit_code:-}" ] && [ "${exit_code:-0}" -gt 0 ] &&
+      tag="${tag:-}${tag_sep}exit code: ${exit_code}"
+
+    #{ Add special characters/separators
+    tag="/> ${tag:-} <\\ "
+
+    #{ Ensure there is a trailing line break
+    tail_reps=1
+  fi
+
+  #{ Format the message
+  if [ -n "${no_msg:-}" ]; then
+    msg=""
+  elif [ -n "${key:-}" ]; then
+    case "${tag}" in
+    *TRACE* | *DEBUG* | *ERROR* | *WARN* | *INFO*)
+      #{ Define the separator
+      sep=" | "
+
+      #{ Calculate padding for label alignment
+      debug_pad="${debug_pad:-18}"
+      pad="$(printf "%*s" "$((debug_pad - ${#key}))" "")"
+
+      #{ Format the tagged key-value pair
+      msg="$(
+        printf "%bin%bin%bin%bin%bin" \
+          "${tag}" "${pad}" "${key}" "${sep}" "${val}"
+      )"
+      ;;
+    *)
+      #{ Define the separator
+      sep=": "
+
+      #{ Print the key-value pair
+      msg="$(printf "%b%b%b" "${key}" "${sep}" "${val}")"
+      ;;
+    esac
+  else
+    if [ -n "${tag:-}" ]; then
+      msg="$(printf "%b%b%b" "${tag}" "${sep}" "${msg}")"
+    fi
+  fi
+
+  #{ Print leading characters/lines
+  [ "${head_reps:-0}" -gt 0 ] &&
+    pout_repeat "${head_reps}" "${head_char}"
+
+  #{ Print the message
+  [ -n "${msg:-}" ] &&
+    case "${verbosity:-}" in
+    "${verbosity_quiet:-}") ;;
+    *)
+      #{ Print the message to the defined stream
+      printf "%b" "${msg:-}" >&"${stream_code:-1}"
+
+      #{ Print trailing characters/lines
+      [ "${tail_reps:-0}" -gt 0 ] && pout_repeat "${tail_reps}" "${tail_char}"
+      ;;
+    esac
+
+  #{ Restore function context if requested
+  if [ "${restore_ctx=0}" -eq 1 ]; then
+    case "${fn_ctx}" in
+    *"${tag_sep}"*)
+      # Has separator, extract parent context
+      fn_ctx="${fn_ctx%"${tag_sep}"*}"
+      ;;
+    *)
+      # No separator found
+      fn_ctx="main"
+      ;;
+    esac
+  fi
+
+  #{ Override context if specified
+  if [ -n "${_ctx}" ]; then
+    init_fn "${_ctx}" || :
+  fi
+
+  #{ Handle fatal flag
+  case "${_fatal}" in
+  1)
+    exit "${exit_code:-0}"
+    ;;
+  *)
+    # Not fatal, continue execution
+    :
+    ;;
+  esac
+
+  #{ Terminate or return as requested
+  if [ -z "${exit_code:-}" ]; then
+    return 0
+  elif [ "${exit_code:-0}" -eq 0 ]; then
+    exit 0
+  else
+    exit "${exit_code}"
+  fi
+}
+exit_with_grace() {
+  # code=$?
+  unset scr_path scr_name scr_version scr_description scr_authors
+  unset fn_name fn_root fn_ctx
+  unset debug_pad delimiter IFS
+  unset cwd flake_root action upgrade trace args build_target debug verbosity debug
+  unset tag_ctx tag_sep tag_code
+}
+display_usage_guide() {
+  cat <<-USAGE_GUIDE
+  ${scr_name} (${scr_version})
+
+  DESCRIPTION
+    ${scr_description}
+
+  USAGE
+    ${scr_name} [OPTIONS] --dir <directory> --cmd <command>
+    ${scr_name} [OPTIONS] <directory> <command>
+
+  OPTIONS
+    -h, --help                Display this help message
+    -v, --version             Display version information
+
+    #| Verbosity Options
+    -q, --quiet               Suppress all output
+    --error                   Show only errors
+    --warn                    Show warnings and errors
+    --info                    Show informational messages (default)
+    -d, --debug, --verbose    Show debug messages
+
+    #| Directory Options
+    -w, --wd <path>           Specify working directory
+    --directory <path>        Same as --wd
+
+    #| Command Options
+    -c, --cmd <command>       Specify command to execute
+    --command <command>       Same as --cmd
+
+  EXAMPLES
+    # Run 'ls -la' in the /tmp directory (using flags)
+    ${scr_name} --wd /tmp --cmd "ls -la"
+
+    # Same command using positional arguments
+    ${scr_name} /tmp "ls -la"
+
+    # Run with debug output
+    ${scr_name} --debug --wd /tmp --cmd "ls -la"
+
+    # Run in current directory
+    ${scr_name} --cmd "echo 'Hello World from \$(pwd)'"
+
+  EXIT STATUS
+    0    Command executed successfully
+    1    Error occurred during execution
+
+  NOTES
+    - The current working directory is used by default
+    - Command argument is required
+    - Using flags is recommended over positional arguments
+
+  AUTHORS
+    ${scr_authors}
+USAGE_GUIDE
+}
+main "$@"

@@ -1,0 +1,3 @@
+[core]
+  excludesFile = ~/.dots/Configuration/git/main.gitignore
+  attributesFile = ~/.dots/Configuration/git/main.gitattributes

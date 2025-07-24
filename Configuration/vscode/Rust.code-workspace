@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../../Projects/wallter"
+		},
+		{
+			"path": "../../../../Projects/cmdman"
+		}
+	],
+	"settings": {
+		"editor.inlayHints.enabled": "offUnlessPressed"
+	}
+}

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+type weHave > /dev/null 2>&1 || {
+  weHave() {
+    type "$1" > /dev/null 2>&1
+  }
+}
+
+runif() {
+  weHave "$1" && "$1"
+}
+
+runif colorscheme
+runif theme_wt || runif "$HOME/.dots/Bin/interface/theme/theme_wt"

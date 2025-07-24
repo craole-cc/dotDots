@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd "$1" || exit
+
+set -- .[!.]*
+test -f "$1" && exit 1
+
+set -- ..?*
+test -f "$1" && exit 1
+
+set -- *
+test -f "$1" && exit 1
+
+# exit 0

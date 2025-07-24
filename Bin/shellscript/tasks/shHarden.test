@@ -1,0 +1,12 @@
+#!/bin/sh
+
+printf "~shHarden.test~\n"
+
+binary=blah
+
+shHarden "$binary"
+# shHarden "$binary" --check
+# shHarden "$binary" --suggest
+# shHarden "$binary" --syntax
+# shHarden "$binary" --transform
+# shHarden "$binary" --replace

@@ -1,0 +1,14 @@
+#! /bin/sh
+# shellcheck disable=SC2034,SC2154
+
+#@ Define Projets Home
+PROJECTS="${PROJECTS:-"$HOME/Documents"}"
+
+#@ Projects by Language
+PRJrs="$PROJECTS/Rust"
+PRJrb="$PROJECTS/Ruby"
+PRJjs="$PROJECTS/Javascript"
+PRJgo="$PROJECTS/Go"
+PRJpy="$PROJECTS/Python"
+PRJch="$PROJECTS/Challenges"
+PRJql="$PROJECTS/SQL"

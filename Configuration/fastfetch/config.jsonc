@@ -1,0 +1,133 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "padding": {
+      "top": 2
+    },
+    "color": {
+      "1": "red",
+      "2": "green",
+      "3": "yellow",
+      "4": "blue",
+      "5": "magenta",
+      "6": "cyan",
+      "7": "white"
+    },
+    "type": "small"
+  },
+  "modules": [
+    "title",
+    "separator",
+    "board",
+    "bios",
+    {
+      "type": "cpu",
+      "showPeCoreCount": true,
+      "temp": true
+    },
+    "os",
+    "kernel",
+    {
+      "type": "terminal",
+      "format": "{pretty-name} {version} {#37}█{#97}█ {#36}█{#96}█ {#35}█{#95}█ {#34}█{#94}█ {#33}█{#93}█ {#32}█{#92}█ {#31}█{#91}█ {#30}█{#90}█"
+    },
+    "host",
+    "bootmgr",
+    "chassis",
+    "initsystem",
+    "loadavg",
+    "processes",
+    "packages",
+    "shell",
+    {
+      "type": "command",
+      "text": "printf 'TTY: %s [%s] | GUI: %s [%s]' \"$EDITOR\" \"$EDITOR_VERSION\" \"$VISUAL\" \"$VISUAL_VERSION\"",
+      "key": "Editor"
+    },
+    "editor",
+    "display",
+    "brightness",
+    "monitor",
+    "lm",
+    "de",
+    "wm",
+    "wmtheme",
+    "theme",
+    "icons",
+    "font",
+    "cursor",
+    "wallpaper",
+    "terminal",
+    "terminalfont",
+    "terminalsize",
+    "terminaltheme",
+    "cpucache",
+    "cpuusage",
+    {
+      "type": "gpu",
+      "driverSpecific": true,
+      "temp": true
+    },
+    "memory",
+    "physicalmemory",
+    "swap",
+    "disk",
+    "btrfs",
+    "zpool",
+    {
+      "type": "battery",
+      "temp": true
+    },
+    // "poweradapter",
+    // "player",
+    "media",
+    {
+      "type": "publicip",
+      "format": "{ip}",
+      "timeout": 1000
+    },
+    {
+      "type": "localip",
+      // "format": "{ipv4} ",
+      // "showIpv6": true,
+      // "showMac": true,
+      // "showSpeed": true,
+      // "showMtu": true,
+      // "showLoop": true,
+      // "showFlags": true,
+      "showAllIps": true,
+      "showPrefixLen": false
+    },
+    "dns",
+    "wifi",
+    "locale",
+    "vulkan",
+    "opengl",
+    "opencl",
+    "users",
+    "bluetooth",
+    "bluetoothradio",
+    "sound",
+    "datetime",
+    "uptime",
+    "camera",
+    "gamepad",
+    {
+      "type": "weather",
+      "location": "Mandeville,Jamaica",
+      // "outputFormat": "%t+-+%C+(%l)",
+      "timeout": 1000
+    },
+    "netio",
+    "diskio",
+    {
+      "type": "physicaldisk",
+      "temp": true
+    },
+    "tpm",
+    "version",
+    "break",
+    "separator",
+    "colors"
+  ]
+}

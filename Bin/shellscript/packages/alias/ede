@@ -1,0 +1,250 @@
+#!/bin/sh
+# shellcheck disable=2153
+debug=1
+
+main() {
+  initialize_utilities
+  set_defaults
+  parse_arguments "$@"
+  initialize_environment
+  # execute_process "$args"
+}
+
+set_defaults() {
+  DELIMITER="${DELIMITER:-"$(printf '\037')"}"
+  FMT_UNDERLINE="${FMT_UNDERLINE:-"$(printf '\033[4m')"}"
+  FMT_BOLD="${FMT_BOLD:-"$(printf '\033[1m')"}"
+  FMT_ITALIC="${FMT_ITALIC:-"$(printf '\033[3m')"}"
+  FMT_HIGHLIGHT="${FMT_HIGHLIGHT:-"${FMT_BOLD}${FMT_UNDERLINE}"}"
+  FMT_EMPHASIS="${FMT_EMPHASIS:-"${FMT_BOLD}${FMT_ITALIC}"}"
+  FMT_NORMAL="${FMT_NORMAL:-"$(printf '\033[0m')"}"
+
+  #| TUI Editors
+  tuis="hx nvim vim nano vi"
+  default_tui="$(weHave --first "$tuis")"
+  default_tuis="$(printf %s "$tuis" | tr ' ' "$DELIMITER")"
+
+  #| GUI Editors
+  guis="code-insiders code codium zeditor"
+  default_gui="$(weHave --first "$guis")"
+  default_guis="$(
+    printf %s "$guis" | tr ' ' "$DELIMITER"
+  )"
+
+  default_args="$PWD"
+
+  [ -n "$debug" ] && {
+    printf "DEBUG:   Default TUI Editors |> %s\n" \
+      "$(pout-highlight "$DELIMITER" ", " "$default_gui" "$default_guis" "$FMT_HIGHLIGHT" "$FMT_NORMAL")"
+    printf "DEBUG:   Default GUI Editors |> %s\n" \
+      "$(pout-highlight "$DELIMITER" ", " "$default_gui" "$default_guis" "$FMT_HIGHLIGHT" "$FMT_NORMAL")"
+    printf "DEBUG:   Default GUI Editors |> %s [default: %s]\n" \
+      "$(pout_split "$DELIMITER" ", " "$default_guis")" "$default_gui"
+    printf "DEBUG:     Default Arguments |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$default_args")"
+  }
+
+}
+
+parse_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -h | --help)
+      printf "%s\n" "$scr_HELP"
+      exit 0
+      ;;
+    -v | --version)
+      printf "%s\n" "$scr_VERSION"
+      exit 0
+      ;;
+    -q | --quiet) unset debug ;;
+    -d | --debug) debug=1 ;;
+    -t | --tui)
+      [ "$2" ] || {
+        printf "Error: '%s' requires an argument\n" "$1"
+        exit 2
+      }
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        --*) break ;;
+        *) preferred_tui="${preferred_tui:+$preferred_tui${DELIMITER}}$2" ;;
+        esac
+        shift
+      done
+      ;;
+    -g | --gui)
+      [ "$2" ] || {
+        printf "Error: '%s' requires an argument\n" "$1"
+        exit 2
+      }
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        --*) break ;;
+        *) preferred_gui="${preferred_gui:+$preferred_gui${DELIMITER}}$2" ;;
+        esac
+        shift
+      done
+      ;;
+    -e | --editor | --ede)
+      [ "$2" ] || {
+        printf "Error: '%s' requires an argument\n" "$1"
+        exit 2
+      }
+      while [ "$#" -ge 2 ]; do
+        case "$2" in
+        --*) break ;;
+        *) preferred_ede="${preferred_ede:+$preferred_ede${DELIMITER}}$2" ;;
+        esac
+        shift
+      done
+      ;;
+    --) ;;
+    *) args="${args:+$args${DELIMITER}}$2" ;;
+    esac
+    shift
+  done
+
+  [ -n "$debug" ] && {
+    printf "DEBUG: Preferred TUI Editors |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$preferred_tui")"
+    printf "DEBUG: Preferred GUI Editors |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$preferred_gui")"
+    printf "DEBUG:     Preferred Editors |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$preferred_ede")"
+  }
+}
+
+initialize_utilities() {
+
+  pout_split() {
+    weHave pout-split && pout-split "$@" && return 0
+
+    #DOC Convert a delimited string to use a output DELIMITER
+    #DOC
+    #DOC Arguments:
+    #DOC   $1 - The input DELIMITER to be replaced
+    #DOC   $2 - The output DELIMITER to replace with
+    #DOC   $* - The string to be processed
+    #DOC
+    #DOC Output:
+    #DOC   Prints the modified string with the output DELIMITER
+    #DOC
+    #DOC Example:
+    #DOC   pout_split " " "," "a b c"
+    #DOC   Output: a,b,c
+
+    [ "$#" -eq 3 ] || {
+      printf "Usage: pout_split <input DELIMITER> <output DELIMITER> <string>\n"
+      return 1
+    }
+
+    input_delimiter="$1"
+    output_delimiter="$2"
+    shift 2
+    printf "%s" "$*" |
+      sed "s/^$input_delimiter//" |
+      sed "s/$input_delimiter/$output_delimiter/g"
+  }
+
+  pout_highlight() {
+    # weHave pout-highlight && pout-highlight "$@" && return 0
+
+    #DOC Highlight a specific item in a delimited list
+    #DOC
+    #DOC Arguments:
+    #DOC   $1 - The DELIMITER of the input list
+    #DOC   $2 - The output DELIMITER
+    #DOC   $3 - The item to highlight
+    #DOC   $4 - The list to process
+    #DOC
+    #DOC Output:
+    #DOC   Prints the list with the specified item highlighted
+    #DOC
+    #DOC Example:
+    #DOC   pout_highlight "$(printf '\037')" ", " "code" "code-insiders${DELIMITER}code${DELIMITER}codium"
+    #DOC   Output: code-insiders, code, codium (with 'code' highlighted)
+
+    [ "$#" -eq 4 ] || {
+      printf "Usage: pout_highlight <input DELIMITER> <output DELIMITER> <highlight item> <list>\n"
+      return 1
+    }
+
+    input_delimiter="$1"
+    output_delimiter="$2"
+    highlight_item="$3"
+    input_list="$4"
+
+    pout_split "$input_delimiter" "$output_delimiter" "$input_list" |
+      sed "s/\(^\|${output_delimiter}\)\($highlight_item\)\(,\|$\)/\1${FMT_HIGHLIGHT}${highlight_item}${FMT_NORMAL}\3/"
+  }
+
+  weHave() {
+    [ "$#" -eq 0 ] && return 1
+
+    case "$1" in
+    --first)
+      [ "$#" -ge 2 ] || {
+        printf "Error: --first requires an argument\n"
+        return 3
+      }
+      shift
+
+      for i in $(printf "%s" "$@" | tr " " "\n"); do
+        command -v "$i" >/dev/null 2>&1 && {
+          printf "%s" "$i"
+          return 0
+        }
+      done
+
+      return 1
+      ;;
+    *) command -v "$i" >/dev/null 2>&1 ;;
+    esac
+  }
+}
+
+initialize_environment() {
+
+  #{ Define the preferred GUI and TUI editors
+  tui="$(weHave --first "$(pout-split "$DELIMITER" " " "${preferred_tui:-$default_tuis}")")"
+  gui="$(weHave --first "$(pout-split "$DELIMITER" " " "${preferred_gui:-$default_guis}")")"
+
+  # #{ Check if we are in a graphical environment
+  # if [ -n "$DISPLAY" ]; then
+  # 	#{ If yes, get the preferred GUI editor
+  # 	ede="${gui:-"$tui"}"
+  # else
+  # 	#{ If not, get the preferred TUI editor
+  # 	ede="${ede:-"$tui"}"
+  # fi
+
+  case "$preferred_ede" in tty | tui) editor="$tui" ;; *) ;; esac
+  editor="${editor:-"$ede"}"
+
+  [ -n "$debug" ] && {
+    printf "DEBUG:  Available TUI Editor |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$tui")"
+    printf "DEBUG:  Available GUI Editor |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$gui")"
+    printf "DEBUG:       Selected Editor |> %s\n" \
+      "$(pout_split "$DELIMITER" ", " "$editor")"
+  }
+
+  # [ -n "$debug" ] && {
+  # 	printf "DEBUG:     Selected Editor => |> %s\n" \
+  # 		"$(pout_split "$DELIMITER" ", " "$editor")"
+  # }
+
+  # [ -n "$editor" ] || {
+  # 	printf "Error: Unable to determine the code editor to use.\n"
+  # 	exit 1
+  # }
+}
+
+execute_process() {
+  [ -n "$debug" ] || "$editor" "${@:-$PWD}"
+}
+
+# main "$@"
+main --gui code code-insiders zeditor --tui jaj lo hxs -- pop lol --ede tty
+# main pop lol --ede tty

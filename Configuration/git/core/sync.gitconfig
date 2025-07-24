@@ -1,0 +1,18 @@
+[http]
+    postBuffer = 1048576000
+
+[merge]
+    # Tool used by `git mergetool`
+    # tool = nvim-diff4
+
+[pull]
+    ff = only
+
+[push]
+    default = simple
+
+[rerere]
+    enabled = true ; Track and remember conflict resolutions
+    
+[submodule]
+	recurse = true

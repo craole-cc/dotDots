@@ -1,0 +1,68 @@
+#!/bin/sh
+
+#{ Parse process arguments
+while [ "$#" -ge 1 ]; do
+  case "$1" in
+  --mode)
+    __log_mode="$2"
+    shift
+    ;;
+  --path)
+    __log_path="$2"
+    shift
+    ;;
+  --title)
+    __log_title="$2"
+    shift
+    ;;
+  --name)
+    __log_name="$2"
+    shift
+    ;;
+  *) ;;
+  esac
+  shift
+done
+
+#{ Create the log directory, if it doesn't exist
+mkdir -p "$(dirname "$__log_path")"
+
+#{ Handle reset mode with backup
+case "$(stralt --lower "$__log_mode")" in reset)
+  __log_path_name="${__log_path%.*}"
+  __log_path_ext="${__log_path##*.}"
+  __log_path_backup="${__log_path_name}.bak.${__log_path_ext}"
+
+  [ -f "$__log_path" ] && {
+    printf "This will reset the log file at: %s\n" "$__log_path"
+    printf "A backup will be created at: %s\n" "$__log_path_backup"
+    printf "Proceed? [y/N]: "
+    read -r __user_confirm
+    case "$(stralt --lower "${__user_confirm:-''}")" in
+    [yY]*)
+      cp -f "$__log_path" "$__log_path_backup"
+      rm -f "$__log_path"
+
+      pout --trace --key "Log file generated" "$__log_path"
+      pout --info "The" "'$__log_name'" "log has been restarted"
+      ;;
+    *)
+      pout --info "The reset request for the" "'$__log_name'" "log was cancelled"
+      ;;
+    esac
+  }
+  ;;
+esac
+
+#{ Insert the title if file doesn't exist or title is missing
+__log_title="${__log_title:-"$(printf "***-->>> THE %s LOG <<<--***" "$__log_name")"}"
+if [ -f "$__log_path" ]; then
+  grep -q "^$__log_title$" "$__log_path" ||
+    sed -i "1i$__log_title\n" "$__log_path" 2>/dev/null ||
+    { printf "%s\n\n%s" "$__log_title" "$(cat "$__log_path")" >"$__log_path"; }
+else
+  printf "%s\n\n" "$__log_title" >"$__log_path"
+fi
+
+#{ Cleanup
+unset __log_mode __log_path __log_title

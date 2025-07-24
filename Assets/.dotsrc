@@ -1,0 +1,6 @@
+manage_env --var DOTS_FONTS --val "${DOTS_RES}/Fonts"
+manage_env --var DOTS_PROFILES --val "${DOTS_RES}/Home"
+# manage_env --var DOTS_ICONS --val "${DOTS_RES}/Icons"
+manage_env --var DOTS_IMAGES --val "${DOTS_RES}/Images"
+manage_env --var DOTS_ASCII --val "${DOTS_IMAGES}/ascii"
+manage_env --var DOTS_TEMPLATES --val "${DOTS_RES}/Templates"

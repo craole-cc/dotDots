@@ -1,0 +1,655 @@
+#!/usr/bin/env bash
+# shellcheck enable=all
+#DOC SSH Git Setup Script
+#DOC Automatically configure SSH for Git profiles based on dotfiles
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  execute_process
+
+  #{ Skip if name and email are missing
+  IFS="${old_ifs}"
+}
+
+set_defaults() {
+  #| Operation modes
+  set -e
+  set -o pipefail
+  shopt -s inherit_errexit #? Maintain set -e behavior in command substitutions
+
+  #| Application info
+  APP_NAME="sshit"
+  APP_VERSION="1.2"
+
+  #| Default paths
+  DOTS="${DOTS:-${HOME}/.dots}"
+  GIT_PROFILES_DIR="${DOTS}/Configuration/git/home"
+  SSH_DIR="${HOME}/.ssh"
+  SSH_CONFIG="${SSH_DIR}/config"
+
+  #| Colors and formatting using tput
+  RED=$(tput setaf 1)
+  GREEN=$(tput setaf 2)
+  YELLOW=$(tput setaf 3)
+  BLUE=$(tput setaf 4)
+  MAGENTA=$(tput setaf 5)
+  CYAN=$(tput setaf 6)
+  BOLD=$(tput bold)
+  RESET=$(tput sgr0)
+
+  #| Default flags
+  force="false"
+  non_interactive="false"
+  verbosity="trace"
+  delimiter="${DELIMITER:-"$(printf "\037")"}"
+  old_ifs="${IFS}"
+  IFS="${delimiter}"
+}
+
+parse_arguments() {
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    -v | --version)
+      show_version
+      exit 0
+      ;;
+    -d | --dots)
+      DOTS="$2"
+      shift
+      ;;
+    -p | --profiles)
+      GIT_PROFILES_DIR="$2"
+      shift
+      ;;
+    -f | --force)
+      force="true"
+      shift
+      ;;
+    -l | --list)
+      list_profiles
+      exit 0
+      ;;
+    -y | --yes)
+      non_interactive="true"
+      shift
+      ;;
+    *)
+      pout --error "Unknown option:" "$1"
+      pout --help
+      exit 1
+      ;;
+    esac
+    shift
+  done
+
+  pout --debug "DOTS: ${DOTS}"
+  pout --debug "GIT_PROFILES_DIR: ${GIT_PROFILES_DIR}"
+  pout --debug "SSH_DIR: ${SSH_DIR}"
+  pout --debug "SSH_CONFIG: ${SSH_CONFIG}"
+  pout --debug "force: ${force}"
+  pout --debug "non_interactive: ${non_interactive}"
+}
+
+#{ Function to setup SSH for all profiles
+execute_process() {
+  #{ Ensure SSH directory exists
+  mkdir -p "${SSH_DIR}"
+  pout --trace "Ensured SSH directory: ${SSH_DIR}"
+  pout --info "Using SSH directory: ${SSH_DIR}"
+
+  #{ Check if SSH directory has '~', this is a common issue
+  if [[ ! -d "${SSH_DIR}/~" ]]; then :; else
+    pout --warning "Found unusual '~' folder in SSH_DIR, this may indicate a path issue"
+  fi
+
+  #{ Ensure SSH config exists
+  touch "${SSH_CONFIG}"
+  pout --trace "Ensured SSH config exists: ${SSH_CONFIG}"
+
+  #{ Check if git profiles directory exists
+  if [[ -d "${GIT_PROFILES_DIR}" ]]; then
+    pout --trace "Found git profiles directory: ${GIT_PROFILES_DIR}"
+  else
+    pout --error "Git profiles directory not found: ${GIT_PROFILES_DIR}"
+    exit 1
+  fi
+
+  #{ Find all gitconfig files - handle separately to avoid masking
+  local find_output
+  find_output=$(
+    find "${GIT_PROFILES_DIR}" -name "*.gitconfig" -type f |
+      tr '\n' "${delimiter}" || true
+  )
+  find_output="${find_output%"${delimiter}"}" #? Remove the trailing delimiter
+
+  if [[ -n "${find_output}" ]]; then
+    local _configs _sep
+    _sep=", "
+    _configs="$(
+      printf "%s" "${find_output}" |
+        sed "s|.gitconfig||g" |
+        sed "s|${GIT_PROFILES_DIR}/|${_sep}|g"
+    )"
+    _configs="${_configs#"${_sep}"}" #? Remove the leading delimiter
+    pout --trace "Found possible git profiles: " "${_configs}"
+  else
+    pout --error "No Git configurations found in ${GIT_PROFILES_DIR}"
+    exit 1
+  fi
+
+  #{ Process each gitconfig file
+  for config_file in ${find_output}; do
+    pout --trace "${BOLD}Processing: ${RESET}" \
+      "$(basename "${config_file}" | sed "s|.gitconfig||g")"
+
+    #{ Read the file into a variable
+    local profile_info
+    profile_info="$(cat "${config_file}")"
+
+    #{ Parse the email from the profile
+    local email
+    email="$(
+      awk '
+        /^\[user\]/ { in_user=1; next }
+        /^\[/ { in_user=0 }
+        in_user && /^[[:space:]]*email[[:space:]]*=/ {
+          # Extract value after '=' and trim leading/trailing spaces
+          sub(/^[[:space:]]*email[[:space:]]*=[[:space:]]*/, "")
+          print
+          exit
+        }
+      ' "${config_file}"
+    )"
+
+    if [[ -n "${email:-}" ]]; then
+      pout --trace "Extracted from gitconfig: email='${email}'"
+    else
+      pout --warn \
+        "Skipping profile due to missing email: " \
+        "$(basename "${config_file}")"
+      continue
+    fi
+
+    #{ Parse the name from the profile
+    local name
+    name="$(
+      awk '
+        /^\[user\]/ { in_user=1; next }
+        /^\[/ { in_user=0 }
+        in_user && /^[[:space:]]*name[[:space:]]*=/ {
+          # Extract value after '=' and trim leading/trailing spaces
+          sub(/^[[:space:]]*name[[:space:]]*=[[:space:]]*/, "")
+          print
+          exit
+        }
+      ' "${config_file}"
+    )"
+
+    if [[ -n "${name:-}" ]]; then
+      pout --trace "Extracted from gitconfig: name='${name}'"
+    else
+      pout --warn \
+        "Skipping profile due to missing name: " \
+        "$(basename "${config_file}")"
+      continue
+    fi
+  done
+  return 0
+
+  #{ Read find output into array
+  local configs=()
+  mapfile -t configs <<<"${find_output}"
+
+  #{ Process each gitconfig file
+  for config_file in "${configs[@]}"; do
+    printf "\n%sProcessing:%s %s\n" "${BOLD}" "${RESET}" "$(basename "${config_file}")"
+
+    #{ Extract filename info for logging, separate from the parsing function
+    local filename host username
+    filename="$(basename "${config_file}")"
+    IFS='_' read -r host username <<<"$(basename "${filename}" .gitconfig)"
+    pout --info "Extracted from filename: host='${host}', username='${username}'"
+
+    #{ Normalize host for logging
+    if ! printf "%s" "${host}" | grep -q '\.'; then
+      host="${host}.com"
+      pout --info "Normalized host to: ${host}"
+    fi
+
+    #{ Parse git config to get ssh information - handle separately
+    local profile_info
+    profile_info=$(parse_git_config "${config_file}")
+
+    #{ Show debug info - AFTER capturing the output, not mixed with it
+    pout --info "Debug - profile_info contains: ${profile_info}"
+
+    #{ Source the profile info to create variables
+    eval "${profile_info}" || {
+      show_error "Failed to evaluate profile info: ${profile_info}"
+      continue #? Skip this profile if it fails
+    }
+    pout --info "Evaluated variables: host='${host}', username='${username}', git_email='${git_email}'"
+
+    #{ Use parsed SSH_PATH or generate one based on host and username
+    if [[ -n "${ssh_path}" && "${ssh_path}" == *"~"* ]]; then
+
+      #{ Replace ~ with $HOME
+      ssh_path="${ssh_path/#\~/${HOME}}"
+
+      #{ Also handle cases where ~ might be elsewhere in the path
+      ssh_path="${ssh_path//\~/${HOME}}"
+
+      pout --info "Expanded tilde in SSH path: ${ssh_path}"
+    fi
+    if [[ -z "${ssh_path}" ]]; then
+      ssh_path="${SSH_DIR}/${host}/${username}"
+      ssh_path="${ssh_path//\/\//\/}"
+      pout --info "Set ssh_path to: ${ssh_path}"
+    fi
+
+    #{ Generate SSH key and handle interactive setup
+    generate_ssh_key "${host}" "${username}" "${git_email}" "${ssh_path}" "${force}" "${non_interactive}"
+  done
+
+  show_success "SSH configuration complete."
+
+  #{ Final instructions
+  if [[ "${non_interactive}" != "true" ]]; then
+    printf "\n%sFinal Steps:%s\n" "${BOLD}" "${RESET}"
+    show_instruction "Your SSH keys have been set up and tested."
+    show_instruction "You can now use Git with SSH for these profiles."
+    show_instruction "To test a connection manually, try: ssh -T git@github.com"
+  fi
+}
+
+#{ Function to get system information for SSH key comment
+get_system_info() {
+  local hostname email
+  hostname=$(hostname)
+  email="$1"
+
+  local os_info
+  if [[ -f /etc/os-release ]]; then
+    #| Linux
+    os_info=$(grep -E "^ID=" /etc/os-release | cut -d= -f2 | tr -d '"')
+  elif command -v uname &>/dev/null; then
+    #| macOS or other Unix
+    os_info=$(uname -s)
+  else
+    #| Fallback
+    os_info="Unknown"
+  fi
+
+  #{ Combine hostname, OS, and email
+  printf "%s-%s-%s" "${hostname}" "${os_info}" "${email}"
+}
+
+#{ Function to copy text to clipboard
+copy_to_clipboard() {
+  local text="$1"
+  local success=false
+
+  #{ Try different clipboard commands based on available tools
+  if command -v xclip &>/dev/null; then
+    echo -n "${text}" | xclip -selection clipboard && success=true
+  elif command -v xsel &>/dev/null; then
+    echo -n "${text}" | xsel --clipboard --input && success=true
+  elif command -v pbcopy &>/dev/null; then
+    echo -n "${text}" | pbcopy && success=true
+  elif command -v clip.exe &>/dev/null; then
+    #{ For Windows/WSL
+    echo -n "${text}" | clip.exe && success=true
+  elif [[ -n ${WAYLAND_DISPLAY} ]] && command -v wl-copy &>/dev/null; then
+    echo -n "${text}" | wl-copy && success=true
+  fi
+
+  if ${success}; then
+    show_success "Copied to clipboard"
+    return 0
+  else
+    show_warning "Could not copy to clipboard - no supported clipboard utility found"
+    return 1
+  fi
+}
+
+#{ Function to parse Git config file and extract SSH information
+parse_git_config() {
+  local config_file="$1"
+  local filename
+  filename="$(basename "${config_file}")"
+
+  #{ Extract host and username from filename (format: host_username.gitconfig)
+  local host username
+  IFS='_' read -r host username <<<"$(basename "${filename}" .gitconfig)"
+
+  #{ Read git user information from config - avoid command substitution masking
+  local git_name git_email ssh_path
+
+  #{ Handle each command separately to avoid masking return values
+  local name_line email_line ssh_line
+  name_line=$(grep -A 1 "\[user\]" "${config_file}" | grep "name" || true)
+  if [[ -n "${name_line}" ]]; then
+    git_name=$(printf "%s" "${name_line}" | cut -d= -f2 | tr -d ' "' || true)
+  else
+    git_name=""
+  fi
+
+  email_line=$(grep -A 2 "\[user\]" "${config_file}" | grep "email" || true)
+  if [[ -n "${email_line}" ]]; then
+    git_email=$(printf "%s" "${email_line}" | cut -d= -f2 | tr -d ' "' || true)
+  else
+    git_email=""
+  fi
+
+  ssh_line=$(grep "sshCommand" "${config_file}" || true)
+  if [[ -n "${ssh_line}" ]]; then
+    ssh_cmd=$(printf "%s" "${ssh_line}" | grep -o '"ssh -i [^"]*"' || true)
+    if [[ -n "${ssh_cmd}" ]]; then
+      ssh_path=$(printf "%s" "${ssh_cmd}" | cut -d' ' -f3 | tr -d '"' || true)
+    else
+      ssh_path=""
+    fi
+  else
+    ssh_path=""
+  fi
+
+  #{ Normalize host (add .com if missing)
+  if ! printf "%s" "${host}" | grep -q '\.'; then
+    host="${host}.com"
+  fi
+
+  #{ Only output the variable assignments - no debug info
+  printf "host=%q\n" "${host}"
+  printf "username=%q\n" "${username}"
+  printf "git_name=%q\n" "${git_name}"
+  printf "git_email=%q\n" "${git_email}"
+  printf "ssh_path=%q\n" "${ssh_path}"
+}
+
+#{ Function to generate SSH key
+generate_ssh_key() {
+  local host="$1"
+  local username="$2"
+  local email="$3"
+  local key_path="$4"
+  local force="$5"
+  local non_interactive="$6"
+
+  #{ Ensure any tildes in the path are expanded
+  if [[ "${key_path}" == *"~"* ]]; then
+    key_path="${key_path/#\~/${HOME}}"
+    key_path="${key_path//\~/${HOME}}"
+    pout --info "Expanded tilde in key path: ${key_path}"
+  fi
+
+  #{ Create directory for key if it doesn't exist
+  local key_dir
+  key_dir="$(dirname "${key_path}")"
+  mkdir -p "${key_dir}"
+  pout --info "Created directory: ${key_dir}"
+
+  #{ Check if key already exists
+  if [[ -f "${key_path}" && "${force}" != "true" ]]; then
+    show_warning "SSH key already exists at ${key_path}. Use --force to regenerate."
+    return 0
+  elif [[ -f "${key_path}" && "${force}" == "true" ]]; then
+    #{ Archive existing key
+    local archive_dir="${key_dir}/archive"
+    mkdir -p "${archive_dir}"
+    pout --info "Created archive directory: ${archive_dir}"
+
+    local timestamp
+    timestamp="$(date +"%Y%m%d%H%M%S")"
+    mv "${key_path}" "${archive_dir}/$(basename "${key_path}").${timestamp}"
+    pout --info "Archived key: ${archive_dir}/$(basename "${key_path}").${timestamp}"
+
+    if [[ -f "${key_path}.pub" ]]; then
+      mv "${key_path}.pub" "${archive_dir}/$(basename "${key_path}").pub.${timestamp}"
+      pout --info "Archived public key: ${archive_dir}/$(basename "${key_path}").pub.${timestamp}"
+    fi
+    pout --info "Archived existing key to ${archive_dir}"
+  fi
+
+  #{ Generate key comment with system information
+  local key_comment
+  key_comment=$(get_system_info "${email}")
+  pout --info "Using SSH key comment: ${key_comment}"
+
+  #{ Generate SSH key
+  pout --info "Generating SSH key for ${username}@${host}"
+  ssh-keygen -t ed25519 -a 100 -f "${key_path}" -C "${key_comment}" -N ""
+  pout --info "Created key files: ${key_path} and ${key_path}.pub"
+
+  #{ Add to SSH config
+  printf "\nHost %s\n  User %s\n  HostName %s\n  IdentityFile %s\n" \
+    "${host}" "${username}" "${host}" "${key_path}" >>"${SSH_CONFIG}"
+  pout --info "Updated SSH config: ${SSH_CONFIG}"
+
+  #{ Add key to SSH agent - handle commands separately
+  #{ Start ssh-agent
+  local agent_output
+  agent_output=$(ssh-agent -s)
+  eval "${agent_output}" >/dev/null
+  pout --info "Started SSH agent"
+
+  #{ Add key to agent
+  ssh-add "${key_path}" >/dev/null || true
+  pout --info "Added key to SSH agent"
+
+  show_success "SSH key generated for ${username}@${host}"
+
+  #{ Explicitly copy public key to clipboard
+  local pub_key
+  pub_key=$(cat "${key_path}.pub")
+  copy_to_clipboard "${pub_key}"
+
+  #{ Display the public key
+  printf "\n%sPublic Key:%s\n" "${YELLOW}" "${RESET}"
+  cat "${key_path}.pub"
+  printf "\n"
+
+  #{ Prompt user to add key to Git host if in interactive mode
+  if [[ "${non_interactive}" != "true" ]]; then
+    show_instruction "Please add this SSH key to your ${host} account:"
+    show_instruction "1. Login to ${host}"
+    show_instruction "2. Navigate to SSH keys settings"
+    show_instruction "3. Add a new SSH key"
+    show_instruction "4. Paste the key (should be in your clipboard)"
+    show_instruction "5. Save the key"
+
+    show_prompt "Press Enter when you've added the key to your ${host} account, or Ctrl+C to exit"
+    read -r
+
+    #{ Validate the key by testing connection
+    validate_ssh_connection "${host}" "${username}" "${key_path}"
+  fi
+}
+
+#{ Function to validate SSH connection
+validate_ssh_connection() {
+  local host="$1"
+  local username="$2"
+  local key_path="$3"
+  local ssh_check_cmd="ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=accept-new -T -i \"${key_path}\" git@\"${host}\""
+
+  pout --info "Validating SSH connection to ${host}..."
+  pout --info "> ${ssh_check_cmd}"
+
+  #{ Try the connection with auto-accepting host keys
+  #TODO test if this still works with the eval
+  # if ssh -o StrictHostKeyChecking=accept-new -T -i "${key_path}" git@"${host}" 2>&1 |
+  #   grep -i -q "success\|welcome\|authenticated"; then
+  if eval "${ssh_check_cmd}" 2>&1 | grep -i -q "success\|welcome\|authenticated"; then
+    show_success "Successfully authenticated with ${host}!"
+    return 0
+  else
+    show_warning "Could not authenticate with ${host}. The key may not be properly added yet."
+    return 1
+  fi
+}
+
+#{ Function to list available profiles
+list_profiles() {
+  if [[ ! -d "${GIT_PROFILES_DIR}" ]]; then
+    show_error "Git profiles directory not found: ${GIT_PROFILES_DIR}"
+    exit 1
+  fi
+
+  printf "%s\n" "${BOLD}Available Git Profiles:${RESET}"
+
+  #{ Find gitconfig files
+  local configs=()
+
+  #{ Handle find separately to avoid masking return values
+  local find_output
+  find_output=$(find "${GIT_PROFILES_DIR}" -name "*.gitconfig" -type f || true)
+
+  if [[ -z "${find_output}" ]]; then
+    printf "  No profiles found\n"
+    return
+  fi
+
+  #{ Read find output into array
+  mapfile -t configs <<<"${find_output}"
+
+  for config_file in "${configs[@]}"; do
+    local filename
+    filename="$(basename "${config_file}")"
+    printf "  - %s\n" "${filename}"
+  done
+}
+
+pout() {
+  #{ Initialize variables
+  color=
+  reset=
+  option=
+
+  #{ Set verbosity
+  case "${trace:-0}" in 1 | on | true) verbosity=5 ;; *) ;; esac
+  case "${debug:-0}" in 1 | on | true) verbosity=4 ;; *) ;; esac
+  case "${info:-0}" in 1 | on | true) verbosity=3 ;; *) ;; esac
+  case "${warn:-0}" in 1 | on | true) verbosity=2 ;; *) ;; esac
+  case "${error:-0}" in 1 | on | true) verbosity=1 ;; *) ;; esac
+  case "${quiet:-0}" in 1 | on | true) verbosity=0 ;; *) ;; esac
+  case "${verbosity:-0}" in
+  quiet | 0) verbosity=0 ;;
+  error | 1) verbosity=1 ;;
+  warn | 2) verbosity=2 ;;
+  info | 3) verbosity=3 ;;
+  debug | 4) verbosity=4 ;;
+  trace | 5) verbosity=5 ;;
+  *) ;;
+  esac
+
+  #{ Parse arguments
+  case "$1" in
+  -t | --trace)
+    if [[ "${verbosity}" -lt 5 ]]; then :; else
+      color="${MAGENTA}"
+      reset="${RESET}"
+      option="TRACE"
+      shift
+      msg="$*"
+    fi
+    ;;
+  -d | --debug)
+    if [[ "${verbosity}" -lt 4 ]]; then :; else
+      color="${CYAN}"
+      reset="${RESET}"
+      option="DEBUG"
+      shift
+      msg="$*"
+    fi
+    ;;
+  -i | --info)
+    if [[ "${verbosity}" -lt 3 ]]; then :; else
+      color="${BLUE}"
+      reset="${RESET}"
+      option=" INFO"
+      shift
+      msg="$*"
+    fi
+    ;;
+  -w | --warn*)
+    if [[ "${verbosity}" -lt 1 ]]; then :; else
+      color="${YELLOW}"
+      reset="${RESET}"
+      option=" WARN"
+      shift
+      msg="$*"
+    fi
+    ;;
+  -e | --error)
+    if [[ "${verbosity}" -lt 1 ]]; then :; else
+      color="${RED}"
+      reset="${RESET}"
+      option="ERROR"
+      shift
+      msg="$*"
+    fi
+    ;;
+  -s | --success)
+    color="${GREEN}"
+    reset="${RESET}"
+    option="Success"
+    shift
+    msg="$*"
+    ;;
+  -p | --prompt)
+    color="${MAGENTA}"
+    reset="${RESET}"
+    option="Prompt"
+    shift
+    msg="$*"
+    ;;
+  -v | --version)
+    shift
+    msg="$(printf "%s v%s\n" "${APP_NAME}" "${APP_VERSION}")"
+    ;;
+  -h | --help)
+    msg="$(
+      printf "%s v%s\n\n" "${APP_NAME}" "${APP_VERSION}"
+      printf "Usage: %s [OPTIONS]\n\n" "${APP_NAME}"
+      printf "Automatically configures SSH for Git based on your dotfiles.\n\n"
+      printf "Options:\n"
+      printf "  -h, --help      Show this help message and exit\n"
+      printf "  -v, --version   Show version information and exit\n"
+      printf "  -d, --dir DIR   Set custom dotfiles directory (default: %s)\n" "${DOTS}"
+      printf "  -f, --force     Force regeneration of existing keys\n"
+      printf "  -l, --list      List available profiles\n"
+      printf "  -y, --yes       Non-interactive mode (no prompts)\n\n"
+      printf "Examples:\n"
+      printf "  %s\n" "${APP_NAME}"
+      printf "  %s --dir ~/my-dotfiles\n" "${APP_NAME}"
+      printf "  %s --force\n" "${APP_NAME}"
+      printf "  %s --yes\n" "${APP_NAME}"
+    )"
+    ;;
+  *)
+    msg="$*"
+    ;;
+  esac
+
+  #{ Print message
+  if [[ -z "${msg:-}" ]]; then :; elif
+    [[ -z ${color:-} ]] ||
+      [[ -z ${reset:-} ]] ||
+      [[ -z ${option:-} ]]
+  then
+    printf "%b\n" "${msg}"
+  else
+    printf "${color}%s /> ${reset}%b\n" "${option}" "${msg}"
+  fi
+
+  #{ Reset variables
+  unset color reset option msg
+}
+
+#{ Run the script
+main "$@"

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "🐧 $(cat ~/.cache/subs/main) ☕ $(cat ~/.cache/subs/podcast)"

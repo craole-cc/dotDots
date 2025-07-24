@@ -1,0 +1,7 @@
+#!/bin/sh
+
+paru "$@" \
+  --sync \
+  --info
+
+paru_info_extended "$@"

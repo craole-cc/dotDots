@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"name": "DOTS",
+			"path": "../."
+		},
+		{
+			"name": "HOME",
+			"path": "/home/nixos"
+		},
+		{
+			"name": "SYSTEM",
+			"path": "/etc/nixos"
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"[nix]": {
+			"editor.formatOnSave": true,
+			"editor.defaultFormatter": "kamadorueda.alejandra"
+		},
+		"files.exclude": {
+			"**/.git": false
+		},
+	},
+	"extensions": {
+		"recommendations": [
+			"bbenoist.nix",
+			"kamadorueda.alejandra",
+			"eamodio.gitlens",
+			"natqe.reload",
+			"ms-vscode.makefile-tools"
+		]
+	}
+}

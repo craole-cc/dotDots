@@ -1,0 +1,146 @@
+#!/bin/sh
+
+# ===================================================================
+#@		                           	INFO			                       @#
+# ===================================================================
+
+__info__() {
+  _cmd_PATH="$(pathof "$0")"
+  _cmd_NAME="$(basename "${_cmd_PATH}")"
+  _cmd_HOME="$(dirname -- "${_cmd_PATH}")"
+  _cmd_VERSION="1.0"
+  _cmd_DESCRIPTION="Check if the value is a valid number"
+  _cmd_DEPENDENCIES="ripgrep, weHave"
+  _cmd_USAGEGUIDE="$(
+    cat <<USAGE_GUIDE
+
+#>----------------------------------------------------<#
+              ${_cmd_NAME} <[options]> <[arguments]>
+#>----------------------------------------------------<#
+  ${_cmd_DESCRIPTION}
+#>----------------------------------------------------<#
+      -h --help       |>     Usage guide
+      -v --version    |>     Version
+      -d --verbose    |>     Details
+#>----------------------------------------------------<#
+
+USAGE_GUIDE
+  )"
+
+  #{ Usage display
+  __help__() { printf "%s\n" "${_cmd_USAGEGUIDE}"; }
+
+  #{ Version display
+  __version__() { printf "%s\n" "${_cmd_VERSION}"; }
+
+}
+
+# ===================================================================
+#@		                          OPTIONS			                       @#
+# ===================================================================
+
+parse_args() {
+
+  #{ Declare user options
+  for arg in "$@"; do
+    case "${arg:-}" in
+    -h | --help) __help__ ;;
+    -v | --version) __version__ ;;
+    -d | --verbose) verbose=true ;;
+    -f | --float) num_type="float" ;;
+    -i | --integer) num_type="integer" ;;
+    *) ;;
+    esac
+  done
+
+  #{ Validate each number entered via a loop
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --* | -*) ;;
+    *) num="$1" ;;
+    esac
+
+    __process__
+    shift
+  done
+}
+
+# ===================================================================
+#@		                          DEFAULT			                       @#
+# ===================================================================
+
+__defaults__() {
+  #{ GREP
+
+  if [ -x "${CMD_RG:-"$(command -v rg 2>/dev/null || true)"}" ]; then
+    _grep() { rg -q "$@"; }
+  else
+    _grep() { grep -Eq "$@"; }
+  fi
+
+  #{ Regex
+  regex_integer='^[+-]?[0-9]+$'
+  regex_float='^[+-]?[0-9]*\.[0-9]+$|^[+-]?[0-9]+\.[0-9]*$'
+  num_type=integer
+  unset invalid
+
+}
+
+__msg__() {
+  [ -n "${verbose}" ] || return
+  case "$1" in
+  --integer) printf "%s is an integer\n" "${num}" ;;
+  --float) printf "%s is a floating-point number\n" "${num}" ;;
+  --invalid) printf "%s is not a valid number\n" "${num}" ;;
+  *) ;;
+  esac
+
+}
+
+__process__() {
+  case "${num_type:-}" in
+  float)
+    printf "%s" "${num}" | _grep "${regex_float}"
+    __msg__ --float
+    ;;
+  integer)
+    printf "%s" "${num}" | _grep "${regex_integer}"
+    __msg__ --integer
+    ;;
+  *)
+    __msg__ --invalid
+    invalid=1
+    ;;
+  esac
+
+  #{ Float
+  case "${allow_floats}" in true | 1 | y*) ;; *) return ;; esac
+  if [ -n "${allow_floats}" ] &&
+    echo "${num}" | _grep "${regex_float}"; then
+    __msg__ --float
+
+  #{ Integer
+  elif echo "${num}" | _grep "${regex_integer}"; then
+    __msg__ --integer
+
+  #{ Invalid
+  else
+    __msg__ --invalid
+    invalid=1
+  fi
+
+}
+
+__cleanup__() {
+  unset menu type style theme
+  case "${invalid}" in true | 1 | y*) exit 1 ;; *) exit 0 ;; esac
+}
+
+__main__() {
+  __info__
+  __defaults__
+  parse_args "$@"
+  __cleanup__
+}
+
+__main__ "$@"

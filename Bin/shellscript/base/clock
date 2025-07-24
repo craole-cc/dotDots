@@ -1,0 +1,610 @@
+#!/bin/sh
+#
+# Clock - POSIX Duration and Timestamp Utility
+# Provides duration parsing, formatting, timestamp generation, and command timing
+# with support for both compact (e.g., "2m 30s") and verbose (e.g., "2 minutes and 30 seconds") formats.
+#
+# Author: Craig 'Craole' Cole
+# Copyright: (c) Craig 'Craole' Cole, 2025. All rights reserved.
+# License: MIT License
+#
+# Usage: clock [options] [command [args...]]
+
+#region Configuration
+
+#| Default behavior configuration
+CLOCK_DURATION_FORMAT="${CLOCK_DURATION_FORMAT:-Compact}"
+CLOCK_TIMESTAMP_FORMAT="${CLOCK_TIMESTAMP_FORMAT:-Default}"
+CLOCK_ICON="${CLOCK_ICON:-"$(printf '\udb84\uddfb')"}" # Default icon: 󱇻
+CLOCK_SHOW_ICON="${CLOCK_SHOW_ICON:-0}"
+
+#| Duration format strings
+DURATION_COMPACT_MINUTES="${DURATION_COMPACT_MINUTES:-m}"
+DURATION_COMPACT_SECONDS="${DURATION_COMPACT_SECONDS:-s}"
+DURATION_COMPACT_MILLISECONDS="${DURATION_COMPACT_MILLISECONDS:-ms}"
+DURATION_COMPACT_SEPARATOR="${DURATION_COMPACT_SEPARATOR:- }"
+DURATION_COMPACT_ICON="${DURATION_COMPACT_ICON:-"${CLOCK_ICON}"}"
+
+#| Verbose duration format strings
+DURATION_VERBOSE_MINUTE_SINGULAR="${DURATION_VERBOSE_MINUTE_SINGULAR:-minute}"
+DURATION_VERBOSE_MINUTE_PLURAL="${DURATION_VERBOSE_MINUTE_PLURAL:-minutes}"
+DURATION_VERBOSE_SECOND_SINGULAR="${DURATION_VERBOSE_SECOND_SINGULAR:-second}"
+DURATION_VERBOSE_SECOND_PLURAL="${DURATION_VERBOSE_SECOND_PLURAL:-seconds}"
+DURATION_VERBOSE_MILLISECOND_SINGULAR="${DURATION_VERBOSE_MILLISECOND_SINGULAR:-millisecond}"
+DURATION_VERBOSE_MILLISECOND_PLURAL="${DURATION_VERBOSE_MILLISECOND_PLURAL:-milliseconds}"
+DURATION_VERBOSE_CONNECTOR="${DURATION_VERBOSE_CONNECTOR:-and}"
+DURATION_VERBOSE_LIST_SEPARATOR="${DURATION_VERBOSE_LIST_SEPARATOR:-, }"
+
+#| Timestamp format strings
+TIMESTAMP_DEFAULT="${TIMESTAMP_DEFAULT:-[%Y-%m-%d %H:%M:%S]}"
+TIMESTAMP_SHORT="${TIMESTAMP_SHORT:-[%H:%M:%S]}"
+TIMESTAMP_ISO="${TIMESTAMP_ISO:-%Y-%m-%dT%H:%M:%S}"
+TIMESTAMP_COMPACT="${TIMESTAMP_COMPACT:-%Y%m%d-%H%M%S}"
+TIMESTAMP_FILENAME="${TIMESTAMP_FILENAME:-%Y-%m-%d_%H-%M-%S}"
+
+#| Command configuration
+CLOCK_COMMAND_EXPR=""
+CLOCK_COMMAND_LABEL=""
+
+#| Options - Initialize all variables
+opt_duration=0
+opt_timestamp=0
+opt_compact=0
+opt_verbose=0
+opt_icon=0
+opt_simulate=0
+opt_help=0
+
+opt_duration_format=""
+opt_timestamp_format=""
+
+cmd_icon=""
+cmd_label=""
+cmd_expr=""
+cmd_code=0
+cmd_duration=0
+cmd_start_time=0
+cmd_end_time=0
+cmd_formatted_duration=""
+
+main() {
+  #{ Parse and validate options
+  parse_arguments "$@"
+  validate_options || return 1
+  normalize_options
+
+  #{ Show help if requested
+  if [ "${opt_help}" -eq 1 ]; then
+    show_usage
+    return 0
+  fi
+
+  #{ Handle dry-run simulation
+  if [ "${opt_simulate}" -eq 1 ]; then
+    printf "Would execute: %s\n" "${CLOCK_COMMAND_EXPR:-[no command]}"
+    printf "Duration format: %s\n" "${CLOCK_FORMAT}"
+    printf "Label: %s\n" "${CLOCK_COMMAND_LABEL:-[auto-generated]}"
+    printf "Icon: %s\n" "${CLOCK_ICON:-[none]}"
+    return 0
+  fi
+
+  #{ Execute based on mode
+  if [ "${opt_duration}" -eq 1 ]; then
+    get_duration
+  else
+    get_datetime
+  fi
+}
+
+#endregion
+
+#region Functions
+
+#DOC Check if a string is numeric
+is_numeric() {
+  case "${1#-}" in
+  '' | *[!0-9.]*) return 1 ;;
+  *) return 0 ;;
+  esac
+}
+
+#DOC Retrieve the current time in milliseconds since epoch
+get_current_time_ms() {
+  #{ Try GNU/BSD date (nanoseconds support)
+  if time_ms=$(date +%s%3N 2>/dev/null) && printf "%s" "${time_ms}" | grep -E '^[0-9]+$' >/dev/null 2>&1; then
+    printf "%s\n" "${time_ms}"
+    return 0
+  fi
+
+  #{ Try Python3
+  if command -v python3 >/dev/null 2>&1; then
+    python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null && return 0
+  fi
+
+  #{ Try Python2
+  if command -v python >/dev/null 2>&1; then
+    python -c "import time; print(int(time.time() * 1000))" 2>/dev/null && return 0
+  fi
+
+  #{ Try Perl
+  if command -v perl >/dev/null 2>&1; then
+    perl -MTime::HiRes=time -E 'say int(time*1000)' 2>/dev/null && return 0
+  fi
+
+  #{ Fallback: seconds precision
+  date_sec="$(date +%s)"
+  printf "%s000\n" "${date_sec}"
+}
+
+#DOC Convert various duration inputs to milliseconds
+convert_to_milliseconds() {
+  duration="$1"
+
+  case "${duration}" in
+  '')
+    printf "0\n"
+    return 0
+    ;;
+  *)
+    if is_numeric "${duration}"; then
+      printf "%.0f\n" "${duration}"
+      return 0
+    else
+      printf "ERROR: Invalid duration format: %s\n" "${duration}" >&2
+      printf "0\n"
+      return 1
+    fi
+    ;;
+  esac
+}
+
+#DOC Format duration as compact string
+format_duration_compact() {
+  duration_ms="$1"
+  duration_ms=$(convert_to_milliseconds "${duration_ms}")
+  duration_ms_int=$(printf "%.0f\n" "${duration_ms}")
+
+  #{ Calculate components
+  total_seconds=$((duration_ms_int / 1000))
+  milliseconds=$((duration_ms_int % 1000))
+  minutes=$((total_seconds / 60))
+  seconds=$((total_seconds % 60))
+
+  parts=""
+
+  #{ Add minutes if >= 1
+  if [ "${minutes}" -ge 1 ]; then
+    parts="${minutes}${DURATION_COMPACT_MINUTES}"
+  fi
+
+  #{ Add seconds if > 0
+  if [ "${seconds}" -gt 0 ]; then
+    if [ -n "${parts}" ]; then
+      parts="${parts}${DURATION_COMPACT_SEPARATOR}${seconds}${DURATION_COMPACT_SECONDS}"
+    else
+      parts="${seconds}${DURATION_COMPACT_SECONDS}"
+    fi
+  fi
+
+  #{ Add milliseconds if > 0 or if no other parts
+  if [ "${milliseconds}" -gt 0 ] || [ -z "${parts}" ]; then
+    if [ -n "${parts}" ]; then
+      parts="${parts}${DURATION_COMPACT_SEPARATOR}${milliseconds}${DURATION_COMPACT_MILLISECONDS}"
+    else
+      parts="${milliseconds}${DURATION_COMPACT_MILLISECONDS}"
+    fi
+  fi
+
+  #{ Return formatted duration
+  printf "%s\n" "${parts}"
+}
+
+#DOC Get singular or plural form of a unit
+get_unit_form() {
+  count="$1"
+  singular="$2"
+  plural="$3"
+
+  if [ "${count}" -eq 1 ]; then
+    printf "%s\n" "${singular}"
+  else
+    printf "%s\n" "${plural}"
+  fi
+}
+
+#DOC Join duration parts with proper English grammar
+join_duration_parts() {
+  #{ Count arguments
+  argc=0
+  for _ in "$@"; do
+    argc=$((argc + 1))
+  done
+
+  case "${argc}" in
+  0) printf "\n" ;;
+  1) printf "%s\n" "$1" ;;
+  2) printf "%s %s %s\n" "$1" "${DURATION_VERBOSE_CONNECTOR}" "$2" ;;
+  *)
+    #{ More than 2 parts - need comma separation
+    result=""
+    i=1
+    for part in "$@"; do
+      if [ "${i}" -eq 1 ]; then
+        result="${part}"
+      elif [ "${i}" -eq "${argc}" ]; then
+        result="${result}${DURATION_VERBOSE_LIST_SEPARATOR}${DURATION_VERBOSE_CONNECTOR} ${part}"
+      else
+        result="${result}${DURATION_VERBOSE_LIST_SEPARATOR}${part}"
+      fi
+      i=$((i + 1))
+    done
+    printf "%s\n" "${result}"
+    ;;
+  esac
+}
+
+#DOC Format duration as verbose string
+format_duration_verbose() {
+  duration_ms="$1"
+  duration_ms=$(convert_to_milliseconds "${duration_ms}")
+  duration_ms_int=$(printf "%.0f\n" "${duration_ms}")
+
+  #{ Calculate components
+  total_seconds=$((duration_ms_int / 1000))
+  milliseconds=$((duration_ms_int % 1000))
+  minutes=$((total_seconds / 60))
+  remaining_seconds=$((total_seconds % 60))
+
+  parts=""
+
+  if [ "${minutes}" -ge 1 ]; then
+    unit=$(get_unit_form "${minutes}" "${DURATION_VERBOSE_MINUTE_SINGULAR}" "${DURATION_VERBOSE_MINUTE_PLURAL}")
+    parts="${minutes} ${unit}"
+
+    if [ "${remaining_seconds}" -gt 0 ]; then
+      unit=$(get_unit_form "${remaining_seconds}" "${DURATION_VERBOSE_SECOND_SINGULAR}" "${DURATION_VERBOSE_SECOND_PLURAL}")
+      parts="${parts}|${remaining_seconds} ${unit}"
+    fi
+  elif [ "${total_seconds}" -ge 1 ]; then
+    unit=$(get_unit_form "${total_seconds}" "${DURATION_VERBOSE_SECOND_SINGULAR}" "${DURATION_VERBOSE_SECOND_PLURAL}")
+    parts="${total_seconds} ${unit}"
+
+    if [ "${milliseconds}" -gt 0 ]; then
+      unit=$(get_unit_form "${milliseconds}" "${DURATION_VERBOSE_MILLISECOND_SINGULAR}" "${DURATION_VERBOSE_MILLISECOND_PLURAL}")
+      parts="${parts}|${milliseconds} ${unit}"
+    fi
+  else
+    unit=$(get_unit_form "${milliseconds}" "${DURATION_VERBOSE_MILLISECOND_SINGULAR}" "${DURATION_VERBOSE_MILLISECOND_PLURAL}")
+    parts="${milliseconds} ${unit}"
+  fi
+
+  #{ Convert pipe-separated parts back to arguments for join_duration_parts
+  case "${parts}" in
+  *\|*)
+    part1=$(printf "%s\n" "${parts}" | cut -d'|' -f1)
+    part2=$(printf "%s\n" "${parts}" | cut -d'|' -f2)
+    num_parts=$(printf "%s\n" "${parts}" | tr '|' '\n' | wc -l)
+    case "${num_parts}" in
+    2) join_duration_parts "${part1}" "${part2}" ;;
+    3)
+      part3=$(printf "%s\n" "${parts}" | cut -d'|' -f3)
+      join_duration_parts "${part1}" "${part2}" "${part3}"
+      ;;
+    *) join_duration_parts "${part1}" "${part2}" ;;
+    esac
+    ;;
+  *)
+    printf "%s\n" "${parts}"
+    ;;
+  esac
+}
+
+#DOC Generate formatted timestamps
+get_timestamp() {
+  format="${1:-Default}"
+
+  #{ Determine format string
+  case "${format}" in
+  Default) format_string="${TIMESTAMP_DEFAULT}" ;;
+  Short) format_string="${TIMESTAMP_SHORT}" ;;
+  ISO) format_string="${TIMESTAMP_ISO}" ;;
+  Compact) format_string="${TIMESTAMP_COMPACT}" ;;
+  Filename) format_string="${TIMESTAMP_FILENAME}" ;;
+  *) format_string="${format}" ;;
+  esac
+
+  #{ Return formatted timestamp
+  date +"${format_string}"
+}
+
+#DOC Format duration in specified format
+format_duration() {
+  duration="$1"
+  format="$(printf "%s" "${2:-Compact}" | tr '[:upper:]' '[:lower:]')"
+  icon="${3:-}"
+
+  case "${format}" in
+  *verbose*) duration="$(format_duration_verbose "${duration}")" ;;
+  *compact* | *) duration="$(format_duration_compact "${duration}")" ;;
+  esac
+
+  #{ Append icon if provided
+  if [ -n "${icon}" ]; then
+    printf "%s %s" "${icon}" "${duration}"
+  else
+    printf "%s" "${duration}"
+  fi
+}
+
+#endregion
+
+#region Arguments
+
+parse_arguments() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --duration)
+      opt_duration=1
+      ;;
+    --timestamp)
+      opt_timestamp=1
+      ;;
+    --iso)
+      opt_timestamp=1
+      opt_timestamp_format="ISO"
+      ;;
+    --format)
+      if [ -z "$2" ]; then
+        printf "ERROR: --format requires a value\n" >&2
+        exit 1
+      fi
+      opt_timestamp=1
+      opt_timestamp_format="$2"
+      shift
+      ;;
+    --compact)
+      opt_compact=1
+      opt_duration_format="Compact"
+      ;;
+    --verbose)
+      opt_verbose=1
+      opt_duration_format="Verbose"
+      ;;
+    --show-icon)
+      opt_icon=1
+      ;;
+    --icon)
+      if [ -z "$2" ]; then
+        printf "ERROR: --icon requires a value\n" >&2
+        exit 1
+      fi
+      cmd_icon="$2"
+      opt_icon=1
+      shift
+      ;;
+    --label)
+      if [ -z "$2" ]; then
+        printf "ERROR: --label requires a value\n" >&2
+        exit 1
+      fi
+      cmd_label="$2"
+      shift
+      ;;
+    --dry-run)
+      opt_simulate=1
+      ;;
+    --help | -h)
+      opt_help=1
+      ;;
+    -c | --cmd | --command)
+      if [ -z "$2" ]; then
+        printf "ERROR: %s requires a value\n" "$1" >&2
+        exit 1
+      fi
+      cmd_expr="${cmd_expr:+${cmd_expr} }$2"
+      shift
+      ;;
+    --)
+      shift
+      cmd_expr="$*"
+      break
+      ;;
+    -*)
+      printf "ERROR: Unknown option: %s\n" "$1" >&2
+      printf "Use --help for usage information.\n" >&2
+      exit 1
+      ;;
+    *)
+      cmd_expr="${cmd_expr:+${cmd_expr} }$1"
+      ;;
+    esac
+    shift
+  done
+}
+
+normalize_options() {
+  CLOCK_COMMAND_EXPR="${cmd_expr:-"${CLOCK_COMMAND_EXPR:-}"}"
+
+  CLOCK_COMMAND_LABEL="${cmd_label:-"${CLOCK_COMMAND_LABEL:-}"}"
+  if [ -z "${CLOCK_COMMAND_LABEL}" ] && [ -n "${CLOCK_COMMAND_EXPR}" ]; then
+    CLOCK_COMMAND_LABEL="$(printf "%s" "${CLOCK_COMMAND_EXPR}" | cut -d' ' -f1)"
+  fi
+
+  if [ "${opt_duration}" -eq 1 ]; then
+    CLOCK_FORMAT="${opt_duration_format:-"${CLOCK_DURATION_FORMAT}"}"
+  else
+    CLOCK_FORMAT="${opt_timestamp_format:-"${CLOCK_TIMESTAMP_FORMAT}"}"
+  fi
+
+  case "${opt_icon}" in
+  1)
+    CLOCK_SHOW_ICON=1
+    CLOCK_ICON="${cmd_icon:-"${CLOCK_ICON}"}"
+    ;;
+  *)
+    case "${CLOCK_SHOW_ICON}" in
+    1 | on | true | [yY]*)
+      CLOCK_SHOW_ICON=1
+      CLOCK_ICON="${cmd_icon:-"${CLOCK_ICON}"}"
+      ;;
+    *)
+      CLOCK_SHOW_ICON=0
+      CLOCK_ICON=""
+      ;;
+    esac
+    ;;
+  esac
+
+  if [ "${CLOCK_SHOW_ICON}" -eq 1 ] && [ -n "${CLOCK_ICON}" ]; then
+    CLOCK_ICON="${CLOCK_ICON} "
+  else
+    CLOCK_ICON=""
+  fi
+}
+
+validate_options() {
+  if [ "${opt_compact}" -eq 1 ] && [ "${opt_verbose}" -eq 1 ]; then
+    printf "ERROR: Cannot use both --compact and --verbose\n" >&2
+    return 1
+  elif [ "${opt_timestamp}" -eq 1 ] && [ "${opt_duration}" -eq 1 ]; then
+    printf "ERROR: Cannot use both --timestamp and --duration\n" >&2
+    return 1
+  fi
+  return 0
+}
+
+get_duration() {
+  #{ Validate command expression
+  if [ -z "${CLOCK_COMMAND_EXPR}" ]; then
+    printf "ERROR: --duration requires a command to execute\n" >&2
+    return 1
+  fi
+
+  #{ Record the time prior to the command execution
+  cmd_start_time=$(get_current_time_ms)
+
+  #{ Execute the command using eval to handle complexities
+  eval "${CLOCK_COMMAND_EXPR}"
+  cmd_code=$?
+
+  #{ Calculate the duration of the command execution
+  cmd_end_time=$(get_current_time_ms)
+  cmd_duration=$((cmd_end_time - cmd_start_time))
+
+  #{ Format and display duration
+  cmd_formatted_duration="$(format_duration "${cmd_duration}" "${CLOCK_FORMAT}")"
+
+  #{ Display the formatted duration
+  case "$(printf "%s" "${CLOCK_FORMAT}" | tr '[:upper:]' '[:lower:]')" in
+  *verbose*)
+    printf "%s completed in %s%s\n" \
+      "${CLOCK_COMMAND_LABEL}" "${CLOCK_ICON}" "${cmd_formatted_duration}"
+    ;;
+  *)
+    printf "%s%s\n" "${CLOCK_ICON}" "${cmd_formatted_duration}"
+    ;;
+  esac
+
+  return "${cmd_code}"
+}
+
+get_datetime() {
+  result="${CLOCK_ICON}$(get_timestamp "${CLOCK_FORMAT}")"
+  printf "%s\n" "${result}"
+}
+
+#endregion
+
+#region Main Execution
+
+show_usage() {
+  cat <<-EOF
+Clock - POSIX Duration and Timestamp Utility
+
+USAGE:
+    clock [OPTIONS] [COMMAND [ARGS...]]
+
+OPTIONS:
+    --duration          Show execution duration of command
+    --timestamp         Show current timestamp (default format)
+    --iso               Show timestamp in ISO format
+    --format FORMAT     Use custom timestamp format
+    --compact           Use compact duration format (e.g., "2m 30s")
+    --verbose           Use verbose duration format (e.g., "2 minutes and 30 seconds")
+    --show-icon         Include icon in output
+    --icon ICON         Use custom icon
+    --label LABEL       Set custom label for duration messages
+    --dry-run           Show what would be executed without running
+    --help, -h          Show this help message
+
+EXAMPLES:
+    clock --timestamp                           # Show current timestamp
+    clock --iso                                 # Show ISO timestamp
+    clock --duration ls -la                     # Time 'ls -la' command
+    clock --duration --compact sleep 2          # Time with compact format
+    clock --duration --verbose --label "Test" echo hello
+    clock --dry-run --duration ls -la           # Show command without executing
+
+ENVIRONMENT VARIABLES:
+    Duration format customization:
+        DURATION_COMPACT_MINUTES                # Default: "${DURATION_COMPACT_MINUTES}"
+        DURATION_COMPACT_SECONDS                # Default: "${DURATION_COMPACT_SECONDS}"
+        DURATION_COMPACT_MILLISECONDS           # Default: "${DURATION_COMPACT_MILLISECONDS}"
+        DURATION_COMPACT_SEPARATOR              # Default: "${DURATION_COMPACT_SEPARATOR}"
+        DURATION_COMPACT_ICON                   # Default: "${DURATION_COMPACT_ICON}"
+
+        DURATION_VERBOSE_MINUTE_SINGULAR        # Default: "${DURATION_VERBOSE_MINUTE_SINGULAR}"
+        DURATION_VERBOSE_MINUTE_PLURAL          # Default: "${DURATION_VERBOSE_MINUTE_PLURAL}"
+        DURATION_VERBOSE_SECOND_SINGULAR        # Default: "${DURATION_VERBOSE_SECOND_SINGULAR}"
+        DURATION_VERBOSE_SECOND_PLURAL          # Default: "${DURATION_VERBOSE_SECOND_PLURAL}"
+        DURATION_VERBOSE_MILLISECOND_SINGULAR   # Default: "${DURATION_VERBOSE_MILLISECOND_SINGULAR}"
+        DURATION_VERBOSE_MILLISECOND_PLURAL     # Default: "${DURATION_VERBOSE_MILLISECOND_PLURAL}"
+        DURATION_VERBOSE_CONNECTOR              # Default: "${DURATION_VERBOSE_CONNECTOR}"
+        DURATION_VERBOSE_LIST_SEPARATOR         # Default: "${DURATION_VERBOSE_LIST_SEPARATOR}"
+
+    Timestamp format customization:
+        TIMESTAMP_DEFAULT                       # Default: "${TIMESTAMP_DEFAULT}"
+        TIMESTAMP_SHORT                         # Default: "${TIMESTAMP_SHORT}"
+        TIMESTAMP_ISO                           # Default: "${TIMESTAMP_ISO}"
+        TIMESTAMP_COMPACT                       # Default: "${TIMESTAMP_COMPACT}"
+        TIMESTAMP_FILENAME                      # Default: "${TIMESTAMP_FILENAME}"
+
+    Behavior defaults:
+        CLOCK_DURATION_FORMAT           # Default: "${CLOCK_DURATION_FORMAT}"
+        CLOCK_TIMESTAMP_FORMAT          # Default: "${CLOCK_TIMESTAMP_FORMAT}"
+        CLOCK_SHOW_ICON                 # Default: "${CLOCK_SHOW_ICON}" (set to "1" to always show icons)
+
+CONFIGURATION EXAMPLES:
+    # Use different duration units
+    export DURATION_COMPACT_MINUTES="min"
+    export DURATION_COMPACT_SECONDS="sec"
+    clock --duration sleep 1
+
+    # Use different language for verbose format
+    export DURATION_VERBOSE_MINUTE_SINGULAR="minuto"
+    export DURATION_VERBOSE_MINUTE_PLURAL="minutos"
+    export DURATION_VERBOSE_CONNECTOR="y"
+    clock --duration --verbose sleep 90
+
+    # Always show icons
+    export CLOCK_SHOW_ICON=1
+    clock --duration ls
+
+    # Custom timestamp format
+    export TIMESTAMP_DEFAULT="%A, %B %d, %Y at %I:%M:%S %p"
+    clock --timestamp
+
+TIMESTAMP FORMATS:
+    Default: [2025-05-29 14:30:45]
+    ISO:     2025-05-29T14:30:45
+
+DURATION FORMATS:
+    Compact: 2m 30s 500ms
+    Verbose: 2 minutes and 30 seconds
+
+EOF
+}
+
+main "$@"
+
+#endregion

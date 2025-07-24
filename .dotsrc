@@ -1,0 +1,101 @@
+# shellcheck disable=SC2148,SC2292,SC1090
+# ===========================================================================
+# DOTS RC - Universal shell configuration loader for DOTS
+# Supports: bash, zsh, sh, fish, PowerShell, Nushell
+# ===========================================================================
+
+# === NUSHELL ===
+# Nushell ignores lines starting with '#' except when they start with '#nu'
+#nu if ($env.DOTS == null) {
+#nu     print --error "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."
+#nu     exit 1
+#nu }
+#nu
+#nu if not ($env.DOTS | path exists) {
+#nu     print --error $"Missing DOTS directory: ($env.DOTS)"
+#nu     exit 1
+#nu }
+#nu
+#nu let dots_env = ($env.DOTS | path join "Environment" "_.nu")
+#nu if not ($dots_env | path exists) {
+#nu     print --error $"Missing required configuration module: ($dots_env)"
+#nu     exit 1
+#nu }
+#nu
+#nu source $dots_env
+#nu exit $env.LAST_EXIT_CODE
+
+# === POSIX SHELLS (bash, zsh, sh) ===
+  #~@ Validate the DOTS directory
+  if [ -z "${DOTS:-}" ]; then
+    printf "%s: %s\n%s" \
+      "Error: Missing required environment variable" "DOTS" \
+      "       It must point to the DOTS (dotfiles) directory path." >&2
+    return 2
+  elif [ ! -d "${DOTS:-}" ]; then
+    printf "ERROR: Invalid DOTS directory: '%s'" "${DOTS:-}" >&2
+    return 2
+  fi
+
+  DOTS_INIT_START="$(date +%s)"
+
+  #~@ Initialize the DOTS scripts
+  if [ -d "${DOTS}/Bin" ]; then
+    DOTS_BIN="${DOTS}/Bin"
+    CMD_BUILDIR="${DOTS_BIN}/shellscript/environment/buildir"
+
+    #~@ Build the DOTS_PATH, a colon-delimited string of valid DOTS_BIN directories
+    if command -v buildir >/dev/null 2>&1; then
+      CMD_BUILDIR="$(command -v buildir)"
+      DOTS_PATH="$(buildir --target "${DOTS_BIN}")"
+    elif [ -x "${CMD_BUILDIR}" ]; then
+      DOTS_PATH="$("${CMD_BUILDIR}" --target "${DOTS_BIN}")"
+    elif [ -f "${CMD_BUILDIR:-}" ]; then
+      chmod +x "${CMD_BUILDIR}"
+      BUILDIR_TARGET="${DOTS_BIN}"
+      DOTS_PATH="$(. "${buildir}")"
+    fi
+
+    #~@ Prepend the DOTS_PATH to the PATH to exsure priority
+    if [ -n "${DOTS_PATH:-}" ]; then
+      PATH="${DOTS_PATH}:${PATH}"
+      export PATH DOTS_PATH DOTS_BIN
+    fi
+  fi
+
+  #~@ Load the DOTS environment
+  DOTS_ENV="${DOTS}/Environment" export DOTS_ENV
+  posix_env="${DOTS_ENV}/posix/${RC}.sh"
+  # shellcheck disable=SC1090
+  if [ -f "${posix_env}" ]; then . "${posix_env}"; fi
+
+  #~@ Calculate the duration }
+  if [ "${DOTS_INIT_START:-}" ]; then
+    DOTS_INIT_END="$(date +%s)"
+    DOTS_INIT_DURATION=$((DOTS_INIT_END - DOTS_INIT_START))
+    export DOTS_INIT_DURATION
+    printf "DOTS initialization took approximately %d seconds" "${DOTS_INIT_DURATION}"
+  fi
+
+  #~@ Exit with the last exit code }
+  return "$?"
+
+# === POWERSHELL ===
+#requires -Version 5.1
+$InitTime = Get-Date
+
+if (-not $env:DOTS) {
+  Throw "DOTS variable is unset. It must point to the DOTS (dotfiles) directory."
+}
+
+if (-not (Test-Path -Path $env:DOTS -PathType Container)) {
+  Throw "Missing DOTS directory: $env:DOTS"
+}
+
+$dotsEnv = Join-Path $env:DOTS 'Environment' 'powershell' 'profile.psm1'
+if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
+  Throw "Missing required configuration module: ${dotsEnv}"
+}
+
+Import-Module $dotsEnv -Force
+Write-Pretty -Tag 'Info' -As 'dotDOTS' -Init $InitTime

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+weHave fastfetch || return
+FASTFETCH_CONFIG="${FASTFETCH_CONFIG:-$1}"
+
+pretty_os_print() {
+  weHave figlet jq || return
+  figlet -f slant "$(
+    fastfetch -s os --format json | jq -r '.[0].result.name'
+  )"
+}
+
+fastfetch_cmd() {
+  if [ -n "$FASTFETCH_CONFIG" ]; then
+    pretty_os_print
+    fastfetch --config "$FASTFETCH_CONFIG"
+  else
+    pretty_os_print
+    fastfetch
+  fi
+}
+
+fastfetch_cmd "$@"

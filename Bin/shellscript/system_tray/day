@@ -1,0 +1,25 @@
+#!/bin/sh
+
+day=$(date +%-d)
+case "$day" in
+11 | 12 | 13) suffix="th" ;;
+*)
+  case "${day##*[!0-9]}" in
+  1) suffix="st" ;;
+  2) suffix="nd" ;;
+  3) suffix="rd" ;;
+  *) suffix="th" ;;
+  esac
+  ;;
+esac
+#  Blueeprint
+case "$1" in
+--month-day-time) printf "\uf073 %s)(%s \ue641 " "$(date +'%b') ${day}${suffix}" "$(date +'%H:%M')" ;;
+# --month-day-time) printf "\uf073 %s ┼ %s \ue641 " "$(date +'%b') ${day}${suffix}" "$(date +'%H:%M')";;
+--time) printf "%s" "$(date +'%H:%M')" ;;
+# --worded) printf "\ue641 It's %s on the %s of %s" "$(date +'%l:%M %p')" "${day}${suffix}" "$(date +'%B')" ;;
+--worded) printf "\ue641 %s on the %s of %s" "$(date +'%l:%M %p')" "${day}${suffix}" "$(date +'%B')" ;;
+--at) printf "%s %s @ %s \ue641" "$(date +'%B')" "${day}${suffix}" "$(date +'%H:%M %p')" ;;
+--month-day | *) printf "%s %s" "$(date +'%b')" "${day}${suffix}" ;;
+esac
+# printf "%s%s%s" "$(date +'%b')" "${day}${suffix}" "$(date +'%H:%M')"

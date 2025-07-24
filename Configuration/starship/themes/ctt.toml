@@ -1,0 +1,129 @@
+command_timeout = 5000
+format = """
+[](#3B4252)\
+$python\
+$username\
+[](bg:#434C5E fg:#3B4252)\
+$directory\
+[](fg:#434C5E bg:#4C566A)\
+$git_branch\
+$git_status\
+[](fg:#4C566A bg:#86BBD8)\
+$c\
+$elixir\
+$elm\
+$golang\
+$haskell\
+$java\
+$julia\
+$nodejs\
+$nim\
+$rust\
+[](fg:#86BBD8 bg:#06969A)\
+$docker_context\
+[](fg:#06969A bg:#33658A)\
+$time\
+[ ](fg:#33658A)\
+"""
+# Disable the blank line at the start of the prompt
+# add_newline = false
+
+# You can also replace your username with a neat symbol like  to save some space
+[username]
+format = '[$user ]($style)'
+show_always = true
+style_root = "bg:#3B4252"
+style_user = "bg:#3B4252"
+
+[directory]
+format = "[ $path ]($style)"
+style = "bg:#434C5E"
+truncation_length = 3
+truncation_symbol = "…/"
+
+# Here is how you can shorten some long paths by text replacement
+# similar to mapped_locations in Oh My Posh:
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+# Keep in mind that the order matters. For example:
+# "Important Documents" = "  "
+# will not be replaced, because "Documents" was already substituted before.
+# So either put "Important Documents" before "Documents" or use the substituted version:
+# "Important  " = "  "
+
+[c]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[docker_context]
+format = '[ $symbol $context ]($style) $path'
+style = "bg:#06969A"
+symbol = " "
+
+[elixir]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[elm]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[git_branch]
+format = '[ $symbol $branch ]($style)'
+style = "bg:#4C566A"
+symbol = ""
+
+[git_status]
+format = '[$all_status$ahead_behind ]($style)'
+style = "bg:#4C566A"
+
+[golang]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[haskell]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[java]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[julia]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[nodejs]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = ""
+
+[nim]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = " "
+
+[python]
+format = '[(\($virtualenv\) )]($style)'
+style = "bg:#3B4252"
+
+[rust]
+format = '[ $symbol ($version) ]($style)'
+style = "bg:#86BBD8"
+symbol = ""
+
+[time]
+disabled = false
+format = '[ $time ]($style)'
+style = "bg:#33658A"
+time_format = "%R"           # Hour:Minute Format

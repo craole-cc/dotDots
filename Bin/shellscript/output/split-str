@@ -1,0 +1,251 @@
+#!/bin/sh
+#DOC  Splits a given string into a list based on a specified delimiter.
+#DOC
+#DOC  This function takes a string and splits it into multiple parts using
+#DOC  a specified input delimiter option. If no input delimiter is provided,
+#DOC  attempts are made to determine the delimiter from a set of common delimiters.
+#DOC
+#DOC  Usage:
+#DOC    str_to_list [OPTIONS] STRING
+#DOC    str_to_list [OPTIONS] -- STRING  # For strings starting with '-'
+#DOC
+#DOC  Options:
+#DOC    -i, --input-delimiter VALUE: The input delimiter to split the string.
+#DOC    -o, --output-delimiter VALUE: The output delimiter to use when printing the result.
+#DOC                                  Defaults to newline.
+#DOC
+#DOC  Returns:
+#DOC    Prints the split parts of the string, separated by the output delimiter.
+#DOC    If no list is provided, an error message is printed and the function
+#DOC    returns with a non-zero status.
+#DOC
+#DOC  Examples:
+#DOC    str_to_list "a,b,c"                       # Auto-detects comma
+#DOC    str_to_list -i ":" "a:b:c"                # Explicitly use colon
+#DOC    str_to_list -o " | " "a,b,c"              # Custom output delimiter
+#DOC    str_to_list -- "-a,-b,-c"                 # Handle leading hyphens
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  execute_process
+}
+
+set_defaults() {
+  output_delimiter="$(printf "%s" '\n')"
+  env_delimiter="${delimiter:-$DELIMITER}"
+  env_count=0
+  space_count=0
+  comma_count=0
+  semicolon_count=0
+  pipe_count=0
+  colon_count=0
+  newline_count=0
+  tilde_count=0
+  plus_count=0
+  max_count=0
+  detected_delimiter="$(printf "%s" ' ')"
+}
+
+parse_arguments() {
+  while [ "$#" -ge 1 ]; do
+    case "$1" in
+    -d | --debug | --verbose)
+      debug=true
+      ;;
+    -i | --*in*)
+      shift
+      input_delimiter="$1"
+      ;;
+    -o | --*out*)
+      shift
+      output_delimiter="$1"
+      ;;
+    --)
+      shift
+      [ "$#" -gt 0 ] && input_list="$*"
+      break
+      ;;
+    *) input_list=$1 ;;
+    esac
+    shift
+  done
+}
+
+set_delimiter() {
+
+  #{ Input validation
+  [ -n "$input_list" ] || {
+    printf "ERROR: No list provided\n"
+    return 1
+  }
+  [ -n "$input_delimiter" ] && {
+    printf "%b" "$input_delimiter"
+    return 0
+  }
+
+  #{ Remove surrounding whitespace from commas
+  if [ "$(printf "%s" "$input_list" | grep -o , | wc -l)" -gt 1 ]; then
+    delimited_list="$(printf "%s" "$input_list" | sed 's/ *, */,/g')"
+  fi
+
+  #{ Count delimiters
+  env_count=$(printf "%s" "$delimited_list" | tr -cd "$env_delimiter" | wc -c)
+  space_count=$(printf "%s" "$delimited_list" | tr -cd ' ' | wc -c)
+  comma_count=$(printf "%s" "$delimited_list" | tr -cd ',' | wc -c)
+  semicolon_count=$(printf "%s" "$delimited_list" | tr -cd ';' | wc -c)
+  pipe_count=$(printf "%s" "$delimited_list" | tr -cd '|' | wc -c)
+  colon_count=$(printf "%s" "$delimited_list" | tr -cd ':' | wc -c)
+  newline_count=$(printf "%s" "$delimited_list" | tr -cd '\n' | wc -c)
+  tilde_count=$(printf "%s" "$delimited_list" | tr -cd '~' | wc -c)
+  plus_count=$(printf "%s" "$delimited_list" | tr -cd '+' | wc -c)
+
+  #{ Find most frequent delimiter with priority weighting # Default
+  [ "$env_count" -gt "$max_count" ] && {
+    max_count=$env_count
+    detected_delimiter="$env_delimiter"
+  }
+  [ "$comma_count" -gt "$max_count" ] && {
+    max_count=$comma_count
+    detected_delimiter=","
+  }
+  [ "$semicolon_count" -gt "$max_count" ] && {
+    max_count=$semicolon_count
+    detected_delimiter=";"
+  }
+  [ "$pipe_count" -gt "$max_count" ] && {
+    max_count=$pipe_count
+    detected_delimiter="|"
+  }
+  [ "$colon_count" -gt "$max_count" ] && {
+    max_count=$colon_count
+    detected_delimiter=":"
+  }
+  [ "$newline_count" -gt "$max_count" ] && {
+    max_count=$newline_count
+    detected_delimiter='\n'
+  }
+  [ "$tilde_count" -gt "$max_count" ] && {
+    max_count=$tilde_count
+    detected_delimiter="~"
+  }
+  [ "$plus_count" -gt "$max_count" ] && {
+    max_count=$plus_count
+    detected_delimiter="+"
+  }
+  [ "$space_count" -gt "$max_count" ] && {
+    max_count=$space_count
+    detected_delimiter=" "
+  }
+}
+
+execute_tests() {
+  set_defaults
+  list="$(
+    printf \
+      "%s |%s %s|%s+%s;%s :%s~%s\n%s| %s" \
+      "one" "two" "three" "four" "five" "six" "seven" "eight" "nine" "ten"
+  )"
+  list_delimiter="$(set_delimiter "$list")"
+
+  test_auto_detection() {
+    execute_process "$list"
+
+    printf "\n=== Test: Auto-detection [%s] ===\n" "$(
+      if [ "$?" ]; then printf "Success"; else printf "Failure"; fi
+    )"
+    printf "\n|==/  Input \==|\n[%s]\n" "$list"
+    printf "\n|==/  Delim \==|\n'%s' -> '%s'\n" "$input_delimiter" "$output_delimiter"
+    printf "\n|==/ Result \==|\n%s" "$output_list"
+    printf "\n=== Test Complete ===\n"
+  }
+
+  test_explicit_delimiters() {
+    printf "=== Test: Explicitly Specified Delimiters ===\n"
+
+    IFS=$sep
+    for delim in $known_delimiters; do
+      printf "\n|==/  Input \==|\n'%s'\n" "$list"
+      printf "\n|==/  Delim \==|\n'%s'\n" "$delim"
+      printf "\n|==/ Result \==|\n"
+
+      result="$(execute_process "$list" "$delim")"
+
+      if [ "$result" ]; then
+        printf "%s\n%s" "Success" "$result"
+      else
+        printf "%s" "Failure"
+      fi
+    done
+
+    printf "\n=== Test Complete ===\n"
+  }
+
+  test_explicit_delimiters
+  test_auto_detection
+}
+
+execute_process() {
+  # __list_to_split="${1:-$input_list}"
+  set_delimiter
+  # __input_delimiter="${2:-$(set_delimiter "$__list_to_split")}"
+  # __output_delimiter="${3:-"${output_delimiter:-\n}"}"
+
+  [ "$debug" ] && {
+    printf "DEBUG: env delimiter '%s' count: %d\n" "$env_delimiter" "$env_count"
+    printf "DEBUG: space delimiter ' ' count: %d\n" "$space_count"
+    printf "DEBUG: comma delimiter ',' count: %d\n" "$comma_count"
+    printf "DEBUG: semicolon delimiter ';' count: %d\n" "$semicolon_count"
+    printf "DEBUG: pipe delimiter '|' count: %d\n" "$pipe_count"
+    printf "DEBUG: colon delimiter ':' count: %d\n" "$colon_count"
+    printf "DEBUG: newline delimiter '\\n' count: %d\n" "$newline_count"
+    printf "DEBUG: tilde delimiter '~' count: %d\n" "$tilde_count"
+    printf "DEBUG: plus delimiter '+' count: %d\n" "$plus_count"
+
+    printf "DEBUG: input_list: %s\n" "$__list_to_split"
+    printf "DEBUG: input_delimiter: %s\n" "$__input_delimiter"
+    printf "DEBUG: output_delimiter: %s\n" "$__output_delimiter"
+
+    printf "DEBUG: Detected delimiter: %s\n" "$detected_delimiter"
+    printf "DEBUG: Delimited list: %s\n" "$delimited_list"
+  }
+
+  # #{ Input validation
+  # [ -n "$delimited_list" ] || {
+  #   printf "ERROR: No list provided\n"
+  #   return 1
+  # }
+  # [ -n "$detected_delimiter" ] || {
+  #   printf "ERROR: No input delimiter provided\n"
+  #   return 1
+  # }
+  # [ -n "$__output_delimiter" ] || {
+  #   printf "ERROR: No output delimiter provided\n"
+  #   return 1
+  # }
+
+  #{ Split the list based on the input and output delimiters
+  output_list="$(
+    printf '%s' "$delimited_list" |
+      sed "s/$detected_delimiter/$output_delimiter/g"
+  )"
+
+  #{ Output the result
+  if [ "$debug" ]; then
+    printf "\nINPUT:\n%s\n" "$input_list"
+    printf "\nOUTPUT:\n%s\n" "$output_list"
+  else
+    printf "%s" "$output_list"
+  fi
+  return 0
+}
+
+main "$@"
+# main "one,two,three, four , five;six,seven, eight, nine,ten"
+# echo
+# main "one, two, three|, four| five, six|seven,eight;nine|ten"
+# echo
+# main "one  two;three+four+five, six+seven,eight;nine|ten"
+# echo
+# main "one ; two;three+four+five, ;six+seven,eight;nine|ten"
+# echo

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+printf "%s" "$@" | sed 's/[A-Z]/\L&/g'

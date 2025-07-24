@@ -1,0 +1,14 @@
+#!/bin/sh
+
+#{ Get the current shell PID }
+proc="$$"
+
+#{ Try to get Unix timestamp, fallback to a fixed value}
+secs="$(date +%s 2>/dev/null || printf '1000000001')"
+
+#{ Try to get formatted timestamp from custom 'clock' script }
+#? Assumes 'clock' is in PATH; otherwise 'time' will be empty
+time="$(clock --timestamp --format "%Y%m%d%H%M%S" 2>/dev/null)"
+
+#{ Print unique identifier: _PID_timestamp or _PID_seconds }
+printf "_%s_%s\n" "${proc}" "${time:-"${secs}"}"

@@ -1,0 +1,262 @@
+#!/bin/sh
+# shellcheck enable=all
+
+main() {
+  set_defaults
+  parse_arguments "$@"
+  execute_process
+}
+
+set_defaults() {
+  #{ Ensure DOTS environment variable is set
+  : "${DOTS:?Must set DOTS environment variable}"
+
+  #{ Check if DOTS directory exists
+  if [ ! -d "${DOTS}" ]; then
+    printf "Error: DOTS directory does not exist: %s\n" "${DOTS}" >&2
+    return 1
+  fi
+
+  #{ Set Helix config and archive directories
+  : "${HELIX_CONFIG_DIR:="${DOTS}/Configuration/helix"}"
+  : "${HELIX_ARCHIVE_DIR:="${HELIX_CONFIG_DIR}/archive"}"
+  : "${HELIX_CONFIG:="${HELIX_CONFIG_DIR}/config.toml"}"
+  : "${HELIX_LANGUAGES:="${HELIX_CONFIG_DIR}/languages.toml"}"
+
+  #{ Determine the default Helix config directory
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    HELIX_DEFAULT_DIR="${XDG_CONFIG_HOME}/helix"
+  elif [ -n "${APPDATA:-}" ]; then
+    HELIX_DEFAULT_DIR="${APPDATA}/helix"
+  else
+    HELIX_DEFAULT_DIR="${HOME}/.config/helix"
+  fi
+
+  #{ Set local files
+  LOCAL_CONFIG="${HELIX_DEFAULT_DIR}/config.toml"
+  LOCAL_LANGUAGES="${HELIX_DEFAULT_DIR}/languages.toml"
+
+  #{ Set timestamp for backups
+  : "${TIMESTAMP_FORMAT:="%Y%m%d_%H%M%S"}"
+  TIMESTAMP="$(date +"${TIMESTAMP_FORMAT}")"
+
+  #{ Set default delimiter for arguments
+  : "${DELIMITER:="$(printf "\037")"}"
+}
+
+parse_arguments() {
+  #{ Initialize variables
+  dry_run=false
+  args=""
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --dry-run) dry_run=true ;;
+    --) shift ;;
+    -*)
+      printf "Error: Unknown option: %s\n" "$1" >&2
+      printf "Available options:\n" >&2
+      printf "  --dry-run     Show what would be done without making changes\n" >&2
+      return 1
+      ;;
+    *) args="${args}${args:+${DELIMITER}}${1}" ;;
+    esac
+    shift
+  done
+
+  #{ Normalize options
+  case "${dry_run}" in 1 | true | on | yes) dry_run=1 ;; *) dry_run=0 ;; esac
+}
+
+is_newer_file() {
+  file1="$1"
+  file2="$2"
+
+  # Get modification times in seconds since epoch
+  # Try stat first (GNU/BSD), fall back to find
+  if command -v stat >/dev/null 2>&1; then
+    # Try GNU stat format first
+    time1=$(stat -c %Y "${file1}" 2>/dev/null) ||
+      # Try BSD stat format
+      time1=$(stat -f %m "${file1}" 2>/dev/null) ||
+      time1=0
+
+    time2=$(stat -c %Y "${file2}" 2>/dev/null) ||
+      time2=$(stat -f %m "${file2}" 2>/dev/null) ||
+      time2=0
+  else
+    # Fallback: use find with -newer (POSIX compliant)
+    # If file1 is newer than file2, find will return file1
+    if [ -f "${file1}" ] && [ -f "${file2}" ]; then
+      if find "${file1}" -newer "${file2}" | grep -q .; then
+        # file1 is newer
+        return 0
+      else
+        # file2 is newer or same age
+        return 1
+      fi
+    elif [ -f "${file1}" ] && [ ! -f "${file2}" ]; then
+      # file1 exists, file2 doesn't - file1 is "newer"
+      return 0
+    else
+      # file2 exists or neither exists - file1 is not newer
+      return 1
+    fi
+  fi
+
+  # Return 0 (true) if file1 is newer than file2
+  [ "${time1}" -gt "${time2}" ]
+}
+
+smart_sync_file() {
+  dots_file="$1"
+  local_file="$2"
+  name="$3"
+
+  #{ If neither file exists, nothing to do
+  if [ ! -f "${dots_file}" ] && [ ! -f "${local_file}" ]; then
+    return 0
+  fi
+
+  #{ If only one file exists, copy it to the other location
+  if [ ! -f "${dots_file}" ] && [ -f "${local_file}" ]; then
+    # Local exists, DOTS doesn't - copy local to DOTS
+    if [ "${dry_run}" -eq 1 ]; then
+      printf "[DRY RUN] Would copy %s from local to DOTS (DOTS missing)\n" "${name}"
+      return 0
+    fi
+    mkdir -p "$(dirname "${dots_file}")"
+    if cp "${local_file}" "${dots_file}"; then
+      printf "Copied %s from local to DOTS (DOTS was missing)\n" "${name}"
+    else
+      printf "Error: Failed to copy %s to DOTS\n" "${name}" >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  if [ -f "${dots_file}" ] && [ ! -f "${local_file}" ]; then
+    # DOTS exists, local doesn't - copy DOTS to local
+    if [ "${dry_run}" -eq 1 ]; then
+      printf "[DRY RUN] Would copy %s from DOTS to local (local missing)\n" "${name}"
+      return 0
+    fi
+    mkdir -p "$(dirname "${local_file}")"
+    if cp "${dots_file}" "${local_file}"; then
+      printf "Copied %s from DOTS to local (local was missing)\n" "${name}"
+    else
+      printf "Error: Failed to copy %s to local\n" "${name}" >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  #{ Both files exist - check if they're identical
+  if cmp -s "${dots_file}" "${local_file}"; then
+    if [ "${VERBOSITY:-0}" -ge "${VERBOSITY_DEBUG:-4}" ]; then
+      printf "%s is already synchronized\n" "${name}"
+    fi
+    return 0
+  fi
+
+  #{ Files are different - sync from newer to older
+  if is_newer_file "${dots_file}" "${local_file}"; then
+    # DOTS is newer - sync DOTS to local
+    src="${dots_file}"
+    dest="${local_file}"
+    direction="DOTS → local"
+    backup_name="local_${name%.toml}.toml"
+  else
+    # Local is newer (or same age) - sync local to DOTS
+    src="${local_file}"
+    dest="${dots_file}"
+    direction="local → DOTS"
+    backup_name="${name}"
+  fi
+
+  if [ "${dry_run}" -eq 1 ]; then
+    printf "[DRY RUN] Would sync %s (%s)\n" "${name}" "${direction}"
+    printf "[DRY RUN] Would backup existing file to archive\n"
+    return 0
+  fi
+
+  #{ Create archive directory
+  mkdir -p "${HELIX_ARCHIVE_DIR}"
+
+  #{ Backup the file being overwritten
+  if ! cp "${dest}" "${HELIX_ARCHIVE_DIR}/${backup_name}.${TIMESTAMP}"; then
+    printf "Error: Failed to backup %s\n" "${name}" >&2
+    return 1
+  fi
+
+  #{ Perform the sync
+  if ! cp "${src}" "${dest}"; then
+    printf "Error: Failed to sync %s\n" "${name}" >&2
+    return 1
+  fi
+
+  printf "Synced %s (%s)\n" "${name}" "${direction}"
+  printf "Backed up previous version to %s\n" "${HELIX_ARCHIVE_DIR}/${backup_name}.${TIMESTAMP}"
+}
+
+execute_process() {
+  #{ Ensure the archive directory exists (unless dry run)
+  if [ "${dry_run}" -eq 0 ]; then
+    mkdir -p "${HELIX_ARCHIVE_DIR}"
+  fi
+
+  #{ Perform smart sync operations
+  if ! smart_sync_file "${HELIX_CONFIG}" "${LOCAL_CONFIG}" "config.toml"; then
+    return 1
+  fi
+
+  if ! smart_sync_file "${HELIX_LANGUAGES}" "${LOCAL_LANGUAGES}" "languages.toml"; then
+    return 1
+  fi
+
+  #{ Check if helix is available
+  if ! command -v hx >/dev/null 2>&1; then
+    printf "Error: helix (hx) not found in PATH\n" >&2
+    return 1
+  fi
+
+  #{ Launch Helix with DOTS config and provided arguments (or current directory)
+  if [ -n "${args}" ]; then
+    #{ Save IFS to restore after parsing
+    ifs="${IFS}"
+    IFS="${DELIMITER}"
+
+    #{ Parse arguments
+    # shellcheck disable=SC2086
+    set -- ${args}
+
+    #{ Launch helix with the specified arguments
+    if [ "${dry_run}" -eq 0 ]; then
+      exec hx -c "${HELIX_CONFIG}" "$@"
+      exit_code="$?"
+    else
+      printf "[DRY RUN] Would launch: hx -c \"%s\" %s\n" \
+        "${HELIX_CONFIG}" "$*"
+    fi
+
+    #{ Restore IFS
+    IFS="${ifs}"
+  else
+    #{ Get the current working directory
+    cwd="$(pwd -P || echo ".")"
+
+    #{ Launch helix in the current working directory
+    if [ "${dry_run}" -eq 0 ]; then
+      exec hx -c "${HELIX_CONFIG}" "${cwd}"
+      exit_code="$?"
+    else
+      printf "[DRY RUN] Would launch: hx -c \"%s\" %s\n" \
+        "${HELIX_CONFIG}" "${cwd}"
+    fi
+    exit_code="$?"
+  fi
+
+  return "${exit_code}"
+}
+
+main "$@"

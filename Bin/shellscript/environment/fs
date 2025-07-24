@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -e
+
+main() {
+  manage "$@"
+  cleanup
+}
+
+cleanup() {
+  [ -n "${tmp_file}" ] && rm -f -- "${tmp_file}"
+}
+
+#{ Set up cleanup trap
+trap cleanup EXIT INT TERM HUP
+
+create_tmp_file() {
+  app="${1:-fs}"
+  dir="${2:-/tmp}"
+  sec="$(date +%s)"
+  uid="$(printf '%s.%s_%s' "${app}" "$$" "${sec}")"
+  tmp_file="${dir}/${uid}"
+  touch "${tmp_file}"
+}
+
+manage() {
+  if command -v yazi; then
+    create_tmp_file yazi-cwd
+    yazi "$@" --cwd-file="${tmp_file}"
+    if [ -f "${tmp_file}" ]; then
+      #{ Read path preserving whitespace
+      IFS= read -r cwd <"${tmp_file}"
+
+      #{ If the cwd is a valid directory
+      if [ -n "${cwd}" ] && [ -d "${cwd}" ]; then
+        [ -n "${cwd}" ] && [ "${cwd}" != "${PWD}" ] && {
+          printf "Entering directory: %s\n" "${cwd}"
+          builtin cd -- "${cwd}"
+          # ls -- "${cwd}"
+        }
+      fi
+    fi
+  elif command -v nnn; then
+    :
+  elif command -v ranger; then
+    :
+  elif command -v lf; then
+    :
+  fi
+}
+
+main "$@"

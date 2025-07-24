@@ -1,0 +1,31 @@
+[Options]
+Tag = ">>= DOTS =<<"
+# Quiet, Error, Warn, Info, Debug, Trace
+Verbosity = "Info"
+# SilentlyContinue, Continue, Inquire, Stop
+VerbosePreference = "Continue"
+DebugPreference = "Continue"
+InformationPreference = "Continue"
+WarningPreference = "Continue"
+ErrorActionPreference = "Continue"
+
+ExperimentalFeatures = ["PSFeedbackProvider"]
+
+Excludes = [
+  "review",
+  "tmp",
+  "temp",
+  "archive",
+  "backup",
+  "*.bac",
+  "*.bak",
+  "* copy*",
+  "*.old",
+]
+
+[[Includes]]
+path = "Test\\powershell"
+modules = [
+  # "Base",
+  "Admin",
+]

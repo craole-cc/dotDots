@@ -1,0 +1,2 @@
+BAR_HOME="$DOTS_CFG/widgets/tint2"
+BAR_CONF="config"
