@@ -1,5 +1,5 @@
 function Global:Greetings {
-    <#
+  <#
     .SYNOPSIS
     Outputs a friendly greeting message.
 
@@ -36,36 +36,36 @@ function Global:Greetings {
 
     #>
 
-    [CmdletBinding()]
-    param(
-        [Parameter(
-            Position = 0,
-            HelpMessage = "Specify the name of the person to greet. Defaults to 'World'."
-        )]
-        [string]$Name = 'World',
+  [CmdletBinding()]
+  param(
+    [Parameter(
+      Position = 0,
+      HelpMessage = "Specify the name of the person to greet. Defaults to 'World'."
+    )]
+    [string]$Name = 'World',
 
-        [Alias('Greet')]
-        [Parameter(
-            Position = 1,
-            HelpMessage = "Specify the greeting to use (e.g., Hello, Hi). If omitted, the invocation name is used."
-        )]
-        [string]$Greeting
-    )
+    [Alias('Greet')]
+    [Parameter(
+      Position = 1,
+      HelpMessage = "Specify the greeting to use (e.g., Hello, Hi). If omitted, the invocation name is used."
+    )]
+    [string]$Greeting
+  )
 
-    # If the Greeting parameter was NOT explicitly passed, use the invocation name or alias as the greeting
-    if (-not $PSBoundParameters.ContainsKey('Greeting')) {
-        $Greeting = $MyInvocation.InvocationName
-    }
+  # If the Greeting parameter was NOT explicitly passed, use the invocation name or alias as the greeting
+  if (-not $PSBoundParameters.ContainsKey('Greeting')) {
+    $Greeting = $MyInvocation.InvocationName
+  }
 
-    # Convert both Greeting and Name to Title Case for neat output
-    $cultureInfo = [System.Globalization.CultureInfo]::CurrentCulture
-    $textInfo = $cultureInfo.TextInfo
+  # Convert both Greeting and Name to Title Case for neat output
+  $cultureInfo = [System.Globalization.CultureInfo]::CurrentCulture
+  $textInfo = $cultureInfo.TextInfo
 
-    $greetingCase = $textInfo.ToTitleCase($Greeting)
-    $nameCase = $textInfo.ToTitleCase($Name)
+  $greetingCase = $textInfo.ToTitleCase($Greeting)
+  $nameCase = $textInfo.ToTitleCase($Name)
 
-    # Output the greeting
-    Write-Host "$greetingCase $nameCase!"
+  # Output the greeting
+  Write-Host "$greetingCase $nameCase!"
 }
 
 Set-Alias -Name hi -Value Greetings -Scope Global
@@ -73,3 +73,4 @@ Set-Alias -Name hey -Value Greetings -Scope Global
 Set-Alias -Name hail -Value Greetings -Scope Global
 Set-Alias -Name hello -Value Greetings -Scope Global
 Set-Alias -Name howdy -Value Greetings -Scope Global
+

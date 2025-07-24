@@ -111,10 +111,10 @@ priority = 1
 # options = ["--write"]
 
 #| Powershell
-# [formatter.powershell]
-# includes = ["*.ps1", "*.psm1, *.psd1"]
-# command = "powershell"
-# options = ["-NoProfile", "-File", "Bin/powershell/psfmt.ps1"]
+[formatter.powershell]
+includes = ["*.ps1", "*.psm1, *.psd1"]
+command = "powershell"
+options = ["-NoProfile", "-File", "D:\\Projects\\GitHub\\CC\\.dots\\Configuration\\treefmt\\psfmt.ps1"]
 
 [formatter.justfile]
 command = "just"
