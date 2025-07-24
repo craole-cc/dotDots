@@ -1,3 +1,4 @@
 .direnv/
-# [Ii]mport/
+[Ii]mport/
+[Dd]ownloads/
 .cache/
