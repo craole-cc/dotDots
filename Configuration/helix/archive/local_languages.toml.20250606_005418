@@ -1,4 +1,0 @@
-[[language]]
-name = "json"
-language-servers = ["vscode-json-language-server"]
-auto-format = true
