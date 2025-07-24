@@ -1,9 +1,0 @@
-[core]
-  sshCommand = "ssh -i ~/.ssh/gitlab.com/craole"
-
-[gitlab]
-  user = "Craole"
-
-[user]
-  name = craole
-  email = 8317387-craole@users.noreply.gitlab.com

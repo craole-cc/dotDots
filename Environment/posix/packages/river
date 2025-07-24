@@ -1,3 +1,0 @@
-DESKTOP_HOME="$DOTS_CFG/interface/river"
-DESKTOP_CONF="init"
-DESKTOP_TYPE="wayland"

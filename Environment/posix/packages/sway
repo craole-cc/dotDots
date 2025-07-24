@@ -1,3 +1,0 @@
-DESKTOP_HOME="$DOTS_CFG/interface/sway"
-DESKTOP_CONF="config"
-DESKTOP_TYPE="wayland"

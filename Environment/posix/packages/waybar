@@ -1,2 +1,0 @@
-BAR_HOME="$DOTS_CFG/widgets/waybar"
-BAR_CONF="$BAR_HOME/config"

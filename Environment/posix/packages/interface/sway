@@ -1,2 +1,0 @@
-sway_home="${DOTS_CFG}/interface/sway"
-sway_conf="${sway_home}/config"

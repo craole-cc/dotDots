@@ -1,3 +1,0 @@
-{
-  "Excludes": ["debug*", "test*"]
-}

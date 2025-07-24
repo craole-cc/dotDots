@@ -1,4 +1,0 @@
-BAR_HOME="$DOTS_CFG/widgets/polybar"
-BAR_CONF="config"
-
-src="$DOTS_CFG/widgets/polybar"
