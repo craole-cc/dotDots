@@ -41,3 +41,8 @@ function Global:Format-Mise {
     Write-Pretty -Tag 'Error' -NoNewLine -As $ctx 'Issues encountered during linting.'
   }
 }
+
+
+  Set-Alias -Name m -Value Invoke-Mise -Scope Global -Force
+  Set-Alias -Name push -Value Push-Mise -Scope Global -Force
+  Set-Alias -Name lint -Value Format-Mise -Scope Global -Force

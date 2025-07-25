@@ -1,0 +1,766 @@
+﻿function Global:New-Link {
+  <#
+    .SYNOPSIS
+    Creates links from source files to a target directory.
+
+    .DESCRIPTION
+    This function creates symbolic or hard links for specified file types from source paths (files or directories)
+    to a target directory. It supports filtering by file extensions and handles existing files with
+    optional prompting for overwrites.
+
+    .PARAMETER Target
+    The target directory where links will be created. Directory will be created if it doesn't exist.
+    When TargetType is 'Path', this should be the full path including filename for the link.
+
+    .PARAMETER Source
+    One or more source paths. Can be individual files or directories. When directories are specified,
+    files matching the FileTypes parameter will be linked.
+
+    .PARAMETER TargetType
+    Specifies how to interpret the Target parameter:
+    - 'Directory': Target is a directory path (default)
+    - 'Home': Use the user's home directory as target
+    - 'Path': Target includes the filename for single file operations
+
+    .PARAMETER FileTypes
+    Array of file extensions to process when Source contains directories. Default is @('.csv', '.tsv').
+    Include the dot in the extension (e.g., '.csv', '.txt').
+
+    .PARAMETER Type
+    Type of link to create: 'Symbolic' (default) or 'Hard'.
+
+    .PARAMETER Force
+    When specified, overwrites existing files and links without prompting. When not specified,
+    prompts the user before overwriting existing items (except when the existing link already
+    points to the correct source).
+
+    .PARAMETER Warn
+    Warn if the source of a link does not currently exist.
+
+    .PARAMETER Recurse
+    When processing directories, include subdirectories recursively.
+
+    .EXAMPLE
+    New-Link -Target "C:\neo4j\import" -Source "C:\data\users.csv"
+
+    Creates a symbolic link for a single file, prompting if the target already exists.
+
+    .EXAMPLE
+    New-Link -Target "C:\neo4j\import" -Source "C:\data\csv-files" -Force
+
+    Creates symbolic links for all CSV and TSV files in the directory, overwriting any existing files without prompting.
+
+    .EXAMPLE
+    New-Link -Target "C:\neo4j\import" -Source @("C:\data\users.csv", "C:\data\orders.tsv", "C:\data\csv-dir")
+
+    Creates symbolic links for the specified files and all CSV/TSV files in the directory.
+
+    .EXAMPLE
+    New-Link -Target "C:\output" -Source "C:\data" -FileTypes @('.txt', '.log') -Type Hard -Force
+
+    Creates hard links for all TXT and LOG files in the source directory, overwriting existing files without prompting.
+
+    .EXAMPLE
+    New-Link -Target "C:\backup\important.txt" -Source "C:\original\important.txt" -TargetType Path
+
+    Creates a symbolic link with a specific filename at the target location.
+
+    .EXAMPLE
+    New-Link -Target "C:\shared" -Source "C:\data\logs" -FileTypes @('.log', '.txt') -Recurse
+
+    Creates symbolic links for all LOG and TXT files in the source directory and all subdirectories.
+
+    .EXAMPLE
+    $result = New-Link -Target "C:\backup" -Source "C:\important" -Force
+    Write-Host "Successfully linked $($result.SuccessCount) files"
+
+    Creates links and captures the result object for further processing.
+    #>
+
+  [CmdletBinding(DefaultParameterSetName = 'Standard')]
+  param(
+    [Parameter(Mandatory = $true)]
+    [Alias('Link', 'L', 'Destination')]
+    [string]$Target,
+
+    [Parameter(Mandatory = $true)]
+    [Alias('S')]
+    [string[]]$Source,
+
+    [Parameter(Mandatory = $false)]
+    [Alias('TargetDir', 'TD')]
+    [ValidateSet('Home', 'Directory', 'Path')]
+    [string]$TargetType = 'Directory',
+
+    [Parameter(Mandatory = $false)]
+    [string[]]$FileTypes = @('.csv', '.tsv'),
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('Hard', 'Symbolic')]
+    [string]$Type = 'Symbolic',
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Force,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Warn,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Recurse,
+
+    # Legacy parameter support for backward compatibility
+    [Parameter(Mandatory = $false, ParameterSetName = 'Legacy')]
+    [Alias('n')]
+    [switch]$Name,
+
+    [Parameter(Mandatory = $false, ParameterSetName = 'Legacy')]
+    [Alias('d')]
+    [switch]$Directory,
+
+    [Parameter(Mandatory = $false, ParameterSetName = 'Legacy')]
+    [Alias('h')]
+    [switch]$Home,
+
+    [Parameter(Mandatory = $false, ParameterSetName = 'Legacy')]
+    [switch]$Symbolic,
+
+    [Parameter(Mandatory = $false, ParameterSetName = 'Legacy')]
+    [switch]$Hard
+  )
+
+  # Handle legacy parameters for backward compatibility
+  if ($PSCmdlet.ParameterSetName -eq 'Legacy') {
+    if ($Hard) { $Type = 'Hard' }
+    elseif ($Symbolic) { $Type = 'Symbolic' }
+
+    if ($Actual) { $TargetType = 'Path' }
+    elseif ($Home) { $TargetType = 'Home' }
+    elseif ($Directory) { $TargetType = 'Directory' }
+  }
+
+  # Validate source count for Path target type
+  if ($TargetType -eq 'Path' -and $Source.Count -gt 1) {
+    Write-Error "When TargetType is 'Path', only one source file can be specified."
+    return
+  }
+
+  # Resolve and validate target directory
+  $TargetDir = Resolve-TargetPath -Path $Target -Type $TargetType
+
+  # Create target directory if it doesn't exist
+  if (-not (Test-Path $TargetDir)) {
+    try {
+      New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
+      Write-Host "Created target directory: $TargetDir" -ForegroundColor Green
+    }
+    catch {
+      Write-Error "Failed to create target directory: $TargetDir. Error: $($_.Exception.Message)"
+      return
+    }
+  }
+  elseif (-not (Test-Path $TargetDir -PathType Container)) {
+    Write-Error "Target path exists but is not a directory: $TargetDir"
+    return
+  }
+
+  # Collect all files to process
+  $AllFiles = @()
+  $ProcessedSourceCount = 0
+
+  foreach ($SourcePath in $Source) {
+    # Resolve relative paths
+    try {
+      $ResolvedSourcePath = Resolve-Path $SourcePath -ErrorAction Stop
+      $SourcePath = $ResolvedSourcePath.Path
+    }
+    catch {
+      Write-Warning "Source path does not exist: $SourcePath"
+      continue
+    }
+
+    if (Test-Path $SourcePath -PathType Container) {
+      # Source is a directory - find files matching FileTypes
+      $FoundFiles = @()
+      foreach ($FileType in $FileTypes) {
+        $SearchPath = if ($Recurse) {
+          Get-ChildItem -Path $SourcePath -Filter "*$FileType" -File -Recurse
+        }
+        else {
+          Get-ChildItem -Path $SourcePath -Filter "*$FileType" -File
+        }
+        $FoundFiles += $SearchPath
+      }
+
+      if ($FoundFiles.Count -eq 0) {
+        $RecurseText = if ($Recurse) { ' (including subdirectories)' } else { '' }
+        Write-Warning "No files matching types [$($FileTypes -join ', ')] found in directory: $SourcePath$RecurseText"
+        continue
+      }
+
+      $RecurseText = if ($Recurse) { ' (including subdirectories)' } else { '' }
+      Write-Host "Found $($FoundFiles.Count) files in directory: $SourcePath$RecurseText" -ForegroundColor Cyan
+      $AllFiles += $FoundFiles
+      $ProcessedSourceCount++
+    }
+    else {
+      # Source is a file
+      $SourceFile = Get-Item $SourcePath
+
+      # Check if it matches the specified file types (only warn, don't skip)
+      if ($SourceFile.Extension -notin $FileTypes) {
+        Write-Warning "File does not match specified types [$($FileTypes -join ', ')]: $($SourceFile.Name) (Extension: $($SourceFile.Extension))"
+      }
+
+      $AllFiles += $SourceFile
+      $ProcessedSourceCount++
+    }
+  }
+
+  if ($AllFiles.Count -eq 0) {
+    Write-Warning "No files to process from $($Source.Count) source path(s)"
+    return
+  }
+
+  Write-Host "Processing $($AllFiles.Count) files from $ProcessedSourceCount source path(s)..." -ForegroundColor Yellow
+
+  # Helper function to check if existing link points to correct source
+  function Test-CorrectLink {
+    param($TargetPath, $ExpectedSourcePath, $LinkType)
+
+    if (-not (Test-Path $TargetPath)) {
+      return $false
+    }
+
+    $Item = Get-Item $TargetPath -Force
+
+    # For symbolic links
+    if ($LinkType -eq 'Symbolic') {
+      if ($Item.LinkType -ne 'SymbolicLink') {
+        return $false
+      }
+
+      $ActualTarget = $Item.Target
+      if ($ActualTarget -is [array]) {
+        $ActualTarget = $ActualTarget[0]
+      }
+
+      try {
+        $ResolvedActual = Resolve-Path $ActualTarget -ErrorAction Stop
+        $ResolvedExpected = Resolve-Path $ExpectedSourcePath -ErrorAction Stop
+        return $ResolvedActual.Path -eq $ResolvedExpected.Path
+      }
+      catch {
+        return $false
+      }
+    }
+
+    # For hard links
+    if ($LinkType -eq 'Hard') {
+      if ($Item.LinkType -ne 'HardLink') {
+        return $false
+      }
+
+      # Compare file attributes for hard links
+      try {
+        $SourceItem = Get-Item $ExpectedSourcePath -Force
+        return ($Item.CreationTime -eq $SourceItem.CreationTime) -and
+        ($Item.LastWriteTime -eq $SourceItem.LastWriteTime) -and
+        ($Item.Length -eq $SourceItem.Length)
+      }
+      catch {
+        return $false
+      }
+    }
+
+    return $false
+  }
+
+  # Create links for all collected files
+  $SuccessCount = 0
+  $FailureCount = 0
+  $SkippedCount = 0
+
+  foreach ($File in $AllFiles) {
+    $SourceFilePath = $File.FullName
+
+    # Determine target file path
+    $TargetFilePath = if ($TargetType -eq 'Path' -and $AllFiles.Count -eq 1) {
+      $Target
+    }
+    else {
+      Join-Path $TargetDir $File.Name
+    }
+
+    # Warn if source doesn't exist (for symbolic links)
+    if ($Warn -and $Type -eq 'Symbolic' -and -not (Test-Path $SourceFilePath)) {
+      Write-Warning "Source file does not exist: $SourceFilePath"
+    }
+
+    # Check if target already exists
+    if (Test-Path $TargetFilePath) {
+      $ExistingItem = Get-Item $TargetFilePath -Force
+
+      # Check if it's already correctly linked
+      if (Test-CorrectLink -TargetPath $TargetFilePath -ExpectedSourcePath $SourceFilePath -LinkType $Type) {
+        Write-Host "○ Already linked correctly: $($File.Name)" -ForegroundColor Gray
+        $SkippedCount++
+        continue
+      }
+
+      # Need to handle existing file/link
+      if (-not $Force) {
+        $ItemType = switch ($ExistingItem.LinkType) {
+          'SymbolicLink' { 'symbolic link' }
+          'HardLink' { 'hard link' }
+          default { 'file' }
+        }
+
+        $CurrentTarget = if ($ExistingItem.LinkType -in @('SymbolicLink', 'HardLink')) {
+          " -> $($ExistingItem.Target)"
+        }
+        else {
+          ''
+        }
+
+        $Choice = Read-Host "Target $ItemType already exists: $($File.Name)$CurrentTarget`nOverwrite? (y/N)"
+        if ($Choice -notmatch '^[Yy]') {
+          Write-Host "- Skipped: $($File.Name)" -ForegroundColor Yellow
+          $SkippedCount++
+          continue
+        }
+      }
+
+      # Remove existing item
+      try {
+        Remove-Item $TargetFilePath -Force
+        $ItemType = switch ($ExistingItem.LinkType) {
+          'SymbolicLink' { 'symbolic link' }
+          'HardLink' { 'hard link' }
+          default { 'file' }
+        }
+        Write-Verbose "Removed existing $ItemType`: $($File.Name)"
+      }
+      catch {
+        Write-Error "Failed to remove existing item: $($File.Name). Error: $($_.Exception.Message)"
+        $FailureCount++
+        continue
+      }
+    }
+
+    # Create link
+    try {
+      if ($Type -eq 'Symbolic') {
+        # Create symbolic link using New-Item (PowerShell 5.0+) with fallback to mklink
+        try {
+          New-Item -ItemType SymbolicLink -Path $TargetFilePath -Target $SourceFilePath -Force | Out-Null
+          Write-Host "✓ Symbolic link created: $($File.Name)" -ForegroundColor Green
+          $SuccessCount++
+        }
+        catch {
+          # Fallback to cmd mklink for older PowerShell versions
+          $MklinkResult = cmd /c "mklink `"$TargetFilePath`" `"$SourceFilePath`" 2>&1"
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ Symbolic link created: $($File.Name)" -ForegroundColor Green
+            $SuccessCount++
+          }
+          else {
+            throw "mklink failed: $MklinkResult"
+          }
+        }
+      }
+      else {
+        # Create hard link
+        try {
+          New-Item -ItemType HardLink -Path $TargetFilePath -Target $SourceFilePath -Force | Out-Null
+          Write-Host "✓ Hard link created: $($File.Name)" -ForegroundColor Green
+          $SuccessCount++
+        }
+        catch {
+          # Fallback to fsutil for hard links
+          $FsutilResult = cmd /c "fsutil hardlink create `"$TargetFilePath`" `"$SourceFilePath`" 2>&1"
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ Hard link created: $($File.Name)" -ForegroundColor Green
+            $SuccessCount++
+          }
+          else {
+            throw "fsutil hardlink failed: $FsutilResult"
+          }
+        }
+      }
+    }
+    catch {
+      Write-Error "Error creating $($Type.ToLower()) link for $($File.Name): $($_.Exception.Message)"
+      $FailureCount++
+    }
+  }
+
+  # Summary
+  Write-Host "`nOperation completed:" -ForegroundColor Yellow
+  Write-Host "  Successfully linked: $SuccessCount files" -ForegroundColor Green
+  if ($SkippedCount -gt 0) {
+    Write-Host "  Already correct/Skipped: $SkippedCount files" -ForegroundColor Gray
+  }
+  if ($FailureCount -gt 0) {
+    Write-Host "  Failed to link: $FailureCount files" -ForegroundColor Red
+  }
+  Write-Host "  Target directory: $TargetDir" -ForegroundColor Cyan
+  Write-Host "  Link type: $Type" -ForegroundColor Cyan
+
+  # Return summary object for potential scripting use
+  return [PSCustomObject]@{
+    SuccessCount    = $SuccessCount
+    FailureCount    = $FailureCount
+    SkippedCount    = $SkippedCount
+    TotalProcessed  = $AllFiles.Count
+    TargetDirectory = $TargetDir
+    LinkType        = $Type
+  }
+}
+
+function Global:Test-Link {
+  <#
+    .SYNOPSIS
+    Tests if a path is a symbolic or hard link and returns link information.
+
+    .DESCRIPTION
+    This function checks if the specified path is a symbolic link, hard link, or regular file/directory.
+    Returns detailed information about the link type, target, and validity.
+
+    .PARAMETER Path
+    The path to test. Can be a file or directory path.
+
+    .PARAMETER Quiet
+    When specified, suppresses all output and only returns the result object.
+
+    .OUTPUTS
+    Returns a PSCustomObject with the following properties:
+    - IsLink: Boolean indicating if the path is any type of link
+    - LinkType: 'SymbolicLink', 'HardLink', 'Junction', or 'None'
+    - Path: The original path that was tested
+    - Target: The target path(s) the link points to
+    - TargetExists: Boolean indicating if the target exists
+    - IsValid: Boolean indicating if the link is valid (target exists)
+    - Item: The original file system item object
+
+    .EXAMPLE
+    Test-Link -Path "C:\data\mylink.csv"
+
+    Tests if the specified file is a link and displays the results with colored output.
+
+    .EXAMPLE
+    $linkInfo = Test-Link -Path "C:\data\mylink.csv" -Quiet
+    if ($linkInfo.IsLink) { Write-Host "This is a $($linkInfo.LinkType)" }
+
+    Tests a path quietly and uses the returned information object for conditional logic.
+
+    .EXAMPLE
+    Get-ChildItem "C:\links" | Test-Link -Quiet | Where-Object { $_.IsLink }
+
+    Tests all items in a directory and filters to show only links.
+
+    .EXAMPLE
+    $brokenLinks = Get-ChildItem "C:\data" -Recurse | Test-Link -Quiet | Where-Object { $_.IsLink -and -not $_.IsValid }
+
+    Finds all broken links (links whose targets don't exist) in a directory tree.
+
+    .EXAMPLE
+    Test-Link -Path "C:\Windows\System32\drivers\etc\hosts"
+
+    Tests a system file to see if it's a link (useful for detecting redirected system files).
+    #>
+
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [Alias('FullName', 'FilePath')]
+    [string]$Path,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Quiet
+  )
+
+  process {
+    # Initialize result object
+    $result = [PSCustomObject]@{
+      IsLink       = $false
+      LinkType     = 'None'
+      Path         = $Path
+      Target       = $null
+      TargetExists = $false
+      IsValid      = $false
+      Item         = $null
+    }
+
+    # Check if path exists
+    if (-not (Test-Path $Path)) {
+      if (-not $Quiet) {
+        Write-Warning "Path does not exist: $Path"
+      }
+      return $result
+    }
+
+    try {
+      # Get the item with -Force to ensure we get hidden/system files
+      $item = Get-Item $Path -Force -ErrorAction Stop
+      $result.Item = $item
+
+      # Check the LinkType property
+      switch ($item.LinkType) {
+        'SymbolicLink' {
+          $result.IsLink = $true
+          $result.LinkType = 'SymbolicLink'
+          $result.Target = $item.Target
+
+          # Handle array of targets (though usually just one for files)
+          $targetPath = if ($item.Target -is [array]) { $item.Target[0] } else { $item.Target }
+
+          # Check if target exists
+          if ($targetPath) {
+            $result.TargetExists = Test-Path $targetPath
+            $result.IsValid = $result.TargetExists
+          }
+
+          if (-not $Quiet) {
+            $status = if ($result.IsValid) { '✓' } else { '✗' }
+            $existsText = if ($result.TargetExists) { 'exists' } else { 'missing' }
+            Write-Host "$status Symbolic Link: $Path -> $targetPath ($existsText)" -ForegroundColor $(if ($result.IsValid) { 'Green' } else { 'Red' })
+          }
+        }
+
+        'HardLink' {
+          $result.IsLink = $true
+          $result.LinkType = 'HardLink'
+
+          # For hard links, the target is more complex to determine
+          # We'll use the same path as it's essentially the same file
+          $result.Target = $Path
+          $result.TargetExists = $true  # Hard links always "exist" if the link exists
+          $result.IsValid = $true
+
+          if (-not $Quiet) {
+            # Try to get additional hard link information
+            try {
+              $hardLinkCount = (Get-Item $Path -Force).LinkCount
+              Write-Host "✓ Hard Link: $Path (Link count: $hardLinkCount)" -ForegroundColor Green
+            }
+            catch {
+              Write-Host "✓ Hard Link: $Path" -ForegroundColor Green
+            }
+          }
+        }
+
+        'Junction' {
+          $result.IsLink = $true
+          $result.LinkType = 'Junction'
+          $result.Target = $item.Target
+
+          $targetPath = if ($item.Target -is [array]) { $item.Target[0] } else { $item.Target }
+
+          if ($targetPath) {
+            $result.TargetExists = Test-Path $targetPath
+            $result.IsValid = $result.TargetExists
+          }
+
+          if (-not $Quiet) {
+            $status = if ($result.IsValid) { '✓' } else { '✗' }
+            $existsText = if ($result.TargetExists) { 'exists' } else { 'missing' }
+            Write-Host "$status Junction: $Path -> $targetPath ($existsText)" -ForegroundColor $(if ($result.IsValid) { 'Green' } else { 'Red' })
+          }
+        }
+
+        default {
+          # Regular file or directory
+          $result.IsLink = $false
+          $result.LinkType = 'None'
+          $result.Target = $null
+          $result.TargetExists = $true  # The item itself exists
+          $result.IsValid = $true
+
+          if (-not $Quiet) {
+            $itemType = if ($item.PSIsContainer) { 'Directory' } else { 'File' }
+            Write-Host "○ Regular $itemType`: $Path" -ForegroundColor Gray
+          }
+        }
+      }
+    }
+    catch {
+      if (-not $Quiet) {
+        Write-Error "Error examining path: $Path. Error: $($_.Exception.Message)"
+      }
+    }
+
+    return $result
+  }
+}
+
+# Generate link report
+function Get-LinkReport {
+  param([string]$Path)
+
+  $allItems = Get-ChildItem $Path -Recurse
+  $linkInfo = $allItems | Get-LinkInfo
+
+  $report = @{
+    TotalItems    = $allItems.Count
+    SymbolicLinks = ($linkInfo | Where-Object { $_.LinkType -eq 'SymbolicLink' }).Count
+    HardLinks     = ($linkInfo | Where-Object { $_.LinkType -eq 'HardLink' }).Count
+    Junctions     = ($linkInfo | Where-Object { $_.LinkType -eq 'Junction' }).Count
+    BrokenLinks   = ($linkInfo | Where-Object { $_.IsLink -and -not $_.IsValid }).Count
+    RegularFiles  = ($linkInfo | Where-Object { -not $_.IsLink }).Count
+  }
+
+  return [PSCustomObject]$report
+}
+
+function New-SymbolicLink {
+  param($Target, $Source, $Type = 'Symbolic')
+
+  # Create the link
+  $result = New-Link -Target $Target -Source $Source -Type $Type -Force
+
+  # Validate each created link
+  if ($result.SuccessCount -gt 0) {
+    $targetDir = if ($Target.EndsWith('\')) { $Target } else { "$Target\" }
+    Get-ChildItem $targetDir | ForEach-Object {
+      $linkStatus = Test-Link $_.FullName -Quiet
+      if ($linkStatus.IsLink -and -not $linkStatus.IsValid) {
+        Write-Warning "Created link is broken: $($_.Name)"
+      }
+    }
+  }
+
+  return $result
+}
+
+function Backup-Links {
+  param([string]$Directory)
+
+  $links = Get-ChildItem $Directory | Get-LinkInfo | Where-Object { $_.IsLink }
+  $backup = @{}
+
+  foreach ($link in $links) {
+    $backup[$link.Path] = @{
+      Type   = $link.LinkType
+      Target = $link.Target
+    }
+  }
+
+  return $backup
+}
+
+function Restore-Links {
+  param($Backup)
+
+  foreach ($path in $Backup.Keys) {
+    $info = $Backup[$path]
+    if (Test-Path $path) {
+      Remove-Item $path -Force
+    }
+
+    try {
+      if ($info.Type -eq 'SymbolicLink') {
+        New-Item -ItemType SymbolicLink -Path $path -Target $info.Target -Force
+      }
+      elseif ($info.Type -eq 'HardLink') {
+        New-Item -ItemType HardLink -Path $path -Target $info.Target -Force
+      }
+      Write-Host "Restored: $path" -ForegroundColor Green
+    }
+    catch {
+      Write-Error "Failed to restore: $path - $($_.Exception.Message)"
+    }
+  }
+}
+
+function Repair-BrokenLinks {
+  param(
+    [string]$Directory,
+    [string]$NewBasePath,
+    [Alias('dry', 'dryrun', 'simulate')]
+    [switch]$WhatIf
+  )
+
+  $brokenLinks = Get-ChildItem $Directory -Recurse | Test-Link -Quiet |
+  Where-Object { $_.IsLink -and -not $_.IsValid }
+
+  foreach ($link in $brokenLinks) {
+    $oldTarget = $link.Target
+    $filename = Split-Path $oldTarget -Leaf
+    $newTarget = Join-Path $NewBasePath $filename
+
+    if (Test-Path $newTarget) {
+      if ($WhatIf) {
+        Write-Host "Would repair: $($link.Path) -> $newTarget" -ForegroundColor Yellow
+      }
+      else {
+        Remove-Item $link.Path -Force
+        New-Item -ItemType SymbolicLink -Path $link.Path -Target $newTarget -Force
+        Write-Host "Repaired: $($link.Path) -> $newTarget" -ForegroundColor Green
+      }
+    }
+    else {
+      Write-Warning "Cannot repair $($link.Path): new target not found at $newTarget"
+    }
+  }
+}
+
+# Cleanup orphaned links
+function Remove-OrphanedLinks {
+  param(
+    [string]$Directory,
+    [switch]$WhatIf
+  )
+
+  $orphanedLinks = Get-ChildItem $Directory -Recurse | Test-Link -Quiet |
+  Where-Object { $_.IsLink -and -not $_.IsValid }
+
+  foreach ($link in $orphanedLinks) {
+    if ($WhatIf) {
+      Write-Host "Would remove orphaned link: $($link.Path)" -ForegroundColor Yellow
+    }
+    else {
+      Remove-Item $link.Path -Force
+      Write-Host "Removed orphaned link: $($link.Path)" -ForegroundColor Red
+    }
+  }
+
+  Write-Host "Found $($orphanedLinks.Count) orphaned links" -ForegroundColor Cyan
+}
+
+
+
+  # Helper function to resolve target path intelligently
+  function Resolve-TargetPath {
+    param([string]$Path, [string]$Type)
+
+    switch ($Type) {
+      'Home' {
+        return $env:USERPROFILE
+      }
+      'Path' {
+        $ParentDir = Split-Path $Path -Parent
+        if ([string]::IsNullOrWhiteSpace($ParentDir) -or $ParentDir -eq '.') {
+          # Target is just a filename or relative path, use current directory
+          return (Get-Location).Path
+        }
+        elseif (-not [System.IO.Path]::IsPathRooted($ParentDir)) {
+          # Relative path, resolve against current directory
+          return (Resolve-Path $ParentDir -ErrorAction SilentlyContinue).Path ?? (Join-Path (Get-Location).Path $ParentDir)
+        }
+        else {
+          # Absolute path
+          return $ParentDir
+        }
+      }
+      default {
+        # Directory type - resolve relative paths
+        if ([System.IO.Path]::IsPathRooted($Path)) {
+          return $Path
+        }
+        else {
+          # Relative path, resolve against current directory
+          return (Resolve-Path $Path -ErrorAction SilentlyContinue).Path ?? (Join-Path (Get-Location).Path $Path)
+        }
+      }
+    }
+  }

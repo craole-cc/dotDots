@@ -273,7 +273,7 @@ function Global:Get-SafeDirectoryPath {
   Resolve-PathSafely -Path $Path -CreateIfMissing -ItemType Directory -Force:$Force -Yes:$Yes
 }
 
-function Global:New-Symlink {
+function Global:New-SymlinkOLD {
   param(
     [Parameter(Mandatory = $true)]
     [string]$Path,

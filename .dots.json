@@ -37,17 +37,20 @@
     {
       "path": "Bin\\powershell",
       "modules": [
-        "components",
-        "types",
-        "output",
-        "environment",
-        "applications"
+        "Admin",
+        "Components",
+        "Types",
+        "Output",
+        "FileSystem",
+        "Environment",
+        "Applications"
       ]
     },
     {
       "path": "Configuration",
       "modules": [
         "mise",
+        "neo4j",
         "oh-my-posh"
       ]
     },

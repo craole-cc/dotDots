@@ -1,7 +1,5 @@
 {
   "Includes": [
-    "checks.ps1",
-    "paths.ps1",
     "variable.ps1",
     "alias.ps1",
     "fyls.ps1",

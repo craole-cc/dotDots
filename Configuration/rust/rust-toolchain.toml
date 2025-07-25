@@ -1,0 +1,46 @@
+# Rustup Toolchain
+# https://rust-lang.github.io/rustup/concepts/index.html
+
+[toolchain]
+channel = "nightly"
+
+components = [
+  "cargo",
+  "clippy",
+  "rust-analyzer",
+  # "rust-mingw",
+  "rust-src",
+  "rust-std",
+  "rustc",
+  "rustfmt",
+]
+
+profile = "minimal"
+
+targets = [
+  #? Windows x86_64 (Intel/AMD) - Most common Windows desktops/laptops
+  "x86_64-pc-windows-msvc",
+
+  #? Windows ARM64 - Newer ARM-based Windows devices (Surface Pro X, etc)
+  # "aarch64-pc-windows-msvc",
+
+  #? macOS x86_64 (Intel) - Intel-based Mac desktops/laptops
+  # "x86_64-apple-darwin",
+
+  #? macOS ARM64 (Apple Silicon) - M1/M2/M3 Macs (Apple Silicon)
+  # "aarch64-apple-darwin",
+
+  #? Linux x86_64 - Most common Linux desktops/laptops (GNOME, KDE, Cinnamon, etc)[3]
+  # "x86_64-unknown-linux-gnu",
+  # "x86_64-unknown-linux-musl",
+
+  #? Linux ARMv7 (Pi 2/3/4, 32-bit OS) - Raspberry Pi 2/3/4 running 32-bit desktop Linux
+  # "armv7-unknown-linux-gnueabihf",
+
+  #? Linux ARM64 (Pi 3/4, 64-bit OS) - Raspberry Pi 3/4 running 64-bit desktop Linux
+  # "aarch64-unknown-linux-gnu",
+  # "aarch64-unknown-linux-musl",
+
+  #? WebAssembly
+  # "wasm32-unknown-unknown",
+]

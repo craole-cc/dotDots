@@ -114,8 +114,8 @@ return $true
   #     Set-Env -Name 'm' -Target Invoke-Mise -Type 'alias'
   # Set-Env -Name 'push' -Target Push-Mise -Type 'alias'
   # Set-Env -Name 'lint' -Target Format-Mise -Type 'alias'
-  # Set-Alias -Name m -Value Invoke-Mise -Scope Global -Force
   # Write-Pretty -DebugEnv 'Alias' 'm' "$escapedRcPath"
+  # Set-Alias -Name m -Value Invoke-Mise -Scope Global -Force
   # Set-Alias -Name push -Value Push-Mise -Scope Global -Force
   # Set-Alias -Name lint -Value Format-Mise -Scope Global -Force
 }

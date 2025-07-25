@@ -6,6 +6,11 @@ backend = "aqua:sharkdp/bat"
 version = "1.14.1"
 backend = "aqua:cargo-bins/cargo-binstall"
 
+[tools.cargo-binstall.platforms.windows-x64]
+checksum = "blake3:a399f0290d76c456172de381c86a173658404aa4a82f00ce5987fd3ee6af5377"
+size = 6295683
+url = "https://github.com/cargo-bins/cargo-binstall/releases/download/v1.14.1/cargo-binstall-x86_64-pc-windows-msvc.zip"
+
 [tools."cargo:treefmt"]
 version = "0.6.1"
 backend = "cargo:treefmt"
