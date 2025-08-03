@@ -1,5 +1,4 @@
 #~@ Load configuration - try multiple formats with auto-detection
-#TODO: local OrderFiles not working AT ALL - FIXED
 $ConfigFiles = @(
   '.dotsrc',
   '.dots.json',
@@ -14,10 +13,14 @@ $ConfigLoaded = $false
 
 foreach ($configFile in $ConfigFiles) {
   $configPath = Join-Path $env:DOTS $configFile
-  if ($configPath -eq "$env:DOTS\.dotsrc") {
+  $skipPath = Join-Path $env:DOTS '.dotsrc'
+
+  # Skip the main .dotsrc file in DOTS directory
+  if ($configPath -eq $skipPath) {
     Write-Debug "$ctx_tag   Skipping main config: $configFile"
     continue
   }
+
   if (-not (Test-Path $configPath)) {
     $configPath = Join-Path $PSScriptRoot $configFile
     if (-not (Test-Path $configPath)) {
@@ -25,7 +28,6 @@ foreach ($configFile in $ConfigFiles) {
       continue
     }
   }
-
 
   if (Test-Path $configPath) {
     try {
@@ -53,13 +55,13 @@ foreach ($configFile in $ConfigFiles) {
           break
         }
         catch {
-          Write-Warning "Could not parse $configFile as JSON, trying next file..."
+          Write-Warning "Could not parse $configPath as JSON, trying next file..."
           continue
         }
       }
     }
     catch {
-      Write-Warning "Failed to parse config file $configFile`: $_"
+      Write-Warning "Failed to parse config file $configPath`: $_"
       continue
     }
   }

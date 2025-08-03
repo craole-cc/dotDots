@@ -88,6 +88,9 @@
     "Documentation",
     "Downloads",
     "node_modules/",
+    "Configuration/powershell/review",
+    "Configuration/powershell/README.md",
+    "Configuration/powershell/archive"
   ],
   "dirTree.ignore": [
     "**/$RECYCLE.BIN",
@@ -167,6 +170,6 @@
     "Assets",
     "Documentation",
     "Downloads",
-    "node_modules/",
+    "node_modules/"
   ]
 }
