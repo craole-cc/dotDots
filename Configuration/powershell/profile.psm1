@@ -32,3 +32,13 @@ Export-ModuleMember -Function Import-ProfileScript
 # Load profile components in order
 Import-ProfileScript -ScriptName 'utils.ps1' -Description 'utilities'
 Import-ProfileScript -ScriptName 'config.ps1' -Description 'configuration'
+
+
+# Set starting directory to DOTS
+if ($env:DOTS -and (Test-Path $env:DOTS)) {
+  Set-Location $env:DOTS
+  Write-Debug "Changed directory to: $env:DOTS"
+}
+else {
+  Write-Warning "DOTS environment variable not set or path does not exist: $env:DOTS"
+}

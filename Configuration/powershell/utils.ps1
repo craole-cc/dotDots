@@ -157,3 +157,9 @@ catch {
   Write-Error "Error during module setup: $($_.Exception.Message)"
   Write-Host "Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
 }
+
+# Set HOME to mirror USERPROFILE (Windows doesn't set HOME by default)
+if (-not $env:HOME) {
+  $env:HOME = $env:USERPROFILE
+  Write-Debug "Set HOME to match USERPROFILE: $env:HOME"
+}
