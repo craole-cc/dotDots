@@ -86,10 +86,11 @@ function Global:Set-MiseEnv {
 
   #~@ Locate the path to the mise executable.
   $miseCmd = Get-CommandFirst -Name 'mise' -ErrorAction SilentlyContinue
+  # TODO: Finish this
   if ($miseCmd) {
     #~@ Define the CMD_MISE environment variable.
-    $cmdPath = Format-PathSafe $miseCmd.Source
-    Write-Host "CMD_MISE: $cmdPath"
+    # $cmdPath = Format-PathSafe $miseCmd.Source
+    # Write-Host "CMD_MISE: $cmdPath"
     # Set-Env -Name 'CMD_MISE' -Target $cmdPath
   }
 
@@ -97,13 +98,13 @@ function Global:Set-MiseEnv {
   #TODO: Create symlink of the mise_rc from DOTS_CFG to USERPROFILE
   # $miseRC = Join-Path $env:USERPROFILE '.config\mise\config.toml'
   # Write-Host "DOTS_CFG: $env:DOTS"
-  $DOTS_CFG = $env:DOTS_CFG
-  $DOTS_CFG_MISE = Join-Path $env:DOTS 'Configuration\mise\config.toml'
-  Write-Host "MISE_RC: $DOTS_CFG_MISE"
+  # $DOTS_CFG = $env:DOTS_CFG
+  # $DOTS_CFG_MISE = Join-Path $env:DOTS 'Configuration\mise\config.toml'
+  # Write-Host "MISE_RC: $DOTS_CFG_MISE"
   # Set-Env 'MiseRC' $(Resolve-PathSafely $DOTS_CFG_MISE)
-  Invoke-Fyls -Path $DOTS_CFG_MISE
-  Write-Host "HERE"
-return $true
+  # Invoke-Fyls -Path $DOTS_CFG_MISE
+  # Write-Host "HERE"
+  return $true
 
   #~@ Define the MISE_RC environment variable.
   # $rcPath = [System.IO.Path]::GetFullPath($rcStr)
