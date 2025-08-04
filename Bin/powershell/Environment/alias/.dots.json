@@ -1,0 +1,7 @@
+{
+  "Includes": [
+    "default.ps1",
+    "coreutils.ps1",
+    "_._"
+  ]
+}

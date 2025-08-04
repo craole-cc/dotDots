@@ -1,8 +1,9 @@
 {
   "Includes": [
     "variable.ps1",
-    "alias.ps1",
+    "alias",
     "fyls.ps1",
+    "wallpaper.ps1",
     "_._"
   ]
 }

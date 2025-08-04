@@ -1276,7 +1276,7 @@ function Global:Test-GetEnv {
     Write-Host '  Test environment variables created' -ForegroundColor Green
   }
 
-  function Cleanup-TestEnvironment {
+  function Restore-Environment {
     Write-TestSection 'Cleaning Up Test Environment'
 
     # Remove test variables
@@ -1588,8 +1588,8 @@ function Global:Test-GetEnv {
       Write-Host $step.Code -ForegroundColor Green
       Write-Host ''
 
-      $input = Read-Host "Press Enter to execute (or 'q' to quit)"
-      if ($input -eq 'q') { return }
+      $userInput = Read-Host "Press Enter to execute (or 'q' to quit)"
+      if ($userInput -eq 'q') { return }
 
       try {
         Write-Host 'Output:' -ForegroundColor Cyan
@@ -1677,7 +1677,7 @@ function Global:Test-GetEnv {
 
   }
   finally {
-    Cleanup-TestEnvironment
+    Restore-Environment
 
     Write-Host "`nFor more information, run: Get-Help Get-Env -Full" -ForegroundColor Cyan
     Write-Host 'Or explore specific features: Get-Help Get-Env -Examples' -ForegroundColor Cyan

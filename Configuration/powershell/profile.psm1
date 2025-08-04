@@ -36,9 +36,9 @@ Export-ModuleMember -Function Import-ProfileScript
 # Import profile components
 @(
   @{Name = 'utils.ps1'; Description = 'utilities' },
-  @{Name = 'config.ps1'; Description = 'configuration' },
-  @{Name = 'wallpaper.ps1'; Description = 'wallpaper' },
-  @{Name = 'coreutils.ps1'; Description = 'coreutils' }
+  @{Name = 'config.ps1'; Description = 'configuration' }
+  # @{Name = 'Get-Wallpaper.ps1'; Description = 'wallpaper' },
+  # @{Name = 'coreutils.ps1'; Description = 'coreutils' }
 ) | ForEach-Object {
   Import-ProfileScript -ScriptName $_.Name -Description $_.Description
 }
@@ -56,3 +56,7 @@ if (-not (Test-IsVSCode)) {
 else {
   Write-Debug 'VSCode detected - staying in current workspace directory'
 }
+
+#TODO: This should be Invoke-Coreutils which should install the GNU Coreutils and unregister the default powershel aliases
+Unregister-CoreutilsAliases
+Register-Wallpaper

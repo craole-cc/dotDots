@@ -1,4 +1,5 @@
-﻿# -------------------------------
+﻿# TODO: move to bin if possible
+# -------------------------------
 # 1) Ensure PSGallery is registered and trusted
 # -------------------------------
 $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue

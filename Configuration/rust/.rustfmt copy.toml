@@ -1,0 +1,121 @@
+# https://rust-lang.github.io/rustfmt
+#> rustfmt --print-config default > rustfmt.default.toml
+
+# | Formatting Constraints
+max_width = 100
+hard_tabs = false
+tab_spaces = 2
+newline_style = "Auto"
+indent_style = "Block"
+use_small_heuristics = "Default"
+
+# | Width Settings for Specific Constructs
+fn_call_width = 60
+attr_fn_like_width = 70
+struct_lit_width = 18
+struct_variant_width = 35
+array_width = 60
+chain_width = 60
+single_line_if_else_max_width = 50
+single_line_let_else_max_width = 50
+
+# | Comments and Documentation Formatting
+wrap_comments = false
+format_code_in_doc_comments = false # false
+doc_comment_code_block_width = 100
+comment_width = 80
+normalize_comments = false          # false
+normalize_doc_attributes = true     # false
+
+# | String and Macro Formatting
+format_strings = false
+format_macro_matchers = true # false
+format_macro_bodies = true
+skip_macro_invocations = []
+
+# | Code Style Preferences
+hex_literal_case = "Preserve"
+empty_item_single_line = true
+struct_lit_single_line = true
+fn_single_line = false
+where_single_line = false
+
+# | Imports Formatting
+imports_indent = "Block"
+imports_layout = "HorizontalVertical" # "Mixed"
+imports_granularity = "One"           # "Crate"         # "Preserve"
+group_imports = "StdExternalCrate"    # "Preserve"
+reorder_imports = true
+reorder_modules = true
+reorder_impl_items = true             # false
+
+# | Spacing and Punctuation
+type_punctuation_density = "Wide"
+space_before_colon = false
+space_after_colon = true
+spaces_around_ranges = false
+binop_separator = "Front"
+remove_nested_parens = true
+combine_control_expr = true
+
+# | Array and Expression Handling
+short_array_element_width_threshold = 10
+overflow_delimited_expr = false
+
+# | Alignment Thresholds
+struct_field_align_threshold = 0
+enum_discrim_align_threshold = 0
+
+# | Match Arms and Blocks
+match_arm_blocks = true
+match_arm_leading_pipes = "Never"
+force_multiline_blocks = false
+
+# | Function Parameters Layout
+fn_params_layout = "Tall"
+
+# | Brace Styles
+brace_style = "SameLineWhere"
+control_brace_style = "AlwaysSameLine"
+
+# | Trailing Syntax
+trailing_semicolon = true
+trailing_comma = "Vertical"
+match_block_trailing_comma = false
+
+# | Blank Lines Control
+blank_lines_upper_bound = 1
+blank_lines_lower_bound = 0
+
+# | Edition and Versioning
+edition = "2024"
+style_edition = "2024"
+# required_version = "1.8.0"
+
+# | Inline Attributes and Formatting of Generated Files
+inline_attribute_width = 0
+format_generated_files = true
+generated_marker_line_search_limit = 5
+
+# | Derives and Shorthand Usage
+merge_derives = true
+use_try_shorthand = false
+use_field_init_shorthand = false
+
+# | ABI and Wildcards
+force_explicit_abi = true
+condense_wildcard_suffixes = true # false
+
+# | Output and Error Handling
+color = "Auto"
+unstable_features = true       # false
+disable_all_formatting = false
+skip_children = false
+show_parse_errors = true
+error_on_line_overflow = false
+error_on_unformatted = false
+
+# | Files and Backup
+ignore = []
+emit_mode = "Files"
+make_backup = false

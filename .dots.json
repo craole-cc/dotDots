@@ -1,7 +1,7 @@
 {
   "Options": {
     "Tag": ">>= DOTS =<<",
-    "Verbosity": "Error",
+    "Verbosity": "Information",
     "VerbosePreference": "SilentlyContinue",
     "DebugPreference": "SilentlyContinue",
     "InformationPreference": "SilentlyContinue",
@@ -51,6 +51,7 @@
       "modules": [
         "mise",
         "neo4j",
+        "rust",
         "oh-my-posh"
       ]
     },
