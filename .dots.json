@@ -1,11 +1,11 @@
 {
   "Options": {
     "Tag": ">>= DOTS =<<",
-    "Verbosity": "Warn",
+    "Verbosity": "Error",
     "VerbosePreference": "SilentlyContinue",
     "DebugPreference": "SilentlyContinue",
     "InformationPreference": "SilentlyContinue",
-    "WarningPreference": "Continue",
+    "WarningPreference": "SilentlyContinue",
     "ErrorActionPreference": "Continue"
   },
   "ExperimentalFeatures": [

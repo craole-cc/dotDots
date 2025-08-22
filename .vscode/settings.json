@@ -7,7 +7,6 @@
     "**/Thumbs.db": true
   },
   "git.enabled": false,
-  "deno.path": "c:\\users\\administrator\\appdata\\local\\mise\\shims\\deno",
   "fileinator.ignoredFolders": [
     "**/$RECYCLE.BIN",
     "**/*.bac",

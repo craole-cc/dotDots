@@ -1,5 +1,3 @@
-# PowerShell Profile Loader - Simplified and Refactored
-
 function Import-ProfileScript {
   [CmdletBinding()]
   param(
@@ -9,40 +7,52 @@ function Import-ProfileScript {
     [string]$Description = $ScriptName
   )
 
-  $scriptPath = Join-Path $PSScriptRoot $ScriptName
+  $scriptPath = Join-Path -Path $PSScriptRoot -ChildPath $ScriptName
 
   if (Test-Path $scriptPath) {
-    Write-Debug "Loading $Description from: $scriptPath"
+    Write-Debug "Loading '$Description' from: $scriptPath"
     try {
       . $scriptPath
-      Write-Debug "Successfully loaded $Description"
+      Write-Debug "Successfully loaded '$Description'"
     }
     catch {
-      Write-Error "Failed to load $Description`: $($_.Exception.Message)"
+      Write-Error "Failed to load '$Description': $($_.Exception.Message)"
     }
   }
   else {
-    Write-Debug "$Description not found at: $scriptPath"
+    Write-Debug "Script '$Description' not found at: $scriptPath"
   }
 }
 
-# Make available used as a module
+function Test-IsVSCode {
+  return $env:VSCODE_PID -or
+  ($env:TERM_PROGRAM -eq 'vscode') -or
+  ($env:VSCODE_INJECTION -eq '1')
+}
+
+# Export the function for module usage
 Export-ModuleMember -Function Import-ProfileScript
 
-# Load profile components in order
-Import-ProfileScript -ScriptName 'utils.ps1' -Description 'utilities'
-Import-ProfileScript -ScriptName 'config.ps1' -Description 'configuration'
-
-# Set starting directory to DOTS (but not when in VSCode)
-$isVSCode = $env:VSCODE_PID -or $env:TERM_PROGRAM -eq "vscode" -or $env:VSCODE_INJECTION -eq "1"
-
-if ($env:DOTS -and (Test-Path $env:DOTS) -and -not $isVSCode) {
-  Set-Location $env:DOTS
-  Write-Debug "Changed directory to: $env:DOTS"
+# Import profile components
+@(
+  @{Name = 'utils.ps1'; Description = 'utilities' },
+  @{Name = 'config.ps1'; Description = 'configuration' },
+  @{Name = 'wallpaper.ps1'; Description = 'wallpaper' },
+  @{Name = 'coreutils.ps1'; Description = 'coreutils' }
+) | ForEach-Object {
+  Import-ProfileScript -ScriptName $_.Name -Description $_.Description
 }
-elseif ($isVSCode) {
-  Write-Debug "VSCode detected - staying in current workspace directory"
+
+# Change directory logic
+if (-not (Test-IsVSCode)) {
+  if ($env:DOTS -and (Test-Path $env:DOTS)) {
+    Set-Location $env:DOTS
+    Write-Debug "Changed directory to: $env:DOTS"
+  }
+  else {
+    Write-Warning "DOTS environment variable not set or path does not exist: $env:DOTS"
+  }
 }
 else {
-  Write-Warning "DOTS environment variable not set or path does not exist: $env:DOTS"
+  Write-Debug 'VSCode detected - staying in current workspace directory'
 }
