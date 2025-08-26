@@ -33,12 +33,12 @@ function Test-IsVSCode {
 # Export the function for module usage
 Export-ModuleMember -Function Import-ProfileScript
 
+$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
+
 # Import profile components
 @(
   @{Name = 'utils.ps1'; Description = 'utilities' },
   @{Name = 'config.ps1'; Description = 'configuration' }
-  # @{Name = 'Get-Wallpaper.ps1'; Description = 'wallpaper' },
-  # @{Name = 'coreutils.ps1'; Description = 'coreutils' }
 ) | ForEach-Object {
   Import-ProfileScript -ScriptName $_.Name -Description $_.Description
 }
@@ -47,14 +47,17 @@ Export-ModuleMember -Function Import-ProfileScript
 if (-not (Test-IsVSCode)) {
   if ($env:DOTS -and (Test-Path $env:DOTS)) {
     Set-Location $env:DOTS
-    Write-Debug "Changed directory to: $env:DOTS"
+    $msg = "Changed directory to: $env:DOTS"
+    Write-Debug "$msg"
   }
   else {
-    Write-Warning "DOTS environment variable not set or path does not exist: $env:DOTS"
+    $msg = "DOTS environment variable not set or path does not exist: $env:DOTS"
+    Write-Warning "$msg"
   }
 }
 else {
-  Write-Debug 'VSCode detected - staying in current workspace directory'
+  $msg = 'VSCode detected - staying in current workspace directory'
+  Write-Debug "$msg"
 }
 
 #TODO: This should be Invoke-Coreutils which should install the GNU Coreutils and unregister the default powershel aliases

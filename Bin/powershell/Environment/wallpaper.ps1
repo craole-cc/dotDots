@@ -1,318 +1,192 @@
 ﻿<#
 .SYNOPSIS
-  Fast cross-platform wallpaper detection and management optimized for shell startup performance.
+  Fast, cross-platform wallpaper detection and management for shell startup.
 
 .DESCRIPTION
-  Provides Register-Wallpaper, Unregister-Wallpaper and Get-Wallpaper functions for detecting and
-  managing desktop wallpapers across Windows, Linux, and macOS. Uses early-return pattern and
-  performance optimizations to minimize execution time.
+  Provides functions to detect and manage desktop wallpapers across Windows, Linux, and macOS.
+  It sets a persistent WALLPAPER environment variable and creates a stable symlink at
+  ~/Pictures/wallpaper for easy access by other applications.
 
-  Sets WALLPAPER and DOTS_WALLPAPER environment variables at the user level (persistent across
-  sessions) only when values change to maintain performance. Creates a portable symlink at
-  USERPROFILE\wallpaper (Windows) or HOME/wallpaper (Linux/macOS) for applications that can't
-  access environment variables (e.g., Windows Terminal settings).
-
-  Designed to be called during shell initialization with minimal performance impact (<50ms).
+  The script is highly optimized to run during shell initialization with minimal (<50ms) impact.
 
 .NOTES
   Author: PowerShell Community
-  Version: 2.4
-  Last Modified: 2025-08-26
+  Version: 3.0
   License: MIT
-
-  Performance: Optimized for <50ms execution on typical systems
-  Dependencies: None (uses built-in .NET and OS commands only)
-
-  Platform Support:
-  ✓ Windows 10/11    - JohnsBackgroundSwitcher, Registry, Windows Spotlight
-  ✓ Linux           - GNOME, KDE Plasma, XFCE
-  ✓ macOS           - System wallpaper via AppleScript
-
-  Environment Variables:
-  • WALLPAPER        - Current wallpaper file path
-  • DOTS_WALLPAPER   - Default fallback wallpaper from dotfiles
-
-  Symlinks Created:
-  • Windows: %USERPROFILE%\wallpaper
-  • Linux:   ~/wallpaper
-  • macOS:   ~/wallpaper
+  Platform Support: Windows, Linux (GNOME, KDE, XFCE), macOS
 
 .EXAMPLE
   Register-Wallpaper
-  # Sets environment variables and creates symlink
-
-.EXAMPLE
-  Unregister-Wallpaper
-  # Removes environment variables and symlink
+  # Detects wallpaper, sets the $env:WALLPAPER variable, and creates the symlink.
 
 .EXAMPLE
   Get-Wallpaper -Refresh
-  # Re-detects and returns current wallpaper path
+  # Re-runs detection and then returns the current wallpaper path.
 #>
 
-# Fast helper to set user env var only if value changed (Windows optimization)
+# Helper to set user env var only if the value has changed, but always update the current session.
 function Global:Set-UserEnvIfChanged {
   param([string]$Name, [string]$Value)
-
+  # Always set the session variable for immediate use.
+  Set-Item "env:$Name" $Value -Force
+  # For Windows, only write to the persistent registry if the value has changed to avoid slow I/O.
   if ($IsWindows) {
-    $current = [Environment]::GetEnvironmentVariable($Name, 'User')
-    if ($current -ne $Value) {
+    if ([Environment]::GetEnvironmentVariable($Name, 'User') -ne $Value) {
       [Environment]::SetEnvironmentVariable($Name, $Value, 'User')
-      Set-Item "env:$Name" $Value -Force
     }
-  }
-  else {
-    # Non-Windows: just set session variable
-    Set-Item "env:$Name" $Value -Force
   }
 }
 
-# Optimized helper to create wallpaper symlink (performance-focused)
+# Helper to create or update the wallpaper symlink only when necessary.
 function Global:Set-WallpaperSymlink {
-  param()
+  param([string]$NewWallpaperPath)
+  $symlinkDir = if ($IsWindows) { Join-Path $env:USERPROFILE 'Pictures' } else { Join-Path $env:HOME 'Pictures' }
+  $symlinkPath = Join-Path $symlinkDir 'wallpaper'
 
-  # Early exit if no wallpaper detected
-  if (-not $env:WALLPAPER) { return }
-
-  # Determine symlink path (minimize path operations)
-  $symlinkPath = if ($IsWindows) {
-    Join-Path $env:USERPROFILE 'wallpaper'
+  # Get the target of the old symlink for change detection.
+  $previousWallpaper = if (Test-Path $symlinkPath -EA 0) {
+    try { (Get-Item $symlinkPath -EA 0).Target } catch { $null }
   }
-  else {
-    Join-Path $env:HOME 'wallpaper'
-  }
+  else { $null }
 
-  # Quick existence check and removal
-  if (Test-Path $symlinkPath -ErrorAction SilentlyContinue) {
-    Remove-Item $symlinkPath -Force -ErrorAction SilentlyContinue
-  }
-
-  # Platform-optimized symlink creation
-  try {
-    if ($IsWindows) {
-      # Use cmd for maximum compatibility, minimal fallback
-      $null = Start-Process cmd.exe -ArgumentList "/c mklink `"$symlinkPath`" `"$env:WALLPAPER`"" -WindowStyle Hidden -Wait -PassThru
+  # Only modify the file system if the wallpaper has actually changed.
+  if ($previousWallpaper -ne $NewWallpaperPath) {
+    if (-not (Test-Path $symlinkDir)) {
+      $null = New-Item -Path $symlinkDir -ItemType Directory -Force
     }
-    else {
-      # Direct ln execution for Unix systems
-      $null = & ln -sf $env:WALLPAPER $symlinkPath 2>$null
+    Remove-Item $symlinkPath -Force -EA 0
+    try {
+      if ($IsWindows) {
+        Start-Process cmd.exe -ArgumentList "/c mklink `"$symlinkPath`" `"$NewWallpaperPath`"" -WindowStyle Hidden -Wait
+      }
+      else {
+        & ln -sf $NewWallpaperPath $symlinkPath 2>$null
+      }
     }
-  }
-  catch {
-    # Silent failure to maintain startup performance
+    catch {
+      # Silent failure maintains startup performance.
+    }
   }
 }
 
-# Optimized helper to remove wallpaper symlink
+# Helper to remove the wallpaper symlink.
 function Global:Remove-WallpaperSymlink {
-  param()
-
-  $symlinkPath = if ($IsWindows) {
-    Join-Path $env:USERPROFILE 'wallpaper'
-  }
-  else {
-    Join-Path $env:HOME 'wallpaper'
-  }
-
-  if (Test-Path $symlinkPath -ErrorAction SilentlyContinue) {
-    Remove-Item $symlinkPath -Force -ErrorAction SilentlyContinue
+  $symlinkPath = Join-Path (if ($IsWindows) { $env:USERPROFILE } else { $env:HOME }) 'Pictures' 'wallpaper'
+  if (Test-Path $symlinkPath -EA 0) {
+    Remove-Item $symlinkPath -Force -EA 0
   }
 }
 
 function Global:Register-Wallpaper {
-  <#
-  .SYNOPSIS
-      Fast cross-platform wallpaper detection with symlink creation.
-  .DESCRIPTION
-      Detects current desktop wallpaper across Windows, Linux, and macOS platforms.
-      Sets WALLPAPER and DOTS_WALLPAPER environment variables and creates a portable
-      symlink for applications that can't access environment variables.
-
-      Performance optimized for shell startup (<50ms execution time).
-  .EXAMPLE
-      Register-Wallpaper
-      # Detects wallpaper, sets $env:WALLPAPER, creates ~/wallpaper symlink
-  #>
   [CmdletBinding()]
   param()
 
-  # Initialize DOTS_WALLPAPER (early exit optimization)
-  if ($env:DOTS) {
+  $wallpaperPath = $null
+
+  # Define default wallpaper, falling back to a default if one is configured.
+  $dotsWallpaper = $env:DOTS_WALLPAPER
+  if (-not $env:DOTS_WALLPAPER -and $env:DOTS) {
     $defaultPath = Join-Path $env:DOTS 'Assets' 'Images' 'wallpaper' 'default.jpg'
-    if (Test-Path $defaultPath -ErrorAction SilentlyContinue) {
+    if (Test-Path $defaultPath -EA 0) {
       Set-UserEnvIfChanged 'DOTS_WALLPAPER' $defaultPath
+      $dotsWallpaper = $defaultPath
     }
   }
 
   # =============================================================================
-  # WINDOWS WALLPAPER DETECTION (Priority Order)
+  # PLATFORM-SPECIFIC WALLPAPER DETECTION
   # =============================================================================
   if ($IsWindows) {
-
-    # Priority 1: JohnsBackgroundSwitcher (fastest check first)
-    $johnsPath = Join-Path $env:APPDATA 'johnsadventures.com\Background Switcher\LockScreen'
-    if (Test-Path $johnsPath -ErrorAction SilentlyContinue) {
-      $johnsFile = Get-ChildItem "$johnsPath\*.jpg" -ErrorAction SilentlyContinue | Select-Object -First 1
-      if ($johnsFile) {
-        Set-UserEnvIfChanged 'WALLPAPER' $johnsFile.FullName
-        Set-WallpaperSymlink
-        return
-      }
+    #| John's Background Switcher
+    $lockscreenPath = Join-Path $env:APPDATA 'johnsadventures.com' 'Background Switcher' 'LockScreen'
+    if (Test-Path $lockscreenPath -EA 0) {
+      $wallpaperPath = (Get-ChildItem "$lockscreenPath\*.jpg" -EA 0 | Select-Object -First 1).FullName
     }
 
-    # Priority 2: Windows Registry (most common)
-    try {
-      $wallpaperPath = [Microsoft.Win32.Registry]::GetValue('HKEY_CURRENT_USER\Control Panel\Desktop', 'Wallpaper', $null)
-      if ($wallpaperPath -and (Test-Path $wallpaperPath -ErrorAction SilentlyContinue)) {
-        Set-UserEnvIfChanged 'WALLPAPER' $wallpaperPath
-        Set-WallpaperSymlink
-        return
-      }
-    }
-    catch { }
-
-    # Priority 3: Windows Spotlight (fallback)
-    $assetsPath = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets'
-    if (Test-Path $assetsPath -ErrorAction SilentlyContinue) {
-      $asset = Get-ChildItem $assetsPath -File -ErrorAction SilentlyContinue |
-      Where-Object Length -GT 100KB |
-      Select-Object -First 1
-      if ($asset) {
-        Set-UserEnvIfChanged 'WALLPAPER' $asset.FullName
-        Set-WallpaperSymlink
-        return
-      }
-    }
-  }
-
-  # =============================================================================
-  # LINUX WALLPAPER DETECTION (Priority Order)
-  # =============================================================================
-  elseif ($IsLinux) {
-
-    # Priority 1: GNOME (most common Linux desktop)
-    try {
-      $gnomeUri = & gsettings get org.gnome.desktop.background picture-uri 2>$null
-      if ($gnomeUri -and $gnomeUri -ne "''") {
-        $path = $gnomeUri.Trim("'") -replace '^file://', ''
-        if (Test-Path $path -ErrorAction SilentlyContinue) {
-          Set-Item 'env:WALLPAPER' $path -Force
-          Set-WallpaperSymlink
-          return
-        }
-      }
-    }
-    catch { }
-
-    # Priority 2: KDE Plasma
-    $kdeConfig = Join-Path $env:HOME '.config/plasma-org.kde.plasma.desktop-appletsrc'
-    if (Test-Path $kdeConfig -ErrorAction SilentlyContinue) {
+    #| Windows Registry
+    if (-not $wallpaperPath) {
       try {
-        $content = Get-Content $kdeConfig -Raw -ErrorAction SilentlyContinue
-        if ($content -match 'Image=file://([^\r\n]+)') {
-          $path = $matches[1]
-          if (Test-Path $path -ErrorAction SilentlyContinue) {
-            Set-Item 'env:WALLPAPER' $path -Force
-            Set-WallpaperSymlink
-            return
-          }
-        }
+        $regPath = [Microsoft.Win32.Registry]::GetValue('HKEY_CURRENT_USER\Control Panel\Desktop', 'Wallpaper', $null)
+        if ($regPath -and (Test-Path $regPath -EA 0)) { $wallpaperPath = $regPath }
       }
-      catch { }
+      catch {}
     }
 
-    # Priority 3: XFCE
-    try {
-      $xfcePath = & xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image 2>$null
-      if ($xfcePath -and (Test-Path $xfcePath -ErrorAction SilentlyContinue)) {
-        Set-Item 'env:WALLPAPER' $xfcePath -Force
-        Set-WallpaperSymlink
-        return
+    #| Windows Spotlight
+    if (-not $wallpaperPath) {
+      $assetsPath = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets"
+      if (Test-Path $assetsPath -EA 0) {
+        $wallpaperPath = (Get-ChildItem $assetsPath -File -EA 0 | Where-Object Length -GT 100KB | Sort-Object Length -Descending | Select-Object -First 1).FullName
       }
     }
-    catch { }
   }
+  elseif ($IsLinux) {
+    #| GNOME
+    try {
+      $uri = & gsettings get org.gnome.desktop.background picture-uri 2>$null
+      $path = $uri.Trim("'") -replace '^file://'
+      if ($path -and (Test-Path $path -EA 0)) { $wallpaperPath = $path }
+    }
+    catch {}
 
-  # =============================================================================
-  # MACOS WALLPAPER DETECTION
-  # =============================================================================
+    #| KDE Plasma
+    if (-not $wallpaperPath) {
+      $kdeConfig = Join-Path $env:HOME '.config' 'plasma-org.kde.plasma.desktop-appletsrc'
+      if ((Test-Path $kdeConfig -EA 0) `
+          -and ((Get-Content $kdeConfig -Raw -EA 0) `
+            -match 'Image=file://([^\r\n]+)')) {
+        $path = $matches[1]
+        if (Test-Path $path -EA 0) { $wallpaperPath = $path }
+      }
+    }
+
+    #| XFCE
+    if (-not $wallpaperPath) {
+      try {
+        $path = & xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image 2>$null
+        if ($path -and (Test-Path $path -EA 0)) { $wallpaperPath = $path }
+      }
+      catch {}
+    }
+  }
   elseif ($IsMacOS) {
     try {
-      $macPath = & osascript -e 'tell application "Finder" to get POSIX path of (get desktop picture as alias)' 2>$null
-      if ($macPath -and (Test-Path $macPath.Trim() -ErrorAction SilentlyContinue)) {
-        Set-Item 'env:WALLPAPER' $macPath.Trim() -Force
-        Set-WallpaperSymlink
-        return
-      }
+      $path = (& osascript -e 'tell application "Finder" to get POSIX path of (get desktop picture as alias)' 2>$null).Trim()
+      if ($path -and (Test-Path $path -EA 0)) { $wallpaperPath = $path }
     }
-    catch { }
+    catch {}
   }
 
   # =============================================================================
-  # FALLBACK TO DEFAULT
+  # SET VARIABLES AND SYMLINK
   # =============================================================================
-  if ($env:DOTS) {
-    $defaultPath = Join-Path $env:DOTS 'Assets' 'Images' 'wallpaper' 'default.jpg'
-    if (Test-Path $defaultPath -ErrorAction SilentlyContinue) {
-      Set-UserEnvIfChanged 'WALLPAPER' $defaultPath
-      Set-WallpaperSymlink
-    }
+  $finalWallpaperPath = if ($wallpaperPath) { $wallpaperPath } else { $dotsWallpaper }
+
+  if ($finalWallpaperPath) {
+    Set-UserEnvIfChanged 'WALLPAPER' $finalWallpaperPath
+    Set-WallpaperSymlink -NewWallpaperPath $finalWallpaperPath
   }
 }
 
 function Global:Unregister-Wallpaper {
-  <#
-  .SYNOPSIS
-    Removes wallpaper environment variables and symlink.
-  .DESCRIPTION
-    Cleans up WALLPAPER and DOTS_WALLPAPER environment variables from both
-    the current session and user-level persistence (Windows registry).
-    Also removes the portable wallpaper symlink.
-  .EXAMPLE
-    Unregister-Wallpaper
-    # Removes $env:WALLPAPER, $env:DOTS_WALLPAPER, and ~/wallpaper symlink
-  #>
   [CmdletBinding()]
   param()
-
-  # Remove persistent environment variables (Windows only)
   if ($IsWindows) {
     [Environment]::SetEnvironmentVariable('WALLPAPER', $null, 'User')
     [Environment]::SetEnvironmentVariable('DOTS_WALLPAPER', $null, 'User')
   }
-
-  # Remove session variables (all platforms)
-  Remove-Item 'env:WALLPAPER' -ErrorAction SilentlyContinue
-  Remove-Item 'env:DOTS_WALLPAPER' -ErrorAction SilentlyContinue
-
-  # Remove symlink
+  Remove-Item 'env:WALLPAPER' -EA 0
+  Remove-Item 'env:DOTS_WALLPAPER' -EA 0
   Remove-WallpaperSymlink
 }
 
 function Global:Get-Wallpaper {
-  <#
-  .SYNOPSIS
-  Gets current wallpaper path from environment variable.
-  .DESCRIPTION
-  Returns the current WALLPAPER environment variable value.
-  Optionally re-runs wallpaper detection before returning the value.
-  .PARAMETER Refresh
-  Re-run wallpaper detection before returning the path.
-  .EXAMPLE
-  Get-Wallpaper
-  # Returns: C:\Users\User\Pictures\wallpaper.jpg
-  .EXAMPLE
-  Get-Wallpaper -Refresh
-  # Re-detects wallpaper, then returns current path
-  #>
   [CmdletBinding()]
   param(
     [switch]$Refresh
   )
-
   if ($Refresh) {
     Register-Wallpaper
   }
-
   return $env:WALLPAPER
 }
