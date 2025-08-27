@@ -62,6 +62,7 @@ function Global:Set-WallpaperSymlink {
       else {
         & ln -sf $NewWallpaperPath $symlinkPath 2>$null
       }
+      Set-UserEnvIfChanged 'WALLPAPER_LINK' $symlinkPath
     }
     catch {
       # Silent failure maintains startup performance.
@@ -190,3 +191,5 @@ function Global:Get-Wallpaper {
   }
   return $env:WALLPAPER
 }
+
+# Register-Wallpaper

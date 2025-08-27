@@ -32,7 +32,7 @@
 
 #region Editor Configuration
 $Global:EditorConfig = @{
-  DefaultTuiEditors = @('helix','hx', 'nvim', 'vim', 'nano')
+  DefaultTuiEditors = @('helix', 'hx', 'nvim', 'vim', 'nano')
   DefaultGuiEditors = @(
     'code',
     'code-insiders',
@@ -53,7 +53,7 @@ $Global:EditorConfig = @{
 #endregion
 
 #region Editor Discovery
-function Global:Get-AvailableEditor {
+function Get-AvailableEditor {
   <#
     .SYNOPSIS
     Searches for the first available editor from a prioritized list
@@ -234,7 +234,7 @@ function Get-PreferredEditor {
     [switch]$ReturnPath,
     [switch]$Force
   )
-
+  # TODO: This is always selecting notepad on Windows instead of the first available
   #{ Return cached editor if available and not forcing re-evaluation
   if (-not $Force -and $EditorConfig.CurrentEditor -and -not $ReturnPath) {
     return $EditorConfig.CurrentEditor
@@ -324,96 +324,94 @@ function Set-PreferredEditor {
 
   return $newEditor
 }
-#endregion
 
-#region New Required Functions
+<#
+  .SYNOPSIS
+  Gets the current preferred editor (simplified interface)
+
+  .DESCRIPTION
+  Simplified wrapper around Get-PreferredEditor that provides a clean,
+  intuitive interface for retrieving the currently configured editor.
+
+  This is the recommended function for scripts and interactive use when
+  you just need to know which editor is currently selected.
+
+  .PARAMETER ReturnPath
+  When specified, returns the full executable path instead of just the command name.
+  Useful when you need the absolute path for direct execution or verification.
+
+  .OUTPUTS
+  [string] Current preferred editor name or full path
+
+  .EXAMPLE
+  Get-Editor
+  # Returns: "code"
+
+  .EXAMPLE
+  Get-Editor -ReturnPath
+  # Returns: "C:\Users\Username\AppData\Local\Programs\Microsoft VS Code\Code.exe"
+
+  .NOTES
+  This function uses caching for performance - the editor is determined once
+  and reused until explicitly changed with Set-Editor or cleared with -Force
+  on the underlying Get-PreferredEditor function.
+  #>
 function Get-Editor {
-  <#
-    .SYNOPSIS
-    Gets the current preferred editor (simplified interface)
-
-    .DESCRIPTION
-    Simplified wrapper around Get-PreferredEditor that provides a clean,
-    intuitive interface for retrieving the currently configured editor.
-
-    This is the recommended function for scripts and interactive use when
-    you just need to know which editor is currently selected.
-
-    .PARAMETER ReturnPath
-    When specified, returns the full executable path instead of just the command name.
-    Useful when you need the absolute path for direct execution or verification.
-
-    .OUTPUTS
-    [string] Current preferred editor name or full path
-
-    .EXAMPLE
-    Get-Editor
-    # Returns: "code"
-
-    .EXAMPLE
-    Get-Editor -ReturnPath
-    # Returns: "C:\Users\Username\AppData\Local\Programs\Microsoft VS Code\Code.exe"
-
-    .NOTES
-    This function uses caching for performance - the editor is determined once
-    and reused until explicitly changed with Set-Editor or cleared with -Force
-    on the underlying Get-PreferredEditor function.
-    #>
   [CmdletBinding()]
   param(
     [switch]$ReturnPath
   )
 
-  return Get-PreferredEditor -ReturnPath:$ReturnPath
+  return Get-AvailableEditor -ReturnPath:$ReturnPath
 }
 
+<#
+  .SYNOPSIS
+  Sets the preferred editor (simplified interface)
+
+  .DESCRIPTION
+  Simplified wrapper for configuring your preferred editor. Supports both
+  single editor selection and advanced preference configuration.
+
+  Single editor mode forces a specific editor regardless of environment.
+  Preference mode uses intelligent selection based on GUI/TUI availability.
+
+  .PARAMETER Editor
+  Single editor name to set as preferred (bypasses intelligent selection).
+  The editor doesn't need to be installed - useful for portable configurations
+  where different editors may be available in different environments.
+
+  .PARAMETER TuiEditors
+  String of TUI (Terminal User Interface) editors in preference order.
+  Used when GUI environment is not available or as fallback.
+  Format: "hx|nvim|vim" or "hx, nvim, vim" (flexible delimiters)
+
+  .PARAMETER GuiEditors
+  String of GUI (Graphical User Interface) editors in preference order.
+  Prioritized when GUI environment is detected.
+  Format: "code|zed|sublime_text" or "code, zed, sublime_text"
+
+  .OUTPUTS
+  [string] The editor that was selected/configured
+
+  .EXAMPLE
+  Set-Editor code
+  # Forces VS Code as the preferred editor
+
+  .EXAMPLE
+  Set-Editor -TuiEditors "hx,nvim,vim" -GuiEditors "code,zed"
+  # Configures intelligent selection with custom preferences
+
+  .EXAMPLE
+  # Set editor from environment variable
+  Set-Editor $env:PREFERRED_EDITOR
+
+  .NOTES
+  When using single editor mode, the specified editor becomes the preferred
+  choice regardless of GUI/TUI environment detection. When using preference
+  mode, the system intelligently selects based on environment and availability.
+  #>
 function Set-Editor {
-  <#
-    .SYNOPSIS
-    Sets the preferred editor (simplified interface)
-
-    .DESCRIPTION
-    Simplified wrapper for configuring your preferred editor. Supports both
-    single editor selection and advanced preference configuration.
-
-    Single editor mode forces a specific editor regardless of environment.
-    Preference mode uses intelligent selection based on GUI/TUI availability.
-
-    .PARAMETER Editor
-    Single editor name to set as preferred (bypasses intelligent selection).
-    The editor doesn't need to be installed - useful for portable configurations
-    where different editors may be available in different environments.
-
-    .PARAMETER TuiEditors
-    String of TUI (Terminal User Interface) editors in preference order.
-    Used when GUI environment is not available or as fallback.
-    Format: "hx|nvim|vim" or "hx, nvim, vim" (flexible delimiters)
-
-    .PARAMETER GuiEditors
-    String of GUI (Graphical User Interface) editors in preference order.
-    Prioritized when GUI environment is detected.
-    Format: "code|zed|sublime_text" or "code, zed, sublime_text"
-
-    .OUTPUTS
-    [string] The editor that was selected/configured
-
-    .EXAMPLE
-    Set-Editor code
-    # Forces VS Code as the preferred editor
-
-    .EXAMPLE
-    Set-Editor -TuiEditors "hx,nvim,vim" -GuiEditors "code,zed"
-    # Configures intelligent selection with custom preferences
-
-    .EXAMPLE
-    # Set editor from environment variable
-    Set-Editor $env:PREFERRED_EDITOR
-
-    .NOTES
-    When using single editor mode, the specified editor becomes the preferred
-    choice regardless of GUI/TUI environment detection. When using preference
-    mode, the system intelligently selects based on environment and availability.
-    #>
   [CmdletBinding(DefaultParameterSetName = 'Single')]
   param(
     [Parameter(ParameterSetName = 'Single', Position = 0)]
@@ -437,70 +435,68 @@ function Set-Editor {
     return Set-PreferredEditor -TuiEditors $TuiEditors -GuiEditors $GuiEditors
   }
 }
-#endregion
 
-#region Public Interface
-function Global:Invoke-Editor {
-  <#
-    .SYNOPSIS
-    Launches the preferred editor with intelligent argument handling
+<#
+  .SYNOPSIS
+  Launches the preferred editor with intelligent argument handling
 
-    .DESCRIPTION
-    Main editor launching function that provides a robust interface for opening
-    files and directories in your preferred editor. Handles path resolution,
-    argument passing, and fallback execution strategies.
+  .DESCRIPTION
+  Main editor launching function that provides a robust interface for opening
+  files and directories in your preferred editor. Handles path resolution,
+  argument passing, and fallback execution strategies.
 
-    Features:
-    - Automatic current directory default when no path specified
-    - Intelligent editor selection with fallback mechanisms
-    - Robust error handling with alternative execution paths
-    - Support for additional editor arguments and flags
-    - Temporary editor override capability
+  Features:
+  - Automatic current directory default when no path specified
+  - Intelligent editor selection with fallback mechanisms
+  - Robust error handling with alternative execution paths
+  - Support for additional editor arguments and flags
+  - Temporary editor override capability
 
-    .PARAMETER Path
-    Path to open in the editor. Can be:
-    - File path (relative or absolute)
-    - Directory path
-    - Empty/null (defaults to current directory)
+  .PARAMETER Path
+  Path to open in the editor. Can be:
+  - File path (relative or absolute)
+  - Directory path
+  - Empty/null (defaults to current directory)
 
-    The path is passed as the first argument to the editor.
+  The path is passed as the first argument to the editor.
 
-    .PARAMETER Arguments
-    Additional arguments to pass to the editor after the path.
-    Useful for editor-specific flags like "--new-window" or "--goto line:column"
+  .PARAMETER Arguments
+  Additional arguments to pass to the editor after the path.
+  Useful for editor-specific flags like "--new-window" or "--goto line:column"
 
-    .PARAMETER Editor
-    Temporarily override the configured editor for this single invocation.
-    Does not change the persistent editor preference.
+  .PARAMETER Editor
+  Temporarily override the configured editor for this single invocation.
+  Does not change the persistent editor preference.
 
-    .OUTPUTS
-    None (launches external editor process)
+  .OUTPUTS
+  None (launches external editor process)
 
-    .EXAMPLE
-    Invoke-Editor
-    # Opens current directory in preferred editor
+  .EXAMPLE
+  Invoke-Editor
+  # Opens current directory in preferred editor
 
-    .EXAMPLE
-    Invoke-Editor myfile.txt
-    # Opens myfile.txt in preferred editor
+  .EXAMPLE
+  Invoke-Editor myfile.txt
+  # Opens myfile.txt in preferred editor
 
-    .EXAMPLE
-    Invoke-Editor -Path "src/" -Arguments @("--new-window")
-    # Opens src/ directory in new window
+  .EXAMPLE
+  Invoke-Editor -Path "src/" -Arguments @("--new-window")
+  # Opens src/ directory in new window
 
-    .EXAMPLE
-    Invoke-Editor myfile.txt -Editor vim
-    # Opens myfile.txt in vim (temporary override)
+  .EXAMPLE
+  Invoke-Editor myfile.txt -Editor vim
+  # Opens myfile.txt in vim (temporary override)
 
-    .NOTES
-    The function attempts multiple execution strategies:
-    1. Execute using command name
-    2. If that fails, try using full executable path
-    3. Provide detailed error information if both fail
+  .NOTES
+  The function attempts multiple execution strategies:
+  1. Execute using command name
+  2. If that fails, try using full executable path
+  3. Provide detailed error information if both fail
 
-    This approach handles edge cases where PATH resolution or shell integration
-    might cause issues with certain editors.
-    #>
+  This approach handles edge cases where PATH resolution or shell integration
+  might cause issues with certain editors.
+  #>
+function Invoke-Editor {
   [CmdletBinding()]
   param(
     [string]$Path,
@@ -874,3 +870,5 @@ Initialize-EditorEnvironment
 Set-Alias -Name 'edit' -Value 'Invoke-Editor' -Scope Global -Description 'Quick editor launcher - opens current directory or specified files/paths'
 
 #endregion
+
+Export-ModuleMember -Function 'Get-Editor', 'Get-PreferredEditor' , 'Set-PreferredEditor', 'Invoke-Editor', 'Get-AvailableEditor'

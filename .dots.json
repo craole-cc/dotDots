@@ -1,7 +1,7 @@
 {
   "Options": {
     "Tag": ">>= DOTS =<<",
-    "Verbosity": "Information",
+    "Verbosity": "Warning",
     "VerbosePreference": "SilentlyContinue",
     "DebugPreference": "SilentlyContinue",
     "InformationPreference": "SilentlyContinue",
@@ -52,6 +52,7 @@
         "mise",
         "neo4j",
         "rust",
+        "WindowsTerminal",
         "oh-my-posh"
       ]
     },
