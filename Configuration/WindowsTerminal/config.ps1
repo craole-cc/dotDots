@@ -29,3 +29,28 @@ function Global:Stop-WindowsTerminal {
 
   Stop-Application -Name 'WindowsTerminal'
 }
+
+function Global:Test-IsWindowsTerminal {
+  [CmdletBinding()]
+  param ()
+
+  if ($PSVersionTable.PSVersion.Major -le 5 -or $IsWindows -eq $true) {
+    $currentPid = $PID
+    while ($currentPid) {
+      try {
+        $process = Get-CimInstance Win32_Process -Filter "ProcessId = $currentPid" -ErrorAction Stop -Verbose:$false
+      }
+      catch {
+        return $false
+      }
+      if ($process.Name -eq 'WindowsTerminal.exe') {
+        return $true
+      }
+      $currentPid = $process.ParentProcessId
+    }
+    return $false
+  }
+  else {
+    return $false
+  }
+}

@@ -43,8 +43,23 @@ $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';
   Import-ProfileScript -ScriptName $_.Name -Description $_.Description
 }
 
-# Change directory logic
-if (-not (Test-IsVSCode)) {
+# # Change directory logic
+# if (-not (Test-IsVSCode)) {
+#   if ($env:DOTS -and (Test-Path $env:DOTS)) {
+#     Set-Location $env:DOTS
+#     $msg = "Changed directory to: $env:DOTS"
+#     Write-Debug "$msg"
+#   }
+#   else {
+#     $msg = "DOTS environment variable not set or path does not exist: $env:DOTS"
+#     Write-Warning "$msg"
+#   }
+# }
+# else {
+#   $msg = 'VSCode detected - staying in current workspace directory'
+#   Write-Debug "$msg"
+# }
+if (Test-IsWindowsTerminal) {
   if ($env:DOTS -and (Test-Path $env:DOTS)) {
     Set-Location $env:DOTS
     $msg = "Changed directory to: $env:DOTS"
@@ -56,7 +71,7 @@ if (-not (Test-IsVSCode)) {
   }
 }
 else {
-  $msg = 'VSCode detected - staying in current workspace directory'
+  $msg = 'Not in Windows Terminal - skipping directory change'
   Write-Debug "$msg"
 }
 
