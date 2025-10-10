@@ -31,7 +31,7 @@ pager = "delta"
 [ui]
 diff-editor = "hx"
 editor = "hx"
-default-command = "status"
+default-command = ["log", "--reversed"]
 
 [aliases]
 pull = [
