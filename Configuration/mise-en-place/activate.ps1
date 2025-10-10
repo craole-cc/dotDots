@@ -126,7 +126,7 @@ function Global:Set-Mise {
     if (Test-Path -Path $envVars[$key] -PathType Leaf) {
       [Environment]::SetEnvironmentVariable($key, $envVars[$key], 'Process')
       Set-Variable -Name $key -Value $envVars[$key] -Scope Global
-      Write-Verbose "Exported variable: $key => $($envVars[$key])"
+      Write-Pretty -DebugEnv $key $($envVars[$key])
     }
   }
 
@@ -187,30 +187,44 @@ function Global:Initialize-Mise {
     .DESCRIPTION
         Installs mise if needed and links configuration.
     #>
+
+
   [CmdletBinding()]
   param()
 
-  $app = Get-MiseConfig
+  try {
+    #~@ Retrieve config
+    $time = Get-Date
+    $app = Get-MiseConfig
 
-  #~@ Install if missing
-  if (-not (Get-Command -Name $app.cmd -ErrorAction SilentlyContinue)) {
-    if (-not (Install-Mise)) {
-      Write-Pretty -Tag 'Error' "Failed to install $($app.desc), aborting."
+    #~@ Install if missing
+    if (-not (Get-Command -Name $app.cmd -ErrorAction SilentlyContinue)) {
+      if (-not (Install-Mise)) {
+        Write-Pretty -Tag 'Error' "Failed to install $($app.desc), aborting."
+        return
+      }
+    }
+
+    #~@ Link config
+    if (-not (Set-Mise)) {
+      Write-Pretty -Tag 'Error' 'Unable to set configuration.'
       return
     }
-  }
 
-  #~@ Link config
-  try {
+    #~@ Activate config
     mise activate pwsh | Out-String | Invoke-Expression
-    Set-Mise
-    Write-Pretty -Tag 'Info' -NoNewLine -As $($app.desc) -Init $InitTime
+    if ($LASTEXITCODE -ne 0) {
+      Write-Pretty -Tag 'Error' 'Failed to activate mise environment based on config.'
+      return
+    }
+
+    #~@ Return success message with timing
+    Write-Pretty -Tag 'Info' -NoNewLine -As $($app.desc) -Init $time
   }
   catch {
-    Write-Pretty -Tag 'Error' 'Activation failed' "Details: $($_.Exception.Message)"
+    #~@ Return failure message with exception details
+    Write-Pretty -Tag 'Error' "Failed to initialize $($app.desc)" "$($_.Exception.Message)"
   }
-
-  Write-Pretty -Tag 'Success' "$($app.desc) environment initialized."
 }
 
 #~@ Auto-initialize on script load
