@@ -1,7 +1,7 @@
 {
   "Options": {
     "Tag": ">>= DOTS =<<",
-    "Verbosity": "Trace",
+    "Verbosity": "Debug",
     "VerbosePreference": "SilentlyContinue",
     "DebugPreference": "SilentlyContinue",
     "InformationPreference": "SilentlyContinue",
@@ -50,9 +50,10 @@
       "path": "Configuration",
       "modules": [
         "mise-en-place",
+        "helix",
+        "jujutsu",
         "neo4j",
         "rust",
-        "jujutsu",
         "WindowsTerminal",
         "oh-my-posh"
       ]

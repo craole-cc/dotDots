@@ -241,14 +241,14 @@ function Global:Get-Env {
     Pattern    = if ([string]::IsNullOrEmpty($Pattern)) { $Pattern } else { $Name }
     ExpandVars = $ExpandVars.IsPresent
   }
-  Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Get-Env called with: $(($debugParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ', ')"
+  Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Get-Env called with: $(($debugParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ', ')"
 
   # Check cache first if enabled and retrieving specific variable
   if ($Cached -and ![string]::IsNullOrEmpty($Name) -and !$ListAll) {
     $cacheKey = "${Scope}:${Name}"
     if ($script:EnvCache.ContainsKey($cacheKey) -and $script:CacheExpiry.ContainsKey($cacheKey)) {
       if ((Get-Date) -lt $script:CacheExpiry[$cacheKey]) {
-        Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Returning cached value for '$Name'"
+        Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Returning cached value for '$Name'"
         return $script:EnvCache[$cacheKey]
       }
       else {
@@ -265,7 +265,7 @@ function Global:Get-Env {
     $allEnvVars = Get-EnvironmentVariablesByScope -Scope $Scope
     #~@ Apply pattern filtering if specified
     if (![string]::IsNullOrEmpty($Pattern)) {
-      Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Applying pattern filter: '$Pattern'"
+      Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Applying pattern filter: '$Pattern'"
       $filteredVars = @{}
       foreach ($var in $allEnvVars.GetEnumerator()) {
         if ($var.Key -like $Pattern) {
@@ -393,7 +393,7 @@ function Global:Set-Env {
     [switch]$Persistent
   )
 
-  Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Set-Env called: Name='$Name', Value='$Value', Type='$Type', Scope='$Scope'"
+  Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Set-Env called: Name='$Name', Value='$Value', Type='$Type', Scope='$Scope'"
 
   #~@ Expand environment variables in the value
   $expandedValue = [System.Environment]::ExpandEnvironmentVariables($Value)
@@ -420,11 +420,11 @@ function Global:Set-Env {
   if ([string]::IsNullOrEmpty($Type)) {
     if ($processedName -match '^cd\.') {
       $Type = 'cd'
-      Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Auto-detected type 'cd' from name pattern"
+      Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Auto-detected type 'cd' from name pattern"
     }
     elseif ($processedName -match '^edit\.') {
       $Type = 'edit'
-      Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Auto-detected type 'edit' from name pattern"
+      Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Auto-detected type 'edit' from name pattern"
     }
   }
 
@@ -457,7 +457,7 @@ function Global:Set-Env {
       if ($script:EnvCache.ContainsKey($cacheKey)) {
         $script:EnvCache.Remove($cacheKey)
         $script:CacheExpiry.Remove($cacheKey)
-        Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Cleared cache for updated variable '$processedName'"
+        Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Cleared cache for updated variable '$processedName'"
       }
 
       Write-Pretty -Tag 'Success' -ContextScope $script:ctxScope -OneLine -Message "Set ${processedName} => ${expandedValue} [$Scope]"
@@ -825,7 +825,7 @@ function Global:Get-EnvSorted {
     return $Variables
   }
 
-  Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Sorting $($Variables.Count) variables by: $SortMethod"
+  # Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "Sorting $($Variables.Count) variables by: $SortMethod"
 
   $sortedVars = [ordered]@{}
 
@@ -955,7 +955,7 @@ function Global:Get-EnvSorted {
     }
   }
 
-  Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Sorted $($sortedVars.Count) variables using $SortMethod method"
+  Write-Pretty -Tag 'Trace' -ContextScope $script:ctxScope -OneLine -Message "$SortMethod sort performed on $($sortedVars.Count) variables"
   return $sortedVars
 }
 
