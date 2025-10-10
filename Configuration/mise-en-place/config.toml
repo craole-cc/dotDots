@@ -96,15 +96,33 @@ run = [
   "treefmt --clear-cache --fail-on-change --allow-missing-formatter",
 ]
 
-[tasks.push]
-description = "Push the changes to the main branch"
-alias = "up"
-run = ["jj describe", "jj bookmark set main --revision=@", "jj git push"]
-
 [tasks.pull]
 description = "Pull the changes to the main branch"
 alias = "down"
-run = ["jj git fetch", "jj rebase --destination main"]
+run = [
+  #~@ Fetch and update from remote using Git
+  "git checkout main",
+  "git pull origin main",
+
+  #~@ Sync JJ state with imported Git changes
+  "jj git fetch --remote origin",
+  "jj rebase --destination main@origin",
+]
+
+[tasks.push]
+description = "Push the changes to the main branch"
+alias = "up"
+run = [
+  #~@ Update commit description if needed
+  "jj describe",
+
+  #~@ Push with JJ first (for bookmarks, non-protected branches)
+  "jj bookmark set main --revision=@",
+  "jj git push",
+
+  #~@ Also push latest changes using Git (in case PR workflow is needed)
+  "git push origin main",
+]
 
 [tasks.jj]
 description = "Initialize the repository to use jusutsu"
