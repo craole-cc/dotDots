@@ -23,11 +23,6 @@ email = "32288735+Craole@users.noreply.github.com"
 [--scope.ui]
 paginate = "never"
 
-[[--scope]]
---when.commands = ["diff", "show"]
-[--scope.ui]
-pager = "delta"
-
 [ui]
 diff-editor = "hx"
 editor = "hx"
