@@ -11,12 +11,36 @@ name = "craole-cc"
 [--scope.user]
 email = "134658831+craole-cc@users.noreply.github.com"
 
+[[--scope]]
+--when.repositories = ["/d/Project/GitHub/Craole"]
+[--scope.name]
+name = "Craole"
+[--scope.user]
+email = "32288735+Craole@users.noreply.github.com"
+
+[[--scope]]
+--when.commands = ["status"]
+[--scope.ui]
+paginate = "never"
+
+[[--scope]]
+--when.commands = ["diff", "show"]
+[--scope.ui]
+pager = "delta"
+
 [ui]
 diff-editor = "hx"
 editor = "hx"
 default-command = "status"
 
 [aliases]
+pull = [
+  #   "git",
+  #   "fetch",
+  #   "--remote",
+  #   "origin",
+  #   "bookmark set main --revision=main@origin",
+]
 clone = ["git", "clone"]
 push = ["git", "push", "--allow-new"]
-pull = ["git fetch --remote origin", "bookmark set main --revision=main@origin"]
+smash = ["squash", "-r", "@-"]
