@@ -83,6 +83,8 @@ push = ["git", "push", "--allow-new"]
 smash = ["squash", "-r", "@-"]
 l = ["log", "-r", "(main..@):: | (main..@)-"]
 
-[core]
-fsmonitor = "watchman"
-watchman.register-snapshot-trigger = true
+[fsmonitor]
+backend = "watchman"
+
+[fsmonitor.watchman]
+register-snapshot-trigger = true
