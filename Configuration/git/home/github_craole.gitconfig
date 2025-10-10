@@ -1,5 +1,5 @@
 [core]
-  sshCommand = "ssh -i ~/.ssh/github.com/Craole"
+  sshCommand = "ssh -i ~/.ssh/github/Craole"
 
 [user]
   name = Craole
