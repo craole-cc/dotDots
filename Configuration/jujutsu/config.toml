@@ -24,9 +24,51 @@ email = "32288735+Craole@users.noreply.github.com"
 paginate = "never"
 
 [ui]
-diff-editor = "hx"
+# diff-editor = "hx"
+diff-editor = "meld-3"
+merge-editor = [
+  "meld",
+  "$left",
+  "$base",
+  "$right",
+  "-o",
+  "$output",
+  "--auto-merge",
+]
 editor = "hx"
 default-command = ["log", "--reversed"]
+# Possible values: "curved" (default), "square", "ascii", "ascii-large"
+# graph.style = "ascii-large"
+log-word-wrap = true
+
+[git]
+push-new-bookmarks = true
+
+[templates]
+# Use builtin evolog template
+evolog = "builtin_evolog_compact"
+# Use builtin log template
+log = "builtin_log_compact_full_description"
+# Use builtin show template
+show = "builtin_log_detailed"
+# Use builtin op log template
+op_log = "builtin_op_log_compact"
+# Use builtin op log template
+op_show = "builtin_op_log_compact"
+
+[template-aliases]
+'format_short_id(id)' = 'id.shortest(12).prefix() ++ "[" ++ id.shortest(12).rest() ++ "]"'
+# Full timestamp in ISO 8601 format
+# 'format_timestamp(timestamp)' = 'timestamp'
+# Relative timestamp rendered as "x days/hours/seconds ago"
+'format_timestamp(timestamp)' = 'timestamp.ago()'
+'format_time_range(time_range)' = 'time_range.start() ++ " - " ++ time_range.end()'
+# Full email address (default)
+# 'format_short_signature(signature)' = 'signature.email()'
+# Both name and email address
+# 'format_short_signature(signature)' = 'signature'
+# Username part of the email address
+'format_short_signature(signature)' = 'signature.email().local()'
 
 [aliases]
 pull = [
@@ -39,3 +81,8 @@ pull = [
 clone = ["git", "clone"]
 push = ["git", "push", "--allow-new"]
 smash = ["squash", "-r", "@-"]
+l = ["log", "-r", "(main..@):: | (main..@)-"]
+
+[core]
+fsmonitor = "watchman"
+watchman.register-snapshot-trigger = true

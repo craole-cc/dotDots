@@ -1,0 +1,8 @@
+{
+  "Includes": [
+    "activate.ps1",
+    "meld.ps1",
+    "watchman.ps1",
+    "_._"
+  ]
+}
