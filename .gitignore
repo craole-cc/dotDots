@@ -18,3 +18,4 @@ private/
 *.ttf
 *.otf
 *.woff2
+.vscode/

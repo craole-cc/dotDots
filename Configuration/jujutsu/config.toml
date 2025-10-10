@@ -5,14 +5,14 @@ name = "Craole"
 email = "32288735+Craole@users.noreply.github.com"
 
 [[--scope]]
---when.repositories = ["/d/Project/GitHub/CC"]
+--when.repositories = ["/d/Project/GitHub/CC", "D:/Projects/GitHub/CC"]
 [--scope.name]
 name = "craole-cc"
 [--scope.user]
 email = "134658831+craole-cc@users.noreply.github.com"
 
 [[--scope]]
---when.repositories = ["/d/Project/GitHub/Craole"]
+--when.repositories = ["/d/Project/GitHub/Craole", "D:/Projects/GitHub/CC"]
 [--scope.name]
 name = "Craole"
 [--scope.user]
