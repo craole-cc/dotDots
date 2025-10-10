@@ -50,9 +50,10 @@
       "path": "Configuration",
       "modules": [
         "mise-en-place",
+        "helix",
+        "jujutsu",
         "neo4j",
         "rust",
-        "jujutsu",
         "WindowsTerminal",
         "oh-my-posh"
       ]
