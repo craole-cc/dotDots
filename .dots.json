@@ -52,8 +52,8 @@
         "mise-en-place",
         "helix",
         "jujutsu",
-        "neo4j",
         "rust",
+        "neo4j",
         "WindowsTerminal",
         "oh-my-posh"
       ]
