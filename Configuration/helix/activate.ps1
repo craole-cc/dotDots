@@ -118,10 +118,11 @@ function Global:Set-Helix {
     if (Test-Path -Path $dotConfigPath -PathType Leaf) {
       [Environment]::SetEnvironmentVariable($envVarName, $dotConfigPath, 'Process')
       Set-Variable -Name $envVarName -Value $dotConfigPath -Scope Global
+      Write-Pretty -DebugEnv $envVarName $dotConfigPath
+
       [Environment]::SetEnvironmentVariable($envVarLinkName, $userConfigPath, 'Process')
       Set-Variable -Name $envVarLinkName -Value $userConfigPath -Scope Global
-      Write-Verbose "Exported variable: $envVarName => $dotConfigPath"
-      Write-Verbose "Exported variable: $envVarLinkName => $userConfigPath"
+      Write-Pretty -DebugEnv $envVarLinkName $userConfigPath
     }
     else {
       Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotConfigPath"
@@ -167,9 +168,6 @@ function Global:Set-Helix {
       return $false
     }
   }
-
-  #~@ All config files linked successfully
-  Write-Pretty -Tag 'Success' 'All Helix config files successfully linked and environment variables set.'
   return $true
 }
 
@@ -184,23 +182,27 @@ function Global:Initialize-Helix {
   [CmdletBinding()]
   param()
 
-  $app = Get-HelixConfig
+  try {
+    $time = Get-Date
+    $app = Get-HelixConfig
 
-  #~@ Install if missing
-  if (-not (Get-CommandFirst -Name $app.cmd -ErrorAction SilentlyContinue)) {
+    #~@ Attempt installation and throw if fails
     if (-not (Install-Helix)) {
-      Write-Pretty -Tag 'Error' "Failed to install $($app.desc), aborting."
-      return
+      throw 'Unable to complete installation.'
     }
-  }
 
-  #~@ Link configs
-  if (-not (Set-Helix)) {
-    Write-Pretty -Tag 'Error' "Failed to activate $($app.desc) configs."
-    return
-  }
+    #~@ Attempt config linking and throw if fails
+    if (-not (Set-Helix)) {
+      throw 'Unable to set up configuration.'
+    }
 
-  Write-Pretty -Tag 'Success' "$($app.desc) environment initialized."
+    #~@ Return success message with timing
+    Write-Pretty -Tag 'Info' -NoNewLine -As $($app.desc) -Init $time
+  }
+  catch {
+    #~@ Return failure message with exception details
+    Write-Pretty -Tag 'Error' "Failed to initialize $($app.desc)" "$($_.Exception.Message)"
+  }
 }
 
 #~@ Auto-initialize on script load

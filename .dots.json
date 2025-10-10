@@ -1,7 +1,7 @@
 {
   "Options": {
     "Tag": ">>= DOTS =<<",
-    "Verbosity": "Trace",
+    "Verbosity": "Debug",
     "VerbosePreference": "SilentlyContinue",
     "DebugPreference": "SilentlyContinue",
     "InformationPreference": "SilentlyContinue",

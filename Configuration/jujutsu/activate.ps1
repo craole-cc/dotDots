@@ -118,7 +118,7 @@ function Global:Set-Jujutsu {
     if (Test-Path -Path $envVars[$key] -PathType Leaf) {
       [Environment]::SetEnvironmentVariable($key, $envVars[$key], 'Process')
       Set-Variable -Name $key -Value $envVars[$key] -Scope Global
-      Write-Verbose "Exported variable: $key => $($envVars[$key])"
+      Write-Pretty -DebugEnv $key $($envVars[$key])
     }
   }
 
@@ -183,23 +183,32 @@ function Global:Initialize-Jujutsu {
   [CmdletBinding()]
   param()
 
-  $app = Get-JujutsuConfig
+  try {
+    #~@ Retrieve config
+    $time = Get-Date
+    $app = Get-JujutsuConfig
 
-  #~@ Install if missing
-  if (-not (Get-CommandFirst -Name $app.cmd -ErrorAction SilentlyContinue)) {
-    if (-not (Install-Jujutsu)) {
-      Write-Pretty -Tag 'Error' "Failed to install $($app.desc), aborting."
+    #~@ Install if missing
+    if (-not (Get-CommandFirst -Name $app.cmd -ErrorAction SilentlyContinue)) {
+      if (-not (Install-Jujutsu)) {
+        Write-Pretty -Tag 'Error' 'Unable to install.'
+        return
+      }
+    }
+
+    #~@ Link config
+    if (-not (Set-Jujutsu)) {
+      Write-Pretty -Tag 'Error' 'Unable to set configuration.'
       return
     }
-  }
 
-  #~@ Link config
-  if (-not (Set-Jujutsu)) {
-    Write-Pretty -Tag 'Error' "Failed to activate $($app.desc) config."
-    return
+    #~@ Return success message with timing
+    Write-Pretty -Tag 'Info' -NoNewLine -As $($app.desc) -Init $time
   }
-
-  Write-Pretty -Tag 'Success' "$($app.desc) environment initialized."
+  catch {
+    #~@ Return failure message with exception details
+    Write-Pretty -Tag 'Error' "Failed to initialize $($app.desc)" "$($_.Exception.Message)"
+  }
 }
 
 #~@ Auto-initialize on script load
