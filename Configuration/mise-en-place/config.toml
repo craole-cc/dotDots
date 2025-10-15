@@ -96,17 +96,25 @@ run = [
   "treefmt --clear-cache --fail-on-change --allow-missing-formatter",
 ]
 
+[tasks.pujj]
+description = "Pull the local jj state with that of the remote origin"
+alias = "jj-down"
+run = ["jj git fetch --remote origin", "jj rebase --destination main@origin"]
+
+[tasks.pullit]
+description = "Fetch and update from remote using Git"
+alias = "git-down"
+run = ["git checkout main", "git pull origin main"]
+
 [tasks.pull]
 description = "Pull the changes to the main branch"
 alias = "down"
 run = [
   #~@ Fetch and update from remote using Git
-  "git checkout main",
-  "git pull origin main",
+  "mise pullit",
 
   #~@ Sync JJ state with imported Git changes
-  "jj git fetch --remote origin",
-  "jj rebase --destination main@origin",
+  "mise pujj",
 ]
 
 [tasks.push]
