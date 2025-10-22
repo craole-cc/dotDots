@@ -121,6 +121,9 @@ run = [
 description = "Push the changes to the main branch"
 alias = "up"
 run = [
+  #~@ Remove JJ lock, if present
+  "rm -f .jj/working_copy/working_copy.lock 2>/dev/null || true",
+
   #~@ Update commit description if needed
   "jj describe",
 
@@ -131,6 +134,7 @@ run = [
   #~@ Also push latest changes using Git (in case PR workflow is needed)
   "git push origin main",
 ]
+
 
 [tasks.jj]
 description = "Initialize the repository to use jusutsu"
