@@ -132,9 +132,8 @@ run = [
   "jj git push",
 
   #~@ Also push latest changes using Git (in case PR workflow is needed)
-  "git push origin main",
+  # "git push origin main",
 ]
-
 
 [tasks.jj]
 description = "Initialize the repository to use jusutsu"
