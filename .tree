@@ -1,0 +1,2988 @@
+File Tree for :
+
+├── .dots.json
+├── .dotsrc
+├── .envrc
+├── .gitignore
+├── .gitmodules
+├── .history
+├── .ignore
+├── .shellcheckrc
+├── .treefmt.toml
+├── .typos.toml
+├── .vscode
+│   ├── extensions.json
+│   └── settings.json
+├── Bin
+│   ├── .dotsrc
+│   ├── bash
+│   │   ├── .dotsrc
+│   │   ├── enviro.bash
+│   │   ├── ssh.bash
+│   │   ├── sshit copy.bash
+│   │   └── sshit.bash
+│   ├── cmd
+│   │   ├── get-jbs-wallpaper.bat
+│   │   ├── windows
+│   │   ├── wtq.bat
+│   │   └── wt_quake.bat
+│   ├── nushell
+│   │   ├── lls.nu
+│   │   ├── llss.nu
+│   │   ├── sum.nu
+│   │   ├── watch.nu
+│   │   └── watcher.nu
+│   ├── powershell
+│   │   ├── Admin
+│   │   │   └── checks.ps1
+│   │   ├── Applications
+│   │   │   ├── default.ps1
+│   │   │   ├── editor copy.ps1
+│   │   │   ├── editor.psm1
+│   │   │   └── hello.ps1
+│   │   ├── Components
+│   │   │   ├── command.ps1
+│   │   │   ├── context.ps1
+│   │   │   └── time.ps1
+│   │   ├── Environment
+│   │   │   ├── .dots.json
+│   │   │   ├── alias
+│   │   │   │   ├── .dots.json
+│   │   │   │   ├── coreutils.ps1
+│   │   │   │   └── default.ps1
+│   │   │   ├── fyls.ps1
+│   │   │   ├── variable.ps1
+│   │   │   ├── wallpaper copy 2.ps1
+│   │   │   ├── wallpaper copy.ps1
+│   │   │   ├── wallpaper copy.psm1
+│   │   │   └── wallpaper.psm1
+│   │   ├── FileSystem
+│   │   │   ├── .dots.json
+│   │   │   ├── Files
+│   │   │   ├── filesystem.ps1
+│   │   │   ├── Folders
+│   │   │   ├── Links
+│   │   │   │   ├── Links.psd1
+│   │   │   │   ├── Links.psm1
+│   │   │   │   ├── Private
+│   │   │   │   │   ├── Resolve-TargetPath.ps1
+│   │   │   │   │   └── Test-CorrectLink.ps1
+│   │   │   │   ├── Public
+│   │   │   │   │   ├── Backup-Link.ps1
+│   │   │   │   │   ├── Get-LinkReport.ps1
+│   │   │   │   │   ├── New-Link.ps1
+│   │   │   │   │   ├── New-SymbolicLink.ps1
+│   │   │   │   │   ├── Remove-OrphanedLinks.ps1
+│   │   │   │   │   ├── Repair-BrokenLinks.ps1
+│   │   │   │   │   ├── Restore-Link.ps1
+│   │   │   │   │   └── Test-Link.ps1
+│   │   │   │   ├── README.md
+│   │   │   │   └── symlink.ps1.bac
+│   │   │   └── paths.ps1
+│   │   ├── Output
+│   │   │   ├── .dots.json
+│   │   │   ├── pattern.ps1
+│   │   │   ├── pretty.ps1
+│   │   │   └── verbosity.ps1
+│   │   ├── review
+│   │   │   ├── Base
+│   │   │   │   ├── admin
+│   │   │   │   ├── command
+│   │   │   │   │   └── command.ps1
+│   │   │   │   ├── context
+│   │   │   │   │   └── context.ps1
+│   │   │   │   ├── filesystem
+│   │   │   │   │   └── filesystem.ps1
+│   │   │   │   ├── help.ps1
+│   │   │   │   ├── import_script copy.ps1
+│   │   │   │   ├── import_script.ps1
+│   │   │   │   ├── output
+│   │   │   │   │   ├── config.json
+│   │   │   │   │   ├── pattern.ps1
+│   │   │   │   │   ├── pretty.ps1
+│   │   │   │   │   ├── test.ps1
+│   │   │   │   │   └── verbosity.ps1
+│   │   │   │   ├── review
+│   │   │   │   │   ├── pretty copy.ps1
+│   │   │   │   │   ├── _.psd1
+│   │   │   │   │   ├── _.psm1
+│   │   │   │   │   └── _.psm1.old
+│   │   │   │   ├── types
+│   │   │   │   └── _.psm1
+│   │   │   ├── editor.ps1
+│   │   │   ├── formatSettings.psd1
+│   │   │   ├── get-jbs-wallpaper.ps1
+│   │   │   ├── has.ps1
+│   │   │   ├── lsp.ps1
+│   │   │   ├── module copy.ps1
+│   │   │   ├── paths.ps1
+│   │   │   ├── pout.ps1
+│   │   │   ├── powershell.ps1
+│   │   │   ├── psfmt copy.ps1
+│   │   │   ├── test-env.ps1
+│   │   │   ├── test.ps1
+│   │   │   ├── Utilities
+│   │   │   │   ├── module.ps1
+│   │   │   │   ├── psfmt.ps1
+│   │   │   │   ├── treefmt.init.ps1
+│   │   │   │   └── _.psm1
+│   │   │   ├── winget_apps.ps1
+│   │   │   └── wrappers.ps1
+│   │   └── Types
+│   │       └── numbers.ps1
+│   ├── python
+│   │   ├── fast_com.py
+│   │   ├── find_parent.py
+│   │   ├── nerdfont.test.py
+│   │   └── os.py
+│   ├── review
+│   │   ├── DOTSactivate
+│   │   ├── DOTSup
+│   │   ├── echocenter
+│   │   ├── echofill
+│   │   ├── eol
+│   │   ├── eolCR.sh
+│   │   ├── eolLF.sh
+│   │   ├── GitIt
+│   │   ├── import
+│   │   │   ├── emojify
+│   │   │   ├── gengetoptions
+│   │   │   ├── getoptions
+│   │   │   ├── jake
+│   │   │   ├── liblist
+│   │   │   ├── mons
+│   │   │   └── qtile
+│   │   │       ├── Qtest
+│   │   │       └── xephyr
+│   │   ├── isVar
+│   │   ├── po6copy
+│   │   ├── po6paste
+│   │   ├── srcENV
+│   │   ├── sysINF
+│   │   ├── tpt
+│   │   ├── tpt1
+│   │   ├── tput_colors
+│   │   └── tt
+│   ├── rust
+│   │   ├── eol.rs
+│   │   ├── fmt_editorconfig.rs
+│   │   └── is_graphical_env.rs
+│   ├── shellscript
+│   │   ├── base
+│   │   │   ├── clock
+│   │   │   ├── clock_test
+│   │   │   └── uid
+│   │   ├── benchmark
+│   │   │   ├── temporal
+│   │   │   └── timit
+│   │   ├── cmd
+│   │   │   ├── apps_activate
+│   │   │   ├── apps_reload
+│   │   │   ├── app_activate
+│   │   │   ├── app_is_active
+│   │   │   ├── app_is_installed
+│   │   │   ├── app_kill
+│   │   │   ├── app_reload
+│   │   │   ├── app_run
+│   │   │   ├── batch_launcher
+│   │   │   ├── CMDman
+│   │   │   ├── cmdo
+│   │   │   ├── ducta
+│   │   │   ├── launch
+│   │   │   ├── leave
+│   │   │   └── make_exec
+│   │   ├── controller
+│   │   │   ├── Aper
+│   │   │   ├── Blight
+│   │   │   ├── open
+│   │   │   └── Volcono
+│   │   ├── core
+│   │   │   ├── guix
+│   │   │   │   ├── Guix_HOME
+│   │   │   │   └── Guix_SYS
+│   │   │   ├── prep_grep
+│   │   │   └── review
+│   │   │       ├── eliv8
+│   │   │       ├── INFor
+│   │   │       ├── sysINF1
+│   │   │       ├── sysINF2
+│   │   │       └── sysINFer
+│   │   ├── data
+│   │   │   ├── delim
+│   │   │   ├── delim copy
+│   │   │   ├── get_os_arch
+│   │   │   ├── get_os_host
+│   │   │   ├── get_os_kernel
+│   │   │   ├── get_os_name
+│   │   │   ├── get_os_shell
+│   │   │   ├── get_os_type
+│   │   │   ├── get_os_user
+│   │   │   └── inf
+│   │   ├── environment
+│   │   │   ├── absolute
+│   │   │   ├── ancestor
+│   │   │   ├── bakitup
+│   │   │   ├── buildir
+│   │   │   ├── buildir copy
+│   │   │   ├── del
+│   │   │   ├── delete
+│   │   │   ├── enviro
+│   │   │   ├── enviro copy
+│   │   │   ├── eol
+│   │   │   ├── eol.sh
+│   │   │   ├── EOLor
+│   │   │   ├── eol_test
+│   │   │   │   ├── .gitactions
+│   │   │   │   │   └── pop
+│   │   │   │   │       └── lol
+│   │   │   │   ├── eol_clean
+│   │   │   │   ├── eol_clean1
+│   │   │   │   └── path with space
+│   │   │   │       └── pop
+│   │   │   │           └── lol
+│   │   │   ├── fl
+│   │   │   ├── fld
+│   │   │   ├── fll
+│   │   │   ├── fls
+│   │   │   ├── fs
+│   │   │   ├── fyls
+│   │   │   ├── fyls copy
+│   │   │   ├── is_writable
+│   │   │   ├── lls
+│   │   │   ├── llss
+│   │   │   ├── lsl
+│   │   │   ├── lsR
+│   │   │   ├── lxa
+│   │   │   ├── lxd
+│   │   │   ├── lxda
+│   │   │   ├── lxl
+│   │   │   ├── lxr
+│   │   │   ├── lxs
+│   │   │   ├── lxsr
+│   │   │   ├── lxt
+│   │   │   ├── lxtr
+│   │   │   ├── lxx
+│   │   │   ├── mkd
+│   │   │   ├── nv
+│   │   │   ├── PATH
+│   │   │   │   ├── PATH_add
+│   │   │   │   └── PATH_ls
+│   │   │   ├── pathman
+│   │   │   ├── pathof
+│   │   │   ├── pathof.sh
+│   │   │   ├── pushpop copy
+│   │   │   ├── pushpop1
+│   │   │   ├── rename_dirs
+│   │   │   ├── respath
+│   │   │   ├── restore
+│   │   │   ├── review
+│   │   │   │   ├── envar
+│   │   │   │   ├── enviro
+│   │   │   │   ├── enviro copy
+│   │   │   │   └── PathOf_old
+│   │   │   ├── runin
+│   │   │   ├── seek
+│   │   │   ├── symbiolink
+│   │   │   └── temper
+│   │   ├── font
+│   │   │   ├── Fonts
+│   │   │   ├── Fonts_init
+│   │   │   ├── Fonts_list
+│   │   │   ├── Fonts_refresh
+│   │   │   ├── Fonts_type
+│   │   │   ├── nerdfont.test
+│   │   │   └── unicode.test
+│   │   ├── import
+│   │   │   ├── .config
+│   │   │   ├── emojify.sh
+│   │   │   └── getoptions.sh
+│   │   ├── interface
+│   │   │   ├── bar
+│   │   │   │   └── Waybar
+│   │   │   ├── desktop_init
+│   │   │   ├── init_display
+│   │   │   ├── init_X11
+│   │   │   ├── Qtilex
+│   │   │   ├── set-wallpaper.bat
+│   │   │   ├── set-wallpaper.ps1
+│   │   │   ├── theme
+│   │   │   │   ├── colorscheme
+│   │   │   │   ├── cscheme
+│   │   │   │   ├── theme_toggle
+│   │   │   │   └── theme_wt
+│   │   │   ├── wm
+│   │   │   │   └── Sway
+│   │   │   ├── WMDE
+│   │   │   ├── WMDE_bar
+│   │   │   └── wm_test
+│   │   ├── misc
+│   │   │   └── docs
+│   │   │       └── Lsed
+│   │   ├── output
+│   │   │   ├── 41one
+│   │   │   ├── align
+│   │   │   ├── case_redirect
+│   │   │   ├── charline
+│   │   │   ├── consolog
+│   │   │   ├── delimiter
+│   │   │   ├── dis2dat
+│   │   │   ├── Echo
+│   │   │   ├── embellish
+│   │   │   ├── embellishp
+│   │   │   ├── embellish_old
+│   │   │   ├── jot
+│   │   │   ├── labrish
+│   │   │   ├── logline
+│   │   │   ├── lowercase_perl
+│   │   │   ├── lowercase_sed
+│   │   │   ├── lowercase_tr
+│   │   │   ├── pad
+│   │   │   ├── pager
+│   │   │   ├── pout
+│   │   │   ├── pout-basic
+│   │   │   ├── pout-highlight
+│   │   │   ├── pout-padded
+│   │   │   ├── pout-repeat
+│   │   │   ├── pout-section
+│   │   │   ├── pout-split
+│   │   │   ├── pout-tagged
+│   │   │   ├── pout2
+│   │   │   ├── poutFIX
+│   │   │   ├── review
+│   │   │   │   └── caser
+│   │   │   ├── say
+│   │   │   ├── split-str
+│   │   │   ├── stralt
+│   │   │   ├── term_output
+│   │   │   ├── txtBarber
+│   │   │   ├── use_ANSI
+│   │   │   ├── use_TPUT1
+│   │   │   ├── verbosity
+│   │   │   ├── verbosity copy
+│   │   │   ├── verbosity.test
+│   │   │   └── verbosity.test.result
+│   │   ├── packages
+│   │   │   ├── alias
+│   │   │   │   ├── browser-brave
+│   │   │   │   ├── browser-edge
+│   │   │   │   ├── browser-firefox
+│   │   │   │   ├── ede
+│   │   │   │   ├── edita
+│   │   │   │   ├── edot
+│   │   │   │   ├── Emacs
+│   │   │   │   ├── Exa
+│   │   │   │   ├── fetch_macchhina
+│   │   │   │   ├── fetch_neo
+│   │   │   │   ├── Fuzzel
+│   │   │   │   ├── helix
+│   │   │   │   ├── Install
+│   │   │   │   ├── install_rust
+│   │   │   │   ├── install_via_cargo
+│   │   │   │   ├── Kitty
+│   │   │   │   ├── omp
+│   │   │   │   ├── Redshift
+│   │   │   │   ├── Rofi
+│   │   │   │   ├── shell_bash
+│   │   │   │   ├── shell_nu
+│   │   │   │   ├── shHarden
+│   │   │   │   ├── sup
+│   │   │   │   ├── supa
+│   │   │   │   ├── VScode
+│   │   │   │   └── zee
+│   │   │   ├── defaults
+│   │   │   │   ├── Browser
+│   │   │   │   ├── Browser_SEC
+│   │   │   │   ├── Compositor
+│   │   │   │   ├── DisplayMonitor
+│   │   │   │   ├── editor
+│   │   │   │   ├── FileManager
+│   │   │   │   ├── Keymap
+│   │   │   │   ├── Launcher
+│   │   │   │   ├── Lockscreen
+│   │   │   │   ├── Note
+│   │   │   │   ├── Reader
+│   │   │   │   ├── review
+│   │   │   │   │   └── Editor
+│   │   │   │   ├── ScreenShooter
+│   │   │   │   ├── SHell
+│   │   │   │   ├── sysInfo
+│   │   │   │   ├── sysMonitor
+│   │   │   │   ├── sysUpdate
+│   │   │   │   ├── TER
+│   │   │   │   ├── Terminal
+│   │   │   │   ├── Terminal_SEC
+│   │   │   │   ├── Tube
+│   │   │   │   ├── Tube_tmp
+│   │   │   │   ├── Viewer
+│   │   │   │   ├── VNC
+│   │   │   │   └── Wolafresh
+│   │   │   ├── manager
+│   │   │   │   ├── Flatpak_check
+│   │   │   │   ├── Flatpak_run
+│   │   │   │   ├── nix
+│   │   │   │   │   ├── nks
+│   │   │   │   │   ├── nks-check
+│   │   │   │   │   ├── nks-show
+│   │   │   │   │   └── nx
+│   │   │   │   ├── pac
+│   │   │   │   ├── pacInstall
+│   │   │   │   ├── pacUpdate
+│   │   │   │   ├── topup
+│   │   │   │   └── void
+│   │   │   │       ├── Void_pacInstall
+│   │   │   │       ├── Void_pacQuery
+│   │   │   │       └── Void_pacUninstall
+│   │   │   └── paru
+│   │   │       ├── paru_ie
+│   │   │       └── paru_info
+│   │   ├── project
+│   │   │   ├── .dots
+│   │   │   ├── codeDots
+│   │   │   ├── data
+│   │   │   │   └── learn_analytics
+│   │   │   ├── formatters
+│   │   │   │   ├── .fmt
+│   │   │   │   ├── fmtree
+│   │   │   │   ├── fmtree_old
+│   │   │   │   └── fmt_editorconfig
+│   │   │   ├── git
+│   │   │   │   ├── DOTSup
+│   │   │   │   ├── geet
+│   │   │   │   ├── geet_with_deps
+│   │   │   │   ├── git-history-search
+│   │   │   │   ├── gitAddAll
+│   │   │   │   ├── gitCommit
+│   │   │   │   ├── gitConfig
+│   │   │   │   ├── gitini
+│   │   │   │   ├── gitini1
+│   │   │   │   ├── gitit
+│   │   │   │   ├── gitPull
+│   │   │   │   ├── gitPush
+│   │   │   │   ├── gitReset
+│   │   │   │   ├── gitStatus
+│   │   │   │   ├── gitup
+│   │   │   │   └── gyt
+│   │   │   ├── javascript
+│   │   │   │   └── NextTS
+│   │   │   ├── nix
+│   │   │   │   ├── devnix
+│   │   │   │   ├── flake_rust
+│   │   │   │   ├── nixrb
+│   │   │   │   ├── nixrb copy
+│   │   │   │   └── sync-flake.sh
+│   │   │   ├── pcleaner
+│   │   │   ├── prj
+│   │   │   ├── python
+│   │   │   │   └── python_gc
+│   │   │   ├── ruby
+│   │   │   │   ├── raily_new
+│   │   │   │   ├── ruby_gc
+│   │   │   │   └── ruby_run
+│   │   │   ├── rust
+│   │   │   │   ├── carb
+│   │   │   │   ├── carbc
+│   │   │   │   ├── carg
+│   │   │   │   ├── cfg_cargo
+│   │   │   │   ├── cfg_rustup
+│   │   │   │   ├── cgo
+│   │   │   │   ├── cgoo
+│   │   │   │   ├── cgo_b
+│   │   │   │   ├── cgo_c
+│   │   │   │   ├── cgo_w
+│   │   │   │   ├── cgo_we
+│   │   │   │   └── cgo_wt
+│   │   │   ├── vsc
+│   │   │   ├── watsh
+│   │   │   └── wsl
+│   │   │       └── NixWSL
+│   │   ├── review
+│   │   │   ├── are
+│   │   │   ├── array
+│   │   │   ├── array_posix
+│   │   │   ├── autostarter
+│   │   │   ├── calk
+│   │   │   ├── check_app
+│   │   │   ├── clc
+│   │   │   ├── clip-c
+│   │   │   ├── clip-p
+│   │   │   ├── color
+│   │   │   ├── DeployConfig
+│   │   │   ├── DiskINF
+│   │   │   ├── diskUsage
+│   │   │   ├── dnif
+│   │   │   ├── dtdiff
+│   │   │   ├── ede
+│   │   │   ├── edge
+│   │   │   ├── eko
+│   │   │   ├── ENVmanx
+│   │   │   ├── filtrate
+│   │   │   ├── howto
+│   │   │   ├── hx_theme
+│   │   │   ├── INFor
+│   │   │   ├── kwote
+│   │   │   ├── location
+│   │   │   ├── Logout
+│   │   │   ├── mirror
+│   │   │   ├── mkbak
+│   │   │   ├── mkfile
+│   │   │   ├── murda
+│   │   │   ├── open
+│   │   │   ├── OS
+│   │   │   ├── parse_json
+│   │   │   ├── path_append
+│   │   │   ├── path_convert
+│   │   │   ├── path_convert1
+│   │   │   ├── path_convert2
+│   │   │   ├── path_convert3
+│   │   │   ├── path_convert4
+│   │   │   ├── path_perpend
+│   │   │   ├── pingLAN
+│   │   │   ├── pingLAN1
+│   │   │   ├── quake_wt.bat
+│   │   │   ├── RC
+│   │   │   ├── readKeypress
+│   │   │   ├── read_char
+│   │   │   ├── Reboot
+│   │   │   ├── resdir
+│   │   │   ├── RootExec
+│   │   │   ├── setUnix
+│   │   │   ├── skipPOSIX
+│   │   │   ├── sortby
+│   │   │   ├── source_dir
+│   │   │   ├── source_file
+│   │   │   ├── sshIt
+│   │   │   ├── sshIt copy
+│   │   │   ├── sshIt1
+│   │   │   ├── sshIt2
+│   │   │   ├── stringSUBstring
+│   │   │   ├── Template
+│   │   │   ├── tmpgen
+│   │   │   ├── update
+│   │   │   ├── Uptime
+│   │   │   ├── Wallp
+│   │   │   ├── wat
+│   │   │   ├── weatherin
+│   │   │   ├── weHave
+│   │   │   ├── WM_class
+│   │   │   ├── Write
+│   │   │   ├── xev-info
+│   │   │   ├── ytdon
+│   │   │   ├── ytdon_tmp
+│   │   │   ├── YTDownloader
+│   │   │   └── zshopt
+│   │   ├── script
+│   │   │   ├── runsh
+│   │   │   ├── scrINF
+│   │   │   ├── scr_name
+│   │   │   └── scr_path
+│   │   ├── system_tray
+│   │   │   ├── day
+│   │   │   ├── trayBluetooth
+│   │   │   ├── trayNotification
+│   │   │   ├── trayPower
+│   │   │   └── trayVolume
+│   │   ├── tasks
+│   │   │   ├── alacritty.init
+│   │   │   ├── align.test
+│   │   │   ├── are.test
+│   │   │   ├── dis2dat.test
+│   │   │   ├── display.init
+│   │   │   ├── dots.init
+│   │   │   ├── ducta.test
+│   │   │   ├── embellish.test
+│   │   │   ├── fetch.os.type
+│   │   │   ├── fetch.time
+│   │   │   ├── fetcher.test
+│   │   │   ├── fonts.init
+│   │   │   ├── helix.init
+│   │   │   ├── herbstluftwm.init
+│   │   │   ├── hostname.fetch
+│   │   │   ├── init-fastfetch
+│   │   │   ├── init.logger
+│   │   │   ├── init.shell
+│   │   │   ├── kitty.init
+│   │   │   ├── macchina.init
+│   │   │   ├── nu.test
+│   │   │   ├── nushell.init
+│   │   │   ├── os.arch.fetch
+│   │   │   ├── os.distro.fetch
+│   │   │   ├── os.kernel.fetch
+│   │   │   ├── os.type.fetch
+│   │   │   ├── packages.init
+│   │   │   ├── pathof.test
+│   │   │   ├── PATH_add.test
+│   │   │   ├── qtile.init
+│   │   │   ├── qtile.read_log
+│   │   │   ├── rust.init_dev
+│   │   │   ├── sddm.init
+│   │   │   ├── set.app
+│   │   │   ├── shell.fetch
+│   │   │   ├── shell.init
+│   │   │   ├── shHarden.test
+│   │   │   ├── solana.init
+│   │   │   ├── source.init
+│   │   │   ├── source.test
+│   │   │   ├── starship.init
+│   │   │   ├── username.fetch
+│   │   │   ├── wget.init
+│   │   │   ├── Write.test
+│   │   │   └── xmonad.init
+│   │   ├── template
+│   │   │   ├── emojify
+│   │   │   ├── Getopt
+│   │   │   ├── getoptions_advanced
+│   │   │   ├── getoptions_basic
+│   │   │   ├── getoptions_subcommands
+│   │   │   ├── opts
+│   │   │   ├── opts_per_arg
+│   │   │   └── sh.template
+│   │   ├── validators
+│   │   │   ├── goodgood
+│   │   │   ├── isActive
+│   │   │   ├── is_empty
+│   │   │   ├── is_graphical_env
+│   │   │   ├── is_hd_image
+│   │   │   ├── is_non-empty-dir
+│   │   │   ├── is_number
+│   │   │   ├── is_number1
+│   │   │   ├── is_owner
+│   │   │   ├── is_root
+│   │   │   └── validate
+│   │   └── wallpaper
+│   │       ├── get_wall
+│   │       ├── variety_love
+│   │       ├── variety_next
+│   │       ├── variety_previous
+│   │       ├── wallpaper
+│   │       ├── wallter
+│   │       └── wall_timed
+│   └── zig
+├── Configuration
+│   ├── .dotsrc.sh
+│   ├── alacritty
+│   │   ├── alacritty.yml
+│   │   └── win
+│   │       └── alacritty.yml
+│   ├── bash
+│   │   ├── .dotsrc.bash
+│   │   ├── config.bash
+│   │   ├── inputrc
+│   │   ├── modules
+│   │   │   ├── alias.bash
+│   │   │   ├── completion.bash
+│   │   │   ├── history.bash
+│   │   │   ├── input.bash
+│   │   │   ├── misc.bash
+│   │   │   ├── prompt.bash
+│   │   │   └── utils.bash
+│   │   └── scripts
+│   │       ├── blesh.bash
+│   │       └── rustup.bash
+│   ├── bat
+│   │   ├── bat.config
+│   │   └── config.bak
+│   ├── berry
+│   │   ├── autostart
+│   │   ├── sxhdrc
+│   │   └── xephyr
+│   ├── bpytop
+│   │   └── bpytop.conf
+│   ├── broot
+│   │   ├── conf.hjson
+│   │   └── launcher
+│   │       ├── bash
+│   │       │   └── br
+│   │       └── installed-v1
+│   ├── bspwm
+│   │   ├── monitor-hotplug.sh
+│   │   ├── rc
+│   │   └── sxhdrc
+│   ├── btop
+│   │   └── btop.conf
+│   ├── cava
+│   │   └── config
+│   ├── cointop
+│   │   └── config.toml
+│   ├── dash
+│   │   └── .dashrc
+│   ├── dmenu
+│   │   └── scripts
+│   │       ├── dmenuhandler
+│   │       ├── dmenumount
+│   │       ├── dmenumountcifs
+│   │       ├── dmenupass
+│   │       ├── dmenurecord
+│   │       ├── dmenuumount
+│   │       └── dmenuunicode
+│   ├── doublecmd
+│   │   ├── doublecmd.xml
+│   │   ├── extassoc.xml
+│   │   ├── history.xml
+│   │   ├── multiarc.ini
+│   │   ├── pixmaps.txt
+│   │   ├── session.ini
+│   │   └── shortcuts.scf
+│   ├── dunst
+│   │   ├── dunstrc
+│   │   ├── dunstrc.bak
+│   │   ├── images
+│   │   │   ├── battery-charged.png
+│   │   │   ├── battery-charging.png
+│   │   │   ├── battery-full.png
+│   │   │   ├── battery-low.png
+│   │   │   ├── ethernet.png
+│   │   │   ├── heart.png
+│   │   │   ├── no-connection.png
+│   │   │   ├── notification.png
+│   │   │   └── wifi.png
+│   │   └── reload
+│   ├── editorconfig
+│   │   ├── .editorconfig-checker.json
+│   │   └── default.editorconfig
+│   ├── eww
+│   │   ├── eww.scss
+│   │   ├── eww.xml
+│   │   ├── images
+│   │   │   ├── image.png
+│   │   │   └── pengus-hi.png
+│   │   └── scripts
+│   │       ├── echoart
+│   │       ├── getart
+│   │       ├── getbri
+│   │       ├── getday
+│   │       ├── getquotes
+│   │       ├── getram
+│   │       ├── gettitle
+│   │       ├── getvol
+│   │       ├── getvpnstat
+│   │       ├── getweather
+│   │       ├── getwethquote
+│   │       ├── getwethquote2
+│   │       ├── home-dir
+│   │       │   ├── l1
+│   │       │   ├── l1-processed
+│   │       │   ├── l2
+│   │       │   ├── l2-processed
+│   │       │   ├── l3
+│   │       │   ├── l3-processed
+│   │       │   ├── l4
+│   │       │   ├── l4-processed
+│   │       │   ├── l5
+│   │       │   ├── l5-processed
+│   │       │   ├── l6
+│   │       │   └── l6-processed
+│   │       ├── lockscreen.sh
+│   │       ├── logout.sh
+│   │       ├── quotes
+│   │       ├── quotes.json
+│   │       ├── reboot.sh
+│   │       ├── shutdown.sh
+│   │       ├── suspend.sh
+│   │       ├── vpntoggle
+│   │       └── weather-trimmer
+│   ├── fastfetch
+│   │   ├── config.jsonc
+│   │   └── themes
+│   │       ├── all.jsonc
+│   │       ├── archey.jsonc
+│   │       ├── craole.jsonc
+│   │       ├── ctt.jsonc
+│   │       ├── dyx.jsonc
+│   │       ├── neo.jsonc
+│   │       ├── paleo.jsonc
+│   │       ├── schema.json
+│   │       └── screen.jsonc
+│   ├── fend
+│   │   └── config.toml
+│   ├── fish
+│   │   ├── .config
+│   │   ├── conf.d
+│   │   │   ├── aliases.fish
+│   │   │   ├── apps.fish
+│   │   │   ├── omf.fish
+│   │   │   ├── path.fish
+│   │   │   ├── paths.fish
+│   │   │   └── visuals.fish
+│   │   ├── config.fish
+│   │   ├── fishd.tmp.7IXq42
+│   │   ├── fish_variables
+│   │   └── functions
+│   │       ├── backup.fish
+│   │       ├── bangbang_args.fish
+│   │       ├── br.fish
+│   │       ├── copy.fish
+│   │       ├── fish_greeting.fish
+│   │       ├── fish_prompt.1616505387.copy
+│   │       ├── org_agenda.fish
+│   │       ├── print_col.fish
+│   │       ├── print_row.fish
+│   │       ├── skip.fish
+│   │       ├── spark.fish
+│   │       ├── spark_commits.fish
+│   │       ├── spark_letters.fish
+│   │       ├── su.fish
+│   │       ├── take.fish
+│   │       └── vi.fish
+│   ├── flameshot
+│   │   └── flameshot.ini
+│   ├── fuzzel
+│   │   ├── config
+│   │   ├── config.ini
+│   │   └── default.ini
+│   ├── ghcup
+│   │   └── env
+│   ├── ghostty
+│   │   ├── config
+│   │   └── default
+│   ├── git
+│   │   ├── .tree
+│   │   ├── core
+│   │   │   ├── alias.gitconfig
+│   │   │   ├── core.gitconfig
+│   │   │   ├── safe.gitconfig
+│   │   │   └── sync.gitconfig
+│   │   ├── home
+│   │   │   ├── dotfiles.gitconfig
+│   │   │   ├── dots.gitconfig
+│   │   │   ├── github_craole-cc.env
+│   │   │   ├── github_craole-cc.gitconfig
+│   │   │   ├── github_craole.env
+│   │   │   ├── github_craole.gitconfig
+│   │   │   ├── gitlab_craole.env
+│   │   │   └── gitlab_craole.gitconfig
+│   │   ├── main copy.gitconfig
+│   │   ├── main.gitattributes
+│   │   ├── main.gitconfig
+│   │   └── main.gitignore
+│   ├── gtk
+│   │   ├── gtk2.ini
+│   │   └── gtk3.ini
+│   ├── guix
+│   │   ├── channels.scm
+│   │   ├── daviwil.scm
+│   │   ├── home.scm
+│   │   ├── system copy.scm
+│   │   └── system.scm
+│   ├── helix
+│   │   ├── activate.ps1
+│   │   ├── config.toml
+│   │   ├── languages copy.toml
+│   │   ├── languages.1.toml
+│   │   └── languages.toml
+│   ├── herbstluftwm
+│   │   ├── .config
+│   │   ├── assets
+│   │   │   ├── icons
+│   │   │   │   ├── lotsupdate.png
+│   │   │   │   ├── modupdate.png
+│   │   │   │   ├── noupdate.png
+│   │   │   │   └── trayIcon.png
+│   │   │   └── pics
+│   │   │       ├── orange
+│   │   │       │   └── HL-void.jpg
+│   │   │       └── teal
+│   │   │           ├── heart.jpg
+│   │   │           ├── heart2.jpg
+│   │   │           ├── HL-void.jpg
+│   │   │           ├── keys.jpg
+│   │   │           ├── redclouds.jpg
+│   │   │           ├── track2.jpg
+│   │   │           ├── trees.jpg
+│   │   │           ├── TV.jpg
+│   │   │           └── void.jpg
+│   │   ├── layouts
+│   │   │   ├── ranger
+│   │   │   ├── school123
+│   │   │   ├── test
+│   │   │   └── video
+│   │   ├── modules
+│   │   │   ├── autostart.sh
+│   │   │   ├── keys.sh
+│   │   │   ├── panel.sh
+│   │   │   └── rules.sh
+│   │   ├── scripts
+│   │   │   ├── polybar_void_config
+│   │   │   └── updicon.sh
+│   │   └── themes
+│   │       ├── herbstluftwm
+│   │       │   ├── options
+│   │       │   │   ├── green
+│   │       │   │   ├── orange
+│   │       │   │   ├── teal
+│   │       │   │   └── white
+│   │       │   ├── theme
+│   │       │   └── wallpaper.jpg
+│   │       └── polybar
+│   │           ├── options
+│   │           │   ├── green
+│   │           │   ├── orange
+│   │           │   └── teal
+│   │           ├── powerline-for-polybar.config
+│   │           └── theme.ini
+│   ├── hosts
+│   │   ├── common
+│   │   │   └── default.nix
+│   │   ├── dbook
+│   │   │   ├── default.nix
+│   │   │   └── hardware-configuration.nix
+│   │   ├── example
+│   │   │   ├── configuration.nix
+│   │   │   ├── default.nix
+│   │   │   └── hardware-configuration.nix
+│   │   ├── MBPoNine
+│   │   │   └── default.nix
+│   │   ├── Preci
+│   │   │   ├── configuration.nix
+│   │   │   ├── default.nix
+│   │   │   └── hardware-configuration.nix
+│   │   ├── QBX
+│   │   │   ├── .config
+│   │   │   │   ├── .inputrc
+│   │   │   │   ├── fuzzel
+│   │   │   │   │   └── config
+│   │   │   │   ├── ghostty
+│   │   │   │   │   ├── config
+│   │   │   │   │   └── default
+│   │   │   │   ├── hyprland
+│   │   │   │   │   └── config
+│   │   │   │   ├── raffi
+│   │   │   │   │   └── config
+│   │   │   │   └── test.toml
+│   │   │   ├── bin
+│   │   │   │   ├── tasks
+│   │   │   │   │   ├── collect_garbage copy
+│   │   │   │   │   ├── collect_garbage.sh
+│   │   │   │   │   ├── make_exec
+│   │   │   │   │   ├── make_exec_copy
+│   │   │   │   │   └── rebuild_nixos
+│   │   │   │   ├── utilities
+│   │   │   │   │   ├── first
+│   │   │   │   │   ├── get_weather
+│   │   │   │   │   ├── get_weather.py
+│   │   │   │   │   ├── get_weather.rs
+│   │   │   │   │   ├── passhash
+│   │   │   │   │   ├── passhash copy
+│   │   │   │   │   └── weatherin
+│   │   │   │   └── utils
+│   │   │   │       ├── first
+│   │   │   │       ├── get_weather
+│   │   │   │       ├── get_weather.py
+│   │   │   │       ├── get_weather.rs
+│   │   │   │       ├── passhash
+│   │   │   │       ├── passhash copy
+│   │   │   │       ├── pathman
+│   │   │   │       └── weatherin
+│   │   │   ├── configuration.nix
+│   │   │   ├── core
+│   │   │   │   ├── audio.nix
+│   │   │   │   ├── bluetooth.nix
+│   │   │   │   ├── boot.nix
+│   │   │   │   ├── build.nix
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── filesystem.nix
+│   │   │   │   ├── locale.nix
+│   │   │   │   ├── network.nix
+│   │   │   │   ├── nvidia.nix
+│   │   │   │   └── reference.nix
+│   │   │   ├── custom
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── desktop.nix
+│   │   │   │   ├── enums.nix
+│   │   │   │   ├── fmt.nix
+│   │   │   │   ├── password.nix
+│   │   │   │   └── paths.nix
+│   │   │   ├── default.nix
+│   │   │   ├── desktop
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── gnome
+│   │   │   │   │   ├── common.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   ├── reference.nix
+│   │   │   │   │   ├── wayland.nix
+│   │   │   │   │   └── xserver.nix
+│   │   │   │   ├── hyprland
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   └── reference.nix
+│   │   │   │   ├── login.nix
+│   │   │   │   ├── options.nix
+│   │   │   │   ├── plasma
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   └── reference.nix
+│   │   │   │   ├── users.nix
+│   │   │   │   └── xfce
+│   │   │   │       ├── default.nix
+│   │   │   │       └── reference.nix
+│   │   │   ├── home
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── modules
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   └── font
+│   │   │   │   │       └── default.nix
+│   │   │   │   ├── programs
+│   │   │   │   │   ├── bat
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── brave
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   ├── eww
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── fastfetch
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── fd
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── firefox
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── freetube
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── fuzzel
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── ghostty
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── git
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── helix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── helix.toml
+│   │   │   │   │   │   ├── keybindings.nix
+│   │   │   │   │   │   ├── languages.nix
+│   │   │   │   │   │   └── settings.nix
+│   │   │   │   │   ├── hyprlock
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── hyprshot
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── jq
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── kitty
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── mpv
+│   │   │   │   │   │   ├── bindings.nix
+│   │   │   │   │   │   ├── config.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── profiles.nix
+│   │   │   │   │   │   └── scripts.nix
+│   │   │   │   │   ├── nushell
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── powershell
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── qbittorrent
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── ripgrep
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── rofi
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── starship
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   └── settings.nix
+│   │   │   │   │   ├── swww
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── thunderbird
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── via
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── vscode
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── warp
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── waybar
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── whatsapp
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── wofi
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── yt-dlp
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   └── zed
+│   │   │   │   │       ├── default.nix
+│   │   │   │   │       ├── extensions.nix
+│   │   │   │   │       └── settings.nix
+│   │   │   │   ├── services
+│   │   │   │   │   ├── cliphist
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── clipman
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   ├── dunst
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── export
+│   │   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   │   ├── icons.nix
+│   │   │   │   │   │   │   └── settings.nix
+│   │   │   │   │   │   └── options.nix
+│   │   │   │   │   ├── hyprland
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── export
+│   │   │   │   │   │   │   ├── bindings.nix
+│   │   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   │   ├── env.nix
+│   │   │   │   │   │   │   ├── packages.nix
+│   │   │   │   │   │   │   ├── rules.nix
+│   │   │   │   │   │   │   └── settings.nix
+│   │   │   │   │   │   ├── options.nix
+│   │   │   │   │   │   └── reference.nix
+│   │   │   │   │   ├── mako
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   └── remmina
+│   │   │   │   │       └── default.nix
+│   │   │   │   └── users
+│   │   │   │       ├── craole
+│   │   │   │       │   ├── default copy.nix
+│   │   │   │       │   ├── default.nix
+│   │   │   │       │   ├── environment
+│   │   │   │       │   │   ├── gnome
+│   │   │   │       │   │   │   ├── default.nix
+│   │   │   │       │   │   │   ├── exclude.nix
+│   │   │   │       │   │   │   ├── include.nix
+│   │   │   │       │   │   │   ├── options.nix
+│   │   │   │       │   │   │   ├── reference.nix
+│   │   │   │       │   │   │   ├── wayland.nix
+│   │   │   │       │   │   │   └── xserver.nix
+│   │   │   │       │   │   └── plasma
+│   │   │   │       │   │       ├── default.nix
+│   │   │   │       │   │       ├── exclude.nix
+│   │   │   │       │   │       ├── include.nix
+│   │   │   │       │   │       ├── options.nix
+│   │   │   │       │   │       ├── reference.nix
+│   │   │   │       │   │       ├── wayland.nix
+│   │   │   │       │   │       └── xserver.nix
+│   │   │   │       │   ├── export.nix
+│   │   │   │       │   ├── modules
+│   │   │   │       │   │   ├── default.nix
+│   │   │   │       │   │   └── font
+│   │   │   │       │   │       └── default.nix
+│   │   │   │       │   ├── options.nix
+│   │   │   │       │   ├── programs
+│   │   │   │       │   │   ├── bat
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── brave
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── default.nix
+│   │   │   │       │   │   ├── eww
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── fastfetch
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── fd
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── firefox
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── freetube
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── fuzzel
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── ghostty
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── git
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── helix
+│   │   │   │       │   │   │   ├── default.nix
+│   │   │   │       │   │   │   ├── helix.toml
+│   │   │   │       │   │   │   ├── keybindings.nix
+│   │   │   │       │   │   │   ├── languages.nix
+│   │   │   │       │   │   │   └── settings.nix
+│   │   │   │       │   │   ├── hyprlock
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── hyprshot
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── jq
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── kitty
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── mpv
+│   │   │   │       │   │   │   ├── bindings.nix
+│   │   │   │       │   │   │   ├── config.nix
+│   │   │   │       │   │   │   ├── default.nix
+│   │   │   │       │   │   │   ├── profiles.nix
+│   │   │   │       │   │   │   └── scripts.nix
+│   │   │   │       │   │   ├── nushell
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── powershell
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── qbittorrent
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── ripgrep
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── rofi
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── starship
+│   │   │   │       │   │   │   ├── default.nix
+│   │   │   │       │   │   │   └── settings.nix
+│   │   │   │       │   │   ├── swww
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── thunderbird
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── via
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── vscode
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── warp
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── waybar
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── whatsapp
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── wofi
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   ├── yt-dlp
+│   │   │   │       │   │   │   └── default.nix
+│   │   │   │       │   │   └── zed
+│   │   │   │       │   │       ├── default.nix
+│   │   │   │       │   │       ├── extensions.nix
+│   │   │   │       │   │       └── settings.nix
+│   │   │   │       │   └── services
+│   │   │   │       │       ├── cliphist
+│   │   │   │       │       │   └── default.nix
+│   │   │   │       │       ├── clipman
+│   │   │   │       │       │   └── default.nix
+│   │   │   │       │       ├── default.nix
+│   │   │   │       │       ├── dunst
+│   │   │   │       │       │   ├── default.nix
+│   │   │   │       │       │   ├── icons.nix
+│   │   │   │       │       │   └── settings.nix
+│   │   │   │       │       ├── hyprland
+│   │   │   │       │       │   ├── bindings.nix
+│   │   │   │       │       │   ├── default.nix
+│   │   │   │       │       │   ├── env.nix
+│   │   │   │       │       │   ├── include.nix
+│   │   │   │       │       │   ├── options.nix
+│   │   │   │       │       │   ├── packages.nix
+│   │   │   │       │       │   ├── rules.nix
+│   │   │   │       │       │   └── settings.nix
+│   │   │   │       │       ├── mako
+│   │   │   │       │       │   └── default.nix
+│   │   │   │       │       └── remmina
+│   │   │   │       │           └── default.nix
+│   │   │   │       └── default.nix
+│   │   │   ├── libraries
+│   │   │   │   ├── default.nix
+│   │   │   │   └── importer.nix
+│   │   │   ├── programs
+│   │   │   │   └── core
+│   │   │   │       ├── default.nix
+│   │   │   │       ├── development
+│   │   │   │       │   └── default.nix
+│   │   │   │       ├── steam
+│   │   │   │       │   └── default.nix
+│   │   │   │       └── treefmt.toml
+│   │   │   ├── services
+│   │   │   │   └── core
+│   │   │   │       ├── default.nix
+│   │   │   │       ├── obs-studio
+│   │   │   │       │   └── default.nix
+│   │   │   │       ├── ollama
+│   │   │   │       │   └── default.nix
+│   │   │   │       ├── tailscale
+│   │   │   │       │   └── default.nix
+│   │   │   │       └── xrdp
+│   │   │   │           └── default.nix
+│   │   │   └── users
+│   │   │       ├── config.core.nix
+│   │   │       ├── config.home.nix
+│   │   │       ├── config.nix
+│   │   │       ├── default.nix
+│   │   │       ├── modules copy.nix
+│   │   │       ├── options.nix
+│   │   │       ├── reference.core.nix
+│   │   │       └── reference.home.nix
+│   │   ├── QBXl
+│   │   │   ├── core
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── env.nix
+│   │   │   │   ├── nix.nix
+│   │   │   │   └── pkg.nix
+│   │   │   ├── default.nix
+│   │   │   ├── home
+│   │   │   │   ├── default.nix
+│   │   │   │   └── packages
+│   │   │   │       ├── bat
+│   │   │   │       │   └── default.nix
+│   │   │   │       ├── default.nix
+│   │   │   │       └── helix
+│   │   │   │           ├── default.nix
+│   │   │   │           ├── editor.nix
+│   │   │   │           ├── keybindings.nix
+│   │   │   │           └── languages.nix
+│   │   │   └── options
+│   │   │       ├── alpha.nix
+│   │   │       ├── default.nix
+│   │   │       └── paths.nix
+│   │   ├── QBXv
+│   │   │   ├── configuration.nix
+│   │   │   ├── default.nix
+│   │   │   └── hardware-configuration.nix
+│   │   ├── QBXvm
+│   │   │   ├── configuration.nix
+│   │   │   ├── default.nix
+│   │   │   └── hardware-configuration.nix
+│   │   └── review
+│   │       ├── base
+│   │       │   ├── config.nix
+│   │       │   ├── default.nix
+│   │       │   ├── enums.nix
+│   │       │   ├── modules.nix
+│   │       │   └── sources.nix
+│   │       ├── components
+│   │       │   ├── base
+│   │       │   │   ├── chromebook.nix
+│   │       │   │   ├── default.nix
+│   │       │   │   ├── laptop.nix
+│   │       │   │   └── server.nix
+│   │       │   ├── context
+│   │       │   │   ├── default.nix
+│   │       │   │   ├── development.nix
+│   │       │   │   ├── entertainment.nix
+│   │       │   │   ├── minimal.nix
+│   │       │   │   ├── multimedia.nix
+│   │       │   │   ├── productivity.nix
+│   │       │   │   └── remote.nix
+│   │       │   ├── default.nix
+│   │       │   └── interface
+│   │       │       ├── boot.nix
+│   │       │       ├── default.nix
+│   │       │       ├── desktop.nix
+│   │       │       ├── login.nix
+│   │       │       └── packages.nix
+│   │       ├── dbook
+│   │       │   ├── configuration.nix
+│   │       │   ├── core
+│   │       │   │   ├── base
+│   │       │   │   │   ├── base.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── hardware.nix
+│   │       │   │   │   ├── location.nix
+│   │       │   │   │   ├── paths.nix
+│   │       │   │   │   └── xfce.nix
+│   │       │   │   ├── default.nix
+│   │       │   │   ├── environment
+│   │       │   │   │   ├── aliases.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   └── variables.nix
+│   │       │   │   ├── interface
+│   │       │   │   │   ├── base.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── fonts.nix
+│   │       │   │   │   ├── programs.nix
+│   │       │   │   │   ├── wayland.nix
+│   │       │   │   │   └── xfce.nix
+│   │       │   │   ├── packages
+│   │       │   │   │   ├── base.nix
+│   │       │   │   │   ├── common.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── direnv.nix
+│   │       │   │   │   ├── git.nix
+│   │       │   │   │   ├── hyprland.nix
+│   │       │   │   │   └── xfce.nix
+│   │       │   │   ├── security
+│   │       │   │   │   ├── base.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── pam.nix
+│   │       │   │   │   ├── rtkit.nix
+│   │       │   │   │   └── sudo.nix
+│   │       │   │   ├── services
+│   │       │   │   │   ├── base.nix
+│   │       │   │   │   └── default.nix
+│   │       │   │   ├── stylix.nix
+│   │       │   │   └── users
+│   │       │   │       ├── alpha.nix
+│   │       │   │       ├── default.nix
+│   │       │   │       └── users.nix
+│   │       │   ├── default.nix
+│   │       │   ├── hardware-configuration.nix
+│   │       │   └── home
+│   │       │       ├── configurations
+│   │       │       │   ├── craole
+│   │       │       │   │   └── default.nix
+│   │       │       │   └── default.nix
+│   │       │       ├── default.nix
+│   │       │       ├── packages
+│   │       │       │   ├── bash
+│   │       │       │   │   └── default.nix
+│   │       │       │   ├── bat
+│   │       │       │   │   └── default.nix
+│   │       │       │   ├── default.nix
+│   │       │       │   ├── helix
+│   │       │       │   │   ├── default.nix
+│   │       │       │   │   └── settings.nix
+│   │       │       │   ├── inkscape
+│   │       │       │   │   └── default.nix
+│   │       │       │   ├── ripgrep
+│   │       │       │   │   └── default.nix
+│   │       │       │   └── starship
+│   │       │       │       └── default.nix
+│   │       │       ├── stylix.nix
+│   │       │       └── xfce.nix
+│   │       ├── hosts
+│   │       │   ├── dbook
+│   │       │   │   ├── base
+│   │       │   │   │   ├── craole
+│   │       │   │   │   │   ├── apps.nix
+│   │       │   │   │   │   ├── craole.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── environment.nix
+│   │       │   │   │   │   ├── fonts.nix
+│   │       │   │   │   │   └── plasma.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   └── hardware-configuration.nix
+│   │       │   │   ├── configuration.nix
+│   │       │   │   ├── data
+│   │       │   │   │   └── default.nix
+│   │       │   │   ├── default.nix
+│   │       │   │   └── dots
+│   │       │   │       └── default.nix
+│   │       │   ├── dbook.old
+│   │       │   │   └── default.nix
+│   │       │   ├── default.nix
+│   │       │   ├── delle
+│   │       │   │   ├── default.nix
+│   │       │   │   └── tmp.nix
+│   │       │   ├── preci
+│   │       │   │   ├── base
+│   │       │   │   │   ├── configuration.nix
+│   │       │   │   │   ├── craole
+│   │       │   │   │   │   ├── apps.nix
+│   │       │   │   │   │   ├── craole.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── environment.nix
+│   │       │   │   │   │   ├── fonts.nix
+│   │       │   │   │   │   └── plasma.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   └── hardware-configuration.nix
+│   │       │   │   ├── configuration.nix
+│   │       │   │   ├── data
+│   │       │   │   │   └── default.nix
+│   │       │   │   ├── default.nix
+│   │       │   │   └── dots
+│   │       │   │       └── default.nix
+│   │       │   ├── review
+│   │       │   │   ├── dbooktoo
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   └── hardware-configuration.nix
+│   │       │   │   └── victus
+│   │       │   │       ├── default.nix
+│   │       │   │       └── victus.nix
+│   │       │   └── victus
+│   │       │       └── default.nix
+│   │       ├── MBPoNine
+│   │       │   └── default.nix
+│   │       └── preci
+│   │           ├── configuration copy.nix
+│   │           ├── configuration.nix
+│   │           ├── default.nix
+│   │           └── hardware-configuration.nix
+│   ├── htop
+│   │   └── htoprc
+│   ├── hyprland
+│   │   ├── config.conf
+│   │   ├── helix.toml
+│   │   ├── hyprland.conf
+│   │   ├── kitty.conf
+│   │   ├── river.init
+│   │   └── wofi.css
+│   ├── jbs
+│   │   └── current 2025-06-03.settings
+│   ├── jgmenu
+│   │   ├── append.csv
+│   │   ├── backup
+│   │   │   ├── 20210329183056074311714
+│   │   │   │   └── jgmenurc
+│   │   │   ├── 20210329183132662770655
+│   │   │   │   ├── append.csv
+│   │   │   │   └── jgmenurc
+│   │   │   ├── 20210329183142073316353
+│   │   │   │   ├── append.csv
+│   │   │   │   └── jgmenurc
+│   │   │   ├── 20210329183201122800785
+│   │   │   │   ├── append.csv
+│   │   │   │   ├── jgmenurc
+│   │   │   │   └── prepend.csv
+│   │   │   ├── 20210329183422972862037
+│   │   │   │   ├── append.csv
+│   │   │   │   ├── jgmenurc
+│   │   │   │   └── prepend.csv
+│   │   │   ├── 20210329183440584674103
+│   │   │   │   └── jgmenurc
+│   │   │   ├── 20210329183454534154843
+│   │   │   │   └── jgmenurc
+│   │   │   ├── 20210329183533738768913
+│   │   │   │   ├── jgmenurc
+│   │   │   │   └── prepend.csv
+│   │   │   ├── 20210329183600721660373
+│   │   │   │   ├── jgmenurc
+│   │   │   │   └── prepend.csv
+│   │   │   ├── 20210329183614800429384
+│   │   │   │   └── jgmenurc
+│   │   │   ├── 20210329183646591896244
+│   │   │   │   ├── jgmenurc
+│   │   │   │   └── prepend.csv
+│   │   │   ├── 20210329183646617066492
+│   │   │   │   └── jgmenurc
+│   │   │   └── 20210329183646678685569
+│   │   │       ├── append.csv
+│   │   │       └── jgmenurc
+│   │   ├── jgmenurc
+│   │   ├── jgmenurc.bac
+│   │   └── prepend.csv
+│   ├── jujutsu
+│   │   ├── .dots.json
+│   │   ├── activate.ps1
+│   │   ├── config.toml
+│   │   ├── help.txt
+│   │   ├── meld.ps1
+│   │   └── watchman.ps1
+│   ├── just
+│   │   └── justfile
+│   ├── kitty
+│   │   ├── kitty.conf
+│   │   └── kitty.default.conf
+│   ├── kvantum
+│   │   ├── kvantum.kvconfig
+│   │   ├── MateriaDark#
+│   │   │   └── MateriaDark#.kvconfig
+│   │   └── Sweet-Mars#
+│   │       └── Sweet-Mars#.kvconfig
+│   ├── lemonbar
+│   │   ├── launchlemon
+│   │   ├── lemonconfig
+│   │   ├── lemoncpu
+│   │   ├── lemoncputemp
+│   │   ├── lemonpackages
+│   │   └── lemontime
+│   ├── lf
+│   │   ├── draw_img
+│   │   ├── image
+│   │   ├── lfrc
+│   │   ├── lfrc copy
+│   │   └── preview
+│   ├── lsd
+│   │   ├── config.yaml
+│   │   ├── default.yaml
+│   │   ├── icons.yaml
+│   │   ├── lsd
+│   │   │   ├── config.yml
+│   │   │   ├── tux
+│   │   │   │   └── config..yml
+│   │   │   └── win
+│   │   │       └── config..yml
+│   │   └── themes
+│   │       ├── cc.yaml
+│   │       └── default.yaml
+│   ├── lxqt
+│   │   ├── archiver.conf
+│   │   ├── lxqt-config-appearance.conf
+│   │   ├── lxqt-config-file-associations.conf
+│   │   ├── lxqt-config.conf
+│   │   ├── lxqt.conf
+│   │   ├── session.conf
+│   │   ├── TimeDate.conf
+│   │   └── windowmanagers.conf
+│   ├── macchina
+│   │   ├── lite.toml
+│   │   ├── macchina.toml
+│   │   ├── scripts
+│   │   │   └── vid.sh
+│   │   └── themes
+│   │       ├── Beryllium.toml
+│   │       ├── Craole.toml
+│   │       ├── Craole_Lite.toml
+│   │       ├── Helium.toml
+│   │       ├── Hydrogen.toml
+│   │       └── Lithium.toml
+│   ├── markdownlint
+│   │   ├── .markdownlint.jsonc
+│   │   └── .markdownlint.yaml
+│   ├── mise-en-place
+│   │   ├── activate.ps1
+│   │   ├── config.toml
+│   │   └── wrappers.ps1
+│   ├── mpv
+│   │   └── config
+│   ├── musikcube
+│   │   ├── 1
+│   │   │   ├── musik.db
+│   │   │   ├── musik.db-shm
+│   │   │   └── musik.db-wal
+│   │   ├── hotkeys.json
+│   │   ├── libraries.json
+│   │   ├── log.txt
+│   │   ├── playback.json
+│   │   ├── plugin_alsaoutioutput.json
+│   │   ├── plugin_gmeidecoder.json
+│   │   ├── plugin_httpidatastream.json
+│   │   ├── plugin_musikcubeserver(wss,http).json
+│   │   ├── plugin_nullioutput.json
+│   │   ├── plugin_pulseaudioioutput.json
+│   │   ├── plugin_supereqidsp.json
+│   │   ├── session.json
+│   │   ├── settings.json
+│   │   └── stderr.txt
+│   ├── neo4j
+│   │   ├── activate.ps1
+│   │   ├── neo4j.conf
+│   │   ├── neo4j.default.conf
+│   │   └── wrappers.ps1
+│   ├── neofetch
+│   │   ├── config
+│   │   └── default
+│   ├── Notepadqq
+│   │   ├── Notepadqq.ini
+│   │   └── session.xml
+│   ├── nushell
+│   │   ├── config.nu
+│   │   ├── env copy.nu
+│   │   ├── env.nu
+│   │   ├── libraries
+│   │   │   ├── alias.git.nu
+│   │   │   ├── alias.ls.nu
+│   │   │   ├── alias.nu
+│   │   │   ├── prompt.fullline.nu
+│   │   │   ├── prompt.panache.nu
+│   │   │   └── prompt.starship.nu
+│   │   ├── review
+│   │   │   ├── config copy.nu
+│   │   │   ├── config.nu
+│   │   │   ├── env copy.nu
+│   │   │   └── env.nu
+│   │   └── scripts
+│   │       └── prompt.nu
+│   ├── nvim
+│   │   ├── init.vim
+│   │   ├── resources
+│   │   │   ├── abbreviations.vim
+│   │   │   ├── autoreload-files.vim
+│   │   │   ├── basic.vim
+│   │   │   ├── html-text-object-linewise.vim
+│   │   │   ├── mappings.vim
+│   │   │   ├── open-file-on-last-position.vim
+│   │   │   ├── plugin.vim
+│   │   │   ├── search-match-blink.vim
+│   │   │   └── trim-trailing-whitespace.vim
+│   │   └── review
+│   │       ├── DependentPackages.txt
+│   │       ├── init.vim
+│   │       ├── luke.vim
+│   │       ├── plugins.vim
+│   │       ├── vim_init.ps1
+│   │       └── vim_init.sh
+│   ├── oh-my-posh
+│   │   ├── .dots.conf
+│   │   ├── activate.ps1
+│   │   ├── config.json
+│   │   ├── config.toml
+│   │   └── themes
+│   │       ├── 1_shell.omp.json
+│   │       ├── agnoster.minimal.omp.json
+│   │       ├── agnoster.omp.json
+│   │       ├── agnosterplus.omp.json
+│   │       ├── aliens.omp.json
+│   │       ├── amro.omp.json
+│   │       ├── atomic.omp.json
+│   │       ├── atomicBit.omp.json
+│   │       ├── avit.omp.json
+│   │       ├── blue-owl.omp.json
+│   │       ├── blueish.omp.json
+│   │       ├── bubbles.omp.json
+│   │       ├── bubblesextra.omp.json
+│   │       ├── bubblesline.omp.json
+│   │       ├── capr4n.omp.json
+│   │       ├── catppuccin.omp.json
+│   │       ├── catppuccin_frappe.omp.json
+│   │       ├── catppuccin_latte.omp.json
+│   │       ├── catppuccin_macchiato.omp.json
+│   │       ├── catppuccin_mocha.omp.json
+│   │       ├── cert.omp.json
+│   │       ├── chips.omp.json
+│   │       ├── cinnamon.omp.json
+│   │       ├── clean-detailed.omp.json
+│   │       ├── cloud-context.omp.json
+│   │       ├── cloud-native-azure.omp.json
+│   │       ├── cobalt2.omp.json
+│   │       ├── craver.omp.json
+│   │       ├── darkblood.omp.json
+│   │       ├── devious-diamonds.omp.yaml
+│   │       ├── di4am0nd.omp.json
+│   │       ├── dracula.omp.json
+│   │       ├── easy-term.omp.json
+│   │       ├── emodipt-extend.omp.json
+│   │       ├── emodipt.omp.json
+│   │       ├── fish.omp.json
+│   │       ├── free-ukraine.omp.json
+│   │       ├── froczh.omp.json
+│   │       ├── glowsticks.omp.yaml
+│   │       ├── gmay.omp.json
+│   │       ├── grandpa-style.omp.json
+│   │       ├── gruvbox.omp.json
+│   │       ├── half-life.omp.json
+│   │       ├── honukai.omp.json
+│   │       ├── hotstick.minimal.omp.json
+│   │       ├── hul10.omp.json
+│   │       ├── hunk.omp.json
+│   │       ├── huvix.omp.json
+│   │       ├── if_tea.omp.json
+│   │       ├── illusi0n.omp.json
+│   │       ├── iterm2.omp.json
+│   │       ├── jandedobbeleer.omp.json
+│   │       ├── jblab_2021.omp.json
+│   │       ├── jonnychipz.omp.json
+│   │       ├── json.omp.json
+│   │       ├── jtracey93.omp.json
+│   │       ├── jv_sitecorian.omp.json
+│   │       ├── kali.omp.json
+│   │       ├── kushal.omp.json
+│   │       ├── lambda.omp.json
+│   │       ├── lambdageneration.omp.json
+│   │       ├── larserikfinholt.omp.json
+│   │       ├── lightgreen.omp.json
+│   │       ├── M365Princess.omp.json
+│   │       ├── marcduiker.omp.json
+│   │       ├── markbull.omp.json
+│   │       ├── material.omp.json
+│   │       ├── microverse-power.omp.json
+│   │       ├── mojada.omp.json
+│   │       ├── montys.omp.json
+│   │       ├── mt.omp.json
+│   │       ├── multiverse-neon.omp.json
+│   │       ├── negligible.omp.json
+│   │       ├── neko.omp.json
+│   │       ├── night-owl.omp.json
+│   │       ├── nordtron.omp.json
+│   │       ├── nu4a.omp.json
+│   │       ├── onehalf.minimal.omp.json
+│   │       ├── paradox.omp.json
+│   │       ├── pararussel.omp.json
+│   │       ├── patriksvensson.omp.json
+│   │       ├── peru.omp.json
+│   │       ├── pixelrobots.omp.json
+│   │       ├── plague.omp.json
+│   │       ├── poshmon.omp.json
+│   │       ├── powerlevel10k_classic.omp.json
+│   │       ├── powerlevel10k_lean.omp.json
+│   │       ├── powerlevel10k_modern.omp.json
+│   │       ├── powerlevel10k_rainbow.omp.json
+│   │       ├── powerline.omp.json
+│   │       ├── probua.minimal.omp.json
+│   │       ├── pure.omp.json
+│   │       ├── quick-term.omp.json
+│   │       ├── remk.omp.json
+│   │       ├── robbyrussell.omp.json
+│   │       ├── rudolfs-dark.omp.json
+│   │       ├── rudolfs-light.omp.json
+│   │       ├── schema.json
+│   │       ├── sim-web.omp.json
+│   │       ├── slim.omp.json
+│   │       ├── slimfat.omp.json
+│   │       ├── smoothie.omp.json
+│   │       ├── sonicboom_dark.omp.json
+│   │       ├── sonicboom_light.omp.json
+│   │       ├── sorin.omp.json
+│   │       ├── space.omp.json
+│   │       ├── spaceship.omp.json
+│   │       ├── star.omp.json
+│   │       ├── stelbent-compact.minimal.omp.json
+│   │       ├── stelbent.minimal.omp.json
+│   │       ├── takuya.omp.json
+│   │       ├── the-unnamed.omp.json
+│   │       ├── thecyberden.omp.json
+│   │       ├── tiwahu.omp.json
+│   │       ├── tokyo.omp.json
+│   │       ├── tokyonight_storm.omp.json
+│   │       ├── tonybaloney.omp.json
+│   │       ├── uew.omp.json
+│   │       ├── unicorn.omp.json
+│   │       ├── velvet.omp.json
+│   │       ├── wholespace.omp.json
+│   │       ├── wopian.omp.json
+│   │       ├── xtoys.omp.json
+│   │       ├── ys.omp.json
+│   │       └── zash.omp.json
+│   ├── omf
+│   │   ├── bundle
+│   │   ├── channel
+│   │   └── theme
+│   ├── paru
+│   │   └── paru.conf
+│   ├── pcmanfm-qt
+│   │   └── default
+│   │       └── settings.conf
+│   ├── picom
+│   │   ├── picom.conf
+│   │   └── picom.conf.bak
+│   ├── polybar
+│   │   ├── launchpolybar
+│   │   ├── polybattery
+│   │   ├── polycpu
+│   │   ├── polypulsevolume
+│   │   ├── polysubs
+│   │   ├── polytemp
+│   │   ├── polytempamd
+│   │   └── reloadpolybar
+│   ├── powershell
+│   │   ├── config.ps1
+│   │   ├── profile.psm1
+│   │   └── utils.ps1
+│   ├── python
+│   │   └── hatch.toml
+│   ├── qtile
+│   │   ├── .gitignore
+│   │   ├── classes
+│   │   │   ├── cmd_list.py
+│   │   │   ├── tty_cmd.py
+│   │   │   └── __init__.py
+│   │   ├── config.py
+│   │   ├── functions
+│   │   │   ├── find_parent.py
+│   │   │   ├── sys_inf.py
+│   │   │   ├── wallpaper.py
+│   │   │   ├── wehave.py
+│   │   │   └── __init__.py
+│   │   ├── init.py
+│   │   ├── license.md
+│   │   ├── modules
+│   │   │   ├── battery.py
+│   │   │   ├── control.py
+│   │   │   ├── declarations.py
+│   │   │   ├── groups.py
+│   │   │   ├── hooks.py
+│   │   │   ├── layouts.py
+│   │   │   ├── scratchpads.py
+│   │   │   ├── screens.py
+│   │   │   ├── widgets.py
+│   │   │   ├── workspaces.py
+│   │   │   └── __init__.py
+│   │   ├── readme.md
+│   │   ├── README.org
+│   │   ├── resources
+│   │   │   ├── icons
+│   │   │   │   ├── battery-10-charge.png
+│   │   │   │   ├── battery-10.png
+│   │   │   │   ├── battery-20-charge.png
+│   │   │   │   ├── battery-20.png
+│   │   │   │   ├── battery-30-charge.png
+│   │   │   │   ├── battery-30.png
+│   │   │   │   ├── battery-40-charge.png
+│   │   │   │   ├── battery-40.png
+│   │   │   │   ├── battery-50-charge.png
+│   │   │   │   ├── battery-50.png
+│   │   │   │   ├── battery-60-charge.png
+│   │   │   │   ├── battery-60.png
+│   │   │   │   ├── battery-70-charge.png
+│   │   │   │   ├── battery-70.png
+│   │   │   │   ├── battery-80-charge.png
+│   │   │   │   ├── battery-80.png
+│   │   │   │   ├── battery-90-charge.png
+│   │   │   │   ├── battery-90.png
+│   │   │   │   ├── battery-empty-charge.png
+│   │   │   │   ├── battery-empty.png
+│   │   │   │   ├── battery-full-charge.png
+│   │   │   │   ├── battery-full-charged.png
+│   │   │   │   ├── battery-full.png
+│   │   │   │   ├── battery-missing-black.png
+│   │   │   │   ├── battery-missing.png
+│   │   │   │   ├── layout-floating.png
+│   │   │   │   ├── layout-max.png
+│   │   │   │   ├── layout-monadtall.png
+│   │   │   │   ├── layout-tile.png
+│   │   │   │   ├── layout-treetab.png
+│   │   │   │   ├── python-white.png
+│   │   │   │   └── python.png
+│   │   │   ├── pictures
+│   │   │   │   └── wallpaper.jpg
+│   │   │   ├── scripts
+│   │   │   │   ├── autostart.1.sh
+│   │   │   │   ├── autostart.sh
+│   │   │   │   ├── autostart_login.sh
+│   │   │   │   ├── autostart_reload.sh
+│   │   │   │   ├── picom.sh
+│   │   │   │   └── resolution.sh
+│   │   │   └── themes
+│   │   │       ├── astromouse.txt
+│   │   │       ├── base32_grayscale01.txt
+│   │   │       ├── dkeg - citystreets.txt
+│   │   │       ├── dkeg - redphoenix.txt
+│   │   │       ├── eighties.light.txt
+│   │   │       ├── eighties.light.xcs
+│   │   │       ├── euphrasia.txt
+│   │   │       ├── grayscale_light01.txt
+│   │   │       ├── jwr-dark.txt
+│   │   │       ├── Magical.txt
+│   │   │       ├── mostly-bright.txt
+│   │   │       ├── Muzieca mono.txt
+│   │   │       ├── random_blue.txt
+│   │   │       ├── rofi
+│   │   │       │   ├── dracula.rasi
+│   │   │       │   ├── dt-center.rasi
+│   │   │       │   ├── dt-dmenu.rasi
+│   │   │       │   ├── gruvbox.rasi
+│   │   │       │   ├── justinesmithies.rasi
+│   │   │       │   ├── material.rasi
+│   │   │       │   ├── murz.rasi
+│   │   │       │   └── nord.rasi
+│   │   │       ├── space_amoled01.txt
+│   │   │       ├── VisiBlue.txt
+│   │   │       ├── VisiBlue02.txt
+│   │   │       └── yousai.txt
+│   │   ├── testing.py
+│   │   └── tests
+│   │       ├── tty_cmd.ipynb
+│   │       ├── tty_cmd.py
+│   │       ├── wehave.ipynb
+│   │       └── __init__.py
+│   ├── qutebrowser
+│   │   ├── config.py
+│   │   ├── quickmarks
+│   │   └── README.org
+│   ├── radio-cli
+│   │   └── config.json
+│   ├── raffi
+│   │   └── config
+│   ├── RawTherapee
+│   │   └── options
+│   ├── redshift
+│   │   └── redshift.conf
+│   ├── river
+│   │   ├── init
+│   │   └── init.bak
+│   ├── rofi
+│   │   ├── applets
+│   │   │   ├── bin
+│   │   │   │   ├── appasroot.sh
+│   │   │   │   ├── apps.sh
+│   │   │   │   ├── battery.sh
+│   │   │   │   ├── brightness.sh
+│   │   │   │   ├── mpd.sh
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── quicklinks.sh
+│   │   │   │   ├── screenshot.sh
+│   │   │   │   └── volume.sh
+│   │   │   ├── shared
+│   │   │   │   ├── colors.rasi
+│   │   │   │   ├── fonts.rasi
+│   │   │   │   └── theme.bash
+│   │   │   ├── type-1
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   └── style-3.rasi
+│   │   │   ├── type-2
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   └── style-3.rasi
+│   │   │   ├── type-3
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   └── style-3.rasi
+│   │   │   ├── type-4
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   └── style-3.rasi
+│   │   │   └── type-5
+│   │   │       ├── style-1.rasi
+│   │   │       ├── style-2.rasi
+│   │   │       └── style-3.rasi
+│   │   ├── colors
+│   │   │   ├── adapta.rasi
+│   │   │   ├── arc.rasi
+│   │   │   ├── black.rasi
+│   │   │   ├── catppuccin.rasi
+│   │   │   ├── cyberpunk.rasi
+│   │   │   ├── dracula.rasi
+│   │   │   ├── everforest.rasi
+│   │   │   ├── gruvbox.rasi
+│   │   │   ├── lovelace.rasi
+│   │   │   ├── navy.rasi
+│   │   │   ├── nord.rasi
+│   │   │   ├── onedark.rasi
+│   │   │   ├── paper.rasi
+│   │   │   ├── solarized.rasi
+│   │   │   ├── tokyonight.rasi
+│   │   │   └── yousai.rasi
+│   │   ├── config.rasi
+│   │   ├── images
+│   │   │   ├── a.png
+│   │   │   ├── b.png
+│   │   │   ├── c.png
+│   │   │   ├── f.png
+│   │   │   ├── flowers-1.png
+│   │   │   ├── flowers-2.png
+│   │   │   ├── flowers-3.png
+│   │   │   ├── gradient.png
+│   │   │   ├── paper.png
+│   │   │   └── user.jpeg
+│   │   ├── launcher
+│   │   │   ├── type-1
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-11.rasi
+│   │   │   │   ├── style-12.rasi
+│   │   │   │   ├── style-13.rasi
+│   │   │   │   ├── style-14.rasi
+│   │   │   │   ├── style-15.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   ├── type-2
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-11.rasi
+│   │   │   │   ├── style-12.rasi
+│   │   │   │   ├── style-13.rasi
+│   │   │   │   ├── style-14.rasi
+│   │   │   │   ├── style-15.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   ├── type-3
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   ├── type-4
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   ├── type-5
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   └── style-5.rasi
+│   │   │   ├── type-6
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   ├── type-7
+│   │   │   │   ├── launcher.sh
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   └── type-X
+│   │   │       ├── launcher.sh
+│   │   │       └── shared
+│   │   │           └── colors.rasi
+│   │   ├── powermenu
+│   │   │   ├── type-1
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   └── style-5.rasi
+│   │   │   ├── type-2
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-10.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   ├── style-5.rasi
+│   │   │   │   ├── style-6.rasi
+│   │   │   │   ├── style-7.rasi
+│   │   │   │   ├── style-8.rasi
+│   │   │   │   └── style-9.rasi
+│   │   │   ├── type-3
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   ├── confirm.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   └── style-5.rasi
+│   │   │   ├── type-4
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   ├── confirm.rasi
+│   │   │   │   │   └── fonts.rasi
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   └── style-5.rasi
+│   │   │   ├── type-5
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── style-1.rasi
+│   │   │   │   ├── style-2.rasi
+│   │   │   │   ├── style-3.rasi
+│   │   │   │   ├── style-4.rasi
+│   │   │   │   └── style-5.rasi
+│   │   │   └── type-6
+│   │   │       ├── powermenu.sh
+│   │   │       ├── style-1.rasi
+│   │   │       ├── style-2.rasi
+│   │   │       ├── style-3.rasi
+│   │   │       ├── style-4.rasi
+│   │   │       └── style-5.rasi
+│   │   ├── rofi.bac
+│   │   │   ├── applets
+│   │   │   │   ├── android
+│   │   │   │   │   ├── apps.sh
+│   │   │   │   │   ├── backlight.sh
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   ├── confirm.rasi
+│   │   │   │   │   ├── five.rasi
+│   │   │   │   │   ├── message.rasi
+│   │   │   │   │   ├── mpd.sh
+│   │   │   │   │   ├── powermenu.sh
+│   │   │   │   │   ├── quicklinks.sh
+│   │   │   │   │   ├── screenshot.sh
+│   │   │   │   │   ├── six.rasi
+│   │   │   │   │   ├── three.rasi
+│   │   │   │   │   └── volume.sh
+│   │   │   │   ├── applets
+│   │   │   │   │   ├── apps.sh
+│   │   │   │   │   ├── backlight.sh
+│   │   │   │   │   ├── battery.sh
+│   │   │   │   │   ├── configs
+│   │   │   │   │   │   ├── circle
+│   │   │   │   │   │   │   ├── apps.rasi
+│   │   │   │   │   │   │   ├── backlight.rasi
+│   │   │   │   │   │   │   ├── battery.rasi
+│   │   │   │   │   │   │   ├── mpd.rasi
+│   │   │   │   │   │   │   ├── network.rasi
+│   │   │   │   │   │   │   ├── powermenu.rasi
+│   │   │   │   │   │   │   ├── quicklinks.rasi
+│   │   │   │   │   │   │   ├── screenshot.rasi
+│   │   │   │   │   │   │   ├── time.rasi
+│   │   │   │   │   │   │   └── volume.rasi
+│   │   │   │   │   │   ├── rounded
+│   │   │   │   │   │   │   ├── apps.rasi
+│   │   │   │   │   │   │   ├── backlight.rasi
+│   │   │   │   │   │   │   ├── battery.rasi
+│   │   │   │   │   │   │   ├── mpd.rasi
+│   │   │   │   │   │   │   ├── network.rasi
+│   │   │   │   │   │   │   ├── powermenu.rasi
+│   │   │   │   │   │   │   ├── quicklinks.rasi
+│   │   │   │   │   │   │   ├── screenshot.rasi
+│   │   │   │   │   │   │   ├── time.rasi
+│   │   │   │   │   │   │   └── volume.rasi
+│   │   │   │   │   │   └── square
+│   │   │   │   │   │       ├── apps.rasi
+│   │   │   │   │   │       ├── backlight.rasi
+│   │   │   │   │   │       ├── battery.rasi
+│   │   │   │   │   │       ├── mpd.rasi
+│   │   │   │   │   │       ├── network.rasi
+│   │   │   │   │   │       ├── powermenu.rasi
+│   │   │   │   │   │       ├── quicklinks.rasi
+│   │   │   │   │   │       ├── screenshot.rasi
+│   │   │   │   │   │       ├── time.rasi
+│   │   │   │   │   │       └── volume.rasi
+│   │   │   │   │   ├── mpd.sh
+│   │   │   │   │   ├── network.sh
+│   │   │   │   │   ├── powermenu.sh
+│   │   │   │   │   ├── quicklinks.sh
+│   │   │   │   │   ├── screenshot.sh
+│   │   │   │   │   ├── style.sh
+│   │   │   │   │   ├── time.sh
+│   │   │   │   │   └── volume.sh
+│   │   │   │   ├── menu
+│   │   │   │   │   ├── apps.sh
+│   │   │   │   │   ├── backlight.sh
+│   │   │   │   │   ├── battery.sh
+│   │   │   │   │   ├── configs
+│   │   │   │   │   │   ├── circle
+│   │   │   │   │   │   │   ├── apps.rasi
+│   │   │   │   │   │   │   ├── backlight.rasi
+│   │   │   │   │   │   │   ├── battery.rasi
+│   │   │   │   │   │   │   ├── mpd.rasi
+│   │   │   │   │   │   │   ├── network.rasi
+│   │   │   │   │   │   │   ├── powermenu.rasi
+│   │   │   │   │   │   │   ├── quicklinks.rasi
+│   │   │   │   │   │   │   ├── screenshot.rasi
+│   │   │   │   │   │   │   ├── time.rasi
+│   │   │   │   │   │   │   └── volume.rasi
+│   │   │   │   │   │   ├── rounded
+│   │   │   │   │   │   │   ├── apps.rasi
+│   │   │   │   │   │   │   ├── backlight.rasi
+│   │   │   │   │   │   │   ├── battery.rasi
+│   │   │   │   │   │   │   ├── mpd.rasi
+│   │   │   │   │   │   │   ├── network.rasi
+│   │   │   │   │   │   │   ├── powermenu.rasi
+│   │   │   │   │   │   │   ├── quicklinks.rasi
+│   │   │   │   │   │   │   ├── screenshot.rasi
+│   │   │   │   │   │   │   ├── time.rasi
+│   │   │   │   │   │   │   └── volume.rasi
+│   │   │   │   │   │   └── square
+│   │   │   │   │   │       ├── apps.rasi
+│   │   │   │   │   │       ├── backlight.rasi
+│   │   │   │   │   │       ├── battery.rasi
+│   │   │   │   │   │       ├── mpd.rasi
+│   │   │   │   │   │       ├── network.rasi
+│   │   │   │   │   │       ├── powermenu.rasi
+│   │   │   │   │   │       ├── quicklinks.rasi
+│   │   │   │   │   │       ├── screenshot.rasi
+│   │   │   │   │   │       ├── time.rasi
+│   │   │   │   │   │       └── volume.rasi
+│   │   │   │   │   ├── mpd.sh
+│   │   │   │   │   ├── network.sh
+│   │   │   │   │   ├── powermenu.sh
+│   │   │   │   │   ├── quicklinks.sh
+│   │   │   │   │   ├── screenshot.sh
+│   │   │   │   │   ├── style.sh
+│   │   │   │   │   ├── time.sh
+│   │   │   │   │   └── volume.sh
+│   │   │   │   └── styles
+│   │   │   │       ├── adapta-nokto.rasi
+│   │   │   │       ├── adapta.rasi
+│   │   │   │       ├── adwaita.rasi
+│   │   │   │       ├── arc-dark.rasi
+│   │   │   │       ├── arc.rasi
+│   │   │   │       ├── armchair.rasi
+│   │   │   │       ├── colors.rasi
+│   │   │   │       ├── confirm.rasi
+│   │   │   │       ├── dark.rasi
+│   │   │   │       ├── darkpink.rasi
+│   │   │   │       ├── fresh.rasi
+│   │   │   │       ├── gruvbox.rasi
+│   │   │   │       ├── inside.rasi
+│   │   │   │       ├── material-dark
+│   │   │   │       │   ├── amber.rasi
+│   │   │   │       │   ├── blue.rasi
+│   │   │   │       │   ├── blue_grey.rasi
+│   │   │   │       │   ├── brown.rasi
+│   │   │   │       │   ├── cyan.rasi
+│   │   │   │       │   ├── deep_orange.rasi
+│   │   │   │       │   ├── deep_purple.rasi
+│   │   │   │       │   ├── green.rasi
+│   │   │   │       │   ├── grey.rasi
+│   │   │   │       │   ├── indigo.rasi
+│   │   │   │       │   ├── light_blue.rasi
+│   │   │   │       │   ├── light_green.rasi
+│   │   │   │       │   ├── lime.rasi
+│   │   │   │       │   ├── orange.rasi
+│   │   │   │       │   ├── pink.rasi
+│   │   │   │       │   ├── purple.rasi
+│   │   │   │       │   ├── red.rasi
+│   │   │   │       │   ├── teal.rasi
+│   │   │   │       │   └── yellow.rasi
+│   │   │   │       ├── material-light
+│   │   │   │       │   ├── amber.rasi
+│   │   │   │       │   ├── blue.rasi
+│   │   │   │       │   ├── blue_grey.rasi
+│   │   │   │       │   ├── brown.rasi
+│   │   │   │       │   ├── cyan.rasi
+│   │   │   │       │   ├── deep_orange.rasi
+│   │   │   │       │   ├── deep_purple.rasi
+│   │   │   │       │   ├── green.rasi
+│   │   │   │       │   ├── grey.rasi
+│   │   │   │       │   ├── indigo.rasi
+│   │   │   │       │   ├── light_blue.rasi
+│   │   │   │       │   ├── light_green.rasi
+│   │   │   │       │   ├── lime.rasi
+│   │   │   │       │   ├── orange.rasi
+│   │   │   │       │   ├── pink.rasi
+│   │   │   │       │   ├── purple.rasi
+│   │   │   │       │   ├── red.rasi
+│   │   │   │       │   ├── teal.rasi
+│   │   │   │       │   └── yellow.rasi
+│   │   │   │       ├── message.rasi
+│   │   │   │       ├── minimo.rasi
+│   │   │   │       ├── party.rasi
+│   │   │   │       └── sirin.rasi
+│   │   │   ├── bin
+│   │   │   │   ├── android_apps
+│   │   │   │   ├── android_backlight
+│   │   │   │   ├── android_mpd
+│   │   │   │   ├── android_powermenu
+│   │   │   │   ├── android_quicklinks
+│   │   │   │   ├── android_screenshot
+│   │   │   │   ├── android_volume
+│   │   │   │   ├── applet_apps
+│   │   │   │   ├── applet_backlight
+│   │   │   │   ├── applet_battery
+│   │   │   │   ├── applet_mpd
+│   │   │   │   ├── applet_network
+│   │   │   │   ├── applet_powermenu
+│   │   │   │   ├── applet_quicklinks
+│   │   │   │   ├── applet_screenshot
+│   │   │   │   ├── applet_time
+│   │   │   │   ├── applet_volume
+│   │   │   │   ├── launcher_colorful
+│   │   │   │   ├── launcher_misc
+│   │   │   │   ├── launcher_ribbon
+│   │   │   │   ├── launcher_slate
+│   │   │   │   ├── launcher_text
+│   │   │   │   ├── menu_apps
+│   │   │   │   ├── menu_backlight
+│   │   │   │   ├── menu_battery
+│   │   │   │   ├── menu_mpd
+│   │   │   │   ├── menu_network
+│   │   │   │   ├── menu_powermenu
+│   │   │   │   ├── menu_quicklinks
+│   │   │   │   ├── menu_screenshot
+│   │   │   │   ├── menu_time
+│   │   │   │   ├── menu_volume
+│   │   │   │   ├── powermenu
+│   │   │   │   ├── usedcpu
+│   │   │   │   └── usedram
+│   │   │   ├── config
+│   │   │   ├── config.rasi
+│   │   │   ├── launchers
+│   │   │   │   ├── colorful
+│   │   │   │   │   ├── colors.rasi
+│   │   │   │   │   ├── launcher.sh
+│   │   │   │   │   ├── style_1.rasi
+│   │   │   │   │   ├── style_10.rasi
+│   │   │   │   │   ├── style_11.rasi
+│   │   │   │   │   ├── style_12.rasi
+│   │   │   │   │   ├── style_2.rasi
+│   │   │   │   │   ├── style_3.rasi
+│   │   │   │   │   ├── style_4.rasi
+│   │   │   │   │   ├── style_5.rasi
+│   │   │   │   │   ├── style_6.rasi
+│   │   │   │   │   ├── style_7.rasi
+│   │   │   │   │   ├── style_8.rasi
+│   │   │   │   │   └── style_9.rasi
+│   │   │   │   ├── misc
+│   │   │   │   │   ├── appdrawer.rasi
+│   │   │   │   │   ├── appdrawer_alt.rasi
+│   │   │   │   │   ├── appfolder.rasi
+│   │   │   │   │   ├── blurry.rasi
+│   │   │   │   │   ├── blurry_full.rasi
+│   │   │   │   │   ├── column.rasi
+│   │   │   │   │   ├── gnome_do.rasi
+│   │   │   │   │   ├── kde_krunner.rasi
+│   │   │   │   │   ├── kde_simplemenu.rasi
+│   │   │   │   │   ├── launcher.sh
+│   │   │   │   │   ├── launchpad.rasi
+│   │   │   │   │   ├── row.rasi
+│   │   │   │   │   ├── row_center.rasi
+│   │   │   │   │   ├── row_dock.rasi
+│   │   │   │   │   ├── row_dropdown.rasi
+│   │   │   │   │   ├── screen.rasi
+│   │   │   │   │   └── slingshot.rasi
+│   │   │   │   ├── ribbon
+│   │   │   │   │   ├── full_bottom.rasi
+│   │   │   │   │   ├── full_left.rasi
+│   │   │   │   │   ├── full_right.rasi
+│   │   │   │   │   ├── full_top.rasi
+│   │   │   │   │   ├── launcher.sh
+│   │   │   │   │   ├── ribbon_bottom.rasi
+│   │   │   │   │   ├── ribbon_bottom_round.rasi
+│   │   │   │   │   ├── ribbon_left.rasi
+│   │   │   │   │   ├── ribbon_left_round.rasi
+│   │   │   │   │   ├── ribbon_right.rasi
+│   │   │   │   │   ├── ribbon_right_round.rasi
+│   │   │   │   │   ├── ribbon_top.rasi
+│   │   │   │   │   ├── ribbon_top_round.rasi
+│   │   │   │   │   └── styles
+│   │   │   │   │       ├── berry.rasi
+│   │   │   │   │       ├── bluish.rasi
+│   │   │   │   │       ├── cocoa.rasi
+│   │   │   │   │       ├── colors.rasi
+│   │   │   │   │       ├── faded.rasi
+│   │   │   │   │       ├── gotham.rasi
+│   │   │   │   │       ├── mask.rasi
+│   │   │   │   │       ├── nightly.rasi
+│   │   │   │   │       └── nordic.rasi
+│   │   │   │   ├── slate
+│   │   │   │   │   ├── launcher.sh
+│   │   │   │   │   ├── slate_bottom.rasi
+│   │   │   │   │   ├── slate_center.rasi
+│   │   │   │   │   ├── slate_full.rasi
+│   │   │   │   │   ├── slate_left.rasi
+│   │   │   │   │   ├── slate_right.rasi
+│   │   │   │   │   ├── slate_top.rasi
+│   │   │   │   │   └── styles
+│   │   │   │   │       ├── Amber.rasi
+│   │   │   │   │       ├── Black.rasi
+│   │   │   │   │       ├── Blue.rasi
+│   │   │   │   │       ├── Blue_gray.rasi
+│   │   │   │   │       ├── Brown.rasi
+│   │   │   │   │       ├── colors.rasi
+│   │   │   │   │       ├── Cyan.rasi
+│   │   │   │   │       ├── Deep_orange.rasi
+│   │   │   │   │       ├── Deep_purple.rasi
+│   │   │   │   │       ├── Gray.rasi
+│   │   │   │   │       ├── Green.rasi
+│   │   │   │   │       ├── Indigo.rasi
+│   │   │   │   │       ├── Light_blue.rasi
+│   │   │   │   │       ├── Light_green.rasi
+│   │   │   │   │       ├── Lime.rasi
+│   │   │   │   │       ├── Orange.rasi
+│   │   │   │   │       ├── Pink.rasi
+│   │   │   │   │       ├── Purple.rasi
+│   │   │   │   │       ├── Red.rasi
+│   │   │   │   │       ├── Teal.rasi
+│   │   │   │   │       └── Yellow.rasi
+│   │   │   │   └── text
+│   │   │   │       ├── launcher.sh
+│   │   │   │       ├── styles
+│   │   │   │       │   ├── berry.rasi
+│   │   │   │       │   ├── black.rasi
+│   │   │   │       │   ├── bluish.rasi
+│   │   │   │       │   ├── cocoa.rasi
+│   │   │   │       │   ├── colors.rasi
+│   │   │   │       │   ├── faded.rasi
+│   │   │   │       │   ├── gotham.rasi
+│   │   │   │       │   ├── mask.rasi
+│   │   │   │       │   ├── nightly.rasi
+│   │   │   │       │   ├── nordic.rasi
+│   │   │   │       │   └── white.rasi
+│   │   │   │       ├── style_1.rasi
+│   │   │   │       ├── style_2.rasi
+│   │   │   │       ├── style_3.rasi
+│   │   │   │       ├── style_4.rasi
+│   │   │   │       ├── style_5.rasi
+│   │   │   │       ├── style_6.rasi
+│   │   │   │       └── style_7.rasi
+│   │   │   ├── powermenu
+│   │   │   │   ├── card_alt.rasi
+│   │   │   │   ├── card_circle.rasi
+│   │   │   │   ├── card_rounded.rasi
+│   │   │   │   ├── card_square.rasi
+│   │   │   │   ├── column_alt.rasi
+│   │   │   │   ├── column_circle.rasi
+│   │   │   │   ├── column_rounded.rasi
+│   │   │   │   ├── column_square.rasi
+│   │   │   │   ├── confirm.rasi
+│   │   │   │   ├── dock_alt.rasi
+│   │   │   │   ├── dock_circle.rasi
+│   │   │   │   ├── dock_rounded.rasi
+│   │   │   │   ├── dock_square.rasi
+│   │   │   │   ├── drop_alt.rasi
+│   │   │   │   ├── drop_circle.rasi
+│   │   │   │   ├── drop_rounded.rasi
+│   │   │   │   ├── drop_square.rasi
+│   │   │   │   ├── full_alt.rasi
+│   │   │   │   ├── full_circle.rasi
+│   │   │   │   ├── full_rounded.rasi
+│   │   │   │   ├── full_square.rasi
+│   │   │   │   ├── message.rasi
+│   │   │   │   ├── powermenu.sh
+│   │   │   │   ├── row_alt.rasi
+│   │   │   │   ├── row_circle.rasi
+│   │   │   │   ├── row_rounded.rasi
+│   │   │   │   ├── row_square.rasi
+│   │   │   │   └── styles
+│   │   │   │       ├── berry.rasi
+│   │   │   │       ├── bluish.rasi
+│   │   │   │       ├── cocoa.rasi
+│   │   │   │       ├── colors.rasi
+│   │   │   │       ├── faded.rasi
+│   │   │   │       ├── gotham.rasi
+│   │   │   │       ├── mask.rasi
+│   │   │   │       ├── nightly.rasi
+│   │   │   │       └── nordic.rasi
+│   │   │   └── themes
+│   │   │       ├── dracula.rasi
+│   │   │       ├── dt-center.rasi
+│   │   │       ├── dt-dmenu.rasi
+│   │   │       ├── gruvbox.rasi
+│   │   │       ├── justinesmithies.rasi
+│   │   │       ├── material.rasi
+│   │   │       ├── murz.rasi
+│   │   │       └── nord.rasi
+│   │   ├── rofi.x
+│   │   │   ├── config.rasi
+│   │   │   ├── launcher
+│   │   │   │   ├── black_launcher.rasi
+│   │   │   │   └── style.rasi
+│   │   │   └── powermenu
+│   │   │       ├── black_powermenu.rasi
+│   │   │       ├── card_circle.rasi
+│   │   │       ├── confirm.rasi
+│   │   │       └── message.rasi
+│   │   └── scripts
+│   │       ├── launcher_t1
+│   │       ├── launcher_t2
+│   │       ├── launcher_t3
+│   │       ├── launcher_t4
+│   │       ├── launcher_t5
+│   │       ├── launcher_t6
+│   │       ├── launcher_t7
+│   │       ├── powermenu_t1
+│   │       ├── powermenu_t2
+│   │       ├── powermenu_t3
+│   │       ├── powermenu_t4
+│   │       ├── powermenu_t5
+│   │       └── powermenu_t6
+│   ├── rust
+│   │   ├── .dotsrc.sh
+│   │   ├── .rustfmt copy.toml
+│   │   ├── activate.ps1
+│   │   ├── cargo.toml
+│   │   ├── cargo_completions.bash
+│   │   ├── rust-analyzer.toml
+│   │   ├── rust-toolchain.toml
+│   │   ├── rustfmt copy.toml
+│   │   ├── rustfmt.toml
+│   │   ├── rustup_completions.bash
+│   │   ├── rustup_unix.toml
+│   │   └── rustup_win.toml
+│   ├── sddm
+│   │   ├── sddm.conf
+│   │   ├── sddm.conf.d
+│   │   │   ├── appearance.conf
+│   │   │   └── autologin.conf
+│   │   ├── sddm.conf.default
+│   │   └── themes
+│   │       └── sugar-candy
+│   │           ├── AUTHORS
+│   │           ├── Backgrounds
+│   │           │   └── Undraw.svg
+│   │           ├── CHANGELOG.md
+│   │           ├── Components
+│   │           │   ├── Clock.qml
+│   │           │   ├── Input.qml
+│   │           │   ├── LoginForm.qml
+│   │           │   ├── SessionButton.qml
+│   │           │   ├── SystemButtons.qml
+│   │           │   ├── UserList.qml
+│   │           │   └── VirtualKeyboard.qml
+│   │           ├── COPYING
+│   │           ├── Main.qml
+│   │           ├── metadata.desktop
+│   │           ├── README.md
+│   │           └── theme.conf
+│   ├── shell.ps1
+│   ├── SpeedCrunch
+│   │   └── SpeedCrunch.ini
+│   ├── sqruff
+│   │   ├── .sqruff
+│   │   ├── .sqruff copy
+│   │   ├── .sqruff copy 2
+│   │   └── .sqruff copy 3
+│   ├── starship
+│   │   ├── .dotsrc.sh
+│   │   ├── config.toml
+│   │   └── themes
+│   │       ├── bracketed-segments.toml
+│   │       ├── craole.toml
+│   │       ├── ctt.toml
+│   │       ├── default.toml
+│   │       ├── nerd-font-symbols.toml
+│   │       ├── no-nerd-font.toml
+│   │       ├── omp.toml
+│   │       ├── pastel-powerline.toml
+│   │       └── tokyo-night.toml
+│   ├── sway
+│   │   ├── config
+│   │   └── modules
+│   │       ├── appearance
+│   │       ├── applications
+│   │       ├── bar
+│   │       ├── declarations
+│   │       ├── idle
+│   │       ├── input
+│   │       ├── keys
+│   │       ├── screens
+│   │       └── startup
+│   ├── sxhkd
+│   │   └── global
+│   ├── sxiv
+│   │   └── exec
+│   │       ├── image-info
+│   │       ├── key-handler
+│   │       ├── key-handler.bak
+│   │       └── key-handler.orig
+│   ├── taplo
+│   │   └── config.toml
+│   ├── tint2
+│   │   ├── clock.tint2rc
+│   │   ├── customscripts.tint2rc
+│   │   ├── icons.tint2rc
+│   │   ├── panellauncher.tint2rc
+│   │   ├── scripts
+│   │   │   ├── battery.sh
+│   │   │   ├── inhibitor.sh
+│   │   │   ├── networkclick.sh
+│   │   │   └── networkmanager.sh
+│   │   ├── tint2rc
+│   │   └── workspaces.tint2rc
+│   ├── touchegg
+│   │   ├── .touchegg.lock
+│   │   └── touchegg.conf
+│   ├── trae
+│   │   ├── keybindings.json
+│   │   └── settings.json
+│   ├── treefmt
+│   │   ├── config.toml
+│   │   └── psfmt.ps1
+│   ├── users
+│   │   ├── cc
+│   │   │   ├── default.nix
+│   │   │   └── settings
+│   │   │       ├── bat
+│   │   │       │   └── default.nix
+│   │   │       ├── default.nix
+│   │   │       ├── helix
+│   │   │       │   ├── default.nix
+│   │   │       │   ├── helix.toml
+│   │   │       │   ├── keybindings.nix
+│   │   │       │   ├── languages.nix
+│   │   │       │   └── settings.nix
+│   │   │       └── hyprland
+│   │   │           ├── bindings.nix
+│   │   │           ├── default.nix
+│   │   │           ├── packages.nix
+│   │   │           ├── rules.nix
+│   │   │           └── settings.nix
+│   │   ├── craole
+│   │   │   ├── core
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── programs.nix
+│   │   │   │   └── services.nix
+│   │   │   ├── default copy.nix
+│   │   │   ├── default.nix
+│   │   │   └── home
+│   │   │       └── default.nix
+│   │   └── qyatt
+│   │       ├── default copy.nix
+│   │       └── default.nix
+│   ├── vim
+│   │   ├── init.vim
+│   │   ├── more.vim
+│   │   └── sample.vim
+│   ├── volumeicon
+│   │   └── volumeicon
+│   ├── vscode
+│   │   ├── custom-ui-style.md
+│   │   ├── Dotfiles copy.code-workspace
+│   │   ├── Dotfiles.code-workspace
+│   │   ├── Nix.code-workspace
+│   │   ├── NixWSL.code-workspace
+│   │   ├── Projects.code-workspace
+│   │   ├── Rust.code-workspace
+│   │   ├── setting.bac.json
+│   │   ├── settings copy.json
+│   │   ├── settings copy.jsonc
+│   │   ├── settings-insiders.jsonc
+│   │   ├── settings.bac.json
+│   │   ├── settings.jsonc
+│   │   ├── settings.nix.json
+│   │   └── vscodeTUX.json
+│   ├── wallheaven
+│   │   └── config.toml
+│   ├── warp
+│   ├── waybar
+│   │   ├── config
+│   │   ├── review
+│   │   │   ├── conf.d
+│   │   │   │   ├── config.custom-1
+│   │   │   │   ├── config.mac-like
+│   │   │   │   ├── config.material
+│   │   │   │   └── config.simple
+│   │   │   ├── config
+│   │   │   ├── style.css
+│   │   │   └── styles.d
+│   │   │       ├── style.custom-1.css
+│   │   │       ├── style.mac-like.css
+│   │   │       ├── style.material.css
+│   │   │       └── style.simple.css
+│   │   ├── scripts
+│   │   │   ├── mediaplayer.sh
+│   │   │   └── power-menu.sh
+│   │   ├── style.css
+│   │   └── theme2
+│   │       ├── config
+│   │       ├── scripts
+│   │       │   ├── executable_update.sh
+│   │       │   ├── keyhint.sh
+│   │       │   ├── mediaplayer.sh
+│   │       │   ├── PBPbattery.sh
+│   │       │   ├── power-menu.sh
+│   │       │   └── weather.sh
+│   │       └── style.css
+│   ├── waylock
+│   │   └── waylock.toml
+│   ├── WindowsTerminal
+│   │   ├── config.ps1
+│   │   ├── quake_mode_shortcut.sh
+│   │   ├── schema.json
+│   │   └── settings.json
+│   ├── wofi
+│   │   ├── config
+│   │   └── style.css
+│   ├── X11
+│   │   ├── dir_colors
+│   │   ├── resources
+│   │   │   ├── jellybeans
+│   │   │   ├── solarized
+│   │   │   └── urxvt
+│   │   ├── review
+│   │   │   ├── .Xresources
+│   │   │   ├── Xauthority
+│   │   │   ├── Xauthority.bac
+│   │   │   ├── Xdefaults
+│   │   │   ├── xprofile
+│   │   │   ├── Xresources
+│   │   │   └── xscreensaver
+│   │   ├── xinitrc.sh
+│   │   ├── xinitrc.sh.bac
+│   │   ├── xmodmap.cpp
+│   │   └── xresources.cpp
+│   ├── yambar
+│   │   └── config.yaml
+│   ├── yazi
+│   │   ├── config.toml
+│   │   └── init.lua
+│   ├── zathura
+│   │   └── zathurarc
+│   ├── zed
+│   │   ├── codebook.toml
+│   │   ├── keymap.json
+│   │   └── settings.json
+│   ├── zoxide
+│   │   └── db.zo
+│   └── zsh
+│       ├── .config
+│       ├── .zcompdump
+│       ├── .zsh_history
+│       ├── config.zsh
+│       └── resources
+│           ├── history.zsh
+│           ├── keys.zsh
+│           ├── lf.zsh
+│           ├── plugins.zsh
+│           └── prompt.zsh
+├── default.nix
+├── deno.jsonc
+├── Environment
+│   ├── nushell
+│   │   └── .dotsrc.nu
+│   └── posix
+│       ├── .dotsrc.sh
+│       ├── context
+│       │   ├── admin.sh
+│       │   ├── base
+│       │   │   ├── clock
+│       │   │   └── review
+│       │   │       └── admin
+│       │   ├── browser.sh
+│       │   ├── core
+│       │   │   ├── review
+│       │   │   │   ├── apps.sh
+│       │   │   │   └── misc.sh
+│       │   │   └── templates
+│       │   │       ├── path.sh
+│       │   │       └── sudo.sh
+│       │   ├── dirs.sh
+│       │   ├── flatpak.sh
+│       │   ├── git_dots_bare.sh
+│       │   ├── history.sh
+│       │   ├── locale.sh
+│       │   ├── output.sh
+│       │   ├── pacman.sh
+│       │   ├── paru.sh
+│       │   ├── project
+│       │   │   └── review
+│       │   ├── projects
+│       │   ├── python.sh
+│       │   ├── ruby.sh
+│       │   ├── rustup.sh
+│       │   ├── shells
+│       │   ├── starship.sh
+│       │   ├── system.sh
+│       │   ├── utility
+│       │   │   └── review
+│       │   ├── vcs
+│       │   └── yazi.sh
+│       ├── packages
+│       │   ├── alacritty
+│       │   ├── bash
+│       │   ├── bat
+│       │   ├── berry
+│       │   ├── font
+│       │   ├── foot
+│       │   ├── fuzzel
+│       │   ├── git
+│       │   ├── helix
+│       │   ├── herbstluftwm
+│       │   ├── interface
+│       │   │   ├── berry
+│       │   │   ├── polybar
+│       │   │   ├── qtile
+│       │   │   ├── river
+│       │   │   ├── sway
+│       │   │   ├── tint2
+│       │   │   ├── waybar
+│       │   │   ├── wayfire
+│       │   │   ├── wayland
+│       │   │   ├── x11
+│       │   │   └── xmonad
+│       │   ├── kitty
+│       │   ├── lsd
+│       │   ├── macchina
+│       │   ├── nixos
+│       │   ├── nu
+│       │   ├── polybar
+│       │   ├── qtile
+│       │   ├── qutebrowser
+│       │   ├── river
+│       │   ├── rofi
+│       │   ├── sddm
+│       │   ├── starship
+│       │   ├── sway
+│       │   ├── tint2
+│       │   ├── vcs.init
+│       │   ├── vscode
+│       │   ├── waybar
+│       │   ├── wayfire
+│       │   ├── wayland
+│       │   ├── X11
+│       │   ├── xmonad
+│       │   └── zed
+│       └── review
+│           ├── alacritty.sh
+│           ├── app.kit.sh
+│           ├── apps.1.sh
+│           ├── apps.sh
+│           ├── array.sh
+│           ├── base
+│           │   ├── info
+│           │   │   └── inf.sh
+│           │   └── paths
+│           │       ├── admin
+│           │       ├── interface
+│           │       │   ├── display.sh
+│           │       │   └── init
+│           │       ├── resources
+│           │       └── shells
+│           ├── bat.sh
+│           ├── bookmarks.sh
+│           ├── broot.sh
+│           ├── core
+│           │   ├── alias.sh
+│           │   ├── apps.sh
+│           │   ├── misc.sh
+│           │   └── templates
+│           │       ├── history.sh
+│           │       ├── locale.sh
+│           │       ├── path.sh
+│           │       └── sudo.sh
+│           ├── CRLF_test.sh
+│           ├── dmenu.sh
+│           ├── ENV.sh
+│           ├── envMan.sh
+│           ├── exa.sh
+│           ├── expac.sh
+│           ├── fd.sh
+│           ├── fend.sh
+│           ├── ffmpeg.sh
+│           ├── firewalld.sh
+│           ├── fm6000.sh
+│           ├── ftc.sh
+│           ├── GHCup.sh
+│           ├── history.sh
+│           ├── import
+│           │   ├── .config
+│           │   ├── emojify.sh
+│           │   └── getoptions.sh
+│           ├── kitty.sh
+│           ├── lf.sh
+│           ├── locale.sh
+│           ├── lsd.sh
+│           ├── node.sh
+│           ├── notifi.kit.sh
+│           ├── nu.sh
+│           ├── nushell.sh
+│           ├── nvim.sh
+│           ├── package
+│           │   ├── admin
+│           │   │   ├── flatpak.sh
+│           │   │   ├── pacman.sh
+│           │   │   └── ruby.sh
+│           │   ├── helper
+│           │   │   └── paru.sh
+│           │   └── starship.sh
+│           ├── packages.sh
+│           ├── path.kit.sh
+│           ├── picom.sh
+│           ├── picomB.sh
+│           ├── pnpm.sh
+│           ├── podman
+│           ├── project
+│           │   ├── projects
+│           │   └── vcs
+│           ├── reflector.sh
+│           ├── ripgrep.sh
+│           ├── rust
+│           ├── sd.sh
+│           ├── shellcheck.sh
+│           ├── SHinfo
+│           ├── speedtest.sh
+│           ├── starship.sh
+│           ├── sudo.sh
+│           ├── template
+│           ├── testing
+│           ├── turborepo.sh
+│           ├── uptime.sh
+│           ├── utility
+│           │   └── git_dots_bare.sh
+│           ├── vim.sh
+│           ├── void.sh
+│           ├── vps
+│           ├── wallpaper.kit.sh
+│           ├── WeReach
+│           ├── xmonad.sh
+│           ├── yambar.sh
+│           ├── yarn.sh
+│           ├── yt_chapters.sh
+│           └── zoxide.sh
+├── flake.lock
+├── flake.nix
+├── justfile
+├── LICENSE-APACHE
+├── LICENSE-MIT
+├── README.md
+└── shell.nix
