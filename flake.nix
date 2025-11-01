@@ -9,7 +9,8 @@
     inherit (lib.attrsets) genAttrs attrValues;
 
     systems = genAttrs (import inputs.nixosSystems);
-    paths = import ./Admin/paths.nix;
+    pathsModule = import ./Admin/paths.nix;
+    paths = pathsModule.default;
     init = {
       host = paths.store.administration.host;
       pkgs = paths.store.packages;

@@ -81,4 +81,5 @@ let
 in
   {
     inherit updateLocalPaths;
+    default = updateLocalPaths null;
   }
