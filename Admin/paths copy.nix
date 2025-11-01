@@ -2,21 +2,21 @@ let
   inherit (builtins) mapAttrs isAttrs;
 
   flake = {
-    store = "../.";
-    local = "/home/craole/Documents/dotfiles";
+    store = ../.;
+    local = "/home/craole/.dots";
   };
 
   parts = rec {
     flake = "";
     administration = {
-      base = "Admin";
+      base = "/Admin";
       host = administration.base + "/host.nix";
       modules = administration.base + "/modules.nix";
       packages = administration.base + "/packages.nix";
       paths = administration.base + "/paths.nix";
     };
     binaries = {
-      base = "Bin";
+      base = "/Bin";
       cmd = binaries.base + "/cmd";
       nix = binaries.base + "/nix";
       rs = binaries.base + "/rust";
@@ -26,27 +26,27 @@ let
       dev = binaries.sh + "/projects/nix/devnix";
     };
     configuration = {
-      base = "Configuration";
+      base = "/Configuration";
       hosts = configuration.base + "/hosts";
       users = configuration.base + "/users";
     };
     documentation = {
-      base = "Documentation";
+      base = "/Documentation";
     };
     environment = {
-      base = "Environment";
+      base = "/Environment";
     };
     libraries = {
-      base = "Libraries";
+      base = "/Libraries";
       core = libraries.base + "/core";
     };
     modules = {
-      base = "Modules";
+      base = "/Modules";
       env = modules.base + "/environment.nix";
       nix = modules.base + "/nix.nix";
     };
     packages = {
-      base = "Packages";
+      base = "/Packages";
       core = packages.base + "/core";
       custom = packages.base + "/custom";
       overlays = packages.base + "/overlays";
@@ -58,7 +58,7 @@ let
     mapAttrs (name: value:
       if isAttrs value
       then mkPathSet root value
-      else root + "/" + value)  # Added "/" safely here for correct path joining
+      else root + value)
     set;
 
   initialPaths = {
@@ -82,3 +82,4 @@ in
   {
     inherit updateLocalPaths;
   }
+  // initialPaths
