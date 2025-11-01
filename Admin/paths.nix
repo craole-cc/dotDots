@@ -54,12 +54,13 @@ let
     };
   };
 
-  mkPathSet = root: set:
-    mapAttrs (name: value:
-      if isAttrs value
-      then mkPathSet root value
-      else root + "/" + value)  # Added "/" safely here for correct path joining
-    set;
+ mkPathSet = root: set:
+  mapAttrs (name: value:
+    if isAttrs value
+    then mkPathSet root value
+    else builtins.toString (builtins.path { path = root + "/" + value; })
+  )
+  set;
 
   initialPaths = {
     store = mkPathSet flake.store parts;
