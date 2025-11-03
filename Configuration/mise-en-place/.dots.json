@@ -1,0 +1,7 @@
+{
+  "Includes": [
+    "activate.ps1",
+    "wrappers.ps1",
+    "_._"
+  ]
+}

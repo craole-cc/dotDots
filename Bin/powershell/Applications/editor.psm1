@@ -32,7 +32,7 @@
 
 #region Editor Configuration
 $Global:EditorConfig = @{
-  DefaultTuiEditors = @('helix', 'hx', 'nvim', 'vim', 'nano')
+  DefaultTuiEditors = @('nvim', 'vim', 'helix', 'hx', 'nano')
   DefaultGuiEditors = @(
     'code',
     'code-insiders',
