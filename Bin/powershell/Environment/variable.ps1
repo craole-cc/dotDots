@@ -222,6 +222,9 @@ function Global:Get-Env {
     [Parameter(HelpMessage = 'Expand embedded environment variables')]
     [switch]$ExpandVars,
 
+    [Parameter(HelpMessage = 'Split the returned string value on semicolons into multiple elements')]
+    [switch]$SplitValue,
+
     [Parameter(HelpMessage = 'Sort method for returned variables')]
     [ValidateSet('None', 'Name', 'NameDescending', 'Value', 'ValueDescending', 'Length', 'LengthDescending', 'Priority', 'Alphanumeric', 'Type')]
     [string]$Sort = 'Alphanumeric',
@@ -285,7 +288,7 @@ function Global:Get-Env {
     #~@ Get specific environment variable
     $value = Get-SpecificEnvironmentVariable -Name $Name -Scope $Scope
 
-    #~@ Handle the result
+    #~@ Determine and handle the result
     $result = if ($null -ne $value) {
       #~@ Expand variables if requested
       if ($ExpandVars) {
@@ -326,6 +329,10 @@ function Global:Get-Env {
       $script:EnvCache[$cacheKey] = $result
       $script:CacheExpiry[$cacheKey] = (Get-Date).AddSeconds($script:CacheTTL)
       Write-Pretty -Tag 'Debug' -ContextScope $script:ctxScope -OneLine -Message "Cached value for '$Name' with TTL $script:CacheTTL seconds"
+    }
+
+    if ($SplitValue.IsPresent -and $result -is [string] -and $result.Contains(';')) {
+      $result = $result -split ';'
     }
 
     return $result

@@ -49,6 +49,8 @@
     {
       "path": "Configuration",
       "modules": [
+        "scoop",
+        "winget",
         "mise-en-place",
         "helix",
         "jujutsu",

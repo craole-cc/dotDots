@@ -27,19 +27,22 @@ function Global:Get-MiseConfig {
 
   $cmd = 'mise'
   $name = 'mise-en-place'
-  $cfg = 'config.toml'
+  $pkg = @{
+    scoop  = 'mise'
+    winget = 'jdx.mise'
+  }
+  $conf = 'config.toml'
 
   return @{
-    cmd       = $cmd
-    name      = $name
-    desc      = "$cmd ($name)"
-    conf      = @{
-      dots = Join-Path $env:DOTS 'Configuration' $name $cfg
-      user = Join-Path $env:USERPROFILE '.config' $cmd $cfg
+    cmd  = $cmd
+    name = $name
+    desc = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
+    env  = ($cmd.ToUpper() + '_CONFIG')
+    pkg  = $pkg
+    cfg  = @{
+      dots = Join-Path $env:DOTS 'Configuration' $name $conf
+      user = Join-Path $env:USERPROFILE '.config' $cmd $conf
     }
-    scoopPkg  = $cmd
-    wingetPkg = "jdx.$cmd"
-    envBase   = ($cmd.ToUpper() + '_CONFIG')
   }
 }
 
@@ -68,11 +71,11 @@ function Global:Install-Mise {
   #~@ Try install via scoop or winget
   if (Get-Command -Name 'scoop' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with scoop..."
-    scoop install $app.scoopPkg
+    scoop install $app.pkg.scoop
   }
   elseif (Get-Command -Name 'winget' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with winget..."
-    winget install $app.wingetPkg
+    winget install $app.pkg.winget
   }
   else {
     Write-Pretty -Tag 'Error' 'No package manager (scoop or winget) found. Please install manually.'
@@ -113,14 +116,14 @@ function Global:Set-Mise {
   $app = Get-MiseConfig
 
   #~@ Compose needed paths
-  $dotConfigPath = $app.conf.dots
-  $userConfigPath = $app.conf.user
+  $dotConfigPath = $app.cfg.dots
+  $userConfigPath = $app.cfg.user
   $userConfigDir = Split-Path -Path $userConfigPath -Parent
 
   #~@ Export environment variables for session and global scope
   $envVars = @{
-    $app.envBase             = $dotConfigPath
-    ("$($app.envBase)_LINK") = $userConfigPath
+    $app.env             = $dotConfigPath
+    ("$($app.env)_LINK") = $userConfigPath
   }
   foreach ($key in $envVars.Keys) {
     if (Test-Path -Path $envVars[$key] -PathType Leaf) {

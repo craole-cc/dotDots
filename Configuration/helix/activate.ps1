@@ -36,7 +36,7 @@ function Global:Get-HelixConfig {
   return @{
     cmd       = $cmd
     name      = $name
-    desc      = "$cmd ($name)"
+    desc      = "$name ($cmd)"
     cfgFiles  = $cfgFiles
     cfgPath   = $cfgPath
     scoopPkg  = $name

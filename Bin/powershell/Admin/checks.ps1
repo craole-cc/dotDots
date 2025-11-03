@@ -1,87 +1,161 @@
+<#
+.SYNOPSIS
+    Utility functions for environment and platform detection.
+
+.DESCRIPTION
+    Provides a set of helper functions to determine:
+    - Whether the OS is Windows
+    - Whether the shell is PowerShell Core (6+)
+    - Whether the current user has Administrator privileges
+    - Whether a GUI environment is available
+    - The current OS platform name
+
+.NOTES
+    Author: Craig
+    Compatible with Windows PowerShell 5.1 and PowerShell Core / 7+
+#>
+
 function Global:Test-IsWindows {
-  if ($IsWindows) {
-    return $true
-  }
-  else {
-    return $false
-  }
+  <#
+    .SYNOPSIS
+        Checks if the current OS is Windows.
+    .OUTPUTS
+        [bool]
+    #>
+  [CmdletBinding()]
+  param()
+
+  # Using -like 'win*' for resilience in case platform labels evolve (e.g., 'Win11', 'Windows10')
+  return (Get-OSPlatform -like 'win*')
 }
+
 function Global:Test-IsPowerShellCore {
   <#
-  .SYNOPSIS
-    Checks if the current PowerShell session is PowerShell Core (6+).
+    .SYNOPSIS
+        Checks if the current PowerShell session is PowerShell Core (6+).
+    .OUTPUTS
+        [bool]
+    #>
+  [CmdletBinding()]
+  param()
 
-  .DESCRIPTION
-    Returns $true if running PowerShell Core (version 6 or higher), otherwise $false.
-
-  .OUTPUTS
-    [bool] - $true if PowerShell Core, else $false.
-  #>
-  return $PSVersionTable.PSVersion.Major -ge 6
+  return ($PSVersionTable.PSVersion.Major -ge 6)
 }
+
 function Global:Test-IsAdmin {
-  if (Test-IsPowerShellCore) {
-    #~@ Try using PowerShell Core/7+
-    if ($IsWindows) {
-      $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-      $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-      return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    }
+  <#
+    .SYNOPSIS
+        Checks if the current user has Administrator/root privileges.
+    .DESCRIPTION
+        On Windows, checks if the current user token is in the Administrator role.
+        On non-Windows platforms, always returns $false.
+    .OUTPUTS
+        [bool]
+    #>
+  [CmdletBinding()]
+  param()
+
+  if (-not (Test-IsWindows)) {
     return $false
   }
-  else {
-    #~@ Check using Windows Powershell
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+
+  try {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal]::new($identity)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  }
+  catch {
+    return $false
+  }
+}
+
+function Global:Test-IsWsl {
+  <#
+    .SYNOPSIS
+        Checks if the current environment is WSL (Windows Subsystem for Linux).
+    .OUTPUTS
+        [bool]
+    #>
+  [CmdletBinding()]
+  param()
+
+  try {
+    return $env:WSL_DISTRO_NAME -or (
+      (Get-Command uname -ErrorAction SilentlyContinue) -and
+      ((uname -r) -match 'microsoft')
+    )
+  }
+  catch {
+    return $false
   }
 }
 
 function Global:Test-GuiEnvironment {
   <#
     .SYNOPSIS
-    Determines if a GUI environment is available for launching graphical editors
-
+        Determines if a GUI environment is available.
     .DESCRIPTION
-    Intelligently detects GUI availability across different platforms and environments:
-    - Windows: Always assumes GUI available (native desktop environment)
-    - Unix/Linux: Checks for X11 (DISPLAY) or Wayland (WAYLAND_DISPLAY) environment variables
-    - WSL: Detects GUI forwarding support (WSLg or X11 forwarding)
-
-    This detection determines whether GUI editors (like VS Code, Zed) or TUI editors
-    (like Helix, Neovim) should be prioritized in the selection process.
-
+        - Windows/macOS: assumed available
+        - Linux: checks DISPLAY or WAYLAND_DISPLAY
+        - WSL: checks DISPLAY forwarding
     .OUTPUTS
-    [bool] True if GUI environment is detected, False for TUI-only environments
-
-    .EXAMPLE
-    Test-GuiEnvironment
-    # Returns: True (on Windows or Linux with GUI)
-
-    .EXAMPLE
-    if (Test-GuiEnvironment) {
-        Write-Host "GUI editors will be prioritized"
-    } else {
-        Write-Host "TUI editors only"
-    }
+        [bool]
     #>
   [CmdletBinding()]
   param()
 
-  # Windows typically has GUI available
-  if ($IsWindows -or $env:OS -like '*Windows*') {
-    return $true
+  switch (Get-OSPlatform) {
+    'Windows' { return $true }
+    'MacOS' { return $true }
+    'Linux' { return ($env:DISPLAY -or $env:WAYLAND_DISPLAY) }
+    'WSL' { return ($env:DISPLAY) }
+    default { return $false }
+  }
+}
+
+function Global:Get-OSPlatform {
+  <#
+    .SYNOPSIS
+        Returns the current operating system platform as a string.
+    .DESCRIPTION
+        Detects the OS platform reliably across different PowerShell and .NET versions.
+        Recognizes Windows, Linux, macOS, and WSL.
+    .OUTPUTS
+        [string] - 'Windows', 'Linux', 'MacOS', 'WSL', or 'Unknown'
+    #>
+  [CmdletBinding()]
+  param()
+
+  $label = @{
+    win     = 'Windows'
+    tux     = 'Linux'
+    osx     = 'MacOS'
+    wsl     = 'WSL'
+    default = 'Unknown'
   }
 
-  # Check for X11 or Wayland on Unix/Linux
-  if ($env:DISPLAY -or $env:WAYLAND_DISPLAY) {
-    return $true
+  try {
+    $runtime = [System.Runtime.InteropServices.RuntimeInformation]
+    $os = [System.Runtime.InteropServices.OSPlatform]
+
+    if ($runtime::IsOSPlatform($os::Windows)) { return $label.win }
+    if ($runtime::IsOSPlatform($os::Linux)) {
+      if (Test-IsWsl) { return $label.wsl }
+      return $label.tux
+    }
+    if ($runtime::IsOSPlatform($os::OSX)) { return $label.osx }
+  }
+  catch {
+    $fallback = [System.Environment]::OSVersion.Platform
+    switch ($fallback) {
+      { $_ -like 'Win*' } { return $label.win }
+      'Unix' {
+        if (Test-IsWsl) { return $label.wsl }
+        return $label.tux
+      }
+      'MacOSX' { return $label.osx }
+    }
   }
 
-  # Check WSL with GUI support
-  if ($env:WSL_DISTRO_NAME -and $env:DISPLAY) {
-    return $true
-  }
-
-  return $false
+  return $label.default
 }

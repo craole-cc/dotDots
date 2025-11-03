@@ -8,15 +8,17 @@
 
   $cmd = 'meld'
   $name = 'meld'
-  $desc = "$cmd ($name)"
+  $pkg = @{
+    scoop  = 'meld'
+    winget = 'Meld.Meld'
+  }
 
   return @{
-    cmd       = $cmd
-    name      = $name
-    desc      = $desc
-    scoopPkg  = 'meld'
-    wingetPkg = 'Meld.Meld'
-    envBase   = ($cmd.ToUpper() + '_CONFIG')  # Not used since no config file
+    cmd     = $cmd
+    name    = $name
+    desc    = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
+    pkg     = $pkg
+    envBase = ($cmd.ToUpper() + '_CONFIG')  # Not used since no config file
   }
 }
 
@@ -45,11 +47,11 @@ function Global:Install-Meld {
   #~@ Try install via scoop or winget
   if (Get-Command -Name 'scoop' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with scoop..."
-    scoop install $app.scoopPkg
+    scoop install $app.pkg.scoop
   }
   elseif (Get-Command -Name 'winget' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with winget..."
-    winget install $app.wingetPkg
+    winget install $app.pkg.winget
   }
   else {
     Write-Pretty -Tag 'Error' 'No package manager (scoop or winget) found. Please install manually.'

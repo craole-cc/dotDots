@@ -29,19 +29,22 @@ function Global:Get-JujutsuConfig {
 
   $cmd = 'jj'
   $name = 'jujutsu'
+  $pkg = @{
+    scoop  = 'jj'
+    winget = 'jj-vcs.jj'
+  }
   $cfg = 'config.toml'
 
   return @{
-    cmd       = $cmd
-    name      = $name
-    desc      = "$cmd ($name)"
-    conf      = @{
+    cmd     = $cmd
+    name    = $name
+    desc    = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
+    pkg     = $pkg
+    conf    = @{
       dots = Join-Path $env:DOTS 'Configuration' $name $cfg
       user = Join-Path $env:APPDATA $cmd $cfg
     }
-    scoopPkg  = 'jj'
-    wingetPkg = 'jj-vcs.jj'
-    envBase   = ($cmd.ToUpper() + '_CONFIG')
+    envBase = ($cmd.ToUpper() + '_CONFIG')
   }
 }
 
@@ -70,11 +73,11 @@ function Global:Install-Jujutsu {
   #~@ Try install via scoop or winget
   if (Get-Command -Name 'scoop' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with scoop..."
-    scoop install $app.scoopPkg
+    scoop install $app.pkg.scoop
   }
   elseif (Get-Command -Name 'winget' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with winget..."
-    winget install $app.wingetPkg
+    winget install $app.pkg.winget
   }
   else {
     Write-Pretty -Tag 'Error' 'No package manager (scoop or winget) found. Please install manually.'

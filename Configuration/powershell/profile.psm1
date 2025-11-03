@@ -37,7 +37,7 @@ $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';
 
 # Import profile components
 @(
-  @{Name = 'utils.ps1'; Description = 'utilities' },
+  @{Name = 'repos.ps1'; Description = 'repositories' },
   @{Name = 'config.ps1'; Description = 'configuration' }
 ) | ForEach-Object {
   Import-ProfileScript -ScriptName $_.Name -Description $_.Description

@@ -30,7 +30,7 @@ $script:VerbosityConfig = @{
   Warning     = @{
     Color   = 'Yellow'
     Tag     = '[WARN] '
-    Aliases = @('W', 'Warn', 'Warning', 'Caution', 'Yellow', 'Amber', 'Orange', 'Prompt', '2')
+    Aliases = @('W', 'Warn', 'Warning', 'Caution', 'Yellow', 'Amber', 'Orange', 'TODO', 'Prompt', '2')
   }
   Information = @{
     Color   = 'Blue'

@@ -158,7 +158,11 @@ function Global:Write-Pretty {
   $timestamp = if ($ShowTimestamp) { Get-Timestamp -Format Default } else { '' }
 
   #| Verbosity Tag
-  $tag = if (-not $HideVerbosity) { Get-VerbosityTag $verbosityLevel } else { '' }
+  $tag = if (-not $HideVerbosity) {
+    if ($Tag -contains 'todo') { '[TODO] ' } else
+    { Get-VerbosityTag $verbosityLevel }
+  }
+  else { '' }
 
   #| Duration
   if (-not $Duration -and $StartTime) {

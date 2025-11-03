@@ -27,32 +27,30 @@ function Global:Get-NeovimConfig {
 
   $cmd = 'nvim'
   $name = 'neovim'
-
-  # Determine config paths based on platform
-  $dotsConfigPath = Join-Path $env:DOTS 'Configuration' $name
-
-  if ($IsWindows -or $env:OS -match 'Windows') {
-    $userConfigPath = Join-Path $env:LOCALAPPDATA $cmd
-  }
-  else {
-    # Unix-like systems (Linux, macOS)
-    $configDir = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
-    $userConfigPath = Join-Path $configDir $cmd
+  $pkg = @{
+    # scoop  = 'neovim'
+    # winget = 'Neovim.Neovim'
+    scoop  = 'neovim-nightly'
+    winget = 'Neovim.Neovim.Nightly'
   }
 
   return @{
-    cmd       = $cmd
-    name      = $name
-    desc      = "$cmd ($name)"
-    conf      = @{
-      dots = $dotsConfigPath
-      user = $userConfigPath
+    cmd  = $cmd
+    name = $name
+    desc = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
+    env  = ($cmd.ToUpper() + '_CONFIG')
+    pkg  = $pkg
+    cfg  = @{
+      dots = Join-Path $env:DOTS 'Configuration' $name
+      user = if ($IsWindows -or $env:OS -match 'Windows') {
+        Join-Path $env:LOCALAPPDATA $cmd
+      }
+      else {
+        # Unix-like systems (Linux, macOS)
+        $configDir = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+        Join-Path $configDir $cmd
+      }
     }
-    # scoopPkg  = $name
-    scoopPkg  = 'neovim-nightly'
-    # wingetPkg = 'Neovim.Neovim'
-    wingetPkg = 'Neovim.Neovim.Nightly'
-    envBase   = 'NVIM_CONFIG'
   }
 }
 
@@ -117,14 +115,14 @@ function Global:Set-Neovim {
   $app = Get-NeovimConfig
 
   #~@ Compose needed paths
-  $dotConfigPath = $app.conf.dots
-  $userConfigPath = $app.conf.user
+  $dotConfigPath = $app.cfg.dots
+  $userConfigPath = $app.cfg.user
   $userConfigDir = Split-Path -Path $userConfigPath -Parent
 
   #~@ Export environment variables for session and global scope
   $envVars = @{
-    $app.envBase             = $dotConfigPath
-    ("$($app.envBase)_LINK") = $userConfigPath
+    $app.env             = $dotConfigPath
+    ("$($app.env)_LINK") = $userConfigPath
   }
   foreach ($key in $envVars.Keys) {
     if (Test-Path -Path $envVars[$key] -PathType Container) {
