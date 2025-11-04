@@ -3,6 +3,7 @@
     "activate.ps1",
     "meld.ps1",
     "watchman.ps1",
+    "wrappers.ps1",
     "_._"
   ]
 }

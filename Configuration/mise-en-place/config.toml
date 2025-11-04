@@ -96,6 +96,20 @@ run = [
   "treefmt --clear-cache --fail-on-change --allow-missing-formatter",
 ]
 
+[tasks.backup]
+description = "Backup the current repo folder to its parent with a timestamp"
+alias = "bac"
+shell = "powershell"
+run = '''
+  $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+  $source = Get-Location
+  $parent = Split-Path $source -Parent
+  $repoName = Split-Path $source -Leaf
+  $destination = Join-Path $parent "$repoName-backup-$timestamp"
+  Copy-Item -Path $source -Destination $destination -Recurse -Force
+  Write-Output "Backup created at $destination"
+'''
+
 [tasks.pujj]
 description = "Pull the local jj state with that of the remote origin"
 alias = "jj-down"
@@ -117,23 +131,72 @@ run = [
   "mise pujj",
 ]
 
+# [tasks.push]
+# description = "Push the changes to the main branch"
+# alias = "up"
+# usage = '''
+# arg "allow_backwards" "Allow backwards bookmark movement" default="false"
+# arg "force" "Force push even if remote changed" default="false"
+# '''
+# run = [
+#   #~@ Remove JJ lock, if present
+#   # "rm -f .jj/working_copy/working_copy.lock 2>/dev/null || true",
+
+#   #~@ Update commit description if needed
+#   # "jj describe",
+
+#   #~@ Push with JJ first (for bookmarks, non-protected branches)
+#   "jj bookmark set main --revision=@ ${usage_allow_backwards:+--allow-backwards}",
+#   "jj git push ${usage_force:+--force}",
+
+#   #~@ Also push latest changes using Git (in case PR workflow is needed)
+#   # "git push origin main",
+# ]
 [tasks.push]
 description = "Push the changes to the main branch"
 alias = "up"
-run = [
-  #~@ Remove JJ lock, if present
-  "rm -f .jj/working_copy/working_copy.lock 2>/dev/null || true",
+shell = "powershell"
+usage = '''
+flag "-b --allow-backwards" help="Allow backwards bookmark movement"
+flag "-f --force" help="Force push even if remote changed"
+'''
+run = '''
+  Write-Output "Removing JJ lock if present..."
+  Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  #~@ Update commit description if needed
-  "jj describe",
+  Write-Output "Updating commit description..."
+  jj describe
 
-  #~@ Push with JJ first (for bookmarks, non-protected branches)
-  "jj bookmark set main --revision=@",
-  "jj git push",
+  Write-Output "Setting bookmark and pushing..."
+  $backwards = if ($env:usage_allow_backwards -eq "true") { "--allow-backwards" } else { "" }
+  $backwardsFlag = if ($backwards) { " $backwards" } else { "" }
+  Invoke-Expression "jj bookmark set main --revision=@$backwardsFlag"
 
-  #~@ Also push latest changes using Git (in case PR workflow is needed)
-  # "git push origin main",
-]
+  $force = if ($env:usage_force -eq "true") { "--force" } else { "" }
+  $forceFlag = if ($force) { " $force" } else { "" }
+  Invoke-Expression "jj git push$forceFlag"
+
+  Write-Output "Pushing with Git..."
+  Invoke-Expression "git push origin main$forceFlag"
+
+  Write-Output "Push complete!"
+'''
+[tasks.jj_reup]
+description = "Pull, backup, and push with allow-backwards"
+alias = "reup"
+shell = "powershell"
+usage = '''
+flag "-f --force" help="Force push even if remote changed"
+'''
+run = '''
+mise pull
+mise backup
+if ($env:usage_force -eq "true") {
+  mise push --allow-backwards --force
+} else {
+  mise push --allow-backwards
+}
+'''
 
 [tasks.jj]
 description = "Initialize the repository to use jusutsu"
@@ -217,4 +280,43 @@ if (-not $command) {
     $command = "test  --features quickcheck"
 }
 cargo watch --quiet --clear --exec $command
+'''
+
+
+[tasks.pulltest]
+description = "Test Pull"
+alias = "pulltest"
+shell = "powershell"
+usage = '''
+flag "-b --allow-backwards" help="Allow backwards bookmark movement"
+flag "-f --force" help="Force push even if remote changed"
+'''
+run = '''
+Write-Output "pulling"
+'''
+[tasks.bactest]
+description = "Test Backup"
+shell = "powershell"
+usage = '''
+flag "-f --force" help="Force push even if remote changed"
+'''
+run = '''
+Write-Output "backingup"
+'''
+[tasks.pushtest]
+description = "Test Push flags (dry run)"
+alias = "uptest"
+shell = "powershell"
+usage = '''
+flag "-b --allow-backwards" help="Allow backwards bookmark movement"
+flag "-f --force" help="Force push even if remote changed"
+'''
+run = '''
+Write-Output "Would remove JJ lock"
+Write-Output "Would run: jj describe"
+$backwards = if ($env:usage_allow_backwards -eq "true") { "--allow-backwards" } else { "" }
+Write-Output "Would run: jj bookmark set main --revision=@ $backwards"
+$force = if ($env:usage_force -eq "true") { "--force" } else { "" }
+Write-Output "Would run: jj git push $force"
+Write-Output "Would run: git push origin main"
 '''
