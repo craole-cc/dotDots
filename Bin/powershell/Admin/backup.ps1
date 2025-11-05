@@ -29,11 +29,11 @@
 
   try {
     Copy-Item -Path $source -Destination $destination -Recurse -Force
-    Write-Pretty -Tag 'Success' "Backup created at $destination"
+    Write-Pretty -NoNewLine -Tag 'Success' "Backup created at $destination"
     return $destination
   }
   catch {
-    Write-Pretty -Tag 'Error' "Failed to create backup: $($_.Exception.Message)"
+    Write-Pretty -NoNewLine -Tag 'Error' "Failed to create backup: $($_.Exception.Message)"
     return $null
   }
 }

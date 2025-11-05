@@ -21,15 +21,15 @@ function Global:Invoke-JujutsuPull {
   [CmdletBinding()]
   param()
 
-  Write-Pretty -Tag 'Debug' 'Fetching and rebasing with jj...'
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Fetching and rebasing with jj...'
   jj git fetch --remote origin
   jj rebase --destination main@origin
 
-  Write-Pretty -Tag 'Debug' 'Syncing git state...'
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Syncing git state...'
   # Check if working tree is clean before checkout
   $gitStatus = git status --porcelain
   if ($gitStatus) {
-    Write-Pretty -Tag 'Warning' 'Working tree has uncommitted changes. Skipping git checkout.'
+    Write-Pretty -NoNewLine -Tag 'Warning' 'Working tree has uncommitted changes. Skipping git checkout.'
   }
   else {
     git checkout main
@@ -57,13 +57,13 @@ function Global:Invoke-JujutsuPush {
     [switch]$SkipGit
   )
 
-  Write-Pretty -Tag 'Debug' 'Removing JJ lock if present...'
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  Write-Pretty -Tag 'Debug' 'Updating commit description...'
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
   jj describe
 
-  Write-Pretty -Tag 'Debug' 'Setting bookmark and pushing with jj...'
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Setting bookmark and pushing with jj...'
   $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
   $forceFlag = if ($Force) { '--force' } else { '' }
 
@@ -74,7 +74,7 @@ function Global:Invoke-JujutsuPush {
   Invoke-Expression $jjPushCmd
 
   if (-not $SkipGit) {
-    Write-Pretty -Tag 'Debug' 'Pushing with git...'
+    Write-Pretty -NoNewLine -Tag 'Debug' 'Pushing with git...'
     # Import jj changes to git first
     jj git export
 
@@ -82,10 +82,10 @@ function Global:Invoke-JujutsuPush {
     Invoke-Expression $gitPushCmd
   }
   else {
-    Write-Pretty -Tag 'Warning' 'Skipping git push (jj only mode)'
+    Write-Pretty -NoNewLine -Tag 'Warning' 'Skipping git push (jj only mode)'
   }
 
-  Write-Pretty -Tag 'Info' 'Push complete!'
+  Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
 
 function Global:Invoke-JujutsuReup {
@@ -111,11 +111,11 @@ function Global:Invoke-JujutsuReup {
 
   if ($backupPath) {
     Invoke-JujutsuPush -AllowBackwards -Force:$Force -SkipGit:$SkipGit
-    Write-Pretty -Tag 'Success' "Reup complete! Don't forget to delete the backup folder if everything looks good:"
-    Write-Pretty -Tag 'Debug' "  $backupPath"
+    Write-Pretty -NoNewLine -Tag 'Success' "Reup complete! Don't forget to delete the backup folder if everything looks good:"
+    Write-Pretty -NoNewLine -Tag 'Debug' "  $backupPath"
   }
   else {
-    Write-Pretty -Tag 'Error' 'Backup failed, aborting push operation.'
+    Write-Pretty -NoNewLine -Tag 'Error' 'Backup failed, aborting push operation.'
   }
 }
 
