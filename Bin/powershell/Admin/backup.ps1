@@ -1,16 +1,4 @@
-﻿<#
-.SYNOPSIS
-    Path backup utility.
-
-.DESCRIPTION
-    Provides functions to create timestamped backups of files and directories.
-
-.NOTES
-    Author: Craig
-    Place in Bin/powershell/Admin/backup.ps1
-#>
-
-function Global:New-BackupCopy {
+﻿function Global:New-BackupCopy {
   <#
     .SYNOPSIS
         Creates a timestamped backup of a file or directory.
@@ -41,11 +29,11 @@ function Global:New-BackupCopy {
 
   try {
     Copy-Item -Path $source -Destination $destination -Recurse -Force
-    Write-Host "Backup created at $destination" -ForegroundColor Green
+    Write-Pretty -Tag 'Success' "Backup created at $destination"
     return $destination
   }
   catch {
-    Write-Error "Failed to create backup: $($_.Exception.Message)"
+    Write-Pretty -Tag 'Error' "Failed to create backup: $($_.Exception.Message)"
     return $null
   }
 }

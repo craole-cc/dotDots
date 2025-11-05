@@ -16,18 +16,27 @@ function Global:Invoke-JujutsuPull {
     .SYNOPSIS
         Pulls changes from remote using both jj and git.
     .DESCRIPTION
-        Fetches from remote origin and rebases jj state, then pulls with git.
+        Fetches from remote origin and rebases jj state, then syncs with git.
     #>
   [CmdletBinding()]
   param()
 
-  Write-Host 'Fetching and rebasing with jj...' -ForegroundColor Cyan
+  Write-Pretty -Tag 'Debug' 'Fetching and rebasing with jj...'
   jj git fetch --remote origin
   jj rebase --destination main@origin
 
-  # Write-Host 'Pulling with git...' -ForegroundColor Cyan
-  # git checkout main
-  # git pull origin main
+  Write-Pretty -Tag 'Debug' 'Syncing git state...'
+  # Check if working tree is clean before checkout
+  $gitStatus = git status --porcelain
+  if ($gitStatus) {
+    Write-Pretty -Tag 'Warning' 'Working tree has uncommitted changes. Skipping git checkout.'
+  }
+  else {
+    git checkout main
+  }
+
+  # Import jj changes to git (safer than pulling)
+  jj git export
 }
 
 function Global:Invoke-JujutsuPush {
@@ -38,20 +47,23 @@ function Global:Invoke-JujutsuPush {
         Allow backwards bookmark movement.
     .PARAMETER Force
         Force push even if remote changed.
+    .PARAMETER SkipGit
+        Skip the git push step (jj only).
     #>
   [CmdletBinding()]
   param(
     [switch]$AllowBackwards,
-    [switch]$Force
+    [switch]$Force,
+    [switch]$SkipGit
   )
 
-  Write-Host 'Removing JJ lock if present...' -ForegroundColor Cyan
+  Write-Pretty -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  Write-Host 'Updating commit description...' -ForegroundColor Cyan
+  Write-Pretty -Tag 'Debug' 'Updating commit description...'
   jj describe
 
-  Write-Host 'Setting bookmark and pushing with jj...' -ForegroundColor Cyan
+  Write-Pretty -Tag 'Debug' 'Setting bookmark and pushing with jj...'
   $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
   $forceFlag = if ($Force) { '--force' } else { '' }
 
@@ -61,11 +73,19 @@ function Global:Invoke-JujutsuPush {
   $jjPushCmd = "jj git push $forceFlag".Trim()
   Invoke-Expression $jjPushCmd
 
-  Write-Host 'Pushing with git...' -ForegroundColor Cyan
-  $gitPushCmd = "git push origin main $forceFlag".Trim()
-  Invoke-Expression $gitPushCmd
+  if (-not $SkipGit) {
+    Write-Pretty -Tag 'Debug' 'Pushing with git...'
+    # Import jj changes to git first
+    jj git export
 
-  Write-Host 'Push complete!' -ForegroundColor Green
+    $gitPushCmd = "git push origin main $forceFlag".Trim()
+    Invoke-Expression $gitPushCmd
+  }
+  else {
+    Write-Pretty -Tag 'Warning' 'Skipping git push (jj only mode)'
+  }
+
+  Write-Pretty -Tag 'Info' 'Push complete!'
 }
 
 function Global:Invoke-JujutsuReup {
@@ -77,22 +97,25 @@ function Global:Invoke-JujutsuReup {
         Requires New-BackupCopy function from Admin/backup.ps1.
     .PARAMETER Force
         Force push even if remote changed.
+    .PARAMETER SkipGit
+        Skip the git push step (jj only).
     #>
   [CmdletBinding()]
   param(
-    [switch]$Force
+    [switch]$Force,
+    [switch]$SkipGit
   )
 
   Invoke-JujutsuPull
-  $backupPath = Backup-Path
+  $backupPath = New-BackupCopy
 
   if ($backupPath) {
-    Invoke-JujutsuPush -AllowBackwards -Force:$Force
-    Write-Host "`n✓ Reup complete! Don't forget to delete the backup folder if everything looks good:" -ForegroundColor Yellow
-    Write-Host "  $backupPath" -ForegroundColor Gray
+    Invoke-JujutsuPush -AllowBackwards -Force:$Force -SkipGit:$SkipGit
+    Write-Pretty -Tag 'Success' "Reup complete! Don't forget to delete the backup folder if everything looks good:"
+    Write-Pretty -Tag 'Debug' "  $backupPath"
   }
   else {
-    Write-Error 'Backup failed, aborting push operation.'
+    Write-Pretty -Tag 'Error' 'Backup failed, aborting push operation.'
   }
 }
 
