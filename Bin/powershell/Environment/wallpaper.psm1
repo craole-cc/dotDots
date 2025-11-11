@@ -22,16 +22,119 @@
   Set-Wallpapers -Default
   # Resets the list of wallpaper folders to the default.
 #>
+function Get-WallpaperConfig {
+  [CmdletBinding()]
+  param()
 
+  $dots = @{
+    dir = [IO.Path]::Combine($env:DOTS, 'Assets', 'Images', 'wallpaper')
+  }
+  $dots.light = [IO.Path]::Combine($dots.dir, 'light.jpg')
+  $dots.dark = [IO.Path]::Combine($dots.dir, 'dark.jpg')
+  $dots.default = [IO.Path]::Combine($dots.dir, 'default.jpg')
+
+  $dir = @{
+    source = @(
+      $dots.dir,
+      ([IO.Path]::Combine('D:', 'Pictures', 'Wallpapers')),
+      ([IO.Path]::Combine($env:USERPROFILE, 'Pictures', 'Wallpapers'))
+    )
+    target = if ($IsWindows) {
+      [IO.Path]::Combine($env:USERPROFILE, 'Pictures')
+    }
+    else {
+      [IO.Path]::Combine($env:HOME, 'Pictures')
+    }
+  }
+  $sep = [IO.Path]::PathSeparator
+  $jbs = @{
+    exe  = @(
+      ([IO.Path]::Combine($env:ProgramFiles, 'johnsadventures.com', "John's Background Switcher" , 'BackgroundSwitcher.exe')),
+      ([IO.Path]::Combine(${env:ProgramFiles(x86)} , 'johnsadventures.com' , "John's Background Switcher" , 'BackgroundSwitcher.exe'))
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    path = [IO.Path]::Combine($env:APPDATA, 'johnsadventures.com', 'Background,Switcher', 'LockScreen')
+  }
+  $ref = [IO.Path]::Combine($dir.target, 'wallpaper')
+  $ext = @{
+    pattern = '\.(jpg|jpeg|png|webp|gif|bmp)$'
+    include = '*.jpg', '*.jpeg', '*.png', '*.webp', '*.gif', '*.bmp'
+  }
+
+  return @{
+    dots = $dots
+    dir  = $dir
+    sep  = $sep
+    jbs  = $jbs
+    ref  = $ref
+    ext  = $ext
+  }
+}
+function Get-WallpaperPersistMethod {
+  <#
+  .SYNOPSIS
+    Gets the current wallpaper persist method, defaulting to 'link' if not set.
+  .DESCRIPTION
+    Returns the value of WALLPAPER_PERSIST_METHOD environment variable,
+    or 'link' as the default if not set.
+  #>
+  [CmdletBinding()]
+  param()
+
+  if (-not $env:WALLPAPER_PERSIST_METHOD) {
+    Set-WallpaperPersistMethod
+  }
+  return $env:WALLPAPER_PERSIST_METHOD.ToLower()
+}
 function Set-WallpaperPersistMethod {
+  <#
+  .SYNOPSIS
+    Sets the wallpaper persist method to either 'Copy' or 'Link'.
+  .DESCRIPTION
+    Configures how the wallpaper reference file is created:
+    - Copy: Creates a physical copy of the wallpaper file
+    - Link: Creates a symbolic link to the wallpaper file (default)
+    If called without parameters, ensures the default is set.
+  .PARAMETER Method
+    The persistence method to use: 'Copy' or 'Link'. If not specified, uses current value or defaults to 'Link'.
+  .EXAMPLE
+    Set-WallpaperPersistMethod -Method Copy
+    # Sets the method to copy files
+  .EXAMPLE
+    Set-WallpaperPersistMethod -Method Link
+    # Sets the method to create symbolic links
+  .EXAMPLE
+    Set-WallpaperPersistMethod
+    # Ensures a default is set (Link) if nothing is configured
+  #>
   [CmdletBinding()]
   param(
-    [Parameter(Mandatory, Position = 0)]
+    [Parameter(Position = 0)]
     [ValidateSet('Copy', 'Link')]
     [string]$Method
   )
 
-  Write-Host "Setting wallpaper persist method to: $Method"
+  # If no method specified, check if env var is set
+  if (-not $PSBoundParameters.ContainsKey('Method')) {
+    if ($env:WALLPAPER_PERSIST_METHOD) {
+      Write-Host "Current wallpaper persist method: $env:WALLPAPER_PERSIST_METHOD"
+      return
+    }
+    else {
+      # Set default
+      $Method = 'Link'
+      Write-Host "WALLPAPER_PERSIST_METHOD not set. Setting default to: $Method"
+    }
+  }
+  else {
+    # User explicitly set a method
+    if ($env:WALLPAPER_PERSIST_METHOD -and $env:WALLPAPER_PERSIST_METHOD -ne $Method) {
+      Write-Host "Changing wallpaper persist method from '$env:WALLPAPER_PERSIST_METHOD' to: $Method"
+    }
+    else {
+      Write-Host "Setting wallpaper persist method to: $Method"
+    }
+  }
+
   Set-UserEnvIfChanged -Name 'WALLPAPER_PERSIST_METHOD' -Value $Method
 }
 
@@ -41,6 +144,9 @@ function Set-Wallpaper {
     [Parameter(Mandatory, ValueFromPipeline, Position = 0)]
     [string[]]$Path
   )
+
+  $conf = Get-WallpaperConfig
+
   if ($Path.Count -eq 1) {
     $singlePath = $Path[0]
     if (-not (Test-Path $singlePath)) {
@@ -65,10 +171,9 @@ function Set-Wallpaper {
       if (Test-Path $p) {
         $item = Get-Item $p
         if ($item.PSIsContainer) {
-          $imagesInFolder = Get-ChildItem -Path $p -Recurse -Include '*.jpg', '*.jpeg', '*.png', '*.webp'
-          if ($imagesInFolder) {
-            $allImages.AddRange($imagesInFolder.FullName)
-          }
+          $imagesInFolder = Get-ChildItem -Path $p -Recurse -File -ErrorAction SilentlyContinue |
+          Where-Object { $_.Extension -match $conf.ext.pattern }
+          if ($imagesInFolder) { $allImages.AddRange($imagesInFolder.FullName) }
         }
         else {
           $allImages.Add($item.FullName)
@@ -86,47 +191,44 @@ function Set-Wallpaper {
     }
   }
 }
-
 function Register-Wallpaper {
   [CmdletBinding()]
-  param()
-  $wallpaperPath = $null
+  param(
+    [switch]$Dots
+  )
 
-  # Define default wallpaper, falling back to a default if one is configured.
-  $dotsWallpaper = $env:DOTS_WALLPAPER
-  if (-not $env:DOTS_WALLPAPER -and $env:DOTS) {
-    $defaultPath = Join-Path $env:DOTS 'Assets' 'Images' 'wallpaper' 'default.jpg'
-    if (Test-Path $defaultPath) {
-      Set-UserEnvIfChanged 'DOTS_WALLPAPER' $defaultPath
-      $dotsWallpaper = $defaultPath
+  $wallpaper = $null
+  $dotsWallpaper = Get-WallpaperFromDOTS
+
+  if ($Dots) {
+    $wallpaper = $dotsWallpaper
+  }
+  else {
+    #~@ Detect current wallpaper based on platform
+    switch (Get-OSPlatform) {
+      'Windows' {
+        $wallpaper = Get-WallpaperFromJBS
+        if (-not $wallpaper) { $wallpaper = Get-WallpaperFromRegistry }
+        if (-not $wallpaper) { $wallpaper = Get-WallpaperFromSpotlight }
+      }
+      { $_ -in @('Linux', 'WSL') } {
+        $wallpaper = Get-WallpaperFromGnome
+        if (-not $wallpaper) { $wallpaper = Get-WallpaperFromKde }
+        if (-not $wallpaper) { $wallpaper = Get-WallpaperFromXfce }
+      }
+      'MacOS' {
+        $wallpaper = Get-WallpaperFromMacOs
+      }
     }
   }
-
-  # Call helper functions in order of priority until a path is found.
-  switch -Wildcard ($PSVersionTable.OS) {
-    '*Windows*' {
-      $wallpaperPath = Get-WallpaperFromJBS
-      if (-not $wallpaperPath) { $wallpaperPath = Get-WallpaperFromRegistry }
-      if (-not $wallpaperPath) { $wallpaperPath = Get-WallpaperFromSpotlight }
-    }
-    'Linux' {
-      $wallpaperPath = Get-WallpaperFromGnome
-      if (-not $wallpaperPath) { $wallpaperPath = Get-WallpaperFromKde }
-      if (-not $wallpaperPath) { $wallpaperPath = Get-WallpaperFromXfce }
-    }
-    'MacOS' {
-      $wallpaperPath = Get-WallpaperFromMacOs
-    }
-  }
-
-  # Use the detected wallpaper; if none was found, use the fallback.
-  $finalWallpaperPath = if ($wallpaperPath) { $wallpaperPath } else { $dotsWallpaper }
-  if ($finalWallpaperPath) {
-    Set-UserEnvIfChanged 'WALLPAPER' $finalWallpaperPath
-    Update-WallpaperReference -NewWallpaperPath $finalWallpaperPath
+  # Use detected wallpaper, or fall back to color-aware wallpaper
+  $finalWallpaper = if ($wallpaper) { $wallpaper } else { $dotsWallpaper }
+  Write-Host "Wallperer: $($finalWallpaper) $($wallpaper) $($dotsWallpaper)"
+  if ($finalWallpaper) {
+    Set-UserEnvIfChanged -Name 'WALLPAPER' -Value $finalWallpaper
+    Update-WallpaperReference
   }
 }
-
 function Set-Wallpapers {
   [CmdletBinding()]
   param(
@@ -134,17 +236,14 @@ function Set-Wallpapers {
     [string[]]$Paths,
     [switch]$Default
   )
+
+  $conf = Get-WallpaperConfig
+
   if ($Default) {
     Write-Host 'Resetting WALLPAPERS to default directories...'
-    $defaultFolders = @(
-      (Join-Path 'D:' 'Pictures' 'Wallpapers'),
-      (Join-Path $env:USERPROFILE 'Pictures' 'Wallpapers'),
-      (Join-Path $env:DOTS 'Assets' 'Images' 'wallpaper')
-    )
-    $existingFolders = $defaultFolders | Where-Object { Test-Path $_ }
+    $existingFolders = $conf.dir.source | Where-Object { Test-Path $_ }
     if ($existingFolders) {
-      $pathSeparator = [System.IO.Path]::PathSeparator
-      $envValue = $existingFolders -join $pathSeparator
+      $envValue = $existingFolders -join $conf.sep
       Write-Host "Setting WALLPAPERS default to: $envValue"
       Set-UserEnvIfChanged -Name 'WALLPAPERS' -Value $envValue
     }
@@ -156,8 +255,7 @@ function Set-Wallpapers {
     Write-Host 'Registering user-provided wallpaper folders...'
     $existingFolders = $Paths | Where-Object { Test-Path $_ -PathType Container }
     if ($existingFolders) {
-      $pathSeparator = [System.IO.Path]::PathSeparator
-      $envValue = $existingFolders -join $pathSeparator
+      $envValue = $existingFolders -join $conf.sep
       Write-Host "Setting WALLPAPERS to: $envValue"
       Set-UserEnvIfChanged -Name 'WALLPAPERS' -Value $envValue
     }
@@ -169,39 +267,43 @@ function Set-Wallpapers {
     Write-Warning 'Please provide paths or use the -Default switch.'
   }
 }
-
 function Register-Wallpapers {
   [CmdletBinding()]
   param()
+  $conf = Get-WallpaperConfig
+
   if (-not $env:WALLPAPERS) {
     Write-Host 'WALLPAPERS environment variable not set. Searching for default directories...'
-    $defaultFolders = @(
-      (Join-Path 'D:' 'Pictures' 'Wallpapers'),
-      (Join-Path $env:USERPROFILE 'Pictures' 'Wallpapers'),
-      (Join-Path $env:DOTS 'Assets' 'Images' 'wallpaper')
-    )
-    $existingFolders = $defaultFolders | Where-Object { Test-Path $_ }
+    $existingFolders = $conf.dir.source | Where-Object { Test-Path $_ }
     if ($existingFolders) {
-      $pathSeparator = [System.IO.Path]::PathSeparator
-      $envValue = $existingFolders -join $pathSeparator
+      $envValue = $existingFolders -join $conf.sep
       Write-Host "Setting WALLPAPERS default to: $envValue"
       Set-UserEnvIfChanged -Name 'WALLPAPERS' -Value $envValue
     }
   }
 }
-
 function Unregister-Wallpaper {
   [CmdletBinding()]
   param()
+
+  #~@ Remove the physical reference file
+  Remove-WallpaperReference
+
+  #~@ Remove the environment variables
   if ($IsWindows) {
     [Environment]::SetEnvironmentVariable('WALLPAPER', $null, 'User')
-    [Environment]::SetEnvironmentVariable('DOTS_WALLPAPER', $null, 'User')
+    [Environment]::SetEnvironmentVariable('WALLPAPER_DARK', $null, 'User')
+    [Environment]::SetEnvironmentVariable('WALLPAPER_LIGHT', $null, 'User')
+    [Environment]::SetEnvironmentVariable('WALLPAPER_VARIANT', $null, 'User')
+    [Environment]::SetEnvironmentVariable('WALLPAPER_REFERENCE', $null, 'User')
   }
-  Remove-Item 'env:WALLPAPER' -ErrorAction SilentlyContinue
-  Remove-Item 'env:DOTS_WALLPAPER' -ErrorAction SilentlyContinue
-  Remove-WallpaperReference
-}
 
+  Remove-Item 'env:WALLPAPER' -ErrorAction SilentlyContinue
+  Remove-Item 'env:WALLPAPER_DARK' -ErrorAction SilentlyContinue
+  Remove-Item 'env:WALLPAPER_LIGHT' -ErrorAction SilentlyContinue
+  Remove-Item 'env:WALLPAPER_VARIANT' -ErrorAction SilentlyContinue
+  Remove-Item 'env:WALLPAPER_REFERENCE' -ErrorAction SilentlyContinue
+}
 function Unregister-Wallpapers {
   [CmdletBinding()]
   param()
@@ -212,7 +314,6 @@ function Unregister-Wallpapers {
 
   Unregister-Wallpaper
 }
-
 function Get-Wallpaper {
   <#
   .SYNOPSIS
@@ -275,7 +376,10 @@ function Get-Wallpaper {
     [switch]$Xfce,
 
     [Parameter(ParameterSetName = 'SpecificSource')]
-    [switch]$MacOs
+    [switch]$MacOs,
+
+    [Parameter(ParameterSetName = 'SpecificSource')]
+    [switch]$Dots
   )
 
   switch ($PSCmdlet.ParameterSetName) {
@@ -291,6 +395,7 @@ function Get-Wallpaper {
       if ($Kde) { return Get-WallpaperFromKde }
       if ($Xfce) { return Get-WallpaperFromXfce }
       if ($MacOs) { return Get-WallpaperFromMacOs }
+      if ($Dots) { return Get-WallpaperFromDOTS }
     }
     default {
       # 'Default' Parameter Set
@@ -298,8 +403,7 @@ function Get-Wallpaper {
     }
   }
 }
-
-function Global:Open-Wallpaper {
+function Open-Wallpaper {
   [CmdletBinding(DefaultParameterSetName = 'Default')]
   param(
     [Parameter(ParameterSetName = 'Refresh')]
@@ -356,17 +460,18 @@ function Global:Open-Wallpaper {
     }
   }
 }
-
 function Get-WallpaperFromJBS {
-  $jbsPath = Join-Path $env:APPDATA 'johnsadventures.com' 'Background Switcher' 'LockScreen'
-  if (Test-Path $jbsPath) {
-    return Get-ChildItem -Path "$jbsPath\*.jpg" -Force -ErrorAction SilentlyContinue |
+  $conf = Get-WallpaperConfig
+  $path = $conf.jbs.path
+  $exts = $conf.ext.include
+  if (-not $path -or -not (Test-Path $path)) { return $null }
+  try {
+    return Get-ChildItem -Path $path -Force -Include $exts -ErrorAction SilentlyContinue |
     Sort-Object -Property LastWriteTime -Descending |
     Select-Object -ExpandProperty FullName -First 1
   }
-  return $null
+  catch { return $null }
 }
-
 function Get-WallpaperFromRegistry {
   try {
     $regPath = Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper -ErrorAction Stop |
@@ -376,7 +481,6 @@ function Get-WallpaperFromRegistry {
   catch {}
   return $null
 }
-
 function Get-WallpaperFromSpotlight {
   $assetsPath = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets"
   if (-not (Test-Path $assetsPath)) {
@@ -393,7 +497,7 @@ function Get-WallpaperFromSpotlight {
   }
 
   try {
-    $tempImagePath = Join-Path ([System.IO.Path]::GetTempPath()) ($spotlightAsset.Name + '.jpg')
+    $tempImagePath = Join-Path ([IO.Path]::GetTempPath()) ($spotlightAsset.Name + '.jpg')
     Copy-Item -Path $spotlightAsset.FullName -Destination $tempImagePath -Force -ErrorAction Stop
     return $tempImagePath
   }
@@ -402,7 +506,6 @@ function Get-WallpaperFromSpotlight {
     return $null
   }
 }
-
 function Get-WallpaperFromGnome {
   try {
     $uri = & gsettings get org.gnome.desktop.background picture-uri 2>$null
@@ -412,9 +515,8 @@ function Get-WallpaperFromGnome {
   catch {}
   return $null
 }
-
 function Get-WallpaperFromKde {
-  $kdeConfig = Join-Path $env:HOME '.config' 'plasma-org.kde.plasma.desktop-appletsrc'
+  $kdeConfig = [IO.Path]::Combine($env:HOME, '.config', 'plasma-org.kde.plasma.desktop-appletsrc')
   if (Test-Path $kdeConfig) {
     $configContent = Get-Content $kdeConfig -Raw -ErrorAction SilentlyContinue
     if ($configContent -match 'Image=file://([^\r\n]+)') {
@@ -424,7 +526,6 @@ function Get-WallpaperFromKde {
   }
   return $null
 }
-
 function Get-WallpaperFromXfce {
   try {
     $path = & xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image 2>$null
@@ -433,7 +534,6 @@ function Get-WallpaperFromXfce {
   catch {}
   return $null
 }
-
 function Get-WallpaperFromMacOs {
   try {
     $path = (& osascript -e 'tell application "Finder" to get POSIX path of (get desktop picture as alias)' 2>$null).Trim()
@@ -442,7 +542,6 @@ function Get-WallpaperFromMacOs {
   catch {}
   return $null
 }
-
 function Set-UserEnvIfChanged {
   [CmdletBinding()]
   param(
@@ -458,7 +557,6 @@ function Set-UserEnvIfChanged {
     }
   }
 }
-
 function Set-WallpaperFromFile {
   [CmdletBinding()]
   param(
@@ -524,7 +622,34 @@ function Set-WallpaperFromFile {
   }
   return $success
 }
+function Get-WallpaperFromDOTS {
+  [CmdletBinding()]
+  param()
 
+  $conf = Get-WallpaperConfig
+
+  #~@ Ensure basic existence
+  if (-not $conf.dots.path -or -not (Test-Path $conf.dots.path)) { return $null }
+  if (-not $conf.dots.default -or -not (Test-Path $conf.dots.default)) {
+    Write-Pretty -NoNewLine -Tag 'Error' "Missing default wallpaper: $($conf.dots.default)"
+    return $null
+  }
+
+  #~@ Ensure dark/light fallback to default if missing
+  if (-not (Test-Path $conf.dots.dark)) { $conf.dots.dark = $conf.dots.default }
+  if (-not (Test-Path $conf.dots.light)) { $conf.dots.light = $conf.dots.default }
+
+  #~@ Register variants if not already set
+  Set-UserEnvIfChanged -Name 'WALLPAPER_LIGHT' -Value $conf.dots.light
+  Set-UserEnvIfChanged -Name 'WALLPAPER_DARK' -Value $conf.dots.dark
+
+  #~@ Choose variant from environment if present, otherwise system theme
+  $variantPath = if (Get-DesktopColorMode -eq 'Dark') { $conf.dots.dark } else { $conf.dots.light }
+  Write-Host "Using wallpaper variant: $($variantPath)"
+  Set-UserEnvIfChanged -Name 'WALLPAPER_VARIANT' -Value $variantPath
+
+  return (Test-Path $variantPath) ? $variantPath : $null
+}
 function Set-WallpaperFromFolders {
   [CmdletBinding()]
   param(
@@ -569,20 +694,18 @@ function Set-WallpaperWithJBS {
   [CmdletBinding()]
   param()
 
-  # First, check if JBS is installed at all. Exit early if it's not.
-  $jbsExe = @(
-    (Join-Path $env:ProgramFiles 'johnsadventures.com' "John's Background Switcher" 'BackgroundSwitcher.exe'),
-    (Join-Path ${env:ProgramFiles(x86)} 'johnsadventures.com' "John's Background Switcher" 'BackgroundSwitcher.exe')
-  ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+  # -- Configuration --
+  $conf = Get-WallpaperConfig
 
-  if (-not $jbsExe) {
+  #~@ First, check if JBS is installed at all. Exit early if it's not.
+  if (-not $conf.jbs.exe -or -not (Test-Path $conf.jbs.exe)) {
     return $false # JBS is not installed.
   }
 
-  # Now that we know it's installed, check if it's running.
+  #~@ Now that we know it's installed, check if it's running.
   $jbsProcess = Get-Process -Name 'BackgroundSwitcher' -ErrorAction SilentlyContinue
   if ($jbsProcess) {
-    # --- JBS IS RUNNING: Send the keyboard shortcut ---
+    #~@ JBS IS RUNNING: Send the keyboard shortcut
     try {
       Write-Host "JBS is running. Sending 'Next Picture' shortcut..."
       Add-Type -AssemblyName System.Windows.Forms
@@ -598,7 +721,7 @@ function Set-WallpaperWithJBS {
     }
   }
   else {
-    # --- JBS IS NOT RUNNING: Launch the application ---
+    #~@ JBS IS NOT RUNNING: Launch the application
     try {
       Write-Host 'JBS is not running. Launching the application...'
       Start-Process $jbsExe -ErrorAction Stop
@@ -612,61 +735,132 @@ function Set-WallpaperWithJBS {
   }
 }
 
-<#
-.SYNOPSIS
-  (Internal) Creates or updates a stable reference to the wallpaper file.
-.DESCRIPTION
-  Depending on the $env:WALLPAPER_PERSIST_METHOD variable or the internal default,
-  this function will either create a copy of the wallpaper or a symlink to it in ~/Pictures.
-.PARAMETER NewWallpaperPath
-  The absolute path to the target wallpaper image file.
-#>
 function Update-WallpaperReference {
   [CmdletBinding()]
-  param(
-    [string]$NewWallpaperPath
-  )
+  param()
 
-  # --- CONFIGURATION ---
-  # To change the script's default, edit this line. Valid options are 'Copy' or 'Link'.
-  $defaultMethod = 'Link'
-
-  $destinationDir = if ($IsWindows) { Join-Path $env:USERPROFILE 'Pictures' } else { Join-Path $env:HOME 'Pictures' }
-  if (-not (Test-Path $destinationDir)) {
-    $null = New-Item -Path $destinationDir -ItemType Directory -Force
+  # -- CONFIGURATION --
+  try {
+    $conf = Get-WallpaperConfig
+  }
+  catch {
+    Write-Pretty -NoNewLine -Tag 'Error' "Failed to get wallpaper configuration`n$($_.Exception.Message)"
+    return
   }
 
-  # Determine which method to use: the environment variable takes precedence.
-  $methodToUse = if ($env:WALLPAPER_PERSIST_METHOD) { $env:WALLPAPER_PERSIST_METHOD } else { $defaultMethod }
+  if (-not (Test-Path $env:WALLPAPER)) {
+    Write-Pretty -NoNewLine -Tag 'Error' "Source wallpaper file not found`n$env:WALLPAPER"
+    return
+  }
 
-  switch ($methodToUse) {
-    'Link' {
-      # --- Create a symlink ---
-      $symlinkPath = Join-Path $destinationDir 'wallpaper'
-      $previousWallpaper = try { (Get-Item $symlinkPath -ErrorAction Stop).Target } catch { $null }
+  #~@ Build source and target info
+  $source = @{
+    path = [IO.Path]::GetFullPath($env:WALLPAPER)
+    ext  = [IO.Path]::GetExtension($env:WALLPAPER)
+    hash = (Get-FileHash -Path $env:WALLPAPER -Algorithm SHA256).Hash
+  }
+  $target = @{
+    path = [IO.Path]::GetFullPath($conf.ref)
+    ext  = [IO.Path]::GetExtension($conf.ref)
+    hash = if (Test-Path $conf.ref) {
+      (Get-FileHash -Path $conf.ref -Algorithm SHA256).Hash
+    }
+    else { $null }
+  }
+  # Get the persist method (with default)
+  $method = Get-WallpaperPersistMethod
+  $needsUpdate = $false
 
-      if ($previousWallpaper -ne $NewWallpaperPath) {
+  # -- Action --
+  switch ($method) {
+    'copy' {
+      # -- Copy the file --
+      #~@ Adjust target extension to match source
+      if ($source.ext -ne $target.ext) {
+        $target.path = [IO.Path]::ChangeExtension($target.path, $source.ext)
+        #~@ Recalculate hash for the new target path
+        $target.hash = if (Test-Path $target.path) {
+          (Get-FileHash -Path $target.path -Algorithm SHA256).Hash
+        }
+        else { $null }
+      }
+
+      #~@ Determine if update is needed
+      if (-not (Test-Path $target.path)) {
+        $needsUpdate = $true
+        Write-Pretty -NoNewLine -Tag 'Warn' 'Wallpaper reference file does not exist. Copy required.'
+      }
+      elseif ($source.hash -ne $target.hash) {
+        $needsUpdate = $true
+        Write-Pretty -NoNewLine -Tag 'Warn' 'Wallpaper reference file is outdated. Copy required.'
+      }
+
+      if ($needsUpdate) {
         try {
-          $null = New-Item -ItemType SymbolicLink -Path $symlinkPath -Target $NewWallpaperPath -Force
-          Set-UserEnvIfChanged 'WALLPAPER_REFERENCE_PATH' $symlinkPath
+          Copy-Item -Path $source.path -Destination $target.path -Force -ErrorAction Stop
+          Set-UserEnvIfChanged 'WALLPAPER_REFERENCE' $target.path
+          Write-Pretty -Tag 'Success' `
+            'Wallpaper copied successfully' `
+            "Source: $($source.path)" `
+            "Target: $($target.path)"
         }
         catch {
-          # Silent failure maintains startup performance.
+          Write-Pretty -NoNewLine -Tag 'Error' "Failed to copy wallpaper`n$($_.Exception.Message)"
+          return
         }
+      }
+      else {
+        Write-Pretty -NoNewLine -Tag 'Info' 'Wallpaper reference is already up-to-date.'
+      }
+    }
+
+    'link' {
+      # -- Create a symlink --
+      #~@ Determine if an update is necessary
+      if (Test-Path $target.path) {
+        $path = Get-Item -Path $target.path -ErrorAction SilentlyContinue
+        if ($path.LinkType -ne 'SymbolicLink') {
+          $needsUpdate = $true
+          Write-Pretty -NoNewLine -Tag 'Warn' 'Target exists but is not a symbolic link. Recreating.'
+        }
+        elseif ($path.Target -ne $source.path) {
+          $needsUpdate = $true
+          Write-Pretty -NoNewLine -Tag 'Warn' 'Symlink target differs. Update required.'
+        }
+      }
+      else {
+        $needsUpdate = $true
+        Write-Pretty -NoNewLine -Tag 'Warn' 'Symlink does not exist. Creation required.'
+      }
+
+      #~@ Create or update the symlink, if needed
+      if ($needsUpdate) {
+        try {
+          # Remove existing item if present (handles all cases reliably)
+          if (Test-Path $target.path) {
+            Remove-Item -Path $target.path -Force -ErrorAction Stop
+          }
+
+          # Create new symlink
+          $null = New-Item -ItemType SymbolicLink -Path $target.path -Target $source.path -ErrorAction Stop
+          Set-UserEnvIfChanged 'WALLPAPER_REFERENCE' $target.path
+          Write-Pretty -Tag 'Success' `
+            'Symlink created successfully' `
+            "Source: $($source.path)" `
+            "Target: $($target.path)"
+        }
+        catch {
+          Write-Pretty -NoNewLine -Tag 'Error' "Failed to create symlink`n$($_.Exception.Message)"
+          return
+        }
+      }
+      else {
+        Write-Pretty -NoNewLine -Tag 'Debug' 'Symlink is already up-to-date.'
       }
     }
     default {
-      # 'Copy' is the default
-      # --- Copy the file ---
-      $sourceExtension = [System.IO.Path]::GetExtension($NewWallpaperPath)
-      $destinationPath = Join-Path $destinationDir ('wallpaper' + $sourceExtension)
-      try {
-        Copy-Item -Path $NewWallpaperPath -Destination $destinationPath -Force
-        Set-UserEnvIfChanged 'WALLPAPER_REFERENCE_PATH' $destinationPath
-      }
-      catch {
-        # Silent failure maintains startup performance.
-      }
+      Write-Pretty -NoNewLine -Tag 'Error' "Invalid WALLPAPER_PERSIST_METHOD: '$method'.`nValid options are 'copy' or 'link'."
+      return
     }
   }
 }
@@ -681,16 +875,18 @@ function Update-WallpaperReference {
 function Remove-WallpaperReference {
   [CmdletBinding()]
   param()
-  $destinationDir = if ($IsWindows) { Join-Path $env:USERPROFILE 'Pictures' } else { Join-Path $env:HOME 'Pictures' }
+
+  $conf = Get-WallpaperConfig
 
   # Remove the symlink if it exists
-  $symlinkPath = Join-Path $destinationDir 'wallpaper'
+  $symlinkPath = $conf.ref
   if (Test-Path $symlinkPath) {
     Remove-Item $symlinkPath -Force -ErrorAction SilentlyContinue
   }
 
   # Remove any copied files (e.g., wallpaper.jpg, wallpaper.png)
-  $copiedFiles = Get-ChildItem -Path $destinationDir -Filter 'wallpaper.*' | Where-Object { $_.Name -ne 'wallpaper' }
+  $copiedFiles = Get-ChildItem -Path $conf.dir.source -Recurse -Filter 'wallpaper.*' |
+  Where-Object { $_.Name -ne 'wallpaper' -and $_.Extension -match $conf.ext.pattern }
   if ($copiedFiles) {
     Remove-Item -Path $copiedFiles.FullName -Force -ErrorAction SilentlyContinue
   }
@@ -724,4 +920,4 @@ function Invoke-Wallpaper {
   }
 }
 
-Export-ModuleMember -Function 'Register-Wallpaper', 'Set-Wallpaper', 'Get-Wallpaper', 'Open-Wallpaper', 'Unregister-Wallpaper', 'Register-Wallpapers', 'Set-Wallpapers', 'Invoke-Wallpaper', 'Set-WallpaperPersistMethod'
+Export-ModuleMember -Function 'Register-Wallpaper', 'Set-Wallpaper', 'Get-Wallpaper', 'Open-Wallpaper', 'Unregister-Wallpaper', 'Register-Wallpapers', 'Set-Wallpapers', 'Invoke-Wallpaper', 'Update-WallpaperReference', 'Remove-WallpaperReference', 'Set-WallpaperPersistMethod', 'Get-WallpaperPersistMethod', 'Get-WallpaperFromDOTS', 'Get-WallpaperConfig'

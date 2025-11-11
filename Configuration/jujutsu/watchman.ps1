@@ -16,7 +16,7 @@
     name    = $name
     desc    = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
     pkg     = $pkg
-    envBase = ($cmd.ToUpper() + '_CONFIG')  # No config files expected
+    envBase = ($cmd.ToUpper() + '_RC')  # No config files expected
   }
 }
 

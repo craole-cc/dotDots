@@ -1,8 +1,8 @@
 {
   "Includes": [
-    "checks.ps1",
+    "platform.ps1",
+    "color.ps1",
     "module.ps1",
-    "backup.ps1",
     "updates.ps1",
     "_._"
   ]

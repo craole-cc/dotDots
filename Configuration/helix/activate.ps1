@@ -28,20 +28,22 @@ function Global:Get-HelixConfig {
   $cmd = 'hx'
   $name = 'helix'
   $cfgFiles = @('config.toml', 'languages.toml')
-  $cfgPath = @{
-    dots = $cfgFiles | ForEach-Object { Join-Path $env:DOTS 'Configuration' $name $_ }
-    user = $cfgFiles | ForEach-Object { Join-Path $env:APPDATA $name $_ }
+  $pkg = @{
+    scoop  = 'helix'
+    winget = 'Helix.Helix'
   }
 
   return @{
-    cmd       = $cmd
-    name      = $name
-    desc      = "$name ($cmd)"
-    cfgFiles  = $cfgFiles
-    cfgPath   = $cfgPath
-    scoopPkg  = $name
-    wingetPkg = 'Helix.Helix'
-    envBase   = ($cmd.ToUpper() + '_CONFIG')
+    cmd      = $cmd
+    name     = $name
+    desc     = "$name ($cmd)"
+    cfgFiles = $cfgFiles
+    cfgPath  = @{
+      dots = $cfgFiles | ForEach-Object { [IO.Path]::Combine($env:DOTS , 'Configuration', $name , $_) }
+      user = $cfgFiles | ForEach-Object { [IO.Path]::Combine($env:APPDATA, $name , $_) }
+    }
+    pkg      = $pkg
+    envBase  = ($cmd.ToUpper() + '_RC')
   }
 }
 
@@ -70,11 +72,11 @@ function Global:Install-Helix {
   #~@ Try install via scoop or winget
   if (Get-Command -Name 'scoop' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with scoop..."
-    scoop install $app.scoopPkg
+    scoop install $app.pkg.scoop
   }
   elseif (Get-Command -Name 'winget' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Trace' "Installing $($app.desc) with winget..."
-    winget install $app.wingetPkg
+    winget install $app.pkg.winget
   }
   else {
     Write-Pretty -Tag 'Error' 'No package manager (scoop or winget) found. Please install manually.'
@@ -107,7 +109,7 @@ function Global:Set-Helix {
 
   #~@ Export environment variables per config file (dots and user paths)
   for ($i = 0; $i -lt $app.cfgFiles.Count; $i++) {
-    $dotConfigPath = $app.cfgPath.dots[$i]
+    $dotsConfigPath = $app.cfgPath.dots[$i]
     $userConfigPath = $app.cfgPath.user[$i]
     $userConfigDir = Split-Path -Path $userConfigPath -Parent
 
@@ -115,17 +117,17 @@ function Global:Set-Helix {
     $envVarLinkName = "${envVarName}_LINK"
 
     #~@ Export environment variables for current config file
-    if (Test-Path -Path $dotConfigPath -PathType Leaf) {
-      [Environment]::SetEnvironmentVariable($envVarName, $dotConfigPath, 'Process')
-      Set-Variable -Name $envVarName -Value $dotConfigPath -Scope Global
-      Write-Pretty -DebugEnv $envVarName $dotConfigPath
+    if (Test-Path -Path $dotsConfigPath -PathType Leaf) {
+      [Environment]::SetEnvironmentVariable($envVarName, $dotsConfigPath, 'Process')
+      Set-Variable -Name $envVarName -Value $dotsConfigPath -Scope Global
+      Write-Pretty -DebugEnv $envVarName $dotsConfigPath
 
       [Environment]::SetEnvironmentVariable($envVarLinkName, $userConfigPath, 'Process')
       Set-Variable -Name $envVarLinkName -Value $userConfigPath -Scope Global
       Write-Pretty -DebugEnv $envVarLinkName $userConfigPath
     }
     else {
-      Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotConfigPath"
+      Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotsConfigPath"
       return $false
     }
 
@@ -141,7 +143,7 @@ function Global:Set-Helix {
       if ($existingItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
         #~@ Existing symlink: check target
         $target = (Get-Item $userConfigPath -Force).Target
-        if ($target -eq $dotConfigPath) {
+        if ($target -eq $dotsConfigPath) {
           Write-Pretty -Tag 'Trace' "Correct symlink for $($app.cfgFiles[$i]) already exists."
           continue
         }
@@ -159,8 +161,8 @@ function Global:Set-Helix {
 
     #~@ Create symlink from user config path to dotfiles config path
     try {
-      Write-Pretty -Tag 'Info' "Creating symlink from $dotConfigPath to $userConfigPath"
-      New-Item -Path $userConfigPath -ItemType SymbolicLink -Value $dotConfigPath -Force | Out-Null
+      Write-Pretty -Tag 'Info' "Creating symlink from $dotsConfigPath to $userConfigPath"
+      New-Item -Path $userConfigPath -ItemType SymbolicLink -Value $dotsConfigPath -Force | Out-Null
     }
     catch {
       Write-Pretty -Tag 'Error' "Failed to create symlink for $($app.cfgFiles[$i]): $_"

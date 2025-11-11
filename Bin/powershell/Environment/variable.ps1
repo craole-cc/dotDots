@@ -370,7 +370,7 @@ function Global:Set-Env {
       The scope in which to set the environment variable:
       - Process: Current process only (default)
       - User: Current user (persistent)
-      - Machine: System-wide (requires admin, persistent)
+      - Machine: System-wide (persistent but requires admin)
 
   .PARAMETER Validate
       Validates the value before setting (useful for paths, URLs, etc.)
@@ -437,7 +437,7 @@ function Global:Set-Env {
 
   #~@ Validation logic
   if ($Validate -or $Type -in @('cd', 'path')) {
-    if ($Type -eq 'cd' -or $Type -eq 'path') {
+    if ($Type -like 'cd' -or $Type -like 'path') {
       if (![string]::IsNullOrEmpty($expandedValue) -and !(Test-Path $expandedValue -PathType Container -ErrorAction SilentlyContinue)) {
         Write-Pretty -Tag 'Warning' -ContextScope $script:ctxScope -OneLine -Message "Path validation failed: Directory '$expandedValue' does not exist"
         if (!$PSCmdlet.ShouldContinue('Directory does not exist. Continue anyway?', 'Path Validation')) {

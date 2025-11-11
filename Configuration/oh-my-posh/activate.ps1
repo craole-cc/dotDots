@@ -1,33 +1,83 @@
-function Global:Invoke-OhMyPosh {
+
+function Global:Get-OhMyPoshConfig {
+  <#
+    .SYNOPSIS
+        Returns structured config variables for the mise tool.
+    #>
   [CmdletBinding()]
   param()
 
-  $config = @{
-    'OH_MY_POSH_RC' = Join-Path $env:DOTS 'Configuration' 'oh-my-posh' 'config.toml'
+  $cmd = 'oh-my-posh'
+  $name = 'oh-my-posh'
+  $pkg = @{
+    scoop  = 'oh-my-posh'
+    winget = 'JanDeDobbeleer.OhMyPosh'
   }
+  $conf = 'config.toml'
 
-  #{ Export environment variables
-  foreach ($item in $config.GetEnumerator()) {
-    if (Test-Path -Path $item.Value -PathType Leaf) {
-      #{ Export environment variable
-      [Environment]::SetEnvironmentVariable($item.Key, $item.Value, 'Process')
-      Set-Variable -Name $item.Key -Value $item.Value -Scope Global
-      Write-Verbose "Exported variable: $($item.Key) => $($item.Value)"
+  return @{
+    cmd  = $cmd
+    name = $name
+    desc = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
+    env  = ($cmd.ToUpper() + '_RC')
+    pkg  = $pkg
+    cfg  = @{
+      dots = [IO.Path]::Combine($env:DOTS , 'Configuration', $name, $conf)
+      user = [IO.Path]::Combine($env:USERPROFILE , '.config', $cmd, $conf)
     }
-  }
-
-  #{ Initialize Oh My Posh
-  if (-not $env:OH_MY_POSH_RC) {
-    Write-Verbose 'No custom Oh My Posh config found, using the default'
-    Write-Pretty -Tag 'Warn' `
-      'No custom Oh My Posh config found, using the default'
-    oh-my-posh init pwsh | Invoke-Expression
-  }
-  else {
-    Write-Verbose "Using custom Oh My Posh config: $OH_MY_POSH_RC"
-    Write-Pretty -DebugEnv 'OH_MY_POSH_RC' "$OH_MY_POSH_RC"
-    oh-my-posh init pwsh --config $OH_MY_POSH_RC | Invoke-Expression
   }
 }
 
-Invoke-OhMyPosh
+function Global:Initialize-OhMyPosh {
+  <#
+    .SYNOPSIS
+        Initializes the OhMyPosh environment.
+
+    .DESCRIPTION
+        Installs mise if needed and links configuration.
+    #>
+
+
+  [CmdletBinding()]
+  param()
+
+  try {
+    #~@ Retrieve config
+    $time = Get-Date
+    $app = Get-OhMyPoshConfig
+    $cfg = $app.cfg.dots
+
+    #~@ Install if missing
+    if (-not (Get-Command -Name $app.cmd -ErrorAction SilentlyContinue)) {
+      if (-not (Install-Mise)) {
+        Write-Pretty -Tag 'Error' "Failed to install $($app.desc), aborting."
+        return
+      }
+    }
+
+    #~@ Activate config
+    if (-not $cfg) {
+      Write-Pretty -Tag 'Debug' `
+        'No custom Oh My Posh config found, using the default'
+      oh-my-posh init pwsh | Invoke-Expression
+    }
+    else {
+      Write-Pretty -DebugEnv $app.env $cfg
+      oh-my-posh init pwsh --config $cfg | Invoke-Expression
+    }
+    if ($LASTEXITCODE -ne 0) {
+      Write-Pretty -Tag 'Error' 'Failed to activate oh-my-posh.'
+      return
+    }
+
+    #~@ Return success message with timing
+    Write-Pretty -Tag 'Info' -NoNewLine -As $($app.desc) -Init $time
+  }
+  catch {
+    #~@ Return failure message with exception details
+    Write-Pretty -Tag 'Error' "Failed to initialize $($app.desc)" "$($_.Exception.Message)"
+  }
+}
+
+#~@ Auto-initialize on script load
+Initialize-OhMyPosh

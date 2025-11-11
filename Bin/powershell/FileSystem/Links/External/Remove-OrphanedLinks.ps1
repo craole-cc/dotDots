@@ -32,21 +32,21 @@
   )
 
   if (-not (Test-Path $Directory)) {
-    Write-Error "Directory does not exist: $Directory"
+    Write-Pretty -NoNewLine -Tag 'Error' "Directory does not exist: $Directory"
     return
   }
 
-  Write-Host "Scanning for orphaned links in: $Directory" -ForegroundColor Yellow
+  Write-Pretty -NoNewLine -Tag 'Info' "Scanning for orphaned links in: $Directory" -ForegroundColor Yellow
 
   $orphanedLinks = Get-ChildItem $Directory -Recurse | Test-Link -Quiet |
   Where-Object { $_.IsLink -and -not $_.IsValid }
 
   if ($orphanedLinks.Count -eq 0) {
-    Write-Host 'No orphaned links found' -ForegroundColor Green
+    Write-Pretty -NoNewLine -Tag 'Info' 'No orphaned links found' -ForegroundColor Green
     return
   }
 
-  Write-Host "Found $($orphanedLinks.Count) orphaned links:" -ForegroundColor Yellow
+  Write-Pretty -NoNewLine -Tag 'Info' "Found $($orphanedLinks.Count) orphaned links:" -ForegroundColor Yellow
 
   $removedCount = 0
 
@@ -55,22 +55,23 @@
     $targetInfo = if ($link.Target) { " -> $($link.Target)" } else { '' }
 
     if ($WhatIf) {
-      Write-Host "Would remove orphaned $($link.LinkType.ToLower()): $linkName$targetInfo" -ForegroundColor Yellow
+      Write-Pretty -NoNewLine -Tag 'Info' "Would remove orphaned $($link.LinkType.ToLower()): $linkName$targetInfo" -ForegroundColor Yellow
       $removedCount++
     }
     else {
       try {
         Remove-Item $link.Path -Force
-        Write-Host "✗ Removed orphaned $($link.LinkType.ToLower()): $linkName$targetInfo" -ForegroundColor Red
+        Write-Pretty -NoNewLine -Tag 'Info' "✗ Removed orphaned $($link.LinkType.ToLower()): $linkName$targetInfo" -ForegroundColor Red
         $removedCount++
       }
       catch {
-        Write-Error "Failed to remove orphaned link: $linkName - $($_.Exception.Message)"
+        Write-Pretty -NoNewLine -Tag 'Error' "Failed to remove orphaned link: $linkName - $($_.Exception.Message)"
       }
     }
   }
 
   $actionText = if ($WhatIf) { 'Would remove' } else { 'Removed' }
-  Write-Host "`nCleanup summary:" -ForegroundColor Yellow
-  Write-Host "  $actionText $removedCount orphaned links" -ForegroundColor $(if ($WhatIf) { 'Yellow' } else { 'Red' })
+  # TODO: This is not using Write-Preety in the right way
+  Write-Pretty -NoNewLine -Tag 'Info' "`nCleanup summary:" -ForegroundColor Yellow
+  Write-Pretty -NoNewLine -Tag 'Info' "  $actionText $removedCount orphaned links" -ForegroundColor $(if ($WhatIf) { 'Yellow' } else { 'Red' })
 }

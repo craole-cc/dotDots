@@ -1,4 +1,4 @@
-﻿function Global:New-BackupCopy {
+﻿function Backup-Folder {
   <#
     .SYNOPSIS
         Creates a timestamped backup of a file or directory.
@@ -9,28 +9,39 @@
     .OUTPUTS
         [string] Path to the backup directory/file
     .EXAMPLE
-        New-BackupCopy
+        New-PathBackup
         Creates a backup of the current directory in the parent directory.
     .EXAMPLE
-        New-BackupCopy -Path "C:\MyProject"
-        Creates a backup of C:\MyProject in C:\ with format: MyProject-backup-20241104-143022
+        New-PathBackup -Path "C:\MyProject"
+        Creates a backup of C:\MyProject in C:\archive with format: MyProject-20241104_143022
     #>
   [CmdletBinding()]
   param(
     [Parameter(ValueFromPipeline = $true)]
     [string]$Path = (Get-Location).Path
+    ,
+    [Parameter(Mandatory = $false)]
+    [Alias ('Dry', 'Dry-Run' , 'Simulate')]
+    [switch]$WhatIf
   )
 
-  $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+
+  $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
   $source = Resolve-Path $Path
   $parent = Split-Path $source -Parent
   $itemName = Split-Path $source -Leaf
-  $destination = Join-Path $parent "$itemName-backup-$timestamp"
+  $destination = Join-Path $parent 'archive' "$itemName-$timestamp"
 
   try {
-    Copy-Item -Path $source -Destination $destination -Recurse -Force
-    Write-Pretty -NoNewLine -Tag 'Success' "Backup created at $destination"
-    return $destination
+    if ($WhatIf) {
+      Write-Pretty -NoNewLine -Tag 'Warn' "Would attempt to copy '$source' to '$destination'"
+
+    }
+    else {
+      Copy-Item -Path $source -Destination $destination -Recurse -Force
+      Write-Pretty -NoNewLine -Tag 'Info' 'Backup created successfully'
+      return $destination
+    }
   }
   catch {
     Write-Pretty -NoNewLine -Tag 'Error' "Failed to create backup: $($_.Exception.Message)"
@@ -39,4 +50,4 @@
 }
 
 # Alias for convenience (though not following approved verbs)
-Set-Alias -Name Backup-Path -Value New-BackupCopy -Scope Global -Force
+Set-Alias -Name Backup-Path -Value New-PathBackup -Scope Global -Force

@@ -44,7 +44,7 @@ function Global:Get-JujutsuConfig {
       dots = Join-Path $env:DOTS 'Configuration' $name $cfg
       user = Join-Path $env:APPDATA $cmd $cfg
     }
-    envBase = ($cmd.ToUpper() + '_CONFIG')
+    envBase = ($cmd.ToUpper() + '_RC')
   }
 }
 
@@ -108,13 +108,13 @@ function Global:Set-Jujutsu {
 
   #~@ Compose needed paths
   $app = Get-JujutsuConfig
-  $dotConfigPath = $app.conf.dots
+  $dotsConfigPath = $app.conf.dots
   $userConfigPath = $app.conf.user
   $userConfigDir = Split-Path -Path $userConfigPath -Parent
 
   #~@ Export environment variables for current session and global scope
   $envVars = @{
-    $app.envBase             = $dotConfigPath
+    $app.envBase             = $dotsConfigPath
     ("$($app.envBase)_LINK") = $userConfigPath
   }
   foreach ($key in $envVars.Keys) {
@@ -126,8 +126,8 @@ function Global:Set-Jujutsu {
   }
 
   #~@ Verify dotfiles config exists
-  if (-not (Test-Path -Path $dotConfigPath)) {
-    Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotConfigPath"
+  if (-not (Test-Path -Path $dotsConfigPath)) {
+    Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotsConfigPath"
     return $false
   }
 
@@ -143,7 +143,7 @@ function Global:Set-Jujutsu {
     if ($existingItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
       #~@ Existing symlink: check target
       $target = (Get-Item $userConfigPath -Force).Target
-      if ($target -eq $dotConfigPath) {
+      if ($target -eq $dotsConfigPath) {
         Write-Pretty -Tag 'Trace' 'Correct symlink already exists.'
         return $true
       }
@@ -161,8 +161,8 @@ function Global:Set-Jujutsu {
 
   #~@ Create symlink from user config path to dotfiles config path
   try {
-    Write-Pretty -Tag 'Info' "Creating symlink from $dotConfigPath to $userConfigPath"
-    New-Item -Path $userConfigPath -ItemType SymbolicLink -Value $dotConfigPath -Force | Out-Null
+    Write-Pretty -Tag 'Info' "Creating symlink from $dotsConfigPath to $userConfigPath"
+    New-Item -Path $userConfigPath -ItemType SymbolicLink -Value $dotsConfigPath -Force | Out-Null
   }
   catch {
     Write-Pretty -Tag 'Error' "Failed to create symlink: $_"

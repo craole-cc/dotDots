@@ -1,0 +1,13 @@
+2025-04-23 16:47:35 [INFO] [adm_updater_rs] auto dark mode updater 3.1.4
+2025-04-23 16:47:35 [INFO] [adm_updater_rs] cwd: C:\Users\mrcra\AppData\Local\Programs\AutoDarkMode
+2025-04-23 16:47:35 [INFO] [adm_updater_rs] restart app: false, restart shell: false
+2025-04-23 16:47:35 [INFO] [adm_updater_rs] currently installed version: 10.4.1.1
+2025-04-23 16:47:35 [INFO] [adm_updater_rs] stopping service gracefully
+2025-04-23 16:47:35 [INFO] [adm_updater_rs] waiting for service to stop
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] adm has exited successfully
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] moving current installation to temp directory
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] patching auto dark mode
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] removing temporary update files
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] updating setup version string
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] patch_complete, installed version: 10.4.2.29
+2025-04-23 16:47:36 [INFO] [adm_updater_rs] starting service

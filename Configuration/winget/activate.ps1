@@ -18,7 +18,7 @@
       dots = Join-Path $env:DOTS 'Configuration' $name $cfg
       user = Join-Path $env:USERPROFILE '.config' $cmd $cfg
     }
-    envBase = ($cmd.ToUpper() + '_CONFIG')
+    envBase = ($cmd.ToUpper() + '_RC')
   }
 }
 $app = Get-WingetConfig

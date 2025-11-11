@@ -1,10 +1,10 @@
 @{
   # Module manifest for Links
-  RootModule        = 'Links.psm1'
+  RootModule        = 'Folders.psm1'
   ModuleVersion     = '1.0.0'
-  GUID              = '12345678-1234-1234-1234-123456789012'
+  GUID              = '12345678-1234-1234-1234-123456789011'
   Author            = 'Craig ''Craole'' Cole'
-  CompanyName       = 'Unknown'
+  CompanyName       = 'Cole-Bassed Solutions'
   Copyright         = '(c) 2025. All rights reserved.'
   Description       = 'PowerShell module for managing symbolic and hard links'
 
@@ -13,14 +13,7 @@
 
   # Functions to export from this module
   FunctionsToExport = @(
-    'New-Link',
-    'Test-Link',
-    'Get-LinkReport',
-    'New-SymbolicLink',
-    'Backup-Links',
-    'Restore-Links',
-    'Repair-BrokenLinks',
-    'Remove-OrphanedLinks'
+    'Backup-Folder'
   )
 
   # Cmdlets to export from this module
@@ -36,25 +29,16 @@
   FileList          = @(
     'Links.psd1',
     'Links.psm1',
-    'Internal\Resolve-TargetPath.ps1',
-    'Internal\Test-CorrectLink.ps1',
-    'External\New-Link.ps1',
-    'External\Test-Link.ps1',
-    'External\Get-LinkReport.ps1',
-    'External\New-SymbolicLink.ps1',
-    'External\Backup-Links.ps1',
-    'External\Restore-Links.ps1',
-    'External\Repair-BrokenLinks.ps1',
-    'External\Remove-OrphanedLinks.ps1'
+    'External\Backup-Folder.ps1'
   )
 
   # Internal data to pass to the module specified in RootModule/ModuleToProcess
-  InternalData       = @{
+  InternalData      = @{
     PSData = @{
-      Tags         = @('Links', 'SymbolicLink', 'HardLink', 'FileSystem')
+      Tags         = @('Folder', 'FileSystem')
       ProjectUri   = ''
       LicenseUri   = ''
-      ReleaseNotes = 'Initial release of Links module'
+      ReleaseNotes = 'Initial release of Folders module'
     }
   }
 }

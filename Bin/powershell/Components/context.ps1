@@ -31,7 +31,7 @@ function Global:Get-Context {
   )
 
   Write-Verbose "Get-Context: Called with Context='$Context', Scope='$Scope', Verbosity='$Verbosity'"
-  Write-Debug   "Get-Context: Caller: $($Caller | Out-String)"
+  Write-Debug "Get-Context: Caller: $($Caller | Out-String)"
 
   if (-not $Scope) {
     $resolvedVerbosity = Set-Verbosity $Verbosity
@@ -57,7 +57,7 @@ function Global:Get-Context {
   elseif ($Caller) {
     if ($Scope -eq 'Path') {
       Write-Verbose "Get-Context: Using caller's script path: $($Caller.ScriptName)"
-      $scriptPath = if ($Caller.ScriptName) { Resolve-PathPOSIX $Caller.ScriptName } else { '' }
+      $scriptPath = if ($Caller.ScriptName) { [IO.Path]::GetFullPath($Caller.ScriptName) } else { '' }
       $position = ''
       if ($Caller.PSObject.Properties.Match('Position').Count -gt 0 -and $Caller.Position.StartLineNumber -gt 0) {
         $position = ":$($Caller.Position.StartLineNumber):$($Caller.Position.StartColumnNumber)"
@@ -115,7 +115,7 @@ function Test-GetContext {
   )
 
   Write-Host "`nTest 1: Only context"
-  Write-Host (Get-Context -Context "CustomContext")
+  Write-Host (Get-Context -Context 'CustomContext')
 
   Write-Host "`nTest 2: No context, caller, scope by verbosity 'Error'"
   Write-Host (Get-Context -Caller $callStack[0] -Verbosity 'Error')
@@ -134,4 +134,3 @@ function Test-GetContext {
 }
 
 #endregion
-

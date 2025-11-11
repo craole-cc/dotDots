@@ -38,7 +38,7 @@ function Global:Get-NeovimConfig {
     cmd  = $cmd
     name = $name
     desc = if ($cmd -like $name) { $name } else { "$name ($cmd)" }
-    env  = ($cmd.ToUpper() + '_CONFIG')
+    env  = ($cmd.ToUpper() + '_RC')
     pkg  = $pkg
     cfg  = @{
       dots = Join-Path $env:DOTS 'Configuration' $name
@@ -115,13 +115,13 @@ function Global:Set-Neovim {
   $app = Get-NeovimConfig
 
   #~@ Compose needed paths
-  $dotConfigPath = $app.cfg.dots
+  $dotsConfigPath = $app.cfg.dots
   $userConfigPath = $app.cfg.user
   $userConfigDir = Split-Path -Path $userConfigPath -Parent
 
   #~@ Export environment variables for session and global scope
   $envVars = @{
-    $app.env             = $dotConfigPath
+    $app.env             = $dotsConfigPath
     ("$($app.env)_LINK") = $userConfigPath
   }
   foreach ($key in $envVars.Keys) {
@@ -133,8 +133,8 @@ function Global:Set-Neovim {
   }
 
   #~@ Verify dotfiles config exists
-  if (-not (Test-Path -Path $dotConfigPath)) {
-    Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotConfigPath"
+  if (-not (Test-Path -Path $dotsConfigPath)) {
+    Write-Pretty -Tag 'Error' "Dotfiles config not found at $dotsConfigPath"
     return $false
   }
 
@@ -150,7 +150,7 @@ function Global:Set-Neovim {
     if ($existingItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
       #~@ Existing symlink: check target
       $target = (Get-Item $userConfigPath -Force).Target
-      if ($target -eq $dotConfigPath) {
+      if ($target -eq $dotsConfigPath) {
         Write-Pretty -Tag 'Trace' 'Correct symlink already exists.'
         return $true
       }
@@ -170,8 +170,8 @@ function Global:Set-Neovim {
 
   #~@ Create symlink from user config path to dotfiles config path
   try {
-    Write-Pretty -Tag 'Info' "Creating symlink from $dotConfigPath to $userConfigPath"
-    New-Item -Path $userConfigPath -ItemType SymbolicLink -Value $dotConfigPath -Force | Out-Null
+    Write-Pretty -Tag 'Info' "Creating symlink from $dotsConfigPath to $userConfigPath"
+    New-Item -Path $userConfigPath -ItemType SymbolicLink -Value $dotsConfigPath -Force | Out-Null
   }
   catch {
     Write-Pretty -Tag 'Error' "Failed to create symlink: $_"

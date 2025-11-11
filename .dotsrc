@@ -92,11 +92,10 @@ if (-not (Test-Path -Path $env:DOTS -PathType Container)) {
   Throw "Missing DOTS directory: $env:DOTS"
 }
 
-# $dotsEnv = Join-Path $env:DOTS 'Environment' 'powershell' 'profile.psm1'
-$dotsEnv = Join-Path $env:DOTS 'Configuration' 'powershell' 'profile.psm1'
+$dotsEnv = [IO.Path]::Combine($env:DOTS, 'Configuration', 'powershell', 'profile.psm1')
 if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
   Throw "Missing required configuration module: ${dotsEnv}"
+} else {
+  Import-Module $dotsEnv -Force
+  Write-Pretty -Tag 'Info' -As 'dotDOTS' -Init $InitTime
 }
-
-Import-Module $dotsEnv -Force
-Write-Pretty -Tag 'Info' -As 'dotDOTS' -Init $InitTime

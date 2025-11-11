@@ -2,6 +2,7 @@
   "Includes": [
     "variable.ps1",
     "alias",
+    "path.ps1",
     "fyls.ps1",
     "wallpaper.psm1",
     "_._"

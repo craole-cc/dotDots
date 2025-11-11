@@ -113,6 +113,12 @@ function Global:Test-GuiEnvironment {
   }
 }
 
+function Test-IsVSCode {
+  return $env:VSCODE_PID -or
+  ($env:TERM_PROGRAM -eq 'vscode') -or
+  ($env:VSCODE_INJECTION -eq '1')
+}
+
 function Global:Get-OSPlatform {
   <#
     .SYNOPSIS
