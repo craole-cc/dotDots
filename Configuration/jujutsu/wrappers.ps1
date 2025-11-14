@@ -119,7 +119,7 @@ function Global:Invoke-JujutsuReup {
   }
 }
 
-# Aliases
+# -- Aliases
 Set-Alias -Name jj-pull -Value Invoke-JujutsuPull -Scope Global -Force
 Set-Alias -Name jj-push -Value Invoke-JujutsuPush -Scope Global -Force
 Set-Alias -Name jj-reup -Value Invoke-JujutsuReup -Scope Global -Force

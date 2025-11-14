@@ -1,216 +1,312 @@
 {
-    "$help": "https://aka.ms/terminal-documentation",
-    "$schema": "https://aka.ms/terminal-profiles-schema-preview",
-    "actions":
-    [
-        {
-            "command":
-            {
-                "action": "globalSummon",
-                "desktop": "toCurrent",
-                "monitor": "toMouse",
-                "name": "_quake",
-                "toggleVisibility": true
-            },
-            "id": "User.globalSummon.A1BE4FE8"
-        }
-    ],
-    "alwaysShowNotificationIcon": false,
-    "autoHideWindow": false,
-    "compatibility.allowHeadless": true,
-    "copyFormatting": "none",
-    "copyOnSelect": true,
-    "debugFeatures": true,
-    "defaultProfile": "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}",
-    "experimental.enableColorSelection": true,
-    "firstWindowPreference": "defaultProfile",
-    "focusFollowMouse": true,
-    "initialCols": 120,
-    "keybindings":
-    [
-        {
-            "id": "Terminal.CopyToClipboard",
-            "keys": "ctrl+c"
-        },
-        {
-            "id": "Terminal.PasteFromClipboard",
-            "keys": "ctrl+v"
-        },
-        {
-            "id": "Terminal.DuplicatePaneAuto",
-            "keys": "alt+shift+d"
-        },
-        {
-            "id": "User.globalSummon.A1BE4FE8",
-            "keys": "win+`"
-        }
-    ],
-    "minimizeToNotificationArea": false,
-    "newTabMenu":
-    [
-        {
-            "type": "remainingProfiles"
-        }
-    ],
-    "profiles":
+  "$help": "https://aka.ms/terminal-documentation",
+  "$schema": "https://aka.ms/terminal-profiles-schema-preview",
+  "actions": [
     {
-        "defaults":
-        {
-            "backgroundImage": "C:\\Users\\Administrator\\Pictures\\Wallpapers\\Favourites\\16x10\\DovJZWo.jpg",
-            "backgroundImageOpacity": 0.06,
-            "backgroundImageStretchMode": "uniformToFill",
-            "colorScheme":
-            {
-                "dark": "Catppuccin Frappe",
-                "light": "Catppuccin Latte"
-            },
-            "cursorHeight": 75,
-            "cursorShape": "filledBox",
-            "elevate": true,
-            "experimental.repositionCursorWithMouse": true,
-            "font":
-            {
-                "cellHeight": "1.2",
-                "face": "Maple Mono NF",
-                "size": 18,
-                "weight": "normal"
-            },
-            "intenseTextStyle": "all",
-            "opacity": 91,
-            "scrollbarState": "visible",
-            "showMarksOnScrollbar": true,
-            "useAcrylic": true
-        },
-        "list":
-        [
-            {
-                "guid": "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}",
-                "hidden": false,
-                "name": "Git Bash",
-                "source": "Git"
-            },
-            {
-                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-                "hidden": false,
-                "name": "PowerShell",
-                "source": "Windows.Terminal.PowershellCore"
-            },
-            {
-                "guid": "{47302f9c-1ac4-566c-aa3e-8cf29889d6ab}",
-                "hidden": false,
-                "name": "Nushell",
-                "source": "nu"
-            },
-            {
-                "guid": "{6bbc00ec-ca28-50c4-b486-3bd1e5034908}",
-                "hidden": false,
-                "name": "NixOS",
-                "source": "Microsoft.WSL"
-            },
-            {
-                "commandline": "%USERPROFILE%/scoop/shims/cygwin.exe -l",
-                "guid": "{7c69d4df-bd14-48a3-9fff-8ccb5e45a9cf}",
-                "hidden": false,
-                "icon": "%USERPROFILE%/scoop/persist/cygwin/root/Cygwin-Terminal.ico",
-                "name": "Cygwin"
-            },
-            {
-                "commandline": "%SystemRoot%\\System32\\cmd.exe",
-                "elevate": true,
-                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-                "hidden": false,
-                "name": "Command Prompt"
-            },
-            {
-                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
-                "hidden": true,
-                "name": "Azure Cloud Shell",
-                "source": "Windows.Terminal.Azure"
-            },
-            {
-                "guid": "{2fa94ee9-3af2-5a07-96f3-14dc21e528b4}",
-                "hidden": true,
-                "name": "Developer Command Prompt for VS 2022",
-                "source": "Windows.Terminal.VisualStudio"
-            },
-            {
-                "guid": "{2a31bda7-93b2-592e-be78-28d931091567}",
-                "hidden": true,
-                "name": "Developer PowerShell for VS 2022",
-                "source": "Windows.Terminal.VisualStudio"
-            },
-            {
-                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-                "elevate": true,
-                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-                "hidden": false,
-                "name": "Windows PowerShell"
-            },
-            {
-                "guid": "{51855cb2-8cce-5362-8f54-464b92b32386}",
-                "hidden": false,
-                "name": "Ubuntu",
-                "source": "CanonicalGroupLimited.Ubuntu_79rhkp1fndgsc"
-            },
-            {
-                "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
-                "hidden": true,
-                "name": "Ubuntu",
-                "source": "Windows.Terminal.Wsl"
-            }
-        ]
+      "command": {
+        "action": "copy",
+        "singleLine": false
+      },
+      "id": "User.copy.644BA8F2"
     },
-    "schemes":
-    [
+    {
+      "command": "paste",
+      "id": "User.paste"
+    },
+    {
+      "command": "find",
+      "id": "User.find"
+    },
+    {
+      "command": {
+        "action": "splitPane",
+        "split": "auto",
+        "splitMode": "duplicate"
+      },
+      "id": "User.splitPane.A6751878"
+    }
+  ],
+  "alwaysShowNotificationIcon": true,
+  "alwaysShowTabs": false,
+  "autoHideWindow": false,
+  "compatibility.allowHeadless": true,
+  "copyFormatting": "none",
+  "copyOnSelect": true,
+  "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+  "firstWindowPreference": "defaultProfile",
+  "focusFollowMouse": true,
+  "keybindings": [
+    {
+      "id": "User.copy.644BA8F2",
+      "keys": "ctrl+c"
+    },
+    {
+      "id": "User.paste",
+      "keys": "ctrl+v"
+    },
+    {
+      "id": "User.find",
+      "keys": "ctrl+shift+f"
+    },
+    {
+      "id": "User.splitPane.A6751878",
+      "keys": "alt+shift+d"
+    }
+  ],
+  "minimizeToNotificationArea": false,
+  "newTabMenu": [
+    {
+      "type": "remainingProfiles"
+    },
+    {
+      "allowEmpty": false,
+      "entries": [
         {
-            "background": "#303446",
-            "black": "#51576D",
-            "blue": "#8CAAEE",
-            "brightBlack": "#626880",
-            "brightBlue": "#8CAAEE",
-            "brightCyan": "#81C8BE",
-            "brightGreen": "#A6D189",
-            "brightPurple": "#F4B8E4",
-            "brightRed": "#E78284",
-            "brightWhite": "#A5ADCE",
-            "brightYellow": "#E5C890",
-            "cursorColor": "#F2D5CF",
-            "cyan": "#81C8BE",
-            "foreground": "#C6D0F5",
-            "green": "#A6D189",
-            "name": "Catppuccin Frappe",
-            "purple": "#F4B8E4",
-            "red": "#E78284",
-            "selectionBackground": "#626880",
-            "white": "#B5BFE2",
-            "yellow": "#E5C890"
-        },
-        {
-            "background": "#EFF1F5",
-            "black": "#5C5F77",
-            "blue": "#1E66F5",
-            "brightBlack": "#ACB0BE",
-            "brightBlue": "#1E66F5",
-            "brightCyan": "#179299",
-            "brightGreen": "#40A02B",
-            "brightPurple": "#EA76CB",
-            "brightRed": "#D20F39",
-            "brightWhite": "#BCC0CC",
-            "brightYellow": "#DF8E1D",
-            "cursorColor": "#DC8A78",
-            "cyan": "#179299",
-            "foreground": "#4C4F69",
-            "green": "#40A02B",
-            "name": "Catppuccin Latte",
-            "purple": "#EA76CB",
-            "red": "#D20F39",
-            "selectionBackground": "#ACB0BE",
-            "white": "#ACB0BE",
-            "yellow": "#DF8E1D"
+          "commandline": null,
+          "name": null,
+          "source": "Windows.Terminal.SSH",
+          "type": "matchProfiles"
         }
-    ],
-    "theme": "system",
-    "themes": [],
-    "useAcrylicInTabRow": true,
-    "windowingBehavior": "useAnyExisting"
+      ],
+      "icon": "\ue969",
+      "inline": "auto",
+      "name": "SSH",
+      "type": "folder"
+    }
+  ],
+  "profiles": {
+    "defaults": {
+      "adjustIndistinguishableColors": "always",
+      "backgroundImage": "C:\\Users\\mrcra\\AppData\\Roaming\\johnsadventures.com\\Background Switcher\\ActiveBackground.jpg",
+      "backgroundImageOpacity": 0.105,
+      "bellStyle": "taskbar",
+      "colorScheme": {
+        "dark": "Catppuccin Frappe",
+        "light": "Catppuccin Latte"
+      },
+      "cursorShape": "vintage",
+      "experimental.retroTerminalEffect": false,
+      "font": {
+        "face": "Maple Mono NF",
+        "weight": "semi-bold"
+      },
+      "opacity": 100,
+      "useAcrylic": true
+    },
+    "list": [
+      {
+        "elevate": true,
+        "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+        "hidden": false,
+        "name": "PowerShell",
+        "source": "Windows.Terminal.PowershellCore"
+      },
+      {
+        "commandline": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "elevate": false,
+        "guid": "{9a2722e6-0664-4d7f-a618-9b9c9a199f9f}",
+        "hidden": false,
+        "icon": "C:\\Program Files\\Git\\git-cmd.exe",
+        "name": "Bash"
+      },
+      {
+        "elevate": false,
+        "guid": "{c397f356-5e7b-55bc-956b-8cb4b9762c26}",
+        "hidden": false,
+        "icon": "C:\\Users\\mrcra\\OneDrive\\Pictures\\Stock\\Logos\\nixos_artwork.png",
+        "name": "NixOS",
+        "source": "Windows.Terminal.Wsl",
+        "startingDirectory": "D:\\"
+      },
+      {
+        "commandline": "%SystemRoot%\\System32\\cmd.exe",
+        "elevate": true,
+        "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+        "hidden": false,
+        "name": "Command Prompt"
+      },
+      {
+        "elevate": true,
+        "guid": "{d8cf3558-2f3d-5d8b-9be6-0875ec34c542}",
+        "hidden": false,
+        "name": "Developer PowerShell for VS 2022 [Preview]",
+        "source": "Windows.Terminal.VisualStudio"
+      },
+      {
+        "elevate": true,
+        "guid": "{e52015de-fc1f-5a04-b8ae-b5ddde19ec2b}",
+        "hidden": false,
+        "name": "Developer Command Prompt for VS 2022 [Preview]",
+        "source": "Windows.Terminal.VisualStudio"
+      },
+      {
+        "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+        "hidden": true,
+        "name": "Windows PowerShell"
+      },
+      {
+        "guid": "{8ab8e6f6-35c6-5b46-8419-3e1568105476}",
+        "hidden": true,
+        "name": "podman-machine-default",
+        "source": "Windows.Terminal.Wsl"
+      },
+      {
+        "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+        "hidden": false,
+        "name": "Ubuntu",
+        "source": "Windows.Terminal.Wsl"
+      },
+      {
+        "guid": "{51855cb2-8cce-5362-8f54-464b92b32386}",
+        "hidden": true,
+        "name": "Ubuntu",
+        "source": "CanonicalGroupLimited.Ubuntu_79rhkp1fndgsc"
+      },
+      {
+        "guid": "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}",
+        "hidden": false,
+        "name": "Git Bash",
+        "source": "Git"
+      },
+      {
+        "guid": "{0fcbc194-bdc8-56dd-9e03-e630718fba5c}",
+        "hidden": false,
+        "name": "SSH - 100.69.36.114",
+        "source": "Windows.Terminal.SSH"
+      },
+      {
+        "guid": "{0d43e78f-ae43-5d75-8f57-93601b675678}",
+        "hidden": false,
+        "name": "SSH - delle.deer-iguana.ts.net",
+        "source": "Windows.Terminal.SSH"
+      },
+      {
+        "guid": "{2706f107-727a-5267-acdc-15d6fbcea9b4}",
+        "hidden": false,
+        "name": "SSH - dbooktoo.deer-iguana.ts.net",
+        "source": "Windows.Terminal.SSH"
+      }
+    ]
+  },
+  "schemes": [
+    {
+      "background": "#303446",
+      "black": "#51576D",
+      "blue": "#8CAAEE",
+      "brightBlack": "#626880",
+      "brightBlue": "#8CAAEE",
+      "brightCyan": "#81C8BE",
+      "brightGreen": "#A6D189",
+      "brightPurple": "#F4B8E4",
+      "brightRed": "#E78284",
+      "brightWhite": "#A5ADCE",
+      "brightYellow": "#E5C890",
+      "cursorColor": "#F2D5CF",
+      "cyan": "#81C8BE",
+      "foreground": "#C6D0F5",
+      "green": "#A6D189",
+      "name": "Catppuccin Frappe",
+      "purple": "#F4B8E4",
+      "red": "#E78284",
+      "selectionBackground": "#626880",
+      "white": "#B5BFE2",
+      "yellow": "#E5C890"
+    },
+    {
+      "background": "#EFF1F5",
+      "black": "#5C5F77",
+      "blue": "#1E66F5",
+      "brightBlack": "#ACB0BE",
+      "brightBlue": "#1E66F5",
+      "brightCyan": "#179299",
+      "brightGreen": "#40A02B",
+      "brightPurple": "#EA76CB",
+      "brightRed": "#D20F39",
+      "brightWhite": "#BCC0CC",
+      "brightYellow": "#DF8E1D",
+      "cursorColor": "#DC8A78",
+      "cyan": "#179299",
+      "foreground": "#4C4F69",
+      "green": "#40A02B",
+      "name": "Catppuccin Latte",
+      "purple": "#EA76CB",
+      "red": "#D20F39",
+      "selectionBackground": "#ACB0BE",
+      "white": "#ACB0BE",
+      "yellow": "#DF8E1D"
+    },
+    {
+      "background": "#000000",
+      "black": "#0C0C0C",
+      "blue": "#0037DA",
+      "brightBlack": "#767676",
+      "brightBlue": "#3B78FF",
+      "brightCyan": "#61D6D6",
+      "brightGreen": "#16C60C",
+      "brightPurple": "#B4009E",
+      "brightRed": "#E74856",
+      "brightWhite": "#F2F2F2",
+      "brightYellow": "#F9F1A5",
+      "cursorColor": "#FFFFFF",
+      "cyan": "#3A96DD",
+      "foreground": "#FFFFFF",
+      "green": "#13A10E",
+      "name": "Color Scheme 12",
+      "purple": "#881798",
+      "red": "#C50F1F",
+      "selectionBackground": "#FFFFFF",
+      "white": "#CCCCCC",
+      "yellow": "#C19C00"
+    }
+  ],
+  "showTabsInTitlebar": true,
+  "tabSwitcherMode": "mru",
+  "tabWidthMode": "compact",
+  "theme": "system",
+  "themes": [
+    {
+      "name": "Catppuccin Frappe",
+      "tab": {
+        "background": "#303446FF",
+        "iconStyle": "default",
+        "showCloseButton": "always",
+        "unfocusedBackground": null
+      },
+      "tabRow": {
+        "background": "#292C3CFF",
+        "unfocusedBackground": "#232634FF"
+      },
+      "window": {
+        "applicationTheme": "dark",
+        "experimental.rainbowFrame": true,
+        "frame": null,
+        "unfocusedFrame": null,
+        "useMica": false
+      }
+    },
+    {
+      "name": "Catppuccin Latte",
+      "tab": {
+        "background": "#EFF1F5FF",
+        "iconStyle": "default",
+        "showCloseButton": "always",
+        "unfocusedBackground": null
+      },
+      "tabRow": {
+        "background": "#E6E9EFFF",
+        "unfocusedBackground": "#DCE0E8FF"
+      },
+      "window": {
+        "applicationTheme": "light",
+        "experimental.rainbowFrame": true,
+        "frame": null,
+        "unfocusedFrame": null,
+        "useMica": false
+      }
+    }
+  ],
+  "useAcrylicInTabRow": true,
+  "warning.confirmCloseAllTabs": false,
+  "windowingBehavior": "useAnyExisting"
 }
