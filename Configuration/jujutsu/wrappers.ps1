@@ -35,18 +35,18 @@ function Global:Invoke-JujutsuPull {
 function Global:Invoke-JujutsuCleanup {
   <#
     .SYNOPSIS
-        Cleans up empty commits without descriptions in the current branch.
+        Cleans up commits without descriptions in the current branch.
     .PARAMETER Branch
         The branch/bookmark to clean (default: main).
     .PARAMETER Message
-        Default message to use for undescribed commits (default: "WIP").
+        Default message to use for undescribed commits (default: prompts interactively).
     .PARAMETER Squash
         Squash empty commits instead of describing them.
     #>
   [CmdletBinding()]
   param(
     [string]$Branch = 'main',
-    [string]$Message = 'WIP',
+    [string]$Message,
     [switch]$Squash
   )
 
@@ -54,7 +54,7 @@ function Global:Invoke-JujutsuCleanup {
 
   # Find all commits (not just empty) without descriptions that are NOT immutable
   $query = "ancestors($Branch) & description(exact:"""") & ~immutable() & ~root()"
-  $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ "\n"' |
+  $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ " " ++ commit_id.short()' |
     Where-Object { $_ }
 
   if (-not $undescribed) {
@@ -67,17 +67,35 @@ function Global:Invoke-JujutsuCleanup {
 
   if ($Squash) {
     Write-Pretty -Tag 'Info' 'Squashing commits...'
-    foreach ($changeId in $undescribed) {
-      $trimmed = $changeId.Trim()
-      Write-Pretty -Tag 'Debug' "Squashing: $trimmed"
-      jj squash --revision $trimmed 2>&1 | Out-Null
+    foreach ($line in $undescribed) {
+      $changeId = $line.Split()[0].Trim()
+      Write-Pretty -Tag 'Debug' "Squashing: $changeId"
+      jj squash --revision $changeId 2>&1 | Out-Null
     }
   } else {
-    Write-Pretty -Tag 'Info' "Describing commits with message: '$Message'"
-    foreach ($changeId in $undescribed) {
-      $trimmed = $changeId.Trim()
-      Write-Pretty -Tag 'Debug' "Describing: $trimmed"
-      jj describe $trimmed --message $Message 2>&1 | Out-Null
+    foreach ($line in $undescribed) {
+      $parts = $line.Split()
+      $changeId = $parts[0].Trim()
+      $commitShort = $parts[1].Trim()
+
+      if ($Message) {
+        # Use provided message for all
+        Write-Pretty -Tag 'Debug' "Describing $commitShort with: $Message"
+        jj describe $changeId --message $Message 2>&1 | Out-Null
+      } else {
+        # Prompt for each commit
+        Write-Host "`nCommit: " -NoNewline -ForegroundColor Cyan
+        Write-Host $commitShort -ForegroundColor Yellow
+        jj log -r $changeId --no-graph
+
+        $userMessage = Read-Host "`nEnter description (or press Enter to skip)"
+
+        if ($userMessage) {
+          jj describe $changeId --message $userMessage
+        } else {
+          Write-Pretty -Tag 'Warning' "Skipped: $commitShort"
+        }
+      }
     }
   }
 
