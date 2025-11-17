@@ -44,6 +44,8 @@ function Global:Invoke-JujutsuPush {
         Force push even if remote changed.
     .PARAMETER Message
         Commit message for the push.
+    .PARAMETER SkipCleanup
+        Skip automatic cleanup of undescribed commits.
     #>
   [CmdletBinding()]
   param(
@@ -56,11 +58,19 @@ function Global:Invoke-JujutsuPush {
     [switch]$AllowBackwards,
 
     [Alias('f')]
-    [switch]$Force
+    [switch]$Force,
+
+    [switch]$SkipCleanup
   )
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
+
+  # Auto-cleanup undescribed commits unless skipped
+  if (-not $SkipCleanup) {
+    Write-Pretty -Tag 'Debug' 'Running automatic cleanup...'
+    Invoke-JujutsuCleanup -Branch $Branch -Message 'WIP'
+  }
 
   # Check if working copy has changes
   Write-Pretty -Tag 'Debug' 'Checking working copy status...'
@@ -96,13 +106,13 @@ function Global:Invoke-JujutsuPush {
     jj bookmark set $Branch --revision '@-'
   }
 
-  # Push the bookmark (allow empty and new commits)
+  # Push the bookmark
   Write-Pretty -Tag 'Debug' 'Pushing to remote...'
-  $pushArgs = @('git', 'push', '--bookmark', $Branch)
   if ($Force) {
-    $pushArgs += '--force'
+    jj git push --bookmark $Branch --force
+  } else {
+    jj git push --bookmark $Branch
   }
-  & jj $pushArgs
 
   Write-Pretty -Tag 'Info' 'Push complete!'
 }
@@ -135,7 +145,60 @@ function Global:Invoke-JujutsuReup {
   }
 }
 
+function Global:Invoke-JujutsuCleanup {
+  <#
+    .SYNOPSIS
+        Cleans up empty commits without descriptions in the current branch.
+    .PARAMETER Branch
+        The branch/bookmark to clean (default: main).
+    .PARAMETER Message
+        Default message to use for undescribed commits (default: "WIP").
+    .PARAMETER Squash
+        Squash empty commits instead of describing them.
+    #>
+  [CmdletBinding()]
+  param(
+    [string]$Branch = 'main',
+    [string]$Message = 'WIP',
+    [switch]$Squash
+  )
+
+  Write-Pretty -Tag 'Info' "Checking for undescribed commits in $Branch..."
+
+  # Find all empty commits without descriptions in the branch ancestry
+  $query = "ancestors($Branch) & empty() & description(exact:"""")"
+  $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ "\n"' |
+    Where-Object { $_ -and $_ -notmatch 'zzzzzzzzzzzz' }
+
+  if (-not $undescribed) {
+    Write-Pretty -Tag 'Success' 'No undescribed commits found!'
+    return
+  }
+
+  $count = ($undescribed | Measure-Object).Count
+  Write-Pretty -Tag 'Warning' "Found $count undescribed empty commit(s)"
+
+  if ($Squash) {
+    Write-Pretty -Tag 'Info' 'Squashing empty commits...'
+    foreach ($changeId in $undescribed) {
+      $trimmed = $changeId.Trim()
+      Write-Pretty -Tag 'Debug' "Squashing: $trimmed"
+      jj squash --revision $trimmed
+    }
+  } else {
+    Write-Pretty -Tag 'Info' "Describing commits with message: '$Message'"
+    foreach ($changeId in $undescribed) {
+      $trimmed = $changeId.Trim()
+      Write-Pretty -Tag 'Debug' "Describing: $trimmed"
+      jj describe $trimmed --message $Message
+    }
+  }
+
+  Write-Pretty -Tag 'Success' 'Cleanup complete!'
+}
+
 # -- Aliases
+Set-Alias -Name jj-prep -Value Invoke-JujutsuCleanup -Scope Global -Force
 Set-Alias -Name jj-pull -Value Invoke-JujutsuPull -Scope Global -Force
 Set-Alias -Name jj-push -Value Invoke-JujutsuPush -Scope Global -Force
 Set-Alias -Name jj-reup -Value Invoke-JujutsuReup -Scope Global -Force
