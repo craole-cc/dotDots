@@ -74,6 +74,7 @@ function Global:Invoke-JujutsuPush {
       jj new --message $Message
     } else {
       jj new
+      jj describe
     }
   } else {
     # Working copy is empty - use jj describe on parent
