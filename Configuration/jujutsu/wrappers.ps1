@@ -31,6 +31,7 @@ function Global:Invoke-JujutsuPull {
 
   Write-Pretty -NoNewLine -Tag 'Info' 'Pull complete!'
 }
+
 function Global:Invoke-JujutsuPush {
   <#
     .SYNOPSIS
@@ -59,7 +60,7 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  # Join message text properly
+  # Join message text properly, filtering out parameter-like strings
   $messageText = if ($Message -and $Message.Count -gt 0) {
     ($Message | Where-Object { $_ -and $_ -notmatch '^-' } | ForEach-Object { $_.Trim() }) -join ' '
   } else {
@@ -83,9 +84,9 @@ function Global:Invoke-JujutsuPush {
     # Working copy is empty - use jj describe on parent
     Write-Pretty -Tag 'Debug' 'Working copy is empty, describing parent commit...'
     if ($messageText) {
-      jj describe --revision '@-' --message $messageText
+      jj describe '@-' --message $messageText
     } else {
-      jj describe --revision '@-'
+      jj describe '@-'
     }
   }
 
