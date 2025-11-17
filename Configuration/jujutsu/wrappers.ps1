@@ -57,45 +57,41 @@ function Global:Invoke-JujutsuPush {
     [string[]]$Message
   )
 
-  #~@ Join the message array and wrap in quotes if it exists
-  $commitMessage = if ($Message) {
-    $joinedMessage = ($Message | Where-Object { $_ -notmatch '^-' }) -join ' '
-    if ($joinedMessage) {
-      "--message `"$joinedMessage`""
-    } else {
-      ''
-    }
-  } else {
-    ''
-  }
-  $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
-  $forceFlag = if ($Force) { '--force' } else { '' }
-
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
   # Check if working copy has changes
   Write-Pretty -NoNewLine -Tag 'Debug' 'Checking working copy status...'
-  $isNew = (jj log -r '@' --no-graph --color never -T 'empty') -eq 'true'
+  $isEmpty = (jj log -r '@' --no-graph --color never -T 'empty') -eq 'true'
 
-  if (-not $isNew) {
+  if (-not $isEmpty) {
     Write-Pretty -NoNewLine -Tag 'Debug' 'Creating new commit from working copy...'
     jj new
   } else {
-    Write-Pretty -NoNewLine -Tag 'Warn' 'Working copy is empty, skipping jj new...'
+    Write-Pretty -NoNewLine -Tag 'Debug' 'Working copy is empty, skipping jj new...'
   }
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
-  $cmdDescribe = "jj describe --revision=@- $commitMessage".Trim()
-  Invoke-Expression $cmdDescribe
+  if ($Message) {
+    jj describe --revision '@-' `
+      --message ($Message | Where-Object { $_ -notmatch '^-' }) -join ' '
+  } else {
+    jj describe --revision '@-'
+  }
 
   Write-Pretty -NoNewLine -Tag 'Debug' "Setting bookmark '$Branch'..."
-  $cmdBookmark = "jj bookmark set $Branch --revision=@- $backwardsFlag".Trim()
-  Invoke-Expression $cmdBookmark
+  if ($AllowBackwards) {
+    jj bookmark set $Branch --revision '@-' --allow-backwards
+  } else {
+    jj bookmark set $Branch --revision '@-'
+  }
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating the external repository...'
-  $cmdPush = "jj git push --bookmark $Branch $forceFlag".Trim()
-  Invoke-Expression $cmdPush
+  if ($Force) {
+    jj git push --bookmark $Branch --force
+  } else {
+    jj git push --bookmark $Branch
+  }
 
   Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
