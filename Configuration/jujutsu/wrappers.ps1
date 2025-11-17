@@ -62,30 +62,24 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  # Check if working copy has changes
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Checking working copy status...'
+  # Check if working copy has changes or description
+  Write-Pretty -Tag 'Debug' 'Checking working copy status...'
   $emptyOutput = (jj log -r '@' --no-graph --color never -T 'empty' | Out-String).Trim()
   $isEmpty = $emptyOutput -eq 'true'
 
-  if (-not $isEmpty) {
-    # Working copy has changes - use jj new with message
-    Write-Pretty -Tag 'Debug' 'Creating new commit from working copy...'
-    if ($Message) {
-      jj new --message $Message
-    } else {
-      jj new
-      jj describe
-    }
+  # Describe the current working copy (@)
+  Write-Pretty -Tag 'Debug' 'Describing the current commit...'
+  if ($Message) {
+    jj describe --message $Message
   } else {
-    # Working copy is empty - use jj describe on parent
-    Write-Pretty -Tag 'Debug' 'Working copy is empty, describing parent commit...'
-    if ($Message) {
-      jj describe '@-' --message $Message
-    } else {
-      jj describe '@-'
-    }
+    jj describe
   }
 
+  # Create a new empty working copy on top
+  Write-Pretty -Tag 'Debug' 'Creating new working copy...'
+  jj new
+
+  # Set bookmark to the commit we just described (now @-)
   Write-Pretty -Tag 'Debug' "Setting bookmark '$Branch'..."
   if ($AllowBackwards) {
     jj bookmark set $Branch --revision '@-' --allow-backwards
@@ -93,7 +87,8 @@ function Global:Invoke-JujutsuPush {
     jj bookmark set $Branch --revision '@-'
   }
 
-  Write-Pretty -Tag 'Debug' 'Updating the external repository...'
+  # Push the bookmark
+  Write-Pretty -Tag 'Debug' 'Pushing to remote...'
   if ($Force) {
     jj git push --bookmark $Branch --force
   } else {
