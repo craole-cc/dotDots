@@ -62,25 +62,36 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  # Check if working copy has changes or description
+  # Check if working copy has changes
   Write-Pretty -Tag 'Debug' 'Checking working copy status...'
   $emptyOutput = (jj log -r '@' --no-graph --color never -T 'empty' | Out-String).Trim()
   $isEmpty = $emptyOutput -eq 'true'
 
-  # Describe the current working copy (@)
-  Write-Pretty -Tag 'Debug' 'Describing the current commit...'
-  if ($Message) {
-    jj describe --message $Message
+  if ($isEmpty) {
+    # Already in a "new" - describe and push the parent
+    Write-Pretty -Tag 'Debug' 'Working copy is empty, describing parent...'
+    if ($Message) {
+      jj describe '@-' --message $Message
+    } else {
+      jj describe '@-'
+    }
+    # Bookmark is already on @-, just push
   } else {
-    jj describe
+    # Working copy has changes - describe current, then make new
+    Write-Pretty -Tag 'Debug' 'Describing current working copy...'
+    if ($Message) {
+      jj describe --message $Message
+    } else {
+      jj describe
+    }
+
+    Write-Pretty -Tag 'Debug' 'Creating new working copy...'
+    jj new
+    # Now the commit to push is @-
   }
 
-  # Create a new empty working copy on top
-  Write-Pretty -Tag 'Debug' 'Creating new working copy...'
-  jj new
-
-  # Set bookmark to the commit we just described (now @-)
-  Write-Pretty -Tag 'Debug' "Setting bookmark '$Branch'..."
+  # Set bookmark to @- (the commit we want to push)
+  Write-Pretty -Tag 'Debug' "Setting bookmark '$Branch' to @-..."
   if ($AllowBackwards) {
     jj bookmark set $Branch --revision '@-' --allow-backwards
   } else {
