@@ -14,35 +14,31 @@
 function Global:Invoke-JujutsuPull {
   <#
     .SYNOPSIS
-        Pulls changes from remote using both jj and git.
+        Pulls changes from remote using jj.
     .DESCRIPTION
         Fetches from remote origin and rebases jj state, then syncs with git.
+    .PARAMETER Branch
+        The branch to rebase onto (default: main@origin).
     #>
   [CmdletBinding()]
-  param()
+  param(
+    [string]$Branch = 'main@origin'
+  )
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Fetching and rebasing with jj...'
   jj git fetch --remote origin
-  jj rebase --destination main@origin
+  jj rebase --destination $Branch
 
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Syncing git state...'
-  # Check if working tree is clean before checkout
-  $gitStatus = git status --porcelain
-  if ($gitStatus) {
-    Write-Pretty -NoNewLine -Tag 'Warning' 'Working tree has uncommitted changes. Skipping git checkout.'
-  }
-  else {
-    git checkout main
-  }
-
-  # Import jj changes to git (safer than pulling)
-  jj git export
+  Write-Pretty -NoNewLine -Tag 'Info' 'Pull complete!'
 }
+
 
 function Global:Invoke-JujutsuPush {
   <#
     .SYNOPSIS
         Pushes changes to remote with jj.
+    .PARAMETER Branch
+        The bookmark/branch name to set and push (default: main).
     .PARAMETER AllowBackwards
         Allow backwards bookmark movement.
     .PARAMETER Force
@@ -52,12 +48,14 @@ function Global:Invoke-JujutsuPush {
     #>
   [CmdletBinding()]
   param(
+    [string]$Branch = 'main',
     [switch]$AllowBackwards,
     [switch]$Force,
     [Parameter(ValueFromRemainingArguments)]
     [Alias('m', 'msg')]
     [string[]]$Message
   )
+
   #~@ Join the message array and wrap in quotes if it exists
   $commitMessage = if ($Message) {
     $joinedMessage = ($Message | Where-Object { $_ -notmatch '^-' }) -join ' '
@@ -79,16 +77,17 @@ function Global:Invoke-JujutsuPush {
   $cmdDescribe = "jj describe $commitMessage".Trim()
   Invoke-Expression $cmdDescribe
 
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Setting bookmark...'
-  $cmdBookmark = "jj bookmark set main --revision=@ $backwardsFlag".Trim()
+  Write-Pretty -NoNewLine -Tag 'Debug' "Setting bookmark '$Branch'..."
+  $cmdBookmark = "jj bookmark set $Branch --revision=@- $backwardsFlag".Trim()
   Invoke-Expression $cmdBookmark
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating the external repository...'
-  $cmdPush = "jj git push $forceFlag".Trim()
+  $cmdPush = "jj git push --bookmark $Branch $forceFlag".Trim()
   Invoke-Expression $cmdPush
 
   Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
+
 
 function Global:Invoke-JujutsuReup {
   <#
@@ -99,8 +98,6 @@ function Global:Invoke-JujutsuReup {
         Requires New-BackupCopy function from Admin/backup.ps1.
     .PARAMETER Force
         Force push even if remote changed.
-    .PARAMETER SkipGit
-        Skip the git push step (jj only).
     #>
   [CmdletBinding()]
   param(
