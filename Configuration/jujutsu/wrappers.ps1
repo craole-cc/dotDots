@@ -31,7 +31,6 @@ function Global:Invoke-JujutsuPull {
 
   Write-Pretty -NoNewLine -Tag 'Info' 'Pull complete!'
 }
-
 function Global:Invoke-JujutsuPush {
   <#
     .SYNOPSIS
@@ -60,47 +59,51 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  #~@ Join message text
-  $messageText = if ($Message) {($Message | Where-Object { $_ -notmatch '^-' }) -join ' '} else {''}
+  # Join message text properly
+  $messageText = if ($Message -and $Message.Count -gt 0) {
+    ($Message | Where-Object { $_ -and $_ -notmatch '^-' } | ForEach-Object { $_.Trim() }) -join ' '
+  } else {
+    ''
+  }
 
-  #@ Check if working copy has changes
+  # Check if working copy has changes
   Write-Pretty -NoNewLine -Tag 'Debug' 'Checking working copy status...'
-  $isEmpty = (jj log -r '@' --no-graph --color never -T 'empty') -eq 'true'
+  $emptyOutput = (jj log -r '@' --no-graph --color never -T 'empty' | Out-String).Trim()
+  $isEmpty = $emptyOutput -eq 'true'
 
-
- if (-not $isEmpty) {
+  if (-not $isEmpty) {
     # Working copy has changes - use jj new with message
-    Write-Pretty -NoNewLine -Tag 'Debug' 'Creating new commit from working copy...'
+    Write-Pretty -Tag 'Debug' 'Creating new commit from working copy...'
     if ($messageText) {
-      jj new --message "$messageText"
+      jj new --message $messageText
     } else {
       jj new
     }
   } else {
     # Working copy is empty - use jj describe on parent
-    Write-Pretty -NoNewLine -Tag 'Debug' 'Working copy is empty, describing parent commit...'
+    Write-Pretty -Tag 'Debug' 'Working copy is empty, describing parent commit...'
     if ($messageText) {
-      jj describe --revision '@-' --message "$messageText"
+      jj describe --revision '@-' --message $messageText
     } else {
       jj describe --revision '@-'
     }
   }
 
-  Write-Pretty -NoNewLine -Tag 'Debug' "Setting bookmark '$Branch'..."
+  Write-Pretty -Tag 'Debug' "Setting bookmark '$Branch'..."
   if ($AllowBackwards) {
     jj bookmark set $Branch --revision '@-' --allow-backwards
   } else {
     jj bookmark set $Branch --revision '@-'
   }
 
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Updating the external repository...'
+  Write-Pretty -Tag 'Debug' 'Updating the external repository...'
   if ($Force) {
     jj git push --bookmark $Branch --force
   } else {
     jj git push --bookmark $Branch
   }
 
-  Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
+  Write-Pretty -Tag 'Info' 'Push complete!'
 }
 
 function Global:Invoke-JujutsuReup {
