@@ -32,6 +32,58 @@ function Global:Invoke-JujutsuPull {
   Write-Pretty -NoNewLine -Tag 'Info' 'Pull complete!'
 }
 
+function Global:Invoke-JujutsuCleanup {
+  <#
+    .SYNOPSIS
+        Cleans up empty commits without descriptions in the current branch.
+    .PARAMETER Branch
+        The branch/bookmark to clean (default: main).
+    .PARAMETER Message
+        Default message to use for undescribed commits (default: "WIP").
+    .PARAMETER Squash
+        Squash empty commits instead of describing them.
+    #>
+  [CmdletBinding()]
+  param(
+    [string]$Branch = 'main',
+    [string]$Message = 'WIP',
+    [switch]$Squash
+  )
+
+  Write-Pretty -Tag 'Info' "Checking for undescribed commits in $Branch..."
+
+  # Find all commits (not just empty) without descriptions that are NOT immutable
+  $query = "ancestors($Branch) & description(exact:"""") & ~immutable() & ~root()"
+  $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ "\n"' |
+    Where-Object { $_ }
+
+  if (-not $undescribed) {
+    Write-Pretty -Tag 'Success' 'No undescribed mutable commits found!'
+    return
+  }
+
+  $count = ($undescribed | Measure-Object).Count
+  Write-Pretty -Tag 'Warning' "Found $count undescribed commit(s)"
+
+  if ($Squash) {
+    Write-Pretty -Tag 'Info' 'Squashing commits...'
+    foreach ($changeId in $undescribed) {
+      $trimmed = $changeId.Trim()
+      Write-Pretty -Tag 'Debug' "Squashing: $trimmed"
+      jj squash --revision $trimmed 2>&1 | Out-Null
+    }
+  } else {
+    Write-Pretty -Tag 'Info' "Describing commits with message: '$Message'"
+    foreach ($changeId in $undescribed) {
+      $trimmed = $changeId.Trim()
+      Write-Pretty -Tag 'Debug' "Describing: $trimmed"
+      jj describe $trimmed --message $Message 2>&1 | Out-Null
+    }
+  }
+
+  Write-Pretty -Tag 'Success' 'Cleanup complete!'
+}
+
 function Global:Invoke-JujutsuPush {
   <#
     .SYNOPSIS
@@ -145,60 +197,8 @@ function Global:Invoke-JujutsuReup {
   }
 }
 
-function Global:Invoke-JujutsuCleanup {
-  <#
-    .SYNOPSIS
-        Cleans up empty commits without descriptions in the current branch.
-    .PARAMETER Branch
-        The branch/bookmark to clean (default: main).
-    .PARAMETER Message
-        Default message to use for undescribed commits (default: "WIP").
-    .PARAMETER Squash
-        Squash empty commits instead of describing them.
-    #>
-  [CmdletBinding()]
-  param(
-    [string]$Branch = 'main',
-    [string]$Message = 'WIP',
-    [switch]$Squash
-  )
-
-  Write-Pretty -Tag 'Info' "Checking for undescribed commits in $Branch..."
-
-  # Find all commits (not just empty) without descriptions that are NOT immutable
-  $query = "ancestors($Branch) & description(exact:"""") & ~immutable() & ~root()"
-  $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ "\n"' |
-    Where-Object { $_ }
-
-  if (-not $undescribed) {
-    Write-Pretty -Tag 'Success' 'No undescribed mutable commits found!'
-    return
-  }
-
-  $count = ($undescribed | Measure-Object).Count
-  Write-Pretty -Tag 'Warning' "Found $count undescribed commit(s)"
-
-  if ($Squash) {
-    Write-Pretty -Tag 'Info' 'Squashing commits...'
-    foreach ($changeId in $undescribed) {
-      $trimmed = $changeId.Trim()
-      Write-Pretty -Tag 'Debug' "Squashing: $trimmed"
-      jj squash --revision $trimmed 2>&1 | Out-Null
-    }
-  } else {
-    Write-Pretty -Tag 'Info' "Describing commits with message: '$Message'"
-    foreach ($changeId in $undescribed) {
-      $trimmed = $changeId.Trim()
-      Write-Pretty -Tag 'Debug' "Describing: $trimmed"
-      jj describe $trimmed --message $Message 2>&1 | Out-Null
-    }
-  }
-
-  Write-Pretty -Tag 'Success' 'Cleanup complete!'
-}
-
 # -- Aliases
-Set-Alias -Name jj-prep -Value Invoke-JujutsuCleanup -Scope Global -Force
 Set-Alias -Name jj-pull -Value Invoke-JujutsuPull -Scope Global -Force
+Set-Alias -Name jj-prep -Value Invoke-JujutsuCleanup -Scope Global -Force
 Set-Alias -Name jj-push -Value Invoke-JujutsuPush -Scope Global -Force
 Set-Alias -Name jj-reup -Value Invoke-JujutsuReup -Scope Global -Force
