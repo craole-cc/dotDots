@@ -74,6 +74,17 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
+  # Check if working copy has changes
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Checking working copy status...'
+  $isNew = (jj log -r '@' --no-graph --color never -T 'empty') -eq 'true'
+
+  if (-not $isNew) {
+    Write-Pretty -NoNewLine -Tag 'Debug' 'Creating new commit from working copy...'
+    jj new
+  } else {
+    Write-Pretty -NoNewLine -Tag 'Warn' 'Working copy is empty, skipping jj new...'
+  }
+
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
   $cmdDescribe = "jj describe $commitMessage".Trim()
   Invoke-Expression $cmdDescribe
