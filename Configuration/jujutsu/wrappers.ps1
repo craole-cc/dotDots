@@ -72,16 +72,15 @@ function Global:Invoke-JujutsuPush {
     # Working copy has changes - use jj new with message
     Write-Pretty -NoNewLine -Tag 'Debug' 'Creating new commit from working copy...'
     if ($messageText) {
-      jj new --message $messageText
+      jj new --message "$messageText"
     } else {
       jj new
-      jj describe
     }
   } else {
     # Working copy is empty - use jj describe on parent
     Write-Pretty -NoNewLine -Tag 'Debug' 'Working copy is empty, describing parent commit...'
     if ($messageText) {
-      jj describe --revision '@-' --message $messageText
+      jj describe --revision '@-' --message "$messageText"
     } else {
       jj describe --revision '@-'
     }
