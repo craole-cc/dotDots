@@ -32,7 +32,6 @@ function Global:Invoke-JujutsuPull {
   Write-Pretty -NoNewLine -Tag 'Info' 'Pull complete!'
 }
 
-
 function Global:Invoke-JujutsuPush {
   <#
     .SYNOPSIS
@@ -49,7 +48,9 @@ function Global:Invoke-JujutsuPush {
   [CmdletBinding()]
   param(
     [string]$Branch = 'main',
+    [Alias('b', 'back')]
     [switch]$AllowBackwards,
+    [Alias('f')]
     [switch]$Force,
     [Parameter(ValueFromRemainingArguments)]
     [Alias('m', 'msg')]
@@ -88,7 +89,6 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
 
-
 function Global:Invoke-JujutsuReup {
   <#
     .SYNOPSIS
@@ -109,7 +109,7 @@ function Global:Invoke-JujutsuReup {
 
   if ($backupPath) {
     Invoke-JujutsuPush -AllowBackwards -Force:$Force
-    Write-Pretty -NoNewLine -Tag 'Success' "Reup complete! Don't forget to delete the backup folder if everything looks good:"
+    Write-Pretty -NoNewLine -Tag 'Success' "jjReup complete! Don't forget to delete the backup folder if everything looks good:"
     Write-Pretty -NoNewLine -Tag 'Debug' "  $backupPath"
   }
   else {
