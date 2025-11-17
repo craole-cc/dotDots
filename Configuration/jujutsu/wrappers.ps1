@@ -60,23 +60,30 @@ function Global:Invoke-JujutsuPush {
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
-  # Check if working copy has changes
+  #~@ Join message text
+  $messageText = if ($Message) {($Message | Where-Object { $_ -notmatch '^-' }) -join ' '} else {''}
+
+  #@ Check if working copy has changes
   Write-Pretty -NoNewLine -Tag 'Debug' 'Checking working copy status...'
   $isEmpty = (jj log -r '@' --no-graph --color never -T 'empty') -eq 'true'
 
-  if (-not $isEmpty) {
-    Write-Pretty -NoNewLine -Tag 'Debug' 'Creating new commit from working copy...'
-    jj new
-  } else {
-    Write-Pretty -NoNewLine -Tag 'Debug' 'Working copy is empty, skipping jj new...'
-  }
 
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
-  if ($Message) {
-    jj describe --revision '@-' `
-      --message ($Message | Where-Object { $_ -notmatch '^-' }) -join ' '
+ if (-not $isEmpty) {
+    # Working copy has changes - use jj new with message
+    Write-Pretty -NoNewLine -Tag 'Debug' 'Creating new commit from working copy...'
+    if ($messageText) {
+      jj new --message $messageText
+    } else {
+      jj new
+    }
   } else {
-    jj describe --revision '@-'
+    # Working copy is empty - use jj describe on parent
+    Write-Pretty -NoNewLine -Tag 'Debug' 'Working copy is empty, describing parent commit...'
+    if ($messageText) {
+      jj describe --revision '@-' --message $messageText
+    } else {
+      jj describe --revision '@-'
+    }
   }
 
   Write-Pretty -NoNewLine -Tag 'Debug' "Setting bookmark '$Branch'..."
