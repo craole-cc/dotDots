@@ -18,7 +18,6 @@ in {
     ];
 
   config = mkIf cfg.enable {
-    # home.packages = [pkgs.brave];
     programs.chromium = {
       enable = true;
       package = pkgs.brave
