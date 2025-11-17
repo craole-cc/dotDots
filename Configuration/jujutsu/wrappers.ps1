@@ -86,7 +86,7 @@ function Global:Invoke-JujutsuPush {
   }
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
-  $cmdDescribe = "jj describe $commitMessage".Trim()
+  $cmdDescribe = "jj describe --revision=@- $commitMessage".Trim()
   Invoke-Expression $cmdDescribe
 
   Write-Pretty -NoNewLine -Tag 'Debug' "Setting bookmark '$Branch'..."
