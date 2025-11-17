@@ -47,11 +47,66 @@ function Global:Invoke-JujutsuPush {
         Allow backwards bookmark movement.
     .PARAMETER Force
         Force push even if remote changed.
+    .PARAMETER Message
+        Commit message for the push. Can be specified with -m, --message, or as remaining arguments.
     #>
   [CmdletBinding()]
   param(
     [switch]$AllowBackwards,
-    [switch]$Force
+    [switch]$Force,
+    [Parameter(ValueFromRemainingArguments)]
+    [Alias('m', 'msg')]
+    [string[]]$Message
+  )
+  #~@ Join the message array and wrap in quotes if it exists
+  $commitMessage = if ($Message) {
+    $joinedMessage = ($Message | Where-Object { $_ -notmatch '^-' }) -join ' '
+    if ($joinedMessage) {
+      "--message `"$joinedMessage`""
+    } else {
+      ''
+    }
+  } else {
+    ''
+  }
+  $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
+  $forceFlag = if ($Force) { '--force' } else { '' }
+
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
+  Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
+
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
+  jj describe
+  $cmdDescribe = "jj describe $commitMessage".Trim()
+  Invoke-Expression $cmdDescribe
+
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Setting bookmark...'
+  $cmdBookmark = "jj bookmark set main --revision=@- $backwardsFlag".Trim()
+  Invoke-Expression $cmdBookmark
+
+  Write-Pretty -NoNewLine -Tag 'Debug' 'Updating the external repository...'
+  $cmdPush = "jj git push $forceFlag".Trim()
+  Invoke-Expression $cmdPush
+
+  Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
+}
+
+function Global:Invoke-JujutsuPushOld {
+  <#
+    .SYNOPSIS
+        Pushes changes to remote with jj and git.
+    .PARAMETER AllowBackwards
+        Allow backwards bookmark movement.
+    .PARAMETER Force
+        Force push even if remote changed.
+    .PARAMETER SkipGit
+        Skip the git push step (jj only).
+    #>
+  [CmdletBinding()]
+  param(
+    [switch]$AllowBackwards,
+    [switch]$Force,
+    [switch]$SkipGit
   )
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
@@ -64,17 +119,26 @@ function Global:Invoke-JujutsuPush {
   $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
   $forceFlag = if ($Force) { '--force' } else { '' }
 
-  #~@ Set bookmark to parent commit (@-) to avoid pushing empty working copy
-  $jjBookmarkCmd = "jj bookmark set main --revision=@- $backwardsFlag".Trim()
+  $jjBookmarkCmd = "jj bookmark set main --revision=@ $backwardsFlag".Trim()
   Invoke-Expression $jjBookmarkCmd
 
-  #~@ Update the external repository
   $jjPushCmd = "jj git push $forceFlag".Trim()
   Invoke-Expression $jjPushCmd
 
+  if (-not $SkipGit) {
+    Write-Pretty -NoNewLine -Tag 'Debug' 'Pushing with git...'
+    # Import jj changes to git first
+    jj git export
+
+    $gitPushCmd = "git push origin main $forceFlag".Trim()
+    Invoke-Expression $gitPushCmd
+  }
+  else {
+    Write-Pretty -NoNewLine -Tag 'Warning' 'Skipping git push (jj only mode)'
+  }
+
   Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
-
 
 function Global:Invoke-JujutsuReup {
   <#

@@ -6,9 +6,11 @@
 }: let
   inherit (lib.options) mkEnableOption;
   inherit (lib.modules) mkIf;
-  cfg = config.programs.brave;
+  dom = "apps";
+  mod = "brave";
+  cfg = config.${dom}.${mod};
 in {
-  options.programs.brave = {
+  options.${dom}.${mod} = {
     enable = mkEnableOption "Brave Browser";
   };
 
@@ -20,7 +22,7 @@ in {
   config = mkIf cfg.enable {
     programs.chromium = {
       enable = true;
-      package = pkgs.brave
+      package = pkgs.brave;
     };
   };
 }
