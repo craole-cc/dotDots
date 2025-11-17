@@ -76,66 +76,16 @@ function Global:Invoke-JujutsuPush {
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
-  jj describe
   $cmdDescribe = "jj describe $commitMessage".Trim()
   Invoke-Expression $cmdDescribe
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Setting bookmark...'
-  $cmdBookmark = "jj bookmark set main --revision=@- $backwardsFlag".Trim()
+  $cmdBookmark = "jj bookmark set main --revision=@ $backwardsFlag".Trim()
   Invoke-Expression $cmdBookmark
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Updating the external repository...'
   $cmdPush = "jj git push $forceFlag".Trim()
   Invoke-Expression $cmdPush
-
-  Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
-}
-
-function Global:Invoke-JujutsuPushOld {
-  <#
-    .SYNOPSIS
-        Pushes changes to remote with jj and git.
-    .PARAMETER AllowBackwards
-        Allow backwards bookmark movement.
-    .PARAMETER Force
-        Force push even if remote changed.
-    .PARAMETER SkipGit
-        Skip the git push step (jj only).
-    #>
-  [CmdletBinding()]
-  param(
-    [switch]$AllowBackwards,
-    [switch]$Force,
-    [switch]$SkipGit
-  )
-
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
-  Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
-
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Updating commit description...'
-  jj describe
-
-  Write-Pretty -NoNewLine -Tag 'Debug' 'Setting bookmark and pushing with jj...'
-  $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
-  $forceFlag = if ($Force) { '--force' } else { '' }
-
-  $jjBookmarkCmd = "jj bookmark set main --revision=@ $backwardsFlag".Trim()
-  Invoke-Expression $jjBookmarkCmd
-
-  $jjPushCmd = "jj git push $forceFlag".Trim()
-  Invoke-Expression $jjPushCmd
-
-  if (-not $SkipGit) {
-    Write-Pretty -NoNewLine -Tag 'Debug' 'Pushing with git...'
-    # Import jj changes to git first
-    jj git export
-
-    $gitPushCmd = "git push origin main $forceFlag".Trim()
-    Invoke-Expression $gitPushCmd
-  }
-  else {
-    Write-Pretty -NoNewLine -Tag 'Warning' 'Skipping git push (jj only mode)'
-  }
 
   Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
