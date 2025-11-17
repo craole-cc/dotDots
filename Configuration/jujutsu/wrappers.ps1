@@ -75,7 +75,6 @@ function Global:Invoke-JujutsuPush {
     } else {
       jj describe '@-'
     }
-    # Bookmark is already on @-, just push
   } else {
     # Working copy has changes - describe current, then make new
     Write-Pretty -Tag 'Debug' 'Describing current working copy...'
@@ -87,7 +86,6 @@ function Global:Invoke-JujutsuPush {
 
     Write-Pretty -Tag 'Debug' 'Creating new working copy...'
     jj new
-    # Now the commit to push is @-
   }
 
   # Set bookmark to @- (the commit we want to push)
@@ -98,13 +96,13 @@ function Global:Invoke-JujutsuPush {
     jj bookmark set $Branch --revision '@-'
   }
 
-  # Push the bookmark
+  # Push the bookmark (allow empty and new commits)
   Write-Pretty -Tag 'Debug' 'Pushing to remote...'
+  $pushArgs = @('git', 'push', '--bookmark', $Branch)
   if ($Force) {
-    jj git push --bookmark $Branch --force
-  } else {
-    jj git push --bookmark $Branch
+    $pushArgs += '--force'
   }
+  & jj $pushArgs
 
   Write-Pretty -Tag 'Info' 'Push complete!'
 }
