@@ -43,29 +43,24 @@ function Global:Invoke-JujutsuPush {
     .PARAMETER Force
         Force push even if remote changed.
     .PARAMETER Message
-        Commit message for the push. Can be specified with -m, --message, or as remaining arguments.
+        Commit message for the push.
     #>
   [CmdletBinding()]
   param(
+    [Parameter(Position = 0)]
+    [string]$Message,
+
     [string]$Branch = 'main',
+
     [Alias('b', 'back')]
     [switch]$AllowBackwards,
+
     [Alias('f')]
-    [switch]$Force,
-    [Parameter(ValueFromRemainingArguments)]
-    [Alias('m', 'msg')]
-    [string[]]$Message
+    [switch]$Force
   )
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
   Remove-Item -Path .jj/working_copy/working_copy.lock -ErrorAction SilentlyContinue
-
-  # Join message text properly, filtering out parameter-like strings
-  $messageText = if ($Message -and $Message.Count -gt 0) {
-    ($Message | Where-Object { $_ -and $_ -notmatch '^-' } | ForEach-Object { $_.Trim() }) -join ' '
-  } else {
-    ''
-  }
 
   # Check if working copy has changes
   Write-Pretty -NoNewLine -Tag 'Debug' 'Checking working copy status...'
@@ -75,16 +70,16 @@ function Global:Invoke-JujutsuPush {
   if (-not $isEmpty) {
     # Working copy has changes - use jj new with message
     Write-Pretty -Tag 'Debug' 'Creating new commit from working copy...'
-    if ($messageText) {
-      jj new --message $messageText
+    if ($Message) {
+      jj new --message $Message
     } else {
       jj new
     }
   } else {
     # Working copy is empty - use jj describe on parent
     Write-Pretty -Tag 'Debug' 'Working copy is empty, describing parent commit...'
-    if ($messageText) {
-      jj describe '@-' --message $messageText
+    if ($Message) {
+      jj describe '@-' --message $Message
     } else {
       jj describe '@-'
     }
