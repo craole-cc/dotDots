@@ -42,19 +42,16 @@ function Global:Invoke-JujutsuPull {
 function Global:Invoke-JujutsuPush {
   <#
     .SYNOPSIS
-        Pushes changes to remote with jj and git.
+        Pushes changes to remote with jj.
     .PARAMETER AllowBackwards
         Allow backwards bookmark movement.
     .PARAMETER Force
         Force push even if remote changed.
-    .PARAMETER SkipGit
-        Skip the git push step (jj only).
     #>
   [CmdletBinding()]
   param(
     [switch]$AllowBackwards,
-    [switch]$Force,
-    [switch]$SkipGit
+    [switch]$Force
   )
 
   Write-Pretty -NoNewLine -Tag 'Debug' 'Removing JJ lock if present...'
@@ -67,26 +64,17 @@ function Global:Invoke-JujutsuPush {
   $backwardsFlag = if ($AllowBackwards) { '--allow-backwards' } else { '' }
   $forceFlag = if ($Force) { '--force' } else { '' }
 
-  $jjBookmarkCmd = "jj bookmark set main --revision=@ $backwardsFlag".Trim()
+  #~@ Set bookmark to parent commit (@-) to avoid pushing empty working copy
+  $jjBookmarkCmd = "jj bookmark set main --revision=@- $backwardsFlag".Trim()
   Invoke-Expression $jjBookmarkCmd
 
+  #~@ Update the external repository
   $jjPushCmd = "jj git push $forceFlag".Trim()
   Invoke-Expression $jjPushCmd
 
-  if (-not $SkipGit) {
-    Write-Pretty -NoNewLine -Tag 'Debug' 'Pushing with git...'
-    # Import jj changes to git first
-    jj git export
-
-    $gitPushCmd = "git push origin main $forceFlag".Trim()
-    Invoke-Expression $gitPushCmd
-  }
-  else {
-    Write-Pretty -NoNewLine -Tag 'Warning' 'Skipping git push (jj only mode)'
-  }
-
   Write-Pretty -NoNewLine -Tag 'Info' 'Push complete!'
 }
+
 
 function Global:Invoke-JujutsuReup {
   <#
@@ -102,15 +90,14 @@ function Global:Invoke-JujutsuReup {
     #>
   [CmdletBinding()]
   param(
-    [switch]$Force,
-    [switch]$SkipGit
+    [switch]$Force
   )
 
   Invoke-JujutsuPull
   $backupPath = New-BackupCopy
 
   if ($backupPath) {
-    Invoke-JujutsuPush -AllowBackwards -Force:$Force -SkipGit:$SkipGit
+    Invoke-JujutsuPush -AllowBackwards -Force:$Force
     Write-Pretty -NoNewLine -Tag 'Success' "Reup complete! Don't forget to delete the backup folder if everything looks good:"
     Write-Pretty -NoNewLine -Tag 'Debug' "  $backupPath"
   }
