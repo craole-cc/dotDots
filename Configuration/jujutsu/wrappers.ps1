@@ -165,13 +165,13 @@ function Global:Invoke-JujutsuCleanup {
 
   Write-Pretty -Tag 'Info' "Checking for undescribed commits in $Branch..."
 
-  # Find all empty commits without descriptions in the branch ancestry
-  $query = "ancestors($Branch) & empty() & description(exact:"""")"
+  # Find all empty commits without descriptions that are NOT immutable
+  $query = "ancestors($Branch) & empty() & description(exact:"""") & ~immutable()"
   $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ "\n"' |
     Where-Object { $_ -and $_ -notmatch 'zzzzzzzzzzzz' }
 
   if (-not $undescribed) {
-    Write-Pretty -Tag 'Success' 'No undescribed commits found!'
+    Write-Pretty -Tag 'Success' 'No undescribed mutable commits found!'
     return
   }
 
@@ -183,14 +183,14 @@ function Global:Invoke-JujutsuCleanup {
     foreach ($changeId in $undescribed) {
       $trimmed = $changeId.Trim()
       Write-Pretty -Tag 'Debug' "Squashing: $trimmed"
-      jj squash --revision $trimmed
+      jj squash --revision $trimmed 2>&1 | Out-Null
     }
   } else {
     Write-Pretty -Tag 'Info' "Describing commits with message: '$Message'"
     foreach ($changeId in $undescribed) {
       $trimmed = $changeId.Trim()
       Write-Pretty -Tag 'Debug' "Describing: $trimmed"
-      jj describe $trimmed --message $Message
+      jj describe $trimmed --message $Message 2>&1 | Out-Null
     }
   }
 
