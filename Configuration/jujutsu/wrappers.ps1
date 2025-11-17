@@ -39,20 +39,20 @@ function Global:Invoke-JujutsuCleanup {
     .PARAMETER Branch
         The branch/bookmark to clean (default: main).
     .PARAMETER Message
-        Default message to use for undescribed commits (default: prompts interactively).
-    .PARAMETER Squash
-        Squash empty commits instead of describing them.
+        If provided, describes commits with this message instead of squashing.
+    .PARAMETER NoSquash
+        Prompt for descriptions instead of squashing.
     #>
   [CmdletBinding()]
   param(
     [string]$Branch = 'main',
     [string]$Message,
-    [switch]$Squash
+    [switch]$NoSquash
   )
 
   Write-Pretty -Tag 'Info' "Checking for undescribed commits in $Branch..."
 
-  # Find all commits (not just empty) without descriptions that are NOT immutable
+  # Find all commits without descriptions that are NOT immutable
   $query = "ancestors($Branch) & description(exact:"""") & ~immutable() & ~root()"
   $undescribed = jj log -r $query --no-graph --color never -T 'change_id ++ " " ++ commit_id.short()' |
     Where-Object { $_ }
@@ -65,37 +65,39 @@ function Global:Invoke-JujutsuCleanup {
   $count = ($undescribed | Measure-Object).Count
   Write-Pretty -Tag 'Warning' "Found $count undescribed commit(s)"
 
-  if ($Squash) {
-    Write-Pretty -Tag 'Info' 'Squashing commits...'
+  if ($Message) {
+    # Describe all with provided message
+    Write-Pretty -Tag 'Info' "Describing commits with message: '$Message'"
     foreach ($line in $undescribed) {
       $changeId = $line.Split()[0].Trim()
-      Write-Pretty -Tag 'Debug' "Squashing: $changeId"
-      jj squash --revision $changeId 2>&1 | Out-Null
+      jj describe $changeId --message $Message 2>&1 | Out-Null
     }
-  } else {
+  } elseif ($NoSquash) {
+    # Prompt for descriptions
     foreach ($line in $undescribed) {
       $parts = $line.Split()
       $changeId = $parts[0].Trim()
       $commitShort = $parts[1].Trim()
 
-      if ($Message) {
-        # Use provided message for all
-        Write-Pretty -Tag 'Debug' "Describing $commitShort with: $Message"
-        jj describe $changeId --message $Message 2>&1 | Out-Null
+      Write-Host "`nCommit: " -NoNewline -ForegroundColor Cyan
+      Write-Host $commitShort -ForegroundColor Yellow
+      jj log -r $changeId --no-graph
+
+      $userMessage = Read-Host "`nEnter description (or press Enter to skip)"
+
+      if ($userMessage) {
+        jj describe $changeId --message $userMessage
       } else {
-        # Prompt for each commit
-        Write-Host "`nCommit: " -NoNewline -ForegroundColor Cyan
-        Write-Host $commitShort -ForegroundColor Yellow
-        jj log -r $changeId --no-graph
-
-        $userMessage = Read-Host "`nEnter description (or press Enter to skip)"
-
-        if ($userMessage) {
-          jj describe $changeId --message $userMessage
-        } else {
-          Write-Pretty -Tag 'Warning' "Skipped: $commitShort"
-        }
+        Write-Pretty -Tag 'Warning' "Skipped: $commitShort"
       }
+    }
+  } else {
+    # Default: Squash empty commits
+    Write-Pretty -Tag 'Info' 'Squashing undescribed commits...'
+    foreach ($line in $undescribed) {
+      $changeId = $line.Split()[0].Trim()
+      Write-Pretty -Tag 'Debug' "Squashing: $changeId"
+      jj squash --revision $changeId 2>&1 | Out-Null
     }
   }
 
@@ -139,7 +141,7 @@ function Global:Invoke-JujutsuPush {
   # Auto-cleanup undescribed commits unless skipped
   if (-not $SkipCleanup) {
     Write-Pretty -Tag 'Debug' 'Running automatic cleanup...'
-    Invoke-JujutsuCleanup -Branch $Branch -Message 'WIP'
+    Invoke-JujutsuCleanup -Branch $Branch
   }
 
   # Check if working copy has changes
