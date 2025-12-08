@@ -1,0 +1,11 @@
+#!/usr/bin/env rust-script
+//! ```
+//! [dependencies]
+//! ```
+
+use std::env::args;
+
+fn main() {
+    let name = args().nth(1).unwrap_or_else(|| "World".to_string());
+    println!("Hello {}", name);
+}

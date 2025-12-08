@@ -1,0 +1,3 @@
+{
+  polkit-gnome.enable = true;
+}

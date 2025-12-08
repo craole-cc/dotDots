@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# Check if gsettings is available
+if ! command -v gsettings >/dev/null 2>&1; then
+	printf 'Error: gsettings not found. Install gnome.gsettings-desktop-schemas\n' >&2
+	exit 1
+fi
+
+# Get current color scheme
+if ! CURRENT=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null) || [ -z "$CURRENT" ]; then
+	# Fallback: check GTK theme for older GNOME versions
+	CURRENT=$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null)
+fi
+
+# Determine next theme and switch
+case "$CURRENT" in
+*"dark"*)
+	printf 'Switching to light mode...\n'
+	gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+	gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'
+	gsettings set org.gnome.desktop.wm.preferences theme 'Adwaita'
+	# For shell theme (top bar, etc.)
+	gsettings set org.gnome.shell.extensions.user-theme name 'Adwaita' 2>/dev/null || true
+	# Optional: Switch wallpaper
+	# gsettings set org.gnome.desktop.background picture-uri "file:///path/to/light-wallpaper.jpg"
+	;;
+*)
+	printf 'Switching to dark mode...\n'
+	gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+	gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+	gsettings set org.gnome.desktop.wm.preferences theme 'Adwaita-dark'
+	# For shell theme (top bar, etc.)
+	gsettings set org.gnome.shell.extensions.user-theme name 'Adwaita-dark' 2>/dev/null || true
+	# Optional: Switch wallpaper
+	# gsettings set org.gnome.desktop.background picture-uri-dark "file:///path/to/dark-wallpaper.jpg"
+	;;
+esac
+
+# Restart GNOME Shell to apply changes (X11 only - Wayland requires logout)
+if [ "$XDG_SESSION_TYPE" = "x11" ]; then
+	busctl --user call org.gnome.Shell /org/gnome/Shell org.gnome.Shell Eval s 'Meta.restart("Restarting...")' 2>/dev/null || true
+fi
+
+# Notify user (optional, requires notify-send)
+if command -v notify-send >/dev/null 2>&1; then
+	case "$CURRENT" in
+	*"dark"*) notify-send "Theme" "Switched to light mode" ;;
+	*) notify-send "Theme" "Switched to dark mode" ;;
+	esac
+fi
+
+printf 'Theme switched successfully!\n'
+
+# Note for Wayland users
+if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+	printf 'Note: On Wayland, you may need to log out and back in for the top bar theme to fully apply.\n'
+fi

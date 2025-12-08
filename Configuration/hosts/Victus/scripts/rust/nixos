@@ -1,0 +1,839 @@
+#!/usr/bin/env rust-script
+//! ```cargo
+//! [dependencies]
+//! clap = { version = "4.5", features = ["derive"] }
+//! miette = { version = "7.0", features = ["fancy"] }
+//! tracing = "0.1"
+//! tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+//! walkdir = "2.5"
+//! chrono = "0.4"
+//! libc = "0.2"
+//! ```
+
+use clap::{Parser, Subcommand};
+#[cfg(unix)]
+use libc::{c_char, gethostname};
+use miette::{miette, Context, IntoDiagnostic, Result};
+#[cfg(unix)]
+use std::ffi::CStr;
+use std::{
+    env::{current_dir, var},
+    ffi::OsString,
+    fs::{create_dir_all, File},
+    io::{stderr, stdin, stdout, Write},
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
+use tracing::{debug, info, warn};
+use tracing_subscriber::{filter::LevelFilter, fmt, EnvFilter};
+use walkdir::WalkDir;
+
+#[derive(Parser)]
+#[command(name = "nixos")]
+#[command(version = "0.10.1")]
+#[command(author = "Craig 'Craole' Cole")]
+#[command(about = "NixOS management script with flake support")]
+#[command(long_about = r#"
+Unified NixOS management tool supporting:
+- System rebuilds (switch, boot, test, build, etc.)
+- Development (repl, edit)
+- Maintenance (cleanup, list-generations)
+- Additional utilities (dry-run with clipboard/file output)
+
+Features:
+- Automatic flake detection
+- Git clean checks before rebuilds
+- Hostname-specific configurations
+- Output capture and clipboard integration
+"#)]
+struct Args {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    /// Override hostname for configuration
+    #[arg(long, short = 'H', global = true)]
+    hostname: Option<String>,
+
+    /// Enable debug output
+    #[arg(long, global = true)]
+    debug: bool,
+
+    /// Skip git clean check
+    #[arg(long, global = true)]
+    force: bool,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Switch to new configuration and activate now
+    Switch {
+        /// Enable --show-trace for better error messages
+        #[arg(long)]
+        trace: bool,
+
+        /// Update flake inputs before rebuild
+        #[arg(long, short = 'u')]
+        upgrade: bool,
+
+        /// Disable flake mode
+        #[arg(long)]
+        no_flake: bool,
+    },
+
+    /// Switch to new configuration on next boot
+    Boot {
+        #[arg(long)]
+        trace: bool,
+
+        #[arg(long, short = 'u')]
+        upgrade: bool,
+
+        #[arg(long)]
+        no_flake: bool,
+    },
+
+    /// Build and activate configuration without adding to bootloader
+    Test {
+        #[arg(long)]
+        trace: bool,
+
+        #[arg(long, short = 'u')]
+        upgrade: bool,
+
+        #[arg(long)]
+        no_flake: bool,
+    },
+
+    /// Build configuration but don't activate
+    Build {
+        #[arg(long)]
+        trace: bool,
+
+        #[arg(long, short = 'u')]
+        upgrade: bool,
+
+        #[arg(long)]
+        no_flake: bool,
+    },
+
+    /// Open configuration in editor
+    Edit {
+        /// Editor to use (defaults to $VISUAL, $EDITOR, or vim)
+        editor: Option<String>,
+    },
+
+    /// Show what would be built (dry-run)
+    #[command(alias = "dry")]
+    Simulate {
+        #[arg(long)]
+        trace: bool,
+
+        #[arg(long, short = 'u')]
+        upgrade: bool,
+
+        /// Copy output to clipboard
+        #[arg(long, default_value = "true")]
+        clip: bool,
+
+        /// Save output to file
+        #[arg(long, default_value = "true")]
+        dump: bool,
+
+        /// Disable clipboard and file output
+        #[arg(long)]
+        no_capture: bool,
+    },
+
+    /// Build installation image
+    BuildImage {
+        #[arg(long)]
+        trace: bool,
+    },
+
+    /// Build VM for testing
+    BuildVm {
+        #[arg(long)]
+        trace: bool,
+    },
+
+    /// Build VM with bootloader
+    BuildVmWithBootLoader {
+        #[arg(long)]
+        trace: bool,
+    },
+
+    /// List system generations
+    #[command(alias = "generations")]
+    ListGenerations,
+
+    /// Run garbage collection
+    #[command(aliases = &["clean", "gc"])]
+    Cleanup {
+        /// Delete old generations
+        #[arg(long, short = 'd')]
+        delete_old: bool,
+
+        /// Delete generations older than specified days
+        #[arg(long)]
+        older_than: Option<u32>,
+    },
+
+    /// Launch Nix REPL
+    Repl {
+        /// Use remote nixpkgs instead of local flake
+        #[arg(long)]
+        pkgs: bool,
+    },
+}
+
+impl Commands {
+    fn is_rebuild(&self) -> bool {
+        matches!(
+            self,
+            Commands::Switch { .. }
+                | Commands::Boot { .. }
+                | Commands::Test { .. }
+                | Commands::Build { .. }
+                | Commands::Simulate { .. }
+                | Commands::BuildImage { .. }
+                | Commands::BuildVm { .. }
+                | Commands::BuildVmWithBootLoader { .. }
+        )
+    }
+
+    fn rebuild_action(&self) -> Option<&str> {
+        match self {
+            Commands::Switch { .. } => Some("switch"),
+            Commands::Boot { .. } => Some("boot"),
+            Commands::Test { .. } => Some("test"),
+            Commands::Build { .. } => Some("build"),
+            Commands::Simulate { .. } => Some("dry-run"),
+            Commands::BuildImage { .. } => Some("build-image"),
+            Commands::BuildVm { .. } => Some("build-vm"),
+            Commands::BuildVmWithBootLoader { .. } => Some("build-vm-with-boot-loader"),
+            Commands::ListGenerations => Some("list-generations"),
+            _ => None,
+        }
+    }
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+
+    //~@ Initialize tracing
+    init_tracing(args.debug);
+
+    //~@ Default to repl if no command specified
+    let command = args.command.unwrap_or(Commands::Repl { pkgs: false });
+
+    //~@ Determine hostname
+    let hostname = if let Some(h) = &args.hostname {
+        h.clone()
+    } else {
+        get_hostname()
+            .into_string()
+            .unwrap_or_else(|_| "unknown".to_string())
+    };
+
+    info!(hostname = %hostname, "Using hostname");
+
+    //~@ Find flake path
+    let flake_path = find_flake_path(&hostname)?;
+    info!(flake_path = %flake_path.display(), "Found flake");
+
+    //~@ Check git status for rebuild operations (except simulate/dry-run)
+    if command.is_rebuild() && !matches!(command, Commands::Simulate { .. }) && !args.force {
+        handle_git_status(&flake_path)?;
+    }
+
+    //~@ Execute the command
+    match command {
+        Commands::Edit { editor } => handle_edit(&flake_path, editor)?,
+        Commands::Cleanup {
+            delete_old,
+            older_than,
+        } => handle_cleanup(delete_old, older_than)?,
+        Commands::Repl { pkgs } => handle_repl(&flake_path, &hostname, pkgs)?,
+        Commands::Simulate {
+            trace,
+            upgrade,
+            clip,
+            dump,
+            no_capture,
+        } => {
+            let (should_clip, should_dump) = if no_capture {
+                (false, false)
+            } else {
+                (clip, dump)
+            };
+            handle_rebuild(
+                &command,
+                &flake_path,
+                &hostname,
+                trace,
+                upgrade,
+                false,
+                should_clip,
+                should_dump,
+            )?;
+        }
+        _ => {
+            // Extract common rebuild parameters
+            let (trace, upgrade, no_flake) = match &command {
+                Commands::Switch {
+                    trace,
+                    upgrade,
+                    no_flake,
+                }
+                | Commands::Boot {
+                    trace,
+                    upgrade,
+                    no_flake,
+                }
+                | Commands::Test {
+                    trace,
+                    upgrade,
+                    no_flake,
+                }
+                | Commands::Build {
+                    trace,
+                    upgrade,
+                    no_flake,
+                } => (*trace, *upgrade, *no_flake),
+                Commands::BuildImage { trace }
+                | Commands::BuildVm { trace }
+                | Commands::BuildVmWithBootLoader { trace } => (*trace, false, false),
+                Commands::ListGenerations => (false, false, false),
+                _ => unreachable!(),
+            };
+
+            handle_rebuild(
+                &command,
+                &flake_path,
+                &hostname,
+                trace,
+                upgrade,
+                no_flake,
+                false,
+                false,
+            )?;
+        }
+    }
+
+    Ok(())
+}
+
+fn init_tracing(debug: bool) {
+    let filter = if debug {
+        EnvFilter::from_default_env().add_directive(LevelFilter::DEBUG.into())
+    } else {
+        EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into())
+    };
+
+    fmt()
+        .with_env_filter(filter)
+        .with_target(false)
+        .without_time()
+        .with_writer(stderr)
+        .init();
+}
+
+fn get_hostname() -> OsString {
+    #[cfg(unix)]
+    {
+        let mut buf = [0u8; 256];
+        unsafe {
+            if gethostname(buf.as_mut_ptr() as *mut c_char, buf.len()) == 0 {
+                if let Ok(s) = CStr::from_bytes_until_nul(&buf) {
+                    return s.to_string_lossy().into_owned().into();
+                }
+            }
+        }
+    }
+
+    if let Ok(output) = Command::new("hostname").output() {
+        if output.status.success() {
+            return String::from_utf8_lossy(&output.stdout)
+                .trim()
+                .to_string()
+                .into();
+        }
+    }
+
+    OsString::from("unknown")
+}
+
+fn find_flake_path(hostname: &str) -> Result<PathBuf> {
+    let hostname_var = format!("{}_CONFIG", hostname.to_uppercase());
+
+    if let Ok(config_path) = var(&hostname_var) {
+        let flake_file = PathBuf::from(&config_path).join("flake.nix");
+        if flake_file.exists() {
+            debug!(var = %hostname_var, path = %config_path, "Using hostname config variable");
+            return Ok(PathBuf::from(config_path));
+        }
+    }
+
+    let cwd = current_dir()
+        .into_diagnostic()
+        .context("Failed to get current directory")?;
+
+    if let Some(flake_path) = find_flake(&cwd) {
+        return Ok(flake_path);
+    }
+
+    Err(miette!(
+        help = format!(
+            "Expected flake at: {}",
+            var(&hostname_var).unwrap_or_else(|_| "not set".to_string())
+        ),
+        "No flake.nix found in current directory or subdirectories"
+    ))
+}
+
+fn find_flake(start_dir: &Path) -> Option<PathBuf> {
+    let flake_file = start_dir.join("flake.nix");
+    if flake_file.exists() {
+        debug!(path = %start_dir.display(), "Found flake in current directory");
+        return Some(start_dir.to_path_buf());
+    }
+
+    for entry in WalkDir::new(start_dir)
+        .max_depth(5)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        if entry.file_name() == "flake.nix" {
+            if let Some(parent) = entry.path().parent() {
+                debug!(path = %parent.display(), "Found flake in subdirectory");
+                return Some(parent.to_path_buf());
+            }
+        }
+    }
+
+    None
+}
+
+fn handle_git_status(flake_path: &Path) -> Result<()> {
+    let git_dir = flake_path.join(".git");
+    if !git_dir.exists() {
+        debug!("Not a git repository, skipping git check");
+        return Ok(());
+    }
+
+    let output = Command::new("git")
+        .arg("status")
+        .arg("--porcelain")
+        .current_dir(flake_path)
+        .output()
+        .into_diagnostic()
+        .context("Failed to check git status")?;
+
+    let status = String::from_utf8_lossy(&output.stdout);
+
+    if status.trim().is_empty() {
+        debug!("Git tree is clean");
+        return Ok(());
+    }
+
+    warn!("Git tree is dirty!");
+    println!();
+
+    //~@ Show git status with color
+    let status_result = Command::new("git")
+        .arg("status")
+        .arg("--short")
+        .current_dir(flake_path)
+        .status()
+        .into_diagnostic()?;
+
+    if !status_result.success() {
+        return Err(miette!("Failed to get git status"));
+    }
+
+    println!();
+
+    print!("Options: [c]ommit (default), [g]itui, [f]orce continue, [a]bort: ");
+    std::io::stdout().flush().into_diagnostic()?;
+
+    let mut choice = String::new();
+    std::io::stdin()
+        .read_line(&mut choice)
+        .into_diagnostic()
+        .context("Failed to read user input")?;
+
+    let choice = choice.trim().to_lowercase();
+
+    match choice.as_str() {
+        "" | "c" => {
+            print!("Commit message: ");
+            stdout().flush().into_diagnostic()?;
+
+            let mut message = String::new();
+            stdin()
+                .read_line(&mut message)
+                .into_diagnostic()
+                .context("Failed to read commit message")?;
+
+            let message = message.trim();
+
+            if message.is_empty() {
+                return Err(miette!("Aborted: no commit message provided"));
+            }
+
+            Command::new("git")
+                .arg("add")
+                .arg("--all")
+                .current_dir(flake_path)
+                .status()
+                .into_diagnostic()
+                .context("Failed to stage changes")?;
+
+            let commit_status = Command::new("git")
+                .arg("commit")
+                .arg("--message")
+                .arg(message)
+                .current_dir(flake_path)
+                .status()
+                .into_diagnostic()
+                .context("Failed to commit changes")?;
+
+            if commit_status.success() {
+                println!("✓ Changes committed");
+            } else {
+                return Err(miette!("Failed to commit changes"));
+            }
+        }
+        "g" => {
+            let gitui_status = Command::new("gitui")
+                .current_dir(flake_path)
+                .status()
+                .into_diagnostic()
+                .context("Failed to launch gitui")?;
+
+            if !gitui_status.success() {
+                return Err(miette!(
+                    help = "Install gitui or use another option",
+                    "gitui exited with error"
+                ));
+            }
+
+            let output = Command::new("git")
+                .arg("status")
+                .arg("--porcelain")
+                .current_dir(flake_path)
+                .output()
+                .into_diagnostic()?;
+
+            if !output.stdout.is_empty() {
+                return Err(miette!("Git tree still dirty after gitui. Aborting."));
+            }
+
+            println!("✓ Git tree is clean");
+        }
+        "f" => {
+            warn!("Forcing continue with dirty tree...");
+        }
+        "a" => {
+            return Err(miette!("Aborted by user"));
+        }
+        _ => {
+            return Err(miette!("Invalid option. Aborting."));
+        }
+    }
+
+    Ok(())
+}
+
+fn handle_edit(flake_path: &Path, editor: Option<String>) -> Result<()> {
+    // Priority: 1. Provided argument, 2. $VISUAL, 3. $EDITOR, 4. Search for available editors
+    let editor = editor
+        .or_else(|| var("VISUAL").ok())
+        .or_else(|| var("EDITOR").ok())
+        .or_else(|| find_available_editor());
+
+    let editor = editor.ok_or_else(|| {
+        miette!(
+            help = "Set $EDITOR or $VISUAL, or install an editor (hx, nvim, vim, nano, vi)",
+            "No editor found"
+        )
+    })?;
+
+    info!(editor = %editor, dir = %flake_path.display(), "Opening editor");
+
+    let status = Command::new(&editor)
+        .current_dir(flake_path)
+        .arg(".")
+        .status()
+        .into_diagnostic()
+        .with_context(|| format!("Failed to launch editor: {}", editor))?;
+
+    if !status.success() {
+        return Err(miette!("Editor exited with error"));
+    }
+
+    Ok(())
+}
+
+fn find_available_editor() -> Option<String> {
+    // List of editors to try, in order of preference
+    let editors = ["hx", "helix", "nvim", "vim", "nano", "vi", "emacs", "ed"];
+
+    for editor in &editors {
+        if Command::new("which")
+            .arg(editor)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false)
+        {
+            debug!(editor = %editor, "Found available editor");
+            return Some(editor.to_string());
+        }
+    }
+
+    None
+}
+
+fn handle_cleanup(delete_old: bool, older_than: Option<u32>) -> Result<()> {
+    let mut cmd = Command::new("sudo");
+    cmd.arg("nix-collect-garbage");
+
+    if delete_old {
+        cmd.arg("--delete-old");
+    }
+
+    if let Some(days) = older_than {
+        cmd.arg("--delete-older-than").arg(format!("{}d", days));
+    }
+
+    println!("Running: {:?}", cmd);
+
+    let status = cmd
+        .status()
+        .into_diagnostic()
+        .context("Failed to run nix-collect-garbage")?;
+
+    if !status.success() {
+        return Err(miette!("Garbage collection failed"));
+    }
+
+    Ok(())
+}
+
+fn handle_repl(flake_path: &Path, hostname: &str, use_pkgs: bool) -> Result<()> {
+    let mut cmd = String::from("nix repl --extra-experimental-features 'nix-command flakes'");
+
+    if use_pkgs {
+        cmd.push_str(" github:nixos/nixpkgs");
+    } else {
+        cmd.push_str(&format!(
+            " {}#nixosConfigurations.{}",
+            flake_path.display(),
+            hostname
+        ));
+    }
+
+    println!("Executing: {cmd}\n");
+
+    let status = Command::new("sh")
+        .arg("-c")
+        .arg(&cmd)
+        .status()
+        .into_diagnostic()
+        .context("Failed to execute repl")?;
+
+    if !status.success() {
+        return Err(miette!("REPL exited with error"));
+    }
+
+    Ok(())
+}
+
+fn handle_rebuild(
+    command: &Commands,
+    flake_path: &Path,
+    hostname: &str,
+    trace: bool,
+    upgrade: bool,
+    no_flake: bool,
+    should_clip: bool,
+    should_dump: bool,
+) -> Result<()> {
+    let action = command
+        .rebuild_action()
+        .ok_or_else(|| miette!("Not a rebuild command"))?;
+
+    let mut cmd = format!("sudo nixos-rebuild {}", action);
+
+    if !no_flake {
+        cmd.push_str(&format!(" --flake {}#{}", flake_path.display(), hostname));
+    }
+
+    if trace {
+        cmd.push_str(" --show-trace");
+    }
+
+    if upgrade {
+        cmd.push_str(" --upgrade");
+    }
+
+    println!("Executing: {cmd}\n");
+
+    if should_clip || should_dump {
+        execute_with_capture(&cmd, action, flake_path, hostname, should_clip, should_dump)?;
+    } else {
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg(&cmd)
+            .status()
+            .into_diagnostic()
+            .context("Failed to execute command")?;
+
+        if !status.success() {
+            return Err(miette!("Command failed"));
+        }
+    }
+
+    Ok(())
+}
+
+fn execute_with_capture(
+    cmd: &str,
+    action: &str,
+    flake_path: &Path,
+    hostname: &str,
+    should_clip: bool,
+    should_dump: bool,
+) -> Result<()> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(cmd)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .into_diagnostic()
+        .context("Failed to execute command")?;
+
+    let mut combined = String::from_utf8_lossy(&output.stdout).to_string();
+    combined.push_str(&String::from_utf8_lossy(&output.stderr));
+
+    print!("{}", combined);
+
+    if should_dump {
+        let output_dir = determine_output_dir(flake_path, hostname)?;
+        let timestamp = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S");
+        let filename = format!("nixos-{}-{}.txt", action, timestamp);
+        let dump_path = output_dir.join(filename);
+
+        let mut file = File::create(&dump_path)
+            .into_diagnostic()
+            .context("Failed to create dump file")?;
+
+        file.write_all(combined.as_bytes())
+            .into_diagnostic()
+            .context("Failed to write to dump file")?;
+
+        println!("\nOutput saved to: {}", dump_path.display());
+    }
+
+    if should_clip {
+        copy_to_clipboard(&combined)?;
+    }
+
+    Ok(())
+}
+
+fn determine_output_dir(flake_path: &Path, hostname: &str) -> Result<PathBuf> {
+    let hostname_cache_var = format!("{}_CACHE", hostname.to_uppercase());
+
+    for var_name in ["PROJECT_CACHE", "PROJECT_TMP"].iter() {
+        if let Ok(path) = var(var_name) {
+            let dir = PathBuf::from(path);
+            if dir.exists() || create_dir_all(&dir).is_ok() {
+                debug!(var = %var_name, path = %dir.display(), "Using output directory");
+                return Ok(dir);
+            }
+        }
+    }
+
+    if let Ok(path) = var(&hostname_cache_var) {
+        let dir = PathBuf::from(path);
+        if dir.exists() || create_dir_all(&dir).is_ok() {
+            debug!(path = %dir.display(), "Using hostname cache directory");
+            return Ok(dir);
+        }
+    }
+
+    let tmp_dir = flake_path.join("tmp");
+    create_dir_all(&tmp_dir)
+        .into_diagnostic()
+        .context("Failed to create output directory")?;
+
+    Ok(tmp_dir)
+}
+
+fn copy_to_clipboard(text: &str) -> Result<()> {
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(mut child) = Command::new("wl-copy").stdin(Stdio::piped()).spawn() {
+            if let Some(mut stdin) = child.stdin.take() {
+                let _ = stdin.write_all(text.as_bytes());
+                drop(stdin);
+                if child.wait().is_ok() {
+                    println!("Output copied to clipboard!");
+                    return Ok(());
+                }
+            }
+        }
+
+        if let Ok(mut child) = Command::new("xsel")
+            .arg("--clipboard")
+            .arg("--input")
+            .stdin(Stdio::piped())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                let _ = stdin.write_all(text.as_bytes());
+                drop(stdin);
+                if child.wait().is_ok() {
+                    println!("Output copied to clipboard!");
+                    return Ok(());
+                }
+            }
+        }
+
+        warn!("No clipboard utility found. Install wl-copy or xsel.");
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        if let Ok(mut child) = Command::new("pbcopy").stdin(Stdio::piped()).spawn() {
+            if let Some(mut stdin) = child.stdin.take() {
+                let _ = stdin.write_all(text.as_bytes());
+                drop(stdin);
+                if child.wait().is_ok() {
+                    println!("Output copied to clipboard!");
+                    return Ok(());
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(mut child) = Command::new("clip").stdin(Stdio::piped()).spawn() {
+            if let Some(mut stdin) = child.stdin.take() {
+                let _ = stdin.write_all(text.as_bytes());
+                drop(stdin);
+                if child.wait().is_ok() {
+                    println!("Output copied to clipboard!");
+                    return Ok(());
+                }
+            }
+        }
+    }
+
+    Ok(())
+}

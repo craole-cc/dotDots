@@ -1,0 +1,1025 @@
+#!/usr/bin/env rust-script
+//! ```cargo
+//! [dependencies]
+//! clap = { version = "4.5", features = ["derive"] }
+//! walkdir = "2.5"
+//! which = "8.0"
+//! miette = { version = "7.0", features = ["fancy"] }
+//! tracing = "0.1"
+//! tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+//! ```
+
+use clap::{Parser, Subcommand};
+use miette::{miette, Context, IntoDiagnostic, Result};
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+#[cfg(windows)]
+use std::os::windows::fs::MetadataExt;
+use std::{
+    env::{current_dir, var},
+    fs::{read_dir, read_link, read_to_string, symlink_metadata},
+    io::stderr,
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
+use tracing::{debug, info, warn};
+use tracing_subscriber::{filter::LevelFilter, fmt, EnvFilter};
+use walkdir::WalkDir;
+use which::which;
+
+#[derive(Parser)]
+#[command(name = "pathOf")]
+#[command(version = "0.3.0")]
+#[command(author = "Craig 'Craole' Cole")]
+#[command(about = "Searches for a target in the filesystem and in the PATH")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    #[command(flatten)]
+    search: SearchArgs,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// List directory contents (with optional custom lister)
+    List {
+        /// Directory to list (defaults to current directory)
+        path: Option<PathBuf>,
+
+        /// Custom listing command (e.g., "lsd -la" or "eza --icons")
+        #[arg(short, long)]
+        lister: Option<String>,
+    },
+
+    /// Read and print file contents
+    Read {
+        /// Pattern or path to read
+        pattern: String,
+
+        #[command(flatten)]
+        search: SearchArgs,
+
+        /// Follow exec statements in shell wrappers
+        #[arg(short = 'F', long, default_value = "true")]
+        follow_exec: bool,
+    },
+
+    /// Open file or directory in editor
+    Edit {
+        /// Pattern or path to edit
+        pattern: String,
+
+        #[command(flatten)]
+        search: SearchArgs,
+
+        /// Follow exec statements in shell wrappers
+        #[arg(short = 'F', long, default_value = "true")]
+        follow_exec: bool,
+    },
+
+    /// Search for project root (looks for .git, package.json, etc.)
+    Project {
+        /// Starting directory (defaults to current directory)
+        #[arg(short, long)]
+        from: Option<PathBuf>,
+    },
+}
+
+#[derive(Parser, Clone)]
+struct SearchArgs {
+    /// Set current working directory for search
+    #[arg(short, long, value_name = "DIR")]
+    cwd: Option<PathBuf>,
+
+    /// Search direction: up, down, or both
+    #[arg(short, long, value_parser = ["up", "down", "both"], default_value = "both")]
+    direction: String,
+
+    /// Search type: all, exe, file, dir
+    #[arg(short = 't', long, value_parser = ["all", "exe", "file", "dir"], default_value = "all")]
+    search_type: String,
+
+    /// Sort results by: depth, alphanumeric, natural, unsorted
+    #[arg(short, long, value_parser = ["depth", "alphanumeric", "natural", "unsorted"], default_value = "depth")]
+    sort: String,
+
+    /// Limit number of results (0 for unlimited)
+    #[arg(short, long, default_value = "1")]
+    limit: usize,
+
+    /// Maximum search depth
+    #[arg(long, default_value = "100")]
+    max_depth: usize,
+
+    /// Exclude hidden files
+    #[arg(long = "no-hidden")]
+    no_hidden: bool,
+
+    /// Follow symbolic links
+    #[arg(short = 'L', long)]
+    follow_symlinks: bool,
+
+    /// Return only the basename
+    #[arg(short = 'n', long)]
+    name: bool,
+
+    /// Resolve symlinks to their final target
+    #[arg(short = 'r', long, alias = "abs")]
+    resolve: bool,
+
+    /// Return only the directory
+    #[arg(short = 'D', long)]
+    dir: bool,
+
+    /// Enable fuzzy matching (matches partial names)
+    #[arg(short = 'f', long)]
+    fuzzy: bool,
+
+    /// Enable debug output
+    #[arg(long)]
+    debug: bool,
+}
+
+#[derive(Debug, Clone)]
+struct SearchResult {
+    path: PathBuf,
+    depth: usize,
+}
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Some(Commands::List { path, lister }) => {
+            let dir =
+                path.unwrap_or_else(|| current_dir().expect("Failed to get current directory"));
+            init_tracing(false);
+            handle_list_command(&dir, lister.as_deref())
+        }
+
+        Some(Commands::Read {
+            pattern,
+            search,
+            follow_exec,
+        }) => {
+            init_tracing(search.debug);
+            let cwd = get_cwd(&search)?;
+            let path = find_path(&pattern, &cwd, &search)?;
+            read_and_print(&path, follow_exec)
+        }
+
+        Some(Commands::Edit {
+            pattern,
+            search,
+            follow_exec,
+        }) => {
+            init_tracing(search.debug);
+            let cwd = get_cwd(&search)?;
+            let path = find_path(&pattern, &cwd, &search)?;
+            open_in_editor(&path, follow_exec)
+        }
+
+        Some(Commands::Project { from }) => {
+            init_tracing(false);
+            let start =
+                from.unwrap_or_else(|| current_dir().expect("Failed to get current directory"));
+            handle_project_search(&start)
+        }
+
+        None => {
+            //~@ Default behavior: search and print path
+            init_tracing(cli.search.debug);
+            let cwd = get_cwd(&cli.search)?;
+
+            if let Some(pattern) = std::env::args().nth(1) {
+                let path = find_path(&pattern, &cwd, &cli.search)?;
+                print_result(&path, &cli.search);
+                Ok(())
+            } else {
+                Err(miette!(
+                    help = "Usage: pathOf <PATTERN> [OPTIONS]\n       pathOf <COMMAND> [OPTIONS]",
+                    "No pattern or command provided"
+                ))
+            }
+        }
+    }
+}
+
+//~@ Initialization and Logging
+
+fn init_tracing(debug: bool) {
+    let filter = if debug {
+        EnvFilter::from_default_env().add_directive(LevelFilter::DEBUG.into())
+    } else {
+        EnvFilter::from_default_env().add_directive(LevelFilter::WARN.into())
+    };
+
+    fmt()
+        .with_env_filter(filter)
+        .with_target(false)
+        .with_writer(stderr)
+        .init();
+}
+
+fn get_cwd(search: &SearchArgs) -> Result<PathBuf> {
+    search
+        .cwd
+        .clone()
+        .or_else(|| current_dir().ok())
+        .ok_or_else(|| miette!("Failed to get current directory").into())
+}
+
+//~@ Command Handlers
+
+fn handle_list_command(dir: &Path, lister: Option<&str>) -> Result<()> {
+    if let Some(lister_cmd) = lister {
+        return run_custom_lister(lister_cmd, dir);
+    }
+
+    try_lister("lsd", &["--long", "--almost-all"], dir)
+        .or_else(|_| try_lister("eza", &["--long", "--almost-all"], dir))
+        .or_else(|_| list_directory_native(dir))
+}
+
+fn run_custom_lister(cmd: &str, dir: &Path) -> Result<()> {
+    let mut parts = cmd.split_whitespace();
+    let program = parts
+        .next()
+        .ok_or_else(|| miette!("Empty lister command"))?;
+    let args_vec: Vec<&str> = parts.collect();
+
+    let status = Command::new(program)
+        .args(&args_vec)
+        .arg(dir)
+        .status()
+        .into_diagnostic()
+        .context("Failed to run custom lister command")?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(miette!("Lister exited with error"))
+    }
+}
+
+fn try_lister(program: &str, args: &[&str], dir: &Path) -> Result<()> {
+    let status = Command::new(program)
+        .args(args)
+        .arg(dir)
+        .status()
+        .into_diagnostic()?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(miette!("Lister failed"))
+    }
+}
+
+fn list_directory_native(dir: &Path) -> Result<()> {
+    let entries = read_dir(dir)
+        .into_diagnostic()
+        .context(format!("Failed to read directory '{}'", dir.display()))?;
+
+    for entry in entries.flatten() {
+        println!("{}", entry.path().display());
+    }
+    Ok(())
+}
+
+fn handle_project_search(cwd: &Path) -> Result<()> {
+    info!("Searching for project root");
+
+    if let Some(root) = find_project_root(cwd) {
+        info!(root = %root.display(), "Found project root");
+        println!("{}", root.display());
+        Ok(())
+    } else {
+        Err(miette!(
+            help = "Looked for: .git, flake.nix, package.json, Cargo.toml, go.mod, pyproject.toml, pom.xml, build.gradle",
+            "Could not find project root markers from '{}'",
+            cwd.display()
+        ))
+    }
+}
+
+//~@ Path Finding
+
+fn find_path(pattern: &str, cwd: &Path, search: &SearchArgs) -> Result<PathBuf> {
+    debug!(pattern = %pattern, cwd = %cwd.display(), "Finding path");
+
+    //~@ Handle special patterns
+    if let Some(special_path) = handle_special_patterns(pattern, cwd)? {
+        return Ok(special_path);
+    }
+
+    //~@ Handle absolute/relative paths
+    if is_absolute_or_relative_path(pattern) {
+        let expanded = expand_path(pattern)?;
+        if expanded.exists() {
+            info!(path = %expanded.display(), "Found path");
+            return Ok(expanded);
+        } else {
+            return Err(miette!(
+                help = format!("Expanded to: {}", expanded.display()),
+                "Path does not exist: '{}'",
+                pattern
+            ));
+        }
+    }
+
+    //~@ Search in PATH
+    if search.search_type == "all" || search.search_type == "exe" {
+        if let Some(path) = search_in_path(pattern)? {
+            return Ok(path);
+        }
+    }
+
+    //~@ Search filesystem
+    info!("Searching filesystem");
+    let mut results = search_filesystem(cwd, search, pattern)?;
+
+    if results.is_empty() {
+        return Err(build_not_found_error(search, cwd, pattern));
+    }
+
+    sort_results(&mut results, search);
+
+    if search.limit > 0 && search.limit < results.len() {
+        debug!(
+            original = results.len(),
+            limited = search.limit,
+            "Limiting results"
+        );
+        results.truncate(search.limit);
+    }
+
+    Ok(results[0].path.clone())
+}
+
+fn handle_special_patterns(pattern: &str, cwd: &Path) -> Result<Option<PathBuf>> {
+    match pattern {
+        "." => {
+            debug!("Pattern is '.', resolving to current directory");
+            Ok(Some(cwd.to_path_buf()))
+        }
+        ".." => {
+            debug!("Pattern is '..', resolving to parent directory");
+            cwd.parent()
+                .map(|p| Some(p.to_path_buf()))
+                .ok_or_else(|| miette!("Current directory has no parent"))
+        }
+        _ => Ok(None),
+    }
+}
+
+fn build_not_found_error(search: &SearchArgs, cwd: &Path, pattern: &str) -> miette::Report {
+    let direction_msg = match search.direction.as_str() {
+        "up" => "parent directories",
+        "down" => "subdirectories",
+        "both" => "parent or child directories",
+        _ => "directories",
+    };
+
+    let search_locations = if search.search_type == "all" || search.search_type == "exe" {
+        format!("PATH, '{}' or its {}", cwd.display(), direction_msg)
+    } else {
+        format!("'{}' or its {}", cwd.display(), direction_msg)
+    };
+
+    miette!(
+        help = "Try using --fuzzy for partial name matching, --direction both, or check spelling",
+        "Could not find '{}' in {}",
+        pattern,
+        search_locations
+    )
+}
+
+//~@ Path Resolution
+
+fn is_absolute_or_relative_path(path: &str) -> bool {
+    path.starts_with('/')
+        || path.starts_with('~')
+        || path.starts_with("./")
+        || path.starts_with("../")
+        || is_windows_absolute_path(path)
+}
+
+#[cfg(windows)]
+fn is_windows_absolute_path(path: &str) -> bool {
+    (path.len() >= 3 && path.chars().nth(1) == Some(':'))
+        || path.starts_with(r"\\")
+        || path.starts_with(r".\")
+        || path.starts_with(r"..\")
+}
+
+#[cfg(not(windows))]
+fn is_windows_absolute_path(_path: &str) -> bool {
+    false
+}
+
+fn expand_path(path: &str) -> Result<PathBuf> {
+    if path.starts_with("./") || path.starts_with("../") {
+        return expand_relative_path(path);
+    }
+
+    #[cfg(windows)]
+    if path.starts_with(r".\") || path.starts_with(r"..\") {
+        return expand_relative_path(path);
+    }
+
+    if path.starts_with('~') {
+        return expand_home_path(path);
+    }
+
+    Ok(PathBuf::from(path))
+}
+
+fn expand_relative_path(path: &str) -> Result<PathBuf> {
+    let cwd = current_dir()
+        .into_diagnostic()
+        .context("Failed to get current directory")?;
+    Ok(cwd.join(path))
+}
+
+fn expand_home_path(path: &str) -> Result<PathBuf> {
+    let home = get_home_directory().ok_or_else(|| {
+        miette!(
+            help = "HOME (Unix) or USERPROFILE (Windows) environment variable not set",
+            "Could not determine home directory"
+        )
+    })?;
+
+    let expanded = if path == "~" {
+        home
+    } else if path.starts_with("~/") || path.starts_with(r"~\") {
+        home.join(&path[2..])
+    } else {
+        #[cfg(unix)]
+        {
+            warn!("~user syntax not fully supported, treating as literal path");
+        }
+        PathBuf::from(path)
+    };
+
+    Ok(expanded)
+}
+
+fn get_home_directory() -> Option<PathBuf> {
+    var("HOME")
+        .ok()
+        .map(PathBuf::from)
+        .or_else(|| get_windows_home())
+}
+
+#[cfg(windows)]
+fn get_windows_home() -> Option<PathBuf> {
+    var("USERPROFILE").ok().map(PathBuf::from).or_else(|| {
+        var("HOMEDRIVE")
+            .and_then(|drive| var("HOMEPATH").map(|path| format!("{}{}", drive, path)))
+            .ok()
+            .map(PathBuf::from)
+    })
+}
+
+#[cfg(not(windows))]
+fn get_windows_home() -> Option<PathBuf> {
+    None
+}
+
+//~@ PATH Search
+
+fn search_in_path(pattern: &str) -> Result<Option<PathBuf>> {
+    debug!(pattern = %pattern, "Searching in PATH");
+
+    if let Ok(path) = which(pattern) {
+        info!(path = %path.display(), "Found in PATH via which");
+        return Ok(Some(path));
+    }
+
+    if let Some(result) = check_with_shell_type(pattern) {
+        info!(result = %result, "Found via shell type command");
+        println!("{}", result);
+        return Ok(None);
+    }
+
+    debug!("Not found in PATH");
+    Ok(None)
+}
+
+fn check_with_shell_type(name: &str) -> Option<String> {
+    let shell = get_shell()?;
+    debug!(shell = %shell, "Checking with shell type command");
+
+    let output = execute_shell_type_command(&shell, name)?;
+
+    if output.status.success() {
+        let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !result.is_empty() && !result.contains("not found") && !result.contains("Could not find")
+        {
+            return Some(result);
+        }
+    }
+
+    None
+}
+
+#[cfg(unix)]
+fn execute_shell_type_command(shell: &str, name: &str) -> Option<std::process::Output> {
+    let command_str = format!("type {} 2>/dev/null", name);
+    Command::new(shell)
+        .arg("-i")
+        .arg("-c")
+        .arg(&command_str)
+        .output()
+        .ok()
+}
+
+#[cfg(windows)]
+fn execute_shell_type_command(_shell: &str, name: &str) -> Option<std::process::Output> {
+    let command_str = format!("where {}", name);
+    Command::new("cmd")
+        .arg("/C")
+        .arg(&command_str)
+        .output()
+        .ok()
+}
+
+fn get_shell() -> Option<String> {
+    var("SHELL").ok().or_else(|| get_default_shell())
+}
+
+#[cfg(windows)]
+fn get_default_shell() -> Option<String> {
+    var("COMSPEC").ok().or_else(|| Some("cmd.exe".to_string()))
+}
+
+#[cfg(unix)]
+fn get_default_shell() -> Option<String> {
+    Some("sh".to_string())
+}
+
+#[cfg(not(any(unix, windows)))]
+fn get_default_shell() -> Option<String> {
+    None
+}
+
+//~@ Filesystem Search
+
+fn search_filesystem(cwd: &Path, search: &SearchArgs, pattern: &str) -> Result<Vec<SearchResult>> {
+    let mut results = Vec::new();
+
+    match search.direction.as_str() {
+        "down" => {
+            debug!("Searching downward");
+            results.extend(search_downward(cwd, search, pattern)?);
+        }
+        "up" => {
+            debug!("Searching upward");
+            results.extend(search_upward(cwd, search, pattern)?);
+        }
+        "both" | _ => {
+            debug!("Searching downward first");
+            results.extend(search_downward(cwd, search, pattern)?);
+            if results.is_empty() {
+                debug!("No results downward, searching upward");
+                results.extend(search_upward(cwd, search, pattern)?);
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+fn search_downward(start: &Path, search: &SearchArgs, pattern: &str) -> Result<Vec<SearchResult>> {
+    let mut results = Vec::new();
+
+    let walker = WalkDir::new(start)
+        .max_depth(search.max_depth)
+        .follow_links(search.follow_symlinks);
+
+    for entry in walker.into_iter().filter_map(|e| e.ok()) {
+        let path = entry.path();
+
+        if should_skip_hidden(path, search.no_hidden, entry.depth() > 0) {
+            continue;
+        }
+
+        if matches_pattern(path, pattern, search) {
+            let depth = entry.depth();
+            debug!(path = %path.display(), depth, "Match found");
+            results.push(SearchResult {
+                path: path.to_path_buf(),
+                depth,
+            });
+        }
+    }
+
+    Ok(results)
+}
+
+fn search_upward(start: &Path, search: &SearchArgs, pattern: &str) -> Result<Vec<SearchResult>> {
+    let mut results = Vec::new();
+    let mut current = Some(start);
+    let mut depth = 0;
+
+    while let Some(dir) = current {
+        let walker = WalkDir::new(dir)
+            .max_depth(1)
+            .follow_links(search.follow_symlinks);
+
+        for entry in walker.into_iter().filter_map(|e| e.ok()) {
+            let path = entry.path();
+
+            if should_skip_hidden(path, search.no_hidden, path != dir) {
+                continue;
+            }
+
+            if matches_pattern(path, pattern, search) {
+                debug!(path = %path.display(), depth, "Match found");
+                results.push(SearchResult {
+                    path: path.to_path_buf(),
+                    depth,
+                });
+            }
+        }
+
+        current = dir.parent();
+        depth += 1;
+    }
+
+    Ok(results)
+}
+
+fn should_skip_hidden(path: &Path, no_hidden: bool, check: bool) -> bool {
+    no_hidden && check && is_hidden(path)
+}
+
+fn matches_pattern(path: &Path, pattern: &str, search: &SearchArgs) -> bool {
+    let filename = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+
+    if !matches_search_type(path, &search.search_type) {
+        return false;
+    }
+
+    let filename_lower = filename.to_lowercase();
+    let pattern_lower = pattern.to_lowercase();
+
+    if search.fuzzy {
+        matches_fuzzy(&filename_lower, &pattern_lower, path)
+    } else {
+        matches_exact(&filename_lower, &pattern_lower, path)
+    }
+}
+
+fn matches_search_type(path: &Path, search_type: &str) -> bool {
+    match search_type {
+        "file" => path.is_file(),
+        "dir" => path.is_dir(),
+        "exe" => is_executable(path),
+        _ => true,
+    }
+}
+
+fn matches_exact(filename: &str, pattern: &str, path: &Path) -> bool {
+    filename == pattern
+        || path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_lowercase() == pattern)
+            .unwrap_or(false)
+}
+
+fn matches_fuzzy(filename: &str, pattern: &str, path: &Path) -> bool {
+    if filename == pattern {
+        return true;
+    }
+
+    if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+        if stem.to_lowercase() == pattern {
+            return true;
+        }
+    }
+
+    if filename.starts_with(pattern) {
+        return true;
+    }
+
+    pattern.len() >= 4 && filename.contains(pattern)
+}
+
+//~@ File System Checks
+
+fn is_hidden(path: &Path) -> bool {
+    has_dot_prefix(path) || has_hidden_attribute(path)
+}
+
+fn has_dot_prefix(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .map(|s| s.starts_with('.'))
+        .unwrap_or(false)
+}
+
+#[cfg(windows)]
+fn has_hidden_attribute(path: &Path) -> bool {
+    const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
+    path.metadata()
+        .map(|m| m.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0)
+        .unwrap_or(false)
+}
+
+#[cfg(not(windows))]
+fn has_hidden_attribute(_path: &Path) -> bool {
+    false
+}
+
+fn is_executable(path: &Path) -> bool {
+    is_unix_executable(path) || has_executable_extension(path)
+}
+
+#[cfg(unix)]
+fn is_unix_executable(path: &Path) -> bool {
+    path.metadata()
+        .map(|m| m.permissions().mode() & 0o111 != 0)
+        .unwrap_or(false)
+}
+
+#[cfg(not(unix))]
+fn is_unix_executable(_path: &Path) -> bool {
+    false
+}
+
+fn has_executable_extension(path: &Path) -> bool {
+    path.extension()
+        .and_then(|e| e.to_str())
+        .map(|ext| {
+            let ext_lower = ext.to_lowercase();
+            matches!(
+                ext_lower.as_str(),
+                "exe"
+                    | "bat"
+                    | "cmd"
+                    | "com"
+                    | "ps1"
+                    | "vbs"
+                    | "wsf"
+                    | "sh"
+                    | "bash"
+                    | "zsh"
+                    | "fish"
+                    | "py"
+                    | "rb"
+                    | "pl"
+                    | "js"
+                    | "rs"
+            )
+        })
+        .unwrap_or(false)
+}
+
+//~@ Project Root Finding
+
+fn find_project_root(start: &Path) -> Option<PathBuf> {
+    const MARKERS: &[&str] = &[
+        ".git",
+        "flake.nix",
+        "package.json",
+        "Cargo.toml",
+        "go.mod",
+        "pyproject.toml",
+        "pom.xml",
+        "build.gradle",
+        "composer.json",
+        "Gemfile",
+        "mix.exs",
+    ];
+
+    let mut current = Some(start);
+
+    while let Some(dir) = current {
+        for marker in MARKERS {
+            let candidate = dir.join(marker);
+            if candidate.exists() {
+                debug!(marker = %marker, root = %dir.display(), "Found project marker");
+                return Some(dir.to_path_buf());
+            }
+        }
+        current = dir.parent();
+    }
+
+    None
+}
+
+//~@ Result Handling
+
+fn sort_results(results: &mut [SearchResult], search: &SearchArgs) {
+    match search.sort.as_str() {
+        "depth" => results.sort_by_key(|r| r.depth),
+        "alphanumeric" | "natural" => {
+            results.sort_by(|a, b| {
+                a.path
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .cmp(&b.path.to_string_lossy().to_lowercase())
+            });
+        }
+        _ => {}
+    }
+}
+
+fn print_result(path: &Path, search: &SearchArgs) {
+    let output_path = resolve_path(path, search.resolve);
+    let output = format_output_path(&output_path, search);
+
+    if !search.resolve {
+        if let Some(symlink_info) = get_symlink_info(path) {
+            println!("{}", symlink_info);
+            return;
+        }
+    }
+
+    println!("{}", output);
+}
+
+fn resolve_path(path: &Path, should_resolve: bool) -> PathBuf {
+    if should_resolve {
+        path.canonicalize().unwrap_or_else(|_| {
+            warn!(path = %path.display(), "Could not resolve symlink");
+            path.to_path_buf()
+        })
+    } else {
+        path.to_path_buf()
+    }
+}
+
+fn format_output_path(path: &Path, search: &SearchArgs) -> String {
+    if search.name {
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("")
+            .to_string()
+    } else if search.dir {
+        path.parent()
+            .and_then(|p| p.to_str())
+            .unwrap_or("")
+            .to_string()
+    } else {
+        path.to_string_lossy().to_string()
+    }
+}
+
+fn get_symlink_info(path: &Path) -> Option<String> {
+    let metadata = symlink_metadata(path).ok()?;
+
+    if metadata.is_symlink() {
+        if let Ok(target) = read_link(path) {
+            Some(format!(
+                "{} -> {}",
+                path.to_string_lossy(),
+                target.display()
+            ))
+        } else {
+            warn!(path = %path.display(), "Broken symlink detected");
+            Some(format!("{} (broken symlink)", path.to_string_lossy()))
+        }
+    } else {
+        None
+    }
+}
+
+//~@ File Reading and Editing
+
+fn read_and_print(path: &Path, follow_exec: bool) -> Result<()> {
+    if path.is_dir() {
+        info!(path = %path.display(), "Path is a directory, opening in editor");
+        return open_in_editor(path, follow_exec);
+    }
+
+    if !path.is_file() {
+        return Err(miette!("Not a file or directory: '{}'", path.display()));
+    }
+
+    let contents = read_to_string(path)
+        .into_diagnostic()
+        .with_context(|| format!("Failed to read file: '{}'", path.display()))?;
+
+    if follow_exec {
+        if let Some(target_path) = extract_exec_target(&contents) {
+            info!(
+                wrapper = %path.display(),
+                target = %target_path.display(),
+                "Found exec target, following to actual script"
+            );
+            return read_and_print(&target_path, false);
+        }
+    }
+
+    print!("{}", contents);
+    Ok(())
+}
+
+fn extract_exec_target(contents: &str) -> Option<PathBuf> {
+    for line in contents.lines() {
+        let trimmed = line.trim();
+
+        if trimmed.starts_with("exec ") {
+            let after_exec = trimmed[5..].trim();
+
+            if let Some(path_str) = extract_quoted_string(after_exec) {
+                return Some(PathBuf::from(path_str));
+            }
+
+            if let Some(path_str) = after_exec.split_whitespace().next() {
+                return Some(PathBuf::from(path_str));
+            }
+        }
+    }
+    None
+}
+
+fn extract_quoted_string(s: &str) -> Option<String> {
+    for quote_char in ['"', '\''] {
+        if s.starts_with(quote_char) {
+            if let Some(end) = s[1..].find(quote_char) {
+                return Some(s[1..=end].to_string());
+            }
+        }
+    }
+    None
+}
+
+fn open_in_editor(path: &Path, follow_exec: bool) -> Result<()> {
+    let target_path = resolve_exec_target(path, follow_exec);
+    let editor = find_editor()?;
+
+    info!(editor = %editor, path = %target_path.display(), "Opening in editor");
+
+    let status = Command::new(&editor)
+        .arg(&target_path)
+        .status()
+        .into_diagnostic()
+        .with_context(|| format!("Failed to launch editor: {}", editor))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(miette!("Editor exited with error"))
+    }
+}
+
+fn resolve_exec_target(path: &Path, follow_exec: bool) -> PathBuf {
+    if !follow_exec || !path.is_file() {
+        return path.to_path_buf();
+    }
+
+    if let Ok(contents) = read_to_string(path) {
+        if let Some(exec_target) = extract_exec_target(&contents) {
+            info!(
+                wrapper = %path.display(),
+                target = %exec_target.display(),
+                "Found exec target, opening actual script"
+            );
+            return exec_target;
+        }
+    }
+
+    path.to_path_buf()
+}
+
+fn find_editor() -> Result<String> {
+    var("VISUAL")
+        .or_else(|_| var("EDITOR"))
+        .ok()
+        .or_else(find_available_editor)
+        .ok_or_else(|| {
+            miette!(
+                help = "Set $EDITOR or $VISUAL, or install an editor (hx, nvim, vim, nano, vi)",
+                "No editor found"
+            )
+        })
+}
+
+fn find_available_editor() -> Option<String> {
+    const EDITORS: &[&str] = &["hx", "helix", "nvim", "vim", "nano", "vi", "emacs", "ed"];
+
+    for editor in EDITORS {
+        if is_command_available(editor) {
+            debug!(editor = %editor, "Found available editor");
+            return Some(editor.to_string());
+        }
+    }
+
+    None
+}
+
+fn is_command_available(cmd: &str) -> bool {
+    Command::new("which")
+        .arg(cmd)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
