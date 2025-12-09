@@ -5,14 +5,28 @@
   ...
 }:
 let
-  alpha = {
-    username = "craole";
-    description = "Craig 'Craole' Cole";
-    git = {
-      name = "craole-cc";
-      email = "134658831+craole-cc@users.noreply.github.com";
+  alpha =
+    let
+      username = "craole";
+      home = "/home/${username}";
+      dots = home + "/.dots";
+      host = dots + "/Configuration/hosts/QBX";
+      description = "Craig 'Craole' Cole";
+      git = {
+        name = "craole-cc";
+        email = "134658831+craole-cc@users.noreply.github.com";
+      };
+    in
+    {
+      inherit
+        dots
+        home
+        username
+        host
+        description
+        git
+        ;
     };
-  };
 
   getGitHub =
     {
@@ -50,13 +64,15 @@ let
   hwModules = modulesPath + "/installer/scan/not-detected.nix";
   homeModules = import "${resolvedInputs.nixosHome}/nixos";
 
+  confDir = "/etc/nixos";
+  conf = confDir + "/configuration.nix";
 in
 with alpha;
 {
   nix = {
     nixPath = [
-      "nixpkgs=${inputs.nixosCore}"
-      "nixos-config=/etc/nixos/configuration.nix"
+      "nixpkgs=${resolvedInputs.nixosCore}"
+      "nixos-config=${conf}"
     ];
     settings = {
       experimental-features = [
@@ -121,7 +137,7 @@ with alpha;
     };
     extraModulePackages = [ ];
     kernelModules = [ "kvm-amd" ];
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -256,7 +272,6 @@ with alpha;
           monospace = [
             "Maple Mono NF"
             "Monaspace Radon"
-            "VictorMono Nerd Font"
           ];
           serif = [ "Noto Serif" ];
           sansSerif = [ "Noto Sans" ];
@@ -268,18 +283,64 @@ with alpha;
         packages = with pkgs; [
           maple-mono.NF
           monaspace
-          victor-mono
+          microsoft-edge
           warp-terminal
         ];
         sessionVariables = {
-          # EDITOR = "hx";
-          VISUAL = "code";
         };
       };
 
       programs = {
-        bat = {
+        bat.enable = true;
+        btop.enable = true;
+        fastfetch.enable = true;
+        foot = {
           enable = true;
+          server.enable = true;
+          settings = {
+            main = {
+              font = "monospace:size=14";
+              dpi-aware = "yes";
+              pad = "8x8"; # Padding around terminal content
+            };
+
+            mouse = {
+              hide-when-typing = "yes";
+            };
+
+            scrollback = {
+              lines = 10000;
+            };
+
+            key-bindings = {
+              # Clipboard
+              clipboard-copy = "Control+Shift+c XF86Copy";
+              clipboard-paste = "Control+Shift+v XF86Paste";
+
+              # Scrollback
+              scrollback-up-page = "Shift+Page_Up";
+              scrollback-down-page = "Shift+Page_Down";
+              scrollback-up-line = "Control+Shift+Up";
+              scrollback-down-line = "Control+Shift+Down";
+
+              # Font size
+              font-increase = "Control+plus Control+equal";
+              font-decrease = "Control+minus";
+              font-reset = "Control+0";
+
+              # Search
+              search-start = "Control+Shift+f";
+            };
+
+            colors = {
+              alpha = 0.95; # Slight transparency (1.0 = opaque)
+            };
+
+            cursor = {
+              style = "beam"; # Options: block, underline, beam
+              blink = "yes";
+            };
+          };
         };
 
         firefox = {
@@ -293,6 +354,7 @@ with alpha;
             user = { inherit (git) name email; };
             core = {
               whitespace = "trailing-space,space-before-tab";
+              safeDirectory = [ "/etc/nixos" ];
             };
             init = {
               defaultBranch = "main";
@@ -307,23 +369,49 @@ with alpha;
             };
           };
         };
+
         gitui.enable = true;
+
         gh = {
           enable = true;
         };
+
         jujutsu = {
           enable = true;
           settings.user = { inherit (git) name email; };
         };
+
         delta = {
           enable = true;
           enableGitIntegration = true;
           enableJujutsuIntegration = true;
         };
 
-        ripgrep-all.enable = true;
+        ripgrep = {
+          enable = true;
+          arguments = [
+            "--max-columns-preview"
+            "--colors=line:style:bold"
+          ];
+        };
+        ripgrep-all = {
+          enable = true;
+        };
 
-        fd.enable = true;
+        fd = {
+          enable = true;
+          extraOptions = [
+            # "--no-ignore"
+            "--absolute-path"
+          ];
+          ignores = [
+            ".git/"
+            "archives"
+            "tmp"
+            "temp"
+            "*.bak"
+          ];
+        };
 
         topgrade = {
           enable = true;
@@ -342,18 +430,295 @@ with alpha;
             };
           };
         };
+
+        mpv = {
+          enable = true;
+          defaultProfiles = [ "gpu-hq" ];
+          config = {
+            profile = "gpu-hq";
+            force-window = true;
+            ytdl-format = "bestvideo+bestaudio";
+            # cache-default = 4000000;
+          };
+        };
+
+        freetube = {
+          enable = true;
+          settings = {
+            allowDashAv1Formats = true;
+            checkForUpdates = false;
+            defaultQuality = "1080";
+            baseTheme = "catppuccinMocha";
+          };
+        };
+
         # oh-my-posh={
         #   enable=true;
         #   enableBashIntegration = true;
         #   enableNushellIntegration = true;
         # };
+
         starship = {
           enable = true;
         };
+
         helix = {
           enable = true;
-          defaultEditor = true;
+          languages.language = [
+            {
+              name = "nix";
+              language-servers = [ "nixd" ];
+              formatter.command = "nixfmt";
+              auto-format = true;
+            }
+            {
+              name = "bash";
+              indent = {
+                tab-width = 2;
+                unit = "	";
+              };
+              formatter = {
+                command = "shfmt";
+                arguments = "--posix --apply-ignore --case-indent --space-redirects --write";
+              };
+              auto-format = true;
+            }
+            {
+              name = "rust";
+              language-servers = [ "rust-analyzer" ];
+              auto-format = true;
+            }
+            {
+              name = "ruby";
+              language-servers = [
+                "rubocop"
+                "solargraph"
+              ];
+              formatter = {
+                command = "bundle";
+                args = [
+                  "exec"
+                  "stree"
+                  "format"
+                ];
+
+                #   command = "rubocop";
+                #   args = [
+                #     "--stdin"
+                #     "foo.rb"
+                #     "-a"
+                #     "--stderr"
+                #     "--fail-level"
+                #     "fatal"
+                #   ];
+                #   timeout = 3;
+              };
+              auto-format = true;
+            }
+            {
+              name = "python";
+              formatter = {
+                command = "ruff";
+                args = [
+                  # "-"
+                  # "-q"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "sql";
+              formatter = {
+                command = "sqlformat";
+                args = [
+                  "--reindent"
+                  "--indent_width"
+                  "2"
+                  "--keywords"
+                  "upper"
+                  "--identifiers"
+                  "lower"
+                  "-"
+                ];
+              };
+            }
+            {
+              name = "toml";
+              formatter = {
+                command = "taplo";
+                args = [
+                  "format"
+                  "-"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "json";
+              formatter = {
+                command = "deno";
+                args = [
+                  "fmt"
+                  "-"
+                  "--ext"
+                  "json"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "markdown";
+              formatter = {
+                command = "deno";
+                args = [
+                  "fmt"
+                  "-"
+                  "--ext"
+                  "md"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "typescript";
+              formatter = {
+                command = "deno";
+                args = [
+                  "fmt"
+                  "-"
+                  "--ext"
+                  "ts"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "tsx";
+              formatter = {
+                command = "deno";
+                args = [
+                  "fmt"
+                  "-"
+                  "--ext"
+                  "tsx"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "javascript";
+              formatter = {
+                command = "deno";
+                args = [
+                  "fmt"
+                  "-"
+                  "--ext"
+                  "js"
+                ];
+              };
+              auto-format = true;
+            }
+            {
+              name = "jsx";
+              formatter = {
+                command = "deno";
+                args = [
+                  "fmt"
+                  "-"
+                  "--ext"
+                  "jsx"
+                ];
+              };
+              auto-format = true;
+            }
+          ];
+          settings = {
+            editor = {
+              cursor-shape = {
+                normal = "block";
+                insert = "bar";
+                select = "underline";
+              };
+            };
+
+            keys = {
+              normal = {
+                space = {
+                  space = "file_picker_in_current_directory";
+                };
+                "C-]" = "indent";
+                C-s = ":write";
+                C-S-esc = "extend_line";
+                # C-S-o = ":config-open";
+                # C-S-r = ":config-reload";
+                # a = "move_char_left";
+                # w = "move_line_up";
+                A-j = [
+                  "extend_to_line_bounds"
+                  "delete_selection"
+                  "paste_after"
+                ];
+                A-k = [
+                  "extend_to_line_bounds"
+                  "delete_selection"
+                  "move_line_up"
+                  "paste_before"
+                ];
+                ret = [
+                  "open_below"
+                  "normal_mode"
+                ];
+                g.u = ":lsp-restart";
+                esc = [
+                  "collapse_selection"
+                  "keep_primary_selection"
+                ];
+                A-e = [
+                  "collapse_selection"
+                  "keep_primary_selection"
+                ];
+                A-w = [
+                  "collapse_selection"
+                  "keep_primary_selection"
+                  ":write"
+                ];
+                A-q = ":quit";
+              };
+
+              select = {
+                A-e = [
+                  "collapse_selection"
+                  "keep_primary_selection"
+                  "normal_mode"
+                ];
+                A-w = [
+                  "collapse_selection"
+                  "keep_primary_selection"
+                  "normal_mode"
+                  ":write"
+                ];
+                A-q = [
+                  "normal_mode"
+                  ":quit"
+                ];
+              };
+
+              insert = {
+                A-space = "normal_mode";
+                A-e = "normal_mode";
+                A-w = [
+                  "normal_mode"
+                  ":write"
+                ];
+                A-q = [
+                  "normal_mode"
+                  ":quit"
+                ];
+              };
+            };
+          };
         };
+
         vscode = {
           enable = true;
           package = pkgs.vscode-fhs;
@@ -363,26 +728,9 @@ with alpha;
   };
 
   environment = {
-    systemPackages = with pkgs; [
-      helix
-      nil
-      nixd
-      nixfmt
-      alejandra
-      direnv
-      rust-script
-      gcc
-      ripgrep
-      toybox
-      mesa-demos
-    ];
-    # pathsToLink = [
-    #   "/share/xdg-desktop-portal"
-    #   "/share/applications"
-    # ];
     sessionVariables = {
-      # EDITOR = "hx";
-      # VISUAL = "code";
+      EDITOR = "hx";
+      VISUAL = "code";
 
       #? For Clutter/GTK apps
       CLUTTER_BACKEND = "wayland";
@@ -420,5 +768,72 @@ with alpha;
       #? Indicate Wayland session to apps
       XDG_SESSION_TYPE = "wayland";
     };
+
+    shellAliases = {
+      sx = "sudo hx --config \"${home}/.config/helix/config.toml\"";
+      nxup = "switch; topgrade";
+    };
+
+    systemPackages = with pkgs; [
+      helix
+      nil
+      nixd
+      nixfmt
+      alejandra
+      direnv
+      rust-script
+      gcc
+      ripgrep
+      toybox
+      lsd
+      mesa-demos
+
+      (pkgs.writeShellScriptBin "nx" ''
+        set -e
+
+        USER_CONFIG="${home}/.config/helix"
+        ROOT_TEMP="/tmp/root-helix-$(date +%s)"
+
+        # Copy complete config (languages.toml + config.toml + runtime)
+        printf "📝 Copying Helix config to root...\n"
+        sudo mkdir -p "$ROOT_TEMP"
+        sudo cp -r "$USER_CONFIG"/* "$ROOT_TEMP/"
+
+        # Launch hx with root's temp config
+        printf "✨ Launching sudo hx...\n"
+        sudo hx --config "$ROOT_TEMP/config.toml" /etc/nixos/configuration.nix
+
+        # Cleanup
+        sudo rm -rf "$ROOT_TEMP"
+        printf "🧹 Cleaned up temp config\n"
+      '')
+
+      (pkgs.writeShellScriptBin "switch" ''
+        set -e
+
+        sudo gitui --directory ${confDir}
+
+        printf "🔍 Dry-run + trace...\n"
+        if sudo nixos-rebuild dry-run --show-trace; then
+          printf "✅ Dry-run passed! Switching...\n"
+          sudo nixos-rebuild switch
+          printf "🎉 Switch complete + auto-backup triggered\n"
+        else
+          printf "❌ Dry-run failed - aborting\n"
+          exit 1
+        fi
+      '')
+    ];
   };
+
+  system.activationScripts.postActivation.text = ''
+    # Backup configs after successful activation
+    CORE_CFG="/etc/nixos"
+    HOST_CFG="/home/craole/.dots/Configuration/hosts/QBX"
+    mkdir -p "$HOST_CFG"
+    cp -v "$CORE_CFG/configuration.nix" "$HOST_CFG/"
+    cp -v "$CORE_CFG/flake.nix" "$HOST_CFG/" 2>/dev/null || true
+    cp -v "$CORE_CFG/flake.lock" "$HOST_CFG/" 2>/dev/null || true
+    printf "✓ NixOS config backed up → %s" "$HOST_CFG"
+  '';
 }
