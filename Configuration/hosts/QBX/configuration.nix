@@ -191,7 +191,9 @@ with alpha;
     desktopManager.plasma6.enable = true;
 
     openssh.enable = true;
-
+    # fancontrol = {
+    #   enable = true;
+    # };
     pipewire = {
       enable = true;
       alsa.enable = true;
@@ -231,7 +233,39 @@ with alpha;
     };
   };
 
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      maple-mono.NF
+      monaspace
+    ];
+    fontconfig = {
+      enable = true;
+      hinting = {
+        enable = true;
+        style = "full";
+      };
+      antialias = true;
+      subpixel.rgba = "rgb";
+      defaultFonts = {
+        emoji = [ "Noto Color Emoji" ];
+        monospace = [
+          "Maple Mono NF"
+          "Monaspace Radon"
+        ];
+        serif = [ "Noto Serif" ];
+        sansSerif = [ "Noto Sans" ];
+      };
+    };
+  };
+
   programs = {
+    git = {
+      enable = true;
+      lfs.enable = true;
+      prompt.enable = true;
+    };
+
     gnupg.agent = {
       enable = true;
       enableSSHSupport = true;
@@ -262,32 +296,12 @@ with alpha;
     # extraSpecialArgs = {};
     # sharedModules = [];
     users."${username}" = {
-      fonts.fontconfig = {
-        enable = true;
-        hinting = "slight";
-        antialiasing = true;
-        subpixelRendering = "rgb";
-        defaultFonts = {
-          emoji = [ "Noto Color Emoji" ];
-          monospace = [
-            "Maple Mono NF"
-            "Monaspace Radon"
-          ];
-          serif = [ "Noto Serif" ];
-          sansSerif = [ "Noto Sans" ];
-        };
-      };
-
       home = {
         inherit stateVersion;
         packages = with pkgs; [
-          maple-mono.NF
-          monaspace
           microsoft-edge
           warp-terminal
         ];
-        sessionVariables = {
-        };
       };
 
       programs = {
@@ -333,11 +347,11 @@ with alpha;
             };
 
             colors = {
-              alpha = 0.95; # Slight transparency (1.0 = opaque)
+              alpha = 0.97;
             };
 
             cursor = {
-              style = "beam"; # Options: block, underline, beam
+              style = "beam";
               blink = "yes";
             };
           };
@@ -431,6 +445,28 @@ with alpha;
           };
         };
 
+        cargo = {
+          enable = true;
+          settings = { };
+        };
+        bacon = {
+          enable = true;
+          settings = {
+            jobs = {
+              default = {
+                command = [
+                  "cargo"
+                  "build"
+                  "--all-features"
+                  "--color"
+                  "always"
+                ];
+                need_stdout = true;
+              };
+            };
+          };
+        };
+
         mpv = {
           enable = true;
           defaultProfiles = [ "gpu-hq" ];
@@ -486,33 +522,6 @@ with alpha;
             {
               name = "rust";
               language-servers = [ "rust-analyzer" ];
-              auto-format = true;
-            }
-            {
-              name = "ruby";
-              language-servers = [
-                "rubocop"
-                "solargraph"
-              ];
-              formatter = {
-                command = "bundle";
-                args = [
-                  "exec"
-                  "stree"
-                  "format"
-                ];
-
-                #   command = "rubocop";
-                #   args = [
-                #     "--stdin"
-                #     "foo.rb"
-                #     "-a"
-                #     "--stderr"
-                #     "--fail-level"
-                #     "fatal"
-                #   ];
-                #   timeout = 3;
-              };
               auto-format = true;
             }
             {
@@ -772,6 +781,9 @@ with alpha;
     shellAliases = {
       sx = "sudo hx --config \"${home}/.config/helix/config.toml\"";
       nxup = "switch; topgrade";
+      ll = "lsd --long --git --almost-all";
+      lt = "lsd --tree";
+      lr = "lsd --long --git --recursive";
     };
 
     systemPackages = with pkgs; [
@@ -782,8 +794,14 @@ with alpha;
       alejandra
       direnv
       rust-script
+      rustup
+      rustfmt
+      rust-motd
+      rusty-bash
       gcc
+      gitui
       ripgrep
+      lm_sensors
       toybox
       lsd
       mesa-demos
@@ -792,20 +810,21 @@ with alpha;
         set -e
 
         USER_CONFIG="${home}/.config/helix"
-        ROOT_TEMP="/tmp/root-helix-$(date +%s)"
+        # ROOT_TEMP="/tmp/root-helix-$(date +%s)"
 
-        # Copy complete config (languages.toml + config.toml + runtime)
-        printf "📝 Copying Helix config to root...\n"
-        sudo mkdir -p "$ROOT_TEMP"
-        sudo cp -r "$USER_CONFIG"/* "$ROOT_TEMP/"
+        #> Copy complete config (languages.toml + config.toml + runtime)
+        # printf "📝 Copying Helix config to root...\n"
+        # sudo mkdir -p "$ROOT_TEMP"
+        # sudo cp -r "$USER_CONFIG"/* "$ROOT_TEMP/"
 
-        # Launch hx with root's temp config
+        #> Launch hx with root's temp config
         printf "✨ Launching sudo hx...\n"
-        sudo hx --config "$ROOT_TEMP/config.toml" /etc/nixos/configuration.nix
+        # sudo hx --config "$ROOT_TEMP/config.toml" /etc/nixos/configuration.nix
+        sudo hx --config "$USER_CONFIG/config.toml" confDir
 
-        # Cleanup
-        sudo rm -rf "$ROOT_TEMP"
-        printf "🧹 Cleaned up temp config\n"
+        #> Cleanup
+        # sudo rm -rf "$ROOT_TEMP"/
+        # printf "🧹 Cleaned up temp config\n"
       '')
 
       (pkgs.writeShellScriptBin "switch" ''

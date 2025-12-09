@@ -11,17 +11,14 @@
     };
   };
 
-  outputs =
-    inputs@{ self, ... }:
-    with inputs;
-    let
-      args = { inherit self inputs; };
-    in
-    {
+  outputs = inputs @ {self, ...}:
+    with inputs; let
+      args = {inherit self inputs;};
+    in {
       nixosConfigurations.qbx = nixosCore.lib.nixosSystem {
         specialArgs = args;
         system = "x86_64-linux";
-        modules = [ ./configuration.nix ];
+        modules = [./configuration.nix];
       };
     };
 }
