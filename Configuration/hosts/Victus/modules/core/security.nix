@@ -70,7 +70,7 @@ in
     execWheelOnly = true;
 
     # For each admin user, grant passwordless sudo for all commands.
-    # This is in addition to the default root and wheel rules from the NixOS sudo module. [web:20][web:22]
+    # This is in addition to the default root and wheel rules from the NixOS sudo module.
     extraRules = mapAttrsToList (name: _: mkAdmin name) adminsUsers;
   };
 }
