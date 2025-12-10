@@ -1,24 +1,32 @@
 {
   description = "NixOS configuration for QBX";
 
+  outputs =
+    inputs@{ self, ... }:
+    with inputs;
+    let
+      args = {
+        inherit self inputs;
+        system = "x86_64-linux";
+      };
+    in
+    {
+      nixosConfigurations.qbx = nixosCore.lib.nixosSystem {
+        inherit (args) system;
+        specialArgs = args;
+        modules = [ ./configuration.nix ];
+      };
+    };
+
   inputs = {
     nixosCore.url = "nixpkgs/nixos-unstable";
     nixosHome = {
-      repo = "home-manager";
-      owner = "nix-community";
-      type = "github";
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixosCore";
+    };
+    firefoxZen = {
+      url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixosCore";
     };
   };
-
-  outputs = inputs @ {self, ...}:
-    with inputs; let
-      args = {inherit self inputs;};
-    in {
-      nixosConfigurations.qbx = nixosCore.lib.nixosSystem {
-        specialArgs = args;
-        system = "x86_64-linux";
-        modules = [./configuration.nix];
-      };
-    };
 }
