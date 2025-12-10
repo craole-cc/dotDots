@@ -355,6 +355,7 @@ in {
         stateVersion = host.version;
         packages = with pkgs; [
           microsoft-edge
+          qbittorrent-enhanced
           warp-terminal
         ];
       };
