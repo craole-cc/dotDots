@@ -7,12 +7,10 @@ let
   os = "linux";
 in {
   stateVersion = "25.11";
+
   paths = {
-    inherit base;
-    # binaries = {
-    #   relative = base.relative + bin;
-    #   absolute = base.absolute + bin;
-    # };
+    # base = "/home/craole/Configuration/${name}";
+    dots = "/home/craole/.dots";
   };
 
   packages = {

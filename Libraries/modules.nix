@@ -1,6 +1,12 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) isAttrs isDerivation mapAttrs;
   inherit (lib.modules) mkDefault;
+  inherit (_.filesystem.importers) importAttrset;
+
   /**
   Recursively applies `mkDefault` to all values in an attribute set.
 
@@ -24,10 +30,10 @@
   => { enable = mkDefault true; port = mkDefault 8080; }
   Nested attrsets
   recursiveUpdate {
-  services.nginx = {
-  enable = true;
-  virtualHosts.foo = { enable = false; };
-  };
+    services.nginx = {
+    enable = true;
+    virtualHosts.foo = { enable = false; };
+    };
   }
 
   => Nested mkDefault wrapping
@@ -50,4 +56,52 @@
     else if isAttrs value && !isDerivation value
     then mapAttrs (_: recursiveUpdate) value
     else mkDefault value;
-in {inherit recursiveUpdate;}
+
+  # Modified recursiveUpdate that handles module options properly
+  recursiveUpdateDeep = prev: next:
+    if prev._type or null != null
+    then prev # Don't modify special types
+    else if next._type or null != null
+    then next # Special type overrides
+    else if prev ? _module && next ? _module
+    then prev // next # Module options, merge directly
+    else if lib.isAttrs prev && lib.isAttrs next && !lib.isDerivation prev && !lib.isDerivation next
+    then lib.recursiveUpdate prev next # Use lib's recursiveUpdate for nested attrsets
+    else next;
+
+  # Generator for host configurations
+  generateHost = name: config: let
+    baseConfig = {
+      stateVersion = "25.11";
+
+      paths = {
+        dots = mkDefault "/home/craole/.dots";
+      };
+
+      # ... other base configurations from your example
+      specs = {
+        platform = "${config.arch or "x86_64"}-${config.os or "linux"}";
+        machine = config.machine or "laptop";
+      };
+
+      # ... rest of your base configuration
+    };
+
+    # Merge base with host-specific config, handling special cases
+    merged = recursiveUpdateDeep baseConfig config;
+  in
+    merged;
+
+  # Import and generate all hosts
+  importHosts = dir: let
+    hosts = importAttrset dir;
+  in
+    mapAttrs generateHost hosts;
+in {
+  inherit
+    importHosts
+    generateHost
+    recursiveUpdate
+    recursiveUpdateDeep
+    ;
+}

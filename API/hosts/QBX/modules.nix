@@ -42,16 +42,76 @@
         rev = "e7f4849710fe306852551f4ec34c6fc648896c22";
       };
     };
-in {
+
+  # ==================== USER CONFIG ====================
+  user = {
+    name = "craole";
+    description = "Craig 'Craole' Cole";
+
+    git = {
+      name = "craole-cc";
+      email = "134658831+craole-cc@users.noreply.github.com";
+    };
+
+    paths = let
+      home = "/home/${user.name}";
+    in {
+      inherit home;
+      downloads = home + "/Downloads";
+    };
+
+    imports = with sources; [
+      firefoxZen.homeModules.twilight
+    ];
+  };
+
+  # ==================== PATH CONFIG ====================
+  paths = let
+    dots = "/home/${user.name}/.dots";
+  in {
+    inherit dots;
+    base = dots + "/Configuration/hosts/QBX";
+    orig = "/etc/nixos";
+  };
+
+  # ==================== SYSTEM CONFIG ====================
+  host = {
+    name = "QBX";
+    version = "25.11";
+    platform = "x86_64-linux";
+  };
+
+  # ==================== ENVIRONMENT ====================
+  env = {
+    variables = with paths; {
+      NIXOS_ORIG = orig;
+      NIXOS_BASE = base;
+      DOTS = dots;
+      EDITOR = "hx";
+      VISUAL = "code";
+    };
+
+    aliases = {
+      se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
+      nxe = "$EDITOR ${paths.base}";
+      nxv = "$VISUAL ${paths.base}";
+      nxs = "switch";
+      nxu = "switch; topgrade";
+      ll = "lsd --long --git --almost-all";
+      lt = "lsd --tree";
+      lr = "lsd --long --git --recursive";
+    };
+  };
+
   # ==================== IMPORTS ====================
   imports = with sources; [
     (modulesPath + "/installer/scan/not-detected.nix")
     (import "${nixosHome}/nixos")
   ];
 
-  #  imports = with sources; [
-  #     firefoxZen.homeModules.twilight
-  #   ];
+  inherit (lib.attrsets) listToAttrs;
+in {
+  inherit imports;
 
   # ==================== HARDWARE CONFIGURATION ====================
   hardware = {
