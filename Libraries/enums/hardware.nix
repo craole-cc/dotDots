@@ -1,4 +1,6 @@
-{mkVal, ...}: {
+{_, ...}: let
+  mkVal = _.lists.makeCaseInsensitiveListValidator;
+in {
   /**
   Host functionalities - hardware and firmware capabilities.
 

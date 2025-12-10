@@ -269,7 +269,7 @@
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
     // {
       inherit extend lib;
-      # std = lib;
+      std = lib;
     };
 in {
   ${name} = finalLib;

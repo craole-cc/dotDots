@@ -293,8 +293,8 @@ in {
     fontconfig = {
       enable = true;
       hinting = {
-        enable = false;
-        style = "slight";
+        enable = true;
+        style = "full";
       };
       antialias = true;
       subpixel.rgba = "rgb";

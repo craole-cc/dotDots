@@ -1,4 +1,6 @@
-{mkVal, ...}: {
+{_, ...}: let
+  mkVal = _.lists.makeCaseInsensitiveListValidator;
+in {
   /**
   Shells - command-line shell options.
 

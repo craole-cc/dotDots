@@ -1,4 +1,6 @@
-{mkVal, ...}: {
+{_, ...}: let
+  mkVal = _.lists.makeCaseInsensitiveListValidator;
+in {
   /**
   Desktop environments - complete desktop solutions.
 

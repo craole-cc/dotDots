@@ -111,7 +111,7 @@
 
   # Examples
   ```nix
-  validator = mkPredicateValidator (name: lib.hasPrefix "user_" name);
+  validator = mkPredicateValidator (name: lib.strings.hasPrefix "user_" name);
   validator.check { name = "user_alice"; }  # => true
   validator.check { name = "admin_bob"; }   # => false
   ```
@@ -127,4 +127,13 @@ in {
     mkDenylistValidator
     mkPredicateValidator
     ;
+
+  _rootAliases = {
+    inherit
+      mkListValidator
+      mkCaseInsensitiveListValidator
+      mkDenylistValidator
+      mkPredicateValidator
+      ;
+  };
 }

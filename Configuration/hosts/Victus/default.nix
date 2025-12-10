@@ -1,5 +1,5 @@
 {lib ? import <nixpkgs/lib>, ...}: let
-  libraries = import ./Libraries/nix {
+  libraries = import ./libraries {
     inherit lib;
     name = "lix";
   };
