@@ -1,20 +1,17 @@
 {
   description = "NixOS configuration for QBX";
 
-  outputs =
-    inputs@{ self, ... }:
-    with inputs;
-    let
+  outputs = inputs @ {self, ...}:
+    with inputs; let
       args = {
         inherit self inputs;
         system = "x86_64-linux";
       };
-    in
-    {
-      nixosConfigurations.qbx = nixosCore.lib.nixosSystem {
+    in {
+      nixosConfigurations.QBX = nixosCore.lib.nixosSystem {
         inherit (args) system;
         specialArgs = args;
-        modules = [ ./configuration.nix ];
+        modules = [./configuration.nix];
       };
     };
 
