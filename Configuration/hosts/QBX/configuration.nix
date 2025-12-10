@@ -115,12 +115,12 @@ in {
 
   # ==================== HARDWARE CONFIGURATION ====================
   hardware = {
-    #| CPU
+    #~@ CPU
     cpu.amd.updateMicrocode = true;
     enableAllFirmware = true;
     amdgpu.initrd.enable = true;
 
-    #| GPU
+    #~@ GPU
     nvidia = {
       modesetting.enable = true;
       powerManagement.enable = true;
@@ -135,7 +135,7 @@ in {
     };
     graphics.enable = true;
 
-    #| Bluetooth
+    #~@ Bluetooth
     bluetooth = {
       enable = true;
       settings.General = {
@@ -145,7 +145,7 @@ in {
     };
   };
 
-  #| Boot configuration
+  #~@ Boot configuration
   boot = {
     initrd = {
       availableKernelModules = [
@@ -168,7 +168,7 @@ in {
     };
   };
 
-  #| Filesystems
+  #~@ Filesystems
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
@@ -186,7 +186,7 @@ in {
   };
 
   # ==================== SYSTEM CONFIGURATION ====================
-  #| Nix Configuration
+  #~@ Nix Configuration
   nix = {
     nixPath = [
       "nixpkgs=${sources.nixosCore}"
@@ -205,13 +205,13 @@ in {
     config.allowUnfree = true;
   };
 
-  #| Networking
+  #~@ Networking
   networking = {
     hostName = host.name;
     networkmanager.enable = true;
   };
 
-  #| Localization
+  #~@ Localization
   location = {
     longitude = "18.015";
     latitude = "77.49";
@@ -227,7 +227,7 @@ in {
     defaultLocale = "en_US.UTF-8";
   };
 
-  #| System
+  #~@ System
   system = {
     stateVersion = host.version;
     copySystemConfiguration = inputs == null;
@@ -235,14 +235,14 @@ in {
 
   # ==================== SERVICES ====================
   services = {
-    #| Display
+    #~@ Display
     displayManager.sddm.enable = true;
     desktopManager.plasma6.enable = true;
 
-    #| Network
+    #~@ Network
     openssh.enable = true;
 
-    #| Audio
+    #~@ Audio
     pipewire = {
       enable = true;
       alsa.enable = true;
@@ -253,7 +253,7 @@ in {
     };
     pulseaudio.enable = false;
 
-    #| Other services
+    #~@ Other services
     printing.enable = true;
     qbittorrent = {
       enable = true;
@@ -360,13 +360,13 @@ in {
         ];
       };
 
-      #| User programs configuration
+      #~@ User programs configuration
       programs = {
         bat.enable = true;
         btop.enable = true;
         fastfetch.enable = true;
 
-        #| Terminal
+        #~@ Terminal
         foot = {
           enable = true;
           server.enable = true;
@@ -398,7 +398,7 @@ in {
           };
         };
 
-        #| Browser
+        #~@ Browser
         zen-browser = {
           enable = true;
           profiles.default = {
@@ -717,7 +717,7 @@ in {
           };
         };
 
-        #| Version control
+        #~@ Version control
         git = {
           enable = true;
           lfs.enable = true;
@@ -745,7 +745,7 @@ in {
           enableJujutsuIntegration = true;
         };
 
-        #| Search tools
+        #~@ Search tools
         ripgrep = {
           enable = true;
           arguments = [
@@ -762,7 +762,7 @@ in {
           ignores = [".git/" "archives" "tmp" "temp" "*.bak"];
         };
 
-        #| System maintenance
+        #~@ System maintenance
         topgrade = {
           enable = true;
           settings = {
@@ -778,7 +778,7 @@ in {
           };
         };
 
-        #| Media Utilities
+        #~@ Media Utilities
         mpv = {
           enable = true;
           defaultProfiles = ["gpu-hq"];
@@ -799,10 +799,10 @@ in {
           };
         };
 
-        #| Shell enhancements
+        #~@ Shell enhancements
         starship.enable = true;
 
-        #| Editor
+        #~@ Editor
         helix = {
           enable = true;
           languages.language = [
@@ -982,7 +982,7 @@ in {
     sessionVariables =
       env.variables
       // {
-        #| Wayland configuration
+        #~@ Wayland configuration
         #? For Clutter/GTK apps
         CLUTTER_BACKEND = "wayland";
 
@@ -1021,7 +1021,7 @@ in {
       };
 
     systemPackages = with pkgs; [
-      # Development
+      #~@ Development
       helix
       nil
       nixd
@@ -1031,7 +1031,7 @@ in {
       rustfmt
       gcc
 
-      # Tools
+      #~@ Tools
       gitui
       lm_sensors
       toybox
@@ -1039,7 +1039,7 @@ in {
       mesa-demos
       cowsay
 
-      # Custom script
+      #~@ Custom script
       (pkgs.writeShellScriptBin "switch" ''
         set -euo pipefail
 
