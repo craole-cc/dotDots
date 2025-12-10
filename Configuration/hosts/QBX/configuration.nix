@@ -554,7 +554,7 @@ in {
                       ];
                     }
                   ];
-                  definedAliases = ["@p"];
+                  definedAliases = ["@p" "pp"];
                 };
                 wikipedia = {
                   name = "Wiktionary";
