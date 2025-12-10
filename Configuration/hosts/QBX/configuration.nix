@@ -29,10 +29,10 @@
       };
 
       nixosHome = getGitHub {
-        narHash = "sha256-BVVyAodLcAD8KOtR3yCStBHSE0WAH/xQWH9f0qsxbmk=";
+        narHash = "sha256-RYHN8O/Aja59XDji6WSJZPkJpYVUfpSkyH+PEupBJqM=";
         owner = "nix-community";
         repo = "home-manager";
-        rev = "e5b1f87841810fc24772bf4389f9793702000c9b";
+        rev = "827f2a23373a774a8805f84ca5344654c31f354b";
       };
 
       firefoxZen = {
@@ -53,12 +53,16 @@
       email = "134658831+craole-cc@users.noreply.github.com";
     };
 
-    paths = rec {
+    paths = let
       home = "/home/${user.name}";
+    in {
+      inherit home;
       downloads = home + "/Downloads";
     };
 
-    imports = with sources; [firefoxZen.homeModules.twilight];
+    imports = with sources; [
+      firefoxZen.homeModules.twilight
+    ];
   };
 
   # ==================== PATH CONFIG ====================
@@ -207,7 +211,7 @@ in {
     networkmanager.enable = true;
   };
 
-  #| Location and Time
+  #| Localization
   location = {
     longitude = "18.015";
     latitude = "77.49";
@@ -219,7 +223,6 @@ in {
     hardwareClockInLocalTime = true;
   };
 
-  #| Internationalization
   i18n = {
     defaultLocale = "en_US.UTF-8";
   };
@@ -337,10 +340,7 @@ in {
   users.users."${user.name}" = {
     inherit (user) description;
     isNormalUser = true;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-    ];
+    extraGroups = ["networkmanager" "wheel"];
   };
 
   # ==================== HOME MANAGER ====================
