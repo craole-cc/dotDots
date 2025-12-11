@@ -122,8 +122,12 @@ in {
 
     #~@ GPU
     nvidia = {
+      forceFullCompositionPipeline = true;
       modesetting.enable = true;
-      powerManagement.enable = true;
+      powerManagement = {
+        enable = true;
+        finegrained = true;
+      };
       prime = {
         offload = {
           enable = true;
@@ -160,12 +164,24 @@ in {
     };
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
-    kernelPackages = pkgs.linuxPackages_latest;
+    # kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
       timeout = 1;
     };
+
+    kernelParams = [
+      # For NVIDIA
+      "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+      "nvidia.NVreg_EnableS0ixPowerManagement=1"
+      "nvidia.NVreg_TemporaryFilePath=/var/tmp"
+      "nvidia_drm.modeset=1"
+
+      # General stability
+      "nowatchdog"
+      "mitigations=off"
+    ];
   };
 
   #~@ Filesystems
@@ -236,8 +252,12 @@ in {
   # ==================== SERVICES ====================
   services = {
     #~@ Display
-    displayManager.sddm.enable = true;
+    displayManager.sddm = {
+      enable = true;
+      wayland.enable = true;
+    };
     desktopManager.plasma6.enable = true;
+    # xserver.enable = true; # TODO: Wayland is not working out, especial with Nvidia
 
     #~@ Network
     openssh.enable = true;
@@ -982,6 +1002,13 @@ in {
     sessionVariables =
       env.variables
       // {
+        # Add these for KWin stability
+        KWIN_DRM_NO_AMS = "1"; # Disable atomic mode setting if problematic
+        KWIN_DRM_USE_EGL_STREAMS = "1"; # For NVIDIA
+        __GL_GSYNC_ALLOWED = "0";
+        __GL_VRR_ALLOWED = "0";
+      }
+      // {
         #~@ Wayland configuration
         #? For Clutter/GTK apps
         CLUTTER_BACKEND = "wayland";
@@ -1018,7 +1045,14 @@ in {
 
         #? Indicate Wayland session to apps
         XDG_SESSION_TYPE = "wayland";
-      };
+      }
+      # // {
+      #   # Override the Wayland variables with X11
+      #   QT_QPA_PLATFORM = "xcb";
+      #   SDL_VIDEODRIVER = "x11";
+      #   XDG_SESSION_TYPE = "x11";
+      # }
+      // {};
 
     systemPackages = with pkgs; [
       #~@ Development

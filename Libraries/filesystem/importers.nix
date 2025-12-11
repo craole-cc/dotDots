@@ -1,7 +1,4 @@
 {lib, ...}: let
-  # ========================
-  # IMPORTS
-  # ========================
   inherit
     (lib.attrsets)
     attrValues
