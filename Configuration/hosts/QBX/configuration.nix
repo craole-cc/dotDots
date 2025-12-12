@@ -125,7 +125,7 @@ in {
     graphics.enable = true;
     nvidia = {
       open = false;
-      package = config.boot.kernelPackages.nvidiaPackages.production;
+      package = config.boot.kernelPackages.nvidiaPackages.stable;
       #   forceFullCompositionPipeline = true;
       #   modesetting.enable = true;
       #   #   powerManagement = {
