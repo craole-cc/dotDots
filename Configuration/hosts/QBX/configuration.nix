@@ -1164,10 +1164,10 @@ in {
       '')
     ];
 
-    plasma6.excludePackages = pkgs.kdePackages [
-      "konsole"
-      "kwrite"
-      "kate"
+    plasma6.excludePackages = with pkgs.kdePackages; [
+      konsole
+      kwrite
+      kate
     ];
   };
 
