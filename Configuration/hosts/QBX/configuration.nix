@@ -1,5 +1,6 @@
 {
   inputs ? null,
+  config,
   pkgs,
   modulesPath,
   lib,
@@ -121,7 +122,10 @@ in {
     # amdgpu.initrd.enable = true;
 
     #~@ GPU
+    graphics.enable = true;
     nvidia = {
+      open = true;
+      package = config.boot.kernelPackages.nvidiaPackages.production;
       #   forceFullCompositionPipeline = true;
       #   modesetting.enable = true;
       #   powerManagement = {
@@ -134,11 +138,10 @@ in {
       #   enable = true;
       #   enableOffloadCmd = true;
       # };
-      # amdgpuBusId = "PCI:12:0:0";
-      # nvidiaBusId = "PCI:1:0:0";
+      #  amdgpuBusId = "PCI:54:0:0";
+      # nvidiaBusId = "PCI:14:0:0";
       # };
     };
-    graphics.enable = true;
 
     #~@ Bluetooth
     bluetooth = {
@@ -170,7 +173,7 @@ in {
     };
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
-    kernelPackages = pkgs.linuxPackages_latest;
+    # kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -270,6 +273,8 @@ in {
     };
     desktopManager.plasma6.enable = true;
     # xserver.enable = true; # TODO: Wayland is not working out, especial with Nvidia
+    # Load nvidia driver for Xorg and Wayland
+    xserver.videoDrivers = ["nvidia"];
 
     #~@ Network
     openssh.enable = true;
