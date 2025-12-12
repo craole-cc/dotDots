@@ -416,7 +416,7 @@ in {
           ++ [
             gImageReader
           ]
-          ++ (with kdePackages; [
+          ++ (with pkgs.kdePackages; [
             krohnkite
             karp
             qxlsx
