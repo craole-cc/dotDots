@@ -125,7 +125,7 @@ in {
       forceFullCompositionPipeline = true;
       modesetting.enable = true;
       powerManagement = {
-        enable = true;
+        enable = false;
         finegrained = true;
       };
       prime = {
@@ -160,11 +160,16 @@ in {
         "usb_storage"
         "sd_mod"
       ];
-      kernelModules = [];
+      kernelModules = [
+        "nvidia"
+        "nvidia_modeset"
+        "nvidia_uvm"
+        "nvidia_drm"
+      ];
     };
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -178,10 +183,16 @@ in {
       "nvidia.NVreg_TemporaryFilePath=/var/tmp"
       "nvidia_drm.modeset=1"
 
+      # Blacklist nouveau
+      "rd.driver.blacklist=nouveau"
+      "modprobe.blacklist=nouveau"
+
       # General stability
       "nowatchdog"
       "mitigations=off"
     ];
+
+    blacklistedKernelModules = ["nouveau"];
   };
 
   #~@ Filesystems
@@ -1069,6 +1080,7 @@ in {
       gitui
       lm_sensors
       toybox
+      lshw
       lsd
       mesa-demos
       cowsay
