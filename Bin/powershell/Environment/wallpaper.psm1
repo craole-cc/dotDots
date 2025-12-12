@@ -223,7 +223,7 @@ function Register-Wallpaper {
   }
   # Use detected wallpaper, or fall back to color-aware wallpaper
   $finalWallpaper = if ($wallpaper) { $wallpaper } else { $dotsWallpaper }
-  Write-Host "Wallperer: $($finalWallpaper) $($wallpaper) $($dotsWallpaper)"
+  Write-Pretty -NoNewLine -Tag 'Debug' "Wallpaper already loaded: $($finalWallpaper)"
   if ($finalWallpaper) {
     Set-UserEnvIfChanged -Name 'WALLPAPER' -Value $finalWallpaper
     Update-WallpaperReference
