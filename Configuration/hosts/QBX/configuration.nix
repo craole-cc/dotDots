@@ -133,11 +133,11 @@ in {
         finegrained = true;
       };
       prime = {
-        sync.enable = true;
-        # offload = {
-        #   enable = true;
-        #   enableOffloadCmd = true;
-        # };
+        # sync.enable = true;
+        offload = {
+          enable = true;
+          enableOffloadCmd = true;
+        };
         amdgpuBusId = "PCI:54:0:0";
         nvidiaBusId = "PCI:14:0:0";
       };
