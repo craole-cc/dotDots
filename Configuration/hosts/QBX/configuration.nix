@@ -283,7 +283,8 @@ in {
     };
     desktopManager.plasma6 = {
       enable = true;
-      excludedPackages = pkgs.kdePackages [
+      excludedPackages = [
+        # excludedPackages = pkgs.kdePackages [
         "konsole"
         "kwrite"
         "kate"
