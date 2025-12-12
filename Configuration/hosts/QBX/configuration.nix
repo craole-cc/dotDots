@@ -119,15 +119,15 @@ in {
     #~@ CPU
     cpu.amd.updateMicrocode = true;
     enableAllFirmware = true;
-    # amdgpu.initrd.enable = true;
+    amdgpu.initrd.enable = true;
 
     #~@ GPU
     graphics.enable = true;
     nvidia = {
       open = true;
-      package = config.boot.kernelPackages.nvidiaPackages.production;
-      #   forceFullCompositionPipeline = true;
-      #   modesetting.enable = true;
+      package = config.boot.kernelPackages.nvidiaPackages.stable;
+      forceFullCompositionPipeline = true;
+      modesetting.enable = true;
       #   powerManagement = {
       #     enable = false;
       #     finegrained = true;
