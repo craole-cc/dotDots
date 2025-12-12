@@ -118,16 +118,16 @@ in {
     #~@ CPU
     cpu.amd.updateMicrocode = true;
     enableAllFirmware = true;
-    amdgpu.initrd.enable = true;
+    # amdgpu.initrd.enable = true;
 
     #~@ GPU
     nvidia = {
-      forceFullCompositionPipeline = true;
-      modesetting.enable = true;
-      powerManagement = {
-        enable = false;
-        finegrained = true;
-      };
+      #   forceFullCompositionPipeline = true;
+      #   modesetting.enable = true;
+      #   powerManagement = {
+      #     enable = false;
+      #     finegrained = true;
+      #   };
       # prime = {
       # sync.enable = true;
       # offload = {
