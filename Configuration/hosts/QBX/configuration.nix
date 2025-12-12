@@ -129,12 +129,13 @@ in {
         finegrained = true;
       };
       prime = {
-        offload = {
-          enable = true;
-          enableOffloadCmd = true;
-        };
-        amdgpuBusId = "PCI:12:0:0";
-        nvidiaBusId = "PCI:1:0:0";
+        sync.enable = true;
+        # offload = {
+        #   enable = true;
+        #   enableOffloadCmd = true;
+        # };
+        # amdgpuBusId = "PCI:12:0:0";
+        # nvidiaBusId = "PCI:1:0:0";
       };
     };
     graphics.enable = true;
@@ -387,6 +388,7 @@ in {
         packages = with pkgs; [
           microsoft-edge
           qbittorrent-enhanced
+          inkscape
           warp-terminal
         ];
       };
