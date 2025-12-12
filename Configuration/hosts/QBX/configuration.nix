@@ -119,7 +119,7 @@ in {
     #~@ CPU
     cpu.amd.updateMicrocode = true;
     enableAllFirmware = true;
-    # amdgpu.initrd.enable = true;
+    amdgpu.initrd.enable = true;
 
     #~@ GPU
     graphics.enable = true;
@@ -130,17 +130,18 @@ in {
       modesetting.enable = true;
       powerManagement = {
         enable = false;
-        finegrained = true;
+        # finegrained = true;
       };
-      prime = {
-        # sync.enable = true;
-        offload = {
-          enable = true;
-          enableOffloadCmd = true;
-        };
-        amdgpuBusId = "PCI:54:0:0";
-        nvidiaBusId = "PCI:14:0:0";
-      };
+      nvidiaSettings = true;
+      # prime = {
+      #   # sync.enable = true;
+      #   offload = {
+      #     enable = true;
+      #     enableOffloadCmd = true;
+      #   };
+      #   amdgpuBusId = "PCI:54:0:0";
+      #   nvidiaBusId = "PCI:14:0:0";
+      # };
     };
 
     #~@ Bluetooth
