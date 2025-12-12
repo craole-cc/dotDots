@@ -185,7 +185,7 @@ in {
       "mitigations=off"
     ];
 
-    # blacklistedKernelModules = ["nouveau"];
+    blacklistedKernelModules = ["nouveau"];
   };
 
   #~@ Filesystems
