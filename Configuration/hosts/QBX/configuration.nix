@@ -281,15 +281,8 @@ in {
       enable = true;
       wayland.enable = true;
     };
-    desktopManager.plasma6 = {
-      enable = true;
-      excludedPackages = [
-        # excludedPackages = pkgs.kdePackages [
-        "konsole"
-        "kwrite"
-        "kate"
-      ];
-    };
+    desktopManager.plasma6.enable = true;
+
     # Load nvidia driver for Xorg and Wayland
     xserver.videoDrivers = ["nvidia"];
 
@@ -297,14 +290,13 @@ in {
     openssh.enable = true;
 
     #~@ Audio
-    pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
-      wireplumber.enable = true;
-    };
+    pipewire.enable = true;
+
+    enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+    wireplumber.enable = true;
     pulseaudio.enable = false;
 
     #~@ Other services
@@ -1170,6 +1162,12 @@ in {
         printf "Not all displays detected, continuing anyway\n"
         exit 0
       '')
+    ];
+
+    plasma6.excludePackages = kdePackages [
+      "konsole"
+      "kwrite"
+      "kate"
     ];
   };
 
