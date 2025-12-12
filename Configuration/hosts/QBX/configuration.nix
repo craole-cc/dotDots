@@ -290,13 +290,13 @@ in {
     openssh.enable = true;
 
     #~@ Audio
-    pipewire.enable = true;
-
-    enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
-    wireplumber.enable = true;
+    pipewire = {
+      enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      jack.enable = true;
+      wireplumber.enable = true;
+    };
     pulseaudio.enable = false;
 
     #~@ Other services
