@@ -1164,7 +1164,7 @@ in {
       '')
     ];
 
-    plasma6.excludePackages = kdePackages [
+    plasma6.excludePackages = pkgs.kdePackages [
       "konsole"
       "kwrite"
       "kate"
