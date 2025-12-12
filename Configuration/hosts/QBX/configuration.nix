@@ -119,19 +119,19 @@ in {
     #~@ CPU
     cpu.amd.updateMicrocode = true;
     enableAllFirmware = true;
-    amdgpu.initrd.enable = true;
+    # amdgpu.initrd.enable = true;
 
     #~@ GPU
     graphics.enable = true;
     nvidia = {
       open = false;
-      package = config.boot.kernelPackages.nvidiaPackages.stable;
-      #   forceFullCompositionPipeline = true;
-      #   modesetting.enable = true;
-      #   #   powerManagement = {
-      #   #     enable = false;
-      #   #     finegrained = true;
-      #   #   };
+      package = config.boot.kernelPackages.nvidiaPackages.production;
+      forceFullCompositionPipeline = true;
+      modesetting.enable = true;
+      powerManagement = {
+        enable = false;
+        finegrained = true;
+      };
       #   # prime = {
       #   # sync.enable = true;
       #   # offload = {
@@ -173,7 +173,7 @@ in {
     };
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
