@@ -5,14 +5,33 @@ File Tree for :
 ├── .envrc
 ├── .gitignore
 ├── .gitmodules
-├── .history
 ├── .ignore
 ├── .shellcheckrc
+├── .tree
 ├── .treefmt.toml
 ├── .typos.toml
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
+├── API
+│   ├── default.nix
+│   ├── hosts
+│   │   └── QBX
+│   │       ├── configuration.nix
+│   │       ├── default.nix
+│   │       ├── flake.lock
+│   │       ├── flake.nix
+│   │       └── modules.nix
+│   ├── options
+│   │   └── devices
+│   │       ├── default.nix
+│   │       ├── display.nix
+│   │       └── gpu.nix
+│   └── users
+│       ├── cc
+│       │   └── default.nix
+│       └── craole
+│           └── default.nix
 ├── Bin
 │   ├── .dotsrc
 │   ├── bash
@@ -24,8 +43,10 @@ File Tree for :
 │   ├── cmd
 │   │   ├── get-jbs-wallpaper.bat
 │   │   ├── windows
-│   │   ├── wtq.bat
+│   │   ├── windows-terminal-quake.bat
 │   │   └── wt_quake.bat
+│   ├── job
+│   │   └── Error reading directory: EPERM: operation not permitted, scandir 'd:\Projects\GitHub\CC\.dots\Bin\job'
 │   ├── nushell
 │   │   ├── lls.nu
 │   │   ├── llss.nu
@@ -34,7 +55,11 @@ File Tree for :
 │   │   └── watcher.nu
 │   ├── powershell
 │   │   ├── Admin
-│   │   │   └── checks.ps1
+│   │   │   ├── .dots.json
+│   │   │   ├── color.ps1
+│   │   │   ├── module.ps1
+│   │   │   ├── platform.ps1
+│   │   │   └── updates.ps1
 │   │   ├── Applications
 │   │   │   ├── default.ps1
 │   │   │   ├── editor copy.ps1
@@ -50,32 +75,27 @@ File Tree for :
 │   │   │   │   ├── .dots.json
 │   │   │   │   ├── coreutils.ps1
 │   │   │   │   └── default.ps1
+│   │   │   ├── color.ps1
 │   │   │   ├── fyls.ps1
+│   │   │   ├── path.ps1
 │   │   │   ├── variable.ps1
-│   │   │   ├── wallpaper copy 2.ps1
-│   │   │   ├── wallpaper copy.ps1
-│   │   │   ├── wallpaper copy.psm1
 │   │   │   └── wallpaper.psm1
 │   │   ├── FileSystem
 │   │   │   ├── .dots.json
 │   │   │   ├── Files
 │   │   │   ├── filesystem.ps1
 │   │   │   ├── Folders
+│   │   │   │   ├── External
+│   │   │   │   │   └── Error reading directory: EPERM: operation not permitted, scandir 'd:\Projects\GitHub\CC\.dots\Bin\powershell\FileSystem\Folders\External'
+│   │   │   │   ├── Folders.psd1
+│   │   │   │   └── Folders.psm1
 │   │   │   ├── Links
+│   │   │   │   ├── External
+│   │   │   │   │   └── Error reading directory: EPERM: operation not permitted, scandir 'd:\Projects\GitHub\CC\.dots\Bin\powershell\FileSystem\Links\External'
+│   │   │   │   ├── Internal
+│   │   │   │   │   └── Error reading directory: EPERM: operation not permitted, scandir 'd:\Projects\GitHub\CC\.dots\Bin\powershell\FileSystem\Links\Internal'
 │   │   │   │   ├── Links.psd1
 │   │   │   │   ├── Links.psm1
-│   │   │   │   ├── Private
-│   │   │   │   │   ├── Resolve-TargetPath.ps1
-│   │   │   │   │   └── Test-CorrectLink.ps1
-│   │   │   │   ├── Public
-│   │   │   │   │   ├── Backup-Link.ps1
-│   │   │   │   │   ├── Get-LinkReport.ps1
-│   │   │   │   │   ├── New-Link.ps1
-│   │   │   │   │   ├── New-SymbolicLink.ps1
-│   │   │   │   │   ├── Remove-OrphanedLinks.ps1
-│   │   │   │   │   ├── Repair-BrokenLinks.ps1
-│   │   │   │   │   ├── Restore-Link.ps1
-│   │   │   │   │   └── Test-Link.ps1
 │   │   │   │   ├── README.md
 │   │   │   │   └── symlink.ps1.bac
 │   │   │   └── paths.ps1
@@ -936,352 +956,10 @@ File Tree for :
 │   │   │   ├── default.nix
 │   │   │   └── hardware-configuration.nix
 │   │   ├── QBX
-│   │   │   ├── .config
-│   │   │   │   ├── .inputrc
-│   │   │   │   ├── fuzzel
-│   │   │   │   │   └── config
-│   │   │   │   ├── ghostty
-│   │   │   │   │   ├── config
-│   │   │   │   │   └── default
-│   │   │   │   ├── hyprland
-│   │   │   │   │   └── config
-│   │   │   │   ├── raffi
-│   │   │   │   │   └── config
-│   │   │   │   └── test.toml
-│   │   │   ├── bin
-│   │   │   │   ├── tasks
-│   │   │   │   │   ├── collect_garbage copy
-│   │   │   │   │   ├── collect_garbage.sh
-│   │   │   │   │   ├── make_exec
-│   │   │   │   │   ├── make_exec_copy
-│   │   │   │   │   └── rebuild_nixos
-│   │   │   │   ├── utilities
-│   │   │   │   │   ├── first
-│   │   │   │   │   ├── get_weather
-│   │   │   │   │   ├── get_weather.py
-│   │   │   │   │   ├── get_weather.rs
-│   │   │   │   │   ├── passhash
-│   │   │   │   │   ├── passhash copy
-│   │   │   │   │   └── weatherin
-│   │   │   │   └── utils
-│   │   │   │       ├── first
-│   │   │   │       ├── get_weather
-│   │   │   │       ├── get_weather.py
-│   │   │   │       ├── get_weather.rs
-│   │   │   │       ├── passhash
-│   │   │   │       ├── passhash copy
-│   │   │   │       ├── pathman
-│   │   │   │       └── weatherin
 │   │   │   ├── configuration.nix
-│   │   │   ├── core
-│   │   │   │   ├── audio.nix
-│   │   │   │   ├── bluetooth.nix
-│   │   │   │   ├── boot.nix
-│   │   │   │   ├── build.nix
-│   │   │   │   ├── default.nix
-│   │   │   │   ├── filesystem.nix
-│   │   │   │   ├── locale.nix
-│   │   │   │   ├── network.nix
-│   │   │   │   ├── nvidia.nix
-│   │   │   │   └── reference.nix
-│   │   │   ├── custom
-│   │   │   │   ├── default.nix
-│   │   │   │   ├── desktop.nix
-│   │   │   │   ├── enums.nix
-│   │   │   │   ├── fmt.nix
-│   │   │   │   ├── password.nix
-│   │   │   │   └── paths.nix
 │   │   │   ├── default.nix
-│   │   │   ├── desktop
-│   │   │   │   ├── default.nix
-│   │   │   │   ├── gnome
-│   │   │   │   │   ├── common.nix
-│   │   │   │   │   ├── default.nix
-│   │   │   │   │   ├── reference.nix
-│   │   │   │   │   ├── wayland.nix
-│   │   │   │   │   └── xserver.nix
-│   │   │   │   ├── hyprland
-│   │   │   │   │   ├── default.nix
-│   │   │   │   │   └── reference.nix
-│   │   │   │   ├── login.nix
-│   │   │   │   ├── options.nix
-│   │   │   │   ├── plasma
-│   │   │   │   │   ├── default.nix
-│   │   │   │   │   └── reference.nix
-│   │   │   │   ├── users.nix
-│   │   │   │   └── xfce
-│   │   │   │       ├── default.nix
-│   │   │   │       └── reference.nix
-│   │   │   ├── home
-│   │   │   │   ├── default.nix
-│   │   │   │   ├── modules
-│   │   │   │   │   ├── default.nix
-│   │   │   │   │   └── font
-│   │   │   │   │       └── default.nix
-│   │   │   │   ├── programs
-│   │   │   │   │   ├── bat
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── brave
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── default.nix
-│   │   │   │   │   ├── eww
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── fastfetch
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── fd
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── firefox
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── freetube
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── fuzzel
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── ghostty
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── git
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── helix
-│   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   ├── helix.toml
-│   │   │   │   │   │   ├── keybindings.nix
-│   │   │   │   │   │   ├── languages.nix
-│   │   │   │   │   │   └── settings.nix
-│   │   │   │   │   ├── hyprlock
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── hyprshot
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── jq
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── kitty
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── mpv
-│   │   │   │   │   │   ├── bindings.nix
-│   │   │   │   │   │   ├── config.nix
-│   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   ├── profiles.nix
-│   │   │   │   │   │   └── scripts.nix
-│   │   │   │   │   ├── nushell
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── powershell
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── qbittorrent
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── ripgrep
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── rofi
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── starship
-│   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   └── settings.nix
-│   │   │   │   │   ├── swww
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── thunderbird
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── via
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── vscode
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── warp
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── waybar
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── whatsapp
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── wofi
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── yt-dlp
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   └── zed
-│   │   │   │   │       ├── default.nix
-│   │   │   │   │       ├── extensions.nix
-│   │   │   │   │       └── settings.nix
-│   │   │   │   ├── services
-│   │   │   │   │   ├── cliphist
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── clipman
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   ├── default.nix
-│   │   │   │   │   ├── dunst
-│   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   ├── export
-│   │   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   │   ├── icons.nix
-│   │   │   │   │   │   │   └── settings.nix
-│   │   │   │   │   │   └── options.nix
-│   │   │   │   │   ├── hyprland
-│   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   ├── export
-│   │   │   │   │   │   │   ├── bindings.nix
-│   │   │   │   │   │   │   ├── default.nix
-│   │   │   │   │   │   │   ├── env.nix
-│   │   │   │   │   │   │   ├── packages.nix
-│   │   │   │   │   │   │   ├── rules.nix
-│   │   │   │   │   │   │   └── settings.nix
-│   │   │   │   │   │   ├── options.nix
-│   │   │   │   │   │   └── reference.nix
-│   │   │   │   │   ├── mako
-│   │   │   │   │   │   └── default.nix
-│   │   │   │   │   └── remmina
-│   │   │   │   │       └── default.nix
-│   │   │   │   └── users
-│   │   │   │       ├── craole
-│   │   │   │       │   ├── default copy.nix
-│   │   │   │       │   ├── default.nix
-│   │   │   │       │   ├── environment
-│   │   │   │       │   │   ├── gnome
-│   │   │   │       │   │   │   ├── default.nix
-│   │   │   │       │   │   │   ├── exclude.nix
-│   │   │   │       │   │   │   ├── include.nix
-│   │   │   │       │   │   │   ├── options.nix
-│   │   │   │       │   │   │   ├── reference.nix
-│   │   │   │       │   │   │   ├── wayland.nix
-│   │   │   │       │   │   │   └── xserver.nix
-│   │   │   │       │   │   └── plasma
-│   │   │   │       │   │       ├── default.nix
-│   │   │   │       │   │       ├── exclude.nix
-│   │   │   │       │   │       ├── include.nix
-│   │   │   │       │   │       ├── options.nix
-│   │   │   │       │   │       ├── reference.nix
-│   │   │   │       │   │       ├── wayland.nix
-│   │   │   │       │   │       └── xserver.nix
-│   │   │   │       │   ├── export.nix
-│   │   │   │       │   ├── modules
-│   │   │   │       │   │   ├── default.nix
-│   │   │   │       │   │   └── font
-│   │   │   │       │   │       └── default.nix
-│   │   │   │       │   ├── options.nix
-│   │   │   │       │   ├── programs
-│   │   │   │       │   │   ├── bat
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── brave
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── default.nix
-│   │   │   │       │   │   ├── eww
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── fastfetch
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── fd
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── firefox
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── freetube
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── fuzzel
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── ghostty
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── git
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── helix
-│   │   │   │       │   │   │   ├── default.nix
-│   │   │   │       │   │   │   ├── helix.toml
-│   │   │   │       │   │   │   ├── keybindings.nix
-│   │   │   │       │   │   │   ├── languages.nix
-│   │   │   │       │   │   │   └── settings.nix
-│   │   │   │       │   │   ├── hyprlock
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── hyprshot
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── jq
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── kitty
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── mpv
-│   │   │   │       │   │   │   ├── bindings.nix
-│   │   │   │       │   │   │   ├── config.nix
-│   │   │   │       │   │   │   ├── default.nix
-│   │   │   │       │   │   │   ├── profiles.nix
-│   │   │   │       │   │   │   └── scripts.nix
-│   │   │   │       │   │   ├── nushell
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── powershell
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── qbittorrent
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── ripgrep
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── rofi
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── starship
-│   │   │   │       │   │   │   ├── default.nix
-│   │   │   │       │   │   │   └── settings.nix
-│   │   │   │       │   │   ├── swww
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── thunderbird
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── via
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── vscode
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── warp
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── waybar
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── whatsapp
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── wofi
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   ├── yt-dlp
-│   │   │   │       │   │   │   └── default.nix
-│   │   │   │       │   │   └── zed
-│   │   │   │       │   │       ├── default.nix
-│   │   │   │       │   │       ├── extensions.nix
-│   │   │   │       │   │       └── settings.nix
-│   │   │   │       │   └── services
-│   │   │   │       │       ├── cliphist
-│   │   │   │       │       │   └── default.nix
-│   │   │   │       │       ├── clipman
-│   │   │   │       │       │   └── default.nix
-│   │   │   │       │       ├── default.nix
-│   │   │   │       │       ├── dunst
-│   │   │   │       │       │   ├── default.nix
-│   │   │   │       │       │   ├── icons.nix
-│   │   │   │       │       │   └── settings.nix
-│   │   │   │       │       ├── hyprland
-│   │   │   │       │       │   ├── bindings.nix
-│   │   │   │       │       │   ├── default.nix
-│   │   │   │       │       │   ├── env.nix
-│   │   │   │       │       │   ├── include.nix
-│   │   │   │       │       │   ├── options.nix
-│   │   │   │       │       │   ├── packages.nix
-│   │   │   │       │       │   ├── rules.nix
-│   │   │   │       │       │   └── settings.nix
-│   │   │   │       │       ├── mako
-│   │   │   │       │       │   └── default.nix
-│   │   │   │       │       └── remmina
-│   │   │   │       │           └── default.nix
-│   │   │   │       └── default.nix
-│   │   │   ├── libraries
-│   │   │   │   ├── default.nix
-│   │   │   │   └── importer.nix
-│   │   │   ├── programs
-│   │   │   │   └── core
-│   │   │   │       ├── default.nix
-│   │   │   │       ├── development
-│   │   │   │       │   └── default.nix
-│   │   │   │       ├── steam
-│   │   │   │       │   └── default.nix
-│   │   │   │       └── treefmt.toml
-│   │   │   ├── services
-│   │   │   │   └── core
-│   │   │   │       ├── default.nix
-│   │   │   │       ├── obs-studio
-│   │   │   │       │   └── default.nix
-│   │   │   │       ├── ollama
-│   │   │   │       │   └── default.nix
-│   │   │   │       ├── tailscale
-│   │   │   │       │   └── default.nix
-│   │   │   │       └── xrdp
-│   │   │   │           └── default.nix
-│   │   │   └── users
-│   │   │       ├── config.core.nix
-│   │   │       ├── config.home.nix
-│   │   │       ├── config.nix
-│   │   │       ├── default.nix
-│   │   │       ├── modules copy.nix
-│   │   │       ├── options.nix
-│   │   │       ├── reference.core.nix
-│   │   │       └── reference.home.nix
+│   │   │   ├── flake.lock
+│   │   │   └── flake.nix
 │   │   ├── QBXl
 │   │   │   ├── core
 │   │   │   │   ├── default.nix
@@ -1312,161 +990,602 @@ File Tree for :
 │   │   │   ├── configuration.nix
 │   │   │   ├── default.nix
 │   │   │   └── hardware-configuration.nix
-│   │   └── review
-│   │       ├── base
-│   │       │   ├── config.nix
+│   │   ├── review
+│   │   │   ├── base
+│   │   │   │   ├── config.nix
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── enums.nix
+│   │   │   │   ├── modules.nix
+│   │   │   │   └── sources.nix
+│   │   │   ├── components
+│   │   │   │   ├── base
+│   │   │   │   │   ├── chromebook.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   ├── laptop.nix
+│   │   │   │   │   └── server.nix
+│   │   │   │   ├── context
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   ├── development.nix
+│   │   │   │   │   ├── entertainment.nix
+│   │   │   │   │   ├── minimal.nix
+│   │   │   │   │   ├── multimedia.nix
+│   │   │   │   │   ├── productivity.nix
+│   │   │   │   │   └── remote.nix
+│   │   │   │   ├── default.nix
+│   │   │   │   └── interface
+│   │   │   │       ├── boot.nix
+│   │   │   │       ├── default.nix
+│   │   │   │       ├── desktop.nix
+│   │   │   │       ├── login.nix
+│   │   │   │       └── packages.nix
+│   │   │   ├── dbook
+│   │   │   │   ├── configuration.nix
+│   │   │   │   ├── core
+│   │   │   │   │   ├── base
+│   │   │   │   │   │   ├── base.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── hardware.nix
+│   │   │   │   │   │   ├── location.nix
+│   │   │   │   │   │   ├── paths.nix
+│   │   │   │   │   │   └── xfce.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   ├── environment
+│   │   │   │   │   │   ├── aliases.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   └── variables.nix
+│   │   │   │   │   ├── interface
+│   │   │   │   │   │   ├── base.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── fonts.nix
+│   │   │   │   │   │   ├── programs.nix
+│   │   │   │   │   │   ├── wayland.nix
+│   │   │   │   │   │   └── xfce.nix
+│   │   │   │   │   ├── packages
+│   │   │   │   │   │   ├── base.nix
+│   │   │   │   │   │   ├── common.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── direnv.nix
+│   │   │   │   │   │   ├── git.nix
+│   │   │   │   │   │   ├── hyprland.nix
+│   │   │   │   │   │   └── xfce.nix
+│   │   │   │   │   ├── security
+│   │   │   │   │   │   ├── base.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   ├── pam.nix
+│   │   │   │   │   │   ├── rtkit.nix
+│   │   │   │   │   │   └── sudo.nix
+│   │   │   │   │   ├── services
+│   │   │   │   │   │   ├── base.nix
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── stylix.nix
+│   │   │   │   │   └── users
+│   │   │   │   │       ├── alpha.nix
+│   │   │   │   │       ├── default.nix
+│   │   │   │   │       └── users.nix
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── hardware-configuration.nix
+│   │   │   │   └── home
+│   │   │   │       ├── configurations
+│   │   │   │       │   ├── craole
+│   │   │   │       │   │   └── default.nix
+│   │   │   │       │   └── default.nix
+│   │   │   │       ├── default.nix
+│   │   │   │       ├── packages
+│   │   │   │       │   ├── bash
+│   │   │   │       │   │   └── default.nix
+│   │   │   │       │   ├── bat
+│   │   │   │       │   │   └── default.nix
+│   │   │   │       │   ├── default.nix
+│   │   │   │       │   ├── helix
+│   │   │   │       │   │   ├── default.nix
+│   │   │   │       │   │   └── settings.nix
+│   │   │   │       │   ├── inkscape
+│   │   │   │       │   │   └── default.nix
+│   │   │   │       │   ├── ripgrep
+│   │   │   │       │   │   └── default.nix
+│   │   │   │       │   └── starship
+│   │   │   │       │       └── default.nix
+│   │   │   │       ├── stylix.nix
+│   │   │   │       └── xfce.nix
+│   │   │   ├── hosts
+│   │   │   │   ├── dbook
+│   │   │   │   │   ├── base
+│   │   │   │   │   │   ├── craole
+│   │   │   │   │   │   │   ├── apps.nix
+│   │   │   │   │   │   │   ├── craole.nix
+│   │   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   │   ├── environment.nix
+│   │   │   │   │   │   │   ├── fonts.nix
+│   │   │   │   │   │   │   └── plasma.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   └── hardware-configuration.nix
+│   │   │   │   │   ├── configuration.nix
+│   │   │   │   │   ├── data
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   └── dots
+│   │   │   │   │       └── default.nix
+│   │   │   │   ├── dbook.old
+│   │   │   │   │   └── default.nix
+│   │   │   │   ├── default.nix
+│   │   │   │   ├── delle
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   └── tmp.nix
+│   │   │   │   ├── preci
+│   │   │   │   │   ├── base
+│   │   │   │   │   │   ├── configuration.nix
+│   │   │   │   │   │   ├── craole
+│   │   │   │   │   │   │   ├── apps.nix
+│   │   │   │   │   │   │   ├── craole.nix
+│   │   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   │   ├── environment.nix
+│   │   │   │   │   │   │   ├── fonts.nix
+│   │   │   │   │   │   │   └── plasma.nix
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   └── hardware-configuration.nix
+│   │   │   │   │   ├── configuration.nix
+│   │   │   │   │   ├── data
+│   │   │   │   │   │   └── default.nix
+│   │   │   │   │   ├── default.nix
+│   │   │   │   │   └── dots
+│   │   │   │   │       └── default.nix
+│   │   │   │   ├── review
+│   │   │   │   │   ├── dbooktoo
+│   │   │   │   │   │   ├── default.nix
+│   │   │   │   │   │   └── hardware-configuration.nix
+│   │   │   │   │   └── victus
+│   │   │   │   │       ├── default.nix
+│   │   │   │   │       └── victus.nix
+│   │   │   │   └── victus
+│   │   │   │       └── default.nix
+│   │   │   ├── MBPoNine
+│   │   │   │   └── default.nix
+│   │   │   └── preci
+│   │   │       ├── configuration copy.nix
+│   │   │       ├── configuration.nix
+│   │   │       ├── default.nix
+│   │   │       └── hardware-configuration.nix
+│   │   └── Victus
+│   │       ├── .gitignore
+│   │       ├── .vscode
+│   │       │   └── settings.json
+│   │       ├── api
 │   │       │   ├── default.nix
-│   │       │   ├── enums.nix
-│   │       │   ├── modules.nix
-│   │       │   └── sources.nix
-│   │       ├── components
-│   │       │   ├── base
-│   │       │   │   ├── chromebook.nix
+│   │       │   ├── hosts
 │   │       │   │   ├── default.nix
-│   │       │   │   ├── laptop.nix
-│   │       │   │   └── server.nix
-│   │       │   ├── context
-│   │       │   │   ├── default.nix
-│   │       │   │   ├── development.nix
-│   │       │   │   ├── entertainment.nix
-│   │       │   │   ├── minimal.nix
-│   │       │   │   ├── multimedia.nix
-│   │       │   │   ├── productivity.nix
-│   │       │   │   └── remote.nix
-│   │       │   ├── default.nix
-│   │       │   └── interface
-│   │       │       ├── boot.nix
-│   │       │       ├── default.nix
-│   │       │       ├── desktop.nix
-│   │       │       ├── login.nix
-│   │       │       └── packages.nix
-│   │       ├── dbook
-│   │       │   ├── configuration.nix
-│   │       │   ├── core
-│   │       │   │   ├── base
-│   │       │   │   │   ├── base.nix
+│   │       │   │   ├── options.nix
+│   │       │   │   ├── victus
 │   │       │   │   │   ├── default.nix
-│   │       │   │   │   ├── hardware.nix
-│   │       │   │   │   ├── location.nix
-│   │       │   │   │   ├── paths.nix
-│   │       │   │   │   └── xfce.nix
+│   │       │   │   │   └── hardware-configuration.nix
+│   │       │   │   └── victus_test
+│   │       │   │       ├── default.nix
+│   │       │   │       └── hardware-configuration.nix
+│   │       │   ├── options
+│   │       │   │   └── devices
+│   │       │   │       ├── devices.nix
+│   │       │   │       ├── display.nix
+│   │       │   │       └── gpu.nix
+│   │       │   └── users
+│   │       │       ├── cc
+│   │       │       │   └── default.nix
+│   │       │       └── craole
+│   │       │           └── default.nix
+│   │       ├── configuration.nix
+│   │       ├── default.nix
+│   │       ├── documentation
+│   │       │   └── scripts
+│   │       │       └── nixos-lib-dir.md
+│   │       ├── flake.lock
+│   │       ├── flake.nix
+│   │       ├── libraries
+│   │       │   ├── .enums
+│   │       │   │   ├── default.nix
+│   │       │   │   ├── desktop.nix
+│   │       │   │   ├── development.nix
+│   │       │   │   ├── hardware.nix
+│   │       │   │   ├── shell.nix
+│   │       │   │   ├── system.nix
+│   │       │   │   └── user.nix
+│   │       │   ├── applications
+│   │       │   │   └── firefox.nix
+│   │       │   ├── attrsets
+│   │       │   │   ├── locking.nix
+│   │       │   │   └── resolution.nix
+│   │       │   ├── default.nix
+│   │       │   ├── filesystem
+│   │       │   │   ├── importers.nix
+│   │       │   │   ├── meta.nix
+│   │       │   │   └── predicates.nix
+│   │       │   ├── generators
+│   │       │   │   └── hardware.nix
+│   │       │   ├── hardware
+│   │       │   │   └── gpu.nix
+│   │       │   ├── host
+│   │       │   │   ├── generators.nix
+│   │       │   │   └── specs.nix.bac
+│   │       │   ├── lists
+│   │       │   │   ├── generators.nix
+│   │       │   │   ├── membership.nix
+│   │       │   │   └── predicates.nix
+│   │       │   ├── modules.nix
+│   │       │   ├── predicates
+│   │       │   │   └── emptiness.nix
+│   │       │   └── review
+│   │       │       ├── conversions
+│   │       │       │   ├── basic.nix
+│   │       │       │   └── default.nix
+│   │       │       ├── examples
+│   │       │       │   ├── basic.nix
+│   │       │       │   ├── configuration.nix
+│   │       │       │   └── greet.nix
+│   │       │       ├── safe.nix
+│   │       │       ├── strings
+│   │       │       │   ├── default.nix
+│   │       │       │   ├── matching.nix
+│   │       │       │   └── normalization.nix
+│   │       │       ├── tests
+│   │       │       │   ├── a
+│   │       │       │   │   └── b
+│   │       │       │   │       └── c.nix
+│   │       │       │   ├── deep
+│   │       │       │   │   ├── deeper
+│   │       │       │   │   │   └── six.nix
+│   │       │       │   │   └── five.nix
+│   │       │       │   ├── default.nix
+│   │       │       │   ├── one.nix
+│   │       │       │   ├── review
+│   │       │       │   │   └── three.nix
+│   │       │       │   ├── trivial
+│   │       │       │   │   ├── core.nix
+│   │       │       │   │   └── default.nix
+│   │       │       │   └── two.nix
+│   │       │       └── trivial
+│   │       │           ├── core.nix
+│   │       │           └── default.nix
+│   │       ├── LICENSE
+│   │       ├── modules
+│   │       │   ├── core
+│   │       │   │   ├── audio.nix
+│   │       │   │   ├── boot.nix
 │   │       │   │   ├── default.nix
 │   │       │   │   ├── environment
-│   │       │   │   │   ├── aliases.nix
+│   │       │   │   │   ├── cosmic
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── packages.nix
+│   │       │   │   │   │   └── services.nix
 │   │       │   │   │   ├── default.nix
-│   │       │   │   │   └── variables.nix
-│   │       │   │   ├── interface
-│   │       │   │   │   ├── base.nix
+│   │       │   │   │   ├── gnome
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── packages.nix
+│   │       │   │   │   │   └── services.nix
+│   │       │   │   │   ├── hyprland
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── packages.nix
+│   │       │   │   │   │   └── services.nix
+│   │       │   │   │   ├── niri
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── packages.nix
+│   │       │   │   │   │   └── services.nix
+│   │       │   │   │   └── shared
+│   │       │   │   │       ├── default.nix
+│   │       │   │   │       ├── fonts.nix
+│   │       │   │   │       ├── paths.nix
+│   │       │   │   │       ├── variables.nix
+│   │       │   │   │       └── wayland.nix
+│   │       │   │   ├── filesystem.nix
+│   │       │   │   ├── localization.nix
+│   │       │   │   ├── login.nix
+│   │       │   │   ├── networking.nix
+│   │       │   │   ├── programs
+│   │       │   │   │   ├── chromium
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── extensions.nix
+│   │       │   │   │   │   ├── options.nix
+│   │       │   │   │   │   ├── packages.nix
+│   │       │   │   │   │   └── search.nix
 │   │       │   │   │   ├── default.nix
-│   │       │   │   │   ├── fonts.nix
-│   │       │   │   │   ├── programs.nix
-│   │       │   │   │   ├── wayland.nix
-│   │       │   │   │   └── xfce.nix
-│   │       │   │   ├── packages
-│   │       │   │   │   ├── base.nix
-│   │       │   │   │   ├── common.nix
-│   │       │   │   │   ├── default.nix
-│   │       │   │   │   ├── direnv.nix
-│   │       │   │   │   ├── git.nix
-│   │       │   │   │   ├── hyprland.nix
-│   │       │   │   │   └── xfce.nix
-│   │       │   │   ├── security
-│   │       │   │   │   ├── base.nix
-│   │       │   │   │   ├── default.nix
-│   │       │   │   │   ├── pam.nix
-│   │       │   │   │   ├── rtkit.nix
-│   │       │   │   │   └── sudo.nix
+│   │       │   │   │   └── git.nix
+│   │       │   │   ├── security.nix
 │   │       │   │   ├── services
-│   │       │   │   │   ├── base.nix
-│   │       │   │   │   └── default.nix
-│   │       │   │   ├── stylix.nix
-│   │       │   │   └── users
-│   │       │   │       ├── alpha.nix
-│   │       │   │       ├── default.nix
-│   │       │   │       └── users.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── printing.nix
+│   │       │   │   │   ├── qbittorrent.nix
+│   │       │   │   │   ├── ssh.nix
+│   │       │   │   │   └── xserver.nix
+│   │       │   │   ├── system.nix
+│   │       │   │   ├── themes
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── icons
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── packages.nix
+│   │       │   │   │   └── palettes
+│   │       │   │   │       ├── cosmic
+│   │       │   │   │       │   ├── COSMIC Dark.ron
+│   │       │   │   │       │   ├── COSMIC Light.ron
+│   │       │   │   │       │   ├── Dracula.ron
+│   │       │   │   │       │   ├── Github Dark.ron
+│   │       │   │   │       │   ├── Gruvbox Dark.ron
+│   │       │   │   │       │   ├── Linux Console.ron
+│   │       │   │   │       │   ├── Modus-Operandi-Tinted.ron
+│   │       │   │   │       │   ├── Modus-Operandi.ron
+│   │       │   │   │       │   ├── Modus-Vivendi-Tinted.ron
+│   │       │   │   │       │   ├── Modus-Vivendi.ron
+│   │       │   │   │       │   ├── OneHalfDark.ron
+│   │       │   │   │       │   ├── Pop Dark.ron
+│   │       │   │   │       │   ├── Rose Pine Dawn.ron
+│   │       │   │   │       │   ├── Rose Pine Moon.ron
+│   │       │   │   │       │   ├── Rose Pine.ron
+│   │       │   │   │       │   ├── Rxvt Dark.ron
+│   │       │   │   │       │   ├── Rxvt Light.ron
+│   │       │   │   │       │   ├── Seashells.ron
+│   │       │   │   │       │   ├── Selenized Black.ron
+│   │       │   │   │       │   ├── Selenized Dark.ron
+│   │       │   │   │       │   ├── Selenized Light.ron
+│   │       │   │   │       │   ├── Selenized White.ron
+│   │       │   │   │       │   ├── Solarized Dark.ron
+│   │       │   │   │       │   ├── Solarized Light.ron
+│   │       │   │   │       │   ├── Tango Dark.ron
+│   │       │   │   │       │   ├── Tango Light.ron
+│   │       │   │   │       │   ├── XTerm Dark.ron
+│   │       │   │   │       │   └── XTerm Light.ron
+│   │       │   │   │       └── default.nix
+│   │       │   │   └── users.nix
 │   │       │   ├── default.nix
-│   │       │   ├── hardware-configuration.nix
-│   │       │   └── home
-│   │       │       ├── configurations
-│   │       │       │   ├── craole
-│   │       │       │   │   └── default.nix
-│   │       │       │   └── default.nix
+│   │       │   ├── home
+│   │       │   │   ├── default copy.nix
+│   │       │   │   ├── default.nix
+│   │       │   │   ├── environment
+│   │       │   │   │   ├── cosmic
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── packages.nix
+│   │       │   │   │   │   └── services.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── gnome
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── extension.nix
+│   │       │   │   │   │   ├── keyring.nix
+│   │       │   │   │   │   ├── polkit.nix
+│   │       │   │   │   │   └── terminal.nix
+│   │       │   │   │   ├── hyprland
+│   │       │   │   │   │   ├── components
+│   │       │   │   │   │   │   ├── default.nix
+│   │       │   │   │   │   │   ├── idle.nix
+│   │       │   │   │   │   │   ├── lock.nix
+│   │       │   │   │   │   │   ├── panel.nix
+│   │       │   │   │   │   │   ├── paper.nix
+│   │       │   │   │   │   │   ├── polkit.nix
+│   │       │   │   │   │   │   ├── shell.nix
+│   │       │   │   │   │   │   ├── shot.nix
+│   │       │   │   │   │   │   ├── status.nix
+│   │       │   │   │   │   │   └── sunset.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── plugins
+│   │       │   │   │   │   │   └── default.nix
+│   │       │   │   │   │   ├── settings
+│   │       │   │   │   │   │   ├── core.nix
+│   │       │   │   │   │   │   ├── default.nix
+│   │       │   │   │   │   │   ├── environment.nix
+│   │       │   │   │   │   │   ├── input.nix
+│   │       │   │   │   │   │   ├── output.nix
+│   │       │   │   │   │   │   ├── rules.nix
+│   │       │   │   │   │   │   ├── startup.nix
+│   │       │   │   │   │   │   └── theme.nix
+│   │       │   │   │   │   └── submaps
+│   │       │   │   │   │       ├── default.nix
+│   │       │   │   │   │       └── movement.nix
+│   │       │   │   │   ├── niri
+│   │       │   │   │   │   ├── appearance.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── keys.nix
+│   │       │   │   │   │   └── switcher.nix
+│   │       │   │   │   └── shared
+│   │       │   │   │       ├── default.nix
+│   │       │   │   │       ├── mouse.nix
+│   │       │   │   │       └── wayland.nix
+│   │       │   │   ├── policies.nix
+│   │       │   │   ├── programs
+│   │       │   │   │   ├── atuin
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── settings.nix
+│   │       │   │   │   │   └── themes.nix
+│   │       │   │   │   ├── bash
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── bat
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── settings.nix
+│   │       │   │   │   │   └── themes.nix
+│   │       │   │   │   ├── browser
+│   │       │   │   │   │   ├── chromium
+│   │       │   │   │   │   │   ├── cli.nix
+│   │       │   │   │   │   │   ├── default.nix
+│   │       │   │   │   │   │   └── extensions.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   └── edge
+│   │       │   │   │   │       └── default.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   ├── fastfetch
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   └── settings.nix
+│   │       │   │   │   ├── firefox
+│   │       │   │   │   │   ├── bookmarks.nix
+│   │       │   │   │   │   ├── config.nix
+│   │       │   │   │   │   ├── containers.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── extensions.nix
+│   │       │   │   │   │   ├── mime.nix
+│   │       │   │   │   │   ├── modules.nix
+│   │       │   │   │   │   ├── policies.nix
+│   │       │   │   │   │   ├── preferences.nix
+│   │       │   │   │   │   ├── search.nix
+│   │       │   │   │   │   └── settings.nix
+│   │       │   │   │   ├── fish
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── foot
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── input.nix
+│   │       │   │   │   │   ├── settings.nix
+│   │       │   │   │   │   └── themes.nix
+│   │       │   │   │   ├── freetube
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   └── settings.nix
+│   │       │   │   │   ├── ghostty
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── settings.nix
+│   │       │   │   │   │   └── themes.nix
+│   │       │   │   │   ├── git
+│   │       │   │   │   │   ├── core.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── github.nix
+│   │       │   │   │   │   ├── gitui.nix
+│   │       │   │   │   │   └── includes.nix
+│   │       │   │   │   ├── helix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── editor.nix
+│   │       │   │   │   │   ├── keybindings.nix
+│   │       │   │   │   │   ├── languages.nix
+│   │       │   │   │   │   └── themes.nix
+│   │       │   │   │   ├── jujutsu
+│   │       │   │   │   │   ├── core.nix
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   └── jjui.nix
+│   │       │   │   │   ├── nh
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   └── settings.nix
+│   │       │   │   │   ├── nix-index
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   └── shells.nix
+│   │       │   │   │   ├── nushell
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── obs
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── powershell
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── review
+│   │       │   │   │   │   ├── hyprland
+│   │       │   │   │   │   │   ├── config
+│   │       │   │   │   │   │   │   ├── bindings.nix
+│   │       │   │   │   │   │   │   ├── default.nix
+│   │       │   │   │   │   │   │   ├── dependencies.nix
+│   │       │   │   │   │   │   │   ├── env.nix
+│   │       │   │   │   │   │   │   ├── rules.nix
+│   │       │   │   │   │   │   │   └── settings.nix
+│   │       │   │   │   │   │   ├── default.nix
+│   │       │   │   │   │   │   └── options.nix
+│   │       │   │   │   │   └── thunderbird
+│   │       │   │   │   │       ├── core.nix
+│   │       │   │   │   │       └── default.nix
+│   │       │   │   │   ├── rust
+│   │       │   │   │   │   ├── bacon.nix
+│   │       │   │   │   │   ├── cargo.nix
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── starship
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── settings.nix
+│   │       │   │   │   │   └── shells.nix
+│   │       │   │   │   ├── tinty
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── vscode
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── settings.json
+│   │       │   │   │   │   ├── settings.jsonc
+│   │       │   │   │   │   └── shared
+│   │       │   │   │   │       ├── default.nix
+│   │       │   │   │   │       ├── extensions.nix
+│   │       │   │   │   │       ├── keybindings.nix
+│   │       │   │   │   │       └── settings
+│   │       │   │   │   │           ├── default.nix
+│   │       │   │   │   │           ├── editor.nix
+│   │       │   │   │   │           ├── files.nix
+│   │       │   │   │   │           ├── git.nix
+│   │       │   │   │   │           ├── languages.nix
+│   │       │   │   │   │           ├── terminal.nix
+│   │       │   │   │   │           └── theme.nix
+│   │       │   │   │   ├── yazi
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── zed
+│   │       │   │   │   │   ├── default.nix
+│   │       │   │   │   │   ├── editor.nix
+│   │       │   │   │   │   ├── extensions.nix
+│   │       │   │   │   │   ├── language.nix
+│   │       │   │   │   │   ├── settings.nix
+│   │       │   │   │   │   ├── terminal.nix
+│   │       │   │   │   │   └── theme.nix
+│   │       │   │   │   └── zsh
+│   │       │   │   │       └── default.nix
+│   │       │   │   ├── services
+│   │       │   │   │   ├── bat-signal
+│   │       │   │   │   │   └── default.nix
+│   │       │   │   │   ├── default.nix
+│   │       │   │   │   └── espanso
+│   │       │   │   │       ├── default.nix
+│   │       │   │   │       └── shared
+│   │       │   │   │           ├── configs.nix
+│   │       │   │   │           ├── default.nix
+│   │       │   │   │           └── matches.nix
+│   │       │   │   ├── shared.nix
+│   │       │   │   └── _.nix
+│   │       │   └── include
 │   │       │       ├── default.nix
-│   │       │       ├── packages
-│   │       │       │   ├── bash
-│   │       │       │   │   └── default.nix
-│   │       │       │   ├── bat
-│   │       │       │   │   └── default.nix
-│   │       │       │   ├── default.nix
-│   │       │       │   ├── helix
-│   │       │       │   │   ├── default.nix
-│   │       │       │   │   └── settings.nix
-│   │       │       │   ├── inkscape
-│   │       │       │   │   └── default.nix
-│   │       │       │   ├── ripgrep
-│   │       │       │   │   └── default.nix
-│   │       │       │   └── starship
-│   │       │       │       └── default.nix
-│   │       │       ├── stylix.nix
-│   │       │       └── xfce.nix
-│   │       ├── hosts
-│   │       │   ├── dbook
-│   │       │   │   ├── base
-│   │       │   │   │   ├── craole
-│   │       │   │   │   │   ├── apps.nix
-│   │       │   │   │   │   ├── craole.nix
-│   │       │   │   │   │   ├── default.nix
-│   │       │   │   │   │   ├── environment.nix
-│   │       │   │   │   │   ├── fonts.nix
-│   │       │   │   │   │   └── plasma.nix
-│   │       │   │   │   ├── default.nix
-│   │       │   │   │   └── hardware-configuration.nix
-│   │       │   │   ├── configuration.nix
-│   │       │   │   ├── data
-│   │       │   │   │   └── default.nix
+│   │       │       └── stylix
+│   │       │           ├── default.nix
+│   │       │           ├── fonts.nix
+│   │       │           └── scheme.nix
+│   │       ├── options
+│   │       │   ├── access.nix
+│   │       │   ├── api
 │   │       │   │   ├── default.nix
-│   │       │   │   └── dots
-│   │       │   │       └── default.nix
-│   │       │   ├── dbook.old
-│   │       │   │   └── default.nix
+│   │       │   │   ├── hosts
+│   │       │   │   │   └── victus
+│   │       │   │   │       ├── default.nix
+│   │       │   │   │       └── hardware-configuration.nix
+│   │       │   │   └── users
+│   │       │   │       ├── cc
+│   │       │   │       │   └── default.nix
+│   │       │   │       └── craole
+│   │       │   │           └── default.nix
 │   │       │   ├── default.nix
-│   │       │   ├── delle
-│   │       │   │   ├── default.nix
-│   │       │   │   └── tmp.nix
-│   │       │   ├── preci
-│   │       │   │   ├── base
-│   │       │   │   │   ├── configuration.nix
-│   │       │   │   │   ├── craole
-│   │       │   │   │   │   ├── apps.nix
-│   │       │   │   │   │   ├── craole.nix
-│   │       │   │   │   │   ├── default.nix
-│   │       │   │   │   │   ├── environment.nix
-│   │       │   │   │   │   ├── fonts.nix
-│   │       │   │   │   │   └── plasma.nix
-│   │       │   │   │   ├── default.nix
-│   │       │   │   │   └── hardware-configuration.nix
-│   │       │   │   ├── configuration.nix
-│   │       │   │   ├── data
-│   │       │   │   │   └── default.nix
-│   │       │   │   ├── default.nix
-│   │       │   │   └── dots
-│   │       │   │       └── default.nix
-│   │       │   ├── review
-│   │       │   │   ├── dbooktoo
-│   │       │   │   │   ├── default.nix
-│   │       │   │   │   └── hardware-configuration.nix
-│   │       │   │   └── victus
-│   │       │   │       ├── default.nix
-│   │       │   │       └── victus.nix
-│   │       │   └── victus
-│   │       │       └── default.nix
-│   │       ├── MBPoNine
-│   │       │   └── default.nix
-│   │       └── preci
-│   │           ├── configuration copy.nix
-│   │           ├── configuration.nix
-│   │           ├── default.nix
-│   │           └── hardware-configuration.nix
+│   │       │   ├── devices.nix
+│   │       │   ├── hardware.nix
+│   │       │   ├── interface.nix
+│   │       │   ├── localization.nix
+│   │       │   ├── packages.nix
+│   │       │   ├── paths.nix
+│   │       │   ├── policies.nix
+│   │       │   └── users.nix
+│   │       ├── README.md
+│   │       ├── scripts
+│   │       │   ├── default.nix
+│   │       │   ├── nix
+│   │       │   │   └── mpv.nix
+│   │       │   ├── nushell
+│   │       │   │   └── sync-themes.nu
+│   │       │   ├── powershell
+│   │       │   │   ├── clip.ps1
+│   │       │   │   ├── dump.ps1
+│   │       │   │   ├── nixbac.ps1
+│   │       │   │   ├── nixos.ps1
+│   │       │   │   └── sync-themes.ps1
+│   │       │   ├── rust
+│   │       │   │   ├── hello
+│   │       │   │   ├── nixos
+│   │       │   │   ├── pathof
+│   │       │   │   └── theme.rs
+│   │       │   ├── shellscript
+│   │       │   │   ├── clip.bash
+│   │       │   │   ├── clip.sh
+│   │       │   │   ├── cpnix.sh
+│   │       │   │   ├── fmtnix.sh
+│   │       │   │   ├── gnome-theme-toggle
+│   │       │   │   ├── instantiate.sh
+│   │       │   │   ├── mvp
+│   │       │   │   ├── nixos-lib-dir
+│   │       │   │   ├── tinty-init.sh
+│   │       │   │   └── toggle-theme.sh
+│   │       │   └── zig
+│   │       │       └── sync-themes.zig
+│   │       ├── tests
+│   │       │   └── test.nix
+│   │       └── treefmt.toml
 │   ├── htop
 │   │   └── htoprc
 │   ├── hyprland
@@ -1476,8 +1595,6 @@ File Tree for :
 │   │   ├── kitty.conf
 │   │   ├── river.init
 │   │   └── wofi.css
-│   ├── jbs
-│   │   └── current 2025-06-03.settings
 │   ├── jgmenu
 │   │   ├── append.csv
 │   │   ├── backup
@@ -1520,13 +1637,16 @@ File Tree for :
 │   │   ├── jgmenurc
 │   │   ├── jgmenurc.bac
 │   │   └── prepend.csv
+│   ├── johns-background-switcher
+│   │   └── current 2025-06-03.settings
 │   ├── jujutsu
 │   │   ├── .dots.json
 │   │   ├── activate.ps1
 │   │   ├── config.toml
 │   │   ├── help.txt
 │   │   ├── meld.ps1
-│   │   └── watchman.ps1
+│   │   ├── watchman.ps1
+│   │   └── wrappers.ps1
 │   ├── just
 │   │   └── justfile
 │   ├── kitty
@@ -1589,6 +1709,7 @@ File Tree for :
 │   │   ├── .markdownlint.jsonc
 │   │   └── .markdownlint.yaml
 │   ├── mise-en-place
+│   │   ├── .dots.json
 │   │   ├── activate.ps1
 │   │   ├── config.toml
 │   │   └── wrappers.ps1
@@ -1621,6 +1742,26 @@ File Tree for :
 │   ├── neofetch
 │   │   ├── config
 │   │   └── default
+│   ├── neovim
+│   │   ├── .dots.json
+│   │   ├── .stylua.toml
+│   │   ├── activate.ps1
+│   │   ├── init.lua
+│   │   ├── lazy-lock.json
+│   │   ├── LICENSE
+│   │   ├── lua
+│   │   │   ├── autocmds.lua
+│   │   │   ├── chadrc.lua
+│   │   │   ├── configs
+│   │   │   │   ├── conform.lua
+│   │   │   │   ├── lazy.lua
+│   │   │   │   └── lspconfig.lua
+│   │   │   ├── mappings.lua
+│   │   │   ├── options.lua
+│   │   │   └── plugins
+│   │   │       └── init.lua
+│   │   ├── README.md
+│   │   └── wrappers.ps1
 │   ├── Notepadqq
 │   │   ├── Notepadqq.ini
 │   │   └── session.xml
@@ -1666,6 +1807,7 @@ File Tree for :
 │   │   ├── activate.ps1
 │   │   ├── config.json
 │   │   ├── config.toml
+│   │   ├── config.toml.bak
 │   │   └── themes
 │   │       ├── 1_shell.omp.json
 │   │       ├── agnoster.minimal.omp.json
@@ -1816,7 +1958,7 @@ File Tree for :
 │   ├── powershell
 │   │   ├── config.ps1
 │   │   ├── profile.psm1
-│   │   └── utils.ps1
+│   │   └── repos.ps1
 │   ├── python
 │   │   └── hatch.toml
 │   ├── qtile
@@ -2569,6 +2711,8 @@ File Tree for :
 │   │   ├── rustup_completions.bash
 │   │   ├── rustup_unix.toml
 │   │   └── rustup_win.toml
+│   ├── scoop
+│   │   └── activate.ps1
 │   ├── sddm
 │   │   ├── sddm.conf
 │   │   ├── sddm.conf.d
@@ -2689,6 +2833,11 @@ File Tree for :
 │   │   └── qyatt
 │   │       ├── default copy.nix
 │   │       └── default.nix
+│   ├── via
+│   │   └── Cidoo
+│   │       ├── CIDOO_ABM066-2.4G.JSON
+│   │       ├── CIDOO_ABM066-USB.JSON
+│   │       └── cidoo_abm066.layout
 │   ├── vim
 │   │   ├── init.vim
 │   │   ├── more.vim
@@ -2699,18 +2848,12 @@ File Tree for :
 │   │   ├── custom-ui-style.md
 │   │   ├── Dotfiles copy.code-workspace
 │   │   ├── Dotfiles.code-workspace
+│   │   ├── keybindings.json
 │   │   ├── Nix.code-workspace
 │   │   ├── NixWSL.code-workspace
 │   │   ├── Projects.code-workspace
 │   │   ├── Rust.code-workspace
-│   │   ├── setting.bac.json
-│   │   ├── settings copy.json
-│   │   ├── settings copy.jsonc
-│   │   ├── settings-insiders.jsonc
-│   │   ├── settings.bac.json
-│   │   ├── settings.jsonc
-│   │   ├── settings.nix.json
-│   │   └── vscodeTUX.json
+│   │   └── settings.json
 │   ├── wallheaven
 │   │   └── config.toml
 │   ├── warp
@@ -2746,10 +2889,15 @@ File Tree for :
 │   ├── waylock
 │   │   └── waylock.toml
 │   ├── WindowsTerminal
-│   │   ├── config.ps1
+│   │   ├── .dots.json
+│   │   ├── activate.ps1
 │   │   ├── quake_mode_shortcut.sh
 │   │   ├── schema.json
-│   │   └── settings.json
+│   │   ├── settings copy.json
+│   │   ├── settings.json
+│   │   └── utils.ps1
+│   ├── winget
+│   │   └── activate.ps1
 │   ├── wofi
 │   │   ├── config
 │   │   └── style.css
@@ -2795,6 +2943,7 @@ File Tree for :
 │           ├── lf.zsh
 │           ├── plugins.zsh
 │           └── prompt.zsh
+├── default copy.nix
 ├── default.nix
 ├── deno.jsonc
 ├── Environment
@@ -2982,7 +3131,39 @@ File Tree for :
 ├── flake.lock
 ├── flake.nix
 ├── justfile
+├── Libraries
+│   ├── applications
+│   │   └── firefox.nix
+│   ├── attrsets
+│   │   ├── locking.nix
+│   │   ├── recursive.nix
+│   │   └── resolution.nix
+│   ├── default.nix
+│   ├── enums
+│   │   ├── desktop.nix
+│   │   ├── development.nix
+│   │   ├── hardware.nix
+│   │   ├── shell.nix
+│   │   ├── system.nix
+│   │   └── user.nix
+│   ├── filesystem
+│   │   ├── importers.nix
+│   │   ├── meta.nix
+│   │   └── predicates.nix
+│   ├── hardware
+│   │   └── gpu.nix
+│   ├── host
+│   │   ├── generators.nix
+│   │   └── specs.nix.bac
+│   ├── lists
+│   │   ├── generators.nix
+│   │   ├── membership.nix
+│   │   └── predicates.nix
+│   ├── modules.nix
+│   └── predicates
+│       └── emptiness.nix
 ├── LICENSE-APACHE
 ├── LICENSE-MIT
 ├── README.md
-└── shell.nix
+├── shell.nix
+└── WARP.md
