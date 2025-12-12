@@ -142,6 +142,16 @@ in {
     };
   };
 
+  systemd.services."nvidia-wait-for-displays" = {
+    description = "Wait for NVIDIA and AMD displays to initialize";
+    wantedBy = ["display-manager.service"];
+    before = ["display-manager.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.coreutils}/bin/sleep 5";
+    };
+  };
+
   #~@ Boot configuration
   boot = {
     initrd = {
@@ -154,10 +164,11 @@ in {
         "sd_mod"
       ];
       kernelModules = [
-        # "nvidia"
-        # "nvidia_modeset"
-        # "nvidia_uvm"
-        # "nvidia_drm"
+        "amdgpu"
+        "nvidia"
+        "nvidia_modeset"
+        "nvidia_uvm"
+        "nvidia_drm"
       ];
     };
     extraModulePackages = [];
@@ -170,11 +181,15 @@ in {
     };
 
     kernelParams = [
-      #? For NVIDIA
+      #? For NVIDIA - Early KMS
       "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
       "nvidia.NVreg_EnableS0ixPowerManagement=1"
       "nvidia.NVreg_TemporaryFilePath=/var/tmp"
       "nvidia_drm.modeset=1"
+      "nvidia_drm.fbdev=1"
+
+      #? For AMD GPU
+      "amdgpu.modeset=1"
 
       #? Blacklist nouveau
       "rd.driver.blacklist=nouveau"
@@ -183,6 +198,13 @@ in {
       #? General stability
       "nowatchdog"
       "mitigations=off"
+
+      #? Force probe NVIDIA outputs (card0 - the discrete GPU)
+      "video=card0-DP-3:e"
+      "video=card0-HDMI-A-3:e"
+
+      #? Force probe AMD output (card1 - the motherboard/integrated)
+      "video=card1-HDMI-A-2:e"
     ];
 
     blacklistedKernelModules = ["nouveau"];
@@ -1008,13 +1030,13 @@ in {
     shellAliases = env.aliases;
     sessionVariables =
       env.variables
-      // {
-        # Add these for KWin stability
-        KWIN_DRM_NO_AMS = "1"; # Disable atomic mode setting if problematic
-        KWIN_DRM_USE_EGL_STREAMS = "1"; # For NVIDIA
-        __GL_GSYNC_ALLOWED = "0";
-        __GL_VRR_ALLOWED = "0";
-      }
+      # // {
+      #   # Add these for KWin stability
+      #   KWIN_DRM_NO_AMS = "1"; # Disable atomic mode setting if problematic
+      #   KWIN_DRM_USE_EGL_STREAMS = "1"; # For NVIDIA
+      #   __GL_GSYNC_ALLOWED = "0";
+      #   __GL_VRR_ALLOWED = "0";
+      # }
       // {
         #~@ Wayland configuration
         #? For Clutter/GTK apps
@@ -1108,6 +1130,30 @@ in {
           printf "❌ Dry-run failed - aborting\n"
           exit 1
         fi
+      '')
+
+      (pkgs.writeShellScriptBin "wait-for-displays" ''
+        set -euo pipefail
+
+        max_attempts=10
+        attempt=0
+
+        while [ $attempt -lt $max_attempts ]; do
+          # Check if all expected displays are detected
+          if [ -e /sys/class/drm/card0-DP-3 ] && \
+            [ -e /sys/class/drm/card0-HDMI-A-3 ] && \
+            [ -e /sys/class/drm/card1-HDMI-A-2 ]; then
+            printf "All displays detected\n"
+            exit 0
+          fi
+
+          printf "Waiting for displays... attempt %s\n" "$attempt"
+          sleep 0.5
+          attempt=$((attempt + 1))
+        done
+
+        printf "Not all displays detected, continuing anyway\n"
+        exit 0
       '')
     ];
   };
