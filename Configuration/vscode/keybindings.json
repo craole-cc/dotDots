@@ -1,0 +1,74 @@
+[
+  {
+    "key": "ctrl+alt+,",
+    "command": "workbench.action.openWorkspaceSettingsFile"
+  },
+  {
+    "key": "ctrl+shift+,",
+    "command": "-editor.action.inPlaceReplace.up",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "ctrl+shift+,",
+    "command": "workbench.action.openSettingsJson"
+  },
+  {
+    "key": "ctrl+shift+a",
+    "command": "extension.toggleFiles"
+  },
+  {
+    "key": "shift+escape",
+    "command": "workbench.action.terminal.kill"
+  },
+  {
+    "key": "ctrl+alt+`",
+    "command": "workbench.action.terminal.kill"
+  },
+  {
+    "key": "ctrl+0",
+    "command": "workbench.action.zoomReset",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+alt+,",
+    "command": "workbench.action.openGlobalKeybindingsFile"
+  },
+  {
+    "key": "ctrl+shift+alt+,",
+    "command": "workbench.action.openRawDefaultSettings"
+  },
+  {
+    "key": "F3",
+    "command": "toggle",
+    "when": "editorTextFocus",
+    "args": {
+      "id": "minimap",
+      "value": [
+        {
+          "editor.minimap.enabled": true
+        },
+        {
+          "editor.minimap.enabled": false
+        }
+      ]
+    }
+  },
+  {
+    "key": "F4",
+    "command": "toggle",
+    "when": "editorTextFocus",
+    "args": {
+      "id": "zen",
+      "value": [
+        {
+          "editor.minimap.enabled": true,
+          "workbench.statusBar.visible": true
+        },
+        {
+          "editor.minimap.enabled": false,
+          "workbench.statusBar.visible": false
+        }
+      ]
+    }
+  }
+]

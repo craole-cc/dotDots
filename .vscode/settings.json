@@ -6,7 +6,7 @@
     "**/.DS_Store": false,
     "**/Thumbs.db": false
   },
-  "git.enabled": false,
+  // "git.enabled": false,
   "fileinator.ignoredFolders": [
     "**/$RECYCLE.BIN",
     "**/*.bac",
