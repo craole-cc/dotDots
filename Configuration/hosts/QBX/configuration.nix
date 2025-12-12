@@ -281,8 +281,14 @@ in {
       enable = true;
       wayland.enable = true;
     };
-    desktopManager.plasma6.enable = true;
-    # xserver.enable = true; # TODO: Wayland is not working out, especial with Nvidia
+    desktopManager.plasma6 = {
+      enable = true;
+      excludedPackages = pkgs.kdePackages [
+        "konsole"
+        "kwrite"
+        "kate"
+      ];
+    };
     # Load nvidia driver for Xorg and Wayland
     xserver.videoDrivers = ["nvidia"];
 
@@ -400,12 +406,21 @@ in {
       inherit (user) imports;
       home = {
         stateVersion = host.version;
-        packages = with pkgs; [
-          microsoft-edge
-          qbittorrent-enhanced
-          inkscape
-          warp-terminal
-        ];
+        packages = with pkgs;
+          [
+            microsoft-edge
+            qbittorrent-enhanced
+            inkscape
+            warp-terminal
+          ]
+          ++ [
+            gImageReader
+          ]
+          ++ (with kdePackages; [
+            krohnkite
+            karp
+            qxlsx
+          ]);
       };
 
       #~@ User programs configuration
