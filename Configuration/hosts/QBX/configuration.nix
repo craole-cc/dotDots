@@ -169,21 +169,21 @@ in {
       timeout = 1;
     };
 
-    # kernelParams = [
-    #   # For NVIDIA
-    #   "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
-    #   "nvidia.NVreg_EnableS0ixPowerManagement=1"
-    #   "nvidia.NVreg_TemporaryFilePath=/var/tmp"
-    #   "nvidia_drm.modeset=1"
+    kernelParams = [
+      #? For NVIDIA
+      "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+      "nvidia.NVreg_EnableS0ixPowerManagement=1"
+      "nvidia.NVreg_TemporaryFilePath=/var/tmp"
+      "nvidia_drm.modeset=1"
 
-    #   # Blacklist nouveau
-    #   "rd.driver.blacklist=nouveau"
-    #   "modprobe.blacklist=nouveau"
+      #? Blacklist nouveau
+      "rd.driver.blacklist=nouveau"
+      "modprobe.blacklist=nouveau"
 
-    #   # General stability
-    #   "nowatchdog"
-    #   "mitigations=off"
-    # ];
+      #? General stability
+      "nowatchdog"
+      "mitigations=off"
+    ];
 
     # blacklistedKernelModules = ["nouveau"];
   };
