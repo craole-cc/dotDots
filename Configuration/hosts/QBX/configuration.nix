@@ -128,15 +128,15 @@ in {
         enable = false;
         finegrained = true;
       };
-      prime = {
-        sync.enable = true;
-        # offload = {
-        #   enable = true;
-        #   enableOffloadCmd = true;
-        # };
-        # amdgpuBusId = "PCI:12:0:0";
-        # nvidiaBusId = "PCI:1:0:0";
-      };
+      # prime = {
+      # sync.enable = true;
+      # offload = {
+      #   enable = true;
+      #   enableOffloadCmd = true;
+      # };
+      # amdgpuBusId = "PCI:12:0:0";
+      # nvidiaBusId = "PCI:1:0:0";
+      # };
     };
     graphics.enable = true;
 
@@ -170,30 +170,30 @@ in {
     };
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
       timeout = 1;
     };
 
-    kernelParams = [
-      # For NVIDIA
-      "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
-      "nvidia.NVreg_EnableS0ixPowerManagement=1"
-      "nvidia.NVreg_TemporaryFilePath=/var/tmp"
-      "nvidia_drm.modeset=1"
+    # kernelParams = [
+    #   # For NVIDIA
+    #   "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+    #   "nvidia.NVreg_EnableS0ixPowerManagement=1"
+    #   "nvidia.NVreg_TemporaryFilePath=/var/tmp"
+    #   "nvidia_drm.modeset=1"
 
-      # Blacklist nouveau
-      "rd.driver.blacklist=nouveau"
-      "modprobe.blacklist=nouveau"
+    #   # Blacklist nouveau
+    #   "rd.driver.blacklist=nouveau"
+    #   "modprobe.blacklist=nouveau"
 
-      # General stability
-      "nowatchdog"
-      "mitigations=off"
-    ];
+    #   # General stability
+    #   "nowatchdog"
+    #   "mitigations=off"
+    # ];
 
-    blacklistedKernelModules = ["nouveau"];
+    # blacklistedKernelModules = ["nouveau"];
   };
 
   #~@ Filesystems
