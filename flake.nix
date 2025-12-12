@@ -321,7 +321,6 @@
       };
     };
     styleManager = {
-      # url = "github:danth/stylix";
       owner = "danth";
       repo = "stylix";
       type = "github";
@@ -340,7 +339,6 @@
 
     #| Software inputs
     zen-browser = {
-      # url = "github:0xc000022070/zen-browser-flake";
       owner = "0xc000022070";
       repo = "zen-browser-flake";
       type = "github";

@@ -21,6 +21,12 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixosCore";
     };
+    flakeCompat = {
+      type = "github";
+      owner = "edolstra";
+      repo = "flake-compat";
+      flake = false;
+    };
     firefoxZen = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixosCore";
