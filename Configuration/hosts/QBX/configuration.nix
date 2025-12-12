@@ -128,20 +128,8 @@ in {
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       forceFullCompositionPipeline = true;
       modesetting.enable = true;
-      powerManagement = {
-        enable = false;
-        # finegrained = true;
-      };
+      powerManagement.enable = false;
       nvidiaSettings = true;
-      # prime = {
-      #   # sync.enable = true;
-      #   offload = {
-      #     enable = true;
-      #     enableOffloadCmd = true;
-      #   };
-      #   amdgpuBusId = "PCI:54:0:0";
-      #   nvidiaBusId = "PCI:14:0:0";
-      # };
     };
 
     #~@ Bluetooth
