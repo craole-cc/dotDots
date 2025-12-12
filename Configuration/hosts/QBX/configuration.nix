@@ -162,10 +162,10 @@ in {
         "sd_mod"
       ];
       kernelModules = [
-        "nvidia"
-        "nvidia_modeset"
-        "nvidia_uvm"
-        "nvidia_drm"
+        # "nvidia"
+        # "nvidia_modeset"
+        # "nvidia_uvm"
+        # "nvidia_drm"
       ];
     };
     extraModulePackages = [];
