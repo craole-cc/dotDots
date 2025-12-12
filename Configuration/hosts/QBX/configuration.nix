@@ -129,7 +129,7 @@ in {
       forceFullCompositionPipeline = true;
       modesetting.enable = true;
       powerManagement.enable = false;
-      nvidiaSettings = true;
+      # nvidiaSettings = true;
     };
 
     #~@ Bluetooth
