@@ -108,6 +108,7 @@
   imports = with sources; [
     (modulesPath + "/installer/scan/not-detected.nix")
     (import "${nixosHome}/nixos")
+    ./plasma.nix
   ];
 
   inherit (lib.attrsets) listToAttrs;
@@ -276,13 +277,6 @@ in {
 
   # ==================== SERVICES ====================
   services = {
-    #~@ Display
-    displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-    };
-    desktopManager.plasma6.enable = true;
-
     # Load nvidia driver for Xorg and Wayland
     xserver.videoDrivers = ["nvidia"];
 
@@ -409,11 +403,6 @@ in {
           ++ [
             gImageReader
           ];
-        # ++ (with pkgs.kdePackages; [
-        #   krohnkite
-        #   karp
-        #   qxlsx
-        # ]);
       };
 
       #~@ User programs configuration
