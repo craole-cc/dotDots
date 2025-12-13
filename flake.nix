@@ -237,7 +237,6 @@
       flake = false;
     };
     flakeUtils = {
-      # url = "github:numtide/flake-utils";
       owner = "numtide";
       repo = "flake-utils";
       type = "github";

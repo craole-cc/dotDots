@@ -105,9 +105,8 @@
   };
 in {
   # ==================== IMPORTS ====================
-  imports = with sources; [
+  imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    (import "${nixosHome}/nixos")
     ./plasma.nix
   ];
 
@@ -150,7 +149,7 @@ in {
     };
   };
 
-  #~@ Boot configuration
+  # ==================== BOOT ====================
   boot = {
     initrd = {
       availableKernelModules = [
@@ -208,7 +207,7 @@ in {
     blacklistedKernelModules = ["nouveau"];
   };
 
-  #~@ Filesystems
+  # ==================== Filesystems ====================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
@@ -1169,14 +1168,14 @@ in {
   };
 
   # ==================== POST-ACTIVATION ====================
-  system.activationScripts.postActivation.text = ''
-    set -euo pipefail
-    NIXOS_BASE=${paths.base}
-    NIXOS_ORIG=${paths.orig}
+  # system.activationScripts.postActivation.text = ''
+  #   set -euo pipefail
+  #   NIXOS_BASE=${paths.base}
+  #   NIXOS_ORIG=${paths.orig}
 
-    [ -d "$NIXOS_ORIG" ] && rm -rf "$NIXOS_ORIG"
-    mkdir -p "$NIXOS_ORIG"
-    cp -R "$NIXOS_BASE"/. "$NIXOS_ORIG"/
-    printf "✓ NixOS backup refreshed: %s → %s\n" "$NIXOS_BASE" "$NIXOS_ORIG"
-  '';
+  #   [ -d "$NIXOS_ORIG" ] && rm -rf "$NIXOS_ORIG"
+  #   mkdir -p "$NIXOS_ORIG"
+  #   cp -R "$NIXOS_BASE"/. "$NIXOS_ORIG"/
+  #   printf "✓ NixOS backup refreshed: %s → %s\n" "$NIXOS_BASE" "$NIXOS_ORIG"
+  # '';
 }
