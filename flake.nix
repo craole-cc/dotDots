@@ -26,11 +26,11 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = args;
+                sharedModules = [
+                  firefoxZen.homeModules.twilight
+                  plasmaManager.homeModules.plasma-manager
+                ];
                 users.${user} = {osConfig, ...}: {
-                  imports = [
-                    firefoxZen.homeModules.twilight
-                    plasmaManager.homeModules.plasma-manager
-                  ];
                   home = {inherit (osConfig.system) stateVersion;};
                 };
               };
