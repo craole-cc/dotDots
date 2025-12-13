@@ -1,50 +1,52 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = inputs @ {self, ...}:
-    with inputs; let
-      inherit (nixosCore) lib;
-      inherit (lib) nixosSystem;
-      inherit (import ./Libraries {}) lix;
-      inherit (import ./API {inherit lix;}) hosts users;
+  outputs = inputs @ {self, ...}: let
+    inherit (inputs.nixosCore) lib;
+    inherit (lib) nixosSystem;
+    inherit (lib.attrsets) mapAttrs;
+    inherit (import ./Libraries {}) lix;
+    inherit (import ./API {inherit lix;}) hosts users;
 
-      args = {inherit self inputs hosts users;};
+    args = {inherit self inputs hosts users;};
 
-      mkHost = {
-        name,
-        system ? "x86_64-linux",
-        user ? "craole",
-      }: {
-        "${name}" = nixosSystem {
-          inherit system;
-          specialArgs = args;
-          modules = [
-            nixosHome.nixosModules.home-manager
-            {
-              home-manager = {
-                backupFileExtension = "backup";
-                overwriteBackup = true;
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = args;
-                sharedModules = [
-                  firefoxZen.homeModules.twilight
-                  plasmaManager.homeModules.plasma-manager
-                ];
-                users.${user} = {osConfig, ...}: {
-                  home = {inherit (osConfig.system) stateVersion;};
-                };
+    mkHost = {
+      name,
+      system ? "x86_64-linux",
+      user ? "craole",
+    }: {
+      "${name}" = nixosSystem {
+        inherit system;
+        specialArgs = args;
+        modules = with inputs; [
+          nixosHome.nixosModules.home-manager
+          {
+            home-manager = {
+              backupFileExtension = "backup";
+              overwriteBackup = true;
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs = args;
+              sharedModules = [
+                firefoxZen.homeModules.twilight
+                plasmaManager.homeModules.plasma-manager
+              ];
+              users.${user} = {osConfig, ...}: {
+                home = {inherit (osConfig.system) stateVersion;};
               };
-            }
-            ./Configuration/hosts/${name}/configuration.nix
-          ];
-        };
-      };
-    in {
-      nixosConfigurations = mkHost {
-        name = "QBX";
-        system = "x86_64-linux";
+            };
+          }
+          ./Configuration/hosts/${name}/configuration.nix
+        ];
       };
     };
+  in {
+    nixosConfigurations = mapAttrs mkHost hosts;
+
+    # nixosConfigurations = mkHost {
+    #   name = "QBX";
+    #   system = "x86_64-linux";
+    # };
+  };
 
   inputs = {
     #| NixOS Official
