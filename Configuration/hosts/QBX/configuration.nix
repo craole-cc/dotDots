@@ -380,7 +380,6 @@ in {
   # ==================== HOME MANAGER ====================
   home-manager.users = {
     "${user.name}" = {
-      inherit (user) imports;
       home = {
         stateVersion = host.version;
         packages = with pkgs;
