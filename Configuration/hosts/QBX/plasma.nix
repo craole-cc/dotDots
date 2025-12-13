@@ -3,6 +3,7 @@
     displayManager.sddm = {
       enable = true;
       wayland.enable = true;
+      theme = "catppuccin-sddm-corners";
     };
     desktopManager.plasma6.enable = true;
   };
@@ -19,6 +20,17 @@
         sweet-nova
         utterly-nord-plasma
         utterly-round-plasma-style
+        catppuccin-kde
+
+        #~@ SDDM Themes
+        catppuccin-sddm-corners
+
+        #~@ Kvantum Themes
+        catppuccin-kvantum
+        gruvbox-kvantum
+        rose-pine-kvantum
+        ayu-theme-gtk
+        kvmarwaita
 
         #~@ GTK Themes
         rose-pine-gtk-theme
@@ -32,8 +44,12 @@
         kanagawa-gtk-theme
         magnetic-catppuccin-gtk
 
+        #~@ Cursors
+        catppuccin-cursors
+
         #~@ Visuals
         kurve
+        catppuccin
       ]
       ++ (with kdePackages; [
         #~@ Themes
