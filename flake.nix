@@ -272,7 +272,9 @@
       type = "github";
       owner = "the-nix-way";
       repo = "dev-templates";
-      inputs.nixpkgs.follows = "nixosCore";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+      };
     };
 
     templatesNixed = {
