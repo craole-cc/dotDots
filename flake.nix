@@ -1,4 +1,4 @@
-{modulesPath, ...}: {
+{
   description = "dotDots Flake Configuration";
   outputs = inputs @ {
     self,
@@ -10,7 +10,6 @@
     inherit (lib) nixosSystem;
     args = {inherit self inputs;};
     mods = [
-      (modulesPath + "/installer/scan/not-detected.nix")
       (import "${nixosHome}/nixos")
     ];
   in {
