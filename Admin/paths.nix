@@ -8,12 +8,12 @@ let
 
   parts = rec {
     flake = "";
-    administration = {
+    administration = rec {
       base = "Admin";
-      host = administration.base + "/host.nix";
-      modules = administration.base + "/modules.nix";
-      packages = administration.base + "/packages.nix";
-      paths = administration.base + "/paths.nix";
+      host = base + "/host.nix";
+      modules = base + "/modules.nix";
+      packages = base + "/packages.nix";
+      paths = base + "/paths.nix";
     };
     binaries = {
       base = "Bin";
@@ -54,13 +54,14 @@ let
     };
   };
 
- mkPathSet = root: set:
-  mapAttrs (name: value:
-    if isAttrs value
-    then mkPathSet root value
-    else builtins.toString (builtins.path { path = root + "/" + value; })
-  )
-  set;
+  mkPathSet = root: set:
+    mapAttrs (
+      name: value:
+        if isAttrs value
+        then mkPathSet root value
+        else builtins.toString (builtins.path {path = root + "/" + value;})
+    )
+    set;
 
   initialPaths = {
     store = mkPathSet flake.store parts;
@@ -79,8 +80,7 @@ let
         )
         parts;
     };
-in
-  {
-    inherit updateLocalPaths;
-    default = updateLocalPaths null;
-  }
+in {
+  inherit updateLocalPaths;
+  default = updateLocalPaths null;
+}

@@ -31,5 +31,12 @@
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixosCore";
     };
+    plasmaManager = {
+      url = "github:pjones/plasma-manager";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixosHome";
+      };
+    };
   };
 }
