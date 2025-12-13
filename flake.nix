@@ -23,8 +23,94 @@
   };
 
   inputs = {
-    #| NixOS
+    #| NixOS Official
     nixosCore.url = "nixpkgs/nixos-unstable";
+
+    #| Utilities by NixCommunity
+    nixosHome = {
+      type = "github";
+      owner = "nix-community";
+      repo = "home-manager";
+      inputs.nixpkgs.follows = "nixosCore";
+    };
+    nur = {
+      owner = "nix-community";
+      repo = "NixOS-WSL";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        flake-compat.follows = "flakeCompat";
+      };
+    };
+    # nixCache = {
+    #   type = "github";
+    #   owner = "nix-community";
+    #   repo = "harmonia";
+    #   inputs = {
+    #     nixpkgs.follows = "nixosCore";
+    #     flake-parts.follows = "flakeParts";
+    #     treefmt-nix.follows = "treeFormatter";
+    #   };
+    # };
+    # nixDisk = {
+    #   type = "github";
+    #   owner = "nix-community";
+    #   repo = "disko";
+    #   inputs.nixpkgs.follows = "nixosCore";
+    # };
+    # nixImpermanence = {
+    #   type = "github";
+    #   owner = "nix-community";
+    #   repo = "impermanence";
+    # };
+    githubActions = {
+      type = "github";
+      owner = "nix-community";
+      repo = "nix-github-actions";
+      inputs.nixpkgs.follows = "nixosCore";
+    };
+    nixLocate = {
+      type = "github";
+      owner = "nix-community";
+      repo = "nix-index-database";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+      };
+    };
+    # nixLocateLocal = {
+    #   type = "github";
+    #   owner = "nix-community";
+    #   repo = "nix-index";
+    #   inputs = {
+    #     nixpkgs.follows = "nixosCore";
+    #     flake-compat.follows = "flakeCompat";
+    #   };
+    # };
+    nixLib = {
+      owner = "nix-community";
+      repo = "nixpkgs.lib";
+      type = "github";
+    };
+    nixUnitTesting = {
+      type = "github";
+      owner = "nix-community";
+      repo = "nix-unit";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        flake-parts.follows = "flakeParts";
+        treefmt-nix.follows = "treeFormatter";
+        nix-github-actions.follows = "githubActions";
+      };
+    };
+    nixosWSL = {
+      type = "github";
+      owner = "nix-community";
+      repo = "NixOS-WSL";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        flake-compat.follows = "flakeCompat";
+      };
+    };
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -183,92 +269,6 @@
       type = "github";
       owner = "nix-systems";
       repo = "default";
-    };
-
-    #| Utilities by NixCommunity
-    nur = {
-      owner = "nix-community";
-      repo = "NixOS-WSL";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-compat.follows = "flakeCompat";
-      };
-    };
-    # nixCache = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "harmonia";
-    #   inputs = {
-    #     nixpkgs.follows = "nixosCore";
-    #     flake-parts.follows = "flakeParts";
-    #     treefmt-nix.follows = "treeFormatter";
-    #   };
-    # };
-    # nixDisk = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "disko";
-    #   inputs.nixpkgs.follows = "nixosCore";
-    # };
-    nixosHome = {
-      type = "github";
-      owner = "nix-community";
-      repo = "home-manager";
-      inputs.nixpkgs.follows = "nixosCore";
-    };
-    # nixImpermanence = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "impermanence";
-    # };
-    githubActions = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-github-actions";
-      inputs.nixpkgs.follows = "nixosCore";
-    };
-    nixLocate = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-index-database";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-      };
-    };
-    # nixLocateLocal = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "nix-index";
-    #   inputs = {
-    #     nixpkgs.follows = "nixosCore";
-    #     flake-compat.follows = "flakeCompat";
-    #   };
-    # };
-    nixLib = {
-      owner = "nix-community";
-      repo = "nixpkgs.lib";
-      type = "github";
-    };
-    nixUnitTesting = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-unit";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-parts.follows = "flakeParts";
-        treefmt-nix.follows = "treeFormatter";
-        nix-github-actions.follows = "githubActions";
-      };
-    };
-    nixosWSL = {
-      type = "github";
-      owner = "nix-community";
-      repo = "NixOS-WSL";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-compat.follows = "flakeCompat";
-      };
     };
 
     #| Templates
