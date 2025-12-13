@@ -34,7 +34,7 @@
     plasmaManager = {
       url = "github:pjones/plasma-manager";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         home-manager.follows = "nixosHome";
       };
     };
