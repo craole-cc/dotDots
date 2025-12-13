@@ -60,10 +60,6 @@
       inherit home;
       downloads = home + "/Downloads";
     };
-
-    imports = with sources; [
-      firefoxZen.homeModules.twilight
-    ];
   };
 
   # ==================== PATH ====================
@@ -173,7 +169,6 @@ in {
     kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
-      # refind.enable = true;
       efi.canTouchEfiVariables = true;
       timeout = 1;
     };
@@ -380,7 +375,7 @@ in {
 
   # ==================== HOME MANAGER ====================
   home-manager = {
-    backupFileExtension = "backup";
+    # backupFileExtension = "backup";
     overwriteBackup = true;
     useGlobalPkgs = true;
     useUserPackages = true;

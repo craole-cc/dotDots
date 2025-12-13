@@ -9,97 +9,33 @@
     inherit (nixosCore) lib;
     inherit (lib) nixosSystem;
     args = {inherit self inputs;};
-    mods = [
-      (import "${nixosHome}/nixos")
-    ];
+    mods = {
+      # core = [
+      #   (import "${nixosHome}/nixos")
+      # ];
+      home = with inputs; [firefoxZen.homeModules.twilight];
+    };
   in {
     nixosConfigurations = {
       QBX = nixosSystem {
         system = "x86_64-linux";
         specialArgs = args;
-        modules = mods ++ [./Configuration/hosts/QBX/configuration.nix];
-      };
-    };
-  };
-
-  inputs = {
-    #| NixOS Official
-    nixosCore.url = "nixpkgs/nixos-unstable";
-
-    #| Utilities by NixCommunity
-    nixosHome = {
-      type = "github";
-      owner = "nix-community";
-      repo = "home-manager";
-      inputs.nixpkgs.follows = "nixosCore";
-    };
-    nixosWSL = {
-      type = "github";
-      owner = "nix-community";
-      repo = "NixOS-WSL";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-compat.follows = "flakeCompat";
-      };
-    };
-    # nixCache = {
-    #   type = "github";
-    #   owner = "nix-community";
-    #   repo = "harmonia";
-    #   inputs = {
-    #     nixpkgs.follows = "nixosCore";
-    #     flake-parts.follows = "flakeParts";
-    #     treefmt-nix.follows = "treeFormatter";
-    #   };
-    # };
-    nixDisk = {
-      type = "github";
-      owner = "nix-community";
-      repo = "disko";
-      inputs.nixpkgs.follows = "nixosCore";
-    };
-    nixImpermanence = {
-      type = "github";
-      owner = "nix-community";
-      repo = "impermanence";
-    };
-    nixLocate = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-index-database";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-      };
-    };
-    nixLib = {
-      owner = "nix-community";
-      repo = "nixpkgs.lib";
-      type = "github";
-    };
-    nixUnitTesting = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-unit";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-parts.follows = "flakeParts";
-        treefmt-nix.follows = "treeFormatter";
-        nix-github-actions.follows = "githubActions";
-      };
-    };
-    githubActions = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-github-actions";
-      inputs.nixpkgs.follows = "nixosCore";
-    };
-    NUR = {
-      type = "github";
-      owner = "nix-community";
-      repo = "NUR";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-parts.follows = "flakeParts";
+        modules =
+          mods.core
+          ++ [
+            nixosHome.nixosModules.home-manager
+            {
+              home-manager = {
+                backupFileExtension = "backup";
+                overwriteBackup = true;
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = args;
+                sharedModules = mods.home;
+              };
+            }
+            ./Configuration/hosts/QBX/configuration.nix
+          ];
       };
     };
 
