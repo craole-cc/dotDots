@@ -172,7 +172,8 @@ in {
     kernelModules = ["kvm-amd"];
     kernelPackages = pkgs.linuxPackages_latest;
     loader = {
-      systemd-boot.enable = true;
+      refind.enable = true;
+      # systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
       timeout = 1;
     };
@@ -224,8 +225,7 @@ in {
     };
   };
 
-  # ==================== SYSTEM ====================
-  #~@ Nix Configuration
+  # ==================== NIX ====================
   nix = {
     nixPath = [
       "nixpkgs=${sources.nixosCore}"
@@ -244,13 +244,17 @@ in {
     config.allowUnfree = true;
   };
 
-  #~@ Networking
+  system = {
+    stateVersion = host.version;
+    copySystemConfiguration = inputs == null;
+  };
+  # ==================== Network ====================
   networking = {
     hostName = host.name;
     networkmanager.enable = true;
   };
 
-  #~@ Localization
+  # ==================== Localization ====================
   location = {
     longitude = "18.015";
     latitude = "77.49";
@@ -266,15 +270,9 @@ in {
     defaultLocale = "en_US.UTF-8";
   };
 
-  #~@ System
-  system = {
-    stateVersion = host.version;
-    copySystemConfiguration = inputs == null;
-  };
-
   # ==================== SERVICES ====================
   services = {
-    # Load nvidia driver for Xorg and Wayland
+    #> Load nvidia driver for Xorg and Wayland
     xserver.videoDrivers = ["nvidia"];
 
     #~@ Network
@@ -373,7 +371,7 @@ in {
     xwayland.enable = true;
   };
 
-  # ==================== USER CONFIGURATION ====================
+  # ==================== USERS ====================
   users.users."${user.name}" = {
     inherit (user) description;
     isNormalUser = true;
