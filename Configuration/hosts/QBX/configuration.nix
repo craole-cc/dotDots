@@ -60,6 +60,10 @@
       inherit home;
       downloads = home + "/Downloads";
     };
+
+    # imports = with sources; [
+    #   firefoxZen.homeModules.twilight
+    # ];
   };
 
   # ==================== PATH ====================
@@ -374,12 +378,8 @@ in {
   };
 
   # ==================== HOME MANAGER ====================
-  home-manager = {
-    # backupFileExtension = "backup";
-    overwriteBackup = true;
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users."${user.name}" = {
+  home-manager.users = {
+    "${user.name}" = {
       inherit (user) imports;
       home = {
         stateVersion = host.version;
