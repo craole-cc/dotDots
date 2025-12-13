@@ -9,13 +9,10 @@
 
     args = {inherit self inputs hosts users;};
 
-    mkHost = {
-      name,
-      system ? "x86_64-linux",
-      user ? "craole",
-    }: {
+    mkHost = name: host: {
       "${name}" = nixosSystem {
-        inherit system;
+        system = host.specs.platform or "x86_64-linux";
+        # inherit system;
         specialArgs = args;
         modules = with inputs; [
           nixosHome.nixosModules.home-manager
