@@ -97,7 +97,10 @@
       type = "github";
       owner = "nix-community";
       repo = "NUR";
-      inputs.nixpkgs.follows = "nixosCore";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        flake-parts.follows = "flakeParts";
+      };
     };
 
     #| Flake Parts (https://flake.parts)
