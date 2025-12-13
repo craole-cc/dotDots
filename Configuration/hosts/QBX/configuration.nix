@@ -408,12 +408,12 @@ in {
           ]
           ++ [
             gImageReader
-          ]
-          ++ (with pkgs.kdePackages; [
-            krohnkite
-            karp
-            qxlsx
-          ]);
+          ];
+        # ++ (with pkgs.kdePackages; [
+        #   krohnkite
+        #   karp
+        #   qxlsx
+        # ]);
       };
 
       #~@ User programs configuration
@@ -683,66 +683,82 @@ in {
             };
 
             settings = {
-              # Common preferences
+              #? Common preferences
               "browser.profiles.enabled" = true;
               "browser.profiles.default" = "default";
-              # Privacy & tracking
+
+              #? Privacy & tracking
               "privacy.trackingprotection.enabled" = true;
               "privacy.resistFingerprinting" = false;
               "privacy.donottrackheader.enabled" = true;
-              # URL bar / search
+
+              #? URL bar / search
               "browser.urlbar.suggest.searches" = false;
               "browser.urlbar.suggest.history" = true;
               "browser.urlbar.suggest.bookmark" = true;
               "browser.urlbar.suggest.openpage" = true;
-              # Tabs & windows
+
+              #? Tabs & windows
               "toolkit.tabbox.switchByScrolling" = true;
               "browser.tabs.loadInBackground" = true;
               "browser.tabs.warnOnClose" = false;
-              # Media & performance
+
+              #? Media & performance
               "media.videocontrols.picture-in-picture.enabled" = true;
               "media.autoplay.default" = 0;
               "gfx.webrender.all" = true;
-              # Scrolling & input
+
+              #? Scrolling & input
               "general.smoothScroll" = true;
               "mousewheel.default.delta_multiplier_y" = 100;
-              # Downloads
+
+              #? Downloads
               "browser.download.useDownloadDir" = true;
               "browser.download.folderList" = 1;
-              # Zen workspaces
+
+              #? Zen workspaces
               "zen.workspaces.continue-where-left-off" = true;
               "zen.workspaces.natural-scroll" = true;
               "zen.workspaces.swipe-actions" = true;
-              # Zen view / compact mode
+
+              #? Zen view / compact mode
               "zen.view.compact.hide-tabbar" = true;
               "zen.view.compact.hide-toolbar" = true;
               "zen.view.compact.animate-sidebar" = false;
-              # Zen welcome & onboarding
+
+              #? Zen welcome & onboarding
               "zen.welcome-screen.seen" = true;
-              # Zen URL bar
+
+              #? Zen URL bar
               "zen.urlbar.behavior" = "float";
-              # Zen theme & appearance
+
+              #? Zen theme & appearance
               "zen.theme.accent-color" = "#6366f1";
               "zen.theme.gradient" = true;
               "zen.theme.gradient.show-custom-colors" = false;
               "zen.view.gray-out-inactive-windows" = true;
               "zen.watermark.enabled" = true;
-              # Zen tabs
+
+              #? Zen tabs
               "zen.tabs.rename-tabs" = true;
               "zen.tabs.dim-pending" = true;
               "zen.ctrlTab.show-pending-tabs" = true;
-              # Zen media & controls
+
+              #? Zen media & controls
               "zen.mediacontrols.enabled" = true;
               "zen.mediacontrols.show-on-hover" = true;
-              # Zen glance / search
+
+              #? Zen glance / search
               "zen.glance.enable-contextmenu-search" = true;
               "zen.glance.show-bookmarks" = true;
               "zen.glance.show-history" = true;
-              # Zen tab unloader (memory)
+
+              #? Zen tab unloader (memory)
               "zen.tab-unloader.enabled" = true;
               "zen.tab-unloader.delay" = 300;
               "zen.tab-unloader.excluded-urls" = "https://meet.google.com,https://app.slack.com";
-              # Zen experimental / hidden
+
+              #? Zen experimental / hidden
               "zen.view.experimental-rounded-view" = false;
               "zen.theme.content-element-separation" = 8;
             };
@@ -862,7 +878,7 @@ in {
           };
         };
 
-        #~@ Shell enhancements
+        #~@ Shell Enhancements
         starship.enable = true;
 
         #~@ Editor
@@ -998,17 +1014,17 @@ in {
           };
         };
 
-        # IDE
+        #~@ Integrated Development Environment
         vscode = {
           enable = true;
           package = pkgs.vscode-fhs;
         };
 
-        # File manager
+        #~@ File Manager
         yazi.enable = true;
       };
 
-      # XDG MIME associations
+      #~@ XDG MIME associations
       xdg.mimeApps = let
         types = [
           "application/x-extension-shtml"
@@ -1044,13 +1060,6 @@ in {
     shellAliases = env.aliases;
     sessionVariables =
       env.variables
-      # // {
-      #   # Add these for KWin stability
-      #   KWIN_DRM_NO_AMS = "1"; # Disable atomic mode setting if problematic
-      #   KWIN_DRM_USE_EGL_STREAMS = "1"; # For NVIDIA
-      #   __GL_GSYNC_ALLOWED = "0";
-      #   __GL_VRR_ALLOWED = "0";
-      # }
       // {
         #~@ Wayland configuration
         #? For Clutter/GTK apps
@@ -1169,11 +1178,6 @@ in {
         printf "Not all displays detected, continuing anyway\n"
         exit 0
       '')
-    ];
-
-    plasma6.excludePackages = with pkgs.kdePackages; [
-      konsole
-      kate
     ];
   };
 
