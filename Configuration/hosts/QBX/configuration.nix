@@ -172,7 +172,7 @@ in {
     kernelModules = ["kvm-amd"];
     kernelPackages = pkgs.linuxPackages_latest;
     loader = {
-      systemd-boot.enable = true;
+      # systemd-boot.enable = true;
       refind.enable = true;
       efi.canTouchEfiVariables = true;
       timeout = 1;
