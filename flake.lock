@@ -106,6 +106,21 @@
         "type": "github"
       }
     },
+    "crane": {
+      "locked": {
+        "lastModified": 1765145449,
+        "narHash": "sha256-aBVHGWWRzSpfL++LubA0CwOOQ64WNLegrYHwsVuVN7A=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "69f538cdce5955fcd47abfed4395dc6d5194c1c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
     "developmentShell": {
       "inputs": {
         "nixpkgs": [
@@ -354,6 +369,85 @@
         "type": "github"
       }
     },
+    "nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1764972171,
+        "narHash": "sha256-rZf5zbxu0eCz3Lb4IrelWNuegoQHUjCguuJzcyPFvt0=",
+        "owner": "nixos",
+        "repo": "nix",
+        "rev": "0db70b8184c1037a606d9cbd6c277c78f7adf647",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nix",
+        "type": "github"
+      }
+    },
+    "nixCache": {
+      "inputs": {
+        "crane": "crane",
+        "flake-parts": [
+          "flakeParts"
+        ],
+        "nix": "nix",
+        "nixpkgs": [
+          "nixosCore"
+        ],
+        "treefmt-nix": [
+          "treeFormatter"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765419202,
+        "narHash": "sha256-It4CmiKEY4Z2AzTvoCJBLbZZ9UqrQC0tVAb5rbX/l+U=",
+        "owner": "nix-community",
+        "repo": "harmonia",
+        "rev": "0829b842208546adab08963b96fe08be5a20cb5a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "harmonia",
+        "type": "github"
+      }
+    },
+    "nixDisk": {
+      "inputs": {
+        "nixpkgs": [
+          "nixosCore"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765326679,
+        "narHash": "sha256-fTLX9kDwLr9Y0rH/nG+h1XG5UU+jBcy0PFYn5eneRX8=",
+        "owner": "nix-community",
+        "repo": "disko",
+        "rev": "d64e5cdca35b5fad7c504f615357a7afe6d9c49e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "disko",
+        "type": "github"
+      }
+    },
+    "nixImpermanence": {
+      "locked": {
+        "lastModified": 1737831083,
+        "narHash": "sha256-LJggUHbpyeDvNagTUrdhe/pRVp4pnS6wVKALS782gRI=",
+        "owner": "nix-community",
+        "repo": "impermanence",
+        "rev": "4b3e914cdf97a5b536a889e939fb2fd2b043a170",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "impermanence",
+        "type": "github"
+      }
+    },
     "nixLib": {
       "locked": {
         "lastModified": 1765070080,
@@ -585,6 +679,9 @@
         "gitHooks": "gitHooks",
         "gitIgnore": "gitIgnore",
         "githubActions": "githubActions",
+        "nixCache": "nixCache",
+        "nixDisk": "nixDisk",
+        "nixImpermanence": "nixImpermanence",
         "nixLib": "nixLib",
         "nixLocate": "nixLocate",
         "nixUnitTesting": "nixUnitTesting",
