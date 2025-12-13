@@ -51,6 +51,9 @@
         kup
         qxlsx
       ]);
-    plasma6.excludePackages = with pkgs.kdePackages; [konsole kate];
+    plasma6.excludePackages = with pkgs.kdePackages; [
+      # konsole
+      kate
+    ];
   };
 }
