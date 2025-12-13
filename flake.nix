@@ -309,6 +309,7 @@
       type = "github";
       inputs = {
         nixpkgs.follows = "nixosCore";
+        home-manager.follows = "nixosHome";
       };
     };
 
