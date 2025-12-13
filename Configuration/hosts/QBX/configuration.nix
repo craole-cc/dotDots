@@ -44,7 +44,7 @@
       };
     };
 
-  # ==================== USER CONFIG ====================
+  # ==================== USER ====================
   user = {
     name = "craole";
     description = "Craig 'Craole' Cole";
@@ -66,7 +66,7 @@
     ];
   };
 
-  # ==================== PATH CONFIG ====================
+  # ==================== PATH ====================
   paths = let
     dots = "/home/${user.name}/.dots";
   in {
@@ -75,7 +75,7 @@
     orig = "/etc/nixos";
   };
 
-  # ==================== SYSTEM CONFIG ====================
+  # ==================== HOST ====================
   host = {
     name = "QBX";
     version = "25.11";
@@ -103,7 +103,7 @@
       lr = "lsd --long --git --recursive";
     };
   };
-
+in {
   # ==================== IMPORTS ====================
   imports = with sources; [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -111,11 +111,7 @@
     ./plasma.nix
   ];
 
-  inherit (lib.attrsets) listToAttrs;
-in {
-  inherit imports;
-
-  # ==================== HARDWARE CONFIGURATION ====================
+  # ==================== HARDWARE ====================
   hardware = {
     #~@ CPU
     cpu.amd.updateMicrocode = true;
@@ -142,13 +138,15 @@ in {
     };
   };
 
-  systemd.services."nvidia-wait-for-displays" = {
-    description = "Wait for NVIDIA and AMD displays to initialize";
-    wantedBy = ["display-manager.service"];
-    before = ["display-manager.service"];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.coreutils}/bin/sleep 5";
+  systemd.services = {
+    "nvidia-wait-for-displays" = {
+      description = "Wait for NVIDIA and AMD displays to initialize";
+      wantedBy = ["display-manager.service"];
+      before = ["display-manager.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.coreutils}/bin/sleep 5";
+      };
     };
   };
 
@@ -227,7 +225,7 @@ in {
     };
   };
 
-  # ==================== SYSTEM CONFIGURATION ====================
+  # ==================== SYSTEM ====================
   #~@ Nix Configuration
   nix = {
     nixPath = [
@@ -333,7 +331,7 @@ in {
     fontconfig = {
       enable = true;
       hinting = {
-        enable = false;
+        enable = true;
         style = "slight";
       };
       antialias = true;
@@ -1032,7 +1030,7 @@ in {
           "text/plain"
           "text/html"
         ];
-        associations = listToAttrs (map (app: {
+        associations = lib.attrsets.listToAttrs (map (app: {
             name = app;
             value = "zen.desktop";
           })

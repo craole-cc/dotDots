@@ -1,50 +1,31 @@
-{
+{modulesPath, ...}: {
   description = "dotDots Flake Configuration";
   outputs = inputs @ {
     self,
-    nixPackages,
+    nixosCore,
+    nixosHome,
     ...
   }: let
-    inherit (nixPackages) lib;
-    inherit (lib.attrsets) genAttrs attrValues;
-
-    systems = genAttrs (import inputs.nixosSystems);
-    pathsModule = import ./Admin/paths.nix;
-    paths = pathsModule.default;
-    init = {
-      host = paths.store.administration.host;
-      pkgs = paths.store.packages;
-    };
-
-    packageOverlays = import init.pkgs.overlays {inherit inputs;};
-    perSystemPackages = systems (
-      system:
-        import nixPackages {
-          inherit system;
-          overlays = attrValues packageOverlays;
-          config.allowUnfree = true;
-        }
-    );
-    perSystem = x: systems (system: x perSystemPackages.${system});
-    packages = perSystem (pkgs: import init.pkgs.custom {inherit pkgs paths;});
-    mkHost = name: args: import init.host {inherit self paths inputs;} name args;
+    inherit (nixosCore) lib;
+    inherit (lib) nixosSystem;
+    args = {inherit self inputs;};
+    mods = [
+      (modulesPath + "/installer/scan/not-detected.nix")
+      (import "${nixosHome}/nixos")
+    ];
   in {
-    # inherit packages lib;
-    # overlays = packageOverlays;
-    # devShells = perSystem (pkgs: {
-    #   default = packages.${pkgs.system}.dotshell;
-    # });
-    # # formatter = perSystem (pkgs: pkgs.treefmt); # TODO: Maybe we should still use treefmt-nix. Either way we need to define the formatter packages and make them available system-wide (devshells and modules). Also how can I make the treefmt.toml be available system-wide, not just in the devshells/project?
-    # nixosConfigurations = {
-    #   QBXvm = mkHost "QBXvm" {};
-    # };
+    nixosConfigurations = {
+      QBX = nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = args;
+        modules = mods ++ [./Configuration/hosts/QBX/configuration.nix];
+      };
+    };
   };
 
   inputs = {
     #| NixOS
-    nixPackages.url = "nixpkgs/nixos-unstable";
-    nixPackagesStable.url = "nixpkgs/nixos-24.11";
-    nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
+    nixosCore.url = "nixpkgs/nixos-unstable";
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -60,7 +41,7 @@
       owner = "numtide";
       repo = "devshell";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
       };
     };
     gitIgnore = {
@@ -68,7 +49,7 @@
       repo = "gitignore.nix";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
       };
     };
     configHosts = {
@@ -82,7 +63,7 @@
       repo = "ez-configs";
       inputs = {
         flake-parts.follows = "flakeParts";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
       };
     };
     secretManager = {
@@ -92,7 +73,7 @@
       inputs = {
         darwin.follows = "nixosDarwin";
         home-manager.follows = "nixosHome";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         systems.follows = "nixosSystems";
       };
     };
@@ -102,7 +83,7 @@
       repo = "agenix-rekey";
       inputs = {
         devshell.follows = "developmentShell";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         flake-parts.follows = "flakeParts";
         pre-commit-hooks.follows = "gitHooks";
         treefmt-nix.follows = "treeFormatter";
@@ -117,7 +98,7 @@
         flake-root.follows = "flakeRoot";
         git-hooks-nix.follows = "gitHooks";
         nix-github-actions.follows = "githubActions";
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         treefmt-nix.follows = "treeFormatter";
       };
     };
@@ -126,7 +107,7 @@
       owner = "numtide";
       repo = "treefmt-nix";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
       };
     };
 
@@ -141,7 +122,7 @@
     #     flake-parts.follows = "flakeParts";
     #     flake-compat.follows = "flakeCompat";
     #     git-hooks.follows = "gitHooks";
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosCore";
     #   };
     # };
     gitHooks = {
@@ -149,7 +130,7 @@
       owner = "cachix";
       repo = "git-hooks.nix";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         gitignore.follows = "gitIgnore";
         flake-compat.follows = "flakeCompat";
       };
@@ -159,7 +140,7 @@
     #   owner = "cachix";
     #   repo = "devenv";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosCore";
     #     flake-compat.follows = "flakeCompat";
     #     git-hooks.follows = "gitHooks";
     #     cachix.follows = "nixCache";
@@ -197,7 +178,7 @@
       type = "github";
       owner = "lnl7";
       repo = "nix-darwin";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosCore";
     };
     nixosSystems = {
       type = "github";
@@ -211,7 +192,7 @@
       repo = "NixOS-WSL";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         flake-compat.follows = "flakeCompat";
       };
     };
@@ -220,7 +201,7 @@
     #   owner = "nix-community";
     #   repo = "harmonia";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosCore";
     #     flake-parts.follows = "flakeParts";
     #     treefmt-nix.follows = "treeFormatter";
     #   };
@@ -229,13 +210,13 @@
     #   type = "github";
     #   owner = "nix-community";
     #   repo = "disko";
-    #   inputs.nixpkgs.follows = "nixPackages";
+    #   inputs.nixpkgs.follows = "nixosCore";
     # };
     nixosHome = {
       type = "github";
       owner = "nix-community";
       repo = "home-manager";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosCore";
     };
     # nixImpermanence = {
     #   type = "github";
@@ -246,14 +227,14 @@
       type = "github";
       owner = "nix-community";
       repo = "nix-github-actions";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosCore";
     };
     nixLocate = {
       type = "github";
       owner = "nix-community";
       repo = "nix-index-database";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
       };
     };
     # nixLocateLocal = {
@@ -261,7 +242,7 @@
     #   owner = "nix-community";
     #   repo = "nix-index";
     #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
+    #     nixpkgs.follows = "nixosCore";
     #     flake-compat.follows = "flakeCompat";
     #   };
     # };
@@ -275,7 +256,7 @@
       owner = "nix-community";
       repo = "nix-unit";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         flake-parts.follows = "flakeParts";
         treefmt-nix.follows = "treeFormatter";
         nix-github-actions.follows = "githubActions";
@@ -286,7 +267,7 @@
       owner = "nix-community";
       repo = "NixOS-WSL";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         flake-compat.follows = "flakeCompat";
       };
     };
@@ -301,7 +282,7 @@
       type = "github";
       owner = "the-nix-way";
       repo = "dev-templates";
-      inputs.nixpkgs.follows = "nixPackages";
+      inputs.nixpkgs.follows = "nixosCore";
     };
 
     #TODO: Add my templates, uncouple them from NixOS and TheNixWay
@@ -314,9 +295,11 @@
 
     #| Home
     plasmaManager = {
-      url = "github:pjones/plasma-manager";
+      owner = "pjones";
+      repo = "plasma-manager";
+      type = "github";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         home-manager.follows = "nixosHome";
       };
     };
@@ -325,7 +308,7 @@
       repo = "stylix";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixosCore";
         systems.follows = "nixosSystems";
         flake-compat.follows = "flakeCompat";
         flake-parts.follows = "flakeParts";
@@ -338,15 +321,15 @@
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
 
     #| Software inputs
-    zen-browser = {
+    firefoxZen = {
       owner = "0xc000022070";
       repo = "zen-browser-flake";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixPackages";
-        home-manager.follows = "nixosHome";
+        nixpkgs.follows = "nixosCore";
       };
     };
+
     # github-nix-ci.url = "github:juspay/github-nix-ci";
     # nixos-vscode-server = {
     #   url = "github:nix-community/nixos-vscode-server";
@@ -360,7 +343,7 @@
     # plasmaManager = {
     #   url = "github:pjones/plasma-manager";
     #   inputs = {
-    #     nixpkgs.follows ="nixPackages";
+    #     nixpkgs.follows ="nixosCore";
     #     home-manager.follows = "homeManager";
     #   };
     # };
