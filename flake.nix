@@ -42,41 +42,26 @@
         flake-compat.follows = "flakeCompat";
       };
     };
-    nixCache = {
-      type = "github";
-      owner = "nix-community";
-      repo = "harmonia";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-parts.follows = "flakeParts";
-        treefmt-nix.follows = "treeFormatter";
-      };
-    };
+    # nixCache = {
+    #   type = "github";
+    #   owner = "nix-community";
+    #   repo = "harmonia";
+    #   inputs = {
+    #     nixpkgs.follows = "nixosCore";
+    #     flake-parts.follows = "flakeParts";
+    #     treefmt-nix.follows = "treeFormatter";
+    #   };
+    # };
     nixDisk = {
       type = "github";
       owner = "nix-community";
       repo = "disko";
       inputs.nixpkgs.follows = "nixosCore";
     };
-    nur = {
-      owner = "nix-community";
-      repo = "NixOS-WSL";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        flake-compat.follows = "flakeCompat";
-      };
-    };
     nixImpermanence = {
       type = "github";
       owner = "nix-community";
       repo = "impermanence";
-    };
-    githubActions = {
-      type = "github";
-      owner = "nix-community";
-      repo = "nix-github-actions";
-      inputs.nixpkgs.follows = "nixosCore";
     };
     nixLocate = {
       type = "github";
@@ -101,6 +86,12 @@
         treefmt-nix.follows = "treeFormatter";
         nix-github-actions.follows = "githubActions";
       };
+    };
+    githubActions = {
+      type = "github";
+      owner = "nix-community";
+      repo = "nix-github-actions";
+      inputs.nixpkgs.follows = "nixosCore";
     };
 
     #| Flake Parts (https://flake.parts)
@@ -220,10 +211,7 @@
     #     flake-compat.follows = "flakeCompat";
     #     git-hooks.follows = "gitHooks";
     #     cachix.follows = "nixCache";
-    #     nix.follows = "nixDevEnv";
-
-    #     nixpkgs-23-11.follows = "";
-    #     nixpkgs-regression.follows = "";
+    #     # nix.follows = "nixDevEnv";
     #   };
     # };
 
@@ -275,13 +263,11 @@
       inputs.nixpkgs.follows = "nixosCore";
     };
 
-    #TODO: Add my templates, uncouple them from NixOS and TheNixWay
-    # templatesNixed = {
-    #   # url = "github:Craole/nixed";
-    #   type = "github";
-    #   owner = "Craole";
-    #   repo = "nixed";
-    # };
+    templatesNixed = {
+      type = "github";
+      owner = "Craole";
+      repo = "nixed";
+    };
 
     #| Home
     plasmaManager = {
@@ -300,11 +286,8 @@
       inputs = {
         nixpkgs.follows = "nixosCore";
         systems.follows = "nixosSystems";
-        flake-compat.follows = "flakeCompat";
         flake-parts.follows = "flakeParts";
-        git-hooks.follows = "gitHooks";
-        home-manager.follows = "nixosHome";
-        nur.follows = "nur";
+        # nur.follows = "nur";
       };
     };
     # nixos-unified.url = "github:srid/nixos-unified";
