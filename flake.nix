@@ -1,34 +1,23 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = inputs @ {
-    self,
-    nixosCore,
-    nixosHome,
-    ...
-  }: let
-    inherit (nixosCore) lib;
-    inherit (lib) nixosSystem;
-    args = {inherit self inputs;};
-    mods = {
-      core = [
-        (import "${nixosHome}/nixos")
-      ];
-      home = with inputs; [
-        firefoxZen.homeModules.twilight
-      ];
-    };
-    mkHost = {
-      name,
-      system ? "x86_64-linux",
-    }: {
-      "${name}" = nixosSystem {
-        inherit system;
+  outputs = inputs @ {self, ...}:
+    with inputs; let
+      inherit (nixosCore) lib;
+      inherit (lib) nixosSystem;
+      inherit (import ./Libraries {}) lix;
+      inherit (import ./API {inherit lix;}) hosts users;
 
-        specialArgs = args;
+      args = {inherit self inputs hosts users;};
 
-        modules =
-          mods.core
-          ++ [
+      mkHost = {
+        name,
+        system ? "x86_64-linux",
+        user ? "craole",
+      }: {
+        "${name}" = nixosSystem {
+          inherit system;
+          specialArgs = args;
+          modules = [
             nixosHome.nixosModules.home-manager
             {
               home-manager = {
@@ -37,42 +26,25 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = args;
-                sharedModules = mods.home;
+                users.${user} = {osConfig, ...}: {
+                  imports = [
+                    firefoxZen.homeModules.twilight
+                    plasmaManager.homeModules.plasma-manager
+                  ];
+                  home = {inherit (osConfig.system) stateVersion;};
+                };
               };
             }
             ./Configuration/hosts/${name}/configuration.nix
           ];
+        };
+      };
+    in {
+      nixosConfigurations = mkHost {
+        name = "QBX";
+        system = "x86_64-linux";
       };
     };
-  in {
-    nixosConfigurations = mkHost {
-      name = "QBX";
-      system = "x86_64-linux";
-    };
-    # nixosConfigurations = {
-    #   mkHost {name = "QBX"; system="x86_64-linux";})
-    #   QBX = nixosSystem {
-    #     system = "x86_64-linux";
-    #     specialArgs = args;
-    #     modules =
-    #       mods.core
-    #       ++ [
-    #         nixosHome.nixosModules.home-manager
-    #         {
-    #           home-manager = {
-    #             backupFileExtension = "backup";
-    #             overwriteBackup = true;
-    #             useGlobalPkgs = true;
-    #             useUserPackages = true;
-    #             extraSpecialArgs = args;
-    #             sharedModules = mods.home;
-    #           };
-    #         }
-    #         ./Configuration/hosts/QBX/configuration.nix
-    #       ];
-    #   };
-    # };
-  };
 
   inputs = {
     #| NixOS Official

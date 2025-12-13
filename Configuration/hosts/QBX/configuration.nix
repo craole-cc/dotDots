@@ -60,10 +60,6 @@
       inherit home;
       downloads = home + "/Downloads";
     };
-
-    # imports = with sources; [
-    #   firefoxZen.homeModules.twilight
-    # ];
   };
 
   # ==================== PATH ====================
@@ -381,7 +377,7 @@ in {
   home-manager.users = {
     "${user.name}" = {
       home = {
-        stateVersion = host.version;
+        # stateVersion = host.version;
         packages = with pkgs;
           [
             microsoft-edge
