@@ -837,8 +837,13 @@ in {
         #~@ Media Utilities
         mpv = {
           enable = true;
-          package = with pkgs.mpv-unwrapped;
-            wrapper {mpv = override {ffmpeg = pkgs.ffmpeg-full.build;};};
+          package = with pkgs;
+          with mpv-unwrapped;
+            wrapper {
+              mpv = override {
+                ffmpeg = ffmpeg-full;
+              };
+            };
           defaultProfiles = ["gpu-hq"];
           config = {
             profile = "gpu-hq";
