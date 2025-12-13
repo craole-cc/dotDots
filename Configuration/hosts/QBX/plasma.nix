@@ -25,7 +25,7 @@
       ]
       ++ (with kdePackages; [
         #~@ Themes
-        sierra-breeze-enhanced
+        # sierra-breeze-enhanced
         koi
 
         #~@ Window Management
