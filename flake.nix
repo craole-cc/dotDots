@@ -9,8 +9,8 @@
 
     args = {inherit self inputs hosts users;};
 
-    mkHost = name: host: {
-      "${name}" = nixosSystem {
+    mkHost = name: host:
+      nixosSystem {
         system = host.specs.platform or "x86_64-linux";
         # inherit system;
         specialArgs = args;
@@ -35,14 +35,8 @@
           ./Configuration/hosts/${name}/configuration.nix
         ];
       };
-    };
   in {
     nixosConfigurations = mapAttrs mkHost hosts;
-
-    # nixosConfigurations = mkHost {
-    #   name = "QBX";
-    #   system = "x86_64-linux";
-    # };
   };
 
   inputs = {
