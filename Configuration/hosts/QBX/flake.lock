@@ -93,12 +93,36 @@
         "type": "github"
       }
     },
+    "plasmaManager": {
+      "inputs": {
+        "home-manager": [
+          "nixosHome"
+        ],
+        "nixpkgs": [
+          "nixosCore"
+        ]
+      },
+      "locked": {
+        "lastModified": 1763909441,
+        "narHash": "sha256-56LwV51TX/FhgX+5LCG6akQ5KrOWuKgcJa+eUsRMxsc=",
+        "owner": "pjones",
+        "repo": "plasma-manager",
+        "rev": "b24ed4b272256dfc1cc2291f89a9821d5f9e14b4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pjones",
+        "repo": "plasma-manager",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "firefoxZen": "firefoxZen",
         "flakeCompat": "flakeCompat",
         "nixosCore": "nixosCore",
-        "nixosHome": "nixosHome"
+        "nixosHome": "nixosHome",
+        "plasmaManager": "plasmaManager"
       }
     }
   },
