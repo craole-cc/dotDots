@@ -93,6 +93,12 @@
       repo = "nix-github-actions";
       inputs.nixpkgs.follows = "nixosCore";
     };
+    NUR = {
+      type = "github";
+      owner = "nix-community";
+      repo = "NUR";
+      inputs.nixpkgs.follows = "nixosCore";
+    };
 
     #| Flake Parts (https://flake.parts)
     flakeParts = {
@@ -232,6 +238,9 @@
       owner = "numtide";
       repo = "flake-utils";
       type = "github";
+      inputs = {
+        systems.follows = "nixosSystems";
+      };
     };
     nixosHardware = {
       type = "github";
@@ -279,17 +288,17 @@
         home-manager.follows = "nixosHome";
       };
     };
-    styleManager = {
-      owner = "danth";
-      repo = "stylix";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        systems.follows = "nixosSystems";
-        flake-parts.follows = "flakeParts";
-        # nur.follows = "nur";
-      };
-    };
+    # styleManager = {
+    #   owner = "danth";
+    #   repo = "stylix";
+    #   type = "github";
+    #   inputs = {
+    #     nixpkgs.follows = "nixosCore";
+    #     systems.follows = "nixosSystems";
+    #     flake-parts.follows = "flakeParts";
+    #     nur.follows = "NUR";
+    #   };
+    # };
     # nixos-unified.url = "github:srid/nixos-unified";
     # nuenv.url = "github:hallettj/nuenv/writeShellApplication";
 
