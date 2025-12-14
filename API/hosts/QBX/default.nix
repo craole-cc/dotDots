@@ -2,7 +2,11 @@ let
   arch = "x86_64";
   os = "linux";
 in {
-  imports = [./configuration.nix];
+  imports = [
+    ./configuration.nix
+    ./plasma.nix
+  ];
+
   stateVersion = "25.11";
 
   paths = {

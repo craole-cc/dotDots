@@ -1,49 +1,10 @@
 {
-  inputs ? null,
   config,
   pkgs,
   modulesPath,
   lib,
   ...
 }: let
-  # ==================== SOURCES ====================
-  sources = let
-    getGitHub = {
-      owner,
-      repo,
-      rev,
-      narHash,
-    }:
-      builtins.fetchTarball {
-        url = "https://github.com/${owner}/${repo}/archive/${rev}.tar.gz";
-        sha256 = narHash;
-      };
-  in
-    if inputs != null
-    then inputs
-    else {
-      nixosCore = getGitHub {
-        narHash = "sha256-hM20uyap1a0M9d344I692r+ik4gTMyj60cQWO+hAYP8=";
-        owner = "NixOS";
-        repo = "nixpkgs";
-        rev = "addf7cf5f383a3101ecfba091b98d0a1263dc9b8";
-      };
-
-      nixosHome = getGitHub {
-        narHash = "sha256-RYHN8O/Aja59XDji6WSJZPkJpYVUfpSkyH+PEupBJqM=";
-        owner = "nix-community";
-        repo = "home-manager";
-        rev = "827f2a23373a774a8805f84ca5344654c31f354b";
-      };
-
-      firefoxZen = {
-        narHash = "sha256-2WhSfO4JjBqGIJJvwnwtOpoeTs628Y8GD7KthIoNhIY=";
-        owner = "0xc000022070";
-        repo = "zen-browser-flake";
-        rev = "e7f4849710fe306852551f4ec34c6fc648896c22";
-      };
-    };
-
   # ==================== USER ====================
   user = {
     name = "craole";
@@ -101,10 +62,7 @@
   };
 in {
   # ==================== IMPORTS ====================
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    ./plasma.nix
-  ];
+  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
   # ==================== HARDWARE ====================
   hardware = {
@@ -222,10 +180,6 @@ in {
 
   # ==================== NIX ====================
   nix = {
-    nixPath = [
-      "nixpkgs=${sources.nixosCore}"
-      "nixos-config=${paths.base}/configuration.nix"
-    ];
     settings = {
       experimental-features = [
         "nix-command"
@@ -241,7 +195,6 @@ in {
 
   system = {
     stateVersion = host.version;
-    copySystemConfiguration = inputs == null;
   };
   # ==================== Network ====================
   networking = {

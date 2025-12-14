@@ -22,9 +22,11 @@
         inputs.nixosCore.lib.nixosSystem {
           system = host.specs.platform;
           specialArgs = args;
-          modules = with inputs;
-            [
-              nixosHome.nixosModules.home-manager
+          modules =
+            [host.stateVersion]
+            # ++ host.imports
+            ++ [
+              inputs.nixosHome.nixosModules.home-manager
               {
                 home-manager = {
                   backupFileExtension = "BaC";
@@ -34,6 +36,8 @@
                   extraSpecialArgs = args;
                 };
               }
+            ]
+            ++ [
               (mkUsers {
                 allUsers = users;
                 hostUsers = host.users;
@@ -41,8 +45,7 @@
                 inherit (host.specs) platform;
                 inherit inputs;
               })
-            ]
-            ++ host.imports;
+            ];
         }
     )
     hosts;
