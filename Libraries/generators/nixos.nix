@@ -74,7 +74,7 @@
     in
       unique shellsList;
   in {
-    imports = [../../Configuration/hosts/QBX/configuration.nix];
+    #imports = [../../Configuration/hosts/QBX/configuration.nix];
 
     #~@ System-wide NixOS users
     users.users =
