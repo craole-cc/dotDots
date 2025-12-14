@@ -33,7 +33,7 @@
       modifier = "SUPER";
       swapCapsEscape = false;
     };
-    prompt = "starship";
+    prompt = "posh oh my";
   };
 
   applications = {
