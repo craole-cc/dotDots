@@ -185,5 +185,6 @@ in {
     getByPaths
     getPackage
     getNestedAttr
+    getShellPackage
     ;
 }
