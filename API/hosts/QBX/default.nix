@@ -8,6 +8,7 @@ in {
   ];
 
   stateVersion = "25.11";
+  platform = "${arch}-${os}";
 
   paths = {
     dots = "/home/craole/.dots";
@@ -15,11 +16,10 @@ in {
 
   packages = {
     allowUnfree = true;
-    # kernel = "linuxPackages_latest";
+    kernel = "linuxPackages_latest";
   };
 
   specs = {
-    platform = "${arch}-${os}";
     machine = "laptop";
 
     cpu = {

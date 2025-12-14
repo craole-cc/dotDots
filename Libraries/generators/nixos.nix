@@ -29,7 +29,10 @@
                 system = {inherit stateVersion;};
                 nixpkgs = {
                   hostPlatform = platform;
-                  config.allowUnfree = true;
+                  config = {inherit (packages) allowUnfree;};
+                };
+                boot = {
+                  kernelPackages = pkgs.${host.packages.kernel};
                 };
               })
             ]
