@@ -27,7 +27,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    desktopEnvironment = "plasma";
+    desktopEnvironment = "gnome";
     windowManager = "hyprland";
     keyboard = {
       modifier = "SUPER";

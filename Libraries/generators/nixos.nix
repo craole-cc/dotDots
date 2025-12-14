@@ -23,10 +23,6 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = args;
-                # sharedModules = [
-                #   firefoxZen.homeModules.twilight
-                #   plasmaManager.homeModules.plasma-manager
-                # ];
               };
             }
             (mkUsers {
