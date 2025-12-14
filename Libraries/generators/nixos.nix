@@ -5,6 +5,7 @@
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs attrValues;
   inherit (lib.lists) concatLists elem head optional unique;
+  inherit (lib.modules) mkIf;
   inherit (_.generators.firefox) zenVariant;
 
   mkHosts = {
@@ -34,6 +35,7 @@
               allUsers = users;
               hostUsers = host.users;
               inherit (host) stateVersion;
+              inherit (host.specs) platform;
               inherit inputs;
             })
           ];
@@ -45,6 +47,7 @@
     allUsers,
     hostUsers,
     stateVersion,
+    platform,
     inputs,
   }: {pkgs, ...}: let
     #TODO: Move to Library
@@ -94,16 +97,22 @@
 
     home-manager.users =
       mapAttrs
-      (name: cfg: {
+      (name: cfg: let
+        zen = rec {
+          variant = zenVariant cfg.applications.browser.firefox;
+          package =
+            if variant == null
+            then null
+            else inputs.firefoxZen.packages.${platform}.${variant} or
+          (throw "Firefox Zen variant '${variant}' not found for system '${platform}'");
+        };
+      in {
         imports =
           []
           #> Add Firefox Zen module if user prefers the Zen variant.
           ++ (
-            let
-              zen = zenVariant cfg.applications.browser.firefox;
-            in
-              optional (zen != null)
-              inputs.firefoxZen.homeModules.${zen}
+            optional (zen.variant != null)
+            inputs.firefoxZen.homeModules.${zen.variant}
           )
           #> Add Plasma Manager module if user uses Plasma desktop
           ++ optional ((cfg.interface or {}).desktopEnvironment or "" == "plasma")
@@ -121,6 +130,10 @@
           bash.enable = elem "bash" (cfg.shells or []);
           zsh.enable = elem "zsh" (cfg.shells or []);
           fish.enable = elem "fish" (cfg.shells or []);
+          zen-browser = mkIf (zen.variant != null) {
+            enable = true;
+            inherit (zen) package;
+          };
         };
       }) (filterAttrs (_: u: !(elem u.role ["service" "guest"])) users);
   };
