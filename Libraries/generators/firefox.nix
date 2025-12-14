@@ -124,10 +124,11 @@
 
   zenVariant = variant:
     if (hasPrefix "zen-" (detectVariant variant))
-    then null
-    else if hasSuffix (detectVariant variant) "-beta"
-    then "beta"
-    else "twilight";
+    then
+      if hasSuffix (detectVariant variant) "-beta"
+      then "beta"
+      else "twilight"
+    else null;
 in {
   # Regular module exports (under applications.firefox.*)
   inherit
