@@ -1,5 +1,6 @@
 {lix, ...}: let
-  inherit (lix.modules) importHosts;
+  inherit (lix.filesystem.importers) importAttrset;
 in {
-  hosts = importHosts ./hosts;
+  hosts = importAttrset ./hosts;
+  users = importAttrset ./users;
 }

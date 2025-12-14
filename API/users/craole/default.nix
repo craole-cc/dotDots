@@ -1,8 +1,5 @@
 {
-  enable = true;
   description = "Craig 'Craole' Cole";
-  role = "administrator";
-  autoLogin = false;
   password = "$6$2o3rjHVZgXEuyZ97$PtmQa1PIOmKb6dAwZ0mZJUulAkJoCfj.qjJHgtusfVnIIsHmENcA7q8PV9I2PveOwdEdFWwMBgLu3a5HZavXC1";
   git = {
     name = "craole-cc";
@@ -25,16 +22,14 @@
   ];
 
   applications = {
-    browser =
-      let
-        firefox = "zen";
-        chromium = "edge";
-      in
-      {
-        inherit firefox chromium;
-        primary = firefox;
-        secondary = chromium;
-      };
+    browser = let
+      firefox = "zen";
+      chromium = "edge";
+    in {
+      inherit firefox chromium;
+      primary = firefox;
+      secondary = chromium;
+    };
     editor = {
       tty = {
         primary = "helix";

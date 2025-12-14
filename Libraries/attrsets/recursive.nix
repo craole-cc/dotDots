@@ -1,11 +1,6 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.attrsets) isAttrs isDerivation mapAttrs;
   inherit (lib.modules) mkDefault;
-  inherit (_.filesystem.importers) importAttrset;
 
   /**
   Recursively applies `mkDefault` to all values in an attribute set.
@@ -50,15 +45,15 @@
 
   => Resolved package + mkDefault-wrapped overrides
   */
-  recursiveUpdate = value:
+  update = value:
     if value._type or null != null
     then value # Already has special handling, don't wrap it
     else if isAttrs value && !isDerivation value
-    then mapAttrs (_: recursiveUpdate) value
+    then mapAttrs (_: update) value
     else mkDefault value;
 
   # Modified recursiveUpdate that handles module options properly
-  recursiveUpdateDeep = prev: next:
+  updateDeep = prev: next:
     if prev._type or null != null
     then prev # Don't modify special types
     else if next._type or null != null
@@ -66,42 +61,11 @@
     else if prev ? _module && next ? _module
     then prev // next # Module options, merge directly
     else if lib.isAttrs prev && lib.isAttrs next && !lib.isDerivation prev && !lib.isDerivation next
-    then lib.recursiveUpdate prev next # Use lib's recursiveUpdate for nested attrsets
+    then lib.update prev next # Use lib's recursiveUpdate for nested attrsets
     else next;
-
-  # Generator for host configurations
-  generateHost = name: config: let
-    baseConfig = {
-      stateVersion = "25.11";
-
-      paths = {
-        dots = mkDefault "/home/craole/.dots";
-      };
-
-      # ... other base configurations from your example
-      specs = {
-        platform = "${config.arch or "x86_64"}-${config.os or "linux"}";
-        machine = config.machine or "laptop";
-      };
-
-      # ... rest of your base configuration
-    };
-
-    # Merge base with host-specific config, handling special cases
-    merged = recursiveUpdateDeep baseConfig config;
-  in
-    merged;
-
-  # Import and generate all hosts
-  importHosts = dir: let
-    hosts = importAttrset dir;
-  in
-    mapAttrs generateHost hosts;
 in {
   inherit
-    importHosts
-    generateHost
-    recursiveUpdate
-    recursiveUpdateDeep
+    update
+    updateDeep
     ;
 }

@@ -1,13 +1,18 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = inputs @ {self, ...}: let
+  outputs = inputs @ {...}: let
     inherit (import ./Libraries {}) lix;
     inherit (import ./API {inherit lix;}) hosts users;
-    inherit (lix.generators.nixos) mkConfigurations;
+    inherit (lix.generators.nixos) mkHosts;
   in {
-    nixosConfigurations = mkConfigurations {
-      inherit hosts;
-      args = {inherit self inputs hosts users;};
+    # nixosConfigurations.QBX = inputs.nixosCore.lib.nixosSystem {
+    #   system = "x86_64-linux";
+    #   specialArgs = {inherit self inputs lix hosts users;};
+    #   modules = [];
+    # };
+    nixosConfigurations = mkHosts {
+      inherit inputs hosts users;
+      args = {inherit inputs lix hosts users;};
     };
   };
 

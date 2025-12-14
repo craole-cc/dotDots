@@ -94,12 +94,14 @@ in {
       }
     ];
   };
+
   localization = {
     latitude = 18.015;
     longitude = 77.49;
     timeZone = "America/Jamaica";
     defaultLocale = "en_US.UTF-8";
   };
+
   functionalities = [
     "keyboard"
     "storage"
@@ -120,6 +122,7 @@ in {
     "gpu"
     "nvme"
   ];
+
   access = {
     # ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
     # age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
@@ -155,15 +158,11 @@ in {
       "1.0.0.1"
     ];
   };
-  people = [
-    "craole"
-    "cc"
-    # "qyatt"
-  ];
+
   users = {
     craole = {
       enable = true;
-      role = "admin";
+      role = "administrator";
       autoLogin = true;
     };
     cc = {
@@ -175,6 +174,7 @@ in {
       role = "guest";
     };
   };
+
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
