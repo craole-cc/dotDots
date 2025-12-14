@@ -127,10 +127,10 @@
         home = {
           inherit stateVersion;
           sessionVariables.USER_ROLE = cfg.role or "user";
-          packages = getPackage {
-            inherit pkgs;
-            target = allShells;
-          };
+          # packages = getPackage {
+          #   inherit pkgs;
+          #   target = allShells;
+          # };
         };
 
         #> Enable shells in home-manager
