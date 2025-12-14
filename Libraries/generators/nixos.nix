@@ -186,8 +186,7 @@
                 allUsers = users;
                 hostUsers = host.users;
                 inherit (host) stateVersion;
-                inherit (host.specs) platform;
-                inherit inputs;
+                inherit inputs system;
               })
             ];
         }
@@ -198,7 +197,7 @@
     allUsers,
     hostUsers,
     stateVersion,
-    platform,
+    system,
     inputs,
   }: {pkgs, ...}: let
     #> Merge user config from API/users/ with host-specific settings
@@ -297,8 +296,8 @@
               package =
                 if zen == null
                 then null
-                else inputs.firefoxZen.packages.${platform}.${zen} or
-          (throw "Firefox Zen variant '${zen}' not found for system '${platform}'");
+                else inputs.firefoxZen.packages.${system}.${zen} or
+          (throw "Firefox Zen variant '${zen}' not found for system '${system}'");
             };
         };
 
