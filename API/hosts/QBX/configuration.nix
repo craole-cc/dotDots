@@ -203,20 +203,20 @@ in {
   # };
 
   # ==================== Localization ====================
-  location = {
-    longitude = "18.015";
-    latitude = "77.49";
-    provider = "manual";
-  };
+  # location = {
+  #   longitude = "18.015";
+  #   latitude = "77.49";
+  #   provider = "manual";
+  # };
 
-  time = {
-    timeZone = "America/Jamaica";
-    hardwareClockInLocalTime = true;
-  };
+  # time = {
+  #   timeZone = "America/Jamaica";
+  #   hardwareClockInLocalTime = true;
+  # };
 
-  i18n = {
-    defaultLocale = "en_US.UTF-8";
-  };
+  # i18n = {
+  #   defaultLocale = "en_US.UTF-8";
+  # };
 
   # ==================== SERVICES ====================
   services = {

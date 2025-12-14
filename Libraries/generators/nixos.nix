@@ -77,6 +77,10 @@
                       allowedUDPPortRanges = udp.ranges;
                     };
                   };
+                  time = {
+                    inherit timeZone;
+                    hardwareClockInLocalTime = elem "dualboot-windows" functionalities;
+                  };
                 })
             ]
             ++ [
