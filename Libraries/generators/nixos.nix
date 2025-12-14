@@ -28,6 +28,7 @@
       }
     ];
   };
+  isAdmin = u: elem (u.role or null) ["admin" "administrator"];
 
   mkHosts = {
     inputs,
@@ -40,8 +41,6 @@
       name: host: let
         system = host.platform or builtins.currentSystem;
         hostUsers = attrValues (attrNames host.users or {});
-        #? Check for administrator privelages based on user role
-        isAdmin = u: elem (u.role or null) ["admin" "administrator"];
         adminsUsersRaw = filterAttrs (_: isAdmin) host.users;
         adminUsers =
           if adminsUsersRaw != {}
@@ -276,9 +275,6 @@
     in
       unique shellsList;
   in {
-    # imports = [../../Configuration/hosts/QBX/configuration.nix]; # TODO: Temporary until all setting are migrated.
-    # inherit (host) imports;
-
     #~@ System-wide NixOS users
     users.users =
       mapAttrs
@@ -286,14 +282,17 @@
         isNormalUser = cfg.role != "service";
         isSystemUser = cfg.role == "service";
         description = cfg.description or username;
+
         #> Use first shell as default
         shell = getPackage {
           inherit pkgs;
           target = head (cfg.shells or ["bash"]);
         };
+
         password = cfg.password or null;
+
         extraGroups =
-          if elem (cfg.role or null) ["admin" "administrator"]
+          if isAdmin cfg.role
           then ["wheel"]
           else [];
       })
