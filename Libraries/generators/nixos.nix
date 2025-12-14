@@ -3,12 +3,14 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs mapAttrs attrValues attrByPath;
+  inherit (lib.attrsets) attrValues attrByPath filterAttrs genAttrs mapAttrs;
   inherit (lib.lists) any concatLists elem head optional unique;
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkDefault mkIf;
   inherit (lib.strings) hasInfix;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
+
+  mkNetworkInterface = _: {useDHCP = mkDefault true;};
 
   mkHosts = {
     inputs,
@@ -44,13 +46,38 @@
                   };
                   fileSystems = devices.file or {};
                   networking = {
+                    #> System name
                     hostName = name;
+
+                    #> 32-bit host ID (ZFS requirement)
                     hostId = host.id or null;
+
+                    #> Enable NetworkManager if interfaces are defined
                     networkmanager.enable = devices.network != [];
+
+                    #> DNS Nameservers from host config
+                    inherit (access) nameservers;
+
+                    #> Generate interface configurations
+                    interfaces = genAttrs (devices.network or []) mkNetworkInterface;
+
+                    #> Configure firewall
+                    firewall = let
+                      inherit (access.firewall) enable tcp udp;
+                    in {
+                      inherit enable;
+
+                      #~@ TCP Configuration
+                      allowedTCPPorts = tcp.ports;
+                      allowedTCPPortRanges = tcp.ranges;
+
+                      #~@ UDP Configuration
+                      allowedUDPPorts = udp.ports;
+                      allowedUDPPortRanges = udp.ranges;
+                    };
                   };
                 })
             ]
-            # ++ host.imports
             ++ [
               inputs.nixosHome.nixosModules.home-manager
               {
