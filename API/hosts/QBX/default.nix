@@ -176,7 +176,7 @@ in {
     };
     qyatt = {
       enable = true;
-      role = "guest";
+      role = "admin";
     };
   };
 
