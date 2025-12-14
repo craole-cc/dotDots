@@ -78,7 +78,7 @@
                     };
                   };
                   time = {
-                    # inherit timeZone;
+                    timeZone = localization.timeZone or null;
                     hardwareClockInLocalTime = elem "dualboot-windows" functionalities;
                   };
                 })
