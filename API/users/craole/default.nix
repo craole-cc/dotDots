@@ -1,10 +1,13 @@
 {
   description = "Craig 'Craole' Cole";
+
   password = "$6$2o3rjHVZgXEuyZ97$PtmQa1PIOmKb6dAwZ0mZJUulAkJoCfj.qjJHgtusfVnIIsHmENcA7q8PV9I2PveOwdEdFWwMBgLu3a5HZavXC1";
+
   git = {
     name = "craole-cc";
     email = "134658831+craole-cc@users.noreply.github.com";
   };
+
   capabilities = [
     "writing" # Document creation, note-taking, content writing
     "conferencing" # Video calls, screen sharing, remote meetings
@@ -15,11 +18,22 @@
     "gaming" # Gaming and entertainment
     "multimedia" # Media consumption and light editing
   ];
+
   shells = [
     "bash"
     "nushell"
     "powershell"
   ];
+
+  interface = {
+    displayProtocol = "wayland";
+    desktopEnvironment = "plasma";
+    windowManager = "hyprland";
+    keyboard = {
+      modifier = "SUPER";
+      swapCapsEscape = false;
+    };
+  };
 
   applications = {
     browser = let

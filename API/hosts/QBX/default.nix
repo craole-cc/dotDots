@@ -178,14 +178,13 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    loginManager = "gdm";
-    desktopEnvironment = "gnome";
-    windowManager = "hyprland";
-    # windowManager = "niri";
-    displayProtocol = "wayland";
-    keyboard = {
-      modifier = "SUPER";
-      swapCapsEscape = false;
-    };
+    # loginManager = "gdm"; # Depends on desktop environment
+    # desktopEnvironment = "gnome";
+    # windowManager = "hyprland";
+    # displayProtocol = "wayland";
+    # keyboard = {
+    #   modifier = "SUPER";
+    #   swapCapsEscape = false;
+    # };
   };
 }

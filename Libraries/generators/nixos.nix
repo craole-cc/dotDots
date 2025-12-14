@@ -1,6 +1,6 @@
 {lib, ...}: let
   inherit (lib.attrsets) filterAttrs mapAttrs attrValues;
-  inherit (lib.lists) concatLists elem head unique;
+  inherit (lib.lists) concatLists elem head optional unique;
 
   mkHosts = {
     inputs,
@@ -23,19 +23,29 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = args;
-                sharedModules = [
-                  firefoxZen.homeModules.twilight
-                  plasmaManager.homeModules.plasma-manager
-                ];
+                # sharedModules = [
+                #   firefoxZen.homeModules.twilight
+                #   plasmaManager.homeModules.plasma-manager
+                # ];
               };
             }
-            (mkUsers users host.users host.stateVersion)
+            (mkUsers {
+              allUsers = users;
+              hostUsers = host.users;
+              inherit (host) stateVersion;
+              inherit inputs;
+            })
           ];
         }
     )
     hosts;
 
-  mkUsers = allUsers: hostUsers: stateVersion: {pkgs, ...}: let
+  mkUsers = {
+    allUsers,
+    hostUsers,
+    stateVersion,
+    inputs,
+  }: {pkgs, ...}: let
     #TODO: Move to Library
     # Helper function to get shell package from name
     getShellPackage = shellName:
@@ -84,6 +94,17 @@
     home-manager.users =
       mapAttrs
       (name: cfg: {
+        imports =
+          []
+          #> Add Firefox Zen module if user uses Firefox Zen browser
+          ++ optional (
+            elem (cfg.browser.firefox or "") ["zen" "zen-browser"]
+          )
+          inputs.firefoxZen.homeModules.twilight
+          #> Add Plasma Manager module if user uses Plasma desktop
+          ++ optional (cfg.interface.desktopEnvironment == "plasma")
+          inputs.plasmaManager.homeModules.plasma-manager;
+
         home = {
           inherit stateVersion;
           sessionVariables.USER_ROLE = cfg.role or "user";
