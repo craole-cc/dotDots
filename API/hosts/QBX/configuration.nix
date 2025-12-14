@@ -245,26 +245,26 @@ in {
   };
 
   # ==================== SECURITY ====================
-  security = {
-    rtkit.enable = true;
-    sudo = {
-      execWheelOnly = true;
-      extraRules = [
-        {
-          users = [user.name];
-          commands = [
-            {
-              command = "ALL";
-              options = [
-                "SETENV"
-                "NOPASSWD"
-              ];
-            }
-          ];
-        }
-      ];
-    };
-  };
+  # security = {
+  #   rtkit.enable = true;
+  #   sudo = {
+  #     execWheelOnly = true;
+  #     extraRules = [
+  #       {
+  #         users = [user.name];
+  #         commands = [
+  #           {
+  #             command = "ALL";
+  #             options = [
+  #               "SETENV"
+  #               "NOPASSWD"
+  #             ];
+  #           }
+  #         ];
+  #       }
+  #     ];
+  #   };
+  # };
 
   # ==================== FONTS ====================
   fonts = {
