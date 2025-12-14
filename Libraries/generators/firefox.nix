@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.lists) elem;
-  inherit (lib.strings) hasPrefix hasSuffix hasInfix substring stringLength;
+  inherit (lib.strings) hasInfix substring stringLength;
   inherit (_.predicates.emptiness) isEmpty isNotEmpty;
   inherit (_.attrsets.resolution) getNestedAttr getPackage;
 
@@ -90,7 +90,7 @@
 
     #~@ Resolve Zen Browser specific configuration
     zen =
-      if hasPrefix "zen-" detectedVariant
+      if hasInfix "zen-" detectedVariant
       then let
         #~@ Extract suffix: "zen-beta" → "beta"
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
@@ -123,7 +123,7 @@
 
   zenVariant = variant: let
     detectedVariant = detectVariant variant;
-    isZen = hasPrefix "zen-" detectedVariant;
+    isZen = hasInfix "zen-" detectedVariant;
   in
     if ! isZen
     then null
