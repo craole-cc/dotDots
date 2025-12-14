@@ -176,6 +176,7 @@ in {
     };
     qyatty = {
       enable = true;
+      autoLogin = true;
       role = "admin";
     };
   };
