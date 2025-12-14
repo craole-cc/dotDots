@@ -1,62 +1,57 @@
 {
   description = "dotDots Flake Configuration";
   outputs = inputs @ {self, ...}: let
-    inherit (inputs.nixosCore) lib;
-    inherit (lib) nixosSystem;
-    inherit (lib.attrsets) mapAttrs filterAttrs;
-    inherit (lib.lists) elem;
     inherit (import ./Libraries {}) lix;
     inherit (import ./API {inherit lix;}) hosts users;
+    inherit (lix.generators.system) mkHost;
 
     args = {inherit self inputs hosts users;};
-
-    mkHost = name: host: let
-      users =
-        lib.mapAttrs
-        (
-          username: userCfg: {osConfig, ...}: {
-            home.stateVersion =
-              host.stateVersion
-            or osConfig.system.stateVersion;
-
-            home.sessionVariables.USER_ROLE =
-              userCfg.role or "user";
-          }
-        )
-        (filterAttrs (
-            _: u:
-              (u.enable or false)
-              && ! elem u.role ["service" "guest"]
-          )
-          host.users);
-    in
-      nixosSystem {
-        system = host.specs.platform;
-        specialArgs = args;
-        modules = with inputs; [
-          nixosHome.nixosModules.home-manager
-          {
-            home-manager = {
-              backupFileExtension = "backup";
-              overwriteBackup = true;
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = args;
-              sharedModules = [
-                firefoxZen.homeModules.twilight
-                plasmaManager.homeModules.plasma-manager
-              ];
-              inherit users;
-              # users.${user} = {osConfig, ...}: {
-              #   home = {inherit (osConfig.system) stateVersion;};
-              # };
-            };
-          }
-          ./Configuration/hosts/${name}/configuration.nix
-        ];
-      };
+    # mkHost = name: host: let
+    #   users =
+    #     lib.mapAttrs
+    #     (
+    #       username: userCfg: {osConfig, ...}: {
+    #         home.stateVersion =
+    #           host.stateVersion
+    #         or osConfig.system.stateVersion;
+    #         home.sessionVariables.USER_ROLE =
+    #           userCfg.role or "user";
+    #       }
+    #     )
+    #     (filterAttrs (
+    #         _: u:
+    #           (u.enable or false)
+    #           && ! elem u.role ["service" "guest"]
+    #       )
+    #       host.users);
+    # in
+    #   nixosSystem {
+    #     system = host.specs.platform;
+    #     specialArgs = args;
+    #     modules = with inputs; [
+    #       nixosHome.nixosModules.home-manager
+    #       {
+    #         home-manager = {
+    #           backupFileExtension = "backup";
+    #           overwriteBackup = true;
+    #           useGlobalPkgs = true;
+    #           useUserPackages = true;
+    #           extraSpecialArgs = args;
+    #           sharedModules = [
+    #             firefoxZen.homeModules.twilight
+    #             plasmaManager.homeModules.plasma-manager
+    #           ];
+    #           inherit users;
+    #           # users.${user} = {osConfig, ...}: {
+    #           #   home = {inherit (osConfig.system) stateVersion;};
+    #           # };
+    #         };
+    #       }
+    #       ./Configuration/hosts/${name}/configuration.nix
+    #     ];
+    #   };
   in {
-    nixosConfigurations = mapAttrs mkHost hosts;
+    nixosConfigurations = mapAttrs (name: host: mkHost {inherit name host args;}) hosts;
   };
 
   inputs = {
