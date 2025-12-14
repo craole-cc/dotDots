@@ -293,7 +293,7 @@
         password = cfg.password or null;
 
         extraGroups =
-          if isAdmin cfg.role
+          if elem (cfg.role or null) ["admin" "administrator"]
           then ["wheel"]
           else [];
       })
