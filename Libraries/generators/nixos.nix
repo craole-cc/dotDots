@@ -24,10 +24,14 @@
           specialArgs = args;
           modules =
             [
-              {
-                inherit (host) imports;
-                system = {inherit (host) stateVersion;};
-              }
+              (with host; {
+                inherit imports;
+                system = {inherit stateVersion;};
+                nixpkgs = {
+                  hostPlatform = platform;
+                  config.allowUnfree = true;
+                };
+              })
             ]
             # ++ host.imports
             ++ [

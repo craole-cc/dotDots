@@ -188,14 +188,14 @@ in {
     };
   };
 
-  nixpkgs = {
-    hostPlatform = host.platform;
-    config.allowUnfree = true;
-  };
+  # nixpkgs = {
+  #   hostPlatform = host.platform;
+  #   config.allowUnfree = true;
+  # };
 
-  system = {
-    stateVersion = "26.05";
-  };
+  # system = {
+  #   stateVersion = " host.version";
+  # };
   # ==================== Network ====================
   networking = {
     hostName = host.name;
