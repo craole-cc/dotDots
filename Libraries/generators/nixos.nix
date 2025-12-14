@@ -282,10 +282,10 @@
     #~@ System-wide NixOS users
     users.users =
       mapAttrs
-      (username: cfg: {
+      (name: cfg: {
         isNormalUser = cfg.role != "service";
         isSystemUser = cfg.role == "service";
-        description = cfg.description or username;
+        description = cfg.description or name;
         packages = cfg.packages or [];
 
         #> Use first shell as default
@@ -303,7 +303,7 @@
             else []
           )
           ++ (
-            if (config.users.users.${cfg.name}.isNormalUser) && (config.networking.networkmanager.enable or false)
+            if (config.users.users.${name}.isNormalUser) && (config.networking.networkmanager.enable or false)
             then ["networkmanager"]
             else []
           );
