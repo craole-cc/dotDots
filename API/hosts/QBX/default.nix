@@ -9,6 +9,7 @@ in {
 
   stateVersion = "25.11";
   platform = "${arch}-${os}";
+  id = "0xQBX1234";
 
   paths = {
     dots = "/home/craole/.dots";
