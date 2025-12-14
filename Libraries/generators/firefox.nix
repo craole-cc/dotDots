@@ -49,11 +49,10 @@
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
-    else if (hasInfix input "zen")
-    then
-      if (hasInfix input "beta" || hasInfix input "unstable")
-      then "zen-beta"
-      else "zen-twilight"
+    else if (hasInfix "zen" input && (hasInfix "beta" input || hasInfix "nightly" input || hasInfix "unstable" input))
+    then "zen-beta"
+    else if (hasInfix "zen" input)
+    then "zen-twilight"
     #~@ Check for LibreWolf
     else if (elem input ["libre" "wolf"])
     then "librewolf-bin"
