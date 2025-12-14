@@ -37,7 +37,7 @@
 
   applications = {
     browser = let
-      firefox = "zed";
+      firefox = "wolf";
       chromium = "edge";
     in {
       inherit firefox chromium;
