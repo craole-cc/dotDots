@@ -75,7 +75,7 @@
       unique shellsList;
   in {
     # imports = [../../Configuration/hosts/QBX/configuration.nix]; # TODO: Temporary until all setting are migrated.
-    inherit (host) imports;
+    # inherit (host) imports;
 
     #~@ System-wide NixOS users
     users.users =
