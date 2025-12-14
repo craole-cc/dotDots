@@ -111,6 +111,20 @@
       inherit paths default;
     };
 
+  getShellPackage = {
+    pkgs,
+    shellName,
+  }:
+    {
+      "bash" = pkgs.bashInteractive;
+      "nushell" = pkgs.nushell;
+      "powershell" = pkgs.powershell;
+      "zsh" = pkgs.zsh;
+      "fish" = pkgs.fish;
+      # Add more shells as needed
+    }.${
+      shellName
+    } or pkgs.bashInteractive;
   /**
   Get a nested attribute by trying multiple parent names.
 

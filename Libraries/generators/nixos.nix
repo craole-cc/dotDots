@@ -3,10 +3,11 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs mapAttrs attrValues;
-  inherit (lib.lists) concatLists elem head optional unique;
+  inherit (lib.attrsets) filterAttrs mapAttrs attrValues attrByPath;
+  inherit (lib.lists) any concatLists elem head optional unique;
   inherit (lib.modules) mkIf;
   inherit (_.generators.firefox) zenVariant;
+  inherit (_.attrsets.resolution) getPackage;
 
   mkHosts = {
     inputs,
@@ -50,26 +51,28 @@
     platform,
     inputs,
   }: {pkgs, ...}: let
-    #TODO: Move to Library
-    # Helper function to get shell package from name
-    getShellPackage = shellName:
-      {
-        "bash" = pkgs.bashInteractive;
-        "nushell" = pkgs.nushell;
-        "powershell" = pkgs.powershell;
-        "zsh" = pkgs.zsh;
-        "fish" = pkgs.fish;
-        # Add more shells as needed
-      }.${
-        shellName
-      } or pkgs.bashInteractive;
-
+    # #TODO: Move to Library
+    # # Helper function to get shell package from name
+    # getShellPackage = shellName:
+    #   {
+    #     "bash" = pkgs.bashInteractive;
+    #     "nushell" = pkgs.nushell;
+    #     "powershell" = pkgs.powershell;
+    #     "zsh" = pkgs.zsh;
+    #     "fish" = pkgs.fish;
+    #     # Add more shells as needed
+    #   }.${
+    #     shellName
+    #   } or pkgs.bashInteractive;
     #> Merge user config from API/users/ with host-specific settings
     users =
       mapAttrs (
         name: config: allUsers.${name} or {} // config
       )
       (filterAttrs (_: cfg: cfg.enable or false) hostUsers);
+
+    #> Collect all enabled regular users (non-service, non-guest)
+    regularUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
 
     #> Collect all unique shells from all users
     allShells = let
@@ -79,6 +82,7 @@
     in
       unique shellsList;
   in {
+    #~@ System-wide NixOS users
     users.users =
       mapAttrs
       (username: cfg: {
@@ -86,7 +90,10 @@
         isSystemUser = cfg.role == "service";
         description = cfg.description or username;
         #> Use first shell as default
-        shell = getShellPackage (head (cfg.shells or ["bash"]));
+        shell = getPackage {
+          inherit pkgs;
+          target = head (cfg.shells or ["bash"]);
+        };
         password = cfg.password or null;
         extraGroups =
           if elem cfg.role ["admin" "administrator"]
@@ -95,34 +102,35 @@
       })
       users;
 
+    #~@ System-wide programs (not per-user)
+    programs.hyprland.enable = any (cfg: ((cfg.interface or {}).windowManager or "") == "hyprland") (attrValues regularUsers);
+
     home-manager.users =
       mapAttrs
       (name: cfg: let
-        zen = rec {
-          variant = zenVariant cfg.applications.browser.firefox;
-          package =
-            if variant == null
-            then null
-            else inputs.firefoxZen.packages.${platform}.${variant} or
-          (throw "Firefox Zen variant '${variant}' not found for system '${platform}'");
-        };
+        zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
+        de = attrByPath ["interface" "desktopEnvironment"] null cfg;
+        wm = attrByPath ["interface" "windowManager"] null cfg;
       in {
         imports =
           []
           #> Add Firefox Zen module if user prefers the Zen variant.
           ++ (
-            optional (zen.variant != null)
-            inputs.firefoxZen.homeModules.${zen.variant}
+            optional (zen != null)
+            inputs.firefoxZen.homeModules.${zen}
           )
           #> Add Plasma Manager module if user uses Plasma desktop
-          ++ optional ((cfg.interface or {}).desktopEnvironment or "" == "plasma")
+          ++ optional (de == "plasma")
           inputs.plasmaManager.homeModules.plasma-manager
           ++ [];
 
         home = {
           inherit stateVersion;
           sessionVariables.USER_ROLE = cfg.role or "user";
-          packages = map getShellPackage allShells;
+          packages = map getPackage {
+            inherit pkgs;
+            target = allShells;
+          };
         };
 
         #> Enable shells in home-manager
@@ -130,11 +138,18 @@
           bash.enable = elem "bash" (cfg.shells or []);
           zsh.enable = elem "zsh" (cfg.shells or []);
           fish.enable = elem "fish" (cfg.shells or []);
-          zen-browser = mkIf (zen.variant != null) {
-            enable = true;
-            inherit (zen) package;
-          };
+          zen-browser =
+            mkIf (zen.variant != null) {
+              enable = true;
+              package =
+                if zen == null
+                then null
+                else inputs.firefoxZen.packages.${platform}.${zen} or
+          (throw "Firefox Zen variant '${zen}' not found for system '${platform}'");
+            };
         };
+
+        wayland.windowManager.hyprland.enable = wm == "hyprland";
       }) (filterAttrs (_: u: !(elem u.role ["service" "guest"])) users);
   };
 in {
