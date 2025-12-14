@@ -1,5 +1,6 @@
 {
   inputs ? null,
+  config,
   pkgs,
   modulesPath,
   lib,
@@ -42,18 +43,70 @@
         rev = "e7f4849710fe306852551f4ec34c6fc648896c22";
       };
     };
+
+  # ==================== USER ====================
+  user = {
+    name = "craole";
+    description = "Craig 'Craole' Cole";
+
+    git = {
+      name = "craole-cc";
+      email = "134658831+craole-cc@users.noreply.github.com";
+    };
+
+    paths = let
+      home = "/home/${user.name}";
+    in {
+      inherit home;
+      downloads = home + "/Downloads";
+    };
+  };
+
+  # ==================== PATH ====================
+  paths = let
+    dots = "/home/${user.name}/.dots";
+  in {
+    inherit dots;
+    base = dots + "/Configuration/hosts/QBX";
+    orig = "/etc/nixos";
+  };
+
+  # ==================== HOST ====================
+  host = {
+    name = "QBX";
+    version = "25.11";
+    platform = "x86_64-linux";
+  };
+
+  # ==================== ENVIRONMENT ====================
+  env = {
+    variables = with paths; {
+      NIXOS_ORIG = orig;
+      NIXOS_BASE = base;
+      DOTS = dots;
+      EDITOR = "hx";
+      VISUAL = "code";
+    };
+
+    aliases = {
+      se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
+      nxe = "$EDITOR ${paths.base}";
+      nxv = "$VISUAL ${paths.base}";
+      nxs = "switch";
+      nxu = "switch; topgrade";
+      ll = "lsd --long --git --almost-all";
+      lt = "lsd --tree";
+      lr = "lsd --long --git --recursive";
+    };
+  };
 in {
   # ==================== IMPORTS ====================
-  imports = with sources; [
+  imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    (import "${nixosHome}/nixos")
+    ./plasma.nix
   ];
 
-  #  imports = with sources; [
-  #     firefoxZen.homeModules.twilight
-  #   ];
-
-  # ==================== HARDWARE CONFIGURATION ====================
+  # ==================== HARDWARE ====================
   hardware = {
     #~@ CPU
     cpu.amd.updateMicrocode = true;
@@ -61,19 +114,14 @@ in {
     amdgpu.initrd.enable = true;
 
     #~@ GPU
-    nvidia = {
-      modesetting.enable = true;
-      powerManagement.enable = true;
-      prime = {
-        offload = {
-          enable = true;
-          enableOffloadCmd = true;
-        };
-        amdgpuBusId = "PCI:12:0:0";
-        nvidiaBusId = "PCI:1:0:0";
-      };
-    };
     graphics.enable = true;
+    nvidia = {
+      open = false;
+      package = config.boot.kernelPackages.nvidiaPackages.production;
+      forceFullCompositionPipeline = true;
+      modesetting.enable = true;
+      powerManagement.enable = false;
+    };
 
     #~@ Bluetooth
     bluetooth = {
@@ -85,7 +133,19 @@ in {
     };
   };
 
-  #~@ Boot configuration
+  systemd.services = {
+    "nvidia-wait-for-displays" = {
+      description = "Wait for NVIDIA and AMD displays to initialize";
+      wantedBy = ["display-manager.service"];
+      before = ["display-manager.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.coreutils}/bin/sleep 5";
+      };
+    };
+  };
+
+  # ==================== BOOT ====================
   boot = {
     initrd = {
       availableKernelModules = [
@@ -96,7 +156,13 @@ in {
         "usb_storage"
         "sd_mod"
       ];
-      kernelModules = [];
+      kernelModules = [
+        "amdgpu"
+        "nvidia"
+        "nvidia_modeset"
+        "nvidia_uvm"
+        "nvidia_drm"
+      ];
     };
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
@@ -106,9 +172,38 @@ in {
       efi.canTouchEfiVariables = true;
       timeout = 1;
     };
+
+    kernelParams = [
+      #? For NVIDIA - Early KMS
+      "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+      "nvidia.NVreg_EnableS0ixPowerManagement=1"
+      "nvidia.NVreg_TemporaryFilePath=/var/tmp"
+      "nvidia_drm.modeset=1"
+      "nvidia_drm.fbdev=1"
+
+      #? For AMD GPU
+      "amdgpu.modeset=1"
+
+      #? Blacklist nouveau
+      "rd.driver.blacklist=nouveau"
+      "modprobe.blacklist=nouveau"
+
+      #? General stability
+      "nowatchdog"
+      "mitigations=off"
+
+      #? Force probe NVIDIA outputs (card0 - the discrete GPU)
+      "video=card0-DP-3:e"
+      "video=card0-HDMI-A-3:e"
+
+      #? Force probe AMD output (card1 - the motherboard/integrated)
+      "video=card1-HDMI-A-2:e"
+    ];
+
+    blacklistedKernelModules = ["nouveau"];
   };
 
-  #~@ Filesystems
+  # ==================== Filesystems ====================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
@@ -125,8 +220,7 @@ in {
     };
   };
 
-  # ==================== SYSTEM CONFIGURATION ====================
-  #~@ Nix Configuration
+  # ==================== NIX ====================
   nix = {
     nixPath = [
       "nixpkgs=${sources.nixosCore}"
@@ -145,13 +239,17 @@ in {
     config.allowUnfree = true;
   };
 
-  #~@ Networking
+  system = {
+    stateVersion = host.version;
+    copySystemConfiguration = inputs == null;
+  };
+  # ==================== Network ====================
   networking = {
     hostName = host.name;
     networkmanager.enable = true;
   };
 
-  #~@ Localization
+  # ==================== Localization ====================
   location = {
     longitude = "18.015";
     latitude = "77.49";
@@ -167,17 +265,10 @@ in {
     defaultLocale = "en_US.UTF-8";
   };
 
-  #~@ System
-  system = {
-    stateVersion = host.version;
-    copySystemConfiguration = inputs == null;
-  };
-
   # ==================== SERVICES ====================
   services = {
-    #~@ Display
-    displayManager.sddm.enable = true;
-    desktopManager.plasma6.enable = true;
+    #> Load nvidia driver for Xorg and Wayland
+    xserver.videoDrivers = ["nvidia"];
 
     #~@ Network
     openssh.enable = true;
@@ -185,7 +276,6 @@ in {
     #~@ Audio
     pipewire = {
       enable = true;
-      alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
       jack.enable = true;
@@ -233,7 +323,7 @@ in {
     fontconfig = {
       enable = true;
       hinting = {
-        enable = false;
+        enable = true;
         style = "slight";
       };
       antialias = true;
@@ -276,7 +366,7 @@ in {
     xwayland.enable = true;
   };
 
-  # ==================== USER CONFIGURATION ====================
+  # ==================== USERS ====================
   users.users."${user.name}" = {
     inherit (user) description;
     isNormalUser = true;
@@ -284,20 +374,20 @@ in {
   };
 
   # ==================== HOME MANAGER ====================
-  home-manager = {
-    backupFileExtension = "backup";
-    overwriteBackup = true;
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users."${user.name}" = {
-      inherit (user) imports;
+  home-manager.users = {
+    "${user.name}" = {
       home = {
-        stateVersion = host.version;
-        packages = with pkgs; [
-          microsoft-edge
-          qbittorrent-enhanced
-          warp-terminal
-        ];
+        # stateVersion = host.version;
+        packages = with pkgs;
+          [
+            microsoft-edge
+            qbittorrent-enhanced
+            inkscape
+            warp-terminal
+          ]
+          ++ [
+            gImageReader
+          ];
       };
 
       #~@ User programs configuration
@@ -567,66 +657,82 @@ in {
             };
 
             settings = {
-              # Common preferences
+              #? Common preferences
               "browser.profiles.enabled" = true;
               "browser.profiles.default" = "default";
-              # Privacy & tracking
+
+              #? Privacy & tracking
               "privacy.trackingprotection.enabled" = true;
               "privacy.resistFingerprinting" = false;
               "privacy.donottrackheader.enabled" = true;
-              # URL bar / search
+
+              #? URL bar / search
               "browser.urlbar.suggest.searches" = false;
               "browser.urlbar.suggest.history" = true;
               "browser.urlbar.suggest.bookmark" = true;
               "browser.urlbar.suggest.openpage" = true;
-              # Tabs & windows
+
+              #? Tabs & windows
               "toolkit.tabbox.switchByScrolling" = true;
               "browser.tabs.loadInBackground" = true;
               "browser.tabs.warnOnClose" = false;
-              # Media & performance
+
+              #? Media & performance
               "media.videocontrols.picture-in-picture.enabled" = true;
               "media.autoplay.default" = 0;
               "gfx.webrender.all" = true;
-              # Scrolling & input
+
+              #? Scrolling & input
               "general.smoothScroll" = true;
               "mousewheel.default.delta_multiplier_y" = 100;
-              # Downloads
+
+              #? Downloads
               "browser.download.useDownloadDir" = true;
               "browser.download.folderList" = 1;
-              # Zen workspaces
+
+              #? Zen workspaces
               "zen.workspaces.continue-where-left-off" = true;
               "zen.workspaces.natural-scroll" = true;
               "zen.workspaces.swipe-actions" = true;
-              # Zen view / compact mode
+
+              #? Zen view / compact mode
               "zen.view.compact.hide-tabbar" = true;
               "zen.view.compact.hide-toolbar" = true;
               "zen.view.compact.animate-sidebar" = false;
-              # Zen welcome & onboarding
+
+              #? Zen welcome & onboarding
               "zen.welcome-screen.seen" = true;
-              # Zen URL bar
+
+              #? Zen URL bar
               "zen.urlbar.behavior" = "float";
-              # Zen theme & appearance
+
+              #? Zen theme & appearance
               "zen.theme.accent-color" = "#6366f1";
               "zen.theme.gradient" = true;
               "zen.theme.gradient.show-custom-colors" = false;
               "zen.view.gray-out-inactive-windows" = true;
               "zen.watermark.enabled" = true;
-              # Zen tabs
+
+              #? Zen tabs
               "zen.tabs.rename-tabs" = true;
               "zen.tabs.dim-pending" = true;
               "zen.ctrlTab.show-pending-tabs" = true;
-              # Zen media & controls
+
+              #? Zen media & controls
               "zen.mediacontrols.enabled" = true;
               "zen.mediacontrols.show-on-hover" = true;
-              # Zen glance / search
+
+              #? Zen glance / search
               "zen.glance.enable-contextmenu-search" = true;
               "zen.glance.show-bookmarks" = true;
               "zen.glance.show-history" = true;
-              # Zen tab unloader (memory)
+
+              #? Zen tab unloader (memory)
               "zen.tab-unloader.enabled" = true;
               "zen.tab-unloader.delay" = 300;
               "zen.tab-unloader.excluded-urls" = "https://meet.google.com,https://app.slack.com";
-              # Zen experimental / hidden
+
+              #? Zen experimental / hidden
               "zen.view.experimental-rounded-view" = false;
               "zen.theme.content-element-separation" = 8;
             };
@@ -721,6 +827,13 @@ in {
         #~@ Media Utilities
         mpv = {
           enable = true;
+          package = with pkgs;
+          with mpv-unwrapped;
+            wrapper {
+              mpv = override {
+                ffmpeg = ffmpeg-full;
+              };
+            };
           defaultProfiles = ["gpu-hq"];
           config = {
             profile = "gpu-hq";
@@ -739,7 +852,7 @@ in {
           };
         };
 
-        #~@ Shell enhancements
+        #~@ Shell Enhancements
         starship.enable = true;
 
         #~@ Editor
@@ -875,17 +988,17 @@ in {
           };
         };
 
-        # IDE
+        #~@ Integrated Development Environment
         vscode = {
           enable = true;
           package = pkgs.vscode-fhs;
         };
 
-        # File manager
+        #~@ File Manager
         yazi.enable = true;
       };
 
-      # XDG MIME associations
+      #~@ XDG MIME associations
       xdg.mimeApps = let
         types = [
           "application/x-extension-shtml"
@@ -904,7 +1017,7 @@ in {
           "text/plain"
           "text/html"
         ];
-        associations = listToAttrs (map (app: {
+        associations = lib.attrsets.listToAttrs (map (app: {
             name = app;
             value = "zen.desktop";
           })
@@ -958,7 +1071,14 @@ in {
 
         #? Indicate Wayland session to apps
         XDG_SESSION_TYPE = "wayland";
-      };
+      }
+      # // {
+      #   # Override the Wayland variables with X11
+      #   QT_QPA_PLATFORM = "xcb";
+      #   SDL_VIDEODRIVER = "x11";
+      #   XDG_SESSION_TYPE = "x11";
+      # }
+      // {};
 
     systemPackages = with pkgs; [
       #~@ Development
@@ -975,6 +1095,7 @@ in {
       gitui
       lm_sensors
       toybox
+      lshw
       lsd
       mesa-demos
       cowsay
@@ -1007,18 +1128,42 @@ in {
           exit 1
         fi
       '')
+
+      (pkgs.writeShellScriptBin "wait-for-displays" ''
+        set -euo pipefail
+
+        max_attempts=10
+        attempt=0
+
+        while [ $attempt -lt $max_attempts ]; do
+          # Check if all expected displays are detected
+          if [ -e /sys/class/drm/card0-DP-3 ] && \
+            [ -e /sys/class/drm/card0-HDMI-A-3 ] && \
+            [ -e /sys/class/drm/card1-HDMI-A-2 ]; then
+            printf "All displays detected\n"
+            exit 0
+          fi
+
+          printf "Waiting for displays... attempt %s\n" "$attempt"
+          sleep 0.5
+          attempt=$((attempt + 1))
+        done
+
+        printf "Not all displays detected, continuing anyway\n"
+        exit 0
+      '')
     ];
   };
 
   # ==================== POST-ACTIVATION ====================
-  system.activationScripts.postActivation.text = ''
-    set -euo pipefail
-    NIXOS_BASE=${paths.base}
-    NIXOS_ORIG=${paths.orig}
+  # system.activationScripts.postActivation.text = ''
+  #   set -euo pipefail
+  #   NIXOS_BASE=${paths.base}
+  #   NIXOS_ORIG=${paths.orig}
 
-    [ -d "$NIXOS_ORIG" ] && rm -rf "$NIXOS_ORIG"
-    mkdir -p "$NIXOS_ORIG"
-    cp -R "$NIXOS_BASE"/. "$NIXOS_ORIG"/
-    printf "✓ NixOS backup refreshed: %s → %s\n" "$NIXOS_BASE" "$NIXOS_ORIG"
-  '';
+  #   [ -d "$NIXOS_ORIG" ] && rm -rf "$NIXOS_ORIG"
+  #   mkdir -p "$NIXOS_ORIG"
+  #   cp -R "$NIXOS_BASE"/. "$NIXOS_ORIG"/
+  #   printf "✓ NixOS backup refreshed: %s → %s\n" "$NIXOS_BASE" "$NIXOS_ORIG"
+  # '';
 }

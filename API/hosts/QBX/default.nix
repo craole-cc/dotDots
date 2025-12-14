@@ -1,15 +1,11 @@
 let
-  base = {
-    relative = "../../..";
-    absolute = "/home/craole/Configuration";
-  };
   arch = "x86_64";
   os = "linux";
 in {
+  imports = [./configuration.nix];
   stateVersion = "25.11";
 
   paths = {
-    # base = "/home/craole/Configuration/${name}";
     dots = "/home/craole/.dots";
   };
 
