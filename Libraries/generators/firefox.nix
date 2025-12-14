@@ -121,12 +121,15 @@
     variant = detectedVariant;
   };
 
-  zenVariant = variant:
-    if (! hasPrefix "zen-" (detectVariant variant))
-    then null
-    else if hasInfix (detectVariant variant) "beta"
+  zenVariant = variant: let
+    detectedVariant = detectVariant variant;
+    isZen = hasPrefix "zen-" detectedVariant;
+  in
+    if isZen && hasInfix detectedVariant "beta"
     then "beta"
-    else "twilight";
+    else if isZen && hasInfix detectedVariant "twilight"
+    then "twilight"
+    else null;
 in {
   # Regular module exports (under applications.firefox.*)
   inherit
