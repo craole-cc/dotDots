@@ -1,6 +1,10 @@
-{_, ...}: let
-  inherit (_.std.attrsets) filterAttrs mapAttrs attrValues;
-  inherit (_.std.lists) concatLists elem head optional unique;
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit (lib.attrsets) filterAttrs mapAttrs attrValues;
+  inherit (lib.lists) concatLists elem head optional unique;
   inherit (_.generators) firefox;
 
   mkHosts = {
