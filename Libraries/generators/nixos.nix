@@ -22,26 +22,27 @@
         inputs.nixosCore.lib.nixosSystem {
           system = host.specs.platform;
           specialArgs = args;
-          modules = with inputs; [
-            nixosHome.nixosModules.home-manager
-            {
-              home-manager = {
-                backupFileExtension = "BaC";
-                overwriteBackup = true;
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = args;
-              };
-            }
-            host.imports
-            (mkUsers {
-              allUsers = users;
-              hostUsers = host.users;
-              inherit (host) stateVersion;
-              inherit (host.specs) platform;
-              inherit inputs;
-            })
-          ];
+          modules = with inputs;
+            [
+              nixosHome.nixosModules.home-manager
+              {
+                home-manager = {
+                  backupFileExtension = "BaC";
+                  overwriteBackup = true;
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  extraSpecialArgs = args;
+                };
+              }
+              (mkUsers {
+                allUsers = users;
+                hostUsers = host.users;
+                inherit (host) stateVersion;
+                inherit (host.specs) platform;
+                inherit inputs;
+              })
+            ]
+            ++ host.imports;
         }
     )
     hosts;
