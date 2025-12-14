@@ -190,7 +190,7 @@ in {
 
   nixpkgs = {
     hostPlatform = host.platform;
-    config.allowUnfree = true;
+    # config.allowUnfree = true;
   };
 
   # system = {
