@@ -4,8 +4,8 @@
   ...
 }: let
   inherit (lib.attrsets) mapAttrs isAttrs;
-  inherit (lib.strings) substring stringLength;
-  inherit (_.predicates.strings) contains containsAny;
+  inherit (lib.lists) elem;
+  inherit (lib.strings) hasPrefix substring stringLength;
   inherit (_.predicates.emptiness) isEmpty isNotEmpty;
   inherit (_.attrsets.resolution) getNestedAttr getPackage;
 
@@ -44,39 +44,28 @@
   detectVariant = input: let
     beta = ["beta" "nightly" "unstable" "latest"];
     stable = ["esr" "extend" "stable" "twilight" "support" "reproducible"];
+    dev = ["development" "dev" "devedition" "dev-edition" "developer"];
   in
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
-    else if contains ["zen" "twilight"] input
+    else if (elem input ["zen" "twilight"])
     then
-      if
-        containsAny {
-          patterns = beta;
-          inherit input;
-        }
+      if (elem input beta)
       then "zen-beta"
       else "zen-twilight"
     #~@ Check for LibreWolf
-    else if contains ["libre" "wolf"] input
+    else if (elem input ["libre" "wolf"])
     then "librewolf-bin"
     #~@ Check for Pale Moon
-    else if contains ["pale" "moon"] input
+    else if (elem input ["pale" "moon"])
     then "palemoon-bin"
     #~@ Check for Firefox variants
-    else if
-      containsAny {
-        patterns = beta;
-        inherit input;
-      }
+    else if (elem input beta)
     then "firefox-beta"
-    else if
-      containsAny {
-        patterns = stable;
-        inherit input;
-      }
+    else if (elem input stable)
     then "firefox-esr"
-    else if contains ["dev"] input
+    else if (elem input dev)
     then "firefox-devedition"
     else "firefox";
 
@@ -102,7 +91,7 @@
 
     #~@ Resolve Zen Browser specific configuration
     zen =
-      if contains "zen-" detectedVariant
+      if hasPrefix "zen-" detectedVariant
       then let
         #~@ Extract suffix: "zen-beta" → "beta"
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
