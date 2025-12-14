@@ -3,55 +3,12 @@
   outputs = inputs @ {self, ...}: let
     inherit (import ./Libraries {}) lix;
     inherit (import ./API {inherit lix;}) hosts users;
-    inherit (lix.generators.system) mkHost;
-
-    args = {inherit self inputs hosts users;};
-    # mkHost = name: host: let
-    #   users =
-    #     lib.mapAttrs
-    #     (
-    #       username: userCfg: {osConfig, ...}: {
-    #         home.stateVersion =
-    #           host.stateVersion
-    #         or osConfig.system.stateVersion;
-    #         home.sessionVariables.USER_ROLE =
-    #           userCfg.role or "user";
-    #       }
-    #     )
-    #     (filterAttrs (
-    #         _: u:
-    #           (u.enable or false)
-    #           && ! elem u.role ["service" "guest"]
-    #       )
-    #       host.users);
-    # in
-    #   nixosSystem {
-    #     system = host.specs.platform;
-    #     specialArgs = args;
-    #     modules = with inputs; [
-    #       nixosHome.nixosModules.home-manager
-    #       {
-    #         home-manager = {
-    #           backupFileExtension = "backup";
-    #           overwriteBackup = true;
-    #           useGlobalPkgs = true;
-    #           useUserPackages = true;
-    #           extraSpecialArgs = args;
-    #           sharedModules = [
-    #             firefoxZen.homeModules.twilight
-    #             plasmaManager.homeModules.plasma-manager
-    #           ];
-    #           inherit users;
-    #           # users.${user} = {osConfig, ...}: {
-    #           #   home = {inherit (osConfig.system) stateVersion;};
-    #           # };
-    #         };
-    #       }
-    #       ./Configuration/hosts/${name}/configuration.nix
-    #     ];
-    #   };
+    inherit (lix.generators.nixos) mkConfigurations;
   in {
-    nixosConfigurations = lix.std.mapAttrs (name: host: mkHost {inherit name host args;}) hosts;
+    nixosConfigurations = mkConfigurations {
+      inherit hosts;
+      args = {inherit self inputs hosts users;};
+    };
   };
 
   inputs = {
