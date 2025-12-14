@@ -98,7 +98,7 @@
         imports =
           []
           #> Add Firefox Zen module if user prefers the Zen variant.
-          ++ optional (firefox.detectVariant cfg.browser.firefox)
+          ++ optional (firefox.detectVariant cfg.applications.browser.firefox)
           inputs.firefoxZen.homeModules.twilight
           #> Add Plasma Manager module if user uses Plasma desktop
           ++ optional ((cfg.interface or {}).desktopEnvironment or "" == "plasma")
