@@ -121,10 +121,13 @@
     inherit program zen package exists;
     variant = detectedVariant;
   };
+
+  isZenVariant = variant: hasPrefix "zen-" (detectVariant variant);
 in {
   # Regular module exports (under applications.firefox.*)
   inherit
     makeExtensionUrl
+    isZenVariant
     makeExtensionEntry
     makeExtensionSettings
     detectVariant
