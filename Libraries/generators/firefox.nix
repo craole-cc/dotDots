@@ -49,9 +49,9 @@
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
-    else if (hasInfix "zen")
+    else if (hasInfix input "zen")
     then
-      if (hasInfix "beta" || hasInfix "unstable")
+      if (hasInfix input "beta" || hasInfix input "unstable")
       then "zen-beta"
       else "zen-twilight"
     #~@ Check for LibreWolf
