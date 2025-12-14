@@ -27,7 +27,7 @@ in {
       inherit arch;
       brand = "amd"; # TODO: Change this to allow multiple
       powerMode = "performance";
-      # cores = 12;
+      cores = 12;
     };
 
     gpu = {

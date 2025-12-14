@@ -261,7 +261,7 @@
         wm = attrByPath ["interface" "windowManager"] null cfg;
       in {
         imports =
-          []
+          (cfg.imports or [])
           #> Add Firefox Zen module if user prefers the Zen variant.
           ++ (
             optional (zen != null)
