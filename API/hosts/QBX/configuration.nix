@@ -179,14 +179,14 @@ in {
   # };
 
   # ==================== NIX ====================
-  nix = {
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-    };
-  };
+  # nix = {
+  #   settings = {
+  #     experimental-features = [
+  #       "nix-command"
+  #       "flakes"
+  #     ];
+  #   };
+  # };
 
   # nixpkgs = {
   #   hostPlatform = host.platform;
@@ -197,10 +197,10 @@ in {
   #   stateVersion = " host.version";
   # };
   # ==================== Network ====================
-  networking = {
-    hostName = host.name;
-    networkmanager.enable = true;
-  };
+  # networking = {
+  #   hostName = host.name;
+  #   networkmanager.enable = true;
+  # };
 
   # ==================== Localization ====================
   location = {

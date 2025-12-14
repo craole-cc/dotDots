@@ -29,7 +29,12 @@
               (with host;
                 {pkgs, ...}: {
                   inherit imports;
-                  system = {inherit stateVersion;};
+                  system = {
+                    inherit stateVersion;
+                  };
+                  nix = {
+                    settings.experimental-features = ["nix-command" "flakes"];
+                  };
                   nixpkgs = {
                     hostPlatform = system;
                     config.allowUnfree = packages.allowUnfree or false;
@@ -38,6 +43,10 @@
                     kernelPackages = mkIf ((packages.kernel or null) != null) pkgs.${packages.kernel};
                   };
                   fileSystems = devices.file or {};
+                  networking = {
+                    hostName = name;
+                    networkmanager.enable = devices.network != [];
+                  };
                 })
             ]
             # ++ host.imports
