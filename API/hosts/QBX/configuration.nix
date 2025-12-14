@@ -190,12 +190,12 @@ in {
 
   nixpkgs = {
     hostPlatform = host.platform;
-    config.allowUnfree = false;
+    config.allowUnfree = true;
   };
 
-  # system = {
-  #   stateVersion = host.version;
-  # };
+  system = {
+    stateVersion = host.version;
+  };
   # ==================== Network ====================
   networking = {
     hostName = host.name;
