@@ -30,7 +30,7 @@
                   system = {inherit stateVersion;};
                   nixpkgs = {
                     hostPlatform = platform;
-                    config = mkIf ((packages.unfree or null) != null) {
+                    config = mkIf ((packages.allowUnfree or null) != null) {
                       inherit (packages) allowUnfree;
                     };
                   };
