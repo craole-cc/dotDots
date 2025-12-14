@@ -303,7 +303,7 @@
             else []
           )
           ++ (
-            if (! elem (cfg.role or null) ["service"]) && (config.networking.networkmanager.enable or false)
+            if (config.users.users.${cfg.name}.isNormalUser) && (config.networking.networkmanager.enable or false)
             then ["networkmanager"]
             else []
           );
