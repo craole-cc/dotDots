@@ -20,7 +20,7 @@
     (
       name: host:
         inputs.nixosCore.lib.nixosSystem {
-          system = host.specs.platform;
+          system = host.platform;
           specialArgs = args;
           modules =
             [
