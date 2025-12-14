@@ -139,7 +139,7 @@
           zsh.enable = elem "zsh" (cfg.shells or []);
           fish.enable = elem "fish" (cfg.shells or []);
           zen-browser =
-            mkIf (zen.variant != null) {
+            mkIf (zen != null) {
               enable = true;
               package =
                 if zen == null
