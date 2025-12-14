@@ -127,7 +127,7 @@
         home = {
           inherit stateVersion;
           sessionVariables.USER_ROLE = cfg.role or "user";
-          packages = map getPackage {
+          packages = getPackage {
             inherit pkgs;
             target = allShells;
           };
