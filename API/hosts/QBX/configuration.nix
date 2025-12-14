@@ -194,7 +194,7 @@ in {
   };
 
   system = {
-    stateVersion = host.version;
+    stateVersion = "26.05";
   };
   # ==================== Network ====================
   networking = {
