@@ -23,7 +23,12 @@
           system = host.specs.platform;
           specialArgs = args;
           modules =
-            [{system = {inherit (host) stateVersion;};}]
+            [
+              {
+                inherit (host) imports;
+                system = {inherit (host) stateVersion;};
+              }
+            ]
             # ++ host.imports
             ++ [
               inputs.nixosHome.nixosModules.home-manager
