@@ -92,14 +92,15 @@
       (name: cfg: {
         imports =
           []
-          #> Add Firefox Zen module if user uses Firefox Zen browser
-          ++ optional (
-            elem (cfg.browser.firefox or "") ["zen" "zen-browser"]
-          )
+          #> Add Firefox Zen module if user prefers the Zen variant.
+          ++ optional (elem (cfg.browser.firefox or "") ["zen" "zen-browser"])
+          inputs.firefoxZen.homeModules.twilight
+          ++ optional (elem (cfg.browser.firefox or "") ["zen" "zen-browser"])
           inputs.firefoxZen.homeModules.twilight
           #> Add Plasma Manager module if user uses Plasma desktop
-          ++ optional (cfg.interface.desktopEnvironment == "plasma")
-          inputs.plasmaManager.homeModules.plasma-manager;
+          ++ optional ((cfg.interface or {}).desktopEnvironment or "" == "plasma")
+          inputs.plasmaManager.homeModules.plasma-manager
+          ++ [];
 
         home = {
           inherit stateVersion;
