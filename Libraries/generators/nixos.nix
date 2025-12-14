@@ -33,7 +33,7 @@
                     config = {inherit (packages) allowUnfree;};
                   };
                   boot = {
-                    kernelPackages = pkgs.${host.packages.kernel};
+                    # kernelPackages = pkgs.${host.packages.kernel};
                   };
                 })
             ]
