@@ -224,17 +224,17 @@ in {
     xserver.videoDrivers = ["nvidia"];
 
     #~@ Network
-    openssh.enable = true;
+    # openssh.enable = true;
 
-    #~@ Audio
-    pipewire = {
-      enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
-      wireplumber.enable = true;
-    };
-    pulseaudio.enable = false;
+    # #~@ Audio
+    # pipewire = {
+    #   enable = true;
+    #   alsa.support32Bit = true;
+    #   pulse.enable = true;
+    #   jack.enable = true;
+    #   wireplumber.enable = true;
+    # };
+    # pulseaudio.enable = false;
 
     #~@ Other services
     printing.enable = true;

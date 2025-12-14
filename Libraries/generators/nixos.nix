@@ -3,14 +3,31 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues attrByPath filterAttrs genAttrs mapAttrs;
-  inherit (lib.lists) any concatLists elem head optional unique;
+  inherit (lib.attrsets) attrValues attrNames attrByPath filterAttrs genAttrs mapAttrs;
+  inherit (lib.lists) any concatLists elem head length optional unique;
   inherit (lib.modules) mkDefault mkIf;
   inherit (lib.strings) hasInfix;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
 
-  mkNetworkInterface = _: {useDHCP = mkDefault true;};
+  # Build a single sudo.extraRules entry granting passwordless root access
+  # for a specific username.
+  mkAdmin = name: {
+    # Apply this rule only to the named user.
+    users = [name];
+
+    # Allow that user to run any command as any user/group, without password.
+    # Equivalent to:  name ALL=(ALL:ALL) NOPASSWD: ALL
+    commands = [
+      {
+        command = "ALL";
+        options = [
+          "SETENV"
+          "NOPASSWD"
+        ];
+      }
+    ];
+  };
 
   mkHosts = {
     inputs,
@@ -22,16 +39,41 @@
     (
       name: host: let
         system = host.platform or builtins.currentSystem;
+        hostUsers = attrValues (attrNames host.users or {});
+        #? Check for administrator privelages based on user role
+        isAdmin = u: elem (u.role or null) ["admin" "administrator"];
+        adminsUsersRaw = filterAttrs (_: isAdmin) host.users;
+        adminUsers =
+          if adminsUsersRaw != {}
+          then adminsUsersRaw
+          else if length hostUsers == 1
+          then let
+            onlyName = head hostUsers;
+          in {
+            ${onlyName} = users.${onlyName};
+          }
+          else adminsUsersRaw;
+        hasAudio = elem "audio" (host.functionalities or []);
       in
         inputs.nixosCore.lib.nixosSystem {
           inherit system;
           specialArgs = args;
           modules =
             [
-              (with host; let
-                hasAudio = elem "audio" functionalities;
-              in
+              (with host;
                 {pkgs, ...}: {
+                  # Policy check:
+                  # - If multiple users exist, at least one must be an administrator.
+                  # - A single-user host may omit role and will be auto-promoted to admin.
+                  assertions = [
+                    {
+                      assertion = (adminUsers != {}) || (length hostUsers <= 1);
+                      message = ''
+                        When multiple users are defined for a host, at least one must have role = "administrator".
+                      '';
+                    }
+                  ];
+
                   inherit imports;
 
                   system = {
@@ -119,7 +161,10 @@
                     inherit (access) nameservers;
 
                     #> Generate interface configurations
-                    interfaces = genAttrs (devices.network or []) mkNetworkInterface;
+                    interfaces = let
+                      mkNetworkInterface = _: {useDHCP = mkDefault true;};
+                    in
+                      genAttrs (devices.network or []) mkNetworkInterface;
 
                     #> Configure firewall
                     firewall = let
@@ -166,7 +211,16 @@
                     pulseaudio.enable = false;
                   };
 
-                  security.rtkit.enable = hasAudio;
+                  security = {
+                    rtkit.enable = hasAudio;
+                    sudo = {
+                      #> Restrict sudo to members of the wheel group (root is always allowed).
+                      execWheelOnly = true;
+
+                      #> For each admin user, grant passwordless sudo for all commands.
+                      extraRules = mapAttrsToList (name: _: mkAdmin name) adminUsers;
+                    };
+                  };
                 })
             ]
             ++ [
@@ -239,7 +293,7 @@
         };
         password = cfg.password or null;
         extraGroups =
-          if elem cfg.role ["admin" "administrator"]
+          if elem (cfg.role or null) ["admin" "administrator"]
           then ["wheel"]
           else [];
       })
