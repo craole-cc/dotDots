@@ -252,7 +252,11 @@
     stateVersion,
     system,
     inputs,
-  }: {pkgs, ...}: let
+  }: {
+    config,
+    pkgs,
+    ...
+  }: let
     #> Merge user config from API/users/ with host-specific settings
     users =
       mapAttrs (
@@ -293,9 +297,16 @@
         password = cfg.password or null;
 
         extraGroups =
-          if elem (cfg.role or null) ["admin" "administrator"]
-          then ["wheel"]
-          else [];
+          (
+            if elem (cfg.role or null) ["admin" "administrator"]
+            then ["wheel"]
+            else []
+          )
+          ++ (
+            if (! elem (cfg.role or null) ["service"]) && (config.networking.networkmanager.enable or false)
+            then ["networkmanager"]
+            else []
+          );
       })
       users;
 
