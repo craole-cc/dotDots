@@ -3,7 +3,7 @@
     displayManager.sddm = {
       enable = true;
       wayland.enable = true;
-      theme = "catppuccin-sddm-corners";
+      theme = "sddm-astronaut";
     };
     desktopManager.plasma6.enable = true;
   };
