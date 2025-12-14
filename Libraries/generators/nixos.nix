@@ -285,8 +285,8 @@
 
         #> Enable shells in home-manager
         programs = {
-          starship.enable = hasInfix "starship" (cfg.interface.prompt or "");
-          oh-my-posh.enable = hasInfix "posh" (cfg.interface.prompt or "");
+          # starship.enable = hasInfix "starship" (cfg.interface.prompt or "");
+          # oh-my-posh.enable = hasInfix "posh" (cfg.interface.prompt or "");
           bash.enable = elem "bash" (cfg.shells or []);
           zsh.enable = elem "zsh" (cfg.shells or []);
           fish.enable = elem "fish" (cfg.shells or []);
