@@ -86,7 +86,6 @@
       (name: cfg: {
         home = {
           inherit stateVersion;
-          description = cfg.description or name;
           sessionVariables.USER_ROLE = cfg.role or "user";
           packages = map getShellPackage allShells;
         };
