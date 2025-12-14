@@ -292,7 +292,10 @@
 
         password = cfg.password or null;
 
-        extraGroups = mkIf (isAdmin cfg.role) ["wheel"];
+        extraGroups =
+          if isAdmin cfg.role
+          then ["wheel"]
+          else [];
       })
       users;
 

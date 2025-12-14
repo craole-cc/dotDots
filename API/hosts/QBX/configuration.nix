@@ -320,11 +320,11 @@ in {
   };
 
   # ==================== USERS ====================
-  users.users."${user.name}" = {
-    inherit (user) description;
-    isNormalUser = true;
-    extraGroups = ["networkmanager" "wheel"];
-  };
+  # users.users."${user.name}" = {
+  #   inherit (user) description;
+  #   isNormalUser = true;
+  #   extraGroups = ["networkmanager" "wheel"];
+  # };
 
   # ==================== HOME MANAGER ====================
   home-manager.users = {
