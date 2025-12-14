@@ -30,9 +30,7 @@
                   system = {inherit stateVersion;};
                   nixpkgs = {
                     hostPlatform = platform;
-                    config = mkIf ((packages.allowUnfree or null) != null) {
-                      inherit (packages) allowUnfree;
-                    };
+                    config.allowUnfree = packages.allowUnfree or false;
                   };
                   boot = {
                     kernelPackages = mkIf ((packages.kernel or null) != null) pkgs.${packages.kernel};
