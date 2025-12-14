@@ -24,17 +24,18 @@
           specialArgs = args;
           modules =
             [
-              (with host; {
-                inherit imports;
-                system = {inherit stateVersion;};
-                nixpkgs = {
-                  hostPlatform = platform;
-                  config = {inherit (packages) allowUnfree;};
-                };
-                boot = {
-                  kernelPackages = pkgs.${host.packages.kernel};
-                };
-              })
+              (with host;
+                {pkgs, ...}: {
+                  inherit imports;
+                  system = {inherit stateVersion;};
+                  nixpkgs = {
+                    hostPlatform = platform;
+                    config = {inherit (packages) allowUnfree;};
+                  };
+                  boot = {
+                    kernelPackages = pkgs.${host.packages.kernel};
+                  };
+                })
             ]
             # ++ host.imports
             ++ [
