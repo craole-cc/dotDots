@@ -15,7 +15,7 @@ in {
   };
 
   packages = {
-    # allowUnfree = true;
+    allowUnfree = true;
     # kernel = "linuxPackages_latest";
   };
 
