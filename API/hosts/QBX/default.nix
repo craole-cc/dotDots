@@ -8,7 +8,7 @@ in {
   ];
 
   stateVersion = "25.11";
-  platform = "${arch}-${os}";
+  # platform = "${arch}-${os}";
 
   paths = {
     dots = "/home/craole/.dots";

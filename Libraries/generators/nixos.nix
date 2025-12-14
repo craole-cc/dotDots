@@ -18,9 +18,11 @@
   }:
     mapAttrs
     (
-      name: host:
+      name: host: let
+        system = host.platform or builtins.currentSystem;
+      in
         inputs.nixosCore.lib.nixosSystem {
-          system = host.platform;
+          inherit system;
           specialArgs = args;
           modules =
             [
@@ -29,7 +31,7 @@
                   inherit imports;
                   system = {inherit stateVersion;};
                   nixpkgs = {
-                    hostPlatform = platform;
+                    hostPlatform = system;
                     config.allowUnfree = packages.allowUnfree or false;
                   };
                   boot = {
