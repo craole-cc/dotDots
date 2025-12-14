@@ -21,6 +21,7 @@
       name: host:
         inputs.nixosCore.lib.nixosSystem {
           system = host.specs.platform;
+          inherit (host) imports;
           specialArgs = args;
           modules = with inputs; [
             nixosHome.nixosModules.home-manager
