@@ -63,7 +63,8 @@
 
                     #> Configure firewall
                     firewall = let
-                      inherit (access.firewall) enable tcp udp;
+                      inherit (access.firewall) tcp udp;
+                      enable = access.firewall.enable or false;
                     in {
                       inherit enable;
 
