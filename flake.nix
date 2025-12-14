@@ -51,7 +51,7 @@
     #     ];
     #   };
   in {
-    nixosConfigurations = mapAttrs (name: host: mkHost {inherit name host args;}) hosts;
+    nixosConfigurations = lix.std.mapAttrs (name: host: mkHost {inherit name host args;}) hosts;
   };
 
   inputs = {

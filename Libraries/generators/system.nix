@@ -1,4 +1,4 @@
-{}: let
+{...}: let
   mkHost = {
     name,
     host,
