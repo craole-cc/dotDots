@@ -174,7 +174,7 @@ in {
       enable = true;
       role = "service";
     };
-    qyatt = {
+    qyatty = {
       enable = true;
       role = "admin";
     };
