@@ -14,7 +14,7 @@
       system = host.specs.platform;
       specialArgs = args;
       modules = with inputs; [
-        ./Configuration/hosts/${name}/configuration.nix # TODO: We won't need this when all is said and done
+        # ./Configuration/hosts/${name}/configuration.nix # TODO: We won't need this when all is said and done
         nixosHome.nixosModules.home-manager
         {
           home-manager = {
