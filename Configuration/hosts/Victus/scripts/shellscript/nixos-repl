@@ -1,0 +1,52 @@
+#!/bin/sh
+
+msg="${*:-"Developing flake"}"
+path=$(pwd -P)
+host=$(hostname)
+
+#> Check for nix command
+if ! command -v nix >/dev/null 2>&1; then
+    printf "❌ Unable to load REPL: 'nix' not found\n" >&2
+    exit 1
+fi
+
+printf "📁 Adding all changes...\n"
+git add --all || {
+    printf "❌ Failed to add changes\n" >&2
+    exit 1
+}
+
+printf "💾 Committing: %s\n" "$msg"
+git commit --message "$msg" || {
+    printf "❌ Failed to commit\n" >&2
+    exit 1
+}
+
+#~@ Functions
+
+load_flake_repl() {
+    printf "🔧 Attempting to load flake REPL for %s...\n" "$host"
+    nix repl --extra-experimental-features 'nix-command flakes' "$path#nixosConfigurations.$host"
+}
+
+load_default_repl() {
+    printf "🔄 Falling back to default REPL...\n"
+    nix repl --file "$path"
+}
+
+#~@ Main Logic
+
+if [ -n "$host" ] && [ -f "$path/flake.nix" ]; then
+    if ! load_flake_repl; then
+        printf "⚠️  Failed to load flake REPL, falling back to default...\n" >&2
+        load_default_repl || {
+            printf "❌ Failed to load default REPL\n" >&2
+            exit 1
+        }
+    fi
+else
+    load_default_repl || {
+        printf "❌ Failed to load default REPL\n" >&2
+        exit 1
+    }
+fi
