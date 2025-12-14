@@ -125,9 +125,9 @@
     detectedVariant = detectVariant variant;
     isZen = hasPrefix "zen-" detectedVariant;
   in
-    if isZen && hasInfix detectedVariant "beta"
+    if isZen && hasInfix "beta" detectedVariant
     then "beta"
-    else if isZen && hasInfix detectedVariant "twilight"
+    else if isZen && hasInfix "twilight" detectedVariant
     then "twilight"
     else null;
 in {
