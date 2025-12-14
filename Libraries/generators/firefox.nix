@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.lists) elem;
-  inherit (lib.strings) hasPrefix substring stringLength;
+  inherit (lib.strings) hasPrefix hasSuffix substring stringLength;
   inherit (_.predicates.emptiness) isEmpty isNotEmpty;
   inherit (_.attrsets.resolution) getNestedAttr getPackage;
 
@@ -122,12 +122,17 @@
     variant = detectedVariant;
   };
 
-  isZenVariant = variant: hasPrefix "zen-" (detectVariant variant);
+  zenVariant = variant:
+    if (hasPrefix "zen-" (detectVariant variant))
+    then null
+    else if hasSuffix (detectVariant variant) "-beta"
+    then "beta"
+    else "twilight";
 in {
   # Regular module exports (under applications.firefox.*)
   inherit
     makeExtensionUrl
-    isZenVariant
+    zenVariant
     makeExtensionEntry
     makeExtensionSettings
     detectVariant

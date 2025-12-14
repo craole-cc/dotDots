@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs attrValues;
   inherit (lib.lists) concatLists elem head optional unique;
-  inherit (_.generators.firefox) isZenVariant;
+  inherit (_.generators.firefox) zenVariant;
 
   mkHosts = {
     inputs,
@@ -98,8 +98,13 @@
         imports =
           []
           #> Add Firefox Zen module if user prefers the Zen variant.
-          ++ optional (isZenVariant cfg.applications.browser.firefox)
-          inputs.firefoxZen.homeModules.twilight
+          ++ (
+            let
+              zen = zenVariant cfg.applications.browser.firefox;
+            in
+              optional (zen != null)
+              inputs.firefoxZen.homeModules.${zen}
+          )
           #> Add Plasma Manager module if user uses Plasma desktop
           ++ optional ((cfg.interface or {}).desktopEnvironment or "" == "plasma")
           inputs.plasmaManager.homeModules.plasma-manager
