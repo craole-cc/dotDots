@@ -4,7 +4,7 @@ let
 in {
   imports = [
     ./configuration.nix
-    ./plasma.nix
+    ./themes.nix
   ];
 
   stateVersion = "25.11";
