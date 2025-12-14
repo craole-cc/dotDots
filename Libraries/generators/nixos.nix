@@ -6,6 +6,7 @@
   inherit (lib.attrsets) filterAttrs mapAttrs attrValues attrByPath;
   inherit (lib.lists) any concatLists elem head optional unique;
   inherit (lib.modules) mkIf;
+  inherit (lib.strings) hasInfix;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
 
@@ -51,19 +52,6 @@
     platform,
     inputs,
   }: {pkgs, ...}: let
-    # #TODO: Move to Library
-    # # Helper function to get shell package from name
-    # getShellPackage = shellName:
-    #   {
-    #     "bash" = pkgs.bashInteractive;
-    #     "nushell" = pkgs.nushell;
-    #     "powershell" = pkgs.powershell;
-    #     "zsh" = pkgs.zsh;
-    #     "fish" = pkgs.fish;
-    #     # Add more shells as needed
-    #   }.${
-    #     shellName
-    #   } or pkgs.bashInteractive;
     #> Merge user config from API/users/ with host-specific settings
     users =
       mapAttrs (
@@ -73,6 +61,10 @@
 
     #> Collect all enabled regular users (non-service, non-guest)
     regularUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
+
+    hyprlandNeeded = any (
+      cfg: ((cfg.interface or {}).windowManager or "") == "hyprland"
+    ) (attrValues regularUsers);
 
     #> Collect all unique shells from all users
     allShells = let
@@ -103,7 +95,11 @@
       users;
 
     #~@ System-wide programs (not per-user)
-    programs.hyprland.enable = any (cfg: ((cfg.interface or {}).windowManager or "") == "hyprland") (attrValues regularUsers);
+    programs.hyprland = mkIf hyprlandNeeded {
+      enable = true;
+      withUWSM = true;
+    };
+    environment.systemPackages = mkIf hyprlandNeeded [pkgs.kitty];
 
     home-manager.users =
       mapAttrs
@@ -137,9 +133,12 @@
 
         #> Enable shells in home-manager
         programs = {
+          starship.enable = hasInfix "starship" cfg.prompt;
+          oh-my-posh.enable = hasInfix "posh" cfg.prompt;
           bash.enable = elem "bash" (cfg.shells or []);
           zsh.enable = elem "zsh" (cfg.shells or []);
           fish.enable = elem "fish" (cfg.shells or []);
+          nushell.enable = elem "nushell" (cfg.shells or []);
           zen-browser =
             mkIf (zen != null) {
               enable = true;
