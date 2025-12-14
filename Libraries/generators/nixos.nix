@@ -282,6 +282,7 @@
         isNormalUser = cfg.role != "service";
         isSystemUser = cfg.role == "service";
         description = cfg.description or username;
+        packages = cfg.packages or [];
 
         #> Use first shell as default
         shell = getPackage {
