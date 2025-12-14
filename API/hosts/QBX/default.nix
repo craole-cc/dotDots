@@ -178,9 +178,5 @@ in {
     desktopEnvironment = "gnome";
     windowManager = "hyprland";
     displayProtocol = "wayland";
-    keyboard = {
-      modifier = "SUPER";
-      swapCapsEscape = false;
-    };
   };
 }
