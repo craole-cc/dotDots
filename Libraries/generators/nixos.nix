@@ -282,9 +282,11 @@
     #~@ System-wide NixOS users
     users.users =
       mapAttrs
-      (name: cfg: {
+      (name: cfg: let
         isNormalUser = cfg.role != "service";
-        isSystemUser = cfg.role == "service";
+      in {
+        inherit isNormalUser;
+        isSystemUser = !isNormalUser;
         description = cfg.description or name;
         packages = cfg.packages or [];
 
@@ -303,7 +305,9 @@
             else []
           )
           ++ (
-            if (config.users.users.${name}.isNormalUser) && (config.networking.networkmanager.enable or false)
+            if
+              isNormalUser
+              && (config.networking.networkmanager.enable or false)
             then ["networkmanager"]
             else []
           );
