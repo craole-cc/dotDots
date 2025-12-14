@@ -28,23 +28,83 @@
           specialArgs = args;
           modules =
             [
-              (with host;
+              (with host; let
+                hasAudio = elem "audio" functionalities;
+              in
                 {pkgs, ...}: {
                   inherit imports;
+
                   system = {
                     inherit stateVersion;
                   };
+
                   nix = {
-                    settings.experimental-features = ["nix-command" "flakes"];
+                    gc = {
+                      automatic = true;
+                      persistent = true;
+                      dates = "weekly";
+                      options = "--delete-older-than 5d";
+                    };
+
+                    optimise = {
+                      automatic = true;
+                      persistent = true;
+                      dates = "weekly";
+                    };
+
+                    settings = {
+                      auto-optimise-store = true;
+                      experimental-features = [
+                        "nix-command"
+                        "flakes"
+                        "pipe-operators"
+                      ];
+                      max-jobs = specs.cpu.cores or "auto";
+                      substituters = ["https://cache.nixos.org/"];
+                      trusted-substituters = [
+                        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+                        "https://hydra.nixos.org/"
+                      ];
+                      trusted-users = [
+                        "root"
+                        "@wheel"
+                      ];
+                    };
+
+                    extraOptions = ''
+                      download-buffer-size = 524288000
+                    '';
                   };
+
                   nixpkgs = {
                     hostPlatform = system;
                     config.allowUnfree = packages.allowUnfree or false;
                   };
+
                   boot = {
                     kernelPackages = mkIf ((packages.kernel or null) != null) pkgs.${packages.kernel};
                   };
-                  fileSystems = devices.file or {};
+
+                  fileSystems = let
+                    mkFileSystem = _: fs: let
+                      base = {
+                        device = fs.device;
+                        fsType = fs.fsType;
+                      };
+                      opts = fs.options or [];
+                    in
+                      #> Combine base attributes with options if they exist.
+                      if opts == []
+                      then base
+                      else base // {options = opts;};
+                  in
+                    mapAttrs mkFileSystem (devices.file or {});
+
+                  swapDevices = let
+                    mkSwapDevice = s: {device = s.device;};
+                  in
+                    map mkSwapDevice swap;
+
                   networking = {
                     #> System name
                     hostName = name;
@@ -77,15 +137,36 @@
                       allowedUDPPortRanges = udp.ranges;
                     };
                   };
+
                   time = {
                     timeZone = localization.timeZone or null;
                     hardwareClockInLocalTime = elem "dualboot-windows" functionalities;
                   };
+
                   location = {
                     latitude = localization.latitude or null;
                     longitude = localization.longitude or null;
-                    provider = localization.provider or "geoclue2";
+                    provider = localization.locator or "geoclue2";
                   };
+
+                  i18n = {
+                    defaultLocale = localization.defaultLocale or null;
+                  };
+
+                  services = {
+                    pipewire = mkIf hasAudio {
+                      enable = true;
+                      alsa.enable = true;
+                      alsa.support32Bit = true;
+                      pulse.enable = true;
+                      jack.enable = true;
+                      wireplumber.enable = true;
+                    };
+
+                    pulseaudio.enable = false;
+                  };
+
+                  security.rtkit.enable = hasAudio;
                 })
             ]
             ++ [
