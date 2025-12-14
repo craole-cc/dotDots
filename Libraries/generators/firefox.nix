@@ -125,7 +125,7 @@
   zenVariant = variant:
     if (hasPrefix "zen-" (detectVariant variant))
     then
-      if hasSuffix (detectVariant variant) "-beta"
+      if hasSuffix (detectVariant variant) "beta"
       then "beta"
       else "twilight"
     else null;
