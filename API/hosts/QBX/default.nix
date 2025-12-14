@@ -8,15 +8,15 @@ in {
   ];
 
   stateVersion = "25.11";
-  # platform = "${arch}-${os}";
+  platform = "${arch}-${os}";
 
   paths = {
     dots = "/home/craole/.dots";
   };
 
   packages = {
-    # allowUnfree = true;
-    # kernel = "linuxPackages_latest";
+    allowUnfree = true;
+    kernel = "linuxPackages_latest";
   };
 
   specs = {
@@ -56,20 +56,23 @@ in {
 
   devices = {
     boot = {
-      "luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d" = {
-        device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
-      };
+      # "luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d" = {
+      #   device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
+      # };
     };
 
     file = {
       "/" = {
-        device = "/dev/disk/by-uuid/6494d9f3-9b6b-43ee-b0c9-6abeec96bf38";
+        device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
         fsType = "ext4";
       };
       "/boot" = {
-        device = "/dev/disk/by-uuid/3C12-4AC5";
+        device = "/dev/disk/by-uuid/C6C0-2B64";
         fsType = "vfat";
-        options = ["fmask=0077" "dmask=0077"];
+        options = [
+          "fmask=0077"
+          "dmask=0077"
+        ];
       };
     };
 

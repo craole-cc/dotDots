@@ -37,6 +37,7 @@
                   boot = {
                     kernelPackages = mkIf ((packages.kernel or null) != null) pkgs.${packages.kernel};
                   };
+                  fileSystems = devices.file or {};
                 })
             ]
             # ++ host.imports
