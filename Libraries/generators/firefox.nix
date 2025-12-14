@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.lists) elem;
-  inherit (lib.strings) hasPrefix hasSuffix substring stringLength;
+  inherit (lib.strings) hasPrefix hasSuffix hasInfix substring stringLength;
   inherit (_.predicates.emptiness) isEmpty isNotEmpty;
   inherit (_.attrsets.resolution) getNestedAttr getPackage;
 
@@ -49,9 +49,9 @@
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
-    else if (elem input ["zen" "twilight"])
+    else if (hasInfix "zen")
     then
-      if (elem input beta)
+      if (hasInfix "beta" || hasInfix "unstable")
       then "zen-beta"
       else "zen-twilight"
     #~@ Check for LibreWolf
