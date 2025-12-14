@@ -5,9 +5,9 @@
 }: let
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.strings) substring stringLength;
-  inherit (_.strings) contains containsAny;
+  inherit (_.predicates.strings) contains containsAny;
   inherit (_.predicates.emptiness) isEmpty isNotEmpty;
-  inherit (_.resolution) getNestedAttr getPackage;
+  inherit (_.attrsets.resolution) getNestedAttr getPackage;
 
   /**
   Create a Firefox extension download URL.

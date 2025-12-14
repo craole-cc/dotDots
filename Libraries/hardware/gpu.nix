@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.attrsets) removeAttrs;
   inherit (lib.strings) splitString replaceStrings;
   inherit (lib.lists) filter elemAt imap0 length;
