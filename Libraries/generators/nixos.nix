@@ -81,6 +81,11 @@
                     timeZone = localization.timeZone or null;
                     hardwareClockInLocalTime = elem "dualboot-windows" functionalities;
                   };
+                  location = {
+                    latitude = localization.latitude or null;
+                    longitude = localization.longitude or null;
+                    provider = localization.provider or "geoclue2";
+                  };
                 })
             ]
             ++ [
