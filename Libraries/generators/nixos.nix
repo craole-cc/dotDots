@@ -45,6 +45,7 @@
                   fileSystems = devices.file or {};
                   networking = {
                     hostName = name;
+                    hostId = host.id or null;
                     networkmanager.enable = devices.network != [];
                   };
                 })
