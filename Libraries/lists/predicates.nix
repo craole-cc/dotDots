@@ -1,11 +1,10 @@
 {
-  _,
   lib,
+  _,
   ...
 }: let
   inherit (lib.lists) all any filter elem length toList;
   inherit (lib.strings) toLower;
-  inherit (_.testing.unit) mkTest runTests;
 
   /**
   Generate a membership checking function for a normalized list.
@@ -310,341 +309,142 @@ in {
     isInExactList = isInExact;
   };
 
-  _tests = runTests {
-    # ============================================================
-    # checkMembership tests (ANY semantics)
-    # ============================================================
+  _tests = let
+    inherit (_.testing.unit) mkTest runTests;
+  in
+    runTests {
+      checkMembership = {
+        singleValueFound = mkTest true (checkMembership {
+          value = "foo";
+          check = ["foo" "bar"];
+        });
+        singleValueNotFound = mkTest false (checkMembership {
+          value = "baz";
+          check = ["foo" "bar"];
+        });
+        listWithOneMatch = mkTest true (checkMembership {
+          value = ["foo" "qux"];
+          check = ["foo" "bar"];
+        });
+        listWithNoMatches = mkTest false (checkMembership {
+          value = ["qux" "quux"];
+          check = ["foo" "bar"];
+        });
+        listWithAllMatches = mkTest true (checkMembership {
+          value = ["foo" "bar"];
+          check = ["foo" "bar" "baz"];
+        });
+        caseInsensitiveByDefault = mkTest true (checkMembership {
+          value = "FOO";
+          check = ["foo" "bar"];
+        });
+        caseSensitiveWithExact = mkTest false (checkMembership {
+          value = "FOO";
+          check = ["foo" "bar"];
+          exact = true;
+        });
+        emptyValueList = mkTest false (checkMembership {
+          value = [];
+          check = ["foo" "bar"];
+        });
+        singleCheckValue = mkTest true (checkMembership {
+          value = ["foo" "bar"];
+          check = "foo";
+        });
+      };
 
-    "checkMembership: single value found" =
-      mkTest
-      true
-      (checkMembership {
-        value = "foo";
-        check = ["foo" "bar"];
-      });
+      countMatches = {
+        noMatches = mkTest 0 (countMatches {
+          value = ["qux" "quux"];
+          check = ["foo" "bar"];
+        });
+        oneMatch = mkTest 1 (countMatches {
+          value = ["foo" "qux"];
+          check = ["foo" "bar"];
+        });
+        allMatch = mkTest 2 (countMatches {
+          value = ["foo" "bar"];
+          check = ["foo" "bar" "baz"];
+        });
+        singleValueMatch = mkTest 1 (countMatches {
+          value = "foo";
+          check = ["foo" "bar"];
+        });
+        singleValueNoMatch = mkTest 0 (countMatches {
+          value = "qux";
+          check = ["foo" "bar"];
+        });
+        caseInsensitive = mkTest 2 (countMatches {
+          value = ["FOO" "Bar"];
+          check = ["foo" "bar"];
+        });
+        caseSensitive = mkTest 0 (countMatches {
+          value = ["FOO" "Bar"];
+          check = ["foo" "bar"];
+          exact = true;
+        });
+        duplicateValues = mkTest 2 (countMatches {
+          value = ["foo" "foo"];
+          check = ["foo" "bar"];
+        });
+      };
 
-    "checkMembership: single value not found" =
-      mkTest
-      false
-      (checkMembership {
-        value = "baz";
-        check = ["foo" "bar"];
-      });
+      isIn = {
+        found = mkTest true (isIn "foo" ["foo" "bar"]);
+        notFound = mkTest false (isIn "qux" ["foo" "bar"]);
+        caseInsensitive = mkTest true (isIn "FOO" ["foo" "bar"]);
+        listWithPartialMatch = mkTest true (isIn ["foo" "qux"] ["foo" "bar"]);
+        checkAgainstSingleValue = mkTest true (isIn "foo" "foo");
+      };
 
-    "checkMembership: list with one match" =
-      mkTest
-      true
-      (checkMembership {
-        value = ["foo" "qux"];
-        check = ["foo" "bar"];
-      });
+      isInExact = {
+        caseSensitiveMatch = mkTest true (isInExact "foo" ["foo" "bar"]);
+        caseSensitiveNoMatch = mkTest false (isInExact "FOO" ["foo" "bar"]);
+        listWithCaseMismatch = mkTest true (isInExact ["FOO" "bar"] ["foo" "bar"]);
+      };
 
-    "checkMembership: list with no matches" =
-      mkTest
-      false
-      (checkMembership {
-        value = ["qux" "quux"];
-        check = ["foo" "bar"];
-      });
+      hasAll = {
+        allElementsFound = mkTest true (hasAll ["foo" "bar"] ["foo" "bar" "baz"]);
+        notAllElementsFound = mkTest false (hasAll ["foo" "qux"] ["foo" "bar"]);
+        singleElementFound = mkTest true (hasAll "foo" ["foo" "bar"]);
+        singleElementNotFound = mkTest false (hasAll "qux" ["foo" "bar"]);
+        emptyList = mkTest true (hasAll [] ["foo" "bar"]);
+        caseInsensitive = mkTest true (hasAll ["FOO" "BAR"] ["foo" "bar"]);
+        checkAgainstSingleValue = mkTest true (hasAll ["foo"] "foo");
+      };
 
-    "checkMembership: list with all matches" =
-      mkTest
-      true
-      (checkMembership {
-        value = ["foo" "bar"];
-        check = ["foo" "bar" "baz"];
-      });
+      hasAllExact = {
+        allMatchWithCorrectCase = mkTest true (hasAllExact ["foo" "bar"] ["foo" "bar" "baz"]);
+        caseMismatch = mkTest false (hasAllExact ["FOO" "bar"] ["foo" "bar"]);
+        partialCaseMismatch = mkTest false (hasAllExact ["foo" "Bar"] ["foo" "bar"]);
+      };
 
-    "checkMembership: case-insensitive by default" =
-      mkTest
-      true
-      (checkMembership {
-        value = "FOO";
-        check = ["foo" "bar"];
-      });
+      hasAtLeast = {
+        exactlyTheCount = mkTest true (hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 2);
+        moreThanTheCount = mkTest true (hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 1);
+        lessThanTheCount = mkTest false (hasAtLeast ["foo" "qux"] ["foo" "bar"] 2);
+        zeroCount = mkTest true (hasAtLeast ["foo"] ["foo" "bar"] 0);
+        noMatchesButZeroCount = mkTest true (hasAtLeast ["qux"] ["foo" "bar"] 0);
+        caseInsensitive = mkTest true (hasAtLeast ["FOO" "BAR"] ["foo" "bar"] 2);
+        checkWithSingleValue = mkTest true (hasAtLeast "foo" "foo" 1);
+      };
 
-    "checkMembership: case-sensitive with exact=true" =
-      mkTest
-      false
-      (checkMembership {
-        value = "FOO";
-        check = ["foo" "bar"];
-        exact = true;
-      });
+      hasAtLeastExact = {
+        exactCaseMatch = mkTest true (hasAtLeastExact ["foo" "bar"] ["foo" "bar"] 2);
+        caseMismatch = mkTest false (hasAtLeastExact ["FOO" "bar"] ["foo" "bar"] 2);
+      };
 
-    "checkMembership: empty value list" =
-      mkTest
-      false
-      (checkMembership {
-        value = [];
-        check = ["foo" "bar"];
-      });
+      hasAtMost = {
+        exactlyTheCount = mkTest true (hasAtMost ["foo" "bar"] ["foo" "baz"] 1);
+        lessThanTheCount = mkTest true (hasAtMost ["foo"] ["foo" "bar"] 2);
+        moreThanTheCount = mkTest false (hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1);
+        noMatchesReturnsFalse = mkTest false (hasAtMost ["qux" "quux"] ["foo" "bar"] 5);
+        caseInsensitive = mkTest true (hasAtMost ["FOO"] ["foo" "bar"] 1);
+      };
 
-    # ============================================================
-    # countMatches tests
-    # ============================================================
-
-    "countMatches: no matches" =
-      mkTest
-      0
-      (countMatches {
-        value = ["qux" "quux"];
-        check = ["foo" "bar"];
-      });
-
-    "countMatches: one match" =
-      mkTest
-      1
-      (countMatches {
-        value = ["foo" "qux"];
-        check = ["foo" "bar"];
-      });
-
-    "countMatches: all match" =
-      mkTest
-      2
-      (countMatches {
-        value = ["foo" "bar"];
-        check = ["foo" "bar" "baz"];
-      });
-
-    "countMatches: single value match" =
-      mkTest
-      1
-      (countMatches {
-        value = "foo";
-        check = ["foo" "bar"];
-      });
-
-    "countMatches: single value no match" =
-      mkTest
-      0
-      (countMatches {
-        value = "qux";
-        check = ["foo" "bar"];
-      });
-
-    "countMatches: case-insensitive" =
-      mkTest
-      2
-      (countMatches {
-        value = ["FOO" "Bar"];
-        check = ["foo" "bar"];
-      });
-
-    "countMatches: case-sensitive" =
-      mkTest
-      0
-      (countMatches {
-        value = ["FOO" "Bar"];
-        check = ["foo" "bar"];
-        exact = true;
-      });
-
-    # ============================================================
-    # isIn / isInExact tests (convenience wrappers)
-    # ============================================================
-
-    "isIn: found" =
-      mkTest
-      true
-      (isIn "foo" ["foo" "bar"]);
-
-    "isIn: not found" =
-      mkTest
-      false
-      (isIn "qux" ["foo" "bar"]);
-
-    "isIn: case-insensitive" =
-      mkTest
-      true
-      (isIn "FOO" ["foo" "bar"]);
-
-    "isIn: list with partial match" =
-      mkTest
-      true
-      (isIn ["foo" "qux"] ["foo" "bar"]);
-
-    "isInExact: case-sensitive match" =
-      mkTest
-      true
-      (isInExact "foo" ["foo" "bar"]);
-
-    "isInExact: case-sensitive no match" =
-      mkTest
-      false
-      (isInExact "FOO" ["foo" "bar"]);
-
-    "isInExact: list with case mismatch" =
-      mkTest
-      true
-      (isInExact ["FOO" "bar"] ["foo" "bar"]);
-
-    # ============================================================
-    # hasAll / hasAllExact tests (ALL semantics)
-    # ============================================================
-
-    "hasAll: all elements found" =
-      mkTest
-      true
-      (hasAll ["foo" "bar"] ["foo" "bar" "baz"]);
-
-    "hasAll: not all elements found" =
-      mkTest
-      false
-      (hasAll ["foo" "qux"] ["foo" "bar"]);
-
-    "hasAll: single element found" =
-      mkTest
-      true
-      (hasAll "foo" ["foo" "bar"]);
-
-    "hasAll: single element not found" =
-      mkTest
-      false
-      (hasAll "qux" ["foo" "bar"]);
-
-    "hasAll: empty list" =
-      mkTest
-      true
-      (hasAll [] ["foo" "bar"]);
-
-    "hasAll: case-insensitive" =
-      mkTest
-      true
-      (hasAll ["FOO" "BAR"] ["foo" "bar"]);
-
-    "hasAllExact: all match with correct case" =
-      mkTest
-      true
-      (hasAllExact ["foo" "bar"] ["foo" "bar" "baz"]);
-
-    "hasAllExact: case mismatch" =
-      mkTest
-      false
-      (hasAllExact ["FOO" "bar"] ["foo" "bar"]);
-
-    "hasAllExact: partial case mismatch" =
-      mkTest
-      false
-      (hasAllExact ["foo" "Bar"] ["foo" "bar"]);
-
-    # ============================================================
-    # hasAtLeast tests
-    # ============================================================
-
-    "hasAtLeast: exactly the count" =
-      mkTest
-      true
-      (hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 2);
-
-    "hasAtLeast: more than the count" =
-      mkTest
-      true
-      (hasAtLeast ["foo" "bar"] ["foo" "bar" "baz"] 1);
-
-    "hasAtLeast: less than the count" =
-      mkTest
-      false
-      (hasAtLeast ["foo" "qux"] ["foo" "bar"] 2);
-
-    "hasAtLeast: zero count" =
-      mkTest
-      true
-      (hasAtLeast ["foo"] ["foo" "bar"] 0);
-
-    "hasAtLeast: no matches but zero count" =
-      mkTest
-      true
-      (hasAtLeast ["qux"] ["foo" "bar"] 0);
-
-    "hasAtLeast: case-insensitive" =
-      mkTest
-      true
-      (hasAtLeast ["FOO" "BAR"] ["foo" "bar"] 2);
-
-    "hasAtLeastExact: exact case match" =
-      mkTest
-      true
-      (hasAtLeastExact ["foo" "bar"] ["foo" "bar"] 2);
-
-    "hasAtLeastExact: case mismatch" =
-      mkTest
-      false
-      (hasAtLeastExact ["FOO" "bar"] ["foo" "bar"] 2);
-
-    # ============================================================
-    # hasAtMost tests
-    # ============================================================
-
-    "hasAtMost: exactly the count" =
-      mkTest
-      true
-      (hasAtMost ["foo" "bar"] ["foo" "baz"] 1);
-
-    "hasAtMost: less than the count" =
-      mkTest
-      true
-      (hasAtMost ["foo"] ["foo" "bar"] 2);
-
-    "hasAtMost: more than the count" =
-      mkTest
-      false
-      (hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1);
-
-    "hasAtMost: no matches returns false" =
-      mkTest
-      false
-      (hasAtMost ["qux" "quux"] ["foo" "bar"] 5);
-
-    "hasAtMost: case-insensitive" =
-      mkTest
-      true
-      (hasAtMost ["FOO"] ["foo" "bar"] 1);
-
-    "hasAtMostExact: case-sensitive match" =
-      mkTest
-      true
-      (hasAtMostExact ["foo"] ["foo" "bar"] 1);
-
-    "hasAtMostExact: case-sensitive no match" =
-      mkTest
-      false
-      (hasAtMostExact ["FOO"] ["foo" "bar"] 1);
-
-    # ============================================================
-    # Edge cases and combinations
-    # ============================================================
-
-    "checkMembership: single check value" =
-      mkTest
-      true
-      (checkMembership {
-        value = ["foo" "bar"];
-        check = "foo";
-      });
-
-    "countMatches: duplicate values in list" =
-      mkTest
-      2
-      (countMatches {
-        value = ["foo" "foo"];
-        check = ["foo" "bar"];
-      });
-
-    "hasAll: check against single value" =
-      mkTest
-      true
-      (hasAll ["foo"] "foo");
-
-    "isIn: check against single value" =
-      mkTest
-      true
-      (isIn "foo" "foo");
-
-    "hasAtLeast: check with single value" =
-      mkTest
-      true
-      (hasAtLeast "foo" "foo" 1);
-  };
+      hasAtMostExact = {
+        caseSensitiveMatch = mkTest true (hasAtMostExact ["foo"] ["foo" "bar"] 1);
+        caseSensitiveNoMatch = mkTest false (hasAtMostExact ["FOO"] ["foo" "bar"] 1);
+      };
+    };
 }
