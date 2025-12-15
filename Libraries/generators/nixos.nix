@@ -4,9 +4,8 @@
   ...
 }: let
   inherit (lib.attrsets) attrValues attrNames attrByPath filterAttrs genAttrs mapAttrs;
-  inherit (lib.lists) any filter concatLists elem head length optional unique;
+  inherit (lib.lists) filter concatLists elem head length optional unique;
   inherit (lib.modules) mkDefault mkIf;
-  inherit (lib.strings) hasInfix;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
 
