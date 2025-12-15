@@ -125,11 +125,11 @@ in {
     extraModulePackages = [];
     kernelModules = ["kvm-amd"];
     # kernelPackages = pkgs.linuxPackages_latest;
-    loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-      timeout = 1;
-    };
+    # loader = {
+    #   systemd-boot.enable = true;
+    #   efi.canTouchEfiVariables = true;
+    #   timeout = 1;
+    # };
 
     kernelParams = [
       #? For NVIDIA - Early KMS
