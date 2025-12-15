@@ -11,7 +11,7 @@
     # ./foot
     # ./freetube
     # ./ghostty
-    # ./git
+    ./git
     # ./helix
     # ./jujutsu
     # ./nushell``
