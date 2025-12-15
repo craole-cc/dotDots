@@ -352,7 +352,7 @@
     home-manager.users =
       mapAttrs
       (name: cfg: let
-        zen = attrByPath ["applications" "browser" "firefox"] null cfg;
+        zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
         de = attrByPath ["interface" "desktopEnvironment"] null cfg;
         wm = attrByPath ["interface" "windowManager"] null cfg;
       in {
