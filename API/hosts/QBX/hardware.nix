@@ -219,79 +219,34 @@ in {
   # };
 
   # ==================== SERVICES ====================
-  services = {
-    #> Load nvidia driver for Xorg and Wayland
-    xserver.videoDrivers = ["nvidia"];
-
-    #~@ Network
-    # openssh.enable = true;
-
-    # #~@ Audio
-    # pipewire = {
-    #   enable = true;
-    #   alsa.support32Bit = true;
-    #   pulse.enable = true;
-    #   jack.enable = true;
-    #   wireplumber.enable = true;
-    # };
-    # pulseaudio.enable = false;
-
-    # #~@ Other services
-    # printing.enable = true;
-    # qbittorrent = {
-    #   enable = true;
-    #   openFirewall = true;
-    # };
-  };
-
-  # ==================== SECURITY ====================
-  # security = {
-  #   rtkit.enable = true;
-  #   sudo = {
-  #     execWheelOnly = true;
-  #     extraRules = [
-  #       {
-  #         users = [user.name];
-  #         commands = [
-  #           {
-  #             command = "ALL";
-  #             options = [
-  #               "SETENV"
-  #               "NOPASSWD"
-  #             ];
-  #           }
-  #         ];
-  #       }
-  #     ];
-  #   };
-  # };
+  services.xserver.videoDrivers = ["nvidia"];
 
   # ==================== FONTS ====================
-  fonts = {
-    enableDefaultPackages = true;
-    packages = with pkgs; [
-      maple-mono.NF
-      monaspace
-    ];
-    fontconfig = {
-      enable = true;
-      hinting = {
-        enable = true;
-        style = "slight";
-      };
-      antialias = true;
-      subpixel.rgba = "rgb";
-      defaultFonts = {
-        emoji = ["Noto Color Emoji"];
-        monospace = [
-          "Maple Mono NF"
-          "Monaspace Radon"
-        ];
-        serif = ["Noto Serif"];
-        sansSerif = ["Noto Sans"];
-      };
-    };
-  };
+  # fonts = {
+  #   enableDefaultPackages = true;
+  #   packages = with pkgs; [
+  #     maple-mono.NF
+  #     monaspace
+  #   ];
+  #   fontconfig = {
+  #     enable = true;
+  #     hinting = {
+  #       enable = true;
+  #       style = "slight";
+  #     };
+  #     antialias = true;
+  #     subpixel.rgba = "rgb";
+  #     defaultFonts = {
+  #       emoji = ["Noto Color Emoji"];
+  #       monospace = [
+  #         "Maple Mono NF"
+  #         "Monaspace Radon"
+  #       ];
+  #       serif = ["Noto Serif"];
+  #       sansSerif = ["Noto Sans"];
+  #     };
+  #   };
+  # };
 
   # ==================== SYSTEM PROGRAMS ====================
   programs = {
