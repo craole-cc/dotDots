@@ -2,6 +2,7 @@
   config,
   pkgs,
   modulesPath,
+  ...
 }: let
   # ==================== PATH ====================
   aliases = {
