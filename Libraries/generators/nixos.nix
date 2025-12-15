@@ -289,8 +289,8 @@
     normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) mergedUsers;
 
     #> Determine which DE/WM/DM to enable based on user preferences
-    # Priority: user config > host config > null
-    collectInterfaces = let
+    #? Priority: user config > host config > null
+    interfaces = let
       # Build per-user interface config with host fallback
       userInterfaces =
         mapAttrs (name: cfg: {
@@ -314,15 +314,13 @@
       inherit desktopEnvironments windowManagers loginManagers userInterfaces;
     };
 
-    interfaces = collectInterfaces;
-
     #> Enable flags based on collected interfaces
     enableHyprland = elem "hyprland" interfaces.windowManagers;
     enablePlasma = elem "plasma" interfaces.desktopEnvironments;
     enableGnome = elem "gnome" interfaces.desktopEnvironments;
 
     #> Determine login manager (prefer user choice, fallback to DE defaults)
-    primaryLoginManager =
+    loginManager =
       if enablePlasma && !enableGnome
       then "sddm"
       else if enableGnome && !enablePlasma
@@ -331,8 +329,8 @@
       then head interfaces.loginManagers
       else null;
 
-    enableSddm = primaryLoginManager == "sddm";
-    enableGdm = primaryLoginManager == "gdm";
+    enableSddm = loginManager == "sddm";
+    enableGdm = loginManager == "gdm";
 
     #> Collect all unique shells from all users
     allShells = let
@@ -534,7 +532,20 @@
                 if wm == "hyprland"
                 then [pkgs.kitty]
                 else []
-              );
+              )
+              ++ (
+                if de == "plasma"
+                then
+                  with pkgs.kdePackages; [
+                    yakuake
+                    koi
+                    plasmatube
+                    calindori
+                    karp
+                  ]
+                else []
+              )
+              ++ [];
           };
 
           #> Enable shells in home-manager
