@@ -28,6 +28,7 @@
       }
     ];
   };
+
   isAdmin = u: elem (u.role or null) ["admin" "administrator"];
 
   mkHosts = {
@@ -252,70 +253,59 @@
             ]
             ++ [
               inputs.nixosHome.nixosModules.home-manager
-              {
-                home-manager = {
-                  backupFileExtension = "BaC";
-                  overwriteBackup = true;
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  extraSpecialArgs = args;
-                };
-              }
+              (mkUsers {inherit host users inputs system args;})
             ]
-            ++ [
-              (mkUsers {
-                allUsers = users;
-                hostUsers = host.users;
-                inherit (host) stateVersion;
-                inherit inputs system;
-              })
-            ];
+            ++ [];
         }
     )
     hosts;
 
   mkUsers = {
-    allUsers,
-    hostUsers,
-    stateVersion,
-    system,
+    users,
+    host,
     inputs,
+    args,
   }: {
     config,
     pkgs,
     ...
   }: let
+    inherit (host) stateVersion system interface;
+
     #> Merge user config from API/users/ with host-specific settings
-    users =
+    mergedUsers =
       mapAttrs (
-        name: config: allUsers.${name} or {} // config
+        name: config: users.${name} or {} // config
       )
-      (filterAttrs (_: cfg: cfg.enable or false) hostUsers);
+      (filterAttrs (_: cfg: cfg.enable or false) host.users);
 
     #> Collect all enabled regular users (non-service, non-guest)
-    normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
+    normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) mergedUsers;
 
     #> Determine which DE/WM/DM to enable based on user preferences
     # Priority: user config > host config > null
     collectInterfaces = let
-      # Extract interface settings from users
-      userInterfaces = map (cfg: cfg.interface or {}) (attrValues normalUsers);
+      # Build per-user interface config with host fallback
+      userInterfaces =
+        mapAttrs (name: cfg: {
+          desktopEnvironment = cfg.interface.desktopEnvironment or interface.desktopEnvironment or null;
+          windowManager = cfg.interface.windowManager or interface.windowManager or null;
+          loginManager = cfg.interface.loginManager or interface.loginManager or null;
+        })
+        normalUsers;
 
-      # Get host interface as fallback
-      hostInterface = config.interface or {};
-
-      # Collect all requested environments
+      # Collect all unique requested environments
       desktopEnvironments = unique (filter (x: x != null) (
-        map (i: i.desktopEnvironment or hostInterface.desktopEnvironment or null) userInterfaces
+        attrValues (mapAttrs (_: i: i.desktopEnvironment) userInterfaces)
       ));
       windowManagers = unique (filter (x: x != null) (
-        map (i: i.windowManager or hostInterface.windowManager or null) userInterfaces
+        attrValues (mapAttrs (_: i: i.windowManager) userInterfaces)
       ));
       loginManagers = unique (filter (x: x != null) (
-        map (i: i.loginManager or hostInterface.loginManager or null) userInterfaces
+        attrValues (mapAttrs (_: i: i.loginManager) userInterfaces)
       ));
     in {
-      inherit desktopEnvironments windowManagers loginManagers;
+      inherit desktopEnvironments windowManagers loginManagers userInterfaces;
     };
 
     interfaces = collectInterfaces;
@@ -346,11 +336,9 @@
     in
       unique shellsList;
 
-    #> Helper to get user's interface preference or fall back to host
-    getUserInterface = cfg: attr: default:
-      attrByPath ["interface" attr]
-      (attrByPath ["interface" attr] default config)
-      cfg;
+    #> Helper to get user's interface preference (already resolved with host fallback)
+    getUserInterface = name: attr:
+      interfaces.userInterfaces.${name}.${attr} or null;
   in {
     #~@ System-wide NixOS users
     users.users =
@@ -384,7 +372,7 @@
             else []
           );
       })
-      users;
+      mergedUsers;
 
     #~@ System-wide programs (not per-user)
     programs.hyprland = mkIf enableHyprland {
@@ -397,98 +385,115 @@
         sddm = mkIf enableSddm {
           enable = true;
           wayland.enable = true;
-          # theme = "sddm-astronaut";
         };
         gdm = mkIf enableGdm {
           enable = true;
         };
+
+        #> Auto-login for first user with autoLogin = true
+        autoLogin = let
+          autoLoginUsers = filterAttrs (_: u: u.autoLogin or false) normalUsers;
+          autoLoginUser =
+            if autoLoginUsers != {}
+            then head (attrNames autoLoginUsers)
+            else null;
+        in
+          mkIf (autoLoginUser != null) {
+            enable = true;
+            user = autoLoginUser;
+          };
       };
+
       desktopManager = {
         plasma6.enable = enablePlasma;
         gnome.enable = enableGnome;
       };
     };
 
-    home-manager.users =
-      mapAttrs
-      (name: cfg: let
-        zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
-        de = getUserInterface cfg "desktopEnvironment" null;
-        wm = getUserInterface cfg "windowManager" null;
-      in {
-        imports =
-          (cfg.imports or [])
-          #> Add Firefox Zen module if user prefers the Zen variant.
-          ++ (
-            optional (zen != null)
-            inputs.firefoxZen.homeModules.${zen}
-          )
-          #> Add Plasma Manager module if user uses Plasma desktop
-          ++ optional (de == "plasma")
-          inputs.plasmaManager.homeModules.plasma-manager
-          ++ [];
-
-        home = {
-          inherit stateVersion;
-          sessionVariables = {
-            USER_ROLE = cfg.role or "user";
-            EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
-            VISUAL =
-              attrByPath ["applications" "editor" "gui" "primary"] (
-                if de == "gnome"
-                then "gnome-text-editor"
-                else if de == "plasma"
-                then "kate"
-                else "code"
-              )
-              cfg;
-            BROWSER = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
-            TERMINAL =
-              attrByPath ["applications" "terminal" "primary"] (
-                if de == "gnome"
-                then "gnome-terminal"
-                else if de == "plasma"
-                then "konsole"
-                else if wm == "hyprland"
-                then "kitty"
-                else "footclient"
-              )
-              cfg;
-          };
-          packages =
-            (map (shell:
-              getPackage {
-                inherit pkgs;
-                target = shell;
-              })
-            allShells)
+    home-manager = {
+      backupFileExtension = "BaC";
+      overwriteBackup = true;
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      extraSpecialArgs = args;
+      users =
+        mapAttrs
+        (name: cfg: let
+          zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
+          de = getUserInterface name "desktopEnvironment";
+          wm = getUserInterface name "windowManager";
+        in {
+          imports =
+            (cfg.imports or [])
+            #> Add Firefox Zen module if user prefers the Zen variant.
             ++ (
-              if enableHyprland
-              then [pkgs.kitty]
-              else []
-            );
-        };
+              optional (zen != null)
+              inputs.firefoxZen.homeModules.${zen}
+            )
+            #> Add Plasma Manager module if user uses Plasma desktop
+            ++ optional (de == "plasma")
+            inputs.plasmaManager.homeModules.plasma-manager
+            ++ [];
 
-        #> Enable shells in home-manager
-        programs = {
-          bash.enable = elem "bash" (cfg.shells or []);
-          zsh.enable = elem "zsh" (cfg.shells or []);
-          fish.enable = elem "fish" (cfg.shells or []);
-          nushell.enable = elem "nushell" (cfg.shells or []);
-          zen-browser =
-            mkIf (zen != null) {
+          home = {
+            inherit stateVersion;
+            sessionVariables = {
+              USER_ROLE = cfg.role or "user";
+              EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
+              VISUAL =
+                attrByPath ["applications" "editor" "gui" "primary"] (
+                  if de == "gnome"
+                  then "gnome-text-editor"
+                  else if de == "plasma"
+                  then "kate"
+                  else "code"
+                )
+                cfg;
+              BROWSER = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
+              TERMINAL =
+                attrByPath ["applications" "terminal" "primary"] (
+                  if de == "gnome"
+                  then "gnome-terminal"
+                  else if de == "plasma"
+                  then "konsole"
+                  else if wm == "hyprland"
+                  then "kitty"
+                  else "footclient"
+                )
+                cfg;
+            };
+            packages =
+              (map (shell:
+                getPackage {
+                  inherit pkgs;
+                  target = shell;
+                })
+              allShells)
+              ++ (
+                if wm == "hyprland"
+                then [pkgs.kitty]
+                else []
+              );
+          };
+
+          #> Enable shells in home-manager
+          programs = {
+            bash.enable = elem "bash" (cfg.shells or []);
+            zsh.enable = elem "zsh" (cfg.shells or []);
+            fish.enable = elem "fish" (cfg.shells or []);
+            nushell.enable = elem "nushell" (cfg.shells or []);
+            zen-browser = mkIf (zen != null) {
               enable = true;
               package =
-                if zen == null
-                then null
-                else inputs.firefoxZen.packages.${system}.${zen} or
-          (throw "Firefox Zen variant '${zen}' not found for system '${system}'");
+                inputs.firefoxZen.packages.${system}.${zen} or
+              (throw "Firefox Zen variant '${zen}' not found for system '${system}'");
             };
-        };
+          };
 
-        wayland.windowManager.hyprland.enable = wm == "hyprland";
-      })
-      normalUsers;
+          wayland.windowManager.hyprland.enable = wm == "hyprland";
+        })
+        normalUsers;
+    };
   };
 in {
   inherit

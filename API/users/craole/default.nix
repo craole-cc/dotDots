@@ -38,7 +38,7 @@
       modifier = "SUPER";
       swapCapsEscape = false;
     };
-    prompt = "posh oh my";
+    prompt = "starship";
   };
 
   applications = {
