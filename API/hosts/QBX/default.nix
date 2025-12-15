@@ -2,10 +2,7 @@ let
   arch = "x86_64";
   os = "linux";
 in {
-  imports = [
-    ./hardware.nix
-    ./themes.nix
-  ];
+  imports = [./hardware.nix];
 
   stateVersion = "25.11";
   platform = "${arch}-${os}";
