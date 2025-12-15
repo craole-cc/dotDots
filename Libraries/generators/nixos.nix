@@ -351,7 +351,11 @@
 
     home-manager.users =
       mapAttrs
-      (name: cfg: {
+      (name: cfg: let
+        zen = attrByPath ["applications" "browser" "firefox"] null cfg;
+        de = attrByPath ["interface" "desktopEnvironment"] null cfg;
+        wm = attrByPath ["interface" "windowManager"] null cfg;
+      in {
         imports =
           (cfg.imports or [])
           #> Add Firefox Zen module if user prefers the Zen variant.
