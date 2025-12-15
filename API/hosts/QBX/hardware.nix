@@ -3,19 +3,7 @@
   pkgs,
   modulesPath,
   ...
-}: let
-  # ==================== PATH ====================
-  aliases = {
-    # se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
-    # nxe = "$EDITOR ${paths.base}";
-    # nxv = "$VISUAL ${paths.base}";
-    # nxs = "switch";
-    # nxu = "switch; topgrade";
-    ll = "lsd --long --git --almost-all";
-    lt = "lsd --tree";
-    lr = "lsd --long --git --recursive";
-  };
-in {
+}: {
   # ==================== IMPORTS ====================
   imports = [(modulesPath + "/installer/scan/not-detected.nix")];
   # ==================== HARDWARE ====================
@@ -116,26 +104,10 @@ in {
     };
   };
   # ==================== SYSTEM PROGRAMS ====================
-  programs = {
-    git = {
-      enable = true;
-      lfs.enable = true;
-      prompt.enable = true;
-    };
-
-    gnupg.agent = {
-      enable = true;
-      enableSSHSupport = true;
-    };
-
-    obs-studio = {
-      enable = true;
-      enableVirtualCamera = true;
-    };
-
-    xwayland.enable = true;
-  };
-
-  # ==================== ENVIRONMENT ====================
-  environment.shellAliases = aliases;
+  # programs = {
+  #   obs-studio = {
+  #     enable = true;
+  #     enableVirtualCamera = true;
+  #   };
+  # };
 }

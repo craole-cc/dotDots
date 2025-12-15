@@ -226,10 +226,20 @@
                     };
                   };
 
-                  environment = {
-                    sessionVariables = let
-                      dots = host.paths.dots or null;
-                    in
+                  environment = let
+                    dots = host.paths.dots or null;
+                  in {
+                    shellAliases = {
+                      edit-dots = "$EDITOR ${dots}";
+                      ide-dots = "$VISUAL ${dots}";
+                      push-dots = "gitui --directory ${dots}";
+                      flake-dots = "sudo nixos-rebuild switch --flake ${dots}";
+                      switch = "push-dots; flake-dots";
+                      ll = "lsd --long --git --almost-all";
+                      lt = "lsd --tree";
+                      lr = "lsd --long --git --recursive";
+                    };
+                    sessionVariables =
                       if dots != null
                       then {DOTS = dots;}
                       else {};
@@ -379,9 +389,24 @@
       mergedUsers;
 
     #~@ System-wide programs (not per-user)
-    programs.hyprland = mkIf enableHyprland {
-      enable = true;
-      withUWSM = true;
+    programs = {
+      hyprland = mkIf enableHyprland {
+        enable = true;
+        withUWSM = true;
+      };
+
+      git = {
+        enable = true;
+        lfs.enable = true;
+        prompt.enable = true;
+      };
+
+      gnupg.agent = {
+        enable = true;
+        enableSSHSupport = true;
+      };
+
+      xwayland.enable = true;
     };
 
     services = {
