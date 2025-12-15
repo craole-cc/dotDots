@@ -3,8 +3,9 @@ let
   os = "linux";
 in {
   imports = [
-    ./configuration.nix
+    ./hardware.nix
     ./themes.nix
+    ./apps.nix
   ];
 
   stateVersion = "25.11";

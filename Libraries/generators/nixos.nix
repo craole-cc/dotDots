@@ -124,6 +124,11 @@
 
                   boot = {
                     kernelPackages = mkIf ((packages.kernel or null) != null) pkgs.${packages.kernel};
+                    loader = {
+                      systemd-boot.enable = interface.bootLoader or null == "systemd-boot";
+                      efi.canTouchEfiVariables = true;
+                      timeout = 1;
+                    };
                   };
 
                   fileSystems = let

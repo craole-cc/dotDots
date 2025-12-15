@@ -57,7 +57,7 @@
     };
     terminal = {
       primary = "footclient";
-      secondary = "ghostty";
+      secondary = "warp-terminal";
     };
     launcher = {
       primary = "rofi";
