@@ -227,7 +227,10 @@
                   };
 
                   environment = {
-                    sessionVariables = mkIf (host.paths.dots or null) {DOTS = dots;};
+                    sessionVariables =
+                      if (host.paths.dots or null) != null
+                      then {DOTS = dots;}
+                      else {};
                     systemPackages = with pkgs; [
                       #~@ Development
                       helix
