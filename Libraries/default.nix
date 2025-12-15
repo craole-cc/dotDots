@@ -179,11 +179,18 @@
             ++ (
               if exportPrivate
               then []
-              else filter (name: hasPrefix "_" name && name != "_rootAliases") allAttrs
+              else
+                filter (
+                  name:
+                    hasPrefix "_" name
+                    && name != "_rootAliases"
+                    && name != "_tests" # Exclude _tests from this filter
+                )
+                allAttrs
             )
             ++ (
               if !runTests
-              then ["_tests"] #? Remove _tests unless runTests is enabled
+              then ["_tests"] # Only remove _tests if runTests is false
               else []
             );
 
