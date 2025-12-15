@@ -50,9 +50,9 @@
         krohnkite
 
         #~@ Applications
-        plasmatube
-        calindori
-        karp
+        # plasmatube
+        # calindori
+        # karp
 
         #~@ Utilities
         kup

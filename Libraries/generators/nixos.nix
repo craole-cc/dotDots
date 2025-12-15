@@ -536,13 +536,15 @@
               ++ (
                 if de == "plasma"
                 then
-                  with pkgs.kdePackages; [
-                    yakuake
-                    koi
-                    plasmatube
-                    calindori
-                    karp
-                  ]
+                  with pkgs;
+                    [
+                      karp
+                    ]
+                    ++ (with kdePackages; [
+                      yakuake
+                      koi
+                      krohnkite
+                    ])
                 else []
               )
               ++ [];
