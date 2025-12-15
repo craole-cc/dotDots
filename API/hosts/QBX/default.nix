@@ -168,7 +168,7 @@ in {
       autoLogin = true;
     };
     cc = {
-      enable = true;
+      enable = false;
       role = "service";
     };
     qyatt = {
