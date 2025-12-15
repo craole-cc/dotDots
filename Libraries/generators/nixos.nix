@@ -227,6 +227,7 @@
                   };
 
                   environment = {
+                    sessionVariables = mkIf (host.paths.dots or null) {DOTS = dots;};
                     systemPackages = with pkgs; [
                       #~@ Development
                       helix
