@@ -4,7 +4,6 @@
   ...
 }: {
   home = {
-    # stateVersion = host.version;
     packages = with pkgs;
       [
         microsoft-edge

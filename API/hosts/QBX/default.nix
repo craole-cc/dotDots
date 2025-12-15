@@ -5,7 +5,6 @@ in {
   imports = [
     ./hardware.nix
     ./themes.nix
-    ./apps.nix
   ];
 
   stateVersion = "25.11";
