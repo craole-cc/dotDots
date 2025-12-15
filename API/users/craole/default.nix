@@ -32,7 +32,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    loginManager = "sddm";
+    # loginManager = "sddm";
     desktopEnvironment = "plasma";
     windowManager = "hyprland";
     keyboard = {
