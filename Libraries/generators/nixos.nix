@@ -420,6 +420,7 @@
         mapAttrs
         (name: cfg: let
           zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
+          dp = getUserInterface name "displayProtocol";
           de = getUserInterface name "desktopEnvironment";
           wm = getUserInterface name "windowManager";
         in {
@@ -437,31 +438,73 @@
 
           home = {
             inherit stateVersion;
-            sessionVariables = {
-              USER_ROLE = cfg.role or "user";
-              EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
-              VISUAL =
-                attrByPath ["applications" "editor" "gui" "primary"] (
-                  if de == "gnome"
-                  then "gnome-text-editor"
-                  else if de == "plasma"
-                  then "kate"
-                  else "code"
-                )
-                cfg;
-              BROWSER = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
-              TERMINAL =
-                attrByPath ["applications" "terminal" "primary"] (
-                  if de == "gnome"
-                  then "gnome-terminal"
-                  else if de == "plasma"
-                  then "konsole"
-                  else if wm == "hyprland"
-                  then "kitty"
-                  else "footclient"
-                )
-                cfg;
-            };
+            sessionVariables =
+              {
+                USER_ROLE = cfg.role or "user";
+                EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
+                VISUAL =
+                  attrByPath ["applications" "editor" "gui" "primary"] (
+                    if de == "gnome"
+                    then "gnome-text-editor"
+                    else if de == "plasma"
+                    then "kate"
+                    else "code"
+                  )
+                  cfg;
+                BROWSER = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
+                TERMINAL =
+                  attrByPath ["applications" "terminal" "primary"] (
+                    if de == "gnome"
+                    then "gnome-terminal"
+                    else if de == "plasma"
+                    then "konsole"
+                    else if wm == "hyprland"
+                    then "kitty"
+                    else "footclient"
+                  )
+                  cfg;
+              }
+              // (
+                if dp == "wayland"
+                then {
+                  #? For Clutter/GTK apps
+                  CLUTTER_BACKEND = "wayland";
+
+                  #? For GTK apps
+                  GDK_BACKEND = "wayland";
+
+                  #? Required for Java UI apps on Wayland
+                  _JAVA_AWT_WM_NONREPARENTING = "1";
+
+                  #? Enable Firefox native Wayland backend
+                  MOZ_ENABLE_WAYLAND = "1";
+
+                  #? Force Chromium/Electron apps to use Wayland
+                  NIXOS_OZONE_WL = "1";
+
+                  #? Qt apps use Wayland
+                  QT_QPA_PLATFORM = "wayland";
+
+                  #? Disable client-side decorations for Qt apps
+                  QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+
+                  #? Auto scale for HiDPI displays
+                  QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+
+                  #? SDL2 apps Wayland backend
+                  SDL_VIDEODRIVER = "wayland";
+
+                  #? Allow software rendering fallback on Nvidia/VM
+                  WLR_RENDERER_ALLOW_SOFTWARE = "1";
+
+                  #? Disable hardware cursors on Nvidia/VM
+                  WLR_NO_HARDWARE_CURSORS = "1";
+
+                  #? Indicate Wayland session to apps
+                  XDG_SESSION_TYPE = "wayland";
+                }
+                else {}
+              );
             packages =
               (map (shell:
                 getPackage {

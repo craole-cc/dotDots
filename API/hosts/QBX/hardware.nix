@@ -32,33 +32,15 @@
     orig = "/etc/nixos";
   };
 
-  # ==================== HOST ====================
-  host = {
-    name = "QBX";
-    version = "25.11";
-    platform = "x86_64-linux";
-  };
-
-  # ==================== ENVIRONMENT ====================
-  env = {
-    variables = with paths; {
-      NIXOS_ORIG = orig;
-      NIXOS_BASE = base;
-      DOTS = dots;
-      EDITOR = "hx";
-      VISUAL = "code";
-    };
-
-    aliases = {
-      se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
-      nxe = "$EDITOR ${paths.base}";
-      nxv = "$VISUAL ${paths.base}";
-      nxs = "switch";
-      nxu = "switch; topgrade";
-      ll = "lsd --long --git --almost-all";
-      lt = "lsd --tree";
-      lr = "lsd --long --git --recursive";
-    };
+  aliases = {
+    se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
+    nxe = "$EDITOR ${paths.base}";
+    nxv = "$VISUAL ${paths.base}";
+    nxs = "switch";
+    nxu = "switch; topgrade";
+    ll = "lsd --long --git --almost-all";
+    lt = "lsd --tree";
+    lr = "lsd --long --git --recursive";
   };
 in {
   # ==================== IMPORTS ====================
@@ -214,54 +196,54 @@ in {
 
   # ==================== ENVIRONMENT ====================
   environment = {
-    shellAliases = env.aliases;
-    sessionVariables =
-      env.variables
-      // {
-        #~@ Wayland configuration
-        #? For Clutter/GTK apps
-        CLUTTER_BACKEND = "wayland";
+    shellAliases = aliases;
+    # sessionVariables =
+    #   env.variables
+    #   // {
+    #     #~@ Wayland configuration
+    #     #? For Clutter/GTK apps
+    #     CLUTTER_BACKEND = "wayland";
 
-        #? For GTK apps
-        GDK_BACKEND = "wayland";
+    #     #? For GTK apps
+    #     GDK_BACKEND = "wayland";
 
-        #? Required for Java UI apps on Wayland
-        _JAVA_AWT_WM_NONREPARENTING = "1";
+    #     #? Required for Java UI apps on Wayland
+    #     _JAVA_AWT_WM_NONREPARENTING = "1";
 
-        #? Enable Firefox native Wayland backend
-        MOZ_ENABLE_WAYLAND = "1";
+    #     #? Enable Firefox native Wayland backend
+    #     MOZ_ENABLE_WAYLAND = "1";
 
-        #? Force Chromium/Electron apps to use Wayland
-        NIXOS_OZONE_WL = "1";
+    #     #? Force Chromium/Electron apps to use Wayland
+    #     NIXOS_OZONE_WL = "1";
 
-        #? Qt apps use Wayland
-        QT_QPA_PLATFORM = "wayland";
+    #     #? Qt apps use Wayland
+    #     QT_QPA_PLATFORM = "wayland";
 
-        #? Disable client-side decorations for Qt apps
-        QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+    #     #? Disable client-side decorations for Qt apps
+    #     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
-        #? Auto scale for HiDPI displays
-        QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+    #     #? Auto scale for HiDPI displays
+    #     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
 
-        #? SDL2 apps Wayland backend
-        SDL_VIDEODRIVER = "wayland";
+    #     #? SDL2 apps Wayland backend
+    #     SDL_VIDEODRIVER = "wayland";
 
-        #? Allow software rendering fallback on Nvidia/VM
-        WLR_RENDERER_ALLOW_SOFTWARE = "1";
+    #     #? Allow software rendering fallback on Nvidia/VM
+    #     WLR_RENDERER_ALLOW_SOFTWARE = "1";
 
-        #? Disable hardware cursors on Nvidia/VM
-        WLR_NO_HARDWARE_CURSORS = "1";
+    #     #? Disable hardware cursors on Nvidia/VM
+    #     WLR_NO_HARDWARE_CURSORS = "1";
 
-        #? Indicate Wayland session to apps
-        XDG_SESSION_TYPE = "wayland";
-      }
-      # // {
-      #   # Override the Wayland variables with X11
-      #   QT_QPA_PLATFORM = "xcb";
-      #   SDL_VIDEODRIVER = "x11";
-      #   XDG_SESSION_TYPE = "x11";
-      # }
-      // {};
+    #     #? Indicate Wayland session to apps
+    #     XDG_SESSION_TYPE = "wayland";
+    #   }
+    #   # // {
+    #   #   # Override the Wayland variables with X11
+    #   #   QT_QPA_PLATFORM = "xcb";
+    #   #   SDL_VIDEODRIVER = "x11";
+    #   #   XDG_SESSION_TYPE = "x11";
+    #   # }
+    #   // {};
 
     systemPackages = with pkgs; [
       #~@ Custom script
