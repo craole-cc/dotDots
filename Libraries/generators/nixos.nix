@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues attrNames attrByPath filterAttrs genAttrs mapAttrs;
+  inherit (lib.attrsets) attrValues attrNames attrByPath filterAttrs genAttrs mapAttrs mapAttrsToList;
   inherit (lib.lists) filter concatLists elem head length optional unique;
   inherit (lib.modules) mkDefault mkIf;
   inherit (_.generators.firefox) zenVariant;
