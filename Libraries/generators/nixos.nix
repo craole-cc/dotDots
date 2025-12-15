@@ -428,6 +428,7 @@
           de = getUserInterface name "desktopEnvironment";
           wm = getUserInterface name "windowManager";
         in {
+          _module.args.user = cfg;
           imports =
             (cfg.imports or [])
             #> Add Firefox Zen module if user prefers the Zen variant.
