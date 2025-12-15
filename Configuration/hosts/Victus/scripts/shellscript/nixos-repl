@@ -4,23 +4,28 @@ msg="${*:-"Developing flake"}"
 path=$(pwd -P)
 host=$(hostname)
 
-#> Check for nix command
+# Check for nix command
 if ! command -v nix >/dev/null 2>&1; then
     printf "❌ Unable to load REPL: 'nix' not found\n" >&2
     exit 1
 fi
 
-printf "📁 Adding all changes...\n"
-git add --all || {
-    printf "❌ Failed to add changes\n" >&2
-    exit 1
-}
+# Check for changes
+if ! git diff-index --quiet HEAD --; then
+    printf "📁 Adding all changes...\n"
+    git add --all || {
+        printf "❌ Failed to add changes\n" >&2
+        # Continue even if add fails
+    }
 
-printf "💾 Committing: %s\n" "$msg"
-git commit --message "$msg" || {
-    printf "❌ Failed to commit\n" >&2
-    exit 1
-}
+    printf "💾 Committing: %s\n" "$msg"
+    git commit --message "$msg" || {
+        printf "❌ Failed to commit\n" >&2
+        # Continue even if commit fails
+    }
+else
+    printf "📌 No changes to commit\n"
+fi
 
 #~@ Functions
 
