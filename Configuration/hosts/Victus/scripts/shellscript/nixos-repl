@@ -11,20 +11,20 @@ if ! command -v nix >/dev/null 2>&1; then
 fi
 
 # Check for changes
-if ! git diff-index --quiet HEAD --; then
+if ! git status --porcelain | grep -q '^[ MADRC?]'; then
+    printf "📌 No changes to commit\n"
+	else
     printf "📁 Adding all changes...\n"
     git add --all || {
         printf "❌ Failed to add changes\n" >&2
-        # Continue even if add fails
+				exit 1
     }
 
     printf "💾 Committing: %s\n" "$msg"
     git commit --message "$msg" || {
         printf "❌ Failed to commit\n" >&2
-        # Continue even if commit fails
-    }
-else
-    printf "📌 No changes to commit\n"
+				exit 1
+		}
 fi
 
 #~@ Functions
