@@ -319,7 +319,6 @@
       enable = true;
       withUWSM = true;
     };
-    environment.systemPackages = mkIf hyprlandNeeded [pkgs.kitty];
 
     home-manager.users =
       mapAttrs
@@ -342,13 +341,23 @@
 
         home = {
           inherit stateVersion;
-          sessionVariables.USER_ROLE = cfg.role or "user";
-          packages = map (shell:
-            getPackage {
-              inherit pkgs;
-              target = shell;
-            })
-          allShells;
+          sessionVariables = {
+            USER_ROLE = cfg.role or "user";
+            EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
+            VISUAL = attrByPath ["applications" "editor" "gui" "visual"] "code" cfg;
+          };
+          packages =
+            (map (shell:
+              getPackage {
+                inherit pkgs;
+                target = shell;
+              })
+            allShells)
+            ++ (
+              if hyprlandNeeded
+              then [pkgs.kitty]
+              else []
+            );
         };
 
         #> Enable shells in home-manager
