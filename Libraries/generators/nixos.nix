@@ -253,7 +253,7 @@
             ]
             ++ [
               inputs.nixosHome.nixosModules.home-manager
-              (mkUsers {inherit host users inputs system args;})
+              (mkUsers {inherit host users inputs args;})
             ]
             ++ [];
         }
