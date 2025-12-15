@@ -1,9 +1,5 @@
 {
-  imports = [
-    ./themes.nix
-    ./fonts.nix
-    ./apps.nix
-  ];
+  imports = [./programs ./services];
 
   description = "Craig 'Craole' Cole";
 
