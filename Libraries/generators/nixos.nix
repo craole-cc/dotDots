@@ -325,8 +325,8 @@
       then "gdm"
       else null;
 
-    enableSddm = primaryLoginManager == "sddm";
-    enableGdm = primaryLoginManager == "gdm";
+    enableSddm = primaryLoginManager == "sddm" || enablePlasma;
+    enableGdm = primaryLoginManager == "gdm" || enableGnome;
 
     #> Collect all unique shells from all users
     allShells = let
