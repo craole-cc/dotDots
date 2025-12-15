@@ -1,6 +1,6 @@
 {_, ...}: let
   mkVal = _.lists.makeCaseInsensitiveListValidator;
-in {
+
   /**
   User roles - system access and privilege levels.
 
@@ -25,16 +25,16 @@ in {
   # Usage
   ```nix
   # Validate user role
-  _lib.userRoles.validator.check { name = "Developer"; }  # => true
+  _.enums.user.roles.validator.check { name = "Developer"; }  # => true
 
   # Check if user has elevated privileges
-  _lib.isAnyInList [config.role] ["administrator" "developer" "poweruser"] true
+  _.isAnyInList [config.role] ["administrator" "developer" "poweruser"] true
 
   # Get all available roles
-  _lib.userRoles.values
+  _.enums.user.roles.values
   ```
   */
-  userRoles = let
+  roles = let
     values = [
       "administrator"
       "developer"
@@ -75,7 +75,7 @@ in {
   # Usage
   ```nix
   # Validate capability
-  _lib.userCapabilities.validator.check { name = "Development"; }  # => true
+  _lib.capabilities.validator.check { name = "Development"; }  # => true
 
   # Check if user needs creative tools
   _lib.isAnyInList config.capabilities ["creation" "multimedia"] true
@@ -83,11 +83,11 @@ in {
   # Validate multiple capabilities
   _lib.areAllInList
     ["development" "writing"]
-    _lib.userCapabilities.values
+    _lib.capabilities.values
     true
   ```
   */
-  userCapabilities = let
+  capabilities = let
     values = [
       "writing"
       "conferencing"
@@ -101,5 +101,11 @@ in {
   in {
     inherit values;
     validator = mkVal values;
+  };
+in {
+  inherit roles capabilities;
+  _rootAliases = {
+    userRoles = roles;
+    userCapabilities = capabilities;
   };
 }
