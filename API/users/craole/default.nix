@@ -51,8 +51,8 @@
         secondary = "neovim";
       };
       gui = {
-        visual = "code";
-        sudo = "zed";
+        primary = "code";
+        secondary = "zed";
       };
     };
     terminal = {
