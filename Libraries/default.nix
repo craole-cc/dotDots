@@ -16,7 +16,7 @@
   enableTypeChecking ? true,
   #| Testing & Debugging
   #? Automatically run module tests on load
-  runTests ? false,
+  runTests ? true,
   #? Enable verbose logging
   debugMode ? true,
   #| Export Options
@@ -180,6 +180,11 @@
               if exportPrivate
               then []
               else filter (name: hasPrefix "_" name && name != "_rootAliases") allAttrs
+            )
+            ++ (
+              if !runTests
+              then ["_tests"] #? Remove _tests unless runTests is enabled
+              else []
             );
 
           cleanModule = removeAttrs imported attrsToRemove;
