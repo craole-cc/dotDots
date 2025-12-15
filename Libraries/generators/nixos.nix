@@ -80,21 +80,21 @@
                   };
 
                   nix = {
-                    gc = {
-                      automatic = true;
-                      persistent = true;
-                      dates = "weekly";
-                      options = "--delete-older-than 5d";
-                    };
+                    # gc = {
+                    #   automatic = true;
+                    #   persistent = true;
+                    #   dates = "weekly";
+                    #   options = "--delete-older-than 5d";
+                    # };
 
-                    optimise = {
-                      automatic = true;
-                      persistent = true;
-                      dates = "weekly";
-                    };
+                    # optimise = {
+                    #   automatic = true;
+                    #   persistent = true;
+                    #   dates = "weekly";
+                    # };
 
                     settings = {
-                      auto-optimise-store = true;
+                      # auto-optimise-store = true;
                       experimental-features = [
                         "nix-command"
                         "flakes"
@@ -112,9 +112,9 @@
                       ];
                     };
 
-                    extraOptions = ''
-                      download-buffer-size = 524288000
-                    '';
+                    # extraOptions = ''
+                    #   download-buffer-size = 524288000
+                    # '';
                   };
 
                   nixpkgs = {
