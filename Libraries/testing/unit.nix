@@ -1,7 +1,7 @@
 {lib, ...}: {
   # Create a test case
-  mkTest = name: expected: actual: {
-    inherit name expected;
+  mkTest = expected: actual: {
+    inherit expected;
     result = actual;
     passed = expected == actual;
   };
