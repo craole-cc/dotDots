@@ -8,6 +8,7 @@
   inherit (lib.modules) mkDefault mkIf;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
+  inherit (_.enums) hostFunctionalities userCapabilities;
 
   # Build a single sudo.extraRules entry granting passwordless root access
   # for a specific username.
@@ -452,8 +453,28 @@
           dp = getUserInterface name "displayProtocol";
           de = getUserInterface name "desktopEnvironment";
           wm = getUserInterface name "windowManager";
+          policies = let
+            hasFun = f: hostFunctionalities.validator {name = f;};
+            hasCap = c: userCapabilities.validator {name = c;};
+
+            hasInternet = hasFun "wired" || hasFun "wireless";
+            hasGui = hasFun "video";
+            hasAudio = hasFun "audio";
+          in {
+            web = hasInternet;
+            webGui = hasInternet && hasGui;
+            dev = hasCap "development";
+            devGui = hasCap "development" && hasGui;
+            media = (hasCap "multimedia" || hasCap "creation") && hasAudio && hasGui;
+            webMedia = hasInternet && hasAudio && hasGui;
+            productivity = (hasCap "writing" || hasCap "analysis" || hasCap "management") && hasGui;
+            gaming = hasCap "gaming" && hasGui;
+          };
         in {
-          _module.args.user = cfg;
+          _module.args = {
+            user = cfg // {inherit name;};
+            inherit policies;
+          };
           imports =
             (cfg.imports or [])
             #> Add Firefox Zen module if user prefers the Zen variant.

@@ -14,7 +14,7 @@
     # ./git
     # ./helix
     # ./jujutsu
-    # ./nushell
+    # ./nushell``
     # ./powershell
     # ./rust
     # # ./tinty # TODO: Not ready yet
