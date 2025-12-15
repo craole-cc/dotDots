@@ -1,15 +1,6 @@
 {pkgs, ...}: {
-  services = {
-    displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-      theme = "sddm-astronaut";
-    };
-    desktopManager.plasma6.enable = true;
-  };
-
-  environment = {
-    systemPackages = with pkgs;
+  home = {
+    packages = with pkgs;
       [
         #~@ KDE Themes
         plasma-overdose-kde-theme

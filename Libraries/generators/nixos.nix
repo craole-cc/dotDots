@@ -272,8 +272,16 @@
     #> Collect all enabled regular users (non-service, non-guest)
     regularUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
 
-    hyprlandNeeded = any (
-      cfg: ((cfg.interface or {}).windowManager or "") == "hyprland"
+    enableHyprland = any (
+      cfg: (cfg.interface.windowManager or "") == "hyprland"
+    ) (attrValues regularUsers);
+
+    enablePlasma = any (
+      cfg: (cfg.interface.desktopEnvironment or "") == "plasma"
+    ) (attrValues regularUsers);
+
+    enableGnome = any (
+      cfg: (cfg.interface.desktopEnvironment or "") == "gnome"
     ) (attrValues regularUsers);
 
     #> Collect all unique shells from all users
@@ -293,7 +301,6 @@
         inherit isNormalUser;
         isSystemUser = !isNormalUser;
         description = cfg.description or name;
-        packages = cfg.packages or [];
 
         #> Use first shell as default
         shell = getPackage {
@@ -320,18 +327,31 @@
       users;
 
     #~@ System-wide programs (not per-user)
-    programs.hyprland = mkIf hyprlandNeeded {
+    programs.hyprland = mkIf enableHyprland {
       enable = true;
       withUWSM = true;
     };
 
+    services = {
+      displayManager = {
+        sddm = mkIf enablePlasma {
+          enable = true;
+          wayland.enable = true;
+          # theme = "sddm-astronaut";
+        };
+        gdm = mkIf enableGnome {
+          enable = true;
+        };
+      };
+      desktopManager = {
+        plasma6.enable = enablePlasma;
+        gnome.enable = enableGnome;
+      };
+    };
+
     home-manager.users =
       mapAttrs
-      (name: cfg: let
-        zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
-        de = attrByPath ["interface" "desktopEnvironment"] null cfg;
-        wm = attrByPath ["interface" "windowManager"] null cfg;
-      in {
+      (name: cfg: {
         imports =
           (cfg.imports or [])
           #> Add Firefox Zen module if user prefers the Zen variant.
@@ -379,7 +399,7 @@
               })
             allShells)
             ++ (
-              if hyprlandNeeded
+              if enableHyprland
               then [pkgs.kitty]
               else []
             );
