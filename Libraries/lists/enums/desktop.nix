@@ -161,7 +161,7 @@ in
     _rootAliases = {
       desktopEnvironmentsList = desktopEnvironments.values;
       windowManagersList = windowManagers.values;
-      waylandSupportedList = waylandSupport.values;
+      waylandSupportList = waylandSupport.values;
     };
     _tests = let
       inherit (_.testing.unit) mkTest runTests;
