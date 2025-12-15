@@ -1,5 +1,5 @@
 {_, ...}: let
-  mkVal = _.lists.makeCaseInsensitiveListValidator;
+  mkVal = _.mkCaseInsensitiveListValidator;
 
   /**
   User roles - system access and privilege levels.

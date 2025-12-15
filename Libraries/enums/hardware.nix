@@ -1,5 +1,5 @@
 {_, ...}: let
-  mkVal = _.lists.makeCaseInsensitiveListValidator;
+  mkVal = _.mkCaseInsensitiveListValidator;
 
   /**
   Host functionalities - hardware and firmware capabilities.
