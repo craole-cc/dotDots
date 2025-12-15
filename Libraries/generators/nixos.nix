@@ -252,7 +252,7 @@
             ]
             ++ [
               inputs.nixosHome.nixosModules.home-manager
-              (mkUsers {inherit host users inputs args;})
+              (mkUsers {inherit host users system inputs args;})
             ]
             ++ [];
         }
@@ -262,6 +262,7 @@
   mkUsers = {
     users,
     host,
+    system,
     inputs,
     args,
   }: {
@@ -269,7 +270,7 @@
     pkgs,
     ...
   }: let
-    inherit (host) stateVersion system interface;
+    inherit (host) stateVersion interface;
 
     #> Merge user config from API/users/ with host-specific settings
     mergedUsers =
