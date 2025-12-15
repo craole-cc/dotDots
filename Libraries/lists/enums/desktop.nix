@@ -160,11 +160,8 @@ in
   // {
     _rootAliases = {
       desktopEnvironmentsList = desktopEnvironments.values;
-      desktopEnvironmentsCheck = desktopEnvironments.validator;
       windowManagersList = windowManagers.values;
-      windowManagersCheck = windowManagers.validator;
-      waylandSupportList = waylandSupport.values;
-      waylandSupportCheck = waylandSupport.validator;
+      waylandSupportedList = waylandSupport.values;
     };
     _tests = let
       inherit (_.testing.unit) mkTest runTests;
