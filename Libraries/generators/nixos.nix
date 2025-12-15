@@ -227,8 +227,10 @@
                   };
 
                   environment = {
-                    sessionVariables =
-                      if (host.paths.dots or null) != null
+                    sessionVariables = let
+                      dots = host.paths.dots or null;
+                    in
+                      if dots != null
                       then {DOTS = dots;}
                       else {};
                     systemPackages = with pkgs; [
