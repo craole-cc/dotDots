@@ -447,7 +447,14 @@
             sessionVariables =
               {
                 USER_ROLE = cfg.role or "user";
-                EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
+                EDITOR = let
+                  editor = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
+                in
+                  if editor == "helix"
+                  then "hx"
+                  else if editor == "neovim"
+                  then "nvim"
+                  else editor;
                 VISUAL =
                   attrByPath ["applications" "editor" "gui" "primary"] (
                     if de == "gnome"
