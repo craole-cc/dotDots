@@ -54,9 +54,6 @@ in {
 
   devices = {
     boot = {
-      # "luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d" = {
-      #   device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
-      # };
     };
 
     file = {
@@ -76,7 +73,10 @@ in {
 
     swap = [];
 
-    network = ["eno1" "wlo1"];
+    network = [
+      "eno1"
+      "wlo1"
+    ];
 
     display = [
       {

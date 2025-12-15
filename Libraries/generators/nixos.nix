@@ -101,11 +101,11 @@
                         "pipe-operators"
                       ];
                       max-jobs = specs.cpu.cores or "auto";
-                      substituters = ["https://cache.nixos.org/"];
-                      trusted-substituters = [
-                        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-                        "https://hydra.nixos.org/"
-                      ];
+                      # substituters = ["https://cache.nixos.org/"];
+                      # trusted-substituters = [
+                      #   "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+                      #   "https://hydra.nixos.org/"
+                      # ];
                       trusted-users = [
                         "root"
                         "@wheel"
