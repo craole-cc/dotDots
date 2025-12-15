@@ -344,7 +344,27 @@
           sessionVariables = {
             USER_ROLE = cfg.role or "user";
             EDITOR = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
-            VISUAL = attrByPath ["applications" "editor" "gui" "visual"] "code" cfg;
+            VISUAL =
+              attrByPath ["applications" "editor" "gui" "primary"] (
+                if de == "gnome"
+                then "gnome-text-editor"
+                else if de == "plasma"
+                then "kate"
+                else "code"
+              )
+              cfg;
+            BROWSER = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
+            TERMINAL =
+              attrByPath ["applications" "terminal" "primary"] (
+                if de == "gnome"
+                then "gnome-terminal"
+                else if de == "plasma"
+                then "konsole"
+                else if wm == "hyprland"
+                then "kitty"
+                else "footclient"
+              )
+              cfg;
           };
           packages =
             (map (shell:
