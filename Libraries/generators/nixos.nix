@@ -464,7 +464,12 @@
                     else "code"
                   )
                   cfg;
-                BROWSER = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
+                BROWSER = let
+                  browser = attrByPath ["applications" "browser" "primary"] "firefox" cfg;
+                in
+                  if browser == "zen"
+                  then "zen-${zen}"
+                  else browser;
                 TERMINAL =
                   attrByPath ["applications" "terminal" "primary"] (
                     if de == "gnome"
