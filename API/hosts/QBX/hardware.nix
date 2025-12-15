@@ -2,23 +2,14 @@
   config,
   pkgs,
   modulesPath,
-  lib,
 }: let
   # ==================== PATH ====================
-  paths = let
-    dots = "/home/${user.name}/.dots";
-  in {
-    inherit dots;
-    base = dots + "/Configuration/hosts/QBX";
-    orig = "/etc/nixos";
-  };
-
   aliases = {
-    se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
-    nxe = "$EDITOR ${paths.base}";
-    nxv = "$VISUAL ${paths.base}";
-    nxs = "switch";
-    nxu = "switch; topgrade";
+    # se = "sudo hx --config \"/home/${user.name}/.config/helix/config.toml\"";
+    # nxe = "$EDITOR ${paths.base}";
+    # nxv = "$VISUAL ${paths.base}";
+    # nxs = "switch";
+    # nxu = "switch; topgrade";
     ll = "lsd --long --git --almost-all";
     lt = "lsd --tree";
     lr = "lsd --long --git --recursive";
