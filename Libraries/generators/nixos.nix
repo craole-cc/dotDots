@@ -149,7 +149,7 @@
                   swapDevices = let
                     mkSwapDevice = s: {device = s.device;};
                   in
-                    map mkSwapDevice swap;
+                    map mkSwapDevice (devices.swap or []);
 
                   networking = {
                     #> System name
