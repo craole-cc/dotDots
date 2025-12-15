@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) attrValues attrNames attrByPath filterAttrs genAttrs mapAttrs;
-  inherit (lib.lists) any concatLists elem head length optional unique;
+  inherit (lib.lists) any filter concatLists elem head length optional unique;
   inherit (lib.modules) mkDefault mkIf;
   inherit (lib.strings) hasInfix;
   inherit (_.generators.firefox) zenVariant;
@@ -225,6 +225,29 @@
                       extraRules = mapAttrsToList (name: _: mkAdmin name) adminUsers;
                     };
                   };
+
+                  environment = {
+                    systemPackages = with pkgs; [
+                      #~@ Development
+                      helix
+                      nil
+                      nixd
+                      nixfmt
+                      alejandra
+                      rust-script
+                      rustfmt
+                      gcc
+
+                      #~@ Tools
+                      gitui
+                      lm_sensors
+                      toybox
+                      lshw
+                      lsd
+                      mesa-demos
+                      cowsay
+                    ];
+                  };
                 })
             ]
             ++ [
@@ -270,27 +293,64 @@
       (filterAttrs (_: cfg: cfg.enable or false) hostUsers);
 
     #> Collect all enabled regular users (non-service, non-guest)
-    regularUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
+    normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
 
-    enableHyprland = any (
-      cfg: (cfg.interface.windowManager or "") == "hyprland"
-    ) (attrValues regularUsers);
+    #> Determine which DE/WM/DM to enable based on user preferences
+    # Priority: user config > host config > null
+    collectInterfaces = let
+      # Extract interface settings from users
+      userInterfaces = map (cfg: cfg.interface or {}) (attrValues normalUsers);
 
-    enablePlasma = any (
-      cfg: (cfg.interface.desktopEnvironment or "") == "plasma"
-    ) (attrValues regularUsers);
+      # Get host interface as fallback
+      hostInterface = config.interface or {};
 
-    enableGnome = any (
-      cfg: (cfg.interface.desktopEnvironment or "") == "gnome"
-    ) (attrValues regularUsers);
+      # Collect all requested environments
+      desktopEnvironments = unique (filter (x: x != null) (
+        map (i: i.desktopEnvironment or hostInterface.desktopEnvironment or null) userInterfaces
+      ));
+      windowManagers = unique (filter (x: x != null) (
+        map (i: i.windowManager or hostInterface.windowManager or null) userInterfaces
+      ));
+      loginManagers = unique (filter (x: x != null) (
+        map (i: i.loginManager or hostInterface.loginManager or null) userInterfaces
+      ));
+    in {
+      inherit desktopEnvironments windowManagers loginManagers;
+    };
+
+    interfaces = collectInterfaces;
+
+    #> Enable flags based on collected interfaces
+    enableHyprland = elem "hyprland" interfaces.windowManagers;
+    enablePlasma = elem "plasma" interfaces.desktopEnvironments;
+    enableGnome = elem "gnome" interfaces.desktopEnvironments;
+
+    #> Determine login manager (prefer user choice, fallback to DE defaults)
+    primaryLoginManager =
+      if interfaces.loginManagers != []
+      then head interfaces.loginManagers
+      else if enablePlasma
+      then "sddm"
+      else if enableGnome
+      then "gdm"
+      else null;
+
+    enableSddm = primaryLoginManager == "sddm" || enablePlasma;
+    enableGdm = primaryLoginManager == "gdm" || enableGnome;
 
     #> Collect all unique shells from all users
     allShells = let
       shellsList = concatLists (
-        attrValues (mapAttrs (_: cfg: cfg.shells or ["bash"]) users)
+        attrValues (mapAttrs (_: cfg: cfg.shells or ["bash"]) normalUsers)
       );
     in
       unique shellsList;
+
+    #> Helper to get user's interface preference or fall back to host
+    getUserInterface = cfg: attr: default:
+      attrByPath ["interface" attr]
+      (attrByPath ["interface" attr] default config)
+      cfg;
   in {
     #~@ System-wide NixOS users
     users.users =
@@ -334,12 +394,12 @@
 
     services = {
       displayManager = {
-        sddm = mkIf enablePlasma {
+        sddm = mkIf enableSddm {
           enable = true;
           wayland.enable = true;
           # theme = "sddm-astronaut";
         };
-        gdm = mkIf enableGnome {
+        gdm = mkIf enableGdm {
           enable = true;
         };
       };
@@ -353,8 +413,8 @@
       mapAttrs
       (name: cfg: let
         zen = zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
-        de = attrByPath ["interface" "desktopEnvironment"] null cfg;
-        wm = attrByPath ["interface" "windowManager"] null cfg;
+        de = getUserInterface cfg "desktopEnvironment" null;
+        wm = getUserInterface cfg "windowManager" null;
       in {
         imports =
           (cfg.imports or [])
@@ -411,8 +471,6 @@
 
         #> Enable shells in home-manager
         programs = {
-          # starship.enable = hasInfix "starship" (cfg.interface.prompt or "");
-          # oh-my-posh.enable = hasInfix "posh" (cfg.interface.prompt or "");
           bash.enable = elem "bash" (cfg.shells or []);
           zsh.enable = elem "zsh" (cfg.shells or []);
           fish.enable = elem "fish" (cfg.shells or []);
@@ -429,7 +487,8 @@
         };
 
         wayland.windowManager.hyprland.enable = wm == "hyprland";
-      }) (filterAttrs (_: u: !(elem u.role ["service" "guest"])) users);
+      })
+      normalUsers;
   };
 in {
   inherit

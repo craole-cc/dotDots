@@ -1034,27 +1034,8 @@ in {
       // {};
 
     systemPackages = with pkgs; [
-      #~@ Development
-      helix
-      nil
-      nixd
-      nixfmt
-      alejandra
-      rust-script
-      rustfmt
-      gcc
-
-      #~@ Tools
-      gitui
-      lm_sensors
-      toybox
-      lshw
-      lsd
-      mesa-demos
-      cowsay
-
       #~@ Custom script
-      (pkgs.writeShellScriptBin "switch" ''
+      (writeShellScriptBin "switch" ''
         set -euo pipefail
 
         if [ -d "${paths.base}" ]; then
@@ -1082,7 +1063,7 @@ in {
         fi
       '')
 
-      (pkgs.writeShellScriptBin "wait-for-displays" ''
+      (writeShellScriptBin "wait-for-displays" ''
         set -euo pipefail
 
         max_attempts=10
@@ -1107,16 +1088,4 @@ in {
       '')
     ];
   };
-
-  # ==================== POST-ACTIVATION ====================
-  # system.activationScripts.postActivation.text = ''
-  #   set -euo pipefail
-  #   NIXOS_BASE=${paths.base}
-  #   NIXOS_ORIG=${paths.orig}
-
-  #   [ -d "$NIXOS_ORIG" ] && rm -rf "$NIXOS_ORIG"
-  #   mkdir -p "$NIXOS_ORIG"
-  #   cp -R "$NIXOS_BASE"/. "$NIXOS_ORIG"/
-  #   printf "✓ NixOS backup refreshed: %s → %s\n" "$NIXOS_BASE" "$NIXOS_ORIG"
-  # '';
 }

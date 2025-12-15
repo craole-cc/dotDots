@@ -172,9 +172,9 @@ in {
       role = "service";
     };
     qyatt = {
-      enable = true;
-      autoLogin = true;
-      role = "admin";
+      enable = false;
+      autoLogin = false;
+      role = "guest";
     };
   };
 
