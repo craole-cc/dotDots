@@ -317,16 +317,16 @@
 
     #> Determine login manager (prefer user choice, fallback to DE defaults)
     primaryLoginManager =
-      if interfaces.loginManagers != []
-      then head interfaces.loginManagers
-      else if enablePlasma
+      if enablePlasma && !enableGnome
       then "sddm"
-      else if enableGnome
+      else if enableGnome && !enablePlasma
       then "gdm"
+      else if interfaces.loginManagers != []
+      then head interfaces.loginManagers
       else null;
 
-    enableSddm = primaryLoginManager == "sddm" || enablePlasma;
-    enableGdm = primaryLoginManager == "gdm" || enableGnome;
+    enableSddm = primaryLoginManager == "sddm";
+    enableGdm = primaryLoginManager == "gdm";
 
     #> Collect all unique shells from all users
     allShells = let
