@@ -8,23 +8,18 @@
   inherit (lib.modules) mkDefault mkIf;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
-  inherit (_.enums) hostFunctionalities userCapabilities;
+  inherit (_) hostFunctionalities userCapabilities;
 
-  # Build a single sudo.extraRules entry granting passwordless root access
-  # for a specific username.
   mkAdmin = name: {
-    # Apply this rule only to the named user.
+    #> Apply this rule only to the named user.
     users = [name];
 
-    # Allow that user to run any command as any user/group, without password.
-    # Equivalent to:  name ALL=(ALL:ALL) NOPASSWD: ALL
+    #> Allow that user to run any command as any user/group, without password.
+    #? Equivalent to: name ALL=(ALL:ALL) NOPASSWD: ALL
     commands = [
       {
         command = "ALL";
-        options = [
-          "SETENV"
-          "NOPASSWD"
-        ];
+        options = ["SETENV" "NOPASSWD"];
       }
     ];
   };

@@ -1,6 +1,6 @@
 {_, ...}: let
   mkVal = _.lists.makeCaseInsensitiveListValidator;
-in {
+
   /**
   Host functionalities - hardware and firmware capabilities.
 
@@ -36,7 +36,7 @@ in {
   _lib.hostFunctionalities.values
   ```
   */
-  hostFunctionalities = let
+  functionalities = let
     values = [
       "keyboard"
       "storage"
@@ -178,5 +178,10 @@ in {
   in {
     inherit values;
     validator = mkVal values;
+  };
+in {
+  inherit functionalities gpuBrands cpuBrands cpuPowerModes;
+  _rootAliases = {
+    hostFunctionalities = functionalities;
   };
 }
