@@ -1,5 +1,4 @@
 {
-  inputs,
   lib,
   lix,
   api,
@@ -16,9 +15,10 @@
     ;
   inherit
     (lib.lists)
-    filter
     findFirst
+    filter
     splitString
+    elem
     ;
 
   #> Get pkgs based on the system running nix repl
@@ -36,7 +36,7 @@
     if matchingHost != null
     then matchingHost.pkgs
     else
-      import inputs.nixpkgs {
+      import all.inputs.nixosCore {
         inherit system;
         config.allowUnfree = true;
       };
@@ -57,22 +57,52 @@
     listHosts = attrNames nixosConfigurations;
     getHost = name: nixosConfigurations.${name} or null;
 
+    #~@ Current context
+    currentHostName = currentHost.config.networking.hostName;
+
     #~@ Host information
     hostInfo = name: let
       host = nixosConfigurations.${name};
+      allUsers = attrNames host.config.users.users;
+      defaultUser = user:
+        (lib.hasPrefix "nixbld" user)
+        || (elem user [
+          "root"
+          "nobody"
+          "messagebus"
+          "systemd-coredump"
+          "systemd-network"
+          "systemd-oom"
+          "systemd-resolve"
+          "systemd-timesync"
+          "polkituser"
+          "rtkit"
+          "geoclue"
+          "nscd"
+          "sddm"
+          "dhcpcd"
+          "fwupd-refresh"
+          "nm-iodine"
+          "nm-openvpn"
+        ]);
     in {
       hostname = host.config.networking.hostName;
       system = host.config.nixpkgs.hostPlatform.system;
       stateVersion = host.config.system.stateVersion;
       kernel = host.config.boot.kernelPackages.kernel.version;
-      users = attrNames host.config.users.users;
-      desktops = filter (x: x != null) (
-        with host.config.services.desktopManager; [
-          (plasma6.enable or false && "plasma6")
-          (gnome.enable or false && "gnome")
-          (cosmic.enable or false && "cosmic")
-        ]
-      );
+      users = {
+        # TODO: Here we should show username and type isNormalUser vs isSystemUser
+        custom = filter (u: !defaultUser u) allUsers;
+        system = filter defaultUser allUsers;
+      };
+      desktop = with host.config.services.desktopManager;
+        if plasma6.enable or false
+        then "plasma"
+        else if gnome.enable or false
+        then "gnome"
+        else if cosmic.enable or false
+        then "cosmic"
+        else null;
     };
 
     #~@ Host comparison
@@ -118,14 +148,9 @@
     #~@ Top-level host attributes
     inherit
       (currentHost)
-      # _module
-      # _type
-      # class
       config
-      # extendModules
       options
       pkgs
-      # type
       ;
 
     #~@ Convenient shortcuts to config sections
