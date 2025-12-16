@@ -47,7 +47,6 @@
     inherit passed;
   };
 
-  # Convenience: assert that an expression throws
   mkThrows = expr:
     mkTest {
       expr = tryEval expr;
