@@ -10,18 +10,17 @@
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
   inherit (user) interface;
-  inherit (user.applications.terminal) primary secondary;
-  isPrimary = app == primary;
-  isSecondary = app == secondary;
+  inherit (user.applications) allowed terminal;
+  isPrimary = app == terminal.primary or null;
+  isSecondary = app == terminal.secondary or null;
 
   isWaylandEnabled =
     (interface.displayProtocol or null == "wayland")
     || (config.wayland.windowManager.sway.enable or false)
     || (config.wayland.windowManager.hyprland.enable or false);
 
-  enable = ["ghostty" "foot"];
   isUserEnabled =
-    (elem app enable)
+    (elem app allowed)
     || isPrimary
     || isSecondary;
 

@@ -65,28 +65,27 @@
       primary = "rofi";
       secondary = "fuzzel";
     };
+    allowed = [
+      "atuin"
+      "bat"
+      "bash"
+      "yazi"
+      "git"
+      "ghostty"
+      "foot"
+      "fastfetch"
+      "freetube"
+      "helix"
+      "jujutsu"
+      "nushell"
+      "obs-studio"
+      "powershell"
+      "starship"
+      "zed-editor"
+      "vscode"
+      "zen-browser"
+    ];
   };
-
-  enable = [
-    "atuin"
-    "bat"
-    "bash"
-    "yazi"
-    "git"
-    "ghostty"
-    "foot"
-    "fastfetch"
-    "freetube"
-    "helix"
-    "jujutsu"
-    "nushell"
-    "obs-studio"
-    "powershell"
-    "starship"
-    "zed-editor"
-    "vscode"
-    "zen-browser"
-  ];
 
   paths = {
     downloads = "Downloads";
