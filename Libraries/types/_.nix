@@ -1,5 +1,5 @@
 {_, ...}: let
-  types = _.types.predicates;
+  types = {inherit (_.types.predicates) isInt;};
 in
   types
   // {
