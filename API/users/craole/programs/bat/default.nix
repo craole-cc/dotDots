@@ -8,7 +8,7 @@
   app = "bat";
   enable = elem app apps;
 in {
-  programs.bat.enable = {inherit enable;};
+  programs.bat = {inherit enable;};
   imports = [
     ./settings.nix
     # ./themes.nix
