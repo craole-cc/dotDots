@@ -7,7 +7,7 @@
     ./bash
     ./bat
     ./fastfetch
-    ./firefox
+    # ./firefox
     ./foot
     ./freetube
     ./ghostty
