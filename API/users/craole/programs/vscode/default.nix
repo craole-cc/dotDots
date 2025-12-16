@@ -6,7 +6,7 @@
 }:
 {
   imports = [ ./shared ];
-  config = lib.mkIf policies.devGui {
+  config = {
     programs.vscode.enable = true;
     home.packages = [ pkgs.vscode-fhs ];
   };

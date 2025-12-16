@@ -2,10 +2,13 @@
   config,
   policies,
   ...
-}: let
-  isAllowed = policies.dev;
+}:
+let
+  # isAllowed = policies.dev;
+  isAllowed = true;
   isEnabled = pkg: config.programs.${pkg}.enable;
-in {
+in
+{
   programs.atuin = {
     enable = isAllowed;
     daemon.enable = isAllowed;

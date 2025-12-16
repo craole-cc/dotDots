@@ -6,7 +6,8 @@
 }:
 let
   app = "bash";
-  enable = policies.dev && lib.elem app user.shells;
+  # enable = policies.dev && lib.elem app user.shells;
+  enable = lib.elem app user.shells;
 in
 {
   programs.${app} = {
