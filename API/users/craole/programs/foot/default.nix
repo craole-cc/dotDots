@@ -29,7 +29,7 @@
     || isPrimary
     || isSecondary;
 
-  isAllowed = isWaylandEnabled && isUserEnabled;
+  isAllowed = (isWaylandEnabled config) && isUserEnabled;
 in {
   config = mkIf isWaylandEnabled {
     programs.${app} = {
