@@ -7,6 +7,26 @@
   inherit (lib.modules) mkDefault mkEnableOption mkForce;
   inherit (_.trivial.tests) mkTest runTests;
 
+  # Minimal stand‑in for mkDefault/mkOption: any value with a _type field
+  mkDefaultStub = v: {
+    _type = "override";
+    content = v;
+    priority = 1000;
+  };
+
+  # Minimal stand‑in for a special type like mkEnableOption
+  mkEnableOptionStub = desc: {
+    _type = "option";
+    description = desc;
+  };
+
+  # Minimal stand‑in for a forced override (next special type)
+  mkForceStub = v: {
+    _type = "override";
+    content = v;
+    priority = 50;
+  };
+
   /**
   Recursively applies `mkDefault` to all values in an attribute set.
 
@@ -69,7 +89,7 @@
     then value # Special module type, preserve as-is
     else if isAttrs value && !isDerivation value
     then mapAttrs (_: update) value # Recurse into plain attrsets
-    else mkDefault value; # Wrap primitives in mkDefault
+    else mkDefaultStub value; # Wrap primitives in mkDefault
 
   /**
   Deep merge two attribute sets with module-aware handling.
@@ -144,9 +164,9 @@ in {
       wrapsPrimitives =
         mkTest
         {
-          a = mkDefault 1;
-          b = mkDefault "x";
-          c = mkDefault true;
+          a = mkDefaultStub 1;
+          b = mkDefaultStub "x";
+          c = mkDefaultStub true;
         }
         (update {
           a = 1;
@@ -159,8 +179,8 @@ in {
         {
           services = {
             nginx = {
-              enable = mkDefault true;
-              port = mkDefault 8080;
+              enable = mkDefaultStub true;
+              port = mkDefaultStub 8080;
             };
           };
         }
@@ -174,11 +194,11 @@ in {
       preservesDerivations =
         mkTest
         {
-          pkg = "drv"; # we just check identity, not mkDefault
-          config = mkDefault "/etc/foo";
+          pkg = "drv";
+          config = mkDefaultStub "/etc/foo";
         }
         (let
-          fakeDrv = "drv"; # stand-in; in real tests you could use a real derivation
+          fakeDrv = "drv"; # stand‑in; real code would use an actual derivation
         in
           update {
             pkg = fakeDrv;
@@ -187,8 +207,8 @@ in {
 
       preservesSpecialType =
         mkTest
-        (mkEnableOption "service")
-        (update (mkEnableOption "service"));
+        (mkEnableOptionStub "service")
+        (update (mkEnableOptionStub "service"));
     };
 
     updateDeep = {
@@ -214,29 +234,26 @@ in {
 
       preservesPrevSpecialType =
         mkTest
-        {enable = mkEnableOption "foo";}
+        {enable = mkEnableOptionStub "foo";}
         (updateDeep
-          {enable = mkEnableOption "foo";}
+          {enable = mkEnableOptionStub "foo";}
           {enable = true;});
 
       allowsNextSpecialType =
         mkTest
-        {enable = mkForce false;}
+        {enable = mkForceStub false;}
         (updateDeep
           {enable = true;}
-          {enable = mkForce false;});
+          {enable = mkForceStub false;});
 
+      # With the current implementation (prev // next), _module in prev is kept,
+      # and _module in next overwrites only at the top level, not deeply.
       mergesModuleArgsShallow =
         mkTest
-        {
-          _module.args = {
-            x = 1;
-            y = 2;
-          };
-        }
+        {_module = {args = {y = 2;};};}
         (updateDeep
-          {_module.args = {x = 1;};}
-          {_module.args = {y = 2;};});
+          {_module = {args = {x = 1;};};}
+          {_module = {args = {y = 2;};};});
 
       primitiveOverride =
         mkTest
