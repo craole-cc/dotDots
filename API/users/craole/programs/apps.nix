@@ -21,37 +21,37 @@
     btop.enable = true;
     fastfetch.enable = true;
 
-    #~@ Terminal
-    foot = {
-      enable = true;
-      server.enable = true;
-      settings = {
-        main = {
-          font = "monospace:size=16";
-          dpi-aware = "yes";
-          pad = "8x8";
-        };
-        mouse.hide-when-typing = "yes";
-        scrollback.lines = 100000;
-        key-bindings = {
-          clipboard-copy = "Control+Shift+c XF86Copy";
-          clipboard-paste = "Control+Shift+v XF86Paste";
-          scrollback-up-page = "Shift+Page_Up";
-          scrollback-down-page = "Shift+Page_Down";
-          scrollback-up-line = "Control+Shift+Up";
-          scrollback-down-line = "Control+Shift+Down";
-          font-increase = "Control+plus Control+equal";
-          font-decrease = "Control+minus";
-          font-reset = "Control+0";
-          search-start = "Control+Shift+f";
-        };
-        colors.alpha = 0.97;
-        cursor = {
-          style = "beam";
-          blink = "yes";
-        };
-      };
-    };
+    # #~@ Terminal
+    # foot = {
+    #   enable = true;
+    #   server.enable = true;
+    #   settings = {
+    #     main = {
+    #       font = "monospace:size=16";
+    #       dpi-aware = "yes";
+    #       pad = "8x8";
+    #     };
+    #     mouse.hide-when-typing = "yes";
+    #     scrollback.lines = 100000;
+    #     key-bindings = {
+    #       clipboard-copy = "Control+Shift+c XF86Copy";
+    #       clipboard-paste = "Control+Shift+v XF86Paste";
+    #       scrollback-up-page = "Shift+Page_Up";
+    #       scrollback-down-page = "Shift+Page_Down";
+    #       scrollback-up-line = "Control+Shift+Up";
+    #       scrollback-down-line = "Control+Shift+Down";
+    #       font-increase = "Control+plus Control+equal";
+    #       font-decrease = "Control+minus";
+    #       font-reset = "Control+0";
+    #       search-start = "Control+Shift+f";
+    #     };
+    #     colors.alpha = 0.97;
+    #     cursor = {
+    #       style = "beam";
+    #       blink = "yes";
+    #     };
+    #   };
+    # };
 
     #~@ Browser
     zen-browser = {
