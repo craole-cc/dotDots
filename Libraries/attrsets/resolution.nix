@@ -225,13 +225,19 @@
     isWaylandDP =
       isAllEnabled {
         attrset = config;
-        basePath = ["services" "displayManager" "gdm"];
-        names = ["enable" "wayland"];
+        basePath = ["services" "displayManager"];
+        names = [
+          ["gdm" "enable"]
+          ["gdm" "wayland"]
+        ];
       }
       || isAllEnabled {
         attrset = config;
-        basePath = ["services" "displayManager" "sddm"];
-        names = ["enable" "wayland"];
+        basePath = ["services" "displayManager"];
+        names = [
+          ["sddm" "enable"]
+          ["sddm" "wayland" "enable"]
+        ];
       };
   in
     isWaylandWM || isWaylandDE || isWaylandDP;
