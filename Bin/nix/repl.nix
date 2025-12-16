@@ -25,9 +25,12 @@
       };
 
   #> Helper functions for the repl
+  #> Helper functions for the repl
   helpers = {
-    # Quick rebuild current host
+    # Generate rebuild commands (copy-paste ready)
     rebuild = host: "sudo nixos-rebuild switch --flake .#${host}";
+    test = host: "sudo nixos-rebuild test --flake .#${host}";
+    boot = host: "sudo nixos-rebuild boot --flake .#${host}";
 
     # List all hosts
     listHosts = lib.attrNames nixosConfigurations;
@@ -42,8 +45,46 @@
       hostname = host.config.networking.hostName;
       system = host.config.nixpkgs.hostPlatform.system;
       stateVersion = host.config.system.stateVersion;
+      kernel = host.config.boot.kernelPackages.kernel.version;
       users = lib.attrNames host.config.users.users;
+      desktops = lib.filter (x: x != null) [
+        (host.config.services.desktopManager.plasma6.enable or false)
+        (host.config.services.desktopManager.gnome.enable or false)
+        (host.config.services.desktopManager.cosmic.enable or false)
+      ];
     };
+
+    # Compare two hosts
+    compareHosts = host1: host2: let
+      h1 = nixosConfigurations.${host1};
+      h2 = nixosConfigurations.${host2};
+    in {
+      systems = {
+        "${host1}" = h1.config.nixpkgs.hostPlatform.system;
+        "${host2}" = h2.config.nixpkgs.hostPlatform.system;
+      };
+      kernels = {
+        "${host1}" = h1.config.boot.kernelPackages.kernel.version;
+        "${host2}" = h2.config.boot.kernelPackages.kernel.version;
+      };
+      stateVersions = {
+        "${host1}" = h1.config.system.stateVersion;
+        "${host2}" = h2.config.system.stateVersion;
+      };
+    };
+
+    # Find which hosts have a specific service enabled
+    hostsWithService = service:
+      lib.attrNames (lib.filterAttrs
+        (name: host: lib.attrByPath (lib.splitString "." service) false host.config)
+        nixosConfigurations);
+
+    # List all enabled services for a host
+    enabledServices = hostName: let
+      host = nixosConfigurations.${hostName};
+      services = host.config.systemd.services;
+    in
+      lib.attrNames (lib.filterAttrs (n: v: v.enable or false) services);
   };
 
   #> Get the current host (to flatten at top level)
@@ -79,8 +120,6 @@
       systemd
       users
       ;
-
-    inherit (currentHost._module) specialArgs;
   };
 in
   {
