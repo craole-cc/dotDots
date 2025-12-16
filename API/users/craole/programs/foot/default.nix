@@ -26,7 +26,7 @@
 
   isAllowed = isWaylandEnabled && isUserEnabled;
 in {
-  config = mkIf isWaylandEnabled {
+  config = mkIf isUserEnabled {
     programs.${app} = {
       enable = true;
       server.enable = true;
