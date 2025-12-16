@@ -212,7 +212,7 @@
   /**
   Heuristic “is this a Wayland system/session?” for NixOS+HM configs.
   */
-  isWaylandEnabled = config: let
+  isWaylandSession = config: let
     isWaylandWM = isAnyEnabled {
       attrset = config;
       basePath = ["wayland" "windowManager"];
@@ -243,6 +243,6 @@ in {
     getPackage
     getShellPackage
     isAnyEnabled
-    isWaylandEnabled
+    isWaylandSession
     ;
 }
