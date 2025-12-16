@@ -216,7 +216,8 @@
                     push-dots = "gitui --directory ${dots}";
                     repl-dots = "nixos-rebuild repl --flake ${dots}";
                     switch-dots = "sudo nixos-rebuild switch --flake ${dots}";
-                    switch = "push-dots; switch-dots";
+                    nxs = "push-dots; switch-dots";
+                    nxu = "push-dots; switch-dots; topgrade";
                   }
                 );
               sessionVariables =
@@ -235,13 +236,14 @@
                 gcc
 
                 #~@ Tools
+                cowsay
                 gitui
                 lm_sensors
-                toybox
-                lshw
                 lsd
+                lshw
                 mesa-demos
-                cowsay
+                topgrade
+                toybox
               ];
             };
           }
