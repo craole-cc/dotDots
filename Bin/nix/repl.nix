@@ -45,6 +45,32 @@
       users = lib.attrNames host.config.users.users;
     };
   };
+
+  #> Flatten each host configuration for easier access
+  flattenedHosts =
+    lib.attrsets.mapAttrs (
+      name: host:
+        host
+        // {
+          # Expose common attributes at top level
+          inherit (host) config pkgs options _module type;
+
+          # Shortcut to commonly accessed config sections
+          cfg = host.config;
+          opts = host.options;
+
+          # Expose specific useful config sections
+          networking = host.config.networking;
+          users = host.config.users;
+          environment = host.config.environment;
+          services = host.config.services;
+          programs = host.config.programs;
+          systemd = host.config.systemd;
+          boot = host.config.boot;
+          hardware = host.config.hardware;
+        }
+    )
+    nixosConfigurations;
 in
   {
     inherit
@@ -57,4 +83,4 @@ in
       ;
     hosts = nixosConfigurations;
   }
-  // nixosConfigurations
+  // flattenedHosts
