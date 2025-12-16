@@ -53,14 +53,14 @@ in
     _rootAliases = {inherit enums;};
     _tests = runTests {
       exportsAllEnums = mkTest true (
-        hasAttr "languages" enums
+        hasAttr "developmentLanguages" enums
         && hasAttr "bootLoaders" enums
-        && hasAttr "roles" enums
+        && hasAttr "userRoles" enums
       );
 
       enumsHaveValidators = mkTest true (
-        hasAttr "validator" enums.languages
-        && hasAttr "validator" enums.roles
+        hasAttr "validator" enums.developmentLanguages
+        && hasAttr "validator" enums.userRoles
       );
 
       # rootAliasWorks = mkTest enums (getAttr "enums" (_rootAliases or {}));
