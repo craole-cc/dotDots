@@ -32,13 +32,14 @@
   '';
 in {
   # config = mkIf isAllowed {
-  programs.${app} = {
-    enable = true;
-    server.enable = true;
-  };
-  # // import ./input.nix
-  # // import ./themes.nix
-  # // import ./settings.nix;
+  programs.${app} =
+    {
+      enable = true;
+      server.enable = true;
+    }
+    // import ./input.nix
+    // import ./themes.nix
+    // import ./settings.nix;
 
   home.packages = [footWrapper];
 
