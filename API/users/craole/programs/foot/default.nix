@@ -23,7 +23,7 @@
     isWayland
     && (elem app enable || isPrimary || isSecondary);
 in {
-  config = mkIf (interface.displayProtocol or null == "wayland") {
+  config = mkIf (elem app enable || isPrimary || isSecondary) {
     programs.${app} = {
       enable = true;
       server.enable = true;
