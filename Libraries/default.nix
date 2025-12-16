@@ -55,7 +55,7 @@
   inherit (lib.fixedPoints) makeExtensible;
   inherit (lib.strings) hasPrefix hasSuffix removeSuffix;
   inherit (lib.lists) elem filter foldl';
-  inherit (lib.debug) trace;
+  inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
 
   # Debug logging utility
