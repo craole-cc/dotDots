@@ -19,7 +19,7 @@
     || (config.wayland.windowManager.sway.enable or false)
     || (config.wayland.windowManager.hyprland.enable or false);
 
-  enable = ["foot"];
+  enable = ["ghostty" "foot"];
   isUserEnabled =
     (elem app enable)
     || isPrimary
