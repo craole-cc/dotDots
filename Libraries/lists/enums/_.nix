@@ -15,7 +15,7 @@
     inherit (e.user) roles capabilities;
   };
 in
-  enums // {_rootAliases = enums;}
+  enums // {_rootAliases = {inherit enums;};}
 # in {
 #   # Export everything flat at root
 #   inherit developmentLanguages;
