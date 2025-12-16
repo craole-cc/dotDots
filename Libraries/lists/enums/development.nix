@@ -59,8 +59,10 @@ in {
   inherit languages;
 
   _rootAliases = {
-    devLanguagesList = languages;
-    enums.developmentLanguages = languages;
+    devLanguagesList = languages.values;
+    enums = {
+      developmentLanguages = languages;
+    };
   };
 
   _tests = runTests {

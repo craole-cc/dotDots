@@ -104,16 +104,15 @@
   ];
 in {
   inherit roles capabilities;
-  _rootAliases = let
-    exports = {
+  _rootAliases = {
+    userRoles = roles.values;
+    userCapabilities = capabilities.values;
+
+    enums = {
       userRoles = roles;
       userCapabilities = capabilities;
     };
-  in
-    exports
-    // {
-      enums = exports;
-    };
+  };
   _tests = runTests {
     roles = {
       validatesAdmin = mkTest true (roles.validator.check "administrator");
