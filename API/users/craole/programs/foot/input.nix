@@ -1,5 +1,5 @@
 {
-  programs.foot.settings = {
+  settings = {
     key-bindings = {
       # Clipboard
       clipboard-copy = "Control+Shift+c XF86Copy";

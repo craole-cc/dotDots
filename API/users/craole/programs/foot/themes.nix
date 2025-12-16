@@ -1,5 +1,5 @@
 {
-  programs.foot.settings = {
+  settings = {
     colors = {
       alpha = 0.95; # Slight transparency (1.0 = opaque)
     };

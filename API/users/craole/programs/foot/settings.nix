@@ -1,5 +1,5 @@
 {
-  programs.foot.settings = {
+  settings = {
     main = {
       font = "monospace:size=14";
       dpi-aware = "yes";
