@@ -60,9 +60,6 @@ in {
 
   _rootAliases = {
     devLanguagesList = languages.values;
-    # enums = {
-    #   developmentLanguages = languages;
-    # };
   };
 
   _tests = runTests {
