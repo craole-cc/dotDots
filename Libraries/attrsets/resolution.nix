@@ -3,8 +3,8 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) all any hasAttrByPath attrByPath;
-  inherit (lib.lists) filter head toList;
+  inherit (lib.attrsets) hasAttrByPath attrByPath;
+  inherit (lib.lists) all any filter head toList;
   inherit (_.predicates.emptiness) isNotEmpty;
 
   /**
