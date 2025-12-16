@@ -9,7 +9,7 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
-  inherit (user) enable interface;
+  inherit (user) interface;
   inherit (user.applications.terminal) primary secondary;
   isPrimary = app == primary;
   isSecondary = app == secondary;
@@ -19,8 +19,9 @@
     || (config.wayland.windowManager.sway.enable or false)
     || (config.wayland.windowManager.hyprland.enable or false);
 
+  enableList = ["foot"];
   isUserEnabled =
-    (elem app ["foot"])
+    (elem app enableList)
     || isPrimary
     || isSecondary;
 
