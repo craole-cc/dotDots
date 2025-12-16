@@ -10,21 +10,23 @@
   /**
   Get an attribute by trying multiple paths.
 
-  Searches through a list of possible attribute paths and returns the first match.
-  Useful when an attribute might be named differently across configurations.
+  Searches through a list of possible attribute paths in order and returns
+  the value at the first matching path. Useful for handling attributes that
+  might be named differently across versions, configurations, or systems.
 
   # Type
-  ```nix
-  getByPaths :: AttrSet -> [[String]] -> a -> a
+  ```
+  getByPaths :: { attrset :: AttrSet, paths :: [[String]], default :: a } -> a
   ```
 
   # Arguments
+  An attribute set containing:
   - `attrset`: The attribute set to search
   - `paths`: List of attribute paths to try (each path is a list of strings)
-  - `default`: Optional default value if no paths match
+  - `default`: Value to return if no paths exist (default: `{}`)
 
   # Returns
-  The value at the first matching path, or the default value if no paths match.
+  The value at the first matching path, or `default` if no paths match.
 
   # Examples
   ```nix
@@ -33,15 +35,27 @@
     paths = [["missing"] ["foo" "bar"] ["baz" "qux"]];
     default = null;
   }
-  # => 1 (first match)
+  # => 1 (first match: foo.bar)
 
   getByPaths {
     attrset = pkgs;
     paths = [["firefox-beta"] ["firefox-esr"] ["firefox"]];
-    default = null;
   }
-  # => pkgs.firefox-beta or pkgs.firefox-esr or pkgs.firefox
+  # => pkgs.firefox-beta (if exists) or pkgs.firefox-esr or pkgs.firefox
+
+  # No matches
+  getByPaths {
+    attrset = {};
+    paths = [["a"] ["b"]];
+    default = "fallback";
+  }
+  # => "fallback"
   ```
+
+  # Use Cases
+  - Multi-version package selection (beta, stable, LTS)
+  - Cross-platform attribute resolution
+  - Configuration migration (old name -> new name)
   */
   getByPaths = {
     attrset,
@@ -58,45 +72,60 @@
   /**
   Get a package from pkgs by trying multiple names.
 
-  Convenience wrapper around `getByPaths` for package resolution.
-  Tries multiple package names and returns the first available.
+  Convenience wrapper around `getByPaths` for package resolution. Tries
+  package names in order and returns the first available one. Handles both
+  single package names and lists of alternatives.
 
   # Type
-  ```nix
-  getPackage :: { pkgs :: AttrSet, target :: StringOrList, default :: a } -> a
-  getPackage :: { pkgs :: AttrSet, target :: String \| [String], default ? a } -> a
+  ```
+  getPackage :: { pkgs :: AttrSet, target :: String | [String], default :: a } -> a
   ```
 
   # Arguments
-  An attribute set with:
-  - `pkgs`: The nixpkgs package set
-  - `target`: Single package name or list of package names to try
-  - `default`: Optional default value if no names match
+  An attribute set containing:
+  - `pkgs`: The nixpkgs package set (or any attrset containing packages)
+  - `target`: Single package name or list of package names to try in order
+  - `default`: Value to return if none match (default: `null`)
 
   # Returns
-  The first matching package, or the default value if no names match.
+  The first available package, or `default` if none exist.
 
   # Examples
   ```nix
+  # Single target
   getPackage {
     inherit pkgs;
     target = "firefox-beta";
   }
-  # => pkgs.firefox-beta or null
+  # => pkgs.firefox-beta (if exists) or null
 
+  # Multiple alternatives
   getPackage {
     inherit pkgs;
     target = ["firefox-beta" "firefox-esr" "firefox"];
   }
   # => First available variant
 
+  # With custom default
   getPackage {
     inherit pkgs;
     target = ["nonexistent" "firefox"];
     default = pkgs.chromium;
   }
-  # => pkgs.firefox (or pkgs.chromium if firefox missing)
+  # => pkgs.firefox (if exists) or pkgs.chromium
+
+  # Version preference
+  getPackage {
+    inherit pkgs;
+    target = ["python312" "python311" "python310" "python3"];
+  }
+  # => Newest available Python 3.x
   ```
+
+  # Use Cases
+  - Feature branch / stable fallback selection
+  - Cross-architecture package naming differences
+  - Graceful degradation for optional dependencies
   */
   getPackage = {
     pkgs,
@@ -111,6 +140,49 @@
       inherit paths default;
     };
 
+  /**
+  Get a shell package from a shell name string.
+
+  Maps common shell names to their corresponding nixpkgs packages. Provides
+  a consistent interface for shell selection across configurations.
+
+  # Type
+  ```
+  getShellPackage :: { pkgs :: AttrSet, shellName :: String } -> Derivation
+  ```
+
+  # Arguments
+  An attribute set containing:
+  - `pkgs`: The nixpkgs package set
+  - `shellName`: Name of the shell ("bash", "zsh", "fish", etc.)
+
+  # Returns
+  The corresponding shell package, or `pkgs.bashInteractive` if shell name
+  is not recognized.
+
+  # Examples
+  ```nix
+  getShellPackage { inherit pkgs; shellName = "zsh"; }
+  # => pkgs.zsh
+
+  getShellPackage { inherit pkgs; shellName = "fish"; }
+  # => pkgs.fish
+
+  getShellPackage { inherit pkgs; shellName = "unknown"; }
+  # => pkgs.bashInteractive (fallback)
+  ```
+
+  # Supported Shells
+  - bash (bashInteractive)
+  - nushell
+  - powershell
+  - zsh
+  - fish
+
+  # Notes
+  - Always returns a valid package (never null)
+  - Extend by adding entries to the internal mapping
+  */
   getShellPackage = {
     pkgs,
     shellName,
@@ -121,54 +193,75 @@
       "powershell" = pkgs.powershell;
       "zsh" = pkgs.zsh;
       "fish" = pkgs.fish;
-      # Add more shells as needed
-    }.${
+    }
+    .${
       shellName
-    } or pkgs.bashInteractive;
+    }
+    or pkgs.bashInteractive;
+
   /**
   Get a nested attribute by trying multiple parent names.
 
-  Useful for finding homeModules, nixosModules, or other nested attributes
-  where the parent name might vary.
+  Searches for a child attribute under different possible parent attributes.
+  Useful for finding modules, configs, or nested structures where the parent
+  name might vary (e.g., different flake input naming conventions).
 
   # Type
-  ```nix
+  ```
   getNestedAttr :: {
     attrset :: AttrSet,
-    parentNames :: StringOrList,
+    parentNames :: String | [String],
     childName :: String,
     default :: a
   } -> a
   ```
 
   # Arguments
-  An attribute set with:
+  An attribute set containing:
   - `attrset`: The attribute set to search
   - `parentNames`: Single name or list of possible parent attribute names
-  - `childName`: The nested attribute name to access
-  - `default`: Optional default value if no parent/child combination exists
+  - `childName`: The nested attribute name to access under each parent
+  - `default`: Value to return if no parent/child combination exists (default: `{}`)
 
   # Returns
-  The nested attribute from the first matching parent, or the default value.
+  The nested attribute from the first matching parent, or `default`.
 
   # Examples
   ```nix
+  # Flake input with varying names
   getNestedAttr {
     attrset = inputs;
     parentNames = ["zenBrowser" "zen-browser" "zen"];
     childName = "homeModules";
-    default = null;
   }
   # => inputs.zenBrowser.homeModules (if exists)
+  #    or inputs.zen-browser.homeModules
+  #    or inputs.zen.homeModules
+  #    or {}
 
+  # Single parent name
   getNestedAttr {
     attrset = inputs;
-    parentNames = "alice";
+    parentNames = "home-manager";
     childName = "nixosModules";
-    default = {};
+    default = null;
   }
-  # => inputs.alice.nixosModules or {}
+  # => inputs.home-manager.nixosModules or null
+
+  # Config resolution
+  getNestedAttr {
+    attrset = config;
+    parentNames = ["services" "systemd"];
+    childName = "units";
+    default = [];
+  }
+  # => config.services.units or config.systemd.units or []
   ```
+
+  # Use Cases
+  - Flake input module resolution (homeModules, nixosModules)
+  - Handling renamed/aliased configuration paths
+  - Finding nested options in varying config structures
   */
   getNestedAttr = {
     attrset,
