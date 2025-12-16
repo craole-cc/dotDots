@@ -19,9 +19,9 @@
     || (config.wayland.windowManager.sway.enable or false)
     || (config.wayland.windowManager.hyprland.enable or false);
 
-  enableList = ["foot"];
+  enable = ["foot"];
   isUserEnabled =
-    (elem app enableList)
+    (elem app enable)
     || isPrimary
     || isSecondary;
 
