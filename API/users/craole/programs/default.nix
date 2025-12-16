@@ -1,6 +1,6 @@
 {
   imports = [
-    # ./apps.nix
+    ./apps.nix
     ./direnv.nix
 
     ./atuin
@@ -17,6 +17,7 @@
     ./nushell
     ./powershell
     ./rust
+    ./starship
     # # ./tinty # TODO: Not ready yet
     ./vscode
     ./yazi

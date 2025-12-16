@@ -1,10 +1,12 @@
-{ Lib, ... }:
-{
+{policies, ...}: let
+  app = "starship";
+  enable = policies.dev;
+in {
+  programs.${app} = {
+    inherit enable;
+  };
   imports = [
-    (Lib.programPerPolicy {
-      name = "starship";
-      policy = "dev";
-      autoImportPath = ./.;
-    })
+    ./settings.nix
+    ./shells.nix
   ];
 }

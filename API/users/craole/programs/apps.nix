@@ -17,9 +17,9 @@
 
   #~@ User programs configuration
   programs = {
-    bat.enable = true;
-    btop.enable = true;
-    fastfetch.enable = true;
+    # bat.enable = true;
+    # btop.enable = true;
+    # fastfetch.enable = true;
 
     # #~@ Terminal
     # foot = {
@@ -407,7 +407,7 @@
 
     jujutsu = {
       enable = true;
-      # settings.user = {inherit (user.git) name email;};
+      settings.user = {inherit (user.git) name email;};
     };
 
     delta = {
@@ -478,140 +478,140 @@
     };
 
     #~@ Shell Enhancements
-    starship.enable = true;
+    # starship.enable = true;
 
-    #~@ Editor
-    helix = {
-      enable = true;
-      languages.language = [
-        {
-          name = "nix";
-          language-servers = ["nixd" "nil"];
-          formatter.command = "nixfmt";
-          auto-format = true;
-        }
-        {
-          name = "bash";
-          indent = {
-            tab-width = 2;
-            unit = "	";
-          };
-          formatter = {
-            command = "shfmt";
-            arguments = "--posix --apply-ignore --case-indent --space-redirects --write";
-          };
-          auto-format = true;
-        }
-        {
-          name = "rust";
-          language-servers = ["rust-analyzer"];
-          auto-format = true;
-        }
-        {
-          name = "python";
-          formatter.command = "ruff";
-          auto-format = true;
-        }
-        {
-          name = "sql";
-          formatter = {
-            command = "sqlformat";
-            args = ["--reindent" "--indent_width" "2" "--keywords" "upper" "--identifiers" "lower" "-"];
-          };
-        }
-        {
-          name = "toml";
-          formatter = {
-            command = "taplo";
-            args = ["format" "-"];
-          };
-          auto-format = true;
-        }
-        {
-          name = "json";
-          formatter = {
-            command = "deno";
-            args = ["fmt" "-" "--ext" "json"];
-          };
-          auto-format = true;
-        }
-        {
-          name = "markdown";
-          formatter = {
-            command = "deno";
-            args = ["fmt" "-" "--ext" "md"];
-          };
-          auto-format = true;
-        }
-        {
-          name = "typescript";
-          formatter = {
-            command = "deno";
-            args = ["fmt" "-" "--ext" "ts"];
-          };
-          auto-format = true;
-        }
-        {
-          name = "tsx";
-          formatter = {
-            command = "deno";
-            args = ["fmt" "-" "--ext" "tsx"];
-          };
-          auto-format = true;
-        }
-        {
-          name = "javascript";
-          formatter = {
-            command = "deno";
-            args = ["fmt" "-" "--ext" "js"];
-          };
-          auto-format = true;
-        }
-        {
-          name = "jsx";
-          formatter = {
-            command = "deno";
-            args = ["fmt" "-" "--ext" "jsx"];
-          };
-          auto-format = true;
-        }
-      ];
-      settings = {
-        editor.cursor-shape = {
-          normal = "block";
-          insert = "bar";
-          select = "underline";
-        };
-        keys = {
-          normal = {
-            space.space = "file_picker_in_current_directory";
-            "C-]" = "indent";
-            C-s = ":write";
-            C-S-esc = "extend_line";
-            A-j = ["extend_to_line_bounds" "delete_selection" "paste_after"];
-            A-k = ["extend_to_line_bounds" "delete_selection" "move_line_up" "paste_before"];
-            ret = ["open_below" "normal_mode"];
-            g.u = ":lsp-restart";
-            esc = ["collapse_selection" "keep_primary_selection"];
-            A-e = ["collapse_selection" "keep_primary_selection"];
-            A-f = ["collapse_selection" "keep_primary_selection" ":format"];
-            A-w = ["collapse_selection" "keep_primary_selection" ":format" ":write"];
-            A-q = ":quit";
-          };
-          select = {
-            A-e = ["collapse_selection" "keep_primary_selection" "normal_mode"];
-            A-w = ["collapse_selection" "keep_primary_selection" "normal_mode" ":format" ":write"];
-            A-q = ["normal_mode" ":quit"];
-          };
-          insert = {
-            A-space = "normal_mode";
-            A-e = "normal_mode";
-            A-w = ["normal_mode" ":format" ":write"];
-            A-q = ["normal_mode" ":quit"];
-          };
-        };
-      };
-    };
+    # #~@ Editor
+    # helix = {
+    #   enable = true;
+    #   languages.language = [
+    #     {
+    #       name = "nix";
+    #       language-servers = ["nixd" "nil"];
+    #       formatter.command = "nixfmt";
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "bash";
+    #       indent = {
+    #         tab-width = 2;
+    #         unit = "	";
+    #       };
+    #       formatter = {
+    #         command = "shfmt";
+    #         arguments = "--posix --apply-ignore --case-indent --space-redirects --write";
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "rust";
+    #       language-servers = ["rust-analyzer"];
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "python";
+    #       formatter.command = "ruff";
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "sql";
+    #       formatter = {
+    #         command = "sqlformat";
+    #         args = ["--reindent" "--indent_width" "2" "--keywords" "upper" "--identifiers" "lower" "-"];
+    #       };
+    #     }
+    #     {
+    #       name = "toml";
+    #       formatter = {
+    #         command = "taplo";
+    #         args = ["format" "-"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "json";
+    #       formatter = {
+    #         command = "deno";
+    #         args = ["fmt" "-" "--ext" "json"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "markdown";
+    #       formatter = {
+    #         command = "deno";
+    #         args = ["fmt" "-" "--ext" "md"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "typescript";
+    #       formatter = {
+    #         command = "deno";
+    #         args = ["fmt" "-" "--ext" "ts"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "tsx";
+    #       formatter = {
+    #         command = "deno";
+    #         args = ["fmt" "-" "--ext" "tsx"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "javascript";
+    #       formatter = {
+    #         command = "deno";
+    #         args = ["fmt" "-" "--ext" "js"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #     {
+    #       name = "jsx";
+    #       formatter = {
+    #         command = "deno";
+    #         args = ["fmt" "-" "--ext" "jsx"];
+    #       };
+    #       auto-format = true;
+    #     }
+    #   ];
+    #   settings = {
+    #     editor.cursor-shape = {
+    #       normal = "block";
+    #       insert = "bar";
+    #       select = "underline";
+    #     };
+    #     keys = {
+    #       normal = {
+    #         space.space = "file_picker_in_current_directory";
+    #         "C-]" = "indent";
+    #         C-s = ":write";
+    #         C-S-esc = "extend_line";
+    #         A-j = ["extend_to_line_bounds" "delete_selection" "paste_after"];
+    #         A-k = ["extend_to_line_bounds" "delete_selection" "move_line_up" "paste_before"];
+    #         ret = ["open_below" "normal_mode"];
+    #         g.u = ":lsp-restart";
+    #         esc = ["collapse_selection" "keep_primary_selection"];
+    #         A-e = ["collapse_selection" "keep_primary_selection"];
+    #         A-f = ["collapse_selection" "keep_primary_selection" ":format"];
+    #         A-w = ["collapse_selection" "keep_primary_selection" ":format" ":write"];
+    #         A-q = ":quit";
+    #       };
+    #       select = {
+    #         A-e = ["collapse_selection" "keep_primary_selection" "normal_mode"];
+    #         A-w = ["collapse_selection" "keep_primary_selection" "normal_mode" ":format" ":write"];
+    #         A-q = ["normal_mode" ":quit"];
+    #       };
+    #       insert = {
+    #         A-space = "normal_mode";
+    #         A-e = "normal_mode";
+    #         A-w = ["normal_mode" ":format" ":write"];
+    #         A-q = ["normal_mode" ":quit"];
+    #       };
+    #     };
+    #   };
+    # };
 
     #~@ Integrated Development Environment
     # vscode = {
