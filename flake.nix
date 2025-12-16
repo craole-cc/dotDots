@@ -4,13 +4,8 @@
     inherit (inputs.nixosCore) lib;
     inherit (import ./Libraries {inherit lib;}) lix;
     inherit (import ./API {inherit lix;}) hosts users;
-    inherit (lix.generators.nixos) mkHosts;
-  in {
-    nixosConfigurations = mkHosts {
-      inherit inputs hosts users;
-      args = {inherit inputs lix hosts users;};
-    };
-  };
+    inherit (lix.config.nixos.core) mkCore;
+  in {nixosConfigurations = mkCore {inherit inputs hosts users;};};
 
   inputs = {
     #| NixOS Official

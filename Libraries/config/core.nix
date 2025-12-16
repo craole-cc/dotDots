@@ -14,7 +14,7 @@
   inherit (lib.lists) elem;
   inherit (lib.modules) mkDefault mkIf;
 
-  mkHosts = {
+  mkCore = {
     inputs,
     hosts,
     users,
@@ -250,7 +250,7 @@
     };
 in {
   inherit
-    mkHosts
+    mkCore
     mkHost
     ;
 }
