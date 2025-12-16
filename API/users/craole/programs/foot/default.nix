@@ -31,23 +31,20 @@
     fi
   '';
 in {
-  # config = mkIf isAllowed {
-  programs.${app} = {
-    enable = true;
-    server.enable = true;
-    settings =
-      (import ./settings.nix)
-      // (import ./input.nix)
-      // (import ./themes.nix);
+  config = mkIf isAllowed {
+    programs.${app} = {
+      enable = true;
+      server.enable = true;
+      settings =
+        (import ./settings.nix)
+        // (import ./input.nix)
+        // (import ./themes.nix);
+    };
+
+    home.packages = [footWrapper];
+
+    home.sessionVariables =
+      optionalAttrs isPrimary {TERMINAL = "feet";}
+      // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
   };
-  # // (import ./input.nix)
-  # // (import ./themes.nix)
-  # // (import ./settings.nix);
-
-  home.packages = [footWrapper];
-
-  home.sessionVariables =
-    optionalAttrs isPrimary {TERMINAL = "feet";}
-    // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
-  # };
 }
