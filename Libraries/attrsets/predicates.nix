@@ -1,6 +1,13 @@
-{lib, ...}: let
-  inherit (lib.attrsets) attrByPath;
-  inherit (lib.lists) all any elem;
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit (lib.attrsets) attrByPath isAttrs;
+  inherit (lib.lists) all any elem isList;
+  inherit (lib.strings) typeOf;
+  inherit (builtins) tryEval;
+  inherit (_.testing.unit) mkTest runTests;
 
   /**
   Check if any of a set of attributes has `.enable == true`.
@@ -10,7 +17,7 @@
 
   # Type
   ```
-  isAnyEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String] } -> Bool
+  anyEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String] } -> Bool
   ```
 
   # Arguments
@@ -22,16 +29,21 @@
   # Returns
   `true` if any `basePath ++ [name] ++ ["enable"]` equals `true`, otherwise `false`
 
+  # Throws
+  - Error if `attrset` is not an attribute set
+  - Error if `basePath` is not a list
+  - Error if `names` is not a list
+
   # Examples
   ```nix
-  isAnyEnabled {
+  anyEnabled {
     attrset = config;
     basePath = [ "wayland" "windowManager" ];
     names = [ "sway" "hyprland" "river" ];
   }
   # => true if any wayland WM is enabled
 
-  isAnyEnabled {
+  anyEnabled {
     attrset = config;
     basePath = [ "services" ];
     names = [ "nginx" "apache" "caddy" ];
@@ -39,12 +51,18 @@
   # => true if any web server is enabled
   ```
   */
-  isAnyEnabled = {
+  anyEnabled = {
     attrset,
     basePath,
     names,
   }:
-    any (name: attrByPath (basePath ++ [name "enable"]) false attrset) names;
+    if !isAttrs attrset
+    then throw "anyEnabled: attrset must be an attribute set, got ${typeOf attrset}"
+    else if !isList basePath
+    then throw "anyEnabled: basePath must be a list, got ${typeOf basePath}"
+    else if !isList names
+    then throw "anyEnabled: names must be a list, got ${typeOf names}"
+    else any (name: attrByPath (basePath ++ [name "enable"]) false attrset) names;
 
   /**
   Check if all of a set of attributes have `.enable == true`.
@@ -53,7 +71,7 @@
 
   # Type
   ```
-  isAllEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
+  allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
   ```
 
   # Arguments
@@ -65,9 +83,14 @@
   # Returns
   `true` if all specified paths have `.enable == true`, otherwise `false`
 
+  # Throws
+  - Error if `attrset` is not an attribute set
+  - Error if `basePath` is not a list
+  - Error if `names` is not a list
+
   # Examples
   ```nix
-  isAllEnabled {
+  allEnabled {
     attrset = config;
     basePath = [ "services" ];
     names = [ "postgresql" "redis" ];
@@ -75,7 +98,7 @@
   # => true only if both services.postgresql.enable AND services.redis.enable are true
 
   # Checking nested paths with mixed syntax
-  isAllEnabled {
+  allEnabled {
     attrset = config;
     basePath = [ "services" "displayManager" ];
     names = [
@@ -86,12 +109,76 @@
   # => true if both services.displayManager.gdm.enable and gdm.wayland are true
   ```
   */
-  isAllEnabled = {
+  allEnabled = {
     attrset,
     basePath,
     names,
   }:
-    all (name: attrByPath (basePath ++ [name "enable"]) false attrset) names;
+    if !isAttrs attrset
+    then throw "allEnabled: attrset must be an attribute set, got ${typeOf attrset}"
+    else if !isList basePath
+    then throw "allEnabled: basePath must be a list, got ${typeOf basePath}"
+    else if !isList names
+    then throw "allEnabled: names must be a list, got ${typeOf names}"
+    else let
+      toPath = name:
+        if isList name
+        then name
+        else [name];
+    in
+      all
+      (name: attrByPath (basePath ++ toPath name ++ ["enable"]) false attrset)
+      names;
+
+  waylandWindowManager = config:
+    anyEnabled {
+      attrset = config;
+      basePath = ["wayland" "windowManager"];
+      names = [
+        "sway"
+        "hyprland"
+        "river"
+        "wayfire"
+      ];
+    }
+    || anyEnabled {
+      attrset = config;
+      basePath = ["programs"];
+      names = ["niri"];
+    };
+
+  waylandDesktopManager = config:
+    anyEnabled {
+      attrset = config;
+      basePath = ["services" "desktopManager"];
+      names = ["cosmic"];
+    };
+
+  waylandDisplayManager = config: let
+    attrset = config;
+    basePath = ["services" "displayManager"];
+  in
+    allEnabled {
+      inherit attrset basePath;
+      names = [
+        ["gdm" "enable"]
+        ["gdm" "wayland"]
+      ];
+    }
+    || allEnabled {
+      inherit attrset basePath;
+      names = [
+        ["cosmic-greeter" "enable"]
+        ["cosmic-greeter" "wayland"]
+      ];
+    }
+    || allEnabled {
+      inherit attrset basePath;
+      names = [
+        ["sddm"]
+        ["sddm" "wayland"]
+      ];
+    };
 
   /**
   Heuristic check for Wayland session/system in NixOS + Home Manager configs.
@@ -104,7 +191,7 @@
 
   # Type
   ```
-  isWaylandEnabled :: { config :: AttrSet, interface :: AttrSet } -> Bool
+  waylandEnabled :: { config :: AttrSet, interface :: AttrSet } -> Bool
   ```
 
   # Arguments
@@ -118,21 +205,25 @@
   # Returns
   `true` if any Wayland indicator is detected, otherwise `false`
 
+  # Throws
+  - Error if `config` is not an attribute set
+  - Error if `interface` is provided but not an attribute set
+
   # Examples
   ```nix
   # Detects sway
-  isWaylandEnabled { inherit config; }
+  waylandEnabled { inherit config; }
   # => true if config.wayland.windowManager.sway.enable
 
   # Explicit specification
-  isWaylandEnabled {
+  waylandEnabled {
     inherit config;
     interface = { displayProtocol = "wayland"; };
   }
   # => true
 
   # Checks display manager
-  isWaylandEnabled { inherit config; }
+  waylandEnabled { inherit config; }
   # => true if GDM with Wayland or SDDM with Wayland enabled
   ```
 
@@ -140,52 +231,146 @@
   - Returns `false` for X11-only setups
   - Extensible: add more WMs/DEs to detection lists as needed
   */
-  isWaylandEnabled = {
+  waylandEnabled = {
     config,
     interface ? {},
-  }: let
-    isWaylandWM = isAnyEnabled {
-      attrset = config;
-      basePath = ["wayland" "windowManager"];
-      names = ["sway" "hyprland" "river"];
-    };
+  }:
+    if !isAttrs config
+    then throw "waylandEnabled: config must be an attribute set, got ${typeOf config}"
+    else if !isAttrs interface
+    then throw "waylandEnabled: interface must be an attribute set, got ${typeOf interface}"
+    else let
+      isWaylandWM = waylandWindowManager config;
+      isWaylandDE = waylandDesktopManager config;
 
-    isWaylandDE =
-      config.services.desktopManager.cosmic.enable or false;
+      isWaylandDP = waylandDisplayManager config;
 
-    isWaylandDP =
-      isAllEnabled {
-        attrset = config;
-        basePath = ["services" "displayManager"];
-        names = [
-          ["gdm" "enable"]
-          ["gdm" "wayland"]
-        ];
-      }
-      || isAllEnabled {
-        attrset = config;
-        basePath = ["services" "displayManager"];
-        names = [
-          ["sddm" "enable"]
-          ["sddm" "wayland" "enable"]
-        ];
-      };
-
-    isRequested =
-      ((interface.displayProtocol or null) == "wayland")
-      || (interface.desktopEnvironment or null) == "cosmic"
-      || (elem (interface.windowManager or null) [
-        "sway"
-        "hyprland"
-        "river"
-        "niri"
-      ]);
-  in
-    isWaylandWM || isWaylandDE || isWaylandDP || isRequested;
+      isRequested =
+        ((interface.displayProtocol or null) == "wayland")
+        || (interface.desktopEnvironment or null) == "cosmic"
+        || (elem (interface.windowManager or null) [
+          "sway"
+          "hyprland"
+          "river"
+          "niri"
+        ]);
+    in
+      isWaylandWM || isWaylandDE || isWaylandDP || isRequested;
 in {
   inherit
-    isAllEnabled
-    isAnyEnabled
-    isWaylandEnabled
+    allEnabled
+    anyEnabled
+    waylandEnabled
     ;
+
+  _rootAliases = {
+    isAllEnabled = allEnabled;
+    isAnyEnabled = anyEnabled;
+    isWaylandEnabled = waylandEnabled;
+  };
+
+  _tests = runTests {
+    anyEnabled = {
+      detectsEnabled = mkTest true (
+        anyEnabled {
+          attrset = {
+            services.nginx.enable = true;
+            services.apache.enable = false;
+          };
+          basePath = ["services"];
+          names = ["nginx" "apache"];
+        }
+      );
+
+      returnsFalseWhenNoneEnabled = mkTest false (
+        anyEnabled {
+          attrset = {services.nginx.enable = false;};
+          basePath = ["services"];
+          names = ["nginx" "apache"];
+        }
+      );
+
+      handlesEmptyNames = mkTest false (
+        anyEnabled {
+          attrset = {};
+          basePath = ["services"];
+          names = [];
+        }
+      );
+
+      rejectsInvalidAttrset = mkTest {
+        expr = tryEval (
+          anyEnabled {
+            attrset = "invalid";
+            basePath = [];
+            names = [];
+          }
+        );
+        expected = {
+          success = false;
+          value = false;
+        };
+      };
+    };
+
+    allEnabled = {
+      detectsAllEnabled = mkTest true (
+        allEnabled {
+          attrset = {
+            services.nginx.enable = true;
+            services.postgresql.enable = true;
+          };
+          basePath = ["services"];
+          names = ["nginx" "postgresql"];
+        }
+      );
+
+      detectsOneDisabled = mkTest false (
+        allEnabled {
+          attrset = {
+            services.nginx.enable = true;
+            services.postgresql.enable = false;
+          };
+          basePath = ["services"];
+          names = ["nginx" "postgresql"];
+        }
+      );
+
+      handlesNestedPaths = mkTest true (
+        allEnabled {
+          attrset = {
+            services.displayManager.gdm.enable = true;
+            services.displayManager.gdm.wayland = true;
+          };
+          basePath = ["services" "displayManager"];
+          names = [
+            ["gdm" "enable"]
+            ["gdm" "wayland"]
+          ];
+        }
+      );
+    };
+
+    waylandEnabled = {
+      detectsSway = mkTest true (
+        waylandEnabled {
+          config = {wayland.windowManager.sway.enable = true;};
+        }
+      );
+
+      detectsViaInterface = mkTest true (
+        waylandEnabled {
+          config = {};
+          interface = {displayProtocol = "wayland";};
+        }
+      );
+
+      returnsFalseForX11 = mkTest false (
+        waylandEnabled {
+          config = {};
+          interface = {displayProtocol = "x11";};
+        }
+      );
+    };
+  };
 }

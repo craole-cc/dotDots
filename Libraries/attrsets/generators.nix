@@ -1,7 +1,12 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) isAttrs mapAttrs;
   inherit (lib.strings) isString typeOf;
   inherit (builtins) tryEval;
+  inherit (_.testing.unit) mkTest runTests;
 
   /**
   Lock attribute values with metadata.
@@ -36,6 +41,12 @@
   #   homepage = { Value = "https://example.com"; Status = "locked"; };
   #   searchEngine = { Value = "DuckDuckGo"; Status = "locked"; };
   # }
+
+  # Firefox policies example
+  lock "locked" {
+    DisableTelemetry = true;
+    NoDefaultBookmarks = true;
+  }
   ```
   */
   lock = status: attrs:
@@ -50,88 +61,119 @@
       })
       attrs;
 
-  mkLocked = lock "locked";
-  mkManaged = lock "managed";
+  /**
+  Lock attributes with "locked" status (convenience wrapper).
+
+  Equivalent to `lock "locked"`. Use when you need immutable configuration
+  values that users cannot change.
+
+  # Type
+  ```
+  locked :: AttrSet -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  locked {
+    homepage = "https://example.com";
+    trackingProtection = true;
+  }
+  ```
+  */
+  locked = lock "locked";
+
+  /**
+  Lock attributes with "managed" status.
+
+  Equivalent to `lockAttrs "managed"`. Use when configuration is managed by
+  an administrator but may allow some user customization depending on the policy engine.
+
+  # Type
+  ```
+  managed :: AttrSet -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  managed {
+    proxy = "http://proxy.example.com";
+    certificates = [ ./corporate-ca.crt ];
+  }
+  ```
+  */
+  managed = lock "managed";
 in {
   inherit
     lock
-    mkLocked
-    mkManaged
+    locked
+    managed
     ;
 
   _rootAliases = {
     lockAttrs = lock;
-    mkLockedAttrs = mkLocked;
-    mkManagedAttrs = mkManaged;
+    makeLockedAttrs = locked;
+    makeManagedAttrs = managed;
   };
 
-  _tests = lib.runTests {
-    lockBasic = {
-      expr = lock "locked" {x = 1;};
-      expected = {
+  _tests = runTests {
+    lock = {
+      basic = mkTest {
         x = {
           Value = 1;
           Status = "locked";
         };
+      } (lock "locked" {x = 1;});
+
+      nested =
+        mkTest {
+          a = {
+            Value = {b = 2;};
+            Status = "managed";
+          };
+          c = {
+            Value = 3;
+            Status = "managed";
+          };
+        } (lock "managed" {
+          a = {b = 2;};
+          c = 3;
+        });
+
+      empty = mkTest {} (lock "locked" {});
+
+      invalidStatus = mkTest {
+        expr = tryEval (lock 123 {x = 1;});
+        expected = {
+          success = false;
+          value = false;
+        };
+      };
+
+      invalidAttrs = mkTest {
+        expr = tryEval (lock "locked" "not-an-attrset");
+        expected = {
+          success = false;
+          value = false;
+        };
       };
     };
 
-    lockNested = {
-      expr = lock "managed" {
-        a = {b = 2;};
-        c = 3;
-      };
-      expected = {
-        a = {
-          Value = {b = 2;};
-          Status = "managed";
-        };
-        c = {
-          Value = 3;
-          Status = "managed";
-        };
-      };
-    };
-
-    mkLocked = {
-      expr = mkLocked {enable = true;};
-      expected = {
+    locked = {
+      basic = mkTest {
         enable = {
           Value = true;
           Status = "locked";
         };
-      };
+      } (locked {enable = true;});
     };
 
-    mkManaged = {
-      expr = mkManaged {url = "https://example.com";};
-      expected = {
+    managed = {
+      basic = mkTest {
         url = {
           Value = "https://example.com";
           Status = "managed";
         };
-      };
-    };
-
-    lockEmpty = {
-      expr = lock "locked" {};
-      expected = {};
-    };
-
-    lockInvalidStatus = {
-      expr = tryEval (lock 123 {x = 1;});
-      expected = {
-        success = false;
-        value = false;
-      };
-    };
-
-    lockInvalidAttrs = {
-      expr = tryEval (lock "locked" "not-an-attrset");
-      expected = {
-        success = false;
-        value = false;
-      };
+      } (managed {url = "https://example.com";});
     };
   };
 }
