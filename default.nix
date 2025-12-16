@@ -142,9 +142,20 @@
     if matchingHost != null
     then matchingHost
     else head (attrValues nixosConfigurations);
-
-  #> Flatten current host's attributes
-  currentHostFlattened = {
+in
+  {
+    inherit
+      lix
+      api
+      lib
+      pkgs
+      builtins
+      system
+      helpers
+      all
+      ;
+  }
+  // {
     #~@ Top-level host attributes
     inherit
       (currentHost)
@@ -166,18 +177,4 @@
       systemd
       users
       ;
-  };
-in
-  {
-    inherit
-      lix
-      api
-      lib
-      pkgs
-      builtins
-      system
-      helpers
-      all
-      ;
   }
-  // currentHostFlattened
