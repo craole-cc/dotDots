@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) isAttrs mapAttrs;
-  inherit (lib.strings) isString typeOf;
+  inherit (_.types.predicates) isString typeOf;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
   /**
