@@ -7,31 +7,33 @@
   # hardware = import ./hardware.nix {inherit _;};
   # tui = import ./tui.nix {inherit _;};
   # user = import ./user.nix {inherit _;};
-  developmentLanguages = e.development.languages;
-in {
-  # Export everything flat at root
-  inherit developmentLanguages;
-  inherit (e.gui) bootLoaders displayProtocols displayManagers desktopEnvironments windowManagers waylandSupport;
-  inherit (e.hardware) functionalities cpuBrands cpuPowerModes gpuBrands;
-  inherit (e.tui) shells;
-  inherit (e.user) roles capabilities;
-
-  # Also export categorized
-  # development = dev;
-  # gui = gui;
-  # hardware = hardware;
-  # tui = tui;
-  # user = user;
-
-  _rootAliases = {
-    # Flat access via root
-    enums = {
-      # All enums accessible here
-      inherit developmentLanguages;
-      bootLoaders = e.gui.bootLoaders;
-      # ... etc
-      userRoles = e.user.roles;
-      userCapabilities = e.user.capabilities;
-    };
+  enums = {
+    developmentLanguages = e.development.languages;
+    inherit (e.gui) bootLoaders displayProtocols displayManagers desktopEnvironments windowManagers waylandSupport;
+    inherit (e.hardware) functionalities cpuBrands cpuPowerModes gpuBrands;
+    inherit (e.tui) shells;
+    inherit (e.user) roles capabilities;
   };
-}
+in
+  enums
+# in {
+#   # Export everything flat at root
+#   inherit developmentLanguages;
+#   # Also export categorized
+#   # development = dev;
+#   # gui = gui;
+#   # hardware = hardware;
+#   # tui = tui;
+#   # user = user;
+#   _rootAliases = {
+#     # Flat access via root
+#     enums = {
+#       # All enums accessible here
+#       inherit developmentLanguages;
+#       bootLoaders = e.gui.bootLoaders;
+#       # ... etc
+#       userRoles = e.user.roles;
+#       userCapabilities = e.user.capabilities;
+#     };
+#   };
+# }
