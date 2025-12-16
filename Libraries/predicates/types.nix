@@ -1,32 +1,42 @@
 {lib, ...}: let
   inherit (lib.strings) typeOf;
 
-  prettyExpected = expected:
-    {
-      attrset = "an attribute set";
-      attr = "an attribute set";
-      set = "an attribute set";
-      list = "a list";
-      string = "a string";
-      str = "a string";
-      int = "an integer";
-      num = "an integer";
-      number = "an integer";
-      bool = "a boolean";
-      binary = "a binary value";
-    }.${
-      expected
-    } or expected;
+  # Single source of truth: type tag -> phrase (with article if needed)
+  typePhrases = {
+    attrset = "an attribute set";
+    attr = "an attribute set";
+    set = "an attribute set";
+
+    list = "a list";
+
+    string = "a string";
+    str = "a string";
+
+    int = "an integer";
+    num = "an integer";
+    number = "an integer";
+
+    bool = "a boolean";
+
+    binary = "a binary value";
+
+    float = "a float";
+    path = "a path";
+    null = "null";
+  };
+
+  describeType = tag:
+    typePhrases.${tag} or ("a " + tag);
 
   mkError = {
     fnName,
     argName,
-    expected, # "set" | "list" | "string" | ...
+    expected, # "set" | "attrset" | "list" | "string" | ...
     actual,
   }: let
-    expectedPretty = prettyExpected expected;
-    actualPretty = typeOf actual;
-  in "${fnName}: `${argName}` must be ${expectedPretty}, but a ${actualPretty} was given.";
+    expectedPretty = describeType expected;
+    actualPretty = describeType (typeOf actual);
+  in "${fnName}: `${argName}` must be ${expectedPretty}, but ${actualPretty} was given.";
 
   validate = {
     fnName,
