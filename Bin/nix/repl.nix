@@ -54,7 +54,7 @@
 
   #> Flatten current host's attributes
   currentHostFlattened = {
-    # Top-level host attributes
+    #~@ Top-level host attributes
     inherit
       (currentHost)
       _module
@@ -67,7 +67,7 @@
       type
       ;
 
-    # Convenient shortcuts to config sections
+    #~@ Convenient shortcuts to config sections
     inherit
       (currentHost.config)
       boot
@@ -80,9 +80,7 @@
       users
       ;
 
-    # Add a few more useful ones
-    cfg = currentHost.config;
-    opts = currentHost.options;
+    inherit (currentHost._module) specialArgs;
   };
 in
   {
