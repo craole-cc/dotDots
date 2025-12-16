@@ -34,17 +34,15 @@
   '';
 in {
   config = mkIf isAllowed {
-    programs.${app} = {
-      enable = true;
-      server.enable = true;
-    };
+    programs.${app} =
+      {
+        enable = true;
+        server.enable = true;
+      }
+      // import ./setting.nix
+      // import ./themes.nix;
 
     home.packages = [footWrapper];
-
-    imports = [
-      ./settings.nix
-      ./themes.nix
-    ];
 
     home.sessionVariables =
       {}
