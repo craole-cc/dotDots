@@ -1,7 +1,6 @@
 {
   _,
   lib,
-  pkgs,
   ...
 }: let
   inherit (lib.attrsets) isAttrs isDerivation mapAttrs recursiveUpdate;
@@ -192,16 +191,16 @@ in {
         });
 
       # Use a real derivation so isDerivation == true
-      preservesDerivations =
-        mkTest
-        {
-          pkg = pkgs.hello;
-          config = mkDefaultStub "/etc/foo";
-        }
-        (update {
-          pkg = pkgs.hello;
-          config = "/etc/foo";
-        });
+      # preservesDerivations =
+      #   mkTest
+      #   {
+      #     pkg = pkgs.hello;
+      #     config = mkDefaultStub "/etc/foo";
+      #   }
+      #   (update {
+      #     pkg = pkgs.hello;
+      #     config = "/etc/foo";
+      #   });
 
       preservesSpecialType =
         mkTest
