@@ -13,10 +13,12 @@
   inherit (user.applications.terminal) primary secondary;
   isPrimary = app == primary;
   isSecondary = app == secondary;
-  isWayland = with config.wayland.windowManager;
+
+  isWayland =
     (interface.displayProtocol == "wayland")
-    || sway.enable or false
-    || hyprland.enable or false;
+    || (config.wayland.windowManager.sway.enable or false)
+    || (config.wayland.windowManager.hyprland.enable or false);
+
   isAllowed =
     isWayland
     && (elem app enable || isPrimary || isSecondary);
@@ -31,7 +33,7 @@
     fi
   '';
 in {
-  config = mkIf true {
+  config = mkIf isAllowed {
     programs.${app} = {
       enable = true;
       server.enable = true;
