@@ -3,9 +3,26 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues attrNames attrByPath filterAttrs genAttrs mapAttrs mapAttrsToList;
-  inherit (lib.lists) filter concatLists elem head length optional unique;
-  inherit (lib.modules) mkDefault mkIf;
+  inherit
+    (lib.attrsets)
+    attrValues
+    attrNames
+    attrByPath
+    filterAttrs
+    mapAttrs
+    mapAttrsToList
+    ;
+  inherit
+    (lib.lists)
+    filter
+    concatLists
+    elem
+    head
+    length
+    optional
+    unique
+    ;
+  inherit (lib.modules) mkIf;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
   inherit (_) hostFunctionalities userCapabilities;
@@ -26,273 +43,29 @@
 
   isAdmin = u: elem (u.role or null) ["admin" "administrator"];
 
-  mkHosts = {
-    inputs,
-    hosts,
-    users,
-    args,
-  }:
-    mapAttrs
-    (
-      name: host: let
-        dots = host.paths.dots or null;
-        system = host.platform or builtins.currentSystem;
-        hostUsers = attrValues (attrNames host.users or {});
-        adminsUsersRaw = filterAttrs (_: isAdmin) host.users;
-        adminUsers =
-          if adminsUsersRaw != {}
-          then adminsUsersRaw
-          else if length hostUsers == 1
-          then let
-            onlyName = head hostUsers;
-          in {
-            ${onlyName} = users.${onlyName};
-          }
-          else adminsUsersRaw;
-        hasAudio = elem "audio" (host.functionalities or []);
-      in
-        inputs.nixosCore.lib.nixosSystem {
-          inherit system;
-          specialArgs = args;
-          modules =
-            [
-              (with host;
-                {pkgs, ...}: {
-                  # Policy check:
-                  # - If multiple users exist, at least one must be an administrator.
-                  # - A single-user host may omit role and will be auto-promoted to admin.
-                  assertions = [
-                    {
-                      assertion = (adminUsers != {}) || (length hostUsers <= 1);
-                      message = ''
-                        When multiple users are defined for a host, at least one must have role = "administrator".
-                      '';
-                    }
-                  ];
-
-                  inherit imports;
-
-                  system = {
-                    inherit stateVersion;
-                  };
-
-                  nix = {
-                    # gc = {
-                    #   automatic = true;
-                    #   persistent = true;
-                    #   dates = "weekly";
-                    #   options = "--delete-older-than 5d";
-                    # };
-
-                    # optimise = {
-                    #   automatic = true;
-                    #   persistent = true;
-                    #   dates = "weekly";
-                    # };
-
-                    settings = {
-                      # auto-optimise-store = true;
-                      experimental-features = [
-                        "nix-command"
-                        "flakes"
-                        "pipe-operators"
-                      ];
-                      max-jobs = specs.cpu.cores or "auto";
-                      # substituters = ["https://cache.nixos.org/"];
-                      # trusted-substituters = [
-                      #   "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-                      #   "https://hydra.nixos.org/"
-                      # ];
-                      trusted-users = [
-                        "root"
-                        "@wheel"
-                      ];
-                    };
-
-                    # extraOptions = ''
-                    #   download-buffer-size = 524288000
-                    # '';
-                  };
-
-                  nixpkgs = {
-                    hostPlatform = system;
-                    config.allowUnfree = packages.allowUnfree or false;
-                  };
-
-                  boot = {
-                    kernelPackages = mkIf ((packages.kernel or null) != null) pkgs.${packages.kernel};
-                    loader = {
-                      systemd-boot.enable = interface.bootLoader or null == "systemd-boot";
-                      efi.canTouchEfiVariables = true; # TODO: Make this dynamic
-                      timeout = interface.bootLoaderTimeout or 1;
-                    };
-                  };
-
-                  fileSystems = let
-                    mkFileSystem = _: fs: let
-                      base = {
-                        device = fs.device;
-                        fsType = fs.fsType;
-                      };
-                      opts = fs.options or [];
-                    in
-                      #> Combine base attributes with options if they exist.
-                      if opts == []
-                      then base
-                      else base // {options = opts;};
-                  in
-                    mapAttrs mkFileSystem (devices.file or {});
-
-                  swapDevices = let
-                    mkSwapDevice = s: {device = s.device;};
-                  in
-                    map mkSwapDevice (devices.swap or []);
-
-                  networking = {
-                    #> System name
-                    hostName = name;
-
-                    #> 32-bit host ID (ZFS requirement)
-                    hostId = host.id or null;
-
-                    #> Enable NetworkManager if interfaces are defined
-                    networkmanager.enable = devices.network != [];
-
-                    #> DNS Nameservers from host config
-                    inherit (access) nameservers;
-
-                    #> Generate interface configurations
-                    interfaces = let
-                      mkNetworkInterface = _: {useDHCP = mkDefault true;};
-                    in
-                      genAttrs (devices.network or []) mkNetworkInterface;
-
-                    #> Configure firewall
-                    firewall = let
-                      inherit (access.firewall) tcp udp;
-                      enable = access.firewall.enable or false;
-                    in {
-                      inherit enable;
-
-                      #~@ TCP Configuration
-                      allowedTCPPorts = tcp.ports;
-                      allowedTCPPortRanges = tcp.ranges;
-
-                      #~@ UDP Configuration
-                      allowedUDPPorts = udp.ports;
-                      allowedUDPPortRanges = udp.ranges;
-                    };
-                  };
-
-                  time = {
-                    timeZone = localization.timeZone or null;
-                    hardwareClockInLocalTime = elem "dualboot-windows" functionalities;
-                  };
-
-                  location = {
-                    latitude = localization.latitude or null;
-                    longitude = localization.longitude or null;
-                    provider = localization.locator or "geoclue2";
-                  };
-
-                  i18n = {
-                    defaultLocale = localization.defaultLocale or null;
-                  };
-
-                  services = {
-                    pipewire = mkIf hasAudio {
-                      enable = true;
-                      alsa.enable = true;
-                      alsa.support32Bit = true;
-                      pulse.enable = true;
-                      jack.enable = true;
-                      wireplumber.enable = true;
-                    };
-
-                    pulseaudio.enable = false;
-                  };
-
-                  security = {
-                    rtkit.enable = hasAudio;
-                    sudo = {
-                      #> Restrict sudo to members of the wheel group (root is always allowed).
-                      execWheelOnly = true;
-
-                      #> For each admin user, grant passwordless sudo for all commands.
-                      extraRules = mapAttrsToList (name: _: mkAdmin name) adminUsers;
-                    };
-                  };
-
-                  environment = {
-                    shellAliases = {
-                      edit-dots = "$EDITOR ${dots}";
-                      ide-dots = "$VISUAL ${dots}";
-                      push-dots = "gitui --directory ${dots}";
-                      repl-dots = "nixos-rebuild repl --flake ${dots}";
-                      switch-dots = "sudo nixos-rebuild switch --flake ${dots}";
-                      switch = "push-dots; flake-dots";
-                      ll = "lsd --long --git --almost-all";
-                      lt = "lsd --tree";
-                      lr = "lsd --long --git --recursive";
-                    };
-                    sessionVariables =
-                      if dots != null
-                      then {DOTS = dots;}
-                      else {};
-                    systemPackages = with pkgs; [
-                      #~@ Development
-                      helix
-                      nil
-                      nixd
-                      nixfmt
-                      alejandra
-                      rust-script
-                      rustfmt
-                      gcc
-
-                      #~@ Tools
-                      gitui
-                      lm_sensors
-                      toybox
-                      lshw
-                      lsd
-                      mesa-demos
-                      cowsay
-                    ];
-                  };
-                })
-            ]
-            ++ [
-              inputs.nixosHome.nixosModules.home-manager
-              (mkUsers {inherit host users system inputs args;})
-            ]
-            ++ [];
-        }
-    )
-    hosts;
-
   mkUsers = {
-    users,
     host,
-    system,
     inputs,
-    args,
+    extraArgs,
   }: {
     config,
     pkgs,
     ...
   }: let
-    inherit (host) stateVersion interface;
-
-    #> Merge user config from API/users/ with host-specific settings
-    mergedUsers =
-      mapAttrs (
-        name: config: users.${name} or {} // config
-      )
-      (filterAttrs (_: cfg: cfg.enable or false) host.users);
+    inherit (host) stateVersion interface system users;
 
     #> Collect all enabled regular users (non-service, non-guest)
-    normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) mergedUsers;
+    normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
+
+    userNames = attrValues (attrNames host.users or {});
+    #> Collect all enabled users with elevated privelages
+    adminsUsersRaw = filterAttrs (_: isAdmin) host.users;
+    adminUsers =
+      if adminsUsersRaw != {}
+      then adminsUsersRaw
+      else if length userNames == 1
+      then let name = head userNames; in {${name} = users.${name};}
+      else adminsUsersRaw;
 
     #> Determine which DE/WM/DM to enable based on user preferences
     #? Priority: user config > host config > null
@@ -302,7 +75,7 @@
         mapAttrs (name: cfg: {
           desktopEnvironment = cfg.interface.desktopEnvironment or interface.desktopEnvironment or null;
           windowManager = cfg.interface.windowManager or interface.windowManager or null;
-          loginManager = cfg.interface.loginManager or interface.loginManager or null;
+          displayManager = cfg.interface.displayManager or interface.displayManager or null;
         })
         normalUsers;
 
@@ -314,7 +87,7 @@
         attrValues (mapAttrs (_: i: i.windowManager) userInterfaces)
       ));
       loginManagers = unique (filter (x: x != null) (
-        attrValues (mapAttrs (_: i: i.loginManager) userInterfaces)
+        attrValues (mapAttrs (_: i: i.displayManager) userInterfaces)
       ));
     in {
       inherit desktopEnvironments windowManagers loginManagers userInterfaces;
@@ -326,7 +99,7 @@
     enableGnome = elem "gnome" interfaces.desktopEnvironments;
 
     #> Determine login manager (prefer user choice, fallback to DE defaults)
-    loginManager =
+    displayManager =
       if enablePlasma && !enableGnome
       then "sddm"
       else if enableGnome && !enablePlasma
@@ -335,8 +108,8 @@
       then head interfaces.loginManagers
       else null;
 
-    enableSddm = loginManager == "sddm";
-    enableGdm = loginManager == "gdm";
+    enableSddm = displayManager == "sddm";
+    enableGdm = displayManager == "gdm";
 
     #> Collect all unique shells from all users
     allShells = let
@@ -350,6 +123,18 @@
     getUserInterface = name: attr:
       interfaces.userInterfaces.${name}.${attr} or null;
   in {
+    # Policy check:
+    # - If multiple users exist, at least one must be an administrator.
+    # - A single-user host may omit role and will be auto-promoted to admin.
+    assertions = [
+      {
+        assertion = (adminUsers != {}) || (length userNames <= 1);
+        message = ''
+          When multiple users are defined for a host, at least one must have role = "administrator".
+        '';
+      }
+    ];
+
     #~@ System-wide NixOS users
     users.users =
       mapAttrs
@@ -382,7 +167,16 @@
             else []
           );
       })
-      mergedUsers;
+      host.users;
+
+    #~@ Admin privelages
+    security.sudo = {
+      #> Restrict sudo to members of the wheel group (root is always allowed).
+      execWheelOnly = true;
+
+      #> For each admin user, grant passwordless sudo for all commands.
+      extraRules = mapAttrsToList (name: _: mkAdmin name) adminUsers;
+    };
 
     #~@ System-wide programs (not per-user)
     programs = {
@@ -435,12 +229,13 @@
       };
     };
 
+    imports = [inputs.nixosHome.nixosModules.home-manager];
     home-manager = {
       backupFileExtension = "BaC";
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = args;
+      extraSpecialArgs = extraArgs;
       users =
         mapAttrs
         (name: cfg: let
@@ -613,7 +408,6 @@
   };
 in {
   inherit
-    mkHosts
     mkUsers
     ;
 }
