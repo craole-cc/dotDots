@@ -7,27 +7,8 @@
   inherit (lib.lists) all any elem isList;
   inherit (lib.strings) typeOf;
   inherit (builtins) tryEval;
+  inherit (_.predicates.types) validate;
   inherit (_.testing.unit) mkTest runTests;
-
-
-  mkTypeError = {
-    fnName,
-    argName,
-    expected,
-    value,
-  }:
-    "${fnName}: ${argName} must be ${expected}, got ${builtins.typeOf value}";
-
-  assertType = {
-    fnName,
-    argName,
-    expected,
-    predicate,
-    value,
-  }:
-    if !predicate value
-    then throw (mkTypeError { inherit fnName argName expected value; })
-    else value;
 
   /**
   Check if any of a set of attributes has `.enable == true`.
@@ -251,24 +232,29 @@
     config,
     interface ? {},
   }: let
-    check = input:
-      if !isAttrs input
-      then throw "waylandEnabled: config must be an attribute set, got ${typeOf config}"
-      else true;
+    fnName = "waylandEnabled";
+    cfg = validate {
+      inherit fnName;
+      argName = "config";
+      predicate = isAttrs;
+      expected = "set";
+      actual = config;
+    };
+
+    ifc = validate {
+      inherit fnName;
+      argName = "interface";
+      predicate = isAttrs;
+      expected = "set";
+      actual = interface;
+    };
+
+    isWaylandWM = waylandWindowManager cfg;
+    isWaylandDE = waylandDesktopManager cfg;
+    isWaylandDP = waylandDisplayManager cfg;
+    isWaylandAPI = waylandDefinedInterface ifc;
   in
-    # if !isAttrs config
-    # then throw "waylandEnabled: config must be an attribute set, got ${typeOf config}"
-    # else if !isAttrs interface
-    # then throw "waylandEnabled: interface must be an attribute set, got ${typeOf interface}"
-    if
-      !check config then
-    else let
-      isWaylandWM = waylandWindowManager config;
-      isWaylandDE = waylandDesktopManager config;
-      isWaylandDP = waylandDisplayManager config;
-      isWaylandAPI = waylandDefinedInterface interface;
-    in
-      isWaylandWM || isWaylandDE || isWaylandDP || isWaylandAPI;
+    isWaylandWM || isWaylandDE || isWaylandDP || isWaylandAPI;
 in {
   inherit
     allEnabled

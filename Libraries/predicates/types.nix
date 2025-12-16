@@ -22,8 +22,8 @@
     fnName,
     argName,
     expected, # "set" | "list" | "string" | ...
-    value,
-  }: "${fnName}: `${argName}` expected to be ${prettyExpected expected}, got ${typeOf value}";
+    actual,
+  }: "${fnName}: `${argName}` expected to be ${prettyExpected expected}, got ${typeOf actual}";
 
   validate = {
     fnName,
