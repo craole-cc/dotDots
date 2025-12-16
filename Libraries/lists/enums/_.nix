@@ -1,6 +1,7 @@
 {_, ...}: let
   e = _.lists.enums;
   inherit (_.std.attrsets) getAttr hasAttr;
+  inherit (_.testing.unit) mkTest runTests;
 
   /**
       Enum aggregator - provides flat access to all enums.
@@ -46,21 +47,18 @@ in
   enums
   // {
     _rootAliases = {inherit enums;};
-    _tests = let
-      inherit (_.testing.unit) mkTest runTests;
-    in
-      runTests {
-        exportsAllEnums = mkTest true (
-          hasAttr "languages" enums
-          && hasAttr "bootLoaders" enums
-          && hasAttr "roles" enums
-        );
+    _tests = runTests {
+      exportsAllEnums = mkTest true (
+        hasAttr "languages" enums
+        && hasAttr "bootLoaders" enums
+        && hasAttr "roles" enums
+      );
 
-        enumsHaveValidators = mkTest true (
-          hasAttr "validator" enums.languages
-          && hasAttr "validator" enums.roles
-        );
+      enumsHaveValidators = mkTest true (
+        hasAttr "validator" enums.languages
+        && hasAttr "validator" enums.roles
+      );
 
-        # rootAliasWorks = mkTest enums (getAttr "enums" (_rootAliases or {}));
-      };
+      # rootAliasWorks = mkTest enums (getAttr "enums" (_rootAliases or {}));
+    };
   }
