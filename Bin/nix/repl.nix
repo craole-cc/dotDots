@@ -3,8 +3,9 @@
   lib,
   lix,
   api,
-  nixosConfigurations,
+  all,
 }: let
+  inherit (all) nixosConfigurations;
   inherit
     (lib.attrsets)
     attrByPath
@@ -150,9 +151,7 @@ in
       builtins
       system
       helpers
+      all
       ;
-    hosts = nixosConfigurations;
   }
-  // nixosConfigurations # All hosts still available by name
   // currentHostFlattened
-# Current host's attrs at top level

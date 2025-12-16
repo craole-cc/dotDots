@@ -21,19 +21,20 @@
     extraArgs ? {},
   }:
     mapAttrs (name: host: let
+      dots = host.paths.dots or null;
+      system = host.platform or builtins.currentSystem;
     in
       mkHost {
-        inherit inputs extraArgs;
+        inherit inputs;
         host =
           host
           // {
-            inherit name;
-            dots = host.paths.dots or null;
-            system = host.platform or builtins.currentSystem;
+            inherit name dots system;
             users =
               mapAttrs (name: config: users.${name} or {} // config)
               (filterAttrs (_: cfg: cfg.enable or false) host.users);
           };
+        extraArgs = extraArgs // {inherit dots system;};
       })
     hosts;
 

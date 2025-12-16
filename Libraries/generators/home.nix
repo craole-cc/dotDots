@@ -407,7 +407,7 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = extraArgs;
+      extraSpecialArgs = extraArgs // {inherit users;};
 
       #> Merge all per-user home-manager configs
       users = mapAttrs (name: cfg: cfg.homeConfig) perUserConfigs;

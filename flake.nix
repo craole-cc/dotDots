@@ -6,13 +6,15 @@
     inherit (import ./API {inherit lix;}) hosts users;
     inherit (lix.generators.core) mkCore;
 
-    nix = mkCore {inherit inputs hosts users;};
+    all = self;
+    api = {inherit hosts users;};
   in {
-    nixosConfigurations = nix;
+    nixosConfigurations = mkCore {
+      inherit inputs hosts users;
+      extraArgs = {inherit all api lix;};
+    };
     repl = import ./Bin/nix/repl.nix {
-      inherit inputs lib lix;
-      nixosConfigurations = nix;
-      api = {inherit hosts users;};
+      inherit lib lix api all;
     };
   };
 
