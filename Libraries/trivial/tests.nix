@@ -8,6 +8,8 @@
   inherit (builtins) tryEval;
   inherit (_.types.predicates) isTest;
 
+  # Run tests and nested groups. Anything that is neither a test nor a group
+  # (e.g. a function or already-thrown error) is returned as-is.
   runTests = tests:
     mapAttrs
     (
@@ -22,7 +24,9 @@
           inherit (test) expected result passed;
           inherit error;
         }
-        else runTests test
+        else if isAttrs test
+        then runTests test
+        else test
     )
     tests;
 
