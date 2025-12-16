@@ -16,8 +16,8 @@
 
   isWaylandEnabled =
     (interface.displayProtocol or null == "wayland")
-    || (config.wayland.windowManager.sway.enable or false)
-    || (config.wayland.windowManager.hyprland.enable or false);
+    || (with config.wayland.windowManager;
+        (sway.enable or false) || (hyprland.enable or false));
 
   isUserEnabled =
     (elem app allowed)
