@@ -13,7 +13,7 @@
       num = "an integer";
       number = "an integer";
       bool = "a boolean";
-      binary = "a binary check";
+      binary = "a binary value";
     }.${
       expected
     } or expected;
@@ -23,12 +23,15 @@
     argName,
     expected, # "set" | "list" | "string" | ...
     actual,
-  }: "${fnName}: `${argName}` expected to be ${prettyExpected expected}, got ${typeOf actual}";
+  }: let
+    expectedPretty = prettyExpected expected;
+    actualPretty = typeOf actual;
+  in "${fnName}: `${argName}` must be ${expectedPretty}, but a ${actualPretty} was given.";
 
   validate = {
     fnName,
     argName,
-    expected, # "set" | "list" | "string" | ...
+    expected,
     predicate,
     actual,
   }:
