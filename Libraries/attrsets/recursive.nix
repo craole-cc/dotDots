@@ -1,10 +1,10 @@
 {
   _,
   lib,
+  pkgs,
   ...
 }: let
   inherit (lib.attrsets) isAttrs isDerivation mapAttrs recursiveUpdate;
-  inherit (lib.modules) mkDefault mkEnableOption mkForce;
   inherit (_.trivial.tests) mkTest runTests;
 
   # Minimal stand‑in for mkDefault/mkOption: any value with a _type field
@@ -191,19 +191,17 @@ in {
           };
         });
 
+      # Use a real derivation so isDerivation == true
       preservesDerivations =
         mkTest
         {
-          pkg = "drv";
+          pkg = pkgs.hello;
           config = mkDefaultStub "/etc/foo";
         }
-        (let
-          fakeDrv = "drv"; # stand‑in; real code would use an actual derivation
-        in
-          update {
-            pkg = fakeDrv;
-            config = "/etc/foo";
-          });
+        (update {
+          pkg = pkgs.hello;
+          config = "/etc/foo";
+        });
 
       preservesSpecialType =
         mkTest
@@ -246,8 +244,7 @@ in {
           {enable = true;}
           {enable = mkForceStub false;});
 
-      # With the current implementation (prev // next), _module in prev is kept,
-      # and _module in next overwrites only at the top level, not deeply.
+      # With current implementation (prev // next), _module is shallow-merged
       mergesModuleArgsShallow =
         mkTest
         {_module = {args = {y = 2;};};}
