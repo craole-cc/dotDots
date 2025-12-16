@@ -22,18 +22,8 @@
   isAllowed =
     isWayland
     && (elem app enable || isPrimary || isSecondary);
-
-  footWrapper = pkgs.writeShellScriptBin "feet" ''
-    if ${pkgs.foot}/bin/footclient --no-wait 2>/dev/null; then
-      exit 0
-    else
-      ${pkgs.foot}/bin/foot --server &
-      sleep 0.1
-      exec ${pkgs.foot}/bin/footclient
-    fi
-  '';
 in {
-  config = mkIf isAllowed {
+  config = mkIf (interface.displayProtocol or null == "wayland") {
     programs.${app} = {
       enable = true;
       server.enable = true;
@@ -43,10 +33,21 @@ in {
         // (import ./themes.nix);
     };
 
-    home.packages = [footWrapper];
-
-    home.sessionVariables =
-      optionalAttrs isPrimary {TERMINAL = "feet";}
-      // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
+    home = {
+      packages = with pkgs; [
+        (writeShellScriptBin "feet" ''
+          if ${foot}/bin/footclient --no-wait 2>/dev/null; then
+            exit 0
+          else
+            ${foot}/bin/foot --server &
+            sleep 0.1
+            exec ${foot}/bin/footclient
+          fi
+        '')
+      ];
+      sessionVariables =
+        optionalAttrs isPrimary {TERMINAL = "feet";}
+        // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
+    };
   };
 }
