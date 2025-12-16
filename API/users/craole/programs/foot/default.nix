@@ -31,7 +31,7 @@
     fi
   '';
 in {
-  config = {
+  config = mkIf true {
     programs.${app} = {
       enable = true;
       server.enable = true;
