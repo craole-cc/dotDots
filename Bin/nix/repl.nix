@@ -46,31 +46,44 @@
     };
   };
 
-  #> Flatten each host configuration for easier access
-  flattenedHosts =
-    lib.attrsets.mapAttrs (
-      name: host:
-        host
-        // {
-          # Expose common attributes at top level
-          inherit (host) config pkgs options _module type;
+  #> Get the current host (to flatten at top level)
+  currentHost =
+    if matchingHost != null
+    then matchingHost
+    else lib.attrsets.head (lib.attrsets.attrValues nixosConfigurations);
 
-          # Shortcut to commonly accessed config sections
-          cfg = host.config;
-          opts = host.options;
+  #> Flatten current host's attributes
+  currentHostFlattened = {
+    # Top-level host attributes
+    inherit
+      (currentHost)
+      _module
+      _type
+      class
+      config
+      extendModules
+      options
+      pkgs
+      type
+      ;
 
-          # Expose specific useful config sections
-          networking = host.config.networking;
-          users = host.config.users;
-          environment = host.config.environment;
-          services = host.config.services;
-          programs = host.config.programs;
-          systemd = host.config.systemd;
-          boot = host.config.boot;
-          hardware = host.config.hardware;
-        }
-    )
-    nixosConfigurations;
+    # Convenient shortcuts to config sections
+    inherit
+      (currentHost.config)
+      boot
+      environment
+      hardware
+      networking
+      programs
+      services
+      systemd
+      users
+      ;
+
+    # Add a few more useful ones
+    cfg = currentHost.config;
+    opts = currentHost.options;
+  };
 in
   {
     inherit
@@ -83,4 +96,6 @@ in
       ;
     hosts = nixosConfigurations;
   }
-  // flattenedHosts
+  // nixosConfigurations # All hosts still available by name
+  // currentHostFlattened
+# Current host's attrs at top level
