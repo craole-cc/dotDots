@@ -4,28 +4,15 @@
   ...
 }: let
   inherit (lib.attrsets) isAttrs isDerivation mapAttrs recursiveUpdate;
-  inherit (_.trivial.tests) mkTest runTests;
-
-  # Minimal stand‑in for mkDefault/mkOption: any value with a _type field
-  mkDefaultStub = v: {
-    _type = "override";
-    content = v;
-    priority = 1000;
-  };
-
-  # Minimal stand‑in for a special type like mkEnableOption
-  mkEnableOptionStub = desc: {
-    _type = "option";
-    description = desc;
-  };
-
-  # Minimal stand‑in for a forced override (next special type)
-  mkForceStub = v: {
-    _type = "override";
-    content = v;
-    priority = 50;
-  };
-
+  inherit (_.trivial.types) isSpecial;
+  inherit
+    (_.trivial.tests)
+    mkTest
+    runTests
+    mkDefaultStub
+    mkEnableOptionStub
+    mkForceStub
+    ;
   /**
   Recursively applies `mkDefault` to all values in an attribute set.
 
@@ -84,11 +71,11 @@
   - Preparing configuration templates with overrideable values
   */
   update = value:
-    if value._type or null != null
-    then value # Special module type, preserve as-is
+    if isSpecial value
+    then value
     else if isAttrs value && !isDerivation value
-    then mapAttrs (_: update) value # Recurse into plain attrsets
-    else mkDefaultStub value; # Wrap primitives in mkDefault
+    then mapAttrs (_: update) value
+    else mkDefaultStub value;
 
   /**
   Deep merge two attribute sets with module-aware handling.
@@ -143,15 +130,15 @@
     while protecting special types in prev from being clobbered
   */
   updateDeep = prev: next:
-    if prev._type or null != null
-    then prev # prev has special type, preserve it
-    else if next._type or null != null
-    then next # next has special type, use it
+    if isSpecial prev
+    then prev
+    else if isSpecial next
+    then next
     else if prev ? _module && next ? _module
-    then prev // next # Module options, shallow merge
+    then prev // next
     else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next
-    then recursiveUpdate prev next # Standard deep merge for plain attrsets
-    else next; # Primitive override
+    then recursiveUpdate prev next
+    else next;
 in {
   inherit
     update
@@ -189,18 +176,6 @@ in {
             port = 8080;
           };
         });
-
-      # Use a real derivation so isDerivation == true
-      # preservesDerivations =
-      #   mkTest
-      #   {
-      #     pkg = pkgs.hello;
-      #     config = mkDefaultStub "/etc/foo";
-      #   }
-      #   (update {
-      #     pkg = pkgs.hello;
-      #     config = "/etc/foo";
-      #   });
 
       preservesSpecialType =
         mkTest
@@ -243,7 +218,6 @@ in {
           {enable = true;}
           {enable = mkForceStub false;});
 
-      # With current implementation (prev // next), _module is shallow-merged
       mergesModuleArgsShallow =
         mkTest
         {_module = {args = {y = 2;};};}

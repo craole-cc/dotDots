@@ -54,8 +54,33 @@
       };
     };
 
+  mkDefaultStub = v: {
+    _type = "override";
+    content = v;
+    priority = 1000;
+  };
+
+  mkEnableOptionStub = desc: {
+    _type = "option";
+    description = desc;
+  };
+
+  mkForceStub = v: {
+    _type = "override";
+    content = v;
+    priority = 50;
+  };
+
   testLibs = {
-    inherit mkTest mkThrows isTest runTests;
+    inherit
+      mkTest
+      mkThrows
+      mkDefaultStub
+      mkEnableOptionStub
+      mkForceStub
+      isTest
+      runTests
+      ;
     inherit tryEval;
   };
 in

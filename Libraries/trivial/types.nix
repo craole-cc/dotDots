@@ -24,6 +24,8 @@
   isBinaryString = s:
     typeOf s == "string" && (s == "0" || s == "1");
 
+  isSpecial = v: isAttrs v && (v._type or null) != null;
+
   normalizeType = t:
     {
       attrset = "set";
@@ -133,6 +135,7 @@ in {
     isInt
     isList
     isPath
+    isSpecial
     isStorePath
     isString
     isStringLike
