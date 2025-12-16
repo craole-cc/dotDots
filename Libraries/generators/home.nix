@@ -22,7 +22,7 @@
     optional
     unique
     ;
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkDefault;
   inherit (_.generators.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
 
@@ -308,10 +308,10 @@
 
           #> Enable shells in home-manager
           programs = {
-            bash.enable = elem "bash" (cfg.shells or []);
-            zsh.enable = elem "zsh" (cfg.shells or []);
-            fish.enable = elem "fish" (cfg.shells or []);
-            nushell.enable = elem "nushell" (cfg.shells or []);
+            bash.enable = mkDefault (elem "bash" (cfg.shells or []));
+            zsh.enable = mkDefault (elem "zsh" (cfg.shells or []));
+            fish.enable = mkDefault (elem "fish" (cfg.shells or []));
+            nushell.enable = mkDefault (elem "nushell" (cfg.shells or []));
             zen-browser =
               mkIf (zen != null) {
                 enable = true;
