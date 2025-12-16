@@ -1,42 +1,69 @@
 {lib, ...}: let
   inherit (lib.strings) typeOf;
 
-  # Single source of truth: type tag -> phrase (with article if needed)
-  typePhrases = {
-    attrset = "an attribute set";
-    attr = "an attribute set";
-    set = "an attribute set";
+  # Base nouns per type tag
+  typeNouns = {
+    attrset = "attribute set";
+    attr = "attribute set";
+    set = "attribute set";
 
-    list = "a list";
+    list = "list";
 
-    string = "a string";
-    str = "a string";
+    string = "string";
+    str = "string";
 
-    int = "an integer";
-    num = "an integer";
-    number = "an integer";
+    int = "integer";
+    num = "integer";
+    number = "integer";
 
-    bool = "a boolean";
+    bool = "boolean";
 
-    binary = "a binary value";
+    binary = "binary value";
 
-    float = "a float";
-    path = "a path";
+    float = "float";
+    path = "path";
     null = "null";
   };
 
-  describeType = tag:
-    typePhrases.${tag} or ("a " + tag);
+  withArticle = noun:
+    if
+      noun
+      == "attribute set"
+      || noun == "integer"
+      || noun == "array"
+      || noun == "object"
+    then "an ${noun}"
+    else "a ${noun}";
+
+  describeType = tag: let
+    noun = typeNouns.${tag} or tag;
+  in
+    withArticle noun;
 
   mkError = {
     fnName,
     argName,
-    expected, # "set" | "attrset" | "list" | "string" | ...
+    expected, # "attrset" | "set" | "list" | "string" | ...
     actual,
   }: let
     expectedPretty = describeType expected;
-    actualPretty = describeType (typeOf actual);
-  in "${fnName}: `${argName}` must be ${expectedPretty}, but ${actualPretty} was given.";
+    actualType = typeOf actual;
+    actualPretty = describeType actualType;
+    shownValue =
+      # avoid huge blobs; simple pretty-print primitives and small sets/lists
+      if actualType == "string"
+      then "\"${actual}\""
+      else if actualType == "int"
+      then toString actual
+      else if actualType == "bool"
+      then
+        (
+          if actual
+          then "true"
+          else "false"
+        )
+      else "<value elided>";
+  in "${fnName}: `${argName}` must be ${expectedPretty}, but ${actualPretty} was given (value: ${shownValue}).";
 
   validate = {
     fnName,
