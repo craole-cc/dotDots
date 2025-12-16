@@ -109,10 +109,10 @@ in {
     userRoles = roles.values;
     userCapabilities = capabilities.values;
 
-    enums = {
-      userRoles = roles;
-      userCapabilities = capabilities;
-    };
+    # enums = {
+    #   userRoles = roles;
+    #   userCapabilities = capabilities;
+    # };
   };
 
   _tests = runTests {
