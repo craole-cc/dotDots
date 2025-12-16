@@ -23,10 +23,11 @@
     mapAttrs (name: host: let
     in
       mkHost {
-        inherit inputs users extraArgs name;
+        inherit inputs extraArgs;
         host =
           host
           // {
+            inherit name;
             dots = host.paths.dots or null;
             system = host.platform or builtins.currentSystem;
             users =
@@ -37,12 +38,11 @@
     hosts;
 
   mkHost = {
-    inputs,
-    name,
     host,
+    inputs,
     extraArgs,
   }: let
-    inherit (host) system dots;
+    inherit (host) name system dots;
     localization = host.localization or {};
     functionalities = host.functionalities or [];
     hasAudio = elem "audio" functionalities;
