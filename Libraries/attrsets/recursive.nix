@@ -234,7 +234,14 @@ in {
 
       mergesModuleArgsShallow =
         mkTest
-        {_module = {args = {y = 2;};};}
+        {
+          _module = {
+            args = {
+              x = 1;
+              y = 2;
+            };
+          };
+        }
         (updateDeep
           {_module = {args = {x = 1;};};}
           {_module = {args = {y = 2;};};});
