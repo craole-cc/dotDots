@@ -69,7 +69,7 @@
   ];
 
   /**
-  Login managers - display/session managers.
+  Display managers - display/session managers.
 
   Handles user authentication and session initialization.
 
@@ -105,17 +105,29 @@
   _lib.inList config.loginManager ["sddm" "gdm" "lightdm"]
   ```
   */
-  displayManagers = mkEnum [
-    "sddm"
-    "gdm"
-    "cosmic"
-    "cosmic-greeter"
-    "lightdm"
-    "kmscon"
-    "xdm"
-    "greetd"
-    "ly"
-  ];
+  displayManagers = mkEnum {
+    values = [
+      "sddm"
+      "gdm"
+      "cosmic-greeter"
+      "lightdm"
+      "lxdm"
+      "kmscon"
+      "xdm"
+      "greetd"
+      "ly"
+    ];
+    aliases = {
+      cosmic = "cosmic-greeter";
+      gnome = "gdm";
+      plasma = "sddm";
+      kde = "sddm";
+      lxqt = "sddm";
+      lxde = "lxdm";
+      pantheon = "lightdm";
+      budgie = "lightdm";
+    };
+  };
 
   /**
   Desktop environments - complete desktop solutions.

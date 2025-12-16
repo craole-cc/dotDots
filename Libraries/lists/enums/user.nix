@@ -1,5 +1,5 @@
 {_, ...}: let
-  inherit (_.lists.generators) mkCaseInsensitiveValidator mkEnum;
+  inherit (_.lists.generators) mkEnum;
   inherit (_.testing.unit) mkTest runTests;
 
   /**
