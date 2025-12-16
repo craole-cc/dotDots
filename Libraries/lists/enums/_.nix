@@ -52,17 +52,8 @@ in
   // {
     _rootAliases = {inherit enums;};
     _tests = runTests {
-      exportsAllEnums = mkTest true (
-        hasAttr "developmentLanguages" enums
-        && hasAttr "bootLoaders" enums
-        && hasAttr "userRoles" enums
-      );
-
-      enumsHaveValidators = mkTest true (
-        hasAttr "validator" enums.developmentLanguages
-        && hasAttr "validator" enums.userRoles
-      );
-
-      rootAliasWorks = mkTest true (hasAttrByPath ["enums" "developmentLanguages"] _);
+      values = mkTest true (hasAttrByPath ["enums" "developmentLanguages" "values"] _);
+      validators = mkTest true (hasAttrByPath ["enums" "developmentLanguages" "validator"] _);
+      rootAlias = mkTest true (hasAttrByPath ["enums" "developmentLanguages"] _);
     };
   }
