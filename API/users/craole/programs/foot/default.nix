@@ -13,10 +13,10 @@
   inherit (user.applications.terminal) primary secondary;
   isPrimary = app == primary;
   isSecondary = app == secondary;
-  isWayland =
-    config.wayland.windowManager.hyprland.enable
-    || config.wayland.windowManager.sway.enable
-    || interface.displayProtocol == "wayland";
+  isWayland = with config.wayland.windowManager;
+    (interface.displayProtocol == "wayland")
+    || sway.enable
+    || hyprland.enable;
   isAllowed =
     isWayland
     && (elem app enable || isPrimary || isSecondary);
