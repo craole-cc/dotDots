@@ -614,13 +614,13 @@
     };
 
     #~@ Integrated Development Environment
-    vscode = {
-      enable = true;
-      package = pkgs.vscode-fhs;
-    };
+    # vscode = {
+    #   enable = true;
+    #   package = pkgs.vscode-fhs;
+    # };
 
     #~@ File Manager
-    yazi.enable = true;
+    # yazi.enable = true;
   };
 
   #~@ XDG MIME associations

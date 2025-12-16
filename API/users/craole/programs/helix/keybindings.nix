@@ -35,6 +35,11 @@
         "collapse_selection"
         "keep_primary_selection"
       ];
+      A-f = [
+        "collapse_selection"
+        "keep_primary_selection"
+        ":format"
+      ];
       A-w = [
         "collapse_selection"
         "keep_primary_selection"
@@ -48,6 +53,12 @@
         "collapse_selection"
         "keep_primary_selection"
         "normal_mode"
+      ];
+      A-f = [
+        "collapse_selection"
+        "keep_primary_selection"
+        "normal_mode"
+        ":format"
       ];
       A-w = [
         "collapse_selection"
@@ -64,6 +75,10 @@
     insert = {
       A-space = "normal_mode";
       A-e = "normal_mode";
+      A-f = [
+        "normal_mode"
+        ":format"
+      ];
       A-w = [
         "normal_mode"
         ":write"

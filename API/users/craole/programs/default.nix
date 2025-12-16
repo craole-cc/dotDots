@@ -1,6 +1,6 @@
 {
   imports = [
-    ./apps.nix
+    # ./apps.nix
     ./direnv.nix
 
     ./atuin
