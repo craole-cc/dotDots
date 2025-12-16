@@ -14,14 +14,17 @@
   isPrimary = app == primary;
   isSecondary = app == secondary;
 
-  isWayland =
+  isWaylandEnabled =
     (interface.displayProtocol or null == "wayland")
     || (config.wayland.windowManager.sway.enable or false)
     || (config.wayland.windowManager.hyprland.enable or false);
 
-  isAllowed =
-    isWayland
-    && (isPrimary || isSecondary);
+  isUserEnabled =
+    (elem app enable)
+    || isPrimary
+    || isSecondary;
+
+  isAllowed = isWaylandEnabled && isUserEnabled;
 in {
   config = mkIf isAllowed {
     programs.${app} = {
