@@ -33,7 +33,7 @@
   /**
   Heuristic “is this a Wayland system/session?” for NixOS+HM configs.
   */
-  isWaylandSession = {
+  isWaylandEnabled = {
     config,
     interface ? {},
   }: let
@@ -76,6 +76,6 @@ in {
   inherit
     isAllEnabled
     isAnyEnabled
-    isWaylandSession
+    isWaylandEnabled
     ;
 }
