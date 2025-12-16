@@ -4,22 +4,22 @@
     ./direnv.nix
 
     ./atuin
-    # ./bash
-    # ./bat
-    # ./fastfetch
-    # ./firefox
-    # ./foot
-    # ./freetube
-    # ./ghostty
+    ./bash
+    ./bat
+    ./fastfetch
+    ./firefox
+    ./foot
+    ./freetube
+    ./ghostty
     ./git
-    # ./helix
-    # ./jujutsu
-    # ./nushell``
-    # ./powershell
-    # ./rust
+    ./helix
+    ./jujutsu
+    ./nushell
+    ./powershell
+    ./rust
     # # ./tinty # TODO: Not ready yet
-    # ./vscode
-    # ./yazi
-    # ./zed
+    ./vscode
+    ./yazi
+    ./zed
   ];
 }
