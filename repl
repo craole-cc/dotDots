@@ -34,6 +34,11 @@ load_flake_repl() {
 	nix repl --extra-experimental-features 'nix-command flakes' "$path#nixosConfigurations.$host"
 }
 
+load_full_repl() {
+	printf "🔧 Attempting to load flake REPL for %s...\n" "$host"
+	nix repl --extra-experimental-features 'nix-command flakes' "$path#repl"
+}
+
 load_default_repl() {
 	printf "🔄 Falling back to default REPL...\n"
 	nix repl --file "$path"
@@ -42,7 +47,7 @@ load_default_repl() {
 #~@ Main Logic
 
 if [ -n "$host" ] && [ -f "$path/flake.nix" ]; then
-	if ! load_flake_repl; then
+	if ! load_full_repl; then
 		printf "⚠️  Failed to load flake REPL, falling back to default...\n" >&2
 		load_default_repl || {
 			printf "❌ Failed to load default REPL\n" >&2
