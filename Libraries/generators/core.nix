@@ -234,6 +234,8 @@
                 rust-script
                 rustfmt
                 gcc
+                shfmt
+                shellcheck
 
                 #~@ Tools
                 cowsay

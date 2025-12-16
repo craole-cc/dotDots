@@ -5,13 +5,17 @@
     inherit (import ./Libraries {inherit lib;}) lix;
     inherit (import ./API {inherit lix;}) hosts users;
     inherit (lix.generators.core) mkCore;
-  in {
-    nixosConfigurations = mkCore {inherit inputs hosts users;};
 
-    repl = rec {
-      flake = self;
-      configs = flake.nixosConfigurations;
-    };
+    nix = mkCore {inherit inputs hosts users;};
+  in {
+    nixosConfigurations = nix;
+
+    repl =
+      {
+        inherit lix lib;
+        hosts = nix;
+      }
+      // nix;
   };
 
   inputs = {
