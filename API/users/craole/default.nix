@@ -67,6 +67,10 @@
     };
   };
 
+  apps = [
+    "bat"
+  ];
+
   paths = {
     downloads = "Downloads";
   };
