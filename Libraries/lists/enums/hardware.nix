@@ -1,5 +1,7 @@
 {_, ...}: let
-  mkVal = _.mkCaseInsensitiveListValidator;
+  inherit (_.lists.generators) mkEnum;
+  inherit (_.testing.unit) mkTest runTests;
+  inherit (_.std.lists) length;
 
   /**
   Host functionalities - hardware and firmware capabilities.
@@ -8,16 +10,16 @@
   Used for conditional configuration based on hardware presence.
 
   # Categories
-  - Input devices: keyboard, touchpad, touchscreen
-  - Storage: storage, nvme
+  - Input: keyboard, touchpad, touchscreen
+  - Storage: storage, nvme, ssd, hdd
   - Network: network, wired, wireless, bluetooth
-  - Display: video, gpu, amdgpu
-  - Audio: audio
+  - Display: video, gpu, amdgpu, nvidiagpu, intelgpu
+  - Audio: audio, speakers, microphone
   - Security: tpm, fingerprint, smartcard, secureboot
-  - Power: battery
-  - Virtualization: virtualization
-  - Boot: efi, dualboot-windows
-  - Peripherals: webcam
+  - Power: battery, power-management
+  - Virtualization: virtualization, kvm
+  - Boot: efi, bios, dualboot-windows, dualboot-macos
+  - Peripherals: webcam, printer, scanner
 
   # Structure
   ```nix
@@ -36,35 +38,61 @@
   _lib.hostFunctionalities.values
   ```
   */
-  functionalities = let
-    values = [
-      "keyboard"
-      "storage"
-      "network"
-      "video"
-      "virtualization"
-      "audio"
-      "bluetooth"
-      "touchpad"
-      "touchscreen"
-      "wired"
-      "wireless"
-      "dualboot-windows"
-      "efi"
-      "secureboot"
-      "tpm"
-      "battery"
-      "webcam"
-      "fingerprint"
-      "smartcard"
-      "gpu"
-      "amdgpu"
-      "nvme"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
-  };
+  functionalities = mkEnum [
+    #~@ Input devices
+    "keyboard"
+    "touchpad"
+    "touchscreen"
+
+    #~@ Storage
+    "storage"
+    "nvme"
+    "ssd"
+    "hdd"
+
+    #~@ Network
+    "network"
+    "wired"
+    "wireless"
+    "bluetooth"
+
+    #~@ Display
+    "video"
+    "gpu"
+    "amdgpu"
+    "nvidiagpu"
+    "intelgpu"
+
+    #~@ Audio
+    "audio"
+    "speakers"
+    "microphone"
+
+    #~@ Security
+    "tpm"
+    "fingerprint"
+    "smartcard"
+    "secureboot"
+
+    #~@ Power
+    "battery"
+    "power-management"
+
+    #~@ Virtualization
+    "virtualization"
+    "kvm"
+
+    #~@ Boot
+    "efi"
+    "bios"
+    "dualboot-windows"
+    "dualboot-macos"
+
+    #~@ Peripherals
+    "webcam"
+    "printer"
+    "scanner"
+  ];
 
   /**
   CPU brands - processor manufacturer identification.
@@ -95,17 +123,7 @@
   _lib.inList "amd" _lib.cpuBrands.values
   ```
   */
-  cpuBrands = let
-    values = [
-      "amd"
-      "intel"
-      "arm"
-      "risc-v"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
-  };
+  cpuBrands = mkEnum ["amd" "intel" "arm" "risc-v"];
 
   /**
   CPU power modes - processor power management profiles.
@@ -131,16 +149,11 @@
   _lib.cpuPowerModes.validator.check { name = "Performance"; }  # => true
   ```
   */
-  cpuPowerModes = let
-    values = [
-      "performance"
-      "powerSaving"
-      "balanced"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
-  };
+  cpuPowerModes = mkEnum [
+    "performance"
+    "powerSaving"
+    "balanced"
+  ];
 
   /**
   GPU brands - graphics card manufacturer identification.
@@ -169,19 +182,43 @@
   _lib.areAllInList ["amd" "intel"] _lib.gpuBrands.values true
   ```
   */
-  gpuBrands = let
-    values = [
-      "amd"
-      "intel"
-      "nvidia"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
-  };
+  gpuBrands = mkEnum [
+    "amd"
+    "intel"
+    "nvidia"
+  ];
 in {
   inherit functionalities gpuBrands cpuBrands cpuPowerModes;
+
   _rootAliases = {
     hostFunctionalities = functionalities;
+  };
+
+  _tests = runTests {
+    functionalities = {
+      validatesCommon = mkTest true (functionalities.validator.check "keyboard");
+      validatesStorage = mkTest true (functionalities.validator.check "nvme");
+      validatesSecurity = mkTest true (functionalities.validator.check "tpm");
+    };
+
+    cpuBrands = {
+      validatesAMD = mkTest true (cpuBrands.validator.check "amd");
+      validatesIntel = mkTest true (cpuBrands.validator.check "intel");
+      correctCount = mkTest 4 (length cpuBrands.values);
+    };
+
+    cpuPowerModes = {
+      validatesPerformance = mkTest true (cpuPowerModes.validator.check "performance");
+      validatesPowerSaving = mkTest true (cpuPowerModes.validator.check "powersaving");
+      validatesBalanced = mkTest true (cpuPowerModes.validator.check "balanced");
+      correctCount = mkTest 3 (length cpuPowerModes.values);
+    };
+
+    gpuBrands = {
+      validatesNvidia = mkTest true (gpuBrands.validator.check "nvidia");
+      validatesAmd = mkTest true (gpuBrands.validator.check "amd");
+      validatesIntel = mkTest true (gpuBrands.validator.check "intel");
+      correctCount = mkTest 3 (length gpuBrands.values);
+    };
   };
 }

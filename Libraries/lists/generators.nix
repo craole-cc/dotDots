@@ -5,13 +5,14 @@
 }: let
   inherit (lib.strings) hasPrefix;
   inherit (_.lists.predicates) isIn isInExact;
+  inherit (_.testing.unit) mkTest runTests;
 
   /**
   Create a validator that checks if values are in an allowed list.
 
   # Type
   ```nix
-  mkListValidator :: { list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }
+  mkValidator :: { list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }
   ```
 
   # Arguments
@@ -25,16 +26,16 @@
 
   # Examples
   ```nix
-  validator = mkListValidator { list = ["foo" "bar"]; };
+  validator = mkValidator { list = ["foo" "bar"]; };
   validator.check "foo"  # => true
   validator.check "FOO"  # => true (case-insensitive by default)
   validator.check "baz"  # => false
 
-  exactValidator = mkListValidator { list = ["foo" "bar"]; exact = true; };
+  exactValidator = mkValidator { list = ["foo" "bar"]; exact = true; };
   exactValidator.check "FOO"  # => false (case-sensitive)
   ```
   */
-  mkListValidator = {
+  mkValidator = {
     list,
     exact ? false,
   }: {
@@ -48,11 +49,11 @@
   /**
   Create a case-insensitive validator that checks if values are in an allowed list.
 
-  Convenience wrapper for mkListValidator with exact = false.
+  Convenience wrapper for mkValidator with exact = false.
 
   # Type
   ```nix
-  mkCaseInsensitiveListValidator :: [a] -> { check :: a -> Bool, list :: [a] }
+  mkCaseInsensitiveValidator :: [a] -> { check :: a -> Bool, list :: [a] }
   ```
 
   # Arguments
@@ -65,14 +66,14 @@
 
   # Examples
   ```nix
-  validator = mkCaseInsensitiveListValidator ["foo" "bar"];
+  validator = mkCaseInsensitiveValidator ["foo" "bar"];
   validator.check "FOO"  # => true
   validator.check "Foo"  # => true
   validator.check "baz"  # => false
   ```
   */
-  mkCaseInsensitiveListValidator = list:
-    mkListValidator {
+  mkCaseInsensitiveValidator = list:
+    mkValidator {
       inherit list;
       exact = false;
     };
@@ -80,11 +81,11 @@
   /**
   Create a case-sensitive validator that checks if values are in an allowed list.
 
-  Convenience wrapper for mkListValidator with exact = true.
+  Convenience wrapper for mkValidator with exact = true.
 
   # Type
   ```nix
-  mkCaseSensitiveListValidator :: [a] -> { check :: a -> Bool, list :: [a] }
+  mkCaseSensitiveValidator :: [a] -> { check :: a -> Bool, list :: [a] }
   ```
 
   # Arguments
@@ -97,13 +98,13 @@
 
   # Examples
   ```nix
-  validator = mkCaseSensitiveListValidator ["foo" "bar"];
+  validator = mkCaseSensitiveValidator ["foo" "bar"];
   validator.check "foo"  # => true
   validator.check "FOO"  # => false
   ```
   */
-  mkCaseSensitiveListValidator = list:
-    mkListValidator {
+  mkCaseSensitiveValidator = list:
+    mkValidator {
       inherit list;
       exact = true;
     };
@@ -113,7 +114,7 @@
 
   # Type
   ```nix
-  mkDenylistValidator :: { list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }
+  mkDenyValidator :: { list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }
   ```
 
   # Arguments
@@ -127,16 +128,16 @@
 
   # Examples
   ```nix
-  validator = mkDenylistValidator { list = ["admin" "root"]; };
+  validator = mkDenyValidator { list = ["admin" "root"]; };
   validator.check "user"   # => true
   validator.check "admin"  # => false
   validator.check "ADMIN"  # => false (case-insensitive by default)
 
-  exactValidator = mkDenylistValidator { list = ["admin" "root"]; exact = true; };
+  exactValidator = mkDenyValidator { list = ["admin" "root"]; exact = true; };
   exactValidator.check "ADMIN"  # => true (case-sensitive, so ADMIN != admin)
   ```
   */
-  mkDenylistValidator = {
+  mkDenyValidator = {
     list,
     exact ? false,
   }: {
@@ -199,7 +200,7 @@
 
   # Examples
   ```nix
-  allowlist = mkListValidator { list = ["user_alice" "user_bob"]; };
+  allowlist = mkValidator { list = ["user_alice" "user_bob"]; };
   prefix = mkPredicateValidator (hasPrefix "user_");
 
   combined = combineValidators [allowlist prefix];
@@ -233,8 +234,8 @@
 
   # Examples
   ```nix
-  allowlist1 = mkListValidator { list = ["alice" "bob"]; };
-  allowlist2 = mkListValidator { list = ["charlie" "dave"]; };
+  allowlist1 = mkValidator { list = ["alice" "bob"]; };
+  allowlist2 = mkValidator { list = ["charlie" "dave"]; };
 
   combined = combineValidatorsOr [allowlist1 allowlist2];
   combined.check "alice"    # => true (in first list)
@@ -246,199 +247,201 @@
     check = name: builtins.any (v: v.check name) validators;
     inherit validators;
   };
+
+  mkEnum = values: {
+    inherit values;
+    validator = mkCaseInsensitiveValidator values;
+  };
 in {
   inherit
-    mkListValidator
-    mkCaseInsensitiveListValidator
-    mkCaseSensitiveListValidator
-    mkDenylistValidator
+    mkEnum
+    mkValidator
+    mkCaseInsensitiveValidator
+    mkCaseSensitiveValidator
+    mkDenyValidator
     mkPredicateValidator
     combineValidators
     combineValidatorsOr
     ;
 
   _rootAliases = {
-    inherit
-      mkListValidator
-      mkCaseInsensitiveListValidator
-      mkCaseSensitiveListValidator
-      mkDenylistValidator
-      mkPredicateValidator
-      combineValidators
-      combineValidatorsOr
-      ;
+    inherit mkEnum;
+    mkListValidator = mkValidator;
+    mkCaseInsensitiveListValidator = mkCaseInsensitiveValidator;
+    mkCaseSensitiveListValidator = mkCaseSensitiveValidator;
+    mkDenyListValidator = mkDenyValidator;
+    mkPredicateListValidator = mkPredicateValidator;
+    combineListValidators = combineValidators;
+    combineListValidatorsOr = combineValidatorsOr;
   };
 
-  _tests = let
-    inherit (_.testing.unit) mkTest runTests;
-  in
-    runTests {
-      mkListValidator = {
-        caseInsensitiveByDefault = let
-          validator = mkListValidator {list = ["foo" "bar"];};
-        in
-          mkTest true (validator.check "FOO");
+  _tests = runTests {
+    mkValidator = {
+      caseInsensitiveByDefault = let
+        validator = mkValidator {list = ["foo" "bar"];};
+      in
+        mkTest true (validator.check "FOO");
 
-        caseSensitiveWithExact = let
-          validator = mkListValidator {
-            list = ["foo" "bar"];
-            exact = true;
-          };
-        in
-          mkTest false (validator.check "FOO");
+      caseSensitiveWithExact = let
+        validator = mkValidator {
+          list = ["foo" "bar"];
+          exact = true;
+        };
+      in
+        mkTest false (validator.check "FOO");
 
-        allowsValueInList = let
-          validator = mkListValidator {list = ["foo" "bar"];};
-        in
-          mkTest true (validator.check "foo");
+      allowsValueInList = let
+        validator = mkValidator {list = ["foo" "bar"];};
+      in
+        mkTest true (validator.check "foo");
 
-        deniesValueNotInList = let
-          validator = mkListValidator {list = ["foo" "bar"];};
-        in
-          mkTest false (validator.check "baz");
+      deniesValueNotInList = let
+        validator = mkValidator {list = ["foo" "bar"];};
+      in
+        mkTest false (validator.check "baz");
 
-        exportsListAttribute = let
-          validator = mkListValidator {list = ["foo" "bar"];};
-        in
-          mkTest ["foo" "bar"] validator.list;
-      };
-
-      mkCaseInsensitiveListValidator = {
-        allowsCaseVariations = let
-          validator = mkCaseInsensitiveListValidator ["foo" "bar"];
-        in
-          mkTest true (validator.check "FOO");
-
-        allowsLowerCase = let
-          validator = mkCaseInsensitiveListValidator ["foo" "bar"];
-        in
-          mkTest true (validator.check "foo");
-
-        allowsMixedCase = let
-          validator = mkCaseInsensitiveListValidator ["foo" "bar"];
-        in
-          mkTest true (validator.check "FoO");
-
-        deniesValueNotInList = let
-          validator = mkCaseInsensitiveListValidator ["foo" "bar"];
-        in
-          mkTest false (validator.check "baz");
-      };
-
-      mkCaseSensitiveListValidator = {
-        deniesWrongCase = let
-          validator = mkCaseSensitiveListValidator ["foo" "bar"];
-        in
-          mkTest false (validator.check "FOO");
-
-        allowsExactMatch = let
-          validator = mkCaseSensitiveListValidator ["foo" "bar"];
-        in
-          mkTest true (validator.check "foo");
-
-        deniesValueNotInList = let
-          validator = mkCaseSensitiveListValidator ["foo" "bar"];
-        in
-          mkTest false (validator.check "baz");
-      };
-
-      mkDenylistValidator = {
-        allowsValueNotInDenylist = let
-          validator = mkDenylistValidator {list = ["admin" "root"];};
-        in
-          mkTest true (validator.check "user");
-
-        deniesValueInDenylist = let
-          validator = mkDenylistValidator {list = ["admin" "root"];};
-        in
-          mkTest false (validator.check "admin");
-
-        caseInsensitiveByDefault = let
-          validator = mkDenylistValidator {list = ["admin" "root"];};
-        in
-          mkTest false (validator.check "ADMIN");
-
-        caseSensitiveWithExact = let
-          validator = mkDenylistValidator {
-            list = ["admin" "root"];
-            exact = true;
-          };
-        in
-          mkTest true (validator.check "ADMIN");
-
-        exportsListAttribute = let
-          validator = mkDenylistValidator {list = ["admin" "root"];};
-        in
-          mkTest ["admin" "root"] validator.list;
-      };
-
-      mkPredicateValidator = {
-        usesCustomPredicate = let
-          validator = mkPredicateValidator (name: hasPrefix "user_" name);
-        in
-          mkTest true (validator.check "user_alice");
-
-        failsWhenPredicateFails = let
-          validator = mkPredicateValidator (name: hasPrefix "user_" name);
-        in
-          mkTest false (validator.check "admin_bob");
-
-        worksWithLengthCheck = let
-          validator = mkPredicateValidator (s: builtins.stringLength s >= 3);
-        in
-          mkTest true (validator.check "abc");
-
-        exportsPredicateAttribute = let
-          pred = name: hasPrefix "user_" name;
-          validator = mkPredicateValidator pred;
-        in
-          mkTest pred validator.predicate;
-      };
-
-      combineValidators = {
-        requiresAllValidatorsToPass = let
-          allowlist = mkListValidator {list = ["user_alice" "user_bob"];};
-          prefix = mkPredicateValidator (hasPrefix "user_");
-          combined = combineValidators [allowlist prefix];
-        in
-          mkTest true (combined.check "user_alice");
-
-        failsIfAnyValidatorFails = let
-          allowlist = mkListValidator {list = ["user_alice" "user_bob"];};
-          prefix = mkPredicateValidator (hasPrefix "user_");
-          combined = combineValidators [allowlist prefix];
-        in
-          mkTest false (combined.check "user_charlie");
-
-        failsIfPrefixWrong = let
-          allowlist = mkListValidator {list = ["user_alice" "admin_alice"];};
-          prefix = mkPredicateValidator (hasPrefix "user_");
-          combined = combineValidators [allowlist prefix];
-        in
-          mkTest false (combined.check "admin_alice");
-      };
-
-      combineValidatorsOr = {
-        passesIfAnyValidatorPasses = let
-          allowlist1 = mkListValidator {list = ["alice" "bob"];};
-          allowlist2 = mkListValidator {list = ["charlie" "dave"];};
-          combined = combineValidatorsOr [allowlist1 allowlist2];
-        in
-          mkTest true (combined.check "alice");
-
-        passesWithSecondList = let
-          allowlist1 = mkListValidator {list = ["alice" "bob"];};
-          allowlist2 = mkListValidator {list = ["charlie" "dave"];};
-          combined = combineValidatorsOr [allowlist1 allowlist2];
-        in
-          mkTest true (combined.check "charlie");
-
-        failsIfNoValidatorPasses = let
-          allowlist1 = mkListValidator {list = ["alice" "bob"];};
-          allowlist2 = mkListValidator {list = ["charlie" "dave"];};
-          combined = combineValidatorsOr [allowlist1 allowlist2];
-        in
-          mkTest false (combined.check "eve");
-      };
+      exportsListAttribute = let
+        validator = mkValidator {list = ["foo" "bar"];};
+      in
+        mkTest ["foo" "bar"] validator.list;
     };
+
+    mkCaseInsensitiveValidator = {
+      allowsCaseVariations = let
+        validator = mkCaseInsensitiveValidator ["foo" "bar"];
+      in
+        mkTest true (validator.check "FOO");
+
+      allowsLowerCase = let
+        validator = mkCaseInsensitiveValidator ["foo" "bar"];
+      in
+        mkTest true (validator.check "foo");
+
+      allowsMixedCase = let
+        validator = mkCaseInsensitiveValidator ["foo" "bar"];
+      in
+        mkTest true (validator.check "FoO");
+
+      deniesValueNotInList = let
+        validator = mkCaseInsensitiveValidator ["foo" "bar"];
+      in
+        mkTest false (validator.check "baz");
+    };
+
+    mkCaseSensitiveValidator = {
+      deniesWrongCase = let
+        validator = mkCaseSensitiveValidator ["foo" "bar"];
+      in
+        mkTest false (validator.check "FOO");
+
+      allowsExactMatch = let
+        validator = mkCaseSensitiveValidator ["foo" "bar"];
+      in
+        mkTest true (validator.check "foo");
+
+      deniesValueNotInList = let
+        validator = mkCaseSensitiveValidator ["foo" "bar"];
+      in
+        mkTest false (validator.check "baz");
+    };
+
+    mkDenyValidator = {
+      allowsValueNotInDenylist = let
+        validator = mkDenyValidator {list = ["admin" "root"];};
+      in
+        mkTest true (validator.check "user");
+
+      deniesValueInDenylist = let
+        validator = mkDenyValidator {list = ["admin" "root"];};
+      in
+        mkTest false (validator.check "admin");
+
+      caseInsensitiveByDefault = let
+        validator = mkDenyValidator {list = ["admin" "root"];};
+      in
+        mkTest false (validator.check "ADMIN");
+
+      caseSensitiveWithExact = let
+        validator = mkDenyValidator {
+          list = ["admin" "root"];
+          exact = true;
+        };
+      in
+        mkTest true (validator.check "ADMIN");
+
+      exportsListAttribute = let
+        validator = mkDenyValidator {list = ["admin" "root"];};
+      in
+        mkTest ["admin" "root"] validator.list;
+    };
+
+    mkPredicateValidator = {
+      usesCustomPredicate = let
+        validator = mkPredicateValidator (name: hasPrefix "user_" name);
+      in
+        mkTest true (validator.check "user_alice");
+
+      failsWhenPredicateFails = let
+        validator = mkPredicateValidator (name: hasPrefix "user_" name);
+      in
+        mkTest false (validator.check "admin_bob");
+
+      worksWithLengthCheck = let
+        validator = mkPredicateValidator (s: builtins.stringLength s >= 3);
+      in
+        mkTest true (validator.check "abc");
+
+      exportsPredicateAttribute = let
+        pred = name: hasPrefix "user_" name;
+        validator = mkPredicateValidator pred;
+      in
+        mkTest pred validator.predicate;
+    };
+
+    combineValidators = {
+      requiresAllValidatorsToPass = let
+        allowlist = mkValidator {list = ["user_alice" "user_bob"];};
+        prefix = mkPredicateValidator (hasPrefix "user_");
+        combined = combineValidators [allowlist prefix];
+      in
+        mkTest true (combined.check "user_alice");
+
+      failsIfAnyValidatorFails = let
+        allowlist = mkValidator {list = ["user_alice" "user_bob"];};
+        prefix = mkPredicateValidator (hasPrefix "user_");
+        combined = combineValidators [allowlist prefix];
+      in
+        mkTest false (combined.check "user_charlie");
+
+      failsIfPrefixWrong = let
+        allowlist = mkValidator {list = ["user_alice" "admin_alice"];};
+        prefix = mkPredicateValidator (hasPrefix "user_");
+        combined = combineValidators [allowlist prefix];
+      in
+        mkTest false (combined.check "admin_alice");
+    };
+
+    combineValidatorsOr = {
+      passesIfAnyValidatorPasses = let
+        allowlist1 = mkValidator {list = ["alice" "bob"];};
+        allowlist2 = mkValidator {list = ["charlie" "dave"];};
+        combined = combineValidatorsOr [allowlist1 allowlist2];
+      in
+        mkTest true (combined.check "alice");
+
+      passesWithSecondList = let
+        allowlist1 = mkValidator {list = ["alice" "bob"];};
+        allowlist2 = mkValidator {list = ["charlie" "dave"];};
+        combined = combineValidatorsOr [allowlist1 allowlist2];
+      in
+        mkTest true (combined.check "charlie");
+
+      failsIfNoValidatorPasses = let
+        allowlist1 = mkValidator {list = ["alice" "bob"];};
+        allowlist2 = mkValidator {list = ["charlie" "dave"];};
+        combined = combineValidatorsOr [allowlist1 allowlist2];
+      in
+        mkTest false (combined.check "eve");
+    };
+  };
 }

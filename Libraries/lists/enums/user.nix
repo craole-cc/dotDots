@@ -1,5 +1,6 @@
 {_, ...}: let
-  mkVal = _.mkCaseInsensitiveListValidator;
+  inherit (_.lists.generators) mkCaseInsensitiveValidator mkEnum;
+  inherit (_.testing.unit) mkTest runTests;
 
   /**
   User roles - system access and privilege levels.
@@ -7,8 +8,8 @@
   Defines user account types and their associated privilege levels.
 
   # Roles
-  - administrator: Full system administrator with unrestricted root access
-  - developer: Developer account with sudo access and development tools
+  - administrator: Full system administrator with unrestricted root access (alias: admin)
+  - developer: Developer account with sudo access and development tools (alias: dev)
   - poweruser: Advanced user with elevated privileges for system configuration
   - user: Normal user with limited permissions
   - guest: Temporary user with restricted access and limited permissions
@@ -34,18 +35,13 @@
   _.enums.user.roles.values
   ```
   */
-  roles = let
-    values = [
-      "administrator"
-      "developer"
-      "poweruser"
-      "user"
-      "guest"
-      "service"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
+  roles = rec {
+    values = ["administrator" "developer" "poweruser" "user" "guest" "service"];
+    aliases = {
+      admin = "administrator";
+      dev = "developer";
+    };
+    validator = mkCaseInsensitiveValidator (values ++ builtins.attrNames aliases);
   };
 
   /**
@@ -54,15 +50,22 @@
   Defines what the user primarily does with their system.
   Used to configure appropriate applications and optimizations.
 
-  # Capabilities
-  - writing: Document creation, note-taking, content writing
-  - conferencing: Video calls, screen sharing, remote meetings
-  - development: Software development and programming
-  - creation: Creative work (art, music, video production)
-  - analysis: Data analysis, spreadsheets, visualization
-  - management: Project/task management, organization
-  - gaming: Gaming and entertainment
+
+  # Creative
+  - creation: Art, music, video production
   - multimedia: Media consumption and light editing
+  - gaming: Gaming and entertainment
+
+  # Professional
+  - development: Software development
+  - writing: Documents, notes, content
+  - analysis: Data analysis, spreadsheets
+  - management: Project/task management
+  - conferencing: Video calls, remote meetings
+
+  # System
+  - administration: System administration
+  - automation: Scripting, task automation
 
   # Structure
   ```nix
@@ -87,25 +90,34 @@
     true
   ```
   */
-  capabilities = let
-    values = [
-      "writing"
-      "conferencing"
-      "development"
-      "creation"
-      "analysis"
-      "management"
-      "gaming"
-      "multimedia"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
-  };
+  capabilities = mkEnum [
+    "writing"
+    "conferencing"
+    "development"
+    "creation"
+    "analysis"
+    "management"
+    "gaming"
+    "multimedia"
+    "administration"
+    "automation"
+  ];
 in {
   inherit roles capabilities;
   _rootAliases = {
     userRoles = roles;
     userCapabilities = capabilities;
+  };
+  _tests = runTests {
+    roles = {
+      validatesAdmin = mkTest true (roles.validator.check "administrator");
+      validatesDev = mkTest true (roles.validator.check "developer");
+      correctCount = mkTest 8 (builtins.length roles.values);
+    };
+    capabilities = {
+      validatesDevelopment = mkTest true (capabilities.validator.check "development");
+      validatesGaming = mkTest true (capabilities.validator.check "gaming");
+      correctCount = mkTest 10 (builtins.length capabilities.values);
+    };
   };
 }

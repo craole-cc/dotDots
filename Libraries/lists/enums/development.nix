@@ -1,6 +1,6 @@
 {_, ...}: let
-  mkVal = _.mkCaseInsensitiveListValidator;
-in {
+  inherit (_.lists.generators) mkEnum;
+  inherit (_.testing.unit) mkTest runTests;
   /**
   Development languages - programming and scripting languages.
 
@@ -23,35 +23,50 @@ in {
   # Usage
   ```nix
   # Validate a language
-  _lib.devLanguages.validator.check { name = "Python"; }  # => true
+  languages.validator.check { name = "Python"; }  # => true
 
   # Check if user knows multiple languages
-  _lib.areAllInList ["python" "rust"] _lib.devLanguages.values true
+  _lib.lists.predicates.isIn ["python" "rust"] _lib.lists.enums.development.languages.values true
 
   # Get all supported languages
   _lib.devLanguages.values
   ```
   */
-  devLanguages = let
-    values = [
-      "python"
-      "rust"
-      "zig"
-      "nix"
-      "sh"
-      "bash"
-      "pwsh"
-      "powershell"
-      "c"
-      "cpp"
-      "go"
-      "javascript"
-      "typescript"
-      "lua"
-      "haskell"
-    ];
-  in {
-    inherit values;
-    validator = mkVal values;
+  languages = mkEnum [
+    #~@ Systems languages
+    "rust"
+    "zig"
+    "c"
+    "cpp"
+    "go"
+    "java"
+
+    #~@ Scripting languages
+    "python"
+    "javascript"
+    "typescript"
+    "ruby"
+    "perl"
+    "php"
+
+    #~@ Functional languages
+    "haskell"
+    "nix"
+    "elixir"
+    "ocaml"
+  ];
+in {
+  inherit languages;
+
+  _rootAliases = {
+    devLanguagesList = languages;
+  };
+
+  _tests = runTests {
+    languages = {
+      validatesRust = mkTest true (languages.validator.check "rust");
+      validatesPython = mkTest true (languages.validator.check "python");
+      caseInsensitive = mkTest true (languages.validator.check "JAVASCRIPT");
+    };
   };
 }
