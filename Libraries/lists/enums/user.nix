@@ -35,13 +35,12 @@
   _.enums.user.roles.values
   ```
   */
-  roles = rec {
+  roles = mkEnum {
     values = ["administrator" "developer" "poweruser" "user" "guest" "service"];
     aliases = {
       admin = "administrator";
       dev = "developer";
     };
-    validator = mkCaseInsensitiveValidator (values ++ builtins.attrNames aliases);
   };
 
   /**
@@ -108,11 +107,6 @@ in {
   _rootAliases = {
     userRoles = roles.values;
     userCapabilities = capabilities.values;
-
-    # enums = {
-    #   userRoles = roles;
-    #   userCapabilities = capabilities;
-    # };
   };
 
   _tests = runTests {

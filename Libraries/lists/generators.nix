@@ -248,9 +248,69 @@
     inherit validators;
   };
 
-  mkEnum = values: {
-    inherit values;
-    validator = mkCaseInsensitiveValidator values;
+  /**
+    Create an enum with optional aliases.
+
+    # Type
+  ```nix
+    mkEnum :: [a] | { values :: [a], aliases :: AttrSet } -> Enum
+  ```
+
+    # Arguments
+    - values: Either a list of values, or an attrset with:
+      - values: List of canonical values
+      - aliases: Attrset mapping alias -> canonical value
+
+    # Returns
+    {
+      values: List of canonical values
+      aliases: Alias mapping (if provided)
+      allValues: Combined list (values ++ alias keys)
+      validator: Case-insensitive validator accepting any value or alias
+    }
+
+    # Examples
+  ```nix
+    # Simple enum
+    colors = mkEnum ["red" "green" "blue"];
+    colors.values      # => ["red" "green" "blue"]
+    colors.validator.check "RED"  # => true
+
+    # Enum with aliases
+    roles = mkEnum {
+      values = ["administrator" "developer" "user"];
+      aliases = { admin = "administrator"; dev = "developer"; };
+    };
+    roles.values       # => ["administrator" "developer" "user"]
+    roles.allValues    # => ["administrator" "developer" "user" "admin" "dev"]
+    roles.aliases      # => { admin = "administrator"; dev = "developer"; }
+    roles.validator.check "admin"  # => true (alias)
+    roles.validator.check "developer"  # => true (canonical)
+  ```
+  */
+  mkEnum = input: let
+    # Normalize input to handle both list and attrset forms
+    normalized =
+      if builtins.isList input
+      then {
+        values = input;
+        aliases = {};
+      }
+      else input;
+
+    values = normalized.values;
+    aliases = normalized.aliases or {};
+    aliasKeys = builtins.attrNames aliases;
+    allValues = values ++ aliasKeys;
+  in {
+    inherit values aliases allValues;
+    validator = mkCaseInsensitiveValidator allValues;
+
+    # Optional: Add a resolve function to get canonical value from alias
+    resolve = value:
+      if builtins.hasAttr value aliases
+      then aliases.${value}
+      else value;
   };
 in {
   inherit
