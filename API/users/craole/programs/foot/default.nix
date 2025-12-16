@@ -20,7 +20,7 @@
     || (config.wayland.windowManager.hyprland.enable or false);
 
   isUserEnabled =
-    (elem app enable)
+    (elem app ["foot"])
     || isPrimary
     || isSecondary;
 
