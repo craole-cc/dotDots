@@ -1,7 +1,8 @@
 # Libraries/lists/enums.nix
 {_, ...}: let
   # Import all enum modules
-  dev = import ./development.nix {inherit _;};
+  dev = _.lists.enums.development;
+  # dev = import ./development.nix {inherit _;};
   gui = import ./gui.nix {inherit _;};
   hardware = import ./hardware.nix {inherit _;};
   tui = import ./tui.nix {inherit _;};
