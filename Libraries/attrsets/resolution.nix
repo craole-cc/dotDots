@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) hasAttrByPath attrByPath;
+  inherit (lib.attrsets) any hasAttrByPath attrByPath;
   inherit (lib.lists) filter head toList;
   inherit (_.predicates.emptiness) isNotEmpty;
 
@@ -180,8 +180,30 @@
     paths = map (parent: [parent childName]) parentList;
   in
     getByPaths {inherit attrset paths default;};
+
+  /**
+  Check if any of a set of attributes has `.enable == true`.
+
+  anyEnabled {
+    attrset = config;
+    basePath = [ "wayland" "windowManager" ];
+    names = [ "sway" "hyprland" ];
+  }
+  */
+  isAnyEnabled = {
+    attrset,
+    basePath,
+    names,
+  }:
+    any
+    (
+      name:
+        attrByPath (basePath ++ [name "enable"]) false attrset
+    )
+    names;
 in {
   inherit
+    isAnyEnabled
     getByPaths
     getPackage
     getNestedAttr

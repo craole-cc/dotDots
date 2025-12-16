@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  lix,
   pkgs,
   user,
   ...
@@ -9,6 +10,7 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
+  inherit (lix.attrsets.resolution) isAnyEnabled;
   inherit (user) interface;
   inherit (user.applications) allowed terminal;
   isPrimary = app == terminal.primary or null;
@@ -16,9 +18,11 @@
 
   isWaylandEnabled =
     (interface.displayProtocol or null == "wayland")
-    || (with config.wayland.windowManager;
-        (sway.enable or false) || (hyprland.enable or false));
-
+    || isAnyEnabled {
+      attrset = config;
+      basePath = ["wayland" "windowManager"];
+      names = ["sway" "hyprland"];
+    };
   isUserEnabled =
     (elem app allowed)
     || isPrimary
