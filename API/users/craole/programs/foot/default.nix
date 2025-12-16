@@ -10,19 +10,20 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
-  inherit (lix.attrsets.resolution) isAnyEnabled;
-  inherit (user) interface;
+  inherit (lix.attrsets.resolution) isWaylandEnabled;
+  # inherit (user) interface;
   inherit (user.applications) allowed terminal;
   isPrimary = app == terminal.primary or null;
   isSecondary = app == terminal.secondary or null;
 
-  isWaylandEnabled =
-    (interface.displayProtocol or null == "wayland")
-    || isAnyEnabled {
-      attrset = config;
-      basePath = ["wayland" "windowManager"];
-      names = ["sway" "hyprland"];
-    };
+  # isWaylandEnabled =
+  #   (interface.displayProtocol or null == "wayland")
+  #   || isAnyEnabled {
+  #     attrset = config;
+  #     basePath = ["wayland" "windowManager"];
+  #     names = ["sway" "hyprland"];
+  # };
+
   isUserEnabled =
     (elem app allowed)
     || isPrimary

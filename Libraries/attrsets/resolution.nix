@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) any hasAttrByPath attrByPath;
+  inherit (lib.attrsets) all any hasAttrByPath attrByPath;
   inherit (lib.lists) filter head toList;
   inherit (_.predicates.emptiness) isNotEmpty;
 
@@ -201,12 +201,48 @@
         attrByPath (basePath ++ [name "enable"]) false attrset
     )
     names;
+
+  isAllEnabled = {
+    attrset,
+    basePath,
+    names,
+  }:
+    all (name: attrByPath (basePath ++ [name "enable"]) false attrset) names;
+
+  /**
+  Heuristic “is this a Wayland system/session?” for NixOS+HM configs.
+  */
+  isWaylandEnabled = config: let
+    isWaylandWM = isAnyEnabled {
+      attrset = config;
+      basePath = ["wayland" "windowManager"];
+      names = ["sway" "hyprland" "river"];
+    };
+
+    isWaylandDE =
+      config.services.desktopManager.cosmic.enable or false;
+
+    isWaylandDP =
+      isAllEnabled {
+        attrset = config;
+        basePath = ["services" "displayManager" "gdm"];
+        names = ["enable" "wayland"];
+      }
+      || isAllEnabled {
+        attrset = config;
+        basePath = ["services" "displayManager" "sddm"];
+        names = ["enable" "wayland"];
+      };
+  in
+    isWaylandWM || isWaylandDE || isWaylandDP;
 in {
   inherit
-    isAnyEnabled
+    isAllEnabled
     getByPaths
-    getPackage
     getNestedAttr
+    getPackage
     getShellPackage
+    isAnyEnabled
+    isWaylandEnabled
     ;
 }
