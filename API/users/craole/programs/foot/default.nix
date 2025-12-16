@@ -47,8 +47,7 @@ in {
   home.packages = [footWrapper];
 
   home.sessionVariables =
-    {}
-    // optionalAttrs isPrimary {TERMINAL = "feet";}
+    optionalAttrs isPrimary {TERMINAL = "feet";}
     // optionalAttrs isSecondary {TERMINAL_ALT = "feet";};
   # };
 }
