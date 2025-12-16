@@ -104,6 +104,7 @@
   ];
 in {
   inherit roles capabilities;
+
   _rootAliases = {
     userRoles = roles.values;
     userCapabilities = capabilities.values;
@@ -113,6 +114,7 @@ in {
       userCapabilities = capabilities;
     };
   };
+
   _tests = runTests {
     roles = {
       validatesAdmin = mkTest true (roles.validator.check "administrator");
