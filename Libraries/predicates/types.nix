@@ -1,61 +1,61 @@
 {lib, ...}: let
   inherit (lib.strings) typeOf;
 
-  # Base nouns per type tag
+  # Normalize various aliases to a canonical type key
+  normalizeType = t:
+    {
+      attrset = "set";
+      attr = "set";
+      set = "set";
+
+      str = "string";
+
+      num = "int";
+      number = "int";
+    }.${
+      t
+    } or t;
+
+  # Canonical type key -> bare noun
   typeNouns = {
-    attrset = "attribute set";
-    attr = "attribute set";
     set = "attribute set";
-
     list = "list";
-
     string = "string";
-    str = "string";
-
     int = "integer";
-    num = "integer";
-    number = "integer";
-
     bool = "boolean";
-
     binary = "binary value";
-
     float = "float";
     path = "path";
     null = "null";
   };
 
   withArticle = noun:
-    if
-      noun
-      == "attribute set"
-      || noun == "integer"
-      || noun == "array"
-      || noun == "object"
+    if lib.lists.elem noun ["attribute set" "integer" "array" "object"]
     then "an ${noun}"
     else "a ${noun}";
 
   describeType = tag: let
-    noun = typeNouns.${tag} or tag;
+    canon = normalizeType tag;
+    noun = typeNouns.${canon} or canon;
   in
     withArticle noun;
 
   mkError = {
     fnName,
     argName,
-    expected, # "attrset" | "set" | "list" | "string" | ...
+    expected, # accepts "attrset" | "set" | "string" | "str" | "num" | "int" | ...
     actual,
   }: let
     expectedPretty = describeType expected;
-    actualType = typeOf actual;
-    actualPretty = describeType actualType;
+    actualTypeRaw = typeOf actual;
+    actualPretty = describeType actualTypeRaw;
+
     shownValue =
-      # avoid huge blobs; simple pretty-print primitives and small sets/lists
-      if actualType == "string"
+      if actualTypeRaw == "string"
       then "\"${actual}\""
-      else if actualType == "int"
+      else if actualTypeRaw == "int"
       then toString actual
-      else if actualType == "bool"
+      else if actualTypeRaw == "bool"
       then
         (
           if actual
