@@ -15,7 +15,7 @@
   isSecondary = app == secondary;
 
   isWayland =
-    (interface.displayProtocol == "wayland")
+    (interface.displayProtocol or null == "wayland")
     || (config.wayland.windowManager.sway.enable or false)
     || (config.wayland.windowManager.hyprland.enable or false);
 
