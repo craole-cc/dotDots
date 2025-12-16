@@ -10,21 +10,21 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
-  inherit (lix.attrsets.predicates) isWaylandSession;
+  inherit (lix.attrsets.predicates) isWaylandEnabled;
   inherit (user.applications) allowed terminal;
-  isWaylandEnabled = isWaylandSession {
-    inherit config;
-    inherit (user) interface;
-  };
+
   isPrimary = app == terminal.primary or null;
   isSecondary = app == terminal.secondary or null;
-
-  isUserEnabled =
-    (elem app allowed)
-    || isPrimary
-    || isSecondary;
-
-  isAllowed = isWaylandEnabled && isUserEnabled;
+  isAllowed =
+    isWaylandEnabled {
+      inherit config;
+      inherit (user) interface;
+    }
+    && (
+      (elem app allowed)
+      || isPrimary
+      || isSecondary
+    );
 in {
   config = mkIf isAllowed {
     programs.${app} = {
