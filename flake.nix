@@ -9,7 +9,6 @@
     nix = mkCore {inherit inputs hosts users;};
   in {
     nixosConfigurations = nix;
-
     repl =
       {
         inherit lix lib;
