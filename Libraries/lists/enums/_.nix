@@ -1,6 +1,10 @@
-{_, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   e = _.lists.enums;
-  inherit (_.lib.attrsets) getAttr hasAttr;
+  inherit (lib.attrsets) getAttr hasAttr;
   inherit (_.testing.unit) mkTest runTests;
 
   /**
