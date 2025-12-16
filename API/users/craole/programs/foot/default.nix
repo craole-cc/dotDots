@@ -23,7 +23,7 @@
     isWayland
     && (elem app enable || isPrimary || isSecondary);
 in {
-  config = mkIf (isPrimary || isSecondary) {
+  config = mkIf isWayland {
     programs.${app} = {
       enable = true;
       server.enable = true;
