@@ -64,7 +64,8 @@ in
 
       #? Test multiple enums exist
       hasAllCategories = mkTest true (
-        hasAttrByPath ["enums" "developmentLanguages"] _
+        true
+        && hasAttrByPath ["enums" "developmentLanguages"] _
         && hasAttrByPath ["enums" "hostFunctionalities"] _
         && hasAttrByPath ["enums" "userRoles"] _
         && hasAttrByPath ["enums" "bootLoaders"] _
