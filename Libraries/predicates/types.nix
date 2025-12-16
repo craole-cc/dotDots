@@ -30,11 +30,11 @@
     argName,
     expected, # "set" | "list" | "string" | ...
     predicate,
-    value,
+    actual,
   }:
-    if !predicate value
-    then throw (mkError {inherit fnName argName expected value;})
-    else value;
+    if !predicate actual
+    then throw (mkError {inherit fnName argName expected actual;})
+    else actual;
 in {
   inherit mkError validate;
   _rootAliases = {
