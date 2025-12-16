@@ -9,12 +9,10 @@
     nix = mkCore {inherit inputs hosts users;};
   in {
     nixosConfigurations = nix;
-    repl =
-      {
-        inherit lix lib;
-        hosts = nix;
-      }
-      // nix;
+    repl = import ./Bin/nix/repl.nix {
+      inherit inputs lib lix;
+      nixosConfigurations = nix;
+    };
   };
 
   inputs = {
