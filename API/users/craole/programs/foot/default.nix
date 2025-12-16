@@ -16,7 +16,7 @@
   isAllowed =
     (
       (interface.displayProtocol == "wayland")
-      || config.windowManager.wayland.enable
+      # || config.windowManager.wayland.enable
     )
     && (
       (elem app enable)
