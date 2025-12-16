@@ -63,6 +63,6 @@ in
         && hasAttr "validator" enums.userRoles
       );
 
-      rootAliasWorks = mkTest true (hasAttrByPath ["enums" "developmentLanguages"] false _);
+      rootAliasWorks = mkTest true (hasAttr ["enums" "developmentLanguages"] _);
     };
   }
