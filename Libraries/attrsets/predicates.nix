@@ -6,9 +6,8 @@
   inherit (lib.attrsets) attrByPath isAttrs;
   inherit (lib.lists) all any elem isList;
   inherit (lib.strings) typeOf;
-  inherit (builtins) tryEval;
-  inherit (_.predicates.types) validate;
-  inherit (_.testing.unit) mkTest runTests;
+  inherit (_.trivial.types) validate;
+  inherit (_.trivial.tests) mkTest runTests;
 
   /**
   Check if any of a set of attributes has `.enable == true`.
