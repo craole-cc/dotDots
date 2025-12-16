@@ -15,8 +15,8 @@
   isSecondary = app == secondary;
   isWayland = with config.wayland.windowManager;
     (interface.displayProtocol == "wayland")
-    || sway.enable
-    || hyprland.enable;
+    || sway.enable or false
+    || hyprland.enable or false;
   isAllowed =
     isWayland
     && (elem app enable || isPrimary || isSecondary);
