@@ -13,15 +13,13 @@
   inherit (user.applications.terminal) primary secondary;
   isPrimary = app == primary;
   isSecondary = app == secondary;
+  isWayland =
+    config.wayland.windowManager.hyprland.enable
+    || config.wayland.windowManager.sway.enable
+    || interface.displayProtocol == "wayland";
   isAllowed =
-    (
-      (interface.displayProtocol == "wayland")
-      # || config.windowManager.wayland.enable
-    )
-    && (
-      (elem app enable)
-      || (isPrimary || isSecondary)
-    );
+    isWayland
+    && (elem app enable || isPrimary || isSecondary);
 
   footWrapper = pkgs.writeShellScriptBin "feet" ''
     if ${pkgs.foot}/bin/footclient --no-wait 2>/dev/null; then
