@@ -13,9 +13,7 @@
       inherit inputs hosts users;
       extraArgs = {inherit all api lix;};
     };
-    repl = import ./Bin/nix/repl.nix {
-      inherit lib lix api all;
-    };
+    repl = import ./. {inherit lib lix api all;};
   };
 
   inputs = {

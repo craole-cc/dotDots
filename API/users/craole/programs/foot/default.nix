@@ -39,8 +39,9 @@ in {
         enable = true;
         server.enable = true;
       }
-      // import ./settings.nix
-      // import ./themes.nix;
+      // import ./input.nix
+      // import ./themes.nix
+      // import ./settings.nix;
 
     home.packages = [footWrapper];
 

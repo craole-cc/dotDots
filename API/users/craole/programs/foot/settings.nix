@@ -1,9 +1,9 @@
 {
   settings = {
     main = {
-      font = "monospace:size=14";
+      font = "monospace:size=16";
       dpi-aware = "yes";
-      pad = "8x8"; # Padding around terminal content
+      pad = "8x8";
     };
 
     mouse = {
