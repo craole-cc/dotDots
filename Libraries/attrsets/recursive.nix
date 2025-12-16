@@ -134,10 +134,24 @@
     then prev
     else if isSpecial next
     then next
-    else if prev ? _module && next ? _module
-    then prev // next
     else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next
-    then recursiveUpdate prev next
+    then
+      mapAttrs
+      (
+        name: vPrev:
+          if next ? ${name}
+          then let
+            vNext = next.${name};
+          in
+            if isSpecial vPrev
+            then vPrev
+            else if isSpecial vNext
+            then vNext
+            else updateDeep vPrev vNext
+          else vPrev
+      )
+      prev
+      // lib.attrsets.filterAttrs (n: _: !prev ? ${n}) next
     else next;
 in {
   inherit
