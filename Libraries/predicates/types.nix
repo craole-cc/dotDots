@@ -1,22 +1,20 @@
 {lib, ...}: let
   inherit (lib.strings) typeOf;
+  inherit (lib.attrsets) attrNames;
+  inherit (lib.lists) take;
 
-  # Normalize various aliases to a canonical type key
   normalizeType = t:
     {
       attrset = "set";
       attr = "set";
       set = "set";
-
       str = "string";
-
       num = "int";
       number = "int";
     }.${
       t
     } or t;
 
-  # Canonical type key -> bare noun
   typeNouns = {
     set = "attribute set";
     list = "list";
@@ -40,30 +38,58 @@
   in
     withArticle noun;
 
+  showValue = v: let
+    t = typeOf v;
+  in
+    if t == "string"
+    then "\"${v}\""
+    else if t == "int"
+    then toString v
+    else if t == "bool"
+    then
+      (
+        if v
+        then "true"
+        else "false"
+      )
+    else if t == "list"
+    then let
+      preview = take 5 v;
+    in
+      "["
+      + builtins.concatStringsSep ", " (map showValue preview)
+      + (
+        if builtins.length v > 5
+        then ", …"
+        else ""
+      )
+      + "]"
+    else if t == "set"
+    then let
+      keys = attrNames v;
+      preview = take 5 keys;
+    in
+      "{ "
+      + builtins.concatStringsSep ", " preview
+      + (
+        if builtins.length keys > 5
+        then ", …"
+        else ""
+      )
+      + " }"
+    else "<" + t + ">";
+
   mkError = {
     fnName,
     argName,
-    expected, # accepts "attrset" | "set" | "string" | "str" | "num" | "int" | ...
+    expected,
     actual,
   }: let
     expectedPretty = describeType expected;
     actualTypeRaw = typeOf actual;
     actualPretty = describeType actualTypeRaw;
-
-    shownValue =
-      if actualTypeRaw == "string"
-      then "\"${actual}\""
-      else if actualTypeRaw == "int"
-      then toString actual
-      else if actualTypeRaw == "bool"
-      then
-        (
-          if actual
-          then "true"
-          else "false"
-        )
-      else "<value elided>";
-  in "${fnName}: `${argName}` must be ${expectedPretty}, but ${actualPretty} was given (value: ${shownValue}).";
+    valuePreview = showValue actual;
+  in "${fnName}: `${argName}` must be ${expectedPretty}, but ${actualPretty} was given (value: ${valuePreview}).";
 
   validate = {
     fnName,
