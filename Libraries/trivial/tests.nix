@@ -8,8 +8,6 @@
   inherit (builtins) tryEval;
   inherit (_.types.predicates) isTest;
 
-  # Run tests and nested groups. Anything that is neither a test nor a group
-  # (e.g. a function or already-thrown error) is returned as-is.
   runTests = tests:
     mapAttrs
     (
@@ -30,19 +28,15 @@
     )
     tests;
 
-  mkTest = expectedOrAttrs: exprOrNull: let
-    args =
-      if isAttrs expectedOrAttrs && expectedOrAttrs ? expected && expectedOrAttrs ? expr
-      then expectedOrAttrs
-      else {
-        expected = expectedOrAttrs;
-        expr = exprOrNull;
-      };
-
-    value = deepSeq args.expr args.expr;
-    passed = args.expected == value;
+  # Single-argument mkTest: always takes { expected; expr; }
+  mkTest = {
+    expected,
+    expr,
+  }: let
+    value = deepSeq expr expr;
+    passed = expected == value;
   in {
-    expected = args.expected;
+    inherit expected;
     result = value;
     inherit passed;
   };
