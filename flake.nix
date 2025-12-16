@@ -12,6 +12,7 @@
     repl = import ./Bin/nix/repl.nix {
       inherit inputs lib lix;
       nixosConfigurations = nix;
+      api = {inherit hosts users;};
     };
   };
 

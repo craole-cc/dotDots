@@ -2,17 +2,33 @@
   inputs,
   lib,
   lix,
+  api,
   nixosConfigurations,
 }: let
+  inherit
+    (lib.attrsets)
+    attrByPath
+    attrNames
+    attrValues
+    filterAttrs
+    head
+    ;
+  inherit
+    (lib.lists)
+    filter
+    findFirst
+    splitString
+    ;
+
   #> Get pkgs based on the system running nix repl
   system = builtins.currentSystem;
 
   #> Find a host that matches current system
   matchingHost =
-    lib.lists.findFirst
+    findFirst
     (host: host.config.nixpkgs.hostPlatform.system or null == system)
     null
-    (lib.attrsets.attrValues nixosConfigurations);
+    (attrValues nixosConfigurations);
 
   #> Use matching host's pkgs or create fallback
   pkgs =
@@ -25,20 +41,22 @@
       };
 
   #> Helper functions for the repl
-  #> Helper functions for the repl
   helpers = {
-    # Generate rebuild commands (copy-paste ready)
-    rebuild = host: "sudo nixos-rebuild switch --flake .#${host}";
-    test = host: "sudo nixos-rebuild test --flake .#${host}";
-    boot = host: "sudo nixos-rebuild boot --flake .#${host}";
+    #~@ Script generators (copy-paste ready)
+    scripts = {
+      rebuild = host: "sudo nixos-rebuild switch --flake .#${host}";
+      test = host: "sudo nixos-rebuild test --flake .#${host}";
+      boot = host: "sudo nixos-rebuild boot --flake .#${host}";
+      dry = host: "sudo nixos-rebuild dry-build --flake .#${host}";
+      update = "nix flake update";
+      clean = "sudo nix-collect-garbage -d";
+    };
 
-    # List all hosts
-    listHosts = lib.attrNames nixosConfigurations;
-
-    # Get host by name
+    #~@ Host discovery
+    listHosts = attrNames nixosConfigurations;
     getHost = name: nixosConfigurations.${name} or null;
 
-    # Pretty print a host's key info
+    #~@ Host information
     hostInfo = name: let
       host = nixosConfigurations.${name};
     in {
@@ -46,15 +64,17 @@
       system = host.config.nixpkgs.hostPlatform.system;
       stateVersion = host.config.system.stateVersion;
       kernel = host.config.boot.kernelPackages.kernel.version;
-      users = lib.attrNames host.config.users.users;
-      desktops = lib.filter (x: x != null) [
-        (host.config.services.desktopManager.plasma6.enable or false)
-        (host.config.services.desktopManager.gnome.enable or false)
-        (host.config.services.desktopManager.cosmic.enable or false)
-      ];
+      users = attrNames host.config.users.users;
+      desktops = filter (x: x != null) (
+        with host.config.services.desktopManager; [
+          (plasma6.enable or false && "plasma6")
+          (gnome.enable or false && "gnome")
+          (cosmic.enable or false && "cosmic")
+        ]
+      );
     };
 
-    # Compare two hosts
+    #~@ Host comparison
     compareHosts = host1: host2: let
       h1 = nixosConfigurations.${host1};
       h2 = nixosConfigurations.${host2};
@@ -73,39 +93,38 @@
       };
     };
 
-    # Find which hosts have a specific service enabled
+    #~@ Service queries
     hostsWithService = service:
-      lib.attrNames (lib.filterAttrs
-        (name: host: lib.attrByPath (lib.splitString "." service) false host.config)
+      attrNames (filterAttrs
+        (name: host: attrByPath (splitString "." service) false host.config)
         nixosConfigurations);
 
-    # List all enabled services for a host
     enabledServices = hostName: let
       host = nixosConfigurations.${hostName};
       services = host.config.systemd.services;
     in
-      lib.attrNames (lib.filterAttrs (n: v: v.enable or false) services);
+      attrNames (filterAttrs (n: v: v.enable or false) services);
   };
 
   #> Get the current host (to flatten at top level)
   currentHost =
     if matchingHost != null
     then matchingHost
-    else lib.attrsets.head (lib.attrsets.attrValues nixosConfigurations);
+    else head (attrValues nixosConfigurations);
 
   #> Flatten current host's attributes
   currentHostFlattened = {
     #~@ Top-level host attributes
     inherit
       (currentHost)
-      _module
-      _type
-      class
+      # _module
+      # _type
+      # class
       config
-      extendModules
+      # extendModules
       options
       pkgs
-      type
+      # type
       ;
 
     #~@ Convenient shortcuts to config sections
@@ -125,6 +144,7 @@ in
   {
     inherit
       lix
+      api
       lib
       pkgs
       builtins
