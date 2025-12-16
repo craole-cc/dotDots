@@ -768,7 +768,7 @@ in {
           settings = {
             misc = {
               assume_yes = true;
-              disable = ["nix"];
+              # disable = ["nix"];
               set_title = false;
               cleanup = true;
             };
