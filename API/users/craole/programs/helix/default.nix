@@ -1,6 +1,7 @@
 { policies, ... }:
 {
-  programs.helix.enable = policies.dev;
+  programs.helix.enable = true;
+  # programs.helix.enable = policies.dev;
   imports = [
     ./editor.nix
     ./keybindings.nix
