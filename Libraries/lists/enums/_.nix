@@ -4,7 +4,7 @@
   ...
 }: let
   e = _.lists.enums;
-  inherit (lib.attrsets) getAttr hasAttr;
+  inherit (lib.attrsets) hasAttr hasAttrByPath;
   inherit (_.testing.unit) mkTest runTests;
 
   /**
@@ -63,6 +63,6 @@ in
         && hasAttr "validator" enums.userRoles
       );
 
-      # rootAliasWorks = mkTest enums (getAttr "enums" (_rootAliases or {}));
+      rootAliasWorks = mkTest true (hasAttrByPath ["enums" "developmentLanguages"] null _);
     };
   }
