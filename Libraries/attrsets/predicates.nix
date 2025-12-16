@@ -9,6 +9,26 @@
   inherit (builtins) tryEval;
   inherit (_.testing.unit) mkTest runTests;
 
+
+  mkTypeError = {
+    fnName,
+    argName,
+    expected,
+    value,
+  }:
+    "${fnName}: ${argName} must be ${expected}, got ${builtins.typeOf value}";
+
+  assertType = {
+    fnName,
+    argName,
+    expected,
+    predicate,
+    value,
+  }:
+    if !predicate value
+    then throw (mkTypeError { inherit fnName argName expected value; })
+    else value;
+
   /**
   Check if any of a set of attributes has `.enable == true`.
 
@@ -134,12 +154,7 @@
     anyEnabled {
       attrset = config;
       basePath = ["wayland" "windowManager"];
-      names = [
-        "sway"
-        "hyprland"
-        "river"
-        "wayfire"
-      ];
+      names = ["hyprland" "river" "sway" "wayfire"];
     }
     || anyEnabled {
       attrset = config;
@@ -160,25 +175,26 @@
   in
     allEnabled {
       inherit attrset basePath;
-      names = [
-        ["gdm" "enable"]
-        ["gdm" "wayland"]
-      ];
+      names = ["gdm" ["gdm" "wayland"]];
     }
     || allEnabled {
       inherit attrset basePath;
-      names = [
-        ["cosmic-greeter" "enable"]
-        ["cosmic-greeter" "wayland"]
-      ];
+      names = ["cosmic-greeter" ["cosmic-greeter" "wayland"]];
     }
     || allEnabled {
       inherit attrset basePath;
-      names = [
-        ["sddm"]
-        ["sddm" "wayland"]
-      ];
+      names = ["sddm" ["sddm" "wayland"]];
     };
+
+  waylandDefinedInterface = interface:
+    ((interface.displayProtocol or null) == "wayland")
+    || (interface.desktopEnvironment or null) == "cosmic"
+    || (elem (interface.windowManager or null) [
+      "sway"
+      "hyprland"
+      "river"
+      "niri"
+    ]);
 
   /**
   Heuristic check for Wayland session/system in NixOS + Home Manager configs.
@@ -234,28 +250,25 @@
   waylandEnabled = {
     config,
     interface ? {},
-  }:
-    if !isAttrs config
-    then throw "waylandEnabled: config must be an attribute set, got ${typeOf config}"
-    else if !isAttrs interface
-    then throw "waylandEnabled: interface must be an attribute set, got ${typeOf interface}"
+  }: let
+    check = input:
+      if !isAttrs input
+      then throw "waylandEnabled: config must be an attribute set, got ${typeOf config}"
+      else true;
+  in
+    # if !isAttrs config
+    # then throw "waylandEnabled: config must be an attribute set, got ${typeOf config}"
+    # else if !isAttrs interface
+    # then throw "waylandEnabled: interface must be an attribute set, got ${typeOf interface}"
+    if
+      !check config then
     else let
       isWaylandWM = waylandWindowManager config;
       isWaylandDE = waylandDesktopManager config;
-
       isWaylandDP = waylandDisplayManager config;
-
-      isRequested =
-        ((interface.displayProtocol or null) == "wayland")
-        || (interface.desktopEnvironment or null) == "cosmic"
-        || (elem (interface.windowManager or null) [
-          "sway"
-          "hyprland"
-          "river"
-          "niri"
-        ]);
+      isWaylandAPI = waylandDefinedInterface interface;
     in
-      isWaylandWM || isWaylandDE || isWaylandDP || isRequested;
+      isWaylandWM || isWaylandDE || isWaylandDP || isWaylandAPI;
 in {
   inherit
     allEnabled
