@@ -5,8 +5,7 @@
 }: let
   inherit (lib.attrsets) isAttrs mapAttrs;
   inherit (lib.strings) isString typeOf;
-  inherit (builtins) tryEval;
-  inherit (_.testing.unit) mkTest runTests;
+  inherit (_.trivial.tests) mkTest runTests mkThrows;
 
   /**
   Lock attribute values with metadata.
@@ -141,21 +140,9 @@ in {
 
       empty = mkTest {} (lock "locked" {});
 
-      invalidStatus = mkTest {
-        expr = tryEval (lock 123 {x = 1;});
-        expected = {
-          success = false;
-          value = false;
-        };
-      };
+      invalidStatus = mkThrows (lock 123 {x = 1;});
 
-      invalidAttrs = mkTest {
-        expr = tryEval (lock "locked" "not-an-attrset");
-        expected = {
-          success = false;
-          value = false;
-        };
-      };
+      invalidAttrs = mkThrows (lock "locked" "not-an-attrset");
     };
 
     locked = {

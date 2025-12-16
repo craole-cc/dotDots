@@ -1,6 +1,11 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) isAttrs isDerivation mapAttrs recursiveUpdate;
-  inherit (lib.modules) mkDefault;
+  inherit (lib.modules) mkDefault mkEnableOption mkForce;
+  inherit (_.trivial.tests) mkTest runTests;
 
   /**
   Recursively applies `mkDefault` to all values in an attribute set.
@@ -133,4 +138,110 @@ in {
     update
     updateDeep
     ;
+
+  _tests = runTests {
+    update = {
+      wrapsPrimitives =
+        mkTest
+        {
+          a = mkDefault 1;
+          b = mkDefault "x";
+          c = mkDefault true;
+        }
+        (update {
+          a = 1;
+          b = "x";
+          c = true;
+        });
+
+      recursesIntoNestedSets =
+        mkTest
+        {
+          services = {
+            nginx = {
+              enable = mkDefault true;
+              port = mkDefault 8080;
+            };
+          };
+        }
+        (update {
+          services.nginx = {
+            enable = true;
+            port = 8080;
+          };
+        });
+
+      preservesDerivations =
+        mkTest
+        {
+          pkg = "drv"; # we just check identity, not mkDefault
+          config = mkDefault "/etc/foo";
+        }
+        (let
+          fakeDrv = "drv"; # stand-in; in real tests you could use a real derivation
+        in
+          update {
+            pkg = fakeDrv;
+            config = "/etc/foo";
+          });
+
+      preservesSpecialType =
+        mkTest
+        (mkEnableOption "service")
+        (update (mkEnableOption "service"));
+    };
+
+    updateDeep = {
+      mergesSimpleAttrs =
+        mkTest
+        {
+          a = 1;
+          b = {
+            c = 2;
+            d = 3;
+          };
+          e = 4;
+        }
+        (updateDeep
+          {
+            a = 1;
+            b = {c = 2;};
+          }
+          {
+            b = {d = 3;};
+            e = 4;
+          });
+
+      preservesPrevSpecialType =
+        mkTest
+        {enable = mkEnableOption "foo";}
+        (updateDeep
+          {enable = mkEnableOption "foo";}
+          {enable = true;});
+
+      allowsNextSpecialType =
+        mkTest
+        {enable = mkForce false;}
+        (updateDeep
+          {enable = true;}
+          {enable = mkForce false;});
+
+      mergesModuleArgsShallow =
+        mkTest
+        {
+          _module.args = {
+            x = 1;
+            y = 2;
+          };
+        }
+        (updateDeep
+          {_module.args = {x = 1;};}
+          {_module.args = {y = 2;};});
+
+      primitiveOverride =
+        mkTest
+        2
+        (updateDeep 1 2);
+    };
+  };
 }
