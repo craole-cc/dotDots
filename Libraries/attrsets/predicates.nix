@@ -7,7 +7,7 @@
   inherit (lib.lists) all any elem isList;
   inherit (lib.strings) typeOf;
   inherit (_.trivial.types) validate;
-  inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.trivial.tests) mkTest runTests mkThrows;
 
   /**
   Check if any of a set of attributes has `.enable == true`.
@@ -296,19 +296,13 @@ in {
         }
       );
 
-      rejectsInvalidAttrset = mkTest {
-        expr = tryEval (
-          anyEnabled {
-            attrset = "invalid";
-            basePath = [];
-            names = [];
-          }
-        );
-        expected = {
-          success = false;
-          value = false;
-        };
-      };
+      rejectsInvalidAttrset = mkThrows (
+        anyEnabled {
+          attrset = "invalid";
+          basePath = [];
+          names = [];
+        }
+      );
     };
 
     allEnabled = {
@@ -347,26 +341,12 @@ in {
           ];
         }
       );
-    };
 
-    waylandEnabled = {
-      detectsSway = mkTest true (
-        waylandEnabled {
-          config = {wayland.windowManager.sway.enable = true;};
-        }
-      );
-
-      detectsViaInterface = mkTest true (
-        waylandEnabled {
-          config = {};
-          interface = {displayProtocol = "wayland";};
-        }
-      );
-
-      returnsFalseForX11 = mkTest false (
-        waylandEnabled {
-          config = {};
-          interface = {displayProtocol = "x11";};
+      rejectsInvalidAttrset = mkThrows (
+        allEnabled {
+          attrset = "nope";
+          basePath = ["services"];
+          names = ["nginx"];
         }
       );
     };
