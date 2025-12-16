@@ -38,7 +38,7 @@
   #| File Exclusions
   excludedFiles ? [
     "default.nix"
-    "_.nix"
+    # "_.nix"
     "flake.nix"
   ],
   #| File Pattern Exclusions
