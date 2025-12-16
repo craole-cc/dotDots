@@ -1,15 +1,12 @@
 {
-  lib,
   user,
-  policies,
+  lib,
   ...
-}:
-let
+}: let
+  inherit (lib.lists) elem;
+  inherit (user) enable;
   app = "zsh";
-  enable = policies.dev && lib.elem app user.shells;
-in
-{
-  programs.${app} = {
-    inherit enable;
-  };
+  isAllowed = elem app enable && lib.elem app user.shells;
+in {
+  programs.${app}.enable = isAllowed;
 }

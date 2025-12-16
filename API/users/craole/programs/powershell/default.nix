@@ -2,17 +2,15 @@
   pkgs,
   lib,
   user,
-  policies,
   ...
-}:
-let
+}: let
+  inherit (lib.lists) elem;
+  inherit (user) enable;
   app = "powershell";
-  enable = policies.dev && lib.elem app user.shells;
-in
-{
-  home.packages = lib.mkIf enable (
-    with pkgs;
-    [
+  isAllowed = elem app enable || elem app user.shells;
+in {
+  home.packages = lib.mkIf isAllowed (
+    with pkgs; [
       powershell
       powershell-editor-services
     ]

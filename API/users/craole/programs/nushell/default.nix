@@ -1,15 +1,13 @@
 {
   lib,
   user,
-  policies,
   ...
-}:
-let
+}: let
   app = "nushell";
-  enable = policies.dev && lib.elem app user.shells;
-in
-{
-  programs.${app} = {
-    inherit enable;
-  };
+  inherit (lib.lists) elem;
+  inherit (user) enable;
+  isAllowed = elem app enable || elem app user.shells;
+in {
+  programs.${app}.enable = isAllowed;
+  imports = [];
 }

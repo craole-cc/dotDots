@@ -4,11 +4,11 @@
   ...
 }: let
   inherit (lib.lists) elem;
-  inherit (user) apps;
+  inherit (user) enable;
   app = "bat";
-  enable = elem app apps;
+  isAllowed = elem app enable;
 in {
-  programs.bat = {inherit enable;};
+  programs.${app}.enable = isAllowed;
   imports = [
     ./settings.nix
     # ./themes.nix

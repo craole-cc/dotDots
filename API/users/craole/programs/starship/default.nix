@@ -1,10 +1,14 @@
-{policies, ...}: let
-  app = "starship";
-  enable = policies.dev;
+{
+  lib,
+  user,
+  ...
+}: let
+  inherit (lib.lists) elem;
+  inherit (user) enable;
+  app = "yazi";
+  isAllowed = elem app enable;
 in {
-  programs.${app} = {
-    inherit enable;
-  };
+  programs.${app}.enable = isAllowed;
   imports = [
     ./settings.nix
     ./shells.nix

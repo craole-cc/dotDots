@@ -1,10 +1,14 @@
 {
-  pkgs,
-  policies,
+  user,
+  lib,
   ...
-}:
-{
-  programs.zed-editor.enable = policies.devGui;
+}: let
+  inherit (lib.lists) elem;
+  inherit (user) enable;
+  app = "zed-editor";
+  isAllowed = elem app enable;
+in {
+  programs.${app}.enable = isAllowed;
   imports = [
     # ./settings.nix
     ./extensions.nix

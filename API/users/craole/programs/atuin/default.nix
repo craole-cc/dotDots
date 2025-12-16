@@ -1,15 +1,16 @@
 {
+  user,
   config,
-  policies,
+  lib,
   ...
-}:
-let
-  # isAllowed = policies.dev;
-  isAllowed = true;
+}: let
+  inherit (lib.lists) elem;
+  inherit (user) enable;
+  app = "atuin";
+  isAllowed = elem app enable;
   isEnabled = pkg: config.programs.${pkg}.enable;
-in
-{
-  programs.atuin = {
+in {
+  programs.${app} = {
     enable = isAllowed;
     daemon.enable = isAllowed;
     enableBashIntegration = isEnabled "bash";

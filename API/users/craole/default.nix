@@ -58,7 +58,7 @@
       };
     };
     terminal = {
-      primary = "footclient";
+      primary = "foot";
       secondary = "warp-terminal";
     };
     launcher = {
@@ -67,8 +67,25 @@
     };
   };
 
-  apps = [
+  enable = [
+    "atuin"
     "bat"
+    "bash"
+    "yazi"
+    "git"
+    "ghostty"
+    "foot"
+    "fastfetch"
+    "freetube"
+    "helix"
+    "jujutsu"
+    "nushell"
+    "obs-studio"
+    "powershell"
+    "starship"
+    "zed-editor"
+    "vscode"
+    "zen-browser"
   ];
 
   paths = {
