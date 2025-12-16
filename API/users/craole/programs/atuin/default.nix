@@ -1,9 +1,11 @@
-{ config, policies, ... }:
-let
+{
+  config,
+  policies,
+  ...
+}: let
   isAllowed = policies.dev;
   isEnabled = pkg: config.programs.${pkg}.enable;
-in
-{
+in {
   programs.atuin = {
     enable = isAllowed;
     daemon.enable = isAllowed;
@@ -11,10 +13,9 @@ in
     enableNushellIntegration = isEnabled "nushell";
     enableFishIntegration = isEnabled "fish";
     enableZshIntegration = isEnabled "zsh";
-    settings = import ./settings.nix;
   };
   imports = [
-    # ./settings.nix
+    ./settings.nix
     # ./themes.nix
   ];
 }

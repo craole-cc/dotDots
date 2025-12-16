@@ -62,11 +62,10 @@
   _lib.isAnyInList [config.displayProtocol] ["xserver" "x11"] true
   ```
   */
-  displayProtocols = mkEnum [
-    "wayland"
-    "xserver"
-    "x11"
-  ];
+  displayProtocols = mkEnum {
+    values = ["wayland" "xserver"];
+    aliases.x11 = "xserver";
+  };
 
   /**
   Display managers - display/session managers.
@@ -77,7 +76,6 @@
   - sddm: Simple Desktop Display Manager (Qt-based, KDE default)
   - gdm: GNOME Display Manager (GTK-based)
   - cosmic-greeter: Cosmic Desktop display manager
-  - cosmic: Cosmic greeter (alias)
   - greetd: Minimal, agnostic display manager
 
   # Lightweight
@@ -111,7 +109,6 @@
       "gdm"
       "cosmic-greeter"
       "lightdm"
-      "lxdm"
       "kmscon"
       "xdm"
       "greetd"
@@ -123,7 +120,7 @@
       plasma = "sddm";
       kde = "sddm";
       lxqt = "sddm";
-      lxde = "lxdm";
+      lxde = "lightdm";
       pantheon = "lightdm";
       budgie = "lightdm";
     };

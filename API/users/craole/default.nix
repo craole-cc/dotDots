@@ -29,7 +29,6 @@
 
   interface = {
     displayProtocol = "wayland";
-    # loginManager = "sddm";
     desktopEnvironment = "plasma";
     windowManager = "hyprland";
     keyboard = {

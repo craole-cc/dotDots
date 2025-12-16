@@ -3,7 +3,7 @@
     ./apps.nix
     ./direnv.nix
 
-    # ./atuin
+    ./atuin
     # ./bash
     # ./bat
     # ./fastfetch

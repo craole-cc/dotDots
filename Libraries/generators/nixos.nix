@@ -35,6 +35,7 @@
     mapAttrs
     (
       name: host: let
+        dots = host.paths.dots or null;
         system = host.platform or builtins.currentSystem;
         hostUsers = attrValues (attrNames host.users or {});
         adminsUsersRaw = filterAttrs (_: isAdmin) host.users;
@@ -222,9 +223,7 @@
                     };
                   };
 
-                  environment = let
-                    dots = host.paths.dots or null;
-                  in {
+                  environment = {
                     shellAliases = {
                       edit-dots = "$EDITOR ${dots}";
                       ide-dots = "$VISUAL ${dots}";

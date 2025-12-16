@@ -163,7 +163,7 @@
       inherit value check;
       exact = false;
     };
-
+  has = isIn;
   /**
   Check if any value(s) exist in the check list (case-sensitive).
 
@@ -286,6 +286,7 @@ in {
   inherit
     checkMembership
     countMatches
+    has
     hasAll
     hasAllExact
     hasAtLeast
