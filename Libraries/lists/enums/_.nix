@@ -7,7 +7,7 @@
   # hardware = import ./hardware.nix {inherit _;};
   # tui = import ./tui.nix {inherit _;};
   # user = import ./user.nix {inherit _;};
-  developmentLanguages = e.dev.languages;
+  developmentLanguages = e.development.languages;
 in {
   # Export everything flat at root
   inherit developmentLanguages;
