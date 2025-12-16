@@ -1,30 +1,12 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib) deepSeq;
   inherit (builtins) tryEval;
-
-  mkTest = expectedOrAttrs: exprOrNull: let
-    args =
-      if isAttrs expectedOrAttrs && expectedOrAttrs ? expected && expectedOrAttrs ? expr
-      then expectedOrAttrs
-      else {
-        expected = expectedOrAttrs;
-        expr = exprOrNull;
-      };
-
-    value = deepSeq args.expr args.expr;
-    passed = args.expected == value;
-  in {
-    expected = args.expected;
-    result = value;
-    inherit passed;
-  };
-
-  isTest = test:
-    isAttrs test
-    && test ? expected
-    && test ? result
-    && test ? passed;
+  inherit (_.types.predicates) isTest;
 
   runTests = tests:
     mapAttrs
@@ -43,6 +25,23 @@
         else runTests test
     )
     tests;
+
+  mkTest = expectedOrAttrs: exprOrNull: let
+    args =
+      if isAttrs expectedOrAttrs && expectedOrAttrs ? expected && expectedOrAttrs ? expr
+      then expectedOrAttrs
+      else {
+        expected = expectedOrAttrs;
+        expr = exprOrNull;
+      };
+
+    value = deepSeq args.expr args.expr;
+    passed = args.expected == value;
+  in {
+    expected = args.expected;
+    result = value;
+    inherit passed;
+  };
 
   # Convenience: assert that an expression throws
   mkThrows = expr:
@@ -71,20 +70,19 @@
     priority = 50;
   };
 
-  testLibs = {
+  exports = {
     inherit
       mkTest
       mkThrows
       mkDefaultStub
       mkEnableOptionStub
       mkForceStub
-      isTest
       runTests
       ;
     inherit tryEval;
   };
 in
-  testLibs
+  exports
   // {
-    _rootAliases = testLibs;
+    _rootAliases = exports;
   }

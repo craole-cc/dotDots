@@ -3,28 +3,11 @@
   lib,
   ...
 }: let
-  inherit
-    (lib.strings)
-    typeOf
-    isAttrs
-    isPath
-    isValidPosixName
-    isConvertibleWithToString
-    isStorePath
-    isString
-    isList
-    isStringLike
-    concatStringsSep
-    ;
-  inherit (lib.trivial) isBool isFunction isFloat isInt;
+  inherit (lib.strings) concatStringsSep;
   inherit (lib.attrsets) attrNames;
   inherit (lib.lists) take length;
-  inherit (_.testing.unit) mkTest runTests mkThrows;
-
-  isBinaryString = s:
-    typeOf s == "string" && (s == "0" || s == "1");
-
-  isSpecial = v: isAttrs v && (v._type or null) != null;
+  inherit (_.types.predicates) typeOf isAttrs isBool isInt;
+  inherit (_.trivial.tests) mkTest runTests mkThrows;
 
   normalizeType = t:
     {
@@ -125,24 +108,7 @@
     then throw (mkError {inherit fnName argName expected actual;})
     else actual;
 in {
-  inherit
-    isAttrs
-    isBinaryString
-    isBool
-    isConvertibleWithToString
-    isFloat
-    isFunction
-    isInt
-    isList
-    isPath
-    isSpecial
-    isStorePath
-    isString
-    isStringLike
-    isValidPosixName
-    mkError
-    validate
-    ;
+  inherit mkError validate;
 
   _rootAliases = {
     mkTypeError = mkError;

@@ -3,8 +3,8 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) isAttrs isDerivation mapAttrs recursiveUpdate;
-  inherit (_.trivial.types) isSpecial;
+  inherit (lib.attrsets) isAttrs isDerivation mapAttrs;
+  inherit (_.types.predicates) isSpecial;
   inherit
     (_.trivial.tests)
     mkTest
