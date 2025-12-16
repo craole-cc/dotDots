@@ -159,6 +159,7 @@
       boot
       environment
       hardware
+      home-manager
       networking
       programs
       services
