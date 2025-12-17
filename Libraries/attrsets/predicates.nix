@@ -8,23 +8,6 @@
   inherit (_.types.generators) validate;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
-  toPath = name:
-    if isList name
-    then name
-    else [name];
-
-  # True if basePath ++ path is true OR has .enable == true
-  isPathEnabled = {
-    attrset,
-    basePath,
-    path,
-  }: let
-    fullPath = basePath ++ toPath path;
-    direct = attrByPath fullPath false attrset;
-    withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
-  in
-    direct == true || withEnable == true;
-
   /**
   Check if any of a set of attributes is effectively enabled.
 
@@ -130,6 +113,23 @@
         }
     )
     ns;
+
+  toPath = name:
+    if isList name
+    then name
+    else [name];
+
+  # True if basePath ++ path is true OR has .enable == true
+  isPathEnabled = {
+    attrset,
+    basePath,
+    path,
+  }: let
+    fullPath = basePath ++ toPath path;
+    direct = attrByPath fullPath false attrset;
+    withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
+  in
+    direct == true || withEnable == true;
 
   waylandWindowManager = config:
     anyEnabled {
