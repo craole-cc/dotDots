@@ -341,10 +341,7 @@ in {
             services.displayManager.gdm.wayland = true;
           };
           basePath = ["services" "displayManager"];
-          names = [
-            ["gdm" "enable"]
-            ["gdm" "wayland"]
-          ];
+          names = ["gdm" ["gdm" "wayland"]];
         };
       };
 
