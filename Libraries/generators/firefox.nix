@@ -81,7 +81,7 @@
     detectedVariant = detectVariant (
       if isNotEmpty variant
       then
-        if with policies; dev || devGui
+        if (policies.dev or false) || (policies.devGui or false)
         then "${variant} dev"
         else variant
       else null
