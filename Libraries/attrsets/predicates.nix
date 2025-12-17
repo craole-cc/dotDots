@@ -5,7 +5,6 @@
 }: let
   inherit (lib.attrsets) attrByPath isAttrs;
   inherit (lib.lists) all any elem isList;
-  inherit (_.types.predicates) typeOf;
   inherit (_.types.generators) validate;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
@@ -25,19 +24,6 @@
     withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
   in
     direct == true || withEnable == true;
-
-  checkArgs = fnName: {
-    attrset,
-    basePath,
-    names,
-  }:
-    if !isAttrs attrset
-    then throw "${fnName}: attrset must be an attribute set, got ${typeOf attrset}"
-    else if !isList basePath
-    then throw "${fnName}: basePath must be a list, got ${typeOf basePath}"
-    else if !isList names
-    then throw "${fnName}: names must be a list, got ${typeOf names}"
-    else null;
 
   /**
   Check if any of a set of attributes is effectively enabled.
@@ -104,7 +90,6 @@
   Type:
     allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
   */
-
   allEnabled = {
     attrset,
     basePath,
@@ -145,19 +130,6 @@
         }
     )
     ns;
-  # allEnabled = {
-  #   attrset,
-  #   basePath,
-  #   names,
-  # }: let
-  #   _ = checkArgs "allEnabled" {inherit attrset basePath names;};
-  # in
-  #   all (name:
-  #     isPathEnabled {
-  #       inherit attrset basePath;
-  #       path = name;
-  #     })
-  #   names;
 
   waylandWindowManager = config:
     anyEnabled {
@@ -205,21 +177,6 @@
       "niri"
     ]);
 
-  /**
-  Heuristic check for Wayland session/system in NixOS + Home Manager configs.
-
-  Considers:
-  - Wayland window managers under `wayland.windowManager.*.enable`
-  - Wayland desktop managers under `services.desktopManager.*`
-  - Display managers where either `.enable` or `.wayland` is true
-  - Explicit interface fields:
-      displayProtocol = "wayland" | "x11"
-      desktopEnvironment = "cosmic" | ...
-      windowManager = "sway" | "hyprland" | "river" | "niri"
-
-  Type:
-    waylandEnabled :: { config :: AttrSet, interface :: AttrSet } -> Bool
-  */
   waylandEnabled = {
     config,
     interface ? {},
