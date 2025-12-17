@@ -1,3 +1,39 @@
+/**
+Firefox browser configuration and variant resolution utilities.
+
+This module provides comprehensive tools for managing Firefox and Firefox-based
+browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
+extension management, and Home Manager module resolution.
+
+Key Features:
+- Automatic variant detection from user strings
+- Support for Zen Browser (twilight/beta) with flake integration
+- Firefox extension URL generation and policy management
+- Unified interface for Firefox, LibreWolf, and Pale Moon
+
+Supported Browsers:
+- Firefox (stable, ESR, beta, nightly, devedition)
+- Zen Browser (twilight, beta)
+- LibreWolf
+- Pale Moon
+
+Common Patterns:
+```nix
+# Resolve browser module from user preference
+browser = getFirefoxModule {
+  inherit inputs pkgs;
+  variant = "zen twilight";
+  policies = { webGui = true; };
+};
+
+# Generate extension settings
+programs.firefox.policies.ExtensionSettings =
+  mkFirefoxExtensionSettings {
+    "uBlock0@raymondhill.net" = { pinned = true; };
+    "addon@darkreader.org" = {};
+  };
+```
+*/
 {
   _,
   lib,
@@ -10,6 +46,39 @@
 
   /**
   Create a Firefox extension download URL.
+
+  Generate the Mozilla Add-ons CDN URL for a given extension ID. This URL
+  format is used in Firefox policies for automated extension installation.
+
+  # Type
+  ```
+  mkExtensionUrl :: String -> String
+  ```
+
+  # Arguments
+  - `id`: The Firefox extension ID (usually ends in @domain or @creator)
+
+  # Returns
+  A string containing the full CDN download URL
+
+  # Examples
+  ```nix
+  mkExtensionUrl "uBlock0@raymondhill.net"
+  # => "https://addons.mozilla.org/firefox/downloads/latest/uBlock0@raymondhill.net/latest.xpi"
+
+  mkExtensionUrl "addon@darkreader.org"
+  # => "https://addons.mozilla.org/firefox/downloads/latest/addon@darkreader.org/latest.xpi"
+  ```
+
+  # Use Cases
+  - Generating install_url for Firefox policies
+  - Automated extension deployment
+  - Extension management in declarative configs
+
+  # Notes
+  - Extension ID format varies (often @author.domain or @organization)
+  - Find extension IDs from about:support → Extensions in Firefox
+  - URL always points to latest version of the extension
   */
   mkExtensionUrl = id: "https://addons.mozilla.org/firefox/downloads/latest/${id}/latest.xpi";
 
