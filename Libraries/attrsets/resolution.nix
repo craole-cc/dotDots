@@ -139,7 +139,7 @@
     target,
     default ? {},
   }:
-    map (parent: [parent target]) (toList parents);
+    map (parent: parent target) (toList parents);
   # getByPaths {
   #   inherit attrset default;
   #   paths = map (parent: [parent target]) (toList paths);
