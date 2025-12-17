@@ -139,11 +139,10 @@
     target,
     default ? {},
   }:
-    map (parent: [parent] ++ toList target) (toList parents);
-  # getByPaths {
-  #   inherit attrset default;
-  #   paths = map (parent: [parent target]) (toList paths);
-  # };
+    getByPaths {
+      inherit attrset default;
+      paths = map (parent: [parent] ++ toList target) (toList parents);
+    };
 
   /**
   Get a package from pkgs by trying multiple names.
