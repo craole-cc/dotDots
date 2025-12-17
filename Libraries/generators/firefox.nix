@@ -3,6 +3,41 @@
   lib,
   ...
 }: let
+  moduleDoc = ''
+    This module provides comprehensive tools for managing Firefox and Firefox-based
+    browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
+    extension management, and Home Manager module resolution.
+
+    Key Features:
+    - Automatic variant detection from user strings
+    - Support for Zen Browser (twilight/beta) with flake integration
+    - Firefox extension URL generation and policy management
+    - Unified interface for Firefox, LibreWolf, and Pale Moon
+
+    Supported Browsers:
+    - Firefox (stable, ESR, beta, nightly, devedition)
+    - Zen Browser (twilight, beta)
+    - LibreWolf
+    - Pale Moon
+
+    Common Patterns:
+    ```nix
+    # Resolve browser module from user preference
+    browser = getFirefoxModule {
+      inherit inputs pkgs;
+      variant = "zen twilight";
+      policies = { webGui = true; };
+    };
+
+    # Generate extension settings
+    programs.firefox.policies.ExtensionSettings =
+      mkFirefoxExtensionSettings {
+        "uBlock0@raymondhill.net" = { pinned = true; };
+        "addon@darkreader.org" = {};
+      };
+    ```
+  '';
+
   inherit (lib.attrsets) mapAttrs isAttrs optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
@@ -484,61 +519,24 @@
     else if hasInfix "beta" detectedVariant
     then "beta"
     else "twilight";
-in
-  /**
-  Firefox browser configuration and variant resolution utilities.
+in {
+  # Module-level documentation
+  __doc = "Firefox browser configuration and variant resolution utilities.\n\n${moduleDoc}";
 
-  This module provides comprehensive tools for managing Firefox and Firefox-based
-  browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
-  extension management, and Home Manager module resolution.
+  inherit
+    extensionUrl
+    zenVariant
+    extensionEntry
+    extensionSettings
+    detectVariant
+    resolveModule
+    ;
 
-  Key Features:
-  - Automatic variant detection from user strings
-  - Support for Zen Browser (twilight/beta) with flake integration
-  - Firefox extension URL generation and policy management
-  - Unified interface for Firefox, LibreWolf, and Pale Moon
-
-  Supported Browsers:
-  - Firefox (stable, ESR, beta, nightly, devedition)
-  - Zen Browser (twilight, beta)
-  - LibreWolf
-  - Pale Moon
-
-  Common Patterns:
-  ```nix
-  # Resolve browser module from user preference
-  browser = getFirefoxModule {
-    inherit inputs pkgs;
-    variant = "zen twilight";
-    policies = { webGui = true; };
+  _rootAliases = {
+    mkFirefoxExtensionUrl = extensionUrl;
+    mkFirefoxExtensionEntry = extensionEntry;
+    mkFirefoxExtensionSettings = extensionSettings;
+    detectFirefoxVariant = detectVariant;
+    getFirefoxModule = resolveModule;
   };
-
-  # Generate extension settings
-  programs.firefox.policies.ExtensionSettings =
-    mkFirefoxExtensionSettings {
-      "uBlock0@raymondhill.net" = { pinned = true; };
-      "addon@darkreader.org" = {};
-    };
-  ```
-  */
-  {
-    /**
-    DOCS
-    */
-    inherit
-      extensionUrl
-      zenVariant
-      extensionEntry
-      extensionSettings
-      detectVariant
-      resolveModule
-      ;
-
-    _rootAliases = {
-      mkFirefoxExtensionUrl = extensionUrl;
-      mkFirefoxExtensionEntry = extensionEntry;
-      mkFirefoxExtensionSettings = extensionSettings;
-      detectFirefoxVariant = detectVariant;
-      getFirefoxModule = resolveModule;
-    };
-  }
+}

@@ -50,25 +50,10 @@
     ".old.nix"
   ],
 }: let
-  inherit (builtins) readDir;
-  inherit
-    (lib.attrsets)
-    attrNames
-    foldlAttrs
-    isAttrs
-    mapAttrs
-    mapAttrsRecursive
-    removeAttrs
-    ;
+  inherit (builtins) readDir attrNames;
+  inherit (lib.attrsets) foldlAttrs mapAttrs mapAttrsRecursive removeAttrs;
   inherit (lib.fixedPoints) makeExtensible;
-  inherit
-    (lib.strings)
-    hasPrefix
-    hasSuffix
-    removeSuffix
-    splitString
-    typeOf
-    ;
+  inherit (lib.strings) hasPrefix hasSuffix removeSuffix splitString;
   inherit (lib.lists) elem filter foldl';
   inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
@@ -170,65 +155,25 @@
         then let
           moduleName = removeSuffix ".nix" entryName;
           rawModule = import (dir + "/${entryName}");
-          #   #> Import module with environment
-          #   imported =
-          #     if isFunction rawModule
-          #     then let
-          #       result = rawModule env;
-          #     in
-          #       if result == null || !(builtins.isAttrs result)
-          #       then throw "Module ${entryName} must return an attribute set, got ${builtins.typeOf result}"
-          #       else result
-          #     else if builtins.isAttrs rawModule
-          #     then rawModule
-          #     else throw "Module ${entryName} must be either a function or attribute set";
-          #   # Extract root aliases if present
-          #   rootAliases = imported._rootAliases or {};
-          #   #> Filter private functions based on config
-          #   allAttrs = attrNames imported;
-          #   attrsToRemove =
-          #     ["_rootAliases"]
-          #     ++ (
-          #       if exportPrivate
-          #       then []
-          #       else
-          #         filter (
-          #           name:
-          #             hasPrefix "_" name
-          #             && name != "_rootAliases"
-          #             && name != "_tests"
-          #             && name != "_doc"
-          #         )
-          #         allAttrs
-          #     )
-          #     ++ (
-          #       if !runTests
-          #       then ["_tests"] # Only remove _tests if runTests is false
-          #       else []
-          #     );
-          #   cleanModule = removeAttrs imported attrsToRemove;
-          # in {
-          #   modules = {${moduleName} = cleanModule;};
-          #   rootAliases = rootAliases;
-          # }
+
           #> Import module with environment
-          importedModule =
+          imported =
             if isFunction rawModule
             then let
               result = rawModule env;
             in
-              if result == null || !(isAttrs result)
-              then throw "Module ${entryName} must return an attribute set, got ${typeOf result}"
+              if result == null || !(builtins.isAttrs result)
+              then throw "Module ${entryName} must return an attribute set, got ${builtins.typeOf result}"
               else result
-            else if isAttrs rawModule
+            else if builtins.isAttrs rawModule
             then rawModule
             else throw "Module ${entryName} must be either a function or attribute set";
 
           # Extract root aliases if present
-          rootAliases = importedModule._rootAliases or {};
+          rootAliases = imported._rootAliases or {};
 
           #> Filter private functions based on config
-          allAttrs = attrNames importedModule;
+          allAttrs = attrNames imported;
           attrsToRemove =
             ["_rootAliases"]
             ++ (
@@ -239,8 +184,8 @@
                   name:
                     hasPrefix "_" name
                     && name != "_rootAliases"
-                    && name != "_tests" # Exclude _tests from this filter
-                    && name != "__meta" # Don't remove __meta
+                    && name != "_tests"
+                    && name != "_doc"
                 )
                 allAttrs
             )
@@ -250,22 +195,9 @@
               else []
             );
 
-          cleanModule = removeAttrs importedModule attrsToRemove;
-
-          # Add metadata to the module
-          moduleWithMeta =
-            cleanModule
-            // {
-              __meta = {
-                file = dir + "/${entryName}";
-                name = moduleName;
-                path = "${dir}/${entryName}";
-                # Store the source location for documentation
-                __toString = self: toString self.file;
-              };
-            };
+          cleanModule = removeAttrs imported attrsToRemove;
         in {
-          modules = {${moduleName} = moduleWithMeta;};
+          modules = {${moduleName} = cleanModule;};
           rootAliases = rootAliases;
         }
         else scanResults;
