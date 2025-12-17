@@ -1,28 +1,11 @@
 {
   lib ? import <nixpkgs/lib>,
   name ? "lix",
-  #| Collision Strategy
-  #? Options: "warn", "error", "prefer-custom", "prefer-nixpkgs"
   collisionStrategy ? "warn",
-  #| Performance Options
-  #? Load modules only when accessed (experimental)
-  enableLazyLoading ? false,
-  #? Cache module imports to avoid re-evaluation
-  enableCaching ? true,
-  #| Safety & Validation
-  #? Detect circular dependencies
-  enableCycleDetection ? true,
-  #? Validate module exports
-  enableTypeChecking ? true,
-  #| Testing & Debugging
-  #? Automatically run module tests on load
+  # enableCaching ? true,
   runTests ? true,
-  #? Enable verbose logging
-  debugMode ? true,
-  #| Export Options
-  #? Export functions starting with underscore
+  # debugMode ? true,
   exportPrivate ? false,
-  #| Directory Exclusions
   excludedDirs ? [
     "review"
     "archive"
@@ -35,13 +18,10 @@
     "experimental"
     "backup"
   ],
-  #| File Exclusions
   excludedFiles ? [
     "default.nix"
-    # "_.nix"
     "flake.nix"
   ],
-  #| File Pattern Exclusions
   excludedPatterns ? [
     " copy.nix"
     ".test.nix"
@@ -57,8 +37,6 @@
     foldlAttrs
     isAttrs
     mapAttrs
-    mapAttrsRecursive
-    optionalAttrs
     removeAttrs
     ;
   inherit (lib.fixedPoints) makeExtensible;
@@ -67,61 +45,10 @@
     hasPrefix
     hasSuffix
     removeSuffix
-    splitString
     ;
   inherit (lib.lists) elem filter foldl';
   inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
-
-  # Debug logging utility
-  debug = msg: value:
-    if debugMode
-    then trace "[LibLoader] ${msg}" value
-    else value;
-
-  # Import cache for memoization
-  importCache = {};
-
-  # Helper to extract documentation from a file
-  extractDoc = path: let
-    content = builtins.readFile path;
-    # Simple approach: extract first documentation block
-    # Match /** ... */ (single-line for now)
-    lines = builtins.split "\n" content;
-    inDoc = false;
-    docLines = [];
-
-    # Simple state machine to extract doc
-    processLine = line: state: let
-      trimmed = builtins.replaceStrings [" " "\t"] ["" ""] line;
-    in
-      if !state.inDoc && builtins.substring 0 3 trimmed == "/**"
-      then {
-        inDoc = true;
-        lines = state.lines ++ [builtins.substring 3 (builtins.stringLength line - 3) line];
-      }
-      else if state.inDoc && builtins.substring 0 2 trimmed == "*/"
-      then {
-        inDoc = false;
-        lines = state.lines;
-      }
-      else if state.inDoc
-      then {
-        inherit (state) inDoc;
-        lines = state.lines ++ [line];
-      }
-      else state;
-
-    result =
-      builtins.foldl' (state: line: processLine line state) {
-        inDoc = false;
-        lines = [];
-      }
-      lines;
-  in
-    if result.lines != []
-    then builtins.concatStringsSep "\n" result.lines
-    else null;
 
   #| Extensible Library Initializaton
   customLib = makeExtensible (self: let
@@ -183,7 +110,7 @@
       #~@ Check if a directory should be excluded
       isExcludedDir = dirName:
         elem dirName excludedDirs
-        || (hasPrefix "." dirName); # Always exclude hidden directories
+        || (hasPrefix "." dirName);
 
       #~@ Check if a file should be excluded
       isExcludedFile = fileName:
@@ -212,16 +139,8 @@
           moduleName = removeSuffix ".nix" entryName;
           filePath = dir + "/${entryName}";
 
-          # Cache the import if caching is enabled
-          rawModule =
-            if enableCaching && importCache ? ${toString filePath}
-            then importCache.${toString filePath}
-            else let
-              imported = import filePath;
-            in
-              if enableCaching
-              then importCache // {${toString filePath} = imported;}
-              else imported;
+          # Import the module
+          rawModule = import filePath;
 
           importedModule =
             if isFunction rawModule
@@ -250,33 +169,19 @@
                   name:
                     hasPrefix "_" name
                     && name != "_rootAliases"
-                    && name != "_tests" # Exclude _tests from this filter
-                    && name != "__meta" # Don't remove __meta
-                    && name != "__doc" # Don't remove __doc
+                    && name != "_tests"
                 )
                 allAttrs
             )
             ++ (
               if !runTests
-              then ["_tests"] # Only remove _tests if runTests is false
+              then ["_tests"]
               else []
             );
 
           cleanModule = removeAttrs importedModule attrsToRemove;
-
-          # Add metadata to the module
-          moduleWithMeta =
-            cleanModule
-            // {
-              __meta = {
-                file = filePath;
-                name = moduleName;
-                path = "${toString dir}/${entryName}";
-                __toString = self: toString self.file;
-              };
-            };
         in {
-          modules = {${moduleName} = moduleWithMeta;};
+          modules = {${moduleName} = cleanModule;};
           rootAliases = rootAliases;
         }
         else scanResults;
@@ -310,51 +215,11 @@
         then throw "Root aliases collide with modules: ${toString collisions}"
         else if collisionStrategy == "warn"
         then trace "WARNING: Root aliases override modules for: ${toString collisions}" (results.modules // results.rootAliases)
-        else results.modules // results.rootAliases # Default/prefer-custom
+        else results.modules // results.rootAliases
       else results.modules // results.rootAliases;
   in
     library);
 
-  /**
-    Extend the library with new functions or overrides.
-
-    # Type
-    ```nix
-    extend :: (Self -> Super -> AttrSet) -> AttrSet
-
-  Arguments
-  f: A function that takes two arguments:
-
-  self: The new library instance (for forward references)
-
-  super: The current library instance
-
-  Returns: An attribute set of new or overridden functions.
-
-  Returns
-  A new library instance with the extensions applied.
-
-  Examples
-  let
-    extended = _lib.extend (self: super: {
-      # Add a new function
-      newFunction = "I'm new!";
-
-      # Override an existing function
-      makeFirefoxExtensionUrl = id: "https://custom.example.com/${id}";
-
-      # Add a new module
-      utils = super.utils or {} // {
-        helper = x: x * 2;
-      };
-    });
-  in
-    {
-      original = _lib.makeFirefoxExtensionUrl "test";
-      extended = extended.makeFirefoxExtensionUrl "test";
-      new = extended.newFunction;
-    }
-  */
   extend = f: customLib.extend f;
 
   finalLib =
