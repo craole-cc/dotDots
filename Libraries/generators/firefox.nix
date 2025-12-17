@@ -12,17 +12,17 @@
   /**
   Create a Firefox extension download URL.
   */
-  makeExtensionUrl = id: "https://addons.mozilla.org/firefox/downloads/latest/${id}/latest.xpi";
+  mkExtensionUrl = id: "https://addons.mozilla.org/firefox/downloads/latest/${id}/latest.xpi";
 
   /**
   Create a Firefox extension policy entry.
   */
-  makeExtensionEntry = {
+  mkExtensionEntry = {
     id,
     pinned ? false,
   }: let
     base = {
-      install_url = makeExtensionUrl id;
+      install_url = mkExtensionUrl id;
       installation_mode = "force_installed";
     };
   in
@@ -33,10 +33,10 @@
   /**
   Create Firefox extension settings from a simplified format.
   */
-  makeExtensionSettings = mapAttrs (_: entry:
+  mkExtensionSettings = mapAttrs (_: entry:
     if isAttrs entry
     then entry
-    else makeExtensionEntry {id = entry;});
+    else mkExtensionEntry {id = entry;});
 
   /**
   Detect Firefox variant from input string.
@@ -133,20 +133,20 @@
 in {
   # Regular module exports (under applications.firefox.*)
   inherit
-    makeExtensionUrl
+    mkExtensionUrl
     zenVariant
-    makeExtensionEntry
-    makeExtensionSettings
+    mkExtensionEntry
+    mkExtensionSettings
     detectVariant
     resolveModule
     ;
 
   # Root aliases (exposed at _lib.*)
   _rootAliases = {
-    makeFirefoxExtensionUrl = makeExtensionUrl;
-    makeFirefoxExtensionEntry = makeExtensionEntry;
-    makeFirefoxExtensionSettings = makeExtensionSettings;
+    mkFirefoxExtensionUrl = mkExtensionUrl;
+    mkFirefoxExtensionEntry = mkExtensionEntry;
+    mkFirefoxExtensionSettings = mkExtensionSettings;
     detectFirefoxVariant = detectVariant;
-    resolveFirefoxModule = resolveModule;
+    getFirefoxModule = resolveModule;
   };
 }
