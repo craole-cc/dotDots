@@ -105,10 +105,12 @@
           paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
           target = "homeModules.${zenVariant}";
         };
+        variant = zenVariant;
       }
       else {
         name = null;
         module = null;
+        variant = null;
       };
 
     #~@ Resolve package from nixpkgs
