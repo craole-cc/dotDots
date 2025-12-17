@@ -101,10 +101,7 @@
   allEnabled {
     attrset = config;
     basePath = [ "services" "displayManager" ];
-    names = [
-      [ "gdm" "enable" ]
-      [ "gdm" "wayland" ]
-    ];
+    names = [ "gdm" [ "gdm" "wayland" ] ];
   }
   # => true if both services.displayManager.gdm.enable and gdm.wayland are true
   ```
