@@ -5,7 +5,7 @@
   enableCaching ? true,
   runTests ? true,
   debugMode ? false,
-  exportPrivate ? false,
+  exportPrivate ? true,
   excludedDirs ? [
     "review"
     "archive"
