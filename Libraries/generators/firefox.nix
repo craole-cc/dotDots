@@ -114,7 +114,7 @@
       else null;
 
     #~@ Check if configuration exists
-    exists = policies.webGui && isNotEmpty program;
+    exists = (policies.webGui or false) && isNotEmpty program;
   in {
     inherit program zen package exists;
     variant = detectedVariant;
