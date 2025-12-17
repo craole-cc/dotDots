@@ -62,9 +62,9 @@
   #   hostFunctionalities = e.hardware.functionalities;
   # };
 in
-  import ./predicates.nix
+  {inherit (import ./predicates.nix) typeOf;}
   // {
-    _rootAliases = import ./predicates.nix;
+    _rootAliases = {inherit (import ./predicates.nix) typeOf;};
     # _tests = runTests {
     #   #? Test structure exists
     #   hasValues = mkTest {
