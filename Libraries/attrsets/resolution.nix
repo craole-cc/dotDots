@@ -310,6 +310,11 @@
       shellName
     }
     or pkgs.bashInteractive;
+
+  optional = attrs: name:
+    if attrs ? ${name} && _.isNotEmpty attrs.${name}
+    then {${name} = attrs.${name};}
+    else {};
 in {
   inherit
     get
@@ -318,6 +323,7 @@ in {
     getNestedByPaths
     getPackage
     getShellPackage
+    optional
     ;
 
   _rootAliases = {
@@ -326,5 +332,6 @@ in {
     getAttrByPaths = getByPaths;
     getNestedAttrByPaths = getNestedByPaths;
     getAttrOrNull = getOrNull;
+    optionalAttr = optional;
   };
 }
