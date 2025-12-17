@@ -2,9 +2,7 @@
   lib ? import <nixpkgs/lib>,
   name ? "lix",
   collisionStrategy ? "warn",
-  # enableCaching ? true,
   runTests ? true,
-  # debugMode ? true,
   exportPrivate ? false,
   excludedDirs ? [
     "review"
@@ -38,6 +36,7 @@
     isAttrs
     mapAttrs
     removeAttrs
+    getAttrFromPath
     ;
   inherit (lib.fixedPoints) makeExtensible;
   inherit
@@ -47,7 +46,7 @@
     removeSuffix
     ;
   inherit (lib.lists) elem filter foldl';
-  inherit (builtins) trace;
+  inherit (builtins) trace attrValues;
   inherit (lib.trivial) isFunction;
 
   #| Extensible Library Initializaton
@@ -105,6 +104,7 @@
       scanResults = {
         modules = {}; # Module tree structure
         rootAliases = {}; # Functions to expose at root level
+        metadata = {}; # Store metadata separately
       };
 
       #~@ Check if a directory should be excluded
@@ -132,6 +132,7 @@
             then {${entryName} = processed.modules;}
             else {};
           rootAliases = processed.rootAliases;
+          metadata = processed.metadata;
         }
         #> Process .nix files
         else if entryType == "regular" && hasSuffix ".nix" entryName && !isExcludedFile entryName
@@ -180,9 +181,25 @@
             );
 
           cleanModule = removeAttrs importedModule attrsToRemove;
+
+          # Store metadata
+          moduleMetadata = {
+            file = filePath;
+            name = moduleName;
+            path = "${toString dir}/${entryName}";
+            hasDoc = cleanModule ? __doc;
+          };
+
+          # Create module with metadata
+          moduleWithMeta =
+            cleanModule
+            // {
+              __meta = moduleMetadata;
+            };
         in {
-          modules = {${moduleName} = cleanModule;};
+          modules = {${moduleName} = moduleWithMeta;};
           rootAliases = rootAliases;
+          metadata = {${moduleName} = moduleMetadata;};
         }
         else scanResults;
 
@@ -193,6 +210,7 @@
         foldlAttrs (acc: _: value: {
           modules = acc.modules // value.modules;
           rootAliases = acc.rootAliases // value.rootAliases;
+          metadata = acc.metadata // value.metadata;
         })
         scanResults
         processed;
@@ -218,15 +236,98 @@
         else results.modules // results.rootAliases
       else results.modules // results.rootAliases;
   in
-    library);
+    library
+    // {
+      # Add metadata accessor functions
+      __libMeta = {
+        modules = results.metadata;
+        rootAliases = results.rootAliases;
+      };
+
+      # Helper to get module documentation
+      getModuleDoc = path: let
+        module = getAttrFromPath path self;
+      in
+        if module ? __doc
+        then module.__doc
+        else null;
+
+      # Helper to get module metadata
+      getModuleMeta = path: let
+        module = getAttrFromPath path self;
+      in
+        if module ? __meta
+        then module.__meta
+        else null;
+
+      # Helper to get all modules with their metadata
+      listModules = let
+        flattenMetadata = metadata: let
+          go = path: value:
+            if value ? file # This is a leaf module
+            then [
+              {
+                path = path;
+                meta = value;
+              }
+            ]
+            else
+              # This is a directory, recurse
+              attrValues (mapAttrs (name: val: go (path ++ [name]) val) value);
+        in
+          go [] metadata;
+      in
+        flattenMetadata results.metadata;
+    });
 
   extend = f: customLib.extend f;
 
+  # Add top-level documentation helpers
   finalLib =
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
     // {
       inherit extend lib;
       std = lib;
+
+      # Documentation system
+      doc = {
+        # Get documentation for any path in the library
+        get = path: let
+          value = getAttrFromPath path customLib;
+        in
+          if isFunction value
+          then {
+            type = "function";
+            value = value;
+            # Nix will attach function docs automatically
+          }
+          else if isAttrs value && value ? __doc
+          then {
+            type = "module";
+            value = value;
+            doc = value.__doc;
+            meta = value.__meta or null;
+          }
+          else if isAttrs value
+          then {
+            type = "module";
+            value = value;
+            meta = value.__meta or null;
+          }
+          else {
+            type = "value";
+            value = value;
+          };
+
+        # List all modules with their paths
+        list = customLib.listModules;
+
+        # Get metadata for a module
+        meta = path: customLib.getModuleMeta path;
+
+        # Get documentation for a module
+        module = path: customLib.getModuleDoc path;
+      };
     };
 in {
   ${name} = finalLib;
