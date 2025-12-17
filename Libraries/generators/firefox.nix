@@ -27,26 +27,6 @@ Supported Browsers:
   inherit (lib.strings) hasInfix substring stringLength;
   inherit (_) isEmpty isNotEmpty getNestedAttrByPaths getPackage getAttr;
 
-  __doc = ''
-    Firefox browser configuration and variant resolution utilities.
-
-    This module provides comprehensive tools for managing Firefox and Firefox-based
-    browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
-    extension management, and Home Manager module resolution.
-
-    Key Features:
-    - Automatic variant detection from user strings
-    - Support for Zen Browser (twilight/beta) with flake integration
-    - Firefox extension URL generation and policy management
-    - Unified interface for Firefox, LibreWolf, and Pale Moon
-
-    Supported Browsers:
-    - Firefox (stable, ESR, beta, nightly, devedition)
-    - Zen Browser (twilight, beta)
-    - LibreWolf
-    - Pale Moon
-  '';
-
   /**
   Create a Firefox extension download URL.
 
@@ -524,12 +504,27 @@ Supported Browsers:
     then "beta"
     else "twilight";
 in {
-  #~@ Values
-  version = "1.0.0";
-  defaultSettings = {pinned = false;};
+  __doc = ''
+    Firefox browser configuration and variant resolution utilities.
+
+    This module provides comprehensive tools for managing Firefox and Firefox-based
+    browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
+    extension management, and Home Manager module resolution.
+
+    Key Features:
+    - Automatic variant detection from user strings
+    - Support for Zen Browser (twilight/beta) with flake integration
+    - Firefox extension URL generation and policy management
+    - Unified interface for Firefox, LibreWolf, and Pale Moon
+
+    Supported Browsers:
+    - Firefox (stable, ESR, beta, nightly, devedition)
+    - Zen Browser (twilight, beta)
+    - LibreWolf
+    - Pale Moon
+  '';
 
   inherit
-    # __doc
     extensionUrl
     zenVariant
     extensionEntry
