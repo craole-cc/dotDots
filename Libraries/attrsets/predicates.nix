@@ -58,14 +58,82 @@
     basePath,
     names,
   }: let
-    _ = checkArgs "anyEnabled" {inherit attrset basePath names;};
+    fnName = "anyEnabled";
+
+    as = validate {
+      inherit fnName;
+      argName = "attrset";
+      expected = "set";
+      predicate = isAttrs;
+      actual = attrset;
+    };
+
+    bp = validate {
+      inherit fnName;
+      argName = "basePath";
+      expected = "list";
+      predicate = isList;
+      actual = basePath;
+    };
+
+    ns = validate {
+      inherit fnName;
+      argName = "names";
+      expected = "list";
+      predicate = isList;
+      actual = names;
+    };
   in
-    any (name:
-      isPathEnabled {
-        inherit attrset basePath;
-        path = name;
-      })
-    names;
+    any (
+      name:
+        isPathEnabled {
+          attrset = as;
+          basePath = bp;
+          path = name;
+        }
+    )
+    ns;
+
+  allEnabled = {
+    attrset,
+    basePath,
+    names,
+  }: let
+    fnName = "allEnabled";
+
+    as = validate {
+      inherit fnName;
+      argName = "attrset";
+      expected = "set";
+      predicate = isAttrs;
+      actual = attrset;
+    };
+
+    bp = validate {
+      inherit fnName;
+      argName = "basePath";
+      expected = "list";
+      predicate = isList;
+      actual = basePath;
+    };
+
+    ns = validate {
+      inherit fnName;
+      argName = "names";
+      expected = "list";
+      predicate = isList;
+      actual = names;
+    };
+  in
+    all (
+      name:
+        isPathEnabled {
+          attrset = as;
+          basePath = bp;
+          path = name;
+        }
+    )
+    ns;
 
   /**
   Check if all of a set of attributes are effectively enabled.
