@@ -80,7 +80,7 @@
     inputs,
     pkgs,
     system ? "x86_64-linux",
-    variant,
+    variant ? "firefox",
     policies ? {},
   }: let
     #~@ Parse the proper variant name
