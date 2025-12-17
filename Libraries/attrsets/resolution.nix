@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) hasAttrByPath attrByPath;
   inherit (lib.lists) filter head toList;
-  inherit (_.predicates.emptiness) isNotEmpty;
+  inherit (_) isNotEmpty;
 
   /**
   Get an attribute by trying multiple paths.
