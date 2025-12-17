@@ -164,6 +164,8 @@ in
       pkgs
       ;
 
+    inherit (all) inputs;
+
     #~@ Convenient shortcuts to config sections
     inherit
       (currentHost.config)
