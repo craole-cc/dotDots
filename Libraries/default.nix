@@ -68,7 +68,6 @@
     hasSuffix
     removeSuffix
     splitString
-    typeOf
     ;
   inherit (lib.lists) elem filter foldl';
   inherit (builtins) trace;
@@ -86,12 +85,42 @@
   # Helper to extract documentation from a file
   extractDoc = path: let
     content = builtins.readFile path;
-    # Simple regex to extract documentation comments at the top of the file
-    # This matches /** ... */ style comments
-    docMatch = builtins.match ''/\*\*([^*]*\*+(?:[^/*][^*]*\*+)*)/'' content;
+    # Simple approach: extract first documentation block
+    # Match /** ... */ (single-line for now)
+    lines = builtins.split "\n" content;
+    inDoc = false;
+    docLines = [];
+
+    # Simple state machine to extract doc
+    processLine = line: state: let
+      trimmed = builtins.replaceStrings [" " "\t"] ["" ""] line;
+    in
+      if !state.inDoc && builtins.substring 0 3 trimmed == "/**"
+      then {
+        inDoc = true;
+        lines = state.lines ++ [builtins.substring 3 (builtins.stringLength line - 3) line];
+      }
+      else if state.inDoc && builtins.substring 0 2 trimmed == "*/"
+      then {
+        inDoc = false;
+        lines = state.lines;
+      }
+      else if state.inDoc
+      then {
+        inherit (state) inDoc;
+        lines = state.lines ++ [line];
+      }
+      else state;
+
+    result =
+      builtins.foldl' (state: line: processLine line state) {
+        inDoc = false;
+        lines = [];
+      }
+      lines;
   in
-    if docMatch != null
-    then builtins.head docMatch
+    if result.lines != []
+    then builtins.concatStringsSep "\n" result.lines
     else null;
 
   #| Extensible Library Initializaton
@@ -181,21 +210,33 @@
         else if entryType == "regular" && hasSuffix ".nix" entryName && !isExcludedFile entryName
         then let
           moduleName = removeSuffix ".nix" entryName;
-          rawModule = import (dir + "/${entryName}");
+          filePath = dir + "/${entryName}";
+
+          # Cache the import if caching is enabled
+          rawModule =
+            if enableCaching && importCache ? ${toString filePath}
+            then importCache.${toString filePath}
+            else let
+              imported = import filePath;
+            in
+              if enableCaching
+              then importCache // {${toString filePath} = imported;}
+              else imported;
+
           importedModule =
             if isFunction rawModule
             then let
               result = rawModule env;
             in
               if result == null || !(isAttrs result)
-              then throw "Module ${entryName} must return an attribute set, got ${typeOf result}"
+              then throw "Module ${entryName} must return an attribute set, got ${builtins.typeOf result}"
               else result
             else if isAttrs rawModule
             then rawModule
             else throw "Module ${entryName} must be either a function or attribute set";
 
           # Extract root aliases if present
-          # rootAliases = importedModule._rootAliases or {};
+          rootAliases = importedModule._rootAliases or {};
 
           #> Filter private functions based on config
           allAttrs = attrNames importedModule;
@@ -211,6 +252,7 @@
                     && name != "_rootAliases"
                     && name != "_tests" # Exclude _tests from this filter
                     && name != "__meta" # Don't remove __meta
+                    && name != "__doc" # Don't remove __doc
                 )
                 allAttrs
             )
@@ -223,22 +265,19 @@
           cleanModule = removeAttrs importedModule attrsToRemove;
 
           # Add metadata to the module
-          moduleDoc = extractDoc (dir + "/${entryName}");
           moduleWithMeta =
             cleanModule
             // {
               __meta = {
-                file = dir + "/${entryName}";
+                file = filePath;
                 name = moduleName;
-                path = "${dir}/${entryName}";
-                # Store the source location for documentation
+                path = "${toString dir}/${entryName}";
                 __toString = self: toString self.file;
               };
-            }
-            // optionalAttrs (moduleDoc != null) {__doc = moduleDoc;};
+            };
         in {
           modules = {${moduleName} = moduleWithMeta;};
-          rootAliases = importedModule._rootAliases or {};
+          rootAliases = rootAliases;
         }
         else scanResults;
 
@@ -318,35 +357,11 @@
   */
   extend = f: customLib.extend f;
 
-  # Function to expose modules with their metadata
-  exposeModules = modules: let
-    # Function to convert module path to attribute path
-    pathToAttrs = path:
-      foldl'
-      (acc: part: acc // {${part} = acc.${part} or {};})
-      {}
-      (splitString "/" (removeSuffix ".nix" (toString path)));
-
-    # Build a flat attribute set with all modules
-    flatModules =
-      mapAttrsRecursive
-      (
-        path: module:
-          if module ? __meta
-          then module
-          else module
-      )
-      modules;
-  in
-    flatModules;
-
   finalLib =
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
     // {
       inherit extend lib;
       std = lib;
-      # Expose modules with their paths
-      __modules = exposeModules customLib;
     };
 in {
   ${name} = finalLib;
