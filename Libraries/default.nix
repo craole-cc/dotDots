@@ -170,6 +170,8 @@
                     hasPrefix "_" name
                     && name != "_rootAliases"
                     && name != "_tests"
+                    && name != "__meta"
+                    && name != "__doc"
                 )
                 allAttrs
             )
@@ -180,8 +182,19 @@
             );
 
           cleanModule = removeAttrs importedModule attrsToRemove;
+
+          # Add metadata to the module
+          moduleWithMeta =
+            cleanModule
+            // {
+              __meta = {
+                file = filePath;
+                name = moduleName;
+                path = "${toString dir}/${entryName}";
+              };
+            };
         in {
-          modules = {${moduleName} = cleanModule;};
+          modules = {${moduleName} = moduleWithMeta;};
           rootAliases = rootAliases;
         }
         else scanResults;
