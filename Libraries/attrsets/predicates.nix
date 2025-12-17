@@ -269,32 +269,35 @@ in {
 
   _tests = runTests {
     anyEnabled = {
-      detectsEnabled = mkTest true (
-        anyEnabled {
+      detectsEnabled = mkTest {
+        expected = true;
+        expr = anyEnabled {
           attrset = {
             services.nginx.enable = true;
             services.apache.enable = false;
           };
           basePath = ["services"];
           names = ["nginx" "apache"];
-        }
-      );
+        };
+      };
 
-      returnsFalseWhenNoneEnabled = mkTest false (
-        anyEnabled {
+      returnsFalseWhenNoneEnabled = mkTest {
+        expected = false;
+        expr = anyEnabled {
           attrset = {services.nginx.enable = false;};
           basePath = ["services"];
           names = ["nginx" "apache"];
-        }
-      );
+        };
+      };
 
-      handlesEmptyNames = mkTest false (
-        anyEnabled {
+      handlesEmptyNames = mkTest {
+        expected = false;
+        expr = anyEnabled {
           attrset = {};
           basePath = ["services"];
           names = [];
-        }
-      );
+        };
+      };
 
       rejectsInvalidAttrset = mkThrows (
         anyEnabled {
@@ -306,30 +309,33 @@ in {
     };
 
     allEnabled = {
-      detectsAllEnabled = mkTest true (
-        allEnabled {
+      detectsAllEnabled = mkTest {
+        expected = true;
+        expr = allEnabled {
           attrset = {
             services.nginx.enable = true;
             services.postgresql.enable = true;
           };
           basePath = ["services"];
           names = ["nginx" "postgresql"];
-        }
-      );
+        };
+      };
 
-      detectsOneDisabled = mkTest false (
-        allEnabled {
+      detectsOneDisabled = mkTest {
+        expected = false;
+        expr = allEnabled {
           attrset = {
             services.nginx.enable = true;
             services.postgresql.enable = false;
           };
           basePath = ["services"];
           names = ["nginx" "postgresql"];
-        }
-      );
+        };
+      };
 
-      handlesNestedPaths = mkTest true (
-        allEnabled {
+      handlesNestedPaths = mkTest {
+        expected = true;
+        expr = allEnabled {
           attrset = {
             services.displayManager.gdm.enable = true;
             services.displayManager.gdm.wayland = true;
@@ -339,8 +345,8 @@ in {
             ["gdm" "enable"]
             ["gdm" "wayland"]
           ];
-        }
-      );
+        };
+      };
 
       rejectsInvalidAttrset = mkThrows (
         allEnabled {
