@@ -9,141 +9,87 @@
   inherit (_.trivial.types) validate;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
+  toPath = name:
+    if isList name
+    then name
+    else [name];
+
+  # True if basePath ++ path is true OR has .enable == true
+  isPathEnabled = {
+    attrset,
+    basePath,
+    path,
+  }: let
+    fullPath = basePath ++ toPath path;
+    direct = attrByPath fullPath false attrset;
+    withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
+  in
+    direct == true || withEnable == true;
+
+  checkArgs = fnName: {
+    attrset,
+    basePath,
+    names,
+  }:
+    if !isAttrs attrset
+    then throw "${fnName}: attrset must be an attribute set, got ${typeOf attrset}"
+    else if !isList basePath
+    then throw "${fnName}: basePath must be a list, got ${typeOf basePath}"
+    else if !isList names
+    then throw "${fnName}: names must be a list, got ${typeOf names}"
+    else null;
+
   /**
-  Check if any of a set of attributes has `.enable == true`.
+  Check if any of a set of attributes is effectively enabled.
 
-  Useful for detecting if at least one service/feature is enabled in a configuration,
-  particularly in NixOS/Home Manager conditional logic.
+  An entry is considered enabled if either:
+  - `basePath ++ toPath name` is `true`, or
+  - `basePath ++ toPath name ++ ["enable"]` is `true`.
 
-  # Type
-  ```
-  anyEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String] } -> Bool
-  ```
+  This matches patterns like:
+  - `services.nginx.enable = true;`
+  - `services.displayManager.gdm.wayland = true;`
 
-  # Arguments
-  An attribute set containing:
-  - `attrset`: The configuration to check (typically `config`)
-  - `basePath`: Common path prefix for all attributes
-  - `names`: List of attribute names to check under basePath
-
-  # Returns
-  `true` if any `basePath ++ [name] ++ ["enable"]` equals `true`, otherwise `false`
-
-  # Throws
-  - Error if `attrset` is not an attribute set
-  - Error if `basePath` is not a list
-  - Error if `names` is not a list
-
-  # Examples
-  ```nix
-  anyEnabled {
-    attrset = config;
-    basePath = [ "wayland" "windowManager" ];
-    names = [ "sway" "hyprland" "river" ];
-  }
-  # => true if any wayland WM is enabled
-
-  anyEnabled {
-    attrset = config;
-    basePath = [ "services" ];
-    names = [ "nginx" "apache" "caddy" ];
-  }
-  # => true if any web server is enabled
-  ```
+  Type:
+    anyEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
   */
   anyEnabled = {
     attrset,
     basePath,
     names,
-  }:
-    if !isAttrs attrset
-    then throw "anyEnabled: attrset must be an attribute set, got ${typeOf attrset}"
-    else if !isList basePath
-    then throw "anyEnabled: basePath must be a list, got ${typeOf basePath}"
-    else if !isList names
-    then throw "anyEnabled: names must be a list, got ${typeOf names}"
-    else let
-      toPath = name:
-        if isList name
-        then name
-        else [name];
-
-      isEnabled = name: let
-        path = basePath ++ toPath name;
-        direct = attrByPath path false attrset;
-        withEnable = attrByPath (path ++ ["enable"]) false attrset;
-      in
-        direct == true || withEnable == true;
-    in
-      any isEnabled names;
+  }: let
+    _ = checkArgs "anyEnabled" {inherit attrset basePath names;};
+  in
+    any (name:
+      isPathEnabled {
+        inherit attrset basePath;
+        path = name;
+      })
+    names;
 
   /**
-  Check if all of a set of attributes have `.enable == true`.
+  Check if all of a set of attributes are effectively enabled.
 
-  Useful for ensuring multiple dependencies or co-requisites are all enabled.
+  Same notion of “enabled” as anyEnabled:
+  - Direct boolean true at `basePath ++ toPath name`, or
+  - `.enable == true` at that path.
 
-  # Type
-  ```
-  allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
-  ```
-
-  # Arguments
-  An attribute set containing:
-  - `attrset`: The configuration to check
-  - `basePath`: Common path prefix for all attributes
-  - `names`: List of attribute names or paths (can mix strings and path lists)
-
-  # Returns
-  `true` if all specified paths have `.enable == true`, otherwise `false`
-
-  # Throws
-  - Error if `attrset` is not an attribute set
-  - Error if `basePath` is not a list
-  - Error if `names` is not a list
-
-  # Examples
-  ```nix
-  allEnabled {
-    attrset = config;
-    basePath = [ "services" ];
-    names = [ "postgresql" "redis" ];
-  }
-  # => true only if both services.postgresql.enable AND services.redis.enable are true
-
-  # Checking nested paths with mixed syntax
-  allEnabled {
-    attrset = config;
-    basePath = [ "services" "displayManager" ];
-    names = [ "sddm" [ "sddm" "wayland" ] ];
-  }
-  # => true if both services.displayManager.gdm.enable and gdm.wayland are true
-  ```
+  Type:
+    allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
   */
   allEnabled = {
     attrset,
     basePath,
     names,
-  }:
-    if !isAttrs attrset
-    then throw "allEnabled: attrset must be an attribute set, got ${typeOf attrset}"
-    else if !isList basePath
-    then throw "allEnabled: basePath must be a list, got ${typeOf basePath}"
-    else if !isList names
-    then throw "allEnabled: names must be a list, got ${typeOf names}"
-    else let
-      toPath = name:
-        if isList name
-        then name
-        else [name];
-
-      isEnabled = name: let
-        path = basePath ++ toPath name;
-        direct = attrByPath path false attrset;
-        withEnable = attrByPath (path ++ ["enable"]) false attrset;
-      in
-        direct == true || withEnable == true;
-    in
-      all isEnabled names;
+  }: let
+    _ = checkArgs "allEnabled" {inherit attrset basePath names;};
+  in
+    all (name:
+      isPathEnabled {
+        inherit attrset basePath;
+        path = name;
+      })
+    names;
 
   waylandWindowManager = config:
     anyEnabled {
@@ -194,59 +140,24 @@
   /**
   Heuristic check for Wayland session/system in NixOS + Home Manager configs.
 
-  Detects Wayland usage by checking multiple sources:
-  - Wayland window managers (sway, hyprland, river)
-  - Wayland desktop environments (cosmic)
-  - Display managers with Wayland enabled (GDM, SDDM)
-  - Explicit interface specification
+  Considers:
+  - Wayland window managers under `wayland.windowManager.*.enable`
+  - Wayland desktop managers under `services.desktopManager.*`
+  - Display managers where either `.enable` or `.wayland` is true
+  - Explicit interface fields:
+      displayProtocol = "wayland" | "x11"
+      desktopEnvironment = "cosmic" | ...
+      windowManager = "sway" | "hyprland" | "river" | "niri"
 
-  # Type
-  ```
-  waylandEnabled :: { config :: AttrSet, interface :: AttrSet } -> Bool
-  ```
-
-  # Arguments
-  An attribute set containing:
-  - `config`: NixOS/Home Manager configuration
-  - `interface`: Optional host/user API specification with fields:
-    - `displayProtocol`: "wayland" | "x11"
-    - `desktopEnvironment`: Desktop environment name
-    - `windowManager`: Window manager name
-
-  # Returns
-  `true` if any Wayland indicator is detected, otherwise `false`
-
-  # Throws
-  - Error if `config` is not an attribute set
-  - Error if `interface` is provided but not an attribute set
-
-  # Examples
-  ```nix
-  # Detects sway
-  waylandEnabled { inherit config; }
-  # => true if config.wayland.windowManager.sway.enable
-
-  # Explicit specification
-  waylandEnabled {
-    inherit config;
-    interface = { displayProtocol = "wayland"; };
-  }
-  # => true
-
-  # Checks display manager
-  waylandEnabled { inherit config; }
-  # => true if GDM with Wayland or SDDM with Wayland enabled
-  ```
-
-  # Notes
-  - Returns `false` for X11-only setups
-  - Extensible: add more WMs/DEs to detection lists as needed
+  Type:
+    waylandEnabled :: { config :: AttrSet, interface :: AttrSet } -> Bool
   */
   waylandEnabled = {
     config,
     interface ? {},
   }: let
     fnName = "waylandEnabled";
+
     cfg = validate {
       inherit fnName;
       argName = "config";
@@ -284,7 +195,7 @@ in {
 
   _tests = runTests {
     anyEnabled = {
-      detectsEnabled = mkTest {
+      detectsEnabledViaEnable = mkTest {
         expected = true;
         expr = anyEnabled {
           attrset = {
@@ -296,10 +207,24 @@ in {
         };
       };
 
+      detectsEnabledViaDirectBool = mkTest {
+        expected = true;
+        expr = anyEnabled {
+          attrset = {
+            services.displayManager.gdm.wayland = true;
+          };
+          basePath = ["services" "displayManager"];
+          names = [["gdm" "wayland"]];
+        };
+      };
+
       returnsFalseWhenNoneEnabled = mkTest {
         expected = false;
         expr = anyEnabled {
-          attrset = {services.nginx.enable = false;};
+          attrset = {
+            services.nginx.enable = false;
+            services.apache.enable = false;
+          };
           basePath = ["services"];
           names = ["nginx" "apache"];
         };
@@ -324,7 +249,7 @@ in {
     };
 
     allEnabled = {
-      detectsAllEnabled = mkTest {
+      detectsAllEnabledViaEnable = mkTest {
         expected = true;
         expr = allEnabled {
           attrset = {
@@ -348,17 +273,27 @@ in {
         };
       };
 
-      handlesNestedPaths = mkTest {
+      handlesNestedPathsMixed = mkTest {
         expected = true;
         expr = allEnabled {
           attrset = {
-            services.displayManager.gdm = {
-              enable = true;
-              wayland = true;
-            };
+            services.displayManager.gdm.enable = true;
+            services.displayManager.gdm.wayland = true;
           };
           basePath = ["services" "displayManager"];
           names = ["gdm" ["gdm" "wayland"]];
+        };
+      };
+
+      detectsDirectFalse = mkTest {
+        expected = false;
+        expr = allEnabled {
+          attrset = {
+            services.displayManager.sddm.enable = true;
+            services.displayManager.sddm.wayland = false;
+          };
+          basePath = ["services" "displayManager"];
+          names = ["sddm" ["sddm" "wayland"]];
         };
       };
 
