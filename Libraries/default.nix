@@ -1,25 +1,10 @@
 {
   lib ? import <nixpkgs/lib>,
   name ? "lix",
-  #| Collision Strategy
-  #? Options: "warn", "error", "prefer-custom", "prefer-nixpkgs"
   collisionStrategy ? "warn",
-  #| Performance Options
-  #? Load modules only when accessed (experimental)
-  enableLazyLoading ? false,
-  #? Cache module imports to avoid re-evaluation
   enableCaching ? true,
-  #| Safety & Validation
-  #? Detect circular dependencies
-  enableCycleDetection ? true,
-  #? Validate module exports
-  enableTypeChecking ? true,
-  #| Testing & Debugging
-  #? Automatically run module tests on load
   runTests ? true,
-  #? Enable verbose logging
   debugMode ? false,
-  #| Directory Exclusions
   excludedDirs ? [
     "review"
     "archive"
@@ -32,12 +17,10 @@
     "experimental"
     "backup"
   ],
-  #| File Exclusions
   excludedFiles ? [
     "default.nix"
     "flake.nix"
   ],
-  #| File Pattern Exclusions
   excludedPatterns ? [
     " copy.nix"
     ".test.nix"
@@ -62,12 +45,27 @@
     hasPrefix
     hasSuffix
     removeSuffix
-    removePrefix
     ;
   inherit (lib.lists) elem filter foldl' findFirst;
   inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
-  inherit (lib.path) append;
+
+  # Helper function to get relative path
+  getRelativePath = base: target: let
+    baseStr = toString base;
+    targetStr = toString target;
+    # Remove the base path from target path
+    relPath =
+      if hasPrefix baseStr targetStr
+      then lib.removePrefix baseStr targetStr
+      else targetStr;
+    # Remove leading slash if present
+    cleanPath =
+      if hasPrefix "/" relPath
+      then lib.removePrefix "/" relPath
+      else relPath;
+  in
+    cleanPath;
 
   #| Extensible Library Initializaton
   customLib = makeExtensible (self: let
@@ -181,7 +179,6 @@
           attrsToRemove =
             ["_rootAliases"]
             ++ (
-              # We no longer have exportPrivate, we always keep metadata
               filter (
                 name:
                   hasPrefix "_" name
@@ -210,9 +207,9 @@
             # Docs subdirectory
             (dir + "/docs/${moduleName}.md")
             (dir + "/docs/README.md")
-            # Documentation tree mirror (relative to current dir)
-            (append (toString ./Documentation) (removePrefix (toString ./.) (toString dir)) + "/${moduleName}.md")
-            (append (toString ./Documentation) (removePrefix (toString ./.) (toString dir)) + "/README.md")
+            # Documentation tree mirror
+            (./Documentation + "/${getRelativePath ./. dir}/${moduleName}.md")
+            (./Documentation + "/${getRelativePath ./. dir}/README.md")
           ];
 
           docFile = findFirst (path: pathExists (toString path)) null possibleDocFiles;
@@ -308,94 +305,11 @@
 
   extend = f: customLib.extend f;
 
-  # Add documentation generation utilities
-  docUtils = {
-    # Generate documentation symlinks
-    generateSymlinks = {
-      src ? ".",
-      dest ? "Documentation",
-      createMissingDirs ? true,
-    }: let
-      # Get all modules with their metadata
-      allModules = customLib;
-
-      # Helper to create symlink commands
-      createSymlinkCmds = path: module:
-        if module ? __meta && module.__meta.docs.available
-        then let
-          meta = module.__meta;
-          srcPath = toString meta.docs.source;
-          # Destination path in documentation tree
-          relPath = removePrefix (toString src + "/") (toString meta.path);
-          destDir = dest + "/" + dirOf relPath;
-          destPath = destDir + "/${meta.name}.md";
-        in ''
-          # Create directory if needed
-          ${
-            if createMissingDirs
-            then "mkdir -p '${destDir}'"
-            else ""
-          }
-
-          # Create symlink if source exists and destination doesn't
-          if [ -e '${srcPath}' ] && [ ! -e '${destPath}' ]; then
-            ln -sf '${srcPath}' '${destPath}'
-            echo "Linked: ${destPath} -> ${srcPath}"
-          elif [ -e '${srcPath}' ]; then
-            echo "Exists: ${destPath}"
-          else
-            echo "Missing: ${srcPath}"
-          fi
-        ''
-        else "";
-
-      # Recursively process all modules
-      cmds = lib.mapAttrsToList createSymlinkCmds (lib.collect lib.isAttrs allModules);
-    in
-      builtins.concatStringsSep "\n" cmds;
-
-    # List all modules with documentation status
-    listModules = let
-      modules = lib.collect lib.isAttrs customLib;
-      formatModule = path: module:
-        if module ? __meta
-        then let
-          meta = module.__meta;
-          docStatus =
-            if meta.docs.available
-            then "📚 ${meta.docs.type} (${toString meta.docs.source})"
-            else "❌ no docs";
-        in "${path}: ${docStatus}"
-        else "${path}: no metadata";
-    in
-      lib.mapAttrsToList formatModule modules;
-
-    # Export documentation as flake output
-    asFlakeOutput = {
-      documentation = let
-        modules = lib.collect lib.isAttrs customLib;
-        formatDoc = path: module:
-          if module ? __meta && module.__meta.docs.available
-          then {
-            ${path} = {
-              meta = removeAttrs module.__meta ["timestamp"];
-              exports = module.__meta.exports;
-            };
-          }
-          else {};
-      in
-        lib.foldlAttrs (acc: path: value: acc // value) {}
-        (lib.mapAttrs formatDoc modules);
-    };
-  };
-
   finalLib =
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
     // {
       inherit extend lib;
       std = lib;
-      # Documentation utilities
-      _docs = docUtils;
     };
 in {
   ${name} = finalLib;
