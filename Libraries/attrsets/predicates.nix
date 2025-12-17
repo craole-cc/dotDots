@@ -337,8 +337,10 @@ in {
         expected = true;
         expr = allEnabled {
           attrset = {
-            services.displayManager.gdm.enable = true;
-            services.displayManager.gdm.wayland = true;
+            services.displayManager.gdm = {
+              enable = true;
+              wayland = true;
+            };
           };
           basePath = ["services" "displayManager"];
           names = ["gdm" ["gdm" "wayland"]];
