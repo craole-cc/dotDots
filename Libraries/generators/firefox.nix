@@ -125,10 +125,12 @@
 
     #~@ Check if configuration exists
     allowed = (policies.webGui or false) && isNotEmpty program;
-  in {
-    inherit program zen package allowed;
-    variant = detectedVariant;
-  };
+  in
+    {
+      inherit program package allowed;
+      variant = detectedVariant;
+    }
+    // zen.module or {};
 
   zenVariant = variant: let
     detectedVariant = detectVariant variant;
