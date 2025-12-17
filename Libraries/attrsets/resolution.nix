@@ -265,12 +265,11 @@
   */
   getNestedAttr = {
     attrset,
-    parentNames,
-    childName,
+    path,
+    target,
     default ? {},
   }: let
-    parentList = toList parentNames;
-    paths = map (parent: [parent childName]) parentList;
+    paths = map (parent: [parent target]) (toList path);
   in
     getByPaths {inherit attrset paths default;};
 in {

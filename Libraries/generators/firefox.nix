@@ -6,8 +6,7 @@
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
-  inherit (_) isEmpty isNotEmpty;
-  inherit (_.attrsets.resolution) getNestedAttr getPackage;
+  inherit (_) isEmpty isNotEmpty getNestedAttr getPackage;
 
   /**
   Create a Firefox extension download URL.
@@ -101,7 +100,11 @@
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
       in {
         name = "zen-browser";
-        module = getNestedAttr inputs ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"] "homeModules.${zenVariant}" null;
+        module = getNestedAttr {
+          attrset = inputs;
+          parents = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+          children = "homeModules.${zenVariant}";
+        };
       }
       else {
         name = null;
