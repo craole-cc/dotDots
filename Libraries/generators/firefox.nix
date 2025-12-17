@@ -115,26 +115,18 @@
       };
 
     #~@ Resolve package from nixpkgs
-    package = getAttr zen "package" (getPackage {
+    package = _.getAttr zen "package" (_.getPackage {
       inherit pkgs;
       target = detectedVariant;
     });
-    # package =
-    #   if isNotEmpty (zen.package or null)
-    #   then zen.package
-    #   else
-    #     getPackage {
-    #       inherit pkgs;
-    #       target = detectedVariant;
-    #     };
-
+    program = package.pname or null;
     #~@ Determine the program name
-    program =
-      if isNotEmpty zen
-      then zen.name
-      else if isNotEmpty package
-      then "firefox"
-      else null;
+    # program =
+    #   if isNotEmpty zen
+    #   then zen.name
+    #   else if isNotEmpty package
+    #   then "firefox"
+    #   else null;
 
     #~@ Check if configuration exists
     allowed = (policies.webGui or false) && isNotEmpty program;
