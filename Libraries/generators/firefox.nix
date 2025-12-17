@@ -103,7 +103,7 @@
         module = getNestedAttrByPaths {
           attrset = inputs;
           paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
-          target = "homeModules.${zenVariant}";
+          target = "homeModules";
         };
         variant = zenVariant;
       }
