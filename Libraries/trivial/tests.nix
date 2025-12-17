@@ -40,13 +40,13 @@
     inherit passed;
   };
 
-  mkThrows = exprThunk:
+  mkThrows = expr:
     mkTest {
       expected = {
         success = false;
         value = false;
       };
-      expr = tryEval (exprThunk {});
+      expr = tryEval expr;
     };
 
   mkDefaultStub = v: {

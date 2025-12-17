@@ -5,8 +5,8 @@
 }: let
   inherit (lib.attrsets) attrByPath isAttrs;
   inherit (lib.lists) all any elem isList;
-  inherit (lib.strings) typeOf;
-  inherit (_.trivial.types) validate;
+  inherit (_.types.predicates) typeOf;
+  inherit (_.types.generators) validate;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
   toPath = name:
@@ -58,15 +58,13 @@
     basePath,
     names,
   }: let
-    __checked = checkArgs "anyEnabled" {inherit attrset basePath names;};
+    _ = checkArgs "anyEnabled" {inherit attrset basePath names;};
   in
-    any (
-      name:
-        isPathEnabled {
-          inherit attrset basePath;
-          path = name;
-        }
-    )
+    any (name:
+      isPathEnabled {
+        inherit attrset basePath;
+        path = name;
+      })
     names;
 
   /**
@@ -84,15 +82,13 @@
     basePath,
     names,
   }: let
-    __checked = checkArgs "allEnabled" {inherit attrset basePath names;};
+    _ = checkArgs "allEnabled" {inherit attrset basePath names;};
   in
-    all (
-      name:
-        isPathEnabled {
-          inherit attrset basePath;
-          path = name;
-        }
-    )
+    all (name:
+      isPathEnabled {
+        inherit attrset basePath;
+        path = name;
+      })
     names;
 
   waylandWindowManager = config:
