@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs isAttrs;
+  inherit (lib.attrsets) mapAttrs isAttrs optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
   inherit (_) isEmpty isNotEmpty getNestedAttrByPaths getPackage;
@@ -101,7 +101,7 @@
       parents = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
       attrset = inputs;
     in
-      lib.optionalAttrs check {
+      optionalAttrs check {
         name = "zen-browser";
         module = getNestedAttrByPaths {
           inherit attrset parents;
@@ -116,7 +116,7 @@
 
     #~@ Resolve package from nixpkgs
     package =
-      if isNotEmpty zen.package
+      if isNotEmpty (zen.package or null)
       then zen.package
       else
         getPackage {
