@@ -504,6 +504,7 @@ Supported Browsers:
     then "beta"
     else "twilight";
 in {
+  version = "1.0.0";
   __doc = ''
     Firefox browser configuration and variant resolution utilities.
 
