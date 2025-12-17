@@ -8,6 +8,54 @@
   inherit (_.types.generators) validate;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
 
+  toPath = name:
+    if isList name
+    then name
+    else [name];
+
+  # True if basePath ++ path is true OR has .enable == true
+  isPathEnabled = {
+    attrset,
+    basePath,
+    path,
+  }: let
+    fullPath = basePath ++ toPath path;
+    direct = attrByPath fullPath false attrset;
+    withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
+  in
+    direct == true || withEnable == true;
+
+  # Shared argument validation
+  validateArgs = fnName: {
+    attrset,
+    basePath,
+    names,
+  }: {
+    attrset = validate {
+      inherit fnName;
+      argName = "attrset";
+      expected = "set";
+      predicate = isAttrs;
+      actual = attrset;
+    };
+
+    basePath = validate {
+      inherit fnName;
+      argName = "basePath";
+      expected = "list";
+      predicate = isList;
+      actual = basePath;
+    };
+
+    names = validate {
+      inherit fnName;
+      argName = "names";
+      expected = "list";
+      predicate = isList;
+      actual = names;
+    };
+  };
+
   /**
   Check if any of a set of attributes is effectively enabled.
 
@@ -28,35 +76,18 @@
     names,
   }: let
     fnName = "anyEnabled";
+    args = validateArgs fnName {inherit attrset basePath names;};
   in
-    any (
+    any
+    (
       name:
         isPathEnabled {
-          attrset = validate {
-            inherit fnName;
-            argName = "attrset";
-            expected = "set";
-            predicate = isAttrs;
-            actual = attrset;
-          };
-
-          basePath = validate {
-            inherit fnName;
-            argName = "basePath";
-            expected = "list";
-            predicate = isList;
-            actual = basePath;
-          };
+          attrset = args.attrset;
+          basePath = args.basePath;
           path = name;
         }
     )
-    (validate {
-      inherit fnName;
-      argName = "names";
-      expected = "list";
-      predicate = isList;
-      actual = names;
-    });
+    args.names;
 
   /**
   Check if all of a set of attributes are effectively enabled.
@@ -74,52 +105,18 @@
     names,
   }: let
     fnName = "allEnabled";
+    args = validateArgs fnName {inherit attrset basePath names;};
   in
-    all (
+    all
+    (
       name:
         isPathEnabled {
-          attrset = validate {
-            inherit fnName;
-            argName = "attrset";
-            expected = "set";
-            predicate = isAttrs;
-            actual = attrset;
-          };
-
-          basePath = validate {
-            inherit fnName;
-            argName = "basePath";
-            expected = "list";
-            predicate = isList;
-            actual = basePath;
-          };
+          attrset = args.attrset;
+          basePath = args.basePath;
           path = name;
         }
     )
-    (validate {
-      inherit fnName;
-      argName = "names";
-      expected = "list";
-      predicate = isList;
-      actual = names;
-    });
-
-  toPath = name:
-    if isList name
-    then name
-    else [name];
-
-  # True if basePath ++ path is true OR has .enable == true
-  isPathEnabled = {
-    attrset,
-    basePath,
-    path,
-  }: let
-    fullPath = basePath ++ toPath path;
-    direct = attrByPath fullPath false attrset;
-    withEnable = attrByPath (fullPath ++ ["enable"]) false attrset;
-  in
-    direct == true || withEnable == true;
+    args.names;
 
   waylandWindowManager = config:
     anyEnabled {
