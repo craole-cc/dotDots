@@ -49,6 +49,8 @@
     if isEmpty input
     then null
     #~@ Check for Zen Browser variants
+    else if (hasInfix "twilight")
+    then "zen-twilight"
     else if (hasInfix "zen" input && (hasInfix "beta" input || hasInfix "nightly" input || hasInfix "unstable" input))
     then "zen-beta"
     else if (hasInfix "zen" input)
