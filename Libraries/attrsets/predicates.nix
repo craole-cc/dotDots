@@ -62,7 +62,20 @@
     then throw "anyEnabled: basePath must be a list, got ${typeOf basePath}"
     else if !isList names
     then throw "anyEnabled: names must be a list, got ${typeOf names}"
-    else any (name: attrByPath (basePath ++ [name "enable"]) false attrset) names;
+    else let
+      toPath = name:
+        if isList name
+        then name
+        else [name];
+
+      isEnabled = name: let
+        path = basePath ++ toPath name;
+        direct = attrByPath path false attrset;
+        withEnable = attrByPath (path ++ ["enable"]) false attrset;
+      in
+        direct == true || withEnable == true;
+    in
+      any isEnabled names;
 
   /**
   Check if all of a set of attributes have `.enable == true`.
