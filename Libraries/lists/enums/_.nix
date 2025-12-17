@@ -4,7 +4,7 @@
   ...
 }: let
   e = _.lists.enums;
-  inherit (_.testing.unit) mkTest runTests;
+  inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.attrsets) attrNames hasAttrByPath;
   inherit (lib.lists) isList length;
 

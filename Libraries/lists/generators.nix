@@ -5,7 +5,7 @@
 }: let
   inherit (lib.strings) hasPrefix;
   inherit (_.lists.predicates) isIn isInExact;
-  inherit (_.testing.unit) mkTest runTests;
+  inherit (_.trivial.tests) mkTest runTests;
 
   /**
   Create a validator that checks if values are in an allowed list.

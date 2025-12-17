@@ -1,6 +1,6 @@
 {_, ...}: let
   inherit (_.lists.generators) mkEnum;
-  inherit (_.testing.unit) mkTest runTests;
+  inherit (_.trivial.tests) mkTest runTests;
 
   /**
   Boot loaders - system boot manager options.

@@ -311,7 +311,7 @@ in {
   };
 
   _tests = let
-    inherit (_.testing.unit) mkTest runTests;
+    inherit (_.trivial.tests) mkTest runTests;
   in
     runTests {
       checkMembership = {
