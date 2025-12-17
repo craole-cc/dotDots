@@ -6,7 +6,7 @@
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
-  inherit (_.predicates.emptiness) isEmpty isNotEmpty;
+  inherit (_) isEmpty isNotEmpty;
   inherit (_.attrsets.resolution) getNestedAttr getPackage;
 
   /**
