@@ -100,16 +100,16 @@
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
       in {
         name = "zen-browser";
-        # module = getNestedAttrByPaths {
-        #   attrset = inputs;
-        #   paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
-        #   target = "homeModules.${zenVariant}";
-        # };
-        module = _.getAttrByPaths {
+        module = getNestedAttrByPaths {
           attrset = inputs;
-          paths = [["firefoxZen"] ["zenBrowser"] ["zen-browser"] ["zen_browser"] ["twilight"] ["zen"]];
-          # target = "homeModules.${zenVariant}";
+          paths = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+          target = "homeModules.${zenVariant}";
         };
+        # module = _.getAttrByPaths {
+        #   attrset = inputs;
+        #   paths = [["firefoxZen"] ["zenBrowser"] ["zen-browser"] ["zen_browser"] ["twilight"] ["zen"]];
+        #   # target = "homeModules.${zenVariant}";
+        # };
         variant = zenVariant;
       }
       else {
