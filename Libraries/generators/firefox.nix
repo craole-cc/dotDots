@@ -121,10 +121,14 @@
       };
 
     #~@ Resolve package from nixpkgs
-    package = getPackage {
-      inherit pkgs;
-      target = detectedVariant;
-    };
+    package =
+      if isNotEmpty zen.package
+      then zen.package
+      else
+        getPackage {
+          inherit pkgs;
+          target = detectedVariant;
+        };
 
     #~@ Determine the program name
     program =
