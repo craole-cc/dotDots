@@ -522,6 +522,9 @@ in
   ```
   */
   {
+    /**
+    DOCS
+    */
     inherit
       extensionUrl
       zenVariant
