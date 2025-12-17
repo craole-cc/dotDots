@@ -240,12 +240,11 @@ in {
       };
 
       rejectsInvalidAttrset = mkThrows (
-        _:
-          anyEnabled {
-            attrset = "invalid";
-            basePath = [];
-            names = [];
-          }
+        anyEnabled {
+          attrset = "invalid";
+          basePath = [];
+          names = [];
+        }
       );
     };
 
