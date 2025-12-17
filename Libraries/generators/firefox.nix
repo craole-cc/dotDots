@@ -75,16 +75,15 @@
     inputs,
     pkgs,
     variant,
-    # policies,
+    policies ? {},
   }: let
     #~@ Parse the proper variant name
     detectedVariant = detectVariant (
-      # with policies;
       if isNotEmpty variant
-      then variant
-      # if dev || devGui
-      # then "${variant} dev"
-      # else variant
+      then
+        if with policies; dev || devGui
+        then "${variant} dev"
+        else variant
       else null
     );
 
