@@ -1,6 +1,7 @@
 {
   lib ? import <nixpkgs/lib>,
   name ? "lix",
+  src ? ./.,
   collisionStrategy ? "warn",
   enableCaching ? true,
   runTests ? true,
@@ -207,9 +208,9 @@
             # Docs subdirectory
             (dir + "/docs/${moduleName}.md")
             (dir + "/docs/README.md")
-            # Documentation tree mirror
-            (./Documentation + "/${getRelativePath ./. dir}/${moduleName}.md")
-            (./Documentation + "/${getRelativePath ./. dir}/README.md")
+            # Documentation tree mirror (relative to source dir)
+            (src + "/Documentation/${getRelativePath src dir}/${moduleName}.md")
+            (src + "/Documentation/${getRelativePath src dir}/README.md")
           ];
 
           docFile = findFirst (path: pathExists (toString path)) null possibleDocFiles;
