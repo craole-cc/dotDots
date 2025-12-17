@@ -79,6 +79,7 @@
   resolveModule = {
     inputs,
     pkgs,
+    system ? "x86_64-linux",
     variant,
     policies ? {},
   }: let
@@ -98,23 +99,24 @@
       then let
         #~@ Extract suffix: "zen-beta" → "beta"
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
+        parents = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+        attrset = inputs;
       in {
         name = "zen-browser";
         module = getNestedAttrByPaths {
-          attrset = inputs;
-          parents = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+          inherit attrset parents;
           target = ["homeModules" zenVariant];
         };
-        # module = _.getAttrByPaths {
-        #   attrset = inputs;
-        #   paths = [["firefoxZen"] ["zenBrowser"] ["zen-browser"] ["zen_browser"] ["twilight"] ["zen"]];
-        #   # target = "homeModules.${zenVariant}";
-        # };
+        package = getNestedAttrByPaths {
+          inherit attrset parents;
+          target = ["packages" system zenVariant];
+        };
         variant = zenVariant;
       }
       else {
         name = null;
         module = null;
+        package = null;
         variant = null;
       };
 
