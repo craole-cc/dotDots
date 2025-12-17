@@ -29,7 +29,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    # desktopEnvironment = "plasma";
+    desktopEnvironment = "plasma";
     windowManager = "hyprland";
     keyboard = {
       modifier = "SUPER";
