@@ -94,14 +94,14 @@
     );
 
     #~@ Resolve Zen Browser specific configuration
-    zen =
-      if hasInfix "zen-" detectedVariant
-      then let
-        #~@ Extract suffix: "zen-beta" → "beta"
-        zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
-        parents = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
-        attrset = inputs;
-      in {
+    zen = let
+      check = hasInfix "zen-" detectedVariant;
+      #> Extract suffix: "zen-beta" → "beta"
+      zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
+      parents = ["firefoxZen" "zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+      attrset = inputs;
+    in
+      lib.optionalAttrs check {
         name = "zen-browser";
         module = getNestedAttrByPaths {
           inherit attrset parents;
@@ -112,12 +112,6 @@
           target = ["packages" system zenVariant];
         };
         variant = zenVariant;
-      }
-      else {
-        name = null;
-        module = null;
-        package = null;
-        variant = null;
       };
 
     #~@ Resolve package from nixpkgs
@@ -139,9 +133,9 @@
       else null;
 
     #~@ Check if configuration exists
-    exists = (policies.webGui or false) && isNotEmpty program;
+    allowed = (policies.webGui or false) && isNotEmpty program;
   in {
-    inherit program zen package exists;
+    inherit program zen package allowed;
     variant = detectedVariant;
   };
 
