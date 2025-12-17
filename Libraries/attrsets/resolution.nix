@@ -135,11 +135,11 @@
   */
   getNestedByPaths = {
     attrset,
-    paths,
+    parents,
     target,
     default ? {},
   }:
-    map (parent: [parent target]) (toList paths);
+    map (parent: [parent target]) (toList parents);
   # getByPaths {
   #   inherit attrset default;
   #   paths = map (parent: [parent target]) (toList paths);
