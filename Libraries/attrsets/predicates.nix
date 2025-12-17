@@ -251,19 +251,13 @@ in {
         };
       };
 
-      rejectsInvalidAttrset = mkTest {
-        expected = {
-          success = false;
-          value = false;
-        };
-        expr = builtins.tryEval (
-          anyEnabled {
-            attrset = "invalid";
-            basePath = [""];
-            names = [""];
-          }
-        );
-      };
+      rejectsInvalidAttrset = mkThrows (
+        anyEnabled {
+          attrset = "nope";
+          basePath = ["services"];
+          names = ["nginx"];
+        }
+      );
     };
 
     allEnabled = {
