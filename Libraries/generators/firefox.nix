@@ -6,7 +6,7 @@
   inherit (lib.attrsets) mapAttrs isAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
-  inherit (_) isEmpty isNotEmpty getNestedAttr getPackage;
+  inherit (_) isEmpty isNotEmpty getNestedAttrByPaths getPackage;
 
   /**
   Create a Firefox extension download URL.
@@ -100,10 +100,10 @@
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
       in {
         name = "zen-browser";
-        module = getNestedAttr {
+        module = getNestedAttrByPaths {
           attrset = inputs;
-          parents = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
-          children = "homeModules.${zenVariant}";
+          paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+          target = "homeModules.${zenVariant}";
         };
       }
       else {
@@ -142,7 +142,6 @@
     then "beta"
     else "twilight";
 in {
-  # Regular module exports (under applications.firefox.*)
   inherit
     mkExtensionUrl
     zenVariant
@@ -152,7 +151,6 @@ in {
     resolveModule
     ;
 
-  # Root aliases (exposed at _lib.*)
   _rootAliases = {
     mkFirefoxExtensionUrl = mkExtensionUrl;
     mkFirefoxExtensionEntry = mkExtensionEntry;

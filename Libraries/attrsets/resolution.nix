@@ -70,6 +70,81 @@
     else default;
 
   /**
+  Get a nested attribute by trying multiple parent names.
+
+  Searches for a child attribute under different possible parent attributes.
+  Useful for finding modules, configs, or nested structures where the parent
+  name might vary (e.g., different flake input naming conventions).
+
+  # Type
+  ```
+  getNestedAttr :: {
+    attrset :: AttrSet,
+    parentNames :: String | [String],
+    childName :: String,
+    default :: a
+  } -> a
+  ```
+
+  # Arguments
+  An attribute set containing:
+  - `attrset`: The attribute set to search
+  - `parentNames`: Single name or list of possible parent attribute names
+  - `childName`: The nested attribute name to access under each parent
+  - `default`: Value to return if no parent/child combination exists (default: `{}`)
+
+  # Returns
+  The nested attribute from the first matching parent, or `default`.
+
+  # Examples
+  ```nix
+  # Flake input with varying names
+  getNestedAttr {
+    attrset = inputs;
+    parentNames = ["zenBrowser" "zen-browser" "zen"];
+    childName = "homeModules";
+  }
+  # => inputs.zenBrowser.homeModules (if exists)
+  #    or inputs.zen-browser.homeModules
+  #    or inputs.zen.homeModules
+  #    or {}
+
+  # Single parent name
+  getNestedAttr {
+    attrset = inputs;
+    parentNames = "home-manager";
+    childName = "nixosModules";
+    default = null;
+  }
+  # => inputs.home-manager.nixosModules or null
+
+  # Config resolution
+  getNestedAttr {
+    attrset = config;
+    parentNames = ["services" "systemd"];
+    childName = "units";
+    default = [];
+  }
+  # => config.services.units or config.systemd.units or []
+  ```
+
+  # Use Cases
+  - Flake input module resolution (homeModules, nixosModules)
+  - Handling renamed/aliased configuration paths
+  - Finding nested options in varying config structures
+  */
+  getNestedByPaths = {
+    attrset,
+    paths,
+    target,
+    default ? {},
+  }:
+    getByPaths {
+      inherit attrset default;
+      paths = map (parent: [parent target]) (toList paths);
+    };
+
+  /**
   Get a package from pkgs by trying multiple names.
 
   Convenience wrapper around `getByPaths` for package resolution. Tries
@@ -199,84 +274,20 @@
     }
     or pkgs.bashInteractive;
 
-  /**
-  Get a nested attribute by trying multiple parent names.
-
-  Searches for a child attribute under different possible parent attributes.
-  Useful for finding modules, configs, or nested structures where the parent
-  name might vary (e.g., different flake input naming conventions).
-
-  # Type
-  ```
-  getNestedAttr :: {
-    attrset :: AttrSet,
-    parentNames :: String | [String],
-    childName :: String,
-    default :: a
-  } -> a
-  ```
-
-  # Arguments
-  An attribute set containing:
-  - `attrset`: The attribute set to search
-  - `parentNames`: Single name or list of possible parent attribute names
-  - `childName`: The nested attribute name to access under each parent
-  - `default`: Value to return if no parent/child combination exists (default: `{}`)
-
-  # Returns
-  The nested attribute from the first matching parent, or `default`.
-
-  # Examples
-  ```nix
-  # Flake input with varying names
-  getNestedAttr {
-    attrset = inputs;
-    parentNames = ["zenBrowser" "zen-browser" "zen"];
-    childName = "homeModules";
+  exports = {
+    inherit
+      getByPaths
+      getNestedByPaths
+      getPackage
+      getShellPackage
+      ;
+  };
+in
+  exports
+  // {
+    _rootAliases = {
+      inherit getShellPackage;
+      getAttrByPaths = getByPaths;
+      getNestedAttrByPaths = getNestedByPaths;
+    };
   }
-  # => inputs.zenBrowser.homeModules (if exists)
-  #    or inputs.zen-browser.homeModules
-  #    or inputs.zen.homeModules
-  #    or {}
-
-  # Single parent name
-  getNestedAttr {
-    attrset = inputs;
-    parentNames = "home-manager";
-    childName = "nixosModules";
-    default = null;
-  }
-  # => inputs.home-manager.nixosModules or null
-
-  # Config resolution
-  getNestedAttr {
-    attrset = config;
-    parentNames = ["services" "systemd"];
-    childName = "units";
-    default = [];
-  }
-  # => config.services.units or config.systemd.units or []
-  ```
-
-  # Use Cases
-  - Flake input module resolution (homeModules, nixosModules)
-  - Handling renamed/aliased configuration paths
-  - Finding nested options in varying config structures
-  */
-  getNestedAttr = {
-    attrset,
-    path,
-    target,
-    default ? {},
-  }: let
-    paths = map (parent: [parent target]) (toList path);
-  in
-    getByPaths {inherit attrset paths default;};
-in {
-  inherit
-    getByPaths
-    getNestedAttr
-    getPackage
-    getShellPackage
-    ;
-}
