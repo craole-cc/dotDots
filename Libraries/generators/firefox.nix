@@ -116,7 +116,7 @@
 
     #~@ Resolve package from nixpkgs
     package =
-      if isEmptyAttrs zen.package
+      if isEmptyAttrs zen
       then
         getPackage {
           inherit pkgs;
