@@ -1,10 +1,6 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{...}: let
   inherit
-    (_.types.predicates)
+    (import ./predicates.nix)
     isAttrs
     isBinaryString
     isBool
