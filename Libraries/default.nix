@@ -30,7 +30,7 @@
     ".old.nix"
   ],
 }: let
-  inherit (builtins) readDir;
+  inherit (builtins) readDir pathExists;
   inherit
     (lib.attrsets)
     attrNames
@@ -46,7 +46,7 @@
     hasSuffix
     removeSuffix
     ;
-  inherit (lib.lists) elem filter foldl';
+  inherit (lib.lists) elem filter foldl' findFirst;
   inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
 
@@ -183,14 +183,29 @@
 
           cleanModule = removeAttrs importedModule attrsToRemove;
 
+          # Check for documentation files
+          possibleDocFiles = [
+            (dir + "/${moduleName}.md")
+            (dir + "/README.md")
+            (dir + "/readme.md")
+          ];
+
+          docFile = findFirst (path: pathExists (toString path)) null possibleDocFiles;
+
+          # Determine documentation
+          docs =
+            if docFile != null
+            then docFile # Path to .md file
+            else cleanModule.__doc or null; # String documentation or null
+
           # Add metadata to the module
           moduleWithMeta =
             cleanModule
             // {
               __meta = {
-                file = filePath;
+                path = filePath;
                 name = moduleName;
-                path = "${toString dir}/${entryName}";
+                docs = docs;
               };
             };
         in {
