@@ -161,54 +161,54 @@ in {
 
   _tests = runTests {
     update = {
-      wrapsPrimitives =
-        mkTest
-        {
+      wrapsPrimitives = mkTest {
+        expected = {
           a = mkDefaultStub 1;
           b = mkDefaultStub "x";
           c = mkDefaultStub true;
-        }
-        (update {
+        };
+        expr = update {
           a = 1;
           b = "x";
           c = true;
-        });
+        };
+      };
 
-      recursesIntoNestedSets =
-        mkTest
-        {
+      recursesIntoNestedSets = mkTest {
+        expected = {
           services = {
             nginx = {
               enable = mkDefaultStub true;
               port = mkDefaultStub 8080;
             };
           };
-        }
-        (update {
+        };
+        expr = update {
           services.nginx = {
             enable = true;
             port = 8080;
           };
-        });
+        };
+      };
 
-      preservesSpecialType =
-        mkTest
-        (mkEnableOptionStub "service")
-        (update (mkEnableOptionStub "service"));
+      preservesSpecialType = mkTest {
+        expected = mkEnableOptionStub "service";
+        expr = update (mkEnableOptionStub "service");
+      };
     };
 
     updateDeep = {
-      mergesSimpleAttrs =
-        mkTest
-        {
+      mergesSimpleAttrs = mkTest {
+        expected = {
           a = 1;
           b = {
             c = 2;
             d = 3;
           };
           e = 4;
-        }
-        (updateDeep
+        };
+        expr =
+          updateDeep
           {
             a = 1;
             b = {c = 2;};
@@ -216,40 +216,44 @@ in {
           {
             b = {d = 3;};
             e = 4;
-          });
+          };
+      };
 
-      preservesPrevSpecialType =
-        mkTest
-        {enable = mkEnableOptionStub "foo";}
-        (updateDeep
+      preservesPrevSpecialType = mkTest {
+        expected = {enable = mkEnableOptionStub "foo";};
+        expr =
+          updateDeep
           {enable = mkEnableOptionStub "foo";}
-          {enable = true;});
+          {enable = true;};
+      };
 
-      allowsNextSpecialType =
-        mkTest
-        {enable = mkForceStub false;}
-        (updateDeep
+      allowsNextSpecialType = mkTest {
+        expected = {enable = mkForceStub false;};
+        expr =
+          updateDeep
           {enable = true;}
-          {enable = mkForceStub false;});
+          {enable = mkForceStub false;};
+      };
 
-      mergesModuleArgsShallow =
-        mkTest
-        {
+      mergesModuleArgsShallow = mkTest {
+        expected = {
           _module = {
             args = {
               x = 1;
               y = 2;
             };
           };
-        }
-        (updateDeep
+        };
+        expr =
+          updateDeep
           {_module = {args = {x = 1;};};}
-          {_module = {args = {y = 2;};};});
+          {_module = {args = {y = 2;};};};
+      };
 
-      primitiveOverride =
-        mkTest
-        2
-        (updateDeep 1 2);
+      primitiveOverride = mkTest {
+        expected = 2;
+        expr = updateDeep 1 2;
+      };
     };
   };
 }
