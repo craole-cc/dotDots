@@ -103,7 +103,10 @@
       };
 
     #~@ Resolve package from nixpkgs
-    package = getPackage pkgs detectedVariant null;
+    package = getPackage {
+      inherit pkgs;
+      target = detectedVariant;
+    };
 
     #~@ Determine the program name
     program =
