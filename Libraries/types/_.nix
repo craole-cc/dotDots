@@ -1,23 +1,23 @@
 {...}: let
-  inherit
-    (import ./predicates.nix)
-    isAttrs
-    isBinaryString
-    isBool
-    isConvertibleWithToString
-    isFloat
-    isFunction
-    isInt
-    isList
-    isPath
-    isSpecial
-    isStorePath
-    isString
-    isStringLike
-    isTest
-    isValidPosixName
-    typeOf
-    ;
+  # inherit
+  #   (import ./predicates.nix)
+  #   isAttrs
+  #   isBinaryString
+  #   isBool
+  #   isConvertibleWithToString
+  #   isFloat
+  #   isFunction
+  #   isInt
+  #   isList
+  #   isPath
+  #   isSpecial
+  #   isStorePath
+  #   isString
+  #   isStringLike
+  #   isTest
+  #   isValidPosixName
+  #   typeOf
+  #   ;
   # inherit (_.trivial.tests) mkTest runTests;
   # inherit (lib.attrsets) attrNames hasAttrByPath;
   # inherit (lib.lists) isList length;
@@ -62,9 +62,9 @@
   #   hostFunctionalities = e.hardware.functionalities;
   # };
 in
-  typeOf
+  import ./predicates.nix
   // {
-    _rootAliases = {inherit typeOf;};
+    _rootAliases = import ./predicates.nix;
     # _tests = runTests {
     #   #? Test structure exists
     #   hasValues = mkTest {
