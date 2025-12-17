@@ -100,10 +100,15 @@
         zenVariant = substring 4 (stringLength detectedVariant - 4) detectedVariant;
       in {
         name = "zen-browser";
-        module = getNestedAttrByPaths {
+        # module = getNestedAttrByPaths {
+        #   attrset = inputs;
+        #   paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+        #   target = "homeModules.${zenVariant}";
+        # };
+        module = _.getAttrByPaths {
           attrset = inputs;
           paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
-          target = "homeModules";
+          # target = "homeModules.${zenVariant}";
         };
         variant = zenVariant;
       }
