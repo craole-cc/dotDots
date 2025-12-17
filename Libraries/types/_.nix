@@ -62,7 +62,7 @@
   #   hostFunctionalities = e.hardware.functionalities;
   # };
 in
-  {inherit (import ./predicates.nix) typeOf;}
+  import ./predicates.nix
   // {
     _rootAliases = {inherit (import ./predicates.nix) typeOf;};
     # _tests = runTests {
