@@ -243,14 +243,13 @@ in {
         };
       };
 
-      handlesEmptyNames = mkTest {
-        expected = false;
-        expr = anyEnabled {
+      handlesEmptyNames = mkThrows (
+        anyEnabled {
           attrset = {};
           basePath = ["services"];
           names = [];
-        };
-      };
+        }
+      );
 
       rejectsInvalidAttrset = mkThrows (
         anyEnabled {
