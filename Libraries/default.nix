@@ -30,7 +30,7 @@
     ".old.nix"
   ],
 }: let
-  inherit (builtins) readDir match head;
+  inherit (builtins) readDir;
   inherit
     (lib.attrsets)
     attrNames
@@ -38,7 +38,6 @@
     isAttrs
     mapAttrs
     removeAttrs
-    getAttrFromPath
     ;
   inherit (lib.fixedPoints) makeExtensible;
   inherit
@@ -46,72 +45,10 @@
     hasPrefix
     hasSuffix
     removeSuffix
-    concatStringsSep
-    stringLength
     ;
-  inherit (lib.lists) elem filter foldl' length elemAt;
-  inherit (builtins) trace attrValues;
+  inherit (lib.lists) elem filter foldl';
+  inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
-
-  # Create a documented function that also has the module attributes
-  makeDocumentedModule = filePath: moduleAttrset: let
-    # Try to extract documentation from the file
-    extractDoc = path: let
-      content = builtins.readFile path;
-      # Look for /** at the beginning of the file
-      lines = lib.splitString "\n" content;
-      # Find the first non-empty line that starts with /**
-      findDocStart = index:
-        if index >= length lines
-        then null
-        else let
-          line = elemAt lines index;
-          trimmed = lib.removeSuffix " " (lib.removeSuffix "\t" line);
-        in
-          if lib.hasPrefix "/**" trimmed
-          then index
-          else findDocStart (index + 1);
-
-      startIndex = findDocStart 0;
-    in
-      if startIndex == null
-      then null
-      else let
-        # Collect lines until we find */
-        collectDoc = index: acc:
-          if index >= length lines
-          then acc
-          else let
-            line = elemAt lines index;
-            trimmed = lib.removeSuffix " " (lib.removeSuffix "\t" line);
-          in
-            if lib.hasPrefix "*/" trimmed
-            then acc
-            else collectDoc (index + 1) (acc ++ [line]);
-
-        docLines = collectDoc (startIndex + 1) [];
-      in
-        concatStringsSep "\n" docLines;
-
-    moduleDoc = extractDoc filePath;
-
-    # Create the base function
-    baseFunc = {...}: moduleAttrset;
-
-    # Create documented function if we have docs
-    documentedFunc =
-      if moduleDoc != null
-      then
-        /**
-        ${moduleDoc}
-        */
-        baseFunc
-      else baseFunc;
-
-    # Add module attributes to the function
-    finalFunc = documentedFunc // moduleAttrset;
-  in
-    finalFunc;
 
   #| Extensible Library Initializaton
   customLib = makeExtensible (self: let
@@ -243,11 +180,8 @@
             );
 
           cleanModule = removeAttrs importedModule attrsToRemove;
-
-          # Create a documented module
-          documentedModule = makeDocumentedModule filePath cleanModule;
         in {
-          modules = {${moduleName} = documentedModule;};
+          modules = {${moduleName} = cleanModule;};
           rootAliases = rootAliases;
         }
         else scanResults;
