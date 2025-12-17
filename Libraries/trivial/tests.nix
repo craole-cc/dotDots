@@ -19,7 +19,7 @@
             then "Test `${name}` failed"
             else null;
         in {
-          inherit (test) expected result passed;
+          inherit (test) desired result passed;
           inherit error;
         }
         else if isAttrs test
@@ -29,24 +29,24 @@
     tests;
 
   mkTest = {
-    expected,
-    expr,
+    desired,
+    outcome,
   }: let
-    value = deepSeq expr expr;
-    passed = expected == value;
+    value = deepSeq outcome outcome;
+    passed = desired == value;
   in {
-    inherit expected;
+    inherit desired;
     result = value;
     inherit passed;
   };
 
-  mkThrows = expr:
+  mkThrows = outcome:
     mkTest {
-      expected = {
+      desired = {
         success = false;
         value = false;
       };
-      expr = tryEval expr;
+      outcome = tryEval outcome;
     };
 
   mkDefaultStub = v: {

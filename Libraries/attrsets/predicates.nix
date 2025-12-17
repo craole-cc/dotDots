@@ -35,7 +35,7 @@
     attrset = validate {
       inherit fnName;
       argName = "attrset";
-      expected = "set";
+      desired = "set";
       predicate = isAttrs;
       actual = attrset;
     };
@@ -43,7 +43,7 @@
     basePath = validate {
       inherit fnName;
       argName = "basePath";
-      expected = "non-empty list";
+      desired = "non-empty list";
       predicate = v: isList v && isNotEmpty v;
       actual = basePath;
     };
@@ -51,7 +51,7 @@
     names = validate {
       inherit fnName;
       argName = "names";
-      expected = "non-empty list";
+      desired = "non-empty list";
       predicate = v: isList v && isNotEmpty v;
       actual = names;
     };
@@ -175,7 +175,7 @@
       inherit fnName;
       argName = "config";
       predicate = isAttrs;
-      expected = "set";
+      desired = "set";
       actual = config;
     };
 
@@ -183,7 +183,7 @@
       inherit fnName;
       argName = "interface";
       predicate = isAttrs;
-      expected = "set";
+      desired = "set";
       actual = interface;
     };
 
@@ -209,8 +209,8 @@ in {
   _tests = runTests {
     anyEnabled = {
       detectsEnabledViaEnable = mkTest {
-        expected = true;
-        expr = anyEnabled {
+        desired = true;
+        outcome = anyEnabled {
           attrset = {
             services.nginx.enable = true;
             services.apache.enable = false;
@@ -221,8 +221,8 @@ in {
       };
 
       detectsEnabledViaDirectBool = mkTest {
-        expected = true;
-        expr = anyEnabled {
+        desired = true;
+        outcome = anyEnabled {
           attrset = {
             services.displayManager.gdm.wayland = true;
           };
@@ -232,8 +232,8 @@ in {
       };
 
       returnsFalseWhenNoneEnabled = mkTest {
-        expected = false;
-        expr = anyEnabled {
+        desired = false;
+        outcome = anyEnabled {
           attrset = {
             services.nginx.enable = false;
             services.apache.enable = false;
@@ -262,8 +262,8 @@ in {
 
     allEnabled = {
       detectsAllEnabledViaEnable = mkTest {
-        expected = true;
-        expr = allEnabled {
+        desired = true;
+        outcome = allEnabled {
           attrset = {
             services.nginx.enable = true;
             services.postgresql.enable = true;
@@ -274,8 +274,8 @@ in {
       };
 
       detectsOneDisabled = mkTest {
-        expected = false;
-        expr = allEnabled {
+        desired = false;
+        outcome = allEnabled {
           attrset = {
             services.nginx.enable = true;
             services.postgresql.enable = false;
@@ -286,8 +286,8 @@ in {
       };
 
       handlesNestedPathsMixed = mkTest {
-        expected = true;
-        expr = allEnabled {
+        desired = true;
+        outcome = allEnabled {
           attrset = {
             services.displayManager.gdm.enable = true;
             services.displayManager.gdm.wayland = true;
@@ -298,8 +298,8 @@ in {
       };
 
       detectsDirectFalse = mkTest {
-        expected = false;
-        expr = allEnabled {
+        desired = false;
+        outcome = allEnabled {
           attrset = {
             services.displayManager.sddm.enable = true;
             services.displayManager.sddm.wayland = false;

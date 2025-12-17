@@ -162,12 +162,12 @@ in {
   _tests = runTests {
     update = {
       wrapsPrimitives = mkTest {
-        expected = {
+        desired = {
           a = mkDefaultStub 1;
           b = mkDefaultStub "x";
           c = mkDefaultStub true;
         };
-        expr = update {
+        outcome = update {
           a = 1;
           b = "x";
           c = true;
@@ -175,7 +175,7 @@ in {
       };
 
       recursesIntoNestedSets = mkTest {
-        expected = {
+        desired = {
           services = {
             nginx = {
               enable = mkDefaultStub true;
@@ -183,7 +183,7 @@ in {
             };
           };
         };
-        expr = update {
+        outcome = update {
           services.nginx = {
             enable = true;
             port = 8080;
@@ -192,14 +192,14 @@ in {
       };
 
       preservesSpecialType = mkTest {
-        expected = mkEnableOptionStub "service";
-        expr = update (mkEnableOptionStub "service");
+        desired = mkEnableOptionStub "service";
+        outcome = update (mkEnableOptionStub "service");
       };
     };
 
     updateDeep = {
       mergesSimpleAttrs = mkTest {
-        expected = {
+        desired = {
           a = 1;
           b = {
             c = 2;
@@ -207,7 +207,7 @@ in {
           };
           e = 4;
         };
-        expr =
+        outcome =
           updateDeep
           {
             a = 1;
@@ -220,23 +220,23 @@ in {
       };
 
       preservesPrevSpecialType = mkTest {
-        expected = {enable = mkEnableOptionStub "foo";};
-        expr =
+        desired = {enable = mkEnableOptionStub "foo";};
+        outcome =
           updateDeep
           {enable = mkEnableOptionStub "foo";}
           {enable = true;};
       };
 
       allowsNextSpecialType = mkTest {
-        expected = {enable = mkForceStub false;};
-        expr =
+        desired = {enable = mkForceStub false;};
+        outcome =
           updateDeep
           {enable = true;}
           {enable = mkForceStub false;};
       };
 
       mergesModuleArgsShallow = mkTest {
-        expected = {
+        desired = {
           _module = {
             args = {
               x = 1;
@@ -244,15 +244,15 @@ in {
             };
           };
         };
-        expr =
+        outcome =
           updateDeep
           {_module = {args = {x = 1;};};}
           {_module = {args = {y = 2;};};};
       };
 
       primitiveOverride = mkTest {
-        expected = 2;
-        expr = updateDeep 1 2;
+        desired = 2;
+        outcome = updateDeep 1 2;
       };
     };
   };

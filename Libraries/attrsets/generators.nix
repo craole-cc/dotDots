@@ -117,17 +117,17 @@ in {
   _tests = runTests {
     lock = {
       basic = mkTest {
-        expected = {
+        desired = {
           x = {
             Value = 1;
             Status = "locked";
           };
         };
-        expr = lock "locked" {x = 1;};
+        outcome = lock "locked" {x = 1;};
       };
 
       nested = mkTest {
-        expected = {
+        desired = {
           a = {
             Value = {b = 2;};
             Status = "managed";
@@ -137,15 +137,15 @@ in {
             Status = "managed";
           };
         };
-        expr = lock "managed" {
+        outcome = lock "managed" {
           a = {b = 2;};
           c = 3;
         };
       };
 
       empty = mkTest {
-        expected = {};
-        expr = lock "locked" {};
+        desired = {};
+        outcome = lock "locked" {};
       };
 
       invalidStatus = mkThrows (lock 123 {x = 1;});
@@ -155,25 +155,25 @@ in {
 
     locked = {
       basic = mkTest {
-        expected = {
+        desired = {
           enable = {
             Value = true;
             Status = "locked";
           };
         };
-        expr = locked {enable = true;};
+        outcome = locked {enable = true;};
       };
     };
 
     managed = {
       basic = mkTest {
-        expected = {
+        desired = {
           url = {
             Value = "https://example.com";
             Status = "managed";
           };
         };
-        expr = managed {url = "https://example.com";};
+        outcome = managed {url = "https://example.com";};
       };
     };
   };

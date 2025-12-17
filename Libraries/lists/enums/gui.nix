@@ -293,45 +293,117 @@ in {
 
   _tests = runTests {
     bootLoaders = {
-      validatesSystemdBoot = mkTest true (bootLoaders.validator.check "systemd-boot");
-      validatesGrub = mkTest true (bootLoaders.validator.check "grub");
+      validatesSystemdBoot = mkTest {
+        desired = true;
+        outcome = bootLoaders.validator.check "systemd-boot";
+      };
+      validatesGrub = mkTest {
+        desired = true;
+        outcome = bootLoaders.validator.check "grub";
+      };
     };
 
     displayProtocols = {
-      validatesWayland = mkTest true (displayProtocols.validator.check "wayland");
-      validatesXserver = mkTest true (displayProtocols.validator.check "x11");
+      validatesWayland = mkTest {
+        desired = true;
+        outcome = displayProtocols.validator.check "wayland";
+      };
+      validatesXserver = mkTest {
+        desired = true;
+        outcome = displayProtocols.validator.check "x11";
+      };
     };
 
     displayManagers = {
-      validatesSDDM = mkTest true (displayManagers.validator.check "sddm");
-      validatesGDM = mkTest true (displayManagers.validator.check "gdm");
+      validatesSDDM = mkTest {
+        desired = true;
+        outcome = displayManagers.validator.check "sddm";
+      };
+      validatesGDM = mkTest {
+        desired = true;
+        outcome = displayManagers.validator.check "gdm";
+      };
     };
 
     desktopEnvironments = {
-      validatesGnome = mkTest true (desktopEnvironments.validator.check "gnome");
-      validatesCaseInsensitive = mkTest true (desktopEnvironments.validator.check "GNOME");
-      rejectsInvalid = mkTest false (desktopEnvironments.validator.check "invalid");
-      containsNone = mkTest true (_.lists.predicates.isIn "none" desktopEnvironments.values);
-      containsAllMajor = mkTest true (_.lists.predicates.hasAll ["gnome" "plasma" "xfce"] desktopEnvironments.values);
-      correctCount = mkTest 13 (builtins.length desktopEnvironments.values);
+      validatesGnome = mkTest {
+        desired = true;
+        outcome = desktopEnvironments.validator.check "gnome";
+      };
+      validatesCaseInsensitive = mkTest {
+        desired = true;
+        outcome = desktopEnvironments.validator.check "GNOME";
+      };
+      rejectsInvalid = mkTest {
+        desired = false;
+        outcome = desktopEnvironments.validator.check "invalid";
+      };
+      containsNone = mkTest {
+        desired = true;
+        outcome = _.lists.predicates.isIn "none" desktopEnvironments.values;
+      };
+      containsAllMajor = mkTest {
+        desired = true;
+        outcome = _.lists.predicates.hasAll ["gnome" "plasma" "xfce"] desktopEnvironments.values;
+      };
+      correctCount = mkTest {
+        desired = 13;
+        outcome = builtins.length desktopEnvironments.values;
+      };
     };
 
     windowManagers = {
-      validatesHyprland = mkTest true (windowManagers.validator.check "hyprland");
-      validatesCaseInsensitive = mkTest true (windowManagers.validator.check "SWAY");
-      rejectsInvalid = mkTest false (windowManagers.validator.check "invalid");
-      containsWaylandCompositors = mkTest true (_.lists.predicates.hasAll ["hyprland" "sway" "river"] windowManagers.values);
-      containsTilingWMs = mkTest true (_.lists.predicates.hasAll ["i3" "bspwm" "awesome"] windowManagers.values);
-      correctCount = mkTest 16 (builtins.length windowManagers.values);
+      validatesHyprland = mkTest {
+        desired = true;
+        outcome = windowManagers.validator.check "hyprland";
+      };
+      validatesCaseInsensitive = mkTest {
+        desired = true;
+        outcome = windowManagers.validator.check "SWAY";
+      };
+      rejectsInvalid = mkTest {
+        desired = false;
+        outcome = windowManagers.validator.check "invalid";
+      };
+      containsWaylandCompositors = mkTest {
+        desired = true;
+        outcome = _.lists.predicates.hasAll ["hyprland" "sway" "river"] windowManagers.values;
+      };
+      containsTilingWMs = mkTest {
+        desired = true;
+        outcome = _.lists.predicates.hasAll ["i3" "bspwm" "awesome"] windowManagers.values;
+      };
+      correctCount = mkTest {
+        desired = 16;
+        outcome = builtins.length windowManagers.values;
+      };
     };
 
     waylandSupport = {
-      validatesGnome = mkTest true (waylandSupport.validator.check "gnome");
-      validatesSway = mkTest true (waylandSupport.validator.check "sway");
-      rejectsX11Only = mkTest false (waylandSupport.validator.check "xfce");
-      containsCompositors = mkTest true (_.lists.predicates.hasAll ["hyprland" "sway" "river"] waylandSupport.values);
-      containsDEs = mkTest true (_.lists.predicates.hasAll ["gnome" "plasma"] waylandSupport.values);
-      correctCount = mkTest 8 (builtins.length waylandSupport.values);
+      validatesGnome = mkTest {
+        desired = true;
+        outcome = waylandSupport.validator.check "gnome";
+      };
+      validatesSway = mkTest {
+        desired = true;
+        outcome = waylandSupport.validator.check "sway";
+      };
+      rejectsX11Only = mkTest {
+        desired = false;
+        outcome = waylandSupport.validator.check "xfce";
+      };
+      containsCompositors = mkTest {
+        desired = true;
+        outcome = _.lists.predicates.hasAll ["hyprland" "sway" "river"] waylandSupport.values;
+      };
+      containsDEs = mkTest {
+        desired = true;
+        outcome = _.lists.predicates.hasAll ["gnome" "plasma"] waylandSupport.values;
+      };
+      correctCount = mkTest {
+        desired = 8;
+        outcome = builtins.length waylandSupport.values;
+      };
     };
   };
 }

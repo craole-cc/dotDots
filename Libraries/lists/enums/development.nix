@@ -64,9 +64,18 @@ in {
 
   _tests = runTests {
     languages = {
-      validatesRust = mkTest true (languages.validator.check "rust");
-      validatesPython = mkTest true (languages.validator.check "python");
-      caseInsensitive = mkTest true (languages.validator.check "JAVASCRIPT");
+      validatesRust = mkTest {
+        expected = true;
+        expr = languages.validator.check "rust";
+      };
+      validatesPython = mkTest {
+        expected = true;
+        expr = languages.validator.check "python";
+      };
+      caseInsensitive = mkTest {
+        expected = true;
+        expr = languages.validator.check "JAVASCRIPT";
+      };
     };
   };
 }

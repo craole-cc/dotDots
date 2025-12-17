@@ -55,32 +55,32 @@ in
     _tests = runTests {
       #? Test structure exists
       hasValues = mkTest {
-        expected = true;
-        expr = hasAttrByPath ["enums" "developmentLanguages" "values"] _;
+        desired = true;
+        outcome = hasAttrByPath ["enums" "developmentLanguages" "values"] _;
       };
       hasValidator = mkTest {
-        expected = true;
-        expr = hasAttrByPath ["enums" "developmentLanguages" "validator"] _;
+        desired = true;
+        outcome = hasAttrByPath ["enums" "developmentLanguages" "validator"] _;
       };
       hasRootAlias = mkTest {
-        expected = true;
-        expr = hasAttrByPath ["enums" "developmentLanguages"] _;
+        desired = true;
+        outcome = hasAttrByPath ["enums" "developmentLanguages"] _;
       };
 
       #? Test actual functionality
       validatorWorks = mkTest {
-        expected = true;
-        expr = _.enums.developmentLanguages.validator.check "rust";
+        desired = true;
+        outcome = _.enums.developmentLanguages.validator.check "rust";
       };
       valuesIsList = mkTest {
-        expected = true;
-        expr = isList (_.enums.developmentLanguages.values or null);
+        desired = true;
+        outcome = isList (_.enums.developmentLanguages.values or null);
       };
 
       #? Test multiple enums exist
       hasAllCategories = mkTest {
-        expected = true;
-        expr = (
+        desired = true;
+        outcome = (
           true
           && hasAttrByPath ["enums" "developmentLanguages"] _
           && hasAttrByPath ["enums" "hostFunctionalities"] _
@@ -92,8 +92,8 @@ in
 
       # Test enum count
       hasExpectedEnumCount = mkTest {
-        expected = 14;
-        expr = length (attrNames enums);
+        desired = 14;
+        outcome = length (attrNames enums);
       };
     };
   }
