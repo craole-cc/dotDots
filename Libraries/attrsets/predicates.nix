@@ -58,13 +58,15 @@
     basePath,
     names,
   }: let
-    _ = checkArgs "anyEnabled" {inherit attrset basePath names;};
+    __checked = checkArgs "anyEnabled" {inherit attrset basePath names;};
   in
-    any (name:
-      isPathEnabled {
-        inherit attrset basePath;
-        path = name;
-      })
+    any (
+      name:
+        isPathEnabled {
+          inherit attrset basePath;
+          path = name;
+        }
+    )
     names;
 
   /**
@@ -82,13 +84,15 @@
     basePath,
     names,
   }: let
-    _ = checkArgs "allEnabled" {inherit attrset basePath names;};
+    __checked = checkArgs "allEnabled" {inherit attrset basePath names;};
   in
-    all (name:
-      isPathEnabled {
-        inherit attrset basePath;
-        path = name;
-      })
+    all (
+      name:
+        isPathEnabled {
+          inherit attrset basePath;
+          path = name;
+        }
+    )
     names;
 
   waylandWindowManager = config:
