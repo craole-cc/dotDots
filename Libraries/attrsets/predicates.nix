@@ -259,8 +259,8 @@ in {
         expr = builtins.tryEval (
           anyEnabled {
             attrset = "invalid";
-            basePath = [];
-            names = [];
+            basePath = [""];
+            names = [""];
           }
         );
       };
