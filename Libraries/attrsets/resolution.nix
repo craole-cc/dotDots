@@ -286,7 +286,7 @@ in
   exports
   // {
     _rootAliases = {
-      inherit getShellPackage;
+      inherit getPackage getShellPackage;
       getAttrByPaths = getByPaths;
       getNestedAttrByPaths = getNestedByPaths;
     };
