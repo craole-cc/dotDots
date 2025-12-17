@@ -7,6 +7,7 @@
   inherit (lib.lists) all any elem isList;
   inherit (_.types.generators) validate;
   inherit (_.trivial.tests) mkTest runTests mkThrows;
+  inherit (_.trivial.emptiness) isNotEmpty;
 
   toPath = name:
     if isList name
@@ -42,16 +43,16 @@
     basePath = validate {
       inherit fnName;
       argName = "basePath";
-      expected = "list";
-      predicate = isList;
+      expected = "non-empty list";
+      predicate = v: isList v && isNotEmpty v;
       actual = basePath;
     };
 
     names = validate {
       inherit fnName;
       argName = "names";
-      expected = "list";
-      predicate = isList;
+      expected = "non-empty list";
+      predicate = v: isList v && isNotEmpty v;
       actual = names;
     };
   };
