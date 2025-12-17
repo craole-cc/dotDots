@@ -130,7 +130,7 @@
       inherit program package allowed;
       variant = detectedVariant;
     }
-    // optionalAttrs (zen ? module && isNotEmpty zen.module) {
+    // optionalAttrs (zen?module) {
       module = zen.module;
     };
 
