@@ -307,21 +307,23 @@
   isNotEmptyAttrs :: a -> Bool
   */
   isNotEmptyAttrs = input: isAttrs input && !isEmptyAttrs input;
-in {
-  inherit
-    isEmpty
-    isEmptySafe
-    isEmptyWithTypes
-    isTrulyEmpty
-    isEmptyString
-    isEmptyList
-    isEmptyAttrs
-    isNotEmpty
-    isNotEmptySafe
-    isNotEmptyWithTypes
-    isTrulyNotEmpty
-    isNotEmptyString
-    isNotEmptyList
-    isNotEmptyAttrs
-    ;
-}
+  exports = {
+    inherit
+      isEmpty
+      isEmptySafe
+      isEmptyWithTypes
+      isTrulyEmpty
+      isEmptyString
+      isEmptyList
+      isEmptyAttrs
+      isNotEmpty
+      isNotEmptySafe
+      isNotEmptyWithTypes
+      isTrulyNotEmpty
+      isNotEmptyString
+      isNotEmptyList
+      isNotEmptyAttrs
+      ;
+  };
+in
+  exports // {_rootAliases = exports;}
