@@ -273,21 +273,17 @@
       shellName
     }
     or pkgs.bashInteractive;
+in {
+  inherit
+    getByPaths
+    getNestedByPaths
+    getPackage
+    getShellPackage
+    ;
 
-  exports = {
-    inherit
-      getByPaths
-      getNestedByPaths
-      getPackage
-      getShellPackage
-      ;
+  _rootAliases = {
+    inherit getPackage getShellPackage;
+    getAttrByPaths = getByPaths;
+    getNestedAttrByPaths = getNestedByPaths;
   };
-in
-  exports
-  // {
-    _rootAliases = {
-      inherit getPackage getShellPackage;
-      getAttrByPaths = getByPaths;
-      getNestedAttrByPaths = getNestedByPaths;
-    };
-  }
+}

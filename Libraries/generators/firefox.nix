@@ -107,7 +107,7 @@
         # };
         module = _.getAttrByPaths {
           attrset = inputs;
-          paths = ["zenBrowser" "zen-browser" "zen_browser" "twilight" "zen"];
+          paths = [["zenBrowser"] ["zen-browser"] ["zen_browser"] ["twilight"] ["zen"]];
           # target = "homeModules.${zenVariant}";
         };
         variant = zenVariant;
