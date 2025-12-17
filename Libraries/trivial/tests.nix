@@ -28,22 +28,14 @@
     )
     tests;
 
-  # Backwards‑compatible mkTest:
-  # - mkTest expected expr
-  # - mkTest { expected = ...; expr = ...; }
-  mkTest = expectedOrAttrs: exprOrNull: let
-    args =
-      if isAttrs expectedOrAttrs && expectedOrAttrs ? expected && expectedOrAttrs ? expr
-      then expectedOrAttrs
-      else {
-        expected = expectedOrAttrs;
-        expr = exprOrNull;
-      };
-
-    value = deepSeq args.expr args.expr;
-    passed = args.expected == value;
+  mkTest = {
+    expected,
+    expr,
+  }: let
+    value = deepSeq expr expr;
+    passed = expected == value;
   in {
-    expected = args.expected;
+    inherit expected;
     result = value;
     inherit passed;
   };
