@@ -264,13 +264,19 @@ in {
         };
       };
 
-      rejectsInvalidAttrset = mkThrows (
-        anyEnabled {
-          attrset = "invalid";
-          basePath = [];
-          names = [];
-        }
-      );
+      rejectsInvalidAttrset = mkTest {
+        expected = {
+          success = false;
+          value = false;
+        };
+        expr = builtins.tryEval (
+          anyEnabled {
+            attrset = "invalid";
+            basePath = [];
+            names = [];
+          }
+        );
+      };
     };
 
     allEnabled = {
