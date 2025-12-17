@@ -8,6 +8,43 @@
   inherit (_) isNotEmpty;
 
   /**
+  Get attribute or default if missing/empty.
+
+  Safely accesses an attribute and returns default if it doesn't exist or is empty.
+  This lets you write `getAttr attrs "key" default` instead of `attrs.key or null`.
+
+  # Type
+  get :: AttrSet -> String -> a -> a
+
+  # Examples
+  get { a = "hello"; } "a" "fallback"   # => "hello"
+  get { a = ""; } "a" "fallback"        # => "fallback" (empty)
+  get {} "a" "fallback"                 # => "fallback" (missing)
+  get { a = 0; } "a" 42                 # => 0 (numbers never empty)
+  */
+  get = attrs: name: default:
+    if attrs ? ${name} && isNotEmpty attrs.${name}
+    then attrs.${name}
+    else default;
+
+  /**
+  Get attribute or default if missing (null check only).
+
+  Like getAttr but only checks if attribute exists, not if it's empty.
+
+  # Type
+  getAttrOrNull :: AttrSet -> String -> a -> a
+
+  # Examples
+  getAttrOrNull { a = ""; } "a" "fallback"  # => "" (exists, even if empty)
+  getAttrOrNull {} "a" "fallback"           # => "fallback" (missing)
+  */
+  getOrNull = attrs: name: default:
+    if attrs ? ${name}
+    then attrs.${name}
+    else default;
+
+  /**
   Get an attribute by trying multiple paths.
 
   Searches through a list of possible attribute paths in order and returns
@@ -275,6 +312,8 @@
     or pkgs.bashInteractive;
 in {
   inherit
+    get
+    getOrNull
     getByPaths
     getNestedByPaths
     getPackage
@@ -283,7 +322,9 @@ in {
 
   _rootAliases = {
     inherit getPackage getShellPackage;
+    getAttr = get;
     getAttrByPaths = getByPaths;
     getNestedAttrByPaths = getNestedByPaths;
+    getAttrOrNull = getOrNull;
   };
 }

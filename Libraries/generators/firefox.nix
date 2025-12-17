@@ -6,7 +6,7 @@
   inherit (lib.attrsets) mapAttrs isAttrs optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
-  inherit (_) isEmpty isNotEmpty getNestedAttrByPaths getPackage isEmptyAttrs;
+  inherit (_) isEmpty isNotEmpty getNestedAttrByPaths getPackage getAttr;
 
   /**
   Create a Firefox extension download URL.
@@ -115,18 +115,22 @@
       };
 
     #~@ Resolve package from nixpkgs
-    package =
-      if isNotEmpty zen
-      then zen.package
-      else
-        getPackage {
-          inherit pkgs;
-          target = detectedVariant;
-        };
+    package = getAttr zen "package" (getPackage {
+      inherit pkgs;
+      target = detectedVariant;
+    });
+    # package =
+    #   if isNotEmpty (zen.package or null)
+    #   then zen.package
+    #   else
+    #     getPackage {
+    #       inherit pkgs;
+    #       target = detectedVariant;
+    #     };
 
     #~@ Determine the program name
     program =
-      if isNotEmpty zen.module
+      if isNotEmpty zen
       then zen.name
       else if isNotEmpty package
       then "firefox"
