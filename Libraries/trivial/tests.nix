@@ -16,7 +16,7 @@
         then let
           error =
             if !test.passed
-            then "Test `${name}` failed: expected ${toString test.expected}, got ${toString test.result}"
+            then "Test `${name}` failed"
             else null;
         in {
           inherit (test) expected result passed;
