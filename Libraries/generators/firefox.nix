@@ -525,7 +525,7 @@ Supported Browsers:
     else "twilight";
 in {
   inherit
-    __doc
+    # __doc
     extensionUrl
     zenVariant
     extensionEntry
