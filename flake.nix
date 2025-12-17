@@ -2,7 +2,13 @@
   description = "dotDots Flake Configuration";
   outputs = inputs @ {self, ...}: let
     inherit (inputs.nixosCore) lib;
-    inherit (import ./Libraries {inherit lib;}) lix;
+    inherit
+      (import ./Libraries {
+        inherit lib;
+        src = ./.;
+      })
+      lix
+      ;
     inherit (import ./API {inherit lix;}) hosts users;
     inherit (lix.generators.core) mkCore;
 
