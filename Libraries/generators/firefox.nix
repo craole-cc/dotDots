@@ -130,7 +130,9 @@
       inherit program package allowed;
       variant = detectedVariant;
     }
-    // zen.module or {};
+    // optionalAttrs (zen ? module && isNotEmpty zen.module) {
+      module = zen.module;
+    };
 
   zenVariant = variant: let
     detectedVariant = detectVariant variant;
