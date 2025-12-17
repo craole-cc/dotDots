@@ -524,6 +524,10 @@ Supported Browsers:
     then "beta"
     else "twilight";
 in {
+  #~@ Values
+  version = "1.0.0";
+  defaultSettings = {pinned = false;};
+
   inherit
     # __doc
     extensionUrl
