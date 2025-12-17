@@ -101,7 +101,7 @@
   allEnabled {
     attrset = config;
     basePath = [ "services" "displayManager" ];
-    names = [ "gdm" [ "gdm" "wayland" ] ];
+    names = [ "sddm" [ "sddm" "wayland" ] ];
   }
   # => true if both services.displayManager.gdm.enable and gdm.wayland are true
   ```
@@ -122,10 +122,15 @@
         if isList name
         then name
         else [name];
+
+      isEnabled = name: let
+        path = basePath ++ toPath name;
+        direct = attrByPath path false attrset;
+        withEnable = attrByPath (path ++ ["enable"]) false attrset;
+      in
+        direct == true || withEnable == true;
     in
-      all
-      (name: attrByPath (basePath ++ toPath name ++ ["enable"]) false attrset)
-      names;
+      all isEnabled names;
 
   waylandWindowManager = config:
     anyEnabled {
