@@ -3,7 +3,7 @@
   name ? "lix",
   collisionStrategy ? "warn",
   runTests ? true,
-  exportPrivate ? false,
+  exportPrivate ? true,
   excludedDirs ? [
     "review"
     "archive"
