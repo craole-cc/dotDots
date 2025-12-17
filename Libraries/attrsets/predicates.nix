@@ -94,6 +94,17 @@
     )
     ns;
 
+  /**
+  Check if all of a set of attributes are effectively enabled.
+
+  Same notion of “enabled” as anyEnabled:
+  - Direct boolean true at `basePath ++ toPath name`, or
+  - `.enable == true` at that path.
+
+  Type:
+    allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
+  */
+
   allEnabled = {
     attrset,
     basePath,
@@ -134,30 +145,19 @@
         }
     )
     ns;
-
-  /**
-  Check if all of a set of attributes are effectively enabled.
-
-  Same notion of “enabled” as anyEnabled:
-  - Direct boolean true at `basePath ++ toPath name`, or
-  - `.enable == true` at that path.
-
-  Type:
-    allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
-  */
-  allEnabled = {
-    attrset,
-    basePath,
-    names,
-  }: let
-    _ = checkArgs "allEnabled" {inherit attrset basePath names;};
-  in
-    all (name:
-      isPathEnabled {
-        inherit attrset basePath;
-        path = name;
-      })
-    names;
+  # allEnabled = {
+  #   attrset,
+  #   basePath,
+  #   names,
+  # }: let
+  #   _ = checkArgs "allEnabled" {inherit attrset basePath names;};
+  # in
+  #   all (name:
+  #     isPathEnabled {
+  #       inherit attrset basePath;
+  #       path = name;
+  #     })
+  #   names;
 
   waylandWindowManager = config:
     anyEnabled {
