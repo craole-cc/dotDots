@@ -308,7 +308,10 @@
 
           #> Enable shells in home-manager
           programs = {
-            bash.enable = mkDefault (elem "bash" (cfg.shells or []));
+            bash = {
+              enable = mkDefault (elem "bash" (cfg.shells or []));
+              blesh.enable = true;
+            };
             zsh.enable = mkDefault (elem "zsh" (cfg.shells or []));
             fish.enable = mkDefault (elem "fish" (cfg.shells or []));
             nushell.enable = mkDefault (elem "nushell" (cfg.shells or []));
