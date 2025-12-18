@@ -3,8 +3,8 @@
   user,
   ...
 }: let
-  inherit (lib.lists) elem;
-  inherit (user) enable;
   app = "yazi";
-  isAllowed = elem app enable;
+  inherit (lib.lists) elem;
+  inherit (user.applications) allowed;
+  isAllowed = elem app allowed;
 in {programs.${app}.enable = isAllowed;}

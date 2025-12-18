@@ -37,7 +37,7 @@
       argName = "attrset";
       desired = "set";
       predicate = isAttrs;
-      actual = attrset;
+      outcome = attrset;
     };
 
     basePath = validate {
@@ -45,15 +45,15 @@
       argName = "basePath";
       desired = "non-empty list";
       predicate = v: isList v && isNotEmpty v;
-      actual = basePath;
+      outcome = basePath;
     };
 
     names = validate {
       inherit fnName;
       argName = "names";
       desired = "non-empty list";
+      outcome = names;
       predicate = v: isList v && isNotEmpty v;
-      actual = names;
     };
   };
 
@@ -176,7 +176,7 @@
       argName = "config";
       predicate = isAttrs;
       desired = "set";
-      actual = config;
+      outcome = config;
     };
 
     ifc = validate {
@@ -184,7 +184,7 @@
       argName = "interface";
       predicate = isAttrs;
       desired = "set";
-      actual = interface;
+      outcome = interface;
     };
 
     isWaylandWM = waylandWindowManager cfg;

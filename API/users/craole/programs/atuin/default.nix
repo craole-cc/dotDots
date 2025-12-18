@@ -4,10 +4,10 @@
   lib,
   ...
 }: let
-  inherit (lib.lists) elem;
-  inherit (user) enable;
   app = "atuin";
-  isAllowed = elem app enable;
+  inherit (lib.lists) elem;
+  inherit (user.applications) allowed;
+  isAllowed = elem app allowed;
   isEnabled = pkg: config.programs.${pkg}.enable;
 in {
   programs.${app} = {

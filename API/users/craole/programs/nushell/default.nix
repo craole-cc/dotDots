@@ -5,8 +5,8 @@
 }: let
   app = "nushell";
   inherit (lib.lists) elem;
-  inherit (user) enable;
-  isAllowed = elem app enable || elem app user.shells;
+  inherit (user.applications) allowed;
+  isAllowed = elem app allowed || elem app user.shells;
 in {
   programs.${app}.enable = isAllowed;
   imports = [];

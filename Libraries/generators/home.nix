@@ -224,17 +224,17 @@
                   if browser == "zen"
                   then "zen-${zen}"
                   else browser;
-                TERMINAL =
-                  attrByPath ["applications" "terminal" "primary"] (
-                    if de == "gnome"
-                    then "gnome-terminal"
-                    else if de == "plasma"
-                    then "konsole"
-                    else if wm == "hyprland"
-                    then "kitty"
-                    else "footclient"
-                  )
-                  cfg;
+                # TERMINAL =
+                #   attrByPath ["applications" "terminal" "primary"] (
+                #     if de == "gnome"
+                #     then "gnome-terminal"
+                #     else if de == "plasma"
+                #     then "konsole"
+                #     else if wm == "hyprland"
+                #     then "kitty"
+                #     else "footclient"
+                #   )
+                # cfg;
               }
               // (
                 if dp == "wayland"
