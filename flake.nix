@@ -5,7 +5,7 @@
     inherit
       (import ./Libraries {
         inherit lib;
-        src = ./.;
+        # src = ./.;
       })
       lix
       ;

@@ -1,0 +1,1 @@
+/home/craole/.dots/Bin/shellscript/project/symdoc.md

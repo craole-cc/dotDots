@@ -1,0 +1,394 @@
+#!/bin/sh
+#
+# symdoc - Documentation symlink mirror generator
+# Creates a Documentation/ folder with symlinks to all .md files from Libraries/
+# Pure POSIX sh - no dependencies
+#
+
+# Note: We don't use set -e because we handle errors explicitly
+# set -e can cause silent failures with functions that don't explicitly return 0
+
+#==============================================================================
+# Globals & Initialization
+#==============================================================================
+
+_cmd_name="symdoc"
+_version="1.1.0"
+
+# Default paths (will be set in find_project_root)
+lib_dir=""
+doc_dir=""
+project_root=""
+
+# Flags
+verbose=0
+dry_run=0
+force_cleanup=0
+quiet=0
+
+# Colors (POSIX safe)
+c_reset=$(printf '\033[0m')
+c_green=$(printf '\033[32m')
+c_blue=$(printf '\033[34m')
+c_yellow=$(printf '\033[33m')
+c_red=$(printf '\033[31m')
+c_cyan=$(printf '\033[36m')
+c_dim=$(printf '\033[2m')
+
+#==============================================================================
+# Helper Functions
+#==============================================================================
+
+log_verbose() {
+	[ "$verbose" -eq 1 ] && printf "%b\n" "$*"
+}
+
+log_info() {
+	[ "$quiet" -eq 0 ] && printf "%b\n" "$*"
+}
+
+log_error() {
+	[ "$quiet" -eq 0 ] && printf "%b\n" "$*" >&2
+}
+
+die() {
+	[ "$quiet" -eq 0 ] && log_error "${c_red}❌ Error:${c_reset} $1"
+	exit "${2:-1}"
+}
+
+#==============================================================================
+# Argument Parsing
+#==============================================================================
+
+print_usage() {
+	cat <<EOF
+Usage: $_cmd_name [OPTIONS]
+
+Options:
+  -l, --lib-dir DIR      Library directory (default: auto-detect)
+  -d, --doc-dir DIR      Documentation directory (default: \$PROJECT_ROOT/Documentation)
+  -v, --verbose          Show detailed output
+  -n, --dry-run          Show what would be done without making changes
+  -c, --clean            Remove broken symlinks before generating
+  -q, --quiet            Suppress all output except errors
+  -V, --version          Show version
+  -h, --help             Show this help
+
+Examples:
+  $_cmd_name                           # Auto-detect and run
+  $_cmd_name -v                        # Verbose mode
+  $_cmd_name -n                        # Dry-run (safe test)
+  $_cmd_name -c                        # Clean broken links first
+  $_cmd_name -l ./src -d ./docs -v     # Custom directories
+
+Description:
+  Scans for .md files in Libraries/ and creates symlinks in Documentation/
+  preserving the exact folder structure. Generates a README.md index.
+EOF
+}
+
+parse_arguments() {
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		-l | --src | --lib-dir)
+			[ -z "$2" ] && die "Option $1 requires a value"
+			lib_dir="$2"
+			shift 2
+			;;
+		-d | --lnk | --doc-dir)
+			[ -z "$2" ] && die "Option $1 requires a value"
+			doc_dir="$2"
+			shift 2
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-n | --dry-run)
+			dry_run=1
+			verbose=1 # Dry-run implies verbose
+			shift
+			;;
+		-c | --clean)
+			force_cleanup=1
+			shift
+			;;
+		-q | --quiet)
+			quiet=1
+			verbose=0
+			shift
+			;;
+		-V | --version)
+			printf "%s v%s\n" "$_cmd_name" "$_version"
+			exit 0
+			;;
+		-h | --help)
+			print_usage
+			exit 0
+			;;
+		*)
+			die "Unknown option: $1\nRun '$_cmd_name --help' for usage."
+			;;
+		esac
+	done
+}
+
+#==============================================================================
+# Path Discovery
+#==============================================================================
+
+get_script_dir() {
+	# Get absolute path to script directory (POSIX safe)
+	case "$0" in
+	/*) script_path="$0" ;;
+	*) script_path="$PWD/$0" ;;
+	esac
+
+	script_dir=$(dirname "$script_path")
+	(cd "$script_dir" && pwd)
+}
+
+find_project_root() {
+	script_dir=$(get_script_dir)
+	current="$script_dir"
+
+	# Walk up directory tree looking for project markers
+	while [ "$current" != "/" ]; do
+		if [ -d "$current/.git" ] ||
+			[ -f "$current/flake.nix" ] ||
+			[ -f "$current/Cargo.toml" ] ||
+			[ -f "$current/pyproject.toml" ]; then
+			project_root="$current"
+			break
+		fi
+		current=$(cd "$current/.." && pwd)
+	done
+
+	# Fallback to script directory if no markers found
+	[ -z "$project_root" ] && project_root="$script_dir"
+
+	# Set defaults if not specified
+	: "${lib_dir:=$project_root/Libraries}"
+	: "${doc_dir:=$project_root/Documentation}"
+
+	log_verbose "${c_blue}🏠 PRJ:${c_reset} $project_root"
+}
+
+validate_paths() {
+	# Check library directory exists
+	[ -d "$lib_dir" ] || die "Library directory not found: $lib_dir"
+
+	# Convert to absolute paths
+	lib_dir=$(cd "$lib_dir" && pwd)
+
+	# Ensure doc_dir is absolute
+	case "$doc_dir" in
+	/*) ;;
+	*) doc_dir="$project_root/$doc_dir" ;;
+	esac
+
+	# Prevent doc_dir from being inside lib_dir (circular reference)
+	case "$doc_dir" in
+	"$lib_dir"/*)
+		die "Documentation directory cannot be inside Library directory\nLib: $lib_dir\nDoc: $doc_dir"
+		;;
+	esac
+
+	log_verbose "${c_blue}📚 SRC:${c_reset} $lib_dir"
+	log_verbose "${c_blue}📁 DOC:${c_reset} $doc_dir"
+	log_verbose ""
+}
+
+#==============================================================================
+# Symlink Generation
+#==============================================================================
+
+clean_broken_links() {
+	[ "$force_cleanup" -eq 0 ] && return
+
+	log_verbose "${c_yellow}🧹 Cleaning broken symlinks...${c_reset}"
+
+	if [ ! -d "$doc_dir" ]; then
+		log_verbose "   ${c_dim}(no doc dir to clean)${c_reset}"
+		log_verbose ""
+		return
+	fi
+
+	removed=0
+	find "$doc_dir" -type l | while read -r link; do
+		if [ ! -e "$link" ]; then
+			if [ "$dry_run" -eq 1 ]; then
+				log_verbose "   ${c_yellow}👁️  Would remove:${c_reset}   ${link#"$doc_dir/"}"
+			else
+				rm "$link"
+				log_verbose "   ${c_red}🗑️  Removed:${c_reset}        ${link#"$doc_dir/"}"
+				removed=$((removed + 1))
+			fi
+		fi
+	done
+
+	[ "$removed" -gt 0 ] && log_verbose "${c_green}✅ Cleaned $removed broken symlinks${c_reset}"
+	log_verbose ""
+}
+
+generate_symlinks() {
+	log_verbose "${c_yellow}🔗 Scanning for .md files...${c_reset}"
+
+	#> Use the source directory basename for the target path
+	lib_basename=$(basename "$lib_dir")
+	[ "$dry_run" -eq 0 ] && mkdir -p "$doc_dir/$lib_basename"
+
+	link_count=0
+	skip_count=0
+
+	#> Use a temporary file to avoid subshell variable scope issues
+	tmpfile=$(mktemp)
+	find "$lib_dir" -type f -name "*.md" -not -path "*/Documentation/*" | sort >"$tmpfile"
+
+	#> Process each file
+	while IFS= read -r md_file; do
+		[ -z "$md_file" ] && continue
+
+		#> Dynamically determine paths based on lib_dir
+		relative_path="${md_file#"$lib_dir/"}"
+		absolute_path=$(printf '%s/%s/%s' "$doc_dir" "$lib_basename" "$relative_path")
+		target_dir=$(dirname "$absolute_path")
+
+		#> Skip if already correctly linked
+		if
+			[ -L "$absolute_path" ] &&
+				[ "$(readlink "$absolute_path")" = "$md_file" ]
+		then
+			log_verbose "   ${c_dim}⏭️  Already linked:${c_reset} $relative_path"
+			skip_count=$((skip_count + 1))
+			continue
+		fi
+
+		#> Simulate the operation [Dry-run mode]
+		if [ "$dry_run" -eq 1 ]; then
+			log_verbose "   ${c_yellow}👁️  Would link:${c_reset}    $relative_path"
+			log_verbose "     ${c_dim}→ $absolute_path${c_reset}"
+			link_count=$((link_count + 1))
+			continue
+		fi
+
+		#> Create target directory
+		mkdir -p "$target_dir" || die "Failed to create directory: $target_dir"
+
+		#> Remove existing file/link if present
+		[ -e "$absolute_path" ] || [ -L "$absolute_path" ] && rm "$absolute_path"
+
+		#> Create symlink
+		if ln -sf "$md_file" "$absolute_path"; then
+			if [ "${verbose:-0}" -eq 0 ]; then
+				log_info "   ${c_green}✓${c_reset} Linked: $relative_path"
+			else
+				log_verbose "   ${c_green}✓${c_reset} Linked: $absolute_path"
+			fi
+			link_count=$((link_count + 1))
+		else
+			[ "$quiet" -eq 0 ] && log_error "   ${c_red}✗${c_reset} Failed: $absolute_path"
+		fi
+	done <"$tmpfile"
+
+	rm -f "$tmpfile"
+
+	log_verbose "${c_green}✅ Created $link_count symlinks${c_reset} ${c_dim}($skip_count skipped)${c_reset}"
+	log_verbose ""
+
+	return 0
+}
+
+#==============================================================================
+# Index Generation
+#==============================================================================
+
+generate_index() {
+	index_path="$doc_dir/index.md"
+
+	log_verbose "${c_yellow}📝 Generating index...${c_reset}"
+
+	[ "$dry_run" -eq 1 ] && {
+		log_verbose "   ${c_yellow}👁️  Would generate:${c_reset} $index_path"
+		log_verbose ""
+		return
+	}
+
+	{
+		# Print a header
+		printf '# 🔗 %s - Documentation Index\n\n' "$_cmd_name"
+		printf '> Auto-generated on %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+		printf '> Mirroring: '\''%s'\''\n\n' "$lib_dir"
+		printf -- '---\n\n'
+
+		#> Find all symlinked .md files and group by directory
+		find "$doc_dir/Libraries" -type l -name "*.md" 2>/dev/null | sort | {
+			last_dir=""
+			count=0
+
+			while IFS= read -r link; do
+				relative_path="${link#"$doc_dir/"}"
+				dir=$(dirname "$relative_path")
+				basename=$(basename "$relative_path" .md)
+
+				#> Print directory header when it changes
+				if [ "$dir" != "$last_dir" ]; then
+					[ -n "$last_dir" ] && printf '\n'
+					printf '## 📁 %s\n\n' "$dir"
+					last_dir="$dir"
+				fi
+
+				#> Print link
+				printf -- '- [%s](%s)\n' "$basename" "$relative_path"
+				count=$((count + 1))
+			done
+
+			#> Print the footer
+			printf '\n---\n\n'
+			printf '**Total documents:** %d symlinks\n' "$count"
+		}
+	} >"$index_path"
+
+	log_verbose "   ${c_green}✓${c_reset} Generated:      $index_path"
+	log_verbose ""
+}
+
+#==============================================================================
+# Main Execution
+#==============================================================================
+execute() {
+	#> Count paths only after validation
+	link_count_before=$(
+		[ -d "$doc_dir" ] &&
+			find "$doc_dir" -type l 2>/dev/null | wc -l || echo 0
+	)
+
+	#> Generate the links and index
+	generate_symlinks
+	generate_index
+
+	link_count_after=$(find "$doc_dir" -type l 2>/dev/null | wc -l)
+	changes=$((link_count_after - link_count_before))
+}
+main() {
+	parse_arguments "$@"
+	find_project_root
+	validate_paths
+	clean_broken_links
+	execute
+
+	#> Print the summary
+	if [ "$dry_run" -eq 1 ]; then
+		log_info ""
+		log_info "${c_yellow}👁️  DRY-RUN complete - no changes made${c_reset}"
+	elif [ "$changes" -gt 0 ]; then
+		log_info ""
+		log_info "${c_green}✅ Success!${c_reset} Added ${c_cyan}$changes${c_reset} new symlink(s)"
+	else
+		log_verbose ""
+		log_verbose "${c_green}✅ Up to date${c_reset} - no changes needed"
+	fi
+}
+
+#> Run main with all arguments
+main "$@"

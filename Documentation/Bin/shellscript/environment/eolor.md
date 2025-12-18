@@ -1,0 +1,1 @@
+/home/craole/.dots/Bin/shellscript/environment/eolor.md
