@@ -47,6 +47,7 @@
       #~@ Visuals
       kurve
       catppuccin
+      koi
     ];
   };
 }
