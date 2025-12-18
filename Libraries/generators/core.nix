@@ -16,9 +16,8 @@
 
   mkCore = {
     inputs,
-    hosts,
-    users,
-    extraArgs ? {},
+    api,
+    args ? {},
   }:
     mapAttrs (name: host: let
       dots = host.paths.dots or null;
@@ -31,12 +30,12 @@
           // {
             inherit name dots system;
             users =
-              mapAttrs (name: config: users.${name} or {} // config)
+              mapAttrs (name: config: api.users.${name} or {} // config)
               (filterAttrs (_: cfg: cfg.enable or false) host.users);
           };
-        extraArgs = extraArgs // {inherit dots system;};
+        extraArgs = args // {inherit dots system;};
       })
-    hosts;
+    api.hosts;
 
   mkHost = {
     host,
