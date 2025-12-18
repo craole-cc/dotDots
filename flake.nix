@@ -9,18 +9,18 @@
     all = self;
     api = {inherit hosts users;};
     args = {inherit all api lix;};
+
     eachSystem = lib.genAttrs (import inputs.nixosSystems);
+    devShells = eachSystem (system: {
+      default = (import ./shell.nix {pkgs = legacyPackages.${system};}).default;
+    });
+    repl = import ./. args;
   in {
     nixosConfigurations = mkCore {
       inherit inputs hosts users;
       extraArgs = args;
     };
-    repl = import ./. args;
-
-    devShells = eachSystem (system: {
-      default =
-        (import ./shell.nix {pkgs = legacyPackages.${system};}).default;
-    });
+    inherit repl devShells;
   };
 
   inputs = {
