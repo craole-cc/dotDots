@@ -1,6 +1,7 @@
 {
   imports = [
     ./apps.nix
+    ./common
 
     ./atuin
     ./bash
