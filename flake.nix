@@ -14,7 +14,7 @@
       inherit inputs hosts users;
       extraArgs = args;
     };
-    repl = import ./. // args;
+    repl = (import ./. args);
   };
 
   inputs = {
