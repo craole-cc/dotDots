@@ -18,18 +18,15 @@ in {
     ];
 
     shellHook = ''
-      printf "🚀 Project shell loaded\n"
+      printf "🚀 Nix development shell loaded\n"
 
-      PROJECT_BIN="$PWD/.bin"
-      mkdir -p "$PROJECT_BIN"
-
-      if [ -f "$PWD/Bin/shellscript/project/nix/nix-repl" ]; then
-        ln -sf "$PWD/Bin/shellscript/project/nix/nix-repl" "$PROJECT_BIN/repl"
-        ln -sf "$PWD/Bin/shellscript/project/nix/nix-repl" "$PROJECT_BIN/nix-repl"
+      #> Setup repl alias (Bin should already be in PATH from .envrc)
+      if command -v nix-repl >/dev/null 2>&1; then
+        alias repl='nix-repl'
+        printf "Run 'repl' to start Nix REPL\n"
+      else
+        printf "Note: 'nix-repl' command not found in PATH\n" >&2
       fi
-
-      export PATH="$PROJECT_BIN:$PATH"
-      printf "Run 'repl' to start Nix REPL\n"
     '';
   };
 }

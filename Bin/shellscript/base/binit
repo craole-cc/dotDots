@@ -1,0 +1,122 @@
+#!/bin/sh
+#> Initialize Bin directory structure
+
+printf "binit: Starting\n" >&2
+
+#> Configuration
+: "${BIN_ROOT:=Bin}"
+: "${BIN_DEPTH:=10}"
+: "${BIN_IGNORE:=review tmp archive}"
+: "${BLACKLIST_EXT:=md txt json yaml yml xml html css js ts jsx tsx png jpg jpeg gif svg pdf doc docx xls xlsx ppt pptx zip tar gz bz2 7z log}"
+: "${BINIT_ACTION:=--run}"
+
+printf "binit: BIN_ROOT=%s, BINIT_ACTION=%s\n" "${BIN_ROOT}" "${BINIT_ACTION}" >&2
+
+#> Make scripts executable
+make_executable() {
+	printf "binit: Making scripts executable...\n" >&2
+	changed_count=0
+
+	find "${BIN_ROOT}" -type f 2>/dev/null | while read -r file; do
+		#> Get file extension
+		ext="${file##*.}"
+
+		#> Skip blacklisted extensions
+		case " ${BLACKLIST_EXT} " in
+		*" ${ext} "*) continue ;;
+		*) ;;
+		esac
+
+		#> Check for shebang
+		if dd if="${file}" bs=1 count=2 2>/dev/null | grep -q "#!"; then
+			#> Skip if already executable
+			[ -x "${file}" ] && continue
+
+			if chmod +x "${file}" 2>/dev/null; then
+				printf "  +x %s\n" "${file}" >&2
+				changed_count=$((changed_count + 1))
+			fi
+		fi
+	done
+
+	[ "${changed_count}" -gt 0 ] && printf "Made %s scripts executable\n" "${changed_count}" >&2
+}
+
+#> Add Bin directories to PATH
+add_to_path() {
+	printf "binit: Adding Bin to PATH...\n" >&2
+	DOTS_PATH=""
+	dir_count=0
+
+	#> Filter directories
+	if command -v fd >/dev/null 2>&1; then
+		#> Build fd command
+		fd_cmd="fd --type d --max-depth $((BIN_DEPTH * 2)) . ${BIN_ROOT}"
+		for dir in ${BIN_IGNORE}; do
+			fd_cmd="${fd_cmd} --exclude ${dir}"
+		done
+		BIN_DIRS=$(eval "${fd_cmd}")
+	else
+		#> Fallback to find
+		BIN_IGNORE_PATTERN=$(printf "%s" "${BIN_IGNORE}" | tr ' ' '|')
+		BIN_DIRS="$(find "${BIN_ROOT}" -maxdepth "${BIN_DEPTH}" -type d 2>/dev/null |
+			grep -v -E "/(${BIN_IGNORE_PATTERN})$")"
+	fi
+
+	#> Process directories
+	for dir in ${BIN_DIRS:-}; do
+		[ -d "${dir}" ] || continue
+
+		case ":${PATH}:${DOTS_PATH}:" in
+		*:"${dir}":*) ;;
+		*)
+			DOTS_PATH="${DOTS_PATH:+"${DOTS_PATH}:"}${dir}"
+			dir_count=$((dir_count + 1))
+			;;
+		esac
+	done
+
+	#> Update PATH if needed
+	if [ -n "${DOTS_PATH}" ]; then
+		PATH="${DOTS_PATH}:${PATH}"
+		export PATH
+		printf "Added %s directories to PATH\n" "${dir_count}" >&2
+	else
+		printf "No Bin directories found to add to PATH\n" >&2
+	fi
+}
+
+#> Main initialization
+binit() {
+	printf "binit: Running main initialization\n" >&2
+	make_executable
+	add_to_path
+}
+
+#> Execute based on BINIT_ACTION
+dispatch() {
+	printf "binit: Dispatch with action: %s\n" "${1:-${BINIT_ACTION}}" >&2
+	case "${1:-${BINIT_ACTION}}" in
+	"--run" | "")
+		binit
+		;;
+	"--executable")
+		make_executable
+		;;
+	"--path")
+		add_to_path
+		;;
+	*)
+		printf "Usage: Set BINIT_ACTION to --run, --executable, or --path\n" >&2
+		;;
+	esac
+}
+
+#> ALWAYS run dispatch when sourced (not just when executed as script)
+dispatch
+
+#> Keep this for direct execution compatibility
+if [ "${0##*/}" = "binit" ]; then
+	# Already ran dispatch above, but we can exit cleanly
+	exit 0
+fi

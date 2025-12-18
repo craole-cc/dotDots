@@ -140,10 +140,11 @@
               inherit (host.access) nameservers;
 
               #> Generate interface configurations
-              interfaces = let
-                mkNetworkInterface = _: {useDHCP = mkDefault true;};
-              in
-                genAttrs (host.devices.network or []) mkNetworkInterface;
+              useDHCP = lib.mkDefault true;
+              # interfaces = let
+              #   mkNetworkInterface = _: {useDHCP = mkDefault true;};
+              # in
+              #   genAttrs (host.devices.network or []) mkNetworkInterface;
 
               #> Configure firewall
               firewall = let
