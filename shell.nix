@@ -18,7 +18,6 @@ in {
     ];
 
     shellHook = ''
-      printf "🚀 Nix development shell loaded\n"
 
       #> Create a simple wrapper script for 'repl' in .direnv/bin
       WRAPPER_DIR="$PWD/.direnv/bin"
@@ -35,7 +34,7 @@ in {
       #> Add wrapper directory to PATH (at front so it shadows if needed)
       export PATH="$WRAPPER_DIR:$PATH"
 
-      printf "Run 'repl' to start Nix REPL\n"
+      printf "🪧 Run 'repl' to start Nix REPL\n"
     '';
   };
 }
