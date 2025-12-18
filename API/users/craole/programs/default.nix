@@ -1,11 +1,11 @@
 {
   imports = [
     ./apps.nix
-    ./direnv.nix
 
     ./atuin
     ./bash
     ./bat
+    ./direnv
     ./fastfetch
     # ./firefox
     ./foot
