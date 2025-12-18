@@ -201,14 +201,16 @@
           # Find documentation in multiple locations
           # 1. First check for co-located docs
           possibleDocFiles = [
-            # Same directory as module
+            #~@ Same directory as module
             (dir + "/${moduleName}.md")
             (dir + "/README.md")
             (dir + "/readme.md")
-            # Docs subdirectory
+
+            #~@ Docs subdirectory
             (dir + "/docs/${moduleName}.md")
             (dir + "/docs/README.md")
-            # Documentation tree mirror (relative to source dir)
+
+            #~@ Documentation tree mirror (relative to source dir)
             (src + "/Documentation/${getRelativePath src dir}/${moduleName}.md")
             (src + "/Documentation/${getRelativePath src dir}/README.md")
           ];

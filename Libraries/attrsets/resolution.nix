@@ -306,6 +306,88 @@ config = { inherit foo bar; } // optional zen "module";
     };
 
   /**
+  Get the target system string with appropriate fallbacks.
+
+  # Type
+  getSystem :: AttrSet -> String
+
+  # Arguments
+  - `system` (optional): Target system string. If provided, this is returned directly.
+
+  # Returns
+  The system string, determined in this order:
+  1. The provided `system` argument (if not null)
+  2. `builtins.currentSystem` (when available)
+  3. `"x86_64-linux"` (as the final fallback)
+
+  # Examples
+  ```nix
+  # Explicit system
+  getSystem { system = "aarch64-darwin"; }  # Returns: "aarch64-darwin"
+
+  # Use current system
+  getSystem {}  # Returns: builtins.currentSystem or "x86_64-linux"
+
+  # When builtins.currentSystem is not available
+  getSystem {}  # Returns: "x86_64-linux" (fallback)
+  ```
+
+  # Notes
+  - Useful for functions that need system information but accept an optional override
+  - Handles the edge case where builtins.currentSystem might not be available
+  */
+  getSystem = {system ? null}: let
+    currentSystem =
+      if system != null # ← FIXED: Check for null, not truthiness
+      then system
+      else (builtins.currentSystem or "x86_64-linux");
+  in
+    currentSystem;
+
+  /**
+  Get nixpkgs for the specified system or the current system.
+
+  # Type
+  getPkgs :: AttrSet -> AttrSet
+
+  # Arguments
+  nixpkgs (optional): Nixpkgs flake to use (defaults to <nixpkgs>)
+  system (optional): Target system string. Uses getSystem for fallback logic.
+
+  # Returns
+  The legacyPackages set for the determined system from the given nixpkgs.
+
+  # Examples
+  ```nix
+  # Get nixpkgs for x86_64-linux
+  getPkgs { system = "x86_64-linux"; }
+
+  # Get nixpkgs for current system
+  getPkgs {}
+
+  # Get nixpkgs for aarch64-darwin with custom nixpkgs
+  getPkgs {
+    nixpkgs = import <nixpkgs-unstable>;
+    system = "aarch64-darwin";
+  }
+
+  # Get nixpkgs using getSystem's fallback logic
+  getPkgs { nixpkgs = import ./my-nixpkgs.nix; }
+  ```
+  # Notes
+  - Uses getSystem internally for system determination
+  - Uses nixpkgs.legacyPackages.${system} to access packages
+  - Delegates fallback logic to getSystem for consistency
+  */
+  getPkgs = {
+    nixpkgs ? import <nixpkgs>,
+    system ? null,
+  }: let
+    targetSystem = getSystem {inherit system;};
+  in
+    nixpkgs.legacyPackages.${targetSystem};
+
+  /**
   Get a package from pkgs by trying multiple names.
 
   Convenience wrapper for package resolution. Tries package names in order
@@ -538,13 +620,14 @@ in {
     getOrNull
     getByPaths
     getNestedByPaths
+    getPkgs
     getPackage
     getShellPackage
     optional
     ;
 
   _rootAliases = {
-    inherit getPackage getShellPackage;
+    inherit getPkgs getPackage getShellPackage;
     getAttr = get;
     getAttrByPaths = getByPaths;
     getNestedAttrByPaths = getNestedByPaths;
