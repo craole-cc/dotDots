@@ -4,17 +4,16 @@
     inherit (inputs.nixosCore) lib;
     inherit (import ./Libraries {inherit lib;}) lix;
     inherit (import ./API {inherit lix;}) hosts users;
-    inherit (lix.generators.core) mkCore;
 
     all = self;
     api = {inherit hosts users;};
     args = {inherit all api lix;};
   in {
-    nixosConfigurations = mkCore {
+    nixosConfigurations = lix.mkCore {
       inherit inputs hosts users;
       extraArgs = args;
     };
-    repl = (import ./. args);
+    repl = import ./. args;
   };
 
   inputs = {
@@ -271,11 +270,11 @@
       };
     };
 
-    templatesNixed = {
-      type = "github";
-      owner = "Craole";
-      repo = "nixed";
-    };
+    # templatesNixed = {
+    #   type = "github";
+    #   owner = "Craole";
+    #   repo = "nixed";
+    # };
 
     #| Home
     plasmaManager = {
@@ -309,6 +308,18 @@
       inputs = {
         nixpkgs.follows = "nixosCore";
         home-manager.follows = "nixosHome";
+      };
+    };
+
+    neoVim = {
+      owner = "notashelf";
+      repo = "nvf";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        systems.follows = "nixosSystems";
+        flake-compat.follows = "flakeCompat";
+        flake-parts.follows = "flakeParts";
       };
     };
 

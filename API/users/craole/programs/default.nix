@@ -15,10 +15,11 @@
     ./helix
     ./jujutsu
     ./nushell
+    ./obs
     ./powershell
     ./rust
     ./starship
-    # # ./tinty # TODO: Not ready yet
+    # ./tinty # TODO: Not ready yet
     ./vscode
     ./yazi
     ./zed

@@ -3,7 +3,7 @@
   user,
   ...
 }: let
-  app = "yazi";
+  app = "starship";
   inherit (lib.lists) elem;
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
