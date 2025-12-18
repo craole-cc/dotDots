@@ -1,20 +1,15 @@
 #!/bin/sh
 #> Initialize Bin directory structure
 
-printf "binit: Starting\n" >&2
-
-#> Configuration
+#> Configuration - can be overridden by caller
 : "${BIN_ROOT:=Bin}"
 : "${BIN_DEPTH:=10}"
 : "${BIN_IGNORE:=review tmp archive}"
 : "${BLACKLIST_EXT:=md txt json yaml yml xml html css js ts jsx tsx png jpg jpeg gif svg pdf doc docx xls xlsx ppt pptx zip tar gz bz2 7z log}"
 : "${BINIT_ACTION:=--run}"
 
-printf "binit: BIN_ROOT=%s, BINIT_ACTION=%s\n" "${BIN_ROOT}" "${BINIT_ACTION}" >&2
-
 #> Make scripts executable
 make_executable() {
-	printf "binit: Making scripts executable...\n" >&2
 	changed_count=0
 
 	find "${BIN_ROOT}" -type f 2>/dev/null | while read -r file; do
@@ -32,10 +27,7 @@ make_executable() {
 			#> Skip if already executable
 			[ -x "${file}" ] && continue
 
-			if chmod +x "${file}" 2>/dev/null; then
-				printf "  +x %s\n" "${file}" >&2
-				changed_count=$((changed_count + 1))
-			fi
+			chmod +x "${file}" 2>/dev/null && changed_count=$((changed_count + 1))
 		fi
 	done
 
@@ -44,7 +36,6 @@ make_executable() {
 
 #> Add Bin directories to PATH
 add_to_path() {
-	printf "binit: Adding Bin to PATH...\n" >&2
 	DOTS_PATH=""
 	dir_count=0
 
@@ -81,21 +72,17 @@ add_to_path() {
 		PATH="${DOTS_PATH}:${PATH}"
 		export PATH
 		printf "Added %s directories to PATH\n" "${dir_count}" >&2
-	else
-		printf "No Bin directories found to add to PATH\n" >&2
 	fi
 }
 
 #> Main initialization
 binit() {
-	printf "binit: Running main initialization\n" >&2
 	make_executable
 	add_to_path
 }
 
 #> Execute based on BINIT_ACTION
 dispatch() {
-	printf "binit: Dispatch with action: %s\n" "${1:-${BINIT_ACTION}}" >&2
 	case "${1:-${BINIT_ACTION}}" in
 	"--run" | "")
 		binit
@@ -112,11 +99,10 @@ dispatch() {
 	esac
 }
 
-#> ALWAYS run dispatch when sourced (not just when executed as script)
+#> ALWAYS run dispatch when sourced
 dispatch
 
 #> Keep this for direct execution compatibility
 if [ "${0##*/}" = "binit" ]; then
-	# Already ran dispatch above, but we can exit cleanly
 	exit 0
 fi
