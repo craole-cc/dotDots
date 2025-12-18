@@ -1,13 +1,11 @@
-# shell.nix - Use the flake's nixpkgs input
 {pkgs ? null}: let
-  # If pkgs is not passed, try to get it from the flake
   finalPkgs =
     if pkgs != null
     then pkgs
     else
       (
         if builtins ? getFlake
-        then (builtins.getFlake (toString ./.)).inputs.nixosCore.legacyPackages.${builtins.currentSystem}
+        then with builtins; (getFlake (toString ./.)).inputs.nixosCore.legacyPackages.${currentSystem}
         else import <nixpkgs> {}
       );
 in {
