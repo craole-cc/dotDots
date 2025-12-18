@@ -12,6 +12,7 @@
   in {
     inherit repl devShells;
     nixosConfigurations = lix.mkCore {inherit inputs api args;};
+    inherit args;
   };
 
   inputs = {
