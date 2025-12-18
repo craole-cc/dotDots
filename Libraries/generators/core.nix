@@ -262,4 +262,4 @@
       ;
   };
 in
-  exports // {_root_aliases = exports;}
+  exports // {_rootAliases = exports;}
