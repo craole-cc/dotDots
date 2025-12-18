@@ -21,6 +21,7 @@
       rose-pine-kvantum
       ayu-theme-gtk
       kvmarwaita
+      rose-pine-kvantum
 
       #~@ GTK Themes
       rose-pine-gtk-theme
@@ -33,9 +34,15 @@
       lavanda-gtk-theme
       kanagawa-gtk-theme
       magnetic-catppuccin-gtk
+      rose-pine-gtk-theme
 
       #~@ Cursors
       catppuccin-cursors
+      rose-pine-cursor
+
+      #~@ Icons
+      candy-icons
+      rose-pine-icon-theme
 
       #~@ Visuals
       kurve

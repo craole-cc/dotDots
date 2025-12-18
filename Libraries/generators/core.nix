@@ -247,6 +247,8 @@
                 mesa-demos
                 topgrade
                 toybox
+                speedtest-cli
+                speedtest-go
               ];
             };
           }
