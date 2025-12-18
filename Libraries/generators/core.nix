@@ -128,63 +128,50 @@
 
             networking = let
               hasNetwork = host.devices.network != [];
-            in
-              {
-                #> System name
-                hostName = name;
+              mkNetworkInterface = _: {useDHCP = lib.mkDefault true;};
+            in {
+              #> System name
+              hostName = name;
 
-                #> 32-bit host ID (ZFS requirement)
-                hostId = host.id or null;
+              #> 32-bit host ID (ZFS requirement)
+              hostId = host.id or null;
 
-                #> Enable NetworkManager if interfaces are defined
-                networkmanager.enable = hasNetwork;
+              #> Enable NetworkManager if interfaces are defined
+              networkmanager.enable = hasNetwork;
 
-                #> DNS Nameservers from host config
-                inherit (host.access) nameservers;
+              #> DNS Nameservers from host config
+              inherit (host.access) nameservers;
 
-                #> Configure firewall
-                firewall = let
-                  fw =
-                    host.access.firewall or {
-                      tcp = {
-                        ports = [];
-                        ranges = [];
-                      };
-                      udp = {
-                        ports = [];
-                        ranges = [];
-                      };
+              #> Ensure DHCP is available for interfaces
+              interfaces = genAttrs (host.devices.network or []) mkNetworkInterface;
+
+              #> Configure firewall
+              firewall = let
+                fw =
+                  host.access.firewall or {
+                    tcp = {
+                      ports = [];
+                      ranges = [];
                     };
-                  inherit (fw) tcp udp;
-                  enable = fw.enable or false;
-                in {
-                  inherit enable;
+                    udp = {
+                      ports = [];
+                      ranges = [];
+                    };
+                  };
+                inherit (fw) tcp udp;
+                enable = fw.enable or false;
+              in {
+                inherit enable;
 
-                  #~@ TCP Configuration
-                  allowedTCPPorts = tcp.ports;
-                  allowedTCPPortRanges = tcp.ranges;
+                #~@ TCP Configuration
+                allowedTCPPorts = tcp.ports;
+                allowedTCPPortRanges = tcp.ranges;
 
-                  #~@ UDP Configuration
-                  allowedUDPPorts = udp.ports;
-                  allowedUDPPortRanges = udp.ranges;
-                };
-              }
-              // (
-                if hasNetwork
-                then {
-                  interfaces = let
-                    mkNetworkInterface = _: {useDHCP = mkDefault true;};
-                  in
-                    genAttrs (host.devices.network or []) mkNetworkInterface;
-                }
-                else {useDHCP = lib.mkDefault true;}
-              );
-            #> Generate interface configurations
-            # useDHCP = lib.mkDefault hasNetwork;
-            # interfaces = let
-            #   mkNetworkInterface = _: {useDHCP = mkDefault true;};
-            # in
-            #   genAttrs (host.devices.network or []) mkNetworkInterface;};
+                #~@ UDP Configuration
+                allowedUDPPorts = udp.ports;
+                allowedUDPPortRanges = udp.ranges;
+              };
+            };
 
             time = {
               timeZone = localization.timeZone or null;
