@@ -1,10 +1,10 @@
 {
-  lib,
   lix,
   api,
   all,
 }: let
   inherit (all) nixosConfigurations;
+  inherit (lix) lib;
   inherit
     (lib.attrsets)
     attrByPath
