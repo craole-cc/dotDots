@@ -74,8 +74,8 @@ in {
     swap = [];
 
     network = [
-      "eno1"
-      "wlo1"
+      "enp9s0"
+      "wlp8s0"
     ];
 
     display = [
