@@ -6,13 +6,18 @@
   app = "git";
   inherit (lib.lists) elem;
   inherit (user.applications) allowed;
-  isAllowed = elem app allowed;
+  enable = elem app allowed;
 in {
-  programs.${app}.enable = isAllowed;
+  programs = {
+    git = {inherit enable;};
+    gitui = {inherit enable;};
+    gh = {inherit enable;};
+    gh-dash = {inherit enable;};
+  };
+
   imports = [
     ./core.nix
     ./github.nix
     ./gitui.nix
-    ./includes.nix
   ];
 }

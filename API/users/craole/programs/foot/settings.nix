@@ -10,7 +10,7 @@
   };
 
   scrollback = {
-    lines = 10000;
+    lines = 100000;
   };
 
   # url = {
