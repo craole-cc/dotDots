@@ -40,4 +40,4 @@
 #     )
 #     ++ [];
 # }
-{imports = [./config.nix];}
+{imports = [./zen.nix];}
