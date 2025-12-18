@@ -7,34 +7,27 @@
       git
     ];
 
-    env = rec {
+    env = {
       NIX_CONFIG = "extra-experimental-features = nix-command flakes";
-      NIX_FLAKE = toString ./.;
-      NIX_REPL = "${NIX_FLAKE}/Bin/shellscript/project/nix/nix-repl";
     };
 
     shellHook = ''
       printf "🚀 Project shell loaded\n"
-      printf "FLAKE: %s\n" "$NIX_FLAKE"
-      printf "REPL: %s\n" "$NIX_REPL"
 
-      # Define shell functions (not aliases)
-      repl() {
-        if [ -f "$NIX_REPL" ]; then
-          "$NIX_REPL" "$@"
-        else
-          printf "Error: REPL not found at %s\n" "$NIX_REPL" >&2
-          return 1
-        fi
-      }
+      # Add current project's bin directory to PATH
+      # This is where your nix-repl script should be symlinked
+      PROJECT_BIN="$PWD/.bin"
+      mkdir -p "$PROJECT_BIN"
 
-      nix-repl() {
-        repl "$@"
-      }
+      # Create symlink to the actual script
+      if [ -f "$PWD/Bin/shellscript/project/nix/nix-repl" ]; then
+        ln -sf "$PWD/Bin/shellscript/project/nix/nix-repl" "$PROJECT_BIN/repl"
+        ln -sf "$PWD/Bin/shellscript/project/nix/nix-repl" "$PROJECT_BIN/nix-repl"
+      fi
 
-      printf "Available commands:\n"
-      printf "  repl       - Run Nix REPL\n"
-      printf "  nix-repl   - Same as 'repl'\n"
+      export PATH="$PROJECT_BIN:$PATH"
+
+      printf "Run 'repl' or 'nix-repl' to start Nix REPL\n"
     '';
   };
 }
