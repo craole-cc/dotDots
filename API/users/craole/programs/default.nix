@@ -1,20 +1,21 @@
-{
-  imports = [
-    ./apps.nix
-    ./common
+{lix, ...}: {
+  imports =
+    lix.importAll ./common
+    ++ [
+      ./apps.nix
 
-    ./atuin
-    ./bash
-    ./firefox
-    ./foot
-    ./freetube
-    ./ghostty
-    ./helix
-    ./nushell
-    ./obs
-    ./starship
-    # ./tinty # TODO: Not ready yet
-    ./vscode
-    ./zed
-  ];
+      ./atuin
+      ./bash
+      ./firefox
+      ./foot
+      ./freetube
+      ./ghostty
+      ./helix
+      ./nushell
+      ./obs
+      ./starship
+      # ./tinty # TODO: Not ready yet
+      ./vscode
+      ./zed
+    ];
 }
