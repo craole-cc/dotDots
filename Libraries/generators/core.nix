@@ -127,8 +127,8 @@
               map mkSwapDevice (host.devices.swap or []);
 
             networking = let
-              hasNetwork = host.devices.network != [];
-              mkNetworkInterface = _: {useDHCP = lib.mkDefault true;};
+              hasNetwork = (host.devices.network or []) != [];
+              mkNetworkInterface = _: {useDHCP = mkDefault hasNetwork;};
             in {
               #> System name
               hostName = name;
