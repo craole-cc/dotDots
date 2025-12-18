@@ -13,13 +13,13 @@ This module provides comprehensive tools for managing Firefox and Firefox-based 
 {
   # Basic extension installation
   programs.firefox.policies.ExtensionSettings =
-    lix.generators.mkFirefoxExtensionSettings {
+    lix.applications.extensionSettings {
       "uBlock0@raymondhill.net" = { pinned = true; };
       "addon@darkreader.org" = {};
     };
 
   # Browser selection
-  browser = lix.generators.getFirefoxModule {
+  browser = lix.applications.getFirefoxModule {
     inherit inputs pkgs;
     variant = "zen twilight";
     policies = { webGui = true; };
@@ -110,7 +110,7 @@ Parses user strings to detect and normalize browser variant names.
 **Supported Input Patterns:**
 
 | Category | Keywords | Result |
-|----------|----------|--------|
+| -------- | -------- | ------ |
 | **Firefox ESR** | `esr`, `extend`, `stable`, `support`, `reproducible`, `twilight` | `firefox-esr` |
 | **Firefox Beta** | `beta`, `nightly`, `unstable`, `latest` | `firefox-beta` |
 | **Developer Edition** | `dev`, `development`, `devedition`, `dev-edition`, `developer` | `firefox-devedition` |
@@ -211,7 +211,7 @@ zenVariant "firefox"        # => null
 For convenience, the module provides these aliases at the root level:
 
 | Alias | Maps to | Description |
-|-------|---------|-------------|
+| ----- | ------- | ----------- |
 | `mkFirefoxExtensionUrl` | `extensionUrl` | Generate extension URL |
 | `mkFirefoxExtensionEntry` | `extensionEntry` | Create extension policy entry |
 | `mkFirefoxExtensionSettings` | `extensionSettings` | Batch create extension settings |
@@ -284,7 +284,7 @@ inputs.zen-browser = {
   programs.firefox = {
     enable = true;
     policies = {
-      ExtensionSettings = lix.generators.mkFirefoxExtensionSettings {
+      ExtensionSettings = lix.applications.extensionSettings {
         "uBlock0@raymondhill.net" = { pinned = true; };
         "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {};
       };
@@ -301,7 +301,7 @@ inputs.zen-browser = {
 
 let
   userPreference = "zen twilight";
-  browser = lix.generators.getFirefoxModule {
+  browser = lix.applications.getFirefoxModule {
     inherit inputs pkgs;
     variant = userPreference;
     policies = { webGui = true; };
@@ -322,7 +322,7 @@ in {
     enable = true;
     package = pkgs.firefox-esr;
     policies = {
-      ExtensionSettings = lix.generators.mkFirefoxExtensionSettings {
+      ExtensionSettings = lix.applications.extensionSettings {
         "uBlock0@raymondhill.net" = { pinned = true; };
         "addon@darkreader.org" = {};
       };
@@ -362,8 +362,8 @@ in {
 
 ## Related Modules
 
-- `lix.generators.browser`: General browser utilities
-- `lix.generators.nixos`: NixOS configuration generators
+- `lix.applications.chromium`: Chromium browser utilities
+- `lix.generators.core`: NixOS configuration generators
 - `lix.generators.home`: Home Manager configuration helpers
 
 ---

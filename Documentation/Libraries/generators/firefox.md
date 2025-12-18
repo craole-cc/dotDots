@@ -1,1 +1,0 @@
-/home/craole/.dots/Libraries/generators/firefox.md

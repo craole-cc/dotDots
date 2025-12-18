@@ -1,32 +1,18 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = inputs @ {
-    self,
-    nixosCore,
-    nixosSystems,
-    ...
-  }: let
-    inherit (nixosCore) lib;
-    inherit (import ./Libraries {inherit lib;}) lix;
-
-    api = {inherit (import ./API {inherit lix;}) hosts users;};
-    repl = import ./. args;
-    args = {
-      inherit api lix;
-      all = self;
-    };
-
-    devShells = lib.genAttrs (import nixosSystems) (
-      system: let
-        pkgs = lix.getPkgs {
-          nixpkgs = nixosCore;
-          inherit system;
-        };
-      in {default = (import ./shell.nix {inherit pkgs;}).default;}
-    );
-
+  outputs = inputs @ {self, ...}: let
+    inherit
+      (import ./. {inherit self;})
+      lix
+      api
+      args
+      repl
+      devShells
+      ;
+  in {
+    inherit repl devShells;
     nixosConfigurations = lix.mkCore {inherit inputs api args;};
-  in {inherit nixosConfigurations repl devShells;};
+  };
 
   inputs = {
     #| NixOS Official

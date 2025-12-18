@@ -3,9 +3,9 @@
   name ? "lix",
   src ? ./.,
   collisionStrategy ? "warn",
-  enableCaching ? true,
+  # enableCaching ? true,
   runTests ? true,
-  debugMode ? false,
+  # debugMode ? false,
   excludedDirs ? [
     "review"
     "archive"
