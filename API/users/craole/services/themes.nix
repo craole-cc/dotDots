@@ -49,10 +49,11 @@
         kurve
         catppuccin
       ]
-      ++ (with kdePackages; [
-        yakuake
-        koi
-        krohnkite
-      ]);
+      # ++ (with kdePackages; [
+      #   yakuake
+      #   koi
+      #   krohnkite
+      # ])
+      ++ [];
   };
 }

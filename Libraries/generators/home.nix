@@ -293,9 +293,7 @@
                 if de == "plasma"
                 then
                   with pkgs;
-                    [
-                      karp
-                    ]
+                    [karp]
                     ++ (with kdePackages; [
                       yakuake
                       koi
