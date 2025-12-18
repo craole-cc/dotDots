@@ -4,9 +4,9 @@
   ...
 }: let
   inherit (lib.lists) elem;
-  inherit (user) enable;
+  inherit (user.applications) allowed;
   app = "zed-editor";
-  isAllowed = elem app enable;
+  isAllowed = elem app allowed;
 in {
   programs.${app}.enable = isAllowed;
   imports = [

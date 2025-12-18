@@ -88,25 +88,25 @@
   mkError = {
     fnName,
     argName,
-    expected,
-    actual,
+    desired,
+    outcome,
   }: let
-    expectedPretty = describeType expected;
-    actualTypeRaw = typeOf actual;
+    expectedPretty = describeType desired;
+    actualTypeRaw = typeOf outcome;
     actualPretty = describeType actualTypeRaw;
-    valuePreview = showValue actual;
+    valuePreview = showValue outcome;
   in "${fnName}: `${argName}` must be ${expectedPretty}, but ${actualPretty} was given (value: ${valuePreview}).";
 
   validate = {
     fnName,
     argName,
-    expected,
+    desired,
     predicate,
-    actual,
+    outcome,
   }:
-    if !predicate actual
-    then throw (mkError {inherit fnName argName expected actual;})
-    else actual;
+    if !predicate outcome
+    then throw (mkError {inherit fnName argName desired outcome;})
+    else outcome;
 in {
   inherit mkError validate;
 
@@ -123,8 +123,8 @@ in {
         (mkError {
           fnName = "waylandEnabled";
           argName = "config";
-          expected = "attrset";
-          actual = "cfg";
+          desired = "attrset";
+          outcome = "cfg";
         });
 
       stringExpectedSetGotInt =
@@ -133,8 +133,8 @@ in {
         (mkError {
           fnName = "waylandEnabled";
           argName = "config";
-          expected = "attrset";
-          actual = 1;
+          desired = "attrset";
+          outcome = 1;
         });
 
       stringExpectedListGotSet =
@@ -143,8 +143,8 @@ in {
         (mkError {
           fnName = "foo";
           argName = "bar";
-          expected = "list";
-          actual = {
+          desired = "list";
+          outcome = {
             a = 1;
             b = 2;
           };
@@ -156,85 +156,85 @@ in {
         (mkError {
           fnName = "fn";
           argName = "val";
-          expected = "string";
-          actual = [1 2 3 4 5 6];
+          desired = "string";
+          outcome = [1 2 3 4 5 6];
         });
 
-      # Demonstrate alias normalization: expected = "set"
+      # Demonstrate alias normalization: desired = "set"
       stringExpectedSetAlias =
         mkTest
         "fn: `cfg` must be an attribute set, but a string was given (value: \"x\")."
         (mkError {
           fnName = "fn";
           argName = "cfg";
-          expected = "set";
-          actual = "x";
+          desired = "set";
+          outcome = "x";
         });
 
-      # Demonstrate expected = "str" alias
+      # Demonstrate desired = "str" alias
       stringExpectedStrAlias =
         mkTest
         "fn: `name` must be a string, but an integer was given (value: 5)."
         (mkError {
           fnName = "fn";
           argName = "name";
-          expected = "str";
-          actual = 5;
+          desired = "str";
+          outcome = 5;
         });
 
-      # Demonstrate expected = "num" alias
+      # Demonstrate desired = "num" alias
       stringExpectedNumAlias =
         mkTest
         "fn: `n` must be an integer, but a string was given (value: \"7\")."
         (mkError {
           fnName = "fn";
           argName = "n";
-          expected = "num";
-          actual = "7";
+          desired = "num";
+          outcome = "7";
         });
 
-      # Demonstrate expected = "binary"
+      # Demonstrate desired = "binary"
       stringExpectedBinary =
         mkTest
         "fn: `blob` must be a binary value, but a string was given (value: \"abc\")."
         (mkError {
           fnName = "fn";
           argName = "blob";
-          expected = "binary";
-          actual = "abc";
+          desired = "binary";
+          outcome = "abc";
         });
 
-      # Demonstrate float actual
+      # Demonstrate float outcome
       stringExpectedIntGotFloat =
         mkTest
         "fn: `x` must be an integer, but a float was given (value: <float>)."
         (mkError {
           fnName = "fn";
           argName = "x";
-          expected = "int";
-          actual = 1.5;
+          desired = "int";
+          outcome = 1.5;
         });
 
-      # Demonstrate path actual
+      # Demonstrate path outcome
       stringExpectedPathGotSet =
         mkTest
         "fn: `p` must be a path, but an attribute set was given (value: { a })."
         (mkError {
           fnName = "fn";
           argName = "p";
-          expected = "path";
-          actual = {a = 1;};
+          desired = "path";
+          outcome = {a = 1;};
         });
 
-      # Demonstrate null actual
+      # Demonstrate null outcome
       stringExpectedSetGotNull =
         mkTest
         "fn: `cfg` must be an attribute set, but null was given (value: <null>)."
         (mkError {
           fnName = "fn";
           argName = "cfg";
-          expected = "attrset";
-          actual = null;
+          desired = "attrset";
+          outcome = null;
         });
 
       # List-of-sets preview
@@ -244,8 +244,8 @@ in {
         (mkError {
           fnName = "fn";
           argName = "xs";
-          expected = "list";
-          actual = [
+          desired = "list";
+          outcome = [
             {a = 1;}
             {b = 2;}
             {c = 3;}
@@ -261,20 +261,20 @@ in {
         validate {
           fnName = "testFn";
           argName = "x";
-          expected = "int";
+          desired = "int";
           predicate = isInt;
-          actual = {x = 1;}.x;
+          outcome = {x = 1;}.x;
         }
       );
 
-      # Also show validate with expected "string"/isString pattern
+      # Also show validate with desired "string"/isString pattern
       acceptsString = mkTest "ok" (
         validate {
           fnName = "testFn";
           argName = "name";
-          expected = "string";
+          desired = "string";
           predicate = lib.strings.isString;
-          actual = "ok";
+          outcome = "ok";
         }
       );
 
@@ -282,9 +282,9 @@ in {
         validate {
           fnName = "testFn";
           argName = "x";
-          expected = "attrset";
+          desired = "attrset";
           predicate = isAttrs;
-          actual = "oops";
+          outcome = "oops";
         }
       );
 
@@ -292,9 +292,9 @@ in {
         validate {
           fnName = "testFn";
           argName = "x";
-          expected = "attrset";
+          desired = "attrset";
           predicate = isAttrs;
-          actual = ["pop" 1];
+          outcome = ["pop" 1];
         }
       );
 
@@ -302,9 +302,9 @@ in {
         validate {
           fnName = "testFn";
           argName = "flag";
-          expected = "bool";
+          desired = "bool";
           predicate = isBool;
-          actual = 42;
+          outcome = 42;
         }
       );
 
@@ -312,9 +312,9 @@ in {
         validate {
           fnName = "binFn";
           argName = "blob";
-          expected = "binary";
+          desired = "binary";
           predicate = lib.strings.isString; # pretend "binary" stored as string for demo
-          actual = 10;
+          outcome = 10;
         }
       );
     };
@@ -323,9 +323,9 @@ in {
       validate {
         fnName = "testFn";
         argName = "flag";
-        expected = "binary";
+        desired = "binary";
         predicate = lib.strings.isBinaryString;
-        actual = "0";
+        outcome = "0";
       }
     );
 
@@ -333,9 +333,9 @@ in {
       validate {
         fnName = "testFn";
         argName = "flag";
-        expected = "binary";
+        desired = "binary";
         predicate = lib.strings.isBinaryString;
-        actual = "1";
+        outcome = "1";
       }
     );
 
@@ -343,9 +343,9 @@ in {
       validate {
         fnName = "testFn";
         argName = "flag";
-        expected = "binary";
+        desired = "binary";
         predicate = lib.strings.isBinaryString;
-        actual = "yes";
+        outcome = "yes";
       }
     );
 
@@ -353,9 +353,9 @@ in {
       validate {
         fnName = "testFn";
         argName = "flag";
-        expected = "binary";
+        desired = "binary";
         predicate = lib.strings.isBinaryString;
-        actual = 1;
+        outcome = 1;
       }
     );
   };

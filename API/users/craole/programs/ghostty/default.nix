@@ -6,11 +6,11 @@
   app = "ghostty";
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
-  inherit (user) enable;
-  inherit (user.applications.terminal) primary secondary;
-  isPrimary = app == primary;
-  isSecondary = app == secondary;
-  isAllowed = elem app enable || isPrimary || isSecondary;
+  inherit (user.applications) allowed terminal;
+
+  isPrimary = app == terminal.primary;
+  isSecondary = app == terminal.secondary;
+  isAllowed = elem app allowed || isPrimary || isSecondary;
 in {
   programs.${app}.enable = isAllowed;
   imports = [

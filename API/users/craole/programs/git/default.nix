@@ -5,8 +5,8 @@
 }: let
   app = "git";
   inherit (lib.lists) elem;
-  inherit (user) enable;
-  isAllowed = elem app enable;
+  inherit (user.applications) allowed;
+  isAllowed = elem app allowed;
 in {
   programs.${app}.enable = isAllowed;
   imports = [

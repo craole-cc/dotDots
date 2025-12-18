@@ -10,13 +10,13 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
-  inherit (lix.attrsets.predicates) isWaylandEnabled;
+  inherit (lix.attrsets.predicates) waylandEnabled;
   inherit (user.applications) allowed terminal;
 
   isPrimary = app == terminal.primary or null;
   isSecondary = app == terminal.secondary or null;
   isAllowed =
-    isWaylandEnabled {
+    waylandEnabled {
       inherit config;
       inherit (user) interface;
     }
