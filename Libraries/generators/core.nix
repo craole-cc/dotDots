@@ -254,9 +254,12 @@
         )
       ];
     };
-in {
-  inherit
-    mkCore
-    mkHost
-    ;
-}
+
+  exports = {
+    inherit
+      mkCore
+      mkHost
+      ;
+  };
+in
+  exports // {_root_aliases = exports;}
