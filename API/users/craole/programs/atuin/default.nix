@@ -8,18 +8,16 @@
   inherit (lib.lists) elem;
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
-  isEnabled = pkg: config.programs.${pkg}.enable;
+  isEnabled = pkg: config.programs.${pkg}.enable; #TODO: Use lix
 in {
-  programs.${app} = {
-    enable = isAllowed;
-    daemon.enable = isAllowed;
-    enableBashIntegration = isEnabled "bash";
-    enableNushellIntegration = isEnabled "nushell";
-    enableFishIntegration = isEnabled "fish";
-    enableZshIntegration = isEnabled "zsh";
-  };
-  imports = [
-    ./settings.nix
-    # ./themes.nix
-  ];
+  programs.${app} =
+    {
+      enable = isAllowed;
+      daemon.enable = true;
+      enableBashIntegration = isEnabled "bash";
+      enableNushellIntegration = isEnabled "nushell";
+      enableFishIntegration = isEnabled "fish";
+      enableZshIntegration = isEnabled "zsh";
+    }
+    // import ./settings.nix;
 }

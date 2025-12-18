@@ -1,3 +1,3 @@
 {
-  programs.starship.settings = { };
+  settings = {};
 }

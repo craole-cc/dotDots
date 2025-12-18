@@ -1,5 +1,5 @@
 {
-  programs.freetube.settings = {
+  settings = {
     allowDashAv1Formats = true;
     checkForUpdates = false;
     defaultQuality = "1440";

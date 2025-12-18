@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   user,
   ...
@@ -8,9 +9,11 @@
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
 in {
-  programs.${app}.enable = isAllowed;
-  imports = [
-    ./settings.nix
-    ./shells.nix
-  ];
+  programs.${app} =
+    {
+      enable = isAllowed;
+      enableBashIntegration = config.programs.bash.enable;
+      enableNushellIntegration = config.programs.nushell.enable;
+    }
+    // import ./settings.nix;
 }

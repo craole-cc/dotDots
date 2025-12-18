@@ -4,7 +4,6 @@
     attrValues
     listToAttrs
     attrNames
-    # filterAttrs
     ;
   inherit
     (lib.filesystem)
@@ -137,14 +136,17 @@
     imported = map (name: import (dir + "/${name}") args) nixFiles;
   in
     lib.foldl' (acc: mod: acc // mod) {} imported;
-in {
-  inherit
-    importAll
-    importAllMerged
-    importAttrset
-    importNames
-    importNixModules
-    importValues
-    importWithArgs
-    ;
-}
+
+  exports = {
+    inherit
+      importAll
+      importAllMerged
+      importAttrset
+      importNames
+      importNixModules
+      importValues
+      importWithArgs
+      ;
+  };
+in
+  exports // {_rootAliases = exports;}
