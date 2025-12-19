@@ -153,6 +153,7 @@ in
       pkgs
       ;
 
+    inherit (currentHost._module) specialArgs;
     inherit (all) inputs;
 
     #~@ Convenient shortcuts to config sections
