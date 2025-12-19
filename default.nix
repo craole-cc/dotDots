@@ -34,9 +34,13 @@
     pkgs = pkgsFor system;
   in {
     inherit (import ./shell.nix {inherit pkgs;}) default;
+    repl = import ./repl.nix {
+      inherit api lix lib pkgs system;
+      all = self;
+    };
   });
 
-  repl = import ./repl.nix {
+  replOld = import ./repl.nix {
     inherit api lix lib pkgs system;
     all = self;
   };
@@ -44,6 +48,6 @@ in {
   inherit
     nixosConfigurations
     devShells
-    repl
+    replOld
     ;
 }
