@@ -21,7 +21,7 @@
     system
     ;
 
-  args = {inherit all api lix pkgs;};
+  args = {inherit all api lix pkgs system;};
 
   devShells = per (system: {
     inherit (import ./shell.nix {}) default;
@@ -33,6 +33,6 @@ in {
     inherit (args) api;
     inherit (all) inputs;
   };
-  inherit devShells;
-  inherit lib lix args repl system pkgs;
+  inherit devShells repl;
+  # inherit lib lix args repl system pkgs;
 }

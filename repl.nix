@@ -1,7 +1,7 @@
 {
-  lix,
-  api,
   all,
+  api,
+  lix,
 }: let
   inherit (all) nixosConfigurations;
   inherit (lix) lib;
