@@ -44,7 +44,6 @@
 
   mkUsers = {
     host,
-    inputs,
     extraArgs,
   }: {
     config,
@@ -52,6 +51,7 @@
     ...
   }: let
     inherit (host) stateVersion interface system users;
+    inherit (extraArgs.flake.inputs) nixosHome firefoxZen plasmaManager;
 
     #> Collect all enabled regular users (non-service, non-guest)
     normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
@@ -189,11 +189,11 @@
             #> Add Firefox Zen module if user prefers the Zen variant.
             ++ (
               optional (zen != null)
-              inputs.firefoxZen.homeModules.${zen}
+              firefoxZen.homeModules.${zen}
             )
             #> Add Plasma Manager module if user uses Plasma desktop
             ++ optional (de == "plasma")
-            inputs.plasmaManager.homeModules.plasma-manager
+            plasmaManager.homeModules.plasma-manager
             ++ [];
 
           home = {
@@ -314,7 +314,7 @@
               mkIf (zen != null) {
                 enable = true;
                 package =
-                  inputs.firefoxZen.packages.${system}.${zen} or
+                  firefoxZen.packages.${system}.${zen} or
             (throw "Firefox Zen variant '${zen}' not found for system '${system}'");
               };
           };
@@ -400,7 +400,7 @@
       };
     };
 
-    imports = [inputs.nixosHome.nixosModules.home-manager];
+    imports = [nixosHome.nixosModules.home-manager];
     home-manager = {
       backupFileExtension = "BaC";
       overwriteBackup = true;

@@ -42,7 +42,7 @@
   get { a = []; } "a" [1 2]                 # => [1 2] (empty list)
 
   # Real-world usage
-  package = get zen "package" (getPackage {
+  package = get zen "package" (package {
     inherit pkgs;
     target = detectedVariant;
   });
@@ -72,7 +72,7 @@
 
   # Type
   ```
-  getOrNull :: AttrSet -> String -> a -> a
+  orNull :: AttrSet -> String -> a -> a
   ```
 
   # Arguments
@@ -85,10 +85,10 @@
 
   # Examples
   ```nix
-  getOrNull { a = ""; } "a" "fallback"      # => "" (exists, even if empty)
-  getOrNull { a = []; } "a" [1]             # => [] (exists, even if empty)
-  getOrNull {} "a" "fallback"               # => "fallback" (missing)
-  getOrNull { a = null; } "a" "fallback"    # => null (exists)
+  orNull { a = ""; } "a" "fallback"      # => "" (exists, even if empty)
+  orNull { a = []; } "a" [1]             # => [] (exists, even if empty)
+  orNull {} "a" "fallback"               # => "fallback" (missing)
+  orNull { a = null; } "a" "fallback"    # => null (exists)
   ```
 
   # Use Cases
@@ -96,7 +96,7 @@
   - Preserving empty strings, lists, or attrsets that have semantic meaning
   - API responses where `missing` differs from `empty`
   */
-  getOrNull = attrs: name: default:
+  orNull = attrs: name: default:
     if attrs ? ${name}
     then attrs.${name}
     else default;
@@ -110,7 +110,7 @@
 
   # Type
   ```
-  getByPaths :: {
+  byPaths :: {
     attrset :: AttrSet,
     paths :: [[String]],
     default :: a
@@ -129,7 +129,7 @@
   # Examples
   ```nix
   # Simple multi-path lookup
-  getByPaths {
+  byPaths {
     attrset = { foo.bar = 1; baz.qux = 2; };
     paths = [["missing"] ["foo" "bar"] ["baz" "qux"]];
     default = null;
@@ -137,14 +137,14 @@
   # => 1 (first match: foo.bar)
 
   # Package variant selection
-  getByPaths {
+  byPaths {
     attrset = pkgs;
     paths = [["firefox-beta"] ["firefox-esr"] ["firefox"]];
   }
   # => pkgs.firefox-beta (if exists), else firefox-esr, else firefox
 
   # Configuration migration
-  getByPaths {
+  byPaths {
     attrset = config;
     paths = [
       ["services" "myapp" "v2" "enable"]  # New path
@@ -154,7 +154,7 @@
   }
 
   # No matches
-  getByPaths {
+  byPaths {
     attrset = {};
     paths = [["a"] ["b"]];
     default = "fallback";
@@ -173,7 +173,7 @@
   - Path order determines precedence
   - Uses `lib.attrsets.hasAttrByPath` for existence checks
   */
-  getByPaths = {
+  byPaths = {
     attrset,
     paths,
     default ? {},
@@ -194,7 +194,7 @@
 
   # Type
   ```
-  getNestedByPaths :: {
+  nestedByPaths :: {
     attrset :: AttrSet,
     parents :: String | [String],
     target :: String | [String],
@@ -215,7 +215,7 @@
   # Examples
   ```nix
   # Flake input with varying names
-  getNestedByPaths {
+  nestedByPaths {
     attrset = inputs;
     parents = ["zenBrowser" "zen-browser" "zen"];
     target = "homeModules";
@@ -226,7 +226,7 @@
   #    or {}
 
   # Deeper nesting with list target
-  getNestedByPaths {
+  nestedByPaths {
     attrset = inputs;
     parents = ["home-manager" "hm"];
     target = ["nixosModules" "default"];
@@ -237,7 +237,7 @@
   #    or null
 
   # Single parent name (still works)
-  getNestedByPaths {
+  nestedByPaths {
     attrset = config;
     parents = "services";
     target = ["myapp" "enable"];
@@ -246,7 +246,7 @@
   # => config.services.myapp.enable or false
 
   # Multiple possible config locations
-  getNestedByPaths {
+  nestedByPaths {
     attrset = config;
     parents = ["services" "systemd"];
     target = "units";
@@ -264,15 +264,15 @@
   # Notes
   - Automatically converts single values to lists
   - Combines parent names with target path(s) internally
-  - Delegates to `getByPaths` for the actual resolution
+  - Delegates to `byPaths` for the actual resolution
   */
-  getNestedByPaths = {
+  nestedByPaths = {
     attrset,
     parents,
     target,
     default ? {},
   }:
-    getByPaths {
+    byPaths {
       inherit attrset default;
       paths = map (parent: [parent] ++ toList target) (toList parents);
     };
@@ -320,7 +320,7 @@
   Get nixpkgs for the specified system or the current system.
 
   # Type
-  getPkgs :: AttrSet -> AttrSet
+  pkgs :: AttrSet -> AttrSet
 
   # Arguments
   nixpkgs (optional): Nixpkgs flake to use (defaults to <nixpkgs>)
@@ -332,26 +332,26 @@
   # Examples
   ```nix
   # Get nixpkgs for x86_64-linux
-  getPkgs { system = "x86_64-linux"; }
+  pkgs { system = "x86_64-linux"; }
 
   # Get nixpkgs for current system
-  getPkgs {}
+  pkgs {}
 
   # Get nixpkgs for aarch64-darwin with custom nixpkgs
-  getPkgs {
+  pkgs {
     nixpkgs = import <nixpkgs-unstable>;
     system = "aarch64-darwin";
   }
 
   # Get nixpkgs using getSystem's fallback logic
-  getPkgs { nixpkgs = import ./my-nixpkgs.nix; }
+  pkgs { nixpkgs = import ./my-nixpkgs.nix; }
   ```
   # Notes
   - Uses getSystem internally for system determination
   - Uses nixpkgs.legacyPackages.${system} to access packages
   - Delegates fallback logic to getSystem for consistency
   */
-  getPkgs = {
+  pkgs = {
     nixpkgs ? import <nixpkgs>,
     system ? null,
   }: let
@@ -368,7 +368,7 @@
 
   # Type
   ```
-  getPackage :: {
+  package :: {
     pkgs :: AttrSet,
     target :: String | [String],
     default :: a
@@ -434,7 +434,7 @@
   - Handles both string and list inputs automatically
   - Order in list determines precedence
   */
-  getPackage = {
+  package = {
     pkgs,
     target,
     default ? null,
@@ -442,7 +442,7 @@
     nameList = toList target;
     paths = map (name: [name]) nameList;
   in
-    getByPaths {
+    byPaths {
       attrset = pkgs;
       inherit paths default;
     };
@@ -455,7 +455,7 @@
 
   # Type
   ```
-  getShellPackage :: {
+  shellPackage :: {
     pkgs :: AttrSet,
     shellName :: String
   } -> Derivation
@@ -479,17 +479,17 @@
 
   # Examples
   ```nix
-  getShellPackage { inherit pkgs; shellName = "zsh"; }
+  shellPackage { inherit pkgs; shellName = "zsh"; }
   # => pkgs.zsh
 
-  getShellPackage { inherit pkgs; shellName = "fish"; }
+  shellPackage { inherit pkgs; shellName = "fish"; }
   # => pkgs.fish
 
-  getShellPackage { inherit pkgs; shellName = "unknown"; }
+  shellPackage { inherit pkgs; shellName = "unknown"; }
   # => pkgs.bashInteractive (fallback)
 
   # Real-world: user shell configuration
-  users.users.myuser.shell = getShellPackage {
+  users.users.myuser.shell = shellPackage {
     inherit pkgs;
     shellName = config.preferences.shell or "bash";
   };
@@ -507,7 +507,7 @@
   - To add support for new shells, extend the internal mapping
   - Uses bash as universal fallback (most compatible)
   */
-  getShellPackage = {
+  shellPackage = {
     pkgs,
     shellName,
   }:
@@ -690,7 +690,7 @@
   in
     extractConfig flake;
 
-  getFlakeOrConfig = {
+  flakeOrConfig = {
     path ? null,
     hostName ? null,
     registryPath ? "/etc/nix/registry.json",
@@ -711,7 +711,7 @@
     then fromFlake
     else fromTraditional;
 
-  getSystems = {
+  systems = {
     hosts ? {},
     legacyPackages ? {},
   }: let
@@ -749,15 +749,15 @@
   exports = {
     inherit
       get
-      getOrNull
-      getByPaths
-      getNestedByPaths
-      getPkgs
-      getPackage
-      getShellPackage
+      orNull
+      byPaths
+      nestedByPaths
+      pkgs
+      package
+      shellPackage
       optional
-      getFlakeOrConfig
-      getSystems
+      flakeOrConfig
+      systems
       ;
   };
 in
@@ -778,11 +778,15 @@ in
       - Conditional attribute inclusion in merges
     '';
     _rootAliases = {
-      inherit getPkgs getPackage getShellPackage getFlakeOrConfig;
+      getPkgs = pkgs;
+      getPackage = package;
+      getFlakeOrConfig = flakeOrConfig;
+      getSystems = systems;
+      getShellPackage = shellPackage;
       getAttr = get;
-      getAttrByPaths = getByPaths;
-      getNestedAttrByPaths = getNestedByPaths;
-      getAttrOrNull = getOrNull;
+      getAttrByPaths = byPaths;
+      getNestedAttrByPaths = nestedByPaths;
+      getAttrOrNull = orNull;
       optionalAttr = optional;
     };
   }

@@ -23,11 +23,14 @@
   nixosConfigurations = lix.mkCore {
     inherit (api) hosts users;
     inherit (lib) nixosSystem;
-    args = {flake = self;};
+    args = {
+      flake = self;
+      inherit lix;
+    };
   };
 
   devShells = per (system: {
-    inherit (import ./shell.nix {}) default;
+    inherit (import ./shell.nix {inherit pkgs;}) default;
   });
 
   repl = import ./repl.nix {
