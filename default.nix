@@ -38,7 +38,7 @@
       all = self;
     };
 
-    test = import ./Packages/custom/repl/main_dev.nix {
+    shell = import ./Packages/custom/repl/main_shell.nix {
       inherit pkgs lib api lix system;
       all = self;
     };
