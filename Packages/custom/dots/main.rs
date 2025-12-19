@@ -1,8 +1,7 @@
-//! dots-cli - Single binary for NixOS configuration management
-//!
+#!/usr/bin/env -S rust-script
 //! ```cargo
 //! [package]
-//! name = "dots-cli"
+//! name = "dotdots-cli"
 //! version = "0.1.0"
 //! edition = "2021"
 //!
@@ -11,7 +10,7 @@
 //! anyhow = "1.0"
 //! serde_json = "1.0"
 //! colored = "2.0"
-//! arboard = "3.2"  # Cross-platform clipboard
+//! arboard = "3.2"
 //! ```
 
 use anyhow::{Context, Result};
@@ -19,10 +18,10 @@ use arboard::Clipboard;
 use clap::{Parser, Subcommand};
 use colored::*;
 use std::env;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[derive(Parser)]
-#[command(name = "dots", about = "NixOS Configuration Management", long_about = None)]
+#[command(name = "dotDots", about = "NixOS Configuration Management", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -39,22 +38,34 @@ enum Commands {
         host: Option<String>,
     },
 
-    /// Show rebuild command
+    /// Show rebuild command (add --execute to run it)
     Rebuild {
         /// Host name (default: current host)
         host: Option<String>,
+
+        /// Execute the command immediately
+        #[arg(long)]
+        execute: bool,
     },
 
-    /// Show test command
+    /// Show test command (add --execute to run it)
     Test {
         /// Host name (default: current host)
         host: Option<String>,
+
+        /// Execute the command immediately
+        #[arg(long)]
+        execute: bool,
     },
 
-    /// Show boot command
+    /// Show boot command (add --execute to run it)
     Boot {
         /// Host name (default: current host)
         host: Option<String>,
+
+        /// Execute the command immediately
+        #[arg(long)]
+        execute: bool,
     },
 
     /// Show dry-build command
@@ -63,11 +74,19 @@ enum Commands {
         host: Option<String>,
     },
 
-    /// Show flake update command
-    Update,
+    /// Show flake update command (add --execute to run it)
+    Update {
+        /// Execute the command immediately
+        #[arg(long)]
+        execute: bool,
+    },
 
-    /// Show garbage collection command
-    Clean,
+    /// Show garbage collection command (add --execute to run it)
+    Clean {
+        /// Execute the command immediately
+        #[arg(long)]
+        execute: bool,
+    },
 
     /// List all available commands
     List,
@@ -92,6 +111,30 @@ fn copy_to_clipboard(text: &str) -> Result<()> {
     clipboard
         .set_text(text)
         .context("Failed to copy to clipboard")?;
+    Ok(())
+}
+
+/// Execute a shell command and return output
+fn execute_command(cmd: &str) -> Result<()> {
+    println!("{}", "Executing:".yellow());
+    println!("  {}", cmd.cyan());
+    println!();
+
+    let status = Command::new("sh")
+        .arg("-c")
+        .arg(cmd)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+        .context("Failed to execute command")?;
+
+    if status.success() {
+        println!("\n{}", "✓ Command executed successfully".green());
+    } else {
+        println!("\n{}", "✗ Command failed".red());
+    }
+
     Ok(())
 }
 
@@ -177,16 +220,30 @@ fn show_host_info(host: Option<String>) -> Result<()> {
     }
 }
 
-/// Generate and display a command, optionally copying to clipboard
-fn show_command(command: &str, copy_to_clip: bool) {
+/// Generate and display a command, optionally copying to clipboard and executing
+fn handle_command(base_cmd: &str, host: Option<String>, execute: bool) -> Result<()> {
+    let host_name = host.unwrap_or_else(get_current_host);
+    let command = if base_cmd.contains("{}") {
+        base_cmd.replace("{}", &host_name)
+    } else {
+        base_cmd.to_string()
+    };
+
     println!("{}", command.bright_white());
 
-    if copy_to_clip {
-        match copy_to_clipboard(command) {
-            Ok(_) => println!("{}", "✓ Copied to clipboard".green()),
-            Err(e) => println!("{} {}", "⚠ Could not copy to clipboard:".yellow(), e),
-        }
+    // Try to copy to clipboard
+    match copy_to_clipboard(&command) {
+        Ok(_) => println!("{}", "✓ Copied to clipboard".green()),
+        Err(e) => println!("{} {}", "⚠ Could not copy to clipboard:".yellow(), e),
     }
+
+    // Execute if requested
+    if execute {
+        println!();
+        execute_command(&command)?;
+    }
+
+    Ok(())
 }
 
 /// Show welcome/help message
@@ -203,43 +260,52 @@ fn show_help() {
     println!("{}", "Available commands:".bold().magenta());
     println!(
         "  {} hosts            - List all configured hosts",
-        "dots".cyan()
+        "dotDots".cyan()
     );
     println!(
         "  {} info [host]      - Show host information",
-        "dots".cyan()
+        "dotDots".cyan()
     );
     println!(
-        "  {} rebuild [host]   - Show rebuild command (copies to clipboard)",
-        "dots".cyan()
+        "  {} rebuild [host]   - Show rebuild command",
+        "dotDots".cyan()
     );
     println!(
-        "  {} test [host]      - Show test command (copies to clipboard)",
-        "dots".cyan()
+        "  {} test [host]      - Show test command",
+        "dotDots".cyan()
     );
     println!(
-        "  {} boot [host]      - Show boot command (copies to clipboard)",
-        "dots".cyan()
+        "  {} boot [host]      - Show boot command",
+        "dotDots".cyan()
     );
     println!(
-        "  {} dry [host]       - Show dry-build command (copies to clipboard)",
-        "dots".cyan()
+        "  {} dry [host]       - Show dry-build command",
+        "dotDots".cyan()
     );
     println!(
-        "  {} update           - Show flake update command (copies to clipboard)",
-        "dots".cyan()
+        "  {} update           - Show flake update command",
+        "dotDots".cyan()
     );
     println!(
-        "  {} clean            - Show garbage collection command (copies to clipboard)",
-        "dots".cyan()
+        "  {} clean            - Show garbage collection command",
+        "dotDots".cyan()
     );
-    println!("  {} list             - List all commands", "dots".cyan());
-    println!("  {} help             - Show this help", "dots".cyan());
+    println!(
+        "  {} list             - List all commands",
+        "dotDots".cyan()
+    );
+    println!("  {} help             - Show this help", "dotDots".cyan());
+    println!();
+
+    println!("{}", "Options:".bold().magenta());
+    println!("  Add --execute to any command to run it immediately");
+    println!("  Add --execute to automatically copy to clipboard");
     println!();
 
     println!("{}", "Quick usage:".bold().magenta());
-    println!("  Most commands accept an optional host argument.");
-    println!("  Default host: {}", host.green());
+    println!("  dotDots rebuild QBX            # Show command");
+    println!("  dotDots rebuild QBX --execute  # Run command");
+    println!("  dotDots update --execute       # Update flake");
     println!();
 }
 
@@ -251,96 +317,84 @@ fn main() -> Result<()> {
 
         Commands::Info { host } => show_host_info(host),
 
-        Commands::Rebuild { host } => {
-            let host_name = host.unwrap_or_else(get_current_host);
-            let command = format!("sudo nixos-rebuild switch --flake .#{}", host_name);
-            show_command(&command, true);
-            Ok(())
+        Commands::Rebuild { host, execute } => {
+            handle_command("sudo nixos-rebuild switch --flake .#{}", host, execute)
         }
 
-        Commands::Test { host } => {
-            let host_name = host.unwrap_or_else(get_current_host);
-            let command = format!("sudo nixos-rebuild test --flake .#{}", host_name);
-            show_command(&command, true);
-            Ok(())
+        Commands::Test { host, execute } => {
+            handle_command("sudo nixos-rebuild test --flake .#{}", host, execute)
         }
 
-        Commands::Boot { host } => {
-            let host_name = host.unwrap_or_else(get_current_host);
-            let command = format!("sudo nixos-rebuild boot --flake .#{}", host_name);
-            show_command(&command, true);
-            Ok(())
+        Commands::Boot { host, execute } => {
+            handle_command("sudo nixos-rebuild boot --flake .#{}", host, execute)
         }
 
         Commands::Dry { host } => {
             let host_name = host.unwrap_or_else(get_current_host);
             let command = format!("sudo nixos-rebuild dry-build --flake .#{}", host_name);
-            show_command(&command, true);
+            println!("{}", command.bright_white());
+
+            match copy_to_clipboard(&command) {
+                Ok(_) => println!("{}", "✓ Copied to clipboard".green()),
+                Err(e) => println!("{} {}", "⚠ Could not copy to clipboard:".yellow(), e),
+            }
             Ok(())
         }
 
-        Commands::Update => {
-            let command = "nix flake update";
-            show_command(command, true);
-            Ok(())
-        }
+        Commands::Update { execute } => handle_command("nix flake update", None, execute),
 
-        Commands::Clean => {
-            let command = "sudo nix-collect-garbage -d";
-            show_command(command, true);
-            Ok(())
-        }
+        Commands::Clean { execute } => handle_command("sudo nix-collect-garbage -d", None, execute),
 
         Commands::List => {
             println!("{}", "Available commands:".bold().cyan());
             println!(
                 "  {} {}            - List all hosts",
-                "dots".blue(),
+                "dotDots".blue(),
                 "hosts".green()
             );
             println!(
                 "  {} {}      - Show host info",
-                "dots".blue(),
+                "dotDots".blue(),
                 "info [host]".green()
             );
             println!(
                 "  {} {}   - Rebuild host",
-                "dots".blue(),
+                "dotDots".blue(),
                 "rebuild [host]".green()
             );
             println!(
                 "  {} {}      - Test host",
-                "dots".blue(),
+                "dotDots".blue(),
                 "test [host]".green()
             );
             println!(
                 "  {} {}      - Boot host",
-                "dots".blue(),
+                "dotDots".blue(),
                 "boot [host]".green()
             );
             println!(
                 "  {} {}       - Dry build",
-                "dots".blue(),
+                "dotDots".blue(),
                 "dry [host]".green()
             );
             println!(
                 "  {} {}           - Update flake",
-                "dots".blue(),
+                "dotDots".blue(),
                 "update".green()
             );
             println!(
                 "  {} {}            - Clean garbage",
-                "dots".blue(),
+                "dotDots".blue(),
                 "clean".green()
             );
             println!(
                 "  {} {}             - List commands",
-                "dots".blue(),
+                "dotDots".blue(),
                 "list".green()
             );
             println!(
                 "  {} {}             - Show help",
-                "dots".blue(),
+                "dotDots".blue(),
                 "help".green()
             );
             println!();
@@ -350,6 +404,8 @@ fn main() -> Result<()> {
             );
             println!("{}", "Default host:".dimmed(),);
             println!("  {}", get_current_host().green());
+            println!();
+            println!("{}", "Add --execute to run commands immediately".yellow());
             Ok(())
         }
 
