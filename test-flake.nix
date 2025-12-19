@@ -1,5 +1,0 @@
-{
-  outputs = { self, ... }: {
-    test = "ok";
-  };
-}

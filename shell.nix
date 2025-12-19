@@ -5,6 +5,15 @@
       helix
       alejandra
       git
+      rust-script
+      rustfmt
+      gcc
+
+      nil
+      nixd
+      nixfmt
+      shfmt
+      shellcheck-minimal
     ];
 
     shellHook = ''
