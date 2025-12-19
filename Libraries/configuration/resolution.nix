@@ -28,7 +28,7 @@
 
   flakeAttr = path: let
     normalizedPath = flakePath path;
-    loadResult = optionalAttrs (normalizedPath == null) getFlake normalizedPath;
+    loadResult = optionalAttrs (normalizedPath == null) (getFlake normalizedPath);
   in
     traceIf
     (loadResult == {})
