@@ -75,12 +75,6 @@ in
       SHELL_BIN="$PWD/.direnv/bin"
       mkdir -p "$SHELL_BIN"
 
-      # Helper to call nix-repl from project bin
-      # cat > "$SHELL_BIN/repl" << 'EOF'
-      # #!/bin/sh
-      # exec nix-repl "$@"
-      # EOF
-
       # Helper to list hosts - simple and reliable
       cat > "$SHELL_BIN/h-hosts" << 'EOF'
       #!/usr/bin/env bash

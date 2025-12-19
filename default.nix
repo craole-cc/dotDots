@@ -38,13 +38,13 @@
       all = self;
     };
 
-    test = import ./test.nix {
+    test = import ./Packages/custom/repl/main_dev.nix {
       inherit pkgs lib api lix system;
       all = self;
     };
   });
 
-  repl = import ./repl.nix {
+  repl = import ./Packages/custom/repl/main_repl.nix {
     inherit api lix lib pkgs system;
     all = self;
   };
