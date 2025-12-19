@@ -10,14 +10,14 @@
   inherit (import paths.lib {inherit src;}) lix;
   api = import paths.api {inherit lix;};
   # inherit (builtins) currentSystem;
-  inherit (lix) getFlakeOrConfig getByPaths;
+  inherit (lix) getFlakeOrConfig getAttrByPaths;
 
   all =
     if (self != null)
     then self
     else getFlakeOrConfig {path = src;};
 
-  nixpkgs = lix.getByPaths {
+  nixpkgs = lix.getAttrByPaths {
     attrset = all.inputs;
     paths = [
       ["nixpkgs"]
