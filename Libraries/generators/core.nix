@@ -15,8 +15,9 @@
   inherit (lib.modules) mkDefault mkIf;
 
   mkCore = {
-    inputs,
-    api,
+    nixosSystem,
+    users,
+    hosts,
     args ? {},
   }:
     mapAttrs (name: host: let
@@ -24,22 +25,22 @@
       system = host.platform or builtins.currentSystem;
     in
       mkHost {
-        inherit inputs;
+        inherit nixosSystem;
         host =
           host
           // {
             inherit name dots system;
             users =
-              mapAttrs (name: config: api.users.${name} or {} // config)
+              mapAttrs (name: config: users.${name} or {} // config)
               (filterAttrs (_: cfg: cfg.enable or false) host.users);
           };
         extraArgs = args // {inherit dots system;};
       })
-    api.hosts;
+    hosts;
 
   mkHost = {
     host,
-    inputs,
+    nixosSystem,
     extraArgs,
   }: let
     inherit (host) name system dots;
@@ -47,11 +48,11 @@
     functionalities = host.functionalities or [];
     hasAudio = elem "audio" functionalities;
   in
-    inputs.nixosCore.lib.nixosSystem {
+    nixosSystem {
       inherit system;
       specialArgs = extraArgs;
       modules = [
-        (mkUsers {inherit host inputs extraArgs;})
+        (mkUsers {inherit host extraArgs;})
         (
           {pkgs, ...}: {
             inherit (host) imports;

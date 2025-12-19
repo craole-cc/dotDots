@@ -2,9 +2,11 @@
   all,
   api,
   lix,
+  lib,
+  pkgs,
+  system,
 }: let
   inherit (all) nixosConfigurations;
-  inherit (lix) lib;
   inherit
     (lib.attrsets)
     attrByPath
@@ -21,25 +23,12 @@
     elem
     ;
 
-  #> Get pkgs based on the system running nix repl
-  system = builtins.currentSystem;
-
   #> Find a host that matches current system
   matchingHost =
     findFirst
     (host: host.config.nixpkgs.hostPlatform.system or null == system)
     null
     (attrValues nixosConfigurations);
-
-  #> Use matching host's pkgs or create fallback
-  pkgs =
-    if matchingHost != null
-    then matchingHost.pkgs
-    else
-      import all.inputs.nixosCore {
-        inherit system;
-        config.allowUnfree = true;
-      };
 
   #> Helper functions for the repl
   helpers = {
@@ -148,12 +137,12 @@ in
       lix
       api
       lib
-      pkgs
       builtins
       system
       helpers
       all
       ;
+    pkgs = matchingHost.pkgs or pkgs;
   }
   // {
     #~@ Top-level host attributes

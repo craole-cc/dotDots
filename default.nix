@@ -5,7 +5,6 @@
     api = ./API;
     repl = ./repl.nix;
   };
-  all = self;
   inherit (self.inputs.nixosCore) lib legacyPackages;
   inherit (paths) src;
   inherit (import paths.lib {inherit lib src;}) lix;
@@ -21,18 +20,25 @@
     system
     ;
 
-  args = {inherit all api lix pkgs system;};
+  nixosConfigurations = lix.mkCore {
+    inherit (api) hosts users;
+    inherit (lib) nixosSystem;
+    args = {flake = self;};
+  };
 
   devShells = per (system: {
     inherit (import ./shell.nix {}) default;
   });
-  repl = import ./repl.nix args;
-in {
-  nixosConfigurations = lix.mkCore {
-    inherit args;
-    inherit (args) api;
-    inherit (all) inputs;
+
+  repl = import ./repl.nix {
+    inherit api lix lib pkgs system;
+    all = self;
   };
-  inherit devShells repl;
+in {
+  inherit
+    nixosConfigurations
+    devShells
+    repl
+    ;
   # inherit lib lix args repl system pkgs;
 }
