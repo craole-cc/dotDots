@@ -1,43 +1,75 @@
-{self, ...}: let
-  src = ./.;
-  all = self;
-  args = {inherit api lix all;};
+{self ? null, ...}: let
+  paths = {
+    src = ./.;
+    lib = ./Libraries;
+    api = ./API;
+    repl = ./repl.nix;
+  };
 
-  inherit (self.inputs) nixosCore nixosHome nixosSystems;
-  inherit (nixosCore) lib;
-  inherit (lib.attrsets) genAttrs attrValues;
+  inherit (paths) src;
+  inherit (import paths.lib {inherit src;}) lix;
+  api = import paths.api {inherit lix;};
+  # inherit (builtins) getFlake currentSystem;
+  inherit (lix) getFlakeOrConfig;
 
-  inherit (import ./Libraries {inherit lib src;}) lix;
-  api = {inherit (import ./API {inherit lix;}) hosts users;};
-  repl = import ./repl.nix args;
+  all =
+    if (self != null)
+    then self
+    else getFlakeOrConfig {path = src;};
 
-  eachSystem = genAttrs (import nixosSystems);
-  perSystem = eachSystem (system: {
-    pkgs = lix.getPkgs {
-      nixpkgs = nixosCore;
-      inherit system;
-    };
-  });
-  devShells = eachSystem (system: {
-    inherit (import ./shell.nix {inherit (perSystem.${system}) pkgs;}) default;
-  });
-  # devShells = let
-  #   base = ./Packages/custom/dots;
-  # in {
-  #   default = (import ./shell.nix {inherit pkgs;}).default;
-  #   # dots = ./p/dots.nix;
-  #   # media = ./p/media.nix;
-  # };
-  # devShells = eachSystem (
-  #   system: let
-  #     pkgs = lix.getPkgs {
-  #       nixpkgs = nixosCore;
-  #       inherit system;
+  # pkgsFromInputsPath =
+  #   if flake != null && flake ? inputs
+  #   then let
+  #     path = findFirstPath {
+  #       inputs = flake.inputs;
+  #       names = [
+  #         "nixpkgs"
+  #         "nixPackages"
+  #         "nixpkgsUnstable"
+  #         "nixpkgsStable"
+  #         "nixpkgs-unstable"
+  #         "nixpkgs-stable"
+  #         "nixosPackages"
+  #         "nixosUnstable"
+  #         "nixosStable"
+  #       ];
   #     };
-  #   in {
-  #     default = (import ./shell.nix {inherit pkgs;}).default;
-  #   }
+  #   in
+  #     if path != null
+  #     then import path {}
+  #     else null
+  #   else null;
+
+  # inherit (all.inputs) nixosCore nixosSystems;
+  nixosCore = all.inputs.nixosCore or lix.pkgs;
+  nixosSystems = all.inputs.nixosSystems or ["x86_64-linux"];
+
+  inherit (nixosCore) lib;
+  args = {inherit all api lix;};
+
+  repl = import ./repl.nix args;
+  # pkgs = (
+  #   if builtins ? getFlake
+  #   then (getFlake (toString ./.)).inputs.nixosCore.legacyPackages.${currentSystem}
+  #   else import <nixpkgs> {}
   # );
+
+  eachSystem = lib.genAttrs (import nixosSystems);
+  # perSystem = eachSystem (system: {
+  #   pkgs = lix.getPkgs {
+  #     nixpkgs = nixosCore;
+  #     inherit system;
+  #   };
+  # });
+
+  devShells = eachSystem (system: {
+    inherit (import ./shell.nix {}) default;
+  });
 in {
-  inherit args repl devShells;
+  nixosConfigurations = lix.mkCore {
+    inherit args;
+    inherit (args) api;
+    inherit (self) inputs;
+  };
+  inherit lib lix args repl devShells;
 }

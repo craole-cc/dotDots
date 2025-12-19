@@ -1,5 +1,6 @@
 {
   lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> {},
   name ? "lix",
   src ? ./.,
   collisionStrategy ? "warn",
@@ -313,6 +314,7 @@
     // {
       inherit extend lib;
       std = lib;
+      inherit pkgs;
     };
 in {
   ${name} = finalLib;

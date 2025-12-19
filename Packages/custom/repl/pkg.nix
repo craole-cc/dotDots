@@ -1,11 +1,8 @@
-{
-  lib,
-  pkgs,
-}: let
+let
+  inherit (import ./lib.nix {}) lib pkgs;
   inherit (lib.strings) escapeShellArg;
   inherit (lib.licenses) mit;
-  flakeEval = import ./lib.nix {inherit lib;};
-  replScript = ./repl.sh;
+
   example = command: desc: ''
     \n\e[33m${escapeShellArg command}\e[0m - ${escapeShellArg desc}
   '';
@@ -31,12 +28,16 @@ in
         ;;
         *)
           if [ -z "$1" ]; then
-            nix repl "${flakeEval.flake}"
+            # If no path given, try default locations
+            if [ -f "/etc/nixos/flake.nix" ]; then
+              nix repl --arg flakePath "/etc/nixos"
+            else
+              nix repl --arg flakePath "$(pwd)"
+            fi
           else
             nix repl --arg flakePath "$(
               readlink -f "$1" | sed 's|/flake.nix||'
-            )" "${flakeEval.flake}"
-
+            )"
           fi
         ;;
       esac

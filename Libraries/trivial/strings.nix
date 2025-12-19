@@ -1,4 +1,8 @@
-{lib, ...}: let
+{
+  lib,
+  _,
+  ...
+}: let
   /**
   Check if a string contains a substring.
 
@@ -276,4 +280,5 @@ in {
     isEmpty
     isNotEmpty
     ;
+  inherit (_) normalizeFlakePath;
 }

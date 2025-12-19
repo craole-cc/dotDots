@@ -1,20 +1,6 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = inputs @ {self, ...}: let
-    inherit
-      (import ./. {inherit self;})
-      lix
-      api
-      args
-      repl
-      devShells
-      ;
-  in {
-    inherit repl devShells;
-    nixosConfigurations = lix.mkCore {inherit inputs api args;};
-    inherit args;
-  };
-
+  outputs = {self, ...}: import ./. {inherit self;};
   inputs = {
     #| NixOS Official
     nixosCore.url = "nixpkgs/nixos-unstable";

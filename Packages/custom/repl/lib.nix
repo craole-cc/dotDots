@@ -1,12 +1,18 @@
 {
-  lib,
+  lib ? import <nixpkgs/lib>,
   flakePath ? null,
   hostnamePath ? "/etc/hostname",
   registryPath ? "/etc/nix/registry.json",
 }: let
   inherit (lib.attrsets) removeAttrs isAttrs;
   inherit (lib.strings) match;
-  inherit (lib.lists) head elemAt length filter;
+  inherit
+    (lib.lists)
+    head
+    elemAt
+    length
+    filter
+    ;
   inherit
     (builtins)
     pathExists
@@ -15,8 +21,9 @@
     isPath
     currentSystem
     getFlake
+    fromJSON
+    tryEval
     ;
-  inherit (lib.json) fromFile;
 
   resolveFlakePath =
     if flakePath != null
@@ -26,10 +33,18 @@
       else flakePath
     else "/etc/nixos";
 
-  selfFlake =
+  readRegistrySafe =
     if pathExists registryPath
-    then filter (f: f.from.id == "self") (fromFile registryPath).flakes
-    else [];
+    then let
+      content = readFile registryPath;
+      parsed = tryEval (fromJSON content);
+    in
+      if parsed.success
+      then parsed.value
+      else {}
+    else {};
+
+  selfFlake = filter (f: f.from.id == "self") (readRegistrySafe.flakes or []);
 
   flakePath' =
     if selfFlake != []
@@ -38,7 +53,12 @@
 
   flake =
     if pathExists flakePath'
-    then getFlake flakePath'
+    then let
+      result = tryEval (getFlake flakePath');
+    in
+      if result.success
+      then result.value
+      else null
     else null;
 
   hostname =
@@ -54,58 +74,88 @@
   findFirstPath = {
     index ? 0,
     names ? [],
-    inputs ? null,
+    inputs ? {},
   }:
     if names == [] || index >= length names
-    then throw "No possible inputs defined"
+    then null
     else let
       name = elemAt names index;
     in
-      if inputs != null && inputs ? "${name}"
+      if inputs ? "${name}" && inputs."${name}" ? outPath
       then inputs."${name}".outPath
       else
         findFirstPath {
-          inherit (inputs) names;
+          inherit names;
+          inputs = inputs;
           index = index + 1;
         };
 
-  pkgsFromInputsPath = let
-    path = findFirstPath {
-      inherit (flake) inputs;
-      names = [
-        "nixpkgs"
-        "nixPackages"
-        "nixosCore"
-        "nixpkgsUnstable"
-        "nixpkgsStable"
-        "nixpkgs-unstable"
-        "nixpkgs-stable"
-        "nixosPackages"
-        "nixosUnstable"
-        "nixosStable"
-      ];
-    };
-  in
-    if path != ""
-    then import path {}
+  pkgsFromInputsPath =
+    if flake != null && flake ? inputs
+    then let
+      path = findFirstPath {
+        inputs = flake.inputs;
+        names = [
+          "nixpkgs"
+          "nixPackages"
+          "nixpkgsUnstable"
+          "nixpkgsStable"
+          "nixpkgs-unstable"
+          "nixpkgs-stable"
+          "nixosPackages"
+          "nixosUnstable"
+          "nixosStable"
+        ];
+      };
+    in
+      if path != null
+      then import path {}
+      else null
     else null;
 
-  nixpkgs = flake.pkgs.${currentSystem}.nixpkgs or pkgsFromInputsPath;
+  nixpkgs =
+    if flake != null && flake ? pkgs && flake.pkgs ? ${currentSystem} && flake.pkgs.${currentSystem} ? nixpkgs
+    then flake.pkgs.${currentSystem}.nixpkgs
+    else pkgsFromInputsPath;
 
-  nixpkgsOutput = removeAttrs (nixpkgs // (nixpkgs.lib or {})) [
-    "options"
-    "config"
-  ];
-in
-  {inherit flake;}
-  // builtins
-  // (
-    if
-      isAttrs flake
-      && flake ? nixosConfigurations
-      && flake.nixosConfigurations ? "${hostname}"
+  nixpkgsOutput =
+    if nixpkgs != null
+    then
+      removeAttrs nixpkgs [
+        "options"
+        "config"
+        "lib" # Don't include lib in nixpkgsOutput
+      ]
+    else {};
+
+  # Add lib from nixpkgs if available
+  libOutput =
+    if nixpkgs != null && nixpkgs ? lib
+    then nixpkgs.lib
+    else lib;
+
+  hasConfiguration =
+    isAttrs flake
+    && flake ? nixosConfigurations
+    && hostname != ""
+    && flake.nixosConfigurations ? "${hostname}";
+
+  configuration =
+    if hasConfiguration
     then flake.nixosConfigurations."${hostname}"
-    else {}
-  )
+    else {};
+in
+  {
+    inherit flake hostname;
+    pkgs = nixpkgsOutput;
+    lib = libOutput;
+    config = configuration;
+
+    safeGetFlake = path: let
+      result = tryEval (getFlake (toString path));
+    in
+      if result.success
+      then result.value
+      else null;
+  }
   // nixpkgsOutput
-  // {getFlake = path: getFlake (toString path);}

@@ -1,44 +1,14 @@
-/**
-Advanced attribute set resolution and lookup utilities.
-
-This module provides powerful tools for navigating complex nested structures,
-handling missing attributes gracefully, and resolving values from multiple
-potential sources. Essential for configuration management, package selection,
-and flake input handling.
-
-# Key Features:
-- Multi-path attribute resolution with fallbacks
-- Nested attribute lookup with parent alternatives
-- Package resolution by name(s) with versioning support
-- Conditional attribute inclusion in merges
-
-# Common Patterns:
-```nix
-# Safe attribute access with default
-value = get config "option" defaultValue;
-
-# Try multiple package names
-pkg = getPackage { inherit pkgs; target = ["firefox-beta" "firefox"]; };
-
-# Resolve flake input module from various names
-module = getNestedByPaths {
-  attrset = inputs;
-  parents = ["home-manager" "hm"];
-  target = "nixosModules";
-};
-
-# Conditionally include attributes in merges
-config = { inherit foo bar; } // optional zen "module";
-```
-*/
 {
   _,
   lib,
   ...
 }: let
-  inherit (lib.attrsets) hasAttrByPath attrByPath;
-  inherit (lib.lists) filter head toList;
-  inherit (_) isNotEmpty;
+  inherit (builtins) readFile tryEval getFlake fromJSON;
+  inherit (lib.attrsets) hasAttrByPath attrByPath attrNames optionalAttrs;
+  inherit (lib.lists) filter head toList findFirst;
+  inherit (lib.trivial) pathExists;
+  inherit (lib.srings) removeSuffix;
+  inherit (_) isNotEmpty isFlakePath normalizeFlakePath;
 
   /**
   Get attribute or default if missing/empty.
@@ -614,24 +584,167 @@ config = { inherit foo bar; } // optional zen "module";
     if attrs ? ${name} && isNotEmpty attrs.${name}
     then {${name} = attrs.${name};}
     else {};
-in {
-  inherit
-    get
-    getOrNull
-    getByPaths
-    getNestedByPaths
-    getPkgs
-    getPackage
-    getShellPackage
-    optional
-    ;
 
-  _rootAliases = {
-    inherit getPkgs getPackage getShellPackage;
-    getAttr = get;
-    getAttrByPaths = getByPaths;
-    getNestedAttrByPaths = getNestedByPaths;
-    getAttrOrNull = getOrNull;
-    optionalAttr = optional;
+  readRegistry = registryPath:
+    if pathExists registryPath
+    then let
+      content = readFile registryPath;
+      parsed = tryEval (fromJSON content);
+    in
+      if parsed.success
+      then parsed.value
+      else {
+        flakes = [];
+        version = 0;
+      }
+    else {
+      flakes = [];
+      version = 0;
+    };
+
+  # Load traditional NixOS configuration (non-flake)
+  loadConfig = configPath:
+    if pathExists configPath
+    then import configPath
+    else {};
+
+  # Load configuration from flake
+  loadFlake = {
+    path ? null,
+    hostName ? null,
+    registryPath ? "/etc/nix/registry.json",
+  }: let
+    # Helper to get flake from path or registry
+    getFlakeFromPathOrRegistry = {
+      path ? null,
+      registryPath ? "/etc/nix/registry.json",
+    }: let
+      #> Try direct path first
+      fromPath =
+        if path != null && isFlakePath path
+        then let
+          normalized = normalizeFlakePath path;
+          result = tryEval (getFlake normalized);
+        in
+          with result;
+            if success
+            then value
+            else {}
+        else {};
+
+      # Fall back to registry for "self"
+      fromRegistry =
+        if fromPath == {}
+        then let
+          registry = readRegistry registryPath;
+          selfFlake =
+            findFirst
+            (f: f.from.id == "self")
+            null
+            (registry.flakes or []);
+        in
+          if selfFlake != null
+          then let
+            result = tryEval (getFlake selfFlake.to.path);
+          in
+            with result;
+              if success
+              then value
+              else {}
+          else {}
+        else {};
+    in
+      if fromPath != {}
+      then fromPath
+      else fromRegistry;
+
+    flake = getFlakeFromPathOrRegistry {inherit path registryPath;};
+
+    extractConfig = flake:
+      if flake == {}
+      then {}
+      else if flake ? nixosConfigurations
+      then let
+        hostFile = "/etc/hostname";
+        host =
+          if hostName != null
+          then hostName
+          else
+            (
+              if pathExists hostFile
+              then removeSuffix "\n" (readFile hostFile)
+              else null
+            );
+
+        configs = flake.nixosConfigurations;
+        hosts = attrNames configs;
+      in
+        if configs == {}
+        then {}
+        else if host != null && configs ? ${host}
+        then configs.${host}
+        else configs.${head hosts}
+      else {};
+  in
+    extractConfig flake;
+
+  getFlakeOrConfig = {
+    path ? null,
+    hostname ? null,
+    registryPath ? "/etc/nix/registry.json",
+    configPath ? "/etc/nixos/configuration.nix",
+  }: let
+    #> Try to get configuration from flake first
+    fromFlake = loadFlake {
+      inherit path hostname registryPath;
+    };
+
+    #> If no flake config, try traditional configuration
+    fromTraditional =
+      if fromFlake == {}
+      then loadConfig configPath
+      else {};
+  in
+    if fromFlake != {}
+    then fromFlake
+    else fromTraditional;
+
+  exports = {
+    inherit
+      get
+      getOrNull
+      getByPaths
+      getNestedByPaths
+      getPkgs
+      getPackage
+      getShellPackage
+      optional
+      getFlakeOrConfig
+      ;
   };
-}
+in
+  exports
+  // {
+    __doc = ''
+      Advanced attribute set resolution and lookup utilities.
+
+      This module provides powerful tools for navigating complex nested structures,
+      handling missing attributes gracefully, and resolving values from multiple
+      potential sources. Essential for configuration management, package selection,
+      and flake input handling.
+
+      # Key Features:
+      - Multi-path attribute resolution with fallbacks
+      - Nested attribute lookup with parent alternatives
+      - Package resolution by name(s) with versioning support
+      - Conditional attribute inclusion in merges
+    '';
+    _rootAliases = {
+      inherit getPkgs getPackage getShellPackage getFlakeOrConfig;
+      getAttr = get;
+      getAttrByPaths = getByPaths;
+      getNestedAttrByPaths = getNestedByPaths;
+      getAttrOrNull = getOrNull;
+      optionalAttr = optional;
+    };
+  }
