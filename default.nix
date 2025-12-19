@@ -80,7 +80,7 @@
   #   };
   # });
 
-  devShells = systems {}.per (system: {
+  devShells = (systems {}.per) (system: {
     inherit (import ./shell.nix {}) default;
   });
 in {
