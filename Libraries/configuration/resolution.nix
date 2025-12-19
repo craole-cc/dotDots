@@ -29,10 +29,17 @@
   flakeAttr = path: let
     normalizedPath = flakePath path;
     loadResult = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
+    failureReason =
+      if normalizedPath == null
+      then "path normalization failed"
+      else if loadResult == null
+      then "getFlake returned null"
+      else if (loadResult._type or null) != "flake"
+      then "invalid flake type: ${(loadResult._type or "null")}"
+      else "unknown failure";
   in
-    traceIf
-    (loadResult._type or null != "flake")
-    "❌ Flake load failed: ${toString path}"
+    traceIf ((loadResult._type or null) != "flake")
+    "❌ Flake load failed: ${toString path} (${failureReason})"
     loadResult;
 
   # loadFlake = path: let
