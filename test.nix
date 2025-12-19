@@ -54,16 +54,20 @@
   '';
 in
   pkgs.mkShell {
-    name = "nixos-config-repl";
+    name = "dotDots";
 
     packages = with pkgs; [
       jq
-      nixpkgs-fmt
+      git
       nil
       nixd
       alejandra
-      # nix-repl
-      # nix
+      nixfmt
+      shfmt
+      shellcheck-minimal
+      rust-script
+      rustfmt
+      gcc
     ];
 
     shellHook = ''
