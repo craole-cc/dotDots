@@ -40,11 +40,14 @@
   #     else null
   #   else null;
 
-  systems = {nix-systems ? null}: let
+  systems = {
+    hosts ? api.hosts,
+    nix-systems ? null,
+  }: let
     inherit (lib.lists) unique;
-    inherit (lib.attrsets) genAttrs;
+    inherit (lib.attrsets) genAttrs mapAttrsToList;
     current = builtins.currentSystem;
-    defined = lib.mapAttrsToList (name: host: host.system or host.platform or current) api.hosts;
+    defined = mapAttrsToList (_: host: host.systemd or host.platform or current) hosts;
     popular =
       if nix-systems != null
       then import nix-systems
