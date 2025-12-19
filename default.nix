@@ -9,7 +9,7 @@
   inherit (paths) src;
   inherit (import paths.lib {inherit src;}) lix;
   api = import paths.api {inherit lix;};
-  # inherit (builtins) getFlake currentSystem;
+  # inherit (builtins) currentSystem;
   inherit (lix) getFlakeOrConfig;
 
   all =
@@ -40,9 +40,27 @@
   #     else null
   #   else null;
 
+  systems = {nix-systems ? null}: let
+    inherit (lib.lists) unique;
+    inherit (lib.attrsets) genAttrs;
+    current = builtins.currentSystem;
+    defined = lib.mapAttrsToList (name: host: host.system or host.platform or current) api.hosts;
+    popular =
+      if nix-systems != null
+      then import nix-systems
+      else [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
+    all = unique (defined ++ popular);
+    per = genAttrs all;
+  in {
+    inherit all current defined per popular;
+  };
   # inherit (all.inputs) nixosCore nixosSystems;
   nixosCore = all.inputs.nixosCore or lix.pkgs;
-  nixosSystems = all.inputs.nixosSystems or ["x86_64-linux"];
 
   inherit (nixosCore) lib;
   args = {inherit all api lix;};
@@ -54,7 +72,7 @@
   #   else import <nixpkgs> {}
   # );
 
-  eachSystem = lib.genAttrs (import nixosSystems);
+  # eachSystem = lib.genAttrs (import all.inputs.nixosSystems);
   # perSystem = eachSystem (system: {
   #   pkgs = lix.getPkgs {
   #     nixpkgs = nixosCore;
@@ -62,7 +80,7 @@
   #   };
   # });
 
-  devShells = eachSystem (system: {
+  devShells = systems {}.per (system: {
     inherit (import ./shell.nix {}) default;
   });
 in {
