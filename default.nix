@@ -9,7 +9,6 @@
   inherit (paths) src;
   inherit (import paths.lib {inherit src;}) lix;
   api = import paths.api {inherit lix;};
-  # inherit (builtins) currentSystem;
   inherit (lix) getFlakeOrConfig getAttrByPaths;
 
   all =
@@ -32,28 +31,7 @@
       ["nixosStable"]
     ];
   };
-  # pkgsFromInputsPath =
-  #   if flake != null && flake ? inputs
-  #   then let
-  #     path = findFirstPath {
-  #       inputs = flake.inputs;
-  #       names = [
-  #         "nixpkgs"
-  #         "nixPackages"
-  #         "nixpkgsUnstable"
-  #         "nixpkgsStable"
-  #         "nixpkgs-unstable"
-  #         "nixpkgs-stable"
-  #         "nixosPackages"
-  #         "nixosUnstable"
-  #         "nixosStable"
-  #       ];
-  #     };
-  #   in
-  #     if path != null
-  #     then import path {}
-  #     else null
-  #   else null;
+  inherit (nixpkgs) lib;
 
   systems = {hosts ? api.hosts}: let
     inherit (lib.lists) unique;
@@ -72,9 +50,9 @@
     inherit all default derived defined per;
   };
 
-  nixosCore = all.inputs.nixosCore or lix.pkgs;
+  # nixosCore = all.inputs.nixosCore or lix.pkgs;
 
-  inherit (nixosCore) lib;
+  # inherit (nixosCore) lib;
   args = {inherit all api lix;};
 
   repl = import ./repl.nix args;
@@ -100,7 +78,7 @@ in {
   nixosConfigurations = lix.mkCore {
     inherit args;
     inherit (args) api;
-    inherit (self) inputs;
+    inherit (all) inputs;
   };
-  inherit lib lix args repl devShells systems nixpkgs;
+  # inherit lib lix args repl devShells systems nixpkgs;
 }

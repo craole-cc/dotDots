@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (builtins) readFile tryEval getFlake fromJSON;
-  inherit (lib.attrsets) hasAttrByPath attrByPath attrNames optionalAttrs;
+  inherit (lib.attrsets) hasAttrByPath attrByPath attrNames;
   inherit (lib.lists) filter head toList findFirst;
   inherit (lib.trivial) pathExists;
   inherit (lib.srings) removeSuffix;
@@ -690,13 +690,13 @@
 
   getFlakeOrConfig = {
     path ? null,
-    hostname ? null,
+    hostName ? null,
     registryPath ? "/etc/nix/registry.json",
     configPath ? "/etc/nixos/configuration.nix",
   }: let
     #> Try to get configuration from flake first
     fromFlake = loadFlake {
-      inherit path hostname registryPath;
+      inherit path hostName registryPath;
     };
 
     #> If no flake config, try traditional configuration

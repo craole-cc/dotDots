@@ -47,27 +47,15 @@
     hasPrefix
     hasSuffix
     removeSuffix
+    removePrefix
     ;
   inherit (lib.lists) elem filter foldl' findFirst;
   inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
 
   # Helper function to get relative path
-  getRelativePath = base: target: let
-    baseStr = toString base;
-    targetStr = toString target;
-    # Remove the base path from target path
-    relPath =
-      if hasPrefix baseStr targetStr
-      then lib.removePrefix baseStr targetStr
-      else targetStr;
-    # Remove leading slash if present
-    cleanPath =
-      if hasPrefix "/" relPath
-      then lib.removePrefix "/" relPath
-      else relPath;
-  in
-    cleanPath;
+  getRelativePath = base: target:
+    removePrefix (toString base + "/") (toString target);
 
   #| Extensible Library Initializaton
   customLib = makeExtensible (self: let
@@ -132,9 +120,21 @@
         || (hasPrefix "." dirName);
 
       #~@ Check if a file should be excluded
+      # isExcludedFile = fileName:
+      #   elem fileName excludedFiles
+      #   || foldl' (acc: pattern: acc || hasSuffix pattern fileName) false excludedPatterns;
       isExcludedFile = fileName:
         elem fileName excludedFiles
-        || foldl' (acc: pattern: acc || hasSuffix pattern fileName) false excludedPatterns;
+        || (lib.any (
+            pattern: let
+              strFileName = toString fileName;
+              strPattern = toString pattern;
+            in
+              lib.hasSuffix strPattern strFileName
+          )
+          excludedPatterns);
+      #TODO: Temporarily disable pattern matching
+      # isExcludedFile = fileName: false;
 
       processEntry = entryName: entryType:
       #~@ Skip excluded directories
@@ -216,7 +216,10 @@
             (src + "/Documentation/${getRelativePath src dir}/README.md")
           ];
 
-          docFile = findFirst (path: pathExists (toString path)) null possibleDocFiles;
+          docFile =
+            findFirst (path: path != null && pathExists (toString path))
+            null
+            possibleDocFiles;
 
           # Determine documentation source
           docsInfo =

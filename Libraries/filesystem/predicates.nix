@@ -25,6 +25,7 @@
       isExcludedFile
       isInExcludedFolder
       isFlakePath
+      normalizeFlakePath
       ;
   };
 in
