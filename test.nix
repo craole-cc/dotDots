@@ -2,7 +2,7 @@ let
   src = ./.;
   lix = import ./Libraries {inherit lib src;};
   api = import ./API {inherit lix;};
-  all = lix.config.resolution.flakeOrConfig {path = src;};
+  all = lix.attrsets.resolution.flakeOrConfig {path = src;};
   # all = builtins.getFlake (toString ./.);
   inherit (all) inputs;
   lib = inputs.nixpkgs.lib;
