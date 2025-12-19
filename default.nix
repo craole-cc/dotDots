@@ -45,7 +45,7 @@
     # dots = import ./Packages/custom/dots {inherit pkgs mkShell;};
   });
 
-  repl = import ./Packages/custom/dots/tmp_repl.nix {
+  repl = import ./Packages/custom/dots/repl.nix {
     inherit api lix lib pkgs system;
     all = self;
   };
