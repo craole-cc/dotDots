@@ -3,13 +3,13 @@
     src = ./.;
     lib = ./Libraries;
     api = ./API;
-    repl = ./repl.nix;
+    cli = ./Packages/cli;
   };
-  inherit (self) inputs;
   inherit (self.inputs.nixosCore) lib legacyPackages;
   inherit (paths) src;
   inherit (import paths.lib {inherit lib src;}) lix;
   api = import paths.api {inherit lix;};
+  all = self;
 
   inherit
     (lix.getSystems {
@@ -33,21 +33,14 @@
 
   devShells = per (system: let
     pkgs = pkgsFor system;
-    # mkShell = pkgs.inputs.developmentShell;
-
-    shell = import ./Packages/custom/dots {
-      inherit pkgs lib api lix system;
-      all = self;
+    dots = import (paths.cli + "/dots") {
+      inherit all pkgs lib api lix system;
     };
-    # inherit (import ./shell.nix {inherit pkgs;}) default;
-  in {
-    default = shell;
-    # dots = import ./Packages/custom/dots {inherit pkgs mkShell;};
-  });
+  in {default = dots;});
 
-  repl = import ./Packages/custom/dots/repl.nix {
-    inherit api lix lib pkgs system;
-    all = self;
+  #TODO: This should somehow be moved into devShells.dots, but how?
+  repl = import (paths.cli + "/dots/repl.nix") {
+    inherit all pkgs lib api lix system;
   };
 in {
   inherit
