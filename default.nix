@@ -10,7 +10,7 @@
   inherit (import paths.lib {inherit src;}) lix;
   api = import paths.api {inherit lix;};
   # inherit (builtins) currentSystem;
-  inherit (lix) getFlakeOrConfig;
+  inherit (lix) getFlakeOrConfig getByPaths;
 
   all =
     if (self != null)
