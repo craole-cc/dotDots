@@ -19,12 +19,12 @@
     elem
     head
     length
-    optional
     unique
     ;
   inherit (lib.modules) mkIf mkDefault;
+  inherit (lib.lists) optionals;
   inherit (_.applications.firefox) zenVariant;
-  inherit (_.attrsets.resolution) getPackage;
+  inherit (_.attrsets.resolution) package;
 
   mkAdmin = name: {
     #> Apply this rule only to the named user.
@@ -156,7 +156,7 @@
           description = cfg.description or name;
 
           #> Use first shell as default
-          shell = getPackage {
+          shell = package {
             inherit pkgs;
             target = head (cfg.shells or ["bash"]);
           };
@@ -187,13 +187,9 @@
           imports =
             (cfg.imports or [])
             #> Add Firefox Zen module if user prefers the Zen variant.
-            ++ (
-              optional (zen != null)
-              firefoxZen.homeModules.${zen}
-            )
+            ++ optionals (zen != null) firefoxZen.homeModules.${zen}
             #> Add Plasma Manager module if user uses Plasma desktop
-            ++ optional (de == "plasma")
-            plasmaManager.homeModules.plasma-manager
+            ++ optionals (de == "plasma") plasmaManager.homeModules.plasma-manager
             ++ [];
 
           home = {
@@ -279,7 +275,7 @@
               );
             packages =
               (map (shell:
-                getPackage {
+                package {
                   inherit pkgs;
                   target = shell;
                 })
