@@ -72,6 +72,5 @@ in
     __doc = ''
       Flake stuff
     '';
-    _rootAliases = {
-    };
+    _rootAliases = exports;
   }
