@@ -37,6 +37,7 @@
   in
     result;
 
+systemFlake ={}
   flakePathFromRegistry = registryPath: let
     registry = readRegistry registryPath;
     result = "";
