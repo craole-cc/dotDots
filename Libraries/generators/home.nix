@@ -22,7 +22,7 @@
     unique
     ;
   inherit (lib.modules) mkIf mkDefault;
-  inherit (lib.lists) optionals;
+  inherit (lib.lists) optional;
   inherit (_.applications.firefox) zenVariant;
   inherit (_.attrsets.resolution) package;
 
@@ -187,9 +187,9 @@
           imports =
             (cfg.imports or [])
             #> Add Firefox Zen module if user prefers the Zen variant.
-            ++ optionals (zen != null) firefoxZen.homeModules.${zen}
+            ++ optional (zen != null) firefoxZen.homeModules.${zen}
             #> Add Plasma Manager module if user uses Plasma desktop
-            ++ optionals (de == "plasma") plasmaManager.homeModules.plasma-manager
+            ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
             ++ [];
 
           home = {
