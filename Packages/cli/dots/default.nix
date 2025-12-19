@@ -3,6 +3,7 @@
   pkgs,
   lib,
   api,
+  lix,
   system,
   all,
   ...
@@ -45,6 +46,22 @@
       #!/usr/bin/env bash
       exec ${cli}/bin/dotDots ${cmd} "$@"
     '';
+
+  #> Create REPL command if REPL is provided
+  replCommand = {
+    name = "_repl";
+    value = writeShellScriptBin "_repl" ''
+      #!/usr/bin/env bash
+      echo "Starting Nix REPL with helper functions..."
+      echo "Use 'helpers' to access helper functions"
+      echo "Examples:"
+      echo "  helpers.listHosts"
+      echo "  helpers.hostInfo \"${hostName}\""
+      echo "  helpers.scripts.rebuild \"${hostName}\""
+      echo ""
+      nix repl --arg all 'import <nixpkgs> {}' --arg lib 'import <nixpkgs> {}' --arg api 'import <nixpkgs> {}' --arg lix 'import <nixpkgs> {}' --arg system '"${system}"' ${./repl.nix}
+    '';
+  };
 
   commands = listToAttrs (
     map
@@ -132,6 +149,20 @@
 
     #> Add bin directory to PATH
     export PATH="$ENV_BIN:$PATH"
+
+    #> Add REPL function (uses same args as devShell)
+    replr() {
+      nix repl \
+        --arg all '${all}' \
+        --arg lib '${lib}' \
+        --arg api '${api}' \
+        --arg lix '${lix}' \
+        --arg system '"${system}"' \
+        --arg pkgs '${pkgs}' \
+        ${./repl.nix}
+    }
+
+    echo "Type 'repl' to start Nix REPL with helper functions"
 
     #> Display a welcome message
     if command -v dotDots >/dev/null 2>&1; then

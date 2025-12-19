@@ -32,14 +32,16 @@
   };
 
   devShells = per (system: let
+    base = paths.cli;
     pkgs = pkgsFor system;
-    dots = import (paths.cli + "/dots") {
+  in {
+    default = import (base + "/dots") {
       inherit all pkgs lib api lix system;
     };
-  in {default = dots;});
+  });
 
   #TODO: This should somehow be moved into devShells.dots, but how?
-  repl = import (paths.cli + "/dots/repl.nix") {
+  repl = import ./repl.nix {
     inherit all pkgs lib api lix system;
   };
 in {
