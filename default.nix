@@ -46,8 +46,8 @@
   }: let
     inherit (lib.lists) unique;
     inherit (lib.attrsets) genAttrs mapAttrsToList;
-    current = builtins.currentSystem;
-    defined = mapAttrsToList (_: host: host.systemd or host.platforms or "") hosts;
+    derived = builtins.currentSystem;
+    defined = mapAttrsToList (_: host: host.systemd or host.platforms or derived) hosts;
     popular =
       if nix-systems != null
       then import nix-systems
@@ -60,7 +60,7 @@
     all = unique (defined ++ popular);
     per = genAttrs all;
   in {
-    inherit all current defined per popular;
+    inherit all default derived defined per;
   };
   # inherit (all.inputs) nixosCore nixosSystems;
   nixosCore = all.inputs.nixosCore or lix.pkgs;
