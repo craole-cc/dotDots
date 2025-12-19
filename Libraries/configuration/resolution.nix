@@ -49,7 +49,7 @@
     normalizedPath = flakePath path;
   in
     traceIf (normalizedPath != null)
-    "Attempting to loading flake: ${normalizedPath}"
+    "Loading flake from ${normalizedPath}"
     (getFlake normalizedPath);
 
   flakePathFromRegistry = registryPath: let
