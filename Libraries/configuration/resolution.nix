@@ -38,9 +38,14 @@
     result;
 
   flakeAuto = {
-    flake = import <nixpkgs> {};
-    url = "path:" + toString (import <nixpkgs> {});
-    path = storePath (import <nixpkgs> {});
+    inherit
+      ({
+        flake = import <nixpkgs> {};
+        url = "path:" + toString (import <nixpkgs> {});
+        path = storePath (import <nixpkgs> {});
+      })
+      flake
+      ;
   };
 
   flakePathFromRegistry = registryPath: let
