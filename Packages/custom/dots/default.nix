@@ -1,6 +1,6 @@
 {
   pkgs,
-  paths,
+  paths ? {},
   ...
 }: let
   cmd = import ./cmd.nix;

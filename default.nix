@@ -34,6 +34,7 @@
     pkgs = pkgsFor system;
   in {
     inherit (import ./shell.nix {inherit pkgs;}) default;
+    inherit (import ./Packages/custom/dots {inherit pkgs;}) dotshell;
 
     shell = import ./Packages/custom/repl/main_shell.nix {
       inherit pkgs lib api lix system;
