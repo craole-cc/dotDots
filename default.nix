@@ -29,7 +29,9 @@
     };
   };
 
-  devShells = per (system: {
+  devShells = per (system: let
+    pkgs = legacyPackages.${system};
+  in {
     inherit (import ./shell.nix {inherit pkgs;}) default;
   });
 
@@ -43,5 +45,4 @@ in {
     devShells
     repl
     ;
-  # inherit lib lix args repl system pkgs;
 }
