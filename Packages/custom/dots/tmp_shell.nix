@@ -1,61 +1,42 @@
-# repl.nix
 {
   pkgs,
   lib,
   api,
-  lix,
   system,
   all,
   ...
 }: let
-  inherit
-    (lib)
-    findFirst
-    head
-    attrValues
-    attrNames
-    filterAttrs
-    splitString
-    attrByPath
-    mapAttrs
-    filter
-    elem
-    hasPrefix
-    ;
+  inherit (lib) findFirst head attrValues;
 
-  # Get nixosConfigurations from the evaluated flake outputs
+  #> Get nixosConfigurations from the evaluated flake outputs
   nixosConfigurations = all.nixosConfigurations or {};
 
-  # Find a host that matches current system
+  #> Find a host that matches current system
   matchingHost =
     findFirst
     (host: host.config.nixpkgs.hostPlatform.system or null == system)
     null
     (attrValues nixosConfigurations);
 
-  # Get the current host
+  #> Get the current host
   currentHost =
     if matchingHost != null
     then matchingHost
     else head (attrValues nixosConfigurations);
+  # currentConfig = nixosConfigurations.${currentHost.name};
+  host = api.hosts.${currentHost.config.networking.hostName};
+  inherit (host.paths) dots;
 in
   pkgs.mkShell {
-    name = "nixos-config-repl";
-
-    packages = with pkgs; [
-      jq
-      nixpkgs-fmt
-      nil
-      nixd
-      alejandra
-      # nix-repl
-      # nix
-    ];
+    name = "dotDots";
+    packages =
+      import ./pkg.nix {inherit pkgs;}
+      ++ import ./fmt.nix {inherit pkgs;};
 
     shellHook = ''
+      DOTS=${dots};
       initialize_bin() {
-        BINIT_PATH="Bin/shellscript/base/binit"
-
+        BINIT_PATH="$DOTS/Bin/shellscript/base/binit"
         if [ -f "$BINIT_PATH" ]; then
           printf "direnv: Loading binit...\n" >&2
           BINIT_ACTION="--run"

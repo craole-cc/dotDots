@@ -1,23 +1,26 @@
 {pkgs, ...}:
 with pkgs; [
-  bat
   # btop
-  coreutils
-  gnused
-  curl
+  # coreutils
+  # curl
   # devenv
-  # eza
   # dust
+  # eza
   # fastfetch
-  fd
   # gh
-  gitui
   # helix
-  # onefetch
   # ripgrep
   # tokei
   # treefmt
-  undollar
   # wget
   # yazi
+  bat
+  fd
+  gitui
+  gnused
+  jq
+  nil
+  nixd
+  onefetch
+  undollar
 ]

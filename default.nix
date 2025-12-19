@@ -33,7 +33,7 @@
 
   devShells = per (system: let
     pkgs = pkgsFor system;
-    mkShell = pkgs.inputs.developmentShell;
+    # mkShell = pkgs.inputs.developmentShell;
 
     shell = import ./Packages/custom/dots/tmp_shell.nix {
       inherit pkgs lib api lix system;

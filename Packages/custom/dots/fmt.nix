@@ -1,7 +1,7 @@
 {pkgs, ...}:
 with pkgs; [
   # |Formatters
-  # alejandra
+  alejandra
   # biome
   # deadnix
   # deno
@@ -9,7 +9,7 @@ with pkgs; [
   # mdsh
   # nil
   nixd
-  nixfmt-rfc-style
+  nixfmt
   # nodePackages.prettier
   # ruff
   shellcheck
