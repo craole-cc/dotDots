@@ -5,6 +5,7 @@
     api = ./API;
     repl = ./repl.nix;
   };
+  inherit (self) inputs;
   inherit (self.inputs.nixosCore) lib legacyPackages;
   inherit (paths) src;
   inherit (import paths.lib {inherit lib src;}) lix;
@@ -32,17 +33,18 @@
 
   devShells = per (system: let
     pkgs = pkgsFor system;
+    mkShell = pkgs.inputs.developmentShell;
   in {
     inherit (import ./shell.nix {inherit pkgs;}) default;
-    inherit (import ./Packages/custom/dots {inherit pkgs;}) dotshell;
+    # dots = import ./Packages/custom/dots {inherit pkgs mkShell;};
 
-    shell = import ./Packages/custom/repl/main_shell.nix {
+    shell = import ./Packages/custom/dots/tmp_shell.nix {
       inherit pkgs lib api lix system;
       all = self;
     };
   });
 
-  repl = import ./Packages/custom/repl/main_repl.nix {
+  repl = import ./Packages/custom/dots/tmp_repl.nix {
     inherit api lix lib pkgs system;
     all = self;
   };
