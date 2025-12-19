@@ -34,14 +34,15 @@
   devShells = per (system: let
     pkgs = pkgsFor system;
     mkShell = pkgs.inputs.developmentShell;
-  in {
-    inherit (import ./shell.nix {inherit pkgs;}) default;
-    # dots = import ./Packages/custom/dots {inherit pkgs mkShell;};
 
     shell = import ./Packages/custom/dots/tmp_shell.nix {
       inherit pkgs lib api lix system;
       all = self;
     };
+    # inherit (import ./shell.nix {inherit pkgs;}) default;
+  in {
+    default = shell;
+    # dots = import ./Packages/custom/dots {inherit pkgs mkShell;};
   });
 
   repl = import ./Packages/custom/dots/tmp_repl.nix {
