@@ -79,8 +79,8 @@
   #     inherit system;
   #   };
   # });
-
-  devShells = (systems {nix-systems = all.inputs.nixosSystems;}).per (system: {
+  inherit (systems {nix-systems = all.inputs.nixosSystems;}) per;
+  devShells = per (system: {
     inherit (import ./shell.nix {}) default;
   });
 in {
