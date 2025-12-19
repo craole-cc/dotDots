@@ -31,7 +31,7 @@
     loadResult = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
   in
     traceIf
-    (loadResult._type or null == "flake")
+    (loadResult._type or null != "flake")
     "❌ Flake load failed: ${toString path}"
     loadResult;
 
