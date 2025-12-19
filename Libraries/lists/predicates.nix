@@ -3,7 +3,20 @@
   _,
   ...
 }: let
-  inherit (lib.lists) all any filter elem length toList;
+  inherit
+    (lib.lists)
+    all
+    any
+    filter
+    elem
+    head
+    tail
+    sort
+    length
+    toList
+    foldl'
+    ;
+  inherit (lib.attrsets) attrValues isAttrs;
   inherit (lib.strings) toLower;
 
   /**
@@ -282,6 +295,107 @@
     };
   in
     all isMember valueList;
+
+  /**
+  Find the most frequent item in a list with advanced tie-breaking options.
+
+  # Type
+  ```nix
+  mostFrequent :: [a] -> {
+    tiebreaker :: a -> a -> a,       # Function to break ties
+    compareItems :: (a -> a -> Int)? # Custom comparison for tie sorting (like compare)
+  }? -> a | null
+  ```
+  # Options
+  - tiebreaker: Function that takes two tied items and returns the preferred one
+  - compareItems: Optional comparison function that returns -1, 0, or 1.
+    If provided, uses sort with this comparator and takes first item.
+    Overrides tiebreaker if both are provided.
+
+  # Examples
+  ```nix
+  #> Use alphabetical sorting for ties
+  mostFrequent ["a" "b" "b" "a"] {
+    compareItems = a: b:
+      if a < b then -1
+      else if a > b then 1
+      else 0;
+  }  # => "a"
+
+  #> Custom tie logic (prefer shorter strings)
+  mostFrequent ["abc" "ab" "abc" "ab"] {
+    tiebreaker = a: b:
+      if stringLength a < stringLength b
+      then a else b;
+  }  # => "ab"
+  ```
+  */
+  mostFrequent = list: options: let
+    opts =
+      if isAttrs options
+      then options
+      else {};
+
+    # Handle empty list
+    result =
+      if list == []
+      then null
+      else let
+        # Count frequencies
+        frequencies =
+          foldl'
+          (acc: item: let
+            key = toString item;
+            count = acc.${key}.count or 0;
+            storedItem = acc.${key}.item or item;
+          in
+            acc
+            // {
+              ${key} = {
+                item = storedItem;
+                count = count + 1;
+              };
+            })
+          {}
+          list;
+
+        itemsWithCounts = attrValues frequencies;
+
+        # Find maximum frequency
+        maxCount =
+          foldl'
+          (max: entry:
+            if entry.count > max
+            then entry.count
+            else max)
+          0
+          itemsWithCounts;
+
+        # Get all items with max frequency
+        tiedItems = map (entry: entry.item) (
+          filter (entry: entry.count == maxCount) itemsWithCounts
+        );
+
+        # Break the tie
+        resolvedItem =
+          if opts ? compareItems
+          then
+            # Use comparator and take first after sorting
+            head (sort opts.compareItems tiedItems)
+          else if opts ? tiebreaker
+          then
+            # Use tiebreaker function
+            foldl'
+            (current: next: opts.tiebreaker current next)
+            (head tiedItems)
+            (tail tiedItems)
+          else
+            # Default: first item in tiedItems list
+            head tiedItems;
+      in
+        resolvedItem;
+  in
+    result;
 in {
   inherit
     checkMembership
@@ -295,6 +409,7 @@ in {
     hasAtMostExact
     isIn
     isInExact
+    mostFrequent
     ;
 
   _rootAliases = {

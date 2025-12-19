@@ -1,6 +1,6 @@
 {
   lib ? import <nixpkgs/lib>,
-  flakePath ? null,
+  src ? null,
   hostnamePath ? "/etc/hostname",
   registryPath ? "/etc/nix/registry.json",
 }: let
@@ -26,11 +26,11 @@
     ;
 
   resolveFlakePath =
-    if flakePath != null
+    if src != null
     then
-      if isPath flakePath
-      then toString flakePath
-      else flakePath
+      if isPath src
+      then toString src
+      else src
     else "/etc/nixos";
 
   readRegistrySafe =
@@ -97,6 +97,7 @@
         inputs = flake.inputs;
         names = [
           "nixpkgs"
+          "nixosCore"
           "nixPackages"
           "nixpkgsUnstable"
           "nixpkgsStable"

@@ -1,7 +1,6 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = {self, ...}: import ./. {};
-  # outputs = {self, ...}: import ./. {inherit self;};
+  outputs = {self, ...}: import ./. {inherit self;};
   inputs = {
     #| NixOS Official
     nixosCore.url = "nixpkgs/nixos-unstable";

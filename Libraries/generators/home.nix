@@ -23,7 +23,7 @@
     unique
     ;
   inherit (lib.modules) mkIf mkDefault;
-  inherit (_.generators.firefox) zenVariant;
+  inherit (_.applications.firefox) zenVariant;
   inherit (_.attrsets.resolution) getPackage;
 
   mkAdmin = name: {

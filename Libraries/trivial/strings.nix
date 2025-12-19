@@ -280,5 +280,5 @@ in {
     isEmpty
     isNotEmpty
     ;
-  inherit (_) normalizeFlakePath;
+  inherit (_.filesystem.predicates) normalizeFlakePath;
 }

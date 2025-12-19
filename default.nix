@@ -1,84 +1,38 @@
-{self ? null, ...}: let
+{self, ...}: let
   paths = {
     src = ./.;
     lib = ./Libraries;
     api = ./API;
     repl = ./repl.nix;
   };
-
+  all = self;
+  inherit (self.inputs.nixosCore) lib legacyPackages;
   inherit (paths) src;
-  inherit (import paths.lib {inherit src;}) lix;
+  inherit (import paths.lib {inherit lib src;}) lix;
   api = import paths.api {inherit lix;};
-  inherit (lix) getFlakeOrConfig getAttrByPaths;
 
-  all =
-    if (self != null)
-    then self
-    else getFlakeOrConfig {path = src;};
+  inherit
+    (lix.getSystems {
+      inherit (api) hosts;
+      inherit legacyPackages;
+    })
+    per
+    pkgs
+    system
+    ;
 
-  nixpkgs = getAttrByPaths {
-    attrset = all.inputs;
-    paths = [
-      ["nixpkgs"]
-      ["nixPackages"]
-      ["nixosCore"]
-      ["nixpkgsUnstable"]
-      ["nixpkgsStable"]
-      ["nixpkgs-unstable"]
-      ["nixpkgs-stable"]
-      ["nixosPackages"]
-      ["nixosUnstable"]
-      ["nixosStable"]
-    ];
-  };
-  inherit (nixpkgs) lib;
-
-  systems = {hosts ? api.hosts}: let
-    inherit (lib.lists) unique;
-    inherit (lib.attrsets) genAttrs mapAttrsToList;
-    derived = builtins.currentSystem;
-    defined = mapAttrsToList (_: host: host.systemd or host.platforms) hosts;
-    default = [
-      "aarch64-darwin"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "x86_64-linux"
-    ];
-    all = unique (defined ++ derived ++ default);
-    per = genAttrs all;
-  in {
-    inherit all default derived defined per;
-  };
-
-  # nixosCore = all.inputs.nixosCore or lix.pkgs;
-
-  # inherit (nixosCore) lib;
-  args = {inherit all api lix;};
-
-  repl = import ./repl.nix args;
-  # pkgs = (
-  #   if builtins ? getFlake
-  #   then (getFlake (toString ./.)).inputs.nixosCore.legacyPackages.${currentSystem}
-  #   else import <nixpkgs> {}
-  # );
-
-  # eachSystem = lib.genAttrs (import all.inputs.nixosSystems);
-  # perSystem = eachSystem (system: {
-  #   pkgs = lix.getPkgs {
-  #     nixpkgs = nixosCore;
-  #     inherit system;
-  #   };
-  # });
-  inherit (systems {}) per;
+  args = {inherit all api lix pkgs;};
 
   devShells = per (system: {
     inherit (import ./shell.nix {}) default;
   });
+  repl = import ./repl.nix args;
 in {
   nixosConfigurations = lix.mkCore {
     inherit args;
     inherit (args) api;
     inherit (all) inputs;
   };
-  # inherit lib lix args repl devShells systems nixpkgs;
+  inherit devShells;
+  inherit lib lix args repl system pkgs;
 }

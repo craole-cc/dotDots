@@ -8,7 +8,9 @@
   inherit (lib.lists) filter head toList findFirst;
   inherit (lib.trivial) pathExists;
   inherit (lib.srings) removeSuffix;
-  inherit (_) isNotEmpty isFlakePath normalizeFlakePath;
+  inherit (_.trivial.emptiness) isNotEmpty isFlakePath;
+  inherit (_.trivial.strings) normalizeFlakePath;
+  inherit (_.lists.predicates) mostFrequent;
 
   /**
   Get attribute or default if missing/empty.
@@ -709,6 +711,41 @@
     then fromFlake
     else fromTraditional;
 
+  getSystems = {
+    hosts ? {},
+    legacyPackages ? {},
+  }: let
+    inherit (lib.lists) unique last;
+    inherit (lib.attrsets) genAttrs mapAttrsToList optionalAttrs;
+
+    #> Extract and flatten defined systems
+    defined = lib.flatten (mapAttrsToList (_: host: host.system or host.platforms or []) hosts);
+
+    #> Default systems in alphabetical order
+    default = [
+      "aarch64-darwin"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "x86_64-linux"
+    ];
+
+    #> Get most common defined system, or tail of default
+    derived = let
+      common = mostFrequent defined null;
+    in
+      if common != null
+      then common
+      else last default; # "x86_64-linux"
+
+    # All systems
+    all = unique (defined ++ default);
+    per = genAttrs all;
+    pkgs = optionalAttrs (legacyPackages ? derived) legacyPackages.${derived};
+  in {
+    inherit all default derived defined per pkgs;
+    system = derived;
+  };
+
   exports = {
     inherit
       get
@@ -720,6 +757,7 @@
       getShellPackage
       optional
       getFlakeOrConfig
+      getSystems
       ;
   };
 in

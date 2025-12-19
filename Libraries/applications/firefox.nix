@@ -6,7 +6,8 @@
   inherit (lib.attrsets) mapAttrs isAttrs optionalAttrs;
   inherit (lib.lists) elem;
   inherit (lib.strings) hasInfix substring stringLength;
-  inherit (_) isEmpty isNotEmpty getNestedAttrByPaths getPackage getAttr;
+  inherit (_.trivial.emptiness) isEmpty isNotEmpty;
+  inherit (_.attrsets.resolution) getNestedAttrByPaths getPackage getAttr;
 
   /**
   Create a Firefox extension download URL.

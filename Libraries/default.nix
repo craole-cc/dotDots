@@ -1,3 +1,4 @@
+#TODO: Allow disabling root aliases
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> {},
@@ -120,21 +121,9 @@
         || (hasPrefix "." dirName);
 
       #~@ Check if a file should be excluded
-      # isExcludedFile = fileName:
-      #   elem fileName excludedFiles
-      #   || foldl' (acc: pattern: acc || hasSuffix pattern fileName) false excludedPatterns;
       isExcludedFile = fileName:
         elem fileName excludedFiles
-        || (lib.any (
-            pattern: let
-              strFileName = toString fileName;
-              strPattern = toString pattern;
-            in
-              lib.hasSuffix strPattern strFileName
-          )
-          excludedPatterns);
-      #TODO: Temporarily disable pattern matching
-      # isExcludedFile = fileName: false;
+        || foldl' (acc: pattern: acc || hasSuffix pattern fileName) false excludedPatterns;
 
       processEntry = entryName: entryType:
       #~@ Skip excluded directories
