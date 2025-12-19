@@ -23,7 +23,7 @@
     hasPrefix
     ;
 
-  # We need to get nixosConfigurations from the evaluated flake outputs
+  # Get nixosConfigurations from the evaluated flake outputs
   nixosConfigurations = all.nixosConfigurations or {};
 
   # Find a host that matches current system
@@ -38,84 +38,62 @@
     if matchingHost != null
     then matchingHost
     else head (attrValues nixosConfigurations);
-
-  # Create a simple REPL module that directly exposes the original repl.nix structure
-  # We'll embed the original repl.nix logic but make it self-contained
-  replModuleFile = pkgs.writeText "repl-module.nix" ''
-    # Direct import of the original repl.nix with all dependencies
-    let
-      # Import the original repl.nix with all its arguments
-      originalRepl = import ${toString ./repl.nix} {
-        inherit pkgs lib api lix system;
-        all = builtins.getFlake (toString ./.);
-      };
-    in
-    originalRepl
-  '';
 in
   pkgs.mkShell {
-    name = "dotDots";
+    name = "nixos-config-repl";
 
     packages = with pkgs; [
       jq
-      git
+      nixpkgs-fmt
       nil
       nixd
       alejandra
-      nixfmt
-      shfmt
-      shellcheck-minimal
-      rust-script
-      rustfmt
-      gcc
+      # nix-repl
+      # nix
     ];
 
     shellHook = ''
+      initialize_bin() {
+        BINIT_PATH="Bin/shellscript/base/binit"
+
+        if [ -f "$BINIT_PATH" ]; then
+          printf "direnv: Loading binit...\n" >&2
+          BINIT_ACTION="--run"
+
+          if [ -x "$BINIT_PATH" ]; then :; else
+            chmod +x "$BINIT_PATH"
+          fi
+
+          . "$BINIT_PATH"
+        else
+          printf "direnv: binit not found at %s\n" "$BINIT_PATH" >&2
+        fi
+      }
+      initialize_bin
+
       # Create directory for wrapper scripts
-      WRAPPER_DIR="$PWD/.direnv/bin"
-      mkdir -p "$WRAPPER_DIR"
+      SHELL_BIN="$PWD/.direnv/bin"
+      mkdir -p "$SHELL_BIN"
 
-      # nixos-repl: loads the original repl.nix file directly
-      cat > "$WRAPPER_DIR/nixos-repl" << 'EOF'
+      # Helper to call nix-repl from project bin
+      # cat > "$SHELL_BIN/repl" << 'EOF'
+      # #!/bin/sh
+      # exec nix-repl "$@"
+      # EOF
+
+      # Helper to list hosts - simple and reliable
+      cat > "$SHELL_BIN/h-hosts" << 'EOF'
       #!/usr/bin/env bash
       export NIX_CONFIG="experimental-features = nix-command flakes"
-      # Load the original repl.nix file
-      exec nix repl --impure ${toString ./repl.nix} "$@"
-      EOF
-
-      # repl: simple wrapper for nix-repl (matches your original)
-      cat > "$WRAPPER_DIR/repl" << 'EOF'
-      #!/bin/sh
-      exec nix-repl "$@"
-      EOF
-
-      # Helper to list hosts - using nix eval directly
-      cat > "$WRAPPER_DIR/h-hosts" << 'EOF'
-      #!/usr/bin/env bash
-      export NIX_CONFIG="experimental-features = nix-command flakes"
-      # Use nix eval with the original repl.nix structure
-      nix eval --impure --expr '
-        let
-          repl = import ${toString ./repl.nix} {
-            pkgs = import <nixpkgs> {};
-            lib = (import <nixpkgs> {}).lib;
-            api = {};
-            lix = {};
-            system = builtins.currentSystem;
-            all = builtins.getFlake (toString ./.);
-          };
-        in
-        repl.helpers.listHosts
-      ' --json 2>/dev/null | ${pkgs.jq}/bin/jq -r '.[]' 2>/dev/null || \
+      # Simple direct approach
       nix eval --impure --expr 'builtins.attrNames (builtins.getFlake (toString ./.)).nixosConfigurations' --json | ${pkgs.jq}/bin/jq -r '.[]'
       EOF
 
-      # Helper to show host info - simplified without jq dependency in path
-      cat > "$WRAPPER_DIR/h-info" << 'EOF'
+      # Helper to show host info
+      cat > "$SHELL_BIN/h-info" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       export NIX_CONFIG="experimental-features = nix-command flakes"
-      # Try to use the full repl structure first, fallback to simple version
       nix eval --impure --expr '
         let
           flake = builtins.getFlake (toString ./.);
@@ -126,52 +104,51 @@ in
           kernel = hostConfig.config.boot.kernelPackages.kernel.version;
           stateVersion = hostConfig.config.system.stateVersion;
         }
-      ' --json 2>/dev/null | ${pkgs.jq}/bin/jq . 2>/dev/null || \
-      echo "{\"hostname\": \"$host\", \"error\": \"Could not load host configuration\"}"
+      ' --json | ${pkgs.jq}/bin/jq .
       EOF
 
       # Helper to rebuild a host
-      cat > "$WRAPPER_DIR/h-rebuild" << 'EOF'
+      cat > "$SHELL_BIN/h-rebuild" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild switch --flake .#%s\n" "$host"
       EOF
 
       # Helper to test a host
-      cat > "$WRAPPER_DIR/h-test" << 'EOF'
+      cat > "$SHELL_BIN/h-test" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild test --flake .#%s\n" "$host"
       EOF
 
       # Helper for boot
-      cat > "$WRAPPER_DIR/h-boot" << 'EOF'
+      cat > "$SHELL_BIN/h-boot" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild boot --flake .#%s\n" "$host"
       EOF
 
       # Helper for dry build
-      cat > "$WRAPPER_DIR/h-dry" << 'EOF'
+      cat > "$SHELL_BIN/h-dry" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild dry-build --flake .#%s\n" "$host"
       EOF
 
       # Helper for update
-      cat > "$WRAPPER_DIR/h-update" << 'EOF'
+      cat > "$SHELL_BIN/h-update" << 'EOF'
       #!/usr/bin/env bash
       printf "nix flake update\n"
       EOF
 
       # Helper for cleanup
-      cat > "$WRAPPER_DIR/h-clean" << 'EOF'
+      cat > "$SHELL_BIN/h-clean" << 'EOF'
       #!/usr/bin/env bash
       printf "sudo nix-collect-garbage -d\n"
       EOF
 
       # Helper for listing all helpers
-      cat > "$WRAPPER_DIR/h-list" << 'EOF'
+      cat > "$SHELL_BIN/h-list" << 'EOF'
       #!/usr/bin/env bash
       printf "\033[1;36m#~@ Available helpers\033[0m\n"
       printf "  \033[1;32mh-hosts\033[0m             - List all hosts\n"
@@ -190,7 +167,7 @@ in
       EOF
 
       # Helper for REPL help
-      cat > "$WRAPPER_DIR/repl-help" << 'EOF'
+      cat > "$SHELL_BIN/repl-help" << 'EOF'
       #!/usr/bin/env bash
       printf "\033[1;36m#> NixOS Configuration REPL\033[0m\n"
       printf "\033[1;36m#> Current context:\033[0m\n"
@@ -203,19 +180,11 @@ in
       printf "  h-info [host]      - Show host information\n"
       printf "  nixos-repl         - Start REPL with original repl.nix\n"
       printf "  repl               - Start nix-repl\n"
-      printf "\n"
-      printf "\033[1;36m#> In nixos-repl you can access:\033[0m\n"
-      printf "  config.*           - Current host configuration\n"
-      printf "  helpers.*          - Helper functions\n"
-      printf "  pkgs               - Current host packages\n"
-      printf "  boot.*             - Boot configuration\n"
-      printf "  networking.*       - Network configuration\n"
-      printf "  services.*         - Services configuration\n"
       EOF
 
       # Make scripts executable
-      chmod +x "$WRAPPER_DIR"/*
-      export PATH="$WRAPPER_DIR:$PATH"
+      chmod +x "$SHELL_BIN"/*
+      export PATH="$SHELL_BIN:$PATH"
 
       # Show welcome message
       printf "\033[1;36m🎯 NixOS Configuration REPL\033[0m\n"
