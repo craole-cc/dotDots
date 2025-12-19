@@ -17,6 +17,20 @@
     then self
     else getFlakeOrConfig {path = src;};
 
+  nixpkgs = lix.getByPaths {
+    attrset = all.inputs;
+    paths = [
+      ["nixpkgs"]
+      ["nixPackages"]
+      ["nixpkgsUnstable"]
+      ["nixpkgsStable"]
+      ["nixpkgs-unstable"]
+      ["nixpkgs-stable"]
+      ["nixosPackages"]
+      ["nixosUnstable"]
+      ["nixosStable"]
+    ];
+  };
   # pkgsFromInputsPath =
   #   if flake != null && flake ? inputs
   #   then let
@@ -40,29 +54,23 @@
   #     else null
   #   else null;
 
-  systems = {
-    hosts ? api.hosts,
-    nix-systems ? null,
-  }: let
+  systems = {hosts ? api.hosts}: let
     inherit (lib.lists) unique;
     inherit (lib.attrsets) genAttrs mapAttrsToList;
     derived = builtins.currentSystem;
-    defined = mapAttrsToList (_: host: host.systemd or host.platforms or derived) hosts;
-    popular =
-      if nix-systems != null
-      then import nix-systems
-      else [
-        # "aarch64-darwin"
-        # "aarch64-linux"
-        # "x86_64-darwin"
-        # "x86_64-linux"
-      ];
-    all = unique (defined ++ popular);
+    defined = mapAttrsToList (_: host: host.systemd or host.platforms) hosts;
+    default = [
+      "aarch64-darwin"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "x86_64-linux"
+    ];
+    all = unique (defined ++ derived ++ default);
     per = genAttrs all;
   in {
     inherit all default derived defined per;
   };
-  # inherit (all.inputs) nixosCore nixosSystems;
+
   nixosCore = all.inputs.nixosCore or lix.pkgs;
 
   inherit (nixosCore) lib;
@@ -93,5 +101,5 @@ in {
     inherit (args) api;
     inherit (self) inputs;
   };
-  inherit lib lix args repl devShells systems;
+  inherit lib lix args repl devShells systems nixpkgs;
 }
