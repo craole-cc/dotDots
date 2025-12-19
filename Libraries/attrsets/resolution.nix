@@ -3,14 +3,16 @@
   lib,
   ...
 }: let
+  inherit (_.filesystem.predicates) isFlakePath;
+  inherit (_.lists.predicates) mostFrequent;
+  inherit (_.trivial.emptiness) isNotEmpty;
+  inherit (_.trivial.strings) normalizeFlakePath;
   inherit (builtins) readFile tryEval getFlake fromJSON;
   inherit (lib.attrsets) hasAttrByPath attrByPath attrNames;
   inherit (lib.lists) filter head toList findFirst;
+  inherit (lib.strings) removeSuffix;
   inherit (lib.trivial) pathExists;
-  inherit (lib.srings) removeSuffix;
-  inherit (_.trivial.emptiness) isNotEmpty isFlakePath;
-  inherit (_.trivial.strings) normalizeFlakePath;
-  inherit (_.lists.predicates) mostFrequent;
+  inherit (lib.debug) traceIf;
 
   /**
   Get attribute or default if missing/empty.
@@ -587,30 +589,27 @@
     then {${name} = attrs.${name};}
     else {};
 
-  readRegistry = registryPath:
-    if pathExists registryPath
-    then let
-      content = readFile registryPath;
-      parsed = tryEval (fromJSON content);
-    in
-      if parsed.success
-      then parsed.value
-      else {
-        flakes = [];
-        version = 0;
-      }
-    else {
-      flakes = [];
-      version = 0;
+  flakeOrConfig = {
+    path ? null,
+    hostName ? null,
+    registryPath ? "/etc/nix/registry.json",
+    configPath ? "/etc/nixos/configuration.nix",
+  }: let
+    #> Try to get configuration from flake first
+    fromFlake = loadFlake {
+      inherit path hostName registryPath;
     };
 
-  # Load traditional NixOS configuration (non-flake)
-  loadConfig = configPath:
-    if pathExists configPath
-    then import configPath
-    else {};
+    #> If no flake config, try traditional configuration
+    fromTraditional =
+      if fromFlake == {}
+      then loadConfig configPath
+      else {};
+  in
+    if fromFlake != {}
+    then fromFlake
+    else fromTraditional;
 
-  # Load configuration from flake
   loadFlake = {
     path ? null,
     hostName ? null,
@@ -621,18 +620,14 @@
       path ? null,
       registryPath ? "/etc/nix/registry.json",
     }: let
+      normalizedPath = normalizeFlakePath path;
+
       #> Try direct path first
       fromPath =
-        if path != null && isFlakePath path
-        then let
-          normalized = normalizeFlakePath path;
-          result = tryEval (getFlake normalized);
-        in
-          with result;
-            if success
-            then value
-            else {}
-        else {};
+        traceIf
+        (path != null && isFlakePath path)
+        "Loading flake from: ${normalizedPath}"
+        (builtins.getFlake normalizedPath);
 
       # Fall back to registry for "self"
       fromRegistry =
@@ -690,26 +685,28 @@
   in
     extractConfig flake;
 
-  flakeOrConfig = {
-    path ? null,
-    hostName ? null,
-    registryPath ? "/etc/nix/registry.json",
-    configPath ? "/etc/nixos/configuration.nix",
-  }: let
-    #> Try to get configuration from flake first
-    fromFlake = loadFlake {
-      inherit path hostName registryPath;
-    };
+  # Load traditional NixOS configuration (non-flake)
+  loadConfig = configPath:
+    if pathExists configPath
+    then import configPath
+    else {};
 
-    #> If no flake config, try traditional configuration
-    fromTraditional =
-      if fromFlake == {}
-      then loadConfig configPath
-      else {};
-  in
-    if fromFlake != {}
-    then fromFlake
-    else fromTraditional;
+  readRegistry = registryPath:
+    if pathExists registryPath
+    then let
+      content = readFile registryPath;
+      parsed = tryEval (fromJSON content);
+    in
+      if parsed.success
+      then parsed.value
+      else {
+        flakes = [];
+        version = 0;
+      }
+    else {
+      flakes = [];
+      version = 0;
+    };
 
   systems = {
     hosts ? {},
@@ -760,6 +757,8 @@
       shellPackage
       optional
       flakeOrConfig
+      loadConfig
+      loadFlake
       systems
       ;
   };

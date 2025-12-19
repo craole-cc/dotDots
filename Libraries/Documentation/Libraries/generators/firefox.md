@@ -1,1 +1,0 @@
-Libraries/generators/firefox.md

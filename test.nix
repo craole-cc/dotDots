@@ -1,9 +1,10 @@
 let
-  src = ./.;
-  lix = import ./Libraries {inherit lib src;};
+  inherit (import ./Libraries {}) lix;
+  inherit (lix.attrsets.resolution) flakeOrConfig;
   api = import ./API {inherit lix;};
-  all = lix.attrsets.resolution.flakeOrConfig {path = src;};
+  all = flakeOrConfig {path = ./.;};
   # all = builtins.getFlake (toString ./.);
+
   inherit (all) inputs;
   lib = inputs.nixpkgs.lib;
   system = builtins.currentSystem or "x86_64-linux";
