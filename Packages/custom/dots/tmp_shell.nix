@@ -23,47 +23,56 @@
     if matchingHost != null
     then matchingHost
     else head (attrValues nixosConfigurations);
-  # currentConfig = nixosConfigurations.${currentHost.name};
-  host = api.hosts.${currentHost.config.networking.hostName};
-  inherit (host.paths) dots;
+
+  inherit (currentHost.config.networking) hostName;
+
+  host = api.hosts.${hostName} // {name = hostName;} // currentHost;
 in
   pkgs.mkShell {
     name = "dotDots";
+
     packages =
       import ./pkg.nix {inherit pkgs;}
       ++ import ./fmt.nix {inherit pkgs;};
 
+    env = import ./env.nix {inherit host;};
+    # env = {
+    #   DOTS = dots;
+    #   DOTS_BIN = dots + "/Bin";
+    #   BINIT = dots + "/Bin/shellscript/base/binit";
+    #   ENV_BIN = dots + "/.direnv/bin";
+    #   HOST = hostName;
+    # };
+
     shellHook = ''
-      DOTS=${dots};
       initialize_bin() {
-        BINIT_PATH="$DOTS/Bin/shellscript/base/binit"
-        if [ -f "$BINIT_PATH" ]; then
+        if [ -f "$BINIT" ]; then
           printf "direnv: Loading binit...\n" >&2
           BINIT_ACTION="--run"
 
           if [ -x "$BINIT_PATH" ]; then :; else
-            chmod +x "$BINIT_PATH"
+            chmod +x "$BINIT"
           fi
 
-          . "$BINIT_PATH"
+          . "$BINIT"
         else
-          printf "direnv: binit not found at %s\n" "$BINIT_PATH" >&2
+          printf "direnv: binit not found at %s\n" "$BINIT" >&2
         fi
       }
       initialize_bin
 
       # Create directory for wrapper scripts
-      SHELL_BIN="$PWD/.direnv/bin"
-      mkdir -p "$SHELL_BIN"
+      ENV_BIN="$PWD/.direnv/bin"
+      mkdir -p "$ENV_BIN"
 
       # Helper to launch the custom repl
-      cat > "$SHELL_BIN/repl" << 'EOF'
+      cat > "$ENV_BIN/repl" << 'EOF'
       #!/bin/sh
       exec nix-repl "$@"
       EOF
 
       # Helper to list hosts - simple and reliable
-      cat > "$SHELL_BIN/h-hosts" << 'EOF'
+      cat > "$ENV_BIN/h-hosts" << 'EOF'
       #!/usr/bin/env bash
       export NIX_CONFIG="experimental-features = nix-command flakes"
       # Simple direct approach
@@ -71,7 +80,7 @@ in
       EOF
 
       # Helper to show host info
-      cat > "$SHELL_BIN/h-info" << 'EOF'
+      cat > "$ENV_BIN/h-info" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       export NIX_CONFIG="experimental-features = nix-command flakes"
@@ -89,47 +98,47 @@ in
       EOF
 
       # Helper to rebuild a host
-      cat > "$SHELL_BIN/h-rebuild" << 'EOF'
+      cat > "$ENV_BIN/h-rebuild" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild switch --flake .#%s\n" "$host"
       EOF
 
       # Helper to test a host
-      cat > "$SHELL_BIN/h-test" << 'EOF'
+      cat > "$ENV_BIN/h-test" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild test --flake .#%s\n" "$host"
       EOF
 
       # Helper for boot
-      cat > "$SHELL_BIN/h-boot" << 'EOF'
+      cat > "$ENV_BIN/h-boot" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild boot --flake .#%s\n" "$host"
       EOF
 
       # Helper for dry build
-      cat > "$SHELL_BIN/h-dry" << 'EOF'
+      cat > "$ENV_BIN/h-dry" << 'EOF'
       #!/usr/bin/env bash
       host="''\${1:-${currentHost.config.networking.hostName}}"
       printf "sudo nixos-rebuild dry-build --flake .#%s\n" "$host"
       EOF
 
       # Helper for update
-      cat > "$SHELL_BIN/h-update" << 'EOF'
+      cat > "$ENV_BIN/h-update" << 'EOF'
       #!/usr/bin/env bash
       printf "nix flake update\n"
       EOF
 
       # Helper for cleanup
-      cat > "$SHELL_BIN/h-clean" << 'EOF'
+      cat > "$ENV_BIN/h-clean" << 'EOF'
       #!/usr/bin/env bash
       printf "sudo nix-collect-garbage -d\n"
       EOF
 
       # Helper for listing all helpers
-      cat > "$SHELL_BIN/h-list" << 'EOF'
+      cat > "$ENV_BIN/h-list" << 'EOF'
       #!/usr/bin/env bash
       printf "\033[1;36m#~@ Available helpers\033[0m\n"
       printf "  \033[1;32mh-hosts\033[0m             - List all hosts\n"
@@ -148,7 +157,7 @@ in
       EOF
 
       # Helper for REPL help
-      cat > "$SHELL_BIN/repl-help" << 'EOF'
+      cat > "$ENV_BIN/repl-help" << 'EOF'
       #!/usr/bin/env bash
       printf "\033[1;36m#> NixOS Configuration REPL\033[0m\n"
       printf "\033[1;36m#> Current context:\033[0m\n"
@@ -164,8 +173,8 @@ in
       EOF
 
       # Make scripts executable
-      chmod +x "$SHELL_BIN"/*
-      export PATH="$SHELL_BIN:$PATH"
+      chmod +x "$ENV_BIN"/*
+      export PATH="$ENV_BIN:$PATH"
 
       # Show welcome message
       printf "\033[1;36m🎯 NixOS Configuration REPL\033[0m\n"
