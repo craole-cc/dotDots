@@ -47,7 +47,6 @@
     inherit
       flakeAttr
       flakePath
-      flakePathFromRegistry
       flakeRef
       # normalizeFlake
       # loadFlake
