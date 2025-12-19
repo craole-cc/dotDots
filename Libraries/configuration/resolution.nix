@@ -3,6 +3,7 @@
   lib,
   ...
 }: let
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
@@ -11,28 +12,8 @@
     parseDrvName
     getFlake
     unsafeDiscardStringContext
-    readFile
-    tryEval
-    fromJSON
     ;
   flakeRef = (parseDrvName (unsafeDiscardStringContext (toString <nixpkgs>))).name;
-  readRegistry = registryPath:
-    if pathExists registryPath
-    then let
-      content = readFile registryPath;
-      parsed = tryEval (fromJSON content);
-    in
-      with parsed;
-        if success
-        then value
-        else {
-          flakes = [];
-          version = 0;
-        }
-    else {
-      flakes = [];
-      version = 0;
-    };
 
   flakePath = path: let
     pathStr = toString path;
@@ -47,16 +28,12 @@
 
   flakeAttr = path: let
     normalizedPath = flakePath path;
+    loadResult = optionalAttrs (normalizedPath == null) getFlake normalizedPath;
   in
-    traceIf (normalizedPath != null)
-    "Loading flake from ${normalizedPath}"
-    (getFlake normalizedPath);
-
-  flakePathFromRegistry = registryPath: let
-    registry = readRegistry registryPath;
-    result = "";
-  in
-    result;
+    traceIf
+    (loadResult == {})
+    "❌ Flake load failed: ${toString path}"
+    loadResult;
 
   # loadFlake = path: let
   #   # flakePath = normalizeFlake path;
