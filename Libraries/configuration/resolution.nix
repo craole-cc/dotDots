@@ -5,9 +5,17 @@
 }: let
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
-  # inherit (lib.debug) traceIf;
-  inherit (builtins) readFile storePath tryEval fromJSON;
-
+  inherit (lib.debug) traceIf;
+  inherit
+    (builtins)
+    parseDrvName
+    getFlake
+    unsafeDiscardStringContext
+    readFile
+    tryEval
+    fromJSON
+    ;
+  flakeRef = (parseDrvName (unsafeDiscardStringContext (toString <nixpkgs>))).name;
   readRegistry = registryPath:
     if pathExists registryPath
     then let
@@ -37,16 +45,12 @@
   in
     result;
 
-  flakeAuto = {
-    inherit
-      ({
-        flake = import <nixpkgs> {};
-        url = "path:" + toString (import <nixpkgs> {});
-        path = storePath (import <nixpkgs> {});
-      })
-      flake
-      ;
-  };
+  flakeAttr = path: let
+    normalizedPath = flakePath path;
+  in
+    traceIf (normalizedPath != null)
+    "Attempting to loading flake: ${normalizedPath}"
+    (getFlake normalizedPath);
 
   flakePathFromRegistry = registryPath: let
     registry = readRegistry registryPath;
@@ -64,9 +68,10 @@
 
   exports = {
     inherit
+      flakeAttr
       flakePath
       flakePathFromRegistry
-      flakeAuto
+      flakeRef
       # normalizeFlake
       # loadFlake
       ;
