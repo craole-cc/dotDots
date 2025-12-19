@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.generators.home) mkUsers;
+  inherit (_.config.home) mkUsers;
   inherit
     (lib.attrsets)
     filterAttrs

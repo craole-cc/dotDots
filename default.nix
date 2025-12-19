@@ -34,12 +34,14 @@
     pkgs = pkgsFor system;
   in {
     inherit (import ./shell.nix {inherit pkgs;}) default;
-    repl = import ./repl.nix {
-      inherit api lix lib pkgs system;
+    # This doesn't  work
+    repl = import ./repl_shell.nix {
+      inherit pkgs api lix lib system;
       all = self;
     };
   });
 
+  #: This works   fine
   replOld = import ./repl.nix {
     inherit api lix lib pkgs system;
     all = self;
