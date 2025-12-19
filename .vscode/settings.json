@@ -91,7 +91,9 @@
     "Configuration/powershell/README.md",
     "Configuration/powershell/archive",
     "Review",
-    "Tests"
+    "Tests",
+    "Packages/custom/dots/archive",
+    "Packages/custom/dots/tmp_repl.nix"
   ],
   "dirTree.ignore": [
     "**/$RECYCLE.BIN",

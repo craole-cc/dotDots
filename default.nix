@@ -35,7 +35,7 @@
     pkgs = pkgsFor system;
     # mkShell = pkgs.inputs.developmentShell;
 
-    shell = import ./Packages/custom/dots/tmp_shell.nix {
+    shell = import ./Packages/custom/dots {
       inherit pkgs lib api lix system;
       all = self;
     };
