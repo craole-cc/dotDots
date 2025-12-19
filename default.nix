@@ -55,7 +55,7 @@
         # "aarch64-darwin"
         # "aarch64-linux"
         # "x86_64-darwin"
-        "x86_64-linux"
+        # "x86_64-linux"
       ];
     all = unique (defined ++ popular);
     per = genAttrs all;
