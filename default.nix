@@ -33,10 +33,7 @@
   devShells = per (system: let
     pkgs = pkgsFor system;
   in {
-    default = import ./shell.nix {
-      inherit pkgs lib api lix system;
-      all = self;
-    };
+    inherit (import ./shell.nix {inherit pkgs;}) default;
 
     shell = import ./Packages/custom/repl/main_shell.nix {
       inherit pkgs lib api lix system;
