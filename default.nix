@@ -79,10 +79,10 @@
   #     inherit system;
   #   };
   # });
-  inherit (systems {nix-systems = all.inputs.nixosSystems;}) per;
-  devShells = system: {
+
+  devShells = (systems {nix-systems = all.inputs.nixosSystems;}).per (system: {
     inherit (import ./shell.nix {}) default;
-  };
+  });
 in {
   nixosConfigurations = lix.mkCore {
     inherit args;
