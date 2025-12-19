@@ -740,9 +740,12 @@
     # All systems
     all = unique (defined ++ default);
     per = genAttrs all;
+
     pkgs = optionalAttrs (legacyPackages ? derived) legacyPackages.${derived};
+    pkgsFor = system: legacyPackages.${system} or {};
   in {
     inherit all default derived defined per pkgs;
+    inherit legacyPackages pkgsFor;
     system = derived;
   };
 

@@ -16,6 +16,7 @@
       inherit legacyPackages;
     })
     per
+    pkgsFor
     pkgs
     system
     ;
@@ -30,7 +31,7 @@
   };
 
   devShells = per (system: let
-    pkgs = legacyPackages.${system};
+    pkgs = pkgsFor system;
   in {
     inherit (import ./shell.nix {inherit pkgs;}) default;
   });
