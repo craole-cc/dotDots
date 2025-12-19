@@ -1,12 +1,16 @@
-{
-  all ? (builtins.getFlake (toString ./.)),
-  api ? (import ./API {lix = all.lix;}),
-  lix ? all.lix,
-  lib ? all.inputs.nixpkgs.lib,
-  system ? builtins.currentSystem,
-  pkgs ? all.inputs.nixpkgs.legacyPackages.${system},
-}: let
-  inherit (all) nixosConfigurations;
+let
+  src = ./.;
+  lix = import ./Libraries {inherit lib src;};
+  api = import ./API {inherit lix;};
+  all = lix.config.resolution.flakeOrConfig {path = src;};
+  # all = builtins.getFlake (toString ./.);
+  inherit (all) inputs;
+  lib = inputs.nixpkgs.lib;
+  system = builtins.currentSystem or "x86_64-linux";
+  pkgs = inputs.nixpkgs.legacyPackages.${system};
+
+  nixosConfigurations = all.nixosConfigurations or {};
+
   inherit
     (lib.attrsets)
     attrByPath

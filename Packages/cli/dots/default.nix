@@ -11,7 +11,8 @@
   name = "dotDots";
   inherit (lib.lists) findFirst head;
   inherit (lib.attrsets) attrValues listToAttrs optionalAttrs;
-  inherit (pkgs) writeShellScriptBin;
+  inherit (pkgs) writeShellScriptBin writeText;
+  inherit (lib.generators) toJSON;
 
   #> Get nixosConfigurations from the evaluated flake outputs
   nixosConfigurations = all.nixosConfigurations or {};
@@ -35,17 +36,26 @@
   host = optionalAttrs (api.hosts ? ${hostName}) api.hosts.${hostName} // {name = hostName;} // currentHost;
 
   #> Create the dotDots script using rust-script
-  cli = writeShellScriptBin "dotDots" ''
+  rustScript = writeShellScriptBin "dotDots" ''
     #!/usr/bin/env bash
     exec ${pkgs.rust-script}/bin/rust-script ${./main.rs} "$@"
   '';
 
-  #> Create wrapper scripts for each command
-  mkCmd = cmd:
-    writeShellScriptBin "_${cmd}" ''
-      #!/usr/bin/env bash
-      exec ${cli}/bin/dotDots ${cmd} "$@"
-    '';
+  #> Create a REPL derivation that captures all the arguments
+  replDerivation = writeText "repl-with-helpers.nix" ''
+    # This file imports repl.nix with all the correct arguments
+    let
+      all = import ${writeText "all.nix" (toJSON all)};
+      lib = import ${writeText "lib.nix" (toJSON lib)};
+      api = import ${writeText "api.nix" (toJSON api)};
+      lix = import ${writeText "lix.nix" (toJSON lix)};
+      system = "${system}";
+      pkgs = import <nixpkgs> { inherit system; };
+    in
+      import ${./repl.nix} {
+        inherit all lib api lix system pkgs;
+      }
+  '';
 
   #> Create REPL command
   replCmd = writeShellScriptBin "_repl" ''
@@ -53,9 +63,21 @@
     echo "Starting dotDots REPL..."
     echo "Use 'helpers' to access helper functions"
     echo ""
-    cd "$DOTS"  # Go to flake root
-    exec nix repl ${./test.nix}
+    echo "Examples:"
+    echo "  helpers.listHosts"
+    echo "  helpers.hostInfo \"\$HOST_NAME\""
+    echo "  helpers.scripts.rebuild \"\$HOST_NAME\""
+    echo ""
+    # Change to flake root and start REPL
+    exec nix repl --file ${replDerivation}
   '';
+
+  #> Create wrapper scripts for each command
+  mkCmd = cmd:
+    writeShellScriptBin "_${cmd}" ''
+      #!/usr/bin/env bash
+      exec ${rustScript}/bin/dotDots ${cmd} "$@"
+    '';
 
   commands =
     listToAttrs (
@@ -128,7 +150,7 @@
       yamlfmt #? YAML formatter
     ]
     ++ (attrValues commands)
-    ++ [cli];
+    ++ [rustScript];
 
   env = with host.paths; {
     NIX_CONFIG = "experimental-features = nix-command flakes";

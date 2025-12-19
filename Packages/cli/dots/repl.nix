@@ -7,21 +7,9 @@
   system,
 }: let
   inherit (all) nixosConfigurations;
-  inherit
-    (lib.attrsets)
-    attrByPath
-    attrNames
-    attrValues
-    filterAttrs
-    head
-    ;
-  inherit
-    (lib.lists)
-    findFirst
-    filter
-    splitString
-    elem
-    ;
+  inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs head;
+  inherit (lib.lists) findFirst filter splitString elem;
+  inherit (lib.generators) toJSON;
 
   #> Find a host that matches current system
   matchingHost =
