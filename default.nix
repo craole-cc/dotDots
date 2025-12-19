@@ -47,7 +47,7 @@
     inherit (lib.lists) unique;
     inherit (lib.attrsets) genAttrs mapAttrsToList;
     current = builtins.currentSystem;
-    defined = mapAttrsToList (_: host: host.systemd or host.platform or current) hosts;
+    defined = mapAttrsToList (_: host: host.systemd or host.platform or {}) hosts;
     popular =
       if nix-systems != null
       then import nix-systems
