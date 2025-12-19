@@ -17,14 +17,21 @@ use anyhow::{Context, Result};
 use arboard::Clipboard;
 use clap::{Parser, Subcommand};
 use colored::*;
-use std::env;
-use std::process::{Command, Stdio};
+use std::{
+    env,
+    process::{Command, Stdio},
+};
 
 #[derive(Parser)]
-#[command(name = "dotDots", about = "NixOS Configuration Management", long_about = None)]
+#[command(
+    name = "dotDots",
+    about = "NixOS Configuration Management",
+    long_about = None,
+    disable_help_subcommand = true
+)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -91,7 +98,7 @@ enum Commands {
     /// List all available commands
     List,
 
-    /// Show help
+    /// Show enhanced help with examples
     Help,
 }
 
@@ -173,7 +180,7 @@ fn list_hosts() -> Result<()> {
     Ok(())
 }
 
-/// Show host information
+/// Show host information with enhanced stats
 fn show_host_info(host: Option<String>) -> Result<()> {
     let host_name = host.unwrap_or_else(get_current_host);
 
@@ -209,6 +216,18 @@ fn show_host_info(host: Option<String>) -> Result<()> {
                 host_name.green().bold()
             );
             println!("{}", serde_json::to_string_pretty(&info)?);
+
+            // Show git info if available
+            println!("\n{}", "Repository info:".bold().cyan());
+            let _ = Command::new("onefetch")
+                .arg("--no-color-palette")
+                .arg("--no-art")
+                .status();
+
+            // Show code statistics if available
+            println!("\n{}", "Code statistics:".bold().cyan());
+            let _ = Command::new("tokei").status();
+
             Ok(())
         }
         Err(_) => {
@@ -257,55 +276,85 @@ fn show_help() {
     println!("{} {}", "Current host:".bold().yellow(), host.green());
     println!("{} {}\n", "System:".bold().yellow(), system.blue());
 
-    println!("{}", "Available commands:".bold().magenta());
     println!(
-        "  {} hosts            - List all configured hosts",
-        "dotDots".cyan()
+        "{}",
+        "Available commands (prefix with _ or use dotDots):"
+            .bold()
+            .magenta()
+    );
+    println!();
+
+    println!("{}", "Command Wrappers (prefixed with _):".bold().white());
+    println!(
+        "  {} or {}  - List all configured hosts",
+        "_hosts".cyan(),
+        "dotDots hosts".dimmed()
     );
     println!(
-        "  {} info [host]      - Show host information",
-        "dotDots".cyan()
+        "  {} or {}    - Show host information",
+        "_info".cyan(),
+        "dotDots info [host]".dimmed()
     );
     println!(
-        "  {} rebuild [host]   - Show rebuild command",
-        "dotDots".cyan()
+        "  {} or {} - Show rebuild command",
+        "_rebuild".cyan(),
+        "dotDots rebuild [host]".dimmed()
     );
     println!(
-        "  {} test [host]      - Show test command",
-        "dotDots".cyan()
+        "  {} or {}    - Show test command",
+        "_test".cyan(),
+        "dotDots test [host]".dimmed()
     );
     println!(
-        "  {} boot [host]      - Show boot command",
-        "dotDots".cyan()
+        "  {} or {}    - Show boot command",
+        "_boot".cyan(),
+        "dotDots boot [host]".dimmed()
     );
     println!(
-        "  {} dry [host]       - Show dry-build command",
-        "dotDots".cyan()
+        "  {} or {}     - Show dry-build command",
+        "_dry".cyan(),
+        "dotDots dry [host]".dimmed()
     );
     println!(
-        "  {} update           - Show flake update command",
-        "dotDots".cyan()
+        "  {} or {}  - Show flake update command",
+        "_update".cyan(),
+        "dotDots update".dimmed()
     );
     println!(
-        "  {} clean            - Show garbage collection command",
-        "dotDots".cyan()
+        "  {} or {}   - Show garbage collection command",
+        "_clean".cyan(),
+        "dotDots clean".dimmed()
     );
     println!(
-        "  {} list             - List all commands",
-        "dotDots".cyan()
+        "  {} or {}    - List all commands",
+        "_list".cyan(),
+        "dotDots list".dimmed()
     );
-    println!("  {} help             - Show this help", "dotDots".cyan());
+    println!(
+        "  {} or {}    - Show this help",
+        "_help".cyan(),
+        "dotDots help".dimmed()
+    );
+    println!();
+
+    println!("{}", "Additional Tools:".bold().magenta());
+    println!("  {}  - TUI for git operations", "gitui".cyan());
+    println!("  {}  - Repository info and statistics", "onefetch".cyan());
+    println!("  {}  - Code statistics", "tokei".cyan());
     println!();
 
     println!("{}", "Options:".bold().magenta());
     println!("  Add --execute to any command to run it immediately");
-    println!("  Add --execute to automatically copy to clipboard");
+    println!("  Commands automatically copy to clipboard when available");
     println!();
 
     println!("{}", "Quick usage:".bold().magenta());
-    println!("  dotDots rebuild QBX            # Show command");
-    println!("  dotDots rebuild QBX --execute  # Run command");
-    println!("  dotDots update --execute       # Update flake");
+    println!("  _rebuild              # Show rebuild command for current host");
+    println!("  _rebuild --execute    # Run rebuild immediately");
+    println!("  _rebuild QBX          # Show rebuild command for QBX");
+    println!("  _update --execute     # Update flake");
+    println!("  _info                 # Show detailed host info with stats");
+    println!("  gitui                 # Open git TUI");
     println!();
 }
 
@@ -313,23 +362,28 @@ fn main() -> Result<()> {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Hosts => list_hosts(),
+        None | Some(Commands::Help) => {
+            show_help();
+            Ok(())
+        }
 
-        Commands::Info { host } => show_host_info(host),
+        Some(Commands::Hosts) => list_hosts(),
 
-        Commands::Rebuild { host, execute } => {
+        Some(Commands::Info { host }) => show_host_info(host),
+
+        Some(Commands::Rebuild { host, execute }) => {
             handle_command("sudo nixos-rebuild switch --flake .#{}", host, execute)
         }
 
-        Commands::Test { host, execute } => {
+        Some(Commands::Test { host, execute }) => {
             handle_command("sudo nixos-rebuild test --flake .#{}", host, execute)
         }
 
-        Commands::Boot { host, execute } => {
+        Some(Commands::Boot { host, execute }) => {
             handle_command("sudo nixos-rebuild boot --flake .#{}", host, execute)
         }
 
-        Commands::Dry { host } => {
+        Some(Commands::Dry { host }) => {
             let host_name = host.unwrap_or_else(get_current_host);
             let command = format!("sudo nixos-rebuild dry-build --flake .#{}", host_name);
             println!("{}", command.bright_white());
@@ -341,11 +395,13 @@ fn main() -> Result<()> {
             Ok(())
         }
 
-        Commands::Update { execute } => handle_command("nix flake update", None, execute),
+        Some(Commands::Update { execute }) => handle_command("nix flake update", None, execute),
 
-        Commands::Clean { execute } => handle_command("sudo nix-collect-garbage -d", None, execute),
+        Some(Commands::Clean { execute }) => {
+            handle_command("sudo nix-collect-garbage -d", None, execute)
+        }
 
-        Commands::List => {
+        Some(Commands::List) => {
             println!("{}", "Available commands:".bold().cyan());
             println!(
                 "  {} {}            - List all hosts",
@@ -400,17 +456,18 @@ fn main() -> Result<()> {
             println!();
             println!(
                 "{}",
+                "💡 Tip: Use underscore prefix for quick access: _hosts, _info, _rebuild, etc."
+                    .bright_yellow()
+            );
+            println!();
+            println!(
+                "{}",
                 "Commands with [host] accept an optional host name.".dimmed()
             );
             println!("{}", "Default host:".dimmed(),);
             println!("  {}", get_current_host().green());
             println!();
             println!("{}", "Add --execute to run commands immediately".yellow());
-            Ok(())
-        }
-
-        Commands::Help => {
-            show_help();
             Ok(())
         }
     }

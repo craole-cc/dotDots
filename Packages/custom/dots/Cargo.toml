@@ -1,14 +1,14 @@
 # Packages/custom/dots/Cargo.toml
 [package]
-name = "dots-cli"
+name = "dot-dots"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive", "cargo"] }
 anyhow = "1.0"
 serde_json = "1.0"
-colored = "2.0"
+colored = "3.0.0"
 arboard = "3.2"
 
 [profile.release]

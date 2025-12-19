@@ -52,42 +52,66 @@
       name = "_${cmd}";
       value = mkCmd cmd;
     })
-    ["hosts" "info" "rebuild" "test" "boot" "dry" "update" "clean" "list" "help"]
+    [
+      #~@ Core commands
+      "hosts"
+      "info"
+      "rebuild"
+      "test"
+      "boot"
+      "dry"
+      "update"
+      "clean"
+      "list"
+      "help"
+
+      #~@ Workflow commands
+      "flick"
+      "flush"
+      "fmt"
+      "fo"
+      "ff"
+      "flow"
+      "flare"
+      "ft"
+    ]
   );
 
   packages = with pkgs;
     [
-      #| Core tools
-      bat
-      fd
-      gitui
-      gnused
-      jq
-      nil
-      nixd
-      onefetch
-      undollar
+      #~@ Core tools
+      bat #? cat clone with syntax highlighting
+      fd #? fast alternative to 'find'
+      gitui #? TUI interface for git
+      gnused #? GNU sed for text processing
+      jq #? JSON processor and query tool
+      nil #? Nix language server
+      nixd #? Alternative Nix language server
+      onefetch #? Git repo info viewer (instant project summary)
+      tokei #? Counts lines of code per language
+      undollar #? Replaces shell variable placeholders easily
+      yazi #? TUI file manager with vim-like controls
 
-      #| Rust toolchain (for building dots-cli)
-      rustc
-      cargo
-      rust-analyzer
-      rustfmt
+      #~@ Rust toolchain (for building dots-cli)
+      rustc #? Rust compiler
+      cargo #? Rust package manager and build system
+      rust-analyzer #? Rust language server (LSP)
+      rustfmt #? Rust code formatter
 
-      #| Clipboard dependencies
-      xclip
-      wl-clipboard
-      xsel
+      #~@ Clipboard dependencies
+      xclip #? Clipboard utility for X11
+      wl-clipboard #? Clipboard utility for Wayland
+      xsel #? Another X11 clipboard interaction tool
 
-      #| Formatters
-      alejandra
-      markdownlint-cli2
-      nixfmt
-      shellcheck
-      shfmt
-      taplo
-      treefmt
-      yamlfmt
+      #~@ Formatters
+      alejandra #? Nix code formatter
+      markdownlint-cli2 #? Markdown linter and style checker
+      nixfmt #? Alternative Nix formatter
+      shellcheck #? Linter for shell scripts
+      shfmt #? Shell script formatter
+      taplo #? TOML formatter and linter
+      treefmt #? Unified formatting tool for multiple languages
+      yamlfmt #? YAML formatter
     ]
     ++ (attrValues commands)
     ++ [cli];
@@ -113,14 +137,14 @@
     if command -v dotDots >/dev/null 2>&1; then
       dotDots help
     else
-      printf "🎯 NixOS Configuration REPL"
-      printf "============================"
-      printf
-      printf "Current host: $HOST_NAME"
-      printf "System: $HOST_TYPE"
-      printf
-      printf "Type '_help' for available commands"
-      printf "Type '%s help' for more options\n\n" "${name}"
+      printf "🎯 NixOS Configuration REPL\n"
+      printf "============================\n"
+      printf "\n"
+      printf "Current host: $HOST_NAME\n"
+      printf "System: $HOST_TYPE\n"
+      printf "\n"
+      printf "Type '_help' for available commands\n"
+      printf "Type 'dotDots help' for more options\n\n"
     fi
   '';
 in
