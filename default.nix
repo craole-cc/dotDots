@@ -17,11 +17,12 @@
     then self
     else getFlakeOrConfig {path = src;};
 
-  nixpkgs = lix.getAttrByPaths {
+  nixpkgs = getAttrByPaths {
     attrset = all.inputs;
     paths = [
       ["nixpkgs"]
       ["nixPackages"]
+      ["nixosCore"]
       ["nixpkgsUnstable"]
       ["nixpkgsStable"]
       ["nixpkgs-unstable"]
