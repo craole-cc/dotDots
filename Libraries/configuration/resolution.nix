@@ -6,7 +6,7 @@
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   # inherit (lib.debug) traceIf;
-  inherit (builtins) readFile tryEval fromJSON;
+  inherit (builtins) readFile storePath tryEval fromJSON;
 
   readRegistry = registryPath:
     if pathExists registryPath
@@ -37,7 +37,12 @@
   in
     result;
 
-systemFlake ={}
+  flakeAuto = {
+    flake = import <nixpkgs> {};
+    url = "path:" + toString (import <nixpkgs> {});
+    path = storePath (import <nixpkgs> {});
+  };
+
   flakePathFromRegistry = registryPath: let
     registry = readRegistry registryPath;
     result = "";
@@ -56,6 +61,7 @@ systemFlake ={}
     inherit
       flakePath
       flakePathFromRegistry
+      flakeAuto
       # normalizeFlake
       # loadFlake
       ;
