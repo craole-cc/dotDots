@@ -40,23 +40,19 @@
     result;
 
   flake' = flakeRef: let
-    loadResult = optionalAttrs (flakeRef != null) (builtins.getFlake flakeRef);
+    flakeRefStr =
+      if builtins.isPath flakeRef
+      then builtins.toString flakeRef
+      else flakeRef;
+    loadResult = optionalAttrs (flakeRefStr != null) (builtins.getFlake flakeRefStr);
     srcPath =
-      if flakeRef != null
-      then builtins.unsafeDiscardStringContext flakeRef
+      if flakeRefStr != null
+      then builtins.unsafeDiscardStringContext flakeRefStr
       else null;
   in
     if (loadResult._type or null) == "flake"
     then loadResult // {inherit srcPath;}
     else loadResult;
-
-  # loadFlake = path: let
-  #   # flakePath = normalizeFlake path;
-  #   flakePathFromReg =
-  # in
-  #   # traceIf (flakePath != null)
-  #   # "Flake found: ${flakePath}"
-  #   # (builtins.getFlake flakePath);
 
   exports = {
     inherit
