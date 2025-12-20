@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.lists) elem;
   inherit (lib.strings) hasPrefix;
 

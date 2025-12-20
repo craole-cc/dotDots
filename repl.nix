@@ -44,8 +44,12 @@ let
     in {
       inherit (cfg.networking) hostName;
       inherit (cfg.nixpkgs.hostPlatform) system;
-      inherit (cfg.system) stateVersion;
-      kernel = cfg.boot.kernelPackages.kernel.version;
+
+      version = {
+        kernel = cfg.boot.kernelPackages.kernel.version;
+        initial = cfg.system.stateVersion;
+        nixos = cfg.system.nixos.version;
+      };
 
       users = {
         # TODO: Here we should show username and type isNormalUser vs isSystemUser
