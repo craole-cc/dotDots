@@ -132,6 +132,7 @@
       flakePath
       flakePkgs
       systems
+      host
       ;
   };
 in
