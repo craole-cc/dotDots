@@ -39,7 +39,7 @@
       else "unknown";
     result =
       if (loadResult._type or null) == "flake"
-      then loadResult // {path = path;}
+      then loadResult // {srcPath = path;}
       else loadResult;
   in
     traceIf ((loadResult._type or null) != "flake")
