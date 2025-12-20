@@ -1,12 +1,16 @@
-{
-  all,
-  api,
-  lix,
-  lib,
-  pkgs,
-  system,
-}: let
-  inherit (all) nixosConfigurations;
+let
+  inherit (import ./Libraries {}) lix;
+  inherit (lix.configuration.resolution) flake;
+  api = import ./API {inherit lix;};
+  all = flake ./.;
+
+  inherit (all) inputs;
+  lib = inputs.nixpkgs.lib;
+  system = builtins.currentSystem or "x86_64-linux";
+  pkgs = inputs.nixpkgs.legacyPackages.${system};
+
+  nixosConfigurations = all.nixosConfigurations or {};
+
   inherit
     (lib.attrsets)
     attrByPath
