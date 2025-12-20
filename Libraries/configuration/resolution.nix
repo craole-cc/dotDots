@@ -116,7 +116,7 @@
   }:
     findFirst
     (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
-    (head (attrValues nixosConfigurations))
+    null
     (attrValues nixosConfigurations);
 
   # =============================================================
