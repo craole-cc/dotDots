@@ -337,9 +337,9 @@
       type = "github";
       inputs = {
         nixpkgs.follows = "nixosCore";
-        systems.follows = "nixosSystems";
-        flake-compat.follows = "flakeCompat";
-        flake-parts.follows = "flakeParts";
+        # systems.follows = "nixosSystems";
+        # flake-compat.follows = "flakeCompat";
+        # flake-parts.follows = "flakeParts";
       };
     };
 
