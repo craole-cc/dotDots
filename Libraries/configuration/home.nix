@@ -403,7 +403,7 @@
     imports = with inputs; [
       nixosHome.nixosModules.home-manager
       niri.nixosModules.niri
-      (src + "/Packages/core")
+      ./Packages/core
     ];
 
     home-manager = {
