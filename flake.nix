@@ -375,7 +375,6 @@
     noctaliaShell = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixosCore";
-      # inputs.quickshell.follows = "quickShell";
     };
 
     # github-nix-ci.url = "github:juspay/github-nix-ci";

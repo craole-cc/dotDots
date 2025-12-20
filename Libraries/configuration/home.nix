@@ -401,9 +401,9 @@
       };
     };
 
-    imports = [
+    imports = with inputs; [
       nixosHome.nixosModules.home-manager
-      # niri.nixosModules.niri
+      # quickShell.nixosModules.quickshell
       (src + "/Packages/core")
     ];
 
