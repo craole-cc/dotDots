@@ -4,7 +4,14 @@
   inherit (import ./Libraries {inherit lib src;}) lix lib;
   api = import ./API {inherit lix;};
 
-  inherit (lix.getSystems {inherit (api) hosts;}) per pkgsFor;
+  inherit
+    (lix.getSystems {
+      inherit (api) hosts;
+      inherit (self.inputs.nixosCore) legacyPackages;
+    })
+    per
+    pkgsFor
+    ;
 
   nixosConfigurations = lix.mkCore {
     inherit (api) hosts users;

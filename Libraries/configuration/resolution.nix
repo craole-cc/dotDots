@@ -9,16 +9,16 @@
   inherit (lib.debug) traceIf;
   inherit (lib.lists) unique last;
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.lists.attrsets) getAttrByPaths;
+  inherit (_.lists.attrsets) nestedByPaths;
 
   flakePkgs = path:
-    getAttrByPaths {
+    nestedByPaths {
       attrset = flake path;
       paths = [
-        ["nixosCore"]
-        ["nixPackages"]
-        ["nixosPackages"]
-        ["nixpkgs-unstable"]
+        ["inputs" "nixosCore"]
+        ["inputs" "nixPackages"]
+        ["inputs" "nixosPackages"]
+        ["inputs" "nixpkgs-unstable"]
       ];
       default = "nixpkgs";
     };
