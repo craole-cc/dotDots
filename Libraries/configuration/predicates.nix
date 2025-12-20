@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (lib.list) elem;
+  inherit (lib.lists) elem;
   inherit (lib.strings) hasPrefix;
 
   isSystemDefaultUser = name:
