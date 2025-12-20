@@ -1,3 +1,4 @@
+# In your niri module
 {
   config,
   lib,
@@ -6,14 +7,17 @@
   ...
 }: let
   cfg = config.user.interface.windowManager.niri;
-  inherit (lib) mkEnableOption mkOption types mkIf;
+  inherit (lib) mkEnableOption mkOption types mkIf mkDefault;
+
+  # Get the flake's niri-unstable package
+  niriFlakePkg = inputs.niri.packages.${pkgs.system}.niri-unstable;
 in {
   options.user.interface.windowManager.niri = {
     enable = mkEnableOption "Niri window manager";
 
     package = mkOption {
       type = types.package;
-      default = inputs.niri.packages.${pkgs.system}.niri-unstable;
+      default = niriFlakePkg;
       description = "Niri package to use";
     };
 
@@ -31,20 +35,13 @@ in {
   };
 
   config = mkIf cfg.enable {
-    # Don't use overlay - get package directly from flake
-    environment.systemPackages = let
-      # Get the flake package directly
-      niriPkg = inputs.niri.packages.${pkgs.system}.niri-unstable.overrideAttrs (old: {
-        # Skip tests if they're failing
-        doCheck = false;
-        checkPhase = "";
-      });
-    in
+    # Use the flake package explicitly
+    environment.systemPackages = with pkgs;
       [
-        niriPkg
-        pkgs.wl-clipboard
-        pkgs.wayland-utils
-        pkgs.libsecret
+        niriFlakePkg # Use flake package directly
+        wl-clipboard
+        wayland-utils
+        libsecret
       ]
       ++ cfg.extraPackages;
 
