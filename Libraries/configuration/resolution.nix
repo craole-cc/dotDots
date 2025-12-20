@@ -40,23 +40,19 @@
 
   flake = {path ? src}: let
     normalizedPath = flakePath path;
-    loadResult = optionalAttrs (normalizedPath != null) (builtins.getFlake normalizedPath);
+    derived = optionalAttrs (normalizedPath != null) (builtins.getFlake normalizedPath);
     failureReason =
       if normalizedPath == null
       then "path normalization failed"
-      else if loadResult == null
+      else if derived == null
       then "getFlake returned null"
-      else if (loadResult._type or null) != "flake"
-      then "invalid flake type: ${(loadResult._type or "null")}"
+      else if (derived._type or null) != "flake"
+      then "invalid flake type: ${(derived._type or "null")}"
       else "unknown";
-    result =
-      if (loadResult._type or null) == "flake"
-      then loadResult // {srcPath = path;}
-      else loadResult;
   in
-    traceIf ((loadResult._type or null) != "flake")
+    traceIf ((derived._type or null) != "flake")
     "❌ Flake load failed: ${toString path} (${failureReason})"
-    result;
+    (derived // {srcPath = path;});
 
   systems = {
     path ? src,
@@ -116,16 +112,19 @@
       ((flake {}).nixosConfigurations),
     system ? (systems {}).system,
   }: let
-    bestGuess =
+    derived =
       findFirst
       (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
       null
       (attrValues nixosConfigurations);
+    # result =
+    #   if (derived.class or null) == "nixos"
+    #   then derived // {name = derived.config.networking.hostName;}
+    #   else derived;
   in
-    traceIf (bestGuess == null)
+    traceIf ((derived.class or null) == "nixos")
     "❌ Failed to derive current host"
-    bestGuess
-    // {name = bestGuess.config.networking.hostName;};
+    (derived // {name = derived.config.networking.hostName;});
 
   # =============================================================
   __doc = ''
