@@ -404,6 +404,7 @@
       nixosHome.nixosModules.home-manager
       niri.nixosModules.niri
     ];
+
     home-manager = {
       backupFileExtension = "BaC";
       overwriteBackup = true;
