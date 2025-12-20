@@ -331,6 +331,18 @@
       };
     };
 
+    niri = {
+      owner = "sodiboo";
+      repo = "niri-flake";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        systems.follows = "nixosSystems";
+        flake-compat.follows = "flakeCompat";
+        flake-parts.follows = "flakeParts";
+      };
+    };
+
     # github-nix-ci.url = "github:juspay/github-nix-ci";
     # nixos-vscode-server = {
     #   url = "github:nix-community/nixos-vscode-server";
