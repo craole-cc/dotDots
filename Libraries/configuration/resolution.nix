@@ -7,13 +7,6 @@
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
-  inherit
-    (builtins)
-    parseDrvName
-    getFlake
-    unsafeDiscardStringContext
-    ;
-  flakeRef = (parseDrvName (unsafeDiscardStringContext (toString <nixpkgs>))).name;
 
   flakePath = path: let
     pathStr = toString path;
@@ -28,7 +21,7 @@
 
   flake = path: let
     normalizedPath = flakePath path;
-    loadResult = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
+    loadResult = optionalAttrs (normalizedPath != null) (builtins.getFlake normalizedPath);
     failureReason =
       if normalizedPath == null
       then "path normalization failed"
@@ -45,6 +38,17 @@
     traceIf ((loadResult._type or null) != "flake")
     "❌ Flake load failed: ${toString path} (${failureReason})"
     result;
+
+  flakeRef = self: let
+    loadResult = optionalAttrs (flakeRef != null) (flake self);
+    srcPath =
+      traceIf (self != null)
+      (builtins.unsafeDiscardStringContext self)
+      null;
+  in
+    if (loadResult._type or null) == "flake"
+    then loadResult // {inherit srcPath;}
+    else loadResult;
 
   # loadFlake = path: let
   #   # flakePath = normalizeFlake path;
