@@ -45,7 +45,7 @@
   mkUsers = {
     host,
     inputs,
-    args,
+    extraArgs,
   }: {
     config,
     pkgs,
@@ -403,7 +403,7 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = args // {inherit users;};
+      extraSpecialArgs = extraArgs // {inherit users;};
 
       #> Merge all per-user home-manager configs
       users = mapAttrs (name: cfg: cfg.homeConfig) perUserConfigs;

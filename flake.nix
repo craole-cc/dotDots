@@ -1,6 +1,29 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = {self, ...}: import ./. {inherit self;};
+  outputs = inputs @ {self, ...}: let
+    src = ./.;
+    inherit (inputs.nixosCore) lib legacyPackages;
+    inherit (import src {inherit src lib;}) lix hosts users;
+    inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
+  in {
+    nixosConfigurations = lix.mkCore {
+      inherit
+        inputs
+        hosts
+        users
+        ;
+      args = {inherit lix hosts;};
+      inherit (lib) nixosSystem;
+    };
+
+    devShells = per (system: let
+      pkgs = pkgsFor system;
+    in {
+      default = import ./Packages/cli/dots {
+        inherit self pkgs lib hosts lix system;
+      };
+    });
+  };
   inputs = {
     #| NixOS Official
     nixosCore.url = "nixpkgs/nixos-unstable";

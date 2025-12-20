@@ -35,13 +35,14 @@
               mapAttrs (name: config: users.${name} or {} // config)
               (filterAttrs (_: cfg: cfg.enable or false) host.users);
           };
-        args = args // {inherit dots system;};
+        extraArgs = args // {inherit dots system;};
       })
     hosts;
 
   mkHost = {
     host,
     nixosSystem,
+    inputs,
     extraArgs,
   }: let
     inherit (host) name system dots;
@@ -53,7 +54,7 @@
       inherit system;
       specialArgs = extraArgs;
       modules = [
-        (mkUsers {inherit host extraArgs;})
+        (mkUsers {inherit host extraArgs inputs;})
         (
           {pkgs, ...}: {
             inherit (host) imports;
