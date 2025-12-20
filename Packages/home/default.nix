@@ -2,7 +2,7 @@
   # home.stateVersion = nixosConfig.system.stateVersion;
   programs.home-manager.enable = true;
   imports = [
-    ./noctula.nix
+    ./noctula
   ];
   # imports = [
 

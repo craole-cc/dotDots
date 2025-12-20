@@ -100,7 +100,6 @@
     enableNiri = elem "niri" interfaces.windowManagers;
     enablePlasma = elem "plasma" interfaces.desktopEnvironments;
     enableGnome = elem "gnome" interfaces.desktopEnvironments;
-    enableNoctula = elem "noctula" interfaces.bar;
 
     #> Determine login manager (prefer user choice, fallback to DE defaults)
     displayManager =
@@ -135,6 +134,7 @@
         dp = getUserInterface name "displayProtocol";
         de = getUserInterface name "desktopEnvironment";
         wm = getUserInterface name "windowManager";
+        bar = getUserInterface name "bar";
         # TODO: Move this to it's own file
         policies = let
           hasFun = f: elem f (host.functionalities or []);
@@ -189,11 +189,11 @@
             user = cfg // {inherit name;};
             inherit policies;
           };
-          imports =
+          imports = with inputs;
             (cfg.imports or [])
             ++ optional (zen != null) firefoxZen.homeModules.${zen}
             ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
-            # ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
+            ++ optional (bar == "noctalia") noctulaShell.homeModules.noctalia
             # ++ optional enableNiri niri
             ++ [(src + "/Packages/home")];
 
