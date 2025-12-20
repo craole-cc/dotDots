@@ -8,7 +8,7 @@ let
 
   lic = lix.configuration.resolution;
 
-  flake = lic.flake {inherit src;};
+  flake = lic.flake {path = src;};
   nixosConfigurations = flake.nixosConfigurations or {};
 
   systems = lic.systems {inherit hosts;};
