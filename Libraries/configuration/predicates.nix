@@ -8,24 +8,22 @@
 
   isSystemDefaultUser = name:
     (hasPrefix "nixbld" name)
+    || (hasPrefix "systemd-" name)
+    || (hasPrefix "systemd-" name)
     || (elem name [
-      "root"
-      "nobody"
-      "messagebus"
-      "systemd-coredump"
-      "systemd-network"
-      "systemd-oom"
-      "systemd-resolve"
-      "systemd-timesync"
-      "polkituser"
-      "rtkit"
-      "geoclue"
-      "nscd"
-      "sddm"
       "dhcpcd"
       "fwupd-refresh"
+      "geoclue"
+      "messagebus"
       "nm-iodine"
       "nm-openvpn"
+      "nobody"
+      "nscd"
+      "polkituser"
+      "root"
+      "rtkit"
+      "sddm"
+      "gdm"
     ]);
   exports = {inherit isSystemDefaultUser;};
 in
