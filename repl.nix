@@ -4,42 +4,42 @@ let
   api = import (src + "/API") {inherit lix;};
   inherit (api) hosts;
   inherit (lix) lib;
+  inherit (lib.attrsets) filterAttrs;
 
-  inherit (lix.configuration) resolution;
-  flake = resolution.flake {inherit src;};
-  systems = resolution.systems {inherit hosts;};
+  lic = lix.configuration.resolution;
+
+  flake = lic.flake {inherit src;};
+  nixosConfigurations = flake.nixosConfigurations or {};
+
+  systems = lic.systems {inherit hosts;};
   inherit (systems) pkgs system;
 
-  nixosConfigurations = flake.nixosConfigurations or {};
+  host = lic.host {inherit nixosConfigurations system;};
 
   inherit
     (lib.attrsets)
     attrByPath
     attrNames
-    attrValues
-    filterAttrs
-    head
     ;
   inherit
     (lib.lists)
-    findFirst
     filter
     splitString
     elem
     ;
 
-  #> Find a host that matches current system
-  matchingHost =
-    findFirst
-    (host: host.config.nixpkgs.hostPlatform.system or null == "system")
-    null
-    (attrValues nixosConfigurations);
+  # #> Find a host that matches current system
+  # matchingHost =
+  #   findFirst
+  #   (host: host.config.nixpkgs.hostPlatform.system or null == "system")
+  #   null
+  #   (attrValues nixosConfigurations);
 
-  #> Get the current host (to flatten at top level)
-  currentHost =
-    if matchingHost != null
-    then matchingHost
-    else head (attrValues nixosConfigurations);
+  # #> Get the current host (to flatten at top level)
+  # currentHost =
+  #   if matchingHost != null
+  #   then matchingHost
+  #   else head (attrValues nixosConfigurations);
 
   #> Helper functions for the repl
   helpers = {
@@ -149,18 +149,18 @@ in
   // {
     #~@ Top-level host attributes
     inherit
-      (currentHost)
+      (host)
       config
       options
       # pkgs
       ;
 
-    inherit (currentHost._module) specialArgs;
+    inherit (host._module) specialArgs;
     inherit (flake) inputs;
 
     #~@ Convenient shortcuts to config sections
     inherit
-      (currentHost.config)
+      (host.config)
       boot
       environment
       hardware

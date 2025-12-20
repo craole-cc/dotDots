@@ -117,10 +117,6 @@
       (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
       null
       (attrValues nixosConfigurations);
-    # result =
-    #   if (derived.class or null) == "nixos"
-    #   then derived // {name = derived.config.networking.hostName;}
-    #   else derived;
   in
     traceIf ((derived.class or null) != "nixos")
     "❌ Failed to derive current host"
