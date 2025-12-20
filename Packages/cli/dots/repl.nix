@@ -1,8 +1,9 @@
 let
-  inherit (import ./Libraries {}) lix;
+  src = ../../../.;
+  inherit (import (src + "/Libraries") {inherit src;}) lix;
   inherit (lix.configuration.resolution) flake;
-  api = import ./API {inherit lix;};
-  all = flake ./.;
+  api = import (src + "/API") {inherit lix;};
+  all = flake src;
 
   inherit (all) inputs;
   lib = inputs.nixpkgs.lib;
