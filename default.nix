@@ -18,6 +18,8 @@
     })
     per
     pkgsFor
+    pkgs
+    system
     ;
 
   nixosConfigurations = lix.mkCore {
@@ -37,9 +39,15 @@
       inherit all pkgs lib api lix system;
     };
   });
+
+  #TODO: This should somehow be moved into devShells.dots, but how?
+  repl = import ./Packages/cli/dots/repl.nix {
+    inherit all pkgs lib api lix system;
+  };
 in {
   inherit
     nixosConfigurations
     devShells
+    repl
     ;
 }
