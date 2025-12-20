@@ -5,11 +5,11 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) genAttrs mapAttrsToList optionalAttrs;
+  inherit (lib.attrsets) attrValues genAttrs mapAttrsToList optionalAttrs;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
-  inherit (lib.lists) unique last flatten;
+  inherit (lib.lists) findFirst head unique last flatten;
   inherit (_.lists.predicates) mostFrequent;
   inherit (_.attrsets.resolution) byPaths;
 
@@ -110,6 +110,16 @@
     pkgsFor = system: pkgsBase.${system} or {};
   };
 
+  host = {
+    nixosConfigurations ? {},
+    system ? (systems {}).system,
+  }:
+    findFirst
+    (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
+    (head (attrValues nixosConfigurations))
+    (attrValues nixosConfigurations);
+
+  # =============================================================
   __doc = ''
     Flake stuff
   '';
@@ -130,5 +140,6 @@ in
       getFlake = flake;
       getSystems = systems;
       getNixPkgs = flakePkgs;
+      getHost = host;
     };
   }

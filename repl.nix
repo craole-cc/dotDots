@@ -6,11 +6,11 @@ let
   inherit (lix) lib;
 
   inherit (lix.configuration) resolution;
-  all = resolution.flake {inherit src;};
+  flake = resolution.flake {inherit src;};
   systems = resolution.systems {inherit hosts;};
   inherit (systems) pkgs system;
 
-  nixosConfigurations = all.nixosConfigurations or {};
+  nixosConfigurations = flake.nixosConfigurations or {};
 
   inherit
     (lib.attrsets)
@@ -35,6 +35,12 @@ let
     null
     (attrValues nixosConfigurations);
 
+  #> Get the current host (to flatten at top level)
+  currentHost =
+    if matchingHost != null
+    then matchingHost
+    else head (attrValues nixosConfigurations);
+
   #> Helper functions for the repl
   helpers = {
     #~@ Script generators (copy-paste ready)
@@ -50,9 +56,6 @@ let
     #~@ Host discovery
     listHosts = attrNames nixosConfigurations;
     getHost = name: nixosConfigurations.${name} or null;
-
-    #~@ Current context
-    currentHostName = currentHost.config.networking.hostName;
 
     #~@ Host information
     hostInfo = name: let
@@ -130,12 +133,6 @@ let
     in
       attrNames (filterAttrs (n: v: v.enable or false) services);
   };
-
-  #> Get the current host (to flatten at top level)
-  currentHost =
-    if matchingHost != null
-    then matchingHost
-    else head (attrValues nixosConfigurations);
 in
   {
     inherit
@@ -145,7 +142,7 @@ in
       builtins
       # system
       helpers
-      all
+      flake
       ;
     # pkgs = matchingHost.pkgs or pkgs;
   }
@@ -159,7 +156,7 @@ in
       ;
 
     inherit (currentHost._module) specialArgs;
-    inherit (all) inputs;
+    inherit (flake) inputs;
 
     #~@ Convenient shortcuts to config sections
     inherit
