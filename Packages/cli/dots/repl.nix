@@ -3,7 +3,7 @@ let
   inherit (import (src + "/Libraries") {inherit src;}) lix;
   # inherit (lix.configuration.resolution) flakeWithSrcPath;
   api = import (src + "/API") {inherit lix;};
-  all = lix.flakeWithSrcPath src;
+  all = lix.flakeWithSrcPath src src;
 
   inherit (all) inputs;
   lib = inputs.nixpkgs.lib;
