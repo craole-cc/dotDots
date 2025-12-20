@@ -189,10 +189,9 @@
           };
           imports =
             (cfg.imports or [])
-            #> Add Firefox Zen module if user prefers the Zen variant.
             ++ optional (zen != null) firefoxZen.homeModules.${zen}
-            #> Add Plasma Manager module if user uses Plasma desktop
             ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
+            # ++ optional enableNiri niri
             ++ [];
 
           home = {
