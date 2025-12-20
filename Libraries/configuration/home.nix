@@ -1,5 +1,6 @@
 {
   _,
+  src,
   lib,
   ...
 }: let
@@ -403,7 +404,7 @@
     imports = with inputs; [
       nixosHome.nixosModules.home-manager
       niri.nixosModules.niri
-      ./Packages/core
+      (src + "/Packages/core")
     ];
 
     home-manager = {

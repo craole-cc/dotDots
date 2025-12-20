@@ -1,42 +1,43 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = raw-inputs: let
-    inherit (builtins) mapAttrs foldl';
-    inputs =
-      mapAttrs (
-        input-name: raw-input:
-          foldl' (
-            input: module-class:
-              if input ? ${module-class}
-              then
-                input
-                // {
-                  ${module-class} =
-                    mapAttrs (
-                      module-name:
-                        raw-inputs.nixpkgs.lib.setDefaultModuleLocation
-                        "${input-name}.${module-class}.${module-name}"
-                    )
-                    input.${module-class};
-                }
-              else input
-          )
-          raw-input ["nixosModules" "homeModules"]
-      )
-      raw-inputs;
-  in let
-    # outputs = inputs @ {self, ...}: let
+
+  outputs = inputs @ {self, ...}: let
+    # Helper function to process inputs with module locations
+    processInputs = raw-inputs: let
+      inherit (raw-inputs.nixosCore.lib) mapAttrs foldl' setDefaultModuleLocation;
+
+      # Function to add module location metadata to an individual input
+      processInput = input-name: raw-input:
+        foldl' (
+          acc: module-class:
+            if acc ? ${module-class}
+            then
+              acc
+              // {
+                ${module-class} =
+                  mapAttrs (
+                    module-name: _module:
+                      setDefaultModuleLocation "${input-name}.${module-class}.${module-name}" _module
+                  )
+                  acc.${module-class};
+              }
+            else acc
+        )
+        raw-input ["nixosModules" "homeModules"];
+    in
+      mapAttrs processInput raw-inputs;
+
+    # Process all inputs
+    processedInputs = processInputs inputs;
+
     src = ./.;
-    inherit (inputs.nixosCore) lib legacyPackages;
+    inherit (processedInputs.nixosCore) lib legacyPackages;
     inherit (import src {inherit src lib;}) lix hosts users;
     inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
   in {
     nixosConfigurations = lix.mkCore {
-      inherit
-        inputs
-        hosts
-        users
-        ;
+      inputs = processedInputs;
+      inherit hosts users;
       args = {inherit lix;};
       inherit (lib) nixosSystem;
     };
@@ -49,6 +50,7 @@
       };
     });
   };
+
   inputs = {
     #| NixOS Official
     nixosCore.url = "nixpkgs/nixos-unstable";
@@ -362,10 +364,18 @@
       type = "github";
       inputs = {
         nixpkgs.follows = "nixosCore";
-        # systems.follows = "nixosSystems";
-        # flake-compat.follows = "flakeCompat";
-        # flake-parts.follows = "flakeParts";
       };
+    };
+
+    quickShell = {
+      url = "github:outfoxxed/quickshell";
+      inputs.nixpkgs.follows = "nixosCore";
+    };
+
+    noctaliaShell = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixosCore";
+      # inputs.quickshell.follows = "quickShell";
     };
 
     # github-nix-ci.url = "github:juspay/github-nix-ci";

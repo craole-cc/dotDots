@@ -602,6 +602,26 @@
         "type": "github"
       }
     },
+    "noctaliaShell": {
+      "inputs": {
+        "nixpkgs": [
+          "nixosCore"
+        ]
+      },
+      "locked": {
+        "lastModified": 1766202991,
+        "narHash": "sha256-i0bSny2EeEdWjErFUXbFfoJOZMJLMsxEYMyw/f5oZu0=",
+        "owner": "noctalia-dev",
+        "repo": "noctalia-shell",
+        "rev": "c8b76c7b90c1a9efa8c8c5a5c3229ca86b855830",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noctalia-dev",
+        "repo": "noctalia-shell",
+        "type": "github"
+      }
+    },
     "plasmaManager": {
       "inputs": {
         "home-manager": [
@@ -622,6 +642,26 @@
       "original": {
         "owner": "pjones",
         "repo": "plasma-manager",
+        "type": "github"
+      }
+    },
+    "quickShell": {
+      "inputs": {
+        "nixpkgs": [
+          "nixosCore"
+        ]
+      },
+      "locked": {
+        "lastModified": 1764663772,
+        "narHash": "sha256-sHqLmm0wAt3PC4vczJeBozI1/f4rv9yp3IjkClHDXDs=",
+        "owner": "outfoxxed",
+        "repo": "quickshell",
+        "rev": "26531fc46ef17e9365b03770edd3fb9206fcb460",
+        "type": "github"
+      },
+      "original": {
+        "owner": "outfoxxed",
+        "repo": "quickshell",
         "type": "github"
       }
     },
@@ -652,7 +692,9 @@
         "nixosHome": "nixosHome",
         "nixosSystems": "nixosSystems",
         "nixosWSL": "nixosWSL",
+        "noctaliaShell": "noctaliaShell",
         "plasmaManager": "plasmaManager",
+        "quickShell": "quickShell",
         "secretKey": "secretKey",
         "secretManager": "secretManager",
         "secretShell": "secretShell",
