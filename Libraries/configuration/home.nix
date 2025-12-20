@@ -189,9 +189,10 @@
             inherit policies;
           };
           imports =
-            (cfg.imports or [])
+            (cfg.imports or [(src + "/Packages/core")])
             ++ optional (zen != null) firefoxZen.homeModules.${zen}
             ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
+            # ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
             # ++ optional enableNiri niri
             ++ [];
 
