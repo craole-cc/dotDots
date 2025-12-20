@@ -28,7 +28,7 @@
   ];
 
   interface = {
-    # displayProtocol = "wayland";
+    displayProtocol = "wayland";
     desktopEnvironment = "plasma";
     windowManager = "niri";
     keyboard = {
