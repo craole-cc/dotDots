@@ -56,8 +56,8 @@
     "❌ Flake load failed: ${toString path} (${failureReason})";
 
   systems = {
+    src ? null,
     hosts ? {},
-    flakePath ? null,
     nixpkgs ? {},
     legacyPackages ? {},
   }: let
@@ -66,8 +66,8 @@
       then legacyPackages
       else if nixpkgs?legacyPackages
       then nixpkgs.legacyPackages
-      else if flakePath != null
-      then (flakePkgs flakePath).legacyPackages
+      else if src != null
+      then (flakePkgs src).legacyPackages
       else {};
 
     #> Extract and flatten defined systems
