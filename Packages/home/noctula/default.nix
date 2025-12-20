@@ -5,26 +5,28 @@
   inputs,
   # host,
   system,
+  bar,
   ...
 }: let
+  app = "noctalia";
+
+  inherit (lib.lists) optional;
   inherit (lib.modules) mkIf;
-  # variables = import ../../../hosts/${host}/variables.nix;
-  # barChoice = variables.barChoice or "waybar";
-  # enableNoctalia = barChoice == "noctalia";
-  enableNoctalia = true;
+  inherit (lib.strings) toJSON;
+  isAllowed = bar == app;
 in {
-  imports = lib.optionals enableNoctalia [
+  imports = optional isAllowed [
     inputs.noctaliaShell.homeModules.default
   ];
 
-  config = mkIf enableNoctalia {
+  config = mkIf isAllowed {
     programs.waybar.enable = lib.mkForce false;
     home.packages = [
       inputs.noctaliaShell.packages.${system}.default
     ];
 
     home.file.".config/noctalia/settings.json.template" = {
-      text = builtins.toJSON {
+      text = toJSON {
         appLauncher = {
           backgroundOpacity = 1;
           enableClipboardHistory = false;
