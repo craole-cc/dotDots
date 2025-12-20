@@ -169,18 +169,12 @@
           password = cfg.password or null;
 
           extraGroups =
-            (
-              if elem (cfg.role or null) ["admin" "administrator"]
-              then ["wheel"]
-              else []
-            )
-            ++ (
-              if
-                isNormalUser
-                && (config.networking.networkmanager.enable or false)
-              then ["networkmanager"]
-              else []
-            );
+            optional
+            (elem (cfg.role or null) ["admin" "administrator"])
+            ["wheel"]
+            ++ optional
+            (isNormalUser && (config.networking.networkmanager.enable or false))
+            ["networkmanager"];
         };
 
         #> This user's home-manager config
