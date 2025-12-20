@@ -1,10 +1,11 @@
 # Packages/custom/dots/default.nix
 {
+  self,
   pkgs,
-  lib,
-  api,
   system,
-  all,
+  lib,
+  hosts,
+  lix,
   ...
 }: let
   name = "dotDots";
@@ -13,7 +14,7 @@
   inherit (pkgs) writeShellScriptBin;
 
   #> Get nixosConfigurations from the evaluated flake outputs
-  nixosConfigurations = all.nixosConfigurations or {};
+  nixosConfigurations = self.nixosConfigurations or {};
 
   #> Find a host that matches current system
   matchingHost =
@@ -31,7 +32,7 @@
   inherit (currentHost.config.networking) hostName;
 
   #> Create enhanced host info using optionalAttrs
-  host = optionalAttrs (api.hosts ? ${hostName}) api.hosts.${hostName} // {name = hostName;} // currentHost;
+  host = optionalAttrs (hosts ? ${hostName}) hosts.${hostName} // {name = hostName;} // currentHost;
 
   #> Create the dotDots script using rust-script
   rustScript = writeShellScriptBin "dotDots" ''

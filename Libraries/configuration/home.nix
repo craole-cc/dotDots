@@ -44,14 +44,15 @@
 
   mkUsers = {
     host,
-    extraArgs,
+    inputs,
+    args,
   }: {
     config,
     pkgs,
     ...
   }: let
     inherit (host) stateVersion interface system users;
-    inherit (extraArgs.flake.inputs) nixosHome firefoxZen plasmaManager;
+    inherit (inputs) nixosHome firefoxZen plasmaManager;
 
     #> Collect all enabled regular users (non-service, non-guest)
     normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
@@ -402,7 +403,7 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = extraArgs // {inherit users;};
+      extraSpecialArgs = args // {inherit users;};
 
       #> Merge all per-user home-manager configs
       users = mapAttrs (name: cfg: cfg.homeConfig) perUserConfigs;

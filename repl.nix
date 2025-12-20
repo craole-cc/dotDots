@@ -1,7 +1,8 @@
 let
   src = ./.;
-  inherit (import (src + "/Libraries") {inherit src;}) lix lib;
+  inherit (import (src + "/Libraries") {inherit src;}) lix;
   api = import (src + "/API") {inherit lix;};
+  inherit (lix) lib;
 
   inherit (lix.configuration.resolution) flake systems;
   # inherit (systems {inherit (api) hosts;}) pkgs system;

@@ -18,6 +18,7 @@
     nixosSystem,
     users,
     hosts,
+    inputs,
     args ? {},
   }:
     mapAttrs (name: host: let
@@ -25,7 +26,7 @@
       system = host.platform or builtins.currentSystem;
     in
       mkHost {
-        inherit nixosSystem;
+        inherit nixosSystem inputs;
         host =
           host
           // {
@@ -34,7 +35,7 @@
               mapAttrs (name: config: users.${name} or {} // config)
               (filterAttrs (_: cfg: cfg.enable or false) host.users);
           };
-        extraArgs = args // {inherit dots system;};
+        args = args // {inherit dots system;};
       })
     hosts;
 

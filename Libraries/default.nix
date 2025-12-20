@@ -308,7 +308,4 @@
       std = lib;
       inherit pkgs;
     };
-in {
-  ${name} = finalLib;
-  inherit lib pkgs;
-}
+in {${name} = finalLib;}
