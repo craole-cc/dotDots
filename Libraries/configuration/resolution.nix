@@ -26,7 +26,7 @@
   in
     result;
 
-  flakeAttr = path: let
+  flake = path: let
     normalizedPath = flakePath path;
     loadResult = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
     failureReason =
