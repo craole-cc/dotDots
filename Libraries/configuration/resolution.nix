@@ -116,15 +116,16 @@
       ((flake {}).nixosConfigurations),
     system ? (systems {}).system,
   }: let
-    bestGuess =
+    result =
       findFirst
       (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
       null
       (attrNames nixosConfigurations);
   in
-    traceIf (bestGuess == null)
-    "❌ Failed to derive current host"
-    nixosConfigurations.${bestGuess};
+    result;
+  # traceIf (bestGuess == null)
+  # "❌ Failed to derive current host"
+  # nixosConfigurations.${bestGuess};
 
   # =============================================================
   __doc = ''
