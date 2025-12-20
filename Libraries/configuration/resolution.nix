@@ -39,12 +39,12 @@
     "❌ Flake load failed: ${toString path} (${failureReason})"
     result;
 
-  flakeRef = self: let
-    loadResult = optionalAttrs (flakeRef != null) (flake self);
+  flake' = flakeRef: let
+    loadResult = optionalAttrs (flakeRef != null) (builtins.getFlake flakeRef);
     srcPath =
-      traceIf (self != null)
-      (builtins.unsafeDiscardStringContext self)
-      null;
+      if flakeRef != null
+      then builtins.unsafeDiscardStringContext flakeRef
+      else null;
   in
     if (loadResult._type or null) == "flake"
     then loadResult // {inherit srcPath;}
@@ -62,7 +62,7 @@
     inherit
       flake
       flakePath
-      flakeRef
+      flake'
       # normalizeFlake
       # loadFlake
       ;
@@ -75,6 +75,6 @@ in
     '';
     _rootAliases = {
       getFlake = flake;
-      inherit flakeRef;
+      inherit flake';
     };
   }
