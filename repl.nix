@@ -47,15 +47,15 @@ let
 
       version = {
         kernel = cfg.boot.kernelPackages.kernel.version;
-        initial = cfg.system.stateVersion;
+        state = cfg.system.stateVersion;
         nixos = cfg.system.nixos.version;
       };
 
       users = {
-        # TODO: Here we should show username and type isNormalUser vs isSystemUser
         custom = filter (u: !isSystemDefaultUser u) allUsers;
         system = filter isSystemDefaultUser allUsers;
       };
+
       desktop = with host.config.services.desktopManager;
         if plasma6.enable or false
         then "plasma"

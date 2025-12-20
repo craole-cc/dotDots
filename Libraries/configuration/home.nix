@@ -95,6 +95,7 @@
 
     #> Enable flags based on collected interfaces
     enableHyprland = elem "hyprland" interfaces.windowManagers;
+    enableNiri = elem "niri" interfaces.windowManagers;
     enablePlasma = elem "plasma" interfaces.desktopEnvironments;
     enableGnome = elem "gnome" interfaces.desktopEnvironments;
 
@@ -351,6 +352,10 @@
       hyprland = mkIf enableHyprland {
         enable = true;
         withUWSM = true;
+      };
+
+      niri = mkIf enableNiri {
+        enable = true;
       };
 
       git = {

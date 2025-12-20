@@ -28,9 +28,9 @@
   ];
 
   interface = {
-    displayProtocol = "wayland";
+    # displayProtocol = "wayland";
     desktopEnvironment = "plasma";
-    windowManager = "hyprland";
+    windowManager = "niri";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;

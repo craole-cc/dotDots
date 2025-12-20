@@ -9,7 +9,7 @@
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
-  inherit (lib.lists) findFirst head unique last flatten;
+  inherit (lib.lists) findFirst unique last flatten;
   inherit (_.lists.predicates) mostFrequent;
   inherit (_.attrsets.resolution) byPaths;
 
