@@ -5,7 +5,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrNames attrValues genAttrs mapAttrsToList optionalAttrs;
+  inherit (lib.attrsets) attrValues genAttrs mapAttrsToList optionalAttrs;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
@@ -66,7 +66,7 @@
       else if nixpkgs ? legacyPackages
       then nixpkgs.legacyPackages
       else let
-        f = flakePkgs path;
+        f = flakePkgs {inherit path;};
       in
         optionalAttrs
         (f ? legacyPackages)
