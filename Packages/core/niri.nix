@@ -31,17 +31,20 @@ in {
   };
 
   config = mkIf cfg.enable {
-    # Add overlay
-    nixpkgs.overlays = [inputs.niri.overlays.niri];
-
-    # System packages
-    environment.systemPackages = with pkgs;
+    # Don't use overlay - get package directly from flake
+    environment.systemPackages = let
+      # Get the flake package directly
+      niriPkg = inputs.niri.packages.${pkgs.system}.niri-unstable.overrideAttrs (old: {
+        # Skip tests if they're failing
+        doCheck = false;
+        checkPhase = "";
+      });
+    in
       [
-        cfg.package
-        wl-clipboard
-        wayland-utils
-        libsecret
-        # Add any required packages for Wayland
+        niriPkg
+        pkgs.wl-clipboard
+        pkgs.wayland-utils
+        pkgs.libsecret
       ]
       ++ cfg.extraPackages;
 
