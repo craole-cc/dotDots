@@ -122,7 +122,7 @@
     #   then derived // {name = derived.config.networking.hostName;}
     #   else derived;
   in
-    traceIf ((derived.class or null) == "nixos")
+    traceIf ((derived.class or null) != "nixos")
     "❌ Failed to derive current host"
     (derived // {name = derived.config.networking.hostName;});
 
