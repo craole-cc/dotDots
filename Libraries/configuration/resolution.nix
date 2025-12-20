@@ -54,6 +54,16 @@
     then loadResult // {inherit srcPath;}
     else loadResult;
 
+  flakeWithSrcPath = srcPath: flakeRef: let
+    flakeRefStr =
+      if builtins.isPath flakeRef
+      then builtins.toString flakeRef
+      else flakeRef;
+    loadResult = optionalAttrs (flakeRefStr != null) (builtins.getFlake flakeRefStr);
+  in
+    if (loadResult._type or null) == "flake"
+    then loadResult // {srcPath = srcPath;} # Use ORIGINAL srcPath!
+    else {};
   exports = {
     inherit
       flake
@@ -71,6 +81,6 @@ in
     '';
     _rootAliases = {
       getFlake = flake;
-      inherit flake';
+      inherit flake' flakeWithSrcPath;
     };
   }

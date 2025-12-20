@@ -1,9 +1,9 @@
-{src, ...}: let
-  # src = ../../../.;
+let
+  src = ../../../.;
   inherit (import (src + "/Libraries") {inherit src;}) lix;
-  inherit (lix.configuration.resolution) flake;
+  inherit (lix.configuration.resolution) flake';
   api = import (src + "/API") {inherit lix;};
-  all = flake src;
+  all = flake' src;
 
   inherit (all) inputs;
   lib = inputs.nixpkgs.lib;
