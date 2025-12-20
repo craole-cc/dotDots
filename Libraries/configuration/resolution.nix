@@ -114,17 +114,17 @@
     nixosConfigurations ?
       optionalAttrs ((flake {}) ? nixosConfigurations)
       ((flake {}).nixosConfigurations),
-    hosts ? (attrNames nixosConfigurations),
     system ? (systems {}).system,
   }: let
-    resultz =
+    bestGuess =
       findFirst
       (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
       null
-      (attrValues nixosConfigurations);
-    result = hosts;
+      (attrNames nixosConfigurations);
   in
-    resultz;
+    traceIf (bestGuess == null)
+    "❌ Failed to derive current host"
+    nixosConfigurations.${bestGuess};
 
   # =============================================================
   __doc = ''
