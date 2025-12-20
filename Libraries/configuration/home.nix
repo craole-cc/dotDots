@@ -401,9 +401,9 @@
       };
     };
 
-    imports = with inputs; [
+    imports = [
       nixosHome.nixosModules.home-manager
-      niri.nixosModules.niri
+      # niri.nixosModules.niri
       (src + "/Packages/core")
     ];
 
