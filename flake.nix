@@ -1,6 +1,31 @@
 {
   description = "dotDots Flake Configuration";
-  outputs = inputs @ {self, ...}: let
+  outputs = raw-inputs: let
+    inherit (builtins) mapAttrs foldl';
+    inputs =
+      mapAttrs (
+        input-name: raw-input:
+          foldl' (
+            input: module-class:
+              if input ? ${module-class}
+              then
+                input
+                // {
+                  ${module-class} =
+                    mapAttrs (
+                      module-name:
+                        raw-inputs.nixpkgs.lib.setDefaultModuleLocation
+                        "${input-name}.${module-class}.${module-name}"
+                    )
+                    input.${module-class};
+                }
+              else input
+          )
+          raw-input ["nixosModules" "homeModules"]
+      )
+      raw-inputs;
+  in let
+    # outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixosCore) lib legacyPackages;
     inherit (import src {inherit src lib;}) lix hosts users;
