@@ -124,7 +124,7 @@
       (attrValues nixosConfigurations);
     result = hosts;
   in
-    result;
+    resultz;
 
   # =============================================================
   __doc = ''
