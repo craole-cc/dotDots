@@ -111,13 +111,20 @@
   };
 
   host = {
-    nixosConfigurations ? {},
+    nixosConfigurations ?
+      optionalAttrs ((flake {}) ? nixosConfigurations)
+      ((flake {}).nixosConfigurations),
+    hosts ? {},
     system ? (systems {}).system,
-  }:
-    findFirst
-    (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
-    null
-    (attrValues nixosConfigurations);
+  }: let
+    resultz =
+      findFirst
+      (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
+      null
+      (attrValues nixosConfigurations);
+    result = nixosConfigurations;
+  in
+    result;
 
   # =============================================================
   __doc = ''
