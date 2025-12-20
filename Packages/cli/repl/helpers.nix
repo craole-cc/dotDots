@@ -1,28 +1,16 @@
-let
-  src = ./.;
-  inherit (import (src + "/Libraries") {inherit src;}) lix;
-  api = import (src + "/API") {inherit lix;};
-  inherit (api) hosts;
-  inherit (lix) lib;
-
-  lic = lix.configuration.resolution;
-  inherit (lix.configuration.predicates) isSystemDefaultUser;
-
-  flake = lic.flake {path = src;};
-  nixosConfigurations = flake.nixosConfigurations or {};
-
-  systems = lic.systems {inherit hosts;};
-  inherit (systems) pkgs system;
-
-  host = lic.host {inherit nixosConfigurations system;};
-
-  inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
+{
+  lib,
+  lix,
+  api,
+  nixosConfigurations,
+  isSystemDefaultUser,
+  src,
+}: let
+  inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs mapAttrs listToAttrs;
   inherit (lib.lists) length filter head;
   inherit (lib.strings) splitString;
 
-  #> Helper functions for the repl
   helpers = {
-    #~@ Script generators (copy-paste ready)
     scripts = {
       rebuild = host: "sudo nixos-rebuild switch --flake .#${host}";
       test = host: "sudo nixos-rebuild test --flake .#${host}";
@@ -32,11 +20,9 @@ let
       clean = "sudo nix-collect-garbage -d";
     };
 
-    #~@ Host discovery
     listHosts = attrNames nixosConfigurations;
     getHost = name: nixosConfigurations.${name} or null;
 
-    #~@ Host information
     hostInfo = name: let
       host = nixosConfigurations.${name};
       cfg = host.config;
@@ -85,9 +71,6 @@ let
       variables = mkConfigSection "environment.sessionVariables" "sessionVariables" "variables";
       aliases = mkConfigSection "environment.shellAliases" "shellAliases" "aliases";
       packages = mkConfigSection "environment.systemPackages" "packages" "packages";
-      # interface = {
-      #   desktopEnvironment = mkConfigSection "services.desktopManager" "" "interface.desktopEnvironment";
-      # };
 
       desktopEnvironment = with cfg.services.desktopManager;
         if plasma6.enable or false
@@ -98,22 +81,11 @@ let
         then "cosmic"
         else null;
     in {
-      inherit
-        version
-        users
-        userList
-        desktopEnvironment
-        programs
-        services
-        variables
-        aliases
-        packages
-        ;
+      inherit version users userList desktopEnvironment programs services variables aliases packages;
       inherit (cfg.networking) hostName;
       inherit (cfg.nixpkgs.hostPlatform) system;
     };
 
-    #~@ Host comparison
     compareHosts = host1: host2: let
       h1 = nixosConfigurations.${host1};
       h2 = nixosConfigurations.${host2};
@@ -132,7 +104,6 @@ let
       };
     };
 
-    #~@ Service queries
     hostsWithService = service:
       attrNames (filterAttrs
         (name: host: attrByPath (splitString "." service) false host.config)
@@ -145,36 +116,5 @@ let
       attrNames (filterAttrs (n: v: v.enable or false) services);
   };
 in {
-  inherit
-    lix
-    api
-    lib
-    builtins
-    helpers
-    flake
-    ;
-
-  #~@ Top-level host attributes
-  inherit
-    (host)
-    config
-    options
-    # pkgs
-    ;
-
-  inherit (host._module) specialArgs;
-  inherit (flake) inputs;
-
-  #~@ Convenient shortcuts to config sections
-  inherit
-    (helpers.hostInfo host.name)
-    users
-    aliases
-    packages
-    programs
-    services
-    variables
-    ;
-
-  inherit pkgs system;
+  inherit helpers;
 }
