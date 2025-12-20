@@ -9,6 +9,7 @@
     attrNames
     attrByPath
     filterAttrs
+    optionalAttrs
     mapAttrs
     mapAttrsToList
     ;
