@@ -100,6 +100,7 @@
     enableNiri = elem "niri" interfaces.windowManagers;
     enablePlasma = elem "plasma" interfaces.desktopEnvironments;
     enableGnome = elem "gnome" interfaces.desktopEnvironments;
+    enableNoctula = elem "noctula" interfaces.bar;
 
     #> Determine login manager (prefer user choice, fallback to DE defaults)
     displayManager =
@@ -413,7 +414,12 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = extraArgs // {inherit users inputs;};
+      extraSpecialArgs =
+        extraArgs
+        // {
+          inherit users inputs;
+          inherit (pkgs.stdenv.hostPlatform) system;
+        };
 
       #> Merge all per-user home-manager configs
       users = mapAttrs (name: cfg: cfg.homeConfig) perUserConfigs;

@@ -62,9 +62,14 @@
       secondary = "warp-terminal";
     };
     launcher = {
-      primary = "rofi";
-      secondary = "fuzzel";
+      primary = "fuzzel";
+      secondary = "wofi";
     };
+    bar = {
+      primary = "noctalia";
+      secondary = null;
+    };
+
     allowed = [
       "atuin"
       "bash"

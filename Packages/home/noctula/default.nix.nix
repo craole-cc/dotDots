@@ -3,9 +3,11 @@
   lib,
   pkgs,
   inputs,
-  host,
+  # host,
+  system,
   ...
 }: let
+  inherit (lib.modules) mkIf;
   # variables = import ../../../hosts/${host}/variables.nix;
   # barChoice = variables.barChoice or "waybar";
   # enableNoctalia = barChoice == "noctalia";
@@ -15,11 +17,10 @@ in {
     inputs.noctaliaShell.homeModules.default
   ];
 
-  config = lib.mkIf enableNoctalia {
+  config = mkIf enableNoctalia {
     programs.waybar.enable = lib.mkForce false;
-    home.packages = with pkgs; [
-      inputs.noctaliaShell.homeModules.noctalia
-      # inputs.noctaliaShell.packages.${stdenv.hostPlatform.system}.default
+    home.packages = [
+      inputs.noctaliaShell.packages.${system}.default
     ];
 
     home.file.".config/noctalia/settings.json.template" = {
