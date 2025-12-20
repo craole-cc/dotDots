@@ -73,5 +73,8 @@ in
     __doc = ''
       Flake stuff
     '';
-    _rootAliases = {getFlake = flake;};
+    _rootAliases = {
+      getFlake = flake;
+      inherit flakeRef;
+    };
   }
