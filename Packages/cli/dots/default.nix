@@ -3,7 +3,6 @@
   pkgs,
   lib,
   api,
-  lix,
   system,
   all,
   ...
@@ -11,8 +10,7 @@
   name = "dotDots";
   inherit (lib.lists) findFirst head;
   inherit (lib.attrsets) attrValues listToAttrs optionalAttrs;
-  inherit (pkgs) writeShellScriptBin writeText;
-  inherit (lib.generators) toJSON;
+  inherit (pkgs) writeShellScriptBin;
 
   #> Get nixosConfigurations from the evaluated flake outputs
   nixosConfigurations = all.nixosConfigurations or {};

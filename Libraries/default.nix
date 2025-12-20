@@ -310,4 +310,5 @@
     };
 in {
   ${name} = finalLib;
+  inherit lib pkgs;
 }

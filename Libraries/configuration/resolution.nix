@@ -3,11 +3,25 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.attrsets) genAttrs mapAttrsToList optionalAttrs;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
+  inherit (lib.lists) unique last;
+  inherit (_.lists.predicates) mostFrequent;
+  inherit (_.lists.attrsets) getAttrByPaths;
 
+  flakePkgs = path:
+    getAttrByPaths {
+      attrset = flake path;
+      paths = [
+        ["nixosCore"]
+        ["nixPackages"]
+        ["nixosPackages"]
+        ["nixpkgs-unstable"]
+      ];
+      default = "nixpkgs";
+    };
   flakePath = path: let
     pathStr = toString path;
     result =
@@ -17,7 +31,9 @@
       then pathStr
       else null;
   in
-    result;
+    traceIf (result != null)
+    result
+    "❌ '${pathStr}' is not a valid flake path.";
 
   flake = path: let
     normalizedPath = flakePath path;
@@ -35,52 +51,72 @@
       then loadResult // {srcPath = path;}
       else loadResult;
   in
-    traceIf ((loadResult._type or null) != "flake")
-    "❌ Flake load failed: ${toString path} (${failureReason})"
-    result;
+    traceIf ((loadResult._type or null) == "flake")
+    result
+    "❌ Flake load failed: ${toString path} (${failureReason})";
 
-  flake' = flakeRef: let
-    flakeRefStr =
-      if builtins.isPath flakeRef
-      then builtins.toString flakeRef
-      else flakeRef;
-    loadResult = optionalAttrs (flakeRefStr != null) (builtins.getFlake flakeRefStr);
-    srcPath =
-      if flakeRefStr != null
-      then builtins.unsafeDiscardStringContext flakeRefStr
-      else null;
-  in
-    if (loadResult._type or null) == "flake"
-    then loadResult // {inherit srcPath;}
-    else loadResult;
+  systems = {
+    hosts ? {},
+    flakePath ? null,
+    nixpkgs ? {},
+    legacyPackages ? {},
+  }: let
+    pkgsBase =
+      if legacyPackages != {}
+      then legacyPackages
+      else if nixpkgs?legacyPackages
+      then nixpkgs.legacyPackages
+      else if flakePath != null
+      then (flakePkgs flakePath).legacyPackages
+      else {};
 
-  flakeWithSrcPath = srcPath: flakeRef: let
-    flakeRefStr =
-      if builtins.isPath flakeRef
-      then builtins.toString flakeRef
-      else flakeRef;
-    loadResult = optionalAttrs (flakeRefStr != null) (builtins.getFlake flakeRefStr);
-  in
-    if (loadResult._type or null) == "flake"
-    then loadResult // {srcPath = srcPath;} # Use ORIGINAL srcPath!
-    else {};
+    #> Extract and flatten defined systems
+    defined = lib.flatten (mapAttrsToList (_: host: host.system or host.platforms or []) hosts);
+
+    #> Default systems in alphabetical order
+    default = [
+      "aarch64-darwin"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "x86_64-linux"
+    ];
+
+    #> Get most common defined system, or tail of default
+    derived = let
+      common = mostFrequent defined null;
+    in
+      if common != null
+      then common
+      else last default; # "x86_64-linux"
+
+    all = unique (defined ++ default);
+    per = genAttrs all;
+    pkgs = optionalAttrs (pkgsBase ? derived) pkgsBase.${derived};
+    pkgsFor = system: pkgsBase.${system} or {};
+  in {
+    inherit all default derived defined per pkgs;
+    inherit legacyPackages pkgsFor;
+    system = derived;
+  };
+  __doc = ''
+    Flake stuff
+  '';
   exports = {
     inherit
       flake
       flakePath
-      flake'
-      # normalizeFlake
-      # loadFlake
+      flakePkgs
+      systems
       ;
   };
 in
   exports
   // {
-    __doc = ''
-      Flake stuff
-    '';
+    inherit __doc;
     _rootAliases = {
+      inherit flakePath;
       getFlake = flake;
-      inherit flake' flakeWithSrcPath;
+      getSystems = systems;
+      getNixPkgs = flakePkgs;
     };
   }

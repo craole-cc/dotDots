@@ -589,162 +589,20 @@
     then {${name} = attrs.${name};}
     else {};
 
-  flakeOrConfig = {
-    path ? null,
-    hostName ? null,
-    registryPath ? "/etc/nix/registry.json",
-    configPath ? "/etc/nixos/configuration.nix",
-  }: let
-    #> Try to get configuration from flake first
-    fromFlake = loadFlake {
-      inherit path hostName registryPath;
-    };
+  __doc = ''
+    Advanced attribute set resolution and lookup utilities.
 
-    #> If no flake config, try traditional configuration
-    fromTraditional =
-      if fromFlake == {}
-      then loadConfig configPath
-      else {};
-  in
-    if fromFlake != {}
-    then fromFlake
-    else fromTraditional;
+    This module provides powerful tools for navigating complex nested structures,
+    handling missing attributes gracefully, and resolving values from multiple
+    potential sources. Essential for configuration management, package selection,
+    and flake input handling.
 
-  loadFlake = {
-    path ? null,
-    hostName ? null,
-    registryPath ? "/etc/nix/registry.json",
-  }: let
-    # Helper to get flake from path or registry
-    getFlakeFromPathOrRegistry = {
-      path ? null,
-      registryPath ? "/etc/nix/registry.json",
-    }: let
-      normalizedPath = normalizeFlakePath path;
-
-      #> Try direct path first
-      fromPath =
-        traceIf
-        (path != null && isFlakePath path)
-        "Loading flake from: ${normalizedPath}"
-        (builtins.getFlake normalizedPath);
-
-      # Fall back to registry for "self"
-      fromRegistry =
-        if fromPath == {}
-        then let
-          registry = readRegistry registryPath;
-          selfFlake =
-            findFirst
-            (f: f.from.id == "self")
-            null
-            (registry.flakes or []);
-        in
-          if selfFlake != null
-          then let
-            result = tryEval (getFlake selfFlake.to.path);
-          in
-            with result;
-              if success
-              then value
-              else {}
-          else {}
-        else {};
-    in
-      if fromPath != {}
-      then fromPath
-      else fromRegistry;
-
-    flake = getFlakeFromPathOrRegistry {inherit path registryPath;};
-
-    extractConfig = flake:
-      if flake == {}
-      then {}
-      else if flake ? nixosConfigurations
-      then let
-        hostFile = "/etc/hostname";
-        host =
-          if hostName != null
-          then hostName
-          else
-            (
-              if pathExists hostFile
-              then removeSuffix "\n" (readFile hostFile)
-              else null
-            );
-
-        configs = flake.nixosConfigurations;
-        hosts = attrNames configs;
-      in
-        if configs == {}
-        then {}
-        else if host != null && configs ? ${host}
-        then configs.${host}
-        else configs.${head hosts}
-      else {};
-  in
-    extractConfig flake;
-
-  # Load traditional NixOS configuration (non-flake)
-  loadConfig = configPath:
-    if pathExists configPath
-    then import configPath
-    else {};
-
-  readRegistry = registryPath:
-    if pathExists registryPath
-    then let
-      content = readFile registryPath;
-      parsed = tryEval (fromJSON content);
-    in
-      if parsed.success
-      then parsed.value
-      else {
-        flakes = [];
-        version = 0;
-      }
-    else {
-      flakes = [];
-      version = 0;
-    };
-
-  systems = {
-    hosts ? {},
-    legacyPackages ? {},
-  }: let
-    inherit (lib.lists) unique last;
-    inherit (lib.attrsets) genAttrs mapAttrsToList optionalAttrs;
-
-    #> Extract and flatten defined systems
-    defined = lib.flatten (mapAttrsToList (_: host: host.system or host.platforms or []) hosts);
-
-    #> Default systems in alphabetical order
-    default = [
-      "aarch64-darwin"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "x86_64-linux"
-    ];
-
-    #> Get most common defined system, or tail of default
-    derived = let
-      common = mostFrequent defined null;
-    in
-      if common != null
-      then common
-      else last default; # "x86_64-linux"
-
-    # All systems
-    all = unique (defined ++ default);
-    per = genAttrs all;
-
-    pkgs = optionalAttrs (legacyPackages ? derived) legacyPackages.${derived};
-    pkgsFor = system: legacyPackages.${system} or {};
-  in {
-    inherit all default derived defined per pkgs;
-    inherit legacyPackages pkgsFor;
-    system = derived;
-  };
+    # Key Features:
+    - Multi-path attribute resolution with fallbacks
+    - Nested attribute lookup with parent alternatives
+    - Package resolution by name(s) with versioning support
+    - Conditional attribute inclusion in merges
+  '';
 
   exports = {
     inherit
@@ -756,34 +614,15 @@
       package
       shellPackage
       optional
-      flakeOrConfig
-      loadConfig
-      loadFlake
-      systems
       ;
   };
 in
   exports
   // {
-    __doc = ''
-      Advanced attribute set resolution and lookup utilities.
-
-      This module provides powerful tools for navigating complex nested structures,
-      handling missing attributes gracefully, and resolving values from multiple
-      potential sources. Essential for configuration management, package selection,
-      and flake input handling.
-
-      # Key Features:
-      - Multi-path attribute resolution with fallbacks
-      - Nested attribute lookup with parent alternatives
-      - Package resolution by name(s) with versioning support
-      - Conditional attribute inclusion in merges
-    '';
+    inherit __doc;
     _rootAliases = {
       getPkgs = pkgs;
       getPackage = package;
-      getFlakeOrConfig = flakeOrConfig;
-      getSystems = systems;
       getShellPackage = shellPackage;
       getAttr = get;
       getAttrByPaths = byPaths;

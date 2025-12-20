@@ -1,13 +1,11 @@
 let
   src = ./.;
-  inherit (import (src + "/Libraries") {inherit src;}) lix;
+  inherit (import (src + "/Libraries") {inherit src;}) lix lib;
   api = import (src + "/API") {inherit lix;};
-  all = lix.configuration.resolution.flake src;
 
-  inherit (all) inputs;
-  lib = inputs.nixpkgs.lib;
-  system = builtins.currentSystem or "x86_64-linux";
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
+  inherit (lix.configuration.resolution) flake systems;
+  inherit (systems {inherit (api) hosts;}) pkgs system;
+  all = flake src;
 
   nixosConfigurations = all.nixosConfigurations or {};
 

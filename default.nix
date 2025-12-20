@@ -1,26 +1,10 @@
 {self, ...}: let
-  paths = {
-    src = ./.;
-    lib = ./Libraries;
-    api = ./API;
-    cli = ./Packages/cli;
-  };
-  inherit (self.inputs.nixosCore) lib legacyPackages;
-  inherit (paths) src;
-  inherit (import paths.lib {inherit lib src;}) lix;
-  api = import paths.api {inherit lix;};
   all = self;
+  src = ./.;
+  inherit (import ./Libraries {inherit lib src;}) lix lib;
+  api = import ./API {inherit lix;};
 
-  inherit
-    (lix.getSystems {
-      inherit (api) hosts;
-      inherit legacyPackages;
-    })
-    per
-    pkgsFor
-    pkgs
-    system
-    ;
+  inherit (lix.getSystems {inherit (api) hosts;}) per pkgsFor;
 
   nixosConfigurations = lix.mkCore {
     inherit (api) hosts users;
@@ -32,10 +16,9 @@
   };
 
   devShells = per (system: let
-    base = paths.cli;
     pkgs = pkgsFor system;
   in {
-    default = import (base + "/dots") {
+    default = import ./Packages/cli/dots {
       inherit all pkgs lib api lix system;
     };
   });
