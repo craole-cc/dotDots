@@ -195,7 +195,7 @@
             inherit stateVersion;
             sessionVariables =
               {
-                _BAR = bar;
+                _BAR = "bar";
                 USER_ROLE = cfg.role or "user";
                 EDITOR = let
                   editor = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
