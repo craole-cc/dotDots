@@ -4,9 +4,9 @@ let
   api = import (src + "/API") {inherit lix;};
   inherit (api) hosts;
   inherit (lix) lib;
-  inherit (lib.attrsets) filterAttrs;
 
   lic = lix.configuration.resolution;
+  inherit (lix.configuration.predicates) isSystemDefaultUser;
 
   flake = lic.flake {path = src;};
   nixosConfigurations = flake.nixosConfigurations or {};
@@ -16,30 +16,9 @@ let
 
   host = lic.host {inherit nixosConfigurations system;};
 
-  inherit
-    (lib.attrsets)
-    attrByPath
-    attrNames
-    ;
-  inherit
-    (lib.lists)
-    filter
-    splitString
-    elem
-    ;
-
-  # #> Find a host that matches current system
-  # matchingHost =
-  #   findFirst
-  #   (host: host.config.nixpkgs.hostPlatform.system or null == "system")
-  #   null
-  #   (attrValues nixosConfigurations);
-
-  # #> Get the current host (to flatten at top level)
-  # currentHost =
-  #   if matchingHost != null
-  #   then matchingHost
-  #   else head (attrValues nixosConfigurations);
+  inherit (lib.attrsets) attrByPath attrNames filterAttrs;
+  inherit (lib.lists) filter;
+  inherit (lib.strings) splitString;
 
   #> Helper functions for the repl
   helpers = {
@@ -60,37 +39,18 @@ let
     #~@ Host information
     hostInfo = name: let
       host = nixosConfigurations.${name};
-      allUsers = attrNames host.config.users.users;
-      defaultUser = user:
-        (lib.hasPrefix "nixbld" user)
-        || (elem user [
-          "root"
-          "nobody"
-          "messagebus"
-          "systemd-coredump"
-          "systemd-network"
-          "systemd-oom"
-          "systemd-resolve"
-          "systemd-timesync"
-          "polkituser"
-          "rtkit"
-          "geoclue"
-          "nscd"
-          "sddm"
-          "dhcpcd"
-          "fwupd-refresh"
-          "nm-iodine"
-          "nm-openvpn"
-        ]);
+      cfg = host.config;
+      allUsers = attrNames cfg.users.users;
     in {
-      hostname = host.config.networking.hostName;
-      system = host.config.nixpkgs.hostPlatform.system;
-      stateVersion = host.config.system.stateVersion;
-      kernel = host.config.boot.kernelPackages.kernel.version;
+      inherit (cfg.networking) hostName;
+      inherit (cfg.nixpkgs.hostPlatform) system;
+      inherit (cfg.system) stateVersion;
+      kernel = cfg.boot.kernelPackages.kernel.version;
+
       users = {
         # TODO: Here we should show username and type isNormalUser vs isSystemUser
-        custom = filter (u: !defaultUser u) allUsers;
-        system = filter defaultUser allUsers;
+        custom = filter (u: !isSystemDefaultUser u) allUsers;
+        system = filter isSystemDefaultUser allUsers;
       };
       desktop = with host.config.services.desktopManager;
         if plasma6.enable or false
