@@ -7,6 +7,7 @@
     warp-terminal
     kdePackages.yakuake
     swaybg
+    cachix
   ];
 
   programs = {
