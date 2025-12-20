@@ -1,5 +1,5 @@
-let
-  src = ../../../.;
+{src, ...}: let
+  # src = ../../../.;
   inherit (import (src + "/Libraries") {inherit src;}) lix;
   inherit (lix.configuration.resolution) flake;
   api = import (src + "/API") {inherit lix;};

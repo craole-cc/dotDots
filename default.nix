@@ -40,7 +40,7 @@
     };
   });
 
-  repl = import ./Packages/cli/dots/repl.nix;
+  repl = import ./Packages/cli/dots/repl.nix {inherit (paths) src;};
 in {
   inherit
     nixosConfigurations
