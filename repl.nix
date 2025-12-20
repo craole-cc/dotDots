@@ -4,7 +4,7 @@ let
   api = import (src + "/API") {inherit lix;};
 
   inherit (lix.configuration.resolution) flake systems;
-  inherit (systems {inherit (api) hosts;}) pkgs system;
+  # inherit (systems {inherit (api) hosts;}) pkgs system;
   all = flake src;
 
   nixosConfigurations = all.nixosConfigurations or {};
@@ -28,7 +28,7 @@ let
   #> Find a host that matches current system
   matchingHost =
     findFirst
-    (host: host.config.nixpkgs.hostPlatform.system or null == system)
+    (host: host.config.nixpkgs.hostPlatform.system or null == "system")
     null
     (attrValues nixosConfigurations);
 
@@ -140,11 +140,11 @@ in
       api
       lib
       builtins
-      system
+      # system
       helpers
       all
       ;
-    pkgs = matchingHost.pkgs or pkgs;
+    # pkgs = matchingHost.pkgs or pkgs;
   }
   // {
     #~@ Top-level host attributes
