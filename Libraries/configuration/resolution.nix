@@ -120,7 +120,7 @@
       findFirst
       (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
       null
-      (attrNames nixosConfigurations);
+      (attrValues nixosConfigurations);
   in
     result;
   # traceIf (bestGuess == null)
