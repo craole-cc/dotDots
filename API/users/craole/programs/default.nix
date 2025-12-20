@@ -11,7 +11,7 @@
       ./freetube
       ./ghostty
       ./helix
-      ./niri
+      # ./niri
       ./nushell
       ./obs
       ./starship
