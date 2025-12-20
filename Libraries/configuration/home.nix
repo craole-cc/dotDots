@@ -277,18 +277,16 @@
                   XDG_SESSION_TYPE = "wayland";
                 }
               );
-            packages =
+            packages = with pkgs;
+            with inputs;
               (map (shell:
                 package {
                   inherit pkgs;
                   target = shell;
                 })
               allShells)
-              ++ (
-                if wm == "hyprland"
-                then [pkgs.kitty]
-                else []
-              )
+              ++ optional (wm == "hyprland") [kitty]
+              ++ optional (bar == "noctalia") [noctaliaShell.packages.${system}.default]
               ++ (
                 if de == "plasma"
                 then
