@@ -187,13 +187,14 @@
         homeConfig = {
           _module.args = {
             user = cfg // {inherit name;};
-            inherit policies;
+            inherit policies bar wm de dp;
           };
           imports = with inputs;
             (cfg.imports or [])
             ++ optional (zen != null) firefoxZen.homeModules.${zen}
             ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
             ++ optional (bar == "noctalia") noctulaShell.homeModules.noctalia
+            # inputs.noctaliaShell.packages.${system}.default
             # ++ optional enableNiri niri
             ++ [(src + "/Packages/home")];
 

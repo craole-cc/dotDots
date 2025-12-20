@@ -1,29 +1,30 @@
 {
-  config,
+  # config,
   lib,
-  pkgs,
+  # pkgs,
   inputs,
   # host,
-  system,
-  bar,
+  # system,
+  # bar,
   ...
 }: let
   app = "noctalia";
 
-  inherit (lib.lists) optional;
+  # inherit (lib.lists) optional;
   inherit (lib.modules) mkIf;
   inherit (lib.strings) toJSON;
-  isAllowed = bar == app;
+  # isAllowed = bar == app;
+  isAllowed = true;
 in {
-  imports = optional isAllowed [
-    inputs.noctaliaShell.homeModules.default
-  ];
+  # imports = optional isAllowed [
+  #   inputs.noctaliaShell.homeModules.default
+  # ];
 
   config = mkIf isAllowed {
     programs.waybar.enable = lib.mkForce false;
-    home.packages = [
-      inputs.noctaliaShell.packages.${system}.default
-    ];
+    # home.packages = [
+    #   inputs.noctaliaShell.packages.${system}.default
+    # ];
 
     home.file.".config/noctalia/settings.json.template" = {
       text = toJSON {
