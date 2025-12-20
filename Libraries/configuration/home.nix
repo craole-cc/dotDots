@@ -194,7 +194,6 @@
             ++ optional (zen != null) firefoxZen.homeModules.${zen}
             ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
             ++ optional (bar == "noctalia") noctulaShell.homeModules.noctalia
-            # inputs.noctaliaShell.packages.${system}.default
             # ++ optional enableNiri niri
             ++ [(src + "/Packages/home")];
 
@@ -202,6 +201,7 @@
             inherit stateVersion;
             sessionVariables =
               {
+                _BAR = bar;
                 USER_ROLE = cfg.role or "user";
                 EDITOR = let
                   editor = attrByPath ["applications" "editor" "tty" "primary"] "nano" cfg;
@@ -287,17 +287,13 @@
               allShells)
               ++ optional (wm == "hyprland") [kitty]
               ++ optional (bar == "noctalia") [noctaliaShell.packages.${system}.default]
-              ++ (
-                if de == "plasma"
-                then
-                  with pkgs;
-                    [karp deno]
-                    ++ (with kdePackages; [
-                      yakuake
-                      koi
-                      krohnkite
-                    ])
-                else []
+              ++ optional (de == "plasma") (
+                [karp]
+                ++ (with kdePackages; [
+                  koi
+                  krohnkite
+                  yakuake
+                ])
               )
               ++ [];
           };
