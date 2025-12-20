@@ -40,10 +40,7 @@
     };
   });
 
-  #TODO: This should somehow be moved into devShells.dots, but how?
-  repl = import ./Packages/cli/dots/repl.nix {
-    inherit all pkgs lib api lix system;
-  };
+  repl = import ./Packages/cli/dots/repl.nix;
 in {
   inherit
     nixosConfigurations
