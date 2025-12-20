@@ -235,8 +235,7 @@
                 # cfg;
               }
               // (
-                if dp == "wayland"
-                then {
+                optionalAttrs (dp == "wayland" || enableHyprland || enableNiri) {
                   #? For Clutter/GTK apps
                   CLUTTER_BACKEND = "wayland";
 
@@ -273,7 +272,6 @@
                   #? Indicate Wayland session to apps
                   XDG_SESSION_TYPE = "wayland";
                 }
-                else {}
               );
             packages =
               (map (shell:
