@@ -9,16 +9,16 @@
   inherit (lib.debug) traceIf;
   inherit (lib.lists) unique last;
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.lists.attrsets) nestedByPaths;
+  inherit (_.lists.attrsets) getAttrByPaths;
 
   flakePkgs = path:
-    nestedByPaths {
-      attrset = flake path;
+    getAttrByPaths {
+      attrset = (flake path).inputs or {};
       paths = [
-        ["inputs" "nixosCore"]
-        ["inputs" "nixPackages"]
-        ["inputs" "nixosPackages"]
-        ["inputs" "nixpkgs-unstable"]
+        ["nixosCore"]
+        ["nixPackages"]
+        ["nixosPackages"]
+        ["nixpkgs-unstable"]
       ];
       default = "nixpkgs";
     };
@@ -56,7 +56,7 @@
     "❌ Flake load failed: ${toString path} (${failureReason})";
 
   systems = {
-    src ? null,
+    src ? ../../.,
     hosts ? {},
     nixpkgs ? {},
     legacyPackages ? {},
