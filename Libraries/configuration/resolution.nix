@@ -36,11 +36,15 @@
       then "getFlake returned null"
       else if (loadResult._type or null) != "flake"
       then "invalid flake type: ${(loadResult._type or "null")}"
-      else "unknown failure";
+      else "unknown";
+    result =
+      if (loadResult._type or null) == "flake"
+      then loadResult // {path = path;}
+      else loadResult;
   in
     traceIf ((loadResult._type or null) != "flake")
     "❌ Flake load failed: ${toString path} (${failureReason})"
-    loadResult;
+    result;
 
   # loadFlake = path: let
   #   # flakePath = normalizeFlake path;
@@ -52,7 +56,7 @@
 
   exports = {
     inherit
-      flakeAttr
+      flake
       flakePath
       flakeRef
       # normalizeFlake
@@ -65,5 +69,5 @@ in
     __doc = ''
       Flake stuff
     '';
-    _rootAliases = exports;
+    _rootAliases = {getFlake = flake;};
   }
