@@ -1,18 +1,13 @@
 {
   _,
   lib,
+  pkgs,
   ...
 }: let
-  inherit (_.filesystem.predicates) isFlakePath;
-  inherit (_.lists.predicates) mostFrequent;
   inherit (_.trivial.emptiness) isNotEmpty;
-  inherit (_.trivial.strings) normalizeFlakePath;
-  inherit (builtins) readFile tryEval getFlake fromJSON;
-  inherit (lib.attrsets) hasAttrByPath attrByPath attrNames;
+  inherit (lib.attrsets) attrByPath catAttrs hasAttrByPath getAttrs;
   inherit (lib.lists) filter head toList findFirst;
-  inherit (lib.strings) removeSuffix;
-  inherit (lib.trivial) pathExists;
-  inherit (lib.debug) traceIf;
+  inherit (_.configuration) system;
 
   /**
   Get attribute or default if missing/empty.
@@ -280,45 +275,6 @@
     };
 
   /**
-  Get the target system string with appropriate fallbacks.
-
-  # Type
-  getSystem :: AttrSet -> String
-
-  # Arguments
-  - `system` (optional): Target system string. If provided, this is returned directly.
-
-  # Returns
-  The system string, determined in this order:
-  1. The provided `system` argument (if not null)
-  2. `builtins.currentSystem` (when available)
-  3. `"x86_64-linux"` (as the final fallback)
-
-  # Examples
-  ```nix
-  # Explicit system
-  getSystem { system = "aarch64-darwin"; }  # Returns: "aarch64-darwin"
-
-  # Use current system
-  getSystem {}  # Returns: builtins.currentSystem or "x86_64-linux"
-
-  # When builtins.currentSystem is not available
-  getSystem {}  # Returns: "x86_64-linux" (fallback)
-  ```
-
-  # Notes
-  - Useful for functions that need system information but accept an optional override
-  - Handles the edge case where builtins.currentSystem might not be available
-  */
-  getSystem = {system ? null}: let
-    currentSystem =
-      if system != null # ← FIXED: Check for null, not truthiness
-      then system
-      else (builtins.currentSystem or "x86_64-linux");
-  in
-    currentSystem;
-
-  /**
   Get nixpkgs for the specified system or the current system.
 
   # Type
@@ -353,13 +309,25 @@
   - Uses nixpkgs.legacyPackages.${system} to access packages
   - Delegates fallback logic to getSystem for consistency
   */
-  pkgs = {
-    nixpkgs ? import <nixpkgs>,
+  packages = {
+    nixpkgs ? import <nixpkgs> {},
     system ? null,
+    priority ? null,
   }: let
-    targetSystem = getSystem {inherit system;};
+    targetSystem = system;
   in
-    nixpkgs.legacyPackages.${targetSystem};
+    if priority != null
+    then let
+      sources =
+        lib.filterAttrs (_: v: v != null)
+        (lib.genAttrs priority (name: nixpkgs.${name} or null));
+    in
+      (lib.findFirst (src: src.legacyPackages.${targetSystem} or null != null)
+        nixpkgs.legacyPackages
+        (lib.attrValues sources)).${
+        targetSystem
+      }
+    else nixpkgs.legacyPackages.${targetSystem};
 
   /**
   Get a package from pkgs by trying multiple names.
@@ -610,7 +578,7 @@
       orNull
       byPaths
       nestedByPaths
-      pkgs
+      packages
       package
       shellPackage
       optional
@@ -621,7 +589,7 @@ in
   // {
     inherit __doc;
     _rootAliases = {
-      getPkgs = pkgs;
+      getPkgs = packages;
       getPackage = package;
       getShellPackage = shellPackage;
       getAttr = get;

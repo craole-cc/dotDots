@@ -1,5 +1,7 @@
 {
   _,
+  src,
+  pkgs,
   lib,
   ...
 }: let
@@ -7,13 +9,13 @@
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
-  inherit (lib.lists) unique last;
+  inherit (lib.lists) unique last flatten;
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.lists.attrsets) getAttrByPaths;
+  inherit (_.attrsets.resolution) byPaths;
 
-  flakePkgs = path:
-    getAttrByPaths {
-      attrset = (flake path).inputs or {};
+  flakePkgs = {path ? src}:
+    byPaths {
+      attrset = (flake {inherit path;}).inputs or {};
       paths = [
         ["nixosCore"]
         ["nixPackages"]
@@ -22,6 +24,7 @@
       ];
       default = "nixpkgs";
     };
+
   flakePath = path: let
     pathStr = toString path;
     result =
@@ -31,11 +34,11 @@
       then pathStr
       else null;
   in
-    traceIf (result != null)
-    result
-    "❌ '${pathStr}' is not a valid flake path.";
+    traceIf (result == null)
+    "❌ '${pathStr}' is not a valid flake path."
+    result;
 
-  flake = path: let
+  flake = {path ? src}: let
     normalizedPath = flakePath path;
     loadResult = optionalAttrs (normalizedPath != null) (builtins.getFlake normalizedPath);
     failureReason =
@@ -51,12 +54,12 @@
       then loadResult // {srcPath = path;}
       else loadResult;
   in
-    traceIf ((loadResult._type or null) == "flake")
-    result
-    "❌ Flake load failed: ${toString path} (${failureReason})";
+    traceIf ((loadResult._type or null) != "flake")
+    "❌ Flake load failed: ${toString path} (${failureReason})"
+    result;
 
   systems = {
-    src ? ../../.,
+    path ? src,
     hosts ? {},
     nixpkgs ? {},
     legacyPackages ? {},
@@ -64,14 +67,19 @@
     pkgsBase =
       if legacyPackages != {}
       then legacyPackages
-      else if nixpkgs?legacyPackages
+      else if nixpkgs ? legacyPackages
       then nixpkgs.legacyPackages
-      else if src != null
-      then (flakePkgs src).legacyPackages
-      else {};
+      else let
+        f = flakePkgs path;
+      in
+        optionalAttrs
+        (f ? legacyPackages)
+        f.legacyPackages;
 
     #> Extract and flatten defined systems
-    defined = lib.flatten (mapAttrsToList (_: host: host.system or host.platforms or []) hosts);
+    defined = flatten (mapAttrsToList (_: host:
+      host.platform or host.system or [])
+    hosts);
 
     #> Default systems in alphabetical order
     default = [
@@ -87,17 +95,21 @@
     in
       if common != null
       then common
-      else last default; # "x86_64-linux"
+      else last default;
 
     all = unique (defined ++ default);
     per = genAttrs all;
-    pkgs = optionalAttrs (pkgsBase ? derived) pkgsBase.${derived};
-    pkgsFor = system: pkgsBase.${system} or {};
   in {
-    inherit all default derived defined per pkgs;
-    inherit legacyPackages pkgsFor;
+    inherit all default derived defined per;
     system = derived;
+    inherit pkgsBase;
+    pkgs =
+      if pkgsBase ? derived
+      then pkgsBase.${derived}
+      else pkgs;
+    pkgsFor = system: pkgsBase.${system} or {};
   };
+
   __doc = ''
     Flake stuff
   '';

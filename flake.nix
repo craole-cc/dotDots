@@ -12,7 +12,7 @@
         hosts
         users
         ;
-      args = {inherit lix hosts;};
+      args = {inherit lix;};
       inherit (lib) nixosSystem;
     };
 

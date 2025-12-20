@@ -3,7 +3,7 @@
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> {},
   name ? "lix",
-  src ? ./.,
+  src ? ../.,
   collisionStrategy ? "warn",
   # enableCaching ? true,
   runTests ? true,
@@ -88,9 +88,10 @@
     #| The complete environment for all modules
     env = {
       #> Individual libraries
-      lib = lib; #? nixpkgs library
+      # lib = lib; #? nixpkgs library
       _ = self; #? custom library
-      safe = safeLib; #? merged library
+      # safe = safeLib; #? merged library
+      inherit lib pkgs src;
 
       #> Short aliases
       l = lib;
@@ -306,6 +307,6 @@
     // {
       inherit extend lib;
       std = lib;
-      inherit pkgs;
+      inherit pkgs src;
     };
 in {${name} = finalLib;}

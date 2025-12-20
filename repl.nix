@@ -2,11 +2,13 @@ let
   src = ./.;
   inherit (import (src + "/Libraries") {inherit src;}) lix;
   api = import (src + "/API") {inherit lix;};
+  inherit (api) hosts;
   inherit (lix) lib;
 
-  inherit (lix.configuration.resolution) flake systems;
-  # inherit (systems {inherit (api) hosts;}) pkgs system;
-  all = flake src;
+  inherit (lix.configuration) resolution;
+  all = resolution.flake {inherit src;};
+  systems = resolution.systems {inherit hosts;};
+  inherit (systems) pkgs system;
 
   nixosConfigurations = all.nixosConfigurations or {};
 
@@ -153,7 +155,7 @@ in
       (currentHost)
       config
       options
-      pkgs
+      # pkgs
       ;
 
     inherit (currentHost._module) specialArgs;
@@ -172,4 +174,6 @@ in
       systemd
       users
       ;
+
+    inherit pkgs system systems;
   }
