@@ -36,7 +36,8 @@ load_flake_repl() {
 
 load_full_repl() {
 	printf "🔧 Attempting to load flake REPL for %s...\n" "$host"
-	nix repl --extra-experimental-features 'nix-command flakes' "$path#repl"
+	repl="$path/repl.nix"
+	nix repl --extra-experimental-features 'nix-command flakes' --file "$repl"
 }
 
 load_default_repl() {

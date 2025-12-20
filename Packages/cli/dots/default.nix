@@ -44,7 +44,7 @@
   #> Create REPL command
   replCmd = writeShellScriptBin "_repl" ''
     #!/usr/bin/env bash
-    exec nix repl --file $DOTS/repl.nix
+    exec nix repl --file $DOTS_REPL
   '';
 
   #> Create wrapper scripts for each command
@@ -130,6 +130,7 @@
   env = with host.paths; {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     DOTS = dots;
+    DOTS_REPL = dots + "/repl.nix";
     DOTS_BIN = dots + "/Bin";
     BINIT = dots + "/Bin/shellscript/base/binit";
     ENV_BIN = dots + "/.direnv/bin";

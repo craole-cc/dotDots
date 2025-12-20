@@ -39,12 +39,9 @@
       inherit all pkgs lib api lix system;
     };
   });
-
-  repl = import ./Packages/cli/dots/repl.nix;
 in {
   inherit
     nixosConfigurations
     devShells
-    repl
     ;
 }
