@@ -5,7 +5,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues genAttrs mapAttrsToList optionalAttrs;
+  inherit (lib.attrsets) attrNames attrValues genAttrs mapAttrsToList optionalAttrs;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
@@ -114,7 +114,7 @@
     nixosConfigurations ?
       optionalAttrs ((flake {}) ? nixosConfigurations)
       ((flake {}).nixosConfigurations),
-    hosts ? {},
+    hosts ? (attrNames nixosConfigurations),
     system ? (systems {}).system,
   }: let
     resultz =
@@ -122,7 +122,7 @@
       (h: (h.config.nixpkgs.hostPlatform.system or null) == system)
       null
       (attrValues nixosConfigurations);
-    result = nixosConfigurations;
+    result = hosts;
   in
     result;
 
