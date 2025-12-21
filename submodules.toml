@@ -7,3 +7,9 @@ path = "Configuration/hosts/Victus"
 user = "Craole"
 writable = true
 description = "Victus laptop NixOS configuration"
+
+[submodules.wallpapers]
+path = "Assets/Images/wallpaper"
+user = "Craole"
+writable = true
+description = "Wallpaper collection"
