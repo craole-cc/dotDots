@@ -1,15 +1,17 @@
 #!/usr/bin/env -S rust-script
-//! Version: 0.1.2
+//! Version: 0.2.0
 //! ```cargo
 //! [package]
 //! name = "dotdots-cli"
-//! version = "0.1.2"
+//! version = "0.2.0"
 //! edition = "2021"
 //!
 //! [dependencies]
 //! clap = { version = "4.0", features = ["derive", "cargo"] }
 //! anyhow = "1.0"
 //! serde_json = "1.0"
+//! serde = { version = "1.0", features = ["derive"] }
+//! toml = "0.8"
 //! colored = "2.0"
 //! arboard = "3.2"
 //! ```
@@ -18,7 +20,9 @@ use anyhow::{Context, Result};
 use arboard::Clipboard;
 use clap::{Parser, Subcommand};
 use colored::*;
+use serde::{Deserialize, Serialize};
 use std::{
+    collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -117,14 +121,32 @@ enum Commands {
     Help,
 }
 
+/// Configuration structures for submodules
+#[derive(Debug, Deserialize, Serialize)]
+struct SubmodulesConfig {
+    parent: ParentConfig,
+    submodules: HashMap<String, SubmoduleConfig>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ParentConfig {
+    name: String,
+    user: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct SubmoduleConfig {
+    path: String,
+    user: String,
+    writable: bool,
+    #[serde(default)]
+    description: String,
+}
+
 /// Configuration for sync operation
 struct SyncConfig {
     root: PathBuf,
-    submodule_path: PathBuf,
-    submodule_user: String,
-    submodule_name: String,
-    parent_user: String,
-    parent_name: String,
+    config: SubmodulesConfig,
 }
 
 impl SyncConfig {
@@ -136,14 +158,42 @@ impl SyncConfig {
         // Resolve the real path if it's a symlink or relative path
         let real_root = fs::canonicalize(&root).unwrap_or_else(|_| root.clone());
 
+        // Try to load submodules.toml
+        let config_path = real_root.join("submodules.toml");
+        let config = if config_path.exists() {
+            let config_str =
+                fs::read_to_string(&config_path).context("Failed to read submodules.toml")?;
+            toml::from_str(&config_str).context("Failed to parse submodules.toml")?
+        } else {
+            // Fallback to default config for backwards compatibility
+            Self::default_config()
+        };
+
         Ok(Self {
-            root: real_root.clone(),
-            submodule_path: real_root.join("Configuration/hosts/Victus"),
-            submodule_user: "Craole".to_string(),
-            submodule_name: "Victus".to_string(),
-            parent_user: "craole-cc".to_string(),
-            parent_name: "dotDots".to_string(),
+            root: real_root,
+            config,
         })
+    }
+
+    fn default_config() -> SubmodulesConfig {
+        let mut submodules = HashMap::new();
+        submodules.insert(
+            "victus".to_string(),
+            SubmoduleConfig {
+                path: "Configuration/hosts/Victus".to_string(),
+                user: "Craole".to_string(),
+                writable: true,
+                description: "Victus laptop NixOS configuration".to_string(),
+            },
+        );
+
+        SubmodulesConfig {
+            parent: ParentConfig {
+                name: "dotDots".to_string(),
+                user: "craole-cc".to_string(),
+            },
+            submodules,
+        }
     }
 }
 
@@ -345,40 +395,46 @@ fn git_command(path: &Path, args: &[&str]) -> Result<()> {
 }
 
 /// Sync submodule repository (mimics git syncVictus)
-fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
-    println!(
-        "➡️  Processing {} submodule...",
-        config.submodule_name.cyan()
-    );
+fn sync_submodule(
+    config: &SyncConfig,
+    name: &str,
+    submodule: &SubmoduleConfig,
+    message: &str,
+) -> Result<()> {
+    println!("➡️  Processing {} submodule...", name.cyan());
 
-    if !config.submodule_path.exists() {
+    let submodule_path = config.root.join(&submodule.path);
+
+    if !submodule_path.exists() {
         println!(
             "⚠️  Submodule directory does not exist: {:?}",
-            config.submodule_path
+            submodule_path
         );
         return Ok(());
     }
 
-    if !is_git_repo(&config.submodule_path) {
-        println!(
-            "⚠️  {} directory is not a git repository",
-            config.submodule_name
-        );
+    if !is_git_repo(&submodule_path) {
+        println!("⚠️  {} directory is not a git repository", name);
         return Ok(());
     }
 
-    switch_gh_user(&config.submodule_user)?;
+    if !submodule.writable {
+        println!("📌 {} is read-only, skipping", name.yellow());
+        return Ok(());
+    }
 
-    if has_changes(&config.submodule_path)? {
-        println!("➡️  Changes detected in {}", config.submodule_name.cyan());
+    switch_gh_user(&submodule.user)?;
 
-        git_command(&config.submodule_path, &["add", "-A"])?;
-        git_command(&config.submodule_path, &["commit", "-m", message])?;
-        git_command(&config.submodule_path, &["push"])?;
+    if has_changes(&submodule_path)? {
+        println!("➡️  Changes detected in {}", name.cyan());
 
-        println!("✅ {} submodule synced", config.submodule_name.green());
+        git_command(&submodule_path, &["add", "-A"])?;
+        git_command(&submodule_path, &["commit", "-m", message])?;
+        git_command(&submodule_path, &["push"])?;
+
+        println!("✅ {} submodule synced", name.green());
     } else {
-        println!("📌 No changes in {} submodule", config.submodule_name);
+        println!("📌 No changes in {} submodule", name);
     }
 
     Ok(())
@@ -388,22 +444,31 @@ fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
 fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
     println!(
         "➡️  Processing {} parent repository...",
-        config.parent_name.cyan()
+        config.config.parent.name.cyan()
     );
 
     if !is_git_repo(&config.root) {
-        anyhow::bail!("{} directory is not a git repository", config.parent_name);
+        anyhow::bail!(
+            "{} directory is not a git repository",
+            config.config.parent.name
+        );
     }
 
-    switch_gh_user(&config.parent_user)?;
+    switch_gh_user(&config.config.parent.user)?;
 
     // Check if there are any changes
     if !has_changes(&config.root)? {
-        println!("📌 No changes in {} parent repository", config.parent_name);
+        println!(
+            "📌 No changes in {} parent repository",
+            config.config.parent.name
+        );
         return Ok(());
     }
 
-    println!("➡️  Changes detected in {}", config.parent_name.cyan());
+    println!(
+        "➡️  Changes detected in {}",
+        config.config.parent.name.cyan()
+    );
 
     // Stage all changes
     git_command(&config.root, &["add", "-A"])?;
@@ -416,7 +481,7 @@ fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
 
     println!(
         "✅ {} parent repository updated",
-        config.parent_name.green()
+        config.config.parent.name.green()
     );
 
     Ok(())
@@ -427,22 +492,54 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
     let config = SyncConfig::new()?;
 
     let msg = if message.is_empty() {
-        format!("sync {}", config.submodule_name)
+        "sync dotfiles".to_string()
     } else {
         message.join(" ")
     };
 
     if !execute {
         println!("{}", "Sync operation will:".bold().cyan());
+
+        let writable_count = config
+            .config
+            .submodules
+            .values()
+            .filter(|s| s.writable)
+            .count();
+        let readonly_count = config.config.submodules.len() - writable_count;
+
         println!(
-            "  1. Commit & push {} submodule (if changes exist)",
-            config.submodule_name.green()
+            "  1. Commit & push {} writable submodule(s):",
+            writable_count
         );
+        for (name, submodule) in &config.config.submodules {
+            if submodule.writable {
+                println!(
+                    "     • {} ({})",
+                    name.green(),
+                    submodule.description.dimmed()
+                );
+            }
+        }
+
+        if readonly_count > 0 {
+            println!("  2. Skip {} read-only submodule(s):", readonly_count);
+            for (name, submodule) in &config.config.submodules {
+                if !submodule.writable {
+                    println!(
+                        "     • {} ({})",
+                        name.yellow(),
+                        submodule.description.dimmed()
+                    );
+                }
+            }
+        }
+
         println!(
-            "  2. Update submodule pointer in {}",
-            config.parent_name.green()
+            "  {}. Commit & push {}",
+            if readonly_count > 0 { 3 } else { 2 },
+            config.config.parent.name.green()
         );
-        println!("  3. Commit & push {}", config.parent_name.green());
         println!("\n{}", format!("Message: \"{}\"", msg).yellow());
         println!(
             "\n{}",
@@ -453,61 +550,60 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
 
     // Execute the sync
     println!("➡️  Starting complete sync: {}", msg.cyan());
-    println!(
-        "➡️  This will commit & push both {} and {}",
-        config.submodule_name.cyan(),
-        config.parent_name.cyan()
-    );
     println!();
 
     check_gh_available()?;
 
-    // Sync submodule first
-    sync_submodule(&config, &msg)?;
+    // Track if any submodule changed
+    let mut submodule_changed = false;
 
-    // Then sync parent repo (which includes submodule pointer if it changed)
-    let parent_msg = if config.submodule_path.exists() && is_git_repo(&config.submodule_path) {
-        // Check if submodule pointer changed
-        let submodule_rel = config
-            .submodule_path
-            .strip_prefix(&config.root)
-            .ok()
-            .and_then(|p| p.to_str());
+    // Sync all writable submodules
+    for (name, submodule) in &config.config.submodules {
+        if submodule.writable {
+            let submodule_path = config.root.join(&submodule.path);
+            let had_changes = submodule_path.exists()
+                && is_git_repo(&submodule_path)
+                && has_changes(&submodule_path).unwrap_or(false);
 
-        if let Some(submodule_path) = submodule_rel {
-            let status_output = Command::new("git")
-                .args([
-                    "-C",
-                    config.root.to_str().unwrap(),
-                    "status",
-                    "--porcelain",
-                    submodule_path,
-                ])
-                .output();
+            sync_submodule(&config, name, submodule, &msg)?;
 
-            if let Ok(output) = status_output {
-                if !output.stdout.is_empty() {
-                    format!("bump {} submodule: {}", config.submodule_name, msg)
-                } else {
-                    msg.clone()
-                }
-            } else {
-                msg.clone()
+            if had_changes {
+                submodule_changed = true;
             }
         } else {
-            msg.clone()
+            println!("📌 Skipping read-only submodule: {}", name.yellow());
         }
+    }
+
+    println!();
+
+    // Determine parent commit message
+    let parent_msg = if submodule_changed {
+        format!("bump submodules: {}", msg)
     } else {
         msg.clone()
     };
 
+    // Sync parent repo
     sync_parent_repo(&config, &parent_msg)?;
+
+    let submodule_names: Vec<_> = config
+        .config
+        .submodules
+        .keys()
+        .map(|s| s.as_str())
+        .collect();
+    let submodule_list = if submodule_names.is_empty() {
+        "no submodules".to_string()
+    } else {
+        submodule_names.join(" + ")
+    };
 
     println!(
         "\n✅ {}",
         format!(
-            "Complete: All changes committed and pushed to {} + {}",
-            config.submodule_name, config.parent_name
+            "Complete: All changes synced ({} + {})",
+            submodule_list, config.config.parent.name
         )
         .green()
         .bold()

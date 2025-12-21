@@ -1,0 +1,9 @@
+[parent]
+name = "dotDots"
+user = "craole-cc"
+
+[submodules.victus]
+path = "Configuration/hosts/Victus"
+user = "Craole"
+writable = true
+description = "Victus laptop NixOS configuration"
