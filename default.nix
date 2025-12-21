@@ -193,13 +193,13 @@
   # Create the main dotDots script using rust-script
   rustScript = writeShellScriptBin "dotDots" ''
     #!/usr/bin/env bash
-    exec ${pkgs.rust-script}/bin/rust-script ${src}/Bin/rust/.dots.rs "$@"
+    exec ${pkgs.rust-script}/bin/rust-script ${./Bin/rust/.dots.rs} "$@"
   '';
 
   # Create REPL command
   replCmd = writeShellScriptBin ".repl" ''
     #!/usr/bin/env bash
-    exec nix repl --file ${src}/default.nix
+    exec nix repl --file ${toString ./.}/default.nix
   '';
 
   # Create wrapper scripts for each command
