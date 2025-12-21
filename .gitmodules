@@ -1,3 +1,0 @@
-[submodule "Configuration/hosts/Victus"]
-	path = Configuration/hosts/Victus
-	url = https://github.com/Craole/NixOS_Victus.git
