@@ -36,24 +36,18 @@
   #> Create the dotDots script using rust-script
   rustScript = writeShellScriptBin "dotDots" ''
     #!/usr/bin/env bash
-    exec ${pkgs.rust-script}/bin/rust-script ${../../../Bin/rust/.dots.rs} "$@"
-  '';
-
-  #> Create sync command for submodules
-  syncCmd = writeShellScriptBin "_sync" ''
-    #!/usr/bin/env bash
-    exec ${pkgs.bash}/bin/bash ${../../../Bin/shellscript/project/git/sync.dots} "$@"
+    exec ${pkgs.rust-script}/bin/rust-script ${./main.rs} "$@"
   '';
 
   #> Create REPL command
-  replCmd = writeShellScriptBin "_repl" ''
+  replCmd = writeShellScriptBin ".repl" ''
     #!/usr/bin/env bash
     exec nix repl --file $DOTS_REPL
   '';
 
   #> Create wrapper scripts for each command
   mkCmd = cmd:
-    writeShellScriptBin "_${cmd}" ''
+    writeShellScriptBin ".${cmd}" ''
       #!/usr/bin/env bash
       exec ${rustScript}/bin/dotDots ${cmd} "$@"
     '';
@@ -62,7 +56,7 @@
     listToAttrs (
       map
       (cmd: {
-        name = "_${cmd}";
+        name = ".${cmd}";
         value = mkCmd cmd;
       })
       [
@@ -77,22 +71,11 @@
         "clean"
         "list"
         "help"
-
-        #TODO: These dont work, make them aliases
-        #~@ Workflow commands
-        "flick"
-        "flush"
-        "fmt"
-        "fo"
-        "ff"
-        "flow"
-        "flare"
-        "ft"
+        "binit"
       ]
     )
     // {
-      _repl = replCmd;
-      _sync = syncCmd;
+      ".repl" = replCmd;
     };
 
   packages = with pkgs;
@@ -142,7 +125,6 @@
     DOTS = dots;
     DOTS_REPL = dots + "/repl.nix";
     DOTS_BIN = dots + "/Bin";
-    BINIT = dots + "/Bin/shellscript/base/binit";
     ENV_BIN = dots + "/.direnv/bin";
     HOST_NAME = host.name;
     HOST_TYPE = host.platform;
@@ -155,6 +137,12 @@
     #> Add bin directory to PATH
     export PATH="$ENV_BIN:$PATH"
 
+    #> Initialize bin directories
+    if command -v dotDots >/dev/null 2>&1; then
+      # Silently eval binit to add all bin directories to PATH
+      eval "$(dotDots binit)" 2>/dev/null || true
+    fi
+
     #> Display a welcome message
     if command -v dotDots >/dev/null 2>&1; then
       dotDots help
@@ -165,9 +153,9 @@
       printf "Current host: $HOST_NAME\n"
       printf "System: $HOST_TYPE\n"
       printf "\n"
-      printf "Type '_help' for available commands\n"
+      printf "Type '.help' for available commands\n"
       printf "Type 'dotDots help' for more options\n"
-      printf "Type '_sync [message]' to sync submodules\n\n"
+      printf "Type '.sync [message]' to commit & push all changes (submodule + dotDots)\n\n"
     fi
   '';
 in

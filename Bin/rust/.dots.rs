@@ -19,6 +19,7 @@ use clap::{Parser, Subcommand};
 use colored::*;
 use std::{
     env,
+    path::{Path, PathBuf},
     process::{Command, Stdio},
 };
 
@@ -95,7 +96,7 @@ enum Commands {
         execute: bool,
     },
 
-    /// Sync submodules and push changes
+    /// Commit and push all changes (submodule + dotDots parent repo)
     Sync {
         /// Commit message (default: "sync <submodule>")
         message: Vec<String>,
@@ -112,6 +113,33 @@ enum Commands {
     Help,
 }
 
+/// Configuration for sync operation
+struct SyncConfig {
+    root: PathBuf,
+    submodule_path: PathBuf,
+    submodule_user: String,
+    submodule_name: String,
+    parent_user: String,
+    parent_name: String,
+}
+
+impl SyncConfig {
+    fn new() -> Result<Self> {
+        let root = PathBuf::from(
+            env::var("DOTS").unwrap_or_else(|_| format!("{}/.dots", env::var("HOME").unwrap())),
+        );
+
+        Ok(Self {
+            root: root.clone(),
+            submodule_path: root.join("Configuration/hosts/Victus"),
+            submodule_user: "Craole".to_string(),
+            submodule_name: "Victus".to_string(),
+            parent_user: "craole-cc".to_string(),
+            parent_name: "dotDots".to_string(),
+        })
+    }
+}
+
 /// Get current host name from environment
 fn get_current_host() -> String {
     env::var("HOST_NAME").unwrap_or_else(|_| "QBX".to_string())
@@ -120,11 +148,6 @@ fn get_current_host() -> String {
 /// Get current system from environment
 fn get_current_system() -> String {
     env::var("HOST_PLATFORM").unwrap_or_else(|_| "x86_64-linux".to_string())
-}
-
-/// Get DOTS path from environment
-fn get_dots_path() -> String {
-    env::var("DOTS").unwrap_or_else(|_| format!("{}/.dots", env::var("HOME").unwrap_or_default()))
 }
 
 /// Copy text to clipboard with cross-platform support
@@ -175,6 +198,245 @@ fn nix_eval(expr: &str) -> Result<serde_json::Value> {
     } else {
         anyhow::bail!("Nix error: {}", String::from_utf8_lossy(&output.stderr));
     }
+}
+
+/// Check if GitHub CLI is available
+fn check_gh_available() -> Result<()> {
+    Command::new("gh")
+        .arg("--version")
+        .output()
+        .context("GitHub CLI (gh) is not installed")?;
+    Ok(())
+}
+
+/// Switch GitHub user
+fn switch_gh_user(user: &str) -> Result<()> {
+    println!("➡️  Switching to GitHub user: {}...", user.cyan());
+
+    let status = Command::new("gh")
+        .args(["auth", "switch", "--user", user])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .context("Failed to execute gh auth switch")?;
+
+    if !status.success() {
+        anyhow::bail!("Failed to switch GitHub user to {}", user);
+    }
+
+    Ok(())
+}
+
+/// Check if directory is a git repository
+fn is_git_repo(path: &Path) -> bool {
+    Command::new("git")
+        .args(["-C", path.to_str().unwrap(), "rev-parse", "--git-dir"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
+/// Check if there are uncommitted changes
+fn has_changes(path: &Path) -> Result<bool> {
+    let diff_status = Command::new("git")
+        .args([
+            "-C",
+            path.to_str().unwrap(),
+            "diff-index",
+            "--quiet",
+            "HEAD",
+            "--",
+        ])
+        .status()
+        .context("Failed to check git diff-index")?;
+
+    if !diff_status.success() {
+        return Ok(true);
+    }
+
+    let untracked = Command::new("git")
+        .args([
+            "-C",
+            path.to_str().unwrap(),
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+        ])
+        .output()
+        .context("Failed to check untracked files")?;
+
+    Ok(!untracked.stdout.is_empty())
+}
+
+/// Execute git command in a directory
+fn git_command(path: &Path, args: &[&str]) -> Result<()> {
+    let mut cmd = Command::new("git");
+    cmd.arg("-C").arg(path.to_str().unwrap());
+
+    for arg in args {
+        cmd.arg(arg);
+    }
+
+    let status = cmd
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+        .context(format!("Failed to execute git {:?}", args))?;
+
+    if !status.success() {
+        anyhow::bail!("Git command failed: {:?}", args);
+    }
+
+    Ok(())
+}
+
+/// Sync submodule repository
+fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
+    println!(
+        "➡️  Processing {} submodule...",
+        config.submodule_name.cyan()
+    );
+
+    if !config.submodule_path.exists() {
+        anyhow::bail!(
+            "Submodule directory does not exist: {:?}",
+            config.submodule_path
+        );
+    }
+
+    if !is_git_repo(&config.submodule_path) {
+        anyhow::bail!(
+            "{} directory is not a git repository",
+            config.submodule_name
+        );
+    }
+
+    switch_gh_user(&config.submodule_user)?;
+
+    if has_changes(&config.submodule_path)? {
+        println!("➡️  Changes detected in {}", config.submodule_name.cyan());
+
+        git_command(&config.submodule_path, &["add", "--all"])?;
+        git_command(&config.submodule_path, &["commit", "--message", message])?;
+        git_command(&config.submodule_path, &["push"])?;
+
+        println!("✅ {} submodule synced", config.submodule_name.green());
+    } else {
+        println!("📌 No changes in {} submodule", config.submodule_name);
+    }
+
+    Ok(())
+}
+
+/// Sync parent repository
+fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
+    println!(
+        "➡️  Processing {} parent repository...",
+        config.parent_name.cyan()
+    );
+
+    if !is_git_repo(&config.root) {
+        anyhow::bail!("{} directory is not a git repository", config.parent_name);
+    }
+
+    switch_gh_user(&config.parent_user)?;
+
+    // Stage the submodule pointer change
+    let submodule_rel_path = config
+        .submodule_path
+        .strip_prefix(&config.root)
+        .context("Failed to get relative submodule path")?;
+
+    git_command(&config.root, &["add", submodule_rel_path.to_str().unwrap()])?;
+
+    // Check if the submodule pointer actually changed
+    let diff_status = Command::new("git")
+        .args([
+            "-C",
+            config.root.to_str().unwrap(),
+            "diff",
+            "--cached",
+            "--quiet",
+            "--",
+            submodule_rel_path.to_str().unwrap(),
+        ])
+        .status()
+        .context("Failed to check diff")?;
+
+    if diff_status.success() {
+        println!("📌 No submodule pointer change in {}", config.parent_name);
+        return Ok(());
+    }
+
+    let commit_msg = format!("bump {} submodule: {}", config.submodule_name, message);
+    git_command(&config.root, &["commit", "--message", &commit_msg])?;
+    git_command(&config.root, &["push"])?;
+
+    println!(
+        "✅ {} parent repository updated",
+        config.parent_name.green()
+    );
+
+    Ok(())
+}
+
+/// Handle sync command - execute the sync operation
+fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
+    let config = SyncConfig::new()?;
+
+    let msg = if message.is_empty() {
+        format!("sync {}", config.submodule_name)
+    } else {
+        message.join(" ")
+    };
+
+    if !execute {
+        println!("{}", "Sync operation will:".bold().cyan());
+        println!(
+            "  1. Commit & push {} submodule",
+            config.submodule_name.green()
+        );
+        println!(
+            "  2. Update submodule pointer in {}",
+            config.parent_name.green()
+        );
+        println!("  3. Commit & push {}", config.parent_name.green());
+        println!("\n{}", format!("Message: \"{}\"", msg).yellow());
+        println!(
+            "\n{}",
+            "💡 Tip: Add --execute to run the sync immediately".yellow()
+        );
+        return Ok(());
+    }
+
+    // Execute the sync
+    println!("➡️  Starting complete sync: {}", msg.cyan());
+    println!(
+        "➡️  This will commit & push both {} and {}",
+        config.submodule_name.cyan(),
+        config.parent_name.cyan()
+    );
+    println!();
+
+    check_gh_available()?;
+
+    sync_submodule(&config, &msg)?;
+    sync_parent_repo(&config, &msg)?;
+
+    println!(
+        "\n✅ {}",
+        format!(
+            "Complete: All changes committed and pushed to {} + {}",
+            config.submodule_name, config.parent_name
+        )
+        .green()
+        .bold()
+    );
+
+    Ok(())
 }
 
 /// List all configured hosts
@@ -280,42 +542,6 @@ fn handle_command(base_cmd: &str, host: Option<String>, execute: bool) -> Result
     Ok(())
 }
 
-/// Handle sync command
-fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
-    let dots_path = get_dots_path();
-    let sync_script = format!("{}/Bin/shellscript/project/git/sync.dots", dots_path);
-
-    let msg = if message.is_empty() {
-        "sync Victus".to_string()
-    } else {
-        message.join(" ")
-    };
-
-    let command = format!("{} {}", sync_script, msg);
-
-    println!("{}", command.bright_white());
-
-    // Try to copy to clipboard
-    match copy_to_clipboard(&command) {
-        Ok(_) => println!("{}", "✓ Copied to clipboard".green()),
-        Err(e) => println!("{} {}", "⚠ Could not copy to clipboard:".yellow(), e),
-    }
-
-    // Execute if requested
-    if execute {
-        println!();
-        execute_command(&command)?;
-    } else {
-        println!();
-        println!(
-            "{}",
-            "💡 Tip: Add --execute to run the sync immediately".yellow()
-        );
-    }
-
-    Ok(())
-}
-
 /// Show welcome/help message
 fn show_help() {
     let host = get_current_host();
@@ -329,66 +555,66 @@ fn show_help() {
 
     println!(
         "{}",
-        "Available commands (prefix with _ or use dotDots):"
+        "Available commands (prefix with . or use dotDots):"
             .bold()
             .magenta()
     );
     println!();
 
-    println!("{}", "Command Wrappers (prefixed with _):".bold().white());
+    println!("{}", "Command Wrappers (prefixed with .):".bold().white());
     println!(
         "  {} or {}  - List all configured hosts",
-        "_hosts".cyan(),
+        ".hosts".cyan(),
         "dotDots hosts".dimmed()
     );
     println!(
         "  {} or {}    - Show host information",
-        "_info".cyan(),
+        ".info".cyan(),
         "dotDots info [host]".dimmed()
     );
     println!(
         "  {} or {} - Show rebuild command",
-        "_rebuild".cyan(),
+        ".rebuild".cyan(),
         "dotDots rebuild [host]".dimmed()
     );
     println!(
         "  {} or {}    - Show test command",
-        "_test".cyan(),
+        ".test".cyan(),
         "dotDots test [host]".dimmed()
     );
     println!(
         "  {} or {}    - Show boot command",
-        "_boot".cyan(),
+        ".boot".cyan(),
         "dotDots boot [host]".dimmed()
     );
     println!(
         "  {} or {}     - Show dry-build command",
-        "_dry".cyan(),
+        ".dry".cyan(),
         "dotDots dry [host]".dimmed()
     );
     println!(
         "  {} or {}  - Show flake update command",
-        "_update".cyan(),
+        ".update".cyan(),
         "dotDots update".dimmed()
     );
     println!(
         "  {} or {}   - Show garbage collection command",
-        "_clean".cyan(),
+        ".clean".cyan(),
         "dotDots clean".dimmed()
     );
     println!(
-        "  {} or {}    - Sync submodules with message",
-        "_sync".cyan(),
+        "  {} or {}    - Commit & push all changes (submodule + dotDots)",
+        ".sync".cyan(),
         "dotDots sync [message]".dimmed()
     );
     println!(
         "  {} or {}    - List all commands",
-        "_list".cyan(),
+        ".list".cyan(),
         "dotDots list".dimmed()
     );
     println!(
         "  {} or {}    - Show this help",
-        "_help".cyan(),
+        ".help".cyan(),
         "dotDots help".dimmed()
     );
     println!();
@@ -405,13 +631,13 @@ fn show_help() {
     println!();
 
     println!("{}", "Quick usage:".bold().magenta());
-    println!("  _rebuild              # Show rebuild command for current host");
-    println!("  _rebuild --execute    # Run rebuild immediately");
-    println!("  _rebuild QBX          # Show rebuild command for QBX");
-    println!("  _update --execute     # Update flake");
-    println!("  _sync \"my changes\"    # Sync submodules with message");
-    println!("  _sync --execute       # Sync submodules immediately");
-    println!("  _info                 # Show detailed host info with stats");
+    println!("  .rebuild              # Show rebuild command for current host");
+    println!("  .rebuild --execute    # Run rebuild immediately");
+    println!("  .rebuild QBX          # Show rebuild command for QBX");
+    println!("  .update --execute     # Update flake");
+    println!("  .sync \"my changes\"    # Commit & push submodule + dotDots");
+    println!("  .sync --execute       # Commit & push everything immediately");
+    println!("  .info                 # Show detailed host info with stats");
     println!("  gitui                 # Open git TUI");
     println!();
 }
@@ -504,7 +730,7 @@ fn main() -> Result<()> {
                 "clean".green()
             );
             println!(
-                "  {} {} - Sync submodules",
+                "  {} {} - Commit & push everything",
                 "dotDots".blue(),
                 "sync [message]".green()
             );
@@ -521,7 +747,7 @@ fn main() -> Result<()> {
             println!();
             println!(
                 "{}",
-                "💡 Tip: Use underscore prefix for quick access: _hosts, _info, _rebuild, _sync, etc."
+                "💡 Tip: Use dot prefix for quick access: .hosts, .info, .rebuild, .sync, etc."
                     .bright_yellow()
             );
             println!();
