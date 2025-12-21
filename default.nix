@@ -25,7 +25,7 @@
   nixosConfigurations = flake.nixosConfigurations or {};
 
   systems = lic.systems {inherit hosts;};
-  systemPkgs = systems.pkgs;
+  # systemPkgs = systems.pkgs;
   currentSystem = systems.system;
 
   #──────────────────────────────────────────────────────────────────────────────
@@ -292,17 +292,22 @@
   # Development Shell
   #──────────────────────────────────────────────────────────────────────────────
 
-  env = with hostData.paths; {
+  env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
-    DOTS = dots;
-    DOTS_BIN = bin;
-    ENV_BIN = dots + "/.direnv/bin";
+    DOTS = toString src;
+    DOTS_BIN = toString (src + "/Bin");
     HOST_NAME = hostData.name;
     HOST_TYPE = hostData.platform;
   };
 
   shellHook = ''
-    #> Create directory for wrapper scripts
+    #> Override DOTS to point to actual repository, not Nix store
+    export DOTS="$PWD"
+    export DOTS_BIN="$DOTS/Bin"
+
+    #> Set up cache directory using DOTS_CACHE or fallback to DOTS/.cache
+    export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/.cache"}"
+    export ENV_BIN="$DOTS_CACHE/bin"
     mkdir -p "$ENV_BIN"
 
     #> Add bin directory to PATH
@@ -310,8 +315,8 @@
 
     #> Initialize bin directories
     if command -v dotDots >/dev/null 2>&1; then
-      # Silently eval binit to add all bin directories to PATH
-      eval "$(dotDots binit)" 2>/dev/null || true
+      # Silently eval binit to add all bin directories to PATH (if implemented)
+      eval "$(dotDots binit 2>/dev/null || true)" 2>/dev/null || true
     fi
 
     #> Display a welcome message
@@ -376,8 +381,7 @@
     inherit shell;
   };
 in
-  # When used as a REPL, expose the interface
-  # When used for development, expose everything including shell
+  # Always return the full interface that includes shell
   replInterface
   // {
     # Export these for external use

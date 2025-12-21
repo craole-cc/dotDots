@@ -1,4 +1,5 @@
 #!/usr/bin/env -S rust-script
+//! Version: 0.1.1
 //! ```cargo
 //! [package]
 //! name = "dotdots-cli"
@@ -18,7 +19,7 @@ use arboard::Clipboard;
 use clap::{Parser, Subcommand};
 use colored::*;
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
@@ -96,6 +97,9 @@ enum Commands {
         execute: bool,
     },
 
+    /// Initialize PATH with bin directories
+    Binit,
+
     /// Commit and push all changes (submodule + dotDots parent repo)
     Sync {
         /// Commit message (default: "sync <submodule>")
@@ -125,13 +129,16 @@ struct SyncConfig {
 
 impl SyncConfig {
     fn new() -> Result<Self> {
-        let root = PathBuf::from(
-            env::var("DOTS").unwrap_or_else(|_| format!("{}/.dots", env::var("HOME").unwrap())),
-        );
+        // Get the actual repository root from DOTS environment variable
+        let dots_var = env::var("DOTS").context("DOTS environment variable not set")?;
+        let root = PathBuf::from(&dots_var);
+
+        // Resolve the real path if it's a symlink or relative path
+        let real_root = fs::canonicalize(&root).unwrap_or_else(|_| root.clone());
 
         Ok(Self {
-            root: root.clone(),
-            submodule_path: root.join("Configuration/hosts/Victus"),
+            root: real_root.clone(),
+            submodule_path: real_root.join("Configuration/hosts/Victus"),
             submodule_user: "Craole".to_string(),
             submodule_name: "Victus".to_string(),
             parent_user: "craole-cc".to_string(),
@@ -148,6 +155,71 @@ fn get_current_host() -> String {
 /// Get current system from environment
 fn get_current_system() -> String {
     env::var("HOST_PLATFORM").unwrap_or_else(|_| "x86_64-linux".to_string())
+}
+
+/// Find all bin directories in the repository
+fn find_bin_directories() -> Result<Vec<PathBuf>> {
+    let dots = env::var("DOTS").context("DOTS environment variable not set")?;
+    let root = PathBuf::from(&dots);
+    let real_root = fs::canonicalize(&root).unwrap_or(root);
+
+    let mut bin_dirs = Vec::new();
+
+    // Add the main Bin directory if it exists
+    let main_bin = real_root.join("Bin");
+    if main_bin.is_dir() {
+        bin_dirs.push(main_bin);
+    }
+
+    // Recursively find other bin directories (limit depth to avoid performance issues)
+    fn visit_dirs(dir: &Path, bin_dirs: &mut Vec<PathBuf>, depth: usize) -> Result<()> {
+        if depth > 3 {
+            return Ok(());
+        }
+
+        if let Ok(entries) = fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+
+                // Skip hidden directories and common exclusions
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    if name.starts_with('.') || name == "node_modules" || name == "target" {
+                        continue;
+                    }
+                }
+
+                if path.is_dir() {
+                    if path.file_name().and_then(|n| n.to_str()) == Some("bin") {
+                        bin_dirs.push(path.clone());
+                    }
+                    let _ = visit_dirs(&path, bin_dirs, depth + 1);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    visit_dirs(&real_root, &mut bin_dirs, 0)?;
+
+    Ok(bin_dirs)
+}
+
+/// Initialize PATH with bin directories
+fn handle_binit() -> Result<()> {
+    let bin_dirs = find_bin_directories()?;
+
+    if bin_dirs.is_empty() {
+        return Ok(());
+    }
+
+    // Generate export commands for shell evaluation
+    for dir in bin_dirs {
+        if let Some(path_str) = dir.to_str() {
+            println!("export PATH=\"{}:$PATH\"", path_str);
+        }
+    }
+
+    Ok(())
 }
 
 /// Copy text to clipboard with cross-platform support
@@ -344,15 +416,23 @@ fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
 
     switch_gh_user(&config.parent_user)?;
 
-    // Stage the submodule pointer change
-    let submodule_rel_path = config
-        .submodule_path
-        .strip_prefix(&config.root)
-        .context("Failed to get relative submodule path")?;
+    // Check if there are any changes at all
+    let has_any_changes = has_changes(&config.root)?;
 
-    git_command(&config.root, &["add", submodule_rel_path.to_str().unwrap()])?;
+    println!("🔍 Debug: has_any_changes = {}", has_any_changes);
+    println!("🔍 Debug: root path = {:?}", config.root);
 
-    // Check if the submodule pointer actually changed
+    if !has_any_changes {
+        println!("📌 No changes in {} parent repository", config.parent_name);
+        return Ok(());
+    }
+
+    println!("➡️  Changes detected in {}", config.parent_name.cyan());
+
+    // Stage all changes (submodule pointer and any other modified files)
+    git_command(&config.root, &["add", "--all"])?;
+
+    // Double-check if there's anything staged after add
     let diff_status = Command::new("git")
         .args([
             "-C",
@@ -360,18 +440,46 @@ fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
             "diff",
             "--cached",
             "--quiet",
-            "--",
-            submodule_rel_path.to_str().unwrap(),
         ])
         .status()
-        .context("Failed to check diff")?;
+        .context("Failed to check staged diff")?;
 
     if diff_status.success() {
-        println!("📌 No submodule pointer change in {}", config.parent_name);
+        println!("📌 Nothing staged to commit in {}", config.parent_name);
         return Ok(());
     }
 
-    let commit_msg = format!("bump {} submodule: {}", config.submodule_name, message);
+    // Determine commit message based on what changed
+    let submodule_rel_path = config
+        .submodule_path
+        .strip_prefix(&config.root)
+        .ok()
+        .and_then(|p| p.to_str());
+
+    let has_submodule_change = if let Some(submodule_path) = submodule_rel_path {
+        !Command::new("git")
+            .args([
+                "-C",
+                config.root.to_str().unwrap(),
+                "diff",
+                "--cached",
+                "--quiet",
+                "--",
+                submodule_path,
+            ])
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(true)
+    } else {
+        false
+    };
+
+    let commit_msg = if has_submodule_change {
+        format!("bump {} submodule: {}", config.submodule_name, message)
+    } else {
+        message.to_string()
+    };
+
     git_command(&config.root, &["commit", "--message", &commit_msg])?;
     git_command(&config.root, &["push"])?;
 
@@ -603,6 +711,11 @@ fn show_help() {
         "dotDots clean".dimmed()
     );
     println!(
+        "  {} or {}   - Initialize PATH with bin directories",
+        ".binit".cyan(),
+        "dotDots binit".dimmed()
+    );
+    println!(
         "  {} or {}    - Commit & push all changes (submodule + dotDots)",
         ".sync".cyan(),
         "dotDots sync [message]".dimmed()
@@ -685,6 +798,8 @@ fn main() -> Result<()> {
             handle_command("sudo nix-collect-garbage -d", None, execute)
         }
 
+        Some(Commands::Binit) => handle_binit(),
+
         Some(Commands::Sync { message, execute }) => handle_sync(message, execute),
 
         Some(Commands::List) => {
@@ -728,6 +843,11 @@ fn main() -> Result<()> {
                 "  {} {}            - Clean garbage",
                 "dotDots".blue(),
                 "clean".green()
+            );
+            println!(
+                "  {} {}            - Init bin paths",
+                "dotDots".blue(),
+                "binit".green()
             );
             println!(
                 "  {} {} - Commit & push everything",

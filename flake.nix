@@ -32,7 +32,12 @@
 
     src = ./.;
     inherit (processedInputs.nixosCore) lib legacyPackages;
-    inherit (import src {inherit src lib;}) lix hosts users;
+
+    # Get lix, hosts, users without full evaluation
+    # Use a simpler import that doesn't require pkgs/system
+    inherit (import ./Libraries {inherit lib src;}) lix;
+    inherit (import ./API {inherit lix;}) hosts users;
+
     inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
   in {
     nixosConfigurations = lix.mkCore {
@@ -44,10 +49,10 @@
 
     devShells = per (system: let
       pkgs = pkgsFor system;
+      dotfiles = import ./. {inherit pkgs lib src system;};
     in {
-      default = import ./Packages/cli/dots {
-        inherit self pkgs lib hosts lix system;
-      };
+      # Extract the shell derivation from the interface
+      default = dotfiles.shell;
     });
   };
 
