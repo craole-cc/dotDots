@@ -1,23 +1,37 @@
 let
+  base = {
+    relative = "../../..";
+    absolute = "/home/craole/Configuration";
+  };
   arch = "x86_64";
   os = "linux";
 in {
   imports = [./hardware-configuration.nix];
+  modules = [
+    "nvme"
+    "xhci_pci"
+    "usbhid"
+    "usb_storage"
+    "sd_mod"
+    "rtsx_pci_sdmmc"
+  ];
 
-  stateVersion = "25.11";
-  platform = "${arch}-${os}";
-  id = "cfd69003";
-
+  stateVersion = "25.05";
   paths = {
-    dots = "/home/craole/.dots";
+    inherit base;
+    # binaries = {
+    #   relative = base.relative + bin;
+    #   absolute = base.absolute + bin;
+    # };
   };
 
   packages = {
     allowUnfree = true;
-    kernel = "linuxPackages_latest";
+    # kernel = "linuxPackages_latest";
   };
 
   specs = {
+    platform = "${arch}-${os}";
     machine = "laptop";
 
     cpu = {
@@ -43,37 +57,28 @@ in {
     };
   };
 
-  modules = [
-    "nvme"
-    "xhci_pci"
-    "usbhid"
-    "usb_storage"
-    "sd_mod"
-    "rtsx_pci_sdmmc"
-  ];
-
   devices = {
     boot = {
+      "luks-03a38b8f-5279-4c0f-9172-a7878fbcc92d" = {
+        device = "/dev/disk/by-uuid/03a38b8f-5279-4c0f-9172-a7878fbcc92d";
+      };
     };
 
     file = {
       "/" = {
-        device = "/dev/disk/by-uuid/1f5ca117-cd68-439b-8414-b3b39bc28d75";
+        device = "/dev/disk/by-uuid/6494d9f3-9b6b-43ee-b0c9-6abeec96bf38";
         fsType = "ext4";
       };
       "/boot" = {
-        device = "/dev/disk/by-uuid/C6C0-2B64";
+        device = "/dev/disk/by-uuid/3C12-4AC5";
         fsType = "vfat";
-        options = [
-          "fmask=0077"
-          "dmask=0077"
-        ];
+        options = ["fmask=0077" "dmask=0077"];
       };
     };
 
     swap = [];
 
-    network = ["enp9s0" "wlp8s0"];
+    network = ["eno1" "wlo1"];
 
     display = [
       {
@@ -92,15 +97,12 @@ in {
       }
     ];
   };
-
   localization = {
     latitude = 18.015;
     longitude = 77.49;
-    locator = "geoclue2";
     timeZone = "America/Jamaica";
     defaultLocale = "en_US.UTF-8";
   };
-
   functionalities = [
     "keyboard"
     "storage"
@@ -121,7 +123,6 @@ in {
     "gpu"
     "nvme"
   ];
-
   access = {
     # ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
     # age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";

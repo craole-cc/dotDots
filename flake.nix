@@ -3,8 +3,8 @@
 
   outputs = inputs @ {self, ...}: let
     # Helper function to process inputs with module locations
-    processInputs = raw-inputs: let
-      inherit (raw-inputs.nixosCore.lib) mapAttrs foldl' setDefaultModuleLocation;
+    processInputs = rawInputs: let
+      inherit (rawInputs.nixosCore.lib) mapAttrs foldl' setDefaultModuleLocation;
 
       # Function to add module location metadata to an individual input
       processInput = input-name: raw-input:
@@ -25,35 +25,28 @@
         )
         raw-input ["nixosModules" "homeModules"];
     in
-      mapAttrs processInput raw-inputs;
+      mapAttrs processInput rawInputs;
 
     # Process all inputs
     processedInputs = processInputs inputs;
 
     src = ./.;
     inherit (processedInputs.nixosCore) lib legacyPackages;
-
-    # Get lix, hosts, users without full evaluation
-    # Use a simpler import that doesn't require pkgs/system
-    inherit (import ./Libraries {inherit lib src;}) lix;
-    inherit (import ./API {inherit lix;}) hosts users;
+    inherit (import src {inherit lib src;}) lix hosts users;
 
     inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
   in {
     nixosConfigurations = lix.mkCore {
       inputs = processedInputs;
       inherit hosts users;
-      args = {inherit lix;};
       inherit (lib) nixosSystem;
+      args = {inherit lix;};
     };
 
     devShells = per (system: let
       pkgs = pkgsFor system;
-      dotfiles = import ./. {inherit pkgs lib src system;};
-    in {
-      # Extract the shell derivation from the interface
-      default = dotfiles.shell;
-    });
+      dotfiles = import src {inherit pkgs lib src system;};
+    in {default = dotfiles.shell;});
   };
 
   inputs = {

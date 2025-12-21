@@ -9,7 +9,7 @@
   # Core Imports
   #──────────────────────────────────────────────────────────────────────────────
   inherit (import ./Libraries {inherit lib src;}) lix;
-  inherit (import ./API {inherit lix;}) hosts users;
+  inherit (import ./API {inherit lib;}) hosts users;
 
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
   inherit (lib.lists) length filter head findFirst;
