@@ -1,9 +1,9 @@
 #!/usr/bin/env -S rust-script
-//! Version: 0.1.1
+//! Version: 0.1.2
 //! ```cargo
 //! [package]
 //! name = "dotdots-cli"
-//! version = "0.1.0"
+//! version = "0.1.2"
 //! edition = "2021"
 //!
 //! [dependencies]
@@ -310,36 +310,15 @@ fn is_git_repo(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
-/// Check if there are uncommitted changes
+/// Check if there are uncommitted changes (modified, untracked, or staged files)
 fn has_changes(path: &Path) -> Result<bool> {
-    let diff_status = Command::new("git")
-        .args([
-            "-C",
-            path.to_str().unwrap(),
-            "diff-index",
-            "--quiet",
-            "HEAD",
-            "--",
-        ])
-        .status()
-        .context("Failed to check git diff-index")?;
-
-    if !diff_status.success() {
-        return Ok(true);
-    }
-
-    let untracked = Command::new("git")
-        .args([
-            "-C",
-            path.to_str().unwrap(),
-            "ls-files",
-            "--others",
-            "--exclude-standard",
-        ])
+    // Check for modified or deleted files
+    let status_output = Command::new("git")
+        .args(["-C", path.to_str().unwrap(), "status", "--porcelain"])
         .output()
-        .context("Failed to check untracked files")?;
+        .context("Failed to check git status")?;
 
-    Ok(!untracked.stdout.is_empty())
+    Ok(!status_output.stdout.is_empty())
 }
 
 /// Execute git command in a directory
@@ -365,7 +344,7 @@ fn git_command(path: &Path, args: &[&str]) -> Result<()> {
     Ok(())
 }
 
-/// Sync submodule repository
+/// Sync submodule repository (mimics git syncVictus)
 fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
     println!(
         "➡️  Processing {} submodule...",
@@ -373,17 +352,19 @@ fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
     );
 
     if !config.submodule_path.exists() {
-        anyhow::bail!(
-            "Submodule directory does not exist: {:?}",
+        println!(
+            "⚠️  Submodule directory does not exist: {:?}",
             config.submodule_path
         );
+        return Ok(());
     }
 
     if !is_git_repo(&config.submodule_path) {
-        anyhow::bail!(
-            "{} directory is not a git repository",
+        println!(
+            "⚠️  {} directory is not a git repository",
             config.submodule_name
         );
+        return Ok(());
     }
 
     switch_gh_user(&config.submodule_user)?;
@@ -391,8 +372,8 @@ fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
     if has_changes(&config.submodule_path)? {
         println!("➡️  Changes detected in {}", config.submodule_name.cyan());
 
-        git_command(&config.submodule_path, &["add", "--all"])?;
-        git_command(&config.submodule_path, &["commit", "--message", message])?;
+        git_command(&config.submodule_path, &["add", "-A"])?;
+        git_command(&config.submodule_path, &["commit", "-m", message])?;
         git_command(&config.submodule_path, &["push"])?;
 
         println!("✅ {} submodule synced", config.submodule_name.green());
@@ -403,7 +384,7 @@ fn sync_submodule(config: &SyncConfig, message: &str) -> Result<()> {
     Ok(())
 }
 
-/// Sync parent repository
+/// Sync parent repository (mimics git syncDots)
 fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
     println!(
         "➡️  Processing {} parent repository...",
@@ -416,71 +397,21 @@ fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
 
     switch_gh_user(&config.parent_user)?;
 
-    // Check if there are any changes at all
-    let has_any_changes = has_changes(&config.root)?;
-
-    println!("🔍 Debug: has_any_changes = {}", has_any_changes);
-    println!("🔍 Debug: root path = {:?}", config.root);
-
-    if !has_any_changes {
+    // Check if there are any changes
+    if !has_changes(&config.root)? {
         println!("📌 No changes in {} parent repository", config.parent_name);
         return Ok(());
     }
 
     println!("➡️  Changes detected in {}", config.parent_name.cyan());
 
-    // Stage all changes (submodule pointer and any other modified files)
-    git_command(&config.root, &["add", "--all"])?;
+    // Stage all changes
+    git_command(&config.root, &["add", "-A"])?;
 
-    // Double-check if there's anything staged after add
-    let diff_status = Command::new("git")
-        .args([
-            "-C",
-            config.root.to_str().unwrap(),
-            "diff",
-            "--cached",
-            "--quiet",
-        ])
-        .status()
-        .context("Failed to check staged diff")?;
+    // Commit with the provided message
+    git_command(&config.root, &["commit", "-m", message])?;
 
-    if diff_status.success() {
-        println!("📌 Nothing staged to commit in {}", config.parent_name);
-        return Ok(());
-    }
-
-    // Determine commit message based on what changed
-    let submodule_rel_path = config
-        .submodule_path
-        .strip_prefix(&config.root)
-        .ok()
-        .and_then(|p| p.to_str());
-
-    let has_submodule_change = if let Some(submodule_path) = submodule_rel_path {
-        !Command::new("git")
-            .args([
-                "-C",
-                config.root.to_str().unwrap(),
-                "diff",
-                "--cached",
-                "--quiet",
-                "--",
-                submodule_path,
-            ])
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(true)
-    } else {
-        false
-    };
-
-    let commit_msg = if has_submodule_change {
-        format!("bump {} submodule: {}", config.submodule_name, message)
-    } else {
-        message.to_string()
-    };
-
-    git_command(&config.root, &["commit", "--message", &commit_msg])?;
+    // Push changes
     git_command(&config.root, &["push"])?;
 
     println!(
@@ -504,7 +435,7 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
     if !execute {
         println!("{}", "Sync operation will:".bold().cyan());
         println!(
-            "  1. Commit & push {} submodule",
+            "  1. Commit & push {} submodule (if changes exist)",
             config.submodule_name.green()
         );
         println!(
@@ -531,8 +462,46 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
 
     check_gh_available()?;
 
+    // Sync submodule first
     sync_submodule(&config, &msg)?;
-    sync_parent_repo(&config, &msg)?;
+
+    // Then sync parent repo (which includes submodule pointer if it changed)
+    let parent_msg = if config.submodule_path.exists() && is_git_repo(&config.submodule_path) {
+        // Check if submodule pointer changed
+        let submodule_rel = config
+            .submodule_path
+            .strip_prefix(&config.root)
+            .ok()
+            .and_then(|p| p.to_str());
+
+        if let Some(submodule_path) = submodule_rel {
+            let status_output = Command::new("git")
+                .args([
+                    "-C",
+                    config.root.to_str().unwrap(),
+                    "status",
+                    "--porcelain",
+                    submodule_path,
+                ])
+                .output();
+
+            if let Ok(output) = status_output {
+                if !output.stdout.is_empty() {
+                    format!("bump {} submodule: {}", config.submodule_name, msg)
+                } else {
+                    msg.clone()
+                }
+            } else {
+                msg.clone()
+            }
+        } else {
+            msg.clone()
+        }
+    } else {
+        msg.clone()
+    };
+
+    sync_parent_repo(&config, &parent_msg)?;
 
     println!(
         "\n✅ {}",
@@ -875,7 +844,7 @@ fn main() -> Result<()> {
                 "{}",
                 "Commands with [host] accept an optional host name.".dimmed()
             );
-            println!("{}", "Default host:".dimmed(),);
+            println!("{}", "Default host:".dimmed());
             println!("  {}", get_current_host().green());
             println!();
             println!("{}", "Add --execute to run commands immediately".yellow());
