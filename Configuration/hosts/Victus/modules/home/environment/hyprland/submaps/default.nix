@@ -1,6 +1,0 @@
-{
-  submaps =
-    {}
-    // import ./movement.nix
-    // {};
-}
