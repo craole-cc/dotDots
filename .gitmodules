@@ -1,3 +1,6 @@
 [submodule "Configuration/hosts/Victus"]
 	path = Configuration/hosts/Victus
 	url = https://github.com/Craole/NixOS_Victus.git
+[submodule "Assets/Images/wallpaper"]
+	path = Assets/Images/wallpaper
+	url = https://github.com/Craole/wallpapers.git
