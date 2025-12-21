@@ -5,7 +5,6 @@
   system,
   lib,
   hosts,
-  lix,
   ...
 }: let
   name = "dotDots";
@@ -37,7 +36,13 @@
   #> Create the dotDots script using rust-script
   rustScript = writeShellScriptBin "dotDots" ''
     #!/usr/bin/env bash
-    exec ${pkgs.rust-script}/bin/rust-script ${./main.rs} "$@"
+    exec ${pkgs.rust-script}/bin/rust-script ${../../../Bin/rust/.dots.rs} "$@"
+  '';
+
+  #> Create sync command for submodules
+  syncCmd = writeShellScriptBin "_sync" ''
+    #!/usr/bin/env bash
+    exec ${pkgs.bash}/bin/bash ${../../../Bin/shellscript/project/git/sync.dots} "$@"
   '';
 
   #> Create REPL command
@@ -85,7 +90,10 @@
         "ft"
       ]
     )
-    // {_repl = replCmd;};
+    // {
+      _repl = replCmd;
+      _sync = syncCmd;
+    };
 
   packages = with pkgs;
     [
@@ -101,6 +109,9 @@
       tokei #? Counts lines of code per language
       undollar #? Replaces shell variable placeholders easily
       yazi #? TUI file manager with vim-like controls
+
+      #~@ Git tools
+      gh #? GitHub CLI for authentication switching
 
       #~@ Rust toolchain (for building dots-cli)
       rustc #? Rust compiler
@@ -155,7 +166,8 @@
       printf "System: $HOST_TYPE\n"
       printf "\n"
       printf "Type '_help' for available commands\n"
-      printf "Type 'dotDots help' for more options\n\n"
+      printf "Type 'dotDots help' for more options\n"
+      printf "Type '_sync [message]' to sync submodules\n\n"
     fi
   '';
 in

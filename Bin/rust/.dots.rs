@@ -95,6 +95,16 @@ enum Commands {
         execute: bool,
     },
 
+    /// Sync submodules and push changes
+    Sync {
+        /// Commit message (default: "sync <submodule>")
+        message: Vec<String>,
+
+        /// Execute the sync immediately
+        #[arg(long)]
+        execute: bool,
+    },
+
     /// List all available commands
     List,
 
@@ -110,6 +120,11 @@ fn get_current_host() -> String {
 /// Get current system from environment
 fn get_current_system() -> String {
     env::var("HOST_PLATFORM").unwrap_or_else(|_| "x86_64-linux".to_string())
+}
+
+/// Get DOTS path from environment
+fn get_dots_path() -> String {
+    env::var("DOTS").unwrap_or_else(|_| format!("{}/.dots", env::var("HOME").unwrap_or_default()))
 }
 
 /// Copy text to clipboard with cross-platform support
@@ -265,6 +280,42 @@ fn handle_command(base_cmd: &str, host: Option<String>, execute: bool) -> Result
     Ok(())
 }
 
+/// Handle sync command
+fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
+    let dots_path = get_dots_path();
+    let sync_script = format!("{}/Bin/shellscript/project/git/sync.dots", dots_path);
+
+    let msg = if message.is_empty() {
+        "sync Victus".to_string()
+    } else {
+        message.join(" ")
+    };
+
+    let command = format!("{} {}", sync_script, msg);
+
+    println!("{}", command.bright_white());
+
+    // Try to copy to clipboard
+    match copy_to_clipboard(&command) {
+        Ok(_) => println!("{}", "✓ Copied to clipboard".green()),
+        Err(e) => println!("{} {}", "⚠ Could not copy to clipboard:".yellow(), e),
+    }
+
+    // Execute if requested
+    if execute {
+        println!();
+        execute_command(&command)?;
+    } else {
+        println!();
+        println!(
+            "{}",
+            "💡 Tip: Add --execute to run the sync immediately".yellow()
+        );
+    }
+
+    Ok(())
+}
+
 /// Show welcome/help message
 fn show_help() {
     let host = get_current_host();
@@ -326,6 +377,11 @@ fn show_help() {
         "dotDots clean".dimmed()
     );
     println!(
+        "  {} or {}    - Sync submodules with message",
+        "_sync".cyan(),
+        "dotDots sync [message]".dimmed()
+    );
+    println!(
         "  {} or {}    - List all commands",
         "_list".cyan(),
         "dotDots list".dimmed()
@@ -353,6 +409,8 @@ fn show_help() {
     println!("  _rebuild --execute    # Run rebuild immediately");
     println!("  _rebuild QBX          # Show rebuild command for QBX");
     println!("  _update --execute     # Update flake");
+    println!("  _sync \"my changes\"    # Sync submodules with message");
+    println!("  _sync --execute       # Sync submodules immediately");
     println!("  _info                 # Show detailed host info with stats");
     println!("  gitui                 # Open git TUI");
     println!();
@@ -401,6 +459,8 @@ fn main() -> Result<()> {
             handle_command("sudo nix-collect-garbage -d", None, execute)
         }
 
+        Some(Commands::Sync { message, execute }) => handle_sync(message, execute),
+
         Some(Commands::List) => {
             println!("{}", "Available commands:".bold().cyan());
             println!(
@@ -444,6 +504,11 @@ fn main() -> Result<()> {
                 "clean".green()
             );
             println!(
+                "  {} {} - Sync submodules",
+                "dotDots".blue(),
+                "sync [message]".green()
+            );
+            println!(
                 "  {} {}             - List commands",
                 "dotDots".blue(),
                 "list".green()
@@ -456,7 +521,7 @@ fn main() -> Result<()> {
             println!();
             println!(
                 "{}",
-                "💡 Tip: Use underscore prefix for quick access: _hosts, _info, _rebuild, etc."
+                "💡 Tip: Use underscore prefix for quick access: _hosts, _info, _rebuild, _sync, etc."
                     .bright_yellow()
             );
             println!();
