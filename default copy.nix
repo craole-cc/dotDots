@@ -29,6 +29,7 @@
   nixosConfigurations = flake.nixosConfigurations or {};
 
   systems = lic.systems {inherit hosts;};
+  # systemPkgs = systems.pkgs;
   currentSystem = systems.system;
 
   #──────────────────────────────────────────────────────────────────────────────
@@ -49,6 +50,17 @@
     else head (attrValues nixosConfigurations);
 
   host = lic.host {inherit nixosConfigurations system;};
+  inherit (currentHost.config.networking) hostName;
+
+  # Create enhanced host info
+  hostData = {
+    name = hostName;
+    platform = currentHost.config.nixpkgs.hostPlatform.system;
+    paths = {
+      dots = src;
+      bin = src + "/Bin";
+    };
+  };
 
   #──────────────────────────────────────────────────────────────────────────────
   # REPL Helpers
@@ -96,9 +108,11 @@
         })
         userList.custom);
 
+      # Helper to safely get attributes with fallback
       getHomeAttr = attr: user: user.home.${attr} or {};
       getApiAttr = attr: user: user.api.${attr} or {};
 
+      # Generic config section maker with three sources
       mkConfigSection = corePath: homeAttr: apiAttr: {
         core = attrByPath (splitString "." corePath) {} host.config;
         home =
@@ -173,25 +187,208 @@
     in
       attrNames (filterAttrs (n: v: v.enable or false) services);
   };
-in {
+
+  #──────────────────────────────────────────────────────────────────────────────
+  # CLI Tools
+  #──────────────────────────────────────────────────────────────────────────────
+
+  inherit (pkgs) writeShellScriptBin;
+
+  # Create the main dotDots script using rust-script
+  rustScript = writeShellScriptBin "dotDots" ''
+    #!/usr/bin/env bash
+    exec ${pkgs.rust-script}/bin/rust-script ${./Bin/rust/.dots.rs} "$@"
+  '';
+
+  # Create REPL command
+  replCmd = writeShellScriptBin ".repl" ''
+    #!/usr/bin/env bash
+    exec nix repl --file ${toString ./.}/default.nix
+  '';
+
+  # Create wrapper scripts for each command
+  mkCmd = cmd:
+    writeShellScriptBin ".${cmd}" ''
+      #!/usr/bin/env bash
+      exec ${rustScript}/bin/dotDots ${cmd} "$@"
+    '';
+
+  commands =
+    listToAttrs (
+      map
+      (cmd: {
+        name = ".${cmd}";
+        value = mkCmd cmd;
+      })
+      [
+        #~@ Core commands
+        "hosts"
+        "info"
+        "rebuild"
+        "test"
+        "boot"
+        "dry"
+        "update"
+        "clean"
+        "sync"
+        "binit"
+        "list"
+        "help"
+
+        #TODO: These dont work yet, make them aliases
+        #~@ Workflow commands
+        "flick"
+        "flush"
+        "fmt"
+        "fo"
+        "ff"
+        "flow"
+        "flare"
+        "ft"
+      ]
+    )
+    // {".repl" = replCmd;};
+
+  packages = with pkgs;
+    [
+      #~@ Core tools
+      bat #? cat clone with syntax highlighting
+      fd #? fast alternative to 'find'
+      gitui #? TUI interface for git
+      gnused #? GNU sed for text processing
+      jq #? JSON processor and query tool
+      nil #? Nix language server
+      nixd #? Alternative Nix language server
+      onefetch #? Git repo info viewer (instant project summary)
+      tokei #? Counts lines of code per language
+      undollar #? Replaces shell variable placeholders easily
+      yazi #? TUI file manager with vim-like controls
+
+      #~@ Git tools
+      gh #? GitHub CLI for authentication switching
+
+      #~@ Rust toolchain (for building dots-cli)
+      rustc #? Rust compiler
+      cargo #? Rust package manager and build system
+      rust-analyzer #? Rust language server (LSP)
+      rustfmt #? Rust code formatter
+      rust-script #? Run Rust files as scripts
+
+      #~@ Clipboard dependencies
+      xclip #? Clipboard utility for X11
+      wl-clipboard #? Clipboard utility for Wayland
+      xsel #? Another X11 clipboard interaction tool
+
+      #~@ Formatters
+      alejandra #? Nix code formatter
+      markdownlint-cli2 #? Markdown linter and style checker
+      nixfmt #? Alternative Nix formatter
+      shellcheck #? Linter for shell scripts
+      shfmt #? Shell script formatter
+      taplo #? TOML formatter and linter
+      treefmt #? Unified formatting tool for multiple languages
+      yamlfmt #? YAML formatter
+    ]
+    ++ (attrValues commands)
+    ++ [rustScript];
+
+  #──────────────────────────────────────────────────────────────────────────────
+  # Development Shell
+  #──────────────────────────────────────────────────────────────────────────────
+
+  env = {
+    NIX_CONFIG = "experimental-features = nix-command flakes";
+    DOTS = toString src;
+    DOTS_BIN = toString (src + "/Bin");
+    # HOST_NAME = hostData.name;
+    # HOST_TYPE = hostData.platform;
+  };
+
+  shellHook = ''
+    #> Override DOTS to point to actual repository, not Nix store
+    export DOTS="$PWD"
+    export DOTS_BIN="$DOTS/Bin"
+
+    #> Dynamically determine host info (will work in impure shell context)
+    export HOST_NAME="$(hostname)"
+    export HOST_TYPE="${system}"
+
+    #> Set up cache directory using DOTS_CACHE or fallback to DOTS/.cache
+    export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/.cache"}"
+    export ENV_BIN="$DOTS_CACHE/bin"
+    mkdir -p "$ENV_BIN"
+
+    #> Add bin directory to PATH
+    export PATH="$ENV_BIN:$PATH"
+
+    #> Initialize bin directories
+    if command -v dotDots >/dev/null 2>&1; then
+      # Silently eval binit to add all bin directories to PATH (if implemented)
+      eval "$(dotDots binit 2>/dev/null || true)" 2>/dev/null || true
+    fi
+
+    #> Display a welcome message
+    if command -v dotDots >/dev/null 2>&1; then
+      dotDots help
+    else
+      printf "🎯 NixOS Configuration REPL\n"
+      printf "============================\n"
+      printf "\n"
+      printf "Current host: $HOST_NAME\n"
+      printf "System: $HOST_TYPE\n"
+      printf "\n"
+      printf "Type '.help' for available commands\n"
+      printf "Type 'dotDots help' for more options\n"
+      printf "Type '.repl' to enter Nix REPL\n"
+      printf "Type '.sync [message]' to commit & push all changes\n\n"
+    fi
+  '';
+
+  shell = pkgs.mkShell {
+    name = "dotDots";
+    inherit packages env shellHook;
+  };
+
+  #──────────────────────────────────────────────────────────────────────────────
   # REPL Interface
-  inherit api lix lib builtins helpers flake hosts;
+  #──────────────────────────────────────────────────────────────────────────────
 
-  #~@ Top-level host attributes
-  inherit (host) config options;
-  inherit (host._module) specialArgs;
-  inherit (flake) inputs;
+  repl = {
+    inherit
+      api
+      lix
+      lib
+      builtins
+      helpers
+      flake
+      hosts
+      ;
 
-  #~@ Convenient shortcuts to config sections
-  inherit
-    (helpers.hostInfo host.name)
-    users
-    aliases
-    packages
-    programs
-    services
-    variables
-    ;
+    #~@ Top-level host attributes
+    inherit
+      (host)
+      config
+      options
+      ;
 
-  inherit pkgs system;
-}
+    inherit (host._module) specialArgs;
+    inherit (flake) inputs;
+
+    #~@ Convenient shortcuts to config sections
+    inherit
+      (helpers.hostInfo host.name)
+      users
+      aliases
+      packages
+      programs
+      services
+      variables
+      ;
+
+    inherit pkgs system;
+
+    #~@ Development shell
+    inherit shell;
+  };
+in
+  repl
