@@ -74,7 +74,7 @@
     map (modulePath: import modulePath) modules;
 
   # Import all subdirectories of `dir` as modules, keyed by name.
-  importAttrset = dir: let
+  importAttrs = dir: let
     entries = readDir dir;
     dirNames = filter (name: entries.${name} == "directory") (attrNames entries);
   in
@@ -86,8 +86,8 @@
       dirNames
     );
 
-  importNames = dir: attrNames (importAttrset dir);
-  importValues = dir: attrValues (importAttrset dir);
+  importNames = dir: attrNames (importAttrs dir);
+  importValues = dir: attrValues (importAttrs dir);
 
   # Import all *.nix files (except default.nix) in `dir` as a list of modules.
   importAll = dir: let
@@ -141,7 +141,7 @@
     inherit
       importAll
       importAllMerged
-      importAttrset
+      importAttrs
       importNames
       importNixModules
       importValues

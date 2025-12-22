@@ -1,13 +1,14 @@
 {lib, ...}: let
   inherit (lib.attrsets) recursiveUpdate;
-  updateInterface = {
-    primaryUser,
+
+  enriched = {
+    user,
     host,
   }: let
     mergedInterface =
       recursiveUpdate
       (host.interface or {})
-      (primaryUser.interface or {});
+      (user.interface or {});
   in
     normalizeInterface mergedInterface;
 
@@ -359,7 +360,7 @@
       }
       else null;
 
-    update = {
+    updated = {
       displayProtocol =
         if selectedInterface != null
         then
@@ -418,7 +419,7 @@
     };
   in
     interface
-    // update
+    // updated
     // {
       interfaces = {
         inherit desktopEnvironments windowManagers loginManagers;
@@ -426,7 +427,7 @@
     };
 in {
   inherit
-    updateInterface
+    enriched
     loginManagers
     desktopEnvironments
     windowManagers
