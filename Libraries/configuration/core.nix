@@ -6,7 +6,7 @@
   inherit (_.configuration.home) mkUsers;
   inherit
     (lib.attrsets)
-    filterAttrs
+    # filterAttrs
     # optionalAttrs
     genAttrs
     mapAttrs
@@ -15,27 +15,18 @@
   inherit (lib.modules) mkDefault mkIf;
 
   mkCore = {
-    lix,
-    lib,
     hosts,
-    inputs,
-    extraArgs ? {},
+    specialArgs,
   }:
     mapAttrs (name: host:
       mkHost {
         inherit host;
-        specialArgs =
-          {
-            inherit host lix lib inputs;
-            inputs' = lix.inputs.prep inputs;
-          }
-          // extraArgs;
+        specialArgs = specialArgs // {inherit host;};
       })
     hosts;
 
   mkHost = {
     host,
-    nixosSystem,
     specialArgs,
   }: let
     inherit (host) name system dots;
@@ -43,8 +34,9 @@
     functionalities = host.functionalities or [];
     hasAudio = elem "audio" functionalities;
   in
-    nixosSystem {
-      inherit system specialArgs;
+    lib.nixosSystem {
+      inherit system;
+
       modules = [
         (mkUsers {inherit specialArgs;})
         (

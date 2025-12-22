@@ -79,13 +79,16 @@
     enabled ? {},
   }:
     if autoLogin != {}
-    then autoLogin
+    then head (attrValues autoLogin)
     else if elevated != {}
-    then let
-      sorted = sort (a: b: a._priority < b._priority) (attrValues elevated);
-    in {${(head sorted).name} = head sorted;}
+    then
+      head (
+        sort
+        (a: b: a._priority < b._priority)
+        (attrValues elevated)
+      )
     else if enabled != {}
-    then enabled
+    then head (attrValues enabled)
     else {};
 
   enriched = {

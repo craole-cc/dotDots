@@ -1,18 +1,41 @@
 {
   description = "dotDots Flake Configuration";
 
-  outputs = inputs @ {...}: let
+  outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixosCore) lib legacyPackages;
-    inherit (import src {inherit lib src;}) lix hosts users;
+    inherit (import src {inherit lib src;}) lix hosts schema;
     inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
-  in {
-    nixosConfigurations = lix.mkCore {inherit lix hosts users lib inputs;};
 
-    devShells = per (system: let
-      pkgs = pkgsFor system;
-      dotfiles = import src {inherit pkgs lib src system;};
-    in {default = dotfiles.shell;});
+    perSystem = per (system: let pkgs = pkgsFor system; in {inherit pkgs system lib src;});
+
+    inputModules = with inputs; {
+      core = {
+        age = secretManager.nixosModules.default;
+        home-manager = nixosHome.nixosModules.default;
+        nix-index = nixLocate.nixosModules.default;
+        nvf = neoVim.nixosModules.default;
+      };
+      home = {
+        noctalia-shell = shellNoctalia.homeModules.default;
+        dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
+        # inherit (niri.homeModules) niri; # Outdated
+        nvf = neoVim.homeManagerModules.default;
+        plasma-manager = plasma.homeModules.plasma-manager;
+        zen-browser = firefoxZen.homeModules.twilight;
+      };
+    };
+
+    specialArgs = {
+      flake = self;
+      inherit inputModules lix schema;
+    };
+  in {
+    nixosConfigurations = lix.mkCore {inherit hosts specialArgs;};
+    # devShells = per (system: let pkgs = pkgsFor system; in {inherit (import src {inherit pkgs lib src system;}) default;});
+    devShells = perSystem (ps: {
+      inherit (import src {inherit (ps) system pkgs lib src;}) default;
+    });
   };
 
   inputs = {
@@ -276,7 +299,7 @@
     # };
 
     #| Home
-    plasmaManager = {
+    plasma = {
       owner = "pjones";
       repo = "plasma-manager";
       type = "github";
@@ -322,22 +345,29 @@
       };
     };
 
-    niri = {
-      owner = "sodiboo";
-      repo = "niri-flake";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-      };
-    };
+    # TODO: Enable  when this gets updated
+    # niri = {
+    #   owner = "sodiboo";
+    #   repo = "niri-flake";
+    #   type = "github";
+    #   inputs = {
+    #     nixpkgs.follows = "nixosCore";
+    #   };
+    # };
 
-    quickShell = {
-      url = "github:outfoxxed/quickshell";
+    # quickShell = {
+    #   url = "github:outfoxxed/quickshell";
+    #   inputs.nixpkgs.follows = "nixosCore";
+    # };
+
+    shellNoctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixosCore";
     };
 
-    noctaliaShell = {
-      url = "github:noctalia-dev/noctalia-shell";
+    shellDankMaterial = {
+      # url = "github:AvengeMedia/DankMaterialShell/stable";
+      url = "github:AvengeMedia/DankMaterialShell";
       inputs.nixpkgs.follows = "nixosCore";
     };
 

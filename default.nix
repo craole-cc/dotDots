@@ -9,7 +9,11 @@
   # Core Imports
   #──────────────────────────────────────────────────────────────────────────────
   inherit (import ./Libraries {inherit lib src;}) lix;
-  inherit (import ./API {inherit lib;}) hosts users;
+  api = lix.schema.core.all {
+    hostsPath = ./API/hosts;
+    usersPath = ./API/users;
+  };
+  inherit (api) hosts users;
 
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
   inherit (lib.lists) length filter head findFirst;
@@ -345,13 +349,15 @@
   # REPL Interface
   #──────────────────────────────────────────────────────────────────────────────
 
-  replInterface = {
+  repl = {
     inherit
+      api
       lix
       lib
       builtins
       helpers
       flake
+      hosts
       ;
 
     #~@ Top-level host attributes
@@ -381,12 +387,4 @@
     inherit shell;
   };
 in
-  # Always return the full interface that includes shell
-  replInterface
-  // {
-    # Export these for external use
-    inherit lix users hosts shell;
-
-    # Make the API accessible
-    api = {inherit users hosts;};
-  }
+  repl
