@@ -9,14 +9,14 @@
   # Core Imports
   #──────────────────────────────────────────────────────────────────────────────
   inherit (import ./Libraries {inherit lib src;}) lix;
-  api = lix.schema.core.all {
+  schema = lix.schema.core.all {
     hostsPath = ./API/hosts;
     usersPath = ./API/users;
   };
-  inherit (api) hosts users;
+  inherit (schema) hosts users;
 
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
-  inherit (lib.lists) length filter head findFirst;
+  inherit (lib.lists) length filter head;
   inherit (lib.strings) splitString;
   inherit (lix.configuration.predicates) isSystemDefaultUser;
 
@@ -28,25 +28,25 @@
   flake = lic.flake {path = src;};
   nixosConfigurations = flake.nixosConfigurations or {};
 
-  systems = lic.systems {inherit hosts;};
-  currentSystem = systems.system;
+  # systems = lic.systems {inherit hosts;};
+  # currentSystem = systems.system;
 
   #──────────────────────────────────────────────────────────────────────────────
   # Host Resolution
   #──────────────────────────────────────────────────────────────────────────────
 
-  # Find a host that matches current system
-  matchingHost =
-    findFirst
-    (host: host.config.nixpkgs.hostPlatform.system or null == currentSystem)
-    null
-    (attrValues nixosConfigurations);
+  # # Find a host that matches current system
+  # matchingHost =
+  #   findFirst
+  #   (host: host.config.nixpkgs.hostPlatform.system or null == currentSystem)
+  #   null
+  #   (attrValues nixosConfigurations);
 
-  # Get the current host
-  currentHost =
-    if matchingHost != null
-    then matchingHost
-    else head (attrValues nixosConfigurations);
+  # # Get the current host
+  # currentHost =
+  #   if matchingHost != null
+  #   then matchingHost
+  #   else head (attrValues nixosConfigurations);
 
   host = lic.host {inherit nixosConfigurations system;};
 
@@ -174,12 +174,11 @@
       attrNames (filterAttrs (n: v: v.enable or false) services);
   };
 in {
-  # REPL Interface
-  inherit api lix lib builtins helpers flake hosts;
+  inherit schema lix lib helpers flake hosts;
 
   #~@ Top-level host attributes
   inherit (host) config options;
-  inherit (host._module) specialArgs;
+  # inherit (host._module) specialArgs;
   inherit (flake) inputs;
 
   #~@ Convenient shortcuts to config sections

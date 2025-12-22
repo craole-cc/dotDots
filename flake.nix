@@ -30,26 +30,11 @@
       inherit inputModules lix schema;
     };
 
-    # perSystem = perFlake ({
-    #   system,
-    #   pkgs,
-    # }: {
-    #   devShells = {
-    #     default = (import src {inherit system pkgs lib src;}).shell;
-    #     media = import ./Packages/cli/media.nix;
-    #   };
-    # });
     perSystem = perFlake ({
       system,
       pkgs,
-    }: let
-      shells = import ./Packages/cli {inherit pkgs lib lix src system;};
-    in {
-      devShells =
-        shells
-        // {
-          default = shells.dots; # Set dots as default
-        };
+    }: {
+      devShells = import ./Packages/cli {inherit pkgs lib lix src system;};
     });
 
     forSystem = {
