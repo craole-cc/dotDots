@@ -43,7 +43,7 @@
       system,
       pkgs,
     }: let
-      shells = import ./Packages/cli {inherit pkgs lib src system;};
+      shells = import ./Packages/cli {inherit pkgs lib lix src system;};
     in {
       devShells =
         shells
