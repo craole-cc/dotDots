@@ -109,7 +109,7 @@ in {
     "virtualization"
     "audio"
     "bluetooth"
-    # "touchpad" # Currently not functional
+    "touchpad"
     "wired"
     "wireless"
     "dualboot-windows"
@@ -125,8 +125,9 @@ in {
   access = {
     # ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
     # age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
+
     firewall = {
-      # enable = true;
+      enable = false; # TODO: Enable firewall after testing
       tcp = {
         ranges = [
           {
@@ -152,6 +153,7 @@ in {
         ports = [];
       };
     };
+
     nameservers = [
       "1.1.1.1" # Cloudflare DNS
       "1.0.0.1"
@@ -161,21 +163,15 @@ in {
   principals = [
     {
       name = "craole";
-      enable = false;
-      autoLogin = false;
-      # role = "administrator";
+      enable = true;
+      autoLogin = true;
+      role = "administrator";
     }
     {
       name = "cc";
-      enable = false;
+      enable = true;
       autoLogin = false;
-      # role = "admin";
-    }
-    {
-      name = "qyatt";
-      enable = false;
-      autoLogin = false;
-      role = "guest";
+      role = "service";
     }
   ];
 

@@ -2,45 +2,16 @@
   description = "dotDots Flake Configuration";
 
   outputs = inputs @ {self, ...}: let
-    # Helper function to process inputs with module locations
-    processInputs = rawInputs: let
-      inherit (rawInputs.nixosCore.lib) mapAttrs foldl' setDefaultModuleLocation;
-
-      # Function to add module location metadata to an individual input
-      processInput = input-name: raw-input:
-        foldl' (
-          acc: module-class:
-            if acc ? ${module-class}
-            then
-              acc
-              // {
-                ${module-class} =
-                  mapAttrs (
-                    module-name: _module:
-                      setDefaultModuleLocation "${input-name}.${module-class}.${module-name}" _module
-                  )
-                  acc.${module-class};
-              }
-            else acc
-        )
-        raw-input ["nixosModules" "homeModules"];
-    in
-      mapAttrs processInput rawInputs;
-
-    # Process all inputs
-    processedInputs = processInputs inputs;
-
     src = ./.;
-    inherit (processedInputs.nixosCore) lib legacyPackages;
+    inherit (inputs.nixosCore) lib legacyPackages;
     inherit (import src {inherit lib src;}) lix hosts users;
-
     inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
   in {
     nixosConfigurations = lix.mkCore {
-      inputs = processedInputs;
+      inputs = lix.processInputs inputs;
       inherit hosts users;
       inherit (lib) nixosSystem;
-      args = {inherit lix;};
+      args = {inherit lix self;};
     };
 
     devShells = per (system: let
