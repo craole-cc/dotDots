@@ -21,7 +21,8 @@
   # Create REPL command
   replCmd = writeShellScriptBin ".repl" ''
     #!/usr/bin/env bash
-    exec nix repl --file ${toString src}/default.nix
+    # exec nix repl --file ${toString src}/default.nix
+    exec nix repl --file ${src + "/default.nix"}
   '';
 
   # Create wrapper scripts for each command
