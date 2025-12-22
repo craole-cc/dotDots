@@ -38,7 +38,7 @@
       inherit system;
 
       modules = [
-        (mkUsers {inherit specialArgs;})
+        # (mkUsers {inherit specialArgs;})
         (
           {pkgs, ...}: {
             imports = host.imports or [];

@@ -5,9 +5,8 @@
     src = ./.;
     inherit (inputs.nixosCore) lib legacyPackages;
     inherit (import src {inherit lib src;}) lix hosts schema;
-    inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
-
-    perSystem = per (system: let pkgs = pkgsFor system; in {inherit pkgs system lib src;});
+    inherit (lix) getSystems mkCore;
+    inherit (getSystems {inherit hosts legacyPackages;}) pkgsFor perFlake;
 
     inputModules = with inputs; {
       core = {
@@ -30,13 +29,34 @@
       flake = self;
       inherit inputModules lix schema;
     };
-  in {
-    nixosConfigurations = lix.mkCore {inherit hosts specialArgs;};
-    # devShells = per (system: let pkgs = pkgsFor system; in {inherit (import src {inherit pkgs lib src system;}) default;});
-    devShells = perSystem (ps: {
-      inherit (import src {inherit (ps) system pkgs lib src;}) default;
+
+    # perSystem = perFlake ({
+    #   system,
+    #   pkgs,
+    # }: {
+    #   devShells = {
+    #     default = (import src {inherit system pkgs lib src;}).shell;
+    #     media = import ./Packages/cli/media.nix;
+    #   };
+    # });
+    perSystem = perFlake ({
+      system,
+      pkgs,
+    }: let
+      shells = import ./Packages/cli {inherit pkgs lib src system;};
+    in {
+      devShells =
+        shells
+        // {
+          default = shells.dots; # Set dots as default
+        };
     });
-  };
+
+    forSystem = {
+      nixosConfigurations = mkCore {inherit hosts specialArgs;};
+    };
+  in
+    perSystem // forSystem;
 
   inputs = {
     #| NixOS Official

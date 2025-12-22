@@ -5,7 +5,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues genAttrs mapAttrsToList optionalAttrs;
+  inherit (lib.attrsets) attrValues genAttrs attrNames mapAttrs mapAttrsToList optionalAttrs;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
@@ -95,15 +95,29 @@
 
     all = unique (defined ++ default);
     per = genAttrs all;
+    pkgsFor = system: pkgsBase.${system} or {};
+
+    # Enhanced perFlake that provides pkgs automatically
+    perFlake = fn: let
+      perSystemOutputs = per (system:
+        fn {
+          inherit system;
+          pkgs = pkgsFor system;
+        });
+      outputNames = attrNames (fn {
+        system = derived;
+        pkgs = pkgsFor derived;
+      });
+    in
+      genAttrs outputNames (
+        outputName:
+          mapAttrs (_: systemOutputs: systemOutputs.${outputName}) perSystemOutputs
+      );
   in {
-    inherit all default derived defined per;
+    inherit all default derived defined per pkgsFor perFlake;
     system = derived;
     inherit pkgsBase;
-    pkgs =
-      if pkgsBase ? derived
-      then pkgsBase.${derived}
-      else pkgs;
-    pkgsFor = system: pkgsBase.${system} or {};
+    pkgs = pkgsFor derived;
   };
 
   host = {
