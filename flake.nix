@@ -1,18 +1,13 @@
 {
   description = "dotDots Flake Configuration";
 
-  outputs = inputs @ {self, ...}: let
+  outputs = inputs @ {...}: let
     src = ./.;
     inherit (inputs.nixosCore) lib legacyPackages;
     inherit (import src {inherit lib src;}) lix hosts users;
     inherit (lix.getSystems {inherit hosts legacyPackages;}) per pkgsFor;
   in {
-    nixosConfigurations = lix.mkCore {
-      inputs = lix.processInputs inputs;
-      inherit hosts users;
-      inherit (lib) nixosSystem;
-      args = {inherit lix self;};
-    };
+    nixosConfigurations = lix.mkCore {inherit lix hosts users lib inputs;};
 
     devShells = per (system: let
       pkgs = pkgsFor system;

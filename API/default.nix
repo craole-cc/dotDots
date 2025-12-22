@@ -133,6 +133,7 @@
         system
         interface
         ;
+      inherit (host.paths) dots;
       users = user.data.enabled;
       metadata = {inherit user;};
     };

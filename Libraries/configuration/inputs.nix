@@ -32,7 +32,7 @@
   }
   ```
   */
-  processInput = name: input:
+  per = name: input:
     foldl' (
       acc: module-class:
         if acc ? ${module-class}
@@ -72,22 +72,22 @@
       home-manager.url = "github:nix-community/home-manager";
     };
 
-    outputs = { self, nixpkgs, home-manager, ... }:
-      let
-        processedInputs = processInputs { inherit nixpkgs home-manager; };
-      in {
-        nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
-          modules = [
-            processedInputs.nixpkgs.nixosModules.my-module
-            processedInputs.home-manager.nixosModules.home-manager
-          ];
-        };
+  outputs = { self, nixpkgs, home-manager, ... }:
+    let
+      processedInputs = prep { inherit nixpkgs home-manager; };
+    in {
+      nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
+        modules = [
+          processedInputs.nixpkgs.nixosModules.my-module
+          processedInputs.home-manager.nixosModules.home-manager
+        ];
       };
+    };
   }
   ```
   */
-  processInputs = rawInputs: mapAttrs processInput rawInputs;
+  prep = inputs: mapAttrs per inputs;
 in {
-  inherit processInput processInputs;
-  _rootAliases = {inherit processInputs;};
+  inherit per prep;
+  _rootAliases = {processInputs = prep;};
 }

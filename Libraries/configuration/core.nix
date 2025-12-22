@@ -7,7 +7,7 @@
   inherit
     (lib.attrsets)
     filterAttrs
-    optionalAttrs
+    # optionalAttrs
     genAttrs
     mapAttrs
     ;
@@ -15,35 +15,28 @@
   inherit (lib.modules) mkDefault mkIf;
 
   mkCore = {
-    nixosSystem,
-    users,
+    lix,
+    lib,
     hosts,
     inputs,
-    args ? {},
+    extraArgs ? {},
   }:
-    mapAttrs (name: host: let
-      dots = host.paths.dots or null;
-      system = host.platform or builtins.currentSystem;
-    in
+    mapAttrs (name: host:
       mkHost {
-        inherit nixosSystem inputs;
-        host =
-          host
-          // {
-            inherit name dots system;
-            users =
-              mapAttrs (name: config: users.${name} or {} // config)
-              (filterAttrs (_: cfg: cfg.enable or false) host.users);
-          };
-        extraArgs = args // {inherit dots system;};
+        inherit host;
+        specialArgs =
+          {
+            inherit host lix lib inputs;
+            inputs' = lix.inputs.prep inputs;
+          }
+          // extraArgs;
       })
     hosts;
 
   mkHost = {
     host,
     nixosSystem,
-    inputs,
-    extraArgs,
+    specialArgs,
   }: let
     inherit (host) name system dots;
     localization = host.localization or {};
@@ -51,13 +44,12 @@
     hasAudio = elem "audio" functionalities;
   in
     nixosSystem {
-      inherit system;
-      specialArgs = extraArgs;
+      inherit system specialArgs;
       modules = [
-        (mkUsers {inherit host extraArgs inputs;})
+        (mkUsers {inherit specialArgs;})
         (
           {pkgs, ...}: {
-            inherit (host) imports;
+            imports = host.imports or [];
             system = {inherit (host) stateVersion;};
 
             nix = {
@@ -206,28 +198,22 @@
             security.rtkit.enable = hasAudio;
 
             environment = {
-              shellAliases =
-                {
-                  ll = "lsd --long --git --almost-all";
-                  lt = "lsd --tree";
-                  lr = "lsd --long --git --recursive";
-                }
-                // (
-                  optionalAttrs (dots != null) {
-                    edit-dots = "$EDITOR ${dots}";
-                    ide-dots = "$VISUAL ${dots}";
-                    push-dots = "gitui --directory ${dots}";
-                    repl-host = "nix repl ${dots}#nixosConfigurations.$(hostname)";
-                    repl-dots = "nix repl ${dots}#repl";
-                    switch-dots = "sudo nixos-rebuild switch --flake ${dots}";
-                    nxs = "push-dots; switch-dots";
-                    nxu = "push-dots; switch-dots; topgrade";
-                  }
-                );
-              sessionVariables =
-                if dots != null
-                then {DOTS = dots;}
-                else {};
+              shellAliases = {
+                ll = "lsd --long --git --almost-all";
+                lt = "lsd --tree";
+                lr = "lsd --long --git --recursive";
+                edit-dots = "$EDITOR ${dots}";
+                ide-dots = "$VISUAL ${dots}";
+                push-dots = "gitui --directory ${dots}";
+                repl-host = "nix repl ${dots}#nixosConfigurations.$(hostname)";
+                repl-dots = "nix repl ${dots}#repl";
+                switch-dots = "sudo nixos-rebuild switch --flake ${dots}";
+                nxs = "push-dots; switch-dots";
+                nxu = "push-dots; switch-dots; topgrade";
+              };
+              sessionVariables = {
+                DOTS = dots;
+              };
               systemPackages = with pkgs; [
                 #~@ Development
                 helix
