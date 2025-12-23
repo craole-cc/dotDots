@@ -1,0 +1,83 @@
+# .dots.toml
+name = "dotDots"
+version = "0.8"
+
+[git]
+user = "craole-cc"
+email = "craole@example.com" # optional, for completeness
+
+[options]
+tag = ">>= DOTS =<<"
+verbosity = "Error"
+
+[experimental_features]
+enabled = ["PSFeedbackProvider"]
+
+[excludes]
+patterns = [
+  "review",
+  "tmp",
+  "temp",
+  "archive",
+  "backup",
+  "*.bac",
+  "*.bak",
+  "* copy*",
+  "*.old",
+  "Tests",
+  "Test",
+  "Configuration/powershell",
+]
+
+[order_files]
+filenames = [
+  ".dotsrc",
+  ".dots.conf",
+  ".dots.json",
+  ".dots.toml",
+  "dots.json",
+  "dots.toml",
+]
+
+[[includes]]
+path = "Bin/powershell"
+modules = [
+  "Admin",
+  "Components",
+  "Types",
+  "Output",
+  "FileSystem",
+  "Environment",
+  "Applications",
+]
+
+[[includes]]
+path = "Configuration"
+modules = [
+  "scoop",
+  "winget",
+  "mise-en-place",
+  "helix",
+  "jujutsu",
+  "rust",
+  "neo4j",
+  "neovim",
+  "WindowsTerminal",
+  "oh-my-posh",
+]
+
+[submodules.victus]
+path = "Configuration/hosts/Victus"
+writable = true
+description = "Victus laptop NixOS configuration"
+
+[submodules.victus.git]
+user = "Craole"
+
+[submodules.wallpapers]
+path = "Assets/Images/wallpaper"
+writable = true
+description = "Wallpaper collection"
+
+[submodules.wallpapers.git]
+user = "Craole"

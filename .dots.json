@@ -1,39 +1,50 @@
 {
-  "Options": {
-    "Tag": ">>= DOTS =<<",
-    "Verbosity": "Error",
-    "VerbosePreference": "SilentlyContinue",
-    "DebugPreference": "SilentlyContinue",
-    "InformationPreference": "SilentlyContinue",
-    "WarningPreference": "SilentlyContinue",
-    "ErrorActionPreference": "Continue"
+  "name": "dotDots",
+  "git": {
+    "user": "craole-cc",
+    "email": "craole@example.com"
   },
-  "ExperimentalFeatures": [
-    "PSFeedbackProvider"
-  ],
-  "Excludes": [
-    "review",
-    "tmp",
-    "temp",
-    "archive",
-    "backup",
-    "*.bac",
-    "*.bak",
-    "* copy*",
-    "*.old",
-    "Tests",
-    "Test",
-    "Configuration\\powershell"
-  ],
-  "OrderFiles": [
-    ".dotsrc",
-    ".dots.conf",
-    ".dots.json",
-    ".dots.toml",
-    "dots.json",
-    "dots.toml"
-  ],
-  "Includes": [
+  "options": {
+    "tag": ">>= DOTS =<<",
+    "verbosity": "Error",
+    "verbosePreference": "SilentlyContinue",
+    "debugPreference": "SilentlyContinue",
+    "informationPreference": "SilentlyContinue",
+    "warningPreference": "SilentlyContinue",
+    "errorActionPreference": "Continue"
+  },
+  "experimental_features": {
+    "enabled": [
+      "PSFeedbackProvider"
+    ]
+  },
+  "excludes": {
+    "patterns": [
+      "review",
+      "tmp",
+      "temp",
+      "archive",
+      "backup",
+      "*.bac",
+      "*.bak",
+      "* copy*",
+      "*.old",
+      "Tests",
+      "Test",
+      "Configuration\\powershell"
+    ]
+  },
+  "order_files": {
+    "filenames": [
+      ".dotsrc",
+      ".dots.conf",
+      ".dots.json",
+      ".dots.toml",
+      "dots.json",
+      "dots.toml"
+    ]
+  },
+  "includes": [
     {
       "path": "Bin\\powershell",
       "modules": [
@@ -65,5 +76,23 @@
       "path": "Tests\\powershell",
       "modules": []
     }
-  ]
+  ],
+  "submodules": {
+    "victus": {
+      "path": "Configuration/hosts/Victus",
+      "writable": true,
+      "description": "Victus laptop NixOS configuration",
+      "git": {
+        "user": "Craole"
+      }
+    },
+    "wallpapers": {
+      "path": "Assets/Images/wallpaper",
+      "writable": true,
+      "description": "Wallpaper collection",
+      "git": {
+        "user": "Craole"
+      }
+    }
+  }
 }

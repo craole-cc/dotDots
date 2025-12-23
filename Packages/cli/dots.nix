@@ -1,12 +1,13 @@
 {
   lib,
+  lix,
   src,
   system,
   pkgs,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs attrValues filterAttrs genAttrs;
-  inherit (pkgs) writeShellApplication;
+  inherit (lib.attrsets) attrValues filterAttrs genAttrs mapAttrs;
+  inherit (lix) mkShellApp;
 
   #──────────────────────────────────────────────────────────────────────────────
   # Configuration
@@ -16,29 +17,18 @@
     name = "dotDots";
     version = "2.0.0";
     cacheDirDefault = ".cache";
-    binDirName = "bin";
+    binDirName = "Bin";
     prefix = "_";
   };
+  inherit (config) name;
 
   #──────────────────────────────────────────────────────────────────────────────
   # CLI Tools
   #──────────────────────────────────────────────────────────────────────────────
 
-  #> Enhanced command builder
-  mkApp = {
-    name,
-    inputs ? [],
-    command,
-  }:
-    writeShellApplication {
-      inherit name;
-      runtimeInputs = inputs;
-      text = command;
-    };
-
   #> Main dotDots script using rust-script
-  main = mkApp {
-    inherit (config) name;
+  main = mkShellApp {
+    inherit name;
     inputs = [pkgs.rust-script];
     command = ''exec rust-script ${src + "/Bin/rust/.dots.rs"} "$@"'';
   };
@@ -106,7 +96,7 @@
     #> Generate dotDots wrappers (with . prefix)
     (genAttrs commands.main (
       cmd:
-        mkApp {
+        mkShellApp {
           name = "${config.prefix}${cmd}";
           inputs = [main];
           command = ''exec dotDots ${cmd} "$@"'';
@@ -115,7 +105,7 @@
     #> Add standalone commands (with . prefix)
     // (mapAttrs (
         name: cfg:
-          mkApp {
+          mkShellApp {
             name = "${config.prefix}${name}";
             inherit (cfg) inputs command;
           }

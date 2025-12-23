@@ -1,9 +1,9 @@
 #!/usr/bin/env -S rust-script
-//! Version: 0.2.0
+//! Version: 0.3.0
 //! ```cargo
 //! [package]
 //! name = "dotdots-cli"
-//! version = "0.2.0"
+//! version = "0.3.0"
 //! edition = "2021"
 //!
 //! [dependencies]
@@ -14,6 +14,7 @@
 //! toml = "0.8"
 //! colored = "2.0"
 //! arboard = "3.2"
+//! dirs = "5.0"
 //! ```
 
 use anyhow::{Context, Result};
@@ -121,53 +122,108 @@ enum Commands {
     Help,
 }
 
-/// Configuration structures for submodules
+/// Configuration structures
 #[derive(Debug, Deserialize, Serialize)]
-struct SubmodulesConfig {
-    parent: ParentConfig,
+struct DotsConfig {
+    #[serde(default)]
+    name: String,
+
+    #[serde(default)]
+    git: GitConfig,
+
+    #[serde(default)]
+    options: Options,
+
+    #[serde(default)]
+    experimental_features: ExperimentalFeatures,
+
+    #[serde(default)]
+    excludes: Excludes,
+
+    #[serde(default)]
+    order_files: OrderFiles,
+
+    #[serde(default)]
+    includes: Vec<Include>,
+
+    #[serde(default)]
     submodules: HashMap<String, SubmoduleConfig>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct ParentConfig {
-    name: String,
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct GitConfig {
+    #[serde(default)]
     user: String,
+    #[serde(default)]
+    email: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct Options {
+    #[serde(default)]
+    tag: String,
+    #[serde(default)]
+    verbosity: String,
+    #[serde(default, rename = "verbosePreference")]
+    verbose_preference: String,
+    #[serde(default, rename = "debugPreference")]
+    debug_preference: String,
+    #[serde(default, rename = "informationPreference")]
+    information_preference: String,
+    #[serde(default, rename = "warningPreference")]
+    warning_preference: String,
+    #[serde(default, rename = "errorActionPreference")]
+    error_action_preference: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct ExperimentalFeatures {
+    #[serde(default)]
+    enabled: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct Excludes {
+    #[serde(default)]
+    patterns: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct OrderFiles {
+    #[serde(default)]
+    filenames: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Include {
+    path: String,
+    #[serde(default)]
+    modules: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 struct SubmoduleConfig {
     path: String,
-    user: String,
     writable: bool,
     #[serde(default)]
     description: String,
+    #[serde(default)]
+    git: GitConfig,
 }
 
 /// Configuration for sync operation
 struct SyncConfig {
     root: PathBuf,
-    config: SubmodulesConfig,
+    config: DotsConfig,
 }
 
 impl SyncConfig {
     fn new() -> Result<Self> {
-        // Get the actual repository root from DOTS environment variable
         let dots_var = env::var("DOTS").context("DOTS environment variable not set")?;
         let root = PathBuf::from(&dots_var);
-
-        // Resolve the real path if it's a symlink or relative path
         let real_root = fs::canonicalize(&root).unwrap_or_else(|_| root.clone());
 
-        // Try to load submodules.toml
-        let config_path = real_root.join("submodules.toml");
-        let config = if config_path.exists() {
-            let config_str =
-                fs::read_to_string(&config_path).context("Failed to read submodules.toml")?;
-            toml::from_str(&config_str).context("Failed to parse submodules.toml")?
-        } else {
-            // Fallback to default config for backwards compatibility
-            Self::default_config()
-        };
+        let config = Self::load_config(&real_root)?;
 
         Ok(Self {
             root: real_root,
@@ -175,23 +231,85 @@ impl SyncConfig {
         })
     }
 
-    fn default_config() -> SubmodulesConfig {
+    fn load_config(root: &Path) -> Result<DotsConfig> {
+        // Priority order for config filenames (TOML first, then JSON)
+        let config_filenames = [
+            ".dots.toml",
+            "dots.toml",
+            "config.toml",
+            ".config.toml",
+            ".config/dots.toml",
+            ".dots.json",
+            "dots.json",
+            ".dots.conf",
+            ".dotsrc",
+        ];
+
+        // Search locations in priority order
+        let search_paths = vec![
+            root.to_path_buf(),
+            dirs::home_dir().unwrap_or_default(),
+            dirs::home_dir().unwrap_or_default().join(".config"),
+        ];
+
+        // Try each location with each filename
+        for search_path in &search_paths {
+            for filename in &config_filenames {
+                let config_path = search_path.join(filename);
+                if config_path.exists() {
+                    let config_str = fs::read_to_string(&config_path).with_context(|| {
+                        format!("Failed to read config at {}", config_path.display())
+                    })?;
+
+                    // Determine format by extension
+                    let config: DotsConfig = if filename.ends_with(".toml") {
+                        toml::from_str(&config_str).with_context(|| {
+                            format!("Failed to parse TOML config at {}", config_path.display())
+                        })?
+                    } else {
+                        // Assume JSON for .json, .conf, or no extension
+                        serde_json::from_str(&config_str).with_context(|| {
+                            format!("Failed to parse JSON config at {}", config_path.display())
+                        })?
+                    };
+
+                    eprintln!("Loaded config from: {}", config_path.display());
+                    return Ok(config);
+                }
+            }
+        }
+
+        // No config found, use defaults
+        eprintln!("No config file found, using defaults");
+        Ok(Self::default_config())
+    }
+
+    fn default_config() -> DotsConfig {
         let mut submodules = HashMap::new();
         submodules.insert(
             "victus".to_string(),
             SubmoduleConfig {
                 path: "Configuration/hosts/Victus".to_string(),
-                user: "Craole".to_string(),
                 writable: true,
                 description: "Victus laptop NixOS configuration".to_string(),
+                git: GitConfig {
+                    user: "Craole".to_string(),
+                    email: String::new(),
+                },
             },
         );
 
-        SubmodulesConfig {
-            parent: ParentConfig {
-                name: "dotDots".to_string(),
+        DotsConfig {
+            name: "dotDots".to_string(),
+            git: GitConfig {
                 user: "craole-cc".to_string(),
+                email: String::new(),
             },
+            options: Options::default(),
+            experimental_features: ExperimentalFeatures::default(),
+            excludes: Excludes::default(),
+            order_files: OrderFiles::default(),
+            includes: Vec::new(),
             submodules,
         }
     }
@@ -199,12 +317,12 @@ impl SyncConfig {
 
 /// Get current host name from environment
 fn get_current_host() -> String {
-    env::var("HOST_NAME").unwrap_or_else(|_| "QBX".to_string())
+    env::var("HOSTNAME").unwrap_or_else(|_| "nixos".to_string())
 }
 
 /// Get current system from environment
 fn get_current_system() -> String {
-    env::var("HOST_PLATFORM").unwrap_or_else(|_| "x86_64-linux".to_string())
+    env::var("HOSTTYPE").unwrap_or_else(|_| "x86_64-linux".to_string())
 }
 
 /// Find all bin directories in the repository
@@ -394,7 +512,7 @@ fn git_command(path: &Path, args: &[&str]) -> Result<()> {
     Ok(())
 }
 
-/// Sync submodule repository (mimics git syncVictus)
+/// Sync submodule repository
 fn sync_submodule(
     config: &SyncConfig,
     name: &str,
@@ -423,7 +541,16 @@ fn sync_submodule(
         return Ok(());
     }
 
-    switch_gh_user(&submodule.user)?;
+    // Use submodule's git user, fallback to parent's git user
+    let git_user = if !submodule.git.user.is_empty() {
+        &submodule.git.user
+    } else {
+        &config.config.git.user
+    };
+
+    if !git_user.is_empty() {
+        switch_gh_user(git_user)?;
+    }
 
     if has_changes(&submodule_path)? {
         println!("➡️  Changes detected in {}", name.cyan());
@@ -440,35 +567,28 @@ fn sync_submodule(
     Ok(())
 }
 
-/// Sync parent repository (mimics git syncDots)
+/// Sync parent repository
 fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
     println!(
         "➡️  Processing {} parent repository...",
-        config.config.parent.name.cyan()
+        config.config.name.cyan()
     );
 
     if !is_git_repo(&config.root) {
-        anyhow::bail!(
-            "{} directory is not a git repository",
-            config.config.parent.name
-        );
+        anyhow::bail!("{} directory is not a git repository", config.config.name);
     }
 
-    switch_gh_user(&config.config.parent.user)?;
+    if !config.config.git.user.is_empty() {
+        switch_gh_user(&config.config.git.user)?;
+    }
 
     // Check if there are any changes
     if !has_changes(&config.root)? {
-        println!(
-            "📌 No changes in {} parent repository",
-            config.config.parent.name
-        );
+        println!("📌 No changes in {} parent repository", config.config.name);
         return Ok(());
     }
 
-    println!(
-        "➡️  Changes detected in {}",
-        config.config.parent.name.cyan()
-    );
+    println!("➡️  Changes detected in {}", config.config.name.cyan());
 
     // Stage all changes
     git_command(&config.root, &["add", "-A"])?;
@@ -481,7 +601,7 @@ fn sync_parent_repo(config: &SyncConfig, message: &str) -> Result<()> {
 
     println!(
         "✅ {} parent repository updated",
-        config.config.parent.name.green()
+        config.config.name.green()
     );
 
     Ok(())
@@ -538,7 +658,7 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
         println!(
             "  {}. Commit & push {}",
             if readonly_count > 0 { 3 } else { 2 },
-            config.config.parent.name.green()
+            config.config.name.green()
         );
         println!("\n{}", format!("Message: \"{}\"", msg).yellow());
         println!(
@@ -603,7 +723,7 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
         "\n✅ {}",
         format!(
             "Complete: All changes synced ({} + {})",
-            submodule_list, config.config.parent.name
+            submodule_list, config.config.name
         )
         .green()
         .bold()

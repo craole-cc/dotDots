@@ -6,7 +6,7 @@
   system,
   ...
 }: let
-  dots = import ./dots.nix {inherit pkgs lib src system;};
+  dots = import ./dots.nix {inherit pkgs lix lib src system;};
   media = import ./media.nix {inherit pkgs;};
   rust = import ./rust.nix {inherit pkgs;};
 in {
