@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib.attrsets) genAttrs mapAttrs attrValues;
+  inherit (lib.attrsets) mapAttrs attrValues filterAttrs genAttrs;
   inherit (pkgs) writeShellApplication;
 
   #──────────────────────────────────────────────────────────────────────────────
@@ -13,23 +13,18 @@
   #──────────────────────────────────────────────────────────────────────────────
 
   config = {
+    name = "dotDots";
     version = "2.0.0";
     cacheDirDefault = ".cache";
     binDirName = "bin";
+    prefix = "_";
   };
 
   #──────────────────────────────────────────────────────────────────────────────
   # CLI Tools
   #──────────────────────────────────────────────────────────────────────────────
 
-  #> Main dotDots script using rust-script
-  rustScript = writeShellApplication {
-    name = "dotDots";
-    runtimeInputs = [pkgs.rust-script];
-    text = ''exec rust-script ${src + "/Bin/rust/.dots.rs"} "$@"'';
-  };
-
-  #> Generic app builder
+  #> Enhanced command builder
   mkApp = {
     name,
     inputs ? [],
@@ -41,185 +36,149 @@
       text = command;
     };
 
-  #> Command definitions
-  dotDotsCommands = [
-    "hosts"
-    "info"
-    "rebuild"
-    "test"
-    "boot"
-    "dry"
-    "update"
-    "clean"
-    "sync"
-    "binit"
-    "list"
-    "help"
-  ];
+  #> Main dotDots script using rust-script
+  main = mkApp {
+    inherit (config) name;
+    inputs = [pkgs.rust-script];
+    command = ''exec rust-script ${src + "/Bin/rust/.dots.rs"} "$@"'';
+  };
 
-  #> Standalone commands with enhanced functionality
-  standaloneCommands = {
+  commands = {
+    main = [
+      "hosts"
+      "info"
+      "rebuild"
+      "test"
+      "boot"
+      "dry"
+      "update"
+      "clean"
+      "sync"
+      "binit"
+      "list"
+      "help"
+    ];
+
     repl = {
       inputs = [];
       command = ''exec nix repl --file ${src + "/default.nix"}'';
     };
-
     fmt = {
       inputs = with pkgs; [treefmt];
       command = ''
-        echo "🎨 Formatting all files with treefmt..."
+        printf "🎨 Formatting all files with treefmt...\n"
         cd "$DOTS" || exit 1
         exec treefmt "$@"
       '';
     };
-
     check = {
       inputs = with pkgs; [treefmt shellcheck];
       command = ''
-        echo "🔍 Running checks..."
+        printf "🔍 Running checks...\n"
         cd "$DOTS" || exit 1
-
-        echo "  → Checking formatting..."
+        printf "  → Checking formatting...\n"
         if ! treefmt --fail-on-change; then
-          echo "❌ Format check failed. Run '.fmt' to fix."
+          printf "❌ Format check failed. Run '.fmt' to fix.\n"
           exit 1
         fi
-
-        echo "  → Checking shell scripts..."
+        printf "  → Checking shell scripts...\n"
         if ! find "$DOTS" -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck {} + 2>/dev/null; then
-          echo "❌ Shell check failed."
+          printf "❌ Shell check failed.\n"
           exit 1
         fi
-
-        echo "✅ All checks passed!"
+        printf "✅ All checks passed!\n"
       '';
     };
-
     status = {
       inputs = with pkgs; [git];
       command = ''
-        echo "📊 Repository Status"
-        echo "===================="
-        echo "Host: $HOST_NAME ($HOST_TYPE)"
-        echo "Location: $DOTS"
-        echo ""
+        printf "📊 Repository Status\n"
+        printf "====================\n"
+        printf "Host: %s (%s)\n" "$HOST_NAME" "$HOST_TYPE"
+        printf "Location: %s\n" "$DOTS"
+        printf "\n"
         git -C "$DOTS" status --short --branch
       '';
     };
-
-    backup = {
-      inputs = with pkgs; [gnutar gzip];
-      command = ''
-        BACKUP_DIR="''${DOTS_BACKUP_DIR:-$HOME/.config/nixos-backups}"
-        mkdir -p "$BACKUP_DIR"
-        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-        BACKUP_FILE="$BACKUP_DIR/dotdots_backup_$TIMESTAMP.tar.gz"
-
-        echo "💾 Creating backup..."
-        tar -czf "$BACKUP_FILE" -C "$(dirname "$DOTS")" "$(basename "$DOTS")" \
-          --exclude='.cache' --exclude='result*' --exclude='.git'
-
-        echo "✅ Backup created: $BACKUP_FILE"
-      '';
-    };
   };
 
-  #> Generate all commands
-  commands =
-    #> Generate dotDots wrappers (add . prefix here)
-    (genAttrs dotDotsCommands (
+  apps =
+    #> Generate dotDots wrappers (with . prefix)
+    (genAttrs commands.main (
       cmd:
         mkApp {
-          name = ".${cmd}";
-          inputs = [rustScript];
+          name = "${config.prefix}${cmd}";
+          inputs = [main];
           command = ''exec dotDots ${cmd} "$@"'';
         }
     ))
-    #> Add standalone commands (add . prefix here)
+    #> Add standalone commands (with . prefix)
     // (mapAttrs (
         name: cfg:
           mkApp {
-            name = ".${name}";
+            name = "${config.prefix}${name}";
             inherit (cfg) inputs command;
           }
       )
-      standaloneCommands);
+      (filterAttrs (name: _: name != "main") commands));
 
   #──────────────────────────────────────────────────────────────────────────────
-  # Package Groups (Organized & Categorized)
+  # Packages
   #──────────────────────────────────────────────────────────────────────────────
 
-  packageGroups = {
-    core = with pkgs; [
-      bat # Better cat
-      fd # Better find
-      ripgrep # Better grep
-      eza # Better ls
-      gitui # Git TUI
-      jq # JSON processor
-      yazi # File manager
-      tokei # Code statistics
-    ];
-
-    nix = with pkgs; [
-      nil # Nix LSP
-      nixd # Nix language server
-      nix-tree # Visualize dependencies
-      nix-output-monitor # Better build output
-    ];
-
-    git = with pkgs; [
-      gh # GitHub CLI
-      git-cliff # Changelog generator
-      onefetch # Git repo summary
-    ];
-
-    rust = with pkgs; [
-      rustc
-      cargo
-      rust-analyzer
-      rustfmt
-      clippy
-      rust-script
-    ];
-
-    clipboard = with pkgs; [
-      xclip
-      wl-clipboard
-      xsel
-    ];
-
-    formatters = with pkgs; [
-      alejandra # Nix formatter (opinionated)
-      nixfmt # Nix formatter (RFC style)
-      shellcheck # Shell script linter
-      shfmt # Shell script formatter
-      treefmt # Multi-language formatter orchestrator
-      markdownlint-cli2 # Markdown linter
-      taplo # TOML formatter
-      yamlfmt # YAML formatter
-      nodePackages.prettier # JS/TS/JSON/CSS/HTML formatter
-    ];
-
-    utilities = with pkgs; [
-      undollar # Remove $ from commands
-      watchexec # File watcher
-      direnv # Environment switcher
-      gnused # GNU sed
-    ];
-  };
-
-  #> Flatten all package groups + commands + rustScript
   packages =
-    (attrValues packageGroups.core)
-    ++ (attrValues packageGroups.nix)
-    ++ (attrValues packageGroups.git)
-    ++ (attrValues packageGroups.rust)
-    ++ (attrValues packageGroups.clipboard)
-    ++ (attrValues packageGroups.formatters)
-    ++ (attrValues packageGroups.utilities)
-    ++ (attrValues commands)
-    ++ [rustScript];
+    [main]
+    ++ (attrValues apps)
+    ++ (with pkgs; ([
+      ]
+      ++ [
+        #~@ Rust
+        rustc
+        cargo
+        rust-analyzer
+        rustfmt
+        rust-script
+        clippy
+      ]
+      ++ [
+        #~@ Formatters
+        alejandra
+        markdownlint-cli2
+        nixfmt
+        shellcheck
+        shfmt
+        taplo
+        treefmt
+        yamlfmt
+      ]
+      ++ [
+        #~@ Clipboard
+        xclip
+        wl-clipboard
+        xsel
+      ]
+      ++ [
+        #~@ Utilities
+        bat
+        direnv
+        eza
+        fd
+        gitui
+        gnused
+        jq
+        mpv
+        nil
+        nix-output-monitor
+        nix-tree
+        nixd
+        onefetch
+        ripgrep
+        tokei
+        undollar
+        watchexec
+        yazi
+        yazi
+      ]));
 
   #──────────────────────────────────────────────────────────────────────────────
   # Shell Configuration
@@ -227,30 +186,25 @@
 
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
-    DOTS = toString src;
-    DOTS_BIN = toString (src + "/Bin");
+    # DOTS = toString src;
+    # DOTS_BIN = toString (src + "/Bin");
     DOTS_VERSION = config.version;
   };
 
-  shellHook = ''
-    #──────────────────────────────────────────────────────────────────────────────
-    # Environment Setup
-    #──────────────────────────────────────────────────────────────────────────────
-
-    #> Override DOTS to point to actual repository, not Nix store
-    export DOTS="$PWD"
-    export DOTS_BIN="$DOTS/Bin"
+  #> Override DOTS to point to actual repository, not Nix store
+  # export DOTS="$PWD"
+  # export DOTS_BIN="$DOTS/Bin"
+  shellHook = with config; ''
 
     #> Dynamically determine host info
     export HOST_NAME="$(hostname)"
     export HOST_TYPE="${system}"
 
     #> Set up cache directory structure
-    export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${config.cacheDirDefault}"}"
-    export ENV_BIN="$DOTS_CACHE/${config.binDirName}"
+    export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cacheDirDefault}"}"
+    export ENV_BIN="$DOTS_CACHE/${binDirName}"
     export DOTS_LOGS="$DOTS_CACHE/logs"
     export DOTS_TMP="$DOTS_CACHE/tmp"
-
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
 
     #> Add bin directory to PATH
@@ -258,11 +212,6 @@
 
     #> Color output support
     export CLICOLOR=1
-    export LS_COLORS="di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
-
-    #──────────────────────────────────────────────────────────────────────────────
-    # Initialization
-    #──────────────────────────────────────────────────────────────────────────────
 
     #> Initialize bin directories
     if command -v dotDots >/dev/null 2>&1; then
@@ -274,10 +223,7 @@
       eval "$(direnv hook bash 2>/dev/null)" 2>/dev/null || true
     fi
 
-    #──────────────────────────────────────────────────────────────────────────────
-    # Helper Functions
-    #──────────────────────────────────────────────────────────────────────────────
-
+    #> Git status helper
     dots_git_status() {
       if [ -d "$DOTS/.git" ]; then
         local branch
@@ -285,9 +231,9 @@
         local changes
         changes=$(git -C "$DOTS" status --porcelain 2>/dev/null | wc -l)
         if [ "$changes" -gt 0 ]; then
-          echo "[$branch +$changes]"
+          printf "[%s +%s]" "$branch" "$changes"
         else
-          echo "[$branch]"
+          printf "[%s]" "$branch"
         fi
       fi
     }
@@ -295,66 +241,43 @@
     #> Enhanced PS1 with git info
     export PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \[\033[01;33m\]\$(dots_git_status)\[\033[00m\]\$ "
 
-    #──────────────────────────────────────────────────────────────────────────────
-    # Welcome Message
-    #──────────────────────────────────────────────────────────────────────────────
-
+    #> Display welcome message
     if command -v dotDots >/dev/null 2>&1; then
       dotDots help
     else
-      cat <<'EOF'
-    ╔════════════════════════════════════════════════════════════════════════╗
-    ║                  🎯 NixOS dotDots Development Shell                    ║
-    ╚════════════════════════════════════════════════════════════════════════╝
+      cat <<EOF
+    🎯 NixOS Configuration Shell
+    ============================
+
+    Version: ${version}
+    Current host: $HOST_NAME
+    System: $HOST_TYPE
+
+    📦 Core Commands:
+      ${prefix}rebuild  - Rebuild NixOS configuration
+      ${prefix}test     - Test configuration without switching
+      ${prefix}update   - Update flake inputs
+      ${prefix}sync     - Commit and push changes
+
+    🛠️  Utilities:
+      ${prefix}repl     - Enter Nix REPL
+      ${prefix}fmt      - Format all files with treefmt
+      ${prefix}check    - Run all checks (format, lint)
+      ${prefix}status   - Show git status
+
+    📚 Help:
+      ${prefix}help     - Show all available commands
+      ${prefix}list     - List commands with descriptions
+
     EOF
-      echo "    Version: ${config.version}"
-      echo "    Host:    $HOST_NAME"
-      echo "    System:  $HOST_TYPE"
-      echo "    Path:    $DOTS"
-      echo ""
-      echo "  📦 Core Commands:"
-      echo "    .rebuild  - Rebuild NixOS configuration"
-      echo "    .test     - Test configuration without switching"
-      echo "    .update   - Update flake inputs"
-      echo "    .sync     - Commit and push changes"
-      echo ""
-      echo "  🛠️  Utilities:"
-      echo "    .repl     - Enter Nix REPL"
-      echo "    .fmt      - Format all files"
-      echo "    .check    - Run all checks"
-      echo "    .status   - Show git status"
-      echo "    .backup   - Create configuration backup"
-      echo ""
-      echo "  📚 Help:"
-      echo "    .help     - Show all available commands"
-      echo "    .list     - List commands with descriptions"
-      echo ""
+        fi
 
-      # Check for treefmt.toml
-      if [ ! -f "$DOTS/treefmt.toml" ]; then
-        echo "  ⚠️  treefmt.toml not found. Create one for multi-language formatting."
-        echo ""
-      fi
-    fi
-
-    #> CD to DOTS if not already there
-    if [ "$PWD" != "$DOTS" ] && [ -d "$DOTS" ]; then
-      cd "$DOTS" || true
-    fi
+    #> Ensure we are at the root of the dots dir
+    echo "SRC: ${src}"
+    # cd "$DOTS" || true
   '';
 in
   pkgs.mkShell {
-    name = "dotDots";
+    inherit (config) name;
     inherit packages env shellHook;
-
-    #> Shell aliases for convenience
-    shellAliases = {
-      ll = "eza --long --almost-all --git";
-      ls = "eza";
-      ".." = "cd ..";
-      "..." = "cd ../..";
-      grep = "ripgrep";
-      cat = "bat";
-      find = "fd";
-    };
   }
