@@ -1324,7 +1324,7 @@ impl DotDots {
         if detailed {
             println!();
             println!("{}", "Recent commits:".bold().cyan());
-            self.execute_command("git log --oneline -10", "git", Some(&self.root))?;
+            self.execute_command("git log --oneline -3", "git", Some(&self.root))?;
         }
 
         Ok(())
