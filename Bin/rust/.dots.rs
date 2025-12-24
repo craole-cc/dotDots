@@ -1829,33 +1829,33 @@ impl DotDots {
   /// Helper: Log info message
   fn log_info(&self, msg: &str) {
     if !self.quiet {
-      println!("\n  {}", msg);
+      println!("\n{}", format!(" {}", msg).blue());
     }
   }
 
   /// Helper: Log success message
   fn log_success(&self, msg: &str) {
     if !self.quiet {
-      println!("\n {}", msg.green());
+      println!("\n{}", format!(" {}", msg).green());
     }
   }
 
   /// Helper: Log warning message
   fn log_warn(&self, msg: &str) {
     if !self.quiet {
-      println!("\n {}", msg.yellow());
+      println!("\n{}", format!(" {}", msg).yellow());
     }
   }
 
   /// Helper: Log error message
   fn log_error(&self, msg: &str) {
-    eprintln!("\n {}", msg.red());
+    println!("\n{}", format!(" {}", msg).red());
   }
 
   /// Helper: Log debug message
   fn log_debug(&self, msg: &str) {
     if self.verbose && !self.quiet {
-      println!("\n {}", msg.dimmed());
+      println!("\n{}", format!(" {}", msg).dimmed());
     }
   }
 }
