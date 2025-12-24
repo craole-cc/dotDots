@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-let
+{pkgs, ...}: let
   #{ Define the content of treefmt.toml
   treefmtConfig = ''
     [global]
@@ -101,8 +100,7 @@ let
     # Run treefmt using the found or default treefmt.toml file
     treefmt --config-file "$CONFIG_FILE" "$@"
   '';
-in
-{
+in {
   environment = {
     systemPackages = with pkgs; [
       curl

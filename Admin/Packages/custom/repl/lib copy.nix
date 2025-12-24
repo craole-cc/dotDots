@@ -89,7 +89,8 @@ in
     inherit flake;
   }
   // flake
-  // builtins / (flake.nixosConfigurations or {})
+  // builtins
+  / (flake.nixosConfigurations or {})
   // flake.nixosConfigurations.${hostname} or {}
   // nixpkgsOutput
   // {

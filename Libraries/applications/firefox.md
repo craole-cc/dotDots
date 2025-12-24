@@ -83,8 +83,7 @@ extensionEntry {
 
 Batch creates Firefox extension policies from simplified format.
 
-**Arguments:**
-Attribute set where keys are extension IDs and values are:
+**Arguments:** Attribute set where keys are extension IDs and values are:
 
 - `{}` for default installation
 - `{ pinned = true; }` to pin to toolbar
@@ -109,16 +108,16 @@ Parses user strings to detect and normalize browser variant names.
 
 **Supported Input Patterns:**
 
-| Category | Keywords | Result |
-| -------- | -------- | ------ |
-| **Firefox ESR** | `esr`, `extend`, `stable`, `support`, `reproducible`, `twilight` | `firefox-esr` |
-| **Firefox Beta** | `beta`, `nightly`, `unstable`, `latest` | `firefox-beta` |
-| **Developer Edition** | `dev`, `development`, `devedition`, `dev-edition`, `developer` | `firefox-devedition` |
-| **Zen Twilight** | `zen`, `twilight`, `zen twilight` | `zen-twilight` |
-| **Zen Beta** | `zen beta`, `zen nightly`, `zen unstable` | `zen-beta` |
-| **LibreWolf** | `libre`, `wolf` | `librewolf-bin` |
-| **Pale Moon** | `pale`, `moon` | `palemoon-bin` |
-| **Default** | Any unrecognized input | `firefox` |
+| Category              | Keywords                                                         | Result               |
+| --------------------- | ---------------------------------------------------------------- | -------------------- |
+| **Firefox ESR**       | `esr`, `extend`, `stable`, `support`, `reproducible`, `twilight` | `firefox-esr`        |
+| **Firefox Beta**      | `beta`, `nightly`, `unstable`, `latest`                          | `firefox-beta`       |
+| **Developer Edition** | `dev`, `development`, `devedition`, `dev-edition`, `developer`   | `firefox-devedition` |
+| **Zen Twilight**      | `zen`, `twilight`, `zen twilight`                                | `zen-twilight`       |
+| **Zen Beta**          | `zen beta`, `zen nightly`, `zen unstable`                        | `zen-beta`           |
+| **LibreWolf**         | `libre`, `wolf`                                                  | `librewolf-bin`      |
+| **Pale Moon**         | `pale`, `moon`                                                   | `palemoon-bin`       |
+| **Default**           | Any unrecognized input                                           | `firefox`            |
 
 **Examples:**
 
@@ -210,13 +209,13 @@ zenVariant "firefox"        # => null
 
 For convenience, the module provides these aliases at the root level:
 
-| Alias | Maps to | Description |
-| ----- | ------- | ----------- |
-| `mkFirefoxExtensionUrl` | `extensionUrl` | Generate extension URL |
-| `mkFirefoxExtensionEntry` | `extensionEntry` | Create extension policy entry |
+| Alias                        | Maps to             | Description                     |
+| ---------------------------- | ------------------- | ------------------------------- |
+| `mkFirefoxExtensionUrl`      | `extensionUrl`      | Generate extension URL          |
+| `mkFirefoxExtensionEntry`    | `extensionEntry`    | Create extension policy entry   |
 | `mkFirefoxExtensionSettings` | `extensionSettings` | Batch create extension settings |
-| `detectFirefoxVariant` | `detectVariant` | Detect browser variant |
-| `getFirefoxModule` | `resolveModule` | Resolve browser configuration |
+| `detectFirefoxVariant`       | `detectVariant`     | Detect browser variant          |
+| `getFirefoxModule`           | `resolveModule`     | Resolve browser configuration   |
 
 ## Supported Browsers
 
@@ -368,5 +367,4 @@ in {
 
 ---
 
-*Last updated: $(date)*
-*Module version: 1.0.0*
+_Last updated: $(date)_ _Module version: 1.0.0_

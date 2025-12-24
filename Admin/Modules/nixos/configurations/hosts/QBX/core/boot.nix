@@ -3,8 +3,7 @@
   lib,
   pkgs,
   ...
-}:
-{
+}: {
   boot = {
     initrd = {
       availableKernelModules = [
@@ -15,11 +14,11 @@
         "usb_storage"
         "sd_mod"
       ];
-      kernelModules = [ ];
+      kernelModules = [];
     };
-    kernelModules = [ "kvm-amd" ];
+    kernelModules = ["kvm-amd"];
     kernelPackages = pkgs.linuxPackages_latest;
-    extraModulePackages = [ ];
+    extraModulePackages = [];
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;

@@ -1,10 +1,9 @@
 #!/usr/bin/env -S rust-script
-//! Version: 0.3.0
 //! ```cargo
 //! [package]
 //! name = "dotdots-cli"
-//! version = "0.3.0"
-//! edition = "2021"
+//! version = "0.4.0"
+//! edition = "2024"
 //!
 //! [dependencies]
 //! clap = { version = "4.0", features = ["derive", "cargo"] }
@@ -145,9 +144,6 @@ struct DotsConfig {
 
     #[serde(default)]
     includes: Vec<Include>,
-
-    #[serde(default)]
-    submodules: HashMap<String, SubmoduleConfig>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -156,6 +152,8 @@ struct GitConfig {
     user: String,
     #[serde(default)]
     email: String,
+    #[serde(default)]
+    submodules: HashMap<String, SubmoduleConfig>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -208,7 +206,7 @@ struct SubmoduleConfig {
     #[serde(default)]
     description: String,
     #[serde(default)]
-    git: GitConfig,
+    user: String,
 }
 
 /// Configuration for sync operation
@@ -292,10 +290,7 @@ impl SyncConfig {
                 path: "Configuration/hosts/Victus".to_string(),
                 writable: true,
                 description: "Victus laptop NixOS configuration".to_string(),
-                git: GitConfig {
-                    user: "Craole".to_string(),
-                    email: String::new(),
-                },
+                user: "Craole".to_string(),
             },
         );
 
@@ -304,13 +299,13 @@ impl SyncConfig {
             git: GitConfig {
                 user: "craole-cc".to_string(),
                 email: String::new(),
+                submodules,
             },
             options: Options::default(),
             experimental_features: ExperimentalFeatures::default(),
             excludes: Excludes::default(),
             order_files: OrderFiles::default(),
             includes: Vec::new(),
-            submodules,
         }
     }
 }
@@ -542,8 +537,8 @@ fn sync_submodule(
     }
 
     // Use submodule's git user, fallback to parent's git user
-    let git_user = if !submodule.git.user.is_empty() {
-        &submodule.git.user
+    let git_user = if !submodule.user.is_empty() {
+        &submodule.user
     } else {
         &config.config.git.user
     };
@@ -622,17 +617,18 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
 
         let writable_count = config
             .config
+            .git
             .submodules
             .values()
             .filter(|s| s.writable)
             .count();
-        let readonly_count = config.config.submodules.len() - writable_count;
+        let readonly_count = config.config.git.submodules.len() - writable_count;
 
         println!(
             "  1. Commit & push {} writable submodule(s):",
             writable_count
         );
-        for (name, submodule) in &config.config.submodules {
+        for (name, submodule) in &config.config.git.submodules {
             if submodule.writable {
                 println!(
                     "     • {} ({})",
@@ -644,7 +640,7 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
 
         if readonly_count > 0 {
             println!("  2. Skip {} read-only submodule(s):", readonly_count);
-            for (name, submodule) in &config.config.submodules {
+            for (name, submodule) in &config.config.git.submodules {
                 if !submodule.writable {
                     println!(
                         "     • {} ({})",
@@ -678,7 +674,7 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
     let mut submodule_changed = false;
 
     // Sync all writable submodules
-    for (name, submodule) in &config.config.submodules {
+    for (name, submodule) in &config.config.git.submodules {
         if submodule.writable {
             let submodule_path = config.root.join(&submodule.path);
             let had_changes = submodule_path.exists()
@@ -709,6 +705,7 @@ fn handle_sync(message: Vec<String>, execute: bool) -> Result<()> {
 
     let submodule_names: Vec<_> = config
         .config
+        .git
         .submodules
         .keys()
         .map(|s| s.as_str())

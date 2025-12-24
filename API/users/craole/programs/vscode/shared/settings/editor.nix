@@ -1,13 +1,10 @@
-{ lib, ... }:
-let
+{lib, ...}: let
   inherit (lib.modules) mkForce;
-in
-{
+in {
   programs.vscode.profiles.default.userSettings = mkForce {
     # Editor Basics
     "editor.fontSize" = 18;
-    "editor.fontFamily" =
-      "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace";
+    "editor.fontFamily" = "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace";
     "editor.lineHeight" = 2;
     "editor.tabSize" = 2;
     "editor.wordWrap" = "bounded";

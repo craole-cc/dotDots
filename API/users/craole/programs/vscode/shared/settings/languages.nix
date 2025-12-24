@@ -7,7 +7,7 @@
     "nix.serverSettings" = {
       "nixd" = {
         "formatting" = {
-          "command" = [ "nixfmt" ];
+          "command" = ["nixfmt"];
         };
       };
     };
@@ -41,7 +41,7 @@
     # Markup
     "[markdown]"."editor.defaultFormatter" = "DavidAnson.vscode-markdownlint";
     "[toml]"."editor.defaultFormatter" = "tamasfe.even-better-toml";
-    "[yaml]" = { };
+    "[yaml]" = {};
 
     # TypeScript
     "typescript.inlayHints.parameterNames.enabled" = "all";

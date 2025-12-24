@@ -17,7 +17,7 @@ in {
   imports = [
     ./settings.nix
     ./extensions.nix
-    ];
+  ];
 
   config = mkIf cfg.enable {
     programs.chromium = {

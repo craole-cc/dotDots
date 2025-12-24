@@ -2,12 +2,10 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   cfg = config.dots.services.hyprland;
   inherit (lib.modules) mkIf;
-in
-{
+in {
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland.settings = {
       exec-once = [

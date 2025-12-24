@@ -3,11 +3,10 @@
   lib,
   policies,
   ...
-}:
-{
-  imports = [ ./shared ];
+}: {
+  imports = [./shared];
   config = {
     programs.vscode.enable = true;
-    home.packages = [ pkgs.vscode-fhs ];
+    home.packages = [pkgs.vscode-fhs];
   };
 }

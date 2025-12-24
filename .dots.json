@@ -2,7 +2,22 @@
   "name": "dotDots",
   "git": {
     "user": "craole-cc",
-    "email": "craole@example.com"
+    "email": "134658831+craole-cc@users.noreply.github.com",
+    "repo": "craole@example.com",
+    "submodules": {
+      "victus": {
+        "path": "Configuration/hosts/Victus",
+        "writable": true,
+        "description": "Victus laptop NixOS configuration",
+        "user": "Craole"
+      },
+      "wallpapers": {
+        "path": "Assets/Images/wallpaper",
+        "writable": true,
+        "description": "Wallpaper collection",
+        "user": "Craole"
+      }
+    }
   },
   "options": {
     "tag": ">>= DOTS =<<",
@@ -76,23 +91,5 @@
       "path": "Tests\\powershell",
       "modules": []
     }
-  ],
-  "submodules": {
-    "victus": {
-      "path": "Configuration/hosts/Victus",
-      "writable": true,
-      "description": "Victus laptop NixOS configuration",
-      "git": {
-        "user": "Craole"
-      }
-    },
-    "wallpapers": {
-      "path": "Assets/Images/wallpaper",
-      "writable": true,
-      "description": "Wallpaper collection",
-      "git": {
-        "user": "Craole"
-      }
-    }
-  }
+  ]
 }

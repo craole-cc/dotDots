@@ -3,12 +3,10 @@
   user,
   policies,
   ...
-}:
-let
+}: let
   app = "fish";
   enable = policies.dev && lib.elem app user.shells;
-in
-{
+in {
   programs.${app} = {
     inherit enable;
   };

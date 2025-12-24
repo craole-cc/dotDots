@@ -11,12 +11,12 @@
     inputModules = with inputs; {
       core = {
         home-manager = nixosHome.nixosModules.default;
-        nvf = neoVim.nixosModules.default;
+        nvf = editorNeovim.nixosModules.default;
       };
       home = {
         noctalia-shell = shellNoctalia.homeModules.default;
         dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
-        nvf = neoVim.homeManagerModules.default;
+        nvf = editorNeovim.homeManagerModules.default;
         plasma-manager = plasma.homeModules.plasma-manager;
         zen-browser = firefoxZen.homeModules.twilight;
       };
@@ -53,26 +53,9 @@
       inputs.nixpkgs.follows = "nixosCore";
     };
 
-    treeFormatter = {
-      repo = "treefmt-nix";
-      owner = "numtide";
-      type = "github";
-      inputs.nixpkgs.follows = "nixosCore";
-    };
-
-    plasma = {
-      repo = "plasma-manager";
-      owner = "pjones";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
-        home-manager.follows = "nixosHome";
-      };
-    };
-
-    firefoxZen = {
-      owner = "0xc000022070";
+    browserZen = {
       repo = "zen-browser-flake";
+      owner = "0xc000022070";
       type = "github";
       inputs = {
         nixpkgs.follows = "nixosCore";
@@ -80,9 +63,18 @@
       };
     };
 
-    shellNoctalia = {
-      repo = "noctalia-shell";
-      owner = "noctalia-dev";
+    editorHelix = {
+      repo = "helix";
+      owner = "helix-editor";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+      };
+    };
+
+    editorNeovim = {
+      owner = "notashelf";
+      repo = "nvf";
       type = "github";
       inputs = {
         nixpkgs.follows = "nixosCore";
@@ -96,6 +88,32 @@
       inputs = {
         nixpkgs.follows = "nixosCore";
       };
+    };
+
+    shellNoctalia = {
+      repo = "noctalia-shell";
+      owner = "noctalia-dev";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+      };
+    };
+
+    shellPlasma = {
+      repo = "plasma-manager";
+      owner = "pjones";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+        home-manager.follows = "nixosHome";
+      };
+    };
+
+    treeFormatter = {
+      repo = "treefmt-nix";
+      owner = "numtide";
+      type = "github";
+      inputs.nixpkgs.follows = "nixosCore";
     };
   };
 }

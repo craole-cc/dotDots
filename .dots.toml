@@ -4,7 +4,21 @@ version = "0.8"
 
 [git]
 user = "craole-cc"
-email = "craole@example.com" # optional, for completeness
+email = "134658831+craole-cc@users.noreply.github.com"
+repo = "dotDots"
+
+# Git submodules configuration
+[git.submodules.victus]
+path = "Configuration/hosts/Victus"
+writable = true
+description = "Victus laptop NixOS configuration"
+user = "Craole"
+
+[git.submodules.wallpapers]
+path = "Assets/Images/wallpaper"
+writable = true
+description = "Wallpaper collection"
+user = "Craole"
 
 [options]
 tag = ">>= DOTS =<<"
@@ -65,19 +79,3 @@ modules = [
   "WindowsTerminal",
   "oh-my-posh",
 ]
-
-[submodules.victus]
-path = "Configuration/hosts/Victus"
-writable = true
-description = "Victus laptop NixOS configuration"
-
-[submodules.victus.git]
-user = "Craole"
-
-[submodules.wallpapers]
-path = "Assets/Images/wallpaper"
-writable = true
-description = "Wallpaper collection"
-
-[submodules.wallpapers.git]
-user = "Craole"

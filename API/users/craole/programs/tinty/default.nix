@@ -4,8 +4,7 @@
   pkgs,
   config,
   ...
-}:
-let
+}: let
   HOME = config.home.homeDirectory;
   themesDir = "${HOME}/.local/share/tinted-theming/tinty/themes";
   inherit (lib.modules) mkIf mkForce;
@@ -60,15 +59,14 @@ let
       notify-send "Theme Sync" "Applied $VARIANT theme"
     fi
   '';
-in
-{
+in {
   home.packages = with pkgs; [
     tinty
     (writeShellScriptBin "sync-themes" ''${syncThemes}'')
   ];
 
   # Link all themes to tinty's expected location
-  home.activation.setupTintyThemes = entryAfter [ "writeBoundary" ] ''
+  home.activation.setupTintyThemes = entryAfter ["writeBoundary"] ''
     mkdir -p ${themesDir}
     cd ${themesDir}
 
