@@ -110,7 +110,7 @@ disabled = true
 
 [git_status]
 style = "bold bright-blue"
-format = "([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed  ]($style))"# format = '([ \[$all_status$ahead_behind\]]($style) )'
+format = "([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed  ]($style))"
 ahead = "[ ${count}󰬥](italic green)"
 behind = "[ ${count}󰬤](italic red)"
 staged = '[ $count](bold italic bright-cyan)'
@@ -121,7 +121,7 @@ conflicted = "[ $count ](italic bright-magenta)"
 diverged = "[ $count](bold italic bright-magenta)"
 renamed = "[ $count](bold italic bright-blue)"
 stashed = "[ $count](bold italic cyan)"
-up_to_date = "  "
+up_to_date = ""
 # disabled = true
 
 [battery]
@@ -131,7 +131,7 @@ charging_symbol = " "
 discharging_symbol = " "
 unknown_symbol = " "
 empty_symbol = " "
-# disabled = true
+disabled = true
 
 [[battery.display]]
 threshold = 20
