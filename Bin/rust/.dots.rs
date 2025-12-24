@@ -71,6 +71,11 @@ enum Commands {
         /// Show as JSON
         #[arg(long)]
         json: bool,
+
+        /// Show additional information (slower)
+        #[arg(long, alias = "detail", alias = "details")]
+        #[arg(long)]
+        detailed: bool,
     },
 
     /// Rebuild configuration (add --execute to run it)
@@ -201,8 +206,9 @@ enum Commands {
         prompt: bool,
 
         /// Show detailed status
+        #[arg(long, alias = "detail", alias = "details")]
         #[arg(long)]
-        detail: bool,
+        detailed: bool,
     },
 
     /// Enter Nix REPL
@@ -823,7 +829,7 @@ impl DotDots {
     }
 
     /// Show host information
-    fn show_host_info(&self, host: Option<&str>, as_json: bool) -> Result<()> {
+    fn show_host_info(&self, host: Option<&str>, as_json: bool, detailed: bool) -> Result<()> {
         let host_name = match host {
             Some(h) => h.to_string(),
             None => Self::get_current_host(),
@@ -874,6 +880,13 @@ impl DotDots {
                         .arg("--no-color-palette")
                         .arg("--no-art")
                         .status();
+                    if detailed {
+                        let _ = Command::new("tokei")
+                            .arg("--hidden")
+                            .arg("--num-format")
+                            .arg("commas")
+                            .status();
+                    }
                 }
             }
             Err(_) => {
@@ -1261,7 +1274,7 @@ impl DotDots {
     }
 
     /// Handle status command
-    fn handle_status(&self, prompt: bool, detail: bool) -> Result<()> {
+    fn handle_status(&self, prompt: bool, detailed: bool) -> Result<()> {
         if !self.is_git_repo(&self.root)? {
             if prompt {
                 return Ok(());
@@ -1290,14 +1303,14 @@ impl DotDots {
 
         if changes > 0 {
             println!("📝 Changes: {} uncommitted", changes.to_string().yellow());
-            if detail {
+            if detailed {
                 self.execute_command("git status --short", "git", Some(&self.root))?;
             }
         } else {
             println!("✨ {}", "Working tree clean".green());
         }
 
-        if detail {
+        if detailed {
             println!();
             println!("{}", "Recent commits:".bold().cyan());
             self.execute_command("git log --oneline -10", "git", Some(&self.root))?;
@@ -1844,7 +1857,11 @@ fn main() -> Result<()> {
 
         Some(Commands::Hosts) => dots.list_hosts(),
 
-        Some(Commands::Info { host, json }) => dots.show_host_info(host.as_deref(), json),
+        Some(Commands::Info {
+            host,
+            json,
+            detailed,
+        }) => dots.show_host_info(host.as_deref(), json, detailed),
 
         Some(Commands::Rebuild {
             host,
@@ -1879,7 +1896,7 @@ fn main() -> Result<()> {
 
         Some(Commands::Check { fix, strict }) => dots.handle_check(fix, strict),
 
-        Some(Commands::Status { prompt, detail }) => dots.handle_status(prompt, detail),
+        Some(Commands::Status { prompt, detailed }) => dots.handle_status(prompt, detailed),
 
         Some(Commands::Repl { expr, types }) => dots.handle_repl(expr.as_deref(), types),
 
