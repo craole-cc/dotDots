@@ -1323,7 +1323,7 @@ impl DotDots {
         self.execute_command("git status --short", "git", Some(&self.root))?;
       }
     } else {
-      println!("\n{}", "󰙅 ".green().bold());
+      println!("\n{} Working tree clean", " ".green().bold());
     }
 
     Ok(())
