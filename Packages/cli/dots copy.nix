@@ -1,29 +1,29 @@
-# {
-#   lib,
-#   lix,
-#   system,
-#   pkgs,
-#   ...
-# }: let
-#   inherit (lib.attrsets) attrValues filterAttrs mapAttrsToList;
-#   inherit (lib.lists) foldl';
-#   inherit (lib.strings) concatStrings concatMapStringsSep genList stringLength;
-#   inherit (lix) mkShellApp;
+{
+  lib,
+  lix,
+  system,
+  pkgs,
+  ...
+}: let
+  inherit (lib.attrsets) attrValues filterAttrs mapAttrsToList;
+  inherit (lib.lists) foldl';
+  inherit (lib.strings) concatStrings concatMapStringsSep genList stringLength;
+  inherit (lix) mkShellApp;
 
-#   #──────────────────────────────────────────────────────────────────────────────
-#   # Configuration
-#   #──────────────────────────────────────────────────────────────────────────────
+  #──────────────────────────────────────────────────────────────────────────────
+  # Configuration
+  #──────────────────────────────────────────────────────────────────────────────
 
-#   config = {
-#     name = "dots";
-#     version = "2.0.0";
-#     cache = ".cache";
-#     prefix = ".";
-#   };
+  config = {
+    name = "dots";
+    version = "2.0.0";
+    cache = ".cache";
+    prefix = ".";
+  };
 
-#   #──────────────────────────────────────────────────────────────────────────────
-#   # CLI Tools
-#   #──────────────────────────────────────────────────────────────────────────────
+  #──────────────────────────────────────────────────────────────────────────────
+  # CLI Tools
+  #──────────────────────────────────────────────────────────────────────────────
 
   commands = {
     ${config.name} = {
@@ -68,28 +68,8 @@
           description = "Commit and push changes";
         }
         {
-          name = "fmt";
-          description = "Format t he ptoject tree";
-        }
-        {
-          name = "fmt";
-          description = "Format the ptoject tree";
-        }
-        {
-          name = "check";
-          description = "Run code quality checks (format, lint)";
-        }
-        {
-          name = "status";
-          description = "Show repository status";
-        }
-        {
-          name = "repl";
-          description = "Enter Nix REPL";
-        }
-        {
-          name = "search";
-          description = "Enter Nix REPL";
+          name = "binit";
+          description = "Initialize bin directories";
         }
         {
           name = "list";
@@ -102,115 +82,115 @@
       ];
     };
 
-#     repl = {
-#       inputs = [];
-#       command = ''exec nix repl --file "$DOTS/default.nix"'';
-#       description = "Enter Nix REPL with dotfiles loaded";
-#     };
+    repl = {
+      inputs = [];
+      command = ''exec nix repl --file "$DOTS/default.nix"'';
+      description = "Enter Nix REPL with dotfiles loaded";
+    };
 
-#     fmt = {
-#       inputs = with pkgs; [treefmt];
-#       command = ''
-#         printf "🎨 Formatting all files with treefmt...\n"
-#         cd "$DOTS" || exit 1
-#         exec treefmt "$@"
-#       '';
-#       description = "Format all files with treefmt";
-#     };
+    fmt = {
+      inputs = with pkgs; [treefmt];
+      command = ''
+        printf "🎨 Formatting all files with treefmt...\n"
+        cd "$DOTS" || exit 1
+        exec treefmt "$@"
+      '';
+      description = "Format all files with treefmt";
+    };
 
-#     check = {
-#       inputs = with pkgs; [treefmt shellcheck];
-#       command = ''
-#         printf "🔍 Running checks...\n"
-#         cd "$DOTS" || exit 1
-#         printf "  → Checking formatting...\n"
-#         if ! treefmt --fail-on-change; then
-#           printf "❌ Format check failed. Run '.fmt' to fix.\n"
-#           exit 1
-#         fi
-#         printf "  → Checking shell scripts...\n"
-#         if ! find "$DOTS" -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck {} + 2>/dev/null; then
-#           printf "❌ Shell check failed.\n"
-#           exit 1
-#         fi
-#         printf "✅ All checks passed!\n"
-#       '';
-#       description = "Run all checks (format, lint)";
-#     };
+    check = {
+      inputs = with pkgs; [treefmt shellcheck];
+      command = ''
+        printf "🔍 Running checks...\n"
+        cd "$DOTS" || exit 1
+        printf "  → Checking formatting...\n"
+        if ! treefmt --fail-on-change; then
+          printf "❌ Format check failed. Run '.fmt' to fix.\n"
+          exit 1
+        fi
+        printf "  → Checking shell scripts...\n"
+        if ! find "$DOTS" -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck {} + 2>/dev/null; then
+          printf "❌ Shell check failed.\n"
+          exit 1
+        fi
+        printf "✅ All checks passed!\n"
+      '';
+      description = "Run all checks (format, lint)";
+    };
 
-    # status = {
-    #   inputs = with pkgs; [git];
-    #   command = ''
-    #     #> Initialize/Parse arguments
-    #     prompt_mode=false
-    #     while [ $# -gt 0 ]; do
-    #       case "$1" in
-    #         --prompt | -p)
-    #           prompt_mode=true
-    #           shift
-    #           ;;
-    #         --help | -h)
-    #           printf "Usage: status [OPTIONS]\n"
-    #           printf "\nOptions:\n"
-    #           printf "  --prompt, -p    Output minimal format for prompt\n"
-    #           printf "  --help, -h      Show this help message\n"
-    #           exit 0
-    #           ;;
-    #         *)
-    #           printf "Unknown option: %s\n" "$1" >&2
-    #           printf "Use --help for usage information\n" >&2
-    #           exit 1
-    #           ;;
-    #       esac
-    #     done
+    status = {
+      inputs = with pkgs; [git];
+      command = ''
+        #> Initialize/Parse arguments
+        prompt_mode=false
+        while [ $# -gt 0 ]; do
+          case "$1" in
+            --prompt | -p)
+              prompt_mode=true
+              shift
+              ;;
+            --help | -h)
+              printf "Usage: status [OPTIONS]\n"
+              printf "\nOptions:\n"
+              printf "  --prompt, -p    Output minimal format for prompt\n"
+              printf "  --help, -h      Show this help message\n"
+              exit 0
+              ;;
+            *)
+              printf "Unknown option: %s\n" "$1" >&2
+              printf "Use --help for usage information\n" >&2
+              exit 1
+              ;;
+          esac
+        done
 
-    #     #? Check if we're in a git repository
-    #     if [ -d "$DOTS/.git" ]; then :; else
-    #       case "$prompt_mode" in
-    #         true | 1)
-    #           exit 0 ;;
-    #         *)
-    #           printf "⚠️  Not a git repository\n"
-    #           exit 1
-    #         ;;
-    #       esac
-    #     fi
+        #? Check if we're in a git repository
+        if [ -d "$DOTS/.git" ]; then :; else
+          case "$prompt_mode" in
+            true | 1)
+              exit 0 ;;
+            *)
+              printf "⚠️  Not a git repository\n"
+              exit 1
+            ;;
+          esac
+        fi
 
-    #     #> Get branch information
-    #     branch=$(git -C "$DOTS" branch --show-current 2>/dev/null)
+        #> Get branch information
+        branch=$(git -C "$DOTS" branch --show-current 2>/dev/null)
 
-    #     #> Get change count
-    #     changes=$(git -C "$DOTS" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+        #> Get change count
+        changes=$(git -C "$DOTS" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 
-    #     #> Print the status
-    #     case "$prompt_mode" in
-    #       true | 1)
-    #         #~@ Prompt mode: minimal output for PS1
-    #         if [ "$changes" -gt 0 ]; then
-    #           printf "[%s +%s]" "$branch" "$changes"
-    #         else
-    #           printf "[%s]" "$branch"
-    #         fi
-    #         exit 0
-    #         ;;
-    #       *)
-    #         #~@ Full status mode
-    #         printf "📊 Repository Status\n"
-    #         printf "====================\n\n"
+        #> Print the status
+        case "$prompt_mode" in
+          true | 1)
+            #~@ Prompt mode: minimal output for PS1
+            if [ "$changes" -gt 0 ]; then
+              printf "[%s +%s]" "$branch" "$changes"
+            else
+              printf "[%s]" "$branch"
+            fi
+            exit 0
+            ;;
+          *)
+            #~@ Full status mode
+            printf "📊 Repository Status\n"
+            printf "====================\n\n"
 
-    #         printf "📍  Branch: %s\n" "$branch"
+            printf "📍  Branch: %s\n" "$branch"
 
-    #         if [ "$changes" -gt 0 ]; then
-    #           printf "📝 Changes: %s uncommitted\n" "$changes"
-    #           git -C "$DOTS" status --short
-    #         else
-    #           printf "✨ Working tree clean\n"
-    #         fi
-    #       ;;
-    #     esac
-    #   '';
-    #   description = "Show git repository status";
-    # };
+            if [ "$changes" -gt 0 ]; then
+              printf "📝 Changes: %s uncommitted\n" "$changes"
+              git -C "$DOTS" status --short
+            else
+              printf "✨ Working tree clean\n"
+            fi
+          ;;
+        esac
+      '';
+      description = "Show git repository status";
+    };
   };
 
   #> Generate applications from commands using mkShellApp
