@@ -31,8 +31,7 @@ error_symbol = "[ ](bold red)"
 # error_symbol = "[ ](bold red)"
 # error_symbol = "[ ](bold red)"
 # error_symbol = "[ ](bold red)"
-vimcmd_symbol = "[■](italic dimmed green)"
-# not supported in zsh
+vimcmd_symbol = "[](italic dimmed green)"
 vimcmd_replace_one_symbol = "◌"
 vimcmd_replace_symbol = "□"
 vimcmd_visual_symbol = "▼"
@@ -59,7 +58,7 @@ read_only = "  "
 "nixos" = " "
 
 [cmd_duration]
-format = "[◄ $duration ](italic white)"
+# format = "[◄ $duration ](italic white)"
 min_time = 1000
 show_notifications = true
 
@@ -68,7 +67,7 @@ disabled = true
 
 [time]
 # disabled = true
-format = '🕙[ $time ]($style)'
+format = '󱑏 [ $time ]($style)'
 time_format = "%H:%M"
 time_range = '22:00:00-07:00:00'
 utc_time_offset = "-5"
@@ -107,10 +106,11 @@ format = '([▴$added]($added_style))([▿$deleted]($deleted_style)) '
 added_style = 'italic dimmed green'
 deleted_style = 'italic dimmed red'
 ignore_submodules = false
-disabled = false
+disabled = true
 
 [git_status]
-style = "bold italic bright-blue"
+style = "bold bright-blue"
+format = "([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed ]($style))"# format = '([ \[$all_status$ahead_behind\]]($style) )'
 conflicted = "[ $count ](italic bright-magenta)"
 ahead = "[ $coun󰬥 ](italic green)"
 behind = "[ $count󰬤 ](bold italic red)"
@@ -156,7 +156,3 @@ format = '[$symbol $state]($style) [$name](italic dimmed white)'
 impure_msg = '[⌽](bold dimmed red)'
 pure_msg = '[⌾](bold dimmed green)'
 unknown_msg = '[◌](bold dimmed yellow)'
-
-[memory_usage]
-symbol = "▪▫▪ "
-format = " mem [${ram}( ${swap})]($style)"
