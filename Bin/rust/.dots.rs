@@ -1323,7 +1323,7 @@ impl DotDots {
         self.execute_command("git status --short", "git", Some(&self.root))?;
       }
     } else {
-      println!("\n{} Working tree clean", " ".green().bold());
+      println!("\n{}", " Repository already in sync".magenta().bold());
     }
 
     Ok(())
@@ -1829,33 +1829,33 @@ impl DotDots {
   /// Helper: Log info message
   fn log_info(&self, msg: &str) {
     if !self.quiet {
-      println!("ℹ️  {}", msg);
+      println!("\n  {}", msg);
     }
   }
 
   /// Helper: Log success message
   fn log_success(&self, msg: &str) {
     if !self.quiet {
-      println!("✅ {}", msg.green());
+      println!("\n {}", msg.green());
     }
   }
 
   /// Helper: Log warning message
   fn log_warn(&self, msg: &str) {
     if !self.quiet {
-      println!("⚠️  {}", msg.yellow());
+      println!("\n {}", msg.yellow());
     }
   }
 
   /// Helper: Log error message
   fn log_error(&self, msg: &str) {
-    eprintln!("❌ {}", msg.red());
+    eprintln!("\n {}", msg.red());
   }
 
   /// Helper: Log debug message
   fn log_debug(&self, msg: &str) {
     if self.verbose && !self.quiet {
-      println!("🔍 {}", msg.dimmed());
+      println!("\n {}", msg.dimmed());
     }
   }
 }
