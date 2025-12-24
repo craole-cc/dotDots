@@ -1324,7 +1324,7 @@ impl DotDots {
         println!();
       }
     } else {
-      println!("{}", format!(" {}", changes.to_string()).yellow().bold());
+      println!("✨ {}", "Working tree clean".green());
     }
 
     Ok(())
