@@ -1309,22 +1309,21 @@ impl DotDots {
     }
 
     if !hide_log {
-      println!("{}", format!(" {}", branch).green().bold());
+      println!("{}", format!(" {}", branch).magenta().bold());
       self.execute_command("git log --oneline -3", "git", Some(&self.root))?;
     }
 
     if changes > 0 {
       if hide_files {
-        println!("{}", format!(" {}", changes.to_string()).yellow().bold());
+        println!("{}", format!(" {}", changes.to_string()).magenta().bold());
       } else {
-        println!("\n{}", " ".green().bold());
+        println!("\n{}", " ".magenta().bold());
         self.execute_command("git diff --stat", "git", Some(&self.root))?;
-        println!("\n{}", "󰙅 ".green().bold());
+        println!("\n{}", "󰙅 ".magenta().bold());
         self.execute_command("git status --short", "git", Some(&self.root))?;
-        println!();
       }
     } else {
-      println!("✨ {}", "Working tree clean".green());
+      println!("\n{}", "󰙅 ".green().bold());
     }
 
     Ok(())
