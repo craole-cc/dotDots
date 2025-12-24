@@ -1316,7 +1316,10 @@ impl DotDots {
     if changes > 0 {
       println!("📝 Changes: {} uncommitted", changes.to_string().yellow());
       if !hide_files {
+        println!();
         self.execute_command("git status --short", "git", Some(&self.root))?;
+        println!();
+        self.execute_command("git diff --stat", "git", Some(&self.root))?;
       }
     } else {
       println!("✨ {}", "Working tree clean".green());

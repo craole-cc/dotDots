@@ -4,8 +4,38 @@
 command_timeout = 1111
 scan_timeout = 1000
 
+format = """$character"""
+right_format = """$all"""
+continuation_prompt = "[▶▶ ](dimmed white)"
+
+[fill]
+symbol = ' '
+
 [line_break]
 disabled = false
+
+[character]
+format = "$symbol "
+success_symbol = "[ ](bold italic bright-yellow)"
+# success_symbol = "[◎](bold italic bright-yellow)"
+# success_symbol = "[ ](bold green)"
+# success_symbol = "[  ](bold green)"
+# success_symbol = "[ ](bold green)"
+# success_symbol = "[ ](bold blue)"
+error_symbol = "[ ](bold red)"
+# error_symbol = "[○](italic purple)"
+# error_symbol = "[ ](bold red)"
+# error_symbol = "[ ](bold red)"
+# error_symbol = "[ ](bold red)"
+# error_symbol = "[ ](bold red)"
+# error_symbol = "[ ](bold red)"
+# error_symbol = "[ ](bold red)"
+# error_symbol = "[ ](bold red)"
+vimcmd_symbol = "[■](italic dimmed green)"
+# not supported in zsh
+vimcmd_replace_one_symbol = "◌"
+vimcmd_replace_symbol = "□"
+vimcmd_visual_symbol = "▼"
 
 [directory]
 format = "[$path]($style)[$read_only]($read_only_style) "
@@ -14,22 +44,27 @@ truncation_length = 4
 truncation_symbol = "…/"
 
 [directory.substitutions]
-"Documents" = "🗒️ "
-"Downloads" = "📥 "
-"Music" = "🎷 "
-"Pictures" = "📸 "
-"global" = "🌐"
-"nixos" = "❄️ "
-"~/.dots" = "💠"
-"~/.config" = "⚙️ "
-"~/.local" = "📦 "
+style = "bold green"
+home_symbol = " "
+read_only = "  "
+"~/.dots" = " "
+"~/.config" = " "
+"Documents" = " "
+"archives" = " "
+"Downloads" = " "
+"Music" = " "
+"Videos" = " "
+"Pictures" = "  "
+"global" = " "
+"nixos" = " "
+
+[cmd_duration]
+format = "[◄ $duration ](italic white)"
+min_time = 1000
+show_notifications = true
 
 [package]
 disabled = true
-
-[cmd_duration]
-min_time = 1000
-show_notifications = true
 
 [time]
 # disabled = true
@@ -47,41 +82,81 @@ format = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
 map_symbol = true
 symbol = "🔴"
 
-[character]
-error_symbol = "🚩"
-success_symbol = "🚀"
-
-[battery]
-charging_symbol = "⚡️ "
-discharging_symbol = "💀 "
-full_symbol = "🔋 "
-
 [sudo]
 allow_windows = true
-style = "bold green"
-symbol = "👩‍💻 "
+format = "[$symbol]($style)"
+style = "bold italic bright-purple"
+symbol = " "
+disabled = true
+# symbol = "[ ](bold red)"
+# symbol = "[ ](bold red)"
+# symbol = "[󱨚  ](bold red)"
 # disabled = true
 
+[git_branch]
+format = " [$branch(:$remote_branch)]($style)"
+symbol = "[△](bold italic bright-blue)"
+style = "italic bright-blue"
+truncation_symbol = "⋯"
+truncation_length = 11
+ignore_branches = ["main", "master"]
+only_attached = true
+
+[git_metrics]
+format = '([▴$added]($added_style))([▿$deleted]($deleted_style)) '
+added_style = 'italic dimmed green'
+deleted_style = 'italic dimmed red'
+ignore_submodules = false
+disabled = false
+
 [git_status]
+style = "bold italic bright-blue"
+conflicted = "[ $count ](italic bright-magenta)"
+ahead = "[ $coun󰬥 ](italic green)"
+behind = "[ $count󰬤 ](bold italic red)"
+deleted = "[ $count ](bold italic red)"
+diverged = "[ $count ](bold italic bright-magenta)"
+modified = "[ $count ](bold italic yellow)"
+renamed = "[ $count ](bold italic bright-blue)"
+staged = '[ $count ](bold italic bright-cyan)'
+stashed = "[ $count ](bold italic cyan)"
+untracked = "[ $count ](bold italic cyan)"
+# up_to_date = "  "
 # disabled = true
-# ahead = "🏎💨"
-# behind = "😰"
-# conflicted = "❓"
-# deleted = "🗑️"
-# diverged = "😵"
-# modified = "📝"
-# renamed = "👅"
-# staged = '[++\($count\)](green)'
-# stashed = "📦"
-# untracked = "🤷‍"
-ahead = "[⇡$count](bold green)"
-behind = "[⇣$count](bold red)"
-conflicted = "[$count](bold yellow)"
-deleted = "[$count](bold red)"
-diverged = "[⇕$count](bold red)"
-modified = "[$count](bold yellow)"
-renamed = "[$count](bold blue)"
-staged = '[$count](green)'
-stashed = "[$count](bold cyan)"
-untracked = "[$count](bold white)"
-up_to_date = "📅"
+
+[battery]
+format = "[ $percentage $symbol]($style)"
+full_symbol = " "
+charging_symbol = " "
+discharging_symbol = " "
+unknown_symbol = " "
+empty_symbol = " "
+# disabled = true
+
+[[battery.display]]
+threshold = 20
+style = "italic bold red"
+
+[[battery.display]]
+threshold = 60
+style = "italic dimmed bright-purple"
+
+[[battery.display]]
+threshold = 70
+style = "italic dimmed yellow"
+
+
+[deno]
+format = ""
+
+[nix_shell]
+style = 'bold italic dimmed blue'
+symbol = ' '
+format = '[$symbol $state]($style) [$name](italic dimmed white)'
+impure_msg = '[⌽](bold dimmed red)'
+pure_msg = '[⌾](bold dimmed green)'
+unknown_msg = '[◌](bold dimmed yellow)'
+
+[memory_usage]
+symbol = "▪▫▪ "
+format = " mem [${ram}( ${swap})]($style)"

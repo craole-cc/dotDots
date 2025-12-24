@@ -288,10 +288,8 @@
     export PATH="$ENV_BIN:$PATH"
 
     #> Use starship for prompt
-    if command -v starship >/dev/null 2>&1; then
-      export STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
-      eval "$(starship init bash)"
-    fi
+    export STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
+    eval "$(starship init bash)"
 
     #> Display welcome message
     printf '╔═══════════════════════════════════════════════════════╗\n'
