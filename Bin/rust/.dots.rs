@@ -1104,6 +1104,10 @@ impl DotDots {
             message.join(" ")
         };
 
+        // Show detailed status so user can decide
+        self.handle_status(false, true)?;
+        println!();
+
         if !execute {
             self.log_info(&format!(
                 "Sync operation would commit with message: \"{}\"",
