@@ -1104,6 +1104,13 @@ impl DotDots {
             message.join(" ")
         };
 
+        let changes = self.get_git_changes(&self.root)?;
+        if changes == 0 {
+            println!("✨ Working tree clean");
+            println!("Nothing to commit, skipping sync.");
+            return Ok(());
+        }
+
         // Show detailed status so user can decide
         self.handle_status(false, true)?;
         println!();
