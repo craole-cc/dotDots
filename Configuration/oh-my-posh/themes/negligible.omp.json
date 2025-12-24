@@ -92,9 +92,7 @@
       "segments": [
         {
           "foreground": "lightGreen",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}red{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}red{{ end }}"],
           "properties": {
             "always_enabled": true
           },

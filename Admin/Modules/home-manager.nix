@@ -26,7 +26,7 @@ in {
       useGlobalPkgs = true;
       useUserPackages = true;
       users = genAttrs (attrNames host.userConfigs) (
-        username: {osConfig, ...}: {
+        _username: {osConfig, ...}: {
           home = {inherit (osConfig.system) stateVersion;};
           programs.home-manager.enable = true;
         }

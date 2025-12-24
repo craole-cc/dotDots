@@ -74,7 +74,7 @@ blocks:
         foreground: black
         properties:
           display_default: false
-        template: " ﴃ Subscription {{ .Name }} ({{ if .EnvironmentName | contains \"AzureCloud\" }}{{ \"Global\" }}{{ else }}{{ .EnvironmentName }}{{ end }}) "
+        template: ' ﴃ Subscription {{ .Name }} ({{ if .EnvironmentName | contains "AzureCloud" }}{{ "Global" }}{{ else }}{{ .EnvironmentName }}{{ end }}) '
       - type: azfunc
         style: powerline
         powerline_symbol: 

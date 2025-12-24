@@ -55,7 +55,7 @@ let
   };
 
   mkPathSet = root: set:
-    mapAttrs (name: value:
+    mapAttrs (_name: value:
       if isAttrs value
       then mkPathSet root value
       else root + value)

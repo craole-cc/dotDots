@@ -29,9 +29,7 @@
     "errorActionPreference": "Continue"
   },
   "experimental_features": {
-    "enabled": [
-      "PSFeedbackProvider"
-    ]
+    "enabled": ["PSFeedbackProvider"]
   },
   "excludes": {
     "patterns": [

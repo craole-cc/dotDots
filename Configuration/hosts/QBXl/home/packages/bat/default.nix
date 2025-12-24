@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-let
+{pkgs, ...}: let
   catppuccin = pkgs.fetchFromGitHub {
     owner = "catppuccin";
     repo = "bat";
@@ -8,30 +7,30 @@ let
   };
   theme = "Catppuccin-latte";
 in
-# inherit (config.dots.users.craole) name theme;
-# inherit (userArgs.theme) colors;
-# inherit (colors) mode;
-# inherit (colors.${mode}) scheme;
-# theme = scheme.${app};
-{
-  programs.bat = {
-    enable = true;
-    config = {
-      inherit theme;
-      pager = "less -FR";
+  # inherit (config.dots.users.craole) name theme;
+  # inherit (userArgs.theme) colors;
+  # inherit (colors) mode;
+  # inherit (colors.${mode}) scheme;
+  # theme = scheme.${app};
+  {
+    programs.bat = {
+      enable = true;
+      config = {
+        inherit theme;
+        pager = "less -FR";
+      };
+
+      themes = {
+        Catppuccin-mocha = {
+          src = catppuccin;
+          file = "Catppuccin-mocha.tmTheme";
+        };
+        Catppuccin-latte = {
+          src = catppuccin;
+          file = "Catppuccin-latte.tmTheme";
+        };
+      };
     };
 
-    themes = {
-      Catppuccin-mocha = {
-        src = catppuccin;
-        file = "Catppuccin-mocha.tmTheme";
-      };
-      Catppuccin-latte = {
-        src = catppuccin;
-        file = "Catppuccin-latte.tmTheme";
-      };
-    };
-  };
-
-  home.sessionVariables.READER = "bat";
-}
+    home.sessionVariables.READER = "bat";
+  }

@@ -37,9 +37,7 @@
       "segments": [
         {
           "foreground": "#ffdd86",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#42a9ff{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}#42a9ff{{ end }}"],
           "properties": {
             "always_enabled": true
           },

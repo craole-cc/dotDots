@@ -37,7 +37,7 @@
           extraSpecialArgs = specialArgs;
           useGlobalPkgs = true;
           useUserPackages = true;
-          users = genAttrs (attrNames host.userConfigs) (username: {
+          users = genAttrs (attrNames host.userConfigs) (_username: {
             home.stateVersion = stateVersion;
             programs.home-manager.enable = true;
           });

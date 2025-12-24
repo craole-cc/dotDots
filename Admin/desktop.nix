@@ -13,7 +13,7 @@
     attrValues
     mapAttrs
     ;
-  inherit (lib.lists) any concatLists;
+  inherit (lib.lists) concatLists;
   inherit (host) userConfigs;
 
   mkHomePackages = userConfig: let
@@ -25,7 +25,7 @@
       then [
         {
           imports = [packagePath];
-          config.programs.${name} = mapAttrs (key: value: mkForce value) (
+          config.programs.${name} = mapAttrs (_key: value: mkForce value) (
             {enable = cfg.enable;} // (removeAttrs cfg ["enable"])
           );
         }

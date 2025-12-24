@@ -1,7 +1,5 @@
 {
   pkgs,
-  lib,
-  policies,
   ...
 }: {
   imports = [./shared];

@@ -4,7 +4,7 @@
   outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixosCore) lib legacyPackages;
-    inherit (import src {inherit lib src;}) lix hosts schema;
+    inherit (import src {inherit lib src self;}) lix flake hosts schema;
     inherit (lix) getSystems mkCore;
     inherit (getSystems {inherit hosts legacyPackages;}) perFlake;
 
@@ -23,18 +23,26 @@
     };
 
     specialArgs = {
-      flake = self;
-      inherit inputModules lix schema;
+      inherit inputModules lix flake schema;
     };
 
     perSystem = perFlake (
       {
         system,
         pkgs,
-      }: {
-        devShells = import ./Packages/cli {
-          inherit pkgs lib lix src system;
-        };
+      }: let
+        inherit
+          (import ./Packages/fmt {
+            inherit (inputs.treeFormatter.lib) evalModule;
+            inherit pkgs;
+          })
+          formatter
+          formatting
+          ;
+        devShells = import ./Packages/cli {inherit pkgs lib lix src system;};
+        checks = {inherit formatting;};
+      in {
+        inherit devShells formatter checks;
       }
     );
 

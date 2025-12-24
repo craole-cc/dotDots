@@ -8,7 +8,6 @@
   inherit
     (lib.types)
     # attrs
-    attrsOf
     either
     str
     path

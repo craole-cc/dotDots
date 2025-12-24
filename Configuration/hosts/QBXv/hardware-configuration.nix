@@ -2,23 +2,18 @@
 # and may be overwritten by future invocations.  Please make changes
 # to /etc/nixos/configuration.nix instead.
 {
-  config,
   lib,
-  pkgs,
-  modulesPath,
   ...
-}:
-
-{
-  imports = [ ];
+}: {
+  imports = [];
 
   boot.initrd.availableKernelModules = [
     "sd_mod"
     "sr_mod"
   ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
+  boot.initrd.kernelModules = [];
+  boot.kernelModules = [];
+  boot.extraModulePackages = [];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/5e4a0b74-f6cc-4487-9096-df3ca5f58dad";
@@ -35,7 +30,7 @@
   };
 
   swapDevices = [
-    { device = "/dev/disk/by-uuid/8f28a943-a965-4aaa-b5ce-911b7ee08f3c"; }
+    {device = "/dev/disk/by-uuid/8f28a943-a965-4aaa-b5ce-911b7ee08f3c";}
   ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking

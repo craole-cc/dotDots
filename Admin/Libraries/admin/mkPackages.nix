@@ -49,7 +49,7 @@
   defaultPkgs = mkPkgs nixpkgs;
 in
   defaultPkgs.extend (
-    final: prev:
+    _final: _prev:
       {
         stable = mkPkgs nixPackagesStable;
         unstable = mkPkgs nixPackagesUnstable;

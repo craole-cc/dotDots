@@ -7,8 +7,6 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lix.strings) hasInfix isEmptyStr;
-  inherit (lix.debug) dbgNullOr dbgName;
   inherit (policies) webGui;
 
   name = "chromium";

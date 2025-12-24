@@ -65,9 +65,7 @@
         {
           "background": "#69307A",
           "foreground": "#EFDCF9",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#FF3C3C{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}#FF3C3C{{ end }}"],
           "properties": {
             "always_enabled": true
           },

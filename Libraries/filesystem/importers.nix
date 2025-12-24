@@ -8,7 +8,6 @@
   inherit
     (lib.filesystem)
     listFilesRecursive
-    packagesFromDirectoryRecursive
     ;
   # inherit (lib.trivial) functionArgs;
   inherit (lib.strings) hasSuffix;
@@ -18,21 +17,12 @@
     baseNameOf
     dirOf
     readDir
-    toString
     ;
 
   # List all files under a dir, recursively.
-  listFilesRecursively = path: listFilesRecursive path;
 
   # Turn a directory tree of packages into an attrset and call them.
   # This mirrors lib.filesystem.packagesFromDirectoryRecursive. [web:1179]
-  listNixPackagesRecursively = pkgs: path: let
-    pkgsAttrset = packagesFromDirectoryRecursive {
-      inherit (pkgs) callPackage;
-      directory = path;
-    };
-  in
-    pkgsAttrset;
 
   # List nix module paths under a dir, excluding some files/folders.
   listNixModules = path: let
@@ -62,10 +52,6 @@
     sansExcludedDirs;
 
   # Simple “all .nix files” listing
-  listNix = path: let
-    files = listFilesRecursive path;
-  in
-    filter (hasSuffix ".nix") (map toString files);
 
   # Import all nix modules found by listNixModules
   importNixModules = path: let

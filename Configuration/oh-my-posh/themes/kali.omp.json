@@ -6,9 +6,7 @@
       "segments": [
         {
           "foreground": "lightBlue",
-          "foreground_templates": [
-            "{{ if .Root }}lightRed{{ end }}"
-          ],
+          "foreground_templates": ["{{ if .Root }}lightRed{{ end }}"],
           "properties": {
             "display_host": true
           },
@@ -60,9 +58,7 @@
         },
         {
           "foreground": "green",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}red{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}red{{ end }}"],
           "properties": {
             "always_enabled": true
           },

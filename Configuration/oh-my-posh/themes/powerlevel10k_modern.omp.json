@@ -86,9 +86,7 @@
       "segments": [
         {
           "foreground": "#D4E157",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#FF5252{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}#FF5252{{ end }}"],
           "properties": {
             "always_enabled": true
           },

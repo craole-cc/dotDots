@@ -5,7 +5,6 @@
   inherit (lib.strings) escapeShellArg;
   inherit (lib.licenses) mit;
   flakeEval = import ./lib.nix {inherit lib;};
-  replScript = ./repl.sh;
   example = command: desc: ''
     \n\e[33m${escapeShellArg command}\e[0m - ${escapeShellArg desc}
   '';

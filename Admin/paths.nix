@@ -56,7 +56,7 @@ let
 
   mkPathSet = root: set:
     mapAttrs (
-      name: value:
+      _name: value:
         if isAttrs value
         then mkPathSet root value
         else builtins.toString (builtins.path {path = root + "/" + value;})

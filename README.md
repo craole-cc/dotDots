@@ -28,7 +28,6 @@ cd "$DOTS"
 > Dependencies |> `bash/sh` `coreutils`
 
 1. Set `bash` as the default shell:
-
    - Unix-based
      - In the terminal execute the command: `chsh -s /bin/bash`
    - Windows
@@ -66,7 +65,6 @@ cd "$DOTS"
 - In the flake.nix, update the DOTS path `paths.flake.local`
 
 - Initialize your host config.
-
   - The script below matches the previous steps.
 
     ```sh

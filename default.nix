@@ -3,11 +3,12 @@
   src ? ./.,
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
+  self ? null,
   ...
 }: let
-  #──────────────────────────────────────────────────────────────────────────────
-  # Core Imports
-  #──────────────────────────────────────────────────────────────────────────────
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Core Imports                                                                |
+  #|─────────────────────────────────────────────────────────────────────────────|
   inherit (import ./Libraries {inherit lib pkgs src;}) lix;
   schema = lix.schema.core.all {
     hostsPath = ./API/hosts;
@@ -19,24 +20,24 @@
   inherit (lib.strings) splitString;
   inherit (lix.configuration.predicates) isSystemDefaultUser;
 
-  #──────────────────────────────────────────────────────────────────────────────
-  # Flake Resolution
-  #──────────────────────────────────────────────────────────────────────────────
-
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Flake Resolution                                                            |
+  #|─────────────────────────────────────────────────────────────────────────────|
   lic = lix.configuration.resolution;
-  flake = lic.flake {path = src;};
+  flake =
+    if self != null
+    then self
+    else lic.flake {path = src;};
   nixosConfigurations = flake.nixosConfigurations or {};
 
-  #──────────────────────────────────────────────────────────────────────────────
-  # Host Resolution
-  #──────────────────────────────────────────────────────────────────────────────
-
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Host Resolution                                                             |
+  #|─────────────────────────────────────────────────────────────────────────────|
   host = lic.host {inherit nixosConfigurations system;};
 
-  #──────────────────────────────────────────────────────────────────────────────
-  # REPL Helpers
-  #──────────────────────────────────────────────────────────────────────────────
-
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| REPL Helpers                                                                |
+  #|─────────────────────────────────────────────────────────────────────────────|
   helpers = {
     #~@ Script generators (copy-paste ready)
     scripts = {
@@ -87,11 +88,11 @@
         home =
           if length (attrNames usersData) == 1
           then getHomeAttr homeAttr (head (attrValues usersData))
-          else mapAttrs (name: user: getHomeAttr homeAttr user) usersData;
+          else mapAttrs (_name: user: getHomeAttr homeAttr user) usersData;
         api =
           if length (attrNames usersData) == 1
           then getApiAttr apiAttr (head (attrValues usersData))
-          else mapAttrs (name: user: getApiAttr apiAttr user) usersData;
+          else mapAttrs (_name: user: getApiAttr apiAttr user) usersData;
       };
 
       programs = mkConfigSection "programs" "programs" "programs";
@@ -147,21 +148,20 @@
     #~@ Service queries
     hostsWithService = service:
       attrNames (filterAttrs
-        (name: host: attrByPath (splitString "." service) false host.config)
+        (_name: host: attrByPath (splitString "." service) false host.config)
         nixosConfigurations);
 
     enabledServices = hostName: let
       host = nixosConfigurations.${hostName};
       services = host.config.systemd.services;
     in
-      attrNames (filterAttrs (n: v: v.enable or false) services);
+      attrNames (filterAttrs (_n: v: v.enable or false) services);
   };
 in {
   inherit schema lix lib helpers flake hosts;
 
   #~@ Top-level host attributes
   inherit (host) config options;
-  # inherit (host._module) specialArgs;
   inherit (flake) inputs;
 
   #~@ Convenient shortcuts to config sections

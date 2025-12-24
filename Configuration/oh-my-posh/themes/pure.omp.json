@@ -64,9 +64,7 @@
       "segments": [
         {
           "foreground": "#B48EAD",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#BF616A{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}#BF616A{{ end }}"],
           "properties": {
             "always_enabled": true
           },
@@ -81,9 +79,7 @@
   "console_title_template": "{{if .Root}}(Admin){{end}} {{.PWD}}",
   "transient_prompt": {
     "foreground": "#B48EAD",
-    "foreground_templates": [
-      "{{ if gt .Code 0 }}#BF616A{{ end }}"
-    ],
+    "foreground_templates": ["{{ if gt .Code 0 }}#BF616A{{ end }}"],
     "template": "\u276f "
   },
   "version": 3

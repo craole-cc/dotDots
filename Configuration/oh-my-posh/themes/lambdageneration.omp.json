@@ -68,9 +68,7 @@
         },
         {
           "background": "#292929",
-          "background_templates": [
-            "{{ if gt .Code 0 }}#292929{{ end }}"
-          ],
+          "background_templates": ["{{ if gt .Code 0 }}#292929{{ end }}"],
           "foreground": "#fb7e14",
           "properties": {
             "always_enabled": true,

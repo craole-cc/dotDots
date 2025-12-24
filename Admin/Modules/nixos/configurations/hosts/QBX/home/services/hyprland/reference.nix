@@ -268,7 +268,7 @@ in {
       shouldGenerate =
         cfg.systemd.enable || cfg.extraConfig != "" || cfg.settings != {} || cfg.plugins != [];
 
-      pluginsToHyprconf = plugins:
+      pluginsToHyprconf = _plugins:
         lib.hm.generators.toHyprconf {
           attrs = {
             plugin = let

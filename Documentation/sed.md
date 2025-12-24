@@ -118,7 +118,6 @@ uses just line feed ("\n").
 - In Unix Environment
 
   > Unix uses just line feed ("\n")
-
   - Convert DOS newlines (CR/LF) to Unix format
 
     ```sh
@@ -139,9 +138,7 @@ uses just line feed ("\n").
 - DOS Environment
 
   > DOS uses carriage return and line feed ("\r\n")
-
   - Convert Unix newlines (LF) to DOS format.
-
     - Method 1
 
       ```sh
@@ -160,7 +157,6 @@ uses just line feed ("\n").
     > version can be identified by the custom "--text" switch which appears when
     > you use the "--help" switch. Otherwise, changing DOS newlines to Unix
     > newlines cannot be done with sed in a DOS environment. Use "tr" instead._
-
     - UnxUtils sed v4.0.7 or higher
 
       ```sh
@@ -234,7 +230,6 @@ uses just line feed ("\n").
 ### Substitution
 
 - Substitute (find and replace) instances of "foo" with "bar" on each line.
-
   - All
 
     ```sh
@@ -278,7 +273,6 @@ uses just line feed ("\n").
     ```
 
 - Change "scarlet" or "ruby" or "puce" to "red"
-
   - Standard sed
 
     ```sh
@@ -296,7 +290,6 @@ uses just line feed ("\n").
 - Reverse order of lines (emulates "tac").
 
   > **NOTE:** _A Bug/feature in HHsed v1.5 causes blank lines to be deleted_
-
   - Method 1
 
     ```sh
@@ -337,7 +330,6 @@ uses just line feed ("\n").
   ```
 
 - Add commas to numeric strings, changing "1234567" to "1,234,567"
-
   - Standard sed
 
     ```sh
@@ -357,7 +349,6 @@ uses just line feed ("\n").
   ```
 
 - Add a blank line every 5 lines (after lines 5, 10, 15, 20, etc.)
-
   - Standard sed
 
     ```sh
@@ -397,7 +388,6 @@ uses just line feed ("\n").
   ```
 
 - Last line of a file (emulates "tail -1")
-
   - Method 1
 
     ```sh
@@ -411,7 +401,6 @@ uses just line feed ("\n").
     ```
 
 - Next-to-the-last line of a file
-
   - for 1-line files, print blank line
 
     ```ssh
@@ -431,7 +420,6 @@ uses just line feed ("\n").
     ```
 
 - Lines which match regular expression (emulates "grep")
-
   - Method 1
 
     ```sh
@@ -445,7 +433,6 @@ uses just line feed ("\n").
     ```
 
 - Lines which do NOT match regexp (emulates "grep -v")
-
   - Method 1, corresponds to above
 
     ```sh
@@ -490,7 +477,6 @@ uses just line feed ("\n").
   ```
 
 - Lines containing AAA or BBB or CCC (emulates "egrep")
-
   - Standard
 
     ```sh
@@ -518,7 +504,6 @@ uses just line feed ("\n").
   ```
 
 - Paragraph if it contains AAA or BBB or CCC
-
   - Standard
 
     ```sh
@@ -538,7 +523,6 @@ uses just line feed ("\n").
   ```
 
 - Lines of less than 65 characters
-
   - Method 1, corresponds to above
 
     ```sh
@@ -558,7 +542,6 @@ uses just line feed ("\n").
   ```
 
 - Section based on line numbers (lines 8-12, inclusive)
-
   - Method 1
 
     ```sh
@@ -572,7 +555,6 @@ uses just line feed ("\n").
     ```
 
 - Line number 52
-
   - Method 1
 
     ```sh
@@ -592,7 +574,6 @@ uses just line feed ("\n").
     ```
 
 - Beginning at line 3, print every 7th line
-
   - Standard
 
     ```sh
@@ -673,7 +654,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Last 10 lines
-
   - Method 1
 
     ```sh
@@ -687,7 +667,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - Every 8th line
-
   - Standard
 
     ```sh
@@ -707,7 +686,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Blank lines from a file (same as "grep '.' ")
-
   - Method 1
 
     ```sh
@@ -721,7 +699,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - Consecutive blank lines except the first (emulates "cat -s")
-
   - Method 1, allows 0 blanks at top, 1 at EOF
 
     ```sh
@@ -747,7 +724,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Trailing blank lines at end of file
-
   - Standard
 
     ```sh
@@ -825,7 +801,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Quotes
-
   - Add a leading angle bracket and space to each line (quote a message)
 
     ```sh
@@ -839,7 +814,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - HTML
-
   - Remove most HTML tags (accommodates multiple-line tags)
 
   ```sh
@@ -849,7 +823,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   - Extract multi-part uuencoded binaries, removing extraneous header info, so
     that only the uuencoded portion remains. Files passed to sed must be passed
     in the proper order.
-
     - Version 1, can be entered from the command line;
 
       ```sh
@@ -864,9 +837,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
       ```
 
 - Sort
-
   - Sort paragraphs alphabetically. Paragraphs are separated by blank lines.
-
     - Standard
 
       ```sh
@@ -880,7 +851,6 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
       ```
 
 - Archive
-
   - Zip each .txt file individually, deleting the source file and setting the
     name of each .ZIP file to the basename of file.
 

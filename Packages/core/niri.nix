@@ -7,7 +7,7 @@
   ...
 }: let
   cfg = config.user.interface.windowManager.niri;
-  inherit (lib) mkEnableOption mkOption types mkIf mkDefault;
+  inherit (lib) mkEnableOption mkOption types mkIf;
 
   # Get the flake's niri-unstable package
   niriFlakePkg = inputs.niri.packages.${pkgs.system}.niri-unstable;
@@ -39,7 +39,7 @@ in {
     environment.systemPackages = with pkgs;
       [
         inputs.niri.packages.${system}.niri-unstable.overrideAttrs
-        (old: {
+        (_old: {
           doCheck = false; # Skip tests that are failing
         })
         niriFlakePkg # Use flake package directly

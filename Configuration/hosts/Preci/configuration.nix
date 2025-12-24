@@ -4,14 +4,12 @@
   pkgs,
   modulesPath,
   ...
-}:
-let
+}: let
   plasmaEnabled = config.services.desktopManager.plasma6.enable;
   sddmEnabled = config.services.displayManager.sddm.enable;
   xserverEnabled = config.services.xserver.enable;
   alpha = "craole";
-in
-{
+in {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     ./hardware-configuration.nix
@@ -72,7 +70,7 @@ in
   };
 
   console = {
-    packages = [ pkgs.terminus_font ];
+    packages = [pkgs.terminus_font];
     font = "ter-u32n";
     earlySetup = true;
     useXkbConfig = true;
@@ -172,7 +170,7 @@ in
       execWheelOnly = true;
       extraRules = [
         {
-          users = [ alpha ];
+          users = [alpha];
           commands = [
             {
               command = "ALL";
@@ -202,8 +200,7 @@ in
   };
 
   environment = {
-    systemPackages =
-      with pkgs;
+    systemPackages = with pkgs;
       [
         #| Core Utilities
         usbutils
@@ -246,30 +243,29 @@ in
         brave
       ]
       ++ (
-        if plasmaEnabled then
-          [ kde-gruvbox ]
+        if plasmaEnabled
+        then
+          [kde-gruvbox]
           ++ (with kdePackages; [
             # full
             koi
             kalm
             yakuake
           ])
-        else
-          [ ]
+        else []
       )
       ++ (
-        if xserverEnabled then
-          [
-            wmctrl
-            xprop
-            xdotool
-            xinput
-            xrandr
-            qalculate-gtk
-          ]
-        else
-          [ qalculate-qt ]
+        if xserverEnabled
+        then [
+          wmctrl
+          xprop
+          xdotool
+          xinput
+          xrandr
+          qalculate-gtk
+        ]
+        else [qalculate-qt]
       );
-    plasma6.excludePackages = with pkgs; [ kate ];
+    plasma6.excludePackages = with pkgs; [kate];
   };
 }

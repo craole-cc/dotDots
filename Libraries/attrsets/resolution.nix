@@ -1,13 +1,11 @@
 {
   _,
   lib,
-  pkgs,
   ...
 }: let
   inherit (_.trivial.emptiness) isNotEmpty;
-  inherit (lib.attrsets) attrByPath catAttrs hasAttrByPath getAttrs;
-  inherit (lib.lists) filter head toList findFirst;
-  inherit (_.configuration) system;
+  inherit (lib.attrsets) attrByPath hasAttrByPath;
+  inherit (lib.lists) filter head toList;
 
   /**
   Get attribute or default if missing/empty.

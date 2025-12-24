@@ -3,11 +3,9 @@
   inherit
     (lix.std.types)
     nullOr
-    oneOf
     either
     int
     str
-    float
     listOf
     enum
     submodule

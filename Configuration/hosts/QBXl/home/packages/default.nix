@@ -1,5 +1,8 @@
-{ pkgs, osConfig, ... }:
 {
+  pkgs,
+  osConfig,
+  ...
+}: {
   imports = [
     ./bat
     ./helix

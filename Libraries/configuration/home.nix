@@ -74,7 +74,7 @@
     interfaces = let
       # Build per-user interface config with host fallback
       userInterfaces =
-        mapAttrs (name: cfg: {
+        mapAttrs (_name: cfg: {
           desktopEnvironment = cfg.interface.desktopEnvironment or interface.desktopEnvironment or null;
           windowManager = cfg.interface.windowManager or interface.windowManager or null;
           displayManager = cfg.interface.displayManager or interface.displayManager or null;
@@ -325,7 +325,7 @@
     ];
 
     #~@ System-wide NixOS users
-    users.users = mapAttrs (name: cfg: cfg.nixosUser) perUserConfigs;
+    users.users = mapAttrs (_name: cfg: cfg.nixosUser) perUserConfigs;
 
     #~@ Admin privelages
     security.sudo = {
@@ -411,7 +411,7 @@
         };
 
       #> Merge all per-user home-manager configs
-      users = mapAttrs (name: cfg: cfg.homeConfig) perUserConfigs;
+      users = mapAttrs (_name: cfg: cfg.homeConfig) perUserConfigs;
     };
   };
 in {

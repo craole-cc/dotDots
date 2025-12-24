@@ -111,12 +111,12 @@
       "segments": [
         {
           "properties": {
-              "style": "roundrock",
-              "always_enabled": true
-            },
-            "style": "diamond",
-            "template": "{{ .FormattedMs }} ",
-            "type": "executiontime"
+            "style": "roundrock",
+            "always_enabled": true
+          },
+          "style": "diamond",
+          "template": "{{ .FormattedMs }} ",
+          "type": "executiontime"
         },
         {
           "background": "#ffffff",

@@ -1,7 +1,3 @@
 {
-  "Includes": [
-    "default.ps1",
-    "coreutils.ps1",
-    "_._"
-  ]
+  "Includes": ["default.ps1", "coreutils.ps1", "_._"]
 }

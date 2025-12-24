@@ -80,10 +80,7 @@
   "terminal.integrated.profiles.windows": {
     "NixOS (WSL)": {
       "path": "${env:windir}\\System32\\wsl.exe",
-      "args": [
-        "-d",
-        "NixOS"
-      ]
+      "args": ["-d", "NixOS"]
     },
     "Git Bash": {
       "source": "Git Bash"
@@ -646,12 +643,7 @@
       "base": "rust",
       "color": "amber-300",
       "lightColor": "amber-600",
-      "fileNames": [
-        "lib.rs",
-        "main.rs",
-        "mod.rs",
-        "Cargo.toml"
-      ]
+      "fileNames": ["lib.rs", "main.rs", "mod.rs", "Cargo.toml"]
     },
     {
       "name": "nix-entrypoint",
@@ -670,124 +662,77 @@
       "base": "admin",
       "color": "light-green-300",
       "lightColor": "light-green-700",
-      "folderNames": [
-        "users",
-        "user",
-        "people",
-        "roles"
-      ]
+      "folderNames": ["users", "user", "people", "roles"]
     },
     {
       "name": "desktops",
       "base": "desktop",
       "color": "purple-300",
       "lightColor": "orange-700",
-      "folderNames": [
-        "desktops",
-        "desktop",
-        "control"
-      ]
+      "folderNames": ["desktops", "desktop", "control"]
     },
     {
       "name": "hosts",
       "base": "client",
       "color": "blue-gray-400",
       "lightColor": "orange-700",
-      "folderNames": [
-        "hosts",
-        "host",
-        "machine",
-        "machines"
-      ]
+      "folderNames": ["hosts", "host", "machine", "machines"]
     },
     {
       "name": "programs",
       "base": "app",
       "color": "cyan-300",
       "lightColor": "green-700",
-      "folderNames": [
-        "program",
-        "programs"
-      ]
+      "folderNames": ["program", "programs"]
     },
     {
       "name": "macros",
       "base": "middleware",
       "color": "blue-400",
       "lightColor": "blue-500",
-      "folderNames": [
-        "constructors",
-        "macros"
-      ]
+      "folderNames": ["constructors", "macros"]
     },
     {
       "name": "shell",
       "base": "scripts",
       "color": "blue-gray-600",
       "lightColor": "blue-gray-500",
-      "folderNames": [
-        "shell",
-        "shellscript",
-        "bash",
-        "sh",
-        "posix"
-      ]
+      "folderNames": ["shell", "shellscript", "bash", "sh", "posix"]
     },
     {
       "name": "err",
       "base": "error",
       "color": "purple-400",
       "lightColor": "red-500",
-      "folderNames": [
-        "erks",
-        "error",
-        "err"
-      ]
+      "folderNames": ["erks", "error", "err"]
     },
     {
       "name": "filesystem",
       "base": "resource",
       "color": "deep-purple-400",
       "lightColor": "deep-purple-500",
-      "folderNames": [
-        "file",
-        "files",
-        "system",
-        "io",
-        "filesystem"
-      ]
+      "folderNames": ["file", "files", "system", "io", "filesystem"]
     },
     {
       "name": "folder",
       "base": "archive",
       "color": "deep-purple-300",
       "lightColor": "deep-purple-400",
-      "folderNames": [
-        "folders",
-        "folder",
-      ]
+      "folderNames": ["folders", "folder"]
     },
     {
       "name": "compression",
       "base": "archive",
       "color": "pink-400",
       "lightColor": "pink-600",
-      "folderNames": [
-        "extract",
-        "extractor",
-        "compress",
-        "compression"
-      ]
+      "folderNames": ["extract", "extractor", "compress", "compression"]
     },
     {
       "name": "internal",
       "base": "import",
       "color": "green-300",
       "lightColor": "green-400",
-      "folderNames": [
-        "local",
-        "internal",
-      ]
+      "folderNames": ["local", "internal"]
     },
     {
       "name": "external",
@@ -796,7 +741,7 @@
       "lightColor": "green-700",
       "folderNames": [
         // "local",
-        "external",
+        "external"
       ]
     },
     {
@@ -804,22 +749,14 @@
       "base": "nix",
       "color": "cyan-800",
       "lightColor": "cyan-700",
-      "folderNames": [
-        "nixos",
-        "flake",
-        "flakes",
-        "nix"
-      ]
+      "folderNames": ["nixos", "flake", "flakes", "nix"]
     },
     {
       "name": "movie",
       "base": "video",
       "color": "orange-800",
       "lightColor": "orange-400",
-      "folderNames": [
-        "imdb",
-        "movie"
-      ]
+      "folderNames": ["imdb", "movie"]
     },
     {
       "name": "string",
@@ -841,33 +778,21 @@
       "base": "custom",
       "color": "pink-800",
       "lightColor": "pink-400",
-      "folderNames": [
-        "customize",
-        "fmt",
-        "format"
-      ]
+      "folderNames": ["customize", "fmt", "format"]
     },
     {
       "name": "time",
       "base": "temp",
       "color": "teal-800",
       "lightColor": "teal-400",
-      "folderNames": [
-        "clock",
-        "date",
-        "ephemeral",
-        "time"
-      ]
+      "folderNames": ["clock", "date", "ephemeral", "time"]
     },
     {
       "name": "registry",
       "base": "scons",
       "color": "purple-800",
       "lightColor": "purple-400",
-      "folderNames": [
-        "register",
-        "registry"
-      ]
+      "folderNames": ["register", "registry"]
     },
     {
       "name": "unit",
@@ -913,12 +838,7 @@
     "style.css"
   ],
   "cssvar.ignore": [],
-  "cssvar.extensions": [
-    "css",
-    "postcss",
-    "jsx",
-    "tsx"
-  ],
+  "cssvar.extensions": ["css", "postcss", "jsx", "tsx"],
   //> ====================================================
   //> INTELLISENSE & CODE ASSISTANCE
   //> ====================================================
@@ -1117,9 +1037,7 @@
     }
   },
   "bashIde.explainshellEndpoint": "http://localhost:5000",
-  "security.allowedUNCHosts": [
-    "wsl.localhost"
-  ],
+  "security.allowedUNCHosts": ["wsl.localhost"],
   "security.workspace.trust.untrustedFiles": "open",
   //> ====================================================
   //> Keybindings

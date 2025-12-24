@@ -3,7 +3,7 @@
   "blocks": [
     {
       "alignment": "left",
-     "segments": [
+      "segments": [
         {
           "background": "#29315A",
           "foreground": "#3EC669",
@@ -47,7 +47,7 @@
       ],
       "type": "prompt"
     },
-     {
+    {
       "alignment": "right",
       "segments": [
         {

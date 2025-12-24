@@ -1,9 +1,7 @@
 {
-  config,
   pkgs,
   ...
-}:
-{
+}: {
   config = {
     home-manager.users.craole = {
       wayland.windowManager.hyprland.enable = true;
@@ -31,7 +29,7 @@
       xdg.portal = {
         enable = true;
         config.common.default = "*";
-        extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
+        extraPortals = with pkgs; [xdg-desktop-portal-gtk];
       };
     };
   };

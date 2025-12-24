@@ -3,7 +3,6 @@
   lib,
   ...
 }: let
-  inherit (_.configuration.home) mkUsers;
   inherit
     (lib.attrsets)
     # filterAttrs
@@ -18,7 +17,7 @@
     hosts,
     specialArgs,
   }:
-    mapAttrs (name: host:
+    mapAttrs (_name: host:
       mkHost {
         inherit host;
         specialArgs = specialArgs // {inherit host;};
@@ -27,7 +26,6 @@
 
   mkHost = {
     host,
-    specialArgs,
   }: let
     inherit (host) name system dots;
     localization = host.localization or {};

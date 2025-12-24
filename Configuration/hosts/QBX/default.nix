@@ -28,7 +28,7 @@
       "/" = {
         device = "/dev/disk/by-uuid/054d14c9-33c7-4fd3-8092-c9efd260e677";
         fsType = "btrfs";
-        options = [ "subvol=@" ];
+        options = ["subvol=@"];
       };
       "/boot" = {
         device = "/dev/disk/by-uuid/C6C0-2B64";
@@ -40,7 +40,7 @@
       };
     };
 
-    swapDevices = [ ];
+    swapDevices = [];
 
     network = [
       "eno1"
@@ -105,7 +105,7 @@
             to = 65534;
           }
         ];
-        ports = [ ];
+        ports = [];
       };
     };
     nameservers = [
@@ -143,6 +143,6 @@
   allowAliases = true;
   allowHomeManager = true;
   backupFileExtension = "BaC";
-  extraPkgConfig = { };
-  extraPkgAttrs = { };
+  extraPkgConfig = {};
+  extraPkgAttrs = {};
 }

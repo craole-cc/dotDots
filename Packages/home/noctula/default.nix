@@ -2,13 +2,11 @@
   # config,
   lib,
   # pkgs,
-  inputs,
   # host,
   # system,
   # bar,
   ...
 }: let
-  app = "noctalia";
 
   # inherit (lib.lists) optional;
   inherit (lib.modules) mkIf;

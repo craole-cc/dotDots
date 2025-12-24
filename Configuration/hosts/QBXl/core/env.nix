@@ -3,13 +3,14 @@
   config,
   dots,
   ...
-}:
-{
+}: {
   environment = with dots.environment; {
     inherit shellAliases shellInit;
-    variables = variables // {
-      DOTS = paths.flake.${config.networking.hostName};
-    };
+    variables =
+      variables
+      // {
+        DOTS = paths.flake.${config.networking.hostName};
+      };
   };
   # environment = {
   #   inherit (dots) shellAliases;

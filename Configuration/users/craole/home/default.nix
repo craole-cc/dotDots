@@ -1,6 +1,5 @@
-{ pkgs, ... }:
-{
-  imports = [ ];
+{pkgs, ...}: {
+  imports = [];
 
   programs = {
     atuin.enable = true;
@@ -38,7 +37,7 @@
     yt-dlp.enable = true;
     zoxide.enable = true;
     zed-editor.enable = true;
-    zen-browser.enable=true;
+    zen-browser.enable = true;
   };
   home = {
     sessionVariables.READER = "bat";

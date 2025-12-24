@@ -6,7 +6,6 @@
   inherit (lix.std.types) attrsOf enum nullOr str submodule;
 
   gpuOpts = {
-    name,
     config,
     ...
   }: {

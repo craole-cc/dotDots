@@ -56,7 +56,7 @@
       then [
         {
           imports = [packagePath];
-          config.programs.${name} = mapAttrs (key: value: mkForce value) (
+          config.programs.${name} = mapAttrs (_key: value: mkForce value) (
             {enable = cfg.enable;} // (removeAttrs cfg ["enable"])
           );
         }

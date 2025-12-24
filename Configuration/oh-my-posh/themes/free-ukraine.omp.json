@@ -83,9 +83,7 @@
         {
           "background": "#ffd700",
           "foreground": "#0057b7",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#a30000{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}#a30000{{ end }}"],
           "leading_diamond": "<transparent,#ffd700>\ue0b0</>",
           "properties": {
             "always_enabled": true

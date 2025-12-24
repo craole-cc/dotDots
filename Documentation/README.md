@@ -48,9 +48,7 @@ The format is auto-detected based on content structure.
     "WarningPreference": "Continue",
     "ErrorActionPreference": "Continue"
   },
-  "ExperimentalFeatures": [
-    "PSFeedbackProvider"
-  ],
+  "ExperimentalFeatures": ["PSFeedbackProvider"],
   "Excludes": [
     "review",
     "tmp",
@@ -62,12 +60,7 @@ The format is auto-detected based on content structure.
     "* copy*",
     "*.old"
   ],
-  "OrderFiles": [
-    ".dotsrc",
-    ".dots.json",
-    ".dots.conf",
-    "config.json"
-  ],
+  "OrderFiles": [".dotsrc", ".dots.json", ".dots.conf", "config.json"],
   "Includes": [
     {
       "path": "Bin\\powershell",

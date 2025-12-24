@@ -225,4 +225,4 @@ main "$@"
 - [ShellCheck](https://www.shellcheck.net/)
 - [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
 
-*This style guide is a living document. Update as needed to reflect evolving best practices and project needs.*
+_This style guide is a living document. Update as needed to reflect evolving best practices and project needs._

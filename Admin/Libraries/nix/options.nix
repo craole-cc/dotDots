@@ -4,7 +4,6 @@
   ...
 }: let
   inherit (lib) mkOption;
-  inherit (config.DOTS) Libraries;
 in
   # with lib;
   # with types;

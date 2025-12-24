@@ -1,7 +1,7 @@
 # https://nixos.wiki/wiki/Overlays
 {inputs, ...}: {
   #DOC Sets up base nixpkgs configuration and packages per system
-  perSystemConfig = final: prev: {
+  perSystemConfig = final: _prev: {
     perSystem = system:
       import inputs.nixPackages {
         inherit system;
@@ -49,7 +49,7 @@
   };
 
   #DOC Include modifications to existing packages with defaults
-  modifications = final: prev: {
+  modifications = _final: prev: {
     brave = prev.brave.override {
       commandLineArgs = "--password-store=gnome-libsecret";
     };

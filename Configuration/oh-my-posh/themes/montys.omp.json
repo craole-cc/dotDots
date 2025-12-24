@@ -72,9 +72,7 @@
         },
         {
           "background": "#2e9599",
-          "background_templates": [
-            "{{ if gt .Code 0 }}red{{ end }}"
-          ],
+          "background_templates": ["{{ if gt .Code 0 }}red{{ end }}"],
           "foreground": "#ffffff",
           "powerline_symbol": "\ue0b0",
           "properties": {

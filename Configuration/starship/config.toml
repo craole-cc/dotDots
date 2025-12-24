@@ -145,7 +145,6 @@ style = "italic dimmed bright-purple"
 threshold = 70
 style = "italic dimmed yellow"
 
-
 [deno]
 format = ""
 

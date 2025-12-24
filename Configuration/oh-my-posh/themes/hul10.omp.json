@@ -111,9 +111,7 @@
         {
           "background": "transparent",
           "foreground": "#81ff91",
-          "foreground_templates": [
-            "{{if gt .Code 0}}#ff3030{{end}}"
-          ],
+          "foreground_templates": ["{{if gt .Code 0}}#ff3030{{end}}"],
           "properties": {
             "always_enabled": true
           },

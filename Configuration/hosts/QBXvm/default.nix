@@ -39,7 +39,7 @@
       };
     };
 
-    swapDevices = [ ];
+    swapDevices = [];
 
     network = [
       "ens33"
@@ -103,7 +103,7 @@
             to = 65534;
           }
         ];
-        ports = [ ];
+        ports = [];
       };
     };
     nameservers = [
@@ -141,7 +141,6 @@
   allowAliases = true;
   allowHomeManager = true;
   backupFileExtension = "backup";
-  extraPkgConfig = { };
-  extraPkgAttrs = { };
-
+  extraPkgConfig = {};
+  extraPkgAttrs = {};
 }

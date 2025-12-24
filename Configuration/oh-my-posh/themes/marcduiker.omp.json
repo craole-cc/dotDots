@@ -38,9 +38,7 @@
         },
         {
           "background": "#0095e9",
-          "background_templates": [
-            "{{ if gt .Code 0 }}#ff0044{{ end }}"
-          ],
+          "background_templates": ["{{ if gt .Code 0 }}#ff0044{{ end }}"],
           "foreground": "#ffffff",
           "leading_diamond": "<transparent,background>\ue0b0</>",
           "properties": {

@@ -5,10 +5,10 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs recursiveUpdate filterAttrs;
+  inherit (lib.attrsets) mapAttrs recursiveUpdate;
   inherit (lib.lists) elem all;
   inherit (lib.strings) concatStringsSep;
-  inherit (builtins) typeOf isAttrs isList isString isBool isInt isFloat;
+  inherit (builtins) typeOf isAttrs isBool isInt isFloat;
 
   # Import existing type utilities
   predicates = _.types.predicates;
@@ -329,7 +329,7 @@
   # Extract default values from a schema
   extractDefaults = schema:
     mapAttrs (
-      name: spec:
+      _name: spec:
         if spec ? default
         then spec.default
         else if spec.type == "submodule"
@@ -421,7 +421,7 @@
 
   # Make all fields optional
   makeOptional = schema:
-    mapAttrs (name: spec: t.nullOr spec) schema;
+    mapAttrs (_name: spec: t.nullOr spec) schema;
 
   # Make specific fields required (remove nullOr wrapper)
   makeRequired = fields: schema:

@@ -4,7 +4,6 @@
   inherit (lix.std.types) attrsOf either float int oneOf str submodule;
 
   displayOpts = {
-    name,
     config,
     ...
   }: let

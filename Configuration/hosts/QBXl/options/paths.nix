@@ -2,16 +2,14 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   dom = "dots";
   mod = "paths";
   cfg = config.${dom}.${mod};
 
   inherit (lib.options) mkOption;
   inherit (lib.types) str either path;
-in
-{
+in {
   options.${dom}.${mod} = {
     DOTS = {
       flake = mkOption {

@@ -73,7 +73,7 @@
           useUserPackages = true;
           sharedModules = home;
           extraSpecialArgs = specialArgs;
-          users = lib.genAttrs (builtins.attrNames host.userConfigs) (username: {
+          users = lib.genAttrs (builtins.attrNames host.userConfigs) (_username: {
             home.stateVersion = stateVersion;
             programs.home-manager.enable = true;
           });

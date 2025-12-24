@@ -36,9 +36,7 @@
         },
         {
           "foreground": "#7FFFD4",
-          "foreground_templates": [
-            "{{ if gt .Code 0 }}#E84855{{ end }}"
-          ],
+          "foreground_templates": ["{{ if gt .Code 0 }}#E84855{{ end }}"],
           "properties": {
             "always_enabled": true
           },

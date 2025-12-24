@@ -134,7 +134,7 @@
       "segments": [
         {
           "style": "diamond",
-            "template": "<#ffff00>[#]</>",
+          "template": "<#ffff00>[#]</>",
           "type": "root"
         },
         {

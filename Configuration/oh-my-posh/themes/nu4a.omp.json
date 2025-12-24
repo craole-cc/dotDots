@@ -6,9 +6,7 @@
       "segments": [
         {
           "background": "#cfcfc4",
-          "background_templates": [
-            "{{if .Root}}#ff3026{{else}}#cfcfc4{{end}}"
-          ],
+          "background_templates": ["{{if .Root}}#ff3026{{else}}#cfcfc4{{end}}"],
           "foreground": "#100e23",
           "properties": {
             "display_host": false

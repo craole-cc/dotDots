@@ -1075,7 +1075,7 @@ in {
       ]
       ++ flatten (
         flip mapAttrsToList cfg.users (
-          name: user:
+          _name: user:
             [
               {
                 assertion = (user.hashedPassword != null) -> (match ".*:.*" user.hashedPassword == null);
