@@ -2,7 +2,9 @@
 
 ## Overview
 
-This module provides comprehensive tools for managing Firefox and Firefox-based browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection, extension management, and Home Manager module resolution.
+This module provides comprehensive tools for managing Firefox and Firefox-based
+browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
+extension management, and Home Manager module resolution.
 
 ## Quick Start
 
@@ -130,7 +132,8 @@ detectVariant ""              # => null
 
 ### `resolveModule({ inputs, pkgs, system?, variant?, policies? }) → AttrSet`
 
-Resolves complete browser configuration including packages, Home Manager modules, and policy settings.
+Resolves complete browser configuration including packages, Home Manager
+modules, and policy settings.
 
 **Arguments:**
 
@@ -269,7 +272,8 @@ inputs.zen-browser = {
 1. Open Firefox and navigate to `about:support`
 2. Scroll to "Extensions" section
 3. Copy the ID from the extension's entry
-4. Alternatively, check the extension's page URL: `addons.mozilla.org/<*>/addon/<id>/`
+4. Alternatively, check the extension's page URL:
+   `addons.mozilla.org/<*>/addon/<id>/`
 
 ## Use Cases
 

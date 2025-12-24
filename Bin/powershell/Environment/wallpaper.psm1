@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Fast, cross-platform wallpaper detection and management for shell startup.
 .DESCRIPTION

@@ -1,4 +1,4 @@
-﻿# Method 1: Using quotes (simplest and most reliable)
+# Method 1: Using quotes (simplest and most reliable)
 function Global:Format-WindowsPathQuoted {
   param([string]$Path)
   # Escape internal quotes, then wrap in double quotes

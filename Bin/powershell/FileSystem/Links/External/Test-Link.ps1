@@ -1,4 +1,4 @@
-﻿function Test-Link {
+function Test-Link {
   <#
     .SYNOPSIS
     Tests if a path is a symbolic or hard link and returns link information.

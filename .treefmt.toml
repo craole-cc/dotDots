@@ -1,8 +1,8 @@
 [global]
 excludes = [
   ".dotsrc",
-  "Bin/bash/**",        #TODO Temporary
-  "Bin/shellscript/**", #TODO Temporary
+  # "Bin/bash/**",        #TODO Temporary
+  # "Bin/shellscript/**", #TODO Temporary
   # "treefmt.toml",
   "**/node_modules/**",
   "**/target/**",
@@ -68,39 +68,40 @@ priority = 1
 [formatter.shellcheck]
 includes = [
   "*.sh",
-  ".dotsrc",
+  # ".dotsrc",
   ".env*",
   ".shellcheckrc",
   "*.bash",
   ".bash*",
   "Bin/shellscript/**",
-  # "Modules/**",
 ]
+excludes = ["*.md"]
 command = "shellcheck"
+options = ["--rcfile", ".shellcheckrc"]
 priority = 1
 
-[formatter.shfmt]
-includes = [
-  "*.sh",
-  "*.dotsrc",
-  "*.env*",
-  "*.shellcheckrc",
-  "*.bash*",
-  "*.gitignore",
-  "*.ignore",
-]
-command = "shfmt"
-options = [
-  "--apply-ignore",
-  "--binary-next-line",
-  "--space-redirects",
-  "--case-indent",
-  "--indent",
-  "2",
-  "--posix",
-  "--write",
-]
-priority = 2
+# [formatter.shfmt]
+# includes = [
+#   "*.sh",
+#   "*.dotsrc",
+#   "*.env*",
+#   "*.shellcheckrc",
+#   "*.bash*",
+#   "*.gitignore",
+#   "*.ignore",
+# ]
+# command = "shfmt"
+# options = [
+#   "--apply-ignore",
+#   "--binary-next-line",
+#   "--space-redirects",
+#   "--case-indent",
+#   "--indent",
+#   "2",
+#   "--posix",
+#   "--write",
+# ]
+# priority = 2
 
 # [formatter.powershell]
 # includes = ["*.ps1", "*.psm1, *.psd1"]

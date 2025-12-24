@@ -1,4 +1,4 @@
-﻿function Backup-Folder {
+function Backup-Folder {
   <#
     .SYNOPSIS
         Creates a timestamped backup of a file or directory.

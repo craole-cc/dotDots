@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Forcibly stops and then restarts an application.
 .DESCRIPTION

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Cross-platform alias management for removing conflicting command aliases.
 

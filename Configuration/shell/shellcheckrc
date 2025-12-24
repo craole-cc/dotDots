@@ -1,13 +1,13 @@
 # shellcheck disable=all
 
-#~@ Define core settings
+#{ Define core settings
 external-sources=true #? Follow arbitrary file paths in source statements
 severity=style        #? Report even style recommendations
 
-#~@ Enable all checks by default
+#{ Enable all checks by default
 # enable=all
 
-#~@ Disable specific warnings (ie: disable=SC#### #? Description of the warning)
+#{ Disable specific warnings (ie: disable=SC#### #? Description of the warning)
 disable=SC1003        #? Bad single quote escaping
 disable=SC1016        # ShellCheck directive should be on its own line.
 disable=SC1090-SC1091 #? Don't follow source statements
@@ -20,34 +20,6 @@ disable=SC2276        #? Bad assignment or comparison
 disable=SC2312        #? Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
 disable=SC2317        #? Command appears to be unreachable. Check usage (or ignore if invoked indirectly)
 
-#~@ Define source paths
+#{ Define source paths
 source-path=SCRIPTDIR                 # Look for sourced files relative to script directory
 source-path=SCRIPTDIR/Bin/shellscript # Also look in a bin dirs
-
-#~@ Temporary Overrides
-disable=SC1001
-disable=SC1036
-disable=SC1065
-disable=SC1088
-disable=SC1091
-disable=SC2016
-disable=SC2086
-disable=SC2102
-disable=SC2116
-disable=SC2119
-disable=SC2120
-disable=SC2148
-disable=SC2162
-disable=SC2181
-disable=SC2211
-disable=SC2221
-disable=SC2222
-disable=SC2232
-disable=SC2244
-disable=SC2249
-disable=SC2272
-disable=SC2327
-disable=SC2328
-disable=SC2329
-disable=SC3045
-disable=SC3067

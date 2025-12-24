@@ -1,4 +1,4 @@
-﻿function Remove-OrphanedLinks {
+function Remove-OrphanedLinks {
   <#
     .SYNOPSIS
     Removes orphaned (broken) links from a directory.

@@ -1,4 +1,4 @@
-﻿function New-Link {
+function New-Link {
   <#
     .SYNOPSIS
     Creates links from source files to a target directory.

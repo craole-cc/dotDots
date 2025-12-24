@@ -1,4 +1,4 @@
-﻿function Backup-Links {
+function Backup-Links {
   <#
     .SYNOPSIS
     Creates a backup of all links in a directory.

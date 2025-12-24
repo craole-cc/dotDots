@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     System and PowerShell update utility.
 

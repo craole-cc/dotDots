@@ -1,4 +1,4 @@
-﻿# Links.psm1 - Main module file
+# Links.psm1 - Main module file
 
 # Get the module root path
 $ModuleRoot = $PSScriptRoot

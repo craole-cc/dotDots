@@ -1,4 +1,4 @@
-﻿function Test-CorrectLink {
+function Test-CorrectLink {
   <#
     .SYNOPSIS
     Helper function to check if existing link points to correct source.

@@ -1,4 +1,4 @@
-﻿function New-SymbolicLink {
+function New-SymbolicLink {
   <#
     .SYNOPSIS
     Creates symbolic links and validates their integrity.

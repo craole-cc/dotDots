@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Helper functions for module and environment management.
 

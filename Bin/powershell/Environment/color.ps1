@@ -1,4 +1,4 @@
-﻿function Global:Get-DesktopColorMode {
+function Global:Get-DesktopColorMode {
   <#
   .SYNOPSIS
     Detects the system's color theme (Light or Dark) across Windows, Linux, and macOS.

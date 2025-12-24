@@ -1,4 +1,4 @@
-﻿function Global:New-Link {
+function Global:New-Link {
   <#
     .SYNOPSIS
     Creates links from source files to a target directory.

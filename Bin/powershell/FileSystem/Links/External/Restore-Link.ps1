@@ -1,4 +1,4 @@
-﻿function Restore-Links {
+function Restore-Links {
   <#
     .SYNOPSIS
     Restores links from a backup created by Backup-Links.

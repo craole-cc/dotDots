@@ -8,13 +8,12 @@
   #──────────────────────────────────────────────────────────────────────────────
   # Core Imports
   #──────────────────────────────────────────────────────────────────────────────
-  inherit (import ./Libraries {inherit lib src;}) lix;
+  inherit (import ./Libraries {inherit lib pkgs src;}) lix;
   schema = lix.schema.core.all {
     hostsPath = ./API/hosts;
     usersPath = ./API/users;
   };
   inherit (schema) hosts users;
-
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
   inherit (lib.lists) length filter head;
   inherit (lib.strings) splitString;
@@ -28,25 +27,9 @@
   flake = lic.flake {path = src;};
   nixosConfigurations = flake.nixosConfigurations or {};
 
-  # systems = lic.systems {inherit hosts;};
-  # currentSystem = systems.system;
-
   #──────────────────────────────────────────────────────────────────────────────
   # Host Resolution
   #──────────────────────────────────────────────────────────────────────────────
-
-  # # Find a host that matches current system
-  # matchingHost =
-  #   findFirst
-  #   (host: host.config.nixpkgs.hostPlatform.system or null == currentSystem)
-  #   null
-  #   (attrValues nixosConfigurations);
-
-  # # Get the current host
-  # currentHost =
-  #   if matchingHost != null
-  #   then matchingHost
-  #   else head (attrValues nixosConfigurations);
 
   host = lic.host {inherit nixosConfigurations system;};
 

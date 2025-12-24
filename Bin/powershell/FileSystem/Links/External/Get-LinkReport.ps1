@@ -1,4 +1,4 @@
-﻿function Get-LinkReport {
+function Get-LinkReport {
   <#
     .SYNOPSIS
     Generates a comprehensive report of links in a directory.
