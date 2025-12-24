@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #{ Set the history file location }
-if [[ -n "${DOTS_CACHE:-}" ]]; then
+if [[ -n ${DOTS_CACHE:-} ]]; then
   mkdir -p "${DOTS_CACHE}"
   touch "${DOTS_CACHE}/history.bash"
   export HISTFILE="${DOTS_CACHE}/history.bash"
@@ -30,7 +30,7 @@ HISTIGNORE="ls:cd:clear:[ \t]*" #? Common commands and commands starting with sp
 # HISTTIMEFORMAT="%F %T" # add timestamp to history
 
 #{ Increase the history file size limit
-if [[ -z "${PROMPT_COMMAND}" ]]; then
+if [[ -z ${PROMPT_COMMAND} ]]; then
   PROMPT_COMMAND="history -a; history -n"
 else
   PROMPT_COMMAND="${PROMPT_COMMAND}; history -a; history -n"

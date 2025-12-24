@@ -72,7 +72,7 @@
 
 ## Create Limited User
 
----
+______________________________________________________________________
 
 This profile is to facilitate login independent of root.
 
@@ -94,7 +94,7 @@ echo $_file
 
 ## SSHD
 
----
+______________________________________________________________________
 
 Restrict SSH access to encrypted key login
 
@@ -162,7 +162,7 @@ systemctl restart sshd
 
 ## UFW
 
----
+______________________________________________________________________
 
 ```sh
 sudo pacman -Syu ufw;
@@ -171,7 +171,7 @@ sudo systemctl enable ufw;
 
 ## Fail2Ban
 
----
+______________________________________________________________________
 
 ### Install & Enable
 

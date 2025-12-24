@@ -20,8 +20,8 @@ sync_files() {
 
   if [ -f "$1" ] && [ -f "$2" ]; then
     # Using universal date format for comparison
-    src_time=$(date -r "$1" +%s 2> /dev/null || stat -c %Y "$1")
-    dst_time=$(date -r "$2" +%s 2> /dev/null || stat -c %Y "$2")
+    src_time=$(date -r "$1" +%s 2>/dev/null || stat -c %Y "$1")
+    dst_time=$(date -r "$2" +%s 2>/dev/null || stat -c %Y "$2")
 
     if [ "${src_time}" -gt "${dst_time}" ]; then
       cp "$1" "$2"

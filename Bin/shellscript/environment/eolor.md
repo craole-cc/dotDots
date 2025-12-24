@@ -45,18 +45,19 @@ EOLor [OPTIONS] <PATH>
 
    By omitting the `-c` or `-l` options, the script will automatically detect the operating system and use the appropriate line ending format. On Windows, it will use CRLF, and on Unix-like systems, it will use LF.
 
-2. Convert files of multiple paths to different line ending formats:
+1. Convert files of multiple paths to different line ending formats:
 
    ```sh
    EOLor --win /path/to/dir1 --nix /path/to/dir2 my_file.txt
    ```
 
    In this example, different conversion options are given for each directory, and the script will perform the following conversions accordingly:
+
    - All files in `/path/to/dir1` to CRLF (DOS) line endings.
    - All files in `/path/to/dir2` to LF (Unix) line endings.
    - `my_file.text` based on the operating system.
 
-3. Convert a single file to LF line endings with verbose mode:
+1. Convert a single file to LF line endings with verbose mode:
 
    ```sh
    EOLor --lf --verbose my_file.txt
@@ -64,7 +65,7 @@ EOLor [OPTIONS] <PATH>
 
    This command converts the my_file.txt file to LF line endings and displays verbose messages during the conversion.
 
-4. Convert all files in a directory to CRLF line endings with quiet mode:
+1. Convert all files in a directory to CRLF line endings with quiet mode:
 
    ```sh
    EOLor --quiet --crlf /path/to/directory
@@ -72,7 +73,7 @@ EOLor [OPTIONS] <PATH>
 
    This command converts all files in the specified directory to CRLF line endings, suppressing all output, including errors.
 
-5. Simulate the conversion of a file to CRLF line endings:
+1. Simulate the conversion of a file to CRLF line endings:
 
    ```sh
    EOLor --test --crlf my_file.txt
@@ -83,7 +84,9 @@ EOLor [OPTIONS] <PATH>
 ## Dependencies
 
 - POSIX shell utilities (usually pre-installed on Unix-like systems).
+
 - Optional dependencies for more efficient conversion:
+
   - `dos2unix`: For converting to LF (Unix to DOS).
   - `unix2dos`: For converting to CRLF (DOS to Unix).
 
@@ -93,15 +96,16 @@ EOLor [OPTIONS] <PATH>
 
 1. Download the `EOLor` script to your local machine.
 
-2. Make the script executable:
+1. Make the script executable:
 
    ```sh
    chmod +x EOLor
    ```
 
-3. Place the script in a directory that is included in your system's `PATH` environment variable to use it globally.
+1. Place the script in a directory that is included in your system's `PATH` environment variable to use it globally.
 
-4. Optionally, install the `dos2unix` and `unix2dos` utilities for more efficient conversions:
+1. Optionally, install the `dos2unix` and `unix2dos` utilities for more efficient conversions:
+
    - On Windows systems:
 
      Ensure you have a POSIX-compatible shell environment on your Windows system. You can use tools like Cygwin or Git Bash, both of which come loaded with the necessary utilities.

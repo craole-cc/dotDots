@@ -2,9 +2,7 @@
 
 ## Overview
 
-This module provides comprehensive tools for managing Firefox and Firefox-based
-browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection,
-extension management, and Home Manager module resolution.
+This module provides comprehensive tools for managing Firefox and Firefox-based browsers (Zen Browser, LibreWolf, Pale Moon) including variant detection, extension management, and Home Manager module resolution.
 
 ## Quick Start
 
@@ -132,8 +130,7 @@ detectVariant ""              # => null
 
 ### `resolveModule({ inputs, pkgs, system?, variant?, policies? }) → AttrSet`
 
-Resolves complete browser configuration including packages, Home Manager
-modules, and policy settings.
+Resolves complete browser configuration including packages, Home Manager modules, and policy settings.
 
 **Arguments:**
 
@@ -270,10 +267,9 @@ inputs.zen-browser = {
 ## Finding Extension IDs
 
 1. Open Firefox and navigate to `about:support`
-2. Scroll to "Extensions" section
-3. Copy the ID from the extension's entry
-4. Alternatively, check the extension's page URL:
-   `addons.mozilla.org/<*>/addon/<id>/`
+1. Scroll to "Extensions" section
+1. Copy the ID from the extension's entry
+1. Alternatively, check the extension's page URL: `addons.mozilla.org/<*>/addon/<id>/`
 
 ## Use Cases
 
@@ -338,10 +334,10 @@ in {
 ## Notes
 
 1. **Extension ID Format**: Varies (often `@author.domain` or `{uuid}`)
-2. **URL Format**: Always points to latest published version
-3. **Zen Browser**: Requires special flake integration
-4. **Policy Activation**: Requires `webGui = true` for module activation
-5. **Developer Edition**: Can be forced via `dev` or `devGui` policy flags
+1. **URL Format**: Always points to latest published version
+1. **Zen Browser**: Requires special flake integration
+1. **Policy Activation**: Requires `webGui = true` for module activation
+1. **Developer Edition**: Can be forced via `dev` or `devGui` policy flags
 
 ## Troubleshooting
 

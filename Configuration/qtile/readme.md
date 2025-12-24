@@ -61,12 +61,12 @@ Below is a list of some of the packages that I use for my current setup.
 
 ### **Window manager controls**
 
-| Keys             | Action          |
+| Keys | Action |
 | ---------------- | --------------- |
-| `CTRL + MOD + r` | restart Qtile   |
-| `CTRL + MOD + q` | shutdown Qtile  |
-| `MOD + w`        | kill window     |
-| `MOD + r`        | spawn program   |
-| `MOD + RETURN`   | spawn terminal  |
-| `CTRL + SPACE`   | Rofi menu       |
+| `CTRL + MOD + r` | restart Qtile |
+| `CTRL + MOD + q` | shutdown Qtile |
+| `MOD + w` | kill window |
+| `MOD + r` | spawn program |
+| `MOD + RETURN` | spawn terminal |
+| `CTRL + SPACE` | Rofi menu |
 | `CTRL + MOD + p` | Rofi power menu |

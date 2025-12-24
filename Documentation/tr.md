@@ -13,12 +13,12 @@ Typically, it is used in combination with other commands through piping.
 tr [OPTION]... STRING1 [STRING2]
 ```
 
-| Option                  | Description                                                                                                                          |
+| Option | Description |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `-c, -C, --compliment`  | use the complement of ARRAY1                                                                                                         |
-| `-d, --delete`          | delete characters in ARRAY1, do not translate                                                                                        |
+| `-c, -C, --compliment` | use the complement of ARRAY1 |
+| `-d, --delete` | delete characters in ARRAY1, do not translate |
 | `-s, --squeeze-repeats` | replace each sequence of a repeated character that is listed in the last specified ARRAY, with a single occurrence of that character |
-| `-t, --truncate-set1`   | first truncate ARRAY1 to length of ARRAY2                                                                                            |
+| `-t, --truncate-set1` | first truncate ARRAY1 to length of ARRAY2 |
 
 The syntax for the tr command is as follows:
 
@@ -129,11 +129,11 @@ non-digit characters. The output will look like this: 1234567890 Copy Put each
 word in a new line To put each word in a new line, we need to match all
 non-alphanumerical characters and replace them with a new line:
 
-echo 'GNU is an operating system' | tr -cs `[:alnum:]` '\n' Copy GNU is an
+echo 'GNU is an operating system' | tr -cs `[:alnum:]` '\\n' Copy GNU is an
 operating system Copy Remove blank lines To delete the blank lines simply
 squeeze the repetitive newline characters:
 
-tr -s '\n' < file.txt > new_file.txt Copy In the command above we are using the
+tr -s '\\n' < file.txt > new_file.txt Copy In the command above we are using the
 redirection symbol < to pass the content of the file.txt to the tr command. The
 redirection > writes the output of the command to new_file.txt.
 

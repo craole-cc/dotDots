@@ -2,7 +2,7 @@
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo": {
     "padding": {
-      "top": 2
+      "top": 2,
     },
     "color": {
       "1": "red",
@@ -11,9 +11,9 @@
       "4": "blue",
       "5": "magenta",
       "6": "cyan",
-      "7": "white"
+      "7": "white",
     },
-    "type": "small"
+    "type": "small",
   },
   "modules": [
     "title",
@@ -23,13 +23,13 @@
     {
       "type": "cpu",
       "showPeCoreCount": true,
-      "temp": true
+      "temp": true,
     },
     "os",
     "kernel",
     {
       "type": "terminal",
-      "format": "{pretty-name} {version} {#37}█{#97}█ {#36}█{#96}█ {#35}█{#95}█ {#34}█{#94}█ {#33}█{#93}█ {#32}█{#92}█ {#31}█{#91}█ {#30}█{#90}█"
+      "format": "{pretty-name} {version} {#37}█{#97}█ {#36}█{#96}█ {#35}█{#95}█ {#34}█{#94}█ {#33}█{#93}█ {#32}█{#92}█ {#31}█{#91}█ {#30}█{#90}█",
     },
     "host",
     "bootmgr",
@@ -42,7 +42,7 @@
     {
       "type": "command",
       "text": "printf 'TTY: %s [%s] | GUI: %s [%s]' \"$EDITOR\" \"$EDITOR_VERSION\" \"$VISUAL\" \"$VISUAL_VERSION\"",
-      "key": "Editor"
+      "key": "Editor",
     },
     "editor",
     "display",
@@ -66,7 +66,7 @@
     {
       "type": "gpu",
       "driverSpecific": true,
-      "temp": true
+      "temp": true,
     },
     "memory",
     "physicalmemory",
@@ -76,7 +76,7 @@
     "zpool",
     {
       "type": "battery",
-      "temp": true
+      "temp": true,
     },
     // "poweradapter",
     // "player",
@@ -84,7 +84,7 @@
     {
       "type": "publicip",
       "format": "{ip}",
-      "timeout": 1000
+      "timeout": 1000,
     },
     {
       "type": "localip",
@@ -96,7 +96,7 @@
       // "showLoop": true,
       // "showFlags": true,
       "showAllIps": true,
-      "showPrefixLen": false
+      "showPrefixLen": false,
     },
     "dns",
     "wifi",
@@ -116,18 +116,18 @@
       "type": "weather",
       "location": "Mandeville,Jamaica",
       // "outputFormat": "%t+-+%C+(%l)",
-      "timeout": 1000
+      "timeout": 1000,
     },
     "netio",
     "diskio",
     {
       "type": "physicaldisk",
-      "temp": true
+      "temp": true,
     },
     "tpm",
     "version",
     "break",
     "separator",
-    "colors"
-  ]
+    "colors",
+  ],
 }

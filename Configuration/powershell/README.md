@@ -16,9 +16,9 @@ A flexible, configuration-driven PowerShell profile loader that provides fine-gr
 ## Quick Start
 
 1. Place the profile loader script in your PowerShell profile directory
-2. Create a `.dotsrc` (or `.dots.json`) configuration file
-3. Define your includes and module structure
-4. Load your profile and watch the magic happen!
+1. Create a `.dotsrc` (or `.dots.json`) configuration file
+1. Define your includes and module structure
+1. Load your profile and watch the magic happen!
 
 ## Documentation
 

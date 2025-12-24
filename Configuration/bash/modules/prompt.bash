@@ -14,7 +14,7 @@ init_PS1() {
   # set a fancy prompt (non-color, unless we know we "want" color)
   case "${TERM}" in xterm-color | *-256color) color_prompt=yes ;; *) color_prompt= ;; esac
 
-  if [[ -n "${force_color_prompt}" ]]; then
+  if [[ -n ${force_color_prompt} ]]; then
     if command -v tput >/dev/null && tput setaf 1 >/dev/null; then
       # We have color support; assume it's compliant with Ecma-48
       # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
@@ -25,7 +25,7 @@ init_PS1() {
     fi
   fi
 
-  if [[ "${color_prompt}" = yes ]]; then
+  if [[ ${color_prompt} == yes ]]; then
     RED="\[\033[0;31m\]" # This syntax is some weird bash color thing I never
     # LIGHT_RED="\[\033[1;31m\]" # really understood
     # BLUE="\[\033[0;34m\]"
@@ -33,7 +33,7 @@ init_PS1() {
     # CHAR_COLOR="\\33"
     PS1="[\[\033[30;1m\]\t\[\033[0m\]]${RED}$(get_git_branch) \[\033[0;34m\]\W\[\033[0m\]\n\[\033[0;31m\]${CHAR} \[\033[0m\]"
   else
-    [[ -n "${debian_chroot}" ]] && PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    [[ -n ${debian_chroot} ]] && PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
   fi
   unset color_prompt force_color_prompt
 }
@@ -83,7 +83,7 @@ init_prompt() {
   #| Prompt
   init_starship
   status=$?
-  if [[ "${status}" -ne 0 ]]; then
+  if [[ ${status} -ne 0 ]]; then
     init_PS1
   fi
 }

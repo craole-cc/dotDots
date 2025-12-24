@@ -16,9 +16,9 @@ A flexible, configuration-driven PowerShell profile loader that provides fine-gr
 ## Quick Start
 
 1. Place the profile loader script in your PowerShell profile directory
-2. Create a `.dotsrc` (or `.dots.json`) configuration file
-3. Define your includes and module structure
-4. Load your profile and watch the magic happen!
+1. Create a `.dotsrc` (or `.dots.json`) configuration file
+1. Define your includes and module structure
+1. Load your profile and watch the magic happen!
 
 ## Configuration
 
@@ -82,15 +82,15 @@ The format is auto-detected based on content structure.
 
 ### Options Section
 
-| Option                  | Description                        | Default              |
+| Option | Description | Default |
 | ----------------------- | ---------------------------------- | -------------------- |
-| `Tag`                   | Prefix for all log messages        | `">>= DOTS =<<"`     |
-| `Verbosity`             | Logging verbosity level            | `"Info"`             |
-| `VerbosePreference`     | PowerShell verbose preference      | `"SilentlyContinue"` |
-| `DebugPreference`       | PowerShell debug preference        | `"SilentlyContinue"` |
-| `InformationPreference` | PowerShell information preference  | `"SilentlyContinue"` |
-| `WarningPreference`     | PowerShell warning preference      | `"SilentlyContinue"` |
-| `ErrorActionPreference` | PowerShell error action preference | `"Continue"`         |
+| `Tag` | Prefix for all log messages | `">>= DOTS =<<"` |
+| `Verbosity` | Logging verbosity level | `"Info"` |
+| `VerbosePreference` | PowerShell verbose preference | `"SilentlyContinue"` |
+| `DebugPreference` | PowerShell debug preference | `"SilentlyContinue"` |
+| `InformationPreference` | PowerShell information preference | `"SilentlyContinue"` |
+| `WarningPreference` | PowerShell warning preference | `"SilentlyContinue"` |
+| `ErrorActionPreference` | PowerShell error action preference | `"Continue"` |
 
 ### Excludes
 
@@ -132,11 +132,11 @@ Array of path configurations defining what to load.
 
 #### Module Loading Behavior
 
-| Modules Value      | Behavior                     |
+| Modules Value | Behavior |
 | ------------------ | ---------------------------- |
-| `["mod1", "mod2"]` | Load only specified modules  |
-| `[]`               | Load ALL modules in the path |
-| `null` or missing  | Skip loading entirely        |
+| `["mod1", "mod2"]` | Load only specified modules |
+| `[]` | Load ALL modules in the path |
+| `null` or missing | Skip loading entirely |
 
 ## Local Configuration
 
@@ -219,15 +219,15 @@ helpers.ps1
 When no local configuration is found:
 
 1. Load `.psm1` files first (alphabetically)
-2. Load `.ps1` files second (alphabetically)
-3. Process subdirectories recursively (alphabetically)
+1. Load `.ps1` files second (alphabetically)
+1. Process subdirectories recursively (alphabetically)
 
 ### Custom Load Order Mode
 
 When local configuration specifies includes:
 
 1. Process items in the specified order
-2. Support multiple item types:
+1. Support multiple item types:
    - **Direct files**: `"script.ps1"`
    - **File patterns**: `"*.ps1"`, `"utils*.ps1"`
    - **Path patterns**: `"subfolder/*.ps1"`
@@ -238,9 +238,9 @@ When local configuration specifies includes:
 Exclusions are processed at every level:
 
 1. **Global excludes** from main configuration
-2. **Local excludes** from directory configuration
-3. **Combined pattern matching** using wildcards and regex
-4. **Applied to both files and directories**
+1. **Local excludes** from directory configuration
+1. **Combined pattern matching** using wildcards and regex
+1. **Applied to both files and directories**
 
 ## Environment Variables
 

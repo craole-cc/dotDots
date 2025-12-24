@@ -3,6 +3,7 @@
   lix,
   system,
   pkgs,
+  formatters,
   ...
 }: let
   inherit (lib.attrsets) attrValues mapAttrsToList;
@@ -206,6 +207,7 @@
 
   packages =
     (attrValues applications)
+    ++ formatters
     ++ (with pkgs;
       [
         #~@ Rust
@@ -216,21 +218,6 @@
         rust-script
         gcc
         clippy
-      ]
-      ++ [
-        #~@ Formatters
-        alejandra
-        deno
-        markdownlint-cli2
-        nixfmt
-        # nufmt
-        shellcheck
-        shfmt
-        stylua
-        taplo
-        treefmt
-        typstyle
-        yamlfmt
       ]
       ++ [
         #~@ Clipboard

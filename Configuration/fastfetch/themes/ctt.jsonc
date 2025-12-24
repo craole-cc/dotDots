@@ -4,83 +4,83 @@
     "type": "builtin",
     "color": {
       "1": "white",
-      "2": "cyan"
-    }
+      "2": "cyan",
+    },
   },
   "display": {
     "separator": "   ",
-    "color": "cyan"
+    "color": "cyan",
   },
   "modules": [
     {
       "type": "custom", // HardwareStart
-      "format": "┌─────────── \u001b[1mHardware Information\u001b[0m ───────────┐" // `\u001b` is `\033`, or `\e`
+      "format": "┌─────────── \u001b[1mHardware Information\u001b[0m ───────────┐", // `\u001b` is `\033`, or `\e`
     },
     {
       "type": "host",
-      "key": "  󰌢"
+      "key": "  󰌢",
     },
     {
       "type": "cpu",
-      "key": "  "
+      "key": "  ",
     },
     {
       "type": "gpu",
       "detectionMethod": "pci",
-      "key": "  "
+      "key": "  ",
     },
     {
       "type": "display",
-      "key": "  󱄄"
+      "key": "  󱄄",
     },
     {
       "type": "memory",
-      "key": "  "
+      "key": "  ",
     },
     {
       "type": "custom", // SoftwareStart
-      "format": "├─────────── \u001b[1mSoftware Information\u001b[0m ───────────┤"
+      "format": "├─────────── \u001b[1mSoftware Information\u001b[0m ───────────┤",
     },
     {
       "type": "os",
-      "key": "  " // Just get your distro's logo off nerdfonts.com,
+      "key": "  ", // Just get your distro's logo off nerdfonts.com,
     },
     {
       "type": "kernel",
       "key": "  ",
-      "format": "{1} {2}"
+      "format": "{1} {2}",
     },
     {
       "type": "wm",
-      "key": "  "
+      "key": "  ",
     },
     {
       "type": "shell",
-      "key": "  "
+      "key": "  ",
     },
     {
       "type": "custom",
-      "format": "|──────────────\u001b[1mUptime / Age\u001b[0m──────────────────|"
+      "format": "|──────────────\u001b[1mUptime / Age\u001b[0m──────────────────|",
     },
     {
       "type": "command",
       "key": "  OS Age ",
       "keyColor": "magenta",
-      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
     },
     {
       "type": "uptime",
       "key": "  Uptime ",
-      "keyColor": "magenta"
+      "keyColor": "magenta",
     },
     {
       "type": "custom", // InformationEnd
-      "format": "└────────────────────────────────────────────┘"
+      "format": "└────────────────────────────────────────────┘",
     },
     {
       "type": "colors",
       "paddingLeft": 2,
-      "symbol": "circle"
-    }
-  ]
+      "symbol": "circle",
+    },
+  ],
 }

@@ -1,3 +1,3 @@
-# Arch Linux dep[endencies
+# Arch Linux dep\[endencies
 
 xclip xsel

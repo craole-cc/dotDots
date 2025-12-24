@@ -15,5 +15,5 @@ fi
 #{ Use bash-completion, if available
 if ! shopt -oq posix; then
   # shellcheck disable=SC1090
-  [[ -n "${PS1}" ]] && [[ -f "${BASH_COMPLETION}" ]] && . "${BASH_COMPLETION}"
+  [[ -n ${PS1} ]] && [[ -f ${BASH_COMPLETION} ]] && . "${BASH_COMPLETION}"
 fi

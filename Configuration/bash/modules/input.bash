@@ -5,13 +5,13 @@ conf_file="${SHELL_HOME:-}/inputrc"
 home_file="${HOME}/.inputrc"
 
 #{ Ensure the source file exist.
-[[ -f "${conf_file}" ]] || {
+[[ -f ${conf_file} ]] || {
   printf "Error: Config inputrc file not found."
   return 1
 }
 
 #{ Copy the config file if the home file doesn't exist
-[[ -f "${home_file}" ]] || {
+[[ -f ${home_file} ]] || {
   printf \
     "Home inputrc file not found.\nCopying it from %s\n" \
     "${conf_file}"

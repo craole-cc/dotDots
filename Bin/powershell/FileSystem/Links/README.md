@@ -32,9 +32,9 @@ Links/
    New-Item -ItemType Directory -Path $ModulePath -Force
    ```
 
-2. Copy all module files to the created directory, maintaining the folder structure.
+1. Copy all module files to the created directory, maintaining the folder structure.
 
-3. Import the module:
+1. Import the module:
 
    ```ps1
    Import-Module Links

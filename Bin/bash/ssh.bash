@@ -153,23 +153,23 @@ parse_git_config() {
   #{ Handle each command separately to avoid masking return values
   local name_line email_line ssh_line
   name_line=$(grep -A 1 "\[user\]" "${config_file}" | grep "name" || true)
-  if [[ -n "${name_line}" ]]; then
+  if [[ -n ${name_line} ]]; then
     git_name=$(printf "%s" "${name_line}" | cut -d= -f2 | tr -d ' "' || true)
   else
     git_name=""
   fi
 
   email_line=$(grep -A 2 "\[user\]" "${config_file}" | grep "email" || true)
-  if [[ -n "${email_line}" ]]; then
+  if [[ -n ${email_line} ]]; then
     git_email=$(printf "%s" "${email_line}" | cut -d= -f2 | tr -d ' "' || true)
   else
     git_email=""
   fi
 
   ssh_line=$(grep "sshCommand" "${config_file}" || true)
-  if [[ -n "${ssh_line}" ]]; then
+  if [[ -n ${ssh_line} ]]; then
     ssh_cmd=$(printf "%s" "${ssh_line}" | grep -o '"ssh -i [^"]*"' || true)
-    if [[ -n "${ssh_cmd}" ]]; then
+    if [[ -n ${ssh_cmd} ]]; then
       ssh_path=$(printf "%s" "${ssh_cmd}" | cut -d' ' -f3 | tr -d '"' || true)
     else
       ssh_path=""
@@ -201,7 +201,7 @@ generate_ssh_key() {
   local non_interactive="$6"
 
   #{ Ensure any tildes in the path are expanded
-  if [[ "${key_path}" == *"~"* ]]; then
+  if [[ ${key_path} == *"~"* ]]; then
     key_path="${key_path/#\~/${HOME}}"
     key_path="${key_path//\~/${HOME}}"
     show_info "Expanded tilde in key path: ${key_path}"
@@ -214,10 +214,10 @@ generate_ssh_key() {
   show_info "Created directory: ${key_dir}"
 
   #{ Check if key already exists
-  if [[ -f "${key_path}" && "${force}" != "true" ]]; then
+  if [[ -f ${key_path} && ${force} != "true" ]]; then
     show_warning "SSH key already exists at ${key_path}. Use --force to regenerate."
     return 0
-  elif [[ -f "${key_path}" && "${force}" == "true" ]]; then
+  elif [[ -f ${key_path} && ${force} == "true" ]]; then
     #{ Archive existing key
     local archive_dir="${key_dir}/archive"
     mkdir -p "${archive_dir}"
@@ -274,7 +274,7 @@ generate_ssh_key() {
   printf "\n"
 
   #{ Prompt user to add key to Git host if in interactive mode
-  if [[ "${non_interactive}" != "true" ]]; then
+  if [[ ${non_interactive} != "true" ]]; then
     show_instruction "Please add this SSH key to your ${host} account:"
     show_instruction "1. Login to ${host}"
     show_instruction "2. Navigate to SSH keys settings"
@@ -315,7 +315,7 @@ validate_ssh_connection() {
 
 #{ Function to list available profiles
 list_profiles() {
-  if [[ ! -d "${GIT_PROFILES_DIR}" ]]; then
+  if [[ ! -d ${GIT_PROFILES_DIR} ]]; then
     show_error "Git profiles directory not found: ${GIT_PROFILES_DIR}"
     exit 1
   fi
@@ -329,7 +329,7 @@ list_profiles() {
   local find_output
   find_output=$(find "${GIT_PROFILES_DIR}" -name "*.gitconfig" -type f || true)
 
-  if [[ -z "${find_output}" ]]; then
+  if [[ -z ${find_output} ]]; then
     printf "  No profiles found\n"
     return
   fi
@@ -362,7 +362,7 @@ setup_ssh_for_profiles() {
   show_info "Ensured SSH config exists: ${SSH_CONFIG}"
 
   #{ Check if git profiles directory exists
-  if [[ ! -d "${GIT_PROFILES_DIR}" ]]; then
+  if [[ ! -d ${GIT_PROFILES_DIR} ]]; then
     show_error "Git profiles directory not found: ${GIT_PROFILES_DIR}"
     exit 1
   fi
@@ -371,7 +371,7 @@ setup_ssh_for_profiles() {
   local find_output
   find_output=$(find "${GIT_PROFILES_DIR}" -name "*.gitconfig" -type f || true)
 
-  if [[ -z "${find_output}" ]]; then
+  if [[ -z ${find_output} ]]; then
     show_error "No Git configurations found in ${GIT_PROFILES_DIR}"
     exit 1
   fi
@@ -411,7 +411,7 @@ setup_ssh_for_profiles() {
     show_info "Evaluated variables: host='${host}', username='${username}', git_email='${git_email}'"
 
     #{ Use parsed SSH_PATH or generate one based on host and username
-    if [[ -n "${ssh_path}" && "${ssh_path}" == *"~"* ]]; then
+    if [[ -n ${ssh_path} && ${ssh_path} == *"~"* ]]; then
 
       #{ Replace ~ with $HOME
       ssh_path="${ssh_path/#\~/${HOME}}"
@@ -421,7 +421,7 @@ setup_ssh_for_profiles() {
 
       show_info "Expanded tilde in SSH path: ${ssh_path}"
     fi
-    if [[ -z "${ssh_path}" ]]; then
+    if [[ -z ${ssh_path} ]]; then
       ssh_path="${SSH_DIR}/${host}/${username}"
       ssh_path="${ssh_path//\/\//\/}"
       show_info "Set ssh_path to: ${ssh_path}"
@@ -434,7 +434,7 @@ setup_ssh_for_profiles() {
   show_success "SSH configuration complete."
 
   #{ Final instructions
-  if [[ "${non_interactive}" != "true" ]]; then
+  if [[ ${non_interactive} != "true" ]]; then
     printf "\n%sFinal Steps:%s\n" "${BOLD}" "${RESET}"
     show_instruction "Your SSH keys have been set up and tested."
     show_instruction "You can now use Git with SSH for these profiles."
@@ -448,7 +448,7 @@ main() {
   local non_interactive="false"
 
   #{ Parse command line arguments
-  while [[ "$#" -gt 0 ]]; do
+  while [[ $# -gt 0 ]]; do
     case "$1" in
     -h | --help)
       show_help

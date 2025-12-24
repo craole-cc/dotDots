@@ -11,7 +11,7 @@ main() {
   manage_env --set --var BASH_RC --val "${HOME}/.bashrc"
   manage_env --set --var PROFILE --val "${HOME}/.profile"
   manage_env --set --var DOTS_TMP --val "${DOTS}/.cache"
-  manage_env --init --var DOTS_CACHE --val "${DOTS_TMP}" #? Alias to DOTS_TMP
+  manage_env --init --var DOTS_CACHE --val "${DOTS_TMP}"  #? Alias to DOTS_TMP
   manage_env --init --var DOTS_RES --val "${DOTS}/Assets" #? Resources don't depend on the environment
   manage_env --set --var DOTS_ENV --val "${DOTS}/Environment"
   manage_env --set --var DOTS_ENV_POSIX --val "${DOTS_ENV}/posix" #? This file, so no need to init

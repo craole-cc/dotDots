@@ -31,16 +31,8 @@
         system,
         pkgs,
       }: let
-        inherit
-          (import ./Packages/fmt {
-            inherit (inputs.treeFormatter.lib) evalModule;
-            inherit pkgs;
-          })
-          formatter
-          formatting
-          ;
+        inherit (import ./Packages/cli/fmt.nix {inherit pkgs flake;}) formatter checks;
         devShells = import ./Packages/cli {inherit pkgs lib lix src system;};
-        checks = {inherit formatting;};
       in {
         inherit devShells formatter checks;
       }

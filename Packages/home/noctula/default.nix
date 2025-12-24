@@ -7,7 +7,6 @@
   # bar,
   ...
 }: let
-
   # inherit (lib.lists) optional;
   inherit (lib.modules) mkIf;
   inherit (lib.strings) toJSON;

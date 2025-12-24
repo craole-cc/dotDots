@@ -62,11 +62,8 @@
     files = listFilesRecursive path;
   in
     filter (hasSuffix ".nix") (map toString files);
-
   # Import all nix modules found by listNixModules
-
   # Import all subdirectories of `dir` as modules, keyed by name.
-
   # Import all *.nix files (except default.nix) in `dir` as a list of modules.
 in {
   inherit

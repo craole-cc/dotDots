@@ -24,9 +24,7 @@
       })
     hosts;
 
-  mkHost = {
-    host,
-  }: let
+  mkHost = {host}: let
     inherit (host) name system dots;
     localization = host.localization or {};
     functionalities = host.functionalities or [];

@@ -3,10 +3,7 @@
   inherit (lix.std.modules) mkDefault;
   inherit (lix.std.types) attrsOf either float int oneOf str submodule;
 
-  displayOpts = {
-    config,
-    ...
-  }: let
+  displayOpts = {config, ...}: let
     cfg = config;
   in {
     options = {

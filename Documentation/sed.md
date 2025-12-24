@@ -23,7 +23,7 @@ sed '10q' filename
 sed '10q' filename > output_file
 ```
 
----
+______________________________________________________________________
 
 ## Line Spacing
 
@@ -84,7 +84,7 @@ sed '10q' filename > output_file
 
 - Number each line of a file (simple left alignment using a tab)
 
-  > _To preserve margins '\t' is used. See note on '\t' at end of file_
+  > _To preserve margins '\\t' is used. See note on '\\t' at end of file_
 
   ```sh
   sed = filename | sed 'N;s/\n/\t/'
@@ -112,12 +112,13 @@ sed '10q' filename > output_file
 
 ### DOS vs. Unix Line Endings
 
-DOS uses carriage return and line feed ("\r\n") as a line ending, while Unix
-uses just line feed ("\n").
+DOS uses carriage return and line feed ("\\r\\n") as a line ending, while Unix
+uses just line feed ("\\n").
 
 - In Unix Environment
 
-  > Unix uses just line feed ("\n")
+  > Unix uses just line feed ("\\n")
+
   - Convert DOS newlines (CR/LF) to Unix format
 
     ```sh
@@ -137,8 +138,10 @@ uses just line feed ("\n").
 
 - DOS Environment
 
-  > DOS uses carriage return and line feed ("\r\n")
+  > DOS uses carriage return and line feed ("\\r\\n")
+
   - Convert Unix newlines (LF) to DOS format.
+
     - Method 1
 
       ```sh
@@ -157,6 +160,7 @@ uses just line feed ("\n").
     > version can be identified by the custom "--text" switch which appears when
     > you use the "--help" switch. Otherwise, changing DOS newlines to Unix
     > newlines cannot be done with sed in a DOS environment. Use "tr" instead._
+
     - UnxUtils sed v4.0.7 or higher
 
       ```sh
@@ -195,7 +199,7 @@ uses just line feed ("\n").
   sed 's/^[ \t]*//;s/[ \t]*$//'
   ```
 
-  > _See note on '\t' at end of file_
+  > _See note on '\\t' at end of file_
 
 ### Alignment
 
@@ -230,6 +234,7 @@ uses just line feed ("\n").
 ### Substitution
 
 - Substitute (find and replace) instances of "foo" with "bar" on each line.
+
   - All
 
     ```sh
@@ -273,6 +278,7 @@ uses just line feed ("\n").
     ```
 
 - Change "scarlet" or "ruby" or "puce" to "red"
+
   - Standard sed
 
     ```sh
@@ -290,6 +296,7 @@ uses just line feed ("\n").
 - Reverse order of lines (emulates "tac").
 
   > **NOTE:** _A Bug/feature in HHsed v1.5 causes blank lines to be deleted_
+
   - Method 1
 
     ```sh
@@ -330,6 +337,7 @@ uses just line feed ("\n").
   ```
 
 - Add commas to numeric strings, changing "1234567" to "1,234,567"
+
   - Standard sed
 
     ```sh
@@ -349,6 +357,7 @@ uses just line feed ("\n").
   ```
 
 - Add a blank line every 5 lines (after lines 5, 10, 15, 20, etc.)
+
   - Standard sed
 
     ```sh
@@ -388,6 +397,7 @@ uses just line feed ("\n").
   ```
 
 - Last line of a file (emulates "tail -1")
+
   - Method 1
 
     ```sh
@@ -401,6 +411,7 @@ uses just line feed ("\n").
     ```
 
 - Next-to-the-last line of a file
+
   - for 1-line files, print blank line
 
     ```ssh
@@ -420,6 +431,7 @@ uses just line feed ("\n").
     ```
 
 - Lines which match regular expression (emulates "grep")
+
   - Method 1
 
     ```sh
@@ -433,6 +445,7 @@ uses just line feed ("\n").
     ```
 
 - Lines which do NOT match regexp (emulates "grep -v")
+
   - Method 1, corresponds to above
 
     ```sh
@@ -477,6 +490,7 @@ uses just line feed ("\n").
   ```
 
 - Lines containing AAA or BBB or CCC (emulates "egrep")
+
   - Standard
 
     ```sh
@@ -504,6 +518,7 @@ uses just line feed ("\n").
   ```
 
 - Paragraph if it contains AAA or BBB or CCC
+
   - Standard
 
     ```sh
@@ -523,6 +538,7 @@ uses just line feed ("\n").
   ```
 
 - Lines of less than 65 characters
+
   - Method 1, corresponds to above
 
     ```sh
@@ -542,6 +558,7 @@ uses just line feed ("\n").
   ```
 
 - Section based on line numbers (lines 8-12, inclusive)
+
   - Method 1
 
     ```sh
@@ -555,6 +572,7 @@ uses just line feed ("\n").
     ```
 
 - Line number 52
+
   - Method 1
 
     ```sh
@@ -574,6 +592,7 @@ uses just line feed ("\n").
     ```
 
 - Beginning at line 3, print every 7th line
+
   - Standard
 
     ```sh
@@ -633,7 +652,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - All lines except duplicate lines (emulates "uniq -d"). sed
-  '$!N; s/^\(.*\)\n\1$/\1/; t; D'
+  '$!N; s/^(.\*)\\n\\1$/\\1/; t; D'
 
 - First 10 lines
 
@@ -654,6 +673,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Last 10 lines
+
   - Method 1
 
     ```sh
@@ -667,6 +687,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - Every 8th line
+
   - Standard
 
     ```sh
@@ -686,6 +707,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Blank lines from a file (same as "grep '.' ")
+
   - Method 1
 
     ```sh
@@ -699,6 +721,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - Consecutive blank lines except the first (emulates "cat -s")
+
   - Method 1, allows 0 blanks at top, 1 at EOF
 
     ```sh
@@ -724,6 +747,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Trailing blank lines at end of file
+
   - Standard
 
     ```sh
@@ -801,6 +825,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
   ```
 
 - Quotes
+
   - Add a leading angle bracket and space to each line (quote a message)
 
     ```sh
@@ -814,6 +839,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     ```
 
 - HTML
+
   - Remove most HTML tags (accommodates multiple-line tags)
 
   ```sh
@@ -837,6 +863,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
       ```
 
 - Sort
+
   - Sort paragraphs alphabetically. Paragraphs are separated by blank lines.
     - Standard
 
@@ -844,13 +871,14 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
       sed '/./{H;d;};x;s/\n/={NL}=/g' file | sort | sed '1s/={NL}=//;s/={NL}=/\n/g'
       ```
 
-    - GNU, uses \v for vertical tab, or any unique char will do.
+    - GNU, uses \\v for vertical tab, or any unique char will do.
 
       ```sh
       gsed '/./{H;d};x;y/\n/\v/' file | sort | sed '1s/\v//;y/\v/\n/'
       ```
 
 - Archive
+
   - Zip each .txt file individually, deleting the source file and setting the
     name of each .ZIP file to the basename of file.
 
@@ -861,7 +889,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     dir /b *.txt | sed "s/^\(.*\)\.TXT/pkzip -mo \1 \1.TXT/" >>output.bat
     ```
 
----
+______________________________________________________________________
 
 For additional syntax instructions, including the way to apply editing commands
 from a disk file instead of the command line, consult "sed & awk, 2nd Edition,"
@@ -883,17 +911,17 @@ The preceding examples use single quotes ('...') instead of double quotes
 platform. Single quotes prevent the Unix shell from interpreting the dollar sign
 ($) and backquotes (`...`), which are expanded by the shell if they are enclosed
 in double quotes. Users of the "csh" shell and derivatives will also need to
-quote the exclamation mark (!) with the backslash (i.e., \!) to properly run the
+quote the exclamation mark (!) with the backslash (i.e., !) to properly run the
 examples listed above, even within single quotes. Versions of sed written for
 DOS invariably require double quotes ("...") instead of single quotes to enclose
 editing commands.
 
-## Use of '\t'
+## Use of '\\t'
 
-For clarity in documentation, we have used the expression '\t' to indicate a tab
+For clarity in documentation, we have used the expression '\\t' to indicate a tab
 character (0x09) in the scripts. However, most versions of sed do not recognize
-the '\t' abbreviation, so when typing these scripts from the command line, you
-should press the TAB key instead. '\t' is supported as a regular expression meta
+the '\\t' abbreviation, so when typing these scripts from the command line, you
+should press the TAB key instead. '\\t' is supported as a regular expression meta
 character in awk, perl, and HHsed, sedmod, and GNU sed v3.02.80.
 
 ## Versions
@@ -954,46 +982,46 @@ sed -n '45,50p' filename
 sed -n '51q;45,50p' filename
 ```
 
----
+______________________________________________________________________
 
 ## Source
 
 > **USEFUL ONE-LINE SCRIPTS FOR SED (Unix stream editor)** | _Dec. 29, 2005 | v.
 > 5.5_
 
-|            |                                                  |
+| | |
 | ---------- | ------------------------------------------------ |
-| Language   | Link                                             |
-| English    | <http://sed.sourceforge.net/sed1line.txt>        |
-| Chinese    | <http://sed.sourceforge.net/sed1line_zh-CN.html> |
-| Czech      | <http://sed.sourceforge.net/sed1line_cz.html>    |
-| Dutch      | <http://sed.sourceforge.net/sed1line_nl.html>    |
-| French     | <http://sed.sourceforge.net/sed1line_fr.html>    |
-| German     | <http://sed.sourceforge.net/sed1line_de.html>    |
-| Italian    | (pending)                                        |
+| Language | Link |
+| English | <http://sed.sourceforge.net/sed1line.txt> |
+| Chinese | <http://sed.sourceforge.net/sed1line_zh-CN.html> |
+| Czech | <http://sed.sourceforge.net/sed1line_cz.html> |
+| Dutch | <http://sed.sourceforge.net/sed1line_nl.html> |
+| French | <http://sed.sourceforge.net/sed1line_fr.html> |
+| German | <http://sed.sourceforge.net/sed1line_de.html> |
+| Italian | (pending) |
 | Portuguese | <http://sed.sourceforge.net/sed1line_pt-BR.html> |
-| Spanish    | (pending)                                        |
+| Spanish | (pending) |
 
 If you have any additional scripts to contribute or if you find errors in this
 document please send an _[email](pemente@northpark.edu)_ to the compiler,
 indicating the:
 
 1. Version of sed used
-2. Operating system it was compiled for
-3. Nature of the problem.
+1. Operating system it was compiled for
+1. Nature of the problem.
 
 To qualify as a one-liner, the command line must be 65 characters or less.
 Various scripts in this file have been written or contributed by:
 
-| Contributor         | Role                           |
+| Contributor | Role |
 | ------------------- | ------------------------------ |
-| Al Aab              | Founder of "seders" list       |
-| Edgar Allen         | Various                        |
-| Yiorgos Adamopoulos | Various                        |
-| Dale Dougherty      | Author of "sed & awk"          |
-| Carlos Duarte       | Author of "do it with sed"     |
-| Eric Pement         | Author of this document        |
-| Ken Pizzini         | Author of GNU sed v3.02        |
-| S.G. Ravenhall      | Great de-html script           |
-| Greg Ubben          | Many contributions & much help |
-| Craig Cole          | Converted to markdown          |
+| Al Aab | Founder of "seders" list |
+| Edgar Allen | Various |
+| Yiorgos Adamopoulos | Various |
+| Dale Dougherty | Author of "sed & awk" |
+| Carlos Duarte | Author of "do it with sed" |
+| Eric Pement | Author of this document |
+| Ken Pizzini | Author of GNU sed v3.02 |
+| S.G. Ravenhall | Great de-html script |
+| Greg Ubben | Many contributions & much help |
+| Craig Cole | Converted to markdown |

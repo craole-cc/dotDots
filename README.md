@@ -3,7 +3,9 @@
 A collection of tools and configurations for for use across systems.
 
 - **Windows**: Git Bash with `.dotsrc` for configuration. NixWSL is supported.
+
 - **Linux**: NixOS with flakes. Non-NixOS can use Nix, Home Manager, or `.dotsrc`.
+
 - **macOS**: Nix-darwin and Home Manager. (_Pending_)
 
   The goal is enhanced efficiency, portability, and simplicity across devices. Feel free to explore and adapt these configurations.
@@ -28,6 +30,7 @@ cd "$DOTS"
 > Dependencies |> `bash/sh` `coreutils`
 
 1. Set `bash` as the default shell:
+
    - Unix-based
      - In the terminal execute the command: `chsh -s /bin/bash`
    - Windows
@@ -36,7 +39,7 @@ cd "$DOTS"
      - Git Bash uses bash by default, no extra steps needed.
        > For an enhanced developer experience on Windows, consider using [Windows Terminal](https://apps.microsoft.com/detail/9n8g5rfz9xk3?ocid=webpdpshare).
 
-2. Ensure the following lines are in your user profile: `$HOME/.profile`
+1. Ensure the following lines are in your user profile: `$HOME/.profile`
 
    ```sh
    #| Initialize DOTS
@@ -46,7 +49,7 @@ cd "$DOTS"
    [ -f "$DOTS/.dotsrc" ] && . "$DOTS/.dotsrc"
    ```
 
-3. Ensure the following lines are in your bash profile: `$HOME/.bashrc`
+1. Ensure the following lines are in your bash profile: `$HOME/.bashrc`
 
    ```sh
    #| Initialize Profile
@@ -54,7 +57,7 @@ cd "$DOTS"
    [ -f "$HOME/.profile" ] && . "$HOME/.profile"
    ```
 
-4. Logout and log back in or reboot te system to complete the initialization.
+1. Logout and log back in or reboot te system to complete the initialization.
 
 ### NixOS Systems
 
@@ -65,6 +68,7 @@ cd "$DOTS"
 - In the flake.nix, update the DOTS path `paths.flake.local`
 
 - Initialize your host config.
+
   - The script below matches the previous steps.
 
     ```sh

@@ -1,44 +1,46 @@
 [global]
 excludes = [
   ".dotsrc",
-  # "Bin/bash/**",        #TODO Temporary
-  # "Bin/shellscript/**", #TODO Temporary
-  # "treefmt.toml",
+  "LICENSE",
   "**/node_modules/**",
   "**/target/**",
+  "**/.git/**",
   "**/dist/**",
+  "**/build/**",
   "**/review/**",
   "**/archive/**",
-  "./git/**",
-  "Assets/**",          #TODO Temporary
-  "Configuration/**",   #TODO Temporary
-  "Environment/**",     #TODO Temporary
-  # "Bin/**",                                    #TODO Temporary
+  "*.lock",
+  "Assets/**",
+  "*.diff",
+  "*.patch",
+
+
+  "**/.bin/**",
+  "**/.config/**",
+  "**README.md",                               #TODO Temporary
+  ".zed/**",                                   #TODO Temporary
+  "Configuration/**",                          #TODO Temporary
   "Documentation/**",                          #TODO Temporary
+  "Environment/**",                            #TODO Temporary
   "Modules/global/**",                         #TODO Temporary
   "Modules/nixos/configurations/hosts/QBX/**", #TODO Temporary
   "Modules/nixos/scripts/**",                  #TODO Temporary
+  "Review/**",                                 #TODO Temporary
+  "Scripts/**",                                #TODO Temporary
   "Tasks/**",                                  #TODO Temporary
   "Templates/**",                              #TODO Temporary
-  "Review/**",                                 #TODO Temporary
-  "**README.md",                               #TODO Temporary
-  "Scripts/**",                                #TODO Temporary
-  "**/.bin/**",
-  "**/.config/**",
-  "*.lock",
-  "LICENSE",
-  "*.diff",
-  "*.patch",
-  ".zed/**",                                   #TODO Temporary
 ]
 
-#| Documentation
-# [formatter.markdown]
-# command = "markdownlint-cli2"
-# includes = ["*.md", "README"]
-# options = ["--fix"]
-# # options = ["--fix", "--config", ".markdownlint.yaml"]
-# priority = 1
+#|─────────────────────────────────────────────────────────────────────────────|
+#| Documentation                                                               |
+#|─────────────────────────────────────────────────────────────────────────────|
+
+[formatter.markdown]
+command = "markdownlint-cli2"
+includes = ["*.md", "README"]
+options = ["--fix"]
+# options = ["--fix", "--config", ".markdownlint.yaml"]
+priority = 1
 
 # [formatter.mdsh]
 # command = "mdsh"
@@ -47,7 +49,10 @@ excludes = [
 # options = ["--inputs"]
 # priority = 2
 
-#| Nix
+#|─────────────────────────────────────────────────────────────────────────────|
+#| Nix                                                                         |
+#|─────────────────────────────────────────────────────────────────────────────|
+
 # [formatter.nixfmt]
 # includes = ["*.nix"]
 # priority = 2
@@ -58,50 +63,58 @@ includes = ["*.nix"]
 priority = 1
 command = "alejandra"
 
-#| Rust formatting
+
+#|─────────────────────────────────────────────────────────────────────────────|
+#| Rust                                                                        |
+#|─────────────────────────────────────────────────────────────────────────────|
+
 [formatter.rust]
 command = "rustfmt"
 includes = ["*.rs"]
 priority = 1
 
-#| Shell script formatting# Shell script formatting
+
+#|─────────────────────────────────────────────────────────────────────────────|
+#| Shellscript                                                                 |
+#|─────────────────────────────────────────────────────────────────────────────|
+
 [formatter.shellcheck]
 includes = [
   "*.sh",
-  # ".dotsrc",
   ".env*",
   ".shellcheckrc",
   "*.bash",
   ".bash*",
   "Bin/shellscript/**",
 ]
-excludes = ["*.md", "*.ps1", "*.psm1", "*.rs", "*.nix"]
+excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
 command = "shellcheck"
 options = ["--rcfile", ".shellcheckrc"]
 priority = 1
 
-# [formatter.shfmt]
-# includes = [
-#   "*.sh",
-#   "*.dotsrc",
-#   "*.env*",
-#   "*.shellcheckrc",
-#   "*.bash*",
-#   "*.gitignore",
-#   "*.ignore",
-# ]
-# command = "shfmt"
-# options = [
-#   "--apply-ignore",
-#   "--binary-next-line",
-#   "--space-redirects",
-#   "--case-indent",
-#   "--indent",
-#   "2",
-#   "--posix",
-#   "--write",
-# ]
-# priority = 2
+[formatter.shfmt]
+includes = [
+  "*.sh",
+  "*.dotsrc",
+  "*.env*",
+  "*.shellcheckrc",
+  "*.bash*",
+  "*.gitignore",
+  "*.ignore",
+]
+excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
+command = "shfmt"
+options = [
+  "--apply-ignore",
+  "--binary-next-line",
+  "--space-redirects",
+  "--case-indent",
+  "--indent",
+  "2",
+  "--posix",
+  "--write",
+]
+priority = 2
 
 # [formatter.powershell]
 # includes = ["*.ps1", "*.psm1, *.psd1"]
@@ -138,8 +151,8 @@ includes = [
   "*.jsonc",
   "*.jsx",
   "*.less",
-  "*.markdown",
-  "*.md",
+  # "*.markdown",
+  # "*.md",
   "*.sass",
   "*.scss",
   "*.ts",

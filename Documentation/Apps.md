@@ -12,7 +12,7 @@ rustup default nightly
 rustup update
 ```
 
----
+______________________________________________________________________
 
 ## [Paru](https://github.com/morganamilo/paru)
 
@@ -26,7 +26,7 @@ cd ~/Downloads/Apps/paru
 makepkg -si
 ```
 
----
+______________________________________________________________________
 
 ## [Eww (ElKowar's Wacky Widgets)](https://elkowar.github.io/eww/main/)
 
@@ -42,7 +42,7 @@ chmod +x ./eww
 ./eww daemon
 ```
 
----
+______________________________________________________________________
 
 ## [Has](https://github.com/kdabir/has)
 
@@ -55,7 +55,7 @@ cd ~/Downloads/Apps/has
 make PREFIX=$HOME/.local install
 ```
 
----
+______________________________________________________________________
 
 ## [exa](https://the.exa.website/)
 
@@ -65,18 +65,18 @@ Improved file lister.
 sudo pacman -S exa
 ```
 
-| Alias | Command                       | Description          |
+| Alias | Command | Description |
 | ----- | ----------------------------- | -------------------- |
-| exa   | exa --icons --color=always    | Grid (icons, color)  |
-| ls    | exa --group-directories-first | Group by folder      |
-| la    | ls -a                         | Grid                 |
-| ll    | ls -al                        | List                 |
-| lt    | ls -aT                        | Tree                 |
-| lss   | exa -al -s=size               | Sort by size         |
-| lsn   | exa -al -s=newest             | Sort by date         |
-| lso   | exa -al -s=oldest             | Sort by date reverse |
+| exa | exa --icons --color=always | Grid (icons, color) |
+| ls | exa --group-directories-first | Group by folder |
+| la | ls -a | Grid |
+| ll | ls -al | List |
+| lt | ls -aT | Tree |
+| lss | exa -al -s=size | Sort by size |
+| lsn | exa -al -s=newest | Sort by date |
+| lso | exa -al -s=oldest | Sort by date reverse |
 
----
+______________________________________________________________________
 
 ## [Broot](https://github.com/Canop/broot)
 
@@ -86,18 +86,18 @@ A better way to navigate directories
 cargo install broot
 ```
 
-| Alias | Command                       | Description          |
+| Alias | Command | Description |
 | ----- | ----------------------------- | -------------------- |
-| exa   | exa --icons --color=always    | Grid (icons, color)  |
-| ls    | exa --group-directories-first | Group by folder      |
-| la    | ls -a                         | Grid                 |
-| ll    | ls -al                        | List                 |
-| lt    | ls -aT                        | Tree                 |
-| lss   | exa -al -s=size               | Sort by size         |
-| lsn   | exa -al -s=newest             | Sort by date         |
-| lso   | exa -al -s=oldest             | Sort by date reverse |
+| exa | exa --icons --color=always | Grid (icons, color) |
+| ls | exa --group-directories-first | Group by folder |
+| la | ls -a | Grid |
+| ll | ls -al | List |
+| lt | ls -aT | Tree |
+| lss | exa -al -s=size | Sort by size |
+| lsn | exa -al -s=newest | Sort by date |
+| lso | exa -al -s=oldest | Sort by date reverse |
 
----
+______________________________________________________________________
 
 ## [ShellCheck](https://github.com/koalaman/shellcheck)
 
@@ -107,7 +107,7 @@ Finds bugs in your shell scripts.
 paru shellcheck-bin
 ```
 
----
+______________________________________________________________________
 
 ## [expac](https://github.com/falconindy/expac)
 
@@ -117,7 +117,7 @@ Data extraction tool for alpm databases, eg. pacman.
 sudo pacman -S expac
 ```
 
----
+______________________________________________________________________
 
 ## [Alacritty](https://github.com/alacritty/alacritty)
 
@@ -127,7 +127,7 @@ A fast, cross-platform, OpenGL terminal emulator.
 paru alacritty-ligatures-git
 ```
 
----
+______________________________________________________________________
 
 ## [ripgrep](https://github.com/BurntSushi/ripgrep)
 

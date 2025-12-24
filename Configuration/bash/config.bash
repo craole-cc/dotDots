@@ -35,7 +35,7 @@ done
 
 #{ Load modules
 for module in "${module_files[@]}"; do
-  if [[ -r "${module}" ]]; then
+  if [[ -r ${module} ]]; then
     init_time="$(date +%s%3N)"
     # shellcheck disable=SC1090
     source "${module}"

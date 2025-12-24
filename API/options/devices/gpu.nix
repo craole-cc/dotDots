@@ -5,10 +5,7 @@
   inherit (lix.std.options) mkOption mkEnableOption mkDefault;
   inherit (lix.std.types) attrsOf enum nullOr str submodule;
 
-  gpuOpts = {
-    config,
-    ...
-  }: {
+  gpuOpts = {config, ...}: {
     options = {
       primary = mkEnableOption "Set as primary GPU for display and rendering";
       secondary = mkEnableOption "Set as secondary GPU for offload/hybrid use";

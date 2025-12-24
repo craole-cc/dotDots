@@ -85,26 +85,26 @@
     // Blank lines above heading
     "lines_above": 1,
     // Blank lines below heading
-    "lines_below": 1
+    "lines_below": 1,
   },
   // MD023/heading-start-left : Headings must start at the beginning of the line : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md023.md
   "MD023": true,
   // MD024/no-duplicate-heading : Multiple headings with the same content : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md024.md
   "MD024": {
     // Only check sibling headings
-    "siblings_only": false
+    "siblings_only": false,
   },
   // MD025/single-title/single-h1 : Multiple top-level headings in the same document : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md025.md
   "MD025": {
     // Heading level
     "level": 1,
     // RegExp for matching title in front matter
-    "front_matter_title": "^\\s*title\\s*[:=]"
+    "front_matter_title": "^\\s*title\\s*[:=]",
   },
   // MD026/no-trailing-punctuation : Trailing punctuation in heading : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md026.md
   "MD026": {
     // Punctuation characters
-    "punctuation": ".,;:!。，；：！"
+    "punctuation": ".,;:!。，；：！",
   },
   // MD027/no-multiple-space-blockquote : Multiple spaces after blockquote symbol : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md027.md
   "MD027": true,
@@ -113,7 +113,7 @@
   // MD029/ol-prefix : Ordered list item prefix : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md029.md
   "MD029": {
     // List style
-    "style": "one_or_ordered"
+    "style": "one_or_ordered",
   },
   // MD030/list-marker-space : Spaces after list markers : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md030.md
   "MD030": {
@@ -124,31 +124,31 @@
     // Spaces for multi-line unordered list items
     "ul_multi": 1,
     // Spaces for multi-line ordered list items
-    "ol_multi": 1
+    "ol_multi": 1,
   },
   // MD031/blanks-around-fences : Fenced code blocks should be surrounded by blank lines : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md031.md
   "MD031": {
     // Include list items
-    "list_items": true
+    "list_items": true,
   },
   // MD032/blanks-around-lists : Lists should be surrounded by blank lines : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md032.md
   "MD032": true,
   // MD033/no-inline-html : Inline HTML : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md033.md
   "MD033": {
     // Allowed elements
-    "allowed_elements": []
+    "allowed_elements": [],
   },
   // MD034/no-bare-urls : Bare URL used : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md034.md
   "MD034": true,
   // MD035/hr-style : Horizontal rule style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md035.md
   "MD035": {
     // Horizontal rule style
-    "style": "consistent"
+    "style": "consistent",
   },
   // MD036/no-emphasis-as-heading : Emphasis used instead of a heading : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md036.md
   "MD036": {
     // Punctuation characters
-    "punctuation": ".,;:!?。，；：！？"
+    "punctuation": ".,;:!?。，；：！？",
   },
   // MD037/no-space-in-emphasis : Spaces inside emphasis markers : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md037.md
   "MD037": true,
@@ -161,14 +161,14 @@
     // List of languages
     "allowed_languages": [],
     // Require language only
-    "language_only": false
+    "language_only": false,
   },
   // MD041/first-line-heading/first-line-h1 : First line in a file should be a top-level heading : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md041.md
   "MD041": {
     // Heading level
     "level": 1,
     // RegExp for matching title in front matter
-    "front_matter_title": "^\\s*title\\s*[:=]"
+    "front_matter_title": "^\\s*title\\s*[:=]",
   },
   // MD042/no-empty-links : No empty links : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md042.md
   "MD042": true,
@@ -177,7 +177,7 @@
     // List of headings
     "headings": [],
     // Match case of headings
-    "match_case": false
+    "match_case": false,
   },
   // MD044/proper-names : Proper names should have the correct capitalization : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md044.md
   "MD044": {
@@ -186,43 +186,45 @@
     // Include code blocks
     "code_blocks": true,
     // Include HTML elements
-    "html_elements": true
+    "html_elements": true,
   },
   // MD045/no-alt-text : Images should have alternate text (alt text) : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md045.md
   "MD045": true,
   // MD046/code-block-style : Code block style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md046.md
   "MD046": {
     // Block style
-    "style": "consistent"
+    "style": "consistent",
   },
   // MD047/single-trailing-newline : Files should end with a single newline character : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md047.md
   "MD047": true,
   // MD048/code-fence-style : Code fence style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md048.md
   "MD048": {
     // Code fence style
-    "style": "consistent"
+    "style": "consistent",
   },
   // MD049/emphasis-style : Emphasis style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md049.md
   "MD049": {
     // Emphasis style
-    "style": "consistent"
+    "style": "consistent",
   },
   // MD050/strong-style : Strong style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md050.md
   "MD050": {
     // Strong style
-    "style": "consistent"
+    "style": "consistent",
   },
   // MD051/link-fragments : Link fragments should be valid : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md051.md
   "MD051": true,
   // MD052/reference-links-images : Reference links and images should use a label that is defined : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md052.md
   "MD052": {
     // Include shortcut syntax
-    "shortcut_syntax": false
+    "shortcut_syntax": false,
   },
   // MD053/link-image-reference-definitions : Link and image reference definitions should be needed : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md053.md
   "MD053": {
     // Ignored definitions
-    "ignored_definitions": ["//"]
+    "ignored_definitions": [
+      "//"
+    ],
   },
   // MD054/link-image-style : Link and image style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md054.md
   "MD054": {
@@ -237,6 +239,6 @@
     // Allow shortcut reference links and images
     "shortcut": true,
     // Allow URLs as inline links
-    "url_inline": true
-  }
+    "url_inline": true,
+  },
 }
