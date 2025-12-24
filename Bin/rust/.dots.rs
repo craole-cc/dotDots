@@ -1308,27 +1308,23 @@ impl DotDots {
       return Ok(());
     }
 
-    println!("{}", "Repository Status".bold().cyan());
-    println!("{}", "=".repeat(20).dimmed());
-    println!();
-    println!("📍  Branch: {}", branch.green().bold());
-
-    if changes > 0 {
-      println!("📝 Changes: {} uncommitted", changes.to_string().yellow());
-      if !hide_files {
-        println!();
-        self.execute_command("git status --short", "git", Some(&self.root))?;
-        println!();
-        self.execute_command("git diff --stat", "git", Some(&self.root))?;
-      }
-    } else {
-      println!("✨ {}", "Working tree clean".green());
+    if !hide_log {
+      println!("{}", format!(" {}", branch).green().bold());
+      self.execute_command("git log --oneline -3", "git", Some(&self.root))?;
     }
 
-    if !hide_log {
-      println!();
-      println!("{}", "Recent commits:".bold().cyan());
-      self.execute_command("git log --oneline -3", "git", Some(&self.root))?;
+    if changes > 0 {
+      if hide_files {
+        println!("{}", format!(" {}", changes.to_string()).yellow().bold());
+      } else {
+        println!("\n{}", " ".green().bold());
+        self.execute_command("git diff --stat", "git", Some(&self.root))?;
+        println!("\n{}", "󰙅 ".green().bold());
+        self.execute_command("git status --short", "git", Some(&self.root))?;
+        println!();
+      }
+    } else {
+      println!("{}", format!(" {}", changes.to_string()).yellow().bold());
     }
 
     Ok(())
