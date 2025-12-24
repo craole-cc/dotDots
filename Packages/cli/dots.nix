@@ -267,41 +267,6 @@
   #──────────────────────────────────────────────────────────────────────────────
   # Shell Configuration
   #──────────────────────────────────────────────────────────────────────────────
-  starshipConfig = pkgs.writeText "starship.toml" ''
-    add_newline = false
-    format = """$directory $git_branch $git_status $character"""
-
-    [directory]
-    truncate_to_repo = true
-    truncation_length = 2
-    format = "[$path]($style) "
-    style = "bold cyan"
-
-    [git_branch]
-    symbol = " "
-    format = "[$symbol$branch]($style) "
-    style = "bold purple"
-
-    [git_status]
-    format = "[$all_status$ahead_behind]($style) "
-    style = "bold dim"
-    staged = "+$count (bold green)"
-    modified = "Δ$count (bold yellow)"
-    deleted = "-$count (bold red)"
-    untracked = "?$count (bold magenta)"
-    renamed = "»$count (bold cyan)"
-    conflicted = "=$count (bold red)"
-    stashed = "$count (bold blue)"
-    ahead = "⇡$count "
-    behind = "⇣$count "
-    diverged = "⇕⇡$ahead_count⇣$behind_count "
-
-    [character]
-    format = "[$symbol]($style) "
-    success_symbol = "[❯](bold green)"
-    error_symbol = "[λ](bold red)"
-  '';
-
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = "$(hostname)";
@@ -324,7 +289,7 @@
 
     #> Use starship for prompt
     if command -v starship >/dev/null 2>&1; then
-      export STARSHIP_CONFIG="${starshipConfig}"
+      export STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
       eval "$(starship init bash)"
     fi
 

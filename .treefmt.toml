@@ -75,7 +75,7 @@ includes = [
   ".bash*",
   "Bin/shellscript/**",
 ]
-excludes = ["*.md"]
+excludes = ["*.md", "*.ps1", "*.psm1", "*.rs", "*.nix"]
 command = "shellcheck"
 options = ["--rcfile", ".shellcheckrc"]
 priority = 1
