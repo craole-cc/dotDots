@@ -153,10 +153,6 @@ command = "dos2unix"
 excludes = []
 includes = ["*"]
 
-[formatter.nufmt]
-includes = ["*.nu", "Bin/nushell/**"]
-command = "nufmt"
-
 [formatter.yamlfmt]
 includes = ["*.yaml", "*.yml"]
 command = "yamlfmt"

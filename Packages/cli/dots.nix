@@ -214,7 +214,7 @@
         deno
         markdownlint-cli2
         nixfmt
-        nufmt
+        # nufmt
         shellcheck
         shfmt
         stylua
@@ -233,7 +233,7 @@
         #~@ Utilities
         actionlint
         bat
-        # busybox
+        dos2unix
         direnv
         eza
         fd

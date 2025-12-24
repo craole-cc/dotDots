@@ -1111,7 +1111,7 @@ impl DotDots {
             return Ok(());
         }
 
-        // Show detailed status so user can decide
+        //> Show detailed status so user can decide
         self.handle_status(false, true)?;
         println!();
 

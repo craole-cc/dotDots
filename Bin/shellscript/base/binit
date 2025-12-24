@@ -7,6 +7,7 @@
 : "${BIN_IGNORE:=review tmp archive}"
 : "${BLACKLIST_EXT:=md txt json yaml yml xml html css js ts jsx tsx png jpg jpeg gif svg pdf doc docx xls xlsx ppt pptx zip tar gz bz2 7z log}"
 : "${BINIT_ACTION:=--run}"
+: "${BINIT_VERBOSITY:=quiet}"
 
 #> Make scripts executable
 make_executable() {
@@ -71,7 +72,9 @@ add_to_path() {
 	if [ -n "${DOTS_PATH}" ]; then
 		PATH="${DOTS_PATH}:${PATH}"
 		export PATH
-		printf "Added %s directories to PATH\n" "${dir_count}" >&2
+		case ${BINIT_VERBOSITY:-} in quiet) ;;
+		*) printf "Added %s directories to PATH\n" "${dir_count}" >&2 ;;
+		esac
 	fi
 }
 
