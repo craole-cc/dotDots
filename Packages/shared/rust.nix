@@ -13,13 +13,7 @@
 
   rustNightly = pkgs'.rust-bin.selectLatestNightlyWith (toolchain: toolchain.minimal);
 
-  packages =
-    [rustNightly]
-    ++ (
-      with pkgs;
-      with platform;
-        optionals isLinux [] ++ optionals isDarwin [libiconv]
-    );
+  packages = [rustNightly] ++ optionals platform.isDarwin [pkgs.libiconv];
 
   env = {
     RUST_BACKTRACE = "1";

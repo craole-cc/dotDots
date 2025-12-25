@@ -1,17 +1,11 @@
-{
-  pkgs,
-  platform,
-}: let
-  inherit (pkgs.lib.lists) optionals;
-  packages = with pkgs;
-    [
-      mpv
-      ffmpeg-full
-      yt-dlp
-      mediainfo
-      mkvtoolnix
-    ]
-    ++ optionals platform.isLinux [vlc];
+{pkgs}: let
+  packages = with pkgs; [
+    mpv
+    ffmpeg-full
+    yt-dlp
+    mediainfo
+    mkvtoolnix
+  ];
 
   shellHook = ''
     cat <<-EOF
