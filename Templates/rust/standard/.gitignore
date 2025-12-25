@@ -1,0 +1,18 @@
+/target
+/Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Coverage
+coverage/
+*.profraw
+
+# Mise
+.mise.local.toml

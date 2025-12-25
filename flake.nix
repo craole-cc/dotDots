@@ -57,8 +57,12 @@
       nixosConfigurations = mkCore {inherit hosts specialArgs;};
       templates = {
         rust = {
-          path = ./Templates/rust;
+          path = ./Templates/rust/standard;
           description = "Rust development environment with nightly toolchain";
+        };
+        rustspace = {
+          path = ./Templates/rust/workspace;
+          description = "Rust workspace with multiple crates";
         };
       };
       defaultTemplate = self.templates.rust;
