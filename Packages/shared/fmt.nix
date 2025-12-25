@@ -45,14 +45,8 @@ in {
         fi
       done
 
-      # Format once without checking, then check if anything changed
-      ${treefmtWrapper}/bin/treefmt --no-cache
-
-      # Now check if files differ from source
-      if ! diff -r . ${flake} > /dev/null 2>&1; then
-        echo "Formatting differences detected. Run 'nix fmt' to fix."
-        exit 1
-      fi
+      # Just use --fail-on-change, remove the diff comparison
+      ${treefmtWrapper}/bin/treefmt --no-cache --fail-on-change
 
       cd /
       rm -rf $TMPDIR
