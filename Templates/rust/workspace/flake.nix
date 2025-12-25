@@ -101,7 +101,7 @@
 
         	[workspace.package]
         	version = "0.1.0"
-        	edition = "2021"
+        	edition = "2024"
         	authors = ["Your Name <your.email@example.com>"]
         	license = "MIT OR Apache-2.0"
         	repository = "https://github.com/yourusername/yourproject"
@@ -153,7 +153,7 @@
           cat > treefmt.toml <<-'TREEFMT'
         	[formatter.rust]
         	command = "rustfmt"
-        	options = ["--edition", "2021"]
+        	options = ["--edition", "2024"]
         	includes = ["*.rs"]
 
         	[formatter.toml]
@@ -222,15 +222,7 @@
 
         	[tasks.new-crate]
         	description = "Create new crate in workspace"
-        	run = '''
-        	  if [ -z "$1" ]; then
-        	    echo "Usage: mise run new-crate <crate-name>"
-        	    exit 1
-        	  fi
-        	  mkdir -p crates
-        	  cd crates && cargo new "$1"
-        	  echo "Created new crate: crates/$1"
-        	'''
+        	run = "mkdir -p crates && cd crates && cargo new"
         	MISE
           printf "  ✓ Created .mise.toml with workspace tasks\n"
         fi

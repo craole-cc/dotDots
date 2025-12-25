@@ -119,7 +119,7 @@
           cat > treefmt.toml <<-'TREEFMT'
         	[formatter.rust]
         	command = "rustfmt"
-        	options = ["--edition", "2021"]
+        	options = ["--edition", "2024"]
         	includes = ["*.rs"]
 
         	[formatter.toml]
