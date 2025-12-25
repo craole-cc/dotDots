@@ -4,10 +4,11 @@
   system,
   pkgs,
   formatters ? [],
+  platform,
   ...
 }: let
   inherit (lib.attrsets) attrValues mapAttrsToList;
-  inherit (lib.lists) filter foldl';
+  inherit (lib.lists) filter foldl' optionals;
   inherit (lib.strings) concatStrings concatMapStringsSep genList stringLength;
   inherit (lix) mkShellApp;
 
@@ -220,12 +221,15 @@
         gcc
         clippy
       ]
-      ++ [
-        #~@ Clipboard
+      ++ (optionals platform.isLinux [
+        #~@ Clipboard (Linux)
         xclip
         wl-clipboard
         xsel
-      ]
+      ])
+      ++ (optionals platform.isDarwin [
+        #~@ Clipboard (macOS) - uses built-in pbcopy/pbpaste
+      ])
       ++ [
         #~@ Utilities
         actionlint

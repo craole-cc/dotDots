@@ -1,12 +1,22 @@
-{pkgs}: let
-  packages = with pkgs; [
-    mpv
-    ffmpeg-full
-    yt-dlp
-    mediainfo
-    mkvtoolnix
-    vlc
-  ];
+{
+  pkgs,
+  platform,
+}: let
+  inherit (pkgs.lib.lists) optionals;
+  packages = with pkgs;
+    [
+      mpv
+      ffmpeg-full
+      yt-dlp
+      mediainfo
+      mkvtoolnix
+    ]
+    ++ (optionals platform.isLinux [
+      vlc # VLC has better Linux support
+    ])
+    ++ (optionals platform.isDarwin [
+      # macOS-specific media tools can go here
+    ]);
 
   shellHook = ''
     echo "🎬 Media Development Shell"
