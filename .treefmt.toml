@@ -98,9 +98,10 @@ includes = [
   "*.dotsrc",
   "*.env*",
   "*.shellcheckrc",
-  "*.bash*",
+  # "*.bash*",
   "*.gitignore",
   "*.ignore",
+  # "Bin/shellscript/**",
 ]
 excludes = ["*.md", "*.ps1", "*.psm1", "*.txt", "*.log"]
 command = "shfmt"

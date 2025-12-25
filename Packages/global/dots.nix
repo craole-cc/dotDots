@@ -3,7 +3,7 @@
   lix,
   system,
   pkgs,
-  formatters,
+  formatters ? [],
   ...
 }: let
   inherit (lib.attrsets) attrValues mapAttrsToList;

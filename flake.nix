@@ -30,11 +30,13 @@
       {
         system,
         pkgs,
-      }: let
-        inherit (import ./Packages/cli/fmt.nix {inherit pkgs flake;}) formatter checks;
-        devShells = import ./Packages/cli {inherit pkgs lib lix src system;};
-      in {
-        inherit devShells formatter checks;
+      }: {
+        inherit
+          (import ./Packages/global {inherit pkgs lib lix src system flake;})
+          devShells
+          formatter
+          checks
+          ;
       }
     );
 
