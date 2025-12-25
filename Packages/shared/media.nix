@@ -11,22 +11,19 @@
       mediainfo
       mkvtoolnix
     ]
-    ++ (optionals platform.isLinux [
-      vlc # VLC has better Linux support
-    ])
-    ++ (optionals platform.isDarwin [
-      # macOS-specific media tools can go here
-    ]);
+    ++ optionals platform.isLinux [vlc];
 
   shellHook = ''
-    echo "🎬 Media Development Shell"
-    echo "=========================="
-    echo ""
-    echo "Available tools:"
-    echo "  • mpv: $(mpv --version | head -n1)"
-    echo "  • ffmpeg: $(ffmpeg -version | head -n1)"
-    echo "  • yt-dlp: $(yt-dlp --version)"
-    echo ""
+    cat <<-EOF
+      🎬 Media Development Shell
+      ==========================
+
+      Available tools:
+        • mpv: $(mpv --version | head -n1)
+        • ffmpeg: $(ffmpeg -version | head -n1)
+        • yt-dlp: $(yt-dlp --version)
+
+      EOF
   '';
 in
   pkgs.mkShell {

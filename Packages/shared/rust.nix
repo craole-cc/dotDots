@@ -15,14 +15,11 @@
 
   packages =
     [rustNightly]
-    ++ (with pkgs;
-      optionals platform.isLinux [
-        # Linux-specific Rust tooling
-      ]
-      ++ optionals platform.isDarwin [
-        # macOS-specific Rust tooling
-        libiconv
-      ]);
+    ++ (
+      with pkgs;
+      with platform;
+        optionals isLinux [] ++ optionals isDarwin [libiconv]
+    );
 
   env = {
     RUST_BACKTRACE = "1";
