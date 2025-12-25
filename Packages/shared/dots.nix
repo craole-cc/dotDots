@@ -3,7 +3,8 @@
   lix,
   system,
   pkgs,
-  formatters ? [],
+  fmtPackages ? [],
+  mediaPackages ? [],
   ...
 }: let
   inherit (lib.attrsets) attrValues mapAttrsToList;
@@ -205,54 +206,42 @@
   #| Packages                                                                    |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  packages =
-    (attrValues applications)
-    ++ formatters
-    ++ (with pkgs;
-      [
-        #~@ Rust
-        rustc
-        cargo
-        rust-analyzer
-        rustfmt
-        rust-script
-        gcc
-        clippy
-      ]
-      ++ (optionals isLinux [
-        #~@ Clipboard (Linux)
-        xclip
-        wl-clipboard
-        xsel
-      ])
-      ++ (optionals isDarwin [
-        #~@ Clipboard (macOS) - uses built-in pbcopy/pbpaste
-      ])
-      ++ [
-        #~@ Utilities
-        actionlint
-        bat
-        dos2unix
-        direnv
-        eza
-        fd
-        gitui
-        gnused
-        jq
-        mise
-        mpv
-        nil
-        nix-output-monitor
-        nix-tree
-        nixd
-        nushell
-        onefetch
-        ripgrep
-        tokei
-        undollar
-        watchexec
-        yazi
-      ]);
+  packages = with pkgs;
+    [
+      bat #? Cat clone with syntax highlighting
+      direnv #? Environment management per directory
+      dos2unix #? Line ending converter
+      eza #? Modern ls replacement
+      fd #? Fast find alternative
+      gcc #? GNU C compiler
+      gitui #? Git terminal UI
+      gnused #? GNU stream editor
+      imagemagick #? Image processing
+      jq #? JSON query processor
+      lsd #? LSDeluxe file lister
+      mise #? Polyglot version manager
+      nil #? Nix language server
+      nix-output-monitor #? Build output monitor
+      nix-tree #? Nix dependency visualizer
+      nixd #? Nix language daemon
+      nushell #? Modern shell language
+      onefetch #? Git repository summary
+      pandoc #? Universal document converter
+      poppler_utils #? PDF utilities (pdfunite, pdfseparate)
+      qpdf #? PDF transformation
+      ripgrep #? Fast grep alternative
+      rust-script #? Rust scripting
+      tokei #? Code statistics tool
+      typst #? Modern LaTeX alternative
+      typst #? Modern LaTeX alternative
+      undollar #? Remove leading dollar signs
+      watchexec #? File watcher and executor
+      yazi #? Terminal file manager
+    ]
+    ++ (attrValues applications)
+    ++ fmtPackages #? From fmt.nix: treefmt, alejandra, etc.
+    ++ mediaPackages #? From media.nix: mpv, ffmpeg, yt-dlp, etc.
+    ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Shell Configuration                                                         |

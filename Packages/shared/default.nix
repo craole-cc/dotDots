@@ -12,12 +12,17 @@
     formatter
     checks
     ;
-  dots = import ./dots.nix {inherit pkgs lix lib system formatters;};
   media = import ./media.nix {inherit pkgs;};
+  dots = import ./dots.nix {
+    inherit pkgs lix lib system;
+    mediaPackages = media.packages;
+    fmtPackages = formatters;
+  };
 in {
   devShells = {
     default = dots;
-    inherit dots media;
+    media = media.shell;
+    inherit dots;
   };
   inherit formatter checks;
 }

@@ -11,12 +11,13 @@
     deno
     dos2unix
     markdownlint-cli2
+    rustfmt
     shellcheck
     shfmt
     stylua
     taplo
+    typstyle
     yamlfmt
-    rustfmt
   ];
 
   formatterPath = makeBinPath formatters;
