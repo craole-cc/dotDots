@@ -20,7 +20,7 @@
     checks
     ;
   dots = import ./dots.nix {inherit pkgs lix lib system formatters platform;};
-  media = import ./media.nix {inherit pkgs platform;};
+  media = import ./media.nix {inherit pkgs;};
   devRust = import ./rust.nix {inherit pkgs system inputs platform;};
 in {
   devShells = {
