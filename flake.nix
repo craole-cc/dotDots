@@ -44,7 +44,7 @@
         pkgs,
       }: {
         inherit
-          (import ./Packages/global {inherit pkgs lib lix src system flake;})
+          (import ./Packages/shared {inherit pkgs lib lix src system flake;})
           devShells
           formatter
           checks
