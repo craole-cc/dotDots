@@ -26,18 +26,17 @@
           };
         };
         packages = with inputs; {
-          noctalia-shell = shellNoctalia.packages;
           dankMaterialShell = shellDankMaterial.packages;
+          nixpkgs = nixosCore;
+          noctalia-shell = shellNoctalia.packages;
           nvf = editorNeovim.packages;
           plasma-manager = plasma.packages;
           zen-browser = firefoxZen.packages;
-          rust-overlay = languageRust;
-          nixpkgs = nixosCore;
         };
       };
     };
-  in
-    perFlake (
+
+    perSystem = perFlake (
       {
         system,
         pkgs,
@@ -52,21 +51,28 @@
           checks
           ;
       }
-    )
-    // {
-      nixosConfigurations = mkCore {inherit hosts specialArgs;};
-      templates = {
-        rust = {
-          path = ./Templates/rust/standard;
-          description = "Rust development environment with nightly toolchain";
-        };
-        rustspace = {
-          path = ./Templates/rust/workspace;
-          description = "Rust workspace with multiple crates";
-        };
-      };
-      defaultTemplate = self.templates.rust;
-    };
+    );
+    forSystem =
+      {
+        nixosConfigurations = mkCore {inherit hosts specialArgs;};
+        # templates = let
+        #   root = ./Templates;
+        #   rust = {
+        #     path = root + "/rust/standard";
+        #     description = "Rust development environment with nightly toolchain";
+        #   };
+        #   rustspace = {
+        #     path = root + "/rust/workspace";
+        #     description = "Rust workspace with multiple crates";
+        #   };
+        # in {
+        #   default = rust;
+        #   inherit rust rustspace;
+        # };
+      }
+      // import ./Templates;
+  in
+    perSystem // forSystem;
 
   inputs = {
     nixosCore.url = "nixpkgs/nixos-unstable";
@@ -84,15 +90,6 @@
       inputs = {
         nixpkgs.follows = "nixosCore";
         home-manager.follows = "nixosHome";
-      };
-    };
-
-    languageRust = {
-      repo = "rust-overlay";
-      owner = "oxalica";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixosCore";
       };
     };
 
