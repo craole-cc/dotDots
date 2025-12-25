@@ -163,11 +163,6 @@ includes = [
 ]
 options = ["fmt"]
 
-[formatter.dos2unix]
-command = "dos2unix"
-excludes = []
-includes = ["*"]
-
 [formatter.yamlfmt]
 includes = ["*.yaml", "*.yml"]
 command = "yamlfmt"

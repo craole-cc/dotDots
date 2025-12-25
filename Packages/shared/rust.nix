@@ -1,14 +1,24 @@
-{pkgs}: let
-  packages = with pkgs; [
-    rustc
-    cargo
-    rust-analyzer
-    clippy
-    rustfmt
-    rust-script
-    cargo-watch
-    cargo-edit
-  ];
+{
+  pkgs,
+  inputs,
+  system,
+}: let
+  pkgs' = import inputs.nixpkgs {
+    inherit system;
+    overlays = [(import inputs.rust-overlay)];
+  };
+  rustNightly = pkgs'.rust-bin.selectLatestNightlyWith (toolchain: toolchain.minimal);
+  # packages = with rustNightly; [
+  #   rustc
+  #   cargo
+  #   rust-analyzer
+  #   clippy
+  #   rustfmt
+  #   rust-script
+  #   cargo-watch
+  #   cargo-edit
+  # ];
+  packages = [rustNightly];
 
   env = {
     RUST_BACKTRACE = "1";

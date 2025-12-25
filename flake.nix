@@ -26,14 +26,13 @@
           };
         };
         packages = with inputs; {
-          core = {};
-          home = {
-            noctalia-shell = shellNoctalia.packages;
-            dankMaterialShell = shellDankMaterial.packages;
-            nvf = editorNeovim.packages;
-            plasma-manager = plasma.packages;
-            zen-browser = firefoxZen.packages;
-          };
+          noctalia-shell = shellNoctalia.packages;
+          dankMaterialShell = shellDankMaterial.packages;
+          nvf = editorNeovim.packages;
+          plasma-manager = plasma.packages;
+          zen-browser = firefoxZen.packages;
+          rust-overlay = languageRust;
+          nixpkgs = nixosCore;
         };
       };
     };
@@ -44,7 +43,10 @@
         pkgs,
       }: {
         inherit
-          (import ./Packages/shared {inherit pkgs lib lix src system flake;})
+          (import ./Packages/shared {
+            inherit pkgs lib lix src system flake;
+            inputs = specialArgs.inputs.packages;
+          })
           devShells
           formatter
           checks
@@ -69,6 +71,15 @@
       inputs = {
         nixpkgs.follows = "nixosCore";
         home-manager.follows = "nixosHome";
+      };
+    };
+
+    languageRust = {
+      repo = "rust-overlay";
+      owner = "oxalica";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
       };
     };
 
