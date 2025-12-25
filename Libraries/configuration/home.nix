@@ -46,15 +46,16 @@
 
   mkUsers = {
     host,
-    inputs,
-    extraArgs,
+    specialArgs,
   }: {
     config,
     pkgs,
     ...
   }: let
     inherit (host) stateVersion interface system users;
-    inherit (inputs) nixosHome firefoxZen plasmaManager;
+    coreInputModules = specialArgs.inputs.modules.core;
+    homeInputModules = specialArgs.inputs.modules.home;
+    homeInputPackages = specialArgs.inputs.modules.home;
 
     #> Collect all enabled regular users (non-service, non-guest)
     normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
@@ -183,11 +184,12 @@
             user = cfg // {inherit name;};
             inherit policies bar wm de dp;
           };
-          imports = with inputs;
+          imports = with homeInputModules; #TODO: We shouyld be able to imort this without explicitly using specialArgs
+          
             (cfg.imports or [])
-            ++ optional (zen != null) firefoxZen.homeModules.${zen}
-            ++ optional (de == "plasma") plasmaManager.homeModules.plasma-manager
-            ++ optional (bar == "noctalia") noctulaShell.homeModules.noctalia
+            ++ optional (zen != null) zen-homeModules.${zen}
+            ++ optional (de == "plasma") plasma-manager
+            ++ optional (bar == "noctalia") noctalia-shell
             # ++ optional enableNiri niri
             ++ [(src + "/Packages/home")];
 
@@ -272,7 +274,6 @@
                 }
               );
             packages = with pkgs;
-            with inputs;
               (map (shell:
                 package {
                   inherit pkgs;
@@ -280,7 +281,7 @@
                 })
               allShells)
               ++ optional (wm == "hyprland") [kitty]
-              ++ optional (bar == "noctalia") [noctaliaShell.packages.${system}.default]
+              ++ optional (bar == "noctalia") [homeInputPackages.noctalia-shell.${system}.default]
               ++ optional (de == "plasma") (
                 [karp]
                 ++ (with kdePackages; [
@@ -301,8 +302,7 @@
             zen-browser =
               mkIf (zen != null) {
                 enable = true;
-                package =
-                  firefoxZen.packages.${system}.${zen} or
+                package = homeInputPackages.zen-browser.${system}.${zen} or
             (throw "Firefox Zen variant '${zen}' not found for system '${system}'");
               };
           };
@@ -392,8 +392,8 @@
       };
     };
 
-    imports = with inputs; [
-      nixosHome.nixosModules.home-manager
+    imports = with coreInputModules; [
+      home-manager
       # quickShell.nixosModules.quickshell
       (src + "/Packages/core")
     ];
@@ -404,9 +404,9 @@
       useGlobalPkgs = true;
       useUserPackages = true;
       extraSpecialArgs =
-        extraArgs
+        specialArgs
         // {
-          inherit users inputs;
+          inherit users;
           inherit (pkgs.stdenv.hostPlatform) system;
         };
 

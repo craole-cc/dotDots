@@ -1,7 +1,7 @@
 #TODO: Allow disabling root aliases
 {
   lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> {},
+  # pkgs ? import <nixpkgs> {},
   name ? "lix",
   src ? ../.,
   collisionStrategy ? "warn",
@@ -91,7 +91,11 @@
       # lib = lib; #? nixpkgs library
       _ = self; #? custom library
       # safe = safeLib; #? merged library
-      inherit lib pkgs src;
+      inherit
+        lib
+        # pkgs
+        src
+        ;
 
       #> Short aliases
       l = lib;
@@ -307,6 +311,9 @@
     // {
       inherit extend lib;
       std = lib;
-      inherit pkgs src;
+      inherit
+        # pkgs
+        src
+        ;
     };
 in {${name} = finalLib;}

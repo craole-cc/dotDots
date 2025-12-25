@@ -5,8 +5,6 @@
 }: let
   inherit
     (lib.attrsets)
-    # filterAttrs
-    # optionalAttrs
     genAttrs
     mapAttrs
     ;
@@ -20,11 +18,17 @@
     mapAttrs (_name: host:
       mkHost {
         inherit host;
+        inherit (specialArgs.lix.configuration.home) mkUsers;
         specialArgs = specialArgs // {inherit host;};
       })
     hosts;
 
-  mkHost = {host}: let
+  mkHost = {
+    host,
+    specialArgs,
+    mkUsers,
+    ...
+  }: let
     inherit (host) name system dots;
     localization = host.localization or {};
     functionalities = host.functionalities or [];
@@ -34,7 +38,7 @@
       inherit system;
 
       modules = [
-        # (mkUsers {inherit specialArgs;})
+        (mkUsers {inherit host specialArgs;})
         (
           {pkgs, ...}: {
             imports = host.imports or [];

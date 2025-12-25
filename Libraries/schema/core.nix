@@ -6,7 +6,7 @@
   inherit (lib.attrsets) mapAttrs attrNames attrValues;
   inherit (_.filesystem.importers) importAttrs;
   inherit (lib.lists) head;
-  inherit (_.api) ui user;
+  inherit (_.schema) ui user;
   apiPath = ../../API;
 
   /**

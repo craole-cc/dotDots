@@ -121,6 +121,7 @@
       mapAttrsToList (
         name: cfg:
           mkShellApp {
+            inherit pkgs;
             inherit (cfg) command description;
             name = name;
             prefix = cfg.prefix or config.prefix;

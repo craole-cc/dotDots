@@ -1,8 +1,4 @@
-{
-  pkgs,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   /**
   mkShellApp - A helper function to create a shell script application with runtime dependencies
   and optional aliases.
@@ -37,6 +33,7 @@
   Returns: { ".dots" = <derivation>; ".rebuild" = <derivation>; ".update" = <derivation>; }
   */
   mkShellApp = {
+    pkgs,
     /*
     The name of the script to write.
 

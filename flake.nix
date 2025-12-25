@@ -8,25 +8,38 @@
     inherit (lix) getSystems mkCore;
     inherit (getSystems {inherit hosts legacyPackages;}) perFlake;
 
-    inputModules = with inputs; {
-      core = {
-        home-manager = nixosHome.nixosModules.default;
-        nvf = editorNeovim.nixosModules.default;
-      };
-      home = {
-        noctalia-shell = shellNoctalia.homeModules.default;
-        dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
-        nvf = editorNeovim.homeManagerModules.default;
-        plasma-manager = plasma.homeModules.plasma-manager;
-        zen-browser = firefoxZen.homeModules.twilight;
-      };
-    };
-
     specialArgs = {
-      inherit inputModules lix flake schema;
+      inherit lix flake schema;
+      inputs = {
+        modules = with inputs; {
+          core = {
+            home-manager = nixosHome.nixosModules.default;
+            nvf = editorNeovim.nixosModules.default;
+          };
+          home = {
+            noctalia-shell = shellNoctalia.homeModules.default;
+            dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
+            nvf = editorNeovim.homeManagerModules.default;
+            plasma-manager = plasma.homeModules.plasma-manager;
+            zen-browser = firefoxZen.homeModules.twilight;
+            zen-homeModules = firefoxZen.homeModules;
+          };
+        };
+        packages = with inputs; {
+          core = {};
+          home = {
+            # noctalia-shell = shellNoctalia.homeModules.default;
+            # dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
+            # nvf = editorNeovim.homeManagerModules.default;
+            # plasma-manager = plasma.homeModules.plasma-manager;
+            # zen-browser = firefoxZen.homeModules.twilight;
+            zen-browser = firefoxZen.packages;
+          };
+        };
+      };
     };
-
-    perSystem = perFlake (
+  in
+    perFlake (
       {
         system,
         pkgs,
@@ -38,13 +51,8 @@
           checks
           ;
       }
-    );
-
-    forSystem = {
-      nixosConfigurations = mkCore {inherit hosts specialArgs;};
-    };
-  in
-    perSystem // forSystem;
+    )
+    // {nixosConfigurations = mkCore {inherit hosts specialArgs;};};
 
   inputs = {
     nixosCore.url = "nixpkgs/nixos-unstable";

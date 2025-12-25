@@ -9,7 +9,7 @@
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Core Imports                                                                |
   #|─────────────────────────────────────────────────────────────────────────────|
-  inherit (import ./Libraries {inherit lib pkgs src;}) lix;
+  inherit (import ./Libraries {inherit lib src;}) lix;
   schema = lix.schema.core.all {
     hostsPath = ./API/hosts;
     usersPath = ./API/users;
