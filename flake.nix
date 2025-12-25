@@ -53,7 +53,16 @@
           ;
       }
     )
-    // {nixosConfigurations = mkCore {inherit hosts specialArgs;};};
+    // {
+      nixosConfigurations = mkCore {inherit hosts specialArgs;};
+      templates = {
+        rust = {
+          path = ./Templates/rust;
+          description = "Rust development environment with nightly toolchain";
+        };
+      };
+      defaultTemplate = self.templates.rust;
+    };
 
   inputs = {
     nixosCore.url = "nixpkgs/nixos-unstable";

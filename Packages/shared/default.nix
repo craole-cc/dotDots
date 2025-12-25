@@ -2,7 +2,6 @@
   pkgs,
   lib,
   flake,
-  inputs,
   lix,
   system,
   ...
@@ -15,11 +14,10 @@
     ;
   dots = import ./dots.nix {inherit pkgs lix lib system formatters;};
   media = import ./media.nix {inherit pkgs;};
-  devRust = import ./rust.nix {inherit pkgs system inputs;};
 in {
   devShells = {
     default = dots;
-    inherit dots media devRust;
+    inherit dots media;
   };
   inherit formatter checks;
 }

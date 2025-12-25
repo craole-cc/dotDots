@@ -10,6 +10,7 @@
   inherit (lib.lists) filter foldl' optionals;
   inherit (lib.strings) concatStrings concatMapStringsSep genList stringLength;
   inherit (lix) mkShellApp;
+  inherit (pkgs.stdenv) isLinux isDarwin;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Configuration                                                               |
