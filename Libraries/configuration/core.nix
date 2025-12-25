@@ -1,13 +1,5 @@
-{
-  _,
-  lib,
-  ...
-}: let
-  inherit
-    (lib.attrsets)
-    genAttrs
-    mapAttrs
-    ;
+{lib, ...}: let
+  inherit (lib.attrsets) genAttrs mapAttrs;
   inherit (lib.lists) elem;
   inherit (lib.modules) mkDefault mkIf;
 
@@ -38,7 +30,7 @@
       inherit system;
 
       modules = [
-        (mkUsers {inherit host specialArgs;})
+        # (mkUsers {inherit host specialArgs;})
         (
           {pkgs, ...}: {
             imports = host.imports or [];
@@ -237,11 +229,6 @@
       ];
     };
 
-  exports = {
-    inherit
-      mkCore
-      mkHost
-      ;
-  };
+  exports = {inherit mkCore mkHost;};
 in
   exports // {_rootAliases = exports;}

@@ -151,7 +151,7 @@ format = ""
 [nix_shell]
 style = 'bold italic dimmed blue'
 symbol = ' '
-format = '[$symbol $state]($style) [$name](italic dimmed white)'
+format = '[$symbol $state]($style) [$name ](italic dimmed white)'
 impure_msg = '[⌽](bold dimmed red)'
 pure_msg = '[⌾](bold dimmed green)'
 unknown_msg = '[◌](bold dimmed yellow)'

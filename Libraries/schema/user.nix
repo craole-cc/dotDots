@@ -47,17 +47,20 @@
     host,
   }: let
     all = getAll {inherit users host;};
-    principals = head (getPrincipals host);
+    principal =
+      if all == {}
+      then throw "No users defined"
+      else head (attrNames all);
   in
     if filterAttrs (_: u: u.enable == true) all == {}
     then
       all
       // {
-        ${principals.name} =
-          all.${principals.name}
+        ${principal} =
+          all.${principal}
           // {
             enable = true;
-            role = all.${principals.name}.role or "administrator";
+            role = all.${principal}.role or "administrator";
           };
       }
     else all;
@@ -125,9 +128,5 @@
       ;
   };
 in {
-  inherit enriched;
-  inherit
-    getPrincipals
-    getAll
-    ;
+  inherit enriched getPrincipals getAll;
 }

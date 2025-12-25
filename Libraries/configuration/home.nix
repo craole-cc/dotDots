@@ -46,6 +46,7 @@
 
   mkUsers = {
     host,
+    inputs,
     specialArgs,
   }: {
     config,
@@ -53,9 +54,9 @@
     ...
   }: let
     inherit (host) stateVersion interface system users;
-    coreInputModules = specialArgs.inputs.modules.core;
-    homeInputModules = specialArgs.inputs.modules.home;
-    homeInputPackages = specialArgs.inputs.modules.home;
+    # coreInputModules = inputs.modules.core;
+    # homeInputModules = inputs.modules.home;
+    # homeInputPackages = inputs.packages.home;
 
     #> Collect all enabled regular users (non-service, non-guest)
     normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
@@ -184,7 +185,7 @@
             user = cfg // {inherit name;};
             inherit policies bar wm de dp;
           };
-          imports = with homeInputModules; #TODO: We shouyld be able to imort this without explicitly using specialArgs
+          imports = with inputs.modules.home; #TODO: We shouyld be able to imort this without explicitly using specialArgs
           
             (cfg.imports or [])
             ++ optional (zen != null) zen-homeModules.${zen}
@@ -302,7 +303,7 @@
             zen-browser =
               mkIf (zen != null) {
                 enable = true;
-                package = homeInputPackages.zen-browser.${system}.${zen} or
+                package = inputs.packages.home.zen-browser.${system}.${zen} or
             (throw "Firefox Zen variant '${zen}' not found for system '${system}'");
               };
           };
@@ -392,7 +393,7 @@
       };
     };
 
-    imports = with coreInputModules; [
+    imports = with inputs.modules.core; [
       home-manager
       # quickShell.nixosModules.quickshell
       (src + "/Packages/core")

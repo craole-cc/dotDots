@@ -1,8 +1,4 @@
 let
-  base = {
-    relative = "../../..";
-    absolute = "/home/craole/Configuration";
-  };
   arch = "x86_64";
   os = "linux";
 in {
@@ -18,11 +14,7 @@ in {
 
   stateVersion = "25.05";
   paths = {
-    inherit base;
-    # binaries = {
-    #   relative = base.relative + bin;
-    #   absolute = base.absolute + bin;
-    # };
+    dots = "/home/craole/Configuration";
   };
 
   packages = {

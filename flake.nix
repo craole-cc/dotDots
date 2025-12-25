@@ -28,11 +28,10 @@
         packages = with inputs; {
           core = {};
           home = {
-            # noctalia-shell = shellNoctalia.homeModules.default;
-            # dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
-            # nvf = editorNeovim.homeManagerModules.default;
-            # plasma-manager = plasma.homeModules.plasma-manager;
-            # zen-browser = firefoxZen.homeModules.twilight;
+            noctalia-shell = shellNoctalia.packages;
+            dankMaterialShell = shellDankMaterial.packages;
+            nvf = editorNeovim.packages;
+            plasma-manager = plasma.packages;
             zen-browser = firefoxZen.packages;
           };
         };
