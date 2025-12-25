@@ -53,23 +53,7 @@
       }
     );
     forSystem =
-      {
-        nixosConfigurations = mkCore {inherit hosts specialArgs;};
-        # templates = let
-        #   root = ./Templates;
-        #   rust = {
-        #     path = root + "/rust/standard";
-        #     description = "Rust development environment with nightly toolchain";
-        #   };
-        #   rustspace = {
-        #     path = root + "/rust/workspace";
-        #     description = "Rust workspace with multiple crates";
-        #   };
-        # in {
-        #   default = rust;
-        #   inherit rust rustspace;
-        # };
-      }
+      {nixosConfigurations = mkCore {inherit hosts specialArgs;};}
       // import ./Templates;
   in
     perSystem // forSystem;
