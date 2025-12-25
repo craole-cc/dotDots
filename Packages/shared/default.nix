@@ -7,21 +7,15 @@
   system,
   ...
 }: let
-  platform = {
-    isLinux = pkgs.stdenv.isLinux;
-    isDarwin = pkgs.stdenv.isDarwin;
-    isWayland = pkgs.stdenv.isLinux; # Wayland is Linux-only
-  };
-
   inherit
     (import ./fmt.nix {inherit flake pkgs;})
     formatters
     formatter
     checks
     ;
-  dots = import ./dots.nix {inherit pkgs lix lib system formatters platform;};
+  dots = import ./dots.nix {inherit pkgs lix lib system formatters;};
   media = import ./media.nix {inherit pkgs;};
-  devRust = import ./rust.nix {inherit pkgs system inputs platform;};
+  devRust = import ./rust.nix {inherit pkgs system inputs;};
 in {
   devShells = {
     default = dots;

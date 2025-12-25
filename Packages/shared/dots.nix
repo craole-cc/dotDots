@@ -4,7 +4,6 @@
   system,
   pkgs,
   formatters ? [],
-  platform,
   ...
 }: let
   inherit (lib.attrsets) attrValues mapAttrsToList;
@@ -27,89 +26,87 @@
   #| CLI Tools                                                                   |
   #|─────────────────────────────────────────────────────────────────────────────|
 
-  commands = {
-    ${config.name} = {
-      inputs = with pkgs; [rust-script gcc rustfmt];
-      command = ''exec "$DOTS/Bin/rust/.dots.rs" "$@"'';
-      description = "Main dotfiles management CLI";
-      aliases = [
-        #~@ System/Info
-        {
-          name = "info";
-          description = "Show system information";
-        }
-        {
-          name = "hosts";
-          description = "List available hosts";
-        }
+  commands.${config.name} = {
+    inputs = with pkgs; [rust-script gcc rustfmt];
+    command = ''exec "$DOTS/Bin/rust/.dots.rs" "$@"'';
+    description = "Main dotfiles management CLI";
+    aliases = [
+      #~@ System/Info
+      {
+        name = "info";
+        description = "Show system information";
+      }
+      {
+        name = "hosts";
+        description = "List available hosts";
+      }
 
-        #~@ Build/Rebuild
-        {
-          name = "boot";
-          description = "Build configuration for next boot";
-        }
-        {
-          name = "dry";
-          description = "Dry run rebuild";
-        }
-        {
-          name = "rebuild";
-          description = "Rebuild NixOS configuration";
-        }
-        {
-          name = "check";
-          description = "Run all checks, including code quality";
-        }
-        {
-          name = "fmt";
-          description = "Format the project tree";
-        }
+      #~@ Build/Rebuild
+      {
+        name = "boot";
+        description = "Build configuration for next boot";
+      }
+      {
+        name = "dry";
+        description = "Dry run rebuild";
+      }
+      {
+        name = "rebuild";
+        description = "Rebuild NixOS configuration";
+      }
+      {
+        name = "check";
+        description = "Run all checks, including code quality";
+      }
+      {
+        name = "fmt";
+        description = "Format the project tree";
+      }
 
-        #~@ Maintenance/Utilities
-        {
-          name = "clean";
-          description = "Clean old generations";
-        }
-        {
-          name = "list";
-          description = "List all available commands";
-        }
-        {
-          name = "help";
-          description = "Show help information";
-        }
+      #~@ Maintenance/Utilities
+      {
+        name = "clean";
+        description = "Clean old generations";
+      }
+      {
+        name = "list";
+        description = "List all available commands";
+      }
+      {
+        name = "help";
+        description = "Show help information";
+      }
 
-        #~@ Interaction/REPL
-        {
-          name = "repl";
-          description = "Enter Nix REPL";
-        }
+      #~@ Interaction/REPL
+      {
+        name = "repl";
+        description = "Enter Nix REPL";
+      }
 
-        #~@ Discovery/Search
-        {
-          name = "search";
-          description = "Search for patterns";
-        }
+      #~@ Discovery/Search
+      {
+        name = "search";
+        description = "Search for patterns";
+      }
 
-        #~@ Version Control/Update
-        {
-          name = "update";
-          description = "Update flake inputs";
-        }
-        {
-          name = "sync";
-          description = "Commit and push changes";
-        }
-        {
-          name = "status";
-          description = "Show repository status";
-        }
-        {
-          name = "binit";
-          description = "Initialize bin directories";
-        }
-      ];
-    };
+      #~@ Version Control/Update
+      {
+        name = "update";
+        description = "Update flake inputs";
+      }
+      {
+        name = "sync";
+        description = "Commit and push changes";
+      }
+      {
+        name = "status";
+        description = "Show repository status";
+      }
+      {
+        name = "binit";
+        description = "Initialize bin directories";
+      }
+    ];
   };
 
   #> Generate applications from commands using mkShellApp
@@ -221,13 +218,13 @@
         gcc
         clippy
       ]
-      ++ (optionals platform.isLinux [
+      ++ (optionals isLinux [
         #~@ Clipboard (Linux)
         xclip
         wl-clipboard
         xsel
       ])
-      ++ (optionals platform.isDarwin [
+      ++ (optionals isDarwin [
         #~@ Clipboard (macOS) - uses built-in pbcopy/pbpaste
       ])
       ++ [

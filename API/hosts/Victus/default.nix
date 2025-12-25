@@ -3,6 +3,9 @@ let
   os = "linux";
 in {
   imports = [./hardware-configuration.nix];
+  stateVersion = "25.05";
+  paths.dots = "/home/craole/Configuration";
+
   modules = [
     "nvme"
     "xhci_pci"
@@ -11,11 +14,6 @@ in {
     "sd_mod"
     "rtsx_pci_sdmmc"
   ];
-
-  stateVersion = "25.05";
-  paths = {
-    dots = "/home/craole/Configuration";
-  };
 
   packages = {
     allowUnfree = true;

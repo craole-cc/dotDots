@@ -2,31 +2,67 @@
   pkgs,
   inputs,
   system,
-  platform,
 }: let
   inherit (pkgs.lib.lists) optionals;
+  inherit (pkgs.stdenv) isDarwin isLinux;
 
-  pkgs' = import inputs.nixpkgs {
-    inherit system;
-    overlays = [(import inputs.rust-overlay)];
-  };
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Rust Toolchain                                                              |
+  #|─────────────────────────────────────────────────────────────────────────────|
 
-  rustNightly = pkgs'.rust-bin.selectLatestNightlyWith (toolchain: toolchain.minimal);
+  rustToolchain =
+    (import inputs.nixpkgs {
+      inherit system;
+      overlays = [(import inputs.rust-overlay)];
+    }).rust-bin.selectLatestNightlyWith (toolchain:
+      toolchain.default.override {extensions = ["rust-src" "rust-analyzer"];});
 
-  packages = [rustNightly] ++ optionals platform.isDarwin [pkgs.libiconv];
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Packages                                                                    |
+  #|─────────────────────────────────────────────────────────────────────────────|
+
+  packages =
+    [rustToolchain]
+    ++ (with pkgs; [
+      cargo-watch
+      cargo-edit
+      rust-script
+    ])
+    ++ optionals isDarwin [pkgs.libiconv]
+    ++ optionals isLinux [];
+
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Environment                                                                 |
+  #|─────────────────────────────────────────────────────────────────────────────|
 
   env = {
-    RUST_BACKTRACE = "1";
-    RUST_LOG = "debug";
+    RUST_BACKTRACE = "full";
+    RUST_LOG = "info";
+    CARGO_INCREMENTAL = "1";
   };
 
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| Shell Hook                                                                  |
+  #|─────────────────────────────────────────────────────────────────────────────|
+
   shellHook = ''
-    echo "🦀 Rust Development Shell"
-    echo "========================="
-    echo ""
-    echo "Rust: $(rustc --version)"
-    echo "Cargo: $(cargo --version)"
-    echo ""
+    cat <<-EOF
+    	🦀 Rust Development Shell
+    	=========================
+
+    	Toolchain:
+    	  • Rust: $(rustc --version)
+    	  • Cargo: $(cargo --version)
+
+    	Utilities:
+    	  • cargo-watch: $(cargo watch --version 2>/dev/null || printf 'available')
+    	  • cargo-edit: $(cargo upgrade --version 2>/dev/null || printf 'available')
+
+    	Environment:
+    	  • RUST_BACKTRACE=${env.RUST_BACKTRACE}
+    	  • RUST_LOG=${env.RUST_LOG}
+
+    	EOF
   '';
 in
   pkgs.mkShell {
