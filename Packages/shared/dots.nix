@@ -11,7 +11,7 @@
   inherit (lib.lists) filter foldl' optionals;
   inherit (lib.strings) concatStrings concatMapStringsSep genList stringLength;
   inherit (lix) mkShellApp;
-  inherit (pkgs.stdenv) isLinux isDarwin;
+  inherit (pkgs.stdenv) isLinux;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Configuration                                                               |
@@ -227,12 +227,11 @@
       nushell #? Modern shell language
       onefetch #? Git repository summary
       pandoc #? Universal document converter
-      poppler_utils #? PDF utilities (pdfunite, pdfseparate)
+      poppler-utils #? PDF utilities (pdfunite, pdfseparate)
       qpdf #? PDF transformation
       ripgrep #? Fast grep alternative
       rust-script #? Rust scripting
       tokei #? Code statistics tool
-      typst #? Modern LaTeX alternative
       typst #? Modern LaTeX alternative
       undollar #? Remove leading dollar signs
       watchexec #? File watcher and executor

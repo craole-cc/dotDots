@@ -23,7 +23,6 @@
   formatterPath = makeBinPath formatters;
   treefmtWrapper = writeShellScriptBin "treefmt" ''
     export PATH=${formatterPath}:$PATH
-    # export TREEFMT_NO_CACHE=1
     exec ${pkgs.treefmt}/bin/treefmt "$@"
   '';
 in {
@@ -46,7 +45,6 @@ in {
         fi
       done
 
-      # Just use --fail-on-change, remove the diff comparison
       ${treefmtWrapper}/bin/treefmt --no-cache --fail-on-change
 
       cd /

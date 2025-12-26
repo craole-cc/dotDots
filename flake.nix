@@ -53,7 +53,12 @@
       }
     );
     forSystem =
-      {nixosConfigurations = mkCore {inherit hosts specialArgs;};}
+      {
+        nixosConfigurations = mkCore {
+          inherit hosts specialArgs;
+          modulesPath = ./Modules;
+        };
+      }
       // import ./Templates;
   in
     perSystem // forSystem;
