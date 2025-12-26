@@ -1,11 +1,9 @@
 {
   host,
-  lib,
   lix,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrsToList;
-  inherit (lix.configuration.core) mkAdmin;
+  inherit (lix.configuration.core) mkSudoRules;
   admins = host.users.names.elevated or [];
 in {
   security.sudo = {
@@ -13,6 +11,6 @@ in {
     execWheelOnly = true;
 
     #> For each admin user, grant passwordless sudo for all commands.
-    extraRules = mapAttrsToList (name: _: mkAdmin name) admins;
+    extraRules = mkSudoRules admins;
   };
 }

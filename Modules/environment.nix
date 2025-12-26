@@ -1,11 +1,20 @@
 {
   host,
   pkgs,
+  lix,
   ...
 }: let
   inherit (host.paths) dots;
+  inherit (lix.applications.editors) packages commands;
+
+  editorConfig = host.users.data.primary.editor or {};
+
+  editorPkgs = packages {inherit pkgs editorConfig;};
+  editorCmds = commands {inherit pkgs editorConfig;};
 in {
   environment = {
+    systemPackages = editorPkgs;
+
     shellAliases = {
       ll = "lsd --long --git --almost-all";
       lt = "lsd --tree";
@@ -19,36 +28,11 @@ in {
       nxs = "push-dots; switch-dots";
       nxu = "push-dots; switch-dots; topgrade";
     };
+
     sessionVariables = {
       DOTS = dots;
-      EDITOR = "hx"; #TODO: Take this from the primary user
-      VISUAL = "code"; #TODO: Take this from the primary user
+      EDITOR = editorCmds.editor;
+      VISUAL = editorCmds.visual;
     };
-    systemPackages = with pkgs; [
-      #~@ Development
-      helix
-      vim
-      nil
-      nixd
-      nixfmt
-      alejandra
-      rust-script
-      rustfmt
-      gcc
-      shfmt
-      shellcheck
-
-      #~@ Tools
-      cowsay
-      gitui
-      lm_sensors
-      lsd
-      lshw
-      mesa-demos
-      topgrade
-      toybox
-      speedtest-cli
-      speedtest-go
-    ];
   };
 }

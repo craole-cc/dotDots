@@ -1,10 +1,12 @@
 {
   host,
   lib,
+  pkgs,
   ...
 }: let
   inherit (lib.modules) mkDefault;
   inherit (lib.attrsets) genAttrs;
+  inherit (lib.lists) optionals;
 
   networkDevices = host.devices.network or [];
   hasNetwork = networkDevices != [];
@@ -25,4 +27,8 @@ in {
       allowedUDPPortRanges = firewall.udp.ranges or [];
     };
   };
+  environment.systemPackages = optionals hasNetwork (with pkgs; [
+    speedtest-cli
+    speedtest-go
+  ]);
 }

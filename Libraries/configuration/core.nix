@@ -16,20 +16,22 @@
       })
     hosts;
 
-  mkAdmin = name: {
-    #> Apply this rule only to the named user.
-    users = [name];
+  mkSudoRules = admins:
+    map (name: {
+      #> Apply this rule only to the named user.
+      users = [name];
 
-    #> Allow that user to run any command as any user/group, without password.
-    #? Equivalent to: name ALL=(ALL:ALL) NOPASSWD: ALL
-    commands = [
-      {
-        command = "ALL";
-        options = ["SETENV" "NOPASSWD"];
-      }
-    ];
-  };
+      #> Allow that user to run any command as any user/group, without password.
+      #? Equivalent to: name ALL=(ALL:ALL) NOPASSWD: ALL
+      commands = [
+        {
+          command = "ALL";
+          options = ["SETENV" "NOPASSWD"];
+        }
+      ];
+    })
+    admins;
 
-  exports = {inherit mkCore mkAdmin;};
+  exports = {inherit mkCore mkSudoRules;};
 in
   exports // {_rootAliases = exports;}
