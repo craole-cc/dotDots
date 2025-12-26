@@ -92,8 +92,17 @@
     };
 
     editorNeovim = {
-      owner = "notashelf";
       repo = "nvf";
+      owner = "notashelf";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixosCore";
+      };
+    };
+
+    editorVscode = {
+      repo = "vscode-insiders-nix";
+      owner = "auguwu";
       type = "github";
       inputs = {
         nixpkgs.follows = "nixosCore";

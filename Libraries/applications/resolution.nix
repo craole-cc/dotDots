@@ -128,6 +128,7 @@
   };
 
   # Helper to detect browser variant (similar to detectFirefoxVariant)
+  # TODO: move to parse.nix
   detectBrowserVariant = input: let
     lowerInput = lib.toLower input;
   in
