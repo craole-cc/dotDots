@@ -176,7 +176,7 @@ in {
   ];
 
   interface = {
-    bootLoader = "systemd-boot";
+    bootLoader = "refind";
     bootLoaderTimeout = 1;
     loginManager = "sddm";
     desktopEnvironment = "plasma";

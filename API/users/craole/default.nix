@@ -53,7 +53,7 @@
         secondary = "neovim";
       };
       gui = {
-        primary = "code";
+        primary = "vscode";
         secondary = "zed";
       };
     };
