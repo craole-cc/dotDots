@@ -5,15 +5,70 @@
   ...
 }: let
   inherit (host.paths) dots;
-  inherit (lix.applications.editors) packages commands;
+  inherit (lix.applications.common) editors browsers terminals launchers bars;
 
-  editorConfig = host.users.data.primary.applications.editor or {};
+  user = host.users.data.primary;
+  apps = user.applications;
 
-  editorPkgs = packages {inherit pkgs editorConfig;};
-  editorCmds = commands {inherit pkgs editorConfig;};
+  # Get all packages
+  editorPkgs = editors.packages {
+    inherit pkgs;
+    editorConfig = apps.editor or {};
+  };
+
+  browserPkgs = browsers.packages {
+    inherit pkgs;
+    appConfig = apps.browser or {};
+  };
+
+  terminalPkgs = terminals.packages {
+    inherit pkgs;
+    appConfig = apps.terminal or {};
+  };
+
+  launcherPkgs = launchers.packages {
+    inherit pkgs;
+    appConfig = apps.launcher or {};
+  };
+
+  barPkgs = bars.packages {
+    inherit pkgs;
+    appConfig = apps.bar or {};
+  };
+
+  # Get commands
+  editorCmds = editors.commands {
+    inherit pkgs;
+    editorConfig = apps.editor or {};
+  };
+
+  browserCmds = browsers.commands {
+    inherit pkgs;
+    appConfig = apps.browser or {};
+  };
+
+  terminalCmds = terminals.commands {
+    inherit pkgs;
+    appConfig = apps.terminal or {};
+  };
+
+  launcherCmds = launchers.commands {
+    inherit pkgs;
+    appConfig = apps.launcher or {};
+  };
+
+  barCmds = bars.commands {
+    inherit pkgs;
+    appConfig = apps.bar or {};
+  };
 in {
   environment = {
-    systemPackages = editorPkgs;
+    systemPackages =
+      editorPkgs
+      ++ browserPkgs
+      ++ terminalPkgs
+      ++ launcherPkgs
+      ++ barPkgs;
 
     shellAliases = {
       ll = "lsd --long --git --almost-all";
@@ -33,6 +88,10 @@ in {
       DOTS = dots;
       EDITOR = editorCmds.editor;
       VISUAL = editorCmds.visual;
+      BROWSER = browserCmds.primary;
+      TERMINAL = terminalCmds.primary;
+      LAUNCHER = launcherCmds.primary;
+      BAR = barCmds.primary;
     };
   };
 }

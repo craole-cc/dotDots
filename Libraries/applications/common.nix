@@ -1,4 +1,3 @@
-# lib/applications.nix (or wherever you define this)
 {lib, ...}: let
   inherit (lib.attrsets) attrByPath;
   inherit (lib.lists) filter unique;
