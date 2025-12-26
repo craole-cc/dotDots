@@ -162,6 +162,7 @@ in {
 
   #~@ Top-level host attributes
   inherit (host) config options;
+  inherit (host._module) specialArgs;
   inherit (flake) inputs;
 
   #~@ Convenient shortcuts to config sections

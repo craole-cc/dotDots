@@ -20,8 +20,8 @@
             noctalia-shell = shellNoctalia.homeModules.default;
             dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
             nvf = editorNeovim.homeManagerModules.default;
-            plasma-manager = plasma.homeModules.plasma-manager;
-            zen-browser = firefoxZen.homeModules.twilight;
+            plasma-manager = shellPlasma.homeModules.plasma-manager;
+            zen-browser = browserZen.homeModules.twilight;
             zen-homeModules = firefoxZen.homeModules;
           };
         };
@@ -30,8 +30,8 @@
           nixpkgs = nixosCore;
           noctalia-shell = shellNoctalia.packages;
           nvf = editorNeovim.packages;
-          plasma-manager = plasma.packages;
-          zen-browser = firefoxZen.packages;
+          plasma-manager = shellPlasma.packages;
+          zen-browser = browserZen.packages;
         };
       };
     };
