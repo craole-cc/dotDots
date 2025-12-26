@@ -7,7 +7,7 @@
   inherit (host.paths) dots;
   inherit (lix.applications.editors) packages commands;
 
-  editorConfig = host.users.data.primary.editor or {};
+  editorConfig = host.users.data.primary.applications.editor or {};
 
   editorPkgs = packages {inherit pkgs editorConfig;};
   editorCmds = commands {inherit pkgs editorConfig;};
