@@ -4,7 +4,8 @@ let
 in {
   imports = [./hardware-configuration.nix];
   stateVersion = "25.05";
-  paths.dots = "/home/craole/Configuration";
+  paths.dots = "/home/craole/Downloads/public/dotDots";
+  platform = "${arch}-${os}";
 
   modules = [
     "nvme"
@@ -21,7 +22,6 @@ in {
   };
 
   specs = {
-    platform = "${arch}-${os}";
     machine = "laptop";
 
     cpu = {
