@@ -1413,7 +1413,7 @@ impl DotDots {
       self.execute_command("git push", "git", Some(&self.root))?;
     }
 
-    self.log_success("Sync completed!");
+    self.log_success("Syncronization completed!");
     Ok(())
   }
 
