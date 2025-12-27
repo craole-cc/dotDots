@@ -231,6 +231,7 @@
       qpdf #? PDF transformation
       ripgrep #? Fast grep alternative
       rust-script #? Rust scripting
+      starship
       tokei #? Code statistics tool
       typst #? Modern LaTeX alternative
       undollar #? Remove leading dollar signs
@@ -255,18 +256,25 @@
     export HOSTNAME="$(hostname)"
     export HOSTTYPE="${system}"
 
-    #> Set up cache directory structure
+    #> Ensure DOTS is setand available for use
     export DOTS="$(pwd -P)"
+
+    #> Set up cache directory structure
     export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cache}"}"
     export ENV_BIN="$DOTS_CACHE/bin"
     export DOTS_LOGS="$DOTS_CACHE/logs"
     export DOTS_TMP="$DOTS_CACHE/tmp"
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
-    echo $DOTS
 
     #> Add bin directory to PATH
     export PATH="$ENV_BIN:$PATH"
-
+    BINIT_PATH="$DOTS/Bin/shellscript/base/binit"
+    if [ -f "''${BINIT_PATH:-}" ]; then
+      if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
+      . "$BINIT_PATH"
+    else
+      printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
+    fi
     #> Use starship for prompt
     export STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
     eval "$(starship init bash)"
