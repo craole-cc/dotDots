@@ -29,8 +29,6 @@
   #|─────────────────────────────────────────────────────────────────────────────|
 
   commands.${config.name} = {
-    inputs = with pkgs; [rust-script gcc rustc cargo rustfmt];
-    # command = ''exec ${(src + "/Bin/rust/.dots.rs")} "$@"'';
     command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
