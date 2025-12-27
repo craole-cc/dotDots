@@ -29,8 +29,9 @@
   #|─────────────────────────────────────────────────────────────────────────────|
 
   commands.${config.name} = {
-    inputs = with pkgs; [rust-script gcc rustfmt];
-    command = ''exec "$DOTS/Bin/rust/.dots.rs" "$@"'';
+    inputs = with pkgs; [rust-script gcc rustc cargo rustfmt];
+    # command = ''exec ${(src + "/Bin/rust/.dots.rs")} "$@"'';
+    command = ''rust-script "$DOTS/Bin/rust/.dots.rs" "$@"'';
     description = "Main dotfiles management CLI";
     aliases = [
       #~@ System/Info
@@ -214,6 +215,8 @@
       eza #? Modern ls replacement
       fd #? Fast find alternative
       gcc #? GNU C compiler
+      rustc #? Rust compiler
+      cargo #? Rust package manager
       gitui #? Git terminal UI
       gnused #? GNU stream editor
       imagemagick #? Image processing
