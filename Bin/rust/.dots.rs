@@ -300,65 +300,84 @@ enum IconStyle {
   Emoji,
 
   /// Plain text indicators
+  Text,
+
+  /// No icon display
   None,
 }
 
 impl IconStyle {
-  fn success(&self) -> &'static str {
-    match self {
+  fn success(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
       IconStyle::Nerdfont => "  ",
       IconStyle::Emoji => "✅  ",
-      IconStyle::None => "[INFO] ",
-    }
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
   }
 
-  fn debug(&self) -> &'static str {
-    match self {
+  fn debug(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
       IconStyle::Nerdfont => "  ",
       IconStyle::Emoji => "🔍  ",
-      IconStyle::None => "[DEBUG] ",
-    }
+      IconStyle::Text => "[DEBUG] ",
+      IconStyle::None => "",
+    })
   }
 
-  fn info(&self) -> &'static str {
-    match self {
+  fn info(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
       IconStyle::Nerdfont => "  ",
       IconStyle::Emoji => "ℹ️  ",
-      IconStyle::None => "[INFO] ",
-    }
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
   }
 
-  fn warning(&self) -> &'static str {
-    match self {
+  fn warning(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
       IconStyle::Nerdfont => "  ",
       IconStyle::Emoji => "⚠️  ",
-      IconStyle::None => "[WARNING] ",
-    }
+      IconStyle::Text => "[WARNING] ",
+      IconStyle::None => "",
+    })
   }
 
-  fn error(&self) -> &'static str {
-    match self {
+  fn error(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
       IconStyle::Nerdfont => "  ",
       IconStyle::Emoji => "❌  ",
-      IconStyle::None => "[ERROR] ",
-    }
+      IconStyle::Text => "[ERROR] ",
+      IconStyle::None => "",
+    })
   }
 
-  // fn build(&self) -> &'static str {
-  //   match self {
-  //     IconStyle::Nerdfont => " ",
-  //     IconStyle::Emoji => "🔨 ",
-  //     IconStyle::None => "[BUILD] ",
-  //   }
-  // }
+  fn target(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
+      IconStyle::Nerdfont => "󰓾  ",
+      IconStyle::Emoji => "🎯  ",
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
+  }
 
-  // fn sync(&self) -> &'static str {
-  //   match self {
-  //     IconStyle::Nerdfont => " ",
-  //     IconStyle::Emoji => "🔄 ",
-  //     IconStyle::None => "[SYNC] ",
-  //   }
-  // }
+  fn build(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
+      IconStyle::Nerdfont => " ",
+      IconStyle::Emoji => "🔨 ",
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
+  }
+
+  fn sync(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
+      IconStyle::Nerdfont => "󱋖  ",
+      IconStyle::Emoji => "🔄 ",
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
+  }
 }
 
 #[derive(Subcommand)]
@@ -734,7 +753,8 @@ impl DotDots {
 
   /// Interactive menu for common operations
   fn interactive_mode(&self) -> Result<()> {
-    println!("{}", "🎯 Interactive Mode".bold().cyan());
+    let icon = self.icons.target(None);
+    println!("{}", format!("{} Interactive Mode", icon).bold().cyan());
     println!("{}", "─".repeat(40).dimmed());
     println!();
 
@@ -798,7 +818,7 @@ impl DotDots {
     show_progress: bool,
   ) -> Result<()> {
     if self.verbose && !self.quiet {
-      self.log_debug(&format!("Executing: {}", cmd));
+      self.log_debug(&format!("Executing: {}", cmd), None);
     }
 
     let mut process = Command::new("sh");
@@ -905,10 +925,10 @@ impl DotDots {
 
     // Execute with hooks
     self.run_hooks(pre_hooks)?;
-    self.log_info(action_desc);
+    self.log_info(action_desc, None);
     self.execute_command(cmd, action_desc, None)?;
     self.run_hooks(post_hooks)?;
-    self.log_success(&format!("{} completed!", action_desc));
+    self.log_success(&format!("{} completed!", action_desc), None);
 
     Ok(())
   }
@@ -917,7 +937,7 @@ impl DotDots {
   fn run_hooks(&self, hooks: &[String]) -> Result<()> {
     for hook in hooks {
       if self.verbose {
-        self.log_debug(&format!("Running hook: {}", hook));
+        self.log_debug(&format!("Running hook: {}", hook), None);
       }
       self.execute_command(hook, "hook", None)?;
     }
@@ -935,7 +955,7 @@ impl DotDots {
   }
 
   fn handle_healthcheck(&self) -> Result<()> {
-    self.log_info("Running system health checks...");
+    self.log_info("Running system health checks...", None);
 
     let checks = vec![
       ("Flake valid", "nix flake check --no-build"),
@@ -1134,7 +1154,7 @@ impl DotDots {
         }
       }
       Err(e) => {
-        self.log_error(&format!("Failed to list hosts: {}", e));
+        self.log_error(&format!("Failed to list hosts: {}", e), None);
         println!("{}", "Are you in a Nix flake directory?".yellow());
       }
     }
@@ -1202,7 +1222,7 @@ impl DotDots {
         }
       }
       Err(_) => {
-        self.log_error(&format!("Host not found: {}", host_name));
+        self.log_error(&format!("Host not found: {}", host_name), None);
         println!("\n{}", "Available hosts:".yellow());
         self.list_hosts()?;
       }
@@ -1273,7 +1293,7 @@ impl DotDots {
     }
 
     if verbose || self.verbose {
-      self.log_info("Running dry build...");
+      self.log_info("Running dry build...", None);
       self.execute_command(&cmd, "nixos-rebuild", None)?;
     }
 
@@ -1315,7 +1335,7 @@ impl DotDots {
     let bin_dirs = self.find_bin_directories()?;
 
     if bin_dirs.is_empty() {
-      self.log_warn("No bin directories found");
+      self.log_warn("No bin directories found", None);
       return Ok(());
     }
 
@@ -1343,7 +1363,7 @@ impl DotDots {
         use std::io::Write;
         writeln!(file, "\n# Added by dots binit")?;
         write!(file, "{}", additions)?;
-        self.log_success(&format!("Added to {}", profile_path.display()));
+        self.log_success(&format!("Added to {}", profile_path.display()), None);
       }
     } else {
       println!("{}", "Found bin directories:".bold().cyan());
@@ -1381,22 +1401,22 @@ impl DotDots {
     println!();
 
     if !execute {
-      self.log_info(&format!(
-        "Sync operation would commit with message: \"{}\"",
-        msg
-      ));
+      self.log_info(
+        &format!("Sync operation would commit with message: \"{}\"", msg),
+        Some(self.icons.sync(None)),
+      );
       println!("\n{}", "To execute, add --execute flag".yellow());
       return Ok(());
     }
 
     if !yes && !self.config.options.auto_confirm {
       if !self.confirm("Proceed with sync?")? {
-        self.log_info("Cancelled");
+        self.log_info("Cancelled", None);
         return Ok(());
       }
     }
 
-    self.log_info("Starting sync...");
+    self.log_info("Starting sync...", None);
 
     // Stage all changes
     self.execute_command("git add -A", "git", Some(&self.root))?;
@@ -1413,13 +1433,13 @@ impl DotDots {
       self.execute_command("git push", "git", Some(&self.root))?;
     }
 
-    self.log_success("Syncronization completed!");
+    self.log_success("Syncronization complete!", Some(self.icons.sync(None)));
     Ok(())
   }
 
   /// Handle fmt command
   fn handle_fmt(&self, check: bool, verbose: bool) -> Result<()> {
-    self.log_info("Running formatters...");
+    self.log_info("Running formatters...", None);
 
     let treefmt_cmd = if check {
       "treefmt --fail-on-change"
@@ -1428,19 +1448,19 @@ impl DotDots {
     };
 
     if verbose || self.verbose {
-      self.log_debug(&format!("Command: {}", treefmt_cmd));
+      self.log_debug(&format!("Command: {}", treefmt_cmd), None);
     }
 
     if !check {
-      self.log_info("Formatting files...");
+      self.log_info("Formatting files...", None);
     }
 
     self.execute_command(treefmt_cmd, "treefmt", None)?;
 
     if check {
-      self.log_success("All files are properly formatted!");
+      self.log_success("All files are properly formatted!", None);
     } else {
-      self.log_success("Formatting complete!");
+      self.log_success("Formatting complete!", None);
     }
 
     Ok(())
@@ -1448,7 +1468,7 @@ impl DotDots {
 
   /// Handle check command
   fn handle_check(&self, fix: bool, strict: bool) -> Result<()> {
-    self.log_info("Running checks in parallel...");
+    self.log_info("Running checks in parallel...", None);
 
     let checks = vec![
       ("treefmt --fail-on-change", "Format check"),
@@ -1460,9 +1480,9 @@ impl DotDots {
     let mut failed = Vec::new();
     for (i, result) in results.iter().enumerate() {
       match result {
-        Ok(_) => self.log_success(&format!("✓ Check {} passed", i + 1)),
+        Ok(_) => self.log_success(&format!("✓ Check {} passed", i + 1), None),
         Err(e) => {
-          self.log_error(&format!("✗ Check {} failed: {}", i + 1, e));
+          self.log_error(&format!("✗ Check {} failed: {}", i + 1, e), None);
           failed.push(e);
         }
       }
@@ -1470,13 +1490,13 @@ impl DotDots {
 
     if !failed.is_empty() {
       if fix {
-        self.log_info("Attempting to fix issues...");
+        self.log_info("Attempting to fix issues...", None);
         self.execute_command("treefmt", "treefmt", None)?;
       } else if strict {
         anyhow::bail!("Strict mode: {} checks failed", failed.len());
       }
     } else {
-      self.log_success("All checks passed!");
+      self.log_success("All checks passed!", None);
     }
 
     Ok(())
@@ -1488,7 +1508,7 @@ impl DotDots {
       if prompt {
         return Ok(());
       }
-      self.log_error("Not a git repository");
+      self.log_error("Not a git repository", None);
       return Ok(());
     }
 
@@ -1546,7 +1566,7 @@ impl DotDots {
       self.copy_to_clipboard(&cmd)?;
     }
 
-    self.log_info("Starting Nix REPL...");
+    self.log_info("Starting Nix REPL...", None);
     self.execute_command(&cmd, "nix repl", None)?;
 
     Ok(())
@@ -1560,7 +1580,7 @@ impl DotDots {
     file_type: Option<&str>,
     limit: Option<usize>,
   ) -> Result<()> {
-    self.log_info(&format!("Searching for: {}", pattern));
+    self.log_info(&format!("Searching for: {}", pattern), None);
 
     let regex = if insensitive {
       Regex::new(&format!("(?i){}", regex::escape(pattern)))?
@@ -1623,7 +1643,7 @@ impl DotDots {
     }
 
     if results.is_empty() {
-      self.log_warn("No matches found");
+      self.log_warn("No matches found", None);
       return Ok(());
     }
 
@@ -1645,12 +1665,12 @@ impl DotDots {
       CacheAction::Clear { force } => {
         if !force {
           if !self.confirm("Clear all cache files?")? {
-            self.log_info("Cancelled");
+            self.log_info("Cancelled", None);
             return Ok(());
           }
         }
 
-        self.log_info("Clearing cache...");
+        self.log_info("Clearing cache...", None);
 
         if self.cache_dir.exists() {
           fs::remove_dir_all(&self.cache_dir)?;
@@ -1659,7 +1679,7 @@ impl DotDots {
           fs::create_dir_all(&self.tmp_dir)?;
         }
 
-        self.log_success("Cache cleared");
+        self.log_success("Cache cleared", None);
       }
 
       CacheAction::Stats => {
@@ -1737,11 +1757,14 @@ impl DotDots {
 
     clap_complete::generate_to(shell, &mut app, bin_name, &output_dir)?;
 
-    self.log_success(&format!(
-      "Generated {} completions at {}",
-      shell,
-      output_path.display()
-    ));
+    self.log_success(
+      &format!(
+        "Generated {} completions at {}",
+        shell,
+        output_path.display()
+      ),
+      None,
+    );
 
     println!("\nTo use these completions, add to your shell profile:");
     println!("  source {}", output_path.display());
@@ -1896,7 +1919,7 @@ impl DotDots {
               if let Ok(cached) = fs::read_to_string(&cache_file) {
                 if let Ok(value) = serde_json::from_str(&cached) {
                   if self.verbose {
-                    self.log_debug("Using cached result");
+                    self.log_debug("Using cached result", None);
                   }
                   return Ok(value);
                 }
@@ -1935,7 +1958,7 @@ impl DotDots {
   /// Helper: Execute a shell command
   fn execute_command(&self, cmd: &str, name: &str, dir: Option<&Path>) -> Result<()> {
     if self.verbose && !self.quiet {
-      self.log_debug(&format!("Executing: {}", cmd));
+      self.log_debug(&format!("Executing: {}", cmd), None);
     }
 
     let mut process = Command::new("sh");
@@ -1969,7 +1992,7 @@ impl DotDots {
       println!("   {}", cmd.white());
 
       if !self.confirm("Continue?")? {
-        self.log_info("Cancelled");
+        self.log_info("Cancelled", None);
         return Ok(());
       }
     }
@@ -2014,7 +2037,7 @@ impl DotDots {
       .unwrap_or(0);
 
     if current <= 1 {
-      self.log_warn("Already at oldest generation");
+      self.log_warn("Already at oldest generation", None);
       return Ok(());
     }
 
@@ -2028,9 +2051,9 @@ impl DotDots {
     println!("{}", cmd.bright_white());
 
     if execute {
-      self.log_info("Rolling back...");
+      self.log_info("Rolling back...", None);
       self.execute_command(&cmd, "nixos-rebuild", None)?;
-      self.log_success("Rolled back successfully!");
+      self.log_success("Rolled back successfully!", Some(self.icons.sync(None)));
     } else {
       println!("\n{}", "Add --execute to rollback".yellow());
     }
@@ -2141,47 +2164,48 @@ impl DotDots {
     Ok(())
   }
 
-  fn log_success(&self, msg: &str) {
+  /// Log success with optional custom icon
+  fn log_success(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("SUCCESS", msg);
-
     if !self.quiet {
-      let icon = self.icons.success();
+      let icon = self.icons.success(custom_icon);
       println!("\n{}", format!("{}{}", icon, msg).green().bold());
     }
   }
 
-  fn log_debug(&self, msg: &str) {
+  /// Log debug with optional custom icon
+  fn log_debug(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("DEBUG", msg);
-
-    if !self.quiet {
-      let icon = self.icons.debug();
-      eprintln!("\n{}", format!("{}{}", icon, msg).red().bold());
-    }
+    if !self.verbose && !self.quiet {
+      return;
+    } // Only show if verbose
+    let icon = self.icons.debug(custom_icon);
+    println!("{}", format!("{}{}", icon, msg).blue().dimmed());
   }
 
-  fn log_info(&self, msg: &str) {
+  /// Log info with optional custom icon
+  fn log_info(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("INFO", msg);
-
     if !self.quiet {
-      let icon = self.icons.info();
-      println!("{}{}", icon, msg);
+      let icon = self.icons.info(custom_icon);
+      println!("{}", format!("{}{}", icon, msg).blue());
     }
   }
 
-  fn log_warn(&self, msg: &str) {
+  /// Log warning with optional custom icon
+  fn log_warn(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("WARNING", msg);
-
     if !self.quiet {
-      let icon = self.icons.warning();
-      println!("{}", format!("{}  {}", icon, msg).yellow());
+      let icon = self.icons.warning(custom_icon);
+      println!("{}", format!("{}{}", icon, msg).yellow());
     }
   }
 
-  fn log_error(&self, msg: &str) {
+  /// Log error with optional custom icon
+  fn log_error(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("ERROR", msg);
-
     if !self.quiet {
-      let icon = self.icons.error();
+      let icon = self.icons.error(custom_icon);
       eprintln!("\n{}", format!("{}{}", icon, msg).red().bold());
     }
   }
