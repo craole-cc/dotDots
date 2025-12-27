@@ -1511,19 +1511,19 @@ impl DotDots {
       }
     }
 
-    self.log_info("Starting sync...", None);
+    self.log_info("Syncronization initialized\n", Some(self.icons.sync(None)));
 
-    // Stage all changes
-    self.execute("git add -A", "git", Some(&self.root))?;
+    //> Stage all changes
+    self.execute("git add --all", "git", Some(&self.root))?;
 
-    // Commit
+    //> Commit
     self.execute(
-      &format!("git commit -m \"{}\"", msg),
+      &format!("git commit --message \"{}\"", msg),
       "git",
       Some(&self.root),
     )?;
 
-    // Push if enabled
+    //> Push if enabled
     if push && self.config.git.auto_push {
       self.execute("git push", "git", Some(&self.root))?;
     }
