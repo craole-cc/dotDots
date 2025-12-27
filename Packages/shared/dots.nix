@@ -262,6 +262,7 @@
     export DOTS_LOGS="$DOTS_CACHE/logs"
     export DOTS_TMP="$DOTS_CACHE/tmp"
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
+    echo $DOTS
 
     #> Add bin directory to PATH
     export PATH="$ENV_BIN:$PATH"
