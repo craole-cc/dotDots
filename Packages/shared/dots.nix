@@ -268,14 +268,14 @@
     export BINIT_PATH="$DOTS/Bin/shellscript/base/binit"
     # BINIT_ACTION="--run"
 
-    if [ -f "${BINIT_PATH}" ]; then
-      if [ -x "${BINIT_PATH}" ]; then :; else chmod +x "${BINIT_PATH}"; fi
-      . "${BINIT_PATH}"
-      printf "direnv: bin initialized %s\n" "${BINIT_PATH}" >&2
-      printf "DOTS: %s\n" "${DOTS}" >&2
-    else
-      printf "direnv: binit not found at %s\n" "${BINIT_PATH}" >&2
-    fi
+    # if [ -f "${BINIT_PATH}" ]; then
+    #   if [ -x "${BINIT_PATH}" ]; then :; else chmod +x "${BINIT_PATH}"; fi
+    #   . "${BINIT_PATH}"
+    #   printf "direnv: bin initialized %s\n" "${BINIT_PATH}" >&2
+    #   printf "DOTS: %s\n" "${DOTS}" >&2
+    # else
+    #   printf "direnv: binit not found at %s\n" "${BINIT_PATH}" >&2
+    # fi
 
 
     #> Use starship for prompt
