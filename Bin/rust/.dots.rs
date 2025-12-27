@@ -23,6 +23,7 @@
 
 use anyhow::{Context, Result};
 use arboard::Clipboard;
+use chrono::Local;
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -286,6 +287,24 @@ enum Commands {
 
   /// Show enhanced help with examples
   Help,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum LogLevel {
+  Success,
+  Info,
+  Debug,
+  Warn,
+  Error,
+}
+
+struct ConsoleStyle<'a> {
+  level: LogLevel,
+  icon: Option<&'a str>,
+  leading: &'a str,
+  trailing: &'a str,
+  use_stderr: bool,
+  colorize: fn(String) -> colored::ColoredString,
 }
 
 /// Icon display style
@@ -840,7 +859,7 @@ impl DotDots {
     let host = Self::get_current_host();
     let system = Self::get_current_system();
 
-    println!("{}", "🎯 NixOS Configuration REPL".bold().cyan());
+    println!("{}", "🎯 NixOS Configuration REPL".bold().cyan()); // TODO: Use log_info
     println!("{}\n", "=".repeat(28).dimmed());
 
     println!("{} {}", "Current host:".bold().yellow(), host.green());
@@ -1131,6 +1150,35 @@ impl DotDots {
     }
   }
 
+  /// Execute and return output (for display)
+  fn execute_with_output(&self, cmd: &str, name: &str, dir: Option<&Path>) -> Result<String> {
+    if self.verbose && !self.quiet {
+      self.log_debug(&format!("Executing: {}", cmd), None);
+    }
+
+    let mut process = Command::new("sh");
+    process.arg("-c").arg(cmd);
+    if let Some(dir) = dir {
+      process.current_dir(dir);
+    }
+
+    let output = process
+      .stdin(Stdio::inherit())
+      .stdout(Stdio::piped())
+      .stderr(Stdio::inherit())
+      .output()
+      .with_context(|| format!("Failed to execute {}", name))?;
+
+    if !output.status.success() {
+      anyhow::bail!(
+        "Command failed with exit code {}",
+        output.status.code().unwrap_or(1)
+      );
+    }
+
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+  }
+
   /// Run multiple commands in parallel (useful for checks, formatting, etc.)
   fn execute_parallel(
     &self,
@@ -1177,7 +1225,7 @@ impl DotDots {
       if self.verbose {
         self.log_debug(&format!("Running hook: {}", hook), None);
       }
-      self.execute_command(hook, "hook", None)?;
+      self.execute(hook, "hook", None)?;
     }
     Ok(())
   }
@@ -1237,7 +1285,7 @@ impl DotDots {
       self.execute_with_progress(&resolved_cmd, action_desc, Some(&self.root), true)?;
     } else {
       // Standard execution
-      self.execute_command(&resolved_cmd, action_desc, None)?;
+      self.execute(&resolved_cmd, action_desc, None)?;
     }
 
     // 5. Execute post-hooks
@@ -1354,7 +1402,7 @@ impl DotDots {
 
     // if verbose || self.verbose {
     //   self.log_info("Running dry build...", None);
-    //   self.execute_command(&cmd, "nixos-rebuild", None)?;
+    //   self.execute(&cmd, "nixos-rebuild", None)?;
     // }
 
     Ok(())
@@ -1430,8 +1478,6 @@ impl DotDots {
 
   /// Handle sync command
   fn handle_sync(&self, message: &[String], execute: bool, yes: bool, push: bool) -> Result<()> {
-    use chrono::Local;
-
     let msg = if message.is_empty() {
       format!("sync {}", Local::now().format("%Y-%m-%d %H:%M"))
     } else {
@@ -1468,10 +1514,10 @@ impl DotDots {
     self.log_info("Starting sync...", None);
 
     // Stage all changes
-    self.execute_command("git add -A", "git", Some(&self.root))?;
+    self.execute("git add -A", "git", Some(&self.root))?;
 
     // Commit
-    self.execute_command(
+    self.execute(
       &format!("git commit -m \"{}\"", msg),
       "git",
       Some(&self.root),
@@ -1479,7 +1525,7 @@ impl DotDots {
 
     // Push if enabled
     if push && self.config.git.auto_push {
-      self.execute_command("git push", "git", Some(&self.root))?;
+      self.execute("git push", "git", Some(&self.root))?;
     }
 
     self.log_success("Syncronization complete!", Some(self.icons.sync(None)));
@@ -1532,7 +1578,7 @@ impl DotDots {
     if !failed.is_empty() {
       if fix {
         self.log_info("Attempting to fix issues...", None);
-        self.execute_command("treefmt", "treefmt", None)?;
+        self.execute("treefmt", "treefmt", None)?;
       } else if strict {
         anyhow::bail!("Strict mode: {} checks failed", failed.len());
       }
@@ -1583,18 +1629,19 @@ impl DotDots {
     }
 
     if !hide_log {
-      self.log_info(&branch, Some(self.icons.branch(None)));
-      self.execute_command("git log --oneline -3", "git", Some(&self.root))?;
+      self.log_header(&branch, Some(self.icons.branch(None)));
+      self.execute("git log --oneline -3", "git", Some(&self.root))?;
     }
 
     if changes > 0 {
       if hide_files {
         println!("{}", format!(" {}", changes.to_string()).magenta().bold());
       } else {
-        self.log_info("", Some(self.icons.diff(None)));
-        self.execute_command("git diff --stat", "git", Some(&self.root))?;
-        self.log_info("", Some(self.icons.tree(None)));
-        self.execute_command("git status --short", "git", Some(&self.root))?;
+        self.log_header("", Some(self.icons.diff(None)));
+        self.execute("git diff --stat", "git", Some(&self.root))?;
+
+        self.log_header("", Some(self.icons.tree(None)));
+        self.execute("git status --short", "git", Some(&self.root))?;
       }
     } else {
       println!("\n{}", " Repository is syncronized".magenta().bold());
@@ -1624,7 +1671,7 @@ impl DotDots {
     }
 
     self.log_info("Starting Nix REPL...", None);
-    self.execute_command(&cmd, "nix repl", None)?;
+    self.execute(&cmd, "nix repl", None)?;
 
     Ok(())
   }
@@ -2055,7 +2102,7 @@ impl DotDots {
   }
 
   /// Helper: Execute a shell command
-  fn execute_command(&self, cmd: &str, name: &str, dir: Option<&Path>) -> Result<()> {
+  fn execute(&self, cmd: &str, name: &str, dir: Option<&Path>) -> Result<()> {
     if self.verbose && !self.quiet {
       self.log_debug(&format!("Executing: {}", cmd), None);
     }
@@ -2096,7 +2143,7 @@ impl DotDots {
       }
     }
 
-    self.execute_command(cmd, name, None)
+    self.execute(cmd, name, None)
   }
 
   /// Helper: Check if path should be excluded
@@ -2225,50 +2272,117 @@ impl DotDots {
     Ok(())
   }
 
-  /// Log success with optional custom icon
+  fn log_to_console(&self, msg: &str, style: ConsoleStyle<'_>) {
+    if self.quiet || (matches!(style.level, LogLevel::Debug) && !self.verbose) {
+      return;
+    }
+
+    let icon = style.icon.unwrap_or_else(|| match style.level {
+      LogLevel::Success => self.icons.success(None),
+      LogLevel::Info => self.icons.info(None),
+      LogLevel::Debug => self.icons.debug(None),
+      LogLevel::Warn => self.icons.warning(None),
+      LogLevel::Error => self.icons.error(None),
+    });
+
+    let text = format!("{}{}{}{}", style.leading, icon, msg, style.trailing);
+    let colored = (style.colorize)(text);
+
+    if style.use_stderr {
+      eprintln!("{colored}");
+    } else {
+      println!("{colored}");
+    }
+  }
+
+  fn log_header(&self, msg: &str, custom_icon: Option<&'static str>) {
+    let _ = self.log_to_file("INFO", msg);
+    self.log_to_console(
+      msg,
+      ConsoleStyle {
+        level: LogLevel::Info,
+        icon: custom_icon,
+        leading: "\n",
+        trailing: "",
+        use_stderr: false,
+        colorize: |s| s.magenta().bold(),
+      },
+    );
+  }
+
   fn log_success(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("SUCCESS", msg);
-    if !self.quiet {
-      let icon = self.icons.success(custom_icon);
-      println!("\n{}", format!("{}{}", icon, msg).green().bold());
-    }
+    self.log_to_console(
+      msg,
+      ConsoleStyle {
+        level: LogLevel::Success,
+        icon: custom_icon,
+        leading: "\n",
+        trailing: "",
+        use_stderr: false,
+        colorize: |s| s.green().bold(),
+      },
+    );
   }
 
-  /// Log debug with optional custom icon
   fn log_debug(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("DEBUG", msg);
-    if !self.verbose && !self.quiet {
-      return;
-    } // Only show if verbose
-    let icon = self.icons.debug(custom_icon);
-    println!("{}", format!("{}{}", icon, msg).blue().dimmed());
+    self.log_to_console(
+      msg,
+      ConsoleStyle {
+        level: LogLevel::Debug,
+        icon: custom_icon,
+        leading: "",
+        trailing: "",
+        use_stderr: false,
+        colorize: |s| s.magenta(),
+      },
+    );
   }
 
-  /// Log info with optional custom icon
   fn log_info(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("INFO", msg);
-    if !self.quiet {
-      let icon = self.icons.info(custom_icon);
-      println!("{}", format!("{}{}", icon, msg).magenta());
-    }
+    self.log_to_console(
+      msg,
+      ConsoleStyle {
+        level: LogLevel::Info,
+        icon: custom_icon,
+        leading: "",
+        trailing: "",
+        use_stderr: false,
+        colorize: |s| s.blue(),
+      },
+    );
   }
 
-  /// Log warning with optional custom icon
   fn log_warn(&self, msg: &str, custom_icon: Option<&'static str>) {
-    let _ = self.log_to_file("WARNING", msg);
-    if !self.quiet {
-      let icon = self.icons.warning(custom_icon);
-      println!("{}", format!("{}{}", icon, msg).yellow());
-    }
+    let _ = self.log_to_file("WARN", msg);
+    self.log_to_console(
+      msg,
+      ConsoleStyle {
+        level: LogLevel::Warn,
+        icon: custom_icon,
+        leading: "",
+        trailing: "",
+        use_stderr: true,
+        colorize: |s| s.yellow(),
+      },
+    );
   }
 
-  /// Log error with optional custom icon
   fn log_error(&self, msg: &str, custom_icon: Option<&'static str>) {
     let _ = self.log_to_file("ERROR", msg);
-    if !self.quiet {
-      let icon = self.icons.error(custom_icon);
-      eprintln!("\n{}", format!("{}{}", icon, msg).red().bold());
-    }
+    self.log_to_console(
+      msg,
+      ConsoleStyle {
+        level: LogLevel::Error,
+        icon: custom_icon,
+        leading: "",
+        trailing: "",
+        use_stderr: true,
+        colorize: |s| s.red().bold(),
+      },
+    );
   }
 }
 
