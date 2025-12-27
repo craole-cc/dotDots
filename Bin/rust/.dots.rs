@@ -23,7 +23,7 @@
 
 use anyhow::{Context, Result};
 use arboard::Clipboard;
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use regex::Regex;
@@ -34,6 +34,7 @@ use std::{
   io::{self, Write},
   path::{Path, PathBuf},
   process::{Command, Stdio},
+  time::{Duration, SystemTime},
 };
 use walkdir::WalkDir;
 
@@ -56,6 +57,10 @@ struct Cli {
   /// Quiet mode
   #[arg(short, long, global = true)]
   quiet: bool,
+
+  /// Icon style for output
+  #[arg(long, alias = "icon", alias = "icon_style", global = true, value_enum, default_value_t = IconStyle::Nerdfont)]
+  icons: IconStyle,
 }
 
 #[derive(Subcommand)]
@@ -74,7 +79,6 @@ enum Commands {
 
     /// Show additional information (slower)
     #[arg(long, alias = "detail", alias = "details")]
-    #[arg(long)]
     detailed: bool,
   },
 
@@ -269,8 +273,92 @@ enum Commands {
     names: bool,
   },
 
+  /// Rollback to previous generation
+  Rollback {
+    #[arg(long)]
+    execute: bool,
+  },
+
+  /// Interactive menu for common operations
+  Interactive,
+
+  /// System health check
+  Healthcheck,
+
   /// Show enhanced help with examples
   Help,
+}
+
+/// Icon display style
+#[derive(ValueEnum, Clone, Copy, Debug, Default)]
+enum IconStyle {
+  /// Nerd Font icons (requires Nerd Font installed)
+  #[default]
+  Nerdfont,
+
+  /// Unicode emoji icons
+  Emoji,
+
+  /// Plain text indicators
+  None,
+}
+
+impl IconStyle {
+  fn success(&self) -> &'static str {
+    match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "✅  ",
+      IconStyle::None => "[INFO] ",
+    }
+  }
+
+  fn debug(&self) -> &'static str {
+    match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "🔍  ",
+      IconStyle::None => "[DEBUG] ",
+    }
+  }
+
+  fn info(&self) -> &'static str {
+    match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "ℹ️  ",
+      IconStyle::None => "[INFO] ",
+    }
+  }
+
+  fn warning(&self) -> &'static str {
+    match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "⚠️  ",
+      IconStyle::None => "[WARNING] ",
+    }
+  }
+
+  fn error(&self) -> &'static str {
+    match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "❌  ",
+      IconStyle::None => "[ERROR] ",
+    }
+  }
+
+  // fn build(&self) -> &'static str {
+  //   match self {
+  //     IconStyle::Nerdfont => " ",
+  //     IconStyle::Emoji => "🔨 ",
+  //     IconStyle::None => "[BUILD] ",
+  //   }
+  // }
+
+  // fn sync(&self) -> &'static str {
+  //   match self {
+  //     IconStyle::Nerdfont => " ",
+  //     IconStyle::Emoji => "🔄 ",
+  //     IconStyle::None => "[SYNC] ",
+  //   }
+  // }
 }
 
 #[derive(Subcommand)]
@@ -488,10 +576,11 @@ struct DotDots {
   tmp_dir: PathBuf,
   verbose: bool,
   quiet: bool,
+  icons: IconStyle,
 }
 
 impl DotDots {
-  fn new(verbose: bool, quiet: bool) -> Result<Self> {
+  fn new(verbose: bool, quiet: bool, icons: IconStyle) -> Result<Self> {
     let dots_var = env::var("DOTS").context("DOTS environment variable not set")?;
     let root = PathBuf::from(&dots_var);
     let real_root = fs::canonicalize(&root).unwrap_or_else(|_| root.clone());
@@ -515,6 +604,7 @@ impl DotDots {
       tmp_dir,
       verbose,
       quiet,
+      icons,
     })
   }
 
@@ -642,6 +732,47 @@ impl DotDots {
     }
   }
 
+  /// Interactive menu for common operations
+  fn interactive_mode(&self) -> Result<()> {
+    println!("{}", "🎯 Interactive Mode".bold().cyan());
+    println!("{}", "─".repeat(40).dimmed());
+    println!();
+
+    let options = vec![
+      ("1", "Rebuild system", "rebuild"),
+      ("2", "Update flake", "update"),
+      ("3", "Show status", "status"),
+      ("4", "Format files", "fmt"),
+      ("5", "Run checks", "check"),
+      ("6", "Sync changes", "sync"),
+      ("q", "Quit", "quit"),
+    ];
+
+    for (key, desc, _) in &options {
+      println!("  [{}] {}", key.cyan(), desc);
+    }
+
+    print!("\n{}", "Choose an option: ".yellow());
+    io::stdout().flush()?;
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?;
+    let choice = input.trim();
+
+    match choice {
+      "1" => self.handle_rebuild(None, true, false)?,
+      "2" => self.handle_update(true, None)?,
+      "3" => self.handle_status(false, false, false)?,
+      "4" => self.handle_fmt(false, false)?,
+      "5" => self.handle_check(false, false)?,
+      "6" => self.handle_sync(&[], true, false, true)?,
+      "q" => return Ok(()),
+      _ => println!("{}", "Invalid option".red()),
+    }
+
+    Ok(())
+  }
+
   /// Get current host name from environment
   fn get_current_host() -> String {
     env::var("HOSTNAME").unwrap_or_else(|_| {
@@ -656,6 +787,187 @@ impl DotDots {
   /// Get current system from environment
   fn get_current_system() -> String {
     env::var("HOSTTYPE").unwrap_or_else(|_| "x86_64-linux".to_string())
+  }
+
+  /// Execute command with optional progress indicator
+  fn execute_with_progress(
+    &self,
+    cmd: &str,
+    name: &str,
+    dir: Option<&Path>,
+    show_progress: bool,
+  ) -> Result<()> {
+    if self.verbose && !self.quiet {
+      self.log_debug(&format!("Executing: {}", cmd));
+    }
+
+    let mut process = Command::new("sh");
+    process.arg("-c").arg(cmd);
+
+    if let Some(dir) = dir {
+      process.current_dir(dir);
+    }
+
+    // Add spinner for long-running commands
+    let spinner = if show_progress && !self.quiet && self.config.options.progress {
+      let sp = ProgressBar::new_spinner();
+      sp.set_style(
+        ProgressStyle::default_spinner()
+          .template("{spinner:.cyan} {msg}")
+          .unwrap(),
+      );
+      sp.set_message(format!("Running {}...", name));
+      sp.enable_steady_tick(std::time::Duration::from_millis(100));
+      Some(sp)
+    } else {
+      None
+    };
+
+    let status = process
+      .stdin(Stdio::inherit())
+      .stdout(Stdio::inherit())
+      .stderr(Stdio::inherit())
+      .status()
+      .with_context(|| format!("Failed to execute {}", name))?;
+
+    if let Some(sp) = spinner {
+      sp.finish_and_clear();
+    }
+
+    if status.success() {
+      Ok(())
+    } else {
+      anyhow::bail!(
+        "Command failed with exit code: {}",
+        status.code().unwrap_or(1)
+      );
+    }
+  }
+
+  /// Run multiple commands in parallel (useful for checks, formatting, etc.)
+  fn execute_parallel(
+    &self,
+    commands: Vec<(&str, &str)>, // (command, description)
+  ) -> Result<Vec<Result<(), String>>> {
+    use std::thread;
+
+    let handles: Vec<_> = commands
+      .into_iter()
+      .map(|(cmd, desc)| {
+        let cmd = cmd.to_string();
+        let desc = desc.to_string();
+
+        thread::spawn(move || {
+          let output = Command::new("sh").arg("-c").arg(&cmd).output();
+
+          match output {
+            Ok(out) if out.status.success() => Ok(()),
+            Ok(out) => Err(format!(
+              "{}: {}",
+              desc,
+              String::from_utf8_lossy(&out.stderr)
+            )),
+            Err(e) => Err(format!("{}: {}", desc, e)),
+          }
+        })
+      })
+      .collect();
+
+    let results = handles
+      .into_iter()
+      .map(|h| {
+        h.join()
+          .unwrap_or_else(|_| Err("Thread panicked".to_string()))
+      })
+      .collect();
+
+    Ok(results)
+  }
+
+  /// Unified command execution flow
+  fn handle_command_flow(
+    &self,
+    cmd: &str,
+    execute: bool,
+    action_desc: &str,
+    pre_hooks: &[String],
+    post_hooks: &[String],
+  ) -> Result<()> {
+    // Show command without executing
+    if !execute {
+      println!("{}", cmd.bright_white());
+      if self.config.options.auto_copy {
+        self.copy_to_clipboard(cmd)?;
+      }
+      println!("\n{}", "💡 Add --execute to run immediately".yellow());
+      return Ok(());
+    }
+
+    // Execute with hooks
+    self.run_hooks(pre_hooks)?;
+    self.log_info(action_desc);
+    self.execute_command(cmd, action_desc, None)?;
+    self.run_hooks(post_hooks)?;
+    self.log_success(&format!("{} completed!", action_desc));
+
+    Ok(())
+  }
+
+  /// Run a list of hooks
+  fn run_hooks(&self, hooks: &[String]) -> Result<()> {
+    for hook in hooks {
+      if self.verbose {
+        self.log_debug(&format!("Running hook: {}", hook));
+      }
+      self.execute_command(hook, "hook", None)?;
+    }
+    Ok(())
+  }
+
+  /// Resolve command aliases from config
+  fn resolve_alias(&self, input: &str) -> String {
+    self
+      .config
+      .aliases
+      .get(input)
+      .cloned()
+      .unwrap_or_else(|| input.to_string())
+  }
+
+  fn handle_healthcheck(&self) -> Result<()> {
+    self.log_info("Running system health checks...");
+
+    let checks = vec![
+      ("Flake valid", "nix flake check --no-build"),
+      ("Git clean", "git status --porcelain"),
+      ("Disk space", "df -h / | tail -1"),
+      (
+        "Nix store",
+        "nix store optimise --dry-run 2>&1 | grep 'freed'",
+      ),
+    ];
+
+    println!();
+    for (name, cmd) in checks {
+      print!("  {} ... ", name.cyan());
+      io::stdout().flush()?;
+
+      let output = Command::new("sh").arg("-c").arg(cmd).output()?;
+
+      if output.status.success() {
+        println!("{}", "✓".green());
+      } else {
+        println!("{}", "✗".red());
+        if self.verbose {
+          println!(
+            "    {}",
+            String::from_utf8_lossy(&output.stderr).trim().dimmed()
+          );
+        }
+      }
+    }
+
+    Ok(())
   }
 
   /// Handle help command
@@ -831,57 +1143,56 @@ impl DotDots {
 
   /// Show host information
   fn show_host_info(&self, host: Option<&str>, as_json: bool, detailed: bool) -> Result<()> {
-    let host_name = match host {
-      Some(h) => h.to_string(),
-      None => Self::get_current_host(),
-    };
+    let host_name = host
+      .map(String::from)
+      .unwrap_or_else(Self::get_current_host);
+    let cache_key = format!("host-info-{}", host_name);
 
     let expr = format!(
       r#"
-            let
-              flake = builtins.getFlake (toString ./.);
-              hostConfig = flake.nixosConfigurations."{}";
-            in {{
-              hostname = hostConfig.config.networking.hostName;
-              system = hostConfig.config.nixpkgs.hostPlatform.system;
-              kernel = hostConfig.config.boot.kernelPackages.kernel.version;
-              stateVersion = hostConfig.config.system.stateVersion;
-              desktop = (
-                if hostConfig.config.services.desktopManager.plasma6.enable or false then "plasma"
-                else if hostConfig.config.services.desktopManager.gnome.enable or false then "gnome"
-                else if hostConfig.config.services.desktopManager.cosmic.enable or false then "cosmic"
-                else "none"
-              );
-            }}
-            "#,
-      host_name.replace("'", "'\\''")
+      let
+        flake = builtins.getFlake (toString ./.);
+        hostConfig = flake.nixosConfigurations."{}";
+      in {{
+        hostname = hostConfig.config.networking.hostName;
+        system = hostConfig.config.nixpkgs.hostPlatform.system;
+        kernel = hostConfig.config.boot.kernelPackages.kernel.version;
+        stateVersion = hostConfig.config.system.stateVersion;
+        desktop = (
+          if hostConfig.config.services.desktopManager.plasma6.enable or false then "plasma"
+          else if hostConfig.config.services.xserver.desktopManager.gnome.enable or false then "gnome"
+          else if hostConfig.config.services.desktopManager.cosmic.enable or false then "cosmic"
+          else "none"
+        );
+      }}
+      "#,
+      host_name.replace('\'', "'\\''")
     );
 
-    match self.nix_eval(&expr) {
+    // Use cached version with 5 minute TTL - DON'T call nix_eval again!
+    match self.nix_eval_cached(&expr, &cache_key, Duration::from_secs(300)) {
       Ok(info) => {
         if as_json {
           println!("{}", serde_json::to_string_pretty(&info)?);
         } else {
-          println!(
-            "{} {}",
-            "Host info for:".bold().cyan(),
-            host_name.green().bold()
-          );
-          println!("{}", "=".repeat(40).dimmed());
+          println!("{} {}", "Host:".bold().cyan(), host_name.green().bold());
+          println!("{}", "─".repeat(40).dimmed());
 
           if let Some(obj) = info.as_object() {
             for (key, value) in obj {
-              println!("{}: {}", key.bold().cyan(), value);
+              println!("  {:<15} {}", format!("{}:", key).cyan(), value);
             }
           }
 
-          println!();
-          println!("{}", "Repository info:".bold().cyan());
-          let _ = Command::new("onefetch")
-            .arg("--no-color-palette")
-            .arg("--no-art")
-            .status();
           if detailed {
+            println!();
+            println!("{}", "Repository Statistics:".bold().cyan());
+            let _ = Command::new("onefetch")
+              .arg("--no-color-palette")
+              .arg("--no-art")
+              .status();
+
+            println!();
             let _ = Command::new("tokei")
               .arg("--hidden")
               .arg("--num-format")
@@ -891,8 +1202,8 @@ impl DotDots {
         }
       }
       Err(_) => {
-        self.log_error(&format!("Error loading host: {}", host_name));
-        println!("{}", "Available hosts:".yellow());
+        self.log_error(&format!("Host not found: {}", host_name));
+        println!("\n{}", "Available hosts:".yellow());
         self.list_hosts()?;
       }
     }
@@ -902,10 +1213,9 @@ impl DotDots {
 
   /// Handle rebuild command
   fn handle_rebuild(&self, host: Option<&str>, execute: bool, command_only: bool) -> Result<()> {
-    let host_name = match host {
-      Some(h) => h.to_string(),
-      None => Self::get_current_host(),
-    };
+    let host_name = host
+      .map(String::from)
+      .unwrap_or_else(Self::get_current_host);
     let cmd = format!("sudo nixos-rebuild switch --flake .#{}", host_name);
 
     if command_only {
@@ -913,65 +1223,39 @@ impl DotDots {
       return Ok(());
     }
 
-    println!("{}", cmd.bright_white());
-
-    if self.config.options.auto_copy {
-      self.copy_to_clipboard(&cmd)?;
-    }
-
-    if execute {
-      self.log_info("Executing rebuild...");
-      self.execute_command(&cmd, "nixos-rebuild", None)?;
-      self.log_success("Rebuild completed!");
-    }
-
-    Ok(())
+    self.handle_command_flow(
+      &cmd,
+      execute,
+      "Rebuilding system",
+      &self.config.hooks.pre_rebuild,
+      &self.config.hooks.post_rebuild,
+    )
   }
 
   /// Handle test command
   fn handle_test(&self, host: Option<&str>, execute: bool) -> Result<()> {
-    let host_name = match host {
-      Some(h) => h.to_string(),
-      None => Self::get_current_host(),
-    };
+    let host_name = host
+      .map(String::from)
+      .unwrap_or_else(Self::get_current_host);
     let cmd = format!("sudo nixos-rebuild test --flake .#{}", host_name);
 
-    println!("{}", cmd.bright_white());
-
-    if self.config.options.auto_copy {
-      self.copy_to_clipboard(&cmd)?;
-    }
-
-    if execute {
-      self.log_info("Testing configuration...");
-      self.execute_command(&cmd, "nixos-rebuild", None)?;
-      self.log_success("Test completed!");
-    }
-
-    Ok(())
+    self.handle_command_flow(
+      &cmd,
+      execute,
+      "Testing configuration",
+      &[], // no pre hooks
+      &[], // no post hooks
+    )
   }
 
   /// Handle boot command
   fn handle_boot(&self, host: Option<&str>, execute: bool) -> Result<()> {
-    let host_name = match host {
-      Some(h) => h.to_string(),
-      None => Self::get_current_host(),
-    };
+    let host_name = host
+      .map(String::from)
+      .unwrap_or_else(Self::get_current_host);
     let cmd = format!("sudo nixos-rebuild boot --flake .#{}", host_name);
 
-    println!("{}", cmd.bright_white());
-
-    if self.config.options.auto_copy {
-      self.copy_to_clipboard(&cmd)?;
-    }
-
-    if execute {
-      self.log_info("Building boot configuration...");
-      self.execute_command(&cmd, "nixos-rebuild", None)?;
-      self.log_success("Boot configuration built!");
-    }
-
-    Ok(())
+    self.handle_command_flow(&cmd, execute, "Building boot configuration", &[], &[])
   }
 
   /// Handle dry command
@@ -1004,46 +1288,26 @@ impl DotDots {
       "nix flake update".to_string()
     };
 
-    println!("{}", cmd.bright_white());
-
-    if self.config.options.auto_copy {
-      self.copy_to_clipboard(&cmd)?;
-    }
-
-    if execute {
-      self.log_info("Updating flake...");
-      self.execute_command(&cmd, "nix", None)?;
-      self.log_success("Flake updated!");
-    }
-
-    Ok(())
+    self.handle_command_flow(
+      &cmd,
+      execute,
+      "Updating flake",
+      &self.config.hooks.pre_update,
+      &self.config.hooks.post_update,
+    )
   }
 
   /// Handle clean command
   fn handle_clean(&self, execute: bool, delete_old: bool, dry_run: bool) -> Result<()> {
     let mut cmd = "sudo nix-collect-garbage".to_string();
-
     if delete_old {
       cmd.push_str(" --delete-old");
     }
-
     if dry_run {
       cmd.push_str(" --dry-run");
     }
 
-    println!("{}", cmd.bright_white());
-
-    if self.config.options.auto_copy {
-      self.copy_to_clipboard(&cmd)?;
-    }
-
-    if execute {
-      self.log_info("Cleaning garbage...");
-      self.execute_command(&cmd, "nix-collect-garbage", None)?;
-      self.log_success("Garbage collection completed!");
-    }
-
-    Ok(())
+    self.handle_command_flow(&cmd, execute, "Cleaning garbage", &[], &[])
   }
 
   /// Handle binit command
@@ -1184,104 +1448,37 @@ impl DotDots {
 
   /// Handle check command
   fn handle_check(&self, fix: bool, strict: bool) -> Result<()> {
-    self.log_info("Running checks...");
+    self.log_info("Running checks in parallel...");
 
-    // Check formatting
-    self.log_info("Checking formatting...");
-    let fmt_result = self.execute_command("treefmt --fail-on-change", "treefmt", None);
+    let checks = vec![
+      ("treefmt --fail-on-change", "Format check"),
+      ("nix flake check 2>&1 | head -20", "Flake check"),
+    ];
 
-    if fmt_result.is_err() {
-      self.log_error("Format check failed");
-      if fix {
-        self.log_info("Attempting to fix formatting...");
-        self.execute_command("treefmt", "treefmt", None)?;
-        self.log_success("Formatting fixed");
-      } else {
-        self.log_info("Run 'dots fmt' to fix formatting");
-        if strict {
-          anyhow::bail!("Strict mode: exiting on first error");
+    let results = self.execute_parallel(checks)?;
+
+    let mut failed = Vec::new();
+    for (i, result) in results.iter().enumerate() {
+      match result {
+        Ok(_) => self.log_success(&format!("✓ Check {} passed", i + 1)),
+        Err(e) => {
+          self.log_error(&format!("✗ Check {} failed: {}", i + 1, e));
+          failed.push(e);
         }
+      }
+    }
+
+    if !failed.is_empty() {
+      if fix {
+        self.log_info("Attempting to fix issues...");
+        self.execute_command("treefmt", "treefmt", None)?;
+      } else if strict {
+        anyhow::bail!("Strict mode: {} checks failed", failed.len());
       }
     } else {
-      self.log_success("Formatting OK");
+      self.log_success("All checks passed!");
     }
 
-    // Check shell scripts
-    self.log_info("Checking shell scripts...");
-    let shell_scripts: Vec<PathBuf> = WalkDir::new(&self.root)
-      .into_iter()
-      .filter_map(|e| e.ok())
-      .filter(|e| {
-        let path = e.path();
-        if !path.is_file() {
-          return false;
-        }
-
-        // Check for shell scripts
-        if let Some(ext) = path.extension() {
-          if ext == "sh" || ext == "bash" {
-            return true;
-          }
-        }
-
-        // Check shebang
-        if let Ok(content) = fs::read_to_string(path) {
-          if content.starts_with("#!/bin/sh") || content.starts_with("#!/bin/bash") {
-            return true;
-          }
-        }
-
-        false
-      })
-      .map(|e| e.path().to_path_buf())
-      .collect();
-
-    if !shell_scripts.is_empty() {
-      let pb = ProgressBar::new(shell_scripts.len() as u64);
-      pb.set_style(
-        ProgressStyle::default_bar()
-          .template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} scripts")
-          .unwrap(),
-      );
-
-      let mut failed = Vec::new();
-
-      for script in shell_scripts {
-        if self.verbose {
-          self.log_debug(&format!("Checking: {}", script.display()));
-        }
-
-        let output = Command::new("shellcheck").arg(&script).output();
-
-        match output {
-          Ok(output) if !output.status.success() => {
-            failed.push((script, String::from_utf8_lossy(&output.stderr).to_string()));
-          }
-          Err(_) => {
-            // shellcheck not installed or failed
-          }
-          _ => {}
-        }
-
-        pb.inc(1);
-      }
-
-      pb.finish_and_clear();
-
-      if !failed.is_empty() {
-        self.log_warn(&format!("Found issues in {} shell scripts", failed.len()));
-        if strict {
-          for (script, error) in &failed {
-            eprintln!("{}: {}", script.display(), error);
-          }
-          anyhow::bail!("Shell check failed");
-        }
-      } else {
-        self.log_success("Shell scripts OK");
-      }
-    }
-
-    self.log_success("All checks passed!");
     Ok(())
   }
 
@@ -1323,7 +1520,7 @@ impl DotDots {
         self.execute_command("git status --short", "git", Some(&self.root))?;
       }
     } else {
-      println!("\n{}", " Repository already in sync".magenta().bold());
+      println!("\n{}", " Repository is syncronized".magenta().bold());
     }
 
     Ok(())
@@ -1555,6 +1752,9 @@ impl DotDots {
   /// List all commands
   fn list_commands(&self, as_json: bool, names_only: bool) -> Result<()> {
     let commands = vec![
+      ("interactive", "Interactive mode menu"),
+      ("healthcheck", "Run system health checks"),
+      ("rollback", "Rollback to previous generation"),
       ("hosts", "List all configured hosts"),
       ("info", "Show detailed host information"),
       ("rebuild", "Rebuild configuration"),
@@ -1677,6 +1877,47 @@ impl DotDots {
     }
   }
 
+  /// Cached nix evaluation with TTL
+  fn nix_eval_cached(
+    &self,
+    expr: &str,
+    cache_key: &str,
+    ttl: Duration,
+  ) -> Result<serde_json::Value> {
+    let cache_file = self.cache_dir.join(format!("{}.json", cache_key));
+
+    // Check if cache is valid
+    if cache_file.exists() {
+      if let Ok(metadata) = fs::metadata(&cache_file) {
+        if let Ok(modified) = metadata.modified() {
+          if let Ok(elapsed) = SystemTime::now().duration_since(modified) {
+            if elapsed < ttl {
+              // Cache is still valid
+              if let Ok(cached) = fs::read_to_string(&cache_file) {
+                if let Ok(value) = serde_json::from_str(&cached) {
+                  if self.verbose {
+                    self.log_debug("Using cached result");
+                  }
+                  return Ok(value);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Cache miss or expired - evaluate
+    let result = self.nix_eval(expr)?;
+
+    // Save to cache
+    if let Ok(json_str) = serde_json::to_string_pretty(&result) {
+      let _ = fs::write(&cache_file, json_str);
+    }
+
+    Ok(result)
+  }
+
   /// Helper: Copy text to clipboard
   fn copy_to_clipboard(&self, text: &str) -> Result<()> {
     let mut clipboard = Clipboard::new().context("Failed to initialize clipboard")?;
@@ -1721,6 +1962,21 @@ impl DotDots {
     }
   }
 
+  /// Execute command with optional dry-run
+  fn execute_safe(&self, cmd: &str, name: &str, is_destructive: bool) -> Result<()> {
+    if is_destructive && !self.config.options.auto_confirm {
+      println!("\n{}", "⚠️  This operation will:".yellow().bold());
+      println!("   {}", cmd.white());
+
+      if !self.confirm("Continue?")? {
+        self.log_info("Cancelled");
+        return Ok(());
+      }
+    }
+
+    self.execute_command(cmd, name, None)
+  }
+
   /// Helper: Check if path should be excluded
   fn should_exclude(&self, path: &Path) -> bool {
     let path_str = path.to_string_lossy();
@@ -1742,6 +1998,44 @@ impl DotDots {
     }
 
     false
+  }
+
+  /// Rollback to previous generation
+  fn handle_rollback(&self, execute: bool) -> Result<()> {
+    // Get current generation
+    let current_gen = Command::new("sh")
+      .arg("-c")
+      .arg("sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -2 | head -1 | awk '{print $1}'")
+      .output()?;
+
+    let current = String::from_utf8_lossy(&current_gen.stdout)
+      .trim()
+      .parse::<i32>()
+      .unwrap_or(0);
+
+    if current <= 1 {
+      self.log_warn("Already at oldest generation");
+      return Ok(());
+    }
+
+    let previous = current - 1;
+    let cmd = format!("sudo nixos-rebuild switch --rollback");
+
+    println!(
+      "{}",
+      format!("Rollback: generation {} → {}", current, previous).yellow()
+    );
+    println!("{}", cmd.bright_white());
+
+    if execute {
+      self.log_info("Rolling back...");
+      self.execute_command(&cmd, "nixos-rebuild", None)?;
+      self.log_success("Rolled back successfully!");
+    } else {
+      println!("\n{}", "Add --execute to rollback".yellow());
+    }
+
+    Ok(())
   }
 
   /// Helper: Calculate directory size
@@ -1826,109 +2120,129 @@ impl DotDots {
     )
   }
 
-  /// Helper: Log info message
-  fn log_info(&self, msg: &str) {
-    if !self.quiet {
-      println!("\n{}", format!(" {}", msg).blue());
+  /// Log to file and console
+  fn log_to_file(&self, level: &str, msg: &str) -> Result<()> {
+    use chrono::Local;
+
+    let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");
+    let log_file = self.logs_dir.join("dots.log");
+
+    let log_entry = format!("[{}] {}: {}\n", timestamp, level, msg);
+
+    // Append to log file
+    if let Ok(mut file) = fs::OpenOptions::new()
+      .create(true)
+      .append(true)
+      .open(&log_file)
+    {
+      let _ = file.write_all(log_entry.as_bytes());
     }
+
+    Ok(())
   }
 
-  /// Helper: Log success message
   fn log_success(&self, msg: &str) {
+    let _ = self.log_to_file("SUCCESS", msg);
+
     if !self.quiet {
-      println!("\n{}", format!(" {}", msg).green());
+      let icon = self.icons.success();
+      println!("\n{}", format!("{}{}", icon, msg).green().bold());
     }
   }
 
-  /// Helper: Log warning message
-  fn log_warn(&self, msg: &str) {
-    if !self.quiet {
-      println!("\n{}", format!(" {}", msg).yellow());
-    }
-  }
-
-  /// Helper: Log error message
-  fn log_error(&self, msg: &str) {
-    println!("\n{}", format!(" {}", msg).red());
-  }
-
-  /// Helper: Log debug message
   fn log_debug(&self, msg: &str) {
-    if self.verbose && !self.quiet {
-      println!("\n{}", format!(" {}", msg).dimmed());
+    let _ = self.log_to_file("DEBUG", msg);
+
+    if !self.quiet {
+      let icon = self.icons.debug();
+      eprintln!("\n{}", format!("{}{}", icon, msg).red().bold());
+    }
+  }
+
+  fn log_info(&self, msg: &str) {
+    let _ = self.log_to_file("INFO", msg);
+
+    if !self.quiet {
+      let icon = self.icons.info();
+      println!("{}{}", icon, msg);
+    }
+  }
+
+  fn log_warn(&self, msg: &str) {
+    let _ = self.log_to_file("WARNING", msg);
+
+    if !self.quiet {
+      let icon = self.icons.warning();
+      println!("{}", format!("{}  {}", icon, msg).yellow());
+    }
+  }
+
+  fn log_error(&self, msg: &str) {
+    let _ = self.log_to_file("ERROR", msg);
+
+    if !self.quiet {
+      let icon = self.icons.error();
+      eprintln!("\n{}", format!("{}{}", icon, msg).red().bold());
     }
   }
 }
 
 fn main() -> Result<()> {
   let cli = Cli::parse();
-  let dots = DotDots::new(cli.verbose, cli.quiet)?;
+  let dots = DotDots::new(cli.verbose, cli.quiet, cli.icons)?;
 
   match cli.command {
     None | Some(Commands::Help) => dots.show_help(),
 
-    Some(Commands::Hosts) => dots.list_hosts(),
+    Some(Commands::Interactive) => dots.interactive_mode(),
+    Some(Commands::Healthcheck) => dots.handle_healthcheck(),
+    Some(Commands::Rollback { execute }) => dots.handle_rollback(execute),
 
+    Some(Commands::Hosts) => dots.list_hosts(),
     Some(Commands::Info {
       host,
       json,
       detailed,
     }) => dots.show_host_info(host.as_deref(), json, detailed),
-
     Some(Commands::Rebuild {
       host,
       execute,
       command,
     }) => dots.handle_rebuild(host.as_deref(), execute, command),
-
     Some(Commands::Test { host, execute }) => dots.handle_test(host.as_deref(), execute),
-
     Some(Commands::Boot { host, execute }) => dots.handle_boot(host.as_deref(), execute),
-
     Some(Commands::Dry { host, verbose }) => dots.handle_dry(host.as_deref(), verbose),
-
     Some(Commands::Update { execute, input }) => dots.handle_update(execute, input.as_deref()),
-
     Some(Commands::Clean {
       execute,
       delete_old,
       dry_run,
     }) => dots.handle_clean(execute, delete_old, dry_run),
-
     Some(Commands::Binit { export, profile }) => dots.handle_binit(export, profile),
-
     Some(Commands::Sync {
       message,
       execute,
       yes,
       push,
     }) => dots.handle_sync(&message, execute, yes, push),
-
     Some(Commands::Fmt { check, verbose }) => dots.handle_fmt(check, verbose),
-
     Some(Commands::Check { fix, strict }) => dots.handle_check(fix, strict),
-
     Some(Commands::Status {
       prompt,
       hide_files,
       hide_log,
     }) => dots.handle_status(prompt, hide_files, hide_log),
-
     Some(Commands::Repl { expr, types }) => dots.handle_repl(expr.as_deref(), types),
-
     Some(Commands::Search {
       pattern,
       insensitive,
       file_type,
       limit,
     }) => dots.handle_search(&pattern, insensitive, file_type.as_deref(), limit),
-
     Some(Commands::Cache { action }) => dots.handle_cache(&action),
-
     Some(Commands::Completions { shell, output }) => {
       dots.handle_completions(shell, output.as_deref())
     }
-
     Some(Commands::List { json, names }) => dots.list_commands(json, names),
   }
 }
