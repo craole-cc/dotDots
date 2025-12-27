@@ -256,7 +256,7 @@
     export HOSTTYPE="${system}"
 
     #> Set up cache directory structure
-    export DOTS="$(pwd -P)/../.."
+    export DOTS="$(pwd -P)"
     export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cache}"}"
     export ENV_BIN="$DOTS_CACHE/bin"
     export DOTS_LOGS="$DOTS_CACHE/logs"
