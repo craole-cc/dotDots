@@ -186,10 +186,9 @@ enum Commands {
     /// Check only (don't format)
     #[arg(long)]
     check: bool,
-
-    /// Verbose output
-    #[arg(short, long)]
-    verbose: bool,
+    // /// Verbose output
+    // #[arg(short, long)]
+    // verbose: bool,
   },
 
   /// Run checks (format, lint)
@@ -374,6 +373,33 @@ impl IconStyle {
     override_icon.unwrap_or_else(|| match self {
       IconStyle::Nerdfont => "󱋖  ",
       IconStyle::Emoji => "🔄 ",
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
+  }
+
+  fn tree(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "🪾 ",
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
+  }
+
+  fn branch(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "🌐 ",
+      IconStyle::Text => "[INFO] ",
+      IconStyle::None => "",
+    })
+  }
+
+  fn diff(&self, override_icon: Option<&'static str>) -> &'static str {
+    override_icon.unwrap_or_else(|| match self {
+      IconStyle::Nerdfont => "  ",
+      IconStyle::Emoji => "📑 ",
       IconStyle::Text => "[INFO] ",
       IconStyle::None => "",
     })
@@ -783,7 +809,7 @@ impl DotDots {
       "1" => self.handle_rebuild(None, true, false)?,
       "2" => self.handle_update(true, None)?,
       "3" => self.handle_status(false, false, false)?,
-      "4" => self.handle_fmt(false, false)?,
+      "4" => self.handle_fmt(false)?,
       "5" => self.handle_check(false, false)?,
       "6" => self.handle_sync(&[], true, false, true)?,
       "q" => return Ok(()),
@@ -807,187 +833,6 @@ impl DotDots {
   /// Get current system from environment
   fn get_current_system() -> String {
     env::var("HOSTTYPE").unwrap_or_else(|_| "x86_64-linux".to_string())
-  }
-
-  /// Execute command with optional progress indicator
-  fn execute_with_progress(
-    &self,
-    cmd: &str,
-    name: &str,
-    dir: Option<&Path>,
-    show_progress: bool,
-  ) -> Result<()> {
-    if self.verbose && !self.quiet {
-      self.log_debug(&format!("Executing: {}", cmd), None);
-    }
-
-    let mut process = Command::new("sh");
-    process.arg("-c").arg(cmd);
-
-    if let Some(dir) = dir {
-      process.current_dir(dir);
-    }
-
-    // Add spinner for long-running commands
-    let spinner = if show_progress && !self.quiet && self.config.options.progress {
-      let sp = ProgressBar::new_spinner();
-      sp.set_style(
-        ProgressStyle::default_spinner()
-          .template("{spinner:.cyan} {msg}")
-          .unwrap(),
-      );
-      sp.set_message(format!("Running {}...", name));
-      sp.enable_steady_tick(std::time::Duration::from_millis(100));
-      Some(sp)
-    } else {
-      None
-    };
-
-    let status = process
-      .stdin(Stdio::inherit())
-      .stdout(Stdio::inherit())
-      .stderr(Stdio::inherit())
-      .status()
-      .with_context(|| format!("Failed to execute {}", name))?;
-
-    if let Some(sp) = spinner {
-      sp.finish_and_clear();
-    }
-
-    if status.success() {
-      Ok(())
-    } else {
-      anyhow::bail!(
-        "Command failed with exit code: {}",
-        status.code().unwrap_or(1)
-      );
-    }
-  }
-
-  /// Run multiple commands in parallel (useful for checks, formatting, etc.)
-  fn execute_parallel(
-    &self,
-    commands: Vec<(&str, &str)>, // (command, description)
-  ) -> Result<Vec<Result<(), String>>> {
-    use std::thread;
-
-    let handles: Vec<_> = commands
-      .into_iter()
-      .map(|(cmd, desc)| {
-        let cmd = cmd.to_string();
-        let desc = desc.to_string();
-
-        thread::spawn(move || {
-          let output = Command::new("sh").arg("-c").arg(&cmd).output();
-
-          match output {
-            Ok(out) if out.status.success() => Ok(()),
-            Ok(out) => Err(format!(
-              "{}: {}",
-              desc,
-              String::from_utf8_lossy(&out.stderr)
-            )),
-            Err(e) => Err(format!("{}: {}", desc, e)),
-          }
-        })
-      })
-      .collect();
-
-    let results = handles
-      .into_iter()
-      .map(|h| {
-        h.join()
-          .unwrap_or_else(|_| Err("Thread panicked".to_string()))
-      })
-      .collect();
-
-    Ok(results)
-  }
-
-  /// Unified command execution flow
-  fn handle_command_flow(
-    &self,
-    cmd: &str,
-    execute: bool,
-    action_desc: &str,
-    pre_hooks: &[String],
-    post_hooks: &[String],
-  ) -> Result<()> {
-    // Show command without executing
-    if !execute {
-      println!("{}", cmd.bright_white());
-      if self.config.options.auto_copy {
-        self.copy_to_clipboard(cmd)?;
-      }
-      println!("\n{}", "💡 Add --execute to run immediately".yellow());
-      return Ok(());
-    }
-
-    // Execute with hooks
-    self.run_hooks(pre_hooks)?;
-    self.log_info(action_desc, None);
-    self.execute_command(cmd, action_desc, None)?;
-    self.run_hooks(post_hooks)?;
-    self.log_success(&format!("{} completed!", action_desc), None);
-
-    Ok(())
-  }
-
-  /// Run a list of hooks
-  fn run_hooks(&self, hooks: &[String]) -> Result<()> {
-    for hook in hooks {
-      if self.verbose {
-        self.log_debug(&format!("Running hook: {}", hook), None);
-      }
-      self.execute_command(hook, "hook", None)?;
-    }
-    Ok(())
-  }
-
-  /// Resolve command aliases from config
-  fn resolve_alias(&self, input: &str) -> String {
-    self
-      .config
-      .aliases
-      .get(input)
-      .cloned()
-      .unwrap_or_else(|| input.to_string())
-  }
-
-  fn handle_healthcheck(&self) -> Result<()> {
-    self.log_info("Running system health checks...", None);
-
-    let checks = vec![
-      ("Flake valid", "nix flake check --no-build"),
-      ("Git clean", "git status --porcelain"),
-      ("Disk space", "df -h / | tail -1"),
-      (
-        "Nix store",
-        "nix store optimise --dry-run 2>&1 | grep 'freed'",
-      ),
-    ];
-
-    println!();
-    for (name, cmd) in checks {
-      print!("  {} ... ", name.cyan());
-      io::stdout().flush()?;
-
-      let output = Command::new("sh").arg("-c").arg(cmd).output()?;
-
-      if output.status.success() {
-        println!("{}", "✓".green());
-      } else {
-        println!("{}", "✗".red());
-        if self.verbose {
-          println!(
-            "    {}",
-            String::from_utf8_lossy(&output.stderr).trim().dimmed()
-          );
-        }
-      }
-    }
-
-    Ok(())
   }
 
   /// Handle help command
@@ -1231,6 +1076,214 @@ impl DotDots {
     Ok(())
   }
 
+  /// Execute command with optional progress indicator
+  fn execute_with_progress(
+    &self,
+    cmd: &str,
+    name: &str,
+    dir: Option<&Path>,
+    show_progress: bool,
+  ) -> Result<()> {
+    if self.verbose && !self.quiet {
+      self.log_debug(&format!("Executing: {}", cmd), None);
+    }
+
+    let mut process = Command::new("sh");
+    process.arg("-c").arg(cmd);
+
+    if let Some(dir) = dir {
+      process.current_dir(dir);
+    }
+
+    // Add spinner for long-running commands
+    let spinner = if show_progress && !self.quiet && self.config.options.progress {
+      let sp = ProgressBar::new_spinner();
+      sp.set_style(
+        ProgressStyle::default_spinner()
+          .template("{spinner:.cyan} {msg}")
+          .unwrap(),
+      );
+      sp.set_message(format!("Running {}...", name));
+      sp.enable_steady_tick(std::time::Duration::from_millis(100));
+      Some(sp)
+    } else {
+      None
+    };
+
+    let status = process
+      .stdin(Stdio::inherit())
+      .stdout(Stdio::inherit())
+      .stderr(Stdio::inherit())
+      .status()
+      .with_context(|| format!("Failed to execute {}", name))?;
+
+    if let Some(sp) = spinner {
+      sp.finish_and_clear();
+    }
+
+    if status.success() {
+      Ok(())
+    } else {
+      anyhow::bail!(
+        "Command failed with exit code: {}",
+        status.code().unwrap_or(1)
+      );
+    }
+  }
+
+  /// Run multiple commands in parallel (useful for checks, formatting, etc.)
+  fn execute_parallel(
+    &self,
+    commands: Vec<(&str, &str)>, // (command, description)
+  ) -> Result<Vec<Result<(), String>>> {
+    use std::thread;
+
+    let handles: Vec<_> = commands
+      .into_iter()
+      .map(|(cmd, desc)| {
+        let cmd = cmd.to_string();
+        let desc = desc.to_string();
+
+        thread::spawn(move || {
+          let output = Command::new("sh").arg("-c").arg(&cmd).output();
+
+          match output {
+            Ok(out) if out.status.success() => Ok(()),
+            Ok(out) => Err(format!(
+              "{}: {}",
+              desc,
+              String::from_utf8_lossy(&out.stderr)
+            )),
+            Err(e) => Err(format!("{}: {}", desc, e)),
+          }
+        })
+      })
+      .collect();
+
+    let results = handles
+      .into_iter()
+      .map(|h| {
+        h.join()
+          .unwrap_or_else(|_| Err("Thread panicked".to_string()))
+      })
+      .collect();
+
+    Ok(results)
+  }
+
+  /// Run a list of hooks
+  fn run_hooks(&self, hooks: &[String]) -> Result<()> {
+    for hook in hooks {
+      if self.verbose {
+        self.log_debug(&format!("Running hook: {}", hook), None);
+      }
+      self.execute_command(hook, "hook", None)?;
+    }
+    Ok(())
+  }
+
+  /// Resolve command aliases from config
+  fn resolve_alias(&self, input: &str) -> String {
+    self
+      .config
+      .aliases
+      .get(input)
+      .cloned()
+      .unwrap_or_else(|| input.to_string())
+  }
+
+  /// Unified command execution flow
+  fn handle_command_flow(
+    &self,
+    cmd: &str,
+    execute: bool,
+    action_desc: &str,
+    pre_hooks: &[String],
+    post_hooks: &[String],
+  ) -> Result<()> {
+    // Show command without executing
+    if !execute {
+      println!("{}", cmd.bright_white());
+      if self.config.options.auto_copy {
+        self.copy_to_clipboard(cmd)?;
+      }
+      self.log_info("Add --execute to run immediately", None);
+      // println!("{}", "Add --execute to run immediately".yellow());
+      return Ok(());
+    }
+
+    // 1. Execute pre-hooks
+    self.run_hooks(pre_hooks)?;
+
+    // 2. Log action
+    self.log_info(action_desc, None);
+
+    // 3. Resolve any aliases in command
+    let resolved_cmd = self.resolve_alias(cmd);
+
+    // 4. Execute with appropriate method based on command
+    if action_desc.contains("nix-collect-garbage")
+      || action_desc.contains("rollback")
+      || action_desc.contains("rebuild")
+    {
+      // Destructive operations
+      self.execute_safe(&resolved_cmd, action_desc, true)?;
+    } else if self.config.options.progress
+      && (action_desc.contains("fmt")
+        || action_desc.contains("check")
+        || action_desc.contains("rebuild"))
+    {
+      // Long-running with progress
+      self.execute_with_progress(&resolved_cmd, action_desc, Some(&self.root), true)?;
+    } else {
+      // Standard execution
+      self.execute_command(&resolved_cmd, action_desc, None)?;
+    }
+
+    // 5. Execute post-hooks
+    self.run_hooks(post_hooks)?;
+
+    // 6. Log success
+    self.log_success(&format!("{} completed!", action_desc), None);
+    Ok(())
+  }
+
+  fn handle_healthcheck(&self) -> Result<()> {
+    self.log_info("Running system health checks...", None);
+
+    let checks = vec![
+      ("Flake valid", "nix flake check --no-build"),
+      ("Git clean", "git status --porcelain"),
+      ("Disk space", "df -h / | tail -1"),
+      (
+        "Nix store",
+        "nix store optimise --dry-run 2>&1 | grep 'freed'",
+      ),
+    ];
+
+    println!();
+    for (name, cmd) in checks {
+      print!("  {} ... ", name.cyan());
+      io::stdout().flush()?;
+
+      let output = Command::new("sh").arg("-c").arg(cmd).output()?;
+
+      if output.status.success() {
+        println!("{}", "✓".green());
+      } else {
+        println!("{}", "✗".red());
+        if self.verbose {
+          println!(
+            "    {}",
+            String::from_utf8_lossy(&output.stderr).trim().dimmed()
+          );
+        }
+      }
+    }
+
+    Ok(())
+  }
+
   /// Handle rebuild command
   fn handle_rebuild(&self, host: Option<&str>, execute: bool, command_only: bool) -> Result<()> {
     let host_name = host
@@ -1249,7 +1302,9 @@ impl DotDots {
       "Rebuilding system",
       &self.config.hooks.pre_rebuild,
       &self.config.hooks.post_rebuild,
-    )
+    )?;
+
+    Ok(())
   }
 
   /// Handle test command
@@ -1265,7 +1320,9 @@ impl DotDots {
       "Testing configuration",
       &[], // no pre hooks
       &[], // no post hooks
-    )
+    )?;
+
+    Ok(())
   }
 
   /// Handle boot command
@@ -1275,59 +1332,51 @@ impl DotDots {
       .unwrap_or_else(Self::get_current_host);
     let cmd = format!("sudo nixos-rebuild boot --flake .#{}", host_name);
 
-    self.handle_command_flow(&cmd, execute, "Building boot configuration", &[], &[])
+    self.handle_command_flow(&cmd, execute, "Building boot configuration", &[], &[])?;
+
+    Ok(())
   }
 
   /// Handle dry command
-  fn handle_dry(&self, host: Option<&str>, verbose: bool) -> Result<()> {
+  fn handle_dry(&self, host: Option<&str>, execute: bool) -> Result<()> {
     let host_name = match host {
       Some(h) => h.to_string(),
       None => Self::get_current_host(),
     };
     let cmd = format!("sudo nixos-rebuild dry-build --flake .#{}", host_name);
 
-    println!("{}", cmd.bright_white());
+    self.handle_command_flow(&cmd, execute, "Building boot configuration", &[], &[])?;
+    // println!("{}", cmd.bright_white());
 
     if self.config.options.auto_copy {
       self.copy_to_clipboard(&cmd)?;
     }
 
-    if verbose || self.verbose {
-      self.log_info("Running dry build...", None);
-      self.execute_command(&cmd, "nixos-rebuild", None)?;
-    }
+    // if verbose || self.verbose {
+    //   self.log_info("Running dry build...", None);
+    //   self.execute_command(&cmd, "nixos-rebuild", None)?;
+    // }
 
     Ok(())
   }
 
   /// Handle update command
   fn handle_update(&self, execute: bool, input: Option<&str>) -> Result<()> {
-    let cmd = if let Some(input_name) = input {
-      format!("nix flake update {}", input_name)
+    let resolved_input = self.resolve_alias(input.unwrap_or(""));
+    let cmd = if !resolved_input.is_empty() {
+      format!("nix flake update {}", resolved_input)
     } else {
       "nix flake update".to_string()
     };
-
     self.handle_command_flow(
       &cmd,
       execute,
       "Updating flake",
       &self.config.hooks.pre_update,
       &self.config.hooks.post_update,
-    )
-  }
+    )?;
 
-  /// Handle clean command
-  fn handle_clean(&self, execute: bool, delete_old: bool, dry_run: bool) -> Result<()> {
-    let mut cmd = "sudo nix-collect-garbage".to_string();
-    if delete_old {
-      cmd.push_str(" --delete-old");
-    }
-    if dry_run {
-      cmd.push_str(" --dry-run");
-    }
-
-    self.handle_command_flow(&cmd, execute, "Cleaning garbage", &[], &[])
+    Ok(())
   }
 
   /// Handle binit command
@@ -1405,7 +1454,7 @@ impl DotDots {
         &format!("Sync operation would commit with message: \"{}\"", msg),
         Some(self.icons.sync(None)),
       );
-      println!("\n{}", "To execute, add --execute flag".yellow());
+      self.log_info("To execute, add --execute flag", None);
       return Ok(());
     }
 
@@ -1438,7 +1487,7 @@ impl DotDots {
   }
 
   /// Handle fmt command
-  fn handle_fmt(&self, check: bool, verbose: bool) -> Result<()> {
+  fn handle_fmt(&self, check: bool) -> Result<()> {
     self.log_info("Running formatters...", None);
 
     let treefmt_cmd = if check {
@@ -1447,15 +1496,7 @@ impl DotDots {
       "treefmt"
     };
 
-    if verbose || self.verbose {
-      self.log_debug(&format!("Command: {}", treefmt_cmd), None);
-    }
-
-    if !check {
-      self.log_info("Formatting files...", None);
-    }
-
-    self.execute_command(treefmt_cmd, "treefmt", None)?;
+    self.handle_command_flow(treefmt_cmd, true, "Formatting files", &[], &[])?;
 
     if check {
       self.log_success("All files are properly formatted!", None);
@@ -1502,6 +1543,22 @@ impl DotDots {
     Ok(())
   }
 
+  /// Handle clean command
+  fn handle_clean(&self, execute: bool, delete_old: bool, dry_run: bool) -> Result<()> {
+    let mut cmd = "sudo nix-collect-garbage".to_string();
+
+    if delete_old {
+      cmd.push_str(" --delete-old");
+    }
+
+    if dry_run {
+      cmd.push_str(" --dry-run");
+    }
+
+    self.handle_command_flow(&cmd, execute, "Cleaning garbage", &[], &[])?;
+    Ok(())
+  }
+
   /// Handle status command
   fn handle_status(&self, prompt: bool, hide_files: bool, hide_log: bool) -> Result<()> {
     if !self.is_git_repo(&self.root)? {
@@ -1526,7 +1583,7 @@ impl DotDots {
     }
 
     if !hide_log {
-      println!("{}", format!(" {}", branch).magenta().bold());
+      self.log_info(&branch, Some(self.icons.branch(None)));
       self.execute_command("git log --oneline -3", "git", Some(&self.root))?;
     }
 
@@ -1534,9 +1591,9 @@ impl DotDots {
       if hide_files {
         println!("{}", format!(" {}", changes.to_string()).magenta().bold());
       } else {
-        println!("\n{}", " ".magenta().bold());
+        self.log_info("", Some(self.icons.diff(None)));
         self.execute_command("git diff --stat", "git", Some(&self.root))?;
-        println!("\n{}", "󰙅 ".magenta().bold());
+        self.log_info("", Some(self.icons.tree(None)));
         self.execute_command("git status --short", "git", Some(&self.root))?;
       }
     } else {
@@ -1568,6 +1625,48 @@ impl DotDots {
 
     self.log_info("Starting Nix REPL...", None);
     self.execute_command(&cmd, "nix repl", None)?;
+
+    Ok(())
+  }
+
+  /// Rollback to previous generation
+  fn handle_rollback(&self, execute: bool) -> Result<()> {
+    // Get current generation
+    let current_gen = Command::new("sh")
+        .arg("-c")
+        .arg("sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -2 | head -1 | awk '{print $1}'")
+        .output()?;
+
+    let current = String::from_utf8_lossy(&current_gen.stdout)
+      .trim()
+      .parse::<i32>()
+      .unwrap_or(0);
+
+    if current <= 1 {
+      self.log_warn("Already at oldest generation", None);
+      return Ok(());
+    }
+
+    let previous = current - 1;
+
+    // Show rollback info
+    println!(
+      "{}",
+      format!("Rollback: generation {} → {}", current, previous).yellow()
+    );
+
+    let cmd = "sudo nixos-rebuild switch --rollback".to_string();
+
+    self.handle_command_flow(
+      &cmd,
+      execute,
+      "Rolling back to previous generation",
+      &[],
+      &[],
+    )?;
+
+    // Custom success message with sync icon
+    self.log_success("Rolled back successfully!", Some(self.icons.build(None)));
 
     Ok(())
   }
@@ -2023,44 +2122,6 @@ impl DotDots {
     false
   }
 
-  /// Rollback to previous generation
-  fn handle_rollback(&self, execute: bool) -> Result<()> {
-    // Get current generation
-    let current_gen = Command::new("sh")
-      .arg("-c")
-      .arg("sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | tail -2 | head -1 | awk '{print $1}'")
-      .output()?;
-
-    let current = String::from_utf8_lossy(&current_gen.stdout)
-      .trim()
-      .parse::<i32>()
-      .unwrap_or(0);
-
-    if current <= 1 {
-      self.log_warn("Already at oldest generation", None);
-      return Ok(());
-    }
-
-    let previous = current - 1;
-    let cmd = format!("sudo nixos-rebuild switch --rollback");
-
-    println!(
-      "{}",
-      format!("Rollback: generation {} → {}", current, previous).yellow()
-    );
-    println!("{}", cmd.bright_white());
-
-    if execute {
-      self.log_info("Rolling back...", None);
-      self.execute_command(&cmd, "nixos-rebuild", None)?;
-      self.log_success("Rolled back successfully!", Some(self.icons.sync(None)));
-    } else {
-      println!("\n{}", "Add --execute to rollback".yellow());
-    }
-
-    Ok(())
-  }
-
   /// Helper: Calculate directory size
   fn dir_size(path: &Path) -> Result<u64> {
     let mut total = 0;
@@ -2188,7 +2249,7 @@ impl DotDots {
     let _ = self.log_to_file("INFO", msg);
     if !self.quiet {
       let icon = self.icons.info(custom_icon);
-      println!("{}", format!("{}{}", icon, msg).blue());
+      println!("{}", format!("{}{}", icon, msg).magenta());
     }
   }
 
@@ -2249,7 +2310,7 @@ fn main() -> Result<()> {
       yes,
       push,
     }) => dots.handle_sync(&message, execute, yes, push),
-    Some(Commands::Fmt { check, verbose }) => dots.handle_fmt(check, verbose),
+    Some(Commands::Fmt { check }) => dots.handle_fmt(check),
     Some(Commands::Check { fix, strict }) => dots.handle_check(fix, strict),
     Some(Commands::Status {
       prompt,
