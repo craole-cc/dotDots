@@ -366,7 +366,7 @@ enum CacheAction {
   /// Clear cache
   Clear {
     /// Force clear without confirmation
-    #[arg(short = 'f', long)]
+    #[arg(short, long)]
     force: bool,
   },
 

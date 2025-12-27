@@ -6,6 +6,7 @@ version = "0.8"
 user = "craole-cc"
 email = "134658831+craole-cc@users.noreply.github.com"
 repo = "dotDots"
+auto_push = true
 
 # Git submodules configuration
 [git.submodules.victus]
