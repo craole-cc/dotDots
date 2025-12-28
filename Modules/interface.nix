@@ -15,7 +15,8 @@
   de = host.interface.desktopEnvironment or null;
   dp = host.interface.displayProtocol or null;
   dm = host.interface.displayManager or null;
-  useDms = wm == "niri" || wm == "hyprland";
+  # useDms = wm == "niri" || wm == "hyprland";
+  useDms = false;
 in {
   programs = {
     bash = {
@@ -56,10 +57,11 @@ in {
         enable = de == "gnome";
       };
 
-      plasma = {
+      plasma6 = {
         enable = de == "plasma";
       };
     };
+
     displayManager = {
       autoLogin = {
         enable = user.autoLogin or false;

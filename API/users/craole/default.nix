@@ -22,8 +22,8 @@
   ];
 
   shells = [
-    "nushell"
     "bash"
+    "nushell"
     "powershell"
   ];
 

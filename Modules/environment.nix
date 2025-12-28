@@ -7,8 +7,9 @@
   ...
 }: let
   inherit (host.paths) dots;
-  inherit (lix.applications.resolution) editors browsers terminals launchers bars;
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf;
+  inherit (lix.applications.resolution) editors browsers terminals launchers bars;
   inherit (lix.lists.predicates) isIn;
 
   user = host.users.data.primary;
@@ -102,15 +103,55 @@ in {
       nxu = "push-dots; switch-dots; topgrade";
     };
 
-    sessionVariables = {
-      DOTS = dots;
-      EDITOR = editorCmds.editor;
-      VISUAL = editorCmds.visual;
-      BROWSER = browserCmds.primary;
-      TERMINAL = terminalCmds.primary;
-      LAUNCHER = launcherCmds.primary;
-      BAR = barCmds.primary;
-    };
+    sessionVariables =
+      {
+        DOTS = dots;
+        EDITOR = editorCmds.editor;
+        VISUAL = editorCmds.visual;
+        BROWSER = browserCmds.primary;
+        TERMINAL = terminalCmds.primary;
+        LAUNCHER = launcherCmds.primary;
+        BAR = barCmds.primary;
+      }
+      // (
+        optionalAttrs (host.interface.displayProtocol or "wayland" == "wayland") {
+          #? For Clutter/GTK apps
+          CLUTTER_BACKEND = "wayland";
+
+          #? For GTK apps
+          GDK_BACKEND = "wayland";
+
+          #? Required for Java UI apps on Wayland
+          _JAVA_AWT_WM_NONREPARENTING = "1";
+
+          #? Enable Firefox native Wayland backend
+          MOZ_ENABLE_WAYLAND = "1";
+
+          #? Force Chromium/Electron apps to use Wayland
+          NIXOS_OZONE_WL = "1";
+
+          #? Qt apps use Wayland
+          QT_QPA_PLATFORM = "wayland";
+
+          #? Disable client-side decorations for Qt apps
+          QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+
+          #? Auto scale for HiDPI displays
+          QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+
+          #? SDL2 apps Wayland backend
+          SDL_VIDEODRIVER = "wayland";
+
+          #? Allow software rendering fallback on Nvidia/VM
+          WLR_RENDERER_ALLOW_SOFTWARE = "1";
+
+          #? Disable hardware cursors on Nvidia/VM
+          WLR_NO_HARDWARE_CURSORS = "1";
+
+          #? Indicate Wayland session to apps
+          XDG_SESSION_TYPE = "wayland";
+        }
+      );
   };
 
   programs = {

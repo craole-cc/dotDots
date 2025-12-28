@@ -27,6 +27,7 @@
         };
         packages = with inputs; {
           dankMaterialShell = shellDankMaterial.packages;
+          fresh-editor = editorFresh.packages;
           nixpkgs-stable = nixPackagesStable.legacyPackages;
           nixpkgs-unstable = nixPackagesUnstable.legacyPackages;
           noctalia-shell = shellNoctalia.packages;

@@ -221,23 +221,27 @@
       jq #? JSON query processor
       lsd #? LSDeluxe file lister
       mise #? Polyglot version manager
+      mtr
       nil #? Nix language server
       nix-output-monitor #? Build output monitor
       nix-tree #? Nix dependency visualizer
       nixd #? Nix language daemon
       nushell #? Modern shell language
       onefetch #? Git repository summary
+      nitch #? System fetch written in nim
       pandoc #? Universal document converter
       poppler-utils #? PDF utilities (pdfunite, pdfseparate)
       qpdf #? PDF transformation
       ripgrep #? Fast grep alternative
       rust-script #? Rust scripting
       starship
+      tldr
       tokei #? Code statistics tool
       typst #? Modern LaTeX alternative
       undollar #? Remove leading dollar signs
       watchexec #? File watcher and executor
       yazi #? Terminal file manager
+      zoxide
     ]
     ++ (attrValues applications)
     ++ fmtPackages #? From fmt.nix: treefmt, alejandra, etc.
@@ -279,6 +283,7 @@
     #> Use starship for prompt
     export STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
     eval "$(starship init bash)"
+    nitch
 
     #> Display welcome message
     printf '╔═══════════════════════════════════════════════════════╗\n'
