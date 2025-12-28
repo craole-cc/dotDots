@@ -1,5 +1,8 @@
 {
-  imports = [./programs ./services];
+  imports = [
+    ./programs
+    # ./services
+  ];
 
   description = "Craig 'Craole' Cole";
 

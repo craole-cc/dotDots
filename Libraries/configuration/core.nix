@@ -1,7 +1,4 @@
 {lib, ...}: let
-  # inherit (lib.attrsets) genAttrs mapAttrs;
-  # inherit (lib.lists) elem;
-  # inherit (lib.modules) mkDefault mkIf;
   mkCore = {
     hosts,
     specialArgs,

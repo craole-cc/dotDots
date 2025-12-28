@@ -18,11 +18,11 @@
           };
           home = {
             noctalia-shell = shellNoctalia.homeModules.default;
-            dankMaterialShell = shellDankMaterial.homeModules.dankMaterialShell.default;
+            dank-material-shell = shellDankMaterial.homeModules.dank-material-shell;
             nvf = editorNeovim.homeManagerModules.default;
-            plasma-manager = shellPlasma.homeModules.plasma-manager;
+            plasma = shellPlasma.homeModules.plasma-manager;
             zen-browser = browserZen.homeModules.twilight;
-            zen-homeModules = firefoxZen.homeModules;
+            zen-homeModules = browserZen.homeModules;
           };
         };
         packages = with inputs; {

@@ -4,53 +4,99 @@
   lib,
   lix,
   pkgs,
+  src,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs mapAttrs optionalAttrs;
-  inherit (lib.lists) elem head optionals;
+  inherit (lib.attrsets) attrValues filterAttrs mapAttrs optionalAttrs attrByPath;
+  inherit (lib.lists) any concatMap elem head optionals;
   inherit (lib.modules) mkDefault;
   inherit (lix.configuration.core) mkSudoRules;
   inherit (lix.attrsets.resolution) package;
+  inherit (lix.applications.firefox) zenVariant;
+  inherit (lix.lists.predicates) isIn;
 
   users = host.users.data.enabled or {};
   names = host.users.names.enabled or [];
   admins = host.users.names.elevated or [];
+  zen = cfg: zenVariant (attrByPath ["applications" "browser" "firefox"] null cfg);
+
+  # Check if any user needs nvf
+  allEditors = concatMap (u:
+    [
+      (u.applications.editor.tty.primary or "")
+      (u.applications.editor.tty.secondary or "")
+    ]
+    ++ (u.applications.allowed or [])) (attrValues users);
+  needNvf = isIn ["neovim" "nvim" "nvf" "vim"] allEditors;
+  needPlasma = any (u: u.interface.desktopEnvironment or null == "plasma") (attrValues users);
+  needNoctalia = any (u: u.interface.bar or null == "noctalia") (attrValues users);
+  needDms = any (u: u.interface.bar or null == "dms") (attrValues users);
+
+  mods = inputs.modules or {};
 
   #> Collect all enabled regular users (non-service, non-guest)
   normalUsers = filterAttrs (_: u: !(elem u.role ["service" "guest"])) users;
+in {
+  imports = with inputs.modules.core; [home-manager];
 
-  perUser =
-    mapAttrs (name: cfg: let
+  users.users =
+    mapAttrs (name: cfg: {config, ...}: {
       isNormalUser = cfg.role != "service";
-    in {
-      coreUser = {
-        inherit isNormalUser;
-        isSystemUser = !isNormalUser;
-        description = cfg.description or name;
+      isSystemUser = cfg.role == "service";
+      description = cfg.description or name;
 
-        #> Use first shell as default
-        shell = package {
-          inherit pkgs;
-          target = head (cfg.shells or ["bash"]);
-        };
-
-        password = cfg.password or null;
-        group = name;
-        extraGroups =
-          []
-          ++ optionals
-          (!elem (cfg.role or null) ["service"])
-          ["users"]
-          ++ optionals
-          (elem (cfg.role or null) ["admin" "administrator"])
-          ["wheel"]
-          ++ optionals
-          (isNormalUser && (host.devices.network or []) != [])
-          ["networkmanager"];
+      shell = package {
+        inherit pkgs;
+        target = head (cfg.shells or ["bash"]);
       };
 
-      homeUser = {
+      password = cfg.password or null;
+      group = name;
+      extraGroups =
+        []
+        ++ optionals (!elem (cfg.role or null) ["service"]) ["users"]
+        ++ optionals (elem (cfg.role or null) ["admin" "administrator"]) ["wheel"]
+        ++ optionals (host.devices.network != []) ["networkmanager"]
+        ++ [];
+    })
+    users;
+
+  home-manager = {
+    backupFileExtension = "BaC";
+    overwriteBackup = true;
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    extraSpecialArgs = {inherit (pkgs.stdenv.hostPlatform) system;};
+    # ++ optionals (cfg.interface.desktopEnvironment or null == "plasma") [plasma-manager]
+    # ++ optionals needNvf [inputs.modules.home.nvf]
+    # ++ optionals ((zen cfg) != null) zen-homeModules.${(zen cfg)}
+    # ++ optionals needNoctalia [inputs.modules.home.noctalia-shell]
+    # ++ optionals (cfg.interface.bar or null == "dms") [dankMaterialShell]
+    #   isIn ["neovim" "nvim" "nvf" "vim"] (
+    #     (cfg.applications.allowed or [])
+    #     ++ (with cfg.applications.editor; [
+    #       (tty.primary or null)
+    #       (tty.secondary or null)
+    #     ])
+    #   )
+    # )
+    # [inputs.modules.home.nvf]
+    # ++ [(src + "/Packages/home")];
+    # cfg.imports or [];
+    #> Merge all per-user home-manager configs
+    users =
+      mapAttrs (name: cfg: {
         _module.args.user = cfg // {inherit name;};
+        imports =
+          (with inputs.modules.home; [
+            nvf
+            noctalia-shell
+            dank-material-shell
+            plasma
+            zen-browser
+          ])
+          ++ cfg.imports or []
+          ++ [../Packages/home];
         home = {
           inherit (host) stateVersion;
           packages = with pkgs; (map (shell:
@@ -60,6 +106,7 @@
             })
           cfg.shells);
         };
+
         programs = {
           home-manager.enable = true;
           bash.enable = mkDefault (elem "bash" (cfg.shells or []));
@@ -67,35 +114,23 @@
           fish.enable = mkDefault (elem "fish" (cfg.shells or []));
           nushell.enable = mkDefault (elem "nushell" (cfg.shells or []));
         };
-        wayland.windowManager.hyprland.enable = cfg.interface.windowManager or null == "hyprland";
-      };
-    })
-    users;
-in {
-  imports = [inputs.modules.core.home-manager];
+
+        wayland.windowManager = {
+          hyprland.enable = cfg.interface.windowManager or null == "hyprland";
+          sway.enable = cfg.interface.windowManager or null == "sway";
+          river.enable = cfg.interface.windowManager or null == "river";
+          labwc.enable = cfg.interface.windowManager or null == "labwc";
+          wayfire.enable = cfg.interface.windowManager or null == "wayfire";
+        };
+      })
+      (filterAttrs (_: u: (!elem u.role ["service" "guest"])) users);
+  };
+
   security.sudo = {
     #> Restrict sudo to members of the wheel group (root is always allowed).
     execWheelOnly = true;
 
     #> For each admin user, grant passwordless sudo for all commands.
     extraRules = mkSudoRules admins;
-  };
-
-  users.users = mapAttrs (_name: cfg: cfg.coreUser) perUser;
-
-  home-manager = {
-    backupFileExtension = "BaC";
-    overwriteBackup = true;
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    # extraSpecialArgs =
-    #   specialArgs
-    #   // {
-    #     inherit users;
-    #     inherit (pkgs.stdenv.hostPlatform) system;
-    #   };
-
-    #> Merge all per-user home-manager configs
-    users = mapAttrs (_name: cfg: cfg.homeUser) perUser;
   };
 }
