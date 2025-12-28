@@ -31,6 +31,7 @@
     displayProtocol = "wayland";
     desktopEnvironment = "plasma";
     windowManager = "niri";
+    shell = "bash";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;

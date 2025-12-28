@@ -19,6 +19,9 @@
         ["nixosCore"]
         ["nixPackages"]
         ["nixosPackages"]
+        ["nixosPackagesStable"]
+        ["nixosPackagesUnstable"]
+        ["nixpkgs-stable"]
         ["nixpkgs-unstable"]
       ];
       default = "nixpkgs";

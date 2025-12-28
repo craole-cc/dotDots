@@ -27,8 +27,16 @@ in {
       allowedUDPPortRanges = firewall.udp.ranges or [];
     };
   };
+
   environment.systemPackages = optionals hasNetwork (with pkgs; [
     speedtest-cli
     speedtest-go
   ]);
+
+  programs = {
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
+  };
 }

@@ -3,7 +3,7 @@
 
   outputs = inputs @ {self, ...}: let
     src = ./.;
-    inherit (inputs.nixosCore) lib legacyPackages;
+    inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import src {inherit lib src self;}) lix flake hosts schema;
     inherit (lix) getSystems mkCore;
     inherit (getSystems {inherit hosts legacyPackages;}) perFlake;
@@ -13,7 +13,7 @@
       inputs = {
         modules = with inputs; {
           core = {
-            home-manager = nixosHome.nixosModules.default;
+            home-manager = nixHomeManager.nixosModules.default;
             nvf = editorNeovim.nixosModules.default;
           };
           home = {
@@ -27,7 +27,8 @@
         };
         packages = with inputs; {
           dankMaterialShell = shellDankMaterial.packages;
-          nixpkgs = nixosCore;
+          nixpkgs-stable = nixPackagesStable.legacyPackages;
+          nixpkgs-unstable = nixPackagesUnstable.legacyPackages;
           noctalia-shell = shellNoctalia.packages;
           nvf = editorNeovim.packages;
           plasma-manager = shellPlasma.packages;
@@ -64,12 +65,15 @@
     perSystem // forSystem;
 
   inputs = {
-    nixosCore.url = "nixpkgs/nixos-unstable";
-    nixosHome = {
+    nixPackages.url = "nixpkgs/nixos-unstable";
+    nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
+    nixPackagesStable.url = "nixpkgs/nixos-25.11";
+
+    nixHomeManager = {
       repo = "home-manager";
       owner = "nix-community";
       type = "github";
-      inputs.nixpkgs.follows = "nixosCore";
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     browserZen = {
@@ -77,8 +81,8 @@
       owner = "0xc000022070";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
-        home-manager.follows = "nixosHome";
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixHomeManager";
       };
     };
 
@@ -87,7 +91,7 @@
       owner = "helix-editor";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
+        nixpkgs.follows = "nixPackages";
       };
     };
 
@@ -96,7 +100,7 @@
       owner = "notashelf";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
+        nixpkgs.follows = "nixPackages";
       };
     };
 
@@ -105,7 +109,7 @@
       owner = "auguwu";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
+        nixpkgs.follows = "nixPackages";
       };
     };
 
@@ -114,7 +118,7 @@
       owner = "AvengeMedia";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
+        nixpkgs.follows = "nixPackages";
       };
     };
 
@@ -123,7 +127,7 @@
       owner = "noctalia-dev";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
+        nixpkgs.follows = "nixPackages";
       };
     };
 
@@ -132,8 +136,8 @@
       owner = "pjones";
       type = "github";
       inputs = {
-        nixpkgs.follows = "nixosCore";
-        home-manager.follows = "nixosHome";
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixHomeManager";
       };
     };
 
@@ -141,7 +145,7 @@
       repo = "treefmt-nix";
       owner = "numtide";
       type = "github";
-      inputs.nixpkgs.follows = "nixosCore";
+      inputs.nixpkgs.follows = "nixPackages";
     };
   };
 }

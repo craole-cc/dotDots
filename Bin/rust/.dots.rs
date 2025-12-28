@@ -1151,7 +1151,7 @@ impl DotDots {
   }
 
   /// Execute and return output (for display)
-  fn execute_with_output(&self, cmd: &str, name: &str, dir: Option<&Path>) -> Result<String> {
+  fn _execute_with_output(&self, cmd: &str, name: &str, dir: Option<&Path>) -> Result<String> {
     if self.verbose && !self.quiet {
       self.log_debug(&format!("Executing: {}", cmd), None);
     }
@@ -1511,7 +1511,7 @@ impl DotDots {
       }
     }
 
-    self.log_info("Syncronization initialized\n", Some(self.icons.sync(None)));
+    self.log_info("Syncronization initialized", Some(self.icons.sync(None)));
 
     //> Stage all changes
     self.execute("git add --all", "git", Some(&self.root))?;

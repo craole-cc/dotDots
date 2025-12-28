@@ -3,14 +3,11 @@ let
   os = "linux";
 in {
   imports = [./hardware-configuration.nix];
+  paths.dots = "/home/craole/.dots";
 
   stateVersion = "25.11";
-  platform = "${arch}-${os}";
+  system = "${arch}-${os}";
   id = "cfd69003";
-
-  paths = {
-    dots = "/home/craole/.dots";
-  };
 
   packages = {
     allowUnfree = true;

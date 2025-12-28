@@ -3,9 +3,10 @@ let
   os = "linux";
 in {
   imports = [./hardware-configuration.nix];
-  stateVersion = "25.05";
   paths.dots = "/home/craole/Downloads/public/dotDots";
-  platform = "${arch}-${os}";
+
+  stateVersion = "25.05";
+  system = "${arch}-${os}";
 
   modules = [
     "nvme"

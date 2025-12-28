@@ -1,5 +1,14 @@
-{host, ...}: {
-  system.stateVersion = host.stateVersion or "25.05";
+{
+  host,
+  inputs,
+  lib,
+  ...
+}: let
+  inherit (lib.attrsets) mapAttrs;
+  allowUnfree = host.packages.allowUnfree or false;
+  getSystem = final: final.stdenv.hostPlatform.system;
+in {
+  system.stateVersion = host.stateVersion or "25.11";
   nix = {
     # gc = {
     #   automatic = true;
@@ -36,7 +45,30 @@
   };
 
   nixpkgs = {
-    hostPlatform = host.platform;
-    config.allowUnfree = host.packages.allowUnfree or false;
+    hostPlatform = host.system;
+    config = {inherit allowUnfree;};
+
+    overlays = [
+      # Stable
+      (final: prev: {
+        fromStable = import inputs.nixpkgs-stable {
+          system = getSystem final;
+          config = {inherit allowUnfree;};
+        };
+      })
+
+      # Unstable
+      (final: prev: {
+        fromUnstable = import inputs.nixpkgs-unstable {
+          system = getSystem final;
+          config = {inherit allowUnfree;};
+        };
+      })
+
+      # Flake inputs
+      (final: prev: {
+        fromInputs = mapAttrs (_: pkgs: pkgs.${getSystem final} or {}) inputs.packages;
+      })
+    ];
   };
 }

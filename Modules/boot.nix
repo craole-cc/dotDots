@@ -110,10 +110,17 @@ in {
         '';
       };
 
+      grub = {
+        enable = isGrub;
+        device = "nodev";
+        efiSupport = hasEfi;
+        useOSProber = hasDualBoot;
+      };
+
       #~@ Common EFI settings
       efi = {
-        canTouchEfiVariables = true;
-        efiSysMountPoint = efiSysMountPoint;
+        canTouchEfiVariables = hasEfi;
+        inherit efiSysMountPoint;
       };
 
       timeout = bootLoaderTimeout;

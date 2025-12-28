@@ -1,6 +1,7 @@
 {
   host,
   pkgs,
+  lib,
   lix,
   inputs,
   ...
@@ -8,9 +9,10 @@
   inherit (host.paths) dots;
   inherit (lix.applications.resolution) editors browsers terminals launchers bars;
 
+  isGui = lib.elem "video" (host.functionalities or []);
   user = host.users.data.primary;
-  apps = user.applications;
-  system = pkgs.system;
+  apps = user.applications or {};
+  system = pkgs.stdenv.hostPlatform.system;
 
   # Use the packages from specialArgs.inputs
   resolvedInputs = inputs.packages or {};
@@ -108,5 +110,26 @@ in {
       LAUNCHER = launcherCmds.primary;
       BAR = barCmds.primary;
     };
+  };
+
+  programs = {
+    bash.blesh.enable = true;
+
+    hyprland = {
+      enable = isGui;
+      withUWSM = isGui;
+    };
+
+    niri = {
+      enable = isGui;
+    };
+
+    git = {
+      enable = true;
+      lfs.enable = true;
+      prompt.enable = true;
+    };
+
+    xwayland.enable = true;
   };
 }
