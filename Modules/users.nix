@@ -1,6 +1,7 @@
 {
   host,
   lib,
+  lix,
   ...
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs;

@@ -130,6 +130,15 @@ in {
       prompt.enable = true;
     };
 
+    obs-studio = {
+      enable = isGui;
+      enableVirtualCamera = isGui;
+    };
+
     xwayland.enable = true;
+  };
+
+  services = {
+    iio-niri.enable = true;
   };
 }

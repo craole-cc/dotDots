@@ -16,13 +16,13 @@ disabled = false
 
 [character]
 format = "$symbol "
-success_symbol = "[ ](bold italic bright-yellow)"
+success_symbol = "[  ](bold italic bright-yellow)"
 # success_symbol = "[◎](bold italic bright-yellow)"
 # success_symbol = "[ ](bold green)"
 # success_symbol = "[  ](bold green)"
 # success_symbol = "[ ](bold green)"
 # success_symbol = "[ ](bold blue)"
-error_symbol = "[ ](bold red)"
+error_symbol = "[  ](bold red)"
 # error_symbol = "[○](italic purple)"
 # error_symbol = "[ ](bold red)"
 # error_symbol = "[ ](bold red)"
