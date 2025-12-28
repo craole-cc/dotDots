@@ -2,12 +2,13 @@
   imports = [
     ./audio.nix
     ./boot.nix
-    ./fonts.nix
-    ./programs.nix
+    ./environment.nix
     ./filesystem.nix
+    ./fonts.nix
+    ./interface.nix
     ./localization.nix
     ./networking.nix
     ./nix.nix
-    # ./users.nix
+    ./users.nix
   ];
 }

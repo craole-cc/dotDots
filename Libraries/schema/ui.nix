@@ -1,5 +1,6 @@
 {lib, ...}: let
-  inherit (lib.attrsets) recursiveUpdate;
+  inherit (lib.attrsets) recursiveUpdate hasAttr;
+  inherit (lib.lists) elem;
 
   enriched = {
     user,
@@ -104,8 +105,8 @@
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
         displayManager = {
-          supported = ["gdm" "greetd" "lemurs" "sddm" "ly"];
-          preferred = "gdm";
+          supported = ["cosmic-greeter" "gdm" "greetd" "lemurs" "sddm" "ly"];
+          preferred = "cosmic-greeter";
         };
         uiShell = "cosmic-shell";
         notificationDaemon = "cosmic-notifications";
@@ -186,13 +187,13 @@
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
         displayManager = {
-          supported = ["sddm" "gdm" "greetd" "lemurs" "ly"];
-          preferred = "sddm";
+          supported = ["dms-greeter" "sddm" "gdm" "greetd" "lemurs" "ly"];
+          preferred = "dms-greeter";
         };
         uiShell = "niri";
         notificationDaemon = "mako";
         fileManager = "thunar";
-        terminal = "alacritty";
+        terminal = "foot";
         launcher = "fuzzel";
       };
 
@@ -343,7 +344,7 @@
       if
         desktopEnvironment
         != null
-        && builtins.hasAttr desktopEnvironment desktopEnvironments
+        && hasAttr desktopEnvironment desktopEnvironments
       then {
         name = desktopEnvironment;
         kind = "desktopEnvironment";
@@ -352,7 +353,7 @@
       else if
         windowManager
         != null
-        && builtins.hasAttr windowManager windowManagers
+        && hasAttr windowManager windowManagers
       then {
         name = windowManager;
         kind = "windowManager";
@@ -367,7 +368,7 @@
           if
             displayProtocolInput
             != null
-            && builtins.elem displayProtocolInput
+            && elem displayProtocolInput
             selectedInterface.config.supportedProtocol
           then displayProtocolInput
           else selectedInterface.config.preferredProtocol

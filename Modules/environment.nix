@@ -8,8 +8,9 @@
 }: let
   inherit (host.paths) dots;
   inherit (lix.applications.resolution) editors browsers terminals launchers bars;
+  inherit (lib.modules) mkIf;
+  inherit (lix.lists.predicates) isIn;
 
-  isGui = lib.elem "video" (host.functionalities or []);
   user = host.users.data.primary;
   apps = user.applications or {};
   system = pkgs.stdenv.hostPlatform.system;
@@ -113,17 +114,6 @@ in {
   };
 
   programs = {
-    bash.blesh.enable = true;
-
-    hyprland = {
-      enable = isGui;
-      withUWSM = isGui;
-    };
-
-    niri = {
-      enable = isGui;
-    };
-
     git = {
       enable = true;
       lfs.enable = true;
@@ -131,14 +121,8 @@ in {
     };
 
     obs-studio = {
-      enable = isGui;
-      enableVirtualCamera = isGui;
+      enable = isIn ["video" "webcam"] (host.functionalities or []);
+      enableVirtualCamera = true;
     };
-
-    xwayland.enable = true;
-  };
-
-  services = {
-    iio-niri.enable = true;
   };
 }

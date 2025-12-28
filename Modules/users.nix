@@ -2,10 +2,11 @@
   host,
   lib,
   lix,
+  config,
   ...
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs;
-  inherit (lib.lists) elem;
+  inherit (lib.lists) elem optionals;
   inherit (lix.configuration.core) mkSudoRules;
 
   users = host.users.data.enabled or {};
@@ -25,18 +26,18 @@
         description = cfg.description or name;
 
         #> Use first shell as default
-        shell = package {
-          inherit pkgs;
-          target = head (cfg.shells or ["bash"]);
-        };
+        # shell = package {
+        #   inherit pkgs;
+        #   target = head (cfg.shells or ["bash"]);
+        # };
 
         password = cfg.password or null;
 
         extraGroups =
-          optional
+          optionals
           (elem (cfg.role or null) ["admin" "administrator"])
           ["wheel"]
-          ++ optional
+          ++ optionals
           (isNormalUser && (config.networking.networkmanager.enable or false))
           ["networkmanager"];
       };

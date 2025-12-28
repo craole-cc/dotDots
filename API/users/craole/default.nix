@@ -22,16 +22,16 @@
   ];
 
   shells = [
-    "bash"
     "nushell"
+    "bash"
     "powershell"
   ];
 
   interface = {
     displayProtocol = "wayland";
-    desktopEnvironment = "plasma";
+    desktopEnvironment = "cosmic";
     windowManager = "niri";
-    shell = "bash";
+    shell = "bash"; #TODO: This should be the first in the shells list
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;
