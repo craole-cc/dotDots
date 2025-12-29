@@ -17,7 +17,7 @@ in
         obs-advanced-masks
         obs-aitum-multistream
         obs-backgroundremoval
-        obs-color-monitor
+        # obs-color-monitor #? Broken
         obs-composite-blur
         obs-dir-watch-media
         obs-browser-transition
