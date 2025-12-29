@@ -1,4 +1,5 @@
 {pkgs, ...}: {
+  home.packages = with pkgs; [
     bfetch
     bunnyfetch
     countryfetch
@@ -21,6 +22,5 @@
     tinyfetch
     tokei
     ufetch
-  home.packages = with pkgs; [
   ];
 }
