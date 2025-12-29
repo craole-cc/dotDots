@@ -118,38 +118,38 @@ in {
       # disabled = true;
     };
 
-    # battery = {
-    #   format = "[ $percentage $symbol]($style)";
-    #   full_symbol = " ";
-    #   charging_symbol = " ";
-    #   discharging_symbol = " ";
-    #   unknown_symbol = " ";
-    #   empty_symbol = " ";
-    #   disabled = true;
+    battery = {
+      format = "[ $percentage $symbol]($style)";
+      full_symbol = " ";
+      charging_symbol = " ";
+      discharging_symbol = " ";
+      unknown_symbol = " ";
+      empty_symbol = " ";
+      disabled = true;
 
-    #   display = [
-    #     {
-    #       threshold = 20;
-    #       style = "italic bold red";
-    #     }
-    #     {
-    #       threshold = 60;
-    #       style = "italic dimmed bright-purple";
-    #     }
-    #     {
-    #       threshold = 70;
-    #       style = "italic dimmed yellow";
-    #     }
-    #   ];
-    # };
+      #   display = [
+      #     {
+      #       threshold = 20;
+      #       style = "italic bold red";
+      #     }
+      #     {
+      #       threshold = 60;
+      #       style = "italic dimmed bright-purple";
+      #     }
+      #     {
+      #       threshold = 70;
+      #       style = "italic dimmed yellow";
+      #     }
+      #   ];
+    };
 
-    # nix_shell = {
-    #   style = "bold italic dimmed blue";
-    #   symbol = " ";
-    #   format = "[$symbol $state]($style) [$name ](italic dimmed white)";
-    #   impure_msg = "[⌽](bold dimmed red)";
-    #   pure_msg = "[⌾](bold dimmed green)";
-    #   unknown_msg = "[◌](bold dimmed yellow)";
-    # };
+    nix_shell = {
+      style = "bold italic dimmed blue";
+      symbol = " ";
+      format = "[$symbol $state]($style) [$name ](italic dimmed white)";
+      impure_msg = "[⌽](bold dimmed red)";
+      pure_msg = "[⌾](bold dimmed green)";
+      unknown_msg = "[◌](bold dimmed yellow)";
+    };
   };
 }
