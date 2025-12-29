@@ -77,8 +77,7 @@
 
     allowed = [
       # "atuin"
-      # "bash"
-      # "bat"
+      "bat"
       # "fastfetch"
       # "foot"
       # "freetube"
