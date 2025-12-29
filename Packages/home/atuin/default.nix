@@ -6,8 +6,7 @@
 }: let
   app = "atuin";
   inherit (lix.lists.predicates) isIn;
-  inherit (user.applications) allowed;
-  isAllowed = isIn app allowed;
+  isAllowed = isIn app (user.applications.allowed or []);
   isEnabled = pkg: config.programs.${pkg}.enable;
 in {
   programs.${app} =

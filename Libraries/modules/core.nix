@@ -4,9 +4,9 @@
   ...
 }: let
   inherit (_.modules.hardware) mkAudio mkFileSystems mkNetwork;
-  inherit (_.modules.software) mkBoot mkNix mkLocale mkFonts;
+  inherit (_.modules.software) mkBoot mkNix;
   inherit (_.modules.home) mkUsers;
-  inherit (_.modules.environment) mkEnvironment;
+  inherit (_.modules.environment) mkEnvironment mkFonts mkLocale;
   inherit (_.modules.resolution) systems;
 
   mkCore = {
@@ -17,11 +17,6 @@
   }:
     lib.mapAttrs (_name: host: let
       inherit (specialArgs) inputs;
-      # pkgs = with inputs.packages;
-      #   if (host.packages.unstable or false)
-      #   then nixpkgs-unstable.${host.system}
-      #   else nixpkgs-stable.${host.system};
-      # inherit (pkgs.stdenv.hostPlatform) system;
     in
       lib.nixosSystem {
         inherit (host) system;
@@ -33,7 +28,7 @@
             {
               imports = with inputs.modules.core; [home-manager];
 
-              # First, configure nixpkgs with overlays and allowUnfree
+              #> Configure nixpkgs with overlays and allowUnfree
               config = mkNix {inherit host inputs;};
             }
 

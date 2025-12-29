@@ -18,7 +18,7 @@
   isAllowed =
     waylandEnabled {
       inherit config;
-      inherit (user) interface;
+      interface = user.interface or {};
     }
     && (
       (isIn app allowed)

@@ -1,6 +1,6 @@
 # https://github-wiki-see.page/m/helix-editor/helix/wiki/External-formatter-configuration
 {
-  programs.helix.languages.language = [
+  languages.language = [
     {
       name = "nix";
       language-servers = ["nixd"];

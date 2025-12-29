@@ -6,13 +6,8 @@
   user,
   ...
 }: let
-  inherit (lib.attrsets) attrValues filterAttrs mapAttrs optionalAttrs attrByPath;
-  inherit (lib.lists) any concatMap elem head optionals;
-  inherit (lib.modules) mkDefault;
   inherit (lix.modules.core) mkSudoRules;
   inherit (lix.attrsets.resolution) package;
-  inherit (lix.applications.firefox) zenVariant;
-  inherit (lix.lists.predicates) isIn;
 in {
   home = {
     inherit (host) stateVersion;
@@ -21,14 +16,8 @@ in {
         inherit pkgs;
         target = shell;
       })
-    user.shells);
+    (user.shells or []));
   };
-
-  # programs = {
-  #   zsh.enable = mkDefault (elem "zsh" (user.shells or []));
-  #   fish.enable = mkDefault (elem "fish" (user.shells or []));
-  #   nushell.enable = mkDefault (elem "nushell" (user.shells or []));
-  # };
 
   # wayland.windowManager = {
   #   hyprland.enable = user.interface.windowManager or null == "hyprland";
@@ -50,7 +39,7 @@ in {
     ./helix
     ./home-manager
     ./mpv
-    # ./niri
+    ./niri
     # ./noctula-shell
     ./nushell
     # ./obs

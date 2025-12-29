@@ -53,15 +53,15 @@
     check,
     exact ? false,
   }: let
-    checkList = toList check;
+    checkList = filter (v: v != null) (toList check);
     normalizedList =
       if exact
       then checkList
       else map toLower checkList;
   in
     if exact
-    then (e: elem e normalizedList)
-    else (e: elem (toLower e) normalizedList);
+    then (e: e != null && elem e normalizedList)
+    else (e: e != null && elem (toLower e) normalizedList);
 
   /**
   Check if any input elements are members of the allowed list.

@@ -255,6 +255,59 @@
     };
   };
 
-  exports = {inherit mkEnvironment;};
+  mkFonts = {
+    pkgs,
+    packages ? (with pkgs; [
+      #~@ Monospace
+      maple-mono.NF
+      monaspace
+      victor-mono
+
+      #~@ System
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-color-emoji
+    ]),
+    emoji ? ["Noto Color Emoji"],
+    monospace ? ["Maple Mono NF" "Monaspace Radon"],
+    serif ? ["Noto Serif"],
+    sansSerif ? ["Noto Sans"],
+    ...
+  }: {
+    fonts = {
+      inherit packages;
+      enableDefaultPackages = true;
+      fontconfig = {
+        enable = true;
+        hinting = {
+          enable = true; # TODO: This should depend on the host specs
+          style = "slight";
+        };
+        antialias = true;
+        subpixel.rgba = "rgb";
+        defaultFonts = {inherit emoji monospace serif sansSerif;};
+      };
+    };
+  };
+
+  mkLocale = {host, ...}: let
+    loc = host.localization or {};
+  in {
+    time = {
+      timeZone = loc.timeZone or null;
+      hardwareClockInLocalTime = isIn "dualboot-windows" (host.functionalities or []);
+    };
+
+    location = {
+      latitude = loc.latitude or null;
+      longitude = loc.longitude or null;
+      provider = loc.locator or "geoclue2";
+    };
+
+    i18n = {
+      defaultLocale = loc.defaultLocale or null;
+    };
+  };
+  exports = {inherit mkEnvironment mkFonts mkLocale;};
 in
   exports // {_rootAliases = exports;}

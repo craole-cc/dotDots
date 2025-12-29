@@ -2,14 +2,17 @@
   user,
   lix,
   pkgs,
+  lib,
   ...
 }: let
   app = "nushell";
   inherit (lix.lists.predicates) isIn;
+  inherit (lib.lists) optional;
+
   isAllowed = isIn app (
     (user.shells or [])
-    ++ user.applications.allowed or []
-    ++ [user.interface.shell or null]
+    ++ (user.applications.allowed or [])
+    ++ (optional ((user.interface.shell or null) != null) user.interface.shell)
   );
 in {
   programs.${app} =
