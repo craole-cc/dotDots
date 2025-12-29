@@ -16,6 +16,7 @@ in {
 
     niriswitcher =
       {enable = true;}
+      // import ./switcher/bindings.nix
       // import ./switcher/settings.nix
       // import ./switcher/style.nix;
   };
