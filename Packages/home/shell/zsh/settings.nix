@@ -1,3 +1,2 @@
 {
-  historyControl = ["ignoreboth"];
 }
