@@ -60,8 +60,7 @@ struct Cli {
   quiet: bool,
 
   /// Icon style for output
-  #[arg(long, alias = "icon",
-  alias = "icon_style", global = true, value_enum, default_value_t = IconStyle::Nerdfont)]
+  #[arg(long,alias = "icon",alias = "icon_style",global = true,value_enum,default_value_t = IconStyle::Nerdfont )]
   icons: IconStyle,
 }
 

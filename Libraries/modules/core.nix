@@ -36,7 +36,7 @@
                 // mkNetwork {inherit host pkgs;}
                 // mkLocale {inherit host;}
                 // mkFonts {inherit host;}
-                # // mkUsers {inherit host pkgs inputs;}
+                // mkUsers {inherit host pkgs inputs;}
                 // {};
             }
           ]
