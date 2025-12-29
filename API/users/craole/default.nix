@@ -64,33 +64,25 @@
     };
     terminal = {
       primary = "foot";
-      secondary = "warp-terminal";
+      secondary = "ghostty";
     };
     launcher = {
       primary = "fuzzel";
       secondary = "wofi";
     };
-    bar = {
-      primary = "noctalia";
-      secondary = null;
-    };
+    bar = "noctalia";
+    prompt = "starship";
 
     allowed = [
       # "atuin"
       "bat"
       "fastfetch"
-      "foot"
       "freetube"
-      "ghostty"
-      "git"
+      "warp-terminal"
       "helix"
       "jujutsu"
-      "nushell"
       "obs-studio"
-      "powershell"
       "quickshell"
-      "starship"
-      "vscode"
       "yazi"
       "zed-editor"
       "zen-browser"

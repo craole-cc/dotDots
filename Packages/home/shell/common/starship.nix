@@ -1,30 +1,22 @@
 {
-  config,
   lib,
   user,
-  lix,
-  src,
+  inputs,
   ...
 }: let
   app = "starship";
-  inherit (lib.modules) mkIf;
-  inherit (lix.lists.predicates) isIn;
+  opt = [app "starship-prompt" "starship-rs"];
+  inherit (lib.lists) optionals;
+  inherit (lib.modules) mkForce mkIf;
 
-  isAllowed = isIn app (
+  isAllowed = isIn opt (
     (user.applications.allowed or [])
     ++ [(user.interface.prompt or null)]
   );
 in {
   config = mkIf isAllowed {
-    programs.${app} = {
-      enable = isAllowed;
-      enableBashIntegration = config.programs.bash.enable;
-      enableNushellIntegration = config.programs.nushell.enable;
-    };
-
-    #> Link the config file from your dots directory
-    home.file.".config/starship.toml" = {
-      source = src + "/Configuration/starship/config.toml";
-    };
+    programs.${app} =
+      {enable = true;}
+      // import ./settings.nix;
   };
 }
