@@ -15,6 +15,7 @@
     cachix
     lsd
     eza
+    koi
   ];
 
   programs = {
