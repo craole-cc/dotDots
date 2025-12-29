@@ -12,7 +12,7 @@
     selection-clear-on-copy = true;
     mouse-hide-while-typing = true;
 
-    font-size = 14;
+    font-size = 18;
     keybind = [
       "clear"
       "ctrl+h=goto_split:left"
