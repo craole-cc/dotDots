@@ -8,6 +8,7 @@
   opt = [app "noctalia"];
   inherit (lib.lists) optionals;
   inherit (lib.modules) mkForce mkIf;
+  inherit (lix.lists.predicates) isIn;
 
   isAllowed = isIn opt (
     (user.applications.allowed or [])
