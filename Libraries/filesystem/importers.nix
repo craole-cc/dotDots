@@ -75,14 +75,50 @@
   importNames = dir: attrNames (importAttrs dir);
   importValues = dir: attrValues (importAttrs dir);
 
+  # # Import all *.nix files (except default.nix) in `dir` as a list of modules.
+  # importAll = dir: let
+  #   entries = readDir dir;
+  #   nixFiles = filter (
+  #     name: entries.${name} == "regular" && lib.hasSuffix ".nix" name && name != "default.nix"
+  #   ) (attrNames entries);
+  # in
+  #   map (name: import (dir + "/${name}")) nixFiles;
   # Import all *.nix files (except default.nix) in `dir` as a list of modules.
+  # If a subdirectory contains a default.nix, import that instead of recursing.
   importAll = dir: let
     entries = readDir dir;
+
+    # Get all .nix files in current directory (excluding default.nix)
     nixFiles = filter (
       name: entries.${name} == "regular" && lib.hasSuffix ".nix" name && name != "default.nix"
     ) (attrNames entries);
+
+    # Get all subdirectories
+    subDirs = filter (
+      name: entries.${name} == "directory"
+    ) (attrNames entries);
+
+    # Import .nix files from current directory
+    fileImports = map (name: import (dir + "/${name}")) nixFiles;
+
+    # For each subdirectory, either import its default.nix or recurse
+    dirImports =
+      map (
+        name: let
+          subPath = dir + "/${name}";
+          subEntries = readDir subPath;
+          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
+        in
+          if hasDefault
+          then import (subPath + "/default.nix")
+          else importAll subPath
+      )
+      subDirs;
+
+    # Flatten directory imports (they might be lists from recursion)
+    flatDirImports = lib.flatten dirImports;
   in
-    map (name: import (dir + "/${name}")) nixFiles;
+    fileImports ++ flatDirImports;
 
   importWithArgs =
     # Imports a Nix module at 'path' with filtered and merged arguments.

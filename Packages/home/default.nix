@@ -21,7 +21,7 @@ in {
     ./apps.nix
     ./themes.nix
 
-    ./browser
+    # ./browser
     ./common
     ./editor
     ./fetcher
