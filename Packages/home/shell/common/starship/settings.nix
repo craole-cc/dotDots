@@ -70,9 +70,9 @@
         "~/Music" = "  ";
         "Videos" = "  ";
         "~/Videos" = "  ";
-        "Pictures" = "   ";
-        "~/Pictures" = "   ";
-        "$WALLPAPERS" = "   ";
+        "Pictures" = "  ";
+        "~/Pictures" = "  ";
+        "$WALLPAPERS" = "  ";
         "global" = "  ";
       };
     };
