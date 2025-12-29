@@ -23,9 +23,9 @@ in {
     #   show_notifications = true;
     # };
 
-    file = {
-      symbol = " ";
-    };
+    # file = {
+    #   symbol = " ";
+    # };
 
     # character = {
     #   format = "$symbol ";
