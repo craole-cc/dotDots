@@ -1,5 +1,4 @@
 {pkgs, ...}: {
-  home.packages = with pkgs; [
     bfetch
     bunnyfetch
     countryfetch
@@ -9,21 +8,19 @@
     honeyfetch
     hyfetch
     ipfetch
+    macchina
     neofetch
     netfetch
     nitch
     onefetch
     owofetch
     pfetch-rs
-    pridefetch
     ramfetch
     screenfetch
     starfetch
     tinyfetch
     tokei
     ufetch
-    uwufetch
-    yafetch
-    zigfetch
+  home.packages = with pkgs; [
   ];
 }
