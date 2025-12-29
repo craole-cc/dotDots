@@ -27,15 +27,15 @@ in {
     #   symbol = " ";
     # };
 
-    # character = {
-    #   format = "$symbol ";
-    #   success_symbol = "[  ](bold italic bright-yellow)";
-    #   error_symbol = "[  ](bold red)";
-    #   vimcmd_symbol = "[](italic dimmed green)";
-    #   vimcmd_replace_one_symbol = "◌";
-    #   vimcmd_replace_symbol = "□";
-    #   vimcmd_visual_symbol = "▼";
-    # };
+    character = {
+      format = "$symbol ";
+      success_symbol = "[  ](bold italic bright-yellow)";
+      error_symbol = "[  ](bold red)";
+      vimcmd_symbol = "[](italic dimmed green)";
+      vimcmd_replace_one_symbol = "◌";
+      vimcmd_replace_symbol = "□";
+      vimcmd_visual_symbol = "▼";
+    };
 
     # directory = {
     #   format = "[$path]($style)[$read_only]($read_only_style) ";
