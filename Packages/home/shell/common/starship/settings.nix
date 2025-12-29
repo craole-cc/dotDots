@@ -13,7 +13,7 @@
       show_notifications = true;
     };
 
-    file = {
+    fill = {
       symbol = " ";
     };
 
