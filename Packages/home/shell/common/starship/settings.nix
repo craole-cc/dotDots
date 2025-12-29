@@ -17,11 +17,11 @@ in {
     continuation_prompt = "[▶▶ ](dimmed white)";
     add_newline = true;
 
-    # cmd_duration = {
-    #   # format = "[◄ $duration ](italic white)"
-    #   min_time = 1000;
-    #   show_notifications = true;
-    # };
+    cmd_duration = {
+      # format = "[◄ $duration ](italic white)"
+      min_time = 1000;
+      show_notifications = true;
+    };
 
     # file = {
     #   symbol = " ";
