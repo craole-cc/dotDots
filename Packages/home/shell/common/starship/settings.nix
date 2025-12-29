@@ -7,14 +7,29 @@
     continuation_prompt = "[▶▶ ](dimmed white)";
     add_newline = true;
 
-    cmd_duration = {
-      # format = "[◄ $duration ](italic white)"
-      min_time = 1000;
-      show_notifications = true;
-    };
+    battery = {
+      format = "[ $percentage $symbol]($style)";
+      full_symbol = " ";
+      charging_symbol = " ";
+      discharging_symbol = " ";
+      unknown_symbol = " ";
+      empty_symbol = " ";
+      disabled = true;
 
-    fill = {
-      symbol = " ";
+      display = [
+        {
+          threshold = 20;
+          style = "italic bold red";
+        }
+        {
+          threshold = 60;
+          style = "italic dimmed bright-purple";
+        }
+        {
+          threshold = 70;
+          style = "italic dimmed yellow";
+        }
+      ];
     };
 
     character = {
@@ -27,6 +42,12 @@
       vimcmd_visual_symbol = "▼";
     };
 
+    cmd_duration = {
+      # format = "[◄ $duration ](italic white)"
+      min_time = 1000;
+      show_notifications = true;
+    };
+
     directory = {
       format = "[$path]($style)[$read_only]($read_only_style) ";
       truncate_to_repo = false;
@@ -35,42 +56,27 @@
 
       substitutions = {
         style = "bold green";
-        home_symbol = " ";
+        home_symbol = "  ";
+        "~" = "  ";
         read_only = "  ";
-        "~/.dots" = " ";
-        "~/.config" = " ";
-        "Documents" = " ";
-        "archives" = " ";
-        "Downloads" = " ";
-        "Music" = " ";
-        "Videos" = " ";
-        "Pictures" = "  ";
-        "global" = " ";
+        "~/.dots" = "  ";
+        "~/.config" = "  ";
+        "Documents" = "  ";
+        "archives" = "  ";
+        "~/Downloads" = "  ";
+        "Downloads" = "  ";
+        "Music" = "  ";
+        "~/Music" = "  ";
+        "Videos" = "  ";
+        "~/Videos" = "  ";
+        "Pictures" = "   ";
+        "~/Pictures" = "   ";
+        "global" = "  ";
       };
     };
 
-    time = {
-      # disabled = true;
-      format = "󱑏 [ $time ]($style)";
-      time_format = "%H:%M";
-      time_range = "22:00:00-07:00:00";
-      utc_time_offset = "-5";
-    };
-
-    shell = {
-      disabled = true;
-    };
-
-    sudo = {
-      allow_windows = true;
-      format = "[$symbol]($style)";
-      style = "bold italic bright-purple";
-      symbol = " ";
-      disabled = true;
-      # symbol = "[ ](bold red)";
-      # symbol = "[ ](bold red)";
-      # symbol = "[󱨚  ](bold red)";
-      # disabled = true;
+    fill = {
+      symbol = " ";
     };
 
     git_branch = {
@@ -108,31 +114,6 @@
       # disabled = true;
     };
 
-    battery = {
-      format = "[ $percentage $symbol]($style)";
-      full_symbol = " ";
-      charging_symbol = " ";
-      discharging_symbol = " ";
-      unknown_symbol = " ";
-      empty_symbol = " ";
-      disabled = true;
-
-      display = [
-        {
-          threshold = 20;
-          style = "italic bold red";
-        }
-        {
-          threshold = 60;
-          style = "italic dimmed bright-purple";
-        }
-        {
-          threshold = 70;
-          style = "italic dimmed yellow";
-        }
-      ];
-    };
-
     nix_shell = {
       style = "bold italic dimmed blue";
       symbol = " ";
@@ -140,6 +121,30 @@
       impure_msg = "[⌽](bold dimmed red)";
       pure_msg = "[⌾](bold dimmed green)";
       unknown_msg = "[◌](bold dimmed yellow)";
+    };
+
+    time = {
+      # disabled = true;
+      format = "󱑏 [ $time ]($style)";
+      time_format = "%H:%M";
+      time_range = "22:00:00-07:00:00";
+      utc_time_offset = "-5";
+    };
+
+    shell = {
+      disabled = true;
+    };
+
+    sudo = {
+      allow_windows = true;
+      format = "[$symbol]($style)";
+      style = "bold italic bright-purple";
+      symbol = " ";
+      disabled = true;
+      # symbol = "[ ](bold red)";
+      # symbol = "[ ](bold red)";
+      # symbol = "[󱨚  ](bold red)";
+      # disabled = true;
     };
   };
 }

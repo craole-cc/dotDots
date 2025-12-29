@@ -50,8 +50,13 @@ vimcmd_replace_one_symbol = "◌"
 vimcmd_replace_symbol = "□"
 vimcmd_visual_symbol = "▼"
 
-[fill]
-symbol = ' '
+[cmd_duration]
+# format = "[◄ $duration ](italic white)"
+min_time = 1000
+show_notifications = true
+
+[deno]
+format = ""
 
 [directory]
 format = "[$path]($style)[$read_only]($read_only_style) "
@@ -61,53 +66,22 @@ truncation_symbol = "…/"
 
 [directory.substitutions]
 style = "bold green"
-home_symbol = " "
+home_symbol = "  "
 read_only = "  "
-"~/.dots" = " "
-"~/.config" = " "
-"Documents" = " "
-"archives" = " "
-"Downloads" = " "
-"Music" = " "
-"Videos" = " "
-"Pictures" = "  "
-"global" = " "
-"nixos" = " "
+"~/.dots" = "  "
+"~/.config" = "  "
+"~/Downloads" = "  "
+"Documents" = "  "
+"archives" = "  "
+"Downloads" = "  "
+"Music" = "  "
+"Videos" = "  "
+"Pictures" = "   "
+"global" = "  "
+"nixos" = "  "
 
-[cmd_duration]
-# format = "[◄ $duration ](italic white)"
-min_time = 1000
-show_notifications = true
-
-[package]
-disabled = true
-
-[time]
-# disabled = true
-format = '󱑏 [ $time ]($style)'
-time_format = "%H:%M"
-time_range = '22:00:00-07:00:00'
-utc_time_offset = "-5"
-
-[shell]
-disabled = true
-
-[status]
-# disabled = true
-format = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
-map_symbol = true
-symbol = "🔴"
-
-[sudo]
-allow_windows = true
-format = "[$symbol]($style)"
-style = "bold italic bright-purple"
-symbol = " "
-disabled = true
-# symbol = "[ ](bold red)"
-# symbol = "[ ](bold red)"
-# symbol = "[󱨚  ](bold red)"
-# disabled = true
+[fill]
+symbol = ' '
 
 [git_branch]
 format = " [$branch(:$remote_branch)]($style)"
@@ -141,9 +115,6 @@ stashed = "[ $count](bold italic cyan)"
 up_to_date = ""
 # disabled = true
 
-[deno]
-format = ""
-
 [nix_shell]
 style = 'bold italic dimmed blue'
 symbol = ' '
@@ -151,3 +122,33 @@ format = '[$symbol $state]($style) [$name ](italic dimmed white)'
 impure_msg = '[⌽](bold dimmed red)'
 pure_msg = '[⌾](bold dimmed green)'
 unknown_msg = '[◌](bold dimmed yellow)'
+
+[package]
+disabled = true
+
+[shell]
+disabled = true
+
+[status]
+# disabled = true
+format = '[$symbol $common_meaning$signal_name$maybe_int]($style) '
+map_symbol = true
+symbol = "🔴"
+
+[sudo]
+allow_windows = true
+format = "[$symbol]($style)"
+style = "bold italic bright-purple"
+symbol = " "
+disabled = true
+# symbol = "[ ](bold red)"
+# symbol = "[ ](bold red)"
+# symbol = "[󱨚  ](bold red)"
+# disabled = true
+
+[time]
+# disabled = true
+format = '󱑏 [ $time ]($style)'
+time_format = "%H:%M"
+time_range = '22:00:00-07:00:00'
+utc_time_offset = "-5"
