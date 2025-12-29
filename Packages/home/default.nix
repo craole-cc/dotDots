@@ -44,7 +44,6 @@ in {
     ./noctula-shell
     ./nushell
     # ./obs
-    # ./starship
     ./themes.nix
     # ./tinty # TODO: Not ready yet
     # ./vscode

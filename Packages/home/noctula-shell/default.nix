@@ -7,7 +7,8 @@
   inherit (lib.lists) optionals;
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.strings) hasInfix;
-  isAllowed = hasInfix "noctalia" (user.interface.bar or null);
+  barConfig = user.interface.bar or null;
+  isAllowed = barConfig != null && hasInfix "noctalia" barConfig;
 in {
   programs = mkIf isAllowed {
     noctalia-shell =
