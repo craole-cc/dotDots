@@ -1,5 +1,1 @@
-{lix, ...}: {
-  imports =
-    lix.filesystem.importers.importAll ./.
-    ++ [./atuin];
-}
+{lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
