@@ -23,8 +23,8 @@ in {
     };
 
     # Link the config file from your dots directory
-    home.file.".config/starship.toml" = {
-      source = src + "/Configuration/starship/config.toml";
-    };
+    # home.file.".config/starship.toml" = {
+    #   source = src + "/Configuration/starship/config.toml";
+    # };
   };
 }
