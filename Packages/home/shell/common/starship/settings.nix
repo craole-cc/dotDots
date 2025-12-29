@@ -1,9 +1,19 @@
-{
+{lib, ...}: let
+  inherit (lib.strings) concatStrings;
+in {
   settings = {
     command_timeout = 1111;
     scan_timeout = 1000;
-    format = "" "$character" "";
-    right_format = "" "$all" "";
+    format = concatStrings [
+      ""
+      "$character"
+      ""
+    ];
+    right_format = concatStrings [
+      ""
+      "$all"
+      ""
+    ];
     continuation_prompt = "[▶▶ ](dimmed white)";
     add_newline = true;
 
