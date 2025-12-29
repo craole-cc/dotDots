@@ -57,7 +57,6 @@
       substitutions = {
         style = "bold green";
         home_symbol = " ";
-        "~" = " ";
         read_only = " ";
         "~/.dots" = " ";
         "~/.config" = " ";
@@ -70,9 +69,8 @@
         "~/Music" = " ";
         "Videos" = " ";
         "~/Videos" = " ";
-        "Pictures" = " ";
-        "~/Pictures" = " ";
-        "$WALLPAPERS" = " ";
+        "Pictures" = "  ";
+        "~/Pictures" = " 󰸉 ";
         "global" = "  ";
       };
     };
