@@ -6,6 +6,7 @@
 }: let
   app = "helix";
   inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
 
   isPrimary = app == user.applications.editor.tty.primary or null;
