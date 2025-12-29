@@ -5,7 +5,7 @@
     ./keybindings.nix
   ];
 
-  programs.vscode.profiles.default = {
+  profiles.default = {
     enableUpdateCheck = false;
     enableExtensionUpdateCheck = false;
   };

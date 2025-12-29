@@ -7,6 +7,7 @@
   ...
 }: let
   app = "starship";
+  inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
 
   isAllowed = isIn app (

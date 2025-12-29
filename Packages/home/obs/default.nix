@@ -1,13 +1,15 @@
 {
-  lib,
   user,
+  lix,
+  host,
+  pkgs,
   ...
 }: let
   app = "obs-studio";
-  inherit (lib.lists) elem;
-  inherit (user.applications) allowed;
-  isAllowed = elem app allowed;
+  inherit (lix.lists.predicates) isIn;
+  isAllowed = isIn "video" (host.functionalities or []);
 in {
-  programs.${app}.enable = isAllowed;
-  imports = [];
+  programs.${app} =
+    {enable = isAllowed;}
+    // import ./plugins.nix;
 }

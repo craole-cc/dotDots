@@ -1,5 +1,5 @@
 {
-  .userSettings = {
+  userSettings = {
     "git.allowForcePush" = true;
     "git.autofetch" = true;
     "git.confirmForcePush" = false;

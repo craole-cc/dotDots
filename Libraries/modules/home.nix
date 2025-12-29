@@ -93,7 +93,7 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = specialArgs // {inherit host;};
+      extraSpecialArgs = specialArgs // {inherit host src;};
 
       #> Merge all per-user home-manager configs
       users =

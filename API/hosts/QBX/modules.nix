@@ -424,7 +424,7 @@ in {
             };
 
             search = {
-              default = "google";
+              default = "brave";
               privateDefault = "brave";
               engines = {
                 bing = {

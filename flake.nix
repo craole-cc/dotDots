@@ -33,6 +33,7 @@
           noctalia-shell = shellNoctalia.packages;
           nvf = editorNeovim.packages;
           plasma-manager = shellPlasma.packages;
+          vscode-insiders = inputs.editorVscode.packages;
           zen-browser = browserZen.packages;
         };
       };

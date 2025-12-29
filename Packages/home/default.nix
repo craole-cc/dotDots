@@ -38,15 +38,14 @@ in {
     ./freetube
     ./ghostty
     ./helix
-    ./home-manager
     ./mpv
     ./niri
     ./noctula-shell
     ./nushell
-    # ./obs
-    ./themes.nix
+    ./obs
     # ./tinty # TODO: Not ready yet
-    # ./vscode
+    ./vscode
     # ./zed
+    ./themes.nix
   ];
 }
