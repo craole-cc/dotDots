@@ -62,6 +62,7 @@
         "~/.dots" = "  ";
         "~/.config" = "  ";
         "Documents" = "  ";
+        "~/Documents" = "  ";
         "archives" = "  ";
         "~/Downloads" = "  ";
         "Downloads" = "  ";
@@ -71,6 +72,7 @@
         "~/Videos" = "  ";
         "Pictures" = "   ";
         "~/Pictures" = "   ";
+        "$WALLPAPERS" = "   ";
         "global" = "  ";
       };
     };
