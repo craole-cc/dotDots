@@ -16,7 +16,7 @@
     owofetch
     pfetch
     pfetch-rs
-    prideferch
+    pridefetch
     ramfetch
     screenfetch
     starfetch
