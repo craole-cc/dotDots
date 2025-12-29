@@ -1,21 +1,23 @@
 {lix, ...}: {
-  imports = [
-    ./fetchers
+  imports =
+    (lix.importAll ./.)
+    ++ [
+      ./fetchers
+      ./vsc
+      ./vim
 
-    # ./default
-    # ./delta
-    # ./direnv
-    # ./fastfetch
-    # ./git
-    # ./github
-    # ./gitui
-    # ./grep
-    # ./jujutsu
-    # ./nh
-    # ./nix-index
-    # ./script
-    # ./topgrade
-    # ./yazi
-  ];
-  # imports = lix.importAll ./.;
+      #   # ./default
+      #   # ./delta
+      #   # ./direnv
+      #   # ./fastfetch
+      #   # ./github
+      #   # ./gitui
+      #   # ./grep
+      #   # ./jujutsu
+      #   # ./nh
+      #   # ./nix-index
+      #   # ./script
+      #   # ./topgrade
+      #   # ./yazi
+    ];
 }
