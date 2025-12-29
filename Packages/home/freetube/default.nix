@@ -1,12 +1,13 @@
 {
   user,
-  lib,
+  lix,
+  host,
+  pkgs,
   ...
 }: let
   app = "freetube";
-  inherit (lib.lists) elem;
-  inherit (user.applications) allowed;
-  isAllowed = elem app allowed;
+  inherit (lix.lists.predicates) isIn;
+  isAllowed = isIn "video" (host.functionalities or []);
 in {
   programs.${app} =
     {enable = isAllowed;}

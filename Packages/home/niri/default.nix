@@ -8,7 +8,7 @@
   inherit (lib.modules) mkIf;
 in {
   programs = mkIf isAllowed {
-    # ${app} =
+    # ${app} = #TODO: Niri flake is outdated
     #   {enable = true;}
     #   // import ./bindings.nix
     #   // import ./layout.nix
@@ -16,7 +16,7 @@ in {
 
     niriswitcher =
       {enable = true;}
-      // import ./switcher/bindings.nix
+      // import ./switcher/bindings.nix {inherit user;}
       // import ./switcher/settings.nix
       // import ./switcher/style.nix;
   };

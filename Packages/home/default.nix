@@ -32,9 +32,8 @@ in {
     ./atuin
     ./bash
     # ./firefox
-    ./fonts.nix
     ./foot
-    # ./freetube
+    ./freetube
     # ./ghostty
     ./helix
     ./home-manager

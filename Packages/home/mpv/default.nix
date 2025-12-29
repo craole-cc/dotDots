@@ -1,13 +1,13 @@
 {
   user,
-  lib,
+  lix,
   host,
   pkgs,
   ...
 }: let
   app = "mpv";
-  inherit (lib.lists) elem;
-  isAllowed = elem "video" (host.functionalities or []);
+  inherit (lix.lists.predicates) isIn;
+  isAllowed = isIn "video" (host.functionalities or []);
 in {
   programs.${app} =
     {enable = isAllowed;}
