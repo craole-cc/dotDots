@@ -4,6 +4,7 @@
   lix,
   host,
   pkgs,
+  config,
   ...
 }: let
   app = "obs-studio";
