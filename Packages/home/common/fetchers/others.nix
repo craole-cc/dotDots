@@ -14,7 +14,6 @@
     nitch
     onefetch
     owofetch
-    pdfetch
     pfetch
     pfetch-rs
     prideferch
