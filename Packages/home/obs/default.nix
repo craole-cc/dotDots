@@ -1,5 +1,6 @@
 {
   user,
+  lib,
   lix,
   host,
   pkgs,
@@ -11,5 +12,5 @@
 in {
   programs.${app} =
     {enable = isAllowed;}
-    // import ./plugins.nix;
+    // import ./plugins.nix {inherit pkgs lib lix;};
 }
