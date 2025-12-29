@@ -1,5 +1,6 @@
 {
   lib,
+  lix,
   user,
   inputs,
   ...
