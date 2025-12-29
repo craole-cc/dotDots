@@ -7,8 +7,7 @@
   app = "quickshell";
   inherit (lib.lists) elem;
   inherit (lib.modules) mkIf;
-  inherit (user.applications) allowed;
-  isAllowed = elem app allowed;
+  isAllowed = elem app (user.applications.allowed or []);
 in {
   config = mkIf isAllowed {
     programs.${app} =
