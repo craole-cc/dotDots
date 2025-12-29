@@ -63,8 +63,8 @@
       };
     };
     terminal = {
-      primary = "foot";
-      secondary = "ghostty";
+      primary = "ghostty";
+      secondary = "foot";
     };
     launcher = {
       primary = "fuzzel";

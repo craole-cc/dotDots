@@ -61,7 +61,7 @@
             brave = {
               name = "Brave";
               urls = [{template = "https://search.brave.com/search?q={searchTerms}";}];
-              definedAliases = ["b" "@b"];
+              definedAliases = ["br" "@br"];
             };
             github = {
               name = "GitHub";

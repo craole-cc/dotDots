@@ -30,8 +30,6 @@
               #> Configure nixpkgs with overlays and allowUnfree
               config = mkNix {inherit host inputs;};
             }
-
-            # Now that pkgs is properly configured, use it in other modules
             ({pkgs, ...}: {
               config =
                 mkBoot {inherit host pkgs;}
