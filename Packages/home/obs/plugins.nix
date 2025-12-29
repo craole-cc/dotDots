@@ -35,7 +35,7 @@ in
         obs-source-switcher
         obs-transition-table
         obs-tuna
-        obs-vertical-canvas
+        # obs-vertical-canvas  #? Broken
         obs-vintage-filter
         waveform
       ]
