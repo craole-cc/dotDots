@@ -4,19 +4,20 @@
   user,
   ...
 }: {
-  home.packages = with pkgs; [
-    gImageReader
-    inkscape
-    # microsoft-edge
-    qbittorrent-enhanced
-    warp-terminal
-    kdePackages.yakuake
-    swaybg
-    cachix
-    lsd
-    eza
-    koi
-  ];
+  home.packages = with pkgs;
+    [
+      gImageReader
+      inkscape
+      # microsoft-edge
+      qbittorrent-enhanced
+      warp-terminal
+
+      swaybg
+      cachix
+      lsd
+      eza
+    ]
+    ++ (with kdePackages; [yakuake koi]);
 
   programs = {
     # alacritty.enable = true; # Super+T in the default setting (terminal)
