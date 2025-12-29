@@ -59,13 +59,13 @@ in {
       };
     };
 
-    # time = {
-    #   # disabled = true;
-    #   format = "󱑏 [ $time ]($style)";
-    #   time_format = "%H:%M";
-    #   time_range = "22:00:00-07:00:00";
-    #   utc_time_offset = "-5";
-    # };
+    time = {
+      # disabled = true;
+      format = "󱑏 [ $time ]($style)";
+      time_format = "%H:%M";
+      time_range = "22:00:00-07:00:00";
+      utc_time_offset = "-5";
+    };
 
     # shell = {
     #   disabled = true;
