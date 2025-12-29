@@ -15,14 +15,17 @@
     || isPrimary
     || isSecondary;
 in {
-  programs.${app} =
-    {enable = isAllowed;}
-    // import ./editor.nix
-    // import ./keybindings.nix
-    // import ./languages.nix
-    // import ./themes.nix;
+  config = mkIf isAllowed {
+    inherit (lib.modules) mkIf;
+    programs.${app} =
+      {enable = true;}
+      // import ./editor.nix
+      // import ./keybindings.nix
+      // import ./languages.nix
+      // import ./themes.nix;
 
-  home.sessionVariables =
-    optionalAttrs isPrimary {EDITOR = "hx";}
-    // optionalAttrs isSecondary {EDITOR_ALT = "hx";};
+    home.sessionVariables =
+      optionalAttrs isPrimary {EDITOR = "hx";}
+      // optionalAttrs isSecondary {EDITOR_ALT = "hx";};
+  };
 }

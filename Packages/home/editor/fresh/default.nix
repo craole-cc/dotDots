@@ -9,6 +9,7 @@
 }: let
   app = "fresh";
   inherit (lib.modules) mkIf;
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lix.lists.predicates) isIn;
 
   # system = pkgs.stdenv.hostPlatform.system;
