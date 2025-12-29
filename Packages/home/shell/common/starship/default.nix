@@ -20,5 +20,9 @@ in {
     programs.${app} =
       {enable = true;}
       // import ./settings.nix;
+
+    # home.file.".config/starship.toml" = {
+    #   source = src + "/Configuration/starship/config.toml";
+    # };
   };
 }
