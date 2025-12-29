@@ -67,56 +67,56 @@ in {
       utc_time_offset = "-5";
     };
 
-    # shell = {
-    #   disabled = true;
-    # };
+    shell = {
+      disabled = true;
+    };
 
-    # sudo = {
-    #   allow_windows = true;
-    #   format = "[$symbol]($style)";
-    #   style = "bold italic bright-purple";
-    #   symbol = " ";
-    #   disabled = true;
-    #   # symbol = "[ ](bold red)";
-    #   # symbol = "[ ](bold red)";
-    #   # symbol = "[󱨚  ](bold red)";
-    #   # disabled = true;
-    # };
+    sudo = {
+      allow_windows = true;
+      format = "[$symbol]($style)";
+      style = "bold italic bright-purple";
+      symbol = " ";
+      disabled = true;
+      # symbol = "[ ](bold red)";
+      # symbol = "[ ](bold red)";
+      # symbol = "[󱨚  ](bold red)";
+      # disabled = true;
+    };
 
-    # git_branch = {
-    #   format = " [$branch(:$remote_branch)]($style)";
-    #   symbol = "[△](bold italic bright-blue)";
-    #   style = "italic bright-blue";
-    #   truncation_symbol = "⋯";
-    #   truncation_length = 11;
-    #   ignore_branches = ["main", "master"];
-    #   only_attached = true;
-    # };
+    git_branch = {
+      format = " [$branch(:$remote_branch)]($style)";
+      symbol = "[△](bold italic bright-blue)";
+      style = "italic bright-blue";
+      truncation_symbol = "⋯";
+      truncation_length = 11;
+      ignore_branches = ["main" "master"];
+      only_attached = true;
+    };
 
-    # git_metrics={
-    #   format = "([▴$added]($added_style))([▿$deleted]($deleted_style)) ";
-    #   added_style = "italic dimmed green";
-    #   deleted_style = "italic dimmed red";
-    #   ignore_submodules = false;
-    #   disabled = true;
-    # };
+    git_metrics = {
+      format = "([▴$added]($added_style))([▿$deleted]($deleted_style)) ";
+      added_style = "italic dimmed green";
+      deleted_style = "italic dimmed red";
+      ignore_submodules = false;
+      disabled = true;
+    };
 
-    # git_status={
-    #   style = "bold bright-blue";
-    #   format = "([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed  ]($style))";
-    #   ahead = "[ ${count}󰬥](italic green)";
-    #   behind = "[ ${count}󰬤](italic red)";
-    #   staged = "[ $count](bold italic bright-cyan)";
-    #   modified = "[ $count](bold italic yellow)";
-    #   untracked = "[ $count](bold italic cyan)";
-    #   deleted = "[ $count](bold italic red)";
-    #   conflicted = "[ $count ](italic bright-magenta)";
-    #   diverged = "[ $count](bold italic bright-magenta)";
-    #   renamed = "[ $count](bold italic bright-blue)";
-    #   stashed = "[ $count](bold italic cyan)";
-    #   up_to_date = "";
-    #   # disabled = true;
-    #   };
+    git_status = {
+      style = "bold bright-blue";
+      format = "([$ahead_behind$staged$modified$untracked$renamed$deleted$conflicted$stashed  ]($style))";
+      ahead = "[ $count󰬥](italic green)";
+      behind = "[ $count󰬤](italic red)";
+      staged = "[ $count](bold italic bright-cyan)";
+      modified = "[ $count](bold italic yellow)";
+      untracked = "[ $count](bold italic cyan)";
+      deleted = "[ $count](bold italic red)";
+      conflicted = "[ $count ](italic bright-magenta)";
+      diverged = "[ $count](bold italic bright-magenta)";
+      renamed = "[ $count](bold italic bright-blue)";
+      stashed = "[ $count](bold italic cyan)";
+      up_to_date = "";
+      # disabled = true;
+    };
 
     # battery = {
     #   format = "[ $percentage $symbol]($style)";
