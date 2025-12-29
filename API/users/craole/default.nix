@@ -75,14 +75,11 @@
 
     allowed = [
       # "atuin"
-      "bat"
       "fastfetch"
       "freetube"
       "warp-terminal"
-      "helix"
       "jujutsu"
       "obs-studio"
-      "quickshell"
       "yazi"
       "zed-editor"
       "zen-browser"

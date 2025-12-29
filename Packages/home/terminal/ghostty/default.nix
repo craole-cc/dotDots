@@ -8,7 +8,6 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lix.lists.predicates) isIn;
   inherit (lib.modules) mkIf;
-  inherit (lix.attrsets.predicates) waylandEnabled;
 
   isPrimary = app == user.applications.terminal.primary or null;
   isSecondary = app == user.applications.terminal.secondary or null;

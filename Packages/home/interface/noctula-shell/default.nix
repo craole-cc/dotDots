@@ -2,12 +2,10 @@
   lib,
   lix,
   user,
-  inputs,
   ...
 }: let
   app = "noctalia-shell";
   opt = [app "noctalia"];
-  inherit (lib.lists) optionals;
   inherit (lib.modules) mkForce mkIf;
   inherit (lix.lists.predicates) isIn;
 
