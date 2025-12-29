@@ -22,9 +22,9 @@ in {
       enableNushellIntegration = config.programs.nushell.enable;
     };
 
-    # Link the config file from your dots directory
-    # home.file.".config/starship.toml" = {
-    #   source = src + "/Configuration/starship/config.toml";
-    # };
+    #> Link the config file from your dots directory
+    home.file.".config/starship.toml" = {
+      source = src + "/Configuration/starship/config.toml";
+    };
   };
 }
