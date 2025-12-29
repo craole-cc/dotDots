@@ -23,11 +23,11 @@ in {
 
     ./browser
     ./common
-    ./editors
-    ./fetchers
+    ./editor
+    ./fetcher
     ./interface
     ./media
-    ./shells
+    ./shell
     ./terminal
     ./vsc
   ];
