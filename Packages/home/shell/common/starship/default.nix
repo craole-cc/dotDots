@@ -19,7 +19,7 @@ in {
   config = mkIf isAllowed {
     programs.${app} =
       {enable = true;}
-      // import ./settings.nix {inherit lib;};
+      // import ./settings.nix;
 
     # home.file.".config/starship.toml" = {
     #   source = src + "/Configuration/starship/config.toml";

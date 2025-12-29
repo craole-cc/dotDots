@@ -1,19 +1,9 @@
-{lib, ...}: let
-  inherit (lib.strings) concatStrings;
-in {
+{
   settings = {
     command_timeout = 1111;
     scan_timeout = 1000;
-    format = concatStrings [
-      ""
-      "$character"
-      ""
-    ];
-    right_format = concatStrings [
-      ""
-      "$all"
-      ""
-    ];
+    format = "$character";
+    right_format = "$all";
     continuation_prompt = "[▶▶ ](dimmed white)";
     add_newline = true;
 
@@ -23,9 +13,9 @@ in {
       show_notifications = true;
     };
 
-    # file = {
-    #   symbol = " ";
-    # };
+    file = {
+      symbol = " ";
+    };
 
     character = {
       format = "$symbol ";
