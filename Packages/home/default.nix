@@ -24,19 +24,19 @@ in {
     user.shells);
   };
 
-  programs = {
-    zsh.enable = mkDefault (elem "zsh" (user.shells or []));
-    fish.enable = mkDefault (elem "fish" (user.shells or []));
-    nushell.enable = mkDefault (elem "nushell" (user.shells or []));
-  };
+  # programs = {
+  #   zsh.enable = mkDefault (elem "zsh" (user.shells or []));
+  #   fish.enable = mkDefault (elem "fish" (user.shells or []));
+  #   nushell.enable = mkDefault (elem "nushell" (user.shells or []));
+  # };
 
-  wayland.windowManager = {
-    hyprland.enable = user.interface.windowManager or null == "hyprland";
-    sway.enable = user.interface.windowManager or null == "sway";
-    river.enable = user.interface.windowManager or null == "river";
-    labwc.enable = user.interface.windowManager or null == "labwc";
-    wayfire.enable = user.interface.windowManager or null == "wayfire";
-  };
+  # wayland.windowManager = {
+  #   hyprland.enable = user.interface.windowManager or null == "hyprland";
+  #   sway.enable = user.interface.windowManager or null == "sway";
+  #   river.enable = user.interface.windowManager or null == "river";
+  #   labwc.enable = user.interface.windowManager or null == "labwc";
+  #   wayfire.enable = user.interface.windowManager or null == "wayfire";
+  # };
 
   imports = [
     # ./apps.nix

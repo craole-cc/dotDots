@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   plugins = with pkgs.nushellPlugins; [
-    dbus
+    # dbus #? Broken
     desktop_notifications
     formats
     gstat
@@ -8,8 +8,8 @@
     polars
     query
     semver
-    net
+    # net #? Broken
     skim
-    units
+    # units #? Broken
   ];
 }

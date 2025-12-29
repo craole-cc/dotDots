@@ -1,8 +1,4 @@
 {
-  host,
-  lix,
-  ...
-}: {
   imports = [
     # ./audio.nix
     ./boot.nix

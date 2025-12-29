@@ -177,6 +177,7 @@
       exact = false;
     };
   has = isIn;
+
   /**
   Check if any value(s) exist in the check list (case-sensitive).
 
@@ -411,7 +412,6 @@ in {
     isInExact
     mostFrequent
     ;
-  isNotIn = !isIn;
 
   _rootAliases = {
     checkListMembership = checkMembership;
