@@ -4,5 +4,7 @@
 in {
   programs.${app} =
     {enable = true;}
+    // import ./bindings.nix
+    // import ./layout.nix
     // import ./settings.nix;
 }
