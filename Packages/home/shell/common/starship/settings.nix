@@ -17,71 +17,71 @@ in {
     continuation_prompt = "[▶▶ ](dimmed white)";
     add_newline = true;
 
-    cmd_duration = {
-      # format = "[◄ $duration ](italic white)"
-      min_time = 1000;
-      show_notifications = true;
-    };
+    # cmd_duration = {
+    #   # format = "[◄ $duration ](italic white)"
+    #   min_time = 1000;
+    #   show_notifications = true;
+    # };
 
-    file = {
-      symbol = " ";
-    };
+    # file = {
+    #   symbol = " ";
+    # };
 
-    character = {
-      format = "$symbol ";
-      success_symbol = "[  ](bold italic bright-yellow)";
-      error_symbol = "[  ](bold red)";
-      vimcmd_symbol = "[](italic dimmed green)";
-      vimcmd_replace_one_symbol = "◌";
-      vimcmd_replace_symbol = "□";
-      vimcmd_visual_symbol = "▼";
-    };
+    # character = {
+    #   format = "$symbol ";
+    #   success_symbol = "[  ](bold italic bright-yellow)";
+    #   error_symbol = "[  ](bold red)";
+    #   vimcmd_symbol = "[](italic dimmed green)";
+    #   vimcmd_replace_one_symbol = "◌";
+    #   vimcmd_replace_symbol = "□";
+    #   vimcmd_visual_symbol = "▼";
+    # };
 
-    directory = {
-      format = "[$path]($style)[$read_only]($read_only_style) ";
-      truncate_to_repo = false;
-      truncation_length = 4;
-      truncation_symbol = "…/";
+    # directory = {
+    #   format = "[$path]($style)[$read_only]($read_only_style) ";
+    #   truncate_to_repo = false;
+    #   truncation_length = 4;
+    #   truncation_symbol = "…/";
 
-      substitutions = {
-        style = "bold green";
-        home_symbol = " ";
-        read_only = "  ";
-        "~/.dots" = " ";
-        "~/.config" = " ";
-        "Documents" = " ";
-        "archives" = " ";
-        "Downloads" = " ";
-        "Music" = " ";
-        "Videos" = " ";
-        "Pictures" = "  ";
-        "global" = " ";
-      };
-    };
+    #   substitutions = {
+    #     style = "bold green";
+    #     home_symbol = " ";
+    #     read_only = "  ";
+    #     "~/.dots" = " ";
+    #     "~/.config" = " ";
+    #     "Documents" = " ";
+    #     "archives" = " ";
+    #     "Downloads" = " ";
+    #     "Music" = " ";
+    #     "Videos" = " ";
+    #     "Pictures" = "  ";
+    #     "global" = " ";
+    #   };
+    # };
 
-    time = {
-      # disabled = true;
-      format = "󱑏 [ $time ]($style)";
-      time_format = "%H:%M";
-      time_range = "22:00:00-07:00:00";
-      utc_time_offset = "-5";
-    };
+    # time = {
+    #   # disabled = true;
+    #   format = "󱑏 [ $time ]($style)";
+    #   time_format = "%H:%M";
+    #   time_range = "22:00:00-07:00:00";
+    #   utc_time_offset = "-5";
+    # };
 
-    shell = {
-      disabled = true;
-    };
+    # shell = {
+    #   disabled = true;
+    # };
 
-    sudo = {
-      allow_windows = true;
-      format = "[$symbol]($style)";
-      style = "bold italic bright-purple";
-      symbol = " ";
-      disabled = true;
-      # symbol = "[ ](bold red)";
-      # symbol = "[ ](bold red)";
-      # symbol = "[󱨚  ](bold red)";
-      # disabled = true;
-    };
+    # sudo = {
+    #   allow_windows = true;
+    #   format = "[$symbol]($style)";
+    #   style = "bold italic bright-purple";
+    #   symbol = " ";
+    #   disabled = true;
+    #   # symbol = "[ ](bold red)";
+    #   # symbol = "[ ](bold red)";
+    #   # symbol = "[󱨚  ](bold red)";
+    #   # disabled = true;
+    # };
 
     # git_branch = {
     #   format = " [$branch(:$remote_branch)]($style)";
