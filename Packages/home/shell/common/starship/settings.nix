@@ -37,27 +37,27 @@ in {
       vimcmd_visual_symbol = "▼";
     };
 
-    # directory = {
-    #   format = "[$path]($style)[$read_only]($read_only_style) ";
-    #   truncate_to_repo = false;
-    #   truncation_length = 4;
-    #   truncation_symbol = "…/";
+    directory = {
+      format = "[$path]($style)[$read_only]($read_only_style) ";
+      truncate_to_repo = false;
+      truncation_length = 4;
+      truncation_symbol = "…/";
 
-    #   substitutions = {
-    #     style = "bold green";
-    #     home_symbol = " ";
-    #     read_only = "  ";
-    #     "~/.dots" = " ";
-    #     "~/.config" = " ";
-    #     "Documents" = " ";
-    #     "archives" = " ";
-    #     "Downloads" = " ";
-    #     "Music" = " ";
-    #     "Videos" = " ";
-    #     "Pictures" = "  ";
-    #     "global" = " ";
-    #   };
-    # };
+      substitutions = {
+        style = "bold green";
+        home_symbol = " ";
+        read_only = "  ";
+        "~/.dots" = " ";
+        "~/.config" = " ";
+        "Documents" = " ";
+        "archives" = " ";
+        "Downloads" = " ";
+        "Music" = " ";
+        "Videos" = " ";
+        "Pictures" = "  ";
+        "global" = " ";
+      };
+    };
 
     # time = {
     #   # disabled = true;
