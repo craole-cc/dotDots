@@ -71,7 +71,7 @@
         "Videos" = " ";
         "~/Videos" = " ";
         "Pictures" = " ";
-        "~/Pictures" = " ";
+        "~/Pictures" = "";
         "$WALLPAPERS" = " ";
         "global" = "  ";
       };
