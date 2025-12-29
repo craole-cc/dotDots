@@ -7,19 +7,21 @@
   home.packages = with pkgs; [
     gImageReader
     inkscape
-    microsoft-edge
+    # microsoft-edge
     qbittorrent-enhanced
     warp-terminal
     kdePackages.yakuake
     swaybg
     cachix
+    lsd
+    eza
   ];
 
   programs = {
-    alacritty.enable = true; # Super+T in the default setting (terminal)
-    fuzzel.enable = true; # Super+D in the default setting (app launcher)
-    swaylock.enable = true; # Super+Alt+L in the default setting (screen locker)
-    waybar.enable = true; # launch on startup in the default setting (bar)
+    # alacritty.enable = true; # Super+T in the default setting (terminal)
+    # fuzzel.enable = true; # Super+D in the default setting (app launcher)
+    # swaylock.enable = true; # Super+Alt+L in the default setting (screen locker)
+    # waybar.enable = true; # launch on startup in the default setting (bar)
 
     zen-browser = {
       enable = true;
