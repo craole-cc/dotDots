@@ -72,7 +72,8 @@
         "Videos" = " ";
         "~/Videos" = " ";
         "Pictures" = "  ";
-        "~/Pictures" = " 󰸉 ";
+        "~/Pictures" = "  ";
+        "~/Pictures/Wallpapers" = " 󰸉 ";
         "global" = "  ";
       };
     };
