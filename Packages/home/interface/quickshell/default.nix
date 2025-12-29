@@ -6,14 +6,13 @@
 }: let
   app = "quickshell";
   inherit (lib.lists) elem;
+  inherit (lib.modules) mkIf;
   inherit (user.applications) allowed;
   isAllowed = elem app allowed;
 in {
-  programs.${app} =
-    {
-      enable = isAllowed;
-      enableBashIntegration = config.programs.bash.enable;
-      enableNushellIntegration = config.programs.nushell.enable;
-    }
-    // import ./settings.nix;
+  config = mkIf isAllowed {
+    programs.${app} =
+      {enable = true;}
+      // import ./settings.nix;
+  };
 }
