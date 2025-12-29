@@ -16,7 +16,7 @@
     || isPrimary
     || isSecondary;
 in {
-  config = mkIf isAllowed {
+  config = mkIf true {
     programs.${app} =
       {enable = isAllowed;}
       // import ./settings.nix
