@@ -127,20 +127,20 @@ in {
       empty_symbol = " ";
       disabled = true;
 
-      #   display = [
-      #     {
-      #       threshold = 20;
-      #       style = "italic bold red";
-      #     }
-      #     {
-      #       threshold = 60;
-      #       style = "italic dimmed bright-purple";
-      #     }
-      #     {
-      #       threshold = 70;
-      #       style = "italic dimmed yellow";
-      #     }
-      #   ];
+      display = [
+        {
+          threshold = 20;
+          style = "italic bold red";
+        }
+        {
+          threshold = 60;
+          style = "italic dimmed bright-purple";
+        }
+        {
+          threshold = 70;
+          style = "italic dimmed yellow";
+        }
+      ];
     };
 
     nix_shell = {
