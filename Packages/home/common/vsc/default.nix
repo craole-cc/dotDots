@@ -1,1 +1,1 @@
-{imports = lix.importAll ./.;}
+{lix, ...}: {imports = lix.importAll ./.;}
