@@ -1,5 +1,5 @@
 {
-  programs.ghostty.settings = {
+  settings = {
     #| Daemon mode:
     # -- Single instance across all windows (reduced memory footprint)
     # -- Stays running when all windows are closed (instant reopening)

@@ -1,6 +1,11 @@
 {user, ...}: {
   programs.jujutsu = {
     enable = true;
-    settings.user = {inherit (user.git) name email;};
+    settings = {
+      user = {
+        name = user.git.name or null;
+        email = user.git.email or null;
+      };
+    };
   };
 }

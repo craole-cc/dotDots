@@ -3,7 +3,10 @@
     enable = true;
     lfs.enable = true;
     settings = {
-      user = {inherit (user.git) name email;};
+      user = {
+        name = user.git.name or null;
+        email = user.git.email or null;
+      };
       core = {
         whitespace = "trailing-space,space-before-tab";
       };

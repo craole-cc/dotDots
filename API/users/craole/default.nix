@@ -32,7 +32,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    desktopEnvironment = "cosmic";
+    desktopEnvironment = "plasma";
     windowManager = "niri";
     bar = "noctalia-shell";
     shell = "bash"; #TODO: This should be the first in the shells list

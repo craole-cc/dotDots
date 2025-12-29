@@ -28,18 +28,20 @@ in {
   # };
 
   imports = [
-    # ./apps.nix
+    ./common
+    ./apps.nix
+
     ./atuin
     ./bash
     # ./firefox
     ./foot
     ./freetube
-    # ./ghostty
+    ./ghostty
     ./helix
     ./home-manager
     ./mpv
     ./niri
-    # ./noctula-shell
+    ./noctula-shell
     ./nushell
     # ./obs
     # ./starship

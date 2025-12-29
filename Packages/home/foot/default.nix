@@ -11,17 +11,16 @@
   inherit (lix.lists.predicates) isIn;
   inherit (lib.modules) mkIf;
   inherit (lix.attrsets.predicates) waylandEnabled;
-  inherit (user.applications) allowed terminal;
 
-  isPrimary = app == terminal.primary or null;
-  isSecondary = app == terminal.secondary or null;
+  isPrimary = app == user.applications.terminal.primary or null;
+  isSecondary = app == user.applications.terminal.secondary or null;
   isAllowed =
     waylandEnabled {
       inherit config;
       interface = user.interface or {};
     }
     && (
-      (isIn app allowed)
+      (isIn app (user.applications.allowed or []))
       || isPrimary
       || isSecondary
     );
