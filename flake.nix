@@ -58,7 +58,7 @@
       {
         nixosConfigurations = mkCore {
           inherit hosts specialArgs;
-          modulesPath = ./Modules;
+          # modulesPath = ./Modules;
         };
       }
       // import ./Templates;

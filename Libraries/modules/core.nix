@@ -11,7 +11,7 @@
   mkCore = {
     hosts,
     specialArgs,
-    modulesPath,
+    # modulesPath,
     ...
   }:
     lib.mapAttrs (_name: host: let
