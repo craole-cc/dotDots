@@ -1,9 +1,31 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
+    bfetch
+    bunnyfetch
+    countryfetch
+    freshfetch
+    ghfetch
+    gitfetch
+    honeyfetch
+    hyfetch
+    ipfetch
     neofetch
+    netfetch
     nitch
     onefetch
+    owofetch
+    pdfetch
+    pfetch
+    pfetch-rs
+    prideferch
+    ramfetch
+    screenfetch
+    starfetch
+    tinyfetch
     tokei
-    cowsay
+    ufetch
+    uwufetch
+    yafetch
+    zigfetch
   ];
 }
