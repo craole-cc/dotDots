@@ -1,6 +1,6 @@
 {
   imports = [
-    ./programs
+    # ./programs
     # ./services
   ];
 
@@ -34,6 +34,7 @@
     displayProtocol = "wayland";
     desktopEnvironment = "cosmic";
     windowManager = "niri";
+    bar = "noctalia-shell";
     shell = "bash"; #TODO: This should be the first in the shells list
     keyboard = {
       modifier = "SUPER";

@@ -1,22 +1,19 @@
 {
   # config,
   lib,
+  user,
+  inputs,
   # pkgs,
   # host,
   # system,
   # bar,
   ...
 }: let
-  # inherit (lib.lists) optional;
+  inherit (lib.lists) optionals;
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) toJSON;
-  # isAllowed = bar == app;
-  isAllowed = true;
+  inherit (lib.strings) hasInfix toJSON;
+  isAllowed = hasInfix "noctalia" (user.interface.bar or null);
 in {
-  # imports = optional isAllowed [
-  #   inputs.noctaliaShell.homeModules.default
-  # ];
-
   config = mkIf isAllowed {
     programs.waybar.enable = lib.mkForce false;
     # home.packages = [
@@ -31,7 +28,7 @@ in {
           pinnedExecs = [];
           position = "center";
           sortByMostUsed = true;
-          terminalCommand = "xterm -e";
+          terminalCommand = "$TERMINAL";
           useApp2Unit = false;
         };
         audio = {

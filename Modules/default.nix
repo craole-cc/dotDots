@@ -1,9 +1,13 @@
 {
+  host,
+  lix,
+  ...
+}: {
   imports = [
-    ./audio.nix
+    # ./audio.nix
     ./boot.nix
     ./environment.nix
-    ./filesystem.nix
+    # ./filesystem.nix
     ./fonts.nix
     ./interface.nix
     ./localization.nix

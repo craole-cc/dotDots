@@ -10,7 +10,7 @@
   inherit (lib.attrsets) attrValues filterAttrs mapAttrs optionalAttrs attrByPath;
   inherit (lib.lists) any concatMap elem head optionals;
   inherit (lib.modules) mkDefault;
-  inherit (lix.configuration.core) mkSudoRules;
+  inherit (lix.modules.core) mkSudoRules;
   inherit (lix.attrsets.resolution) package;
   inherit (lix.applications.firefox) zenVariant;
   inherit (lix.lists.predicates) isIn;
@@ -66,23 +66,11 @@ in {
     overwriteBackup = true;
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = {inherit (pkgs.stdenv.hostPlatform) system;};
-    # ++ optionals (cfg.interface.desktopEnvironment or null == "plasma") [plasma-manager]
-    # ++ optionals needNvf [inputs.modules.home.nvf]
-    # ++ optionals ((zen cfg) != null) zen-homeModules.${(zen cfg)}
-    # ++ optionals needNoctalia [inputs.modules.home.noctalia-shell]
-    # ++ optionals (cfg.interface.bar or null == "dms") [dankMaterialShell]
-    #   isIn ["neovim" "nvim" "nvf" "vim"] (
-    #     (cfg.applications.allowed or [])
-    #     ++ (with cfg.applications.editor; [
-    #       (tty.primary or null)
-    #       (tty.secondary or null)
-    #     ])
-    #   )
-    # )
-    # [inputs.modules.home.nvf]
-    # ++ [(src + "/Packages/home")];
-    # cfg.imports or [];
+    extraSpecialArgs = {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      inherit lix host;
+    };
+
     #> Merge all per-user home-manager configs
     users =
       mapAttrs (name: cfg: {
@@ -97,31 +85,6 @@ in {
           ])
           ++ cfg.imports or []
           ++ [../Packages/home];
-        home = {
-          inherit (host) stateVersion;
-          packages = with pkgs; (map (shell:
-            package {
-              inherit pkgs;
-              target = shell;
-            })
-          cfg.shells);
-        };
-
-        programs = {
-          home-manager.enable = true;
-          bash.enable = mkDefault (elem "bash" (cfg.shells or []));
-          zsh.enable = mkDefault (elem "zsh" (cfg.shells or []));
-          fish.enable = mkDefault (elem "fish" (cfg.shells or []));
-          nushell.enable = mkDefault (elem "nushell" (cfg.shells or []));
-        };
-
-        wayland.windowManager = {
-          hyprland.enable = cfg.interface.windowManager or null == "hyprland";
-          sway.enable = cfg.interface.windowManager or null == "sway";
-          river.enable = cfg.interface.windowManager or null == "river";
-          labwc.enable = cfg.interface.windowManager or null == "labwc";
-          wayfire.enable = cfg.interface.windowManager or null == "wayfire";
-        };
       })
       (filterAttrs (_: u: (!elem u.role ["service" "guest"])) users);
   };

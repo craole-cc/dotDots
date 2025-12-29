@@ -10,6 +10,7 @@ in {
   id = "cfd69003";
 
   packages = {
+    unstable = true;
     allowUnfree = true;
     kernel = "linuxPackages_latest";
   };

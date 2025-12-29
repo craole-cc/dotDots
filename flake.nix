@@ -5,8 +5,8 @@
     src = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import src {inherit lib src self;}) lix flake hosts schema;
-    inherit (lix) getSystems mkCore;
-    inherit (getSystems {inherit hosts legacyPackages;}) perFlake;
+    inherit (lix.modules.core) systems mkCore;
+    inherit (systems {inherit hosts legacyPackages;}) perFlake;
 
     specialArgs = {
       inherit lix flake schema;

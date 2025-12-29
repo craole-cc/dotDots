@@ -4,7 +4,7 @@
     # get
     # orNull
     # ;
-    inherit (_.configuration.resolution) systems;
+    inherit (_.modules.resolution) systems;
   };
 in
   exports

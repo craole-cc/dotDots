@@ -1,0 +1,270 @@
+{
+  "LWI.breakpoints": [
+    {
+      "color": "rgb(0, 255, 0, 0.6)",
+      "column": 54
+    },
+    {
+      "color": "rgb(255, 255, 0, 0.6)",
+      "column": 69
+    },
+    {
+      "color": "rgb(255, 0, 0, 0.6)",
+      "column": 79
+    }
+  ],
+  "LWI.style.fontStyle": "italic",
+  "LWI.style.fontWeight": "100",
+  "[bats]": {
+    "editor.defaultFormatter": "mkhl.shfmt"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
+  },
+  "[powershell]": {
+    "editor.defaultFormatter": "ms-vscode.powershell",
+    "editor.renderControlCharacters": true,
+    "editor.tabCompletion": "on",
+    "files.encoding": "utf8bom"
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "mkhl.shfmt"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[yaml]": {},
+  "editor.accessibilitySupport": "off",
+  "editor.cursorBlinking": "expand",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.detectIndentation": false,
+  "editor.fontSize": 24,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+  "editor.guides.bracketPairs": "active",
+  "editor.inlayHints.enabled": "offUnlessPressed",
+  "editor.inlineSuggest.suppressSuggestions": true,
+  "editor.insertSpaces": true,
+  "editor.lineHeight": 2,
+  "editor.lineNumbers": "relative",
+  "editor.linkedEditing": true,
+  "editor.matchBrackets": "never",
+  "editor.minimap.enabled": true,
+  "editor.minimap.size": "fill",
+  "editor.mouseWheelZoom": false,
+  "editor.occurrencesHighlight": "off",
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "editor.renderLineHighlight": "gutter",
+  "editor.selectionHighlight": false,
+  "editor.semanticHighlighting.enabled": true,
+  "editor.semanticTokenColorCustomizations": {
+    "rules": {
+      "*.static": {
+        "italic": true
+      },
+      "interface": {
+        "italic": true
+      },
+      "keyword": {
+        "italic": true
+      },
+      "selfParameter": {
+        "italic": true
+      }
+    }
+  },
+  "editor.smoothScrolling": true,
+  "editor.stickyScroll.enabled": false,
+  "editor.suggestSelection": "recentlyUsedByPrefix",
+  "editor.tabSize": 2,
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "comment",
+          "emphasis",
+          "entity.name.method.js",
+          "entity.name.class.js",
+          "entity.name.tag.doctype",
+          "entity.other.attribute-name",
+          "keyword",
+          "keyword.control",
+          "keyword.operator.comparison",
+          "keyword.control.flow.js",
+          "keyword.control.flow.ts",
+          "storage",
+          "storage.type",
+          "storage.modifier",
+          "variable.language",
+          "italic",
+          "markup.italic",
+          "meta.decorator punctuation.decorator"
+        ],
+        "settings": {
+          "fontStyle": "italic"
+        }
+      }
+    ]
+  },
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 120,
+  "explorer.compactFolders": false,
+  "extensions.autoCheckUpdates": false,
+  "files.associations": {
+    "**/*.conf": "ini",
+    "**/conf*/{fuzzel,ghostty,mpv,hyprland}/*": "ini",
+    "**/conf*/{raffi}/*": "yaml",
+    "*.bash": "shellscript",
+    "*.css": "tailwindcss",
+    "*.gs": "javascript",
+    "*.init": "shellscript",
+    "*.lock": "jsonc",
+    "*.log": "log",
+    "*.nix": "nix",
+    "*.sh": "shellscript",
+    "*.typ": "typst",
+    ".bash*": "shellscript",
+    ".editorconfig": "ini",
+    ".env*": "dotenv",
+    ".envrc": "shellscript",
+    ".gitignore": "ignore",
+    ".ignore": "ignore",
+    ".shellcheckrc": "shellscript",
+    "Gemfile": "ruby",
+    "LICENSE": "txt",
+    "LICENSE-MIT": "txt",
+    "README": "markdown",
+    "editorconfig": "ini"
+  },
+  "files.autoSave": "afterDelay",
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/.DS_Store": false,
+    "**/.direnv": false,
+    "**/.git": false,
+    "**/.vscode": false,
+    "**/target": false
+  },
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.watcherExclude": {
+    "**/.local/**": true,
+    "**/.trunk/*actions/": true,
+    "**/.trunk/*logs/": true
+  },
+  "git.allowForcePush": true,
+  "git.autofetch": true,
+  "git.confirmForcePush": false,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.ignoreRebaseWarning": true,
+  "git.openRepositoryInParentFolders": "always",
+  "git.rebaseWhenSync": true,
+  "gitlens.currentLine.enabled": false,
+  "gitlens.hovers.currentLine.over": "line",
+  "markdown.updateLinksOnFileMove.enabled": "always",
+  "markdown.validate.enabled": true,
+  "material-icon-theme.activeIconPack": "react",
+  "material-icon-theme.files.associations": {
+    ".envrc": "ember",
+    ".ignore": "mocha",
+    ".shellcheckrc": "astyle",
+    ".treefmt.toml": "taze",
+    "rust-toolchain": "rust",
+    "rust-toolchain.toml": "rust"
+  },
+  "material-icon-theme.files.color": "#e8ddd8",
+  "material-icon-theme.folders.associations": {
+    ".cargo": "config",
+    "desktops": "interfaces",
+    "dots": "Cluster",
+    "hosts": "client",
+    "media": "video",
+    "methods": "Config",
+    "options": "tasks",
+    "overlays": "plugin",
+    "systems": "client",
+    "traits": "Tools",
+    "types": "Enum",
+    "users": "admin"
+  },
+  "material-icon-theme.folders.color": "#81c8be",
+  "material-icon-theme.hidesExplorerArrows": true,
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nixd",
+  "nix.serverSettings": {
+    "nixd": {
+      "formatting": {
+        "command": ["nixfmt"]
+      }
+    }
+  },
+  "powershell.codeFormatting.autoCorrectAliases": true,
+  "powershell.codeFormatting.useCorrectCasing": true,
+  "powershell.integratedConsole.showOnStartup": false,
+  "powershell.integratedConsole.suppressStartupBanner": true,
+  "rust-analyzer.check.command": "clippy",
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html"
+  },
+  "terminal.integrated.allowMnemonics": true,
+  "terminal.integrated.commandsToSkipShell": [
+    "workbench.action.terminal.copySelection"
+  ],
+  "terminal.integrated.confirmOnExit": "never",
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "block",
+  "terminal.integrated.enableImages": true,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "terminal.integrated.fontLigatures.enabled": true,
+  "terminal.integrated.fontSize": 18,
+  "terminal.integrated.fontWeight": 500,
+  "terminal.integrated.hideOnStartup": "whenEmpty",
+  "terminal.integrated.letterSpacing": 0,
+  "terminal.integrated.lineHeight": 1.2,
+  "terminal.integrated.mouseWheelZoom": false,
+  "terminal.integrated.rightClickBehavior": "copyPaste",
+  "terminal.integrated.smoothScrolling": true,
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "update.mode": "none",
+  "window.autoDetectColorScheme": true,
+  "window.autoDetectHighContrast": true,
+  "window.menuBarVisibility": "compact",
+  "window.titleBarStyle": "custom",
+  "workbench.colorCustomizations": {
+    "editorGroupHeader.tabsBackground": "#ffffff00",
+    "statusBar.background": "#ffffff00",
+    "statusBar.border": "#3c69e750"
+  },
+  "workbench.editorAssociations": {
+    "*.copilotmd": "vscode.markdown.preview.editor"
+  },
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.panel.defaultLocation": "bottom",
+  "workbench.preferredDarkColorTheme": "Monokai",
+  "workbench.preferredLightColorTheme": "Bluloco Light Italic",
+  "workbench.productIconTheme": "material-product-icons",
+  "workbench.startupEditor": "none"
+}

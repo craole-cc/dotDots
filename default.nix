@@ -18,12 +18,12 @@
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
   inherit (lib.lists) length filter head;
   inherit (lib.strings) splitString;
-  inherit (lix.configuration.predicates) isSystemDefaultUser;
+  inherit (lix.modules.predicates) isSystemDefaultUser;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Flake Resolution                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
-  lic = lix.configuration.resolution;
+  lic = lix.modules.resolution;
   flake =
     if self != null
     then self

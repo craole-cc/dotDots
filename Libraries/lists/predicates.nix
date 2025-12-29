@@ -411,6 +411,7 @@ in {
     isInExact
     mostFrequent
     ;
+  isNotIn = !isIn;
 
   _rootAliases = {
     checkListMembership = checkMembership;

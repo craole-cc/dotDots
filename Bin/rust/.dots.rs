@@ -60,7 +60,8 @@ struct Cli {
   quiet: bool,
 
   /// Icon style for output
-  #[arg(long, alias = "icon", alias = "icon_style", global = true, value_enum, default_value_t = IconStyle::Nerdfont)]
+  #[arg(long, alias = "icon",
+  alias = "icon_style", global = true, value_enum, default_value_t = IconStyle::Nerdfont)]
   icons: IconStyle,
 }
 
@@ -327,63 +328,63 @@ enum IconStyle {
 impl IconStyle {
   fn success(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => "  ",
-      IconStyle::Emoji => "✅  ",
-      IconStyle::Text => "[INFO] ",
+      IconStyle::Nerdfont => "   ",
+      IconStyle::Emoji => " ✅  ",
+      IconStyle::Text => " [INFO] ",
       IconStyle::None => "",
     })
   }
 
   fn debug(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => "  ",
-      IconStyle::Emoji => "🔍  ",
-      IconStyle::Text => "[DEBUG] ",
+      IconStyle::Nerdfont => "   ",
+      IconStyle::Emoji => " 🔍  ",
+      IconStyle::Text => " [DEBUG] ",
       IconStyle::None => "",
     })
   }
 
   fn info(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => "  ",
-      IconStyle::Emoji => "ℹ️  ",
-      IconStyle::Text => "[INFO] ",
+      IconStyle::Nerdfont => "   ",
+      IconStyle::Emoji => " ℹ️  ",
+      IconStyle::Text => " [INFO] ",
       IconStyle::None => "",
     })
   }
 
   fn warning(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => "  ",
-      IconStyle::Emoji => "⚠️  ",
-      IconStyle::Text => "[WARNING] ",
+      IconStyle::Nerdfont => "   ",
+      IconStyle::Emoji => " ⚠️  ",
+      IconStyle::Text => " [WARNING] ",
       IconStyle::None => "",
     })
   }
 
   fn error(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => "  ",
-      IconStyle::Emoji => "❌  ",
-      IconStyle::Text => "[ERROR] ",
+      IconStyle::Nerdfont => "   ",
+      IconStyle::Emoji => " ❌  ",
+      IconStyle::Text => " [ERROR] ",
       IconStyle::None => "",
     })
   }
 
   fn target(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => "󰓾  ",
-      IconStyle::Emoji => "🎯  ",
-      IconStyle::Text => "[INFO] ",
+      IconStyle::Nerdfont => " 󰓾  ",
+      IconStyle::Emoji => " 🎯  ",
+      IconStyle::Text => " [INFO] ",
       IconStyle::None => "",
     })
   }
 
   fn build(&self, override_icon: Option<&'static str>) -> &'static str {
     override_icon.unwrap_or_else(|| match self {
-      IconStyle::Nerdfont => " ",
-      IconStyle::Emoji => "🔨 ",
-      IconStyle::Text => "[INFO] ",
+      IconStyle::Nerdfont => " 󱌣 ",
+      IconStyle::Emoji => " 🔨 ",
+      IconStyle::Text => " [INFO] ",
       IconStyle::None => "",
     })
   }
