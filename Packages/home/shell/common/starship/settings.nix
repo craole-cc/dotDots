@@ -58,6 +58,8 @@
         style = "bold green";
         home_symbol = " ";
         read_only = " ";
+        "~" = " ";
+        ".dots" = " ";
         "~/.dots" = " ";
         "~/.config" = " ";
         "Documents" = " ";
