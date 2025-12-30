@@ -33,7 +33,7 @@
   interface = {
     displayProtocol = "wayland";
     desktopEnvironment = "cosmic";
-    windowManager = "niri";
+    windowManager = "hyprland";
     bar = "noctalia-shell";
     shell = "bash";
     keyboard = {

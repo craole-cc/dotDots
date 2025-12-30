@@ -3,6 +3,7 @@
   lix,
   lib,
   config,
+  src,
   ...
 }: let
   app = "niri";
@@ -17,6 +18,10 @@
     && (user.interface.windowManager or null) == app;
 in {
   config = mkIf isAllowed {
+    xdg.configFile."niri/config.kdl" = mkIf (src != null) {
+      source = src + "/Configuration/niri/default.kdl";
+    };
+
     programs = {
       # ${app} = #TODO: Niri flake is outdated
       #   {enable = true;}
