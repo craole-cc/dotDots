@@ -75,18 +75,18 @@ in {
 
     display = [
       {
-        name = "DP-3"; # Dell monitor (top)
-        resolution = "1600x900";
-        refreshRate = 60;
-        scale = 1;
-        position = "0x0"; # Top left corner
-      }
-      {
         name = "HDMI-A-3"; # 2K laptop screen (below Dell)
         resolution = "2560x1440"; # 2K
         refreshRate = 75;
         scale = 1;
-        position = "0x1080"; # Below the Dell (y = Dell's height)
+        position = "0x0"; # Below the Dell (y = Dell's height)
+      }
+      {
+        name = "DP-3"; # Dell monitor (top)
+        resolution = "1600x900";
+        refreshRate = 60;
+        scale = 1;
+        position = "0x1440";
       }
       {
         name = "HDMI-A-2"; # Acer (vertical, to the right)
@@ -94,7 +94,7 @@ in {
         refreshRate = 100;
         scale = 1;
         position = "2560x0"; # To the right of 2K screen
-        transform = 3; # 0=normal, 1=90°, 2=180°, 3=270°
+        transform = 2; # 0=normal, 1=90°, 2=180°, 3=270°
       }
     ];
   };
