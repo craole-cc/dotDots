@@ -5,6 +5,14 @@
     font = "monospace:size=18";
     pad = "8x8";
     bold-text-in-bright = "yes";
+
+    #> Automatically copy the selection to the clipboard
+    selection-target = "both";
+
+    # #> Copy to clipboard ONLY when holding Shift
+    # #? Options: "none", "primary", "clipboard", "both"
+    # selection-override-clipboard = "both";
+    # selection-override-modifiers = "Shift";
   };
 
   bell = {
@@ -19,14 +27,6 @@
   mouse = {
     hide-when-typing = "yes";
     alternate-scroll-mode = "yes";
-
-    #> Don't copy on normal selection
-    selection-clipboard = "none";
-
-    #> Copy to clipboard ONLY when holding Shift
-    #? Options: "none", "primary", "clipboard", "both"
-    selection-override-clipboard = "both";
-    selection-override-modifiers = "Shift";
   };
 
   scrollback = {
