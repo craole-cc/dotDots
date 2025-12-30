@@ -10,8 +10,8 @@
 
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
-
-  isAllowed = isIn opt [(user.desktopEnvironment or null)];
+  # isAllowed = isIn opt [(user.desktopEnvironment or null)];
+  isAllowed = true;
 in {
   config = mkIf isAllowed {
     programs = {
