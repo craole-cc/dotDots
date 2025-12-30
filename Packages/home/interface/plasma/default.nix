@@ -4,6 +4,7 @@
   inputs,
   user,
   pkgs,
+  system,
   ...
 }: let
   app = "plasma";
@@ -15,7 +16,7 @@
   isAllowed = true;
 in {
   import = [
-    inputs.packages.plasma
+    inputs.packages.plasma.${system}.default
   ];
   config = mkIf isAllowed {
     programs = {
