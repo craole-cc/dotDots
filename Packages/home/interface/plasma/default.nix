@@ -1,10 +1,8 @@
 {
   lib,
   lix,
-  inputs,
   user,
   pkgs,
-  system,
   ...
 }: let
   app = "plasma";
@@ -12,10 +10,9 @@
 
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
-  # isAllowed = isIn opt [(user.desktopEnvironment or null)];
-  isAllowed = true;
+  # Check if plasma is the configured desktop environment
+  isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 in {
-  imports = [inputs.packages.plasma-manager.${system}.default];
   config = mkIf isAllowed {
     programs = {
       ${app} =
