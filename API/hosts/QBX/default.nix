@@ -88,14 +88,14 @@ in {
         scale = 1;
         position = "0x1080"; # Below the Dell (y = Dell's height)
       }
-      {
-        name = "HDMI-A-2"; # Acer (vertical, to the right)
-        resolution = "1920x1080";
-        refreshRate = 100;
-        scale = 1;
-        position = "2560x0"; # To the right of 2K screen
-        transform = 1; # 0=normal, 1=90°, 2=180°, 3=270°
-      }
+      # {
+      #   name = "HDMI-A-2"; # Acer (vertical, to the right)
+      #   resolution = "1920x1080";
+      #   refreshRate = 100;
+      #   scale = 1;
+      #   position = "2560x0"; # To the right of 2K screen
+      #   transform = 1; # 0=normal, 1=90°, 2=180°, 3=270°
+      # }
     ];
   };
 
