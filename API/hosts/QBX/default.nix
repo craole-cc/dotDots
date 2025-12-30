@@ -75,26 +75,32 @@ in {
 
     display = [
       {
-        name = "HDMI-A-3"; # 2K laptop screen (below Dell)
+        brand = "KTC";
+        name = "HDMI-A-3";
         resolution = "2560x1440"; # 2K
-        refreshRate = 75;
+        refreshRate = 100;
         scale = 1;
-        position = "0x0"; # Below the Dell (y = Dell's height)
+        position = "0x0";
+        size = 27.0;
       }
       {
-        name = "DP-3"; # Dell monitor (top)
-        resolution = "1600x900";
-        refreshRate = 60;
-        scale = 1;
-        position = "0x1440";
-      }
-      {
-        name = "HDMI-A-2"; # Acer (vertical, to the right)
+        brand = "ACER";
+        name = "HDMI-A-2";
         resolution = "1920x1080";
         refreshRate = 100;
         scale = 1;
         position = "2560x0"; # To the right of 2K screen
-        transform = 2; # 0=normal, 1=90°, 2=180°, 3=270°
+        transform = 3; # 0=normal, 1=90°, 2=180°, 3=270°
+        size = 24.5;
+      }
+      {
+        brand = "DELL";
+        name = "DP-3";
+        resolution = "1600x900";
+        refreshRate = 60;
+        scale = 1;
+        position = "0x1440";
+        size = 19.4;
       }
     ];
   };
@@ -182,7 +188,7 @@ in {
   ];
 
   interface = {
-    bootLoader = "refind";
+    bootLoader = "systemd";
     bootLoaderTimeout = 1;
     loginManager = "sddm";
     desktopEnvironment = "plasma";
