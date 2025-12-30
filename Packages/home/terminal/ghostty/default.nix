@@ -16,8 +16,8 @@ in {
   config = mkIf true {
     programs.${app} =
       {enable = isAllowed;}
-      // import ./settings.nix
-      // import ./themes.nix;
+      # // import ./themes.nix
+      // import ./settings.nix;
 
     home.sessionVariables =
       {}
