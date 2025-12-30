@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   exec-once = [
     # ============================================
     # D-Bus & Environment Setup
@@ -19,7 +19,7 @@
     "hyprctl setcursor Bibata-Modern-Ice 24"
 
     #~@ Initialize wallpaper (custom script or use hyprpaper/swaybg)
-    "init-wallpaper &"
+    # "init-wallpaper &"
 
     # ============================================
     # Terminal Daemon Servers
@@ -54,7 +54,8 @@
     "wl-paste --watch cliphist store &"
 
     # Status bar for workspaces, system info, tray icons
-    "waybar &"
+    # "waybar &"
+    "noctalia-shell &"
 
     # Notification daemon (Sway Notification Center)
     # Control center accessible via keybind

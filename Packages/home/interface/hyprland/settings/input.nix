@@ -36,12 +36,12 @@
     };
     launcher = {
       primary = {
-        name = "rofi";
-        command = "rofi -show-icons -show drun";
+        name = "fuzzel";
+        command = "fuzzel --list-executables-in-path";
       };
       secondary = {
-        name = "fuzzel";
-        command = "fuzzel";
+        name = "wofi";
+        command = "wofi --show drun --show run";
       };
     };
   };
@@ -53,9 +53,10 @@
     editor
     ;
   mat = lib.attrsets.mapAttrsToList;
-  inherit (lib.modules) mkIf;
+  # inherit (lib.modules) mkIf;
   inherit (lib.strings) toUpper;
-  inherit (host.interface.keyboard) modifier swapCapsEscape;
+  # inherit (host.interface.keyboard) modifier swapCapsEscape;
+  modifier = host.interface.keyboard.modifier or "SUPER";
 
   workspaces = [
     # "grave"
