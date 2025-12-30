@@ -75,18 +75,26 @@ in {
 
     display = [
       {
-        name = "HDMI-A-1";
+        name = "HDMI-A-1"; # Dell monitor (top)
         resolution = "1920x1080";
         refreshRate = 75;
         scale = 1;
-        position = "0x0";
+        position = "0x0"; # Top left corner
       }
       {
-        name = "eDP-1";
-        resolution = "1920x1080";
-        refreshRate = 144.15;
+        name = "eDP-1"; # 2K laptop screen (below Dell)
+        resolution = "2560x1440"; # 2K
+        refreshRate = 100;
         scale = 1;
-        position = "auto";
+        position = "0x1080"; # Below the Dell (y = Dell's height)
+      }
+      {
+        name = "DP-1"; # Acer (vertical, to the right)
+        resolution = "1920x1080";
+        refreshRate = 60;
+        scale = 1;
+        position = "2560x0"; # To the right of 2K screen
+        transform = 1; # 0=normal, 1=90°, 2=180°, 3=270°
       }
     ];
   };

@@ -1,23 +1,14 @@
 {
   user,
-  lix,
   lib,
-  config,
   host,
   ...
 }: let
   app = "hyprland";
   inherit (lib.modules) mkIf;
-  inherit (lix.attrsets.predicates) waylandEnabled;
-
-  isAllowed =
-    waylandEnabled {
-      inherit config;
-      interface = user.interface or {};
-    }
-    && (user.interface.windowManager or null) == app;
+  isAllowed = (user.interface.windowManager or null) == app;
 in {
-  config = mkIf true {
+  config = mkIf isAllowed {
     wayland.windowManager.hyprland =
       {enable = true;}
       // import ./settings {inherit host lib;}
