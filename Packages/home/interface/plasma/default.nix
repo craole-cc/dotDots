@@ -15,9 +15,7 @@
   # isAllowed = isIn opt [(user.desktopEnvironment or null)];
   isAllowed = true;
 in {
-  import = [
-    inputs.packages.plasma.${system}.default
-  ];
+  imports = [inputs.packages.plasma.${system}.default];
   config = mkIf isAllowed {
     programs = {
       ${app} =
