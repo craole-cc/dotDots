@@ -188,7 +188,7 @@ in {
   ];
 
   interface = {
-    bootLoader = "systemd";
+    bootLoader = "refind";
     bootLoaderTimeout = 1;
     loginManager = "sddm";
     desktopEnvironment = "plasma";

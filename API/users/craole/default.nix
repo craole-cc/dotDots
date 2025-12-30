@@ -32,7 +32,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    desktopEnvironment = "gnome";
+    desktopEnvironment = "plasma";
     windowManager = "hyprland";
     bar = "noctalia-shell";
     shell = "bash";
