@@ -19,7 +19,14 @@ in {
         {enable = true;}
         // import ./bindings
         // import ./files
-        // import ./modules;
+        // import ./modules/input.nix
+        // import ./modules/launcher.nix
+        // import ./modules/power.nix
+        // import ./modules/screenlock.nix
+        // import ./modules/screenshot.nix
+        // import ./modules/session.nix
+        // import ./modules/windows.nix
+        // import ./modules/workspace.nix;
     };
 
     home.packages = with pkgs.kdePackages; [
