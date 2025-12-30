@@ -26,7 +26,7 @@ in {
         // import ./modules/screenshot.nix
         // import ./modules/session.nix
         // import ./modules/windows.nix
-        // import ./modules/workspace.nix;
+        // import ./modules/workspace.nix {inherit pkgs;};
     };
 
     home.packages = with pkgs.kdePackages; [
