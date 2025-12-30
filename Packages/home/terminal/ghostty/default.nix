@@ -9,12 +9,9 @@
   inherit (lix.lists.predicates) isIn;
   inherit (lib.modules) mkIf;
 
-  isPrimary = app == user.applications.terminal.primary or null;
-  isSecondary = app == user.applications.terminal.secondary or null;
-  isAllowed =
-    (isIn app (user.applications.allowed or []))
-    || isPrimary
-    || isSecondary;
+  isPrimary = (user.applications.terminal.primary or null) == app;
+  isSecondary = (user.applications.terminal.secondary or null) == app;
+  isAllowed = (isIn app (user.applications.allowed or [])) || isPrimary || isSecondary;
 in {
   config = mkIf true {
     programs.${app} =
