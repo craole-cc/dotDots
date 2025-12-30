@@ -142,12 +142,8 @@
           enable = isSystemdBoot;
           configurationLimit = mkIf isSystemdBoot 10;
           editor = false; # Security
-          #~@ Beautiful themes (pick one)
-          # Nordic (icy blue, matches NixOS aesthetic)
-          # memtest86.enable = true;  # Bonus
-
-          # Or add theme package:
-          themes = [pkgs.nordic-theme];
+          memtest86.enable = true;
+          # themes = [pkgs.nordic-theme];
         };
 
         #~@ rEFInd configuration
