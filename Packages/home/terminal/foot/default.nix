@@ -12,18 +12,14 @@
   inherit (lib.modules) mkIf;
   inherit (lix.attrsets.predicates) waylandEnabled;
 
-  isPrimary = app == user.applications.terminal.primary or null;
-  isSecondary = app == user.applications.terminal.secondary or null;
+  isPrimary = (user.applications.terminal.primary or null) == app;
+  isSecondary = (user.applications.terminal.secondary or null) == app;
   isAllowed =
     waylandEnabled {
       inherit config;
       interface = user.interface or {};
     }
-    && (
-      (isIn app (user.applications.allowed or []))
-      || isPrimary
-      || isSecondary
-    );
+    && ((isIn app (user.applications.allowed or [])) || isPrimary || isSecondary);
 in {
   config = mkIf isAllowed {
     programs.${app} = {

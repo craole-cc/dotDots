@@ -2,7 +2,7 @@ let
   light = "Catppuccin Latte";
   dark = "Catppuccin Frappe";
 in {
-  settings.theme = "light:${light},dark:${dark}";
+  # settings.theme = "light:${light},dark:${dark}";
   themes = {
     catppuccin-mocha = {
       background = "1e1e2e";

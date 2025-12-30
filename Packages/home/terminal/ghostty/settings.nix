@@ -20,5 +20,6 @@
     ];
 
     #~@ Enable systemd integration for automatic startup
+    theme = "light:Bluloco Light,dark:Catppuccin Frappe";
   };
 }

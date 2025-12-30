@@ -1,4 +1,1 @@
-# {lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
-{
-  # imports = [./ghostty];
-}
+{lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
