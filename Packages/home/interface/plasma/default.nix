@@ -1,6 +1,7 @@
 {
   lib,
   lix,
+  inputs,
   user,
   pkgs,
   ...
@@ -13,6 +14,9 @@
   # isAllowed = isIn opt [(user.desktopEnvironment or null)];
   isAllowed = true;
 in {
+  import = [
+    inputs.packages.plasma
+  ];
   config = mkIf isAllowed {
     programs = {
       ${app} =

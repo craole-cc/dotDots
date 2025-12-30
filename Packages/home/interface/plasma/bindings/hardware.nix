@@ -55,6 +55,6 @@
     "Toggle Keyboard Backlight" = "Keyboard Light On/Off";
     "Turn Off Screen" = [];
     "powerProfile" = ["Battery" "Meta+B"];
-    "services/org.kde.konsole.desktop"._launch = [];
+    # "services/org.kde.konsole.desktop"._launch = [];
   };
 }

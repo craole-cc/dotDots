@@ -109,14 +109,14 @@
     "ToggleCurrentThumbnail" = "Meta+Ctrl+T";
     "ToggleMouseClick" = "Meta+*";
     "TrackMouse" = [];
-    "Walk Through Windows (Reverse)" = "Meta+Shift+Tab";
-    "Walk Through Windows Alternative (Reverse)" = "Alt+Shift+Tab";
-    "Walk Through Windows Alternative" = "Alt+Tab";
-    "Walk Through Windows of Current Application (Reverse)" = "Ctrl+Alt+~";
-    "Walk Through Windows of Current Application Alternative (Reverse)" = [];
+    "Walk Through Windows" = ["Alt+Tab" ""];
+    "Walk Through Windows (Reverse)" = ["Alt+Shift+Tab" ""];
+    "Walk Through Windows Alternative" = ["Meta+Tab" ""];
+    "Walk Through Windows Alternative (Reverse)" = ["Meta+Shift+Tab" ""];
+    "Walk Through Windows of Current Application" = ["Alt+`" ""];
+    "Walk Through Windows of Current Application (Reverse)" = ["Alt+~" ""];
     "Walk Through Windows of Current Application Alternative" = [];
-    "Walk Through Windows of Current Application" = "Ctrl+Alt+`";
-    "Walk Through Windows" = "Meta+Tab";
+    "Walk Through Windows of Current Application Alternative (Reverse)" = [];
     "Window Above Other Windows" = [];
     "Window Below Other Windows" = [];
     "Window Close" = "Alt+F4";
@@ -130,7 +130,7 @@
     "Window Lower" = [];
     "Window Maximize Horizontal" = [];
     "Window Maximize Vertical" = [];
-    "Window Maximize" = ["Meta+PgUp" ""];
+    "Window Maximize" = ["Meta+Home" "Meta+PgUp"];
     "Window Minimize" = "Meta+PgDown";
     "Window Move Center" = [];
     "Window Move" = [];
@@ -197,6 +197,6 @@
     "view_actual_size" = "Meta+0";
     "view_zoom_in" = ["Meta++" "Meta+="];
     "view_zoom_out" = "Meta+-";
-    # "yakuake"."toggle-window-state" = ["Meta+`"];
+    yakuake.toggle-window-state = "Meta+`";
   };
 }
