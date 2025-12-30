@@ -2,6 +2,7 @@
   lib,
   lix,
   user,
+  pkgs,
   ...
 }: let
   app = "plasma";
@@ -16,7 +17,15 @@ in {
     programs = {
       ${app} =
         {enable = true;}
-        // import ./settings.nix;
+        // import ./bindings
+        // import ./files
+        // import ./modules;
     };
+
+    home.packages = with pkgs.kdePackages; [
+      koi
+      krohnkite
+      yakuake
+    ];
   };
 }

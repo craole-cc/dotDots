@@ -166,10 +166,7 @@
     };
     programs = {
       bash = {
-        enable = (
-          (shell == "bash")
-          || (isIn "bash" (user.shells or []))
-        );
+        enable = isIn "bash" ([shell] ++ (user.shells or []));
         blesh.enable = true;
         undistractMe.enable = true;
       };
