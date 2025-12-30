@@ -35,7 +35,7 @@
     desktopEnvironment = "cosmic";
     windowManager = "niri";
     bar = "noctalia-shell";
-    shell = "bash"; #TODO: This should be the first in the shells list
+    shell = "bash";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;

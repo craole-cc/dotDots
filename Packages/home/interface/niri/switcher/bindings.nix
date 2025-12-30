@@ -1,5 +1,5 @@
 {user, ...}: {
-  settings.keys = {
+  keys = {
     modifier = user.interface.keyboard.modifier or "Super";
     switch = {
       next = "Tab";

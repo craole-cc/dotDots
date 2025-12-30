@@ -10,7 +10,6 @@
 
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
-  # Check if plasma is the configured desktop environment
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 in {
   config = mkIf isAllowed {

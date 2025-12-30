@@ -1,23 +1,30 @@
 {
   user,
+  lix,
   lib,
+  config,
   ...
 }: let
   app = "niri";
-  isAllowed = (user.interface.windowManager or null) == app;
   inherit (lib.modules) mkIf;
-in {
-  programs = mkIf isAllowed {
-    # ${app} = #TODO: Niri flake is outdated
-    #   {enable = true;}
-    #   // import ./bindings.nix
-    #   // import ./layout.nix
-    #   // import ./settings.nix;
+  inherit (lix.attrsets.predicates) waylandEnabled;
 
-    niriswitcher =
-      {enable = true;}
-      // import ./switcher/bindings.nix {inherit user;}
-      // import ./switcher/settings.nix
-      // import ./switcher/style.nix;
+  isAllowed =
+    waylandEnabled {
+      inherit config;
+      interface = user.interface or {};
+    }
+    && (user.interface.windowManager or null) == app;
+in {
+  config = mkIf isAllowed {
+    programs = {
+      # ${app} = #TODO: Niri flake is outdated
+      #   {enable = true;}
+      #   // import ./bindings.nix
+      #   // import ./layout.nix
+      #   // import ./settings.nix;
+
+      niriswitcher = import ./switcher {inherit user;};
+    };
   };
 }
