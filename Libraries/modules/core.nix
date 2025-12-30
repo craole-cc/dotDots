@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (_.modules.hardware) mkAudio mkFileSystems mkNetwork;
-  inherit (_.modules.software) mkBoot mkNix;
+  inherit (_.modules.software) mkBoot mkNix mkClean;
   inherit (_.modules.home) mkUsers;
   inherit (_.modules.environment) mkEnvironment mkFonts mkLocale;
   inherit (_.modules.resolution) systems;
@@ -40,6 +40,7 @@
                 // mkFonts {inherit host pkgs;}
                 // mkUsers {inherit host pkgs inputs src specialArgs;}
                 // mkEnvironment {inherit host pkgs inputs;}
+                // mkClean {inherit src;}
                 // {};
             })
           ]

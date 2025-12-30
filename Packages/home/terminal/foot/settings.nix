@@ -7,12 +7,8 @@
     bold-text-in-bright = "yes";
 
     #> Automatically copy the selection to the clipboard
-    selection-target = "both";
-
-    # #> Copy to clipboard ONLY when holding Shift
     # #? Options: "none", "primary", "clipboard", "both"
-    # selection-override-clipboard = "both";
-    # selection-override-modifiers = "Shift";
+    selection-target = "both";
   };
 
   bell = {

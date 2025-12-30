@@ -1,13 +1,8 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) elem any;
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkForce;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
-  inherit (_.lists.predicates) isIn;
 
   mkNix = {
     host,
@@ -19,38 +14,15 @@
     };
 
     nix = {
-      # gc = {
-      #   automatic = true;
-      #   persistent = true;
-      #   dates = "weekly";
-      #   options = "--delete-older-than 5d";
-      # };
-
-      # optimise = {
-      #   automatic = true;
-      #   persistent = true;
-      #   dates = "weekly";
-      # };
-
       settings = {
-        # auto-optimise-store = true;
         experimental-features = [
           "nix-command"
           "flakes"
           "pipe-operators"
         ];
         max-jobs = host.specs.cpu.cores or "auto";
-        # substituters = ["https://cache.nixos.org/"];
-        # trusted-substituters = [
-        #   "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        #   "https://hydra.nixos.org/"
-        # ];
         trusted-users = ["root" "@wheel"];
       };
-
-      # extraOptions = ''
-      #   download-buffer-size = 524288000
-      # '';
     };
 
     nixpkgs = let
@@ -79,7 +51,8 @@
 
         #~@ Flake inputs
         (final: prev: {
-          fromInputs = mapAttrs (_: pkgs: pkgs.${getSystem final} or {}) inputs.packages;
+          fromInputs =
+            mapAttrs (_: pkgs: pkgs.${getSystem final} or {}) inputs.packages;
         })
       ];
     };
@@ -168,6 +141,13 @@
         systemd-boot = {
           enable = isSystemdBoot;
           configurationLimit = mkIf isSystemdBoot 10;
+          editor = false; # Security
+          #~@ Beautiful themes (pick one)
+          # Nordic (icy blue, matches NixOS aesthetic)
+          # memtest86.enable = true;  # Bonus
+
+          # Or add theme package:
+          themes = [pkgs.nordic-theme];
         };
 
         #~@ rEFInd configuration
@@ -179,7 +159,8 @@
             scanfor manual,external,optical,netboot
 
             # Theme and UI
-            resolution 1920 1080
+            # resolution 1920 1080
+            resolution 1600 900
             use_nvram false
 
             ${optionalString hasDualBoot ''
@@ -212,6 +193,18 @@
       initrd.availableKernelModules = host.modules or [];
     };
   };
-  exports = {inherit mkNix mkBoot;};
+
+  mkClean = {src, ...}: {
+    programs.nh = {
+      enable = true;
+      clean = {
+        enable = true;
+        extraArgs = "--keep-since 7d --keep 5";
+      };
+      flake = src;
+    };
+  };
+
+  exports = {inherit mkNix mkBoot mkClean;};
 in
   exports // {_rootAliases = exports;}
