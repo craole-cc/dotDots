@@ -197,6 +197,6 @@
     "view_actual_size" = "Meta+0";
     "view_zoom_in" = ["Meta++" "Meta+="];
     "view_zoom_out" = "Meta+-";
-    yakuake."toggle-window-state" = "Meta+`";
+    "yakuake"."toggle-window-state" = ["Meta+`"];
   };
 }
