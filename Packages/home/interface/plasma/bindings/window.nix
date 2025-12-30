@@ -14,7 +14,7 @@
     "ExposeClassCurrentDesktop" = [];
     "Grid View" = "Meta+G";
     "Increase Opacity" = [];
-    "Kill Window" = "Meta+Ctrl+Esc";
+    "Kill Window" = ["Meta+Shift+Q" "Meta+Ctrl+Esc"];
     "KrohnkiteBTreeLayout" = [];
     "KrohnkiteColumnsLayout" = [];
     "KrohnkiteDecrease" = [];
@@ -64,10 +64,10 @@
     "Switch One Desktop Up" = [];
     "Switch One Desktop to the Left" = "Meta+Ctrl+Left";
     "Switch One Desktop to the Right" = "Meta+Ctrl+Right";
-    "Switch Window Down" = "Meta+Alt+Down";
-    "Switch Window Left" = "Meta+Alt+Left";
-    "Switch Window Right" = "Meta+Alt+Right";
-    "Switch Window Up" = [];
+    "Switch Window Down" = ["Meta+Shift+J" "Meta+Alt+Down"];
+    "Switch Window Left" = ["Meta+Shift+H" "Meta+Alt+Left"];
+    "Switch Window Right" = ["Meta+Shift+L" "Meta+Alt+Right"];
+    "Switch Window Up" = ["Meta+Shift+K" "Meta+Alt+Up"];
     "Switch to Desktop 1" = "Ctrl+F1";
     "Switch to Desktop 10" = [];
     "Switch to Desktop 11" = [];
@@ -119,19 +119,19 @@
     "Walk Through Windows of Current Application Alternative (Reverse)" = [];
     "Window Above Other Windows" = [];
     "Window Below Other Windows" = [];
-    "Window Close" = "Alt+F4";
+    "Window Close" = ["Meta+Q" "Alt+F4"];
     "Window Custom Quick Tile Bottom" = [];
     "Window Custom Quick Tile Left" = [];
     "Window Custom Quick Tile Right" = [];
     "Window Custom Quick Tile Top" = [];
-    "Window Fullscreen" = [];
+    "Window Fullscreen" = ["Meta+F"];
     "Window Grow Horizontal" = [];
     "Window Grow Vertical" = [];
     "Window Lower" = [];
     "Window Maximize Horizontal" = [];
     "Window Maximize Vertical" = [];
     "Window Maximize" = ["Meta+Home" "Meta+PgUp"];
-    "Window Minimize" = "Meta+PgDown";
+    "Window Minimize" = ["Meta+Shift+Home" "Meta+PgDown"];
     "Window Move Center" = [];
     "Window Move" = [];
     "Window No Border" = [];
@@ -197,6 +197,5 @@
     "view_actual_size" = "Meta+0";
     "view_zoom_in" = ["Meta++" "Meta+="];
     "view_zoom_out" = "Meta+-";
-    "yakuake.toggle-window-state" = "Meta+`";
   };
 }
