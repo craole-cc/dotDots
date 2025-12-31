@@ -43,6 +43,16 @@
         ];
       };
 
+    nix-darwin = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nix-darwin";
+        paths = [
+          ["darwin"]
+          ["nixDarwin"]
+          ["darwinNix"]
+        ];
+      };
     home-manager = {path ? src}:
       byPaths {
         attrset = (flakeAttrs {inherit path;}).inputs or {};

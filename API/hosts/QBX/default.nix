@@ -7,6 +7,7 @@ in {
 
   stateVersion = "25.11";
   system = "${arch}-${os}";
+  class = "nixos";
   id = "cfd69003";
 
   packages = {

@@ -10,125 +10,152 @@
   inherit (_.modules.environment) mkEnvironment mkFonts mkLocale;
   inherit (_.modules.resolution) systems system;
 
+  # mkSystem = {
+  #   inputsModules,
+  #   nixpkgs,
+  #   args ? {},
+  #   class ? "nixos",
+  #   hostModules ? [],
+  #   specialArgs ? {},
+  #   ...
+  # }: let
+  #   #~@ Inputs
+  #   args' = args // specialArgs // {inherit inputs;};
+  #   darwin =
+  #     if (class == "darwin")
+  #     then inputs.nix-darwin
+  #     else (throw "No `nix-darwin` input found");
+
+  #   #~@ Imports
+  #   lib = nixpkgs.lib;
+  #   inherit (lib.lists) optionals;
+  #   inherit (lib.modules) evalModules;
+
+  #   #~@ Modules
+  #   modulesPath = "${nixpkgs}/nixos/modules";
+  #   baseModules = import "${modulesPath}/module-list.nix";
+
+  #   #~@ System
+  #   eval = evalModules {
+  #     class =
+  #       if class == "darwin"
+  #       then "darwin"
+  #       else "nixos";
+
+  #     specialArgs = args' // {inherit modulesPath;};
+
+  #     modules =
+  #       baseModules
+  #       ++ hostModules
+  #       ++ [
+  #         {
+  #           config = {
+  #             _module.args = {inherit baseModules modules;};
+  #             nixpkgs.flake.source = nixpkgs.outPath;
+  #           };
+  #         }
+  #       ]
+  #       ++ optionals (class == "darwin") [
+  #         {
+  #           config = {
+  #             nixpkgs.source = nixpkgs.outPath;
+  #             system = {
+  #               checks.verifyNixPath = false;
+  #               darwinVersionSuffix = ".${darwin.shortRev or darwin.dirtyShortRev or "dirty"}";
+  #               darwinRevision = darwin.rev or darwin.dirtyRev or "dirty";
+  #             };
+  #           };
+  #         }
+  #       ];
+  #   };
+  # in
+  #   if class == "darwin"
+  #   then (eval // {system = eval.config.system.build.toplevel;})
+  #   else eval;
+
   mkSystem = {
-    inputs,
-    nixpkgs,
-    home-manager,
-    args ? {},
-    class ? "nixos",
-    modules ? [],
-    specialArgs ? {},
+    hosts,
+    args,
+    src,
     ...
-  }: let
-    #~@ Inputs
-    args' = args // specialArgs // {inherit inputs;};
-    darwin =
-      if (class == darwin)
-      then inputs.darwin
-      else (throw "No `nix-darwin` input found");
+  }:
+    mapAttrs (
+      _name: host: let
+        specialArgs =
+          args
+          // {
+            inherit host;
+            inherit (host) system;
+          };
 
-    #~@ Imports
-    lib = nixpkgs.lib;
-    inherit (lib.lists) optionals;
-    inherit (lib.modules) evalModules;
+        inherit (lib.lists) optionals;
+        inherit (lib.modules) evalModules;
+        inherit (args) normalizedInputs normalizedPackages src;
+        inherit (args.inputs.modules) nixpkgs home-manager nix-darwin;
 
-    #~@ Modules
-    modulesPath = "${nixpkgs}/nixos/modules";
-    baseModules = import "${modulesPath}/module-list.nix";
-    hostModules = modules;
-    homeModules =
-      if class == "darwin"
-      then home-manager.darwinModules.home-manager
-      else home-manager.nixosModules.home-manager;
+        class = host.class or "nixos";
 
-    #~@ System
-    eval = evalModules {
-      class =
-        if class == "darwin"
-        then "darwin"
-        else "nixos";
-
-      specialArgs = args' // {inherit modulesPath home-manager;};
-
-      modules =
-        baseModules
-        ++ hostModules
-        ++ homeModules
-        ++ [
-          {
-            config = {
-              _module.args = {inherit baseModules modules;};
-              nixpkgs.flake.source = nixpkgs.outPath;
-            };
-          }
-        ]
-        ++ optionals (class == "darwin") [
+        #~@ Modules
+        modulesPath = "${nixpkgs}/nixos/modules";
+        baseModules = import "${modulesPath}/module-list.nix";
+        homeModules =
+          if class == "darwin"
+          then [home-manager.darwinModules.home-manager]
+          else [home-manager.nixosModules.home-manager];
+        hostModules = [
+          {config = mkPkgs {inherit host normalizedInputs normalizedPackages;};}
+          ({pkgs, ...}: {
+            config =
+              {}
+              // mkBoot {inherit host pkgs;}
+              // mkFileSystems {inherit host;}
+              // mkNetwork {inherit host pkgs;}
+              // mkLocale {inherit host;}
+              // mkAudio {inherit host;}
+              // mkFonts {inherit host pkgs;}
+              // mkUsers {inherit host pkgs specialArgs src;}
+              // mkEnvironment {inherit host pkgs normalizedInputs;}
+              // mkClean {inherit host;}
+              // {};
+          })
+        ];
+        darwinModules = optionals (class == "darwin") [
           {
             config = {
               nixpkgs.source = nixpkgs.outPath;
               system = {
                 checks.verifyNixPath = false;
-                darwinVersionSuffix = ".${darwin.shortRev or darwin.dirtyShortRev or "dirty"}";
-                darwinRevision = darwin.rev or darwin.dirtyRev or "dirty";
+                darwinVersionSuffix = ".${nix-darwin.shortRev or nix-darwin.dirtyShortRev or "dirty"}";
+                darwinRevision = nix-darwin.rev or nix-darwin.dirtyRev or "dirty";
               };
             };
           }
         ];
-    };
-  in
-    if class == "darwin"
-    then (eval // {system = eval.config.system.build.toplevel;})
-    else eval;
-
-  mkCore = {
-    hosts,
-    args,
-    src,
-    class ? "nixos",
-    ...
-  }:
-    mapAttrs (_name: host: let
-      systemBuilder = mkSystem;
-      specialArgs =
-        args
-        // {
-          inherit host;
-          inherit (host) system;
+        moduleArgs = [
+          {
+            config = {
+              _module.args = {inherit baseModules hostModules darwinModules;};
+              nixpkgs.flake.source = nixpkgs.outPath;
+            };
+          }
+        ];
+        moduleEval = evalModules {
+          inherit specialArgs;
+          modules =
+            baseModules
+            ++ homeModules
+            ++ hostModules
+            ++ moduleArgs
+            ++ darwinModules
+            ++ (host.imports or []);
         };
-      inherit (args) src inputs;
-      inherit (args.inputs.modules) home-manager;
-    in
-      systemBuilder {
-        inherit specialArgs class inputs;
-        modules =
-          [
-            (
-              if class == "darwin"
-              then home-manager.darwinModules.home-manager
-              else home-manager.nixosModules.home-manager
-            )
-          ]
-          [
-            {config = mkPkgs {inherit host inputs;};}
-            ({pkgs, ...}: {
-              config =
-                {}
-                // mkBoot {inherit host pkgs;}
-                // mkFileSystems {inherit host;}
-                // mkNetwork {inherit host pkgs;}
-                // mkLocale {inherit host;}
-                // mkAudio {inherit host;}
-                // mkFonts {inherit host pkgs;}
-                // mkUsers {inherit host pkgs specialArgs src;}
-                // mkEnvironment {inherit host pkgs inputs;}
-                // mkClean {inherit host;}
-                // {};
-            })
-          ]
-          ++ (host.imports or []);
-      })
+      in
+        if class == "darwin"
+        then (moduleEval // {system = moduleEval.config.system.build.toplevel;})
+        else moduleEval
+    )
     hosts;
 
-  exports = {inherit mkSystem mkCore systems system;};
+  exports = {inherit mkSystem systems system;};
 in
   exports // {_rootAliases = exports;}

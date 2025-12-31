@@ -10,7 +10,7 @@
   mkEnvironment = {
     host,
     pkgs,
-    inputs,
+    normalizedPackages, # TODO: We shouldn't need this as pkgs should be enough
     ...
   }: let
     user = host.users.data.primary or {};
@@ -27,68 +27,65 @@
     # useDms = wm == "niri" || wm == "hyprland";
     useDms = false;
 
-    # Use the packages from inputs
-    resolvedInputs = inputs.packages or {};
-
     # Get all packages with resolved inputs and system
     editorPkgs = editors.packages {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       editorConfig = apps.editor or {};
     };
 
     browserPkgs = browsers.packages {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.browser or {};
     };
 
     terminalPkgs = terminals.packages {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.terminal or {};
     };
 
     launcherPkgs = launchers.packages {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.launcher or {};
     };
 
     barPkgs = bars.packages {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.bar or {};
     };
 
     # Get commands with resolved inputs and system
     editorCmds = editors.commands {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       editorConfig = apps.editor or {};
     };
 
     browserCmds = browsers.commands {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.browser or {};
     };
 
     terminalCmds = terminals.commands {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.terminal or {};
     };
 
     launcherCmds = launchers.commands {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.launcher or {};
     };
 
     barCmds = bars.commands {
       inherit pkgs system;
-      inputs = resolvedInputs;
+      inputs = normalizedPackages;
       appConfig = apps.bar or {};
     };
   in {

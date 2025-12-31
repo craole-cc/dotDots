@@ -10,13 +10,12 @@
 
   mkPkgs = {
     host,
-    inputs,
+    normalizedInputs,
+    normalizedPackages,
     ...
   }: let
     allowUnfree = host.packages.allowUnfree or false;
     getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
-    inherit (inputs.modules) nixpkgs-stable nixpkgs-unstable;
-    inherit (inputs) packages;
   in {
     system = {
       stateVersion = host.stateVersion or "25.11";
@@ -41,7 +40,7 @@
       overlays = [
         #~@ Stable
         (final: prev: {
-          fromStable = import nixpkgs-stable {
+          fromStable = import normalizedInputs.nixpkgs-stable {
             system = getSystem final;
             config = {inherit allowUnfree;};
           };
@@ -49,7 +48,7 @@
 
         #~@ Unstable
         (final: prev: {
-          fromUnstable = import nixpkgs-unstable {
+          fromUnstable = import normalizedInputs.nixpkgs-unstable {
             system = getSystem final;
             config = {inherit allowUnfree;};
           };
@@ -63,12 +62,16 @@
               name = _name;
               value = pkgsSet.${getSystem prev}.${"default"} or null;
             })
-            packages
+            normalizedPackages
           ))
 
         #? Categorized (lower priority, for browsing)
         (final: prev: {
-          fromInputs = mapAttrs (_: pkgs: pkgs.${getSystem prev} or {}) packages;
+          fromInputs =
+            mapAttrs (
+              _: pkgs: pkgs.${getSystem prev} or {}
+            )
+            normalizedPackages;
         })
       ];
     };

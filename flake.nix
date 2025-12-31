@@ -3,55 +3,14 @@
 
   outputs = inputs @ {self, ...}: let
     src = ./.;
-    path = src;
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import src {inherit lib src self;}) lix flake hosts schema;
-    inherit (lix.modules.core) systems mkCore;
+    inherit (lix.modules.core) systems mkSystem;
     inherit (systems {inherit hosts legacyPackages;}) perFlake;
-
-    modules = {
-      #~@ Core
-      nixpkgs = lix.modules.inputs.nixpkgs {inherit path;};
-      nixpkgs-stable = lix.modules.inputs.nixpkgs-stable {inherit path;};
-      nixpkgs-unstable = lix.modules.inputs.nixpkgs-unstable {inherit path;};
-      home-manager = lix.modules.inputs.home-manager {inherit path;};
-
-      #~@ Applications
-      dank-material-shell = lix.modules.inputs.dank-material-shell {inherit path;};
-      fresh-editor = lix.modules.inputs.fresh-editor {inherit path;};
-      helix = lix.modules.inputs.helix {inherit path;};
-      noctalia-shell = lix.modules.inputs.noctalia-shell {inherit path;};
-      nvf = lix.modules.inputs.nvf {inherit path;};
-      plasma = lix.modules.inputs.plasma {inherit path;};
-      treefmt = lix.modules.inputs.treefmt {inherit path;};
-      vscode-insiders = lix.modules.inputs.vscode-insiders {inherit path;};
-      zen-browser = lix.modules.inputs.zen-browser {inherit path;};
-    };
-
-    packages = {
-      #~@ Core
-      nixpkgs-stable = modules.nixpkgs-stable.legacyPackages;
-      nixpkgs-unstable = modules.nixpkgs-unstable.legacyPackages;
-      home-manager = modules.home-manager.packages;
-
-      #~@ Applications
-      dank-material-shell = modules.dank-material-shell.packages;
-      fresh-editor = modules.fresh-editor.packages;
-      helix = modules.helix.packages;
-      noctalia-shell = modules.noctalia-shell.packages;
-      nvf = modules.nvf.packages;
-      plasma = modules.plasma.packages;
-      treefmt = modules.treefmt.packages;
-      vscode-insiders = modules.vscode-insiders.packages;
-      zen-browser = modules.zen-browser.packages;
-    };
-
+    normalizedInputs = lix.inputs.normalize {path = src;};
+    normalizedPackages = lix.inputs.normalizePackages {path = src;};
     args = {
-      inherit lix flake schema src;
-      inputs = {
-        inherit modules packages;
-        flake = inputs;
-      };
+      inherit lix flake schema src inputs normalizedInputs normalizedPackages;
     };
 
     perSystem = perFlake (
@@ -62,7 +21,7 @@
         inherit
           (import ./Packages/global {
             inherit pkgs lib lix src system flake;
-            inputs = args.inputs.packages;
+            inputs = normalizedPackages;
           })
           devShells
           formatter
@@ -71,7 +30,7 @@
       }
     );
     forSystem =
-      {nixosConfigurations = mkCore {inherit inputs hosts args src;};}
+      {nixosConfigurations = mkSystem {inherit inputs hosts args src;};}
       // import ./Templates;
   in
     perSystem // forSystem;
@@ -80,10 +39,15 @@
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-25.11";
-
     nixHomeManager = {
       repo = "home-manager";
       owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+    nixDarwin = {
+      repo = "nix-darwin";
+      owner = "LnL7";
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
