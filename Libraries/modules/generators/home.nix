@@ -5,6 +5,7 @@
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs;
   inherit (lib.lists) elem head optionals;
+  inherit (lib.strings) hasInfix;
   inherit (_.attrsets.resolution) package;
   inherit (_.lists.predicates) isIn;
 
@@ -73,8 +74,25 @@
         mapAttrs (name: cfg: {
           home = {inherit (host) stateVersion;};
           _module.args.user = cfg // {inherit name;};
-          imports =
+          imports = let
+            zen-browser = rec {
+              isAllowed = hasInfix "zen" (cfg.applications.browser.firefox or "");
+              variant =
+                if hasInfix "twilight" (cfg.applications.browser.firefox or "")
+                then "twilight"
+                else "default";
+              module = homeModules.zen-browser.${variant} or {};
+            };
+
+            noctalia-shell = rec {
+              isAllowed = hasInfix "noctalia" (cfg.interface.bar or "");
+              variant = "default";
+              module = homeModules.noctalia-shell.${variant} or {};
+            };
+          in
             [(src + "/Packages/home")]
+            ++ optionals (noctalia-shell.isAllowed) [noctalia-shell.module]
+            ++ optionals (zen-browser.isAllowed) [zen-browser.module]
             ++ (cfg.imports or []);
         })
         (filterAttrs (_: u: (!elem u.role ["service" "guest"])) users);

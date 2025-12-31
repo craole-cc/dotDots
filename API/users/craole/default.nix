@@ -45,12 +45,13 @@
 
   applications = {
     browser = let
-      firefox = "zen twilight";
+      firefox = "palemoon zen twilight";
       chromium = "microsoft edge";
     in {
       inherit firefox chromium;
       primary = firefox;
       secondary = chromium;
+      variant = "twilight";
     };
     editor = {
       tty = {
