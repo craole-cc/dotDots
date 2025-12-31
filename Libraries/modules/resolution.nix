@@ -192,9 +192,11 @@
         inherit config overlays;
       }
       // (
-        if (host.class or "nixos") == "darwin"
-        then {source = inputs.nixpkgs.outPath;}
-        else {flake.source = flake.outPath;}
+        with inputs.nixpkgs; (
+          if (host.class or "nixos") == "darwin"
+          then {source = outPath;}
+          else {flake.source = outPath;}
+        )
       );
   in {
     inherit
