@@ -2,12 +2,12 @@
 {
   lib,
   user,
-  pkgs,
+  config,
   homeModules,
   ...
 }: let
   # variant = user.applications.browser.variant or "default";
-  variant = "default";
+  variant = "twilight";
   zenModule = homeModules.zen-browser.${variant} or {};
 in {
   imports = [zenModule];
