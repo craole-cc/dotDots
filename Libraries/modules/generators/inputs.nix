@@ -8,7 +8,10 @@
   inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
   inherit (_.attrsets.resolution) byPaths;
 
-  getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
+  inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
+  inherit (_.modules.generators.software) mkNix mkBoot mkClean;
+  inherit (_.modules.generators.home) mkUsers;
+  inherit (_.modules.generators.environment) mkEnvironment mkFonts mkLocale;
 
   mkInputs = {inputs}: {
     nixpkgs = byPaths {
@@ -238,61 +241,77 @@
 
   mkModules = {
     inputs,
-    class ? "nixos",
-  }: {
+    host,
+    specialArgs,
+  }: let
+    class = host.class or "nixos";
+    path = "${inputs.nixpkgs}/nixos/modules";
+    base = import "${path}/module-list.nix";
+
     core =
-      []
-      ++ optionals (inputs ? home-manager)
       (
         if class == "darwin"
         then [(inputs.home-manager.darwinModules.home-manager or {})]
         else [(inputs.home-manager.nixosModules.home-manager or {})]
       )
-      ++ optionals (inputs ? nvf)
-      (
-        if class == "darwin"
-        then [(inputs.nvf.darwinModules.nvf or {})]
-        else [(inputs.nvf.nixosModules.nvf or {})]
-      )
+      ++ optionals (class == "darwin") [
+        {
+          system = {
+            checks.verifyNixPath = false;
+            darwinVersionSuffix = ".${
+              inputs.nix-darwin.shortRev or
+            inputs.nix-darwin.dirtyShortRev or
+            "dirty"
+            }";
+            darwinRevision =
+              inputs.nix-darwin.rev or inputs.nix-darwin.dirtyRev or "dirty";
+          };
+        }
+      ]
       ++ [];
+
     home =
       []
-      ++ optionals (inputs ? nvf)
-      [(inputs.nvf.homeManagerModules.nvf or {})]
+      ++ [(inputs.dank-material-shell.homeModules.default or {})]
+      ++ [inputs.fresh-editor.homeModules.default or {}]
+      ++ [inputs.helix.homeModules.default or {}]
+      ++ [inputs.noctalia-shell.homeModules.default or {}]
+      ++ [inputs.nvf.homeManagerModules.default or {}]
+      ++ [inputs.plasma.homeModules.plasma-manager or {}]
+      ++ [inputs.treefmt.homeModules.default or {}]
+      ++ [inputs.vscode-insiders.homeModules.default or {}]
+      ++ [inputs.zen-browser.homeModules.default or {}]
       ++ [];
+
+    host' =
+      [
+        {inherit (inputs) nixpkgs;}
+        (
+          {pkgs, ...}:
+            {}
+            // mkNix {inherit host;}
+            // mkNetwork {inherit host pkgs;}
+            // mkBoot {inherit host pkgs;}
+            // mkFileSystems {inherit host;}
+            // mkLocale {inherit host;}
+            // mkAudio {inherit host;}
+            // mkFonts {inherit host pkgs;}
+            // mkUsers {inherit host pkgs specialArgs src;}
+            // mkEnvironment {inherit host pkgs;}
+            // mkClean {inherit host;}
+            // {}
+        )
+      ]
+      ++ (host.imports or []);
+  in {
+    inherit path base core home;
+    baseModules = base;
+    coreModules = core;
+    homeModules = home;
+    host = host';
+    hostModules = host';
+    modulesPath = path;
   };
-  # homeModules = {path ? src}: let
-  #   inputs = norm path;
-  # in
-  #   []
-  #   ++ optionals
-  #   (inputs ? dank-material-shell)
-  #   [inputs.dank-material-shell.homeModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? fresh-editor)
-  #   [inputs.fresh-editor.homeModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? helix)
-  #   [inputs.helix.homeModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? noctalia-shell)
-  #   [inputs.noctalia-shell.homeModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? nvf)
-  #   [inputs.nvf.homeManagerModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? plasma)
-  #   [inputs.plasma.homeModules.plasma-manager or {}]
-  #   ++ optionals
-  #   (inputs ? treefmt)
-  #   [inputs.treefmt.homeModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? vscode-insiders)
-  #   [inputs.vscode-insiders.homeModules.default or {}]
-  #   ++ optionals
-  #   (inputs ? zen-browser)
-  #   [inputs.zen-browser.homeModules.default or {}]
-  #   ++ [];
 
   exports = {inherit mkInputs mkPackages mkOverlays mkModules;};
 in

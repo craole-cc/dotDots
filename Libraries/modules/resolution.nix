@@ -4,14 +4,14 @@
   lib,
   ...
 }: let
+  inherit (_.lists.predicates) mostFrequent;
+  inherit (_.modules.generators) mkInputs mkPackages mkOverlays mkModules;
+  inherit (builtins) getFlake;
   inherit (lib.attrsets) attrValues genAttrs attrNames mapAttrs mapAttrsToList optionalAttrs;
-  inherit (lib.strings) hasSuffix;
-  inherit (lib.trivial) pathExists;
   inherit (lib.debug) traceIf;
   inherit (lib.lists) findFirst unique last flatten;
-  inherit (_.lists.predicates) mostFrequent;
-  inherit (_.inputs.generators) normalizedPackages;
-  inherit (builtins) getFlake;
+  inherit (lib.strings) hasSuffix;
+  inherit (lib.trivial) pathExists;
 
   flakePath = {
     self ? {},
@@ -54,7 +54,7 @@
       "❌ Flake load failed: ${toString path} (${failureReason})"
       (derived // {srcPath = path;});
 
-  systems = {
+  getSystems = {
     path ? src,
     hosts ? {},
     nixpkgs ? {},
@@ -65,7 +65,7 @@
       then legacyPackages
       else if nixpkgs ? legacyPackages
       then nixpkgs.legacyPackages
-      else normalizedPackages {inherit path;};
+      else (getInputs {}).inputs.nixpkgs.legacyPackages or {};
 
     #> Extract and flatten defined systems
     defined = flatten (mapAttrsToList (_: host:
@@ -121,15 +121,15 @@
     nixpkgs ? {},
     legacyPackages ? {},
   }:
-    (systems {inherit hosts legacyPackages;}) perFlake;
+    (getSystems {inherit path hosts nixpkgs legacyPackages;}).perFlake;
 
-  system = pkgs: pkgs.stdenv.hostPlatform.system;
+  getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
 
-  host = {
+  hostAttrs = {
     nixosConfigurations ?
       optionalAttrs ((flakeAttrs {}) ? nixosConfigurations)
       ((flakeAttrs {}).nixosConfigurations),
-    system ? (systems {}).system,
+    system ? (getSystems {}).system,
   }: let
     derived =
       findFirst
@@ -141,8 +141,70 @@
     "❌ Failed to derive current host"
     (derived // {name = derived.config.networking.hostName;});
 
-  # inputs = {
-  # };
+  getInputs = {
+    flake ? {},
+    host ? {},
+    specialArgs ? {},
+    self ? {},
+    path ? {},
+    ...
+  }: let
+    flake' =
+      if flake != {}
+      then flake
+      else flakeAttrs {inherit self path;};
+
+    host' =
+      if host != {}
+      then host
+      else
+        hostAttrs {
+          nixosConfigurations = flake.nixosConfigurations or {};
+          system = host.system or (getSystems {}).system;
+        };
+
+    inputs = mkInputs {inputs = flake'.inputs;};
+
+    config = {
+      allowUnfree = host.packages.allowUnfree or false;
+      allowBroken = host.packages.allowBroken or false;
+    };
+
+    packages = mkPackages {inherit inputs;};
+
+    overlays = mkOverlays {
+      inherit (inputs) nixpkgs-stable nixpkgs-unstable;
+      inherit packages config;
+    };
+
+    modules = mkModules {
+      inherit
+        inputs
+        specialArgs
+        ;
+      host = host';
+      flake = flake';
+    };
+
+    nixpkgs =
+      {
+        hostPlatform = host.system;
+        inherit config overlays;
+      }
+      // (
+        if (host.class or "nixos") == "darwin"
+        then {source = inputs.nixpkgs.outPath;}
+        else {flake.source = flake.outPath;}
+      );
+  in {
+    inherit
+      inputs
+      nixpkgs
+      modules
+      overlays
+      packages
+      ;
+  };
 
   # =============================================================
   __doc = ''
@@ -152,16 +214,14 @@
     inherit
       flakeAttrs
       flakePath
-      host
-      system
-      systems
+      hostAttrs
+      getSystem
+      getSystems
       perFlake
       ;
 
     getFlake = flakeAttrs;
-    getSystems = systems;
-    getSystem = system;
-    getHost = host;
+    getHost = hostAttrs;
     getSystemsPerFlake = perFlake;
   };
 in

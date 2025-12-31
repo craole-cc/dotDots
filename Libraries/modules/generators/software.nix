@@ -3,20 +3,11 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrsRecursive mapAttrs' mapAttrs;
   inherit (lib.lists) elem any;
   inherit (lib.modules) mkIf;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
 
-  mkPkgs = {
-    host,
-    normalizedInputs,
-    normalizedPackages,
-    ...
-  }: let
-    allowUnfree = host.packages.allowUnfree or false;
-    getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
-  in {
+  mkNix = {host, ...}: {
     system = {
       stateVersion = host.stateVersion or "25.11";
     };
@@ -31,49 +22,6 @@
         max-jobs = host.specs.cpu.cores or "auto";
         trusted-users = ["root" "@wheel"];
       };
-    };
-
-    nixpkgs = {
-      hostPlatform = host.system;
-      config = {inherit allowUnfree;};
-
-      overlays = [
-        #~@ Stable
-        (final: prev: {
-          fromStable = import normalizedInputs.nixpkgs-stable {
-            system = getSystem final;
-            config = {inherit allowUnfree;};
-          };
-        })
-
-        #~@ Unstable
-        (final: prev: {
-          fromUnstable = import normalizedInputs.nixpkgs-unstable {
-            system = getSystem final;
-            config = {inherit allowUnfree;};
-          };
-        })
-
-        #~@ Flake inputs
-        #? Flattened packages (higher priority)
-        (final: prev:
-          filterAttrsRecursive (name: value: value != null) (
-            mapAttrs' (_name: pkgsSet: {
-              name = _name;
-              value = pkgsSet.${getSystem prev}.${"default"} or null;
-            })
-            normalizedPackages
-          ))
-
-        #? Categorized (lower priority, for browsing)
-        (final: prev: {
-          fromInputs =
-            mapAttrs (
-              _: pkgs: pkgs.${getSystem prev} or {}
-            )
-            normalizedPackages;
-        })
-      ];
     };
   };
 
@@ -220,6 +168,6 @@
     };
   };
 
-  exports = {inherit mkPkgs mkBoot mkClean;};
+  exports = {inherit mkNix mkBoot mkClean;};
 in
   exports // {_rootAliases = exports;}
