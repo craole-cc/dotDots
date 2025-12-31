@@ -288,14 +288,14 @@
     home =
       []
       ++ [(inputs.dank-material-shell.homeModules.default or {})]
-      ++ [inputs.fresh-editor.homeModules.default or {}]
-      ++ [inputs.helix.homeModules.default or {}]
-      ++ [inputs.noctalia-shell.homeModules.default or {}]
-      ++ [inputs.nvf.homeManagerModules.default or {}]
-      ++ [inputs.plasma.homeModules.plasma-manager or {}]
-      ++ [inputs.treefmt.homeModules.default or {}]
-      ++ [inputs.vscode-insiders.homeModules.default or {}]
-      ++ [inputs.zen-browser.homeModules.default or {}]
+      ++ [(inputs.fresh-editor.homeModules.default or {})]
+      ++ [(inputs.helix.homeModules.default or {})]
+      ++ [(inputs.noctalia-shell.homeModules.default or {})]
+      ++ [(inputs.nvf.homeManagerModules.default or {})]
+      ++ [(inputs.plasma.homeModules.plasma-manager or {})]
+      ++ [(inputs.treefmt.homeModules.default or {})]
+      ++ [(inputs.vscode-insiders.homeModules.default or {})]
+      ++ [(inputs.zen-browser.homeModules.default or {})]
       ++ [];
 
     host' =
@@ -306,14 +306,14 @@
             {}
             // mkNix {inherit host;}
             // mkNetwork {inherit host pkgs;}
-            // mkBoot {inherit host pkgs;}
-            // mkFileSystems {inherit host;}
-            // mkLocale {inherit host;}
-            // mkAudio {inherit host;}
-            // mkFonts {inherit host pkgs;}
-            // mkUsers {inherit host pkgs specialArgs src;}
-            // mkEnvironment {inherit host pkgs packages;}
-            // mkClean {inherit host;}
+            # // mkBoot {inherit host pkgs;}
+            # // mkFileSystems {inherit host;}
+            # // mkLocale {inherit host;}
+            # // mkAudio {inherit host;}
+            # // mkFonts {inherit host pkgs;}
+            # // mkUsers {inherit host pkgs specialArgs src;}
+            # // mkEnvironment {inherit host pkgs packages;}
+            # // mkClean {inherit host;}
             // {}
         )
       ]
