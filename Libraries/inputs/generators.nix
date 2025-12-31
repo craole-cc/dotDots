@@ -235,21 +235,31 @@
         packages;
     })
   ];
+
   mkModules = {
     inputs,
     class ? "nixos",
   }: {
     core =
+      []
+      ++ optionals (inputs ? home-manager)
       (
         if class == "darwin"
-        then [inputs.home-manager.darwinModules.home-manager]
-        else [inputs.home-manager.nixosModules.home-manager]
+        then [(inputs.home-manager.darwinModules.home-manager or {})]
+        else [(inputs.home-manager.nixosModules.home-manager or {})]
       )
-      ++ optionals
-      (inputs ? nvf)
-      [inputs.nvf.homeManagerModules.default or {}]
+      ++ optionals (inputs ? nvf)
+      (
+        if class == "darwin"
+        then [(inputs.nvf.darwinModules.nvf or {})]
+        else [(inputs.nvf.nixosModules.nvf or {})]
+      )
       ++ [];
-    home = [];
+    home =
+      []
+      ++ optionals (inputs ? nvf)
+      [(inputs.nvf.homeManagerModules.nvf or {})]
+      ++ [];
   };
   # homeModules = {path ? src}: let
   #   inputs = norm path;
@@ -284,6 +294,6 @@
   #   [inputs.zen-browser.homeModules.default or {}]
   #   ++ [];
 
-  exports = {inherit mkInputs mkPackages mkOverlays;};
+  exports = {inherit mkInputs mkPackages mkOverlays mkModules;};
 in
   exports // {_rootAliases = exports;}

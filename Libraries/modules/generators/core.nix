@@ -23,7 +23,6 @@
 
         inherit (lib.lists) optionals;
         inherit (lib.modules) evalModules;
-        inherit (args) normalizedInputs normalizedPackages src;
         inherit (args.normalizedInputs) nixpkgs home-manager nix-darwin;
 
         specialArgs = args // {inherit host system;};
@@ -37,23 +36,23 @@
           then [home-manager.darwinModules.home-manager]
           else [home-manager.nixosModules.home-manager];
 
-        hostModules = [
-          (mkPkgs {inherit host normalizedInputs normalizedPackages;})
-          (
-            {pkgs, ...}:
-              {}
-              // mkNetwork {inherit host pkgs;}
-              // mkBoot {inherit host pkgs;}
-              // mkFileSystems {inherit host;}
-              // mkLocale {inherit host;}
-              // mkAudio {inherit host;}
-              // mkFonts {inherit host pkgs;}
-              // mkUsers {inherit host pkgs specialArgs src;}
-              // mkEnvironment {inherit host pkgs normalizedPackages;}
-              // mkClean {inherit host;}
-              // {}
-          )
-        ];
+        # hostModules = [
+        #   (mkPkgs {inherit host normalizedInputs normalizedPackages;})
+        #   (
+        #     {pkgs, ...}:
+        #       {}
+        #       // mkNetwork {inherit host pkgs;}
+        #       // mkBoot {inherit host pkgs;}
+        #       // mkFileSystems {inherit host;}
+        #       // mkLocale {inherit host;}
+        #       // mkAudio {inherit host;}
+        #       // mkFonts {inherit host pkgs;}
+        #       // mkUsers {inherit host pkgs specialArgs src;}
+        #       // mkEnvironment {inherit host pkgs normalizedPackages;}
+        #       // mkClean {inherit host;}
+        #       // {}
+        #   )
+        # ];
 
         darwinModules = optionals (class == "darwin") [
           {
@@ -87,7 +86,7 @@
           modules =
             baseModules
             ++ hmModules
-            ++ hostModules
+            # ++ hostModules
             ++ moduleArgs
             ++ darwinModules
             ++ (host.imports or []);
