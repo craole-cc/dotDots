@@ -181,19 +181,5 @@
   };
 in {
   inherit modules packages;
-  #   (modules.core)
-  #   nixpkgs
-  #   nixpkgs-stable
-  #   nixpkgs-unstable
-  #   home-manager
-  #   ;
-  # inherit
-  #   (modules.home)
-  #   dank-material-shell
-  #   noctalia-shell
-  #   nvf
-  #   plasma
-  #   zen-browser
-  #   ;
   _rootAliases = {};
 }

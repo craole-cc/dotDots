@@ -7,8 +7,9 @@
     inherit (import src {inherit lib src self;}) lix flake hosts schema;
     inherit (lix.modules.core) systems mkSystem;
     inherit (systems {inherit hosts legacyPackages;}) perFlake;
-    normalizedInputs = lix.inputs.normalize {path = src;};
-    normalizedPackages = lix.inputs.normalizePackages {path = src;};
+    ins = lix.inputs.generators;
+    normalizedInputs = ins.normalize {path = src;};
+    normalizedPackages = ins.normalizePackages {path = src;};
     args = {
       inherit lix flake schema src inputs normalizedInputs normalizedPackages;
     };
@@ -30,7 +31,7 @@
       }
     );
     forSystem =
-      {nixosConfigurations = mkSystem {inherit inputs hosts args src;};}
+      {nixosConfigurations = mkSystem {inherit hosts args src;};}
       // import ./Templates;
   in
     perSystem // forSystem;

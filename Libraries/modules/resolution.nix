@@ -10,123 +10,7 @@
   inherit (lib.debug) traceIf;
   inherit (lib.lists) findFirst unique last flatten;
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.attrsets.resolution) byPaths;
-
-  core = {
-    nixpkgs = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "nixpkgs";
-        paths = [
-          ["nixosCore"]
-          ["nixPackages"]
-          ["nixosPackages"]
-          ["nixosPackagesUnstable"]
-          ["nixpkgs-unstable"]
-          ["nixosPackagesStable"]
-          ["nixpkgs-stable"]
-        ];
-      };
-
-    nixpkgs-stable = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "nixpkgs-stable";
-        paths = [
-          ["nixosPackagesStable"]
-          ["nixpkgs-stable"]
-          ["nixpkgs"]
-        ];
-      };
-
-    nixpkgs-unstable = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "nixpkgs-unstable";
-        paths = [
-          ["nixosPackagesUnstable"]
-          ["nixpkgs-unstable"]
-          ["nixpkgs"]
-        ];
-      };
-
-    home-manager = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "home-manager";
-        paths = [
-          ["nixHomeManager"]
-          ["nixosHome"]
-          ["nixHome"]
-          ["homeManager"]
-          ["home"]
-        ];
-      };
-  };
-  home = {
-    noctalia-shell = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "noctalia-shell";
-        paths = [
-          ["shellNoctalia"]
-          ["noctalia-dev"]
-          ["noctalia"]
-        ];
-      };
-
-    dank-material-shell = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "dank-material-shell";
-        paths = [
-          ["shellDankMaterial"]
-          ["shellDank"]
-          ["dank-material"]
-          ["dank"]
-          ["dms"]
-        ];
-      };
-
-    nvf = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "nvf";
-        paths = [
-          ["editorNeovim"]
-          ["neovim"]
-          ["nvim"]
-          ["neovimFlake"]
-          ["neoVim"]
-        ];
-      };
-
-    plasma = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "plasma";
-        paths = [
-          ["shellPlasma"]
-          ["plasma-manager"]
-          ["plasmaManager"]
-          ["kde"]
-        ];
-      };
-
-    zen-browser = {path ? src}:
-      byPaths {
-        attrset = (flakeAttrs {inherit path;}).inputs or {};
-        default = "zen-browser";
-        paths = [
-          ["browserZen"]
-          ["firefoxZen"]
-          ["zen"]
-          ["zenBrowser"]
-          ["zenFirefox"]
-          ["twilight"]
-        ];
-      };
-  };
+  inherit (_.inputs.generators) normalizedPackages;
 
   flakePath = path: let
     pathStr = toString path;
@@ -168,12 +52,7 @@
       then legacyPackages
       else if nixpkgs ? legacyPackages
       then nixpkgs.legacyPackages
-      else let
-        f = core.nixpkgs {inherit path;};
-      in
-        optionalAttrs
-        (f ? legacyPackages)
-        f.legacyPackages;
+      else normalizedPackages {inherit path;};
 
     #> Extract and flatten defined systems
     defined = flatten (mapAttrsToList (_: host:
@@ -282,8 +161,6 @@ in
       getFlake = flakeAttrs;
       getSystems = systems;
       getSystem = system;
-      getNixPkgs = core.nixpkgs;
-      getHomeManagerPkgs = core.home-manager;
       getHost = host;
     };
   }

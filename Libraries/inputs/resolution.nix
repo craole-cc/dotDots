@@ -3,7 +3,8 @@
   src,
   ...
 }: let
-  inherit (_.modules.resolution) flakeAttrs byPaths;
+  inherit (_.modules.resolution) flakeAttrs;
+  inherit (_.attrsets.resolution) byPaths;
 in {
   nixpkgs = {path ? src}:
     byPaths {
