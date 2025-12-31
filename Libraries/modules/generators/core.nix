@@ -25,7 +25,7 @@
               modulesPath
               baseModules
               coreModules
-              # homeModules
+              homeModules
               hostModules
               ;
           };
@@ -34,7 +34,6 @@
             modules =
               []
               ++ all.baseModules
-              # ++ all.homeModules
               ++ all.coreModules
               ++ all.hostModules
               ++ [{config._module.args = all;}];

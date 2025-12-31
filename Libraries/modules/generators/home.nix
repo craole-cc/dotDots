@@ -27,14 +27,13 @@
   mkUsers = {
     host,
     pkgs,
+    homeModules,
     specialArgs,
     src,
     ...
   }: let
     users = host.users.data.enabled or {};
     admins = host.users.names.elevated or [];
-    # inputs = specialArgs.normalizedInputs;
-    # inputs = specialArgs.lix.inputs.generators.normalize {path = src;};
   in {
     users = {
       #> Create a private group for each user
@@ -67,7 +66,7 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = specialArgs;
+      extraSpecialArgs = specialArgs // {inherit homeModules;};
 
       #> Merge all per-user home-manager configs
       users =
@@ -75,9 +74,8 @@
           home = {inherit (host) stateVersion;};
           _module.args.user = cfg // {inherit name;};
           imports =
-            (cfg.imports or [])
-            ++ specialArgs.homeModules
-            ++ [(src + "/Packages/home")];
+            [(src + "/Packages/home")]
+            ++ (cfg.imports or []);
         })
         (filterAttrs (_: u: (!elem u.role ["service" "guest"])) users);
     };
