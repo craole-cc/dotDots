@@ -4,7 +4,7 @@
   inherit (lib.modules) mkIf;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
 
-  mkNix = {
+  mkPkgs = {
     host,
     inputs,
     ...
@@ -28,6 +28,7 @@
     nixpkgs = let
       allowUnfree = host.packages.allowUnfree or false;
       getSystem = final: final.stdenv.hostPlatform.system;
+      # nixpkgs-stable = inputs.nixP
     in {
       hostPlatform = host.system;
       config = {inherit allowUnfree;};
@@ -213,6 +214,6 @@
     };
   };
 
-  exports = {inherit mkNix mkBoot mkClean;};
+  exports = {inherit mkPkgs mkBoot mkClean;};
 in
   exports // {_rootAliases = exports;}

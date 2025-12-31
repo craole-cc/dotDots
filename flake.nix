@@ -15,6 +15,7 @@
         modules = with inputs; {
           core = {
             nixpkgs = nixPackages;
+            # home-manager = nixHomeManager;
             home-manager = nixHomeManager.nixosModules.default;
             nvf = editorNeovim.nixosModules.default;
           };
@@ -58,7 +59,7 @@
       }
     );
     forSystem =
-      {nixosConfigurations = mkCore {inherit hosts args;};}
+      {nixosConfigurations = mkCore {inherit inputs hosts args src;};}
       // import ./Templates;
   in
     perSystem // forSystem;
