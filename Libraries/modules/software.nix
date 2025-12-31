@@ -1,4 +1,8 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) filterAttrsRecursive mapAttrs' mapAttrs;
   inherit (lib.lists) elem any;
   inherit (lib.modules) mkIf;
@@ -8,7 +12,12 @@
     host,
     inputs,
     ...
-  }: {
+  }: let
+    allowUnfree = host.packages.allowUnfree or false;
+    getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
+    inherit (inputs.modules) nixpkgs-stable nixpkgs-unstable;
+    inherit (inputs) packages;
+  in {
     system = {
       stateVersion = host.stateVersion or "25.11";
     };
@@ -25,18 +34,14 @@
       };
     };
 
-    nixpkgs = let
-      allowUnfree = host.packages.allowUnfree or false;
-      getSystem = final: final.stdenv.hostPlatform.system;
-      # nixpkgs-stable = inputs.nixP
-    in {
+    nixpkgs = {
       hostPlatform = host.system;
       config = {inherit allowUnfree;};
 
       overlays = [
         #~@ Stable
         (final: prev: {
-          fromStable = import inputs.nixpkgs-stable {
+          fromStable = import nixpkgs-stable {
             system = getSystem final;
             config = {inherit allowUnfree;};
           };
@@ -44,7 +49,7 @@
 
         #~@ Unstable
         (final: prev: {
-          fromUnstable = import inputs.nixpkgs-unstable {
+          fromUnstable = import nixpkgs-unstable {
             system = getSystem final;
             config = {inherit allowUnfree;};
           };
@@ -52,20 +57,18 @@
 
         #~@ Flake inputs
         #? Flattened packages (higher priority)
-        (final: prev: let
-          system = prev.stdenv.hostPlatform.system;
-        in
+        (final: prev:
           filterAttrsRecursive (name: value: value != null) (
             mapAttrs' (_name: pkgsSet: {
               name = _name;
-              value = pkgsSet.${system}.${"default"} or null;
+              value = pkgsSet.${getSystem prev}.${"default"} or null;
             })
-            inputs.packages
+            packages
           ))
 
         #? Categorized (lower priority, for browsing)
         (final: prev: {
-          fromInputs = mapAttrs (_: pkgs: pkgs.${prev.stdenv.hostPlatform.system} or {}) inputs.packages;
+          fromInputs = mapAttrs (_: pkgs: pkgs.${getSystem prev} or {}) packages;
         })
       ];
     };

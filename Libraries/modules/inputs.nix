@@ -1,93 +1,189 @@
-{lib, ...}: let
-  inherit (lib.attrsets) mapAttrs;
-  inherit (lib.lists) foldl';
-  inherit (lib.modules) setDefaultModuleLocation;
+{
+  _,
+  src,
+  ...
+}: let
+  inherit (_.modules.resolution) flakeAttrs byPaths;
 
-  /**
-  Process a single flake input by adding module location metadata to its modules.
-
-  Iterates through the specified module categories (nixosModules and homeModules)
-  within a flake input and applies `setDefaultModuleLocation` to each module. The location
-  string follows the format: `<flake-name>.<module-category>.<module-name>`.
-
-  # Arguments
-  - {string} name - The attribute name of the flake input (e.g., "nixpkgs")
-  - {attrset} input - The flake input attribute set
-
-  - # Return
-  - {attrset} - The processed input with location metadata added to modules
-
-  # Example
-  ```nix
-  input = {
-    nixosModules = { foo = ...; };
-    homeModules = { bar = ...; };
-  };
-
-  processInput "my-flake" input
-
-  # => {
-    nixosModules = { foo = <module-with-location-"my-flake.nixosModules.foo">; };
-    homeModules = { bar = <module-with-location-"my-flake.homeModules.bar">; };
-  }
-  ```
-  */
-  per = name: input:
-    foldl' (
-      acc: module-class:
-        if acc ? ${module-class}
-        then
-          acc
-          // {
-            ${module-class} =
-              mapAttrs (
-                module-name: _module:
-                  setDefaultModuleLocation "${name}.${module-class}.${module-name}" _module
-              )
-              acc.${module-class};
-          }
-        else acc
-    )
-    input ["nixosModules" "homeModules"];
-
-  /**
-  Process all flake inputs by adding module location metadata.
-
-  Applies `processInput` to each flake input in the provided set, ensuring all
-  modules have proper location information for better error messages and debugging.
-  The location metadata helps identify the source of modules when NixOS or Home
-  Manager encounter errors during evaluation.
-
-  # Arguments
-  - {attrset} rawInputs - A set of flake inputs
-
-  # Return
-  - {attrset} - All inputs processed with module location metadata
-
-  # Example
-  ```nix
-  {
-    inputs = {
-      nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-      home-manager.url = "github:nix-community/home-manager";
-    };
-
-  outputs = { self, nixpkgs, home-manager, ... }:
-    let
-      processedInputs = prep { inherit nixpkgs home-manager; };
-    in {
-      nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
-        modules = [
-          processedInputs.nixpkgs.nixosModules.my-module
-          processedInputs.home-manager.nixosModules.home-manager
+  modules = {
+    nixpkgs = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nixpkgs";
+        paths = [
+          ["nixosCore"]
+          ["nixPackages"]
+          ["nixosPackages"]
+          ["nixosPackagesUnstable"]
+          ["nixpkgs-unstable"]
+          ["nixosPackagesStable"]
+          ["nixpkgs-stable"]
         ];
       };
-    };
-  }
-  ```
-  */
-  prep = inputs: mapAttrs per inputs;
+
+    nixpkgs-stable = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nixpkgs-stable";
+        paths = [
+          ["nixosPackagesStable"]
+          ["nixpkgs-stable"]
+          ["nixpkgs"]
+        ];
+      };
+
+    nixpkgs-unstable = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nixpkgs-unstable";
+        paths = [
+          ["nixosPackagesUnstable"]
+          ["nixpkgs-unstable"]
+          ["nixpkgs"]
+        ];
+      };
+
+    home-manager = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "home-manager";
+        paths = [
+          ["nixHomeManager"]
+          ["nixosHome"]
+          ["nixHome"]
+          ["homeManager"]
+          ["home"]
+        ];
+      };
+
+    fresh-editor = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "fresh-editor";
+        paths = [
+          ["fresh"]
+          ["freshEditor"]
+          ["editorFresh"]
+        ];
+      };
+    helix = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "helix";
+        paths = [
+          ["helix-editor"]
+          ["hx"]
+          ["helixEditor"]
+          ["editorHelix"]
+          ["editorHX"]
+        ];
+      };
+    noctalia-shell = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "noctalia-shell";
+        paths = [
+          ["shellNoctalia"]
+          ["noctalia-dev"]
+          ["noctalia"]
+        ];
+      };
+
+    dank-material-shell = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "dank-material-shell";
+        paths = [
+          ["shellDankMaterial"]
+          ["shellDank"]
+          ["dank-material"]
+          ["dank"]
+          ["dms"]
+        ];
+      };
+
+    nvf = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nvf";
+        paths = [
+          ["editorNeovim"]
+          ["neovim"]
+          ["nvim"]
+          ["neovimFlake"]
+          ["neoVim"]
+        ];
+      };
+
+    plasma = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "plasma";
+        paths = [
+          ["shellPlasma"]
+          ["plasma-manager"]
+          ["plasmaManager"]
+          ["kde"]
+        ];
+      };
+
+    treefmt = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "treefmt";
+        paths = [
+          ["treeFormatter"]
+          ["fmtree"]
+          ["treefmt-nix"]
+        ];
+      };
+    vscode-insiders = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "vscode-insiders";
+        paths = [
+          ["vscode"]
+          ["code"]
+          ["code-insiders"]
+          ["vsc"]
+          ["VSCode"]
+          ["editorVscode"]
+          ["editorVscodeInsiders"]
+          ["vscode-insiders-nix"]
+        ];
+      };
+    zen-browser = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "zen-browser";
+        paths = [
+          ["browserZen"]
+          ["firefoxZen"]
+          ["zen"]
+          ["zenBrowser"]
+          ["zenFirefox"]
+          ["twilight"]
+        ];
+      };
+  };
+
+  packages = {
+  };
 in {
-  inherit per prep;
-  _rootAliases = {processInputs = prep;};
+  inherit modules packages;
+  #   (modules.core)
+  #   nixpkgs
+  #   nixpkgs-stable
+  #   nixpkgs-unstable
+  #   home-manager
+  #   ;
+  # inherit
+  #   (modules.home)
+  #   dank-material-shell
+  #   noctalia-shell
+  #   nvf
+  #   plasma
+  #   zen-browser
+  #   ;
+  _rootAliases = {};
 }

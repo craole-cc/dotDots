@@ -11,27 +11,21 @@
   inherit (_.modules.resolution) systems system;
 
   mkSystem = {
+    inputs,
+    nixpkgs,
+    home-manager,
     args ? {},
     class ? "nixos",
-    inputs ? {},
     modules ? [],
     specialArgs ? {},
     ...
   }: let
     #~@ Inputs
     args' = args // specialArgs // {inherit inputs;};
-    nixpkgs =
-      inputs.nixpkgs or
-      inputs.nixPackages or
-      args'.inputs.modules.core.nixpkgs or
-      (throw "No `nixpkgs` input found");
-    darwin = inputs.darwin or
-      inputs.nixDarwin or
-      args'.inputs.modules.core.darwin or
-      (throw "No `nix-darwin` input found");
-    home-manager = inputs.home-manager or
-      inputs.nixHomeManager or
-      args'.inputs.modules.core.home-manager or {};
+    darwin =
+      if (class == darwin)
+      then inputs.darwin
+      else (throw "No `nix-darwin` input found");
 
     #~@ Imports
     lib = nixpkgs.lib;
@@ -42,6 +36,10 @@
     modulesPath = "${nixpkgs}/nixos/modules";
     baseModules = import "${modulesPath}/module-list.nix";
     hostModules = modules;
+    homeModules =
+      if class == "darwin"
+      then home-manager.darwinModules.home-manager
+      else home-manager.nixosModules.home-manager;
 
     #~@ System
     eval = evalModules {
@@ -55,13 +53,7 @@
       modules =
         baseModules
         ++ hostModules
-        ++ optionals (home-manager != null) [
-          (
-            if class == "darwin"
-            then home-manager.darwinModules.home-manager
-            else home-manager.nixosModules.home-manager
-          )
-        ]
+        ++ homeModules
         ++ [
           {
             config = {
@@ -91,8 +83,8 @@
   mkCore = {
     hosts,
     args,
-    inputs,
     src,
+    class ? "nixos",
     ...
   }:
     mapAttrs (_name: host: let
@@ -103,12 +95,19 @@
           inherit host;
           inherit (host) system;
         };
-      inherit (specialArgs) inputs src;
+      inherit (args) src inputs;
+      inherit (args.inputs.modules) home-manager;
     in
       systemBuilder {
-        inputs = specialArgs.rawInputs;
-        inherit specialArgs;
+        inherit specialArgs class inputs;
         modules =
+          [
+            (
+              if class == "darwin"
+              then home-manager.darwinModules.home-manager
+              else home-manager.nixosModules.home-manager
+            )
+          ]
           [
             {config = mkPkgs {inherit host inputs;};}
             ({pkgs, ...}: {
@@ -121,52 +120,6 @@
                 // mkAudio {inherit host;}
                 // mkFonts {inherit host pkgs;}
                 // mkUsers {inherit host pkgs specialArgs src;}
-                // mkEnvironment {inherit host pkgs inputs;}
-                // mkClean {inherit host;}
-                // {};
-            })
-          ]
-          ++ (host.imports or []);
-      })
-    hosts;
-
-  mkCoreOLD = {
-    hosts,
-    args,
-    inputs,
-    src,
-    ...
-  }:
-    mapAttrs (_name: host: let
-      systemBuilder = lib.nixosSystem;
-      specialArgs =
-        args
-        // {
-          inherit host;
-          inherit (host) system;
-        };
-      inherit (specialArgs) inputs src;
-    in
-      systemBuilder {
-        inherit specialArgs;
-        modules =
-          [
-            {
-              imports = with specialArgs.inputs.modules.core; [home-manager];
-
-              #> Configure nixpkgs with overlays and allowUnfree
-              config = mkPkgs {inherit host inputs;};
-            }
-            ({pkgs, ...}: {
-              config =
-                {}
-                // mkBoot {inherit host pkgs;}
-                // mkFileSystems {inherit host;}
-                // mkNetwork {inherit host pkgs;}
-                // mkLocale {inherit host;}
-                // mkAudio {inherit host;}
-                // mkFonts {inherit host pkgs;}
-                // mkUsers {inherit host inputs pkgs specialArgs src;}
                 // mkEnvironment {inherit host pkgs inputs;}
                 // mkClean {inherit host;}
                 // {};

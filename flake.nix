@@ -3,42 +3,54 @@
 
   outputs = inputs @ {self, ...}: let
     src = ./.;
+    path = src;
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import src {inherit lib src self;}) lix flake hosts schema;
     inherit (lix.modules.core) systems mkCore;
     inherit (systems {inherit hosts legacyPackages;}) perFlake;
 
+    modules = {
+      #~@ Core
+      nixpkgs = lix.modules.inputs.nixpkgs {inherit path;};
+      nixpkgs-stable = lix.modules.inputs.nixpkgs-stable {inherit path;};
+      nixpkgs-unstable = lix.modules.inputs.nixpkgs-unstable {inherit path;};
+      home-manager = lix.modules.inputs.home-manager {inherit path;};
+
+      #~@ Applications
+      dank-material-shell = lix.modules.inputs.dank-material-shell {inherit path;};
+      fresh-editor = lix.modules.inputs.fresh-editor {inherit path;};
+      helix = lix.modules.inputs.helix {inherit path;};
+      noctalia-shell = lix.modules.inputs.noctalia-shell {inherit path;};
+      nvf = lix.modules.inputs.nvf {inherit path;};
+      plasma = lix.modules.inputs.plasma {inherit path;};
+      treefmt = lix.modules.inputs.treefmt {inherit path;};
+      vscode-insiders = lix.modules.inputs.vscode-insiders {inherit path;};
+      zen-browser = lix.modules.inputs.zen-browser {inherit path;};
+    };
+
+    packages = {
+      #~@ Core
+      nixpkgs-stable = modules.nixpkgs-stable.legacyPackages;
+      nixpkgs-unstable = modules.nixpkgs-unstable.legacyPackages;
+      home-manager = modules.home-manager.packages;
+
+      #~@ Applications
+      dank-material-shell = modules.dank-material-shell.packages;
+      fresh-editor = modules.fresh-editor.packages;
+      helix = modules.helix.packages;
+      noctalia-shell = modules.noctalia-shell.packages;
+      nvf = modules.nvf.packages;
+      plasma = modules.plasma.packages;
+      treefmt = modules.treefmt.packages;
+      vscode-insiders = modules.vscode-insiders.packages;
+      zen-browser = modules.zen-browser.packages;
+    };
+
     args = {
       inherit lix flake schema src;
-      rawInputs = inputs;
       inputs = {
-        modules = with inputs; {
-          core = {
-            nixpkgs = nixPackages;
-            # home-manager = nixHomeManager;
-            home-manager = nixHomeManager.nixosModules.default;
-            nvf = editorNeovim.nixosModules.default;
-          };
-          home = {
-            noctalia-shell = shellNoctalia.homeModules.default;
-            dank-material-shell = shellDankMaterial.homeModules.dank-material-shell;
-            nvf = editorNeovim.homeManagerModules.default;
-            plasma = shellPlasma.homeModules.plasma-manager;
-            zen-browser = browserZen.homeModules.twilight;
-            zen-homeModules = browserZen.homeModules;
-          };
-        };
-        packages = with inputs; {
-          dankMaterialShell = shellDankMaterial.packages;
-          fresh-editor = editorFresh.packages;
-          nixpkgs-stable = nixPackagesStable.legacyPackages;
-          nixpkgs-unstable = nixPackagesUnstable.legacyPackages;
-          noctalia-shell = shellNoctalia.packages;
-          nvf = editorNeovim.packages;
-          plasma-manager = shellPlasma.packages;
-          vscode-insiders = inputs.editorVscode.packages;
-          zen-browser = browserZen.packages;
-        };
+        inherit modules packages;
+        flake = inputs;
       };
     };
 
@@ -48,7 +60,7 @@
         pkgs,
       }: {
         inherit
-          (import ./Packages/shared {
+          (import ./Packages/global {
             inherit pkgs lib lix src system flake;
             inputs = args.inputs.packages;
           })

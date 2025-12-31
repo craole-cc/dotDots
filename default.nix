@@ -27,7 +27,7 @@
   flake =
     if self != null
     then self
-    else lic.flake {path = src;};
+    else lic.flakeAttrs {path = src;};
   nixosConfigurations = flake.nixosConfigurations or {};
 
   #|─────────────────────────────────────────────────────────────────────────────|

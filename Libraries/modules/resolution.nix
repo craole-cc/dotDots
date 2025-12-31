@@ -12,20 +12,121 @@
   inherit (_.lists.predicates) mostFrequent;
   inherit (_.attrsets.resolution) byPaths;
 
-  flakePkgs = {path ? src}:
-    byPaths {
-      attrset = (flake {inherit path;}).inputs or {};
-      paths = [
-        ["nixosCore"]
-        ["nixPackages"]
-        ["nixosPackages"]
-        ["nixosPackagesStable"]
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-stable"]
-        ["nixpkgs-unstable"]
-      ];
-      default = "nixpkgs";
-    };
+  core = {
+    nixpkgs = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nixpkgs";
+        paths = [
+          ["nixosCore"]
+          ["nixPackages"]
+          ["nixosPackages"]
+          ["nixosPackagesUnstable"]
+          ["nixpkgs-unstable"]
+          ["nixosPackagesStable"]
+          ["nixpkgs-stable"]
+        ];
+      };
+
+    nixpkgs-stable = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nixpkgs-stable";
+        paths = [
+          ["nixosPackagesStable"]
+          ["nixpkgs-stable"]
+          ["nixpkgs"]
+        ];
+      };
+
+    nixpkgs-unstable = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nixpkgs-unstable";
+        paths = [
+          ["nixosPackagesUnstable"]
+          ["nixpkgs-unstable"]
+          ["nixpkgs"]
+        ];
+      };
+
+    home-manager = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "home-manager";
+        paths = [
+          ["nixHomeManager"]
+          ["nixosHome"]
+          ["nixHome"]
+          ["homeManager"]
+          ["home"]
+        ];
+      };
+  };
+  home = {
+    noctalia-shell = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "noctalia-shell";
+        paths = [
+          ["shellNoctalia"]
+          ["noctalia-dev"]
+          ["noctalia"]
+        ];
+      };
+
+    dank-material-shell = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "dank-material-shell";
+        paths = [
+          ["shellDankMaterial"]
+          ["shellDank"]
+          ["dank-material"]
+          ["dank"]
+          ["dms"]
+        ];
+      };
+
+    nvf = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "nvf";
+        paths = [
+          ["editorNeovim"]
+          ["neovim"]
+          ["nvim"]
+          ["neovimFlake"]
+          ["neoVim"]
+        ];
+      };
+
+    plasma = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "plasma";
+        paths = [
+          ["shellPlasma"]
+          ["plasma-manager"]
+          ["plasmaManager"]
+          ["kde"]
+        ];
+      };
+
+    zen-browser = {path ? src}:
+      byPaths {
+        attrset = (flakeAttrs {inherit path;}).inputs or {};
+        default = "zen-browser";
+        paths = [
+          ["browserZen"]
+          ["firefoxZen"]
+          ["zen"]
+          ["zenBrowser"]
+          ["zenFirefox"]
+          ["twilight"]
+        ];
+      };
+  };
 
   flakePath = path: let
     pathStr = toString path;
@@ -40,7 +141,7 @@
     "❌ '${pathStr}' is not a valid flake path."
     result;
 
-  flake = {path ? src}: let
+  flakeAttrs = {path ? src}: let
     normalizedPath = flakePath path;
     derived = optionalAttrs (normalizedPath != null) (builtins.getFlake normalizedPath);
     failureReason =
@@ -68,7 +169,7 @@
       else if nixpkgs ? legacyPackages
       then nixpkgs.legacyPackages
       else let
-        f = flakePkgs {inherit path;};
+        f = core.nixpkgs {inherit path;};
       in
         optionalAttrs
         (f ? legacyPackages)
@@ -126,8 +227,8 @@
 
   host = {
     nixosConfigurations ?
-      optionalAttrs ((flake {}) ? nixosConfigurations)
-      ((flake {}).nixosConfigurations),
+      optionalAttrs ((flakeAttrs {}) ? nixosConfigurations)
+      ((flakeAttrs {}).nixosConfigurations),
     system ? (systems {}).system,
   }: let
     derived =
@@ -140,19 +241,37 @@
     "❌ Failed to derive current host"
     (derived // {name = derived.config.networking.hostName;});
 
+  # inputs = {
+  # };
+
   # =============================================================
   __doc = ''
     Flake stuff
   '';
   exports = {
     inherit
-      flake
+      flakeAttrs
       flakePath
-      flakePkgs
-      systems
-      system
       host
+      system
+      systems
       ;
+
+    # inherit
+    #   (core)
+    #   nixpkgs
+    #   nixpkgs-stable
+    #   nixpkgs-unstable
+    #   home-manager
+    #   ;
+    # inherit
+    #   (home)
+    #   dank-material-shell
+    #   noctalia-shell
+    #   nvf
+    #   plasma
+    #   zen-browser
+    #   ;
   };
 in
   exports
@@ -160,10 +279,11 @@ in
     inherit __doc;
     _rootAliases = {
       inherit flakePath;
-      getFlake = flake;
+      getFlake = flakeAttrs;
       getSystems = systems;
       getSystem = system;
-      getNixPkgs = flakePkgs;
+      getNixPkgs = core.nixpkgs;
+      getHomeManagerPkgs = core.home-manager;
       getHost = host;
     };
   }

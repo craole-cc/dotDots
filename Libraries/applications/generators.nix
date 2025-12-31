@@ -4,8 +4,8 @@
   ...
 }: let
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) unique;
-  inherit (lib.meta) getExe;
+  inherit (lib.lists) head unique;
+  inherit (lib.meta) getExe';
   inherit (lib.trivial) warn boolToString;
   inherit (lib.strings) concatStringsSep optionalString toUpper;
   inherit (lib.generators) toPretty;
@@ -257,6 +257,7 @@
     name,
     kind,
     category ? null,
+    extraPackages ? [],
     resolutionHints ? [name],
     customPackage ? null,
     customCommand ? null,
@@ -276,20 +277,27 @@
         };
 
     #~@ Runtime Identity
-    path =
-      if customPackage == null
-      then getExe package
-      else null;
+    # path =
+    #   if customPackage == null
+    #   then getExe package
+    #   else null;
+
     command =
       if customCommand != null
       then customCommand
-      else baseNameOf path;
+      else let
+        #> Try to get the binary from resolutionHints first, then fallback to name
+        binaryName =
+          if package ? meta.mainProgram
+          then package.meta.mainProgram
+          else head resolutionHints;
+      in
+        getExe' package binaryName;
+    basename = baseNameOf command;
 
     #~@ Complete Identifiers
     identifiers = unique (
-      [name command]
-      ++ resolutionHints
-      ++ ["${name}-${kind}" "${command}-${kind}"]
+      [name basename] ++ resolutionHints ++ ["${name}-${kind}"]
     );
 
     #~@ Role Classification
@@ -376,13 +384,17 @@
         )
       );
 
+    packages = [package] ++ extraPackages;
+
     export = {
       inherit
         name
         kind
         category
         package
+        packages
         command
+        basename
         identifiers
         isPrimary
         isSecondary
@@ -635,6 +647,7 @@
     resolutionHints ? [name],
     customPackage ? null,
     customCommand ? null,
+    extraPackages ? [],
     requiresWayland ? false,
     requiresX11 ? false,
     debug ? false,
@@ -656,27 +669,27 @@
         debug
         ;
     };
-    cfg =
-      {}
-      // optionalAttrs (config ? home) {
-        home = {
-          inherit (app) sessionVariables;
-          packages = with app; ([package] ++ extraPackages);
-        };
-      }
-      // optionalAttrs (config.programs ? name) {
-        programs = {
-          ${app.name} =
-            {
-              enable = app.isAllowed;
-              inherit (app) package;
-            }
-            // app.extraConfig;
-        };
-      }
-      // {};
+
+    home =
+      optionalAttrs (config ? home)
+      {inherit (app) sessionVariables packages;};
+
+    programs = optionalAttrs (config.programs ? name) {
+      ${app.name} =
+        {
+          enable = app.isAllowed;
+          inherit (app) package;
+        }
+        // app.extraConfig;
+    };
+
+    exports = {
+      inherit home programs;
+      meta = app;
+      enable = app.isAllowed;
+    };
   in
-    cfg;
+    exports;
 in {
   inherit userApplication userApplicationConfig program;
   _rootAliases = {
