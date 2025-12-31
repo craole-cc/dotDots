@@ -18,41 +18,35 @@
         inherit (specialArgs) flake;
         inputs = getInputs {inherit host flake specialArgs;};
 
-        #~@ Modules
-        inherit (inputs.modules) modulesPath baseModules coreModules homeModules hostModules;
-
-        allMods = {
-          inherit
-            modulesPath
-            baseModules
-            homeModules
-            coreModules
-            hostModules
-            moduleArgs
-            ;
-        };
-        moduleArgs = [
-          {
-            config = {
-              _module.args = allMods;
-              # nixpkgs.flake.source = flake.outPath;
-            };
-          }
-        ];
-
-        moduleEval = evalModules {
-          specialArgs = specialArgs // allMods;
-          modules =
-            baseModules
-            ++ homeModules
-            ++ coreModules
-            ++ hostModules
-            ++ moduleArgs;
-        };
+        modules = let
+          all = {
+            inherit
+              (inputs.modules)
+              modulesPath
+              baseModules
+              coreModules
+              homeModules
+              hostModules
+              ;
+          };
+          eval = evalModules {
+            specialArgs = specialArgs // all;
+            modules =
+              []
+              ++ all.baseModules
+              ++ all.homeModules
+              ++ all.coreModules
+              ++ all.homeModules
+              ++ all.hostModules
+              ++ [{config._module.args = all;}];
+          };
+        in {inherit all eval;};
       in
         if (host.class or "nixos") == "darwin"
-        then (moduleEval // {system = moduleEval.config.system.build.toplevel;})
-        else moduleEval
+        then
+          (modules.eval
+            // {system = modules.eval.config.system.build.toplevel;})
+        else modules.eval
     )
     hosts;
 
