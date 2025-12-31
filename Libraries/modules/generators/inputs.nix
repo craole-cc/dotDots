@@ -245,11 +245,24 @@
     host,
     packages,
     specialArgs,
+    config,
+    overlays,
   }: let
     class = host.class or "nixos";
     path = "${inputs.nixpkgs}/nixos/modules";
     base = import "${path}/module-list.nix";
-
+    nixpkgs =
+      {
+        hostPlatform = host.system;
+        inherit config overlays;
+      }
+      // (
+        with inputs.nixpkgs; (
+          if (host.class or "nixos") == "darwin"
+          then {source = outPath;}
+          else {flake.source = outPath;}
+        )
+      );
     core =
       (
         if class == "darwin"
@@ -287,7 +300,7 @@
 
     host' =
       [
-        {inherit (inputs) nixpkgs;}
+        {inherit nixpkgs;}
         (
           {pkgs, ...}:
             {}
@@ -306,7 +319,7 @@
       ]
       ++ (host.imports or []);
   in {
-    inherit path base core home;
+    inherit path base core home nixpkgs;
     baseModules = base;
     coreModules = core;
     homeModules = home;

@@ -182,26 +182,14 @@
         inputs
         packages
         specialArgs
+        config
+        overlays
         ;
       host = host';
     };
-
-    nixpkgs =
-      {
-        hostPlatform = host.system;
-        inherit config overlays;
-      }
-      // (
-        with inputs.nixpkgs; (
-          if (host.class or "nixos") == "darwin"
-          then {source = outPath;}
-          else {flake.source = outPath;}
-        )
-      );
   in {
     inherit
       inputs
-      nixpkgs
       modules
       overlays
       packages
