@@ -3,11 +3,9 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) attrValues filterAttrs mapAttrs optionalAttrs attrByPath;
-  inherit (lib.lists) any concatMap elem head optionals;
-  inherit (lib.modules) mkDefault;
+  inherit (lib.attrsets) filterAttrs mapAttrs;
+  inherit (lib.lists) elem head optionals;
   inherit (_.attrsets.resolution) package;
-  inherit (_.applications.firefox) zenVariant;
   inherit (_.lists.predicates) isIn;
 
   mkSudoRules = admins:
@@ -29,13 +27,14 @@
   mkUsers = {
     host,
     pkgs,
-    # inputs,
     specialArgs,
     src,
     ...
   }: let
     users = host.users.data.enabled or {};
     admins = host.users.names.elevated or [];
+    # inputs = specialArgs.normalizedInputs;
+    # inputs = specialArgs.lix.inputs.generators.normalize {path = src;};
   in {
     users = {
       #> Create a private group for each user
@@ -73,16 +72,11 @@
       #> Merge all per-user home-manager configs
       users =
         mapAttrs (name: cfg: {
+          home = {inherit (host) stateVersion;};
           _module.args.user = cfg // {inherit name;};
           imports =
-            cfg.imports or []
-            ++ (with specialArgs.inputs.modules.home; [
-              nvf
-              noctalia-shell
-              dank-material-shell
-              plasma
-              zen-browser
-            ])
+            (cfg.imports or [])
+            ++ specialArgs.homeModules
             ++ [(src + "/Packages/home")];
         })
         (filterAttrs (_: u: (!elem u.role ["service" "guest"])) users);

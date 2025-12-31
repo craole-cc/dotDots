@@ -1,40 +1,39 @@
 {
   lib ? import <nixpkgs/lib>,
-  src ? ./.,
-  system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
   self ? null,
+  src ? ./.,
+  system ? builtins.currentSystem,
   ...
 }: let
   #|─────────────────────────────────────────────────────────────────────────────|
-  #| Core Imports                                                                |
+  #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
-  inherit (import ./Libraries {inherit lib src;}) lix;
+  path = self;
+  inherit (import ./Libraries {inherit lib src;}) lix; #TODO: Maybe pass in packages
   schema = lix.schema.core.all {
     hostsPath = ./API/hosts;
     usersPath = ./API/users;
   };
   inherit (schema) hosts users;
+  inherit (lix.modules.predicates) isSystemDefaultUser;
+  inherit (lix.modules.resolution) flakeAttrs hostAttrs;
+  inherit (lix.inputs.resolution) getInputs;
+
+  #|─────────────────────────────────────────────────────────────────────────────|
+  #| External Imports                                                                |
+  #|─────────────────────────────────────────────────────────────────────────────|
   inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
   inherit (lib.lists) length filter head;
   inherit (lib.strings) splitString;
-  inherit (lix.modules.predicates) isSystemDefaultUser;
 
   #|─────────────────────────────────────────────────────────────────────────────|
-  #| Flake Resolution                                                            |
+  #| Flake & Current Host                                                        |
   #|─────────────────────────────────────────────────────────────────────────────|
-  lic = lix.modules.resolution;
-  flake =
-    if self != null
-    then self
-    else lic.flakeAttrs {path = src;};
+  flake = flakeAttrs {inherit self path;};
   nixosConfigurations = flake.nixosConfigurations or {};
-
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Host Resolution                                                             |
-  #|─────────────────────────────────────────────────────────────────────────────|
-  host = lic.host {inherit nixosConfigurations system;};
-
+  host = hostAttrs {inherit nixosConfigurations system;};
+  inputs = getInputs {inherit flake host;};
   #|─────────────────────────────────────────────────────────────────────────────|
   #| REPL Helpers                                                                |
   #|─────────────────────────────────────────────────────────────────────────────|

@@ -4,14 +4,29 @@
   outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import src {inherit lib src self;}) lix flake hosts schema;
-    inherit (lix.modules.core) systems mkSystem;
-    inherit (systems {inherit hosts legacyPackages;}) perFlake;
-    ins = lix.inputs.generators;
-    normalizedInputs = ins.normalize {path = src;};
-    normalizedPackages = ins.normalizePackages {path = src;};
+    inherit
+      (import src {inherit lib src self;})
+      lix
+      flake
+      hosts
+      schema
+      ;
+    inherit (lix.modules.generators.core) mkSystem;
+    inherit (lix.inputs.resolution) getInputs;
+    inherit
+      (lix.modules.resolution.getSystems {
+        inherit hosts legacyPackages;
+      })
+      perFlake
+      ;
+
     args = {
-      inherit lix flake schema src inputs normalizedInputs normalizedPackages;
+      inherit
+        lix
+        flake
+        schema
+        src
+        ;
     };
 
     perSystem = perFlake (
@@ -22,7 +37,7 @@
         inherit
           (import ./Packages/global {
             inherit pkgs lib lix src system flake;
-            inputs = normalizedPackages;
+            inputs = getInputs {inherit inputs;};
           })
           devShells
           formatter
@@ -30,6 +45,7 @@
           ;
       }
     );
+
     forSystem =
       {nixosConfigurations = mkSystem {inherit hosts args src;};}
       // import ./Templates;

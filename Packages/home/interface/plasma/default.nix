@@ -2,6 +2,7 @@
   lib,
   lix,
   user,
+  config,
   pkgs,
   ...
 }: let
@@ -10,9 +11,10 @@
 
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
+  hasMod = config.programs ? plasma;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 in {
-  config = mkIf isAllowed {
+  config = mkIf (isAllowed && hasMod) {
     programs = {
       ${app} =
         {enable = true;}

@@ -11,8 +11,12 @@
   inherit (lib.lists) findFirst unique last flatten;
   inherit (_.lists.predicates) mostFrequent;
   inherit (_.inputs.generators) normalizedPackages;
+  inherit (builtins) getFlake;
 
-  flakePath = path: let
+  flakePath = {
+    self ? {},
+    path ? src,
+  }: let
     pathStr = toString path;
     result =
       if hasSuffix "/flake.nix" pathStr && pathExists pathStr
@@ -21,13 +25,19 @@
       then pathStr
       else null;
   in
-    traceIf (result == null)
-    "❌ '${pathStr}' is not a valid flake path."
-    result;
+    if (self ? outPath)
+    then self.outPath
+    else
+      traceIf (result == null)
+      "❌ '${pathStr}' is not a valid flake path."
+      result;
 
-  flakeAttrs = {path ? src}: let
-    normalizedPath = flakePath path;
-    derived = optionalAttrs (normalizedPath != null) (builtins.getFlake normalizedPath);
+  flakeAttrs = {
+    self ? {},
+    path ? src,
+  }: let
+    normalizedPath = flakePath {inherit self path;};
+    derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
     failureReason =
       if normalizedPath == null
       then "path normalization failed"
@@ -37,9 +47,12 @@
       then "invalid flake type: ${(derived._type or "null")}"
       else "unknown";
   in
-    traceIf ((derived._type or null) != "flake")
-    "❌ Flake load failed: ${toString path} (${failureReason})"
-    (derived // {srcPath = path;});
+    if self != {}
+    then self
+    else
+      traceIf ((derived._type or null) != "flake")
+      "❌ Flake load failed: ${toString path} (${failureReason})"
+      (derived // {srcPath = path;});
 
   systems = {
     path ? src,
@@ -102,6 +115,14 @@
     pkgs = pkgsFor derived;
   };
 
+  perFlake = {
+    path ? src,
+    hosts ? {},
+    nixpkgs ? {},
+    legacyPackages ? {},
+  }:
+    (systems {inherit hosts legacyPackages;}) perFlake;
+
   system = pkgs: pkgs.stdenv.hostPlatform.system;
 
   host = {
@@ -134,23 +155,14 @@
       host
       system
       systems
+      perFlake
       ;
 
-    # inherit
-    #   (core)
-    #   nixpkgs
-    #   nixpkgs-stable
-    #   nixpkgs-unstable
-    #   home-manager
-    #   ;
-    # inherit
-    #   (home)
-    #   dank-material-shell
-    #   noctalia-shell
-    #   nvf
-    #   plasma
-    #   zen-browser
-    #   ;
+    getFlake = flakeAttrs;
+    getSystems = systems;
+    getSystem = system;
+    getHost = host;
+    getSystemsPerFlake = perFlake;
   };
 in
   exports
@@ -158,9 +170,6 @@ in
     inherit __doc;
     _rootAliases = {
       inherit flakePath;
-      getFlake = flakeAttrs;
-      getSystems = systems;
-      getSystem = system;
-      getHost = host;
+      inherit (exports) getSystems getSystem getFlake getHost;
     };
   }

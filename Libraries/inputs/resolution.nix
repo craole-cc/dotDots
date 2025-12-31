@@ -1,178 +1,29 @@
-{
-  _,
-  src,
-  ...
-}: let
-  inherit (_.modules.resolution) flakeAttrs;
-  inherit (_.attrsets.resolution) byPaths;
-in {
-  nixpkgs = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "nixpkgs";
-      paths = [
-        ["nixosCore"]
-        ["nixPackages"]
-        ["nixosPackages"]
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-unstable"]
-        ["nixosPackagesStable"]
-        ["nixpkgs-stable"]
-      ];
-    };
+{_, ...}: let
+  inherit (_.inputs.generators) mkInputs mkPackages mkOverlays mkModules;
 
-  nixpkgs-stable = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "nixpkgs-stable";
-      paths = [
-        ["nixosPackagesStable"]
-        ["nixpkgs-stable"]
-        ["nixpkgs"]
-      ];
+  resolve = {
+    flake,
+    host,
+    ...
+  }: let
+    path = flake.outPath;
+    inputsUnprocessed = flake.inputs;
+    inputs = mkInputs {inherit inputsUnprocessed;};
+    packages = mkPackages {inherit inputs;};
+    overlays = mkOverlays {
+      inherit (inputs) nixpkgs-stable nixpkgs-unstable;
+      inherit packages;
+      config = {
+        allowUnfree = host.packages.allowUnfree or false;
+        allowBroken = host.packages.allowBroken or false;
+      };
     };
+    modules = mkModules {inherit host path inputs;};
+  in {inherit inputs modules overlays packages;};
 
-  nixpkgs-unstable = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "nixpkgs-unstable";
-      paths = [
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-unstable"]
-        ["nixpkgs"]
-      ];
-    };
-
-  nix-darwin = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "nix-darwin";
-      paths = [
-        ["darwin"]
-        ["nixDarwin"]
-        ["darwinNix"]
-      ];
-    };
-  home-manager = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "home-manager";
-      paths = [
-        ["nixHomeManager"]
-        ["nixosHome"]
-        ["nixHome"]
-        ["homeManager"]
-        ["home"]
-      ];
-    };
-
-  fresh-editor = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "fresh-editor";
-      paths = [
-        ["fresh"]
-        ["freshEditor"]
-        ["editorFresh"]
-      ];
-    };
-  helix = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "helix";
-      paths = [
-        ["helix-editor"]
-        ["hx"]
-        ["helixEditor"]
-        ["editorHelix"]
-        ["editorHX"]
-      ];
-    };
-  noctalia-shell = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "noctalia-shell";
-      paths = [
-        ["shellNoctalia"]
-        ["noctalia-dev"]
-        ["noctalia"]
-      ];
-    };
-
-  dank-material-shell = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "dank-material-shell";
-      paths = [
-        ["shellDankMaterial"]
-        ["shellDank"]
-        ["dank-material"]
-        ["dank"]
-        ["dms"]
-      ];
-    };
-
-  nvf = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "nvf";
-      paths = [
-        ["editorNeovim"]
-        ["neovim"]
-        ["nvim"]
-        ["neovimFlake"]
-        ["neoVim"]
-      ];
-    };
-
-  plasma = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "plasma";
-      paths = [
-        ["shellPlasma"]
-        ["plasma-manager"]
-        ["plasmaManager"]
-        ["kde"]
-      ];
-    };
-
-  treefmt = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "treefmt";
-      paths = [
-        ["treeFormatter"]
-        ["fmtree"]
-        ["treefmt-nix"]
-      ];
-    };
-  vscode-insiders = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "vscode-insiders";
-      paths = [
-        ["vscode"]
-        ["code"]
-        ["code-insiders"]
-        ["vsc"]
-        ["VSCode"]
-        ["editorVscode"]
-        ["editorVscodeInsiders"]
-        ["vscode-insiders-nix"]
-      ];
-    };
-  zen-browser = {path ? src}:
-    byPaths {
-      attrset = (flakeAttrs {inherit path;}).inputs or {};
-      default = "zen-browser";
-      paths = [
-        ["browserZen"]
-        ["firefoxZen"]
-        ["zen"]
-        ["zenBrowser"]
-        ["zenFirefox"]
-        ["twilight"]
-      ];
-    };
-}
+  exports = {
+    getInputs = resolve;
+    inherit mkInputs mkModules mkOverlays mkPackages;
+  };
+in
+  exports // {_rootAliases = {inherit (exports) getInputs;};}

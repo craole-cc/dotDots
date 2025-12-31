@@ -32,7 +32,7 @@
         modulesPath = "${nixpkgs}/nixos/modules";
         baseModules = import "${modulesPath}/module-list.nix";
 
-        homeModules =
+        hmModules =
           if class == "darwin"
           then [home-manager.darwinModules.home-manager]
           else [home-manager.nixosModules.home-manager];
@@ -82,11 +82,11 @@
             specialArgs
             // {
               inherit baseModules modulesPath;
-              modules = homeModules;
+              modules = hostModules;
             };
           modules =
             baseModules
-            ++ homeModules
+            ++ hmModules
             ++ hostModules
             ++ moduleArgs
             ++ darwinModules
