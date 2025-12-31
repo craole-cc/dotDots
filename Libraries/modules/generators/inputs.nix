@@ -243,6 +243,7 @@
   mkModules = {
     inputs,
     host,
+    packages,
     specialArgs,
   }: let
     class = host.class or "nixos";
@@ -298,7 +299,7 @@
             // mkAudio {inherit host;}
             // mkFonts {inherit host pkgs;}
             // mkUsers {inherit host pkgs specialArgs src;}
-            // mkEnvironment {inherit host pkgs;}
+            // mkEnvironment {inherit host pkgs packages;}
             // mkClean {inherit host;}
             // {}
         )

@@ -5,7 +5,7 @@
 }: let
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
-  inherit (_.inputs.resolution) getInputs;
+  inherit (_.modules.resolution) getInputs;
 
   mkSystem = {
     hosts,

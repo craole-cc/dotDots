@@ -5,7 +5,7 @@
   ...
 }: let
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.modules.generators) mkInputs mkPackages mkOverlays mkModules;
+  inherit (_.modules.generators.inputs) mkInputs mkPackages mkOverlays mkModules;
   inherit (builtins) getFlake;
   inherit (lib.attrsets) attrValues genAttrs attrNames mapAttrs mapAttrsToList optionalAttrs;
   inherit (lib.debug) traceIf;
@@ -180,10 +180,10 @@
     modules = mkModules {
       inherit
         inputs
+        packages
         specialArgs
         ;
       host = host';
-      flake = flake';
     };
 
     nixpkgs =
@@ -214,9 +214,10 @@
     inherit
       flakeAttrs
       flakePath
-      hostAttrs
+      getInputs
       getSystem
       getSystems
+      hostAttrs
       perFlake
       ;
 
