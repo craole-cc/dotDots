@@ -20,12 +20,21 @@
   }: let
     #~@ Inputs
     args' = args // specialArgs // {inherit inputs;};
-    nixpkgs = inputs.nixpkgs or inputs.nixPackages or args'.inputs.modules.core.nixpkgs or (throw "No `nixpkgs` input found");
-    darwin = inputs.darwin or inputs.nixDarwin or args'.inputs.modules.core.darwin or (throw "No `nix-darwin` input found");
-    lib = nixpkgs.lib;
-    home-manager = inputs.home-manager or inputs.nixHomeManager or args'.inputs.modules.core.home-manager or {};
+    nixpkgs =
+      inputs.nixpkgs or
+      inputs.nixPackages or
+      args'.inputs.modules.core.nixpkgs or
+      (throw "No `nixpkgs` input found");
+    darwin = inputs.darwin or
+      inputs.nixDarwin or
+      args'.inputs.modules.core.darwin or
+      (throw "No `nix-darwin` input found");
+    home-manager = inputs.home-manager or
+      inputs.nixHomeManager or
+      args'.inputs.modules.core.home-manager or {};
 
     #~@ Imports
+    lib = nixpkgs.lib;
     inherit (lib.lists) optionals;
     inherit (lib.modules) evalModules;
 
@@ -79,7 +88,7 @@
     then (eval // {system = eval.config.system.build.toplevel;})
     else eval;
 
-  mkCoreNew = {
+  mkCore = {
     hosts,
     args,
     inputs,
@@ -101,10 +110,7 @@
         inherit specialArgs;
         modules =
           [
-            {
-              imports = [inputs.nixHomeManager.nixosModules.home-manager];
-              config = mkPkgs {inherit host inputs;};
-            }
+            {config = mkPkgs {inherit host inputs;};}
             ({pkgs, ...}: {
               config =
                 {}
@@ -124,7 +130,7 @@
       })
     hosts;
 
-  mkCore = {
+  mkCoreOLD = {
     hosts,
     args,
     inputs,

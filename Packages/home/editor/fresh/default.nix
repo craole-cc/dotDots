@@ -1,23 +1,27 @@
 {
-  lib,
   lix,
   pkgs,
   user,
+  config,
   ...
 }: let
-  inherit (lib.modules) mkIf;
-  inherit (lix.applications.generators) application program;
-
-  app = application {
-    inherit user pkgs;
+  inherit (lix.applications.generators) userApplicationConfig application program;
+  # app = application {
+  #   inherit user pkgs;
+  #   name = "fresh-editor";
+  #   kind = "editor";
+  #   category = "tty";
+  #   resolutionHints = ["fresh" "fresh-editor"];
+  #   debug = true;
+  # };
+  app = userApplicationConfig {
+    inherit config user pkgs;
     name = "fresh-editor";
     kind = "editor";
     category = "tty";
     resolutionHints = ["fresh" "fresh-editor"];
     debug = true;
   };
-
-  cfg = program {inherit (app) name package sessionVariables;};
 in {
-  config = mkIf app.isAllowed cfg.home;
+  config = app;
 }

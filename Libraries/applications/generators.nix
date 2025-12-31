@@ -9,7 +9,6 @@
   inherit (lib.trivial) warn boolToString;
   inherit (lib.strings) concatStringsSep optionalString toUpper;
   inherit (lib.generators) toPretty;
-
   inherit (_.lists.predicates) isIn;
 
   /**
@@ -251,7 +250,7 @@
       }
   ```
   */
-  application = {
+  userApplication = {
     user,
     pkgs,
     config ? {},
@@ -596,6 +595,8 @@
   ```
   */
   program = {
+    config,
+    isAllowed,
     name,
     package,
     extraConfig ? {},
@@ -603,25 +604,83 @@
     extraPackages ? [],
     ...
   }: let
-    programs.${name} =
+    programs =
+      optionalAttrs (config.programs ? name)
       {
-        enable = true;
-        inherit package;
-      }
-      // extraConfig;
-
+        ${name} =
+          {
+            enable = true;
+            inherit package;
+          }
+          // extraConfig;
+      };
     home = {
       inherit sessionVariables;
       packages = [package] ++ extraPackages;
     };
-
-    exports = {inherit programs home;};
+    exports = {
+      inherit programs home;
+      # inherit config;
+    };
   in
     exports;
+
+  userApplicationConfig = {
+    config,
+    user,
+    pkgs,
+    name,
+    kind,
+    category ? null,
+    resolutionHints ? [name],
+    customPackage ? null,
+    customCommand ? null,
+    requiresWayland ? false,
+    requiresX11 ? false,
+    debug ? false,
+    ...
+  }: let
+    app = userApplication {
+      inherit
+        config
+        user
+        pkgs
+        name
+        kind
+        category
+        resolutionHints
+        customPackage
+        customCommand
+        requiresWayland
+        requiresX11
+        debug
+        ;
+    };
+    cfg =
+      {}
+      // optionalAttrs (config ? home) {
+        home = {
+          inherit (app) sessionVariables;
+          packages = with app; ([package] ++ extraPackages);
+        };
+      }
+      // optionalAttrs (config.programs ? name) {
+        programs = {
+          ${app.name} =
+            {
+              enable = app.isAllowed;
+              inherit (app) package;
+            }
+            // app.extraConfig;
+        };
+      }
+      // {};
+  in
+    cfg;
 in {
-  inherit application program;
+  inherit userApplication userApplicationConfig program;
   _rootAliases = {
-    mkApplication = application;
+    mkUserApplication = userApplicationConfig;
     mkProgram = program;
   };
 }

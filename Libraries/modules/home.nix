@@ -29,7 +29,7 @@
   mkUsers = {
     host,
     pkgs,
-    inputs,
+    # inputs,
     specialArgs,
     src,
     ...
@@ -76,7 +76,7 @@
           _module.args.user = cfg // {inherit name;};
           imports =
             cfg.imports or []
-            ++ (with inputs.modules.home; [
+            ++ (with specialArgs.inputs.modules.home; [
               nvf
               noctalia-shell
               dank-material-shell
