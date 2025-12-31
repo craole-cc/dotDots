@@ -122,6 +122,8 @@
     pkgs = pkgsFor derived;
   };
 
+  system = pkgs: pkgs.stdenv.hostPlatform.system;
+
   host = {
     nixosConfigurations ?
       optionalAttrs ((flake {}) ? nixosConfigurations)
@@ -148,6 +150,7 @@
       flakePath
       flakePkgs
       systems
+      system
       host
       ;
   };
@@ -159,6 +162,7 @@ in
       inherit flakePath;
       getFlake = flake;
       getSystems = systems;
+      getSystem = system;
       getNixPkgs = flakePkgs;
       getHost = host;
     };

@@ -45,8 +45,8 @@
 
   applications = {
     browser = let
-      firefox = "zen";
-      chromium = "edge";
+      firefox = "zen twilight";
+      chromium = "microsoft edge";
     in {
       inherit firefox chromium;
       primary = firefox;
@@ -55,15 +55,15 @@
     editor = {
       tty = {
         primary = "helix";
-        secondary = "fresh";
+        secondary = "micro";
       };
       gui = {
         primary = "vscode";
-        secondary = "zed";
+        secondary = "zeditor";
       };
     };
     terminal = {
-      promary = "foot";
+      primary = "foot";
       secondary = "ghostty";
     };
     launcher = {
@@ -77,12 +77,11 @@
       # "atuin"
       "fastfetch"
       "freetube"
+      "fresh-editor"
       "warp-terminal"
       "jujutsu"
       "obs-studio"
       "yazi"
-      "zed-editor"
-      "zen-browser"
     ];
   };
 

@@ -2,67 +2,46 @@
   config,
   lib,
   lix,
-  pkgs,
   user,
+  pkgs,
   ...
 }: let
-  app = "foot";
-  cmd = "feet";
-  inherit (lib) getExe';
   inherit (lib.modules) mkIf;
-  inherit (lix.lists.predicates) isIn;
-  inherit (lix.attrsets.predicates) waylandEnabled;
+  inherit (lib.meta) getExe';
+  inherit (lix.applications.generators) application program;
 
-  # Terminal role checks
-  terminalConfig = user.applications.terminal or {};
-  isPrimary = terminalConfig.primary or null == app;
-  isSecondary = terminalConfig.secondary or null == app;
-  isWaylandAvailable = waylandEnabled {
-    inherit config;
-    interface = user.interface or {};
+  app = application {
+    inherit user pkgs config;
+    name = "foot";
+    kind = "terminal";
+    customCommand = "feet";
+    resolutionHints = ["foot" "feet"];
+    requiresWayland = true;
   };
-  isExplicitlyAllowed = isIn app (user.applications.allowed or []);
-  isAllowed =
-    (isPrimary || isSecondary || isExplicitlyAllowed)
-    && isWaylandAvailable;
 
-  baseVars = {TERMINAL_ID = app;};
-  roleVars =
-    if isPrimary
-    then {TERMINAL = cmd;}
-    else if isSecondary
-    then {TERMINAL_ALT = cmd;}
-    else {};
-  sessionVariables = baseVars // roleVars;
-
-  #~@ Package and binaries
-  package = pkgs.${app};
-  binFoot = getExe' package app;
-  binFootClient = getExe' package "footclient";
-
-  # Foot client wrapper script
-  bin = pkgs.writeShellScriptBin cmd ''
-    if ${binFootClient} --no-wait 2>/dev/null; then exit 0 ; else
-      ${binFoot} --server &
-      sleep 0.1
-      exec ${binFootClient}
-    fi
-  '';
+  bin = rec {
+    foot = getExe' app.package "foot";
+    footclient = getExe' app.package "footclient";
+    feet = pkgs.writeShellScriptBin app.command ''
+      if ${footclient} --no-wait 2>/dev/null; then exit 0 ; else
+        ${foot} --server &
+        sleep 0.1
+        exec ${footclient}
+      fi
+    '';
+  };
 in {
-  config = mkIf isAllowed {
-    programs.${app} = {
-      enable = true;
-      inherit package;
+  config = mkIf app.isAllowed (program {
+    inherit (app) name package sessionVariables;
+    extraPackages = [bin.feet];
+    extraConfig = {
       server.enable = true;
       settings =
-        (import ./settings.nix)
+        {}
+        // (import ./settings.nix)
         // (import ./input.nix)
-        // (import ./themes.nix);
+        // (import ./themes.nix)
+        // {};
     };
-
-    home = {
-      packages = [bin];
-      inherit sessionVariables;
-    };
-  };
+  });
 }

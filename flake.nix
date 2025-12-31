@@ -8,11 +8,13 @@
     inherit (lix.modules.core) systems mkCore;
     inherit (systems {inherit hosts legacyPackages;}) perFlake;
 
-    specialArgs = {
-      inherit lix flake schema;
+    args = {
+      inherit lix flake schema src;
+      rawInputs = inputs;
       inputs = {
         modules = with inputs; {
           core = {
+            nixpkgs = nixPackages;
             home-manager = nixHomeManager.nixosModules.default;
             nvf = editorNeovim.nixosModules.default;
           };
@@ -47,7 +49,7 @@
         inherit
           (import ./Packages/shared {
             inherit pkgs lib lix src system flake;
-            inputs = specialArgs.inputs.packages;
+            inputs = args.inputs.packages;
           })
           devShells
           formatter
@@ -56,7 +58,7 @@
       }
     );
     forSystem =
-      {nixosConfigurations = mkCore {inherit hosts specialArgs src;};}
+      {nixosConfigurations = mkCore {inherit hosts args;};}
       // import ./Templates;
   in
     perSystem // forSystem;

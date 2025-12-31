@@ -1,7 +1,7 @@
 {lib, ...}: let
-  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.attrsets) filterAttrsRecursive mapAttrs' mapAttrs;
   inherit (lib.lists) elem any;
-  inherit (lib.modules) mkIf mkForce;
+  inherit (lib.modules) mkIf;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
 
   mkNix = {
@@ -50,9 +50,21 @@
         })
 
         #~@ Flake inputs
+        #? Flattened packages (higher priority)
+        (final: prev: let
+          system = prev.stdenv.hostPlatform.system;
+        in
+          filterAttrsRecursive (name: value: value != null) (
+            mapAttrs' (_name: pkgsSet: {
+              name = _name;
+              value = pkgsSet.${system}.${"default"} or null;
+            })
+            inputs.packages
+          ))
+
+        #? Categorized (lower priority, for browsing)
         (final: prev: {
-          fromInputs =
-            mapAttrs (_: pkgs: pkgs.${getSystem final} or {}) inputs.packages;
+          fromInputs = mapAttrs (_: pkgs: pkgs.${prev.stdenv.hostPlatform.system} or {}) inputs.packages;
         })
       ];
     };
@@ -190,14 +202,14 @@
     };
   };
 
-  mkClean = {src, ...}: {
+  mkClean = {host, ...}: {
     programs.nh = {
       enable = true;
       clean = {
         enable = true;
-        extraArgs = "--keep-since 7d --keep 5";
+        extraArgs = "--keep-since 3d --keep 5";
       };
-      flake = toString src;
+      flake = host.paths.dots;
     };
   };
 

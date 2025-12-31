@@ -10,20 +10,21 @@
 
   app = application {
     inherit user pkgs;
-    name = "helix";
+    name = "zed-editor";
     kind = "editor";
-    category = "tty";
-    resolutionHints = ["hx" "helix" "helix-editor"];
+    category = "gui";
+    resolutionHints = ["zeditor" "zed-editor"];
+    debug = true;
   };
 
   cfg = program {
     inherit (app) name package sessionVariables;
     extraConfig =
-      {defaultEditor = app.isPrimary;}
-      // import ./editor.nix
-      // import ./keybindings.nix
-      // import ./languages.nix
-      // import ./themes.nix
+      {}
+      # // import ./editor.nix
+      # // import ./keybindings.nix
+      # // import ./languages.nix
+      # // import ./themes.nix
       // {};
   };
 in {
