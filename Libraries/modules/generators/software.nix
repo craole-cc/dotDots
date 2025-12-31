@@ -155,6 +155,8 @@
       #~@ Support for available kernel modules
       initrd.availableKernelModules = host.modules or [];
     };
+
+    environment.systemPackages = with pkgs; [efibootmgr];
   };
 
   mkClean = {host, ...}: {

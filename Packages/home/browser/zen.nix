@@ -1,13 +1,11 @@
 # Packages/home/browser/zen/default.nix
 {
-  lib,
   user,
   config,
   homeModules,
   ...
 }: let
-  # variant = user.applications.browser.variant or "default";
-  variant = "twilight";
+  variant = user.applications.browser.variant or "twilight";
   zenModule = homeModules.zen-browser.${variant} or {};
 in {
   imports = [zenModule];
@@ -329,5 +327,4 @@ in {
       };
     };
   };
-  # };
 }
