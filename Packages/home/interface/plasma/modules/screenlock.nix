@@ -5,7 +5,7 @@
     appearance = {
       alwaysShowClock = true;
       showMediaControls = false;
-      wallpaper = src + "/Assets/Images/wallpaper/16x9/unsorted/wallhaven-1jwwdv.jpg";
+      wallpaper = src + "/Assets/Images/wallhaven-4y5glk.jpg";
     };
   };
 }
