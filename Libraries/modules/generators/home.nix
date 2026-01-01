@@ -228,7 +228,7 @@
       in
         with userApps; {
           home = {
-            inherit (nixosConfig.sustem) stateVersion;
+            inherit (nixosConfig.system) stateVersion;
           };
 
           #> Pass user data and apps to modules via _module.args

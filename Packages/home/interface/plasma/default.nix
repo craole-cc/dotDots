@@ -20,7 +20,7 @@ in {
       ${app} =
         {enable = true;}
         // import ./bindings
-        // import ./files
+        # // import ./files
         // import ./modules {inherit src pkgs;};
     };
 

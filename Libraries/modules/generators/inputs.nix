@@ -13,6 +13,7 @@
   inherit (_.modules.resolution) getSystem;
   inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
   inherit (lib.lists) optionals;
+  inherit (lib.modules) mkMerge;
   inherit (lib.strings) hasInfix;
 
   mkInputs = {inputs}: {
@@ -360,24 +361,28 @@
       [
         {inherit nixpkgs;}
         (
-          {pkgs, ...}:
-            {}
-            // mkNix {inherit host;}
-            // mkNetwork {inherit host pkgs;}
-            // mkBoot {inherit host pkgs;}
-            // mkFileSystems {inherit host;}
-            // mkLocale {inherit host;}
-            // mkAudio {inherit host;}
-            // mkFonts {inherit host pkgs;}
-            // mkUsers {
-              inherit host pkgs specialArgs;
-              extraSpecialArgs =
-                specialArgs
-                // {inherit src homeModules mkHomeModuleApps;};
-            }
-            // mkEnvironment {inherit host pkgs packages;}
-            // mkClean {inherit host;}
-            // {}
+          {
+            pkgs,
+            lib,
+            ...
+          }:
+            mkMerge [
+              (mkNix {inherit host;})
+              (mkNetwork {inherit host pkgs;})
+              (mkBoot {inherit host pkgs;})
+              (mkFileSystems {inherit host;})
+              (mkLocale {inherit host;})
+              (mkAudio {inherit host;})
+              (mkFonts {inherit host pkgs;})
+              (mkUsers {
+                inherit host pkgs specialArgs;
+                extraSpecialArgs =
+                  specialArgs
+                  // {inherit src homeModules mkHomeModuleApps;};
+              })
+              (mkEnvironment {inherit host pkgs packages;})
+              (mkClean {inherit host;})
+            ]
         )
       ]
       ++ (host.imports or []);

@@ -246,9 +246,11 @@
       };
     };
 
-    systemd.services = optionalAttrs (dm == "gdm") {
-      "getty@tty1".enable = false;
-      "autovt@tty1".enable = false;
+    systemd = {
+      services = optionalAttrs (dm == "gdm") {
+        "getty@tty1".enable = false;
+        "autovt@tty1".enable = false;
+      };
     };
   };
 
