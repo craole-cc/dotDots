@@ -32,11 +32,10 @@
   #   '';
   # };
 
-  bin = rec {
-    foot = getExe' app.package "foot";
-    footclient = getExe' app.package "footclient";
-
-    feet = pkgs.writeShellScriptBin "foot" ''
+  foot = getExe' app.package "foot";
+  footclient = getExe' app.package "footclient";
+  feet = {
+    command = pkgs.writeShellScriptBin "foot" ''
       if ! ${footclient} --no-wait 2>/dev/null; then
         ${foot} --server &
         sleep 0.1
@@ -45,7 +44,7 @@
     '';
 
     # Create a complete package with desktop files and icons
-    feetPackage = pkgs.symlinkJoin {
+    package = pkgs.symlinkJoin {
       name = "feet";
       paths = [feet app.package];
       postBuild = ''
@@ -59,7 +58,7 @@
 
   cfg = userApplicationConfig {
     inherit app user pkgs config;
-    extraPackages = [bin.feetPackage];
+    customPackage = feet.package;
     extraProgramConfig = {
       server.enable = true;
       settings =
