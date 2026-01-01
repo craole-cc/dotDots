@@ -119,7 +119,7 @@
     "Walk Through Windows of Current Application Alternative (Reverse)" = [];
     "Window Above Other Windows" = [];
     "Window Below Other Windows" = [];
-    "Window Close" = ["Meta+Q" "Alt+F4"];
+    "Window Close" = ["Ctrl+Alt+Q" "Meta+Q" "Alt+F4"];
     "Window Custom Quick Tile Bottom" = [];
     "Window Custom Quick Tile Left" = [];
     "Window Custom Quick Tile Right" = [];
