@@ -46,11 +46,14 @@
   package = pkgs.symlinkJoin {
     name = "feet";
     paths = [wrapper app.package];
+    buildInputs = [pkgs.makeWrapper];
     postBuild = ''
       # Override the foot binary with our wrapper
       rm -f $out/bin/foot
-      ln -s ${wrapper}/bin/foot $out/bin/foot
-      ln -s $out/bin/foot $out/bin/feet
+      cp ${wrapper}/bin/foot $out/bin/foot
+
+      # Create feet symlink
+      ln -sf $out/bin/foot $out/bin/feet
     '';
   };
 
