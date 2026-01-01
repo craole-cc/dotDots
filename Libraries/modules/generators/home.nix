@@ -5,8 +5,8 @@
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs;
   inherit (lib.lists) elem head optionals;
-  inherit (lib.strings) hasInfix;
   inherit (_.attrsets.resolution) package;
+  inherit (_.applications.config) mkUserApps;
   inherit (_.lists.predicates) isIn;
 
   mkSudoRules = admins:
@@ -25,6 +25,41 @@
     })
     admins;
 
+  # mkUserApps = {
+  #   modules,
+  #   pkgs,
+  #   user,
+  #   config,
+  # }: {
+  #   noctalia-shell = rec {
+  #     isAllowed = hasInfix "noctalia" (user.interface.bar or "");
+  #     variant = "default";
+  #     module = modules.noctalia-shell.${variant} or {};
+  #   };
+
+  #   nvf =
+  #     userApplicationConfig {
+  #       inherit user pkgs config;
+  #       name = "nvf";
+  #       kind = "editor";
+  #       category = "tty";
+  #       resolutionHints = ["nvim" "neovim"];
+  #       debug = true;
+  #     }
+  #     // {module = modules.nvf.default or {};};
+  #   zen-browser = rec {
+  #     isAllowed = hasInfix "zen" (user.applications.browser.firefox or "");
+  #     variant =
+  #       if hasInfix "twilight" (user.applications.browser.firefox or "")
+  #       then "twilight"
+  #       else "default";
+  #     module = modules.zen-browser.${variant} or {};
+  #   };
+  # };
+
+  userAttrs = host: host.users.data.enabled or {};
+  adminsNames = host: host.users.names.elevated or [];
+
   mkUsers = {
     host,
     pkgs,
@@ -32,14 +67,19 @@
     specialArgs,
     src,
     ...
-  }: let
-    users = host.users.data.enabled or {};
-    admins = host.users.names.elevated or [];
-  in {
+  }: {
+    security.sudo = {
+      #> Restrict sudo to members of the wheel group (root is always allowed).
+      execWheelOnly = true;
+
+      #> For each admin user, grant passwordless sudo for all commands.
+      extraRules = mkSudoRules (adminsNames host);
+    };
+
     users = {
       #> Create a private group for each user
       #? This ensures the primary group exists before user creation
-      groups = mapAttrs (_: _: {}) users;
+      groups = mapAttrs (_: _: {}) (userAttrs host);
 
       users =
         mapAttrs (name: cfg: {
@@ -59,7 +99,7 @@
             target = head (cfg.shells or ["bash"]);
           };
         })
-        users;
+        (userAttrs host);
     };
 
     home-manager = {
@@ -70,42 +110,39 @@
       extraSpecialArgs = specialArgs // {inherit homeModules;};
 
       #> Merge all per-user home-manager configs
-      users =
-        mapAttrs (name: cfg: {
+      users = mapAttrs (name: cfg: let
+        userApps = mkUserApps {
+          user = (userAttrs host).${name} or {};
+          config = cfg;
+          modules = homeModules;
+          inherit pkgs;
+        };
+      in
+        with userApps; {
           home = {inherit (host) stateVersion;};
           _module.args.user = cfg // {inherit name;};
-          imports = let
-            zen-browser = rec {
-              isAllowed = hasInfix "zen" (cfg.applications.browser.firefox or "");
-              variant =
-                if hasInfix "twilight" (cfg.applications.browser.firefox or "")
-                then "twilight"
-                else "default";
-              module = homeModules.zen-browser.${variant} or {};
-            };
-
-            noctalia-shell = rec {
-              isAllowed = hasInfix "noctalia" (cfg.interface.bar or "");
-              variant = "default";
-              module = homeModules.noctalia-shell.${variant} or {};
-            };
-          in
+          imports = with userApps;
             [(src + "/Packages/home")]
+            ++ optionals (nvf.isAllowed) [nvf.module]
             ++ optionals (noctalia-shell.isAllowed) [noctalia-shell.module]
             ++ optionals (zen-browser.isAllowed) [zen-browser.module]
             ++ (cfg.imports or []);
+          # config =
+          #   {}
+          #   // optionalAttrs (noctalia-shell.isAllowed) {
+          #     inherit (noctalia-shell) programs home;
+          #   }
+          #   // optionalAttrs (nvf.isAllowed) {
+          #     inherit (nvf) programs home;
+          #   }
+          #   // optionalAttrs (zen-browser.isAllowed) {
+          #     inherit (zen-browser) programs home;
+          #   }
+          #   // {};
         })
-        (filterAttrs (_: u: (!elem u.role ["service" "guest"])) users);
-    };
-    security.sudo = {
-      #> Restrict sudo to members of the wheel group (root is always allowed).
-      execWheelOnly = true;
-
-      #> For each admin user, grant passwordless sudo for all commands.
-      extraRules = mkSudoRules admins;
+      (filterAttrs (_: u: (!elem u.role ["service" "guest"])) (userAttrs host));
     };
   };
-
   exports = {inherit mkUsers mkSudoRules;};
 in
   exports // {_rootAliases = exports;}

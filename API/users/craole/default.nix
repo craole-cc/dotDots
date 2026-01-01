@@ -56,7 +56,7 @@
     editor = {
       tty = {
         primary = "helix";
-        secondary = "micro";
+        secondary = "neovim";
       };
       gui = {
         primary = "vscode";

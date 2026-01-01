@@ -257,6 +257,7 @@
     name,
     kind,
     category ? null,
+    # modules ? {},
     extraPackages ? [],
     resolutionHints ? [name],
     customPackage ? null,
@@ -358,12 +359,12 @@
         if isPrimary
         then {
           EDITOR = command;
-          EDITOR_NAME = name;
+          EDITOR_NAME = basename;
         }
         else if isSecondary
         then {
           EDITOR_ALT = command;
-          EDITOR_ALT_NAME = name;
+          EDITOR_ALT_NAME = basename;
         }
         else {}
       )
@@ -373,12 +374,12 @@
           if isPrimary
           then {
             VISUAL = command;
-            VISUAL_NAME = name;
+            VISUAL_NAME = basename;
           }
           else if isSecondary
           then {
             VISUAL_ALT = command;
-            VISUAL_ALT_NAME = name;
+            VISUAL_ALT_NAME = basename;
           }
           else {}
         )
@@ -683,11 +684,13 @@
         // app.extraConfig;
     };
 
-    exports = {
-      inherit home programs;
-      meta = app;
-      enable = app.isAllowed;
-    };
+    exports =
+      {
+        inherit home programs;
+        meta = app;
+        enable = app.isAllowed;
+      }
+      // app;
   in
     exports;
 in {
