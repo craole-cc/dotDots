@@ -45,15 +45,18 @@
   # Create a complete package with desktop files and icons
   package = pkgs.symlinkJoin {
     name = "feet";
-    paths = [wrapper app.package];
+    paths = [app.package];
     buildInputs = [pkgs.makeWrapper];
     postBuild = ''
-      # Override the foot binary with our wrapper
+      # Remove original foot binary
       rm -f $out/bin/foot
-      cp ${wrapper}/bin/foot $out/bin/foot
 
-      # Create feet symlink
-      ln -sf $out/bin/foot $out/bin/feet
+      # Create wrapper as foot
+      makeWrapper ${footclient} $out/bin/foot \
+        --run "if ! ${footclient} --no-wait 2>/dev/null; then ${foot} --server & sleep 0.1; fi"
+
+      # Create feet as a copy/symlink
+      cp $out/bin/foot $out/bin/feet
     '';
   };
 
