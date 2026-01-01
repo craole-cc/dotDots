@@ -4,6 +4,7 @@
   user,
   config,
   pkgs,
+  src,
   ...
 }: let
   app = "plasma";
@@ -23,7 +24,7 @@ in {
         # // import ./modules/input.nix
         # // import ./modules/launcher.nix
         # // import ./modules/power.nix
-        // import ./modules/screenlock.nix
+        // import ./modules/screenlock.nix {inherit src;}
         # // import ./modules/screenshot.nix
         # // import ./modules/session.nix
         # // import ./modules/windows.nix
