@@ -18,7 +18,7 @@
     "cycleNextAction" = [];
     "cyclePrevAction" = [];
     "edit_clipboard" = [];
-    "manage activities" = "Meta+Q";
+    # "manage activities" = "Meta+Q";
     "next activity" = [];
     "previous activity" = [];
     "repeat_action" = [];

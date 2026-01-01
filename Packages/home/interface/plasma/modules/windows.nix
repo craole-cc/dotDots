@@ -1,12 +1,11 @@
 {nixosConfig, ...}: {
   kwin = {
-    edgeBarrier = 0; # Disables the edge-barriers introduced in plasma 6.1
+    edgeBarrier = 0;
     cornerBarrier = false;
 
-    # scripts.polonium.enable = true;
     nightLight = {
       enable = true;
-      mode = "location";
+      mode = "times";
       temperature = {
         day = null;
         night = 4200;
