@@ -96,7 +96,12 @@
     specialArgs,
     src,
     ...
-  }: {
+  }: let
+    homeUsers =
+      filterAttrs
+      (_: u: (u.role or null) != "service" && (u.role or null) != "guest")
+      (userAttrs host);
+  in {
     security.sudo = {
       #> Restrict sudo to members of the wheel group (root is always allowed).
       execWheelOnly = true;
@@ -167,7 +172,8 @@
             // optionalAttrs (zen-browser.isAllowed) {zen-browser.enable = true;}
             // {};
         })
-      (filterAttrs (_: u: let role = u.role or "guest"; in (!elem role ["service" "guest"])) (userAttrs host));
+      homeUsers;
+      # (filterAttrs (_: u: let role = u.role or "guest"; in (!elem role ["service" "guest"])) (userAttrs host));
       # (filterAttrs (_: u: (!elem u.role ["service" "guest"])) (userAttrs host));
     };
   };

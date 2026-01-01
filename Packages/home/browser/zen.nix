@@ -2,7 +2,7 @@
 {
   user,
   config,
-  userApps,
+  # userApps,
   ...
 }: {
   programs.zen-browser = {
