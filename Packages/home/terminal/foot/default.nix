@@ -17,6 +17,7 @@
     customCommand = "feet";
     resolutionHints = ["foot" "feet"];
     requiresWayland = true;
+    debug = true;
   };
 
   bin = rec {

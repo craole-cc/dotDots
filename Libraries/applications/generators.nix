@@ -695,16 +695,16 @@
         };
 
     home =
-      optionalAttrs (config ? home)
+      optionalAttrs (config?home)
       {inherit (resolvedApp) sessionVariables packages;};
 
-    programs = optionalAttrs (config.programs ? name) {
+    programs = optionalAttrs (config.programs?${resolvedApp.name}) {
       ${resolvedApp.name} =
         {
           enable = resolvedApp.isAllowed;
           inherit (resolvedApp) package;
         }
-        // resolvedApp.extraProgramConfig;
+        // extraProgramConfig;
     };
 
     exports =
