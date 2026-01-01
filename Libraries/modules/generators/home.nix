@@ -167,7 +167,8 @@
             // optionalAttrs (zen-browser.isAllowed) {zen-browser.enable = true;}
             // {};
         })
-      (filterAttrs (_: u: (!elem u.role ["service" "guest"])) (userAttrs host));
+      (filterAttrs (_: u: let role = u.role or "guest"; in (!elem role ["service" "guest"])) (userAttrs host));
+      # (filterAttrs (_: u: (!elem u.role ["service" "guest"])) (userAttrs host));
     };
   };
 
