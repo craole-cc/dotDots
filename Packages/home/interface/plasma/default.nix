@@ -11,10 +11,10 @@
 
   inherit (lib.modules) mkIf;
   inherit (lix.lists.predicates) isIn;
-  hasMod = config.programs ? plasma;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
+  isAvailable = config?programs.${app};
 in {
-  config = mkIf (isAllowed && hasMod) {
+  config = mkIf (isAllowed && isAvailable) {
     programs = {
       ${app} =
         {enable = true;}
@@ -23,7 +23,7 @@ in {
         # // import ./modules/input.nix
         # // import ./modules/launcher.nix
         # // import ./modules/power.nix
-        # // import ./modules/screenlock.nix
+        // import ./modules/screenlock.nix
         # // import ./modules/screenshot.nix
         # // import ./modules/session.nix
         # // import ./modules/windows.nix

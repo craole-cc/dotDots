@@ -14,19 +14,6 @@
     inherit (lix.modules.generators.core) mkSystem;
     inherit (lix.inputs.resolution) getInputs;
     inherit (lix.modules.resolution) perFlake;
-    # inherit
-    #   (lix.modules.resolution.getSystems {
-    #     inherit hosts legacyPackages;
-    #   })
-    #   perFlake
-    # ;
-    # inherit
-    #   (lix.resolution.getSystemsPerFlake {
-    #     inherit hosts legacyPackages;
-    #     path = src;
-    #   })
-    #   perFlake
-    #   ;
 
     args = {
       inherit
@@ -37,7 +24,6 @@
         ;
     };
 
-    # perSystem = perFlake (
     perSystem = perFlake {inherit hosts legacyPackages;} (
       {
         system,
