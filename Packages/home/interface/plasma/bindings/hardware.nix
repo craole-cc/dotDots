@@ -20,12 +20,12 @@
   };
 
   ksmserver = {
-    "Halt Without Confirmation" = [];
+    "Halt Without Confirmation" = ["Meta+Ctrl+S" "Ctrl+Alt+S"];
     "Lock Session" = ["Meta+L" "Screensaver"];
-    "Log Out Without Confirmation" = [];
+    "Log Out Without Confirmation" = ["Meta+Ctrl+L" "Ctrl+Alt+L"];
     "Log Out" = "Ctrl+Alt+Del";
     "LogOut" = [];
-    "Reboot Without Confirmation" = [];
+    "Reboot Without Confirmation" = ["Meta+Ctrl+R" "Ctrl+Alt+R"];
     "Reboot" = [];
     "Shut Down" = [];
   };
