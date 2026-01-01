@@ -11,8 +11,9 @@
         day = null;
         night = 4200;
       };
-      location = {
-        inherit (nixosConfig.location) latitude longitude;
+      location = with nixosConfig.location; {
+        latitude = toString latitude;
+        longitude = toString longitude;
       };
       time = {
         morning = "09:00";

@@ -14,7 +14,7 @@ excludes = [
   "*.diff",
   "*.patch",
 
-
+  "dump.nix",
   "**/.bin/**",
   "**/.config/**",
   "**README.md",                               #TODO Temporary
