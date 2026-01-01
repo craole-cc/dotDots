@@ -34,31 +34,29 @@
 
   foot = getExe' app.package "foot";
   footclient = getExe' app.package "footclient";
-  feet = {
-    command = pkgs.writeShellScriptBin "foot" ''
-      if ! ${footclient} --no-wait 2>/dev/null; then
-        ${foot} --server &
-        sleep 0.1
-      fi
-      exec ${footclient} "$@"
-    '';
+  wrapper = pkgs.writeShellScriptBin "foot" ''
+    if ! ${footclient} --no-wait 2>/dev/null; then
+      ${foot} --server &
+      sleep 0.1
+    fi
+    exec ${footclient} "$@"
+  '';
 
-    # Create a complete package with desktop files and icons
-    package = pkgs.symlinkJoin {
-      name = "feet";
-      paths = [feet app.package];
-      postBuild = ''
-        # Override the foot binary with our wrapper
-        rm -f $out/bin/foot
-        ln -s ${feet}/bin/foot $out/bin/foot
-        ln -s $out/bin/foot $out/bin/feet
-      '';
-    };
+  # Create a complete package with desktop files and icons
+  package = pkgs.symlinkJoin {
+    name = "feet";
+    paths = [wrapper app.package];
+    postBuild = ''
+      # Override the foot binary with our wrapper
+      rm -f $out/bin/foot
+      ln -s ${wrapper}/bin/foot $out/bin/foot
+      ln -s $out/bin/foot $out/bin/feet
+    '';
   };
 
   cfg = userApplicationConfig {
     inherit app user pkgs config;
-    customPackage = feet.package;
+    customPackage = package;
     extraProgramConfig = {
       server.enable = true;
       settings =
