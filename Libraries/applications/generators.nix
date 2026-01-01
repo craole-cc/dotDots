@@ -696,7 +696,10 @@
 
     home =
       optionalAttrs (config?home)
-      {inherit (resolvedApp) sessionVariables packages;};
+      {
+        inherit (resolvedApp) sessionVariables;
+        packages = resolvedApp.packages ++ extraPackages;
+      };
 
     programs = optionalAttrs (config.programs?${resolvedApp.name}) {
       ${resolvedApp.name} =
