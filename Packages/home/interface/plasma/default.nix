@@ -24,10 +24,15 @@ in {
         // import ./modules {inherit src pkgs config;};
     };
 
-    home.packages = with pkgs.kdePackages; [
-      koi
-      krohnkite
-      yakuake
-    ];
+    home = {
+      packages = with pkgs.kdePackages; [
+        koi
+        krohnkite
+        yakuake
+      ];
+      shellAliases = {
+        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/Packages/home/interface/plasma/dump.nix";
+      };
+    };
   };
 }

@@ -3,14 +3,10 @@
     appearance = {
       alwaysShowClock = true;
       showMediaControls = false;
-      # wallpaper = src + "/Assets/Images/wallpapers/wallpaper_lockscreen_dark.jpg";
       wallpaperPictureOfTheDay = {
         provider = "bing";
+        updateOverMeteredConnection = false;
       };
-      # wallpaperSlideShow = {
-      #   path = src + "/Assets/Images/wallpapers";
-      #   interval = 1200;
-      # };
     };
     autoLock = true;
     lockOnResume = true;
@@ -21,5 +17,10 @@
   };
 
   session = {
+    sessionRestore = {
+      restoreOpenApplicationsOnLogin = "onLastLogout";
+      excludeApplications = [];
+    };
+    general.askForConfirmationOnLogout = false;
   };
 }
