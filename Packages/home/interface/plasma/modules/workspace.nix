@@ -22,7 +22,7 @@ in {
     wallpaperBackground = {
       blur = true;
     };
-    wallpaperFillMode = "preserveAspectFit";
+    wallpaperFillMode = "stretch`";
     wallpaperSlideShow = {
       path = wallpapers;
       interval = 500;

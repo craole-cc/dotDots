@@ -154,9 +154,9 @@
     "Window Quick Tile Bottom" = "Meta+Down";
     "Window Quick Tile Left" = "Meta+Left";
     "Window Quick Tile Right" = "Meta+Right";
+    "Window Quick Tile Top" = "Meta+Up";
     "Window Quick Tile Top Left" = [];
     "Window Quick Tile Top Right" = [];
-    "Window Quick Tile Top" = [];
     "Window Raise" = [];
     "Window Resize" = [];
     "Window Shrink Horizontal" = [];
