@@ -1,12 +1,10 @@
-# Packages/home/browser/zen/default.nix
 {
   user,
   config,
-  # userApps,
   ...
 }: {
   programs.zen-browser = {
-    enable = true;
+    # enable = true;
     profiles.default = {
       bookmarks = {
         force = true;

@@ -207,6 +207,7 @@
             ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
             ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
             ++ optionals nvf.isAllowed [nvf.module]
+            ++ optionals plasma.isAllowed [plasma.module]
             ++ optionals zen-browser.isAllowed [zen-browser.module]
             ++ [(src + "/Packages/home")]
             ++ (cfg.imports or []);
@@ -222,6 +223,9 @@
             }
             // optionalAttrs nvf.isAllowed {
               nvf.enable = true;
+            }
+            // optionalAttrs plasma.isAllowed {
+              plasma.enable = true;
             }
             // optionalAttrs zen-browser.isAllowed {
               zen-browser.enable = true;
