@@ -16,8 +16,17 @@ in {
     };
     iconTheme = "Papirus-Dark";
     # wallpaper = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Patak/contents/images/1080x1920.png";
+    wallpaperBackground = {
+      blur = true;
+    };
+    wallpaperFillMode = "preserveAspectFit";
+    wallpaperPictureOfTheDay = {
+      provider = "bing";
+      updateOverMeteredConnection = false;
+    };
     wallpaperSlideShow = {
       path = wallpapers;
+      interval = 500;
     };
   };
 }
