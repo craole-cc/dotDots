@@ -128,17 +128,16 @@
             ++ optionals (zen-browser.isAllowed) [zen-browser.module]
             ++ (cfg.imports or []);
           # config =
-          #   {}
-          config = optionalAttrs (noctalia-shell.isAllowed) {
-            inherit (noctalia-shell) programs home;
-          };
-          # // optionalAttrs (nvf.isAllowed) {
-          #   inherit (nvf) programs home;
-          # }
-          # // optionalAttrs (zen-browser.isAllowed) {
-          #   inherit (zen-browser) programs home;
-          # }
-          # // {};
+          #   {} optionalAttrs (noctalia-shell.isAllowed) {
+          #     inherit (noctalia-shell) programs home;
+          #   }
+          #   // optionalAttrs (nvf.isAllowed) {
+          #     inherit (nvf) programs home;
+          #   }
+          #   // optionalAttrs (zen-browser.isAllowed) {
+          #     inherit (zen-browser) programs home;
+          #   }
+          #   // {};
         })
       (filterAttrs (_: u: (!elem u.role ["service" "guest"])) (userAttrs host));
     };

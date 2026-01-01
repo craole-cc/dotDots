@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) head unique;
+  inherit (lib.lists) filter head unique;
   inherit (lib.meta) getExe';
   inherit (lib.trivial) warn boolToString;
   inherit (lib.strings) concatStringsSep optionalString toUpper;
@@ -277,28 +277,36 @@
           target = resolutionHints;
         };
 
-    #~@ Runtime Identity
-    # path =
-    #   if customPackage == null
-    #   then getExe package
-    #   else null;
+    #> Check if package was found
+    packageFound = package != null;
 
+    #~@ Runtime Identity
     command =
       if customCommand != null
       then customCommand
-      else let
+      else if packageFound
+      then let
         #> Try to get the binary from resolutionHints first, then fallback to name
         binaryName =
           if package ? meta.mainProgram
           then package.meta.mainProgram
           else head resolutionHints;
       in
-        getExe' package binaryName;
-    basename = baseNameOf command;
+        getExe' package binaryName
+      else null; #> Return null if package not found
 
-    #~@ Complete Identifiers
+    basename =
+      if command != null
+      then baseNameOf command
+      else null;
+
+    #~@ Complete Identifiers - FILTER OUT NULL VALUES
     identifiers = unique (
-      [name basename] ++ resolutionHints ++ ["${name}-${kind}"]
+      filter (x: x != null) ([
+          name
+          basename
+        ]
+        ++ resolutionHints ++ ["${name}-${kind}"])
     );
 
     #~@ Role Classification
@@ -329,7 +337,8 @@
     isPlatformCompatible = isWaylandAvailable && isX11Available;
 
     #~@ Final Allow Check
-    isAllowed = (isPrimary || isSecondary || isRequested) && isPlatformCompatible;
+    #? Cannot allow if package wasn't found
+    isAllowed = packageFound && (isPrimary || isSecondary || isRequested) && isPlatformCompatible;
 
     #~@ Environment Variables
     var = toUpper kind;
@@ -444,9 +453,17 @@
       debug = ''
         ╭─ mkApplication ${name} ────│ ${status} │
         │        Kind: ${kind}${optionalString (category != null) " (${category})"}
-        │     Command: ${command}
+        │     Command: ${
+          if command != null
+          then command
+          else "null (package not found)"
+        }
         │ Identifiers: [${concatStringsSep ", " identifiers}]
-        │     Package: ${package.name or package}
+        │     Package: ${
+          if packageFound
+          then package.name or package
+          else "not found"
+        }
         ${
           if checkPlatform
           then variablesWithPlatform
