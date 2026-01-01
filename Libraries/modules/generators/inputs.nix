@@ -4,15 +4,14 @@
   src,
   ...
 }: let
-  inherit (lib.lists) optionals;
-  inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
   inherit (_.attrsets.resolution) byPaths;
-
-  inherit (_.modules.resolution) getSystem;
-  inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
-  inherit (_.modules.generators.software) mkNix mkBoot mkClean;
-  inherit (_.modules.generators.home) mkUsers;
   inherit (_.modules.generators.environment) mkEnvironment mkFonts mkLocale;
+  inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
+  inherit (_.modules.generators.home) mkUsers;
+  inherit (_.modules.generators.software) mkNix mkBoot mkClean;
+  inherit (_.modules.resolution) getSystem;
+  inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
+  inherit (lib.lists) optionals;
 
   mkInputs = {inputs}: {
     nixpkgs = byPaths {

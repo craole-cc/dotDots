@@ -3,11 +3,11 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs mapAttrs;
-  inherit (lib.lists) elem head optionals;
   inherit (_.attrsets.resolution) package;
-  inherit (_.applications.config) mkUserApps;
   inherit (_.lists.predicates) isIn;
+  inherit (lib.attrsets) filterAttrs mapAttrs optionalAttrs;
+  inherit (lib.lists) elem head optionals;
+  inherit (lib.strings) hasInfix;
 
   mkSudoRules = admins:
     map (name: {
@@ -25,40 +25,59 @@
     })
     admins;
 
-  # mkUserApps = {
-  #   modules,
-  #   pkgs,
-  #   user,
-  #   config,
-  # }: {
-  #   noctalia-shell = rec {
-  #     isAllowed = hasInfix "noctalia" (user.interface.bar or "");
-  #     variant = "default";
-  #     module = modules.noctalia-shell.${variant} or {};
-  #   };
-
-  #   nvf =
-  #     userApplicationConfig {
-  #       inherit user pkgs config;
-  #       name = "nvf";
-  #       kind = "editor";
-  #       category = "tty";
-  #       resolutionHints = ["nvim" "neovim"];
-  #       debug = true;
-  #     }
-  #     // {module = modules.nvf.default or {};};
-  #   zen-browser = rec {
-  #     isAllowed = hasInfix "zen" (user.applications.browser.firefox or "");
-  #     variant =
-  #       if hasInfix "twilight" (user.applications.browser.firefox or "")
-  #       then "twilight"
-  #       else "default";
-  #     module = modules.zen-browser.${variant} or {};
-  #   };
-  # };
-
   userAttrs = host: host.users.data.enabled or {};
   adminsNames = host: host.users.names.elevated or [];
+
+  homeModuleApps = {
+    modules,
+    pkgs,
+    user,
+    config,
+  }: {
+    plasma = {
+      isAllowed = (
+        (hasInfix "plasma" (user.interface.desktopEnvironment or ""))
+        || (hasInfix "kde" (user.interface.desktopEnvironment or ""))
+      );
+      module = modules.plasma.default or {};
+    };
+
+    noctalia-shell = {
+      isAllowed =
+        isIn ["noctalia-shell" "noctalia" "noctalia-dev"]
+        (
+          (user.applications.allowed or [])
+          ++ [(user.applications.bar or null)]
+        );
+      module = modules.noctalia-shell.default or {};
+    };
+
+    nvf = rec {
+      isAllowed =
+        isIn ["nvf" "nvim" "neovim"]
+        (
+          (user.applications.allowed or [])
+          ++ [(user.applications.editor.tty.primary or null)]
+          ++ [(user.applications.editor.tty.secondary or null)]
+        );
+      variant = "default";
+      module = modules.nvf.${variant} or {};
+    };
+
+    zen-browser = rec {
+      isAllowed =
+        hasInfix "zen" (user.applications.browser.firefox or "")
+        || (
+          isIn ["zen" "zen-browser" "zen-twilight" "zen-browser"]
+          (user.applications.allowed or [])
+        );
+      variant =
+        if hasInfix "twilight" (user.applications.browser.firefox or "")
+        then "twilight"
+        else "default";
+      module = modules.zen-browser.${variant} or {};
+    };
+  };
 
   mkUsers = {
     host,
@@ -111,7 +130,7 @@
 
       #> Merge all per-user home-manager configs
       users = mapAttrs (name: cfg: let
-        userApps = mkUserApps {
+        userApps = homeModuleApps {
           user = (userAttrs host).${name} or {};
           config = cfg;
           modules = homeModules;
@@ -120,28 +139,26 @@
       in
         with userApps; {
           home = {inherit (host) stateVersion;};
-          _module.args.user = cfg // {inherit name;};
+          _module.args.user = cfg // {inherit name userApps;};
           imports = with userApps;
-            [(src + "/Packages/home")]
-            ++ optionals (nvf.isAllowed) [nvf.module]
+            []
+            # [(src + "/Packages/home")]
             ++ optionals (noctalia-shell.isAllowed) [noctalia-shell.module]
+            ++ optionals (nvf.isAllowed) [nvf.module]
             ++ optionals (zen-browser.isAllowed) [zen-browser.module]
             ++ (cfg.imports or []);
-          # config =
-          #   {} optionalAttrs (noctalia-shell.isAllowed) {
-          #     inherit (noctalia-shell) programs home;
-          #   }
-          #   // optionalAttrs (nvf.isAllowed) {
-          #     inherit (nvf) programs home;
-          #   }
-          #   // optionalAttrs (zen-browser.isAllowed) {
-          #     inherit (zen-browser) programs home;
-          #   }
-          #   // {};
+
+          programs =
+            {}
+            // optionalAttrs (noctalia-shell.isAllowed) {noctalia-shell.enable = true;}
+            // optionalAttrs (nvf.isAllowed) {nvf.enable = true;}
+            // optionalAttrs (zen-browser.isAllowed) {zen-browser.enable = true;}
+            // {};
         })
       (filterAttrs (_: u: (!elem u.role ["service" "guest"])) (userAttrs host));
     };
   };
-  exports = {inherit mkUsers mkSudoRules;};
+
+  exports = {inherit mkUsers mkSudoRules homeModuleApps;};
 in
   exports // {_rootAliases = exports;}

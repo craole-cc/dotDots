@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.strings) hasInfix;
-  inherit (_.applications.generators) userApplicationConfig;
+  inherit (_.applications.generators) userApplication;
 
   mkUserApps = {
     modules,
@@ -14,19 +14,35 @@
   }: {
     noctalia-shell = let
       module = modules.noctalia-shell.default or {};
-      cfg = userApplicationConfig {
+      appInfo = userApplication {
         inherit user pkgs config;
         name = "noctalia-shell";
         kind = "bar";
         resolutionHints = ["noctalia" "noctalia-dev"];
         debug = true;
       };
-    in
-      cfg // {inherit module;};
+    in {
+      inherit module;
+      inherit
+        (appInfo)
+        name
+        kind
+        packageFound
+        command
+        basename
+        identifiers
+        isPrimary
+        isSecondary
+        isRequested
+        isPlatformCompatible
+        isAllowed
+        sessionVariables
+        ;
+    };
 
     nvf = let
       module = modules.nvf.default or {};
-      cfg = userApplicationConfig {
+      appInfo = userApplication {
         inherit user pkgs config;
         name = "nvf";
         kind = "editor";
@@ -34,8 +50,24 @@
         resolutionHints = ["nvim" "neovim"];
         debug = true;
       };
-    in
-      cfg // {inherit module;};
+    in {
+      inherit module;
+      inherit
+        (appInfo)
+        name
+        kind
+        packageFound
+        command
+        basename
+        identifiers
+        isPrimary
+        isSecondary
+        isRequested
+        isPlatformCompatible
+        isAllowed
+        sessionVariables
+        ;
+    };
 
     zen-browser = let
       variant =
@@ -43,15 +75,31 @@
         then "twilight"
         else "default";
       module = modules.zen-browser.${variant} or {};
-      cfg = userApplicationConfig {
+      appInfo = userApplication {
         inherit user pkgs config;
         name = "zen-browser";
         kind = "browser";
         resolutionHints = ["zen" "zen-twilight" "zen-beta"];
         debug = true;
       };
-    in
-      cfg // {inherit module;};
+    in {
+      inherit module;
+      inherit
+        (appInfo)
+        name
+        kind
+        packageFound
+        command
+        basename
+        identifiers
+        isPrimary
+        isSecondary
+        isRequested
+        isPlatformCompatible
+        isAllowed
+        sessionVariables
+        ;
+    };
   };
   exports = {inherit mkUserApps;};
 in
