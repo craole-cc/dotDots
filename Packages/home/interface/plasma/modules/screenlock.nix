@@ -1,7 +1,5 @@
 {src}: {
   kscreenlocker = {
-    lockOnResume = true;
-    timeout = 10;
     appearance = {
       alwaysShowClock = true;
       showMediaControls = false;
@@ -11,7 +9,13 @@
       };
       # wallpaperSlideShow = {
       #   path = src + "/Assets/Images/wallpapers";
+      #   interval = 1200;
       # };
     };
+    autoLock = true;
+    lockOnResume = true;
+    lockOnStartup = false;
+    passwordRequired = false;
+    timeout = 10;
   };
 }
