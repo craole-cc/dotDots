@@ -9,7 +9,7 @@ in {
     clickItemTo = "select";
     enableMiddleClickPaste = true;
     # lookAndFeel = "org.kde.breezedark.desktop";
-    # colorScheme = "BreezeLight";
+    colorScheme = "Materia-Color";
     cursor = {
       theme = "material_light_cursors";
       size = 32;
