@@ -178,8 +178,7 @@
       };
 
       hyprland = {
-        # enable = wm == "hyprland";
-        enable = true;
+        enable = wm == "hyprland";
         withUWSM = true;
       };
 
