@@ -343,8 +343,8 @@
     #~@ Environment Variables
     var = toUpper kind;
     varWithCategory =
-      if category
-      then "${var}_${category}"
+      if category != null
+      then "${var}_${toUpper category}"
       else var;
     sessionVariables =
       optionalAttrs
@@ -656,58 +656,64 @@
     exports;
 
   userApplicationConfig = {
-    config,
-    user,
-    pkgs,
-    name,
-    kind,
+    app ? {},
+    config ? app.config or {},
+    user ? app.user or {},
+    pkgs ? app.pkgs or {},
+    name ? app.name or null,
+    kind ? app.kind or null,
     category ? null,
     resolutionHints ? [name],
     customPackage ? null,
     customCommand ? null,
     extraPackages ? [],
+    extraProgramConfig ? {},
     requiresWayland ? false,
     requiresX11 ? false,
     debug ? false,
     ...
   }: let
-    app = userApplication {
-      inherit
-        config
-        user
-        pkgs
-        name
-        kind
-        category
-        resolutionHints
-        customPackage
-        customCommand
-        requiresWayland
-        requiresX11
-        debug
-        ;
-    };
+    resolvedApp =
+      if app != {}
+      then app
+      else
+        userApplication {
+          inherit
+            config
+            user
+            pkgs
+            name
+            kind
+            category
+            resolutionHints
+            customPackage
+            customCommand
+            requiresWayland
+            requiresX11
+            debug
+            ;
+        };
 
     home =
       optionalAttrs (config ? home)
-      {inherit (app) sessionVariables packages;};
+      {inherit (resolvedApp) sessionVariables packages;};
 
     programs = optionalAttrs (config.programs ? name) {
-      ${app.name} =
+      ${resolvedApp.name} =
         {
-          enable = app.isAllowed;
-          inherit (app) package;
+          enable = resolvedApp.isAllowed;
+          inherit (resolvedApp) package;
         }
-        // app.extraConfig;
+        // resolvedApp.extraProgramConfig;
     };
 
     exports =
       {
         inherit home programs;
-        meta = app;
-        enable = app.isAllowed;
+        meta = resolvedApp;
+        enable = resolvedApp.isAllowed;
       }
-      // app;
+      // resolvedApp;
   in
     exports;
 in {

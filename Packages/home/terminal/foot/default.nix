@@ -8,9 +8,9 @@
 }: let
   inherit (lib.modules) mkIf;
   inherit (lib.meta) getExe';
-  inherit (lix.applications.generators) application program;
+  inherit (lix.applications.generators) userApplicationConfig userApplication;
 
-  app = application {
+  app = userApplication {
     inherit user pkgs config;
     name = "foot";
     kind = "terminal";
@@ -30,11 +30,11 @@
       fi
     '';
   };
-in {
-  config = mkIf app.isAllowed (program {
-    inherit (app) name package sessionVariables;
+
+  cfg = userApplicationConfig {
+    inherit app user pkgs config;
     extraPackages = [bin.feet];
-    extraConfig = {
+    extraProgramConfig = {
       server.enable = true;
       settings =
         {}
@@ -43,5 +43,9 @@ in {
         // (import ./themes.nix)
         // {};
     };
-  });
+  };
+in {
+  config = mkIf cfg.enable {
+    inherit (cfg) programs home;
+  };
 }
