@@ -288,13 +288,9 @@
         default = inputs.dank-material-shell.homeModules.default or {};
         niri = inputs.dank-material-shell.homeModules.niri or {};
       };
-      # fresh-editor = inputs.fresh-editor.homeModules or {};
-      # helix = inputs.helix.homeModules or {};
       noctalia-shell = inputs.noctalia-shell.homeModules or {};
       nvf = {default = inputs.nvf.homeManagerModules.default or {};};
       plasma = {default = inputs.plasma.homeModules.plasma-manager or {};};
-      # treefmt = inputs.treefmt.homeModules or {};
-      # vscode-insiders = inputs.vscode-insiders.homeModules or {};
       zen-browser = {
         twilight = inputs.zen-browser.homeModules.twilight or {};
         default = inputs.zen-browser.homeModules.default or {};

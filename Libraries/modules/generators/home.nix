@@ -42,6 +42,16 @@
       module = modules.plasma.default or {};
     };
 
+    dank-material-shell = {
+      isAllowed =
+        isIn ["dank-material-shell" "dank" "dms"]
+        (
+          (user.applications.allowed or [])
+          ++ [(user.applications.bar or null)]
+        );
+      module = modules.dank-material-shell.default or {};
+    };
+
     noctalia-shell = {
       isAllowed =
         isIn ["noctalia-shell" "noctalia" "noctalia-dev"]
@@ -142,14 +152,16 @@
           _module.args.user = cfg // {inherit name userApps;};
           imports = with userApps;
             []
-            # [(src + "/Packages/home")]
+            ++ optionals (dank-material-shell.isAllowed) [dank-material-shell.module]
             ++ optionals (noctalia-shell.isAllowed) [noctalia-shell.module]
             ++ optionals (nvf.isAllowed) [nvf.module]
             ++ optionals (zen-browser.isAllowed) [zen-browser.module]
+            ++ [(src + "/Packages/home")]
             ++ (cfg.imports or []);
 
           programs =
             {}
+            // optionalAttrs (dank-material-shell.isAllowed) {dank-material-shell.enable = true;}
             // optionalAttrs (noctalia-shell.isAllowed) {noctalia-shell.enable = true;}
             // optionalAttrs (nvf.isAllowed) {nvf.enable = true;}
             // optionalAttrs (zen-browser.isAllowed) {zen-browser.enable = true;}
