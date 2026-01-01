@@ -3,7 +3,7 @@
   config,
   ...
 }: let
-  wallpapers = config.home.homeDirectory + "Pictures/Wallpapers";
+  wallpapers = config.home.homeDirectory + "/Pictures/Wallpapers";
   # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
   # wallpapers = "/home/craole/Pictures/Wallpapers";
 in {
