@@ -20,10 +20,10 @@ in {
       blur = true;
     };
     wallpaperFillMode = "preserveAspectFit";
-    wallpaperPictureOfTheDay = {
-      provider = "bing";
-      updateOverMeteredConnection = false;
-    };
+    # wallpaperPictureOfTheDay = {
+    #   provider = "bing";
+    #   updateOverMeteredConnection = false;
+    # };
     wallpaperSlideShow = {
       path = wallpapers;
       interval = 500;
