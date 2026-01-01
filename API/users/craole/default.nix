@@ -88,5 +88,6 @@
 
   paths = {
     downloads = "Downloads";
+    wallpapers = "Pictures/Wallpapers";
   };
 }

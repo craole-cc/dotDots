@@ -21,7 +21,7 @@ in {
         {enable = true;}
         // import ./bindings
         # // import ./files
-        // import ./modules {inherit src pkgs;};
+        // import ./modules {inherit src pkgs config;};
     };
 
     home.packages = with pkgs.kdePackages; [

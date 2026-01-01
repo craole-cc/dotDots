@@ -1,6 +1,7 @@
 {
   src,
   pkgs,
+  config,
   ...
 }:
 {}
@@ -9,5 +10,5 @@
 // import ./power.nix
 // import ./session.nix {inherit src;}
 // import ./windows.nix
-// import ./workspace.nix {inherit pkgs;}
+// import ./workspace.nix {inherit pkgs config;}
 // {}
