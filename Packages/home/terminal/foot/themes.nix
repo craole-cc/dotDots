@@ -1,10 +1,14 @@
 {
-  colors-dark = {
-    alpha = 0.97; # Slight transparency (1.0 = opaque)
-  };
+  # colors-dark = {
+  #   alpha = 0.97; # Slight transparency (1.0 = opaque)
+  # };
 
-  colors-light = {
-    alpha = 0.97; # Slight transparency (1.0 = opaque)
+  # colors-light = {
+  #   alpha = 0.97; # Slight transparency (1.0 = opaque)
+  # };
+
+  colors = {
+    alpha = 0.97;
   };
 
   cursor = {
