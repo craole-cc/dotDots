@@ -6,7 +6,7 @@
   inherit (_.attrsets.resolution) package;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) filterAttrs mapAttrs optionalAttrs;
-  inherit (lib.lists) elem head optionals;
+  inherit (lib.lists) head optionals;
   inherit (lib.strings) hasInfix;
 
   mkSudoRules = admins:
@@ -99,7 +99,14 @@
   }: let
     homeUsers =
       filterAttrs
-      (_: u: (u.role or null) != "service" && (u.role or null) != "guest")
+      (
+        _: u:
+          u
+          != {}
+          && # <-- Add this check!
+          (u.role or null) != "service"
+          && (u.role or null) != "guest"
+      )
       (userAttrs host);
   in {
     security.sudo = {

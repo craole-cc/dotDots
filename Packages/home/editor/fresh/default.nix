@@ -12,7 +12,7 @@
       kind = "editor";
       category = "tty";
       resolutionHints = ["fresh" "fresh-editor"];
-      debug = true;
+      debug = false;
     })
     home
     programs

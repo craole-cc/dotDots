@@ -153,15 +153,15 @@ in {
   principals = [
     {
       name = "craole";
-      enable = false;
+      enable = true;
       autoLogin = false;
-      # role = "administrator";
+      role = "administrator";
     }
     {
       name = "cc";
       enable = false;
       autoLogin = false;
-      # role = "admin";
+      role = "service";
     }
     {
       name = "qyatt";
