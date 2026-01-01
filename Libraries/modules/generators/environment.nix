@@ -22,6 +22,7 @@
     shell = host.interface.shell or null;
     prompt = host.interface.prompt or null;
     dots = host.paths.dots or null;
+    wallpapers = host.paths.wallpapers or null;
     system = pkgs.stdenv.hostPlatform.system;
 
     # useDms = wm == "niri" || wm == "hyprland";
@@ -120,6 +121,7 @@
           TERMINAL = terminalCmds.primary;
           LAUNCHER = launcherCmds.primary;
           BAR = barCmds.primary;
+          WALLPAPERS = wallpapers;
         }
         // (
           optionalAttrs (dp == "wayland") {
@@ -161,6 +163,7 @@
           }
         );
     };
+
     programs = {
       bash = {
         enable = isIn "bash" ([shell] ++ (user.shells or []));
@@ -175,7 +178,8 @@
       };
 
       hyprland = {
-        enable = wm == "hyprland";
+        # enable = wm == "hyprland";
+        enable = true;
         withUWSM = true;
       };
 

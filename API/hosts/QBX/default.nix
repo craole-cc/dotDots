@@ -3,12 +3,16 @@ let
   os = "linux";
 in {
   imports = [./hardware-configuration.nix];
-  paths.dots = "/home/craole/.dots";
 
   stateVersion = "25.11";
   system = "${arch}-${os}";
   class = "nixos";
   id = "cfd69003";
+
+  paths = {
+    dots = "/home/craole/.dots";
+    wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+  };
 
   packages = {
     unstable = true;

@@ -5,6 +5,7 @@
   ...
 }: let
   inherit (_.attrsets.resolution) byPaths;
+  inherit (_.lists.predicates) isIn;
   inherit (_.modules.generators.environment) mkEnvironment mkFonts mkLocale;
   inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
   inherit (_.modules.generators.home) mkUsers;
@@ -12,6 +13,7 @@
   inherit (_.modules.resolution) getSystem;
   inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
   inherit (lib.lists) optionals;
+  inherit (lib.strings) hasInfix;
 
   mkInputs = {inputs}: {
     nixpkgs = byPaths {
@@ -239,6 +241,81 @@
     })
   ];
 
+  /**
+  Determines which home-manager modules should be enabled for a user.
+  Checks user configuration and returns module availability status.
+
+  # Type:
+    { modules, pkgs, user, config } -> AttrSet
+
+  # Returns:
+    An attribute set where each key is a module name containing:
+      - isAllowed: Boolean indicating if the module should be loaded
+      - module: The actual module to import (if available)
+      - variant: (Optional) Specific variant of the module to use
+
+  # Example:
+    mkHomeModuleApps { user = { applications.allowed = ["nvim"]; }; ... }
+    => { nvf = { isAllowed = true; variant = "default"; module = ...; }; ... }
+  */
+  mkHomeModuleApps = {
+    homeModules,
+    pkgs,
+    user,
+    config,
+  }: {
+    #| Plasma Desktop Environment
+    plasma = {
+      isAllowed =
+        hasInfix "plasma" (user.interface.desktopEnvironment or "")
+        || hasInfix "kde" (user.interface.desktopEnvironment or "");
+      module = homeModules.plasma.default or {};
+    };
+
+    #| Dank Material Shell
+    dank-material-shell = {
+      isAllowed = isIn ["dank-material-shell" "dank" "dms"] (
+        (user.applications.allowed or [])
+        ++ [(user.applications.bar or null)]
+      );
+      module = homeModules.dank-material-shell.default or {};
+    };
+
+    #| Noctalia Shell
+    noctalia-shell = {
+      isAllowed = isIn ["noctalia-shell" "noctalia" "noctalia-dev"] (
+        (user.applications.allowed or [])
+        ++ [(user.applications.bar or null)]
+      );
+      module = homeModules.noctalia-shell.default or {};
+    };
+
+    #| NVF (Neovim Framework)
+    nvf = rec {
+      isAllowed = isIn ["nvf" "nvim" "neovim"] (
+        (user.applications.allowed or [])
+        ++ [(user.applications.editor.tty.primary or null)]
+        ++ [(user.applications.editor.tty.secondary or null)]
+      );
+      variant = "default";
+      module = homeModules.nvf.${variant} or {};
+    };
+
+    #| Firefox - Zen Browser
+    zen-browser = rec {
+      isAllowed =
+        hasInfix "zen" (user.applications.browser.firefox or "")
+        || isIn ["zen" "zen-browser" "zen-twilight" "zen-browser"] (
+          user.applications.allowed or []
+        );
+      variant =
+        if hasInfix "twilight" (user.applications.browser.firefox or "")
+        then "twilight"
+        else "default";
+      module = homeModules.zen-browser.${variant} or {};
+    };
+  };
+
   mkModules = {
     inputs,
     host,
@@ -248,8 +325,8 @@
     overlays,
   }: let
     class = host.class or "nixos";
-    path = "${inputs.nixpkgs}/nixos/modules";
-    base = import "${path}/module-list.nix";
+    modulesPath = "${inputs.nixpkgs}/nixos/modules";
+    baseModules = import "${modulesPath}/module-list.nix";
     nixpkgs =
       {
         hostPlatform = host.system;
@@ -262,7 +339,7 @@
           else {flake.source = outPath;}
         )
       );
-    core =
+    coreModules =
       (
         if class == "darwin"
         then [(inputs.home-manager.darwinModules.home-manager or {})]
@@ -283,7 +360,8 @@
         }
       ]
       ++ [];
-    home = {
+
+    homeModules = {
       dank-material-shell = {
         default = inputs.dank-material-shell.homeModules.default or {};
         niri = inputs.dank-material-shell.homeModules.niri or {};
@@ -297,8 +375,7 @@
         beta = inputs.zen-browser.homeModules.beta or {};
       };
     };
-
-    host' =
+    hostModules =
       [
         {inherit nixpkgs;}
         (
@@ -312,8 +389,10 @@
             // mkAudio {inherit host;}
             // mkFonts {inherit host pkgs;}
             // mkUsers {
-              inherit host pkgs specialArgs src;
-              homeModules = home;
+              inherit host pkgs specialArgs;
+              extraSpecialArgs =
+                specialArgs
+                // {inherit src homeModules mkHomeModuleApps;};
             }
             // mkEnvironment {inherit host pkgs packages;}
             // mkClean {inherit host;}
@@ -322,13 +401,14 @@
       ]
       ++ (host.imports or []);
   in {
-    inherit path base core home nixpkgs;
-    baseModules = base;
-    coreModules = core;
-    homeModules = home;
-    host = host';
-    hostModules = host';
-    modulesPath = path;
+    inherit
+      modulesPath
+      baseModules
+      coreModules
+      homeModules
+      hostModules
+      nixpkgs
+      ;
   };
 
   exports = {inherit mkInputs mkPackages mkOverlays mkModules;};

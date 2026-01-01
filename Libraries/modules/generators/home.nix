@@ -4,10 +4,9 @@
   ...
 }: let
   inherit (_.attrsets.resolution) package;
-  inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) filterAttrs mapAttrs optionalAttrs;
   inherit (lib.lists) head optionals;
-  inherit (lib.strings) hasInfix;
+  inherit (_.lists.predicates) isIn;
 
   /**
   Creates passwordless sudo rules for admin users.
@@ -75,79 +74,6 @@
     (userAttrs host);
 
   /**
-  Determines which home-manager modules should be enabled for a user.
-  Checks user configuration and returns module availability status.
-
-  Type: { modules, pkgs, user, config } -> AttrSet
-
-  Returns: An attribute set where each key is a module name containing:
-    - isAllowed: Boolean indicating if the module should be loaded
-    - module: The actual module to import (if available)
-    - variant: (Optional) Specific variant of the module to use
-
-  Example:
-    homeModuleApps { user = { applications.allowed = ["nvim"]; }; ... }
-    => { nvf = { isAllowed = true; variant = "default"; module = ...; }; ... }
-  */
-  homeModuleApps = {
-    modules,
-    pkgs,
-    user,
-    config,
-  }: {
-    # Plasma Desktop Environment
-    plasma = {
-      isAllowed =
-        hasInfix "plasma" (user.interface.desktopEnvironment or "")
-        || hasInfix "kde" (user.interface.desktopEnvironment or "");
-      module = modules.plasma.default or {};
-    };
-
-    # Dank Material Shell
-    dank-material-shell = {
-      isAllowed = isIn ["dank-material-shell" "dank" "dms"] (
-        (user.applications.allowed or [])
-        ++ [(user.applications.bar or null)]
-      );
-      module = modules.dank-material-shell.default or {};
-    };
-
-    # Noctalia Shell
-    noctalia-shell = {
-      isAllowed = isIn ["noctalia-shell" "noctalia" "noctalia-dev"] (
-        (user.applications.allowed or [])
-        ++ [(user.applications.bar or null)]
-      );
-      module = modules.noctalia-shell.default or {};
-    };
-
-    # NVF (Neovim Framework)
-    nvf = rec {
-      isAllowed = isIn ["nvf" "nvim" "neovim"] (
-        (user.applications.allowed or [])
-        ++ [(user.applications.editor.tty.primary or null)]
-        ++ [(user.applications.editor.tty.secondary or null)]
-      );
-      variant = "default";
-      module = modules.nvf.${variant} or {};
-    };
-
-    # Zen Browser
-    zen-browser = rec {
-      isAllowed =
-        hasInfix "zen" (user.applications.browser.firefox or "")
-        || isIn ["zen" "zen-browser" "zen-twilight" "zen-browser"] (
-          user.applications.allowed or []
-        );
-      variant =
-        if hasInfix "twilight" (user.applications.browser.firefox or "")
-        then "twilight"
-        else "default";
-      module = modules.zen-browser.${variant} or {};
-    };
-  };
-
-  /**
   Main user configuration builder.
   Creates NixOS users, home-manager configurations, and sudo rules.
 
@@ -177,24 +103,39 @@
   mkUsers = {
     host,
     pkgs,
-    homeModules,
+    extraSpecialArgs,
     specialArgs,
-    src,
     ...
   }: let
     #> Pre-filter users eligible for home-manager
     homeUsers = homeManagerUsers host;
 
     # Helper to build user-specific home-manager configuration
-    mkHomeConfig = name: cfg: let
-      userApps = homeModuleApps {
+    mkHomeConfig = {
+      name,
+      cfg,
+      apps,
+      modules,
+    }: let
+      userApps = apps {
         user = (userAttrs host).${name} or {};
         config = cfg;
-        modules = homeModules;
-        inherit pkgs;
+        inherit modules pkgs;
       };
     in
-      {nixosConfig, ...}:
+      {
+        config,
+        nixosConfig,
+        mkHomeModuleApps,
+        homeModules,
+        src,
+        ...
+      }: let
+        userApps = mkHomeModuleApps {
+          user = cfg;
+          inherit homeModules pkgs config;
+        };
+      in
         with userApps; {
           home.stateVersion = host.stateVersion or nixosConfig.sustem.stateVersion;
 
@@ -274,11 +215,61 @@
       overwriteBackup = true;
       useGlobalPkgs = true;
       useUserPackages = true;
-      extraSpecialArgs = specialArgs // {inherit homeModules;};
+      inherit extraSpecialArgs;
 
       # Only configure home-manager for eligible users
       # (excludes service accounts and guests)
-      users = mapAttrs mkHomeConfig homeUsers;
+      # users = mapAttrs mkHomeConfig homeUsers;
+      users = mapAttrs (_: cfg: {
+        config,
+        nixosConfig,
+        mkHomeModuleApps,
+        homeModules,
+        src,
+        ...
+      }: let
+        userApps = mkHomeModuleApps {
+          user = cfg;
+          inherit homeModules pkgs config;
+        };
+      in
+        with userApps; {
+          home.stateVersion = host.stateVersion or nixosConfig.sustem.stateVersion;
+
+          #> Pass user data and apps to modules via _module.args
+          _module.args.user = cfg // {inherit name userApps;};
+
+          #> Conditionally import modules based on user's allowed applications
+          imports =
+            []
+            ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
+            ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
+            ++ optionals nvf.isAllowed [nvf.module]
+            ++ optionals plasma.isAllowed [plasma.module]
+            ++ optionals zen-browser.isAllowed [zen-browser.module]
+            ++ [(src + "/Packages/home")]
+            ++ (cfg.imports or []);
+
+          #> Enable programs based on module availability
+          programs =
+            {}
+            // optionalAttrs dank-material-shell.isAllowed {
+              dank-material-shell.enable = true;
+            }
+            // optionalAttrs noctalia-shell.isAllowed {
+              noctalia-shell.enable = true;
+            }
+            // optionalAttrs nvf.isAllowed {
+              nvf.enable = true;
+            }
+            // optionalAttrs plasma.isAllowed {
+              plasma.enable = true;
+            }
+            // optionalAttrs zen-browser.isAllowed {
+              zen-browser.enable = true;
+            };
+        })
+      homeUsers;
     };
   };
 
@@ -293,7 +284,6 @@
     inherit
       mkUsers
       mkSudoRules
-      homeModuleApps
       ;
   };
 in
