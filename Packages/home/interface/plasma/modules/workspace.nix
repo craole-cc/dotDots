@@ -8,7 +8,7 @@ in {
   workspace = {
     clickItemTo = "select";
     enableMiddleClickPaste = true;
-    lookAndFeel = "org.kde.breezedark.desktop";
+    # lookAndFeel = "org.kde.breezedark.desktop";
     colorScheme = "BreezeLight";
     cursor = {
       theme = "material_cursors";

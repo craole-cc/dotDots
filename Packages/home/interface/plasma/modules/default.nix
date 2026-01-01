@@ -2,6 +2,7 @@
   src,
   pkgs,
   config,
+  nixosConfig,
   ...
 }:
 {}
@@ -9,6 +10,6 @@
 // import ./launcher.nix
 // import ./power.nix
 // import ./session.nix {inherit src;}
-// import ./windows.nix
+// import ./windows.nix {inherit nixosConfig;}
 // import ./workspace.nix {inherit pkgs config;}
 // {}

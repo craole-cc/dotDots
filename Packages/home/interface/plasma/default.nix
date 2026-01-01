@@ -3,6 +3,7 @@
   lix,
   user,
   config,
+  nixosConfig,
   pkgs,
   src,
   ...
@@ -21,7 +22,7 @@ in {
         {enable = true;}
         // import ./bindings
         # // import ./files
-        // import ./modules {inherit src pkgs config;};
+        // import ./modules {inherit src pkgs config nixosConfig;};
     };
 
     home = {
