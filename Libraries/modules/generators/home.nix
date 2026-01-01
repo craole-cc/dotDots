@@ -63,7 +63,7 @@
     }; }
     => { alice = { role = "admin"; }; }
   */
-  homeManagerUsers = host:
+  homeUserAttrs = host:
     filterAttrs
     (_: user:
       user
@@ -106,73 +106,71 @@
     extraSpecialArgs,
     specialArgs,
     ...
-  }: let
-    #> Pre-filter users eligible for home-manager
-    homeUsers = homeManagerUsers host;
-
-    # Helper to build user-specific home-manager configuration
-    mkHomeConfig = {
-      name,
-      cfg,
-      apps,
-      modules,
-    }: let
-      userApps = apps {
-        user = (userAttrs host).${name} or {};
-        config = cfg;
-        inherit modules pkgs;
-      };
-    in
-      {
-        config,
-        nixosConfig,
-        mkHomeModuleApps,
-        homeModules,
-        src,
-        ...
-      }: let
-        userApps = mkHomeModuleApps {
-          user = cfg;
-          inherit homeModules pkgs config;
-        };
-      in
-        with userApps; {
-          home.stateVersion = host.stateVersion or nixosConfig.sustem.stateVersion;
-
-          #> Pass user data and apps to modules via _module.args
-          _module.args.user = cfg // {inherit name userApps;};
-
-          #> Conditionally import modules based on user's allowed applications
-          imports =
-            []
-            ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
-            ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
-            ++ optionals nvf.isAllowed [nvf.module]
-            ++ optionals plasma.isAllowed [plasma.module]
-            ++ optionals zen-browser.isAllowed [zen-browser.module]
-            ++ [(src + "/Packages/home")]
-            ++ (cfg.imports or []);
-
-          #> Enable programs based on module availability
-          programs =
-            {}
-            // optionalAttrs dank-material-shell.isAllowed {
-              dank-material-shell.enable = true;
-            }
-            // optionalAttrs noctalia-shell.isAllowed {
-              noctalia-shell.enable = true;
-            }
-            // optionalAttrs nvf.isAllowed {
-              nvf.enable = true;
-            }
-            // optionalAttrs plasma.isAllowed {
-              plasma.enable = true;
-            }
-            // optionalAttrs zen-browser.isAllowed {
-              zen-browser.enable = true;
-            };
-        };
-  in {
+  }:
+  #  let
+  #> Pre-filter users eligible for home-manager
+  # homeUsers = homeManagerUsers host;
+  # # Helper to build user-specific home-manager configuration
+  # mkHomeConfig = {
+  #   name,
+  #   cfg,
+  #   apps,
+  #   modules,
+  # }: let
+  #   userApps = apps {
+  #     user = (userAttrs host).${name} or {};
+  #     config = cfg;
+  #     inherit modules pkgs;
+  #   };
+  # in
+  #   {
+  #     config,
+  #     nixosConfig,
+  #     mkHomeModuleApps,
+  #     homeModules,
+  #     src,
+  #     ...
+  #   }: let
+  #     userApps = mkHomeModuleApps {
+  #       user = cfg;
+  #       inherit homeModules pkgs config;
+  #     };
+  #   in
+  #     with userApps; {
+  #       home.stateVersion = host.stateVersion or nixosConfig.sustem.stateVersion;
+  #       #> Pass user data and apps to modules via _module.args
+  #       _module.args.user = cfg // {inherit name userApps;};
+  #       #> Conditionally import modules based on user's allowed applications
+  #       imports =
+  #         []
+  #         ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
+  #         ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
+  #         ++ optionals nvf.isAllowed [nvf.module]
+  #         ++ optionals plasma.isAllowed [plasma.module]
+  #         ++ optionals zen-browser.isAllowed [zen-browser.module]
+  #         ++ [(src + "/Packages/home")]
+  #         ++ (user.imports or []);
+  #       #> Enable programs based on module availability
+  #       programs =
+  #         {}
+  #         // optionalAttrs dank-material-shell.isAllowed {
+  #           dank-material-shell.enable = true;
+  #         }
+  #         // optionalAttrs noctalia-shell.isAllowed {
+  #           noctalia-shell.enable = true;
+  #         }
+  #         // optionalAttrs nvf.isAllowed {
+  #           nvf.enable = true;
+  #         }
+  #         // optionalAttrs plasma.isAllowed {
+  #           plasma.enable = true;
+  #         }
+  #         // optionalAttrs zen-browser.isAllowed {
+  #           zen-browser.enable = true;
+  #         };
+  #     };
+  # in
+  {
     /**
     Security configuration for sudo access
     */
@@ -189,20 +187,20 @@
       groups = mapAttrs (_: _: {}) (userAttrs host);
 
       # Configure all system users (including service accounts)
-      users = mapAttrs (name: cfg: {
-        isNormalUser = cfg.role != "service";
-        isSystemUser = cfg.role == "service";
-        description = cfg.description or name;
-        password = cfg.password or null;
+      users = mapAttrs (name: user: {
+        isNormalUser = user.role != "service";
+        isSystemUser = user.role == "service";
+        description = user.description or name;
+        password = user.password or null;
         group = name;
         extraGroups =
           []
-          ++ optionals (cfg.role or null != "service") ["users"]
-          ++ optionals (isIn (cfg.role or null) ["admin" "administrator"]) ["wheel"]
+          ++ optionals (user.role or null != "service") ["users"]
+          ++ optionals (isIn (user.role or null) ["admin" "administrator"]) ["wheel"]
           ++ optionals (host.devices.network != []) ["networkmanager"];
         shell = package {
           inherit pkgs;
-          target = head (cfg.shells or ["bash"]);
+          target = head (user.shells or ["bash"]);
         };
       }) (userAttrs host);
     };
@@ -217,27 +215,24 @@
       useUserPackages = true;
       inherit extraSpecialArgs;
 
-      # Only configure home-manager for eligible users
-      # (excludes service accounts and guests)
-      # users = mapAttrs mkHomeConfig homeUsers;
-      users = mapAttrs (_: cfg: {
+      #> Only configure home-manager for eligible users
+      #? (excludes service accounts and guests)
+      users = mapAttrs (name: user: {
         config,
         nixosConfig,
         mkHomeModuleApps,
-        homeModules,
         src,
         ...
       }: let
-        userApps = mkHomeModuleApps {
-          user = cfg;
-          inherit homeModules pkgs config;
-        };
+        userApps = mkHomeModuleApps {inherit pkgs config user;};
       in
         with userApps; {
-          home.stateVersion = host.stateVersion or nixosConfig.sustem.stateVersion;
+          home = {
+            inherit (nixosConfig.sustem) stateVersion;
+          };
 
           #> Pass user data and apps to modules via _module.args
-          _module.args.user = cfg // {inherit name userApps;};
+          _module.args.user = user // {inherit name userApps;};
 
           #> Conditionally import modules based on user's allowed applications
           imports =
@@ -248,7 +243,7 @@
             ++ optionals plasma.isAllowed [plasma.module]
             ++ optionals zen-browser.isAllowed [zen-browser.module]
             ++ [(src + "/Packages/home")]
-            ++ (cfg.imports or []);
+            ++ (user.imports or []);
 
           #> Enable programs based on module availability
           programs =
@@ -269,7 +264,7 @@
               zen-browser.enable = true;
             };
         })
-      homeUsers;
+      (homeUserAttrs host);
     };
   };
 
