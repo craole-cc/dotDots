@@ -27,6 +27,30 @@
         noiseStrength = 2;
       };
     };
+
+    tiling = {
+      id = "3040216e-31b3-41b6-9b91-767980dc298f";
+      tiles = {
+        layoutDirection = "horizontal";
+        tiles = [
+          {
+            width = 0.5;
+          }
+          {
+            layoutDirection = "vertical";
+            tiles = [
+              {
+                height = 0.5;
+              }
+              {
+                height = 0.5;
+              }
+            ];
+            width = 0.5;
+          }
+        ];
+      };
+    };
   };
 
   window-rules = [
