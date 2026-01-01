@@ -12,45 +12,46 @@
     user,
     config,
   }: {
-    noctalia-shell =
-      userApplicationConfig {
+    noctalia-shell = let
+      module = modules.noctalia-shell.default or {};
+      cfg = userApplicationConfig {
         inherit user pkgs config;
         name = "noctalia-shell";
         kind = "bar";
         resolutionHints = ["noctalia" "noctalia-dev"];
         debug = true;
-      }
-      // rec {
-        variant = "default";
-        module = modules.noctalia-shell.${variant} or {};
       };
+    in
+      cfg // {inherit module;};
 
-    nvf =
-      userApplicationConfig {
+    nvf = let
+      module = modules.nvf.default or {};
+      cfg = userApplicationConfig {
         inherit user pkgs config;
         name = "nvf";
         kind = "editor";
         category = "tty";
         resolutionHints = ["nvim" "neovim"];
         debug = true;
-      }
-      // {module = modules.nvf.default or {};};
+      };
+    in
+      cfg // {inherit module;};
 
-    zen-browser =
-      userApplicationConfig {
+    zen-browser = let
+      variant =
+        if hasInfix "twilight" (user.applications.browser.firefox or "")
+        then "twilight"
+        else "default";
+      module = modules.zen-browser.${variant} or {};
+      cfg = userApplicationConfig {
         inherit user pkgs config;
         name = "zen-browser";
         kind = "browser";
         resolutionHints = ["zen" "zen-twilight" "zen-beta"];
         debug = true;
-      }
-      // rec {
-        variant =
-          if hasInfix "twilight" (user.applications.browser.firefox or "")
-          then "twilight"
-          else "default";
-        module = modules.zen-browser.${variant} or {};
       };
+    in
+      cfg // {inherit module;};
   };
   exports = {inherit mkUserApps;};
 in
