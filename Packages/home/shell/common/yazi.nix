@@ -14,7 +14,7 @@ in {
       [
         # bookmarks
         bypass
-        chmod
+        # chmod
         compress
         diff
         duckdb
