@@ -17,7 +17,6 @@ in
   with pkgs;
     [
       toggleTerminal
-      dbus-app-launcher
 
       #~@ KDE Themes
       plasma-overdose-kde-theme
