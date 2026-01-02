@@ -18,7 +18,7 @@
 
   session = {
     sessionRestore = {
-      restoreOpenApplicationsOnLogin = "whenSessionWasManuallySaved";
+      restoreOpenApplicationsOnLogin = "onLastLogout";
       excludeApplications = [];
     };
     general.askForConfirmationOnLogout = false;

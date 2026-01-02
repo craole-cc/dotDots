@@ -76,18 +76,27 @@
     {
       description = "Foot Quake";
       match = {
-        "window-class" = {
+        window-class = {
           value = "foot-quake";
-          type = "exact";
+          type = "substring";
         };
-        "window-types" = ["normal"];
+        "window-types" = ["dock"];
       };
       apply = {
+        noborder = {
+          value = true;
+          apply = "force";
+        };
         skipTaskbar = true;
         skipPager = true;
         maximizeVertically = true;
         maximizeHorizontally = true;
+        acceptfocus = true;
       };
     }
   ];
+
+  windows = {
+    allowWindowsToRememberPositions = true;
+  };
 }
