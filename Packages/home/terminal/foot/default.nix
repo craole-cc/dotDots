@@ -28,7 +28,7 @@
   #~@ Universal Theme Detection
   #? Checks multiple sources in order of priority
   #? Works with: KDE, GNOME, Cosmic, Hyprland, Sway, etc.
-  detectTheme = writeShellScriptBin "detect-system-theme" ''
+  detectTheme = writeShellScriptBin "foot-detect-system-theme" ''
     # Helper to check if command exists
     has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
@@ -94,12 +94,18 @@
 
   #~@ Feet Wrapper Components
   feet = {
-    # Helper that detects theme and launches accordingly
     command = writeShellScriptBin "feet" ''
       SOCKET="/run/user/$UID/foot-wayland-0.sock"
 
       #> Detect current system theme
       THEME=$(${detectTheme}/bin/detect-system-theme)
+
+      #> Map theme to foot's numeric values (1=dark, 2=light)
+      if [ "$THEME" = "light" ]; then
+        FOOT_THEME=2
+      else
+        FOOT_THEME=1
+      fi
 
       #> Check if server is running
       SERVER_RUNNING=false
@@ -107,38 +113,34 @@
         SERVER_RUNNING=true
       fi
 
-      #> If server is running, check if we need to restart it for theme change
+      #> Theme change detection
       if [ "$SERVER_RUNNING" = true ]; then
-        #> Store current theme preference
         THEME_FILE="/tmp/foot-theme-$UID"
         LAST_THEME=""
         [ -f "$THEME_FILE" ] && LAST_THEME=$(cat "$THEME_FILE")
 
-        #> Restart server upon theme change
         if [ "$LAST_THEME" != "$THEME" ]; then
           echo "Theme changed from '$LAST_THEME' to '$THEME', restarting foot server..."
           pkill -x foot
-          sleep 0.2
+          sleep 0.3
           SERVER_RUNNING=false
         fi
       fi
 
-      # Start server if not running
+      #> Start server if needed with correct theme
       if [ "$SERVER_RUNNING" = false ]; then
-        # Save current theme
         echo "$THEME" > "/tmp/foot-theme-$UID"
 
-        # Start server with theme-specific config
-        ${foot} --server >/dev/null 2>&1 &
+        # Start server - foot will use initial-color-theme from config
+        # But we can override with --initial-color-theme
+        ${foot} --server --initial-color-theme=$FOOT_THEME >/dev/null 2>&1 &
 
-        # Wait for socket
         for i in {1..20}; do
           [ -S "$SOCKET" ] && break
           sleep 0.1
         done
       fi
 
-      # Connect to server
       exec ${footclient} --server-socket="$SOCKET" "$@"
     '';
 
