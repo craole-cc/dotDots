@@ -1,6 +1,7 @@
 {
-  #~@ Catppuccin Frappe (Dark Theme)
-  colors-dark = {
+  #~@ Primary Color Theme (Dark - Catppuccin Frappe)
+  #? Theme 1, accessed via initial-color-theme=1
+  colors = {
     alpha = 0.97;
     background = "303446";
     foreground = "c6d0f5";
@@ -26,8 +27,9 @@
     bright7 = "a5adce";
   };
 
-  #~@ Catppuccin Latte (Light Theme)
-  colors-light = {
+  #~@ Alternative Color Theme (Light - Catppuccin Latte)
+  #? Theme 2, accessed via initial-color-theme=2
+  colors2 = {
     alpha = 0.97;
     background = "eff1f5";
     foreground = "4c4f69";
