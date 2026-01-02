@@ -159,33 +159,64 @@ quake_mode() {
 		exit 0
 	fi
 
+	# Ensure server is running first
+	if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "$SOCKET" ]; then
+		# Start server with current theme
+		THEME=$(detect_theme)
+		if [ "$THEME" = "light" ]; then
+			FOOT_THEME=2
+		else
+			FOOT_THEME=1
+		fi
+
+		printf '%s' "$THEME" >"$THEME_FILE"
+		rm -f "$SOCKET"
+		foot --server -o main.initial-color-theme="$FOOT_THEME" >/dev/null 2>&1 &
+
+		# Wait for server
+		i=0
+		while [ $i -lt 50 ]; do
+			if [ -S "$SOCKET" ]; then
+				sleep 0.3
+				break
+			fi
+			sleep 0.1
+			i=$((i + 1))
+		done
+
+		if [ ! -S "$SOCKET" ]; then
+			printf "Error: Failed to start foot server for quake mode\n" >&2
+			exit 1
+		fi
+	fi
+
 	# Launch quake terminal
 	# Try WM-specific methods first, fall back to simple approach
-	if has_cmd hyprctl && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+	if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && has_cmd hyprctl; then
 		# Hyprland detected and running
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=200x50 \
-			--server-socket="$SOCKET" &
+			--server-socket="$SOCKET" >/dev/null 2>&1 &
 		sleep 0.1
-		hyprctl dispatch movetoworkspacesilent special:quake,"$QUAKE_ID"
-		hyprctl dispatch togglespecialworkspace quake
-	elif has_cmd swaymsg && pgrep -x sway >/dev/null; then
+		hyprctl dispatch movetoworkspacesilent special:quake,"$QUAKE_ID" 2>/dev/null
+		hyprctl dispatch togglespecialworkspace quake 2>/dev/null
+	elif has_cmd swaymsg && pgrep -x sway >/dev/null 2>&1; then
 		# Sway detected and running
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=200x50 \
-			--server-socket="$SOCKET" &
+			--server-socket="$SOCKET" >/dev/null 2>&1 &
 		sleep 0.2
-		swaymsg "[app_id=\"$QUAKE_ID\"]" move scratchpad
-		swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show
+		swaymsg "[app_id=\"$QUAKE_ID\"]" move scratchpad 2>/dev/null
+		swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show 2>/dev/null
 	else
 		# Generic approach - works on any Wayland compositor
 		# Launch at top of screen with specific size
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=240x40 \
-			--server-socket="$SOCKET" &
+			--server-socket="$SOCKET" >/dev/null 2>&1 &
 	fi
 }
 
