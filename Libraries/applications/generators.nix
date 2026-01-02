@@ -398,19 +398,20 @@
 
     export = {
       inherit
-        name
-        kind
+        basename
         category
+        command
+        config
+        identifiers
+        isAllowed
+        isPlatformCompatible
+        isPrimary
+        isRequested
+        isSecondary
+        kind
+        name
         package
         packages
-        command
-        basename
-        identifiers
-        isPrimary
-        isSecondary
-        isRequested
-        isPlatformCompatible
-        isAllowed
         sessionVariables
         ;
     };
@@ -673,7 +674,7 @@
     debug ? false,
     ...
   }: let
-    resolvedApp =
+    res =
       if app != {}
       then app
       else
@@ -697,15 +698,15 @@
     home =
       optionalAttrs (config?home)
       {
-        inherit (resolvedApp) sessionVariables;
-        packages = resolvedApp.packages ++ extraPackages;
+        inherit (res) sessionVariables;
+        packages = res.packages ++ extraPackages;
       };
 
-    programs = optionalAttrs (config.programs?${resolvedApp.name}) {
-      ${resolvedApp.name} =
+    programs = optionalAttrs (res.config.programs?${res.name}) {
+      ${res.name} =
         {
-          enable = resolvedApp.isAllowed;
-          inherit (resolvedApp) package;
+          enable = res.isAllowed;
+          inherit (res) package;
         }
         // extraProgramConfig;
     };
@@ -713,10 +714,10 @@
     exports =
       {
         inherit home programs;
-        meta = resolvedApp;
-        enable = resolvedApp.isAllowed;
+        meta = res;
+        enable = res.isAllowed;
       }
-      // resolvedApp;
+      // res;
   in
     exports;
 in {
