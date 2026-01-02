@@ -1,7 +1,7 @@
 #!/bin/sh
 #~@ Feet - Smart Foot Terminal Wrapper
-#? POSIX-compliant theme detection, monitoring, and terminal launcher
-#? Location: $DOTS/Bin/shellscript/packages/wrappers/foot.sh
+#? POSIX-compliant theme detection and terminal launcher
+#? Location: $DOTS/Bin/shellscript/packages/wrappers/feet.sh
 
 set -e
 
@@ -142,11 +142,7 @@ monitor_mode() {
 			if [ "$LAST_THEME" != "$NEW_THEME" ]; then
 				printf "Theme changed: %s → %s\n" "$LAST_THEME" "$NEW_THEME" >&2
 				printf '%s' "$NEW_THEME" >"$THEME_FILE"
-
-				# Just update the file - don't restart anything
-				# The launcher will handle restarting when appropriate
-				printf "Theme file updated. Existing terminals unchanged (press F12 to toggle).\n" >&2
-				printf "New terminals will use %s theme.\n" "$NEW_THEME" >&2
+				printf "Press F12 in terminals to toggle theme, or close and reopen them.\n" >&2
 			fi
 		fi
 	done
@@ -156,39 +152,40 @@ monitor_mode() {
 quake_mode() {
 	QUAKE_ID="foot-quake"
 
+	# Check if quake terminal is running
 	if pgrep -f "$QUAKE_ID" >/dev/null; then
-		# Toggle visibility
-		if has_cmd hyprctl; then
-			hyprctl dispatch togglespecialworkspace quake
-		elif has_cmd swaymsg; then
-			swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show
-		else
-			pkill -f "$QUAKE_ID"
-		fi
+		# Just toggle - kill if running
+		pkill -f "$QUAKE_ID"
+		exit 0
+	fi
+
+	# Launch quake terminal
+	# Try WM-specific methods first, fall back to simple approach
+	if has_cmd hyprctl && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+		# Hyprland detected and running
+		footclient \
+			--app-id="$QUAKE_ID" \
+			--window-size-chars=200x50 \
+			--server-socket="$SOCKET" &
+		sleep 0.1
+		hyprctl dispatch movetoworkspacesilent special:quake,"$QUAKE_ID"
+		hyprctl dispatch togglespecialworkspace quake
+	elif has_cmd swaymsg && pgrep -x sway >/dev/null; then
+		# Sway detected and running
+		footclient \
+			--app-id="$QUAKE_ID" \
+			--window-size-chars=200x50 \
+			--server-socket="$SOCKET" &
+		sleep 0.2
+		swaymsg "[app_id=\"$QUAKE_ID\"]" move scratchpad
+		swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show
 	else
-		# Launch quake terminal
-		if has_cmd hyprctl; then
-			footclient \
-				--app-id="$QUAKE_ID" \
-				--window-size-chars=200x50 \
-				--server-socket="$SOCKET" &
-			sleep 0.1
-			hyprctl dispatch movetoworkspacesilent special:quake,"$QUAKE_ID"
-			hyprctl dispatch togglespecialworkspace quake
-		elif has_cmd swaymsg; then
-			footclient \
-				--app-id="$QUAKE_ID" \
-				--window-size-chars=200x50 \
-				--server-socket="$SOCKET" &
-			sleep 0.2
-			swaymsg "[app_id=\"$QUAKE_ID\"]" move scratchpad
-			swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show
-		else
-			footclient \
-				--app-id="$QUAKE_ID" \
-				--window-size-pixels=1920x600 \
-				--server-socket="$SOCKET" &
-		fi
+		# Generic approach - works on any Wayland compositor
+		# Launch at top of screen with specific size
+		footclient \
+			--app-id="$QUAKE_ID" \
+			--window-size-chars=240x40 \
+			--server-socket="$SOCKET" &
 	fi
 }
 
@@ -203,29 +200,45 @@ launch_terminal() {
 		FOOT_THEME=1
 	fi
 
-	# Check if server is running
-	if pgrep -x foot >/dev/null && [ -S "$SOCKET" ]; then
-		# Server exists - just connect to it
-		# Don't check theme or restart - let the user handle theme switching with F12
+	# Always clean up stale socket
+	if [ -S "$SOCKET" ] && ! pgrep -x foot >/dev/null 2>&1; then
+		rm -f "$SOCKET"
+	fi
+
+	# Simple check: is server running?
+	if pgrep -x foot >/dev/null 2>&1 && [ -S "$SOCKET" ]; then
+		# Server running, just connect
 		exec footclient --server-socket="$SOCKET" "$@"
 	fi
 
-	# No server running - start one with current theme
+	# No server - start one with current theme
 	printf '%s' "$THEME" >"$THEME_FILE"
+
+	# Clean socket just in case
+	rm -f "$SOCKET"
+
+	# Start server
 	foot --server -o main.initial-color-theme="$FOOT_THEME" >/dev/null 2>&1 &
 
-	# Wait for socket to be ready
+	# Wait for socket with proper timing
 	i=0
 	while [ $i -lt 50 ]; do
 		if [ -S "$SOCKET" ]; then
-			sleep 0.1
+			# Found socket, wait a bit more for server initialization
+			sleep 0.3
 			break
 		fi
-		sleep 0.05
+		sleep 0.1
 		i=$((i + 1))
 	done
 
-	# Connect to server
+	# Final check
+	if [ ! -S "$SOCKET" ]; then
+		printf "Error: Failed to start foot server\n" >&2
+		exit 1
+	fi
+
+	# Connect
 	exec footclient --server-socket="$SOCKET" "$@"
 }
 
@@ -265,7 +278,7 @@ EXAMPLES:
 NOTES:
   - Requires foot terminal emulator installed
   - Theme detection works with KDE, GNOME, GTK, and freedesktop portals
-  - Monitor mode should run as a background service (e.g., systemd user service)
+  - Monitor updates theme file; use F12 to toggle in existing terminals
 
 ENVIRONMENT:
   FOOT_THEME_DEBUG=1     Enable debug logging in monitor mode
