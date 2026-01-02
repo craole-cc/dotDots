@@ -4,7 +4,7 @@
     settings = {
       theme = {
         font = {
-          name = "Maple Mono NF";
+          name = "$FONT_MONOSPACE";
           size = "0.75rem";
           weight = 500;
         };

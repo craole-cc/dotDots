@@ -75,10 +75,8 @@
         (import ./theme.nix)
       ];
     };
-    debug = true;
+    debug = false;
   };
 in {
-  config = mkIf cfg.enable {
-    inherit (cfg) home programs;
-  };
+  config = mkIf cfg.enable {inherit (cfg) home programs;};
 }
