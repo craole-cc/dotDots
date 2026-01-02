@@ -93,11 +93,14 @@
     environment = {
       systemPackages = with pkgs;
         [
+          # ion
           alejandra
+          amp
           bat
           btop
           coreutils
           curl
+          dua
           dust
           eza
           fastfetch
@@ -114,6 +117,7 @@
           gnused
           helix
           imagemagick
+          jql
           lolcat
           lsd
           nil
@@ -124,8 +128,10 @@
           nix-prefetch-github
           nix-prefetch-scripts
           nixfmt
+          procs
           ripgrep
           rsync
+          sad
           trashy
           usbutils
           uutils-coreutils-noprefix

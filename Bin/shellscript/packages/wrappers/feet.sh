@@ -3,7 +3,7 @@
 #? POSIX-compliant theme detection and terminal launcher
 #? Location: $DOTS/Bin/shellscript/packages/wrappers/feet.sh
 
-set -e
+# set -e
 
 USER_ID=$(id -u)
 THEME_FILE="/tmp/foot-theme-$USER_ID"
@@ -147,108 +147,76 @@ monitor_mode() {
 		fi
 	done
 }
+# Function to find the window ID using qdbus
+find_window_id() {
+	#> Get list of all windows
+	windows=$(qdbus org.kde.KWin /KWin org.kde.KWin.windows 2>/dev/null)
+	for window in $windows; do
+		#> Get window info and check if it matches our appId
+		info=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "$window" 2>/dev/null)
+		if printf "%s" "$info" | grep -q "appId: $1"; then
+			printf "%s" "$window"
+			return 0
+		fi
+	done
+	printf ""
+}
 
-#> Quake Mode
 quake_mode() {
 	QUAKE_ID="foot-quake"
+	SOCKET="/run/user/$(id -u)/foot-wayland-0.sock"
+	WINDOW_ID=$(find_window_id "$QUAKE_ID")
 
-	# Check if quake terminal is running
-	if pgrep -f "$QUAKE_ID" >/dev/null; then
-		# Toggle visibility - hide/show instead of kill
-		if [ "$XDG_SESSION_DESKTOP" = "KDE" ] || [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
-			# KDE/Plasma - use kwin-script to minimize/unminimize
-			# Get the window ID using xdotool or wmctrl
-			if has_cmd xdotool; then
-				WINDOW_ID=$(xdotool search --class "$QUAKE_ID" 2>/dev/null | head -1)
-				if [ -n "$WINDOW_ID" ]; then
-					# Check if window is visible (mapped)
-					if xprop -id "$WINDOW_ID" | grep -q "window state: Normal"; then
-						# Window is visible, hide it
-						xdotool windowunmap "$WINDOW_ID" 2>/dev/null
-					else
-						# Window is hidden, show it
-						xdotool windowmap "$WINDOW_ID" 2>/dev/null
-						xdotool windowactivate "$WINDOW_ID" 2>/dev/null
-					fi
-					exit 0
-				fi
-			elif has_cmd qdbus; then
-				# Try using qdbus to minimize/unminimize
-				# This is more reliable on Wayland KDE
-				qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$HOME/.local/share/kwin/scripts/toggle-quake.js" >/dev/null 2>&1
-			fi
-		fi
+	if [ -n "${WINDOW_ID:-}" ]; then
+		#? Window exists, check its state and toggle it
+		WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "$WINDOW_ID" 2>/dev/null)
 
-		# Fallback - minimize/restore using generic methods
-		if has_cmd wmctrl; then
-			if wmctrl -l | grep -q "foot-quake"; then
-				# Try to toggle with wmctrl
-				wmctrl -r "foot-quake" -b toggle,hidden 2>/dev/null && exit 0
-			fi
-		fi
-
-		# Last resort - kill and relaunch (preserves nothing but at least works)
-		pkill -f "$QUAKE_ID"
-		exit 0
-	fi
-
-	# Clean up stale socket first
-	if [ -S "$SOCKET" ] && ! pgrep -x foot >/dev/null 2>&1; then
-		rm -f "$SOCKET"
-	fi
-
-	# Ensure server is running
-	if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "$SOCKET" ]; then
-		# Start server with current theme
-		THEME=$(detect_theme)
-		if [ "$THEME" = "light" ]; then
-			FOOT_THEME=2
+		#? Check if window is minimized or hidden
+		if printf "%s" "$WINDOW_INFO" | grep -q "minimized: true"; then
+			#> Window is minimized, show it
+			qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "$WINDOW_ID" 2>/dev/null
+			qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "$WINDOW_ID" 2>/dev/null
+		elif printf "%s" "$WINDOW_INFO" | grep -q "active: true"; then
+			#> Window is active and visible, hide it
+			qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "$WINDOW_ID" 2>/dev/null
 		else
-			FOOT_THEME=1
+			#> Window exists but not active, activate it
+			qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "$WINDOW_ID" 2>/dev/null
 		fi
-
-		printf '%s' "$THEME" >"$THEME_FILE"
-		rm -f "$SOCKET"
-		foot --server -o main.initial-color-theme="$FOOT_THEME" >/dev/null 2>&1 &
-
-		# Wait for server
-		i=0
-		while [ $i -lt 100 ]; do
-			if [ -S "$SOCKET" ]; then
-				sleep 0.3
-				break
-			fi
-			sleep 0.05
-			i=$((i + 1))
-		done
-
-		if [ ! -S "$SOCKET" ]; then
-			printf "Error: Failed to start foot server for quake mode\n" >&2
-			exit 1
-		fi
-	fi
-
-	# Launch quake terminal based on compositor
-	if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && has_cmd hyprctl; then
-		# Hyprland
-		footclient \
-			--app-id="$QUAKE_ID" \
-			--window-size-chars=200x50 \
-			--server-socket="$SOCKET" >/dev/null 2>&1 &
-		sleep 0.1
-		hyprctl dispatch movetoworkspacesilent special:quake,"$QUAKE_ID" 2>/dev/null
-		hyprctl dispatch togglespecialworkspace quake 2>/dev/null
-	elif has_cmd swaymsg && pgrep -x sway >/dev/null 2>&1; then
-		# Sway
-		footclient \
-			--app-id="$QUAKE_ID" \
-			--window-size-chars=200x50 \
-			--server-socket="$SOCKET" >/dev/null 2>&1 &
-		sleep 0.2
-		swaymsg "[app_id=\"$QUAKE_ID\"]" move scratchpad 2>/dev/null
-		swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show 2>/dev/null
 	else
-		# KDE/GNOME/Generic - just launch
+		#> Window doesn't exist, launch it
+		#? Clean up stale socket first
+		if [ -S "${SOCKET:-}" ] && ! pgrep -x foot >/dev/null 2>&1; then
+			rm -f "$SOCKET"
+		fi
+
+		#? Ensure server is running
+		if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "${SOCKET:-}" ]; then
+			#> Start server with current theme
+			THEME=$(detect_theme)
+			if [ "$THEME" = "light" ]; then
+				FOOT_THEME=2
+			else
+				FOOT_THEME=1
+			fi
+
+			printf '%s' "$THEME" >"$THEME_FILE"
+			rm -f "$SOCKET"
+			foot --server -o main.initial-color-theme="$FOOT_THEME" >/dev/null 2>&1 &
+
+			#> Wait for server
+			i=0
+			while [ $i -lt 100 ]; do
+				if [ -S "$SOCKET" ]; then
+					sleep 0.3
+					break
+				fi
+				sleep 0.05
+				i=$((i + 1))
+			done
+		fi
+
+		#? Launch quake terminal
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=240x40 \
