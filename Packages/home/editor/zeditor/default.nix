@@ -22,7 +22,7 @@
       # (import ./languages.nix)
       # (import ./themes.nix)
     ];
-    debug = true;
+    debug = false;
   };
 in {
   config = mkIf cfg.enable {

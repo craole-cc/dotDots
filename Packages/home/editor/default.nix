@@ -1,8 +1,8 @@
-# {lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
-{
-  imports = [
-    ./fresh
-    ./helix
-    ./zeditor
-  ];
-}
+{lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
+# {
+#   imports = [
+#     ./fresh
+#     ./helix
+#     ./zeditor
+#   ];
+# }
