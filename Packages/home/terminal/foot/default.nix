@@ -98,7 +98,7 @@
       SOCKET="/run/user/$UID/foot-wayland-0.sock"
 
       #> Detect current system theme
-      THEME=$(${detectTheme}/bin/detect-system-theme)
+      THEME=$(${detectTheme}/bin/foot-detect-system-theme)
 
       #> Map theme to foot's numeric values (1=dark, 2=light)
       if [ "$THEME" = "light" ]; then
