@@ -1,7 +1,7 @@
 {
-  #~@ Catppuccin Frappe (Dark Theme - Theme 1)
+  #~@ Catppuccin Frappe (Dark Theme)
   #? Active when system is in dark mode
-  colors-1 = {
+  colors-dark = {
     alpha = 0.97;
     background = "303446";
     foreground = "c6d0f5";
@@ -27,9 +27,9 @@
     bright7 = "a5adce"; # bright white
   };
 
-  #~@ Catppuccin Latte (Light Theme - Theme 2)
+  #~@ Catppuccin Latte (Light Theme)
   #? Active when system is in light mode
-  colors-2 = {
+  colors-light = {
     alpha = 0.97;
     background = "eff1f5";
     foreground = "4c4f69";

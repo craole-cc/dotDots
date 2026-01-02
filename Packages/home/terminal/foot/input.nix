@@ -19,8 +19,7 @@
     search-start = "Control+Shift+f";
 
     #~@ Theme Switching
-    #? Manual theme toggle between dark (1) and light (2)
-    color-theme-switch-1 = "F11"; # Switch to dark theme
-    color-theme-switch-2 = "F12"; # Switch to light theme
+    #? Manual theme toggle between dark and light
+    color-theme-toggle = "F12"; # Toggle between themes
   };
 }
