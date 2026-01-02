@@ -42,13 +42,13 @@ in {
         # smart-enter
         # smart-filter
         # smart-paste
-        # starship
+        starship
         # sudo
         # time-travel
         # toggle-pane
         # vcs-files
         # wl-clipboard
-        # yatline-catppuccin
+        yatline-catppuccin
         # yatline-githead
       ]
       ++ optionals (pkgs.stdenv.isDarwin) [mactag];
