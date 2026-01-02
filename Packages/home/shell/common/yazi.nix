@@ -20,7 +20,7 @@ in {
         # duckdb
         # dupes
         # full-border
-        # gitui
+        gitui
         # glow
         # lazygit
         # lazygit
