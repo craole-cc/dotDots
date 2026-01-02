@@ -91,8 +91,47 @@
     };
   in {
     environment = {
-      systemPackages =
-        editorPkgs
+      systemPackages = with pkgs;
+        [
+          alejandra
+          bat
+          btop
+          coreutils
+          curl
+          dust
+          eza
+          fastfetch
+          fd
+          fend
+          figlet
+          findutils
+          fzf
+          gawk
+          getent
+          gh
+          gitui
+          gnused
+          gnused
+          helix
+          imagemagick
+          lolcat
+          lsd
+          nil
+          nix-index
+          nix-info
+          nix-prefetch
+          nix-prefetch-docker
+          nix-prefetch-github
+          nix-prefetch-scripts
+          nixfmt
+          ripgrep
+          rsync
+          trashy
+          usbutils
+          uutils-coreutils-noprefix
+          wget
+        ]
+        ++ editorPkgs
         ++ browserPkgs
         ++ terminalPkgs
         ++ launcherPkgs
