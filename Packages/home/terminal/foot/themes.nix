@@ -1,6 +1,6 @@
 {
-  #~@ Catppuccin Frappe (Dark)
-  colors = {
+  #~@ Catppuccin Frappe (Dark Theme)
+  colors-dark = {
     alpha = 0.97;
     background = "303446";
     foreground = "c6d0f5";
@@ -24,6 +24,33 @@
     bright5 = "f4b8e4";
     bright6 = "81c8be";
     bright7 = "a5adce";
+  };
+
+  #~@ Catppuccin Latte (Light Theme)
+  colors-light = {
+    alpha = 0.97;
+    background = "eff1f5";
+    foreground = "4c4f69";
+
+    #~@ Regular Colors (0-7)
+    regular0 = "5c5f77";
+    regular1 = "d20f39";
+    regular2 = "40a02b";
+    regular3 = "df8e1d";
+    regular4 = "1e66f5";
+    regular5 = "ea76cb";
+    regular6 = "179299";
+    regular7 = "acb0be";
+
+    #~@ Bright Colors (8-15)
+    bright0 = "6c6f85";
+    bright1 = "d20f39";
+    bright2 = "40a02b";
+    bright3 = "df8e1d";
+    bright4 = "1e66f5";
+    bright5 = "ea76cb";
+    bright6 = "179299";
+    bright7 = "bcc0cc";
   };
 
   #~@ Cursor Configuration
