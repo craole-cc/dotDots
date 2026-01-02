@@ -703,9 +703,8 @@
 
     moduleName = res.name;
     hasHome = res.config?home;
-    hasModule = res.config?programs.${moduleName};
-    programModule = res.config.programs.${moduleName} or null;
-    hasProgramPackage = hasModule && programModule?package;
+    hasProg = res.config?programs.${moduleName};
+    hasProgPkg = res.config.programs.${moduleName}?package;
 
     testVariables = optionalAttrs res.debug {
       "__${moduleName}" =
@@ -715,7 +714,7 @@
           else "${moduleName} is a core config"
         )
         + (
-          if hasModule
+          if hasProg
           then " with an existing programs module"
           else " without a programs module"
         )
@@ -726,12 +725,11 @@
         );
     };
 
+    enable = res.isAllowed;
+    package = res.package;
+    packages = res.packages ++ extraPackages;
     sessionVariables = res.sessionVariables // extraVariables // testVariables;
     shellAliases = res.shellAliases // extraAliases;
-
-    inherit (res) package;
-    enable = res.isAllowed;
-    packages = res.packages ++ extraPackages;
 
     home =
       optionalAttrs hasHome
@@ -742,10 +740,10 @@
       inherit sessionVariables shellAliases;
     };
 
-    programs = optionalAttrs hasModule {
+    programs = optionalAttrs hasProg {
       ${moduleName} = mkMerge [
         {inherit enable;}
-        (optionalAttrs hasProgramPackage {inherit (res) package;})
+        (optionalAttrs hasProgPkg {inherit package;})
         extraProgramConfig
       ];
     };
