@@ -34,35 +34,32 @@
 
   foot = getExe' app.package "foot";
   footclient = getExe' app.package "footclient";
-  wrapper = pkgs.writeShellScriptBin "foot" ''
-    if ! ${footclient} --no-wait 2>/dev/null; then
-      ${foot} --server &
-      sleep 0.1
-    fi
-    exec ${footclient} "$@"
-  '';
-
-  # Create a complete package with desktop files and icons
-  package = pkgs.symlinkJoin {
-    name = "feet";
-    paths = [app.package];
-    buildInputs = [pkgs.makeWrapper];
-    postBuild = ''
-      # Remove original foot binary
-      rm -f $out/bin/foot
-
-      # Create wrapper as foot
-      makeWrapper ${footclient} $out/bin/foot \
-        --run "if ! ${footclient} --no-wait 2>/dev/null; then ${foot} --server & sleep 0.1; fi"
-
-      # Create feet as a copy/symlink
-      cp $out/bin/foot $out/bin/feet
+  feet = {
+    #> Create the feet wrapper that auto-starts server if needed
+    command = pkgs.writeShellScriptBin "feet" ''
+      if ! ${footclient} --no-wait 2>/dev/null; then
+        ${foot} --server &
+        sleep 0.1
+      fi
+      exec ${footclient} "$@"
     '';
+
+    #> Create desktop entry for feet
+    wrapper = pkgs.makeDesktopItem {
+      name = "feet";
+      desktopName = "Feet Terminal";
+      comment = "Fast, lightweight terminal emulator (server mode)";
+      exec = "feet";
+      icon = "foot"; # Use foot's icon
+      terminal = false;
+      type = "Application";
+      categories = ["System" "TerminalEmulator"];
+    };
   };
 
   cfg = userApplicationConfig {
     inherit app user pkgs config;
-    customPackage = package;
+    extraPackages = with feet; [command wrapper];
     extraProgramConfig = {
       server.enable = true;
       settings =
