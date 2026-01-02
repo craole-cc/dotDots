@@ -1,5 +1,5 @@
 {
-  theme = "light";
+  settings.theme = "light";
   themes = {
     light = {
       "inherits" = "seoul256-light-hard";

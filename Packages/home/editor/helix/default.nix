@@ -6,7 +6,7 @@
   pkgs,
   ...
 }: let
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
   cfg = userApplicationConfig {
@@ -16,14 +16,12 @@
     category = "tty";
     resolutionHints = ["hx" "helix" "helix-editor"];
     requiresWayland = true;
-    extraProgramConfig = {
-      settings =
-        {}
-        // import ./editor.nix
-        // import ./keybindings.nix
-        // import ./themes.nix;
-      languages = import ./languages.nix;
-    };
+    extraProgramConfig = mkMerge [
+      (import ./editor.nix)
+      (import ./keybindings.nix)
+      (import ./languages.nix)
+      (import ./themes.nix)
+    ];
     debug = false;
   };
 in {
