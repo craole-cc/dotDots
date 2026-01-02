@@ -6,7 +6,7 @@
       owner = "DvdGiessen";
       repo = pname;
       rev = "main";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==="; # Run: nix-prefetch-github --owner DvdGiessen --repo kwin-toggleterminal --rev main
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"; # Run: nix-prefetch-github --owner DvdGiessen --repo kwin-toggleterminal --rev main
     };
     installPhase = ''
       mkdir -p $out/share/kwin/scripts/${pname}
