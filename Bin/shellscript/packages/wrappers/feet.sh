@@ -154,12 +154,34 @@ quake_mode() {
 
 	# Check if quake terminal is running
 	if pgrep -f "$QUAKE_ID" >/dev/null; then
-		# Just toggle - kill if running
+		# Toggle visibility based on compositor
+		if [ "$XDG_SESSION_DESKTOP" = "KDE" ] || [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
+			# KDE/Plasma - use wmctrl or kdotool if available
+			if has_cmd wmctrl; then
+				# Try to find and toggle the window
+				if wmctrl -l | grep -q "foot-quake"; then
+					# Window exists, check if visible
+					if xdotool search --class "foot-quake" 2>/dev/null | head -1 | xargs -I {} xdotool windowunmap {} 2>/dev/null; then
+						exit 0
+					fi
+				fi
+			elif has_cmd kdotool; then
+				# Use kdotool for Wayland KDE
+				kdotool search --class "foot-quake" windowminimize 2>/dev/null && exit 0
+			fi
+		fi
+
+		# Fallback - just kill and relaunch on next toggle
 		pkill -f "$QUAKE_ID"
 		exit 0
 	fi
 
-	# Ensure server is running first
+	# Clean up stale socket first
+	if [ -S "$SOCKET" ] && ! pgrep -x foot >/dev/null 2>&1; then
+		rm -f "$SOCKET"
+	fi
+
+	# Ensure server is running
 	if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "$SOCKET" ]; then
 		# Start server with current theme
 		THEME=$(detect_theme)
@@ -175,12 +197,12 @@ quake_mode() {
 
 		# Wait for server
 		i=0
-		while [ $i -lt 50 ]; do
+		while [ $i -lt 100 ]; do
 			if [ -S "$SOCKET" ]; then
 				sleep 0.3
 				break
 			fi
-			sleep 0.1
+			sleep 0.05
 			i=$((i + 1))
 		done
 
@@ -190,10 +212,9 @@ quake_mode() {
 		fi
 	fi
 
-	# Launch quake terminal
-	# Try WM-specific methods first, fall back to simple approach
+	# Launch quake terminal based on compositor
 	if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && has_cmd hyprctl; then
-		# Hyprland detected and running
+		# Hyprland
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=200x50 \
@@ -202,7 +223,7 @@ quake_mode() {
 		hyprctl dispatch movetoworkspacesilent special:quake,"$QUAKE_ID" 2>/dev/null
 		hyprctl dispatch togglespecialworkspace quake 2>/dev/null
 	elif has_cmd swaymsg && pgrep -x sway >/dev/null 2>&1; then
-		# Sway detected and running
+		# Sway
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=200x50 \
@@ -211,8 +232,8 @@ quake_mode() {
 		swaymsg "[app_id=\"$QUAKE_ID\"]" move scratchpad 2>/dev/null
 		swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show 2>/dev/null
 	else
-		# Generic approach - works on any Wayland compositor
-		# Launch at top of screen with specific size
+		# KDE/GNOME/Generic - just launch
+		# Note: For KDE, set up a window rule to position this window at top
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=240x40 \
