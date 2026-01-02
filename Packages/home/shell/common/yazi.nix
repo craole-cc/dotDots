@@ -13,7 +13,7 @@ in {
     packages = with pkgs.yaziPlugins;
       [
         bookmarks
-        bypass
+        # bypass
         chmod
         compress
         diff
