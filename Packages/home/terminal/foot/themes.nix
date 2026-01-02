@@ -1,34 +1,34 @@
 {
-  #~@ Dark Theme (Theme 1)
-  #? Active when system is in dark mode or between 6pm-6am
+  #~@ Catppuccin Frappe (Dark Theme - Theme 1)
+  #? Active when system is in dark mode
   colors-1 = {
     alpha = 0.97;
-    background = "1e1e2e";
-    foreground = "cdd6f4";
+    background = "303446";
+    foreground = "c6d0f5";
 
     #~@ Regular Colors (0-7)
-    regular0 = "45475a"; # black
-    regular1 = "f38ba8"; # red
-    regular2 = "a6e3a1"; # green
-    regular3 = "f9e2af"; # yellow
-    regular4 = "89b4fa"; # blue
-    regular5 = "f5c2e7"; # magenta
-    regular6 = "94e2d5"; # cyan
-    regular7 = "bac2de"; # white
+    regular0 = "51576d"; # black
+    regular1 = "e78284"; # red
+    regular2 = "a6d189"; # green
+    regular3 = "e5c890"; # yellow
+    regular4 = "8caaee"; # blue
+    regular5 = "f4b8e4"; # magenta
+    regular6 = "81c8be"; # cyan
+    regular7 = "b5bfe2"; # white
 
     #~@ Bright Colors (8-15)
-    bright0 = "585b70"; # bright black
-    bright1 = "f38ba8"; # bright red
-    bright2 = "a6e3a1"; # bright green
-    bright3 = "f9e2af"; # bright yellow
-    bright4 = "89b4fa"; # bright blue
-    bright5 = "f5c2e7"; # bright magenta
-    bright6 = "94e2d5"; # bright cyan
-    bright7 = "a6adc8"; # bright white
+    bright0 = "626880"; # bright black
+    bright1 = "e78284"; # bright red
+    bright2 = "a6d189"; # bright green
+    bright3 = "e5c890"; # bright yellow
+    bright4 = "8caaee"; # bright blue
+    bright5 = "f4b8e4"; # bright magenta
+    bright6 = "81c8be"; # bright cyan
+    bright7 = "a5adce"; # bright white
   };
 
-  #~@ Light Theme (Theme 2)
-  #? Active when system is in light mode or between 6am-6pm
+  #~@ Catppuccin Latte (Light Theme - Theme 2)
+  #? Active when system is in light mode
   colors-2 = {
     alpha = 0.97;
     background = "eff1f5";
