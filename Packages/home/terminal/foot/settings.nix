@@ -1,8 +1,9 @@
 {
   main = {
-    app-id = "foot";
+    # app-id = "foot";
     dpi-aware = "yes";
-    font = "monospace:size=18";
+    font = "Maple Mono NF:size=14";
+    # font = "monospace:size=18";
     pad = "8x8";
     bold-text-in-bright = "yes";
 
