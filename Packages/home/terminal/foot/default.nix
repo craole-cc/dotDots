@@ -37,10 +37,19 @@
   feet = {
     #> Create the feet wrapper that auto-starts server if needed
     command = pkgs.writeShellScriptBin "feet" ''
-      if ! ${footclient} --no-wait 2>/dev/null; then
-        ${foot} --server &
-        sleep 0.1
+      # Check if server is already running
+      if ! ${footclient} --version &>/dev/null || ! pgrep -x "foot" &>/dev/null; then
+        # Start server in background (no window)
+        ${foot} --server >/dev/null 2>&1 &
+        # Wait for server to be ready
+        for i in {1..10}; do
+          if ${footclient} --version &>/dev/null; then
+            break
+          fi
+          sleep 0.1
+        done
       fi
+      # Connect to server
       exec ${footclient} "$@"
     '';
 
@@ -50,7 +59,7 @@
       desktopName = "Feet Terminal";
       comment = "Fast, lightweight terminal emulator (server mode)";
       exec = "feet";
-      icon = "foot"; # Use foot's icon
+      icon = "foot";
       terminal = false;
       type = "Application";
       categories = ["System" "TerminalEmulator"];
