@@ -30,12 +30,12 @@
 
     #> Main launcher (calls external script)
     command = pkgs.writeShellScriptBin "feet" ''
-      exec ${feetScript} "$@"
+      exec ${script} "$@"
     '';
 
     #> Quake mode launcher
     quake = pkgs.writeShellScriptBin "feet-quake" ''
-      exec ${feetScript} --quake "$@"
+      exec ${script} --quake "$@"
     '';
 
     #> Desktop entries
@@ -61,7 +61,7 @@
       categories = ["System" "TerminalEmulator"];
       noDisplay = true;
     };
-  in {inherit command desktop quake quakeDesktop;};
+  in {inherit script command desktop quake quakeDesktop;};
 
   #~@ Final Configuration Assembly
   cfg = userApplicationConfig {
