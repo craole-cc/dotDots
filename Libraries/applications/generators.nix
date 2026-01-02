@@ -340,25 +340,26 @@
     #? Cannot allow if package wasn't found
     isAllowed = packageFound && (isPrimary || isSecondary || isRequested) && isPlatformCompatible;
 
-    #~@ Environment Variables
+    #~@ Environment
     var = toUpper kind;
     varWithCategory =
       if category != null
       then "${var}_${toUpper category}"
       else var;
+    shellAliases = {}; #TODO: Add something here
     sessionVariables =
       optionalAttrs
       (kind != "editor")
       (
         if isPrimary
         then {
-          "${varWithCategory}" = command;
-          "${varWithCategory}_NAME" = name;
+          "${varWithCategory}_PRI" = command;
+          "${varWithCategory}_PRI_NAME" = name;
         }
         else if isSecondary
         then {
-          "${varWithCategory}_ALT" = command;
-          "${varWithCategory}_ALT_NAME" = name;
+          "${varWithCategory}_SEC" = command;
+          "${varWithCategory}_SEC_NAME" = name;
         }
         else {}
       )
@@ -413,6 +414,8 @@
         package
         packages
         sessionVariables
+        shellAliases
+        debug
         ;
     };
 
@@ -663,15 +666,17 @@
     pkgs ? app.pkgs or {},
     name ? app.name or null,
     kind ? app.kind or null,
-    category ? null,
-    resolutionHints ? [name],
+    category ? app.category or null,
+    requiresWayland ? app.requiresWayland or false,
+    requiresX11 ? app.requiresX11 or false,
+    debug ? app.debug or false,
+    resolutionHints ? app.resolutionHints or [name],
     customPackage ? null,
     customCommand ? null,
     extraPackages ? [],
     extraProgramConfig ? {},
-    requiresWayland ? false,
-    requiresX11 ? false,
-    debug ? false,
+    extraVariables ? {},
+    extraAliases ? {},
     ...
   }: let
     res =
@@ -695,29 +700,51 @@
             ;
         };
 
-    home =
-      optionalAttrs (config?home)
-      {
-        inherit (res) sessionVariables;
-        packages = res.packages ++ extraPackages;
-      };
+    moduleName = res.name;
+    hasModule = res.config?programs.${moduleName};
+    hasHome = res.config?home;
 
-    programs = optionalAttrs (res.config.programs?${res.name}) {
-      ${res.name} =
-        {
-          enable = res.isAllowed;
-          inherit (res) package;
-        }
-        // extraProgramConfig;
+    testVariables = optionalAttrs res.debug {
+      "__${moduleName}" =
+        (
+          if hasHome
+          then "${moduleName} is a home config"
+          else "${moduleName} is a core config"
+        )
+        + (
+          if hasModule
+          then " with an existing programs module"
+          else " without a programs module"
+        )
+        + (
+          if enable
+          then ". It should be enabled"
+          else ". It should not be enabled"
+        );
     };
 
-    exports =
-      {
-        inherit home programs;
-        meta = res;
-        enable = res.isAllowed;
-      }
-      // res;
+    sessionVariables = res.sessionVariables // extraVariables // testVariables;
+    shellAliases = res.shellAliases // extraAliases;
+
+    inherit (res) package;
+    enable = res.isAllowed;
+    meta = res;
+    packages = res.packages ++ extraPackages;
+
+    home =
+      optionalAttrs hasHome
+      {inherit sessionVariables shellAliases packages;};
+
+    environment = optionalAttrs (!hasHome) {
+      systemPackages = packages;
+      inherit sessionVariables shellAliases;
+    };
+
+    programs = optionalAttrs hasModule {
+      ${moduleName} = {inherit enable package;} // extraProgramConfig;
+    };
+
+    exports = {inherit environment home programs enable meta;};
   in
     exports;
 in {
