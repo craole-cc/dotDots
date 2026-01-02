@@ -303,7 +303,8 @@
     pkgs,
     packages ? (with pkgs; [
       #~@ Monospace
-      maple-mono.NF
+      # maple-mono.NF
+      maple-mono.NF-unhinted
       monaspace
       victor-mono
 
