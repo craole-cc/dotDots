@@ -155,13 +155,13 @@
       : Attribute set of environment variables to export.
         For editors:
         - tty primary: `EDITOR`, `EDITOR_NAME`
-        - tty secondary: `EDITOR_ALT`, `EDITOR_ALT_NAME`
+        - tty secondary: `EDITOR_SEC`, `EDITOR_SEC_NAME`
         - gui primary: `VISUAL`, `VISUAL_NAME`
-        - gui secondary: `VISUAL_ALT`, `VISUAL_ALT_NAME`
+        - gui secondary: `VISUAL_SEC`, `VISUAL_SEC_NAME`
 
         For other kinds:
         - primary: `<KIND>`, `<KIND>_NAME`
-        - secondary: `<KIND>_ALT`, `<KIND>_ALT_NAME`
+        - secondary: `<KIND>_SEC`, `<KIND>_SEC_NAME`
 
       # Examples
 
@@ -369,13 +369,13 @@
       (
         if isPrimary
         then {
-          EDITOR = command;
-          EDITOR_NAME = basename;
+          EDITOR_PRI = command;
+          EDITOR_PRI_NAME = basename;
         }
         else if isSecondary
         then {
-          EDITOR_ALT = command;
-          EDITOR_ALT_NAME = basename;
+          EDITOR_SEC = command;
+          EDITOR_SEC_NAME = basename;
         }
         else {}
       )
@@ -384,13 +384,13 @@
         (
           if isPrimary
           then {
-            VISUAL = command;
-            VISUAL_NAME = basename;
+            VISUAL_PRI = command;
+            VISUAL_PRI_NAME = basename;
           }
           else if isSecondary
           then {
-            VISUAL_ALT = command;
-            VISUAL_ALT_NAME = basename;
+            VISUAL_SEC = command;
+            VISUAL_SEC_NAME = basename;
           }
           else {}
         )

@@ -83,6 +83,7 @@
       "jujutsu"
       "obs-studio"
       "yazi"
+      "vim"
     ];
   };
 
