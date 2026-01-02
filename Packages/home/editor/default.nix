@@ -3,5 +3,6 @@
   imports = [
     ./fresh
     ./helix
+    ./zeditor
   ];
 }

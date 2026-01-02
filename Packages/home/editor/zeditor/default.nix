@@ -1,32 +1,31 @@
 {
+  config,
   lib,
   lix,
   user,
   pkgs,
   ...
 }: let
-  inherit (lib.modules) mkIf;
-  inherit (lix.applications.generators) application program;
+  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.applications.generators) userApplicationConfig;
 
-  app = application {
-    inherit user pkgs;
+  cfg = userApplicationConfig {
+    inherit user pkgs config;
     name = "zed-editor";
     kind = "editor";
     category = "gui";
     resolutionHints = ["zeditor" "zed-editor"];
+    requiresWayland = true;
+    extraProgramConfig = mkMerge [
+      # (import ./editor.nix)
+      # (import ./keybindings.nix)
+      # (import ./languages.nix)
+      # (import ./themes.nix)
+    ];
     debug = true;
   };
-
-  cfg = program {
-    inherit (app) name package sessionVariables;
-    extraConfig =
-      {}
-      # // import ./editor.nix
-      # // import ./keybindings.nix
-      # // import ./languages.nix
-      # // import ./themes.nix
-      // {};
-  };
 in {
-  config = mkIf app.isAllowed cfg;
+  config = mkIf cfg.enable {
+    inherit (cfg) home programs;
+  };
 }
