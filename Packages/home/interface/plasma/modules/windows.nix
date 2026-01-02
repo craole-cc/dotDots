@@ -68,14 +68,16 @@
           value = true;
           apply = "force";
         };
-        # `apply` defaults to "apply-initially"
         maximizehoriz = true;
         maximizevert = true;
       };
     }
     {
-      appId = "foot-quake";
-      rules = {
+      description = "Foot Quake";
+      match = {
+        windowClass = "foot-quake";
+      };
+      apply = {
         skipTaskbar = true;
         skipPager = true;
         maximizeVertically = true;
