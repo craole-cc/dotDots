@@ -702,8 +702,10 @@
         };
 
     moduleName = res.name;
-    hasModule = res.config?programs.${moduleName};
     hasHome = res.config?home;
+    hasModule = res.config?programs.${moduleName};
+    programModule = res.config.programs.${moduleName} or null;
+    hasProgramPackage = hasModule && programModule?package;
 
     testVariables = optionalAttrs res.debug {
       "__${moduleName}" =
@@ -741,7 +743,11 @@
     };
 
     programs = optionalAttrs hasModule {
-      ${moduleName} = mkMerge [{inherit enable package;} extraProgramConfig];
+      ${moduleName} = mkMerge [
+        {inherit enable;}
+        (optionalAttrs hasProgramPackage {inherit (res) package;})
+        extraProgramConfig
+      ];
     };
 
     exports = {inherit environment home programs enable;} // res;
