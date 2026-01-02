@@ -10,10 +10,8 @@
   inherit (lib.meta) getExe';
   inherit (lix.applications.generators) userApplicationConfig userApplication;
   inherit (pkgs) makeDesktopItem;
-  inherit (builtins) readFile replaceStrings;
 
   #~@ Application Configuration
-  #? Base foot terminal application with custom command wrapper
   app = userApplication {
     inherit user pkgs config;
     name = "foot";
@@ -24,29 +22,42 @@
   };
 
   #~@ Executable Paths
-  #? Extract binary paths from the foot package
   foot = getExe' app.package "foot";
   footclient = getExe' app.package "footclient";
 
   #~@ Theme Detection Script
-  #? POSIX-compliant shell script to detect system theme
   detectTheme =
     pkgs.writeShellScriptBin "foot-detect-theme"
-    (readFile ./detect-theme.sh);
+    (builtins.readFile ./detect-theme.sh);
+
+  #~@ Theme Monitor Service
+  #? Background service that watches for theme changes
+  themeMonitor = pkgs.writeShellScriptBin "foot-theme-monitor" (
+    builtins.replaceStrings
+    ["@detectTheme@" "@foot@"]
+    ["${detectTheme}/bin/foot-detect-theme" foot]
+    (builtins.readFile ./foot-theme-monitor.sh)
+  );
 
   #~@ Feet Wrapper Components
   feet = {
     #> Smart wrapper with theme detection
-    #? POSIX-compliant wrapper that manages foot server
     command = pkgs.writeShellScriptBin "feet" (
-      replaceStrings
+      builtins.replaceStrings
       ["@detectTheme@" "@foot@" "@footclient@"]
       ["${detectTheme}/bin/foot-detect-theme" foot footclient]
-      (readFile ./feet.sh)
+      (builtins.readFile ./feet-wrapper.sh)
     );
 
-    #> Desktop entry for application launcher
-    #? Creates clickable "Feet Terminal" icon in application menus
+    #> Quake mode toggle
+    quake = pkgs.writeShellScriptBin "feet-quake" (
+      builtins.replaceStrings
+      ["@footclient@"]
+      [footclient]
+      (builtins.readFile ./feet-quake.sh)
+    );
+
+    #> Desktop entries
     wrapper = makeDesktopItem {
       name = "feet";
       desktopName = "Feet Terminal";
@@ -57,13 +68,24 @@
       type = "Application";
       categories = ["System" "TerminalEmulator"];
     };
+
+    quakeDesktop = makeDesktopItem {
+      name = "feet-quake";
+      desktopName = "Feet Quake Terminal";
+      comment = "Dropdown terminal (quake-style)";
+      exec = "feet-quake";
+      icon = "foot";
+      terminal = false;
+      type = "Application";
+      categories = ["System" "TerminalEmulator"];
+      noDisplay = true; # Don't show in menu, use keybinding instead
+    };
   };
 
   #~@ Final Configuration Assembly
-  #? Combines application metadata, packages, and program-specific settings
   cfg = userApplicationConfig {
     inherit app user pkgs config;
-    extraPackages = with feet; [command wrapper detectTheme];
+    extraPackages = with feet; [command quake wrapper quakeDesktop detectTheme themeMonitor];
     extraProgramConfig = {
       server.enable = true;
       settings =
@@ -75,9 +97,22 @@
     };
   };
 in {
-  #~@ Module Output
-  #? Only apply configuration if application is allowed/enabled
   config = mkIf cfg.enable {
     inherit (cfg) programs home;
+
+    #~@ Systemd User Service for Theme Monitoring
+    #? Auto-starts on login and monitors theme changes
+    systemd.user.services.foot-theme-monitor = {
+      Unit = {
+        Description = "Foot terminal theme monitor";
+        After = ["graphical-session.target"];
+      };
+      Service = {
+        ExecStart = "${themeMonitor}/bin/foot-theme-monitor";
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
   };
 }
