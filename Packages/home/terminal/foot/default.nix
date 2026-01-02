@@ -6,8 +6,9 @@
   pkgs,
   ...
 }: let
-  inherit (lib.modules) mkIf;
   inherit (lib.meta) getExe';
+  inherit (lib.modules) mkIf;
+  inherit (lib.strings) replaceStrings readFile;
   inherit (lix.applications.generators) userApplicationConfig userApplication;
   inherit (pkgs) makeDesktopItem;
 
@@ -28,37 +29,37 @@
   #~@ Theme Detection Script
   detectTheme =
     pkgs.writeShellScriptBin "foot-detect-theme"
-    (builtins.readFile ./detect-theme.sh);
+    (readFile ./scripts/detect-theme.sh);
 
   #~@ Theme Monitor Service
   #? Background service that watches for theme changes
   themeMonitor = pkgs.writeShellScriptBin "foot-theme-monitor" (
-    builtins.replaceStrings
+    replaceStrings
     ["@detectTheme@" "@foot@"]
     ["${detectTheme}/bin/foot-detect-theme" foot]
-    (builtins.readFile ./foot-theme-monitor.sh)
+    (readFile ./scripts/theme-monitor.sh)
   );
 
   #~@ Feet Wrapper Components
   feet = {
     #> Smart wrapper with theme detection
     command = pkgs.writeShellScriptBin "feet" (
-      builtins.replaceStrings
+      replaceStrings
       ["@detectTheme@" "@foot@" "@footclient@"]
       ["${detectTheme}/bin/foot-detect-theme" foot footclient]
-      (builtins.readFile ./feet-wrapper.sh)
+      (readFile ./scripts/wrapper.sh)
     );
 
     #> Quake mode toggle
     quake = pkgs.writeShellScriptBin "feet-quake" (
-      builtins.replaceStrings
+      replaceStrings
       ["@footclient@"]
       [footclient]
-      (builtins.readFile ./feet-quake.sh)
+      (readFile ./scripts/quake.sh)
     );
 
     #> Desktop entries
-    wrapper = makeDesktopItem {
+    desktop = makeDesktopItem {
       name = "feet";
       desktopName = "Feet Terminal";
       comment = "Fast, lightweight terminal emulator (server mode)";
@@ -78,14 +79,14 @@
       terminal = false;
       type = "Application";
       categories = ["System" "TerminalEmulator"];
-      noDisplay = true; # Don't show in menu, use keybinding instead
+      noDisplay = true; #? Don't show in menu, use keybinding instead
     };
   };
 
   #~@ Final Configuration Assembly
   cfg = userApplicationConfig {
     inherit app user pkgs config;
-    extraPackages = with feet; [command quake wrapper quakeDesktop detectTheme themeMonitor];
+    extraPackages = with feet; [command quake desktop quakeDesktop detectTheme themeMonitor];
     extraProgramConfig = {
       server.enable = true;
       settings =
