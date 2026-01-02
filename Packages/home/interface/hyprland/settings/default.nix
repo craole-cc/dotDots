@@ -11,13 +11,4 @@
     (import ./core.nix)
     (import ./rules.nix {inherit lib;})
   ];
-
-  # systemd = {
-  #   enable = true;
-  #   variables = [ "-all" ];
-  #   extraCommands = [
-  #     "systemctl --user stop graphical-session.target"
-  #     "systemctl --user start hyprland-session.target"
-  #   ];
-  # };
 }

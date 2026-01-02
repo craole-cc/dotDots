@@ -6,7 +6,12 @@
   inherit (lib.lists) map;
   monitors = host.devices.display or [];
 
-  mkMonitor = m: "${m.name}, ${m.resolution}@${toString m.refreshRate}, ${m.position}, ${toString m.scale}";
-in {
-  monitor = map mkMonitor monitors;
-}
+  mkMonitor = monitor: let
+    base = with monitor; "${name}, ${resolution}@${toString refreshRate}, ${position}, ${toString scale}";
+    rotation =
+      if monitor ? transform
+      then ", transform, ${toString monitor.transform}"
+      else "";
+  in
+    base + rotation;
+in {monitor = map mkMonitor monitors;}

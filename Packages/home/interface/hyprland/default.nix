@@ -11,10 +11,10 @@ in {
   config = mkIf isAllowed {
     wayland.windowManager.hyprland = mkMerge [
       {enable = true;}
-      (import ./components {inherit mkMerge;})
-      (import ./settings {inherit host lib;})
-      (import ./submaps)
-      (import ./plugins)
+      # (import ./components {inherit mkMerge;})
+      (import ./settings {inherit host lib mkMerge;})
+      # (import ./submaps)
+      # (import ./plugins)
     ];
   };
 }

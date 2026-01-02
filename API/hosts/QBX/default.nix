@@ -82,21 +82,12 @@ in {
       {
         brand = "KTC";
         name = "HDMI-A-3";
-        resolution = "2560x1440"; # 2K
+        resolution = "2560x1440";
         refreshRate = 100;
         scale = 1;
-        position = "0x0";
+        position = "1080x900"; # Bottom center - MAIN
         size = 27.0;
-      }
-      {
-        brand = "ACER";
-        name = "HDMI-A-2";
-        resolution = "1920x1080";
-        refreshRate = 100;
-        scale = 1;
-        position = "2560x0"; # To the right of 2K screen
-        transform = 3; # 0=normal, 1=90°, 2=180°, 3=270°
-        size = 24.5;
+        primary = true;
       }
       {
         brand = "DELL";
@@ -104,8 +95,18 @@ in {
         resolution = "1600x900";
         refreshRate = 60;
         scale = 1;
-        position = "0x1440";
+        position = "1080x0"; # Top center, above main
         size = 19.4;
+      }
+      {
+        brand = "ACER";
+        name = "HDMI-A-2";
+        resolution = "1920x1080";
+        refreshRate = 100;
+        scale = 1;
+        position = "0x420"; # Left side, portrait
+        transform = 3; # 270° rotation (Rotated270)
+        size = 24.5;
       }
     ];
   };
