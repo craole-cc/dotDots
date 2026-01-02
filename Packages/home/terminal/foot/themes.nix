@@ -1,11 +1,12 @@
 {
-  #~@ Dark Theme
-  colors-dark = {
+  #~@ Dark Theme (Theme 1)
+  #? Active when system is in dark mode or between 6pm-6am
+  colors-1 = {
     alpha = 0.97;
     background = "1e1e2e";
     foreground = "cdd6f4";
 
-    # Regular colors (0-7)
+    #~@ Regular Colors (0-7)
     regular0 = "45475a"; # black
     regular1 = "f38ba8"; # red
     regular2 = "a6e3a1"; # green
@@ -15,7 +16,7 @@
     regular6 = "94e2d5"; # cyan
     regular7 = "bac2de"; # white
 
-    # Bright colors (8-15)
+    #~@ Bright Colors (8-15)
     bright0 = "585b70"; # bright black
     bright1 = "f38ba8"; # bright red
     bright2 = "a6e3a1"; # bright green
@@ -26,13 +27,14 @@
     bright7 = "a6adc8"; # bright white
   };
 
-  #~@ Light Theme
-  colors-light = {
+  #~@ Light Theme (Theme 2)
+  #? Active when system is in light mode or between 6am-6pm
+  colors-2 = {
     alpha = 0.97;
     background = "eff1f5";
     foreground = "4c4f69";
 
-    # Regular colors (0-7)
+    #~@ Regular Colors (0-7)
     regular0 = "5c5f77"; # black
     regular1 = "d20f39"; # red
     regular2 = "40a02b"; # green
@@ -42,7 +44,7 @@
     regular6 = "179299"; # cyan
     regular7 = "acb0be"; # white
 
-    # Bright colors (8-15)
+    #~@ Bright Colors (8-15)
     bright0 = "6c6f85"; # bright black
     bright1 = "d20f39"; # bright red
     bright2 = "40a02b"; # bright green
@@ -53,9 +55,10 @@
     bright7 = "bcc0cc"; # bright white
   };
 
-  #~@ Cursor Settings
+  #~@ Cursor Configuration
+  #? Visual appearance and behavior of the text cursor
   cursor = {
-    style = "beam";
+    style = "beam"; #? Options: block, underline, beam
     blink = "yes";
     blink-rate = 500;
     beam-thickness = 1.5;

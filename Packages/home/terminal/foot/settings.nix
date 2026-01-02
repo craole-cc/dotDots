@@ -2,15 +2,16 @@
   main = {
     app-id = "foot";
     dpi-aware = "yes";
-    font = "monospace:size=18";
+    font = "monospace:size=14";
     pad = "8x8";
     bold-text-in-bright = "yes";
 
     #~@ Initial Theme
-    #? Options: "dark", "light"
-    initial-color-theme = "dark";
+    #? Options: 1 (dark), 2 (light)
+    initial-color-theme = "1"; # Start with dark theme
 
-    #> Automatically copy the selection to the clipboard
+    #~@ Selection Behavior
+    #? Automatically copy the selection to the clipboard
     #? Options: "none", "primary", "clipboard", "both"
     selection-target = "both";
   };
