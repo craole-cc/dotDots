@@ -6,6 +6,7 @@
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) filter head unique;
   inherit (lib.meta) getExe';
+  inherit (lib.modules) mkMerge;
   inherit (lib.trivial) warn boolToString;
   inherit (lib.strings) concatStringsSep optionalString toUpper;
   inherit (lib.generators) toPretty;
@@ -728,7 +729,6 @@
 
     inherit (res) package;
     enable = res.isAllowed;
-    meta = res;
     packages = res.packages ++ extraPackages;
 
     home =
@@ -741,10 +741,10 @@
     };
 
     programs = optionalAttrs hasModule {
-      ${moduleName} = {inherit enable package;} // extraProgramConfig;
+      ${moduleName} = mkMerge [{inherit enable package;} extraProgramConfig];
     };
 
-    exports = {inherit environment home programs enable meta;};
+    exports = {inherit environment home programs enable;} // res;
   in
     exports;
 in {

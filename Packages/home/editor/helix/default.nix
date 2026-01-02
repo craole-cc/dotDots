@@ -26,6 +26,6 @@
   };
 in {
   config = mkIf cfg.enable {
-    inherit (cfg) programs home;
+    inherit (cfg) home programs;
   };
 }
