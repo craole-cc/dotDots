@@ -9,6 +9,7 @@
   inherit (lib.modules) mkIf;
   inherit (lib.meta) getExe';
   inherit (lix.applications.generators) userApplicationConfig userApplication;
+  inherit (pkgs) writeShellScriptBin makeDesktopItem;
 
   app = userApplication {
     inherit user pkgs config;
@@ -36,25 +37,22 @@
   footclient = getExe' app.package "footclient";
   feet = {
     #> Create the feet wrapper that auto-starts server if needed
-    command = pkgs.writeShellScriptBin "feet" ''
-      # Check if server is already running
-      if ! ${footclient} --version &>/dev/null || ! pgrep -x "foot" &>/dev/null; then
-        # Start server in background (no window)
+    command = writeShellScriptBin "feet" ''
+      SOCKET="/run/user/$UID/foot-wayland-0.sock"
+
+      # Start server if not running
+      if ! pgrep -x "foot" >/dev/null; then
         ${foot} --server >/dev/null 2>&1 &
-        # Wait for server to be ready
-        for i in {1..10}; do
-          if ${footclient} --version &>/dev/null; then
-            break
-          fi
-          sleep 0.1
-        done
+        # Wait for socket
+        while [ ! -S "$SOCKET" ] && sleep 0.1; do :; done
       fi
-      # Connect to server
-      exec ${footclient} "$@"
+
+      # Connect with explicit socket path
+      exec ${footclient} --server-socket="$SOCKET" "$@"
     '';
 
     #> Create desktop entry for feet
-    wrapper = pkgs.makeDesktopItem {
+    wrapper = makeDesktopItem {
       name = "feet";
       desktopName = "Feet Terminal";
       comment = "Fast, lightweight terminal emulator (server mode)";
