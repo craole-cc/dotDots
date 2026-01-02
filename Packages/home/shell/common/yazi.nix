@@ -17,7 +17,7 @@ in {
         # chmod
         # compress
         # diff
-        duckdb
+        # duckdb
         # dupes
         # full-border
         # gitui
