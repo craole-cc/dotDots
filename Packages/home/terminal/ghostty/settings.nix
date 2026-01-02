@@ -13,6 +13,7 @@
 
     confirm-close-surface = false;
 
+    background-blur = true;
     font-size = 14;
     keybind = [
       "clear"
