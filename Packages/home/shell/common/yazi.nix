@@ -42,7 +42,7 @@ in {
         # smart-enter
         # smart-filter
         # smart-paste
-        starship
+        # starship
         # sudo
         # time-travel
         # toggle-pane
