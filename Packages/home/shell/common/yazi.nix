@@ -48,7 +48,7 @@ in {
         # toggle-pane
         # vcs-files
         # wl-clipboard
-        # yatline-catppuccin
+        yatline-catppuccin
         # yatline-githead
       ]
       ++ optionals (pkgs.stdenv.isDarwin) [mactag];
