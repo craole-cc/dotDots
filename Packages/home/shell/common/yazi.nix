@@ -16,7 +16,7 @@ in {
         # bypass
         # chmod
         # compress
-        diff
+        # diff
         duckdb
         dupes
         full-border
