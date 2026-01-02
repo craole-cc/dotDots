@@ -7,9 +7,9 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lix.applications.generators) userApplicationConfig userApplication;
+  inherit (lix.applications.generators) userApplicationConfig;
 
-  app = userApplication {
+  cfg = userApplicationConfig {
     inherit user pkgs config;
     name = "helix";
     kind = "editor";
@@ -17,12 +17,8 @@
     resolutionHints = ["hx" "helix" "helix-editor"];
     requiresWayland = true;
     debug = true;
-  };
-
-  cfg = userApplicationConfig {
-    inherit app;
     extraProgramConfig =
-      {defaultEditor = app.isPrimary;}
+      {}
       // import ./editor.nix
       // import ./keybindings.nix
       // import ./languages.nix
