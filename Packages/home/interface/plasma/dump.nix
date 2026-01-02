@@ -269,7 +269,8 @@
       plasmashell."switch to next activity" = [ ];
       plasmashell."switch to previous activity" = [ ];
       plasmashell."toggle do not disturb" = [ ];
-      "services/com.mitchellh.ghostty.desktop"._launch = ["Meta+Return" "Ctrl+Alt+T"];
+      "services/feet.desktop"._launch = "Meta+Return";
+      "services/net.local.feet-quake.desktop"._launch = "Meta+~";
       "services/org.kde.konsole.desktop"._launch = [ ];
       "services/org.kde.spectacle.desktop".RecordWindow = [ ];
       "services/plasma-manager-commands.desktop".launch-konsole = [ ];
@@ -334,6 +335,7 @@
       kcminputrc.Mouse.cursorTheme = "material_light_cursors";
       kded5rc.Module-browserintegrationreminder.autoload = false;
       kded5rc.Module-device_automounter.autoload = false;
+      kdeglobals.General.AccentColor = "178,89,21";
       kdeglobals.General.LastUsedCustomAccentColor = "233,61,88";
       kdeglobals.General.TerminalApplication = "footclient";
       kdeglobals.General.TerminalService = "footclient.desktop";
@@ -363,12 +365,12 @@
       kdeglobals."KFileDialog Settings"."View Style" = "DetailTree";
       kdeglobals.KScreen.ScreenScaleFactors = "HDMI-A-3=1;HDMI-A-2=1;";
       kdeglobals."KShortcutsDialog Settings"."Dialog Size" = "600,480";
-      kdeglobals.WM.activeBackground = "48,52,70";
-      kdeglobals.WM.activeBlend = "198,208,245";
-      kdeglobals.WM.activeForeground = "198,208,245";
-      kdeglobals.WM.inactiveBackground = "35,38,52";
-      kdeglobals.WM.inactiveBlend = "165,173,206";
-      kdeglobals.WM.inactiveForeground = "165,173,206";
+      kdeglobals.WM.activeBackground = "38,41,46";
+      kdeglobals.WM.activeBlend = "38,41,46";
+      kdeglobals.WM.activeForeground = "252,252,252";
+      kdeglobals.WM.inactiveBackground = "38,41,46";
+      kdeglobals.WM.inactiveBlend = "38,41,46";
+      kdeglobals.WM.inactiveForeground = "177,177,177";
       kiorc.Confirmations.ConfirmDelete = true;
       krunnerrc.Plugins.krunner_keysEnabled = true;
       krunnerrc."Plugins/Favorites".plugins = "krunner_sessions,krunner_powerdevil,krunner_services,krunner_systemsettings";
@@ -411,7 +413,7 @@
       kwinrc.NightColor.NightTemperature = 4200;
       kwinrc.Plugins.blurEnabled = true;
       kwinrc.Plugins.cubeEnabled = true;
-      kwinrc.Plugins.krohnkiteEnabled = false;
+      kwinrc.Plugins.krohnkiteEnabled = true;
       kwinrc.Plugins.kwin4_effect_geometry_changeEnabled = true;
       kwinrc.Plugins.slidebackEnabled = true;
       kwinrc.Plugins.synchronizeskipswitcherEnabled = true;
@@ -494,7 +496,7 @@
       plasmanotifyrc."Applications/microsoft-edge".Seen = true;
       plasmanotifyrc."Applications/org.qbittorrent.qBittorrent".Seen = true;
       plasmaparc.General.RaiseMaximumVolume = true;
-      plasmarc.Theme.name = "Materia-Color";
+      plasmarc.Theme.name = "Moe-Dark";
       plasmarc.Wallpapers.usersWallpapers = "/home/craole/Pictures/Wallpapers/wallhaven-1jwwdv.jpg,/home/craole/Pictures/Wallpapers/wallhaven-4y9jdx.jpg,/home/craole/Pictures/Wallpapers/wallhaven-96oxgd.jpg,/home/craole/Pictures/Wallpapers/wallhaven-d85ewm.png,/home/craole/Pictures/Wallpapers/wallhaven-e7evgl.jpg,/home/craole/Pictures/Wallpapers/wallhaven-392r39.jpg";
       spectaclerc.ImageSave.lastImageSaveLocation = "file:///home/craole/Pictures/Screenshots/Screenshot_20251223_111106.png";
       spectaclerc.ImageSave.translatedScreenshotsFolder = "Screenshots";
