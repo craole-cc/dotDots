@@ -143,17 +143,28 @@ monitor_mode() {
 				printf "Theme changed: %s → %s\n" "$LAST_THEME" "$NEW_THEME" >&2
 				printf '%s' "$NEW_THEME" >"$THEME_FILE"
 
-				# Restart foot server if running
-				if pgrep -x foot >/dev/null; then
-					printf "Restarting foot server...\n" >&2
-					pkill -x foot
-					sleep 0.5
+				# Check if any clients are connected
+				CLIENT_COUNT=$(pgrep -x footclient | wc -l)
 
-					# Start with correct theme (1=dark, 2=light)
-					if [ "$NEW_THEME" = "light" ]; then
-						foot --server -o main.initial-color-theme=2 >/dev/null 2>&1 &
-					else
-						foot --server -o main.initial-color-theme=1 >/dev/null 2>&1 &
+				if [ "$CLIENT_COUNT" -gt 0 ]; then
+					printf "Active terminals detected (%d clients) - theme will apply to new terminals only\n" "$CLIENT_COUNT" >&2
+					printf "Existing terminals: press F12 to manually toggle theme\n" >&2
+					# Don't touch the server or clients - just let the theme file update
+				else
+					# No clients running, safe to restart server
+					if pgrep -x foot >/dev/null; then
+						printf "No active clients - restarting foot server...\n" >&2
+						pkill -x foot
+						sleep 0.5
+
+						# Start new server with correct theme (1=dark, 2=light)
+						if [ "$NEW_THEME" = "light" ]; then
+							foot --server -o main.initial-color-theme=2 >/dev/null 2>&1 &
+						else
+							foot --server -o main.initial-color-theme=1 >/dev/null 2>&1 &
+						fi
+
+						printf "Foot server restarted with %s theme\n" "$NEW_THEME" >&2
 					fi
 				fi
 			fi
@@ -219,9 +230,19 @@ launch_terminal() {
 			LAST_THEME=$(cat "$THEME_FILE")
 
 			if [ "$LAST_THEME" != "$THEME" ]; then
-				printf "Theme changed: %s → %s (restarting server...)\n" "$LAST_THEME" "$THEME" >&2
-				pkill -x foot
-				sleep 0.3
+				# Theme mismatch detected
+				CLIENT_COUNT=$(pgrep -x footclient | wc -l)
+
+				if [ "$CLIENT_COUNT" -gt 0 ]; then
+					# Clients are running - don't restart, just warn
+					printf "Note: System theme is %s but server is %s. Press F12 to toggle.\n" "$THEME" "$LAST_THEME" >&2
+					exec footclient --server-socket="$SOCKET" "$@"
+				else
+					# No clients, safe to restart
+					printf "Theme changed: %s → %s (restarting server...)\n" "$LAST_THEME" "$THEME" >&2
+					pkill -x foot
+					sleep 0.3
+				fi
 			else
 				# Server running with correct theme
 				exec footclient --server-socket="$SOCKET" "$@"
