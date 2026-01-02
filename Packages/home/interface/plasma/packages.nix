@@ -1,56 +1,74 @@
-{pkgs, ...}:
-with pkgs;
-  [
-    #~@ KDE Themes
-    plasma-overdose-kde-theme
-    materia-kde-theme
-    arc-kde-theme
-    twilight-kde
-    adapta-kde-theme
-    sweet-nova
-    utterly-nord-plasma
-    utterly-round-plasma-style
-    catppuccin-kde
+{pkgs, ...}: let
+  toggleTerminal = pkgs.stdenv.mkDerivation rec {
+    pname = "kwin-toggleterminal";
+    version = "unstable-2024";
+    src = pkgs.fetchFromGitHub {
+      owner = "DvdGiessen";
+      repo = pname;
+      rev = "main";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==="; # Run: nix-prefetch-github --owner DvdGiessen --repo kwin-toggleterminal --rev main
+    };
+    installPhase = ''
+      mkdir -p $out/share/kwin/scripts/${pname}
+      cp -r . $out/share/kwin/scripts/${pname}
+    '';
+  };
+in
+  with pkgs;
+    [
+      toggleTerminal
+      dbus-app-launcher
 
-    #~@ SDDM Themes
-    catppuccin-sddm-corners
+      #~@ KDE Themes
+      plasma-overdose-kde-theme
+      materia-kde-theme
+      arc-kde-theme
+      twilight-kde
+      adapta-kde-theme
+      sweet-nova
+      utterly-nord-plasma
+      utterly-round-plasma-style
+      catppuccin-kde
 
-    #~@ Kvantum Themes
-    catppuccin-kvantum
-    gruvbox-kvantum
-    rose-pine-kvantum
-    ayu-theme-gtk
-    kvmarwaita
-    rose-pine-kvantum
+      #~@ SDDM Themes
+      catppuccin-sddm-corners
 
-    #~@ GTK Themes
-    rose-pine-gtk-theme
-    jasper-gtk-theme
-    fluent-gtk-theme
-    colloid-gtk-theme
-    juno-theme
-    yaru-remix-theme
-    catppuccin-gtk
-    lavanda-gtk-theme
-    kanagawa-gtk-theme
-    magnetic-catppuccin-gtk
-    rose-pine-gtk-theme
+      #~@ Kvantum Themes
+      catppuccin-kvantum
+      gruvbox-kvantum
+      rose-pine-kvantum
+      ayu-theme-gtk
+      kvmarwaita
+      rose-pine-kvantum
 
-    #~@ Cursors
-    catppuccin-cursors
-    rose-pine-cursor
+      #~@ GTK Themes
+      rose-pine-gtk-theme
+      jasper-gtk-theme
+      fluent-gtk-theme
+      colloid-gtk-theme
+      juno-theme
+      yaru-remix-theme
+      catppuccin-gtk
+      lavanda-gtk-theme
+      kanagawa-gtk-theme
+      magnetic-catppuccin-gtk
+      rose-pine-gtk-theme
 
-    #~@ Icons
-    candy-icons
-    rose-pine-icon-theme
+      #~@ Cursors
+      catppuccin-cursors
+      rose-pine-cursor
 
-    #~@ Visuals
-    kurve
-    catppuccin
-  ]
-  ++ (with kdePackages; [
-    koi
-    kpackage
-    krohnkite
-    yakuake
-  ])
+      #~@ Icons
+      candy-icons
+      rose-pine-icon-theme
+
+      #~@ Visuals
+      kurve
+      catppuccin
+    ]
+    ++ (with kdePackages; [
+      koi
+      kpackage
+      krohnkite
+      yakuake
+    ])

@@ -73,5 +73,14 @@
         maximizevert = true;
       };
     }
+    {
+      appId = "foot-quake";
+      rules = {
+        skipTaskbar = true;
+        skipPager = true;
+        maximizeVertically = true;
+        maximizeHorizontally = true;
+      };
+    }
   ];
 }
