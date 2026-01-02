@@ -1,4 +1,10 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: let
+  inherit (lib.lists) optionals;
+in {
   programs.yazi = {
     enable = true;
   };
