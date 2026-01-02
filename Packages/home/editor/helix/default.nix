@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   lix,
   user,
@@ -6,19 +7,22 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lix.applications.generators) application program;
+  inherit (lix.applications.generators) userApplicationConfig userApplication;
 
-  app = application {
-    inherit user pkgs;
+  #~@ Application Configuration
+  app = userApplication {
+    inherit user pkgs config;
     name = "helix";
     kind = "editor";
     category = "tty";
     resolutionHints = ["hx" "helix" "helix-editor"];
+    requiresWayland = true;
   };
 
-  cfg = program {
-    inherit (app) name package sessionVariables;
-    extraConfig =
+  #~@ Final Configuration Assembly
+  cfg = userApplicationConfig {
+    inherit app user pkgs config;
+    extraProgramConfig =
       {defaultEditor = app.isPrimary;}
       // import ./editor.nix
       // import ./keybindings.nix
@@ -27,5 +31,7 @@
       // {};
   };
 in {
-  config = mkIf app.isAllowed cfg;
+  config = mkIf cfg.enable {
+    inherit (cfg) programs home;
+  };
 }
