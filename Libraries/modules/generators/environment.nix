@@ -10,6 +10,7 @@
   mkEnvironment = {
     host,
     pkgs,
+    config,
     packages, # TODO: We shouldn't need this as pkgs should be enough
     ...
   }: let
@@ -269,7 +270,13 @@
           enable = user.autoLogin or false;
           user = user.name or null;
         };
-        defaultSession = session;
+        defaultSession =
+          if
+            (
+              session == "hyprland" && config.programs.hyprland.withUWSM
+            )
+          then "hyprland-uwsm"
+          else session;
 
         cosmic-greeter = {
           enable = de == "cosmic" && !useDms;

@@ -363,7 +363,7 @@
         (
           {
             pkgs,
-            lib,
+            config,
             ...
           }:
             mkMerge [
@@ -380,7 +380,7 @@
                   specialArgs
                   // {inherit src homeModules mkHomeModuleApps;};
               })
-              (mkEnvironment {inherit host pkgs packages;})
+              (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})
             ]
         )
