@@ -74,17 +74,19 @@
     }
 
     {
-      description = "Foot Quake Terminal";
+      description = "Foot Quake";
       match = {
-        appId = "foot-quake";
-        window-types = ["normal"];
+        "window-class" = {
+          value = "foot-quake";
+          type = "exact";
+        };
+        "window-types" = ["normal"];
       };
       apply = {
         skipTaskbar = true;
         skipPager = true;
-        maximizeHoriz = true;
-        maximizeVert = true;
-        opacityactive = 95;
+        maximizeVertically = true;
+        maximizeHorizontally = true;
       };
     }
   ];
