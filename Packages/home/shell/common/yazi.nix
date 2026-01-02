@@ -15,7 +15,7 @@ in {
         # bookmarks
         # bypass
         # chmod
-        compress
+        # compress
         diff
         duckdb
         dupes
