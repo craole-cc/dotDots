@@ -6,8 +6,12 @@
     pad = "8x8";
     bold-text-in-bright = "yes";
 
+    #~@ Initial Theme
+    #? Options: "dark", "light"
+    initial-color-theme = "dark";
+
     #> Automatically copy the selection to the clipboard
-    # #? Options: "none", "primary", "clipboard", "both"
+    #? Options: "none", "primary", "clipboard", "both"
     selection-target = "both";
   };
 
@@ -29,9 +33,4 @@
     lines = 10000;
     multiplier = 3.0;
   };
-
-  # url = {
-  #   launch = "xdg-open \${url}"; #? Click URLs to open in browser
-  #   protocols = "http, https, ftp, ftps, file";
-  # };
 }

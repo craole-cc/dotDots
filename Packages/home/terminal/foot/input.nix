@@ -17,5 +17,8 @@
 
     #~@ Search
     search-start = "Control+Shift+f";
+
+    #~@ Theme Switching
+    color-theme-toggle = "Control+Shift+t"; #? Toggle between light/dark
   };
 }
