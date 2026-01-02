@@ -24,7 +24,10 @@
     dots = host.paths.dots or null;
     wallpapers = host.paths.wallpapers or null;
     system = pkgs.stdenv.hostPlatform.system;
-
+    session =
+      if wm != null
+      then wm
+      else de;
     # useDms = wm == "niri" || wm == "hyprland";
     useDms = false;
 
@@ -266,6 +269,7 @@
           enable = user.autoLogin or false;
           user = user.name or null;
         };
+        defaultSession = session;
 
         cosmic-greeter = {
           enable = de == "cosmic" && !useDms;
