@@ -154,24 +154,40 @@ quake_mode() {
 
 	# Check if quake terminal is running
 	if pgrep -f "$QUAKE_ID" >/dev/null; then
-		# Toggle visibility based on compositor
+		# Toggle visibility - hide/show instead of kill
 		if [ "$XDG_SESSION_DESKTOP" = "KDE" ] || [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
-			# KDE/Plasma - use wmctrl or kdotool if available
-			if has_cmd wmctrl; then
-				# Try to find and toggle the window
-				if wmctrl -l | grep -q "foot-quake"; then
-					# Window exists, check if visible
-					if xdotool search --class "foot-quake" 2>/dev/null | head -1 | xargs -I {} xdotool windowunmap {} 2>/dev/null; then
-						exit 0
+			# KDE/Plasma - use kwin-script to minimize/unminimize
+			# Get the window ID using xdotool or wmctrl
+			if has_cmd xdotool; then
+				WINDOW_ID=$(xdotool search --class "$QUAKE_ID" 2>/dev/null | head -1)
+				if [ -n "$WINDOW_ID" ]; then
+					# Check if window is visible (mapped)
+					if xprop -id "$WINDOW_ID" | grep -q "window state: Normal"; then
+						# Window is visible, hide it
+						xdotool windowunmap "$WINDOW_ID" 2>/dev/null
+					else
+						# Window is hidden, show it
+						xdotool windowmap "$WINDOW_ID" 2>/dev/null
+						xdotool windowactivate "$WINDOW_ID" 2>/dev/null
 					fi
+					exit 0
 				fi
-			elif has_cmd kdotool; then
-				# Use kdotool for Wayland KDE
-				kdotool search --class "foot-quake" windowminimize 2>/dev/null && exit 0
+			elif has_cmd qdbus; then
+				# Try using qdbus to minimize/unminimize
+				# This is more reliable on Wayland KDE
+				qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$HOME/.local/share/kwin/scripts/toggle-quake.js" >/dev/null 2>&1
 			fi
 		fi
 
-		# Fallback - just kill and relaunch on next toggle
+		# Fallback - minimize/restore using generic methods
+		if has_cmd wmctrl; then
+			if wmctrl -l | grep -q "foot-quake"; then
+				# Try to toggle with wmctrl
+				wmctrl -r "foot-quake" -b toggle,hidden 2>/dev/null && exit 0
+			fi
+		fi
+
+		# Last resort - kill and relaunch (preserves nothing but at least works)
 		pkill -f "$QUAKE_ID"
 		exit 0
 	fi
@@ -233,7 +249,6 @@ quake_mode() {
 		swaymsg "[app_id=\"$QUAKE_ID\"]" scratchpad show 2>/dev/null
 	else
 		# KDE/GNOME/Generic - just launch
-		# Note: For KDE, set up a window rule to position this window at top
 		footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=240x40 \

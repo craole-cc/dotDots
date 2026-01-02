@@ -269,7 +269,8 @@
       plasmashell."switch to next activity" = [ ];
       plasmashell."switch to previous activity" = [ ];
       plasmashell."toggle do not disturb" = [ ];
-      "services/feet.desktop"._launch = "Meta+Return";
+      "services/com.mitchellh.ghostty.desktop"._launch = "Meta+Shift+G";
+      "services/feet.desktop"._launch = ["Meta+Return" "Meta+Shift+F"];
       "services/net.local.feet-quake.desktop"._launch = "Meta+~";
       "services/org.kde.konsole.desktop"._launch = [ ];
       "services/org.kde.spectacle.desktop".RecordWindow = [ ];
@@ -335,7 +336,7 @@
       kcminputrc.Mouse.cursorTheme = "material_light_cursors";
       kded5rc.Module-browserintegrationreminder.autoload = false;
       kded5rc.Module-device_automounter.autoload = false;
-      kdeglobals.General.AccentColor = "178,89,21";
+      kdeglobals.General.AccentColor = "138,120,52";
       kdeglobals.General.LastUsedCustomAccentColor = "233,61,88";
       kdeglobals.General.TerminalApplication = "footclient";
       kdeglobals.General.TerminalService = "footclient.desktop";
@@ -462,15 +463,18 @@
       kwinrc."Tiling/a256eb1f-77d0-4d17-85f4-915cb65f8e28/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/a75a76d5-ce8a-4b7d-9fea-3efe714594d2/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/a75a76d5-ce8a-4b7d-9fea-3efe714594d2/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+      kwinrc."Tiling/a75a76d5-ce8a-4b7d-9fea-3efe714594d2/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/b5ba5182-1359-47c8-8237-8d6f94bb17e5/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/b5ba5182-1359-47c8-8237-8d6f94bb17e5/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/bfe3e5fd-9db2-4811-90e3-1c372c574e1c/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/bfe3e5fd-9db2-4811-90e3-1c372c574e1c/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+      kwinrc."Tiling/bfe3e5fd-9db2-4811-90e3-1c372c574e1c/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/c9facf33-0553-4287-8aa1-f0e60ce2e05e/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/caa1f22a-2a7b-4b44-a954-95f87de6cfd1/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/caa1f22a-2a7b-4b44-a954-95f87de6cfd1/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+      kwinrc."Tiling/caa1f22a-2a7b-4b44-a954-95f87de6cfd1/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/197399ba-7544-4c10-90db-dc25b0dd0244".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/1f334bef-499d-4daf-9dc4-3a7fb49ea389".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
       kwinrc."Tiling/dc73a97e-df42-4806-a3b2-d317abe7515a/b49616c0-ed3b-4b52-96bb-371b57ef64ab".tiles = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
