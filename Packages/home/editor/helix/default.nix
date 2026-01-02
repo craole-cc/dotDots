@@ -16,14 +16,15 @@
     category = "tty";
     resolutionHints = ["hx" "helix" "helix-editor"];
     requiresWayland = true;
-    debug = true;
-    extraProgramConfig =
-      {}
-      // import ./editor.nix
-      // import ./keybindings.nix
-      // import ./languages.nix
-      // import ./themes.nix
-      // {};
+    extraProgramConfig = {
+      settings =
+        {}
+        // import ./editor.nix
+        // import ./keybindings.nix
+        // import ./themes.nix;
+      languages = import ./languages.nix;
+    };
+    debug = false;
   };
 in {
   config = mkIf cfg.enable {

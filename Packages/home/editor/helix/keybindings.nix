@@ -1,5 +1,5 @@
 {
-  settings.keys = {
+  keys = {
     normal = {
       space = {
         space = "file_picker_in_current_directory";
