@@ -4,7 +4,7 @@
   lix,
   ...
 }: let
-  inherit (lix.hardware.display) toHyprlandMonitors;
+  inherit (lix.hardware.display) mkHyprlandMonitors;
   applications = {
     terminal = {
       primary = {
@@ -55,7 +55,6 @@
     editor
     ;
   mat = lib.attrsets.mapAttrsToList;
-  # inherit (lib.modules) mkIf;
   inherit (lib.strings) toUpper;
   # inherit (host.interface.keyboard) modifier swapCapsEscape;
   modifier = host.interface.keyboard.modifier or "SUPER";
@@ -99,7 +98,7 @@
 in {
   "$MOD" = toUpper modifier;
 
-  monitor = toHyprlandMonitors {inherit host;};
+  monitor = mkHyprlandMonitors {inherit host;};
 
   # input = {
   #   touchpad = {
@@ -124,7 +123,8 @@ in {
   bind =
     [
       #| Applications
-      "$MOD, GRAVE, exec, ${terminal.primary.command}"
+      "$MOD, GRAVE, exec, $TERMINAL_PRI"
+      # "$MOD, GRAVE, exec, ${terminal.primary.command}"
       "$MOD, RETURN, exec, ${terminal.primary.command}"
       "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
 

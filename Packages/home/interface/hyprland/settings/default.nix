@@ -5,7 +5,7 @@
   ...
 }: {
   settings = lib.mkMerge [
-    (import ./io.nix {inherit host lix;})
+    (import ./io.nix {inherit host lib lix;})
     # (import ./input.nix {inherit host lib;})
     # // (import ./environment.nix {inherit host lib;})
     # // (import ./startup.nix)
