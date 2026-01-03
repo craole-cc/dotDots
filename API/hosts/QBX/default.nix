@@ -78,37 +78,38 @@ in {
 
     network = ["enp9s0" "wlp8s0"];
 
-    display = [
-      {
+    display = {
+      "HDMI-A-3" = {
         brand = "KTC";
-        name = "HDMI-A-3";
         resolution = "2560x1440";
         refreshRate = 100;
         scale = 1;
-        position = "1080x900"; # Bottom center - MAIN
+        position = "1080x900";
         size = 27.0;
-        primary = true;
-      }
-      {
+        priority = 0; #? Primary (lowest number = highest priority)
+      };
+
+      "DP-3" = {
         brand = "DELL";
-        name = "DP-3";
         resolution = "1600x900";
         refreshRate = 60;
         scale = 1;
-        position = "1080x0"; # Top center, above main
+        position = "1080x0";
         size = 19.4;
-      }
-      {
+        priority = 1;
+      };
+
+      "HDMI-A-2" = {
         brand = "ACER";
-        name = "HDMI-A-2";
         resolution = "1920x1080";
         refreshRate = 100;
         scale = 1;
-        position = "0x420"; # Left side, portrait
-        transform = 3; # 270° rotation (Rotated270)
+        position = "0x420";
+        transform = 3;
         size = 24.5;
-      }
-    ];
+        priority = 2;
+      };
+    };
   };
 
   localization = {

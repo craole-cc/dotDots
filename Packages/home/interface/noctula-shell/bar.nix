@@ -1,4 +1,4 @@
-{
+{monitors, ...}: {
   settings.bar = {
     backgroundOpacity = 0.11;
     capsuleOpacity = 1;
@@ -7,9 +7,7 @@
     floating = false;
     marginHorizontal = 1;
     marginVertical = 0.06;
-    monitors = [
-      "HDMI-A-3"
-    ];
+    monitors = [monitors.primary.name];
     outerCorners = true;
     position = "top";
     showCapsule = false;
