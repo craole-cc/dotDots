@@ -3,26 +3,27 @@
   lib,
   lix,
   user,
-  pkgs,
+  #   pkgs,
   ...
 }: let
+  app = "noctalia-shell";
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.applications.generators) userApplicationConfig;
-
-  cfg = userApplicationConfig {
-    inherit user pkgs config;
-    name = "noctalia-shell";
-    kind = "bar";
-    resolutionHints = ["noctalia"];
-    requiresWayland = true;
-    extraProgramConfig = mkMerge [
+  inherit (lix.lists.predicates) isIn;
+  desired = user.interface.bar or null;
+  primary = desired != null;
+  allowed = isIn app (user.applications.allowed or []);
+  enable = (primary || allowed) && config.programs?${app};
+in {
+  config = mkIf enable {
+    programs.${app} = mkMerge [
+      {inherit enable;}
+      (import ./audio.nix)
       (import ./bar.nix)
       (import ./launcher.nix)
     ];
-    debug = false;
-  };
-in {
-  config = mkIf cfg.enable {
-    inherit (cfg) home programs;
+    home = {
+      sessionVariables.BAR = desired;
+      shellAliases = mkIf primary {bar = "${app} &";};
+    };
   };
 }
