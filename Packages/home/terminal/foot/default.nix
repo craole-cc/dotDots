@@ -16,17 +16,17 @@
 
   #> Main launcher (calls external script)
   command = writeShellScriptBin "feet" ''
-    ${script} "$@"
+    exec ${script} "$@"
   '';
 
   #> Quake mode launcher
   quake = writeShellScriptBin "feet-quake" ''
-    ${script} --quake "$@"
+    exec ${script} --quake "$@"
   '';
 
   #> Monitor mode launcher
   monitor = writeShellScriptBin "feet-monitor" ''
-    ${script} --monitor
+    exec ${script} --monitor
   '';
 
   #~@ Desktop entries
