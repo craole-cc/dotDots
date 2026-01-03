@@ -13,7 +13,7 @@
     ```
 
   # Arguments
-    - displays: Attrset of monitor configurations keyed by connector name
+    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations keyed by connector name
 
   # Returns
     List of monitors with name included, sorted by priority
@@ -30,7 +30,11 @@
     ]
     ```
   */
-  getSortedMonitors = displays:
+  getSortedMonitors = {
+    host ? {},
+    displays ? (host.devices.displays or {}),
+    ...
+  }:
     sort
     (a: b: (a.priority or 999) < (b.priority or 999))
     (mapAttrsToList (name: monitor: monitor // {inherit name;}) displays);
@@ -46,7 +50,7 @@
     ```
 
   # Arguments
-    - displays: Attrset of monitor configurations
+    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
 
   # Returns
     Monitor attrset with name included, or null if no monitors
@@ -57,7 +61,11 @@
     => { name = "HDMI-A-3"; priority = 0; resolution = "2560x1440"; ... }
     ```
   */
-  getPrimaryMonitor = displays:
+  getPrimaryMonitor = {
+    host ? {},
+    displays ? (host.devices.displays or {}),
+    ...
+  }:
     if (getSortedMonitors displays) != []
     then head (getSortedMonitors displays)
     else null;
@@ -73,7 +81,7 @@
     ```
 
   # Arguments
-    - displays: Attrset of monitor configurations
+    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
 
   # Returns
     String connector name or null
@@ -84,7 +92,11 @@
     => "HDMI-A-3"
     ```
   */
-  getPrimaryMonitorName = displays:
+  getPrimaryMonitorName = {
+    host ? {},
+    displays ? (host.devices.displays or {}),
+    ...
+  }:
     if (getPrimaryMonitor displays) != null
     then (getPrimaryMonitor displays).name
     else null;
@@ -100,7 +112,7 @@
     ```
 
   # Arguments
-    - displays: Attrset of monitor configurations
+    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
     - name: Connector name to lookup
 
   # Returns
@@ -112,7 +124,11 @@
     => { priority = 0; resolution = "2560x1440"; ... }
     ```
   */
-  getMonitor = displays: name:
+  getMonitor = {
+    host ? {},
+    displays ? (host.devices.displays or {}),
+    ...
+  }: name:
     displays.${name} or null;
 
   /**
@@ -126,7 +142,7 @@
   ```
 
   # Arguments
-    - displays: Attrset of monitor configurations
+    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
 
   # Returns
     List of connector name strings
@@ -137,7 +153,11 @@
     => [ "HDMI-A-3" "DP-3" "HDMI-A-2" ]
     ```
   */
-  getMonitorNames = displays:
+  getMonitorNames = {
+    host ? {},
+    displays ? (host.devices.displays or {}),
+    ...
+  }:
     attrNames displays;
 
   /**
@@ -189,7 +209,7 @@
     ```
 
   # Arguments
-    - displays: Attrset of monitor configurations
+    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
 
   # Returns
     List of Hyprland monitor configuration strings
@@ -204,7 +224,11 @@
     ]
     ```
   */
-  toHyprlandMonitors = displays:
+  toHyprlandMonitors = {
+    host ? {},
+    displays ? (host.devices.displays or {}),
+    ...
+  }:
     map toHyprlandMonitor (getSortedMonitors displays);
 
   exports = {
