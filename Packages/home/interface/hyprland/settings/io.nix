@@ -1,8 +1,10 @@
 {
   host,
   lib,
+  lix,
   ...
 }: let
+  inherit (lix.hardware.display) toHyprlandMonitors;
   applications = {
     terminal = {
       primary = {
@@ -96,6 +98,8 @@
   };
 in {
   "$MOD" = toUpper modifier;
+
+  monitor = toHyprlandMonitors {inherit host;};
 
   # input = {
   #   touchpad = {
