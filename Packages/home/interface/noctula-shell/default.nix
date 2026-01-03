@@ -16,9 +16,10 @@
     resolutionHints = ["noctalia"];
     requiresWayland = true;
     extraProgramConfig = mkMerge [
-      # (import ./settings.nix)
+      (import ./bar.nix)
+      (import ./launcher.nix)
     ];
-    # debug = true;
+    debug = false;
   };
 in {
   config = mkIf cfg.enable {
