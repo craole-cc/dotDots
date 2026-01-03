@@ -15,7 +15,6 @@
     kind = "editor";
     category = "tty";
     resolutionHints = ["neovim" "nvim"];
-    requiresWayland = true;
     extraProgramConfig = mkMerge [
       # (import ./editor.nix)
       # (import ./keybindings.nix)

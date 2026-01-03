@@ -53,4 +53,5 @@ with pkgs;
     kpackage
     krohnkite
     yakuake
+    kde-cli-tools
   ])

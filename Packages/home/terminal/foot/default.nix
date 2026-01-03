@@ -7,75 +7,70 @@
   src,
   ...
 }: let
-  inherit (lib.modules) mkIf;
-  inherit (lix.applications.generators) userApplicationConfig userApplication;
-  inherit (pkgs) makeDesktopItem;
+  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.applications.generators) userApplicationConfig;
+  inherit (pkgs) makeDesktopItem writeShellScriptBin;
 
-  #~@ Application Configuration
-  app = userApplication {
+  #~@ Script Wrappers
+  script = src + "/Bin/shellscript/packages/wrappers/feet.sh";
+
+  #> Main launcher (calls external script)
+  command = writeShellScriptBin "feet" ''
+    ${script} "$@"
+  '';
+
+  #> Quake mode launcher
+  quake = writeShellScriptBin "feet-quake" ''
+    ${script} --quake "$@"
+  '';
+
+  #> Monitor mode launcher
+  monitor = writeShellScriptBin "feet-monitor" ''
+    ${script} --monitor
+  '';
+
+  #~@ Desktop entries
+  desktop = makeDesktopItem {
+    name = "feet";
+    desktopName = "Feet";
+    comment = "Fast, lightweight terminal emulator (server mode)";
+    exec = "feet";
+    icon = "foot";
+    terminal = false;
+    type = "Application";
+    categories = ["System" "TerminalEmulator"];
+  };
+
+  quakeDesktop = makeDesktopItem {
+    name = "feet-quake";
+    desktopName = "Feet Quake";
+    comment = "Dropdown terminal (quake-style)";
+    exec = "feet-quake";
+    icon = "foot";
+    terminal = false;
+    type = "Application";
+    categories = ["System" "TerminalEmulator"];
+    noDisplay = true;
+  };
+
+  #~@ Final Configuration Assembly
+  cfg = userApplicationConfig {
     inherit user pkgs config;
     name = "foot";
     kind = "terminal";
     customCommand = "feet";
     resolutionHints = ["foot" "feet"];
     requiresWayland = true;
-  };
-
-  #~@ External Script Path
-  #? Reference the script from your dotfiles structure
-
-  #~@ Feet Wrapper - Simple passthrough to external script
-  feet = let
-    script = src + "/Bin/shellscript/packages/wrappers/feet.sh";
-
-    #> Main launcher (calls external script)
-    command = pkgs.writeShellScriptBin "feet" ''
-      exec ${script} "$@"
-    '';
-
-    #> Quake mode launcher
-    quake = pkgs.writeShellScriptBin "feet-quake" ''
-      exec ${script} --quake "$@"
-    '';
-
-    #> Desktop entries
-    desktop = makeDesktopItem {
-      name = "feet";
-      desktopName = "Feet Terminal";
-      comment = "Fast, lightweight terminal emulator (server mode)";
-      exec = "feet";
-      icon = "foot";
-      terminal = false;
-      type = "Application";
-      categories = ["System" "TerminalEmulator"];
-    };
-
-    quakeDesktop = makeDesktopItem {
-      name = "feet-quake";
-      desktopName = "Feet Quake Terminal";
-      comment = "Dropdown terminal (quake-style)";
-      exec = "feet-quake";
-      icon = "foot";
-      terminal = false;
-      type = "Application";
-      categories = ["System" "TerminalEmulator"];
-      noDisplay = true;
-    };
-  in {inherit script command desktop quake quakeDesktop;};
-
-  #~@ Final Configuration Assembly
-  cfg = userApplicationConfig {
-    inherit app user pkgs config;
-    extraPackages = with feet; [command quake desktop quakeDesktop];
+    extraPackages = [command quake monitor desktop quakeDesktop];
     extraProgramConfig = {
       server.enable = true;
-      settings =
-        {}
-        // (import ./settings.nix)
-        // (import ./input.nix)
-        // (import ./themes.nix)
-        // {};
+      settings = mkMerge [
+        (import ./settings.nix)
+        (import ./input.nix)
+        (import ./themes.nix)
+      ];
     };
+    debug = false;
   };
 in {
   config = mkIf cfg.enable {
@@ -88,7 +83,7 @@ in {
         After = ["graphical-session.target"];
       };
       Service = {
-        ExecStart = "${feet.script} --monitor";
+        ExecStart = monitor;
         Restart = "on-failure";
         RestartSec = 5;
       };

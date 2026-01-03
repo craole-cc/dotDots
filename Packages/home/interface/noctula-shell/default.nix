@@ -1,26 +1,27 @@
 {
+  config,
   lib,
   lix,
   user,
+  pkgs,
   ...
 }: let
-  app = "noctalia-shell";
-  opt = [app "noctalia"];
-  inherit (lib.modules) mkForce mkIf;
-  inherit (lix.lists.predicates) isIn;
+  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.applications.generators) userApplicationConfig;
 
-  isAllowed = isIn opt (
-    (user.applications.allowed or [])
-    ++ [(user.interface.bar or null)]
-  );
+  cfg = userApplicationConfig {
+    inherit user pkgs config;
+    name = "noctalia-shell";
+    kind = "bar";
+    resolutionHints = ["noctalia"];
+    requiresWayland = true;
+    extraProgramConfig = mkMerge [
+      # (import ./settings.nix)
+    ];
+    # debug = true;
+  };
 in {
-  config = mkIf isAllowed {
-    programs = {
-      ${app} =
-        {enable = true;}
-        // import ./settings.nix;
-
-      waybar.enable = mkForce false;
-    };
+  config = mkIf cfg.enable {
+    inherit (cfg) home programs;
   };
 }
