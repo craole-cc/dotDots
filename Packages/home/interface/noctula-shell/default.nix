@@ -10,16 +10,15 @@
   app = "noctalia-shell";
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.hardware.display) getPrimaryMonitor;
+  inherit (lix.hardware.display) getDisplaysSorted getDisplaysPrimary;
 
   desired = user.interface.bar or null;
   primary = desired != null;
   allowed = isIn app (user.applications.allowed or []);
   enable = (primary || allowed) && config.programs ? ${app};
-
-  monitors = rec {
-    all = host.devices.display or {};
-    primary = getPrimaryMonitor all;
+  monitors = {
+    all = getDisplaysSorted {inherit host;};
+    primary = getDisplaysPrimary {inherit host;};
   };
 in {
   config = mkIf enable {
