@@ -1,5 +1,5 @@
 {
-  settings.audio = {
+  audio = {
     cavaFrameRate = 30;
     externalMixer = "pwvucontrol || pavucontrol";
     mprisBlacklist = [];

@@ -1,6 +1,20 @@
 {
-  wallpaper = {
-    directory = "/home/craole/Pictures/Wallpapers";
+  desktopWidgets = {
+    enabled = false;
+    gridSnap = false;
+    monitorWidgets = [];
+  };
+
+  hooks = {
+    enabled = false;
+    darkModeChange = "";
+    wallpaperChange = "";
+  };
+
+  wallpaper = let
+    wallpapers = "$HOME/Pictures/Wallpapers";
+  in {
+    directory = wallpapers;
     enableMultiMonitorDirectories = true;
     enabled = true;
     fillColor = "#000000";
@@ -9,22 +23,22 @@
     monitorDirectories = [
       # TODO: Make this  dynamic
       {
-        directory = "/home/craole/Pictures/Wallpapers/9x16";
+        directory = wallpapers + "/9x16";
         name = "HDMI-A-2";
         wallpaper = "";
       }
       {
-        directory = "/home/craole/Pictures/Wallpapers/16x9";
+        directory = wallpapers + "/16x9";
         name = "HDMI-A-3";
         wallpaper = "";
       }
       {
-        directory = "/home/craole/Pictures/Wallpapers/16x10";
+        directory = wallpapers + "/16x10";
         name = "DP-3";
         wallpaper = "";
       }
     ];
-    overviewEnabled = false;
+    overviewEnabled = true;
     panelPosition = "follow_bar";
     randomEnabled = true;
     randomIntervalSec = 3600;
@@ -33,7 +47,7 @@
     transitionDuration = 1500;
     transitionEdgeSmoothness = 0.05;
     transitionType = "random";
-    useWallhaven = false;
+    useWallhaven = true;
     wallhavenApiKey = "";
     wallhavenCategories = "111";
     wallhavenOrder = "desc";

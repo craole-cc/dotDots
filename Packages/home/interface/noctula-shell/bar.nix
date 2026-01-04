@@ -1,5 +1,5 @@
 {monitors, ...}: {
-  settings.bar = {
+  bar = {
     backgroundOpacity = 0.11;
     capsuleOpacity = 1;
     density = "default";

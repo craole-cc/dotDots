@@ -1,5 +1,5 @@
 {
-  settings.appLauncher = {
+  appLauncher = {
     customLaunchPrefix = "";
     customLaunchPrefixEnabled = false;
     backgroundOpacity = 1;

@@ -33,7 +33,6 @@ in {
           (import ./dock.nix)
           (import ./general.nix)
           (import ./info.nix)
-          (import ./launcher.nix)
           (import ./output.nix)
           (import ./wallpaper.nix)
           (import ./widgets.nix)
