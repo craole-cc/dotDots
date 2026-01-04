@@ -14,11 +14,17 @@
     name = "vicinae";
     kind = "launcher";
     extraProgramConfig = mkMerge [
+      {
+        settings.main = {
+          terminal = "$TERMINAL";
+          layer = "overlay";
+        };
+      }
       # (import ./settings.nix)
       # (import ./input.nix)
       # (import ./themes.nix)
     ];
-    debug = true;
+    debug = false;
   };
 in {
   config = mkIf cfg.enable {
