@@ -11,6 +11,7 @@
   enable = (lat != null) && (lng != null);
 in {
   services.darkman = mkIf enable {
-    inherit enable lat lng usegeoclue;
+    inherit enable;
+    settings = {inherit lat lng usegeoclue;};
   };
 }
