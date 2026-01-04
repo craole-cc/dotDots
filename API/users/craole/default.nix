@@ -110,7 +110,6 @@
       inherit firefox chromium;
       primary = firefox;
       secondary = chromium;
-      variant = "twilight";
     };
     editor = {
       tty = {
@@ -127,10 +126,10 @@
       secondary = "foot";
     };
     launcher = {
-      primary = "fuzzel";
-      secondary = "wofi";
+      primary = "vicinae";
+      secondary = "fuzzel";
     };
-    bar = "noctalia";
+    bar = "noctalia-shell";
     prompt = "starship";
 
     allowed = [

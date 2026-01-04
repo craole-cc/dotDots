@@ -22,7 +22,7 @@
     ];
 
     #~@ Enable systemd integration for automatic startup
-    # theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
-    theme = "light:Rose Pine Dawn,dark:Rose Moon";
+    theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
+    # theme = "light:Rose Pine Dawn,dark:Rose Moon";
   };
 }

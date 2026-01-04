@@ -1,5 +1,27 @@
 {
-  programs.vicinae = {
-    enable = true;
+  config,
+  lib,
+  lix,
+  user,
+  pkgs,
+  ...
+}: let
+  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.applications.generators) userApplicationConfig;
+
+  cfg = userApplicationConfig {
+    inherit user pkgs config;
+    name = "vicinae";
+    kind = "launcher";
+    extraProgramConfig = mkMerge [
+      # (import ./settings.nix)
+      # (import ./input.nix)
+      # (import ./themes.nix)
+    ];
+    debug = true;
+  };
+in {
+  config = mkIf cfg.enable {
+    inherit (cfg) programs home;
   };
 }
