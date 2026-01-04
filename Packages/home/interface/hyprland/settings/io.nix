@@ -39,7 +39,7 @@
     launcher = {
       primary = {
         name = "vicinae";
-        command = "vicinae open";
+        command = "vicinae toggle";
       };
       secondary = {
         name = "fuzzel";
@@ -202,10 +202,10 @@ in {
 
   bindr = with launcher; [
     #| Launcher
-    # "$MOD, $MOD_L, exec, ${primary.command}"
-    # "$MOD, SPACE, exec, ${secondary.command}"
-    "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
-    "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
+    "$MOD, $MOD_L, exec, ${primary.command}"
+    "$MOD, SPACE, exec, ${secondary.command}"
+    # "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
+    # "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
   bindl = [
