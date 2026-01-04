@@ -34,7 +34,6 @@ in {
           (import ./general.nix)
           (import ./info.nix)
           (import ./output.nix)
-          (import ./wallpaper.nix)
           (import ./widgets.nix)
         ];
       }
