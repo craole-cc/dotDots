@@ -4,7 +4,6 @@
   ...
 }: let
   inherit (lib.attrsets) optionalAttrs;
-  inherit (lib.lists) head;
   inherit (_.lists.predicates) isIn;
   inherit (_.applications.resolution) editors browsers terminals launchers bars;
 
@@ -311,72 +310,6 @@
     };
   };
 
-  mkFonts = {
-    pkgs,
-    packages ? {},
-    emoji ? [],
-    monospace ? [],
-    serif ? [],
-    sansSerif ? [],
-    ...
-  }: let
-    res = {
-      packages =
-        if packages != {}
-        then packages
-        else
-          with pkgs; [
-            #~@ Monospace
-            # maple-mono.NF
-            maple-mono.NF-unhinted
-            monaspace
-            victor-mono
-
-            #~@ System
-            noto-fonts
-            noto-fonts-cjk-sans
-            noto-fonts-color-emoji
-          ];
-      emoji =
-        if emoji != []
-        then emoji
-        else ["Noto Color Emoji"];
-      monospace =
-        if monospace != []
-        then monospace
-        else ["Maple Mono NF" "Victor Mono" "Monaspace Radon"];
-      serif =
-        if serif != []
-        then serif
-        else ["Noto Serif"];
-      sansSerif =
-        if sansSerif != []
-        then sansSerif
-        else ["Noto Sans"];
-    };
-  in {
-    fonts = {
-      inherit (res) packages;
-      enableDefaultPackages = true;
-      fontconfig = {
-        enable = true;
-        hinting = {
-          enable = true; # TODO: This should depend on the host specs
-          style = "slight";
-        };
-        antialias = true;
-        subpixel.rgba = "rgb";
-        defaultFonts = {inherit (res) emoji monospace serif sansSerif;};
-      };
-    };
-    environment.sessionVariables = {
-      FONT_MONOSPACE = head res.monospace;
-      FONT_SERIF = head res.serif;
-      FONT_SANS = head res.sansSerif;
-      FONT_EMOJI = head res.emoji;
-    };
-  };
-
   mkLocale = {host, ...}: let
     loc = host.localization or {};
   in {
@@ -395,6 +328,6 @@
       defaultLocale = loc.defaultLocale or null;
     };
   };
-  exports = {inherit mkEnvironment mkFonts mkLocale;};
+  exports = {inherit mkEnvironment mkLocale;};
 in
   exports // {_rootAliases = exports;}

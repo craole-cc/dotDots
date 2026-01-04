@@ -42,12 +42,13 @@
       in
         if (host.class or "nixos") == "darwin"
         then
-          (modules.eval
-            // {system = modules.eval.config.system.build.toplevel;})
+          (
+            modules.eval
+            // {system = modules.eval.config.system.build.toplevel;}
+          )
         else modules.eval
     )
     hosts;
-
   exports = {inherit mkSystem;};
 in
   exports // {_rootAliases = exports;}

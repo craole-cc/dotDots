@@ -6,7 +6,8 @@
 }: let
   inherit (_.attrsets.resolution) byPaths;
   inherit (_.lists.predicates) isIn;
-  inherit (_.modules.generators.environment) mkEnvironment mkFonts mkLocale;
+  inherit (_.modules.generators.environment) mkEnvironment mkLocale;
+  inherit (_.modules.generators.style) mkFonts mkStyle;
   inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
   inherit (_.modules.generators.home) mkUsers;
   inherit (_.modules.generators.software) mkNix mkBoot mkClean;
@@ -278,8 +279,14 @@
     coreModules =
       (
         if class == "darwin"
-        then [(inputs.home-manager.darwinModules.home-manager or {})]
-        else [(inputs.home-manager.nixosModules.home-manager or {})]
+        then [
+          (inputs.home-manager.darwinModules.home-manager or {})
+          (inputs.stylix.darwinModules.stylix or {})
+        ]
+        else [
+          (inputs.home-manager.nixosModules.home-manager or {})
+          (inputs.stylix.nixosModules.stylix or {})
+        ]
       )
       ++ optionals (class == "darwin") [
         {
@@ -384,6 +391,7 @@
               (mkLocale {inherit host;})
               (mkAudio {inherit host;})
               (mkFonts {inherit host pkgs;})
+              (mkStyle {inherit host pkgs;})
               (mkUsers {
                 inherit host pkgs specialArgs;
                 extraSpecialArgs =

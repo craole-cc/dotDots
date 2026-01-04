@@ -105,6 +105,12 @@
       };
     };
 
+    style = {
+      theme = "catppuccin";
+      variant = "frappe"; # or "latte", "macchiato", "mocha"
+      polarity = "dark"; # or "light"
+      # wallpaper = ./path/to/custom.png;  # optional override
+    };
     prompt = "starship";
   };
 
