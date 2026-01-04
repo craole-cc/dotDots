@@ -106,10 +106,13 @@
     };
 
     style = {
-      theme = "catppuccin";
-      variant = "frappe"; # or "latte", "macchiato", "mocha"
-      polarity = "dark"; # or "light"
-      # wallpaper = ./path/to/custom.png;  # optional override
+      theme = {
+        dark = "catppuccin frappe";
+        light = "catppuccin latte";
+      };
+      current = "dark";
+      autoSwitch = true;
+      # wallpaper = ./custom.png;
     };
     prompt = "starship";
   };
