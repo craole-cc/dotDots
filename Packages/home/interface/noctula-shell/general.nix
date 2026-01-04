@@ -3,7 +3,7 @@
     allowPanelsOnScreenWithoutBar = true;
     animationDisabled = false;
     animationSpeed = 1;
-    avatarImage = toString "${pkgs.nixos-artwork}/share/artwork/logo/nix-snowflake.svg";
+    # avatarImage = toString "${pkgs.nixos-artwork}/share/artwork/logo/nix-snowflake.svg";
     boxRadiusRatio = 1;
     compactLockScreen = false;
     dimmerOpacity = 0.2;
