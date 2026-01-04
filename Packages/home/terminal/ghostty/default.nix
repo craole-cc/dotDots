@@ -39,13 +39,11 @@
     name = "ghostty";
     kind = "terminal";
     requiresWayland = true;
-    extraProgramConfig = {
-      settings = mkMerge [
-        (import ./settings.nix)
-        # (import ./input.nix)
-        (import ./themes.nix)
-      ];
-    };
+    extraProgramConfig = mkMerge [
+      (import ./settings.nix)
+      # (import ./input.nix)
+      (import ./themes.nix)
+    ];
     debug = false;
   };
 in {
