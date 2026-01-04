@@ -18,7 +18,7 @@
     onlySameOutput = false;
     pinnedApps = [];
     pinnedStatic = true;
-    size = 1.18;
+    size = 1.5;
   };
 
   hooks = {
