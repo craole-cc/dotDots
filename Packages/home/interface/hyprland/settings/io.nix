@@ -115,10 +115,10 @@ in {
     # kb_options = mkIf swapCapsEscape "caps:swapescape";
   };
 
-  gestures = {
-    workspace_swipe = true;
-    workspace_swipe_forever = true;
-  };
+  # gestures = {
+  #   workspace_swipe = true;
+  #   workspace_swipe_forever = true;
+  # };
 
   bindl = [
     #| System
