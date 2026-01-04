@@ -11,8 +11,8 @@
       hosts
       schema
       ;
-    inherit (lix.modules.generators.core) mkSystem;
     inherit (lix.inputs.resolution) getInputs;
+    inherit (lix.modules.generators.core) mkSystem;
     inherit (lix.modules.resolution) perFlake;
 
     args = {
@@ -51,12 +51,14 @@
     nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-25.11";
+
     nixHomeManager = {
       repo = "home-manager";
       owner = "nix-community";
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };
+
     nixDarwin = {
       repo = "nix-darwin";
       owner = "LnL7";
@@ -110,6 +112,16 @@
       };
     };
 
+    plasmaManager = {
+      repo = "plasma-manager";
+      owner = "pjones";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixHomeManager";
+      };
+    };
+
     shellDankMaterial = {
       repo = "DankMaterialShell";
       owner = "AvengeMedia";
@@ -128,14 +140,11 @@
       };
     };
 
-    shellPlasma = {
-      repo = "plasma-manager";
-      owner = "pjones";
+    styleManager = {
+      repo = "stylix";
+      owner = "nix-community";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-        home-manager.follows = "nixHomeManager";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     treeFormatter = {

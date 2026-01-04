@@ -11,7 +11,7 @@
     search_files_in_root = true;
     font = {
       normal = {
-        size = 12;
+        # size = 12;
         # normal = "Maple Nerd Font";
       };
     };
@@ -26,7 +26,7 @@
       };
     };
     launcher_window = {
-      opacity = 0.98;
+      opacity = 0.95;
     };
   };
 }

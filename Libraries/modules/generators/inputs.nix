@@ -63,6 +63,16 @@
       ];
     };
 
+    stylix = byPaths {
+      attrset = inputs;
+      default = "stylix";
+      paths = [
+        ["nixStyle"]
+        ["styleManager"]
+        ["darwinNix"]
+      ];
+    };
+
     home-manager = byPaths {
       attrset = inputs;
       default = "home-manager";
