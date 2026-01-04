@@ -15,7 +15,7 @@
     floatingRatio = 1;
     inactiveIndicators = true;
     monitors = [monitors.primaryName];
-    onlySameOutput = true;
+    onlySameOutput = false;
     pinnedApps = [];
     pinnedStatic = true;
     size = 1.18;
