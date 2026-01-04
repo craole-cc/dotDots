@@ -1,9 +1,9 @@
-{
+{pkgs, ...}: {
   general = {
     allowPanelsOnScreenWithoutBar = true;
     animationDisabled = false;
     animationSpeed = 1;
-    avatarImage = "/home/craole/.face";
+    avatarImage = "${pkgs.nixos-artwork}/share/artwork/logo/nix-snowflake.svg";
     boxRadiusRatio = 1;
     compactLockScreen = false;
     dimmerOpacity = 0.2;
