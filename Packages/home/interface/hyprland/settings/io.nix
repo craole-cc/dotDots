@@ -203,19 +203,19 @@ in {
 
       # "$MOD, V, movetoworkspace, special"
     ]
-    #~@ Change workspace
+    #> Change workspace
     ++ (map (n: "$MOD,${n},workspace,name:${n}") workspaces)
-    #~@ Move window to workspace
+    #> Move window to workspace
     ++ (map (n: "$MODSHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
-    #~@ Move focus
+    #> Move focus
     ++ (mat (key: direction: "$MOD,${key},movefocus,${direction}") directions)
-    #~@ Swap windows
+    #> Swap windows
     ++ (mat (key: direction: "$MODSHIFT,${key},swapwindow,${direction}") directions)
-    #~@ Move windows
+    #> Move windows
     ++ (mat (key: direction: "$MOD CONTROL,${key},movewindoworgroup,${direction}") directions)
-    #~@ Move monitor focus
+    #> Move monitor focus
     ++ (mat (key: direction: "$MOD ALT,${key},focusmonitor,${direction}") directions)
-    #~@ Move workspace to other monitor
+    #> Move workspace to other monitor
     ++ (mat (
         key: direction: "$MOD ALTSHIFT,${key},movecurrentworkspacetomonitor,${direction}"
       )

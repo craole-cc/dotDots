@@ -59,7 +59,7 @@
     randomEnabled = true;
     randomIntervalSec = 3600;
     recursiveSearch = true;
-    setWallpaperOnAllMonitors = true;
+    setWallpaperOnAllMonitors = false;
     transitionDuration = 1500;
     transitionEdgeSmoothness = 0.05;
     transitionType = "random";
