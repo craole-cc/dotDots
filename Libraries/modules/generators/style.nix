@@ -139,7 +139,6 @@
   mkStyle = {
     host,
     pkgs,
-    lib,
     ...
   }: let
     style = host.interface.style or {};
