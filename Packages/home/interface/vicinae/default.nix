@@ -11,7 +11,7 @@
 
   cfg = userApplicationConfig {
     inherit user pkgs config;
-    name = "fuzzel";
+    name = "vicinae";
     kind = "launcher";
     extraProgramConfig = mkMerge [
       {
