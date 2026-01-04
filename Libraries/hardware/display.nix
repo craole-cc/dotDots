@@ -1,7 +1,22 @@
 {lib, ...}: let
-  inherit (lib.attrsets) attrNames mapAttrsToList;
+  inherit (lib.attrsets) catAttrs mapAttrsToList optionalAttrs;
   inherit (lib.lists) sort head;
-  getDisplays = {
+
+  /**
+  Helper to resolve displays from either explicit argument or host config
+
+  # Type:
+    ```nix
+    { host? :: AttrSet, displays? :: AttrSet } -> AttrSet
+    ```
+
+  # Example:
+    ```nix
+    getAll { host = { devices.display = {...}; }; }
+    => {...}
+    ```
+  */
+  getAll = {
     host ? {},
     displays ? {},
     ...
@@ -17,7 +32,7 @@
 
   # Type
     ```
-    getDisplaysSorted :: AttrSet -> [Monitor]
+    getSorted :: AttrSet -> [Attrsets]
     ```
 
   # Arguments
@@ -28,17 +43,14 @@
 
   # Example
     ```nix
-    getDisplaysSorted {
-      "HDMI-A-3" = { priority = 0; resolution = "2560x1440"; ... };
-      "DP-3" = { priority = 1; resolution = "1600x900"; ... };
-    }
+    getSorted { displays = { "HDMI-A-2" = { priority = 1; resolution = "1920x1080"; }; "HDMI-A-3" = {priority = 0; resolution = "2560x1440";}; }; }
     => [
       { name = "HDMI-A-3"; priority = 0; resolution = "2560x1440"; ... }
       { name = "DP-3"; priority = 1; resolution = "1600x900"; ... }
     ]
   ```
   */
-  getDisplaysSorted = {
+  getSorted = {
     host ? {},
     displays ? {},
     ...
@@ -47,7 +59,7 @@
     (a: b: (a.priority or 999) < (b.priority or 999))
     (
       mapAttrsToList (name: monitor: monitor // {inherit name;})
-      (getDisplays {inherit host displays;})
+      (getAll {inherit host displays;})
     );
 
   /**
@@ -57,7 +69,7 @@
 
   # Type
     ```
-    getDisplaysPrimary :: AttrSet -> Monitor | null
+    getPrimary :: AttrSet -> Monitor | null
     ```
 
   # Arguments
@@ -68,22 +80,30 @@
 
   # Example
     ```nix
-    getDisplaysPrimary displays
-    => { name = "HDMI-A-3"; priority = 0; resolution = "2560x1440"; ... }
+    getPrimary displays
+    => { name = "HDMI-A-3"; priority = 0; resolution = "2560x1440"; name = "HDMI-A-2"; priority = 1; resolution = "1920x1080";... }
     ```
   */
-  getDisplaysPrimary = {
+  getPrimary = {
     host ? {},
     displays ? {},
     ...
   }: let
-    sortedMonitors =
-      getDisplaysSorted
-      (getDisplays {inherit host displays;});
+    sortedMonitors = getSorted {inherit host displays;};
   in
-    if sortedMonitors != []
-    then head sortedMonitors
-    else null;
+    optionalAttrs (sortedMonitors != [] && sortedMonitors != null)
+    (head sortedMonitors);
+
+  # getPrimary = {
+  #   host ? {},
+  #   displays ? {},
+  #   ...
+  # }: let
+  #   sortedMonitors = getSorted {inherit host displays;};
+  # in
+  #   if sortedMonitors?priority
+  #   then sortedMonitors
+  #   else {};
 
   /**
   Get primary monitor name
@@ -92,7 +112,7 @@
 
   # Type
     ```
-    getDisplaysPrimaryName :: AttrSet -> String | null
+    getPrimaryName :: AttrSet -> String | null
     ```
 
   # Arguments
@@ -103,19 +123,19 @@
 
   # Example
     ```nix
-    getDisplaysPrimaryName displays
+    getPrimaryName displays
     => "HDMI-A-3"
     ```
   */
-  getDisplaysPrimaryName = {
+  getPrimaryName = {
     host ? {},
     displays ? {},
     ...
   }: let
-    primaryMonitor = getDisplaysPrimary {inherit host displays;};
+    primary = getPrimary {inherit host displays;};
   in
-    if primaryMonitor?name
-    then primaryMonitor.name
+    if primary?name
+    then primary.name
     else null;
 
   /**
@@ -144,8 +164,10 @@
   getDisplay = {
     host ? {},
     displays ? {},
+    name,
     ...
-  }: name: (getDisplays {inherit host displays;}).${name} or null;
+  }:
+    (getAll {inherit host displays;}).${name} or {};
 
   /**
   Get all monitor names
@@ -154,7 +176,7 @@
 
   # Type
   ```
-  getDisplayNames :: AttrSet -> [String]
+  getNames :: AttrSet -> [String]
   ```
 
   # Arguments
@@ -165,16 +187,16 @@
 
   # Example
     ```nix
-    getDisplayNames displays
+    getNames displays
     => [ "HDMI-A-3" "DP-3" "HDMI-A-2" ]
     ```
   */
-  getDisplayNames = {
+  getNames = {
     host ? {},
     displays ? {},
     ...
   }:
-    attrNames (getDisplays {inherit host displays;});
+    catAttrs "name" (getSorted {inherit host displays;});
 
   /**
   Format monitor for Hyprland
@@ -245,15 +267,15 @@
     displays ? {},
     ...
   }:
-    map mkHyprlandMonitor (getDisplaysSorted {inherit host displays;});
+    map mkHyprlandMonitor (getSorted {inherit host displays;});
   exports = {
     inherit
-      getDisplays
-      getDisplaysSorted
-      getDisplaysPrimary
-      getDisplaysPrimaryName
+      getAll
+      getSorted
+      getPrimary
+      getPrimaryName
       getDisplay
-      getDisplayNames
+      getNames
       mkHyprlandMonitor
       mkHyprlandMonitors
       ;

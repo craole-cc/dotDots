@@ -7,7 +7,7 @@
     floating = false;
     marginHorizontal = 1;
     marginVertical = 0.06;
-    monitors = [monitors.primary.name];
+    monitors = [monitors.primaryName];
     outerCorners = true;
     position = "top";
     showCapsule = false;

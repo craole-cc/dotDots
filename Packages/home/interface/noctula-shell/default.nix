@@ -1,4 +1,3 @@
-# Packages/home/bar/noctalia/default.nix
 {
   config,
   lib,
@@ -10,15 +9,16 @@
   app = "noctalia-shell";
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
-  inherit (lix.hardware.display) getDisplaysSorted getDisplaysPrimary;
+  inherit (lix.hardware.display) getNames getPrimaryName;
 
   desired = user.interface.bar or null;
   primary = desired != null;
   allowed = isIn app (user.applications.allowed or []);
   enable = (primary || allowed) && config.programs ? ${app};
   monitors = {
-    all = getDisplaysSorted {inherit host;};
-    primary = getDisplaysPrimary {inherit host;};
+    allNames = getNames {inherit host;};
+    primaryName = getPrimaryName {inherit host;};
+    # TODO: We need to store wallpaper path in monitors
   };
 in {
   config = mkIf enable {
