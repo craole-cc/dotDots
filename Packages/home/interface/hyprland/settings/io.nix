@@ -18,8 +18,8 @@
     };
     browser = {
       primary = {
-        name = "firefox";
-        command = "firefox";
+        name = "zen-twilight";
+        command = "zen-twilight";
       };
       secondary = {
         name = "microsoft-edge";
@@ -154,12 +154,12 @@ in {
       "$MOD, Q, killactive"
 
       #| Applications
-      "$MOD, GRAVE, exec, $TERMINAL_PRI"
-      "$MODSHIFT, GRAVE, exec, $TERMINAL_SEC"
-      "$MOD, B, exec, $BROWSER"
+      "$MOD, GRAVE, exec,  ${terminal.primary.command}"
+      "$MODSHIFT, GRAVE, exec, ${terminal.secondary.command}"
+      "$MOD, B, exec, ${browser.primary.command}"
       "$MODSHIFT, B, exec, ${browser.secondary.command}"
       "$MOD, C, exec, ${editor.primary.command}"
-      "$MODSHIFT, C, exec, $VISUAL_SEC"
+      "$MODSHIFT, C, exec, ${editor.secondary.command}"
 
       # "$MOD, GRAVE, exec, ${terminal.primary.command}"
       "$MOD, RETURN, exec, ${terminal.primary.command}"

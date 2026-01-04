@@ -1,5 +1,0 @@
-{
-  exec-once = [
-    "noctalia-shell &"
-  ];
-}

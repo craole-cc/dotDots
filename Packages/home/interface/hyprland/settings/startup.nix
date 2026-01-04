@@ -9,7 +9,7 @@
 
     #~@ Import environment variables into systemd user session
     #? Critical for systemd services to access Wayland display and desktop info
-    "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+    # "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
 
     # ============================================
     # Visual Environment (Run Early)
@@ -28,30 +28,30 @@
     # - Single instance across all windows (reduced memory footprint)
     # - Stays running when all windows are closed (instant reopening)
     # - No initial window (spawn via keybind when needed)
-    "ghostty --gtk-single-instance=true --quit-after-last-window-closed=false --initial-window=false &"
+    # "ghostty --gtk-single-instance=true --quit-after-last-window-closed=false --initial-window=false &"
 
     # Foot terminal server daemon
     # - Faster terminal spawning (use 'footclient' to connect)
     # - Shared server process reduces resource usage
     # - Spawn clients with: footclient or 'foot --server'
-    "foot --server &"
+    # "foot --server &"
 
     # ============================================
     # System Tray & Background Services
     # ============================================
     # NetworkManager applet for WiFi/network management from tray
-    "nm-applet &"
+    # "nm-applet &"
 
     # Battery/power alert daemon for low battery notifications
-    "poweralertd &"
+    # "poweralertd &"
 
     # Persist clipboard contents across application closures
     # Monitors both regular and primary selection clipboards
-    "wl-clip-persist --clipboard both &"
+    # "wl-clip-persist --clipboard both &"
 
     # Clipboard history manager - stores clipboard for later recall
     # Access history with: cliphist list | wofi --dmenu | cliphist decode | wl-copy
-    "wl-paste --watch cliphist store &"
+    # "wl-paste --watch cliphist store &"
 
     # Status bar for workspaces, system info, tray icons
     # "waybar &"
@@ -59,11 +59,11 @@
 
     # Notification daemon (Sway Notification Center)
     # Control center accessible via keybind
-    "swaync &"
+    # "swaync &"
 
     # Vicinae server (custom service)
     # TODO: Document what this service provides
-    "vicinae server &"
+    # "vicinae server &"
 
     # Auto-mount removable drives with notifications
     # --smart-tray: only shows tray icon when devices are present
@@ -77,13 +77,14 @@
     "[workspace 1 silent] microsoft-edge"
 
     # Launch Firefox on workspace 2 silently
-    "[workspace 2 silent] firefox"
+    "[workspace 2 silent] zen-twilight"
 
     # Launch Ghostty terminal window on workspace 3 silently
     # Note: Connects to daemon started above
-    "[workspace 3 silent] ghostty"
+    # "[workspace 3 silent] ghostty"
 
     # Alternative: Launch Foot client on workspace 3 instead of Ghostty
-    # "[workspace 3 silent] footclient"
+    "[workspace 3 silent] footclient"
+    "[workspace 4 silent] code"
   ];
 }
