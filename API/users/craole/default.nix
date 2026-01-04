@@ -45,7 +45,13 @@
       #? Define application/action keys agnostic of WM/DE
       bindings = {
         #~@ Quick Launch
-        launcher = "Super"; # Just Super key
+        launcher = {
+          # primary = {
+          # bind="Super";
+          # command =
+          # secondary = "Super+Space";
+          # }
+        };
         terminal = "Meta+Return";
         fileManager = "Meta+E";
 
