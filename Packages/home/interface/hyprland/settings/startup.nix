@@ -74,17 +74,17 @@
     # ============================================
     # Launch Microsoft Edge on workspace 1 silently (no focus switch)
     # Alternative: use "microsoft-edge-stable" or "microsoft-edge-dev" if needed
-    "[workspace 1 silent] microsoft-edge"
+    "[workspace 3 silent] microsoft-edge"
 
     # Launch Firefox on workspace 2 silently
-    "[workspace 2 silent] zen-twilight"
+    "[workspace 3 silent] zen-twilight"
 
     # Launch Ghostty terminal window on workspace 3 silently
     # Note: Connects to daemon started above
-    # "[workspace 3 silent] ghostty"
+    "[workspace 3 silent] ghostty"
+    "[workspace 3 silent] footclient"
 
     # Alternative: Launch Foot client on workspace 3 instead of Ghostty
-    "[workspace 3 silent] footclient"
-    "[workspace 4 silent] code"
+    "[workspace 1 silent] code"
   ];
 }

@@ -3,7 +3,7 @@
   host,
   lib,
   lix,
-  pkgs,
+  # pkgs,
   user,
   ...
 }: let

@@ -19,7 +19,7 @@
     shadowOffsetX = 2;
     shadowOffsetY = 3;
     showHibernateOnLockScreen = false;
-    showScreenCorners = false;
+    showScreenCorners = true;
     showSessionButtonsOnLockScreen = true;
   };
 
@@ -59,10 +59,10 @@
     bluetoothDetailsViewMode = "grid";
     bluetoothHideUnnamedDevices = false;
     fontDefault = "Monaspace Radon Var";
-    fontDefaultScale = 0.9;
+    fontDefaultScale = 0.95;
     fontFixed = "Maple Mono NF";
     fontFixedScale = 1;
-    panelBackgroundOpacity = 0.93;
+    panelBackgroundOpacity = 0.97;
     panelsAttachedToBar = true;
     settingsPanelMode = "attached";
     tooltipsEnabled = true;

@@ -3,7 +3,7 @@
     cavaFrameRate = 30;
     externalMixer = "pwvucontrol || pavucontrol";
     mprisBlacklist = [];
-    preferredPlayer = "";
+    preferredPlayer = "mpv";
     visualizerType = "linear";
     volumeOverdrive = false;
     volumeStep = 5;

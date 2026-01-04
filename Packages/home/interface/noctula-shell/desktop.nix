@@ -19,7 +19,7 @@
     inactiveIndicators = true;
     monitors = [monitors.primaryName];
     onlySameOutput = false;
-    pinnedApps = [];
+    pinnedApps = ["code"];
     pinnedStatic = true;
     size = 1.5;
   };
