@@ -33,7 +33,7 @@ in {
           (import ./color.nix {})
           (import ./control.nix {inherit terminal;})
           (import ./desktop.nix {inherit monitors homeDir;})
-          (import ./general.nix {inherit pkgs;})
+          (import ./general.nix {})
           (import ./info.nix {inherit host monitors;})
           (import ./output.nix {inherit homeDir;})
         ];
