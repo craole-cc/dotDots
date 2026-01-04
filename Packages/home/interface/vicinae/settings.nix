@@ -12,7 +12,7 @@
     font = {
       normal = {
         size = 12;
-        normal = "Maple Nerd Font";
+        # normal = "Maple Nerd Font";
       };
     };
     theme = {

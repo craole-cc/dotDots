@@ -4,10 +4,10 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (nixosConfig) location;
-  lat = location.latitude or null;
-  lng = location.longitude or null;
-  usegeoclue = (location.provider or null) == "geoclue2";
+  loc = nixosConfig.location or {};
+  lat = loc.latitude or null;
+  lng = loc.longitude or null;
+  usegeoclue = (loc.provider or null) == "geoclue2";
   enable = (lat != null) && (lng != null);
 in {
   services.darkman = mkIf enable {
