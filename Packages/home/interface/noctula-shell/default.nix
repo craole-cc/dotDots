@@ -1,9 +1,10 @@
 {
   config,
+  host,
   lib,
   lix,
+  pkgs,
   user,
-  host,
   ...
 }: let
   app = "noctalia-shell";
@@ -31,7 +32,7 @@ in {
           (import ./color.nix)
           (import ./control.nix)
           (import ./desktop.nix {inherit monitors;})
-          (import ./general.nix)
+          (import ./general.nix {inherit pkgs;})
           (import ./info.nix {inherit host monitors;})
           (import ./output.nix)
         ];
