@@ -21,20 +21,22 @@
     primaryName = getPrimaryName {inherit host;};
     # TODO: We need to store wallpaper path in monitors
   };
+  homeDir = config.home.homeDirectory;
+  terminal = user.applications.terminal.primary;
 in {
   config = mkIf enable {
     programs.${app} = mkMerge [
       {inherit enable;}
       {
         settings = mkMerge [
-          (import ./audio.nix)
+          (import ./audio.nix {})
           (import ./bar.nix {inherit monitors;})
-          (import ./color.nix)
-          (import ./control.nix)
-          (import ./desktop.nix {inherit monitors;})
+          (import ./color.nix {})
+          (import ./control.nix {inherit terminal;})
+          (import ./desktop.nix {inherit monitors homeDir;})
           (import ./general.nix {inherit pkgs;})
           (import ./info.nix {inherit host monitors;})
-          (import ./output.nix)
+          (import ./output.nix {inherit homeDir;})
         ];
       }
     ];

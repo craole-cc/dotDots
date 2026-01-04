@@ -25,7 +25,7 @@
           iconScale = 0.8;
           id = "Workspace";
           labelMode = "index";
-          showApplications = false;
+          showApplications = true;
           showLabelsOnlyWhenOccupied = true;
           unfocusedIconsOpacity = 1;
         }
@@ -74,7 +74,7 @@
           id = "SystemMonitor";
           showCpuTemp = true;
           showCpuUsage = true;
-          showDiskUsage = false;
+          showDiskUsage = true;
           showGpuTemp = false;
           showMemoryAsPercent = false;
           showMemoryUsage = true;
@@ -97,18 +97,16 @@
           id = "MediaMini";
           maxWidth = 145;
           scrollingMode = "hover";
-          showAlbumArt = false;
+          showAlbumArt = true;
           showArtistFirst = true;
           showProgressRing = true;
-          showVisualizer = false;
-          useFixedWidth = false;
+          showVisualizer = true;
+          useFixedWidth = true;
           visualizerType = "linear";
         }
       ];
       right = [
-        {
-          id = "ScreenRecorder";
-        }
+        {id = "ScreenRecorder";}
         {
           blacklist = [];
           colorizeIcons = false;

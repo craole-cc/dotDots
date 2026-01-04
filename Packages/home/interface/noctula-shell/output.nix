@@ -1,4 +1,14 @@
-{
+{homeDir, ...}: {
+  audio = {
+    cavaFrameRate = 30;
+    externalMixer = "pwvucontrol || pavucontrol";
+    mprisBlacklist = [];
+    preferredPlayer = "";
+    visualizerType = "linear";
+    volumeOverdrive = false;
+    volumeStep = 5;
+  };
+
   brightness = {
     brightnessStep = 5;
     enableDdcSupport = false;
@@ -20,7 +30,7 @@
     audioSource = "default_output";
     colorRange = "limited";
     copyToClipboard = true;
-    directory = "$HOME/Videos/Recordings";
+    directory = homeDir + "/Videos/Recordings";
     frameRate = 60;
     quality = "ultra";
     showCursor = true;

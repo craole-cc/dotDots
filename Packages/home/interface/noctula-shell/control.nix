@@ -1,4 +1,4 @@
-{
+{terminal}: {
   appLauncher = {
     customLaunchPrefix = "";
     customLaunchPrefixEnabled = false;
@@ -11,7 +11,7 @@
     position = "center";
     showCategories = true;
     sortByMostUsed = true;
-    terminalCommand = "$TERMINAL";
+    terminalCommand = terminal;
     useApp2Unit = false;
     viewMode = "list";
   };

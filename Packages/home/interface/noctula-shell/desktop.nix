@@ -1,4 +1,7 @@
-{monitors}: {
+{
+  monitors,
+  homeDir,
+}: {
   desktopWidgets = {
     enabled = false;
     gridSnap = false;
@@ -28,7 +31,7 @@
   };
 
   wallpaper = let
-    wallpapers = "$HOME/Pictures/Wallpapers";
+    wallpapers = homeDir + "/Pictures/Wallpapers";
   in {
     directory = wallpapers;
     enableMultiMonitorDirectories = true;

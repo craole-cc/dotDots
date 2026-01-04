@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{}: {
   general = {
     allowPanelsOnScreenWithoutBar = true;
     animationDisabled = false;
@@ -58,9 +58,9 @@
   ui = {
     bluetoothDetailsViewMode = "grid";
     bluetoothHideUnnamedDevices = false;
-    fontDefault = "$FONT_SANS";
+    fontDefault = "Monaspace Radon Var";
     fontDefaultScale = 0.9;
-    fontFixed = "$FONT_MONOSPACE";
+    fontFixed = "Maple Mono NF";
     fontFixedScale = 1;
     panelBackgroundOpacity = 0.93;
     panelsAttachedToBar = true;
