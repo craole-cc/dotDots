@@ -1,4 +1,4 @@
-{}: {
+{
   brightness = {
     brightnessStep = 5;
     enableDdcSupport = false;

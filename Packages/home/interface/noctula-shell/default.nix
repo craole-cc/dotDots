@@ -30,10 +30,10 @@ in {
           (import ./bar.nix {inherit monitors;})
           (import ./color.nix)
           (import ./control.nix)
-          # (import ./desktop.nix)
+          (import ./desktop.nix {inherit monitors;})
           (import ./general.nix)
-          # (import ./info.nix)
-          # (import ./output.nix)
+          (import ./info.nix {inherit host monitors;})
+          (import ./output.nix)
         ];
       }
     ];
