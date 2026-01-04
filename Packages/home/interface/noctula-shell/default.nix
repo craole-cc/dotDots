@@ -33,7 +33,7 @@ in {
           # (import ./desktop.nix)
           (import ./general.nix)
           # (import ./info.nix)
-          (import ./output.nix)
+          # (import ./output.nix)
         ];
       }
     ];
