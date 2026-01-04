@@ -115,6 +115,7 @@ in {
   localization = {
     latitude = 18.015;
     longitude = 77.49;
+    city = "Mandeville, Jamaica";
     locator = "geoclue2";
     timeZone = "America/Jamaica";
     defaultLocale = "en_US.UTF-8";

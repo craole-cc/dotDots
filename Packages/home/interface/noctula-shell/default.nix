@@ -24,9 +24,21 @@ in {
   config = mkIf enable {
     programs.${app} = mkMerge [
       {inherit enable;}
-      (import ./audio.nix)
-      (import ./bar.nix {inherit monitors;})
-      (import ./launcher.nix)
+      {
+        settings = mkMerge [
+          (import ./audio.nix)
+          (import ./bar.nix {inherit monitors;})
+          (import ./color.nix)
+          (import ./control.nix)
+          (import ./dock.nix)
+          (import ./general.nix)
+          (import ./info.nix)
+          (import ./launcher.nix)
+          (import ./output.nix)
+          (import ./wallpaper.nix)
+          (import ./widgets.nix)
+        ];
+      }
     ];
 
     home = {

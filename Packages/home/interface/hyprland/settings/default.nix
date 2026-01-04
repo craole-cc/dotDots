@@ -2,9 +2,10 @@
   host,
   lib,
   lix,
+  mkMerge,
   ...
 }: {
-  settings = lib.mkMerge [
+  settings = mkMerge [
     (import ./io.nix {inherit host lib lix;})
     # // (import ./environment.nix {inherit host lib;})
     # // (import ./startup.nix)

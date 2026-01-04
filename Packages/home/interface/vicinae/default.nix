@@ -31,3 +31,4 @@ in {
     #   });
   };
 }
+#TODO: Update the userApplicationConfig to take the launcher command
