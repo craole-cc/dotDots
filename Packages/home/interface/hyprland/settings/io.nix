@@ -100,28 +100,58 @@ in {
 
   monitor = mkHyprlandMonitors {inherit host;};
 
-  # input = {
-  #   touchpad = {
-  #     scroll_factor = 0.3;
-  #     natural_scroll = false;
-  #     tap-and-drag = true;
-  #   };
+  input = {
+    touchpad = {
+      scroll_factor = 0.3;
+      natural_scroll = false;
+      tap-and-drag = true;
+    };
 
-  #   follow_mouse = 1;
-  #   # force_no_accel = 1;
-  #   # repeat_delay = 200;
-  #   # repeat_rate = 40;
-  #   accel_profile = "flat";
-  #   kb_options = mkIf swapCapsEscape "caps:swapescape";
-  # };
+    follow_mouse = "0";
+    # force_no_accel = 1;
+    # repeat_delay = 200;
+    # repeat_rate = 40;
+    accel_profile = "flat";
+    # kb_options = mkIf swapCapsEscape "caps:swapescape";
+  };
 
-  # gestures = {
-  #   workspace_swipe = true;
-  #   workspace_swipe_forever = true;
-  # };
+  gestures = {
+    workspace_swipe = true;
+    workspace_swipe_forever = true;
+  };
+
+  bindl = [
+    #| System
+    "$MODSHIFT, Q, exit"
+    "$MODSHIFT, ESC, exit"
+    "CTRL ALT, DEL, exit"
+    "CTRL ALT SHIFT, ESC, exit"
+
+    #| Media Controls
+    ", XF86AudioPlay, exec, playerctl play-pause"
+    ", XF86AudioPrev, exec, playerctl previous"
+    ", XF86AudioNext, exec, playerctl next"
+
+    #| Audio
+    ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+  ];
+
+  bindle = [
+    #| Volume
+    ",XF86AudioRaiseVolume, exec, wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%+"
+    ",XF86AudioLowerVolume, exec, wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%-"
+
+    #| Backlight
+    ",XF86MonBrightnessDown, exec, brightnessctl set 5%-"
+    ",XF86MonBrightnessUp, exec, brightnessctl set +5%"
+  ];
 
   bind =
     [
+      #| System
+      "$MOD, Q, killactive"
+
       #| Applications
       "$MOD, GRAVE, exec, $TERMINAL_PRI"
       "$MODSHIFT, GRAVE, exec, $TERMINAL_SEC"
@@ -135,9 +165,6 @@ in {
       "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
       "$MODSHIFT, RETURN, exec, ${terminal.secondary.command}"
       # "$MODSHIFT, C, exec, ${editor.secondary.command}"
-
-      #| System
-      "$MOD, Q, killactive"
 
       # | Windows
       "$MOD, S, togglesplit"
@@ -205,33 +232,6 @@ in {
     "$MOD, SPACE, exec, ${secondary.command}"
     # "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
     # "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
-  ];
-
-  bindl = [
-    #| System
-    "$MODSHIFT, Q, exit"
-    "$MODSHIFT, ESC, exit"
-    "CTRL ALT, DEL, exit"
-    "CTRL ALT SHIFT, ESC, exit"
-
-    #| Media Controls
-    ", XF86AudioPlay, exec, playerctl play-pause"
-    ", XF86AudioPrev, exec, playerctl previous"
-    ", XF86AudioNext, exec, playerctl next"
-
-    #| Audio
-    ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-    ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-  ];
-
-  bindle = [
-    #| Volume
-    ",XF86AudioRaiseVolume, exec, wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%+"
-    ",XF86AudioLowerVolume, exec, wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%-"
-
-    #| Backlight
-    ",XF86MonBrightnessDown, exec, brightnessctl set 5%-"
-    ",XF86MonBrightnessUp, exec, brightnessctl set +5%"
   ];
 
   binde = [
