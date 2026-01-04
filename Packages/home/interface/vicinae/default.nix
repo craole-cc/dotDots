@@ -13,6 +13,7 @@
     inherit user pkgs config;
     name = "vicinae";
     kind = "launcher";
+    # command = "";
     extraProgramConfig = mkMerge [
       (import ./settings.nix)
       # (import ./input.nix)
@@ -22,11 +23,11 @@
   };
 in {
   config = mkIf cfg.enable {
-    inherit (cfg) programs;
-    home =
-      cfg.home
-      // (with cfg; {
-        shellAliases."launch_${name}" = "${name} open";
-      });
+    inherit (cfg) programs home;
+    # home =
+    #   cfg.home
+    #   // (with cfg; {
+    #     shellAliases."launch_${name}" = "${name} open";
+    #   });
   };
 }

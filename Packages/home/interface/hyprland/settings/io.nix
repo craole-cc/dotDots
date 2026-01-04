@@ -38,12 +38,12 @@
     };
     launcher = {
       primary = {
-        name = "fuzzel";
-        command = "fuzzel --list-executables-in-path";
+        name = "vicinae";
+        command = "vicinae open";
       };
       secondary = {
-        name = "wofi";
-        command = "wofi --show drun --show run";
+        name = "fuzzel";
+        command = "fuzzel --list-executables-in-path";
       };
     };
   };
@@ -202,8 +202,8 @@ in {
 
   bindr = with launcher; [
     #| Launcher
-    "$MOD, $MOD_L, exec, pkill $LAUNCHER_PRI_NAME || launch_\${LAUNCHER_PRI_NAME}"
-    "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
+    "$MOD, $MOD_L, exec, ${primary.command}"
+    "$MOD, SPACE, exec, ${secondary.command}"
     # "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
     # "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
@@ -213,6 +213,7 @@ in {
     "$MODSHIFT, Q, exit"
     "$MODSHIFT, ESC, exit"
     "CTRL ALT, DEL, exit"
+    "CTRL ALT SHIFT, ESC, exit"
 
     #| Media Controls
     ", XF86AudioPlay, exec, playerctl play-pause"
