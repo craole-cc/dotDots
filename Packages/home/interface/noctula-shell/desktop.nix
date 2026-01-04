@@ -63,7 +63,7 @@
     transitionDuration = 1500;
     transitionEdgeSmoothness = 0.05;
     transitionType = "random";
-    useWallhaven = true;
+    useWallhaven = false;
     wallhavenApiKey = "";
     wallhavenCategories = "111";
     wallhavenOrder = "desc";

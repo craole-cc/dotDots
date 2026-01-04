@@ -124,18 +124,17 @@ in {
     [
       #| Applications
       "$MOD, GRAVE, exec, $TERMINAL_PRI"
+      "$MODSHIFT, GRAVE, exec, $TERMINAL_SEC"
+      "$MOD, B, exec, $BROWSER"
+      "$MODSHIFT, B, exec, ${browser.secondary.command}"
+      "$MOD, C, exec, ${editor.primary.command}"
+      "$MODSHIFT, C, exec, $VISUAL_SEC"
+
       # "$MOD, GRAVE, exec, ${terminal.primary.command}"
       "$MOD, RETURN, exec, ${terminal.primary.command}"
       "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
-
-      "$MODSHIFT, GRAVE, exec, ${terminal.secondary.command}"
       "$MODSHIFT, RETURN, exec, ${terminal.secondary.command}"
-
-      "$MOD, B, exec, ${browser.primary.command}"
-      "$MODSHIFT, B, exec, ${browser.secondary.command}"
-
-      "$MOD, C, exec, ${editor.primary.command}"
-      "$MODSHIFT, C, exec, ${editor.secondary.command}"
+      # "$MODSHIFT, C, exec, ${editor.secondary.command}"
 
       #| System
       "$MOD, Q, killactive"
