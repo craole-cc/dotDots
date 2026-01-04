@@ -8,7 +8,7 @@
   dock = {
     animationSpeed = 1;
     backgroundOpacity = 1;
-    colorizeIcons = true;
+    colorizeIcons = false;
     deadOpacity = 0.6;
     displayMode = "auto_hide";
     enabled = true;
