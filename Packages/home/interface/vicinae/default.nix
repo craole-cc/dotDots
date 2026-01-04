@@ -14,10 +14,7 @@
     name = "vicinae";
     kind = "launcher";
     extraProgramConfig = mkMerge [
-      {
-        systemd.enable = true;
-      }
-      # (import ./settings.nix)
+      (import ./settings.nix)
       # (import ./input.nix)
       # (import ./themes.nix)
     ];
@@ -25,6 +22,7 @@
   };
 in {
   config = mkIf cfg.enable {
-    inherit (cfg) programs home;
+    inherit (cfg) programs;
+    home = cfg.home // {};
   };
 }
