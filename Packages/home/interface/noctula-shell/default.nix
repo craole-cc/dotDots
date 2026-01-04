@@ -29,7 +29,6 @@ in {
       {inherit enable;}
       {
         settings = mkMerge [
-          (import ./audio.nix {})
           (import ./bar.nix {inherit monitors;})
           (import ./color.nix {})
           (import ./control.nix {inherit terminal;})
