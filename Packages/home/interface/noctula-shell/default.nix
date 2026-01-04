@@ -29,12 +29,12 @@ in {
           (import ./audio.nix)
           (import ./bar.nix {inherit monitors;})
           (import ./color.nix)
-          (import ./control.nix)
-          (import ./desktop.nix)
-          (import ./dock.nix)
-          (import ./general.nix)
-          (import ./info.nix)
-          (import ./output.nix)
+          # (import ./control.nix)
+          # (import ./desktop.nix)
+          # (import ./dock.nix)
+          # (import ./general.nix)
+          # (import ./info.nix)
+          # (import ./output.nix)
         ];
       }
     ];
