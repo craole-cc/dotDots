@@ -202,8 +202,10 @@ in {
 
   bindr = with launcher; [
     #| Launcher
-    "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
+    "$MOD, $MOD_L, exec, pkill $LAUNCHER_PRI_NAME || launch_\${LAUNCHER_PRI_NAME}"
     "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
+    # "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
+    # "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
   bindl = [
