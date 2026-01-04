@@ -96,8 +96,6 @@
     l = right;
   };
 in {
-  "$MOD" = toUpper modifier;
-
   monitor = mkHyprlandMonitors {inherit host;};
 
   input = {
@@ -115,10 +113,7 @@ in {
     # kb_options = mkIf swapCapsEscape "caps:swapescape";
   };
 
-  # gestures = {
-  #   workspace_swipe = true;
-  #   workspace_swipe_forever = true;
-  # };
+  "$MOD" = toUpper modifier;
 
   bindl = [
     #| System
@@ -135,6 +130,12 @@ in {
     #| Audio
     ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+  ];
+
+  bindr = with launcher; [
+    #| Launcher
+    "$MOD, $MOD_L, exec, ${primary.command}"
+    "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
   bindle = [
@@ -224,14 +225,6 @@ in {
     "$MOD, mouse:272, movewindow"
     "$MOD, mouse:273, resizewindow"
     "$MODSHIFT, mouse:272, resizewindow"
-  ];
-
-  bindr = with launcher; [
-    #| Launcher
-    "$MOD, $MOD_L, exec, ${primary.command}"
-    "$MOD, SPACE, exec, ${secondary.command}"
-    # "$MOD, $MOD_L, exec, pkill ${primary.name} || ${primary.command}"
-    # "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
   binde = [
