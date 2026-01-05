@@ -31,34 +31,34 @@
         }
       ];
       left = [
-        {
-          hideMode = "alwaysExpanded";
-          icon = "rocket";
-          id = "CustomButton";
-          leftClickExec = "qs -c noctalia-shell ipc call launcher toggle";
-          leftClickUpdateText = false;
-          maxTextLength = {
-            horizontal = 10;
-            vertical = 10;
-          };
-          middleClickExec = "";
-          middleClickUpdateText = false;
-          parseJson = false;
-          rightClickExec = "";
-          rightClickUpdateText = false;
-          showIcon = true;
-          textCollapse = "";
-          textCommand = "";
-          textIntervalMs = 3000;
-          textStream = false;
-          wheelDownExec = "";
-          wheelDownUpdateText = false;
-          wheelExec = "";
-          wheelMode = "unified";
-          wheelUpExec = "";
-          wheelUpUpdateText = false;
-          wheelUpdateText = false;
-        }
+        # {
+        #   hideMode = "alwaysExpanded";
+        #   icon = "rocket";
+        #   id = "CustomButton";
+        #   leftClickExec = "qs -c noctalia-shell ipc call launcher toggle";
+        #   leftClickUpdateText = false;
+        #   maxTextLength = {
+        #     horizontal = 10;
+        #     vertical = 10;
+        #   };
+        #   middleClickExec = "";
+        #   middleClickUpdateText = false;
+        #   parseJson = false;
+        #   rightClickExec = "";
+        #   rightClickUpdateText = false;
+        #   showIcon = true;
+        #   textCollapse = "";
+        #   textCommand = "";
+        #   textIntervalMs = 3000;
+        #   textStream = false;
+        #   wheelDownExec = "";
+        #   wheelDownUpdateText = false;
+        #   wheelExec = "";
+        #   wheelMode = "unified";
+        #   wheelUpExec = "";
+        #   wheelUpUpdateText = false;
+        #   wheelUpdateText = false;
+        # }
         {
           customFont = "";
           formatHorizontal = "HH:mm ddd; MMM dd";
