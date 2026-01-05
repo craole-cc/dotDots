@@ -7,7 +7,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.applications.generators) userApplicationConfig;
+  # inherit (lix.applications.generators) userApplicationConfig;
 
   # cfg = userApplicationConfig {
   #   inherit user pkgs config;
@@ -27,6 +27,7 @@
     enable = true;
     programs.${name} = mkMerge [
       (import ./cli.nix {})
+      (import ./settings.nix {inherit pkgs;})
     ];
     home = {};
   };
