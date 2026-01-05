@@ -1,6 +1,6 @@
 {monitors, ...}: {
   bar = {
-    backgroundOpacity = 0.11;
+    backgroundOpacity = 0.95;
     capsuleOpacity = 0;
     density = "default";
     exclusive = true;
@@ -106,46 +106,46 @@
         # }
       ];
       right = [
-        # {id = "ScreenRecorder";}
-        # {
-        #   blacklist = [];
-        #   colorizeIcons = false;
-        #   drawerEnabled = true;
-        #   hidePassive = false;
-        #   id = "Tray";
-        #   pinned = [];
-        # }
-        # {
-        #   hideWhenZero = false;
-        #   id = "NotificationHistory";
-        #   showUnreadBadge = true;
-        # }
-        # {
-        #   deviceNativePath = "";
-        #   displayMode = "onhover";
-        #   hideIfNotDetected = true;
-        #   id = "Battery";
-        #   showNoctaliaPerformance = false;
-        #   showPowerProfiles = false;
-        #   warningThreshold = 30;
-        # }
-        # {
-        #   displayMode = "onhover";
-        #   id = "Volume";
-        # }
-        # {
-        #   displayMode = "onhover";
-        #   id = "Brightness";
-        # }
-        # {
-        #   colorizeDistroLogo = false;
-        #   colorizeSystemIcon = "none";
-        #   customIconPath = "";
-        #   enableColorization = false;
-        #   icon = "noctalia";
-        #   id = "ControlCenter";
-        #   useDistroLogo = false;
-        # }
+        {id = "ScreenRecorder";}
+        {
+          blacklist = [];
+          colorizeIcons = false;
+          drawerEnabled = true;
+          hidePassive = false;
+          id = "Tray";
+          pinned = [];
+        }
+        {
+          hideWhenZero = false;
+          id = "NotificationHistory";
+          showUnreadBadge = true;
+        }
+        {
+          deviceNativePath = "";
+          displayMode = "onhover";
+          hideIfNotDetected = true;
+          id = "Battery";
+          showNoctaliaPerformance = false;
+          showPowerProfiles = false;
+          warningThreshold = 30;
+        }
+        {
+          displayMode = "onhover";
+          id = "Volume";
+        }
+        {
+          displayMode = "onhover";
+          id = "Brightness";
+        }
+        {
+          colorizeDistroLogo = false;
+          colorizeSystemIcon = "none";
+          customIconPath = "";
+          enableColorization = false;
+          icon = "noctalia";
+          id = "ControlCenter";
+          useDistroLogo = false;
+        }
       ];
     };
   };
