@@ -391,7 +391,7 @@
               (mkLocale {inherit host;})
               (mkAudio {inherit host;})
               (mkFonts {inherit host pkgs;})
-              (mkStyle {inherit host pkgs;})
+              # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
               (mkUsers {
                 inherit host pkgs specialArgs;
                 extraSpecialArgs =
