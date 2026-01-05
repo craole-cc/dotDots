@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) optionalAttrs;
+  inherit (lib.attrsets) isAttrs optionalAttrs;
   inherit (lib.lists) elemAt head length;
   inherit (lib.strings) splitString;
 
@@ -161,15 +161,22 @@
     parsed = parseTheme currentThemeStr;
     variantName = parsed.variant or "frappe";
 
-    # Wallpaper resolution
+    #> Wallpaper resolution - handle both attrset and string formats
+    wallpaperConfig = style.wallpaper or null;
     wallpaperPath =
-      if (style.wallpaper or null) != null
-      then style.wallpaper
+      if wallpaperConfig != null
+      then
+        #> New format: { dark = ./path; light = ./path; }
+        if isAttrs wallpaperConfig
+        then wallpaperConfig.${current} or null
+        # Old format: direct path string
+        else wallpaperConfig
+      #> Fallback to wallpapers directory
       else if wallpapers != null
-      then wallpapers + "/${variantName}.png"
+      then wallpapers + "/${variantName}.jpg"
       else null;
 
-    # Font configuration
+    #> Font configuration
     fonts = defaultFonts {
       inherit pkgs;
       config = host.interface or {};
@@ -208,7 +215,7 @@
         };
       };
 
-      # Export theme variables
+      #> Export theme variables
       environment.sessionVariables = {
         THEME_CURRENT = current;
         THEME_DARK = theme.dark;
@@ -216,6 +223,18 @@
         THEME_FAMILY = parsed.family;
         THEME_VARIANT = variantName;
         THEME_POLARITY = resolvedTheme.polarity;
+        WALLPAPER_DARK =
+          if wallpaperConfig != null && builtins.isAttrs wallpaperConfig
+          then toString wallpaperConfig.dark
+          else "";
+        WALLPAPER_LIGHT =
+          if wallpaperConfig != null && builtins.isAttrs wallpaperConfig
+          then toString wallpaperConfig.light
+          else "";
+        WALLPAPER_CURRENT =
+          if wallpaperPath != null
+          then toString wallpaperPath
+          else "";
       };
     };
 
