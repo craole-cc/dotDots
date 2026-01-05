@@ -6,6 +6,7 @@
   inherit (lib.attrsets) isAttrs optionalAttrs;
   inherit (lib.lists) elemAt head length;
   inherit (lib.strings) splitString;
+  inherit (lib.modules) mkForce;
 
   defaultFonts = {
     pkgs,
@@ -95,7 +96,7 @@
     then null
     else {
       scheme = variant.scheme;
-      polarity = variant.polarity;
+      polarity = mkForce variant.polarity;
       cursor = {
         package = pkgs.${themeFamily.cursorPackage}.${variant.cursor.pkg};
         name = variant.cursor.name;
