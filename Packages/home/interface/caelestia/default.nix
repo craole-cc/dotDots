@@ -9,16 +9,26 @@
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
-  cfg = userApplicationConfig {
-    inherit user pkgs config;
+  # cfg = userApplicationConfig {
+  #   inherit user pkgs config;
+  #   name = "caelestia";
+  #   kind = "bar";
+  #   extraProgramConfig = mkMerge [
+  #     (import ./cli.nix {})
+  #     # (import ./bar.nix)
+  #     # (import ./themes.nix)
+  #   ];
+  #   debug = true;
+  # };
+
+  cfg = rec {
     name = "caelestia";
     kind = "bar";
-    extraProgramConfig = mkMerge [
+    enable = true;
+    programs.${name} = mkMerge [
       (import ./cli.nix {})
-      # (import ./bar.nix)
-      # (import ./themes.nix)
     ];
-    debug = false;
+    home = {};
   };
 in {
   config = mkIf cfg.enable {
