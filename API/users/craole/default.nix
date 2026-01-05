@@ -106,7 +106,7 @@
     };
     style = {
       autoSwitch = true;
-      current = "light";
+      current = "dark";
       theme = {
         dark = "catppuccin frappe";
         light = "catppuccin latte";

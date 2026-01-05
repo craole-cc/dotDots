@@ -25,6 +25,7 @@
   # };
 
   programs = {
+    clock-rs.enable = true;
     # alacritty.enable = true; # Super+T in the default setting (terminal)
     # fuzzel.enable = true; # Super+D in the default setting (app launcher)
     # swaylock.enable = true; # Super+Alt+L in the default setting (screen locker)
