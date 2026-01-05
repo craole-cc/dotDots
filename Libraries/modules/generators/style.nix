@@ -180,7 +180,7 @@
         else wallpaperConfig
       #> Fallback to wallpapers directory
       else if wallpapers != null
-      then wallpapers + "/${variantName}.jpg"
+      then wallpapers + "/${current}.jpg"
       else null;
 
     #> Font configuration
