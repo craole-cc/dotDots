@@ -154,8 +154,8 @@ in {
       "$MOD, Q, killactive"
 
       #| Applications
-      "$MOD, GRAVE, exec,  ${terminal.primary.command}"
-      "$MODSHIFT, GRAVE, exec, ${terminal.secondary.command}"
+      # "$MOD, GRAVE, exec,  ${terminal.primary.command}"
+      # "$MODSHIFT, GRAVE, exec, ${terminal.secondary.command}"
       "$MOD, B, exec, ${browser.primary.command}"
       "$MODSHIFT, B, exec, ${browser.secondary.command}"
       "$MOD, C, exec, ${editor.primary.command}"

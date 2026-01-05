@@ -106,7 +106,7 @@
     };
     style = {
       autoSwitch = true;
-      current = "light";
+      current = "dark";
       theme = {
         dark = "catppuccin frappe";
         light = "catppuccin latte";
@@ -163,7 +163,7 @@
     prompt = "starship";
 
     allowed = [
-      "atuin"
+      # "atuin"
       "fastfetch"
       "freetube"
       "fresh-editor"

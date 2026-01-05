@@ -16,6 +16,7 @@
     background-blur = true;
     font-size = 14;
     keybind = [
+      "super+grave_accent=toggle_quick_terminal"
       "clear"
       # "ctrl+h=goto_split:left"
       # "ctrl+l=goto_split:right"
@@ -29,7 +30,6 @@
       "alt+seven=goto_tab:7"
       "alt+eight=goto_tab:8"
       "alt+nine=last_tab"
-      "super+ctrl+grave_accent=toggle_quick_terminal"
       "ctrl+alt+down=goto_split:bottom"
       "ctrl+alt+left=goto_split:left"
       "ctrl+alt+right=goto_split:right"
