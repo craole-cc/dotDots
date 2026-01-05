@@ -177,6 +177,7 @@
 
   paths = {
     downloads = "Downloads";
-    wallpapers = "Pictures/Wallpapers";
+    # wallpapers = "Pictures/Wallpapers";
+    wallpapers = "/home/craole/.dots/Assets/Images/wallpapers";
   };
 }
