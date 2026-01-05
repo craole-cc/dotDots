@@ -17,5 +17,8 @@ in {
       # (import ./submaps)
       # (import ./plugins)
     ];
+    home.sessionVariables = {
+      XDG_CURRENT_DESKTOP = "hyprland";
+    };
   };
 }
