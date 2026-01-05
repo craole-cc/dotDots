@@ -11,7 +11,7 @@
 
   cfg = userApplicationConfig {
     inherit user pkgs config;
-    name = "ghosttya";
+    name = "ghostty";
     kind = "terminal";
     extraProgramConfig = mkMerge [
       (import ./general.nix)
@@ -21,7 +21,7 @@
     debug = false;
   };
 in {
-  config = mkIf cfg.enable {
-    inherit (cfg) programs home;
-  };
+  # config = mkIf cfg.enable {
+  #   inherit (cfg) programs home;
+  # };
 }

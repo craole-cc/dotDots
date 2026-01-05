@@ -55,7 +55,7 @@
 
     # Status bar for workspaces, system info, tray icons
     # "waybar &"
-    "noctalia-shell &"
+    # "noctalia-shell &"
 
     # Notification daemon (Sway Notification Center)
     # Control center accessible via keybind
@@ -84,7 +84,6 @@
     "[workspace 3 silent] ghostty"
     "[workspace 3 silent] footclient"
 
-    # Alternative: Launch Foot client on workspace 3 instead of Ghostty
     "[workspace 1 silent] code"
   ];
 }
