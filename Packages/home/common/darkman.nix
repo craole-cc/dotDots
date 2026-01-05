@@ -10,6 +10,7 @@
 }: let
   inherit (lib.modules) mkIf;
   inherit (lib.strings) hasPrefix;
+  inherit (pkgs) writeShellScript;
 
   #~@ Location
   loc = user.localization or host.localization or nixosConfig.location or {};
@@ -50,7 +51,7 @@
     modeWallpaper = "${wallpapers}/${mode}-wallpaper";
     currentWallpaper = "${wallpapers}/current-wallpaper";
   in
-    pkgs.writeShellScript "darkman-${mode}-mode" ''
+    writeShellScript "darkman-${mode}-mode" ''
       set -euo pipefail
 
       #> Update theme mode in user configuration

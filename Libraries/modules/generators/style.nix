@@ -224,11 +224,11 @@
         THEME_VARIANT = variantName;
         THEME_POLARITY = resolvedTheme.polarity;
         WALLPAPER_DARK =
-          if wallpaperConfig != null && builtins.isAttrs wallpaperConfig
+          if wallpaperConfig != null && isAttrs wallpaperConfig
           then toString wallpaperConfig.dark
           else "";
         WALLPAPER_LIGHT =
-          if wallpaperConfig != null && builtins.isAttrs wallpaperConfig
+          if wallpaperConfig != null && isAttrs wallpaperConfig
           then toString wallpaperConfig.light
           else "";
         WALLPAPER_CURRENT =
