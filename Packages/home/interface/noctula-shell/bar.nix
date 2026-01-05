@@ -2,7 +2,7 @@
   bar = {
     backgroundOpacity = 0.11;
     capsuleOpacity = 1;
-    # density = "default";
+    density = "default";
     exclusive = true;
     floating = false;
     marginHorizontal = 1;
