@@ -11,7 +11,7 @@
 
   cfg = userApplicationConfig {
     inherit user pkgs config;
-    name = "ghostty";
+    name = "ghosttya";
     kind = "terminal";
     extraProgramConfig = mkMerge [
       (import ./general.nix)
