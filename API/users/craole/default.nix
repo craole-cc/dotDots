@@ -36,7 +36,7 @@
     windowManager = "hyprland";
     bar = "noctalia-shell";
     shell = "bash";
-
+    prompt = "starship";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;
@@ -104,17 +104,31 @@
         brightnessDown = "XF86MonBrightnessDown";
       };
     };
-
     style = {
+      autoSwitch = true;
       theme = {
         dark = "catppuccin frappe";
         light = "catppuccin latte";
       };
-      current = "dark";
-      autoSwitch = true;
-      # wallpaper = ./custom.png;
+      icons = {
+        dark = "candy";
+        light = "candy";
+      };
+      cursor = {
+        dark = "candy";
+        light = "candy";
+      };
+      fonts = {
+        emoji = "Noto Color Emoji";
+        monospace = "Maple Mono NF";
+        sans = "Noto Sans";
+        serif = "Noto Serif";
+      };
+      wallpaper = {
+        dark = ./Assets/Images/wallpapers/dark.jpg;
+        light = ./Assets/Images/wallpapers/light.jpg;
+      };
     };
-    prompt = "starship";
   };
 
   applications = {
