@@ -30,7 +30,7 @@ in {
       {
         inherit enable;
         settings = mkMerge [
-          (import ./bar.nix {inherit monitors;})
+          # (import ./bar.nix {inherit monitors;})
           (import ./color.nix {})
           (import ./control.nix {inherit terminal;})
           (import ./desktop.nix {inherit monitors homeDir;})
