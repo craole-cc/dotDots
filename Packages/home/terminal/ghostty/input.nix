@@ -1,6 +1,6 @@
 {
   settings.keybind = [
-    "super+grave_accent=toggle_quick_terminal"
+    "ctrl+grave_accent=toggle_quick_terminal"
     "clear"
     # "ctrl+h=goto_split:left"
     # "ctrl+l=goto_split:right"
