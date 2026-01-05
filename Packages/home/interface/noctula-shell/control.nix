@@ -11,7 +11,7 @@
     position = "center";
     showCategories = true;
     sortByMostUsed = true;
-    terminalCommand = terminal;
+    terminalCommand = "footclient";
     useApp2Unit = false;
     viewMode = "list";
   };
