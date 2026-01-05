@@ -108,13 +108,12 @@
       ];
     };
 
-    noctalia-shell = byPaths {
+    caelestia = byPaths {
       attrset = inputs;
-      default = "noctalia-shell";
+      default = "caelestia";
       paths = [
-        ["shellNoctalia"]
-        ["noctalia-dev"]
-        ["noctalia"]
+        ["shellCaelestia"]
+        ["caelestia-shell"]
       ];
     };
 
@@ -127,6 +126,27 @@
         ["dank-material"]
         ["dank"]
         ["dms"]
+      ];
+    };
+
+    noctalia-shell = byPaths {
+      attrset = inputs;
+      default = "noctalia-shell";
+      paths = [
+        ["shellNoctalia"]
+        ["noctalia-dev"]
+        ["noctalia"]
+      ];
+    };
+
+    quickshell = byPaths {
+      attrset = inputs;
+      default = "quickshell";
+      paths = [
+        ["shellQuick"]
+        ["qtshell"]
+        ["qmlshell"]
+        ["quick"]
       ];
     };
 
@@ -205,6 +225,8 @@
     noctalia-shell = inputs.noctalia-shell.packages or {};
     nvf = inputs.nvf.packages or {};
     plasma = inputs.plasma.packages or {};
+    quickshell = inputs.quickshell.packages or {};
+    caelestia = inputs.caelestia.packages or {};
     treefmt = inputs.treefmt.packages or {};
     vscode-insiders = inputs.vscode-insiders.packages or {};
     zen-browser = inputs.zen-browser.packages or {};
@@ -310,6 +332,7 @@
         niri = inputs.dank-material-shell.homeModules.niri or {};
       };
       noctalia-shell = inputs.noctalia-shell.homeModules or {};
+      caelestia = inputs.caelestia.homeManagerModules or {};
       nvf = {default = inputs.nvf.homeManagerModules.default or {};};
       plasma = {default = inputs.plasma.homeModules.plasma-manager or {};};
       zen-browser = {
@@ -329,6 +352,15 @@
           hasInfix "plasma" (user.interface.desktopEnvironment or "")
           || hasInfix "kde" (user.interface.desktopEnvironment or "");
         module = homeModules.plasma.default or {};
+      };
+
+      #| Caelestia Shell
+      caelestia = {
+        isAllowed = isIn ["caelestia-shell" "caelestia"] (
+          (user.applications.allowed or [])
+          ++ [(user.applications.bar or null)]
+        );
+        module = homeModules.caelestia.default or {};
       };
 
       #| Dank Material Shell

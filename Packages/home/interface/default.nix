@@ -4,8 +4,10 @@
     ./fuzzel
     ./hyprland
     ./niri
-    # ./noctula
+    ./caelestia
+    ./noctula
     ./quickshell
+    ./plasma
     ./vicinae
   ];
 }

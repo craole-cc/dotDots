@@ -112,19 +112,18 @@
       };
     };
 
-    plasmaManager = {
-      repo = "plasma-manager";
-      owner = "pjones";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-        home-manager.follows = "nixHomeManager";
-      };
-    };
+    # shellDankMaterial = {
+    #   repo = "DankMaterialShell";
+    #   owner = "AvengeMedia";
+    #   type = "github";
+    #   inputs = {
+    #     nixpkgs.follows = "nixPackages";
+    #   };
+    # };
 
-    shellDankMaterial = {
-      repo = "DankMaterialShell";
-      owner = "AvengeMedia";
+    shellCaelestia = {
+      repo = "shell";
+      owner = "caelestia-dots";
       type = "github";
       inputs = {
         nixpkgs.follows = "nixPackages";
@@ -134,6 +133,25 @@
     shellNoctalia = {
       repo = "noctalia-shell";
       owner = "noctalia-dev";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
+
+    shellPlasma = {
+      repo = "plasma-manager";
+      owner = "pjones";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+        home-manager.follows = "nixHomeManager";
+      };
+    };
+
+    shellQuick = {
+      repo = "quickshell";
+      owner = "outfoxxed";
       type = "github";
       inputs = {
         nixpkgs.follows = "nixPackages";

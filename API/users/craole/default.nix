@@ -34,7 +34,7 @@
     displayProtocol = "wayland";
     desktopEnvironment = "plasma";
     windowManager = "hyprland";
-    bar = "noctalia-shell";
+    bar = "caelestia";
     shell = "bash";
     prompt = "starship";
     keyboard = {
@@ -159,7 +159,7 @@
       primary = "vicinae";
       secondary = "fuzzel";
     };
-    bar = "noctalia-shell";
+    bar = "caelestia";
     prompt = "starship";
 
     allowed = [

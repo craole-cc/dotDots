@@ -239,6 +239,7 @@
             []
             ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
             ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
+            ++ optionals caelestia.isAllowed [caelestia.module]
             ++ optionals nvf.isAllowed [nvf.module]
             ++ optionals plasma.isAllowed [plasma.module]
             ++ optionals zen-browser.isAllowed [zen-browser.module]
@@ -248,6 +249,9 @@
           #> Enable programs based on module availability
           programs =
             {}
+            // optionalAttrs caelestia.isAllowed {
+              caelestia.enable = true;
+            }
             // optionalAttrs dank-material-shell.isAllowed {
               dank-material-shell.enable = true;
             }
