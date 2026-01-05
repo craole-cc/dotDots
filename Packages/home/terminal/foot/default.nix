@@ -65,9 +65,9 @@
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
-        # (import ./settings.nix)
-        # (import ./input.nix)
-        # (import ./themes.nix)
+        (import ./settings.nix)
+        (import ./input.nix)
+        (import ./themes.nix)
       ];
     };
     debug = false;
