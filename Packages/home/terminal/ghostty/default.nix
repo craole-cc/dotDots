@@ -21,7 +21,7 @@
     debug = false;
   };
 in {
-  # config = mkIf cfg.enable {
-  #   inherit (cfg) programs home;
-  # };
+  config = mkIf cfg.enable {
+    inherit (cfg) programs home;
+  };
 }

@@ -5,7 +5,7 @@
     ./hyprland
     ./niri
     ./caelestia
-    ./noctula
+    # ./noctula
     ./quickshell
     ./plasma
     ./vicinae
