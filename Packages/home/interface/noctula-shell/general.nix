@@ -24,6 +24,10 @@
     || (
       (hasAttrByPath ["wayland" "windowManager" app "enable"] config)
       && config.wayland.windowManager.${app}.enable
+    )
+    || (
+      (hasAttrByPath ["services" "desktopManager" app "enable"] nixosConfig)
+      && nixosConfig.services.desktopManager.${app}.enable
     );
 in {
   general = {
@@ -56,8 +60,8 @@ in {
 
   templates = {
     enableUserTemplates = true;
-    gtk = true;
-    qt = true;
+    gtk = isEnabled "gnome" || isEnabled "cosmic";
+    qt = isEnabled "plasma6";
 
     alacritty = isEnabled "alacritty";
     cava = isEnabled "cava";
