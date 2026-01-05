@@ -1,6 +1,6 @@
 {}: {
   colorSchemes = {
-    darkMode = true;
+    # darkMode = true;
     generateTemplatesForPredefined = true;
     manualSunrise = "09:00";
     manualSunset = "17:30";

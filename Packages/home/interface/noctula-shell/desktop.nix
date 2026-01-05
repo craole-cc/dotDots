@@ -17,7 +17,7 @@
     enabled = true;
     floatingRatio = 1;
     inactiveIndicators = true;
-    monitors = [monitors.primaryName];
+    monitors = [monitors.primary];
     onlySameOutput = false;
     pinnedApps = ["code"];
     pinnedStatic = true;

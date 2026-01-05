@@ -5,7 +5,7 @@
     backgroundOpacity = 1;
     enableClipPreview = true;
     enableClipboardHistory = true;
-    iconMode = "tabler";
+    iconMode = "candy";
     ignoreMouseInput = false;
     pinnedExecs = [];
     position = "center";
