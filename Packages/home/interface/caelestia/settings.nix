@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   settings = {
     background = {
       desktopClock = {
