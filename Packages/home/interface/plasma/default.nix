@@ -11,7 +11,7 @@
   app = "plasma";
   opt = [app "kde" "plasma6"];
 
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
   isAvailable = config?programs.${app};
@@ -20,11 +20,12 @@
 in {
   config = mkIf (isAllowed && isAvailable) {
     programs = {
-      ${app} =
+      ${app} = mkMerge [
         {enable = true;}
-        // import ./bindings
+        (import ./bindings)
         # // import ./files
-        // import ./modules {inherit src pkgs config nixosConfig;};
+        (import ./modules {inherit src pkgs config nixosConfig;})
+      ];
     };
 
     home = {
