@@ -34,7 +34,7 @@ in {
           (import ./color.nix {})
           (import ./control.nix {inherit terminal;})
           (import ./desktop.nix {inherit monitors homeDir;})
-          # (import ./general.nix {inherit lib config nixosConfig;})
+          (import ./general.nix {inherit lib config nixosConfig;})
           (import ./info.nix {inherit host monitors;})
           (import ./output.nix {inherit homeDir;})
         ];
