@@ -17,6 +17,13 @@
     eza
   ];
 
+  stylix.targets = {
+    zen-browser = {
+      enable = true;
+      profileNames = ["default"];
+    };
+  };
+
   programs = {
     # alacritty.enable = true; # Super+T in the default setting (terminal)
     # fuzzel.enable = true; # Super+D in the default setting (app launcher)

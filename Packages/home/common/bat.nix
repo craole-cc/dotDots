@@ -3,7 +3,7 @@
     enable = true;
     config = {
       pager = "less -F";
-      theme = "dark";
+      # theme = "dark";
     };
     #   themes = let
     #     catppuccin = pkgs.fetchFromGitHub {

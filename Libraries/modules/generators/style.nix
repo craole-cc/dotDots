@@ -41,6 +41,7 @@
   in {inherit family variant;};
 
   # Theme registry
+  # Theme registry
   themeRegistry = {
     catppuccin = {
       variants = {
@@ -50,6 +51,7 @@
           cursor = {
             name = "catppuccin-frappe-dark-cursors";
             pkg = "frappeDark";
+            size = 24; # Add this
           };
         };
         latte = {
@@ -58,6 +60,7 @@
           cursor = {
             name = "catppuccin-latte-light-cursors";
             pkg = "latteLight";
+            size = 24; # Add this
           };
         };
         macchiato = {
@@ -66,6 +69,7 @@
           cursor = {
             name = "catppuccin-macchiato-dark-cursors";
             pkg = "macchiatoDark";
+            size = 24; # Add this
           };
         };
         mocha = {
@@ -74,6 +78,7 @@
           cursor = {
             name = "catppuccin-mocha-dark-cursors";
             pkg = "mochaDark";
+            size = 24; # Add this
           };
         };
       };
@@ -100,6 +105,7 @@
       cursor = {
         package = pkgs.${themeFamily.cursorPackage}.${variant.cursor.pkg};
         name = variant.cursor.name;
+        size = variant.cursor.size;
       };
     };
 
@@ -186,33 +192,46 @@
     optionalAttrs (resolvedTheme != null) {
       stylix = {
         enable = true;
-        base16Scheme = mkForce "${pkgs.base16-schemes}/share/themes/${resolvedTheme.scheme}.yaml";
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/${resolvedTheme.scheme}.yaml";
         image = wallpaperPath;
         polarity = resolvedTheme.polarity;
-        # cursor = resolvedTheme.cursor;
+        cursor = resolvedTheme.cursor;
 
-        # fonts = {
-        #   monospace = {
-        #     package = head fonts.packages;
-        #     name = head fonts.monospace;
-        #   };
-        #   sansSerif = {
-        #     package = pkgs.noto-fonts;
-        #     name = head fonts.sansSerif;
-        #   };
-        #   serif = {
-        #     package = pkgs.noto-fonts;
-        #     name = head fonts.serif;
-        #   };
-        #   emoji = {
-        #     package = pkgs.noto-fonts-color-emoji;
-        #     name = head fonts.emoji;
-        #   };
-        # };
+        fonts = {
+          monospace = {
+            package = head fonts.packages;
+            name = head fonts.monospace;
+          };
+          sansSerif = {
+            package = pkgs.noto-fonts;
+            name = head fonts.sansSerif;
+          };
+          serif = {
+            package = pkgs.noto-fonts;
+            name = head fonts.serif;
+          };
+          emoji = {
+            package = pkgs.noto-fonts-color-emoji;
+            name = head fonts.emoji;
+          };
+        };
 
         opacity = {
           terminal = 0.9;
           popups = 0.95;
+        };
+
+        #> Target-specific configuration
+        targets = {
+          #> Disable Qt theming on KDE (use native theme)
+          qt.enable = mkForce false;
+
+          #> Suppress zen-browser warning (will be configured in home-manager)
+          # zen-browser.enable = false;
+          # zen-browser = {
+          #   enable = true;
+          #   profileNames = ["default"];
+          # };
         };
       };
 

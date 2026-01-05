@@ -71,22 +71,21 @@ in {
 
     network = ["eno1" "wlo1"];
 
-    display = [
-      {
-        name = "HDMI-A-1";
+    display = {
+      "HDMI-A-1" = {
         resolution = "1920x1080";
         refreshRate = 75;
         scale = 1;
         position = "0x0";
-      }
-      {
-        name = "eDP-1";
+      };
+
+      "eDP-1" = {
         resolution = "1920x1080";
         refreshRate = 144.15;
         scale = 1;
         position = "auto";
-      }
-    ];
+      };
+    };
   };
   localization = {
     latitude = 18.015;
