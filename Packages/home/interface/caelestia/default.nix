@@ -27,7 +27,7 @@
     enable = true;
     programs.${name} = mkMerge [
       (import ./cli.nix {})
-      (import ./settings.nix {inherit pkgs;})
+      # (import ./settings.nix {inherit pkgs;})
     ];
     home = {};
   };
