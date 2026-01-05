@@ -6,7 +6,7 @@
     # -- No initial window (spawn via keybind when needed)
     gtk-single-instance = true;
     quit-after-last-window-closed = false;
-    initial-window = false;
+    # initial-window = false;
     right-click-action = "copy-or-paste";
     selection-clear-on-copy = true;
     mouse-hide-while-typing = true;
