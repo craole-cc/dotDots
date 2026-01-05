@@ -14,7 +14,7 @@
     name = "ghostty";
     kind = "terminal";
     extraProgramConfig = mkMerge [
-      (import ./settings.nix)
+      (import ./general.nix)
       (import ./input.nix)
       (import ./themes.nix)
     ];
