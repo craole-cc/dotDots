@@ -124,10 +124,10 @@
         sans = "Noto Sans";
         serif = "Noto Serif";
       };
-      wallpaper = {
-        dark = ./Assets/Images/wallpapers/dark.jpg;
-        light = ./Assets/Images/wallpapers/light.jpg;
-      };
+      # wallpaper = {
+      #   dark = "$DOTS/Assets/Images/wallpapers/dark.jpg";
+      #   light = "$DOTS/Assets/Images/wallpapers/light.jpg";
+      # };
     };
   };
 
