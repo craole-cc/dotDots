@@ -17,8 +17,8 @@
   allowed = isIn app (user.applications.allowed or []);
   enable = (primary || allowed) && config.programs ? ${app};
   monitors = {
-    allNames = getNames {inherit host;};
-    primaryName = getPrimaryName {inherit host;};
+    all = getNames {inherit host;};
+    primary = getPrimaryName {inherit host;};
     # TODO: We need to store wallpaper path in monitors
   };
   homeDir = config.home.homeDirectory;

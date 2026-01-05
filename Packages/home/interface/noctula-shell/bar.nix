@@ -7,7 +7,7 @@
     floating = false;
     marginHorizontal = 1;
     marginVertical = 0.06;
-    monitors = [monitors.primaryName];
+    monitors = [monitors.all];
     outerCorners = true;
     position = "top";
     showCapsule = false;
@@ -75,18 +75,18 @@
           showCpuTemp = true;
           showCpuUsage = true;
           showDiskUsage = true;
-          showGpuTemp = false;
-          showMemoryAsPercent = false;
+          showGpuTemp = true;
+          showMemoryAsPercent = true;
           showMemoryUsage = true;
-          showNetworkStats = false;
+          showNetworkStats = true;
           useMonospaceFont = true;
-          usePrimaryColor = false;
+          usePrimaryColor = true;
         }
         {
           colorizeIcons = false;
           hideMode = "hidden";
           id = "ActiveWindow";
-          maxWidth = 145;
+          maxWidth = 640;
           scrollingMode = "hover";
           showIcon = true;
           useFixedWidth = false;
