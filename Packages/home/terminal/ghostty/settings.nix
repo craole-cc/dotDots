@@ -15,11 +15,12 @@
 
     background-blur = true;
     font-size = 14;
-    # keybind = [
-    #   "clear"
-    #   "ctrl+h=goto_split:left"
-    #   "ctrl+l=goto_split:right"
-    # ];
+    keybind = [
+      "clear"
+      "ctrl+h=goto_split:left"
+      "ctrl+l=goto_split:right"
+      "ctrl+shif+b=up"
+    ];
 
     #~@ Enable systemd integration for automatic startup
     # theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
