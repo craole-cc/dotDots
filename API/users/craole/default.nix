@@ -106,7 +106,7 @@
     };
     style = {
       autoSwitch = true;
-      current = "dark";
+      current = "light";
       theme = {
         dark = "catppuccin frappe";
         light = "catppuccin latte";
@@ -163,7 +163,7 @@
     prompt = "starship";
 
     allowed = [
-      # "atuin"
+      "atuin"
       "fastfetch"
       "freetube"
       "fresh-editor"
@@ -177,7 +177,7 @@
 
   paths = {
     downloads = "Downloads";
-    # wallpapers = "Pictures/Wallpapers";
-    wallpapers = "/home/craole/.dots/Assets/Images/wallpapers";
+    wallpapers = "Pictures/Wallpapers";
+    # wallpapers = "/home/craole/.dots/Assets/Images/wallpapers";
   };
 }

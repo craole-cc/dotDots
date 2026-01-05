@@ -15,14 +15,14 @@
 
     background-blur = true;
     font-size = 14;
-    keybind = [
-      "clear"
-      "ctrl+h=goto_split:left"
-      "ctrl+l=goto_split:right"
-    ];
+    # keybind = [
+    #   "clear"
+    #   "ctrl+h=goto_split:left"
+    #   "ctrl+l=goto_split:right"
+    # ];
 
     #~@ Enable systemd integration for automatic startup
-    theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
+    # theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
     # theme = "light:Rose Pine Dawn,dark:Rose Moon";
   };
 }
