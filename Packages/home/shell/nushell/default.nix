@@ -18,7 +18,7 @@
 in {
   programs.${app} = mkMerge [
     {enable = isAllowed;}
-    (import ./plugins.nix {inherit pkgs;})
+    # (import ./plugins.nix {inherit pkgs;})
     (import ./settings.nix)
   ];
 

@@ -106,6 +106,7 @@
     };
     style = {
       autoSwitch = true;
+      current = "dark";
       theme = {
         dark = "catppuccin frappe";
         light = "catppuccin latte";
@@ -124,10 +125,10 @@
         sans = "Noto Sans";
         serif = "Noto Serif";
       };
-      # wallpaper = {
-      #   dark = "$DOTS/Assets/Images/wallpapers/dark.jpg";
-      #   light = "$DOTS/Assets/Images/wallpapers/light.jpg";
-      # };
+      wallpaper = {
+        dark = "$DOTS/Assets/Images/wallpapers/dark.jpg";
+        light = "$DOTS/Assets/Images/wallpapers/light.jpg";
+      };
     };
   };
 
