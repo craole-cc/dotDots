@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   plugins = with pkgs.nushellPlugins; [
     # dbus #? Broken
-    desktop_notifications
+    # desktop_notifications
     formats
     gstat
     highlight
