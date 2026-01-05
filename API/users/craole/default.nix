@@ -133,7 +133,7 @@
 
   applications = {
     browser = let
-      firefox = "palemoon zen twilight";
+      firefox = "zen twilight";
       chromium = "microsoft edge";
     in {
       inherit firefox chromium;

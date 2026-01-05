@@ -188,7 +188,7 @@
         base16Scheme = "${pkgs.base16-schemes}/share/themes/${resolvedTheme.scheme}.yaml";
         image = wallpaperPath;
         polarity = resolvedTheme.polarity;
-        cursor = resolvedTheme.cursor;
+        # cursor = resolvedTheme.cursor;
 
         fonts = {
           monospace = {
