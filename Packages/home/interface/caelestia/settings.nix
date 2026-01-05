@@ -2,12 +2,12 @@
   settings = {
     background = {
       desktopClock = {
-        enable = false;
+        enable = true;
       };
       enable = true;
       visualiser = {
-        blur = false;
-        enabled = false;
+        enabled = true;
+        blur = true;
         autoHide = true;
         rounding = 1;
         spacing = 1;
