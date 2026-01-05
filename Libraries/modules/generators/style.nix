@@ -96,7 +96,7 @@
     then null
     else {
       scheme = variant.scheme;
-      polarity = mkForce variant.polarity;
+      polarity = variant.polarity;
       cursor = {
         package = pkgs.${themeFamily.cursorPackage}.${variant.cursor.pkg};
         name = variant.cursor.name;
@@ -186,29 +186,29 @@
     optionalAttrs (resolvedTheme != null) {
       stylix = {
         enable = true;
-        base16Scheme = "${pkgs.base16-schemes}/share/themes/${resolvedTheme.scheme}.yaml";
+        base16Scheme = mkForce "${pkgs.base16-schemes}/share/themes/${resolvedTheme.scheme}.yaml";
         image = wallpaperPath;
         polarity = resolvedTheme.polarity;
         # cursor = resolvedTheme.cursor;
 
-        fonts = {
-          monospace = {
-            package = head fonts.packages;
-            name = head fonts.monospace;
-          };
-          sansSerif = {
-            package = pkgs.noto-fonts;
-            name = head fonts.sansSerif;
-          };
-          serif = {
-            package = pkgs.noto-fonts;
-            name = head fonts.serif;
-          };
-          emoji = {
-            package = pkgs.noto-fonts-color-emoji;
-            name = head fonts.emoji;
-          };
-        };
+        # fonts = {
+        #   monospace = {
+        #     package = head fonts.packages;
+        #     name = head fonts.monospace;
+        #   };
+        #   sansSerif = {
+        #     package = pkgs.noto-fonts;
+        #     name = head fonts.sansSerif;
+        #   };
+        #   serif = {
+        #     package = pkgs.noto-fonts;
+        #     name = head fonts.serif;
+        #   };
+        #   emoji = {
+        #     package = pkgs.noto-fonts-color-emoji;
+        #     name = head fonts.emoji;
+        #   };
+        # };
 
         opacity = {
           terminal = 0.9;
