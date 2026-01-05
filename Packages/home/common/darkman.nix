@@ -10,57 +10,64 @@
 }: let
   inherit (lib.modules) mkIf;
   inherit (lib.strings) hasPrefix;
-  inherit (pkgs) writeShellScript;
 
-  loc = user.localization or host.localization or nixosConfig.location or  {};
+  #~@ Location
+  loc = user.localization or host.localization or nixosConfig.location or {};
   lat = loc.latitude or null;
   lng = loc.longitude or null;
+  usegeoclue = (loc.provider or "manual") == "geoclue2";
 
+  #~@ Style
   style = user.interface.style or host.interface.style or {};
   autoSwitch = style.autoSwitch or false;
 
+  #~@ Paths
   wallpapers = let
-    path = user.paths.wallpapers or host.paths.wallpapers or "Pictures/Wallpapers";
+    path =
+      user.paths.wallpapers or
+      host.paths.wallpapers or
+      "Pictures/Wallpapers";
   in
-    #> Resolve wallpapers path
     if hasPrefix "/" path
     then path
-    else config.home.homeDirectory + "/" + path;
+    else "${config.home.homeDirectory}/${path}";
 
   dots = host.paths.dots or null;
+  userApi = "${dots}/API/users/${user.name}/default.nix";
 
-  enable = autoSwitch && (lat != null) && (lng != null) && (dots != null);
+  #~@ Enable condition
+  enable =
+    autoSwitch
+    && (lat != null)
+    && (lng != null)
+    && (dots != null);
 
-  mkModeScript = mode:
-    writeShellScript "darkman-${mode}-mode" ''
-      # Update theme mode in host configuration
-      ${pkgs.sd}/bin/sd \
-        'current = "(dark|light)"' \
-        'current = "${mode}"' \
-        ${dots}/API/users/${user.name}/default.nix
+  #~@ Mode script generator
+  mkModeScript = mode: let
+    sd = "${pkgs.sd}/bin/sd";
+    ln = "${pkgs.coreutils}/bin/ln";
+    nh = "${pkgs.nh}/bin/nh";
+    modeWallpaper = "${wallpapers}/${mode}-wallpaper";
+    currentWallpaper = "${wallpapers}/current-wallpaper";
+  in
+    pkgs.writeShellScript "darkman-${mode}-mode" ''
+      set -euo pipefail
 
-      # Update wallpaper symlink before rebuild
-      WALLPAPER_DIR="${wallpapers}"
-      if [ -L "$WALLPAPER_DIR/current-wallpaper" ] ||
-         [ -e "$WALLPAPER_DIR/${mode}-wallpaper" ]
-      then
-        ln -sf \
-          "$WALLPAPER_DIR/${mode}-wallpaper" \
-          "$WALLPAPER_DIR/current-wallpaper"
+      #> Update theme mode in user configuration
+      ${sd} 'current = "(dark|light)"' 'current = "${mode}"' "${userApi}"
+
+      #> Update wallpaper symlink
+      if [ -L "${currentWallpaper}" ] || [ -e "${modeWallpaper}" ]; then
+        ${ln} -sf "${modeWallpaper}" "${currentWallpaper}"
       fi
 
-      # Apply changes
-      ${pkgs.nh}/bin/nh os switch ${dots}
+      #> Apply system changes
+      ${nh} os switch "${dots}"
     '';
 in {
   services.darkman = mkIf enable {
     inherit enable;
-
-    settings = {
-      inherit lat lng;
-      usegeoclue = (loc.provider or "manual") == "geoclue2";
-    };
-
+    settings = {inherit lat lng usegeoclue;};
     darkModeScripts.nixos-theme = mkModeScript "dark";
     lightModeScripts.nixos-theme = mkModeScript "light";
   };
