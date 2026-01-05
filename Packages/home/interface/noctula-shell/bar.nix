@@ -1,7 +1,7 @@
 {monitors, ...}: {
   bar = {
     backgroundOpacity = 0.11;
-    capsuleOpacity = 1;
+    capsuleOpacity = 0;
     density = "default";
     exclusive = true;
     floating = false;
@@ -15,20 +15,20 @@
     useSeparateOpacity = false;
     widgets = {
       center = [
-        # {
-        #   characterCount = 2;
-        #   colorizeIcons = false;
-        #   enableScrollWheel = true;
-        #   followFocusedScreen = false;
-        #   groupedBorderOpacity = 1;
-        #   hideUnoccupied = false;
-        #   iconScale = 0.8;
-        #   id = "Workspace";
-        #   labelMode = "index";
-        #   showApplications = true;
-        #   showLabelsOnlyWhenOccupied = true;
-        #   unfocusedIconsOpacity = 1;
-        # }
+        {
+          characterCount = 2;
+          colorizeIcons = false;
+          enableScrollWheel = true;
+          followFocusedScreen = false;
+          groupedBorderOpacity = 1;
+          hideUnoccupied = false;
+          iconScale = 0.8;
+          id = "Workspace";
+          labelMode = "index";
+          showApplications = true;
+          showLabelsOnlyWhenOccupied = true;
+          unfocusedIconsOpacity = 1;
+        }
       ];
       left = [
         # {
