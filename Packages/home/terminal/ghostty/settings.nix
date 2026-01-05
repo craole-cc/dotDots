@@ -10,79 +10,9 @@
     right-click-action = "copy-or-paste";
     selection-clear-on-copy = true;
     mouse-hide-while-typing = true;
-
     confirm-close-surface = false;
 
     background-blur = true;
     font-size = 14;
-    keybind = [
-      "super+grave_accent=toggle_quick_terminal"
-      "clear"
-      # "ctrl+h=goto_split:left"
-      # "ctrl+l=goto_split:right"
-      "alt+f4=close_window"
-      "alt+one=goto_tab:1"
-      "alt+two=goto_tab:2"
-      "alt+three=goto_tab:3"
-      "alt+four=goto_tab:4"
-      "alt+five=goto_tab:5"
-      "alt+six=goto_tab:6"
-      "alt+seven=goto_tab:7"
-      "alt+eight=goto_tab:8"
-      "alt+nine=last_tab"
-      "ctrl+alt+down=goto_split:bottom"
-      "ctrl+alt+left=goto_split:left"
-      "ctrl+alt+right=goto_split:right"
-      "ctrl+alt+shift+j=write_scrollback_file:open"
-      "ctrl+alt+up=goto_split:top"
-      "ctrl+comma=open_config"
-      "ctrl+enter=toggle_fullscreen"
-      "ctrl+equal=increase_font_size:1"
-      "ctrl+minus=decrease_font_size:1"
-      "ctrl+page_down=next_tab"
-      "ctrl+page_up=previous_tab"
-      "ctrl+plus=increase_font_size:1"
-      "ctrl+shift+a=select_all"
-      "ctrl+shift+c=copy_to_clipboard"
-      "ctrl+shift+comma=reload_config"
-      "ctrl+shift+e=new_split:down"
-      "ctrl+shift+enter=toggle_split_zoom"
-      "ctrl+shift+i=inspector:toggle"
-      "ctrl+shift+j=write_scrollback_file:paste"
-      "ctrl+shift+left=previous_tab"
-      "ctrl+shift+n=new_window"
-      "ctrl+shift+o=new_split:right"
-      "ctrl+shift+page_down=jump_to_prompt:1"
-      "ctrl+shift+page_up=jump_to_prompt:-1"
-      "ctrl+shift+q=quit"
-      "ctrl+shift+right=next_tab"
-      "ctrl+shift+t=new_tab"
-      "ctrl+shift+tab=previous_tab"
-      "ctrl+shift+v=paste_from_clipboard"
-      "ctrl+shift+w=close_surface"
-      "ctrl+tab=next_tab"
-      "ctrl+zero=reset_font_size"
-      "shift+down=adjust_selection:down"
-      "shift+end=scroll_to_bottom"
-      "shift+home=scroll_to_top"
-      "shift+insert=paste_from_selection"
-      "shift+left=adjust_selection:left"
-      "shift+page_down=scroll_page_down"
-      "shift+page_up=scroll_page_up"
-      "shift+right=adjust_selection:right"
-      "shift+up=adjust_selection:up"
-      "super+ctrl+left_bracket=goto_split:previous"
-      "super+ctrl+right_bracket=goto_split:next"
-      "super+ctrl+shift+down=resize_split:down,10"
-      "super+ctrl+shift+equal=equalize_splits"
-      "super+ctrl+shift+left=resize_split:left,10"
-      "super+ctrl+shift+right=resize_split:right,10"
-      "super+ctrl+shift+up=resize_split:up,10"
-    ];
-
-    #~@ Enable systemd integration for automatic startup
-    # theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
-    # theme = "light:Rose Pine Dawn,dark:Rose Moon";
-    # theme = "light:BlulocoLight,dark:Catppuccin Frappe";
   };
 }
