@@ -1,5 +1,5 @@
 let
-  light = "BlulocoLight";
+  light = "Bluloco Light";
   dark = "Catppuccin Frappe";
   #~@ Enable systemd integration for automatic startup
   # theme = "light:Catppuccin Latte,dark:Catppuccin Frappe";
