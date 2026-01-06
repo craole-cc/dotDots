@@ -18,7 +18,7 @@ in {
       # (import ./plugins)
     ];
     home.sessionVariables = {
-      XDG_CURRENT_DESKTOP = "hyprland";
+      # XDG_CURRENT_DESKTOP = "hyprland";
     };
   };
 }

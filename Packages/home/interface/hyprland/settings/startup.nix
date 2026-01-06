@@ -67,7 +67,7 @@
 
     # Auto-mount removable drives with notifications
     # --smart-tray: only shows tray icon when devices are present
-    # "udiskie --automount --notify --smart-tray &"
+    "udiskie --automount --notify --smart-tray &"
 
     # ============================================
     # Application Launches (Workspace Assignment)
