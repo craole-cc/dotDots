@@ -19,7 +19,7 @@
     workspaces = {
       shown = 5;
       activeIndicator = true;
-      occupiedBg = false;
+      occupiedBg = true;
       showWindows = true;
       showWindowsOnSpecialWorkspaces = true;
       activeTrail = false;
