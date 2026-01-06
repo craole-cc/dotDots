@@ -1,6 +1,6 @@
 {
   monitors,
-  homeDir,
+  wallpapers,
 }: {
   desktopWidgets = {
     enabled = false;
@@ -30,9 +30,7 @@
     wallpaperChange = "";
   };
 
-  wallpaper = let
-    wallpapers = homeDir + "/Pictures/Wallpapers";
-  in {
+  wallpaper = {
     directory = wallpapers;
     enableMultiMonitorDirectories = true;
     enabled = true;
