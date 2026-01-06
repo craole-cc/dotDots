@@ -3,9 +3,9 @@
   lib,
   ...
 }: let
-  inherit (builtins) trace;
+  inherit (lib.attrsets) getAttr hasAttr;
+  inherit (lib.debug) traceIf;
   inherit (lib.lists) elem any;
-  inherit (lib.attrsets) hasAttr;
   inherit (lib.modules) mkIf;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
 
@@ -49,20 +49,29 @@
       || hasInfix "dual-boot" (toLower f))
     functionalities;
     hasEfi = elem "efi" functionalities;
+
     kernel = rec {
-      current = pkgs.${host.packages.kernel} or null;
       default = pkgs.linuxPackages;
+      requested = host.packages.kernel or null;
 
-      #> Check if the requested kernel exists
-      exists = hasAttr current pkgs;
+      #> Check if the requested kernel package exists in pkgs
+      exists = requested != null && hasAttr requested pkgs;
 
-      #> Determine which kernel to use
-      selected =
-        if current != null && exists
-        then pkgs.${current}
-        else if current != null
-        then trace "⚠️  Kernel '${current}' not found in pkgs, using default" default
+      #> Get the actual kernel packages set
+      packages =
+        if exists
+        then getAttr requested pkgs
         else default;
+
+      #> Determine which kernel to use with proper tracing
+      selected =
+        traceIf (requested != null && exists)
+        "✓ Using kernel: ${requested} (${packages.kernel.version or "unknown"})"
+        (traceIf (requested != null && !exists)
+          "⚠️  Kernel '${requested}' not found in pkgs, using default (${default.kernel.version})"
+          (traceIf (requested == null)
+            "ℹ Using default kernel (${default.kernel.version})"
+            packages));
     };
   in {
     assertions = [
@@ -95,10 +104,11 @@
         '';
       }
       {
-        assertion = kernel.current == null || kernel.exists;
+        assertion = kernel.requested == null || kernel.exists;
         message = ''
-          Requested kernel '${kernel.current}' does not exist in pkgs.
-          Available Chaotic kernels: linuxPackages_cachyos, linuxPackages_cachyos-lto, etc.
+          Requested kernel '${kernel.requested}' does not exist in pkgs.
+          Available kernel packages start with: linuxPackages*
+          Examples: linuxPackages_cachyos, linuxPackages_cachyos-lto, linuxPackages_zen
         '';
       }
       {
@@ -123,24 +133,17 @@
     ];
 
     boot = {
-      kernelPackages = with kernel;
-        if current != null
-        then
-          if
-            hasPrefix "chaotic." current
-            || hasPrefix "linuxPackages" current
-          then pkgs.${current}
-          else default
-        else default;
+      kernelPackages = kernel.selected;
 
       loader = {
         #~@ systemd-boot configuration
         systemd-boot = {
           enable = isSystemdBoot;
-          configurationLimit = mkIf isSystemdBoot 10;
+          configurationLimit = mkIf isSystemdBoot 20;
           editor = false; # Security
           memtest86.enable = true;
-          # themes = [pkgs.nordic-theme];
+          netbootxyz.enable = true;
+          rebootForBitlocker = true;
         };
 
         #~@ rEFInd configuration
