@@ -20,6 +20,7 @@
       glibc
       libgcc
       lm_sensors
+      thunar
     ];
     home = {inherit packages;};
   };
