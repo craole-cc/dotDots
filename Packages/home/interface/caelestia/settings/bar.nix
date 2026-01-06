@@ -83,6 +83,14 @@
       }
       {
         enabled = true;
+        id = "speakers";
+      }
+      {
+        enabled = true;
+        id = "microphone";
+      }
+      {
+        enabled = true;
         id = "tray";
       }
       {

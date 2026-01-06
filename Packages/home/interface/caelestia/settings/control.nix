@@ -37,7 +37,7 @@
     actionPrefix = ">";
     enableDangerousActions = false;
     dragThreshold = 50;
-    vimKeybinds = false;
+    # vimKeybinds = false;
     hiddenApps = [];
     useFuzzy = {
       apps = true;
