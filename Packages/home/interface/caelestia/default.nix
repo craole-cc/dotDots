@@ -1,4 +1,8 @@
-{lib, ...}: let
+{
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (lib.modules) mkIf mkMerge;
 
   cfg = rec {
@@ -8,6 +12,14 @@
     programs.${name} = mkMerge [
       (import ./cli {})
       (import ./settings {inherit mkMerge;})
+    ];
+    packages = with pkgs; [
+      aubio
+      brightnessctl
+      ddcutil
+      glibc
+      libgcc
+      lm_sensors
     ];
     home = {};
   };
