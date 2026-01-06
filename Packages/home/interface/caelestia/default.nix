@@ -21,7 +21,7 @@
       libgcc
       lm_sensors
     ];
-    home = {};
+    home = {inherit packages;};
   };
 in {
   config = mkIf cfg.enable {
