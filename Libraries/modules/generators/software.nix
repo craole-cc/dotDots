@@ -47,6 +47,10 @@
       || hasInfix "dual-boot" (toLower f))
     functionalities;
     hasEfi = elem "efi" functionalities;
+    kernel = {
+      current = host.packages.kernel or null;
+      default = pkgs.linuxPackages;
+    };
   in {
     assertions = [
       {
@@ -99,9 +103,15 @@
     ];
 
     boot = {
-      kernelPackages =
-        mkIf ((host.packages.kernel or null) != null)
-        pkgs.${host.packages.kernel};
+      kernelPackages = with kernel;
+        if current != null
+        then
+          if
+            hasPrefix "chaotic." current
+            || hasPrefix "linuxPackages" current
+          then pkgs.${current}
+          else default
+        else default;
 
       loader = {
         #~@ systemd-boot configuration
@@ -151,9 +161,9 @@
 
         timeout = bootLoaderTimeout;
       };
-
-      #~@ Support for available kernel modules
-      initrd.availableKernelModules = host.modules or [];
+      initrd = {
+        availableKernelModules = host.modules or [];
+      };
     };
 
     environment.systemPackages = with pkgs; [efibootmgr];

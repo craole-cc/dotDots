@@ -66,6 +66,16 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
+    nixChaotic = {
+      ref = "nyxpkgs-unstable";
+      repo = "nyx";
+      owner = "chaotic-cx";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
+
     browserZen = {
       repo = "zen-browser-flake";
       owner = "0xc000022070";
@@ -76,9 +86,9 @@
       };
     };
 
-    docTypix = {
-      repo = "typix";
-      owner = "loqusion";
+    editorAffinity = {
+      repo = "affinity-nix";
+      owner = "mrshmllow";
       type = "github";
       inputs = {
         nixpkgs.follows = "nixPackages";
@@ -112,6 +122,15 @@
       };
     };
 
+    editorTypix = {
+      repo = "typix";
+      owner = "loqusion";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
+
     editorVscode = {
       repo = "vscode-insiders-nix";
       owner = "auguwu";
@@ -121,14 +140,14 @@
       };
     };
 
-    # shellDankMaterial = {
-    #   repo = "DankMaterialShell";
-    #   owner = "AvengeMedia";
-    #   type = "github";
-    #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
-    #   };
-    # };
+    shellDankMaterial = {
+      repo = "DankMaterialShell";
+      owner = "AvengeMedia";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
 
     shellCaelestia = {
       repo = "shell";

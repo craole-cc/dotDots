@@ -173,8 +173,7 @@
     packages = mkPackages {inherit inputs;};
 
     overlays = mkOverlays {
-      inherit (inputs) nixpkgs-stable nixpkgs-unstable;
-      inherit packages config;
+      inherit inputs packages config;
     };
 
     modules = mkModules {

@@ -31,6 +31,7 @@
       else de;
     # useDms = wm == "niri" || wm == "hyprland";
     useDms = false;
+    hasGui = de != null || wm != null;
 
     # Get all packages with resolved inputs and system
     editorPkgs = editors.packages {
@@ -299,6 +300,11 @@
         ly = {
           enable = dm == "ly";
         };
+      };
+
+      udisks2 = optionalAttrs hasGui {
+        enable = true;
+        mountOnMedia = true;
       };
     };
 

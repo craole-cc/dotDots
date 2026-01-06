@@ -64,6 +64,16 @@
       ];
     };
 
+    chaotic = byPaths {
+      attrset = inputs;
+      default = "chaotic";
+      paths = [
+        ["nixChaotic"]
+        ["kernelChaotic"]
+        ["chaoticKernel"]
+      ];
+    };
+
     stylix = byPaths {
       attrset = inputs;
       default = "stylix";
@@ -244,14 +254,13 @@
   };
 
   mkOverlays = {
-    nixpkgs-stable,
-    nixpkgs-unstable,
+    inputs,
     packages,
     config,
   }: [
     #~@ Stable
     (final: prev: {
-      fromStable = import nixpkgs-stable {
+      fromStable = import inputs.nixpkgs-stable {
         inherit config;
         system = getSystem final;
       };
@@ -259,7 +268,7 @@
 
     #~@ Unstable
     (final: prev: {
-      fromUnstable = import nixpkgs-unstable {
+      fromUnstable = import inputs.nixpkgs-unstable {
         inherit config;
         system = getSystem final;
       };
@@ -284,6 +293,9 @@
         )
         packages;
     })
+
+    #~@ Chaotic overlay
+    (inputs.chaotic.overlays.default or (_: _: {}))
   ];
 
   mkModules = {
@@ -319,6 +331,7 @@
         else [
           (inputs.home-manager.nixosModules.home-manager or {})
           (inputs.stylix.nixosModules.stylix or {})
+          (inputs.chaotic.nixosModules.default or {})
         ]
       )
       ++ optionals (class == "darwin") [
