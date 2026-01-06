@@ -3,7 +3,9 @@
   lib,
   ...
 }: let
+  inherit (builtins) trace;
   inherit (lib.lists) elem any;
+  inherit (lib.attrsets) hasAttr;
   inherit (lib.modules) mkIf;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
 
@@ -47,9 +49,20 @@
       || hasInfix "dual-boot" (toLower f))
     functionalities;
     hasEfi = elem "efi" functionalities;
-    kernel = {
-      current = host.packages.kernel or null;
+    kernel = rec {
+      current = pkgs.${host.packages.kernel} or null;
       default = pkgs.linuxPackages;
+
+      #> Check if the requested kernel exists
+      exists = hasAttr current pkgs;
+
+      #> Determine which kernel to use
+      selected =
+        if current != null && exists
+        then pkgs.${current}
+        else if current != null
+        then trace "⚠️  Kernel '${current}' not found in pkgs, using default" default
+        else default;
     };
   in {
     assertions = [
@@ -79,6 +92,13 @@
         message = ''
           devices.boot.efiSysMountPoint must be a non-empty string.
           Current value: ${toString efiSysMountPoint}
+        '';
+      }
+      {
+        assertion = kernel.current == null || kernel.exists;
+        message = ''
+          Requested kernel '${kernel.current}' does not exist in pkgs.
+          Available Chaotic kernels: linuxPackages_cachyos, linuxPackages_cachyos-lto, etc.
         '';
       }
       {
