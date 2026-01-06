@@ -18,6 +18,7 @@
     ddcutil
     glibc
     libgcc
+    cava
     lm_sensors
     thunar
   ];

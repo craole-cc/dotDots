@@ -2,8 +2,11 @@
   config,
   pkgs,
   modulesPath,
+  lib,
   ...
-}: {
+}: let
+  inherit (lib.modules) mkDefault;
+in {
   # ==================== IMPORTS ====================
   imports = [(modulesPath + "/installer/scan/not-detected.nix")];
   # ==================== HARDWARE ====================
@@ -34,6 +37,8 @@
   };
   # ==================== BOOT ====================
   boot = {
+    kernelPackages = mkDefault pkgs.linuxPackages_latest;
+    extraModulePackages = [];
     initrd = {
       availableKernelModules = [
         "nvme"
@@ -45,20 +50,18 @@
       ];
       kernelModules = [
         "amdgpu"
+        "kvm-amd"
         "nvidia"
+        "nvidia_drm"
         "nvidia_modeset"
         "nvidia_uvm"
-        "nvidia_drm"
       ];
     };
-    extraModulePackages = [];
-    kernelModules = ["kvm-amd"];
-    # kernelPackages = pkgs.linuxPackages_latest;
-    # loader = {
-    #   systemd-boot.enable = true;
-    #   efi.canTouchEfiVariables = true;
-    #   timeout = 1;
-    # };
+    loader = {
+      systemd-boot.enable = mkDefault true;
+      efi.canTouchEfiVariables = mkDefault true;
+      timeout = mkDefault 1;
+    };
 
     kernelParams = [
       #? For NVIDIA - Early KMS
@@ -103,11 +106,4 @@
       };
     };
   };
-  # ==================== SYSTEM PROGRAMS ====================
-  # programs = {
-  #   obs-studio = {
-  #     enable = true;
-  #     enableVirtualCamera = true;
-  #   };
-  # };
 }

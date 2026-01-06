@@ -7,7 +7,7 @@
     visualiser = {
       enabled = true;
       autoHide = true;
-      blur = false;
+      blur = true;
       rounding = 1;
       spacing = 1;
     };

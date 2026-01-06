@@ -76,6 +76,15 @@
       };
     };
 
+    docTypix = {
+      repo = "typix";
+      owner = "loqusion";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
+
     editorHelix = {
       repo = "helix";
       owner = "helix-editor";

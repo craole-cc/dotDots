@@ -183,6 +183,16 @@
       ];
     };
 
+    typix = byPaths {
+      attrset = inputs;
+      default = "typix";
+      paths = [
+        ["docTypix"]
+        ["typst"]
+        ["typ"]
+      ];
+    };
+
     vscode-insiders = byPaths {
       attrset = inputs;
       default = "vscode-insiders";
@@ -228,6 +238,7 @@
     quickshell = inputs.quickshell.packages or {};
     caelestia = inputs.caelestia.packages or {};
     treefmt = inputs.treefmt.packages or {};
+    typix = inputs.typix.packages or {};
     vscode-insiders = inputs.vscode-insiders.packages or {};
     zen-browser = inputs.zen-browser.packages or {};
   };
