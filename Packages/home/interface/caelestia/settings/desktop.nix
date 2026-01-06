@@ -14,7 +14,7 @@
   };
 
   border = {
-    thickness = 10;
-    rounding = 25;
+    thickness = 5;
+    rounding = 15;
   };
 }

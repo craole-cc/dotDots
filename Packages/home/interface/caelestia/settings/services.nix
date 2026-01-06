@@ -1,4 +1,4 @@
-{}: {
+{city, ...}: {
   services = {
     audioIncrement = 0.1;
     brightnessIncrement = 0.1;
@@ -9,7 +9,7 @@
     useFahrenheit = false;
     useTwelveHourClock = true;
     visualiserBars = 45;
-    weatherLocation = "Mandeville, Jamaica";
+    weatherLocation = city;
 
     playerAliases = [
       {

@@ -1,11 +1,12 @@
 {
   services.udiskie = {
-    enable = true;
+    enable = false; #TODO: Enable this
     settings = {
       program_options = {
         udisks_version = 2;
         tray = "auto";
         notify = true;
+        menu = "flat";
       };
       icon_names = {
         media = ["drive-removable-media" "media-optical"];

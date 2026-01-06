@@ -1,27 +1,30 @@
 {
   lib,
   pkgs,
+  host,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
+  name = "caelestia";
+  kind = "bar";
+  city = host.localization.city or "Mandeville, Jamaica";
+  programs.${name} = mkMerge [
+    (import ./cli {})
+    (import ./settings {inherit mkMerge city;})
+  ];
+  packages = with pkgs; [
+    aubio
+    brightnessctl
+    ddcutil
+    glibc
+    libgcc
+    lm_sensors
+    thunar
+  ];
 
-  cfg = rec {
-    name = "caelestia";
-    kind = "bar";
+  cfg = {
+    inherit name kind programs;
     enable = true;
-    programs.${name} = mkMerge [
-      (import ./cli {})
-      (import ./settings {inherit mkMerge;})
-    ];
-    packages = with pkgs; [
-      aubio
-      brightnessctl
-      ddcutil
-      glibc
-      libgcc
-      lm_sensors
-      thunar
-    ];
     home = {inherit packages;};
   };
 in {
