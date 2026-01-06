@@ -17,11 +17,13 @@
     packages =
       cfg.packages or (with pkgs; [
         maple-mono.NF-unhinted
+        material-icons
+        material-symbols
         monaspace
-        victor-mono
         noto-fonts
         noto-fonts-cjk-sans
         noto-fonts-color-emoji
+        victor-mono
       ]);
 
     emoji = cfg.emoji or ["Noto Color Emoji"];
@@ -176,7 +178,7 @@
         #> New format: { dark = ./path; light = ./path; }
         if isAttrs wallpaperConfig
         then wallpaperConfig.${current} or null
-        # Old format: direct path string
+        #> Old format: direct path string
         else wallpaperConfig
       #> Fallback to wallpapers directory
       else if wallpapers != null
