@@ -38,12 +38,14 @@
     };
     launcher = {
       primary = {
-        name = "vicinae";
-        command = "vicinae toggle";
+        name = "caelestia";
+        command = "caelestia:launcher";
       };
       secondary = {
-        name = "fuzzel";
-        command = "fuzzel --list-executables-in-path";
+        name = "vicinae";
+        command = "vicinae toggle";
+        # name = "fuzzel";
+        # command = "fuzzel --list-executables-in-path";
       };
     };
   };
@@ -115,9 +117,9 @@ in {
 
   # "SUPER" = toUpper modifier;
 
-  bindi = [
-    "SUPER, SUPER_L, global, caelestia:launcher"
-  ];
+  # bindi = [
+  #   "SUPER, SUPER_L, global, caelestia:launcher"
+  # ];
 
   bindl = [
     #| System
