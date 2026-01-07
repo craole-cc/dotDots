@@ -22,7 +22,7 @@
 in {
   config = mkIf cfg.enable (mkMerge [
     {inherit (cfg) programs home;}
-    (import ./hyprland.nix {inherit lib config;})
+    # (import ./hyprland.nix {inherit lib config;})
   ]);
 }
 #TODO: Update the userApplicationConfig to take the launcher command
