@@ -75,6 +75,9 @@ in {
       #? For AMD GPU
       "amdgpu.modeset=1"
 
+      #? For AMD CPU
+      "amd_pstate=active"
+
       #? Blacklist nouveau
       "rd.driver.blacklist=nouveau"
       "modprobe.blacklist=nouveau"
