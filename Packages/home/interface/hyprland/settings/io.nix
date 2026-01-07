@@ -138,10 +138,10 @@ in {
     "SUPER, SUPER_L, global, ${launcher.primary.command}"
   ];
 
-  bindr = with launcher; [
+  bindr = [
     #| Launcher
-    # "SUPER, SUPER_L, exec, ${primary.command}"
-    "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
+    "SUPER, SPACE, exec, ${launcher.primary.command}"
+    # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
   bindle = [
