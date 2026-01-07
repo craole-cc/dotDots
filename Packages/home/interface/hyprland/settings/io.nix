@@ -140,7 +140,7 @@ in {
 
   bindr = with launcher; [
     #| Launcher
-    "SUPER, SUPER_L, exec, ${primary.command}"
+    "SUPER, SUPER_L, global, ${primary.command}"
     "SUPER, SPACE, exec,  ${secondary.command}"
     # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
