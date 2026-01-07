@@ -107,7 +107,7 @@ in {
       tap-and-drag = true;
     };
 
-    follow_mouse = "0";
+    follow_mouse = true;
     # force_no_accel = 1;
     # repeat_delay = 200;
     # repeat_rate = 40;
