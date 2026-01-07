@@ -144,8 +144,8 @@ in {
     #| Launcher
     # "SUPER, SUPER_L, exec, ${primary.name}"
     # "SUPER, SUPER_L, exec, ${primary.command}"
-    "CTRL, SPACE, global, ${primary.command}"
-    "ALT, SPACE, global,  ${secondary.command}"
+    # "CTRL, SPACE, global, ${primary.command}"
+    "ALT, SPACE, exec,  ${secondary.command}"
     # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
