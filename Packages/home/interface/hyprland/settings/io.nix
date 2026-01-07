@@ -136,7 +136,6 @@ in {
 
   bindi = [
     "SUPER, SUPER_L, global, ${launcher.primary.command}"
-    "SUPER, SPACE, global, ${launcher.secondary.command}"
   ];
 
   bindr = with launcher; [
