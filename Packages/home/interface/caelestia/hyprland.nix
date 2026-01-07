@@ -28,12 +28,12 @@
 
       bindl = [
         # Media controls
-        "CTRL+SUPER, Space, global, caelestia:mediaToggle"
+        "CTRL SUPER, Space, global, caelestia:mediaToggle"
         ", XF86AudioPlay, global, caelestia:mediaToggle"
         ", XF86AudioPause, global, caelestia:mediaToggle"
-        "CTRL+SUPER, Equal, global, caelestia:mediaNext"
+        "CTRL SUPER, Equal, global, caelestia:mediaNext"
         ", XF86AudioNext, global, caelestia:mediaNext"
-        "CTRL+SUPER, Minus, global, caelestia:mediaPrev"
+        "CTRL SUPER, Minus, global, caelestia:mediaPrev"
         ", XF86AudioPrev, global, caelestia:mediaPrev"
         ", XF86AudioStop, global, caelestia:mediaStop"
 
@@ -47,22 +47,22 @@
 
       bind = [
         # Screenshots and recording
-        "SUPER+SHIFT, S, global, caelestia:screenshotFreeze"
-        "SUPER+SHIFT+ALT, S, global, caelestia:screenshot"
-        "SUPER+ALT, R, exec, caelestia record -s"
-        "CTRL+ALT, R, exec, caelestia record"
-        "SUPER+SHIFT+ALT, R, exec, caelestia record -r"
+        "SUPER SHIFT, S, global, caelestia:screenshotFreeze"
+        "SUPER SHIFT ALT, S, global, caelestia:screenshot"
+        "SUPER ALT, R, exec, caelestia record -s"
+        "CTRL ALT, R, exec, caelestia record"
+        "SUPER SHIFT ALT, R, exec, caelestia record -r"
 
         # Utilities
         "SUPER, V, exec, pkill fuzzel || caelestia clipboard"
-        "SUPER+ALT, V, exec, pkill fuzzel || caelestia clipboard -d"
+        "SUPER ALT, V, exec, pkill fuzzel || caelestia clipboard -d"
         "SUPER, Period, exec, pkill fuzzel || caelestia emoji -p"
 
         # Special workspace toggles
         "SUPER, M, exec, caelestia toggle music"
-        "SUPER+ALT, M, exec, caelestia toggle sysmon"
-        "SUPER+ALT, D, exec, caelestia toggle communication"
-        "SUPER+ALT, T, exec, caelestia toggle todo"
+        "SUPER ALT, M, exec, caelestia toggle sysmon"
+        "SUPER ALT, D, exec, caelestia toggle communication"
+        "SUPER ALT, T, exec, caelestia toggle todo"
 
         # Resizer
         "SUPER, P, exec, caelestia resizer pip"
@@ -70,8 +70,8 @@
 
       bindr = [
         # Kill/restart Caelestia
-        "CTRL+SUPER+SHIFT, R, exec, pkill caelestia"
-        "CTRL+SUPER+ALT, R, exec, pkill caelestia; caelestia shell -d"
+        "CTRL SUPER SHIFT, R, exec, pkill caelestia"
+        "CTRL SUPER ALT, R, exec, pkill caelestia; caelestia shell -d"
       ];
     };
 }

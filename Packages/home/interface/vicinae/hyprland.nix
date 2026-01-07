@@ -18,8 +18,8 @@
 
         # Specific vicinae commands
         "SUPER, A, exec, vicinae show applications" # Show apps directly
-        "SUPER+SHIFT, V, exec, vicinae show clipboard:history" # Clipboard history
-        "SUPER+SHIFT, F, exec, vicinae show files:search" # File search
+        "SUPER SHIFT, V, exec, vicinae show clipboard:history" # Clipboard history
+        "SUPER SHIFT, F, exec, vicinae show files:search" # File search
 
         # Quick actions via vicinae
         "SUPER, slash, exec, vicinae" # Another common launcher key
