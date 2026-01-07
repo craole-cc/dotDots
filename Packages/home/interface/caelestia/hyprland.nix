@@ -15,7 +15,7 @@ in {
       # bindi = ["SUPER, SUPER_L, global, caelestia:launcher"];
 
       bindin = [
-        "SUPER, SPACE, global, caelestia:launcher"
+        # "SUPER, SPACE, global, caelestia:launcher"
         "SUPER, mouse:272, global, caelestia:launcherInterrupt"
         "SUPER, mouse:273, global, caelestia:launcherInterrupt"
         "SUPER, mouse:274, global, caelestia:launcherInterrupt"
