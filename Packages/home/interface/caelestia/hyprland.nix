@@ -27,51 +27,51 @@
       ];
 
       bindl = [
-        # Media controls
-        "CTRL SUPER, Space, global, caelestia:mediaToggle"
+        #~@ Media controls
+        "SUPER CTRL, Space, global, caelestia:mediaToggle"
         ", XF86AudioPlay, global, caelestia:mediaToggle"
         ", XF86AudioPause, global, caelestia:mediaToggle"
-        "CTRL SUPER, Equal, global, caelestia:mediaNext"
+        "SUPER CTRL, Equal, global, caelestia:mediaNext"
         ", XF86AudioNext, global, caelestia:mediaNext"
-        "CTRL SUPER, Minus, global, caelestia:mediaPrev"
+        "SUPER CTRL, Minus, global, caelestia:mediaPrev"
         ", XF86AudioPrev, global, caelestia:mediaPrev"
         ", XF86AudioStop, global, caelestia:mediaStop"
 
-        # Brightness
+        #~@ Brightness
         ", XF86MonBrightnessUp, global, caelestia:brightnessUp"
         ", XF86MonBrightnessDown, global, caelestia:brightnessDown"
 
-        # Screenshot
+        #~@ Screenshot
         ", Print, exec, caelestia screenshot"
       ];
 
       bind = [
-        # Screenshots and recording
+        #~@ Screenshots and recording
         "SUPER SHIFT, S, global, caelestia:screenshotFreeze"
         "SUPER SHIFT ALT, S, global, caelestia:screenshot"
         "SUPER ALT, R, exec, caelestia record -s"
         "CTRL ALT, R, exec, caelestia record"
         "SUPER SHIFT ALT, R, exec, caelestia record -r"
 
-        # Utilities
+        #~@ Utilities
         "SUPER, V, exec, pkill fuzzel || caelestia clipboard"
         "SUPER ALT, V, exec, pkill fuzzel || caelestia clipboard -d"
         "SUPER, Period, exec, pkill fuzzel || caelestia emoji -p"
 
-        # Special workspace toggles
+        #~@ Special workspace toggles
         "SUPER, M, exec, caelestia toggle music"
         "SUPER ALT, M, exec, caelestia toggle sysmon"
         "SUPER ALT, D, exec, caelestia toggle communication"
         "SUPER ALT, T, exec, caelestia toggle todo"
 
-        # Resizer
+        #~@ Resizer
         "SUPER, P, exec, caelestia resizer pip"
       ];
 
       bindr = [
-        # Kill/restart Caelestia
-        "CTRL SUPER SHIFT, R, exec, pkill caelestia"
-        "CTRL SUPER ALT, R, exec, pkill caelestia; caelestia shell -d"
+        #~@ Kill/restart Caelestia
+        "SUPER CTRL SHIFT, R, exec, pkill caelestia"
+        "SUPER CTRL ALT, R, exec, pkill caelestia; caelestia shell -d"
       ];
     };
 }
