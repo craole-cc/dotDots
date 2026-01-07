@@ -32,6 +32,6 @@
 in {
   config = mkIf cfg.enable (mkMerge [
     {inherit (cfg) programs home;}
-    (import ./hyprland.nix {inherit mkIf config;})
+    (import ./hyprland.nix {inherit lib config;})
   ]);
 }
