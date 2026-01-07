@@ -7,6 +7,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.lists) optional;
   inherit (lix.applications.generators) userApplicationConfig;
 
   cfg = userApplicationConfig {
@@ -20,6 +21,7 @@
     debug = false;
   };
 in {
+  imports = optional cfg.enable ./hyprland.nix;
   config = mkIf cfg.enable {
     inherit (cfg) programs home;
   };
