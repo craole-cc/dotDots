@@ -17,8 +17,7 @@ in {
   packages = {
     unstable = true;
     allowUnfree = true;
-    # kernel = "linuxPackages_latest";
-    kernel = "linuxPackages_cachyos-lto";
+    kernel = "linuxPackages_cachyos-sched-ext";
   };
 
   specs = {

@@ -32,7 +32,7 @@
     # waybar.enable = true; # launch on startup in the default setting (bar)
   };
   services = {
-    # mako.enable = true; # ``
+    mako.enable = true; #
     # polkit-gnome.enable = true; # polkit
   };
 }
