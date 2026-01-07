@@ -1,19 +1,28 @@
 {
   host,
   lib,
+  user,
   lix,
   ...
 }: let
   inherit (lix.hardware.display) mkHyprlandMonitors;
+  mat = lib.attrsets.mapAttrsToList;
+  app = user.applications or {};
   applications = {
     terminal = {
-      primary = {
-        name = "ghostty";
-        command = "ghostty";
+      primary = rec {
+        name = app.terminal.primary or "ghostty";
+        command =
+          if name == "foot"
+          then "footclient"
+          else name;
       };
-      secondary = {
-        name = "foot";
-        command = "footclient";
+      secondary = rec {
+        name = app.terminal.primary or "ghostty";
+        command =
+          if name == "foot"
+          then "footclient"
+          else name;
       };
     };
     browser = {
@@ -49,17 +58,10 @@
       };
     };
   };
-  inherit
-    (applications)
-    launcher
-    terminal
-    browser
-    editor
-    ;
-  mat = lib.attrsets.mapAttrsToList;
-  inherit (lib.strings) toUpper;
+  inherit (applications) launcher terminal browser editor;
+  # inherit (lib.strings) toUpper;
   # inherit (host.interface.keyboard) modifier swapCapsEscape;
-  modifier = host.interface.keyboard.modifier or "SUPER";
+  # modifier = host.interface.keyboard.modifier or "SUPER";
 
   workspaces = [
     # "grave"
@@ -141,8 +143,8 @@ in {
   bindr = with launcher; [
     #| Launcher
     # "SUPER, SUPER_L, exec, ${primary.name}"
-    "SUPER, SUPER_L, exec, ${secondary.name}"
-    # "SUPER, SPACE, exec,  ${secondary.command}"
+    "SUPER, SUPER_L, exec, ${primary.command}"
+    "SUPER, SPACE, exec,  ${secondary.command}"
     # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 

@@ -152,8 +152,8 @@
       };
     };
     terminal = {
-      primary = "ghostty";
-      secondary = "foot";
+      primary = "foot";
+      secondary = "ghostty";
     };
     launcher = {
       primary = "vicinae";

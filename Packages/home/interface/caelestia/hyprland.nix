@@ -8,22 +8,22 @@ in {
   wayland.windowManager.hyprland.settings =
     mkIf
     (config.wayland.windowManager.hyprland.enable or false) {
-      exec = "hyprctl dispatch submap global";
-      submap = "global";
+      # exec = "hyprctl dispatch submap global";
+      # submap = "global";
 
       # Launcher with interrupt bindings
-      # bindi = ["SUPER, SUPER_L, global, caelestia:launcher"];
+      bindi = ["SUPER, SPACE, caelestia:launcher"];
 
       bindin = [
-        # "SUPER, SPACE, global, caelestia:launcher"
-        "SUPER, mouse:272, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:273, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:274, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:275, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:276, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:277, global, caelestia:launcherInterrupt"
-        "SUPER, mouse_up, global, caelestia:launcherInterrupt"
-        "SUPER, mouse_down, global, caelestia:launcherInterrupt"
+        "SUPER, ESCAPE, caelestia:launcherInterrupt"
+        #   "SUPER, mouse:272, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse:273, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse:274, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse:275, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse:276, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse:277, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse_up, global, caelestia:launcherInterrupt"
+        #   "SUPER, mouse_down, global, caelestia:launcherInterrupt"
       ];
 
       bindl = [

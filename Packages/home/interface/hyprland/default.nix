@@ -13,7 +13,7 @@ in {
     wayland.windowManager.hyprland = mkMerge [
       {enable = true;}
       # (import ./components {inherit mkMerge;})
-      (import ./settings {inherit host lib lix mkMerge;})
+      (import ./settings {inherit host user lib lix mkMerge;})
       # (import ./submaps)
       # (import ./plugins)
     ];
