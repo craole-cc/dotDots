@@ -7,7 +7,6 @@
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lib.lists) optional;
   inherit (lix.applications.generators) userApplicationConfig;
 
   cfg = userApplicationConfig {
@@ -21,9 +20,9 @@
     debug = false;
   };
 in {
-  imports = optional cfg.enable ./hyprland.nix;
-  config = mkIf cfg.enable {
-    inherit (cfg) programs home;
-  };
+  config = mkIf cfg.enable mkMerge [
+    {inherit (cfg) programs home;}
+    (import ./hyprland.nix {inherit lib config;})
+  ];
 }
 #TODO: Update the userApplicationConfig to take the launcher command

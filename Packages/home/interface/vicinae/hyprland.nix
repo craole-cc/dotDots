@@ -1,6 +1,3 @@
-# Packages/home/interface/vicinae/hyprland.nix
-#
-# This should be conditionally imported in your vicinae default.nix
 {
   lib,
   config,
