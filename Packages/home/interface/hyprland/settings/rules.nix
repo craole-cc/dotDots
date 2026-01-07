@@ -1,7 +1,7 @@
 {lib, ...}: let
   inherit (lib.strings) concatStringsSep;
   toRegex = list: "^(${concatStringsSep "|" list})$";
-  common = ["ags" "calendar" "notifications" "osd" "system-menu" "anyrun"];
+  common = ["ags" "calendar" "notifications" "osd" "system-menu" "anyrun" "vicinae" "caelestia:launcher"];
   panels = ["bar" "gtk-layer-shell"];
   layers = common ++ panels;
 in {

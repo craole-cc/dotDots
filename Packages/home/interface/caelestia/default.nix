@@ -9,8 +9,8 @@
   kind = "bar";
   city = host.localization.city or "Mandeville, Jamaica";
   programs.${name} = mkMerge [
-    # (import ./cli {})
-    # (import ./settings {inherit mkMerge city;})
+    (import ./cli {})
+    (import ./settings {inherit mkMerge city;})
   ];
   packages = with pkgs; [
     aubio

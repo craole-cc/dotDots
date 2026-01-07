@@ -113,12 +113,16 @@ in {
     # kb_options = mkIf swapCapsEscape "caps:swapescape";
   };
 
-  "$MOD" = toUpper modifier;
+  # "SUPER" = toUpper modifier;
+
+  bindi = [
+    "SUPER, SUPER_L, global, caelestia:launcher"
+  ];
 
   bindl = [
     #| System
-    "$MODSHIFT, Q, exit"
-    "$MODSHIFT, ESC, exit"
+    "SUPER SHIFT, Q, exit"
+    "SUPER SHIFT, ESC, exit"
     "CTRL ALT, DEL, exit"
     "CTRL ALT SHIFT, ESC, exit"
 
@@ -134,8 +138,8 @@ in {
 
   bindr = with launcher; [
     #| Launcher
-    "$MOD, $MOD_L, exec, ${primary.command}"
-    "$MOD, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
+    "SUPER, SUPER_L, exec, ${primary.command}"
+    "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
   bindle = [
@@ -148,90 +152,90 @@ in {
     ",XF86MonBrightnessUp, exec, brightnessctl set +5%"
   ];
 
-  bind =
-    [
-      #| System
-      "$MOD, Q, killactive"
-
-      #| Applications
-      # "$MOD, GRAVE, exec,  ${terminal.primary.command}"
-      # "$MODSHIFT, GRAVE, exec, ${terminal.secondary.command}"
-      "$MOD, B, exec, ${browser.primary.command}"
-      "$MODSHIFT, B, exec, ${browser.secondary.command}"
-      "$MOD, C, exec, ${editor.primary.command}"
-      "$MODSHIFT, C, exec, ${editor.secondary.command}"
-
-      # "$MOD, GRAVE, exec, ${terminal.primary.command}"
-      "$MOD, RETURN, exec, ${terminal.primary.command}"
-      "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
-      "$MODSHIFT, RETURN, exec, ${terminal.secondary.command}"
-      # "$MODSHIFT, C, exec, ${editor.secondary.command}"
-
-      # | Windows
-      "$MOD, S, togglesplit"
-      "$MOD, P, pseudo"
-
-      "ALT, RETURN, fullscreen, 0"
-      "ALT SHIFT, RETURN, togglefloating"
-      # "$MOD, F, fullscreen, 1"
-      # "$MODSHIFT, F, togglefloating"
-
-      "$MOD, G, togglegroup"
-      "$MOD, T, lockactivegroup, toggle"
-
-      #~@ Cycle through active workspaces
-      "$MOD, TAB, workspace, previous"
-
-      #~@ Toggle the previously focused window
-      "ALT, TAB, focuscurrentorlast"
-
-      "$MOD, U, togglespecialworkspace"
-      # "$MOD ALT, F, pin"
-
-      #| Workspaces
-      # special workspace
-      # "$MOD SHIFT, grave, movetoworkspace, special"
-      # "$MOD, grave, togglespecialworkspace, eDP-1"
-
-      # cycle workspaces
-      "$MOD, bracketleft, workspace, m-1"
-      "$MOD, bracketright, workspace, m+1"
-
-      # cycle monitors
-      "$MODSHIFT, bracketleft, focusmonitor, l"
-      "$MODSHIFT, bracketright, focusmonitor, r"
-
-      # "$MOD, V, movetoworkspace, special"
-    ]
-    #> Change workspace
-    ++ (map (n: "$MOD,${n},workspace,name:${n}") workspaces)
-    #> Move window to workspace
-    ++ (map (n: "$MODSHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
-    #> Move focus
-    ++ (mat (key: direction: "$MOD,${key},movefocus,${direction}") directions)
-    #> Swap windows
-    ++ (mat (key: direction: "$MODSHIFT,${key},swapwindow,${direction}") directions)
-    #> Move windows
-    ++ (mat (key: direction: "$MOD CONTROL,${key},movewindoworgroup,${direction}") directions)
-    #> Move monitor focus
-    ++ (mat (key: direction: "$MOD ALT,${key},focusmonitor,${direction}") directions)
-    #> Move workspace to other monitor
-    ++ (mat (
-        key: direction: "$MOD ALTSHIFT,${key},movecurrentworkspacetomonitor,${direction}"
-      )
-      directions);
-
   bindm = [
-    "$MOD, mouse:272, movewindow"
-    "$MOD, mouse:273, resizewindow"
-    "$MODSHIFT, mouse:272, resizewindow"
+    "SUPER, mouse:272, movewindow"
+    "SUPER, mouse:273, resizewindow"
+    "SUPER SHIFT, mouse:272, resizewindow"
   ];
 
   binde = [
     #> Window
-    "$MOD, EQUAL, splitratio, 0.25"
-    "$MODSHIFT, EQUAL, splitratio, 0.015"
-    "$MOD, MINUS, splitratio, -0.25"
-    "$MODSHIFT, MINUS, splitratio, -0.015"
+    "SUPER, EQUAL, splitratio, 0.25"
+    "SUPER SHIFT, EQUAL, splitratio, 0.015"
+    "SUPER, MINUS, splitratio, -0.25"
+    "SUPER SHIFT, MINUS, splitratio, -0.015"
   ];
+
+  bind =
+    [
+      #| System
+      "SUPER, Q, killactive"
+
+      #| Applications
+      # "SUPER, GRAVE, exec,  ${terminal.primary.command}"
+      # "SUPER SHIFT, GRAVE, exec, ${terminal.secondary.command}"
+      "SUPER, B, exec, ${browser.primary.command}"
+      "SUPER SHIFT, B, exec, ${browser.secondary.command}"
+      "SUPER, C, exec, ${editor.primary.command}"
+      "SUPER SHIFT, C, exec, ${editor.secondary.command}"
+
+      # "SUPER, GRAVE, exec, ${terminal.primary.command}"
+      "SUPER, RETURN, exec, ${terminal.primary.command}"
+      "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
+      "SUPER SHIFT, RETURN, exec, ${terminal.secondary.command}"
+      # "SUPER SHIFT, C, exec, ${editor.secondary.command}"
+
+      # | Windows
+      "SUPER, S, togglesplit"
+      "SUPER, P, pseudo"
+
+      "ALT, RETURN, fullscreen, 0"
+      "ALT SHIFT, RETURN, togglefloating"
+      # "SUPER, F, fullscreen, 1"
+      # "SUPER SHIFT, F, togglefloating"
+
+      "SUPER, G, togglegroup"
+      "SUPER, T, lockactivegroup, toggle"
+
+      #~@ Cycle through active workspaces
+      "SUPER, TAB, workspace, previous"
+
+      #~@ Toggle the previously focused window
+      "ALT, TAB, focuscurrentorlast"
+
+      "SUPER, U, togglespecialworkspace"
+      # "SUPER ALT, F, pin"
+
+      #| Workspaces
+      # special workspace
+      # "SUPER SHIFT, grave, movetoworkspace, special"
+      # "SUPER, grave, togglespecialworkspace, eDP-1"
+
+      # cycle workspaces
+      "SUPER, bracketleft, workspace, m-1"
+      "SUPER, bracketright, workspace, m+1"
+
+      # cycle monitors
+      "SUPER SHIFT, bracketleft, focusmonitor, l"
+      "SUPER SHIFT, bracketright, focusmonitor, r"
+
+      # "SUPER, V, movetoworkspace, special"
+    ]
+    #> Change workspace
+    ++ (map (n: "SUPER,${n},workspace,name:${n}") workspaces)
+    #> Move window to workspace
+    ++ (map (n: "SUPER SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
+    #> Move focus
+    ++ (mat (key: direction: "SUPER,${key},movefocus,${direction}") directions)
+    #> Swap windows
+    ++ (mat (key: direction: "SUPER SHIFT,${key},swapwindow,${direction}") directions)
+    #> Move windows
+    ++ (mat (key: direction: "SUPER CONTROL,${key},movewindoworgroup,${direction}") directions)
+    #> Move monitor focus
+    ++ (mat (key: direction: "SUPER ALT,${key},focusmonitor,${direction}") directions)
+    #> Move workspace to other monitor
+    ++ (mat (
+        key: direction: "SUPER ALT SHIFT,${key},movecurrentworkspacetomonitor,${direction}"
+      )
+      directions);
 }
