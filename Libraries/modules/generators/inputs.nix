@@ -263,9 +263,6 @@
       fromStable = import inputs.nixpkgs-stable {
         inherit config;
         system = getSystem final;
-        # stdenv = prev.stdenv.override {
-        #   extraBuildInputs = [prev.gcc];
-        # };
       };
     })
 
@@ -274,9 +271,6 @@
       fromUnstable = import inputs.nixpkgs-unstable {
         inherit config;
         system = getSystem final;
-        # stdenv = prev.stdenv.override {
-        #   extraBuildInputs = [prev.gcc];
-        # };
       };
     })
 

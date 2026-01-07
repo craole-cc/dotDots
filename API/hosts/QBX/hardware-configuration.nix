@@ -7,7 +7,6 @@
 }: let
   inherit (lib.modules) mkDefault;
   sleep = "${pkgs.coreutils}/bin/sleep";
-  timeout = 5;
 in {
   # ==================== IMPORTS ====================
   imports = [(modulesPath + "/installer/scan/not-detected.nix")];
@@ -62,7 +61,7 @@ in {
     loader = {
       systemd-boot.enable = mkDefault true;
       efi.canTouchEfiVariables = mkDefault true;
-      timeout = mkDefault timeout;
+      timeout = mkDefault 5;
     };
 
     kernelParams = [
@@ -104,7 +103,7 @@ in {
       before = ["display-manager.service"];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${sleep} ${timeout}";
+        ExecStart = "${sleep} 3";
       };
     };
   };
