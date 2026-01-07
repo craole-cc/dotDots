@@ -117,10 +117,6 @@ in {
 
   # "SUPER" = toUpper modifier;
 
-  bindi = [
-    "SUPER, SUPER_L, global, caelestia:launcher"
-  ];
-
   bindl = [
     #| System
     "SUPER SHIFT, Q, exit"
@@ -136,6 +132,10 @@ in {
     #| Audio
     ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+  ];
+
+  bindi = [
+    "SUPER, SUPER_L, global, ${launcher.primary.command}"
   ];
 
   bindr = with launcher; [
