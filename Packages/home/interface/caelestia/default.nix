@@ -29,6 +29,7 @@
     home = {inherit packages;};
   };
 in {
+  imports = [./hyprland.nix];
   config = mkIf cfg.enable {
     inherit (cfg) programs home;
   };
