@@ -6,27 +6,25 @@
   inherit (lib.modules) mkIf;
   isHyprland = config.wayland.windowManager.hyprland.enable or false;
 in {
-  config = mkIf isHyprland {
-    wayland.windowManager.hyprland.settings = {
-      # Primary launcher trigger - Super+Space
-      bindr = [
-        "SUPER, SPACE, exec, vicinae toggle"
-      ];
+  wayland.windowManager.hyprland.settings = mkIf isHyprland {
+    # Primary launcher trigger - Super+Space
+    bindr = [
+      "SUPER, SPACE, exec, vicinae toggle"
+    ];
 
-      bind = [
-        # Alternative launcher triggers
-        "SUPER, R, exec, vicinae toggle" # Common launcher binding
-        "ALT, SPACE, exec, vicinae toggle" # macOS-style spotlight
+    bind = [
+      # Alternative launcher triggers
+      "SUPER, R, exec, vicinae toggle" # Common launcher binding
+      "ALT, SPACE, exec, vicinae toggle" # macOS-style spotlight
 
-        # Specific vicinae commands
-        "SUPER, A, exec, vicinae show applications" # Show apps directly
-        "SUPER+SHIFT, V, exec, vicinae show clipboard:history" # Clipboard history
-        "SUPER+SHIFT, F, exec, vicinae show files:search" # File search
+      # Specific vicinae commands
+      "SUPER, A, exec, vicinae show applications" # Show apps directly
+      "SUPER+SHIFT, V, exec, vicinae show clipboard:history" # Clipboard history
+      "SUPER+SHIFT, F, exec, vicinae show files:search" # File search
 
-        # Quick actions via vicinae
-        "SUPER, slash, exec, vicinae" # Another common launcher key
-      ];
-    };
+      # Quick actions via vicinae
+      "SUPER, slash, exec, vicinae" # Another common launcher key
+    ];
   };
 }
 # Usage tips:
