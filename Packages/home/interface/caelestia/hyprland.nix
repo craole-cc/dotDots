@@ -10,7 +10,7 @@
       submap = "global";
 
       # Launcher with interrupt bindings
-      bindi = ["SUPER, SUPER_L, global, caelestia:launcher"];
+      # bindi = ["SUPER, SUPER_L, global, caelestia:launcher"];
 
       bindin = [
         # "SUPER, catchall, global, caelestia:launcherInterrupt"
