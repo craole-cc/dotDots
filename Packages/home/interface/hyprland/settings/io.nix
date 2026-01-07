@@ -107,7 +107,7 @@ in {
       tap-and-drag = true;
     };
 
-    follow_mouse = true;
+    follow_mouse = "0";
     # force_no_accel = 1;
     # repeat_delay = 200;
     # repeat_rate = 40;
@@ -138,10 +138,10 @@ in {
   #   "SUPER, SUPER_L, global, ${launcher.primary.command}"
   # ];
 
-  bindr = [
+  bindr = with launcher; [
     #| Launcher
-    "SUPER, SUPER_L, global, ${launcher.primary.command}"
-    "SUPER, SPACE, exec, ${launcher.secondary.command}"
+    "SUPER, SUPER_L, exec, ${primary.command}"
+    "SUPER, SPACE, exec,  ${secondary.command}"
     # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
