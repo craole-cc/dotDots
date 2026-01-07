@@ -13,6 +13,7 @@
       # bindi = ["SUPER, SUPER_L, global, caelestia:launcher"];
 
       bindin = [
+        "SUPER, SUPER_L, global, caelestia:launcher"
         # "SUPER, catchall, global, caelestia:launcherInterrupt"
         "SUPER, mouse:272, global, caelestia:launcherInterrupt"
         "SUPER, mouse:273, global, caelestia:launcherInterrupt"
