@@ -1,8 +1,10 @@
 {
-  mkIf,
+  lib,
   config,
   ...
-}: {
+}: let
+  inherit (lib.modules) mkIf mkForce;
+in {
   wayland.windowManager.hyprland.settings =
     mkIf
     (config.wayland.windowManager.hyprland.enable or false) {
@@ -12,9 +14,8 @@
       # Launcher with interrupt bindings
       # bindi = ["SUPER, SUPER_L, global, caelestia:launcher"];
 
-      bindin = [
-        "SUPER, SUPER_L, global, caelestia:launcher"
-        # "SUPER, catchall, global, caelestia:launcherInterrupt"
+      bindin = mkForce [
+        "SUPER, SPACE, global, caelestia:launcher"
         "SUPER, mouse:272, global, caelestia:launcherInterrupt"
         "SUPER, mouse:273, global, caelestia:launcherInterrupt"
         "SUPER, mouse:274, global, caelestia:launcherInterrupt"
@@ -25,7 +26,7 @@
         "SUPER, mouse_down, global, caelestia:launcherInterrupt"
       ];
 
-      bindl = [
+      bindl = mkForce [
         #~@ Media controls
         "SUPER CTRL, Space, global, caelestia:mediaToggle"
         ", XF86AudioPlay, global, caelestia:mediaToggle"
@@ -44,7 +45,7 @@
         ", Print, exec, caelestia screenshot"
       ];
 
-      bind = [
+      bind = mkForce [
         #~@ Screenshots and recording
         "SUPER SHIFT, S, global, caelestia:screenshotFreeze"
         "SUPER SHIFT ALT, S, global, caelestia:screenshot"
@@ -67,7 +68,7 @@
         "SUPER, P, exec, caelestia resizer pip"
       ];
 
-      bindr = [
+      bindr = mkForce [
         #~@ Kill/restart Caelestia
         "SUPER CTRL SHIFT, R, exec, pkill caelestia"
         "SUPER CTRL ALT, R, exec, pkill caelestia; caelestia shell -d"
