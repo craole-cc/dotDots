@@ -5,6 +5,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.lists) optional;
   name = "caelestia";
   kind = "bar";
   city = host.localization.city or "Mandeville, Jamaica";
@@ -29,7 +30,7 @@
     home = {inherit packages;};
   };
 in {
-  imports = [./hyprland.nix];
+  imports = optional cfg.enable ./hyprland.nix;
   config = mkIf cfg.enable {
     inherit (cfg) programs home;
   };
