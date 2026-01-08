@@ -50,5 +50,6 @@ in {
   qt = mkForce {
     enable = true;
     platformTheme = "gtk";
+    style.name = "kvantum";
   };
 }
