@@ -1,13 +1,13 @@
 {
   # workspace = {
-  #   "special:quake-term" = {
+  #   "special:terminal" = {
   #     gaps_out = 0;
   #     gaps_in = 0;
   #     border_size = 0;
   #     rounding = 0;
   #     animate = false;
   #   };
-  #   "special:quake-dev" = {
+  #   "special:development" = {
   #     gaps_out = 0;
   #     gaps_in = 0;
   #     border_size = 0;
@@ -22,13 +22,18 @@
   ];
 
   windowrulev2 = [
-    "float, workspace:^(quake-term)$"
-    "size 100% 30%, workspace:^(quake-term)$"
-    "move 0% 0%, workspace:^(quake-term)$"
-    "noborder, workspace:^(quake-term)$"
-    "float, workspace:^(quake-dev)$"
-    "size 100% 60%, workspace:^(quake-dev)$"
-    "move 0% 0%, workspace:^(quake-dev)$"
-    "noborder, workspace:^(quake-dev)$"
+    # Terminal to quake-terminal
+    "workspace special:terminal, class:^(foot)$"
+    "float, workspace:^(terminal)$"
+    "size 100% 30%, workspace:^(terminal)$"
+    "move 0% 0%, workspace:^(terminal)$"
+    "noborder, workspace:^(terminal)$"
+
+    # VSCode to quake-development
+    "workspace special:development, class:^(code)$"
+    "float, workspace:^(development)$"
+    "size 100% 60%, workspace:^(development)$"
+    "move 0% 0%, workspace:^(development)$"
+    "noborder, workspace:^(development)$"
   ];
 }
