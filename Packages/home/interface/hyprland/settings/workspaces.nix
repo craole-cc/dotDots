@@ -1,7 +1,7 @@
 let
   browser = "zen-twilight";
   editor = "code";
-  terminal = "footclient";
+  terminal = "foot";
 in {
   bind = [
     "SUPER, grave, togglespecialworkspace, terminal"
