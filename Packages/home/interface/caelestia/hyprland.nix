@@ -12,7 +12,10 @@ in {
       submap = "global";
 
       # # Launcher with interrupt bindings
-      # bindi = ["SUPER, SPACE, caelestia:launcher"];
+      bindi = [
+        "CTRL SPACE, SPACE, caelestia:launcher"
+        # "SUPER, SPACE, caelestia:launcher"
+      ];
 
       bindin = [
         # "SUPER, ESCAPE, caelestia:launcherInterrupt"
