@@ -64,6 +64,15 @@
       ];
     };
 
+    catppuccin = byPaths {
+      attrset = inputs;
+      default = "catppuccin";
+      paths = [
+        ["styleCatppuccin"]
+        ["catppuccinStyle"]
+      ];
+    };
+
     chaotic = byPaths {
       attrset = inputs;
       default = "chaotic";
@@ -247,6 +256,7 @@
     plasma = inputs.plasma.packages or {};
     quickshell = inputs.quickshell.packages or {};
     caelestia = inputs.caelestia.packages or {};
+    catppuccin = inputs.catppuccin.packages or {};
     treefmt = inputs.treefmt.packages or {};
     typix = inputs.typix.packages or {};
     vscode-insiders = inputs.vscode-insiders.packages or {};
@@ -331,6 +341,7 @@
         else [
           (inputs.home-manager.nixosModules.home-manager or {})
           (inputs.stylix.nixosModules.stylix or {})
+          (inputs.catppuccin.nixosModules.default or {})
           (inputs.chaotic.nixosModules.default or {})
         ]
       )
@@ -357,6 +368,7 @@
       };
       noctalia-shell = inputs.noctalia-shell.homeModules or {};
       caelestia = inputs.caelestia.homeManagerModules or {};
+      catppuccin = inputs.catppuccin.homeModules or {};
       nvf = {default = inputs.nvf.homeManagerModules.default or {};};
       plasma = {default = inputs.plasma.homeModules.plasma-manager or {};};
       zen-browser = {
@@ -365,69 +377,100 @@
         beta = inputs.zen-browser.homeModules.beta or {};
       };
     };
+    mkHomeModule = {
+      name,
+      variant ? "default",
+    }:
+      homeModules.${name}.${variant} or {};
+
+    appsAllowed = user: user.applications.allowed or [];
     mkHomeModuleApps = {
       pkgs,
       user,
       config,
     }: {
       #| Plasma Desktop Environment
-      plasma = {
+      plasma = let
+        name = "plasma";
+        alt = "kde";
+      in {
         isAllowed =
-          hasInfix "plasma" (user.interface.desktopEnvironment or "")
-          || hasInfix "kde" (user.interface.desktopEnvironment or "");
-        module = homeModules.plasma.default or {};
+          hasInfix name (user.interface.desktopEnvironment or "")
+          || hasInfix alt (user.interface.desktopEnvironment or "");
+        module = mkHomeModule {inherit name;};
       };
 
       #| Caelestia Shell
-      caelestia = {
-        isAllowed = isIn ["caelestia-shell" "caelestia"] (
-          (user.applications.allowed or [])
+      catppuccin = let
+        name = "catppuccin";
+        theme = user.interface.style.theme or {};
+      in {
+        isAllowed =
+          isIn name (appsAllowed user)
+          || hasInfix name (theme.light or "")
+          || hasInfix name (theme.dark or "");
+        module = mkHomeModule {inherit name;};
+      };
+
+      #| Caelestia Shell
+      caelestia = let
+        name = "caelestia";
+      in {
+        isAllowed = isIn ["${name}-shell" name] (
+          (appsAllowed user)
           ++ [(user.applications.bar or null)]
         );
-        module = homeModules.caelestia.default or {};
+        module = mkHomeModule {inherit name;};
       };
 
       #| Dank Material Shell
-      dank-material-shell = {
-        isAllowed = isIn ["dank-material-shell" "dank" "dms"] (
-          (user.applications.allowed or [])
+      dank-material-shell = let
+        name = "dank-material-shell";
+      in {
+        isAllowed = isIn [name "dank" "dms"] (
+          (appsAllowed user)
           ++ [(user.applications.bar or null)]
         );
-        module = homeModules.dank-material-shell.default or {};
+        module = mkHomeModule {inherit name;};
       };
 
       #| Noctalia Shell
-      noctalia-shell = {
+      noctalia-shell = let
+        name = "noctalia-shell";
+      in {
         isAllowed = isIn ["noctalia-shell" "noctalia" "noctalia-dev"] (
-          (user.applications.allowed or [])
+          (appsAllowed user)
           ++ [(user.applications.bar or null)]
         );
-        module = homeModules.noctalia-shell.default or {};
+        module = mkHomeModule {inherit name;};
       };
 
       #| NVF (Neovim Framework)
-      nvf = rec {
-        isAllowed = isIn ["nvf" "nvim" "neovim"] (
-          (user.applications.allowed or [])
+      nvf = let
+        name = "nvf";
+      in {
+        isAllowed = isIn [name "nvim" "neovim"] (
+          (appsAllowed user)
           ++ [(user.applications.editor.tty.primary or null)]
           ++ [(user.applications.editor.tty.secondary or null)]
         );
-        variant = "default";
-        module = homeModules.nvf.${variant} or {};
+        module = mkHomeModule {inherit name;};
       };
 
       #| Firefox - Zen Browser
-      zen-browser = rec {
-        isAllowed =
-          hasInfix "zen" (user.applications.browser.firefox or "")
-          || isIn ["zen" "zen-browser" "zen-twilight" "zen-browser"] (
-            user.applications.allowed or []
-          );
+      zen-browser = let
+        name = "zen-browser";
+        alt = "zen";
+        alt_names = [name alt "zen-twilight"];
         variant =
           if hasInfix "twilight" (user.applications.browser.firefox or "")
           then "twilight"
           else "default";
-        module = homeModules.zen-browser.${variant} or {};
+      in {
+        isAllowed =
+          hasInfix alt (user.applications.browser.firefox or "")
+          || isIn alt_names (appsAllowed user);
+        module = mkHomeModule {inherit name variant;};
       };
     };
     hostModules =

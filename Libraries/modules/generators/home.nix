@@ -6,6 +6,7 @@
   inherit (_.attrsets.resolution) package;
   inherit (lib.attrsets) filterAttrs mapAttrs optionalAttrs;
   inherit (lib.lists) head optionals;
+  inherit (lib.strings) hasInfix toLower;
   inherit (_.lists.predicates) isIn;
 
   /**
@@ -106,71 +107,7 @@
     extraSpecialArgs,
     specialArgs,
     ...
-  }:
-  #  let
-  #> Pre-filter users eligible for home-manager
-  # homeUsers = homeManagerUsers host;
-  # # Helper to build user-specific home-manager configuration
-  # mkHomeConfig = {
-  #   name,
-  #   cfg,
-  #   apps,
-  #   modules,
-  # }: let
-  #   userApps = apps {
-  #     user = (userAttrs host).${name} or {};
-  #     config = cfg;
-  #     inherit modules pkgs;
-  #   };
-  # in
-  #   {
-  #     config,
-  #     nixosConfig,
-  #     mkHomeModuleApps,
-  #     homeModules,
-  #     src,
-  #     ...
-  #   }: let
-  #     userApps = mkHomeModuleApps {
-  #       user = cfg;
-  #       inherit homeModules pkgs config;
-  #     };
-  #   in
-  #     with userApps; {
-  #       home.stateVersion = host.stateVersion or nixosConfig.sustem.stateVersion;
-  #       #> Pass user data and apps to modules via _module.args
-  #       _module.args.user = cfg // {inherit name userApps;};
-  #       #> Conditionally import modules based on user's allowed applications
-  #       imports =
-  #         []
-  #         ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
-  #         ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
-  #         ++ optionals nvf.isAllowed [nvf.module]
-  #         ++ optionals plasma.isAllowed [plasma.module]
-  #         ++ optionals zen-browser.isAllowed [zen-browser.module]
-  #         ++ [(src + "/Packages/home")]
-  #         ++ (user.imports or []);
-  #       #> Enable programs based on module availability
-  #       programs =
-  #         {}
-  #         // optionalAttrs dank-material-shell.isAllowed {
-  #           dank-material-shell.enable = true;
-  #         }
-  #         // optionalAttrs noctalia-shell.isAllowed {
-  #           noctalia-shell.enable = true;
-  #         }
-  #         // optionalAttrs nvf.isAllowed {
-  #           nvf.enable = true;
-  #         }
-  #         // optionalAttrs plasma.isAllowed {
-  #           plasma.enable = true;
-  #         }
-  #         // optionalAttrs zen-browser.isAllowed {
-  #           zen-browser.enable = true;
-  #         };
-  #     };
-  # in
-  {
+  }: {
     /**
     Security configuration for sudo access
     */
@@ -227,46 +164,64 @@
         userApps = mkHomeModuleApps {inherit pkgs config user;};
       in
         with userApps; {
-          home = {
-            inherit (nixosConfig.system) stateVersion;
-          };
-
           #> Pass user data and apps to modules via _module.args
           _module.args.user = user // {inherit name userApps;};
 
+          #> Update the stateVersion to mirror that of the host
+          home = {inherit (nixosConfig.system) stateVersion;};
+
           #> Conditionally import modules based on user's allowed applications
           imports =
-            []
-            ++ optionals dank-material-shell.isAllowed [dank-material-shell.module]
-            ++ optionals noctalia-shell.isAllowed [noctalia-shell.module]
-            ++ optionals caelestia.isAllowed [caelestia.module]
-            ++ optionals nvf.isAllowed [nvf.module]
-            ++ optionals plasma.isAllowed [plasma.module]
-            ++ optionals zen-browser.isAllowed [zen-browser.module]
-            ++ [(src + "/Packages/home")]
-            ++ (user.imports or []);
-
-          #> Enable programs based on module availability
-          programs =
-            {}
-            // optionalAttrs caelestia.isAllowed {
-              caelestia.enable = true;
-            }
-            // optionalAttrs dank-material-shell.isAllowed {
-              dank-material-shell.enable = true;
-            }
-            // optionalAttrs noctalia-shell.isAllowed {
-              noctalia-shell.enable = true;
-            }
-            // optionalAttrs nvf.isAllowed {
-              nvf.enable = true;
-            }
-            // optionalAttrs plasma.isAllowed {
-              plasma.enable = true;
-            }
-            // optionalAttrs zen-browser.isAllowed {
-              zen-browser.enable = true;
-            };
+            (user.imports or [])
+            ++ optionals caelestia.isAllowed [
+              caelestia.module
+              {programs.caelestia.enable = true;}
+            ]
+            ++ optionals catppuccin.isAllowed [
+              catppuccin.module
+              {
+                catppuccin = {
+                  enable = true;
+                  flavor = let
+                    style = user.interface.style;
+                    current = style.current or "dark";
+                    theme = toLower (style.theme.${current});
+                  in
+                    if hasInfix "frappe" theme || hasInfix "frappé" theme
+                    then "frappe"
+                    else if hasInfix "latte" theme
+                    then "latte"
+                    else if hasInfix "mocha" theme
+                    then "mocha"
+                    else if hasInfix "macchiato" theme
+                    then "macchiato"
+                    else if current == "dark"
+                    then "frappe"
+                    else "latte";
+                };
+              }
+            ]
+            ++ optionals dank-material-shell.isAllowed [
+              dank-material-shell.module
+              {programs.dank-material-shell.enable = true;}
+            ]
+            ++ optionals noctalia-shell.isAllowed [
+              noctalia-shell.module
+              {programs.noctalia-shell.enable = true;}
+            ]
+            ++ optionals nvf.isAllowed [
+              nvf.module
+              {programs.nvf.enable = true;}
+            ]
+            ++ optionals plasma.isAllowed [
+              plasma.module
+              {programs.plasma.enable = true;}
+            ]
+            ++ optionals zen-browser.isAllowed [
+              zen-browser.module
+              {programs.zen-browser.enable = true;}
+            ]
+            ++ [(src + "/Packages/home")];
         })
       (homeUserAttrs host);
     };

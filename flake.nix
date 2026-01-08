@@ -4,26 +4,12 @@
   outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit
-      (import src {inherit lib src self;})
-      lix
-      flake
-      hosts
-      schema
-      ;
+    inherit (import src {inherit lib src self;}) lix flake hosts schema;
     inherit (lix.inputs.resolution) getInputs;
     inherit (lix.modules.generators.core) mkSystem;
     inherit (lix.modules.resolution) perFlake;
 
-    args = {
-      inherit
-        lix
-        flake
-        schema
-        src
-        ;
-    };
-
+    args = {inherit lix flake schema src;};
     perSystem = perFlake {inherit hosts legacyPackages;} (
       {
         system,
@@ -189,6 +175,13 @@
     styleManager = {
       repo = "stylix";
       owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
+    styleCatppuccin = {
+      repo = "nix";
+      owner = "catppuccin";
       type = "github";
       inputs.nixpkgs.follows = "nixPackages";
     };

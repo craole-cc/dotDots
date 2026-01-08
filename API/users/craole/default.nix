@@ -106,10 +106,10 @@
     };
     style = {
       autoSwitch = true;
-      current = "dark";
+      # current = "light";
       theme = {
-        dark = "catppuccin frappe";
-        light = "catppuccin latte";
+        dark = "catppuccin mocha";
+        light = "catppuccin";
       };
       icons = {
         dark = "candy";
@@ -172,6 +172,7 @@
       "obs-studio"
       "yazi"
       "vim"
+      # "catppuccin"
     ];
   };
 

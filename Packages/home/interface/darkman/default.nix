@@ -1,4 +1,3 @@
-# Packages/home/common/darkman.nix
 {
   nixosConfig,
   host,
@@ -9,7 +8,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) hasPrefix;
+  inherit (lib.strings) hasPrefix toLower hasInfix;
   inherit (pkgs) writeShellScript;
 
   #~@ Location
@@ -21,6 +20,28 @@
   #~@ Style
   style = user.interface.style or host.interface.style or {};
   autoSwitch = style.autoSwitch or false;
+
+  #~@ Check if user is using catppuccin
+  isCatppuccin = mode: let
+    theme = toLower (style.theme.${mode} or "");
+  in
+    hasInfix "catppuccin" theme;
+
+  #~@ Extract catppuccin flavor from theme string
+  getCatppuccinFlavor = mode: let
+    theme = toLower (style.theme.${mode} or "");
+  in
+    if hasInfix "frappe" theme || hasInfix "frappé" theme
+    then "frappe"
+    else if hasInfix "latte" theme
+    then "latte"
+    else if hasInfix "mocha" theme
+    then "mocha"
+    else if hasInfix "macchiato" theme
+    then "macchiato"
+    else if mode == "dark"
+    then "frappe"
+    else "latte";
 
   #~@ Paths
   wallpapers = let
@@ -50,12 +71,24 @@
     nh = "${pkgs.nh}/bin/nh";
     modeWallpaper = "${wallpapers}/${mode}-wallpaper";
     currentWallpaper = "${wallpapers}/current-wallpaper";
+
+    # Catppuccin-specific updates (only if user is using catppuccin)
+    catppuccinUpdates = mkIf (isCatppuccin mode) ''
+      #> Update catppuccin flavor in user configuration
+      FLAVOR="${getCatppuccinFlavor mode}"
+      # Update the catppuccin flavor line if it exists
+      if grep -q "catppuccin.*flavor" "${userApi}"; then
+        ${sd} 'flavor = "[^"]*"' 'flavor = "'"$FLAVOR"'"' "${userApi}"
+      fi
+    '';
   in
     writeShellScript "darkman-${mode}-mode" ''
       set -euo pipefail
 
       #> Update theme mode in user configuration
       ${sd} 'current = "(dark|light)"' 'current = "${mode}"' "${userApi}"
+
+      ${catppuccinUpdates}
 
       #> Update wallpaper symlink
       if [ -L "${currentWallpaper}" ] || [ -e "${modeWallpaper}" ]; then

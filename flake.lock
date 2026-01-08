@@ -933,6 +933,7 @@
         "shellNoctalia": "shellNoctalia",
         "shellPlasma": "shellPlasma",
         "shellQuick": "shellQuick",
+        "styleCatppuccin": "styleCatppuccin",
         "styleManager": "styleManager",
         "treeFormatter": "treeFormatter"
       }
@@ -1099,6 +1100,26 @@
       "original": {
         "owner": "outfoxxed",
         "repo": "quickshell",
+        "type": "github"
+      }
+    },
+    "styleCatppuccin": {
+      "inputs": {
+        "nixpkgs": [
+          "nixPackages"
+        ]
+      },
+      "locked": {
+        "lastModified": 1767750947,
+        "narHash": "sha256-zqe9esphlAFu19TGL/nAyOHyOiR+Vu8M2IWWLg9cm4U=",
+        "owner": "catppuccin",
+        "repo": "nix",
+        "rev": "e7135074fe2a3d17bee3c229b5a7d3da26f76ce8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "catppuccin",
+        "repo": "nix",
         "type": "github"
       }
     },
