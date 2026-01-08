@@ -20,7 +20,7 @@
       (import ./editor.nix)
       (import ./keybindings.nix)
       (import ./languages.nix)
-      (import ./themes.nix)
+      # (import ./themes.nix)
     ];
     debug = false;
   };
