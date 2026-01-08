@@ -17,9 +17,6 @@
 
     #~@ Search Functionality
     search-start = "Control+Shift+f";
-    cancel = "Escape";
-    find-prev = "Control+Shift+Left";
-    find-next = "Control+Shift+Right";
 
     #~@ Theme Switching
     #? Manual theme toggle between dark and light
