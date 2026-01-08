@@ -1,24 +1,24 @@
 {
-  workspace = {
-    "special:quake-term" = {
-      gaps_out = 0;
-      gaps_in = 0;
-      border_size = 0;
-      rounding = 0;
-      animate = false;
-    };
-    "special:quake-dev" = {
-      gaps_out = 0;
-      gaps_in = 0;
-      border_size = 0;
-      rounding = 0;
-      animate = false;
-    };
-  };
+  # workspace = {
+  #   "special:quake-term" = {
+  #     gaps_out = 0;
+  #     gaps_in = 0;
+  #     border_size = 0;
+  #     rounding = 0;
+  #     animate = false;
+  #   };
+  #   "special:quake-dev" = {
+  #     gaps_out = 0;
+  #     gaps_in = 0;
+  #     border_size = 0;
+  #     rounding = 0;
+  #     animate = false;
+  #   };
+  # };
 
   bind = [
-    "SUPER, grave, togglespecialworkspace, quake-term"
-    "SUPER SHIFT, grave, togglespecialworkspace, quake-dev"
+    "SUPER, grave, togglespecialworkspace, terminal"
+    "SUPER SHIFT, grave, togglespecialworkspace, development"
   ];
 
   windowrulev2 = [
