@@ -47,14 +47,12 @@
     };
     launcher = {
       primary = {
-        name = "caelestia";
-        command = "caelestia:launcher";
-      };
-      secondary = {
         name = "vicinae";
         command = "vicinae toggle";
-        # name = "fuzzel";
-        # command = "fuzzel --list-executables-in-path";
+      };
+      secondary = {
+        name = "fuzzel";
+        command = "pkill fuzzel || fuzzel --list-executables-in-path";
       };
     };
   };
@@ -141,13 +139,10 @@ in {
     # "SUPER, SUPER_L, global, ${launcher.primary.command}"
   ];
 
-  bindr = with launcher; [
+  bindr = [
     #| Launcher
-    # "SUPER, SUPER_L, exec, ${primary.name}"
-    # "SUPER, SUPER_L, exec, ${primary.command}"
-    # "CTRL, SPACE, global, ${primary.command}"
-    # "ALT, SPACE, exec,  ${secondary.command}"
-    # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
+    "SUPER, SUPER_L, exec, ${launcher.primary.command}"
+    "CTRL, SPACE, exec, ${launcher.secondary.command}"
   ];
 
   bindle = [

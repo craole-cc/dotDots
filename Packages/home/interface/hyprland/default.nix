@@ -13,12 +13,9 @@ in {
     wayland.windowManager.hyprland = mkMerge [
       {enable = true;}
       # (import ./components {inherit mkMerge;})
-      (import ./settings {inherit host user lib lix mkMerge;})
+      (import ./settings {inherit host user lib lix;})
       # (import ./submaps)
       # (import ./plugins)
     ];
-    home.sessionVariables = {
-      # XDG_CURRENT_DESKTOP = "hyprland";
-    };
   };
 }
