@@ -65,10 +65,11 @@
     && (lng != null)
     && (dots != null);
 
-  #~@ Mode script generator
+  #~@ Mode script generator# Packages/home/common/darkman.nix
   mkModeScript = mode: let
     sd = "${pkgs.sd}/bin/sd";
     ln = "${pkgs.coreutils}/bin/ln";
+    hyprctl = "${pkgs.hyprland}/bin/hyprctl";
 
     modeWallpaper = "${wallpapers}/${mode}-wallpaper";
     currentWallpaper = "${wallpapers}/current-wallpaper";
@@ -89,19 +90,34 @@
 
       ${catppuccinUpdates}
 
-      #> Update wallpaper symlink
+      #> Update wallpaper and reload Hyprland
       if [ -L "${currentWallpaper}" ] || [ -e "${modeWallpaper}" ]; then
         ${ln} -sf "${modeWallpaper}" "${currentWallpaper}"
+        # Set wallpaper in Hyprland immediately
+        ${hyprctl} hyprpaper wallpaper ",${currentWallpaper}" || true
       fi
 
-      #> Reload GTK theme via dconf
+      #> Update Foot terminal config in real-time
+      FOOT_CONFIG="$HOME/.config/foot/foot.ini"
+      if [ -f "$FOOT_CONFIG" ]; then
+        ${sd} 'theme=Catppuccin-.+' 'theme=Catppuccin-${
+        if mode == "dark"
+        then "Frappe"
+        else "Latte"
+      }' "$FOOT_CONFIG"
+      fi
+
+      #> Reload GTK theme
       ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
 
-      #> Show notification
-      ${pkgs.libnotify}/bin/notify-send "Theme Changed" "Switched to ${mode} mode (${getCatppuccinFlavor mode})" || true
+      #> Reload Hyprland config
+      ${hyprctl} reload || true
 
-      #> Optional: Rebuild in background (comment out if too slow)
-      # ${pkgs.nh}/bin/nh os switch "${dots}" &
+      #> Notify about the change
+      ${pkgs.libnotify}/bin/notify-send "Theme Switched" "Changed to ${mode} mode" -t 2000 || true
+
+      #> Optional: Rebuild in background for persistent changes
+      # (${pkgs.nh}/bin/nh home switch "${dots}" &) || true
     '';
 in {
   services.darkman = mkIf enable {
