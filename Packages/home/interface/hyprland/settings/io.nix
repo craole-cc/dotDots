@@ -142,7 +142,7 @@ in {
   bindr = [
     #| Launcher
     "SUPER, SUPER_L, exec, ${launcher.primary.command}"
-    "CTRL, SPACE, exec, ${launcher.secondary.command}"
+    "SUPER, SPACE, exec, ${launcher.secondary.command}"
   ];
 
   bindle = [
