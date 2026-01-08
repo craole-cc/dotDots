@@ -65,6 +65,7 @@ in {
         "SUPER, Period, exec, pkill fuzzel || caelestia emoji -p"
 
         #~@ Special workspace toggles
+        "SUPER, Grave, exec, caelestia toggle term"
         "SUPER, M, exec, caelestia toggle music"
         "SUPER ALT, M, exec, caelestia toggle sysmon"
         "SUPER ALT, D, exec, caelestia toggle communication"
