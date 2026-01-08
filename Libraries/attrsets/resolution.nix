@@ -335,7 +335,7 @@
   of alternatives with automatic fallback logic.
 
   # Type
-  ```
+  ```nix
   package :: {
     pkgs :: AttrSet,
     target :: String | [String],

@@ -108,7 +108,7 @@
       autoSwitch = true;
       # current = "dark";
       theme = {
-        dark = "catppuccin mocha";
+        dark = "catppuccin";
         light = "catppuccin";
       };
       icons = {
@@ -116,8 +116,8 @@
         light = "candy";
       };
       cursor = {
-        dark = "candy";
-        light = "candy";
+        dark = "material";
+        light = "material";
       };
       fonts = {
         emoji = "Noto Color Emoji";

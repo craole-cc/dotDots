@@ -1,3 +1,4 @@
+# Packages/home/common/darkman.nix
 {
   nixosConfig,
   host,
@@ -8,7 +9,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) hasPrefix toLower hasInfix;
+  inherit (lib.strings) hasPrefix hasInfix optionalString toLower;
   inherit (pkgs) writeShellScript;
 
   #~@ Location
@@ -19,7 +20,7 @@
 
   #~@ Style
   style = user.interface.style or host.interface.style or {};
-  autoSwitch = style.autoSwitch or false;
+  switch = style.autoSwitch or false;
 
   #~@ Check if user is using catppuccin
   isCatppuccin = mode: let
@@ -59,7 +60,7 @@
 
   #~@ Enable condition
   enable =
-    autoSwitch
+    switch
     && (lat != null)
     && (lng != null)
     && (dots != null);
@@ -73,7 +74,7 @@
     currentWallpaper = "${wallpapers}/current-wallpaper";
 
     # Catppuccin-specific updates (only if user is using catppuccin)
-    catppuccinUpdates = mkIf (isCatppuccin mode) ''
+    catppuccinUpdates = optionalString (isCatppuccin mode) ''
       #> Update catppuccin flavor in user configuration
       FLAVOR="${getCatppuccinFlavor mode}"
       # Update the catppuccin flavor line if it exists

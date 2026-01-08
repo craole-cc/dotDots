@@ -2,17 +2,38 @@
 {
   pkgs,
   lib,
+  user,
+  lix,
   ...
 }: let
   inherit (lib.modules) mkForce;
-  cursor = {
-    package = pkgs.material-cursors;
-    name = "material_light_cursors";
+  inherit (lib.strings) toLower;
+  getPackage = lix.attrsets.resolution.package;
+  get = lix.attrsets.resolution.get;
+
+  #~@ Style configuration from user API
+  style = user.interface.style or {};
+  current = style.current or "dark";
+
+  #~@ Cursor configuration
+  cursor = rec {
+    name = toLower (get style.cursor current "material_light_cursors");
+    package = getPackage {
+      inherit pkgs;
+      target = name;
+      default = pkgs.material-cursors;
+    };
     size = 32;
   };
-  icons = {
-    package = pkgs.candy-icons;
-    name = "candy-icons";
+
+  #~@ Icons configuration
+  icons = rec {
+    name = toLower (get style.icons current "candy-icons");
+    package = getPackage {
+      inherit pkgs;
+      target = name;
+      default = pkgs.candy-icons;
+    };
   };
 in {
   imports = [
@@ -29,10 +50,6 @@ in {
 
   gtk = {
     enable = mkForce true;
-    # theme = {
-    #   name = "Catppuccin-Mocha-Compact-Pop";
-    #   package = pkgs.catppuccin-gtk;
-    # };
     iconTheme = mkForce {
       inherit (icons) package name;
     };
@@ -49,7 +66,7 @@ in {
 
   qt = mkForce {
     enable = true;
-    platformTheme = "gtk";
+    platformTheme.name = "gtk";
     style.name = "kvantum";
   };
 }
