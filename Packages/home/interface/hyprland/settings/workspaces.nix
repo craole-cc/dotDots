@@ -1,20 +1,20 @@
 {
-  # workspace = {
-  #   "special:terminal" = {
-  #     gaps_out = 0;
-  #     gaps_in = 0;
-  #     border_size = 0;
-  #     rounding = 0;
-  #     animate = false;
-  #   };
-  #   "special:development" = {
-  #     gaps_out = 0;
-  #     gaps_in = 0;
-  #     border_size = 0;
-  #     rounding = 0;
-  #     animate = false;
-  #   };
-  # };
+  workspace = {
+    "special:terminal" = {
+      gaps_out = 0;
+      gaps_in = 0;
+      border_size = 0;
+      rounding = 0;
+      animate = false;
+    };
+    "special:development" = {
+      gaps_out = 0;
+      gaps_in = 0;
+      border_size = 0;
+      rounding = 0;
+      animate = false;
+    };
+  };
 
   bind = [
     "SUPER, grave, togglespecialworkspace, terminal"
