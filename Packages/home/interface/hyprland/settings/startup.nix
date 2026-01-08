@@ -85,7 +85,8 @@
     # "[workspace 3 silent] ghostty"
     # "[workspace 3 silent] footclient"
 
-    "[workspace dev silent] code"
-    "[workspace terminal silent] footclient"
+    # "[workspace dev silent] code"
+    # "[workspace terminal silent] footclient"
+    "[workspace terminal] footclient"
   ];
 }
