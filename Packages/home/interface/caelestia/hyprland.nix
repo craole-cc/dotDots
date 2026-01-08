@@ -11,8 +11,8 @@ in {
       exec = "hyprctl dispatch submap global";
       submap = "global";
 
-      # Launcher with interrupt bindings
-      bindi = ["SUPER, SPACE, caelestia:launcher"];
+      # # Launcher with interrupt bindings
+      # bindi = ["SUPER, SPACE, caelestia:launcher"];
 
       bindin = [
         # "SUPER, ESCAPE, caelestia:launcherInterrupt"
