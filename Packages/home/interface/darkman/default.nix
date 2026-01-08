@@ -69,15 +69,13 @@
   mkModeScript = mode: let
     sd = "${pkgs.sd}/bin/sd";
     ln = "${pkgs.coreutils}/bin/ln";
-    nh = "${pkgs.nh}/bin/nh";
+
     modeWallpaper = "${wallpapers}/${mode}-wallpaper";
     currentWallpaper = "${wallpapers}/current-wallpaper";
 
-    # Catppuccin-specific updates (only if user is using catppuccin)
     catppuccinUpdates = optionalString (isCatppuccin mode) ''
       #> Update catppuccin flavor in user configuration
       FLAVOR="${getCatppuccinFlavor mode}"
-      # Update the catppuccin flavor line if it exists
       if grep -q "catppuccin.*flavor" "${userApi}"; then
         ${sd} 'flavor = "[^"]*"' 'flavor = "'"$FLAVOR"'"' "${userApi}"
       fi
@@ -96,8 +94,23 @@
         ${ln} -sf "${modeWallpaper}" "${currentWallpaper}"
       fi
 
-      #> Apply system changes
-      ${nh} os switch "${dots}"
+      #> Reload specific configs instead of full rebuild
+      # Reload GTK theme
+      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'"
+
+      # Notify running applications
+      ${pkgs.dbus}/bin/dbus-send --session --dest=org.freedesktop.portal.Desktop \
+        /org/freedesktop/portal/desktop \
+        org.freedesktop.portal.Settings.SettingsChanged \
+        string:'org.freedesktop.appearance' \
+        dict:string:variant:'color-scheme',uint32:${
+        if mode == "dark"
+        then "1"
+        else "0"
+      }
+
+      # Optional: Only rebuild if you want persistent changes
+      # ${pkgs.nh}/bin/nh os switch "${dots}" &
     '';
 in {
   services.darkman = mkIf enable {
