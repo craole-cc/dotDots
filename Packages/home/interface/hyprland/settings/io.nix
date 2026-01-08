@@ -136,16 +136,17 @@ in {
     ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
   ];
 
-  # bindi = [
-  #   "SUPER, SUPER_L, global, ${launcher.primary.command}"
-  # ];
+  bindi = [
+    #   "SUPER, SUPER_L, global, ${launcher.primary.command}"
+    # "SUPER, SUPER_L, global, ${launcher.primary.command}"
+  ];
 
   bindr = with launcher; [
     #| Launcher
     # "SUPER, SUPER_L, exec, ${primary.name}"
     # "SUPER, SUPER_L, exec, ${primary.command}"
     # "CTRL, SPACE, global, ${primary.command}"
-    "ALT, SPACE, exec,  ${secondary.command}"
+    # "ALT, SPACE, exec,  ${secondary.command}"
     # "SUPER, SPACE, exec, pkill ${secondary.name} || ${secondary.command}"
   ];
 
