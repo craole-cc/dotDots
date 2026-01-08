@@ -10,5 +10,6 @@
     (import ./startup.nix)
     # (import ./core.nix)
     # (import ./rules.nix {inherit lib;})
+    (import ./workspaces.nix)
   ];
 }
