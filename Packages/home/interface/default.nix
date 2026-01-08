@@ -1,5 +1,10 @@
 # {lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
-{pkgs, ...}: let
+{
+  pkgs,
+  lib,
+  ...
+}: let
+  inherit (lib.modules) mkForce;
   cursor = {
     package = pkgs.material-cursors;
     name = "material_light_cursors";
@@ -23,26 +28,26 @@ in {
   ];
 
   gtk = {
-    enable = true;
+    enable = mkForce true;
     # theme = {
     #   name = "Catppuccin-Mocha-Compact-Pop";
     #   package = pkgs.catppuccin-gtk;
     # };
-    iconTheme = {
+    iconTheme = mkForce {
       inherit (icons) package name;
     };
-    cursorTheme = {
+    cursorTheme = mkForce {
       inherit (cursor) package name size;
     };
   };
 
-  home.pointerCursor = {
+  home.pointerCursor = mkForce {
     gtk.enable = true;
     x11.enable = true;
     inherit (cursor) package name size;
   };
 
-  qt = {
+  qt = mkForce {
     enable = true;
     platformTheme = "gtk";
   };
