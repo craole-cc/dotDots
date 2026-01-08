@@ -97,8 +97,11 @@
       #> Reload GTK theme via dconf
       ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
 
+      #> Show notification
+      ${pkgs.libnotify}/bin/notify-send "Theme Changed" "Switched to ${mode} mode (${getCatppuccinFlavor mode})" || true
+
       #> Optional: Rebuild in background (comment out if too slow)
-      ${pkgs.nh}/bin/nh os switch "${dots}" &
+      # ${pkgs.nh}/bin/nh os switch "${dots}" &
     '';
 in {
   services.darkman = mkIf enable {
