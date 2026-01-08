@@ -88,17 +88,5 @@
     # "[workspace dev silent] code"
     # "[workspace terminal silent] footclient"
     # "[workspace terminal] footclient"
-
-    # ============================================
-    # Quake Startup (after services)
-    # ============================================
-    # Terminal
-    "[workspace special:terminal silent] footclient"
-
-    # Editor
-    "[workspace special:editor silent] code"
-
-    # Browser
-    "[workspace special:browser silent] zen-twilight"
   ];
 }

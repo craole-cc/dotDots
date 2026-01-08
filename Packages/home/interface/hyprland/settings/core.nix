@@ -1,4 +1,5 @@
 {
+  env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {
     # sensitivity = 0.2;
 
