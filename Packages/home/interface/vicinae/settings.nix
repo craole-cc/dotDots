@@ -15,16 +15,16 @@
         # normal = "Maple Nerd Font";
       };
     };
-    theme = {
-      light = {
-        name = "vicinae-light";
-        icon_theme = "default";
-      };
-      dark = {
-        name = "vicinae-dark";
-        icon_theme = "default";
-      };
-    };
+    # theme = {
+    #   light = {
+    #     name = "vicinae-light";
+    #     icon_theme = "default";
+    #   };
+    #   dark = {
+    #     name = "vicinae-dark";
+    #     icon_theme = "default";
+    #   };
+    # };
     launcher_window = {
       opacity = 0.95;
     };
