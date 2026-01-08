@@ -5,8 +5,8 @@
     clipboard-paste = "Control+Shift+v XF86Paste";
 
     #~@ Scrollback Navigation
-    scrollback-up-page = "Shift+Page_Up";
-    scrollback-down-page = "Shift+Page_Down";
+    scrollback-up-page = "Page_Up";
+    scrollback-down-page = "Page_Down";
     scrollback-up-line = "Control+Shift+Up";
     scrollback-down-line = "Control+Shift+Down";
 
@@ -17,6 +17,9 @@
 
     #~@ Search Functionality
     search-start = "Control+Shift+f";
+    cancel = "Escape";
+    find-prev = "Control+Shift+Left";
+    find-next = "Control+Shift+Right";
 
     #~@ Theme Switching
     #? Manual theme toggle between dark and light
