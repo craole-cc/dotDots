@@ -2,7 +2,7 @@
   main = {
     app-id = "foot";
     dpi-aware = "yes";
-    font = "Maple Mono NF:size=13";
+    font = "monospace:size=13";
     pad = "24x24";
     bold-text-in-bright = "yes";
 
