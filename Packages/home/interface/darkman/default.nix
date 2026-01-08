@@ -94,23 +94,11 @@
         ${ln} -sf "${modeWallpaper}" "${currentWallpaper}"
       fi
 
-      #> Reload specific configs instead of full rebuild
-      # Reload GTK theme
-      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'"
+      #> Reload GTK theme via dconf
+      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
 
-      # Notify running applications
-      ${pkgs.dbus}/bin/dbus-send --session --dest=org.freedesktop.portal.Desktop \
-        /org/freedesktop/portal/desktop \
-        org.freedesktop.portal.Settings.SettingsChanged \
-        string:'org.freedesktop.appearance' \
-        dict:string:variant:'color-scheme',uint32:${
-        if mode == "dark"
-        then "1"
-        else "0"
-      }
-
-      # Optional: Only rebuild if you want persistent changes
-      # ${pkgs.nh}/bin/nh os switch "${dots}" &
+      #> Optional: Rebuild in background (comment out if too slow)
+      ${pkgs.nh}/bin/nh os switch "${dots}" &
     '';
 in {
   services.darkman = mkIf enable {
