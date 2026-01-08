@@ -2,33 +2,17 @@ let
   browser = "zen-twilight";
   editor = "code";
   terminal = "footclient";
-in
-{
-  workspace = {
-    # "special:terminal".gaps_out = 0;
-    # "special:terminal".gaps_in = 0;
-    # "special:terminal".border_size = 0;
-    # "special:terminal".rounding = 0;
-    # "special:terminal".animate = false;
-
-    # "special:editor".gaps_out = 0;
-    # "special:editor".gaps_in = 0;
-    # "special:editor".border_size = 0;
-    # "special:editor".rounding = 0;
-    # "special:editor".animate = false;
-
-    # # Browser quake
-    # "special:browser".gaps_out = 0;
-    # "special:browser".gaps_in = 0;
-    # "special:browser".border_size = 0;
-    # "special:browser".rounding = 0;
-    # "special:browser".animate = false;
-  };
-
+in {
   bind = [
     "SUPER, grave, togglespecialworkspace, terminal"
     "SUPER SHIFT, grave, togglespecialworkspace, editor"
     "SUPER CTRL, GRAVE, togglespecialworkspace, browser"
+  ];
+
+  exec-once = [
+    "[workspace special:terminal silent] ${terminal}"
+    "[workspace special:editor silent] ${editor}"
+    "[workspace special:browser silent] ${browser}"
   ];
 
   windowrulev2 = [
@@ -41,7 +25,7 @@ in
 
     #~@ Editor
     "workspace special:editor, class:^(${editor})$"
-    "size 100% 70%, workspace:^(editor)$" # Taller for editor
+    "size 100% 70%, workspace:^(editor)$"
     "move 0% 0%, workspace:^(editor)$"
     "float, workspace:^(editor)$"
     "noborder, workspace:^(editor)$"
