@@ -16,14 +16,14 @@ in {
 
       bindin = [
         # "SUPER, ESCAPE, caelestia:launcherInterrupt"
-        "SUPER, mouse:272, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:273, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:274, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:275, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:276, global, caelestia:launcherInterrupt"
-        "SUPER, mouse:277, global, caelestia:launcherInterrupt"
-        "SUPER, mouse_up, global, caelestia:launcherInterrupt"
-        "SUPER, mouse_down, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse:272, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse:273, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse:274, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse:275, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse:276, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse:277, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse_up, global, caelestia:launcherInterrupt"
+        # "SUPER, mouse_down, global, caelestia:launcherInterrupt"
       ];
 
       bindl = [
