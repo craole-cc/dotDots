@@ -75,7 +75,6 @@
     currentWallpaper = "${wallpapers}/current-wallpaper";
 
     catppuccinUpdates = optionalString (isCatppuccin mode) ''
-      #> Update catppuccin flavor in user configuration
       FLAVOR="${getCatppuccinFlavor mode}"
       if grep -q "catppuccin.*flavor" "${userApi}"; then
         ${sd} 'flavor = "[^"]*"' 'flavor = "'"$FLAVOR"'"' "${userApi}"
@@ -90,34 +89,19 @@
 
       ${catppuccinUpdates}
 
-      #> Update wallpaper and reload Hyprland
+      #> Update wallpaper
       if [ -L "${currentWallpaper}" ] || [ -e "${modeWallpaper}" ]; then
         ${ln} -sf "${modeWallpaper}" "${currentWallpaper}"
-        # Set wallpaper in Hyprland immediately
-        ${hyprctl} hyprpaper wallpaper ",${currentWallpaper}" || true
       fi
 
-      #> Update Foot terminal config in real-time
-      FOOT_CONFIG="$HOME/.config/foot/foot.ini"
-      if [ -f "$FOOT_CONFIG" ]; then
-        ${sd} 'theme=Catppuccin-.+' 'theme=Catppuccin-${
-        if mode == "dark"
-        then "Frappe"
-        else "Latte"
-      }' "$FOOT_CONFIG"
-      fi
+      #> Rebuild home-manager only (much faster than full system)
+      ${pkgs.nh}/bin/nh home switch "${dots}" || true
 
-      #> Reload GTK theme
-      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
-
-      #> Reload Hyprland config
+      #> Reload Hyprland
       ${hyprctl} reload || true
 
-      #> Notify about the change
-      ${pkgs.libnotify}/bin/notify-send "Theme Switched" "Changed to ${mode} mode" -t 2000 || true
-
-      #> Optional: Rebuild in background for persistent changes
-      # (${pkgs.nh}/bin/nh home switch "${dots}" &) || true
+      #> Notify
+      ${pkgs.libnotify}/bin/notify-send "Theme Switched" "Switched to ${mode} mode - restart apps to see full changes" -t 3000 || true
     '';
 in {
   services.darkman = mkIf enable {
