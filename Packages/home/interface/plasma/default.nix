@@ -5,6 +5,7 @@
   config,
   nixosConfig,
   pkgs,
+  options,
   src,
   ...
 }: let
@@ -14,7 +15,9 @@
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
-  isAvailable = config?programs.${app};
+
+  # Check if the OPTION is defined (i.e., plasma-manager module is imported)
+  isAvailable = options ? programs.${app};
 
   packages = import ./packages.nix {inherit pkgs;};
 in {
