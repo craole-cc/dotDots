@@ -15,17 +15,18 @@
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 
-  # Check if the option is defined by checking config._module.args or simply trying
-  # This won't cause infinite recursion
-  isAvailable = builtins.hasAttr app (config.programs or {});
-
   packages = import ./packages.nix {inherit pkgs;};
-in
-  lib.optionalAttrs (isAllowed && isAvailable) {
+in {
+  # Add an assertion instead
+  assertions = lib.optional isAllowed {
+    assertion = config.programs ? ${app};
+    message = "Plasma desktop environment requested but plasma-manager is not imported. Add it to your flake inputs and home-manager imports.";
+  };
+
+  config = mkIf isAllowed {
     programs.${app} = mkMerge [
       {enable = true;}
       (import ./bindings)
-      # // import ./files
       (import ./modules {inherit src pkgs config nixosConfig;})
     ];
 
@@ -35,4 +36,5 @@ in
       };
       inherit packages;
     };
-  }
+  };
+}
