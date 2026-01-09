@@ -9,21 +9,25 @@
   ...
 }: let
   app = "plasma";
-  opt = [app "kde" "plasma6"];
+  alt = "kde";
+  opt = [app alt "plasma6"];
 
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
+  isAvailable = config.programs?${app};
 
   packages = import ./packages.nix {inherit pkgs;};
-in
-  mkIf isAllowed {
-    programs.${app} = mkMerge [
-      {enable = true;}
-      (import ./bindings)
-      # (import ./files)
-      (import ./modules {inherit src pkgs config nixosConfig;})
-    ];
+in {
+  config = mkIf isAllowed {
+    programs = lib.optionalAttrs (config.programs?${app}) {
+      ${app} = mkMerge [
+        {enable = true;}
+        (import ./bindings)
+        # // import ./files
+        (import ./modules {inherit src pkgs config nixosConfig;})
+      ];
+    };
 
     home = {
       shellAliases = {
@@ -31,4 +35,5 @@ in
       };
       inherit packages;
     };
-  }
+  };
+}
