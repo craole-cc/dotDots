@@ -14,19 +14,17 @@
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
-  isAvailable = config.programs?${app};
+  isAvailable = config?programs.${app};
 
   packages = import ./packages.nix {inherit pkgs;};
 in {
-  config = mkIf (isAllowed && isAvailable) {
-    programs = {
-      ${app} = mkMerge [
-        {enable = true;}
-        (import ./bindings)
-        # // import ./files
-        (import ./modules {inherit src pkgs config nixosConfig;})
-      ];
-    };
+  config = mkIf (isAvailable && isAllowed) {
+    programs.${app} = mkMerge [
+      {enable = true;}
+      (import ./bindings)
+      # // import ./files
+      (import ./modules {inherit src pkgs config nixosConfig;})
+    ];
 
     home = {
       shellAliases = {
