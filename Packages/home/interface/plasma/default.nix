@@ -16,17 +16,12 @@
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
 
   packages = import ./packages.nix {inherit pkgs;};
-in {
-  # Add an assertion instead
-  assertions = lib.optional isAllowed {
-    assertion = config.programs ? ${app};
-    message = "Plasma desktop environment requested but plasma-manager is not imported. Add it to your flake inputs and home-manager imports.";
-  };
-
-  config = mkIf isAllowed {
+in
+  mkIf isAllowed {
     programs.${app} = mkMerge [
       {enable = true;}
       (import ./bindings)
+      # (import ./files)
       (import ./modules {inherit src pkgs config nixosConfig;})
     ];
 
@@ -36,5 +31,4 @@ in {
       };
       inherit packages;
     };
-  };
-}
+  }
