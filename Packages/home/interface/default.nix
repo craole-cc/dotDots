@@ -46,7 +46,7 @@ in {
     ./niri
     # ./noctula
     # ./quickshell
-    ./plasma
+    # ./plasma
     ./vicinae
   ];
 
