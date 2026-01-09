@@ -50,10 +50,10 @@ in {
     ./vicinae
   ];
 
-  catppuccin = {
-    accent = "teal";
-    flavor = "latte";
-  };
+  # catppuccin = {
+  #   accent = "teal";
+  #   flavor = "latte";
+  # };
   gtk = {
     enable = mkForce true;
     iconTheme = mkForce {
