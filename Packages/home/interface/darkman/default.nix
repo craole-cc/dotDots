@@ -9,7 +9,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) hasPrefix hasInfix optionalString toLower;
+  inherit (lib.strings) hasPrefix hasInfix toLower;
   inherit (pkgs) writeShellScript;
 
   #~@ Location
@@ -21,28 +21,6 @@
   #~@ Style
   style = user.interface.style or host.interface.style or {};
   switch = style.autoSwitch or false;
-
-  #~@ Check if user is using catppuccin
-  isCatppuccin = mode: let
-    theme = toLower (style.theme.${mode} or "");
-  in
-    hasInfix "catppuccin" theme;
-
-  #~@ Extract catppuccin flavor from theme string
-  getCatppuccinFlavor = mode: let
-    theme = toLower (style.theme.${mode} or "");
-  in
-    if hasInfix "frappe" theme || hasInfix "frappé" theme
-    then "frappe"
-    else if hasInfix "latte" theme
-    then "latte"
-    else if hasInfix "mocha" theme
-    then "mocha"
-    else if hasInfix "macchiato" theme
-    then "macchiato"
-    else if mode == "dark"
-    then "frappe"
-    else "latte";
 
   #~@ Paths
   wallpapers = let
@@ -65,21 +43,19 @@
     && (lng != null)
     && (dots != null);
 
-  #~@ Mode script generator# Packages/home/common/darkman.nix
+  #~@ Mode script generator
   mkModeScript = mode: let
     sd = "${pkgs.sd}/bin/sd";
     ln = "${pkgs.coreutils}/bin/ln";
-    hyprctl = "${pkgs.hyprland}/bin/hyprctl";
+    nh = "${pkgs.nh}/bin/nh";
+    dbus = "${pkgs.dbus}/bin/dbus-send";
+    dconf = "${pkgs.dconf}/bin/dconf write";
+    hypr = "${pkgs.hyprland}/bin/hyprctl";
+    note = "${pkgs.libnotify}/bin/notify-send";
 
-    modeWallpaper = "${wallpapers}/${mode}-wallpaper";
-    currentWallpaper = "${wallpapers}/current-wallpaper";
-
-    catppuccinUpdates = optionalString (isCatppuccin mode) ''
-      FLAVOR="${getCatppuccinFlavor mode}"
-      if grep -q "catppuccin.*flavor" "${userApi}"; then
-        ${sd} 'flavor = "[^"]*"' 'flavor = "'"$FLAVOR"'"' "${userApi}"
-      fi
-    '';
+    newWallpaper = "${wallpapers}/${mode}-wallpaper";
+    oldWallpaper = "${wallpapers}/current-wallpaper";
+    theme = toLower (style.theme.${mode} or "");
   in
     writeShellScript "darkman-${mode}-mode" ''
       set -euo pipefail
@@ -87,21 +63,57 @@
       #> Update theme mode in user configuration
       ${sd} 'current = "(dark|light)"' 'current = "${mode}"' "${userApi}"
 
-      ${catppuccinUpdates}
+      #> Extract and update catppuccin flavor, if necessary
+      if ${(hasInfix "catppuccin" theme)} && grep -q "catppuccin.*flavor" "${userApi}"; then
+        FLAVOR="${
+        if hasInfix "frappe" theme || hasInfix "frappé" theme
+        then "frappe"
+        else if hasInfix "latte" theme
+        then "latte"
+        else if hasInfix "mocha" theme
+        then "mocha"
+        else if hasInfix "macchiato" theme
+        then "macchiato"
+        else if mode == "dark"
+        then "frappe"
+        else "latte"
+      }"
+        ${sd} 'flavor = "[^"]*"' 'flavor = "'"$FLAVOR"'"' "${userApi}"
+      fi
+
+      #> Update the freedesktop portal setting (what modern apps actually listen to)
+      ${dbus} --session --dest=org.freedesktop.portal.Desktop \
+        --type=method_call /org/freedesktop/portal/desktop \
+        org.freedesktop.portal.Settings.ReadOne \
+        string:'org.freedesktop.appearance' string:'color-scheme' \
+        uint32:${
+        #? 0 = no preference, 1 = prefer dark, 2 = prefer light
+        if mode == "dark"
+        then "1"
+        else "2"
+      } || true
+
+      #> Update GTK/Qt theming
+      ${dconf} /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
+      ${dconf} /org/gnome/desktop/interface/gtk-theme "'Catppuccin-${
+        if mode == "dark"
+        then "Frappe"
+        else "Latte"
+      }'" || true
 
       #> Update wallpaper
-      if [ -L "${currentWallpaper}" ] || [ -e "${modeWallpaper}" ]; then
-        ${ln} -sf "${modeWallpaper}" "${currentWallpaper}"
+      if [ -L "${oldWallpaper}" ] || [ -e "${newWallpaper}" ]; then
+        ${ln} -sf "${newWallpaper}" "${oldWallpaper}"
       fi
 
       #> Rebuild home-manager only (much faster than full system)
-      ${pkgs.nh}/bin/nh home switch "${dots}" || true
+      ${nh} home switch "${dots}" || true
 
       #> Reload Hyprland
-      ${hyprctl} reload || true
+      ${hypr} reload || true
 
       #> Notify
-      ${pkgs.libnotify}/bin/notify-send "Theme Switched" "Switched to ${mode} mode - restart apps to see full changes" -t 3000 || true
+      ${note} "Theme Switched" "Switched to ${mode} mode - restart apps to see full changes" -t 3000 || true
     '';
 in {
   services.darkman = mkIf enable {
