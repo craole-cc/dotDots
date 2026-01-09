@@ -32,7 +32,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    desktopEnvironment = "plasma";
+    desktopEnvironment = "cosmic";
     windowManager = "hyprland";
     bar = "caelestia";
     shell = "bash";
@@ -106,7 +106,7 @@
     };
     style = {
       autoSwitch = true;
-      current = "light";
+      current = "dark";
       theme = {
         dark = "catppuccin";
         light = "catppuccin";
