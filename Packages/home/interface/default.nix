@@ -17,7 +17,8 @@
 
   #~@ Cursor configuration
   cursor = rec {
-    name = toLower (get style.cursor current "material_light_cursors");
+    # name = toLower (get style.cursor current "material_light_cursors");
+    name = "material_light_cursors";
     package = getPackage {
       inherit pkgs;
       target = name;
@@ -28,7 +29,8 @@
 
   #~@ Icons configuration
   icons = rec {
-    name = toLower (get style.icons current "candy-icons");
+    # name = toLower (get style.icons current "candy-icons");
+    name = "candy-icons";
     package = getPackage {
       inherit pkgs;
       target = name;
@@ -48,6 +50,10 @@ in {
     ./vicinae
   ];
 
+  catppuccin = {
+    accent = "teal";
+    flavor = "latte";
+  };
   gtk = {
     enable = mkForce true;
     iconTheme = mkForce {

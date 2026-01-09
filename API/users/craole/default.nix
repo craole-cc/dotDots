@@ -106,10 +106,11 @@
     };
     style = {
       autoSwitch = true;
-      current = "dark";
+      current = "light";
       theme = {
         dark = "catppuccin";
         light = "catppuccin";
+        accent = "teal";
       };
       icons = {
         dark = "candy";

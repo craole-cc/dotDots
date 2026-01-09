@@ -9,7 +9,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) hasPrefix optionalString;
+  inherit (lib.strings) hasPrefix;
   inherit (pkgs) writeShellScript;
 
   #~@ Location
@@ -49,7 +49,7 @@
     ln = "${pkgs.coreutils}/bin/ln";
     dbus = "${pkgs.dbus}/bin/dbus-send";
     dconf = "${pkgs.dconf}/bin/dconf";
-    hypr = "${pkgs.hyprland}/bin/hyprctl";
+    # hypr = "${pkgs.hyprland}/bin/hyprctl";
     note = "${pkgs.libnotify}/bin/notify-send";
 
     newWallpaper = "${wallpapers}/${mode}-wallpaper";
