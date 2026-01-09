@@ -8,7 +8,7 @@
   user,
   ...
 }: let
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkForce mkIf;
   inherit (lib.strings) hasPrefix;
   inherit (pkgs) writeShellScript;
 
