@@ -120,7 +120,7 @@
   };
 
   sidebar = {
-    enabled = false;
+    enabled = true;
     dragThreshold = 80;
     sizes.width = 430;
   };
