@@ -10,6 +10,7 @@
     # microsoft-edge
     qbittorrent-enhanced
     warp-terminal
+    spacedrive
 
     swaybg
     cachix

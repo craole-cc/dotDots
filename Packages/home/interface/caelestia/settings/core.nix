@@ -25,7 +25,7 @@
       terminal = ["foot"];
       audio = ["pavucontrol"];
       playback = ["mpv"];
-      explorer = ["dolphin"];
+      explorer = ["spacedrive" "dolphin"];
     };
     idle = {
       lockBeforeSleep = true;
