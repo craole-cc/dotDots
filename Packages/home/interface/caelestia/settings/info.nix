@@ -1,4 +1,8 @@
-{city, ...}: {
+{
+  city,
+  paths,
+  ...
+}: {
   services = {
     audioIncrement = 0.1;
     brightnessIncrement = 0.1;
@@ -17,5 +21,11 @@
         to = "YT Music";
       }
     ];
+  };
+
+  paths = {
+    wallpaperDir = paths.wallpapers;
+    sessionGif = paths.userAvatar;
+    mediaGif = paths.mediaAvatar;
   };
 }

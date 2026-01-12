@@ -13,6 +13,7 @@
   opt = [app alt "plasma6"];
 
   inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lix.lists.predicates) isIn;
   isAllowed = isIn (user.interface.desktopEnvironment or null) opt;
   isAvailable = config.programs?${app};
@@ -20,7 +21,7 @@
   packages = import ./packages.nix {inherit pkgs;};
 in {
   config = mkIf isAllowed {
-    programs = lib.optionalAttrs (config.programs?${app}) {
+    programs = optionalAttrs (config.programs?${app}) {
       ${app} = mkMerge [
         {enable = true;}
         (import ./bindings)

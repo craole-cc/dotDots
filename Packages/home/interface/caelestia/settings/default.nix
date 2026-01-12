@@ -1,16 +1,15 @@
 {
-  mkMerge,
   city,
+  fonts,
+  mkMerge,
+  paths,
+  vimKeybinds,
   ...
 }: {
   settings = mkMerge [
-    (import ./bar.nix {})
-    (import ./control.nix {})
+    (import ./core.nix {inherit fonts;})
+    (import ./control.nix {inherit vimKeybinds;})
     (import ./desktop.nix {})
-    (import ./info.nix {inherit city;})
-    # (import ./services.nix {})
-    # (import ./services.nix {})
-    # (import ./services.nix {})
-    # (import ./services.nix {})
+    (import ./info.nix {inherit city paths;})
   ];
 }

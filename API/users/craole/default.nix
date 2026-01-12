@@ -40,7 +40,7 @@
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;
-
+      vimKeybinds = false;
       #~@ Keybindings Map
       #? Define application/action keys agnostic of WM/DE
       bindings = {
@@ -125,6 +125,8 @@
         monospace = "Maple Mono NF";
         sans = "Noto Sans";
         serif = "Noto Serif";
+        material = "Material Symbols Sharp";
+        clock = "Rubik";
       };
       # wallpaper = {
       #   dark = "$DOTS/Assets/Images/wallpapers/dark.jpg";
@@ -180,6 +182,5 @@
   paths = {
     downloads = "Downloads";
     wallpapers = "Pictures/Wallpapers";
-    # wallpapers = "/home/craole/.dots/Assets/Images/wallpapers";
   };
 }

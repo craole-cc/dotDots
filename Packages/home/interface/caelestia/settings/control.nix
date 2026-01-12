@@ -1,8 +1,8 @@
-{}: {
+{vimKeybinds, ...}: {
   controlCenter = {
     sizes = {
-      heightMult = 0.7;
-      ratio = 1.7777777777777777;
+      heightMult = 0.75;
+      ratio = 1.75;
     };
   };
 
@@ -29,6 +29,7 @@
   };
 
   launcher = {
+    inherit vimKeybinds;
     enabled = true;
     showOnHover = true;
     maxShown = 7;
@@ -37,7 +38,6 @@
     actionPrefix = ">";
     enableDangerousActions = false;
     dragThreshold = 50;
-    # vimKeybinds = false;
     hiddenApps = [];
     useFuzzy = {
       apps = true;
@@ -199,5 +199,51 @@
         dangerous = false;
       }
     ];
+  };
+
+  session = {
+    inherit vimKeybinds;
+    enabled = true;
+    dragThreshold = 30;
+    commands = {
+      logout = [
+        "loginctl"
+        "terminate-user"
+        ""
+      ];
+      shutdown = [
+        "systemctl"
+        "poweroff"
+      ];
+      hibernate = [
+        "systemctl"
+        "hibernate"
+      ];
+      reboot = [
+        "systemctl"
+        "reboot"
+      ];
+    };
+    sizes = {
+      button = 80;
+    };
+  };
+
+  lock = {
+    recolourLogo = false;
+    enableFprint = true;
+    maxFprintTries = 3;
+    sizes = {
+      heightMult = 0.7;
+      ratio = 1.75;
+      centerWidth = 600;
+    };
+  };
+
+  winfo = {
+    sizes = {
+      heightMult = 0.7;
+      detailsWidth = 500;
+    };
   };
 }

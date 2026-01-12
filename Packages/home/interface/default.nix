@@ -39,7 +39,7 @@
   };
 in {
   imports = [
-    # ./caelestia
+    ./caelestia
     ./darkman
     ./fuzzel
     ./hyprland
