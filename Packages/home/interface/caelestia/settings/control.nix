@@ -31,7 +31,7 @@
   launcher = {
     inherit vimKeybinds;
     enabled = true;
-    showOnHover = true;
+    showOnHover = false;
     maxShown = 7;
     maxWallpapers = 9;
     specialPrefix = "@";
