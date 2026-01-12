@@ -123,7 +123,7 @@
       fonts = {
         emoji = "Noto Color Emoji";
         monospace = "Maple Mono NF";
-        sans = "Noto Sans";
+        sans = "Monaspace Radon Frozen";
         serif = "Noto Serif";
         material = "Material Symbols Sharp";
         clock = "Rubik";

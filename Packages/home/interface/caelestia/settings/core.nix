@@ -6,7 +6,7 @@
     font = {
       family = {
         sans = fonts.sans or "Monaspace Radon NF Light";
-        mono = fonts.monospace or "Monaspace Radon ExtraLight";
+        mono = fonts.monospace or "monospace";
         material = fonts.material or "Material Symbols Sharp";
         clock = fonts.clock or "Rubik";
       };
