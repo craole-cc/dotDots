@@ -14,8 +14,8 @@
   };
 
   bar = {
-    persistent = false;
-    showOnHover = true;
+    persistent = true;
+    showOnHover = false;
     dragThreshold = 20;
 
     scrollActions = {
@@ -33,10 +33,10 @@
     workspaces = {
       shown = 5;
       activeIndicator = true;
-      occupiedBg = false;
+      occupiedBg = true;
       showWindows = true;
       showWindowsOnSpecialWorkspaces = true;
-      activeTrail = false;
+      activeTrail = true;
       perMonitorWorkspaces = true;
       label = "  ";
       occupiedLabel = "󰮯";
@@ -120,7 +120,7 @@
   };
 
   sidebar = {
-    enabled = true;
+    enabled = false;
     dragThreshold = 80;
     sizes.width = 430;
   };

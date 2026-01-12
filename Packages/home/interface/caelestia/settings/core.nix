@@ -22,10 +22,10 @@
 
   general = {
     apps = {
-      terminal = ["foot"];
+      terminal = ["foot" "ghostty"];
       audio = ["pavucontrol"];
       playback = ["mpv"];
-      explorer = ["spacedrive" "dolphin"];
+      explorer = ["nautilus" "spacedrive" "dolphin"];
     };
     idle = {
       lockBeforeSleep = true;
@@ -33,19 +33,19 @@
       timeouts = [
         {
           idleAction = "lock";
-          timeout = 180;
+          timeout = 600;
         }
         {
           idleAction = "dpms off";
           returnAction = "dpms on";
-          timeout = 300;
+          timeout = 800;
         }
         {
           idleAction = [
             "systemctl"
             "suspend-then-hibernate"
           ];
-          timeout = 600;
+          timeout = 1200;
         }
       ];
     };

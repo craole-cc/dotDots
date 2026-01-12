@@ -10,7 +10,7 @@
     # microsoft-edge
     qbittorrent-enhanced
     warp-terminal
-    (pkgs.spacedrive.overrideAttrs (oldAttrs: {
+    (spacedrive.overrideAttrs (oldAttrs: {
       makeWrapperArgs = [
         "--set GDK_BACKEND x11"
         "--add-flags '--disable-gpu'"
@@ -24,13 +24,6 @@
     eza
   ];
 
-  # stylix.targets = {
-  #   zen-browser = {
-  #     enable = true;
-  #     profileNames = ["default"];
-  #   };
-  # };
-
   programs = {
     clock-rs.enable = true;
     # alacritty.enable = true; # Super+T in the default setting (terminal)
@@ -39,7 +32,7 @@
     # waybar.enable = true; # launch on startup in the default setting (bar)
   };
   services = {
-    mako.enable = true; #
+    mako.enable = true;
     # polkit-gnome.enable = true; # polkit
   };
 }
