@@ -19,7 +19,7 @@
     mkPath = key: default: let
       path = user.paths.${key} or default;
     in
-      if path != {} && !(hasPrefix "/" path)
+      if path != {} && !(hasPrefix "/" path) && !(hasPrefix "root:" path)
       then "${homeDir}/${path}"
       else path;
   in {
