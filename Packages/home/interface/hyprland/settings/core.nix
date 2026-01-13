@@ -1,4 +1,23 @@
 {
+  apps,
+  host,
+  lib,
+  user,
+  ...
+}: let
+  inherit (lib.strings) toUpper;
+  modifier = user.interface.keyboard.modifier or host.interface.keyboard.modifier or "Super";
+in {
+  "$MOD" = toUpper modifier;
+  "$browser" = apps.browser.primary.command;
+  "$browserAlt" = apps.browser.secondary.command;
+  "$editor" = apps.editor.primary.command;
+  "$editorAlt" = apps.editor.secondary.command;
+  "$launcher" = apps.launcher.primary.command;
+  "$launcherAlt" = apps.launcher.secondary.command;
+  "$terminal" = apps.terminal.primary.command;
+  "$terminalAlt" = apps.terminal.secondary.command;
+
   env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {
     # sensitivity = 0.2;

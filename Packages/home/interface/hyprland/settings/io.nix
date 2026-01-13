@@ -2,52 +2,12 @@
   host,
   lib,
   user,
-  apps,
   lix,
   ...
 }: let
   inherit (lix.hardware.display) mkHyprlandMonitors;
-  mat = lib.attrsets.mapAttrsToList;
   inherit (lib.modules) mkIf;
-  inherit (lib.strings) toUpper;
-  modifier = user.interface.keyboard.modifier or host.interface.keyboard.modifier or "Super";
   swapCapsEscape = user.interface.keyboard.swapCapsEscape or host.interface.keyboard.swapCapsEscape or null;
-
-  workspaces = [
-    "0"
-    "1"
-    "2"
-    "3"
-    "4"
-    "5"
-    "6"
-    "7"
-    "8"
-    "9"
-    "F1"
-    "F2"
-    "F3"
-    "F4"
-    "F5"
-    "F6"
-    "F7"
-    "F8"
-    "F9"
-    "F10"
-    "F11"
-    "F12"
-  ];
-
-  directions = rec {
-    left = "l";
-    right = "r";
-    up = "u";
-    down = "d";
-    k = up;
-    j = down;
-    h = left;
-    l = right;
-  };
 in {
   monitor = mkHyprlandMonitors {inherit host;};
 
@@ -66,8 +26,6 @@ in {
     kb_options = mkIf swapCapsEscape "caps:swapescape";
   };
 
-  "$MOD" = toUpper modifier;
-
   bindl = [
     #~@ System
     "$MOD CTRL, Q, exit"
@@ -85,10 +43,10 @@ in {
     ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
   ];
 
-  bindr = with apps.launcher; [
+  bindr = [
     #~@ Launcher
-    "$MOD, SUPER_L, exec, ${primary.command}"
-    "$MOD, SPACE, exec, ${secondary.command}"
+    "$MOD, SUPER_L, exec, $launcher"
+    "$MOD, SPACE, exec, $launcherAlt"
   ];
 
   bindle = [
@@ -138,24 +96,7 @@ in {
       #~@ Toggle the previously focused window
       "ALT, TAB, focuscurrentorlast"
     ]
-    #> Change workspace
-    ++ (map (n: "$MOD,${n},workspace,name:${n}") workspaces)
-    #> Move window to workspace
-    ++ (map (n: "$MOD SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
-    #> Move focus
-    ++ (mat (key: direction: "$MOD,${key},movefocus,${direction}") directions)
-    #> Swap windows
-    ++ (mat (key: direction: "$MOD SHIFT,${key},swapwindow,${direction}") directions)
-    #> Move windows
-    ++ (mat (key: direction: "$MOD CONTROL,${key},movewindoworgroup,${direction}") directions)
-    #> Move monitor focus
-    ++ (mat (key: direction: "$MOD ALT,${key},focusmonitor,${direction}") directions)
-    #> Move workspace to other monitor
-    ++ (mat (
-        key: direction: "$MOD ALT SHIFT,${key},movecurrentworkspacetomonitor,${direction}"
-      )
-      directions)
-    ++ (with apps; [
+    ++ [
       #~@ Applications
       # "$MOD, GRAVE, exec,  ${terminal.primary.command}"
       # "$MOD SHIFT, GRAVE, exec, ${terminal.secondary.command}"
@@ -165,7 +106,7 @@ in {
       # "$MOD SHIFT, C, exec, ${editor.secondary.command}"
 
       # "$MOD, GRAVE, exec, ${terminal.primary.command}"
-      "$MOD, RETURN, exec, ${terminal.primary.command}"
-      "$MOD SHIFT, RETURN, exec, ${terminal.secondary.command}"
-    ]);
+      "$MOD, RETURN, exec, $terminal"
+      "$MOD SHIFT, RETURN, exec, $terminalAlt"
+    ];
 }
