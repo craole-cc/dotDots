@@ -39,12 +39,12 @@
 in {
   bind =
     [
-      "$MOD CTRL, grave, togglespecialworkspace, terminal"
-      "$MOD CTRL SHIFT, grave, togglespecialworkspace, terminalAlt"
-      "$MOD CTRL, C, togglespecialworkspace, editor"
-      "$MOD CTRL SHIFT, C, togglespecialworkspace, editorAlt"
-      "$MOD CTRL, B, togglespecialworkspace, browser"
-      "$MOD CTRL SHIFT, B, togglespecialworkspace, browserAlt"
+      "$MOD, grave, togglespecialworkspace, terminal"
+      "$MOD SHIFT, grave, togglespecialworkspace, terminalAlt"
+      "$MOD, C, togglespecialworkspace, editor"
+      "$MOD SHIFT, C, togglespecialworkspace, editorAlt"
+      "$MOD, B, togglespecialworkspace, browser"
+      "$MOD SHIFT, B, togglespecialworkspace, browserAlt"
     ]
     #> Change workspace
     ++ (map (n: "$MOD,${n},workspace,name:${n}") workspaces)
