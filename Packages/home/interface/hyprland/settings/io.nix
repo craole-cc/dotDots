@@ -2,61 +2,13 @@
   host,
   lib,
   user,
+  apps,
   lix,
   ...
 }: let
   inherit (lix.hardware.display) mkHyprlandMonitors;
   mat = lib.attrsets.mapAttrsToList;
-  app = user.applications or {};
-  applications = {
-    terminal = {
-      primary = rec {
-        name = app.terminal.primary or "ghostty";
-        command =
-          if name == "foot"
-          then "footclient"
-          else name;
-      };
-      secondary = rec {
-        name = app.terminal.primary or "ghostty";
-        command =
-          if name == "foot"
-          then "footclient"
-          else name;
-      };
-    };
-    browser = {
-      primary = {
-        name = "zen-twilight";
-        command = "zen-twilight";
-      };
-      secondary = {
-        name = "microsoft-edge";
-        command = "microsoft-edge";
-      };
-    };
-    editor = {
-      primary = {
-        name = "code";
-        command = "code";
-      };
-      secondary = {
-        name = "zed";
-        command = "zeditor";
-      };
-    };
-    launcher = {
-      primary = {
-        name = "vicinae";
-        command = "vicinae toggle";
-      };
-      secondary = {
-        name = "fuzzel";
-        command = "pkill fuzzel || fuzzel --list-executables-in-path";
-      };
-    };
-  };
-  inherit (applications) launcher terminal browser editor;
+  # inherit (apps) launcher terminal browser editor;
   # inherit (lib.strings) toUpper;
   # inherit (host.interface.keyboard) modifier swapCapsEscape;
   # modifier = host.interface.keyboard.modifier or "SUPER";
@@ -119,7 +71,7 @@ in {
 
   bindl = [
     #| System
-    "SUPER SHIFT, Q, exit"
+    "SUPER CTRL, Q, exit"
     "SUPER SHIFT, ESC, exit"
     "CTRL ALT, DEL, exit"
     "CTRL ALT SHIFT, ESC, exit"
@@ -139,10 +91,10 @@ in {
     # "SUPER, SUPER_L, global, ${launcher.primary.command}"
   ];
 
-  bindr = [
+  bindr = with apps.launcher; [
     #| Launcher
-    "SUPER, SUPER_L, exec, ${launcher.primary.command}"
-    "SUPER, SPACE, exec, ${launcher.secondary.command}"
+    "SUPER, SUPER_L, exec, ${primary.command}"
+    "SUPER, SPACE, exec, ${secondary.command}"
   ];
 
   bindle = [
@@ -174,28 +126,14 @@ in {
       #| System
       "SUPER, Q, killactive"
 
-      #| Applications
-      # "SUPER, GRAVE, exec,  ${terminal.primary.command}"
-      # "SUPER SHIFT, GRAVE, exec, ${terminal.secondary.command}"
-      "SUPER, B, exec, ${browser.primary.command}"
-      "SUPER SHIFT, B, exec, ${browser.secondary.command}"
-      "SUPER, C, exec, ${editor.primary.command}"
-      "SUPER SHIFT, C, exec, ${editor.secondary.command}"
-
-      # "SUPER, GRAVE, exec, ${terminal.primary.command}"
-      "SUPER, RETURN, exec, ${terminal.primary.command}"
-      "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
-      "SUPER SHIFT, RETURN, exec, ${terminal.secondary.command}"
-      # "SUPER SHIFT, C, exec, ${editor.secondary.command}"
-
       # | Windows
       "SUPER, S, togglesplit"
       "SUPER, P, pseudo"
 
       "ALT, RETURN, fullscreen, 0"
+      "SUPER, F, fullscreen, 1"
       "ALT SHIFT, RETURN, togglefloating"
-      # "SUPER, F, fullscreen, 1"
-      # "SUPER SHIFT, F, togglefloating"
+      "SUPER SHIFT, F, togglefloating"
 
       "SUPER, G, togglegroup"
       "SUPER, T, lockactivegroup, toggle"
@@ -240,5 +178,20 @@ in {
     ++ (mat (
         key: direction: "SUPER ALT SHIFT,${key},movecurrentworkspacetomonitor,${direction}"
       )
-      directions);
+      directions)
+    ++ [
+      #| Applications
+      # "SUPER, GRAVE, exec,  ${terminal.primary.command}"
+      # "SUPER SHIFT, GRAVE, exec, ${terminal.secondary.command}"
+      # "SUPER, B, exec, ${browser.primary.command}"
+      # "SUPER SHIFT, B, exec, ${browser.secondary.command}"
+      # "SUPER, C, exec, ${editor.primary.command}"
+      # "SUPER SHIFT, C, exec, ${editor.secondary.command}"
+
+      # # "SUPER, GRAVE, exec, ${terminal.primary.command}"
+      # "SUPER, RETURN, exec, ${terminal.primary.command}"
+      # "CTRL ALT, RETURN,  exec, ${terminal.primary.command}"
+      # "SUPER SHIFT, RETURN, exec, ${terminal.secondary.command}"
+      # "SUPER SHIFT, C, exec, ${editor.secondary.command}"
+    ];
 }
