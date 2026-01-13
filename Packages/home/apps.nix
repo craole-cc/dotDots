@@ -30,7 +30,7 @@
     # fuzzel.enable = true; # Super+D in the default setting (app launcher)
     # swaylock.enable = true; # Super+Alt+L in the default setting (screen locker)
     # waybar.enable = true; # launch on startup in the default setting (bar)
-  };sdsd
+  };
   services = {
     # mako.enable = true;
     # polkit-gnome.enable = true; # polkit
