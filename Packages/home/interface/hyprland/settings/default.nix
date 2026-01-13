@@ -42,7 +42,12 @@ let
       name;
 
   args = {
-    inherit user host lib;
+    inherit
+      user
+      host
+      lib
+      lix
+      ;
 
     mod = toUpper (user.interface.keyboard.modifier or host.interface.keyboard.modifier or "Super");
 
