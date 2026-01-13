@@ -7,7 +7,10 @@
 }: let
   inherit (lix.hardware.display) mkHyprlandMonitors;
   inherit (lib.modules) mkIf;
-  swapCapsEscape = user.interface.keyboard.swapCapsEscape or host.interface.keyboard.swapCapsEscape or null;
+  swapCapsEscape =
+    user.interface.keyboard.swapCapsEscape or
+    host.interface.keyboard.swapCapsEscape or
+      null;
 in {
   monitor = mkHyprlandMonitors {inherit host;};
 
