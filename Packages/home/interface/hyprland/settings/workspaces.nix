@@ -1,4 +1,6 @@
 {lib, ...}: let
+  inherit (lib.attrsets) attrValues;
+  cat = lib.lists.concatMap;
   mat = lib.attrsets.mapAttrsToList;
 
   workspaces = [
@@ -31,83 +33,77 @@
     right = "r";
     up = "u";
     down = "d";
-    k = up;
-    j = down;
     h = left;
     l = right;
+    k = up;
+    j = down;
   };
+
+  # Helper to create special workspace configs
+  mkSpecialWorkspace = name: cmd: size: {
+    bind = "$MOD, ${name.key}, togglespecialworkspace, ${name.primary}";
+    bindShift = "$MOD SHIFT, ${name.key}, togglespecialworkspace, ${name.secondary}";
+    exec = "[workspace special:${name.primary} silent] ${cmd}";
+    rules = [
+      "workspace special:${name.primary}, class:^(${cmd})$"
+      "size 100% ${size}, workspace:^(${name.primary})$"
+      "move 0% 0%, workspace:^(${name.primary})$"
+      "float, workspace:^(${name.primary})$"
+      "noborder, workspace:^(${name.primary})$"
+    ];
+  };
+
+  specialWorkspaces = {
+    terminal = {
+      key = "GRAVE";
+      primary = "terminal";
+      secondary = "terminalAlt";
+      size = "100%";
+    };
+    editor = {
+      key = "C";
+      primary = "editor";
+      secondary = "editorAlt";
+      size = "100%";
+    };
+    browser = {
+      key = "B";
+      primary = "browser";
+      secondary = "browserAlt";
+      size = "100%";
+    };
+  };
+
+  #~@ Generate all special workspace configs
+  specialConfigs =
+    mat (
+      app: config:
+        mkSpecialWorkspace config "$${app}"
+    )
+    specialWorkspaces;
 in {
   bind =
-    [
-      "$MOD, grave, togglespecialworkspace, terminal"
-      "$MOD SHIFT, grave, togglespecialworkspace, terminalAlt"
-      "$MOD, C, togglespecialworkspace, editor"
-      "$MOD SHIFT, C, togglespecialworkspace, editorAlt"
-      "$MOD, B, togglespecialworkspace, browser"
-      "$MOD SHIFT, B, togglespecialworkspace, browserAlt"
-    ]
-    #> Change workspace
+    #~@ Special workspaces
+    (cat (c: [c.bind c.bindShift]) specialConfigs)
+    #~@ Regular workspace switching
     ++ (map (n: "$MOD,${n},workspace,name:${n}") workspaces)
-    #> Move window to workspace
     ++ (map (n: "$MOD SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
-    #> Move focus
-    ++ (mat (key: direction: "$MOD,${key},movefocus,${direction}") directions)
-    #> Swap windows
-    ++ (mat (key: direction: "$MOD SHIFT,${key},swapwindow,${direction}") directions)
-    #> Move windows
-    ++ (mat (key: direction: "$MOD CONTROL,${key},movewindoworgroup,${direction}") directions)
-    #> Move monitor focus
-    ++ (mat (key: direction: "$MOD ALT,${key},focusmonitor,${direction}") directions)
-    #> Move workspace to other monitor
-    ++ (mat (
-        key: direction: "$MOD ALT SHIFT,${key},movecurrentworkspacetomonitor,${direction}"
-      )
+    #~@ Directional bindings
+    ++ (mat (key: dir: "$MOD,${key},movefocus,${dir}") directions)
+    ++ (mat (key: dir: "$MOD SHIFT,${key},swapwindow,${dir}") directions)
+    ++ (mat (key: dir: "$MOD CONTROL,${key},movewindoworgroup,${dir}")
+      directions)
+    ++ (mat (key: dir: "$MOD ALT,${key},focusmonitor,${dir}") directions)
+    ++ (mat (key: dir: "$MOD ALT SHIFT,${key},movecurrentworkspacetomonitor,${dir}")
       directions);
 
-  exec-once = [
-    "[workspace special:terminal silent] $terminal"
-    "[workspace special:terminalAlt silent] $terminalAlt"
-    "[workspace special:editor silent] $editor"
-    "[workspace special:editorAlt silent] $editorAlt"
-    "[workspace special:browser silent] $browser"
-    "[workspace special:browserAlt silent] $browserAlt"
-  ];
+  exec-once =
+    map (c: c.exec) specialConfigs
+    ++ (map (c: c.exec) (map (cfg: mkSpecialWorkspace cfg "$${app}Alt")
+        (attrValues specialWorkspaces)));
 
-  windowrulev2 = [
-    #~@ Terminal
-    "workspace special:terminal, class:^($terminal)$"
-    "size 100% 30%, workspace:^(terminal)$"
-    "move 0% 0%, workspace:^(terminal)$"
-    "float, workspace:^(terminal)$"
-    "noborder, workspace:^(terminal)$"
-    "workspace special:terminalAlt, class:^($terminalAlt)$"
-    "size 100% 30%, workspace:^(terminalAlt)$"
-    "move 0% 0%, workspace:^(terminalAlt)$"
-    "float, workspace:^(terminalAlt)$"
-    "noborder, workspace:^(terminalAlt)$"
-
-    #~@ Editor
-    "workspace special:editor, class:^($editor)$"
-    "size 100% 70%, workspace:^(editor)$"
-    "move 0% 0%, workspace:^(editor)$"
-    "float, workspace:^(editor)$"
-    "noborder, workspace:^(editor)$"
-    "workspace special:editorAlt, class:^($editorAlt)$"
-    "size 100% 70%, workspace:^(editorAlt)$"
-    "move 0% 0%, workspace:^(editorAlt)$"
-    "float, workspace:^(editorAlt)$"
-    "noborder, workspace:^(editorAlt)$"
-
-    #~@ Browser
-    "workspace special:browser, class:^($browser)$"
-    "size 100% 80%, workspace:^(browser)$"
-    "move 0% 0%, workspace:^(browser)$"
-    "float, workspace:^(browser)$"
-    "noborder, workspace:^(browser)$"
-    "workspace special:browserAlt, class:^($browserAlt)$"
-    "size 100% 80%, workspace:^(browserAlt)$"
-    "move 0% 0%, workspace:^(browserAlt)$"
-    "float, workspace:^(browserAlt)$"
-    "noborder, workspace:^(browserAlt)$"
-  ];
+  windowrulev2 =
+    cat (c: c.rules) specialConfigs
+    ++ (cat (c: c.rules) (map (cfg: mkSpecialWorkspace cfg "$${app}Alt")
+        (attrValues specialWorkspaces)));
 }
