@@ -1,6 +1,8 @@
 { args, ... }:
-{
+let
   inherit (args) mod cmd;
+in
+{
   "$MOD" = mod;
   "$browser" = cmd.browser.primary;
   "$browserAlt" = cmd.browser.secondary;
