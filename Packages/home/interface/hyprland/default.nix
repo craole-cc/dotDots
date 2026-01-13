@@ -39,7 +39,7 @@
     };
     editor = {
       primary = rec {
-        name = _apps.terminal.primary or "vscode";
+        name = _apps.editor.gui.primary or "vscode";
         command =
           if hasInfix "code" name
           then "code"
@@ -48,7 +48,7 @@
           else name;
       };
       secondary = rec {
-        name = _apps.terminal.primary or "zed";
+        name = _apps.editor.gui.primary or "zed";
         command =
           if hasInfix "code" name
           then "code"
