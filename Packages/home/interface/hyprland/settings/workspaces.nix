@@ -91,15 +91,15 @@ in {
     (map (v: v.bind) allVariants)
 
     #~@ Regular workspaces
-    (map (n: "$MOD,${n},workspace,name:${n}") workspaces)
-    (map (n: "$MOD SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
+    (map (n: "${mod},${n},workspace,name:${n}") workspaces)
+    (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
 
     #~@ Directional bindings
-    (mkDirectionalBinds "$MOD" "movefocus")
-    (mkDirectionalBinds "$MOD SHIFT" "swapwindow")
-    (mkDirectionalBinds "$MOD CONTROL" "movewindoworgroup")
-    (mkDirectionalBinds "$MOD ALT" "focusmonitor")
-    (mkDirectionalBinds "$MOD ALT SHIFT" "movecurrentworkspacetomonitor")
+    (mkDirectionalBinds "${mod}" "movefocus")
+    (mkDirectionalBinds "${mod} SHIFT" "swapwindow")
+    (mkDirectionalBinds "${mod} CONTROL" "movewindoworgroup")
+    (mkDirectionalBinds "${mod} ALT" "focusmonitor")
+    (mkDirectionalBinds "${mod} ALT SHIFT" "movecurrentworkspacetomonitor")
   ];
   exec-once = map (v: v.exec) allVariants;
   windowrulev2 = concatMap (v: v.rules) allVariants;
