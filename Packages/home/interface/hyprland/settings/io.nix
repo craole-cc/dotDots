@@ -87,7 +87,7 @@ in {
 
   bindr = with apps.launcher; [
     #| Launcher
-    "MOD, ${MOD}_L, exec, ${primary.command}"
+    "MOD, MOD, exec, ${primary.command}"
     "MOD, SPACE, exec, ${secondary.command}"
   ];
 
@@ -127,7 +127,7 @@ in {
       "MOD, F, fullscreen, 1"
       "ALT SHIFT, RETURN, togglefloating"
       "MOD SHIFT, F, togglefloating"
-      "MOD ALT, F, pin"
+      "MOD CTRL, F, pin"
 
       "MOD, G, togglegroup"
       "MOD, T, lockactivegroup, toggle"
