@@ -1,7 +1,7 @@
-{mkMerge}: {
+{mkMerge, ...}: {
   programs = mkMerge [
     (import ./lock.nix)
-    (import ./panel.nix)
+    # (import ./panel.nix)
     (import ./shot.nix)
   ];
 
