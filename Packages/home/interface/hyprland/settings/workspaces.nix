@@ -8,19 +8,20 @@
 in {
   bind = [
     "SUPER, grave, togglespecialworkspace, terminal"
-    "SUPER SHIFT, grave, togglespecialworkspace, editor"
-    "SUPER CTRL, GRAVE, togglespecialworkspace, browser"
+    "SUPER SHIFT, grave, togglespecialworkspace, terminalAlt"
+    "SUPER, C, togglespecialworkspace, editor"
+    "SUPER SHIFT, C, togglespecialworkspace, editorAlt"
     "SUPER, B, togglespecialworkspace, browser"
     "SUPER SHIFT, B, togglespecialworkspace, browserAlt"
   ];
 
   exec-once = [
     "[workspace special:terminal silent] ${terminal}"
-    # "[workspace special:terminalAlt silent] ${terminalAlt}"
+    "[workspace special:terminalAlt silent] ${terminalAlt}"
     "[workspace special:editor silent] ${editor}"
-    # "[workspace special:editorAlt silent] ${editorAlt}"
+    "[workspace special:editorAlt silent] ${editorAlt}"
     "[workspace special:browser silent] ${browser}"
-    # "[workspace special:browserAlt silent] ${browserAlt}"
+    "[workspace special:browserAlt silent] ${browserAlt}"
   ];
 
   windowrulev2 = [
