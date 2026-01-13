@@ -1,65 +1,73 @@
-{
-  lib,
-  cmd,
-  mod,
-  ...
-}: let
-  inherit (lib.lists) concatMap flatten range;
-  inherit (lib.attrsets) mapAttrsToList;
+{ args, ... }:
+let
+  inherit (args) lib cmd mod;
+  inherit (lib.lists) flatten range;
+  cat = lib.lists.concatMap;
+  mat = lib.attrsets.mapAttrsToList;
 
-  workspaces =
-    map toString (range 0 9)
-    ++ map (n: "F${toString n}") (range 1 12);
+  workspaces = map toString (range 0 9) ++ map (n: "F${toString n}") (range 1 12);
 
-  directions = let
-    left = "l";
-    right = "r";
-    up = "u";
-    down = "d";
-  in {
-    inherit left right up down;
-    h = left;
-    l = right;
-    k = up;
-    j = down;
-  };
+  directions =
+    let
+      left = "l";
+      right = "r";
+      up = "u";
+      down = "d";
+    in
+    {
+      inherit
+        left
+        right
+        up
+        down
+        ;
+      h = left;
+      l = right;
+      k = up;
+      j = down;
+    };
 
-  mkWorkspaceVariant = {
-    command,
-    workspace,
-    key,
-    size,
-    extraMod ? "",
-  }: {
-    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = "[workspace special:${workspace} silent] ${command}";
-    rules = [
-      "workspace special:${workspace}, class:^(${command})$"
-      "size 100% ${size}, workspace:^(${workspace})$"
-      "move 0% 0%, workspace:^(${workspace})$"
-      "float, workspace:^(${workspace})$"
-      "noborder, workspace:^(${workspace})$"
+  mkWorkspaceVariant =
+    {
+      command,
+      workspace,
+      key,
+      size,
+      extraMod ? "",
+    }:
+    {
+      bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+      exec = "[workspace special:${workspace} silent] ${command}";
+      rules = [
+        "workspace special:${workspace}, class:^(${command})$"
+        "size 100% ${size}, workspace:^(${workspace})$"
+        "move 0% 0%, workspace:^(${workspace})$"
+        "float, workspace:^(${workspace})$"
+        "noborder, workspace:^(${workspace})$"
+      ];
+    };
+
+  mkWorkspace =
+    name:
+    {
+      key,
+      primary,
+      secondary,
+      size,
+    }:
+    [
+      (mkWorkspaceVariant {
+        inherit key size;
+        workspace = name;
+        command = primary;
+      })
+      (mkWorkspaceVariant {
+        inherit key size;
+        workspace = "${name}Alt";
+        command = secondary;
+        extraMod = "SHIFT";
+      })
     ];
-  };
-
-  mkWorkspace = name: {
-    key,
-    primary,
-    secondary,
-    size,
-  }: [
-    (mkWorkspaceVariant {
-      inherit key size;
-      workspace = name;
-      command = primary;
-    })
-    (mkWorkspaceVariant {
-      inherit key size;
-      workspace = "${name}Alt";
-      command = secondary;
-      extraMod = "SHIFT";
-    })
-  ];
 
   specialWorkspaces = {
     terminal = {
@@ -82,10 +90,11 @@
     };
   };
 
-  allVariants = flatten (mapAttrsToList mkWorkspace specialWorkspaces);
-  mkDirectionalBinds = modifier: action:
-    mapAttrsToList (key: dir: "${modifier},${key},${action},${dir}") directions;
-in {
+  allVariants = flatten (mat mkWorkspace specialWorkspaces);
+  mkDirectionalBinds =
+    modifier: action: mat (key: dir: "${modifier},${key},${action},${dir}") directions;
+in
+{
   bind = flatten [
     #~@ Special workspaces
     (map (v: v.bind) allVariants)
@@ -102,5 +111,5 @@ in {
     (mkDirectionalBinds "${mod} ALT SHIFT" "movecurrentworkspacetomonitor")
   ];
   exec-once = map (v: v.exec) allVariants;
-  windowrulev2 = concatMap (v: v.rules) allVariants;
+  windowrulev2 = cat (v: v.rules) allVariants;
 }

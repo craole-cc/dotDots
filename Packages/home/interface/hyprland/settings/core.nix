@@ -1,8 +1,6 @@
+{ args, ... }:
 {
-  mod,
-  cmd,
-  ...
-}: {
+  inherit (args) mod cmd;
   "$MOD" = mod;
   "$browser" = cmd.browser.primary;
   "$browserAlt" = cmd.browser.secondary;
@@ -13,7 +11,7 @@
   "$terminal" = cmd.terminal.primary;
   "$terminalAlt" = cmd.terminal.secondary;
 
-  env = ["XDG_CURRENT_DESKTOP,Hyprland"];
+  env = [ "XDG_CURRENT_DESKTOP,Hyprland" ];
   general = {
     # sensitivity = 0.2;
 

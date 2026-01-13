@@ -4,17 +4,27 @@
   lix,
   host,
   ...
-}: let
+}:
+let
   app = "hyprland";
   inherit (lib.modules) mkIf mkMerge;
   isAllowed = app == (user.interface.windowManager or null);
-in {
+in
+{
   config = mkIf isAllowed {
     wayland.windowManager.hyprland = mkMerge [
-      {enable = true;}
+      { enable = true; }
       # (import ./components {inherit mkMerge;})
-      (import ./settings {inherit host user lib lix;})
-      (import ./submaps {inherit mkMerge;})
+      (import ./settings {
+        inherit
+          host
+          user
+          lib
+          lix
+          mkMerge
+          ;
+      })
+      (import ./submaps { inherit mkMerge; })
       # (import ./plugins)
     ];
   };

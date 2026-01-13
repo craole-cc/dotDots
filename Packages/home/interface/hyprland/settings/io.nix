@@ -1,19 +1,19 @@
-{
-  host,
-  lib,
-  user,
-  lix,
-  cmd,
-  ...
-}: let
+{ args, ... }:
+let
+  inherit (args)
+    host
+    lib
+    user
+    lix
+    cmd
+    ;
   inherit (lix.hardware.display) mkHyprlandMonitors;
   inherit (lib.modules) mkIf;
   swapCapsEscape =
-    user.interface.keyboard.swapCapsEscape or
-    host.interface.keyboard.swapCapsEscape or
-      null;
-in {
-  monitor = mkHyprlandMonitors {inherit host;};
+    user.interface.keyboard.swapCapsEscape or host.interface.keyboard.swapCapsEscape or null;
+in
+{
+  monitor = mkHyprlandMonitors { inherit host; };
 
   input = {
     touchpad = {
