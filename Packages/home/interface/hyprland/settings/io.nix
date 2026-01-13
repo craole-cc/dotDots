@@ -87,7 +87,7 @@ in {
 
   bindr = with apps.launcher; [
     #| Launcher
-    "SUPER, SUPER, exec, ${primary.command}"
+    "SUPER, SUPER_L, exec, ${primary.command}"
     "SUPER, SPACE, exec, ${secondary.command}"
   ];
 
