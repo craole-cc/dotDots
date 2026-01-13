@@ -3,6 +3,7 @@
   lib,
   user,
   lix,
+  cmd,
   ...
 }: let
   inherit (lix.hardware.display) mkHyprlandMonitors;
@@ -21,13 +22,54 @@ in {
       tap-and-drag = true;
     };
 
-    follow_mouse = true;
+    follow_mouse = false;
     # force_no_accel = 1;
     # repeat_delay = 200;
     # repeat_rate = 40;
     accel_profile = "flat";
     kb_options = mkIf swapCapsEscape "caps:swapescape";
   };
+
+  bind = [
+    #~@ System
+    "$MOD, Q, killactive"
+
+    #~@ Windows
+    "$MOD, S, togglesplit"
+    "$MOD, P, pseudo"
+    "ALT, RETURN, fullscreen, 0"
+    "$MOD, F, fullscreen, 1"
+    "ALT SHIFT, RETURN, togglefloating"
+    "$MOD SHIFT, F, togglefloating"
+    "$MOD CTRL, F, pin"
+
+    "$MOD, G, togglegroup"
+    "$MOD, T, lockactivegroup, toggle"
+
+    #~@ Cycle through active workspaces
+    "$MOD, TAB, workspace, previous"
+
+    #~@ Toggle the previously focused window
+    "ALT, TAB, focuscurrentorlast"
+
+    #~@ Applications
+    # "$MOD, GRAVE, exec,  ${terminal.primary.command}"
+    # "$MOD SHIFT, GRAVE, exec, ${terminal.secondary.command}"
+    # "$MOD, B, exec, ${browser.primary.command}"
+    # "$MOD SHIFT, B, exec, ${browser.secondary.command}"
+    # "$MOD, C, exec, ${editor.primary.command}"
+    # "$MOD SHIFT, C, exec, ${editor.secondary.command}"
+
+    # "$MOD, GRAVE, exec, ${terminal.primary.command}"
+    "$MOD, RETURN, exec, ${cmd.terminal.primary}"
+    "$MOD SHIFT, RETURN, exec, ${cmd.terminal.secondary}"
+  ];
+
+  bindr = [
+    #~@ Launcher
+    "$MOD, SUPER_L, exec, ${cmd.launcher.primary}"
+    "$MOD, SPACE, exec, ${cmd.launcher.secondary}"
+  ];
 
   bindl = [
     #~@ System
@@ -44,12 +86,6 @@ in {
     #~@ Audio
     ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-  ];
-
-  bindr = [
-    #~@ Launcher
-    "$MOD, SUPER_L, exec, $launcher"
-    "$MOD, SPACE, exec, $launcherAlt"
   ];
 
   bindle = [
@@ -75,41 +111,4 @@ in {
     "$MOD, MINUS, splitratio, -0.25"
     "$MOD SHIFT, MINUS, splitratio, -0.015"
   ];
-
-  bind =
-    [
-      #~@ System
-      "$MOD, Q, killactive"
-
-      #~@ Windows
-      "$MOD, S, togglesplit"
-      "$MOD, P, pseudo"
-      "ALT, RETURN, fullscreen, 0"
-      "$MOD, F, fullscreen, 1"
-      "ALT SHIFT, RETURN, togglefloating"
-      "$MOD SHIFT, F, togglefloating"
-      "$MOD CTRL, F, pin"
-
-      "$MOD, G, togglegroup"
-      "$MOD, T, lockactivegroup, toggle"
-
-      #~@ Cycle through active workspaces
-      "$MOD, TAB, workspace, previous"
-
-      #~@ Toggle the previously focused window
-      "ALT, TAB, focuscurrentorlast"
-    ]
-    ++ [
-      #~@ Applications
-      # "$MOD, GRAVE, exec,  ${terminal.primary.command}"
-      # "$MOD SHIFT, GRAVE, exec, ${terminal.secondary.command}"
-      # "$MOD, B, exec, ${browser.primary.command}"
-      # "$MOD SHIFT, B, exec, ${browser.secondary.command}"
-      # "$MOD, C, exec, ${editor.primary.command}"
-      # "$MOD SHIFT, C, exec, ${editor.secondary.command}"
-
-      # "$MOD, GRAVE, exec, ${terminal.primary.command}"
-      "$MOD, RETURN, exec, $terminal"
-      "$MOD SHIFT, RETURN, exec, $terminalAlt"
-    ];
 }
