@@ -9,14 +9,14 @@
   modifier = user.interface.keyboard.modifier or host.interface.keyboard.modifier or "Super";
 in {
   "$MOD" = toUpper modifier;
-  "$browser" = apps.browser.primary.command;
-  "$browserAlt" = apps.browser.secondary.command;
-  "$editor" = apps.editor.primary.command;
-  "$editorAlt" = apps.editor.secondary.command;
-  "$launcher" = apps.launcher.primary.command;
-  "$launcherAlt" = apps.launcher.secondary.command;
-  "$terminal" = apps.terminal.primary.command;
-  "$terminalAlt" = apps.terminal.secondary.command;
+  "$browser" = apps.browser.primary;
+  "$browserAlt" = apps.browser.secondary;
+  "$editor" = apps.editor.primary;
+  "$editorAlt" = apps.editor.secondary;
+  "$launcher" = apps.launcher.primary;
+  "$launcherAlt" = apps.launcher.secondary;
+  "$terminal" = apps.terminal.primary;
+  "$terminalAlt" = apps.terminal.secondary;
 
   env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {
