@@ -7,12 +7,12 @@
   terminalAlt = apps.terminal.secondary.command;
 in {
   bind = [
-    "SUPER, grave, togglespecialworkspace, terminal"
-    "SUPER SHIFT, grave, togglespecialworkspace, terminalAlt"
-    "SUPER, C, togglespecialworkspace, editor"
-    "SUPER SHIFT, C, togglespecialworkspace, editorAlt"
-    "SUPER, B, togglespecialworkspace, browser"
-    "SUPER SHIFT, B, togglespecialworkspace, browserAlt"
+    "$MOD CTRL, grave, togglespecialworkspace, terminal"
+    "$MOD CTRL SHIFT, grave, togglespecialworkspace, terminalAlt"
+    "$MOD CTRL, C, togglespecialworkspace, editor"
+    "$MOD CTRL SHIFT, C, togglespecialworkspace, editorAlt"
+    "$MOD CTRL, B, togglespecialworkspace, browser"
+    "$MOD CTRL SHIFT, B, togglespecialworkspace, browserAlt"
   ];
 
   exec-once = [

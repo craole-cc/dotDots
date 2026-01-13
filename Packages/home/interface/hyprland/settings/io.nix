@@ -69,34 +69,34 @@ in {
   "$MOD" = toUpper modifier;
 
   bindl = [
-    #| System
+    #~@ System
     "$MOD CTRL, Q, exit"
     "$MOD SHIFT, ESC, exit"
     "CTRL ALT, DEL, exit"
     "CTRL ALT SHIFT, ESC, exit"
 
-    #| Media Controls
+    #~@ Media Controls
     ", XF86AudioPlay, exec, playerctl play-pause"
     ", XF86AudioPrev, exec, playerctl previous"
     ", XF86AudioNext, exec, playerctl next"
 
-    #| Audio
+    #~@ Audio
     ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
   ];
 
   bindr = with apps.launcher; [
-    #| Launcher
+    #~@ Launcher
     "$MOD, SUPER_L, exec, ${primary.command}"
     "$MOD, SPACE, exec, ${secondary.command}"
   ];
 
   bindle = [
-    #| Volume
+    #~@ Volume
     ",XF86AudioRaiseVolume, exec, wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%+"
     ",XF86AudioLowerVolume, exec, wpctl set-volume -l '1.0' @DEFAULT_AUDIO_SINK@ 5%-"
 
-    #| Backlight
+    #~@ Backlight
     ",XF86MonBrightnessDown, exec, brightnessctl set 5%-"
     ",XF86MonBrightnessUp, exec, brightnessctl set +5%"
   ];
@@ -108,7 +108,7 @@ in {
   ];
 
   binde = [
-    #> Window
+    #~@ Window
     "$MOD, EQUAL, splitratio, 0.25"
     "$MOD SHIFT, EQUAL, splitratio, 0.015"
     "$MOD, MINUS, splitratio, -0.25"
