@@ -14,7 +14,7 @@ in {
       {enable = true;}
       # (import ./components {inherit mkMerge;})
       (import ./settings {inherit host user lib lix;})
-      # (import ./submaps)
+      (import ./submaps {inherit mkMerge;})
       # (import ./plugins)
     ];
   };

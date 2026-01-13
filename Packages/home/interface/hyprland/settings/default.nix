@@ -6,6 +6,7 @@
   ...
 }: let
   inherit (lib.strings) hasInfix toUpper;
+  inherit (lib.modules) mkMerge;
   mod = toUpper (user.interface.keyboard.modifier or host.interface.keyboard.modifier or "Super");
   mkCmd = category: field: default: let
     apps = user.applications or {};
@@ -61,7 +62,7 @@
     };
   };
 in {
-  settings = lib.mkMerge [
+  settings = mkMerge [
     (import ./core.nix {inherit user host lib mod cmd;})
     (import ./io.nix {inherit user host lib lix cmd;})
     # (import ./startup.nix)
