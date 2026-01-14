@@ -35,6 +35,7 @@
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
     exec = "hyprctl dispatch exec '[workspace special:${workspace} silent] ${command}'";
     rule = [
+      x
       "workspace special:${workspace} silent, class:^(${class})$"
       "size 100% ${size}, class:^(${class})$"
       "move 0% 0%, class:^(${class})$"
