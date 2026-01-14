@@ -2,11 +2,23 @@ let
   arch = "x86_64";
   os = "linux";
 in {
-  imports = [./hardware-configuration.nix];
-  paths.dots = "/home/craole/Downloads/public/dotDots";
+  # imports = [./hardware-configuration.nix];
 
   stateVersion = "25.05";
   system = "${arch}-${os}";
+  class = "nixos";
+  id = "d2c1db8e"; #> head -c8 /etc/machine-id'
+
+  paths = {
+    dots = "/home/craole/Downloads/public/dotDots";
+    wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+  };
+
+  packages = {
+    unstable = true;
+    allowUnfree = true;
+    kernel = "linuxPackages_cachyos-lto";
+  };
 
   modules = [
     "nvme"
@@ -16,11 +28,6 @@ in {
     "sd_mod"
     "rtsx_pci_sdmmc"
   ];
-
-  packages = {
-    allowUnfree = true;
-    # kernel = "linuxPackages_latest";
-  };
 
   specs = {
     machine = "laptop";
@@ -36,12 +43,12 @@ in {
       # TODO: Change this to not use named attrsets
       primary = {
         brand = "amd";
-        busId = "PCI:6:0:0"; # 06:00.0
-        model = "Radeon 660M";
+        busId = "PCI:6:0:0";
+        model = "Radeon 680M";
       };
       secondary = {
         brand = "nvidia";
-        busId = "PCI:1:0:0"; # 01:00.0
+        busId = "PCI:1:0:0";
         model = "RTX 2050";
       };
       mode = "hybrid"; # or "offload", "sync", "primary-nvidia", etc.
@@ -67,29 +74,36 @@ in {
       };
     };
 
-    swap = [];
+    swap = [
+      {device = "/dev/disk/by-uuid/d9e04286-b70c-4c8a-8691-a9a9cbcf57fe";}
+    ];
 
     network = ["eno1" "wlo1"];
 
     display = {
-      "HDMI-A-1" = {
-        resolution = "1920x1080";
-        refreshRate = 75;
-        scale = 1;
-        position = "0x0";
-      };
-
       "eDP-1" = {
+        brand = "AUO";
         resolution = "1920x1080";
         refreshRate = 144.15;
         scale = 1;
-        position = "auto";
+        position = "0x0";
+        size = 15.6;
+        priority = 0;
       };
+      # "HDMI-A-1" = {
+      #   resolution = "1920x1080";
+      #   refreshRate = 75;
+      #   scale = 1;
+      #   position = "0x0";
+      # };
     };
   };
+
   localization = {
     latitude = 18.015;
     longitude = 77.49;
+    city = "Mandeville, Jamaica";
+    locator = "geoclue2";
     timeZone = "America/Jamaica";
     defaultLocale = "en_US.UTF-8";
   };
@@ -153,7 +167,7 @@ in {
     {
       name = "craole";
       enable = true;
-      autoLogin = false;
+      autoLogin = true;
       role = "administrator";
     }
     {
@@ -179,7 +193,7 @@ in {
     displayProtocol = "wayland";
     keyboard = {
       modifier = "SUPER";
-      swapCapsEscape = false;
+      swapCapsEscape = true;
     };
   };
 }

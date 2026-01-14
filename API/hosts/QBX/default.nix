@@ -21,7 +21,7 @@ in {
   };
 
   specs = {
-    machine = "laptop";
+    machine = "desktop";
 
     cpu = {
       inherit arch;
@@ -34,13 +34,13 @@ in {
       # TODO: Change this to not use named attrsets
       primary = {
         brand = "amd";
-        busId = "PCI:6:0:0"; # 06:00.0
+        busId = "PCI:6:0:0";
         model = "Radeon 660M";
       };
       secondary = {
         brand = "nvidia";
         busId = "PCI:1:0:0"; # 01:00.0
-        model = "RTX 2050";
+        model = "RTX 2050"; # This needs to be changed to match the actual model `lspci | grep -E 'VGA|3D'`
       };
       mode = "hybrid"; # or "offload", "sync", "primary-nvidia", etc.
     };

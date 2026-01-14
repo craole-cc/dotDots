@@ -98,7 +98,6 @@
     environment = {
       systemPackages = with pkgs;
         [
-          # ion
           alejandra
           amp
           bat
@@ -118,6 +117,7 @@
           getent
           gh
           gitui
+          gnome-randr
           gnused
           gnused
           helix
@@ -125,6 +125,7 @@
           jql
           lolcat
           lsd
+          lshw
           nil
           nix-index
           nix-info
@@ -133,6 +134,7 @@
           nix-prefetch-github
           nix-prefetch-scripts
           nixfmt
+          pciutils
           procs
           ripgrep
           rsync
