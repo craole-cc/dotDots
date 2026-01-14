@@ -1,5 +1,5 @@
 {args, ...}: let
-  inherit (args) lib cmd mod;
+  inherit (args) lib mod apps;
   inherit (lib.lists) flatten range;
   cat = lib.lists.concatMap;
   mat = lib.attrsets.mapAttrsToList;
@@ -47,46 +47,42 @@
     key,
     primary,
     secondary,
-    size,
+    size ? "100%",
   }: [
     (mkWorkspaceVariant {
+      inherit (primary) command windowClass;
       inherit key size;
       workspace = name;
-      command = primary.command;
-      windowClass = primary.class;
     })
     (mkWorkspaceVariant {
+      inherit (secondary) command windowClass;
       inherit key size;
       workspace = "${name}Alt";
-      command = secondary.command;
-      windowClass = secondary.class;
       extraMod = "SHIFT";
     })
   ];
 
-  specialWorkspaces = {
-    terminal = {
-      key = "GRAVE";
-      primary = cmd.terminal.primary;
-      secondary = cmd.terminal.secondary;
-      size = "30%";
+  specialWorkspaces = with apps; {
+    browser = {
+      inherit (browser) primary secondary;
+      key = "B";
     };
     editor = {
+      inherit (editor) primary secondary;
       key = "C";
-      primary = cmd.editor.primary;
-      secondary = cmd.editor.secondary;
-      size = "70%";
     };
-    browser = {
-      key = "B";
-      primary = cmd.browser.primary;
-      secondary = cmd.browser.secondary;
-      size = "80%";
+    terminal = {
+      inherit (terminal) primary secondary;
+      key = "GRAVE";
     };
   };
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
-  mkDirectionalBinds = modifier: action: mat (key: dir: "${modifier},${key},${action},${dir}") directions;
+  mkDirectionalBinds = {
+    modifier ? mod,
+    action,
+  }:
+    mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
   bind = flatten [
     #~@ Special workspaces
@@ -97,11 +93,27 @@ in {
     (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
 
     #~@ Directional bindings
-    (mkDirectionalBinds "${mod}" "movefocus")
-    (mkDirectionalBinds "${mod} SHIFT" "swapwindow")
-    (mkDirectionalBinds "${mod} CONTROL" "movewindoworgroup")
-    (mkDirectionalBinds "${mod} ALT" "focusmonitor")
-    (mkDirectionalBinds "${mod} ALT SHIFT" "movecurrentworkspacetomonitor")
+    (mkDirectionalBinds {action = "movefocus";})
+    (mkDirectionalBinds {
+      modifier = "${mod} SHIFT";
+      action = "swapwindow";
+    })
+    (mkDirectionalBinds {
+      modifier = "${mod} CRTL";
+      action = "movewindoworgroup";
+    })
+    (mkDirectionalBinds {
+      modifier = "${mod} ALT";
+      action = "focusmonitor";
+    })
+    (mkDirectionalBinds {
+      modifier = "${mod} ALT SHIFT";
+      action = "movecurrentworkspacetomonitor";
+    })
+    # (mkDirectionalBinds "${mod} SHIFT" "swapwindow")
+    # (mkDirectionalBinds "${mod} CONTROL" "movewindoworgroup")
+    # (mkDirectionalBinds "${mod} ALT" "focusmonitor")
+    # (mkDirectionalBinds "${mod} ALT SHIFT" "movecurrentworkspacetomonitor")
   ];
   exec-once = map (v: v.exec) allVariants;
   windowrulev2 = cat (v: v.rules) allVariants;

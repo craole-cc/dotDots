@@ -5,7 +5,8 @@
     lib
     user
     lix
-    cmd
+    apps
+    mod
     ;
   inherit (lix.hardware.display) mkHyprlandMonitors;
   inherit (lib.modules) mkIf;
@@ -22,50 +23,47 @@ in {
     };
 
     follow_mouse = false;
-    # force_no_accel = 1;
-    # repeat_delay = 200;
-    # repeat_rate = 40;
     accel_profile = "flat";
     kb_options = mkIf swapCapsEscape "caps:swapescape";
   };
 
   bind = [
     #~@ System
-    "$MOD, Q, killactive"
+    "${mod}, Q, killactive"
 
     #~@ Windows
-    "$MOD, S, togglesplit"
-    "$MOD, P, pseudo"
+    "${mod}, S, togglesplit"
+    "${mod}, P, pseudo"
     "ALT, RETURN, fullscreen, 0"
-    "$MOD, F, fullscreen, 1"
+    "${mod}, F, fullscreen, 1"
     "ALT SHIFT, RETURN, togglefloating"
-    "$MOD SHIFT, F, togglefloating"
-    "$MOD CTRL, F, pin"
+    "${mod} SHIFT, F, togglefloating"
+    "${mod} CTRL, F, pin"
 
-    "$MOD, G, togglegroup"
-    "$MOD, T, lockactivegroup, toggle"
+    "${mod}, G, togglegroup"
+    "${mod}, T, lockactivegroup, toggle"
 
     #~@ Cycle through active workspaces
-    "$MOD, TAB, workspace, previous"
+    "${mod}, TAB, workspace, previous"
 
     #~@ Toggle the previously focused window
     "ALT, TAB, focuscurrentorlast"
 
     #~@ Applications
-    "$MOD, RETURN, exec, ${cmd.terminal.primary.command}"
-    "$MOD SHIFT, RETURN, exec, ${cmd.terminal.secondary.command}"
+    "${mod}, RETURN, exec, ${apps.terminal.primary.command}"
+    "${mod} SHIFT, RETURN, exec, ${apps.terminal.secondary.command}"
   ];
 
   bindr = [
     #~@ Launcher
-    "$MOD, SUPER_L, exec, ${cmd.launcher.primary.command}"
-    "$MOD, SPACE, exec, ${cmd.launcher.secondary.command}"
+    "${mod}, SUPER_L, exec, ${apps.launcher.primary.command}"
+    "${mod}, SPACE, exec, ${apps.launcher.secondary.command}"
   ];
 
   bindl = [
     #~@ System
-    "$MOD CTRL, Q, exit"
-    "$MOD SHIFT, ESC, exit"
+    "${mod} CTRL, Q, exit"
+    "${mod} SHIFT, ESC, exit"
     "CTRL ALT, DEL, exit"
     "CTRL ALT SHIFT, ESC, exit"
 
@@ -90,16 +88,16 @@ in {
   ];
 
   bindm = [
-    "$MOD, mouse:272, movewindow"
-    "$MOD, mouse:273, resizewindow"
-    "$MOD SHIFT, mouse:272, resizewindow"
+    "${mod}, mouse:272, movewindow"
+    "${mod}, mouse:273, resizewindow"
+    "${mod} SHIFT, mouse:272, resizewindow"
   ];
 
   binde = [
     #~@ Window
-    "$MOD, EQUAL, splitratio, 0.25"
-    "$MOD SHIFT, EQUAL, splitratio, 0.015"
-    "$MOD, MINUS, splitratio, -0.25"
-    "$MOD SHIFT, MINUS, splitratio, -0.015"
+    "${mod}, EQUAL, splitratio, 0.25"
+    "${mod} SHIFT, EQUAL, splitratio, 0.015"
+    "${mod}, MINUS, splitratio, -0.25"
+    "${mod} SHIFT, MINUS, splitratio, -0.015"
   ];
 }

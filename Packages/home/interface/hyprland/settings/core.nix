@@ -1,15 +1,15 @@
 {args, ...}: let
-  inherit (args) mod cmd;
+  inherit (args.apps) browser editor launcher terminal;
 in {
-  "$MOD" = mod;
-  "$browser" = cmd.browser.primary.command;
-  "$browserAlt" = cmd.browser.secondary.command;
-  "$editor" = cmd.editor.primary.command;
-  "$editorAlt" = cmd.editor.secondary.command;
-  "$launcher" = cmd.launcher.primary.command;
-  "$launcherAlt" = cmd.launcher.secondary.command;
-  "$terminal" = cmd.terminal.primary.command;
-  "$terminalAlt" = cmd.terminal.secondary.command;
+  "$MOD" = args.mod;
+  "$browser" = browser.primary.command;
+  "$browserAlt" = browser.secondary.command;
+  "$editor" = editor.primary.command;
+  "$editorAlt" = editor.secondary.command;
+  "$launcher" = launcher.primary.command;
+  "$launcherAlt" = launcher.secondary.command;
+  "$terminal" = terminal.primary.command;
+  "$terminalAlt" = terminal.secondary.command;
 
   env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {

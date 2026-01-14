@@ -16,13 +16,14 @@
       mkMerge
       user
       ;
+
     mod = toUpper (
       user.interface.keyboard.modifier or
         host.interface.keyboard.modifier or
         "Super"
     );
 
-    cmd = let
+    apps = let
       mkCmd = {
         category,
         field,
@@ -32,7 +33,7 @@
         apps = user.applications or {};
         name = apps.${category}.${field} or default;
 
-        # Determine the command to execute
+        #? Determine the command to execute
         command =
           if category == "terminal"
           then
@@ -65,7 +66,7 @@
             else name
           else name;
 
-        # Determine the window class
+        #? Determine the window class
         windowClass =
           if category == "terminal"
           then
@@ -75,7 +76,7 @@
             then "com.mitchellh.ghostty"
             else name
           else if category == "browser"
-          then command # browser commands match their classes
+          then command #? browser commands match their classes
           else if category == "editor"
           then
             if hasInfix "code" name
@@ -85,8 +86,7 @@
             else name
           else command;
       in {
-        inherit command;
-        class = windowClass;
+        inherit command windowClass;
       };
     in {
       browser = {
