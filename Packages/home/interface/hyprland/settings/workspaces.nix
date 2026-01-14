@@ -1,5 +1,4 @@
-{ args, ... }:
-let
+{args, ...}: let
   inherit (args) lib cmd mod;
   inherit (lib.lists) flatten range;
   cat = lib.lists.concatMap;
@@ -7,67 +6,63 @@ let
 
   workspaces = map toString (range 0 9) ++ map (n: "F${toString n}") (range 1 12);
 
-  directions =
-    let
-      left = "l";
-      right = "r";
-      up = "u";
-      down = "d";
-    in
-    {
-      inherit
-        left
-        right
-        up
-        down
-        ;
-      h = left;
-      l = right;
-      k = up;
-      j = down;
-    };
+  directions = let
+    left = "l";
+    right = "r";
+    up = "u";
+    down = "d";
+  in {
+    inherit
+      left
+      right
+      up
+      down
+      ;
+    h = left;
+    l = right;
+    k = up;
+    j = down;
+  };
 
-  mkWorkspaceVariant =
-    {
-      command,
-      workspace,
-      key,
-      size,
-      extraMod ? "",
-    }:
-    {
-      bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-      exec = "[workspace special:${workspace} silent] ${command}";
-      rules = [
-        "workspace special:${workspace}, class:^(${command})$"
-        "size 100% ${size}, workspace:^(${workspace})$"
-        "move 0% 0%, workspace:^(${workspace})$"
-        "float, workspace:^(${workspace})$"
-        "noborder, workspace:^(${workspace})$"
-      ];
-    };
-
-  mkWorkspace =
-    name:
-    {
-      key,
-      primary,
-      secondary,
-      size,
-    }:
-    [
-      (mkWorkspaceVariant {
-        inherit key size;
-        workspace = name;
-        command = primary;
-      })
-      (mkWorkspaceVariant {
-        inherit key size;
-        workspace = "${name}Alt";
-        command = secondary;
-        extraMod = "SHIFT";
-      })
+  mkWorkspaceVariant = {
+    command,
+    windowClass,
+    workspace,
+    key,
+    size,
+    extraMod ? "",
+  }: {
+    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+    exec = "[workspace special:${workspace} silent] ${command}";
+    rules = [
+      "workspace special:${workspace}, class:^(${windowClass})$"
+      "size 100% ${size}, workspace:special:${workspace}"
+      "move 0% 0%, workspace:special:${workspace}"
+      "float, workspace:special:${workspace}"
+      "noborder, workspace:special:${workspace}"
     ];
+  };
+
+  mkWorkspace = name: {
+    key,
+    primary,
+    secondary,
+    size,
+  }: [
+    (mkWorkspaceVariant {
+      inherit key size;
+      workspace = name;
+      command = primary.command;
+      windowClass = primary.class;
+    })
+    (mkWorkspaceVariant {
+      inherit key size;
+      workspace = "${name}Alt";
+      command = secondary.command;
+      windowClass = secondary.class;
+      extraMod = "SHIFT";
+    })
+  ];
 
   specialWorkspaces = {
     terminal = {
@@ -91,10 +86,8 @@ let
   };
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
-  mkDirectionalBinds =
-    modifier: action: mat (key: dir: "${modifier},${key},${action},${dir}") directions;
-in
-{
+  mkDirectionalBinds = modifier: action: mat (key: dir: "${modifier},${key},${action},${dir}") directions;
+in {
   bind = flatten [
     #~@ Special workspaces
     (map (v: v.bind) allVariants)

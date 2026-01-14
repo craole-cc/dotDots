@@ -1,6 +1,6 @@
-{ args, ... }:
-let
-  inherit (args)
+{args, ...}: let
+  inherit
+    (args)
     host
     lib
     user
@@ -11,9 +11,8 @@ let
   inherit (lib.modules) mkIf;
   swapCapsEscape =
     user.interface.keyboard.swapCapsEscape or host.interface.keyboard.swapCapsEscape or null;
-in
-{
-  monitor = mkHyprlandMonitors { inherit host; };
+in {
+  monitor = mkHyprlandMonitors {inherit host;};
 
   input = {
     touchpad = {
@@ -53,22 +52,14 @@ in
     "ALT, TAB, focuscurrentorlast"
 
     #~@ Applications
-    # "$MOD, GRAVE, exec,  ${terminal.primary.command}"
-    # "$MOD SHIFT, GRAVE, exec, ${terminal.secondary.command}"
-    # "$MOD, B, exec, ${browser.primary.command}"
-    # "$MOD SHIFT, B, exec, ${browser.secondary.command}"
-    # "$MOD, C, exec, ${editor.primary.command}"
-    # "$MOD SHIFT, C, exec, ${editor.secondary.command}"
-
-    # "$MOD, GRAVE, exec, ${terminal.primary.command}"
-    "$MOD, RETURN, exec, ${cmd.terminal.primary}"
-    "$MOD SHIFT, RETURN, exec, ${cmd.terminal.secondary}"
+    "$MOD, RETURN, exec, ${cmd.terminal.primary.command}"
+    "$MOD SHIFT, RETURN, exec, ${cmd.terminal.secondary.command}"
   ];
 
   bindr = [
     #~@ Launcher
-    "$MOD, SUPER_L, exec, ${cmd.launcher.primary}"
-    "$MOD, SPACE, exec, ${cmd.launcher.secondary}"
+    "$MOD, SUPER_L, exec, ${cmd.launcher.primary.command}"
+    "$MOD, SPACE, exec, ${cmd.launcher.secondary.command}"
   ];
 
   bindl = [

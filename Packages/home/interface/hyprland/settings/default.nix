@@ -27,40 +27,67 @@
         category,
         field,
         default,
+        defaultClass ? null,
       }: let
         apps = user.applications or {};
         name = apps.${category}.${field} or default;
-      in
-        if category == "terminal"
-        then
-          if name == "foot"
-          then "footclient"
-          else name
-        else if category == "browser"
-        then
-          if hasInfix "zen" name
+
+        # Determine the command to execute
+        command =
+          if category == "terminal"
           then
-            if hasInfix "twilight" name
-            then "zen-twilight"
-            else "zen-beta"
-          else if hasInfix "edge" name
-          then "microsoft-edge"
-          else name
-        else if category == "editor"
-        then
-          if hasInfix "code" name
-          then "code"
-          else if hasInfix "zed" name
-          then "zeditor"
-          else name
-        else if category == "launcher"
-        then
-          if name == "vicinae"
-          then "vicinae toggle"
-          else if name == "fuzzel"
-          then "pkill fuzzel || fuzzel --list-executables-in-path"
-          else name
-        else name;
+            if name == "foot"
+            then "footclient"
+            else name
+          else if category == "browser"
+          then
+            if hasInfix "zen" name
+            then
+              if hasInfix "twilight" name
+              then "zen-twilight"
+              else "zen-beta"
+            else if hasInfix "edge" name
+            then "microsoft-edge"
+            else name
+          else if category == "editor"
+          then
+            if hasInfix "code" name
+            then "code"
+            else if hasInfix "zed" name
+            then "zeditor"
+            else name
+          else if category == "launcher"
+          then
+            if name == "vicinae"
+            then "vicinae toggle"
+            else if name == "fuzzel"
+            then "pkill fuzzel || fuzzel --list-executables-in-path"
+            else name
+          else name;
+
+        # Determine the window class
+        windowClass =
+          if category == "terminal"
+          then
+            if name == "foot"
+            then "foot"
+            else if name == "ghostty"
+            then "com.mitchellh.ghostty"
+            else name
+          else if category == "browser"
+          then command # browser commands match their classes
+          else if category == "editor"
+          then
+            if hasInfix "code" name
+            then "code"
+            else if hasInfix "zed" name
+            then "dev.zed.Zed"
+            else name
+          else command;
+      in {
+        inherit command;
+        class = windowClass;
+      };
     in {
       browser = {
         primary = mkCmd {
