@@ -1,19 +1,17 @@
-{ args, ... }:
-let
+{args, ...}: let
   inherit (args) mod cmd;
-in
-{
+in {
   "$MOD" = mod;
-  "$browser" = cmd.browser.primary;
-  "$browserAlt" = cmd.browser.secondary;
-  "$editor" = cmd.editor.primary;
-  "$editorAlt" = cmd.editor.secondary;
-  "$launcher" = cmd.launcher.primary;
-  "$launcherAlt" = cmd.launcher.secondary;
-  "$terminal" = cmd.terminal.primary;
-  "$terminalAlt" = cmd.terminal.secondary;
+  "$browser" = cmd.browser.primary.command;
+  "$browserAlt" = cmd.browser.secondary.command;
+  "$editor" = cmd.editor.primary.command;
+  "$editorAlt" = cmd.editor.secondary.command;
+  "$launcher" = cmd.launcher.primary.command;
+  "$launcherAlt" = cmd.launcher.secondary.command;
+  "$terminal" = cmd.terminal.primary.command;
+  "$terminalAlt" = cmd.terminal.secondary.command;
 
-  env = [ "XDG_CURRENT_DESKTOP,Hyprland" ];
+  env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {
     # sensitivity = 0.2;
 
