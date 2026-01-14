@@ -72,7 +72,7 @@
           then "foot"
           else if command == "ghostty"
           then "com.mitchellh.ghostty"
-          else if command "zeditor"
+          else if command == "zeditor"
           then "dev.zed.Zed"
           else if (hasInfix "fuzzel" command)
           then "fuzzel"
