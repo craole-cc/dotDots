@@ -78,22 +78,33 @@
     workdir ? null,
     extraCmd ? "",
   }: let
-    fullCommand =
-      if workdir != null
-      then ''cd ${workdir} && { ${command}; ${extraCmd} }''
-      else command;
+    # Check if this is a terminal that supports our requirements
+    isFoot = command == "feet" || command == "footclient";
+    isGhostty = command == "ghostty";
+    isKnownTerminal = isFoot || isGhostty;
 
-    # Helper to windows with retries
-    moveScript = ''
-      for i in {1..10}; do
-        sleep 0.3
-        hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null |
-          grep -q "ok" && break
-      done
-    '';
+    # Build terminal command with working directory and commands
+    terminalCommand =
+      if isKnownTerminal && workdir != null
+      then ''${command} --working-directory="${workdir}"''
+      else command;
+    # then
+    #   #? Foot doesn't support --command, so we can't run extraCmd inside it
+    # else if isGhostty && workdir != null && extraCmd != ""
+    # then
+    #   # Ghostty can execute a command
+    #   ''${command} --working-directory="${workdir}" --command="bash -c '${extraCmd} exec bash'"''
+    # else if isGhostty && workdir != null
+    # then ''${command} --working-directory="${workdir}"''
+    # else if workdir != null
+    # then ''cd "${workdir}" && ${command}''
+    # else command;
+
+    # Single-line move script (collapsed from multi-line)
+    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null | grep -q "ok" && break; done'';
   in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''sh -c "${fullCommand} & ${moveScript}" '';
+    exec = ''sh -c "${terminalCommand} & ${moveScript}"'';
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"

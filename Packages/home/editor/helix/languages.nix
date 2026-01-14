@@ -5,7 +5,7 @@
       name = "nix";
       language-servers = ["nixd"];
       formatter.command = "alejandra";
-      diagnostic.suppress = ["sema-primop-overridden"];
+      # diagnostic.suppress = ["sema-primop-overridden"];
       auto-format = true;
     }
     {
