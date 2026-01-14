@@ -33,15 +33,22 @@
     extraMod ? "",
   }: {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = command;
-    # exec = "[workspace special:${workspace} silent] ${command}";
+    exec = "hyprctl dispatch exec '[workspace special:${workspace} silent] ${command}'";
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
-      "float, class:^(${class})$"
-      "noborder, class:^(${class})$"
       "size 100% ${size}, class:^(${class})$"
       "move 0% 0%, class:^(${class})$"
+      "float, class:^(${class})$"
+      "noborder, class:^(${class})$"
     ];
+    # exec = "[workspace special:${workspace} silent] ${command}";
+    # rule = [
+    #   "workspace special:${workspace}, class:^(${class})$"
+    #   "size 100% ${size}, workspace:special:${workspace}"
+    #   "move 0% 0%, workspace:special:${workspace}"
+    #   "float, workspace:special:${workspace}"
+    #   "noborder, workspace:special:${workspace}"
+    # ];
   };
 
   mkWorkspace = name: {
