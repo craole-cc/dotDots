@@ -76,15 +76,24 @@
     size ? "100%",
     extraMod ? "",
     workdir ? null,
+    extraCmd ? "",
   }: let
-    # Prepend cd command for terminals with workdir
     fullCommand =
       if workdir != null
-      then ''cd ${workdir} && ${command}''
+      then ''cd ${workdir} && { ${command}; ${extraCmd} }''
       else command;
+
+    # Helper to windows with retries
+    moveScript = ''
+      for i in {1..10}; do
+        sleep 0.3
+        hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null |
+          grep -q "ok" && break
+      done
+    '';
   in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''sh -c '${fullCommand} & sleep 1.5; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"' '';
+    exec = ''sh -c "${fullCommand} & ${moveScript}" '';
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"
@@ -100,15 +109,16 @@
     secondary,
     size ? "100%",
     workdir ? null,
+    extraCmd ? "",
   }: [
     (mkWorkspaceVariant {
       inherit (primary) command class;
-      inherit key size workdir;
+      inherit key size workdir extraCmd;
       workspace = name;
     })
     (mkWorkspaceVariant {
       inherit (secondary) command class;
-      inherit key size workdir;
+      inherit key size workdir extraCmd;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
     })
@@ -127,6 +137,7 @@
       inherit (terminal) primary secondary;
       key = "GRAVE";
       workdir = "$DOTS";
+      extraCmd = "clear; nitch; onefetch --no-art;";
     };
   };
 
