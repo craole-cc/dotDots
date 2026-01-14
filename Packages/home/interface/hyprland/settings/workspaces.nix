@@ -32,7 +32,7 @@
     size ? "100%",
     extraMod ? "",
   }: let
-    # Edge ignores workspace specs, so we launch it then move it
+    #? Edge ignores workspace specs, so we launch it then move it
     isEdge = class == "microsoft-edge";
     execCommand =
       if isEdge
