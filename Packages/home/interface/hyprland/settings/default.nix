@@ -33,12 +33,12 @@
         apps = user.applications or {};
         name = apps.${category}.${field} or default;
 
-        #? Determine the command to execute
+        #> Determine the command to execute
         command =
           if category == "terminal"
           then
             if name == "foot"
-            then "footclient"
+            then "pgrep -x foot >/dev/null || foot --server >/dev/null 2>&1 & footclient"
             else name
           else if category == "browser"
           then
@@ -66,28 +66,20 @@
             else name
           else name;
 
-        #? Determine the window class
-        windowClass =
-          if category == "terminal"
-          then
-            if name == "foot"
-            then "foot"
-            else if name == "ghostty"
-            then "com.mitchellh.ghostty"
-            else name
-          else if category == "browser"
-          then command #? browser commands match their classes
-          else if category == "editor"
-          then
-            if hasInfix "code" name
-            then "code"
-            else if hasInfix "zed" name
-            then "dev.zed.Zed"
-            else name
+        #> Determine the window class
+        class =
+          if command == "footclient"
+          then "foot"
+          else if command == "ghostty"
+          then "com.mitchellh.ghostty"
+          else if command "zeditor"
+          then "dev.zed.Zed"
+          else if (hasInfix "fuzzel" command)
+          then "fuzzel"
+          else if (hasInfix "vicinae" command)
+          then "vicinae"
           else command;
-      in {
-        inherit command windowClass;
-      };
+      in {inherit command class;};
     in {
       browser = {
         primary = mkCmd {

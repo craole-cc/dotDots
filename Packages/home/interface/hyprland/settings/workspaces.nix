@@ -26,16 +26,16 @@
 
   mkWorkspaceVariant = {
     command,
-    windowClass,
+    class,
     workspace,
     key,
-    size,
+    size ? "100%",
     extraMod ? "",
   }: {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = "[workspace special:${workspace} silent] ${command}";
+    exec = "[workspace special:${workspace} silent] sh -c 'sleep 0.3 && ${command}'";
     rules = [
-      "workspace special:${workspace}, class:^(${windowClass})$"
+      "workspace special:${workspace}, class:^(${class})$"
       "size 100% ${size}, workspace:special:${workspace}"
       "move 0% 0%, workspace:special:${workspace}"
       "float, workspace:special:${workspace}"
@@ -50,12 +50,12 @@
     size ? "100%",
   }: [
     (mkWorkspaceVariant {
-      inherit (primary) command windowClass;
+      inherit (primary) command class;
       inherit key size;
       workspace = name;
     })
     (mkWorkspaceVariant {
-      inherit (secondary) command windowClass;
+      inherit (secondary) command class;
       inherit key size;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
@@ -99,7 +99,7 @@ in {
       action = "swapwindow";
     })
     (mkDirectionalBinds {
-      modifier = "${mod} CRTL";
+      modifier = "${mod} CTRL";
       action = "movewindoworgroup";
     })
     (mkDirectionalBinds {
@@ -110,10 +110,6 @@ in {
       modifier = "${mod} ALT SHIFT";
       action = "movecurrentworkspacetomonitor";
     })
-    # (mkDirectionalBinds "${mod} SHIFT" "swapwindow")
-    # (mkDirectionalBinds "${mod} CONTROL" "movewindoworgroup")
-    # (mkDirectionalBinds "${mod} ALT" "focusmonitor")
-    # (mkDirectionalBinds "${mod} ALT SHIFT" "movecurrentworkspacetomonitor")
   ];
   exec-once = map (v: v.exec) allVariants;
   windowrulev2 = cat (v: v.rules) allVariants;
