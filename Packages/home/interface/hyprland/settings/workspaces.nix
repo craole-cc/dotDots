@@ -31,25 +31,24 @@
     key,
     size ? "100%",
     extraMod ? "",
-  }: {
+  }: let
+    # Edge ignores workspace specs, so we launch it then move it
+    isEdge = class == "microsoft-edge";
+    execCommand =
+      if isEdge
+      then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
+      else "[workspace special:${workspace} silent] ${command}";
+  in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = "hyprctl dispatch exec '[workspace special:${workspace} silent] ${command}'";
+    exec = execCommand;
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
-      "size 100% ${size}, class:^(${class})$"
-      "move 0% 0%, class:^(${class})$"
       "float, class:^(${class})$"
       "noborder, class:^(${class})$"
+      "size 100% ${size}, class:^(${class})$"
+      "move 0% 0%, class:^(${class})$"
       "workspace special:${workspace}, initialClass:^(${class})$"
     ];
-    # exec = "[workspace special:${workspace} silent] ${command}";
-    # rule = [
-    #   "workspace special:${workspace}, class:^(${class})$"
-    #   "size 100% ${size}, workspace:special:${workspace}"
-    #   "move 0% 0%, workspace:special:${workspace}"
-    #   "float, workspace:special:${workspace}"
-    #   "noborder, workspace:special:${workspace}"
-    # ];
   };
 
   mkWorkspace = name: {
