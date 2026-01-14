@@ -3,11 +3,15 @@
 #? POSIX-compliant theme detection and terminal launcher
 #? Location: $DOTS/Bin/shellscript/packages/wrappers/feet.sh
 
-# set -e
+#> Early exit if not on Wayland
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+	printf "Error: Foot requires Wayland. WAYLAND_DISPLAY is not set.\n" >&2
+	exit 1
+fi
 
 USER_ID=$(id -u)
 THEME_FILE="/tmp/foot-theme-$USER_ID"
-SOCKET="/run/user/$USER_ID/foot-wayland-0.sock"
+SOCKET="/run/user/$USER_ID/foot-${WAYLAND_DISPLAY}.sock"
 
 #> Helper to check if command exists
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
