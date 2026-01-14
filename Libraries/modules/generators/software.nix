@@ -2,7 +2,7 @@
   inherit (lib.attrsets) getAttr hasAttr;
   inherit (lib.debug) traceIf;
   inherit (lib.lists) elem any;
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkForce mkIf;
   inherit (lib.strings) concatStringsSep hasInfix hasPrefix isString optionalString toLower;
 
   mkNix = {host, ...}: {
@@ -23,7 +23,7 @@
     };
 
     systemd.services = {
-      nix-daemon.serviceConfig.LimitNOFILE = lib.mkForce "65536 1048576";
+      nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
     };
   };
 
