@@ -16,8 +16,8 @@
 
     nyxSub = optionalString (isCachy || isChaotic) "https://nyx.chaotic.cx/";
     nyxKey = optionalString (isCachy || isChaotic) "nyx.chaotic.cx-1:CNZOSlPJO5F0utqsPzkZbHkkD7YzNDWHGG6PqS30wMc=";
-    cachySub = lib.strings.optionalString isCachy "https://drakon64-nixos-cachyos-kernel.cachix.org/";
-    cachyKey = lib.strings.optionalString isCachy "drakon64-nixos-cachyos-kernel.cachix.org-1:J3gjZ9N6S05pyLA/P0M5y7jXpSxO/i0rshrieQJi5D0=";
+    # cachySub = lib.strings.optionalString isCachy "https://drakon64-nixos-cachyos-kernel.cachix.org/";
+    # cachyKey = lib.strings.optionalString isCachy "drakon64-nixos-cachyos-kernel.cachix.org-1:J3gjZ9N6S05pyLA/P0M5y7jXpSxO/i0rshrieQJi5D0=";
   in {
     system = {
       stateVersion = host.stateVersion or "25.11";
@@ -34,11 +34,11 @@
         trusted-users = ["@wheel"];
         substituters = [
           "${nyxSub}"
-          "${cachySub}"
+          # "${cachySub}"
         ];
         trusted-public-keys = [
           "${nyxKey}"
-          "${cachyKey}"
+          # "${cachyKey}"
         ];
       };
     };
