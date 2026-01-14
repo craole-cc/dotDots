@@ -33,8 +33,8 @@
     extraMod ? "",
   }: {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = "[workspace special:${workspace} silent] sh -c 'sleep 0.3 && ${command}'";
-    rules = [
+    exec = "[workspace special:${workspace} silent] ${command}";
+    rule = [
       "workspace special:${workspace}, class:^(${class})$"
       "size 100% ${size}, workspace:special:${workspace}"
       "move 0% 0%, workspace:special:${workspace}"
@@ -112,5 +112,5 @@ in {
     })
   ];
   exec-once = map (v: v.exec) allVariants;
-  windowrulev2 = cat (v: v.rules) allVariants;
+  windowrulev2 = cat (v: v.rule) allVariants;
 }
