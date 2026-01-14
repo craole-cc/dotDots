@@ -33,13 +33,14 @@
     extraMod ? "",
   }: {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = "[workspace special:${workspace} silent] ${command}";
+    exec = command;
+    # exec = "[workspace special:${workspace} silent] ${command}";
     rule = [
-      "workspace special:${workspace}, class:^(${class})$"
-      "size 100% ${size}, workspace:special:${workspace}"
-      "move 0% 0%, workspace:special:${workspace}"
-      "float, workspace:special:${workspace}"
-      "noborder, workspace:special:${workspace}"
+      "workspace special:${workspace} silent, class:^(${class})$"
+      "float, class:^(${class})$"
+      "noborder, class:^(${class})$"
+      "size 100% ${size}, class:^(${class})$"
+      "move 0% 0%, class:^(${class})$"
     ];
   };
 
