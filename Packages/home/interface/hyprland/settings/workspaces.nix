@@ -24,32 +24,32 @@
     j = down;
   };
 
-  mkWorkspaceVariant = {
-    command,
-    class,
-    workspace,
-    key,
-    size ? "100%",
-    extraMod ? "",
-  }: let
-    #? Edge ignores workspace specs, so we launch it then move it
-    isEdge = class == "microsoft-edge";
-    execCommand =
-      if isEdge
-      then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
-      else "[workspace special:${workspace} silent] ${command}";
-  in {
-    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = execCommand;
-    rule = [
-      "workspace special:${workspace} silent, class:^(${class})$"
-      "float, class:^(${class})$"
-      "noborder, class:^(${class})$"
-      "size 100% ${size}, class:^(${class})$"
-      "move 0% 0%, class:^(${class})$"
-      "workspace special:${workspace}, initialClass:^(${class})$"
-    ];
-  };
+  # mkWorkspaceVariant = {
+  #   command,
+  #   class,
+  #   workspace,
+  #   key,
+  #   size ? "100%",
+  #   extraMod ? "",
+  # }: let
+  #   #? Edge ignores workspace specs, so we launch it then move it
+  #   isEdge = class == "microsoft-edge";
+  #   execCommand =
+  #     if isEdge
+  #     then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
+  #     else "[workspace special:${workspace} silent] ${command}";
+  # in {
+  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+  #   exec = execCommand;
+  #   rule = [
+  #     "workspace special:${workspace} silent, class:^(${class})$"
+  #     "float, class:^(${class})$"
+  #     "noborder, class:^(${class})$"
+  #     "size 100% ${size}, class:^(${class})$"
+  #     "move 0% 0%, class:^(${class})$"
+  #     "workspace special:${workspace}, initialClass:^(${class})$"
+  #   ];
+  # };
   # mkWorkspaceVariant = {
   #   command,
   #   class,
@@ -68,21 +68,47 @@
   #     "move 0% 0%, class:^(${class})$"
   #   ];
   # };
+  mkWorkspaceVariant = {
+    command,
+    class,
+    workspace,
+    key,
+    size ? "100%",
+    extraMod ? "",
+    workdir ? null,
+  }: let
+    # Prepend cd command for terminals with workdir
+    fullCommand =
+      if workdir != null
+      then ''cd ${workdir} && ${command}''
+      else command;
+  in {
+    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+    exec = ''sh -c '${fullCommand} & sleep 1.5; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"' '';
+    rule = [
+      "workspace special:${workspace} silent, class:^(${class})$"
+      "float, class:^(${class})$"
+      "noborder, class:^(${class})$"
+      "size 100% ${size}, class:^(${class})$"
+      "move 0% 0%, class:^(${class})$"
+    ];
+  };
 
   mkWorkspace = name: {
     key,
     primary,
     secondary,
     size ? "100%",
+    workdir ? null,
   }: [
     (mkWorkspaceVariant {
       inherit (primary) command class;
-      inherit key size;
+      inherit key size workdir;
       workspace = name;
     })
     (mkWorkspaceVariant {
       inherit (secondary) command class;
-      inherit key size;
+      inherit key size workdir;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
     })
@@ -100,6 +126,7 @@
     terminal = {
       inherit (terminal) primary secondary;
       key = "GRAVE";
+      workdir = "$DOTS";
     };
   };
 
