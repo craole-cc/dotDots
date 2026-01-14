@@ -2,7 +2,7 @@ let
   arch = "x86_64";
   os = "linux";
 in {
-  # imports = [./hardware-configuration.nix];
+  imports = [./hardware-configuration.nix];
 
   stateVersion = "25.05";
   system = "${arch}-${os}";

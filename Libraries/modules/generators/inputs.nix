@@ -483,7 +483,7 @@
             ...
           }:
             mkMerge [
-              (mkNix {inherit host;})
+              (mkNix {inherit host pkgs;})
               (mkNetwork {inherit host pkgs;})
               (mkBoot {inherit host pkgs;})
               (mkFileSystems {inherit host;})

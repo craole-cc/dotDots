@@ -106,7 +106,7 @@
     };
     style = {
       autoSwitch = true;
-      current = "dark";
+      current = "light";
       theme = {
         dark = "catppuccin";
         light = "catppuccin";
