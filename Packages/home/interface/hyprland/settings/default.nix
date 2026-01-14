@@ -38,7 +38,7 @@
           if category == "terminal"
           then
             if name == "foot"
-            then "pgrep -x foot >/dev/null || foot --server >/dev/null 2>&1 & footclient"
+            then "feet"
             else name
           else if category == "browser"
           then
@@ -68,7 +68,7 @@
 
         #> Determine the window class
         class =
-          if command == "footclient"
+          if command == "feet"
           then "foot"
           else if command == "ghostty"
           then "com.mitchellh.ghostty"
