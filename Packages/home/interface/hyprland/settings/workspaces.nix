@@ -24,32 +24,6 @@
     j = down;
   };
 
-  # mkWorkspaceVariant = {
-  #   command,
-  #   class,
-  #   workspace,
-  #   key,
-  #   size ? "100%",
-  #   extraMod ? "",
-  # }: let
-  #   # Edge ignores workspace specs, so we launch it then move it
-  #   isEdge = class == "microsoft-edge";
-  #   execCommand =
-  #     if isEdge
-  #     then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
-  #     else "[workspace special:${workspace} silent] ${command}";
-  # in {
-  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-  #   exec = execCommand;
-  #   rule = [
-  #     "workspace special:${workspace} silent, class:^(${class})$"
-  #     "float, class:^(${class})$"
-  #     "noborder, class:^(${class})$"
-  #     "size 100% ${size}, class:^(${class})$"
-  #     "move 0% 0%, class:^(${class})$"
-  #     "workspace special:${workspace}, initialClass:^(${class})$"
-  #   ];
-  # };
   mkWorkspaceVariant = {
     command,
     class,
@@ -57,17 +31,43 @@
     key,
     size ? "100%",
     extraMod ? "",
-  }: {
+  }: let
+    # Edge ignores workspace specs, so we launch it then move it
+    isEdge = class == "microsoft-edge";
+    execCommand =
+      if isEdge
+      then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
+      else "[workspace special:${workspace} silent] ${command}";
+  in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''${command} & sleep 1 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"'';
+    exec = execCommand;
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"
       "noborder, class:^(${class})$"
       "size 100% ${size}, class:^(${class})$"
       "move 0% 0%, class:^(${class})$"
+      "workspace special:${workspace}, initialClass:^(${class})$"
     ];
   };
+  # mkWorkspaceVariant = {
+  #   command,
+  #   class,
+  #   workspace,
+  #   key,
+  #   size ? "100%",
+  #   extraMod ? "",
+  # }: {
+  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+  #   exec = ''${command} & sleep 1 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"'';
+  #   rule = [
+  #     "workspace special:${workspace} silent, class:^(${class})$"
+  #     "float, class:^(${class})$"
+  #     "noborder, class:^(${class})$"
+  #     "size 100% ${size}, class:^(${class})$"
+  #     "move 0% 0%, class:^(${class})$"
+  #   ];
+  # };
 
   mkWorkspace = name: {
     key,
