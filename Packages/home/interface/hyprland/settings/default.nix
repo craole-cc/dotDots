@@ -74,8 +74,8 @@
           then "com.mitchellh.ghostty"
           else if command == "zeditor"
           then "dev.zed.Zed"
-          else if command == "microsoft-edge"
-          then "msedge"
+          # else if command == "microsoft-edge"
+          # then "msedge"
           else if (hasInfix "fuzzel" command)
           then "fuzzel"
           else if (hasInfix "vicinae" command)
