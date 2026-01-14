@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.attrsets) getAttr hasAttr;
   inherit (lib.debug) traceIf;
   inherit (lib.lists) elem any;
@@ -24,6 +20,10 @@
         max-jobs = host.specs.cpu.cores or "auto";
         trusted-users = ["root" "@wheel"];
       };
+    };
+
+    systemd.services = {
+      nix-daemon.serviceConfig.LimitNOFILE = lib.mkForce "65536 1048576";
     };
   };
 
