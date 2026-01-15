@@ -23,9 +23,7 @@
     command,
     class,
     workspace,
-    key,
     size ? "100%",
-    extraMod ? "",
     workdir ? null,
   }: let
     #> Build terminal command with working directory
@@ -38,9 +36,10 @@
       then ''cd "${workdir}" && ${command}''
       else command;
   in {
-    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+    # Launch once at startup into the special workspace
     exec = "[workspace special:${workspace} silent] ${cmd}";
-    rule = [
+    # Window rules to keep it in the right workspace
+    rules = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$, workspace:special:${workspace}"
       "noborder, class:^(${class})$, workspace:special:${workspace}"
@@ -55,19 +54,25 @@
     secondary,
     size ? "100%",
     workdir ? null,
-  }: [
-    (mkWorkspaceVariant {
-      inherit (primary) command class;
-      inherit key size workdir;
-      workspace = name;
-    })
-    (mkWorkspaceVariant {
-      inherit (secondary) command class;
-      inherit key size workdir;
-      workspace = "${name}Alt";
-      extraMod = "SHIFT";
-    })
-  ];
+  }: {
+    inherit key;
+    workspaceName = name;
+    workspaceNameAlt = "${name}Alt";
+    variants = [
+      (mkWorkspaceVariant {
+        command = primary.command;
+        class = primary.windowClass;
+        inherit size workdir;
+        workspace = name;
+      })
+      (mkWorkspaceVariant {
+        command = secondary.command;
+        class = secondary.windowClass;
+        inherit size workdir;
+        workspace = "${name}Alt";
+      })
+    ];
+  };
 
   specialWorkspaces = with apps; {
     terminal = {
@@ -88,7 +93,8 @@
     };
   };
 
-  allVariants = flatten (mat mkWorkspace specialWorkspaces);
+  workspaceData = mat mkWorkspace specialWorkspaces;
+  allVariants = flatten (map (w: w.variants) workspaceData);
 
   mkDirectionalBinds = {
     modifier ? mod,
@@ -97,26 +103,9 @@
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
   bind = flatten [
-    #~@ Special workspaces - toggle visibility
-    (map (w: "${mod}, ${w.key}, togglespecialworkspace, ${w.workspace}")
-      (flatten (mat (name: ws: [
-          {
-            inherit (ws) key;
-            workspace = name;
-          }
-        ])
-        specialWorkspaces)))
-    (map (w: "${mod} SHIFT, ${w.key}, togglespecialworkspace, ${w.workspace}Alt")
-      (flatten (mat (name: ws: [
-          {
-            inherit (ws) key;
-            workspace = name;
-          }
-        ])
-        specialWorkspaces)))
-
-    #~@ Launch commands with workspace assignment
-    (map (v: v.bind) allVariants)
+    #~@ Special workspaces
+    (map (w: "${mod}, ${w.key}, togglespecialworkspace, ${w.workspaceName}") workspaceData)
+    (map (w: "${mod} SHIFT, ${w.key}, togglespecialworkspace, ${w.workspaceNameAlt}") workspaceData)
 
     #~@ Regular workspaces
     (map (n: "${mod},${n},workspace,name:${n}") workspaces)
@@ -144,5 +133,7 @@ in {
 
   #> Launch apps once at startup
   exec-once = map (v: v.exec) allVariants;
-  windowrulev2 = cat (v: v.rule) allVariants;
+
+  #> Apply workspace rules
+  windowrulev2 = cat (v: v.rules) allVariants;
 }
