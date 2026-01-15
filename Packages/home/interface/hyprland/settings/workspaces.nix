@@ -60,14 +60,12 @@
     workspaceNameAlt = "${name}Alt";
     variants = [
       (mkWorkspaceVariant {
-        command = primary.command;
-        class = primary.windowClass;
+        inherit (primary) command class;
         inherit size workdir;
         workspace = name;
       })
       (mkWorkspaceVariant {
-        command = secondary.command;
-        class = secondary.windowClass;
+        inherit (secondary) command class;
         inherit size workdir;
         workspace = "${name}Alt";
       })
