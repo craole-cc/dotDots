@@ -133,7 +133,6 @@
       inherit (terminal) primary secondary;
       key = "GRAVE";
       workdir = "$DOTS";
-      extraCmd = "clear; nitch; onefetch --no-art;";
     };
   };
 
