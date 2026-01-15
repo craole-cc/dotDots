@@ -27,38 +27,24 @@
     size ? "100%",
     extraMod ? "",
     workdir ? null,
-    extraCmd ? "",
   }: let
-    # Check if this is a terminal that supports our requirements
-    isFoot = command == "feet" || command == "footclient";
-    isGhostty = command == "ghostty";
-
-    # Build terminal command with working directory
-    terminalCommand =
+    #> Build terminal command with working directory
+    isFoot = class == "foot";
+    isGhostty = class == "com.mitchellh.ghostty";
+    cmd =
       if (isFoot || isGhostty) && workdir != null
       then ''${command} --working-directory="${workdir}"''
       else if workdir != null
       then ''cd "${workdir}" && ${command}''
       else command;
-
-    # Improved move script with better error handling
-    moveScript = ''
-      for i in {1..15}; do
-        sleep 0.2
-        if hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$" 2>/dev/null | grep -q "ok"; then
-          break
-        fi
-      done
-    '';
   in {
-    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''bash -c "${terminalCommand} & ${moveScript}"'';
+    bind = "${mod} ${extraMod}, ${key}, exec, [workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
-      "float, class:^(${class})$"
-      "noborder, class:^(${class})$"
-      "size 100% ${size}, class:^(${class})$"
-      "move 0% 0%, class:^(${class})$"
+      "float, class:^(${class})$, workspace:special:${workspace}"
+      "noborder, class:^(${class})$, workspace:special:${workspace}"
+      "size 100% ${size}, class:^(${class})$, workspace:special:${workspace}"
+      "move 0% 0%, class:^(${class})$, workspace:special:${workspace}"
     ];
   };
 
@@ -68,35 +54,38 @@
     secondary,
     size ? "100%",
     workdir ? null,
-    extraCmd ? "",
   }: [
     (mkWorkspaceVariant {
-      inherit (primary) command class;
-      inherit key size workdir extraCmd;
+      inherit (primary) command;
+      class = primary.windowClass;
+      inherit key size workdir;
       workspace = name;
     })
     (mkWorkspaceVariant {
-      inherit (secondary) command class;
-      inherit key size workdir extraCmd;
+      inherit (secondary) command;
+      class = secondary.windowClass;
+      inherit key size workdir;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
     })
   ];
 
   specialWorkspaces = with apps; {
+    terminal = {
+      inherit (terminal) primary secondary;
+      key = "GRAVE";
+      size = "30%";
+      workdir = "$DOTS";
+    };
     browser = {
       inherit (browser) primary secondary;
       key = "B";
+      size = "80%";
     };
     editor = {
       inherit (editor) primary secondary;
       key = "C";
-    };
-    terminal = {
-      inherit (terminal) primary secondary;
-      key = "GRAVE";
-      workdir = "$DOTS";
-      extraCmd = "clear; nitch; onefetch --no-art;";
+      size = "70%";
     };
   };
 
@@ -109,14 +98,32 @@
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
   bind = flatten [
-    # Special workspaces
+    #~@ Special workspaces - toggle visibility
+    (map (w: "${mod}, ${w.key}, togglespecialworkspace, ${w.workspace}")
+      (flatten (mat (name: ws: [
+          {
+            inherit (ws) key;
+            workspace = name;
+          }
+        ])
+        specialWorkspaces)))
+    (map (w: "${mod} SHIFT, ${w.key}, togglespecialworkspace, ${w.workspace}Alt")
+      (flatten (mat (name: ws: [
+          {
+            inherit (ws) key;
+            workspace = name;
+          }
+        ])
+        specialWorkspaces)))
+
+    #~@ Launch commands with workspace assignment
     (map (v: v.bind) allVariants)
 
-    # Regular workspaces
+    #~@ Regular workspaces
     (map (n: "${mod},${n},workspace,name:${n}") workspaces)
     (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
 
-    # Directional bindings
+    #~@ Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {
       modifier = "${mod} SHIFT";
@@ -136,6 +143,5 @@ in {
     })
   ];
 
-  exec-once = map (v: v.exec) allVariants;
   windowrulev2 = cat (v: v.rule) allVariants;
 }
