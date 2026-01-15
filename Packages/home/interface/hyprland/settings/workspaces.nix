@@ -56,14 +56,12 @@
     workdir ? null,
   }: [
     (mkWorkspaceVariant {
-      inherit (primary) command;
-      class = primary.windowClass;
+      inherit (primary) command class;
       inherit key size workdir;
       workspace = name;
     })
     (mkWorkspaceVariant {
-      inherit (secondary) command;
-      class = secondary.windowClass;
+      inherit (secondary) command class;
       inherit key size workdir;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
