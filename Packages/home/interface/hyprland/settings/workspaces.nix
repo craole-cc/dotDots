@@ -90,7 +90,8 @@
     '';
   in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''sh -c "${cmd} & ${moveScript}" '';
+    # exec = ''sh -c "${cmd} & ${moveScript}" '';
+    exec = cmd;
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"
