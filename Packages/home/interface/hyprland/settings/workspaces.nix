@@ -19,32 +19,84 @@
     j = down;
   };
 
+  # mkWorkspaceVariant = {
+  #   command,
+  #   class,
+  #   workspace,
+  #   key,
+  #   size ? "100%",
+  #   extraMod ? "",
+  # }: let
+  #   #? Edge ignores workspace specs, so we launch it then move it
+  #   isEdge = class == "microsoft-edge";
+  #   execCommand =
+  #     if isEdge
+  #     then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
+  #     else "[workspace special:${workspace} silent] ${command}";
+  # in {
+  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+  #   exec = execCommand;
+  #   rule = [
+  #     "workspace special:${workspace} silent, class:^(${class})$"
+  #     "float, class:^(${class})$"
+  #     "noborder, class:^(${class})$"
+  #     "size 100% ${size}, class:^(${class})$"
+  #     "move 0% 0%, class:^(${class})$"
+  #     "workspace special:${workspace}, initialClass:^(${class})$"
+  #   ];
+  # };
+  # mkWorkspaceVariant = {
+  #   command,
+  #   class,
+  #   workspace,
+  #   key,
+  #   size ? "100%",
+  #   extraMod ? "",
+  # }: {
+  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+  #   exec = ''${command} & sleep 1 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"'';
+  #   rule = [
+  #     "workspace special:${workspace} silent, class:^(${class})$"
+  #     "float, class:^(${class})$"
+  #     "noborder, class:^(${class})$"
+  #     "size 100% ${size}, class:^(${class})$"
+  #     "move 0% 0%, class:^(${class})$"
+  #   ];
+  # };
   mkWorkspaceVariant = {
     command,
     class,
     workspace,
+    key,
     size ? "100%",
+    extraMod ? "",
     workdir ? null,
   }: let
-    #> Build terminal command with working directory
-    isFoot = class == "foot";
-    isGhostty = class == "com.mitchellh.ghostty";
     cmd =
-      if (isFoot || isGhostty) && workdir != null
-      then ''${command} --working-directory="${workdir}"''
-      else if workdir != null
-      then ''cd "${workdir}" && ${command}''
+      if workdir != null
+      then
+        if (class == "foot" || class == "com.mitchellh.ghostty")
+        then ''${command} --working-directory="${workdir}"''
+        else ''cd ${workdir} && ${command}''
       else command;
+
+    # Helper to windows with retries
+    moveScript = ''
+      for i in {1..10}; do
+        sleep 0.3
+        hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null |
+          grep -q "ok" && break
+      done
+    '';
   in {
-    # Launch once at startup into the special workspace
-    exec = "[workspace special:${workspace} silent] ${cmd}";
-    # Window rules to keep it in the right workspace
-    rules = [
+    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+    exec = ''sh -c "${cmd} & ${moveScript}" '';
+    rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
-      "float, class:^(${class})$, workspace:special:${workspace}"
-      "noborder, class:^(${class})$, workspace:special:${workspace}"
-      "size 100% ${size}, class:^(${class})$, workspace:special:${workspace}"
-      "move 0% 0%, class:^(${class})$, workspace:special:${workspace}"
+      "float, class:^(${class})$"
+      "noborder, class:^(${class})$"
+      "size 100% ${size}, class:^(${class})$"
+      "move 0% 0%, class:^(${class})$"
     ];
   };
 
@@ -54,46 +106,38 @@
     secondary,
     size ? "100%",
     workdir ? null,
-  }: {
-    inherit key;
-    workspaceName = name;
-    workspaceNameAlt = "${name}Alt";
-    variants = [
-      (mkWorkspaceVariant {
-        inherit (primary) command class;
-        inherit size workdir;
-        workspace = name;
-      })
-      (mkWorkspaceVariant {
-        inherit (secondary) command class;
-        inherit size workdir;
-        workspace = "${name}Alt";
-      })
-    ];
-  };
+  }: [
+    (mkWorkspaceVariant {
+      inherit (primary) command class;
+      inherit key size workdir;
+      workspace = name;
+    })
+    (mkWorkspaceVariant {
+      inherit (secondary) command class;
+      inherit key size workdir;
+      workspace = "${name}Alt";
+      extraMod = "SHIFT";
+    })
+  ];
 
   specialWorkspaces = with apps; {
-    terminal = {
-      inherit (terminal) primary secondary;
-      key = "GRAVE";
-      size = "30%";
-      workdir = "$DOTS";
-    };
     browser = {
       inherit (browser) primary secondary;
       key = "B";
-      size = "80%";
     };
     editor = {
       inherit (editor) primary secondary;
       key = "C";
-      size = "70%";
+    };
+    terminal = {
+      inherit (terminal) primary secondary;
+      key = "GRAVE";
+      workdir = "$DOTS";
+      extraCmd = "clear; nitch; onefetch --no-art;";
     };
   };
 
-  workspaceData = mat mkWorkspace specialWorkspaces;
-  allVariants = flatten (map (w: w.variants) workspaceData);
-
+  allVariants = flatten (mat mkWorkspace specialWorkspaces);
   mkDirectionalBinds = {
     modifier ? mod,
     action,
@@ -102,8 +146,7 @@
 in {
   bind = flatten [
     #~@ Special workspaces
-    (map (w: "${mod}, ${w.key}, togglespecialworkspace, ${w.workspaceName}") workspaceData)
-    (map (w: "${mod} SHIFT, ${w.key}, togglespecialworkspace, ${w.workspaceNameAlt}") workspaceData)
+    (map (v: v.bind) allVariants)
 
     #~@ Regular workspaces
     (map (n: "${mod},${n},workspace,name:${n}") workspaces)
@@ -128,10 +171,6 @@ in {
       action = "movecurrentworkspacetomonitor";
     })
   ];
-
-  #> Launch apps once at startup
   exec-once = map (v: v.exec) allVariants;
-
-  #> Apply workspace rules
-  windowrulev2 = cat (v: v.rules) allVariants;
+  windowrulev2 = cat (v: v.rule) allVariants;
 }
