@@ -26,12 +26,11 @@
     apps = let
       mkCmd = {
         category,
-        field,
+        option,
         default,
-        defaultClass ? null,
       }: let
         apps = user.applications or {};
-        name = apps.${category}.${field} or default;
+        name = apps.${category}.${option} or default;
 
         #> Determine the command to execute
         command =
@@ -86,48 +85,48 @@
       browser = {
         primary = mkCmd {
           category = "browser";
-          field = "primary";
+          option = "primary";
           default = "zen-twilight";
         };
         secondary = mkCmd {
           category = "browser";
-          field = "secondary";
+          option = "secondary";
           default = "microsoft-edge";
         };
       };
       editor = {
         primary = mkCmd {
           category = "editor";
-          field = "gui.primary";
+          option = "gui.primary";
           default = "vscode";
         };
         secondary = mkCmd {
           category = "editor";
-          field = "gui.secondary";
+          option = "gui.secondary";
           default = "zed";
         };
       };
       launcher = {
         primary = mkCmd {
           category = "launcher";
-          field = "primary";
+          option = "primary";
           default = "vicinae";
         };
         secondary = mkCmd {
           category = "launcher";
-          field = "secondary";
+          option = "secondary";
           default = "fuzzel";
         };
       };
       terminal = {
         primary = mkCmd {
           category = "terminal";
-          field = "primary";
+          option = "primary";
           default = "foot";
         };
         secondary = mkCmd {
           category = "terminal";
-          field = "secondary";
+          option = "secondary";
           default = "ghostty";
         };
       };

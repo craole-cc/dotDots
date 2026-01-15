@@ -12,62 +12,13 @@
     up = "u";
     down = "d";
   in {
-    inherit
-      left
-      right
-      up
-      down
-      ;
+    inherit left right up down;
     h = left;
     l = right;
     k = up;
     j = down;
   };
 
-  # mkWorkspaceVariant = {
-  #   command,
-  #   class,
-  #   workspace,
-  #   key,
-  #   size ? "100%",
-  #   extraMod ? "",
-  # }: let
-  #   #? Edge ignores workspace specs, so we launch it then move it
-  #   isEdge = class == "microsoft-edge";
-  #   execCommand =
-  #     if isEdge
-  #     then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
-  #     else "[workspace special:${workspace} silent] ${command}";
-  # in {
-  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-  #   exec = execCommand;
-  #   rule = [
-  #     "workspace special:${workspace} silent, class:^(${class})$"
-  #     "float, class:^(${class})$"
-  #     "noborder, class:^(${class})$"
-  #     "size 100% ${size}, class:^(${class})$"
-  #     "move 0% 0%, class:^(${class})$"
-  #     "workspace special:${workspace}, initialClass:^(${class})$"
-  #   ];
-  # };
-  # mkWorkspaceVariant = {
-  #   command,
-  #   class,
-  #   workspace,
-  #   key,
-  #   size ? "100%",
-  #   extraMod ? "",
-  # }: {
-  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-  #   exec = ''${command} & sleep 1 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"'';
-  #   rule = [
-  #     "workspace special:${workspace} silent, class:^(${class})$"
-  #     "float, class:^(${class})$"
-  #     "noborder, class:^(${class})$"
-  #     "size 100% ${size}, class:^(${class})$"
-  #     "move 0% 0%, class:^(${class})$"
-  #   ];
-  # };
   mkWorkspaceVariant = {
     command,
     class,
@@ -81,30 +32,27 @@
     # Check if this is a terminal that supports our requirements
     isFoot = command == "feet" || command == "footclient";
     isGhostty = command == "ghostty";
-    isKnownTerminal = isFoot || isGhostty;
 
-    # Build terminal command with working directory and commands
+    # Build terminal command with working directory
     terminalCommand =
-      if isKnownTerminal && workdir != null
+      if (isFoot || isGhostty) && workdir != null
       then ''${command} --working-directory="${workdir}"''
+      else if workdir != null
+      then ''cd "${workdir}" && ${command}''
       else command;
-    # then
-    #   #? Foot doesn't support --command, so we can't run extraCmd inside it
-    # else if isGhostty && workdir != null && extraCmd != ""
-    # then
-    #   # Ghostty can execute a command
-    #   ''${command} --working-directory="${workdir}" --command="bash -c '${extraCmd} exec bash'"''
-    # else if isGhostty && workdir != null
-    # then ''${command} --working-directory="${workdir}"''
-    # else if workdir != null
-    # then ''cd "${workdir}" && ${command}''
-    # else command;
 
-    # Single-line move script (collapsed from multi-line)
-    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null | grep -q "ok" && break; done'';
+    # Improved move script with better error handling
+    moveScript = ''
+      for i in {1..15}; do
+        sleep 0.2
+        if hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$" 2>/dev/null | grep -q "ok"; then
+          break
+        fi
+      done
+    '';
   in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''sh -c "${terminalCommand} & ${moveScript}"'';
+    exec = ''bash -c "${terminalCommand} & ${moveScript}"'';
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"
@@ -153,6 +101,7 @@
   };
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
+
   mkDirectionalBinds = {
     modifier ? mod,
     action,
@@ -160,14 +109,14 @@
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
   bind = flatten [
-    #~@ Special workspaces
+    # Special workspaces
     (map (v: v.bind) allVariants)
 
-    #~@ Regular workspaces
+    # Regular workspaces
     (map (n: "${mod},${n},workspace,name:${n}") workspaces)
     (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
 
-    #~@ Directional bindings
+    # Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {
       modifier = "${mod} SHIFT";
@@ -186,6 +135,7 @@ in {
       action = "movecurrentworkspacetomonitor";
     })
   ];
+
   exec-once = map (v: v.exec) allVariants;
   windowrulev2 = cat (v: v.rule) allVariants;
 }
