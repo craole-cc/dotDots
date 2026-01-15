@@ -80,18 +80,18 @@
         else ''cd ${workdir} && ${command}''
       else command;
 
-    # Helper to windows with retries
-    moveScript = ''
-      for i in {1..10}; do
-        sleep 0.3
-        hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null |
-          grep -q "ok" && break
-      done
-    '';
+    # Edge needs explicit move because it ignores workspace specs
+    isEdge = class == "microsoft-edge";
+
+    # Single-line move script
+    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null | grep -q "ok" && break; done'';
   in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
     # exec = ''sh -c "${cmd} & ${moveScript}" '';
-    exec = "[workspace special:${workspace} silent] ${cmd}";
+    exec =
+      if isEdge
+      then ''sh -c "${cmd} & ${moveScript}"''
+      else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"
