@@ -38,7 +38,8 @@
       then ''cd "${workdir}" && ${command}''
       else command;
   in {
-    bind = "${mod} ${extraMod}, ${key}, exec, [workspace special:${workspace} silent] ${cmd}";
+    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+    exec = "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$, workspace:special:${workspace}"
@@ -141,5 +142,7 @@ in {
     })
   ];
 
+  #> Launch apps once at startup
+  exec-once = map (v: v.exec) allVariants;
   windowrulev2 = cat (v: v.rule) allVariants;
 }
