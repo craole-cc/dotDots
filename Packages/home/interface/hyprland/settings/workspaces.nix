@@ -19,6 +19,50 @@
     j = down;
   };
 
+  # mkWorkspaceVariant = {
+  #   command,
+  #   class,
+  #   workspace,
+  #   key,
+  #   size ? "100%",
+  #   extraMod ? "",
+  # }: let
+  #   #? Edge ignores workspace specs, so we launch it then move it
+  #   isEdge = class == "microsoft-edge";
+  #   execCommand =
+  #     if isEdge
+  #     then ''${command} & sleep 1.5 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"''
+  #     else "[workspace special:${workspace} silent] ${command}";
+  # in {
+  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+  #   exec = execCommand;
+  #   rule = [
+  #     "workspace special:${workspace} silent, class:^(${class})$"
+  #     "float, class:^(${class})$"
+  #     "noborder, class:^(${class})$"
+  #     "size 100% ${size}, class:^(${class})$"
+  #     "move 0% 0%, class:^(${class})$"
+  #     "workspace special:${workspace}, initialClass:^(${class})$"
+  #   ];
+  # };
+  # mkWorkspaceVariant = {
+  #   command,
+  #   class,
+  #   workspace,
+  #   key,
+  #   size ? "100%",
+  #   extraMod ? "",
+  # }: {
+  #   bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+  #   exec = ''${command} & sleep 1 && hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$"'';
+  #   rule = [
+  #     "workspace special:${workspace} silent, class:^(${class})$"
+  #     "float, class:^(${class})$"
+  #     "noborder, class:^(${class})$"
+  #     "size 100% ${size}, class:^(${class})$"
+  #     "move 0% 0%, class:^(${class})$"
+  #   ];
+  # };
   mkWorkspaceVariant = {
     command,
     class,
@@ -27,32 +71,27 @@
     size ? "100%",
     extraMod ? "",
     workdir ? null,
-    extraCmd ? "",
   }: let
-    # Check if this is a terminal that supports our requirements
-    isFoot = command == "feet" || command == "footclient";
-    isGhostty = command == "ghostty";
-
-    # Build terminal command with working directory
-    terminalCommand =
-      if (isFoot || isGhostty) && workdir != null
-      then ''${command} --working-directory="${workdir}"''
-      else if workdir != null
-      then ''cd "${workdir}" && ${command}''
+    cmd =
+      if workdir != null
+      then
+        if (class == "foot" || class == "com.mitchellh.ghostty")
+        then ''${command} --working-directory="${workdir}"''
+        else ''cd ${workdir} && ${command}''
       else command;
 
-    # Improved move script with better error handling
-    moveScript = ''
-      for i in {1..15}; do
-        sleep 0.2
-        if hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})$" 2>/dev/null | grep -q "ok"; then
-          break
-        fi
-      done
-    '';
+    # Edge needs explicit move because it ignores workspace specs
+    isEdge = class == "microsoft-edge";
+
+    # Single-line move script
+    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null | grep -q "ok" && break; done'';
   in {
     bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
-    exec = ''bash -c "${terminalCommand} & ${moveScript}"'';
+    # exec = ''sh -c "${cmd} & ${moveScript}" '';
+    exec =
+      if isEdge
+      then ''sh -c "${cmd} & ${moveScript}"''
+      else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, class:^(${class})$"
       "float, class:^(${class})$"
@@ -68,16 +107,15 @@
     secondary,
     size ? "100%",
     workdir ? null,
-    extraCmd ? "",
   }: [
     (mkWorkspaceVariant {
       inherit (primary) command class;
-      inherit key size workdir extraCmd;
+      inherit key size workdir;
       workspace = name;
     })
     (mkWorkspaceVariant {
       inherit (secondary) command class;
-      inherit key size workdir extraCmd;
+      inherit key size workdir;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
     })
@@ -96,12 +134,10 @@
       inherit (terminal) primary secondary;
       key = "GRAVE";
       workdir = "$DOTS";
-      extraCmd = "clear; nitch; onefetch --no-art;";
     };
   };
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
-
   mkDirectionalBinds = {
     modifier ? mod,
     action,
@@ -109,14 +145,14 @@
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
   bind = flatten [
-    # Special workspaces
+    #~@ Special workspaces
     (map (v: v.bind) allVariants)
 
-    # Regular workspaces
+    #~@ Regular workspaces
     (map (n: "${mod},${n},workspace,name:${n}") workspaces)
     (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
 
-    # Directional bindings
+    #~@ Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {
       modifier = "${mod} SHIFT";
@@ -135,7 +171,6 @@ in {
       action = "movecurrentworkspacetomonitor";
     })
   ];
-
   exec-once = map (v: v.exec) allVariants;
   windowrulev2 = cat (v: v.rule) allVariants;
 }
