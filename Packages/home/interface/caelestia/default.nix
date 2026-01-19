@@ -3,12 +3,11 @@
   pkgs,
   city,
   fonts,
-  mkMerge,
   paths,
   keyboard,
   ...
 }: let
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
 
   name = "caelestia";
   kind = "bar";

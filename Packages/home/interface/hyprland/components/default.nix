@@ -1,5 +1,6 @@
 {
   pkgs,
+  paths,
   mkMerge,
   ...
 }: {
@@ -11,7 +12,7 @@
 
   services = mkMerge [
     (import ./idle.nix)
-    (import ./paper.nix)
+    (import ./paper.nix {inherit paths;})
     (import ./polkit.nix)
     # // (import ./shell.nix)
     (import ./sunset.nix)

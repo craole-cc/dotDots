@@ -184,7 +184,6 @@ in {
       city
       fonts
       keyboard
-      mkMerge
       paths
       ;
   };

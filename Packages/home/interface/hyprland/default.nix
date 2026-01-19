@@ -1,9 +1,10 @@
 {
-  user,
+  host,
   lib,
   lix,
+  paths,
   pkgs,
-  host,
+  user,
   ...
 }: let
   app = "hyprland";
@@ -27,6 +28,6 @@ in {
         (import ./plugins)
       ];
     }
-    (import ./components {inherit pkgs mkMerge;})
+    (import ./components {inherit mkMerge pkgs paths;})
   ]);
 }
