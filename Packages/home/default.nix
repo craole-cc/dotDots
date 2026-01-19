@@ -148,8 +148,8 @@
   paths = let
     mkDefault = {
       default,
-      config ? {},
-      host ? {},
+      # config ? {},
+      # host ? {},
       path ? null,
       stem ? null,
     }: let
