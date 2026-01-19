@@ -25,7 +25,10 @@
       then removeSuffix "/" path
       else config.home.homeDirectory or host.paths.dots;
   in
-    if relative != null && !(hasPrefix "/" relative) && !(hasPrefix "root:" relative)
+    if
+      (relative != null)
+      && !(hasPrefix "/" relative)
+      && !(hasPrefix "root:" relative)
     then absolute + "/" + relative
     else relative;
 
