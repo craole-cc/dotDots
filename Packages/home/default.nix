@@ -171,10 +171,23 @@
     home = config.home.homeDirectory;
     dots = host.paths.dots;
     wallpapers = with wallpapers; {
-      all = mkDefaultPath "wallpapers" "${dots}/Assets/Images/wallpapers";
+      all = mkDefault {
+        stem = "wallpapers";
+        default = "${dots}/Assets/Images/wallpapers";
+      };
       "eDP-1" = all + "/16x9/Landscape/earth.jpg";
     };
-  in {inherit mkDefault wallpapers home dots;};
+    avatars = {
+      session = mkDefault {
+        stem = "avatar";
+        default = "root:/assets/kurukuru.gif";
+      };
+      media = mkDefault {
+        stem = "mediaAvatar";
+        default = "root:/assets/kurukuru.gif";
+      };
+    };
+  in {inherit mkDefault wallpapers avatars home dots;};
 in {
   _module.args = {
     inherit

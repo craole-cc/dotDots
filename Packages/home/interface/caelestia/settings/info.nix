@@ -25,7 +25,7 @@
 
   paths = with paths; {
     wallpaperDir = wallpapers;
-    sessionGif = mkDefault "avatar" "root:/assets/kurukuru.gif";
-    mediaGif = mkDefault "mediaAvatar" "root:/assets/bongocat.gif";
+    sessionGif = avatars.session;
+    mediaGif = avatars.media;
   };
 }
