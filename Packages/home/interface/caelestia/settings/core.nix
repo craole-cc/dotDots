@@ -1,10 +1,18 @@
-{fonts, ...}: {
+{ fonts, ... }:
+{
   appearance = {
     rounding.scale = 1;
     spacing.scale = 1;
     padding.scale = 1;
     font = {
-      family = {inherit (fonts) sans mono material clock;};
+      family = {
+        inherit (fonts)
+          sans
+          material
+          clock
+          ;
+        mono = fonts.monospace;
+      };
       size.scale = 0.90;
     };
     anim.durations.scale = 1;
@@ -17,10 +25,17 @@
 
   general = {
     apps = {
-      terminal = ["foot" "ghostty"];
-      audio = ["pavucontrol"];
-      playback = ["mpv"];
-      explorer = ["nautilus" "spacedrive" "dolphin"];
+      terminal = [
+        "foot"
+        "ghostty"
+      ];
+      audio = [ "pavucontrol" ];
+      playback = [ "mpv" ];
+      explorer = [
+        "nautilus"
+        "spacedrive"
+        "dolphin"
+      ];
     };
     idle = {
       lockBeforeSleep = true;
@@ -117,7 +132,7 @@
     };
     vpn = {
       enabled = false;
-      provider = ["netbird"];
+      provider = [ "netbird" ];
     };
   };
 }
