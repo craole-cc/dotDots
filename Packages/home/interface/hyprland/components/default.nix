@@ -1,4 +1,8 @@
-{mkMerge, ...}: {
+{
+  pkgs,
+  mkMerge,
+  ...
+}: {
   programs = mkMerge [
     (import ./lock.nix)
     # (import ./panel.nix)
@@ -11,5 +15,13 @@
     (import ./polkit.nix)
     # // (import ./shell.nix)
     (import ./sunset.nix)
+    {
+      mako.enable = true;
+    }
+  ];
+
+  home.packages = with pkgs; [
+    nautilus
+    nautilus-open-any-terminal
   ];
 }

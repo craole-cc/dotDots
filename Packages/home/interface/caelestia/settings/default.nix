@@ -3,12 +3,12 @@
   fonts,
   mkMerge,
   paths,
-  vimKeybinds,
+  keyboard,
   ...
 }: {
   settings = mkMerge [
     (import ./core.nix {inherit fonts;})
-    (import ./control.nix {inherit vimKeybinds;})
+    (import ./control.nix {inherit keyboard;})
     (import ./desktop.nix {})
     (import ./info.nix {inherit city paths;})
   ];

@@ -4,12 +4,7 @@
     spacing.scale = 1;
     padding.scale = 1;
     font = {
-      family = {
-        sans = fonts.sans or "Monaspace Radon NF Light";
-        mono = fonts.monospace or "monospace";
-        material = fonts.material or "Material Symbols Sharp";
-        clock = fonts.clock or "Rubik";
-      };
+      family = {inherit (fonts) sans mono material clock;};
       size.scale = 0.90;
     };
     anim.durations.scale = 1;

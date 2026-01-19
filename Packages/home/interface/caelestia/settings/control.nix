@@ -1,4 +1,6 @@
-{vimKeybinds, ...}: {
+{keyboard, ...}: let
+  inherit (keyboard) vimKeybinds;
+in {
   controlCenter = {
     sizes = {
       heightMult = 0.75;

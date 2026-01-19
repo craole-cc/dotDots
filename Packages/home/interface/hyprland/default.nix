@@ -2,6 +2,7 @@
   user,
   lib,
   lix,
+  pkgs,
   host,
   ...
 }: let
@@ -26,6 +27,6 @@ in {
         (import ./plugins)
       ];
     }
-    (import ./components {inherit mkMerge;})
+    (import ./components {inherit pkgs mkMerge;})
   ]);
 }

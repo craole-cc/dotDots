@@ -1,1 +1,192 @@
-{lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
+{
+  lib,
+  lix,
+  user,
+  host,
+  config,
+  ...
+}: let
+  inherit (lib.modules) mkMerge;
+  inherit (lib.strings) hasInfix hasPrefix removeSuffix toUpper;
+
+  mkDefaultPath = {
+    default,
+    config ? {},
+    host ? {},
+    path ? null,
+    stem ? null,
+  }: let
+    relative =
+      if stem != null && user.paths?${stem}
+      then user.paths.${stem}
+      else default;
+    absolute =
+      if path != null
+      then removeSuffix "/" path
+      else config.home.homeDirectory or host.paths.dots;
+  in
+    if relative != null && !(hasPrefix "/" relative) && !(hasPrefix "root:" relative)
+    then absolute + "/" + relative
+    else relative;
+
+  mkDefaultApp = {
+    category,
+    option,
+    default,
+  }: let
+    name =
+      user.applications.${category}.${option} or
+      host.applications.${category}.${option} or
+      default;
+
+    #> Determine the command to execute
+    command =
+      if category == "terminal"
+      then
+        if name == "foot"
+        then "feet"
+        else name
+      else if category == "browser"
+      then
+        if hasInfix "zen" name
+        then
+          if hasInfix "twilight" name
+          then "zen-twilight"
+          else "zen-beta"
+        else if hasInfix "edge" name
+        then "microsoft-edge"
+        else name
+      else if category == "editor"
+      then
+        if hasInfix "code" name
+        then "code"
+        else if hasInfix "zed" name
+        then "zeditor"
+        else name
+      else if category == "launcher"
+      then
+        if name == "vicinae"
+        then "vicinae toggle"
+        else if name == "fuzzel"
+        then "pkill fuzzel || fuzzel --list-executables-in-path"
+        else name
+      else name;
+
+    #> Determine the window class
+    class =
+      if command == "feet"
+      then "foot"
+      else if command == "ghostty"
+      then "com.mitchellh.ghostty"
+      else if command == "zeditor"
+      then "dev.zed.Zed"
+      else if (hasInfix "fuzzel" command)
+      then "fuzzel"
+      else if (hasInfix "vicinae" command)
+      then "vicinae"
+      else command;
+  in {inherit command class;};
+  apps = {
+    mkDefault = mkDefaultApp;
+    browser = {
+      primary = mkDefaultApp {
+        category = "browser";
+        option = "primary";
+        default = "zen-twilight";
+      };
+      secondary = mkDefaultApp {
+        category = "browser";
+        option = "secondary";
+        default = "microsoft-edge";
+      };
+    };
+    editor = {
+      primary = mkDefaultApp {
+        category = "editor";
+        option = "gui.primary";
+        default = "vscode";
+      };
+      secondary = mkDefaultApp {
+        category = "editor";
+        option = "gui.secondary";
+        default = "zed";
+      };
+    };
+    launcher = {
+      primary = mkDefaultApp {
+        category = "launcher";
+        option = "primary";
+        default = "vicinae";
+      };
+      secondary = mkDefaultApp {
+        category = "launcher";
+        option = "secondary";
+        default = "fuzzel";
+      };
+    };
+    terminal = {
+      primary = mkDefaultApp {
+        category = "terminal";
+        option = "primary";
+        default = "foot";
+      };
+      secondary = mkDefaultApp {
+        category = "terminal";
+        option = "secondary";
+        default = "ghostty";
+      };
+    };
+  };
+
+  keyboard = let
+    fromUser = user.interface.keyboard or {};
+    fromHost = host.interface.keyboard or {};
+  in {
+    mod = toUpper (
+      fromUser.modifier or
+        fromHost.modifier or
+        "Super"
+    );
+
+    swapCapsEscape =
+      fromUser.swapCapsEscape or
+        fromHost.swapCapsEscape or
+        null;
+
+    vimKeybinds = fromUser.vimKeybinds or fromHost.vimKeybinds or false;
+  };
+
+  city = host.localization.city or "Mandeville, Jamaica";
+  fonts =
+    user.interface.style.fonts or
+    host.interface.style.fonts or {
+      emoji = "Noto Color Emoji";
+      monospace = "Maple Mono NF";
+      sans = "Monaspace Radon Frozen";
+      serif = "Noto Serif";
+      material = "Material Symbols Sharp";
+      clock = "Rubik";
+    };
+
+  paths = let
+    mkDefault = mkDefaultPath;
+    home = config.home.homeDirectory;
+    dots = host.paths.dots;
+    wallpapers = with wallpapers; {
+      all = mkDefaultPath "wallpapers" "${dots}/Assets/Images/wallpapers";
+      "eDP-1" = all + "/16x9/Landscape/earth.jpg";
+    };
+  in {inherit mkDefault wallpapers home dots;};
+in {
+  _module.args = {
+    inherit
+      apps
+      city
+      fonts
+      keyboard
+      mkMerge
+      paths
+      ;
+  };
+  imports = lix.filesystem.importers.importAll ./.;
+}

@@ -2,18 +2,18 @@
 {
   pkgs,
   lib,
-  user,
+  # user,
   lix,
   ...
 }: let
   inherit (lib.modules) mkForce;
-  inherit (lib.strings) toLower;
+  # inherit (lib.strings) toLower;
   getPackage = lix.attrsets.resolution.package;
-  get = lix.attrsets.resolution.get;
+  # get = lix.attrsets.resolution.get;
 
   #~@ Style configuration from user API
-  style = user.interface.style or {};
-  current = style.current or "dark";
+  # style = user.interface.style or {};
+  # current = style.current or "dark";
 
   #~@ Cursor configuration
   cursor = rec {
