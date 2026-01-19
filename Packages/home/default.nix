@@ -160,7 +160,7 @@
       absolute =
         if path != null
         then removeSuffix "/" path
-        else config.home.homeDirectory or host.paths.dots;
+        else (config.home.homeDirectory or host.paths.dots);
     in
       if
         (relative != null)
