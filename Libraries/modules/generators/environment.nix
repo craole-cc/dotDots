@@ -102,6 +102,7 @@
           amp
           bat
           btop
+          cachix
           coreutils
           curl
           dua
@@ -124,7 +125,6 @@
           imagemagick
           jql
           lolcat
-          lsd
           lshw
           nil
           nix-index
