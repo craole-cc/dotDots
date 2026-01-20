@@ -128,11 +128,6 @@
         material = "Material Symbols Sharp";
         clock = "Rubik";
       };
-      avatar = {session = "Pictures/avatar.jpg";};
-      # wallpaper = {
-      #   dark = "$DOTS/Assets/Images/wallpapers/dark.jpg";
-      #   light = "$DOTS/Assets/Images/wallpapers/light.jpg";
-      # };
     };
   };
 
@@ -179,8 +174,19 @@
     ];
   };
 
-  paths = {
-    downloads = "Downloads";
-    wallpapers = "Pictures/Wallpapers";
+  paths = rec {
+    pics = "home:Pictures";
+    dlds = "home:Downloads";
+    avatars = {
+      session = pics + "/avatar.jpg";
+    };
+    wallpapers = {
+      all = [
+        (pics + "/Wallpapers")
+        "dots:Assets/Images/wallpapers"
+      ];
+      dark = pics + "/wallpaper-dark.jpg";
+      light = pics + "/wallpaper-light.jpg";
+    };
   };
 }

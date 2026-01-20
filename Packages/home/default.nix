@@ -6,7 +6,18 @@
   config,
   ...
 }: let
-  inherit (lib.strings) hasInfix hasPrefix removeSuffix toUpper;
+  inherit (lib.attrsets) attrByPath;
+  inherit
+    (lib.strings)
+    concatStringsSep
+    hasInfix
+    hasPrefix
+    optionalString
+    removePrefix
+    removeSuffix
+    toUpper
+    ;
+  inherit (lib.lists) head toList;
 
   apps = let
     mkDefault = {
@@ -147,27 +158,37 @@
 
   paths = let
     mkDefault = {
-      default,
-      path ? null,
-      stem ? null,
+      home ? config.home.homeDirectory,
+      dots ? host.paths.dots,
+      default ? "",
+      path ? "",
+      stem ? [],
     }: let
+      #> Ensure stem is a list of strings
+      stems = toList stem;
+
+      #> Get the value from user.paths following the stem path
       relative =
-        if stem != null && user.paths?${stem}
-        then user.paths.${stem}
+        if stems != [] && user.paths ? ${concatStringsSep "." stems}
+        then user.paths.${concatStringsSep "." stems}
+        else if stems != [] && user.paths ? ${head stems}
+        then attrByPath stems default user.paths
         else default;
+
       absolute =
-        if path != null
+        if path != ""
         then removeSuffix "/" path
-        else (config.home.homeDirectory or host.paths.dots);
+        else home;
+
+      final =
+        if (hasPrefix "/" relative) || (hasPrefix "root:" relative)
+        then relative
+        else if hasPrefix "dots:" relative
+        then dots + "/" + (removePrefix "dots:" relative)
+        else absolute + "/" + (removePrefix "home:" relative);
     in
-      if
-        (relative != null)
-        && !(hasPrefix "/" relative)
-        && !(hasPrefix "root:" relative)
-      then absolute + "/" + relative
-      else relative;
-    home = config.home.homeDirectory;
-    dots = host.paths.dots;
+      optionalString (relative == "") final;
+
     wallpapers = with wallpapers; {
       all = mkDefault {
         stem = "wallpapers";
@@ -177,15 +198,15 @@
     };
     avatars = {
       session = mkDefault {
-        stem = "avatar";
+        stem = ["avatars" "session"];
         default = "root:/assets/kurukuru.gif";
       };
       media = mkDefault {
-        stem = "mediaAvatar";
+        stem = ["avatars" "media"];
         default = "root:/assets/kurukuru.gif";
       };
     };
-  in {inherit mkDefault wallpapers avatars home dots;};
+  in {inherit mkDefault wallpapers avatars;};
 in {
   _module.args = {
     inherit
