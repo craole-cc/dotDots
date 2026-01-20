@@ -86,5 +86,7 @@
     };
   };
 in {
-  _module.args = {inherit avatars mkDefault wallpapers;};
+  _module.args.paths = {
+    inherit avatars mkDefault wallpapers;
+  };
 }

@@ -1,6 +1,5 @@
 {
   lib,
-  lix,
   user,
   host,
   ...
@@ -38,6 +37,4 @@ in {
       false;
     };
   };
-
-  imports = lix.filesystem.importers.importAll ./.;
 }
