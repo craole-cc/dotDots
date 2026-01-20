@@ -106,11 +106,11 @@
     };
     style = {
       autoSwitch = true;
-      current = "dark";
       theme = {
         dark = "Catppuccin Frappé";
         light = "Catppuccin Latte";
         accent = "teal";
+        current = "dark";
       };
       icons = {
         dark = "candy";
@@ -128,6 +128,7 @@
         material = "Material Symbols Sharp";
         clock = "Rubik";
       };
+      avatar = {session = "Pictures/avatar.jpg";};
       # wallpaper = {
       #   dark = "$DOTS/Assets/Images/wallpapers/dark.jpg";
       #   light = "$DOTS/Assets/Images/wallpapers/light.jpg";
