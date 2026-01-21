@@ -3,8 +3,6 @@
   lib,
   pkgs,
   user,
-  # config,
-  # user,
   ...
 }: let
   inherit (lib.strings) hasInfix;
@@ -117,7 +115,16 @@
     };
   };
 in {
-  _module.args.apps = {inherit mkDefault browser editor launcher terminal;};
+  _module.args.apps = {
+    inherit
+      mkDefault
+      browser
+      editor
+      launcher
+      terminal
+      ;
+  };
+
   home.packages = with pkgs; [
     gImageReader
     # inkscape

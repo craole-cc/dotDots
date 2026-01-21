@@ -185,7 +185,7 @@
                   flavor = let
                     style = user.interface.style;
                     current = style.current or "dark";
-                    theme = toLower (style.theme.${current});
+                    theme = toLower style.theme.${current};
                   in
                     if hasInfix "frappe" theme || hasInfix "frappé" theme
                     then "frappe"
