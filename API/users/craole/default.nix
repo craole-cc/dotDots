@@ -107,10 +107,10 @@
     style = {
       autoSwitch = true;
       theme = {
+        mode = "dark";
+        accent = "teal";
         dark = "Catppuccin Frappé";
         light = "Catppuccin Latte";
-        accent = "teal";
-        current = "dark";
       };
       icons = {
         dark = "candy";

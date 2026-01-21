@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (_.attrsets.resolution) package;
-  inherit (lib.attrsets) filterAttrs mapAttrs optionalAttrs;
+  inherit (lib.attrsets) filterAttrs mapAttrs;
   inherit (lib.lists) head optionals;
   inherit (lib.strings) hasInfix toLower;
   inherit (_.lists.predicates) isIn;
@@ -108,22 +108,16 @@
     specialArgs,
     ...
   }: {
-    /**
-    Security configuration for sudo access
-    */
     security.sudo = {
       execWheelOnly = true;
       extraRules = mkSudoRules (adminsNames host);
     };
 
-    /**
-    System user and group configuration
-    */
     users = {
-      # Create a private group for each user
+      #> Create a private group for each user
       groups = mapAttrs (_: _: {}) (userAttrs host);
 
-      # Configure all system users (including service accounts)
+      #> Configure all system users (including service accounts)
       users = mapAttrs (name: user: {
         isNormalUser = user.role != "service";
         isSystemUser = user.role == "service";
@@ -142,9 +136,6 @@
       }) (userAttrs host);
     };
 
-    /**
-    Home-manager configuration for eligible users (excludes service accounts and guests)
-    */
     home-manager = {
       backupFileExtension = "BaC";
       overwriteBackup = true;
@@ -162,6 +153,25 @@
         ...
       }: let
         userApps = mkHomeModuleApps {inherit pkgs config user;};
+        style = rec {
+          theme = user.interface.style.theme or {};
+          mode = toLower (theme.mode or "dark");
+          variant = toLower (theme.${mode} or "Catppuccin Latte");
+          accent = toLower (theme.accent or "rosewater");
+          flavor =
+            if hasInfix "frappe" variant || hasInfix "frappé" variant
+            then "frappe"
+            else if hasInfix "latte" variant
+            then "latte"
+            else if hasInfix "mocha" variant
+            then "mocha"
+            else if hasInfix "macchiato" variant
+            then "macchiato"
+            else if mode == "dark"
+            then "frappe"
+            else "latte";
+          catppuccin = hasInfix "catppuccin" variant;
+        };
       in
         with userApps; {
           #> Pass user data and apps to modules via _module.args
@@ -177,27 +187,12 @@
               caelestia.module
               {programs.caelestia.enable = true;}
             ]
-            ++ optionals catppuccin.isAllowed [
+            ++ optionals style.catppuccin [
               catppuccin.module
               {
                 catppuccin = {
                   enable = true;
-                  flavor = let
-                    style = user.interface.style;
-                    current = style.current or "dark";
-                    theme = toLower style.theme.${current};
-                  in
-                    if hasInfix "frappe" theme || hasInfix "frappé" theme
-                    then "frappe"
-                    else if hasInfix "latte" theme
-                    then "latte"
-                    else if hasInfix "mocha" theme
-                    then "mocha"
-                    else if hasInfix "macchiato" theme
-                    then "macchiato"
-                    else if current == "dark"
-                    then "frappe"
-                    else "latte";
+                  inherit (style) accent flavor;
                 };
               }
             ]
@@ -227,13 +222,6 @@
     };
   };
 
-  /**
-  Exported functions for external use.
-
-  - mkUsers: Main user configuration builder
-  - mkSudoRules: Sudo rule generator for admin users
-  - homeModuleApps: Module availability detector for users
-  */
   exports = {
     inherit
       mkUsers

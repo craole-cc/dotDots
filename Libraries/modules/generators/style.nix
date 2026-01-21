@@ -8,6 +8,8 @@
   inherit (lib.strings) splitString;
   inherit (lib.modules) mkForce;
 
+  cursor.size = 24;
+
   defaultFonts = {
     pkgs,
     config ? {},
@@ -42,8 +44,6 @@
       else null;
   in {inherit family variant;};
 
-  # Theme registry
-  # Theme registry
   themeRegistry = {
     catppuccin = {
       variants = {
@@ -53,7 +53,7 @@
           cursor = {
             name = "catppuccin-frappe-dark-cursors";
             pkg = "frappeDark";
-            size = 24; # Add this
+            inherit (cursor) size;
           };
         };
         latte = {
@@ -62,7 +62,7 @@
           cursor = {
             name = "catppuccin-latte-light-cursors";
             pkg = "latteLight";
-            size = 24; # Add this
+            inherit (cursor) size;
           };
         };
         macchiato = {
@@ -71,7 +71,7 @@
           cursor = {
             name = "catppuccin-macchiato-dark-cursors";
             pkg = "macchiatoDark";
-            size = 24; # Add this
+            inherit (cursor) size;
           };
         };
         mocha = {
@@ -80,7 +80,7 @@
           cursor = {
             name = "catppuccin-mocha-dark-cursors";
             pkg = "mochaDark";
-            size = 24; # Add this
+            inherit (cursor) size;
           };
         };
       };
