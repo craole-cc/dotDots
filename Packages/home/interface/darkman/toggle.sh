@@ -20,7 +20,7 @@ case "$CFG_POLARITY" in
 esac
 
 #> Update theme mode in user configuration
-"$CMD_SD" 'current = "(dark|light)"' "current = \"$CFG_POLARITY\"" "$CFG_API"
+"$CMD_SD" 'polarity = "(dark|light)"' "polarity = \"$CFG_POLARITY\"" "$CFG_API"
 
 #> Update the freedesktop portal setting
 "$CMD_DBUS" --session --dest=org.freedesktop.portal.Desktop \
