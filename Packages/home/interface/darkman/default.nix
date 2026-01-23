@@ -51,4 +51,7 @@ in {
     darkModeScripts.nixos-theme = toggle "dark";
     lightModeScripts.nixos-theme = toggle "light";
   };
+  # home.packages = mkIf enable [
+  #   services.darkman.toggleScripts.nixos-theme
+  # ];
 }

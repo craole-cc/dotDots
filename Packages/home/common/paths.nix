@@ -19,7 +19,7 @@
     replaceVars
     writeShellScript
     ;
-  home = config.home.homeDirectory;
+  homeDir = config.home.homeDirectory;
 
   mkDefault = {
     default,
@@ -31,10 +31,10 @@
       if root == "dots"
       then dots
       else if root == "home"
-      then home
+      then homeDir
       else if root != ""
       then removeSuffix "/" root
-      else home; #? fallback to home if empty string
+      else homeDir; #? fallback to home if empty string
 
     #> Get the value from user.paths
     attrPath = toList path;
@@ -206,5 +206,7 @@
 in {
   _module.args.paths = {
     inherit avatars mkDefault wallpapers dots api;
+    home = homeDir;
   };
+  home.packages = [wallpapers.manager];
 }
