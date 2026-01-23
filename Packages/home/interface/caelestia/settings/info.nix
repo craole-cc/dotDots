@@ -1,5 +1,5 @@
 {
-  city,
+  locale,
   paths,
   ...
 }: {
@@ -13,7 +13,7 @@
     useFahrenheit = false;
     useTwelveHourClock = true;
     visualiserBars = 45;
-    weatherLocation = city;
+    weatherLocation = locale.city;
 
     playerAliases = [
       {

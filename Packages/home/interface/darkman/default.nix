@@ -1,40 +1,27 @@
-# Packages/home/common/darkman.nix
 {
-  nixosConfig,
   host,
   lib,
+  locale,
+  paths,
   pkgs,
-  config,
   user,
   ...
 }: let
-  inherit (lib.modules) mkForce mkIf;
-  inherit (lib.strings) hasPrefix;
-  inherit (pkgs) writeShellScript;
+  inherit (lib.modules) mkIf;
+  inherit (pkgs) writeShellScript sd dbus dconf libnotify;
 
   #~@ Location
-  loc = user.localization or host.localization or nixosConfig.location or {};
-  lat = loc.latitude or null;
-  lng = loc.longitude or null;
-  usegeoclue = (loc.provider or "manual") == "geoclue2";
+  lat = locale.latitude or null;
+  lng = locale.longitude or null;
+  usegeoclue = (locale.provider or "manual") == "geoclue2";
 
   #~@ Style
   style = user.interface.style or host.interface.style or {};
   switch = style.autoSwitch or false;
 
   #~@ Paths
-  wallpapers = let
-    path =
-      user.paths.wallpapers or
-      host.paths.wallpapers or
-      "Pictures/Wallpapers";
-  in
-    if hasPrefix "/" path
-    then path
-    else "${config.home.homeDirectory}/${path}";
-
-  dots = host.paths.dots or null;
-  userApi = "${dots}/API/users/${user.name}/default.nix";
+  dots = paths.dots;
+  userApi = paths.api.user;
 
   #~@ Enable condition
   enable =
@@ -45,15 +32,10 @@
 
   #~@ Mode script generator
   mkModeScript = mode: let
-    sd = "${pkgs.sd}/bin/sd";
-    ln = "${pkgs.coreutils}/bin/ln";
-    dbus = "${pkgs.dbus}/bin/dbus-send";
-    dconf = "${pkgs.dconf}/bin/dconf";
-    # hypr = "${pkgs.hyprland}/bin/hyprctl";
-    note = "${pkgs.libnotify}/bin/notify-send";
-
-    newWallpaper = "${wallpapers}/${mode}-wallpaper";
-    oldWallpaper = "${wallpapers}/current-wallpaper";
+    sd = "${sd}/bin/sd";
+    dbus = "${dbus}/bin/dbus-send";
+    dconf = "${dconf}/bin/dconf";
+    note = "${libnotify}/bin/notify-send";
 
     #> Portal mode: 1 = prefer dark, 2 = prefer light
     portalMode =
@@ -77,10 +59,8 @@
       #> Update GTK/Qt theming preference
       ${dconf} write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
 
-      #> Update wallpaper
-      if [ -L "${oldWallpaper}" ] || [ -e "${newWallpaper}" ]; then
-        ${ln} -sf "${newWallpaper}" "${oldWallpaper}"
-      fi
+      #> Update wallpapers for all monitors using wallman
+      ${paths.wallpapers.manager} set --polarity ${mode} || true
 
       #> Notify
       ${note} "Theme Switched" "Switched to ${mode} mode" -t 2000 || true

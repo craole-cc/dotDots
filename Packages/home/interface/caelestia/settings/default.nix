@@ -1,5 +1,5 @@
 {
-  city,
+  locale,
   fonts,
   mkMerge,
   paths,
@@ -10,6 +10,6 @@
     (import ./core.nix {inherit fonts;})
     (import ./control.nix {inherit keyboard;})
     (import ./desktop.nix {})
-    (import ./info.nix {inherit city paths;})
+    (import ./info.nix {inherit locale paths;})
   ];
 }

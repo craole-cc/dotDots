@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-  city,
+  locale,
   fonts,
   paths,
   keyboard,
@@ -14,7 +14,7 @@
 
   programs.${name} = mkMerge [
     (import ./cli {})
-    (import ./settings {inherit city fonts mkMerge paths keyboard;})
+    (import ./settings {inherit locale fonts mkMerge paths keyboard;})
   ];
 
   packages = with pkgs; [
