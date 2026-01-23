@@ -8,15 +8,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit
-    (pkgs)
-    dbus
-    dconf
-    libnotify
-    replaceVars
-    sd
-    writeShellScript
-    ;
+  inherit (pkgs) replaceVarsWith;
 
   #~@ Location
   lat = locale.latitude or null;
@@ -35,15 +27,20 @@
     && (paths.dots != null);
 
   toggle = polarity:
-    writeShellScript "darkman-toggle-${polarity}" (replaceVars ./toggle.sh {
-      cmdSd = "${sd}/bin/sd";
-      cmdDbus = "${dbus}/bin/dbus-send";
-      cmdDconf = "${dconf}/bin/dconf";
-      cmdNotify = "${libnotify}/bin/notify-send";
-      cmdWallman = "${paths.wallpapers.manager}";
-      cfgPolarity = polarity;
-      cfgApi = "${paths.api.user}";
-    });
+    replaceVarsWith {
+      src = ./toggle.sh;
+      replacements = {
+        cmdSd = "${pkgs.sd}/bin/sd";
+        cmdDbus = "${pkgs.dbus}/bin/dbus-send";
+        cmdDconf = "${pkgs.dconf}/bin/dconf";
+        cmdNotify = "${pkgs.libnotify}/bin/notify-send";
+        cmdWallman = "${paths.wallpapers.manager}";
+        cfgApi = "${paths.api.user}";
+        cfgPolarity = polarity;
+      };
+      dir = "bin";
+      isExecutable = true;
+    };
 in {
   services.darkman = mkIf enable {
     inherit enable;
@@ -51,7 +48,4 @@ in {
     darkModeScripts.nixos-theme = toggle "dark";
     lightModeScripts.nixos-theme = toggle "light";
   };
-  # home.packages = mkIf enable [
-  #   services.darkman.toggleScripts.nixos-theme
-  # ];
 }

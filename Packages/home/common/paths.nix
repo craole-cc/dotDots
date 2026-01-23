@@ -16,8 +16,8 @@
     fd
     ripgrep
     imagemagick
-    replaceVars
-    writeShellScript
+    replaceVarsWith
+    writeShellScriptBin
     ;
   homeDir = config.home.homeDirectory;
 
@@ -133,21 +133,27 @@
         };
         cache = directory + "/.cache";
         current = primary + "/current-${name}.jpg";
-        manager = writeShellScript "wallman-${name}" (replaceVars ./wallman.sh {
-          inherit name resolution;
-          directory = directory;
-          current = current;
-          cmdConvert = "${imagemagick}/bin/convert";
-          cmdFd = "${fd}/bin/fd";
-          cmdRg = "${ripgrep}/bin/rg";
-          cmdLn = "${coreutils}/bin/ln";
-          cmdShuf = "${coreutils}/bin/shuf";
-          cmdRealpath = "${coreutils}/bin/realpath";
-          cachePolarity = "${cache}/polarity.txt";
-          cachePurity = "${cache}/purity.txt";
-          cacheCategory = "${cache}/category.txt";
-          cacheFavorite = "${cache}/favorite.txt";
-        });
+        manager = replaceVarsWith {
+          src = ./wallman.sh;
+          replacements = {
+            name = name;
+            resolution = resolution;
+            directory = directory;
+            current = current;
+            cmdConvert = "${imagemagick}/bin/convert";
+            cmdFd = "${fd}/bin/fd";
+            cmdRg = "${ripgrep}/bin/rg";
+            cmdLn = "${coreutils}/bin/ln";
+            cmdShuf = "${coreutils}/bin/shuf";
+            cmdRealpath = "${coreutils}/bin/realpath";
+            cachePolarity = "${cache}/polarity.txt";
+            cachePurity = "${cache}/purity.txt";
+            cacheCategory = "${cache}/category.txt";
+            cacheFavorite = "${cache}/favorite.txt";
+          };
+          dir = "bin";
+          isExecutable = true;
+        };
       in {
         inherit
           directory
@@ -167,7 +173,7 @@
       host.devices.display;
 
     #> Global wallpaper manager (simple wrapper calling individual managers)
-    manager = writeShellScript "wallman" ''
+    manager = writeShellScriptBin "wallman" ''
       #!/bin/sh
       set -eu
 
@@ -178,7 +184,7 @@
 
       ${
         concatMapStringsSep "\n"
-        (mgr: ''${mgr} "$@" || true'')
+        (mgr: ''${mgr}/bin/wallman.sh "$@" || true'')
         (mapAttrsToList (name: config: config.manager) monitors)
       }
     '';
