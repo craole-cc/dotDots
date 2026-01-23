@@ -135,11 +135,9 @@
         current = primary + "/current-${name}.jpg";
         manager = replaceVarsWith {
           src = ./wallman.sh;
+          name = "wallman-${name}";
           replacements = {
-            name = name;
-            resolution = resolution;
-            directory = directory;
-            current = current;
+            inherit name resolution directory current;
             cmdConvert = "${imagemagick}/bin/convert";
             cmdFd = "${fd}/bin/fd";
             cmdRg = "${ripgrep}/bin/rg";
@@ -151,7 +149,6 @@
             cacheCategory = "${cache}/category.txt";
             cacheFavorite = "${cache}/favorite.txt";
           };
-          dir = "bin";
           isExecutable = true;
         };
       in {
@@ -184,7 +181,7 @@
 
       ${
         concatMapStringsSep "\n"
-        (mgr: ''${mgr}/bin/wallman.sh "$@" || true'')
+        (mgr: ''${mgr} "$@" || true'')
         (mapAttrsToList (name: config: config.manager) monitors)
       }
     '';
