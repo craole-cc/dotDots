@@ -17,7 +17,7 @@
     ripgrep
     imagemagick
     replaceVarsWith
-    writeShellScript
+    writeShellScriptBin
     ;
   homeDir = config.home.homeDirectory;
 
@@ -169,8 +169,8 @@
       })
       host.devices.display;
 
-    #> Global wallpaper manager (simple wrapper calling individual managers)
-    manager = writeShellScript "wallman" ''
+    #> Global wallpaper manager
+    manager = writeShellScriptBin "wallman" ''
       #!/bin/sh
       set -eu
 
