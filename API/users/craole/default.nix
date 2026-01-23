@@ -107,7 +107,7 @@
     style = {
       autoSwitch = true;
       theme = {
-        polarity = "dark";
+        polarity = "light";
         accent = "teal";
         dark = "Catppuccin Frappé";
         light = "Catppuccin Latte";
