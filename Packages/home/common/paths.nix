@@ -21,23 +21,6 @@
     ;
   homeDir = config.home.homeDirectory;
 
-  _trace =
-    lib.trace ''
-      TRACE paths.nix:
-        - host has paths? ${toString (host ? paths)}
-        ${
-        if host ? paths
-        then "- host.paths.dots = ${toString host.paths.dots}"
-        else ""
-      }
-        ${
-        if host ? paths
-        then "- host.paths keys: ${toString (builtins.attrNames host.paths)}"
-        else ""
-      }
-    ''
-    null;
-
   mkDefault = {
     default,
     root ? "home",
@@ -228,5 +211,13 @@ in {
     inherit avatars mkDefault wallpapers dots api;
     home = homeDir;
   };
-  home.packages = [wallpapers.manager];
+  home = {
+    packages = [wallpapers.manager];
+    sessionVariables = {
+      # DOTS_WALLPAPER_MANAGER = wallpapers.manager;
+      # _DOTS = dots;
+      # _API_HOST = api.host;
+      # _API_USER = api.user;
+    };
+  };
 }
