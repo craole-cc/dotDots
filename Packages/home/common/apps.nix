@@ -89,6 +89,19 @@
     };
   };
 
+  explorer = {
+    primary = mkDefault {
+      category = "explorer";
+      option = "primary";
+      default = "yazi";
+    };
+    secondary = mkDefault {
+      category = "explorer";
+      option = "secondary";
+      default = "org.gnome.Nautilus";
+    };
+  };
+
   launcher = {
     primary = mkDefault {
       category = "launcher";
@@ -120,6 +133,7 @@ in {
       mkDefault
       browser
       editor
+      explorer
       launcher
       terminal
       ;

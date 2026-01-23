@@ -90,6 +90,11 @@
       inherit (editor) primary secondary;
       key = "C";
     };
+    explorer = {
+      inherit (explorer) primary secondary;
+      key = "E";
+      workdir = "$HOME";
+    };
     terminal = {
       inherit (terminal) primary secondary;
       key = "GRAVE";
