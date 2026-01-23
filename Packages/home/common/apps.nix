@@ -5,7 +5,63 @@
   user,
   ...
 }: let
-  inherit (lib.strings) hasInfix;
+  inherit (lib.attrsets) isAttrs mapAttrs mapAttrsToList;
+  inherit (lib.lists) findFirst;
+  inherit (lib.strings) hasInfix replaceStrings;
+
+  # Centralized mapping configurations
+  commandMappings = {
+    terminal = {
+      foot = "feet";
+    };
+    browser = {
+      "zen.*twilight" = "zen-twilight";
+      "zen.*" = "zen-beta";
+      ".*edge" = "microsoft-edge";
+    };
+    editor = {
+      ".*code" = "code";
+      ".*zed" = "zeditor";
+    };
+    launcher = {
+      vicinae = "vicinae toggle";
+      fuzzel = "pkill fuzzel || fuzzel --list-executables-in-path";
+    };
+  };
+
+  classMappings = {
+    feet = "foot";
+    ghostty = "com.mitchellh.ghostty";
+    zeditor = "dev.zed.Zed";
+    ".*fuzzel.*" = "fuzzel";
+    ".*vicinae.*" = "vicinae";
+  };
+
+  # Helper to match patterns
+  matchPattern = name: pattern:
+    if hasInfix ".*" pattern
+    then hasInfix (replaceStrings [".*"] [""] pattern) name
+    else name == pattern;
+
+  # Find matching mapping using pattern matching
+  findMapping = mappings: name:
+    findFirst
+    (entry: matchPattern name entry.pattern)
+    {
+      pattern = name;
+      value = name;
+    }
+    (mapAttrsToList (pattern: value: {inherit pattern value;}) mappings);
+
+  # Get command name based on category and name
+  getCommand = category: name:
+    if commandMappings ? ${category}
+    then (findMapping commandMappings.${category} name).value
+    else name;
+
+  # Get class name based on command
+  getClass = command:
+    (findMapping classMappings command).value;
 
   mkDefault = {
     category,
@@ -13,145 +69,62 @@
     default,
   }: let
     name =
-      user.applications.${category}.${option} or
-        host.applications.${category}.${option} or
-        default;
+      user.applications.${category}.${option}
+      or host.applications.${category}.${option}
+      or default;
 
-    command =
-      if category == "terminal"
-      then
-        if name == "foot"
-        then "feet"
-        else name
-      else if category == "browser"
-      then
-        if hasInfix "zen" name
-        then
-          if hasInfix "twilight" name
-          then "zen-twilight"
-          else "zen-beta"
-        else if hasInfix "edge" name
-        then "microsoft-edge"
-        else name
-      else if category == "editor"
-      then
-        if hasInfix "code" name
-        then "code"
-        else if hasInfix "zed" name
-        then "zeditor"
-        else name
-      else if category == "launcher"
-      then
-        if name == "vicinae"
-        then "vicinae toggle"
-        else if name == "fuzzel"
-        then "pkill fuzzel || fuzzel --list-executables-in-path"
-        else name
-      else name;
-
-    class =
-      if command == "feet"
-      then "foot"
-      else if command == "ghostty"
-      then "com.mitchellh.ghostty"
-      else if command == "zeditor"
-      then "dev.zed.Zed"
-      else if (hasInfix "fuzzel" command)
-      then "fuzzel"
-      else if (hasInfix "vicinae" command)
-      then "vicinae"
-      else command;
+    command = getCommand category name;
+    class = getClass command;
   in {inherit command class;};
 
-  browser = {
-    primary = mkDefault {
-      category = "browser";
-      option = "primary";
-      default = "zen-twilight";
-    };
-    secondary = mkDefault {
-      category = "browser";
-      option = "secondary";
-      default = "microsoft-edge";
-    };
-  };
+  # Simplified category configuration
+  mkCategory = category: options:
+    mapAttrs (
+      name: value:
+        mkDefault {
+          inherit category;
+          option =
+            if isAttrs value && value ? option
+            then value.option
+            else name;
+          default =
+            if isAttrs value
+            then value.default or value
+            else value;
+        }
+    )
+    options;
 
-  editor = {
-    primary = mkDefault {
-      category = "editor";
-      option = "gui.primary";
-      default = "vscode";
+  categoryDefaults = {
+    browser = {
+      primary = "zen-twilight";
+      secondary = "microsoft-edge";
     };
-    secondary = mkDefault {
-      category = "editor";
-      option = "gui.secondary";
-      default = "zed";
+    editor = {
+      primary = {
+        option = "gui.primary";
+        default = "vscode";
+      };
+      secondary = {
+        option = "gui.secondary";
+        default = "zed";
+      };
     };
-  };
-
-  explorer = {
-    primary = mkDefault {
-      category = "explorer";
-      option = "primary";
-      default = "yazi";
+    explorer = {
+      primary = "yazi";
+      secondary = "org.gnome.Nautilus";
     };
-    secondary = mkDefault {
-      category = "explorer";
-      option = "secondary";
-      default = "org.gnome.Nautilus";
+    launcher = {
+      primary = "vicinae";
+      secondary = "fuzzel";
     };
-  };
-
-  launcher = {
-    primary = mkDefault {
-      category = "launcher";
-      option = "primary";
-      default = "vicinae";
-    };
-    secondary = mkDefault {
-      category = "launcher";
-      option = "secondary";
-      default = "fuzzel";
-    };
-  };
-
-  terminal = {
-    primary = mkDefault {
-      category = "terminal";
-      option = "primary";
-      default = "foot";
-    };
-    secondary = mkDefault {
-      category = "terminal";
-      option = "secondary";
-      default = "ghostty";
+    terminal = {
+      primary = "foot";
+      secondary = "ghostty";
     };
   };
 in {
-  _module.args.apps = {
-    inherit
-      mkDefault
-      browser
-      editor
-      explorer
-      launcher
-      terminal
-      ;
-  };
-
-  home.packages = with pkgs; [
-    gImageReader
-    # inkscape
-    qbittorrent-enhanced
-    # warp-terminal
-    # (spacedrive.overrideAttrs (oldAttrs: {
-    #   makeWrapperArgs = [
-    #     "--set GDK_BACKEND x11"
-    #     "--add-flags '--disable-gpu'"
-    #     "--add-flags '--disable-gpu-compositing'"
-    #   ];
-    # }))
-
-    swaybg
-  ];
+  _module.args.apps =
+    mapAttrs mkCategory categoryDefaults
+    // {inherit mkDefault;};
 }
