@@ -30,12 +30,29 @@
     && (lng != null)
     && (dots != null);
 
+  toggle = mode:
+    writeShellScript "name" (pkgs.replaceVars ./toggle.sh {
+      inherit mode;
+      api = paths.api.user;
+      wallman = paths.wallpapers.manager;
+      sd = "${pkgs.sd}/bin/sd";
+      dbus = "${pkgs.dbus}/bin/dbus-send";
+      dconf = "${pkgs.dconf}/bin/dconf";
+      notify = "${pkgs.libnotify}/bin/notify-send";
+      portalMode =
+        if mode == "dark"
+        then "1"
+        else "2";
+    });
+
   #~@ Mode script generator
   mkModeScript = mode: let
+    inherit userApi;
     sd = "${pkgs.sd}/bin/sd";
     dbus = "${pkgs.dbus}/bin/dbus-send";
     dconf = "${pkgs.dconf}/bin/dconf";
     notify = "${pkgs.libnotify}/bin/notify-send";
+    wallman = paths.wallpapers.manager;
 
     #> Portal mode: 1 = prefer dark, 2 = prefer light
     portalMode =
@@ -69,7 +86,7 @@ in {
   services.darkman = mkIf enable {
     inherit enable;
     settings = {inherit lat lng usegeoclue;};
-    darkModeScripts.nixos-theme = mkModeScript "dark";
-    lightModeScripts.nixos-theme = mkModeScript "light";
+    darkModeScripts.nixos-theme = toggle "dark";
+    lightModeScripts.nixos-theme = toggle "light";
   };
 }

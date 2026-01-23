@@ -4,7 +4,7 @@
 
 set -eu
 
-#> Configuration (injected by Nix via substituteAll)
+#> Configuration (injected by Nix via replaceVars)
 MONITOR_NAME="@name@"
 RESOLUTION="@resolution@"
 WALLPAPER_DIR="@directory@"
