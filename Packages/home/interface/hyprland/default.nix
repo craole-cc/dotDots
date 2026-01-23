@@ -2,6 +2,7 @@
   host,
   lib,
   lix,
+  keyboard,
   paths,
   pkgs,
   user,
@@ -20,7 +21,8 @@ in {
             host
             lib
             lix
-            user
+            # user
+            keyboard
             mkMerge
             ;
         })

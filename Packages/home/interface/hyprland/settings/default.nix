@@ -1,8 +1,10 @@
 {
+  apps,
   host,
   lib,
   lix,
   user,
+  keyboard,
   mkMerge,
   ...
 }: let
@@ -137,10 +139,10 @@
   };
 in {
   settings = mkMerge [
-    (import ./core.nix {inherit args;})
-    (import ./io.nix {inherit args;})
+    (import ./core.nix {inherit apps;})
+    (import ./io.nix {inherit lix lib keyboard;})
     # (import ./startup.nix)
     # (import ./rules.nix {inherit lib;})
-    (import ./workspaces.nix {inherit args;})
+    (import ./workspaces.nix {inherit lib apps keyboard;})
   ];
 }
