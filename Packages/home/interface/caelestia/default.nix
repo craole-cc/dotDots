@@ -4,6 +4,7 @@
   locale,
   fonts,
   paths,
+  config,
   keyboard,
   ...
 }: let
@@ -35,6 +36,6 @@
 in {
   config = mkIf cfg.enable (mkMerge [
     {inherit (cfg) programs home;}
-    # (import ./hyprland.nix {inherit lib config;})
+    (import ./hyprland.nix {inherit lib config;})
   ]);
 }

@@ -13,14 +13,7 @@ CFG_API="@cfgApi@"
 # State file to track current mode
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/theme-mode.state"
 
-case "$CFG_POLARITY" in
-"dark")
-	PORTAL_MODE="1"
-	;;
-*)
-	PORTAL_MODE="2"
-	;;
-esac
+case "$CFG_POLARITY" in "dark") PORTAL_MODE="1" ;; *) PORTAL_MODE="2" ;; esac
 
 # Check if we're already in the requested mode
 if [ -f "$STATE_FILE" ]; then

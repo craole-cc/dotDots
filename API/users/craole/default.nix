@@ -180,28 +180,28 @@
     avatars = {
       session = pics + "/avatar.jpg";
     };
-    wallpapers = let
-      all = [
-        (pics + "/Wallpapers")
-        "dots:Assets/Images/wallpapers"
-      ];
-      primary = builtins.head all;
-      dark = primary + "/dark.jpg";
-      light = primary + "/light.jpg";
-    in {
-      inherit all primary dark light;
-      # Example: Override specific monitor with custom wallpaper
-      # monitors = {
-      # "HDMI-A-3" = {
-      #   dark = wallpapersDir + "/2560x1440/dark/ktc-special.jpg";
-      #   light = wallpapersDir + "/2560x1440/light/ktc-day.jpg";
-      # };
-      #
-      # Example: Use a directory for random selection
-      # "DP-3" = {
-      #   dark = wallpapersDir + "/1600x900/dark/";
-      #   light = wallpapersDir + "/1600x900/light/";
-      # };
-    };
+    # wallpapers = let
+    #   all = [
+    #     "dots:Assets/Images/wallpapers"
+    #     (pics + "/Wallpapers")
+    #   ];
+    #   # primary = builtins.head all;
+    #   # dark = primary + "/dark.jpg";
+    #   # light = primary + "/light.jpg";
+    # in {
+    #   # inherit all primary dark light;
+    #   # Example: Override specific monitor with custom wallpaper
+    #   # monitors = {
+    #   # "HDMI-A-3" = {
+    #   #   dark = wallpapersDir + "/2560x1440/dark/ktc-special.jpg";
+    #   #   light = wallpapersDir + "/2560x1440/light/ktc-day.jpg";
+    #   # };
+    #   #
+    #   # Example: Use a directory for random selection
+    #   # "DP-3" = {
+    #   #   dark = wallpapersDir + "/1600x900/dark/";
+    #   #   light = wallpapersDir + "/1600x900/light/";
+    #   # };
+    # };
   };
 }
