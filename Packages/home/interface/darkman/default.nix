@@ -16,16 +16,9 @@
   lng = longitude;
   usegeoclue = provider == "geoclue2";
 
-  #~@ Style
-  style = user.interface.style or host.interface.style or {};
-  switch = style.autoSwitch or false;
-
   #~@ Enable condition
-  enable =
-    switch
-    && (lat != null)
-    && (lng != null)
-    && (paths.dots != null);
+  style = user.interface.style or host.interface.style or {};
+  enable = style.autoSwitch or false;
 
   toggle = polarity:
     replaceVarsWith {
@@ -39,6 +32,7 @@
         cfgApi = "${paths.api.user}";
         cfgPolarity = polarity;
       };
+      name = "nixos-theme";
       dir = "bin";
       isExecutable = true;
     };
