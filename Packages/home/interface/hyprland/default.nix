@@ -21,7 +21,7 @@ in {
             host
             lib
             lix
-            # user
+            user
             keyboard
             mkMerge
             ;

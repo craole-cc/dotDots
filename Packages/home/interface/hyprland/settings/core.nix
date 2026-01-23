@@ -1,19 +1,19 @@
 {
-  # apps,
-  # keyboard,
+  apps,
+  keyboard,
   ...
 }: let
-  # inherit (apps) browser editor launcher terminal;
+  inherit (apps) browser editor launcher terminal;
 in {
-  # "$MOD" = keyboard.mod;
-  # "$browser" = browser.primary.command;
-  # "$browserAlt" = browser.secondary.command;
-  # "$editor" = editor.primary.command;
-  # "$editorAlt" = editor.secondary.command;
-  # "$launcher" = launcher.primary.command;
-  # "$launcherAlt" = launcher.secondary.command;
-  # "$terminal" = terminal.primary.command;
-  # "$terminalAlt" = terminal.secondary.command;
+  "$MOD" = keyboard.mod;
+  "$browser" = browser.primary.command;
+  "$browserAlt" = browser.secondary.command;
+  "$editor" = editor.primary.command;
+  "$editorAlt" = editor.secondary.command;
+  "$launcher" = launcher.primary.command;
+  "$launcherAlt" = launcher.secondary.command;
+  "$terminal" = terminal.primary.command;
+  "$terminalAlt" = terminal.secondary.command;
 
   env = ["XDG_CURRENT_DESKTOP,Hyprland"];
   general = {

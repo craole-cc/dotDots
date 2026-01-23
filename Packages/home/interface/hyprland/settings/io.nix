@@ -1,5 +1,6 @@
 {
   lix,
+  apps,
   lib,
   host,
   keyboard,
