@@ -8,7 +8,7 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (pkgs) writeShellScript sd dbus dconf libnotify;
+  inherit (pkgs) writeShellScript;
 
   #~@ Location
   lat = locale.latitude or null;
@@ -32,10 +32,10 @@
 
   #~@ Mode script generator
   mkModeScript = mode: let
-    sd = "${sd}/bin/sd";
-    dbus = "${dbus}/bin/dbus-send";
-    dconf = "${dconf}/bin/dconf";
-    note = "${libnotify}/bin/notify-send";
+    sd = "${pkgs.sd}/bin/sd";
+    dbus = "${pkgs.dbus}/bin/dbus-send";
+    dconf = "${pkgs.dconf}/bin/dconf";
+    notify = "${pkgs.libnotify}/bin/notify-send";
 
     #> Portal mode: 1 = prefer dark, 2 = prefer light
     portalMode =
@@ -63,7 +63,7 @@
       ${paths.wallpapers.manager} set --polarity ${mode} || true
 
       #> Notify
-      ${note} "Theme Switched" "Switched to ${mode} mode" -t 2000 || true
+      ${notify} "Theme Switched" "Switched to ${mode} mode" -t 2000 || true
     '';
 in {
   services.darkman = mkIf enable {

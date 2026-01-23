@@ -6,16 +6,16 @@
   pkgs,
   ...
 }: let
-  inherit (lib.attrsets) attrByPath mapAttrs;
+  inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
   inherit (lib.strings) hasPrefix removePrefix removeSuffix splitString concatMapStringsSep;
-  inherit (lib.lists) elemAt isList toList head mapAttrsToList;
+  inherit (lib.lists) elemAt isList toList head;
   inherit (host.paths) dots;
   inherit
     (pkgs)
     coreutils
     findutils
     imagemagick
-    substituteAll
+    replaceVars
     writeShellScript
     ;
   home = config.home.homeDirectory;
@@ -132,15 +132,13 @@
         };
         cache = directory + "/.cache";
         current = primary + "/current-${name}.jpg";
-
-        manager = substituteAll {
-          src = ./wallman.sh;
+        manager = writeShellScript "name" (replaceVars ./wallman.sh {
           inherit name resolution directory current cache;
           convert = "${imagemagick}/bin/convert";
           find = "${findutils}/bin/find";
           ln = "${coreutils}/bin/ln";
           shuf = "${coreutils}/bin/shuf";
-        };
+        });
       in {
         inherit
           directory
