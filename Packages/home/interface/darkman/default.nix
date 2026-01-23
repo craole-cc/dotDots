@@ -8,7 +8,15 @@
   ...
 }: let
   inherit (lib.modules) mkIf;
-  inherit (pkgs) writeShellScript;
+  inherit
+    (pkgs)
+    dbus
+    dconf
+    libnotify
+    replaceVars
+    sd
+    writeShellScript
+    ;
 
   #~@ Location
   lat = locale.latitude or null;
@@ -19,69 +27,23 @@
   style = user.interface.style or host.interface.style or {};
   switch = style.autoSwitch or false;
 
-  #~@ Paths
-  dots = paths.dots;
-  userApi = paths.api.user;
-
   #~@ Enable condition
   enable =
     switch
     && (lat != null)
     && (lng != null)
-    && (dots != null);
+    && (paths.dots != null);
 
-  toggle = mode:
-    writeShellScript "name" (pkgs.replaceVars ./toggle.sh {
-      inherit mode;
-      api = paths.api.user;
-      wallman = paths.wallpapers.manager;
-      sd = "${pkgs.sd}/bin/sd";
-      dbus = "${pkgs.dbus}/bin/dbus-send";
-      dconf = "${pkgs.dconf}/bin/dconf";
-      notify = "${pkgs.libnotify}/bin/notify-send";
-      portalMode =
-        if mode == "dark"
-        then "1"
-        else "2";
+  toggle = polarity:
+    writeShellScript "darkman-toggle-${polarity}" (replaceVars ./toggle.sh {
+      cmdSd = "${sd}/bin/sd";
+      cmdDbus = "${dbus}/bin/dbus-send";
+      cmdDconf = "${dconf}/bin/dconf";
+      cmdNotify = "${libnotify}/bin/notify-send";
+      cmdWallman = "${paths.wallpapers.manager}";
+      cfgPolarity = polarity;
+      cfgApi = "${paths.api.user}";
     });
-
-  #~@ Mode script generator
-  mkModeScript = mode: let
-    inherit userApi;
-    sd = "${pkgs.sd}/bin/sd";
-    dbus = "${pkgs.dbus}/bin/dbus-send";
-    dconf = "${pkgs.dconf}/bin/dconf";
-    notify = "${pkgs.libnotify}/bin/notify-send";
-    wallman = paths.wallpapers.manager;
-
-    #> Portal mode: 1 = prefer dark, 2 = prefer light
-    portalMode =
-      if mode == "dark"
-      then "1"
-      else "2";
-  in
-    writeShellScript "darkman-${mode}-mode" ''
-      set -euo pipefail
-
-      #> Update theme mode in user configuration
-      ${sd} 'current = "(dark|light)"' 'current = "${mode}"' "${userApi}"
-
-      #> Update the freedesktop portal setting
-      ${dbus} --session --dest=org.freedesktop.portal.Desktop \
-        --type=method_call /org/freedesktop/portal/desktop \
-        org.freedesktop.portal.Settings.ReadOne \
-        string:'org.freedesktop.appearance' string:'color-scheme' \
-        uint32:${portalMode} 2>/dev/null || true
-
-      #> Update GTK/Qt theming preference
-      ${dconf} write /org/gnome/desktop/interface/color-scheme "'prefer-${mode}'" || true
-
-      #> Update wallpapers for all monitors using wallman
-      ${paths.wallpapers.manager} set --polarity ${mode} || true
-
-      #> Notify
-      ${notify} "Theme Switched" "Switched to ${mode} mode" -t 2000 || true
-    '';
 in {
   services.darkman = mkIf enable {
     inherit enable;

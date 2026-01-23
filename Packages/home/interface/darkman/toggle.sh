@@ -1,30 +1,39 @@
-set -euo pipefail
+#!/bin/sh
+set -eu
 
-#> Tools (injected by Nix)
-CMD_SD="@sd@"
-CMD_DBUS="@dbus@"
-CMD_DCONF="@dconf@"
-CMD_NOTIFY="@notify@"
-CMD_WALLMAN="@wallman@"
-MODE="@mode@"
-API="@api@"
-PORTAL="@portalMode@"
+#> Configuration and Commands (injected by Nix)
+CMD_SD="@cmdSd@"
+CMD_DBUS="@cmdDbus@"
+CMD_DCONF="@cmdDconf@"
+CMD_NOTIFY="@cmdNotify@"
+CMD_WALLMAN="@cmdWallman@"
+CFG_POLARITY="@cfgPolarity@"
+CFG_API="@cfgApi@"
+
+case "$CFG_POLARITY" in
+"dark")
+	PORTAL_MODE="1"
+	;;
+*)
+	PORTAL_MODE="2"
+	;;
+esac
 
 #> Update theme mode in user configuration
-${CMD_SD} 'current = "(dark|light)"' 'current = "${mode}"' "${API}"
+"$CMD_SD" 'current = "(dark|light)"' "current = \"$CFG_POLARITY\"" "$CFG_API"
 
 #> Update the freedesktop portal setting
-${CMD_DBUS} --session --dest=org.freedesktop.portal.Desktop \
+"$CMD_DBUS" --session --dest=org.freedesktop.portal.Desktop \
 	--type=method_call /org/freedesktop/portal/desktop \
 	org.freedesktop.portal.Settings.ReadOne \
 	string:'org.freedesktop.appearance' string:'color-scheme' \
-	uint32:${PORTAL} 2>/dev/null || true
+	uint32:"$PORTAL_MODE" 2>/dev/null || true
 
 #> Update GTK/Qt theming preference
-${CMD_DCONF} write /org/gnome/desktop/interface/color-scheme "'prefer-${MODE}'" || true
+"$CMD_DCONF" write /org/gnome/desktop/interface/color-scheme "'prefer-$CFG_POLARITY'" || true
 
 #> Update wallpapers for all monitors using wallman
-${CMD_WALLMAN} set --polarity ${MODE} || true
+"$CMD_WALLMAN" set --polarity "$CFG_POLARITY" || true
 
 #> Notify
-${CMD_NOTIFY} "Theme Switched" "Switched to ${MODE} mode" -t 2000 || true
+"$CMD_NOTIFY" "Theme Switched" "Switched to $CFG_POLARITY mode" -t 2000 || true

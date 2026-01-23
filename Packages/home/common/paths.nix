@@ -13,7 +13,8 @@
   inherit
     (pkgs)
     coreutils
-    findutils
+    fd
+    ripgrep
     imagemagick
     replaceVars
     writeShellScript
@@ -132,12 +133,20 @@
         };
         cache = directory + "/.cache";
         current = primary + "/current-${name}.jpg";
-        manager = writeShellScript "name" (replaceVars ./wallman.sh {
-          inherit name resolution directory current cache;
-          convert = "${imagemagick}/bin/convert";
-          find = "${findutils}/bin/find";
-          ln = "${coreutils}/bin/ln";
-          shuf = "${coreutils}/bin/shuf";
+        manager = writeShellScript "wallman-${name}" (replaceVars ./wallman.sh {
+          inherit name resolution;
+          directory = directory;
+          current = current;
+          cmdConvert = "${imagemagick}/bin/convert";
+          cmdFd = "${fd}/bin/fd";
+          cmdRg = "${ripgrep}/bin/rg";
+          cmdLn = "${coreutils}/bin/ln";
+          cmdShuf = "${coreutils}/bin/shuf";
+          cmdRealpath = "${coreutils}/bin/realpath";
+          cachePolarity = "${cache}/polarity.txt";
+          cachePurity = "${cache}/purity.txt";
+          cacheCategory = "${cache}/category.txt";
+          cacheFavorite = "${cache}/favorite.txt";
         });
       in {
         inherit

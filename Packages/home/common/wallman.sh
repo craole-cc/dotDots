@@ -4,28 +4,29 @@
 
 set -eu
 
-#> Configuration (injected by Nix via replaceVars)
-MONITOR_NAME="@name@"
-RESOLUTION="@resolution@"
-WALLPAPER_DIR="@directory@"
-CURRENT_LINK="@current@"
-CACHE_DIR="@cache@"
+#> Configuration (injected by Nix via substituteAll)
+CFG_NAME="@name@"
+CFG_RESOLUTION="@resolution@"
+PATH_WALLPAPERS="@directory@"
+PATH_CURRENT="@current@"
 
 #> Tools (injected by Nix)
-CONVERT="@convert@"
-FIND="@find@"
-LN="@ln@"
-SHUF="@shuf@"
+CMD_CONVERT="@cmdConvert@"
+CMD_FD="@cmdFd@"
+CMD_RG="@cmdRg@"
+CMD_LN="@cmdLn@"
+CMD_SHUF="@cmdShuf@"
+CMD_REALPATH="@cmdRealpath@"
 
 #> Cache files for different classification types
-CACHE_POLARITY="${CACHE_DIR}/polarity.txt"
-CACHE_PURITY="${CACHE_DIR}/purity.txt"
-CACHE_CATEGORY="${CACHE_DIR}/category.txt"
-CACHE_FAVORITE="${CACHE_DIR}/favorite.txt"
+CACHE_POLARITY="@cachePolarity@"
+CACHE_PURITY="@cachePurity@"
+CACHE_CATEGORY="@cacheCategory@"
+CACHE_FAVORITE="@cacheFavorite@"
 
 #> Ensure cache directory exists
 ensure_cache_dir() {
-	[ -d "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
+	mkdir -p "$(dirname "$CACHE_POLARITY")" 2>/dev/null || true
 }
 
 #> Classify image polarity (dark/light)
@@ -38,7 +39,7 @@ classify_polarity() {
 
 	#> Check cache first
 	if [ -f "$CACHE_POLARITY" ]; then
-		cached=$(grep "^$(realpath "$image")|" "$CACHE_POLARITY" 2>/dev/null | cut -d'|' -f2)
+		cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_POLARITY" 2>/dev/null | cut -d'|' -f2)
 		if [ -n "$cached" ]; then
 			printf "%s" "$cached"
 			return 0
@@ -46,9 +47,9 @@ classify_polarity() {
 	fi
 
 	#> Analyze using ImageMagick
-	if command -v convert >/dev/null 2>&1; then
+	if command -v "$CMD_CONVERT" >/dev/null 2>&1; then
 		brightness=$(
-			$CONVERT "$image" -colorspace Gray -format "%[fx:mean*100]" info: 2>/dev/null ||
+			"$CMD_CONVERT" "$image" -colorspace Gray -format "%[fx:mean*100]" info: 2>/dev/null ||
 				printf "50"
 		)
 		brightness_int=$(printf "%.0f" "$brightness")
@@ -78,9 +79,9 @@ classify_polarity() {
 classify_purity() {
 	image="$1"
 
-	# Check cache first
+	#> Check cache first
 	if [ -f "$CACHE_PURITY" ]; then
-		cached=$(grep "^$(realpath "$image")|" "$CACHE_PURITY" 2>/dev/null | cut -d'|' -f2)
+		cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_PURITY" 2>/dev/null | cut -d'|' -f2)
 		if [ -n "$cached" ]; then
 			printf "%s" "$cached"
 			return 0
@@ -102,9 +103,9 @@ classify_purity() {
 classify_category() {
 	image="$1"
 
-	# Check cache first
+	#> Check cache first
 	if [ -f "$CACHE_CATEGORY" ]; then
-		cached=$(grep "^$(realpath "$image")|" "$CACHE_CATEGORY" 2>/dev/null | cut -d'|' -f2)
+		cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_CATEGORY" 2>/dev/null | cut -d'|' -f2)
 		if [ -n "$cached" ]; then
 			printf "%s" "$cached"
 			return 0
@@ -136,7 +137,7 @@ classify_favorite() {
 	image="$1"
 
 	if [ -f "$CACHE_FAVORITE" ]; then
-		cached=$(grep "^$(realpath "$image")|" "$CACHE_FAVORITE" 2>/dev/null | cut -d'|' -f2)
+		cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$image")\|" "$CACHE_FAVORITE" 2>/dev/null | cut -d'|' -f2)
 		if [ -n "$cached" ]; then
 			printf "%s" "$cached"
 			return 0
@@ -151,20 +152,20 @@ scan_directory() {
 	classification_type="$1"
 	cache_file="$2"
 
-	if [ ! -d "$WALLPAPER_DIR" ]; then
-		printf "Error: Directory does not exist: %s\n" "$WALLPAPER_DIR" >&2
+	if [ ! -d "$PATH_WALLPAPERS" ]; then
+		printf "Error: Directory does not exist: %s\n" "$PATH_WALLPAPERS" >&2
 		return 1
 	fi
 
 	ensure_cache_dir
 
-	# Create cache header
-	printf "# %s classification cache for %s\n" "$classification_type" "$WALLPAPER_DIR" >"$cache_file"
-	printf "# Monitor: %s (%s)\n" "$MONITOR_NAME" "$RESOLUTION" >>"$cache_file"
+	#> Create cache header
+	printf "# %s classification cache for %s\n" "$classification_type" "$PATH_WALLPAPERS" >"$cache_file"
+	printf "# Monitor: %s (%s)\n" "$CFG_NAME" "$CFG_RESOLUTION" >>"$cache_file"
 	printf "# Generated: %s\n" "$(date)" >>"$cache_file"
 
-	# Scan and classify all images
-	$FIND "$WALLPAPER_DIR" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) 2>/dev/null |
+	#> Scan and classify all images
+	"$CMD_FD" -t f -e jpg -e png -e webp . "$PATH_WALLPAPERS" 2>/dev/null |
 		while read -r image; do
 			case "$classification_type" in
 			polarity)
@@ -184,19 +185,19 @@ scan_directory() {
 				return 1
 				;;
 			esac
-			printf "%s|%s\n" "$(realpath "$image")" "$classification" >>"$cache_file"
+			printf "%s|%s\n" "$("$CMD_REALPATH" "$image")" "$classification" >>"$cache_file"
 		done
 
-	count=$(grep -c '|' "$cache_file" 2>/dev/null || printf "0")
-	printf "Scanned and classified %s images (%s) in %s\n" "$count" "$classification_type" "$WALLPAPER_DIR"
+	count=$("$CMD_RG" -c '|' "$cache_file" 2>/dev/null || printf "0")
+	printf "Scanned and classified %s images (%s) in %s\n" "$count" "$classification_type" "$PATH_WALLPAPERS"
 }
 
 #> Get current wallpaper
 get_current() {
-	if [ -L "$CURRENT_LINK" ] && [ -e "$CURRENT_LINK" ]; then
-		realpath "$CURRENT_LINK"
+	if [ -L "$PATH_CURRENT" ] && [ -e "$PATH_CURRENT" ]; then
+		"$CMD_REALPATH" "$PATH_CURRENT"
 	else
-		printf "No wallpaper currently set for %s\n" "$MONITOR_NAME" >&2
+		printf "No wallpaper currently set for %s\n" "$CFG_NAME" >&2
 		return 1
 	fi
 }
@@ -235,7 +236,7 @@ set_wallpaper() {
 	done
 
 	#> Start with all images
-	candidates="$($FIND "$WALLPAPER_DIR" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) 2>/dev/null)"
+	candidates=$("$CMD_FD" -t f -e jpg -e png -e webp . "$PATH_WALLPAPERS" 2>/dev/null)
 
 	#> Apply polarity filter
 	if [ -n "$polarity" ]; then
@@ -244,7 +245,7 @@ set_wallpaper() {
 			return 1
 		fi
 		candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-			cached=$(grep "^$(realpath "$img")|$polarity$" "$CACHE_POLARITY" 2>/dev/null)
+			cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$polarity\$" "$CACHE_POLARITY" 2>/dev/null)
 			[ -n "$cached" ] && printf "%s\n" "$img"
 		done)
 	fi
@@ -256,7 +257,7 @@ set_wallpaper() {
 			return 1
 		fi
 		candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-			cached=$(grep "^$(realpath "$img")|$purity$" "$CACHE_PURITY" 2>/dev/null)
+			cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$purity\$" "$CACHE_PURITY" 2>/dev/null)
 			[ -n "$cached" ] && printf "%s\n" "$img"
 		done)
 	fi
@@ -268,7 +269,7 @@ set_wallpaper() {
 			return 1
 		fi
 		candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-			cached=$(grep "^$(realpath "$img")|$category$" "$CACHE_CATEGORY" 2>/dev/null)
+			cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$category\$" "$CACHE_CATEGORY" 2>/dev/null)
 			[ -n "$cached" ] && printf "%s\n" "$img"
 		done)
 	fi
@@ -280,7 +281,7 @@ set_wallpaper() {
 			return 1
 		fi
 		candidates=$(printf "%s\n" "$candidates" | while read -r img; do
-			cached=$(grep "^$(realpath "$img")|$favorite$" "$CACHE_FAVORITE" 2>/dev/null)
+			cached=$("$CMD_RG" "^$("$CMD_REALPATH" "$img")\|$favorite\$" "$CACHE_FAVORITE" 2>/dev/null)
 			[ -n "$cached" ] && printf "%s\n" "$img"
 		done)
 	fi
@@ -292,7 +293,7 @@ set_wallpaper() {
 	fi
 
 	#> Select random wallpaper
-	selected=$(printf "%s\n" "$candidates" | $SHUF -n 1)
+	selected=$(printf "%s\n" "$candidates" | "$CMD_SHUF" -n 1)
 
 	if [ ! -f "$selected" ]; then
 		printf "Error: Selected wallpaper does not exist: %s\n" "$selected" >&2
@@ -300,7 +301,7 @@ set_wallpaper() {
 	fi
 
 	#> Create symlink
-	$LN -sf "$selected" "$CURRENT_LINK"
+	"$CMD_LN" -sf "$selected" "$PATH_CURRENT"
 	printf "%s\n" "$selected"
 }
 
