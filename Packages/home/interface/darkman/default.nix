@@ -1,19 +1,20 @@
 {
   host,
   lib,
-  locale,
   paths,
   pkgs,
   user,
+  nixosConfig,
   ...
 }: let
   inherit (lib.modules) mkIf;
+  inherit (nixosConfig.location) latitude longitude provider;
   inherit (pkgs) replaceVarsWith;
 
   #~@ Location
-  lat = locale.latitude or null;
-  lng = locale.longitude or null;
-  usegeoclue = (locale.provider or "manual") == "geoclue2";
+  lat = latitude;
+  lng = longitude;
+  usegeoclue = provider == "geoclue2";
 
   #~@ Style
   style = user.interface.style or host.interface.style or {};
