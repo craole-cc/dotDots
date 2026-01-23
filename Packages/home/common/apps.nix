@@ -7,21 +7,22 @@
 }: let
   inherit (lib.attrsets) isAttrs mapAttrs mapAttrsToList;
   inherit (lib.lists) findFirst;
-  inherit (lib.strings) hasInfix replaceStrings;
+  inherit (lib.strings) hasInfix;
 
   # Centralized mapping configurations
   commandMappings = {
     terminal = {
       foot = "feet";
+      ghostty = "ghostty";
     };
     browser = {
-      "zen.*twilight" = "zen-twilight";
-      "zen.*" = "zen-beta";
-      ".*edge" = "microsoft-edge";
+      zen-twilight = "zen-twilight";
+      zen-beta = "zen-beta";
+      microsoft-edge = "microsoft-edge";
     };
     editor = {
-      ".*code" = "code";
-      ".*zed" = "zeditor";
+      vscode = "code";
+      zed = "zeditor";
     };
     launcher = {
       vicinae = "vicinae toggle";
@@ -33,35 +34,36 @@
     feet = "foot";
     ghostty = "com.mitchellh.ghostty";
     zeditor = "dev.zed.Zed";
-    ".*fuzzel.*" = "fuzzel";
-    ".*vicinae.*" = "vicinae";
+    fuzzel = "fuzzel";
+    vicinae = "vicinae";
   };
-
-  # Helper to match patterns
-  matchPattern = name: pattern:
-    if hasInfix ".*" pattern
-    then hasInfix (replaceStrings [".*"] [""] pattern) name
-    else name == pattern;
-
-  # Find matching mapping using pattern matching
-  findMapping = mappings: name:
-    findFirst
-    (entry: matchPattern name entry.pattern)
-    {
-      pattern = name;
-      value = name;
-    }
-    (mapAttrsToList (pattern: value: {inherit pattern value;}) mappings);
 
   # Get command name based on category and name
   getCommand = category: name:
-    if commandMappings ? ${category}
-    then (findMapping commandMappings.${category} name).value
+    if commandMappings ? ${category} && commandMappings.${category} ? ${name}
+    then commandMappings.${category}.${name}
+    else if category == "browser" && hasInfix "zen" name
+    then
+      if hasInfix "twilight" name
+      then "zen-twilight"
+      else "zen-beta"
+    else if category == "browser" && hasInfix "edge" name
+    then "microsoft-edge"
+    else if category == "editor" && hasInfix "code" name
+    then "code"
+    else if category == "editor" && hasInfix "zed" name
+    then "zeditor"
     else name;
 
   # Get class name based on command
   getClass = command:
-    (findMapping classMappings command).value;
+    if classMappings ? ${command}
+    then classMappings.${command}
+    else if hasInfix "fuzzel" command
+    then "fuzzel"
+    else if hasInfix "vicinae" command
+    then "vicinae"
+    else command;
 
   mkDefault = {
     category,
