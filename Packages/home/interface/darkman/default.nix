@@ -33,7 +33,7 @@
         cfgPolarity = polarity;
       };
       name = "nixos-theme";
-      dir = "bin";
+      # dir = "bin";
       isExecutable = true;
     };
 in {
