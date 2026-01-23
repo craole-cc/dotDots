@@ -1,5 +1,6 @@
 {
   host,
+  apps,
   lib,
   lix,
   keyboard,
@@ -21,6 +22,7 @@ in {
             host
             lib
             lix
+            apps
             user
             keyboard
             mkMerge
