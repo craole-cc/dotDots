@@ -9,11 +9,28 @@
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
-  path = self;
-  inherit (import ./Admin/Libraries {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
+  paths = rec {
+    inherit self;
+    admin = src + "/Admin";
+    libs = admin + "/Libraries  ";
+    api = admin + "/API";
+    hosts = api + "/hosts";
+    users = api + "/users";
+    pkgs = rec {
+      base = admin + "/Packages";
+      core = base + "/core";
+      global = base + "/global";
+      home = base + "/home";
+      overlays = base + "/overlays";
+      plugins = base + "/plugins";
+    };
+    assets = src + "/Assets";
+    templates = assets + "/Templates";
+  };
+  inherit (import paths.libs {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {
-    hostsPath = ./Admin/API/hosts;
-    usersPath = ./Admin/API/users;
+    hostsPath = paths.hosts;
+    usersPath = paths.users;
   };
   inherit (schema) hosts users;
   inherit (lix.modules.predicates) isSystemDefaultUser;
@@ -30,7 +47,7 @@
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Flake & Current Host                                                        |
   #|─────────────────────────────────────────────────────────────────────────────|
-  flake = flakeAttrs {inherit self path;};
+  flake = flakeAttrs {inherit self;};
   nixosConfigurations = flake.nixosConfigurations or {};
   host = hostAttrs {inherit nixosConfigurations system;};
   inputs = getInputs {inherit flake host;};
@@ -175,5 +192,5 @@ in {
     variables
     ;
 
-  inherit pkgs system;
+  inherit pkgs system paths;
 }
