@@ -10,10 +10,10 @@
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
   path = self;
-  inherit (import ./Libraries {inherit lib src;}) lix; #TODO: Maybe pass in packages
+  inherit (import ./Admin/Libraries {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {
-    hostsPath = ./API/hosts;
-    usersPath = ./API/users;
+    hostsPath = ./Admin/API/hosts;
+    usersPath = ./Admin/API/users;
   };
   inherit (schema) hosts users;
   inherit (lix.modules.predicates) isSystemDefaultUser;

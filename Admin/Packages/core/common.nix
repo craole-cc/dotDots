@@ -2,7 +2,6 @@
   environment.systemPackages = with pkgs; [
     bat
     btop
-    busybox
     coreutils
     curl
     dust

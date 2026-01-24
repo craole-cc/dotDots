@@ -16,7 +16,7 @@
         pkgs,
       }: {
         inherit
-          (import ./Packages/global {
+          (import ./Admin/Packages/global {
             inherit pkgs lib lix src system flake;
             inputs = getInputs {inherit inputs;};
           })
@@ -29,7 +29,7 @@
 
     forSystem =
       {nixosConfigurations = mkSystem {inherit hosts args;};}
-      // import ./Templates;
+      // import ./Assets/Templates;
   in
     perSystem // forSystem;
 

@@ -4,7 +4,6 @@
   host,
   lib,
   lix,
-  # pkgs,
   user,
   ...
 }: let
@@ -16,11 +15,16 @@
   desired = user.interface.bar or null;
   primary = desired != null;
   allowed = isIn app (user.applications.allowed or []);
-  enable = (primary || allowed) && config?programs.${app};
+
+  # Check if the program option exists in home-manager
+  programExists = config ? programs.${app};
+
+  # Only enable if both conditions are met
+  enable = (primary || allowed) && programExists;
+
   monitors = {
     all = getNames {inherit host;};
     primary = getPrimaryName {inherit host;};
-    # TODO: We need to store wallpaper path in monitors
   };
   homeDir = config.home.homeDirectory;
   terminal = user.applications.terminal.primary;
@@ -29,7 +33,7 @@ in {
   config = mkIf enable {
     programs.${app} = mkMerge [
       {
-        inherit enable;
+        enable = true;
         settings = mkMerge [
           (import ./bar.nix {inherit monitors;})
           (import ./color.nix {})
