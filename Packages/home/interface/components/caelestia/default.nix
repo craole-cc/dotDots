@@ -7,9 +7,8 @@
   keyboard,
   ...
 }: let
-  inherit (lib.modules) mkIf mkMerge;
-  inherit (keyboard) mod;
-
+  inherit (lib.modules) mkIf mkMerge mkForce;
+  inherit (keyboard) mod vimKeybinds;
   name = "caelestia";
   kind = "bar";
 
@@ -23,14 +22,16 @@
     lm_sensors
   ];
 
-  programs.${name} = mkMerge [
-    (import ./cli {})
-    (import ./settings {inherit locale fonts mkMerge paths keyboard;})
-  ];
+  programs = {
+    ${name} = mkMerge [
+      (import ./cli {})
+      (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
+    ];
+  };
 
-  services = mkMerge [
-    {make.enable = false;}
-  ];
+  services = {
+    mako.enable = mkForce false;
+  };
 
   cfg = {
     inherit name kind programs services;

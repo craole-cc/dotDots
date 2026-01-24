@@ -16,7 +16,7 @@
   desired = user.interface.bar or null;
   primary = desired != null;
   allowed = isIn app (user.applications.allowed or []);
-  enable = (primary || allowed) && config.programs ? ${app};
+  enable = (primary || allowed) && config?programs.${app};
   monitors = {
     all = getNames {inherit host;};
     primary = getPrimaryName {inherit host;};
