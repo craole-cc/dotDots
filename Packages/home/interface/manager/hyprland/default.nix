@@ -7,6 +7,7 @@
   paths,
   pkgs,
   user,
+  importAll,
   ...
 }: let
   app = "hyprland";
@@ -32,5 +33,6 @@ in {
       ];
     }
     (import ./addons {inherit mkMerge pkgs paths;})
+    # (importAll ../addons)
   ]);
 }

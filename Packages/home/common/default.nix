@@ -1,1 +1,6 @@
-{lix, ...}: {imports = lix.filesystem.importers.importAll ./.;}
+{lix, ...}: let
+  inherit (lix.filesystem.importers) importAll;
+in {
+  imports = importAll ./.;
+  _module.args = {inherit importAll;};
+}

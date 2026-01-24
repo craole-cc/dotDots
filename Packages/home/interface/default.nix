@@ -39,17 +39,6 @@
   };
 in {
   imports = lix.filesystem.importers.importAll ./.;
-  # imports = [
-  #   ./caelestia
-  #   ./darkman
-  #   ./fuzzel
-  #   ./hyprland
-  #   ./niri
-  #   # ./noctula
-  #   # ./quickshell
-  #   ./plasma
-  #   ./vicinae
-  # ];
 
   gtk = {
     enable = mkForce true;

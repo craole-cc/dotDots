@@ -1,5 +1,4 @@
 {
-  lix,
   paths,
   mkMerge,
   ...
