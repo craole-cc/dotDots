@@ -16,9 +16,9 @@
     (import ./polkit.nix)
     # // (import ./shell.nix)
     (import ./sunset.nix)
-    {
-      mako.enable = true;
-    }
+    # {
+    #   mako.enable = true;
+    # }
   ];
 
   home.packages = with pkgs; [

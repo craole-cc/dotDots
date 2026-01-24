@@ -1,12 +1,12 @@
 {
   host,
   lib,
-  pkgs,
+  # pkgs,
   user,
   ...
 }: let
-  inherit (lib.attrsets) isAttrs mapAttrs mapAttrsToList;
-  inherit (lib.lists) findFirst;
+  inherit (lib.attrsets) isAttrs mapAttrs;
+  # inherit (lib.lists) findFirst;
   inherit (lib.strings) hasInfix;
 
   # Centralized mapping configurations
@@ -129,4 +129,9 @@ in {
   _module.args.apps =
     mapAttrs mkCategory categoryDefaults
     // {inherit mkDefault;};
+
+  # home.packages = with pkgs; [
+  #   foot
+  #   ghostty
+  # ];
 }
