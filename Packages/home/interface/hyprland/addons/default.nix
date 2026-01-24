@@ -1,5 +1,5 @@
 {
-  pkgs,
+  lix,
   paths,
   mkMerge,
   ...
@@ -21,8 +21,5 @@
     # }
   ];
 
-  home.packages = with pkgs; [
-    nautilus
-    nautilus-open-any-terminal
-  ];
+  wayland.windowManager.hyprland.plugins = [];
 }

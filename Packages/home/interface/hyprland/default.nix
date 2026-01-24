@@ -29,9 +29,8 @@ in {
             ;
         })
         (import ./submaps {inherit mkMerge;})
-        (import ./plugins)
       ];
     }
-    (import ./components {inherit mkMerge pkgs paths;})
+    (import ./addons {inherit mkMerge pkgs paths;})
   ]);
 }
