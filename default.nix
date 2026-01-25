@@ -7,42 +7,124 @@
   ...
 }: let
   #|─────────────────────────────────────────────────────────────────────────────|
+  #| External Imports                                                                |
+  #|─────────────────────────────────────────────────────────────────────────────|
+  inherit
+    (lib.attrsets)
+    attrByPath
+    attrNames
+    attrValues
+    filterAttrs
+    listToAttrs
+    mapAttrs
+    ;
+  inherit (lib.lists) length filter head isList;
+  inherit (lib.strings) concatStringsSep splitString;
+
+  #|─────────────────────────────────────────────────────────────────────────────|
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
-  paths = rec {
-    inherit self;
-    admin = src + "/Admin";
-    libs = admin + "/Libraries  ";
-    api = admin + "/API";
-    hosts = api + "/hosts";
-    users = api + "/users";
-    pkgs = rec {
-      base = admin + "/Packages";
-      core = base + "/core";
-      global = base + "/global";
-      home = base + "/home";
-      overlays = base + "/overlays";
-      plugins = base + "/plugins";
+  paths = let
+    buildPath = {
+      root,
+      stem,
+    }:
+      root
+      + "/"
+      + (
+        if isList stem
+        then concatStringsSep "/" stem
+        else stem
+      );
+    getPaths = root: {
+      libs = {
+        default = buildPath {
+          inherit root;
+          stem = ["Admin" "Libraries"];
+        };
+      };
+      api = rec {
+        default = buildPath {
+          inherit root;
+          stem = ["Admin" "API"];
+        };
+        hosts = buildPath {
+          root = default;
+          stem = "hosts";
+        };
+        users = buildPath {
+          root = default;
+          stem = "users";
+        };
+      };
+      pkgs = rec {
+        default = buildPath {
+          inherit root;
+          stem = ["Admin" "Packages"];
+        };
+        core = buildPath {
+          root = default;
+          stem = "core";
+        };
+        global = buildPath {
+          root = default;
+          stem = "global";
+        };
+        home = buildPath {
+          root = default;
+          stem = "home";
+        };
+        overlays = buildPath {
+          root = default;
+          stem = "overlays";
+        };
+        plugins = buildPath {
+          root = default;
+          stem = "plugins";
+        };
+      };
+      templates = rec {
+        default = buildPath {
+          inherit root;
+          stem = ["Assets" "Templates"];
+        };
+        rust = buildPath {
+          root = default;
+          stem = "rust";
+        };
+      };
+      images = rec {
+        default = buildPath {
+          inherit root;
+          stem = ["Assets" "Images"];
+        };
+        ascii = buildPath {
+          root = default;
+          stem = "ascii";
+        };
+        logo = buildPath {
+          root = default;
+          stem = "logo";
+        };
+        wallpaper = buildPath {
+          root = default;
+          stem = "wallpaper";
+        };
+      };
     };
-    assets = src + "/Assets";
-    templates = assets + "/Templates";
-  };
-  inherit (import paths.libs {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
+    store = getPaths src;
+    local = dots: getPaths dots;
+  in {inherit buildPath getPaths store local;};
+
+  inherit (import paths.store.libs.default {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {
-    hostsPath = paths.hosts;
-    usersPath = paths.users;
+    hostsPath = paths.store.api.hosts;
+    usersPath = paths.store.api.users;
   };
   inherit (schema) hosts users;
   inherit (lix.modules.predicates) isSystemDefaultUser;
   inherit (lix.modules.resolution) flakeAttrs hostAttrs;
   inherit (lix.inputs.resolution) getInputs;
-
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| External Imports                                                                |
-  #|─────────────────────────────────────────────────────────────────────────────|
-  inherit (lib.attrsets) attrByPath attrNames attrValues filterAttrs listToAttrs mapAttrs;
-  inherit (lib.lists) length filter head;
-  inherit (lib.strings) splitString;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Flake & Current Host                                                        |
@@ -51,6 +133,7 @@
   nixosConfigurations = flake.nixosConfigurations or {};
   host = hostAttrs {inherit nixosConfigurations system;};
   inputs = getInputs {inherit flake host;};
+
   #|─────────────────────────────────────────────────────────────────────────────|
   #| REPL Helpers                                                                |
   #|─────────────────────────────────────────────────────────────────────────────|
@@ -174,12 +257,22 @@
       attrNames (filterAttrs (_n: v: v.enable or false) services);
   };
 in {
-  inherit schema lix lib helpers flake hosts;
+  inherit
+    flake
+    helpers
+    hosts
+    inputs
+    lib
+    lix
+    paths
+    pkgs
+    schema
+    system
+    ;
 
   #~@ Top-level host attributes
   inherit (host) config options;
   inherit (host._module) specialArgs;
-  inherit (flake) inputs;
 
   #~@ Convenient shortcuts to config sections
   inherit
@@ -191,6 +284,4 @@ in {
     services
     variables
     ;
-
-  inherit pkgs system paths;
 }

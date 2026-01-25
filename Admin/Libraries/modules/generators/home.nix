@@ -149,7 +149,7 @@
         config,
         nixosConfig,
         mkHomeModuleApps,
-        src,
+        paths,
         ...
       }: let
         userApps = mkHomeModuleApps {inherit pkgs config user;};
@@ -216,7 +216,10 @@
               zen-browser.module
               {programs.zen-browser.enable = true;}
             ]
-            ++ [(src + "/Packages/home")];
+            ++ [
+              paths.pkgs.home
+              # (src + "/Packages/home")
+            ];
         })
       (homeUserAttrs host);
     };

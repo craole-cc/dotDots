@@ -4,6 +4,7 @@
   user,
   config,
   nixosConfig,
+  paths,
   pkgs,
   src,
   ...
