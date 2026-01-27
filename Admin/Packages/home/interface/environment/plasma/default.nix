@@ -33,7 +33,7 @@ in {
 
     home = {
       shellAliases = {
-        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/Packages/home/interface/plasma/dump.nix";
+        plasma-config-dump = "nix run github:nix-community/plasma-manager > $DOTS/.cache/plasma-config-dump.nix";
       };
       inherit packages;
     };

@@ -8,15 +8,15 @@
     inherit (lix.inputs.resolution) getInputs;
     inherit (lix.modules.generators.core) mkSystem;
     inherit (lix.modules.resolution) perFlake;
-
-    perSystem = perFlake {inherit hosts legacyPackages;} (
+  in
+    perFlake {inherit hosts legacyPackages;} (
       {
         system,
         pkgs,
       }: {
         inherit
-          (import paths.pkgs.global {
-            inherit pkgs lib lix src system flake;
+          (import paths.store.pkgs.global {
+            inherit flake lib lix paths pkgs system;
             inputs = getInputs {inherit inputs;};
           })
           devShells
@@ -24,18 +24,15 @@
           checks
           ;
       }
-    );
-
-    forSystem =
+    )
+    // (
       {
         nixosConfigurations = mkSystem {
-          inherit hosts;
-          args = {inherit lix flake schema src;};
+          inherit hosts flake schema paths;
         };
       }
-      // import paths.templates;
-  in
-    perSystem // forSystem;
+      // import paths.store.templates.default
+    );
 
   inputs = {
     nixPackages.url = "nixpkgs/nixos-unstable";

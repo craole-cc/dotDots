@@ -1,14 +1,30 @@
 {
   config,
+  lix,
   host,
   lib,
   user,
+  paths,
   pkgs,
   ...
 }: let
   inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
-  inherit (lib.strings) hasPrefix removePrefix removeSuffix splitString concatMapStringsSep;
-  inherit (lib.lists) elemAt isList toList head;
+  inherit
+    (lib.strings)
+    # hasPrefix
+    # removePrefix
+    # removeSuffix
+    splitString
+    concatMapStringsSep
+    ;
+  inherit
+    (lib.lists)
+    elemAt
+    isList
+    # toList
+    head
+    ;
+  inherit (lix.filesystem.paths) mkDefault;
   inherit (host.paths) dots;
   inherit
     (pkgs)
@@ -19,53 +35,54 @@
     replaceVarsWith
     writeShellScriptBin
     ;
-  homeDir = config.home.homeDirectory;
+  mkPath = mkDefault {};
+  # homeDir = config.home.homeDirectory;
 
-  mkDefault = {
-    default,
-    root ? "home",
-    path ? [],
-  }: let
-    #> Resolve the base directory
-    absolute =
-      if root == "dots"
-      then dots
-      else if root == "home"
-      then homeDir
-      else if root != ""
-      then removeSuffix "/" root
-      else homeDir; #? fallback to home if empty string
+  # mkDefault = {
+  #   default,
+  #   root ? "home",
+  #   path ? [],
+  # }: let
+  #   #> Resolve the base directory
+  #   absolute =
+  #     if root == "dots"
+  #     then dots
+  #     else if root == "home"
+  #     then homeDir
+  #     else if root != ""
+  #     then removeSuffix "/" root
+  #     else homeDir; #? fallback to home if empty string
 
-    #> Get the value from user.paths
-    attrPath = toList path;
-    relative =
-      if attrPath != []
-      then attrByPath attrPath default user.paths
-      else default;
-  in
-    if (hasPrefix "/" relative) || (hasPrefix "root:" relative)
-    then
-      #? Already absolute path
-      # Example: "/foo/bar" || "root:/foo/bar"
-      # -> "/foo/bar" || "root:/foo/bar"
-      relative
-    else if (hasPrefix "dots:" relative) || (hasPrefix "$DOTS/" relative)
-    then
-      #? Path relative to dots directory (configuration repository)
-      # Example: "dots:Assets/Images" || "$DOTS/Assets/Images"
-      # -> "/path/to/dotfiles/Assets/Images"
-      dots + "/" + (removePrefix "dots:" (removePrefix "$DOTS/" relative))
-    else if (hasPrefix "home:" relative) || (hasPrefix "$HOME/" relative)
-    then
-      #? Path relative to home directory
-      # Example: "home:Pictures" || "$HOME/Pictures"
-      # -> "/home/${username}/Pictures"
-      absolute + "/" + (removePrefix "home:" (removePrefix "$HOME/" relative))
-    else
-      #? Fallback:Path relative to the base directory
-      # Example: "wallpapers/dark.jpg"
-      # -> "/base/dir/wallpapers/dark.jpg"
-      absolute + "/" + relative;
+  #   #> Get the value from user.paths
+  #   attrPath = toList path;
+  #   relative =
+  #     if attrPath != []
+  #     then attrByPath attrPath default user.paths
+  #     else default;
+  # in
+  #   if (hasPrefix "/" relative) || (hasPrefix "root:" relative)
+  #   then
+  #     #? Already absolute path
+  #     # Example: "/foo/bar" || "root:/foo/bar"
+  #     # -> "/foo/bar" || "root:/foo/bar"
+  #     relative
+  #   else if (hasPrefix "dots:" relative) || (hasPrefix "$DOTS/" relative)
+  #   then
+  #     #? Path relative to dots directory (configuration repository)
+  #     # Example: "dots:Assets/Images" || "$DOTS/Assets/Images"
+  #     # -> "/path/to/dotfiles/Assets/Images"
+  #     dots + "/" + (removePrefix "dots:" (removePrefix "$DOTS/" relative))
+  #   else if (hasPrefix "home:" relative) || (hasPrefix "$HOME/" relative)
+  #   then
+  #     #? Path relative to home directory
+  #     # Example: "home:Pictures" || "$HOME/Pictures"
+  #     # -> "/home/${username}/Pictures"
+  #     absolute + "/" + (removePrefix "home:" (removePrefix "$HOME/" relative))
+  #   else
+  #     #? Fallback:Path relative to the base directory
+  #     # Example: "wallpapers/dark.jpg"
+  #     # -> "/base/dir/wallpapers/dark.jpg"
+  #     absolute + "/" + relative;
 
   wallpapers = let
     raw = attrByPath ["wallpapers" "all"] null user.paths;
@@ -207,10 +224,12 @@
     };
   };
 in {
-  _module.args.paths = {
-    inherit avatars mkDefault wallpapers dots api;
-    home = homeDir;
-  };
+  _module.args.paths =
+    paths
+    // {
+      inherit avatars mkDefault wallpapers dots api;
+      home = homeDir;
+    };
   home = {
     packages = [wallpapers.manager];
     sessionVariables = {

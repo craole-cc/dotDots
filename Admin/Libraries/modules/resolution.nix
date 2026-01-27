@@ -55,7 +55,7 @@
       (derived // {srcPath = path;});
 
   getSystems = {
-    path ? src,
+    # path ? src,
     hosts ? {},
     nixpkgs ? {},
     legacyPackages ? {},

@@ -105,7 +105,6 @@
     host,
     pkgs,
     extraSpecialArgs,
-    specialArgs,
     ...
   }: {
     security.sudo = {
@@ -182,7 +181,7 @@
 
           #> Conditionally import modules based on user's allowed applications
           imports =
-            (user.imports or [])
+            [paths.store.pkgs.home]
             ++ optionals caelestia.isAllowed [
               caelestia.module
               {programs.caelestia.enable = true;}
@@ -216,10 +215,7 @@
               zen-browser.module
               {programs.zen-browser.enable = true;}
             ]
-            ++ [
-              paths.pkgs.home
-              # (src + "/Packages/home")
-            ];
+            ++ (user.imports or []);
         })
       (homeUserAttrs host);
     };

@@ -1,7 +1,6 @@
 {
   _,
   lib,
-  src,
   ...
 }: let
   inherit (_.attrsets.resolution) byPaths;
@@ -385,9 +384,9 @@
 
     appsAllowed = user: user.applications.allowed or [];
     mkHomeModuleApps = {
-      pkgs,
+      # pkgs,
       user,
-      config,
+      # config,
     }: {
       #| Plasma Desktop Environment
       plasma = let
@@ -480,6 +479,7 @@
           {
             pkgs,
             config,
+            paths,
             ...
           }:
             mkMerge [
@@ -492,10 +492,10 @@
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
               (mkUsers {
-                inherit host pkgs specialArgs;
+                inherit host pkgs;
                 extraSpecialArgs =
                   specialArgs
-                  // {inherit src homeModules mkHomeModuleApps;};
+                  // {inherit paths homeModules mkHomeModuleApps;};
               })
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})

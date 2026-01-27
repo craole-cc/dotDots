@@ -28,15 +28,13 @@
     buildPath = {
       root,
       stem,
-    }:
-      root
-      + "/"
-      + (
-        if isList stem
-        then concatStringsSep "/" stem
-        else stem
-      );
-    getPaths = root: {
+    }: "${root}/${
+      if isList stem
+      then concatStringsSep "/" stem
+      else stem
+    }";
+    known = root: {
+      inherit root;
       libs = {
         default = buildPath {
           inherit root;
@@ -112,9 +110,9 @@
         };
       };
     };
-    store = getPaths src;
-    local = dots: getPaths dots;
-  in {inherit buildPath getPaths store local;};
+    store = known src;
+    local = dots: known dots;
+  in {inherit buildPath store local;};
 
   inherit (import paths.store.libs.default {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {

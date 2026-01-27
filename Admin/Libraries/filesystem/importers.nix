@@ -22,7 +22,7 @@
   # List all files under a dir, recursively.
 
   # Turn a directory tree of packages into an attrset and call them.
-  # This mirrors lib.filesystem.packagesFromDirectoryRecursive. [web:1179]
+  # This mirrors lib.filesystem.packagesFromDirectoryRecursive.
 
   # List nix module paths under a dir, excluding some files/folders.
   listNixModules = path: let
@@ -75,33 +75,26 @@
   importNames = dir: attrNames (importAttrs dir);
   importValues = dir: attrValues (importAttrs dir);
 
-  # # Import all *.nix files (except default.nix) in `dir` as a list of modules.
-  # importAll = dir: let
-  #   entries = readDir dir;
-  #   nixFiles = filter (
-  #     name: entries.${name} == "regular" && lib.hasSuffix ".nix" name && name != "default.nix"
-  #   ) (attrNames entries);
-  # in
-  #   map (name: import (dir + "/${name}")) nixFiles;
   # Import all *.nix files (except default.nix) in `dir` as a list of modules.
   # If a subdirectory contains a default.nix, import that instead of recursing.
   importAll = dir: let
+    #> Get all paths in current directory
     entries = readDir dir;
 
-    # Get all .nix files in current directory (excluding default.nix)
+    #> Get all .nix files in current directory (excluding default.nix)
     nixFiles = filter (
-      name: entries.${name} == "regular" && lib.hasSuffix ".nix" name && name != "default.nix"
+      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
     ) (attrNames entries);
 
-    # Get all subdirectories
+    #> Get all subdirectories
     subDirs = filter (
       name: entries.${name} == "directory"
     ) (attrNames entries);
 
-    # Import .nix files from current directory
+    #> Import .nix files from current directory
     fileImports = map (name: import (dir + "/${name}")) nixFiles;
 
-    # For each subdirectory, either import its default.nix or recurse
+    #> For each subdirectory, either import its default.nix or recurse
     dirImports =
       map (
         name: let
@@ -115,7 +108,7 @@
       )
       subDirs;
 
-    # Flatten directory imports (they might be lists from recursion)
+    #> Flatten directory imports (they might be lists from recursion)
     flatDirImports = lib.flatten dirImports;
   in
     fileImports ++ flatDirImports;
@@ -153,7 +146,7 @@
   importAllMerged = dir: args: let
     entries = readDir dir;
     nixFiles = filter (
-      name: entries.${name} == "regular" && lib.hasSuffix ".nix" name && name != "default.nix"
+      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
     ) (attrNames entries);
     imported = map (name: import (dir + "/${name}") args) nixFiles;
   in

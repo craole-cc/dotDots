@@ -9,19 +9,17 @@
 
   mkSystem = {
     hosts,
-    args,
+    flake,
+    schema,
+    paths,
     ...
   }:
     mapAttrs (
       _name: host: let
-        specialArgs = args // {inherit host;};
-        inherit (specialArgs) flake;
-        inputs = getInputs {inherit host flake specialArgs;};
-
         modules = let
           all = {
             inherit
-              (inputs.modules)
+              ((getInputs {inherit host flake;}).modules)
               modulesPath
               baseModules
               coreModules
@@ -30,7 +28,7 @@
               ;
           };
           eval = evalModules {
-            specialArgs = specialArgs // all;
+            specialArgs = all // {inherit host schema paths;};
             modules =
               []
               ++ all.baseModules
