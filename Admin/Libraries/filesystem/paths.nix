@@ -1,7 +1,18 @@
 {lib, ...}: let
-  inherit (lib.strings) concatStringsSep isList toList removeSuffix hasPrefix removePrefix;
+  inherit
+    (lib.strings)
+    concatStringsSep
+    hasPrefix
+    isList
+    removePrefix
+    removeSuffix
+    splitString
+    concatMapStringsSep
+    toList
+    ;
   inherit (lib.asserts) assertMsg;
-  inherit (lib.attrsets) attrByPath;
+  inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
+  inherit (lib.list) elemAt head;
   /**
   Constructs a file path by combining a root directory with a stem (file name or relative path).
 
@@ -42,14 +53,25 @@
       else stem
     }";
 
-  getDefault = {
+  getDefaults = {
     config,
     host,
     user,
+    pkgs,
+    paths ? {},
     ...
   }: let
-    home = config.home.homeDirectory or builtins.getEnv "HOME";
+    inherit
+      (pkgs)
+      coreutils
+      fd
+      imagemagick
+      replaceVarsWith
+      ripgrep
+      writeShellScriptBin
+      ;
     inherit (host.paths) dots;
+    home = config.home.homeDirectory or builtins.getEnv "HOME";
 
     wallpapers = let
       raw = attrByPath ["wallpapers" "all"] null user.paths;
@@ -190,43 +212,33 @@
         default = "dots:API/users/${user.name}/default.nix";
       };
     };
-  in {
-    inherit
-      api
-      avatars
-      dots
-      home
-      wallpapers
-      ;
-  };
+    exports = {inherit api avatars dots home wallpapers;};
+  in
+    paths // exports;
 
   mkDefault = {
     default,
     root ? "home",
     path ? [],
-    config,
-    host,
+    dots,
+    home,
     user,
   }: let
-    #> Get the user's home directory
-    homeDir = home config;
-    inherit (host.paths) dots;
-
     #> Resolve the base directory
     absolute =
       if root == "dots"
       then dots
       else if root == "home"
-      then homeDir
+      then home
       else if root != ""
       then removeSuffix "/" root
-      else homeDir; #? fallback to home if empty string
+      else home; #? fallback to home if empty string
 
     #> Get the value from user.paths
-    attrPath = toList path;
+    path' = toList path;
     relative =
-      if attrPath != []
-      then attrByPath attrPath default user.paths
+      if path' != []
+      then attrByPath path' default user.paths
       else default;
   in
     if (hasPrefix "/" relative) || (hasPrefix "root:" relative)
@@ -253,10 +265,10 @@
       # -> "/base/dir/wallpapers/dark.jpg"
       absolute + "/" + relative;
 in {
-  inherit construct home mkDefault;
+  inherit construct mkDefault getDefaults;
   _rootAliases = {
     buildPath = construct;
-    homeDir = home;
+    getDefaultPaths = getDefaults;
     mkDefaultPath = mkDefault;
   };
 }
