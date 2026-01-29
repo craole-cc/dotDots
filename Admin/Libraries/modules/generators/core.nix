@@ -30,7 +30,7 @@
             inherit lix lib;
           };
           eval = evalModules {
-            specialArgs = all // {inherit host schema paths lix;};
+            specialArgs = all // {inherit host schema paths;};
             modules =
               []
               ++ all.baseModules
