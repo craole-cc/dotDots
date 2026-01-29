@@ -10,6 +10,7 @@
   mkSystem = {
     hosts,
     flake,
+    lix,
     schema,
     paths,
     ...
@@ -28,7 +29,7 @@
               ;
           };
           eval = evalModules {
-            specialArgs = all // {inherit host schema paths;};
+            specialArgs = all // {inherit host schema paths lix;};
             modules =
               []
               ++ all.baseModules

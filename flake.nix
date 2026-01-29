@@ -28,7 +28,7 @@
     // (
       {
         nixosConfigurations = mkSystem {
-          inherit hosts flake schema paths;
+          inherit hosts flake lix schema paths;
         };
       }
       // import paths.store.templates.default

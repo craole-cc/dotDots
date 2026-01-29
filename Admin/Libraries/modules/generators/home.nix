@@ -151,7 +151,12 @@
         paths,
         ...
       }: let
-        userApps = mkHomeModuleApps {inherit pkgs config user;};
+        userApps = mkHomeModuleApps {
+          inherit
+            # config
+            user
+            ;
+        };
         style = rec {
           theme = user.interface.style.theme or {};
           mode = toLower (theme.mode or "dark");

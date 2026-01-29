@@ -116,12 +116,11 @@
   };
 
   perFlake = {
-    path ? src,
     hosts ? {},
     nixpkgs ? {},
     legacyPackages ? {},
   }:
-    (getSystems {inherit path hosts nixpkgs legacyPackages;}).perFlake;
+    (getSystems {inherit hosts nixpkgs legacyPackages;}).perFlake;
 
   getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
 
