@@ -21,7 +21,7 @@
   },
   "options": {
     "tag": ">>= DOTS =<<",
-    "verbosity": "Error",
+    "verbosity": "Debug",
     "verbosePreference": "SilentlyContinue",
     "debugPreference": "SilentlyContinue",
     "informationPreference": "SilentlyContinue",
@@ -29,7 +29,9 @@
     "errorActionPreference": "Continue"
   },
   "experimental_features": {
-    "enabled": ["PSFeedbackProvider"]
+    "enabled": [
+      "PSFeedbackProvider"
+    ]
   },
   "excludes": {
     "patterns": [

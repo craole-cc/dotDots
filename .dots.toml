@@ -1,4 +1,3 @@
-# .dots.toml
 name = "dotDots"
 version = "0.8"
 
@@ -23,7 +22,12 @@ user = "Craole"
 
 [options]
 tag = ">>= DOTS =<<"
-verbosity = "Error"
+verbosity = "Debug"
+verbosePreference = "SilentlyContinue"
+debugPreference = "SilentlyContinue"
+informationPreference = "SilentlyContinue"
+warningPreference = "SilentlyContinue"
+errorActionPreference = "Continue"
 
 [experimental_features]
 enabled = ["PSFeedbackProvider"]

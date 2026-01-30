@@ -96,6 +96,7 @@ $dotsEnv = [IO.Path]::Combine($env:DOTS, 'Configuration', 'powershell', 'profile
 if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
   Throw "Missing required configuration module: ${dotsEnv}"
 } else {
+  Write-Debug "Loading $dotsEnv -Verbose"
   Import-Module $dotsEnv -Force
   if (Get-Command 'Write-Pretty' -ErrorAction SilentlyContinue) {
     Write-Pretty -Tag 'Info' -As 'dotDOTS' -Init $InitTime

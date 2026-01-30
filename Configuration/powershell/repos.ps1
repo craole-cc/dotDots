@@ -12,14 +12,10 @@
 # Ensure PSGallery is registered and trusted
 $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
 if (-not $psGallery) {
-  if ($VerbosePreference -eq 'Continue' -or $DebugPreference -eq 'Continue') {
-    Write-Host 'Registering PSGallery repository...' -ForegroundColor Yellow
-  }
+  Write-Debug 'Registering PSGallery repository...'
   Register-PSRepository -Name PSGallery -SourceLocation 'https://www.powershellgallery.com/api/v2' -InstallationPolicy Trusted
 }
 elseif ($psGallery.InstallationPolicy -ne 'Trusted') {
-  if ($VerbosePreference -eq 'Continue' -or $DebugPreference -eq 'Continue') {
-    Write-Host 'Setting PSGallery as trusted...' -ForegroundColor Yellow
-  }
+  Write-Debug 'Setting PSGallery as trusted...'
   Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 }
