@@ -97,5 +97,9 @@ if (-not (Test-Path -Path $dotsEnv -PathType Leaf)) {
   Throw "Missing required configuration module: ${dotsEnv}"
 } else {
   Import-Module $dotsEnv -Force
-  Write-Pretty -Tag 'Info' -As 'dotDOTS' -Init $InitTime
+  if (Get-Command 'Write-Pretty' -ErrorAction SilentlyContinue) {
+    Write-Pretty -Tag 'Info' -As 'dotDOTS' -Init $InitTime
+  } else {
+    Write-Host "dotDOTS loaded (timing: $((Get-Date) - $InitTime)" -ForegroundColor Green
+  }
 }

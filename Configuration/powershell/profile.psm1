@@ -59,5 +59,5 @@ Export-ModuleMember -Function Import-ProfileScript
 # }
 
 #TODO: This should be Invoke-Coreutils which should install the GNU Coreutils and unregister the default powershel aliases
-Unregister-CoreutilsAliases
-Register-Wallpaper
+# Unregister-CoreutilsAliases
+# Register-Wallpaper

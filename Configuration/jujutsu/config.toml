@@ -41,8 +41,8 @@ default-command = ["log", "--reversed"]
 # graph.style = "ascii-large"
 log-word-wrap = true
 
-[git]
-push-new-bookmarks = true
+[remotes.origin]
+auto-track-bookmarks = "*"
 
 [templates]
 # Use builtin evolog template
