@@ -29,7 +29,7 @@
     rbw.enable = true;
     ripgrep.enable = true;
     ripgrep-all.enable = true;
-    starship.enable = true;
+    # starship.enable = true;
     tealdeer.enable = true;
     topgrade.enable = true;
     vscode.enable = true;

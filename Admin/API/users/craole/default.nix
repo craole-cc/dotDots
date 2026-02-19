@@ -36,7 +36,7 @@
     windowManager = "hyprland";
     bar = "caelestia";
     shell = "bash";
-    prompt = "starship";
+    # prompt = "starship";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;
@@ -159,7 +159,7 @@
       secondary = "fuzzel";
     };
     bar = "caelestia";
-    prompt = "starship";
+    # prompt = "starship";
 
     allowed = [
       # "atuin"

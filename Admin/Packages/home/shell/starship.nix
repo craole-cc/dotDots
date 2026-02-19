@@ -20,7 +20,7 @@ in {
     # };
 
     programs.${app} = {
-      enable = true;
+      enable = false;
       settings = {
         command_timeout = 1111;
         scan_timeout = 1000;

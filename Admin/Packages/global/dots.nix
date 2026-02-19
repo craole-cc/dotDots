@@ -234,8 +234,8 @@
       qpdf #? PDF transformation
       ripgrep #? Fast grep alternative
       rust-script #? Rust scripting
-      starship
-      tldr
+      # starship #? Cross-shell prompt
+      tldr #? Simplified man pages
       tokei #? Code statistics tool
       typst #? Modern LaTeX alternative
       undollar #? Remove leading dollar signs
