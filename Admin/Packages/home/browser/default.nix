@@ -1,7 +1,7 @@
 {
   imports = [
     # ./chromium
-    ./edge
+    # ./edge
     ./zen.nix
     # ./firefox
   ];
