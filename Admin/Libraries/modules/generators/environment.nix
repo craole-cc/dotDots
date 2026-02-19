@@ -257,7 +257,7 @@
         };
       };
 
-      starship.enable = prompt == "starship";
+      # starship.enable = prompt == "starship";
 
       #~@ Version control
       git = {

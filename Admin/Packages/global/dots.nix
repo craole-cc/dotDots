@@ -208,40 +208,40 @@
   packages = with pkgs;
     [
       bat #? Cat clone with syntax highlighting
+      cargo #? Rust package manager
       direnv #? Environment management per directory
       dos2unix #? Line ending converter
       eza #? Modern ls replacement
       fd #? Fast find alternative
       gcc #? GNU C compiler
-      rustc #? Rust compiler
-      cargo #? Rust package manager
       gitui #? Git terminal UI
       gnused #? GNU stream editor
       imagemagick #? Image processing
       jq #? JSON query processor
       lsd #? LSDeluxe file lister
       mise #? Polyglot version manager
-      mtr
+      mtr #? Network diagnostic tool
       nil #? Nix language server
+      nitch #? System fetch written in nim
       nix-output-monitor #? Build output monitor
       nix-tree #? Nix dependency visualizer
       nixd #? Nix language daemon
       nushell #? Modern shell language
       onefetch #? Git repository summary
-      nitch #? System fetch written in nim
       pandoc #? Universal document converter
       poppler-utils #? PDF utilities (pdfunite, pdfseparate)
       qpdf #? PDF transformation
       ripgrep #? Fast grep alternative
       rust-script #? Rust scripting
-      # starship #? Cross-shell prompt
+      rustc #? Rust compiler
+      starship #? Cross-shell prompt
       tldr #? Simplified man pages
       tokei #? Code statistics tool
       typst #? Modern LaTeX alternative
       undollar #? Remove leading dollar signs
       watchexec #? File watcher and executor
       yazi #? Terminal file manager
-      zoxide
+      zoxide #? Smart cd replacement
     ]
     ++ (attrValues applications)
     ++ fmtPackages #? From fmt.nix: treefmt, alejandra, etc.
