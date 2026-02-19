@@ -153,6 +153,25 @@
           ...
         }: let
           inputs = mkHomeModuleApps {inherit user;};
+          style = rec {
+            theme = user.interface.style.theme or {};
+            mode = toLower (theme.mode or "dark");
+            variant = toLower (theme.${mode} or "Catppuccin Latte");
+            accent = toLower (theme.accent or "rosewater");
+            flavor =
+              if hasInfix "frappe" variant || hasInfix "frappé" variant
+              then "frappe"
+              else if hasInfix "latte" variant
+              then "latte"
+              else if hasInfix "mocha" variant
+              then "mocha"
+              else if hasInfix "macchiato" variant
+              then "macchiato"
+              else if mode == "dark"
+              then "frappe"
+              else "latte";
+            catppuccin = hasInfix "catppuccin" variant;
+          };
         in {
           #> Pass user data and apps to modules via _module.args
           _module.args.user = user // {inherit name;};
@@ -164,6 +183,40 @@
             []
             ++ [paths.store.pkgs.home]
             ++ (user.imports or [])
+            #> Conditionally import modules based on user's allowed applications (THIS DOESN"T WORK)
+            # ++ optionals caelestia.isAllowed [
+            #   caelestia.module
+            #   {programs.caelestia.enable = true;}
+            # ]
+            # ++ optionals style.catppuccin [
+            #   catppuccin.module
+            #   {
+            #     catppuccin = {
+            #       enable = true;
+            #       inherit (style) accent flavor;
+            #     };
+            #   }
+            # ]
+            # ++ optionals dank-material-shell.isAllowed [
+            #   dank-material-shell.module
+            #   {programs.dank-material-shell.enable = true;}
+            # ]
+            # ++ optionals noctalia-shell.isAllowed [
+            #   noctalia-shell.module
+            #   {programs.noctalia-shell.enable = true;}
+            # ]
+            # ++ optionals nvf.isAllowed [
+            #   nvf.module
+            #   {programs.nvf.enable = true;}
+            # ]
+            # ++ optionals plasma.isAllowed [
+            #   plasma.module
+            #   {programs.plasma.enable = true;}
+            # ]
+            # ++ optionals zen-browser.isAllowed [
+            #   zen-browser.module
+            #   {programs.zen-browser.enable = true;}
+            # ]
             #> Always import ALL modules so options are always defined
             ++ (with inputs; [
               caelestia.module

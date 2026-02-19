@@ -17,10 +17,11 @@
   allowed = isIn app (user.applications.allowed or []);
 
   # Check if the program option exists in home-manager
-  programExists = config ? programs.${app};
+  # programExists = config ? programs.${app};
 
   # Only enable if both conditions are met
-  enable = (primary || allowed) && programExists;
+  # enable = (primary || allowed) && programExists;
+  enable = primary || allowed;
 
   monitors = {
     all = getNames {inherit host;};

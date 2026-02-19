@@ -5,10 +5,10 @@
 }: let
   inherit (_.lists.predicates) isIn;
   inherit (_.modules.generators.environment) mkEnvironment mkLocale;
-  inherit (_.modules.generators.style) mkFonts;
   inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
-  inherit (_.modules.generators.home) mkUsers;
   inherit (_.modules.generators.software) mkNix mkBoot mkClean;
+  inherit (_.modules.generators.style) mkFonts;
+  inherit (_.modules.generators.users) mkUsers;
   inherit (lib.lists) optionals;
   inherit (lib.modules) mkMerge;
   inherit (lib.strings) hasInfix;
@@ -199,10 +199,13 @@
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
               (mkUsers {
                 inherit host pkgs;
+                # inherit homeModules mkHomeModuleApps;
                 extraSpecialArgs =
                   specialArgs
                   // {
-                    inherit config host paths homeModules mkHomeModuleApps;
+                    inherit host paths mkHomeModuleApps;
+                    # inherit host paths mkHomeModuleApps homeModules;
+                    lix = _;
                   };
               })
               (mkEnvironment {inherit config host pkgs packages;})

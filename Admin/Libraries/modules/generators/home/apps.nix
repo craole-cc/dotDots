@@ -127,14 +127,9 @@
     };
   };
 in {
-  _module.args.apps = {
-    inherit
-      mkDefault
-      mapAttrs
-      mkCategory
-      categoryDefaults
-      ;
-  };
+  _module.args.apps =
+    mapAttrs mkCategory categoryDefaults
+    // {inherit mkDefault;};
 
   # home.packages = with pkgs; [
   #   foot

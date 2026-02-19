@@ -127,17 +127,95 @@
     };
   };
 in {
-  _module.args.apps = {
-    inherit
-      mkDefault
-      mapAttrs
-      mkCategory
-      categoryDefaults
-      ;
-  };
+  _module.args.apps =
+    mapAttrs mkCategory categoryDefaults
+    // {inherit mkDefault;};
 
   # home.packages = with pkgs; [
   #   foot
   #   ghostty
   # ];
+}
+# {lix, ...}: let
+#   inherit (lix.filesystem.importers) importAll;
+# in {
+#   # imports = importAll ./.;
+#   # _module.args = {inherit importAll;};
+# }
+{}
+{
+  lib,
+  user,
+  host,
+  ...
+}: let
+  inherit (lib.strings) toUpper;
+  fromUser = user.interface.keyboard or {};
+  fromHost = host.interface.keyboard or {};
+in {
+  _module.args.keyboard = {
+    mod = toUpper (
+      fromUser.modifier or
+      fromHost.modifier or
+      "Super"
+    );
+    swapCapsEscape =
+      fromUser.swapCapsEscape or
+      fromHost.swapCapsEscape or
+      null;
+    vimKeybinds =
+      fromUser.vimKeybinds or
+      fromHost.vimKeybinds or
+      false;
+  };
+}
+{
+  user,
+  host,
+  ...
+}: {
+  _module.args.fonts =
+    user.interface.style.fonts or host.interface.style.fonts or {
+      emoji = "Noto Color Emoji";
+      monospace = "Maple Mono NF";
+      sans = "Monaspace Radon Frozen";
+      serif = "Noto Serif";
+      material = "Material Symbols Sharp";
+      clock = "Rubik";
+    };
+}
+{host, ...}: let
+  locale = host.localization or {};
+in {
+  _module.args.locale = {
+    city = locale.city or "Mandeville, Jamaica";
+    timeZone = locale.timeZone or "America/Jamaica";
+    defaultLocale = locale.defaultLocale or "en_US.UTF-8";
+    locator = locale.locator or "geoclue2";
+    latitude = locale.latitude or 18.015;
+    longitude = locale.longitude or 77.49;
+  };
+}
+{
+  config,
+  lix,
+  host,
+  user,
+  paths,
+  pkgs,
+  ...
+}: let
+  inherit (lix.filesystem.paths) getDefaults;
+  defaults = getDefaults {inherit paths config host user pkgs;};
+in {
+  _module.args.paths = defaults;
+  home = {
+    packages = [defaults.wallpapers.manager];
+    sessionVariables = {
+      # DOTS_WALLPAPER_MANAGER = wallpapers.manager;
+      # _DOTS = dots;
+      # _API_HOST = api.host;
+      # _API_USER = api.user;
+    };
+  };
 }
