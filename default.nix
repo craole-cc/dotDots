@@ -35,11 +35,22 @@
     }";
     known = root: {
       inherit root;
-      libs = {
-        default = buildPath {
+      libs = let
+        nix = buildPath {
           inherit root;
-          stem = ["Admin" "Libraries"];
+          stem = ["Libraries" "nix"];
         };
+        shellscript = buildPath {
+          inherit root;
+          stem = ["Libraries" "shellscript"];
+        };
+        rust = buildPath {
+          inherit root;
+          stem = ["Libraries" "rust"];
+        };
+      in {
+        default = nix;
+        inherit nix shellscript rust;
       };
       api = rec {
         default = buildPath {
