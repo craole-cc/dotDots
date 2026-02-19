@@ -9,6 +9,16 @@
   VISUAL = vars.VISUAL_PRI or vars.VISUAL_SEC or EDITOR;
   VISUAL_NAME = vars.VISUAL_PRI_NAME or vars.VISUAL_SEC_NAME or EDITOR;
 in {
-  imports = lix.filesystem.importers.importAll ./.;
+  # imports = lix.filesystem.importers.importAll ./.;
+  imports = [
+    ./fresh
+    ./helix
+    ./nvim
+    ./office
+    ./vscode
+    ./zeditor
+    # ./browser
+    # ./common
+  ];
   home.sessionVariables = {inherit EDITOR EDITOR_NAME VISUAL VISUAL_NAME;};
 }

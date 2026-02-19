@@ -145,7 +145,7 @@
       #> Only configure home-manager for eligible users
       #? (excludes service accounts and guests)
       users = mapAttrs (name: user: {
-        config,
+        # config,
         nixosConfig,
         mkHomeModuleApps,
         paths,

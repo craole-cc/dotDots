@@ -495,7 +495,10 @@
                 inherit host pkgs;
                 extraSpecialArgs =
                   specialArgs
-                  // {inherit paths homeModules mkHomeModuleApps;};
+                  // {
+                    inherit host paths homeModules mkHomeModuleApps;
+                    lix = _;
+                  };
               })
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})

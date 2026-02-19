@@ -38,6 +38,7 @@
     };
   };
 in {
+  _module.args = {inherit cursor icons;};
   imports = lix.filesystem.importers.importAll ./.;
 
   gtk = {
