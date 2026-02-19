@@ -1,12 +1,12 @@
-{ fonts, ... }:
-{
+{fonts, ...}: {
   appearance = {
     rounding.scale = 1;
     spacing.scale = 1;
     padding.scale = 1;
     font = {
       family = {
-        inherit (fonts)
+        inherit
+          (fonts)
           sans
           material
           clock
@@ -29,8 +29,8 @@
         "foot"
         "ghostty"
       ];
-      audio = [ "pavucontrol" ];
-      playback = [ "mpv" ];
+      audio = ["pavucontrol"];
+      playback = ["mpv"];
       explorer = [
         "nautilus"
         "spacedrive"
@@ -132,7 +132,7 @@
     };
     vpn = {
       enabled = false;
-      provider = [ "netbird" ];
+      provider = ["netbird"];
     };
   };
 }
