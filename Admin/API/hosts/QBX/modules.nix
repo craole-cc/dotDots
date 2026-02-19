@@ -800,7 +800,7 @@ in {
         };
 
         #~@ Shell enhancements
-        starship.enable = true;
+        # starship.enable = true;
 
         #~@ Editor
         helix = {

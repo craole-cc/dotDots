@@ -101,6 +101,7 @@
     browser = {
       primary = "zen-twilight";
       # secondary = "microsoft-edge";
+      secondary = "chromium";
     };
     editor = {
       primary = {
