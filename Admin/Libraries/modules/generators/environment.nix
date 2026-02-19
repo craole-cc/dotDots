@@ -127,6 +127,7 @@
           lolcat
           lshw
           nil
+          nixd
           nix-index
           nix-info
           nix-output-monitor
@@ -222,8 +223,19 @@
       bash = {
         enable = isIn "bash" ([shell] ++ (user.shells or []));
         blesh.enable = true;
-        undistractMe.enable = true;
+          undistractMe.enable = true;
       };
+
+      direnv = {
+        enable = true;
+        silent = true;
+        settings={
+          global = {
+            log_format = "-";
+            log_filter = "^$";
+          };
+        };
+        };
 
       git = {
         enable = true;
