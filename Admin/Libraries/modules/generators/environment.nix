@@ -129,11 +129,13 @@
           nil
           nix-index
           nix-info
+          nix-output-monitor
           nix-prefetch
           nix-prefetch-docker
           nix-prefetch-github
           nix-prefetch-scripts
           nixfmt
+          nvfetcher
           pciutils
           procs
           ripgrep
