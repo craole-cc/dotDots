@@ -18,7 +18,7 @@
     browser = {
       zen-twilight = "zen-twilight";
       zen-beta = "zen-beta";
-      microsoft-edge = "microsoft-edge";
+      # microsoft-edge = "microsoft-edge";
     };
     editor = {
       vscode = "code";
@@ -47,8 +47,8 @@
       if hasInfix "twilight" name
       then "zen-twilight"
       else "zen-beta"
-    else if category == "browser" && hasInfix "edge" name
-    then "microsoft-edge"
+    # else if category == "browser" && hasInfix "edge" name
+    # then "microsoft-edge"
     else if category == "editor" && hasInfix "code" name
     then "code"
     else if category == "editor" && hasInfix "zed" name
@@ -100,7 +100,7 @@
   categoryDefaults = {
     browser = {
       primary = "zen-twilight";
-      secondary = "microsoft-edge";
+      # secondary = "microsoft-edge";
     };
     editor = {
       primary = {

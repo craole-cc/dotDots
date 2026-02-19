@@ -23,8 +23,8 @@
     else if normalizedTarget == "default" || matches "chromium" || matches "ungoogled"
     then "chromium"
     #| Microsoft Edge
-    else if matches "edge" || matches "microsoft" || matches "ms"
-    then "microsoft-edge"
+    # else if matches "edge" || matches "microsoft" || matches "ms"
+    # then "microsoft-edge"
     #| Vivaldi
     else if matches "viv"
     then "vivaldi"

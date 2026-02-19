@@ -134,7 +134,7 @@
   applications = {
     browser = let
       firefox = "zen twilight";
-      chromium = "microsoft edge";
+      chromium = "chromium";
     in {
       inherit firefox chromium;
       primary = firefox;
