@@ -31,8 +31,7 @@ in {
 
   #~@ Alternative Color Theme (Light - Catppuccin Latte)
   #? Theme 2, accessed via initial-color-theme=2
-  # colors2 = {
-  "colors-light" = {
+  colors2 = {
     inherit alpha;
     background = "eff1f5";
     foreground = "4c4f69";
