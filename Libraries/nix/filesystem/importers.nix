@@ -4,62 +4,69 @@
     attrValues
     listToAttrs
     attrNames
+    filterAttrs
     ;
+  inherit (lib.trivial) functionArgs;
+  inherit (lib.filesystem) listFilesRecursive;
+  inherit (lib.strings) hasSuffix hasInfix;
   inherit
-    (lib.filesystem)
-    listFilesRecursive
+    (lib.lists)
+    any
+    elem
+    filter
+    flatten
+    foldl'
+    map
     ;
-  # inherit (lib.trivial) functionArgs;
-  inherit (lib.strings) hasSuffix;
-  inherit (lib.lists) filter map elem;
   inherit
     (builtins)
     baseNameOf
-    dirOf
     readDir
+    toString
     ;
 
-  # List all files under a dir, recursively.
+  # -- Shared exclusion config ──────────────────────────────────────────────
+  nixFilesToExclude = [
+    "default.nix"
+    "flake.nix"
+    "shell.nix"
+    "paths.nix"
+  ];
 
-  # Turn a directory tree of packages into an attrset and call them.
-  # This mirrors lib.filesystem.packagesFromDirectoryRecursive.
+  foldersToExclude = [
+    "archives"
+    "review"
+    "temp"
+    "tmp"
+  ];
 
-  # List nix module paths under a dir, excluding some files/folders.
+  # True if any path segment of `file` is an excluded folder name.
+  # Handles arbitrary nesting (e.g. archives/old/module.nix).
+  isUnderExcludedFolder = file:
+    any (
+      folder:
+        hasInfix "/${folder}/" (toString file)
+        || hasSuffix "/${folder}" (toString file)
+    )
+    foldersToExclude;
+
+  # -- listNixModules ───────────────────────────────────────────────────────
   listNixModules = path: let
-    filesToExclude = [
-      "default.nix"
-      "flake.nix"
-      "shell.nix"
-      "paths.nix"
-    ];
-
-    foldersToExclude = [
-      "review"
-      "tmp"
-      "temp"
-      "archive"
-    ];
-
     isNixFile = file: hasSuffix ".nix" (baseNameOf file);
-    isExcludedFile = file: elem (baseNameOf file) filesToExclude;
-    isExcludedFolder = file: elem (dirOf file) foldersToExclude;
+    isExcludedFile = file: elem (baseNameOf file) nixFilesToExclude;
 
     files = listFilesRecursive path;
     sansNonNix = filter isNixFile files;
-    sansExcludedFiles = filter (file: !isExcludedFile file) sansNonNix;
-    sansExcludedDirs = filter (file: !isExcludedFolder file) sansExcludedFiles;
+    sansExcludedFiles = filter (f: !isExcludedFile f) sansNonNix;
+    sansExcludedDirs = filter (f: !isUnderExcludedFolder f) sansExcludedFiles;
   in
     sansExcludedDirs;
 
-  # Simple “all .nix files” listing
+  # -- importNixModules ─────────────────────────────────────────────────────
+  importNixModules = path:
+    map (modulePath: import modulePath) (listNixModules path);
 
-  # Import all nix modules found by listNixModules
-  importNixModules = path: let
-    modules = listNixModules path;
-  in
-    map (modulePath: import modulePath) modules;
-
-  # Import all subdirectories of `dir` as modules, keyed by name.
+  # -- importAttrs / importNames / importValues ─────────────────────────────
   importAttrs = dir: let
     entries = readDir dir;
     dirNames = filter (name: entries.${name} == "directory") (attrNames entries);
@@ -75,32 +82,36 @@
   importNames = dir: attrNames (importAttrs dir);
   importValues = dir: attrValues (importAttrs dir);
 
-  # Import all *.nix files (except default.nix) in `dir` as a list of modules.
-  # If a subdirectory contains a default.nix, import that instead of recursing.
+  # -- importAll ────────────────────────────────────────────────────────────
   importAll = dir: let
-    #> Get all paths in current directory
     entries = readDir dir;
 
-    #> Get all .nix files in current directory (excluding default.nix)
     nixFiles = filter (
-      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
+      name:
+        entries.${name}
+        == "regular"
+        && hasSuffix ".nix" name
+        && name != "default.nix"
     ) (attrNames entries);
 
-    #> Get all subdirectories
+    #? Excluded folder names are pruned here — no recursion into them at all.
     subDirs = filter (
-      name: entries.${name} == "directory"
+      name:
+        entries.${name}
+        == "directory"
+        && !(elem name foldersToExclude)
     ) (attrNames entries);
 
-    #> Import .nix files from current directory
     fileImports = map (name: import (dir + "/${name}")) nixFiles;
 
-    #> For each subdirectory, either import its default.nix or recurse
     dirImports =
       map (
         name: let
           subPath = dir + "/${name}";
           subEntries = readDir subPath;
-          hasDefault = subEntries ? "default.nix" && subEntries."default.nix" == "regular";
+          hasDefault =
+            subEntries ? "default.nix"
+            && subEntries."default.nix" == "regular";
         in
           if hasDefault
           then import (subPath + "/default.nix")
@@ -108,50 +119,35 @@
       )
       subDirs;
 
-    #> Flatten directory imports (they might be lists from recursion)
-    flatDirImports = lib.flatten dirImports;
+    flatDirImports = flatten dirImports;
   in
     fileImports ++ flatDirImports;
 
-  importWithArgs =
-    # Imports a Nix module at 'path' with filtered and merged arguments.
-    # Params:
-    # - path: The path to the Nix module to import.
-    # - args (optional): An attribute set of arguments to pass to the module.
-    #
-    # The function inspects the module's required arguments,
-    # merges them with a set of common globally available attributes,
-    # and only passes the arguments actually required by the module.
-    #
-    # This avoids passing extraneous or unexpected arguments and clarifies intent.
-    {
-      path,
-      args ? {},
-    }: let
-      inherit (lib.attrsets) attrNames filterAttrs;
-      inherit (lib.lists) elem;
-      inherit (lib.trivial) functionArgs;
-
-      #~@ Get the list of arguments the target module accepts
-      required = attrNames (functionArgs (import path));
-
-      #~@ Define the full set of arguments available to be injected
-      provided = args;
-
-      #~@ Filter the provided arguments to only include the ones the module requested
-      filtered = filterAttrs (name: _: elem name required) provided;
-    in
-      import path filtered;
-
+  # -- importAllMerged ──────────────────────────────────────────────────────
   importAllMerged = dir: args: let
     entries = readDir dir;
     nixFiles = filter (
-      name: entries.${name} == "regular" && hasSuffix ".nix" name && name != "default.nix"
+      name:
+        entries.${name}
+        == "regular"
+        && hasSuffix ".nix" name
+        && name != "default.nix"
     ) (attrNames entries);
     imported = map (name: import (dir + "/${name}") args) nixFiles;
   in
-    lib.foldl' (acc: mod: acc // mod) {} imported;
+    foldl' (acc: mod: acc // mod) {} imported;
 
+  # -- importWithArgs ───────────────────────────────────────────────────────
+  importWithArgs = {
+    path,
+    args ? {},
+  }: let
+    required = attrNames (functionArgs (import path));
+    filtered = filterAttrs (name: _: elem name required) args;
+  in
+    import path filtered;
+
+  # -- Exports ──────────────────────────────────────────────────────────────
   exports = {
     inherit
       importAll
