@@ -15,7 +15,7 @@
     kind = "terminal";
     extraProgramConfig = mkMerge [
       (import ./general.nix)
-      # (import ./input.nix)
+      (import ./input.nix)
       (import ./themes.nix)
     ];
     debug = false;
