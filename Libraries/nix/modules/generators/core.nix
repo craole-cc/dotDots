@@ -3,13 +3,12 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs;
-  inherit (lib.modules) evalModules;
-  inherit (_.modules.resolution) getInputs;
   inherit (_.attrsets.resolution) package;
-  inherit (lib.lists) head optionals;
-  # inherit (_.filesystem.paths) getDefaults;
   inherit (_.lists.predicates) isIn;
+  inherit (_.modules.resolution) getInputs;
+  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.lists) head optionals;
+  inherit (lib.modules) evalModules;
 
   mkSystem = {
     hosts,
@@ -21,7 +20,6 @@
   }:
     mapAttrs (
       _name: host: let
-        resolvedPaths = paths // {local = paths.mkLocal host.paths.dots;};
         modules = let
           all = {
             inherit
@@ -32,15 +30,17 @@
               homeModules
               hostModules
               ;
-            inherit lix lib;
           };
+
+          specialArgs = {
+            inherit lix lib host schema;
+            inherit (all) modulesPath;
+            paths = paths // {local = paths.mkLocal host.paths.dots;};
+            modules = all;
+          };
+
           eval = evalModules {
-            specialArgs =
-              all
-              // {
-                inherit lix host schema;
-                paths = resolvedPaths;
-              };
+            inherit specialArgs;
             modules =
               []
               ++ all.baseModules

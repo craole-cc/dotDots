@@ -3,16 +3,15 @@
     (lib.strings)
     concatStringsSep
     hasPrefix
-    isList
     removePrefix
     removeSuffix
     splitString
     concatMapStringsSep
-    toList
     ;
   inherit (lib.asserts) assertMsg;
   inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
-  inherit (lib.list) elemAt head;
+  inherit (lib.lists) elemAt head isList toList;
+  inherit (builtins) getEnv;
   /**
   Constructs a file path by combining a root directory with a stem (file name or relative path).
 
@@ -71,31 +70,41 @@
       writeShellScriptBin
       ;
     inherit (host.paths) dots;
-    home = config.home.homeDirectory or builtins.getEnv "HOME";
+    home = config.home.homeDirectory or (getEnv "HOME");
 
     wallpapers = let
       raw = attrByPath ["wallpapers" "all"] null user.paths;
       all =
         if isList raw
-        then map (p: mkDefault {default = p;}) raw
+        then
+          map (p:
+            mkDefault {
+              inherit home dots user;
+              default = p;
+            })
+          raw
         else [
           (mkDefault {
+            inherit home dots user;
             path = ["wallpapers" "all"];
             default = "home:Pictures/Wallpapers";
           })
         ];
 
       primary = mkDefault {
+        inherit home dots user;
         path = ["wallpapers" "primary"];
         default = head all;
       };
 
       dark = mkDefault {
+        inherit home dots user;
         path = ["wallpapers" "dark"];
         default = primary + "/dark.jpg";
       };
 
       light = mkDefault {
+        inherit home dots user;
         path = ["wallpapers" "light"];
         default = primary + "/light.jpg";
       };
@@ -125,15 +134,18 @@
             else config.resolution;
 
           directory = mkDefault {
+            inherit home dots user;
             path = ["wallpapers" "monitors" name "directory"];
             default = primary + "/${resolution}";
           };
           dark = mkDefault {
+            inherit home dots user;
             path = ["wallpapers" "monitors" name "dark"];
             default = directory;
           };
 
           light = mkDefault {
+            inherit home dots user;
             path = ["wallpapers" "monitors" name "light"];
             default = directory;
           };
@@ -195,10 +207,12 @@
 
     avatars = {
       session = mkDefault {
+        inherit home dots user;
         path = ["avatars" "session"];
         default = "root:/assets/kurukuru.gif";
       };
       media = mkDefault {
+        inherit home dots user;
         path = ["avatars" "media"];
         default = "root:/assets/kurukuru.gif";
       };
@@ -206,9 +220,11 @@
 
     api = {
       host = mkDefault {
+        inherit home dots user;
         default = "dots:API/hosts/${host.name}/default.nix";
       };
       user = mkDefault {
+        inherit home dots user;
         default = "dots:API/users/${user.name}/default.nix";
       };
     };

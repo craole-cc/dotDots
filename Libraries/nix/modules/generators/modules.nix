@@ -184,8 +184,8 @@
         (
           {
             pkgs,
-            config,
             paths,
+            config,
             ...
           }:
             mkMerge [
@@ -198,7 +198,7 @@
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
               (core.mkUsers {inherit host pkgs;})
-              (home.mkUsers {inherit host specialArgs paths mkHomeModuleApps;})
+              (home.mkUsers {inherit host specialArgs mkHomeModuleApps paths;})
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})
             ]

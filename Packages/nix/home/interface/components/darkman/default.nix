@@ -28,8 +28,8 @@
         cmdDbus = "${pkgs.dbus}/bin/dbus-send";
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
-        # cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
-        # cfgApi = "${paths.api.user}";
+        cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
+        cfgApi = "${paths.api.user}";
         cfgPolarity = polarity;
       };
       name = "nixos-theme";

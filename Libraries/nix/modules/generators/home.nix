@@ -3,9 +3,10 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs isAttrs mapAttrs;
+  inherit (lib.attrsets) filterAttrs isAttrs mapAttrs removeAttrs;
   inherit (lib.strings) hasInfix toLower toUpper;
   inherit (_.modules.generators.core) userAttrs;
+  inherit (_.filesystem.paths) getDefaults;
 
   /**
   Filter users eligible for home-manager configuration.
@@ -204,17 +205,22 @@
       useGlobalPkgs = true;
       useUserPackages = true;
       extraSpecialArgs =
-        specialArgs
+        (removeAttrs specialArgs ["paths"])
         // {
-          inherit paths host;
           lix = _;
+          inherit host;
         };
 
       users =
         mapAttrs (
-          name: user: {nixosConfig, ...}: let
+          name: user: {
+            nixosConfig,
+            config,
+            pkgs,
+            ...
+          }: let
             inputsForHome = mkHomeModuleApps {inherit user;};
-            resolvedPaths = paths // {local = paths.mkLocal host.paths.dots;};
+            derivedPaths = getDefaults {inherit config host user pkgs paths;};
           in {
             _module.args = {
               style = mkStyle user;
@@ -223,7 +229,7 @@
               fonts = user.interface.style.fonts or host.interface.style.fonts or {};
               keyboard = mkKeyboard {inherit host user;};
               locale = mkLocale {inherit host;};
-              paths = resolvedPaths;
+              paths = derivedPaths;
               inherit inputsForHome;
             };
 
