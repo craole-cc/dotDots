@@ -198,7 +198,7 @@
     defaultLocale = loc.defaultLocale or "en_US.UTF-8";
     locator = loc.locator or "geoclue2";
     latitude = loc.latitude or 18.015;
-    longitude = loc.longitude or 77.49;
+    longitude = loc.longitude or (-77.49);
   };
 
   /**
