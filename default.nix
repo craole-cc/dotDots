@@ -52,10 +52,10 @@
         default = nix;
         inherit nix shellscript rust;
       };
-      api = rec {
+      api = let
         default = buildPath {
           inherit root;
-          stem = ["Admin" "API"];
+          stem = ["API"];
         };
         hosts = buildPath {
           root = default;
@@ -65,11 +65,11 @@
           root = default;
           stem = "users";
         };
-      };
-      pkgs = rec {
+      in {inherit default hosts users;};
+      pkgs = let
         default = buildPath {
           inherit root;
-          stem = ["Admin" "Packages"];
+          stem = ["Packages" "nix"];
         };
         core = buildPath {
           root = default;
@@ -91,17 +91,17 @@
           root = default;
           stem = "plugins";
         };
-      };
-      templates = rec {
+      in {inherit default core global home overlays plugins;};
+      templates = let
         default = buildPath {
           inherit root;
-          stem = ["Assets" "Templates"];
+          stem = ["Templates" "nix"];
         };
         rust = buildPath {
           root = default;
           stem = "rust";
         };
-      };
+      in {inherit default rust;};
       images = rec {
         default = buildPath {
           inherit root;
