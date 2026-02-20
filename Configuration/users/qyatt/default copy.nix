@@ -588,7 +588,7 @@ in {
         options = {
           primary = mkOption {
             type = submodule (
-              { ...}: {
+              {...}: {
                 options = {
                   package = mkOption {type = package;};
                   command = mkOption {type = str;};
@@ -602,7 +602,7 @@ in {
           };
           secondary = mkOption {
             type = submodule (
-              { ...}: {
+              {...}: {
                 options = {
                   package = mkOption {type = package;};
                   command = mkOption {type = str;};
@@ -616,7 +616,7 @@ in {
           };
           tertiary = mkOption {
             type = submodule (
-              { ...}: {
+              {...}: {
                 options = {
                   package = mkOption {type = package;};
                   command = mkOption {type = str;};

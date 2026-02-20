@@ -1,18 +1,28 @@
-{ config, ... }:
-let
+{config, ...}: let
   inherit (config) dots;
   inherit (dots.hosts.${dots.lib.currentHost}) cpu gpu packages;
   inherit (packages) allowUnfree;
-in
-{
+in {
   config.dots.users.craole.applications.hyprland = {
     settings = {
       env = [
-        "WLR_RENDERER_ALLOW_SOFTWARE, ${if gpu == "nvidia" || cpu == "vm" then "1" else "0"}"
+        "WLR_RENDERER_ALLOW_SOFTWARE, ${
+          if gpu == "nvidia" || cpu == "vm"
+          then "1"
+          else "0"
+        }"
 
-        "WLR_NO_HARDWARE_CURSORS, ${if gpu == "nvidia" || cpu == "vm" then "1" else "0"}"
+        "WLR_NO_HARDWARE_CURSORS, ${
+          if gpu == "nvidia" || cpu == "vm"
+          then "1"
+          else "0"
+        }"
 
-        "NIXPKGS_ALLOW_UNFREE, ${if allowUnfree then "1" else "0"}"
+        "NIXPKGS_ALLOW_UNFREE, ${
+          if allowUnfree
+          then "1"
+          else "0"
+        }"
 
         "XDG_CURRENT_DESKTOP,Hyprland"
         "XDG_SESSION_TYPE,wayland"
@@ -214,7 +224,7 @@ in
 
     systemd = {
       enable = true;
-      variables = [ "-all" ];
+      variables = ["-all"];
       extraCommands = [
         "systemctl --user stop graphical-session.target"
         "systemctl --user start hyprland-session.target"

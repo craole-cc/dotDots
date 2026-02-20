@@ -2,13 +2,14 @@
   lib,
   pkgs,
   locale,
-  fonts,
+  style,
   paths,
   keyboard,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (keyboard) mod vimKeybinds;
+  inherit (style) fonts;
   name = "caelestia";
   kind = "bar";
 

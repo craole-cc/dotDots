@@ -139,7 +139,10 @@
   in
     mapAttrs mkCategory categoryDefaults // {inherit mkDefault;};
 
-  mkStyle = user: rec {
+  mkStyle = {
+    host,
+    user,
+  }: let
     theme = user.interface.style.theme or {};
     mode = toLower (theme.mode or "dark");
     variant = toLower (theme.${mode} or "Catppuccin Latte");
@@ -157,7 +160,16 @@
       then "frappe"
       else "latte";
     catppuccin = hasInfix "catppuccin" variant;
-  };
+    fonts =
+      user.interface.style.fonts or host.interface.style.fonts or {
+        emoji = "Noto Color Emoji";
+        monospace = "Maple Mono NF";
+        sans = "Monaspace Radon Frozen";
+        serif = "Noto Serif";
+        material = "Material Symbols Sharp";
+        clock = "Rubik";
+      };
+  in {inherit fonts mode variant accent flavor catppuccin;};
 
   mkKeyboard = {
     host,
@@ -223,10 +235,9 @@
             derivedPaths = getDefaults {inherit config host user pkgs paths;};
           in {
             _module.args = {
-              style = mkStyle user;
+              style = mkStyle {inherit host user;};
               user = user // {inherit name;};
               apps = mkApps {inherit host user;};
-              fonts = user.interface.style.fonts or host.interface.style.fonts or {};
               keyboard = mkKeyboard {inherit host user;};
               locale = mkLocale {inherit host;};
               paths = derivedPaths;

@@ -1,7 +1,4 @@
-{
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   config = {
     home-manager.users.craole = {
       wayland.windowManager.hyprland.enable = true;

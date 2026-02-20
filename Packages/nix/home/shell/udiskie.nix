@@ -147,3 +147,4 @@ icon_names:
   delete:  [udiskie-eject]
   quit:    [application-exit]
 */
+
