@@ -199,7 +199,7 @@
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
               (core.mkUsers {inherit host pkgs;})
-              (home.mkUsers {inherit host pkgs specialArgs paths;})
+              (home.mkUsers {inherit host specialArgs paths;})
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})
             ]
