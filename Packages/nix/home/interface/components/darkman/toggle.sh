@@ -15,7 +15,7 @@ STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/theme-mode.state"
 
 case "$CFG_POLARITY" in "dark") PORTAL_MODE="1" ;; *) PORTAL_MODE="2" ;; esac
 
-# Check if we're already in the requested mode
+#> Check if we're already in the requested mode
 if [ -f "$STATE_FILE" ]; then
 	CURRENT_MODE=$(cat "$STATE_FILE")
 	if [ "$CURRENT_MODE" = "$CFG_POLARITY" ]; then
@@ -43,7 +43,7 @@ printf '2. Setting freedesktop portal...\n'
 #> 3. Use gsettings instead of dconf (works on your system)
 printf '3. Setting GNOME/GTK preferences...\n'
 if command -v gsettings >/dev/null 2>&1; then
-	# gsettings set org.gnome.desktop.interface color-scheme "prefer-$CFG_POLARITY" 2>/dev/null || true
+	gsettings set org.gnome.desktop.interface color-scheme "prefer-$CFG_POLARITY" 2>/dev/null || true
 	# Don't change gtk-theme if you're using adw-gtk3-dark
 	gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-$CFG_POLARITY" 2>/dev/null || true
 else
