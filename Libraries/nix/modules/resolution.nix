@@ -183,9 +183,10 @@
         packages
         config
         overlays
+        specialArgs
         ;
-      specialArgs = specialArgs // {lix = _;};
       host = host';
+      # paths =
     };
   in {
     inherit

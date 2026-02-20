@@ -21,6 +21,7 @@
   }:
     mapAttrs (
       _name: host: let
+        resolvedPaths = paths // {local = paths.mkLocal host.paths.dots;};
         modules = let
           all = {
             inherit
@@ -34,7 +35,12 @@
             inherit lix lib;
           };
           eval = evalModules {
-            specialArgs = all // {inherit lix host schema paths;};
+            specialArgs =
+              all
+              // {
+                inherit lix host schema;
+                paths = resolvedPaths;
+              };
             modules =
               []
               ++ all.baseModules

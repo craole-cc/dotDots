@@ -5,7 +5,6 @@
 }: let
   inherit (lib.attrsets) filterAttrs isAttrs mapAttrs;
   inherit (lib.strings) hasInfix toLower toUpper;
-  # inherit (_.filesystem.paths) getDefaults;
   inherit (_.modules.generators.core) userAttrs;
 
   /**
@@ -215,6 +214,7 @@
         mapAttrs (
           name: user: {nixosConfig, ...}: let
             inputsForHome = mkHomeModuleApps {inherit user;};
+            resolvedPaths = paths // {local = paths.mkLocal host.paths.dots;};
           in {
             _module.args = {
               style = mkStyle user;
@@ -223,7 +223,7 @@
               fonts = user.interface.style.fonts or host.interface.style.fonts or {};
               keyboard = mkKeyboard {inherit host user;};
               locale = mkLocale {inherit host;};
-              paths = paths // {local = paths.mkLocal host.paths.dots;};
+              paths = resolvedPaths;
               inherit inputsForHome;
             };
 
