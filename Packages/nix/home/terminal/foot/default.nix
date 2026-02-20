@@ -12,7 +12,7 @@
   inherit (pkgs) makeDesktopItem writeShellScriptBin;
 
   #~@ Script Wrappers
-  script = paths.libs.shellscript + "/packages/wrappers/feet.sh";
+  script = paths.local.libs.shellscript + "/packages/wrappers/feet.sh";
 
   #> Main launcher (calls external script)
   command = writeShellScriptBin "feet" ''
