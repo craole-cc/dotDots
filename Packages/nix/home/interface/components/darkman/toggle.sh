@@ -69,7 +69,21 @@ printf '6. Sending notification...\n'
 	printf 'Warning: Failed to send notification\n'
 }
 
-# Update state file
+#> Send SIGUSR2 to reload all windows without restart
+printf '7. Reloading VSCode...\n'
+if command -v code >/dev/null 2>&1; then
+	pkill -SIGUSR2 -x code 2>/dev/null || true
+fi
+
+#> 8. Switch foot terminal theme via signal
+printf '8. Switching foot theme...\n'
+if [ "$CFG_POLARITY" = "dark" ]; then
+	kill -SIGUSR1 "$(pgrep -x foot)" 2>/dev/null || true
+else
+	kill -SIGUSR2 "$(pgrep -x foot)" 2>/dev/null || true
+fi
+
+#> Update state file
 mkdir -p "$(dirname "$STATE_FILE")"
 printf '%s\n' "$CFG_POLARITY" >"$STATE_FILE"
 

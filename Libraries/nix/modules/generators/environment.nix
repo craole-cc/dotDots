@@ -199,6 +199,8 @@
           TERMINAL = terminalCmds.primary;
           LAUNCHER = launcherCmds.primary;
           BAR = barCmds.primary;
+
+          ELECTRON_OZONE_PLATFORM_HINT = "auto";
         }
         // (optionalAttrs (dp == "wayland") {
           #~@ Wayland — toolkit and compositor backend hints
