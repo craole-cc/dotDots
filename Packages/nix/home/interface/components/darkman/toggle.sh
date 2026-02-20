@@ -69,11 +69,11 @@ printf '6. Sending notification...\n'
 	printf 'Warning: Failed to send notification\n'
 }
 
-#> Send SIGUSR2 to reload all windows without restart
-printf '7. Reloading VSCode...\n'
-if command -v code >/dev/null 2>&1; then
-	pkill -SIGUSR2 -x code 2>/dev/null || true
-fi
+# #> Send SIGUSR2 to reload all windows without restart
+# printf '7. Reloading VSCode...\n'
+# if command -v code >/dev/null 2>&1; then
+# 	pkill -SIGUSR2 -x code 2>/dev/null || true
+# fi
 
 #> 8. Switch foot terminal theme via signal
 printf '8. Switching foot theme...\n'
