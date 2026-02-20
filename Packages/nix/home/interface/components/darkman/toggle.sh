@@ -77,6 +77,11 @@ printf '6. Sending notification...\n'
 
 #> 8. Switch foot terminal theme via signal
 printf '8. Switching foot theme...\n'
+case "$CFG_POLARITY" in
+"dark") SIGNAL="SIGUSR1" ;;
+*) SIGNAL="SIGUSR2" ;;
+esac
+
 if [ "$CFG_POLARITY" = "dark" ]; then
 	kill -SIGUSR1 "$(pgrep -x foot)" 2>/dev/null || true
 else
