@@ -130,6 +130,7 @@
           dua #? Interactive disk usage analyzer (TUI)
           dust #? Intuitive du replacement
           eza #? Modern ls with git integration
+          lsd #? Stylish ls with icons and Git integration
           fd #? Fast, user-friendly find alternative
           fzf #? General-purpose fuzzy finder
           rsync #? Fast incremental file sync/transfer
@@ -257,7 +258,7 @@
         };
       };
 
-      # starship.enable = prompt == "starship";
+      starship.enable = prompt == "starship";
 
       #~@ Version control
       git = {
