@@ -4,9 +4,9 @@
   ...
 }: let
   inherit (_.attrsets.resolution) package;
-  inherit (lib.attrsets) filterAttrs mapAttrs;
+  inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) head optionals;
-  inherit (lib.strings) hasInfix toLower;
+  # inherit (_.filesystem.paths) getDefaults;
   inherit (_.lists.predicates) isIn;
 
   /**
@@ -51,28 +51,28 @@
   */
   adminsNames = host: host.users.names.elevated or [];
 
-  /**
-  Filter users eligible for home-manager configuration.
-  Excludes: service users, guest users, and empty/undefined users.
+  # /**
+  # Filter users eligible for home-manager configuration.
+  # Excludes: service users, guest users, and empty/undefined users.
 
-  Type: AttrSet -> AttrSet
+  # Type: AttrSet -> AttrSet
 
-  Example:
-    homeManagerUsers { users.data.enabled = {
-      alice = { role = "admin"; };
-      cc = { role = "service"; };
-    }; }
-    => { alice = { role = "admin"; }; }
-  */
-  homeUserAttrs = host:
-    filterAttrs
-    (_: user:
-      user
-      != {} # User must exist
-      && (user.role or null) != "service" # Not a system service
-      && (user.role or null) != "guest") # Not a guest account
-    
-    (userAttrs host);
+  # Example:
+  #   homeManagerUsers { users.data.enabled = {
+  #     alice = { role = "admin"; };
+  #     cc = { role = "service"; };
+  #   }; }
+  #   => { alice = { role = "admin"; }; }
+  # */
+  # homeUserAttrs = host:
+  #   filterAttrs
+  #   (_: user:
+  #     user
+  #     != {} # User must exist
+  #     && (user.role or null) != "service" # Not a system service
+  #     && (user.role or null) != "guest") # Not a guest account
+
+  #   (userAttrs host);
 
   /**
   Main user configuration builder.
@@ -104,7 +104,6 @@
   mkUsers = {
     host,
     pkgs,
-    extraSpecialArgs,
     ...
   }: {
     security.sudo = {
@@ -133,49 +132,6 @@
           target = head (user.shells or ["bash"]);
         };
       }) (userAttrs host);
-    };
-
-    home-manager = {
-      backupFileExtension = "BaC";
-      overwriteBackup = true;
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      inherit extraSpecialArgs;
-
-      #> Only configure home-manager for eligible users
-      #? (excludes service accounts and guests)
-      users =
-        mapAttrs (name: user: {
-          # config,
-          nixosConfig,
-          mkHomeModuleApps,
-          paths,
-          ...
-        }: let
-          inputs = mkHomeModuleApps {inherit user;};
-        in {
-          #> Pass user data and apps to modules via _module.args
-          _module.args.user = user // {inherit name;};
-
-          #> Update the stateVersion to mirror that of the host
-          home = {inherit (nixosConfig.system) stateVersion;};
-
-          imports =
-            []
-            ++ [paths.store.pkgs.home]
-            ++ (user.imports or [])
-            #> Always import ALL modules so options are always defined
-            ++ (with inputs; [
-              caelestia.module
-              catppuccin.module
-              dank-material-shell.module
-              noctalia-shell.module
-              nvf.module
-              plasma.module
-              zen-browser.module
-            ]);
-        })
-        (homeUserAttrs host);
     };
   };
 

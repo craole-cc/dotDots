@@ -94,7 +94,7 @@
     per = genAttrs all;
     pkgsFor = system: pkgsBase.${system} or {};
 
-    # Enhanced perFlake that provides pkgs automatically
+    #> Provide perFlake pkgs automatically
     perFlake = fn: let
       perSystemOutputs = per (system:
         fn {
@@ -181,10 +181,10 @@
       inherit
         inputs
         packages
-        specialArgs
         config
         overlays
         ;
+      specialArgs = specialArgs // {lix = _;};
       host = host';
     };
   in {

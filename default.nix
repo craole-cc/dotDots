@@ -55,7 +55,7 @@
       api = let
         default = buildPath {
           inherit root;
-          stem = ["API"];
+          stem = ["API" "nix"];
         };
         hosts = buildPath {
           root = default;
@@ -122,8 +122,8 @@
       };
     };
     store = known src;
-    local = dots: known dots;
-  in {inherit buildPath store local;};
+    mkLocal = dots: known dots;
+  in {inherit buildPath store mkLocal;};
 
   inherit (import paths.store.libs.default {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {
