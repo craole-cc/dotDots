@@ -161,6 +161,8 @@
       mkSystem
       mkUsers
       mkSudoRules
+      userAttrs
+      adminsNames
       ;
   };
 in

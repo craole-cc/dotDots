@@ -83,6 +83,7 @@
         beta = inputs.zen-browser.homeModules.beta or {};
       };
     };
+
     mkHomeModule = {
       name,
       variant ? "default",
@@ -90,11 +91,8 @@
       homeModules.${name}.${variant} or {};
 
     appsAllowed = user: user.applications.allowed or [];
-    mkHomeModuleApps = {
-      # pkgs,
-      user,
-      # config,
-    }: {
+
+    mkHomeModuleApps = user: {
       #| Plasma Desktop Environment
       plasma = let
         name = "plasma";
@@ -179,6 +177,7 @@
         module = mkHomeModule {inherit name variant;};
       };
     };
+
     hostModules =
       [
         {inherit nixpkgs;}
@@ -199,7 +198,7 @@
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
               (core.mkUsers {inherit host pkgs;})
-              (home.mkUsers {inherit host specialArgs paths;})
+              (home.mkUsers {inherit host specialArgs paths mkHomeModuleApps;})
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})
             ]

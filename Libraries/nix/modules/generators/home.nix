@@ -6,7 +6,7 @@
   inherit (lib.attrsets) filterAttrs isAttrs mapAttrs;
   inherit (lib.strings) hasInfix toLower toUpper;
   # inherit (_.filesystem.paths) getDefaults;
-  inherit (_.modules.generators.users) userAttrs;
+  inherit (_.modules.generators.core) userAttrs;
 
   /**
   Filter users eligible for home-manager configuration.
@@ -190,55 +190,13 @@
   };
 
   /**
-  Builds a single user's HM module with all _module.args and imports.
-  Type: { host, user, name, mkHomeModuleApps, paths, nixosConfig } -> HMModule
-  */
-  mkUser = {
-    host,
-    user,
-    name,
-    mkHomeModuleApps,
-    paths,
-    nixosConfig,
-  }: let
-    # resolvedPaths = getDefaults {inherit config host user pkgs paths;};
-    inputsForHome = mkHomeModuleApps {inherit user;};
-  in {
-    _module.args = {
-      style = mkStyle user;
-      user = user // {inherit name;};
-      apps = mkApps {inherit host user;};
-      fonts = user.interface.style.fonts or host.interface.style.fonts or {};
-      keyboard = mkKeyboard {inherit host user;};
-      locale = mkLocale {inherit host;};
-      paths = paths // {local = paths.mkLocal host.paths.dots;};
-      inherit inputsForHome;
-    };
-
-    home = {inherit (nixosConfig.system) stateVersion;};
-
-    imports =
-      []
-      ++ [paths.store.pkgs.home]
-      ++ (user.imports or [])
-      ++ (with inputsForHome; [
-        caelestia.module
-        catppuccin.module
-        dank-material-shell.module
-        noctalia-shell.module
-        nvf.module
-        plasma.module
-        zen-browser.module
-      ]);
-  };
-
-  /**
   Produces the entire home-manager NixOS option block for all eligible users.
   Type: { host, specialArgs, paths } -> AttrSet
   */
   mkUsers = {
     host,
     specialArgs,
+    mkHomeModuleApps,
     paths,
   }: {
     home-manager = {
@@ -249,19 +207,42 @@
       extraSpecialArgs =
         specialArgs
         // {
-          inherit paths;
+          inherit paths host;
           lix = _;
         };
 
       users =
         mapAttrs (
-          name: user: {
-            nixosConfig,
-            mkHomeModuleApps,
-            paths,
-            ...
-          }:
-            mkUser {inherit host user name mkHomeModuleApps paths nixosConfig;}
+          name: user: {nixosConfig, ...}: let
+            inputsForHome = mkHomeModuleApps {inherit user;};
+          in {
+            _module.args = {
+              style = mkStyle user;
+              user = user // {inherit name;};
+              apps = mkApps {inherit host user;};
+              fonts = user.interface.style.fonts or host.interface.style.fonts or {};
+              keyboard = mkKeyboard {inherit host user;};
+              locale = mkLocale {inherit host;};
+              paths = paths // {local = paths.mkLocal host.paths.dots;};
+              inherit inputsForHome;
+            };
+
+            home = {inherit (nixosConfig.system) stateVersion;};
+
+            imports =
+              []
+              ++ [paths.store.pkgs.home]
+              ++ (user.imports or [])
+              ++ (with inputsForHome; [
+                caelestia.module
+                catppuccin.module
+                dank-material-shell.module
+                noctalia-shell.module
+                nvf.module
+                plasma.module
+                zen-browser.module
+              ]);
+          }
         )
         (userAttrs' host);
     };
@@ -273,7 +254,6 @@
       mkKeyboard
       mkLocale
       mkStyle
-      mkUser
       mkUsers
       ;
     userAttrs = userAttrs';
@@ -283,7 +263,6 @@ in
   // {
     _rootAliases = {
       homeUserAttrs = userAttrs';
-      mkHomeUser = mkUser;
       mkHomeUserApps = mkApps;
       mkHomeUserKeyboard = mkKeyboard;
       mkHomeUserLocale = mkLocale;

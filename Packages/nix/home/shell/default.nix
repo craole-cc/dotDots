@@ -1,6 +1,6 @@
 {
   host,
-  lib,
+  # lib,
   lix,
   pkgs,
   user,
@@ -11,12 +11,12 @@
 in {
   home = {
     inherit (host) stateVersion;
-    packages = with pkgs; (map (shell:
+    packages = map (shell:
       package {
         inherit pkgs;
         target = shell;
       })
-    (user.shells or []));
+    (user.shells or []);
   };
 
   imports = importAll ./.;
