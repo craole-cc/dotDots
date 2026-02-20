@@ -8,7 +8,7 @@
   inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
   inherit (_.modules.generators.software) mkNix mkBoot mkClean;
   inherit (_.modules.generators.style) mkFonts;
-  # inherit (_.modules.generators.users) core home;
+  inherit (_.modules.generators) core home;
   # inherit (_.modules.generators.users.home) mkHomeUsers;
   inherit (lib.lists) optionals;
   inherit (lib.modules) mkMerge;
@@ -198,8 +198,8 @@
               (mkAudio {inherit host;})
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
-              # (core.mkUsers {inherit host pkgs;})
-              # (home.mkUsers {inherit host pkgs specialArgs paths;})
+              (core.mkUsers {inherit host pkgs;})
+              (home.mkUsers {inherit host pkgs specialArgs paths;})
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})
             ]
