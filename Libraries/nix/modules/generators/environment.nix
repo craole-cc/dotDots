@@ -199,8 +199,6 @@
           TERMINAL = terminalCmds.primary;
           LAUNCHER = launcherCmds.primary;
           BAR = barCmds.primary;
-
-          ELECTRON_OZONE_PLATFORM_HINT = "auto";
         }
         // (optionalAttrs (dp == "wayland") {
           #~@ Wayland — toolkit and compositor backend hints
@@ -344,12 +342,12 @@
       "autovt@tty1".enable = false;
     };
 
-    xdg.portal = {
-      enable = true;
-      config = {
-        common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
-      };
-    };
+    # xdg.portal = {
+    #   enable = true;
+    #   config = {
+    #     common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
+    #   };
+    # };
   };
 
   mkLocale = {host, ...}: let
