@@ -8,8 +8,7 @@
 
     #~@ Initial Theme
     #? Options: "dark", "light"
-    # initial-color-theme = 1; #? Start with dark theme
-    initial-color-theme = "dark";
+    initial-color-theme = 1; #? Start with dark theme
 
     #~@ Selection Behavior
     #? Automatically copy the selection to the clipboard
