@@ -77,17 +77,17 @@ in {
     inherit (cfg) programs home;
 
     #~@ Systemd User Service for Theme Monitoring
-    systemd.user.services.foot-theme-monitor = {
-      Unit = {
-        Description = "Foot terminal theme monitor";
-        After = ["graphical-session.target"];
-      };
-      Service = {
-        ExecStart = monitor;
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-      Install.WantedBy = ["graphical-session.target"];
-    };
+    # systemd.user.services.foot-theme-monitor = {
+    #   Unit = {
+    #     Description = "Foot terminal theme monitor";
+    #     After = ["graphical-session.target"];
+    #   };
+    #   Service = {
+    #     ExecStart = monitor;
+    #     Restart = "on-failure";
+    #     RestartSec = 5;
+    #   };
+    #   Install.WantedBy = ["graphical-session.target"];
+    # };
   };
 }

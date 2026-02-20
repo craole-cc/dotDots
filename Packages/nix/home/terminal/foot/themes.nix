@@ -5,8 +5,8 @@ in {
   #? Theme 1, accessed via initial-color-theme=1
   colors = {
     inherit alpha;
-    # background = "303446";
-    # foreground = "c6d0f5";
+    background = "303446";
+    foreground = "c6d0f5";
 
     # #~@ Regular Colors (0-7)
     # regular0 = "51576d";
@@ -31,10 +31,11 @@ in {
 
   #~@ Alternative Color Theme (Light - Catppuccin Latte)
   #? Theme 2, accessed via initial-color-theme=2
-  colors2 = {
+  # colors2 = {
+  "colors-light" = {
     inherit alpha;
-    # background = "eff1f5";
-    # foreground = "4c4f69";
+    background = "eff1f5";
+    foreground = "4c4f69";
 
     # #~@ Regular Colors (0-7)
     # regular0 = "5c5f77";
