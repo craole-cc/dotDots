@@ -38,7 +38,10 @@
 in {
   services.darkman = mkIf enable {
     inherit enable;
-    settings = {inherit lat lng usegeoclue;};
+    settings = {
+      inherit lat lng;
+      usegeoclue = false; #? Use static coords; ignore provider
+    };
     darkModeScripts.nixos-theme = toggle "dark";
     lightModeScripts.nixos-theme = toggle "light";
   };
