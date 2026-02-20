@@ -341,6 +341,13 @@
       "getty@tty1".enable = false;
       "autovt@tty1".enable = false;
     };
+
+    xdg.portal = {
+      enable = true;
+      config = {
+        common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
+      };
+    };
   };
 
   mkLocale = {host, ...}: let
