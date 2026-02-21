@@ -255,6 +255,7 @@
         settings.global = {
           log_format = "-";
           log_filter = "^$";
+          load_dotenv = true;
         };
       };
 
