@@ -125,6 +125,7 @@
           pciutils #? PCI tools — lspci
           usbutils #? USB tools — lsusb
           gnome-randr #? Display configuration for GNOME/Wayland
+          qimgv #? Fast image viewer with minimal UI
 
           #~@ Files — navigation, search, sync, cleanup
           dua #? Interactive disk usage analyzer (TUI)
@@ -305,7 +306,7 @@
       displayManager = {
         autoLogin = {
           enable = user.autoLogin or false;
-          user = user.name      or null;
+          user = user.name or null;
         };
 
         defaultSession =
@@ -364,7 +365,7 @@
     location = {
       latitude = loc.latitude or null;
       longitude = loc.longitude or null;
-      provider = loc.locator  or "geoclue2";
+      provider = loc.locator or "geoclue2";
     };
 
     #~@ Internationalization

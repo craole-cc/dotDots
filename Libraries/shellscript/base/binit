@@ -2,7 +2,7 @@
 #> Initialize Bin directory structure
 
 #> Configuration - can be overridden by caller
-: "${BIN_ROOT:=Bin}"
+: "${DOTS_LIB:=Bin}"
 : "${BIN_DEPTH:=10}"
 : "${BIN_IGNORE:=review tmp archive}"
 : "${BLACKLIST_EXT:=md txt json yaml yml xml html css js ts jsx tsx png jpg jpeg gif svg pdf doc docx xls xlsx ppt pptx zip tar gz bz2 7z log}"
@@ -13,7 +13,7 @@
 make_executable() {
 	changed_count=0
 
-	find "${BIN_ROOT}" -type f 2>/dev/null | while read -r file; do
+	find "${DOTS_LIB}" -type f 2>/dev/null | while read -r file; do
 		#> Get file extension
 		ext="${file##*.}"
 
@@ -43,7 +43,7 @@ add_to_path() {
 	#> Filter directories
 	if command -v fd >/dev/null 2>&1; then
 		#> Build fd command
-		fd_cmd="fd --type d --max-depth $((BIN_DEPTH * 2)) . ${BIN_ROOT}"
+		fd_cmd="fd --type d --max-depth $((BIN_DEPTH * 2)) . ${DOTS_LIB}"
 		for dir in ${BIN_IGNORE}; do
 			fd_cmd="${fd_cmd} --exclude ${dir}"
 		done
@@ -51,7 +51,7 @@ add_to_path() {
 	else
 		#> Fallback to find
 		BIN_IGNORE_PATTERN=$(printf "%s" "${BIN_IGNORE}" | tr ' ' '|')
-		BIN_DIRS="$(find "${BIN_ROOT}" -maxdepth "${BIN_DEPTH}" -type d 2>/dev/null |
+		BIN_DIRS="$(find "${DOTS_LIB}" -maxdepth "${BIN_DEPTH}" -type d 2>/dev/null |
 			grep -v -E "/(${BIN_IGNORE_PATTERN})$")"
 	fi
 
