@@ -165,7 +165,7 @@
       # "atuin"
       "fastfetch"
       "freetube"
-      "fresh-editor"
+      # "fresh-editor"
       "warp-terminal"
       "jujutsu"
       "obs-studio"

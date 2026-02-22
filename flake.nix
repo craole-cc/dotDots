@@ -91,14 +91,14 @@
       };
     };
 
-    editorFresh = {
-      repo = "fresh";
-      owner = "sinelaw";
-      type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
-    };
+    # editorFresh = {
+    #   repo = "fresh";
+    #   owner = "sinelaw";
+    #   type = "github";
+    #   inputs = {
+    #     nixpkgs.follows = "nixPackages";
+    #   };
+    # };
 
     editorNeovim = {
       repo = "nvf";

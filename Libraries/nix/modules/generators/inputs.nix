@@ -89,15 +89,15 @@
       ];
     };
 
-    fresh-editor = byPaths {
-      attrset = inputs;
-      default = "fresh-editor";
-      paths = [
-        ["fresh"]
-        ["freshEditor"]
-        ["editorFresh"]
-      ];
-    };
+    # fresh-editor = byPaths {
+    #   attrset = inputs;
+    #   default = "fresh-editor";
+    #   paths = [
+    #     ["fresh"]
+    #     ["freshEditor"]
+    #     ["editorFresh"]
+    #   ];
+    # };
 
     helix = byPaths {
       attrset = inputs;
