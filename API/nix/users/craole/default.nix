@@ -159,13 +159,12 @@
       secondary = "fuzzel";
     };
     bar = "caelestia";
-    # prompt = "starship";
+    prompt = "starship";
 
     allowed = [
       # "atuin"
       "fastfetch"
       "freetube"
-      # "fresh-editor"
       "warp-terminal"
       "jujutsu"
       "obs-studio"
