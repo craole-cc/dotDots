@@ -125,7 +125,8 @@
           pciutils #? PCI tools — lspci
           usbutils #? USB tools — lsusb
           gnome-randr #? Display configuration for GNOME/Wayland
-          qimgv #? Fast image viewer with minimal UI
+          wlr-randr #? Display configuration for wlroots WMs
+          procs #? Modern ps replacement with tree view
 
           #~@ Files — navigation, search, sync, cleanup
           dua #? Interactive disk usage analyzer (TUI)
@@ -139,26 +140,26 @@
           trashy #? Safe trash-aware rm alternative
 
           #~@ Network — transfer, GitHub
-          curl #? HTTP/S transfer tool
+          curl #? Command-line HTTP client
           wget #? Non-interactive network downloader
           gh #? Official GitHub CLI
 
           #~@ Dev — editors, VCS, data, media
-          amp #? Minimal terminal text editor (Rust)
-          helix #? Modal editor with native LSP + tree-sitter
+          bat #? Cat clone with syntax highlighting and paging
           gitui #? Fast terminal UI for Git
+          helix #? Modal editor with native LSP + tree-sitter
           imagemagick #? Image conversion and manipulation
           jql #? JSON querying tool
+          qimgv #? Fast image viewer with minimal UI
           ripgrep #? Fast recursive grep (rg)
+          viu #? Fast terminal image viewer with truecolor support
 
           #~@ Shell — monitoring, productivity, aesthetics
-          bat #? Cat clone with syntax highlighting and paging
           btop #? Rich resource monitor (htop replacement)
           fastfetch #? Fast system info fetcher
           fend #? Arbitrary-precision calculator REPL
           figlet #? ASCII art text banners
           lolcat #? Rainbow pipe colorizer
-          procs #? Modern ps replacement with tree view
         ]
         ++ editorPkgs
         ++ browserPkgs
