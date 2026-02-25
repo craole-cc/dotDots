@@ -1,22 +1,90 @@
 [alias]
-a = "add"
-b = "build --release"
-bi = "install --path ."
-c = "clean"
-i = "info"
-in = "install"
-r = "run"
-rq = "run --quiet"
-rr = "run --release"
-t = "test"
-w = "watch --quiet --clear --exec r"
-wc = "watch --quiet --clear --watch crates --exec run"
-wq = "watch --quiet --clear --exec rq"
-wqr = "watch --quiet --clear --exec 'run --quiet --release'"
-wr = "watch --quiet --clear --exec rr"
+# -- Basic
+a = "add"           #? Adds dependencies to Cargo.toml
+nb = "new --bin"    #? Creates new binary project
+nl = "new --lib"    #? Creates new library project
+s = "search"        #? Searches crates.io for packages
+u = "update"        #? Updates dependencies to latest compatible versions
+
+# -- Benchmark
+m = "bench"
+mq = "bench --quiet"
+
+# -- Build
+b = "build --verbose --message-format human"
+bv = "build --verbose --message-format json-render-diagnostics"
+ba = "b --workspace"    #? Build all workspace members
+br = "b --release"      #? Build with release optimizations
+
+# -- Check (fast compilation check)
+k = "check --verbose"   #? Quick compilation check without codegen
+ka = "k --workspace"    #? Check all workspace members
+
+# -- Clean
+c = "clean --verbose"   #? Remove build artifacts
+gc = "c"                #? Alias for clean (git-style)
+
+# -- Documentation
+d = "doc --document-private-items"   #? Generates docs including private items
+do = "d --open"                      #? Generates and open docs in browser
+
+# -- Exemplify
+x = "rq --example"    #? Runs example quietly
+xv = "rv --example"   #? Runs example with verbose output
+
+# -- Information
+i = "info"            #? Displays crate information from crates.io
+iv = "i --verbose"    #? Displays detailed crate information
+
+# -- Install
+in = "install --force"               #? Installs crate (overwrites existing)
+ip = "in --path"                     #? Installs from local path
+id = "in --debug --path"             #? Installs debug build from path
+il = "in --locked --path"            #? Installs with locked dependencies from path
+ild = "in --locked --debug --path"   #? Installs debug build with locked deps from path
+idl = "ild"                          #? Alias for locked debug install
+
+# -- Lint (Clippy)
+l = "clippy --all-targets --no-deps"   #? Lint all targets without checking dependencies
+lf = "l --fix"                         #? Automatically apply lint suggestions
+la = "l --workspace"                   #? Lint entire workspace
+lr = "l --release"                     #? Lint with release profile optimizations
+
+# -- Publish
+pl = "login"         #? Authenticate with crates.io
+p = "publish"        #? Publish crate to crates.io
+pd = "p --dry-run"   #? Verify package without uploading
+
+# -- Run
+r = "run"              #? Runs the default binary
+rq = "run --quiet"     #? Runs binary with minimal output
+rr = "rv --release"    #? Runs release build with verbose output
+rv = "run --verbose"   #? Runs with detailed compilation output
+
+# -- Test
+t = "test"                #? Runs all tests
+ta = "test --workspace"   #? Tests all workspace members
+tq = "test --quiet"       #? Runs tests with minimal output
+tv = "test --verbose"     #? Runs tests with detailed output
+
+# -- Watch
+w = "watch --quiet --clear --exec"   #? Watchs files and executes command on change
+wl = "w l"                           #? Watches linting
+wlr = "w lr"                         #? Watches linting the release profile
+wr = "w rq"                          #? Watches development build
+wrr = "w rr"                         #? Watches release build verbosely
+wv = "w rv"                          #? run development build verbosely
+wt = "w tq"                          #? Watches tests
+wtv = "w tv"                         #? Watches test verbosely
+wx = "w x"                           #? Watches examples
+wxv = "w xv"                         #? Watches examples verbosely
 
 [term]
 # quiet = true
+color = "always"
+
+[build]
+jobs = 4
 
 [doc]
 # browser = "firefox"
