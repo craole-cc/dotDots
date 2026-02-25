@@ -79,13 +79,13 @@
     export PATH
 
     #> Initialize bin directories with binit if available
-    # BINIT_PATH="$DOTS_LIB_SH/base/binit"
-    # if [ -f "''${BINIT_PATH:-}" ]; then
-    #   if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
-    #   . "$BINIT_PATH"
-    # else
-    #   printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
-    # fi
+    BINIT_PATH="$DOTS_LIB_SH/base/binit"
+    if [ -f "''${BINIT_PATH:-}" ]; then
+      if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
+      . "$BINIT_PATH"
+    else
+      printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
+    fi
 
     #> Use starship for prompt
     if command -v starship >/dev/null 2>&1; then
@@ -94,20 +94,18 @@
       eval "$(starship init bash)"
     fi
 
+    #> Display shell information with nitch
+    if command -v nitch >/dev/null 2>&1; then
+      nitch
+    fi
+
     #> Display repository summary with onefetch if in a git repository
     if [ -d .git ] && command -v onefetch >/dev/null 2>&1; then
       onefetch \
       --no-art \
       --no-title \
       --no-color-palette \
-      --nerd-fonts \
-      --number-separator comma \
-      --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'contributors' 'url' 'churn' 'license'
-    fi
-
-    #> Display shell information with nitch
-    if command -v nitch >/dev/null 2>&1; then
-      nitch
+      --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'commits' 'lines-of-code' 'churn' 'size' 'contributors' 'url' 'license'
     fi
   '';
 in
