@@ -1,3 +1,89 @@
+#!/usr/bin/env pwsh
+#Bin/powershell/environment/fyls.psm1
+# PowerShell port of fyls - ls wrapper that tries eza, then lsd, then falls back to ls/Get-ChildItem
+# TODO: Working but quite slowly
+#region Global Functions
+function Global:Invoke-Fyls {
+  <#
+    .SYNOPSIS
+        A cross-platform ls wrapper that tries eza, then lsd, then falls back to native ls.
+    .DESCRIPTION
+        Fyls is a flexible directory listing tool that automatically detects and uses the best
+        available listing command (eza, lsd, ls, or PowerShell's Get-ChildItem) based on what's
+        installed on your system. It provides a unified interface with consistent options across
+        all platforms.
+    .PARAMETER Tool
+        Force specific tool to use (eza, lsd, ls, powershell).
+    .PARAMETER All
+        Show hidden files and directories.
+    .PARAMETER Color
+        Force color output.
+    .PARAMETER NoColor
+        Disable color output.
+    .PARAMETER DirFirst
+        Show directories first in listings.
+    .PARAMETER DirLast
+        Show directories last in listings.
+    .PARAMETER NoGroup
+        Don't group directories.
+    .PARAMETER Depth
+        Limit recursion depth to specified number.
+    .PARAMETER DirectoryOnly
+        Show only directories.
+    .PARAMETER Git
+        Show git status information.
+    .PARAMETER NoGit
+        Disable git status information.
+    .PARAMETER GitIgnore
+        Respect .gitignore files when listing.
+    .PARAMETER Header
+        Show column headers in output.
+    .PARAMETER Hyperlink
+        Enable hyperlinks in output.
+    .PARAMETER NoHyperlink
+        Disable hyperlinks in output.
+    .PARAMETER Icons
+        Show file type icons.
+    .PARAMETER NoIcons
+        Disable file type icons.
+    .PARAMETER Long
+        Use long format listing.
+    .PARAMETER Link
+        Show only symbolic links.
+    .PARAMETER Octal
+        Show octal permissions.
+    .PARAMETER Pagination
+        Enable pagination of output.
+    .PARAMETER Pretty
+        Enable both colors and icons for attractive output.
+    .PARAMETER Permission
+        Permission format: attributes, rwx, octal, or none.
+    .PARAMETER Recursive
+        Recursive listing (flat format).
+    .PARAMETER Sort
+        Sort field: size, time, version, extension, git, none, or name.
+    .PARAMETER SortSize
+        Sort by file size.
+    .PARAMETER SortNone
+        Disable sorting.
+    .PARAMETER SortTime
+        Sort by modification time.
+    .PARAMETER SortVersion
+        Sort by version numbers in filenames.
+    .PARAMETER SortExtension
+        Sort by file extension.
+    .PARAMETER Tree
+        Display output in tree format.
+    .PARAMETER ShowCommand
+        Show the command that would be executed without running it.
+    .PARAMETER Path
+        Paths to list. Defaults to current directory if not specified.
+    #>
+  [CmdletBinding()]
+  param(
+    [Parameter()]
+    [ValidateSet('eza', 'lsd', 'ls', 'powershell')]
+    [string]$Tool,
 
 (??)    [Alias('a')]
 (??)    [Parameter()]
