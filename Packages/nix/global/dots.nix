@@ -258,30 +258,42 @@
 
   shellHook = with config; ''
     #> Determine host info dynamically
-    export HOSTNAME="$(hostname)"
-    export HOSTTYPE="${system}"
+    HOSTNAME="$(hostname)"
+    HOSTTYPE="${system}"
+    export HOSTNAME HOSTTYPE
 
     #> Ensure DOTS is setand available for use
-    export DOTS="$(pwd -P)"
+    DOTS="$(pwd -P)"
+    DOTS_LIB_SH="${DOTS_LIB_SH: -"${DOTS}/Libraries/shellscript"}"
+    export DOTS DOTS_LIB_SH
 
     #> Set up cache directory structure
-    export DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cache}"}"
-    export ENV_BIN="$DOTS_CACHE/bin"
-    export DOTS_LOGS="$DOTS_CACHE/logs"
-    export DOTS_TMP="$DOTS_CACHE/tmp"
+    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cache}"}"
+    ENV_BIN="$DOTS_CACHE/bin"
+    DOTS_LOGS="$DOTS_CACHE/logs"
+    DOTS_TMP="$DOTS_CACHE/tmp"
     mkdir -p "$ENV_BIN" "$DOTS_LOGS" "$DOTS_TMP"
+    export DOTS_CACHE DOTS_LOGS DOTS_TMP
 
     #> Add bin directory to PATH
-    export PATH="$ENV_BIN:$PATH"
-    BINIT_PATH="$DOTS/Bin/shellscript/base/binit"
+    case ":$PATH:" in
+      *":$ENV_BIN:"*) ;;
+      *) PATH="$ENV_BIN:$PATH" ;;
+    esac
+    export PATH
+
+    #> Initialize bin directories with binit if available
+    BINIT_PATH="$DOTS_LIB_SH/base/binit"
     if [ -f "''${BINIT_PATH:-}" ]; then
       if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
       . "$BINIT_PATH"
     else
       printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
     fi
+
     #> Use starship for prompt
-    export STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
+    STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
+    export STARSHIP_CONFIG
     eval "$(starship init bash)"
     nitch
 
