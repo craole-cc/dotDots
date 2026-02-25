@@ -132,9 +132,11 @@
           dua #? Interactive disk usage analyzer (TUI)
           dust #? Intuitive du replacement
           eza #? Modern ls with git integration
-          lsd #? Stylish ls with icons and Git integration
           fd #? Fast, user-friendly find alternative
           fzf #? General-purpose fuzzy finder
+          lsd #? Stylish ls with icons and Git integration
+          ouch #? 7zip wrapper for [de]compressing archives with progress
+          p7zip #? 7zip CLI for archive management
           rsync #? Fast incremental file sync/transfer
           sad #? CLI find-and-replace (batch sed)
           trashy #? Safe trash-aware rm alternative

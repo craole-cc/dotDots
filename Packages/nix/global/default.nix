@@ -18,11 +18,12 @@
     mediaPackages = media.packages;
     fmtPackages = formatters;
   };
+  minimal = import ./minimal.nix {inherit pkgs;};
 in {
   devShells = {
-    default = dots;
+    default = minimal;
     media = media.shell;
-    inherit dots;
+    inherit dots minimal;
   };
   inherit formatter checks;
 }
