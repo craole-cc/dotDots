@@ -6,6 +6,13 @@
   system,
   ...
 }: let
+  configuration = {
+    name = "dots";
+    version = "2.0.0";
+    cache = ".cache";
+    prefix = ".";
+  };
+
   inherit
     (import ./fmt.nix {inherit flake pkgs;})
     formatters
@@ -18,7 +25,7 @@
     mediaPackages = media.packages;
     fmtPackages = formatters;
   };
-  minimal = import ./minimal.nix {inherit pkgs;};
+  minimal = import ./minimal.nix {inherit lib pkgs system configuration;};
 in {
   devShells = {
     default = minimal;

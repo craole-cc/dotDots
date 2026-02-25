@@ -2,25 +2,15 @@
   lib,
   system,
   pkgs,
+  configuration,
   ...
 }: let
   inherit (lib.lists) optionals;
   inherit (pkgs.stdenv) isLinux;
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Configuration                                                               |
-  #|─────────────────────────────────────────────────────────────────────────────|
-
-  config = {
-    name = "dots";
-    version = "2.0.0";
-    cache = ".cache";
-    prefix = ".";
-  };
-
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Packages                                                                    |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|────────────────────────────────────────|
+  #| Packages                               |
+  #|────────────────────────────────────────|
 
   packages = with pkgs;
     [
@@ -44,27 +34,37 @@
     ]
     ++ (optionals isLinux [xclip wl-clipboard xsel]); #? Linux clipboard tools
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Shell Configuration                                                         |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|────────────────────────────────────────|
+  #| Shell Configuration                    |
+  #|────────────────────────────────────────|
   env = {
     NIX_CONFIG = "experimental-features = nix-command flakes";
     SYSTEM = "$(hostname)";
   };
 
-  shellHook = with config; ''
+  shellHook = ''
     #> Determine host info dynamically
     HOSTNAME="$(hostname)"
     HOSTTYPE="${system}"
     export HOSTNAME HOSTTYPE
 
-    #> Ensure DOTS is setand available for use
-    DOTS="$(pwd -P)"
-    DOTS_LIB_SH="${DOTS_LIB_SH: -"${DOTS}/Libraries/shellscript"}"
-    export DOTS DOTS_LIB_SH
+    #> Ensure DOTS directories are defined
+    if [ -z "$DOTS" ]; then
+      DOTS="$(pwd -P)"
+      export DOTS
+    fi
+
+    if [ -z "$DOTS_LIB_SH" ]; then
+      DOTS_LIB_SH="$DOTS/Libraries/shellscript"
+      export DOTS_LIB_SH
+    fi
+
+    if [ -z "$DOTS_CACHE" ]; then
+      DOTS_CACHE="$DOTS/${configuration.cache}"
+      export DOTS_CACHE
+    fi
 
     #> Set up cache directory structure
-    DOTS_CACHE="''${DOTS_CACHE:-"$DOTS/${cache}"}"
     ENV_BIN="$DOTS_CACHE/bin"
     DOTS_LOGS="$DOTS_CACHE/logs"
     DOTS_TMP="$DOTS_CACHE/tmp"
@@ -79,13 +79,13 @@
     export PATH
 
     #> Initialize bin directories with binit if available
-    BINIT_PATH="$DOTS_LIB_SH/base/binit"
-    if [ -f "''${BINIT_PATH:-}" ]; then
-      if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
-      . "$BINIT_PATH"
-    else
-      printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
-    fi
+    # BINIT_PATH="$DOTS_LIB_SH/base/binit"
+    # if [ -f "''${BINIT_PATH:-}" ]; then
+    #   if [ -x "$BINIT_PATH" ]; then :; else chmod +x "$BINIT_PATH"; fi
+    #   . "$BINIT_PATH"
+    # else
+    #   printf "direnv: binit not found at %s\n" "''${BINIT_PATH}" >&2
+    # fi
 
     #> Use starship for prompt
     if command -v starship >/dev/null 2>&1; then
@@ -111,6 +111,7 @@
     fi
   '';
 in
-  pkgs.mkShell (with config; {
-    inherit name packages env shellHook;
-  })
+  pkgs.mkShell {
+    inherit (configuration) name;
+    inherit packages env shellHook;
+  }
