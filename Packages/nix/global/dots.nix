@@ -292,10 +292,27 @@
     fi
 
     #> Use starship for prompt
-    STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
-    export STARSHIP_CONFIG
-    eval "$(starship init bash)"
-    nitch
+    if command -v starship >/dev/null 2>&1; then
+      STARSHIP_CONFIG="$DOTS/Configuration/starship/config.toml"
+      export STARSHIP_CONFIG
+      eval "$(starship init bash)"
+    fi
+
+    #> Display repository summary with onefetch if in a git repository
+    if [ -d .git ] && command -v onefetch >/dev/null 2>&1; then
+      onefetch \
+      --no-art \
+      --no-title \
+      --no-color-palette \
+      --nerd-fonts \
+      --number-separator comma \
+      --disabled-fields 'project' 'description' 'head' 'version' 'created' 'languages' 'dependencies' 'authors' 'contributors' 'url' 'churn' 'license'
+    fi
+
+    #> Display shell information with nitch
+    if command -v nitch >/dev/null 2>&1; then
+      nitch
+    fi
 
     #> Display welcome message
     printf '╔═══════════════════════════════════════════════════════╗\n'
