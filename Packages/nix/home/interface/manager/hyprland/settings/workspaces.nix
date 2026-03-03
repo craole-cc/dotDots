@@ -4,7 +4,7 @@
   apps,
   ...
 }: let
-  inherit (lib.lists) flatten range;
+  inherit (lib.lists) elem flatten range;
   inherit (keyboard) mod;
   cat = lib.lists.concatMap;
   mat = lib.attrsets.mapAttrsToList;
@@ -130,12 +130,14 @@ in {
         "${mod} SHIFT,${n},movetoworkspacesilent,${ws}"
       ])
       numWorkspaces)
+
     #~@ Function-key Workspaces
     (cat (n: [
         "${mod},${n},workspace,name:${n}"
         "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}"
       ])
       fWorkspaces)
+
     #~@ Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {

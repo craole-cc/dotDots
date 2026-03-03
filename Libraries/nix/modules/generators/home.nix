@@ -5,6 +5,7 @@
 }: let
   inherit (lib.attrsets) filterAttrs isAttrs mapAttrs removeAttrs;
   inherit (lib.strings) hasInfix toLower toUpper;
+  inherit (lib.lists) elem;
   inherit (_.modules.generators.core) userAttrs;
   inherit (_.filesystem.paths) getDefaults;
 
@@ -62,10 +63,10 @@
       vicinae = "vicinae";
     };
 
-    # Declarative list of apps that require a terminal wrapper
+    #> List apps that require a terminal wrapper
     tuiApps = ["yazi" "btop" "htop"];
 
-    # Resolve the primary terminal command once, elegantly
+    #> Resolve the primary terminal command once, elegantly
     rawTerm = user.applications.terminal.primary 
     or host.applications.terminal.primary 
     or categoryDefaults.terminal.primary;
