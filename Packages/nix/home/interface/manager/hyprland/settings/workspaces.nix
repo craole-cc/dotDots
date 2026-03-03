@@ -73,11 +73,11 @@
       then ''sh -c "${cmd} & ${moveScript}"''
       else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
-      "workspace special:${workspace} silent, class:^(${actualClass})$"
-      "float 1, class:^(${actualClass})$"
-      "no_border 1, class:^(${actualClass})$"
-      "size 100% ${size}, class:^(${actualClass})$"
-      "move 0% 0%, class:^(${actualClass})$"
+      "match:class ^(${actualClass})$, workspace special:${workspace} silent"
+      "match:class ^(${actualClass})$, float 1"
+      "match:class ^(${actualClass})$, no_border 1"
+      "match:class ^(${actualClass})$, size 100% ${size}"
+      "match:class ^(${actualClass})$, move 0% 0%"
     ];
   };
 
