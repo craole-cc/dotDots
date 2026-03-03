@@ -35,49 +35,34 @@
     extraMod ? "",
     workdir ? null,
   }: let
-    #> Force class to 'feet' if it says 'foot' so the window rules match your actual terminal
-    actualClass =
-      if class == "foot"
-      then "feet"
-      else class;
-
-    #> Wrap TUI apps like yazi inside the primary terminal so they don't crash in the background
-    actualCommand =
-      if actualClass == "yazi"
-      then "${apps.terminal.primary.command} ${command}"
-      else command;
-
     cmd =
       if workdir != null
       then
-        if (actualClass == "feet" || actualClass == "com.mitchellh.ghostty")
-        then ''${actualCommand} --working-directory="${workdir}"''
-        else ''cd ${workdir} && ${actualCommand}''
-      else actualCommand;
-
-    #? Edge needs explicit move because it ignores workspace specs
-    isEdge = actualClass == "microsoft-edge";
+        if (elem class ["foot" "feet" "com.mitchellh.ghostty" "yazi"])
+        then ''${command} --working-directory="${workdir}"''
+        else ''cd ${workdir} && ${command}''
+      else command;
 
     #? Single-line move script
-    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${actualClass})$' 2>/dev/null | grep -q 'ok' && break; done'';
+    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done'';
 
     #> Format modifier string to prevent syntax errors
-    modString =
-      if extraMod != ""
-      then "${mod} ${extraMod}"
-      else "${mod}";
+    modStr = "${mod}${lib.optionalString (extraMod != "") " ${extraMod}"}";
   in {
-    bind = "${modString},${key},togglespecialworkspace,${workspace}";
+    bind = "${modStr},${key},togglespecialworkspace,${workspace}";
     exec =
-      if isEdge
+      #? Edge needs explicit move because it ignores workspace specs
+      if (class == "microsoft-edge")
       then ''sh -c "${cmd} & ${moveScript}"''
       else "[workspace special:${workspace} silent] ${cmd}";
-    rule = [
-      "match:class ^(${actualClass})$, workspace special:${workspace} silent"
-      "match:class ^(${actualClass})$, float 1"
-      "match:class ^(${class})$, border_size 0"
-      "match:class ^(${actualClass})$, size 100% ${size}"
-      "match:class ^(${actualClass})$, move 0% 0%"
+
+    #> Map the class match over the rules for cleaner, DRY code
+    rule = map (r: "match:class ^(${class})$, ${r}") [
+      "workspace special:${workspace} silent"
+      "float on"
+      "noborder on"
+      "size 100% ${size}"
+      "move 0% 0%"
     ];
   };
 
@@ -134,26 +119,23 @@ in {
     #~@ Special workspaces
     (map (v: v.bind) allVariants)
 
-    #~@ Regular Numbered Workspaces
-    (map (n: let
-      ws =
-        if n == "0"
-        then "10"
-        else n;
-    in "${mod},${n},workspace,${ws}")
-    numWorkspaces)
-    (map (n: let
-      ws =
-        if n == "0"
-        then "10"
-        else n;
-    in "${mod} SHIFT,${n},movetoworkspacesilent,${ws}")
-    numWorkspaces)
-
-    #~@ F-Key Workspaces
-    (map (n: "${mod},${n},workspace,name:${n}") fWorkspaces)
-    (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") fWorkspaces)
-
+    #~@ Regular Workspaces
+    (cat (n: let
+        ws =
+          if n == "0"
+          then "10"
+          else n;
+      in [
+        "${mod},${n},workspace,${ws}"
+        "${mod} SHIFT,${n},movetoworkspacesilent,${ws}"
+      ])
+      numWorkspaces)
+    #~@ Function-key Workspaces
+    (cat (n: [
+        "${mod},${n},workspace,name:${n}"
+        "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}"
+      ])
+      fWorkspaces)
     #~@ Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {
@@ -172,6 +154,45 @@ in {
       modifier = "${mod} ALT SHIFT";
       action = "movecurrentworkspacetomonitor";
     })
+
+    # #~@ Regular Numbered Workspaces
+    # (map (n: let
+    #   ws =
+    #     if n == "0"
+    #     then "10"
+    #     else n;
+    # in "${mod},${n},workspace,${ws}")
+    # numWorkspaces)#~@ F-Key Workspaces
+    # (map (n: let
+    #   ws =
+    #     if n == "0"
+    #     then "10"
+    #     else n;
+    # in "${mod} SHIFT,${n},movetoworkspacesilent,${ws}")
+    # numWorkspaces)
+
+    # #~@ F-Key Workspaces
+    # (map (n: "${mod},${n},workspace,name:${n}") fWorkspaces)
+    # (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") fWorkspaces)
+
+    # #~@ Directional bindings
+    # (mkDirectionalBinds {action = "movefocus";})
+    # (mkDirectionalBinds {
+    #   modifier = "${mod} SHIFT";
+    #   action = "swapwindow";
+    # })
+    # (mkDirectionalBinds {
+    #   modifier = "${mod} CTRL";
+    #   action = "movewindoworgroup";
+    # })
+    # (mkDirectionalBinds {
+    #   modifier = "${mod} ALT";
+    #   action = "focusmonitor";
+    # })
+    # (mkDirectionalBinds {
+    #   modifier = "${mod} ALT SHIFT";
+    #   action = "movecurrentworkspacetomonitor";
+    # })
   ];
   exec-once = map (v: v.exec) allVariants;
   windowrule = cat (v: v.rule) allVariants;

@@ -53,6 +53,7 @@
         fuzzel = "pkill fuzzel || fuzzel --list-executables-in-path";
       };
     };
+
     classMappings = {
       feet = "foot";
       ghostty = "com.mitchellh.ghostty";
@@ -60,27 +61,48 @@
       fuzzel = "fuzzel";
       vicinae = "vicinae";
     };
-    getCommand = category: name:
-      if commandMappings ? ${category} && commandMappings.${category} ? ${name}
-      then commandMappings.${category}.${name}
-      else if category == "browser" && hasInfix "zen" name
-      then
-        if hasInfix "twilight" name
-        then "zen-twilight"
-        else "zen-beta"
-      else if category == "editor" && hasInfix "code" name
-      then "code"
-      else if category == "editor" && hasInfix "zed" name
-      then "zeditor"
-      else name;
-    getClass = command:
-      if classMappings ? ${command}
-      then classMappings.${command}
-      else if hasInfix "fuzzel" command
+
+    # Declarative list of apps that require a terminal wrapper
+    tuiApps = ["yazi" "btop" "htop"];
+
+    # Resolve the primary terminal command once, elegantly
+    rawTerm = user.applications.terminal.primary 
+    or host.applications.terminal.primary 
+    or categoryDefaults.terminal.primary;
+
+    primaryTerminalCmd = commandMappings.terminal.${rawTerm} or rawTerm;
+
+    getCommand = category: name: let
+      mappedCmd = commandMappings.${category}.${name} or name;
+      resolvedCmd =
+        if category == "browser" && hasInfix "zen" name
+        then
+          (
+            if hasInfix "twilight" name
+            then "zen-twilight"
+            else "zen-beta"
+          )
+        else if category == "editor" && hasInfix "code" name
+        then "code"
+        else if category == "editor" && hasInfix "zed" name
+        then "zeditor"
+        else mappedCmd;
+    in
+      if (elem name tuiApps)
+      then "${primaryTerminalCmd} -e ${resolvedCmd}"
+      else resolvedCmd;
+
+    getClass = command: let
+      baseClass = classMappings.${command} or command;
+    in
+      if hasInfix "fuzzel" command
       then "fuzzel"
       else if hasInfix "vicinae" command
       then "vicinae"
-      else command;
+      else if hasInfix "yazi" command
+      then "yazi"
+      else baseClass;
+
     mkDefault = {
       category,
       option,
@@ -92,6 +114,7 @@
       command = getCommand category name;
       class = getClass command;
     in {inherit command class;};
+
     mkCategory = category: options:
       mapAttrs (
         name: value:
@@ -108,6 +131,7 @@
           }
       )
       options;
+
     categoryDefaults = {
       browser = {
         primary = "zen-twilight";
