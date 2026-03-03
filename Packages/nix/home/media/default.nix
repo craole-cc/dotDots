@@ -5,6 +5,7 @@
 }: {
   imports = lix.filesystem.importers.importAll ./.;
   home.packages = with pkgs; [
+    karere
     gImageReader
     # inkscape
     qbittorrent-enhanced

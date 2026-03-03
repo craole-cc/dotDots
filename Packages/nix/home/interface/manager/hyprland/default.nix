@@ -4,8 +4,8 @@
   lib,
   lix,
   keyboard,
-  paths,
-  pkgs,
+  # paths,
+  # pkgs,
   user,
   ...
 }: let
@@ -31,6 +31,6 @@ in {
         (import ./submaps {inherit mkMerge;})
       ];
     }
-    (import ./addons {inherit mkMerge pkgs paths;})
+    # (import ./addons {inherit mkMerge pkgs paths;})
   ]);
 }

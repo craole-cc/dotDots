@@ -9,7 +9,9 @@
   cat = lib.lists.concatMap;
   mat = lib.attrsets.mapAttrsToList;
 
-  workspaces = map toString (range 0 9) ++ map (n: "F${toString n}") (range 1 12);
+  #> Split workspaces to handle numbers and F-keys properly
+  numWorkspaces = map toString (range 0 9);
+  fWorkspaces = map (n: "F${toString n}") (range 1 12);
 
   directions = let
     left = "l";
@@ -36,7 +38,7 @@
     cmd =
       if workdir != null
       then
-        if (class == "foot" || class == "com.mitchellh.ghostty")
+        if (class == "foot" || class == "feet" || class == "com.mitchellh.ghostty")
         then ''${command} --working-directory="${workdir}"''
         else ''cd ${workdir} && ${command}''
       else command;
@@ -44,10 +46,15 @@
     #? Edge needs explicit move because it ignores workspace specs
     isEdge = class == "microsoft-edge";
 
-    #? Single-line move script
-    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent "special:${workspace},class:^(${class})\$" 2>/dev/null | grep -q "ok" && break; done'';
+    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done'';
+
+    #> Format modifier string to prevent syntax errors
+    modString =
+      if extraMod != ""
+      then "${mod} ${extraMod}"
+      else "${mod}";
   in {
-    bind = "${mod} ${extraMod}, ${key}, togglespecialworkspace, ${workspace}";
+    bind = "${modString},${key},togglespecialworkspace,${workspace}";
     exec =
       if isEdge
       then ''sh -c "${cmd} & ${moveScript}"''
@@ -103,6 +110,7 @@
   };
 
   allVariants = flatten (mat mkWorkspace specialWorkspaces);
+
   mkDirectionalBinds = {
     modifier ? mod,
     action,
@@ -113,9 +121,25 @@ in {
     #~@ Special workspaces
     (map (v: v.bind) allVariants)
 
-    #~@ Regular workspaces
-    (map (n: "${mod},${n},workspace,name:${n}") workspaces)
-    (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") workspaces)
+    #~@ Regular Numbered Workspaces (Maps 0 to 10, drops the "name:" prefix)
+    (map (n: let
+      ws =
+        if n == "0"
+        then "10"
+        else n;
+    in "${mod},${n},workspace,${ws}")
+    numWorkspaces)
+    (map (n: let
+      ws =
+        if n == "0"
+        then "10"
+        else n;
+    in "${mod} SHIFT,${n},movetoworkspacesilent,${ws}")
+    numWorkspaces)
+
+    #~@ F-Key Workspaces (Keeps the "name:" prefix)
+    (map (n: "${mod},${n},workspace,name:${n}") fWorkspaces)
+    (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") fWorkspaces)
 
     #~@ Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
