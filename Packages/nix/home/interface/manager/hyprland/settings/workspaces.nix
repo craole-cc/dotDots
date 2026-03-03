@@ -156,45 +156,6 @@ in {
       modifier = "${mod} ALT SHIFT";
       action = "movecurrentworkspacetomonitor";
     })
-
-    # #~@ Regular Numbered Workspaces
-    # (map (n: let
-    #   ws =
-    #     if n == "0"
-    #     then "10"
-    #     else n;
-    # in "${mod},${n},workspace,${ws}")
-    # numWorkspaces)#~@ F-Key Workspaces
-    # (map (n: let
-    #   ws =
-    #     if n == "0"
-    #     then "10"
-    #     else n;
-    # in "${mod} SHIFT,${n},movetoworkspacesilent,${ws}")
-    # numWorkspaces)
-
-    # #~@ F-Key Workspaces
-    # (map (n: "${mod},${n},workspace,name:${n}") fWorkspaces)
-    # (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") fWorkspaces)
-
-    # #~@ Directional bindings
-    # (mkDirectionalBinds {action = "movefocus";})
-    # (mkDirectionalBinds {
-    #   modifier = "${mod} SHIFT";
-    #   action = "swapwindow";
-    # })
-    # (mkDirectionalBinds {
-    #   modifier = "${mod} CTRL";
-    #   action = "movewindoworgroup";
-    # })
-    # (mkDirectionalBinds {
-    #   modifier = "${mod} ALT";
-    #   action = "focusmonitor";
-    # })
-    # (mkDirectionalBinds {
-    #   modifier = "${mod} ALT SHIFT";
-    #   action = "movecurrentworkspacetomonitor";
-    # })
   ];
   exec-once = map (v: v.exec) allVariants;
   windowrule = cat (v: v.rule) allVariants;
