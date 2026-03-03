@@ -74,8 +74,8 @@
       else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, class:^(${actualClass})$"
-      "float, class:^(${actualClass})$"
-      "noborder, class:^(${actualClass})$"
+      "float 1, class:^(${actualClass})$"
+      "no_border 1, class:^(${actualClass})$"
       "size 100% ${size}, class:^(${actualClass})$"
       "move 0% 0%, class:^(${actualClass})$"
     ];
@@ -174,5 +174,5 @@ in {
     })
   ];
   exec-once = map (v: v.exec) allVariants;
-  windowrulev2 = cat (v: v.rule) allVariants;
+  windowrule = cat (v: v.rule) allVariants;
 }
