@@ -41,7 +41,7 @@
   };
 in {
   config = mkIf cfg.enable (mkMerge [
-    {inherit (cfg) programs home services;}
+    {inherit (cfg) enable programs home services;}
     (import ./hyprland.nix {inherit mod;})
   ]);
 }
