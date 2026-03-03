@@ -75,7 +75,7 @@
     rule = [
       "match:class ^(${actualClass})$, workspace special:${workspace} silent"
       "match:class ^(${actualClass})$, float 1"
-      "match:class ^(${actualClass})$, no_border 1"
+      "match:class ^(${class})$, border_size 0"
       "match:class ^(${actualClass})$, size 100% ${size}"
       "match:class ^(${actualClass})$, move 0% 0%"
     ];
