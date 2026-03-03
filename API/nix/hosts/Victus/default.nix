@@ -17,8 +17,7 @@ in {
   packages = {
     unstable = true;
     allowUnfree = true;
-    kernel = "linuxPackages_lts";
-    # kernel = "linuxPackages_cachyos-lto";
+    kernel = "linuxPackages_cachyos-lto";
   };
 
   modules = [
