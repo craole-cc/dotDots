@@ -1,33 +1,10 @@
 {mod, ...}: {
   wayland.windowManager.hyprland.settings = {
-    exec = "hyprctl dispatch submap global";
-    submap = "global";
-
-    # # Launcher with interrupt bindings
-    # bindi = ["${mod}, SPACE, caelestia:launcher"];
-
-    bindin = [
-      # "${mod}, ESCAPE, caelestia:launcherInterrupt"
-      # "${mod}, mouse:272, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse:273, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse:274, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse:275, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse:276, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse:277, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse_up, global, caelestia:launcherInterrupt"
-      # "${mod}, mouse_down, global, caelestia:launcherInterrupt"
-    ];
-
     bindl = [
       #~@ Media controls
       "${mod} CTRL, Space, global, caelestia:mediaToggle"
-      ", XF86AudioPlay, global, caelestia:mediaToggle"
-      ", XF86AudioPause, global, caelestia:mediaToggle"
       "${mod} CTRL, Equal, global, caelestia:mediaNext"
-      ", XF86AudioNext, global, caelestia:mediaNext"
       "${mod} CTRL, Minus, global, caelestia:mediaPrev"
-      ", XF86AudioPrev, global, caelestia:mediaPrev"
-      ", XF86AudioStop, global, caelestia:mediaStop"
 
       #~@ Brightness
       ", XF86MonBrightnessUp, global, caelestia:brightnessUp"

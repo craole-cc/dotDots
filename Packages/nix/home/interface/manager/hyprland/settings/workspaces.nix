@@ -35,18 +35,31 @@
     extraMod ? "",
     workdir ? null,
   }: let
+    #> Force class to 'feet' if it says 'foot' so the window rules match your actual terminal
+    actualClass =
+      if class == "foot"
+      then "feet"
+      else class;
+
+    #> Wrap TUI apps like yazi inside the primary terminal so they don't crash in the background
+    actualCommand =
+      if actualClass == "yazi"
+      then "${apps.terminal.primary.command} ${command}"
+      else command;
+
     cmd =
       if workdir != null
       then
-        if (class == "foot" || class == "feet" || class == "com.mitchellh.ghostty")
-        then ''${command} --working-directory="${workdir}"''
-        else ''cd ${workdir} && ${command}''
-      else command;
+        if (actualClass == "feet" || actualClass == "com.mitchellh.ghostty")
+        then ''${actualCommand} --working-directory="${workdir}"''
+        else ''cd ${workdir} && ${actualCommand}''
+      else actualCommand;
 
     #? Edge needs explicit move because it ignores workspace specs
-    isEdge = class == "microsoft-edge";
+    isEdge = actualClass == "microsoft-edge";
 
-    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done'';
+    #? Single-line move script
+    moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${actualClass})$' 2>/dev/null | grep -q 'ok' && break; done'';
 
     #> Format modifier string to prevent syntax errors
     modString =
@@ -60,11 +73,11 @@
       then ''sh -c "${cmd} & ${moveScript}"''
       else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
-      "workspace special:${workspace} silent, class:^(${class})$"
-      "float, class:^(${class})$"
-      "noborder, class:^(${class})$"
-      "size 100% ${size}, class:^(${class})$"
-      "move 0% 0%, class:^(${class})$"
+      "workspace special:${workspace} silent, class:^(${actualClass})$"
+      "float, class:^(${actualClass})$"
+      "noborder, class:^(${actualClass})$"
+      "size 100% ${size}, class:^(${actualClass})$"
+      "move 0% 0%, class:^(${actualClass})$"
     ];
   };
 
@@ -121,7 +134,7 @@ in {
     #~@ Special workspaces
     (map (v: v.bind) allVariants)
 
-    #~@ Regular Numbered Workspaces (Maps 0 to 10, drops the "name:" prefix)
+    #~@ Regular Numbered Workspaces
     (map (n: let
       ws =
         if n == "0"
@@ -137,7 +150,7 @@ in {
     in "${mod} SHIFT,${n},movetoworkspacesilent,${ws}")
     numWorkspaces)
 
-    #~@ F-Key Workspaces (Keeps the "name:" prefix)
+    #~@ F-Key Workspaces
     (map (n: "${mod},${n},workspace,name:${n}") fWorkspaces)
     (map (n: "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}") fWorkspaces)
 

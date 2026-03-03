@@ -15,7 +15,7 @@
     #     "--set GDK_BACKEND x11"
     #     "--add-flags '--disable-gpu'"
     #     "--add-flags '--disable-gpu-compositing'"
-    #   ];
+    #   ];``
     # }))
 
     swaybg
