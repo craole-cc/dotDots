@@ -25,6 +25,7 @@
 
   programs = {
     ${name} = mkMerge [
+      {enable = true;}
       (import ./cli {})
       (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
     ];
@@ -41,7 +42,7 @@
   };
 in {
   config = mkIf cfg.enable (mkMerge [
-    {inherit (cfg) enable programs home services;}
+    {inherit (cfg) programs home services;}
     (import ./hyprland.nix {inherit mod;})
   ]);
 }
