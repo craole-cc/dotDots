@@ -56,11 +56,11 @@
       then ''sh -c "${cmd} & ${moveScript}"''
       else "[workspace special:${workspace} silent] ${cmd}";
 
-    #> Map the class match over the rules for cleaner, DRY code
+    #> Map the class match over the rules
     rule = map (r: "match:class ^(${class})$, ${r}") [
       "workspace special:${workspace} silent"
       "float on"
-      "noborder on"
+      "border off"
       "size 100% ${size}"
       "move 0% 0%"
     ];
