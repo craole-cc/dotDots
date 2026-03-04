@@ -1,4 +1,5 @@
 {lib, ...}: let
+  inherit (lib.attrsets) listToAttrs;
   /**
   mkShellApp - A helper function to create a shell script application with runtime dependencies
   and optional aliases.
@@ -195,7 +196,7 @@
   in
     #> Return attrset with main app and all aliases
     {${fullName} = mainApp;}
-    // builtins.listToAttrs aliasApps;
+    // listToAttrs aliasApps;
 
   exports = {inherit mkShellApp;};
 in
