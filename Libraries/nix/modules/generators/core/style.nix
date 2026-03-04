@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.attrsets) isAttrs optionalAttrs;
   inherit (lib.lists) elemAt head length;
   inherit (lib.strings) splitString;

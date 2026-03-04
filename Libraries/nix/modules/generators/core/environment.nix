@@ -4,27 +4,20 @@
   ...
 }: let
   inherit (lib.attrsets) optionalAttrs;
-  inherit (_.lists.predicates) isIn;
   inherit (_.applications.resolution) editors browsers terminals launchers bars;
 
   mkEnvironment = {
     host,
     pkgs,
-    config,
     packages, # TODO: We shouldn't need this as pkgs should be enough
     ...
   }: let
-    #~@ Host interface
-    wm = host.interface.windowManager    or null;
-    de = host.interface.desktopEnvironment or null;
-    dp = host.interface.displayProtocol  or "wayland";
-    dm = host.interface.displayManager   or null;
-    shell = host.interface.shell            or null;
-    prompt = host.interface.prompt           or null;
-
     #~@ User profile
     user = host.users.data.primary or {};
     apps = user.applications       or {};
+
+    #~@ Host interface
+    dp = host.interface.displayProtocol  or "wayland";
 
     #~@ Paths
     dots = host.paths.dots       or null;
@@ -32,15 +25,6 @@
 
     #~@ System
     system = pkgs.stdenv.hostPlatform.system;
-
-    #~@ Derived state
-    session =
-      if wm != null
-      then wm
-      else de;
-    hasGui = de != null || wm != null;
-    # useDms = wm == "niri" || wm == "hyprland";
-    useDms = false;
 
     #~@ Application packages — resolved per host
     editorPkgs = editors.packages {
@@ -244,137 +228,8 @@
           XDG_SESSION_TYPE = "wayland";
         });
     };
-
-    programs = {
-      #~@ Shell
-      bash = {
-        enable = isIn "bash" ([shell] ++ (user.shells or []));
-        blesh.enable = true;
-        undistractMe.enable = true;
-      };
-
-      direnv = {
-        enable = true;
-        silent = true;
-        settings.global = {
-          log_format = "-";
-          log_filter = "^$";
-          load_dotenv = true;
-        };
-      };
-
-      starship.enable = prompt == "starship";
-
-      #~@ Version control
-      git = {
-        enable = true;
-        lfs.enable = true;
-        prompt.enable = true;
-      };
-
-      #~@ Window managers
-      hyprland = {
-        enable = wm == "hyprland";
-        withUWSM = true;
-      };
-
-      niri.enable = wm == "niri";
-
-      #~@ Media
-      obs-studio = {
-        enable = isIn ["video" "webcam"] (host.functionalities or []);
-        enableVirtualCamera = true;
-      };
-
-      #~@ Display
-      xwayland.enable = true;
-    };
-
-    services = {
-      #~@ Input
-      iio-niri.enable = wm == "niri"; #? Sensor integration for niri
-
-      #~@ Desktop environments
-      desktopManager = {
-        cosmic = {
-          enable = de == "cosmic";
-          showExcludedPkgsWarning = false;
-        };
-
-        gnome.enable = de == "gnome";
-        plasma6.enable = de == "plasma";
-      };
-
-      #~@ Display manager
-      displayManager = {
-        autoLogin = {
-          enable = user.autoLogin or false;
-          user = user.name or null;
-        };
-
-        defaultSession =
-          if (session == "hyprland" && config.programs.hyprland.withUWSM)
-          then "hyprland-uwsm"
-          else session;
-
-        #? COSMIC native greeter — disabled when DMS active
-        cosmic-greeter.enable = de == "cosmic" && !useDms;
-        dms-greeter.enable = useDms;
-
-        gdm = {
-          enable = dm == "gdm" && !useDms;
-          wayland = dp == "wayland";
-        };
-
-        sddm = {
-          enable = dm == "sddm" && !useDms;
-          wayland.enable = dp == "wayland";
-        };
-
-        ly.enable = dm == "ly";
-      };
-
-      #~@ Hardware
-      udisks2 = optionalAttrs hasGui {
-        enable = true;
-        mountOnMedia = true; #? Auto-mount removable media under /media
-      };
-    };
-
-    #~@ Systemd — suppress redundant TTY sessions when using GDM
-    systemd.services = optionalAttrs (dm == "gdm") {
-      "getty@tty1".enable = false;
-      "autovt@tty1".enable = false;
-    };
-
-    # xdg.portal = {
-    #   enable = true;
-    #   config = {
-    #     common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
-    #   };
-    # };
   };
 
-  mkLocale = {host, ...}: let
-    loc = host.localization or {};
-  in {
-    #~@ Timezone
-    time = {
-      timeZone = loc.timeZone or null;
-      hardwareClockInLocalTime = isIn "dualboot-windows" (host.functionalities or []);
-    };
-
-    #~@ Geolocation
-    location = {
-      latitude = loc.latitude or null;
-      longitude = loc.longitude or null;
-      provider = loc.locator or "geoclue2";
-    };
-
-    #~@ Internationalization
-    i18n.defaultLocale = loc.defaultLocale or null;
-  };
-
-  exports = {inherit mkEnvironment mkLocale;};
+  exports = {inherit mkEnvironment;};
 in
   exports // {_rootAliases = exports;}

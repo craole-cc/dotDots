@@ -15,7 +15,6 @@
         ["nixpkgs-stable"]
       ];
     };
-
     nixpkgs-stable = byPaths {
       attrset = inputs;
       default = "nixpkgs-stable";
@@ -26,7 +25,6 @@
         ["nixpkgs"]
       ];
     };
-
     nixpkgs-unstable = byPaths {
       attrset = inputs;
       default = "nixpkgs-unstable";
@@ -37,7 +35,6 @@
         ["nixpkgs"]
       ];
     };
-
     nix-darwin = byPaths {
       attrset = inputs;
       default = "nix-darwin";
@@ -47,7 +44,6 @@
         ["darwinNix"]
       ];
     };
-
     catppuccin = byPaths {
       attrset = inputs;
       default = "catppuccin";
@@ -56,7 +52,6 @@
         ["catppuccinStyle"]
       ];
     };
-
     chaotic = byPaths {
       attrset = inputs;
       default = "chaotic";
@@ -66,7 +61,6 @@
         ["chaoticKernel"]
       ];
     };
-
     stylix = byPaths {
       attrset = inputs;
       default = "stylix";
@@ -76,7 +70,6 @@
         ["darwinNix"]
       ];
     };
-
     home-manager = byPaths {
       attrset = inputs;
       default = "home-manager";
@@ -88,17 +81,6 @@
         ["home"]
       ];
     };
-
-    # fresh-editor = byPaths {
-    #   attrset = inputs;
-    #   default = "fresh-editor";
-    #   paths = [
-    #     ["fresh"]
-    #     ["freshEditor"]
-    #     ["editorFresh"]
-    #   ];
-    # };
-
     helix = byPaths {
       attrset = inputs;
       default = "helix";
@@ -110,7 +92,6 @@
         ["editorHX"]
       ];
     };
-
     caelestia = byPaths {
       attrset = inputs;
       default = "caelestia";
@@ -119,7 +100,6 @@
         ["caelestia-shell"]
       ];
     };
-
     dank-material-shell = byPaths {
       attrset = inputs;
       default = "dank-material-shell";
@@ -131,7 +111,6 @@
         ["dms"]
       ];
     };
-
     noctalia-shell = byPaths {
       attrset = inputs;
       default = "noctalia-shell";
@@ -141,7 +120,6 @@
         ["noctalia"]
       ];
     };
-
     quickshell = byPaths {
       attrset = inputs;
       default = "quickshell";
@@ -152,7 +130,6 @@
         ["quick"]
       ];
     };
-
     nvf = byPaths {
       attrset = inputs;
       default = "nvf";
@@ -164,7 +141,6 @@
         ["neoVim"]
       ];
     };
-
     plasma = byPaths {
       attrset = inputs;
       default = "plasma";
@@ -175,7 +151,6 @@
         ["kde"]
       ];
     };
-
     treefmt = byPaths {
       attrset = inputs;
       default = "treefmt";
@@ -185,7 +160,6 @@
         ["treefmt-nix"]
       ];
     };
-
     typix = byPaths {
       attrset = inputs;
       default = "typix";
@@ -195,7 +169,6 @@
         ["typ"]
       ];
     };
-
     vscode-insiders = byPaths {
       attrset = inputs;
       default = "vscode-insiders";
@@ -210,7 +183,6 @@
         ["vscode-insiders-nix"]
       ];
     };
-
     zen-browser = byPaths {
       attrset = inputs;
       default = "zen-browser";
