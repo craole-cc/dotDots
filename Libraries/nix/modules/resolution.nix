@@ -5,9 +5,9 @@
   ...
 }: let
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.modules.generators.inputs.resolution) mkInputs;
-  inherit (_.modules.generators.inputs.packages) mkPackages mkOverlays;
-  inherit (_.modules.generators.inputs.modules) mkModules;
+  inherit (_.modules.inputs.resolution) mkInputs;
+  inherit (_.modules.inputs.packages) mkPackages mkOverlays;
+  inherit (_.modules.inputs.modules) mkModules;
   inherit (builtins) getFlake;
   inherit (lib.attrsets) attrValues genAttrs attrNames mapAttrs mapAttrsToList optionalAttrs;
   inherit (lib.debug) traceIf;

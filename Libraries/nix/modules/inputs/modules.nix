@@ -4,15 +4,15 @@
   ...
 }: let
   inherit (_.lists.predicates) isIn;
-  inherit (_.modules.generators.environment) mkEnvironment mkLocale;
-  inherit (_.modules.generators.hardware) mkAudio mkFileSystems mkNetwork;
-  inherit (_.modules.generators.software) mkNix mkBoot mkClean;
-  inherit (_.modules.generators.style) mkFonts;
-  inherit (_.modules.generators) core home;
-  # inherit (_.modules.generators.users.home) mkHomeUsers;
+  inherit (_.modules.core.environment) mkEnvironment mkLocale;
+  inherit (_.modules.core.hardware) mkAudio mkFileSystems mkNetwork;
+  inherit (_.modules.core.software) mkNix mkBoot mkClean;
+  inherit (_.modules.core.style) mkFonts;
   inherit (lib.lists) optionals;
   inherit (lib.modules) mkMerge;
   inherit (lib.strings) hasInfix;
+  inherit (_.modules.core.users) mkUsers;
+  mkHomeUsers = _.modules.home.users.mkUsers;
 
   mkModules = {
     inputs,
@@ -197,8 +197,8 @@
               (mkAudio {inherit host;})
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
-              (core.mkUsers {inherit host pkgs;})
-              (home.mkUsers {inherit host specialArgs mkHomeModuleApps paths;})
+              (mkUsers {inherit host pkgs;})
+              (mkHomeUsers {inherit host specialArgs mkHomeModuleApps paths;})
               (mkEnvironment {inherit config host pkgs packages;})
               (mkClean {inherit host;})
             ]
