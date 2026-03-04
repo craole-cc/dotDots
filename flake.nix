@@ -6,7 +6,7 @@
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import src {inherit lib src self;}) lix flake hosts schema paths;
     inherit (lix.inputs.resolution) getInputs;
-    inherit (lix.modules.generators.core.system) mkSystem;
+    inherit (lix.modules.core.system) mkSystem;
     inherit (lix.modules.resolution) perFlake;
   in
     perFlake {inherit hosts legacyPackages;} (
