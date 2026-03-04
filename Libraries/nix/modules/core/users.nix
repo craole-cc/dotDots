@@ -116,7 +116,11 @@
       mkSudoRules
       adminsNames
       ;
-    hostUsers = userAttrs;
+    users = userAttrs;
   };
 in
-  exports // {_rootAliases = exports;}
+  exports
+  // {
+    _rootAliases = exports;
+    hostUsers = userAttrs;
+  }
