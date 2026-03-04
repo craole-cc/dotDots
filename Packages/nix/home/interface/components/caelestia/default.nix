@@ -22,9 +22,10 @@
     cava
     lm_sensors
   ];
-
+  enable = true; # TODO: Needs to be dynamic based on user choice
   programs = {
     ${name} = mkMerge [
+      {inherit enable;}
       (import ./cli {})
       (import ./settings {inherit locale fonts mkMerge paths vimKeybinds;})
     ];
@@ -35,8 +36,7 @@
   };
 
   cfg = {
-    inherit name kind programs services;
-    enable = true; # TODO: Needs to be dynamic based on user choice
+    inherit enable name kind programs services;
     home = {inherit packages;};
   };
 in {
