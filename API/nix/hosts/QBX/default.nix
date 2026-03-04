@@ -17,7 +17,7 @@ in {
   packages = {
     unstable = true;
     allowUnfree = true;
-    kernel = "linuxPackages_cachyos-eevdf-nvidia-open";
+    kernel = "linuxPackages_cachyos-lts";
     # kernel = "linuxPackages_cachyos-lto";
   };
 
