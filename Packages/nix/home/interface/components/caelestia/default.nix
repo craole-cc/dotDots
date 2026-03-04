@@ -37,7 +37,7 @@
 
   cfg = {
     inherit name kind programs services;
-    enable = true; # TODO: Needs to be dynamic based on user choice
+    # enable = true; # TODO: Needs to be dynamic based on user choice
     home = {inherit packages;};
   };
 in {
