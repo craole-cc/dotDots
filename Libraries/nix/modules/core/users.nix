@@ -48,7 +48,8 @@
 
   Returns: List of usernames with elevated privileges
   */
-  adminsNames = host: host.users.names.elevated or [];
+  adminNames = host: host.users.names.elevated or [];
+  adminUsers = host: host.users.data.elevated or {};
 
   /**
   Main user configuration builder.
@@ -84,7 +85,7 @@
   }: {
     security.sudo = {
       execWheelOnly = true;
-      extraRules = mkSudoRules (adminsNames host);
+      extraRules = mkSudoRules (adminNames host);
     };
 
     users = {
@@ -114,7 +115,8 @@
     inherit
       mkUsers
       mkSudoRules
-      adminsNames
+      adminNames
+      adminUsers
       hostUsers
       ;
   };

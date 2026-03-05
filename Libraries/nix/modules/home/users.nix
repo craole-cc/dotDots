@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
-  inherit (_.modules.core) hostUsers;
+  inherit (_.modules.core.users) hostUsers;
   inherit (_.filesystem.paths) getDefaults;
   inherit (_.modules.home) mkApps mkKeyboard mkLocale mkStyle;
 
@@ -21,7 +21,7 @@
     }; }
     => { alice = { role = "admin"; }; }
   */
-  userAttrs' = host:
+  homeUsers = host:
     filterAttrs
     (_: user:
       user
@@ -91,19 +91,16 @@
               ]);
           }
         )
-        (userAttrs' host);
+        (homeUsers host);
     };
   };
 
-  exports = {
-    inherit mkUsers;
-    users = userAttrs';
-  };
+  exports = {inherit mkUsers homeUsers;};
 in
   exports
   // {
     _rootAliases = {
-      homeUsers = userAttrs';
+      inherit homeUsers;
       mkHomeUsers = mkUsers;
     };
   }
