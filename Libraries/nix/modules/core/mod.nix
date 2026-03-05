@@ -17,13 +17,13 @@
     nixpkgs,
     host,
     inputs,
+    specialArgs,
   }:
     [
       {inherit nixpkgs;}
       (
         {
           config,
-          inputs,
           paths,
           pkgs,
           ...

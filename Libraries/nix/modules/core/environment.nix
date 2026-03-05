@@ -10,7 +10,7 @@
   mkEnvironment = {
     host,
     pkgs,
-    # packages, # TODO: We shouldn't need this as pkgs should be enough
+    inputs,
     ...
   }: let
     #~@ User profile
@@ -29,55 +29,45 @@
 
     #~@ Application packages — resolved per host
     editorPkgs = editors.packages {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       editorConfig = apps.editor or {};
     };
     browserPkgs = browsers.packages {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.browser or {};
     };
     terminalPkgs = terminals.packages {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.terminal or {};
     };
     launcherPkgs = launchers.packages {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.launcher or {};
     };
     barPkgs = bars.packages {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.bar or {};
     };
 
     #~@ Application commands — resolved per host
     editorCmds = editors.commands {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       editorConfig = apps.editor or {};
     };
     browserCmds = browsers.commands {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.browser or {};
     };
     terminalCmds = terminals.commands {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.terminal or {};
     };
     launcherCmds = launchers.commands {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.launcher or {};
     };
     barCmds = bars.commands {
-      inherit pkgs system;
-      inputs = packages;
+      inherit pkgs system inputs;
       appConfig = apps.bar or {};
     };
   in {

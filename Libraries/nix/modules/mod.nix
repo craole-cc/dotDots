@@ -14,6 +14,7 @@
   inherit (lib.modules) mkMerge;
   inherit (lib.strings) hasInfix;
   inherit (_.modules.core.users) mkUsers;
+  inherit (_.modules.core.mod) mkCore;
   mkHomeUsers = _.modules.home.users.mkUsers;
 
   mkModules = {
@@ -180,35 +181,38 @@
       };
     };
 
-    hostModules =
-      [
-        {inherit nixpkgs;}
-        (
-          {
-            pkgs,
-            paths,
-            config,
-            ...
-          }:
-            mkMerge [
-              (mkNix {inherit host pkgs;})
-              (mkNetwork {inherit host pkgs;})
-              (mkBoot {inherit host pkgs;})
-              (mkFileSystems {inherit host;})
-              (mkLocale {inherit host;})
-              (mkAudio {inherit host;})
-              (mkFonts {inherit host pkgs;})
-              # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
-              (mkClean {inherit host;})
-              (mkEnvironment {inherit config host pkgs packages;})
-              (mkServices {inherit config host;})
-              (mkPrograms {inherit host;})
-              (mkUsers {inherit host pkgs;})
-              (mkHomeUsers {inherit host specialArgs mkHomeModuleApps paths;})
-            ]
-        )
-      ]
-      ++ (host.imports or []);
+    hostModules = mkCore {
+      inherit host nixpkgs specialArgs;
+      inputs = packages;
+    };
+    # [
+    #   {inherit nixpkgs;}
+    #   (
+    #     {
+    #       pkgs,
+    #       paths,
+    #       config,
+    #       ...
+    #     }:
+    #       mkMerge [
+    #         (mkNix {inherit host pkgs;})
+    #         (mkNetwork {inherit host pkgs;})
+    #         (mkBoot {inherit host pkgs;})
+    #         (mkFileSystems {inherit host;})
+    #         (mkLocale {inherit host;})
+    #         (mkAudio {inherit host;})
+    #         (mkFonts {inherit host pkgs;})
+    #         # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
+    #         (mkClean {inherit host;})
+    #         (mkEnvironment {inherit config host pkgs packages;})
+    #         (mkServices {inherit config host;})
+    #         (mkPrograms {inherit host;})
+    #         (mkUsers {inherit host pkgs;})
+    #         (mkHomeUsers {inherit host specialArgs mkHomeModuleApps paths;})
+    #       ]
+    #   )
+    # ]
+    # ++ (host.imports or []);
   in {
     inherit
       modulesPath
