@@ -3,10 +3,13 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
-  inherit (_.modules.core.users) hostUsers;
   inherit (_.filesystem.paths) getDefaults;
-  inherit (_.modules.home) mkApps mkKeyboard mkLocale mkStyle;
+  inherit (_.modules.core.users) hostUsers;
+  inherit (_.modules.home.environment) mkLocale;
+  inherit (_.modules.home.control) mkKeyboard;
+  inherit (_.modules.home.style) mkStyle;
+  inherit (_.modules.home.programs) mkApps;
+  inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
 
   /**
   Filter users eligible for home-manager configuration.
