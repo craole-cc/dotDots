@@ -5,6 +5,8 @@
 }: let
   inherit (_.lists.predicates) isIn;
   inherit (_.modules.core.environment) mkEnvironment mkLocale;
+  inherit (_.modules.core.services) mkServices;
+  inherit (_.modules.core.programs) mkPrograms;
   inherit (_.modules.core.hardware) mkAudio mkFileSystems mkNetwork;
   inherit (_.modules.core.software) mkNix mkBoot mkClean;
   inherit (_.modules.core.style) mkFonts;
@@ -197,10 +199,12 @@
               (mkAudio {inherit host;})
               (mkFonts {inherit host pkgs;})
               # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
+              (mkClean {inherit host;})
+              (mkEnvironment {inherit config host pkgs packages;})
+              (mkServices {inherit config host;})
+              (mkPrograms {inherit host;})
               (mkUsers {inherit host pkgs;})
               (mkHomeUsers {inherit host specialArgs mkHomeModuleApps paths;})
-              (mkEnvironment {inherit config host pkgs packages;})
-              (mkClean {inherit host;})
             ]
         )
       ]
