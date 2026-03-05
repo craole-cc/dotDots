@@ -39,7 +39,7 @@
 
   Returns: An attribute set of enabled users with their configurations
   */
-  userAttrs = host: host.users.data.enabled or {};
+  hostUsers = host: host.users.data.enabled or {};
 
   /**
   Get list of admin user names.
@@ -89,7 +89,7 @@
 
     users = {
       #> Create a private group for each user
-      groups = mapAttrs (_: _: {}) (userAttrs host);
+      groups = mapAttrs (_: _: {}) (hostUsers host);
 
       #> Configure all system users (including service accounts)
       users = mapAttrs (name: user: {
@@ -107,7 +107,7 @@
           inherit pkgs;
           target = head (user.shells or ["bash"]);
         };
-      }) (userAttrs host);
+      }) (hostUsers host);
     };
   };
   exports = {
@@ -115,12 +115,8 @@
       mkUsers
       mkSudoRules
       adminsNames
+      hostUsers
       ;
-    users = userAttrs;
   };
 in
-  exports
-  // {
-    _rootAliases = exports;
-    hostUsers = userAttrs;
-  }
+  exports // {_rootAliases = exports;}

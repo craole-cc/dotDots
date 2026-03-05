@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
-  inherit (_.modules) core;
+  inherit (_.modules.core) hostUsers;
   inherit (_.filesystem.paths) getDefaults;
   inherit (_.modules.home) mkApps mkKeyboard mkLocale mkStyle;
 
@@ -29,7 +29,7 @@
       && (user.role or null) != "service" # Not a system service
       && (user.role or null) != "guest") # Not a guest account
     
-    (core.users host);
+    (hostUsers host);
 
   /**
   Produces the entire home-manager NixOS option block for all eligible users.
