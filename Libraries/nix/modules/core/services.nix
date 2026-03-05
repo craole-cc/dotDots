@@ -81,12 +81,12 @@
       "autovt@tty1".enable = false;
     };
 
-    # xdg.portal = {
-    #   enable = true;
-    #   config = {
-    #     common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
-    #   };
-    # };
+    xdg.portal = {
+      enable = true;
+      #   config = {
+      #     common."org.freedesktop.impl.portal.Settings" = ["darkman" "gnome"];
+      #   };
+    };
   };
 
   exports = {inherit mkServices;};
