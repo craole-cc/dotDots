@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.lists) isIn;
+  inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) isAttrs mapAttrs;
   inherit (lib.strings) hasInfix;
 
