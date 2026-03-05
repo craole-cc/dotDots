@@ -10,7 +10,7 @@
   mkEnvironment = {
     host,
     pkgs,
-    packages, # TODO: We shouldn't need this as pkgs should be enough
+    # packages, # TODO: We shouldn't need this as pkgs should be enough
     ...
   }: let
     #~@ User profile

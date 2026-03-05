@@ -1,6 +1,7 @@
 {lib, ...}: let
   inherit (lib.attrsets) attrByPath hasAttrByPath;
   inherit (lib.lists) filter unique;
+  inherit (lib.trivial) isFunction;
 
   /**
   mkApp - Create a generic application handler with flake support
@@ -372,7 +373,6 @@
     };
   };
 
-  # Editors with tty/gui structure
   editors = let
     editorMap = {
       helix = {pkgs, ...}: {
@@ -444,7 +444,7 @@
     in
       if appInfo != null
       then
-        if builtins.isFunction appInfo
+        if isFunction appInfo
         then appInfo {inherit pkgs inputs system;}
         else appInfo
       else {
