@@ -6,11 +6,11 @@
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) isAttrs mapAttrs;
   inherit (lib.strings) hasInfix;
-  inherit (_.modules.home.mod) mkModule;
+  inherit (_.modules.mod) mkModule;
 
-  appsAllowed = user: user.applications.allowed or [];
-
-  mkModuleApps = user: {
+  mkApps = {user, ...}: let
+    appsAllowed = user.applications.allowed or [];
+  in {
     #| Plasma Desktop Environment
     plasma = let
       name = "plasma";
@@ -28,7 +28,7 @@
       theme = user.interface.style.theme or {};
     in {
       isAllowed =
-        isIn name (appsAllowed user)
+        isIn name appsAllowed
         || hasInfix name (theme.light or "")
         || hasInfix name (theme.dark or "");
       module = mkModule {inherit name;};
@@ -39,8 +39,7 @@
       name = "caelestia";
     in {
       isAllowed = isIn ["${name}-shell" name] (
-        (appsAllowed user)
-        ++ [(user.applications.bar or null)]
+        appsAllowed ++ [(user.applications.bar or null)]
       );
       module = mkModule {inherit name;};
     };
@@ -50,8 +49,7 @@
       name = "dank-material-shell";
     in {
       isAllowed = isIn [name "dank" "dms"] (
-        (appsAllowed user)
-        ++ [(user.applications.bar or null)]
+        appsAllowed ++ [(user.applications.bar or null)]
       );
       module = mkModule {inherit name;};
     };
@@ -61,8 +59,7 @@
       name = "noctalia-shell";
     in {
       isAllowed = isIn ["noctalia-shell" "noctalia" "noctalia-dev"] (
-        (appsAllowed user)
-        ++ [(user.applications.bar or null)]
+        appsAllowed ++ [(user.applications.bar or null)]
       );
       module = mkModule {inherit name;};
     };
@@ -72,7 +69,7 @@
       name = "nvf";
     in {
       isAllowed = isIn [name "nvim" "neovim"] (
-        (appsAllowed user)
+        appsAllowed
         ++ [(user.applications.editor.tty.primary or null)]
         ++ [(user.applications.editor.tty.secondary or null)]
       );
@@ -91,7 +88,7 @@
     in {
       isAllowed =
         hasInfix alt (user.applications.browser.firefox or "")
-        || isIn alt_names (appsAllowed user);
+        || isIn alt_names appsAllowed;
       module = mkModule {inherit name variant;};
     };
   };
@@ -227,6 +224,12 @@
   in
     mapAttrs mkCategory categoryDefaults // {inherit mkDefault;};
 
-  exports = {inherit mkPrograms;};
+  exports = {inherit mkPrograms mkApps;};
 in
-  exports // {_rootAliases = {mkUserApps = mkPrograms;};}
+  exports
+  // {
+    _rootAliases = {
+      mkHomePrograms = mkPrograms;
+      mkHomeApps = mkApps;
+    };
+  }

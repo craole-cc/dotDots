@@ -5,9 +5,7 @@
   ...
 }: let
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.modules.inputs.resolution) mkInputs;
-  inherit (_.modules.inputs.packages) mkPackages mkOverlays;
-  inherit (_.modules.inputs.modules) mkModules;
+  inherit (_.inputs.resolution) getInputs;
   inherit (builtins) getFlake;
   inherit (lib.attrsets) attrValues genAttrs attrNames mapAttrs mapAttrsToList optionalAttrs;
   inherit (lib.debug) traceIf;
@@ -142,7 +140,7 @@
     "❌ Failed to derive current host"
     (derived // {name = derived.config.networking.hostName;});
 
-  getInputs = {
+  mkConfig = {
     flake ? {},
     host ? {},
     specialArgs ? {},
@@ -164,7 +162,7 @@
           system = host.system or (getSystems {}).system;
         };
 
-    inputs = mkInputs {inputs = flake'.inputs;};
+    inputs = getInputs {inputs = flake'.inputs;};
 
     config = {
       allowUnfree = host.packages.allowUnfree or false;
@@ -177,7 +175,7 @@
       inherit inputs packages config;
     };
 
-    modules = mkModules {
+    modules = getModules {
       inherit
         inputs
         packages
@@ -196,7 +194,6 @@
       packages
       ;
   };
-
   # =============================================================
   __doc = ''
     Flake stuff
@@ -205,7 +202,6 @@
     inherit
       flakeAttrs
       flakePath
-      getInputs
       getSystem
       getSystems
       hostAttrs

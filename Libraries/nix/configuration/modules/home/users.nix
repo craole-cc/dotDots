@@ -4,35 +4,18 @@
   ...
 }: let
   inherit (_.filesystem.paths) getDefaults;
-  inherit (_.modules.core.users) hostUsers;
+  inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.environment) mkLocale;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.style) mkStyle;
   inherit (_.modules.home.programs) mkPrograms;
-  inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
+  inherit (lib.attrsets) mapAttrs removeAttrs;
 
   /**
   Filter users eligible for home-manager configuration.
   Excludes: service users, guest users, and empty/undefined users.
 
   Type: AttrSet -> AttrSet
-
-  Example:
-    homeManagerUsers { users.data.enabled = {
-      alice = { role = "admin"; };
-      cc = { role = "service"; };
-    }; }
-    => { alice = { role = "admin"; }; }
-  */
-  homeUsers = host:
-    filterAttrs
-    (_: user:
-      user
-      != {} #? User must exist
-      && (user.role or null) != "service" # Not a system service
-      && (user.role or null) != "guest") # Not a guest account
-    
-    (hostUsers host);
 
   /**
   Produces the entire home-manager NixOS option block for all eligible users.

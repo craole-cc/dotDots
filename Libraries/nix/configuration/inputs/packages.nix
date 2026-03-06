@@ -72,6 +72,7 @@
     #~@ Chaotic overlay
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
+
   exports = {inherit mkPackages mkOverlays;};
 in
   exports // {_rootAliases = exports;}

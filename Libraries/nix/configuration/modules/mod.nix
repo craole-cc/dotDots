@@ -1,10 +1,17 @@
 {_, ...}: let
   inherit (_.modules.core.mod) mkNixpkgs;
   mkCoreConf = _.modules.core.mod.mkConfig;
-  mkCoreConf = _.modules.core.mod.mkConfig;
   mkCoreMods = _.modules.core.mod.mkModules;
+  # mkHomeConf = _.modules.home.mod.mkConfig;
 
-  modules = {
+  mkModule = {
+    name,
+    modules,
+    variant ? "default",
+  }:
+    modules.${name}.${variant} or {};
+
+  mkModules = {
     inputs,
     host,
     packages,
@@ -33,6 +40,6 @@
       ;
   };
 
-  exports = {inherit modules;};
+  exports = {inherit mkModules mkModule;};
 in
   exports // {_rootAliases = exports;}

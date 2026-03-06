@@ -7,32 +7,9 @@
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.environment) mkLocale;
-  inherit (_.modules.home.programs) mkPrograms;
+  inherit (_.modules.home.programs) mkPrograms mkHomeApps;
   inherit (_.modules.home.style) mkStyle;
   inherit (lib.attrsets) mapAttrs;
-
-  modules = {inputs}: {
-    dank-material-shell = {
-      default = inputs.dank-material-shell.homeModules.default or {};
-      niri = inputs.dank-material-shell.homeModules.niri or {};
-    };
-    noctalia-shell = inputs.noctalia-shell.homeModules or {};
-    caelestia = inputs.caelestia.homeManagerModules or {};
-    catppuccin = inputs.catppuccin.homeModules or {};
-    nvf = {default = inputs.nvf.homeManagerModules.default or {};};
-    plasma = {default = inputs.plasma.homeModules.plasma-manager or {};};
-    zen-browser = {
-      twilight = inputs.zen-browser.homeModules.twilight or {};
-      default = inputs.zen-browser.homeModules.default or {};
-      beta = inputs.zen-browser.homeModules.beta or {};
-    };
-  };
-
-  mkModule = {
-    name,
-    variant ? "default",
-  }:
-    modules.${name}.${variant} or {};
 
   /**
   Produces the entire home-manager NixOS option block for all eligible users.
@@ -41,7 +18,6 @@
   mkConfig = {
     host,
     specialArgs,
-    mkHomeApps,
     paths,
   }: {
     home-manager = {
@@ -98,22 +74,6 @@
     };
   };
 
-  exports = {
-    inherit
-      mkConfig
-      modules
-      # homeMods
-      # mkHomeModule
-      # mkHomeApps
-      # mkHome
-      ;
-  };
+  exports = {inherit mkConfig;};
 in
-  exports
-  // {
-    _rootAliases = {
-      mkHome = mkConfig;
-      mkHomeModule = mkModule;
-      homeModules = modules;
-    };
-  }
+  exports // {_rootAliases = {mkHome = mkConfig;};}

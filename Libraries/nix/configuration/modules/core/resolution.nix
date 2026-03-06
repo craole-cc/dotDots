@@ -12,9 +12,9 @@
   inherit (lib.modules) mkMerge;
   inherit (lib.lists) optionals;
   inherit (_.modules.core.users) mkUsers;
-  # inherit (_.modules.home.mod) mkHome;
+  mkHome = _.modules.home.mod.mkConfig;
 
-  mkNixpkgs = {
+  mkPackages = {
     host,
     config,
     overlays,
@@ -65,7 +65,7 @@
     ]
     ++ [];
 
-  mkCore = {
+  mkConfig = {
     host,
     nixpkgs,
     inputs,
@@ -94,12 +94,12 @@
             (mkServices {inherit config host;})
             (mkPrograms {inherit host;})
             (mkUsers {inherit host pkgs;})
-            # (mkHome {inherit host specialArgs mkHomeModuleApps paths;})
+            (mkHome {inherit host specialArgs paths;})
           ]
       )
     ]
     ++ (host.imports or []);
 
-  exports = {inherit mkCore mkModules mkNixpkgs;};
+  exports = {inherit mkConfig mkModules mkPackages;};
 in
   exports // {_rootAliases = exports;}

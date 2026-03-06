@@ -1,7 +1,7 @@
 {_, ...}: let
   inherit (_.attrsets.resolution) byPaths;
 
-  mkInputs = {inputs}: {
+  inputs' = {inputs}: {
     nixpkgs = byPaths {
       attrset = inputs;
       default = "nixpkgs";
@@ -197,6 +197,6 @@
     };
   };
 
-  exports = {inherit mkInputs;};
+  exports = {inputs = inputs';};
 in
-  exports // {_rootAliases = exports;}
+  exports // {_rootAliases = {getInputs = inputs';};}

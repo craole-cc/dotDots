@@ -21,6 +21,13 @@
       "sddm"
       "gdm"
     ]);
-  exports = {inherit isSystemDefaultUser;};
+
+  mkModule = {
+    name,
+    modules,
+    variant ? "default",
+  }:
+    modules.${name}.${variant} or {};
+  exports = {inherit isSystemDefaultUser mkModule;};
 in
   exports // {_rootAliases = exports;}
