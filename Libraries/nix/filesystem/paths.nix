@@ -1,4 +1,8 @@
-{lib, ...}: let
+{
+  lib,
+  src,
+  ...
+}: let
   inherit
     (lib.strings)
     concatStringsSep
@@ -10,8 +14,17 @@
     ;
   inherit (lib.asserts) assertMsg;
   inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
-  inherit (lib.lists) elemAt head isList toList;
-  inherit (builtins) getEnv;
+  inherit (lib.debug) traceIf;
+  inherit
+    (lib.lists)
+    elemAt
+    head
+    isList
+    toList
+    ;
+  inherit (lib.strings) hasSuffix;
+  inherit (builtins) getEnv pathExists;
+
   /**
   Constructs a file path by combining a root directory with a stem (file name or relative path).
 
@@ -41,12 +54,8 @@
     root,
     stem,
   }:
-    assert assertMsg (
-      root != null && root != ""
-    ) "root must not be empty";
-    assert assertMsg (
-      stem != null && stem != "" && stem != []
-    ) "stem must not be empty"; "${root}/${
+    assert assertMsg (root != null && root != "") "root must not be empty";
+    assert assertMsg (stem != null && stem != "" && stem != []) "stem must not be empty"; "${root}/${
       if isList stem
       then concatStringsSep "/" stem
       else stem
@@ -77,114 +86,150 @@
       all =
         if isList raw
         then
-          map (p:
-            mkDefault {
-              inherit home dots user;
-              default = p;
-            })
+          map (
+            p:
+              mkDefault {
+                inherit home dots user;
+                default = p;
+              }
+          )
           raw
         else [
           (mkDefault {
             inherit home dots user;
-            path = ["wallpapers" "all"];
+            path = [
+              "wallpapers"
+              "all"
+            ];
             default = "home:Pictures/Wallpapers";
           })
         ];
 
       primary = mkDefault {
         inherit home dots user;
-        path = ["wallpapers" "primary"];
+        path = [
+          "wallpapers"
+          "primary"
+        ];
         default = head all;
       };
 
       dark = mkDefault {
         inherit home dots user;
-        path = ["wallpapers" "dark"];
+        path = [
+          "wallpapers"
+          "dark"
+        ];
         default = primary + "/dark.jpg";
       };
 
       light = mkDefault {
         inherit home dots user;
-        path = ["wallpapers" "light"];
+        path = [
+          "wallpapers"
+          "light"
+        ];
         default = primary + "/light.jpg";
       };
 
       monitors =
-        mapAttrs (name: config: let
-          transformation = config.transform or 0;
-          rotation =
-            if transformation == 1
-            then 90
-            else if transformation == 2
-            then 180
-            else if transformation == 3
-            then 270
-            else 0;
+        mapAttrs (
+          name: config: let
+            transformation = config.transform or 0;
+            rotation =
+              if transformation == 1
+              then 90
+              else if transformation == 2
+              then 180
+              else if transformation == 3
+              then 270
+              else 0;
 
-          isRotated = rotation == 90 || rotation == 270;
-          isFlipped = rotation == 180;
+            isRotated = rotation == 90 || rotation == 270;
+            isFlipped = rotation == 180;
 
-          resolution =
-            if isRotated
-            then let
-              parts = splitString "x" config.resolution;
-              width = elemAt parts 0;
-              height = elemAt parts 1;
-            in "${height}x${width}"
-            else config.resolution;
+            resolution =
+              if isRotated
+              then let
+                parts = splitString "x" config.resolution;
+                width = elemAt parts 0;
+                height = elemAt parts 1;
+              in "${height}x${width}"
+              else config.resolution;
 
-          directory = mkDefault {
-            inherit home dots user;
-            path = ["wallpapers" "monitors" name "directory"];
-            default = primary + "/${resolution}";
-          };
-          dark = mkDefault {
-            inherit home dots user;
-            path = ["wallpapers" "monitors" name "dark"];
-            default = directory;
-          };
-
-          light = mkDefault {
-            inherit home dots user;
-            path = ["wallpapers" "monitors" name "light"];
-            default = directory;
-          };
-          cache = directory + "/.cache";
-          current = primary + "/current-${name}.jpg";
-          manager = replaceVarsWith {
-            src = ./wallman.sh;
-            name = "wallman-${name}";
-            replacements = {
-              inherit name resolution directory current;
-              cmdConvert = "${imagemagick}/bin/convert";
-              cmdFd = "${fd}/bin/fd";
-              cmdRg = "${ripgrep}/bin/rg";
-              cmdLn = "${coreutils}/bin/ln";
-              cmdShuf = "${coreutils}/bin/shuf";
-              cmdRealpath = "${coreutils}/bin/realpath";
-              cachePolarity = "${cache}/polarity.txt";
-              cachePurity = "${cache}/purity.txt";
-              cacheCategory = "${cache}/category.txt";
-              cacheFavorite = "${cache}/favorite.txt";
+            directory = mkDefault {
+              inherit home dots user;
+              path = [
+                "wallpapers"
+                "monitors"
+                name
+                "directory"
+              ];
+              default = primary + "/${resolution}";
             };
-            isExecutable = true;
-          };
-        in {
-          inherit
-            directory
-            current
-            cache
-            isFlipped
-            isRotated
-            name
-            resolution
-            rotation
-            transformation
-            manager
-            dark
-            light
-            ;
-        })
+            dark = mkDefault {
+              inherit home dots user;
+              path = [
+                "wallpapers"
+                "monitors"
+                name
+                "dark"
+              ];
+              default = directory;
+            };
+
+            light = mkDefault {
+              inherit home dots user;
+              path = [
+                "wallpapers"
+                "monitors"
+                name
+                "light"
+              ];
+              default = directory;
+            };
+            cache = directory + "/.cache";
+            current = primary + "/current-${name}.jpg";
+            manager = replaceVarsWith {
+              src = ./wallman.sh;
+              name = "wallman-${name}";
+              replacements = {
+                inherit
+                  name
+                  resolution
+                  directory
+                  current
+                  ;
+                cmdConvert = "${imagemagick}/bin/convert";
+                cmdFd = "${fd}/bin/fd";
+                cmdRg = "${ripgrep}/bin/rg";
+                cmdLn = "${coreutils}/bin/ln";
+                cmdShuf = "${coreutils}/bin/shuf";
+                cmdRealpath = "${coreutils}/bin/realpath";
+                cachePolarity = "${cache}/polarity.txt";
+                cachePurity = "${cache}/purity.txt";
+                cacheCategory = "${cache}/category.txt";
+                cacheFavorite = "${cache}/favorite.txt";
+              };
+              isExecutable = true;
+            };
+          in {
+            inherit
+              directory
+              current
+              cache
+              isFlipped
+              isRotated
+              name
+              resolution
+              rotation
+              transformation
+              manager
+              dark
+              light
+              ;
+          }
+        )
         host.devices.display;
 
       #> Global wallpaper manager
@@ -197,23 +242,36 @@
           exit 1
         fi
 
-        ${
-          concatMapStringsSep "\n"
-          (mgr: ''${mgr} "$@" || true'')
-          (mapAttrsToList (name: config: config.manager) monitors)
-        }
+        ${concatMapStringsSep "\n" (mgr: ''${mgr} "$@" || true'') (
+          mapAttrsToList (name: config: config.manager) monitors
+        )}
       '';
-    in {inherit all primary dark light monitors manager;};
+    in {
+      inherit
+        all
+        primary
+        dark
+        light
+        monitors
+        manager
+        ;
+    };
 
     avatars = {
       session = mkDefault {
         inherit home dots user;
-        path = ["avatars" "session"];
+        path = [
+          "avatars"
+          "session"
+        ];
         default = "root:/assets/kurukuru.gif";
       };
       media = mkDefault {
         inherit home dots user;
-        path = ["avatars" "media"];
+        path = [
+          "avatars"
+          "media"
+        ];
         default = "root:/assets/kurukuru.gif";
       };
     };
@@ -229,7 +287,13 @@
       };
     };
     exports = {
-      inherit api avatars dots home wallpapers;
+      inherit
+        api
+        avatars
+        dots
+        home
+        wallpapers
+        ;
       libs = {
         shellscript = dots + "/Bin/shellscript";
       };
@@ -253,7 +317,7 @@
       then home
       else if root != ""
       then removeSuffix "/" root
-      else home; #? fallback to home if empty string
+      else home; # ? fallback to home if empty string
 
     #> Get the value from user.paths
     path' = toList path;
@@ -285,11 +349,33 @@
       # Example: "wallpapers/dark.jpg"
       # -> "/base/dir/wallpapers/dark.jpg"
       absolute + "/" + relative;
+
+  flake = {
+    self ? {},
+    path ? src,
+  }: let
+    pathStr = toString path;
+    result =
+      if hasSuffix "/flake.nix" pathStr && pathExists pathStr
+      then dirOf pathStr
+      else if pathExists (pathStr + "/flake.nix")
+      then pathStr
+      else null;
+  in
+    if (self ? outPath)
+    then self.outPath
+    else traceIf (result == null) "❌ '${pathStr}' is not a valid flake path." result;
 in {
-  inherit construct mkDefault getDefaults;
+  inherit
+    construct
+    mkDefault
+    getDefaults
+    flake
+    ;
   _rootAliases = {
     buildPath = construct;
     getDefaultPaths = getDefaults;
     mkDefaultPath = mkDefault;
+    flakePath = flake;
   };
 }

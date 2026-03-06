@@ -1,8 +1,10 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib.lists) elem;
   inherit (lib.strings) hasPrefix;
 
-  isSystemDefaultUser = name:
+  isSystemDefaultUser =
+    name:
     (hasPrefix "nixbld" name)
     || (hasPrefix "systemd-" name)
     || (hasPrefix "systemd-" name)
@@ -22,12 +24,6 @@
       "gdm"
     ]);
 
-  mkModule = {
-    name,
-    modules,
-    variant ? "default",
-  }:
-    modules.${name}.${variant} or {};
-  exports = {inherit isSystemDefaultUser mkModule;};
+  exports = { inherit isSystemDefaultUser; };
 in
-  exports // {_rootAliases = exports;}
+exports // { _rootAliases = exports; }

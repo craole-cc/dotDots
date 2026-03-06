@@ -1,11 +1,16 @@
 {
   _,
   lib,
+  src,
   ...
 }: let
+  inherit (_.filesystem.paths) flakePath;
   inherit (_.trivial.emptiness) isNotEmpty;
-  inherit (lib.attrsets) attrByPath hasAttrByPath;
-  inherit (lib.lists) filter head toList;
+  inherit (_.hardware.systems) getSystems;
+  inherit (lib.attrsets) attrByPath attrValues hasAttrByPath optionalAttrs;
+  inherit (lib.debug) traceIf;
+  inherit (lib.lists) filter findFirst head toList;
+  inherit (builtins) getFlake;
 
   /**
   Get attribute or default if missing/empty.
@@ -316,13 +321,11 @@
   in
     if priority != null
     then let
-      sources =
-        lib.filterAttrs (_: v: v != null)
-        (lib.genAttrs priority (name: nixpkgs.${name} or null));
+      sources = lib.filterAttrs (_: v: v != null) (lib.genAttrs priority (name: nixpkgs.${name} or null));
     in
-      (lib.findFirst (src: src.legacyPackages.${targetSystem} or null != null)
-        nixpkgs.legacyPackages
-        (lib.attrValues sources)).${
+      (lib.findFirst (src: src.legacyPackages.${targetSystem} or null != null) nixpkgs.legacyPackages (
+        lib.attrValues sources
+      )).${
         targetSystem
       }
     else nixpkgs.legacyPackages.${targetSystem};
@@ -488,8 +491,7 @@
     }
     .${
       shellName
-    }
-    or pkgs.bashInteractive;
+    } or pkgs.bashInteractive;
 
   /**
   Conditionally include an attribute in an attrset merge.
@@ -555,6 +557,43 @@
     then {${name} = attrs.${name};}
     else {};
 
+  flake = {
+    self ? {},
+    path ? src,
+  }: let
+    normalizedPath = flakePath {inherit self path;};
+    derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
+    failureReason =
+      if normalizedPath == null
+      then "path normalization failed"
+      else if derived == null
+      then "getFlake returned null"
+      else if (derived._type or null) != "flake"
+      then "invalid flake type: ${(derived._type or "null")}"
+      else "unknown";
+  in
+    if self != {}
+    then self
+    else
+      traceIf (
+        (derived._type or null) != "flake"
+      ) "❌ Flake load failed: ${toString path} (${failureReason})" (derived // {srcPath = path;});
+
+  host = {
+    nixosConfigurations ?
+      optionalAttrs ((flake {}) ? nixosConfigurations) (
+        (flake {}).nixosConfigurations
+      ),
+    system ? (getSystems {}).system,
+  }: let
+    derived = findFirst (h: (h.config.nixpkgs.hostPlatform.system or null) == system) null (
+      attrValues nixosConfigurations
+    );
+  in
+    traceIf ((derived.class or null) != "nixos") "❌ Failed to derive current host" (
+      derived // {name = derived.config.networking.hostName;}
+    );
+
   __doc = ''
     Advanced attribute set resolution and lookup utilities.
 
@@ -580,6 +619,8 @@
       package
       shellPackage
       optional
+      flake
+      host
       ;
   };
 in
@@ -595,5 +636,7 @@ in
       getNestedAttrByPaths = nestedByPaths;
       getAttrOrNull = orNull;
       optionalAttr = optional;
+      getFlake = flake;
+      getHost = host;
     };
   }
