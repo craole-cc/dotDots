@@ -1,7 +1,10 @@
 {_, ...}: let
-  inherit (_.modules.core.mod) mkCore mkNixPkgs mkCoreMods;
+  inherit (_.modules.core.mod) mkNixpkgs;
+  mkCoreConf = _.modules.core.mod.mkConfig;
+  mkCoreConf = _.modules.core.mod.mkConfig;
+  mkCoreMods = _.modules.core.mod.mkModules;
 
-  mkModules = {
+  modules = {
     inputs,
     host,
     packages,
@@ -12,12 +15,13 @@
     class = host.class or "nixos";
     modulesPath = "${inputs.nixpkgs}/nixos/modules";
     baseModules = import "${modulesPath}/module-list.nix";
-    nixpkgs = mkNixPkgs {inherit host config inputs overlays;};
+    nixpkgs = mkNixpkgs {inherit host config inputs overlays;};
     coreModules = mkCoreMods {inherit class inputs;};
-    hostModules = mkCore {
+    hostModules = mkCoreConf {
       inherit nixpkgs config specialArgs;
       inputs = packages;
     };
+    # homeModules = mkHome {};
   in {
     inherit
       modulesPath
@@ -29,6 +33,6 @@
       ;
   };
 
-  exports = {inherit mkModules;};
+  exports = {inherit modules;};
 in
   exports // {_rootAliases = exports;}

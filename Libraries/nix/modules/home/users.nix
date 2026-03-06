@@ -8,7 +8,7 @@
   inherit (_.modules.home.environment) mkLocale;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.style) mkStyle;
-  inherit (_.modules.home.programs) mkApps;
+  inherit (_.modules.home.programs) mkPrograms;
   inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
 
   /**
@@ -38,7 +38,7 @@
   Produces the entire home-manager NixOS option block for all eligible users.
   Type: { host, specialArgs, paths } -> AttrSet
   */
-  mkUsers = {
+  mkHome = {
     host,
     specialArgs,
     mkHomeModuleApps,
@@ -70,7 +70,7 @@
             _module.args = {
               style = mkStyle {inherit host user;};
               user = user // {inherit name;};
-              apps = mkApps {inherit host user;};
+              apps = mkPrograms {inherit host user;};
               keyboard = mkKeyboard {inherit host user;};
               locale = mkLocale {inherit host;};
               paths = derivedPaths;
@@ -98,12 +98,12 @@
     };
   };
 
-  exports = {inherit mkUsers homeUsers;};
+  exports = {inherit mkHome homeUsers;};
 in
   exports
   // {
     _rootAliases = {
       inherit homeUsers;
-      mkHomeUsers = mkUsers;
+      mkHomeUsers = mkHome;
     };
   }

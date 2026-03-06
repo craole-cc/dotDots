@@ -6,8 +6,97 @@
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) isAttrs mapAttrs;
   inherit (lib.strings) hasInfix;
+  inherit (_.modules.home.mod) mkModule;
 
-  mkApps = {
+  appsAllowed = user: user.applications.allowed or [];
+
+  mkModuleApps = user: {
+    #| Plasma Desktop Environment
+    plasma = let
+      name = "plasma";
+      alt = "kde";
+    in {
+      isAllowed =
+        hasInfix name (user.interface.desktopEnvironment or "")
+        || hasInfix alt (user.interface.desktopEnvironment or "");
+      module = mkModule {inherit name;};
+    };
+
+    #| Caelestia Shell
+    catppuccin = let
+      name = "catppuccin";
+      theme = user.interface.style.theme or {};
+    in {
+      isAllowed =
+        isIn name (appsAllowed user)
+        || hasInfix name (theme.light or "")
+        || hasInfix name (theme.dark or "");
+      module = mkModule {inherit name;};
+    };
+
+    #| Caelestia Shell
+    caelestia = let
+      name = "caelestia";
+    in {
+      isAllowed = isIn ["${name}-shell" name] (
+        (appsAllowed user)
+        ++ [(user.applications.bar or null)]
+      );
+      module = mkModule {inherit name;};
+    };
+
+    #| Dank Material Shell
+    dank-material-shell = let
+      name = "dank-material-shell";
+    in {
+      isAllowed = isIn [name "dank" "dms"] (
+        (appsAllowed user)
+        ++ [(user.applications.bar or null)]
+      );
+      module = mkModule {inherit name;};
+    };
+
+    #| Noctalia Shell
+    noctalia-shell = let
+      name = "noctalia-shell";
+    in {
+      isAllowed = isIn ["noctalia-shell" "noctalia" "noctalia-dev"] (
+        (appsAllowed user)
+        ++ [(user.applications.bar or null)]
+      );
+      module = mkModule {inherit name;};
+    };
+
+    #| NVF (Neovim Framework)
+    nvf = let
+      name = "nvf";
+    in {
+      isAllowed = isIn [name "nvim" "neovim"] (
+        (appsAllowed user)
+        ++ [(user.applications.editor.tty.primary or null)]
+        ++ [(user.applications.editor.tty.secondary or null)]
+      );
+      module = mkModule {inherit name;};
+    };
+
+    #| Firefox - Zen Browser
+    zen-browser = let
+      name = "zen-browser";
+      alt = "zen";
+      alt_names = [name alt "zen-twilight"];
+      variant =
+        if hasInfix "twilight" (user.applications.browser.firefox or "")
+        then "twilight"
+        else "default";
+    in {
+      isAllowed =
+        hasInfix alt (user.applications.browser.firefox or "")
+        || isIn alt_names (appsAllowed user);
+      module = mkModule {inherit name variant;};
+    };
+  };
+
+  mkPrograms = {
     host,
     user,
   }: let
@@ -138,6 +227,6 @@
   in
     mapAttrs mkCategory categoryDefaults // {inherit mkDefault;};
 
-  exports = {inherit mkApps;};
+  exports = {inherit mkPrograms;};
 in
-  exports // {_rootAliases = {mkUserApps = mkApps;};}
+  exports // {_rootAliases = {mkUserApps = mkPrograms;};}

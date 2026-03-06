@@ -42,6 +42,17 @@
   hostUsers = host: host.users.data.enabled or {};
 
   /**
+  Get users eligible for home-manager configuration.
+  Delegates to the `interactive` user set, which already excludes
+  service accounts and guests.
+
+  Type: AttrSet -> AttrSet
+
+  Returns: An attrset of enabled, interactive users.
+  */
+  homeUsers = host: host.users.data.interactive or {};
+
+  /**
   Get list of admin user names.
 
   Type: AttrSet -> [String]
@@ -118,6 +129,7 @@
       adminNames
       adminUsers
       hostUsers
+      homeUsers
       ;
   };
 in

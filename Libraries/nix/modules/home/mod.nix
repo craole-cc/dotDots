@@ -3,12 +3,15 @@
   lib,
   ...
 }: let
-  inherit (_.lists.predicates) isIn;
-  inherit (lib.strings) hasInfix;
+  inherit (_.filesystem.paths) getDefaults;
+  inherit (_.modules.core.users) homeUsers;
+  inherit (_.modules.home.control) mkKeyboard;
+  inherit (_.modules.home.environment) mkLocale;
+  inherit (_.modules.home.programs) mkPrograms;
+  inherit (_.modules.home.style) mkStyle;
+  inherit (lib.attrsets) mapAttrs;
 
-  appsAllowed = user: user.applications.allowed or [];
-
-  homeMods = {inputs}: {
+  modules = {inputs}: {
     dank-material-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};
@@ -25,100 +28,92 @@
     };
   };
 
-  mkHomeModule = {
+  mkModule = {
     name,
     variant ? "default",
   }:
-    homeMods.${name}.${variant} or {};
+    modules.${name}.${variant} or {};
 
-  mkHomeModuleApps = user: {
-    #| Plasma Desktop Environment
-    plasma = let
-      name = "plasma";
-      alt = "kde";
-    in {
-      isAllowed =
-        hasInfix name (user.interface.desktopEnvironment or "")
-        || hasInfix alt (user.interface.desktopEnvironment or "");
-      module = mkHomeModule {inherit name;};
-    };
+  /**
+  Produces the entire home-manager NixOS option block for all eligible users.
+  Type: { host, specialArgs, paths } -> AttrSet
+  */
+  mkConfig = {
+    host,
+    specialArgs,
+    mkHomeApps,
+    paths,
+  }: {
+    home-manager = {
+      backupFileExtension = "BaC";
+      overwriteBackup = true;
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      extraSpecialArgs =
+        (removeAttrs specialArgs ["paths"])
+        // {
+          lix = _;
+          inherit host;
+        };
 
-    #| Caelestia Shell
-    catppuccin = let
-      name = "catppuccin";
-      theme = user.interface.style.theme or {};
-    in {
-      isAllowed =
-        isIn name (appsAllowed user)
-        || hasInfix name (theme.light or "")
-        || hasInfix name (theme.dark or "");
-      module = mkHomeModule {inherit name;};
-    };
+      users =
+        mapAttrs (
+          name: user: {
+            nixosConfig,
+            config,
+            pkgs,
+            ...
+          }: let
+            inputsForHome = mkHomeApps {inherit user;};
+            derivedPaths = getDefaults {inherit config host user pkgs paths;};
+          in {
+            _module.args = {
+              style = mkStyle {inherit host user;};
+              user = user // {inherit name;};
+              apps = mkPrograms {inherit host user;};
+              keyboard = mkKeyboard {inherit host user;};
+              locale = mkLocale {inherit host;};
+              paths = derivedPaths;
+              inherit inputsForHome;
+            };
 
-    #| Caelestia Shell
-    caelestia = let
-      name = "caelestia";
-    in {
-      isAllowed = isIn ["${name}-shell" name] (
-        (appsAllowed user)
-        ++ [(user.applications.bar or null)]
-      );
-      module = mkHomeModule {inherit name;};
-    };
+            home = {inherit (nixosConfig.system) stateVersion;};
 
-    #| Dank Material Shell
-    dank-material-shell = let
-      name = "dank-material-shell";
-    in {
-      isAllowed = isIn [name "dank" "dms"] (
-        (appsAllowed user)
-        ++ [(user.applications.bar or null)]
-      );
-      module = mkHomeModule {inherit name;};
-    };
-
-    #| Noctalia Shell
-    noctalia-shell = let
-      name = "noctalia-shell";
-    in {
-      isAllowed = isIn ["noctalia-shell" "noctalia" "noctalia-dev"] (
-        (appsAllowed user)
-        ++ [(user.applications.bar or null)]
-      );
-      module = mkHomeModule {inherit name;};
-    };
-
-    #| NVF (Neovim Framework)
-    nvf = let
-      name = "nvf";
-    in {
-      isAllowed = isIn [name "nvim" "neovim"] (
-        (appsAllowed user)
-        ++ [(user.applications.editor.tty.primary or null)]
-        ++ [(user.applications.editor.tty.secondary or null)]
-      );
-      module = mkHomeModule {inherit name;};
-    };
-
-    #| Firefox - Zen Browser
-    zen-browser = let
-      name = "zen-browser";
-      alt = "zen";
-      alt_names = [name alt "zen-twilight"];
-      variant =
-        if hasInfix "twilight" (user.applications.browser.firefox or "")
-        then "twilight"
-        else "default";
-    in {
-      isAllowed =
-        hasInfix alt (user.applications.browser.firefox or "")
-        || isIn alt_names (appsAllowed user);
-      module = mkHomeModule {inherit name variant;};
+            imports =
+              []
+              ++ [paths.store.pkgs.home]
+              ++ (user.imports or [])
+              ++ (with inputsForHome; [
+                caelestia.module
+                catppuccin.module
+                dank-material-shell.module
+                noctalia-shell.module
+                nvf.module
+                plasma.module
+                zen-browser.module
+              ]);
+          }
+        )
+        (homeUsers host);
     };
   };
 
-  mkHome = {};
-
-  exports = {inherit homeMods mkHomeModule mkHomeModuleApps mkHome;};
+  exports = {
+    inherit
+      mkConfig
+      modules
+      # homeMods
+      # mkHomeModule
+      # mkHomeApps
+      # mkHome
+      ;
+  };
 in
-  exports // {_rootAliases = exports;}
+  exports
+  // {
+    _rootAliases = {
+      mkHome = mkConfig;
+      mkHomeModule = mkModule;
+      homeModules = modules;
+    };
+  }
