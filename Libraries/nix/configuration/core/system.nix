@@ -3,11 +3,54 @@
   lib,
   ...
 }: let
-  inherit (_.modules.resolution) getInputs;
+  # inherit (_.modules.resolution) getInputs;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
 
-  mkSystem = {
+  mkModule = {
+    name,
+    modules,
+    variant ? "default",
+  }:
+    modules.${name}.${variant} or {};
+
+  mkModules = {
+    inputs,
+    host,
+    packages,
+    specialArgs,
+    config,
+    overlays,
+  }: let
+    class = host.class or "nixos";
+    modulesPath = "${inputs.nixpkgs}/nixos/modules";
+    baseModules = import "${modulesPath}/module-list.nix";
+    nixpkgs = mkNixPkgs {
+      inherit
+        host
+        config
+        inputs
+        overlays
+        ;
+    };
+    coreModules = getCoreModules {inherit class inputs;};
+    homeModules = getHomeModules {inherit inputs;};
+    hostModules = mkCoreConf {
+      inherit nixpkgs config specialArgs;
+      inputs = packages;
+    };
+  in {
+    inherit
+      modulesPath
+      baseModules
+      coreModules
+      homeModules
+      hostModules
+      nixpkgs
+      ;
+  };
+
+  mkConfig = {
     hosts,
     flake,
     lix,
@@ -57,6 +100,9 @@
     )
     hosts;
 
-  exports = {inherit mkSystem;};
+  exports = {
+    inherit mkConfig;
+    mkSystem = mkConfig;
+  };
 in
-  exports // {_rootAliases = exports;}
+  exports // {_rootAliases = {inherit (exports) getSystem;};}

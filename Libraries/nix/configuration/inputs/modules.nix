@@ -1,11 +1,7 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{lib, ...}: let
   inherit (lib.lists) optionals;
 
-  mkCoreModules = {
+  mkCore = {
     class,
     inputs,
     ...
@@ -39,7 +35,7 @@
     ]
     ++ [];
 
-  mkHomeModules = {inputs, ...}: {
+  mkHome = {inputs, ...}: {
     dank-material-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};
@@ -55,12 +51,12 @@
       beta = inputs.zen-browser.homeModules.beta or {};
     };
   };
-  exports = {inherit mkCoreModules mkHomeModules;};
+  exports = {inherit mkCore mkHome;};
 in
   exports
   // {
     _rootAliases = {
-      getCoreInputModules = mkCoreModules;
-      getHomeInputModules = mkHomeModules;
+      getCoreInputModules = mkCore;
+      getHomeInputModules = mkHome;
     };
   }

@@ -594,6 +594,25 @@
       derived // {name = derived.config.networking.hostName;}
     );
 
+  nixpkgs = {
+    system,
+    config,
+    overlays,
+    inputs,
+    ...
+  }:
+    {
+      hostPlatform = system;
+      inherit config overlays;
+    }
+    // (
+      with inputs.nixpkgs; (
+        if (host.class or "nixos") == "darwin"
+        then {source = outPath;}
+        else {flake.source = outPath;}
+      )
+    );
+
   __doc = ''
     Advanced attribute set resolution and lookup utilities.
 
@@ -622,21 +641,34 @@
       flake
       host
       ;
+    getPkgs = packages;
+    getPackage = package;
+    getShellPackage = shellPackage;
+    getAttr = get;
+    getAttrByPaths = byPaths;
+    getNestedAttrByPaths = nestedByPaths;
+    getAttrOrNull = orNull;
+    optionalAttr = optional;
+    getFlake = flake;
+    getHost = host;
   };
 in
   exports
   // {
     inherit __doc;
     _rootAliases = {
-      getPkgs = packages;
-      getPackage = package;
-      getShellPackage = shellPackage;
-      getAttr = get;
-      getAttrByPaths = byPaths;
-      getNestedAttrByPaths = nestedByPaths;
-      getAttrOrNull = orNull;
-      optionalAttr = optional;
-      getFlake = flake;
-      getHost = host;
+      inherit
+        (exports)
+        getPkgs
+        getPackage
+        getShellPackage
+        getAttr
+        getAttrByPaths
+        getNestedAttrByPaths
+        getAttrOrNull
+        optionalAttr
+        getFlake
+        getHost
+        ;
     };
   }
