@@ -19,8 +19,9 @@
     ;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.trivial.debug) mkModuleDebug mkExample;
 
-  _debug = _.trivial.debug.mkModuleDebug {
+  _debug = mkModuleDebug {
     inherit library;
     namespace = __moduleNamespacePath;
   };
@@ -264,14 +265,12 @@
       function = "normalize";
       message = "nested lists are not supported";
       signature = ''string | [string] | null -> string | [string] | null'';
-      example = ''normalize ["Zen Twilight" "zen_beta"] |=> ["zen-twilight" "zen-beta"]'';
+      example = mkExample {
+        cmd = ''normalize ["Zen Twilight" "zen_beta"]'';
+        res = ''["zen-twilight" "zen-beta"]'';
+      };
     in
-      # throw (_debug.withDoc {inherit input function message signature example;})
-      throw (_debug.traceDoc {inherit input function message signature example;})
-    # _debug.errorDoc {inherit input function message signature example;}
-    # _debug.traceDoc {inherit input function message signature example;}
-    # _debug.throwDoc {inherit input function message signature example;}
-    # _debug.throwLoc {inherit input function message;}
+      throw (_debug.throwDoc {inherit input function message signature example;})
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (toLower' s))
