@@ -16,7 +16,7 @@
   /**
   Create a usage hint string pointing to :doc for full reference.
   */
-  mkUsage = name: namespacePath: fnName: typeSignature: "Usage:\n\t${typeSignature}\n\trepl> :doc ${mkRef name namespacePath fnName}";
+  mkUsage = name: namespacePath: fnName: typeSignature: "Usage:\n  ${typeSignature}\n  repl> :doc ${mkRef name namespacePath fnName}";
 
   #~@ Error Utilities
   /**
