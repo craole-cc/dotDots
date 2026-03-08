@@ -97,6 +97,7 @@
         src
         name
         ;
+      library = name;
 
       #> Short aliases
       l = lib;

@@ -1,6 +1,6 @@
 {lib, ...}: let
   inherit (lib.strings) concatStringsSep toJSON;
-  inherit (lib.debug) trace;
+  inherit (lib.debug) addErrorContext trace;
 
   #~@ Namespace Utilities
 
@@ -9,126 +9,311 @@
 
   # Type
   ```nix
-  mkNamespace :: { namespacePath :: [string] } -> string
+  mkNamespace :: [string] -> string
   ```
 
   # Examples
   ```nix
-  mkNamespace { namespacePath = ["strings" "transform"]; }  # => "strings.transform"
-  mkNamespace { namespacePath = ["trivial" "debug"]; }      # => "trivial.debug"
+  mkNamespace ["strings" "transform"]  # => "strings.transform"
+  mkNamespace ["trivial" "debug"]      # => "trivial.debug"
   ```
   */
-  mkNamespace = {namespacePath}:
-    concatStringsSep "." namespacePath;
+  mkNamespace = path:
+    concatStringsSep "." path;
 
   /**
   Create a fully qualified reference to a function.
 
   # Type
   ```nix
-  mkRef :: { name :: string, namespacePath :: [string], fnName :: string } -> string
+  mkRef :: { library :: string, namespace :: [string], function :: string } -> string
   ```
 
   # Examples
   ```nix
-  mkRef { name = "lix"; namespacePath = ["strings" "transform"]; fnName = "normalize"; }
+  mkRef { library = "lix"; namespace = ["strings" "transform"]; function = "normalize"; }
   # => "lix.strings.transform.normalize"
   ```
   */
-  mkRef = {name, namespacePath, fnName}:
-    "${name}.${mkNamespace { inherit namespacePath; }}.${fnName}";
+  mkRef = {
+    library,
+    namespace,
+    function,
+  }: "${library}.${mkNamespace namespace}.${function}";
 
   /**
-  Create a usage hint string with type signature and :doc reference.
+  Create a usage hint string with type signature, optional example, and :doc reference.
 
   # Type
   ```nix
-  mkUsage :: { name :: string, namespacePath :: [string], fnName :: string, sign :: string } -> string
+  mkUsage :: {
+    library   :: string,
+    namespace :: [string],
+    function  :: string,
+    signature :: string,
+    example   :: string | null,  # optional
+  } -> string
   ```
 
   # Examples
   ```nix
-  mkUsage { name = "lix"; namespacePath = ["strings" "transform"]; fnName = "normalize"; sign = "string | [string] | null -> string | [string] | null"; }
-  # => "string | [string] | null -> string | [string] | null
+  mkUsage {
+    library   = "lix";
+    namespace = ["strings" "transform"];
+    function  = "normalize";
+    signature = "string | [string] | null -> string | [string] | null";
+  }
+  # => "Usage: string | [string] | null -> string | [string] | null
+  #     repl> :doc lix.strings.transform.normalize"
+
+  mkUsage {
+    library   = "lix";
+    namespace = ["strings" "transform"];
+    function  = "normalize";
+    signature = "string | [string] | null -> string | [string] | null";
+    example   = ''normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]'';
+  }
+  # => "Usage: string | [string] | null -> string | [string] | null
+  #        eg: normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
   #     repl> :doc lix.strings.transform.normalize"
   ```
   */
-  mkUsage = {name, namespacePath, fnName, sign}:
-    "${sign}\n repl> :doc ${mkRef { inherit name namespacePath fnName; }}";
+  mkUsage = {
+    library,
+    namespace,
+    function,
+    signature,
+    example ? null,
+  }: let
+    exampleLine =
+      if example != null
+      then "\n     eg: ${example}"
+      else "";
+  in "Usage: ${signature}${exampleLine}\n   repl> :doc ${mkRef {inherit library namespace function;}}";
 
   #~@ Module Debug
 
   /**
-  Create a set of debug helpers bound to a module's namespace path.
+  Create a set of debug helpers bound to a module's library name and namespace path.
 
-  Provides consistent error formatting, tracing, and throwing helpers
-  that automatically include the fully qualified function reference.
+  All helpers automatically include the fully qualified function reference in
+  errors and traces, derived from the bound library and namespace.
 
   # Type
   ```nix
-  mkModuleDebug :: { name :: string, namespacePath :: [string] } -> ModuleDebug
+  mkModuleDebug :: { library :: string, namespace :: [string] } -> ModuleDebug
   ```
 
   # Usage
   ```nix
   {_, name, __moduleNamespacePath, ...}: let
-    debug = _.trivial.debug.mkModuleDebug { inherit name; namespacePath = __moduleNamespacePath; };
+    _debug = _.trivial.debug.mkModuleDebug {
+      library = name;
+      namespace = __moduleNamespacePath;
+    };
   in {
-    myFn = value:
+    myFn = input:
       if badCondition
-      then throw (debug.traceLoc { fnName = "myFn"; msg = "bad input"; inherit value; })
+      then throw (_debug.traceLoc {
+        function = "myFn";
+        message  = "bad input";
+        inherit input;
+      })
       else ...;
 
-    myOtherFn = value:
+    myOtherFn = input:
       if badCondition
-      then throw (debug.traceDoc { fnName = "myOtherFn"; msg = "bad input"; sign = "string -> string"; inherit value; })
+      then throw (_debug.traceDoc {
+        function  = "myOtherFn";
+        message   = "bad input";
+        signature = "string -> string";
+        example   = "myOtherFn \"hello\"  # => \"HELLO\"";
+        inherit input;
+      })
       else ...;
   }
   ```
   */
-  mkModuleDebug = {name, namespacePath}: let
-    ref = fnName: mkRef { inherit name namespacePath fnName; };
-    usage = fnName: sign: mkUsage { inherit name namespacePath fnName sign; };
+  mkModuleDebug = {
+    library,
+    namespace,
+  }: let
+    ref = function:
+      mkRef {inherit library namespace function;};
+    usage = {
+      function,
+      signature,
+      example ? null,
+    }:
+      mkUsage {inherit library namespace function signature example;};
   in {
+    withDoc = {
+      function,
+      message,
+      signature,
+      input,
+      example ? null,
+    }:
+      addErrorContext
+      "${usage {inherit function signature example;}}"
+      (throw "${message}\ninput: ${toJSON input}");
+
+    withLoc = {
+      function,
+      message,
+      input,
+    }:
+      addErrorContext
+      "[${ref function}]"
+      (throw "${message}\ninput: ${toJSON input}");
+
     /**
-    Trace type signature and :doc reference to stderr, return error message for caller to throw.
+    Trace type signature, optional example, and :doc reference to stderr.
+    Returns the error message string for the caller to throw.
+
+    The trace fires at the debug.nix callsite, while the returned string is thrown
+    at the call site — pointing the error trace to the user's module.
 
     # Arguments
-    - fnName: Name of the function where the error originates
-    - msg: Human-readable error description
-    - sign: Type signature string
-    - value: The invalid value that caused the error (serialized via toJSON)
+    - function:  Name of the function where the error originates
+    - message:   Human-readable error description
+    - signature: Type signature string
+    - example:   Optional concrete usage example
+    - input:     The invalid value that caused the error (serialized via toJSON)
+
+    # Usage
+    ```nix
+    then throw (_debug.traceDoc {
+      function  = "normalize";
+      message   = "nested lists are not supported";
+      signature = "string | [string] | null -> string | [string] | null";
+      example   = ''normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]'';
+      inherit input;
+    })
+    ```
     */
-    traceDoc = {fnName, msg, sign, value}:
-      trace "${usage fnName sign}"
-      "${msg}, got: ${toJSON value}";
+    traceDoc = {
+      function,
+      message,
+      signature,
+      input,
+      example ? null,
+    }:
+      trace "\n  ${usage {inherit function signature example;}}"
+      "${message}\ninput: ${toJSON input}";
+
+    # trace "${message}\ninput: ${toJSON input}\n\n${usage {inherit function signature example;}}";
 
     /**
-    Trace just the qualified reference to stderr, return error message for caller to throw.
+    Trace just the qualified reference to stderr, return message for caller to throw.
+
+    Lighter alternative to traceDoc when a type signature is not needed.
 
     # Arguments
-    - fnName: Name of the function where the error originates
-    - msg: Human-readable error description
-    - value: The invalid value that caused the error (serialized via toJSON)
+    - function: Name of the function where the error originates
+    - message:  Human-readable error description
+    - input:    The invalid value that caused the error (serialized via toJSON)
+
+    # Usage
+    ```nix
+    then throw (_debug.traceLoc {
+      function = "trimStart";
+      message  = "chars must be a string or null";
+      input    = chars;
+    })
+    ```
     */
-    traceLoc = {fnName, msg, value}:
-      trace "[${ref fnName}]"
-      "${msg}, got: ${toJSON value}";
+    traceLoc = {
+      function,
+      message,
+      input,
+    }:
+      trace "[${ref function}]"
+      "${message}\ninput: ${toJSON input}";
+
+    /**
+    Throw immediately with type signature, optional example, and :doc reference.
+
+    Unlike traceDoc, the error trace points to debug.nix rather than the call site.
+    Prefer traceDoc + throw at the call site for better traces.
+
+    # Arguments
+    - function:  Name of the function where the error originates
+    - message:   Human-readable error description
+    - signature: Type signature string
+    - example:   Optional concrete usage example
+    - input:     The invalid value that caused the error (serialized via toJSON)
+
+    # Usage
+    ```nix
+    then _debug.throwDoc {
+      function  = "normalize";
+      message   = "nested lists are not supported";
+      signature = "string | [string] | null -> string | [string] | null";
+      example   = ''normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]'';
+      inherit input;
+    }
+    ```
+    */
+    throwDoc = {
+      function,
+      message,
+      signature,
+      input,
+      example ? null,
+    }:
+      addErrorContext
+      "${usage {inherit function signature example;}}"
+      (throw "${message}\ninput: ${toJSON input}");
+
+    /**
+    Throw immediately with the qualified reference in brackets.
+
+    Unlike traceLoc, the error trace points to debug.nix rather than the call site.
+    Prefer traceLoc + throw at the call site for better traces.
+
+    # Arguments
+    - function: Name of the function where the error originates
+    - message:  Human-readable error description
+    - input:    The invalid value that caused the error (serialized via toJSON)
+
+    # Usage
+    ```nix
+    then _debug.throwLoc {
+      function = "trimStart";
+      message  = "chars must be a string or null";
+      input    = chars;
+    }
+    ```
+    */
+    throwLoc = {
+      function,
+      message,
+      input,
+    }:
+      throw "${message}\ninput: ${
+        toJSON input
+      }\n repl> :doc ${ref function}";
 
     /**
     Format an error string with fully qualified location, without throwing or tracing.
 
+    Useful for building error messages to pass to other functions or log manually.
+
     # Arguments
-    - fnName: Name of the function where the error originates
-    - msg: Human-readable error description
+    - function: Name of the function where the error originates
+    - message:  Human-readable error description
 
     # Examples
     ```nix
-    debug.mkError { fnName = "normalize"; msg = "unexpected null"; }
+    _debug.mkError { function = "normalize"; message = "unexpected null"; }
     # => "lix.strings.transform.normalize: unexpected null"
     ```
     */
-    mkError = {fnName, msg}: "${ref fnName}: ${msg}";
+    mkError = {
+      function,
+      message,
+    }: "${ref function}: ${message}";
 
     #> Expose ref and usage for manual composition
     inherit ref usage;

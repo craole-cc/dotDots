@@ -1,18 +1,28 @@
 {
   lib,
   _,
-  name,
+  library,
   __moduleNamespacePath,
   ...
 }: let
   inherit (lib.lists) isList map any;
-  inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
+  inherit
+    (lib.strings)
+    hasPrefix
+    hasSuffix
+    isString
+    removePrefix
+    removeSuffix
+    replaceStrings
+    toLower
+    toUpper
+    ;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
 
   _debug = _.trivial.debug.mkModuleDebug {
-    inherit name;
-    namespacePath = __moduleNamespacePath;
+    inherit library;
+    namespace = __moduleNamespacePath;
   };
 
   # Internal: apply a string transform to a string or each item in a list.
@@ -35,13 +45,16 @@
   toLower ["FOO" "BAR"] # => ["foo" "bar"]
   ```
   */
-  toLower = value:
-    if isList value && any isList value
+  toLower' = input:
+    if isList input && any isList input
     then
-      debug.traceDoc "toLower"
-      "nested lists are not supported"
-      "string | [string] -> string | [string]"
-    else _applyStr lib.strings.toLower value;
+      throw (_debug.traceDoc {
+        function = "toLower";
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        inherit input;
+      })
+    else _applyStr toLower input;
 
   /**
   Convert a string or list of strings to upper case.
@@ -57,13 +70,16 @@
   toUpper ["foo" "bar"] # => ["FOO" "BAR"]
   ```
   */
-  toUpper = value:
-    if isList value && any isList value
+  toUpper' = input:
+    if isList input && any isList input
     then
-      debug.traceDoc "toUpper"
-      "nested lists are not supported"
-      "string | [string] -> string | [string]"
-    else _applyStr lib.strings.toUpper value;
+      throw (_debug.traceDoc {
+        function = "toUpper";
+        message = "nested lists are not supported";
+        signature = "string | [string] -> string | [string]";
+        inherit input;
+      })
+    else _applyStr toUpper input;
 
   /**
   Remove leading occurrences of `chars` from a string or list of strings.
@@ -86,23 +102,29 @@
     c =
       if chars == null
       then " "
-      else if !builtins.isString chars
+      else if !isString chars
       then
-        debug.traceLoc "trimStart"
-        "chars must be a string or null"
+        throw (_debug.traceLoc {
+          function = "trimStart";
+          message = "chars must be a string or null";
+          input = chars;
+        })
       else chars;
     go = s:
       if hasPrefix c s
       then go (removePrefix c s)
       else s;
   in
-    value:
-      if isList value && any isList value
+    input:
+      if isList input && any isList input
       then
-        debug.traceDoc "trimStart"
-        "nested lists are not supported"
-        "string | null -> string | [string] -> string | [string]"
-      else _applyStr go value;
+        throw (_debug.traceDoc {
+          function = "trimStart";
+          message = "nested lists are not supported";
+          signature = "string | null -> string | [string] -> string | [string]";
+          inherit input;
+        })
+      else _applyStr go input;
 
   /**
   Remove trailing occurrences of `chars` from a string or list of strings.
@@ -125,23 +147,29 @@
     c =
       if chars == null
       then " "
-      else if !builtins.isString chars
+      else if !isString chars
       then
-        debug.traceLoc "trimEnd"
-        "chars must be a string or null"
+        throw (_debug.traceLoc {
+          function = "trimEnd";
+          message = "chars must be a string or null";
+          input = chars;
+        })
       else chars;
     go = s:
       if hasSuffix c s
       then go (removeSuffix c s)
       else s;
   in
-    value:
-      if isList value && any isList value
+    input:
+      if isList input && any isList input
       then
-        debug.traceDoc "trimEnd"
-        "nested lists are not supported"
-        "string | null -> string | [string] -> string | [string]"
-      else _applyStr go value;
+        throw (_debug.traceDoc {
+          function = "trimEnd";
+          message = "nested lists are not supported";
+          signature = "string | null -> string | [string] -> string | [string]";
+          inherit input;
+        })
+      else _applyStr go input;
 
   /**
   Remove leading and trailing occurrences of `chars` from a string or list of strings.
@@ -184,21 +212,30 @@
     ss = toList search;
     rs = toList replace;
   in
-    value:
-      if isList value && any isList value
+    input:
+      if isList input && any isList input
       then
-        debug.traceDoc "replaceAll"
-        "nested lists are not supported in value"
-        "string | [string] -> string | [string] -> string | [string] -> string | [string]"
+        throw (_debug.traceDoc {
+          function = "replaceAll";
+          message = "nested lists are not supported in input";
+          signature = "string | [string] -> string | [string] -> string | [string] -> string | [string]";
+          inherit input;
+        })
       else if isList ss && any isList ss
       then
-        debug.traceLoc "replaceAll"
-        "nested lists are not supported in search"
+        throw (_debug.traceLoc {
+          function = "replaceAll";
+          message = "nested lists are not supported in search";
+          input = search;
+        })
       else if isList rs && any isList rs
       then
-        debug.traceLoc "replaceAll"
-        "nested lists are not supported in replace"
-      else _applyStr (replaceStrings ss rs) value;
+        throw (_debug.traceLoc {
+          function = "replaceAll";
+          message = "nested lists are not supported in replace";
+          input = replace;
+        })
+      else _applyStr (replaceStrings ss rs) input;
 
   /**
   Normalize a string or list of strings for fuzzy matching.
@@ -219,37 +256,40 @@
   normalize []                           # => null
   ```
   */
-  normalize = value:
-    if (value == null) || (value == [])
+  normalize = input:
+    if (input == null) || (input == [])
     then null
-    else if isList value && any isList value
-    then
-      throw (
-        _debug.traceDoc {
-          inherit value;
-          name = "normalize";
-          sign = "string | [string] | null -> string | [string] | null";
-          msg = "nested lists are not supported";
-        }
-      )
+    else if isList input && any isList input
+    then let
+      function = "normalize";
+      message = "nested lists are not supported";
+      signature = ''string | [string] | null -> string | [string] | null'';
+      example = ''normalize ["Zen Twilight" "zen_beta"] |=> ["zen-twilight" "zen-beta"]'';
+    in
+      # throw (_debug.withDoc {inherit input function message signature example;})
+      throw (_debug.traceDoc {inherit input function message signature example;})
+    # _debug.errorDoc {inherit input function message signature example;}
+    # _debug.traceDoc {inherit input function message signature example;}
+    # _debug.throwDoc {inherit input function message signature example;}
+    # _debug.throwLoc {inherit input function message;}
     else
       _applyStr
-      (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
-      value;
+      (s: replaceAll [" " "_"] ["-" "-"] (toLower' s))
+      input;
 in {
   inherit
-    toLower
-    toUpper
     trim
     trimEnd
     trimStart
     replaceAll
     normalize
     ;
+  toLower = toLower';
+  toUpper = toUpper';
 
   _rootAliases = {
-    toLowercase = toLower;
-    toUppercase = toUpper;
+    toLowercase = toLower';
+    toUppercase = toUpper';
     trimString = trim;
     trimStringStart = trimStart;
     trimStringEnd = trimEnd;
