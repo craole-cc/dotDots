@@ -9,9 +9,11 @@
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (_.trivial.debug) mkModuleDebug;
 
-  debug = mkModuleDebug name __moduleNamespacePath;
+  _debug = _.trivial.debug.mkModuleDebug {
+    inherit name;
+    namespacePath = __moduleNamespacePath;
+  };
 
   # Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -222,9 +224,14 @@
     then null
     else if isList value && any isList value
     then
-      debug.traceDoc "normalize"
-      "nested lists are not supported"
-      "string | [string] | null -> string | [string] | null"
+      throw (
+        _debug.traceDoc {
+          inherit value;
+          name = "normalize";
+          sign = "string | [string] | null -> string | [string] | null";
+          msg = "nested lists are not supported";
+        }
+      )
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))

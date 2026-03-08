@@ -1,58 +1,136 @@
 {lib, ...}: let
-  inherit (lib.strings) concatStringsSep;
+  inherit (lib.strings) concatStringsSep toJSON;
   inherit (lib.debug) trace;
 
   #~@ Namespace Utilities
+
   /**
   Convert a namespace path list to a dotted string.
+
+  # Type
+  ```nix
+  mkNamespace :: { namespacePath :: [string] } -> string
+  ```
+
+  # Examples
+  ```nix
+  mkNamespace { namespacePath = ["strings" "transform"]; }  # => "strings.transform"
+  mkNamespace { namespacePath = ["trivial" "debug"]; }      # => "trivial.debug"
+  ```
   */
-  mkNamespace = namespacePath:
+  mkNamespace = {namespacePath}:
     concatStringsSep "." namespacePath;
 
   /**
   Create a fully qualified reference to a function.
-  */
-  mkRef = name: namespacePath: fnName: "${name}.${mkNamespace namespacePath}.${fnName}";
 
-  /**
-  Create a usage hint string pointing to :doc for full reference.
-  */
-  mkUsage = name: namespacePath: fnName: typeSignature: "Usage: ${typeSignature}\n repl> :doc ${mkRef name namespacePath fnName}";
-
-  #~@ Error Utilities
-  /**
-    Create a set of debug helpers bound to a module's namespace path.
-
-    # Usage
+  # Type
   ```nix
-    {_, name, __moduleNamespacePath, ...}: let
-      debug = _.trivial.debug.mkModuleDebug name __moduleNamespacePath;
-    in {
-      myFn = value:
-        if badCondition
-        then debug.throw "myFn" "something went wrong"
-        else ...;
-    }
+  mkRef :: { name :: string, namespacePath :: [string], fnName :: string } -> string
+  ```
+
+  # Examples
+  ```nix
+  mkRef { name = "lix"; namespacePath = ["strings" "transform"]; fnName = "normalize"; }
+  # => "lix.strings.transform.normalize"
   ```
   */
-  mkModuleDebug = name: namespacePath: let
-    ref = mkRef name namespacePath;
-    usage = mkUsage name namespacePath;
+  mkRef = {name, namespacePath, fnName}:
+    "${name}.${mkNamespace { inherit namespacePath; }}.${fnName}";
+
+  /**
+  Create a usage hint string with type signature and :doc reference.
+
+  # Type
+  ```nix
+  mkUsage :: { name :: string, namespacePath :: [string], fnName :: string, sign :: string } -> string
+  ```
+
+  # Examples
+  ```nix
+  mkUsage { name = "lix"; namespacePath = ["strings" "transform"]; fnName = "normalize"; sign = "string | [string] | null -> string | [string] | null"; }
+  # => "string | [string] | null -> string | [string] | null
+  #     repl> :doc lix.strings.transform.normalize"
+  ```
+  */
+  mkUsage = {name, namespacePath, fnName, sign}:
+    "${sign}\n repl> :doc ${mkRef { inherit name namespacePath fnName; }}";
+
+  #~@ Module Debug
+
+  /**
+  Create a set of debug helpers bound to a module's namespace path.
+
+  Provides consistent error formatting, tracing, and throwing helpers
+  that automatically include the fully qualified function reference.
+
+  # Type
+  ```nix
+  mkModuleDebug :: { name :: string, namespacePath :: [string] } -> ModuleDebug
+  ```
+
+  # Usage
+  ```nix
+  {_, name, __moduleNamespacePath, ...}: let
+    debug = _.trivial.debug.mkModuleDebug { inherit name; namespacePath = __moduleNamespacePath; };
   in {
-    #? Trace location to stderr, throw propagates to call site
-    traceLoc = fnName: msg:
-      trace "${msg} [${ref fnName}]"
-      (throw "${msg}");
+    myFn = value:
+      if badCondition
+      then throw (debug.traceLoc { fnName = "myFn"; msg = "bad input"; inherit value; })
+      else ...;
 
-    #> Trace location + usage to stderr, throw propagates to call site
-    traceDoc = fnName: msg: typeSignature:
-      trace "${msg}\n${usage fnName typeSignature}"
-      (throw "${msg}");
+    myOtherFn = value:
+      if badCondition
+      then throw (debug.traceDoc { fnName = "myOtherFn"; msg = "bad input"; sign = "string -> string"; inherit value; })
+      else ...;
+  }
+  ```
+  */
+  mkModuleDebug = {name, namespacePath}: let
+    ref = fnName: mkRef { inherit name namespacePath fnName; };
+    usage = fnName: sign: mkUsage { inherit name namespacePath fnName sign; };
+  in {
+    /**
+    Trace type signature and :doc reference to stderr, return error message for caller to throw.
 
-    #> Format error string without throwing, useful for trace
-    traceErr = fnName: msg: "${ref fnName}: ${msg}";
+    # Arguments
+    - fnName: Name of the function where the error originates
+    - msg: Human-readable error description
+    - sign: Type signature string
+    - value: The invalid value that caused the error (serialized via toJSON)
+    */
+    traceDoc = {fnName, msg, sign, value}:
+      trace "${usage fnName sign}"
+      "${msg}, got: ${toJSON value}";
 
-    #> Expose ref and usage for manual use
+    /**
+    Trace just the qualified reference to stderr, return error message for caller to throw.
+
+    # Arguments
+    - fnName: Name of the function where the error originates
+    - msg: Human-readable error description
+    - value: The invalid value that caused the error (serialized via toJSON)
+    */
+    traceLoc = {fnName, msg, value}:
+      trace "[${ref fnName}]"
+      "${msg}, got: ${toJSON value}";
+
+    /**
+    Format an error string with fully qualified location, without throwing or tracing.
+
+    # Arguments
+    - fnName: Name of the function where the error originates
+    - msg: Human-readable error description
+
+    # Examples
+    ```nix
+    debug.mkError { fnName = "normalize"; msg = "unexpected null"; }
+    # => "lix.strings.transform.normalize: unexpected null"
+    ```
+    */
+    mkError = {fnName, msg}: "${ref fnName}: ${msg}";
+
+    #> Expose ref and usage for manual composition
     inherit ref usage;
   };
 
