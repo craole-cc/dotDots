@@ -170,13 +170,11 @@
   normalize []                           # => null
   ```
   */
-  normalize = value: let
-    usage = debug.usage "normalize" "string | [string] | null -> string | [string] | null";
-  in
+  normalize = value:
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then debug.throwWithUsage "normalize" "nested lists are not supported" usage
+    then debug.throwWithUsage "normalize" "nested lists are not supported" "string | [string] | null -> string | [string] | null"
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
