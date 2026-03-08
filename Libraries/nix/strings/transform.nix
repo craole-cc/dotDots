@@ -179,8 +179,7 @@
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    # then throw "normalize: nested lists are not supported (${__moduleNamespacePath})"
-    then throw "normalize: nested lists are not supported (${concatStringsSep "." __moduleNamespacePath})"
+    then throw "nested lists are not supported (${concatStringsSep "." __moduleNamespacePath}.normalize)"
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
