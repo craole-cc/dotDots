@@ -7,7 +7,15 @@
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.lists) any isList map;
-  inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
+  inherit
+    (lib.strings)
+    concatStringsSep
+    hasPrefix
+    hasSuffix
+    removePrefix
+    removeSuffix
+    replaceStrings
+    ;
 
   # Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -171,7 +179,8 @@
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then throw "normalize: nested lists are not supported (${__moduleNamespacePath})"
+    # then throw "normalize: nested lists are not supported (${__moduleNamespacePath})"
+    then throw "normalize: nested lists are not supported (${concatStringsSep "." __moduleNamespacePath})"
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))

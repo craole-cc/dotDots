@@ -254,6 +254,7 @@
                 # Module identity
                 name = moduleName;
                 path = filePath;
+                namespacePath = pathPrefix ++ [moduleName];
 
                 # Documentation info
                 docs = docsInfo;
