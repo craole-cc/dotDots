@@ -9,7 +9,7 @@
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (_.trivial.debug) mkModuleDebug mkUsage;
+  inherit (_.trivial.debug) mkModuleDebug;
   debug = mkModuleDebug name __moduleNamespacePath;
 
   # Internal: apply a string transform to a string or each item in a list.
@@ -171,7 +171,7 @@
   ```
   */
   normalize = value: let
-    usage = mkUsage "normalize" "string | [string] | null -> string | [string] | null";
+    usage = debug.usage "normalize" "string | [string] | null -> string | [string] | null";
   in
     if (value == null) || (value == [])
     then null
