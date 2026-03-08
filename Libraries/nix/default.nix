@@ -111,7 +111,7 @@
     };
 
     # Helper to scan a directory and return its contents as an attrset
-    scanDir = dir: let
+    scanDir = dir: pathPrefix: let
       entries = readDir dir;
 
       # Results accumulator
@@ -138,7 +138,7 @@
         else if entryType == "directory"
         then let
           subdir = dir + "/${entryName}";
-          processed = scanDir subdir;
+          processed = scanDir subdir (pathPrefix ++ [entryName]);
         in {
           modules =
             if processed.modules != {}
@@ -163,6 +163,7 @@
                 // {
                   __modulePath = filePath;
                   __moduleName = moduleName;
+                  __moduleNamespacePath = pathPrefix ++ [moduleName]; # e.g. ["strings" "transform"]
                 };
               result = rawModule moduleEnv;
             in
@@ -290,7 +291,7 @@
       merged;
 
     # Get the full scan results
-    results = scanDir ./.;
+    results = scanDir ./. [];
 
     # Check for collisions between root aliases and top-level module names
     rootAliasNames = attrNames results.rootAliases;
