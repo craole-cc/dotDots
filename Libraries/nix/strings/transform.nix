@@ -10,6 +10,7 @@
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.trivial.debug) mkModuleDebug;
+
   debug = mkModuleDebug name __moduleNamespacePath;
 
   # Internal: apply a string transform to a string or each item in a list.
@@ -32,7 +33,13 @@
   toLower ["FOO" "BAR"] # => ["foo" "bar"]
   ```
   */
-  toLower = _applyStr lib.strings.toLower;
+  toLower = value:
+    if isList value && any isList value
+    then
+      debug.traceDoc "toLower"
+      "nested lists are not supported"
+      "string | [string] -> string | [string]"
+    else _applyStr lib.strings.toLower value;
 
   /**
   Convert a string or list of strings to upper case.
@@ -48,7 +55,13 @@
   toUpper ["foo" "bar"] # => ["FOO" "BAR"]
   ```
   */
-  toUpper = _applyStr lib.strings.toUpper;
+  toUpper = value:
+    if isList value && any isList value
+    then
+      debug.traceDoc "toUpper"
+      "nested lists are not supported"
+      "string | [string] -> string | [string]"
+    else _applyStr lib.strings.toUpper value;
 
   /**
   Remove leading occurrences of `chars` from a string or list of strings.
@@ -71,13 +84,23 @@
     c =
       if chars == null
       then " "
+      else if !builtins.isString chars
+      then
+        debug.traceLoc "trimStart"
+        "chars must be a string or null"
       else chars;
     go = s:
       if hasPrefix c s
       then go (removePrefix c s)
       else s;
   in
-    _applyStr go;
+    value:
+      if isList value && any isList value
+      then
+        debug.traceDoc "trimStart"
+        "nested lists are not supported"
+        "string | null -> string | [string] -> string | [string]"
+      else _applyStr go value;
 
   /**
   Remove trailing occurrences of `chars` from a string or list of strings.
@@ -100,13 +123,23 @@
     c =
       if chars == null
       then " "
+      else if !builtins.isString chars
+      then
+        debug.traceLoc "trimEnd"
+        "chars must be a string or null"
       else chars;
     go = s:
       if hasSuffix c s
       then go (removeSuffix c s)
       else s;
   in
-    _applyStr go;
+    value:
+      if isList value && any isList value
+      then
+        debug.traceDoc "trimEnd"
+        "nested lists are not supported"
+        "string | null -> string | [string] -> string | [string]"
+      else _applyStr go value;
 
   /**
   Remove leading and trailing occurrences of `chars` from a string or list of strings.
@@ -149,7 +182,21 @@
     ss = toList search;
     rs = toList replace;
   in
-    _applyStr (replaceStrings ss rs);
+    value:
+      if isList value && any isList value
+      then
+        debug.traceDoc "replaceAll"
+        "nested lists are not supported in value"
+        "string | [string] -> string | [string] -> string | [string] -> string | [string]"
+      else if isList ss && any isList ss
+      then
+        debug.traceLoc "replaceAll"
+        "nested lists are not supported in search"
+      else if isList rs && any isList rs
+      then
+        debug.traceLoc "replaceAll"
+        "nested lists are not supported in replace"
+      else _applyStr (replaceStrings ss rs) value;
 
   /**
   Normalize a string or list of strings for fuzzy matching.
@@ -174,7 +221,10 @@
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then debug.throwWithUsage "normalize" "nested lists are not supported" "string | [string] | null -> string | [string] | null"
+    then
+      debug.traceDoc "normalize"
+      "nested lists are not supported"
+      "string | [string] | null -> string | [string] | null"
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))

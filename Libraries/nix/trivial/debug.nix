@@ -1,5 +1,6 @@
 {lib, ...}: let
   inherit (lib.strings) concatStringsSep;
+  inherit (lib.debug) trace;
 
   #~@ Namespace Utilities
   /**
@@ -38,13 +39,15 @@
     ref = mkRef name namespacePath;
     usage = mkUsage name namespacePath;
   in {
-    #? Throw with location in brackets — for simple errors without usage
-    throwWithLoc = fnName: msg:
-      throw "${msg} [${ref fnName}]";
+    #? Trace location to stderr, throw propagates to call site
+    traceLoc = fnName: msg:
+      trace "${msg} [${ref fnName}]"
+      (throw "${msg}");
 
-    #> Throw with usage block — ref appears in usage, not in the message
-    throwWithDoc = fnName: msg: typeSignature:
-      throw "${msg}\n\n${usage fnName typeSignature}";
+    #> Trace location + usage to stderr, throw propagates to call site
+    traceDoc = fnName: msg: typeSignature:
+      trace "${msg}\n${usage fnName typeSignature}"
+      (throw "${msg}");
 
     #> Format error string without throwing, useful for trace
     traceErr = fnName: msg: "${ref fnName}: ${msg}";
