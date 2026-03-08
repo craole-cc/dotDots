@@ -16,6 +16,7 @@
     removeSuffix
     replaceStrings
     ;
+  debug = _.trivial.debug.mkModuleDebug __moduleNamespacePath;
 
   # Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -175,11 +176,17 @@
     normalize []                           # => null
   ```
   */
-  normalize = value:
+  normalize = value: let
+    normalizeDoc = ''
+      Normalize a string or list of strings for fuzzy matching.
+      Converts to lower case and replaces spaces/underscores with hyphens.
+      Accepts: string | [string] | null
+    '';
+  in
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then throw "nested lists are not supported (${concatStringsSep "." __moduleNamespacePath}.normalize)"
+    then debug.throwWithDoc "normalize" "nested lists are not supported" normalizeDoc
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
