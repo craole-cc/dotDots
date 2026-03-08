@@ -3,9 +3,9 @@
   _,
   ...
 }: let
-  inherit (_.strings.generators) any toList;
+  inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (lib.lists) isList map;
+  inherit (lib.lists) any isList map;
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
 
   # Internal: apply a string transform to a string or each item in a list.
