@@ -1,13 +1,16 @@
 {
   lib,
   _,
+  name,
+  __moduleNamespacePath,
   ...
 }: let
   inherit (lib.lists) isList map any;
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (_.trivial.debug) throwWithUsage mkUsage;
+  inherit (_.trivial.debug) mkModuleDebug mkUsage;
+  debug = mkModuleDebug name __moduleNamespacePath;
 
   # Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -173,7 +176,7 @@
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then throwWithUsage "normalize" "nested lists are not supported" usage
+    then debug.throwWithUsage "normalize" "nested lists are not supported" usage
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
