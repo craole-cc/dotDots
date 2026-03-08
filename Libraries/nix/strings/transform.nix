@@ -1,13 +1,13 @@
 {
-  lib,
   _,
+  __modulePath,
+  lib,
   ...
 }: let
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.lists) any isList map;
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
-  inherit (lib.trivial) throwIf;
 
   # Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -168,17 +168,14 @@
   ```
   */
   normalize = value:
-    throwIf
-    (isList value && any isList value)
-    "normalize: nested lists are not supported"
-    (
-      if (value == null) || (value == [])
-      then null
-      else
-        _applyStr
-        (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
-        value
-    );
+    if (value == null) || (value == [])
+    then null
+    else if isList value && any isList value
+    then throw "normalize: nested lists are not supported (${__modulePath})"
+    else
+      _applyStr
+      (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
+      value;
 in {
   inherit
     normalize

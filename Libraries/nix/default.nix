@@ -158,7 +158,13 @@
           importedModule =
             if isFunction rawModule
             then let
-              result = rawModule env;
+              moduleEnv =
+                env
+                // {
+                  __modulePath = filePath;
+                  __moduleName = moduleName;
+                };
+              result = rawModule moduleEnv;
             in
               if result == null || !(isAttrs result)
               then throw "Module ${entryName} must return an attribute set, got ${builtins.typeOf result}"
