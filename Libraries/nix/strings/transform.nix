@@ -3,7 +3,7 @@
   _,
   ...
 }: let
-  inherit (_.strings.generators) toList;
+  inherit (_.strings.generators) any toList;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.lists) isList map;
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
@@ -169,6 +169,8 @@
   normalize = value:
     if (value == null) || (value == [])
     then null
+    else if isList value && any isList value
+    then throw "normalize: nested lists are not supported"
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
