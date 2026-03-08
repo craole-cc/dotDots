@@ -16,7 +16,10 @@
   /**
   Create a usage hint string pointing to :doc for full reference.
   */
-  mkUsage = name: namespacePath: fnName: typeSignature: "${typeSignature}\nrun :doc ${mkRef name namespacePath fnName} for more info";
+  mkUsage = name: namespacePath: fnName: typeSignature: let
+    blue = "\u001b[34m";
+    reset = "\u001b[0m";
+  in "${blue}Usage:${reset}\n\t${typeSignature}\n\trepl :doc ${mkRef name namespacePath fnName} for more info";
 
   #~@ Error Utilities
   /**
