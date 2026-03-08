@@ -16,7 +16,7 @@
   /**
   Create a usage hint string pointing to :doc for full reference.
   */
-  mkUsage = name: namespacePath: fnName: typeSignature: "Usage: ${typeSignature}\nFor mor info repl> :doc ${mkRef name namespacePath fnName}";
+  mkUsage = name: namespacePath: fnName: typeSignature: "Usage: ${typeSignature}\n repl> :doc ${mkRef name namespacePath fnName}";
 
   #~@ Error Utilities
   /**
@@ -38,16 +38,16 @@
     ref = mkRef name namespacePath;
     usage = mkUsage name namespacePath;
   in {
-    #? Throw with just location
-    throw = fnName: msg:
-      throw "${ref fnName}: ${msg}";
+    #? Throw with location in brackets — for simple errors without usage
+    throwWithLoc = fnName: msg:
+      throw "${msg} [${ref fnName}]";
 
-    #> Throw with location and usage hint appended
-    throwWithUsage = fnName: msg: typeSignature:
-      throw "${ref fnName}: ${msg}\n\n${usage fnName typeSignature}";
+    #> Throw with usage block — ref appears in usage, not in the message
+    throwWithDoc = fnName: msg: typeSignature:
+      throw "${msg}\n\n${usage fnName typeSignature}";
 
     #> Format error string without throwing, useful for trace
-    mkError = fnName: msg: "${ref fnName}: ${msg}";
+    traceErr = fnName: msg: "${ref fnName}: ${msg}";
 
     #> Expose ref and usage for manual use
     inherit ref usage;
