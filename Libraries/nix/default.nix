@@ -95,6 +95,7 @@
         lib
         # pkgs
         src
+        name
         ;
 
       #> Short aliases

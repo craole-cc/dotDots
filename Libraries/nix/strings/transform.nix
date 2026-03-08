@@ -1,22 +1,13 @@
 {
-  _,
-  __moduleNamespacePath,
   lib,
+  _,
   ...
 }: let
+  inherit (lib.lists) isList map any;
+  inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (lib.lists) any isList map;
-  inherit
-    (lib.strings)
-    concatStringsSep
-    hasPrefix
-    hasSuffix
-    removePrefix
-    removeSuffix
-    replaceStrings
-    ;
-  debug = _.trivial.debug.mkModuleDebug __moduleNamespacePath;
+  inherit (_.trivial.debug) throwWithUsage mkUsage;
 
   # Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -158,58 +149,54 @@
     _applyStr (replaceStrings ss rs);
 
   /**
-    Normalize a string or list of strings for fuzzy matching.
+  Normalize a string or list of strings for fuzzy matching.
 
-    Converts to lower case and replaces spaces/underscores with hyphens.
+  Converts to lower case and replaces spaces/underscores with hyphens.
 
-    # Type
+  # Type
   ```nix
-    normalize :: string | [string] | null -> string | [string] | null
+  normalize :: string | [string] | null -> string | [string] | null
   ```
 
-    # Examples
+  # Examples
   ```nix
-    normalize "Zen Twilight"               # => "zen-twilight"
-    normalize "zen_twilight"               # => "zen-twilight"
-    normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
-    normalize null                         # => null
-    normalize []                           # => null
+  normalize "Zen Twilight"               # => "zen-twilight"
+  normalize "zen_twilight"               # => "zen-twilight"
+  normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
+  normalize null                         # => null
+  normalize []                           # => null
   ```
   */
   normalize = value: let
-    normalizeDoc = ''
-      Normalize a string or list of strings for fuzzy matching.
-      Converts to lower case and replaces spaces/underscores with hyphens.
-      Accepts: string | [string] | null
-    '';
+    usage = mkUsage "normalize" "string | [string] | null -> string | [string] | null";
   in
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then debug.throwWithDoc "normalize" "nested lists are not supported" normalizeDoc
+    then throwWithUsage "normalize" "nested lists are not supported" usage
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
       value;
 in {
   inherit
-    normalize
-    replaceAll
     toLower
     toUpper
     trim
     trimEnd
     trimStart
+    replaceAll
+    normalize
     ;
 
   _rootAliases = {
-    normalizeString = normalize;
-    replaceAllStrings = replaceAll;
     toLowercase = toLower;
     toUppercase = toUpper;
     trimString = trim;
-    trimStringEnd = trimEnd;
     trimStringStart = trimStart;
+    trimStringEnd = trimEnd;
+    replaceAllStrings = replaceAll;
+    normalizeString = normalize;
   };
 
   _tests = runTests {
