@@ -1,5 +1,5 @@
 {lib, ...}: let
-  inherit (lib.strings) concatStringsSep;
+  inherit (lib.strings) concatStringsSep fromJSON;
 
   #~@ Namespace Utilities
   /**
@@ -17,8 +17,9 @@
   Create a usage hint string pointing to :doc for full reference.
   */
   mkUsage = name: namespacePath: fnName: typeSignature: let
-    blue = "\u001b[34m";
-    reset = "\u001b[0m";
+    esc = fromJSON ''"\\u001B"'';
+    blue = "${esc}[34m";
+    reset = "${esc}[0m";
   in "${blue}Usage:${reset}\n\t${typeSignature}\n\trepl :doc ${mkRef name namespacePath fnName} for more info";
 
   #~@ Error Utilities
