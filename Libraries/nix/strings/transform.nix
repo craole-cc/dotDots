@@ -1,6 +1,6 @@
 {
   _,
-  __moduleName,
+  __moduleNamespacePath,
   lib,
   ...
 }: let
@@ -171,7 +171,7 @@
     if (value == null) || (value == [])
     then null
     else if isList value && any isList value
-    then throw "normalize: nested lists are not supported (${__moduleName})"
+    then throw "normalize: nested lists are not supported (${__moduleNamespacePath})"
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
