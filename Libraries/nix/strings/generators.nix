@@ -3,9 +3,9 @@
   _,
   ...
 }: let
+  inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.lists) isList filter map;
   inherit (lib.strings) concatStringsSep splitString;
-  inherit (_.trivial.tests) mkTest runTests;
 
   /**
   Convert a single string, or list of strings, into a cleaned list.
@@ -72,6 +72,12 @@ in {
     split
     toList
     ;
+
+  _rootAliases = {
+    concatStrings = concat;
+    splitString = split;
+    stringToList = toList;
+  };
 
   _tests = runTests {
     toList = {

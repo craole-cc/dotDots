@@ -148,59 +148,51 @@
     _applyStr (replaceStrings ss rs);
 
   /**
-  Normalize an application or identifier name for fuzzy matching.
+    Normalize a string or list of strings for fuzzy matching.
 
-  Converts to lower case and replaces spaces/underscores with hyphens.
+    Converts to lower case and replaces spaces/underscores with hyphens.
 
-  # Type
+    # Type
   ```nix
-  normalizeName :: string | null -> string | null
+    normalize :: string | [string] | null -> string | [string] | null
   ```
 
-  # Examples
+    # Examples
   ```nix
-  normalizeName "Zen Twilight"  # => "zen-twilight"
-  normalizeName "zen_twilight"  # => "zen-twilight"
-  normalizeName null            # => null
+    normalize "Zen Twilight"               # => "zen-twilight"
+    normalize "zen_twilight"               # => "zen-twilight"
+    normalize ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
+    normalize null                         # => null
+    normalize []                           # => null
   ```
   */
-  normalizeName = value:
+  normalize = value:
     if (value == null) || (value == [])
     then null
-    else replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower value);
-
-  /**
-  Normalize a single name or list of names for fuzzy matching.
-
-  # Type
-  ```nix
-  normalizeNames :: string | [string | null] | null -> string | [string | null] | null
-  ```
-
-  # Examples
-  ```nix
-  normalizeNames "Zen Twilight"               # => "zen-twilight"
-  normalizeNames ["Zen Twilight" "zen_beta"]  # => ["zen-twilight" "zen-beta"]
-  normalizeNames null                         # => null
-  ```
-  */
-  normalizeNames = values:
-    if (values == null) || (values == [])
-    then null
-    else if isList values
-    then map normalizeName values
-    else normalizeName values;
+    else
+      _applyStr
+      (s: replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower s))
+      value;
 in {
   inherit
+    normalize
+    replaceAll
     toLower
     toUpper
     trim
     trimEnd
     trimStart
-    replaceAll
-    normalizeName
-    normalizeNames
     ;
+
+  _rootAliases = {
+    normalizeString = normalize;
+    replaceAllStrings = replaceAll;
+    toLowercase = toLower;
+    toUppercase = toUpper;
+    trimString = trim;
+    trimStringEnd = trimEnd;
+    trimStringStart = trimStart;
+  };
 
   _tests = runTests {
     toLower = {
@@ -271,32 +263,26 @@ in {
         outcome = replaceAll "a" "b" ["a" "cat"];
       };
     };
-    normalizeName = {
+    normalize = {
       spaces = mkTest {
         desired = "zen-twilight";
-        outcome = normalizeName "Zen Twilight";
+        outcome = normalize "Zen Twilight";
       };
       underscores = mkTest {
         desired = "zen-twilight";
-        outcome = normalizeName "zen_twilight";
-      };
-      nullInput = mkTest {
-        desired = null;
-        outcome = normalizeName null;
-      };
-    };
-    normalizeNames = {
-      single = mkTest {
-        desired = "zen-twilight";
-        outcome = normalizeNames "Zen Twilight";
+        outcome = normalize "zen_twilight";
       };
       list = mkTest {
         desired = ["zen-twilight" "zen-beta"];
-        outcome = normalizeNames ["Zen Twilight" "zen_beta"];
+        outcome = normalize ["Zen Twilight" "zen_beta"];
       };
       nullInput = mkTest {
         desired = null;
-        outcome = normalizeNames null;
+        outcome = normalize null;
+      };
+      emptyInput = mkTest {
+        desired = null;
+        outcome = normalize [];
       };
     };
   };

@@ -90,6 +90,16 @@ in {
     startsWithAll
     ;
 
+  _rootAliases = {
+    stringContains = contains;
+    stringContainsAll = containsAll;
+    stringEndsWith = endsWith;
+    stringEndsWithAll = endsWithAll;
+    stringStartsWith = startsWith;
+    stringStartsWithAll = startsWithAll;
+    #? isEmpty/isNotEmpty intentionally omitted — owned by trivial.emptiness
+  };
+
   _tests = runTests {
     contains = {
       singlePattern = mkTest {
