@@ -26,10 +26,10 @@ output = mapOrDefault processData input fallback;
 ```
 */
 {lib, ...}: let
-  inherit (builtins) isNull;
-  inherit (lib.lists) isList;
-  inherit (lib.attrsets) isAttrs attrNames;
-  inherit (lib.strings) trim stringLength isString;
+  # inherit (builtins) isNull;
+  inherit (lib.lists) isList findFirst;
+  inherit (lib.attrsets) isAttrs;
+  inherit (lib.strings) isString trim stringLength;
 
   /**
   Check if a value is considered "empty" for defaulting purposes.
@@ -69,19 +69,47 @@ output = mapOrDefault processData input fallback;
 
   # Notes
   - Non-recursive: does not check nested structure contents
-  - For deeply nested checks, see `isEmptySafe` in advanced modules
   - Whitespace trimming uses `lib.strings.trim`
   */
   isEmpty = value:
     if isNull value
     then true
     else if isString value
-    then value == "" || stringLength (trim value) == 0
+    then stringLength (trim value) == 0
     else if isList value
     then value == []
     else if isAttrs value
-    then attrNames value == []
+    then value == {}
     else false;
+
+  /**
+  Check if a value is not empty.
+
+  Convenience negation of `isEmpty`. Useful as a predicate in filters,
+  conditionals, and other boolean contexts.
+
+  # Type
+  ```
+  isNotEmpty :: a -> Bool
+  ```
+
+  # Examples
+  ```nix
+  isNotEmpty "hello"     # => true
+  isNotEmpty [1 2 3]     # => true
+  isNotEmpty { a = 1; }  # => true
+  isNotEmpty 0           # => true
+  isNotEmpty false       # => true
+  isNotEmpty null        # => false
+  isNotEmpty ""          # => false
+  isNotEmpty []          # => false
+  isNotEmpty {}          # => false
+
+  # Use in filters
+  validConfigs = filter isNotEmpty allConfigs;
+  ```
+  */
+  isNotEmpty = value: !isEmpty value;
 
   /**
   Return value or default if value is empty/null.
@@ -111,12 +139,6 @@ output = mapOrDefault processData input fallback;
   orDefault 0 42                     # => 0 (zero is not empty)
   orDefault false true               # => false (false is not empty)
   ```
-
-  # Use Cases
-  - Configuration value fallbacks
-  - Optional parameter handling
-  - Graceful degradation in module options
-  - Default value provision in derivations
   */
   orDefault = value: default:
     if isEmpty value
@@ -151,11 +173,6 @@ output = mapOrDefault processData input fallback;
   orNull 0 42                        # => 0
   orNull false true                  # => false
   ```
-
-  # Use Cases
-  - Distinguishing unset vs explicitly set to empty
-  - API responses where `null` means "not found" but `""` means "empty string"
-  - Optional fields where empty values have different semantics than null
   */
   orNull = value: default:
     if isNull value
@@ -170,23 +187,20 @@ output = mapOrDefault processData input fallback;
 
   # Type
   ```
-  firstNonEmpty :: [a] -> a
+  firstNonEmpty :: [a] -> a | null
   ```
 
   # Arguments
   - `values`: List of values to evaluate in order
 
   # Returns
-  The first non-empty value in the list, or the last value if all are empty
+  The first non-empty value in the list, or null if all are empty or list is empty
 
   # Examples
   ```nix
   firstNonEmpty ["" null "hello" "world"]    # => "hello"
-  firstNonEmpty [null "" {} []]              # => [] (last value, all empty)
+  firstNonEmpty [null "" {} []]              # => null (all empty)
   firstNonEmpty [null "" "a" "b"]            # => "a"
-  firstNonEmpty [(config.custom or null)
-                 (config.default or null)
-                 "hardcoded"]                # => first non-empty config
 
   # Real-world: try multiple config sources
   finalValue = firstNonEmpty [
@@ -196,24 +210,9 @@ output = mapOrDefault processData input fallback;
     "built-in-default"
   ];
   ```
-
-  # Use Cases
-  - Configuration hierarchies (user → system → default)
-  - Environment variable fallback chains
-  - Multi-source data resolution
-  - Optional dependency selection
-
-  # Notes
-  - Evaluates lazily: stops at first non-empty value
-  - Returns last value if all are empty (not null)
-  - Empty list input returns `null`
   */
   firstNonEmpty = values:
-    if values == []
-    then null
-    else if isEmpty (builtins.head values)
-    then firstNonEmpty (builtins.tail values)
-    else builtins.head values;
+    findFirst isNotEmpty null values;
 
   /**
   Apply a function to value if non-empty, otherwise return default.
@@ -240,7 +239,6 @@ output = mapOrDefault processData input fallback;
   mapOrDefault (x: x + 1) null 0        # => 0
   mapOrDefault (s: s + "!") "hi" "?"    # => "hi!"
   mapOrDefault (s: s + "!") "" "?"      # => "?"
-  mapOrDefault (x: x * 2) [] [99]       # => [99]
 
   # Real-world: process config if provided
   processedData = mapOrDefault
@@ -248,50 +246,11 @@ output = mapOrDefault processData input fallback;
     (userConfig or null)
     defaultProcessedConfig;
   ```
-
-  # Use Cases
-  - Conditional data transformation pipelines
-  - Optional preprocessing steps
-  - Safe operations on potentially empty inputs
-  - Combining validation with transformation
-
-  # Notes
-  - Function is not called if value is empty (lazy evaluation)
-  - Useful for expensive transformations you want to skip on empty inputs
   */
   mapOrDefault = fn: value: default:
     if isEmpty value
     then default
     else fn value;
-
-  /**
-  Check if a value is not empty.
-
-  Convenience negation of `isEmpty`. Useful as a predicate in filters,
-  conditionals, and other boolean contexts.
-
-  # Type
-  ```
-  isNotEmpty :: a -> Bool
-  ```
-
-  # Examples
-  ```nix
-  isNotEmpty "hello"     # => true
-  isNotEmpty [1 2 3]     # => true
-  isNotEmpty { a = 1; }  # => true
-  isNotEmpty 0           # => true
-  isNotEmpty false       # => true
-  isNotEmpty null        # => false
-  isNotEmpty ""          # => false
-  isNotEmpty []          # => false
-  isNotEmpty {}          # => false
-
-  # Use in filters
-  validConfigs = filter isNotEmpty allConfigs;
-  ```
-  */
-  isNotEmpty = value: !isEmpty value;
 
   exports = {
     inherit

@@ -3,282 +3,298 @@
   _,
   ...
 }: let
-  /**
-  Check if a string contains a substring.
-
-  # Type
-  contains :: string -> string -> bool
-
-  # Arguments
-  - `substring`: The substring to search for
-  - `string`: The string to search in
-
-  # Returns
-  True if the substring is found, false otherwise
-
-  # Examples
-  contains "foo" "foobar"  # true
-  contains "bar" "foobar"  # true
-  contains "baz" "foobar"  # false
-  */
-  contains = lib.strings.hasInfix;
-
-  /**
-  Check if a string contains any of the given patterns.
-
-  # Type
-  containsAny :: [string] -> string -> bool
-
-  # Arguments
-  - `patterns`: List of substrings to search for
-  - `string`: The string to search in
-
-  # Returns
-  True if any pattern is found, false otherwise
-
-  # Examples
-  containsAny ["foo", "bar"] "foobar"  # true
-  containsAny ["baz", "qux"] "foobar"  # false
-  */
-  containsAny = patterns: input:
-    builtins.any (pattern: lib.strings.hasInfix pattern input) patterns;
-
-  /**
-  Check if a string starts with a prefix.
-
-  # Type
-  startsWith :: string -> string -> bool
-
-  # Arguments
-  - `prefix`: The prefix to check
-  - `string`: The string to check
-
-  # Returns
-  True if the string starts with the prefix, false otherwise
-
-  # Examples
-  startsWith "foo" "foobar"  # true
-  startsWith "bar" "foobar"  # false
-  */
-  startsWith = lib.strings.hasPrefix;
-
-  /**
-  Check if a string ends with a suffix.
-
-  # Type
-  endsWith :: string -> string -> bool
-
-  # Arguments
-  - `suffix`: The suffix to check
-  - `string`: The string to check
-
-  # Returns
-  True if the string ends with the suffix, false otherwise
-
-  # Examples
-  endsWith "bar" "foobar"  # true
-  endsWith "foo" "foobar"  # false
-  */
-  endsWith = lib.strings.hasSuffix;
-
-  /**
-  Convert a string to lower case.
-
-  # Type
-  toLower :: string -> string
-
-  # Arguments
-  - `string`: The string to convert
-
-  # Returns
-  The string in lower case
-
-  # Examples
-  toLower "FOO Bar"  # "foo bar"
-  */
-  toLower = lib.strings.toLower;
-
-  /**
-  Convert a string to upper case.
-
-  # Type
-  toUpper :: string -> string
-
-  # Arguments
-  - `string`: The string to convert
-
-  # Returns
-  The string in upper case
-
-  # Examples
-  toUpper "foo bar"  # "FOO BAR"
-  */
-  toUpper = lib.strings.toUpper;
-
-  /**
-  Remove characters from the start and end of a string.
-
-  # Type
-  trim :: string -> string -> string
-
-  # Arguments
-  - `string`: The string to trim
-
-  # Returns
-  The trimmed string
-
-  # Examples
-  trim "  foo bar  "  # "foo bar"
-  */
-  trim = lib.strings.trim;
-
-  /**
-  Remove characters from the start of a string.
-
-  # Type
-  trimStart :: string -> string -> string
-
-  # Arguments
-  - `string`: The string to trim
-
-  # Returns
-  The string with leading characters removed
-
-  # Examples
-  trimStart "  foo bar"  # "foo bar"
-  */
-  trimStart = lib.strings.removePrefix;
-
-  /**
-  Remove characters from the end of a string.
-
-  # Type
-  trimEnd :: string -> string -> string
-
-  # Arguments
-  - `string`: The string to trim
-
-  # Returns
-  The string with trailing characters removed
-
-  # Examples
-  trimEnd "foo bar  "  # "foo bar"
-  */
-  trimEnd = string: let
-    reversed = lib.strings.concatStrings (lib.lists.reverseList (lib.strings.stringToCharacters string));
-    trimmed = lib.strings.removePrefix " " reversed;
-  in
-    lib.strings.concatStrings (lib.lists.reverseList (lib.strings.stringToCharacters trimmed));
-
-  /**
-  Replace all occurrences of a substring with another.
-
-  # Type
-  replaceAll :: string -> string -> string -> string
-
-  # Arguments
-  - `search`: The substring to replace
-  - `replace`: The string to replace with
-  - `string`: The original string
-
-  # Returns
-  The string with all occurrences replaced
-
-  # Examples
-  replaceAll "foo" "bar" "foo foo foo"  # "bar bar bar"
-  */
-  replaceAll = search: replace: string:
-    lib.strings.replaceStrings [search] [replace] string;
-
-  /**
-  Split a string by a delimiter.
-
-  # Type
-  split :: string -> string -> [string]
-
-  # Arguments
-  - `delimiter`: The delimiter to split on
-  - `string`: The string to split
-
-  # Returns
-  List of substrings
-
-  # Examples
-  split "," "a,b,c"  # ["a", "b", "c"]
-  */
-  split = lib.strings.splitString;
-
-  /**
-  Join a list of strings with a delimiter.
-
-  # Type
-  join :: string -> [string] -> string
-
-  # Arguments
-  - `delimiter`: The delimiter to join with
-  - `strings`: List of strings to join
-
-  # Returns
-  The joined string
-
-  # Examples
-  join "," ["a", "b", "c"]  # "a,b,c"
-  */
-  join = lib.strings.concatStringsSep;
-
-  /**
-  Check if a string is empty.
-
-  # Type
-  isEmpty :: string -> bool
-
-  # Arguments
-  - `string`: The string to check
-
-  # Returns
-  True if the string is empty or null, false otherwise
-
-  # Examples
-  isEmpty ""  # true
-  isEmpty null  # true
-  isEmpty "foo"  # false
-  */
-  isEmpty = str: str == "" || str == null;
-
-  /**
-  Check if a string is not empty.
-
-  # Type
-  isNotEmpty :: string -> bool
-
-  # Arguments
-  - `string`: The string to check
-
-  # Returns
-  True if the string is not empty and not null, false otherwise
-
-  # Examples
-  isNotEmpty "foo"  # true
-  isNotEmpty ""  # false
-  isNotEmpty null  # false
-  */
-  isNotEmpty = str: str != "" && str != null;
-in {
+  inherit (lib.lists) all any filter isList map;
+  inherit (lib.attrsets) mapAttrs;
   inherit
+    (lib.strings)
+    concatStringsSep
+    hasInfix
+    hasPrefix
+    hasSuffix
+    removePrefix
+    removeSuffix
+    replaceStrings
+    splitString
+    ;
+  inherit (_.trivial.empty) isEmpty isNotEmpty;
+  inherit (_.filesystem.predicates) normalizeFlakePath;
+
+  /**
+  Convert a single string, or list of strings, into a cleaned list.
+
+  Removes null values but preserves empty strings.
+
+  # Type
+  toList :: string | [string | null] | null -> [string]
+
+  # Examples
+  toList "foo"               # ["foo"]
+  toList ["foo" null "bar"]  # ["foo" "bar"]
+  toList null                # []
+  */
+  toList = value:
+    filter (v: v != null) (lib.lists.toList value);
+
+  # Internal: apply a string transform to a string or each item in a list.
+  _applyStr = fn: input:
+    if isList input
+    then map fn input
+    else fn input;
+
+  # Internal: build a predicate that checks if any pattern matches any input value.
+  _mkAnyPredicate = checker: patterns: input: let
+    ps = toList patterns;
+    vs = toList input;
+  in
+    any (p: any (v: checker p v) vs) ps;
+
+  # Internal: build a predicate that requires ALL inputs to match at least one pattern.
+  _mkAllPredicate = checker: patterns: input: let
+    ps = toList patterns;
+    vs = toList input;
+  in
+    all (v: any (p: checker p v) ps) vs;
+
+  /**
+  Check whether any pattern is contained in any input string.
+
+  Accepts either a single string or a list of strings for both arguments.
+
+  # Type
+  contains :: string | [string] -> string | [string] -> bool
+
+  # Examples
+  contains "foo" "foobar"           # true
+  contains ["foo" "bar"] "foobar"   # true
+  contains "foo" ["baz" "foobar"]   # true
+  contains ["foo" "bar"] ["baz"]    # false
+  */
+  /**
+  Check whether ALL input strings contain at least one of the given patterns.
+
+  # Type
+  containsAll :: string | [string] -> string | [string] -> bool
+
+  # Examples
+  containsAll "foo" ["foobar" "fooX"]  # true  — every input has "foo"
+  containsAll "foo" ["foobar" "baz"]   # false — "baz" doesn't contain "foo"
+  */
+  inherit
+    (mapAttrs (_: _mkAnyPredicate) {
+      contains = hasInfix;
+      startsWith = hasPrefix;
+      endsWith = hasSuffix;
+    })
     contains
-    containsAny
     startsWith
     endsWith
+    ;
+
+  inherit
+    (mapAttrs (_: _mkAllPredicate) {
+      containsAll = hasInfix;
+      startsWithAll = hasPrefix;
+      endsWithAll = hasSuffix;
+    })
+    containsAll
+    startsWithAll
+    endsWithAll
+    ;
+
+  /**
+  Concatenate a list of strings, or groups of strings, with a delimiter.
+
+  # Type
+  concat :: string -> [string] | [[string]] -> string | [string]
+
+  # Examples
+  concat "," ["a" "b" "c"]          # "a,b,c"
+  concat "," [["a" "b"] ["c" "d"]]  # ["a,b" "c,d"]
+  */
+  concat = delimiter: input:
+    if (input == null) || (input == [])
+    then ""
+    else if isList (builtins.head input)
+    then map (group: concatStringsSep delimiter group) input
+    else concatStringsSep delimiter input;
+
+  /**
+  Remove leading occurrences of `chars` from a string or list of strings.
+
+  Pass null to default to a single space. Strips repeatedly.
+
+  # Type
+  trimStart :: string | null -> string | [string] -> string | [string]
+
+  # Examples
+  trimStart null "  foo bar"              # "foo bar"
+  trimStart "home:" "home:home:Pictures" # "Pictures"
+  trimStart null ["  a" "  b"]           # ["a" "b"]
+  */
+  trimStart = chars: let
+    c =
+      if chars == null
+      then " "
+      else chars;
+    go = s:
+      if hasPrefix c s
+      then go (removePrefix c s)
+      else s;
+  in
+    _applyStr go;
+
+  /**
+  Remove trailing occurrences of `chars` from a string or list of strings.
+
+  Pass null to default to a single space. Strips repeatedly.
+
+  # Type
+  trimEnd :: string | null -> string | [string] -> string | [string]
+
+  # Examples
+  trimEnd null "foo bar  "   # "foo bar"
+  trimEnd "!" "foo!!!"       # "foo"
+  trimEnd null ["a  " "b "] # ["a" "b"]
+  */
+  trimEnd = chars: let
+    c =
+      if chars == null
+      then " "
+      else chars;
+    go = s:
+      if hasSuffix c s
+      then go (removeSuffix c s)
+      else s;
+  in
+    _applyStr go;
+
+  /**
+  Remove leading and trailing occurrences of `chars` from a string or list of strings.
+
+  Pass null to default to a single space.
+
+  # Type
+  trim :: string | null -> string | [string] -> string | [string]
+
+  # Examples
+  trim null "  foo bar  "       # "foo bar"
+  trim "/" "/foo/bar/"          # "foo/bar"
+  trim null ["  a  " "  b  "]  # ["a" "b"]
+  */
+  trim = chars: input:
+    trimStart chars (trimEnd chars input);
+
+  /**
+  Convert a string or list of strings to lower case.
+
+  # Type
+  toLower :: string | [string] -> string | [string]
+
+  # Examples
+  toLower "FOO Bar"      # "foo bar"
+  toLower ["FOO" "BAR"] # ["foo" "bar"]
+  */
+  toLower = _applyStr lib.strings.toLower;
+
+  /**
+  Convert a string or list of strings to upper case.
+
+  # Type
+  toUpper :: string | [string] -> string | [string]
+
+  # Examples
+  toUpper "foo bar"      # "FOO BAR"
+  toUpper ["foo" "bar"] # ["FOO" "BAR"]
+  */
+  toUpper = _applyStr lib.strings.toUpper;
+
+  /**
+  Replace all occurrences of substrings in a string or list of strings.
+
+  Accepts either a single search/replace pair, or parallel lists.
+
+  # Type
+  replaceAll :: string | [string] -> string | [string] -> string | [string] -> string | [string]
+
+  # Examples
+  replaceAll "foo" "bar" "foo foo"               # "bar bar"
+  replaceAll [" " "_"] ["-" "-"] "zen twilight"  # "zen-twilight"
+  replaceAll "a" "b" ["a" "cat"]                 # ["b" "cbt"]
+  */
+  replaceAll = search: replace: let
+    ss = toList search;
+    rs = toList replace;
+  in
+    _applyStr (replaceStrings ss rs);
+
+  /**
+  Normalize an application or identifier name for fuzzy matching.
+
+  Converts to lower case and replaces spaces/underscores with hyphens.
+
+  # Type
+  normalizeName :: string | null -> string | null
+
+  # Examples
+  normalizeName "Zen Twilight"  # "zen-twilight"
+  normalizeName "zen_twilight"  # "zen-twilight"
+  normalizeName null            # null
+  */
+  normalizeName = value:
+    if (value == null) || (value == [])
+    then null
+    else replaceAll [" " "_"] ["-" "-"] (lib.strings.toLower value);
+
+  /**
+  Normalize a single name or list of names for fuzzy matching.
+
+  # Type
+  normalizeNames :: string | [string | null] | null -> string | [string | null] | null
+
+  # Examples
+  normalizeNames "Zen Twilight"               # "zen-twilight"
+  normalizeNames ["Zen Twilight" "zen_beta"]  # ["zen-twilight" "zen-beta"]
+  normalizeNames null                         # null
+  */
+  normalizeNames = values:
+    if (values == null) || (values == [])
+    then null
+    else if isList values
+    then map normalizeName values
+    else normalizeName values;
+
+  /**
+  Split a string or list of strings by a delimiter.
+
+  # Type
+  split :: string -> string | [string] -> [string] | [[string]]
+
+  # Examples
+  split "," "a,b,c"        # ["a" "b" "c"]
+  split "," ["a,b" "c,d"]  # [["a" "b"] ["c" "d"]]
+  */
+  split = delimiter:
+    _applyStr (splitString delimiter);
+in {
+  inherit
+    concat
+    contains
+    containsAll
+    endsWith
+    endsWithAll
+    isEmpty
+    isNotEmpty
+    normalizeName
+    normalizeNames
+    normalizeFlakePath
+    replaceAll
+    split
+    startsWith
+    startsWithAll
     toLower
     toUpper
     trim
-    trimStart
     trimEnd
-    replaceAll
-    split
-    join
-    isEmpty
-    isNotEmpty
+    trimStart
     ;
-  inherit (_.filesystem.predicates) normalizeFlakePath;
 }

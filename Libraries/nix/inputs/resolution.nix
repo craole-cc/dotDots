@@ -1,9 +1,12 @@
 {_, ...}: let
   inherit (_.attrsets.resolution) byPaths;
 
-  inputs' = {inputs}: {
+  resolvedFlake = _.attrsets.resolution.flake {};
+  rawInputs = resolvedFlake.inputs;
+
+  resolvedInputs = {
     nixpkgs = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "nixpkgs";
       paths = [
         ["nixosCore"]
@@ -15,8 +18,9 @@
         ["nixpkgs-stable"]
       ];
     };
+
     nixpkgs-stable = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "nixpkgs-stable";
       paths = [
         ["nixPackagesStable"]
@@ -25,8 +29,9 @@
         ["nixpkgs"]
       ];
     };
+
     nixpkgs-unstable = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "nixpkgs-unstable";
       paths = [
         ["nixPackagesUnstable"]
@@ -35,8 +40,9 @@
         ["nixpkgs"]
       ];
     };
+
     nix-darwin = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "nix-darwin";
       paths = [
         ["darwin"]
@@ -44,34 +50,9 @@
         ["darwinNix"]
       ];
     };
-    catppuccin = byPaths {
-      attrset = inputs;
-      default = "catppuccin";
-      paths = [
-        ["styleCatppuccin"]
-        ["catppuccinStyle"]
-      ];
-    };
-    chaotic = byPaths {
-      attrset = inputs;
-      default = "chaotic";
-      paths = [
-        ["nixChaotic"]
-        ["kernelChaotic"]
-        ["chaoticKernel"]
-      ];
-    };
-    stylix = byPaths {
-      attrset = inputs;
-      default = "stylix";
-      paths = [
-        ["nixStyle"]
-        ["styleManager"]
-        ["darwinNix"]
-      ];
-    };
+
     home-manager = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "home-manager";
       paths = [
         ["nixHomeManager"]
@@ -81,8 +62,48 @@
         ["home"]
       ];
     };
+
+    catppuccin = byPaths {
+      attrsets = rawInputs;
+      default = "catppuccin";
+      paths = [
+        ["styleCatppuccin"]
+        ["catppuccinStyle"]
+      ];
+    };
+
+    chaotic = byPaths {
+      attrsets = rawInputs;
+      default = "chaotic";
+      paths = [
+        ["nixChaotic"]
+        ["kernelChaotic"]
+        ["chaoticKernel"]
+      ];
+    };
+
+    fresh-editor = byPaths {
+      attrsets = rawInputs;
+      default = "fresh-editor";
+      paths = [
+        ["fresh"]
+        ["freshEditor"]
+        ["editorFresh"]
+      ];
+    };
+
+    stylix = byPaths {
+      attrsets = rawInputs;
+      default = "stylix";
+      paths = [
+        ["nixStyle"]
+        ["styleManager"]
+        ["darwinNix"]
+      ];
+    };
+
     helix = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "helix";
       paths = [
         ["helix-editor"]
@@ -93,7 +114,7 @@
       ];
     };
     caelestia = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "caelestia";
       paths = [
         ["shellCaelestia"]
@@ -101,7 +122,7 @@
       ];
     };
     dank-material-shell = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "dank-material-shell";
       paths = [
         ["shellDankMaterial"]
@@ -112,7 +133,7 @@
       ];
     };
     noctalia-shell = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "noctalia-shell";
       paths = [
         ["shellNoctalia"]
@@ -120,8 +141,9 @@
         ["noctalia"]
       ];
     };
+
     quickshell = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "quickshell";
       paths = [
         ["shellQuick"]
@@ -130,8 +152,9 @@
         ["quick"]
       ];
     };
+
     nvf = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "nvf";
       paths = [
         ["editorNeovim"]
@@ -141,8 +164,9 @@
         ["neoVim"]
       ];
     };
+
     plasma = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "plasma";
       paths = [
         ["shellPlasma"]
@@ -151,8 +175,9 @@
         ["kde"]
       ];
     };
+
     treefmt = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "treefmt";
       paths = [
         ["treeFormatter"]
@@ -160,8 +185,9 @@
         ["treefmt-nix"]
       ];
     };
+
     typix = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "typix";
       paths = [
         ["docTypix"]
@@ -169,8 +195,9 @@
         ["typ"]
       ];
     };
+
     vscode-insiders = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "vscode-insiders";
       paths = [
         ["vscode"]
@@ -183,8 +210,9 @@
         ["vscode-insiders-nix"]
       ];
     };
+
     zen-browser = byPaths {
-      attrset = inputs;
+      attrsets = rawInputs;
       default = "zen-browser";
       paths = [
         ["browserZen"]
@@ -197,6 +225,24 @@
     };
   };
 
-  exports = {inputs = inputs';};
+  exports = {
+    inherit
+      resolvedInputs
+      resolvedFlake
+      rawInputs
+      ;
+    inputs = resolvedInputs;
+    flake = resolvedFlake;
+  };
 in
-  exports // {_rootAliases = {getInputs = inputs';};}
+  exports
+  // {
+    _rootAliases = {
+      inherit
+        (exports)
+        resolvedInputs
+        resolvedFlake
+        rawInputs
+        ;
+    };
+  }

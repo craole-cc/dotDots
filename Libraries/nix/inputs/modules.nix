@@ -1,11 +1,19 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit (_.inputs.resolution) inputs;
   inherit (lib.lists) optionals;
 
-  mkCore = {
-    class,
-    inputs,
-    ...
+  mkModule = {
+    name,
+    modules ? homeModules,
+    variant ? "default",
   }:
+    modules.${name}.${variant} or {};
+
+  coreModules = {class ? "nixos", ...}:
     (
       if class == "darwin"
       then [
@@ -32,10 +40,9 @@
             inputs.nix-darwin.rev or inputs.nix-darwin.dirtyRev or "dirty";
         };
       }
-    ]
-    ++ [];
+    ];
 
-  mkHome = {inputs, ...}: {
+  homeModules = {
     dank-material-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};
@@ -51,12 +58,46 @@
       beta = inputs.zen-browser.homeModules.beta or {};
     };
   };
-  exports = {inherit mkCore mkHome;};
+
+  mkModules = {class ? "nixos", ...}: let
+    path = "${inputs.nixpkgs}/nixos/modules";
+    base = import "${path}/module-list.nix";
+    core = coreModules {inherit class;};
+    home = homeModules;
+    all = {
+      baseModules = base;
+      coreModules = core;
+      homeModules = home;
+      modulesPath = path;
+    };
+  in
+    {inherit all base core home path;} // all;
+
+  exports = {
+    inherit
+      inputs
+      coreModules
+      homeModules
+      mkModule
+      mkModules
+      ;
+    getCoreInputModules = coreModules;
+    getHomeInputModules = homeModules;
+    getInputs = inputs;
+    mkInputModules = mkModules;
+    mkInputModule = mkModule;
+  };
 in
   exports
   // {
     _rootAliases = {
-      getCoreInputModules = mkCore;
-      getHomeInputModules = mkHome;
+      inherit
+        (exports)
+        getInputs
+        getCoreInputModules
+        getHomeInputModules
+        mkInputModules
+        mkInputModule
+        ;
     };
   }

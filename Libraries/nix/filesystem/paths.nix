@@ -1,4 +1,5 @@
 {
+  _,
   lib,
   src,
   ...
@@ -15,6 +16,8 @@
   inherit (lib.asserts) assertMsg;
   inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
   inherit (lib.debug) traceIf;
+  inherit (lib.filesystem) dirOf;
+  inherit (lib.trivial) pathExists;
   inherit
     (lib.lists)
     elemAt
@@ -23,7 +26,7 @@
     toList
     ;
   inherit (lib.strings) hasSuffix;
-  inherit (builtins) getEnv pathExists;
+  inherit (builtins) getEnv;
 
   /**
   Constructs a file path by combining a root directory with a stem (file name or relative path).
@@ -350,32 +353,62 @@
       # -> "/base/dir/wallpapers/dark.jpg"
       absolute + "/" + relative;
 
+  tryFlake = {
+    self ? {},
+    path ? src,
+  }: let
+    pathStr = toString path;
+  in
+    if self ? outPath
+    then self.outPath
+    else if hasSuffix "/flake.nix" pathStr && pathExists pathStr
+    then dirOf pathStr
+    else if pathExists (pathStr + "/flake.nix")
+    then pathStr
+    else null;
+
   flake = {
     self ? {},
     path ? src,
   }: let
     pathStr = toString path;
-    result =
-      if hasSuffix "/flake.nix" pathStr && pathExists pathStr
-      then dirOf pathStr
-      else if pathExists (pathStr + "/flake.nix")
-      then pathStr
-      else null;
+    result = tryFlake {inherit self path;};
   in
-    if (self ? outPath)
-    then self.outPath
-    else traceIf (result == null) "❌ '${pathStr}' is not a valid flake path." result;
+    if result != null
+    then result
+    else throw "❌ '${pathStr}' is not a valid flake path.";
+
+  source = {
+    host ? {},
+    root ? null,
+    inputs ? {},
+    ...
+  }: let
+    resolvedRoot =
+      if root != null
+      then root
+      else if inputs ? nixpkgs
+      then inputs.nixpkgs
+      else _.configuration.inputs.resolution.inputs.nixpkgs;
+  in
+    if (host.class or "nixos") == "darwin"
+    then {source = resolvedRoot;}
+    else {flake.source = resolvedRoot;};
 in {
   inherit
     construct
     mkDefault
     getDefaults
     flake
+    tryFlake
+    source
     ;
   _rootAliases = {
     buildPath = construct;
     getDefaultPaths = getDefaults;
     mkDefaultPath = mkDefault;
     flakePath = flake;
+    flakePathOrNull = tryFlake;
+    sourcePath = source;
   };
 }

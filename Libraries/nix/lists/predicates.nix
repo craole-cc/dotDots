@@ -3,21 +3,8 @@
   _,
   ...
 }: let
-  inherit
-    (lib.lists)
-    all
-    any
-    filter
-    elem
-    head
-    tail
-    sort
-    length
-    toList
-    foldl'
-    ;
-  inherit (lib.attrsets) attrValues isAttrs;
-  inherit (lib.strings) toLower;
+  inherit (_.trivial.strings) toLower toList;
+  inherit (lib.lists) all any filter elem length;
 
   /**
   Generate a membership checking function for a normalized list.
@@ -53,7 +40,7 @@
     check,
     exact ? false,
   }: let
-    checkList = filter (v: v != null) (toList check);
+    checkList = toList check;
     normalizedList =
       if exact
       then checkList
@@ -66,7 +53,6 @@
   /**
   Check if any input elements are members of the allowed list.
 
-  Tests whether at least one element in `value` exists in the `check` list.
   Returns true if ANY element from `value` is found in `check`.
 
   # Type
@@ -74,101 +60,54 @@
   checkMembership :: { value :: a | [a], check :: a | [a], exact :: Bool } -> Bool
   ```
 
-  # Arguments
-  - value: Single element or list of elements to verify membership for
-  - check: Single element or list of allowed values
-  - exact: Whether to use exact (case-sensitive) matching for strings (default: false)
-
-  # Returns
-  true if any element in `value` is in `check`, false otherwise
-
   # Examples
   ```nix
-  checkMembership { value = "foo"; check = ["foo" "bar"]; }
-  # => true
-
-  checkMembership { value = ["foo" "bar"]; check = ["foo" "baz"]; }
-  # => true (foo is found)
-
-  checkMembership { value = ["foo" "qux"]; check = ["bar" "baz"]; }
-  # => false (neither found)
-
-  checkMembership { value = "FOO"; check = ["foo"]; exact = false; }
-  # => true (case-insensitive)
-
-  checkMembership { value = "FOO"; check = ["foo"]; exact = true; }
-  # => false (case-sensitive)
+  checkMembership { value = "foo"; check = ["foo" "bar"]; }           # => true
+  checkMembership { value = ["foo" "bar"]; check = ["foo" "baz"]; }   # => true (foo found)
+  checkMembership { value = ["foo" "qux"]; check = ["bar" "baz"]; }   # => false
+  checkMembership { value = "FOO"; check = ["foo"]; exact = false; }  # => true
+  checkMembership { value = "FOO"; check = ["foo"]; exact = true; }   # => false
   ```
   */
   checkMembership = {
     value,
     check,
     exact ? false,
-  }: let
-    valueList = toList value;
-    isMember = mkCheckList {inherit check exact;};
-  in
-    any isMember valueList;
+  }:
+    any (mkCheckList {inherit check exact;}) (toList value);
 
   /**
   Count how many elements from `value` are found in `check`.
-
-  Returns the number of elements from the first argument that exist in the second.
-  Useful for quantifying partial matches between two lists.
 
   # Type
   ```nix
   countMatches :: { value :: a | [a], check :: a | [a], exact :: Bool } -> Int
   ```
 
-  # Arguments
-  - value: Single element or list of elements to count matches for
-  - check: Single element or list of values to check against
-  - exact: Whether to use exact (case-sensitive) matching for strings (default: false)
-
-  # Returns
-  The count of elements from `value` that are present in `check`
-
   # Examples
   ```nix
-  countMatches { value = "foo"; check = ["foo" "bar"]; }
-  # => 1
-
-  countMatches { value = ["foo" "bar"]; check = ["foo" "baz"]; }
-  # => 1 (only "foo" matches)
-
-  countMatches { value = ["foo" "bar"]; check = ["foo" "bar"]; }
-  # => 2 (both match)
-
-  countMatches { value = ["foo" "bar" "baz"]; check = ["qux"]; }
-  # => 0 (no matches)
+  countMatches { value = "foo"; check = ["foo" "bar"]; }              # => 1
+  countMatches { value = ["foo" "bar"]; check = ["foo" "baz"]; }      # => 1
+  countMatches { value = ["foo" "bar"]; check = ["foo" "bar"]; }      # => 2
+  countMatches { value = ["foo" "bar" "baz"]; check = ["qux"]; }      # => 0
   ```
   */
   countMatches = {
     value,
     check,
     exact ? false,
-  }: let
-    valueList = toList value;
-    isMember = mkCheckList {inherit check exact;};
-  in
-    length (filter isMember valueList);
-
-  # Membership predicates
-  # These functions check if values exist in a list
+  }:
+    length (filter (mkCheckList {inherit check exact;}) (toList value));
 
   /**
   Check if any value(s) exist in the check list (case-insensitive).
-
-  Convenient wrapper for checkMembership with exact = false.
-  Returns true if at least one element from value is in check.
 
   # Examples
   ```nix
   isIn "foo" ["foo" "bar"]          # => true
   isIn "FOO" ["foo" "bar"]          # => true
   isIn ["foo" "bar"] ["foo" "baz"]  # => true (foo matches)
-  isIn ["qux" "quux"] ["foo" "bar"] # => false (no matches)
+  isIn ["qux" "quux"] ["foo" "bar"] # => false
   ```
   */
   isIn = value: check:
@@ -176,18 +115,16 @@
       inherit value check;
       exact = false;
     };
+
   has = isIn;
 
   /**
   Check if any value(s) exist in the check list (case-sensitive).
 
-  Convenient wrapper for checkMembership with exact = true.
-  Returns true if at least one element from value is in check.
-
   # Examples
   ```nix
-  isInExact "foo" ["foo" "bar"]  # => true
-  isInExact "FOO" ["foo" "bar"]  # => false
+  isInExact "foo" ["foo" "bar"]          # => true
+  isInExact "FOO" ["foo" "bar"]          # => false
   isInExact ["FOO" "bar"] ["foo" "bar"]  # => true (bar matches)
   ```
   */
@@ -196,9 +133,6 @@
       inherit value check;
       exact = true;
     };
-
-  # Quantitative predicates
-  # These functions check quantities of matches
 
   /**
   Check if at least `count` elements from `value` are in `check` (case-insensitive).
@@ -230,10 +164,10 @@
 
   # Examples
   ```nix
-  hasAtMost ["foo" "bar"] ["foo" "baz"] 1  # => true (1 match)
-  hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 2  # => true (2 matches)
+  hasAtMost ["foo" "bar"] ["foo" "baz"] 1        # => true  (1 match)
+  hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 2  # => true  (2 matches)
   hasAtMost ["foo" "bar"] ["foo" "bar" "baz"] 1  # => false (2 matches > 1)
-  hasAtMost ["foo" "bar"] ["baz" "qux"] 5  # => false (0 matches)
+  hasAtMost ["foo" "bar"] ["baz" "qux"] 5        # => false (0 matches)
   ```
   */
   hasAtMost = value: check: count: let
@@ -257,146 +191,33 @@
   /**
   Check if all elements from `value` are in `check` (case-insensitive).
 
-  Unlike checkMembership (which checks for ANY match), this requires ALL
-  elements to be present in the check list.
-
   # Examples
   ```nix
-  hasAll ["foo" "bar"] ["foo" "bar" "baz"]  # => true (both found)
-  hasAll ["foo" "qux"] ["foo" "bar"]        # => false (qux not found)
-  hasAll "foo" ["foo" "bar"]                # => true (single element)
+  hasAll ["foo" "bar"] ["foo" "bar" "baz"]  # => true
+  hasAll ["foo" "qux"] ["foo" "bar"]        # => false
+  hasAll "foo" ["foo" "bar"]                # => true
   ```
   */
-  hasAll = value: check: let
-    valueList = toList value;
-    isMember = mkCheckList {
+  hasAll = value: check:
+    all (mkCheckList {
       inherit check;
       exact = false;
-    };
-  in
-    all isMember valueList;
+    }) (toList value);
 
   /**
   Check if all elements from `value` are in `check` (case-sensitive).
 
-  Unlike checkMembership (which checks for ANY match), this requires ALL
-  elements to be present in the check list with exact case matching.
-
   # Examples
   ```nix
   hasAllExact ["foo" "bar"] ["foo" "bar" "baz"]  # => true
-  hasAllExact ["foo" "Bar"] ["foo" "bar"]        # => false (Bar != bar)
+  hasAllExact ["foo" "Bar"] ["foo" "bar"]        # => false
   ```
   */
-  hasAllExact = value: check: let
-    valueList = toList value;
-    isMember = mkCheckList {
+  hasAllExact = value: check:
+    all (mkCheckList {
       inherit check;
       exact = true;
-    };
-  in
-    all isMember valueList;
-
-  /**
-  Find the most frequent item in a list with advanced tie-breaking options.
-
-  # Type
-  ```nix
-  mostFrequent :: [a] -> {
-    tiebreaker :: a -> a -> a,       # Function to break ties
-    compareItems :: (a -> a -> Int)? # Custom comparison for tie sorting (like compare)
-  }? -> a | null
-  ```
-  # Options
-  - tiebreaker: Function that takes two tied items and returns the preferred one
-  - compareItems: Optional comparison function that returns -1, 0, or 1.
-    If provided, uses sort with this comparator and takes first item.
-    Overrides tiebreaker if both are provided.
-
-  # Examples
-  ```nix
-  #> Use alphabetical sorting for ties
-  mostFrequent ["a" "b" "b" "a"] {
-    compareItems = a: b:
-      if a < b then -1
-      else if a > b then 1
-      else 0;
-  }  # => "a"
-
-  #> Custom tie logic (prefer shorter strings)
-  mostFrequent ["abc" "ab" "abc" "ab"] {
-    tiebreaker = a: b:
-      if stringLength a < stringLength b
-      then a else b;
-  }  # => "ab"
-  ```
-  */
-  mostFrequent = list: options: let
-    opts =
-      if isAttrs options
-      then options
-      else {};
-
-    # Handle empty list
-    result =
-      if list == []
-      then null
-      else let
-        # Count frequencies
-        frequencies =
-          foldl'
-          (acc: item: let
-            key = toString item;
-            count = acc.${key}.count or 0;
-            storedItem = acc.${key}.item or item;
-          in
-            acc
-            // {
-              ${key} = {
-                item = storedItem;
-                count = count + 1;
-              };
-            })
-          {}
-          list;
-
-        itemsWithCounts = attrValues frequencies;
-
-        # Find maximum frequency
-        maxCount =
-          foldl'
-          (max: entry:
-            if entry.count > max
-            then entry.count
-            else max)
-          0
-          itemsWithCounts;
-
-        # Get all items with max frequency
-        tiedItems = map (entry: entry.item) (
-          filter (entry: entry.count == maxCount) itemsWithCounts
-        );
-
-        # Break the tie
-        resolvedItem =
-          if opts ? compareItems
-          then
-            # Use comparator and take first after sorting
-            head (sort opts.compareItems tiedItems)
-          else if opts ? tiebreaker
-          then
-            # Use tiebreaker function
-            foldl'
-            (current: next: opts.tiebreaker current next)
-            (head tiedItems)
-            (tail tiedItems)
-          else
-            # Default: first item in tiedItems list
-            head tiedItems;
-      in
-        resolvedItem;
-  in
-    result;
+    }) (toList value);
 in {
   inherit
     checkMembership
@@ -410,7 +231,6 @@ in {
     hasAtMostExact
     isIn
     isInExact
-    mostFrequent
     ;
 
   _rootAliases = {
