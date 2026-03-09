@@ -1,10 +1,13 @@
 {
-  lib,
+  name,
+  __libraryPath,
   _,
-  library,
-  __moduleNamespacePath,
+  lib,
   ...
 }: let
+  _debug = mkModuleDebug {path = __libraryPath;};
+  # _debug = mkModuleDebug {inherit name;};
+
   inherit (lib.lists) isList map any;
   inherit
     (lib.strings)
@@ -18,12 +21,7 @@
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
-
   _str = lib.strings;
-  _debug = mkModuleDebug {
-    inherit library;
-    namespace = __moduleNamespacePath;
-  };
 
   #? Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
@@ -276,6 +274,7 @@
     then null
     else if isList input && any isList input
     then let
+      fn = normalize;
       function = "normalize";
       message = "nested lists are not supported";
       signature = "string | [string] | null -> string | [string] | null";
@@ -284,7 +283,9 @@
         res = ''["zen-twilight" "zen-beta"]'';
       };
     in
-      throw (_debug.withDoc {inherit input function message signature example;})
+      throw (_debug.withDoc {
+        inherit input fn function message signature example;
+      })
     else
       _applyStr
       (s: replaceAll [" " "_"] ["-" "-"] (toLower s))

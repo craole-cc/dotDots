@@ -17,6 +17,7 @@
     filterAttrs
     listToAttrs
     mapAttrs
+    mapAttrsRecursive
     ;
   inherit (lib.lists) length filter head isList;
   inherit (lib.strings) concatStringsSep splitString;
@@ -25,7 +26,7 @@
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
   paths = let
-    buildPath = {
+    mkPath = {
       root,
       stem,
     }: "${root}/${
@@ -33,18 +34,84 @@
       then concatStringsSep "/" stem
       else stem
     }";
-    known = root: {
+
+    concatPath = prefix: parts: let
+      base = toString prefix;
+    in
+      if parts == []
+      then base
+      else "${base}/${concatStringsSep "/" parts}";
+
+    mapStems = prefix:
+      mapAttrsRecursive (_: concatPath prefix);
+
+    stems = {
+      default = [];
+      libs = rec {
+        nix = ["Libraries" "nix"];
+        shellscript = ["Libraries" "shellscript"];
+        rust = ["Libraries" "rust"];
+        default = nix;
+      };
+
+      api = rec {
+        default = ["API" "nix"];
+        hosts = default ++ ["hosts"];
+        users = default ++ ["users"];
+      };
+
+      pkgs = rec {
+        default = ["Packages" "nix"];
+        global = default ++ ["global"];
+        core = default ++ ["core"];
+        home = default ++ ["home"];
+        overlays = default ++ ["overlays"];
+        plugins = default ++ ["plugins"];
+      };
+
+      templates = rec {
+        default = ["Templates" "nix"];
+        rust = default ++ ["rust"];
+      };
+
+      images = rec {
+        default = ["Assets" "Images"];
+        ascii = default ++ ["ascii"];
+        logo = default ++ ["logo"];
+        wallpaper = default ++ ["wallpaper"];
+      };
+    };
+
+    roots = {
+      store = builtins.path {
+        path = ./.;
+        name = "dotDots";
+      };
+      local = ./.;
+    };
+
+    resolved = {
+      store = mapStems roots.store stems;
+      local = mapStems roots.local stems;
+    };
+
+    mkPaths = root: {
       inherit root;
+
+      default = mkPath {
+        inherit root;
+        stem = [];
+      };
       libs = let
-        nix = buildPath {
+        nix = mkPath {
           inherit root;
           stem = ["Libraries" "nix"];
         };
-        shellscript = buildPath {
+        shellscript = mkPath {
           inherit root;
           stem = ["Libraries" "shellscript"];
         };
-        rust = buildPath {
+        rust = mkPath {
           inherit root;
           stem = ["Libraries" "rust"];
         };
@@ -53,79 +120,83 @@
         inherit nix shellscript rust;
       };
       api = let
-        default = buildPath {
+        default = mkPath {
           inherit root;
           stem = ["API" "nix"];
         };
-        hosts = buildPath {
+        hosts = mkPath {
           root = default;
           stem = "hosts";
         };
-        users = buildPath {
+        users = mkPath {
           root = default;
           stem = "users";
         };
       in {inherit default hosts users;};
       pkgs = let
-        default = buildPath {
+        default = mkPath {
           inherit root;
           stem = ["Packages" "nix"];
         };
-        core = buildPath {
+        core = mkPath {
           root = default;
           stem = "core";
         };
-        global = buildPath {
+        global = mkPath {
           root = default;
           stem = "global";
         };
-        home = buildPath {
+        home = mkPath {
           root = default;
           stem = "home";
         };
-        overlays = buildPath {
+        overlays = mkPath {
           root = default;
           stem = "overlays";
         };
-        plugins = buildPath {
+        plugins = mkPath {
           root = default;
           stem = "plugins";
         };
       in {inherit default core global home overlays plugins;};
       templates = let
-        default = buildPath {
+        default = mkPath {
           inherit root;
           stem = ["Templates" "nix"];
         };
-        rust = buildPath {
+        rust = mkPath {
           root = default;
           stem = "rust";
         };
       in {inherit default rust;};
       images = rec {
-        default = buildPath {
+        default = mkPath {
           inherit root;
           stem = ["Assets" "Images"];
         };
-        ascii = buildPath {
+        ascii = mkPath {
           root = default;
           stem = "ascii";
         };
-        logo = buildPath {
+        logo = mkPath {
           root = default;
           stem = "logo";
         };
-        wallpaper = buildPath {
+        wallpaper = mkPath {
           root = default;
           stem = "wallpaper";
         };
       };
     };
-    store = known src;
-    mkLocal = dots: known dots;
-  in {inherit buildPath store mkLocal;};
+    store = mkPaths ./.;
+    local = mkPaths src;
+    mkLocal = dots: mkPaths dots;
+  in {inherit roots stems resolved mkPath store local mkLocal;};
 
-  inherit (import paths.store.libs.default {inherit lib src;}) lix; #TODO: Maybe pass in pkgs
+  inherit
+    (import paths.store.libs.default {inherit lib src paths;})
+    lix
+    ; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {
     hostsPath = paths.store.api.hosts;
     usersPath = paths.store.api.users;

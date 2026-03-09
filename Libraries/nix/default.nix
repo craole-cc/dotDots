@@ -4,6 +4,7 @@
   # pkgs ? import <nixpkgs> {},
   name ? "lix",
   src ? ../.,
+  paths,
   collisionStrategy ? "warn",
   # enableCaching ? true,
   runTests ? true,
@@ -42,16 +43,17 @@
     removeAttrs
     filterAttrs
     ;
+  inherit (lib.debug) trace;
   inherit (lib.fixedPoints) makeExtensible;
+  inherit (lib.lists) elem filter foldl' findFirst;
   inherit
     (lib.strings)
+    concatStringsSep
     hasPrefix
     hasSuffix
     removeSuffix
     removePrefix
     ;
-  inherit (lib.lists) elem filter foldl' findFirst;
-  inherit (builtins) trace;
   inherit (lib.trivial) isFunction;
 
   # Helper function to get relative path
@@ -116,7 +118,7 @@
     scanDir = dir: pathPrefix: let
       entries = readDir dir;
 
-      # Results accumulator
+      #? Results accumulator
       scanResults = {
         modules = {}; # Module tree structure
         rootAliases = {}; # Functions to expose at root level
@@ -162,10 +164,13 @@
             then let
               moduleEnv =
                 env
-                // {
-                  __modulePath = filePath;
+                // rec {
+                  __moduleStorePath = filePath;
                   __moduleName = moduleName;
-                  __moduleNamespacePath = pathPrefix ++ [moduleName]; # e.g. ["strings" "transform"]
+                  __namespacePath = pathPrefix ++ [moduleName]; # e.g. ["strings" "transform"]
+                  __libraryPath = [env.library] ++ __namespacePath; # e.g. ["lix" "strings" "transform"]
+                  __libraryName = concatStringsSep "." __libraryPath;
+                  name = __libraryName;
                 };
               result = rawModule moduleEnv;
             in
@@ -254,9 +259,13 @@
             // {
               __meta = {
                 # Module identity
-                name = moduleName;
-                path = filePath;
-                namespacePath = pathPrefix ++ [moduleName];
+                module = rec {
+                  name = concatStringsSep "." namespace;
+                  path = filePath;
+                  directory = removePrefix (paths.store.libs.default + "/") (toString dir);
+                  filename = entryName;
+                  namespace = [env.library] ++ pathPrefix ++ [moduleName];
+                };
 
                 # Documentation info
                 docs = docsInfo;
@@ -265,10 +274,6 @@
                 exports = attrNames cleanModule;
                 functions = attrNames (filterAttrs (_: value: isFunction value) cleanModule);
                 values = attrNames (filterAttrs (_: value: !isFunction value) cleanModule);
-
-                # File info
-                directory = toString dir;
-                filename = entryName;
 
                 # Build info
                 timestamp = builtins.currentTime;
@@ -301,7 +306,7 @@
     moduleTopLevelNames = attrNames results.modules;
     collisions = filter (name: elem name moduleTopLevelNames) rootAliasNames;
 
-    # Handle root alias collisions based on strategy
+    #> Handle root alias collisions based on strategy
     library =
       if collisions != []
       then

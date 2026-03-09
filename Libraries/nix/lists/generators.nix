@@ -1,10 +1,11 @@
 {
-  lib,
+  __libraryPath,
   _,
-  library,
-  __moduleNamespacePath,
+  lib,
   ...
 }: let
+  _debug = mkModuleDebug __libraryPath;
+
   inherit (_.lists.predicates) isIn isInExact;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.predicates) isAttrs isFunction isList;
@@ -12,11 +13,6 @@
   inherit (lib.attrsets) attrNames hasAttr;
   inherit (lib.lists) all any;
   inherit (lib.strings) hasPrefix stringLength;
-
-  _debug = mkModuleDebug {
-    inherit library;
-    namespace = __moduleNamespacePath;
-  };
 
   /**
   Create a validator that checks if values are in an allowed list.

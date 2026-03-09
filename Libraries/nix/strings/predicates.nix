@@ -1,10 +1,11 @@
 {
-  lib,
+  __libraryPath,
   _,
-  library,
-  __moduleNamespacePath,
+  lib,
   ...
 }: let
+  _debug = mkModuleDebug __libraryPath;
+
   inherit (_.strings.generators) toList;
   inherit (_.trivial.emptiness) isEmpty isNotEmpty;
   inherit (_.trivial.tests) mkTest runTests;
@@ -12,11 +13,6 @@
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) all any isList;
   inherit (lib.strings) hasInfix hasPrefix hasSuffix isString;
-
-  _debug = mkModuleDebug {
-    inherit library;
-    namespace = __moduleNamespacePath;
-  };
 
   # Internal: build a predicate that checks if any pattern matches any input value.
   _mkAnyPredicate = function: checker: patterns: input: let

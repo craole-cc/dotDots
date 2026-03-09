@@ -1,7 +1,7 @@
 {lib, ...}: let
   inherit (lib.attrsets) isAttrs hasAttr;
-  inherit (lib.debug) addErrorContext trace;
-  inherit (lib.strings) concatStringsSep toJSON;
+  inherit (lib.debug) addErrorContext;
+  inherit (lib.strings) typeOf concatStringsSep isString splitString toJSON;
 
   #~@ Namespace Utilities
 
@@ -32,15 +32,21 @@
 
   # Examples
   ```nix
-  mkRef { library = "lix"; namespace = ["strings" "transform"]; function = "normalize"; }
+  mkRef { path = ["lix" "strings" "transform"]; function = "normalize"; }
   # => "lix.strings.transform.normalize"
   ```
   */
   mkRef = {
-    library,
-    namespace,
+    path ? [],
+    name ? null,
     function,
-  }: "${library}.${mkNamespace namespace}.${function}";
+  }:
+    if name != null
+    then concatStringsSep "." [name function]
+    else if path != []
+    then concatStringsSep "." (path ++ [function])
+    else throw "parameters not passed"; #TODO: Improve the error message
+  # "${mkNamespace path}.${function}";
 
   /**
   Create a typed example value for use in usage hints.
@@ -136,8 +142,8 @@
   ```
   */
   mkUsage = {
-    library,
-    namespace,
+    path,
+    name,
     function,
     message,
     input,
@@ -145,7 +151,7 @@
     example ? null,
     tracing ? true,
   }: let
-    fn = mkRef {inherit library namespace function;};
+    fn = mkRef {inherit path name function;};
     loc =
       if tracing
       then "${fn}"
@@ -160,6 +166,24 @@
     if sig == null || ex == null
     then "${msg}"
     else "${msg}\nusage:\n <{info}> repl> :doc ${fn}\n <{type}> ${sig}\n <{demo}> ${ex}";
+
+  mkThrownUsage = {
+    ref,
+    message,
+    input,
+    signature ? null,
+    example ? null,
+  }: let
+    ex =
+      if example != null
+      then _renderExample example
+      else null;
+
+    sig = signature;
+  in
+    if sig == null || ex == null
+    then "${message}\ninput: ${toJSON input}"
+    else "${message}\ninput: ${toJSON input}\nusage:\n <{info}> repl> :doc ${ref}\n <{type}> ${sig}\n <{demo}> ${ex}";
 
   #~@ Module Debug
 
@@ -199,11 +223,20 @@
   ```
   */
   mkModuleDebug = {
-    library,
-    namespace,
+    path ? [],
+    name ? null,
   }: let
+    normalizedPath =
+      if isString path
+      then splitString "." path
+      else path;
+
     ref = function:
-      mkRef {inherit library namespace function;};
+      mkRef {
+        inherit name function;
+        path = normalizedPath;
+      };
+
     usage = {
       function,
       message,
@@ -212,7 +245,10 @@
       signature ? null,
       example ? null,
     }:
-      mkUsage {inherit library namespace function message tracing input signature example;};
+      mkUsage {
+        inherit name function message tracing input signature example;
+        path = normalizedPath;
+      };
   in {
     /**
     Eagerly print error context to stderr via trace, return the message string
@@ -246,18 +282,28 @@
     ```
     */
     withDoc = {
+      fn ? null,
       function,
       message,
       signature,
       input,
       example ? null,
-    }:
-      trace
-      "${usage {
-        inherit function message input signature example;
-        tracing = true;
-      }}"
-      "${message}";
+    }: let
+      fnRef = ref function;
+
+      thrown = mkThrownUsage {
+        ref = fnRef;
+        inherit message input signature example;
+      };
+    in
+      if fn != null
+      then
+        traceFn {
+          name = fnRef;
+          inherit fn;
+          result = thrown;
+        }
+      else thrown;
 
     /**
     Eagerly print location-only error context to stderr via trace, return the
@@ -280,16 +326,23 @@
     ```
     */
     withLoc = {
+      fn ? null,
       function,
       message,
       input,
-    }:
-      trace
-      "${usage {
-        inherit function message input;
-        tracing = true;
-      }}"
-      "${message}";
+    }: let
+      fnRef = ref function;
+
+      thrown = "${message}\ninput: ${toJSON input}";
+    in
+      if fn != null
+      then
+        traceFn {
+          name = fnRef;
+          inherit fn;
+          result = thrown;
+        }
+      else thrown;
 
     /**
     Throw with full usage context using addErrorContext.
@@ -315,15 +368,33 @@
     ```
     */
     throwDoc = {
+      fn ? null,
       function,
       message,
       signature,
       input,
       example ? null,
-    }:
+    }: let
+      fnRef = ref function;
+
+      thrown = mkThrownUsage {
+        ref = fnRef;
+        inherit message input signature example;
+      };
+
+      traced =
+        if fn != null
+        then
+          traceFn {
+            name = fnRef;
+            inherit fn;
+            result = thrown;
+          }
+        else thrown;
+    in
       addErrorContext
-      "${usage {inherit function message input signature example;}}"
-      (throw "${message}");
+      "from call site"
+      (throw traced);
 
     /**
     Throw with location-only context using addErrorContext.
@@ -346,13 +417,28 @@
     ```
     */
     throwLoc = {
+      fn ? null,
       function,
       message,
       input,
-    }:
+    }: let
+      fnRef = ref function;
+
+      thrown = "${message}\ninput: ${toJSON input}";
+
+      traced =
+        if fn != null
+        then
+          traceFn {
+            name = fnRef;
+            inherit fn;
+            result = thrown;
+          }
+        else thrown;
+    in
       addErrorContext
-      "${usage {inherit function message input;}}"
-      (throw "${message}");
+      "from call site"
+      (throw traced);
 
     /**
     Format an error string with fully qualified location, without throwing or tracing.
@@ -378,13 +464,128 @@
     inherit ref usage;
   };
 
+  renderType = value: let
+    t = typeOf value;
+  in
+    if t == "lambda"
+    then "function"
+    else t;
+
+  /**
+  Render a debug value safely for trace output.
+
+  Produces readable output for common Nix values while avoiding failures for
+  functions and other non-JSON-friendly types.
+
+  # Type
+  ```nix
+  renderDebugValue :: any -> string
+  */
+  renderDebugValue = value: let
+    t = typeOf value;
+  in
+    if t == "lambda"
+    then "<function>"
+    else if t == "path"
+    then toString value
+    else if t == "string"
+    then value
+    else if t == "null"
+    then "null"
+    else if t == "set"
+    then toJSON value
+    else if t == "list"
+    then toJSON value
+    else if t == "bool"
+    then toJSON value
+    else if t == "int"
+    then toJSON value
+    else if t == "float"
+    then toJSON value
+    else "<${t}>";
+
+  /**
+  Trace the type and rendered value of a labeled input, then return result.
+
+  Useful when you want to inspect one value while continuing evaluation with
+  another expression.
+
+  Type
+  trace :: { label :: string, value :: any, result :: any } -> any
+  */
+  trace = {
+    label ? null,
+    value,
+    result,
+    displayType ? null,
+    displayValue ? null,
+  }: let
+    prefix =
+      if label == null || label == ""
+      then ""
+      else "${label} ";
+
+    shownType =
+      if displayType != null
+      then displayType
+      else renderType value;
+
+    shownValue =
+      if displayValue != null
+      then displayValue
+      else renderDebugValue value;
+  in
+    lib.debug.trace
+    "${prefix}type = ${shownType}, value = ${shownValue}"
+    result;
+
+  traceRaw = {
+    value,
+    result,
+  }:
+    lib.debug.trace value result;
+
+  traceFn = {
+    name,
+    fn,
+    result,
+    label ? null,
+  }:
+    trace {
+      inherit label result;
+      value = fn;
+      displayType = "function";
+      displayValue = name;
+    };
+
+  /**
+  Trace the type and rendered value of a labeled input, then return that same value.
+
+  Useful as an inline probe in let-bindings and pipelines of transformations.
+
+  Type
+  traceValue :: { label :: string, value :: any } -> any
+  */
+  traceValue = {
+    label ? null,
+    value,
+  }:
+    trace {
+      inherit label value;
+      result = value;
+    };
+
   exports = {
     inherit
+      mkExample
+      mkModuleDebug
       mkNamespace
       mkRef
-      mkExample
       mkUsage
-      mkModuleDebug
+      renderDebugValue
+      trace
+      traceRaw
+      traceValue
       ;
   };
 in

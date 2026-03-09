@@ -1,19 +1,15 @@
 {
-  lib,
+  __libraryPath,
   _,
-  library,
-  __moduleNamespacePath,
+  lib,
   ...
 }: let
+  _debug = mkModuleDebug __libraryPath;
+
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (lib.lists) any filter head isList map;
   inherit (lib.strings) concatStringsSep splitString isString;
-
-  _debug = mkModuleDebug {
-    inherit library;
-    namespace = __moduleNamespacePath;
-  };
 
   /**
   Convert a single string, or list of strings, into a cleaned list.

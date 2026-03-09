@@ -1,20 +1,17 @@
 {
-  lib,
+  __libraryPath,
   _,
-  library,
-  __moduleNamespacePath,
+  lib,
   ...
 }: let
-  inherit (_.strings) toLower toList;
+  _debug = mkModuleDebug __libraryPath;
+
+  inherit (_.strings.transform) toLower;
+  inherit (_.strings.generators) toList;
   inherit (_.trivial.predicates) isList;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (lib.lists) all any elem filter length;
-
-  _debug = mkModuleDebug {
-    inherit library;
-    namespace = __moduleNamespacePath;
-  };
 
   /**
   Generate a membership checking function for a normalized list.

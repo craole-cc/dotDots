@@ -210,6 +210,7 @@
   */
   isStringLike = lib.strings.isStringLike;
 
+  typeOf = lib.strings.typeOf;
   exports = {
     inherit
       isAttrs
@@ -224,6 +225,7 @@
       isString
       isStringConvertible
       isStringLike
+      typeOf
       ;
   };
 in
