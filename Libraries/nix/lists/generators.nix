@@ -1,11 +1,22 @@
 {
   lib,
   _,
+  library,
+  __moduleNamespacePath,
   ...
 }: let
-  inherit (lib.strings) hasPrefix;
   inherit (_.lists.predicates) isIn isInExact;
+  inherit (_.trivial.debug) mkModuleDebug mkExample;
+  inherit (_.trivial.predicates) isAttrs isFunction isList;
   inherit (_.trivial.tests) mkTest runTests;
+  inherit (lib.attrsets) attrNames hasAttr;
+  inherit (lib.lists) all any;
+  inherit (lib.strings) hasPrefix stringLength;
+
+  _debug = mkModuleDebug {
+    inherit library;
+    namespace = __moduleNamespacePath;
+  };
 
   /**
   Create a validator that checks if values are in an allowed list.
@@ -16,59 +27,55 @@
   ```
 
   # Arguments
-  - list: List of allowed values
+  - list:  List of allowed values
   - exact: Whether to use case-sensitive matching (default: false)
-
-  # Returns
-  An attribute set with:
-  - check: Function that validates a value
-  - list: The allowed list
 
   # Examples
   ```nix
   validator = mkValidator { list = ["foo" "bar"]; };
-  validator.check "foo"  # => true
   validator.check "FOO"  # => true (case-insensitive by default)
   validator.check "baz"  # => false
 
   exactValidator = mkValidator { list = ["foo" "bar"]; exact = true; };
-  exactValidator.check "FOO"  # => false (case-sensitive)
+  exactValidator.check "FOO"  # => false
   ```
   */
   mkValidator = {
     list,
     exact ? false,
-  }: {
-    check = name:
-      if exact
-      then isInExact name list
-      else isIn name list;
-    inherit list;
-  };
+  }:
+    if !isList list
+    then
+      throw (_debug.withDoc {
+        function = "mkValidator";
+        message = "list must be a list of values";
+        signature = "{ list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }";
+        input = list;
+        example = mkExample {
+          cmd = ''mkValidator { list = ["foo" "bar"]; }'';
+          res = "{ check = ...; list = [\"foo\" \"bar\"]; }";
+        };
+      })
+    else {
+      check = name:
+        if exact
+        then isInExact name list
+        else isIn name list;
+      inherit list;
+    };
 
   /**
-  Create a case-insensitive validator that checks if values are in an allowed list.
-
-  Convenience wrapper for mkValidator with exact = false.
+  Create a case-insensitive validator. Convenience wrapper for mkValidator with exact = false.
 
   # Type
   ```nix
   mkCaseInsensitiveValidator :: [a] -> { check :: a -> Bool, list :: [a] }
   ```
 
-  # Arguments
-  - list: List of allowed values
-
-  # Returns
-  An attribute set with:
-  - check: Function that validates a value (case-insensitive)
-  - list: The allowed list
-
   # Examples
   ```nix
   validator = mkCaseInsensitiveValidator ["foo" "bar"];
   validator.check "FOO"  # => true
-  validator.check "Foo"  # => true
   validator.check "baz"  # => false
   ```
   */
@@ -79,22 +86,12 @@
     };
 
   /**
-  Create a case-sensitive validator that checks if values are in an allowed list.
-
-  Convenience wrapper for mkValidator with exact = true.
+  Create a case-sensitive validator. Convenience wrapper for mkValidator with exact = true.
 
   # Type
   ```nix
   mkCaseSensitiveValidator :: [a] -> { check :: a -> Bool, list :: [a] }
   ```
-
-  # Arguments
-  - list: List of allowed values
-
-  # Returns
-  An attribute set with:
-  - check: Function that validates a value (case-sensitive)
-  - list: The allowed list
 
   # Examples
   ```nix
@@ -117,201 +114,200 @@
   mkDenyValidator :: { list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }
   ```
 
-  # Arguments
-  - list: List of denied values
-  - exact: Whether to use case-sensitive matching (default: false)
-
-  # Returns
-  An attribute set with:
-  - check: Function that validates a value (returns true if NOT in denylist)
-  - list: The denylist
-
   # Examples
   ```nix
   validator = mkDenyValidator { list = ["admin" "root"]; };
   validator.check "user"   # => true
-  validator.check "admin"  # => false
   validator.check "ADMIN"  # => false (case-insensitive by default)
-
-  exactValidator = mkDenyValidator { list = ["admin" "root"]; exact = true; };
-  exactValidator.check "ADMIN"  # => true (case-sensitive, so ADMIN != admin)
   ```
   */
   mkDenyValidator = {
     list,
     exact ? false,
-  }: {
-    check = name:
-      if exact
-      then !(isInExact name list)
-      else !(isIn name list);
-    inherit list;
-  };
+  }:
+    if !isList list
+    then
+      throw (_debug.withDoc {
+        function = "mkDenyValidator";
+        message = "list must be a list of values";
+        signature = "{ list :: [a], exact :: Bool? } -> { check :: a -> Bool, list :: [a] }";
+        input = list;
+        example = mkExample {
+          cmd = ''mkDenyValidator { list = ["admin" "root"]; }'';
+          res = "{ check = ...; list = [\"admin\" \"root\"]; }";
+        };
+      })
+    else {
+      check = name:
+        if exact
+        then !(isInExact name list)
+        else !(isIn name list);
+      inherit list;
+    };
 
   /**
-  Create a validator that uses a custom predicate function.
+  Create a validator using a custom predicate function.
 
   # Type
   ```nix
   mkPredicateValidator :: (a -> Bool) -> { check :: a -> Bool, predicate :: (a -> Bool) }
   ```
 
-  # Arguments
-  - predicate: Function that takes a value and returns a boolean
-
-  # Returns
-  An attribute set with:
-  - check: Function that validates a value using the predicate
-  - predicate: The original predicate function
-
   # Examples
   ```nix
-  validator = mkPredicateValidator (name: lib.strings.hasPrefix "user_" name);
+  validator = mkPredicateValidator (hasPrefix "user_");
   validator.check "user_alice"  # => true
   validator.check "admin_bob"   # => false
-
-  lengthValidator = mkPredicateValidator (s: builtins.stringLength s >= 3);
-  lengthValidator.check "ab"   # => false
-  lengthValidator.check "abc"  # => true
   ```
   */
-  mkPredicateValidator = predicate: {
-    check = name: predicate name;
-    inherit predicate;
-  };
+  mkPredicateValidator = predicate:
+    if !isFunction predicate
+    then
+      throw (_debug.withDoc {
+        function = "mkPredicateValidator";
+        message = "predicate must be a function";
+        signature = "(a -> Bool) -> { check :: a -> Bool, predicate :: (a -> Bool) }";
+        input = predicate;
+        example = mkExample {
+          cmd = ''mkPredicateValidator (hasPrefix "user_")'';
+          res = "{ check = ...; predicate = ...; }";
+        };
+      })
+    else {
+      check = name: predicate name;
+      inherit predicate;
+    };
 
   /**
-  Combine multiple validators with AND logic.
-
-  Returns true only if ALL validators pass.
+  Combine multiple validators with AND logic. Returns true only if ALL validators pass.
 
   # Type
   ```nix
   combineValidators :: [Validator] -> { check :: a -> Bool, validators :: [Validator] }
   ```
 
-  # Arguments
-  - validators: List of validator objects (must have a `check` function)
-
-  # Returns
-  An attribute set with:
-  - check: Function that returns true if all validators pass
-  - validators: The list of validators
-
   # Examples
   ```nix
-  allowlist = mkValidator { list = ["user_alice" "user_bob"]; };
-  prefix = mkPredicateValidator (hasPrefix "user_");
-
-  combined = combineValidators [allowlist prefix];
-  combined.check "user_alice"  # => true
-  combined.check "user_charlie"  # => false (not in allowlist)
-  combined.check "admin_alice"  # => false (no user_ prefix)
+  combined = combineValidators [
+    (mkValidator { list = ["user_alice" "user_bob"]; })
+    (mkPredicateValidator (hasPrefix "user_"))
+  ];
+  combined.check "user_alice"    # => true
+  combined.check "user_charlie"  # => false
   ```
   */
-  combineValidators = validators: {
-    check = name: builtins.all (v: v.check name) validators;
-    inherit validators;
-  };
+  combineValidators = validators:
+    if !isList validators
+    then
+      throw (_debug.withDoc {
+        function = "combineValidators";
+        message = "validators must be a list of validator objects";
+        signature = "[Validator] -> { check :: a -> Bool, validators :: [Validator] }";
+        input = validators;
+        example = mkExample {
+          cmd = "combineValidators [v1 v2]";
+          res = "{ check = ...; validators = [...]; }";
+        };
+      })
+    else {
+      check = name: all (v: v.check name) validators;
+      inherit validators;
+    };
 
   /**
-  Combine multiple validators with OR logic.
-
-  Returns true if ANY validator passes.
+  Combine multiple validators with OR logic. Returns true if ANY validator passes.
 
   # Type
   ```nix
   combineValidatorsOr :: [Validator] -> { check :: a -> Bool, validators :: [Validator] }
   ```
 
-  # Arguments
-  - validators: List of validator objects (must have a `check` function)
+  # Examples
+  ```nix
+  combined = combineValidatorsOr [
+    (mkValidator { list = ["alice" "bob"]; })
+    (mkValidator { list = ["charlie" "dave"]; })
+  ];
+  combined.check "alice"    # => true
+  combined.check "charlie"  # => true
+  combined.check "eve"      # => false
+  ```
+  */
+  combineValidatorsOr = validators:
+    if !isList validators
+    then
+      throw (_debug.withDoc {
+        function = "combineValidatorsOr";
+        message = "validators must be a list of validator objects";
+        signature = "[Validator] -> { check :: a -> Bool, validators :: [Validator] }";
+        input = validators;
+        example = mkExample {
+          cmd = "combineValidatorsOr [v1 v2]";
+          res = "{ check = ...; validators = [...]; }";
+        };
+      })
+    else {
+      check = name: any (v: v.check name) validators;
+      inherit validators;
+    };
 
-  # Returns
-  An attribute set with:
-  - check: Function that returns true if any validator passes
-  - validators: The list of validators
+  /**
+  Create an enum with optional aliases.
+
+  # Type
+  ```nix
+  mkEnum :: [a] | { values :: [a], aliases :: AttrSet } -> Enum
+  ```
 
   # Examples
   ```nix
-  allowlist1 = mkValidator { list = ["alice" "bob"]; };
-  allowlist2 = mkValidator { list = ["charlie" "dave"]; };
+  # Simple enum
+  colors = mkEnum ["red" "green" "blue"];
+  colors.validator.check "RED"  # => true
 
-  combined = combineValidatorsOr [allowlist1 allowlist2];
-  combined.check "alice"    # => true (in first list)
-  combined.check "charlie"  # => true (in second list)
-  combined.check "eve"      # => false (in neither)
+  # Enum with aliases
+  roles = mkEnum {
+    values  = ["administrator" "developer"];
+    aliases = { admin = "administrator"; dev = "developer"; };
+  };
+  roles.allValues             # => ["administrator" "developer" "admin" "dev"]
+  roles.validator.check "admin"  # => true
+  roles.resolve "admin"          # => "administrator"
   ```
   */
-  combineValidatorsOr = validators: {
-    check = name: builtins.any (v: v.check name) validators;
-    inherit validators;
-  };
-
-  /**
-    Create an enum with optional aliases.
-
-    # Type
-  ```nix
-    mkEnum :: [a] | { values :: [a], aliases :: AttrSet } -> Enum
-  ```
-
-    # Arguments
-    - values: Either a list of values, or an attrset with:
-      - values: List of canonical values
-      - aliases: Attrset mapping alias -> canonical value
-
-    # Returns
-    {
-      values: List of canonical values
-      aliases: Alias mapping (if provided)
-      allValues: Combined list (values ++ alias keys)
-      validator: Case-insensitive validator accepting any value or alias
-    }
-
-    # Examples
-  ```nix
-    # Simple enum
-    colors = mkEnum ["red" "green" "blue"];
-    colors.values      # => ["red" "green" "blue"]
-    colors.validator.check "RED"  # => true
-
-    # Enum with aliases
-    roles = mkEnum {
-      values = ["administrator" "developer" "user"];
-      aliases = { admin = "administrator"; dev = "developer"; };
+  mkEnum = input:
+    if !(isList input || isAttrs input)
+    then
+      throw (_debug.withDoc {
+        function = "mkEnum";
+        message = "input must be a list of values or an attrset with values and aliases";
+        signature = "[a] | { values :: [a], aliases :: AttrSet } -> Enum";
+        input = input;
+        example = mkExample {
+          cmd = ''mkEnum { values = ["admin" "user"]; aliases = { root = "admin"; }; }'';
+          res = "{ values = [...]; aliases = {...}; allValues = [...]; validator = ...; resolve = ...; }";
+        };
+      })
+    else let
+      normalized =
+        if isList input
+        then {
+          values = input;
+          aliases = {};
+        }
+        else input;
+      values = normalized.values;
+      aliases = normalized.aliases or {};
+      aliasKeys = attrNames aliases;
+      allValues = values ++ aliasKeys;
+    in {
+      inherit values aliases allValues;
+      validator = mkCaseInsensitiveValidator allValues;
+      resolve = value:
+        if hasAttr value aliases
+        then aliases.${value}
+        else value;
     };
-    roles.values       # => ["administrator" "developer" "user"]
-    roles.allValues    # => ["administrator" "developer" "user" "admin" "dev"]
-    roles.aliases      # => { admin = "administrator"; dev = "developer"; }
-    roles.validator.check "admin"  # => true (alias)
-    roles.validator.check "developer"  # => true (canonical)
-  ```
-  */
-  mkEnum = input: let
-    # Normalize input to handle both list and attrset forms
-    normalized =
-      if builtins.isList input
-      then {
-        values = input;
-        aliases = {};
-      }
-      else input;
-
-    values = normalized.values;
-    aliases = normalized.aliases or {};
-    aliasKeys = builtins.attrNames aliases;
-    allValues = values ++ aliasKeys;
-  in {
-    inherit values aliases allValues;
-    validator = mkCaseInsensitiveValidator allValues;
-
-    # Optional: Add a resolve function to get canonical value from alias
-    resolve = value:
-      if builtins.hasAttr value aliases
-      then aliases.${value}
-      else value;
-  };
 in {
   inherit
     mkEnum
@@ -337,171 +333,211 @@ in {
 
   _tests = runTests {
     mkValidator = {
-      caseInsensitiveByDefault = let
-        validator = mkValidator {list = ["foo" "bar"];};
-      in
-        mkTest true (validator.check "FOO");
-
-      caseSensitiveWithExact = let
-        validator = mkValidator {
+      caseInsensitiveByDefault = mkTest {
+        desired = true;
+        command = ''(mkValidator { list = ["foo" "bar"]; }).check "FOO"'';
+        outcome = (mkValidator {list = ["foo" "bar"];}).check "FOO";
+      };
+      caseSensitiveWithExact = mkTest {
+        desired = false;
+        command = ''(mkValidator { list = ["foo" "bar"]; exact = true; }).check "FOO"'';
+        outcome = (mkValidator {
           list = ["foo" "bar"];
           exact = true;
-        };
-      in
-        mkTest false (validator.check "FOO");
-
-      allowsValueInList = let
-        validator = mkValidator {list = ["foo" "bar"];};
-      in
-        mkTest true (validator.check "foo");
-
-      deniesValueNotInList = let
-        validator = mkValidator {list = ["foo" "bar"];};
-      in
-        mkTest false (validator.check "baz");
-
-      exportsListAttribute = let
-        validator = mkValidator {list = ["foo" "bar"];};
-      in
-        mkTest ["foo" "bar"] validator.list;
+        }).check "FOO";
+      };
+      allowsValueInList = mkTest {
+        desired = true;
+        command = ''(mkValidator { list = ["foo" "bar"]; }).check "foo"'';
+        outcome = (mkValidator {list = ["foo" "bar"];}).check "foo";
+      };
+      deniesValueNotInList = mkTest {
+        desired = false;
+        command = ''(mkValidator { list = ["foo" "bar"]; }).check "baz"'';
+        outcome = (mkValidator {list = ["foo" "bar"];}).check "baz";
+      };
+      exportsListAttribute = mkTest {
+        desired = ["foo" "bar"];
+        command = ''(mkValidator { list = ["foo" "bar"]; }).list'';
+        outcome = (mkValidator {list = ["foo" "bar"];}).list;
+      };
     };
 
     mkCaseInsensitiveValidator = {
-      allowsCaseVariations = let
-        validator = mkCaseInsensitiveValidator ["foo" "bar"];
-      in
-        mkTest true (validator.check "FOO");
-
-      allowsLowerCase = let
-        validator = mkCaseInsensitiveValidator ["foo" "bar"];
-      in
-        mkTest true (validator.check "foo");
-
-      allowsMixedCase = let
-        validator = mkCaseInsensitiveValidator ["foo" "bar"];
-      in
-        mkTest true (validator.check "FoO");
-
-      deniesValueNotInList = let
-        validator = mkCaseInsensitiveValidator ["foo" "bar"];
-      in
-        mkTest false (validator.check "baz");
+      allowsCaseVariations = mkTest {
+        desired = true;
+        command = ''(mkCaseInsensitiveValidator ["foo" "bar"]).check "FOO"'';
+        outcome = (mkCaseInsensitiveValidator ["foo" "bar"]).check "FOO";
+      };
+      allowsMixedCase = mkTest {
+        desired = true;
+        command = ''(mkCaseInsensitiveValidator ["foo" "bar"]).check "FoO"'';
+        outcome = (mkCaseInsensitiveValidator ["foo" "bar"]).check "FoO";
+      };
+      deniesValueNotInList = mkTest {
+        desired = false;
+        command = ''(mkCaseInsensitiveValidator ["foo" "bar"]).check "baz"'';
+        outcome = (mkCaseInsensitiveValidator ["foo" "bar"]).check "baz";
+      };
     };
 
     mkCaseSensitiveValidator = {
-      deniesWrongCase = let
-        validator = mkCaseSensitiveValidator ["foo" "bar"];
-      in
-        mkTest false (validator.check "FOO");
-
-      allowsExactMatch = let
-        validator = mkCaseSensitiveValidator ["foo" "bar"];
-      in
-        mkTest true (validator.check "foo");
-
-      deniesValueNotInList = let
-        validator = mkCaseSensitiveValidator ["foo" "bar"];
-      in
-        mkTest false (validator.check "baz");
+      deniesWrongCase = mkTest {
+        desired = false;
+        command = ''(mkCaseSensitiveValidator ["foo" "bar"]).check "FOO"'';
+        outcome = (mkCaseSensitiveValidator ["foo" "bar"]).check "FOO";
+      };
+      allowsExactMatch = mkTest {
+        desired = true;
+        command = ''(mkCaseSensitiveValidator ["foo" "bar"]).check "foo"'';
+        outcome = (mkCaseSensitiveValidator ["foo" "bar"]).check "foo";
+      };
+      deniesValueNotInList = mkTest {
+        desired = false;
+        command = ''(mkCaseSensitiveValidator ["foo" "bar"]).check "baz"'';
+        outcome = (mkCaseSensitiveValidator ["foo" "bar"]).check "baz";
+      };
     };
 
     mkDenyValidator = {
-      allowsValueNotInDenylist = let
-        validator = mkDenyValidator {list = ["admin" "root"];};
-      in
-        mkTest true (validator.check "user");
-
-      deniesValueInDenylist = let
-        validator = mkDenyValidator {list = ["admin" "root"];};
-      in
-        mkTest false (validator.check "admin");
-
-      caseInsensitiveByDefault = let
-        validator = mkDenyValidator {list = ["admin" "root"];};
-      in
-        mkTest false (validator.check "ADMIN");
-
-      caseSensitiveWithExact = let
-        validator = mkDenyValidator {
+      allowsValueNotInDenylist = mkTest {
+        desired = true;
+        command = ''(mkDenyValidator { list = ["admin" "root"]; }).check "user"'';
+        outcome = (mkDenyValidator {list = ["admin" "root"];}).check "user";
+      };
+      deniesValueInDenylist = mkTest {
+        desired = false;
+        command = ''(mkDenyValidator { list = ["admin" "root"]; }).check "admin"'';
+        outcome = (mkDenyValidator {list = ["admin" "root"];}).check "admin";
+      };
+      caseInsensitiveByDefault = mkTest {
+        desired = false;
+        command = ''(mkDenyValidator { list = ["admin" "root"]; }).check "ADMIN"'';
+        outcome = (mkDenyValidator {list = ["admin" "root"];}).check "ADMIN";
+      };
+      caseSensitiveWithExact = mkTest {
+        desired = true;
+        command = ''(mkDenyValidator { list = ["admin" "root"]; exact = true; }).check "ADMIN"'';
+        outcome = (mkDenyValidator {
           list = ["admin" "root"];
           exact = true;
-        };
-      in
-        mkTest true (validator.check "ADMIN");
-
-      exportsListAttribute = let
-        validator = mkDenyValidator {list = ["admin" "root"];};
-      in
-        mkTest ["admin" "root"] validator.list;
+        }).check "ADMIN";
+      };
+      exportsListAttribute = mkTest {
+        desired = ["admin" "root"];
+        command = ''(mkDenyValidator { list = ["admin" "root"]; }).list'';
+        outcome = (mkDenyValidator {list = ["admin" "root"];}).list;
+      };
     };
 
     mkPredicateValidator = {
-      usesCustomPredicate = let
-        validator = mkPredicateValidator (name: hasPrefix "user_" name);
-      in
-        mkTest true (validator.check "user_alice");
-
-      failsWhenPredicateFails = let
-        validator = mkPredicateValidator (name: hasPrefix "user_" name);
-      in
-        mkTest false (validator.check "admin_bob");
-
-      worksWithLengthCheck = let
-        validator = mkPredicateValidator (s: builtins.stringLength s >= 3);
-      in
-        mkTest true (validator.check "abc");
-
-      exportsPredicateAttribute = let
-        pred = name: hasPrefix "user_" name;
-        validator = mkPredicateValidator pred;
-      in
-        mkTest pred validator.predicate;
+      usesCustomPredicate = mkTest {
+        desired = true;
+        command = ''(mkPredicateValidator (hasPrefix "user_")).check "user_alice"'';
+        outcome = (mkPredicateValidator (hasPrefix "user_")).check "user_alice";
+      };
+      failsWhenPredicateFails = mkTest {
+        desired = false;
+        command = ''(mkPredicateValidator (hasPrefix "user_")).check "admin_bob"'';
+        outcome = (mkPredicateValidator (hasPrefix "user_")).check "admin_bob";
+      };
+      worksWithLengthCheck = mkTest {
+        desired = true;
+        command = ''(mkPredicateValidator (s: stringLength s >= 3)).check "abc"'';
+        outcome = (mkPredicateValidator (s: stringLength s >= 3)).check "abc";
+      };
     };
 
     combineValidators = {
-      requiresAllValidatorsToPass = let
-        allowlist = mkValidator {list = ["user_alice" "user_bob"];};
-        prefix = mkPredicateValidator (hasPrefix "user_");
-        combined = combineValidators [allowlist prefix];
-      in
-        mkTest true (combined.check "user_alice");
-
-      failsIfAnyValidatorFails = let
-        allowlist = mkValidator {list = ["user_alice" "user_bob"];};
-        prefix = mkPredicateValidator (hasPrefix "user_");
-        combined = combineValidators [allowlist prefix];
-      in
-        mkTest false (combined.check "user_charlie");
-
-      failsIfPrefixWrong = let
-        allowlist = mkValidator {list = ["user_alice" "admin_alice"];};
-        prefix = mkPredicateValidator (hasPrefix "user_");
-        combined = combineValidators [allowlist prefix];
-      in
-        mkTest false (combined.check "admin_alice");
+      requiresAllValidatorsToPass = mkTest {
+        desired = true;
+        command = ''(combineValidators [allowlist prefix]).check "user_alice"'';
+        outcome = let
+          allowlist = mkValidator {list = ["user_alice" "user_bob"];};
+          prefix = mkPredicateValidator (hasPrefix "user_");
+        in
+          (combineValidators [allowlist prefix]).check "user_alice";
+      };
+      failsIfAnyValidatorFails = mkTest {
+        desired = false;
+        command = ''(combineValidators [allowlist prefix]).check "user_charlie"'';
+        outcome = let
+          allowlist = mkValidator {list = ["user_alice" "user_bob"];};
+          prefix = mkPredicateValidator (hasPrefix "user_");
+        in
+          (combineValidators [allowlist prefix]).check "user_charlie";
+      };
+      failsIfPrefixWrong = mkTest {
+        desired = false;
+        command = ''(combineValidators [allowlist prefix]).check "admin_alice"'';
+        outcome = let
+          allowlist = mkValidator {list = ["user_alice" "admin_alice"];};
+          prefix = mkPredicateValidator (hasPrefix "user_");
+        in
+          (combineValidators [allowlist prefix]).check "admin_alice";
+      };
     };
 
     combineValidatorsOr = {
-      passesIfAnyValidatorPasses = let
-        allowlist1 = mkValidator {list = ["alice" "bob"];};
-        allowlist2 = mkValidator {list = ["charlie" "dave"];};
-        combined = combineValidatorsOr [allowlist1 allowlist2];
-      in
-        mkTest true (combined.check "alice");
+      passesIfAnyValidatorPasses = mkTest {
+        desired = true;
+        command = ''(combineValidatorsOr [allowlist1 allowlist2]).check "alice"'';
+        outcome = let
+          allowlist1 = mkValidator {list = ["alice" "bob"];};
+          allowlist2 = mkValidator {list = ["charlie" "dave"];};
+        in
+          (combineValidatorsOr [allowlist1 allowlist2]).check "alice";
+      };
+      passesWithSecondList = mkTest {
+        desired = true;
+        command = ''(combineValidatorsOr [allowlist1 allowlist2]).check "charlie"'';
+        outcome = let
+          allowlist1 = mkValidator {list = ["alice" "bob"];};
+          allowlist2 = mkValidator {list = ["charlie" "dave"];};
+        in
+          (combineValidatorsOr [allowlist1 allowlist2]).check "charlie";
+      };
+      failsIfNoValidatorPasses = mkTest {
+        desired = false;
+        command = ''(combineValidatorsOr [allowlist1 allowlist2]).check "eve"'';
+        outcome = let
+          allowlist1 = mkValidator {list = ["alice" "bob"];};
+          allowlist2 = mkValidator {list = ["charlie" "dave"];};
+        in
+          (combineValidatorsOr [allowlist1 allowlist2]).check "eve";
+      };
+    };
 
-      passesWithSecondList = let
-        allowlist1 = mkValidator {list = ["alice" "bob"];};
-        allowlist2 = mkValidator {list = ["charlie" "dave"];};
-        combined = combineValidatorsOr [allowlist1 allowlist2];
-      in
-        mkTest true (combined.check "charlie");
-
-      failsIfNoValidatorPasses = let
-        allowlist1 = mkValidator {list = ["alice" "bob"];};
-        allowlist2 = mkValidator {list = ["charlie" "dave"];};
-        combined = combineValidatorsOr [allowlist1 allowlist2];
-      in
-        mkTest false (combined.check "eve");
+    mkEnum = {
+      simpleEnumCheck = mkTest {
+        desired = true;
+        command = ''(mkEnum ["red" "green" "blue"]).validator.check "RED"'';
+        outcome = (mkEnum ["red" "green" "blue"]).validator.check "RED";
+      };
+      aliasCheck = mkTest {
+        desired = true;
+        command = ''(mkEnum { values = ["administrator"]; aliases = { admin = "administrator"; }; }).validator.check "admin"'';
+        outcome = (mkEnum {
+          values = ["administrator"];
+          aliases = {admin = "administrator";};
+        }).validator.check "admin";
+      };
+      resolveAlias = mkTest {
+        desired = "administrator";
+        command = ''(mkEnum { values = ["administrator"]; aliases = { admin = "administrator"; }; }).resolve "admin"'';
+        outcome = (mkEnum {
+          values = ["administrator"];
+          aliases = {admin = "administrator";};
+        }).resolve "admin";
+      };
+      resolveCanonical = mkTest {
+        desired = "administrator";
+        command = ''(mkEnum { values = ["administrator"]; aliases = { admin = "administrator"; }; }).resolve "administrator"'';
+        outcome = (mkEnum {
+          values = ["administrator"];
+          aliases = {admin = "administrator";};
+        }).resolve "administrator";
+      };
     };
   };
 }

@@ -19,7 +19,7 @@
             then "Test `${name}` failed"
             else null;
         in {
-          inherit (test) desired result passed;
+          inherit (test) desired result passed command;
           inherit error;
         }
         else if isAttrs test
@@ -28,14 +28,32 @@
     )
     tests;
 
+  /**
+  Create a test case with desired output, outcome expression, and optional command string.
+
+  # Type
+  ```nix
+  mkTest :: { desired :: a, outcome :: a, command :: string | null } -> Test
+  ```
+
+  # Examples
+  ```nix
+  mkTest {
+    desired = "foo-bar";
+    command = ''normalize "Foo Bar"'';
+    outcome = normalize "Foo Bar";
+  }
+  ```
+  */
   mkTest = {
     desired,
     outcome,
+    command ? null,
   }: let
     value = deepSeq outcome outcome;
     passed = desired == value;
   in {
-    inherit desired;
+    inherit desired command;
     result = value;
     inherit passed;
   };

@@ -14,19 +14,18 @@
     removePrefix
     removeSuffix
     replaceStrings
-    toLower
-    toUpper
     ;
   inherit (_.strings.generators) toList;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
 
+  _str = lib.strings;
   _debug = mkModuleDebug {
     inherit library;
     namespace = __moduleNamespacePath;
   };
 
-  # Internal: apply a string transform to a string or each item in a list.
+  #? Internal: apply a string transform to a string or each item in a list.
   _applyStr = fn: input:
     if isList input
     then map fn input
@@ -46,16 +45,19 @@
   toLower ["FOO" "BAR"] # => ["foo" "bar"]
   ```
   */
-  toLower' = input:
+  toLower = input:
     if isList input && any isList input
-    then
-      throw (_debug.traceDoc {
-        function = "toLower";
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        inherit input;
-      })
-    else _applyStr toLower input;
+    then let
+      function = "toLower";
+      message = "nested lists are not supported";
+      signature = "string | [string] -> string | [string]";
+      example = mkExample {
+        cmd = ''toLower ["FOO" "BAR"]'';
+        res = ''["foo" "bar"]'';
+      };
+    in
+      throw (_debug.withDoc {inherit input function message signature example;})
+    else _applyStr _str.toLower input;
 
   /**
   Convert a string or list of strings to upper case.
@@ -71,16 +73,19 @@
   toUpper ["foo" "bar"] # => ["FOO" "BAR"]
   ```
   */
-  toUpper' = input:
+  toUpper = input:
     if isList input && any isList input
-    then
-      throw (_debug.traceDoc {
-        function = "toUpper";
-        message = "nested lists are not supported";
-        signature = "string | [string] -> string | [string]";
-        inherit input;
-      })
-    else _applyStr toUpper input;
+    then let
+      function = "toUpper";
+      message = "nested lists are not supported";
+      signature = "string | [string] -> string | [string]";
+      example = mkExample {
+        cmd = ''toUpper ["foo" "bar"]'';
+        res = ''["FOO" "BAR"]'';
+      };
+    in
+      throw (_debug.withDoc {inherit input function message signature example;})
+    else _applyStr _str.toUpper input;
 
   /**
   Remove leading occurrences of `chars` from a string or list of strings.
@@ -105,7 +110,7 @@
       then " "
       else if !isString chars
       then
-        throw (_debug.traceLoc {
+        throw (_debug.withLoc {
           function = "trimStart";
           message = "chars must be a string or null";
           input = chars;
@@ -118,13 +123,16 @@
   in
     input:
       if isList input && any isList input
-      then
-        throw (_debug.traceDoc {
-          function = "trimStart";
-          message = "nested lists are not supported";
-          signature = "string | null -> string | [string] -> string | [string]";
-          inherit input;
-        })
+      then let
+        function = "trimStart";
+        message = "nested lists are not supported";
+        signature = "string | null -> string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''trimStart null ["  foo" "  bar"]'';
+          res = ''["foo" "bar"]'';
+        };
+      in
+        throw (_debug.withDoc {inherit input function message signature example;})
       else _applyStr go input;
 
   /**
@@ -150,7 +158,7 @@
       then " "
       else if !isString chars
       then
-        throw (_debug.traceLoc {
+        throw (_debug.withLoc {
           function = "trimEnd";
           message = "chars must be a string or null";
           input = chars;
@@ -163,13 +171,16 @@
   in
     input:
       if isList input && any isList input
-      then
-        throw (_debug.traceDoc {
-          function = "trimEnd";
-          message = "nested lists are not supported";
-          signature = "string | null -> string | [string] -> string | [string]";
-          inherit input;
-        })
+      then let
+        function = "trimEnd";
+        message = "nested lists are not supported";
+        signature = "string | null -> string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''trimEnd null ["foo  " "bar  "]'';
+          res = ''["foo" "bar"]'';
+        };
+      in
+        throw (_debug.withDoc {inherit input function message signature example;})
       else _applyStr go input;
 
   /**
@@ -215,23 +226,26 @@
   in
     input:
       if isList input && any isList input
-      then
-        throw (_debug.traceDoc {
-          function = "replaceAll";
-          message = "nested lists are not supported in input";
-          signature = "string | [string] -> string | [string] -> string | [string] -> string | [string]";
-          inherit input;
-        })
+      then let
+        function = "replaceAll";
+        message = "nested lists are not supported in input";
+        signature = "string | [string] -> string | [string] -> string | [string] -> string | [string]";
+        example = mkExample {
+          cmd = ''replaceAll " " "-" ["foo bar" "baz qux"]'';
+          res = ''["foo-bar" "baz-qux"]'';
+        };
+      in
+        throw (_debug.withDoc {inherit input function message signature example;})
       else if isList ss && any isList ss
       then
-        throw (_debug.traceLoc {
+        throw (_debug.withLoc {
           function = "replaceAll";
           message = "nested lists are not supported in search";
           input = search;
         })
       else if isList rs && any isList rs
       then
-        throw (_debug.traceLoc {
+        throw (_debug.withLoc {
           function = "replaceAll";
           message = "nested lists are not supported in replace";
           input = replace;
@@ -264,16 +278,16 @@
     then let
       function = "normalize";
       message = "nested lists are not supported";
-      signature = ''string | [string] | null -> string | [string] | null'';
+      signature = "string | [string] | null -> string | [string] | null";
       example = mkExample {
         cmd = ''normalize ["Zen Twilight" "zen_beta"]'';
         res = ''["zen-twilight" "zen-beta"]'';
       };
     in
-      throw (_debug.throwDoc {inherit input function message signature example;})
+      throw (_debug.withDoc {inherit input function message signature example;})
     else
       _applyStr
-      (s: replaceAll [" " "_"] ["-" "-"] (toLower' s))
+      (s: replaceAll [" " "_"] ["-" "-"] (toLower s))
       input;
 in {
   inherit
@@ -282,13 +296,13 @@ in {
     trimStart
     replaceAll
     normalize
+    toUpper
+    toLower
     ;
-  toLower = toLower';
-  toUpper = toUpper';
 
   _rootAliases = {
-    toLowercase = toLower';
-    toUppercase = toUpper';
+    toLowercase = toLower;
+    toUppercase = toUpper;
     trimString = trim;
     trimStringStart = trimStart;
     trimStringEnd = trimEnd;
@@ -300,90 +314,109 @@ in {
     toLower = {
       singleString = mkTest {
         desired = "foo bar";
+        command = ''toLower "FOO Bar"'';
         outcome = toLower "FOO Bar";
       };
       list = mkTest {
         desired = ["foo" "bar"];
+        command = ''toLower ["FOO" "BAR"]'';
         outcome = toLower ["FOO" "BAR"];
       };
     };
     toUpper = {
       singleString = mkTest {
         desired = "FOO BAR";
+        command = ''toUpper "foo bar"'';
         outcome = toUpper "foo bar";
       };
       list = mkTest {
         desired = ["FOO" "BAR"];
+        command = ''toUpper ["foo" "bar"]'';
         outcome = toUpper ["foo" "bar"];
       };
     };
     trimStart = {
       spaces = mkTest {
         desired = "foo bar";
+        command = ''trimStart null "  foo bar"'';
         outcome = trimStart null "  foo bar";
       };
       customChar = mkTest {
         desired = "Pictures";
+        command = ''trimStart "home:" "home:home:Pictures"'';
         outcome = trimStart "home:" "home:home:Pictures";
       };
       list = mkTest {
         desired = ["a" "b"];
+        command = ''trimStart null ["  a" "  b"]'';
         outcome = trimStart null ["  a" "  b"];
       };
     };
     trimEnd = {
       spaces = mkTest {
         desired = "foo bar";
+        command = ''trimEnd null "foo bar  "'';
         outcome = trimEnd null "foo bar  ";
       };
       customChar = mkTest {
         desired = "foo";
+        command = ''trimEnd "!" "foo!!!"'';
         outcome = trimEnd "!" "foo!!!";
       };
     };
     trim = {
       spaces = mkTest {
         desired = "foo bar";
+        command = ''trim null "  foo bar  "'';
         outcome = trim null "  foo bar  ";
       };
       customChar = mkTest {
         desired = "foo/bar";
+        command = ''trim "/" "/foo/bar/"'';
         outcome = trim "/" "/foo/bar/";
       };
     };
     replaceAll = {
       singlePair = mkTest {
         desired = "bar bar";
+        command = ''replaceAll "foo" "bar" "foo foo"'';
         outcome = replaceAll "foo" "bar" "foo foo";
       };
       multiPair = mkTest {
         desired = "zen-twilight";
+        command = ''replaceAll [" " "_"] ["-" "-"] "zen twilight"'';
         outcome = replaceAll [" " "_"] ["-" "-"] "zen twilight";
       };
       list = mkTest {
         desired = ["b" "cbt"];
+        command = ''replaceAll "a" "b" ["a" "cat"]'';
         outcome = replaceAll "a" "b" ["a" "cat"];
       };
     };
     normalize = {
       spaces = mkTest {
         desired = "zen-twilight";
+        command = ''normalize "Zen Twilight"'';
         outcome = normalize "Zen Twilight";
       };
       underscores = mkTest {
         desired = "zen-twilight";
+        command = ''normalize "zen_twilight"'';
         outcome = normalize "zen_twilight";
       };
       list = mkTest {
         desired = ["zen-twilight" "zen-beta"];
+        command = ''normalize ["Zen Twilight" "zen_beta"]'';
         outcome = normalize ["Zen Twilight" "zen_beta"];
       };
       nullInput = mkTest {
         desired = null;
+        command = ''normalize null'';
         outcome = normalize null;
       };
       emptyInput = mkTest {
         desired = null;
+        command = ''normalize []'';
         outcome = normalize [];
       };
     };

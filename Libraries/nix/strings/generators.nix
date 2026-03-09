@@ -1,11 +1,19 @@
 {
   lib,
   _,
+  library,
+  __moduleNamespacePath,
   ...
 }: let
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (lib.lists) isList filter map;
-  inherit (lib.strings) concatStringsSep splitString;
+  inherit (_.trivial.debug) mkModuleDebug mkExample;
+  inherit (lib.lists) any filter head isList map;
+  inherit (lib.strings) concatStringsSep splitString isString;
+
+  _debug = mkModuleDebug {
+    inherit library;
+    namespace = __moduleNamespacePath;
+  };
 
   /**
   Convert a single string, or list of strings, into a cleaned list.
@@ -42,9 +50,16 @@
   ```
   */
   concat = delimiter: input:
-    if (input == null) || (input == [])
+    if !(isString delimiter)
+    then
+      throw (_debug.withLoc {
+        function = "concat";
+        message = "delimiter must be a string";
+        input = delimiter;
+      })
+    else if (input == null) || (input == [])
     then ""
-    else if isList (builtins.head input)
+    else if isList (head input)
     then map (group: concatStringsSep delimiter group) input
     else concatStringsSep delimiter input;
 
@@ -63,7 +78,25 @@
   ```
   */
   split = delimiter: input:
-    if isList input
+    if !(isString delimiter)
+    then
+      throw (_debug.withLoc {
+        function = "split";
+        message = "delimiter must be a string";
+        input = delimiter;
+      })
+    else if isList input && any isList input
+    then let
+      function = "split";
+      message = "nested lists are not supported";
+      signature = "string -> string | [string] -> [string] | [[string]]";
+      example = mkExample {
+        cmd = ''split "," ["a,b" "c,d"]'';
+        res = ''[["a" "b"] ["c" "d"]]'';
+      };
+    in
+      throw (_debug.withDoc {inherit input function message signature example;})
+    else if isList input
     then map (splitString delimiter) input
     else splitString delimiter input;
 in {
@@ -83,42 +116,51 @@ in {
     toList = {
       singleString = mkTest {
         desired = ["foo"];
+        command = ''toList "foo"'';
         outcome = toList "foo";
       };
       listWithNull = mkTest {
         desired = ["foo" "bar"];
+        command = ''toList ["foo" null "bar"]'';
         outcome = toList ["foo" null "bar"];
       };
       nullInput = mkTest {
         desired = [];
+        command = "toList null";
         outcome = toList null;
       };
     };
     concat = {
       simpleList = mkTest {
         desired = "a,b,c";
+        command = ''concat "," ["a" "b" "c"]'';
         outcome = concat "," ["a" "b" "c"];
       };
       nestedLists = mkTest {
         desired = ["a,b" "c,d"];
+        command = ''concat "," [["a" "b"] ["c" "d"]]'';
         outcome = concat "," [["a" "b"] ["c" "d"]];
       };
       emptyInput = mkTest {
         desired = "";
+        command = ''concat "," []'';
         outcome = concat "," [];
       };
       nullInput = mkTest {
         desired = "";
+        command = ''concat "," null'';
         outcome = concat "," null;
       };
     };
     split = {
       singleString = mkTest {
         desired = ["a" "b" "c"];
+        command = ''split "," "a,b,c"'';
         outcome = split "," "a,b,c";
       };
       listOfStrings = mkTest {
         desired = [["a" "b"] ["c" "d"]];
+        command = ''split "," ["a,b" "c,d"]'';
         outcome = split "," ["a,b" "c,d"];
       };
     };
