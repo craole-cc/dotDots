@@ -10,7 +10,7 @@
   inherit (_.debug.runners) runTests;
   inherit (_.filesystem.paths) flakePath;
   inherit (_.hardware.systems) getSystems;
-  inherit (_.values.empty) isNotEmpty;
+  inherit (_.contents.empty) isNotEmpty;
   inherit
     (lib.attrsets)
     attrByPath

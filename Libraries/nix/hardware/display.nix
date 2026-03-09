@@ -3,8 +3,8 @@
   lib,
   ...
 }: let
-  inherit (_.values.empty) isNotEmpty;
-  inherit (_.values.fallback) orDefault;
+  inherit (_.contents.empty) isNotEmpty;
+  inherit (_.contents.fallback) orDefault;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.attrsets) mapAttrsToList catAttrs;

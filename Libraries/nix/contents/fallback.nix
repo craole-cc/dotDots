@@ -6,7 +6,7 @@
   lib,
   ...
 }: let
-  inherit (_.values.empty) isEmpty;
+  inherit (_.contents.empty) isEmpty;
   inherit (lib.lists) findFirst;
 
   /**
