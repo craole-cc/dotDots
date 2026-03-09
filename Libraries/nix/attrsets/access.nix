@@ -7,15 +7,15 @@
   lib,
   ...
 }: let
-  _debug = mkModuleDebug __libraryPath;
-  inherit (_debug) mkFn;
-
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.testing.assertions) mkTest;
   inherit (_.testing.runners) runTests;
   inherit (_.types.predicates) isAttrs isList;
+  inherit (_debug) mkFn;
   inherit (lib.attrsets) hasAttr filterAttrs mapAttrsToList;
   inherit (lib.lists) foldl';
+
+  _debug = mkModuleDebug __libraryPath;
 
   /**
   Get an attribute value with a fallback default.

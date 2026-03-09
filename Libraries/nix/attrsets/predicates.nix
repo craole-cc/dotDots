@@ -3,18 +3,19 @@
   lib,
   ...
 }: let
+  inherit (_.testing.assertions) mkTest mkThrows;
+  inherit (_.testing.runners) runTests;
+  inherit (_.types.generators) validate;
+  inherit (_.values.empty) isNotEmpty;
   inherit (lib.attrsets) attrByPath isAttrs;
   inherit (lib.lists) all any elem isList;
-  inherit (_.types.generators) validate;
-  inherit (_.trivial.tests) mkTest runTests mkThrows;
-  inherit (_.trivial.emptiness) isNotEmpty;
 
   toPath = name:
     if isList name
     then name
     else [name];
 
-  # True if basePath ++ path is true OR has .enable == true
+  # True if basePath ++ path is `true` OR has `.enable == true`
   isPathEnabled = {
     attrset,
     basePath,
@@ -26,7 +27,7 @@
   in
     direct == true || withEnable == true;
 
-  # Shared argument validation
+  # Shared argument validation for anyEnabled / allEnabled
   validateArgs = fnName: {
     attrset,
     basePath,
@@ -44,7 +45,7 @@
       inherit fnName;
       argName = "basePath";
       desired = "non-empty list";
-      predicate = v: isList v && isNotEmpty v;
+      predicate = value: isList value && isNotEmpty value;
       outcome = basePath;
     };
 
@@ -52,8 +53,8 @@
       inherit fnName;
       argName = "names";
       desired = "non-empty list";
+      predicate = value: isList value && isNotEmpty value;
       outcome = names;
-      predicate = v: isList v && isNotEmpty v;
     };
   };
 
@@ -64,12 +65,20 @@
   - `basePath ++ toPath name` is `true`, or
   - `basePath ++ toPath name ++ ["enable"]` is `true`.
 
-  This matches patterns like:
-  - `services.nginx.enable = true;`
-  - `services.displayManager.gdm.wayland = true;`
+  # Type
+  ```nix
+  anyEnabled :: { attrset :: AttrSet, basePath :: [string], names :: [string | [string]] } -> bool
+  ```
 
-  Type:
-    anyEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
+  # Examples
+  ```nix
+  anyEnabled {
+    attrset  = { services.nginx.enable = true; };
+    basePath = ["services"];
+    names    = ["nginx" "apache"];
+  }
+  # => true
+  ```
   */
   anyEnabled = {
     attrset,
@@ -80,25 +89,33 @@
     args = validateArgs fnName {inherit attrset basePath names;};
   in
     any
-    (
-      name:
-        isPathEnabled {
-          attrset = args.attrset;
-          basePath = args.basePath;
-          path = name;
-        }
-    )
+    (name:
+      isPathEnabled {
+        attrset = args.attrset;
+        basePath = args.basePath;
+        path = name;
+      })
     args.names;
 
   /**
   Check if all of a set of attributes are effectively enabled.
 
-  Same notion of “enabled” as anyEnabled:
-  - Direct boolean true at `basePath ++ toPath name`, or
-  - `.enable == true` at that path.
+  Same notion of "enabled" as `anyEnabled`.
 
-  Type:
-    allEnabled :: { attrset :: AttrSet, basePath :: [String], names :: [String | [String]] } -> Bool
+  # Type
+  ```nix
+  allEnabled :: { attrset :: AttrSet, basePath :: [string], names :: [string | [string]] } -> bool
+  ```
+
+  # Examples
+  ```nix
+  allEnabled {
+    attrset  = { services.nginx.enable = true; services.postgresql.enable = true; };
+    basePath = ["services"];
+    names    = ["nginx" "postgresql"];
+  }
+  # => true
+  ```
   */
   allEnabled = {
     attrset,
@@ -109,14 +126,12 @@
     args = validateArgs fnName {inherit attrset basePath names;};
   in
     all
-    (
-      name:
-        isPathEnabled {
-          attrset = args.attrset;
-          basePath = args.basePath;
-          path = name;
-        }
-    )
+    (name:
+      isPathEnabled {
+        attrset = args.attrset;
+        basePath = args.basePath;
+        path = name;
+      })
     args.names;
 
   waylandWindowManager = config:
@@ -158,19 +173,24 @@
   waylandDefinedInterface = interface:
     ((interface.displayProtocol or null) == "wayland")
     || (interface.desktopEnvironment or null) == "cosmic"
-    || (elem (interface.windowManager or null) [
-      "sway"
-      "hyprland"
-      "river"
-      "niri"
-    ]);
+    || (elem (interface.windowManager or null) ["sway" "hyprland" "river" "niri"]);
 
+  /**
+  Check if Wayland is active via any supported mechanism.
+
+  Inspects window managers, desktop managers, display managers, and an
+  optional `interface` attrset for explicit Wayland declarations.
+
+  # Type
+  ```nix
+  waylandEnabled :: { config :: AttrSet, interface :: AttrSet? } -> bool
+  ```
+  */
   waylandEnabled = {
     config,
     interface ? {},
   }: let
     fnName = "waylandEnabled";
-
     cfg = validate {
       inherit fnName;
       argName = "config";
@@ -178,7 +198,6 @@
       desired = "set";
       outcome = config;
     };
-
     ifc = validate {
       inherit fnName;
       argName = "interface";
@@ -186,13 +205,11 @@
       desired = "set";
       outcome = interface;
     };
-
-    isWaylandWM = waylandWindowManager cfg;
-    isWaylandDE = waylandDesktopManager cfg;
-    isWaylandDP = waylandDisplayManager cfg;
-    isWaylandAPI = waylandDefinedInterface ifc;
   in
-    isWaylandWM || isWaylandDE || isWaylandDP || isWaylandAPI;
+    waylandWindowManager cfg
+    || waylandDesktopManager cfg
+    || waylandDisplayManager cfg
+    || waylandDefinedInterface ifc;
 in {
   inherit
     allEnabled
@@ -223,9 +240,7 @@ in {
       detectsEnabledViaDirectBool = mkTest {
         desired = true;
         outcome = anyEnabled {
-          attrset = {
-            services.displayManager.gdm.wayland = true;
-          };
+          attrset = {services.displayManager.gdm.wayland = true;};
           basePath = ["services" "displayManager"];
           names = [["gdm" "wayland"]];
         };
@@ -243,21 +258,16 @@ in {
         };
       };
 
-      handlesEmptyNames = mkThrows (
-        anyEnabled {
-          attrset = {};
-          basePath = ["services"];
-          names = [];
-        }
-      );
-
-      rejectsInvalidAttrset = mkThrows (
-        anyEnabled {
-          attrset = "nope";
-          basePath = ["services"];
-          names = ["nginx"];
-        }
-      );
+      handlesEmptyNames = mkThrows (anyEnabled {
+        attrset = {};
+        basePath = ["services"];
+        names = [];
+      });
+      rejectsInvalidAttrset = mkThrows (anyEnabled {
+        attrset = "nope";
+        basePath = ["services"];
+        names = ["nginx"];
+      });
     };
 
     allEnabled = {

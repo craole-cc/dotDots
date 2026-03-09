@@ -1,17 +1,20 @@
+# attrsets/merge.nix
+#
+# Attrset merging strategies.
 {
   __libraryPath,
   _,
   lib,
   ...
 }: let
-  _debug = mkModuleDebug __libraryPath;
-  inherit (_debug) mkFn;
-
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.testing.assertions) mkTest;
   inherit (_.testing.runners) runTests;
+  inherit (_debug) mkFn;
   inherit (_.types.predicates) isAttrs isFunction;
   inherit (lib.attrsets) mapAttrs recursiveUpdate;
+
+  _debug = mkModuleDebug __libraryPath;
 
   /**
   Merge two attrsets, with `override` winning on key conflicts.

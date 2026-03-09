@@ -3,38 +3,21 @@
   lib,
   ...
 }: let
-  inherit (lib.attrsets) isAttrs isDerivation mapAttrs;
+  inherit (_.testing.assertions) mkTest;
+  inherit (_.testing.runners) runTests;
+  inherit (_.testing.stubs) mkDefaultStub mkEnableOptionStub mkForceStub;
   inherit (_.types.predicates) isSpecial;
-  inherit
-    (_.trivial.tests)
-    mkTest
-    runTests
-    mkDefaultStub
-    mkEnableOptionStub
-    mkForceStub
-    ;
-  /**
-  Recursively applies `mkDefault` to all values in an attribute set.
+  inherit (lib.attrsets) filterAttrs isAttrs isDerivation mapAttrs;
 
-  Wraps values in `mkDefault` to allow downstream overrides while providing
-  sensible defaults. Preserves special module types and derivations unchanged.
+  /**
+  Recursively applies `mkDefault` to all leaf values in an attribute set.
+
+  Preserves special module types (those with `_type`) and derivations unchanged.
 
   # Type
-  ```
+  ```nix
   update :: a -> a
   ```
-
-  # Arguments
-  - `value`: Any Nix value (attrset, primitive, derivation, etc.)
-
-  # Returns
-  The input value with `mkDefault` recursively applied to:
-  - Plain attribute sets (recursively to nested values)
-  - Primitive values (strings, numbers, booleans, etc.)
-
-  Skips:
-  - Values with `_type` attribute (module system special types)
-  - Derivations (packages)
 
   # Examples
   ```nix
@@ -42,61 +25,32 @@
   # => { enable = mkDefault true; port = mkDefault 8080; }
 
   # Nested attrsets
-  update {
-    services.nginx = {
-      enable = true;
-      virtualHosts.foo = { enable = false; };
-    };
-  }
-  # => All leaf values wrapped in mkDefault
+  update { services.nginx = { enable = true; port = 80; }; }
+  # => all leaf values wrapped in mkDefault
 
-  # Preserves special types
-  update {
-    enable = lib.mkEnableOption "service"; # Has _type
-    port = 8080;
-  }
+  # Preserves special types and derivations unchanged
+  update { enable = lib.mkEnableOption "service"; port = 8080; }
   # => { enable = lib.mkEnableOption "service"; port = mkDefault 8080; }
-
-  # Preserves derivations
-  update {
-    package = pkgs.nginx; # Derivation
-    config = "/etc/nginx";
-  }
-  # => { package = pkgs.nginx; config = mkDefault "/etc/nginx"; }
   ```
-
-  # Use Cases
-  - Creating module defaults that users can easily override
-  - Applying mkDefault to resolved package configurations
-  - Preparing configuration templates with overrideable values
   */
   update = value:
     if isSpecial value
     then value
     else if isAttrs value && !isDerivation value
-    then mapAttrs (_: update) value
+    then mapAttrs (_key: update) value
     else mkDefaultStub value;
 
   /**
   Deep merge two attribute sets with module-aware handling.
 
-  Similar to `lib.recursiveUpdate` but respects module system semantics:
-  - Preserves `_type` attributes (doesn't override special types)
-  - Handles `_module` attributes specially (direct merge)
-  - Falls back to standard recursive update for plain attrsets
+  Similar to `lib.recursiveUpdate` but respects module system semantics —
+  special types in `prev` are protected from being clobbered, while special
+  types in `next` are allowed to override.
 
   # Type
-  ```
+  ```nix
   updateDeep :: AttrSet -> AttrSet -> AttrSet
   ```
-
-  # Arguments
-  - `prev`: Base/previous attribute set
-  - `next`: New/override attribute set
-
-  # Returns
-  Merged attribute set with `next` values taking precedence, respecting
-  module semantics
 
   # Examples
   ```nix
@@ -109,25 +63,14 @@
   updateDeep
     { enable = lib.mkEnableOption "foo"; }
     { enable = true; }
-  # => { enable = lib.mkEnableOption "foo"; } # prev wins for special types
+  # => { enable = lib.mkEnableOption "foo"; }  # prev special type wins
 
-  # Allows _type override in next
+  # Allows _type override from next
   updateDeep
     { enable = true; }
     { enable = lib.mkForce false; }
-  # => { enable = lib.mkForce false; } # next special type wins
-
-  # Module options
-  updateDeep
-    { _module.args = { x = 1; }; }
-    { _module.args = { y = 2; }; }
-  # => { _module.args = { x = 1; y = 2; }; } # Direct merge
+  # => { enable = lib.mkForce false; }          # next special type wins
   ```
-
-  # Notes
-  - Prefer this over `lib.recursiveUpdate` when working with module configurations
-  - The asymmetry in `_type` handling allows next to override with special types
-    while protecting special types in prev from being clobbered
   */
   updateDeep = prev: next:
     if isSpecial prev
@@ -137,21 +80,19 @@
     else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next
     then
       mapAttrs
-      (
-        name: vPrev:
-          if next ? ${name}
-          then let
-            vNext = next.${name};
-          in
-            if isSpecial vPrev
-            then vPrev
-            else if isSpecial vNext
-            then vNext
-            else updateDeep vPrev vNext
-          else vPrev
-      )
+      (name: prevValue:
+        if next ? ${name}
+        then let
+          nextValue = next.${name};
+        in
+          if isSpecial prevValue
+          then prevValue
+          else if isSpecial nextValue
+          then nextValue
+          else updateDeep prevValue nextValue
+        else prevValue)
       prev
-      // lib.attrsets.filterAttrs (n: _: !prev ? ${n}) next
+      // filterAttrs (name: _value: !prev ? ${name}) next
     else next;
 in {
   inherit
@@ -176,11 +117,9 @@ in {
 
       recursesIntoNestedSets = mkTest {
         desired = {
-          services = {
-            nginx = {
-              enable = mkDefaultStub true;
-              port = mkDefaultStub 8080;
-            };
+          services.nginx = {
+            enable = mkDefaultStub true;
+            port = mkDefaultStub 8080;
           };
         };
         outcome = update {
