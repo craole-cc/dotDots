@@ -1,7 +1,9 @@
-# testing/runners.nix
-#
 # Test tree execution and failure collection.
-{_, lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
   inherit (lib.attrsets) mapAttrs isAttrs mapAttrsToList;
   inherit (lib.lists) flatten;
   inherit (_.types.predicates) isTest;
@@ -61,7 +63,15 @@
     (mapAttrsToList
       (name: result:
         if isTest result
-        then if !result.passed then [{path = name; inherit (result) error;}] else []
+        then
+          if !result.passed
+          then [
+            {
+              path = name;
+              inherit (result) error;
+            }
+          ]
+          else []
         else if isAttrs result
         then map (f: f // {path = "${name}.${f.path}";}) (collectFailures result)
         else [])

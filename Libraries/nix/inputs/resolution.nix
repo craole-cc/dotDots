@@ -1,5 +1,7 @@
 {_, ...}: let
   inherit (_.attrsets.resolution) byPaths;
+  inherit (_.debug.assertions) mkTest mkTest';
+  inherit (_.debug.runners) runTests;
 
   resolvedFlake = _.attrsets.resolution.flake {};
   rawInputs = resolvedFlake.inputs;
@@ -9,13 +11,13 @@
       attrsets = rawInputs;
       default = "nixpkgs";
       paths = [
-        ["nixosCore"]
-        ["nixPackages"]
-        ["nixosPackages"]
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-unstable"]
-        ["nixosPackagesStable"]
-        ["nixpkgs-stable"]
+        "nixosCore"
+        "nixPackages"
+        "nixosPackages"
+        "nixosPackagesUnstable"
+        "nixpkgs-unstable"
+        "nixosPackagesStable"
+        "nixpkgs-stable"
       ];
     };
 
@@ -23,10 +25,10 @@
       attrsets = rawInputs;
       default = "nixpkgs-stable";
       paths = [
-        ["nixPackagesStable"]
-        ["nixosPackagesStable"]
-        ["nixpkgs-stable"]
-        ["nixpkgs"]
+        "nixPackagesStable"
+        "nixosPackagesStable"
+        "nixpkgs-stable"
+        "nixpkgs"
       ];
     };
 
@@ -34,10 +36,10 @@
       attrsets = rawInputs;
       default = "nixpkgs-unstable";
       paths = [
-        ["nixPackagesUnstable"]
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-unstable"]
-        ["nixpkgs"]
+        "nixPackagesUnstable"
+        "nixosPackagesUnstable"
+        "nixpkgs-unstable"
+        "nixpkgs"
       ];
     };
 
@@ -45,9 +47,9 @@
       attrsets = rawInputs;
       default = "nix-darwin";
       paths = [
-        ["darwin"]
-        ["nixDarwin"]
-        ["darwinNix"]
+        "darwin"
+        "nixDarwin"
+        "darwinNix"
       ];
     };
 
@@ -55,11 +57,11 @@
       attrsets = rawInputs;
       default = "home-manager";
       paths = [
-        ["nixHomeManager"]
-        ["nixosHome"]
-        ["nixHome"]
-        ["homeManager"]
-        ["home"]
+        "nixHomeManager"
+        "nixosHome"
+        "nixHome"
+        "homeManager"
+        "home"
       ];
     };
 
@@ -67,8 +69,8 @@
       attrsets = rawInputs;
       default = "catppuccin";
       paths = [
-        ["styleCatppuccin"]
-        ["catppuccinStyle"]
+        "styleCatppuccin"
+        "catppuccinStyle"
       ];
     };
 
@@ -76,9 +78,9 @@
       attrsets = rawInputs;
       default = "chaotic";
       paths = [
-        ["nixChaotic"]
-        ["kernelChaotic"]
-        ["chaoticKernel"]
+        "nixChaotic"
+        "kernelChaotic"
+        "chaoticKernel"
       ];
     };
 
@@ -86,9 +88,9 @@
       attrsets = rawInputs;
       default = "fresh-editor";
       paths = [
-        ["fresh"]
-        ["freshEditor"]
-        ["editorFresh"]
+        "fresh"
+        "freshEditor"
+        "editorFresh"
       ];
     };
 
@@ -96,9 +98,9 @@
       attrsets = rawInputs;
       default = "stylix";
       paths = [
-        ["nixStyle"]
-        ["styleManager"]
-        ["darwinNix"]
+        "nixStyle"
+        "styleManager"
+        "darwinNix"
       ];
     };
 
@@ -106,39 +108,42 @@
       attrsets = rawInputs;
       default = "helix";
       paths = [
-        ["helix-editor"]
-        ["hx"]
-        ["helixEditor"]
-        ["editorHelix"]
-        ["editorHX"]
+        "helix-editor"
+        "hx"
+        "helixEditor"
+        "editorHelix"
+        "editorHX"
       ];
     };
+
     caelestia = byPaths {
       attrsets = rawInputs;
       default = "caelestia";
       paths = [
-        ["shellCaelestia"]
-        ["caelestia-shell"]
+        "shellCaelestia"
+        "caelestia-shell"
       ];
     };
+
     dank-material-shell = byPaths {
       attrsets = rawInputs;
       default = "dank-material-shell";
       paths = [
-        ["shellDankMaterial"]
-        ["shellDank"]
-        ["dank-material"]
-        ["dank"]
-        ["dms"]
+        "shellDankMaterial"
+        "shellDank"
+        "dank-material"
+        "dank"
+        "dms"
       ];
     };
+
     noctalia-shell = byPaths {
       attrsets = rawInputs;
       default = "noctalia-shell";
       paths = [
-        ["shellNoctalia"]
-        ["noctalia-dev"]
-        ["noctalia"]
+        "shellNoctalia"
+        "noctalia-dev"
+        "noctalia"
       ];
     };
 
@@ -146,10 +151,10 @@
       attrsets = rawInputs;
       default = "quickshell";
       paths = [
-        ["shellQuick"]
-        ["qtshell"]
-        ["qmlshell"]
-        ["quick"]
+        "shellQuick"
+        "qtshell"
+        "qmlshell"
+        "quick"
       ];
     };
 
@@ -157,11 +162,11 @@
       attrsets = rawInputs;
       default = "nvf";
       paths = [
-        ["editorNeovim"]
-        ["neovim"]
-        ["nvim"]
-        ["neovimFlake"]
-        ["neoVim"]
+        "editorNeovim"
+        "neovim"
+        "nvim"
+        "neovimFlake"
+        "neoVim"
       ];
     };
 
@@ -169,10 +174,10 @@
       attrsets = rawInputs;
       default = "plasma";
       paths = [
-        ["shellPlasma"]
-        ["plasma-manager"]
-        ["plasmaManager"]
-        ["kde"]
+        "shellPlasma"
+        "plasma-manager"
+        "plasmaManager"
+        "kde"
       ];
     };
 
@@ -180,9 +185,9 @@
       attrsets = rawInputs;
       default = "treefmt";
       paths = [
-        ["treeFormatter"]
-        ["fmtree"]
-        ["treefmt-nix"]
+        "treeFormatter"
+        "fmtree"
+        "treefmt-nix"
       ];
     };
 
@@ -190,9 +195,9 @@
       attrsets = rawInputs;
       default = "typix";
       paths = [
-        ["docTypix"]
-        ["typst"]
-        ["typ"]
+        "docTypix"
+        "typst"
+        "typ"
       ];
     };
 
@@ -200,14 +205,14 @@
       attrsets = rawInputs;
       default = "vscode-insiders";
       paths = [
-        ["vscode"]
-        ["code"]
-        ["code-insiders"]
-        ["vsc"]
-        ["VSCode"]
-        ["editorVscode"]
-        ["editorVscodeInsiders"]
-        ["vscode-insiders-nix"]
+        "vscode"
+        "code"
+        "code-insiders"
+        "vsc"
+        "VSCode"
+        "editorVscode"
+        "editorVscodeInsiders"
+        "vscode-insiders-nix"
       ];
     };
 
@@ -215,22 +220,18 @@
       attrsets = rawInputs;
       default = "zen-browser";
       paths = [
-        ["browserZen"]
-        ["firefoxZen"]
-        ["zen"]
-        ["zenBrowser"]
-        ["zenFirefox"]
-        ["twilight"]
+        "browserZen"
+        "firefoxZen"
+        "zen"
+        "zenBrowser"
+        "zenFirefox"
+        "twilight"
       ];
     };
   };
 
   exports = {
-    inherit
-      resolvedInputs
-      resolvedFlake
-      rawInputs
-      ;
+    inherit resolvedInputs resolvedFlake rawInputs;
     inputs = resolvedInputs;
     flake = resolvedFlake;
   };
@@ -238,11 +239,48 @@ in
   exports
   // {
     _rootAliases = {
-      inherit
-        (exports)
-        resolvedInputs
-        resolvedFlake
-        rawInputs
-        ;
+      inherit (exports) resolvedInputs resolvedFlake rawInputs inputs flake;
+    };
+
+    _tests = runTests {
+      byPaths = {
+        resolvesFirstMatchingPath = mkTest {
+          desired = "found";
+          outcome = byPaths {
+            attrsets = {aliasKey = "found";};
+            default = "aliasKey";
+            paths = ["aliasKey"];
+          };
+          command = ''byPaths with aliasKey present'';
+        };
+        fallsBackToDefault = mkTest {
+          desired = "fallback";
+          outcome = byPaths {
+            attrsets = {canonical = "fallback";};
+            default = "canonical";
+            paths = ["noSuchKey"];
+          };
+          command = ''byPaths falls back to default key when paths miss'';
+        };
+        prefersEarlierPath = mkTest {
+          desired = "first";
+          outcome = byPaths {
+            attrsets = {
+              keyA = "first";
+              keyB = "second";
+            };
+            default = "keyA";
+            paths = ["keyA" "keyB"];
+          };
+          command = ''byPaths prefers first matching path'';
+        };
+        returnsNullWhenNothingMatches =
+          mkTest' null
+          (byPaths {
+            attrsets = {};
+            default = "missing";
+            paths = ["alsoMissing"];
+          });
+      };
     };
   }

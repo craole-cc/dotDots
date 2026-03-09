@@ -4,6 +4,10 @@
   src,
   ...
 }: let
+  inherit (_.types.predicates) isList;
+  inherit (_.values.empty) isNotEmpty;
+  inherit (_.values.fallback) orDefault firstNonEmpty;
+  inherit (_.attrsets.access) getIn;
   inherit
     (lib.strings)
     concatStringsSep
@@ -14,56 +18,118 @@
     concatMapStringsSep
     ;
   inherit (lib.asserts) assertMsg;
-  inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
-  inherit (lib.debug) traceIf;
+  inherit (lib.attrsets) mapAttrs mapAttrsToList;
   inherit (lib.filesystem) dirOf;
   inherit (lib.trivial) pathExists;
-  inherit
-    (lib.lists)
-    elemAt
-    head
-    isList
-    toList
-    ;
+  inherit (lib.lists) elemAt head toList;
   inherit (lib.strings) hasSuffix;
   inherit (builtins) getEnv;
 
   /**
-  Constructs a file path by combining a root directory with a stem (file name or relative path).
+  Construct a file path from a root directory and a stem.
 
-  The function validates that both `root` and `stem` are non-empty strings before construction.
-  The `stem` can be either a string or a list of strings; if a list is provided, the elements
-  are joined with forward slashes.
+  The stem may be a string or a list of path segments (joined with `/`).
 
-  Arguments:
-    - root (string): The root directory path. Must not be null or empty.
-    - stem (string|list): The file name or relative path. Must not be null or empty.
-    If a list, elements are concatenated with "/".
+  # Type
+  ```nix
+  construct :: { root :: string, stem :: string | [string] } -> string
+  ```
 
-  Returns:
-    string: The fully constructed path in the format "root/stem".
+  # Examples
+  ```nix
+  construct { root = "/home/user"; stem = "documents/file.txt"; }
+  # => "/home/user/documents/file.txt"
 
-  Throws:
-    Assertion error if `root` or `stem` is null or empty.
-
-  Example:
-    construct { root = "/home/user"; stem = "documents/file.txt"; }
-    => "/home/user/documents/file.txt"
-
-    construct { root = "/var"; stem = ["log" "app" "output.log"]; }
-    => "/var/log/app/output.log"
+  construct { root = "/var"; stem = ["log" "app" "output.log"]; }
+  # => "/var/log/app/output.log"
+  ```
   */
   construct = {
     root,
     stem,
   }:
-    assert assertMsg (root != null && root != "") "root must not be empty";
-    assert assertMsg (stem != null && stem != "" && stem != []) "stem must not be empty"; "${root}/${
+    assert assertMsg (isNotEmpty root) "root must not be empty";
+    assert assertMsg (isNotEmpty stem) "stem must not be empty"; "${root}/${
       if isList stem
       then concatStringsSep "/" stem
       else stem
     }";
 
+  /**
+  Resolve a user/host path value to an absolute filesystem path.
+
+  Supports the following prefixes in `default` (or in the resolved value
+  from `user.paths`):
+
+  - Absolute paths (`/…`) — returned unchanged
+  - `root:/…`             — returned unchanged (caller strips prefix)
+  - `dots:…` / `$DOTS/…` — resolved relative to `dots`
+  - `home:…` / `$HOME/…` — resolved relative to `home`
+  - Bare relative paths   — resolved relative to the effective root dir
+
+  The lookup path `path` (list of strings) is used to query `user.paths`;
+  `default` is used when the key is absent or empty.
+
+  # Type
+  ```nix
+  mkDefault :: {
+    default  :: string,
+    root     :: string?,
+    path     :: [string]?,
+    dots     :: string,
+    home     :: string,
+    user     :: AttrSet,
+  } -> string
+  ```
+  */
+  mkDefault = {
+    default,
+    root ? "home",
+    path ? [],
+    dots,
+    home,
+    user,
+  }: let
+    #> Resolve the base directory
+    absolute =
+      if root == "dots"
+      then dots
+      else if root == "home" || root == ""
+      then home
+      else removeSuffix "/" root;
+
+    #> Get the value from user.paths, falling back to default
+    path' = toList path;
+    relative = orDefault {
+      value =
+        if path' != []
+        then
+          getIn {
+            attrs = user.paths or {};
+            inherit path';
+            default = null;
+          }
+        else null;
+      inherit default;
+    };
+  in
+    if (hasPrefix "/" relative) || (hasPrefix "root:" relative)
+    then relative
+    else if (hasPrefix "dots:" relative) || (hasPrefix "$DOTS/" relative)
+    then dots + "/" + removePrefix "dots:" (removePrefix "$DOTS/" relative)
+    else if (hasPrefix "home:" relative) || (hasPrefix "$HOME/" relative)
+    then absolute + "/" + removePrefix "home:" (removePrefix "$HOME/" relative)
+    else absolute + "/" + relative;
+
+  /**
+  Derive default paths for a user session (wallpapers, avatars, API, etc.)
+  from host, user, and config context.
+
+  # Type
+  ```nix
+  getDefaults :: { config, host, user, pkgs, paths? } -> AttrSet
+  ```
+  */
   getDefaults = {
     config,
     host,
@@ -85,7 +151,11 @@
     home = config.home.homeDirectory or (getEnv "HOME");
 
     wallpapers = let
-      raw = attrByPath ["wallpapers" "all"] null user.paths;
+      raw = getIn {
+        attrs = user.paths or {};
+        path' = ["wallpapers" "all"];
+        default = null;
+      };
       all =
         if isList raw
         then
@@ -100,45 +170,33 @@
         else [
           (mkDefault {
             inherit home dots user;
-            path = [
-              "wallpapers"
-              "all"
-            ];
+            path = ["wallpapers" "all"];
             default = "home:Pictures/Wallpapers";
           })
         ];
 
       primary = mkDefault {
         inherit home dots user;
-        path = [
-          "wallpapers"
-          "primary"
-        ];
+        path = ["wallpapers" "primary"];
         default = head all;
       };
 
       dark = mkDefault {
         inherit home dots user;
-        path = [
-          "wallpapers"
-          "dark"
-        ];
+        path = ["wallpapers" "dark"];
         default = primary + "/dark.jpg";
       };
 
       light = mkDefault {
         inherit home dots user;
-        path = [
-          "wallpapers"
-          "light"
-        ];
+        path = ["wallpapers" "light"];
         default = primary + "/light.jpg";
       };
 
       monitors =
         mapAttrs (
-          name: config: let
-            transformation = config.transform or 0;
+          name: cfg: let
+            transformation = cfg.transform or 0;
             rotation =
               if transformation == 1
               then 90
@@ -154,41 +212,25 @@
             resolution =
               if isRotated
               then let
-                parts = splitString "x" config.resolution;
+                parts = splitString "x" cfg.resolution;
                 width = elemAt parts 0;
                 height = elemAt parts 1;
               in "${height}x${width}"
-              else config.resolution;
+              else cfg.resolution;
 
             directory = mkDefault {
               inherit home dots user;
-              path = [
-                "wallpapers"
-                "monitors"
-                name
-                "directory"
-              ];
+              path = ["wallpapers" "monitors" name "directory"];
               default = primary + "/${resolution}";
             };
-            dark = mkDefault {
+            monDark = mkDefault {
               inherit home dots user;
-              path = [
-                "wallpapers"
-                "monitors"
-                name
-                "dark"
-              ];
+              path = ["wallpapers" "monitors" name "dark"];
               default = directory;
             };
-
-            light = mkDefault {
+            monLight = mkDefault {
               inherit home dots user;
-              path = [
-                "wallpapers"
-                "monitors"
-                name
-                "light"
-              ];
+              path = ["wallpapers" "monitors" name "light"];
               default = directory;
             };
             cache = directory + "/.cache";
@@ -218,19 +260,19 @@
             };
           in {
             inherit
-              directory
-              current
               cache
+              current
               isFlipped
               isRotated
+              manager
               name
               resolution
               rotation
               transformation
-              manager
-              dark
-              light
               ;
+            dark = monDark;
+            light = monLight;
+            directory = directory;
           }
         )
         host.devices.display;
@@ -246,35 +288,22 @@
         fi
 
         ${concatMapStringsSep "\n" (mgr: ''${mgr} "$@" || true'') (
-          mapAttrsToList (name: config: config.manager) monitors
+          mapAttrsToList (_: cfg: cfg.manager) monitors
         )}
       '';
     in {
-      inherit
-        all
-        primary
-        dark
-        light
-        monitors
-        manager
-        ;
+      inherit all primary dark light monitors manager;
     };
 
     avatars = {
       session = mkDefault {
         inherit home dots user;
-        path = [
-          "avatars"
-          "session"
-        ];
+        path = ["avatars" "session"];
         default = "root:/assets/kurukuru.gif";
       };
       media = mkDefault {
         inherit home dots user;
-        path = [
-          "avatars"
-          "media"
-        ];
+        path = ["avatars" "media"];
         default = "root:/assets/kurukuru.gif";
       };
     };
@@ -289,77 +318,30 @@
         default = "dots:API/users/${user.name}/default.nix";
       };
     };
+
     exports = {
-      inherit
-        api
-        avatars
-        dots
-        home
-        wallpapers
-        ;
-      libs = {
-        shellscript = dots + "/Bin/shellscript";
-      };
+      inherit api avatars dots home wallpapers;
+      libs.shellscript = dots + "/Bin/shellscript";
     };
   in
     paths // exports;
 
-  mkDefault = {
-    default,
-    root ? "home",
-    path ? [],
-    dots,
-    home,
-    user,
-  }: let
-    #> Resolve the base directory
-    absolute =
-      if root == "dots"
-      then dots
-      else if root == "home"
-      then home
-      else if root != ""
-      then removeSuffix "/" root
-      else home; # ? fallback to home if empty string
+  /**
+  Try to resolve a flake root path. Returns the directory string if found,
+  or null if the path is not a valid flake root.
 
-    #> Get the value from user.paths
-    path' = toList path;
-    relative =
-      if path' != []
-      then attrByPath path' default user.paths
-      else default;
-  in
-    if (hasPrefix "/" relative) || (hasPrefix "root:" relative)
-    then
-      #? Already absolute path
-      # Example: "/foo/bar" || "root:/foo/bar"
-      # -> "/foo/bar" || "root:/foo/bar"
-      relative
-    else if (hasPrefix "dots:" relative) || (hasPrefix "$DOTS/" relative)
-    then
-      #? Path relative to dots directory (configuration repository)
-      # Example: "dots:Assets/Images" || "$DOTS/Assets/Images"
-      # -> "/path/to/dotfiles/Assets/Images"
-      dots + "/" + (removePrefix "dots:" (removePrefix "$DOTS/" relative))
-    else if (hasPrefix "home:" relative) || (hasPrefix "$HOME/" relative)
-    then
-      #? Path relative to home directory
-      # Example: "home:Pictures" || "$HOME/Pictures"
-      # -> "/home/${username}/Pictures"
-      absolute + "/" + (removePrefix "home:" (removePrefix "$HOME/" relative))
-    else
-      #? Fallback:Path relative to the base directory
-      # Example: "wallpapers/dark.jpg"
-      # -> "/base/dir/wallpapers/dark.jpg"
-      absolute + "/" + relative;
-
+  # Type
+  ```nix
+  tryFlake :: { self? :: AttrSet, path? :: path | string } -> string | null
+  ```
+  */
   tryFlake = {
     self ? {},
     path ? src,
   }: let
     pathStr = toString path;
   in
-    if self ? outPath
+    if isNotEmpty (self.outPath or null)
     then self.outPath
     else if hasSuffix "/flake.nix" pathStr && pathExists pathStr
     then dirOf pathStr
@@ -367,48 +349,69 @@
     then pathStr
     else null;
 
+  /**
+  Resolve a flake root path, throwing if it cannot be determined.
+
+  # Type
+  ```nix
+  flake :: { self? :: AttrSet, path? :: path | string } -> string
+  ```
+  */
   flake = {
     self ? {},
     path ? src,
   }: let
-    pathStr = toString path;
     result = tryFlake {inherit self path;};
   in
-    if result != null
-    then result
-    else throw "❌ '${pathStr}' is not a valid flake path.";
+    orDefault {
+      value = result;
+      default = throw "❌ '${toString path}' is not a valid flake path.";
+    };
 
+  /**
+  Build the `nixpkgs` source attribute set appropriate for the host class.
+
+  Darwin uses `source`; NixOS uses `flake.source`.
+
+  # Type
+  ```nix
+  source :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```
+  */
   source = {
     host ? {},
     root ? null,
     inputs ? {},
     ...
   }: let
-    resolvedRoot =
-      if root != null
-      then root
-      else if inputs ? nixpkgs
-      then inputs.nixpkgs
-      else _.configuration.inputs.resolution.inputs.nixpkgs;
+    resolvedRoot = firstNonEmpty [
+      root
+      (inputs.nixpkgs or null)
+    ];
   in
     if (host.class or "nixos") == "darwin"
     then {source = resolvedRoot;}
     else {flake.source = resolvedRoot;};
-in {
-  inherit
-    construct
-    mkDefault
-    getDefaults
-    flake
-    tryFlake
-    source
-    ;
-  _rootAliases = {
-    buildPath = construct;
-    getDefaultPaths = getDefaults;
-    mkDefaultPath = mkDefault;
-    flakePath = flake;
-    flakePathOrNull = tryFlake;
-    sourcePath = source;
+
+  exports = {
+    inherit
+      construct
+      mkDefault
+      getDefaults
+      flake
+      tryFlake
+      source
+      ;
   };
-}
+in
+  exports
+  // {
+    _rootAliases = {
+      buildPath = construct;
+      getDefaultPaths = getDefaults;
+      mkDefaultPath = mkDefault;
+      flakePath = flake;
+      flakePathOrNull = tryFlake;
+      sourcePath = source;
+    };
+  }

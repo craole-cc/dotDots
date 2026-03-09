@@ -3,9 +3,9 @@
   lib,
   ...
 }: let
-  inherit (_.testing.assertions) mkTest;
-  inherit (_.testing.runners) runTests;
-  inherit (_.testing.stubs) mkDefaultStub mkEnableOptionStub mkForceStub;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
+  inherit (_.debug.stubs) mkDefaultStub mkEnableOptionStub mkForceStub;
   inherit (_.types.predicates) isSpecial;
   inherit (lib.attrsets) filterAttrs isAttrs isDerivation mapAttrs;
 

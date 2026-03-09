@@ -13,7 +13,7 @@
     "review"
     "archive"
     "test"
-    "tests"
+    # "tests"
     "tmp"
     "temp"
     "wip"

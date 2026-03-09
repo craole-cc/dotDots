@@ -9,8 +9,8 @@
 
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.strings.generators) toList;
-  inherit (_.testing.assertions) mkTest;
-  inherit (_.testing.runners) runTests;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isList isString;
   inherit (_.values.empty) isEmpty;
   inherit (lib.lists) any map;

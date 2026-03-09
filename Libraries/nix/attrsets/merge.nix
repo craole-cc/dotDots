@@ -8,8 +8,8 @@
   ...
 }: let
   inherit (_.debug.module) mkModuleDebug;
-  inherit (_.testing.assertions) mkTest;
-  inherit (_.testing.runners) runTests;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
   inherit (_debug) mkFn;
   inherit (_.types.predicates) isAttrs isFunction;
   inherit (lib.attrsets) mapAttrs recursiveUpdate;

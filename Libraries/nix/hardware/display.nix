@@ -1,231 +1,62 @@
-{lib, ...}: let
-  inherit (lib.attrsets) catAttrs mapAttrsToList optionalAttrs;
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit (_.values.empty) isNotEmpty;
+  inherit (_.values.fallback) orDefault;
+  inherit (_.debug.assertions) mkTest mkTest';
+  inherit (_.debug.runners) runTests;
+  inherit (lib.attrsets) mapAttrsToList catAttrs;
   inherit (lib.lists) sort head;
 
-  /**
-  Helper to resolve displays from either explicit argument or host config
-
-  # Type:
-    ```nix
-    { host? :: AttrSet, displays? :: AttrSet } -> AttrSet
-    ```
-
-  # Example:
-    ```nix
-    getAll { host = { devices.display = {...}; }; }
-    => {...}
-    ```
-  */
   getAll = {
     host ? {},
     displays ? {},
     ...
   }:
-    if displays != {}
-    then displays
-    else host.devices.display or {};
+    orDefault {
+      value = displays;
+      default = host.devices.display or {};
+    };
 
-  /**
-  Get all monitors sorted by priority
-
-  Converts attrset to list, sorted by priority (0 = highest priority)
-
-  # Type
-    ```
-    getSorted :: AttrSet -> [Attrsets]
-    ```
-
-  # Arguments
-    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations keyed by connector name
-
-  # Returns
-    List of monitors with name included, sorted by priority
-
-  # Example
-    ```nix
-    getSorted { displays = { "HDMI-A-2" = { priority = 1; resolution = "1920x1080"; }; "HDMI-A-3" = {priority = 0; resolution = "2560x1440";}; }; }
-    => [
-      { name = "HDMI-A-3"; priority = 0; resolution = "2560x1440"; ... }
-      { name = "DP-3"; priority = 1; resolution = "1600x900"; ... }
-    ]
-  ```
-  */
-  getSorted = {
-    host ? {},
-    displays ? {},
-    ...
-  }:
+  getSorted = args:
     sort
     (a: b: (a.priority or 999) < (b.priority or 999))
-    (
-      mapAttrsToList (name: monitor: monitor // {inherit name;})
-      (getAll {inherit host displays;})
-    );
+    (mapAttrsToList
+      (name: monitor: monitor // {inherit name;})
+      (getAll args));
 
-  /**
-  Get primary monitor
-
-  Returns the monitor with lowest priority number (priority 0)
-
-  # Type
-    ```
-    getPrimary :: AttrSet -> Monitor | null
-    ```
-
-  # Arguments
-    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
-
-  # Returns
-    Monitor attrset with name included, or null if no monitors
-
-  # Example
-    ```nix
-    getPrimary displays
-    => { name = "HDMI-A-3"; priority = 0; resolution = "2560x1440"; name = "HDMI-A-2"; priority = 1; resolution = "1920x1080";... }
-    ```
-  */
-  getPrimary = {
-    host ? {},
-    displays ? {},
-    ...
-  }: let
-    sortedMonitors = getSorted {inherit host displays;};
+  getPrimary = args: let
+    sorted = getSorted args;
   in
-    optionalAttrs (sortedMonitors != [] && sortedMonitors != null)
-    (head sortedMonitors);
+    orDefault {
+      value =
+        if isNotEmpty sorted
+        then head sorted
+        else null;
+      default = {};
+    };
 
-  # getPrimary = {
-  #   host ? {},
-  #   displays ? {},
-  #   ...
-  # }: let
-  #   sortedMonitors = getSorted {inherit host displays;};
-  # in
-  #   if sortedMonitors?priority
-  #   then sortedMonitors
-  #   else {};
+  getPrimaryName = args: (getPrimary args).name or null;
 
-  /**
-  Get primary monitor name
+  getDisplay = {name, ...} @ args: (getAll args).${name} or {};
 
-  Returns just the connector name string of the primary monitor
-
-  # Type
-    ```
-    getPrimaryName :: AttrSet -> String | null
-    ```
-
-  # Arguments
-    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
-
-  # Returns
-    String connector name or null
-
-  # Example
-    ```nix
-    getPrimaryName displays
-    => "HDMI-A-3"
-    ```
-  */
-  getPrimaryName = {
-    host ? {},
-    displays ? {},
-    ...
-  }: let
-    primary = getPrimary {inherit host displays;};
-  in
-    if primary?name
-    then primary.name
-    else null;
+  getNames = args: catAttrs "name" (getSorted args);
 
   /**
-  Get monitor by name
-
-  Lookup a specific monitor by connector name
+  Format a monitor config as a Hyprland monitor string.
 
   # Type
-    ```
-    getDisplay :: AttrSet -> String -> Monitor | null
-    ```
-
-  # Arguments
-    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
-    - name: Connector name to lookup
-
-  # Returns
-    Monitor attrset or null if not found
-
-  # Example
-    ```nix
-    getDisplay displays "HDMI-A-3"
-    => { priority = 0; resolution = "2560x1440"; ... }
-    ```
-  */
-  getDisplay = {
-    host ? {},
-    displays ? {},
-    name,
-    ...
-  }:
-    (getAll {inherit host displays;}).${name} or {};
-
-  /**
-  Get all monitor names
-
-  Returns list of all connector names
-
-  # Type
-  ```
-  getNames :: AttrSet -> [String]
+  ```nix
+  mkHyprlandMonitor :: AttrSet -> string
   ```
 
-  # Arguments
-    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
-
-  # Returns
-    List of connector name strings
-
-  # Example
-    ```nix
-    getNames displays
-    => [ "HDMI-A-3" "DP-3" "HDMI-A-2" ]
-    ```
-  */
-  getNames = {
-    host ? {},
-    displays ? {},
-    ...
-  }:
-    catAttrs "name" (getSorted {inherit host displays;});
-
-  /**
-  Format monitor for Hyprland
-
-  Converts monitor config to Hyprland format string
-
-  # Type
-    ```
-    mkHyprlandMonitor :: Monitor -> String
-    ```
-
-  # Arguments
-    - monitor: Monitor configuration with name included
-
-  # Returns
-    Hyprland monitor string
-
-  # Example
-    ```nix
-    mkHyprlandMonitor {
-      name = "HDMI-A-3";
-      resolution = "2560x1440";
-      refreshRate = 100;
-      position = "0x0";
-      scale = 1;
-      transform = 3;
-    }
-    => "HDMI-A-3, 2560x1440@100, 0x0, 1, transform, 3"
-    ```
+  # Examples
+  ```nix
+  mkHyprlandMonitor { name = "DP-1"; resolution = "2560x1440"; refreshRate = 144; position = "0x0"; scale = 1; }
+  # => "DP-1, 2560x1440@144, 0x0, 1"
+  ```
   */
   mkHyprlandMonitor = monitor: let
     base = "${monitor.name}, ${monitor.resolution}@${toString monitor.refreshRate}, ${monitor.position}, ${toString monitor.scale}";
@@ -236,49 +67,124 @@
   in
     base + rotation;
 
-  /**
-  Get all monitors for Hyprland
+  mkHyprlandMonitors = args: map mkHyprlandMonitor (getSorted args);
 
-  Returns list of Hyprland monitor strings, sorted by priority
-
-  # Type
-    ```
-    mkHyprlandMonitors :: AttrSet -> [String]
-    ```
-
-  # Arguments
-    - {host?{},displays?(host.devices.displays or {}),...}: Attrset of monitor configurations
-
-  # Returns
-    List of Hyprland monitor configuration strings
-
-  # Example
-    ```nix
-    mkHyprlandMonitors displays
-    => [
-      "HDMI-A-3, 2560x1440@100, 1080x900, 1"
-      "DP-3, 1600x900@60, 1080x0, 1"
-      "HDMI-A-2, 1920x1080@100, 0x420, 1, transform, 3"
-    ]
-    ```
-  */
-  mkHyprlandMonitors = {
-    host ? {},
-    displays ? {},
-    ...
-  }:
-    map mkHyprlandMonitor (getSorted {inherit host displays;});
   exports = {
     inherit
       getAll
-      getSorted
-      getPrimary
-      getPrimaryName
       getDisplay
       getNames
+      getPrimary
+      getPrimaryName
+      getSorted
       mkHyprlandMonitor
       mkHyprlandMonitors
       ;
   };
 in
-  exports // {_rootAliases = exports;}
+  exports
+  // {
+    _rootAliases = exports;
+
+    _tests = let
+      twoMonitors = {
+        displays = {
+          "HDMI-A-2" = {
+            priority = 1;
+            resolution = "1920x1080";
+            refreshRate = 60;
+            position = "0x0";
+            scale = 1;
+          };
+          "DP-1" = {
+            priority = 0;
+            resolution = "2560x1440";
+            refreshRate = 144;
+            position = "1920x0";
+            scale = 1;
+          };
+        };
+      };
+    in
+      runTests {
+        getAll = {
+          prefersDisplaysArg = mkTest {
+            desired = twoMonitors.displays;
+            outcome = getAll twoMonitors;
+            command = "getAll twoMonitors";
+          };
+          fallsBackToHost = mkTest {
+            desired = twoMonitors.displays;
+            outcome = getAll {host.devices.display = twoMonitors.displays;};
+            command = "getAll { host.devices.display = twoMonitors.displays; }";
+          };
+          emptyWhenNone = mkTest' {} (getAll {});
+        };
+
+        getSorted = {
+          primaryIsFirst = mkTest {
+            desired = "DP-1";
+            outcome = (head (getSorted twoMonitors)).name;
+            command = "(head (getSorted twoMonitors)).name";
+          };
+          includesName = mkTest' true ((head (getSorted twoMonitors)) ? name);
+        };
+
+        getPrimary = {
+          returnsLowestPriority = mkTest {
+            desired = "DP-1";
+            outcome = (getPrimary twoMonitors).name;
+            command = "(getPrimary twoMonitors).name";
+          };
+          returnsEmptyWhenNone = mkTest' {} (getPrimary {});
+        };
+
+        getPrimaryName = {
+          returnsName = mkTest' "DP-1" (getPrimaryName twoMonitors);
+          returnsNull = mkTest' null (getPrimaryName {});
+        };
+
+        getDisplay = {
+          findsMonitor = mkTest {
+            desired = twoMonitors.displays."HDMI-A-2";
+            outcome = getDisplay (twoMonitors // {name = "HDMI-A-2";});
+            command = ''getDisplay (twoMonitors // { name = "HDMI-A-2"; })'';
+          };
+          returnsEmptyWhenMissing = mkTest' {} (getDisplay (twoMonitors // {name = "HDMI-A-99";}));
+        };
+
+        getNames = {
+          returnsSortedNames = mkTest {
+            desired = ["DP-1" "HDMI-A-2"];
+            outcome = getNames twoMonitors;
+            command = "getNames twoMonitors";
+          };
+        };
+
+        mkHyprlandMonitor = {
+          basicFormat = mkTest {
+            desired = "DP-1, 2560x1440@144, 1920x0, 1";
+            outcome = mkHyprlandMonitor {
+              name = "DP-1";
+              resolution = "2560x1440";
+              refreshRate = 144;
+              position = "1920x0";
+              scale = 1;
+            };
+            command = ''mkHyprlandMonitor { name = "DP-1"; ... }'';
+          };
+          withTransform = mkTest {
+            desired = "HDMI-A-1, 1920x1080@60, 0x0, 1, transform, 1";
+            outcome = mkHyprlandMonitor {
+              name = "HDMI-A-1";
+              resolution = "1920x1080";
+              refreshRate = 60;
+              position = "0x0";
+              scale = 1;
+              transform = 1;
+            };
+            command = ''mkHyprlandMonitor { name = "HDMI-A-1"; transform = 1; ... }'';
+          };
+        };
+      };
+  }

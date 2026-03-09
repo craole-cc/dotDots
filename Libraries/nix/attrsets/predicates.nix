@@ -3,8 +3,8 @@
   lib,
   ...
 }: let
-  inherit (_.testing.assertions) mkTest mkThrows;
-  inherit (_.testing.runners) runTests;
+  inherit (_.debug.assertions) mkTest mkThrows;
+  inherit (_.debug.runners) runTests;
   inherit (_.types.generators) validate;
   inherit (_.values.empty) isNotEmpty;
   inherit (lib.attrsets) attrByPath isAttrs;

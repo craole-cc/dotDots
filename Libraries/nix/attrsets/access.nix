@@ -8,8 +8,8 @@
   ...
 }: let
   inherit (_.debug.module) mkModuleDebug;
-  inherit (_.testing.assertions) mkTest;
-  inherit (_.testing.runners) runTests;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isList;
   inherit (_debug) mkFn;
   inherit (lib.attrsets) hasAttr filterAttrs mapAttrsToList;

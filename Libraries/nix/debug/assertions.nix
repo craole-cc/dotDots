@@ -1,5 +1,3 @@
-# testing/assertions.nix
-#
 # Test case constructors.
 # Use mkTest for documented tests, mkTest' for terse one-liners.
 {lib, ...}: let
@@ -32,7 +30,11 @@
   }
   ```
   */
-  mkTest = {desired, outcome, command ? null}:
+  mkTest = {
+    desired,
+    outcome,
+    command ? null,
+  }:
     _build desired outcome command;
 
   /**
@@ -72,7 +74,10 @@
   */
   mkThrows = outcome:
     mkTest {
-      desired = {success = false; value = false;};
+      desired = {
+        success = false;
+        value = false;
+      };
       outcome = tryEval outcome;
     };
 

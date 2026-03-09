@@ -3,8 +3,8 @@
   lib,
   ...
 }: let
-  inherit (_.testing.assertions) mkTest mkThrows;
-  inherit (_.testing.runners) runTests;
+  inherit (_.debug.assertions) mkTest mkThrows;
+  inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isString typeOf;
   inherit (lib.attrsets) isAttrs mapAttrs;
 
