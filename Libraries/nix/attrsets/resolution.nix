@@ -630,16 +630,17 @@
 
   exports = {
     inherit
-      get
-      orNull
       byPaths
-      nestedByPaths
-      packages
-      package
-      shellPackage
-      optional
       flake
+      get
       host
+      nestedByPaths
+      nixpkgs
+      optional
+      orNull
+      package
+      packages
+      shellPackage
       ;
     getPkgs = packages;
     getPackage = package;
