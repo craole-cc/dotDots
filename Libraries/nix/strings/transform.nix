@@ -1,26 +1,17 @@
 {
-  name,
   __libraryPath,
   _,
   lib,
   ...
 }: let
-  _debug = mkModuleDebug {path = __libraryPath;};
-  # _debug = mkModuleDebug {inherit name;};
+  _debug = mkModuleDebug __libraryPath;
 
-  inherit (lib.lists) isList map any;
-  inherit
-    (lib.strings)
-    hasPrefix
-    hasSuffix
-    isString
-    removePrefix
-    removeSuffix
-    replaceStrings
-    ;
   inherit (_.strings.generators) toList;
-  inherit (_.trivial.tests) mkTest runTests;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
+  inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.types.predicates) isList isString;
+  inherit (lib.lists) any map;
+  inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   _str = lib.strings;
 
   #? Internal: apply a string transform to a string or each item in a list.

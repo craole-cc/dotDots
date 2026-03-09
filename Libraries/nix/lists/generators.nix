@@ -8,8 +8,8 @@
 
   inherit (_.lists.predicates) isIn isInExact;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
-  inherit (_.trivial.predicates) isAttrs isFunction isList;
   inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.types.predicates) isAttrs isFunction isList;
   inherit (lib.attrsets) attrNames hasAttr;
   inherit (lib.lists) all any;
   inherit (lib.strings) hasPrefix stringLength;

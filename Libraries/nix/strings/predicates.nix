@@ -7,12 +7,13 @@
   _debug = mkModuleDebug __libraryPath;
 
   inherit (_.strings.generators) toList;
+  inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.emptiness) isEmpty isNotEmpty;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (_.trivial.debug) mkModuleDebug mkExample;
+  inherit (_.types.predicates) isList isString;
   inherit (lib.attrsets) mapAttrs;
-  inherit (lib.lists) all any isList;
-  inherit (lib.strings) hasInfix hasPrefix hasSuffix isString;
+  inherit (lib.lists) all any;
+  inherit (lib.strings) hasInfix hasPrefix hasSuffix;
 
   # Internal: build a predicate that checks if any pattern matches any input value.
   _mkAnyPredicate = function: checker: patterns: input: let
@@ -52,43 +53,62 @@
       })
     else all (v: any (p: checker p v) ps) vs;
 
-  /**
-  Check whether any pattern is contained in any input string.
-
-  Accepts either a single string or a list of strings for both arguments.
-
-  # Type
-  ```nix
-  contains :: string | [string] -> string | [string] -> bool
-  ```
-
-  # Examples
-  ```nix
-  contains "foo" "foobar"           # => true
-  contains ["foo" "bar"] "foobar"   # => true
-  contains "foo" ["baz" "foobar"]   # => true
-  contains ["foo" "bar"] ["baz"]    # => false
-  ```
-  */
-
-  /**
-  Check whether ALL input strings contain at least one of the given patterns.
-
-  # Type
-  ```nix
-  containsAll :: string | [string] -> string | [string] -> bool
-  ```
-
-  # Examples
-  ```nix
-  containsAll "foo" ["foobar" "fooX"]  # => true  (every input has "foo")
-  containsAll "foo" ["foobar" "baz"]   # => false ("baz" doesn't contain "foo")
-  ```
-  */
   inherit
     (mapAttrs (name: checker: _mkAnyPredicate name checker) {
+      /**
+      Check whether any pattern is contained in any input string.
+
+      Accepts either a single string or a list of strings for both arguments.
+
+      # Type
+      ```nix
+      contains :: string | [string] -> string | [string] -> bool
+      ```
+
+      # Examples
+      ```nix
+      contains "foo" "foobar"           # => true
+      contains ["foo" "bar"] "foobar"   # => true
+      contains "foo" ["baz" "foobar"]   # => true
+      contains ["foo" "bar"] ["baz"]    # => false
+      ```
+      */
       contains = hasInfix;
+
+      /**
+      Check whether any input string starts with any of the given patterns.
+
+      # Type
+      ```nix
+      startsWith :: string | [string] -> string | [string] -> bool
+      ```
+
+      # Examples
+      ```nix
+      startsWith "foo" "foobar"           # => true
+      startsWith ["foo" "bar"] "foobar"   # => true
+      startsWith "foo" ["baz" "foobar"]   # => true
+      startsWith ["foo" "bar"] ["baz"]    # => false
+      ```
+      */
       startsWith = hasPrefix;
+
+      /**
+      Check whether any input string ends with any of the given patterns.
+
+      # Type
+      ```nix
+      endsWith :: string | [string] -> string | [string] -> bool
+      ```
+
+      # Examples
+      ```nix
+      endsWith "bar" "foobar"           # => true
+      endsWith ["foo" "bar"] "foobar"   # => true
+      endsWith "bar" ["baz" "foobar"]   # => true
+      endsWith ["foo" "bar"] ["baz"]    # => false
+      ```
+      */
       endsWith = hasSuffix;
     })
     contains
@@ -98,8 +118,52 @@
 
   inherit
     (mapAttrs (name: checker: _mkAllPredicate name checker) {
+      /**
+      Check whether ALL input strings contain at least one of the given patterns.
+
+      # Type
+      ```nix
+      containsAll :: string | [string] -> string | [string] -> bool
+      ```
+
+      # Examples
+      ```nix
+      containsAll "foo" ["foobar" "fooX"]  # => true  (every input has "foo")
+      containsAll "foo" ["foobar" "baz"]   # => false ("baz" doesn't contain "foo")
+      ```
+      */
       containsAll = hasInfix;
+
+      /**
+      Check whether ALL input strings start with at least one of the given patterns.
+
+      # Type
+      ```nix
+      startsWithAll :: string | [string] -> string | [string] -> bool
+      ```
+
+      # Examples
+      ```nix
+      startsWithAll "foo" ["foobar" "fooX"]  # => true
+      startsWithAll "foo" ["foobar" "barX"]  # => false
+      ```
+      */
       startsWithAll = hasPrefix;
+
+      /**
+      Check whether ALL input strings end with at least one of the given patterns.
+
+      # Type
+      ```nix
+      endsWithAll :: string | [string] -> string | [string] -> bool
+      ```
+
+      # Examples
+      ```nix
+      endsWithAll "bar" ["foobar" "bazbar"]  # => true
+      endsWithAll "bar" ["foobar" "bazX"]    # => false
+      ```
+      */
       endsWithAll = hasSuffix;
     })
     containsAll

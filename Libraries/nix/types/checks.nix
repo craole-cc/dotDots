@@ -1,4 +1,3 @@
-# Libraries/types/schema.nix
 # Advanced type system that bridges predicates, generators, and schema validation
 {
   _,

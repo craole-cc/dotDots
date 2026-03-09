@@ -6,10 +6,11 @@
 }: let
   _debug = mkModuleDebug __libraryPath;
 
-  inherit (_.trivial.tests) mkTest runTests;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
-  inherit (lib.lists) any filter head isList map;
-  inherit (lib.strings) concatStringsSep splitString isString;
+  inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.types.predicates) isList isString;
+  inherit (lib.lists) any filter head map;
+  inherit (lib.strings) concatStringsSep splitString;
 
   /**
   Convert a single string, or list of strings, into a cleaned list.

@@ -6,11 +6,11 @@
 }: let
   _debug = mkModuleDebug __libraryPath;
 
-  inherit (_.strings.transform) toLower;
   inherit (_.strings.generators) toList;
-  inherit (_.trivial.predicates) isList;
+  inherit (_.strings.transform) toLower;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.types.predicates) isList;
   inherit (lib.lists) all any elem filter length;
 
   /**
