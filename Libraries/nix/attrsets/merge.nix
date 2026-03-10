@@ -7,10 +7,9 @@
   lib,
   ...
 }: let
-  inherit (_.debug.module) mkModuleDebug;
+  inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
-  inherit (_debug) mkFn;
   inherit (_.types.predicates) isAttrs isFunction;
   inherit (lib.attrsets) mapAttrs recursiveUpdate;
 

@@ -6,7 +6,7 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.debug.stubs) mkDefaultStub mkEnableOptionStub mkForceStub;
-  inherit (_.types.predicates) isSpecial;
+  inherit (_.attrsets.predicates) isTyped;
   inherit (lib.attrsets) filterAttrs isAttrs isDerivation mapAttrs;
 
   /**
@@ -34,7 +34,7 @@
   ```
   */
   update = value:
-    if isSpecial value
+    if isTyped value
     then value
     else if isAttrs value && !isDerivation value
     then mapAttrs (_key: update) value
@@ -73,9 +73,9 @@
   ```
   */
   updateDeep = prev: next:
-    if isSpecial prev
+    if isTyped prev
     then prev
-    else if isSpecial next
+    else if isTyped next
     then next
     else if isAttrs prev && isAttrs next && !isDerivation prev && !isDerivation next
     then
@@ -85,9 +85,9 @@
         then let
           nextValue = next.${name};
         in
-          if isSpecial prevValue
+          if isTyped prevValue
           then prevValue
-          else if isSpecial nextValue
+          else if isTyped nextValue
           then nextValue
           else updateDeep prevValue nextValue
         else prevValue)
