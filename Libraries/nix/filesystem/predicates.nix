@@ -3,11 +3,26 @@
   lib,
   ...
 }: let
-  inherit (_.types.predicates) isString;
+  inherit (_.filesystem.paths) flakeOrNull;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.strings) hasSuffix;
   inherit (lib.lists) elem;
+
+  exports = rec {
+    internal = {
+      inherit
+        isExcludedFile
+        isFlakePath
+        isInExcludedFolder
+        isNixFile
+        isPath
+        isStorePath
+        pathExists
+        ;
+    };
+    external = internal;
+  };
 
   /**
   Check whether a value is a valid path.
@@ -95,26 +110,6 @@
   isInExcludedFolder = path: foldersToExclude: elem (dirOf path) foldersToExclude;
 
   /**
-  Normalize a flake path. Accepts a `flake.nix` file or a directory
-  containing one. Returns the directory string, or null if not found.
-
-  # Type
-  ```nix
-  flakePath :: path | string -> string | null
-  ```
-  */
-  flakePath = path: let
-    strPath = toString path;
-  in
-    if !isString strPath
-    then null
-    else if hasSuffix "/flake.nix" strPath && pathExists strPath
-    then dirOf strPath
-    else if pathExists (strPath + "/flake.nix")
-    then strPath
-    else null;
-
-  /**
   Check whether a path is a valid flake root.
 
   # Type
@@ -122,23 +117,11 @@
   isFlakePath :: path | string -> bool
   ```
   */
-  isFlakePath = path: (flakePath path) != null;
-
-  exports = {
-    inherit
-      flakePath
-      isExcludedFile
-      isFlakePath
-      isInExcludedFolder
-      isNixFile
-      isPath
-      isStorePath
-      ;
-  };
+  isFlakePath = path: (flakeOrNull path) != null;
 in
-  exports
+  exports.internal
   // {
-    _rootAliases = exports;
+    _rootAliases = exports.external;
     _tests = runTests {
       isNixFile = {
         detectsNixExtension = mkTest' true (isNixFile "/foo/bar.nix");
@@ -180,7 +163,7 @@ in
       flakePath = {
         rejectsNonExistentPath = mkTest {
           desired = null;
-          outcome = flakePath "/this/path/does/not/exist/at/all";
+          outcome = flakeOrNull "/this/path/does/not/exist/at/all";
           command = ''flakePath "/this/path/does/not/exist/at/all"'';
         };
       };

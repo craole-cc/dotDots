@@ -5,6 +5,7 @@
 }: let
   inherit (_.filesystem.paths) source;
   inherit (_.hardware.system) getSystem;
+  inherit (_.content.fallback) firstNonEmpty;
   # inherit (_.inputs.resolution) inputs;
   inherit (_.attrsets.predicates) valueOr;
   # inherit (_.attrsets.resolution) mkInputPackages;
