@@ -174,6 +174,28 @@
     #~@ Chaotic
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
+
+  /**
+  Build the `nixpkgs` source attribute set appropriate for the host class.
+
+  Darwin uses `source`; NixOS uses `flake.source`.
+
+  # Type
+  ```nix
+  mkSource :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```
+  */
+  mkSource = {
+    host ? {},
+    root ? null,
+    inputs ? {},
+    ...
+  }: let
+    root' = firstNonEmpty [root (inputs.nixpkgs or null)];
+  in
+    if (host.class or "nixos") == "darwin"
+    then {source = root';}
+    else {flake.source = root';};
 in
   exports.internal
   // {

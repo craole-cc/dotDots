@@ -8,7 +8,29 @@
   inherit (_.debug.runners) runTests;
   inherit (lib.strings) hasSuffix;
   inherit (lib.lists) elem;
-  inherit (lib.trivial) pathExists;
+
+  /**
+  Check whether a value is a valid path.
+
+  Returns `true` if the specified file system `path` exists during Nix
+  evaluation time, and `false` otherwise.
+
+  Useful for conditionally importing local files, verifying data directories,
+  or setting fallback configurations.
+
+  **Note:** Checks path at *evaluation* time, so the path must be accessible
+  to the Nix evaluator.
+
+  **Example:**
+  ```nix
+  let
+    localSettings = if pathExists ./local-config.nix
+                    then import ./local-config.nix
+                    else {};
+  in
+    { environment.systemPackages = [ pkgs.hello ]; } // localSettings
+  */
+  pathExists = path: builtins.pathExists path;
 
   /**
   Check whether a value is a path.
@@ -24,7 +46,7 @@
   isPath "/etc"      # => false (string, not path)
   ```
   */
-  isPath = lib.strings.isPath;
+  isPath = path: lib.strings.isPath path;
 
   /**
   Check whether a value is a valid Nix store path.

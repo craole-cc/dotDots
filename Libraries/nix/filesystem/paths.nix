@@ -40,7 +40,6 @@
         getDefaults
         flake
         flakeOrNull
-        source
         ;
       flakePath = flakeOrNull;
     };
@@ -523,7 +522,7 @@
 
   # Type
   ```nix
-  tryFlake :: { self? :: AttrSet, path? :: path | string } -> string | null
+  flakeOrNull :: { self? :: AttrSet, path? :: path | string } -> string | null
   ```
   */
   flakeOrNull = {
@@ -561,30 +560,5 @@
         function = "flake";
         message = "'${toString path}' is not a valid flake path";
       });
-
-  /**
-  Build the `nixpkgs` source attribute set appropriate for the host class.
-
-  Darwin uses `source`; NixOS uses `flake.source`.
-
-  # Type
-  ```nix
-  source :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
-  ```
-  */
-  source = {
-    host ? {},
-    root ? null,
-    inputs ? {},
-    ...
-  }: let
-    resolvedRoot = firstNonEmpty [
-      root
-      (inputs.nixpkgs or null)
-    ];
-  in
-    if (host.class or "nixos") == "darwin"
-    then {source = resolvedRoot;}
-    else {flake.source = resolvedRoot;};
 in
   exports.internal // {_rootAliases = exports.external;}
