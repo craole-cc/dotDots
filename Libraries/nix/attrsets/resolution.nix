@@ -5,6 +5,7 @@
   __moduleRef,
   ...
 }: let
+  inherit (_.attrsets.predicates) valueOr;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
@@ -18,12 +19,47 @@
     filterAttrs
     genAttrs
     hasAttrByPath
+    listToAttrs
     optionalAttrs
     ;
   inherit (lib.debug) traceIf;
   inherit (lib.lists) filter findFirst head toList;
   inherit (builtins) getFlake tryEval;
   debug = mkModuleDebug __moduleRef;
+
+  exports = {
+    internal = {
+      inherit
+        byPaths
+        flake
+        getAttr
+        host
+        nestedByPaths
+        nixpkgs
+        optional
+        orDefault
+        orNull
+        package
+        packages
+        shellPackage
+        inputPackages
+        ;
+      mkInputPackages = inputPackages;
+    };
+    external = {
+      mkInputPackages = inputPackages;
+      getAttrOrDefault = orDefault;
+      getAttrOrNull = orNull;
+      getAttrByPaths = byPaths;
+      getNestedAttrByPaths = nestedByPaths;
+      getFlake = flake;
+      getHost = host;
+      getPkgs = packages;
+      getPackage = package;
+      getShellPackage = shellPackage;
+      optionalAttr = optional;
+    };
+  };
 
   /**
   Get an attribute value, throwing if the key is absent.
@@ -230,18 +266,18 @@
 
   # Type
   ```nix
-  shellPackage :: { pkgs :: AttrSet, shellName :: string } -> Derivation
+  shellPackage :: { pkgs :: AttrSet, name :: string } -> Derivation
   ```
 
   # Examples
   ```nix
-  shellPackage { inherit pkgs; shellName = "zsh"; }     # => pkgs.zsh
-  shellPackage { inherit pkgs; shellName = "unknown"; } # => pkgs.bashInteractive
+  shellPackage { inherit pkgs; name = "zsh"; }     # => pkgs.zsh
+  shellPackage { inherit pkgs; name = "unknown"; } # => pkgs.bashInteractive
   ```
   */
   shellPackage = {
     pkgs,
-    shellName,
+    name,
   }:
     {
       "bash" = pkgs.bashInteractive;
@@ -251,8 +287,39 @@
       "zsh" = pkgs.zsh;
     }
     .${
-      shellName
+      name
     } or pkgs.bashInteractive;
+
+  /**
+  Build a name → packages attrset by resolving `inputs.<name>.<attr>` for
+  each name in `names`.
+
+  # Type
+  ```nix
+  mkPkgSet :: { attr :: string, names :: [string] } -> AttrSet
+  ```
+  */
+  inputPackages = {
+    inputs,
+    attrs,
+    names,
+  }:
+    listToAttrs (map (name: {
+        inherit name;
+        value = let
+          input = valueOr {
+            attrs = inputs;
+            key = name;
+            default = {};
+          };
+        in
+          valueOr {
+            attrs = input;
+            key = attrs;
+            default = {};
+          };
+      })
+      names);
 
   /**
   Conditionally include a single attribute in an attrset merge.
@@ -343,55 +410,11 @@
     Provides tools for navigating nested structures, handling missing attributes
     gracefully, and resolving values from multiple potential sources.
   '';
-
-  exports = {
-    inherit
-      byPaths
-      flake
-      getAttr
-      host
-      nestedByPaths
-      nixpkgs
-      optional
-      orDefault
-      orNull
-      package
-      packages
-      shellPackage
-      ;
-    getAttrOrDefault = orDefault;
-    getAttrOrNull = orNull;
-    getAttrByPaths = byPaths;
-    getNestedAttrByPaths = nestedByPaths;
-    getFlake = flake;
-    getHost = host;
-    getPkgs = packages;
-    getPackage = package;
-    getShellPackage = shellPackage;
-    optionalAttr = optional;
-  };
 in
-  exports
+  exports.internal
   // {
     inherit __doc;
-
-    _rootAliases = {
-      inherit
-        (exports)
-        getAttr
-        getAttrOrDefault
-        getAttrOrNull
-        getAttrByPaths
-        getNestedAttrByPaths
-        getFlake
-        getHost
-        getPkgs
-        getPackage
-        getShellPackage
-        optionalAttr
-        ;
-    };
-
+    _rootAliases = exports.external;
     _tests = runTests {
       getAttr = {
         returnsValueWhenPresent = mkTest {

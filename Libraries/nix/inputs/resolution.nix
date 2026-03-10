@@ -1,52 +1,139 @@
 {_, ...}: let
   inherit (_.attrsets.resolution) byPaths;
+  inherit (_.filesystem.paths) tryFlake;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
 
-  resolvedFlake = _.attrsets.resolution.flake {};
-  rawInputs = resolvedFlake.inputs;
+  exports = {
+    internal = {
+      inherit
+        core
+        home
+        resolved
+        flake
+        ;
+      inputs = resolved;
+      inputsRaw = raw;
+    };
+    external = {
+      resolvedInputs = resolved;
+      resolvedFlake = flake;
+      coreInputs = core;
+      homeInputs = home;
+      rawInputs = raw;
+    };
+  };
 
-  resolvedInputs = {
+  /**
+  The resolved flake attrset for the current project, obtained via
+  `_.attrsets.resolution.flake {}`. Used as the root from which all inputs
+  are derived.
+  */
+  flake = tryFlake {};
+
+  /**
+  The raw `inputs` attrset from the resolved flake, exactly as declared in
+  `flake.nix`. All resolution in `coreInputs` and `homeInputs` is performed
+  against this attrset.
+  */
+  raw = flake.inputs;
+  attrset = raw;
+
+  /**
+  Combined view of all resolved inputs (`coreInputs // homeInputs`).
+
+  Use this when you need access to any input by canonical name and don't
+  need to distinguish between `legacyPackages`-style and `packages`-style
+  inputs.
+  */
+  resolved = core // home;
+
+  /**
+  Resolved nixpkgs inputs — the three channels that expose `legacyPackages`
+  (per-system attrsets of every package in nixpkgs).
+
+  These are accessed differently from all other inputs and drive the overlay
+  system in `inputs/packages.nix`. Only `nixpkgs`, `nixpkgs-stable`, and
+  `nixpkgs-unstable` belong here.
+
+  The three variants form a deliberate fallback chain so that consumers always
+  receive a usable package set even when not all channels are pinned:
+
+    nixpkgs-unstable → nixpkgs-stable → nixpkgs → {}
+
+  Cross-channel fallback is handled via `default`; each entry's `paths` covers
+  only alternative *names* for that specific channel.
+  */
+  core = rec {
+    /**
+    Base nixpkgs input. Tries common alternative input names before falling
+    back to an empty attrset. All other nixpkgs variants degrade to this.
+    */
     nixpkgs = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.nixpkgs or {};
+      inherit attrset;
+      default = attrset.nixpkgs or {};
       paths = [
         ["nixosCore"]
         ["nixPackages"]
         ["nixosPackages"]
-        ["nixosPackagesUnstable"]
-        ["nixpkgs-unstable"]
-        ["nixosPackagesStable"]
-        ["nixpkgs-stable"]
         ["nixpkgs"]
       ];
     };
 
+    /**
+    Stable nixpkgs channel. Falls back to resolved `nixpkgs` when absent.
+
+    Covers common alternative names including versioned release pins
+    (`nixpkgs-24.11`, `nixpkgs-25.05`, etc.). Arbitrary version names not
+    listed here degrade to `nixpkgs` via `default`.
+    */
     nixpkgs-stable = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.nixpkgs-stable or rawInputs.nixpkgs or {};
+      inherit attrset;
+      default = nixpkgs;
       paths = [
         ["nixPackagesStable"]
         ["nixosPackagesStable"]
         ["nixpkgs-stable"]
-        ["nixpkgs"]
+        # Versioned release pins — NixOS YY.MM format
+        ["nixpkgs-24.05"]
+        ["nixpkgs-24.11"]
+        ["nixpkgs-25.05"]
+        ["nixpkgs-25.11"]
       ];
     };
 
+    /**
+    Unstable nixpkgs channel. Falls back to resolved `nixpkgs-stable` (which
+    itself falls back to `nixpkgs`) giving the full chain:
+    unstable → stable → nixpkgs → {}.
+    */
     nixpkgs-unstable = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.nixpkgs-unstable or rawInputs.nixpkgs or {};
+      inherit attrset;
+      default = nixpkgs-stable;
       paths = [
         ["nixPackagesUnstable"]
         ["nixosPackagesUnstable"]
+        ["nixpkgs-beta"]
+        ["betaNix"]
         ["nixpkgs-unstable"]
-        ["nixpkgs"]
       ];
     };
+  };
 
+  /**
+  Resolved home and system inputs — everything that exposes `packages`
+  (accessed via `inputs.<n>.packages.<system>`).
+
+  Includes system builders (`nix-darwin`, `home-manager`), theming
+  (`catppuccin`, `stylix`, `chaotic`), editors (`nvf`, `helix`,
+  `fresh-editor`, `vscode-insiders`), shells (`caelestia`,
+  `dank-material-shell`, `noctalia-shell`, `quickshell`, `plasma`),
+  browsers (`zen-browser`), and dev tools (`treefmt`, `typix`).
+  */
+  home = {
     nix-darwin = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.nix-darwin or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["darwin"]
         ["nixDarwin"]
@@ -56,8 +143,8 @@
     };
 
     home-manager = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.home-manager or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["nixHomeManager"]
         ["nixosHome"]
@@ -69,8 +156,8 @@
     };
 
     catppuccin = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.catppuccin or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["styleCatppuccin"]
         ["catppuccinStyle"]
@@ -79,8 +166,8 @@
     };
 
     chaotic = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.chaotic or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["nixChaotic"]
         ["kernelChaotic"]
@@ -89,20 +176,9 @@
       ];
     };
 
-    fresh-editor = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.fresh-editor or {};
-      paths = [
-        ["fresh"]
-        ["freshEditor"]
-        ["editorFresh"]
-        ["fresh-editor"]
-      ];
-    };
-
     stylix = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.stylix or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["nixStyle"]
         ["styleManager"]
@@ -110,22 +186,9 @@
       ];
     };
 
-    helix = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.helix or {};
-      paths = [
-        ["helix-editor"]
-        ["hx"]
-        ["helixEditor"]
-        ["editorHelix"]
-        ["editorHX"]
-        ["helix"]
-      ];
-    };
-
     caelestia = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.caelestia or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["shellCaelestia"]
         ["caelestia-shell"]
@@ -134,8 +197,8 @@
     };
 
     dank-material-shell = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.dank-material-shell or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["shellDankMaterial"]
         ["shellDank"]
@@ -146,9 +209,33 @@
       ];
     };
 
+    fresh-editor = byPaths {
+      inherit attrset;
+      default = {};
+      paths = [
+        ["fresh"]
+        ["freshEditor"]
+        ["editorFresh"]
+        ["fresh-editor"]
+      ];
+    };
+
+    helix = byPaths {
+      inherit attrset;
+      default = {};
+      paths = [
+        ["helix-editor"]
+        ["hx"]
+        ["helixEditor"]
+        ["editorHelix"]
+        ["editorHX"]
+        ["helix"]
+      ];
+    };
+
     noctalia-shell = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.noctalia-shell or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["shellNoctalia"]
         ["noctalia-dev"]
@@ -157,21 +244,9 @@
       ];
     };
 
-    quickshell = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.quickshell or {};
-      paths = [
-        ["shellQuick"]
-        ["qtshell"]
-        ["qmlshell"]
-        ["quick"]
-        ["quickshell"]
-      ];
-    };
-
     nvf = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.nvf or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["editorNeovim"]
         ["neovim"]
@@ -183,8 +258,8 @@
     };
 
     plasma = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.plasma or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["shellPlasma"]
         ["plasma-manager"]
@@ -194,9 +269,21 @@
       ];
     };
 
+    quickshell = byPaths {
+      inherit attrset;
+      default = {};
+      paths = [
+        ["shellQuick"]
+        ["qtshell"]
+        ["qmlshell"]
+        ["quick"]
+        ["quickshell"]
+      ];
+    };
+
     treefmt = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.treefmt or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["treeFormatter"]
         ["fmtree"]
@@ -206,8 +293,8 @@
     };
 
     typix = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.typix or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["docTypix"]
         ["typst"]
@@ -217,8 +304,8 @@
     };
 
     vscode-insiders = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.vscode-insiders or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["vscode"]
         ["code"]
@@ -233,8 +320,8 @@
     };
 
     zen-browser = byPaths {
-      attrset = rawInputs;
-      default = rawInputs.zen-browser or {};
+      inherit attrset;
+      default = {};
       paths = [
         ["browserZen"]
         ["firefoxZen"]
@@ -246,18 +333,10 @@
       ];
     };
   };
-
-  exports = {
-    inherit resolvedInputs resolvedFlake rawInputs;
-    inputs = resolvedInputs;
-    flake = resolvedFlake;
-  };
 in
-  exports
+  exports.internal
   // {
-    _rootAliases = {
-      inherit (exports) resolvedInputs resolvedFlake rawInputs;
-    };
+    _rootAliases = exports.external;
 
     _tests = runTests {
       byPaths = {
@@ -272,7 +351,7 @@ in
         };
         fallsBackToDefault = mkTest {
           desired = "fallback";
-          command = ''byPaths { attrset = { canonical = "fallback"; }; paths = [["noSuchKey"]]; default = "fallback"; }'';
+          command = ''byPaths falls back when no path matches'';
           outcome = byPaths {
             attrset = {canonical = "fallback";};
             paths = [["noSuchKey"]];
@@ -281,7 +360,7 @@ in
         };
         prefersEarlierPath = mkTest {
           desired = "first";
-          command = ''byPaths { attrset = { keyA = "first"; keyB = "second"; }; paths = [["keyA"] ["keyB"]]; default = null; }'';
+          command = ''byPaths { paths = [["keyA"] ["keyB"]]; } prefers keyA'';
           outcome = byPaths {
             attrset = {
               keyA = "first";
@@ -291,14 +370,16 @@ in
             default = null;
           };
         };
-        returnsDefaultWhenNothingMatches = mkTest' null (byPaths {
-          attrset = {};
-          paths = [["missing"] ["alsoMissing"]];
-          default = null;
-        });
+        returnsDefaultWhenNothingMatches =
+          mkTest' null
+          (byPaths {
+            attrset = {};
+            paths = [["missing"] ["alsoMissing"]];
+            default = null;
+          });
         resolvesNestedPath = mkTest {
           desired = 1;
-          command = ''byPaths { attrset = { foo.bar = 1; }; paths = [["missing"] ["foo" "bar"]]; default = null; }'';
+          command = ''byPaths { paths = [["missing"] ["foo" "bar"]]; } resolves foo.bar'';
           outcome = byPaths {
             attrset = {foo.bar = 1;};
             paths = [["missing"] ["foo" "bar"]];
