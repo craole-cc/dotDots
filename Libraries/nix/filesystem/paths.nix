@@ -3,19 +3,19 @@
   __moduleRef,
   lib,
   src,
-  paths,
+  # paths,
   ...
 }: let
   inherit (_.attrsets.access) getIn;
-  inherit (_.content.empty) isNotEmpty;
+  inherit (_.content.empty) isEmpty isNotEmpty;
   inherit (_.content.fallback) orDefault firstNonEmpty;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
-  inherit (_.types.predicates) isList;
+  inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
   inherit (builtins) getEnv;
   inherit (lib.asserts) assertMsg;
-  inherit (lib.attrsets) mapAttrs mapAttrsRecursive mapAttrsToList;
+  inherit (lib.attrsets) mapAttrs mapAttrsRecursive mapAttrsToList optionalAttrs;
   inherit (lib.filesystem) dirOf;
   inherit (lib.lists) elemAt head toList;
   inherit
@@ -36,10 +36,14 @@
     internal = {
       inherit
         construct
+        ground
+        concat
         mkDefault
         getDefaults
         flake
         flakeOrNull
+        toPath
+        stems
         ;
       flakePath = flakeOrNull;
     };
@@ -49,32 +53,213 @@
     };
   };
 
-  mkPath = {
+  /**
+  Join a root and stem into a single path string.
+
+  Both `root` and `stem` may be a plain string or a list of path segments;
+  lists are joined with `/` before concatenation.
+
+  # Type
+  ```
+  concat :: { root :: string | [string], stem :: string | [string] } -> string
+  ```
+
+      # Examples
+  ```nix
+  concat { root = "/home/user"; stem = "documents/file.txt"; }
+  # => "/home/user/documents/file.txt"
+
+  concat { root = ["home" "user"]; stem = ["documents" "file.txt"]; }
+  # => "/home/user/documents/file.txt"
+
+  concat { root = "/var"; stem = ["log" "app" "output.log"]; }
+  # => "/var/log/app/output.log"
+
+  concat { root = ["var" "log"]; stem = "app/output.log"; }
+  # => "/var/log/app/output.log"
+  ```
+  */
+  concat = {
     root,
     stem,
-  }: "${root}/${
-    if isList stem
-    then concatStringsSep "/" stem
-    else stem
-  }";
+  }: let
+    normalize = part:
+      if isList part
+      then concatStringsSep "/" part
+      else part;
+  in "${normalize root}/${normalize stem}";
 
-  concat = prefix: parts: let
-    base = toString prefix;
-  in
-    if parts == []
-    then base
-    else "${base}/${concatStringsSep "/" parts}";
+  /**
+    Convert any path-like value into a normalised `{ store, local }` pair.
 
-  mapStems = prefix:
-    mapAttrsRecursive (_: concat prefix);
+    Serves as a single replacement for both deprecated `builtins.toPath`
+    (string → absolute path) and `builtins.path` (path → store copy with
+    options).
 
+    Accepts any of:
+    - a Nix `path` literal  (`./foo`, `/abs/path`)
+    - an absolute string    (`"/abs/path"`)
+    - a relative string     (`"rel/path"`)  — resolved against `src`
+    - a list of segments    (`["a" "b"]`)   — joined and resolved against `src`
+
+    Optional `builtins.path` knobs are forwarded when producing the store path:
+    - `name`      — label in the store path             (default: `"path"`)
+    - `filter`    — `builtins.filterSource`-style fn    (default: keep all)
+    - `recursive` — hash the NAR (`true`) or flat file  (default: `true`)
+    - `sha256`    — expected hash; enables pure-eval     (default: unset)
+
+    When the resolved path does not exist on disk, `store` is `null` and
+    `local` is still returned.
+
+    # Type
+  ```
+  toPath :: path | string | [string]
+          | { path  :: path | string | [string]
+            , name      :: string?
+            , filter    :: (string -> string -> bool)?
+            , recursive :: bool?
+            , sha256    :: string?
+            }
+          -> { store :: string | null, local :: string }
+  ```
+
+    # Examples
+  ```nix
+  toPath ./.
+  # => { store = "/nix/store/…-path";  local = "/home/…/dotDots"; }
+
+  toPath "/home/user/docs"
+  # => { store = "/nix/store/…-path";  local = "/home/user/docs"; }
+
+  toPath "Libraries"
+  # => { store = "/nix/store/…-path/Libraries"; local = "/home/…/dotDots/Libraries"; }
+
+  toPath ["Libraries" "nix"]
+  # => { store = "/nix/store/…-path";  local = "/home/…/dotDots/Libraries/nix"; }
+
+  toPath { path = ./Libraries; name = "libs"; }
+  # => { store = "/nix/store/…-libs";  local = "/home/…/dotDots/Libraries"; }
+
+  toPath { path = ./file.txt; recursive = false; sha256 = "sha256-…"; }
+  # => { store = "/nix/store/…-path";  local = "/home/…/dotDots/file.txt"; }
+  ```
+  */
+  toPath = arg: let
+    # -- 1. Unpack into { rawPath, name, filter, recursive, sha256 } ──────────
+    unpacked =
+      if isAttrs arg
+      then arg
+      else {path = arg;};
+
+    raw = unpacked.path or arg;
+    name = unpacked.name      or "path";
+    filter = unpacked.filter    or null;
+    recursive = unpacked.recursive or null;
+    sha256 = unpacked.sha256    or null;
+
+    # -- 2. Normalise raw → absolute string ───────────────────────────────────
+    localStr =
+      if isList raw
+      then "${toString src}/${concatStringsSep "/" raw}"
+      else if isPath raw
+      then toString raw
+      else if isString raw && hasPrefix "/" raw
+      then raw #? already absolute
+      else "${toString src}/${raw}"; #? relative → anchor to src
+
+    # -- 3. Build builtins.path args, adding optional knobs only if set ────────
+    pathArgs =
+      {
+        path = localStr;
+        inherit name;
+      }
+      // optionalAttrs (filter != null) {inherit filter;}
+      // optionalAttrs (recursive != null) {inherit recursive;}
+      // optionalAttrs (sha256 != null) {inherit sha256;};
+
+    # -- 4. Resolve store path, null-safe ─────────────────────────────────────
+    storeStr =
+      if builtins.pathExists localStr
+      then toString (builtins.path pathArgs)
+      else null;
+  in {
+    store = storeStr;
+    local = localStr;
+  };
+
+  /**
+  Resolve a local filesystem path into both its Nix store copy and its
+  original on-disk location.
+
+  `builtins.path` hashes and copies the directory into the store, producing
+  a stable, content-addressed store path. The `local` field is the raw
+  filesystem string (via `toString`) with no store involvement.
+
+  If `root` does not exist on disk, `store` is `null` and `local` is still
+  returned — this allows callers to handle missing paths gracefully.
+
+  # Type
+  ```
+    ground :: { root :: path?, name :: string? } -> { store :: string | null, local :: string }
+  ```
+
+  # Arguments
+  - `root`  — the directory to ground; defaults to the flake/expression `src`
+  - `name`  — the human-readable label used in the store path; defaults to `"dotDots"`
+
+  # Examples
+  ```nix
+  ground {}
+  # => {
+  #      store = "/nix/store/…-dotDots";
+  #      local = "/home/craole/Downloads/public/dotDots";
+  #    }
+
+  ground { root = ./Libraries; name = "libs"; }
+  # => {
+  #      store = "/nix/store/…-libs";
+  #      local = "/home/craole/Downloads/public/dotDots/Libraries";
+  #    }
+
+  ground { root = /nonexistent; }
+  # => { store = null; local = "/nonexistent"; }
+  ```
+  */
+  ground = {
+    root ? src,
+    name ? "dotDots",
+  }:
+    toPath {
+      path = root;
+      inherit name;
+    };
+
+  /**
+  Pre-defined stem segments for well-known locations within the tree.
+
+  Each group is an attrset whose `default` key is the canonical stem for
+  that group and whose other keys are sub-locations built on top of it.
+  Using `rec` lets sub-paths compose from `default` without repeating
+  the prefix.
+
+  These are plain lists of strings — pass them directly to `construct`
+  or `concat` as the `stem` argument.
+
+  # Examples
+  ```nix
+  stems.libs.nix       # => [ "Libraries" "nix" ]
+  stems.api.hosts      # => [ "API" "nix" "hosts" ]
+  stems.pkgs.overlays  # => [ "Packages" "nix" "overlays" ]
+  ```
+  */
   stems = {
     default = [];
+
     libs = rec {
+      default = nix;
       nix = ["Libraries" "nix"];
       shellscript = ["Libraries" "shellscript"];
       rust = ["Libraries" "rust"];
-      default = nix;
     };
 
     api = rec {
@@ -105,145 +290,74 @@
     };
   };
 
-  roots = {
-    store = builtins.path {
-      path = ./.;
-      name = "dotDots";
-    };
-    local = ./.;
-  };
-
-  resolved = {
-    store = mapStems roots.store stems;
-    local = mapStems roots.local stems;
-  };
-
-  mkPaths = root: {
-    inherit root;
-
-    default = mkPath {
-      inherit root;
-      stem = [];
-    };
-    libs = let
-      nix = mkPath {
-        inherit root;
-        stem = ["Libraries" "nix"];
-      };
-      shellscript = mkPath {
-        inherit root;
-        stem = ["Libraries" "shellscript"];
-      };
-      rust = mkPath {
-        inherit root;
-        stem = ["Libraries" "rust"];
-      };
-    in {
-      default = nix;
-      inherit nix shellscript rust;
-    };
-    api = let
-      default = mkPath {
-        inherit root;
-        stem = ["API" "nix"];
-      };
-      hosts = mkPath {
-        root = default;
-        stem = "hosts";
-      };
-      users = mkPath {
-        root = default;
-        stem = "users";
-      };
-    in {inherit default hosts users;};
-    pkgs = let
-      default = mkPath {
-        inherit root;
-        stem = ["Packages" "nix"];
-      };
-      core = mkPath {
-        root = default;
-        stem = "core";
-      };
-      global = mkPath {
-        root = default;
-        stem = "global";
-      };
-      home = mkPath {
-        root = default;
-        stem = "home";
-      };
-      overlays = mkPath {
-        root = default;
-        stem = "overlays";
-      };
-      plugins = mkPath {
-        root = default;
-        stem = "plugins";
-      };
-    in {inherit default core global home overlays plugins;};
-    templates = let
-      default = mkPath {
-        inherit root;
-        stem = ["Templates" "nix"];
-      };
-      rust = mkPath {
-        root = default;
-        stem = "rust";
-      };
-    in {inherit default rust;};
-    images = rec {
-      default = mkPath {
-        inherit root;
-        stem = ["Assets" "Images"];
-      };
-      ascii = mkPath {
-        root = default;
-        stem = "ascii";
-      };
-      logo = mkPath {
-        root = default;
-        stem = "logo";
-      };
-      wallpaper = mkPath {
-        root = default;
-        stem = "wallpaper";
-      };
-    };
-  };
-  store = mkPaths ./.;
-  local = mkPaths src;
-  mkLocal = dots: mkPaths dots;
-
   /**
-  Construct a file path from a root directory and a stem.
+  Build a resolved `{ store, local }` path from a root and a stem.
 
-  The stem may be a string or a list of path segments (joined with `/`).
+  Accepts any of the following calling patterns:
+  - `construct {}` — resolves to the root alone (both store and local)
+  - `construct { stem = …; }` — root defaults to `src`, stem is appended
+  - `construct { root = …; stem = …; }` — explicit root and stem
+  - `construct "some/stem"` — bare string treated as stem, root defaults to `src`
+  - `construct ["some" "stem"]` — bare list treated as stem, root defaults to `src`
+
+  `stem` may be a string, a list of segments, or one of the pre-defined
+  values from `stems` (e.g. `stems.api.hosts`).
+
+  When `root` does not exist on disk, `store` is `null` and `local` is
+  still returned.
 
   # Type
-  ```nix
-  construct :: { root :: string, stem :: string | [string] } -> string
+  ```
+  construct :: { root :: path?, stem :: string | [string]? }
+            | string
+            | [string]
+            -> { store :: string | null, local :: string }
   ```
 
   # Examples
   ```nix
-  construct { root = "/home/user"; stem = "documents/file.txt"; }
-  # => "/home/user/documents/file.txt"
+  construct {}
+  # => { store = "/nix/store/…-dotDots"; local = "/home/…/dotDots"; }
 
-  construct { root = "/var"; stem = ["log" "app" "output.log"]; }
-  # => "/var/log/app/output.log"
+  construct "Libraries"
+  # => { store = "/nix/store/…-dotDots/Libraries"; local = "/home/…/dotDots/Libraries"; }
+
+  construct ["Libraries" "nix"]
+  # => { store = "/nix/store/…-dotDots/Libraries/nix"; local = "/home/…/dotDots/Libraries/nix"; }
+
+  construct { stem = stems.api.hosts; }
+  # => { store = "/nix/store/…-dotDots/API/nix/hosts"; local = "/home/…/dotDots/API/nix/hosts"; }
+
+  construct { root = ./Libraries; stem = stems.libs.nix; }
+  # => { store = "/nix/store/…-Libraries/Libraries/nix"; local = "/home/…/dotDots/Libraries/Libraries/nix"; }
   ```
   */
-  construct = {
-    root,
-    stem,
-  }:
-    assert assertMsg (isNotEmpty root) "root must not be empty";
-    assert assertMsg (isNotEmpty stem) "stem must not be empty"; "${root}/${
-      if isList stem
-      then concatStringsSep "/" stem
-      else stem
-    }";
+  construct = arg: let
+    normalized =
+      if isAttrs arg
+      then arg
+      else if isString arg || isList arg
+      then {stem = arg;}
+      else throw "construct: expected an attrset, string, or list but got: ${typeOf arg}";
+
+    root = normalized.root or src;
+    stem = normalized.stem or [];
+
+    base = ground {inherit root;};
+    join = basePath:
+      if basePath == null
+      then null
+      else if stem == [] || stem == ""
+      then basePath
+      else
+        concat {
+          root = basePath;
+          inherit stem;
+        };
+  in {
+    store = join base.store;
+    local = join base.local;
+  };
 
   /**
   Resolve a user/host path value to an absolute filesystem path.
