@@ -12,8 +12,8 @@
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isList;
   inherit (_debug) mkFn;
-  inherit (lib.attrsets) hasAttr filterAttrs mapAttrsToList;
-  inherit (lib.lists) foldl';
+  inherit (lib.attrsets) hasAttr filterAttrs listToAttrs mapAttrsToList;
+  inherit (lib.lists) elem foldl';
 
   _debug = mkModuleDebug __moduleRef;
 
@@ -25,17 +25,17 @@
 
   # Type
   ```nix
-  getOr :: { attrs :: AttrSet, key :: string, default :: a } -> a
+  valueOr :: { attrs :: AttrSet, key :: string, default :: a } -> a
   ```
 
   # Examples
   ```nix
-  getOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }  # => "bar"
-  getOr { attrs = { foo = null; }; key = "foo"; default = "?"; }   # => null
-  getOr { attrs = {};              key = "foo"; default = "?"; }   # => "?"
+  valueOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }  # => "bar"
+  valueOr { attrs = { foo = null; }; key = "foo"; default = "?"; }   # => null
+  valueOr { attrs = {};              key = "foo"; default = "?"; }   # => "?"
   ```
   */
-  getOr = {
+  valueOr = {
     attrs,
     key,
     default,
@@ -44,8 +44,8 @@
     then
       throw (_debug.withLoc {
         function = mkFn {
-          name = "getOr";
-          fn = getOr;
+          name = "valueOr";
+          fn = valueOr;
         };
         message = "attrs must be an attrset";
         input = attrs;
@@ -60,17 +60,17 @@
 
   # Type
   ```nix
-  getIn :: { attrs :: AttrSet, path :: [string], default :: a } -> a
+  nestedOr :: { attrs :: AttrSet, path :: [string], default :: a } -> a
   ```
 
   # Examples
   ```nix
-  getIn { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }  # => 1
-  getIn { attrs = { a.b = 1; };   path = ["a" "x" "c"]; default = 0; }  # => 0
-  getIn { attrs = {};              path = ["a"];          default = 0; }  # => 0
+  nestedOr { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }  # => 1
+  nestedOr { attrs = { a.b = 1; };   path = ["a" "x" "c"]; default = 0; }  # => 0
+  nestedOr { attrs = {};              path = ["a"];          default = 0; }  # => 0
   ```
   */
-  getIn = {
+  nestedOr = {
     attrs,
     path,
     default,
@@ -79,8 +79,8 @@
     then
       throw (_debug.withLoc {
         function = mkFn {
-          name = "getIn";
-          fn = getIn;
+          name = "nestedOr";
+          fn = nestedOr;
         };
         message = "attrs must be an attrset";
         input = attrs;
@@ -89,8 +89,8 @@
     then
       throw (_debug.withLoc {
         function = mkFn {
-          name = "getIn";
-          fn = getIn;
+          name = "nestedOr";
+          fn = nestedOr;
         };
         message = "path must be a list of strings";
         input = path;
@@ -147,7 +147,7 @@
         message = "keys must be a list of strings";
         input = keys;
       })
-    else filterAttrs (key: _: builtins.elem key keys) attrs;
+    else filterAttrs (key: _: elem key keys) attrs;
 
   /**
   Return a new attrset with the listed keys removed.
@@ -192,7 +192,7 @@
         message = "keys must be a list of strings";
         input = keys;
       })
-    else filterAttrs (key: _: !(builtins.elem key keys)) attrs;
+    else filterAttrs (key: _: !(elem key keys)) attrs;
 
   /**
   Rename a single key in an attrset, preserving all other keys.
@@ -263,10 +263,10 @@
         input = attrs;
       })
     else
-      builtins.listToAttrs
-      (mapAttrsToList (key: value: {
+      listToAttrs
+      (mapAttrsToList (key: val: {
           name = fn key;
-          value = value;
+          value = val;
         })
         attrs);
 
@@ -295,12 +295,12 @@
         message = "attrs must be an attrset";
         input = attrs;
       })
-    else filterAttrs (_: value: value != null) attrs;
+    else filterAttrs (_: val: val != null) attrs;
 in {
   inherit
     compact
-    getIn
-    getOr
+    nestedOr
+    valueOr
     mapKeys
     omit
     pick
@@ -308,8 +308,8 @@ in {
     ;
 
   _rootAliases = {
-    attrGetOr = getOr;
-    attrGetIn = getIn;
+    attrOr = valueOr;
+    nestedOrAttrOr = nestedOr;
     attrPick = pick;
     attrOmit = omit;
     attrRename = renameKey;
@@ -318,11 +318,11 @@ in {
   };
 
   _tests = runTests {
-    getOr = {
+    valueOr = {
       existingKey = mkTest {
         desired = "bar";
-        command = ''getOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }'';
-        outcome = getOr {
+        command = ''valueOr { attrs = { foo = "bar"; }; key = "foo"; default = "?"; }'';
+        outcome = valueOr {
           attrs = {foo = "bar";};
           key = "foo";
           default = "?";
@@ -330,8 +330,8 @@ in {
       };
       missingKey = mkTest {
         desired = "?";
-        command = ''getOr { attrs = {}; key = "foo"; default = "?"; }'';
-        outcome = getOr {
+        command = ''valueOr { attrs = {}; key = "foo"; default = "?"; }'';
+        outcome = valueOr {
           attrs = {};
           key = "foo";
           default = "?";
@@ -339,8 +339,8 @@ in {
       };
       nullValuePreserved = mkTest {
         desired = null;
-        command = ''getOr { attrs = { foo = null; }; key = "foo"; default = "?"; }'';
-        outcome = getOr {
+        command = ''valueOr { attrs = { foo = null; }; key = "foo"; default = "?"; }'';
+        outcome = valueOr {
           attrs = {foo = null;};
           key = "foo";
           default = "?";
@@ -348,11 +348,11 @@ in {
       };
     };
 
-    getIn = {
+    nestedOr = {
       deepPath = mkTest {
         desired = 1;
-        command = ''getIn { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }'';
-        outcome = getIn {
+        command = ''nestedOr { attrs = { a.b.c = 1; }; path = ["a" "b" "c"]; default = 0; }'';
+        outcome = nestedOr {
           attrs = {a.b.c = 1;};
           path = ["a" "b" "c"];
           default = 0;
@@ -360,8 +360,8 @@ in {
       };
       missingMiddle = mkTest {
         desired = 0;
-        command = ''getIn { attrs = { a.b = 1; }; path = ["a" "x" "c"]; default = 0; }'';
-        outcome = getIn {
+        command = ''nestedOr { attrs = { a.b = 1; }; path = ["a" "x" "c"]; default = 0; }'';
+        outcome = nestedOr {
           attrs = {a.b = 1;};
           path = ["a" "x" "c"];
           default = 0;
@@ -369,8 +369,8 @@ in {
       };
       emptyAttrs = mkTest {
         desired = 0;
-        command = ''getIn { attrs = {}; path = ["a"]; default = 0; }'';
-        outcome = getIn {
+        command = ''nestedOr { attrs = {}; path = ["a"]; default = 0; }'';
+        outcome = nestedOr {
           attrs = {};
           path = ["a"];
           default = 0;

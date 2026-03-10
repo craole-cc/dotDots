@@ -66,17 +66,17 @@
   homeModules = {
     dank-material-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
-      niri    = inputs.dank-material-shell.homeModules.niri or {};
+      niri = inputs.dank-material-shell.homeModules.niri or {};
     };
     noctalia-shell = inputs.noctalia-shell.homeModules or {};
-    caelestia      = inputs.caelestia.homeManagerModules or {};
-    catppuccin     = inputs.catppuccin.homeModules or {};
-    nvf            = {default = inputs.nvf.homeManagerModules.default or {};};
-    plasma         = {default = inputs.plasma.homeModules.plasma-manager or {};};
-    zen-browser    = {
+    caelestia = inputs.caelestia.homeManagerModules or {};
+    catppuccin = inputs.catppuccin.homeModules or {};
+    nvf = {default = inputs.nvf.homeManagerModules.default or {};};
+    plasma = {default = inputs.plasma.homeModules.plasma-manager or {};};
+    zen-browser = {
       twilight = inputs.zen-browser.homeModules.twilight or {};
-      default  = inputs.zen-browser.homeModules.default or {};
-      beta     = inputs.zen-browser.homeModules.beta or {};
+      default = inputs.zen-browser.homeModules.default or {};
+      beta = inputs.zen-browser.homeModules.beta or {};
     };
   };
 
@@ -93,7 +93,12 @@
     base = import "${path}/module-list.nix";
     core = coreModules {inherit class;};
     home = homeModules;
-    all  = {baseModules = base; coreModules = core; homeModules = home; modulesPath = path;};
+    all = {
+      baseModules = base;
+      coreModules = core;
+      homeModules = home;
+      modulesPath = path;
+    };
   in
     {inherit all base core home path;} // all;
 
@@ -101,50 +106,63 @@
     inherit inputs coreModules homeModules mkModule mkModules;
     getCoreInputModules = coreModules;
     getHomeInputModules = homeModules;
-    getInputs           = inputs;
-    mkInputModules      = mkModules;
-    mkInputModule       = mkModule;
+    mkInputModules = mkModules;
+    mkInputModule = mkModule;
   };
 in
   exports
   // {
     _rootAliases = {
-      inherit (exports)
-        getInputs getCoreInputModules getHomeInputModules
-        mkInputModules mkInputModule;
+      inherit
+        (exports)
+        getCoreInputModules
+        getHomeInputModules
+        mkInputModules
+        mkInputModule
+        ;
     };
 
     _tests = runTests {
       mkModule = {
         returnsEmptyWhenVariantMissing = mkTest {
           desired = {};
-          outcome = mkModule {name = "nonexistent"; modules = {};};
+          outcome = mkModule {
+            name = "nonexistent";
+            modules = {};
+          };
           command = ''mkModule { name = "nonexistent"; modules = {}; }'';
         };
         fallsBackToEmptyOnMissingVariant = mkTest {
           desired = {};
-          outcome = mkModule {name = "nvf"; modules = {nvf = {};}; variant = "missing";};
+          outcome = mkModule {
+            name = "nvf";
+            modules = {nvf = {};};
+            variant = "missing";
+          };
           command = ''mkModule { name = "nvf"; modules = { nvf = {}; }; variant = "missing"; }'';
         };
         resolvesExistingVariant = mkTest {
           desired = "ok";
-          outcome = mkModule {name = "myMod"; modules = {myMod.default = "ok";};};
+          outcome = mkModule {
+            name = "myMod";
+            modules = {myMod.default = "ok";};
+          };
           command = ''mkModule { name = "myMod"; modules = { myMod.default = "ok"; }; }'';
         };
       };
 
       homeModules = {
-        hasNvf           = mkTest' true (homeModules ? nvf);
-        hasZenBrowser    = mkTest' true (homeModules ? zen-browser);
-        hasCatppuccin    = mkTest' true (homeModules ? catppuccin);
-        zenHasTwilight   = mkTest' true (homeModules.zen-browser ? twilight);
-        zenHasBeta       = mkTest' true (homeModules.zen-browser ? beta);
+        hasNvf = mkTest' true (homeModules ? nvf);
+        hasZenBrowser = mkTest' true (homeModules ? zen-browser);
+        hasCatppuccin = mkTest' true (homeModules ? catppuccin);
+        zenHasTwilight = mkTest' true (homeModules.zen-browser ? twilight);
+        zenHasBeta = mkTest' true (homeModules.zen-browser ? beta);
       };
 
       coreModules = {
         nixosReturnsList = mkTest' true (builtins.isList (coreModules {class = "nixos";}));
         darwinReturnsList = mkTest' true (builtins.isList (coreModules {class = "darwin";}));
-        defaultsToNixos  = mkTest' true (builtins.isList (coreModules {}));
+        defaultsToNixos = mkTest' true (builtins.isList (coreModules {}));
       };
     };
   }

@@ -8,224 +8,241 @@
 
   resolvedInputs = {
     nixpkgs = byPaths {
-      attrsets = rawInputs;
-      default = "nixpkgs";
+      attrset = rawInputs;
+      default = rawInputs.nixpkgs or {};
       paths = [
-        "nixosCore"
-        "nixPackages"
-        "nixosPackages"
-        "nixosPackagesUnstable"
-        "nixpkgs-unstable"
-        "nixosPackagesStable"
-        "nixpkgs-stable"
+        ["nixosCore"]
+        ["nixPackages"]
+        ["nixosPackages"]
+        ["nixosPackagesUnstable"]
+        ["nixpkgs-unstable"]
+        ["nixosPackagesStable"]
+        ["nixpkgs-stable"]
+        ["nixpkgs"]
       ];
     };
 
     nixpkgs-stable = byPaths {
-      attrsets = rawInputs;
-      default = "nixpkgs-stable";
+      attrset = rawInputs;
+      default = rawInputs.nixpkgs-stable or rawInputs.nixpkgs or {};
       paths = [
-        "nixPackagesStable"
-        "nixosPackagesStable"
-        "nixpkgs-stable"
-        "nixpkgs"
+        ["nixPackagesStable"]
+        ["nixosPackagesStable"]
+        ["nixpkgs-stable"]
+        ["nixpkgs"]
       ];
     };
 
     nixpkgs-unstable = byPaths {
-      attrsets = rawInputs;
-      default = "nixpkgs-unstable";
+      attrset = rawInputs;
+      default = rawInputs.nixpkgs-unstable or rawInputs.nixpkgs or {};
       paths = [
-        "nixPackagesUnstable"
-        "nixosPackagesUnstable"
-        "nixpkgs-unstable"
-        "nixpkgs"
+        ["nixPackagesUnstable"]
+        ["nixosPackagesUnstable"]
+        ["nixpkgs-unstable"]
+        ["nixpkgs"]
       ];
     };
 
     nix-darwin = byPaths {
-      attrsets = rawInputs;
-      default = "nix-darwin";
+      attrset = rawInputs;
+      default = rawInputs.nix-darwin or {};
       paths = [
-        "darwin"
-        "nixDarwin"
-        "darwinNix"
+        ["darwin"]
+        ["nixDarwin"]
+        ["darwinNix"]
+        ["nix-darwin"]
       ];
     };
 
     home-manager = byPaths {
-      attrsets = rawInputs;
-      default = "home-manager";
+      attrset = rawInputs;
+      default = rawInputs.home-manager or {};
       paths = [
-        "nixHomeManager"
-        "nixosHome"
-        "nixHome"
-        "homeManager"
-        "home"
+        ["nixHomeManager"]
+        ["nixosHome"]
+        ["nixHome"]
+        ["homeManager"]
+        ["home"]
+        ["home-manager"]
       ];
     };
 
     catppuccin = byPaths {
-      attrsets = rawInputs;
-      default = "catppuccin";
+      attrset = rawInputs;
+      default = rawInputs.catppuccin or {};
       paths = [
-        "styleCatppuccin"
-        "catppuccinStyle"
+        ["styleCatppuccin"]
+        ["catppuccinStyle"]
+        ["catppuccin"]
       ];
     };
 
     chaotic = byPaths {
-      attrsets = rawInputs;
-      default = "chaotic";
+      attrset = rawInputs;
+      default = rawInputs.chaotic or {};
       paths = [
-        "nixChaotic"
-        "kernelChaotic"
-        "chaoticKernel"
+        ["nixChaotic"]
+        ["kernelChaotic"]
+        ["chaoticKernel"]
+        ["chaotic"]
       ];
     };
 
     fresh-editor = byPaths {
-      attrsets = rawInputs;
-      default = "fresh-editor";
+      attrset = rawInputs;
+      default = rawInputs.fresh-editor or {};
       paths = [
-        "fresh"
-        "freshEditor"
-        "editorFresh"
+        ["fresh"]
+        ["freshEditor"]
+        ["editorFresh"]
+        ["fresh-editor"]
       ];
     };
 
     stylix = byPaths {
-      attrsets = rawInputs;
-      default = "stylix";
+      attrset = rawInputs;
+      default = rawInputs.stylix or {};
       paths = [
-        "nixStyle"
-        "styleManager"
-        "darwinNix"
+        ["nixStyle"]
+        ["styleManager"]
+        ["stylix"]
       ];
     };
 
     helix = byPaths {
-      attrsets = rawInputs;
-      default = "helix";
+      attrset = rawInputs;
+      default = rawInputs.helix or {};
       paths = [
-        "helix-editor"
-        "hx"
-        "helixEditor"
-        "editorHelix"
-        "editorHX"
+        ["helix-editor"]
+        ["hx"]
+        ["helixEditor"]
+        ["editorHelix"]
+        ["editorHX"]
+        ["helix"]
       ];
     };
 
     caelestia = byPaths {
-      attrsets = rawInputs;
-      default = "caelestia";
+      attrset = rawInputs;
+      default = rawInputs.caelestia or {};
       paths = [
-        "shellCaelestia"
-        "caelestia-shell"
+        ["shellCaelestia"]
+        ["caelestia-shell"]
+        ["caelestia"]
       ];
     };
 
     dank-material-shell = byPaths {
-      attrsets = rawInputs;
-      default = "dank-material-shell";
+      attrset = rawInputs;
+      default = rawInputs.dank-material-shell or {};
       paths = [
-        "shellDankMaterial"
-        "shellDank"
-        "dank-material"
-        "dank"
-        "dms"
+        ["shellDankMaterial"]
+        ["shellDank"]
+        ["dank-material"]
+        ["dank"]
+        ["dms"]
+        ["dank-material-shell"]
       ];
     };
 
     noctalia-shell = byPaths {
-      attrsets = rawInputs;
-      default = "noctalia-shell";
+      attrset = rawInputs;
+      default = rawInputs.noctalia-shell or {};
       paths = [
-        "shellNoctalia"
-        "noctalia-dev"
-        "noctalia"
+        ["shellNoctalia"]
+        ["noctalia-dev"]
+        ["noctalia"]
+        ["noctalia-shell"]
       ];
     };
 
     quickshell = byPaths {
-      attrsets = rawInputs;
-      default = "quickshell";
+      attrset = rawInputs;
+      default = rawInputs.quickshell or {};
       paths = [
-        "shellQuick"
-        "qtshell"
-        "qmlshell"
-        "quick"
+        ["shellQuick"]
+        ["qtshell"]
+        ["qmlshell"]
+        ["quick"]
+        ["quickshell"]
       ];
     };
 
     nvf = byPaths {
-      attrsets = rawInputs;
-      default = "nvf";
+      attrset = rawInputs;
+      default = rawInputs.nvf or {};
       paths = [
-        "editorNeovim"
-        "neovim"
-        "nvim"
-        "neovimFlake"
-        "neoVim"
+        ["editorNeovim"]
+        ["neovim"]
+        ["nvim"]
+        ["neovimFlake"]
+        ["neoVim"]
+        ["nvf"]
       ];
     };
 
     plasma = byPaths {
-      attrsets = rawInputs;
-      default = "plasma";
+      attrset = rawInputs;
+      default = rawInputs.plasma or {};
       paths = [
-        "shellPlasma"
-        "plasma-manager"
-        "plasmaManager"
-        "kde"
+        ["shellPlasma"]
+        ["plasma-manager"]
+        ["plasmaManager"]
+        ["kde"]
+        ["plasma"]
       ];
     };
 
     treefmt = byPaths {
-      attrsets = rawInputs;
-      default = "treefmt";
+      attrset = rawInputs;
+      default = rawInputs.treefmt or {};
       paths = [
-        "treeFormatter"
-        "fmtree"
-        "treefmt-nix"
+        ["treeFormatter"]
+        ["fmtree"]
+        ["treefmt-nix"]
+        ["treefmt"]
       ];
     };
 
     typix = byPaths {
-      attrsets = rawInputs;
-      default = "typix";
+      attrset = rawInputs;
+      default = rawInputs.typix or {};
       paths = [
-        "docTypix"
-        "typst"
-        "typ"
+        ["docTypix"]
+        ["typst"]
+        ["typ"]
+        ["typix"]
       ];
     };
 
     vscode-insiders = byPaths {
-      attrsets = rawInputs;
-      default = "vscode-insiders";
+      attrset = rawInputs;
+      default = rawInputs.vscode-insiders or {};
       paths = [
-        "vscode"
-        "code"
-        "code-insiders"
-        "vsc"
-        "VSCode"
-        "editorVscode"
-        "editorVscodeInsiders"
-        "vscode-insiders-nix"
+        ["vscode"]
+        ["code"]
+        ["code-insiders"]
+        ["vsc"]
+        ["VSCode"]
+        ["editorVscode"]
+        ["editorVscodeInsiders"]
+        ["vscode-insiders-nix"]
+        ["vscode-insiders"]
       ];
     };
 
     zen-browser = byPaths {
-      attrsets = rawInputs;
-      default = "zen-browser";
+      attrset = rawInputs;
+      default = rawInputs.zen-browser or {};
       paths = [
-        "browserZen"
-        "firefoxZen"
-        "zen"
-        "zenBrowser"
-        "zenFirefox"
-        "twilight"
+        ["browserZen"]
+        ["firefoxZen"]
+        ["zen"]
+        ["zenBrowser"]
+        ["zenFirefox"]
+        ["twilight"]
+        ["zen-browser"]
       ];
     };
   };
@@ -239,48 +256,55 @@ in
   exports
   // {
     _rootAliases = {
-      inherit (exports) resolvedInputs resolvedFlake rawInputs inputs flake;
+      inherit (exports) resolvedInputs resolvedFlake rawInputs;
     };
 
     _tests = runTests {
       byPaths = {
         resolvesFirstMatchingPath = mkTest {
           desired = "found";
+          command = ''byPaths { attrset = { aliasKey = "found"; }; paths = [["aliasKey"]]; default = null; }'';
           outcome = byPaths {
-            attrsets = {aliasKey = "found";};
-            default = "aliasKey";
-            paths = ["aliasKey"];
+            attrset = {aliasKey = "found";};
+            paths = [["aliasKey"]];
+            default = null;
           };
-          command = ''byPaths with aliasKey present'';
         };
         fallsBackToDefault = mkTest {
           desired = "fallback";
+          command = ''byPaths { attrset = { canonical = "fallback"; }; paths = [["noSuchKey"]]; default = "fallback"; }'';
           outcome = byPaths {
-            attrsets = {canonical = "fallback";};
-            default = "canonical";
-            paths = ["noSuchKey"];
+            attrset = {canonical = "fallback";};
+            paths = [["noSuchKey"]];
+            default = "fallback";
           };
-          command = ''byPaths falls back to default key when paths miss'';
         };
         prefersEarlierPath = mkTest {
           desired = "first";
+          command = ''byPaths { attrset = { keyA = "first"; keyB = "second"; }; paths = [["keyA"] ["keyB"]]; default = null; }'';
           outcome = byPaths {
-            attrsets = {
+            attrset = {
               keyA = "first";
               keyB = "second";
             };
-            default = "keyA";
-            paths = ["keyA" "keyB"];
+            paths = [["keyA"] ["keyB"]];
+            default = null;
           };
-          command = ''byPaths prefers first matching path'';
         };
-        returnsNullWhenNothingMatches =
-          mkTest' null
-          (byPaths {
-            attrsets = {};
-            default = "missing";
-            paths = ["alsoMissing"];
-          });
+        returnsDefaultWhenNothingMatches = mkTest' null (byPaths {
+          attrset = {};
+          paths = [["missing"] ["alsoMissing"]];
+          default = null;
+        });
+        resolvesNestedPath = mkTest {
+          desired = 1;
+          command = ''byPaths { attrset = { foo.bar = 1; }; paths = [["missing"] ["foo" "bar"]]; default = null; }'';
+          outcome = byPaths {
+            attrset = {foo.bar = 1;};
+            paths = [["missing"] ["foo" "bar"]];
+            default = null;
+          };
+        };
       };
     };
   }
