@@ -318,6 +318,7 @@
       else if opts ? tiebreaker
       then foldl' (cur: nxt: opts.tiebreaker cur nxt) (head tiedItems) (tail tiedItems)
       else head tiedItems;
+
 in {
   inherit
     checkMembership
@@ -354,67 +355,42 @@ in {
       singleValueFound = mkTest {
         desired = true;
         command = ''checkMembership { value = "foo"; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = "foo";
-          check = ["foo" "bar"];
-        };
+        outcome = checkMembership {value = "foo"; check = ["foo" "bar"];};
       };
       singleValueNotFound = mkTest {
         desired = false;
         command = ''checkMembership { value = "baz"; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = "baz";
-          check = ["foo" "bar"];
-        };
+        outcome = checkMembership {value = "baz"; check = ["foo" "bar"];};
       };
       listWithOneMatch = mkTest {
         desired = true;
         command = ''checkMembership { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = ["foo" "qux"];
-          check = ["foo" "bar"];
-        };
+        outcome = checkMembership {value = ["foo" "qux"]; check = ["foo" "bar"];};
       };
       listWithNoMatches = mkTest {
         desired = false;
         command = ''checkMembership { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = ["qux" "quux"];
-          check = ["foo" "bar"];
-        };
+        outcome = checkMembership {value = ["qux" "quux"]; check = ["foo" "bar"];};
       };
       caseInsensitiveByDefault = mkTest {
         desired = true;
         command = ''checkMembership { value = "FOO"; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = "FOO";
-          check = ["foo" "bar"];
-        };
+        outcome = checkMembership {value = "FOO"; check = ["foo" "bar"];};
       };
       caseSensitiveWithExact = mkTest {
         desired = false;
         command = ''checkMembership { value = "FOO"; check = ["foo" "bar"]; exact = true; }'';
-        outcome = checkMembership {
-          value = "FOO";
-          check = ["foo" "bar"];
-          exact = true;
-        };
+        outcome = checkMembership {value = "FOO"; check = ["foo" "bar"]; exact = true;};
       };
       emptyValueList = mkTest {
         desired = false;
         command = ''checkMembership { value = []; check = ["foo" "bar"]; }'';
-        outcome = checkMembership {
-          value = [];
-          check = ["foo" "bar"];
-        };
+        outcome = checkMembership {value = []; check = ["foo" "bar"];};
       };
       singleCheckValue = mkTest {
         desired = true;
         command = ''checkMembership { value = ["foo" "bar"]; check = "foo"; }'';
-        outcome = checkMembership {
-          value = ["foo" "bar"];
-          check = "foo";
-        };
+        outcome = checkMembership {value = ["foo" "bar"]; check = "foo";};
       };
     };
 
@@ -422,51 +398,32 @@ in {
       noMatches = mkTest {
         desired = 0;
         command = ''countMatches { value = ["qux" "quux"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["qux" "quux"];
-          check = ["foo" "bar"];
-        };
+        outcome = countMatches {value = ["qux" "quux"]; check = ["foo" "bar"];};
       };
       oneMatch = mkTest {
         desired = 1;
         command = ''countMatches { value = ["foo" "qux"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["foo" "qux"];
-          check = ["foo" "bar"];
-        };
+        outcome = countMatches {value = ["foo" "qux"]; check = ["foo" "bar"];};
       };
       allMatch = mkTest {
         desired = 2;
         command = ''countMatches { value = ["foo" "bar"]; check = ["foo" "bar" "baz"]; }'';
-        outcome = countMatches {
-          value = ["foo" "bar"];
-          check = ["foo" "bar" "baz"];
-        };
+        outcome = countMatches {value = ["foo" "bar"]; check = ["foo" "bar" "baz"];};
       };
       caseInsensitive = mkTest {
         desired = 2;
         command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["FOO" "Bar"];
-          check = ["foo" "bar"];
-        };
+        outcome = countMatches {value = ["FOO" "Bar"]; check = ["foo" "bar"];};
       };
       caseSensitive = mkTest {
         desired = 0;
         command = ''countMatches { value = ["FOO" "Bar"]; check = ["foo" "bar"]; exact = true; }'';
-        outcome = countMatches {
-          value = ["FOO" "Bar"];
-          check = ["foo" "bar"];
-          exact = true;
-        };
+        outcome = countMatches {value = ["FOO" "Bar"]; check = ["foo" "bar"]; exact = true;};
       };
       duplicateValues = mkTest {
         desired = 2;
         command = ''countMatches { value = ["foo" "foo"]; check = ["foo" "bar"]; }'';
-        outcome = countMatches {
-          value = ["foo" "foo"];
-          check = ["foo" "bar"];
-        };
+        outcome = countMatches {value = ["foo" "foo"]; check = ["foo" "bar"];};
       };
     };
 
