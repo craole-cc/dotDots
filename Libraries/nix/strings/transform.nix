@@ -1,10 +1,10 @@
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
 }: let
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
   inherit (_debug) mkFn mkExample;
 
   inherit (_.debug.module) mkModuleDebug;

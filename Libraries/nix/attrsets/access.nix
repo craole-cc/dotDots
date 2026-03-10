@@ -2,7 +2,7 @@
 #
 # Safe attribute access and selection utilities.
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
@@ -15,7 +15,7 @@
   inherit (lib.attrsets) hasAttr filterAttrs mapAttrsToList;
   inherit (lib.lists) foldl';
 
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
 
   /**
   Get an attribute value with a fallback default.

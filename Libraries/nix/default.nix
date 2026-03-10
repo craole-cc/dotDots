@@ -165,12 +165,10 @@
               moduleEnv =
                 env
                 // rec {
-                  __moduleStorePath = filePath;
+                  __moduleFile = filePath;
                   __moduleName = moduleName;
-                  __namespacePath = pathPrefix ++ [moduleName]; # e.g. ["strings" "transform"]
-                  __libraryPath = [env.library] ++ __namespacePath; # e.g. ["lix" "strings" "transform"]
-                  __libraryName = concatStringsSep "." __libraryPath;
-                  name = __libraryName;
+                  __modulePath = [env.library] ++ pathPrefix ++ [moduleName];
+                  __moduleRef = concatStringsSep "." __modulePath;
                 };
               result = rawModule moduleEnv;
             in

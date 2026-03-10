@@ -1,18 +1,38 @@
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
 }: let
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
 
   inherit (_.lists.predicates) isIn isInExact;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.tests) mkTest runTests;
   inherit (_.types.predicates) isAttrs isFunction isList;
   inherit (lib.attrsets) attrNames hasAttr;
-  inherit (lib.lists) all any;
+  inherit (lib.lists) all any filter;
   inherit (lib.strings) hasPrefix stringLength;
+
+  /**
+  Convert a single string, or list of strings, into a cleaned list.
+
+  Removes null values but preserves empty strings.
+
+  # Type
+  ```nix
+  toList :: string | [string | null] | null -> [string]
+  ```
+
+  # Examples
+  ```nix
+  toList "foo"               # => ["foo"]
+  toList ["foo" null "bar"]  # => ["foo" "bar"]
+  toList null                # => []
+  ```
+  */
+  toList = value:
+    filter (v: v != null) (lib.lists.toList value);
 
   /**
   Create a validator that checks if values are in an allowed list.
@@ -306,6 +326,7 @@
     };
 in {
   inherit
+    toList
     mkEnum
     mkValidator
     mkCaseInsensitiveValidator
@@ -317,7 +338,7 @@ in {
     ;
 
   _rootAliases = {
-    inherit mkEnum;
+    inherit mkEnum toList;
     mkListValidator = mkValidator;
     mkCaseInsensitiveListValidator = mkCaseInsensitiveValidator;
     mkCaseSensitiveListValidator = mkCaseSensitiveValidator;

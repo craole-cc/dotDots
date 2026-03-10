@@ -65,7 +65,7 @@
   /**
   Create a set of debug helpers bound to a module's namespace path.
 
-  Accepts a dotted string (from `__libraryPath`), a path list, or an
+  Accepts a dotted string (from `__moduleRef`), a path list, or an
   attrset `{ path?, name? }`.
 
   # Type
@@ -75,8 +75,8 @@
 
   # Usage
   ```nix
-  {_, __libraryPath, ...}: let
-    _debug = _.debug.module.mkModuleDebug __libraryPath;
+  {_, __moduleRef, ...}: let
+    _debug = _.debug.module.mkModuleDebug __moduleRef;
     inherit (_debug) mkFn mkExample;
   in {
     myFn = input:

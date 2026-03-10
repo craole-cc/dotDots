@@ -2,7 +2,7 @@
 #
 # Attrset merging strategies.
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
@@ -14,7 +14,7 @@
   inherit (_.types.predicates) isAttrs isFunction;
   inherit (lib.attrsets) mapAttrs recursiveUpdate;
 
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
 
   /**
   Merge two attrsets, with `override` winning on key conflicts.

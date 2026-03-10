@@ -1,13 +1,15 @@
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
 }: let
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
 
-  inherit (_.trivial.debug) mkModuleDebug mkExample;
-  inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.debug.format) mkExample;
+  inherit (_.debug.module) mkModuleDebug;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isList isString;
   inherit (lib.lists) all any filter head map;
   inherit (lib.strings) concatStringsSep splitString;

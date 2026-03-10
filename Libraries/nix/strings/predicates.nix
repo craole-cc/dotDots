@@ -1,17 +1,20 @@
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
 }: let
   inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.format) mkExample;
-  inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
   inherit (_.lists.generators) toList;
-  inherit (_.lists.predicates) isList any all;
+  inherit (_.lists.predicates) isList;
+  inherit (_.types.predicates) typeOf;
+  inherit (lib.lists) any all;
   inherit (lib.strings) hasInfix hasPrefix hasSuffix;
 
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
 
   _mkAny = {
     name,
@@ -236,7 +239,7 @@
   ```
   */
   isBinary = s:
-    lib.strings.typeOf s == "string" && (s == "0" || s == "1");
+    typeOf s == "string" && (s == "0" || s == "1");
 
   /**
   Check whether a value can be converted to a string via `toString`.
@@ -422,6 +425,176 @@ in
           desired = false;
           command = ''endsWithAll "bar" ["foobar" "bazX"]'';
           outcome = endsWithAll "bar" ["foobar" "bazX"];
+        };
+      };
+
+      isString = {
+        detectsString = mkTest {
+          desired = true;
+          command = ''isString "foo"'';
+          outcome = isString "foo";
+        };
+        detectsEmpty = mkTest {
+          desired = true;
+          command = ''isString ""'';
+          outcome = isString "";
+        };
+        rejectsInt = mkTest {
+          desired = false;
+          command = "isString 42";
+          outcome = isString 42;
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isString null";
+          outcome = isString null;
+        };
+        rejectsBool = mkTest {
+          desired = false;
+          command = "isString true";
+          outcome = isString true;
+        };
+        rejectsList = mkTest {
+          desired = false;
+          command = "isString []";
+          outcome = isString [];
+        };
+      };
+
+      isBinary = {
+        detectsZero = mkTest {
+          desired = true;
+          command = ''isBinary "0"'';
+          outcome = isBinary "0";
+        };
+        detectsOne = mkTest {
+          desired = true;
+          command = ''isBinary "1"'';
+          outcome = isBinary "1";
+        };
+        rejectsOtherString = mkTest {
+          desired = false;
+          command = ''isBinary "yes"'';
+          outcome = isBinary "yes";
+        };
+        rejectsInt = mkTest {
+          desired = false;
+          command = "isBinary 1";
+          outcome = isBinary 1;
+        };
+        rejectsEmpty = mkTest {
+          desired = false;
+          command = ''isBinary ""'';
+          outcome = isBinary "";
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isBinary null";
+          outcome = isBinary null;
+        };
+      };
+
+      isConvertible = {
+        detectsString = mkTest {
+          desired = true;
+          command = ''isConvertible "foo"'';
+          outcome = isConvertible "foo";
+        };
+        detectsInt = mkTest {
+          desired = true;
+          command = "isConvertible 42";
+          outcome = isConvertible 42;
+        };
+        detectsBool = mkTest {
+          desired = true;
+          command = "isConvertible true";
+          outcome = isConvertible true;
+        };
+        detectsToStringAttrs = mkTest {
+          desired = true;
+          command = ''isConvertible { __toString = _: "x"; }'';
+          outcome = isConvertible {__toString = _: "x";};
+        };
+        detectsOutPath = mkTest {
+          desired = true;
+          command = ''isConvertible { outPath = "/nix/store/foo"; }'';
+          outcome = isConvertible {outPath = "/nix/store/foo";};
+        };
+        rejectsPlainAttrs = mkTest {
+          desired = false;
+          command = ''isConvertible { a = 1; }'';
+          outcome = isConvertible {a = 1;};
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isConvertible null";
+          outcome = isConvertible null;
+        };
+      };
+
+      isLike = {
+        detectsString = mkTest {
+          desired = true;
+          command = ''isLike "foo"'';
+          outcome = isLike "foo";
+        };
+        detectsOutPath = mkTest {
+          desired = true;
+          command = ''isLike { outPath = "/nix/store/foo"; }'';
+          outcome = isLike {outPath = "/nix/store/foo";};
+        };
+        rejectsInt = mkTest {
+          desired = false;
+          command = "isLike 42";
+          outcome = isLike 42;
+        };
+        rejectsPlainAttrs = mkTest {
+          desired = false;
+          command = ''isLike { a = 1; }'';
+          outcome = isLike {a = 1;};
+        };
+        rejectsNull = mkTest {
+          desired = false;
+          command = "isLike null";
+          outcome = isLike null;
+        };
+      };
+
+      isPOSIX = {
+        detectsSimpleName = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo"'';
+          outcome = isPOSIX "foo";
+        };
+        detectsHyphenated = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo-bar"'';
+          outcome = isPOSIX "foo-bar";
+        };
+        detectsUnderscored = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo_bar"'';
+          outcome = isPOSIX "foo_bar";
+        };
+        detectsDotted = mkTest {
+          desired = true;
+          command = ''isPOSIX "foo.bar"'';
+          outcome = isPOSIX "foo.bar";
+        };
+        rejectsSpace = mkTest {
+          desired = false;
+          command = ''isPOSIX "foo bar"'';
+          outcome = isPOSIX "foo bar";
+        };
+        rejectsLeadingHyphen = mkTest {
+          desired = false;
+          command = ''isPOSIX "-foo"'';
+          outcome = isPOSIX "-foo";
+        };
+        rejectsSlash = mkTest {
+          desired = false;
+          command = ''isPOSIX "foo/bar"'';
+          outcome = isPOSIX "foo/bar";
         };
       };
     };

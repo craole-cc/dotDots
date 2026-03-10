@@ -1,16 +1,19 @@
 {
-  __libraryPath,
+  __moduleRef,
   _,
   lib,
   ...
 }: let
-  _debug = mkModuleDebug __libraryPath;
-
   inherit (_.strings.generators) toList;
   inherit (_.strings.transform) toLower;
-  inherit (_.trivial.debug) mkModuleDebug mkExample;
-  inherit (_.trivial.tests) mkTest runTests;
+  inherit (_.debug.module) mkModuleDebug;
+  inherit (_.debug.format) mkExample;
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
+  # inherit (_.types.predicates) typeOf;
   inherit (lib.lists) all any elem filter length;
+
+  _debug = mkModuleDebug __moduleRef;
 
   /**
   Check whether a value is a list.

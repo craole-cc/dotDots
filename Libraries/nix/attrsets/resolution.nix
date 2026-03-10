@@ -2,7 +2,7 @@
   _,
   lib,
   src,
-  __libraryPath,
+  __moduleRef,
   ...
 }: let
   inherit (_.debug.assertions) mkTest mkTest';
@@ -24,7 +24,7 @@
   inherit (lib.lists) filter findFirst head toList;
   inherit (builtins) getFlake tryEval;
 
-  _debug = mkModuleDebug __libraryPath;
+  _debug = mkModuleDebug __moduleRef;
 
   /**
   Get an attribute value, throwing if the key is absent.
