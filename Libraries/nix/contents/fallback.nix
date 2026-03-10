@@ -6,6 +6,8 @@
   lib,
   ...
 }: let
+  inherit (_.debug.assertions) mkTest;
+  inherit (_.debug.runners) runTests;
   inherit (_.contents.empty) isEmpty;
   inherit (lib.lists) findFirst;
 
@@ -138,4 +140,230 @@
 
   exports = {inherit orDefault orNull firstNonEmpty mapOrDefault mapOrNull;};
 in
-  exports // {_rootAliases = exports;}
+  exports
+  // {
+    _rootAliases = exports;
+
+    _tests = runTests {
+      orDefault = {
+        returnsValueWhenNonEmpty = mkTest {
+          desired = "hello";
+          command = ''orDefault { value = "hello"; default = "fallback"; }'';
+          outcome = orDefault {
+            value = "hello";
+            default = "fallback";
+          };
+        };
+        returnsDefaultForNull = mkTest {
+          desired = "fallback";
+          command = ''orDefault { value = null; default = "fallback"; }'';
+          outcome = orDefault {
+            value = null;
+            default = "fallback";
+          };
+        };
+        returnsDefaultForEmptyString = mkTest {
+          desired = "fallback";
+          command = ''orDefault { value = ""; default = "fallback"; }'';
+          outcome = orDefault {
+            value = "";
+            default = "fallback";
+          };
+        };
+        returnsDefaultForWhitespace = mkTest {
+          desired = "fallback";
+          command = ''orDefault { value = "  "; default = "fallback"; }'';
+          outcome = orDefault {
+            value = "  ";
+            default = "fallback";
+          };
+        };
+        returnsDefaultForEmptyList = mkTest {
+          desired = "fallback";
+          command = ''orDefault { value = []; default = "fallback"; }'';
+          outcome = orDefault {
+            value = [];
+            default = "fallback";
+          };
+        };
+        returnsDefaultForEmptyAttrs = mkTest {
+          desired = "fallback";
+          command = ''orDefault { value = {}; default = "fallback"; }'';
+          outcome = orDefault {
+            value = {};
+            default = "fallback";
+          };
+        };
+        zeroIsNotEmpty = mkTest {
+          desired = 0;
+          command = "orDefault { value = 0; default = 42; }";
+          outcome = orDefault {
+            value = 0;
+            default = 42;
+          };
+        };
+        falseIsNotEmpty = mkTest {
+          desired = false;
+          command = "orDefault { value = false; default = true; }";
+          outcome = orDefault {
+            value = false;
+            default = true;
+          };
+        };
+      };
+
+      orNull = {
+        returnsValueWhenNonNull = mkTest {
+          desired = "hello";
+          command = ''orNull { value = "hello"; default = "fallback"; }'';
+          outcome = orNull {
+            value = "hello";
+            default = "fallback";
+          };
+        };
+        returnsDefaultForNull = mkTest {
+          desired = "fallback";
+          command = ''orNull { value = null; default = "fallback"; }'';
+          outcome = orNull {
+            value = null;
+            default = "fallback";
+          };
+        };
+        preservesEmptyString = mkTest {
+          desired = "";
+          command = ''orNull { value = ""; default = "fallback"; }'';
+          outcome = orNull {
+            value = "";
+            default = "fallback";
+          };
+        };
+        preservesEmptyList = mkTest {
+          desired = [];
+          command = "orNull { value = []; default = [1]; }";
+          outcome = orNull {
+            value = [];
+            default = [1];
+          };
+        };
+        preservesEmptyAttrs = mkTest {
+          desired = {};
+          command = "orNull { value = {}; default = { a = 1; }; }";
+          outcome = orNull {
+            value = {};
+            default = {a = 1;};
+          };
+        };
+      };
+
+      firstNonEmpty = {
+        returnsFirstNonEmpty = mkTest {
+          desired = "hello";
+          command = ''firstNonEmpty ["" null "hello" "world"]'';
+          outcome = firstNonEmpty ["" null "hello" "world"];
+        };
+        skipsNullAndEmpty = mkTest {
+          desired = "hello";
+          command = ''firstNonEmpty [null "" {} [] "hello"]'';
+          outcome = firstNonEmpty [null "" {} [] "hello"];
+        };
+        returnsNullWhenAllEmpty = mkTest {
+          desired = null;
+          command = ''firstNonEmpty [null "" {} []]'';
+          outcome = firstNonEmpty [null "" {} []];
+        };
+        returnsFirstOfMany = mkTest {
+          desired = "first";
+          command = ''firstNonEmpty ["first" "second"]'';
+          outcome = firstNonEmpty ["first" "second"];
+        };
+        zeroCountsAsNonEmpty = mkTest {
+          desired = 0;
+          command = "firstNonEmpty [null 0 1]";
+          outcome = firstNonEmpty [null 0 1];
+        };
+        falseCountsAsNonEmpty = mkTest {
+          desired = false;
+          command = "firstNonEmpty [null false true]";
+          outcome = firstNonEmpty [null false true];
+        };
+      };
+
+      mapOrDefault = {
+        appliesFnWhenNonEmpty = mkTest {
+          desired = 6;
+          command = "mapOrDefault { fn = x: x + 1; value = 5; default = 0; }";
+          outcome = mapOrDefault {
+            fn = x: x + 1;
+            value = 5;
+            default = 0;
+          };
+        };
+        returnsDefaultForNull = mkTest {
+          desired = 0;
+          command = "mapOrDefault { fn = x: x + 1; value = null; default = 0; }";
+          outcome = mapOrDefault {
+            fn = x: x + 1;
+            value = null;
+            default = 0;
+          };
+        };
+        returnsDefaultForEmptyString = mkTest {
+          desired = "?";
+          command = ''mapOrDefault { fn = s: s + "!"; value = ""; default = "?"; }'';
+          outcome = mapOrDefault {
+            fn = s: s + "!";
+            value = "";
+            default = "?";
+          };
+        };
+        appliesFnToString = mkTest {
+          desired = "hello!";
+          command = ''mapOrDefault { fn = s: s + "!"; value = "hello"; default = "?"; }'';
+          outcome = mapOrDefault {
+            fn = s: s + "!";
+            value = "hello";
+            default = "?";
+          };
+        };
+      };
+
+      mapOrNull = {
+        appliesFnWhenNonNull = mkTest {
+          desired = "hello!";
+          command = ''mapOrNull { fn = s: s + "!"; value = "hello"; default = "?"; }'';
+          outcome = mapOrNull {
+            fn = s: s + "!";
+            value = "hello";
+            default = "?";
+          };
+        };
+        returnsDefaultForNull = mkTest {
+          desired = "?";
+          command = ''mapOrNull { fn = s: s + "!"; value = null; default = "?"; }'';
+          outcome = mapOrNull {
+            fn = s: s + "!";
+            value = null;
+            default = "?";
+          };
+        };
+        transformsEmptyString = mkTest {
+          desired = "!";
+          command = ''mapOrNull { fn = s: s + "!"; value = ""; default = "?"; }'';
+          outcome = mapOrNull {
+            fn = s: s + "!";
+            value = "";
+            default = "?";
+          };
+        };
+        transformsEmptyList = mkTest {
+          desired = 0;
+          command = "mapOrNull { fn = builtins.length; value = []; default = -1; }";
+          outcome = mapOrNull {
+            fn = builtins.length;
+            value = [];
+            default = -1;
+          };
+        };
+      };
+    };
+  }
