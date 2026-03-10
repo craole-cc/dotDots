@@ -5,10 +5,10 @@
 }: let
   inherit (_.modules._) mkHome;
   inherit (_.modules.core.environment) mkEnvironment mkLocale;
-  inherit (_.modules.core.hardware) mkAudio mkFileSystems mkNetwork;
+  inherit (_.modules.core.hardware) mkAudio mkFileSystems mkNetwork mkBoot;
   inherit (_.modules.core.programs) mkPrograms;
   inherit (_.modules.core.services) mkServices;
-  inherit (_.modules.core.software) mkNix mkBoot mkClean;
+  inherit (_.modules.core.software) mkNix mkClean;
   inherit (_.modules.core.style) mkFonts;
   inherit (_.modules.core.users) mkUsers;
   inherit (lib.modules) mkMerge;

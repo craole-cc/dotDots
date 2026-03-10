@@ -8,6 +8,15 @@
   inherit (lib.strings) hasSuffix;
   inherit (lib.lists) filter map elem;
 
+  exports = {
+    inherit
+      listFilesRecursively
+      listNix
+      listNixModules
+      listNixPackagesRecursively
+      ;
+  };
+
   /**
   List all files under a directory, recursively.
 
@@ -78,14 +87,5 @@
   */
   listNix = path:
     filter isNotEmpty (map toString (listFilesRecursive path));
-
-  exports = {
-    inherit
-      listFilesRecursively
-      listNix
-      listNixModules
-      listNixPackagesRecursively
-      ;
-  };
 in
   exports // {_rootAliases = exports;}

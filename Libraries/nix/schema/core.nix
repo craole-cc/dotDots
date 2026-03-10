@@ -8,7 +8,7 @@
   inherit (_.filesystem.importers) importAttrs;
   inherit (lib.lists) head;
   inherit (_.schema) ui user;
-  apiPath = paths.store.api.default or ../../../API/nix/;
+  apiPath = paths.store.api.default or ../../../API/nix;
 
   /**
   Get host and user attributes from specified directories.

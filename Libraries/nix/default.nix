@@ -4,7 +4,7 @@
   # pkgs ? import <nixpkgs> {},
   name ? "lix",
   src ? ../.,
-  paths,
+  paths ? {},
   collisionStrategy ? "warn",
   # enableCaching ? true,
   runTests ? true,

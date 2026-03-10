@@ -37,24 +37,13 @@
       ;
   };
 
-  mkPath = {
-    root,
-    stem,
-  }: "${root}/${
-    if isList stem
-    then concatStringsSep "/" stem
-    else stem
-  }";
-
-  concat = prefix: parts: let
-    base = toString prefix;
-  in
-    if parts == []
-    then base
-    else "${base}/${concatStringsSep "/" parts}";
-
-  mapStems = prefix:
-    mapAttrsRecursive (_: concat prefix);
+  roots = {
+    store = builtins.path {
+      path = src;
+      name = "dotDots";
+    };
+    local = src;
+  };
 
   stems = {
     default = [];
@@ -93,13 +82,24 @@
     };
   };
 
-  roots = {
-    store = builtins.path {
-      path = ./.;
-      name = "dotDots";
-    };
-    local = ./.;
-  };
+  mkPath = {
+    root,
+    stem,
+  }: "${root}/${
+    if isList stem
+    then concatStringsSep "/" stem
+    else stem
+  }";
+
+  concat = prefix: parts: let
+    base = toString prefix;
+  in
+    if parts == []
+    then base
+    else "${base}/${concatStringsSep "/" parts}";
+
+  mapStems = prefix:
+    mapAttrsRecursive (_: concat prefix);
 
   resolved = {
     store = mapStems roots.store stems;

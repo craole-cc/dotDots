@@ -7,8 +7,8 @@
   inherit (_.configuration.core.mod) mkCoreModules;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
-  inherit (_.modules.core) mkCore;
-  inherit (_.modules.home) mkHome;
+  inherit (_.modules.core._) mkCore;
+  inherit (_.modules.home._) mkHome;
 
   exports = {inherit mkSystem mkCore mkHome;};
 
