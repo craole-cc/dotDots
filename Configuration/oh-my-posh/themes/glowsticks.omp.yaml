@@ -8,17 +8,17 @@ blocks:
         invert_powerline: true
         powerline_symbol: 
         style: powerline
-        template: "{{ .UserName }}@{{ .HostName }} "
+        template: '{{ .UserName }}@{{ .HostName }} '
         type: session
       # Path
       - background: p:orange
         foreground: p:white
         powerline_symbol: 
         properties:
-          home_icon: ""
+          home_icon: ''
           style: folder
         style: powerline
-        template: "  {{ .Path }} "
+        template: '  {{ .Path }} '
         type: path
       # Git
       - background: p:green
@@ -39,7 +39,7 @@ blocks:
             echo -n " $BRANCH$STAT"
           shell: bash
         style: powerline
-        template: " {{ .Output }} "
+        template: ' {{ .Output }} '
         type: command
       # Execution time
       - background: p:darkred
@@ -54,13 +54,13 @@ blocks:
       # Exit code
       - background: p:blue
         background_templates:
-          - "{{ if gt .Code 0 }}p:red{{ end }}"
+          - '{{ if gt .Code 0 }}p:red{{ end }}'
         foreground: p:white
         powerline_symbol: 
         properties:
           always_enabled: true
         style: diamond
-        template: " {{ if gt .Code 0 }} {{ reason .Code }}{{ else }}{{ end }} "
+        template: ' {{ if gt .Code 0 }} {{ reason .Code }}{{ else }}{{ end }} '
         trailing_diamond: 
         type: status
     type: prompt
@@ -96,26 +96,26 @@ blocks:
         properties:
           script: "now=\"$(date +'%I:%M%P')\"\nif [[ -f /tmp/weather.w ]]; then\n  update=\"$(cat /tmp/last_update.w)\"\n  if [[ -f /tmp/w_lock.w || $(date +'%s') -le $((update + 600)) ]]; then\n    echo -n \"$now\"\n    cat /tmp/weather.w\n    exit 0\n  fi\nelif [[ -f /tmp/w_lock.w ]]; then\n  echo \"$now\"\n  exit 0\nfi\ntouch /tmp/w_lock.w\nif ! res=$(curl -s wttr.in -Gsm2 --data-urlencode \"format=j1\"); then\n  echo \"$now\"\n  date +'%s' >/tmp/last_update.w\n  echo \U000F05AA >/tmp/weather.w\n  rm /tmp/w_lock.w\n  exit 0\nfi\nres=$(jq .current_condition[] -c <<<\"$res\")\ntemp=$(jq -r .temp_C <<<\"$res\")\nfeels_like=$(jq -r .FeelsLikeC <<<\"$res\")\n[[ $(bc -l <<<\"$feels_like!=$temp\") -eq 1 ]] && feels_string=\" feels $feels_like°C\"\nWWC_MAP='{\"113\":\"Sunny\",\"116\":\"PartlyCloudy\",\"119\":\"Cloudy\",\"122\":\"VeryCloudy\",\"143\":\"Fog\",\"176\":\"LightShowers\",\"179\":\"LightSleetShowers\",\"182\":\"LightSleet\",\"185\":\"LightSleet\",\"200\":\"ThunderyShowers\",\"227\":\"LightSnow\",\"230\":\"HeavySnow\",\"248\":\"Fog\",\"260\":\"Fog\",\"263\":\"LightShowers\",\"266\":\"LightRain\",\"281\":\"LightSleet\",\"284\":\"LightSleet\",\"293\":\"LightRain\",\"296\":\"LightRain\",\"299\":\"HeavyShowers\",\"302\":\"HeavyRain\",\"305\":\"HeavyShowers\",\"308\":\"HeavyRain\",\"311\":\"LightSleet\",\"314\":\"LightSleet\",\"317\":\"LightSleet\",\"320\":\"LightSnow\",\"323\":\"LightSnowShowers\",\"326\":\"LightSnowShowers\",\"329\":\"HeavySnow\",\"332\":\"HeavySnow\",\"335\":\"HeavySnowShowers\",\"338\":\"HeavySnow\",\"350\":\"LightSleet\",\"353\":\"LightShowers\",\"356\":\"HeavyShowers\",\"359\":\"HeavyRain\",\"362\":\"LightSleetShowers\",\"365\":\"LightSleetShowers\",\"368\":\"LightSnowShowers\",\"371\":\"HeavySnowShowers\",\"374\":\"LightSleetShowers\",\"377\":\"LightSleet\",\"386\":\"ThunderyShowers\",\"389\":\"ThunderyHeavyRain\",\"392\":\"ThunderySnowShowers\",\"395\":\"HeavySnowShowers\"}';NF_DAY_MAP='{\"Unknown\":\"\U000F068C\",\"Cloudy\":\"\",\"Fog\":\"\",\"HeavyRain\":\"\",\"HeavyShowers\":\"\",\"HeavySnow\":\"\",\"HeavySnowShowers\":\"\",\"LightRain\":\"\",\"LightShowers\":\"\",\"LightSleet\":\"\",\"LightSleetShowers\":\"\",\"LightSnow\":\"\",\"LightSnowShowers\":\"\",\"PartlyCloudy\":\"\",\"Sunny\":\"\",\"ThunderyHeavyRain\":\"\",\"ThunderyShowers\":\"\",\"ThunderySnowShowers\":\"\",\"VeryCloudy\":\"\"}';NF_NIGHT_MAP='{\"Unknown\":\"\U000F068C\",\"Cloudy\":\"\",\"Fog\":\"\",\"HeavyRain\":\"\",\"HeavyShowers\":\"\",\"HeavySnow\":\"\",\"HeavySnowShowers\":\"\",\"LightRain\":\"\",\"LightShowers\":\"\",\"LightSleet\":\"\",\"LightSleetShowers\":\"\",\"LightSnow\":\"\",\"LightSnowShowers\":\"\",\"PartlyCloudy\":\"\",\"Sunny\":\"\",\"ThunderyHeavyRain\":\"\",\"ThunderyShowers\":\"\",\"ThunderySnowShowers\":\"\",\"VeryCloudy\":\"\"}'\ncur_h=\"$(date +'%H')\" ;wwc=\"$(jq '.weatherCode' <<<\"$res\")\"\nif [[ $cur_h -gt 18 || $cur_h -lt 6 ]]; then icon=$(jq -r \".$(echo \"$WWC_MAP\" | jq -r \".$wwc\")\" <<<\"$NF_DAY_MAP\")\nelse icon=$(jq -r \".$(echo \"$WWC_MAP\" | jq -r \".$wwc\")\" <<<\"$NF_NIGHT_MAP\"); fi\nweather=\"$icon  $temp°C$feels_string\"\necho \"$now $weather\"\ndate +'%s' >/tmp/last_update.w\necho \"$weather\" >/tmp/weather.w\nrm /tmp/w_lock.w\n"
         style: diamond
-        template: "{{ .Output }}"
+        template: '{{ .Output }}'
         trailing_diamond: 
         type: command
     type: rprompt
 final_space: true
 console_title_template:  {{ .Shell }} in {{ if ne .Folder "~"}} {{ .Folder }}{{else}}{{end}}
 palette:
-  black: "#33395b"
-  blue: "#359ddd"
-  darkred: "#7c0a16"
-  green: "#277b48"
-  orange: "#ff972e"
-  red: "#de3142"
-  white: "#efeef4"
+  black: '#33395b'
+  blue: '#359ddd'
+  darkred: '#7c0a16'
+  green: '#277b48'
+  orange: '#ff972e'
+  red: '#de3142'
+  white: '#efeef4'
 secondary_prompt:
   background: transparent
   foreground: p:white
-  template: " "
+  template: ' '
 transient_prompt:
   background: transparent
   foreground: p:white
-  template: " "
+  template: ' '
 version: 3

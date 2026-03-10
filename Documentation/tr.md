@@ -13,12 +13,12 @@ Typically, it is used in combination with other commands through piping.
 tr [OPTION]... STRING1 [STRING2]
 ```
 
-| Option | Description |
+| Option                  | Description                                                                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `-c, -C, --compliment` | use the complement of ARRAY1 |
-| `-d, --delete` | delete characters in ARRAY1, do not translate |
+| `-c, -C, --compliment`  | use the complement of ARRAY1                                                                                                         |
+| `-d, --delete`          | delete characters in ARRAY1, do not translate                                                                                        |
 | `-s, --squeeze-repeats` | replace each sequence of a repeated character that is listed in the last specified ARRAY, with a single occurrence of that character |
-| `-t, --truncate-set1` | first truncate ARRAY1 to length of ARRAY2 |
+| `-t, --truncate-set1`   | first truncate ARRAY1 to length of ARRAY2                                                                                            |
 
 The syntax for the tr command is as follows:
 

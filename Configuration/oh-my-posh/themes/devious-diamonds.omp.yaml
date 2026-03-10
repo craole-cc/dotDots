@@ -8,7 +8,7 @@ blocks:
         interactive: true
         style: plain
         foreground: cyan
-        template: "{{ .PromptMark }}"
+        template: '{{ .PromptMark }}'
       - type: os
         style: diamond
         foreground: cyan
@@ -30,13 +30,13 @@ blocks:
           windows: "\U000F0372"
           wsl: 
           wsl_separator: 
-        template: " {{ if .WSL }}{{ end }}{{.Icon}}═"
+        template: ' {{ if .WSL }}{{ end }}{{.Icon}}═'
       - type: shell
         style: diamond
         leading_diamond: 
         background: green
         foreground: black
-        template: "  {{ .Name }} "
+        template: '  {{ .Name }} '
       - type: session
         style: powerline
         powerline_symbol: 
@@ -58,7 +58,7 @@ blocks:
         foreground: white
         properties:
           fetch_version: true
-        template: " α {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: ' α {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: aws
         style: powerline
         powerline_symbol: 
@@ -66,7 +66,7 @@ blocks:
         foreground: black
         properties:
           display_default: false
-        template: "  {{ .Profile }}{{ if .Region }}@{{ .Region }}{{ end }} "
+        template: '  {{ .Profile }}{{ if .Region }}@{{ .Region }}{{ end }} '
       - type: az
         style: powerline
         powerline_symbol: 
@@ -83,7 +83,7 @@ blocks:
         properties:
           display_mode: files
           fetch_version: false
-        template: " ﴃ {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: ' ﴃ {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: go
         style: powerline
         powerline_symbol: 
@@ -97,7 +97,7 @@ blocks:
         powerline_symbol: 
         background: lightCyan
         foreground: black
-        template: "  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: '  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: julia
         style: powerline
         powerline_symbol: 
@@ -105,7 +105,7 @@ blocks:
         foreground: black
         properties:
           fetch_version: true
-        template: "  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: '  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: kubectl
         style: powerline
         powerline_symbol: 
@@ -125,13 +125,13 @@ blocks:
         powerline_symbol: 
         background: lightCyan
         foreground: black
-        template: "  {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} "
+        template: '  {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} '
       - type: project
         style: powerline
         powerline_symbol: 
         background: lightYellow
         foreground: black
-        template: " {{ if .Error }}{{ .Error }}{{ else }}{{ if .Version }} {{.Version}}{{ end }} {{ if .Name }}{{ .Name }}{{ end }}{{ end }} "
+        template: ' {{ if .Error }}{{ .Error }}{{ else }}{{ if .Version }} {{.Version}}{{ end }} {{ if .Name }}{{ .Name }}{{ end }}{{ end }} '
       - type: python
         style: powerline
         powerline_symbol: 
@@ -140,7 +140,7 @@ blocks:
         properties:
           display_mode: files
           fetch_virtual_env: false
-        template: "  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: '  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: ruby
         style: powerline
         powerline_symbol: 
@@ -149,7 +149,7 @@ blocks:
         properties:
           display_mode: files
           fetch_version: true
-        template: "  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: '  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: rust
         style: powerline
         powerline_symbol: 
@@ -158,7 +158,7 @@ blocks:
         properties:
           display_mode: files
           fetch_version: true
-        template: "  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: '  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: swift
         style: powerline
         powerline_symbol: 
@@ -167,7 +167,7 @@ blocks:
         properties:
           display_mode: files
           fetch_version: true
-        template: "  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+        template: '  {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} '
       - type: time
         style: powerline
         powerline_symbol: 
@@ -175,7 +175,7 @@ blocks:
         foreground: black
         properties:
           time_format: Mon | 15:04:05
-        template: " {{ .CurrentDate | date .Format }} "
+        template: ' {{ .CurrentDate | date .Format }} '
       - type: executiontime
         style: diamond
         trailing_diamond: 
@@ -184,7 +184,7 @@ blocks:
         properties:
           style: austin
           threshold: 0
-        template: " {{ .FormattedMs }} "
+        template: ' {{ .FormattedMs }} '
   - type: prompt
     alignment: right
     segments:
@@ -195,7 +195,7 @@ blocks:
         background: magenta
         foreground: black
         properties:
-          branch_icon: " "
+          branch_icon: ' '
           fetch_stash_count: true
           fetch_status: true
           fetch_upstream_icon: true
@@ -208,13 +208,13 @@ blocks:
       - type: text
         style: plain
         foreground: cyan
-        template: " ╚"
+        template: ' ╚'
       - type: status
         style: diamond
         leading_diamond: 
         background: blue
         background_templates:
-          - "{{ if gt .Code 0 }}red{{ end }}"
+          - '{{ if gt .Code 0 }}red{{ end }}'
         foreground: black
         properties:
           always_enabled: true
@@ -224,7 +224,7 @@ blocks:
         powerline_symbol: 
         background: blue
         background_templates:
-          - "{{ if not .Writable }}red{{ end }}"
+          - '{{ if not .Writable }}red{{ end }}'
         foreground: black
         properties:
           style: agnoster_short
@@ -238,31 +238,31 @@ blocks:
         trailing_diamond: 
         background: blue
         background_templates:
-          - "{{ if and .Segments.Path.Writable (not .Root) }}{{ else }}red{{ end }}"
+          - '{{ if and .Segments.Path.Writable (not .Root) }}{{ else }}red{{ end }}'
         foreground: white
         properties:
           root_icon: 
-        template: "{{ if not .Root }}⠀{{ end }}{{ if and .Root ( not .Segments.Path.Writable ) }} {{ end }}{{ if and .Root .Segments.Path.Writable }}  {{ end }}"
-console_title_template: "{{ .Folder }}"
+        template: '{{ if not .Root }}⠀{{ end }}{{ if and .Root ( not .Segments.Path.Writable ) }} {{ end }}{{ if and .Root .Segments.Path.Writable }}  {{ end }}'
+console_title_template: '{{ .Folder }}'
 palette:
-  black: "#1B1A23"
-  blue: "#9580FF"
-  black-background: "#22212C"
-  lightBlue-brightBlue: "#AA99FF"
-  lightCyan-brightCyan: "#99FFEE"
-  lightGreen-brightGreen: "#A2FF99"
-  lightMagenta-brightPurple: "#FF99CC"
-  lightRed-brightRed: "#FFAA99"
-  lightWhite-brightWhite: "#FFFFFF"
-  lightYellow-brightYellow: "#FFFF80"
-  selection-selectionBackground: "#454158"
-  comment-brightBlack: "#7970A9"
-  cyan: "#80FFEA"
-  green: "#8AFF80"
-  magenta-purple: "#FF80BF"
-  purple: "#DE1F84"
-  red: "#FF9580"
-  white: "#FFFFFF"
-  white-cursorColor-foreground: "#F8F8F2"
-  yellow: "#FFCA80"
+  black: '#1B1A23'
+  blue: '#9580FF'
+  black-background: '#22212C'
+  lightBlue-brightBlue: '#AA99FF'
+  lightCyan-brightCyan: '#99FFEE'
+  lightGreen-brightGreen: '#A2FF99'
+  lightMagenta-brightPurple: '#FF99CC'
+  lightRed-brightRed: '#FFAA99'
+  lightWhite-brightWhite: '#FFFFFF'
+  lightYellow-brightYellow: '#FFFF80'
+  selection-selectionBackground: '#454158'
+  comment-brightBlack: '#7970A9'
+  cyan: '#80FFEA'
+  green: '#8AFF80'
+  magenta-purple: '#FF80BF'
+  purple: '#DE1F84'
+  red: '#FF9580'
+  white: '#FFFFFF'
+  white-cursorColor-foreground: '#F8F8F2'
+  yellow: '#FFCA80'
 version: 3

@@ -3,8 +3,8 @@
   "display": {
     "size": {
       "maxPrefix": "MB",
-      "ndigits": 0,
-    },
+      "ndigits": 0
+    }
   },
   "modules": [
     "title",
@@ -13,7 +13,7 @@
     "host",
     {
       "type": "kernel",
-      "format": "{release}",
+      "format": "{release}"
     },
     "uptime",
     "packages",
@@ -21,7 +21,7 @@
     {
       "type": "display",
       "compactType": "original",
-      "key": "Resolution",
+      "key": "Resolution"
     },
     "de",
     "wm",
@@ -31,18 +31,18 @@
     "terminal",
     {
       "type": "terminalfont",
-      "format": "{/name}{-}{/}{name}{?size} {size}{?}",
+      "format": "{/name}{-}{/}{name}{?size} {size}{?}"
     },
     "cpu",
     {
       "type": "gpu",
-      "key": "GPU",
+      "key": "GPU"
     },
     {
       "type": "memory",
-      "format": "{} / {}",
+      "format": "{} / {}"
     },
     "break",
-    "colors",
-  ],
+    "colors"
+  ]
 }

@@ -60,18 +60,18 @@
     <FileMask>
       <Item>*.*</Item>
     </FileMask>
-    <SearchText/>
-    <SearchTextPath/>
-    <ReplaceText/>
-    <ReplaceTextPath/>
+    <SearchText />
+    <SearchTextPath />
+    <ReplaceText />
+    <ReplaceTextPath />
     <CreateDirectories>
       <Item>fetch-master-6000</Item>
       <Item>X11</Item>
       <Item>alacritty</Item>
       <Item>emulator</Item>
     </CreateDirectories>
-    <SearchDirectories/>
-    <SearchExcludeFiles/>
-    <SearchExcludeDirectories/>
+    <SearchDirectories />
+    <SearchExcludeFiles />
+    <SearchExcludeDirectories />
   </History>
 </doublecmd>

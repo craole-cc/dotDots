@@ -11,6 +11,38 @@
   inherit (lib.trivial) pathExists;
 
   /**
+  Check whether a value is a path.
+
+  # Type
+  ```nix
+  isPath :: any -> bool
+  ```
+
+  # Examples
+  ```nix
+  isPath /etc/hosts  # => true
+  isPath "/etc"      # => false (string, not path)
+  ```
+  */
+  isPath = lib.strings.isPath;
+
+  /**
+  Check whether a value is a valid Nix store path.
+
+  # Type
+  ```nix
+  isStorePath :: any -> bool
+  ```
+
+  # Examples
+  ```nix
+  isStorePath "/nix/store/abc123-foo"  # => true
+  isStorePath "/etc/hosts"             # => false
+  ```
+  */
+  isStorePath = lib.strings.isStorePath;
+
+  /**
   Check whether a path refers to a `.nix` file.
 
   # Type
@@ -46,10 +78,10 @@
 
   # Type
   ```nix
-  normalizeFlakePath :: path | string -> string | null
+  flakePath :: path | string -> string | null
   ```
   */
-  normalizeFlakePath = path: let
+  flakePath = path: let
     strPath = toString path;
   in
     if !isString strPath
@@ -68,16 +100,23 @@
   isFlakePath :: path | string -> bool
   ```
   */
-  isFlakePath = path: (normalizeFlakePath path) != null;
+  isFlakePath = path: (flakePath path) != null;
 
   exports = {
-    inherit isNixFile isExcludedFile isInExcludedFolder isFlakePath normalizeFlakePath;
+    inherit
+      flakePath
+      isExcludedFile
+      isFlakePath
+      isInExcludedFolder
+      isNixFile
+      isPath
+      isStorePath
+      ;
   };
 in
   exports
   // {
     _rootAliases = exports;
-
     _tests = runTests {
       isNixFile = {
         detectsNixExtension = mkTest' true (isNixFile "/foo/bar.nix");
@@ -116,11 +155,11 @@ in
         };
       };
 
-      normalizeFlakePath = {
+      flakePath = {
         rejectsNonExistentPath = mkTest {
           desired = null;
-          outcome = normalizeFlakePath "/this/path/does/not/exist/at/all";
-          command = ''normalizeFlakePath "/this/path/does/not/exist/at/all"'';
+          outcome = flakePath "/this/path/does/not/exist/at/all";
+          command = ''flakePath "/this/path/does/not/exist/at/all"'';
         };
       };
 

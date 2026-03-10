@@ -10,8 +10,24 @@
   inherit (_.strings.transform) toLower;
   inherit (_.trivial.debug) mkModuleDebug mkExample;
   inherit (_.trivial.tests) mkTest runTests;
-  inherit (_.types.predicates) isList;
   inherit (lib.lists) all any elem filter length;
+
+  /**
+  Check whether a value is a list.
+
+  # Type
+  ```nix
+  isList :: any -> bool
+  ```
+
+  # Examples
+  ```nix
+  isList []         # => true
+  isList ["a" "b"]  # => true
+  isList "foo"      # => false
+  ```
+  */
+  isList = lib.lists.isList;
 
   /**
   Generate a membership checking function for a normalized list.
@@ -238,6 +254,7 @@ in {
     ;
 
   _rootAliases = {
+    inherit isList;
     checkListMembership = checkMembership;
     countListMatches = countMatches;
     hasAllInList = hasAll;

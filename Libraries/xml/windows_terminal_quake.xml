@@ -43,7 +43,8 @@
   <Actions Context="Author">
     <Exec>
       <Command>powershell.exe</Command>
-      <Arguments>-WindowStyle Hidden -ExecutionPolicy Bypass -Command "&amp; &quot;$env:DOTS\Bin\cmd\windows_terminal_quake.ps1&quot;"</Arguments>
+      <Arguments
+      >-WindowStyle Hidden -ExecutionPolicy Bypass -Command "&amp; &quot;$env:DOTS\Bin\cmd\windows_terminal_quake.ps1&quot;"</Arguments>
     </Exec>
   </Actions>
 </Task>

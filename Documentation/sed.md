@@ -23,7 +23,7 @@ sed '10q' filename
 sed '10q' filename > output_file
 ```
 
-______________________________________________________________________
+---
 
 ## Line Spacing
 
@@ -889,7 +889,7 @@ sed -e :A -e 's/([^()]*)//;tA' -e 's/  / /g'
     dir /b *.txt | sed "s/^\(.*\)\.TXT/pkzip -mo \1 \1.TXT/" >>output.bat
     ```
 
-______________________________________________________________________
+---
 
 For additional syntax instructions, including the way to apply editing commands
 from a disk file instead of the command line, consult "sed & awk, 2nd Edition,"
@@ -982,25 +982,25 @@ sed -n '45,50p' filename
 sed -n '51q;45,50p' filename
 ```
 
-______________________________________________________________________
+---
 
 ## Source
 
 > **USEFUL ONE-LINE SCRIPTS FOR SED (Unix stream editor)** | _Dec. 29, 2005 | v.
 > 5.5_
 
-| | |
+|            |                                                  |
 | ---------- | ------------------------------------------------ |
-| Language | Link |
-| English | <http://sed.sourceforge.net/sed1line.txt> |
-| Chinese | <http://sed.sourceforge.net/sed1line_zh-CN.html> |
-| Czech | <http://sed.sourceforge.net/sed1line_cz.html> |
-| Dutch | <http://sed.sourceforge.net/sed1line_nl.html> |
-| French | <http://sed.sourceforge.net/sed1line_fr.html> |
-| German | <http://sed.sourceforge.net/sed1line_de.html> |
-| Italian | (pending) |
+| Language   | Link                                             |
+| English    | <http://sed.sourceforge.net/sed1line.txt>        |
+| Chinese    | <http://sed.sourceforge.net/sed1line_zh-CN.html> |
+| Czech      | <http://sed.sourceforge.net/sed1line_cz.html>    |
+| Dutch      | <http://sed.sourceforge.net/sed1line_nl.html>    |
+| French     | <http://sed.sourceforge.net/sed1line_fr.html>    |
+| German     | <http://sed.sourceforge.net/sed1line_de.html>    |
+| Italian    | (pending)                                        |
 | Portuguese | <http://sed.sourceforge.net/sed1line_pt-BR.html> |
-| Spanish | (pending) |
+| Spanish    | (pending)                                        |
 
 If you have any additional scripts to contribute or if you find errors in this
 document please send an _[email](pemente@northpark.edu)_ to the compiler,
@@ -1013,15 +1013,15 @@ indicating the:
 To qualify as a one-liner, the command line must be 65 characters or less.
 Various scripts in this file have been written or contributed by:
 
-| Contributor | Role |
+| Contributor         | Role                           |
 | ------------------- | ------------------------------ |
-| Al Aab | Founder of "seders" list |
-| Edgar Allen | Various |
-| Yiorgos Adamopoulos | Various |
-| Dale Dougherty | Author of "sed & awk" |
-| Carlos Duarte | Author of "do it with sed" |
-| Eric Pement | Author of this document |
-| Ken Pizzini | Author of GNU sed v3.02 |
-| S.G. Ravenhall | Great de-html script |
-| Greg Ubben | Many contributions & much help |
-| Craig Cole | Converted to markdown |
+| Al Aab              | Founder of "seders" list       |
+| Edgar Allen         | Various                        |
+| Yiorgos Adamopoulos | Various                        |
+| Dale Dougherty      | Author of "sed & awk"          |
+| Carlos Duarte       | Author of "do it with sed"     |
+| Eric Pement         | Author of this document        |
+| Ken Pizzini         | Author of GNU sed v3.02        |
+| S.G. Ravenhall      | Great de-html script           |
+| Greg Ubben          | Many contributions & much help |
+| Craig Cole          | Converted to markdown          |

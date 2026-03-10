@@ -82,15 +82,15 @@ The format is auto-detected based on content structure.
 
 ### Options Section
 
-| Option | Description | Default |
+| Option                  | Description                        | Default              |
 | ----------------------- | ---------------------------------- | -------------------- |
-| `Tag` | Prefix for all log messages | `">>= DOTS =<<"` |
-| `Verbosity` | Logging verbosity level | `"Info"` |
-| `VerbosePreference` | PowerShell verbose preference | `"SilentlyContinue"` |
-| `DebugPreference` | PowerShell debug preference | `"SilentlyContinue"` |
-| `InformationPreference` | PowerShell information preference | `"SilentlyContinue"` |
-| `WarningPreference` | PowerShell warning preference | `"SilentlyContinue"` |
-| `ErrorActionPreference` | PowerShell error action preference | `"Continue"` |
+| `Tag`                   | Prefix for all log messages        | `">>= DOTS =<<"`     |
+| `Verbosity`             | Logging verbosity level            | `"Info"`             |
+| `VerbosePreference`     | PowerShell verbose preference      | `"SilentlyContinue"` |
+| `DebugPreference`       | PowerShell debug preference        | `"SilentlyContinue"` |
+| `InformationPreference` | PowerShell information preference  | `"SilentlyContinue"` |
+| `WarningPreference`     | PowerShell warning preference      | `"SilentlyContinue"` |
+| `ErrorActionPreference` | PowerShell error action preference | `"Continue"`         |
 
 ### Excludes
 
@@ -132,11 +132,11 @@ Array of path configurations defining what to load.
 
 #### Module Loading Behavior
 
-| Modules Value | Behavior |
+| Modules Value      | Behavior                     |
 | ------------------ | ---------------------------- |
-| `["mod1", "mod2"]` | Load only specified modules |
-| `[]` | Load ALL modules in the path |
-| `null` or missing | Skip loading entirely |
+| `["mod1", "mod2"]` | Load only specified modules  |
+| `[]`               | Load ALL modules in the path |
+| `null` or missing  | Skip loading entirely        |
 
 ## Local Configuration
 

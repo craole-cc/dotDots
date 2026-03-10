@@ -8,6 +8,7 @@
   inherit (lib.lists) elem all head;
   inherit (lib.types) anything oneOf;
   inherit (lib.strings) concatStringsSep match;
+  inherit (_.types.generators) validate;
   inherit
     (_.types.predicates)
     isAttrs
@@ -20,7 +21,6 @@
     isString
     typeOf
     ;
-  inherit (_.types.generators) validate;
   inherit (_.types) schema;
 
   #~@ Basic types with predicates

@@ -1,7 +1,7 @@
 * {
   transition: none;
   box-shadow: none;
-  font-family: "FantasqueSansMono Nerd Font Mono";
+  font-family: 'FantasqueSansMono Nerd Font Mono';
   font-size: 16px;
   color: #89cff0;
 }
@@ -23,8 +23,7 @@
   padding: 0 4px;
 }
 
-#workspaces button.visible {
-}
+#workspaces button.visible {}
 
 #workspaces button.focused {
   border-radius: 10px;

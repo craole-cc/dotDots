@@ -1,0 +1,67 @@
+{
+  // ─── Unstable Features ────────────────────────────────────────────────────
+  "unstable": [
+    "fmt-component",
+    "fmt-sql"
+  ],
+  // ─── Formatter ────────────────────────────────────────────────────────────
+  "fmt": {
+    "exclude": [
+      ".git",
+      "node_modules",
+      "dist",
+      "coverage",
+      ".deno"
+    ],
+    "indentWidth": 2,
+    "useTabs": false,
+    "lineWidth": 100,
+    "singleQuote": true,
+    "semiColons": true,
+    "proseWrap": "preserve"
+  },
+  // ─── Linter ───────────────────────────────────────────────────────────────
+  "lint": {
+    "exclude": [
+      ".git",
+      "node_modules",
+      "dist",
+      "coverage",
+      ".deno"
+    ],
+    "rules": {
+      "tags": [
+        "recommended"
+      ],
+      "include": [
+        "camelcase",
+        "default-param-last",
+        "eqeqeq",
+        "explicit-function-return-type",
+        "explicit-module-boundary-types",
+        "no-console",
+        "no-eval",
+        "no-non-null-assertion",
+        "no-throw-literal",
+        "prefer-const"
+      ],
+      "exclude": []
+    }
+  },
+  // ─── TypeScript Compiler Options ─────────────────────────────────────────
+  "compilerOptions": {
+    "strict": true,
+    "lib": [
+      "deno.window"
+    ],
+    "allowJs": false
+  },
+  // ─── Task Runner ─────────────────────────────────────────────────────────
+  "tasks": {
+    "fmt": "deno fmt",
+    "fmt:check": "deno fmt --check",
+    "lint": "deno lint",
+    "lint:fix": "deno lint --fix",
+    "check": "deno fmt --check && deno lint"
+  }
+}

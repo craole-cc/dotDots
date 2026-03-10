@@ -12,7 +12,7 @@ display: almost-all
 icons:
   when: auto
   theme: fancy
-  separator: " "
+  separator: ' '
 # == Sorting ==
 sorting:
   column: name

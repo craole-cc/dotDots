@@ -8,11 +8,11 @@ MD001: true
 # MD003/heading-style : Heading style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md003.md
 MD003:
   # Heading style
-  style: "consistent"
+  style: 'consistent'
 # MD004/ul-style : Unordered list style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md004.md
 MD004:
   # List style
-  style: "consistent"
+  style: 'consistent'
 # MD005/list-indent : Inconsistent indentation for list items at the same level : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md005.md
 MD005: true
 # MD007/ul-indent : Unordered list indentation : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md007.md
@@ -94,7 +94,7 @@ MD025:
 # MD026/no-trailing-punctuation : Trailing punctuation in heading : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md026.md
 MD026:
   # Punctuation characters
-  punctuation: ".,;:!。，；：！"
+  punctuation: '.,;:!。，；：！'
 # MD027/no-multiple-space-blockquote : Multiple spaces after blockquote symbol : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md027.md
 MD027: true
 # MD028/no-blanks-blockquote : Blank line inside blockquote : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md028.md
@@ -102,7 +102,7 @@ MD028: true
 # MD029/ol-prefix : Ordered list item prefix : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md029.md
 MD029:
   # List style
-  style: "one_or_ordered"
+  style: 'one_or_ordered'
 # MD030/list-marker-space : Spaces after list markers : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md030.md
 MD030:
   # Spaces for single-line unordered list items
@@ -128,11 +128,11 @@ MD034: true
 # MD035/hr-style : Horizontal rule style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md035.md
 MD035:
   # Horizontal rule style
-  style: "consistent"
+  style: 'consistent'
 # MD036/no-emphasis-as-heading : Emphasis used instead of a heading : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md036.md
 MD036:
   # Punctuation characters
-  punctuation: ".,;:!?。，；：！？"
+  punctuation: '.,;:!?。，；：！？'
 # MD037/no-space-in-emphasis : Spaces inside emphasis markers : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md037.md
 MD037: true
 # MD038/no-space-in-code : Spaces inside code span elements : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md038.md
@@ -172,21 +172,21 @@ MD045: true
 # MD046/code-block-style : Code block style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md046.md
 MD046:
   # Block style
-  style: "consistent"
+  style: 'consistent'
 # MD047/single-trailing-newline : Files should end with a single newline character : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md047.md
 MD047: true
 # MD048/code-fence-style : Code fence style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md048.md
 MD048:
   # Code fence style
-  style: "consistent"
+  style: 'consistent'
 # MD049/emphasis-style : Emphasis style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md049.md
 MD049:
   # Emphasis style
-  style: "consistent"
+  style: 'consistent'
 # MD050/strong-style : Strong style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md050.md
 MD050:
   # Strong style
-  style: "consistent"
+  style: 'consistent'
 # MD051/link-fragments : Link fragments should be valid : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md051.md
 MD051: true
 # MD052/reference-links-images : Reference links and images should use a label that is defined : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md052.md
@@ -197,7 +197,7 @@ MD052:
 MD053:
   # Ignored definitions
   ignored_definitions:
-    - "//"
+    - '//'
 # MD054/link-image-style : Link and image style : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md054.md
 MD054:
   # Allow autolinks

@@ -3,16 +3,14 @@
 A collection of tools and configurations for for use across systems.
 
 - **Windows**: Git Bash with `.dotsrc` for configuration. NixWSL is supported.
-
 - **Linux**: NixOS with flakes. Non-NixOS can use Nix, Home Manager, or `.dotsrc`.
-
 - **macOS**: Nix-darwin and Home Manager. (_Pending_)
 
   The goal is enhanced efficiency, portability, and simplicity across devices. Feel free to explore and adapt these configurations.
 
 ## Features
 
-- **System-agnostic Utilities**: POSIX scripts and Rust binaries in [Bin](./Bin).
+- **System-agnostic Utilities**: POSIX scripts and Rust binaries in [Libraries](./Libraries).
 - **Nix Flakes**: Additional tooling and configuration made available.
 
 ## Installation
@@ -30,7 +28,6 @@ cd "$DOTS"
 > Dependencies |> `bash/sh` `coreutils`
 
 1. Set `bash` as the default shell:
-
    - Unix-based
      - In the terminal execute the command: `chsh -s /bin/bash`
    - Windows
@@ -68,7 +65,6 @@ cd "$DOTS"
 - In the flake.nix, update the DOTS path `paths.flake.local`
 
 - Initialize your host config.
-
   - The script below matches the previous steps.
 
     ```sh
@@ -107,4 +103,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 
-This project is licensed under the [Apache License](./LICENSE).
+This project maintains a dual license:
+
+- [Apache License 2.0](./LICENSE-APACHE)
+- [MIT License](./LICENSE-MIT)
