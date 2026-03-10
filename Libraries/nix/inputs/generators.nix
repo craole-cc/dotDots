@@ -175,7 +175,7 @@
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
 in
-  exports.external
+  exports.internal
   // {
-    _rootAliases = exports.internal;
+    _rootAliases = exports.external;
   }

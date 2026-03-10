@@ -9,7 +9,7 @@
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
-  inherit (_.filesystem.paths) flakePath;
+  inherit (_.filesystem.paths) getFlakePath;
   inherit (_.hardware.systems) getSystems;
   inherit (_.contents.empty) isNotEmpty;
   inherit
@@ -25,9 +25,10 @@
   inherit (lib.debug) traceIf;
   inherit (lib.lists) filter findFirst head toList;
   inherit (builtins) getFlake tryEval;
+
   debug = mkModuleDebug __moduleRef;
 
-  exports = {
+  exports = rec {
     internal = {
       inherit
         byPaths
@@ -44,20 +45,35 @@
         shellPackage
         inputPackages
         ;
-      mkInputPackages = inputPackages;
-    };
-    external = {
-      mkInputPackages = inputPackages;
+      flakeAttrs = flake;
+      getAttrByPaths = byPaths;
       getAttrOrDefault = orDefault;
       getAttrOrNull = orNull;
-      getAttrByPaths = byPaths;
-      getNestedAttrByPaths = nestedByPaths;
       getFlake = flake;
       getHost = host;
-      getPkgs = packages;
+      getNestedAttrByPaths = nestedByPaths;
       getPackage = package;
+      getPkgs = packages;
       getShellPackage = shellPackage;
+      mkInputPackages = inputPackages;
       optionalAttr = optional;
+    };
+    external = {
+      inherit
+        (internal)
+        flakeAttrs
+        getAttrByPaths
+        getAttrOrDefault
+        getAttrOrNull
+        getFlake
+        getHost
+        getNestedAttrByPaths
+        getPackage
+        getPkgs
+        getShellPackage
+        mkInputPackages
+        optionalAttr
+        ;
     };
   };
 
@@ -351,7 +367,7 @@
     self ? {},
     path ? src,
   }: let
-    normalizedPath = flakePath {inherit self path;};
+    normalizedPath = getFlakePath {inherit self path;};
     derived = optionalAttrs (normalizedPath != null) (getFlake normalizedPath);
     failureReason =
       if normalizedPath == null

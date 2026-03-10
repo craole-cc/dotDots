@@ -6,8 +6,8 @@
   ...
 }: let
   inherit (_.types.predicates) isList;
-  inherit (_.contents.empty) isNotEmpty;
-  inherit (_.contents.fallback) orDefault firstNonEmpty;
+  inherit (_.content.empty) isNotEmpty;
+  inherit (_.content.fallback) orDefault firstNonEmpty;
   inherit (_.attrsets.access) getIn;
   inherit
     (lib.strings)

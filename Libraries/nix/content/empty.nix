@@ -1,9 +1,3 @@
-# values/empty.nix
-#
-# Emptiness predicates.
-#
-# "Empty" means: null, "", "  ", [], {}
-# Numbers (including 0), booleans, functions, and paths are NEVER empty.
 {
   _,
   lib,
@@ -14,7 +8,6 @@
   inherit (lib.lists) isList;
   inherit (lib.attrsets) isAttrs;
   inherit (lib.strings) isString trim stringLength;
-  # isNull = builtins.isNull;
 
   /**
   Check if a value is considered "empty" for defaulting purposes.

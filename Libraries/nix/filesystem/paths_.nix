@@ -1,220 +1,33 @@
 {
   _,
-  __moduleRef,
   lib,
   src,
-  paths,
+  __libraryPath,
   ...
 }: let
+  inherit (_.types.predicates) isString isList;
+  inherit (_.values.empty) isNotEmpty;
+  inherit (_.values.fallback) orDefault firstNonEmpty;
   inherit (_.attrsets.access) getIn;
-  inherit (_.content.empty) isNotEmpty;
-  inherit (_.content.fallback) orDefault firstNonEmpty;
-  inherit (_.debug.assertions) mkTest;
   inherit (_.debug.module) mkModuleDebug;
-  inherit (_.debug.runners) runTests;
-  inherit (_.types.predicates) isList;
-  inherit (builtins) getEnv;
-  inherit (lib.asserts) assertMsg;
-  inherit (lib.attrsets) mapAttrs mapAttrsRecursive mapAttrsToList;
-  inherit (lib.filesystem) dirOf;
-  inherit (lib.lists) elemAt head toList;
-  inherit
-    (lib.strings)
+
+  _debug = mkModuleDebug __libraryPath;
+  inherit (lib.strings)
     concatStringsSep
     hasPrefix
-    hasSuffix
     removePrefix
     removeSuffix
     splitString
     concatMapStringsSep
     ;
+  inherit (lib.asserts) assertMsg;
+  inherit (lib.attrsets) attrByPath mapAttrs mapAttrsToList;
+  inherit (lib.debug) traceIf;
+  inherit (lib.filesystem) dirOf;
   inherit (lib.trivial) pathExists;
-
-  debug = mkModuleDebug __moduleRef;
-
-  exports = rec {
-    internal = {
-      inherit
-        construct
-        mkDefault
-        getDefaults
-        flake
-        flakeOrNull
-        source
-        ;
-      flakePath = flakeOrNull;
-    };
-
-    external = {
-      inherit (internal) flakePath;
-    };
-  };
-
-  mkPath = {
-    root,
-    stem,
-  }: "${root}/${
-    if isList stem
-    then concatStringsSep "/" stem
-    else stem
-  }";
-
-  concat = prefix: parts: let
-    base = toString prefix;
-  in
-    if parts == []
-    then base
-    else "${base}/${concatStringsSep "/" parts}";
-
-  mapStems = prefix:
-    mapAttrsRecursive (_: concat prefix);
-
-  stems = {
-    default = [];
-    libs = rec {
-      nix = ["Libraries" "nix"];
-      shellscript = ["Libraries" "shellscript"];
-      rust = ["Libraries" "rust"];
-      default = nix;
-    };
-
-    api = rec {
-      default = ["API" "nix"];
-      hosts = default ++ ["hosts"];
-      users = default ++ ["users"];
-    };
-
-    pkgs = rec {
-      default = ["Packages" "nix"];
-      global = default ++ ["global"];
-      core = default ++ ["core"];
-      home = default ++ ["home"];
-      overlays = default ++ ["overlays"];
-      plugins = default ++ ["plugins"];
-    };
-
-    templates = rec {
-      default = ["Templates" "nix"];
-      rust = default ++ ["rust"];
-    };
-
-    images = rec {
-      default = ["Assets" "Images"];
-      ascii = default ++ ["ascii"];
-      logo = default ++ ["logo"];
-      wallpaper = default ++ ["wallpaper"];
-    };
-  };
-
-  roots = {
-    store = builtins.path {
-      path = ./.;
-      name = "dotDots";
-    };
-    local = ./.;
-  };
-
-  resolved = {
-    store = mapStems roots.store stems;
-    local = mapStems roots.local stems;
-  };
-
-  mkPaths = root: {
-    inherit root;
-
-    default = mkPath {
-      inherit root;
-      stem = [];
-    };
-    libs = let
-      nix = mkPath {
-        inherit root;
-        stem = ["Libraries" "nix"];
-      };
-      shellscript = mkPath {
-        inherit root;
-        stem = ["Libraries" "shellscript"];
-      };
-      rust = mkPath {
-        inherit root;
-        stem = ["Libraries" "rust"];
-      };
-    in {
-      default = nix;
-      inherit nix shellscript rust;
-    };
-    api = let
-      default = mkPath {
-        inherit root;
-        stem = ["API" "nix"];
-      };
-      hosts = mkPath {
-        root = default;
-        stem = "hosts";
-      };
-      users = mkPath {
-        root = default;
-        stem = "users";
-      };
-    in {inherit default hosts users;};
-    pkgs = let
-      default = mkPath {
-        inherit root;
-        stem = ["Packages" "nix"];
-      };
-      core = mkPath {
-        root = default;
-        stem = "core";
-      };
-      global = mkPath {
-        root = default;
-        stem = "global";
-      };
-      home = mkPath {
-        root = default;
-        stem = "home";
-      };
-      overlays = mkPath {
-        root = default;
-        stem = "overlays";
-      };
-      plugins = mkPath {
-        root = default;
-        stem = "plugins";
-      };
-    in {inherit default core global home overlays plugins;};
-    templates = let
-      default = mkPath {
-        inherit root;
-        stem = ["Templates" "nix"];
-      };
-      rust = mkPath {
-        root = default;
-        stem = "rust";
-      };
-    in {inherit default rust;};
-    images = rec {
-      default = mkPath {
-        inherit root;
-        stem = ["Assets" "Images"];
-      };
-      ascii = mkPath {
-        root = default;
-        stem = "ascii";
-      };
-      logo = mkPath {
-        root = default;
-        stem = "logo";
-      };
-      wallpaper = mkPath {
-        root = default;
-        stem = "wallpaper";
-      };
-    };
-  };
-  store = mkPaths ./.;
-  local = mkPaths src;
-  mkLocal = dots: mkPaths dots;
+  inherit (lib.lists) elemAt head toList;
+  inherit (lib.strings) hasSuffix;
+  inherit (builtins) getEnv;
 
   /**
   Construct a file path from a root directory and a stem.
@@ -294,12 +107,11 @@
     relative = orDefault {
       value =
         if path' != []
-        then
-          getIn {
-            attrs = user.paths or {};
-            inherit path';
-            default = null;
-          }
+        then getIn {
+          attrs = user.paths or {};
+          inherit path';
+          default = null;
+        }
         else null;
       inherit default;
     };
@@ -526,7 +338,7 @@
   tryFlake :: { self? :: AttrSet, path? :: path | string } -> string | null
   ```
   */
-  flakeOrNull = {
+  tryFlake = {
     self ? {},
     path ? src,
   }: let
@@ -552,15 +364,14 @@
     self ? {},
     path ? src,
   }: let
-    result = flakeOrNull {inherit self path;};
+    result = tryFlake {inherit self path;};
   in
     if result != null
     then result
-    else
-      throw (debug.mkError {
-        function = "flake";
-        message = "'${toString path}' is not a valid flake path";
-      });
+    else throw (_debug.mkError {
+      function = "flake";
+      message  = "'${toString path}' is not a valid flake path";
+    });
 
   /**
   Build the `nixpkgs` source attribute set appropriate for the host class.
@@ -586,5 +397,26 @@
     if (host.class or "nixos") == "darwin"
     then {source = resolvedRoot;}
     else {flake.source = resolvedRoot;};
+
+  exports = {
+    inherit
+      construct
+      mkDefault
+      getDefaults
+      flake
+      tryFlake
+      source
+      ;
+  };
 in
-  exports.internal // {_rootAliases = exports.external;}
+  exports
+  // {
+    _rootAliases = {
+      buildPath = construct;
+      getDefaultPaths = getDefaults;
+      mkDefaultPath = mkDefault;
+      flakePath = flake;
+      flakePathOrNull = tryFlake;
+      sourcePath = source;
+    };
+  }
