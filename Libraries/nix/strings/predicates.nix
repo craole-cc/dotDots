@@ -14,9 +14,9 @@
   inherit (lib.lists) any all;
   inherit (lib.strings) hasInfix hasPrefix hasSuffix;
 
-  _debug = mkModuleDebug __moduleRef;
+  debug = mkModuleDebug __moduleRef;
 
-  _mkAny = {
+  mkAny = {
     name,
     fn,
     checker,
@@ -28,7 +28,7 @@
   in
     if !(isString patterns || isList patterns)
     then
-      throw (_debug.withDoc {
+      throw (debug.withDoc {
         function = mkFn {inherit name fn;};
         message = "patterns must be a string or list of strings";
         signature = "string | [string] -> string | [string] -> bool";
@@ -41,7 +41,7 @@
     else any (p: any (v: checker p v) vs) ps;
 
   #? ALL inputs match at least one pattern.
-  _mkAll = {
+  mkAll = {
     name,
     fn,
     checker,
@@ -53,7 +53,7 @@
   in
     if !(isString patterns || isList patterns)
     then
-      throw (_debug.withDoc {
+      throw (debug.withDoc {
         function = mkFn {inherit name fn;};
         message = "patterns must be a string or list of strings";
         signature = "string | [string] -> string | [string] -> bool";
@@ -84,7 +84,7 @@
   ```
   */
   contains = patterns: input:
-    _mkAny {
+    mkAny {
       name = "contains";
       fn = contains;
       checker = hasInfix;
@@ -108,7 +108,7 @@
   ```
   */
   startsWith = patterns: input:
-    _mkAny {
+    mkAny {
       name = "startsWith";
       fn = startsWith;
       checker = hasPrefix;
@@ -132,7 +132,7 @@
   ```
   */
   endsWith = patterns: input:
-    _mkAny {
+    mkAny {
       name = "endsWith";
       fn = endsWith;
       checker = hasSuffix;
@@ -154,7 +154,7 @@
   ```
   */
   containsAll = patterns: input:
-    _mkAll {
+    mkAll {
       name = "containsAll";
       fn = containsAll;
       checker = hasInfix;
@@ -176,7 +176,7 @@
   ```
   */
   startsWithAll = patterns: input:
-    _mkAll {
+    mkAll {
       name = "startsWithAll";
       fn = startsWithAll;
       checker = hasPrefix;
@@ -198,7 +198,7 @@
   ```
   */
   endsWithAll = patterns: input:
-    _mkAll {
+    mkAll {
       name = "endsWithAll";
       fn = endsWithAll;
       checker = hasSuffix;

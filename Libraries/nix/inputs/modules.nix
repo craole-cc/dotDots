@@ -8,6 +8,14 @@
   inherit (_.debug.runners) runTests;
   inherit (lib.lists) optionals;
 
+  exports = {
+    inherit inputs coreModules homeModules mkModule mkModules;
+    getCoreInputModules = coreModules;
+    getHomeInputModules = homeModules;
+    mkInputModules = mkModules;
+    mkInputModule = mkModule;
+  };
+
   /**
   Look up a module by name and variant from a modules attrset.
 
@@ -101,14 +109,6 @@
     };
   in
     {inherit all base core home path;} // all;
-
-  exports = {
-    inherit inputs coreModules homeModules mkModule mkModules;
-    getCoreInputModules = coreModules;
-    getHomeInputModules = homeModules;
-    mkInputModules = mkModules;
-    mkInputModule = mkModule;
-  };
 in
   exports
   // {

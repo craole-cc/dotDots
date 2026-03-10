@@ -3,17 +3,37 @@
   lib,
   ...
 }: let
+  inherit (_.modules._) mkHome;
   inherit (_.modules.core.environment) mkEnvironment mkLocale;
-  inherit (_.modules.core.services) mkServices;
-  inherit (_.modules.core.programs) mkPrograms;
   inherit (_.modules.core.hardware) mkAudio mkFileSystems mkNetwork;
+  inherit (_.modules.core.programs) mkPrograms;
+  inherit (_.modules.core.services) mkServices;
   inherit (_.modules.core.software) mkNix mkBoot mkClean;
   inherit (_.modules.core.style) mkFonts;
-  inherit (lib.modules) mkMerge;
   inherit (_.modules.core.users) mkUsers;
-  mkHome = _.configuration.home.modules.mkConfig;
+  inherit (lib.modules) mkMerge;
 
-  mkConfig = {
+  exports = {
+    inherit mkCore;
+    inherit
+      mkAudio
+      mkBoot
+      mkClean
+      mkEnvironment
+      mkFileSystems
+      mkFonts
+      mkHome
+      mkLocale
+      mkMerge
+      mkNetwork
+      mkNix
+      mkPrograms
+      mkServices
+      mkUsers
+      ;
+  };
+
+  mkCore = {
     host,
     nixpkgs,
     inputs,
@@ -47,10 +67,10 @@
       )
     ]
     ++ (host.imports or []);
-
-  exports = {
-    inherit mkConfig;
-    mkCoreConfig = mkConfig;
-  };
 in
-  exports // {_rootAliases = {inherit (exports) mkCoreConfig;};}
+  exports
+  // {
+    _rootAliases = {
+      # inherit (exports) mkCore;
+    };
+  }

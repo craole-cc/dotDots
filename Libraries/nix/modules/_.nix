@@ -7,8 +7,12 @@
   inherit (_.configuration.core.mod) mkCoreModules;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
+  inherit (_.modules.core) mkCore;
+  inherit (_.modules.home) mkHome;
 
-  mkConfig = {
+  exports = {inherit mkSystem mkCore mkHome;};
+
+  mkSystem = {
     hosts,
     lix,
     schema,
@@ -48,13 +52,5 @@
         else modules.fromEval
     )
     hosts;
-
-  exports = {
-    inherit mkConfig;
-    mkSystemConfig = mkConfig;
-  };
 in
-  exports
-  // {
-    _rootAliases = {inherit (exports) mkSystemConfig;};
-  }
+  exports // {_rootAliases = {inherit (exports) mkSystem;};}

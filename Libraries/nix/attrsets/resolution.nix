@@ -23,8 +23,7 @@
   inherit (lib.debug) traceIf;
   inherit (lib.lists) filter findFirst head toList;
   inherit (builtins) getFlake tryEval;
-
-  _debug = mkModuleDebug __moduleRef;
+  debug = mkModuleDebug __moduleRef;
 
   /**
   Get an attribute value, throwing if the key is absent.
@@ -51,7 +50,7 @@
     if attrs ? ${name}
     then attrs.${name}
     else
-      throw (_debug.mkError {
+      throw (debug.mkError {
         function = "getAttr";
         message = "attribute '${name}' is missing";
       });

@@ -1,5 +1,3 @@
-# attrsets/access.nix
-#
 # Safe attribute access and selection utilities.
 {
   __moduleRef,
@@ -7,15 +5,13 @@
   lib,
   ...
 }: let
-  inherit (_.debug.module) mkModuleDebug;
+  inherit (_.debug.module) mkModuleDebug mkFn;
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isList;
-  inherit (_debug) mkFn;
   inherit (lib.attrsets) hasAttr filterAttrs listToAttrs mapAttrsToList;
   inherit (lib.lists) elem foldl';
-
-  _debug = mkModuleDebug __moduleRef;
+  debug = mkModuleDebug __moduleRef;
 
   /**
   Get an attribute value with a fallback default.
@@ -42,7 +38,7 @@
   }:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "valueOr";
           fn = valueOr;
@@ -77,7 +73,7 @@
   }:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "nestedOr";
           fn = nestedOr;
@@ -87,7 +83,7 @@
       })
     else if !isList path
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "nestedOr";
           fn = nestedOr;
@@ -129,7 +125,7 @@
   }:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "pick";
           fn = pick;
@@ -139,7 +135,7 @@
       })
     else if !isList keys
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "pick";
           fn = pick;
@@ -174,7 +170,7 @@
   }:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "omit";
           fn = omit;
@@ -184,7 +180,7 @@
       })
     else if !isList keys
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "omit";
           fn = omit;
@@ -220,7 +216,7 @@
   }:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "renameKey";
           fn = renameKey;
@@ -254,7 +250,7 @@
   mapKeys = fn: attrs:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "mapKeys";
           fn = mapKeys;
@@ -287,7 +283,7 @@
   compact = attrs:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "compact";
           fn = compact;

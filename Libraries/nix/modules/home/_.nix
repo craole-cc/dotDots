@@ -11,11 +11,23 @@
   inherit (_.modules.home.style) mkStyle;
   inherit (lib.attrsets) mapAttrs;
 
+  exports = {
+    inherit mkHome;
+    inherit
+      homeUsers
+      mkKeyboard
+      mkLocale
+      mkPrograms
+      mkHomeApps
+      mkStyle
+      ;
+  };
+
   /**
   Produces the entire home-manager NixOS option block for all eligible users.
   Type: { host, specialArgs, paths } -> AttrSet
   */
-  mkConfig = {
+  mkHome = {
     host,
     specialArgs,
     paths,
@@ -73,7 +85,10 @@
         (homeUsers host);
     };
   };
-
-  exports = {inherit mkConfig;};
 in
-  exports // {_rootAliases = {mkHome = mkConfig;};}
+  exports
+  // {
+    _rootAliases = {
+      # inherit (exports) mkHome;
+    };
+  }

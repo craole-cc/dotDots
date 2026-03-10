@@ -1,6 +1,3 @@
-# attrsets/merge.nix
-#
-# Attrset merging strategies.
 {
   __moduleRef,
   _,
@@ -12,8 +9,7 @@
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isFunction;
   inherit (lib.attrsets) mapAttrs recursiveUpdate;
-
-  _debug = mkModuleDebug __moduleRef;
+  debug = mkModuleDebug __moduleRef;
 
   /**
   Merge two attrsets, with `override` winning on key conflicts.
@@ -38,7 +34,7 @@
   }:
     if !isAttrs base
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "merge";
           fn = merge;
@@ -48,7 +44,7 @@
       })
     else if !isAttrs override
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "merge";
           fn = merge;
@@ -95,7 +91,7 @@
   }:
     if !isFunction resolver
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "mergeWith";
           fn = mergeWith;
@@ -105,7 +101,7 @@
       })
     else if !isAttrs base
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "mergeWith";
           fn = mergeWith;
@@ -115,7 +111,7 @@
       })
     else if !isAttrs override
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "mergeWith";
           fn = mergeWith;
@@ -163,7 +159,7 @@
   }:
     if !isAttrs base
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "mergeDeep";
           fn = mergeDeep;
@@ -173,7 +169,7 @@
       })
     else if !isAttrs override
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "mergeDeep";
           fn = mergeDeep;
@@ -209,7 +205,7 @@
   }:
     if !isAttrs attrs
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "withDefaults";
           fn = withDefaults;
@@ -219,7 +215,7 @@
       })
     else if !isAttrs defaults
     then
-      throw (_debug.withLoc {
+      throw (debug.withLoc {
         function = mkFn {
           name = "withDefaults";
           fn = withDefaults;
