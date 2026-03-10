@@ -98,6 +98,7 @@
         # pkgs
         src
         name
+        paths
         ;
       library = name;
 

@@ -5,16 +5,12 @@
   ...
 }: let
   inherit (_.strings.generators) toList;
-  inherit (_.strings.transform) toLower;
-  inherit (_.debug.module) mkModuleDebug;
-  inherit (_.debug.format) mkExample;
+  inherit (_.lists.generators) mkCheckList;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
-  inherit (lib.lists) all any elem filter foldl' head length sort tail;
+  inherit (lib.lists) all any filter foldl' head length sort tail;
   inherit (lib.attrsets) attrValues isAttrs;
   inherit (lib.strings) stringLength;
-
-  _debug = mkModuleDebug __moduleRef;
 
   /**
   Check whether a value is a list.
@@ -32,51 +28,6 @@
   ```
   */
   isList = lib.lists.isList;
-
-  /**
-  Generate a membership checking function for a normalized list.
-
-  When exact = false, performs case-insensitive comparison by normalizing
-  both the check list and tested elements to lowercase.
-
-  # Type
-  ```nix
-  mkCheckList :: { check :: a | [a], exact :: Bool } -> (a -> Bool)
-  ```
-
-  # Examples
-  ```nix
-  isMember = mkCheckList { check = ["foo" "bar"]; };
-  isMember "foo"  # => true
-  isMember "FOO"  # => true (case-insensitive by default)
-  isMember "baz"  # => false
-  ```
-  */
-  mkCheckList = {
-    check,
-    exact ? false,
-  }: let
-    checkList = toList check;
-    normalizedList =
-      if exact
-      then checkList
-      else map toLower checkList;
-  in
-    if !(isList checkList)
-    then
-      throw (_debug.withDoc {
-        function = "mkCheckList";
-        message = "check must be a value or list of values";
-        signature = "{ check :: a | [a], exact :: Bool } -> (a -> Bool)";
-        input = check;
-        example = mkExample {
-          cmd = ''mkCheckList { check = ["foo" "bar"]; }'';
-          res = "(a -> Bool)";
-        };
-      })
-    else if exact
-    then (e: e != null && elem e normalizedList)
-    else (e: e != null && elem (toLower e) normalizedList);
 
   /**
   Check if any input elements are members of the allowed list.
