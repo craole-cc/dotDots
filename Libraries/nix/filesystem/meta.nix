@@ -14,8 +14,14 @@
       listNix
       listNixModules
       listNixPackagesRecursively
+      wallman
       ;
   };
+
+  # wallman.sh lives alongside this file in Libraries/nix/filesystem/.
+  # Exported as a path value so consumers (e.g. modules/home/paths.nix) can
+  # reference it via _.filesystem.meta.wallman without a fragile relative path.
+  wallman = ./wallman.sh;
 
   /**
   List all files under a directory, recursively.
@@ -29,8 +35,6 @@
 
   /**
   Build a recursive package attrset from a directory using `callPackage`.
-
-  Mirrors `lib.filesystem.packagesFromDirectoryRecursive`.
 
   # Type
   ```nix
@@ -70,7 +74,6 @@
     isNixFile = file: hasSuffix ".nix" (baseNameOf file);
     isExcludedFile = file: elem (baseNameOf file) defaultFilesToExclude;
     isExcludedFolder = file: elem (dirOf file) defaultFoldersToExclude;
-
     files = listFilesRecursive path;
   in
     filter

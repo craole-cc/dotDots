@@ -7,6 +7,14 @@
   inherit (_.applications.resolution) editors browsers terminals launchers bars;
   inherit (lib.attrsets) optionalAttrs;
 
+  exports = {
+    internal = {inherit mkEnvironment mkLocale;};
+    external = {
+      mkCoreEnvironment = mkEnvironment;
+      mkCoreLocale = mkLocale;
+    };
+  };
+
   mkEnvironment = {
     host,
     pkgs,
@@ -240,7 +248,5 @@
     #~@ Internationalization
     i18n.defaultLocale = loc.defaultLocale or null;
   };
-
-  exports = {inherit mkEnvironment mkLocale;};
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}

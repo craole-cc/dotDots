@@ -25,30 +25,20 @@
   };
 
   /**
-  Check whether a value is a valid path.
+  Check whether a path exists on disk at evaluation time.
 
-  Returns `true` if the specified file system `path` exists during Nix
-  evaluation time, and `false` otherwise.
+  Useful for conditionally importing local files or setting fallback
+  configurations. Note: the path must be accessible to the Nix evaluator.
 
-  Useful for conditionally importing local files, verifying data directories,
-  or setting fallback configurations.
-
-  **Note:** Checks path at *evaluation* time, so the path must be accessible
-  to the Nix evaluator.
-
-  **Example:**
+  # Type
   ```nix
-  let
-    localSettings = if pathExists ./local-config.nix
-                    then import ./local-config.nix
-                    else {};
-  in
-    { environment.systemPackages = [ pkgs.hello ]; } // localSettings
+  pathExists :: path | string -> bool
+  ```
   */
   pathExists = path: builtins.pathExists path;
 
   /**
-  Check whether a value is a path.
+  Check whether a value is a Nix path type (not a string).
 
   # Type
   ```nix
@@ -58,13 +48,13 @@
   # Examples
   ```nix
   isPath /etc/hosts  # => true
-  isPath "/etc"      # => false (string, not path)
+  isPath "/etc"      # => false
   ```
   */
   isPath = path: lib.strings.isPath path;
 
   /**
-  Check whether a value is a valid Nix store path.
+  Check whether a value is a Nix store path.
 
   # Type
   ```nix
@@ -90,14 +80,15 @@
   isNixFile = file: hasSuffix ".nix" (baseNameOf file);
 
   /**
-  Check whether the basename of a path is in an exclusion list.
+  Check whether the basename of a path matches any entry in an exclusion list.
 
   # Type
   ```nix
   isExcludedFile :: path | string -> [string] -> bool
   ```
   */
-  isExcludedFile = path: filesToExclude: elem (baseNameOf path) filesToExclude;
+  isExcludedFile = path: filesToExclude:
+    elem (baseNameOf path) filesToExclude;
 
   /**
   Check whether the immediate parent directory of a path is in an exclusion list.
@@ -107,17 +98,18 @@
   isInExcludedFolder :: path | string -> [string] -> bool
   ```
   */
-  isInExcludedFolder = path: foldersToExclude: elem (dirOf path) foldersToExclude;
+  isInExcludedFolder = path: foldersToExclude:
+    elem (dirOf path) foldersToExclude;
 
   /**
-  Check whether a path is a valid flake root.
+  Check whether a path is a valid flake root (contains a `flake.nix`).
 
   # Type
   ```nix
   isFlakePath :: path | string -> bool
   ```
   */
-  isFlakePath = path: (flakeOrNull path) != null;
+  isFlakePath = path: (flakeOrNull {inherit path;}) != null;
 in
   exports.internal
   // {
@@ -160,11 +152,11 @@ in
         };
       };
 
-      flakePath = {
+      tryFlake = {
         rejectsNonExistentPath = mkTest {
           desired = null;
-          outcome = flakeOrNull "/this/path/does/not/exist/at/all";
-          command = ''flakePath "/this/path/does/not/exist/at/all"'';
+          outcome = flakeOrNull {path = "/this/path/does/not/exist/at/all";};
+          command = ''tryFlake { path = "/this/path/does/not/exist/at/all"; }'';
         };
       };
 

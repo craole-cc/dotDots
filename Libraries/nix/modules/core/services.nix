@@ -1,6 +1,11 @@
 {lib, ...}: let
   inherit (lib.attrsets) optionalAttrs;
 
+  exports = {
+    internal = {inherit mkServices;};
+    external = {mkCoreServices = mkServices;};
+  };
+
   mkServices = {
     host,
     config,
@@ -88,7 +93,5 @@
       #   };
     };
   };
-
-  exports = {inherit mkServices;};
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}

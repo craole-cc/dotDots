@@ -3,17 +3,16 @@
   lib,
   ...
 }: let
-  inherit (_.configuration.inputs.generators) mkInputModules mkInputPackages;
-  inherit (_.configuration.core.mod) mkCoreModules;
+  inherit (_.modules) core home;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
-  inherit (_.modules.core._) mkCore;
-  inherit (_.modules.home._) mkHome;
+  inherit (lib.modules) mkMerge;
 
   exports = {inherit mkSystem mkCore mkHome;};
 
   mkSystem = {
     hosts,
+    self,
     lix,
     schema,
     paths,
@@ -26,12 +25,19 @@
           inherit lix lib host schema class;
           paths = paths // {local = paths.mkLocal host.paths.dots;};
         };
-        packages = mkInputPackages {inherit host;};
+        flake = let
+          inherit (_.modules.inputs.resolution) mkInputs;
+          inherit (_.modules.inputs.packages) mkPackages;
+          inherit (_.modules.inputs.modules) mkModules;
+          inputs = mkInputs {inherit self;};
+          packages = mkPackages {inherit inputs host;};
+          modules = mkModules {inherit inputs class;};
+        in {inherit inputs packages modules;};
         modules = let
-          fromInputs = mkInputModules {inherit class;};
-          fromHost = mkCoreModules {
+          fromInputs = flake.modules;
+          fromHost = mkCore {
             inherit host specialArgs;
-            inherit (packages) nixpkgs inputs;
+            inherit (flake.packages) nixpkgs inputs;
           };
           fromEval = evalModules {
             specialArgs =
@@ -52,5 +58,84 @@
         else modules.fromEval
     )
     hosts;
+
+  mkCore = {
+    host,
+    nixpkgs,
+    inputs,
+    specialArgs,
+  }:
+    [
+      {inherit nixpkgs;}
+      (
+        {
+          config,
+          paths,
+          pkgs,
+          ...
+        }: let
+          inherit (core.hardware) mkBoot mkAudio mkFileSystems mkNetwork;
+          inherit (core.software) mkClean mkNix;
+          inherit (core.environment) mkEnvironment mkLocale;
+          inherit (core.programs) mkPrograms;
+          inherit (core.services) mkServices;
+          inherit (core.style) mkFonts;
+          # inherit (core.style) mkFonts mkStyle;
+          inherit (core.users) mkUsers;
+        in
+          mkMerge [
+            (mkNix {inherit host pkgs;})
+            (mkNetwork {inherit host pkgs;})
+            (mkBoot {inherit host pkgs;})
+            (mkFileSystems {inherit host;})
+            (mkLocale {inherit host;})
+            (mkAudio {inherit host;})
+            (mkFonts {inherit host pkgs;})
+            # (mkStyle {inherit host pkgs;}) # TODO: Not ready, build errors
+            (mkClean {inherit host;})
+            (mkEnvironment {inherit config host pkgs inputs;})
+            (mkServices {inherit config host;})
+            (mkPrograms {inherit host;})
+            (mkUsers {inherit host pkgs;})
+            (mkHome {inherit host specialArgs paths;})
+          ]
+      )
+    ]
+    ++ (host.imports or []);
+
+  /**
+  Produce the entire home-manager NixOS option block for all eligible users.
+
+  `paths` is the static store/local path tree from `mkPaths` — passed
+  explicitly so it is never buried in `specialArgs`. Runtime per-user paths
+  are derived inside `mkUsers` via `mkSessionPaths`.
+
+  # Type
+  ```
+  mkHome :: { host        :: AttrSet
+            , specialArgs :: AttrSet
+            , paths       :: AttrSet
+            } -> AttrSet
+  ```
+  */
+  mkHome = {
+    host,
+    specialArgs,
+    paths,
+  }: {
+    home-manager = {
+      backupFileExtension = "BaC";
+      overwriteBackup = true;
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      extraSpecialArgs =
+        specialArgs
+        // {
+          lix = _;
+          inherit host;
+        };
+      users = home.mkUsers {inherit host paths;};
+    };
+  };
 in
   exports // {_rootAliases = {inherit (exports) mkSystem;};}

@@ -5,93 +5,47 @@
 }: let
   inherit (_.inputs.modules) mkModule homeModules;
   inherit (_.lists.predicates) isIn;
-  inherit
-    (lib.attrsets)
-    attrByPath
-    isAttrs
-    mapAttrs
-    removeAttrs
-    ;
+  inherit (lib.attrsets) attrByPath isAttrs mapAttrs removeAttrs;
   inherit (lib.strings) hasInfix splitString toLower;
+
+  exports = rec {
+    internal = {
+      inherit defaults mkApp mkApps mkPrograms;
+      mkHomeApp = mkApp;
+      mkHomeApps = mkApps;
+      mkHomePrograms = mkPrograms;
+    };
+    external = {
+      inherit (internal) mkHomeApp mkHomeApps mkHomePrograms;
+    };
+  };
 
   normalizeName = value:
     if value == null
     then null
     else builtins.replaceStrings [" " "_"] ["-" "-"] (toLower value);
 
-  normalizeNames = values:
-    map normalizeName values;
+  normalizeNames = values: map normalizeName values;
 
   defaults = {
     apps = {
-      plasma = {
-        aliases = normalizeNames [
-          "kde"
-          "kde-plasma"
-          "plasma6"
-        ];
-      };
+      plasma.aliases = normalizeNames ["kde" "kde-plasma" "plasma6"];
 
       catppuccin = {
-        aliases = normalizeNames [
-          "catppuccin-theme"
-          "catpp"
-        ];
-        flavors = normalizeNames [
-          "latte"
-          "frappe"
-          "macchiato"
-          "mocha"
-        ];
+        aliases = normalizeNames ["catppuccin-theme" "catpp"];
+        flavors = normalizeNames ["latte" "frappe" "macchiato" "mocha"];
       };
 
-      caelestia = {
-        aliases = normalizeNames [
-          "caelestia-shell"
-          "cls"
-        ];
-      };
-
-      "dank-material-shell" = {
-        aliases = normalizeNames [
-          "dms"
-          "dank"
-        ];
-      };
-
-      "noctalia-shell" = {
-        aliases = normalizeNames [
-          "noctalia"
-          "noctalia-dev"
-        ];
-      };
-
-      nvf = {
-        aliases = normalizeNames [
-          "nvim"
-          "neovim"
-        ];
-      };
+      caelestia.aliases = normalizeNames ["caelestia-shell" "cls"];
+      "dank-material-shell".aliases = normalizeNames ["dms" "dank"];
+      "noctalia-shell".aliases = normalizeNames ["noctalia" "noctalia-dev"];
+      nvf.aliases = normalizeNames ["nvim" "neovim"];
 
       "zen-browser" = {
-        aliases = normalizeNames [
-          "zen"
-          "zen-twilight"
-          "zen-beta"
-          "zen-default"
-        ];
+        aliases = normalizeNames ["zen" "zen-twilight" "zen-beta" "zen-default"];
         variants = {
-          twilight = normalizeNames [
-            "zen"
-            "zen-twilight"
-            "zen twilight"
-          ];
-          beta = normalizeNames [
-            "zen-beta"
-            "zen-default"
-            "zen beta"
-            "zen default"
-          ];
+          twilight = normalizeNames ["zen" "zen-twilight" "zen twilight"];
+          beta = normalizeNames ["zen-beta" "zen-default" "zen beta" "zen default"];
         };
       };
     };
@@ -102,23 +56,19 @@
           foot = "feet";
           ghostty = "ghostty";
         };
-
         browser = {
           zen-twilight = "zen-twilight";
           zen-beta = "zen-beta";
         };
-
         editor = {
           vscode = "code";
           zed = "zeditor";
         };
-
         launcher = {
           vicinae = "vicinae toggle";
           fuzzel = "pkill fuzzel || fuzzel --list-executables-in-path";
         };
       };
-
       class = {
         feet = "foot";
         ghostty = "com.mitchellh.ghostty";
@@ -133,40 +83,29 @@
         primary = "foot";
         secondary = "ghostty";
       };
-
       browser = {
         primary = "zen-twilight";
         secondary = "chromium";
       };
-
       editor = {
         primary = {
           option = "gui.primary";
           default = "vscode";
         };
-
         secondary = {
           option = "gui.secondary";
           default = "zed";
         };
       };
-
       explorer = {
         primary = "yazi";
         secondary = "org.gnome.Nautilus";
       };
-
       launcher = {
         primary = "vicinae";
         secondary = "fuzzel";
       };
-
-      tui = normalizeNames [
-        "yazi"
-        "btop"
-        "htop"
-        "fend"
-      ];
+      tui = normalizeNames ["yazi" "btop" "htop" "fend"];
     };
   };
 
@@ -179,22 +118,9 @@
     cfg = attrByPath ["apps" name] {} defaults;
     names = normalizeNames ([name] ++ (cfg.aliases or []));
     flavors = normalizeNames (cfg.flavors or []);
-    variants =
-      mapAttrs (_: values: normalizeNames values) (cfg.variants or {});
+    variants = mapAttrs (_: values: normalizeNames values) (cfg.variants or {});
   in {
-    isAllowed = condition (
-      {
-        inherit
-          cfg
-          name
-          names
-          flavors
-          variants
-          ;
-      }
-      // context
-    );
-
+    isAllowed = condition ({inherit cfg name names flavors variants;} // context);
     module = mkModule {
       inherit name variant;
       modules = homeModules;
@@ -205,40 +131,23 @@
     apps = user.applications or {};
     appsAllowed = normalizeNames (attrByPath ["applications" "allowed"] [] user);
     ui = user.interface or {};
-
     de = normalizeName (attrByPath ["desktopEnvironment"] "" ui);
-
     theme = let
-      path = attrByPath ["style" "theme"] {} ui;
+      t = attrByPath ["style" "theme"] {} ui;
     in {
-      light = normalizeName (path.light or "");
-      dark = normalizeName (path.dark or "");
+      light = normalizeName (t.light or "");
+      dark = normalizeName (t.dark or "");
     };
-
     bar = normalizeName (attrByPath ["bar"] null apps);
     firefox = normalizeName (attrByPath ["browser" "firefox"] "" apps);
-
     tty = let
-      path = attrByPath ["editor" "tty"] {} apps;
+      t = attrByPath ["editor" "tty"] {} apps;
     in {
-      primary = normalizeName (path.primary or "");
-      secondary = normalizeName (path.secondary or "");
+      primary = normalizeName (t.primary or "");
+      secondary = normalizeName (t.secondary or "");
     };
-
-    hasAnyApp = names: extras:
-      isIn names (appsAllowed ++ normalizeNames extras);
-
-    context = {
-      inherit
-        appsAllowed
-        bar
-        theme
-        de
-        firefox
-        hasAnyApp
-        tty
-        ;
-    };
+    hasAnyApp = names: extras: isIn names (appsAllowed ++ normalizeNames extras);
+    context = {inherit appsAllowed bar theme de firefox hasAnyApp tty;};
 
     appSpecs = {
       plasma.condition = {
@@ -259,10 +168,7 @@
         isIn names appsAllowed
         || hasInfix (normalizeName name) theme.light
         || hasInfix (normalizeName name) theme.dark
-        || isIn flavors [
-          theme.light
-          theme.dark
-        ];
+        || isIn flavors [theme.light theme.dark];
 
       caelestia.condition = {
         names,
@@ -271,7 +177,6 @@
         ...
       }:
         hasAnyApp names [bar];
-
       "dank-material-shell".condition = {
         names,
         hasAnyApp,
@@ -279,7 +184,6 @@
         ...
       }:
         hasAnyApp names [bar];
-
       "noctalia-shell".condition = {
         names,
         hasAnyApp,
@@ -294,10 +198,7 @@
         tty,
         ...
       }:
-        hasAnyApp names [
-          tty.primary
-          tty.secondary
-        ];
+        hasAnyApp names [tty.primary tty.secondary];
 
       "zen-browser" = let
         cfg = defaults.apps."zen-browser";
@@ -324,12 +225,9 @@
     user,
   }: let
     inherit (defaults) mappings programs;
-
     hostApps = host.applications or {};
     userApps = user.applications or {};
-
     programDefaults = removeAttrs programs ["tui"];
-
     zenCfg = defaults.apps."zen-browser";
     zenNames = normalizeNames (["zen-browser"] ++ (zenCfg.aliases or []));
 
@@ -338,49 +236,45 @@
       (attrByPath ["terminal" "primary"] programs.terminal.primary hostApps)
       userApps
     );
-
-    primaryTerminalCmd =
-      attrByPath ["terminal" rawTerm] rawTerm mappings.command;
+    primaryTerminalCmd = attrByPath ["terminal" rawTerm] rawTerm mappings.command;
 
     getCommand = category: name: let
-      normalizedName = normalizeName name;
-
-      resolvedCmd =
-        if category == "browser" && isIn zenNames normalizedName
+      n = normalizeName name;
+      cmd =
+        if category == "browser" && isIn zenNames n
         then
-          attrByPath
-          [
+          attrByPath [
             "browser"
             (
-              if isIn (zenCfg.variants.twilight or []) normalizedName
+              if isIn (zenCfg.variants.twilight or []) n
               then "zen-twilight"
               else "zen-beta"
             )
           ]
-          normalizedName
+          n
           mappings.command
-        else if category == "editor" && hasInfix "code" normalizedName
+        else if category == "editor" && hasInfix "code" n
         then attrByPath ["editor" "vscode"] "code" mappings.command
-        else if category == "editor" && hasInfix "zed" normalizedName
+        else if category == "editor" && hasInfix "zed" n
         then attrByPath ["editor" "zed"] "zeditor" mappings.command
-        else attrByPath [category normalizedName] normalizedName mappings.command;
+        else attrByPath [category n] n mappings.command;
     in
-      if isIn normalizedName programs.tui
-      then "${primaryTerminalCmd} -e ${resolvedCmd}"
-      else resolvedCmd;
+      if isIn n programs.tui
+      then "${primaryTerminalCmd} -e ${cmd}"
+      else cmd;
 
     getClass = command: let
-      normalizedCommand = normalizeName command;
+      n = normalizeName command;
     in
-      if hasInfix "fuzzel" normalizedCommand
+      if hasInfix "fuzzel" n
       then "fuzzel"
-      else if hasInfix "vicinae" normalizedCommand
+      else if hasInfix "vicinae" n
       then "vicinae"
-      else if hasInfix "yazi" normalizedCommand
+      else if hasInfix "yazi" n
       then "yazi"
-      else attrByPath [normalizedCommand] normalizedCommand mappings.class;
+      else attrByPath [n] n mappings.class;
 
-    mkDefault = {
+    resolveProgram = {
       category,
       option,
       default,
@@ -388,22 +282,17 @@
       userCategory = attrByPath ["applications" category] {} user;
       hostCategory = attrByPath ["applications" category] {} host;
       optionPath = splitString "." option;
-
       name = normalizeName (
         attrByPath optionPath
         (attrByPath optionPath default hostCategory)
         userCategory
       );
-
       command = getCommand category name;
       class = getClass command;
-    in {
-      inherit command class;
-    };
+    in {inherit command class;};
 
     mkCategory = category: options:
-      mapAttrs
-      (name: value: let
+      mapAttrs (name: value: let
         cfg =
           if isAttrs value
           then value
@@ -412,36 +301,13 @@
             default = value;
           };
       in
-        mkDefault {
+        resolveProgram {
           inherit category;
           option = cfg.option or name;
           default = cfg.default;
         })
       options;
   in
-    mapAttrs mkCategory programDefaults // {inherit mkDefault;};
-
-  exports = {
-    inherit
-      defaults
-      mkApp
-      mkApps
-      mkPrograms
-      ;
-
-    mkHomeApp = mkApp;
-    mkHomeApps = mkApps;
-    mkHomePrograms = mkPrograms;
-  };
+    mapAttrs mkCategory programDefaults // {inherit resolveProgram;};
 in
-  exports
-  // {
-    _rootAliases = {
-      inherit
-        (exports)
-        mkHomeApp
-        mkHomeApps
-        mkHomePrograms
-        ;
-    };
-  }
+  exports.internal // {_rootAliases = exports.external;}

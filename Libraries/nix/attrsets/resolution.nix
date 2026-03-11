@@ -6,12 +6,13 @@
   ...
 }: let
   inherit (_.attrsets.predicates) valueOr;
+  inherit (_.content.fallback) firstNonEmpty;
+  inherit (_.contents.empty) isNotEmpty;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
   inherit (_.filesystem.paths) getFlakePath;
   inherit (_.hardware.systems) getSystems;
-  inherit (_.contents.empty) isNotEmpty;
   inherit
     (lib.attrsets)
     attrByPath
@@ -35,6 +36,8 @@
         flake
         getAttr
         host
+        inputPackages
+        inputSource
         nestedByPaths
         nixpkgs
         optional
@@ -43,7 +46,6 @@
         package
         packages
         shellPackage
-        inputPackages
         ;
       flakeAttrs = flake;
       getAttrByPaths = byPaths;
@@ -56,6 +58,7 @@
       getPkgs = packages;
       getShellPackage = shellPackage;
       mkInputPackages = inputPackages;
+      mkInputSource = inputSource;
       optionalAttr = optional;
     };
     external = {
@@ -400,6 +403,38 @@
     ((derived.class or null) != "nixos")
     "❌ Failed to derive current host"
     (derived // {name = derived.config.networking.hostName;});
+
+  /**
+  Build the `nixpkgs` source attribute appropriate for the host class.
+
+  Darwin uses `source`; NixOS uses `flake.source`. Resolves `root` from
+  `inputs.nixpkgs` when not explicitly provided.
+
+  # Type
+  ```
+  inputSource :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  inputSource { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
+  # => { source = nixpkgs; }
+
+  inputSource { inputs.nixpkgs = nixpkgs; }
+  # => { flake.source = nixpkgs; }
+  ```
+  */
+  inputSource = {
+    host ? {},
+    root ? null,
+    inputs ? {},
+    ...
+  }: let
+    root' = firstNonEmpty [root (inputs.nixpkgs or null)];
+  in
+    if (host.class or "nixos") == "darwin"
+    then {source = root';}
+    else {flake.source = root';};
 
   nixpkgs = {
     system,

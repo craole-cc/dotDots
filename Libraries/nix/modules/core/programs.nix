@@ -1,6 +1,11 @@
 {_, ...}: let
   inherit (_.lists.predicates) isIn;
 
+  exports = {
+    internal = {inherit mkPrograms;};
+    external = {mkCorePrograms = mkPrograms;};
+  };
+
   mkPrograms = {host, ...}: let
     #~@ User profile
     user = host.users.data.primary or {};
@@ -61,4 +66,4 @@
 
   exports = {inherit mkPrograms;};
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}

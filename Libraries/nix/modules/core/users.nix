@@ -8,6 +8,22 @@
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) head optionals;
 
+  exports = {
+    internal = {
+      inherit
+        mkSudoRules
+        hostUsers
+        homeUsers
+        adminNames
+        adminUsers
+        mkUsers
+        ;
+    };
+    external = {
+      mkCoreUsers = mkUsers;
+    };
+  };
+
   /**
   Creates passwordless sudo rules for admin users.
 
@@ -122,15 +138,5 @@
       }) (hostUsers host);
     };
   };
-  exports = {
-    inherit
-      mkUsers
-      mkSudoRules
-      adminNames
-      adminUsers
-      hostUsers
-      homeUsers
-      ;
-  };
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}

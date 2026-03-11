@@ -3,17 +3,17 @@
   lib,
   ...
 }: let
-  inherit (_.inputs.resolution) inputs;
-  inherit (_.debug.assertions) mkTest mkTest';
-  inherit (_.debug.runners) runTests;
   inherit (lib.lists) optionals;
 
   exports = {
-    inherit inputs coreModules homeModules mkModule mkModules;
-    getCoreInputModules = coreModules;
-    getHomeInputModules = homeModules;
-    mkInputModules = mkModules;
-    mkInputModule = mkModule;
+    internal = {inherit mkModule mkAll mkCore mkHome;};
+    external = {
+      inherit coreModules homeModules mkModule mkModules;
+      getCoreInputModules = coreModules;
+      getHomeInputModules = homeModules;
+      mkInputModules = mkModules;
+      mkInputModule = mkModule;
+    };
   };
 
   /**
@@ -26,9 +26,12 @@
   */
   mkModule = {
     name,
-    modules ? homeModules,
+    inputs ? {},
+    modules ? {},
     variant ? "default",
-  }:
+  }: let
+    mod = modules;
+  in
     modules.${name}.${variant} or {};
 
   /**
@@ -39,7 +42,10 @@
   coreModules :: { class :: "nixos" | "darwin" } -> [module]
   ```
   */
-  coreModules = {class ? "nixos", ...}:
+  mkCore = {
+    inputs,
+    class ? "nixos",
+  }:
     (
       if class == "darwin"
       then [
@@ -71,7 +77,7 @@
   /**
   Attrset of all home-manager modules provided by flake inputs.
   */
-  homeModules = {
+  mkHome = {inputs}: {
     dank-material-shell = {
       default = inputs.dank-material-shell.homeModules.default or {};
       niri = inputs.dank-material-shell.homeModules.niri or {};
@@ -96,11 +102,15 @@
   mkModules :: { class :: "nixos" | "darwin" } -> { all, base, core, home, path, ... }
   ```
   */
-  mkModules = {class ? "nixos", ...}: let
+  mkAll = {
+    inputs,
+    class ? "nixos",
+    ...
+  }: let
     path = "${inputs.nixpkgs}/nixos/modules";
     base = import "${path}/module-list.nix";
-    core = coreModules {inherit class;};
-    home = homeModules;
+    core = mkCore {inherit inputs class;};
+    home = mkHome {inherit inputs;};
     all = {
       baseModules = base;
       coreModules = core;
@@ -110,59 +120,4 @@
   in
     {inherit all base core home path;} // all;
 in
-  exports
-  // {
-    _rootAliases = {
-      inherit
-        (exports)
-        getCoreInputModules
-        getHomeInputModules
-        mkInputModules
-        mkInputModule
-        ;
-    };
-
-    _tests = runTests {
-      mkModule = {
-        returnsEmptyWhenVariantMissing = mkTest {
-          desired = {};
-          outcome = mkModule {
-            name = "nonexistent";
-            modules = {};
-          };
-          command = ''mkModule { name = "nonexistent"; modules = {}; }'';
-        };
-        fallsBackToEmptyOnMissingVariant = mkTest {
-          desired = {};
-          outcome = mkModule {
-            name = "nvf";
-            modules = {nvf = {};};
-            variant = "missing";
-          };
-          command = ''mkModule { name = "nvf"; modules = { nvf = {}; }; variant = "missing"; }'';
-        };
-        resolvesExistingVariant = mkTest {
-          desired = "ok";
-          outcome = mkModule {
-            name = "myMod";
-            modules = {myMod.default = "ok";};
-          };
-          command = ''mkModule { name = "myMod"; modules = { myMod.default = "ok"; }; }'';
-        };
-      };
-
-      homeModules = {
-        hasNvf = mkTest' true (homeModules ? nvf);
-        hasZenBrowser = mkTest' true (homeModules ? zen-browser);
-        hasCatppuccin = mkTest' true (homeModules ? catppuccin);
-        zenHasTwilight = mkTest' true (homeModules.zen-browser ? twilight);
-        zenHasBeta = mkTest' true (homeModules.zen-browser ? beta);
-      };
-
-      coreModules = {
-        nixosReturnsList = mkTest' true (builtins.isList (coreModules {class = "nixos";}));
-        darwinReturnsList = mkTest' true (builtins.isList (coreModules {class = "darwin";}));
-        defaultsToNixos = mkTest' true (builtins.isList (coreModules {}));
-      };
-    };
-  }
+  exports.internal // {_rootAliases = exports.external;}

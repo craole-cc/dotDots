@@ -5,7 +5,6 @@
 }: let
   inherit (_.filesystem.paths) source;
   inherit (_.hardware.system) getSystem;
-  inherit (_.content.fallback) firstNonEmpty;
   # inherit (_.inputs.resolution) inputs;
   inherit (_.attrsets.predicates) valueOr;
   # inherit (_.attrsets.resolution) mkInputPackages;
@@ -20,21 +19,13 @@
         # home
         mkOverlays
         mkPackages
-        mkInputs
         ;
     };
     external = {
-      # inputPackages = resolved;
       mkInputOverlays = mkOverlays;
       mkInputPackages = mkPackages;
     };
   };
-
-  # inherit (_.filesystem.paths) tryFlake;
-  mkInputs = {flake ? _.filesystem.paths.tryFlake {}}: let
-    raw = flake.inputs;
-  in
-    raw;
 
   mkPackages = {
     host,
@@ -68,12 +59,12 @@
     inputs' = _.inputs.resolution.inputs // inputs;
 
     packages =
-      mkPackages {
+      mkPackageSet {
         inputs = inputs';
         attrs = "legacyPackages";
         names = core;
       }
-      // mkPackages {
+      // mkPackageSet {
         inputs = inputs';
         attrs = "packages";
         names = home;
@@ -175,30 +166,8 @@
     #~@ Chaotic
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
-
-  /**
-  Build the `nixpkgs` source attribute set appropriate for the host class.
-
-  Darwin uses `source`; NixOS uses `flake.source`.
-
-  # Type
-  ```nix
-  mkSource :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
-  ```
-  */
-  mkSource = {
-    host ? {},
-    root ? null,
-    inputs ? {},
-    ...
-  }: let
-    root' = firstNonEmpty [root (inputs.nixpkgs or null)];
-  in
-    if (host.class or "nixos") == "darwin"
-    then {source = root';}
-    else {flake.source = root';};
 in
-  exports.internal
+  exports.external
   // {
-    _rootAliases = exports.external;
+    _rootAliases = exports.internal;
   }

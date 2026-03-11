@@ -3,34 +3,31 @@
   lib,
   ...
 }: let
+  inherit (_.attrsets.predicates) valueOr;
+  inherit (_.content.fallback) firstNonEmpty;
+  inherit (_.filesystem.paths) flakeOrNull;
   inherit (_.filesystem.paths) source;
   inherit (_.hardware.system) getSystem;
-  # inherit (_.inputs.resolution) inputs;
-  inherit (_.attrsets.predicates) valueOr;
-  # inherit (_.attrsets.resolution) mkInputPackages;
-  inherit (_.debug.assertions) mkTest mkTest' mkThrows;
-  inherit (_.debug.runners) runTests;
   inherit (lib.attrsets) filterAttrsRecursive listToAttrs mapAttrs mapAttrs';
-  inherit (lib.lists) elem length;
+
   exports = {
     internal = {
       inherit
-        # core
-        # home
+        mkInputs
         mkOverlays
         mkPackages
-        mkInputs
+        mkSource
         ;
     };
     external = {
       # inputPackages = resolved;
       mkInputOverlays = mkOverlays;
       mkInputPackages = mkPackages;
+      mkInputSource = mkSource;
     };
   };
 
-  # inherit (_.filesystem.paths) tryFlake;
-  mkInputs = {flake ? _.filesystem.paths.tryFlake {}}: let
+  mkInputs = {flake ? flakeOrNull {}}: let
     raw = flake.inputs;
   in
     raw;
@@ -67,12 +64,12 @@
     inputs' = _.inputs.resolution.inputs // inputs;
 
     packages =
-      mkPackages {
+      mkPackageSet {
         inputs = inputs';
         attrs = "legacyPackages";
         names = core;
       }
-      // mkPackages {
+      // mkPackageSet {
         inputs = inputs';
         attrs = "packages";
         names = home;
@@ -174,8 +171,27 @@
     #~@ Chaotic
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
+
+  /**
+  Build the `nixpkgs` source attribute set appropriate for the host class.
+
+  Darwin uses `source`; NixOS uses `flake.source`.
+
+  # Type
+  ```nix
+  mkSource :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```
+  */
+  mkSource = {
+    host ? {},
+    root ? null,
+    inputs ? {},
+    ...
+  }: let
+    root' = firstNonEmpty [root (inputs.nixpkgs or null)];
+  in
+    if (host.class or "nixos") == "darwin"
+    then {source = root';}
+    else {flake.source = root';};
 in
-  exports.external
-  // {
-    _rootAliases = exports.internal;
-  }
+  exports.internal // {_rootAliases = exports.external;}

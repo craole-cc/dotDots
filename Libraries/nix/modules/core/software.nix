@@ -3,6 +3,19 @@
   inherit (lib.modules) mkForce;
   inherit (lib.strings) hasInfix optionalString;
 
+  exports = {
+    internal = {
+      inherit
+        mkNix
+        mkClean
+        ;
+    };
+    external = {
+      # mkCoreFonts = mkFonts;
+      # mkCoreStyle = mkStyle;
+    };
+  };
+
   mkNix = {
     host,
     pkgs,
@@ -59,4 +72,4 @@
 
   exports = {inherit mkNix mkClean;};
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}

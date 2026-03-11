@@ -4,6 +4,19 @@
   inherit (lib.strings) splitString;
   inherit (lib.modules) mkForce;
 
+  exports = {
+    internal = {
+      inherit
+        mkFonts
+        mkStyle
+        ;
+    };
+    external = {
+      # mkCoreFonts = mkFonts;
+      # mkCoreStyle = mkStyle;
+    };
+  };
+
   cursor.size = 24;
 
   defaultFonts = {
@@ -258,4 +271,4 @@
 
   exports = {inherit mkFonts mkStyle;};
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}

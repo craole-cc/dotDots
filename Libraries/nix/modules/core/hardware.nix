@@ -11,6 +11,29 @@
   inherit (_.lists.predicates) isIn;
   hasAudio = host: isIn "audio" (host.functionalities or []);
 
+  exports = {
+    internal = {
+      inherit
+        mkBoot
+        mkAudio
+        mkFileSystem
+        mkFileSystems
+        mkNetwork
+        mkSwapDevice
+        ;
+    };
+    external = {
+      inherit
+        mkAudio
+        mkBoot
+        mkFileSystems
+        mkNetwork
+        ;
+      # mkCoreSwapDevice = mkSwapDevice;
+      # mkCoreFileSystem = mkFileSystem;
+    };
+  };
+
   mkFileSystem = _: fs: let
     base = {
       device = fs.device;
@@ -253,27 +276,5 @@
 
     environment.systemPackages = with pkgs; [efibootmgr];
   };
-
-  exports = {
-    inherit
-      # mkFileSystem
-      mkFileSystems
-      # mkSwapDevice
-      mkAudio
-      mkNetwork
-      mkBoot
-      ;
-  };
 in
-  exports
-  // {
-    # _rootAliases = {
-    #   inherit
-    #     (exports)
-    #     mkFilesystems
-    #     mkAudio
-    #     mkNetwork
-    #     mkBoot
-    #     ;
-    # };
-  }
+  exports.internal // {_rootAliases = exports.external;}
