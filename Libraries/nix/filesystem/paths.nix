@@ -14,8 +14,7 @@
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
   inherit (builtins) getEnv;
-  inherit (lib.asserts) assertMsg;
-  inherit (lib.attrsets) mapAttrs mapAttrsRecursive mapAttrsToList optionalAttrs;
+  inherit (lib.attrsets) mapAttrs recursiveUpdateUntil mapAttrsToList optionalAttrs;
   inherit (lib.filesystem) dirOf;
   inherit (lib.lists) elemAt head toList;
   inherit
@@ -44,6 +43,7 @@
         flakeOrNull
         toPath
         stems
+        mkPaths
         ;
       flakePath = flakeOrNull;
     };
@@ -294,11 +294,14 @@
   Build a resolved `{ store, local }` path from a root and a stem.
 
   Accepts any of the following calling patterns:
-  - `construct {}` — resolves to the root alone (both store and local)
-  - `construct { stem = …; }` — root defaults to `src`, stem is appended
-  - `construct { root = …; stem = …; }` — explicit root and stem
-  - `construct "some/stem"` — bare string treated as stem, root defaults to `src`
-  - `construct ["some" "stem"]` — bare list treated as stem, root defaults to `src`
+
+  ```nix
+    - `construct {}` — resolves to the root alone (both store and local)
+    - `construct { stem = …; }` — root defaults to `src`, stem is appended
+    - `construct { root = …; stem = …; }` — explicit root and stem
+    - `construct "some/stem"` — bare string treated as stem, root defaults to `src`
+    - `construct ["some" "stem"]` — bare list treated as stem, root defaults to `src`
+  ```
 
   `stem` may be a string, a list of segments, or one of the pre-defined
   values from `stems` (e.g. `stems.api.hosts`).
@@ -674,5 +677,94 @@
         function = "flake";
         message = "'${toString path}' is not a valid flake path";
       });
+
+  mkPaths = {
+    root ? src,
+    bases ? {},
+    stems ? {},
+  }: let
+    # ── Group constructors ───────────────────────────────────────────────────
+    # api/pkgs/templates: nix-only groups where everything chains from a single
+    # nix-rooted base.
+    mkNixGroup = base: entries:
+      {default = base;}
+      // mapAttrs (_: suffix: base ++ suffix) entries;
+
+    # libs: multi-language group where each language is a peer under a shared
+    # parent. Languages cannot derive from each other, so each is declared
+    # independently. `default` points to the nix peer to match project idiom.
+    mkLibs = parent: {
+      default = parent ++ ["nix"];
+      nix = parent ++ ["nix"];
+      shellscript = parent ++ ["shellscript"];
+      rust = parent ++ ["rust"];
+    };
+
+    # images: media assets with a shared parent base.
+    mkImages = base: {
+      default = base;
+      ascii = base ++ ["ascii"];
+      logo = base ++ ["logo"];
+      wallpaper = base ++ ["wallpaper"];
+    };
+
+    # ── Default bases ────────────────────────────────────────────────────────
+    defaultBases = {
+      libs = ["Libraries"]; # parent — mkLibs appends language
+      api = ["API" "nix"];
+      pkgs = ["Packages" "nix"];
+      templates = ["Templates" "nix"];
+      images = ["Assets" "Images"];
+      configuration = ["Configuration"];
+      environment = ["Environment"];
+    };
+
+    bases' = defaultBases // bases;
+
+    # ── Built-in stem tree ───────────────────────────────────────────────────
+    commonStems = {
+      libs = mkLibs bases'.libs;
+
+      api = mkNixGroup bases'.api {
+        hosts = ["hosts"];
+        users = ["users"];
+      };
+
+      pkgs = mkNixGroup bases'.pkgs {
+        global = ["global"];
+        core = ["core"];
+        home = ["home"];
+        overlays = ["overlays"];
+        plugins = ["plugins"];
+      };
+
+      templates = mkNixGroup bases'.templates {
+        rust = ["rust"];
+        shellscript = ["shellscript"];
+        dev = ["dev"];
+        media = ["media"];
+      };
+
+      images = mkImages bases'.images;
+
+      # flat groups — no sub-structure yet, just the root
+      configuration = {default = bases'.configuration;};
+      environment = {default = bases'.environment;};
+    };
+
+    # ── Merge strategy ───────────────────────────────────────────────────────
+    # Stop at any incoming group that declares `default` — caller owns the
+    # full derivation. All other cases merge deeply, preserving siblings.
+    stems' =
+      recursiveUpdateUntil
+      (_path: _lhs: rhs: isAttrs rhs && rhs ? default)
+      commonStems
+      stems;
+
+    resolveGroup = group:
+      mapAttrs (_: stem: construct {inherit root stem;}) group;
+  in
+    {default = construct {inherit root;};}
+    // mapAttrs (_: resolveGroup) stems';
 in
   exports.internal // {_rootAliases = exports.external;}
