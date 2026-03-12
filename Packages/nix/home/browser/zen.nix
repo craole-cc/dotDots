@@ -1,22 +1,20 @@
 {
+  lix,
   user,
   config,
   pkgs,
   tree,
   ...
 }: let
-  #~@ Universal Zen launcher
-  #> Prefers twilight → beta → zen → $BROWSER
-  script =
-    pkgs.writeShellScript "zen.sh"
-    (builtins.readFile (tree.lib.sh.local + "/packages/wrappers/zen.sh"));
+  inherit (lix.applications.utilities) mkScriptWrapper;
 
-  launcher = pkgs.writeShellScriptBin "zen" ''
-    exec ${script} "$@"
-  '';
+  launcher = mkScriptWrapper {
+    inherit pkgs;
+    name = "zen";
+    script = tree.lib.sh.local + "/packages/wrappers/zen.sh";
+  };
 in {
   home.packages = [launcher];
-
   programs.zen-browser = {
     # enable = true;
     profiles.default = {

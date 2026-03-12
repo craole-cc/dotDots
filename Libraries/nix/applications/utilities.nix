@@ -1,37 +1,43 @@
 {lib, ...}: let
-  inherit (lib.attrsets) listToAttrs;
+  inherit (lib.attrsets) listToAttrs mapAttrsToList;
+
+  exports = {
+    internal = {inherit mkShellApp mkScriptWrapper mkScriptWrappers;};
+    external = exports.internal;
+  };
+
   /**
-  mkShellApp - A helper function to create a shell script application with runtime dependencies
-  and optional aliases.
+    mkShellApp - A helper function to create a shell script application with runtime dependencies
+    and optional aliases.
 
-  # Arguments
-  - name (string):            The name of the application
-  - inputs (list, optional):  List of packages to include in the runtime PATH (default: [])
-  - command (string):         The shell script content to execute
-  - prefix (string, optional): Prefix to add to command and alias names (default: "")
-  - aliases (list, optional): List of alias specifications {name, description, prefix?}
-  - description (string, optional): Description of the command for help text
+    # Arguments
+    - name (string):            The name of the application
+    - inputs (list, optional):  List of packages to include in the runtime PATH (default: [])
+    - command (string):         The shell script content to execute
+    - prefix (string, optional): Prefix to add to command and alias names (default: "")
+    - aliases (list, optional): List of alias specifications {name, description, prefix?}
+    - description (string, optional): Description of the command for help text
 
-  # Returns
-  An attrset containing the main application and all its aliases
+    # Returns
+    An attrset containing the main application and all its aliases
 
-  # Example
+    # Example
   ```nix
-  mkShellApp {
-    name = "dots";
-    prefix = ".";
-    inputs = with pkgs; [ rust-script ];
-    command = ''
-      exec rust-script "$@"
-    '';
-    description = "Main dotfiles CLI";
-    aliases = [
-      {name = "rebuild"; description = "Rebuild the system";}
-      {name = "update"; description = "Update flake inputs";}
-    ];
-  }
+    mkShellApp {
+      name = "dots";
+      prefix = ".";
+      inputs = with pkgs; [ rust-script ];
+      command = ''
+        exec rust-script "$@"
+      '';
+      description = "Main dotfiles CLI";
+      aliases = [
+        {name = "rebuild"; description = "Rebuild the system";}
+        {name = "update"; description = "Update flake inputs";}
+      ];
+    }
   ```
-  Returns: { ".dots" = <derivation>; ".rebuild" = <derivation>; ".update" = <derivation>; }
+    Returns: { ".dots" = <derivation>; ".rebuild" = <derivation>; ".update" = <derivation>; }
   */
   mkShellApp = {
     pkgs,
@@ -198,6 +204,104 @@
     {${fullName} = mainApp;}
     // listToAttrs aliasApps;
 
-  exports = {inherit mkShellApp;};
+  /**
+    mkScriptWrapper - Copies a POSIX shell script from the dotfiles tree into the nix
+    store and wraps it in a named binary. The script is stored immutably at build time,
+    making the resulting binary self-contained and reproducible across machines — while
+    the source script remains a single canonical file usable anywhere POSIX is available.
+
+    # Arguments
+    - pkgs (AttrSet):           Nixpkgs instance
+    - name (string):            Name of the resulting binary
+    - script (path):            Path to the source shell script
+    - extraArgs (list):         Extra arguments to prepend when invoking the script (default: [])
+
+    # Returns
+    A derivation providing a binary at `bin/<name>`
+
+    # Example
+  ```nix
+    mkScriptWrapper {
+      inherit pkgs;
+      name = "zen";
+      script = tree.lib.sh.local + "/packages/wrappers/zen.sh";
+    }
+
+    mkScriptWrapper {
+      inherit pkgs;
+      name = "feet-quake";
+      script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+      extraArgs = ["--quake"];
+    }
+  ```
+  */
+  mkScriptWrapper = {
+    pkgs,
+    /*
+    Name of the resulting binary.
+
+    Type: String
+    */
+    name,
+    /*
+    Path to the source POSIX shell script in the dotfiles tree.
+    The script is copied into the nix store at build time.
+
+    Type: Path | String
+    */
+    script,
+    /*
+    Extra arguments to prepend when invoking the script.
+    Useful for creating mode variants of the same script.
+
+    Type: [String]
+    */
+    extraArgs ? [],
+  }: let
+    stored = pkgs.writeShellScript "${name}.sh" (builtins.readFile script);
+  in
+    pkgs.writeShellScriptBin name ''
+      exec ${stored} ${lib.escapeShellArgs extraArgs} "$@"
+    '';
+
+  /**
+    mkScriptWrappers - Batch-create script wrappers from an attrset of name → script path.
+    All wrappers share the same pkgs instance.
+
+    # Arguments
+    - pkgs (AttrSet):   Nixpkgs instance
+    - scripts (AttrSet): Mapping of binary name → script path (or { script, extraArgs } attrset)
+
+    # Returns
+    A list of derivations, suitable for use in `home.packages` or `environment.systemPackages`
+
+    # Example
+  ```nix
+    mkScriptWrappers {
+      inherit pkgs;
+      scripts = {
+        zen  = tree.lib.sh.local + "/packages/wrappers/zen.sh";
+        feet = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+        # With extra args:
+        feet-quake   = { script = tree.lib.sh.local + "/packages/wrappers/feet.sh"; extraArgs = ["--quake"];   };
+        feet-monitor = { script = tree.lib.sh.local + "/packages/wrappers/feet.sh"; extraArgs = ["--monitor"]; };
+      };
+    }
+  ```
+  */
+  mkScriptWrappers = {
+    pkgs,
+    scripts,
+  }:
+    mapAttrsToList (name: value:
+      mkScriptWrapper (
+        {inherit pkgs name;}
+        // (
+          if builtins.isPath value || builtins.isString value
+          then {script = value;}
+          else value # already an attrset with { script, extraArgs?, ... }
+        )
+      ))
+    scripts;
 in
-  exports // {_rootAliases = exports;}
+  exports.internal // {_rootAliases = exports.external;}
