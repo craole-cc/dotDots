@@ -12,9 +12,9 @@ THEME=$(@detectTheme@)
 
 #> Map to foot's numeric theme (1=dark, 2=light)
 if [ "$THEME" = "light" ]; then
-	FOOT_THEME=2
+	FOOT_THEME="light"
 else
-	FOOT_THEME=1
+	FOOT_THEME="dark"
 fi
 
 #> Check if server is running
