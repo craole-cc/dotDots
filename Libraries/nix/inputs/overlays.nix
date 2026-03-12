@@ -55,8 +55,20 @@
         if val == null
         then null
         else if val ? outPath
-        then val # already a derivation
-        else val.default or null; # attrset → pick .default
+        then val
+        else val.default or null;
+
+      resolveVariants = name: pkgsSet: let
+        val = pkgsSet.${system} or null;
+      in
+        if val == null || val ? outPath
+        then {}
+        else
+          #> Expose each variant as pkgs.<name>-<variant>
+          mapAttrs' (variant: drv: {
+            name = "${name}-${variant}";
+            value = drv;
+          }) (lib.filterAttrs (_: v: v ? outPath) val);
     in
       filterAttrsRecursive (_: v: v != null) (
         mapAttrs' (name: pkgsSet: {
@@ -64,6 +76,11 @@
           value = resolve pkgsSet;
         })
         packages
+      )
+      //
+      # Also expose zen-twilight, zen-beta etc. individually
+      lib.foldAttrs lib.const {} (
+        lib.mapAttrsToList resolveVariants packages
       ))
     #~@ Flake inputs — categorised (lower priority)
     (final: prev: let
