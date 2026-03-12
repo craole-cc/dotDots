@@ -6,7 +6,7 @@
   inherit (_.debug.assertions) mkTest mkThrows;
   inherit (_.debug.runners) runTests;
   inherit (_.types.generators) validate;
-  inherit (_.contents.empty) isNotEmpty;
+  inherit (_.content.empty) isNotEmpty;
   inherit (lib.attrsets) attrByPath;
   inherit (lib.lists) all any elem isList;
 

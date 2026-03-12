@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (_.lists.predicates) mostFrequent;
-  inherit (_.contents.fallback) orDefault;
+  inherit (_.content.fallback) orDefault;
   inherit (_.debug.assertions) mkTest mkTest';
   inherit (_.debug.runners) runTests;
   inherit (lib.attrsets) attrNames genAttrs mapAttrs mapAttrsToList;

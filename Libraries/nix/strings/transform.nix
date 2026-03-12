@@ -12,7 +12,7 @@
   inherit (_.debug.assertions) mkTest;
   inherit (_.debug.runners) runTests;
   inherit (_.types.predicates) isList isString;
-  inherit (_.contents.empty) isEmpty;
+  inherit (_.content.empty) isEmpty;
   inherit (lib.lists) any map;
   inherit (lib.strings) hasPrefix hasSuffix removePrefix removeSuffix replaceStrings;
   _str = lib.strings;

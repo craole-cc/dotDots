@@ -16,9 +16,9 @@
   schema = mkSchema {};
   lix = _;
 
-  exports = {inherit mkSystem mkCore mkHome;};
+  exports = {inherit mkSystems mkCore mkHome;};
 
-  mkSystem = {
+  mkSystems = {
     self ? {},
     path ? src,
     args ? {},

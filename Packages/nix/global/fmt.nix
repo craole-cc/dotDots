@@ -1,6 +1,6 @@
 {
   pkgs,
-  flake,
+  src,
 }: let
   inherit (pkgs.lib) makeBinPath;
   inherit (pkgs) writeShellScriptBin runCommand;
@@ -35,12 +35,12 @@ in {
       export TMPDIR=$(mktemp -d)
       cd $TMPDIR
 
-      cp -r ${flake}/* .
+      cp -r ${src}/* .
       chmod -R +w .
 
       for config in shellcheckrc .shellcheckrc treefmt.toml .treefmt.toml rustfmt.toml .rustfmt.toml markdownlint.yaml .markdownlint.yaml typos.toml .typos.toml; do
-        if [ -f ${flake}/$config ]; then
-          cp ${flake}/$config .
+        if [ -f ${src}/$config ]; then
+          cp ${src}/$config .
           chmod +w $config 2>/dev/null || true
         fi
       done

@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  flake,
+  src,
   lix,
   system,
   ...
@@ -14,11 +14,17 @@
   };
 
   inherit
-    (import ./fmt.nix {inherit flake pkgs;})
+    (import ./fmt.nix {inherit pkgs src;})
     formatters
     formatter
     checks
     ;
+  # inherit
+  #   (import ./fmt.nix {inherit flake pkgs;})
+  #   formatters
+  #   formatter
+  #   checks
+  #   ;
   media = import ./media.nix {inherit pkgs;};
   dots = import ./dots.nix {
     inherit pkgs lix lib system;

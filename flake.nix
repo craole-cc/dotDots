@@ -4,9 +4,7 @@
   outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import src {inherit lib src self;}) lix flake hosts paths;
-    inherit (lix.inputs.resolution) getInputs;
-    inherit (lix.modules.core.system) mkSystems;
+    inherit (import src {inherit lib src self;}) lix hosts paths;
     inherit (lix.hardware.system) perFlake;
   in
     perFlake {inherit hosts legacyPackages;} (
@@ -15,9 +13,9 @@
         pkgs,
       }: {
         inherit
-          (import paths.store.pkgs.global {
-            inherit flake lib lix paths pkgs system;
-            inputs = getInputs {inherit inputs;};
+          (import paths.pkg.global.store {
+            inherit src lib lix paths pkgs system;
+            inputs = lix.mkInputs {inherit self;};
           })
           devShells
           formatter
@@ -26,8 +24,8 @@
       }
     )
     // (
-      {nixosConfigurations = mkSystems {};}
-      // import paths.store.templates.default
+      {nixosConfigurations = lix.mkSystems {};}
+      // import paths.kit.default.store
     );
 
   inputs = {

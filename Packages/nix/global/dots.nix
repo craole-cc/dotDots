@@ -264,7 +264,7 @@
 
     #> Ensure DOTS is setand available for use
     DOTS="$(pwd -P)"
-    DOTS_LIB_SH="${DOTS_LIB_SH: -"${DOTS}/Libraries/shellscript"}"
+    [ -s "$DOTS_LIB_SH" ] || DOTS_LIB_SH="$DOTS/Libraries/shellscript"
     export DOTS DOTS_LIB_SH
 
     #> Set up cache directory structure
