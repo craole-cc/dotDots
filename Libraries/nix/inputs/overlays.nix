@@ -58,17 +58,10 @@
         then val
         else val.default or null;
 
-      resolveVariants = name: pkgsSet: let
-        val = pkgsSet.${system} or null;
-      in
-        if val == null || val ? outPath
-        then {}
-        else
-          #> Expose each variant as pkgs.<name>-<variant>
-          mapAttrs' (variant: drv: {
-            name = "${name}-${variant}";
-            value = drv;
-          }) (lib.filterAttrs (_: v: v ? outPath) val);
+      #~@ Zen Browser
+      #> Explicitly expose named variants for known multi-variant inputs
+      #> Avoids forcing evaluation of entire nixpkgs attrsets
+      zenPkgs = packages."zen-browser".${system} or {};
     in
       filterAttrsRecursive (_: v: v != null) (
         mapAttrs' (name: pkgsSet: {
@@ -77,18 +70,16 @@
         })
         packages
       )
-      //
-      # Also expose zen-twilight, zen-beta etc. individually
-      lib.foldAttrs lib.const {} (
-        lib.mapAttrsToList resolveVariants packages
-      ))
+      // {
+        #> zen-browser variants — required by the zen-browser HM module
+        zen-twilight = zenPkgs.twilight or zenPkgs.default or null;
+        zen-beta = zenPkgs.beta or zenPkgs.default or null;
+      })
     #~@ Flake inputs — categorised (lower priority)
     (final: prev: let
       system = getSystem prev;
     in {
-      fromInputs =
-        mapAttrs (_: pkgsSet: pkgsSet.${system} or null)
-        packages;
+      fromInputs = mapAttrs (_: pkgsSet: pkgsSet.${system} or null) packages;
     })
     #~@ Chaotic
     (inputs.chaotic.overlays.default or (_: _: {}))
