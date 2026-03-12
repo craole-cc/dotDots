@@ -1,8 +1,22 @@
 {
   user,
   config,
+  pkgs,
+  tree,
   ...
-}: {
+}: let
+  #~@ Universal Zen launcher
+  #> Prefers twilight → beta → zen → $BROWSER
+  script = "${pkgs.copyPathToStore (
+    tree.lib.sh.local + "/packages/wrappers/zen.sh"
+  )}";
+
+  launcher = pkgs.writeShellScriptBin "zen" ''
+    exec ${script} "$@"
+  '';
+in {
+  home.packages = [launcher];
+
   programs.zen-browser = {
     # enable = true;
     profiles.default = {
@@ -231,66 +245,49 @@
       };
 
       settings = {
-        # Common preferences
         "browser.profiles.enabled" = true;
         "browser.profiles.default" = "default";
-        # Privacy & tracking
         "privacy.trackingprotection.enabled" = true;
         "privacy.resistFingerprinting" = false;
         "privacy.donottrackheader.enabled" = true;
-        # URL bar / search
         "browser.urlbar.suggest.searches" = false;
         "browser.urlbar.suggest.history" = true;
         "browser.urlbar.suggest.bookmark" = true;
         "browser.urlbar.suggest.openpage" = true;
-        # Tabs & windows
         "toolkit.tabbox.switchByScrolling" = true;
         "browser.tabs.loadInBackground" = true;
         "browser.tabs.warnOnClose" = false;
-        # Media & performance
         "media.videocontrols.picture-in-picture.enabled" = true;
         "media.autoplay.default" = 0;
         "gfx.webrender.all" = true;
-        # Scrolling & input
         "general.smoothScroll" = true;
         "mousewheel.default.delta_multiplier_y" = 100;
-        # Downloads
         "browser.download.useDownloadDir" = true;
         "browser.download.folderList" = 1;
-        # Zen workspaces
         "zen.workspaces.continue-where-left-off" = true;
         "zen.workspaces.natural-scroll" = true;
         "zen.workspaces.swipe-actions" = true;
-        # Zen view / compact mode
         "zen.view.compact.hide-tabbar" = true;
         "zen.view.compact.hide-toolbar" = true;
         "zen.view.compact.animate-sidebar" = false;
-        # Zen welcome & onboarding
         "zen.welcome-screen.seen" = true;
-        # Zen URL bar
         "zen.urlbar.behavior" = "float";
-        # Zen theme & appearance
         "zen.theme.accent-color" = "#6366f1";
         "zen.theme.gradient" = true;
         "zen.theme.gradient.show-custom-colors" = false;
         "zen.view.gray-out-inactive-windows" = true;
         "zen.watermark.enabled" = true;
-        # Zen tabs
         "zen.tabs.rename-tabs" = true;
         "zen.tabs.dim-pending" = true;
         "zen.ctrlTab.show-pending-tabs" = true;
-        # Zen media & controls
         "zen.mediacontrols.enabled" = true;
         "zen.mediacontrols.show-on-hover" = true;
-        # Zen glance / search
         "zen.glance.enable-contextmenu-search" = true;
         "zen.glance.show-bookmarks" = true;
         "zen.glance.show-history" = true;
-        # Zen tab unloader (memory)
         "zen.tab-unloader.enabled" = true;
         "zen.tab-unloader.delay" = 300;
         "zen.tab-unloader.excluded-urls" = "https://meet.google.com,https://app.slack.com";
-        # Zen experimental / hidden
         "zen.view.experimental-rounded-view" = false;
         "zen.theme.content-element-separation" = 8;
       };
