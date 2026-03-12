@@ -57,19 +57,6 @@
     systemd.services = {
       nix-daemon.serviceConfig.LimitNOFILE = mkForce "65536 1048576";
     };
-
-    #> WORKAROUND: app2unit 1.0.3 fixupPhase runs substituteInPlace looking for
-    #> 'A2U__TERMINAL_HANDLER=xdg-terminal-exec' which no longer exists in the
-    #> installed binary after upstream source changes. postFixup cleared until
-    #> the nixpkgs derivation is updated. Affects caelestia-shell dependency chain.
-    #> Track: https://github.com/NixOS/nixpkgs/issues (search app2unit)
-    nixpkgs.overlays = [
-      (_: prev: {
-        app2unit = prev.app2unit.overrideAttrs (_: {
-          postFixup = "";
-        });
-      })
-    ];
   };
 
   mkClean = {host, ...}: {

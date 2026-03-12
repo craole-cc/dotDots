@@ -29,7 +29,10 @@
     );
 
   inputs = {
-    nixPackages.url = "nixpkgs/nixos-unstable";
+    nixPackages = {
+      url = "nixpkgs/nixos-unstable";
+      # rev = "0182a361324364ae3f436a63005877674cf45efb";
+    };
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-25.11";
 
@@ -136,7 +139,8 @@
       type = "github";
       # rev = "71f291f79bf7c35ad7db2c0061efc80cf768426a";
       inputs = {
-        nixpkgs.follows = "nixPackages";
+        # nixpkgs.follows = "nixPackages";
+        nixpkgs.follows = "nixPackagesStable";
       };
     };
 
