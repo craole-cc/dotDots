@@ -3,16 +3,17 @@
   lib,
   ...
 }: let
+  inherit (_.modules.inputs.source) mkInputs;
+  inherit (_.content.empty) isEmpty;
   inherit (lib.lists) optionals;
 
   exports = {
-    internal = {inherit mkModule mkAll mkCore mkHome;};
+    internal = {inherit mkAll mkOne mkCore mkHome;};
     external = {
-      inherit coreModules homeModules mkModule mkModules;
-      getCoreInputModules = coreModules;
-      getHomeInputModules = homeModules;
-      mkInputModules = mkModules;
-      mkInputModule = mkModule;
+      mkInputModule = mkOne;
+      mkInputModules = mkAll;
+      mkCoreInputModules = mkCore;
+      mkHomeInputModules = mkHome;
     };
   };
 
@@ -21,31 +22,34 @@
 
   # Type
   ```nix
-  mkModule :: { name :: string, modules :: AttrSet?, variant :: string? } -> module
+  mkOne :: { name :: string, modules :: AttrSet?, variant :: string? } -> module
   ```
   */
-  mkModule = {
+  mkOne = {
     name,
-    inputs ? {},
     modules ? {},
     variant ? "default",
   }: let
-    mod = modules;
+    mods =
+      if isEmpty modules
+      then (mkAll {}).home
+      else modules;
   in
-    modules.${name}.${variant} or {};
+    mods.${name}.${variant} or {};
 
   /**
   Return the list of core NixOS/Darwin modules for a host class.
 
   # Type
   ```nix
-  coreModules :: { class :: "nixos" | "darwin" } -> [module]
+  mkCore :: { class :: "nixos" | "darwin" } -> [module]
   ```
   */
   mkCore = {
     inputs,
     class ? "nixos",
-  }:
+  }: let
+  in
     (
       if class == "darwin"
       then [
@@ -99,18 +103,26 @@
 
   # Type
   ```nix
-  mkModules :: { class :: "nixos" | "darwin" } -> { all, base, core, home, path, ... }
+  mkAll :: { class :: "nixos" | "darwin" } -> { all, base, core, home, path, ... }
   ```
   */
   mkAll = {
-    inputs,
+    inputs ? {},
     class ? "nixos",
     ...
   }: let
-    path = "${inputs.nixpkgs}/nixos/modules";
+    inputs' =
+      if inputs?nixpkgs
+      then inputs
+      else mkInputs {};
+
+    path = "${inputs'.nixpkgs}/nixos/modules";
     base = import "${path}/module-list.nix";
-    core = mkCore {inherit inputs class;};
-    home = mkHome {inherit inputs;};
+    core = mkCore {
+      inherit class;
+      inputs = inputs';
+    };
+    home = mkHome {inputs = inputs';};
     all = {
       baseModules = base;
       coreModules = core;

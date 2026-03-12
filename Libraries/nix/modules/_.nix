@@ -23,7 +23,6 @@
         class = host.class or "nixos";
         paths = mkTree {};
         schema = mkSchema {};
-        specialArgs = {inherit lix lib host schema class paths;};
         flake = let
           inherit (_.modules.inputs.modules) mkModules;
           inherit (_.modules.inputs.packages) mkPackages;
@@ -32,6 +31,8 @@
           packages = mkPackages {inherit inputs host;};
           modules = mkModules {inherit inputs class;};
         in {inherit inputs packages modules;};
+
+        specialArgs = {inherit lix lib host schema class paths;};
         modules = let
           fromInputs = flake.modules;
           fromHost = mkCore {

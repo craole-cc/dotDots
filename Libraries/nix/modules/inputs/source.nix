@@ -16,9 +16,11 @@
       inherit
         flakeOrNull
         mkFlake
-        mkNixpkgs
-        mkInputs
+        mkAll
+        mkSource
         ;
+      mkInputs = mkAll;
+      mkNixpkgs = mkSource;
     };
     external = {
       inherit
@@ -96,7 +98,7 @@
       default = throw "❌ '${toString path}' is not a valid flake path.";
     };
 
-  mkInputs = {
+  mkAll = {
     self ? {},
     path ? null,
   }: let
@@ -424,14 +426,14 @@
 
   # Examples
   ```nix
-  source { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
+  mkSource { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
   # => { source = nixpkgs; }
 
-  source { inputs.nixpkgs = nixpkgs; }
+  mkSource { inputs.nixpkgs = nixpkgs; }
   # => { flake.source = nixpkgs; }
   ```
   */
-  mkNixpkgs = {
+  mkSource = {
     class ? "nixos",
     inputs ? {},
     ...
