@@ -60,10 +60,9 @@ if has_cmd dbus-send; then
 fi
 
 #| 3. Check GNOME settings
-if has_cmd gsettings; then
+if has_cmd gsettings && gsettings list-schemas 2>/dev/null | grep -q "org.gnome.desktop"; then
 	SCHEME=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || echo "")
 	case "$SCHEME" in
-	*"No schemas"* | "") ;; # ignore — not GNOME
 	*dark* | *prefer-dark*)
 		echo "dark"
 		exit 0
