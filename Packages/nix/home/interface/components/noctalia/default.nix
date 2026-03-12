@@ -5,6 +5,7 @@
   lib,
   lix,
   user,
+  inputsForHome,
   ...
 }: let
   app = "noctalia-shell";
@@ -21,8 +22,9 @@
 
   # Only enable if both conditions are met
   # enable = (primary || allowed) && programExists;
-  enable = primary || allowed;
+  # enable = primary || allowed;
 
+  enable = inputsForHome.noctalia-shell.isAllowed;
   monitors = {
     all = getNames {inherit host;};
     primary = getPrimaryName {inherit host;};

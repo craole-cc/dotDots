@@ -7,7 +7,7 @@
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.environment) mkLocale;
   inherit (_.modules.home.paths) mkSessionPaths;
-  inherit (_.modules.home.programs) mkPrograms mkHomeApps;
+  inherit (_.modules.home.programs) mkPrograms mkApps;
   inherit (_.modules.home.style) mkStyle;
   inherit (lib.attrsets) mapAttrs;
 
@@ -31,6 +31,7 @@
   mkUsers = {
     host,
     inputs,
+    modules,
     tree,
   }:
     mapAttrs (
@@ -40,7 +41,7 @@
         pkgs,
         ...
       }: let
-        inputsForHome = mkHomeApps {inherit user inputs;};
+        inputsForHome = mkApps {inherit user inputs modules;};
         derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
       in {
         _module.args = {

@@ -114,6 +114,7 @@
     name,
     condition,
     inputs,
+    modules,
     context ? {},
     variant ? "default",
   }: let
@@ -122,19 +123,20 @@
     flavors = normalizeNames (cfg.flavors or []);
     variants = mapAttrs (_: values: normalizeNames values) (cfg.variants or {});
     isAllowed = condition ({inherit cfg name names flavors variants;} // context);
-    module = mkModule {
-      inherit inputs name variant;
-      modules = inputs.home;
-    };
+    module = mkModule {inherit inputs modules name variant;};
     safeModule =
       if isAllowed
       then module
       else {};
-  in {inherit isAllowed module safeModule;};
+  in {
+    inherit isAllowed;
+    module = safeModule;
+  };
 
   mkApps = {
     user,
     inputs,
+    modules,
     ...
   }: let
     apps = user.applications or {};
@@ -229,7 +231,7 @@
   in
     mapAttrs (name: spec:
       mkApp (
-        {inherit context name inputs;} // spec
+        {inherit context name inputs modules;} // spec
       ))
     appSpecs;
 

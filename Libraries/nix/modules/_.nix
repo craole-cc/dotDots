@@ -35,6 +35,7 @@
           inherit (_.inputs.packages) mkPackages;
           inherit (_.inputs.source) mkInputs;
           source = tryFlake {inherit self path;};
+          # inherit (source) nixpkgs;
           inputs = (mkInputs {self = source;}).resolved;
           packages = mkPackages {inherit inputs host;};
           modules = mkModules {inherit class inputs;};
@@ -55,7 +56,8 @@
 
           fromHost = mkCore {
             inherit host specialArgs;
-            inherit (flake.packages) nixpkgs inputs;
+            inherit (flake) modules inputs;
+            inherit (flake.packages) nixpkgs;
           };
 
           fromEval = evalModules {
@@ -89,6 +91,7 @@
     host,
     nixpkgs,
     inputs,
+    modules,
     specialArgs,
   }:
     [
@@ -123,7 +126,10 @@
             (mkServices {inherit config host;})
             (mkPrograms {inherit host;})
             (mkUsers {inherit host pkgs;})
-            (mkHome {inherit inputs host specialArgs tree;}) #TODO: Temporarily disabled to ensure mkCore is good
+            (mkHome {
+              inherit host specialArgs inputs tree;
+              modules = modules.home;
+            })
           ]
       )
     ]
@@ -148,6 +154,7 @@
     host,
     specialArgs,
     inputs,
+    modules,
     tree,
   }: {
     home-manager = {
@@ -161,7 +168,7 @@
           lix = _;
           inherit host;
         };
-      users = home.users.mkUsers {inherit inputs host tree;};
+      users = home.users.mkUsers {inherit inputs modules host tree;};
     };
   };
 in

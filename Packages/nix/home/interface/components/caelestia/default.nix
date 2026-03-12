@@ -5,6 +5,7 @@
   style,
   paths,
   keyboard,
+  inputsForHome,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge mkForce;
@@ -22,7 +23,7 @@
     cava
     lm_sensors
   ];
-  enable = true; # TODO: Needs to be dynamic based on user choice
+  enable = inputsForHome.caelestia.isAllowed;
   programs = {
     ${name} = mkMerge [
       {inherit enable;}
