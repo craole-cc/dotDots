@@ -9,26 +9,24 @@
 }: let
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (pkgs) makeDesktopItem writeShellScriptBin;
+  inherit (lix.applications.utilities) mkScriptWrappers;
+  inherit (pkgs) makeDesktopItem;
 
   #~@ Script Wrappers
-  # script = paths.local.libs.shellscript + "/packages/wrappers/feet.sh";
-  script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
-
-  #> Main launcher (calls external script)
-  command = writeShellScriptBin "feet" ''
-    exec ${script} "$@"
-  '';
-
-  #> Quake mode launcher
-  quake = writeShellScriptBin "feet-quake" ''
-    exec ${script} --quake "$@"
-  '';
-
-  #> Monitor mode launcher
-  monitor = writeShellScriptBin "feet-monitor" ''
-    exec ${script} --monitor
-  '';
+  wrappers = mkScriptWrappers {
+    inherit pkgs;
+    scripts = {
+      feet = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+      feet-quake = {
+        script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+        extraArgs = ["--quake"];
+      };
+      feet-monitor = {
+        script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+        extraArgs = ["--monitor"];
+      };
+    };
+  };
 
   #~@ Desktop entries
   desktop = makeDesktopItem {
@@ -42,7 +40,7 @@
     categories = ["System" "TerminalEmulator"];
   };
 
-  quakeDesktop = makeDesktopItem {
+  quake = makeDesktopItem {
     name = "feet-quake";
     desktopName = "Feet Quake";
     comment = "Dropdown terminal (quake-style)";
@@ -62,7 +60,7 @@
     customCommand = "feet";
     resolutionHints = ["foot" "feet"];
     requiresWayland = true;
-    extraPackages = [command quake monitor desktop quakeDesktop];
+    extraPackages = wrappers ++ [desktop quake];
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
@@ -76,19 +74,5 @@
 in {
   config = mkIf cfg.enable {
     inherit (cfg) programs home;
-
-    #~@ Systemd User Service for Theme Monitoring
-    # systemd.user.services.foot-theme-monitor = {
-    #   Unit = {
-    #     Description = "Foot terminal theme monitor";
-    #     After = ["graphical-session.target"];
-    #   };
-    #   Service = {
-    #     ExecStart = monitor;
-    #     Restart = "on-failure";
-    #     RestartSec = 5;
-    #   };
-    #   Install.WantedBy = ["graphical-session.target"];
-    # };
   };
 }
