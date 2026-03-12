@@ -361,70 +361,76 @@
       }
       else null;
 
-    updated = {
-      displayProtocol =
-        if selectedInterface != null
-        then
-          if
-            displayProtocolInput
-            != null
-            && elem displayProtocolInput
-            selectedInterface.config.supportedProtocol
-          then displayProtocolInput
-          else selectedInterface.config.preferredProtocol
-        else if displayProtocolInput != null
+    displayProtocol =
+      if selectedInterface != null
+      then
+        if
+          displayProtocolInput
+          != null
+          && elem displayProtocolInput
+          selectedInterface.config.supportedProtocol
         then displayProtocolInput
-        else defaultDisplayProtocol;
+        else selectedInterface.config.preferredProtocol
+      else if displayProtocolInput != null
+      then displayProtocolInput
+      else defaultDisplayProtocol;
 
-      displayManager =
-        if displayManagerInput != null
-        then displayManagerInput
-        else if selectedInterface != null
-        then selectedInterface.config.displayManager.preferred
-        else defaultDisplayManager;
+    displayManager =
+      if displayManagerInput != null
+      then displayManagerInput
+      else if selectedInterface != null
+      then selectedInterface.config.displayManager.preferred
+      else defaultDisplayManager;
 
-      uiShell =
-        if uiShellInput != null
-        then uiShellInput
-        else if selectedInterface != null
-        then selectedInterface.config.uiShell
-        else null;
+    uiShell =
+      if uiShellInput != null
+      then uiShellInput
+      else if selectedInterface != null
+      then selectedInterface.config.uiShell
+      else null;
 
-      notificationDaemon =
-        if notificationDaemonInput != null
-        then notificationDaemonInput
-        else if selectedInterface != null
-        then selectedInterface.config.notificationDaemon
-        else null;
+    notificationDaemon =
+      if notificationDaemonInput != null
+      then notificationDaemonInput
+      else if selectedInterface != null
+      then selectedInterface.config.notificationDaemon
+      else null;
 
-      fileManager =
-        if fileManagerInput != null
-        then fileManagerInput
-        else if selectedInterface != null
-        then selectedInterface.config.fileManager
-        else null;
+    fileManager =
+      if fileManagerInput != null
+      then fileManagerInput
+      else if selectedInterface != null
+      then selectedInterface.config.fileManager
+      else null;
 
-      terminal =
-        if terminalInput != null
-        then terminalInput
-        else if selectedInterface != null
-        then selectedInterface.config.terminal
-        else null;
+    terminal =
+      if terminalInput != null
+      then terminalInput
+      else if selectedInterface != null
+      then selectedInterface.config.terminal
+      else null;
 
-      launcher =
-        if launcherInput != null
-        then launcherInput
-        else if selectedInterface != null
-        then selectedInterface.config.launcher
-        else null;
-    };
+    launcher =
+      if launcherInput != null
+      then launcherInput
+      else if selectedInterface != null
+      then selectedInterface.config.launcher
+      else null;
   in
     interface
-    // updated
     // {
-      interfaces = {
-        inherit desktopEnvironments windowManagers loginManagers;
-      };
+      inherit
+        desktopEnvironment
+        windowManager
+        displayProtocol
+        displayManager
+        uiShell
+        notificationDaemon
+        fileManager
+        terminal
+        launcher
+        ;
+      interfaces = {inherit desktopEnvironments windowManagers loginManagers;};
     };
 in {
   inherit

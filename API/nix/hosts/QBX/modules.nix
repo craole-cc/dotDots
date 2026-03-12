@@ -13,7 +13,7 @@
       rev,
       narHash,
     }:
-      builtins.fetchTarball {
+      fetchTarball {
         url = "https://github.com/${owner}/${repo}/archive/${rev}.tar.gz";
         sha256 = narHash;
       };

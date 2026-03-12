@@ -32,7 +32,7 @@
 
   interface = {
     displayProtocol = "wayland";
-    desktopEnvironment = "cosmic";
+    # desktopEnvironment = "cosmic";
     windowManager = "hyprland";
     bar = "caelestia";
     shell = "bash";

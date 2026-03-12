@@ -188,7 +188,7 @@ in {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
     loginManager = "sddm";
-    desktopEnvironment = "plasma";
+    desktopEnvironment = "cosmic";
     windowManager = "hyprland";
     displayProtocol = "wayland";
     keyboard = {

@@ -31,7 +31,7 @@ in {
     };
 
     gpu = {
-      # TODO: Change this to not use named attrsets
+      # TODO: Change this to not use named attrsets, similar to displays
       primary = {
         brand = "amd";
         busId = "PCI:6:0:0";
@@ -199,7 +199,7 @@ in {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
     loginManager = "sddm";
-    desktopEnvironment = "plasma";
+    # desktopEnvironment = "plasma";
     windowManager = "hyprland";
     displayProtocol = "wayland";
     keyboard = {
