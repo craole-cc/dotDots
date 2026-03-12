@@ -3,7 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.modules.inputs.source) mkInputs;
+  inherit (_.inputs.source) mkInputs;
   inherit (_.content.empty) isEmpty;
   inherit (lib.lists) optionals;
 
@@ -31,12 +31,13 @@
   */
   mkOne = {
     name,
+    inputs ? {},
     modules ? {},
     variant ? "default",
   }: let
     mods =
       if isEmpty modules
-      then (mkAll {}).home
+      then inputs.home or (mkAll {}).home
       else modules;
   in
     mods.${name}.${variant} or {};

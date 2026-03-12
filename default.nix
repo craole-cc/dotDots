@@ -25,7 +25,7 @@
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
   inherit (import ./Libraries/nix {inherit lib src;}) lix;
-  paths = lix.mkProjectTree {};
+  tree = lix.mkProjectTree {};
   schema = lix.mkSchema {};
   flake = lix.mkFlake {};
   inputs = (lix.mkInputs {}).resolved;
@@ -170,11 +170,12 @@ in {
     inputs
     lib
     lix
-    paths
     pkgs
     schema
     system
+    tree
     ;
+  paths = tree;
 
   #~@ Top-level host attributes
   inherit (host) config options;

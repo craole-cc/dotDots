@@ -3,8 +3,8 @@
   lib,
   ...
 }: let
-  inherit (_.modules.inputs.source) mkInputs mkNixPkgs;
-  inherit (_.modules.inputs.overlays) mkOverlays;
+  inherit (_.inputs.source) mkInputs mkNixPkgs;
+  inherit (_.inputs.overlays) mkOverlays;
   inherit (lib.attrsets) listToAttrs;
   exports = {
     internal = {
@@ -116,7 +116,8 @@
 
     nixpkgs =
       {
-        inherit config overlays;
+        inherit overlays;
+        config = config';
         hostPlatform = host.system;
       }
       // mkNixPkgs {

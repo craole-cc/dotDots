@@ -4,7 +4,7 @@
   outputs = inputs @ {self, ...}: let
     src = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import src {inherit lib src self;}) lix hosts paths;
+    inherit (import src {inherit lib src self;}) lix hosts tree;
     inherit (lix.hardware.system) perFlake;
   in
     perFlake {inherit hosts legacyPackages;} (
@@ -13,8 +13,8 @@
         pkgs,
       }: {
         inherit
-          (import paths.pkg.global.store {
-            inherit src lib lix paths pkgs system;
+          (import tree.pkg.global.store {
+            inherit src lib lix tree pkgs system;
             inputs = lix.mkInputs {inherit self;};
           })
           devShells
@@ -25,7 +25,7 @@
     )
     // (
       {nixosConfigurations = lix.mkSystems {inherit self;};}
-      // import paths.kit.default.store
+      // import tree.kit.default.store
     );
 
   inputs = {

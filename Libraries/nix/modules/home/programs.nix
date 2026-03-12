@@ -3,7 +3,8 @@
   lib,
   ...
 }: let
-  inherit (_.inputs.modules) mkModule homeModules;
+  # inherit (_.inputs.modules) mkModule homeModules;
+  inherit (_.inputs.modules) mkModule;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs removeAttrs;
   inherit (lib.strings) hasInfix splitString toLower;
@@ -112,6 +113,7 @@
   mkApp = {
     name,
     condition,
+    inputs,
     context ? {},
     variant ? "default",
   }: let
@@ -119,15 +121,22 @@
     names = normalizeNames ([name] ++ (cfg.aliases or []));
     flavors = normalizeNames (cfg.flavors or []);
     variants = mapAttrs (_: values: normalizeNames values) (cfg.variants or {});
-  in {
     isAllowed = condition ({inherit cfg name names flavors variants;} // context);
     module = mkModule {
-      inherit name variant;
-      modules = homeModules;
+      inherit inputs name variant;
+      modules = inputs.home;
     };
-  };
+    safeModule =
+      if isAllowed
+      then module
+      else {};
+  in {inherit isAllowed module safeModule;};
 
-  mkApps = {user, ...}: let
+  mkApps = {
+    user,
+    inputs,
+    ...
+  }: let
     apps = user.applications or {};
     appsAllowed = normalizeNames (attrByPath ["applications" "allowed"] [] user);
     ui = user.interface or {};
@@ -218,7 +227,11 @@
       };
     };
   in
-    mapAttrs (name: spec: mkApp ({inherit context name;} // spec)) appSpecs;
+    mapAttrs (name: spec:
+      mkApp (
+        {inherit context name inputs;} // spec
+      ))
+    appSpecs;
 
   mkPrograms = {
     host,

@@ -236,7 +236,11 @@
   ```
   */
   mkTree = {
-    root ? src,
+    self ? {},
+    root ?
+      if self ? outPath
+      then self.outPath
+      else src,
     bases ? {},
     stems ? {},
   }: let

@@ -25,7 +25,9 @@
 
   paths = with paths; {
     wallpaperDir = wallpapers;
-    sessionGif = avatars.session;
-    mediaGif = avatars.media;
+    # sessionGif = avatars.session;
+    # mediaGif = avatars.media;
+    sessionGif = paths.avatars.session;
+    mediaGif = paths.avatars.media;
   };
 }

@@ -5,16 +5,12 @@
   ...
 }: let
   inherit (_.filesystem.tree) mkTree;
+  inherit (_.inputs.source) tryFlake;
   inherit (_.modules) core home;
-  inherit (_.modules.inputs.source) tryFlake;
   inherit (_.schema._) mkSchema;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
   inherit (lib.modules) mkMerge;
-
-  paths = mkTree {};
-  schema = mkSchema {};
-  lix = _;
 
   exports = rec {
     internal = {inherit mkSystems mkCore mkHome;};
@@ -26,25 +22,33 @@
     path ? src,
     args ? {},
     ...
-  }:
+  }: let
+    tree = mkTree {inherit self;};
+    schema = mkSchema {inherit tree;};
+  in
     mapAttrs (
       _name: host: let
         class = host.class or "nixos";
 
         flake = let
-          inherit (_.modules.inputs.modules) mkModules;
-          inherit (_.modules.inputs.packages) mkPackages;
-          inherit (_.modules.inputs.source) mkInputs;
+          inherit (_.inputs.modules) mkModules;
+          inherit (_.inputs.packages) mkPackages;
+          inherit (_.inputs.source) mkInputs;
           source = tryFlake {inherit self path;};
-          inputs = mkInputs {self = source;};
+          inputs = (mkInputs {self = source;}).resolved;
           packages = mkPackages {inherit inputs host;};
-          modules = mkModules {
-            inherit class;
-            inputs = inputs.resolved;
-          };
+          modules = mkModules {inherit class inputs;};
         in {inherit inputs packages modules;};
 
-        specialArgs = {inherit lix lib host schema class paths;} // args;
+        specialArgs =
+          {
+            inherit host schema class tree;
+            lix = _;
+            lib = lib.extend (self: super: {
+              hm = flake.inputs.home-manager.lib.hm or {};
+            });
+          }
+          // args;
 
         modules = let
           fromInputs = flake.modules;
@@ -92,7 +96,7 @@
       (
         {
           config,
-          paths,
+          tree,
           pkgs,
           ...
         }: let
@@ -119,7 +123,7 @@
             (mkServices {inherit config host;})
             (mkPrograms {inherit host;})
             (mkUsers {inherit host pkgs;})
-            # (mkHome {inherit host specialArgs paths;})
+            (mkHome {inherit inputs host specialArgs tree;}) #TODO: Temporarily disabled to ensure mkCore is good
           ]
       )
     ]
@@ -143,7 +147,8 @@
   mkHome = {
     host,
     specialArgs,
-    paths,
+    inputs,
+    tree,
   }: {
     home-manager = {
       backupFileExtension = "BaC";
@@ -156,7 +161,7 @@
           lix = _;
           inherit host;
         };
-      users = home.users.mkUsers {inherit host paths;};
+      users = home.users.mkUsers {inherit inputs host tree;};
     };
   };
 in

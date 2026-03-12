@@ -30,7 +30,8 @@
   */
   mkUsers = {
     host,
-    paths,
+    inputs,
+    tree,
   }:
     mapAttrs (
       name: user: {
@@ -39,8 +40,8 @@
         pkgs,
         ...
       }: let
-        inputsForHome = mkHomeApps {inherit user;};
-        derivedPaths = mkSessionPaths {inherit config host user pkgs paths;};
+        inputsForHome = mkHomeApps {inherit user inputs;};
+        derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
       in {
         _module.args = {
           style = mkStyle {inherit host user;};
@@ -56,7 +57,7 @@
 
         imports =
           []
-          ++ [paths.store.pkg.home]
+          ++ [tree.pkg.home.store]
           ++ (user.imports or [])
           ++ (with inputsForHome; [
             caelestia.module

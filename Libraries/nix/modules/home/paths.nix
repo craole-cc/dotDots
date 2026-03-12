@@ -5,8 +5,8 @@
 }: let
   inherit (_.types.predicates) isList;
   inherit (_.content.fallback) orDefault;
-  inherit (_.attrsets.access) getIn;
-  inherit (_.filesystem.discovery) wallman;
+  inherit (_.attrsets.access) nestedOr;
+  inherit (_.filesystem.tree) wallman;
   inherit (builtins) getEnv;
   inherit (lib.attrsets) mapAttrs mapAttrsToList;
   inherit (lib.lists) elemAt head toList;
@@ -112,9 +112,9 @@
       content =
         if path' != []
         then
-          getIn {
+          nestedOr {
             attrs = user.paths or {};
-            inherit path';
+            path = path';
             default = null;
           }
         else null;
@@ -163,7 +163,7 @@
     host,
     user,
     pkgs,
-    paths ? {},
+    tree ? {},
     ...
   }: let
     inherit
@@ -179,9 +179,9 @@
     home = config.home.homeDirectory or (getEnv "HOME");
 
     wallpapers = let
-      raw = getIn {
+      raw = nestedOr {
         attrs = user.paths or {};
-        path' = ["wallpapers" "all"];
+        path = ["wallpapers" "all"];
         default = null;
       };
 
@@ -335,6 +335,6 @@
       };
     };
   in
-    paths // {inherit api avatars dots home wallpapers;};
+    tree // {inherit api avatars dots home wallpapers;};
 in
   exports.internal // {_rootAliases = exports.external;}
