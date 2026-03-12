@@ -124,14 +124,7 @@
     variants = mapAttrs (_: values: normalizeNames values) (cfg.variants or {});
     isAllowed = condition ({inherit cfg name names flavors variants;} // context);
     module = mkModule {inherit inputs modules name variant;};
-    safeModule =
-      if isAllowed
-      then module
-      else {};
-  in {
-    inherit isAllowed;
-    module = safeModule;
-  };
+  in {inherit isAllowed module;};
 
   mkApps = {
     user,
