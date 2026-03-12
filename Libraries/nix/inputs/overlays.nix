@@ -49,11 +49,19 @@
     #~@ Flake inputs — flattened (higher priority)
     (final: prev: let
       system = getSystem prev;
+      resolve = pkgsSet: let
+        val = pkgsSet.${system} or null;
+      in
+        if val == null
+        then null
+        else if val ? outPath
+        then val # already a derivation
+        else val.default or null; # attrset → pick .default
     in
       filterAttrsRecursive (_: v: v != null) (
         mapAttrs' (name: pkgsSet: {
           inherit name;
-          value = pkgsSet.${system} or null;
+          value = resolve pkgsSet;
         })
         packages
       ))
