@@ -109,7 +109,7 @@
 
     path' = toList path;
     relative = orDefault {
-      value =
+      content =
         if path' != []
         then
           getIn {

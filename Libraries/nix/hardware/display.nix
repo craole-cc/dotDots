@@ -16,7 +16,7 @@
     ...
   }:
     orDefault {
-      value = displays;
+      content = displays;
       default = host.devices.display or {};
     };
 
@@ -31,7 +31,7 @@
     sorted = getSorted args;
   in
     orDefault {
-      value =
+      content =
         if isNotEmpty sorted
         then head sorted
         else null;

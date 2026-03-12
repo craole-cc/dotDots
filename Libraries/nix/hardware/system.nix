@@ -24,9 +24,9 @@
     legacyPackages ? {},
   }: let
     pkgsBase = orDefault {
-      value = legacyPackages;
+      content = legacyPackages;
       default = orDefault {
-        value = nixpkgs.legacyPackages or {};
+        content = nixpkgs.legacyPackages or {};
         default = {};
       };
     };
@@ -34,7 +34,7 @@
     defined = flatten (mapAttrsToList (_: host: host.platform or host.system or []) hosts);
     default = ["aarch64-darwin" "aarch64-linux" "x86_64-darwin" "x86_64-linux"];
     derived = orDefault {
-      value = mostFrequent defined null;
+      content = mostFrequent defined null;
       default = last default;
     };
 

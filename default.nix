@@ -17,202 +17,28 @@
     filterAttrs
     listToAttrs
     mapAttrs
-    mapAttrsRecursive
     ;
-  inherit (lib.lists) length filter head isList;
-  inherit (lib.strings) concatStringsSep splitString;
+  inherit (lib.lists) length filter head;
+  inherit (lib.strings) splitString;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
-  paths = let
-    mkPath = {
-      root,
-      stem,
-    }: "${root}/${
-      if isList stem
-      then concatStringsSep "/" stem
-      else stem
-    }";
+  inherit (import ./Libraries/nix {inherit lib src;}) lix;
+  paths = lix.mkProjectTree {};
+  schema = lix.mkSchema {};
+  flake = lix.mkFlake {};
+  inputs = (lix.mkInputs {}).resolved;
 
-    concatPath = prefix: parts: let
-      base = toString prefix;
-    in
-      if parts == []
-      then base
-      else "${base}/${concatStringsSep "/" parts}";
-
-    mapStems = prefix:
-      mapAttrsRecursive (_: concatPath prefix);
-
-    stems = {
-      default = [];
-      libs = rec {
-        nix = ["Libraries" "nix"];
-        shellscript = ["Libraries" "shellscript"];
-        rust = ["Libraries" "rust"];
-        default = nix;
-      };
-
-      api = rec {
-        default = ["API" "nix"];
-        hosts = default ++ ["hosts"];
-        users = default ++ ["users"];
-      };
-
-      pkgs = rec {
-        default = ["Packages" "nix"];
-        global = default ++ ["global"];
-        core = default ++ ["core"];
-        home = default ++ ["home"];
-        overlays = default ++ ["overlays"];
-        plugins = default ++ ["plugins"];
-      };
-
-      templates = rec {
-        default = ["Templates" "nix"];
-        rust = default ++ ["rust"];
-      };
-
-      images = rec {
-        default = ["Assets" "Images"];
-        ascii = default ++ ["ascii"];
-        logo = default ++ ["logo"];
-        wallpaper = default ++ ["wallpaper"];
-      };
-    };
-
-    roots = {
-      store = builtins.path {
-        path = ./.;
-        name = "dotDots";
-      };
-      local = ./.;
-    };
-
-    resolved = {
-      store = mapStems roots.store stems;
-      local = mapStems roots.local stems;
-    };
-
-    mkPaths = root: {
-      inherit root;
-
-      default = mkPath {
-        inherit root;
-        stem = [];
-      };
-      libs = let
-        nix = mkPath {
-          inherit root;
-          stem = ["Libraries" "nix"];
-        };
-        shellscript = mkPath {
-          inherit root;
-          stem = ["Libraries" "shellscript"];
-        };
-        rust = mkPath {
-          inherit root;
-          stem = ["Libraries" "rust"];
-        };
-      in {
-        default = nix;
-        inherit nix shellscript rust;
-      };
-      api = let
-        default = mkPath {
-          inherit root;
-          stem = ["API" "nix"];
-        };
-        hosts = mkPath {
-          root = default;
-          stem = "hosts";
-        };
-        users = mkPath {
-          root = default;
-          stem = "users";
-        };
-      in {inherit default hosts users;};
-      pkgs = let
-        default = mkPath {
-          inherit root;
-          stem = ["Packages" "nix"];
-        };
-        core = mkPath {
-          root = default;
-          stem = "core";
-        };
-        global = mkPath {
-          root = default;
-          stem = "global";
-        };
-        home = mkPath {
-          root = default;
-          stem = "home";
-        };
-        overlays = mkPath {
-          root = default;
-          stem = "overlays";
-        };
-        plugins = mkPath {
-          root = default;
-          stem = "plugins";
-        };
-      in {inherit default core global home overlays plugins;};
-      templates = let
-        default = mkPath {
-          inherit root;
-          stem = ["Templates" "nix"];
-        };
-        rust = mkPath {
-          root = default;
-          stem = "rust";
-        };
-      in {inherit default rust;};
-      images = rec {
-        default = mkPath {
-          inherit root;
-          stem = ["Assets" "Images"];
-        };
-        ascii = mkPath {
-          root = default;
-          stem = "ascii";
-        };
-        logo = mkPath {
-          root = default;
-          stem = "logo";
-        };
-        wallpaper = mkPath {
-          root = default;
-          stem = "wallpaper";
-        };
-      };
-    };
-    store = mkPaths ./.;
-    local = mkPaths src;
-    mkLocal = dots: mkPaths dots;
-  in {inherit roots stems resolved mkPath store local mkLocal;};
-
-  inherit
-    (import ./Libraries/nix {inherit lib src;})
-    lix
-    ; #TODO: Maybe pass in pkgs
-  schema = lix.schema.core.all {
-    hostsPath = paths.store.api.hosts;
-    usersPath = paths.store.api.users;
-  };
   inherit (schema) hosts users;
-  inherit (lix.modules.predicates) isSystemDefaultUser;
-  inherit (lix.modules.resolution) flakeAttrs hostAttrs;
-  inherit (lix.inputs.resolution) getInputs;
+  inherit (lix.modules.core.predicates) isSystemDefaultUser;
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| Flake & Current Host                                                        |
   #|─────────────────────────────────────────────────────────────────────────────|
-  flake = flakeAttrs {inherit self;};
   nixosConfigurations = flake.nixosConfigurations or {};
-  host = hostAttrs {inherit nixosConfigurations system;};
-  inputs = getInputs {inherit flake host;};
+  # host = hostAttrs {inherit nixosConfigurations system;};
+  host = {};
 
   #|─────────────────────────────────────────────────────────────────────────────|
   #| REPL Helpers                                                                |

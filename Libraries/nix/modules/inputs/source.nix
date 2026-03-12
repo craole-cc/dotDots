@@ -5,7 +5,6 @@
   ...
 }: let
   inherit (_.attrsets.resolution) byPaths;
-  inherit (_.content.empty) isNotEmpty;
   inherit (_.content.fallback) orDefault;
   inherit (lib.filesystem) dirOf;
   inherit (lib.strings) hasSuffix;
@@ -14,13 +13,11 @@
   exports = {
     internal = {
       inherit
-        flakeOrNull
+        tryFlake
         mkFlake
-        mkAll
-        mkSource
+        mkInputs
+        mkNixpkgs
         ;
-      mkInputs = mkAll;
-      mkNixpkgs = mkSource;
     };
     external = {
       inherit
@@ -41,39 +38,46 @@
 
   # Type
   ```
-  flakeOrNull :: { self? :: AttrSet, path? :: path | string } -> string | null
+  tryFlake :: { self? :: AttrSet, path? :: path | string } -> string | null
   ```
 
   # Examples
   ```nix
-  flakeOrNull { self = self; }
+  tryFlake { self = self; }
   # => "/nix/store/…-source"
 
-  flakeOrNull { path = ./.; }
+  tryFlake { path = ./.; }
   # => "/home/…/dotDots"  (if flake.nix exists there)
 
-  flakeOrNull { path = "/nonexistent"; }
+  tryFlake { path = "/nonexistent"; }
   # => null
   ```
   */
-  flakeOrNull = {
+  tryFlake = {
     self ? {},
     path ? src,
-  }: let
-    pathStr = toString path;
-  in
-    if isNotEmpty (self.outPath or null)
-    then self.outPath
-    else if hasSuffix "/flake.nix" pathStr && pathExists pathStr
-    then dirOf pathStr
-    else if pathExists (pathStr + "/flake.nix")
-    then pathStr
-    else null;
+  }:
+    if self ? inputs
+    then self
+    else if self ? outPath
+    then import (self.outPath + "/flake.nix")
+    else let
+      pathStr = toString path;
+      resolvedPath =
+        if pathStr != "" && hasSuffix "/flake.nix" pathStr && pathExists pathStr
+        then pathStr
+        else if pathStr != "" && pathExists (pathStr + "/flake.nix")
+        then pathStr + "/flake.nix"
+        else null;
+    in
+      if resolvedPath != null
+      then import resolvedPath
+      else null;
 
   /**
   Resolve a flake root path, throwing if it cannot be determined.
 
-  Use `flakeOrNull` when you need a null-safe variant.
+  Use `tryFlake` when you need a null-safe variant.
 
   # Type
   ```
@@ -94,27 +98,27 @@
     path ? src,
   }:
     orDefault {
-      value = flakeOrNull {inherit self path;};
+      content = tryFlake {inherit self path;};
       default = throw "❌ '${toString path}' is not a valid flake path.";
     };
 
-  mkAll = {
+  mkInputs = {
     self ? {},
-    path ? null,
+    path ? src,
   }: let
     /**
     The resolved flake attrset for the current project, obtained via
     `_.attrsets.resolution.flake {}`. Used as the root from which all inputs
     are derived.
     */
-    flake = mkFlake {inherit self path;};
+    flake = tryFlake {inherit self path;};
 
     /**
     The raw `inputs` attrset from the resolved flake, exactly as declared in
     `flake.nix`. All resolution in `coreInputs` and `homeInputs` is performed
     against this attrset.
     */
-    raw = flake.inputs;
+    raw = self.inputs or {};
     attrset = raw;
 
     /**
@@ -411,7 +415,7 @@
     inputs.
     */
     resolved = core // home;
-  in {inherit resolved raw core home;};
+  in {inherit resolved raw core home flake;};
 
   /**
   Build the `nixpkgs` source attribute appropriate for the host class.
@@ -426,14 +430,14 @@
 
   # Examples
   ```nix
-  mkSource { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
+  mkNixpkgs { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
   # => { source = nixpkgs; }
 
-  mkSource { inputs.nixpkgs = nixpkgs; }
+  mkNixpkgs { inputs.nixpkgs = nixpkgs; }
   # => { flake.source = nixpkgs; }
   ```
   */
-  mkSource = {
+  mkNixpkgs = {
     class ? "nixos",
     inputs ? {},
     ...

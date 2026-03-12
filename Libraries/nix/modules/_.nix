@@ -1,51 +1,71 @@
 {
   _,
   lib,
+  src,
   ...
 }: let
-  inherit (_.modules) core home;
   inherit (_.filesystem.tree) mkTree;
+  inherit (_.modules) core home;
+  inherit (_.modules.inputs.source) tryFlake;
+  inherit (_.schema._) mkSchema;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
   inherit (lib.modules) mkMerge;
-  inherit (_.schema.core) mkSchema;
+
+  paths = mkTree {};
+  schema = mkSchema {};
+  lix = _;
 
   exports = {inherit mkSystem mkCore mkHome;};
 
   mkSystem = {
-    hosts,
-    self,
-    lix,
+    self ? {},
+    path ? src,
+    args ? {},
     ...
   }:
     mapAttrs (
       _name: host: let
         class = host.class or "nixos";
-        paths = mkTree {};
-        schema = mkSchema {};
+
         flake = let
           inherit (_.modules.inputs.modules) mkModules;
           inherit (_.modules.inputs.packages) mkPackages;
           inherit (_.modules.inputs.source) mkInputs;
-          inputs = mkInputs {inherit self;};
+          source = tryFlake {inherit self path;};
+          inputs = mkInputs {self = source;};
           packages = mkPackages {inherit inputs host;};
-          modules = mkModules {inherit inputs class;};
+          modules = mkModules {
+            inherit class;
+            inputs = inputs.resolved;
+          };
         in {inherit inputs packages modules;};
 
-        specialArgs = {inherit lix lib host schema class paths;};
+        specialArgs = {inherit lix lib host schema class paths;} // args;
+
         modules = let
           fromInputs = flake.modules;
           fromHost = mkCore {
             inherit host specialArgs;
             inherit (flake.packages) nixpkgs inputs;
           };
+
           fromEval = evalModules {
-            specialArgs =
-              specialArgs
-              // {
-                inherit (fromInputs.all) modulesPath;
-                modules = fromInputs // {host = fromHost;};
-              };
+            modules =
+              {}
+              ++ fromInputs.base
+              ++ fromInputs.core
+              ++ fromHost
+              ++ [
+                {
+                  config._module.args =
+                    specialArgs
+                    // {
+                      inherit (fromInputs.all) modulesPath;
+                      modules = fromInputs // {host = fromHost;};
+                    };
+                }
+              ];
           };
         in {inherit fromInputs fromHost fromEval;};
       in
@@ -57,7 +77,7 @@
           )
         else modules.fromEval
     )
-    hosts;
+    schema.hosts;
 
   mkCore = {
     host,

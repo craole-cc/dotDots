@@ -8,7 +8,11 @@
   inherit (lib.lists) optionals;
 
   exports = {
-    internal = {inherit mkAll mkOne mkCore mkHome;};
+    internal = {
+      inherit mkAll mkOne mkCore mkHome;
+      mkModules = mkAll;
+      mkModule = mkOne;
+    };
     external = {
       mkInputModule = mkOne;
       mkInputModules = mkAll;

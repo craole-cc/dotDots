@@ -3,51 +3,18 @@
   lib,
   ...
 }: let
-  inherit (_.filesystem.importers) importAttrs;
-  inherit (_.filesystem.tree) mkTree;
   inherit (_.schema) ui user;
-  inherit (lib.attrsets) mapAttrs attrNames attrValues;
+  inherit (lib.attrsets) attrNames attrValues;
   inherit (lib.lists) head;
 
   exports = {
-    internal = {
-      inherit all enrichHost host hostOrDefault;
-      mkSchema = all;
-      mkHost = enrichHost;
-    };
+    internal = {inherit mkHost mkCore hostOrDefault;};
     external = {
-      inherit
-        (exports.internal)
-        mkSchema
-        mkHost
-        ;
+      mkCoreSchema = mkCore;
     };
   };
 
-  paths = mkTree {};
-  apiPath = paths.api.nix;
-
-  /**
-  Get host and user attributes from specified directories.
-
-  # Arguments
-  - hostsPath (path): Directory containing host configurations
-  - usersPath (path): Directory containing user configurations
-
-  # Returns
-  An attribute set with:
-  - hosts: Enriched host configurations
-  - users: Raw user configurations
-  */
-  all = {
-    hostsPath ? apiPath.hosts,
-    usersPath ? apiPath.users,
-  }: let
-    users = importAttrs usersPath;
-    hosts = mapAttrs (name: host: enrichHost {inherit name host users;}) (importAttrs hostsPath);
-  in {inherit users hosts;};
-
-  host = {
+  mkHost = {
     hosts,
     name ? null,
   }:
@@ -60,7 +27,7 @@
     name ? null,
   }:
     if name == null
-    then host {inherit hosts name;}
+    then mkHost {inherit hosts name;}
     else if hosts != {}
     then head (attrValues hosts)
     else throw "No hosts available";
@@ -68,7 +35,7 @@
   /**
   Enrich a single host with user data, interface normalization, and metadata.
   */
-  enrichHost = {
+  mkCore = {
     name,
     host,
     users,
@@ -89,11 +56,3 @@
     host // enrichment;
 in
   exports.internal // {_rootAliases = exports.external;}
-# {
-#   inherit all host hostOrDefault;
-#   _rootAliases = {
-#     getAttrs = all;
-#     getHost = host;
-#     getHostOrDefault = hostOrDefault;
-#   };
-# }
