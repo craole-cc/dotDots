@@ -11,6 +11,7 @@
   inherit (lib.strings) concatStringsSep optionalString toUpper;
   inherit (lib.generators) toPretty;
   inherit (_.lists.predicates) isIn;
+  inherit (_.types.predicates) isDerivation;
 
   /**
       Create an application configuration object with role-based classification,
@@ -279,7 +280,7 @@
         };
 
     #> Check if package was found
-    packageFound = package != null;
+    packageFound = package != null && isDerivation package;
 
     #~@ Runtime Identity
     command =

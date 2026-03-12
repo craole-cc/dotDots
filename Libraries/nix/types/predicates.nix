@@ -90,6 +90,7 @@
   ```
   */
   isInt = lib.trivial.isInt;
+
   exports = {
     inherit
       isBool
@@ -112,6 +113,7 @@ in
       isList
       #~@ Attrsets
       isAttrs
+      isDerivation
       isTypedAttrs
       isAllEnabledAttrs
       isAnyEnabledAttrs

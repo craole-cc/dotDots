@@ -4,7 +4,7 @@
   lix,
   user,
   pkgs,
-  paths,
+  tree,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
@@ -12,7 +12,8 @@
   inherit (pkgs) makeDesktopItem writeShellScriptBin;
 
   #~@ Script Wrappers
-  script = paths.local.libs.shellscript + "/packages/wrappers/feet.sh";
+  # script = paths.local.libs.shellscript + "/packages/wrappers/feet.sh";
+  script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
 
   #> Main launcher (calls external script)
   command = writeShellScriptBin "feet" ''

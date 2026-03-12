@@ -46,6 +46,8 @@
   */
   isTyped = v: isAttrs v && (v._type or null) != null;
 
+  isDerivation = x: lib.attrsets.isDerivation x;
+
   toPath = name:
     if isList name
     then name
@@ -248,31 +250,28 @@
     || waylandDefinedInterface ifc;
 
   exports = {
-    inherit
-      isAttrs
-      isTyped
-      allEnabled
-      anyEnabled
-      waylandEnabled
-      ;
-    isAllEnabledAttrs = allEnabled;
-    isAnyEnabledAttrs = anyEnabled;
-    isWaylandEnabledAttrs = waylandEnabled;
-    isTypedAttrs = isTyped;
-  };
-in
-  exports
-  // {
-    _rootAliases = {
+    internal = {
       inherit
-        (exports)
         isAttrs
-        isTypedAttrs
-        isAllEnabledAttrs
-        isAnyEnabledAttrs
-        isWaylandEnabledAttrs
+        isDerivation
+        isTyped
+        allEnabled
+        anyEnabled
+        waylandEnabled
         ;
     };
+    external = {
+      inherit isAttrs isDerivation;
+      isAllEnabledAttrs = allEnabled;
+      isAnyEnabledAttrs = anyEnabled;
+      isWaylandEnabledAttrs = waylandEnabled;
+      isTypedAttrs = isTyped;
+    };
+  };
+in
+  exports.internal
+  // {
+    _rootAliases = exports.external;
 
     _tests = runTests {
       isAttrs = {
