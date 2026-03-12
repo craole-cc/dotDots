@@ -137,9 +137,11 @@
       repo = "shell";
       owner = "caelestia-dots";
       type = "github";
-      # rev = "71f291f79bf7c35ad7db2c0061efc80cf768426a";
       inputs = {
-        # nixpkgs.follows = "nixPackages";
+        #> Follows stable to avoid broken app2unit 1.0.3 in nixpkgs-unstable.
+        #> app2unit fixupPhase looks for 'A2U__TERMINAL_HANDLER=xdg-terminal-exec'
+        #> which no longer exists in the binary post upstream source changes.
+        #> Revisit when unstable's app2unit derivation is fixed.
         nixpkgs.follows = "nixPackagesStable";
       };
     };

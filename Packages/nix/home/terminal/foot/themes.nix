@@ -3,7 +3,7 @@ let
 in {
   #~@ Primary Color Theme (Dark - Catppuccin Frappe)
   #? Theme 1, accessed via initial-color-theme=1
-  colors = {
+  colors-dark = {
     inherit alpha;
     background = "303446";
     foreground = "c6d0f5";
@@ -31,7 +31,7 @@ in {
 
   #~@ Alternative Color Theme (Light - Catppuccin Latte)
   #? Theme 2, accessed via initial-color-theme=2
-  colors2 = {
+  colors-light = {
     inherit alpha;
     background = "eff1f5";
     foreground = "4c4f69";

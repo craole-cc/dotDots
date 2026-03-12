@@ -7,7 +7,7 @@
   inherit (_.inputs.modules) mkModule;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs removeAttrs;
-  inherit (lib.strings) hasInfix splitString toLower;
+  inherit (lib.strings) hasInfix replaceStrings splitString toLower;
 
   exports = rec {
     internal = {
@@ -205,9 +205,8 @@
         hasAnyApp names [tty.primary tty.secondary];
 
       "zen-browser" = let
-        cfg = defaults.apps."zen-browser";
         variant =
-          if isIn (normalizeNames (cfg.variants.twilight or [])) firefox
+          if hasInfix "twilight" firefox || firefox == "zen"
           then "twilight"
           else "beta";
       in {
@@ -254,7 +253,7 @@
           attrByPath [
             "browser"
             (
-              if isIn (zenCfg.variants.twilight or []) n
+              if hasInfix "twilight" n || n == "zen"
               then "zen-twilight"
               else "zen-beta"
             )
