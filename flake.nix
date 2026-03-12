@@ -130,19 +130,11 @@
       };
     };
 
-    # shellCaelestia = {
-    #   repo = "shell";
-    #   owner = "caelestia-dots";
-    #   type = "github";
-    #   inputs = {
-    #     nixpkgs.follows = "nixPackages";
-    #   };
-    # };
     shellCaelestia = {
       repo = "shell";
       owner = "caelestia-dots";
       type = "github";
-      rev = "71f291f79bf7c35ad7db2c0061efc80cf768426a";
+      # rev = "71f291f79bf7c35ad7db2c0061efc80cf768426a";
       inputs = {
         nixpkgs.follows = "nixPackages";
       };

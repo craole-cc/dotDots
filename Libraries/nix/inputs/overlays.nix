@@ -40,6 +40,12 @@
         inherit system config;
       };
     })
+
+    (final: prev: {
+      app2unit = prev.app2unit.overrideAttrs (_: {
+        postFixup = "";
+      });
+    })
   ];
 
   mkHome = {
