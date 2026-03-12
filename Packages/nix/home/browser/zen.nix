@@ -7,9 +7,9 @@
 }: let
   #~@ Universal Zen launcher
   #> Prefers twilight → beta → zen → $BROWSER
-  script = "${pkgs.copyPathToStore (
-    tree.lib.sh.local + "/packages/wrappers/zen.sh"
-  )}";
+  script =
+    pkgs.writeShellScript "zen.sh"
+    (builtins.readFile (tree.lib.sh.local + "/packages/wrappers/zen.sh"));
 
   launcher = pkgs.writeShellScriptBin "zen" ''
     exec ${script} "$@"
