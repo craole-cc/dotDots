@@ -132,7 +132,7 @@
           #~@ Dev — editors, VCS, data, media
           bat #? Cat clone with syntax highlighting and paging
           gitui #? Fast terminal UI for Git
-          helix #? Modal editor with native LSP + tree-sitter
+          helix.default #? Modal editor with native LSP + tree-sitter
           imagemagick #? Image conversion and manipulation
           jql #? JSON querying tool
           qimgv #? Fast image viewer with minimal UI
