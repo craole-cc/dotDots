@@ -64,7 +64,7 @@
             specialArgs =
               specialArgs
               // {
-                inherit (fromInputs) modulesPath;
+                inherit (fromInputs.all) modulesPath baseModules;
                 modules = fromInputs // {host = fromHost;};
               };
 
