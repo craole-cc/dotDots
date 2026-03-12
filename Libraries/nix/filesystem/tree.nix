@@ -8,7 +8,10 @@
   inherit (_.types.predicates) isAttrs;
   inherit (lib.attrsets) mapAttrs recursiveUpdateUntil;
 
-  exports = {inherit stems mkPaths;};
+  exports = {
+    internal = {inherit stems mkTree wallman;};
+    external = {mkProjectTree = mkTree;};
+  };
 
   # ── Group constructors ─────────────────────────────────────────────────────
 
@@ -181,6 +184,11 @@
   */
   stems = {default = [];} // mkGroup defaultBases;
 
+  # wallman.sh lives alongside this file in Libraries/nix/filesystem/.
+  # Exported as a path value so consumers (e.g. modules/home/paths.nix) can
+  # reference it via _.filesystem.tree.wallman without a fragile relative path.
+  wallman = ./wallman.sh;
+
   # ── mkPaths ────────────────────────────────────────────────────────────────
 
   /**
@@ -227,7 +235,7 @@
   # adds screenshots alongside existing siblings
   ```
   */
-  mkPaths = {
+  mkTree = {
     root ? src,
     bases ? {},
     stems ? {},
@@ -249,4 +257,4 @@
     {default = construct {inherit root;};}
     // mapAttrs (_: resolveGroup) stems';
 in
-  exports
+  exports.internal // {_rootAliases = exports.external;}

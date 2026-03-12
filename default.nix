@@ -7,7 +7,7 @@
   ...
 }: let
   #|─────────────────────────────────────────────────────────────────────────────|
-  #| External Imports                                                                |
+  #| External Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
   inherit
     (lib.attrsets)
@@ -194,7 +194,7 @@
   in {inherit roots stems resolved mkPath store local mkLocal;};
 
   inherit
-    (import paths.store.libs.default {inherit lib src paths;})
+    (import ./Libraries/nix {inherit lib src;})
     lix
     ; #TODO: Maybe pass in pkgs
   schema = lix.schema.core.all {

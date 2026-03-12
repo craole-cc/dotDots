@@ -1,14 +1,31 @@
 {
-  paths,
   _,
   lib,
   ...
 }: let
-  inherit (lib.attrsets) mapAttrs attrNames attrValues;
   inherit (_.filesystem.importers) importAttrs;
-  inherit (lib.lists) head;
+  inherit (_.filesystem.tree) mkTree;
   inherit (_.schema) ui user;
-  apiPath = paths.store.api.default or ../../../API/nix;
+  inherit (lib.attrsets) mapAttrs attrNames attrValues;
+  inherit (lib.lists) head;
+
+  exports = {
+    internal = {
+      inherit all enrichHost host hostOrDefault;
+      mkSchema = all;
+      mkHost = enrichHost;
+    };
+    external = {
+      inherit
+        (exports.internal)
+        mkSchema
+        mkHost
+        ;
+    };
+  };
+
+  paths = mkTree {};
+  apiPath = paths.api.nix;
 
   /**
   Get host and user attributes from specified directories.
@@ -23,8 +40,8 @@
   - users: Raw user configurations
   */
   all = {
-    hostsPath ? (apiPath + "/hosts"),
-    usersPath ? (apiPath + "/users"),
+    hostsPath ? apiPath.hosts,
+    usersPath ? apiPath.users,
   }: let
     users = importAttrs usersPath;
     hosts = mapAttrs (name: host: enrichHost {inherit name host users;}) (importAttrs hostsPath);
@@ -70,11 +87,13 @@
     };
   in
     host // enrichment;
-in {
-  inherit all host hostOrDefault;
-  _rootAliases = {
-    getAttrs = all;
-    getHost = host;
-    getHostOrDefault = hostOrDefault;
-  };
-}
+in
+  exports.internal // {_rootAliases = exports.external;}
+# {
+#   inherit all host hostOrDefault;
+#   _rootAliases = {
+#     getAttrs = all;
+#     getHost = host;
+#     getHostOrDefault = hostOrDefault;
+#   };
+# }

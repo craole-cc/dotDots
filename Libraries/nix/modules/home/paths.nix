@@ -6,7 +6,7 @@
   inherit (_.types.predicates) isList;
   inherit (_.content.fallback) orDefault;
   inherit (_.attrsets.access) getIn;
-  inherit (_.filesystem.meta) wallman;
+  inherit (_.filesystem.discovery) wallman;
   inherit (builtins) getEnv;
   inherit (lib.attrsets) mapAttrs mapAttrsToList;
   inherit (lib.lists) elemAt head toList;

@@ -1,11 +1,100 @@
-{_, ...}: let
+{
+  _,
+  lib,
+  src,
+  ...
+}: let
   inherit (_.attrsets.resolution) byPaths;
-  inherit (_.filesystem.paths) tryFlake;
+  inherit (_.content.empty) isNotEmpty;
+  inherit (_.content.fallback) orDefault;
+  inherit (lib.filesystem) dirOf;
+  inherit (lib.strings) hasSuffix;
+  inherit (lib.trivial) pathExists;
 
   exports = {
-    internal = {inherit mkInputs;};
-    external = {flakeInputs = mkInputs;};
+    internal = {
+      inherit
+        flakeOrNull
+        mkFlake
+        mkNixpkgs
+        mkInputs
+        ;
+    };
+    external = {
+      inherit
+        (exports.internal)
+        mkFlake
+        mkNixpkgs
+        mkInputs
+        ;
+    };
   };
+
+  /**
+  Try to resolve a flake root path.
+
+  Returns the directory string if the path is a valid flake root, or `null`
+  if it cannot be determined. Checks `self.outPath` first (flake context),
+  then looks for a `flake.nix` at or under `path`.
+
+  # Type
+  ```
+  flakeOrNull :: { self? :: AttrSet, path? :: path | string } -> string | null
+  ```
+
+  # Examples
+  ```nix
+  flakeOrNull { self = self; }
+  # => "/nix/store/…-source"
+
+  flakeOrNull { path = ./.; }
+  # => "/home/…/dotDots"  (if flake.nix exists there)
+
+  flakeOrNull { path = "/nonexistent"; }
+  # => null
+  ```
+  */
+  flakeOrNull = {
+    self ? {},
+    path ? src,
+  }: let
+    pathStr = toString path;
+  in
+    if isNotEmpty (self.outPath or null)
+    then self.outPath
+    else if hasSuffix "/flake.nix" pathStr && pathExists pathStr
+    then dirOf pathStr
+    else if pathExists (pathStr + "/flake.nix")
+    then pathStr
+    else null;
+
+  /**
+  Resolve a flake root path, throwing if it cannot be determined.
+
+  Use `flakeOrNull` when you need a null-safe variant.
+
+  # Type
+  ```
+  flake :: { self? :: AttrSet, path? :: path | string } -> string
+  ```
+
+  # Examples
+  ```nix
+  flake { self = self; }
+  # => "/nix/store/…-source"
+
+  flake { path = "/nonexistent"; }
+  # => throws "❌ '/nonexistent' is not a valid flake path."
+  ```
+  */
+  mkFlake = {
+    self ? {},
+    path ? src,
+  }:
+    orDefault {
+      value = flakeOrNull {inherit self path;};
+      default = throw "❌ '${toString path}' is not a valid flake path.";
+    };
 
   mkInputs = {
     self ? {},
@@ -16,7 +105,7 @@
     `_.attrsets.resolution.flake {}`. Used as the root from which all inputs
     are derived.
     */
-    flake = tryFlake {inherit self path;};
+    flake = mkFlake {inherit self path;};
 
     /**
     The raw `inputs` attrset from the resolved flake, exactly as declared in
@@ -25,15 +114,6 @@
     */
     raw = flake.inputs;
     attrset = raw;
-
-    /**
-    Combined view of all resolved inputs (`coreInputs // homeInputs`).
-
-    Use this when you need access to any input by canonical name and don't
-    need to distinguish between `legacyPackages`-style and `packages`-style
-    inputs.
-    */
-    resolved = core // home;
 
     /**
     Resolved nixpkgs inputs — the three channels that expose `legacyPackages`
@@ -320,6 +400,46 @@
         ];
       };
     };
+
+    /**
+    Combined view of all resolved inputs (`coreInputs // homeInputs`).
+
+    Use this when you need access to any input by canonical name and don't
+    need to distinguish between `legacyPackages`-style and `packages`-style
+    inputs.
+    */
+    resolved = core // home;
   in {inherit resolved raw core home;};
+
+  /**
+  Build the `nixpkgs` source attribute appropriate for the host class.
+
+  Darwin uses `source`; NixOS uses `flake.source`. Resolves `root` from
+  `inputs.nixpkgs` when not explicitly provided.
+
+  # Type
+  ```
+  source :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  source { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
+  # => { source = nixpkgs; }
+
+  source { inputs.nixpkgs = nixpkgs; }
+  # => { flake.source = nixpkgs; }
+  ```
+  */
+  mkNixpkgs = {
+    class ? "nixos",
+    inputs ? {},
+    ...
+  }: let
+    root = inputs.nixpkgs or null;
+  in
+    if class == "darwin"
+    then {source = root;}
+    else {flake.source = root;};
 in
   exports.internal // {_rootAliases = exports.external;}

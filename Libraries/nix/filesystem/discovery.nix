@@ -9,39 +9,40 @@
   inherit (lib.lists) filter map elem;
 
   exports = {
-    inherit
-      listFilesRecursively
-      listNix
-      listNixModules
-      listNixPackagesRecursively
-      wallman
-      ;
+    internal = {
+      inherit
+        listRecursively
+        listNix
+        listNixModules
+        listPackagesRecursively
+        ;
+    };
+    external = {
+      inherit (exports.internal) listNixModules;
+      listFilesRecursively = listRecursively;
+      listNixFiles = listNix;
+      listNixPackagesRecursively = listPackagesRecursively;
+    };
   };
-
-  # wallman.sh lives alongside this file in Libraries/nix/filesystem/.
-  # Exported as a path value so consumers (e.g. modules/home/paths.nix) can
-  # reference it via _.filesystem.meta.wallman without a fragile relative path.
-  wallman = ./wallman.sh;
-
   /**
   List all files under a directory, recursively.
 
   # Type
   ```nix
-  listFilesRecursively :: path -> [path]
+  listRecursively :: path -> [path]
   ```
   */
-  listFilesRecursively = path: listFilesRecursive path;
+  listRecursively = path: listFilesRecursive path;
 
   /**
   Build a recursive package attrset from a directory using `callPackage`.
 
   # Type
   ```nix
-  listNixPackagesRecursively :: AttrSet -> path -> AttrSet
+  listPackagesRecursively :: AttrSet -> path -> AttrSet
   ```
   */
-  listNixPackagesRecursively = pkgs: path:
+  listPackagesRecursively = pkgs: path:
     packagesFromDirectoryRecursive {
       inherit (pkgs) callPackage;
       directory = path;

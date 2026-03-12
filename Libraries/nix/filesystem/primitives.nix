@@ -10,15 +10,16 @@
   inherit (lib.strings) concatStringsSep hasPrefix;
 
   exports = {
-    inherit
-      concat
-      toPath
-      ground
-      construct
-      ;
+    internal = {
+      inherit
+        concat
+        toPath
+        ground
+        construct
+        ;
+    };
+    external = {};
   };
-
-  # ── concat ────────────────────────────────────────────────────────────────
 
   /**
   Join a root and stem into a single path string.
@@ -55,8 +56,6 @@
       then concatStringsSep "/" part
       else part;
   in "${normalize root}/${normalize stem}";
-
-  # ── toPath ────────────────────────────────────────────────────────────────
 
   /**
   Convert any path-like value into a normalised `{ store, local }` pair.
@@ -160,8 +159,6 @@
     local = localStr;
   };
 
-  # ── ground ────────────────────────────────────────────────────────────────
-
   /**
   Resolve a root directory into a `{ store, local }` pair.
 
@@ -209,8 +206,6 @@
       path = root;
       inherit name;
     };
-
-  # ── construct ─────────────────────────────────────────────────────────────
 
   /**
   Build a resolved `{ store, local }` path from a root and a stem.
@@ -287,4 +282,4 @@
     local = join base.local;
   };
 in
-  exports
+  exports.internal

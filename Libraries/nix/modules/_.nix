@@ -4,9 +4,11 @@
   ...
 }: let
   inherit (_.modules) core home;
+  inherit (_.filesystem.tree) mkTree;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.modules) evalModules;
   inherit (lib.modules) mkMerge;
+  inherit (_.schema.core) mkSchema;
 
   exports = {inherit mkSystem mkCore mkHome;};
 
@@ -14,21 +16,18 @@
     hosts,
     self,
     lix,
-    schema,
-    paths,
     ...
   }:
     mapAttrs (
       _name: host: let
         class = host.class or "nixos";
-        specialArgs = {
-          inherit lix lib host schema class;
-          paths = paths // {local = paths.mkLocal host.paths.dots;};
-        };
+        paths = mkTree {};
+        schema = mkSchema {};
+        specialArgs = {inherit lix lib host schema class paths;};
         flake = let
-          inherit (_.modules.inputs.resolution) mkInputs;
-          inherit (_.modules.inputs.packages) mkPackages;
           inherit (_.modules.inputs.modules) mkModules;
+          inherit (_.modules.inputs.packages) mkPackages;
+          inherit (_.modules.inputs.source) mkInputs;
           inputs = mkInputs {inherit self;};
           packages = mkPackages {inherit inputs host;};
           modules = mkModules {inherit inputs class;};
