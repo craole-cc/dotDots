@@ -3,7 +3,8 @@
   lib,
   ...
 }: let
-  inherit (_.schema) ui user;
+  inherit (_.schema.ui) mkUI;
+  inherit (_.schema.home) mkHome;
   inherit (lib.attrsets) attrNames attrValues;
   inherit (lib.lists) head;
 
@@ -40,8 +41,8 @@
     host,
     users,
   }: let
-    enrichedUser = user.enriched {inherit host users;};
-    enrichedUI = ui.enriched {
+    enrichedUser = mkHome {inherit host users;};
+    enrichedUI = mkUI {
       inherit host;
       user = enrichedUser.data.primary;
     };

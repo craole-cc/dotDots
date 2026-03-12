@@ -119,7 +119,7 @@
             (mkServices {inherit config host;})
             (mkPrograms {inherit host;})
             (mkUsers {inherit host pkgs;})
-            (mkHome {inherit host specialArgs paths;})
+            # (mkHome {inherit host specialArgs paths;})
           ]
       )
     ]
@@ -156,7 +156,7 @@
           lix = _;
           inherit host;
         };
-      users = home.mkUsers {inherit host paths;};
+      users = home.users.mkUsers {inherit host paths;};
     };
   };
 in

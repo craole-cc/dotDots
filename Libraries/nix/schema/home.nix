@@ -200,7 +200,7 @@
     count: Attrset of counts   — `total`, `enabled`, `interactive`, `elevated`.
     data:  Attrset of full user configs — `all`, `enabled`, `interactive`, `elevated`, `autoLogin`, `primary`.
   */
-  enriched = {
+  mkHome = {
     host,
     users,
   }: let
@@ -237,5 +237,5 @@
       ;
   };
 in {
-  inherit enriched getPrincipals getAll;
+  inherit mkHome getPrincipals getAll;
 }

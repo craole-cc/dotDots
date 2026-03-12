@@ -2,7 +2,7 @@
   inherit (lib.attrsets) recursiveUpdate hasAttr;
   inherit (lib.lists) elem;
 
-  enriched = {
+  mkUI = {
     user,
     host,
   }: let
@@ -428,7 +428,7 @@
     };
 in {
   inherit
-    enriched
+    mkUI
     loginManagers
     desktopEnvironments
     windowManagers
