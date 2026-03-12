@@ -6,7 +6,6 @@
 }: let
   inherit (_.attrsets.resolution) byPaths;
   inherit (_.content.fallback) orDefault;
-  inherit (lib.filesystem) dirOf;
   inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) pathExists;
 
@@ -16,14 +15,14 @@
         tryFlake
         mkFlake
         mkInputs
-        mkNixpkgs
+        mkNixPkgs
         ;
     };
     external = {
       inherit
         (exports.internal)
         mkFlake
-        mkNixpkgs
+        mkNixPkgs
         mkInputs
         ;
     };
@@ -430,14 +429,14 @@
 
   # Examples
   ```nix
-  mkNixpkgs { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
+  mkNixPkgs { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
   # => { source = nixpkgs; }
 
-  mkNixpkgs { inputs.nixpkgs = nixpkgs; }
+  mkNixPkgs { inputs.nixpkgs = nixpkgs; }
   # => { flake.source = nixpkgs; }
   ```
   */
-  mkNixpkgs = {
+  mkNixPkgs = {
     class ? "nixos",
     inputs ? {},
     ...

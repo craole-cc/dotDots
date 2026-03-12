@@ -5,7 +5,6 @@
   __moduleRef,
   ...
 }: let
-  inherit (_.attrsets.predicates) valueOr;
   inherit (_.content.fallback) firstNonEmpty;
   inherit (_.content.empty) isNotEmpty;
   inherit (_.debug.assertions) mkTest mkTest';
@@ -325,18 +324,7 @@
   }:
     listToAttrs (map (name: {
         inherit name;
-        value = let
-          input = valueOr {
-            attrs = inputs;
-            key = name;
-            default = {};
-          };
-        in
-          valueOr {
-            attrs = input;
-            key = attrs;
-            default = {};
-          };
+        value = inputs.${name}.${attrs} or {};
       })
       names);
 

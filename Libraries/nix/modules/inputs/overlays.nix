@@ -4,7 +4,6 @@
   ...
 }: let
   inherit (_.hardware.system) getSystem;
-  inherit (_.attrsets.predicates) valueOr;
   inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
   exports = {
     internal = {
@@ -54,11 +53,7 @@
       filterAttrsRecursive (_: v: v != null) (
         mapAttrs' (name: pkgsSet: {
           inherit name;
-          value = valueOr {
-            attrs = pkgsSet;
-            key = system;
-            default = null;
-          };
+          value = pkgsSet.${system} or null;
         })
         packages
       ))
@@ -66,13 +61,9 @@
     (final: prev: let
       system = getSystem prev;
     in {
-      fromInputs = mapAttrs (_: pkgsSet:
-        valueOr {
-          attrs = pkgsSet;
-          key = system;
-          default = {};
-        })
-      packages;
+      fromInputs =
+        mapAttrs (_: pkgsSet: pkgsSet.${system} or null)
+        packages;
     })
     #~@ Chaotic
     (inputs.chaotic.overlays.default or (_: _: {}))

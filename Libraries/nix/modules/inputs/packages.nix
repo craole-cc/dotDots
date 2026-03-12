@@ -5,7 +5,6 @@
 }: let
   inherit (_.modules.inputs.source) mkInputs mkNixPkgs;
   inherit (_.modules.inputs.overlays) mkOverlays;
-  inherit (_.attrsets.predicates) valueOr;
   inherit (lib.attrsets) listToAttrs;
   exports = {
     internal = {
@@ -79,18 +78,7 @@
   }:
     listToAttrs (map (name: {
         inherit name;
-        value = let
-          input = valueOr {
-            attrs = inputs;
-            key = name;
-            default = {};
-          };
-        in
-          valueOr {
-            attrs = input;
-            key = attrs;
-            default = {};
-          };
+        value = inputs.${name}.${attrs} or {};
       })
       names);
 

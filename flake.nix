@@ -24,7 +24,7 @@
       }
     )
     // (
-      {nixosConfigurations = lix.mkSystems {};}
+      {nixosConfigurations = lix.mkSystems {inherit self;};}
       // import paths.kit.default.store
     );
 

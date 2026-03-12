@@ -16,7 +16,10 @@
   schema = mkSchema {};
   lix = _;
 
-  exports = {inherit mkSystems mkCore mkHome;};
+  exports = rec {
+    internal = {inherit mkSystems mkCore mkHome;};
+    external = {inherit (internal) mkSystems;};
+  };
 
   mkSystems = {
     self ? {},
@@ -45,27 +48,26 @@
 
         modules = let
           fromInputs = flake.modules;
+
           fromHost = mkCore {
             inherit host specialArgs;
             inherit (flake.packages) nixpkgs inputs;
           };
 
           fromEval = evalModules {
+            specialArgs =
+              specialArgs
+              // {
+                inherit (fromInputs) modulesPath;
+                modules = fromInputs // {host = fromHost;};
+              };
+
             modules =
-              {}
+              []
               ++ fromInputs.base
               ++ fromInputs.core
               ++ fromHost
-              ++ [
-                {
-                  config._module.args =
-                    specialArgs
-                    // {
-                      inherit (fromInputs.all) modulesPath;
-                      modules = fromInputs // {host = fromHost;};
-                    };
-                }
-              ];
+              ++ [{config._module.args = specialArgs;}];
           };
         in {inherit fromInputs fromHost fromEval;};
       in
@@ -158,4 +160,4 @@
     };
   };
 in
-  exports // {_rootAliases = {inherit (exports) mkSystem;};}
+  exports.internal // {_rootAliases = exports.external;}
