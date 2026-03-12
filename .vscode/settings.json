@@ -87,5 +87,5 @@
     "Tests",
     "Packages/custom/dots/archive",
     "Packages/custom/dots/tmp_repl.nix"
-  ],
+  ]
 }
