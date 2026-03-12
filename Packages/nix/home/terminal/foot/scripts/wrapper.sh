@@ -41,7 +41,7 @@ fi
 echo "$THEME" >"$THEME_FILE"
 
 #> Start server with theme override
-GSETTINGS_SCHEMA_DIR=/dev/null \
+DCONF_PROFILE=/dev/null \
 	@foot@ --server -o main.initial-color-theme="${FOOT_THEME}" >/dev/null 2>&1 &
 
 #> Wait for socket to be ready
