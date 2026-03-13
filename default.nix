@@ -6,30 +6,10 @@
   ...
 }: let
   #|───────────────────────────────────────────────────────────────|
-  #| Library Bootstrap                                             |
-  #|───────────────────────────────────────────────────────────────|
-  lix = import ./Libraries/nix {inherit lib path;};
-  resolvedLib =
-    if lib != null
-    then lib
-    else lix.lib;
-in let
-  lib = resolvedLib;
-  #|───────────────────────────────────────────────────────────────|
   #| Library Imports                                               |
   #|───────────────────────────────────────────────────────────────|
+  lix = import ./Libraries/nix {inherit lib path;};
 
-  # inherit
-  #   (lib.attrsets)
-  #   attrByPath
-  #   attrNames
-  #   attrValues
-  #   filterAttrs
-  #   listToAttrs
-  #   mapAttrs
-  #   ;
-  # inherit (lib.lists) length filter head;
-  # inherit (lib.strings) splitString;
   inherit (lix.filesystem.resolution) getFlake;
   inherit (lix.filesystem.tree) mkTree;
   inherit (lix.inputs.source) resolveInputs;
@@ -48,7 +28,6 @@ in let
   tree = mkTree {inherit flake;};
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
-  # inherit (lix.modules.core.predicates) isSystemDefaultUser;
 
   #|───────────────────────────────────────────────────────────────|
   #| Target Host Resolution                                        |
@@ -234,7 +213,6 @@ in {
     inputs
     lib
     lix
-    schema
     system
     tree
     users
