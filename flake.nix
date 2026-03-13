@@ -28,6 +28,7 @@
     # )
     mkFlakeOutputs {
       inherit self hosts;
+      flake = self;
       fn = {
         system,
         pkgs,
