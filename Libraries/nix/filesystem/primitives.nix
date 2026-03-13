@@ -5,6 +5,7 @@
   src,
   ...
 }: let
+  inherit (builtins) pathExists getFlake;
   inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.strings) concatStringsSep hasPrefix;
@@ -17,9 +18,25 @@
         ground
         construct
         ;
+      getFlake = getFlake';
     };
     external = {};
   };
+
+  getFlake' = {
+    self ? {},
+    path ? ./.,
+  }: let
+    # Pure flake resolution primitive - NO lib dependency
+    hasFlakeNix = pathExists (toString path + "/flake.nix");
+    derived =
+      if hasFlakeNix
+      then getFlake (toString path)
+      else {};
+  in
+    if self != {}
+    then self
+    else derived;
 
   /**
   Join a root and stem into a single path string.

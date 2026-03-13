@@ -7,28 +7,8 @@
     inherit (src) lix hosts tree;
     inherit (lix.modules._) mkFlakeOutputs mkSystems;
   in
-    # mkFlakeOutputs {
-    #   fn =
-    #   inherit hosts legacyPackages;
-    # } (
-    #   {
-    #     system,
-    #     pkgs,
-    #   }: {
-    #     inherit
-    #       (import tree.pkg.global.store {
-    #         inherit lib lix tree pkgs system;
-    #         inherit (src) inputs;
-    #       })
-    #       devShells
-    #       formatter
-    #       checks
-    #       ;
-    #   }
-    # )
     mkFlakeOutputs {
-      inherit self hosts;
-      flake = self;
+      inherit hosts legacyPackages;
       fn = {
         system,
         pkgs,

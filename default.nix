@@ -10,7 +10,7 @@
   #|───────────────────────────────────────────────────────────────|
   libInit = import ./Libraries/nix {inherit lib path;};
   inherit (libInit) lix;
-  inherit (lix.filesystem.resolution) getFlake;
+  inherit (lix.filesystem.primitives) getFlake;
   inherit (lix.filesystem.tree) mkTree;
   inherit (lix.inputs.source) resolveInputs;
   inherit (lix.schema._) mkSchema;

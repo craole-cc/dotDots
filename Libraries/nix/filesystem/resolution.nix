@@ -1,5 +1,4 @@
 {
-  _,
   src,
   lib,
   ...
@@ -16,11 +15,11 @@
   __exports = {
     internal = {
       inherit getFlakePath;
-      getFlake = getFlake';
+      # getFlake = getFlake';
     };
     external = {
       inherit getFlakePath;
-      inherit (__exports.internal) getFlake;
+      # inherit (__exports.internal) getFlake;
     };
   };
 
