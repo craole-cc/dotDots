@@ -24,7 +24,7 @@
   - hosts: Enriched host configurations
   - users: Raw user configurations
   */
-  mkSchema = tree: let
+  mkSchema = {tree}: let
     api = tree.api or {};
     paths = {
       users = api.users.store or {};

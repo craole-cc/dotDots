@@ -3,10 +3,18 @@
   lib,
   ...
 }: let
-  inherit (_.hardware.system) getSystem;
-  inherit (lib.attrsets) filterAttrsRecursive mapAttrs mapAttrs';
+  __doc = ''
+    Input Overlays Generation
 
-  exports = {
+    Constructs Nixpkgs overlays from flake inputs. It provides stable and
+    unstable channels, flattens default packages directly onto `pkgs`, and
+    extracts named variants to avoid broad evaluation errors.
+  '';
+
+  inherit (_.hardware.system) systemOf;
+  inherit (lib.attrsets) filterAttrs mapAttrs mapAttrs';
+
+  __exports = {
     internal = {
       inherit mkCore mkHome mkAll;
       mkOverlays = mkAll;
@@ -24,7 +32,7 @@
     inputs,
     config,
   }: final: _: let
-    system = getSystem final;
+    system = systemOf final;
   in {
     fromStable = import (inputs.nixpkgs-stable or inputs.nixpkgs) {
       inherit system config;
@@ -35,7 +43,7 @@
     inputs,
     config,
   }: final: _: let
-    system = getSystem final;
+    system = systemOf final;
   in {
     fromUnstable = import (inputs.nixpkgs-unstable or inputs.nixpkgs) {
       inherit system config;
@@ -47,7 +55,7 @@
   #> Flattened — exposes each input's default package directly on pkgs
   #> e.g. pkgs.helix = inputs.editorHelix.packages.${system}.default
   flattenedOverlay = {packages}: final: prev: let
-    system = getSystem prev;
+    system = systemOf prev;
     resolve = pkgsSet: let
       val = pkgsSet.${system} or null;
     in
@@ -57,7 +65,7 @@
       then val #? already a derivation
       else val.default or null; #? attrset → pick .default
   in
-    filterAttrsRecursive (_: v: v != null) (
+    filterAttrs (_: v: v != null) (
       mapAttrs' (name: pkgsSet: {
         inherit name;
         value = resolve pkgsSet;
@@ -68,18 +76,18 @@
   #> Variant expansion — explicitly expose named variants for known multi-output inputs
   #> Avoids forcing evaluation of entire nixpkgs attrsets (which causes AAAAAASomeThingsFailToEvaluate)
   variantOverlay = {packages}: final: prev: let
-    system = getSystem prev;
-    zenPkgs = packages."zen-browser".${system} or {};
+    system = systemOf prev;
+    zen = packages."zen-browser".${system} or {};
   in {
     #> zen-browser — required by the zen-browser HM module which looks up pkgs.zen-twilight
-    zen-twilight = zenPkgs.twilight or zenPkgs.default or null;
-    zen-beta = zenPkgs.beta     or zenPkgs.default or null;
+    zen-twilight = zen.twilight or zen.default or null;
+    zen-beta = zen.beta     or zen.default or null;
   };
 
   #> Categorised — exposes all input package sets under pkgs.fromInputs.<name>
   #> e.g. pkgs.fromInputs.helix = { default = ...; helix = ...; }
   fromInputsOverlay = {packages}: final: prev: let
-    system = getSystem prev;
+    system = systemOf prev;
   in {
     fromInputs = mapAttrs (_: pkgsSet: pkgsSet.${system} or null) packages;
   };
@@ -101,7 +109,6 @@
     (flattenedOverlay {inherit packages;})
     (variantOverlay {inherit packages;})
     (fromInputsOverlay {inherit packages;})
-    #~@ Chaotic nyx overlay
     (inputs.chaotic.overlays.default or (_: _: {}))
   ];
 
@@ -114,4 +121,8 @@
     ++ mkCore {inherit inputs config;}
     ++ mkHome {inherit inputs packages;};
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal
+  // {
+    inherit __doc;
+    _rootAliases = __exports.external;
+  }

@@ -11,7 +11,7 @@
   inherit (_.debug.module) mkModuleDebug;
   inherit (_.debug.runners) runTests;
   inherit (_.filesystem.paths) getFlakePath;
-  inherit (_.hardware.systems) getSystems;
+  inherit (_.hardware.system) getSystems;
   inherit
     (lib.attrsets)
     attrByPath
@@ -32,9 +32,9 @@
     internal = {
       inherit
         byPaths
-        flake
+        flakeAttrs
         getAttr
-        host
+        hostAttrs
         inputPackages
         inputSource
         nestedByPaths
@@ -46,12 +46,11 @@
         packages
         shellPackage
         ;
-      flakeAttrs = flake;
       getAttrByPaths = byPaths;
       getAttrOrDefault = orDefault;
       getAttrOrNull = orNull;
-      getFlake = flake;
-      getHost = host;
+      getFlake = flakeAttrs;
+      getHost = hostAttrs;
       getNestedAttrByPaths = nestedByPaths;
       getPackage = package;
       getPkgs = packages;
@@ -354,7 +353,7 @@
     then {${name} = attrs.${name};}
     else {};
 
-  flake = {
+  flakeAttrs = {
     self ? {},
     path ? src,
   }: let
@@ -377,15 +376,34 @@
       "❌ Flake load failed: ${toString path} (${failureReason})"
       (derived // {srcPath = path;});
 
-  host = {
-    nixosConfigurations ? optionalAttrs ((flake {}) ? nixosConfigurations) (flake {}).nixosConfigurations,
-    system ? (getSystems {}).system,
+  hostAttrs = {
+    self ? {},
+    path ? src,
+    hosts ? {},
+    flake ? {},
+    nixosConfigurations ? {},
+    system ? null,
   }: let
     derived =
       findFirst
-      (hostConfig: (hostConfig.config.nixpkgs.hostPlatform.system or null) == system)
+      (hostConfig:
+        (hostConfig.config.nixpkgs.hostPlatform.system or null)
+        == (
+          if system != null
+          then system
+          else (getSystems {inherit hosts;}).system
+        ))
       null
-      (attrValues nixosConfigurations);
+      (attrValues (
+        if nixosConfigurations != {}
+        then nixosConfigurations
+        else
+          (
+            flake.nixosConfigurations or
+        (flakeAttrs {inherit self path;}).nixosConfigurations or
+        {}
+          )
+      ));
   in
     traceIf
     ((derived.class or null) != "nixos")

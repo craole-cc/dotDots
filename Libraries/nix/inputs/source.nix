@@ -1,159 +1,97 @@
 {
   _,
-  lib,
   src,
   ...
 }: let
-  inherit (_.attrsets.resolution) byPaths;
-  inherit (_.content.fallback) orDefault;
-  inherit (_.content.empty) isNotEmpty;
-  inherit (_.filesystem.predicates) pathExists;
-  inherit (_.types.predicates) isAttrs;
-  inherit (lib.strings) hasSuffix;
+  __doc = ''
+    Input Source Resolution
 
-  exports = {
-    internal = {
-      inherit
-        tryFlake
-        mkFlake
-        mkInputs
-        mkNixPkgs
-        ;
-    };
-    external = exports.internal;
+    Parses the raw flake to extract, normalize, and categorize its inputs.
+    It maps arbitrarily named external flake inputs to a canonical internal
+    format to ensure downstream derivations are predictable.
+  '';
+
+  __exports = {
+    internal = {inherit resolveInputs sourceInput;};
+    external = {inherit resolveInputs sourceInput;};
   };
 
-  tryFlake = path: let
-    file = "/flake.nix";
-    p = toString (
-      if isNotEmpty path
-      then path
-      else src
-    );
-    resolvedPath =
-      if hasSuffix file p && pathExists p
-      then p
-      else if pathExists (p + file)
-      then p + file
-      else null;
-  in
-    if resolvedPath != null
-    then import resolvedPath
-    else null;
+  inherit (_.attrsets.resolution) byPaths;
+  inherit (_.filesystem.resolution) getFlake;
 
-  mkFlake = {
-    flake ? null,
-    path ? src,
-  }:
-    if isNull flake
-    then
-      orDefault {
-        content = tryFlake path;
-        default = throw "❌ '${toString path}' is not a valid flake path.";
-      }
-    else flake;
+  /**
+  Resolves, normalizes, and categorizes flake inputs.
 
-  mkInputs = {
+  Loads the current flake and maps inconsistently named inputs
+  (e.g., `nixosPackages`, `darwinNix`) to canonical internal names
+  (`nixpkgs`, `nix-darwin`). Categorizes them into `core`
+  (providing legacyPackages) and `home` (providing standard packages).
+
+  # Args:
+    self: An already evaluated flake.
+    path: The filesystem path to the flake (defaults to `src`).
+
+  # Returns:
+    resolved: A merged set of all normalized inputs (`core // home`).
+    raw: The unmodified `inputs` block from the original flake.
+    core: Nixpkgs channels with built-in fallback chains.
+    home: System builders, themes, editors, and other standard inputs.
+    flake: The raw evaluated flake.
+  */
+  resolveInputs = {
     self ? {},
     path ? src,
   }: let
-    /**
-    The resolved flake attrset for the current project, obtained via
-    `_.attrsets.resolution.flake {}`. Used as the root from which all inputs
-    are derived.
-    */
-    flake = tryFlake {inherit self path;};
+    #> Fetch the Flake
+    flake = getFlake {inherit self path;};
 
-    /**
-    The raw `inputs` attrset from the resolved flake, exactly as declared in
-    `flake.nix`. All resolution in `coreInputs` and `homeInputs` is performed
-    against this attrset.
-    */
-    raw = self.inputs or {};
+    #> Ensure we grab the inputs from the evaluated flake if `self` was empty
+    raw = flake.inputs or {};
     attrset = raw;
 
-    /**
-    Resolved nixpkgs inputs — the three channels that expose `legacyPackages`
-    (per-system attrsets of every package in nixpkgs).
-
-    These are accessed differently from all other inputs and drive the overlay
-    system in `inputs/packages.nix`. Only `nixpkgs`, `nixpkgs-stable`, and
-    `nixpkgs-unstable` belong here.
-
-    The three variants form a deliberate fallback chain so that consumers always
-    receive a usable package set even when not all channels are pinned:
-
-      nixpkgs-unstable → nixpkgs-stable → nixpkgs → {}
-
-    Cross-channel fallback is handled via `default`; each entry's `paths` covers
-    only alternative *names* for that specific channel.
-    */
-    core = rec {
-      /**
-      Base nixpkgs input. Tries common alternative input names before falling
-      back to an empty attrset. All other nixpkgs variants degrade to this.
-      */
-      nixpkgs = byPaths {
-        inherit attrset;
-        default = attrset.nixpkgs or {};
-        paths = [
-          ["nixosCore"]
-          ["nixPackages"]
-          ["nixosPackages"]
-          ["nixpkgs"]
-        ];
-      };
-
-      /**
-      Stable nixpkgs channel. Falls back to resolved `nixpkgs` when absent.
-
-      Covers common alternative names including versioned release pins
-      (`nixpkgs-24.11`, `nixpkgs-25.05`, etc.). Arbitrary version names not
-      listed here degrade to `nixpkgs` via `default`.
-      */
-      nixpkgs-stable = byPaths {
-        inherit attrset;
-        default = nixpkgs;
-        paths = [
-          ["nixPackagesStable"]
-          ["nixosPackagesStable"]
-          ["nixpkgs-stable"]
-          # Versioned release pins — NixOS YY.MM format
-          ["nixpkgs-24.05"]
-          ["nixpkgs-24.11"]
-          ["nixpkgs-25.05"]
-          ["nixpkgs-25.11"]
-        ];
-      };
-
-      /**
-      Unstable nixpkgs channel. Falls back to resolved `nixpkgs-stable` (which
-      itself falls back to `nixpkgs`) giving the full chain:
-      unstable → stable → nixpkgs → {}.
-      */
-      nixpkgs-unstable = byPaths {
-        inherit attrset;
-        default = nixpkgs-stable;
-        paths = [
-          ["nixPackagesUnstable"]
-          ["nixosPackagesUnstable"]
-          ["nixpkgs-beta"]
-          ["betaNix"]
-          ["nixpkgs-unstable"]
-        ];
-      };
+    #> Resolve Core Nixpkgs Channels (Sequential for safety)
+    nixpkgs = byPaths {
+      inherit attrset;
+      default = attrset.nixpkgs or {};
+      paths = [
+        ["nixosCore"]
+        ["nixPackages"]
+        ["nixosPackages"]
+        ["nixpkgs"]
+      ];
     };
 
-    /**
-    Resolved home and system inputs — everything that exposes `packages`
-    (accessed via `inputs.<n>.packages.<system>`).
+    nixpkgs-stable = byPaths {
+      inherit attrset;
+      default = nixpkgs; #? Fallback chain
+      paths = [
+        ["nixPackagesStable"]
+        ["nixosPackagesStable"]
+        ["nixpkgs-stable"]
+        ["nixpkgs-24.05"]
+        ["nixpkgs-24.11"]
+        ["nixpkgs-25.05"]
+        ["nixpkgs-25.11"]
+      ];
+    };
 
-    Includes system builders (`nix-darwin`, `home-manager`), theming
-    (`catppuccin`, `stylix`, `chaotic`), editors (`nvf`, `helix`,
-    `fresh-editor`, `vscode-insiders`), shells (`caelestia`,
-    `dank-material-shell`, `noctalia-shell`, `quickshell`, `plasma`),
-    browsers (`zen-browser`), and dev tools (`treefmt`, `typix`).
-    */
+    nixpkgs-unstable = byPaths {
+      inherit attrset;
+      default = nixpkgs-stable; #? Fallback chain
+      paths = [
+        ["nixPackagesUnstable"]
+        ["nixosPackagesUnstable"]
+        ["nixpkgs-beta"]
+        ["betaNix"]
+        ["nixpkgs-unstable"]
+      ];
+    };
+
+    core = {
+      inherit nixpkgs nixpkgs-stable nixpkgs-unstable;
+    };
+
+    #> Resolve Home and System Inputs
     home = {
       nix-darwin = byPaths {
         inherit attrset;
@@ -358,45 +296,43 @@
       };
     };
 
-    /**
-    Combined view of all resolved inputs (`coreInputs // homeInputs`).
-
-    Use this when you need access to any input by canonical name and don't
-    need to distinguish between `legacyPackages`-style and `packages`-style
-    inputs.
-    */
     resolved = core // home;
   in {inherit resolved raw core home flake;};
 
   /**
-  Build the `nixpkgs` source attribute appropriate for the host class.
+  Builds the registry source configuration attribute for a given input.
 
-  Darwin uses `source`; NixOS uses `flake.source`. Resolves `root` from
-  `inputs.nixpkgs` when not explicitly provided.
+  Darwin modules expect `source`; NixOS expects `flake.source`. Returns
+  an empty set if no source is provided to prevent evaluation errors.
 
   # Type
-  ```
-  source :: { host? :: AttrSet, root? :: any, inputs? :: AttrSet } -> AttrSet
+  ```nix
+  sourceInput :: { host? :: AttrSet, input? :: any } -> AttrSet
   ```
 
   # Examples
   ```nix
-  mkNixPkgs { host.class = "darwin"; inputs.nixpkgs = nixpkgs; }
-  # => { source = nixpkgs; }
+  sourceInput { host = { class = "darwin"; }; input = inputs.nixpkgs; }
+  # => { source = <nixpkgs-store-path>; }
 
-  mkNixPkgs { inputs.nixpkgs = nixpkgs; }
-  # => { flake.source = nixpkgs; }
+  sourceInput { input = inputs.home-manager; }
+  # => { flake = { source = <home-manager-store-path>; }; }
   ```
   */
-  mkNixPkgs = {
-    class ? "nixos",
-    inputs ? {},
-    ...
+  sourceInput = {
+    host ? {},
+    input ? null,
   }: let
-    root = inputs.nixpkgs or null;
+    class = host.class or "nixos";
   in
-    if class == "darwin"
-    then {source = root;}
-    else {flake.source = root;};
+    if input == null
+    then {}
+    else if class == "darwin"
+    then {source = input;}
+    else {flake = {source = input;};};
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal
+  // {
+    inherit __doc;
+    _rootAliases = __exports.external;
+  }

@@ -1,14 +1,14 @@
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> {inherit system;},
   self ? {},
-  src ? ./.,
-  system ? builtins.currentSystem,
+  path ? ./.,
+  system ? null,
   ...
 }: let
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| External Imports                                                            |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|───────────────────────────────────────────────────────────────|
+  #| Library Imports                                               |
+  #|───────────────────────────────────────────────────────────────|
+  lix = import ./Libraries/nix {inherit path;};
+  lib = lix.lib;
   inherit
     (lib.attrsets)
     attrByPath
@@ -20,51 +20,62 @@
     ;
   inherit (lib.lists) length filter head;
   inherit (lib.strings) splitString;
+  inherit (lix.filesystems.resolution) getFlake;
+  inherit (lix.filesystems.tree) mkTree;
+  inherit (lix.inputs.source) resolveInputs;
+  inherit (lix.schema._) mkSchema;
+  inherit (lix.schema.resolution) getHost;
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Internal Imports                                                            |
-  #|─────────────────────────────────────────────────────────────────────────────|
-  inherit (import ./Libraries/nix {inherit lib src;}) lix;
-  flake = lix.mkFlake {};
-  tree = lix.mkProjectTree {inherit flake;};
-  schema = lix.mkSchema {inherit tree;};
-  inputs = lix.mkInputs {inherit self;};
+  #|───────────────────────────────────────────────────────────────|
+  #| Core Data Layer                                               |
+  #|───────────────────────────────────────────────────────────────|
+  flake = getFlake {inherit self path;};
+  inputs = resolveInputs {
+    inherit path;
+    self = flake;
+  };
 
+  tree = mkTree {inherit flake;};
+  schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
   inherit (lix.modules.core.predicates) isSystemDefaultUser;
 
+  #|───────────────────────────────────────────────────────────────|
+  #| Target Host Resolution                                        |
+  #|───────────────────────────────────────────────────────────────|
   nixosConfigurations = flake.nixosConfigurations or {};
-  # host = hostAttrs {inherit nixosConfigurations system;};
-  host = {};
+  host = getHost {
+    inherit flake hosts;
+  };
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| REPL Helpers                                                                |
-  #|─────────────────────────────────────────────────────────────────────────────|
+  #|───────────────────────────────────────────────────────────────|
+  #| 6. REPL Helpers                                                             |
+  #|───────────────────────────────────────────────────────────────|
   helpers = {
     #~@ Script generators (copy-paste ready)
     scripts = {
-      rebuild = host: "sudo nixos-rebuild switch --flake .#${host}";
-      test = host: "sudo nixos-rebuild test --flake .#${host}";
-      boot = host: "sudo nixos-rebuild boot --flake .#${host}";
-      dry = host: "sudo nixos-rebuild dry-build --flake .#${host}";
+      rebuild = h: "sudo nixos-rebuild switch --flake .#${h}";
+      test = h: "sudo nixos-rebuild test --flake .#${h}";
+      boot = h: "sudo nixos-rebuild boot --flake .#${h}";
+      dry = h: "sudo nixos-rebuild dry-build --flake .#${h}";
       update = "nix flake update";
       clean = "sudo nix-collect-garbage -d";
     };
 
     #~@ Host discovery
     listHosts = attrNames nixosConfigurations;
-    getHost = name: nixosConfigurations.${name} or null;
+    getHostConfig = name: nixosConfigurations.${name} or null;
 
     #~@ Host information
     hostInfo = name: let
-      host = nixosConfigurations.${name};
-      cfg = host.config;
-      allUsers = attrNames cfg.users.users;
+      targetHost = nixosConfigurations.${name} or {};
+      cfg = targetHost.config or {};
+      allUsers = attrNames (cfg.users.users or {});
 
       version = {
-        kernel = cfg.boot.kernelPackages.kernel.version;
-        state = cfg.system.stateVersion;
-        nixos = cfg.system.nixos.version;
+        kernel = attrByPath ["boot" "kernelPackages" "kernel" "version"] "unknown" cfg;
+        state = cfg.system.stateVersion or "unknown";
+        nixos = cfg.system.nixos.version or "unknown";
       };
 
       userList = {
@@ -75,9 +86,9 @@
       usersData = listToAttrs (map (user: {
           name = user;
           value = {
-            core = cfg.users.users.${user};
-            home = let hm = cfg.home-manager.users.${user}; in hm // hm.home;
-            api = users.${user};
+            core = cfg.users.users.${user} or {};
+            home = let hm = cfg.home-manager.users.${user} or {}; in hm // (hm.home or {});
+            api = users.${user} or {};
           };
         })
         userList.custom);
@@ -90,7 +101,7 @@
         homeAttr,
         apiAttr,
       }: {
-        core = attrByPath (splitString "." path) {} (host.config or{});
+        core = attrByPath (splitString "." path) {} cfg;
         home =
           if length (attrNames usersData) == 1
           then
@@ -121,18 +132,40 @@
             usersData;
       };
 
-      programs = mkConfigSection "programs" "programs" "programs";
-      services = mkConfigSection "services" "services" "services";
-      variables = mkConfigSection "environment.sessionVariables" "sessionVariables" "variables";
-      aliases = mkConfigSection "environment.shellAliases" "shellAliases" "aliases";
-      packages = mkConfigSection "environment.systemPackages" "packages" "packages";
+      programs = mkConfigSection {
+        path = "programs";
+        homeAttr = "programs";
+        apiAttr = "programs";
+      };
+      services = mkConfigSection {
+        path = "services";
+        homeAttr = "services";
+        apiAttr = "services";
+      };
+      variables = mkConfigSection {
+        path = "environment.sessionVariables";
+        homeAttr = "sessionVariables";
+        apiAttr = "variables";
+      };
+      aliases = mkConfigSection {
+        path = "environment.shellAliases";
+        homeAttr = "shellAliases";
+        apiAttr = "aliases";
+      };
+      packages = mkConfigSection {
+        path = "environment.systemPackages";
+        homeAttr = "packages";
+        apiAttr = "packages";
+      };
 
-      desktopEnvironment = with cfg.services.desktopManager;
-        if plasma6.enable or false
+      desktopEnvironment = let
+        dm = cfg.services.desktopManager or {};
+      in
+        if dm.plasma6.enable or false
         then "plasma"
-        else if gnome.enable or false
+        else if dm.gnome.enable or false
         then "gnome"
-        else if cosmic.enable or false
+        else if dm.cosmic.enable or false
         then "cosmic"
         else null;
     in {
@@ -148,63 +181,63 @@
         packages
         ;
       users = usersData;
-      inherit (cfg.networking) hostName;
-      inherit (cfg.nixpkgs.hostPlatform) system;
+      hostName = cfg.networking.hostName or "unknown";
+      system = cfg.nixpkgs.hostPlatform.system or "unknown";
     };
 
     #~@ Host comparison
     compareHosts = host1: host2: let
-      h1 = nixosConfigurations.${host1};
-      h2 = nixosConfigurations.${host2};
+      h1 = nixosConfigurations.${host1} or {};
+      h2 = nixosConfigurations.${host2} or {};
+      c1 = h1.config or {};
+      c2 = h2.config or {};
     in {
       systems = {
-        "${host1}" = h1.config.nixpkgs.hostPlatform.system;
-        "${host2}" = h2.config.nixpkgs.hostPlatform.system;
+        "${host1}" = c1.nixpkgs.hostPlatform.system or "unknown";
+        "${host2}" = c2.nixpkgs.hostPlatform.system or "unknown";
       };
       kernels = {
-        "${host1}" = h1.config.boot.kernelPackages.kernel.version;
-        "${host2}" = h2.config.boot.kernelPackages.kernel.version;
+        "${host1}" = attrByPath ["boot" "kernelPackages" "kernel" "version"] "unknown" c1;
+        "${host2}" = attrByPath ["boot" "kernelPackages" "kernel" "version"] "unknown" c2;
       };
       stateVersions = {
-        "${host1}" = h1.config.system.stateVersion;
-        "${host2}" = h2.config.system.stateVersion;
+        "${host1}" = c1.system.stateVersion or "unknown";
+        "${host2}" = c2.system.stateVersion or "unknown";
       };
     };
 
     #~@ Service queries
     hostsWithService = service:
       attrNames (filterAttrs
-        (_name: host: attrByPath (splitString "." service) false host.config)
+        (_name: h: attrByPath (splitString "." service) false (h.config or {}))
         nixosConfigurations);
 
     enabledServices = hostName: let
-      host = nixosConfigurations.${hostName};
-      services = host.config.systemd.services;
+      targetHost = nixosConfigurations.${hostName} or {};
+      serviceSet = attrByPath ["config" "systemd" "services"] {} targetHost;
     in
-      attrNames (filterAttrs (_n: v: v.enable or false) services);
+      attrNames (filterAttrs (_n: v: v.enable or false) serviceSet);
   };
 in {
   inherit
-    flake
     helpers
     hosts
     inputs
     lib
     lix
-    pkgs
     schema
     system
     tree
+    flake
     ;
-  paths = tree;
 
   #~@ Top-level host attributes
   inherit (host) config options;
-  inherit (host._module) specialArgs;
+  specialArgs = host._module.specialArgs or {};
 
-  #~@ Convenient shortcuts to config sections
+  #~@ Convenient shortcuts to config sections (falls back safely if host is empty)
   inherit
-    (helpers.hostInfo host.name)
+    (helpers.hostInfo (host.name or ""))
     users
     aliases
     packages

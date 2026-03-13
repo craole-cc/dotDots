@@ -3,11 +3,19 @@
   lib,
   ...
 }: let
-  inherit (_.inputs.source) mkInputs;
+  __doc = ''
+    Input Modules Resolution
+
+    Extracts and structures NixOS, Darwin, and Home Manager modules provided
+    by flake inputs. It categorizes them so they can be easily injected into
+    the system evaluation pipeline.
+  '';
+
+  inherit (_.inputs.source) resolveInputs;
   inherit (_.content.empty) isEmpty;
   inherit (lib.lists) optionals;
 
-  exports = {
+  __exports = {
     internal = {
       inherit mkAll mkOne mkCore mkHome;
       mkModules = mkAll;
@@ -53,8 +61,7 @@
   mkCore = {
     inputs,
     class ? "nixos",
-  }: let
-  in
+  }:
     (
       if class == "darwin"
       then [
@@ -119,7 +126,7 @@
     inputs' =
       if inputs?nixpkgs
       then inputs
-      else mkInputs {};
+      else (resolveInputs {}).resolved;
 
     path = "${inputs'.nixpkgs}/nixos/modules";
     base = import "${path}/module-list.nix";
@@ -137,4 +144,8 @@
   in
     {inherit all base core home path;} // all;
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal
+  // {
+    inherit __doc;
+    _rootAliases = __exports.external;
+  }

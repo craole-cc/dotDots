@@ -1,9 +1,8 @@
 #TODO: Allow disabling root aliases
 {
-  lib ? import <nixpkgs/lib>,
-  # pkgs ? import <nixpkgs> {},
-  name ? "lix",
+  lib ? null,
   src ? ../.,
+  name ? "lix",
   paths ? {},
   collisionStrategy ? "warn",
   # enableCaching ? true,
@@ -33,9 +32,29 @@
     ".old.nix"
   ],
 }: let
-  inherit (builtins) readDir pathExists;
+  inherit (builtins) getFlake readDir pathExists;
+
+  #? Self-bootstrapping logic (only runs if lib isn't passed)
+  #> Determine if a flake.nix actually exists in the current source path
+  hasFlake = pathExists (toString src + "/flake.nix");
+
+  #> Attempt to evaluate the flake if it exists
+  rawFlake =
+    if hasFlake
+    then getFlake (toString src)
+    else {};
+
+  #> Resolve `lib`. If the flake has nixpkgs, use its tightly pinned `lib` (pure).
+  #> If there is no flake, gracefully fall back to the system channel (impure).
+  lib' =
+    if lib != null
+    then lib
+    else if rawFlake ? inputs && rawFlake.inputs ? nixpkgs
+    then rawFlake.inputs.nixpkgs.lib
+    else import <nixpkgs/lib>;
+
   inherit
-    (lib.attrsets)
+    (lib'.attrsets)
     attrNames
     foldlAttrs
     isAttrs
@@ -43,18 +62,18 @@
     removeAttrs
     filterAttrs
     ;
-  inherit (lib.debug) trace;
-  inherit (lib.fixedPoints) makeExtensible;
-  inherit (lib.lists) elem filter foldl' findFirst;
+  inherit (lib'.debug) trace;
+  inherit (lib'.fixedPoints) makeExtensible;
+  inherit (lib'.lists) elem filter foldl' findFirst;
   inherit
-    (lib.strings)
+    (lib'.strings)
     concatStringsSep
     hasPrefix
     hasSuffix
     removeSuffix
     removePrefix
     ;
-  inherit (lib.trivial) isFunction;
+  inherit (lib'.trivial) isFunction;
 
   # Helper function to get relative path
   getRelativePath = base: target:
@@ -95,7 +114,6 @@
       # safe = safeLib; #? merged library
       inherit
         lib
-        # pkgs
         src
         name
         paths
@@ -322,12 +340,5 @@
 
   finalLib =
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
-    // {
-      inherit extend lib;
-      std = lib;
-      inherit
-        # pkgs
-        src
-        ;
-    };
+    // {inherit extend lib src;};
 in {${name} = finalLib;}

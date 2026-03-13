@@ -3,10 +3,20 @@
   lib,
   ...
 }: let
-  inherit (_.inputs.source) mkInputs mkNixPkgs;
+  __doc = ''
+    Input Packages Resolution
+
+    Builds the complete package sets and Nixpkgs instances from resolved inputs.
+    It threads configurations and generated overlays into a finalized `nixpkgs`
+    attribute set ready for system evaluation.
+  '';
+
+  # Updated to the new function names
+  inherit (_.inputs.source) resolveInputs sourceInput;
   inherit (_.inputs.overlays) mkOverlays;
   inherit (lib.attrsets) listToAttrs;
-  exports = {
+
+  __exports = {
     internal = {
       inherit
         mkCore
@@ -34,7 +44,7 @@
   }:
     mkOne {
       attrs = "legacyPackages";
-      inputs = mkInputs {} // inputs;
+      inputs = (resolveInputs {}).resolved // inputs;
       names =
         [
           "nixpkgs"
@@ -50,7 +60,7 @@
   }:
     mkOne {
       attrs = "packages";
-      inputs = mkInputs {} // inputs;
+      inputs = (resolveInputs {}).resolved // inputs;
       names =
         [
           "caelestia"
@@ -89,14 +99,15 @@
     coreNames ? [],
     homeNames ? [],
   }: let
+    pkgs = host.packages or{};
     config' =
       {
-        allowUnfree = host.packages.allowUnfree or true;
-        allowBroken = host.packages.allowBroken or false;
+        allowUnfree = pkgs.allowUnfree or true;
+        allowBroken = pkgs.allowBroken or false;
       }
       // config;
 
-    inputs' = mkInputs {} // inputs;
+    inputs' = (resolveInputs {}).resolved // inputs;
 
     packages =
       mkCore {
@@ -120,9 +131,9 @@
         config = config';
         hostPlatform = host.system;
       }
-      // mkNixPkgs {
-        class = host.class or "nixos";
-        inputs = inputs';
+      // sourceInput {
+        inherit host;
+        input = inputs'.nixpkgs or null;
       };
   in {
     inherit nixpkgs packages overlays;
@@ -130,4 +141,8 @@
     config = config';
   };
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal
+  // {
+    inherit __doc;
+    _rootAliases = __exports.external;
+  }
