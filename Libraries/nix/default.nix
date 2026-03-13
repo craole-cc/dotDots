@@ -1,7 +1,7 @@
 #TODO: Allow disabling root aliases
 {
   lib ? null,
-  src ? ../.,
+  path ? ../.,
   name ? "lix",
   paths ? {},
   collisionStrategy ? "warn",
@@ -36,12 +36,12 @@
 
   #? Self-bootstrapping logic (only runs if lib isn't passed)
   #> Determine if a flake.nix actually exists in the current source path
-  hasFlake = pathExists (toString src + "/flake.nix");
+  hasFlake = pathExists (toString path + "/flake.nix");
 
   #> Attempt to evaluate the flake if it exists
   rawFlake =
     if hasFlake
-    then getFlake (toString src)
+    then getFlake (toString path)
     else {};
 
   #> Resolve `lib`. If the flake has nixpkgs, use its tightly pinned `lib` (pure).
@@ -114,10 +114,11 @@
       # safe = safeLib; #? merged library
       inherit
         lib
-        src
+        path
         name
         paths
         ;
+        src=path;
       library = name;
 
       #> Short aliases
@@ -237,8 +238,8 @@
             (dir + "/docs/README.md")
 
             #~@ Documentation tree mirror (relative to source dir)
-            (src + "/Documentation/${getRelativePath src dir}/${moduleName}.md")
-            (src + "/Documentation/${getRelativePath src dir}/README.md")
+            (path + "/Documentation/${getRelativePath path dir}/${moduleName}.md")
+            (path + "/Documentation/${getRelativePath path dir}/README.md")
           ];
 
           docFile =
@@ -340,5 +341,5 @@
 
   finalLib =
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
-    // {inherit extend lib src;};
+    // {inherit extend lib path;src=path;};
 in {${name} = finalLib;}

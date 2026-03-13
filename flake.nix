@@ -2,20 +2,20 @@
   description = "dotDots Flake Configuration";
 
   outputs = inputs @ {self, ...}: let
-    src = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import src {inherit lib src self;}) lix hosts tree;
-    inherit (lix.hardware.system) perFlake;
+    src = import ./. {inherit self lib;};
+    inherit (src) lix hosts tree;
+    inherit (lix.modules._) mkFlakeOutputs mkSystems;
   in
-    perFlake {inherit hosts legacyPackages;} (
+    mkFlakeOutputs {inherit hosts legacyPackages;} (
       {
         system,
         pkgs,
       }: {
         inherit
           (import tree.pkg.global.store {
-            inherit src lib lix tree pkgs system;
-            inputs = lix.mkInputs {inherit self;};
+            inherit lib lix tree pkgs system;
+            inherit (src) inputs;
           })
           devShells
           formatter
@@ -24,7 +24,7 @@
       }
     )
     // (
-      {nixosConfigurations = lix.mkSystems {inherit self;};}
+      {nixosConfigurations = mkSystems {inherit self;};}
       // import tree.kit.default.store
     );
 

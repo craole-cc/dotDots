@@ -2,13 +2,23 @@
   self ? {},
   path ? ./.,
   system ? null,
+  lib ? null,
   ...
 }: let
   #|───────────────────────────────────────────────────────────────|
+  #| Library Bootstrap                                             |
+  #|───────────────────────────────────────────────────────────────|
+  lix = import ./Libraries/nix {inherit lib path;};
+  resolvedLib =
+    if lib != null
+    then lib
+    else lix.lib;
+in let
+  lib = resolvedLib;
+  #|───────────────────────────────────────────────────────────────|
   #| Library Imports                                               |
   #|───────────────────────────────────────────────────────────────|
-  lix = import ./Libraries/nix {inherit path;};
-  lib = lix.lib;
+
   inherit
     (lib.attrsets)
     attrByPath
@@ -49,7 +59,7 @@
   };
 
   #|───────────────────────────────────────────────────────────────|
-  #| 6. REPL Helpers                                                             |
+  #| REPL Helpers                                                  |
   #|───────────────────────────────────────────────────────────────|
   helpers = {
     #~@ Script generators (copy-paste ready)
