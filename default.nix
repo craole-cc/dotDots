@@ -8,8 +8,8 @@
   #|───────────────────────────────────────────────────────────────|
   #| Library Imports                                               |
   #|───────────────────────────────────────────────────────────────|
-  lix = import ./Libraries/nix {inherit lib path;};
-
+  libInit = import ./Libraries/nix {inherit lib path;};
+  inherit (libInit) lix;
   inherit (lix.filesystem.resolution) getFlake;
   inherit (lix.filesystem.tree) mkTree;
   inherit (lix.inputs.source) resolveInputs;
@@ -33,8 +33,7 @@
   #| Target Host Resolution                                        |
   #|───────────────────────────────────────────────────────────────|
   # nixosConfigurations = flake.nixosConfigurations or {};
-  host = getHost {  inherit flake hosts;  };
-
+  host = getHost {inherit flake hosts;};
   #|───────────────────────────────────────────────────────────────|
   #| REPL Helpers                                                  |
   #|───────────────────────────────────────────────────────────────|
@@ -48,28 +47,23 @@
   #     update = "nix flake update";
   #     clean = "sudo nix-collect-garbage -d";
   #   };
-
   #   #~@ Host discovery
   #   listHosts = attrNames nixosConfigurations;
   #   getHostConfig = name: nixosConfigurations.${name} or null;
-
   #   #~@ Host information
   #   hostInfo = name: let
   #     targetHost = nixosConfigurations.${name} or {};
   #     cfg = targetHost.config or {};
   #     allUsers = attrNames (cfg.users.users or {});
-
   #     version = {
   #       kernel = attrByPath ["boot" "kernelPackages" "kernel" "version"] "unknown" cfg;
   #       state = cfg.system.stateVersion or "unknown";
   #       nixos = cfg.system.nixos.version or "unknown";
   #     };
-
   #     userList = {
   #       custom = filter (u: !isSystemDefaultUser u) allUsers;
   #       system = filter isSystemDefaultUser allUsers;
   #     };
-
   #     usersData = listToAttrs (map (user: {
   #         name = user;
   #         value = {
@@ -79,10 +73,8 @@
   #         };
   #       })
   #       userList.custom);
-
   #     getHomeAttr = attr: user: user.home.${attr} or {};
   #     getApiAttr = attr: user: user.api.${attr} or {};
-
   #     mkConfigSection = {
   #       path,
   #       homeAttr,
@@ -118,7 +110,6 @@
   #             })
   #           usersData;
   #     };
-
   #     programs = mkConfigSection {
   #       path = "programs";
   #       homeAttr = "programs";
@@ -144,7 +135,6 @@
   #       homeAttr = "packages";
   #       apiAttr = "packages";
   #     };
-
   #     desktopEnvironment = let
   #       dm = cfg.services.desktopManager or {};
   #     in
@@ -171,7 +161,6 @@
   #     hostName = cfg.networking.hostName or "unknown";
   #     system = cfg.nixpkgs.hostPlatform.system or "unknown";
   #   };
-
   #   #~@ Host comparison
   #   compareHosts = host1: host2: let
   #     h1 = nixosConfigurations.${host1} or {};
@@ -192,13 +181,11 @@
   #       "${host2}" = c2.system.stateVersion or "unknown";
   #     };
   #   };
-
   #   #~@ Service queries
   #   hostsWithService = service:
   #     attrNames (filterAttrs
   #       (_name: h: attrByPath (splitString "." service) false (h.config or {}))
   #       nixosConfigurations);
-
   #   enabledServices = hostName: let
   #     targetHost = nixosConfigurations.${hostName} or {};
   #     serviceSet = attrByPath ["config" "systemd" "services"] {} targetHost;
