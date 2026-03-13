@@ -24,7 +24,7 @@
   };
 
   getFlake' = {
-    self ? {},
+    self ? null,
     path ? ./.,
   }: let
     # Pure flake resolution primitive - NO lib dependency
@@ -34,7 +34,7 @@
       then getFlake (toString path)
       else {};
   in
-    if self != {}
+    if self != null
     then self
     else derived;
 

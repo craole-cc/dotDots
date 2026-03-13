@@ -1,5 +1,5 @@
 {
-  self ? {},
+  self ? null,
   path ? ./.,
   system ? null,
   lib ? null,
@@ -19,16 +19,19 @@
   #|───────────────────────────────────────────────────────────────|
   #| Core Data Layer                                               |
   #|───────────────────────────────────────────────────────────────|
-  flake = getFlake {inherit self path;};
+  # flake = getFlake {inherit self path;};
+  flake =
+    if self ? outPath
+    then self
+    else getFlake {inherit path;};
   inputs = resolveInputs {
-    inherit path;
-    self = flake;
+    inherit self path;
+    # self = flake;
   };
 
   tree = mkTree {inherit flake;};
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
-
   #|───────────────────────────────────────────────────────────────|
   #| Target Host Resolution                                        |
   #|───────────────────────────────────────────────────────────────|
