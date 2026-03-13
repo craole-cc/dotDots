@@ -1,4 +1,3 @@
-#TODO: Allow disabling root aliases
 {
   lib ? null,
   path ? ../.,
@@ -83,7 +82,7 @@
   customLib = makeExtensible (self: let
     #~@ Handle collisions based on strategy
     handleCollisions = customAttrs: let
-      nixpkgsAttrs = attrNames lib;
+      nixpkgsAttrs = attrNames lib';
       customAttrNames = attrNames customAttrs;
 
       collisions = filter (name: elem name nixpkgsAttrs) customAttrNames;
@@ -92,16 +91,16 @@
       baseMessage = "Custom library has collisions with nixpkgs lib: ${toString collisions}";
     in
       if !hasCollisions
-      then lib // customAttrs
+      then lib' // customAttrs
       else if collisionStrategy == "error"
       then throw baseMessage
       else if collisionStrategy == "warn"
-      then trace "WARNING: ${baseMessage}" (lib // customAttrs)
+      then trace "WARNING: ${baseMessage}" (lib' // customAttrs)
       else if collisionStrategy == "prefer-custom"
-      then lib // customAttrs
+      then lib' // customAttrs
       else if collisionStrategy == "prefer-nixpkgs"
-      then customAttrs // lib
-      else lib // customAttrs; # Default to warn behavior
+      then customAttrs // lib'
+      else lib' // customAttrs; # Default to warn behavior
 
     #~@ Create a safe merged library
     safeLib = handleCollisions self;
@@ -109,26 +108,25 @@
     #| The complete environment for all modules
     env = {
       #> Individual libraries
-      # lib = lib; #? nixpkgs library
+      lib = lib'; #? nixpkgs library
       _ = self; #? custom library
       # safe = safeLib; #? merged library
       inherit
-        lib
         path
         name
         paths
         ;
-        src=path;
+      src = path;
       library = name;
 
       #> Short aliases
-      l = lib;
+      l = lib';
       x = self;
       s = safeLib;
 
       #> Structured access
       libs = {
-        nixpkgs = lib;
+        nixpkgs = lib';
         custom = self;
         safe = safeLib;
       };
@@ -341,5 +339,9 @@
 
   finalLib =
     removeAttrs customLib ["__unfix__" "unfix" "extend"]
-    // {inherit extend lib path;src=path;};
+    // {
+      inherit extend path;
+      src = path;
+      lib = lib';
+    };
 in {${name} = finalLib;}
