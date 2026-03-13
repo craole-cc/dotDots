@@ -4,7 +4,6 @@
   ...
 }: let
   inherit (_.filesystem.importers) importAttrs;
-  inherit (_.filesystem.tree) mkTree;
   inherit (_.schema.core) mkCore;
   inherit (lib.attrsets) mapAttrs;
 
@@ -12,7 +11,6 @@
     internal = {inherit mkSchema;};
     external = exports.internal;
   };
-  inherit (mkTree {}) api;
 
   /**
   Get host and user attributes from specified directories.
@@ -26,14 +24,16 @@
   - hosts: Enriched host configurations
   - users: Raw user configurations
   */
-  mkSchema = {
-    self ? {},
-    tree ? mkTree {inherit self;},
-    hostsPath ? tree.api.hosts.store,
-    usersPath ? tree.api.users.store,
-  }: let
-    users = importAttrs usersPath;
-    hosts = mapAttrs (name: host: mkCore {inherit name host users;}) (importAttrs hostsPath);
+  mkSchema = tree: let
+    api = tree.api or {};
+    paths = {
+      users = api.users.store or {};
+      hosts = api.hosts.store or {};
+    };
+    users = importAttrs paths.users;
+    hosts = mapAttrs (
+      name: host: mkCore {inherit name host users;}
+    ) (importAttrs paths.hosts);
   in {inherit users hosts;};
 in
   exports.internal // {_rootAliases = exports.external;}

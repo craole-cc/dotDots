@@ -29,10 +29,7 @@
     );
 
   inputs = {
-    nixPackages = {
-      url = "nixpkgs/nixos-unstable";
-      # rev = "0182a361324364ae3f436a63005877674cf45efb";
-    };
+    nixPackages.url = "nixpkgs/nixos-unstable";
     nixPackagesUnstable.url = "nixpkgs/nixos-unstable";
     nixPackagesStable.url = "nixpkgs/nixos-25.11";
 

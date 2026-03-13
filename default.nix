@@ -1,7 +1,7 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> {inherit system;},
-  self ? null,
+  self ? {},
   src ? ./.,
   system ? builtins.currentSystem,
   ...
@@ -25,17 +25,14 @@
   #| Internal Imports                                                            |
   #|─────────────────────────────────────────────────────────────────────────────|
   inherit (import ./Libraries/nix {inherit lib src;}) lix;
-  tree = lix.mkProjectTree {};
-  schema = lix.mkSchema {};
   flake = lix.mkFlake {};
-  inputs = (lix.mkInputs {}).resolved;
+  tree = lix.mkProjectTree {inherit flake;};
+  schema = lix.mkSchema {inherit tree;};
+  inputs = lix.mkInputs {inherit self;};
 
   inherit (schema) hosts users;
   inherit (lix.modules.core.predicates) isSystemDefaultUser;
 
-  #|─────────────────────────────────────────────────────────────────────────────|
-  #| Flake & Current Host                                                        |
-  #|─────────────────────────────────────────────────────────────────────────────|
   nixosConfigurations = flake.nixosConfigurations or {};
   # host = hostAttrs {inherit nixosConfigurations system;};
   host = {};
@@ -88,16 +85,40 @@
       getHomeAttr = attr: user: user.home.${attr} or {};
       getApiAttr = attr: user: user.api.${attr} or {};
 
-      mkConfigSection = corePath: homeAttr: apiAttr: {
-        core = attrByPath (splitString "." corePath) {} host.config;
+      mkConfigSection = {
+        path,
+        homeAttr,
+        apiAttr,
+      }: {
+        core = attrByPath (splitString "." path) {} (host.config or{});
         home =
           if length (attrNames usersData) == 1
-          then getHomeAttr homeAttr (head (attrValues usersData))
-          else mapAttrs (_name: user: getHomeAttr homeAttr user) usersData;
+          then
+            getHomeAttr {
+              attr = homeAttr;
+              user = head (attrValues usersData);
+            }
+          else
+            mapAttrs (_: user:
+              getHomeAttr {
+                attr = homeAttr;
+                inherit user;
+              })
+            usersData;
         api =
           if length (attrNames usersData) == 1
-          then getApiAttr apiAttr (head (attrValues usersData))
-          else mapAttrs (_name: user: getApiAttr apiAttr user) usersData;
+          then
+            getApiAttr {
+              attr = apiAttr;
+              name = head (attrValues usersData);
+            }
+          else
+            mapAttrs (_: user:
+              getApiAttr {
+                attr = apiAttr;
+                inherit user;
+              })
+            usersData;
       };
 
       programs = mkConfigSection "programs" "programs" "programs";

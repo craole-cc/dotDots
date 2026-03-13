@@ -236,14 +236,11 @@
   ```
   */
   mkTree = {
-    self ? {},
-    root ?
-      if self ? outPath
-      then self.outPath
-      else src,
+    flake ? {},
     bases ? {},
     stems ? {},
   }: let
+    root = flake.outPath or src;
     bases' = defaultBases // bases;
     commonStems = mkGroup bases';
 

@@ -12,9 +12,9 @@
   inherit (lib.modules) evalModules;
   inherit (lib.modules) mkMerge;
 
-  exports = rec {
+  exports = {
     internal = {inherit mkSystems mkCore mkHome;};
-    external = {inherit (internal) mkSystems;};
+    external = {inherit mkSystems;};
   };
 
   mkSystems = {

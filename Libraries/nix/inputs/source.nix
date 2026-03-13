@@ -6,8 +6,10 @@
 }: let
   inherit (_.attrsets.resolution) byPaths;
   inherit (_.content.fallback) orDefault;
+  inherit (_.content.empty) isNotEmpty;
+  inherit (_.filesystem.predicates) pathExists;
+  inherit (_.types.predicates) isAttrs;
   inherit (lib.strings) hasSuffix;
-  inherit (lib.trivial) pathExists;
 
   exports = {
     internal = {
@@ -18,88 +20,38 @@
         mkNixPkgs
         ;
     };
-    external = {
-      inherit
-        (exports.internal)
-        mkFlake
-        mkNixPkgs
-        mkInputs
-        ;
-    };
+    external = exports.internal;
   };
 
-  /**
-  Try to resolve a flake root path.
-
-  Returns the directory string if the path is a valid flake root, or `null`
-  if it cannot be determined. Checks `self.outPath` first (flake context),
-  then looks for a `flake.nix` at or under `path`.
-
-  # Type
-  ```
-  tryFlake :: { self? :: AttrSet, path? :: path | string } -> string | null
-  ```
-
-  # Examples
-  ```nix
-  tryFlake { self = self; }
-  # => "/nix/store/…-source"
-
-  tryFlake { path = ./.; }
-  # => "/home/…/dotDots"  (if flake.nix exists there)
-
-  tryFlake { path = "/nonexistent"; }
-  # => null
-  ```
-  */
-  tryFlake = {
-    self ? {},
-    path ? src,
-  }:
-    if self ? inputs
-    then self
-    else if self ? outPath
-    then import (self.outPath + "/flake.nix")
-    else let
-      pathStr = toString path;
-      resolvedPath =
-        if pathStr != "" && hasSuffix "/flake.nix" pathStr && pathExists pathStr
-        then pathStr
-        else if pathStr != "" && pathExists (pathStr + "/flake.nix")
-        then pathStr + "/flake.nix"
-        else null;
-    in
-      if resolvedPath != null
-      then import resolvedPath
+  tryFlake = path: let
+    file = "/flake.nix";
+    p = toString (
+      if isNotEmpty path
+      then path
+      else src
+    );
+    resolvedPath =
+      if hasSuffix file p && pathExists p
+      then p
+      else if pathExists (p + file)
+      then p + file
       else null;
+  in
+    if resolvedPath != null
+    then import resolvedPath
+    else null;
 
-  /**
-  Resolve a flake root path, throwing if it cannot be determined.
-
-  Use `tryFlake` when you need a null-safe variant.
-
-  # Type
-  ```
-  flake :: { self? :: AttrSet, path? :: path | string } -> string
-  ```
-
-  # Examples
-  ```nix
-  flake { self = self; }
-  # => "/nix/store/…-source"
-
-  flake { path = "/nonexistent"; }
-  # => throws "❌ '/nonexistent' is not a valid flake path."
-  ```
-  */
   mkFlake = {
-    self ? {},
+    flake ? null,
     path ? src,
   }:
-    orDefault {
-      content = tryFlake {inherit self path;};
-      default = throw "❌ '${toString path}' is not a valid flake path.";
-    };
+    if isNull flake
+    then
+      orDefault {
+        content = tryFlake path;
+        default = throw "❌ '${toString path}' is not a valid flake path.";
+      }
+    else flake;
 
   mkInputs = {
     self ? {},

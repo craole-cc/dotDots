@@ -6,7 +6,6 @@
     hyfetch
     ipfetch
     macchina
-    # neofetch
     nitch
     onefetch
     owofetch
