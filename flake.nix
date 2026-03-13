@@ -7,22 +7,48 @@
     inherit (src) lix hosts tree;
     inherit (lix.modules._) mkFlakeOutputs mkSystems;
   in
-    mkFlakeOutputs {inherit hosts legacyPackages;} (
-      {
+    # mkFlakeOutputs {
+    #   fn =
+    #   inherit hosts legacyPackages;
+    # } (
+    #   {
+    #     system,
+    #     pkgs,
+    #   }: {
+    #     inherit
+    #       (import tree.pkg.global.store {
+    #         inherit lib lix tree pkgs system;
+    #         inherit (src) inputs;
+    #       })
+    #       devShells
+    #       formatter
+    #       checks
+    #       ;
+    #   }
+    # )
+    mkFlakeOutputs {
+      inherit self hosts;
+      fn = {
         system,
         pkgs,
       }: {
         inherit
           (import tree.pkg.global.store {
-            inherit lib lix tree pkgs system;
-            inherit (src) inputs;
+            inherit
+              inputs
+              lib
+              lix
+              pkgs
+              system
+              tree
+              ;
           })
           devShells
           formatter
           checks
           ;
-      }
-    )
+      };
+    }
     // (
       {nixosConfigurations = mkSystems {inherit self;};}
       // import tree.kit.default.store
