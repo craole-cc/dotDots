@@ -1,0 +1,5 @@
+{
+  hyprpolkitagent = {
+    enable = true;
+  };
+}

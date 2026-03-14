@@ -1,7 +1,6 @@
 {
   _,
   lib,
-  src,
   ...
 }: let
   __doc = ''
@@ -18,23 +17,14 @@
   '';
 
   __exports = {
-    internal = {
-      inherit mkSystems mkCore mkHome mkFlakeOutputs;
-      mkShells = mkFlakeOutputs;
-    };
-    external = {
-      inherit
-        (__exports.internal)
-        mkFlakeOutputs
-        mkSystems
-        mkShells
-        ;
-    };
+    internal = {inherit mkSystems mkCore mkHome mkFlakeOutputs mkTree;};
+    external = {inherit mkSystems mkFlakeOutputs;};
   };
 
-  inherit (_.filesystem.resolution) getFlake;
   inherit (_.filesystem.tree) mkTree;
   inherit (_.hardware.system) getSystems;
+  inherit (_.inputs.modules) mkModules;
+  inherit (_.inputs.packages) mkPackages;
   inherit (_.modules) core home;
   inherit (_.schema._) mkSchema;
   inherit (lib.attrsets) attrNames genAttrs mapAttrs;
@@ -61,47 +51,37 @@
     result for that host.
   */
   mkSystems = {
-    flake,
-    tree ? mkTree {inherit flake;},
-    args ? {},
+    inputs,
+    extraArgs ? {},
     ...
   }: let
-    schema = mkSchema {inherit tree;};
+    tree = extraArgs.tree or mkTree {};
+    schema = extraArgs.schema or mkSchema {inherit tree;};
   in
     mapAttrs (
-      _name: host: let
+      _: host: let
         class = host.class or "nixos";
 
-        flake = let
-          inherit (_.inputs.modules) mkModules;
-          inherit (_.inputs.packages) mkPackages;
-          inherit (_.inputs.source) resolveInputs;
-
-          source = getFlake {inherit self path;};
-          inputs = (resolveInputs {self = source;}).resolved;
-          packages = mkPackages {inherit inputs host;};
-          modules = mkModules {inherit class inputs;};
+        flakeArgs = let
+          packages = mkPackages {
+            inherit host;
+            inputs = inputs.resolved;
+          };
+          modules = mkModules {
+            inherit class;
+            inputs = inputs.resolved;
+          };
         in {inherit inputs packages modules;};
 
-        specialArgs =
-          {
-            inherit host schema class tree;
-            lix = _;
-            lib = lib.extend (_self: _super: {
-              hm = flake.inputs.home-manager.lib.hm or {};
-            });
-          }
-          // args;
+        specialArgs = {inherit host schema class tree inputs;} // extraArgs;
 
         modules = let
-          fromInputs = flake.modules;
-
+          fromInputs = flakeArgs.modules;
           fromHost = mkCore {
             inherit host specialArgs;
-            inherit (flake) modules inputs;
-            inherit (flake.packages) nixpkgs;
+            inherit (flakeArgs) modules inputs;
+            inherit (flakeArgs.packages) nixpkgs;
           };
-
           fromEval = evalModules {
             specialArgs =
               specialArgs
@@ -109,7 +89,6 @@
                 inherit (fromInputs.all) modulesPath baseModules;
                 modules = fromInputs // {host = fromHost;};
               };
-
             modules =
               []
               ++ fromInputs.base
@@ -117,16 +96,12 @@
               ++ fromHost
               ++ [{config._module.args = specialArgs;}];
           };
-        in {
-          inherit fromInputs fromHost fromEval;
-        };
+        in {inherit fromInputs fromHost fromEval;};
       in
         if class == "darwin"
         then
           modules.fromEval
-          // {
-            system = modules.fromEval.config.system.build.toplevel;
-          }
+          // {system = modules.fromEval.config.system.build.toplevel;}
         else modules.fromEval
     )
     schema.hosts;
@@ -154,45 +129,45 @@
     inputs,
     modules,
     specialArgs,
-  }:
-    [
-      {inherit nixpkgs;}
-      (
-        {
-          config,
-          tree,
-          pkgs,
-          ...
-        }: let
-          inherit (core.hardware) mkBoot mkAudio mkFileSystems mkNetwork;
-          inherit (core.software) mkClean mkNix;
-          inherit (core.environment) mkEnvironment mkLocale;
-          inherit (core.programs) mkPrograms;
-          inherit (core.services) mkServices;
-          inherit (core.style) mkFonts;
-          inherit (core.users) mkUsers;
-        in
-          mkMerge [
-            (mkNix {inherit host pkgs;})
-            (mkNetwork {inherit host pkgs;})
-            (mkBoot {inherit host pkgs;})
-            (mkFileSystems {inherit host;})
-            (mkLocale {inherit host;})
-            (mkAudio {inherit host;})
-            (mkFonts {inherit host pkgs;})
-            (mkClean {inherit host;})
-            (mkEnvironment {inherit config host pkgs inputs;})
-            (mkServices {inherit config host;})
-            (mkPrograms {inherit host;})
-            (mkUsers {inherit host pkgs;})
-            (mkHome {
-              inherit host specialArgs inputs tree;
-              modules = modules.home;
-            })
-          ]
-      )
-    ]
-    ++ (host.imports or []);
+  }: [
+    {inherit nixpkgs;}
+    (
+      {
+        config,
+        tree,
+        pkgs,
+        ...
+      }: let
+        inherit (core.hardware) mkBoot mkAudio mkFileSystems mkNetwork;
+        inherit (core.software) mkClean mkNix;
+        inherit (core.environment) mkEnvironment mkLocale;
+        inherit (core.programs) mkPrograms;
+        inherit (core.services) mkServices;
+        inherit (core.style) mkFonts;
+        inherit (core.users) mkUsers;
+      in
+        mkMerge [
+          (mkNix {inherit host pkgs;})
+          (mkNetwork {inherit host pkgs;})
+          (mkBoot {inherit host pkgs;})
+          (mkFileSystems {inherit host;})
+          (mkLocale {inherit host;})
+          (mkAudio {inherit host;})
+          (mkFonts {inherit host pkgs;})
+          (mkClean {inherit host;})
+          (mkEnvironment {inherit config host pkgs inputs;})
+          (mkServices {inherit config host;})
+          (mkPrograms {inherit host;})
+          (mkUsers {inherit host pkgs;})
+          tree.mod.core.store
+          host.imports or []
+          (mkHome {
+            inherit host specialArgs inputs tree;
+            modules = modules.home;
+          })
+        ]
+    )
+  ];
 
   /**
   Produce the complete Home Manager option block for the current host.
@@ -226,8 +201,9 @@
       extraSpecialArgs =
         specialArgs
         // {
-          lix = _;
-          inherit host;
+          lib = lib.extend (_self: _super: {
+            hm = inputs.home-manager.lib.hm or {};
+          });
         };
       users = home.users.mkUsers {inherit inputs modules host tree;};
     };

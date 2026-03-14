@@ -57,10 +57,7 @@
         home = {inherit (nixosConfig.system) stateVersion;};
 
         imports =
-          []
-          ++ [tree.pkg.home.store]
-          ++ (user.imports or [])
-          ++ (with inputsForHome; [
+          (with inputsForHome; [
             caelestia.module
             catppuccin.module
             dank-material-shell.module
@@ -68,7 +65,9 @@
             nvf.module
             plasma.module
             zen-browser.module
-          ]);
+          ])
+          ++ [tree.mod.home.store]
+          ++ (user.imports or []);
       }
     ) (homeUsers host);
 in

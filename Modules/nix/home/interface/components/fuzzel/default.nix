@@ -1,0 +1,33 @@
+{
+  config,
+  lib,
+  lix,
+  user,
+  pkgs,
+  ...
+}: let
+  inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.applications.generators) userApplicationConfig;
+
+  cfg = userApplicationConfig {
+    inherit user pkgs config;
+    name = "fuzzel";
+    kind = "launcher";
+    extraProgramConfig = mkMerge [
+      {
+        settings.main = {
+          terminal = "$TERMINAL"; #TODO Use defaults defined in lib
+          layer = "overlay";
+        };
+      }
+      # (import ./settings.nix)
+      # (import ./input.nix)
+      # (import ./themes.nix)
+    ];
+    debug = false;
+  };
+in {
+  config = mkIf cfg.enable {
+    inherit (cfg) programs home;
+  };
+}

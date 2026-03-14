@@ -1,0 +1,9 @@
+''
+  .application-name {
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .application.selected .application-name {
+    color: rgba(255, 255, 255, 1);
+  }
+''

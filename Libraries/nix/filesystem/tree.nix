@@ -47,8 +47,8 @@
 
   # ── Shared default bases ───────────────────────────────────────────────────
   #
-  # Defined once here and shared between `stems` and `mkPaths` so they can
-  # never drift out of sync. `mkPaths` overrides these via its `bases` arg.
+  # Defined once here and shared between `stems` and `mkTree` so they can
+  # never drift out of sync. `mkTree` overrides these via its `bases` arg.
 
   defaultBases = {
     api = ["API"];
@@ -56,6 +56,7 @@
     env = ["Environment"];
     kit = ["Templates"];
     lib = ["Libraries"];
+    mod = ["Modules"];
     pkg = ["Packages"];
     res = ["Assets"];
   };
@@ -63,7 +64,7 @@
   # ── mkGroup ────────────────────────────────────────────────────────────────
   #
   # Build all group stems from a resolved `bases` attrset. Extracted so both
-  # `stems` and `mkPaths` use exactly the same construction logic and can
+  # `stems` and `mkTree` use exactly the same construction logic and can
   # never diverge.
 
   mkGroup = bases: {
@@ -112,6 +113,20 @@
       rs = "rust";
     };
 
+    # mod: language peers + nix sub-structure as flat siblings
+    # Access: mod.nix, mod.rust, mod.global, mod.core, mod.home, …
+    mod = let
+      base = bases.pkg ++ ["nix"];
+      global = base ++ ["global"];
+      core = base ++ ["core"];
+      home = base ++ ["home"];
+    in
+      mkLangGroup bases.pkg {
+        nix = "nix";
+        rs = "rust";
+      }
+      // {inherit global core home;};
+
     # pkg: language peers + nix sub-structure as flat siblings
     # Access: pkg.nix, pkg.rust, pkg.global, pkg.core, pkg.home, …
     pkg = let
@@ -149,7 +164,7 @@
   Raw stem segment lists for every well-known location in the project tree.
 
   Stems are plain lists of strings — pass them to `construct` or `concat`
-  as the `stem` argument. They are the source of truth that `mkPaths`
+  as the `stem` argument. They are the source of truth that `mkTree`
   resolves into `{ store, local }` pairs.
 
   # Group shapes
@@ -189,7 +204,7 @@
   # reference it via _.filesystem.tree.wallman without a fragile relative path.
   wallman = ./wallman.sh;
 
-  # ── mkPaths ────────────────────────────────────────────────────────────────
+  # ── mkTree ────────────────────────────────────────────────────────────────
 
   /**
   Build a fully-resolved path tree for every well-known location in the
@@ -204,7 +219,7 @@
 
   # Type
   ```
-  mkPaths :: { root  :: path?
+  mkTree :: { root  :: path?
     , bases :: { <group> :: [string] }?
     , stems :: { <group> :: { <key> :: [string] } }?
   }
@@ -223,24 +238,23 @@
 
   # Examples
   ```nix
-  mkPaths {}.lib.nix.store         # => "/nix/store/…-dotDots/Libraries/nix"
-  mkPaths {}.api.hosts.local       # => "/home/…/dotDots/API/nix/hosts"
-  mkPaths {}.pkg.overlays.store    # => "/nix/store/…-dotDots/Packages/nix/overlays"
-  mkPaths {}.assets.fonts.local    # => "/home/…/dotDots/Assets/Fonts"
+  mkTree {}.lib.nix.store         # => "/nix/store/…-dotDots/Libraries/nix"
+  mkTree {}.api.hosts.local       # => "/home/…/dotDots/API/nix/hosts"
+  mkTree {}.pkg.overlays.store    # => "/nix/store/…-dotDots/Packages/nix/overlays"
+  mkTree {}.assets.fonts.local    # => "/home/…/dotDots/Assets/Fonts"
 
-  mkPaths { bases.lib = ["Lib"]; }.lib.rust.local
+  mkTree { bases.lib = ["Lib"]; }.lib.rust.local
   # => "/home/…/dotDots/Lib/rust"
 
-  mkPaths { stems.assets.screenshots = ["Assets" "Images" "screenshots"]; }
+  mkTree { stems.assets.screenshots = ["Assets" "Images" "screenshots"]; }
   # adds screenshots alongside existing siblings
   ```
   */
   mkTree = {
-    flake ? {},
     bases ? {},
     stems ? {},
   }: let
-    root = flake.outPath or src;
+    root = src;
     bases' = defaultBases // bases;
     commonStems = mkGroup bases';
 
