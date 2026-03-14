@@ -14,8 +14,6 @@ in {
       # displayManager.gdm.enable = true;
     };
 
-    programs.xterm.enable = false;
-
     environment.gnome.excludePackages = with pkgs; [
       # baobab
       epiphany

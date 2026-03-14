@@ -15,7 +15,7 @@
   inherit (lib.modules) mkForce mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasInfix;
-  inherit (lib.types) listOf str;
+  inherit (lib.types) either int listOf str;
 
   kernelRequested = host.packages.kernel or null;
   isChaotic =
@@ -36,7 +36,7 @@ in {
     maxJobs = mkOption {
       description = "Max Nix build jobs";
       default = host.specs.cpu.cores or "auto";
-      type = str;
+      type = either int str;
     };
     extraSubstituters = mkOption {
       description = "Extra binary caches";

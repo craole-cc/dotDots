@@ -97,7 +97,7 @@ in {
       base16Scheme = "${pkgs.base16-schemes}/share/themes/${currentTheme.scheme}.yaml";
       image = wallpaperPath;
       polarity = currentTheme.polarity;
-      cursor = currentTheme.cursor;
+      # cursor = currentTheme.cursor;
 
       fonts = let
         fontCfg = config.${top}.interface.fonts;

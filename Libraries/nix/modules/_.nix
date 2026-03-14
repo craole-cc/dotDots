@@ -61,14 +61,8 @@
         class = host.class or "nixos";
 
         flakeArgs = let
-          packages = mkPackages {
-            inherit host;
-            inputs = inputs.resolved;
-          };
-          modules = mkModules {
-            inherit class;
-            inputs = inputs.resolved;
-          };
+          packages = mkPackages {inherit host inputs;};
+          modules = mkModules {inherit class inputs;};
         in {inherit inputs packages modules;};
 
         specialArgs = {inherit host class;} // extraArgs;
@@ -133,8 +127,7 @@
   }: [
     {inherit nixpkgs;}
     (mkHome {
-      inherit host specialArgs tree;
-      inputs = inputs.resolved;
+      inherit host specialArgs tree inputs;
       modules = modules.home;
     })
   ];

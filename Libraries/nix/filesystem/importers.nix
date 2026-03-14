@@ -14,6 +14,7 @@
     inherit
       importAll
       importAllMerged
+      importAllPaths
       importAttrs
       importNames
       importNixModules
