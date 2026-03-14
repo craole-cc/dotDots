@@ -1,42 +1,28 @@
-{
-  self ? null,
-  path ? ./.,
-  system ? null,
-  lib ? null,
-  ...
-}: let
+let
   #|───────────────────────────────────────────────────────────────|
   #| Library Imports                                               |
   #|───────────────────────────────────────────────────────────────|
-  libInit = import ./Libraries/nix {inherit lib path;};
-  inherit (libInit) lix;
-  inherit (lix.filesystem.primitives) getFlake;
-  inherit (lix.filesystem.tree) mkTree;
-  inherit (lix.inputs.source) resolveInputs;
-  inherit (lix.schema._) mkSchema;
-  inherit (lix.schema.resolution) getHost;
-
+  inherit (import ./Libraries/nix {path = ./.;}) lix;
   #|───────────────────────────────────────────────────────────────|
   #| Core Data Layer                                               |
   #|───────────────────────────────────────────────────────────────|
-  # flake = getFlake {inherit self path;};
-  flake =
-    if self ? outPath
-    then self
-    else getFlake {inherit path;};
-  inputs = resolveInputs {
-    inherit self path;
-    # self = flake;
-  };
-
-  tree = mkTree {inherit flake;};
-  schema = mkSchema {inherit tree;};
-  inherit (schema) hosts users;
+  # # flake = getFlake {inherit self path;};
+  # flake =
+  #   if self ? outPath
+  #   then self
+  #   else getFlake {inherit path;};
+  # inputs = resolveInputs {
+  #   inherit self path;
+  #   # self = flake;
+  # };
+  # tree = mkTree {inherit flake;};
+  # schema = mkSchema {inherit tree;};
+  # inherit (schema) hosts users;
   #|───────────────────────────────────────────────────────────────|
   #| Target Host Resolution                                        |
   #|───────────────────────────────────────────────────────────────|
   # nixosConfigurations = flake.nixosConfigurations or {};
-  host = getHost {inherit flake hosts;};
+  # host = getHost {inherit flake hosts;};
   #|───────────────────────────────────────────────────────────────|
   #| REPL Helpers                                                  |
   #|───────────────────────────────────────────────────────────────|
@@ -196,21 +182,21 @@
   #     attrNames (filterAttrs (_n: v: v.enable or false) serviceSet);
   # };
 in {
-  inherit
-    # helpers
-    flake
-    hosts
-    inputs
-    lib
-    lix
-    system
-    tree
-    users
-    ;
+  # inherit
+  #   # helpers
+  #   flake
+  #   hosts
+  #   inputs
+  #   lib
+  #   lix
+  #   system
+  #   tree
+  #   users
+  #   ;
 
   #~@ Top-level host attributes
-  inherit (host) config options;
-  specialArgs = host._module.specialArgs or {};
+  # inherit (host) config options;
+  # specialArgs = host._module.specialArgs or {};
 
   # #~@ Convenient shortcuts to config sections (falls back safely if host is empty)
   # inherit
@@ -222,4 +208,5 @@ in {
   #   services
   #   variables
   #   ;
+  inherit lix;
 }

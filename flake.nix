@@ -2,13 +2,15 @@
   description = "dotDots Flake Configuration";
 
   outputs = inputs @ {self, ...}: let
+    flake = self;
+    path = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    src = import ./. {inherit self lib;};
-    inherit (src) lix hosts tree;
-    inherit (lix.modules._) mkFlakeOutputs mkSystems;
+    inherit (import ./Libraries/nix {inherit lib path;}) lix;
+    inherit (lix) mkShells mkSystem mkTree;
+    tree = mkTree {inherit flake;};
   in
-    mkFlakeOutputs {
-      inherit hosts legacyPackages;
+    mkShells {
+      inherit legacyPackages;
       fn = {
         system,
         pkgs,
@@ -31,7 +33,7 @@
       };
     }
     // (
-      {nixosConfigurations = mkSystems {inherit self;};}
+      {nixosConfigurations = mkSystems {inherit flake tree;};}
       // import tree.kit.default.store
     );
 

@@ -18,8 +18,18 @@
   '';
 
   __exports = {
-    internal = {inherit mkSystems mkCore mkHome mkFlakeOutputs;};
-    external = {inherit mkSystems;};
+    internal = {
+      inherit mkSystems mkCore mkHome mkFlakeOutputs;
+      mkShells = mkFlakeOutputs;
+    };
+    external = {
+      inherit
+        (__exports.internal)
+        mkFlakeOutputs
+        mkSystems
+        mkShells
+        ;
+    };
   };
 
   inherit (_.filesystem.resolution) getFlake;
@@ -27,7 +37,7 @@
   inherit (_.hardware.system) getSystems;
   inherit (_.modules) core home;
   inherit (_.schema._) mkSchema;
-  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.attrsets) attrNames genAttrs mapAttrs;
   inherit (lib.modules) evalModules mkMerge;
 
   /**
@@ -51,12 +61,11 @@
     result for that host.
   */
   mkSystems = {
-    self ? {},
-    path ? src,
+    flake,
+    tree ? mkTree {inherit flake;},
     args ? {},
     ...
   }: let
-    tree = mkTree {inherit self;};
     schema = mkSchema {inherit tree;};
   in
     mapAttrs (
@@ -251,8 +260,6 @@
     hosts ? {},
     fn,
   }: let
-    inherit (lib.attrsets) attrNames genAttrs;
-
     inherit
       (getSystems {
         inherit
