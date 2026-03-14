@@ -18,25 +18,24 @@
         ground
         construct
         ;
-      getFlake = getFlake';
+      # getFlake = getFlake';
     };
     external = {};
   };
 
-  getFlake' = {
-    self ? null,
-    path ? ./.,
-  }: let
-    # Pure flake resolution primitive - NO lib dependency
-    hasFlakeNix = pathExists (toString path + "/flake.nix");
-    derived =
-      if hasFlakeNix
-      then getFlake (toString path)
-      else {};
-  in
-    if self != null
-    then self
-    else derived;
+  # getFlake' = {
+  #   flake ? null,
+  #   path ? ./.,
+  # }: let
+  #   hasFlakeNix = pathExists (toString path + "/flake.nix");
+  #   derived =
+  #     if hasFlakeNix
+  #     then getFlake (toString path)
+  #     else {};
+  # in
+  #   if flake != null
+  #   then flake
+  #   else derived;
 
   /**
   Join a root and stem into a single path string.
@@ -134,7 +133,7 @@
   ```
   */
   toPath = arg: let
-    # 1. Unpack into a normalised attrset
+    #> Unpack into a normalised attrset
     unpacked =
       if isAttrs arg
       then arg
@@ -146,7 +145,7 @@
     recursive = unpacked.recursive or null;
     sha256 = unpacked.sha256    or null;
 
-    # 2. Normalise raw → absolute local string
+    #> Normalise raw → absolute local string
     localStr =
       if isList raw
       then "${toString src}/${concatStringsSep "/" raw}"
@@ -156,7 +155,7 @@
       then raw # already absolute
       else "${toString src}/${raw}"; # relative → anchor to src
 
-    # 3. Build builtins.path args, forwarding optional knobs only when set
+    #> Build builtins.path args, forwarding optional knobs only when set
     pathArgs =
       {
         path = localStr;
@@ -166,13 +165,13 @@
       // optionalAttrs (recursive != null) {inherit recursive;}
       // optionalAttrs (sha256 != null) {inherit sha256;};
 
-    # 4. Resolve store path, null-safe
-    storeStr =
+    #> Resolve store path, null-safe
+    storePath =
       if builtins.pathExists localStr
-      then toString (builtins.path pathArgs)
+      then builtins.path pathArgs
       else null;
   in {
-    store = storeStr;
+    store = storePath;
     local = localStr;
   };
 

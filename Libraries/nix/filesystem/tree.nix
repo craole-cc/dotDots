@@ -9,7 +9,7 @@
   inherit (lib.attrsets) mapAttrs recursiveUpdateUntil;
 
   exports = {
-    internal = {inherit stems mkTree wallman;};
+    internal = {inherit stems mkTree mkGroup mkLangGroup wallman;};
     external = {mkProjectTree = mkTree;};
   };
 
@@ -50,16 +50,7 @@
   # Defined once here and shared between `stems` and `mkTree` so they can
   # never drift out of sync. `mkTree` overrides these via its `bases` arg.
 
-  defaultBases = {
-    api = ["API"];
-    cfg = ["Configuration"];
-    env = ["Environment"];
-    kit = ["Templates"];
-    lib = ["Libraries"];
-    mod = ["Modules"];
-    pkg = ["Packages"];
-    res = ["Assets"];
-  };
+  defaultBases = {lib = ["Libraries"];};
 
   # ── mkGroup ────────────────────────────────────────────────────────────────
   #
@@ -68,41 +59,6 @@
   # never diverge.
 
   mkGroup = bases: {
-    # api: language peers + nix sub-structure (hosts, users) as flat siblings
-    # Access: api.nix, api.rust, api.hosts, api.users
-    api = let
-      base = bases.api ++ ["nix"];
-    in
-      mkLangGroup bases.api {
-        nix = "nix";
-        rs = "rust";
-      }
-      // {
-        hosts = base ++ ["hosts"];
-        users = base ++ ["users"];
-      };
-
-    cfg = {default = bases.cfg;};
-
-    env = {default = bases.env;};
-
-    # kit: language peers + nix template types as flat siblings
-    # Access: templates.nix, templates.rust, templates.shellscript,
-    #         templates.common, templates.dev, templates.media
-    kit = let
-      base = bases.kit ++ ["nix"];
-    in
-      mkLangGroup bases.kit {
-        nix = "nix";
-        rs = "rust";
-        sh = "shellscript";
-      }
-      // {
-        common = base ++ ["common"];
-        dev = base ++ ["dev"];
-        media = base ++ ["media"];
-      };
-
     lib = mkLangGroup bases.lib {
       bash = "bash";
       nix = "nix";
@@ -112,50 +68,6 @@
       py = "python";
       rs = "rust";
     };
-
-    # mod: language peers + nix sub-structure as flat siblings
-    # Access: mod.nix, mod.rust, mod.global, mod.core, mod.home, …
-    mod = let
-      base = bases.pkg ++ ["nix"];
-      global = base ++ ["global"];
-      core = base ++ ["core"];
-      home = base ++ ["home"];
-    in
-      mkLangGroup bases.pkg {
-        nix = "nix";
-        rs = "rust";
-      }
-      // {inherit global core home;};
-
-    # pkg: language peers + nix sub-structure as flat siblings
-    # Access: pkg.nix, pkg.rust, pkg.global, pkg.core, pkg.home, …
-    pkg = let
-      base = bases.pkg ++ ["nix"];
-      global = base ++ ["global"];
-      core = base ++ ["core"];
-      home = base ++ ["home"];
-      overlays = base ++ ["overlays"];
-      plugins = base ++ ["plugins"];
-    in
-      mkLangGroup bases.pkg {
-        nix = "nix";
-        rs = "rust";
-      }
-      // {inherit global core home overlays plugins;};
-
-    # res: top-level Assets/ with typed sub-dirs as flat siblings.
-    # Images sub-dirs (ascii, logo, wallpaper) also flat for uniform depth.
-    # Access: assets.default, assets.images, assets.fonts, assets.icons,
-    #         assets.ascii, assets.logo, assets.wallpaper
-    res = let
-      images = bases.res ++ ["Images"];
-      default = bases.res;
-      fonts = bases.res ++ ["Fonts"];
-      icons = bases.res ++ ["Icons"];
-      ascii = images ++ ["ascii"];
-      logo = images ++ ["logo"];
-      wallpaper = images ++ ["wallpaper"];
-    in {inherit default images fonts icons ascii logo wallpaper;};
   };
 
   # ── stems ──────────────────────────────────────────────────────────────────

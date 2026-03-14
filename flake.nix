@@ -6,9 +6,8 @@
     path = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
     inherit (import path {inherit lib;}) lix tree;
-    inherit (lix) resolveInputs mkFlakeOutputs mkSystems mkTree;
+    inherit (lix) resolveInputs mkFlakeOutputs mkSystems;
     inputs' = resolveInputs {inherit flake;};
-    tree = mkTree {};
   in
     mkFlakeOutputs {
       inherit legacyPackages;
@@ -17,7 +16,7 @@
         pkgs,
       }: {
         inherit
-          (import ./Modules/nix/global {
+          (import tree.mod.global.store {
             inherit
               path
               lib
@@ -40,7 +39,7 @@
           extraArgs = {inherit lix;};
         };
       }
-      // import ./Templates/nix
+      // import tree.kit.default.store
     );
 
   inputs = {

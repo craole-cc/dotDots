@@ -20,6 +20,38 @@
   inherit (_.filesystem.resolution) getFlake;
 
   /**
+  Builds the registry source configuration attribute for a given input.
+
+  Darwin modules expect `source`; NixOS expects `flake.source`. Returns
+  an empty set if no source is provided to prevent evaluation errors.
+
+  # Type
+  ```nix
+  sourceInput :: { host? :: AttrSet, input? :: any } -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  sourceInput { host = { class = "darwin"; }; input = inputs.nixpkgs; }
+  # => { source = <nixpkgs-store-path>; }
+
+  sourceInput { input = inputs.home-manager; }
+  # => { flake = { source = <home-manager-store-path>; }; }
+  ```
+  */
+  sourceInput = {
+    host ? {},
+    input ? null,
+  }: let
+    class = host.class or "nixos";
+  in
+    if input == null
+    then {}
+    else if class == "darwin"
+    then {source = input;}
+    else {flake = {source = input;};};
+
+  /**
   Resolves, normalizes, and categorizes flake inputs.
 
   Loads the current flake and maps inconsistently named inputs
@@ -39,14 +71,14 @@
     flake: The raw evaluated flake.
   */
   resolveInputs = {
-    self ? {},
+    flake ? {},
     path ? src,
   }: let
     #> Fetch the Flake
-    flake = getFlake {inherit self path;};
+    flake' = getFlake {inherit flake path;};
 
     #> Ensure we grab the inputs from the evaluated flake if `self` was empty
-    raw = flake.inputs or {};
+    raw = flake'.inputs or {};
     attrset = raw;
 
     #> Resolve Core Nixpkgs Channels (Sequential for safety)
@@ -297,39 +329,10 @@
     };
 
     resolved = core // home;
-  in {inherit resolved raw core home flake;};
-
-  /**
-  Builds the registry source configuration attribute for a given input.
-
-  Darwin modules expect `source`; NixOS expects `flake.source`. Returns
-  an empty set if no source is provided to prevent evaluation errors.
-
-  # Type
-  ```nix
-  sourceInput :: { host? :: AttrSet, input? :: any } -> AttrSet
-  ```
-
-  # Examples
-  ```nix
-  sourceInput { host = { class = "darwin"; }; input = inputs.nixpkgs; }
-  # => { source = <nixpkgs-store-path>; }
-
-  sourceInput { input = inputs.home-manager; }
-  # => { flake = { source = <home-manager-store-path>; }; }
-  ```
-  */
-  sourceInput = {
-    host ? {},
-    input ? null,
-  }: let
-    class = host.class or "nixos";
-  in
-    if input == null
-    then {}
-    else if class == "darwin"
-    then {source = input;}
-    else {flake = {source = input;};};
+  in {
+    inherit resolved raw core home;
+    flake = flake';
+  };
 in
   __exports.internal
   // {

@@ -15,11 +15,11 @@
   __exports = {
     internal = {
       inherit getFlakePath;
-      # getFlake = getFlake';
+      getFlake = getFlake';
     };
     external = {
       inherit getFlakePath;
-      # inherit (__exports.internal) getFlake;
+      inherit (__exports.internal) getFlake;
     };
   };
 
@@ -45,7 +45,7 @@
     The normalized directory path as a string, or `null` if invalid.
   */
   getFlakePath = {
-    self ? {},
+    flake ? null,
     path ? src,
   }: let
     pathStr = toString path;
@@ -57,8 +57,8 @@
       then pathStr
       else null;
   in
-    if (self ? outPath)
-    then self.outPath
+    if (flake != null) && (flake ? outPath)
+    then flake.outPath
     else
       traceIf (result == null)
       "❌ '${pathStr}' is not a valid flake path."
@@ -79,10 +79,10 @@
     The evaluated flake attributes, including an appended `srcPath`.
   */
   getFlake' = {
-    self ? {},
+    flake ? {},
     path ? src,
   }: let
-    normalizedPath = getFlakePath {inherit self path;};
+    normalizedPath = getFlakePath {inherit flake path;};
 
     derived = optionalAttrs (normalizedPath != null) (
       getFlake normalizedPath
@@ -97,8 +97,8 @@
       then "invalid flake type: ${derived._type or "null"}"
       else "unknown";
   in
-    if self != {}
-    then self
+    if flake != null
+    then flake
     else
       traceIf
       ((derived._type or null) != "flake")
