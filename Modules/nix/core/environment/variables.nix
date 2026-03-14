@@ -15,7 +15,7 @@
   user = host.users.data.primary or {};
   apps = user.applications or {};
   system = pkgs.stdenv.hostPlatform.system;
-  dp = host.interface.displayProtocol or "wayland";
+  dp = config.${top}.interface.dp;
 
   dots = host.paths.dots or null;
   wallpapers = host.paths.wallpapers or null;

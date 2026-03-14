@@ -76,7 +76,7 @@
         modules = let
           fromInputs = flakeArgs.modules;
           fromHost = mkCore {
-            inherit host specialArgs;
+            inherit host specialArgs tree;
             inherit (flakeArgs) modules inputs;
             inherit (flakeArgs.packages) nixpkgs;
           };
@@ -129,46 +129,61 @@
     inputs,
     modules,
     specialArgs,
-  }:
-    [
-      {inherit nixpkgs;}
-      (
-        {
-          config,
-          tree,
-          pkgs,
-          ...
-        }: let
-          inherit (core.hardware) mkBoot mkAudio mkFileSystems mkNetwork;
-          inherit (core.software) mkClean mkNix;
-          inherit (core.environment) mkEnvironment mkLocale;
-          inherit (core.programs) mkPrograms;
-          inherit (core.services) mkServices;
-          inherit (core.style) mkFonts;
-          inherit (core.users) mkUsers;
-        in
-          mkMerge [
-            (mkNix {inherit host pkgs;})
-            (mkNetwork {inherit host pkgs;})
-            (mkBoot {inherit host pkgs;})
-            (mkFileSystems {inherit host;})
-            (mkLocale {inherit host;})
-            (mkAudio {inherit host;})
-            (mkFonts {inherit host pkgs;})
-            (mkClean {inherit host;})
-            (mkEnvironment {inherit config host pkgs inputs;})
-            (mkServices {inherit config host;})
-            (mkPrograms {inherit host;})
-            (mkUsers {inherit host pkgs;})
-            (mkHome {
-              inherit host specialArgs tree;
-              inputs = inputs.resolved;
-              modules = modules.home;
-            })
-          ]
-      )
-    ]
-    ++ host.imports or [];
+    tree,
+  }: [
+    {inherit nixpkgs;}
+    (mkHome {
+      inherit host specialArgs tree;
+      inputs = inputs.resolved;
+      modules = modules.home;
+    })
+  ];
+  # mkCore = {
+  #   host,
+  #   nixpkgs,
+  #   inputs,
+  #   modules,
+  #   specialArgs,
+  # }:
+  #   [
+  #     {inherit nixpkgs;}
+  #     (
+  #       {
+  #         config,
+  #         tree,
+  #         pkgs,
+  #         ...
+  #       }: let
+  #         inherit (core.hardware) mkBoot mkAudio mkFileSystems mkNetwork;
+  #         inherit (core.software) mkClean mkNix;
+  #         inherit (core.environment) mkEnvironment mkLocale;
+  #         inherit (core.programs) mkPrograms;
+  #         inherit (core.services) mkServices;
+  #         inherit (core.style) mkFonts;
+  #         inherit (core.users) mkUsers;
+  #       in
+  #         mkMerge [
+  #           (mkNix {inherit host pkgs;})
+  #           (mkNetwork {inherit host pkgs;})
+  #           (mkBoot {inherit host pkgs;})
+  #           (mkFileSystems {inherit host;})
+  #           (mkLocale {inherit host;})
+  #           (mkAudio {inherit host;})
+  #           (mkFonts {inherit host pkgs;})
+  #           (mkClean {inherit host;})
+  #           (mkEnvironment {inherit config host pkgs inputs;})
+  #           (mkServices {inherit config host;})
+  #           (mkPrograms {inherit host;})
+  #           (mkUsers {inherit host pkgs;})
+  #           (mkHome {
+  #             inherit host specialArgs tree;
+  #             inputs = inputs.resolved;
+  #             modules = modules.home;
+  #           })
+  #         ]
+  #     )
+  #   ]
+  #   ++ host.imports or [];
 
   /**
   Produce the complete Home Manager option block for the current host.

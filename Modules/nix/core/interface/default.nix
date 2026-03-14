@@ -87,6 +87,4 @@ in {
       type = nullOr str;
     };
   };
-
-  config = mkIf cfg.enable {};
 }
