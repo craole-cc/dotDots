@@ -5,9 +5,8 @@
   src,
   ...
 }: let
-  inherit (builtins) pathExists getFlake;
+  inherit (_.filesystem.predicates) pathExists;
   inherit (_.types.predicates) isAttrs isList isPath isString typeOf;
-  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.strings) concatStringsSep hasPrefix;
 
   exports = {
@@ -18,49 +17,28 @@
         ground
         construct
         ;
-      # getFlake = getFlake';
     };
     external = {};
   };
 
-  # getFlake' = {
-  #   flake ? null,
-  #   path ? ./.,
-  # }: let
-  #   hasFlakeNix = pathExists (toString path + "/flake.nix");
-  #   derived =
-  #     if hasFlakeNix
-  #     then getFlake (toString path)
-  #     else {};
-  # in
-  #   if flake != null
-  #   then flake
-  #   else derived;
-
   /**
-  Join a root and stem into a single path string.
+    Join a root and stem into a single path string.
 
-  Both `root` and `stem` may be a plain string or a list of path segments;
-  lists are joined with `/` before concatenation.
+    Both `root` and `stem` may be a plain string or a list of path segments;
+    lists are joined with `/` before concatenation.
 
-  # Type
+    # Type
   ```
-  concat :: { root :: string | [string], stem :: string | [string] } -> string
+    concat :: { root :: string | [string], stem :: string | [string] } -> string
   ```
 
-  # Examples
+    # Examples
   ```nix
-  concat { root = "/home/user"; stem = "documents/file.txt"; }
-  # => "/home/user/documents/file.txt"
+    concat { root = "/home/user"; stem = "documents/file.txt"; }
+    # => "/home/user/documents/file.txt"
 
-  concat { root = ["home" "user"]; stem = ["documents" "file.txt"]; }
-  # => "/home/user/documents/file.txt"
-
-  concat { root = "/var"; stem = ["log" "app" "output.log"]; }
-  # => "/var/log/app/output.log"
-
-  concat { root = ["var" "log"]; stem = "app/output.log"; }
-  # => "/var/log/app/output.log"
+    concat { root = ["home" "user"]; stem = ["documents" "file.txt"]; }
+    # => "/home/user/documents/file.txt"
   ```
   */
   concat = {
@@ -76,37 +54,22 @@
   /**
   Convert any path-like value into a normalised `{ store, local }` pair.
 
-  Replaces both deprecated `builtins.toPath` (string → absolute path) and
-  `builtins.path` (path → store copy with options).
+  `store` is a proper Nix path value (importable as a module, usable in
+  `imports`). `local` is a string for interpolation and display. When the
+  resolved path does not exist on disk, `store` is `null` and `local` is
+  still returned.
 
   Accepts any of:
   - a Nix path literal  (`./foo`, `/abs/path`)
   - an absolute string  (`"/abs/path"`)
   - a relative string   (`"rel/path"`) — resolved against `src`
   - a list of segments  (`["a" "b"]`) — joined and resolved against `src`
-  - an attrset with optional `builtins.path` knobs (see Arguments)
-
-  When the resolved path does not exist on disk, `store` is `null` and
-  `local` is still returned — callers handle missing paths gracefully.
 
   # Type
   ```
   toPath :: path | string | [string]
-          | { path      :: path | string | [string]
-            , name      :: string?
-            , filter    :: (string -> string -> bool)?
-            , recursive :: bool?
-            , sha256    :: string?
-            }
-          -> { store :: string | null, local :: string }
+          -> { store :: path | null, local :: string }
   ```
-
-  # Arguments
-  - `path`      — the path to resolve (required when passing an attrset)
-  - `name`      — label in the store path             (default: `"path"`)
-  - `filter`    — `builtins.filterSource`-style fn    (default: keep all)
-  - `recursive` — hash the NAR (`true`) or flat file  (default: `true`)
-  - `sha256`    — expected hash; enables pure-eval     (default: unset)
 
   # Examples
   ```nix
@@ -138,12 +101,7 @@
       if isAttrs arg
       then arg
       else {path = arg;};
-
-    raw = unpacked.path      or arg;
-    name = unpacked.name      or "path";
-    filter = unpacked.filter    or null;
-    recursive = unpacked.recursive or null;
-    sha256 = unpacked.sha256    or null;
+    raw = unpacked.path or arg;
 
     #> Normalise raw → absolute local string
     localStr =
@@ -152,23 +110,13 @@
       else if isPath raw
       then toString raw
       else if isString raw && hasPrefix "/" raw
-      then raw # already absolute
-      else "${toString src}/${raw}"; # relative → anchor to src
-
-    #> Build builtins.path args, forwarding optional knobs only when set
-    pathArgs =
-      {
-        path = localStr;
-        inherit name;
-      }
-      // optionalAttrs (filter != null) {inherit filter;}
-      // optionalAttrs (recursive != null) {inherit recursive;}
-      // optionalAttrs (sha256 != null) {inherit sha256;};
+      then raw
+      else "${toString src}/${raw}";
 
     #> Resolve store path, null-safe
     storePath =
-      if builtins.pathExists localStr
-      then builtins.path pathArgs
+      if pathExists localStr
+      then /. + localStr
       else null;
   in {
     store = storePath;
@@ -176,42 +124,25 @@
   };
 
   /**
-  Resolve a root directory into a `{ store, local }` pair.
+    Resolve a root directory into a `{ store, local }` pair.
 
-  Thin wrapper over `toPath` that names the store path `"dotDots"` and
-  defaults `root` to the flake/expression `src`. Use this when you want
-  a stable, named store entry for the project root rather than the generic
-  `"path"` label that `toPath` uses.
+    Thin wrapper over `toPath` that defaults `root` to `src`.
 
-  When `root` does not exist on disk, `store` is `null` and `local` is
-  still returned.
-
-  # Type
+    # Type
   ```
-  ground :: { root :: path?, name :: string? }
-         -> { store :: string | null, local :: string }
+    ground :: { root :: path? } -> { store :: path | null, local :: string }
   ```
 
-  # Arguments
-  - `root` — the directory to ground; defaults to `src`
-  - `name` — label used in the store path; defaults to `"dotDots"`
-
-  # Examples
+    # Examples
   ```nix
-  ground {}
-  # => {
-  #      store = "/nix/store/…-dotDots";
-  #      local = "/home/craole/Downloads/public/dotDots";
-  #    }
+    ground {}
+    # => { store = /home/…/dotDots; local = "/home/…/dotDots"; }
 
-  ground { root = ./Libraries; name = "libs"; }
-  # => {
-  #      store = "/nix/store/…-libs";
-  #      local = "/home/craole/Downloads/public/dotDots/Libraries";
-  #    }
+    ground { root = ./Libraries; }
+    # => { store = /home/…/dotDots/Libraries; local = "/home/…/dotDots/Libraries"; }
 
-  ground { root = /nonexistent; }
-  # => { store = null; local = "/nonexistent"; }
+    ground { root = /nonexistent; }
+    # => { store = null; local = "/nonexistent"; }
   ```
   */
   ground = {
@@ -224,48 +155,31 @@
     };
 
   /**
-  Build a resolved `{ store, local }` path from a root and a stem.
+    Build a resolved `{ store, local }` path from a root and a stem.
 
-  Accepts flexible calling patterns — pass an attrset, a bare string, or a
-  bare list and `construct` normalises it internally. The root defaults to
-  `src` and is resolved through `ground` to produce a named store entry.
+    `store` is a proper Nix path value safe to use in `imports`. `local` is a
+    string for interpolation. Accepts flexible calling patterns — attrset, bare
+    string, or bare list. Root defaults to `src`.
 
-  When `root` does not exist on disk, `store` is `null` and `local` is
-  still returned.
-
-  # Type
+    # Type
   ```
-  construct :: { root :: path?, stem :: string | [string]? }
-             | string
-             | [string]
-             -> { store :: string | null, local :: string }
+    construct :: { root :: path?, stem :: string | [string]? } | string | [string]
+              -> { store :: path | null, local :: string }
   ```
 
-  # Calling patterns
+    # Examples
   ```nix
-  construct {}                                   # root only, no stem
-  construct { stem = …; }                        # src root, explicit stem
-  construct { root = …; stem = …; }              # explicit root and stem
-  construct "some/stem"                          # bare string → stem
-  construct ["some" "stem"]                      # bare list → stem
-  ```
+    construct {}
+    # => { store = /home/…/dotDots; local = "/home/…/dotDots"; }
 
-  # Examples
-  ```nix
-  construct {}
-  # => { store = "/nix/store/…-dotDots"; local = "/home/…/dotDots"; }
+    construct ["Libraries" "nix"]
+    # => { store = /home/…/dotDots/Libraries/nix; local = "/home/…/dotDots/Libraries/nix"; }
 
-  construct "Libraries"
-  # => { store = "/nix/store/…-dotDots/Libraries"; local = "/home/…/dotDots/Libraries"; }
+    construct { stem = ["API" "nix" "hosts"]; }
+    # => { store = /home/…/dotDots/API/nix/hosts; local = "/home/…/dotDots/API/nix/hosts"; }
 
-  construct ["Libraries" "nix"]
-  # => { store = "/nix/store/…-dotDots/Libraries/nix"; local = "/home/…/dotDots/Libraries/nix"; }
-
-  construct { stem = ["API" "nix" "hosts"]; }
-  # => { store = "/nix/store/…-dotDots/API/nix/hosts"; local = "/home/…/dotDots/API/nix/hosts"; }
-
-  construct { root = ./Libraries; stem = ["nix"]; }
-  # => { store = "/nix/store/…-Libraries/nix"; local = "/home/…/dotDots/Libraries/nix"; }
+    construct { root = ./Libraries; stem = ["nix"]; }
+    # => { store = /home/…/dotDots/Libraries/nix; local = "/home/…/dotDots/Libraries/nix"; }
   ```
   */
   construct = arg: let
@@ -301,11 +215,13 @@
       then basePath
       else
         basePath
-        + "/"
         + (
-          if isList stem
-          then concatStringsSep "/" stem
-          else stem
+          "/"
+          + (
+            if isList stem
+            then concatStringsSep "/" stem
+            else stem
+          )
         );
   in {
     store = joinPath base.store;

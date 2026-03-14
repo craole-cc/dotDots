@@ -5,7 +5,9 @@
     flake = self;
     path = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    args = {
+    args = let
+      inputsWrapped = resolveInputs {inherit flake;};
+    in {
       inherit
         (import path {inherit lib;})
         lix
@@ -14,7 +16,8 @@
         hosts
         users
         ;
-      inputs = resolveInputs {inherit flake;};
+      inherit inputsWrapped;
+      inputs = inputsWrapped.resolved;
     };
     inherit (args.lix) resolveInputs mkFlakeOutputs mkSystems;
   in
@@ -33,7 +36,7 @@
               system
               ;
             inherit (args) lix;
-            inputs = args.inputs.resolved;
+            inputs = args.inputs;
           })
           devShells
           formatter
@@ -44,7 +47,7 @@
     // (
       {
         nixosConfigurations = mkSystems {
-          inherit (args) schema inputs;
+          inherit (args) tree schema inputs;
           extraArgs = args;
         };
       }
