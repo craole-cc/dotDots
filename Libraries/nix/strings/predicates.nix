@@ -16,7 +16,20 @@
   inherit (lib.strings) hasInfix hasPrefix hasSuffix toLower;
 
   debug = mkModuleDebug __moduleRef;
+  /**
+    Internal helper — evaluate `mkAny`-style matching logic.
 
+    Returns `true` when at least one pattern matches at least one input value.
+    Both `patterns` and `input` may be a single string or a list of strings;
+    this function normalises them before matching.
+
+    Throws a structured error when `patterns` is neither a string nor a list.
+
+    # Type
+  ```
+    mkAny :: { name, fn, checker, patterns, input } -> bool
+  ```
+  */
   mkAny = {
     name,
     fn,
@@ -41,7 +54,20 @@
       })
     else any (p: any (v: checker p v) vs) ps;
 
-  #? ALL inputs match at least one pattern.
+  /**
+    Internal helper — evaluate `mkAll`-style matching logic.
+
+    Returns `true` when every input value is matched by at least one pattern.
+    Both `patterns` and `input` may be a single string or a list of strings;
+    this function normalises them before matching.
+
+    Throws a structured error when `patterns` is neither a string nor a list.
+
+    # Type
+  ```
+    mkAll :: { name, fn, checker, patterns, input } -> bool
+  ```
+  */
   mkAll = {
     name,
     fn,
@@ -66,6 +92,24 @@
       })
     else all (v: any (p: checker p v) ps) vs;
 
+  /**
+    Build an infix-search predicate with optional case normalisation.
+
+    When `caseSensitive` is `false` both the pattern and the candidate string
+    are lowercased before the `hasInfix` test, making the match
+    case-insensitive.
+
+    # Type
+  ```
+    mkChecker :: bool -> string -> string -> bool
+  ```
+
+    # Examples
+  ```nix
+    (mkChecker true)  "Foo" "foobar"   # => false  (uppercase F ≠ lowercase f)
+    (mkChecker false) "Foo" "foobar"   # => true   (both normalised to lowercase)
+  ```
+  */
   mkChecker = caseSensitive: let
     normalize = s:
       if caseSensitive
@@ -75,33 +119,56 @@
     pattern: str: hasInfix (normalize pattern) (normalize str);
 
   /**
-  Check whether any pattern is contained in any input string.
+  Check whether any pattern appears as a substring of any input string.
 
   Accepts either a single string or a list of strings for both arguments.
+  Matching is case-insensitive by default; pass `{ caseSensitive = true; }`
+  to override.
+
+  # Calling conventions
+
+  ## Positional (most common)
+  ```nix
+    contains patterns input
+  ```
+
+  ## Attrset — patterns and input supplied together
+  ```nix
+    contains { patterns = ...; input = ...; caseSensitive = false; }
+  ```
+
+  ## Options partial application — supply options first, input later
+  ```nix
+    let cs = contains { caseSensitive = true; };
+    in cs patterns input
+  ```
 
   # Type
   ```nix
-  contains :: string | [string] -> string | [string] -> bool
+    contains :: string | [string] -> string | [string] -> bool
+    contains :: { patterns, input, caseSensitive? } -> bool
+    contains :: { caseSensitive? } -> string | [string] -> string | [string] -> bool
   ```
 
   # Examples
   ```nix
-  contains "foo" "foobar"           # => true
-  contains ["foo" "bar"] "foobar"   # => true
-  contains "foo" ["baz" "foobar"]   # => true
-  contains ["foo" "bar"] ["baz"]    # => false
+    contains "foo" "foobar"                             # => true
+    contains ["foo" "bar"] "foobar"                     # => true
+    contains "foo" ["baz" "foobar"]                     # => true
+    contains ["foo" "bar"] ["baz"]                      # => false
+
+    contains { patterns = "Foo"; input = "foobar"; }    # => true  (case-insensitive)
+    contains { caseSensitive = true; } "Foo" "foobar"   # => false
   ```
   */
-  containsOld = patterns: input:
-    mkAny {
-      name = "containsOld";
-      fn = containsOld;
-      checker = hasInfix;
-      inherit patterns input;
-    };
-
   contains = patternsOrAttrs: inputOrPatterns: let
-    # --- Detect call style --------------------------------------------------
+    name = "contains";
+    fn = contains;
+
+    #> Detect which calling convention was used.
+    #? Attrset call:  contains { patterns = …; input = …; }
+    #? Options call:  contains { caseSensitive = …; } patterns input
+    #? Positional:    contains patterns input
     isAttrsetCall =
       isAttrs patternsOrAttrs
       && patternsOrAttrs ? patterns
@@ -112,7 +179,7 @@
       && !(patternsOrAttrs ? patterns)
       && !(patternsOrAttrs ? input);
 
-    # --- Resolve case sensitivity -------------------------------------------
+    #? Fall back to case-insensitive matching unless the caller opts out.
     caseSensitive =
       if isAttrsetCall || isOptsCall
       then patternsOrAttrs.caseSensitive or false
@@ -122,34 +189,27 @@
   in
     if isAttrsetCall
     then
-      # Style: contains { patterns = ...; input = ...; caseSensitive? = ...; }
+      # { patterns, input[, caseSensitive] }
       mkAny {
-        name = "contains";
-        fn = contains;
-        inherit checker;
-        patterns = patternsOrAttrs.patterns;
+        inherit checker name fn;
         input = patternsOrAttrs.input;
+        patterns = patternsOrAttrs.patterns;
       }
     else if isOptsCall
     then
-      # Style: contains { caseSensitive = true; } patterns input
-      # inputOrPatterns holds `patterns` at this point; waiting for actual input
+      # { caseSensitive } -> patterns -> input
       (actualInput:
         mkAny {
-          inherit checker;
-          name = "contains";
-          fn = contains;
-          patterns = inputOrPatterns;
+          inherit checker name fn;
           input = actualInput;
+          patterns = inputOrPatterns;
         })
     else
-      # Style: contains patterns input  (plain curried)
+      # patterns input  (plain positional)
       mkAny {
-        inherit checker;
-        name = "contains";
-        fn = contains;
-        patterns = patternsOrAttrs;
+        inherit checker name fn;
         input = inputOrPatterns;
+        patterns = patternsOrAttrs;
       };
   /**
   Check whether any input string starts with any of the given patterns.

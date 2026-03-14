@@ -2,62 +2,91 @@
   config,
   host,
   lib,
+  lix,
+  top,
   ...
 }: let
-  dom = "dots";
-  mod = "interface";
-  cfg = config.${dom}.${mod};
-  sys = host.${mod} or {};
+  dom = "interface";
+  cfg = config.${top}.${dom};
+  iface = host.interface;
 
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) nullOr str;
+  inherit (lib.types) enum nullOr str;
+  inherit
+    (lix.enums)
+    desktopEnvironments
+    windowManagers
+    displayManagers
+    displayProtocols
+    shells
+    ;
 in {
-  imports = [
-    ./environment
-    # ./desktop
-    # ./wayland.nix
-    # ./window-manager
-    # ./fonts.nix
-    # ./style.nix
-  ];
+  imports = lix.filesystem.importers.importAllPaths ./.;
 
-  options.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+  options.${top}.${dom} = {
+    enable = mkEnableOption dom // {default = true;};
     wm = mkOption {
       description = "Window manager";
-      default = null;
-      type = nullOr str;
+      default = iface.windowManager or null;
+      type = nullOr (enum windowManagers.values);
     };
     de = mkOption {
       description = "Desktop environment";
-      default = null;
-      type = nullOr str;
+      default = iface.desktopEnvironment or null;
+      type = nullOr (enum desktopEnvironments.values);
     };
     dm = mkOption {
       description = "Display manager";
-      default = null;
-      type = nullOr str;
+      default = iface.displayManager or null;
+      type = nullOr (enum displayManagers.values);
     };
     dp = mkOption {
       description = "Display protocol";
-      default = "wayland";
-      type = str;
+      default = iface.displayProtocol or "wayland";
+      type = enum displayProtocols.values;
     };
     bar = mkOption {
       description = "Status bar";
-      default = null;
+      default = iface.bar or null;
+      type = nullOr str;
+    };
+    shell = mkOption {
+      description = "Shell";
+      default = iface.shell or null;
+      type = nullOr (enum shells.values);
+    };
+    prompt = mkOption {
+      description = "Shell prompt";
+      default = iface.prompt or null;
+      type = nullOr str;
+    };
+    uiShell = mkOption {
+      description = "UI shell";
+      default = iface.uiShell or null;
+      type = nullOr str;
+    };
+    terminal = mkOption {
+      description = "Default terminal";
+      default = iface.terminal or null;
+      type = nullOr str;
+    };
+    launcher = mkOption {
+      description = "Application launcher";
+      default = iface.launcher or null;
+      type = nullOr str;
+    };
+    fileManager = mkOption {
+      description = "File manager";
+      default = iface.fileManager or null;
+      type = nullOr str;
+    };
+    notificationDaemon = mkOption {
+      description = "Notification daemon";
+      default = iface.notificationDaemon or null;
       type = nullOr str;
     };
   };
 
-  config = mkIf cfg.enable {
-    ${dom}.${mod} = {
-      wm = sys.windowManager        or cfg.wm;
-      de = sys.desktopEnvironment   or cfg.de;
-      dm = sys.displayManager       or cfg.dm;
-      dp = sys.displayProtocol      or cfg.dp;
-      bar = sys.bar                 or cfg.bar;
-    };
-  };
+  config = mkIf cfg.enable {};
 }

@@ -1,7 +1,1 @@
-{
-  imports = [
-    # ./common.nix
-    # ./wayland.nix
-    # ./xserver.nix
-  ];
-}
+{lix, ...}: {imports = lix.filesystem.importers.importAllPaths ./.;}

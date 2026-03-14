@@ -2,62 +2,73 @@
   config,
   host,
   lib,
+  lix,
+  pkgs,
+  top,
   ...
 }: let
-  dom = "dots";
-  mod = "interface";
-  cfg = config.${dom}.${mod};
-  sys = host.${mod} or {};
+  dom = "system";
+  mod = "users";
+  cfg = config.${top}.${dom}.${mod};
 
+  inherit (lix.attrsets.resolution) package;
+  inherit (lix.lists.predicates) isIn;
+  inherit (lib.attrsets) mapAttrs;
+  inherit (lib.lists) head optionals;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) nullOr str;
-in {
-  imports = [
-    ./environment
-    # ./desktop
-    # ./wayland.nix
-    # ./window-manager
-    # ./fonts.nix
-    # ./style.nix
-  ];
+  inherit (lib.types) bool;
 
-  options.${dom}.${mod} = {
+  hostUsers = host.users.data.enabled or {};
+  adminNames = host.users.names.elevated or [];
+  hasNetwork = host.hardware.hasNetwork;
+in {
+  options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
-    wm = mkOption {
-      description = "Window manager";
-      default = null;
-      type = nullOr str;
-    };
-    de = mkOption {
-      description = "Desktop environment";
-      default = null;
-      type = nullOr str;
-    };
-    dm = mkOption {
-      description = "Display manager";
-      default = null;
-      type = nullOr str;
-    };
-    dp = mkOption {
-      description = "Display protocol";
-      default = "wayland";
-      type = str;
-    };
-    bar = mkOption {
-      description = "Status bar";
-      default = null;
-      type = nullOr str;
+    execWheelOnly = mkOption {
+      description = "Restrict sudo to wheel group members";
+      default = true;
+      type = bool;
     };
   };
 
   config = mkIf cfg.enable {
-    ${dom}.${mod} = {
-      wm = sys.windowManager        or cfg.wm;
-      de = sys.desktopEnvironment   or cfg.de;
-      dm = sys.displayManager       or cfg.dm;
-      dp = sys.displayProtocol      or cfg.dp;
-      bar = sys.bar                 or cfg.bar;
+    security.sudo = {
+      execWheelOnly = cfg.execWheelOnly;
+      extraRules =
+        map (name: {
+          users = [name];
+          commands = [
+            {
+              command = "ALL";
+              options = ["SETENV" "NOPASSWD"];
+            }
+          ];
+        })
+        adminNames;
+    };
+
+    users = {
+      groups = mapAttrs (_: _: {}) hostUsers;
+
+      users =
+        mapAttrs (name: user: {
+          isNormalUser = user.role != "service";
+          isSystemUser = user.role == "service";
+          description = user.description or name;
+          password = user.password or null;
+          group = name;
+          extraGroups =
+            []
+            ++ optionals (user.role != "service") ["users"]
+            ++ optionals (isIn (user.role or null) ["admin" "administrator"]) ["wheel"]
+            ++ optionals hasNetwork ["networkmanager"];
+          shell = package {
+            inherit pkgs;
+            target = head (user.shells or ["bash"]);
+          };
+        })
+        hostUsers;
     };
   };
 }

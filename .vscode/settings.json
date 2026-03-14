@@ -86,6 +86,7 @@
     "Review",
     "Tests",
     "Packages/custom/dots/archive",
-    "Packages/custom/dots/tmp_repl.nix"
+    "Packages/custom/dots/tmp_repl.nix",
+    "Modules/nix/core/interface/environment/gnome/reference.nix"
   ]
 }

@@ -2,62 +2,72 @@
   config,
   host,
   lib,
+  lix,
+  top,
   ...
 }: let
-  dom = "dots";
-  mod = "interface";
-  cfg = config.${dom}.${mod};
-  sys = host.${mod} or {};
+  dom = "system";
+  mod = "programs";
+  cfg = config.${top}.${dom}.${mod};
 
+  iface = config.${top}.interface;
+  wm = iface.wm;
+  prompt = iface.prompt or null;
+  shell = iface.shell or null;
+
+  user = host.users.data.primary or {};
+
+  inherit (lix.lists.predicates) isIn;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) nullOr str;
+  inherit (lib.types) bool;
 in {
-  imports = [
-    ./environment
-    # ./desktop
-    # ./wayland.nix
-    # ./window-manager
-    # ./fonts.nix
-    # ./style.nix
-  ];
-
-  options.${dom}.${mod} = {
+  options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
-    wm = mkOption {
-      description = "Window manager";
-      default = null;
-      type = nullOr str;
+    vimKeybinds = mkOption {
+      description = "Enable vim keybindings in shell";
+      default = user.interface.keyboard.vimKeybinds or false;
+      type = bool;
     };
-    de = mkOption {
-      description = "Desktop environment";
-      default = null;
-      type = nullOr str;
-    };
-    dm = mkOption {
-      description = "Display manager";
-      default = null;
-      type = nullOr str;
-    };
-    dp = mkOption {
-      description = "Display protocol";
-      default = "wayland";
-      type = str;
-    };
-    bar = mkOption {
-      description = "Status bar";
-      default = null;
-      type = nullOr str;
+    virtualCamera = mkOption {
+      description = "Enable OBS virtual camera";
+      default = true;
+      type = bool;
     };
   };
 
   config = mkIf cfg.enable {
-    ${dom}.${mod} = {
-      wm = sys.windowManager        or cfg.wm;
-      de = sys.desktopEnvironment   or cfg.de;
-      dm = sys.displayManager       or cfg.dm;
-      dp = sys.displayProtocol      or cfg.dp;
-      bar = sys.bar                 or cfg.bar;
+    programs = {
+      bash = mkIf (isIn "bash" ([shell] ++ (user.shells or []))) {
+        enable = true;
+        blesh.enable = true;
+        undistractMe.enable = true;
+      };
+
+      direnv = {
+        enable = true;
+        silent = true;
+        settings.global = {
+          log_format = "-";
+          log_filter = "^$";
+          load_dotenv = true;
+        };
+      };
+
+      starship.enable = prompt == "starship";
+
+      git = {
+        enable = true;
+        lfs.enable = true;
+        prompt.enable = true;
+      };
+
+      obs-studio = mkIf (isIn ["video" "webcam"] (host.functionalities or [])) {
+        enable = true;
+        enableVirtualCamera = cfg.virtualCamera;
+      };
+
+      xwayland.enable = true;
     };
   };
 }

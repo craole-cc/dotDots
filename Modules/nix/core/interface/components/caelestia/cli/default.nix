@@ -1,6 +1,0 @@
-{}: {
-  cli = {
-    enable = true;
-    settings = {};
-  };
-}

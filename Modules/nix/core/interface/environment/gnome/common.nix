@@ -2,24 +2,20 @@
   config,
   lib,
   pkgs,
+  top,
   ...
 }: let
   inherit (lib.modules) mkIf;
-  cfgEnabled = config.dots.interface.desktop.environment == "gnome";
+  cfg = config.${top}.interface;
 in {
-  config = mkIf cfgEnabled {
-    services.xserver = {
-      #{ Enable GNOME desktop environment
+  config = mkIf (cfg.de == "gnome") {
+    services = {
       desktopManager.gnome.enable = true;
-
-      #{ Enable GDM (GNOME Display Manager)
-      displayManager.gdm.enable = true;
-
-      #{ Xterm is unnecessary since console is enabled automatically
-      excludePackages = [pkgs.xterm];
+      # displayManager.gdm.enable = true;
     };
 
-    #{ Exclude packages [optional]
+    programs.xterm.enable = false;
+
     environment.gnome.excludePackages = with pkgs; [
       # baobab
       epiphany

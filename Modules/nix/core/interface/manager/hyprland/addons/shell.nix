@@ -1,6 +1,0 @@
-{
-  hyprshell = {
-    enable = true;
-    settings = {};
-  };
-}

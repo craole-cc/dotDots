@@ -3,8 +3,7 @@
   lib,
   ...
 }: let
-  inherit (_.schema.ui) mkUI;
-  inherit (_.schema.home) mkHome;
+  inherit (_.schema._) mkUI mkHome mkLocale mkHardware;
   inherit (lib.attrsets) attrNames attrValues;
   inherit (lib.lists) head;
 
@@ -46,12 +45,19 @@
       inherit host;
       user = enrichedUser.data.primary;
     };
+    enrichedLocale = mkLocale {
+      inherit host;
+      user = enrichedUser.data.primary;
+    };
+    enrichedHardware = mkHardware {inherit host;};
     enrichment = {
       inherit name;
       inherit (host.paths) dots;
       system = host.specs.platform or "x86_64-linux";
       users = enrichedUser;
       interface = enrichedUI;
+      localization = enrichedLocale;
+      hardware = enrichedHardware;
     };
   in
     host // enrichment;

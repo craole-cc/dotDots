@@ -6,7 +6,8 @@
   inherit (_.filesystem.meta) listNixModules;
   inherit (lib.attrsets) attrValues listToAttrs attrNames filterAttrs;
   inherit (lib.filesystem) readDir;
-  inherit (lib.lists) elem filter flatten map;
+  inherit (lib.lists) elem filter flatten foldl' map;
+  inherit (lib.strings) hasSuffix;
   inherit (lib.trivial) functionArgs;
 
   exports = {
@@ -28,7 +29,7 @@
     "tmp"
   ];
 
-  # ── importNixModules ───────────────────────────────────────────────────────
+  # -- importNixModules ───────────────────────────────────────────────────────
 
   /**
   Import all `.nix` modules found by `meta.listNixModules`.
@@ -42,7 +43,7 @@
   */
   importNixModules = path: map import (listNixModules path);
 
-  # ── importAttrs / importNames / importValues ───────────────────────────────
+  # -- importAttrs / importNames / importValues ───────────────────────────────
 
   /**
   Import each immediate subdirectory of `dir` as a module, keyed by name.
@@ -82,7 +83,7 @@
   */
   importValues = dir: attrValues (importAttrs dir);
 
-  # ── importAll ──────────────────────────────────────────────────────────────
+  # -- importAll ──────────────────────────────────────────────────────────────
 
   /**
   Recursively import all `.nix` files (except `default.nix`) and
@@ -103,7 +104,7 @@
       name:
         entries.${name}
         == "regular"
-        && lib.strings.hasSuffix ".nix" name
+        && hasSuffix ".nix" name
         && name != "default.nix"
     ) (attrNames entries);
 
@@ -133,7 +134,7 @@
   in
     fileImports ++ flatten dirImports;
 
-  # ── importAllMerged ────────────────────────────────────────────────────────
+  # -- importAllMerged ────────────────────────────────────────────────────────
 
   /**
   Import all `.nix` files (except `default.nix`) in `dir` (non-recursive),
@@ -150,16 +151,66 @@
       name:
         entries.${name}
         == "regular"
-        && lib.strings.hasSuffix ".nix" name
+        && hasSuffix ".nix" name
         && name != "default.nix"
     ) (attrNames entries);
   in
-    lib.lists.foldl'
+    foldl'
     (acc: mod: acc // mod)
     {}
     (map (name: import (dir + "/${name}") args) nixFiles);
 
-  # ── importWithArgs ─────────────────────────────────────────────────────────
+  # -- importAllPaths ─────────────────────────────────────────────────────────
+  /**
+  Return paths of all `.nix` files (except `default.nix`) and
+  subdirectories with `default.nix` under `dir`, without importing them.
+
+  Prefer this over `importAll` when used in NixOS `imports` — paths give
+  better error traces and enable `disabledModules` to work correctly.
+
+  # Type
+  ```nix
+  importAllPaths :: path -> [path]
+  ```
+  */
+  importAllPaths = dir: let
+    entries = readDir dir;
+
+    nixFiles = filter (
+      name:
+        entries.${name}
+        == "regular"
+        && hasSuffix ".nix" name
+        && name != "default.nix"
+    ) (attrNames entries);
+
+    subDirs = filter (
+      name:
+        entries.${name}
+        == "directory"
+        && !(elem name foldersToExclude)
+    ) (attrNames entries);
+
+    filePaths = map (name: dir + "/${name}") nixFiles;
+
+    dirPaths =
+      map (
+        name: let
+          subPath = dir + "/${name}";
+          subEntries = readDir subPath;
+          hasDefault =
+            subEntries ? "default.nix"
+            && subEntries."default.nix" == "regular";
+        in
+          if hasDefault
+          then subPath
+          else importAllPaths subPath
+      )
+      subDirs;
+  in
+    filePaths ++ flatten dirPaths;
+
+  # -- importWithArgs ─────────────────────────────────────────────────────────
 
   /**
   Import the file at `path` and call it with only the subset of `args`

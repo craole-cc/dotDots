@@ -7,9 +7,15 @@
   inherit (_.schema.core) mkCore;
   inherit (lib.attrsets) mapAttrs;
 
-  exports = {
-    internal = {inherit mkSchema;};
-    external = exports.internal;
+  __exports = {
+    internal = {
+      inherit mkSchema;
+      inherit (_.schema.ui) mkUI;
+      inherit (_.schema.home) mkHome;
+      inherit (_.schema.locale) mkLocale;
+      inherit (_.schema.hardware) mkHardware;
+    };
+    external = {inherit mkSchema;};
   };
 
   /**
@@ -43,4 +49,4 @@
       else {};
   in {inherit users hosts;};
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal // {_rootAliases = __exports.external;}

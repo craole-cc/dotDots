@@ -1,7 +1,0 @@
-{
-  input = {
-    keyboard = {};
-    mice = [];
-    touchpads = [];
-  };
-}
