@@ -11,8 +11,9 @@
   inherit (_.lists.generators) toList;
   inherit (_.lists.predicates) isList;
   inherit (_.types.predicates) typeOf;
+  inherit (lib.attrsets) isAttrs;
   inherit (lib.lists) any all;
-  inherit (lib.strings) hasInfix hasPrefix hasSuffix;
+  inherit (lib.strings) hasInfix hasPrefix hasSuffix toLower;
 
   debug = mkModuleDebug __moduleRef;
 
@@ -65,6 +66,14 @@
       })
     else all (v: any (p: checker p v) ps) vs;
 
+  mkChecker = caseSensitive: let
+    normalize = s:
+      if caseSensitive
+      then s
+      else toLower s;
+  in
+    pattern: str: hasInfix (normalize pattern) (normalize str);
+
   /**
   Check whether any pattern is contained in any input string.
 
@@ -83,14 +92,65 @@
   contains ["foo" "bar"] ["baz"]    # => false
   ```
   */
-  contains = patterns: input:
+  containsOld = patterns: input:
     mkAny {
-      name = "contains";
-      fn = contains;
+      name = "containsOld";
+      fn = containsOld;
       checker = hasInfix;
       inherit patterns input;
     };
 
+  contains = patternsOrAttrs: inputOrPatterns: let
+    # --- Detect call style --------------------------------------------------
+    isAttrsetCall =
+      isAttrs patternsOrAttrs
+      && patternsOrAttrs ? patterns
+      && patternsOrAttrs ? input;
+
+    isOptsCall =
+      isAttrs patternsOrAttrs
+      && !(patternsOrAttrs ? patterns)
+      && !(patternsOrAttrs ? input);
+
+    # --- Resolve case sensitivity -------------------------------------------
+    caseSensitive =
+      if isAttrsetCall || isOptsCall
+      then patternsOrAttrs.caseSensitive or false
+      else false;
+
+    checker = mkChecker caseSensitive;
+  in
+    if isAttrsetCall
+    then
+      # Style: contains { patterns = ...; input = ...; caseSensitive? = ...; }
+      mkAny {
+        name = "contains";
+        fn = contains;
+        inherit checker;
+        patterns = patternsOrAttrs.patterns;
+        input = patternsOrAttrs.input;
+      }
+    else if isOptsCall
+    then
+      # Style: contains { caseSensitive = true; } patterns input
+      # inputOrPatterns holds `patterns` at this point; waiting for actual input
+      (actualInput:
+        mkAny {
+          inherit checker;
+          name = "contains";
+          fn = contains;
+          patterns = inputOrPatterns;
+          input = actualInput;
+        })
+    else
+      # Style: contains patterns input  (plain curried)
+      mkAny {
+        inherit checker;
+        name = "contains";
+        fn = contains;
+        patterns = patternsOrAttrs;
+        input = inputOrPatterns;
+      };
   /**
   Check whether any input string starts with any of the given patterns.
 

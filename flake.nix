@@ -4,22 +4,30 @@
   outputs = inputs @ {self, ...}: let
     flake = self;
     path = ./.;
+    names = {
+      top = "dots";
+      lib = "lix";
+    };
     inherit (inputs.nixPackages) lib legacyPackages;
+    src = import path {inherit lib names;};
+    inherit (src) lix;
+    inherit (lix) resolveInputs mkFlakeOutputs mkSystems;
+
     args = let
       inputsWrapped = resolveInputs {inherit flake;};
     in {
       inherit
-        (import path {inherit lib;})
-        lix
-        tree
-        schema
+        (src)
         hosts
+        names
+        schema
+        tree
+        top
         users
         ;
-      inherit inputsWrapped;
+      inherit inputsWrapped lix;
       inputs = inputsWrapped.resolved;
     };
-    inherit (args.lix) resolveInputs mkFlakeOutputs mkSystems;
   in
     mkFlakeOutputs {
       inherit legacyPackages;

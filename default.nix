@@ -1,14 +1,15 @@
 {
   lib ? null,
   path ? ./.,
+  names ? {
+    top = "dots";
+    lib = "lix";
+  },
 }: let
-  #|───────────────────────────────────────────────────────────────|
-  #| Library Imports                                               |
-  #|───────────────────────────────────────────────────────────────|
   inherit
     (import ./Libraries/nix {
       inherit lib path;
-      name = "lix";
+      name = names.lib;
     })
     lix
     ;
@@ -100,6 +101,7 @@
   schema = mkSchema {inherit tree;};
   inherit (schema) hosts users;
 in {
+  inherit (names) top;
   inherit
     lix
     tree
