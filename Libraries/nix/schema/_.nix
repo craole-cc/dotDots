@@ -25,15 +25,22 @@
   - users: Raw user configurations
   */
   mkSchema = {tree}: let
-    api = tree.api or {};
     paths = {
-      users = api.users.store or {};
-      hosts = api.hosts.store or {};
+      users = tree.api.users.store;
+      hosts = tree.api.hosts.store;
     };
-    users = importAttrs paths.users;
-    hosts = mapAttrs (
-      name: host: mkCore {inherit name host users;}
-    ) (importAttrs paths.hosts);
+    users =
+      if paths.users != null
+      then importAttrs paths.users
+      else {};
+    hosts =
+      if paths.hosts != null
+      then
+        mapAttrs (name: host:
+          mkCore {
+            inherit name host users;
+          }) (importAttrs paths.hosts)
+      else {};
   in {inherit users hosts;};
 in
   exports.internal // {_rootAliases = exports.external;}

@@ -52,12 +52,10 @@
   */
   mkSystems = {
     inputs,
+    schema,
     extraArgs ? {},
     ...
-  }: let
-    tree = extraArgs.tree or mkTree {};
-    schema = extraArgs.schema or mkSchema {inherit tree;};
-  in
+  }:
     mapAttrs (
       _: host: let
         class = host.class or "nixos";
@@ -73,7 +71,7 @@
           };
         in {inherit inputs packages modules;};
 
-        specialArgs = {inherit host schema class tree inputs;} // extraArgs;
+        specialArgs = {inherit host schema class inputs;} // extraArgs;
 
         modules = let
           fromInputs = flakeArgs.modules;

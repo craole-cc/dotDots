@@ -13,6 +13,7 @@
     lix
     ;
   inherit (lix.filesystem.tree) mkTree mkLangGroup;
+  inherit (lix.schema._) mkSchema;
   tree = mkTree {
     stems = {
       api = let
@@ -96,9 +97,14 @@
       };
     };
   };
+  schema = mkSchema {inherit tree;};
+  inherit (schema) hosts users;
 in {
   inherit
     lix
     tree
+    schema
+    hosts
+    users
     ;
 }

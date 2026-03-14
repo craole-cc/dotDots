@@ -5,9 +5,18 @@
     flake = self;
     path = ./.;
     inherit (inputs.nixPackages) lib legacyPackages;
-    inherit (import path {inherit lib;}) lix tree;
-    inherit (lix) resolveInputs mkFlakeOutputs mkSystems;
-    inputs' = resolveInputs {inherit flake;};
+    args = {
+      inherit
+        (import path {inherit lib;})
+        lix
+        tree
+        schema
+        hosts
+        users
+        ;
+      inputs = resolveInputs {inherit flake;};
+    };
+    inherit (args.lix) resolveInputs mkFlakeOutputs mkSystems;
   in
     mkFlakeOutputs {
       inherit legacyPackages;
@@ -16,15 +25,15 @@
         pkgs,
       }: {
         inherit
-          (import tree.mod.global.store {
+          (import args.tree.mod.global.store {
             inherit
               path
               lib
-              lix
               pkgs
               system
               ;
-            inputs = inputs'.resolved;
+            inherit (args) lix;
+            inputs = args.inputs.resolved;
           })
           devShells
           formatter
@@ -35,11 +44,11 @@
     // (
       {
         nixosConfigurations = mkSystems {
-          inputs = inputs';
-          extraArgs = {inherit lix;};
+          inherit (args) schema inputs;
+          extraArgs = args;
         };
       }
-      // import tree.kit.default.store
+      // import args.tree.kit.default.store
     );
 
   inputs = {

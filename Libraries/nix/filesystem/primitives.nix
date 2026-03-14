@@ -283,19 +283,33 @@
 
     base = ground {inherit root;};
 
-    join = basePath:
+    joinStr = basePath:
+      if basePath == null
+      then null
+      else if stem == [] || stem == ""
+      then toString basePath
+      else
+        concat {
+          root = toString basePath;
+          inherit stem;
+        };
+
+    joinPath = basePath:
       if basePath == null
       then null
       else if stem == [] || stem == ""
       then basePath
       else
-        concat {
-          root = basePath;
-          inherit stem;
-        };
+        basePath
+        + "/"
+        + (
+          if isList stem
+          then concatStringsSep "/" stem
+          else stem
+        );
   in {
-    store = join base.store;
-    local = join base.local;
+    store = joinPath base.store;
+    local = joinStr base.local;
   };
 in
   exports.internal
