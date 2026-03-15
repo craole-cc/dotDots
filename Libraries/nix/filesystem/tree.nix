@@ -162,7 +162,6 @@
   mkTree = {
     bases ? {},
     stems ? {},
-    dots ? src, # ← optional, defaults to src for eval-time use
   }: let
     bases' = defaultBases // bases;
     commonStems = mkGroup bases';
@@ -188,13 +187,9 @@
       {default = (construct {inherit root;}).local;}
       // mapAttrs (_: resolveLocal root) stems';
 
-    store = mapAttrs (_: resolveStore src) stems';
-    local = mapAttrs (_: resolveLocal dots) stems';
-  in
-    {
-      default = (construct {root = src;}).store;
-      inherit mkLocal store local;
-    }
-    // store;
+    store =
+      {default = (construct {root = src;}).store;}
+      // mapAttrs (_: resolveStore src) stems';
+  in {inherit mkLocal store;};
 in
   exports.internal // {_rootAliases = exports.external;}

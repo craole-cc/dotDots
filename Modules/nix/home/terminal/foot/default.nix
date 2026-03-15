@@ -15,14 +15,16 @@
   #~@ Script Wrappers
   wrappers = mkScriptWrappers {
     inherit pkgs;
-    scripts = {
-      feet = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+    scripts = let
+      script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
+    in {
+      feet = script;
       feet-quake = {
-        script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+        inherit script;
         extraArgs = ["--quake"];
       };
       feet-monitor = {
-        script = tree.lib.sh.local + "/packages/wrappers/feet.sh";
+        inherit script;
         extraArgs = ["--monitor"];
       };
     };

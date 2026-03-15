@@ -66,7 +66,7 @@
             plasma.module
             zen-browser.module
           ])
-          ++ [tree.mod.home]
+          ++ [tree.store.mod.home]
           ++ (user.imports or []);
       }
     ) (homeUsers host);

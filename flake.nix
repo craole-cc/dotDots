@@ -6,29 +6,20 @@
     path = ./.;
     names = {
       top = "_";
-      # top = "dots";
       lib = "lix";
     };
     inherit (inputs.nixPackages) lib legacyPackages;
     src = import path {inherit lib names;};
-    inherit (src) lix;
+    inherit
+      (src)
+      lix
+      tree
+      schema
+      top
+      ;
     inherit (lix) resolveInputs mkFlakeOutputs mkSystems;
 
-    args = let
-      inputsWrapped = resolveInputs {inherit flake;};
-    in {
-      inherit
-        (src)
-        hosts
-        names
-        schema
-        tree
-        top
-        users
-        ;
-      inherit inputsWrapped lix;
-      inputs = inputsWrapped.resolved;
-    };
+    inputsWrapped = resolveInputs {inherit flake;};
   in
     mkFlakeOutputs {
       inherit legacyPackages;
@@ -37,15 +28,15 @@
         pkgs,
       }: {
         inherit
-          (import args.tree.mod.global {
+          (import tree.store.mod.global {
             inherit
               path
               lib
+              lix
               pkgs
               system
               ;
-            inherit (args) lix;
-            inputs = args.inputs;
+            inputs = inputsWrapped.resolved;
           })
           devShells
           formatter
@@ -56,11 +47,12 @@
     // (
       {
         nixosConfigurations = mkSystems {
-          inherit (args) tree schema inputs;
-          extraArgs = args;
+          inherit schema tree;
+          inputs = inputsWrapped.resolved;
+          extraArgs = {inherit inputsWrapped lix top;};
         };
       }
-      // import args.tree.kit.default
+      // import tree.store.kit.default
     );
 
   inputs = {

@@ -59,18 +59,16 @@
     mapAttrs (
       _: host: let
         inherit (host.paths) dots;
-        tree' = tree // tree.mkLocal dots;
         class = host.class or "nixos";
+        tree' = tree // {local = tree.mkLocal dots;};
+
+        specialArgs =
+          {inherit host class;} // extraArgs // {tree = tree';};
 
         flakeArgs = let
           packages = mkPackages {inherit host inputs;};
           modules = mkModules {inherit class inputs;};
         in {inherit inputs packages modules;};
-
-        specialArgs =
-          {inherit host class;}
-          // extraArgs
-          // {tree = tree';};
 
         modules = let
           fromInputs = flakeArgs.modules;
@@ -93,7 +91,7 @@
               ++ fromInputs.core
               ++ fromHost
               ++ (host.imports or [])
-              ++ [tree.mod.core]
+              ++ [tree'.store.mod.core]
               ++ [{config._module.args = specialArgs;}];
           };
         in {inherit fromInputs fromHost fromEval;};

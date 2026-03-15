@@ -31,10 +31,7 @@
   - users: Raw user configurations
   */
   mkSchema = {tree}: let
-    paths = {
-      users = tree.api.users;
-      hosts = tree.api.hosts;
-    };
+    paths = {inherit (tree.store.api) users hosts;};
     users =
       if paths.users != null
       then importAttrs paths.users

@@ -14,7 +14,6 @@
   inherit (lix.lists.predicates) isIn;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) head optionals;
-  inherit (lib.modules) mkIf;
   inherit (lib.options) mkOption;
   inherit (lib.types) bool;
 
@@ -30,7 +29,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = {
     security.sudo = {
       execWheelOnly = cfg.execWheelOnly;
       extraRules =
