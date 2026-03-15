@@ -46,11 +46,20 @@
     }
     // (
       {
-        nixosConfigurations = mkSystems {
-          inherit schema tree;
+        nixosConfigurations = let
           inputs = inputsWrapped.resolved;
-          extraArgs = {inherit inputsWrapped lix top;};
-        };
+        in
+          mkSystems {
+            inherit schema tree inputs;
+            extraArgs = {
+              inherit
+                inputs
+                inputsWrapped
+                lix
+                top
+                ;
+            };
+          };
       }
       // import tree.store.kit.default
     );

@@ -181,7 +181,7 @@
       raw = nestedOr {
         attrs = user.paths or {};
         path = ["wallpapers" "all"];
-        default = tree.res.wallpaper or "home:Pictures/Wallpapers";
+        default = tree.local.res.wallpaper or "home:Pictures/Wallpapers";
       };
 
       all =

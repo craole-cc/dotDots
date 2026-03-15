@@ -60,7 +60,7 @@
     rule = map (r: "match:class ^(${class})$, ${r}") [
       "workspace special:${workspace} silent"
       "float on"
-      "border_size = 0"
+      "noborder"
       "size 100% ${size}"
       "move 0% 0%"
     ];

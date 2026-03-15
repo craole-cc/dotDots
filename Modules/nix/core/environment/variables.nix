@@ -16,7 +16,7 @@
   user = host.users.data.primary or {};
   apps = user.applications or {};
   system = pkgs.stdenv.hostPlatform.system;
-  wallpapers = host.paths.wallpapers or tree.res.wallpapers;
+  wallpapers = host.paths.wallpapers or tree.local.res.wallpapers;
 
   inherit (config.${top}.interface) displayProtocol;
   inherit (lib.attrsets) optionalAttrs;
