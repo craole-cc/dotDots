@@ -8,8 +8,8 @@ in {
   layerrule = [
     "blur, ${toRegex layers}"
     "xray 1, ${toRegex panels}"
-    "ignorealpha, 0.2, ${toRegex panels}" # ← added comma before value
-    "ignorealpha, 0.5, ${toRegex (common ++ ["music"])}"
+    "ignorealpha 0.2, ${toRegex panels}"
+    "ignorealpha 0.5, ${toRegex (common ++ ["music"])}"
   ];
 
   windowrule = [

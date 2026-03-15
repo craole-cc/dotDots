@@ -187,10 +187,10 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    loginManager = "sddm";
-    desktopEnvironment = "cosmic";
-    windowManager = "hyprland";
-    displayProtocol = "wayland";
+    # loginManager = "sddm";
+    # desktopEnvironment = "cosmic";
+    # windowManager = "hyprland";
+    # displayProtocol = "wayland";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = true;
