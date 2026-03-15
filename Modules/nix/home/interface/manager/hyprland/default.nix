@@ -14,7 +14,7 @@
   mod = "hyprland";
   cfg = config.${top}.${dom}.${mod};
 
-  inherit (config.OSConfig.${top}.interface) windowManager;
+  inherit (user.interface) windowManager;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
