@@ -2,6 +2,23 @@
   inherit (lib.attrsets) recursiveUpdate hasAttr;
   inherit (lib.lists) elem;
 
+  __exports = {
+    internal = {
+      inherit
+        mkUI
+        defaults
+        loginManagers
+        desktopEnvironments
+        windowManagers
+        normalizeInterface
+        ;
+    };
+    external = {
+      mkUISchema = mkUI;
+      normalizeUISchema = normalizeInterface;
+    };
+  };
+
   mkUI = {
     user,
     host,
@@ -13,21 +30,41 @@
   in
     normalizeInterface mergedInterface;
 
-  interfacePartsDefaults = {
-    desktopEnvironment = null;
-    windowManager = null;
-    displayManager = null;
-    displayProtocol = "wayland";
-    defaultSession = null;
-    windowShell = null;
-    shell = null;
-    shellPrompt = null;
-    desktopShell = null;
-    notificationDaemon = null;
-    fileManager = null;
-    terminal = null;
-    appLauncher = null;
-    bar = null;
+  defaults = {
+    interface = {
+      appLauncher = null;
+      bar = null;
+      defaultSession = null;
+      desktopEnvironment = "cosmic";
+      desktopShell = null;
+      displayManager = "sddm";
+      displayProtocol = "wayland";
+      fileManager = "yazi";
+      notificationDaemon = "mako";
+      shell = "bash";
+      shellPrompt = "starship";
+      terminal = "ghostty";
+      windowManager = "hyprland";
+      windowShell = null;
+      keyboard = {
+        modifier = "SUPER";
+        swapCapsEscape = true;
+      };
+    };
+
+    registry = {
+      supportedProtocol = [];
+      preferredProtocol = "wayland";
+      displayManager = {
+        supported = [];
+        preferred = "ly";
+      };
+      desktopShell = null;
+      notificationDaemon = null;
+      fileManager = null;
+      terminal = null;
+      appLauncher = null;
+    };
   };
 
   loginManagers = {
@@ -77,7 +114,7 @@
 
   desktopEnvironments = {
     gnome =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland" "xorg"];
         preferredProtocol = "wayland";
@@ -93,7 +130,7 @@
       };
 
     plasma =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland" "xorg"];
         preferredProtocol = "wayland";
@@ -109,7 +146,7 @@
       };
 
     cosmic =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
@@ -125,7 +162,7 @@
       };
 
     pantheon =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -141,7 +178,7 @@
       };
 
     cinnamon =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -157,7 +194,7 @@
       };
 
     xfce =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -175,7 +212,7 @@
 
   windowManagers = {
     hyprland =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
@@ -191,7 +228,7 @@
       };
 
     niri =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
@@ -207,7 +244,7 @@
       };
 
     sway =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
@@ -223,7 +260,7 @@
       };
 
     river =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["wayland"];
         preferredProtocol = "wayland";
@@ -239,7 +276,7 @@
       };
 
     i3 =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -255,7 +292,7 @@
       };
 
     bspwm =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -271,7 +308,7 @@
       };
 
     qtile =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -287,7 +324,7 @@
       };
 
     awesome =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -303,7 +340,7 @@
       };
 
     xmonad =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -319,7 +356,7 @@
       };
 
     openbox =
-      interfacePartsDefaults
+      defaults.registry
       // {
         supportedProtocol = ["xorg"];
         preferredProtocol = "xorg";
@@ -336,7 +373,7 @@
   };
 
   normalizeInterface = interface: let
-    base = interfacePartsDefaults // interface;
+    base = defaults.interface // interface;
     desktopEnvironment = base.desktopEnvironment;
     windowManager = base.windowManager;
     displayProtocolInput = base.displayProtocol;
@@ -426,7 +463,7 @@
       then selectedInterface.config.appLauncher
       else null;
   in
-    interfacePartsDefaults
+    defaults.interface
     // interface
     // {
       inherit
@@ -441,14 +478,13 @@
         terminal
         appLauncher
         ;
-      interfaces = {inherit desktopEnvironments windowManagers loginManagers;};
+      interfaces = {
+        inherit
+          desktopEnvironments
+          windowManagers
+          loginManagers
+          ;
+      };
     };
-in {
-  inherit
-    mkUI
-    loginManagers
-    desktopEnvironments
-    windowManagers
-    normalizeInterface
-    ;
-}
+in
+  __exports.internal // {_rootAliases = __exports.external;}
