@@ -1,36 +1,54 @@
+# Modules/nix/home/interface/manager/hyprland/default.nix
 {
+  config,
   host,
-  apps,
   lib,
   lix,
-  keyboard,
-  # paths,
-  # pkgs,
+  top,
   user,
+  apps,
+  keyboard,
   ...
 }: let
-  app = "hyprland";
+  dom = "home";
+  mod = "hyprland";
+  cfg = config.${top}.${dom}.${mod};
+
+  iface = config.${top}.interface;
+
   inherit (lib.modules) mkIf mkMerge;
-  isAllowed = app == (user.interface.windowManager or null);
+  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.types) bool;
 in {
-  config = mkIf isAllowed (mkMerge [
-    {
-      wayland.windowManager.hyprland = mkMerge [
-        {enable = true;}
-        (import ./settings {
-          inherit
-            host
-            lib
-            lix
-            apps
-            user
-            keyboard
-            mkMerge
-            ;
-        })
-        (import ./submaps {inherit mkMerge;})
-      ];
-    }
-    # (import ./addons {inherit mkMerge pkgs paths;})
-  ]);
+  options.${top}.${dom}.${mod} = {
+    enable = mkEnableOption mod // {default = iface.wm == "hyprland";};
+    withAddons = mkOption {
+      description = "Enable hyprland addons (idle, lock, paper, etc.)";
+      default = true;
+      type = bool;
+    };
+    withRules = mkOption {
+      description = "Enable window rules";
+      default = true;
+      type = bool;
+    };
+  };
+
+  config = mkIf cfg.enable {
+    wayland.windowManager.hyprland = mkMerge [
+      {enable = true;}
+      (import ./settings {
+        inherit host lib lix apps user keyboard mkMerge;
+      })
+      (import ./submaps {inherit mkMerge;})
+    ];
+
+    programs =
+      mkIf cfg.withAddons
+      (import ./addons {inherit mkMerge;}).programs;
+
+    services =
+      mkIf cfg.withAddons
+      (import ./addons {inherit mkMerge;}).services;
+  };
 }
