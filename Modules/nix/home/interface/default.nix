@@ -40,7 +40,6 @@
 in {
   _module.args = {inherit cursor icons;};
   imports = lix.filesystem.importers.importAll ./.;
-
   gtk = {
     enable = mkForce true;
     iconTheme = mkForce {
@@ -62,4 +61,5 @@ in {
     platformTheme.name = "gtk";
     style.name = "kvantum";
   };
+  stylix.targets.qt.enable = mkForce false;
 }
