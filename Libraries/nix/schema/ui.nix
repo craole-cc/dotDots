@@ -14,11 +14,20 @@
     normalizeInterface mergedInterface;
 
   interfacePartsDefaults = {
-    uiShell = null;
+    desktopEnvironment = null;
+    windowManager = null;
+    displayManager = null;
+    displayProtocol = "wayland";
+    defaultSession = null;
+    windowShell = null;
+    shell = null;
+    shellPrompt = null;
+    desktopShell = null;
     notificationDaemon = null;
     fileManager = null;
     terminal = null;
-    launcher = null;
+    appLauncher = null;
+    bar = null;
   };
 
   loginManagers = {
@@ -76,11 +85,11 @@
           supported = ["gdm" "greetd" "lemurs" "lightdm" "ly" "sddm"];
           preferred = "gdm";
         };
-        uiShell = "gnome-shell";
+        desktopShell = "gnome-shell";
         notificationDaemon = "gnome-shell";
         fileManager = "nautilus";
         terminal = "gnome-terminal";
-        launcher = "gnome-shell-overview";
+        appLauncher = "gnome-shell-overview";
       };
 
     plasma =
@@ -92,11 +101,11 @@
           supported = ["sddm" "gdm" "lightdm" "greetd" "lemurs" "ly"];
           preferred = "sddm";
         };
-        uiShell = "plasmashell";
+        desktopShell = "plasmashell";
         notificationDaemon = "plasmashell";
         fileManager = "dolphin";
         terminal = "konsole";
-        launcher = "krunner";
+        appLauncher = "krunner";
       };
 
     cosmic =
@@ -108,11 +117,11 @@
           supported = ["cosmic-greeter" "gdm" "greetd" "lemurs" "sddm" "ly"];
           preferred = "cosmic-greeter";
         };
-        uiShell = "cosmic-shell";
+        desktopShell = "cosmic-shell";
         notificationDaemon = "cosmic-notifications";
         fileManager = "cosmic-files";
         terminal = "cosmic-terminal";
-        launcher = "cosmic-launcher";
+        appLauncher = "cosmic-launcher";
       };
 
     pantheon =
@@ -124,11 +133,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "gala";
+        desktopShell = "gala";
         notificationDaemon = "notification-daemon";
         fileManager = "pantheon-files";
         terminal = "pantheon-terminal";
-        launcher = "slingshot";
+        appLauncher = "slingshot";
       };
 
     cinnamon =
@@ -140,11 +149,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "cinnamon";
+        desktopShell = "cinnamon";
         notificationDaemon = "cinnamon";
         fileManager = "nemo";
         terminal = "gnome-terminal";
-        launcher = "cinnamon-menu";
+        appLauncher = "cinnamon-menu";
       };
 
     xfce =
@@ -156,11 +165,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "xfce4-panel";
+        desktopShell = "xfce4-panel";
         notificationDaemon = "xfce4-notifyd";
         fileManager = "thunar";
         terminal = "xfce4-terminal";
-        launcher = "xfce4-appfinder";
+        appLauncher = "xfce4-appfinder";
       };
   };
 
@@ -174,11 +183,11 @@
           supported = ["sddm" "gdm" "greetd" "lemurs" "ly"];
           preferred = "sddm";
         };
-        uiShell = "hyprland";
+        desktopShell = "hyprland";
         notificationDaemon = "mako";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "wofi";
+        appLauncher = "wofi";
       };
 
     niri =
@@ -190,11 +199,11 @@
           supported = ["dms-greeter" "sddm" "gdm" "greetd" "lemurs" "ly"];
           preferred = "dms-greeter";
         };
-        uiShell = "niri";
+        desktopShell = "niri";
         notificationDaemon = "mako";
         fileManager = "thunar";
         terminal = "foot";
-        launcher = "fuzzel";
+        appLauncher = "fuzzel";
       };
 
     sway =
@@ -206,11 +215,11 @@
           supported = ["gdm" "sddm" "greetd" "lemurs" "ly"];
           preferred = "gdm";
         };
-        uiShell = "sway";
+        desktopShell = "sway";
         notificationDaemon = "mako";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "wofi";
+        appLauncher = "wofi";
       };
 
     river =
@@ -222,11 +231,11 @@
           supported = ["sddm" "greetd" "lemurs" "ly"];
           preferred = "sddm";
         };
-        uiShell = "river";
+        desktopShell = "river";
         notificationDaemon = "mako";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "fuzzel";
+        appLauncher = "fuzzel";
       };
 
     i3 =
@@ -238,11 +247,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "i3";
+        desktopShell = "i3";
         notificationDaemon = "dunst";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "rofi";
+        appLauncher = "rofi";
       };
 
     bspwm =
@@ -254,11 +263,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "bspwm";
+        desktopShell = "bspwm";
         notificationDaemon = "dunst";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "rofi";
+        appLauncher = "rofi";
       };
 
     qtile =
@@ -270,11 +279,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "qtile";
+        desktopShell = "qtile";
         notificationDaemon = "dunst";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "rofi";
+        appLauncher = "rofi";
       };
 
     awesome =
@@ -286,11 +295,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "awesome";
+        desktopShell = "awesome";
         notificationDaemon = "dunst";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "rofi";
+        appLauncher = "rofi";
       };
 
     xmonad =
@@ -302,11 +311,11 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "xmonad";
+        desktopShell = "xmonad";
         notificationDaemon = "dunst";
         fileManager = "thunar";
         terminal = "alacritty";
-        launcher = "rofi";
+        appLauncher = "rofi";
       };
 
     openbox =
@@ -318,42 +327,46 @@
           supported = ["lightdm" "gdm" "sddm"];
           preferred = "lightdm";
         };
-        uiShell = "openbox";
+        desktopShell = "openbox";
         notificationDaemon = "xfce4-notifyd";
         fileManager = "thunar";
         terminal = "xfce4-terminal";
-        launcher = "rofi";
+        appLauncher = "rofi";
       };
   };
 
   normalizeInterface = interface: let
-    desktopEnvironment = interface.desktopEnvironment    or null;
-    windowManager = interface.windowManager         or null;
-    displayProtocolInput = interface.displayProtocol       or null;
-    displayManagerInput = interface.displayManager        or null;
-    uiShellInput = interface.uiShell               or null;
-    notificationDaemonInput = interface.notificationDaemon    or null;
-    fileManagerInput = interface.fileManager           or null;
-    terminalInput = interface.terminal              or null;
-    launcherInput = interface.launcher              or null;
+    base = interfacePartsDefaults // interface;
+    desktopEnvironment = base.desktopEnvironment;
+    windowManager = base.windowManager;
+    displayProtocolInput = base.displayProtocol;
+    displayManagerInput = base.displayManager;
+    desktopShellInput = base.desktopShell;
+    notificationDaemonInput = base.notificationDaemon;
+    fileManagerInput = base.fileManager;
+    terminalInput = base.terminal;
+    appLauncherInput = base.appLauncher;
 
     defaultDisplayProtocol = "wayland";
     defaultDisplayManager = "ly";
 
+    defaultSession =
+      if base.defaultSession != null
+      then base.defaultSession
+      else if windowManager != null
+      then windowManager
+      else if desktopEnvironment != null
+      then desktopEnvironment
+      else null;
+
     selectedInterface =
-      if
-        desktopEnvironment
-        != null
-        && hasAttr desktopEnvironment desktopEnvironments
+      if desktopEnvironment != null && hasAttr desktopEnvironment desktopEnvironments
       then {
         name = desktopEnvironment;
         kind = "desktopEnvironment";
         config = desktopEnvironments.${desktopEnvironment};
       }
-      else if
-        windowManager
-        != null
-        && hasAttr windowManager windowManagers
+      else if windowManager != null && hasAttr windowManager windowManagers
       then {
         name = windowManager;
         kind = "windowManager";
@@ -364,11 +377,7 @@
     displayProtocol =
       if selectedInterface != null
       then
-        if
-          displayProtocolInput
-          != null
-          && elem displayProtocolInput
-          selectedInterface.config.supportedProtocol
+        if displayProtocolInput != null && elem displayProtocolInput selectedInterface.config.supportedProtocol
         then displayProtocolInput
         else selectedInterface.config.preferredProtocol
       else if displayProtocolInput != null
@@ -382,11 +391,11 @@
       then selectedInterface.config.displayManager.preferred
       else defaultDisplayManager;
 
-    uiShell =
-      if uiShellInput != null
-      then uiShellInput
+    desktopShell =
+      if desktopShellInput != null
+      then desktopShellInput
       else if selectedInterface != null
-      then selectedInterface.config.uiShell
+      then selectedInterface.config.desktopShell
       else null;
 
     notificationDaemon =
@@ -410,23 +419,15 @@
       then selectedInterface.config.terminal
       else null;
 
-    launcher =
-      if launcherInput != null
-      then launcherInput
+    appLauncher =
+      if appLauncherInput != null
+      then appLauncherInput
       else if selectedInterface != null
-      then selectedInterface.config.launcher
-      else null;
-
-    defaultSession =
-      if interface.defaultSession or null != null
-      then interface.defaultSession # explicit override wins
-      else if windowManager != null
-      then windowManager
-      else if desktopEnvironment != null
-      then desktopEnvironment
+      then selectedInterface.config.appLauncher
       else null;
   in
-    interface
+    interfacePartsDefaults
+    // interface
     // {
       inherit
         defaultSession
@@ -434,11 +435,11 @@
         windowManager
         displayProtocol
         displayManager
-        uiShell
+        desktopShell
         notificationDaemon
         fileManager
         terminal
-        launcher
+        appLauncher
         ;
       interfaces = {inherit desktopEnvironments windowManagers loginManagers;};
     };

@@ -57,9 +57,9 @@
       else "[workspace special:${workspace} silent] ${cmd}";
 
     #> Map the class match over the rules
-    rule = map (r: "match:class ^(${class})$, ${r}") [
+    rule = map (r: "${r}, class:^(${class})$") [
       "workspace special:${workspace} silent"
-      "float on"
+      "float"
       "noborder"
       "size 100% ${size}"
       "move 0% 0%"

@@ -20,6 +20,4 @@
     #   mako.enable = true;
     # }
   ];
-
-  wayland.windowManager.hyprland.plugins = [];
 }

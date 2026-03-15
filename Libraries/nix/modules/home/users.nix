@@ -9,6 +9,7 @@
   inherit (_.modules.home.paths) mkSessionPaths;
   inherit (_.modules.home.programs) mkPrograms mkApps;
   inherit (_.modules.home.style) mkStyle;
+  inherit (_.schema._) mkUI;
   inherit (lib.attrsets) mapAttrs;
 
   exports = {
@@ -41,15 +42,27 @@
         pkgs,
         ...
       }: let
+        enrichedInterface = mkUI {
+          inherit host;
+          user = user // {inherit name;};
+        };
         inputsForHome = mkApps {inherit user inputs modules;};
         derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
       in {
         _module.args = {
           style = mkStyle {inherit host user;};
-          user = user // {inherit name;};
+          user =
+            user
+            // {
+              inherit name;
+              interface = enrichedInterface; # ← per-user normalized interface
+            };
           apps = mkPrograms {inherit host user;};
           keyboard = mkKeyboard {inherit host user;};
-          locale = mkLocale {inherit host;};
+          locale = mkLocale {
+            inherit host;
+            inherit user;
+          };
           paths = derivedPaths;
           inherit inputsForHome;
         };
