@@ -1,4 +1,3 @@
-# Modules/nix/home/interface/manager/hyprland/default.nix
 {
   config,
   host,
@@ -8,22 +7,23 @@
   user,
   apps,
   keyboard,
+  paths,
   ...
 }: let
   dom = "home";
   mod = "hyprland";
   cfg = config.${top}.${dom}.${mod};
 
-  iface = config.${top}.interface;
+  wm = user.interface.windowManager or null;
 
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkIf mkMerge mkForce mkDefault;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = iface.wm == "hyprland";};
+    enable = mkEnableOption mod // {default = wm == "hyprland";};
     withAddons = mkOption {
-      description = "Enable hyprland addons (idle, lock, paper, etc.)";
+      description = "Enable hyprland addons";
       default = true;
       type = bool;
     };
@@ -39,16 +39,17 @@ in {
       {enable = true;}
       (import ./settings {
         inherit host lib lix apps user keyboard mkMerge;
+        withRules = cfg.withRules;
       })
       (import ./submaps {inherit mkMerge;})
     ];
 
     programs =
       mkIf cfg.withAddons
-      (import ./addons {inherit mkMerge;}).programs;
+      (import ./addons {inherit lib mkMerge paths;}).programs;
 
     services =
       mkIf cfg.withAddons
-      (import ./addons {inherit mkMerge;}).services;
+      (import ./addons {inherit lib mkMerge paths;}).services;
   };
 }

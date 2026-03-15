@@ -150,7 +150,9 @@ in {
         popups = 0.95;
       };
 
-      targets.qt.enable = mkForce false;
+      targets = {
+        qt.enable = mkForce false;
+      };
     };
 
     environment.sessionVariables = {

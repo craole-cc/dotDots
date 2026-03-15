@@ -1,4 +1,6 @@
-{
+{lib, ...}: let
+  inherit (lib.modules) mkDefault;
+in {
   hyprlock = {
     enable = true;
     settings = {
@@ -19,7 +21,7 @@
         };
       };
 
-      background = [
+      background = mkDefault [
         {
           path = "screenshot";
           blur_passes = 3;
@@ -27,7 +29,7 @@
         }
       ];
 
-      input-field = [
+      input-field = mkDefault [
         {
           size = "200, 50";
           position = "0, -80";
@@ -38,7 +40,7 @@
           inner_color = "rgb(91, 96, 120)";
           outer_color = "rgb(24, 25, 38)";
           outline_thickness = 5;
-          placeholder_text = ''Password...'';
+          placeholder_text = "Password...";
           shadow_passes = 2;
         }
       ];

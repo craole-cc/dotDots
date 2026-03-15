@@ -1,10 +1,11 @@
 {
-  paths,
+  lib,
   mkMerge,
+  paths,
   ...
 }: {
   programs = mkMerge [
-    (import ./lock.nix)
+    (import ./lock.nix {inherit lib;})
     # (import ./panel.nix)
     (import ./shot.nix)
   ];
