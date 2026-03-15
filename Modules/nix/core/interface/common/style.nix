@@ -1,8 +1,8 @@
-# interface/style/style.nix
 {
   config,
   host,
   lib,
+  lix,
   pkgs,
   top,
   ...
@@ -15,9 +15,11 @@
   style = user.interface.style or {};
   wallpapers = host.paths.wallpapers or null;
 
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkForce;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) enum nullOr str;
+  inherit (lib.strings) hasPrefix;
+  inherit (lib.types) bool enum int nullOr str;
+  getPackage = lix.attrsets.resolution.package;
 
   themeMap = {
     "Catppuccin Frappé" = {
@@ -25,8 +27,7 @@
       polarity = "dark";
       cursor = {
         name = "catppuccin-frappe-dark-cursors";
-        pkg = pkgs.catppuccin-cursors.frappeDark;
-        size = 24;
+        package = pkgs.catppuccin-cursors.frappeDark;
       };
     };
     "Catppuccin Latte" = {
@@ -34,8 +35,7 @@
       polarity = "light";
       cursor = {
         name = "catppuccin-latte-light-cursors";
-        pkg = pkgs.catppuccin-cursors.latteLight;
-        size = 24;
+        package = pkgs.catppuccin-cursors.latteLight;
       };
     };
     "Catppuccin Macchiato" = {
@@ -43,8 +43,7 @@
       polarity = "dark";
       cursor = {
         name = "catppuccin-macchiato-dark-cursors";
-        pkg = pkgs.catppuccin-cursors.macchiatoDark;
-        size = 24;
+        package = pkgs.catppuccin-cursors.macchiatoDark;
       };
     };
     "Catppuccin Mocha" = {
@@ -52,19 +51,36 @@
       polarity = "dark";
       cursor = {
         name = "catppuccin-mocha-dark-cursors";
-        pkg = pkgs.catppuccin-cursors.mochaDark;
-        size = 24;
+        package = pkgs.catppuccin-cursors.mochaDark;
       };
     };
   };
 
   currentTheme = themeMap.${cfg.theme} or null;
 
+  #~@ Cursor resolution — user override takes precedence over theme default
+  cursorName = style.cursor.${style.current or "dark"} or null;
+  cursorResolved =
+    if cursorName != null
+    then {
+      name = cursorName;
+      package = getPackage {
+        inherit pkgs;
+        target = cursorName;
+        default = pkgs.material-cursors;
+      };
+    }
+    else
+      currentTheme.cursor or {
+        name = "default";
+        package = pkgs.material-cursors;
+      };
+
   wallpaperPath =
-    if cfg.wallpaper != null
-    then cfg.wallpaper
-    else if wallpapers != null
-    then wallpapers + "/${cfg.polarity}.jpg"
+    if cfg.wallpaper != null && hasPrefix "/nix/store" cfg.wallpaper
+    then /. + cfg.wallpaper
+    else if wallpapers != null && hasPrefix "/nix/store" wallpapers
+    then /. + (wallpapers + "/${cfg.polarity}.jpg")
     else null;
 in {
   options.${top}.${dom}.${mod} = {
@@ -84,10 +100,15 @@ in {
       default = style.wallpaper.${style.current or "dark"} or null;
       type = nullOr str;
     };
+    cursorSize = mkOption {
+      description = "Cursor size in pixels";
+      default = style.cursor.size or 24;
+      type = int;
+    };
     autoSwitch = mkOption {
       description = "Enable automatic dark/light switching";
       default = style.autoSwitch or false;
-      type = lib.types.bool;
+      type = bool;
     };
   };
 
@@ -97,7 +118,11 @@ in {
       base16Scheme = "${pkgs.base16-schemes}/share/themes/${currentTheme.scheme}.yaml";
       image = wallpaperPath;
       polarity = currentTheme.polarity;
-      # cursor = currentTheme.cursor;
+
+      cursor = {
+        inherit (cursorResolved) name package;
+        size = cfg.cursorSize;
+      };
 
       fonts = let
         fontCfg = config.${top}.interface.fonts;
@@ -125,13 +150,13 @@ in {
         popups = 0.95;
       };
 
-      targets.qt.enable = lib.mkForce false;
+      targets.qt.enable = mkForce false;
     };
 
     environment.sessionVariables = {
       THEME_CURRENT = cfg.polarity;
       THEME_NAME = cfg.theme;
-      WALLPAPER_CURRENT = lib.optionalString (wallpaperPath != null) wallpaperPath;
+      WALLPAPER_CURRENT = lib.optionalString (wallpaperPath != null) (toString wallpaperPath);
     };
   };
 }
