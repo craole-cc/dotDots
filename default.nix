@@ -94,7 +94,7 @@
         icons = ["Assets" "Icons"];
         ascii = images ++ ["ascii"];
         logo = images ++ ["logo"];
-        wallpaper = images ++ ["wallpaper"];
+        wallpapers = images ++ ["wallpaper"];
       };
     };
   };

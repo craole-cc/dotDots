@@ -32,8 +32,8 @@
   */
   mkSchema = {tree}: let
     paths = {
-      users = tree.api.users.store;
-      hosts = tree.api.hosts.store;
+      users = tree.api.users;
+      hosts = tree.api.hosts;
     };
     users =
       if paths.users != null

@@ -27,7 +27,7 @@
     in
       if appInfo != null
       then
-        if builtins.isFunction appInfo
+        if isFunction appInfo
         then appInfo {inherit pkgs inputs system;}
         else appInfo
       else {
@@ -172,7 +172,13 @@
         system,
         ...
       }: {
-        cmd = "zen-twilight";
+        #TODO: zen-twilight and zen-beta both use `zen` as the binary name
+        #      but the flake input resolves differently per variant.
+        #      The correct package (twilight vs beta) is not being installed
+        #      reliably — needs investigation into how browserZen flake
+        #      exposes packages and whether inputPath resolution is working.
+        # cmd = "zen-twilight";
+        cmd = "zen";
         pkg = pkgs.zen-browser or null;
         inputPath = ["zen-browser" system "twilight"];
       };
@@ -182,7 +188,8 @@
         system,
         ...
       }: {
-        cmd = "zen-beta";
+        # cmd = "zen-beta";
+        cmd = "zen";
         pkg = pkgs.zen-browser or null;
         inputPath = ["zen-browser" system "beta"];
       };

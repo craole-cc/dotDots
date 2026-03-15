@@ -416,10 +416,20 @@
       else if selectedInterface != null
       then selectedInterface.config.launcher
       else null;
+
+    defaultSession =
+      if interface.defaultSession or null != null
+      then interface.defaultSession # explicit override wins
+      else if windowManager != null
+      then windowManager
+      else if desktopEnvironment != null
+      then desktopEnvironment
+      else null;
   in
     interface
     // {
       inherit
+        defaultSession
         desktopEnvironment
         windowManager
         displayProtocol

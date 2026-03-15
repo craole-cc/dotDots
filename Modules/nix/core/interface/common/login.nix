@@ -1,3 +1,4 @@
+# interface/common/login.nix
 {
   config,
   host,
@@ -7,35 +8,32 @@
 }: let
   inherit (lib.modules) mkIf;
   cfg = config.${top}.interface;
-
   user = host.users.data.primary or {};
-  useDms = cfg.bar == "dms" && (cfg.wm == "niri" || cfg.wm == "hyprland");
+  useDms =
+    cfg.windowShell
+    == "dms"
+    && (cfg.windowManager == "niri" || cfg.windowManager == "hyprland");
 in {
-  config = mkIf (cfg.uiShell != null) {
+  config = mkIf (cfg.displayManager != null) {
     services.displayManager = {
-      defaultSession = cfg.uiShell;
-
+      defaultSession = cfg.defaultSession;
       autoLogin = mkIf (user.autoLogin or false) {
         enable = true;
         user = user.name or null;
       };
-
-      sddm = mkIf (cfg.dm == "sddm") {
+      sddm = mkIf (cfg.displayManager == "sddm") {
         enable = true;
-        wayland.enable = cfg.dp == "wayland";
+        wayland.enable = cfg.displayProtocol == "wayland";
       };
-
-      gdm = mkIf (cfg.dm == "gdm") {
+      gdm = mkIf (cfg.displayManager == "gdm") {
         enable = true;
-        wayland = cfg.dp == "wayland";
+        wayland = cfg.displayProtocol == "wayland";
       };
-
-      cosmic-greeter.enable = cfg.dm == "cosmic-greeter" && !useDms;
-      dms-greeter.enable = useDms || cfg.dm == "dms-greeter";
-      ly.enable = cfg.dm == "ly";
+      cosmic-greeter.enable = cfg.displayManager == "cosmic-greeter" && !useDms;
+      dms-greeter.enable = useDms || cfg.displayManager == "dms-greeter";
+      ly.enable = cfg.displayManager == "ly";
     };
-
-    systemd.services = mkIf (cfg.dm == "gdm") {
+    systemd.services = mkIf (cfg.displayManager == "gdm") {
       "getty@tty1".enable = false;
       "autovt@tty1".enable = false;
     };

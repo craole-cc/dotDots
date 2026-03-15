@@ -120,7 +120,9 @@
 
   /**
   Build a fully-resolved path tree for every well-known location in the
-  project. Each leaf is a `{ store, local }` attrset produced by `construct`.
+  project. Each leaf in the store tree is a Nix path value (importable as
+  a module). `mkLocal` builds a parallel string tree rooted at a runtime
+  path.
 
   Built-in groups are always present. Callers extend or override them via:
 
@@ -131,57 +133,68 @@
 
   # Type
   ```
-  mkTree :: { root  :: path?
-    , bases :: { <group> :: [string] }?
-    , stems :: { <group> :: { <key> :: [string] } }?
-  }
-  -> { default :: { store, local }
-    , <group> :: { <key> :: { store, local } }
-    , …
-    }
+  mkTree :: { bases :: { <group> :: [string] }?
+            , stems :: { <group> :: { <key> :: [string] } }?
+            }
+         -> { default  :: path | null
+            , mkLocal  :: path | string | { root :: path | string } -> { default :: string, <group> :: { <key> :: string } }
+            , <group>  :: { <key> :: path | null }
+            , …
+            }
   ```
 
   # Arguments
-  - `root`  — base directory for all paths; defaults to `src`
-  - `bases` — override the root segment of any built-in group; all derived
-              keys re-evaluate automatically
-  - `stems` — override/extend individual keys, or add new groups; groups
-              with a `default` key replace the full built-in group
+  - `bases` — override the root segment of any built-in group
+  - `stems` — override/extend individual keys or add new groups
 
   # Examples
   ```nix
-  mkTree {}.lib.nix.store         # => "/nix/store/…-dotDots/Libraries/nix"
-  mkTree {}.api.hosts.local       # => "/home/…/dotDots/API/nix/hosts"
-  mkTree {}.pkg.overlays.store    # => "/nix/store/…-dotDots/Packages/nix/overlays"
-  mkTree {}.assets.fonts.local    # => "/home/…/dotDots/Assets/Fonts"
+  mkTree {}.lib.nix               # => /nix/store/…-dotDots/Libraries/nix
+  mkTree {}.pkg.overlays          # => /nix/store/…-dotDots/Packages/nix/overlays
 
-  mkTree { bases.lib = ["Lib"]; }.lib.rust.local
-  # => "/home/…/dotDots/Lib/rust"
+  mkTree {}.mkLocal "/home/user/dots"
+  # => { default = "/home/user/dots"; lib.nix = "/home/user/dots/Libraries/nix"; … }
 
-  mkTree { stems.assets.screenshots = ["Assets" "Images" "screenshots"]; }
-  # adds screenshots alongside existing siblings
+  mkTree { bases.lib = ["Lib"]; }.lib.rust
+  # => /nix/store/…-dotDots/Lib/rust
   ```
   */
   mkTree = {
     bases ? {},
     stems ? {},
+    dots ? src, # ← optional, defaults to src for eval-time use
   }: let
-    root = src;
     bases' = defaultBases // bases;
     commonStems = mkGroup bases';
 
-    # Stop recursing when the incoming group has a `default` key — the caller
-    # owns the full derivation. Otherwise merge deeply so siblings survive.
     stems' =
       recursiveUpdateUntil
       (_path: _lhs: rhs: isAttrs rhs && rhs ? default)
       commonStems
       stems;
 
-    resolveGroup = group:
-      mapAttrs (_: stem: construct {inherit root stem;}) group;
+    resolveStore = root: group:
+      mapAttrs (_: stem: (construct {inherit root stem;}).store) group;
+
+    resolveLocal = root: group:
+      mapAttrs (_: stem: (construct {inherit root stem;}).local) group;
+
+    mkLocal = arg: let
+      root =
+        if isAttrs arg
+        then arg.root
+        else arg;
+    in
+      {default = (construct {inherit root;}).local;}
+      // mapAttrs (_: resolveLocal root) stems';
+
+    store = mapAttrs (_: resolveStore src) stems';
+    local = mapAttrs (_: resolveLocal dots) stems';
   in
-    {default = construct {inherit root;};}
-    // mapAttrs (_: resolveGroup) stems';
+    {
+      default = (construct {root = src;}).store;
+      inherit mkLocal store local;
+    }
+    // store;
 in
   exports.internal // {_rootAliases = exports.external;}

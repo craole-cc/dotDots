@@ -10,7 +10,7 @@
   cfg = config.${top}.${dom}.${mod};
 
   iface = config.${top}.interface;
-  isWayland = iface.dp == "wayland";
+  isWayland = iface.displayProtocol == "wayland";
   nvidiaEnabled = config.hardware.nvidia.modesetting.enable or false;
 
   inherit (lib.modules) mkIf;

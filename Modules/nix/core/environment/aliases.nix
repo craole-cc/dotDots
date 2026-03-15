@@ -8,8 +8,6 @@
   dom = "environment";
   mod = "aliases";
   cfg = config.${top}.${dom}.${mod};
-
-  # user = host.users.data.primary or {};
   dots = host.paths.dots or null;
 
   inherit (lib.modules) mkIf;
@@ -41,8 +39,8 @@
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
-    base = mkOption {
-      description = "Base shell aliases";
+    default = mkOption {
+      description = "Default shell aliases";
       default = defaultAliases;
       type = attrsOf str;
     };
@@ -54,6 +52,6 @@ in {
   };
 
   config = mkIf cfg.enable {
-    environment.shellAliases = cfg.base // cfg.extra;
+    environment.shellAliases = cfg.default // cfg.extra;
   };
 }

@@ -9,14 +9,9 @@
   dom = "system";
   mod = "programs";
   cfg = config.${top}.${dom}.${mod};
-
-  iface = config.${top}.interface;
-  wm = iface.wm;
-  prompt = iface.prompt or null;
-  shell = iface.shell or null;
-
   user = host.users.data.primary or {};
 
+  inherit (config.${top}.interface) shellPrompt shell;
   inherit (lix.lists.predicates) isIn;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
@@ -54,7 +49,7 @@ in {
         };
       };
 
-      starship.enable = prompt == "starship";
+      starship.enable = shellPrompt == "starship";
 
       git = {
         enable = true;

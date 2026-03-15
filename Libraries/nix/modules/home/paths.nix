@@ -177,12 +177,11 @@
       ;
     inherit (host.paths) dots;
     home = config.home.homeDirectory or (getEnv "HOME");
-
     wallpapers = let
       raw = nestedOr {
         attrs = user.paths or {};
         path = ["wallpapers" "all"];
-        default = null;
+        default = tree.res.wallpaper or "home:Pictures/Wallpapers";
       };
 
       all =

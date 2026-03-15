@@ -179,6 +179,7 @@
     avatars = {
       session = pics + "/avatar.jpg";
     };
+    wallpapers = "home:Pictures/Wallpapers";
     # wallpapers = let
     #   all = [
     #     "dots:Assets/Images/wallpapers"

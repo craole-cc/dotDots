@@ -7,24 +7,22 @@
   top,
   ...
 }: let
-  dom = "system";
-  mod = "users";
-  cfg = config.${top}.${dom}.${mod};
+  dom = "users";
+  cfg = config.${top}.${dom};
 
   inherit (lix.attrsets.resolution) package;
   inherit (lix.lists.predicates) isIn;
   inherit (lib.attrsets) mapAttrs;
   inherit (lib.lists) head optionals;
   inherit (lib.modules) mkIf;
-  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.options) mkOption;
   inherit (lib.types) bool;
 
   hostUsers = host.users.data.enabled or {};
   adminNames = host.users.names.elevated or [];
   hasNetwork = host.hardware.hasNetwork;
 in {
-  options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = true;};
+  options.${top}.${dom} = {
     execWheelOnly = mkOption {
       description = "Restrict sudo to wheel group members";
       default = true;

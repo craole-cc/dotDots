@@ -11,7 +11,7 @@ in {
 
   paths = {
     dots = "/home/craole/Downloads/public/dotDots";
-    wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
+    # wallpapers = "/home/craole/.dots/Assets/Images/wallpaper";
   };
 
   packages = {

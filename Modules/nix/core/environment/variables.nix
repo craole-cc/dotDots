@@ -6,20 +6,20 @@
   inputs,
   pkgs,
   top,
+  tree,
   ...
 }: let
   dom = "environment";
   mod = "variables";
   cfg = config.${top}.${dom}.${mod};
-
+  dots = host.paths.dots;
   user = host.users.data.primary or {};
   apps = user.applications or {};
   system = pkgs.stdenv.hostPlatform.system;
-  dp = config.${top}.interface.dp;
+  wallpapers = host.paths.wallpapers or tree.res.wallpapers;
 
-  dots = host.paths.dots or null;
-  wallpapers = host.paths.wallpapers or null;
-
+  inherit (config.${top}.interface) displayProtocol;
+  inherit (lib.attrsets) optionalAttrs;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) attrsOf str;
@@ -48,16 +48,16 @@
 
   defaultVars =
     {
-      EDITOR = editorCmds.editor;
-      VISUAL = editorCmds.visual;
-      BROWSER = browserCmds.primary;
-      TERMINAL = terminalCmds.primary;
-      LAUNCHER = launcherCmds.primary;
       BAR = barCmds.primary;
+      BROWSER = browserCmds.primary;
+      DOTS = dots;
+      EDITOR = editorCmds.editor;
+      LAUNCHER = launcherCmds.primary;
+      TERMINAL = terminalCmds.primary;
+      VISUAL = editorCmds.visual;
+      WALLPAPERS = wallpapers;
     }
-    // lib.optionalAttrs (dots != null) {DOTS = dots;}
-    // lib.optionalAttrs (wallpapers != null) {WALLPAPERS = wallpapers;}
-    // lib.optionalAttrs (dp == "wayland") {
+    // optionalAttrs (displayProtocol == "wayland") {
       NIXOS_OZONE_WL = "1";
       WLR_RENDERER_ALLOW_SOFTWARE = "1";
       WLR_NO_HARDWARE_CURSORS = "1";
@@ -86,7 +86,7 @@
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
-    base = mkOption {
+    default = mkOption {
       description = "Base session variables";
       default = defaultVars;
       type = attrsOf str;
@@ -99,6 +99,6 @@ in {
   };
 
   config = mkIf cfg.enable {
-    environment.sessionVariables = cfg.base // cfg.extra;
+    environment.sessionVariables = cfg.default // cfg.extra;
   };
 }

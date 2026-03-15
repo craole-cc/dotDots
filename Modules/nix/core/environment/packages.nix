@@ -110,7 +110,7 @@
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};
-    base = mkOption {
+    default = mkOption {
       description = "Base system packages";
       default = defaultPackages;
       type = listOf package;
@@ -124,7 +124,7 @@ in {
 
   config = mkIf cfg.enable {
     environment.systemPackages =
-      cfg.base
+      cfg.default
       ++ cfg.extra
       ++ editorPkgs
       ++ browserPkgs

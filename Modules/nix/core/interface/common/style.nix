@@ -19,7 +19,7 @@
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasPrefix;
   inherit (lib.types) bool enum int nullOr str;
-  getPackage = lix.attrsets.resolution.package;
+  inherit (lix.attrsets.resolution) getPackage;
 
   themeMap = {
     "Catppuccin Frappé" = {

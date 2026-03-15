@@ -5,7 +5,8 @@
     flake = self;
     path = ./.;
     names = {
-      top = "dots";
+      top = "_";
+      # top = "dots";
       lib = "lix";
     };
     inherit (inputs.nixPackages) lib legacyPackages;
@@ -36,7 +37,7 @@
         pkgs,
       }: {
         inherit
-          (import args.tree.mod.global.store {
+          (import args.tree.mod.global {
             inherit
               path
               lib
@@ -59,7 +60,7 @@
           extraArgs = args;
         };
       }
-      // import args.tree.kit.default.store
+      // import args.tree.kit.default
     );
 
   inputs = {
