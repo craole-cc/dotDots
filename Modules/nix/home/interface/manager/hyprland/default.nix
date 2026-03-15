@@ -44,6 +44,7 @@ in {
       (import ./submaps {inherit mkMerge;})
     ];
 
+    #TODO: This is repetitive
     programs =
       mkIf cfg.withAddons
       (import ./addons {inherit lib mkMerge paths;}).programs;
