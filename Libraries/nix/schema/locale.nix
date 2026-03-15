@@ -2,12 +2,21 @@
   inherit (lib.lists) elem;
   inherit (lib.attrsets) recursiveUpdate;
 
+  __exports = {
+    internal = {inherit defaults mkLocale;};
+    external = {
+      defaultLocale = defaults;
+      mkSchemaLocale = mkLocale;
+    };
+  };
+
   defaults = {
-    timeZone = null;
-    defaultLocale = null;
-    latitude = null;
-    longitude = null;
+    city = "Mandeville, Jamaica";
+    timeZone = "America/Jamaica";
+    defaultLocale = "en_US.UTF-8";
     locator = "geoclue2";
+    latitude = 18.015;
+    longitude = -77.49;
     dualBootWindows = false;
   };
 
@@ -24,4 +33,5 @@
     defaults
     // merged
     // {dualBootWindows = elem "dualboot-windows" fun;};
-in {inherit mkLocale defaults;}
+in
+  __exports.internal // {_rootAliases = __exports.external;}

@@ -14,11 +14,14 @@
   mod = "hyprland";
   cfg = config.${top}.${dom}.${mod};
 
+  # Use user.interface directly — already normalized per-user in mkUsers
   inherit (user.interface) windowManager;
-  inherit (lib.attrsets) optionalAttrs;
+
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
+
+  addons = import ./addons {inherit lib mkMerge paths;};
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = windowManager == "hyprland";};
@@ -34,23 +37,20 @@ in {
     };
   };
 
-  config =
-    mkIf cfg.enable {
-      wayland.windowManager.hyprland = mkMerge [
-        {
-          enable = true;
-          plugins = [];
-        }
-        (import ./settings {
-          inherit host lib lix apps user keyboard mkMerge;
-          withRules = cfg.withRules;
-        })
-        (import ./submaps {inherit mkMerge;})
-      ];
-    }
-    // optionalAttrs cfg.withAddons (let
-      addons = import ./addons {inherit lib mkMerge paths;};
-    in {
-      inherit (addons) programs services;
-    });
+  config = mkIf cfg.enable {
+    wayland.windowManager.hyprland = mkMerge [
+      {
+        enable = true;
+        plugins = [];
+      }
+      (import ./settings {
+        inherit host lib lix apps user keyboard mkMerge;
+        withRules = cfg.withRules;
+      })
+      (import ./submaps {inherit mkMerge;})
+    ];
+
+    programs = mkIf cfg.withAddons addons.programs;
+    services = mkIf cfg.withAddons addons.services;
+  };
 }

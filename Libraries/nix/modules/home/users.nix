@@ -5,11 +5,10 @@
 }: let
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
-  inherit (_.modules.home.environment) mkLocale;
   inherit (_.modules.home.paths) mkSessionPaths;
   inherit (_.modules.home.programs) mkPrograms mkApps;
   inherit (_.modules.home.style) mkStyle;
-  inherit (_.schema._) mkUI;
+  inherit (_.schema._) mkUI mkLocale;
   inherit (lib.attrsets) mapAttrs;
 
   exports = {
@@ -59,10 +58,7 @@
             };
           apps = mkPrograms {inherit host user;};
           keyboard = mkKeyboard {inherit host user;};
-          locale = mkLocale {
-            inherit host;
-            inherit user;
-          };
+          locale = mkLocale {inherit host user;};
           paths = derivedPaths;
           inherit inputsForHome;
         };
