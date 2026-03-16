@@ -4,12 +4,11 @@ in {
   main = {
     app-id = "foot";
     dpi-aware = mkForce "yes";
-    font = mkForce "monospace:size=13";
+    font = mkDefault "monospace:size=13";
     pad = "24x24";
     bold-text-in-bright = "yes";
 
     #~@ Initial Theme
-    #? Options: "dark", "light"
     initial-color-theme = "dark";
 
     #~@ Selection Behavior

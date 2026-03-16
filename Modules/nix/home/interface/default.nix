@@ -40,6 +40,7 @@
 in {
   _module.args = {inherit cursor icons;};
   imports = lix.filesystem.importers.importAll ./.;
+
   gtk = {
     enable = mkForce true;
     iconTheme = mkForce {
@@ -48,6 +49,8 @@ in {
     cursorTheme = mkForce {
       inherit (cursor) package name size;
     };
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
+    gtk4.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
   };
 
   home.pointerCursor = mkForce {
@@ -62,13 +65,16 @@ in {
     style.name = "kvantum";
   };
 
-  stylix.targets = {
-    qt.enable = mkForce false;
-    foot = {
-      enable = true;
-      colors.enable = false; #? Stylix is using the deprecated [colors]
-      opacity.enable = false;
-      # fonts.enable = false;
+  stylix = {
+    polarity = "light";
+    targets = {
+      qt.enable = mkForce false;
+      foot = {
+        enable = true;
+        colors.enable = false; #? Stylix is using the deprecated [colors]
+        opacity.enable = false;
+        # fonts.enable = false;
+      };
     };
   };
 }
