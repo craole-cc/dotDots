@@ -69,11 +69,7 @@ fi
 
 #> Sync caelestia scheme
 if command -v caelestia >/dev/null 2>&1; then
-	case "$CFG_POLARITY" in
-	dark) caelestia scheme set --name catppuccin --flavor frappe 2>/dev/null || true ;;
-	light) caelestia scheme set --name catppuccin --flavor latte 2>/dev/null || true ;;
-	esac
-	caelestia scheme set -m "$CFG_POLARITY" 2>/dev/null || true
+	caelestia scheme set --mode "$CFG_POLARITY" 2>/dev/null || true
 else
 	printf 'Warning: caelestia not found\n'
 fi
