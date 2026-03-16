@@ -152,9 +152,14 @@
       repo = "vscode-insiders-nix";
       owner = "auguwu";
       type = "github";
-      inputs = {
-        nixpkgs.follows = "nixPackages";
-      };
+      inputs.nixpkgs.follows = "nixPackages";
+    };
+
+    editorVSCodeExtensions = {
+      repo = "nix-vscode-extensions";
+      owner = "nix-community";
+      type = "github";
+      inputs.nixpkgs.follows = "nixPackages";
     };
 
     shellDankMaterial = {

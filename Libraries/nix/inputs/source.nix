@@ -306,10 +306,24 @@
           ["code-insiders"]
           ["vsc"]
           ["VSCode"]
+          ["editorVSCode"]
           ["editorVscode"]
           ["editorVscodeInsiders"]
           ["vscode-insiders-nix"]
           ["vscode-insiders"]
+        ];
+      };
+
+      nix-vscode-extensions = byPaths {
+        inherit attrset;
+        default = {};
+        paths = [
+          ["editorVSCodeExtensions"]
+          ["editorVSCodeMarketplace"]
+          ["editorVscodeMarketplace"]
+          ["vscode-marketplace"]
+          ["vscode-extensions"]
+          ["nix-vscode-extensions"]
         ];
       };
 

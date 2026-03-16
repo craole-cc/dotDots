@@ -70,6 +70,7 @@
         (import ./extensions.nix {inherit pkgs;})
         (import ./files.nix)
         (import ./git.nix)
+        (import ./global.nix)
         (import ./languages.nix)
         (import ./terminal.nix)
         (import ./theme.nix)

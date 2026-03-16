@@ -20,8 +20,5 @@
     "terminal.integrated.mouseWheelZoom" = false;
     "terminal.integrated.rightClickBehavior" = "copyPaste";
     "terminal.integrated.smoothScrolling" = true;
-
-    # Linux default profile
-    # "terminal.integrated.defaultProfile.linux" = "nushell";
   };
 }
