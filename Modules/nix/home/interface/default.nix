@@ -61,5 +61,14 @@ in {
     platformTheme.name = "gtk";
     style.name = "kvantum";
   };
-  stylix.targets.qt.enable = mkForce false;
+
+  stylix.targets = {
+    qt.enable = mkForce false;
+    foot = {
+      enable = true;
+      colors.enable = false; #? Stylix is using the deprecated [colors]
+      opacity.enable = false;
+      # fonts.enable = false;
+    };
+  };
 }
