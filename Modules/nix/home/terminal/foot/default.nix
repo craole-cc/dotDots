@@ -66,7 +66,7 @@
     extraProgramConfig = {
       server.enable = true;
       settings = mkMerge [
-        (import ./settings.nix)
+        (import ./settings.nix {inherit lib;})
         (import ./input.nix)
         (import ./themes.nix)
       ];
