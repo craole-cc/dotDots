@@ -43,6 +43,13 @@
       else "latte"
     );
 
+  vscodeThemes = {
+    "Catppuccin Frappé" = "Catppuccin Frappé";
+    "Catppuccin Latte" = "Catppuccin Latte";
+    "Catppuccin Macchiato" = "Catppuccin Macchiato";
+    "Catppuccin Mocha" = "Catppuccin Mocha";
+  };
+
   toggle = polarity:
     replaceVarsWith {
       src = ./toggle.sh;
@@ -50,6 +57,16 @@
         cfgApi = "${paths.api.user}";
         cfgPolarity = polarity;
         cfgCaelestiaFlavour = caelestiaFlavour polarity;
+        cfgVscodeTheme =
+          vscodeThemes.${
+            if polarity == "dark"
+            then darkTheme
+            else lightTheme
+          } or (
+            if polarity == "dark"
+            then "Catppuccin Frappé"
+            else "Catppuccin Latte"
+          );
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";
