@@ -10,7 +10,7 @@ in {
 
     #~@ Initial Theme
     #? Options: "dark", "light"
-    initial-color-theme = "dark";
+    initial-color-theme = mkForce "dark";
 
     #~@ Selection Behavior
     #? Automatically copy the selection to the clipboard
