@@ -9,7 +9,6 @@
   cat = lib.lists.concatMap;
   mat = lib.attrsets.mapAttrsToList;
 
-  #> Split workspaces to handle numbers and F-keys properly
   numWorkspaces = map toString (range 0 9);
   fWorkspaces = map (n: "F${toString n}") (range 1 12);
 
@@ -43,20 +42,14 @@
         else ''cd ${workdir} && ${command}''
       else command;
 
-    #? Single-line move script
     moveScript = ''for i in {1..10}; do sleep 0.3; hyprctl dispatch movetoworkspacesilent 'special:${workspace},class:^(${class})$' 2>/dev/null | grep -q 'ok' && break; done'';
-
-    #> Format modifier string to prevent syntax errors
     modStr = "${mod}${lib.optionalString (extraMod != "") " ${extraMod}"}";
   in {
     bind = "${modStr},${key},togglespecialworkspace,${workspace}";
     exec =
-      #? Edge needs explicit move because it ignores workspace specs
       if (class == "microsoft-edge")
       then ''sh -c "${cmd} & ${moveScript}"''
       else "[workspace special:${workspace} silent] ${cmd}";
-
-    #> Map the class match over the rules
     rule = [
       "workspace special:${workspace} silent, match:class ^(${class})$"
       "float on, match:class ^(${class})$"
@@ -115,11 +108,12 @@
   }:
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
+  windowrule = cat (v: v.rule) allVariants;
+  exec-once = map (v: v.exec) allVariants;
+
   bind = flatten [
-    #~@ Special workspaces
     (map (v: v.bind) allVariants)
 
-    #~@ Regular Workspaces
     (cat (n: let
         ws =
           if n == "0"
@@ -131,14 +125,12 @@ in {
       ])
       numWorkspaces)
 
-    #~@ Function-key Workspaces
     (cat (n: [
         "${mod},${n},workspace,name:${n}"
         "${mod} SHIFT,${n},movetoworkspacesilent,name:${n}"
       ])
       fWorkspaces)
 
-    #~@ Directional bindings
     (mkDirectionalBinds {action = "movefocus";})
     (mkDirectionalBinds {
       modifier = "${mod} SHIFT";
@@ -157,6 +149,4 @@ in {
       action = "movecurrentworkspacetomonitor";
     })
   ];
-  exec-once = map (v: v.exec) allVariants;
-  windowrule = cat (v: v.rule) allVariants;
 }

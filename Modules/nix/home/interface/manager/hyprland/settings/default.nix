@@ -13,7 +13,13 @@ in {
   settings = mkMerge [
     (import ./core.nix {inherit apps keyboard;})
     (import ./io.nix {inherit apps host lix lib keyboard;})
-    (mkIf withRules (import ./rules.nix {inherit lib;}))
-    (mkIf withRules (import ./workspaces.nix {inherit lib apps keyboard;}))
+    (mkIf withRules (import ./rules {
+      inherit
+        apps
+        keyboard
+        lib
+        mkMerge
+        ;
+    }))
   ];
 }
