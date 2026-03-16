@@ -17,7 +17,9 @@
   '';
 
   __exports = {
-    internal = {inherit mkSystems mkCore mkHome mkFlakeOutputs mkTree;};
+    internal = {
+      inherit mkSystems mkFlakeOutputs mkCore mkHome mkTree;
+    };
     external = {inherit mkSystems mkFlakeOutputs;};
   };
 
@@ -25,9 +27,10 @@
   inherit (_.hardware.system) getSystems;
   inherit (_.inputs.modules) mkModules;
   inherit (_.inputs.packages) mkPackages;
-  inherit (_.modules) core home;
+  inherit (_.modules.core) mkCore;
+  inherit (_.modules.home) mkHome;
   inherit (lib.attrsets) attrNames genAttrs mapAttrs;
-  inherit (lib.modules) evalModules mkMerge;
+  inherit (lib.modules) evalModules;
 
   /**
   Evaluate all hosts from the discovered schema into concrete system outputs.
@@ -72,12 +75,14 @@
 
         modules = let
           fromInputs = flakeArgs.modules;
+
           fromHost = mkCore {
             inherit host specialArgs;
             inherit (flakeArgs) modules inputs;
             inherit (flakeArgs.packages) nixpkgs;
             tree = tree';
           };
+
           fromEval = evalModules {
             specialArgs =
               specialArgs
@@ -103,78 +108,6 @@
         else modules.fromEval
     )
     schema.hosts;
-
-  /**
-  Build the host-specific core module list used during system evaluation.
-
-  Produces the base module stack for a host by combining low-level hardware,
-  networking, environment, services, programs, users, and home-manager glue.
-  The result is returned as a module list suitable for `evalModules`.
-
-  # Args:
-    host: The enriched host definition.
-    nixpkgs: The resolved nixpkgs source/configuration attrset.
-    inputs: Canonically resolved flake inputs.
-    modules: Resolved input-provided module sets.
-    specialArgs: Extra arguments forwarded into module evaluation.
-
-  # Returns:
-    A list of modules for the target host, including any host-local imports.
-  */
-  mkCore = {
-    host,
-    nixpkgs,
-    inputs,
-    modules,
-    specialArgs,
-    tree,
-  }: [
-    {inherit nixpkgs;}
-    (mkHome {
-      inherit host specialArgs tree inputs;
-      modules = modules.home;
-    })
-  ];
-
-  /**
-  Produce the complete Home Manager option block for the current host.
-
-  Configures Home Manager to reuse the system package set, forward shared
-  special arguments, and generate per-user configurations through the
-  home user builder.
-
-  # Args:
-    host: The current host definition.
-    specialArgs: Arguments forwarded into Home Manager modules.
-    inputs: Canonically resolved flake inputs.
-    modules: Resolved Home Manager module set.
-    tree: Repository tree metadata used by downstream user builders.
-
-  # Returns:
-    A module fragment defining the `home-manager` configuration block.
-  */
-  mkHome = {
-    host,
-    specialArgs,
-    inputs,
-    modules,
-    tree,
-  }: {
-    home-manager = {
-      backupFileExtension = "BaC";
-      overwriteBackup = true;
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      extraSpecialArgs =
-        specialArgs
-        // {
-          lib = lib.extend (_self: _super: {
-            hm = inputs.home-manager.lib.hm or {};
-          });
-        };
-      users = home.users.mkUsers {inherit inputs modules host tree;};
-    };
-  };
 
   /**
   Generate system-indexed flake-style outputs from a function.
