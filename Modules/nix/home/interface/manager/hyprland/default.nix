@@ -30,11 +30,7 @@ in {
       default = true;
       type = bool;
     };
-    withRules = mkOption {
-      description = "Enable window rules";
-      default = true;
-      type = bool;
-    };
+    withRules = mkEnableOption "Window rules" // {default = true;};
   };
 
   config = mkIf cfg.enable {
