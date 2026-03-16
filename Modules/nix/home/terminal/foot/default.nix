@@ -65,15 +65,11 @@
     extraPackages = wrappers ++ [desktop quake];
     extraProgramConfig = {
       server.enable = true;
-      settings =
-        mkMerge [
-          (import ./settings.nix)
-          (import ./input.nix)
-          (import ./themes.nix)
-        ]
-        // {
-          main.initial-color-theme = "dark";
-        };
+      settings = mkMerge [
+        (import ./settings.nix)
+        (import ./input.nix)
+        (import ./themes.nix)
+      ];
     };
     debug = false;
   };
