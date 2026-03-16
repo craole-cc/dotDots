@@ -5,7 +5,7 @@
 }: let
   system = pkgs.stdenv.hostPlatform.system;
   fromNixpkgs = pkgs.vscode-extensions;
-  fromMarket = inputs.nix-vscode-extensions.extensions.${system}.open-vsx;
+  fromMarket = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
 in {
   extensions =
     (with fromNixpkgs; [
@@ -22,7 +22,6 @@ in {
       donjayamanne.githistory
       mhutchie.git-graph
       waderyan.gitblame
-      yy0931.gitconfig-lsp
 
       #~@ AI
       github.copilot
@@ -131,12 +130,11 @@ in {
 
       #~@ Language Support
       bluebrown.yamlfmt
-      hverlin.mise-vscode
-      jeff-hykin.better-shellscript-syntax
-      jjk.jjk
-      kdl-org.kdl
       lkrms.inifmt
       nefrob.vscode-just-syntax
+      kdl-org.kdl
+      jjk.jjk
+      hverlin.mise-vscode
       yy0931.gitconfig-lsp
 
       #~@ Database
@@ -146,5 +144,6 @@ in {
       #~@ Utilities
       rebornix.toggle
       dakara.transformer
+      jeff-hykin.better-shellscript-syntax
     ]);
 }
