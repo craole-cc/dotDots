@@ -8,11 +8,11 @@
 if [ -z "${WAYLAND_DISPLAY:-}" ]; then
 	printf "Error: Foot requires Wayland. WAYLAND_DISPLAY is not set.\n" >&2
 	exit 1
+else
+	USER_ID=$(id -u)
+	THEME_FILE="/tmp/foot-theme-$USER_ID"
+	SOCKET="/run/user/$USER_ID/foot-${WAYLAND_DISPLAY}.sock"
 fi
-
-USER_ID=$(id -u)
-THEME_FILE="/tmp/foot-theme-$USER_ID"
-SOCKET="/run/user/$USER_ID/foot-${WAYLAND_DISPLAY}.sock"
 
 has_cmd() {
 	command -v "$1" >/dev/null 2>&1
@@ -176,7 +176,6 @@ launch_with_server() {
 	exec "$client_cmd" --server-socket="$socket" "$@"
 }
 
-#> Theme Monitor Mode
 monitor_mode() {
 	# Enable debug mode if DEBUG env var is set
 	DEBUG="${FOOT_THEME_DEBUG:-0}"
@@ -224,35 +223,34 @@ find_window_id() {
 
 quake_mode() {
 	QUAKE_ID="foot-quake"
-	SOCKET="/run/user/$(id -u)/foot-wayland-0.sock"
 	WINDOW_ID=$(find_window_id "$QUAKE_ID")
 
 	if [ -n "${WINDOW_ID:-}" ]; then
 		#? Window exists, check its state and toggle it
-		WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "$WINDOW_ID" 2>/dev/null)
+		WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "${WINDOW_ID}" 2>/dev/null)
 
-		if printf "%s" "$WINDOW_INFO" | grep -q "minimized: true"; then
+		if printf "%s" "${WINDOW_INFO}" | grep -q "minimized: true"; then
 			#> Window is minimized, show it
-			qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "$WINDOW_ID" 2>/dev/null
-			qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "$WINDOW_ID" 2>/dev/null
-		elif printf "%s" "$WINDOW_INFO" | grep -q "active: true"; then
+			qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "${WINDOW_ID}" 2>/dev/null
+			qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2>/dev/null
+		elif printf "%s" "${WINDOW_INFO}" | grep -q "active: true"; then
 			#> Window is active and visible, hide it
-			qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "$WINDOW_ID" 2>/dev/null
+			qdbus org.kde.KWin /KWin org.kde.KWin.minimizeWindow "${WINDOW_ID}" 2>/dev/null
 		else
 			#> Window exists but not active, activate it
-			qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "$WINDOW_ID" 2>/dev/null
+			qdbus org.kde.KWin /KWin org.kde.KWin.activateWindow "${WINDOW_ID}" 2>/dev/null
 		fi
 	else
 		#> Window doesn't exist, launch it
-		launch_with_server "$THEME_FILE" "$SOCKET" "$(detect_theme)" footclient \
-			--app-id="$QUAKE_ID" \
+		launch_with_server "${THEME_FILE}" "${SOCKET}" "$(detect_theme)" footclient \
+			--app-id="${QUAKE_ID}" \
 			--window-size-chars=240x40 \
 			>/dev/null 2>&1 &
 	fi
 }
 
 launch_terminal() {
-	launch_with_server "$THEME_FILE" "$SOCKET" "$(detect_theme)" footclient "$@"
+	launch_with_server "${THEME_FILE}" "${SOCKET}" "$(detect_theme)" footclient "$@"
 }
 
 #> Main execution
