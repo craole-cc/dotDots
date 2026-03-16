@@ -6,7 +6,7 @@
   lix,
   keyboard,
   mkMerge,
-  withRules ? false,
+  withRules ? true,
   ...
 }: {
   settings = mkMerge [
