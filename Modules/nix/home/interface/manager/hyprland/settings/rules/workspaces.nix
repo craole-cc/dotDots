@@ -30,7 +30,6 @@
     class,
     workspace,
     key,
-    size ? "100%",
     extraMod ? "",
     workdir ? null,
   }: let
@@ -52,7 +51,7 @@
       else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, match:class ^(${class})$"
-      "suppressevent fullscreen, match:class ^(${class})$"
+      "suppress_event fullscreen maximize, match:class ^(${class})$"
       # "workspace special:${workspace} silent, match:class ^(${class})$"
       # "float on, match:class ^(${class})$"
       # "border_size 0, match:class ^(${class})$"
