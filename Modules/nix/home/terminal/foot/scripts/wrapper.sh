@@ -4,15 +4,37 @@
 #? POSIX-compliant theme detection and terminal launcher
 #? Location: $DOTS/Bin/shellscript/packages/wrappers/feet.sh
 
-#> Early exit if not on Wayland
-if [ -z "${WAYLAND_DISPLAY:-}" ]; then
-	printf "Error: Foot requires Wayland. WAYLAND_DISPLAY is not set.\n" >&2
-	exit 1
-else
-	USER_ID=$(id -u)
-	THEME_FILE="/tmp/foot-theme-$USER_ID"
-	SOCKET="/run/user/$USER_ID/foot-${WAYLAND_DISPLAY}.sock"
-fi
+initialize_environment() {
+	#> Early exit if not on Wayland
+	if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+		printf "Error: Foot requires Wayland. WAYLAND_DISPLAY is not set.\n" >&2
+		exit 1
+	else
+		USER_ID=$(id -u)
+		THEME_FILE="/tmp/foot-theme-$USER_ID"
+		SOCKET="/run/user/$USER_ID/foot-${WAYLAND_DISPLAY}.sock"
+	fi
+}
+
+parse_arguments() {
+	case "${1:-}" in
+	--monitor | -m)
+		monitor_mode
+		;;
+	--quake | -q)
+		shift
+		quake_mode
+		;;
+	--detect | -d)
+		detect_theme
+		printf "\n"
+		;;
+	--help | -h) print_help ;;
+	*)
+		launch_terminal "$@"
+		;;
+	esac
+}
 
 has_cmd() {
 	command -v "$1" >/dev/null 2>&1
@@ -254,19 +276,7 @@ launch_terminal() {
 }
 
 #> Main execution
-case "${1:-}" in
---monitor | -m)
-	monitor_mode
-	;;
---quake | -q)
-	shift
-	quake_mode
-	;;
---detect | -d)
-	detect_theme
-	printf "\n"
-	;;
---help | -h)
+print_help() {
 	cat <<EOF
 Feet - Smart Foot Terminal Wrapper
 
@@ -294,8 +304,6 @@ NOTES:
 ENVIRONMENT:
   FOOT_THEME_DEBUG=1     Enable debug logging in monitor mode
 EOF
-	;;
-*)
-	launch_terminal "$@"
-	;;
-esac
+}
+initialize_environment
+parse_arguments "$@"
