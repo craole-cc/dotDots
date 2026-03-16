@@ -10,6 +10,7 @@ CMD_WALLMAN="@cmdWallman@"
 CFG_POLARITY="@cfgPolarity@"
 CFG_API="@cfgApi@"
 CFG_CAELESTIA_FLAVOUR="@cfgCaelestiaFlavour@"
+CFG_VSCODE_THEME="@cfgVscodeTheme@"
 
 #~@ State
 STATE_FILE="${XDG_STATE_HOME:-${HOME:-}/.local/state}/theme-mode.state"
@@ -83,24 +84,14 @@ else
 	printf 'Warning: caelestia not in PATH\n'
 fi
 
-#>  Sync VSCode theme
-printf ' Syncing VSCode theme...\n'
+#> Sync VSCode theme
+printf 'Syncing VSCode theme...\n'
 VSCODE_SETTINGS="${HOME}/.config/Code/User/settings.json"
 if [ -f "${VSCODE_SETTINGS}" ]; then
-	case "${CFG_POLARITY}" in
-	dark)
-		"${CMD_SD}" \
-			'"workbench.colorTheme": "[^"]*"' \
-			'"workbench.colorTheme": "Catppuccin Frappé"' \
-			"${VSCODE_SETTINGS}" || true
-		;;
-	light)
-		"${CMD_SD}" \
-			'"workbench.colorTheme": "[^"]*"' \
-			'"workbench.colorTheme": "Catppuccin Latte"' \
-			"${VSCODE_SETTINGS}" || true
-		;;
-	esac
+	"${CMD_SD}" \
+		'"workbench.colorTheme": "[^"]*"' \
+		'"workbench.colorTheme": "'"${CFG_VSCODE_THEME}"'"' \
+		"${VSCODE_SETTINGS}" || true
 else
 	printf 'Warning: VSCode settings not found\n'
 fi
