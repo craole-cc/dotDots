@@ -6,12 +6,12 @@
   inherit (_.modules.core.users) homeUsers;
   inherit (_.modules.home.control) mkKeyboard;
   inherit (_.modules.home.paths) mkSessionPaths;
-  inherit (_.modules.home.programs) mkPrograms mkApps;
+  inherit (_.modules.home.programs) mkApps;
   inherit (_.modules.home.style) mkStyle;
-  inherit (_.schema._) mkUI mkLocale;
+  inherit (_.schema._) mkUI mkLocale mkApplications;
   inherit (lib.attrsets) mapAttrs;
 
-  exports = {
+  __exports = {
     internal = {inherit mkUsers;};
     external = {mkHomeUsers = mkUsers;};
   };
@@ -41,24 +41,30 @@
         pkgs,
         ...
       }: let
+        system = pkgs.stdenv.hostPlatform.system;
+        enrichedUser = user // {inherit name;};
         enrichedInterface = mkUI {
           inherit host;
-          user = user // {inherit name;};
+          user = enrichedUser;
         };
         inputsForHome = mkApps {inherit user inputs modules;};
         derivedPaths = mkSessionPaths {inherit config host user pkgs tree;};
       in {
         _module.args = {
           style = mkStyle {inherit host user;};
-          user =
-            user
-            // {
-              inherit name;
-              interface = enrichedInterface; # ← per-user normalized interface
-            };
-          apps = mkPrograms {inherit host user;};
-          keyboard = mkKeyboard {inherit host user;};
-          locale = mkLocale {inherit host user;};
+          user = enrichedUser // {interface = enrichedInterface;};
+          apps = mkApplications {
+            inherit host pkgs inputs system;
+            user = enrichedUser;
+          };
+          keyboard = mkKeyboard {
+            inherit host;
+            user = enrichedUser;
+          };
+          locale = mkLocale {
+            inherit host;
+            user = enrichedUser;
+          };
           paths = derivedPaths;
           inherit inputsForHome;
         };
@@ -80,4 +86,4 @@
       }
     ) (homeUsers host);
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal // {_rootAliases = __exports.external;}

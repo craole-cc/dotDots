@@ -3,7 +3,6 @@
   lib,
   ...
 }: let
-  # inherit (_.inputs.modules) mkModule homeModules;
   inherit (_.inputs.modules) mkModule;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs removeAttrs;
