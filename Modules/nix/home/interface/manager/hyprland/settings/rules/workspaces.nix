@@ -52,10 +52,12 @@
       else "[workspace special:${workspace} silent] ${cmd}";
     rule = [
       "workspace special:${workspace} silent, match:class ^(${class})$"
-      "float on, match:class ^(${class})$"
-      "border_size 0, match:class ^(${class})$"
-      "size 100% ${size}, match:class ^(${class})$"
-      "move 0% 0%, match:class ^(${class})$"
+      "suppressevent fullscreen, match:class ^(${class})$"
+      # "workspace special:${workspace} silent, match:class ^(${class})$"
+      # "float on, match:class ^(${class})$"
+      # "border_size 0, match:class ^(${class})$"
+      # "size 100% ${size}, match:class ^(${class})$"
+      # "move 0% 0%, match:class ^(${class})$"
     ];
   };
 
@@ -108,6 +110,7 @@
   }:
     mat (key: dir: "${modifier},${key},${action},${dir}") directions;
 in {
+  specialWorkspaceNames = flatten (mat (name: _: [name "${name}Alt"]) specialWorkspaces);
   windowrule = cat (v: v.rule) allVariants;
   exec-once = map (v: v.exec) allVariants;
 
