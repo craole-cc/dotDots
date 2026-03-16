@@ -54,7 +54,7 @@ in {
   bindr = [
     #~@ Launcher
     "${mod}, SUPER_L, exec, ${apps.launcher.primary.command}"
-    "${mod}, SPACE, exec, ${apps.launcher.secondary.command}"
+    # "${mod}, SPACE, exec, ${apps.launcher.secondary.command}"
   ];
 
   bindl = [
