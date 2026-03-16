@@ -148,7 +148,7 @@
       };
     };
 
-    editorVscode = {
+    editorVSCode = {
       repo = "vscode-insiders-nix";
       owner = "auguwu";
       type = "github";

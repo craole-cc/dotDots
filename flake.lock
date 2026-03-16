@@ -209,6 +209,26 @@
         "type": "github"
       }
     },
+    "editorVSCode": {
+      "inputs": {
+        "nixpkgs": [
+          "nixPackages"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773649918,
+        "narHash": "sha256-cwFM6y5DAbdGDmiSueQ1PxD8i8u0CUayKB8KCcqPPxE=",
+        "owner": "auguwu",
+        "repo": "vscode-insiders-nix",
+        "rev": "a1dd308c8c23de0d37619cae87350eac39569c30",
+        "type": "github"
+      },
+      "original": {
+        "owner": "auguwu",
+        "repo": "vscode-insiders-nix",
+        "type": "github"
+      }
+    },
     "editorVSCodeExtensions": {
       "inputs": {
         "nixpkgs": [
@@ -226,26 +246,6 @@
       "original": {
         "owner": "nix-community",
         "repo": "nix-vscode-extensions",
-        "type": "github"
-      }
-    },
-    "editorVscode": {
-      "inputs": {
-        "nixpkgs": [
-          "nixPackages"
-        ]
-      },
-      "locked": {
-        "lastModified": 1773649918,
-        "narHash": "sha256-cwFM6y5DAbdGDmiSueQ1PxD8i8u0CUayKB8KCcqPPxE=",
-        "owner": "auguwu",
-        "repo": "vscode-insiders-nix",
-        "rev": "a1dd308c8c23de0d37619cae87350eac39569c30",
-        "type": "github"
-      },
-      "original": {
-        "owner": "auguwu",
-        "repo": "vscode-insiders-nix",
         "type": "github"
       }
     },
@@ -898,8 +898,8 @@
         "editorHelix": "editorHelix",
         "editorNeovim": "editorNeovim",
         "editorTypix": "editorTypix",
+        "editorVSCode": "editorVSCode",
         "editorVSCodeExtensions": "editorVSCodeExtensions",
-        "editorVscode": "editorVscode",
         "nixChaotic": "nixChaotic",
         "nixDarwin": "nixDarwin",
         "nixHomeManager": "nixHomeManager",
