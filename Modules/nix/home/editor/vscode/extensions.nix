@@ -64,8 +64,6 @@ in {
 
       #~@ Themes
       catppuccin.catppuccin-vsc
-      uloco.theme-bluloco-dark
-      uloco.theme-bluloco-light
       dracula-theme.theme-dracula
       mvllow.rose-pine
 
@@ -118,6 +116,8 @@ in {
       be5invis.vscode-custom-css
       illixion.vscode-vibrancy-continued
       elanandkumar.el-vsc-product-icon-theme
+      uloco.theme-bluloco-dark
+      uloco.theme-bluloco-light
 
       #~@ Visual
       lbragile.line-width-indicator
