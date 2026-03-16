@@ -21,7 +21,19 @@
     ];
 
     bind = [
+      #~@ Drawers
       "${mod}, SPACE, exec, caelestia shell drawers toggle launcher"
+      "${mod}, COMMA, exec, caelestia shell drawers toggle dashboard"
+      "${mod}, SEMICOLON, exec, caelestia shell drawers toggle sidebar"
+      "${mod} SHIFT, N, exec, caelestia shell drawers toggle session"
+      "${mod} SHIFT, U, exec, caelestia shell drawers toggle utilities"
+
+      #~@ Notifications
+      "${mod} SHIFT, C, exec, caelestia shell notifs clear"
+
+      #~@ Wallpaper
+      "${mod} ALT, W, exec, caelestia wallpaper -r"
+      "${mod} SHIFT, W, exec, caelestia shell drawers toggle launcher" # open launcher → wallpaper action
 
       #~@ Screenshots and recording
       "${mod} SHIFT, S, global, caelestia:screenshotFreeze"
@@ -31,13 +43,11 @@
       "${mod} SHIFT ALT, R, exec, caelestia record -r"
 
       #~@ Utilities
-      "${mod}, V, exec, pkill fuzzel || caelestia clipboard"
-      "${mod} ALT, V, exec, pkill fuzzel || caelestia clipboard -d"
-      "${mod}, Period, exec, pkill fuzzel || caelestia emoji -p"
+      "${mod}, V, exec, caelestia clipboard"
+      "${mod} ALT, V, exec, caelestia clipboard -d"
+      "${mod}, Period, exec, caelestia emoji -p"
 
       #~@ Special workspace toggles
-      # "${mod}, Grave, exec, caelestia toggle terminal"
-      # "${mod} SHIFT, Grave, exec, caelestia toggle development"
       "${mod}, M, exec, caelestia toggle music"
       "${mod} ALT, M, exec, caelestia toggle sysmon"
       "${mod} ALT, D, exec, caelestia toggle communication"
@@ -45,6 +55,9 @@
 
       #~@ Resizer
       "${mod}, P, exec, caelestia resizer pip"
+
+      #~@ Lock
+      "${mod} SHIFT, L, exec, caelestia shell lock lock"
     ];
   };
 }
