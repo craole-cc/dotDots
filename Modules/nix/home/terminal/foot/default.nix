@@ -17,7 +17,7 @@
     inherit pkgs;
     scripts = let
       # script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
-      script = ./scripts/wrapper.sh;
+      script = ./wrapper.sh;
     in {
       feet = script;
       feet-quake = {

@@ -1,277 +1,297 @@
 #!/bin/sh
+# shellcheck enable=all
+#~@ colorscheme - Multi-DE Theme Switcher
+#? Supports KDE Plasma, Hyprland (gsettings), GTK
+#? Modes: toggle | light | dark | auto (time-based)
 
-main() {
-  #{ Parse the arguments
-  parse_arguments "$@"
+VERSION="2.0.0"
 
-  #{ Apply the schemes per the current system, if possible.
-  for_plasma
+#> Source of truth: defaults
+DARK_SCHEME="${COLORSCHEME_DARK:-Gruvbox}"
+DARK_FALLBACK="${COLORSCHEME_DARK_FALLBACK:-BreezeDark}"
+LIGHT_SCHEME="${COLORSCHEME_LIGHT:-GruvboxLight}"
+LIGHT_FALLBACK="${COLORSCHEME_LIGHT_FALLBACK:-BreezeLight}"
+DAY_START="${COLORSCHEME_DAY_START:-6}"
+DAY_END="${COLORSCHEME_DAY_END:-18}"
 
-  execute
+#~@ Utilities
+
+has_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+log() {
+	[ "${quiet:-}" ] && return 0
+	printf "%s\n" "$*" >&2
 }
+
+notify() {
+	[ "${quiet:-}" ] && return 0
+	has_cmd notify-send && notify-send -u low "Theme" "$*"
+	log "$*"
+}
+
+#~@ Theme Detection
+
+get_current_theme() {
+	#| Returns "dark" or "light" based on active system theme
+
+	#> KDE Plasma
+	if has_cmd plasma-apply-colorscheme; then
+		scheme=$(plasma-apply-colorscheme --list-schemes |
+			grep "(current color scheme)" |
+			sed "s/^ \* //; s/ (current color scheme)//")
+		case "$scheme" in
+		*[Ll]ight*)
+			printf "light"
+			return 0
+			;;
+		*[Dd]ark*)
+			printf "dark"
+			return 0
+			;;
+		esac
+	fi
+
+	#> Freedesktop portal (Hyprland, GNOME)
+	if has_cmd gsettings; then
+		scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null || printf "")
+		case "$scheme" in
+		*prefer-light*)
+			printf "light"
+			return 0
+			;;
+		*prefer-dark*)
+			printf "dark"
+			return 0
+			;;
+		esac
+	fi
+
+	#> GTK fallback
+	for conf in "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"; do
+		[ -f "$conf" ] || continue
+		gtk=$(grep "^gtk-application-prefer-dark-theme" "$conf" | cut -d= -f2 | tr -d ' ')
+		case "$gtk" in
+		1 | true)
+			printf "dark"
+			return 0
+			;;
+		0 | false)
+			printf "light"
+			return 0
+			;;
+		esac
+	done
+
+	#> Time-based fallback
+	hour=$(date +%H)
+	if [ "$hour" -ge "$DAY_START" ] && [ "$hour" -lt "$DAY_END" ]; then
+		printf "light"
+	else
+		printf "dark"
+	fi
+}
+
+#~@ Backends
+apply_plasma() {
+	has_cmd plasma-apply-colorscheme || return 1
+	target="$1"
+
+	current_tag=" (current color scheme)"
+	current=$(plasma-apply-colorscheme --list-schemes |
+		grep "$current_tag" | sed "s/^ \* //; s/$current_tag//")
+
+	[ "$current" = "$target" ] && {
+		log "Plasma: '$target' already active"
+		return 0
+	}
+
+	if plasma-apply-colorscheme --list-schemes | grep --quiet "^ \* $target"; then
+		log "Plasma: applying '$target'"
+		if [ "${quiet:-}" ]; then
+			plasma-apply-colorscheme "$target" >/dev/null
+		else
+			plasma-apply-colorscheme "$target"
+		fi
+	else
+		log "Plasma: scheme '$target' not found"
+		return 1
+	fi
+}
+
+apply_portal() {
+	target="$1" # "light" or "dark"
+
+	#> dconf works without GNOME schemas
+	if has_cmd dconf; then
+		dconf write /org/gnome/desktop/interface/color-scheme "\"prefer-${target}\""
+		log "dconf: color-scheme → prefer-${target}"
+		return 0
+	fi
+
+	#> gsettings fallback (needs schema)
+	if has_cmd gsettings; then
+		GSETTINGS_SCHEMA_DIR=$(find /run/current-system/sw/share/gsettings-schemas/ \
+			-maxdepth 1 -mindepth 1 -type d | head -1)
+		GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR}/glib-2.0/schemas"
+		export GSETTINGS_SCHEMA_DIR
+		gsettings set org.gnome.desktop.interface color-scheme "prefer-${target}" 2>/dev/null
+	fi
+}
+
+apply_gtk() {
+	target="$1" # "light" or "dark"
+	value="false"
+	[ "$target" = "dark" ] && value="true"
+
+	for conf in "$HOME/.config/gtk-4.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"; do
+		[ -f "$conf" ] || continue
+		if grep --quiet "gtk-application-prefer-dark-theme" "$conf"; then
+			sed -i "s/gtk-application-prefer-dark-theme=.*/gtk-application-prefer-dark-theme=$value/" "$conf"
+		else
+			printf "gtk-application-prefer-dark-theme=%s\n" "$value" >>"$conf"
+		fi
+		log "GTK: prefer-dark-theme → $value ($conf)"
+	done
+}
+
+#~@ Core Switcher
+resolve_scheme() {
+	#| Resolves "dark"/"light" → preferred scheme name with fallback
+	mode="$1"
+	case "$mode" in
+	light) printf "%s %s" "$LIGHT_SCHEME" "$LIGHT_FALLBACK" ;;
+	dark) printf "%s %s" "$DARK_SCHEME" "$DARK_FALLBACK" ;;
+	*) printf "%s %s" "$DARK_SCHEME" "$DARK_FALLBACK" ;;
+	esac
+}
+
+apply_all() {
+	mode="$1"
+
+	if has_cmd darkman; then
+		darkman set "$mode"
+		log "darkman: → $mode"
+		notify "$(printf '%s' "$mode" | sed 's/./\U&/') mode active"
+		return 0
+	fi
+
+	#> Fallback chain
+	apply_plasma "$mode"
+	apply_portal "$mode"
+	apply_gtk "$mode"
+
+	notify "$(printf '%s' "$mode" | sed 's/./\U&/') mode active"
+}
+
+#~@ Modes
+
+do_toggle() {
+	current=$(get_current_theme)
+	case "$current" in
+	dark) apply_all "light" ;;
+	light) apply_all "dark" ;;
+	*) apply_all "dark" ;;
+	esac
+}
+
+do_auto() {
+	#| Time-based: day=light, night=dark
+	hour=$(date +%H)
+	if [ "$hour" -ge "$DAY_START" ] && [ "$hour" -lt "$DAY_END" ]; then
+		apply_all "light"
+	else
+		apply_all "dark"
+	fi
+}
+
+#~@ Entry Point
 
 parse_arguments() {
-  unset light dark theme fallback scheme toggle get
+	unset quiet verbose mode
 
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    -h | --help) echo help && return ;;
-    -v | --version) echo version && return ;;
-    -d | --verbose) verbose=true ;;
-    -q | --quiet) quiet=true ;;
-    -g | --get | --current) get_current=true ;;
-    light) light=true ;;
-    dark) dark=true ;;
-    -s | --scheme | --theme) [ "$2" ] && scheme="$2" ;;
-    esac
-    shift
-  done
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+		-h | --help)
+			show_help
+			exit 0
+			;;
+		-v | --version)
+			show_version
+			exit 0
+			;;
+		-q | --quiet) quiet=true ;;
+		-d | --verbose) verbose=true ;;
+		-g | --get)
+			get_current_theme
+			printf "\n"
+			exit 0
+			;;
+		--auto | -a) mode="auto" ;;
+		light) mode="light" ;;
+		dark) mode="dark" ;;
+		-s | --scheme) [ "$2" ] && {
+			mode="$2"
+			shift
+		} ;;
+		esac
+		shift
+	done
 
-  { [ "$scheme" ] || [ "$light" ] || [ "$dark" ]; } || toggle=true
+	: "${mode:=toggle}"
 }
 
-weHave() {
-  #| Checks if a command exists in the system PATH
-  #| Args:
-  #|   $1 - Command name to check
-  #| Returns:
-  #|   0 if command exists, 1 otherwise
-  #| Example:
-  #|   if weHave git; then
-  #|     git status
-  #|   fi
-  check=true
-  unset args path arg
+main() {
+	parse_arguments "$@"
 
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    --check | --quiet | --silent)
-      check=true
-      ;;
-    --path)
-      path=true
-      ;;
-    *)
-      if [ "$args" ]; then
-        args="$args $1"
-      else
-        args="$1"
-      fi
-      ;;
-    esac
-    shift
-  done
-
-  if [ "$path" ]; then
-    for arg in $args; do
-      command -v "$arg"
-    done
-  else
-    command -v "$@" >/dev/null 2>&1
-  fi
+	case "$mode" in
+	toggle) do_toggle ;;
+	auto) do_auto ;;
+	light) apply_all "light" ;;
+	dark) apply_all "dark" ;;
+	*)
+		#| Named scheme → detect dark/light → apply
+		case "$mode" in
+		*[Ll]ight*) apply_all "light" ;;
+		*[Dd]ark*) apply_all "dark" ;;
+		*) do_toggle ;;
+		esac
+		;;
+	esac
 }
 
-toggle_theme() {
-  case "$current_scheme" in
-  "$dark_scheme" | "$dark_scheme_fallback")
-    preferred="$light_scheme"
-    fallback="$light_scheme_fallback"
-    scheme="$light_scheme"
-    ;;
-  "$light_scheme" | "$light_scheme_fallback")
-    preferred="$dark_scheme"
-    fallback="$dark_scheme_fallback"
-    scheme="$dark_scheme"
-    ;;
-  *)
-    printf "Unable to determine the current color scheme. Defaulting to the dark scheme.\n"
-    preferred="$dark_scheme"
-    fallback="$dark_scheme_fallback"
-    scheme="$dark_scheme"
-    ;;
-  esac
-}
+show_version() { printf "colorscheme %s\n" "$VERSION"; }
 
-apply_theme() {
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-    --fallback) [ "$2" ] && fallback="$2" ;;
-    --preferred) [ "$2" ] && preferred="$2" ;;
-    esac
-    shift
-  done
-  [ "$scheme" ] || {
-    printf \
-      "Neither of the themes, preferred ('%s') or fallback ('%s') were found.\n" \
-      "$preferred" "$fallback"
-    return 1
-  }
-
-  if plasma-apply-colorscheme --list-schemes |
-    grep --quiet --invert-match "$scheme"; then
-    :
-  elif plasma-apply-colorscheme --list-schemes |
-    grep --quiet "$preferred"; then
-    scheme="$preferred"
-  elif plasma-apply-colorscheme --list-schemes |
-    grep --quiet "$fallback"; then
-    scheme="$fallback"
-  fi
-
-  case "$scheme" in
-  "$preferred") selected="preferred" ;;
-  "$fallback") selected="fallback" ;;
-  esac
-
-  if [ "$scheme" = "$current_scheme" ]; then
-    [ "$quiet" ] || printf \
-      "The %s scheme '%s' is already active\n" \
-      "$selected" "$scheme"
-    return 0
-  elif printf "%s" "$available_schemes" | grep --quiet "$scheme"; then
-    [ "$quiet" ] || printf \
-      "Applying the %s scheme: %s\n" \
-      "$selected" "$scheme"
-  else
-    [ "$quiet" ] || printf "Unknown scheme '%s'. " "$scheme"
-    if printf "%s" "$scheme" | grep --quiet --ignore-case "dark"; then
-      [ "$quiet" ] || printf "Setting the dark scheme.\n"
-      scheme="$dark_scheme"
-    elif printf "%s" "$scheme" | grep --quiet --ignore-case "light"; then
-      [ "$quiet" ] || printf "Setting the light scheme.\n"
-      scheme="$light_scheme"
-    else
-      [ "$quiet" ] || printf "Toggling between light and dark schemes.\n"
-      toggle_theme
-    fi
-  fi
-
-  if [ "$quiet" ]; then
-    plasma-apply-colorscheme "$scheme" >/dev/null
-  else
-    plasma-apply-colorscheme "$scheme"
-  fi
-}
-
-for_plasma() {
-  weHave plasma-apply-colorscheme || return
-
-  #| Preferred themes
-  dark_scheme="Gruvbox"
-  light_scheme="Gruvbox Light - Red two-tone 3"
-  dark_scheme_fallback="BreezeDark"
-  light_scheme_fallback="BreezeLight"
-  current_tag=" (current color scheme)"
-  current_scheme=$(
-    plasma-apply-colorscheme --list-schemes |
-      grep "$current_tag" | sed "s/^ \* //; s/$current_tag//"
-  )
-  available_schemes=$(
-    plasma-apply-colorscheme --list-schemes |
-      grep --invert-match "$current_tag" | sed "s/^ \* //"
-  )
-
-  #| Function to apply the theme
-  apply_theme() {
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-      --fallback) [ "$2" ] && fallback="$2" ;;
-      --preferred) [ "$2" ] && preferred="$2" ;;
-      esac
-      shift
-    done
-
-    if [ "$scheme" ] && plasma-apply-colorscheme --list-schemes |
-      grep --quiet --invert-match "$scheme"; then
-      :
-    elif plasma-apply-colorscheme --list-schemes |
-      grep --quiet "$preferred"; then
-      scheme="$preferred"
-    elif plasma-apply-colorscheme --list-schemes |
-      grep --quiet "$fallback"; then
-      scheme="$fallback"
-    else
-      printf \
-        "Neither of the themes, preferred ('%s') or fallback ('%s') were found.\n" \
-        "$preferred" "$fallback"
-      return 1
-    fi
-
-    case "$scheme" in
-    "$preferred") selected="preferred" ;;
-    "$fallback") selected="fallback" ;;
-    esac
-
-    if [ "$scheme" = "$current_scheme" ]; then
-      [ "$quiet" ] || printf \
-        "The %s scheme '%s' is already active\n" \
-        "$selected" "$scheme"
-      return 0
-    elif printf "%s" "$available_schemes" | grep --quiet "$scheme"; then
-      [ "$quiet" ] || printf \
-        "Applying the %s scheme: %s\n" \
-        "$selected" "$scheme"
-    else
-      [ "$quiet" ] || printf "Unknown scheme '%s'. " "$scheme"
-      if printf "%s" "$scheme" | grep --quiet --ignore-case "dark"; then
-        [ "$quiet" ] || printf "Setting the dark scheme.\n"
-        scheme="$dark_scheme"
-      elif printf "%s" "$scheme" | grep --quiet --ignore-case "light"; then
-        [ "$quiet" ] || printf "Setting the light scheme.\n"
-        scheme="$light_scheme"
-      else
-        [ "$quiet" ] || printf "Toggling between light and dark schemes.\n"
-        toggle_theme
-      fi
-    fi
-
-    if [ "$quiet" ]; then
-      plasma-apply-colorscheme "$scheme" >/dev/null
-    else
-      plasma-apply-colorscheme "$scheme"
-    fi
-  }
-}
-
-execute() {
-  if [ "$get_current" ]; then
-    printf "Current scheme: %s\n" "$current_scheme"
-    return 0
-  elif [ "$scheme" ]; then
-    apply_theme --preferred "$scheme"
-  elif [ "$light" ]; then
-    apply_theme \
-      --preferred "$light_scheme" \
-      --fallback "$light_scheme_fallback"
-  elif [ "$dark" ]; then
-    apply_theme \
-      --preferred "$dark_scheme" \
-      --fallback "$dark_scheme_fallback"
-  else
-    toggle_theme
-    apply_theme --preferred "$scheme"
-  fi
-}
-
-show_version() {
-  printf "%s" "colorscheme 1.0.0"
-}
 show_help() {
-  cat <<'EOF'
-Usage: theme-switcher [OPTIONS] [COMMAND]
+	cat <<EOF
+colorscheme $VERSION - Multi-DE Theme Switcher
 
-Toggle or set KDE Plasma color schemes
+USAGE:
+  colorscheme [OPTIONS] [COMMAND]
 
-Options:
-  -h, --help        Show this help message
-  -v, --version     Show version information
-  -d, --verbose     Enable verbose output
-  --scheme SCHEME   Use specific color scheme
+COMMANDS:
+  light          Switch to light theme
+  dark           Switch to dark theme
+  (none)         Toggle between light and dark
 
-Commands:
-  light             Switch to light theme
-  dark              Switch to dark theme
-  [none]            Toggle between light and dark themes
+OPTIONS:
+  -a, --auto     Apply theme based on time of day (${DAY_START}:00-${DAY_END}:00 = light)
+  -g, --get      Print current theme (dark/light)
+  -q, --quiet    Suppress output/notifications
+  -d, --verbose  Enable verbose output
+  -v, --version  Show version
+  -h, --help     Show this message
+
+ENVIRONMENT:
+  COLORSCHEME_DARK=$DARK_SCHEME
+  COLORSCHEME_LIGHT=$LIGHT_SCHEME
+  COLORSCHEME_DAY_START=$DAY_START
+  COLORSCHEME_DAY_END=$DAY_END
+
+EXAMPLES:
+  colorscheme            # Toggle
+  colorscheme light      # Force light
+  colorscheme --auto     # Time-based (cron/systemd)
+  colorscheme --get      # Print current
 EOF
 }
 

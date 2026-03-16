@@ -18,7 +18,7 @@
   inherit (lib.modules) mkIf mkForce;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.strings) hasPrefix;
-  inherit (lib.types) bool enum int nullOr str;
+  inherit (lib.types) enum int nullOr str;
   inherit (lix.attrsets.resolution) getPackage;
 
   themeMap = {
@@ -105,11 +105,9 @@ in {
       default = style.cursor.size or 24;
       type = int;
     };
-    autoSwitch = mkOption {
-      description = "Enable automatic dark/light switching";
-      default = style.autoSwitch or false;
-      type = bool;
-    };
+    autoSwitch =
+      mkEnableOption "automatic dark/light switching"
+      // {default = style.autoSwitch or true;};
   };
 
   config = mkIf (cfg.enable && currentTheme != null) {

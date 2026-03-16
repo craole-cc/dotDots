@@ -11,7 +11,8 @@
   launcher = mkScriptWrapper {
     inherit pkgs;
     name = "zen";
-    script = tree.store.lib.sh + "/packages/wrappers/zen.sh";
+    script = ./wrapper.sh;
+    # script = tree.store.lib.sh + "/packages/wrappers/zen.sh";
   };
 in {
   home.packages = [launcher];

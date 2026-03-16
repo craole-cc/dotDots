@@ -13,7 +13,7 @@
 
   #~@ Location
   lat = latitude;
-  lng = longitude;
+  lng = longitude; #? Ensure this is negative for western longitudes (Jamaica = -77.49)
   usegeoclue = provider == "geoclue2";
 
   #~@ Enable condition
@@ -25,7 +25,6 @@
       src = ./toggle.sh;
       replacements = {
         cmdSd = "${pkgs.sd}/bin/sd";
-        cmdDbus = "${pkgs.dbus}/bin/dbus-send";
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
@@ -39,8 +38,9 @@ in {
   services.darkman = mkIf enable {
     inherit enable;
     settings = {
-      inherit lat lng;
-      usegeoclue = false; #? Use static coords; ignore provider
+      inherit lat lng usegeoclue;
+      dbusserver = true;
+      portal = true;
     };
     darkModeScripts.nixos-theme = toggle "dark";
     lightModeScripts.nixos-theme = toggle "light";
