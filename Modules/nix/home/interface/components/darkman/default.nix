@@ -13,12 +13,13 @@
 
   #~@ Location
   lat = latitude;
-  lng = longitude; #? Ensure this is negative for western longitudes (Jamaica = -77.49)
-  usegeoclue = provider == "geoclue2";
+  lng = longitude; #? Ensure this is negative for western longitudes (Jamaica = --77.49)
+  # usegeoclue = provider == "geoclue2";
+  usegeoclue = false;
 
   #~@ Enable condition
   style = user.interface.style or host.interface.style or {};
-  enable = style.autoSwitch or false;
+  enable = style.autoSwitch or true;
 
   toggle = polarity:
     replaceVarsWith {

@@ -214,7 +214,7 @@ in {
   #~@ Localization
   location = {
     longitude = "18.015";
-    latitude = "77.49";
+    latitude = "-77.49";
     provider = "manual";
   };
 
