@@ -13,7 +13,6 @@ in {
       bbenoist.nix
       brettm12345.nixfmt-vscode
       jeff-hykin.better-nix-syntax
-      jeff-hykin.better-shellscript-syntax
       jnoortheen.nix-ide
       mkhl.direnv
       kamadorueda.alejandra
@@ -132,11 +131,12 @@ in {
 
       #~@ Language Support
       bluebrown.yamlfmt
+      hverlin.mise-vscode
+      jeff-hykin.better-shellscript-syntax
+      jjk.jjk
+      kdl-org.kdl
       lkrms.inifmt
       nefrob.vscode-just-syntax
-      kdl-org.kdl
-      jjk.jjk
-      hverlin.mise-vscode
       yy0931.gitconfig-lsp
 
       #~@ Database
