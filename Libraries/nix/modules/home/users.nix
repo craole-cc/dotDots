@@ -54,7 +54,7 @@
           style = mkStyle {inherit host user;};
           user = enrichedUser // {interface = enrichedInterface;};
           apps = mkApplications {
-            inherit host pkgs inputs system;
+            inherit host;
             user = enrichedUser;
           };
           keyboard = mkKeyboard {
