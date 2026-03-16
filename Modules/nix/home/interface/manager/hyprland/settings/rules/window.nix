@@ -1,4 +1,4 @@
-{...}: {
+{
   windowrule = [
     "float on, match:title ^(Media viewer)$"
     "immediate on, match:class ^(osu!|cs2)$"
