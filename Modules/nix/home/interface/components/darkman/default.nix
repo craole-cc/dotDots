@@ -27,7 +27,6 @@
         cfgApi = "${paths.api.user}";
         cfgPolarity = polarity;
         cmdDconf = "${pkgs.dconf}/bin/dconf";
-        cmdFoot = "${pkgs.foot}/bin/foot";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";
         cmdWallman = "${paths.wallpapers.manager}/bin/wallman";

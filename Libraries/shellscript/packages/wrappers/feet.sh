@@ -150,9 +150,8 @@ start_server() {
 	*) foot_theme="dark" ;;
 	esac
 
-	foot_bin=$(command -v feet 2>/dev/null || command -v foot)
-	[ -n "${foot_bin:-}" ] || {
-		printf "Error: foot/feet not in PATH\n" >&2
+	foot_bin=$(command -v foot 2>/dev/null) || {
+		printf "Error: foot not in PATH\n" >&2
 		return 1
 	}
 
