@@ -29,7 +29,7 @@
     external = {mkHomeModules = mkModules;};
   };
 
-  inherit (_.modules) home;
+  inherit (_.modules.home.users) mkUsers;
   inherit (lib) extend;
 
   /**
@@ -68,7 +68,7 @@
             hm = inputs.home-manager.lib.hm or {};
           });
         };
-      users = home.users.mkUsers {inherit inputs modules host tree;};
+      users = mkUsers {inherit inputs modules host tree;};
     };
   };
 in

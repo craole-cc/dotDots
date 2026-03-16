@@ -7,7 +7,7 @@
   inherit (_.inputs.modules) mkModule;
   inherit (_.lists.predicates) isIn;
   inherit (lib.attrsets) attrByPath isAttrs mapAttrs removeAttrs;
-  inherit (lib.strings) hasInfix replaceStrings splitString toLower;
+  inherit (lib.strings) hasInfix splitString toLower;
 
   exports = rec {
     internal = {
