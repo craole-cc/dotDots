@@ -21,24 +21,24 @@ fi
 
 printf '=== Switching to %s mode ===\n' "$CFG_POLARITY"
 
-#> 1. Update polarity in user API config
-printf '1. Updating user API...\n'
+#> Update polarity in user API config
+printf 'Updating user API...\n'
 "$CMD_SD" 'polarity = "(dark|light)"' "polarity = \"$CFG_POLARITY\"" "$CFG_API" || {
 	printf 'Warning: Failed to update API\n'
 }
 
-#> 2. Set freedesktop portal via dconf (Hyprland-compatible)
+#> Set freedesktop portal via dconf (Hyprland-compatible)
 #?  xdg-desktop-portal-hyprland does not support Settings.Write via dbus
 #?  dconf directly writes to the same key without requiring GNOME schemas
-printf '2. Setting portal color-scheme...\n'
+printf 'Setting portal color-scheme...\n'
 "$CMD_DCONF" write /org/gnome/desktop/interface/color-scheme \
 	"'prefer-$CFG_POLARITY'" 2>/dev/null || {
 	printf 'Warning: dconf write failed\n'
 }
 
-#> 3. GTK theme (gsettings if available, dconf fallback)
+#> GTK theme (gsettings if available, dconf fallback)
 #?  adw-gtk3 light variant has no suffix; dark variant is "adw-gtk3-dark"
-printf '3. Setting GTK theme...\n'
+printf 'Setting GTK theme...\n'
 case "$CFG_POLARITY" in
 dark) gtk_theme="adw-gtk3-dark" ;;
 light) gtk_theme="adw-gtk3" ;;
@@ -53,27 +53,32 @@ else
 		"'$gtk_theme'" 2>/dev/null || true
 fi
 
-#> 4. Update wallpapers
-printf '4. Updating wallpapers...\n'
+#> Update wallpapers
+printf 'Updating wallpapers...\n'
 "$CMD_WALLMAN" set --polarity "$CFG_POLARITY" 2>/dev/null || {
 	printf 'Warning: Wallpaper update had issues\n'
 }
 
-#> 5. Toggle foot theme via signal (no restart, no kill!)
-printf '5. Toggling foot color theme...\n'
+#> Restart foot server with new theme
+printf 'Restarting foot server for %s theme...\n' "$CFG_POLARITY"
 FOOT_PID=$(pgrep -x foot 2>/dev/null || printf "")
 if [ -n "$FOOT_PID" ]; then
-	case "$CFG_POLARITY" in
-	dark) kill -USR1 "$FOOT_PID" 2>/dev/null || true ;;
-	light) kill -USR2 "$FOOT_PID" 2>/dev/null || true ;;
-	esac
-	printf 'Sent %s signal to foot (PID %s)\n' "$CFG_POLARITY" "$FOOT_PID"
-else
-	printf 'Warning: foot not running\n'
+	kill "$FOOT_PID" 2>/dev/null || true
+	printf 'Foot server will restart with %s theme on next launch\n' "$CFG_POLARITY"
 fi
 
-#> 6. Notify user
-printf '6. Notifying...\n'
+#> Sync caelestia scheme
+printf 'Syncing caelestia scheme...\n'
+if command -v caelestia >/dev/null 2>&1; then
+	caelestia scheme set -m "$CFG_POLARITY" 2>/dev/null || {
+		printf 'Warning: caelestia scheme change failed\n'
+	}
+else
+	printf 'Warning: caelestia not found\n'
+fi
+
+#> Notify user
+printf 'Notifying...\n'
 "$CMD_NOTIFY" \
 	--urgency=low \
 	--expire-time=2000 \
