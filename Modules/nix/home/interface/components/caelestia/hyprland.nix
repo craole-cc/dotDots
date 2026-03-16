@@ -21,6 +21,8 @@
     ];
 
     bind = [
+      "${mod}, SPACE, exec, caelestia launcher toggle"
+
       #~@ Screenshots and recording
       "${mod} SHIFT, S, global, caelestia:screenshotFreeze"
       "${mod} SHIFT ALT, S, global, caelestia:screenshot"
