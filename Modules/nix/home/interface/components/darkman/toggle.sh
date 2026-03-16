@@ -59,13 +59,17 @@ printf '4. Updating wallpapers...\n'
 	printf 'Warning: Wallpaper update had issues\n'
 }
 
-#> 5. Restart foot server with new theme
-#?  SIGUSR1/2 only reloads config, does not toggle colors-dark/light
-#?  Server must restart for initial-color-theme to re-apply
-printf '5. Restarting foot server...\n'
-pkill -x foot 2>/dev/null || true
-if command -v feet >/dev/null 2>&1; then
-	feet >/dev/null 2>&1 &
+#> 5. Toggle foot theme via signal (no restart, no kill!)
+printf '5. Toggling foot color theme...\n'
+FOOT_PID=$(pgrep -x foot 2>/dev/null || printf "")
+if [ -n "$FOOT_PID" ]; then
+	case "$CFG_POLARITY" in
+	dark) kill -USR1 "$FOOT_PID" 2>/dev/null || true ;;
+	light) kill -USR2 "$FOOT_PID" 2>/dev/null || true ;;
+	esac
+	printf 'Sent %s signal to foot (PID %s)\n' "$CFG_POLARITY" "$FOOT_PID"
+else
+	printf 'Warning: foot not running\n'
 fi
 
 #> 6. Notify user

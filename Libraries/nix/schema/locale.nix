@@ -16,7 +16,7 @@
     defaultLocale = "en_US.UTF-8";
     locator = "geoclue2";
     latitude = 18.015;
-    longitude = -77.49;
+    longitude = --77.49;
     dualBootWindows = false;
   };
 

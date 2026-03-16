@@ -13,9 +13,8 @@
 
   #~@ Location
   lat = latitude;
-  lng = longitude; #? Ensure this is negative for western longitudes (Jamaica = --77.49)
-  # usegeoclue = provider == "geoclue2";
-  usegeoclue = false;
+  lng = longitude;
+  usegeoclue = provider == "geoclue2";
 
   #~@ Enable condition
   style = user.interface.style or host.interface.style or {};
@@ -25,12 +24,13 @@
     replaceVarsWith {
       src = ./toggle.sh;
       replacements = {
-        cmdSd = "${pkgs.sd}/bin/sd";
-        cmdDconf = "${pkgs.dconf}/bin/dconf";
-        cmdNotify = "${pkgs.libnotify}/bin/notify-send";
-        cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
         cfgApi = "${paths.api.user}";
         cfgPolarity = polarity;
+        cmdDconf = "${pkgs.dconf}/bin/dconf";
+        cmdFoot = "${pkgs.foot}/bin/foot";
+        cmdNotify = "${pkgs.libnotify}/bin/notify-send";
+        cmdSd = "${pkgs.sd}/bin/sd";
+        cmdWallman = "${paths.wallpapers.manager}/bin/wallman";
       };
       name = "nixos-theme";
       isExecutable = true;
