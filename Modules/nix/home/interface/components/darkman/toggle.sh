@@ -83,6 +83,28 @@ else
 	printf 'Warning: caelestia not in PATH\n'
 fi
 
+#>  Sync VSCode theme
+printf ' Syncing VSCode theme...\n'
+VSCODE_SETTINGS="${HOME}/.config/Code/User/settings.json"
+if [ -f "${VSCODE_SETTINGS}" ]; then
+	case "${CFG_POLARITY}" in
+	dark)
+		"${CMD_SD}" \
+			'"workbench.colorTheme": "[^"]*"' \
+			'"workbench.colorTheme": "Catppuccin Frappé"' \
+			"${VSCODE_SETTINGS}" || true
+		;;
+	light)
+		"${CMD_SD}" \
+			'"workbench.colorTheme": "[^"]*"' \
+			'"workbench.colorTheme": "Catppuccin Latte"' \
+			"${VSCODE_SETTINGS}" || true
+		;;
+	esac
+else
+	printf 'Warning: VSCode settings not found\n'
+fi
+
 #> Notify user
 printf 'Notifying...\n'
 "${CMD_NOTIFY}" \
