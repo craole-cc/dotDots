@@ -11,19 +11,19 @@ CFG_POLARITY="@cfgPolarity@"
 CFG_API="@cfgApi@"
 
 #~@ State
-STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/theme-mode.state"
+STATE_FILE="${XDG_STATE_HOME:-${HOME}/.local/state}/theme-mode.state"
 
 #~@ Skip if already in requested mode
-if [ -f "$STATE_FILE" ] && [ "$(cat "$STATE_FILE")" = "$CFG_POLARITY" ]; then
-	printf 'Already in %s mode, skipping...\n' "$CFG_POLARITY"
+if [ -f "${STATE_FILE}" ] && [ "$(cat "${STATE_FILE}")" = "${CFG_POLARITY}" ]; then
+	printf 'Already in %s mode, skipping...\n' "${CFG_POLARITY}"
 	exit 0
 fi
 
-printf '=== Switching to %s mode ===\n' "$CFG_POLARITY"
+printf '=== Switching to %s mode ===\n' "${CFG_POLARITY}"
 
 #> Update polarity in user API config
 printf 'Updating user API...\n'
-"$CMD_SD" 'polarity = "(dark|light)"' "polarity = \"$CFG_POLARITY\"" "$CFG_API" || {
+"$CMD_SD" 'polarity = "(dark|light)"' "polarity = \"${CFG_POLARITY}\"" "${CFG_API}" || {
 	printf 'Warning: Failed to update API\n'
 }
 
@@ -31,61 +31,62 @@ printf 'Updating user API...\n'
 #?  xdg-desktop-portal-hyprland does not support Settings.Write via dbus
 #?  dconf directly writes to the same key without requiring GNOME schemas
 printf 'Setting portal color-scheme...\n'
-"$CMD_DCONF" write /org/gnome/desktop/interface/color-scheme \
-	"'prefer-$CFG_POLARITY'" 2>/dev/null || {
+"${CMD_DCONF}" write /org/gnome/desktop/interface/color-scheme \
+	"'prefer-${CFG_POLARITY}'" 2>/dev/null || {
 	printf 'Warning: dconf write failed\n'
 }
 
 #> GTK theme (gsettings if available, dconf fallback)
 #?  adw-gtk3 light variant has no suffix; dark variant is "adw-gtk3-dark"
 printf 'Setting GTK theme...\n'
-case "$CFG_POLARITY" in
+case "${CFG_POLARITY}" in
 dark) gtk_theme="adw-gtk3-dark" ;;
 light) gtk_theme="adw-gtk3" ;;
 esac
 if command -v gsettings >/dev/null 2>&1; then
 	gsettings set org.gnome.desktop.interface color-scheme \
-		"prefer-$CFG_POLARITY" 2>/dev/null || true
+		"prefer-${CFG_POLARITY}" 2>/dev/null || true
 	gsettings set org.gnome.desktop.interface gtk-theme \
-		"$gtk_theme" 2>/dev/null || true
+		"${gtk_theme}" 2>/dev/null || true
 else
-	"$CMD_DCONF" write /org/gnome/desktop/interface/gtk-theme \
-		"'$gtk_theme'" 2>/dev/null || true
+	"${CMD_DCONF}" write /org/gnome/desktop/interface/gtk-theme \
+		"'${gtk_theme}'" 2>/dev/null || true
 fi
 
 #> Update wallpapers
 printf 'Updating wallpapers...\n'
-"$CMD_WALLMAN" set --polarity "$CFG_POLARITY" 2>/dev/null || {
+"${CMD_WALLMAN}" set --polarity "${CFG_POLARITY}" 2>/dev/null || {
 	printf 'Warning: Wallpaper update had issues\n'
 }
 
 #> Restart foot server with new theme
-printf 'Restarting foot server for %s theme...\n' "$CFG_POLARITY"
+printf 'Restarting foot server for %s theme...\n' "${CFG_POLARITY}"
 FOOT_PID=$(pgrep -x foot 2>/dev/null || printf "")
-if [ -n "$FOOT_PID" ]; then
-	kill "$FOOT_PID" 2>/dev/null || true
-	printf 'Foot server will restart with %s theme on next launch\n' "$CFG_POLARITY"
+if [ -n "${FOOT_PID}" ]; then
+	kill "${FOOT_PID}" 2>/dev/null || true
+	printf 'Foot server will restart with %s theme on next launch\n' "${CFG_POLARITY}"
 fi
 
 #> Sync caelestia scheme
-printf 'Syncing caelestia scheme...\n'
 if command -v caelestia >/dev/null 2>&1; then
-	caelestia scheme set -m "$CFG_POLARITY" 2>/dev/null || {
-		printf 'Warning: caelestia scheme change failed\n'
-	}
+	case "$CFG_POLARITY" in
+	dark) caelestia scheme set --name catppuccin --flavor frappe 2>/dev/null || true ;;
+	light) caelestia scheme set --name catppuccin --flavor latte 2>/dev/null || true ;;
+	esac
+	caelestia scheme set -m "$CFG_POLARITY" 2>/dev/null || true
 else
 	printf 'Warning: caelestia not found\n'
 fi
 
 #> Notify user
 printf 'Notifying...\n'
-"$CMD_NOTIFY" \
+"${CMD_NOTIFY}" \
 	--urgency=low \
 	--expire-time=2000 \
-	"Theme" "Switched to $CFG_POLARITY mode" 2>/dev/null || true
+	"Theme" "Switched to ${CFG_POLARITY} mode" 2>/dev/null || true
 
 #> Update state file
-mkdir -p "$(dirname "$STATE_FILE")"
-printf '%s\n' "$CFG_POLARITY" >"$STATE_FILE"
+mkdir -p "$(dirname "${STATE_FILE}")"
+printf '%s\n' "${CFG_POLARITY}" >"${STATE_FILE}"
 
 printf '=== Done ===\n'
