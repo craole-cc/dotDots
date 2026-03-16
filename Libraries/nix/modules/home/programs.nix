@@ -58,8 +58,8 @@
           ghostty = "ghostty";
         };
         browser = {
-          zen-twilight = "zen-twilight";
-          zen-beta = "zen-beta";
+          zen-twilight = "zen";
+          zen-beta = "zen";
         };
         editor = {
           vscode = "code";
