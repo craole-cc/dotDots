@@ -4,7 +4,7 @@
   lix,
   user,
   pkgs,
-  tree,
+  # tree,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
@@ -16,7 +16,8 @@
   wrappers = mkScriptWrappers {
     inherit pkgs;
     scripts = let
-      script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
+      # script = tree.store.lib.sh + "/packages/wrappers/feet.sh";
+      script = ./scripts/wrapper.sh;
     in {
       feet = script;
       feet-quake = {
