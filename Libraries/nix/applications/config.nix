@@ -18,8 +18,9 @@
         inherit user pkgs config;
         name = "noctalia-shell";
         kind = "bar";
+        customCommand = "noctalia";
         resolutionHints = ["noctalia" "noctalia-dev"];
-        debug = true;
+        debug = false;
       };
     in {
       inherit module;
@@ -46,9 +47,10 @@
         inherit user pkgs config;
         name = "nvf";
         kind = "editor";
+        customCommand = "nvim";
         category = "tty";
         resolutionHints = ["nvim" "neovim"];
-        debug = true;
+        debug = false;
       };
     in {
       inherit module;
@@ -79,8 +81,9 @@
         inherit user pkgs config;
         name = "zen-browser";
         kind = "browser";
+        customCommand = "zen";
         resolutionHints = ["zen" "zen-twilight" "zen-beta"];
-        debug = true;
+        debug = false;
       };
     in {
       inherit module;

@@ -9,14 +9,13 @@
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
 
-  cfg = userApplicationConfig {
+  cfg = userApplicationConfig rec {
     inherit user pkgs config;
     name = "vicinae";
     kind = "launcher";
     # command = "";
-    extraProgramConfig = mkMerge [
-      (import ./settings.nix)
-    ];
+    customCommand = name;
+    extraProgramConfig = mkMerge [(import ./settings.nix)];
     debug = false;
   };
 in {
@@ -26,4 +25,3 @@ in {
   ]);
 }
 #TODO: Update the userApplicationConfig to take the launcher command
-
