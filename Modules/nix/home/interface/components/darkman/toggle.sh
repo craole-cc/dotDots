@@ -9,9 +9,10 @@ CMD_NOTIFY="@cmdNotify@"
 CMD_WALLMAN="@cmdWallman@"
 CFG_POLARITY="@cfgPolarity@"
 CFG_API="@cfgApi@"
+CFG_CAELESTIA_FLAVOUR="@cfgCaelestiaFlavour@"
 
 #~@ State
-STATE_FILE="${XDG_STATE_HOME:-${HOME}/.local/state}/theme-mode.state"
+STATE_FILE="${XDG_STATE_HOME:-${HOME:-}/.local/state}/theme-mode.state"
 
 #~@ Skip if already in requested mode
 if [ -f "${STATE_FILE}" ] && [ "$(cat "${STATE_FILE}")" = "${CFG_POLARITY}" ]; then
@@ -23,7 +24,7 @@ printf '=== Switching to %s mode ===\n' "${CFG_POLARITY}"
 
 #> Update polarity in user API config
 printf 'Updating user API...\n'
-"$CMD_SD" 'polarity = "(dark|light)"' "polarity = \"${CFG_POLARITY}\"" "${CFG_API}" || {
+"${CMD_SD}" 'polarity = "(dark|light)"' "polarity = \"${CFG_POLARITY}\"" "${CFG_API}" || {
 	printf 'Warning: Failed to update API\n'
 }
 
@@ -64,14 +65,22 @@ printf 'Restarting foot server for %s theme...\n' "${CFG_POLARITY}"
 FOOT_PID=$(pgrep -x foot 2>/dev/null || printf "")
 if [ -n "${FOOT_PID}" ]; then
 	kill "${FOOT_PID}" 2>/dev/null || true
-	printf 'Foot server will restart with %s theme on next launch\n' "${CFG_POLARITY}"
+	printf 'Foot server stopped, will restart with %s theme on next launch\n' "${CFG_POLARITY}"
+else
+	printf 'Warning: foot not running\n'
 fi
 
 #> Sync caelestia scheme
+printf 'Syncing caelestia scheme...\n'
 if command -v caelestia >/dev/null 2>&1; then
-	caelestia scheme set --mode "$CFG_POLARITY" 2>/dev/null || true
+	caelestia scheme set \
+		-n catppuccin \
+		-f "${CFG_CAELESTIA_FLAVOUR}" \
+		-m "${CFG_POLARITY}" 2>/dev/null || {
+		printf 'Warning: caelestia scheme change failed\n'
+	}
 else
-	printf 'Warning: caelestia not found\n'
+	printf 'Warning: caelestia not in PATH\n'
 fi
 
 #> Notify user
@@ -83,6 +92,6 @@ printf 'Notifying...\n'
 
 #> Update state file
 mkdir -p "$(dirname "${STATE_FILE}")"
-printf '%s\n' "${CFG_POLARITY}" >"${STATE_FILE}"
+printf '%s\n' "${CFG_POLARITY}" >"$STATE_FILE"
 
 printf '=== Done ===\n'

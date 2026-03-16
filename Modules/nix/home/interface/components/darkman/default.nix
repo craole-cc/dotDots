@@ -20,12 +20,36 @@
   style = user.interface.style or host.interface.style or {};
   enable = style.autoSwitch or true;
 
+  #~@ Theme → caelestia flavour mapping
+  themeToFlavour = {
+    "Catppuccin Frappé" = "frappe";
+    "Catppuccin Latte" = "latte";
+    "Catppuccin Macchiato" = "macchiato";
+    "Catppuccin Mocha" = "mocha";
+  };
+
+  darkTheme = style.theme.dark  or "Catppuccin Frappé";
+  lightTheme = style.theme.light or "Catppuccin Latte";
+
+  caelestiaFlavour = polarity:
+    themeToFlavour.${
+      if polarity == "dark"
+      then darkTheme
+      else lightTheme
+    }
+    or (
+      if polarity == "dark"
+      then "frappe"
+      else "latte"
+    );
+
   toggle = polarity:
     replaceVarsWith {
       src = ./toggle.sh;
       replacements = {
         cfgApi = "${paths.api.user}";
         cfgPolarity = polarity;
+        cfgCaelestiaFlavour = caelestiaFlavour polarity;
         cmdDconf = "${pkgs.dconf}/bin/dconf";
         cmdNotify = "${pkgs.libnotify}/bin/notify-send";
         cmdSd = "${pkgs.sd}/bin/sd";

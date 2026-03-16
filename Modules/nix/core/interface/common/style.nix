@@ -24,14 +24,17 @@
   themeMap = {
     "Catppuccin Frappé" = {
       scheme = "catppuccin-frappe";
+      caelestiaScheme = "catppuccin-frappe";
       polarity = "dark";
       cursor = {
         name = "catppuccin-frappe-dark-cursors";
         package = pkgs.catppuccin-cursors.frappeDark;
       };
     };
+
     "Catppuccin Latte" = {
       scheme = "catppuccin-latte";
+      caelestiaScheme = "catppuccin-latte";
       polarity = "light";
       cursor = {
         name = "catppuccin-latte-light-cursors";
