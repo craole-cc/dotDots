@@ -9,7 +9,7 @@
     defaultPlayer = "Elisa";
     gpuType = "";
     maxVolume = 1;
-    smartScheme = true;
+    smartScheme = false;
     useFahrenheit = false;
     useTwelveHourClock = true;
     visualiserBars = 45;
