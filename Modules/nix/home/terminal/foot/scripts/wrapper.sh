@@ -121,7 +121,7 @@ detect_theme() {
 	fi
 }
 
-start_foot_server() {
+start_server() {
 	theme="$1"
 	case "$theme" in
 	dark | light) foot_theme="$theme" ;;
@@ -136,6 +136,44 @@ start_foot_server() {
 
 	"${foot_bin}" --server -o main.initial-color-theme="${foot_theme}" >/dev/null 2>&1 &
 	return 0
+}
+
+wait_for_socket() {
+	socket="$1"
+	max_wait="${2:-10}" # Default 10s
+	i=0
+	while [ "$i" -lt $((max_wait * 10)) ]; do # 0.1s intervals
+		if [ -S "$socket" ]; then
+			sleep 0.5
+			return 0
+		fi
+		sleep 0.1
+		i=$((i + 1))
+	done
+	printf "Timeout waiting for %s\n" "$socket" >&2
+	return 1
+}
+
+launch_with_server() {
+	theme_file="$1"
+	socket="$2"
+	theme="$3"
+	client_cmd="$4"
+
+	#> Cleanup stale socket
+	[ -S "$socket" ] && ! pgrep -x foot >/dev/null 2>&1 && rm -f "$socket"
+
+	#? Server check → start/connect
+	if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "$socket" ]; then
+		printf '%s' "$theme" >"$theme_file"
+		rm -f "$socket"
+		start_server "$theme" || return 1
+		wait_for_socket "$socket" || return 1
+	fi
+
+	#? Connect (shift client args)
+	shift 4
+	exec "$client_cmd" --server-socket="$socket" "$@"
 }
 
 #> Theme Monitor Mode
@@ -169,7 +207,7 @@ monitor_mode() {
 		fi
 	done
 }
-# Function to find the window ID using qdbus
+
 find_window_id() {
 	#> Get list of all windows
 	windows=$(qdbus org.kde.KWin /KWin org.kde.KWin.windows 2>/dev/null)
@@ -193,7 +231,6 @@ quake_mode() {
 		#? Window exists, check its state and toggle it
 		WINDOW_INFO=$(qdbus org.kde.KWin /KWin org.kde.KWin.queryWindowInfo "$WINDOW_ID" 2>/dev/null)
 
-		#? Check if window is minimized or hidden
 		if printf "%s" "$WINDOW_INFO" | grep -q "minimized: true"; then
 			#> Window is minimized, show it
 			qdbus org.kde.KWin /KWin org.kde.KWin.unminimizeWindow "$WINDOW_ID" 2>/dev/null
@@ -207,82 +244,15 @@ quake_mode() {
 		fi
 	else
 		#> Window doesn't exist, launch it
-		#? Clean up stale socket first
-		if [ -S "${SOCKET:-}" ] && ! pgrep -x foot >/dev/null 2>&1; then
-			rm -f "$SOCKET"
-		fi
-
-		#? Ensure server is running
-		if ! pgrep -x foot >/dev/null 2>&1 || [ ! -S "${SOCKET:-}" ]; then
-			#> Start server with current theme
-			THEME=$(detect_theme)
-			printf '%s' "$THEME" >"$THEME_FILE"
-			rm -f "$SOCKET"
-			start_foot_server "$THEME"
-
-			#> Wait for server
-			i=0
-			while [ "$i" -lt 100 ]; do
-				if [ -S "$SOCKET" ]; then
-					sleep 0.3
-					break
-				fi
-				sleep 0.05
-				i=$((i + 1))
-			done
-		fi
-
-		#? Launch quake terminal
-		footclient \
+		launch_with_server "$THEME_FILE" "$SOCKET" "$(detect_theme)" footclient \
 			--app-id="$QUAKE_ID" \
 			--window-size-chars=240x40 \
-			--server-socket="$SOCKET" >/dev/null 2>&1 &
+			>/dev/null 2>&1 &
 	fi
 }
 
-#> Launch Terminal Mode (Default)
 launch_terminal() {
-	#> Always clean up stale socket
-	if [ -S "$SOCKET" ] && ! pgrep -x foot >/dev/null 2>&1; then
-		rm -f "$SOCKET"
-	fi
-
-	#? Simple check: is server running?
-	if pgrep -x foot >/dev/null 2>&1 && [ -S "$SOCKET" ]; then
-		#? Server running, just connect
-		exec footclient --server-socket="$SOCKET" "$@"
-	fi
-
-	#> No server - start one with current theme
-	THEME=$(detect_theme)
-	printf '%s' "$THEME" >"$THEME_FILE"
-
-	#> Clean socket just in case
-	rm -f "$SOCKET"
-
-	#> Start server
-	start_foot_server "${THEME}"
-
-	# Wait for socket with proper timing
-	i=0
-	while [ $i -lt 50 ]; do
-		if [ -S "$SOCKET" ]; then
-			# Found socket, wait a bit more for server initialization
-			sleep 0.3
-			break
-		fi
-		sleep 0.1
-		i=$((i + 1))
-	done
-
-	# Final check
-	if [ ! -S "$SOCKET" ]; then
-		printf "Error: Failed to start foot server\n" >&2
-		exit 1
-	fi
-
-	# Connect
-	exec footclient --server-socket="$SOCKET" "$@"
+	launch_with_server "$THEME_FILE" "$SOCKET" "$(detect_theme)" footclient "$@"
 }
 
 #> Main execution
@@ -331,4 +301,3 @@ EOF
 	launch_terminal "$@"
 	;;
 esac
-s
