@@ -41,7 +41,6 @@
         pkgs,
         ...
       }: let
-        system = pkgs.stdenv.hostPlatform.system;
         enrichedUser = user // {inherit name;};
         enrichedInterface = mkUI {
           inherit host;
