@@ -21,7 +21,7 @@
     ];
 
     bind = [
-      "${mod}, SPACE, exec, caelestia launcher toggle"
+      "${mod}, SPACE, exec, caelestia shell drawers toggle launcher"
 
       #~@ Screenshots and recording
       "${mod} SHIFT, S, global, caelestia:screenshotFreeze"
