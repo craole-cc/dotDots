@@ -146,7 +146,7 @@ detect_theme() {
 start_server() {
 	theme="$1"
 	case "$theme" in
-	dark | light) foot_theme="$theme" ;;
+	dark | light) foot_theme="${theme}" ;;
 	*) foot_theme="dark" ;;
 	esac
 
