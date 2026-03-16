@@ -1,6 +1,6 @@
 {specialWorkspaceNames ? [], ...}: let
-  gap = 4;
-  border = 0;
+  gap = "4";
+  border = "0";
   specialRule = name: "special:${name}, gapsout:${gap}, gapsin:${gap}, bordersize:0, shadow:false";
 in {
   workspace =
