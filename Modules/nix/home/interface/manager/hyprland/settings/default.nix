@@ -6,13 +6,13 @@
   lix,
   keyboard,
   mkMerge,
-  # withRules ? false,
+  withRules ? false,
   ...
 }: {
   settings = mkMerge [
     (import ./core.nix {inherit apps keyboard;})
     (import ./io.nix {inherit apps host lix lib keyboard;})
-    # (lib.mkIf withRules (import ./rules.nix {inherit lib;}))
+    (lib.mkIf withRules (import ./rules.nix {inherit lib;}))
     # (import ./workspaces.nix {inherit lib apps keyboard;})
   ];
 }
