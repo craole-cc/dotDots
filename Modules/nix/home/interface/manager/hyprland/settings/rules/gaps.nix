@@ -1,10 +1,12 @@
 {specialWorkspaceNames ? [], ...}: let
-  specialRule = name: "special:${name}, gapsout:0, gapsin:0, bordersize:0, shadow:false";
+  gap = 4;
+  border = 0;
+  specialRule = name: "special:${name}, gapsout:${gap}, gapsin:${gap}, bordersize:0, shadow:false";
 in {
   workspace =
     [
-      "w[tv1], gapsout:0, gapsin:0, bordersize:0"
-      "f[1], gapsout:0, gapsin:0, bordersize:0"
+      "w[tv1], gapsout:${gap}, gapsin:${gap}, bordersize:${border}"
+      "f[1], gapsout:${gap}, gapsin:${gap}, bordersize:${border}"
     ]
     ++ map specialRule specialWorkspaceNames;
 

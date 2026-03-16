@@ -64,17 +64,16 @@
     key,
     primary,
     secondary,
-    size ? "100%",
     workdir ? null,
   }: [
     (mkWorkspaceVariant {
       inherit (primary) command class;
-      inherit key size workdir;
+      inherit key workdir;
       workspace = name;
     })
     (mkWorkspaceVariant {
       inherit (secondary) command class;
-      inherit key size workdir;
+      inherit key workdir;
       workspace = "${name}Alt";
       extraMod = "SHIFT";
     })
