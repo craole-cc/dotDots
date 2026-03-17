@@ -3,134 +3,335 @@
   inputs,
   lix,
   ...
-}: {
-  extensions = lix.attrsets.resolution.vscodePackages {
+}: let
+  inherit (lix.attrsets.resolution) vscodePackages;
+
+  vcs = [
+    #? .gitignore language support
+    "codezombiech.gitignore"
+
+    #? git log, file, line history
+    "donjayamanne.githistory"
+
+    #? visual git branch graph
+    "mhutchie.git-graph"
+
+    #? inline git blame
+    "waderyan.gitblame"
+
+    #? LSP for .gitconfig files
+    "yy0931.gitconfig-lsp"
+
+    #? jujutsu VCS GUI
+    "visualjj.visualjj"
+
+    #? jujutsu keybindings
+    "jjk.jjk"
+  ];
+
+  ai = [
+    #? AI inline completions
+    "github.copilot"
+
+    #? AI chat assistant
+    "github.copilot-chat"
+
+    #? alternative AI completions
+    "codeium.codeium"
+  ];
+
+  nix = [
+    #? basic Nix syntax
+    "bbenoist.nix"
+
+    #? Nix LSP, formatting, eval
+    "jnoortheen.nix-ide"
+
+    #? improved Nix highlighting
+    "jeff-hykin.better-nix-syntax"
+
+    #? direnv environment integration
+    "mkhl.direnv"
+
+    #? Alejandra formatter integration
+    "kamadorueda.alejandra"
+  ];
+
+  systems = [
+    #? Rust LSP
+    "rust-lang.rust-analyzer"
+
+    #? LLDB debugger for Rust/C++
+    "vadimcn.vscode-lldb"
+
+    #? Rust/Go dependency version checker
+    "fill-labs.dependi"
+
+    #? shell script formatter
+    "mkhl.shfmt"
+
+    #? shell script linter
+    "timonwong.shellcheck"
+
+    #? additional shell formatting
+    "foxundermoon.shell-format"
+
+    #? improved shell highlighting
+    "jeff-hykin.better-shellscript-syntax"
+  ];
+
+  scripting = [
+    #? Python LSP and tooling
+    "ms-python.python"
+
+    #? Python debugger
+    "ms-python.debugpy"
+
+    #? fast Python type checker
+    "ms-python.vscode-pylance"
+
+    #? Ruff linter/formatter
+    "charliermarsh.ruff"
+
+    #? Nushell language support
+    "thenuprojectcontributors.vscode-nushell-lang"
+
+    #? PowerShell LSP and debugger
+    "ms-vscode.powershell"
+  ];
+
+  web = [
+    #? Tailwind CSS intellisense
+    "bradlc.vscode-tailwindcss"
+
+    #? Deno runtime and LSP
+    "denoland.vscode-deno"
+
+    #? Prettier formatter
+    "esbenp.prettier-vscode"
+  ];
+
+  markup = [
+    #? Markdown linter
+    "davidanson.vscode-markdownlint"
+
+    #? Markdown shortcuts, TOC, preview
+    "yzhang.markdown-all-in-one"
+
+    #? Export markdown to PDF
+    "yzane.markdown-pdf"
+
+    #? CSV column colorizer
+    "mechatroner.rainbow-csv"
+
+    #? Mermaid diagram preview in markdown
+    "bierner.markdown-mermaid"
+
+    #? GitHub-flavored markdown preview
+    "bierner.github-markdown-preview"
+
+    #? YAML LSP and validation
+    "redhat.vscode-yaml"
+
+    #? YAML formatter
+    "bluebrown.yamlfmt"
+
+    #? TOML LSP and formatter
+    "tamasfe.even-better-toml"
+
+    #? INI/properties formatter
+    "lkrms.inifmt"
+
+    #? KDL document language support
+    "kdl-org.kdl"
+
+    #? Typst LSP and preview
+    "myriad-dreamin.tinymist"
+
+    #? Justfile syntax highlighting
+    "nefrob.vscode-just-syntax"
+
+    #? mise version manager integration
+    "hverlin.mise-vscode"
+
+    #? log file syntax highlighting
+    "emilast.logfilehighlighter"
+  ];
+
+  infrastructure = [
+    #? Docker file support and container management
+    "ms-azuretools.vscode-docker"
+
+    #? SQL client and query runner
+    "mtxr.sqltools"
+
+    #? SQLite driver for sqltools
+    "mtxr.sqltools-driver-sqlite"
+
+    #? Tailscale network integration
+    "tailscale.vscode-tailscale"
+  ];
+
+  appearance = [
+    #? Catppuccin color theme
+    "catppuccin.catppuccin-vsc"
+
+    #? Bluloco dark theme
+    "uloco.theme-bluloco-dark"
+
+    #? Bluloco light theme
+    "uloco.theme-bluloco-light"
+
+    #? Dracula color theme
+    "dracula-theme.theme-dracula"
+
+    #? Rosé Pine color theme
+    "mvllow.rose-pine"
+
+    #? Material file/folder icons
+    "pkief.material-icon-theme"
+
+    #? Material UI chrome icons
+    "pkief.material-product-icons"
+
+    #? Alternative product icon theme
+    "elanandkumar.el-vsc-product-icon-theme"
+
+    #? Smooth UI animations
+    "brandonkirbyson.vscode-animations"
+
+    #? Custom CSS/JS UI injection
+    "subframe7536.custom-ui-style"
+
+    #? Custom CSS overrides
+    "be5invis.vscode-custom-css"
+
+    #? Acrylic/vibrancy window effect
+    "illixion.vscode-vibrancy-continued"
+  ];
+
+  decorations = [
+    #? Inline error/warning messages
+    "usernamehw.errorlens"
+
+    #? Colorized indentation guides
+    "oderwat.indent-rainbow"
+
+    #? Colorize CSS color strings
+    "kamikillerto.vscode-colorize"
+
+    #? Highlight color values inline
+    "naumovs.color-highlight"
+
+    #? Colorize output/terminal text
+    "ibm.output-colorizer"
+
+    #? ANSI escape code renderer
+    "iliazeus.vscode-ansi"
+
+    #? Indentation and scope guides
+    "spywhere.guides"
+
+    #? Vertical line width ruler
+    "lbragile.line-width-indicator"
+
+    #? Colored comment annotations
+    "allemandinstable.colorful-comments-refreshed"
+
+    #? Highlight TODO/FIXME tokens
+    "jgclark.vscode-todo-highlight"
+
+    #? TODO tree sidebar panel
+    "gruntfuggly.todo-tree"
+  ];
+
+  productivity = [
+    #? Keyboard-driven file browser
+    "bodil.file-browser"
+
+    #? Sort workspace folders alphabetically
+    "iciclesoft.workspacesort"
+
+    #? Diff two folders side by side
+    "moshfeu.compare-folders"
+
+    #? Multi-workspace file search
+    "joshmu.periscope"
+
+    #? Text transformation utilities
+    "dakara.transformer"
+
+    #? Convert case (camel, snake, kebab…)
+    "wmaurer.change-case"
+
+    #? Sort selected lines
+    "tyriar.sort-lines"
+
+    #? Toggle editor settings via keybind
+    "rebornix.toggle"
+
+    #? .env file support
+    "dotenv.dotenv-vscode"
+
+    #? .env syntax highlighting
+    "irongeek.vscode-env"
+
+    #? Respect .editorconfig files
+    "editorconfig.editorconfig"
+
+    #? Typos spell checker (fast, Rust-based)
+    "tekumara.typos-vscode"
+
+    #? CSpell spell checker
+    "streetsidesoftware.code-spell-checker"
+
+    #? Spell checking via system dictionary
+    "ban.spellright"
+
+    #? Highlight invisible/problematic chars
+    "nhoizey.gremlins"
+
+    #? Reload window command
+    "natqe.reload"
+
+    #? Run code snippets in any language
+    "formulahendry.code-runner"
+
+    #? Test explorer sidebar UI
+    "hbenl.vscode-test-explorer"
+
+    #? PlantUML diagram preview and export
+    "jebbs.plantuml"
+
+    #? Local dev server with live reload
+    "ritwickdey.liveserver"
+
+    #? PDF viewer inside VSCode
+    "tomoki1207.pdf"
+
+    #? SVG file preview
+    "vitaliymaz.vscode-svg-previewer"
+
+    #? Show import bundle size inline
+    "wix.vscode-import-cost"
+
+    #? Restore familiar Windows keybindings
+    "smcpeak.default-keys-windows"
+  ];
+in {
+  extensions = vscodePackages {
     inherit pkgs inputs;
-    entries = [
-      #~@ Nix
-      "bbenoist.nix"
-      "jnoortheen.nix-ide"
-      "jeff-hykin.better-nix-syntax"
-      "jeff-hykin.better-shellscript-syntax"
-      "mkhl.direnv"
-      "kamadorueda.alejandra"
-
-      #~@ Git
-      "codezombiech.gitignore"
-      "donjayamanne.githistory"
-      "mhutchie.git-graph"
-      "waderyan.gitblame"
-      "yy0931.gitconfig-lsp"
-
-      #~@ AI
-      "github.copilot"
-      "github.copilot-chat"
-      "codeium.codeium"
-
-      #~@ Shell
-      "mkhl.shfmt"
-      "timonwong.shellcheck"
-      "foxundermoon.shell-format"
-
-      #~@ Rust
-      "rust-lang.rust-analyzer"
-      "vadimcn.vscode-lldb"
-      "tamasfe.even-better-toml"
-      "fill-labs.dependi"
-
-      #~@ Web
-      "bradlc.vscode-tailwindcss"
-      "denoland.vscode-deno"
-      "esbenp.prettier-vscode"
-      "charliermarsh.ruff"
-
-      #~@ Language Support
-      "ms-vscode.powershell"
-      "myriad-dreamin.tinymist"
-      "thenuprojectcontributors.vscode-nushell-lang"
-      "redhat.vscode-yaml"
-      "davidanson.vscode-markdownlint"
-      "mechatroner.rainbow-csv"
-      "yzane.markdown-pdf"
-      "yzhang.markdown-all-in-one"
-      "nefrob.vscode-just-syntax"
-      "kdl-org.kdl"
-      "jjk.jjk"
-      "hverlin.mise-vscode"
-      "bluebrown.yamlfmt"
-      "lkrms.inifmt"
-      "emilast.logfilehighlighter"
-
-      #~@ Python
-      "ms-python.python"
-      "ms-python.debugpy"
-      "ms-python.vscode-pylance"
-
-      #~@ Docker
-      "ms-azuretools.vscode-docker"
-
-      #~@ Database
-      "mtxr.sqltools"
-      "mtxr.sqltools-driver-sqlite"
-
-      #~@ Themes
-      "catppuccin.catppuccin-vsc"
-      "uloco.theme-bluloco-dark"
-      "uloco.theme-bluloco-light"
-      "dracula-theme.theme-dracula"
-      "mvllow.rose-pine"
-
-      #~@ Icons
-      "pkief.material-icon-theme"
-      "pkief.material-product-icons"
-      "elanandkumar.el-vsc-product-icon-theme"
-
-      #~@ Visual
-      "usernamehw.errorlens"
-      "oderwat.indent-rainbow"
-      "kamikillerto.vscode-colorize"
-      "naumovs.color-highlight"
-      "ibm.output-colorizer"
-      "iliazeus.vscode-ansi"
-      "spywhere.guides"
-      "lbragile.line-width-indicator"
-      "bierner.markdown-mermaid"
-      "bierner.github-markdown-preview"
-      "allemandinstable.colorful-comments-refreshed"
-      "brandonkirbyson.vscode-animations"
-      "subframe7536.custom-ui-style"
-      "be5invis.vscode-custom-css"
-      "illixion.vscode-vibrancy-continued"
-
-      #~@ Utilities
-      "tyriar.sort-lines"
-      "dotenv.dotenv-vscode"
-      "editorconfig.editorconfig"
-      "natqe.reload"
-      "gruntfuggly.todo-tree"
-      "formulahendry.code-runner"
-      "hbenl.vscode-test-explorer"
-      "jebbs.plantuml"
-      "ritwickdey.liveserver"
-      "tomoki1207.pdf"
-      "wix.vscode-import-cost"
-      "smcpeak.default-keys-windows"
-      "tekumara.typos-vscode"
-      "streetsidesoftware.code-spell-checker"
-      "visualjj.visualjj"
-      "wmaurer.change-case"
-      "joshmu.periscope"
-      "nhoizey.gremlins"
-      "irongeek.vscode-env"
-      "jgclark.vscode-todo-highlight"
-      "ban.spellright"
-      "tailscale.vscode-tailscale"
-      "vitaliymaz.vscode-svg-previewer"
-      "bodil.file-browser"
-      "iciclesoft.workspacesort"
-      "moshfeu.compare-folders"
-      "rebornix.toggle"
-      "dakara.transformer"
-    ];
+    entries =
+      vcs
+      ++ ai
+      ++ nix
+      ++ systems
+      ++ scripting
+      ++ web
+      ++ markup
+      ++ infrastructure
+      ++ appearance
+      ++ decorations
+      ++ productivity;
   };
 }
