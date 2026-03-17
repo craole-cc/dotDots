@@ -1,4 +1,4 @@
-{
+{}: {
   userSettings = {
     # General
     "license.author" = "Craig 'Craole' Cole";
@@ -36,12 +36,6 @@
       "typst" = true;
       "cypher" = true;
     };
-
-    # Continue
-    "continue.disableQuickFix" = true;
-    "continue.enableTabAutocomplete" = true;
-    "continue.showInlineTip" = false;
-    "continue.telemetryEnabled" = false;
 
     # LLDB
     "lldb.suppressUpdateNotifications" = true;

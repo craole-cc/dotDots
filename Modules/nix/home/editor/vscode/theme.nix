@@ -1,4 +1,4 @@
-{
+{mkDefault}: {
   userSettings = {
     # Window
     "window.autoDetectColorScheme" = true;
@@ -10,7 +10,7 @@
 
     # Workbench
     "workbench.startupEditor" = "none";
-    "workbench.colorTheme" = "Catppuccin Frappé";
+    "workbench.colorTheme" = mkDefault "Catppuccin Frappé";
     "workbench.preferredDarkColorTheme" = "Catppuccin Frappé";
     "workbench.preferredLightColorTheme" = "Catppuccin Latte";
     "workbench.iconTheme" = "material-icon-theme";

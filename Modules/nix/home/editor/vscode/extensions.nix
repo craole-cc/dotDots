@@ -1,11 +1,13 @@
 {
   pkgs,
   inputs,
+  lib,
   lix,
-  cfg,
   ...
 }: let
   inherit (lix.attrsets.resolution) vscodePackages;
+  inherit (lib.lists) optionals;
+  inherit (lix.types.options) mkTrue mkFalse;
 
   vcs = [
     #? .gitignore language support
@@ -234,65 +236,36 @@
     "smcpeak.default-keys-windows"
   ];
 
-  inherit (cfg) withExtensions;
-in {
-  extensions = vscodePackages {
-    inherit pkgs inputs;
-    entries =
-      (
-        if withExtensions.vcs
-        then vcs
-        else []
-      )
-      ++ (
-        if withExtensions.ai
-        then ai
-        else []
-      )
-      ++ (
-        if withExtensions.nix
-        then nix
-        else []
-      )
-      ++ (
-        if withExtensions.systems
-        then systems
-        else []
-      )
-      ++ (
-        if withExtensions.scripting
-        then scripting
-        else []
-      )
-      ++ (
-        if withExtensions.web
-        then web
-        else []
-      )
-      ++ (
-        if withExtensions.markup
-        then markup
-        else []
-      )
-      ++ (
-        if withExtensions.infrastructure
-        then infrastructure
-        else []
-      )
-      ++ (
-        if withExtensions.appearance
-        then appearance
-        else []
-      )
-      ++ (
-        if withExtensions.decorations
-        then decorations
-        else []
-      )
-      ++ (
-        if withExtensions.productivity
-        then productivity
-        else []
-      );
+  options = {
+    ai = mkTrue "AI assistance extensions";
+    appearance = mkTrue "Themes, icons and UI chrome extensions";
+    decorations = mkTrue "Inline highlights, guides and visual aids";
+    infrastructure = mkFalse "Docker, SQL, DevOps extensions";
+    markup = mkTrue "Markdown, TOML, YAML, config format extensions";
+    nix = mkTrue "Nix language and tooling extensions";
+    productivity = mkTrue "Workflow, file management and utility extensions";
+    scripting = mkTrue "Python, Nushell, PowerShell extensions";
+    systems = mkTrue "Rust, shell and systems programming extensions";
+    vcs = mkTrue "Git, jj and version control extensions";
+    web = mkTrue "Web development extensions";
   };
-}
+
+  mkExtensions = withExtensions: {
+    extensions = vscodePackages {
+      inherit pkgs inputs;
+      entries =
+        []
+        ++ optionals withExtensions.ai ai
+        ++ optionals withExtensions.appearance appearance
+        ++ optionals withExtensions.decorations decorations
+        ++ optionals withExtensions.infrastructure infrastructure
+        ++ optionals withExtensions.markup markup
+        ++ optionals withExtensions.nix nix
+        ++ optionals withExtensions.productivity productivity
+        ++ optionals withExtensions.scripting scripting
+        ++ optionals withExtensions.systems systems
+        ++ optionals withExtensions.vcs vcs
+        ++ optionals withExtensions.web web;
+    };
+  };
+in {inherit options mkExtensions;}

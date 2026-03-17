@@ -14,7 +14,10 @@
 
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.types.options) mkTrue mkFalse mkEnable;
+  inherit (lix.types.options) mkEnable;
+  inherit (lib.modules) mkDefault;
+
+  ext = import ./extensions.nix {inherit lib lix pkgs inputs;};
 
   appCfg = userApplicationConfig {
     inherit user pkgs config;
@@ -30,15 +33,15 @@
           enableUpdateCheck = false;
           enableExtensionUpdateCheck = false;
         }
-        (import ./bindings.nix)
-        (import ./editor.nix {inherit lib;})
-        (import ./extensions.nix {inherit lib lix pkgs inputs cfg dom mod;})
-        (import ./files.nix)
-        (import ./git.nix)
-        (import ./global.nix)
-        (import ./languages.nix)
-        (import ./terminal.nix)
-        (import ./theme.nix)
+        (import ./bindings.nix {})
+        (import ./editor.nix {inherit mkDefault;})
+        (ext.mkExtensions cfg.withExtensions)
+        (import ./files.nix {})
+        (import ./git.nix {})
+        (import ./global.nix {})
+        (import ./languages.nix {})
+        (import ./terminal.nix {inherit mkDefault;})
+        (import ./theme.nix {inherit mkDefault;})
       ];
     };
     debug = false;
@@ -46,22 +49,8 @@
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnable mod appCfg.enable;
-    withExtensions = {
-      ai = mkTrue "AI assistance extensions";
-      appearance = mkTrue "Themes, icons and UI chrome extensions";
-      decorations = mkTrue "Inline highlights, guides and visual aids";
-      infrastructure = mkFalse "Docker, SQL, DevOps extensions";
-      markup = mkTrue "Markdown, TOML, YAML, config format extensions";
-      nix = mkTrue "Nix language and tooling extensions";
-      productivity = mkTrue "Workflow, file management and utility extensions";
-      scripting = mkTrue "Python, Nushell, PowerShell extensions";
-      systems = mkTrue "Rust, shell and systems programming extensions";
-      vcs = mkTrue "Git, jj and version control extensions";
-      web = mkTrue "Web development extensions";
-    };
+    withExtensions = ext.options;
   };
 
-  config = mkIf cfg.enable {
-    inherit (appCfg) home programs;
-  };
+  config = mkIf cfg.enable {inherit (appCfg) home programs;};
 }

@@ -1,4 +1,4 @@
-{
+{}: {
   userSettings = {
     #~@ Nix
     "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
@@ -34,7 +34,7 @@
     "markdown.updateLinksOnFileMove.enabled" = "always";
     "markdown.validate.enabled" = true;
     "markdown.preview.typographer" = true;
-    "markdown.preview.fontFamily" = "Maple Mono NF, sans-serif, -apple-system, BlinkMacSystemFont";
+    # "markdown.preview.fontFamily" = "Maple Mono NF, sans-serif, -apple-system, BlinkMacSystemFont";
     "markdown-pdf.breaks" = true;
     "markdown-pdf.displayHeaderFooter" = false;
     "markdown-pdf.format" = "Letter";

@@ -1,6 +1,6 @@
-{
+{mkDefault, ...}: {
   userSettings = {
-    "terminal.integrated.fontSize" = 18;
+    "terminal.integrated.fontSize" = mkDefault 18;
     "terminal.integrated.fontWeight" = 500;
     "terminal.integrated.fontLigatures.enabled" = true;
     "terminal.integrated.letterSpacing" = 0;

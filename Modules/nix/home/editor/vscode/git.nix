@@ -1,4 +1,4 @@
-{
+{}: {
   userSettings = {
     "git.allowForcePush" = true;
     "git.autofetch" = true;
