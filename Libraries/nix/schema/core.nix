@@ -7,11 +7,9 @@
   inherit (lib.attrsets) attrNames attrValues;
   inherit (lib.lists) head;
 
-  exports = {
+  __exports = {
     internal = {inherit mkHost mkCore hostOrDefault;};
-    external = {
-      mkCoreSchema = mkCore;
-    };
+    external = {mkCoreSchema = mkCore;};
   };
 
   mkHost = {
@@ -62,4 +60,4 @@
   in
     host // enrichment;
 in
-  exports.internal // {_rootAliases = exports.external;}
+  __exports.internal // {_rootAliases = __exports.external;}
