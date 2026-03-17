@@ -6,17 +6,18 @@
       inherit
         mkTrue
         mkFalse
-        mkEnableOption
+        mkEnable
         ;
     };
     external = {
       mkEnableOptionTrue = mkTrue;
       mkEnableOptionFalse = mkFalse;
-      inherit mkEnableOption;
+      mkEnableOption' = mkEnable;
     };
   };
 
   mkTrue = description: mkEnableOption description // {default = true;};
   mkFalse = description: mkEnableOption description;
+  mkEnable = description: condition: mkEnableOption description // {default = condition;};
 in
   __exports.internal // {_rootAliases = __exports.external;}

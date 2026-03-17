@@ -14,7 +14,7 @@
 
   inherit (lib.modules) mkIf mkMerge;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.types.options) mkTrue mkFalse mkEnableOption;
+  inherit (lix.types.options) mkTrue mkFalse mkEnable;
 
   appCfg = userApplicationConfig {
     inherit user pkgs config;
@@ -45,8 +45,7 @@
   };
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = appCfg.enable;};
-
+    enable = mkEnable mod appCfg.enable;
     withExtensions = {
       ai = mkTrue "AI assistance extensions";
       appearance = mkTrue "Themes, icons and UI chrome extensions";
