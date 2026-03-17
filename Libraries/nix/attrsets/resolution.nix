@@ -45,6 +45,9 @@
         package
         packages
         shellPackage
+        parseVscodeExt
+        vscodePackage
+        vscodePackages
         ;
       getAttrByPaths = byPaths;
       getAttrOrDefault = orDefault;
@@ -72,9 +75,11 @@
         getPackage
         getPkgs
         getShellPackage
-        mkInputPackages
         optionalAttr
         ;
+      mkInputPackages = inputPackages;
+      mkVSCodePackages = vscodePackages;
+      mkVSCodePackage = vscodePackage;
     };
   };
 
@@ -326,6 +331,85 @@
         value = inputs.${name}.${attrs} or {};
       })
       names);
+
+  /**
+  Parse a VSCode extension identifier into { publisher, name }.
+
+  Accepts either "publisher.name" string or { publisher; name; } attrset.
+
+  # Type
+  ```nix
+  parseVscodeExt :: string | { publisher :: string, name :: string }
+                -> { publisher :: string, name :: string }
+  ```
+  */
+  parseVscodeExt = entry:
+    if lib.strings.isString entry
+    then let
+      parts = lib.strings.splitString "." entry;
+    in {
+      publisher = lib.lists.elemAt parts 0;
+      name = lib.lists.elemAt parts 1;
+    }
+    else entry;
+
+  /**
+  Resolve a single VSCode extension, trying nixpkgs first then marketplace.
+
+  # Type
+  ```nix
+  vscodePackage :: {
+    pkgs    :: AttrSet,
+    inputs  :: AttrSet,
+    system  :: string,
+    entry   :: string | { publisher :: string, name :: string },
+    default :: a?
+  } -> Derivation | a
+  ```
+  */
+  vscodePackage = {
+    pkgs,
+    inputs,
+    system ? pkgs.stdenv.hostPlatform.system,
+    entry,
+    default ? null,
+  }: let
+    e = parseVscodeExt entry;
+  in
+    byPaths {
+      attrset = {
+        nixpkgs = pkgs.vscode-extensions;
+        market = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
+      };
+      paths = [
+        ["nixpkgs" e.publisher e.name]
+        ["market" e.publisher e.name]
+      ];
+      inherit default;
+    };
+
+  /**
+  Resolve a list of VSCode extensions, silently dropping any not found.
+
+  # Type
+  ```nix
+  vscodePackages :: {
+    pkgs   :: AttrSet,
+    inputs :: AttrSet,
+    system :: string?,
+    entries :: [string | { publisher :: string, name :: string }]
+  } -> [Derivation]
+  ```
+  */
+  vscodePackages = {
+    pkgs,
+    inputs,
+    system ? pkgs.stdenv.hostPlatform.system,
+    entries,
+  }:
+    lib.lists.filter (x: x != null) (
+      map (entry: vscodePackage {inherit pkgs inputs system entry;}) entries
+    );
 
   /**
   Conditionally include a single attribute in an attrset merge.
