@@ -5,8 +5,8 @@
   lix,
   ...
 }: let
-  inherit (lib.lists) filter;
-  inherit (lib.strings) splitString;
+  inherit (lib.lists) elemAt filter;
+  inherit (lib.strings) isString splitString;
   inherit (lix.attrsets.resolution) byPaths;
   system = pkgs.stdenv.hostPlatform.system;
   fromNixpkgs = pkgs.vscode-extensions;
@@ -14,12 +14,12 @@
 
   #> Parse "publisher.name" string or { publisher; name; } attrset
   parse = entry:
-    if builtins.isString entry
+    if isString entry
     then let
       parts = splitString "." entry;
     in {
-      publisher = builtins.elemAt parts 0;
-      name = builtins.elemAt parts 1;
+      publisher = elemAt parts 0;
+      name = elemAt parts 1;
     }
     else entry;
 
