@@ -15,7 +15,7 @@
   inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.types.options) mkTrue;
+  inherit (lix.types.options) mkTrue mkFalse;
 
   appCfg = userApplicationConfig {
     inherit user pkgs config;
@@ -52,7 +52,7 @@ in {
       ai = mkTrue "AI assistance extensions";
       appearance = mkTrue "Themes, icons and UI chrome extensions";
       decorations = mkTrue "Inline highlights, guides and visual aids";
-      infrastructure = mkTrue "Docker, SQL, DevOps extensions";
+      infrastructure = mkFalse "Docker, SQL, DevOps extensions";
       markup = mkTrue "Markdown, TOML, YAML, config format extensions";
       nix = mkTrue "Nix language and tooling extensions";
       productivity = mkTrue "Workflow, file management and utility extensions";
