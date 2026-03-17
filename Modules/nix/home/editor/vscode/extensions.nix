@@ -236,7 +236,7 @@
 
   inherit (cfg) withExtensions;
 in {
-  withExtensions = vscodePackages {
+  extensions = vscodePackages {
     inherit pkgs inputs;
     entries =
       (
