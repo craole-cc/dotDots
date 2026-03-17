@@ -10,11 +10,11 @@
   paths,
   ...
 }: let
-  dom = "home";
+  dom = "interface";
   mod = "hyprland";
   cfg = config.${top}.${dom}.${mod};
 
-  # Use user.interface directly — already normalized per-user in mkUsers
+  #> Use user.interface directly — already normalized per-user in mkUsers
   inherit (user.interface) windowManager;
 
   inherit (lib.modules) mkIf mkMerge;
