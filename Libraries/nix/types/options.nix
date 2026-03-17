@@ -2,10 +2,17 @@
   inherit (lib.options) mkEnableOption;
 
   __exports = {
-    internal = {inherit mkTrue mkFalse;};
+    internal = {
+      inherit
+        mkTrue
+        mkFalse
+        mkEnableOption
+        ;
+    };
     external = {
       mkEnableOptionTrue = mkTrue;
       mkEnableOptionFalse = mkFalse;
+      inherit mkEnableOption;
     };
   };
 

@@ -13,9 +13,8 @@
   cfg = config.${top}.${dom}.${mod};
 
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lib.options) mkEnableOption;
   inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.types.options) mkTrue mkFalse;
+  inherit (lix.types.options) mkTrue mkFalse mkEnableOption;
 
   appCfg = userApplicationConfig {
     inherit user pkgs config;
