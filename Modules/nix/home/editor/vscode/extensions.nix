@@ -1,149 +1,171 @@
 {
   pkgs,
   inputs,
+  _,
+  lib,
   ...
 }: let
+  inherit (_.attrsets.resolution) byPaths;
+  inherit (lib.lists) filter;
+  inherit (lib.strings) splitString;
   system = pkgs.stdenv.hostPlatform.system;
   fromNixpkgs = pkgs.vscode-extensions;
   fromMarket = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;
+
+  #> Parse "publisher.name" string or { publisher; name; } attrset
+  parse = entry:
+    if builtins.isString entry
+    then let
+      parts = splitString "." entry;
+    in {
+      publisher = builtins.elemAt parts 0;
+      name = builtins.elemAt parts 1;
+    }
+    else entry;
+
+  # Try nixpkgs first, fall back to marketplace
+  ext = entry: let
+    e = parse entry;
+  in
+    byPaths {
+      attrset = {
+        nixpkgs = fromNixpkgs;
+        market = fromMarket;
+      };
+      paths = [
+        ["nixpkgs" e.publisher e.name]
+        ["market" e.publisher e.name]
+      ];
+      default = null;
+    };
+
+  exts = entries:
+    filter (x: x != null) (map ext entries);
 in {
-  extensions =
-    (with fromNixpkgs; [
-      #~@ Nix
-      bbenoist.nix
-      brettm12345.nixfmt-vscode
-      jeff-hykin.better-nix-syntax
-      jnoortheen.nix-ide
-      mkhl.direnv
-      kamadorueda.alejandra
+  extensions = exts [
+    #~@ Nix
+    "bbenoist.nix"
+    "jnoortheen.nix-ide"
+    "jeff-hykin.better-nix-syntax"
+    "jeff-hykin.better-shellscript-syntax"
+    "mkhl.direnv"
+    "kamadorueda.alejandra"
 
-      #~@ Git
-      codezombiech.gitignore
-      donjayamanne.githistory
-      mhutchie.git-graph
-      waderyan.gitblame
+    #~@ Git
+    "codezombiech.gitignore"
+    "donjayamanne.githistory"
+    "mhutchie.git-graph"
+    "waderyan.gitblame"
+    "yy0931.gitconfig-lsp"
 
-      #~@ AI
-      github.copilot
-      github.copilot-chat
+    #~@ AI
+    "github.copilot"
+    "github.copilot-chat"
+    "codeium.codeium"
 
-      #~@ Shell
-      mkhl.shfmt
-      timonwong.shellcheck
-      foxundermoon.shell-format
+    #~@ Shell
+    "mkhl.shfmt"
+    "timonwong.shellcheck"
+    "foxundermoon.shell-format"
 
-      #~@ Rust
-      rust-lang.rust-analyzer
-      vadimcn.vscode-lldb
-      tamasfe.even-better-toml
-      fill-labs.dependi
+    #~@ Rust
+    "rust-lang.rust-analyzer"
+    "vadimcn.vscode-lldb"
+    "tamasfe.even-better-toml"
+    "fill-labs.dependi"
 
-      #~@ Web
-      bradlc.vscode-tailwindcss
-      denoland.vscode-deno
-      esbenp.prettier-vscode
-      charliermarsh.ruff
+    #~@ Web
+    "bradlc.vscode-tailwindcss"
+    "denoland.vscode-deno"
+    "esbenp.prettier-vscode"
+    "charliermarsh.ruff"
 
-      #~@ Language Support
-      ms-vscode.powershell
-      myriad-dreamin.tinymist
-      thenuprojectcontributors.vscode-nushell-lang
-      redhat.vscode-yaml
-      davidanson.vscode-markdownlint
-      mechatroner.rainbow-csv
-      yzane.markdown-pdf
-      yzhang.markdown-all-in-one
+    #~@ Language Support
+    "ms-vscode.powershell"
+    "myriad-dreamin.tinymist"
+    "thenuprojectcontributors.vscode-nushell-lang"
+    "redhat.vscode-yaml"
+    "davidanson.vscode-markdownlint"
+    "mechatroner.rainbow-csv"
+    "yzane.markdown-pdf"
+    "yzhang.markdown-all-in-one"
+    "nefrob.vscode-just-syntax"
+    "kdl-org.kdl"
+    "jjk.jjk"
+    "hverlin.mise-vscode"
+    "bluebrown.yamlfmt"
+    "lkrms.inifmt"
+    "emilast.logfilehighlighter"
 
-      #~@ Python
-      ms-python.python
-      ms-python.debugpy
-      ms-python.vscode-pylance
+    #~@ Python
+    "ms-python.python"
+    "ms-python.debugpy"
+    "ms-python.vscode-pylance"
 
-      #~@ Docker
-      ms-azuretools.vscode-docker
+    #~@ Docker
+    "ms-azuretools.vscode-docker"
 
-      #~@ Themes
-      catppuccin.catppuccin-vsc
-      dracula-theme.theme-dracula
-      mvllow.rose-pine
+    #~@ Database
+    "mtxr.sqltools"
+    "mtxr.sqltools-driver-sqlite"
 
-      #~@ Icons
-      pkief.material-icon-theme
-      pkief.material-product-icons
+    #~@ Themes
+    "catppuccin.catppuccin-vsc"
+    "uloco.theme-bluloco-dark"
+    "uloco.theme-bluloco-light"
+    "dracula-theme.theme-dracula"
+    "mvllow.rose-pine"
 
-      #~@ Visual
-      usernamehw.errorlens
-      oderwat.indent-rainbow
-      kamikillerto.vscode-colorize
-      naumovs.color-highlight
-      ibm.output-colorizer
-      iliazeus.vscode-ansi
-      spywhere.guides
+    #~@ Icons
+    "pkief.material-icon-theme"
+    "pkief.material-product-icons"
+    "elanandkumar.el-vsc-product-icon-theme"
 
-      #~@ Utilities
-      tyriar.sort-lines
-      dotenv.dotenv-vscode
-      editorconfig.editorconfig
-      natqe.reload
-      gruntfuggly.todo-tree
-      formulahendry.code-runner
-      hbenl.vscode-test-explorer
-      jebbs.plantuml
-      ritwickdey.liveserver
-      tomoki1207.pdf
-      wix.vscode-import-cost
-      smcpeak.default-keys-windows
-      tekumara.typos-vscode
-      streetsidesoftware.code-spell-checker
-      visualjj.visualjj
-      wmaurer.change-case
-      joshmu.periscope
-      nhoizey.gremlins
-      irongeek.vscode-env
-      jgclark.vscode-todo-highlight
-      ban.spellright
-      tailscale.vscode-tailscale
-      vitaliymaz.vscode-svg-previewer
-      bodil.file-browser
-      iciclesoft.workspacesort
-      moshfeu.compare-folders
-    ])
-    ++ (with fromMarket; [
-      #~@ Theme & UI
-      allemandinstable.colorful-comments-refreshed
-      brandonkirbyson.vscode-animations
-      subframe7536.custom-ui-style
-      be5invis.vscode-custom-css
-      illixion.vscode-vibrancy-continued
-      elanandkumar.el-vsc-product-icon-theme
-      uloco.theme-bluloco-dark
-      uloco.theme-bluloco-light
+    #~@ Visual
+    "usernamehw.errorlens"
+    "oderwat.indent-rainbow"
+    "kamikillerto.vscode-colorize"
+    "naumovs.color-highlight"
+    "ibm.output-colorizer"
+    "iliazeus.vscode-ansi"
+    "spywhere.guides"
+    "lbragile.line-width-indicator"
+    "bierner.markdown-mermaid"
+    "bierner.github-markdown-preview"
+    "allemandinstable.colorful-comments-refreshed"
+    "brandonkirbyson.vscode-animations"
+    "subframe7536.custom-ui-style"
+    "be5invis.vscode-custom-css"
+    "illixion.vscode-vibrancy-continued"
 
-      #~@ Visual
-      lbragile.line-width-indicator
-      bierner.markdown-mermaid
-      bierner.github-markdown-preview
-      emilast.logfilehighlighter
-
-      #~@ AI
-      codeium.codeium
-
-      #~@ Language Support
-      bluebrown.yamlfmt
-      lkrms.inifmt
-      nefrob.vscode-just-syntax
-      kdl-org.kdl
-      jjk.jjk
-      hverlin.mise-vscode
-      yy0931.gitconfig-lsp
-
-      #~@ Database
-      mtxr.sqltools
-      mtxr.sqltools-driver-sqlite
-
-      #~@ Utilities
-      rebornix.toggle
-      dakara.transformer
-      jeff-hykin.better-shellscript-syntax
-    ]);
+    #~@ Utilities
+    "tyriar.sort-lines"
+    "dotenv.dotenv-vscode"
+    "editorconfig.editorconfig"
+    "natqe.reload"
+    "gruntfuggly.todo-tree"
+    "formulahendry.code-runner"
+    "hbenl.vscode-test-explorer"
+    "jebbs.plantuml"
+    "ritwickdey.liveserver"
+    "tomoki1207.pdf"
+    "wix.vscode-import-cost"
+    "smcpeak.default-keys-windows"
+    "tekumara.typos-vscode"
+    "streetsidesoftware.code-spell-checker"
+    "visualjj.visualjj"
+    "wmaurer.change-case"
+    "joshmu.periscope"
+    "nhoizey.gremlins"
+    "irongeek.vscode-env"
+    "jgclark.vscode-todo-highlight"
+    "ban.spellright"
+    "tailscale.vscode-tailscale"
+    "vitaliymaz.vscode-svg-previewer"
+    "bodil.file-browser"
+    "iciclesoft.workspacesort"
+    "moshfeu.compare-folders"
+    "rebornix.toggle"
+    "dakara.transformer"
+  ];
 }
