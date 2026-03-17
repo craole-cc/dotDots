@@ -1,13 +1,13 @@
 {
   pkgs,
   inputs,
-  _,
   lib,
+  lix,
   ...
 }: let
-  inherit (_.attrsets.resolution) byPaths;
   inherit (lib.lists) filter;
   inherit (lib.strings) splitString;
+  inherit (lix.attrsets.resolution) byPaths;
   system = pkgs.stdenv.hostPlatform.system;
   fromNixpkgs = pkgs.vscode-extensions;
   fromMarket = inputs.nix-vscode-extensions.extensions.${system}.vscode-marketplace;

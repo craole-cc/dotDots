@@ -26,7 +26,7 @@
         }
         (import ./bindings.nix)
         (import ./editor.nix {inherit lib;})
-        (import ./extensions.nix {inherit pkgs inputs;})
+        (import ./extensions.nix {inherit lib lix pkgs inputs;})
         (import ./files.nix)
         (import ./git.nix)
         (import ./global.nix)
