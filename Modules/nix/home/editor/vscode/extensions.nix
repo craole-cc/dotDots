@@ -234,63 +234,63 @@
     "smcpeak.default-keys-windows"
   ];
 
-  inherit (cfg) extensions;
+  inherit (cfg) withExtensions;
 in {
-  extensions = vscodePackages {
+  withExtensions = vscodePackages {
     inherit pkgs inputs;
     entries =
       (
-        if extensions.vcs
+        if withExtensions.vcs
         then vcs
         else []
       )
       ++ (
-        if extensions.ai
+        if withExtensions.ai
         then ai
         else []
       )
       ++ (
-        if extensions.nix
+        if withExtensions.nix
         then nix
         else []
       )
       ++ (
-        if extensions.systems
+        if withExtensions.systems
         then systems
         else []
       )
       ++ (
-        if extensions.scripting
+        if withExtensions.scripting
         then scripting
         else []
       )
       ++ (
-        if extensions.web
+        if withExtensions.web
         then web
         else []
       )
       ++ (
-        if extensions.markup
+        if withExtensions.markup
         then markup
         else []
       )
       ++ (
-        if extensions.infrastructure
+        if withExtensions.infrastructure
         then infrastructure
         else []
       )
       ++ (
-        if extensions.appearance
+        if withExtensions.appearance
         then appearance
         else []
       )
       ++ (
-        if extensions.decorations
+        if withExtensions.decorations
         then decorations
         else []
       )
       ++ (
-        if extensions.productivity
+        if withExtensions.productivity
         then productivity
         else []
       );
