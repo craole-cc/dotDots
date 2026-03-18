@@ -3,10 +3,10 @@
   lib,
   ...
 }: let
-  inherit (lix.applications.editors) mkVscodeFeature;
+  inherit (lix.applications.editors) mkVSCodeFeature;
   inherit (lib.modules) mkDefault;
 in
-  mkVscodeFeature {
+  mkVSCodeFeature {
     extensions = [
       #? Catppuccin color theme
       "catppuccin.catppuccin-vsc"

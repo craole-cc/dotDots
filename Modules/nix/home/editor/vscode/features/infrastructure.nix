@@ -1,7 +1,7 @@
 {lix, ...}: let
-  inherit (lix.applications.editors) mkVscodeFeature;
+  inherit (lix.applications.editors) mkVSCodeFeature;
 in
-  mkVscodeFeature {
+  mkVSCodeFeature {
     extensions = [
       #? Docker file support and container management
       "ms-azuretools.vscode-docker"

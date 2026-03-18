@@ -1,7 +1,7 @@
 {lix, ...}: let
-  inherit (lix.applications.editors) mkVscodeFeature;
+  inherit (lix.applications.editors) mkVSCodeFeature;
 in
-  mkVscodeFeature {
+  mkVSCodeFeature {
     extensions = [
       #? basic Nix syntax
       "bbenoist.nix"

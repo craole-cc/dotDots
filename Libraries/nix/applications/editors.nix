@@ -1,4 +1,4 @@
-{lib}: let
+{lib, ...}: let
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) optionals;
 

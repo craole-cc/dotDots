@@ -1,7 +1,7 @@
 {lix, ...}: let
-  inherit (lix.applications.editors) mkVscodeFeature;
+  inherit (lix.applications.editors) mkVSCodeFeature;
 in
-  mkVscodeFeature {
+  mkVSCodeFeature {
     extensions = [
       #? AI inline completions
       "github.copilot"
