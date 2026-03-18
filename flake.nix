@@ -162,6 +162,15 @@
       inputs.nixpkgs.follows = "nixPackages";
     };
 
+    secretsManager = {
+      repo = "agenix";
+      owner = "ryantm";
+      type = "github";
+      inputs = {
+        nixpkgs.follows = "nixPackages";
+      };
+    };
+
     shellDankMaterial = {
       repo = "DankMaterialShell";
       owner = "AvengeMedia";
