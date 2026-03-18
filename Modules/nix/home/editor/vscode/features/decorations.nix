@@ -8,7 +8,7 @@
 in {
   name = "decorations";
   description = "Inline highlights, guides and visual aids";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

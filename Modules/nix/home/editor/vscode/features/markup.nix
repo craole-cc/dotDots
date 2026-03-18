@@ -8,7 +8,7 @@
 in {
   name = "markup";
   description = "Markdown, TOML, YAML, config format extensions";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

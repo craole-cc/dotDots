@@ -8,7 +8,7 @@
 in {
   name = "productivity";
   description = "Workflow, file management and utility extensions";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

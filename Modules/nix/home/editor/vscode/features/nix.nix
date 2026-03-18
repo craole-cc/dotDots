@@ -8,7 +8,7 @@
 in {
   name = "nix";
   description = "Nix language and tooling extensions";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

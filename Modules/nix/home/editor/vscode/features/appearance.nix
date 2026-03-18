@@ -223,7 +223,7 @@
 in {
   name = "appearance";
   description = "Themes, icons and UI chrome extensions";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

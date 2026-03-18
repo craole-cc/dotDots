@@ -8,7 +8,7 @@
 in {
   name = "scripting";
   description = "Python, Nushell, PowerShell extensions";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

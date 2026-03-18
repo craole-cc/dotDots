@@ -8,7 +8,7 @@
 in {
   name = "systems";
   description = "Rust, shell and systems programming extensions";
-  default = true;
+  default = false;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
