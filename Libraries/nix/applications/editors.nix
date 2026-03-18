@@ -7,20 +7,23 @@
     external = __exports.internal;
   };
 
-  mkVSCodeFeature = enabled: {
+  mkVSCodeFeature = {
+    enabled,
     extensions,
     userSettings ? {},
   }:
     {extensions = optionals enabled extensions;}
     // optionalAttrs enabled {inherit userSettings;};
 
-  mkHelixFeature = enabled: {
+  mkHelixFeature = {
+    enabled,
     languages ? {},
     themes ? {},
   }:
     optionalAttrs enabled {inherit languages themes;};
 
-  mkNeovimFeature = enabled: {
+  mkNeovimFeature = {
+    enabled,
     plugins ? [],
     extraConfig ? "",
   }:
