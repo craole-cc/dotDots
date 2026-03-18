@@ -54,6 +54,7 @@
     "network"
     "wired"
     "wireless"
+    "vpn"
     "bluetooth"
 
     #~@ Display

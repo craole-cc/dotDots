@@ -8,7 +8,6 @@
   dom = "interface";
   iface = host.interface;
 
-  inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) enum nullOr str;
   inherit (lix.filesystem.importers) importAllPaths;

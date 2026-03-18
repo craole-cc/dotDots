@@ -122,24 +122,25 @@ in {
   };
 
   functionalities = [
-    "keyboard"
-    "storage"
-    "network"
-    "video"
-    "virtualization"
     "audio"
+    "battery"
     "bluetooth"
-    "touchpad"
-    "wired"
-    "wireless"
     "dualboot-windows"
     "efi"
-    "secureboot"
-    "tpm"
-    "battery"
-    "webcam"
     "gpu"
+    "keyboard"
+    "network"
     "nvme"
+    "secureboot"
+    "storage"
+    "touchpad"
+    "tpm"
+    "video"
+    "virtualization"
+    "vpn"
+    "webcam"
+    "wired"
+    "wireless"
   ];
 
   access = {
@@ -178,6 +179,15 @@ in {
       "1.1.1.1" # Cloudflare DNS
       "1.0.0.1"
     ];
+
+    vpn = {
+      configFile = "/etc/openvpn/protonvpn-us.ovpn";
+      #? Apps routed through the VPN namespace
+      apps = [
+        "freetube"
+        "chromium"
+      ];
+    };
   };
 
   principals = [
@@ -198,10 +208,10 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    loginManager = "sddm";
+    # loginManager = "sddm";
     # desktopEnvironment = "plasma";
-    windowManager = "hyprland";
-    displayProtocol = "wayland";
+    # windowManager = "hyprland";
+    # displayProtocol = "wayland";
     keyboard = {
       modifier = "SUPER";
       swapCapsEscape = false;

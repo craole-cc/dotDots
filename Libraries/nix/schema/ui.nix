@@ -35,7 +35,7 @@
       appLauncher = null;
       bar = null;
       defaultSession = null;
-      desktopEnvironment = "cosmic";
+      desktopEnvironment = "plasma";
       desktopShell = null;
       displayManager = "sddm";
       displayProtocol = "wayland";
