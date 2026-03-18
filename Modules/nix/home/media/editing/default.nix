@@ -11,6 +11,11 @@
   isAllowed = isIn "video" (host.functionalities or []);
 in {
   config = mkIf isAllowed {
-    home.packages = with pkgs; [kdePackages.kdenlive];
+    home.packages = with pkgs; [
+      kdePackages.kdenlive
+      shotcut
+      darktable
+      ansel
+    ];
   };
 }
