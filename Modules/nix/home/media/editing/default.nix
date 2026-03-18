@@ -16,6 +16,7 @@ in {
       shotcut
       darktable
       ansel
+      doublecmd
     ];
   };
 }
