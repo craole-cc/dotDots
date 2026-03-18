@@ -1,9 +1,14 @@
-{lix, ...}: let
+{
+  lix,
+  pkgs,
+  inputs,
+  ...
+}: let
   inherit (lix.applications.editors) mkVSCodeFeature;
 in
   enabled:
     mkVSCodeFeature {
-      inherit enabled;
+      inherit enabled pkgs inputs;
       extensions = [
         #? .gitignore language support
         "codezombiech.gitignore"

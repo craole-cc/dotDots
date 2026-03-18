@@ -1,4 +1,9 @@
-{lib, ...}: let
+{
+  _,
+  lib,
+  ...
+}: let
+  inherit (_.attrsets.resolution) vscodePackages;
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) optionals;
 
@@ -11,8 +16,16 @@
     enabled,
     extensions,
     userSettings ? {},
-  }:
-    {extensions = optionals enabled extensions;}
+    pkgs,
+    inputs,
+  }: let
+  in
+    {
+      extensions = optionals enabled (vscodePackages {
+        inherit pkgs inputs;
+        entries = extensions;
+      });
+    }
     // optionalAttrs enabled {inherit userSettings;};
 
   mkHelixFeature = {

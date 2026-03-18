@@ -1,6 +1,8 @@
 {
-  lix,
   lib,
+  lix,
+  pkgs,
+  inputs,
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
@@ -8,7 +10,7 @@
 in
   enabled:
     mkVSCodeFeature {
-      inherit enabled;
+      inherit enabled pkgs inputs;
       extensions = [
         #? Catppuccin color theme
         "catppuccin.catppuccin-vsc"
