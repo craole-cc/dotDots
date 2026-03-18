@@ -10,7 +10,7 @@
   inherit (lib.lists) flatten;
 
   nixLsp = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? basic Nix syntax
       "bbenoist.nix"
@@ -33,7 +33,7 @@
   };
 
   direnv = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? direnv environment integration
       "mkhl.direnv"
@@ -45,7 +45,7 @@
 in {
   name = "nix";
   description = "Nix language and tooling extensions";
-  default = false;
+  default = true;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

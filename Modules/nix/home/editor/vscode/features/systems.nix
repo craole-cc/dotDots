@@ -10,7 +10,7 @@
   inherit (lib.lists) flatten;
 
   rust = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Rust LSP
       "rust-lang.rust-analyzer"
@@ -31,7 +31,7 @@
   };
 
   shell = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? shell script formatter
       "mkhl.shfmt"

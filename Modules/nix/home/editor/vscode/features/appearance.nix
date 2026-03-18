@@ -10,7 +10,7 @@
   inherit (lib.lists) flatten;
 
   themes = mkVSCodeSubFeature {
-    enabled = true;
+    enabled = false;
     extensions = [
       #? Catppuccin color theme
       "catppuccin.catppuccin-vsc"
@@ -198,32 +198,10 @@
       "custom-ui-style.watch" = true;
     };
   };
-
-  lineWidth = mkVSCodeSubFeature {
-    enabled = true;
-    userSettings = {
-      "LWI.breakpoints" = [
-        {
-          "color" = "rgb(0, 255, 0, 0.6)";
-          "column" = 54;
-        }
-        {
-          "color" = "rgb(244, 180, 0, 0.6)";
-          "column" = 68;
-        }
-        {
-          "color" = "rgb(255, 0, 0, 0.6)";
-          "column" = 79;
-        }
-      ];
-      "LWI.style.fontStyle" = "italic";
-      "LWI.style.fontWeight" = "100";
-    };
-  };
 in {
   name = "appearance";
   description = "Themes, icons and UI chrome extensions";
-  default = false;
+  default = true;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
@@ -232,14 +210,12 @@ in {
         icons.extensions
         animations.extensions
         customUI.extensions
-        lineWidth.extensions
       ];
       userSettings = mkMerge [
         (themes.userSettings    or {})
         (icons.userSettings     or {})
         (animations.userSettings or {})
         (customUI.userSettings  or {})
-        (lineWidth.userSettings or {})
         {
           #~@ Window
           "window.autoDetectColorScheme" = true;

@@ -10,7 +10,7 @@
   inherit (lib.lists) flatten;
 
   markdown = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Markdown linter
       "davidanson.vscode-markdownlint"
@@ -19,9 +19,9 @@
       #? Export markdown to PDF
       "yzane.markdown-pdf"
       #? CSV column colorizer
-      "mechatroner.rainbow-csv"
+      # "mechatroner.rainbow-csv"
       #? Mermaid diagram preview in markdown
-      "bierner.markdown-mermaid"
+      # "bierner.markdown-mermaid"
       #? GitHub-flavored markdown preview
       "bierner.github-markdown-preview"
     ];
@@ -33,16 +33,16 @@
       "markdown-pdf.breaks" = true;
       "markdown-pdf.displayHeaderFooter" = false;
       "markdown-pdf.format" = "Letter";
-      "markdown.marp.enableHtml" = true;
-      "markdown.marp.pdf.noteAnnotations" = true;
-      "markdown.marp.pdf.outlines" = "both";
-      "markdown.marp.exportType" = "html";
-      "markdown.marp.strictPathResolutionDuringExport" = true;
+      # "markdown.marp.enableHtml" = true;
+      # "markdown.marp.pdf.noteAnnotations" = true;
+      # "markdown.marp.pdf.outlines" = "both";
+      # "markdown.marp.exportType" = "html";
+      # "markdown.marp.strictPathResolutionDuringExport" = true;
     };
   };
 
   dataFormats = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? YAML LSP and validation
       "redhat.vscode-yaml"

@@ -10,7 +10,7 @@
   inherit (lib.lists) flatten;
 
   tailwind = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Tailwind CSS intellisense
       "bradlc.vscode-tailwindcss"
@@ -28,7 +28,7 @@
   };
 
   deno = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Deno runtime and LSP
       "denoland.vscode-deno"
@@ -42,7 +42,7 @@
   };
 
   prettier = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Prettier formatter
       "esbenp.prettier-vscode"
@@ -56,7 +56,7 @@
 in {
   name = "web";
   description = "Web development extensions";
-  default = false;
+  default = true;
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;

@@ -14,7 +14,7 @@
     ;
 
   files = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Keyboard-driven file browser
       "bodil.file-browser"
@@ -28,7 +28,7 @@
   };
 
   text = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? Text transformation utilities
       "dakara.transformer"
@@ -42,14 +42,14 @@
   };
 
   env = mkVSCodeSubFeature {
-    enabled = false;
+    enabled = true;
     extensions = [
       #? .env file support
       "dotenv.dotenv-vscode"
       #? .env syntax highlighting
-      "irongeek.vscode-env"
+      # "irongeek.vscode-env"
       #? Respect .editorconfig files
-      "editorconfig.editorconfig"
+      # "editorconfig.editorconfig"
     ];
     userSettings = {
       "dotenv.enableAutocloaking" = false;
