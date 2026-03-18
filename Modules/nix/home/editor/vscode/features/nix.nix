@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "nix";
+  description = "Nix language and tooling extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? basic Nix syntax
         "bbenoist.nix"
@@ -31,4 +34,5 @@ in
         };
         "direnv.restart.automatic" = true;
       };
-    }
+    };
+}

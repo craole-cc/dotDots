@@ -1,16 +1,19 @@
 {
-  lib,
   lix,
+  lib,
   pkgs,
   inputs,
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
   inherit (lib.modules) mkDefault;
-in
-  enabled:
+in {
+  name = "appearance";
+  description = "Themes, icons and UI chrome extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Catppuccin color theme
         "catppuccin.catppuccin-vsc"
@@ -226,4 +229,5 @@ in
         "LWI.style.fontStyle" = "italic";
         "LWI.style.fontWeight" = "100";
       };
-    }
+    };
+}

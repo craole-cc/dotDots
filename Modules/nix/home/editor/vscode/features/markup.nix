@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "markup";
+  description = "Markdown, TOML, YAML, config format extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Markdown linter
         "davidanson.vscode-markdownlint"
@@ -61,4 +64,5 @@ in
         "[typst-code]"."editor.defaultFormatter" = "myriad-dreamin.tinymist";
         "redhat.telemetry.enabled" = false;
       };
-    }
+    };
+}

@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "vcs";
+  description = "Git, jj and version control extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? .gitignore language support
         "codezombiech.gitignore"
@@ -25,4 +28,5 @@ in
         #? jujutsu keybindings
         "jjk.jjk"
       ];
-    }
+    };
+}

@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "web";
+  description = "Web development extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Tailwind CSS intellisense
         "bradlc.vscode-tailwindcss"
@@ -34,4 +37,5 @@ in
         "cssvar.extensions" = ["css" "postcss" "jsx" "tsx"];
         "cssvar.ignore" = [];
       };
-    }
+    };
+}

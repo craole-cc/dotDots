@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "productivity";
+  description = "Workflow, file management and utility extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Keyboard-driven file browser
         "bodil.file-browser"
@@ -62,4 +65,5 @@ in
       userSettings = {
         "dotenv.enableAutocloaking" = false;
       };
-    }
+    };
+}

@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "infrastructure";
+  description = "Docker, SQL, DevOps extensions";
+  default = false;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Docker file support and container management
         "ms-azuretools.vscode-docker"
@@ -19,4 +22,5 @@ in
         #? Tailscale network integration
         "tailscale.vscode-tailscale"
       ];
-    }
+    };
+}

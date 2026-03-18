@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "systems";
+  description = "Rust, shell and systems programming extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Rust LSP
         "rust-lang.rust-analyzer"
@@ -37,4 +40,5 @@ in
         "lldb.dereferencePointers" = true;
         "lldb.consoleMode" = "commands";
       };
-    }
+    };
+}

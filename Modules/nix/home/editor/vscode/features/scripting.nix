@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "scripting";
+  description = "Python, Nushell, PowerShell extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Python LSP and tooling
         "ms-python.python"
@@ -37,4 +40,5 @@ in
         "powershell.integratedConsole.showOnStartup" = false;
         "powershell.integratedConsole.suppressStartupBanner" = true;
       };
-    }
+    };
+}

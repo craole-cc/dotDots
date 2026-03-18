@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "decorations";
+  description = "Inline highlights, guides and visual aids";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? Inline error/warning messages
         "usernamehw.errorlens"
@@ -193,4 +196,5 @@ in
           }
         ];
       };
-    }
+    };
+}
