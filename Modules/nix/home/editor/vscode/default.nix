@@ -12,13 +12,13 @@
   mod = "vscode";
   cfg = config.${top}.${dom}.${mod};
 
-  inherit (lib.attrsets) attrNames;
   inherit (lib.modules) mkIf mkMerge mkDefault;
+  inherit (lib.attrsets) attrNames;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.types.options) mkEnable;
 
-  base = import ./base {inherit lib mkDefault;};
-  features = import ./features {inherit lib lix pkgs inputs;};
+  base = import ./base/default.nix {inherit lib mkDefault;};
+  features = import ./features/default.nix {inherit lib lix;};
 
   appCfg = userApplicationConfig {
     inherit user pkgs config;
@@ -30,9 +30,15 @@
     extraPackages = [pkgs.vscode-fhs];
     extraProgramConfig = {
       profiles.default = mkMerge (
-        [base]
+        [
+          {
+            enableUpdateCheck = false;
+            enableExtensionUpdateCheck = false;
+          }
+          base
+        ]
         ++ map
-        (name: features.${name}.mkFeature cfg.withExtensions.${name})
+        (name: features.${name} cfg.withExtensions.${name})
         (attrNames features.options)
       );
     };

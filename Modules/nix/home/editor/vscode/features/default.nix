@@ -1,12 +1,10 @@
 {
-  pkgs,
-  inputs,
-  lib,
   lix,
+  lib,
+  ...
 }: let
   inherit (lix.types.options) mkTrue mkFalse;
-
-  load = path: import path {inherit pkgs inputs lib lix;};
+  load = path: import path {inherit lix lib;};
 in {
   ai = load ./ai.nix;
   appearance = load ./appearance.nix;
