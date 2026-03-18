@@ -2,6 +2,7 @@
   config,
   host,
   lib,
+  lix,
   pkgs,
   top,
   ...
@@ -12,7 +13,7 @@
   vpnCfg = host.access.vpn or {};
 
   inherit (lib.attrsets) listToAttrs;
-  inherit (lib.lists) isIn;
+  inherit (lix.lists.predicates) isIn;
   inherit (lib.meta) getExe;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
