@@ -112,7 +112,7 @@
         command = [
           "caelestia"
           "wallpaper"
-          "-r"
+          "--random"
         ];
         name = "Random";
         description = "Switch to a random wallpaper";

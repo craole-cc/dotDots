@@ -30,10 +30,14 @@
         "ghostty"
       ];
       audio = ["pavucontrol"];
-      playback = ["mpv"];
+      playback = [
+        "mpv"
+        "freetube"
+      ];
       explorer = [
+        "doublecmd"
+        "cosmic-files"
         "nautilus"
-        "spacedrive"
         "dolphin"
       ];
     };

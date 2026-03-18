@@ -17,6 +17,7 @@ in {
       darktable
       ansel
       doublecmd
+      davinci-resolve
     ];
   };
 }
