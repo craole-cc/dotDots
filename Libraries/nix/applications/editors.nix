@@ -8,7 +8,14 @@
   inherit (lib.lists) optionals;
 
   __exports = {
-    internal = {inherit mkVSCodeFeature mkHelixFeature mkNeovimFeature;};
+    internal = {
+      inherit
+        mkVSCodeFeature
+        mkVSCodeSubFeature
+        mkHelixFeature
+        mkNeovimFeature
+        ;
+    };
     external = __exports.internal;
   };
 
@@ -26,6 +33,14 @@
         entries = extensions;
       });
     }
+    // optionalAttrs enabled {inherit userSettings;};
+
+  mkVSCodeSubFeature = {
+    enabled,
+    extensions ? [],
+    userSettings ? {},
+  }:
+    {extensions = optionals enabled extensions;}
     // optionalAttrs enabled {inherit userSettings;};
 
   mkHelixFeature = {
