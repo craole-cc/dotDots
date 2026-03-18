@@ -11,7 +11,7 @@ in {
   default = true;
   feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs lix;
+      inherit enabled pkgs inputs;
       extensions = [
         #? .gitignore language support
         "codezombiech.gitignore"

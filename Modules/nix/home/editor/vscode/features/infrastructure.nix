@@ -11,7 +11,7 @@ in {
   default = false;
   feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs lix;
+      inherit enabled pkgs inputs;
       extensions = [
         #? Docker file support and container management
         "ms-azuretools.vscode-docker"
