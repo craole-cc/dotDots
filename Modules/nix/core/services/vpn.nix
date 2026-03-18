@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   host,
   lib,
   lix,
@@ -48,6 +49,13 @@ in {
   };
 
   config = mkIf cfg.enable {
+    #~@ Agenix decrypts credentials to /run/secrets/vpn-auth at activation
+    age.secrets.vpn-auth = {
+      file = inputs.self + "/Secrets/vpn-auth.age";
+      owner = "root";
+      mode = "0400";
+    };
+
     #~@ Step 1: create the vpn network namespace
     systemd.services.vpn-netns = {
       description = "Create VPN network namespace";
@@ -93,7 +101,7 @@ in {
     systemd.services.vpn-tunnel = {
       description = "OpenVPN inside VPN network namespace";
       wantedBy = ["multi-user.target"];
-      after = ["vpn-veth.service"];
+      after = ["vpn-veth.service" "agenix.service"];
       requires = ["vpn-veth.service"];
       serviceConfig = {
         Type = "simple";

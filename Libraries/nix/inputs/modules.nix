@@ -67,9 +67,11 @@
       then [
         (inputs.home-manager.darwinModules.home-manager or {})
         (inputs.stylix.darwinModules.stylix or {})
+        (inputs.agenix.darwinModules.default or {})
       ]
       else [
         (inputs.home-manager.nixosModules.home-manager or {})
+        (inputs.agenix.nixosModules.agenix or {})
         (inputs.stylix.nixosModules.stylix or {})
         (inputs.catppuccin.nixosModules.default or {})
         (inputs.chaotic.nixosModules.default or {})

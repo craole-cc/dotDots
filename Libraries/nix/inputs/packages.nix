@@ -63,6 +63,7 @@
       inputs = (resolveInputs {}).resolved // inputs;
       names =
         [
+          "agenix"
           "caelestia"
           "catppuccin"
           "dank-material-shell"

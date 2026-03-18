@@ -127,7 +127,6 @@
     home = {
       nix-darwin = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["darwin"]
           ["nixDarwin"]
@@ -138,7 +137,6 @@
 
       home-manager = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["nixHomeManager"]
           ["nixosHome"]
@@ -149,9 +147,17 @@
         ];
       };
 
+      agenix = byPaths {
+        inherit attrset;
+        paths = [
+          ["secretsManager"]
+          ["age"]
+          ["agenix"]
+        ];
+      };
+
       catppuccin = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["styleCatppuccin"]
           ["catppuccinStyle"]
@@ -161,7 +167,6 @@
 
       chaotic = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["nixChaotic"]
           ["kernelChaotic"]
@@ -172,7 +177,6 @@
 
       stylix = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["nixStyle"]
           ["styleManager"]
@@ -182,7 +186,6 @@
 
       caelestia = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["shellCaelestia"]
           ["caelestia-shell"]
@@ -192,7 +195,6 @@
 
       dank-material-shell = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["shellDankMaterial"]
           ["shellDank"]
@@ -205,7 +207,6 @@
 
       fresh-editor = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["fresh"]
           ["freshEditor"]
@@ -216,7 +217,6 @@
 
       helix = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["helix-editor"]
           ["hx"]
@@ -229,7 +229,6 @@
 
       noctalia-shell = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["shellNoctalia"]
           ["noctalia-dev"]
@@ -240,7 +239,6 @@
 
       nvf = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["editorNeovim"]
           ["neovim"]
@@ -253,7 +251,6 @@
 
       plasma = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["shellPlasma"]
           ["plasma-manager"]
@@ -265,7 +262,6 @@
 
       quickshell = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["shellQuick"]
           ["qtshell"]
@@ -277,7 +273,6 @@
 
       treefmt = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["treeFormatter"]
           ["fmtree"]
@@ -288,7 +283,6 @@
 
       typix = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["docTypix"]
           ["typst"]
@@ -299,7 +293,6 @@
 
       vscode-insiders = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["vscode"]
           ["code"]
@@ -316,7 +309,6 @@
 
       nix-vscode-extensions = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["editorVSCodeExtensions"]
           ["editorVSCodeMarketplace"]
@@ -329,7 +321,6 @@
 
       zen-browser = byPaths {
         inherit attrset;
-        default = {};
         paths = [
           ["browserZen"]
           ["firefoxZen"]
