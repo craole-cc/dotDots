@@ -1,28 +1,39 @@
 {lix, ...}: let
-  inherit (lix.types.options) mkTrue;
-in {
-  option = mkTrue "AI assistance extensions";
-
-  extensions = [
-    "github.copilot"
-    "github.copilot-chat"
-    "codeium.codeium"
-  ];
-
-  settings = {
-    "github.copilot.enable" = {
-      "*" = false;
-      "nix" = true;
-      "shellscript" = true;
+  inherit (lix.applications.editors) mkVscodeFeature;
+in
+  mkVscodeFeature {
+    extensions = [
+      #? AI inline completions
+      "github.copilot"
+      #? AI chat assistant
+      "github.copilot-chat"
+      #? alternative AI completions
+      "codeium.codeium"
+    ];
+    userSettings = {
+      "github.copilot.enable" = {
+        "*" = false;
+        "plaintext" = false;
+        "markdown" = false;
+        "scminput" = false;
+        "nix" = true;
+        "shellscript" = true;
+        "rust" = false;
+        "powershell" = false;
+      };
+      "github.copilot.chat.codesearch.enabled" = true;
+      "github.copilot.chat.editor.temporalContext.enabled" = true;
+      "github.copilot.nextEditSuggestions.enabled" = true;
+      "codeium.disableSupercomplete" = true;
+      "codeium.enableSearch" = true;
+      "codeium.enableConfig" = {
+        "*" = true;
+        "nix" = true;
+        "jsonc" = true;
+        "just" = true;
+        "markdown" = true;
+        "typst" = true;
+        "cypher" = true;
+      };
     };
-    "github.copilot.nextEditSuggestions.enabled" = true;
-    "codeium.disableSupercomplete" = true;
-    "codeium.enableSearch" = true;
-    "codeium.enableConfig" = {
-      "*" = true;
-      "nix" = true;
-      "typst" = true;
-      "cypher" = true;
-    };
-  };
-}
+  }
