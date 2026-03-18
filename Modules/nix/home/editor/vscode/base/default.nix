@@ -1,11 +1,20 @@
 {lib, ...}: let
   inherit (lib.modules) mkMerge mkDefault;
+
+  bindings = import ./bindings.nix {};
+  editor = import ./editor.nix {inherit mkDefault;};
+  files = import ./files.nix {};
+  global = import ./global.nix {};
+  terminal = import ./terminal.nix {inherit mkDefault;};
 in
   mkMerge [
-    (import ./bindings.nix {})
-    (import ./editor.nix {inherit mkDefault;})
-    (import ./files.nix {})
-    (import ./git.nix {})
-    (import ./global.nix {})
-    (import ./terminal.nix {inherit mkDefault;})
+    {
+      userSettings = mkMerge [
+        editor.userSettings
+        terminal.userSettings
+        files.userSettings
+        global.userSettings
+      ];
+    }
+    {inherit (bindings) keybindings;}
   ]

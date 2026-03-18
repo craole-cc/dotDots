@@ -1,10 +1,47 @@
 {
+  inputs,
+  lib,
   lix,
   pkgs,
-  inputs,
   ...
 }: let
-  inherit (lix.applications.editors) mkVSCodeFeature;
+  inherit (lix.applications.editors) mkVSCodeFeature mkVSCodeSubFeature;
+  inherit (lib.modules) mkMerge;
+  inherit (lib.lists) flatten;
+
+  nixLsp = mkVSCodeSubFeature {
+    enabled = false;
+    extensions = [
+      #? basic Nix syntax
+      "bbenoist.nix"
+      #? Nix LSP, formatting, eval
+      "jnoortheen.nix-ide"
+      #? improved Nix highlighting
+      "jeff-hykin.better-nix-syntax"
+      #? Alejandra formatter integration
+      # "kamadorueda.alejandra"
+    ];
+    userSettings = {
+      "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
+      "nix.enableLanguageServer" = true;
+      "nix.serverPath" = "nixd";
+      "nix.serverSettings"."nixd" = {
+        "formatting"."command" = ["alejandra"];
+        "diagnostic"."suppress" = ["sema-primop-overridden"];
+      };
+    };
+  };
+
+  direnv = mkVSCodeSubFeature {
+    enabled = false;
+    extensions = [
+      #? direnv environment integration
+      "mkhl.direnv"
+    ];
+    userSettings = {
+      "direnv.restart.automatic" = true;
+    };
+  };
 in {
   name = "nix";
   description = "Nix language and tooling extensions";
@@ -12,27 +49,13 @@ in {
   feature = enabled:
     mkVSCodeFeature {
       inherit enabled pkgs inputs;
-      extensions = [
-        #? basic Nix syntax
-        "bbenoist.nix"
-        #? Nix LSP, formatting, eval
-        "jnoortheen.nix-ide"
-        #? improved Nix highlighting
-        "jeff-hykin.better-nix-syntax"
-        #? direnv environment integration
-        "mkhl.direnv"
-        #? Alejandra formatter integration
-        "kamadorueda.alejandra"
+      extensions = flatten [
+        nixLsp.extensions
+        direnv.extensions
       ];
-      userSettings = {
-        "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
-        "nix.enableLanguageServer" = true;
-        "nix.serverPath" = "nixd";
-        "nix.serverSettings"."nixd" = {
-          "formatting"."command" = ["alejandra"];
-          "diagnostic"."suppress" = ["sema-primop-overridden"];
-        };
-        "direnv.restart.automatic" = true;
-      };
+      userSettings = mkMerge [
+        (nixLsp.userSettings  or {})
+        (direnv.userSettings  or {})
+      ];
     };
 }

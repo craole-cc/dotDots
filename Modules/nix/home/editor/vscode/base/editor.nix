@@ -1,6 +1,6 @@
 {mkDefault, ...}: {
   userSettings = {
-    # Basics
+    #~@ Basics
     "editor.fontSize" = mkDefault 18.0;
     "editor.fontFamily" = mkDefault "'Maple Mono NF', 'VictorMono Nerd Font', 'Hack Nerd Font', 'monospace', monospace";
     "editor.fontLigatures" = true;
@@ -12,7 +12,7 @@
     "editor.wordWrapColumn" = 120;
     "editor.renderControlCharacters" = false;
 
-    # Behavior
+    #~@ Behavior
     "editor.accessibilitySupport" = "off";
     "editor.cursorBlinking" = "expand";
     "editor.cursorSmoothCaretAnimation" = "on";
@@ -29,7 +29,7 @@
     "editor.renderWhitespace" = "all";
     "editor.unicodeHighlight.ambiguousCharacters" = false;
 
-    # Visual
+    #~@ Visual
     "editor.bracketPairColorization.independentColorPoolPerBracketType" = true;
     "editor.guides.bracketPairs" = "active";
     "editor.minimap.enabled" = true;
@@ -39,13 +39,13 @@
     "editor.semanticHighlighting.enabled" = true;
     "editor.stickyScroll.enabled" = false;
 
-    # IntelliSense
+    #~@ IntelliSense
     "editor.inlineSuggest.suppressSuggestions" = true;
     "editor.inlayHints.enabled" = "offUnlessPressed";
     "editor.quickSuggestions"."strings" = "on";
     "editor.suggestSelection" = "recentlyUsedByPrefix";
 
-    # Semantic tokens
+    #~@ Semantic tokens
     "editor.semanticTokenColorCustomizations"."rules" = {
       "interface"."italic" = true;
       "selfParameter"."italic" = true;
@@ -53,7 +53,7 @@
       "*.static"."italic" = true;
     };
 
-    # Token colors
+    #~@ Token colors
     "editor.tokenColorCustomizations" = {
       "[*Light*]"."textMateRules" = [
         {
@@ -169,7 +169,7 @@
       ];
     };
 
-    # Explorer
+    #~@ Explorer
     "explorer.compactFolders" = false;
     "explorer.excludeGitIgnore" = false;
   };
