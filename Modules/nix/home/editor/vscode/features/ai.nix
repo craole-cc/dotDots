@@ -5,10 +5,13 @@
   ...
 }: let
   inherit (lix.applications.editors) mkVSCodeFeature;
-in
-  enabled:
+in {
+  name = "ai";
+  description = "AI assistance extensions";
+  default = true;
+  feature = enabled:
     mkVSCodeFeature {
-      inherit enabled pkgs inputs;
+      inherit enabled pkgs inputs lix;
       extensions = [
         #? AI inline completions
         "github.copilot"
@@ -43,4 +46,5 @@ in
           "cypher" = true;
         };
       };
-    }
+    };
+}

@@ -18,7 +18,7 @@
   inherit (lix.types.options) mkEnable;
 
   base = import ./base/default.nix {inherit lib mkDefault;};
-  features = import ./features/default.nix {inherit lib lix;};
+  features = import ./features/default.nix {inherit lib lix inputs pkgs;};
 
   appCfg = userApplicationConfig {
     inherit user pkgs config;
@@ -30,15 +30,9 @@
     extraPackages = [pkgs.vscode-fhs];
     extraProgramConfig = {
       profiles.default = mkMerge (
-        [
-          {
-            enableUpdateCheck = false;
-            enableExtensionUpdateCheck = false;
-          }
-          base
-        ]
+        [base]
         ++ map
-        (name: features.${name} cfg.withExtensions.${name})
+        (name: features.features.${name} cfg.withExtensions.${name})
         (attrNames features.options)
       );
     };
