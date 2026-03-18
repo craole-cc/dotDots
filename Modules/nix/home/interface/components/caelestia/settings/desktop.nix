@@ -1,9 +1,7 @@
 {
   background = {
     enabled = true;
-    desktopClock = {
-      enabled = true;
-    };
+    desktopClock.enabled = true;
     visualiser = {
       enabled = true;
       autoHide = true;
@@ -62,9 +60,7 @@
       showLockStatus = true;
     };
 
-    clock = {
-      showIcon = false;
-    };
+    clock.showIcon = false;
 
     sizes = {
       innerWidth = 40;

@@ -6,10 +6,10 @@
   services = {
     audioIncrement = 0.1;
     brightnessIncrement = 0.1;
-    defaultPlayer = "Elisa";
+    defaultPlayer = "mpv";
     gpuType = "";
     maxVolume = 1;
-    smartScheme = false;
+    smartScheme = true;
     useFahrenheit = false;
     useTwelveHourClock = true;
     visualiserBars = 45;
