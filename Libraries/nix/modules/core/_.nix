@@ -1,8 +1,4 @@
-{
-  _,
-  lib,
-  ...
-}: let
+{_, ...}: let
   __doc = ''
     Build the host-specific core module list used during system evaluation.
 
@@ -29,8 +25,7 @@
     external = {mkCoreModules = mkModules;};
   };
 
-  inherit (lib) extend;
-  inherit (_.modules.home.users) mkUsers;
+  inherit (_.modules._) mkHome;
 
   /**
   Build the host-specific core module list used during system evaluation.
@@ -57,26 +52,11 @@
     specialArgs,
     tree,
   }: [
-    {
-      inherit nixpkgs;
-      home-manager = {
-        backupFileExtension = "BaC";
-        overwriteBackup = true;
-        useGlobalPkgs = true;
-        useUserPackages = true;
-        extraSpecialArgs =
-          specialArgs
-          // {
-            lib = extend (_self: _super: {
-              hm = inputs.home-manager.lib.hm or {};
-            });
-          };
-        users = mkUsers {
-          inherit inputs host tree;
-          modules = modules.home;
-        };
-      };
-    }
+    {inherit nixpkgs;}
+    (mkHome {
+      inherit host specialArgs tree inputs;
+      modules = modules.home;
+    })
   ];
 in
   __exports.internal

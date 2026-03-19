@@ -23,22 +23,13 @@
 
   __exports = {
     internal = {
-      inherit mkModules mkUsers;
+      inherit mkModules;
       mkHome = mkModules;
     };
-    external = {
-      mkHomeModules = mkModules;
-      mkHomeUsers = mkUsers;
-    };
+    external = {mkHomeModules = mkModules;};
   };
 
-  inherit (_.modules.core.users) homeUsers;
-  inherit (_.modules.home.control) mkKeyboard;
-  inherit (_.modules.home.paths) mkSessionPaths;
-  inherit (_.modules.home.programs) mkApps;
-  inherit (_.modules.home.style) mkStyle;
-  inherit (_.schema._) mkUI mkLocale mkApplications;
-  inherit (lib.attrsets) mapAttrs;
+  inherit (_.modules.home.users) mkUsers;
   inherit (lib) extend;
 
   /**
