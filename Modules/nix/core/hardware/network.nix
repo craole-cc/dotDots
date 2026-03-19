@@ -96,6 +96,12 @@ in {
       enableSSHSupport = true;
     };
 
+    services.openssh = {
+      enable = true;
+      permitRootLogin = "no";
+      passwordAuthentication = false;
+    };
+
     environment.systemPackages = with pkgs; [
       speedtest-cli
       speedtest-go

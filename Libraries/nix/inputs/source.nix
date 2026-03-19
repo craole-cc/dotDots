@@ -147,7 +147,7 @@
         ];
       };
 
-      agenix = byPaths {
+      age = byPaths {
         inherit attrset;
         paths = [
           ["secretsManager"]

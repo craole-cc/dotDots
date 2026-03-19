@@ -1,6 +1,6 @@
 {
   config,
-  inputs,
+  tree,
   host,
   lib,
   lix,
@@ -51,7 +51,7 @@ in {
   config = mkIf cfg.enable {
     #~@ Agenix decrypts credentials to /run/secrets/vpn-auth at activation
     age.secrets.vpn-auth = {
-      file = inputs.self + "/Secrets/vpn-auth.age";
+      file = tree.store.default + "/Secrets/vpn-auth.age";
       owner = "root";
       mode = "0400";
     };
