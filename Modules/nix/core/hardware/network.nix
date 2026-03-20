@@ -98,8 +98,6 @@ in {
 
     services.openssh = {
       enable = true;
-      permitRootLogin = "no";
-      passwordAuthentication = false;
     };
 
     environment.systemPackages = with pkgs; [

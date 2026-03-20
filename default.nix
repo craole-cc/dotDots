@@ -29,9 +29,13 @@
           users = base ++ ["users"];
         };
 
-      cfg.default = ["Configuration"];
+      cfg = {
+        default = ["Configuration"];
+      };
 
-      env.default = ["Environment"];
+      env = {
+        default = ["Environment"];
+      };
 
       kit = let
         base = ["Templates" "nix"];
@@ -84,6 +88,13 @@
           overlays = base ++ ["overlays"];
           plugins = base ++ ["plugins"];
         };
+
+      sec = let
+        base = ["Private"];
+      in {
+        default = base;
+        age = [base "secrets.nix"];
+      };
 
       res = let
         images = ["Assets" "Images"];
