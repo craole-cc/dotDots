@@ -99,16 +99,16 @@ in {
         priority = 1;
       };
 
-      "HDMI-A-2" = {
-        brand = "ACER";
-        resolution = "1920x1080";
-        refreshRate = 100;
-        scale = 1;
-        position = "0x420";
-        transform = 3;
-        size = 24.5;
-        priority = 2;
-      };
+      # "HDMI-A-2" = {
+      #   brand = "ACER";
+      #   resolution = "1920x1080";
+      #   refreshRate = 100;
+      #   scale = 1;
+      #   position = "0x420";
+      #   transform = 3;
+      #   size = 24.5;
+      #   priority = 2;
+      # };
     };
   };
 

@@ -90,12 +90,17 @@ in {
         size = 15.6;
         priority = 0;
       };
-      # "HDMI-A-1" = {
-      #   resolution = "1920x1080";
-      #   refreshRate = 75;
-      #   scale = 1;
-      #   position = "0x0";
-      # };
+
+      "HDMI-A-1" = {
+        brand = "ACER";
+        resolution = "1920x1080";
+        refreshRate = 100;
+        scale = 1;
+        position = "0x1080";
+        # transform = 3;
+        size = 24.5;
+        priority = 2;
+      };
     };
   };
 
@@ -103,7 +108,7 @@ in {
     latitude = 18.015;
     longitude = -77.49;
     city = "Mandeville, Jamaica";
-    locator = "geoclue2";
+    # locator = "geoclue2";
     timeZone = "America/Jamaica";
     defaultLocale = "en_US.UTF-8";
   };
