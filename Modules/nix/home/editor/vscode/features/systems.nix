@@ -35,10 +35,16 @@
     extensions = [
       #? shell script formatter
       "mkhl.shfmt"
+
+      #? Bash IDE
+      "mads-hartmann.bash-ide-vscode"
+
       #? shell script linter
       "timonwong.shellcheck"
+
       #? additional shell formatting
       "foxundermoon.shell-format"
+
       #? improved shell highlighting
       "jeff-hykin.better-shellscript-syntax"
     ];
