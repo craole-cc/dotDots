@@ -93,7 +93,7 @@
         base = ["Private"];
       in {
         default = base;
-        age = [base "secrets.nix"];
+        age = base ++ ["secrets.nix"];
       };
 
       res = let
