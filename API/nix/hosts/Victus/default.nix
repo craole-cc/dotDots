@@ -108,27 +108,28 @@ in {
     defaultLocale = "en_US.UTF-8";
   };
   functionalities = [
-    "keyboard"
-    "storage"
-    "network"
-    "video"
-    "virtualization"
     "audio"
+    "battery"
     "bluetooth"
-    # "touchpad" # Currently not functional
-    "wired"
-    "wireless"
     "dualboot-windows"
     "efi"
-    "secureboot"
-    "tpm"
-    "battery"
-    "webcam"
     "gpu"
+    "keyboard"
+    "network"
     "nvme"
+    "secureboot"
+    "storage"
+    # "touchpad" # Currently not functional
+    "tpm"
+    "video"
+    "virtualization"
+    "vpn"
+    "webcam"
+    "wired"
+    "wireless"
   ];
   access = {
-    # ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNDko91cBLITGetT4wRmV1ihq9c/L20sUSLPxbfI0vE root@victus";
+    ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFuAgYKymJKvky9sAhU0wjHPHbGt+Hg0KLOTIYjoZ9tw root@nixos";
     # age = "age1j5cug724x386nygk8dhc38tujhzhp9nyzyelzl0yaz3ndgtq3qwqxtkfpv";
     firewall = {
       # enable = true;
@@ -161,6 +162,15 @@ in {
       "1.1.1.1" # Cloudflare DNS
       "1.0.0.1"
     ];
+
+    vpn = {
+      configFile = "/etc/openvpn/protonvpn-us.ovpn";
+      #? Apps routed through the VPN namespace
+      apps = [
+        "freetube"
+        "chromium"
+      ];
+    };
   };
 
   principals = [

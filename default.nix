@@ -94,6 +94,7 @@
       in {
         default = base;
         age = base ++ ["secrets.nix"];
+        vpn = base ++ ["vpn.age"];
       };
 
       res = let
