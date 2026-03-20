@@ -50,11 +50,11 @@ in {
 
   config = mkIf cfg.enable {
     #~@ Agenix decrypts credentials to /run/secrets/vpn-auth at activation
-    age.secrets.vpn-auth = {
-      file = tree.store.sec.vpn;
-      owner = "root";
-      mode = "0400";
-    };
+    # age.secrets.vpn-auth = {
+    #   file = tree.store.sec.vpn;
+    #   owner = "root";
+    #   mode = "0400";
+    # };
 
     #~@ Step 1: create the vpn network namespace
     systemd.services.vpn-netns = {
