@@ -5,22 +5,33 @@
   pkgs,
   top,
   ...
-}: let
+}:
+let
   dom = "hardware";
   mod = "network";
   cfg = config.${top}.${dom}.${mod};
 
   hw = host.hardware;
-  access = host.access or {};
-  fw = access.firewall or {};
+  access = host.access or { };
+  fw = access.firewall or { };
 
   inherit (lib.attrsets) genAttrs;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
-  inherit (lib.types) bool listOf nullOr str attrsOf int;
-in {
+  inherit (lib.types)
+    bool
+    listOf
+    nullOr
+    str
+    attrsOf
+    int
+    ;
+in
+{
   options.${top}.${dom}.${mod} = {
-    enable = mkEnableOption mod // {default = hw.hasNetwork;};
+    enable = mkEnableOption mod // {
+      default = hw.hasNetwork;
+    };
     hostName = mkOption {
       description = "System hostname";
       default = host.name or "nixos";
@@ -33,12 +44,12 @@ in {
     };
     nameservers = mkOption {
       description = "DNS nameservers";
-      default = access.nameservers or [];
+      default = access.nameservers or [ ];
       type = listOf str;
     };
     devices = mkOption {
       description = "Network interface names";
-      default = host.devices.network or [];
+      default = host.devices.network or [ ];
       type = listOf str;
     };
     gnupg = mkOption {
@@ -54,22 +65,22 @@ in {
       };
       tcpPorts = mkOption {
         description = "Allowed TCP ports";
-        default = fw.tcp.ports or [];
+        default = fw.tcp.ports or [ ];
         type = listOf int;
       };
       tcpRanges = mkOption {
         description = "Allowed TCP port ranges";
-        default = fw.tcp.ranges or [];
+        default = fw.tcp.ranges or [ ];
         type = listOf (attrsOf int);
       };
       udpPorts = mkOption {
         description = "Allowed UDP ports";
-        default = fw.udp.ports or [];
+        default = fw.udp.ports or [ ];
         type = listOf int;
       };
       udpRanges = mkOption {
         description = "Allowed UDP port ranges";
-        default = fw.udp.ranges or [];
+        default = fw.udp.ranges or [ ];
         type = listOf (attrsOf int);
       };
     };
@@ -81,7 +92,9 @@ in {
       hostId = cfg.hostId;
       networkmanager.enable = true;
       nameservers = cfg.nameservers;
-      interfaces = genAttrs cfg.devices (_: {useDHCP = true;});
+      interfaces = genAttrs cfg.devices (_: {
+        useDHCP = true;
+      });
       firewall = {
         enable = cfg.firewall.enable;
         allowedTCPPorts = cfg.firewall.tcpPorts;
@@ -101,6 +114,7 @@ in {
     };
 
     environment.systemPackages = with pkgs; [
+      dig
       speedtest-cli
       speedtest-go
       mtr
