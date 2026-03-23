@@ -5,7 +5,8 @@
   # user,
   lix,
   ...
-}: let
+}:
+let
   inherit (lib.modules) mkForce;
   # inherit (lib.strings) toLower;
   getPackage = lix.attrsets.resolution.package;
@@ -37,8 +38,9 @@
       default = pkgs.candy-icons;
     };
   };
-in {
-  _module.args = {inherit cursor icons;};
+in
+{
+  _module.args = { inherit cursor icons; };
   imports = lix.filesystem.importers.importAll ./.;
 
   gtk = {
@@ -50,7 +52,10 @@ in {
       inherit (cursor) package name size;
     };
     gtk3.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
-    gtk4.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
+    gtk4 = {
+      theme = null;
+      extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
+    };
   };
 
   home.pointerCursor = mkForce {
@@ -71,7 +76,7 @@ in {
       qt.enable = mkForce false;
       foot = {
         enable = true;
-        colors.enable = false; #? Stylix is using the deprecated [colors]
+        colors.enable = false; # ? Stylix is using the deprecated [colors]
         opacity.enable = false;
         # fonts.enable = false;
       };
