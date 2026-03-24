@@ -54,6 +54,7 @@ in
     gtk3.extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
     gtk4 = {
       theme = null;
+      # theme=config.gtk.theme;
       extraConfig.gtk-application-prefer-dark-theme = 0; # ← Force light
     };
   };
