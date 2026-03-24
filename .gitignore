@@ -21,4 +21,4 @@ Archive
 
 .vscode/
 !.envrc
-# !flake.lock
+!flake.lock
