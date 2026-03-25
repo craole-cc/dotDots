@@ -5,18 +5,21 @@
 }: let
   # inherit (icons.nixos) snowflake;
   inherit (host) stateVersion;
-  inherit (host.packages) allowUnstable;
-
-  branch = unstable:
-    if allowUnstable
-    then unstable
-    else stateVersion;
+  inherit (host.packages) unstable;
 
   core = {
-    channel = branch "unstable";
+    channel =
+      if unstable
+      then "unstable"
+      else stateVersion;
     # icon = icons.nixos.snowflake;
   };
-  home = branch "master";
+  home = {
+    channel =
+      if unstable
+      then "master"
+      else "release-${stateVersion}";
+  };
 in {
   search = {
     default = "duck";
@@ -97,7 +100,7 @@ in {
             params = [
               {
                 name = "release";
-                value = home;
+                value = home.channel;
               }
               {
                 name = "query";
