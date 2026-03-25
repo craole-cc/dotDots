@@ -35,6 +35,9 @@
         (import ./bookmarks.nix)
         (import ./containers.nix)
         (import ./search.nix {inherit host;})
+      ];
+      policies = mkMerge [
+        (import ./policies.nix {inherit lix;})
         (import ./extensions.nix {inherit lix;})
       ];
     };
