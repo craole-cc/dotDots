@@ -25,6 +25,11 @@
 
   mkTrue = description: mkEnableOption description // {default = true;};
   mkFalse = description: mkEnableOption description;
-  mkEnable = description: condition: mkEnableOption description // {default = condition;};
+  mkEnable = {
+    description,
+    condition ? true,
+  }:
+    mkEnableOption description
+    // {default = condition;};
 in
   __exports.internal // {_rootAliases = __exports.external;}

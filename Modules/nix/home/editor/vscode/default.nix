@@ -40,7 +40,10 @@
   };
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkEnable mod appCfg.enable;
+    enable = mkEnable {
+      description = mod;
+      condition = appCfg.enable;
+    };
     withExtensions = features.options;
   };
 
