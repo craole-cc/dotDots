@@ -16,7 +16,9 @@
   apps = user.applications or {};
   system = pkgs.stdenv.hostPlatform.system;
 
+  inherit (config.${top}.interface) displayProtocol;
   inherit (lib.modules) mkIf;
+  inherit (lib.lists) optionals;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) listOf package;
   inherit (lix.applications.resolution) editors browsers terminals launchers bars;
@@ -41,72 +43,75 @@
     inherit pkgs system inputs;
     appConfig = apps.bar or {};
   };
+  waylandPkgs = optionals (displayProtocol == "wayland") (with pkgs; [weston]);
 
-  defaultPackages = with pkgs; [
-    #~@ Nix
-    alejandra
-    nixfmt
-    cachix
-    nil
-    nixd
-    nix-index
-    nix-info
-    nix-output-monitor
-    nix-prefetch
-    nix-prefetch-docker
-    nix-prefetch-github
-    nix-prefetch-scripts
-    nvfetcher
+  defaultPackages = with pkgs;
+    [
+      #~@ Nix
+      alejandra
+      nixfmt
+      cachix
+      nil
+      nixd
+      nix-index
+      nix-info
+      nix-output-monitor
+      nix-prefetch
+      nix-prefetch-docker
+      nix-prefetch-github
+      nix-prefetch-scripts
+      nvfetcher
 
-    #~@ System
-    coreutils
-    uutils-coreutils-noprefix
-    findutils
-    gawk
-    getent
-    gnused
-    lshw
-    pciutils
-    usbutils
-    gnome-randr
-    wlr-randr
-    procs
+      #~@ System
+      coreutils
+      uutils-coreutils-noprefix
+      findutils
+      gawk
+      getent
+      gnused
+      lshw
+      pciutils
+      usbutils
+      gnome-randr
+      wlr-randr
+      procs
 
-    #~@ Files
-    dua
-    dust
-    eza
-    fd
-    fzf
-    lsd
-    ouch
-    p7zip
-    rsync
-    sad
-    trashy
+      #~@ Files
+      dua
+      dust
+      eza
+      fd
+      fzf
+      lsd
+      ouch
+      p7zip
+      rsync
+      sad
+      trashy
 
-    #~@ Network
-    curl
-    wget
-    gh
+      #~@ Network
+      curl
+      wget
+      gh
 
-    #~@ Dev
-    bat
-    gitui
-    helix
-    imagemagick
-    jql
-    qimgv
-    ripgrep
-    viu
+      #~@ Dev
+      bat
+      gitui
+      helix
+      imagemagick
+      jql
+      qimgv
+      ripgrep
+      viu
 
-    #~@ Shell
-    btop
-    fastfetch
-    fend
-    figlet
-    lolcat
-  ];
+      #~@ Shell
+      btop
+      fastfetch
+      fend
+      figlet
+      lolcat
+    ]
+    ++ waylandPkgs;
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkEnableOption mod // {default = true;};

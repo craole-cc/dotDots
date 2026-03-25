@@ -202,7 +202,7 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    # defaultSession = "plasma";
+    defaultSession = "hyprland-uwsm";
     # loginManager = "sddm";
     # desktopEnvironment = "cosmic";
     # windowManager = "hyprland";
