@@ -25,6 +25,7 @@
     hasPrinter = false;
     hasScanner = false;
     hasWebcam = false;
+    hasVideocam = false;
     dualBootWindows = false;
     hasDualBoot = false;
     hasNetwork = false;
@@ -77,6 +78,7 @@
       hasPrinter = isIn "printer" fun;
       hasScanner = isIn "scanner" fun;
       hasWebcam = isIn "webcam" fun;
+      hasVideoCam = isIn ["video" "webcam"] fun;
       dualBootWindows = isIn "dualboot-windows" fun;
       hasDualBoot = isIn dualBootValues fun;
       hasNetwork = host.devices.network or [] != [];

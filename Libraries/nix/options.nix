@@ -1,3 +1,12 @@
 {_, ...}: {
-  inherit (_.types.options) mkTrue mkFalse mkEnable;
+  inherit
+    (_.types.options)
+    mkTrue
+    mkFalse
+    mkEnable
+    mkIf
+    mkMerge
+    mkDefault
+    mkForce
+    ;
 }

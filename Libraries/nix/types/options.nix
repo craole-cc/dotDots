@@ -1,5 +1,6 @@
 {lib, ...}: let
   inherit (lib.options) mkEnableOption;
+  inherit (lib.modules) mkIf mkMerge mkDefault mkForce;
 
   __exports = {
     internal = {
@@ -7,13 +8,19 @@
         mkTrue
         mkFalse
         mkEnable
+        mkIf
+        mkMerge
+        mkDefault
+        mkForce
         ;
     };
-    external = {
-      mkEnableOptionTrue = mkTrue;
-      mkEnableOptionFalse = mkFalse;
-      mkEnableOption' = mkEnable;
-    };
+    external =
+      __exports.internal
+      // {
+        mkEnableOptionTrue = mkTrue;
+        mkEnableOptionFalse = mkFalse;
+        mkEnableOption' = mkEnable;
+      };
   };
 
   mkTrue = description: mkEnableOption description // {default = true;};
