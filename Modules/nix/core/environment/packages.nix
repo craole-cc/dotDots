@@ -136,5 +136,7 @@ in {
       ++ terminalPkgs
       ++ launcherPkgs
       ++ barPkgs;
+
+    programs.xwayland.enable = true;
   };
 }

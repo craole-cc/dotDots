@@ -16,12 +16,10 @@ in {
   };
 
   config = mkIf cfg.enable {
-    programs = {
-      ${mod} = {
-        enable = true;
-        lfs.enable = true;
-        prompt.enable = true;
-      };
+    programs.${mod} = {
+      enable = true;
+      lfs.enable = true;
+      prompt.enable = true;
     };
   };
 }

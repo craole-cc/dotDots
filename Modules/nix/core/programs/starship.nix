@@ -18,10 +18,8 @@ in {
   };
 
   config = mkIf cfg.enable {
-    programs = {
-      ${mod} = {
-        enable = true;
-      };
+    programs.${mod} = {
+      enable = true;
     };
   };
 }
