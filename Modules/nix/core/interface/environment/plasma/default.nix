@@ -9,7 +9,10 @@
   cfg = config.${top}.interface;
 in {
   config = mkIf (cfg.desktopEnvironment == "plasma") {
-    services.desktopManager.plasma6.enable = true;
+    services.desktopManager.plasma6 = {
+      enable = true;
+      enableQt5Integration = false;
+    };
     environment.systemPackages = with pkgs.kdePackages; [
       plasma-browser-integration
       kde-gtk-config
