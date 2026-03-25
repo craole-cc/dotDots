@@ -7,12 +7,12 @@
   dom = "programs";
   mod = "git";
   cfg = config.${top}.${dom}.${mod};
-  inherit (lix.options) mkTrue mkIf;
+  inherit (lix.types.options) mkTrue mkIf;
 in {
   options.${top}.${dom}.${mod} = {
-    enable = mkTrue "Git";
-    lfs = mkTrue "lfs";
-    prompt = mkTrue "prompt";
+    enable = mkTrue "Git distributed version control software system";
+    lfs = mkTrue "Large File Storage for Git";
+    prompt = mkTrue "Utility functions via `git-prompt.sh`";
   };
 
   config = mkIf cfg.enable {

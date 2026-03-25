@@ -5,9 +5,10 @@
 }: let
   inherit (lib.options) mkEnableOption mkOption mergeUniqueOption;
   inherit (lib.modules) mkIf mkMerge mkDefault mkForce;
-  inherit (lib.types) mkOptionType;
+  inherit (lib.types) mkOptionType str bool int float path;
+
   inherit (_.types.predicates) isString;
-  customTypes = _.types.check;
+  customTypes = _.types.checks;
 
   __exports = {
     internal = {
@@ -22,6 +23,8 @@
         mkOption
         mkTrue
         ;
+      mkOptionType = toOptionType;
+      mkType = toOptionType;
     };
     external =
       __exports.internal
@@ -33,36 +36,36 @@
   };
 
   /**
-      Bridges a custom `_.types` type into a `lib.types`-compatible option type
-      for use with `mkOption`. Accepts either a type attrset directly or a string
-      name resolved from `_.types`.
+  Bridges a `_.types.checks` type into a `lib.types`-compatible option type
+  for use with `mkOption`. Accepts either a type attrset directly or a string
+  name resolved from `_.types.checks`.
 
-      # Type
-      `toOptionType :: (CustomType | String) -> OptionType`
+  Primitive types are mapped to their `lib.types` equivalents to preserve
+  correct merge semantics. Constrained types fall back to `mkOptionType`
+  with `mergeUniqueOption`.
 
-      # Arguments
-      - `customTypeOrName`: A `_.types` attrset, or a string key into `_.types`.
+  Primitive mappings: `"str"` | `"string"` → `str`, `"bool"` → `bool`,
+  `"int"` → `int`, `"float"` → `float`, `"path"` → `path`.
 
-      # Examples
+  # Type
+  `toOptionType :: (CustomType | String) -> OptionType`
+
+  # Arguments
+  - `customTypeOrName`: A `_.types.checks` attrset, or a string key into `_.types.checks`.
+
+  # Examples
   ```nix
-      # Pass a type attrset directly
-      mkOption {
-        type = toOptionType _.types.port;
-      }
+    # Primitive via string — resolves to lib.types.str with correct merge
+    mkOption { type = toOptionType "str"; }
 
-      # Pass a string name — resolved from _.types
-      mkOption {
-        type = toOptionType "port";
-      }
+    # Primitive via attrset
+    mkOption { type = toOptionType _.types.checks.bool; }
 
-      # Works with constrained types too
-      mkOption {
-        type = toOptionType (_.types.intBetween 1 100);
-      }
+    # Constrained type via string
+    mkOption { type = toOptionType "port"; }
 
-      # Shorthand for simple scalars
-      mkOption { type = toOptionType "bool"; }
-      mkOption { type = toOptionType "str";  }
+    # Constrained type via attrset
+    mkOption { type = toOptionType (_.types.intBetween 1 100); }
   ```
   */
   toOptionType = customTypeOrName: let
@@ -70,13 +73,24 @@
       if isString customTypeOrName
       then customTypes.${customTypeOrName}
       else customTypeOrName;
-  in
-    mkOptionType {
-      name = customType.type;
-      description = customType.description or customType.type;
-      check = customType.check;
-      merge = mergeUniqueOption;
+    primitives = {
+      "string" = str;
+      "str" = str;
+      "bool" = bool;
+      "int" = int;
+      "float" = float;
+      "path" = path;
     };
+  in
+    if primitives ? ${customType.type}
+    then primitives.${customType.type}
+    else
+      mkOptionType {
+        name = customType.type;
+        description = customType.description or customType.type;
+        check = customType.check;
+        merge = mergeUniqueOption;
+      };
 
   /**
       Creates an enable option that defaults to `true`.

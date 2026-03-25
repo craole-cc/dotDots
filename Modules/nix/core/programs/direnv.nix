@@ -7,21 +7,21 @@
   dom = "programs";
   mod = "direnv";
   cfg = config.${top}.${dom}.${mod};
-  inherit (lix.options) mkTrue mkOption mkIf toOptionType;
+  inherit (lix.types.options) mkTrue mkOption mkIf mkType;
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue mod;
     silent = mkTrue "silent mode";
     loadDotenv = mkTrue "load .env files";
     format = mkOption {
-      type = toOptionType "str";
-      default = "-";
       description = "log format string";
+      default = "-";
+      type = mkType "str";
     };
     filter = mkOption {
-      type = toOptionType "str";
-      default = "^$";
       description = "log filter regex";
+      default = "^$";
+      type = mkType "str";
     };
   };
 
