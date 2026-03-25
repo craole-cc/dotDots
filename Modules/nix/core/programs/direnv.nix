@@ -12,7 +12,7 @@ in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue mod;
     silent = mkTrue "silent mode";
-    loadDotenv = mkTrue "load .env files";
+    dotenv = mkTrue "load .env files";
     format = mkOption {
       description = "log format string";
       default = "-";
@@ -27,12 +27,11 @@ in {
 
   config = mkIf cfg.enable {
     programs.${mod} = {
-      enable = true;
-      silent = cfg.silent;
+      inherit (cfg) enable silent;
       settings.global = {
         log_format = cfg.format;
         log_filter = cfg.filter;
-        load_dotenv = cfg.loadDotenv;
+        load_dotenv = cfg.dotenv;
       };
     };
   };

@@ -19,7 +19,7 @@ in {
 
   config = mkIf cfg.enable {
     programs.${mod} = {
-      enable = true;
+      inherit (cfg) enable;
     };
   };
 }

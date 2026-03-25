@@ -18,17 +18,15 @@ in {
       description = "Bourne Again Shell";
       condition = isIn "bash" ([shell] ++ (user.shells or []));
     };
-    # blesh = mkTrue "ble.sh";
-    # undistractMe = mkTrue "Undistract Me";
-    blesh = mkEnable {description = "ble.sh";};
-    undistractMe = mkEnable {description = "Undistract Me";};
+    blesh = mkTrue "ble.sh";
+    undistractMe = mkTrue "Undistract Me";
   };
 
   config = mkIf cfg.enable {
     programs.${mod} = {
-      enable = true;
-      blesh.enable = cfg.blesh.enable;
-      undistractMe.enable = cfg.undistractMe.enable;
+      inherit (cfg) enable;
+      blesh.enable = cfg.blesh;
+      undistractMe.enable = cfg.undistractMe;
     };
   };
 }

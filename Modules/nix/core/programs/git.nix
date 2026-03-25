@@ -11,15 +11,15 @@
 in {
   options.${top}.${dom}.${mod} = {
     enable = mkTrue "Git distributed version control software system";
-    lfs = mkTrue "Large File Storage for Git";
-    prompt = mkTrue "Utility functions via `git-prompt.sh`";
+    enableLFS = mkTrue "Large File Storage for Git";
+    enablePrompt = mkTrue "Utility functions via `git-prompt.sh`";
   };
 
   config = mkIf cfg.enable {
     programs.${mod} = {
-      enable = true;
-      lfs.enable = true;
-      prompt.enable = true;
+      inherit (cfg) enable;
+      lfs.enable = cfg.enableLFS;
+      prompt.enable = cfg.enablePrompt;
     };
   };
 }
