@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  host,
   lix,
   user,
   pkgs,
@@ -32,8 +33,9 @@
     extraProgramConfig = {
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
-        #   (import ./settings.nix {inherit lib;})
-        #   (import ./themes.nix)
+        (import ./containers.nix)
+        (import ./search.nix {inherit host;})
+        (import ./extensions.nix {inherit lix;})
       ];
     };
     debug = false;
