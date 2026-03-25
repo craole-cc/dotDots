@@ -23,8 +23,10 @@ in {
       };
       sddm = mkIf (cfg.displayManager == "sddm") {
         enable = true;
-        wayland.enable = cfg.displayProtocol == "wayland";
-        compositor = "weston";
+        wayland = {
+          enable = cfg.displayProtocol == "wayland";
+          compositor = "weston";
+        };
       };
       gdm = mkIf (cfg.displayManager == "gdm") {
         enable = true;
