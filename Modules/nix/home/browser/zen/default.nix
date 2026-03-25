@@ -1,37 +1,45 @@
 {
+  config,
   lib,
   lix,
   user,
-  config,
   pkgs,
-  tree,
+  # tree,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lix.applications.utilities) mkScriptWrapper;
   inherit (lix.applications.generators) userApplicationConfig;
+  inherit (lix.applications.utilities) mkScriptWrappers;
 
+  #~@ Script Wrappers
+  wrappers = mkScriptWrappers {
+    inherit pkgs;
+    scripts = let
+      # script = tree.store.lib.sh + "/applications/zen.sh";
+      script = ./wrapper.sh;
+    in {zen = script;};
+  };
+
+  #~@ Final Configuration Assembly
   cfg = userApplicationConfig {
     inherit user pkgs config;
-    name = "zen";
+    name = "zen-browser";
     kind = "browser";
-    resolutionHints = ["zen-browser" "zen-twilight"];
-    extraProgramConfig = mkMerge [
-      # (import ./editor.nix)
-      # (import ./keybindings.nix)
-      # (import ./languages.nix)
-      # (import ./themes.nix)
-    ];
+    customCommand = "feet";
+    resolutionHints = ["zen-browser" "zen" "zen twilight" "zen beta"];
+    requiresWayland = true;
+    extraPackages = wrappers;
+    extraProgramConfig = {
+      profiles.${user.name} = mkMerge [
+        (import ./bookmarks.nix)
+        #   (import ./settings.nix {inherit lib;})
+        #   (import ./themes.nix)
+      ];
+    };
     debug = false;
   };
-  # launcher = mkScriptWrapper {
-  #   inherit pkgs;
-  #   name = "zen";
-  #   # script = ./wrapper.sh;
-  #   script = tree.store.lib.sh + "/applications/zen.sh";
-  # };
 in {
   config = mkIf cfg.enable {
-    inherit (cfg) home programs;
+    inherit (cfg) programs home;
   };
 }
