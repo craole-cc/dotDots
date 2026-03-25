@@ -13,6 +13,7 @@
 
   inherit (config.${top}.interface) shellPrompt shell;
   inherit (lix.lists.predicates) isIn;
+  inherit (lix.options) mkTrue;
   inherit (lib.modules) mkIf;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool;
@@ -24,11 +25,7 @@ in {
       default = user.interface.keyboard.vimKeybinds or false;
       type = bool;
     };
-    virtualCamera = mkOption {
-      description = "Enable OBS virtual camera";
-      default = true;
-      type = bool;
-    };
+    obs = mkTrue "OBS" // {default = true;};
   };
 
   config = mkIf cfg.enable {
@@ -59,7 +56,7 @@ in {
 
       obs-studio = mkIf (isIn ["video" "webcam"] (host.functionalities or [])) {
         enable = true;
-        enableVirtualCamera = cfg.virtualCamera;
+        enableVirtualCamera = cfg.obs;
       };
 
       xwayland.enable = true;

@@ -377,7 +377,7 @@
     desktopEnvironment = base.desktopEnvironment;
     windowManager = base.windowManager;
     displayProtocolInput = base.displayProtocol;
-    displayManagerInput = base.displayManager;
+    # displayManagerInput = base.displayManager;
     desktopShellInput = base.desktopShell;
     notificationDaemonInput = base.notificationDaemon;
     fileManagerInput = base.fileManager;
@@ -386,6 +386,11 @@
 
     defaultDisplayProtocol = "wayland";
     defaultDisplayManager = "ly";
+
+    displayManagerInput =
+      if desktopEnvironment == "gnome"
+      then "gdm"
+      else base.displayManager;
 
     defaultSession =
       if base.defaultSession != null
