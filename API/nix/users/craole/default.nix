@@ -31,7 +31,7 @@
   ];
 
   interface = {
-    displayProtocol = "wayland";
+    # displayProtocol = "wayland";
     # desktopEnvironment = "cosmic";
     windowManager = "hyprland";
     bar = "caelestia";

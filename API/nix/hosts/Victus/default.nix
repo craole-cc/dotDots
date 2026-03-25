@@ -202,9 +202,9 @@ in {
   interface = {
     bootLoader = "systemd-boot";
     bootLoaderTimeout = 1;
-    defaultSession = "hyprland-uwsm";
+    # defaultSession = "hyprland-uwsm";
     # loginManager = "sddm";
-    # desktopEnvironment = "cosmic";
+    desktopEnvironment = "gnome";
     # windowManager = "hyprland";
     # displayProtocol = "wayland";
     keyboard = {
