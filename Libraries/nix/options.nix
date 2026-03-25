@@ -8,5 +8,8 @@
     mkMerge
     mkDefault
     mkForce
+    mkOption
     ;
+
+  inherit (_.types.checks) bool;
 }
