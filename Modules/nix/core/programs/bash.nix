@@ -18,8 +18,10 @@ in {
       description = "Bourne Again Shell";
       condition = isIn "bash" ([shell] ++ (user.shells or []));
     };
-    blesh = mkTrue "ble.sh";
-    undistractMe = mkTrue "Undistract Me";
+    # blesh = mkTrue "ble.sh";
+    # undistractMe = mkTrue "Undistract Me";
+    blesh = mkEnable {description = "ble.sh";};
+    undistractMe = mkEnable {description = "Undistract Me";};
   };
 
   config = mkIf cfg.enable {
