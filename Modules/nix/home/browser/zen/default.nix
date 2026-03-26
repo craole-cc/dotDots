@@ -16,10 +16,12 @@
 
   apps = user.applications or {};
   firefox = normalize (apps.browser.firefox or "");
+  primary = normalize (apps.browser.primary or "");
   variant =
     if (contains "twilight" firefox) || (contains "zen" firefox)
     then "twilight"
     else "beta";
+  isPrimary = primary != "" && (primary == firefox || (contains "zen" primary));
 
   #~@ Script Wrappers
   wrappers = mkScriptWrappers {
@@ -41,6 +43,7 @@
     extraPackages = wrappers;
     extraProgramConfig = mkForce {
       package = pkgs."zen-${variant}";
+      setAsDefaultBrowser = isPrimary;
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
         (import ./containers.nix)
