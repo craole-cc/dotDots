@@ -15,13 +15,14 @@
   inherit (lix.strings.predicates) contains;
 
   apps = user.applications or {};
-  firefox = normalize (apps.browser.firefox or "");
   primary = normalize (apps.browser.primary or "");
+  secondary = normalize (apps.browser.secondary or "");
+  isPrimary = primary != "" && (contains "zen" primary);
+  isSecondary = secondary != "" && (contains "zen" secondary);
   variant =
-    if (contains "twilight" firefox) || (contains "zen" firefox)
+    if contains "twilight" [primary secondary]
     then "twilight"
     else "beta";
-  isPrimary = primary != "" && (primary == firefox || (contains "zen" primary));
 
   #~@ Script Wrappers
   wrappers = mkScriptWrappers {
@@ -31,6 +32,25 @@
       script = ./wrapper.sh;
     in {zen = script;};
   };
+
+  enable = isPrimary || isSecondary;
+
+  programs.zen-browser = {
+    package = pkgs."zen-${variant}";
+    setAsDefaultBrowser = isPrimary;
+    profiles.${user.name} = mkMerge [
+      (import ./bookmarks.nix)
+      (import ./containers.nix)
+      (import ./search.nix {inherit host;})
+      (import ./settings.nix)
+    ];
+    policies = mkMerge [
+      (import ./policies.nix {inherit config;})
+      (import ./extensions.nix {inherit lix;})
+      (import ./preferences.nix {inherit lix;})
+    ];
+  };
+  home.packages = [wrappers];
 
   #~@ Final Configuration Assembly
   cfg = userApplicationConfig {
@@ -59,7 +79,7 @@
     debug = false;
   };
 in {
-  config = mkIf cfg.enable {
-    inherit (cfg) programs;
+  config = mkIf enable {
+    inherit enable programs home;
   };
 }
