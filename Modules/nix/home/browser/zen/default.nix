@@ -8,61 +8,26 @@
   # tree,
   ...
 }: let
-  inherit (lib.modules) mkIf mkMerge mkForce;
-  inherit (lix.applications.generators) userApplicationConfig;
-  inherit (lix.applications.utilities) mkScriptWrappers;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lix.strings.transform) normalize;
   inherit (lix.strings.predicates) contains;
 
-  apps = user.applications or {};
-  primary = normalize (apps.browser.primary or "");
-  secondary = normalize (apps.browser.secondary or "");
+  browser = user.applications.browser or {};
+  primary = normalize (browser.primary or "");
+  secondary = normalize (browser.secondary or "");
   isPrimary = primary != "" && (contains "zen" primary);
   isSecondary = secondary != "" && (contains "zen" secondary);
   variant =
     if contains "twilight" [primary secondary]
     then "twilight"
     else "beta";
-
-  #~@ Script Wrappers
-  wrappers = mkScriptWrappers {
-    inherit pkgs;
-    scripts = let
-      # script = tree.store.lib.sh + "/applications/zen.sh";
-      script = ./wrapper.sh;
-    in {zen = script;};
-  };
-
+  name = "zen-${variant}";
   enable = isPrimary || isSecondary;
-
-  programs.zen-browser = {
-    package = pkgs."zen-${variant}";
-    setAsDefaultBrowser = isPrimary;
-    profiles.${user.name} = mkMerge [
-      (import ./bookmarks.nix)
-      (import ./containers.nix)
-      (import ./search.nix {inherit host;})
-      (import ./settings.nix)
-    ];
-    policies = mkMerge [
-      (import ./policies.nix {inherit config;})
-      (import ./extensions.nix {inherit lix;})
-      (import ./preferences.nix {inherit lix;})
-    ];
-  };
-  home.packages = [wrappers];
-
-  #~@ Final Configuration Assembly
-  cfg = userApplicationConfig {
-    inherit user pkgs config;
-    name = "zen-browser";
-    kind = "browser";
-    # customCommand = "zen";
-    resolutionHints = ["zen-browser" "zen" "zen twilight" "zen beta"];
-    requiresWayland = false;
-    extraPackages = wrappers;
-    extraProgramConfig = mkForce {
-      package = pkgs."zen-${variant}";
+in {
+  config = mkIf enable {
+    programs.zen-browser = {
+      inherit enable;
+      package = pkgs."${name}";
       setAsDefaultBrowser = isPrimary;
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
@@ -76,10 +41,17 @@
         (import ./preferences.nix {inherit lix;})
       ];
     };
-    debug = false;
-  };
-in {
-  config = mkIf enable {
-    inherit enable programs home;
+
+    home = {
+      sessionVariables =
+        if isPrimary
+        then {
+          BROWSER = name;
+          BROWSER_PRI = name;
+        }
+        else if isSecondary
+        then {BROWSER_SEC = name;}
+        else {};
+    };
   };
 }
