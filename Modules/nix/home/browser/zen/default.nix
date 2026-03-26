@@ -43,7 +43,7 @@
         (import ./preferences.nix {inherit lix;})
       ];
     };
-    debug = false;
+    debug = true;
   };
 in {
   config = mkIf cfg.enable {
