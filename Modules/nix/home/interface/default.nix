@@ -2,7 +2,7 @@
 {
   pkgs,
   lib,
-  # user,
+  user,
   lix,
   ...
 }: let
@@ -80,6 +80,7 @@ in {
         opacity.enable = false;
         # fonts.enable = false;
       };
+      zen-browser = {profileNames = [user.name];};
     };
   };
 }
