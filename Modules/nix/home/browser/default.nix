@@ -2,7 +2,7 @@
   imports = [
     # ./chromium
     # ./edge
-    ./zen
+    # ./zen
     # ./firefox
   ];
 }

@@ -26,7 +26,7 @@
     inherit user pkgs config;
     name = "zen-browser";
     kind = "browser";
-    customCommand = "feet";
+    customCommand = "zen";
     resolutionHints = ["zen-browser" "zen" "zen twilight" "zen beta"];
     requiresWayland = true;
     extraPackages = wrappers;
