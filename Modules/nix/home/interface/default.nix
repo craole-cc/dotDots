@@ -5,8 +5,7 @@
   # user,
   lix,
   ...
-}:
-let
+}: let
   inherit (lib.modules) mkForce;
   # inherit (lib.strings) toLower;
   getPackage = lix.attrsets.resolution.package;
@@ -38,9 +37,8 @@ let
       default = pkgs.candy-icons;
     };
   };
-in
-{
-  _module.args = { inherit cursor icons; };
+in {
+  _module.args = {inherit cursor icons;};
   imports = lix.filesystem.importers.importAll ./.;
 
   gtk = {
@@ -72,6 +70,7 @@ in
   };
 
   stylix = {
+    enable = false;
     polarity = "light";
     targets = {
       qt.enable = mkForce false;
