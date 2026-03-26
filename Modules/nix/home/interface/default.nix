@@ -70,7 +70,7 @@ in {
   };
 
   stylix = {
-    enable = false;
+    # enable = false;
     polarity = "light";
     targets = {
       qt.enable = mkForce false;
