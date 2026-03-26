@@ -8,7 +8,7 @@
   # tree,
   ...
 }: let
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.utilities) mkScriptWrappers;
 
@@ -30,7 +30,7 @@
     resolutionHints = ["zen-browser" "zen" "zen twilight" "zen beta"];
     requiresWayland = true;
     extraPackages = wrappers;
-    extraProgramConfig = {
+    extraProgramConfig = mkForce {
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
         (import ./containers.nix)
