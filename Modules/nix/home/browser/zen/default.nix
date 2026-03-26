@@ -34,11 +34,13 @@
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
         (import ./containers.nix)
+        (import ./settings.nix)
         (import ./search.nix {inherit host;})
       ];
       policies = mkMerge [
-        (import ./policies.nix {inherit lix;})
+        (import ./policies.nix {inherit user;})
         (import ./extensions.nix {inherit lix;})
+        (import ./preferences.nix {inherit lix;})
       ];
     };
     debug = false;
