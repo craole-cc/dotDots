@@ -143,6 +143,7 @@
     };
     bar = normalizeName (attrByPath ["bar"] null apps);
     firefox = normalizeName (attrByPath ["browser" "firefox"] "" apps);
+
     tty = let
       t = attrByPath ["editor" "tty"] {} apps;
     in {
@@ -221,9 +222,7 @@
     };
   in
     mapAttrs (name: spec:
-      mkApp (
-        {inherit context name inputs modules;} // spec
-      ))
+      mkApp ({inherit context name inputs modules;} // spec))
     appSpecs;
 
   mkPrograms = {

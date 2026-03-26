@@ -81,7 +81,7 @@
   in {
     #> zen-browser — required by the zen-browser HM module which looks up pkgs.zen-twilight
     zen-twilight = zen.twilight or zen.default or null;
-    zen-beta = zen.beta     or zen.default or null;
+    zen-beta = zen.beta or zen.default or null;
   };
 
   #> Categorised — exposes all input package sets under pkgs.fromInputs.<name>

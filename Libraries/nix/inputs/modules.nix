@@ -46,7 +46,7 @@
     mods =
       if isEmpty modules
       then inputs.home or (mkAll {}).home
-      else modules;
+      else modules.home or modules;
   in
     mods.${name}.${variant} or {};
 

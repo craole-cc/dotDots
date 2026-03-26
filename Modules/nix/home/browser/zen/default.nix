@@ -11,6 +11,15 @@
   inherit (lib.modules) mkIf mkMerge mkForce;
   inherit (lix.applications.generators) userApplicationConfig;
   inherit (lix.applications.utilities) mkScriptWrappers;
+  inherit (lix.strings.transform) normalize;
+  inherit (lix.strings.predicates) contains;
+
+  apps = user.applications or {};
+  firefox = normalize (apps.browser.firefox or "");
+  variant =
+    if (contains "twilight" firefox) || (contains "zen" firefox)
+    then "twilight"
+    else "beta";
 
   #~@ Script Wrappers
   wrappers = mkScriptWrappers {
@@ -26,11 +35,12 @@
     inherit user pkgs config;
     name = "zen-browser";
     kind = "browser";
-    customCommand = "zen";
+    # customCommand = "zen";
     resolutionHints = ["zen-browser" "zen" "zen twilight" "zen beta"];
-    requiresWayland = true;
+    requiresWayland = false;
     extraPackages = wrappers;
     extraProgramConfig = mkForce {
+      package = pkgs."zen-${variant}";
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
         (import ./containers.nix)
@@ -43,7 +53,7 @@
         (import ./preferences.nix {inherit lix;})
       ];
     };
-    debug = true;
+    debug = false;
   };
 in {
   config = mkIf cfg.enable {

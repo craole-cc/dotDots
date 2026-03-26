@@ -71,7 +71,7 @@ in {
 
   stylix = {
     # enable = false;
-    polarity = "light";
+    # polarity = "light";
     targets = {
       qt.enable = mkForce false;
       foot = {

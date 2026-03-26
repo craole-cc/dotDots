@@ -70,37 +70,16 @@
 
         home = {inherit (nixosConfig.system) stateVersion;};
 
-        # imports =
-        #   (with inputsForHome; [
-        #     caelestia.module
-        #     catppuccin.module
-        #     dank-material-shell.module
-        #     noctalia-shell.module
-        #     nvf.module
-        #     plasma.module
-        #     zen-browser.module
-        #   ])
-        #   ++ [tree.store.mod.home]
-        #   ++ (user.imports or []);
         imports =
-          (
-            with inputsForHome;
-              [
-                caelestia.module
-                catppuccin.module
-                dank-material-shell.module
-                noctalia-shell.module
-                nvf.module
-                plasma.module
-              ]
-              # ++ lib.optional caelestia.isAllowed caelestia.module
-              # ++ lib.optional catppuccin.isAllowed catppuccin.module
-              # ++ lib.optional dank-material-shell.isAllowed dank-material-shell.module
-              # ++ lib.optional noctalia-shell.isAllowed noctalia-shell.module
-              # ++ lib.optional nvf.isAllowed nvf.module
-              # ++ lib.optional plasma.isAllowed plasma.module
-              ++ lib.optional zen-browser.isAllowed zen-browser.module
-          )
+          (with inputsForHome; [
+            caelestia.module
+            catppuccin.module
+            dank-material-shell.module
+            noctalia-shell.module
+            nvf.module
+            plasma.module
+            zen-browser.module
+          ])
           ++ [tree.store.mod.home]
           ++ (user.imports or []);
       }
