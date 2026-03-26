@@ -1,7 +1,7 @@
 {lix, ...}: let
-  inherit (lix.applications.firefox) mkLockedAttrs;
+  inherit (lix.attrsets.generators) locked;
 in {
-  Preferences = mkLockedAttrs {
+  Preferences = locked {
     ## Browser UI and Behavior
     "browser.aboutConfig.showWarning" = false;
     "browser.tabs.warnOnClose" = false;
