@@ -52,11 +52,6 @@
     rule = [
       "workspace special:${workspace} silent, match:class ^(${class})$"
       "suppress_event fullscreen maximize, match:class ^(${class})$"
-      # "workspace special:${workspace} silent, match:class ^(${class})$"
-      # "float on, match:class ^(${class})$"
-      # "border_size 0, match:class ^(${class})$"
-      # "size 100% ${size}, match:class ^(${class})$"
-      # "move 0% 0%, match:class ^(${class})$"
     ];
   };
 
