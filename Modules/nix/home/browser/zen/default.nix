@@ -1,34 +1,44 @@
 {
   config,
-  lib,
   host,
+  lib,
   lix,
-  user,
+  nixosConfig,
   pkgs,
-  # tree,
+  user,
   ...
 }: let
   inherit (lib.modules) mkIf mkMerge;
+  inherit (lix.lists.predicates) isIn;
   inherit (lix.strings.transform) normalize;
   inherit (lix.strings.predicates) contains;
 
-  browser = user.applications.browser or {};
-  primary = normalize (browser.primary or "");
-  secondary = normalize (browser.secondary or "");
-  isPrimary = primary != "" && (contains "zen" primary);
-  isSecondary = secondary != "" && (contains "zen" secondary);
+  name = "Zen";
+  opts = ["zen" "zen-twilight" "zen-beta" "twilight"];
+  apps = user.applications or {};
+  allowed = normalize (apps.allowed or []);
+  primary = normalize (apps.browser.primary or "");
+  secondary = normalize (apps.browser.secondary or "");
+  isPrimary = isIn opts primary;
+  isSecondary = isIn opts secondary;
+  isAllowed = isIn opts allowed;
   variant =
-    if contains "twilight" [primary secondary]
+    if contains "twilight" ([primary secondary] ++ allowed)
     then "twilight"
     else "beta";
-  name = "zen-${variant}";
-  enable = isPrimary || isSecondary;
+  darwinName = "${name}-${variant}";
+  pkgName = "zen-${variant}";
+
+  enable = isPrimary || isSecondary || isAllowed;
 in {
   config = mkIf enable {
     programs.zen-browser = {
-      inherit enable;
-      package = pkgs."${name}";
+      inherit enable name;
+      darwinAppName = darwinName;
+      wrappedPackageName = pkgName;
+      package = pkgs."${pkgName}";
       setAsDefaultBrowser = isPrimary;
+      enableGnomeExtensions = nixosConfig.services.desktopManager.gnome.enable;
       profiles.${user.name} = mkMerge [
         (import ./bookmarks.nix)
         (import ./containers.nix)
@@ -46,11 +56,11 @@ in {
       sessionVariables =
         if isPrimary
         then {
-          BROWSER = name;
-          BROWSER_PRI = name;
+          BROWSER = pkgName;
+          BROWSER_PRI = pkgName;
         }
         else if isSecondary
-        then {BROWSER_SEC = name;}
+        then {BROWSER_SEC = pkgName;}
         else {};
     };
   };
